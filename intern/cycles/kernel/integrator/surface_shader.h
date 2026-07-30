@@ -1225,7 +1225,7 @@ ccl_device Spectrum surface_shader_apply_holdout(ccl_private ShaderData *sd)
         }
       }
 
-      sd->runtime_flag &= (SR_TRANSPARENT | SR_BSDF);
+      sd->runtime_flag &= (~SR_CLOSURE_FLAG | SR_TRANSPARENT | SR_BSDF);
     }
     else {
       weight = one_spectrum();

@@ -161,7 +161,7 @@ ccl_device void subsurface_shader_data_setup(KernelGlobals kg, ccl_private Shade
   }
 
   /* Setup diffuse BSDF at the exit point. This replaces shader_eval_surface. */
-  sd->runtime_flag = 0;
+  sd->runtime_flag &= ~SR_CLOSURE_FLAG;
   sd->num_closure = 0;
   sd->num_closure_left = kernel_data.max_closures;
 

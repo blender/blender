@@ -904,30 +904,36 @@ struct ccl_align(16) ShaderClosure {
 enum ShaderRuntimeFlag {
   /* Set when ray hits backside of surface. */
   SR_BACKFACING = (1 << 0),
-  /* Shader has non-zero emission. */
-  SR_EMISSION = (1 << 1),
-  /* Shader has BSDF closure. */
-  SR_BSDF = (1 << 2),
-  /* Shader has non-singular BSDF closure. */
-  SR_BSDF_HAS_EVAL = (1 << 3),
-  /* Shader has BSSRDF closure. */
-  SR_BSSRDF = (1 << 4),
-  /* Shader has holdout closure. */
-  SR_HOLDOUT = (1 << 5),
-  /* Shader has non-zero volume extinction. */
-  SR_EXTINCTION = (1 << 6),
-  /* Shader has a volume phase (scatter) closure. */
-  SR_SCATTER = (1 << 7),
-  /* Shader is being evaluated in a volume. */
-  SR_IS_VOLUME_SHADER_EVAL = (1 << 8),
-  /* Shader has transparent closure. */
-  SR_TRANSPARENT = (1 << 9),
-  /* BSDF has a transmissive component. */
-  SR_BSDF_HAS_TRANSMISSION = (1 << 10),
-  /* Shader has ray portal closure. */
-  SR_RAY_PORTAL = (1 << 11),
   /* Shader evaluation needs to be redone, because of texture cache miss */
-  SR_CACHE_MISS = (1 << 12),
+  SR_CACHE_MISS = (1 << 1),
+
+  /* Shader has non-zero emission. */
+  SR_EMISSION = (1 << 2),
+  /* Shader has BSDF closure. */
+  SR_BSDF = (1 << 3),
+  /* Shader has non-singular BSDF closure. */
+  SR_BSDF_HAS_EVAL = (1 << 4),
+  /* Shader has BSSRDF closure. */
+  SR_BSSRDF = (1 << 5),
+  /* Shader has holdout closure. */
+  SR_HOLDOUT = (1 << 6),
+  /* Shader has non-zero volume extinction. */
+  SR_EXTINCTION = (1 << 7),
+  /* Shader has a volume phase (scatter) closure. */
+  SR_SCATTER = (1 << 8),
+  /* Shader is being evaluated in a volume. */
+  SR_IS_VOLUME_SHADER_EVAL = (1 << 9),
+  /* Shader has transparent closure. */
+  SR_TRANSPARENT = (1 << 10),
+  /* BSDF has a transmissive component. */
+  SR_BSDF_HAS_TRANSMISSION = (1 << 11),
+  /* Shader has ray portal closure. */
+  SR_RAY_PORTAL = (1 << 12),
+
+  /* Flags that indicate the presence of closures. */
+  SR_CLOSURE_FLAG = (SR_EMISSION | SR_BSDF | SR_BSDF_HAS_EVAL | SR_BSSRDF | SR_HOLDOUT |
+                     SR_EXTINCTION | SR_SCATTER | SR_IS_VOLUME_SHADER_EVAL | SR_TRANSPARENT |
+                     SR_BSDF_HAS_TRANSMISSION | SR_RAY_PORTAL)
 };
 
 /* Shader flags that are set after compiling the shaders. */
