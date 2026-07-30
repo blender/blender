@@ -264,9 +264,17 @@ const char *ColorSpaceManager::colorspace_interop_id(ustring colorspace)
                                    "srgb_p3d65_scene",
                                    "g22_adobergb_scene"};
       for (const char *interop_id : interop_ids) {
+#  if OCIO_VERSION_MAJOR == 2 && OCIO_VERSION_MINOR == 2
+        for (int i = 0; i < space->getNumAliases(); i++) {
+          if (strcmp(space->getAlias(i), interop_id) == 0) {
+            return interop_id;
+          }
+        }
+#  else
         if (space->hasAlias(interop_id)) {
           return interop_id;
         }
+#  endif
       }
     }
   }
@@ -299,9 +307,31 @@ ustring ColorSpaceManager::detect_known_colorspace(ustring colorspace,
       colorspace = file_colorspace;
     }
     else {
+#  if OCIO_VERSION_MAJOR == 2 && OCIO_VERSION_MINOR == 2
+      int default_float_id = 0;
+      int default_byte_id = 0;
+      int default_id = 0;
+      for (int i = 0; i < config->getNumRoles(); i++) {
+        const char *role_name = config->getRoleName(i);
+        if (strcmp(role_name, "default_float") == 0) {
+          default_float_id = i;
+        }
+        else if (strcmp(role_name, "default_byte") == 0) {
+          default_byte_id = i;
+        }
+        else if (strcmp(role_name, "default") == 0) {
+          default_id = i;
+        }
+      }
+      const char *role_colorspace = (is_float) ? config->getRoleColorSpace(default_float_id) :
+                                                 config->getRoleColorSpace(default_byte_id);
+      role_colorspace = (role_colorspace) ? role_colorspace :
+                                            config->getRoleColorSpace(default_id);
+#  else
       const char *role_colorspace = (is_float) ? config->getRoleColorSpace("default_float") :
                                                  config->getRoleColorSpace("default_byte");
       role_colorspace = (role_colorspace) ? role_colorspace : config->getRoleColorSpace("default");
+#  endif
       if (role_colorspace) {
         colorspace = role_colorspace;
       }
