@@ -823,7 +823,6 @@ void GLBackend::log_workarounds()
   CLOG_DEBUG(&LOG,
              "OpenGL Workarounds\n"
              " - [%c] Debug layer workaround\n"
-             " - [%c] Generate mipmap workaround\n"
              " - [%c] Unused framebuffer slot workaround\n"
              " - [%c] Depth blitting workaround\n"
              " - [%c] Stencil classify buffer workaround\n"
