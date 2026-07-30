@@ -638,7 +638,7 @@ add_bundled_libraries(hiprt/lib)
 if(HAIKU)
   list(APPEND PLATFORM_LINKLIBS -lnetwork)
 elseif(ANDROID)
-  list(APPEND PLATFORM_LINKFLAGS -Wl,--undefined-version)
+  # Pass.
 else()
   list(APPEND PLATFORM_LINKLIBS -lutil -lc -lm)
 endif()

@@ -4,9 +4,10 @@
  * with Luxrender, etc. */
 {
 global:
-  /* Essential symbols for the program to start and exit. */
-  _fini;
-  _init;
+  /* Essential symbols for the program to start and exit.
+   * Use wildcard to avoid linker error on Android where these symbols do not exist. */
+  _fini*;
+  _init*;
   /* Needed for Python modules to work. */
   Py*;
   _Py*;
