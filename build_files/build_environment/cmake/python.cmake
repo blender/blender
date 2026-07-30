@@ -156,6 +156,20 @@ else()
       --build=${BUILD_LLVM_TRIPLE}
       --host=${ANDROID_LLVM_TRIPLE}
       --with-build-python=${PYTHON_BINARY}
+      # Build `libpython` as a shared library, for extension modules to properly load as Android doesn't resolve
+      # their dangling symbols against a statically linked interpreter (even if RTLD_GLOBAL is used).
+      # See the Linkage section of PEP 738 (Android platform support) for more details.
+      --enable-shared
+    )
+
+    # Fix the `Libs:` line of the generate Python shared library pkg-config, without which Python's configure
+    # substitutes `@LIBPYTHON@` with the raw Makefile value (`$(BLDLIBRARY)`) which ends ups a broken linker argument
+    # for packages that depend on pkg-config, such as numpy's meson build. Fixed by substituing the expanded flag
+    # in the same way that `python-embed.pc.in` does it. TODO: Submit upstream.
+    set(PYTHON_PATCH
+      ${PATCH_CMD} -p 1 -d
+        ${BUILD_DIR}/python/src/external_python
+        -i ${PATCH_DIR}/python_android_pkgconfig.diff
     )
   else()
     # This is a particularly evil cross-compilation patch applied to the *HOST* Python for crossenv to properly emulate
