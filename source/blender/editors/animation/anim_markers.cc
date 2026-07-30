@@ -545,13 +545,8 @@ static int marker_get_icon_id(TimeMarker *marker, int flag)
   return (marker->flag & SELECT) ? ICON_MARKER_HLT : ICON_MARKER;
 }
 
-static void draw_marker(const uiFontStyle *fstyle,
-                        TimeMarker *marker,
-                        int xpos,
-                        int xmax,
-                        int flag,
-                        int region_height,
-                        bool is_elevated)
+static void draw_marker(
+    const uiFontStyle *fstyle, TimeMarker *marker, int xpos, int xmax, int flag, int region_height)
 {
   uchar line_color[4], text_color[4];
 
@@ -588,7 +583,7 @@ static void draw_marker(const uiFontStyle *fstyle,
   /* Adding an offset because the text is drawn downwards, but the icon is drawn upwards. */
   float name_y = UI_SCALE_FAC * (marker_y + 5);
   /* Give an offset to the marker that is elevated. */
-  if (is_elevated) {
+  if (marker->flag & TIME_MARKER_ELEVATED_TEMP) {
     name_y += UI_SCALE_FAC * 6;
   }
   draw_marker_name(text_color, fstyle, marker, xpos, xmax, name_y);
@@ -688,12 +683,11 @@ void ED_markers_draw(const bContext *C, int flag)
    * Set a temporary bit in the marker's flag to indicate that it should be elevated.
    * This bit will be flipped back at the end of this function.
    */
-  const int ELEVATED = 0x10;
   for (TimeMarker &marker : sorted_markers) {
     const bool is_elevated = (marker.flag & SELECT) ||
                              (cfra >= marker.frame &&
                               (marker.next == nullptr || cfra < marker.next->frame));
-    SET_FLAG_FROM_TEST(marker.flag, is_elevated, ELEVATED);
+    SET_FLAG_FROM_TEST(marker.flag, is_elevated, TIME_MARKER_ELEVATED_TEMP);
   }
 
   /* Separate loops in order to draw selected markers on top. */
@@ -705,10 +699,11 @@ void ED_markers_draw(const bContext *C, int flag)
    * marker itself.
    */
   for (TimeMarker &marker : sorted_markers) {
-    if ((marker.flag & ELEVATED) == 0 && marker_is_in_frame_range(&marker, clip_frame_range)) {
+    if ((marker.flag & TIME_MARKER_ELEVATED_TEMP) == 0 &&
+        marker_is_in_frame_range(&marker, clip_frame_range))
+    {
       const int xmax = marker.next ? marker.next->frame : clip_frame_range[1] + 1;
-      draw_marker(
-          fstyle, &marker, marker.frame * xscale, xmax * xscale, flag, region->winy, false);
+      draw_marker(fstyle, &marker, marker.frame * xscale, xmax * xscale, flag, region->winy);
     }
   }
 
@@ -716,7 +711,9 @@ void ED_markers_draw(const bContext *C, int flag)
   for (TimeMarker *marker = static_cast<TimeMarker *>(sorted_markers.first); marker != nullptr;) {
 
     /* Skip this marker if it is elevated or out of the frame range. */
-    if ((marker->flag & ELEVATED) == 0 || !marker_is_in_frame_range(marker, clip_frame_range)) {
+    if ((marker->flag & TIME_MARKER_ELEVATED_TEMP) == 0 ||
+        !marker_is_in_frame_range(marker, clip_frame_range))
+    {
       marker = marker->next;
       continue;
     }
@@ -724,19 +721,19 @@ void ED_markers_draw(const bContext *C, int flag)
     /* Find the next elevated marker. */
     /* We use the next marker to determine how wide our text should be */
     TimeMarker *next_marker = marker->next;
-    while (next_marker != nullptr && (next_marker->flag & ELEVATED) == 0) {
+    while (next_marker != nullptr && (next_marker->flag & TIME_MARKER_ELEVATED_TEMP) == 0) {
       next_marker = next_marker->next;
     }
 
     const int xmax = next_marker ? next_marker->frame : clip_frame_range[1] + 1;
-    draw_marker(fstyle, marker, marker->frame * xscale, xmax * xscale, flag, region->winy, true);
+    draw_marker(fstyle, marker, marker->frame * xscale, xmax * xscale, flag, region->winy);
 
     marker = next_marker;
   }
 
   /* Reset the elevated flag. */
   for (TimeMarker &marker : sorted_markers) {
-    marker.flag &= ~ELEVATED;
+    marker.flag &= ~TIME_MARKER_ELEVATED_TEMP;
   }
 
   sorted_markers.free_no_destruct();
