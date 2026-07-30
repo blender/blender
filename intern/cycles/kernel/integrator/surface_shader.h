@@ -183,7 +183,7 @@ ccl_device_inline void surface_shader_prepare_closures(KernelGlobals kg,
         }
       }
       if (!has_bsdf_closure) {
-        sd->flag &= ~SD_BSDF;
+        sd->runtime_flag &= ~SR_BSDF;
       }
     }
   }
