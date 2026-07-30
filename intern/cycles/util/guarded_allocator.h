@@ -6,8 +6,8 @@
 
 #include <cstddef>
 #include <cstdlib>
-#include <new>
 #include <memory>
+#include <new>
 
 #ifdef WITH_BLENDER_GUARDEDALLOC
 #  include "../../guardedalloc/MEM_guardedalloc.h"
