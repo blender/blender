@@ -350,7 +350,7 @@ void ED_markers_make_cfra_list(ListBaseT<TimeMarker> *markers,
   }
 }
 
-void ED_markers_deselect_all(ListBaseT<TimeMarker> *markers, int action)
+void ED_markers_select_all(ListBaseT<TimeMarker> *markers, int action)
 {
   if (action == SEL_TOGGLE) {
     action = ED_markers_get_first_selected(markers) ? SEL_DESELECT : SEL_SELECT;
@@ -863,10 +863,7 @@ static wmOperatorStatus ed_marker_add_exec(bContext *C, wmOperator * /*op*/)
     }
   }
 
-  /* deselect all */
-  for (TimeMarker &marker : *markers) {
-    marker.flag &= ~SELECT;
-  }
+  ED_markers_select_all(markers, SEL_DESELECT);
 
   TimeMarker *marker = MEM_new<TimeMarker>("TimeMarker");
   marker->flag = SELECT;
@@ -1371,13 +1368,6 @@ static void MARKER_OT_duplicate(wmOperatorType *ot)
  * Select/de-select time-marker at the current frame.
  * \{ */
 
-static void deselect_markers(ListBaseT<TimeMarker> *markers)
-{
-  for (TimeMarker &marker : *markers) {
-    marker.flag &= ~SELECT;
-  }
-}
-
 static void select_marker_camera_switch(
     bContext *C, bool camera, bool extend, ListBaseT<TimeMarker> *markers, int cfra)
 {
@@ -1461,8 +1451,7 @@ static wmOperatorStatus ed_marker_select(bContext *C,
       ret_val = OPERATOR_RUNNING_MODAL;
     }
     else {
-      /* Deselect all markers. */
-      deselect_markers(markers);
+      ED_markers_select_all(markers, SEL_DESELECT);
     }
   }
 
@@ -1640,7 +1629,7 @@ static wmOperatorStatus ed_marker_box_select_exec(bContext *C, wmOperator *op)
   const eSelectOp sel_op = eSelectOp(RNA_enum_get(op->ptr, "mode"));
   const bool select = (sel_op != SEL_OP_SUB);
   if (SEL_OP_USE_PRE_DESELECT(sel_op)) {
-    ED_markers_deselect_all(markers, SEL_DESELECT);
+    ED_markers_select_all(markers, SEL_DESELECT);
   }
 
   for (TimeMarker &marker : *markers) {
@@ -1698,7 +1687,7 @@ static wmOperatorStatus ed_marker_select_all_exec(bContext *C, wmOperator *op)
   }
 
   int action = RNA_enum_get(op->ptr, "action");
-  ED_markers_deselect_all(markers, action);
+  ED_markers_select_all(markers, action);
 
   WM_event_add_notifier(C, NC_SCENE | ND_MARKERS, nullptr);
   WM_event_add_notifier(C, NC_ANIMATION | ND_MARKERS, nullptr);
@@ -1758,7 +1747,7 @@ static wmOperatorStatus ed_marker_select_leftright_exec(bContext *C, wmOperator 
   }
 
   if (!extend) {
-    deselect_markers(markers);
+    ED_markers_select_all(markers, SEL_DESELECT);
   }
 
   const float cfra = BKE_scene_frame_get(scene);
@@ -2077,6 +2066,9 @@ static wmOperatorStatus ed_marker_camera_bind_exec(bContext *C, wmOperator *op)
 
   marker = ED_markers_find_nearest_marker(markers, scene->r.cfra);
   if ((marker == nullptr) || (marker->frame != scene->r.cfra)) {
+    /* Deselect other markers, so that the user can move the camera marker more easily. */
+    ED_markers_select_all(markers, SEL_DESELECT);
+
     marker = MEM_new<TimeMarker>("Camera TimeMarker");
     /* This marker's name is only displayed in the viewport statistics, animation editors use the
      * camera's name when bound to a marker. */
@@ -2084,13 +2076,6 @@ static wmOperatorStatus ed_marker_camera_bind_exec(bContext *C, wmOperator *op)
     marker->flag = SELECT;
     marker->frame = scene->r.cfra;
     BLI_addtail(markers, marker);
-
-    /* deselect all others, so that the user can then move it without problems */
-    for (TimeMarker &m : *markers) {
-      if (&m != marker) {
-        m.flag &= ~SELECT;
-      }
-    }
   }
 
   /* bind to the nominated camera (as set in operator props) */
