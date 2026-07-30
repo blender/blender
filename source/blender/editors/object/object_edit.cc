@@ -1376,7 +1376,7 @@ static wmOperatorStatus object_calculate_paths_exec(bContext *C, wmOperator *op)
     animviz_motionpath_compute_range(ob, scene);
 
     /* verify that the selected object has the appropriate settings */
-    animviz_verify_motionpaths(op->reports, scene, ob, nullptr);
+    bke::motionpath::ensure(op->reports, scene, ob, nullptr);
   }
   CTX_DATA_END;
 
@@ -1448,7 +1448,7 @@ static wmOperatorStatus object_update_paths_exec(bContext *C, wmOperator *op)
   CTX_DATA_BEGIN (C, Object *, ob, selected_editable_objects) {
     animviz_motionpath_compute_range(ob, scene);
     /* verify that the selected object has the appropriate settings */
-    animviz_verify_motionpaths(op->reports, scene, ob, nullptr);
+    bke::motionpath::ensure(op->reports, scene, ob, nullptr);
   }
   CTX_DATA_END;
 
@@ -1530,7 +1530,7 @@ void OBJECT_OT_paths_update_visible(wmOperatorType *ot)
 static void object_clear_mpath(Object *ob)
 {
   if (ob->mpath) {
-    animviz_free_motionpath(ob->mpath);
+    bke::motionpath::free(ob->mpath);
     ob->mpath = nullptr;
     ob->avs.path_bakeflag &= ~MOTIONPATH_BAKE_HAS_PATHS;
 

@@ -499,14 +499,14 @@ void do_versions_after_linking_520(FileData *fd, Main *bmain)
      * very expensive. */
     for (Object &object : bmain->objects) {
       if (object.mpath && (object.avs.path_bakeflag & MOTIONPATH_BAKE_CAMERA_SPACE)) {
-        animviz_free_motionpath(object.mpath);
+        bke::motionpath::free(object.mpath);
         object.mpath = nullptr;
         object.avs.path_bakeflag &= ~MOTIONPATH_BAKE_HAS_PATHS;
       }
       if (object.pose && (object.pose->avs.path_bakeflag & MOTIONPATH_BAKE_CAMERA_SPACE)) {
         for (bPoseChannel &pose_bone : object.pose->chanbase) {
           if (pose_bone.mpath) {
-            animviz_free_motionpath(pose_bone.mpath);
+            bke::motionpath::free(pose_bone.mpath);
             pose_bone.mpath = nullptr;
           }
         }

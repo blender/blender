@@ -186,7 +186,7 @@ static void object_init_data(ID *id)
   ob->runtime = MEM_new<bke::ObjectRuntime>(__func__);
 
   /* Animation Visualization defaults */
-  animviz_settings_init(&ob->avs);
+  bke::animviz::settings_init(&ob->avs);
 }
 
 static void object_copy_data(Main *bmain,
@@ -257,7 +257,7 @@ static void object_copy_data(Main *bmain,
   ob_dst->pc_ids.clear_no_delete();
 
   ob_dst->avs = ob_src->avs;
-  ob_dst->mpath = animviz_copy_motionpath(ob_src->mpath);
+  ob_dst->mpath = bke::motionpath::copy(ob_src->mpath);
 
   if ((flag & LIB_ID_COPY_NO_PREVIEW) == 0) {
     BKE_previewimg_id_copy(&ob_dst->id, &ob_src->id);
@@ -305,7 +305,7 @@ static void object_free_data(ID *id)
     ob->pose = nullptr;
   }
   if (ob->mpath) {
-    animviz_free_motionpath(ob->mpath);
+    bke::motionpath::free(ob->mpath);
     ob->mpath = nullptr;
   }
 
@@ -819,7 +819,7 @@ static void object_blend_write(BlendWriter *writer, ID *id, const void *id_addre
     BKE_pose_blend_write(writer, ob->pose);
   }
   BKE_constraint_blend_write(writer, &ob->constraints);
-  animviz_motionpath_blend_write(writer, ob->mpath);
+  bke::motionpath::blend_write(writer, ob->mpath);
 
   writer->write_struct(ob->pd);
   if (ob->soft) {
@@ -899,7 +899,7 @@ static void object_blend_read_data(BlendDataReader *reader, ID *id)
 
   BLO_read_struct(reader, bMotionPath, &ob->mpath);
   if (ob->mpath) {
-    animviz_motionpath_blend_read_data(reader, ob->mpath);
+    bke::motionpath::blend_read_data(reader, ob->mpath);
   }
 
   /* Only for versioning, vertex group names are now stored on object data. */
