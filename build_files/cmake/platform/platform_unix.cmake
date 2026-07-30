@@ -257,6 +257,11 @@ if(WITH_PYTHON)
   # find_package_wrapper(PythonLibsUnix REQUIRED)
   find_package(PythonLibsUnix REQUIRED)
 
+  if(ANDROID)
+    # On Android Python is built and shipped as a shared library (see build_files/build_environment/cmake/python.cmake).
+    add_bundled_libraries(python/lib)
+  endif()
+
   if(WITH_PYTHON_MODULE AND NOT WITH_INSTALL_PORTABLE)
     # Installing into `site-packages`, warn when installing into `./../lib/`
     # which script authors almost certainly don't want.
@@ -633,7 +638,6 @@ add_bundled_libraries(hiprt/lib)
 if(HAIKU)
   list(APPEND PLATFORM_LINKLIBS -lnetwork)
 elseif(ANDROID)
-  list(APPEND PLATFORM_LINKLIBS -llog)
   list(APPEND PLATFORM_LINKFLAGS -Wl,--undefined-version)
 else()
   list(APPEND PLATFORM_LINKLIBS -lutil -lc -lm)
