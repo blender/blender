@@ -839,7 +839,10 @@ bool GHOST_ContextVK::is_device_extension_enabled(blender::StringRefNull extensi
 /** \} */
 
 GHOST_ContextVK::GHOST_ContextVK(const GHOST_ContextParams &context_params,
-#ifdef _WIN32
+#if defined(WITH_GHOST_SDL)
+                                 /* SDL */
+                                 SDL_Window *sdl_window,
+#elif defined(_WIN32)
                                  HWND hwnd,
 #elif defined(__APPLE__)
                                  void *metal_layer,
@@ -853,14 +856,15 @@ GHOST_ContextVK::GHOST_ContextVK(const GHOST_ContextParams &context_params,
                                  wl_display *wayland_display,
                                  const GHOST_ContextVK_WindowInfo *wayland_window_info,
 #endif
-                                 /* SDL */
-                                 SDL_Window *sdl_window,
                                  int contextMajorVersion,
                                  int contextMinorVersion,
                                  const GHOST_GPUDevice &preferred_device,
                                  const GHOST_WindowHDRInfo *hdr_info)
     : GHOST_Context(context_params),
-#ifdef _WIN32
+#if defined(WITH_GHOST_SDL)
+      /* SDL */
+      sdl_window_(sdl_window),
+#elif defined(_WIN32)
       hwnd_(hwnd),
 #elif defined(__APPLE__)
       metal_layer_(metal_layer),
@@ -874,8 +878,6 @@ GHOST_ContextVK::GHOST_ContextVK(const GHOST_ContextParams &context_params,
       wayland_display_(wayland_display),
       wayland_window_info_(wayland_window_info),
 #endif
-      /* SDL */
-      sdl_window_(sdl_window),
       context_major_version_(contextMajorVersion),
       context_minor_version_(contextMinorVersion),
       preferred_device_(preferred_device),
@@ -1665,7 +1667,7 @@ GHOST_TSuccess GHOST_ContextVK::destroySwapchain()
   return GHOST_kSuccess;
 }
 
-std::vector<const char*> GHOST_ContextVK::getPlatformSpecificSurfaceExtensions() const
+std::vector<const char *> GHOST_ContextVK::getPlatformSpecificSurfaceExtensions() const
 {
   std::vector<const char *> extensions;
 #if defined(WITH_GHOST_SDL)
@@ -1759,7 +1761,7 @@ GHOST_TSuccess GHOST_ContextVK::initializeDrawingContext()
       const std::vector<const char *> surface_extensions = getPlatformSpecificSurfaceExtensions();
       instance_vk.extensions.enable(VK_KHR_SURFACE_EXTENSION_NAME);
 
-      for (const char *extension: surface_extensions) {
+      for (const char *extension : surface_extensions) {
         if (!instance_vk.extensions.is_enabled(extension)) {
           instance_vk.extensions.enable(extension);
         }

@@ -416,7 +416,6 @@ GHOST_IContext *GHOST_SystemX11::createOffscreenContext(GHOST_GPUSettings gpu_se
                                                    nullptr,
                                                    nullptr,
                                                    nullptr,
-                                                   nullptr,
                                                    1,
                                                    2,
                                                    gpu_settings.preferred_device);

@@ -14,7 +14,10 @@
 
 #include "GHOST_Context.hh"
 
-#ifdef _WIN32
+#if defined(WITH_GHOST_SDL)
+/* Required to be first as other platforms defines would take precedent otherwise. */
+struct SDL_Window; /* Avoid pulling in the full SDL3 headers. */
+#elif defined(_WIN32)
 #  include "GHOST_SystemWin32.hh"
 #elif defined(__APPLE__)
 #  include "GHOST_SystemCocoa.hh"
@@ -33,9 +36,6 @@
 #    define wl_display void
 #  endif
 #endif
-
-/* Avoid pulling in the full <SDL3/SDL3.h> header. */
-struct SDL_Window;
 
 #include <map>
 #include <optional>
@@ -113,7 +113,10 @@ class GHOST_ContextVK : public GHOST_Context {
    * Constructor.
    */
   GHOST_ContextVK(const GHOST_ContextParams &context_params,
-#ifdef _WIN32
+#if defined(WITH_GHOST_SDL)
+                  /* SDL */
+                  SDL_Window *sdl_window,
+#elif defined(_WIN32)
                   HWND hwnd,
 #elif defined(__APPLE__)
                   /* FIXME CAMetalLayer but have issue with linking. */
@@ -128,8 +131,6 @@ class GHOST_ContextVK : public GHOST_Context {
                   wl_display *wayland_display,
                   const GHOST_ContextVK_WindowInfo *wayland_window_info,
 #endif
-                  /* SDL */
-                  SDL_Window *sdl_window,
                   int contextMajorVersion,
                   int contextMinorVersion,
                   const GHOST_GPUDevice &preferred_device,
@@ -246,7 +247,10 @@ class GHOST_ContextVK : public GHOST_Context {
   static bool is_device_extension_enabled(blender::StringRefNull extension_name);
 
  private:
-#ifdef _WIN32
+#if defined(WITH_GHOST_SDL)
+  /* SDL */
+  SDL_Window *sdl_window_;
+#elif defined(_WIN32)
   HWND hwnd_;
 #elif defined(__APPLE__)
   /* Is CAMetalLayer* */
@@ -261,9 +265,6 @@ class GHOST_ContextVK : public GHOST_Context {
   wl_display *wayland_display_;
   const GHOST_ContextVK_WindowInfo *wayland_window_info_;
 #endif
-
-  /* SDL */
-  SDL_Window *sdl_window_;
 
   const int context_major_version_;
   const int context_minor_version_;
