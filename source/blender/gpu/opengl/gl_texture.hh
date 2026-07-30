@@ -81,7 +81,6 @@ class GLTexture : public Texture {
   void copy_to(Texture *dst, IndexRange mip_levels) override;
   void clear(const double4 data) override;
   void swizzle_set(const char swizzle_mask[4]) override;
-  void mip_range_set(int min, int max) override;
   void read(int mip, eGPUDataFormat type, void *data) override;
 
   void check_feedback_loop();
@@ -110,13 +109,11 @@ class GLTexture : public Texture {
   /** Return true on success. */
   bool init_internal(VertBuf *vbo) override;
   /** Return true on success. */
-  bool init_internal(gpu::Texture *src,
-                     int mip_offset,
-                     int layer_offset,
-                     bool use_stencil) override;
+  bool init_internal(gpu::Texture *src, bool use_stencil) override;
 
  private:
   bool proxy_check(int mip);
+  void mip_range_set(int min, int max);
   void stencil_texture_mode_set(bool use_stencil);
   void update_sub_direct_state_access(
       int mip, int offset[3], int extent[3], GLenum gl_format, GLenum gl_type, const void *data);
