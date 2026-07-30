@@ -3397,38 +3397,56 @@ void SEQUENCER_OT_swap(wmOperatorType *ot)
 /** \name Set Render Size Operator
  * \{ */
 
+static std::optional<int2> strip_source_size_get(const Scene *scene, const Strip *strip)
+{
+  switch (strip->type) {
+    case STRIP_TYPE_IMAGE: {
+      const StripElem *se = seq::render_give_stripelem(scene, strip, scene->r.cfra);
+      if (se == nullptr) {
+        return std::nullopt;
+      }
+      return int2(se->orig_width, se->orig_height);
+    }
+    case STRIP_TYPE_MOVIE: {
+      const StripElem *se = strip->data->stripdata;
+      return int2(se->orig_width, se->orig_height);
+    }
+    case STRIP_TYPE_SCENE:
+      if (strip->scene == nullptr) {
+        return std::nullopt;
+      }
+      return int2(strip->scene->r.xsch, strip->scene->r.ysch);
+    case STRIP_TYPE_COLOR: {
+      const SolidColorVars *cv = static_cast<const SolidColorVars *>(strip->effectdata);
+      return int2(cv->width, cv->height);
+    }
+    default:
+      return std::nullopt;
+  }
+}
+
 static wmOperatorStatus sequencer_rendersize_exec(bContext *C, wmOperator * /*op*/)
 {
   Scene *scene = CTX_data_sequencer_scene(C);
   Strip *active_strip = seq::select_active_get(scene);
-  StripElem *se = nullptr;
 
   if (active_strip == nullptr || active_strip->data == nullptr) {
     return OPERATOR_CANCELLED;
   }
 
-  switch (active_strip->type) {
-    case STRIP_TYPE_IMAGE:
-      se = seq::render_give_stripelem(scene, active_strip, scene->r.cfra);
-      break;
-    case STRIP_TYPE_MOVIE:
-      se = active_strip->data->stripdata;
-      break;
-    default:
-      return OPERATOR_CANCELLED;
-  }
+  std::optional<int2> size = strip_source_size_get(scene, active_strip);
 
-  if (se == nullptr) {
+  if (!size) {
     return OPERATOR_CANCELLED;
   }
 
   /* Prevent setting the render size if values aren't initialized. */
-  if (se->orig_width <= 0 || se->orig_height <= 0) {
+  if (size->x <= 0 || size->y <= 0) {
     return OPERATOR_CANCELLED;
   }
 
-  scene->r.xsch = se->orig_width;
-  scene->r.ysch = se->orig_height;
+  scene->r.xsch = size->x;
+  scene->r.ysch = size->y;
 
   active_strip->data->transform->scale_x = active_strip->data->transform->scale_y = 1.0f;
   active_strip->data->transform->xofs = active_strip->data->transform->yofs = 0.0f;
