@@ -295,7 +295,7 @@ class GHOST_ContextVK : public GHOST_Context {
   std::vector<VkFence> fence_pile_;
   std::map<VkSwapchainKHR, std::vector<VkFence>> present_fences_;
 
-  const char *getPlatformSpecificSurfaceExtension() const;
+  std::vector<const char *> getPlatformSpecificSurfaceExtensions() const;
   GHOST_TSuccess recreateSwapchain(bool use_hdr_swapchain);
   GHOST_TSuccess initializeFrameData();
   GHOST_TSuccess destroySwapchain();

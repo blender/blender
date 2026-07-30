@@ -1665,29 +1665,37 @@ GHOST_TSuccess GHOST_ContextVK::destroySwapchain()
   return GHOST_kSuccess;
 }
 
-const char *GHOST_ContextVK::getPlatformSpecificSurfaceExtension() const
+std::vector<const char*> GHOST_ContextVK::getPlatformSpecificSurfaceExtensions() const
 {
-#ifdef _WIN32
-  return VK_KHR_WIN32_SURFACE_EXTENSION_NAME;
+  std::vector<const char *> extensions;
+#if defined(WITH_GHOST_SDL)
+  /* SDL provides the set of instance extensions its window backend requires. */
+  Uint32 sdl_extension_count = 0;
+  const char *const *sdl_extensions = SDL_Vulkan_GetInstanceExtensions(&sdl_extension_count);
+  for (Uint32 i = 0; i < sdl_extension_count; i++) {
+    extensions.push_back(sdl_extensions[i]);
+  }
+#elif defined(_WIN32)
+  extensions.push_back(VK_KHR_WIN32_SURFACE_EXTENSION_NAME);
 #elif defined(__APPLE__)
-  return VK_EXT_METAL_SURFACE_EXTENSION_NAME;
+  extensions.push_back(VK_EXT_METAL_SURFACE_EXTENSION_NAME);
 #else /* UNIX/Linux */
   switch (platform_) {
 #  ifdef WITH_GHOST_X11
     case GHOST_kVulkanPlatformX11:
-      return VK_KHR_XLIB_SURFACE_EXTENSION_NAME;
+      extensions.push_back(VK_KHR_XLIB_SURFACE_EXTENSION_NAME);
       break;
 #  endif
 #  ifdef WITH_GHOST_WAYLAND
     case GHOST_kVulkanPlatformWayland:
-      return VK_KHR_WAYLAND_SURFACE_EXTENSION_NAME;
+      extensions.push_back(VK_KHR_WAYLAND_SURFACE_EXTENSION_NAME);
       break;
 #  endif
     case GHOST_kVulkanPlatformHeadless:
       break;
   }
 #endif
-  return nullptr;
+  return extensions;
 }
 
 GHOST_TSuccess GHOST_ContextVK::initializeDrawingContext()
@@ -1748,19 +1756,14 @@ GHOST_TSuccess GHOST_ContextVK::initializeDrawingContext()
 #endif
 
     if (use_window_surface) {
+      const std::vector<const char *> surface_extensions = getPlatformSpecificSurfaceExtensions();
       instance_vk.extensions.enable(VK_KHR_SURFACE_EXTENSION_NAME);
-#if defined(WITH_GHOST_SDL)
-      /* SDL provides the set of instance extensions its window backend requires. */
-      Uint32 sdl_extension_count = 0;
-      const char *const *sdl_extensions = SDL_Vulkan_GetInstanceExtensions(&sdl_extension_count);
-      for (Uint32 i = 0; i < sdl_extension_count; i++) {
-        if (!instance_vk.extensions.is_enabled(sdl_extensions[i])) {
-          instance_vk.extensions.enable(sdl_extensions[i]);
+
+      for (const char *extension: surface_extensions) {
+        if (!instance_vk.extensions.is_enabled(extension)) {
+          instance_vk.extensions.enable(extension);
         }
       }
-#else
-      instance_vk.extensions.enable(getPlatformSpecificSurfaceExtension());
-#endif
       /* X11 doesn't use the correct swapchain offset, flipping can squash the first frames. */
       const bool use_vk_ext_swapchain_maintenance1 =
 #ifdef WITH_GHOST_X11
