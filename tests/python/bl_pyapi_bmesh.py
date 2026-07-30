@@ -451,6 +451,48 @@ class TestBMeshUVSelectSimple(unittest.TestCase):
         # Nothing should be selected because the mesh is hidden.
         self.assertEqual(bm_loop_select_count_vert_edge_face(bm), ((0, 0, 0), (0, 0, 0)))
 
+    def test_uv_select_sync_to_mesh_face_mode(self):
+        # In face mode, the UV face selection is the only source for the mesh face selection.
+        # A 1:1 selection match is expected, see: #162004.
+
+        bm = bmesh.new()
+        uv_layer = bm.loops.layers.uv.new()
+
+        # A 3x3 grid of quads, so the center face is entirely surrounded.
+        bmesh.ops.create_grid(bm, x_segments=3, y_segments=3, size=2.0)
+        bm_uv_layer_from_coords(bm, uv_layer)
+        bm.select_mode = {'FACE'}
+        # Needed for methods that act on UV select.
+        bm.uv_select_sync_valid = True
+
+        # The center face is the only one with all it's edges shared with other faces.
+        faces_center = [f for f in bm.faces if all(len(e.link_faces) == 2 for e in f.edges)]
+        self.assertEqual(len(faces_center), 1)
+        face_center = faces_center[0]
+        del faces_center
+
+        # Select everything.
+        bm.uv_select_foreach_set(True, faces=bm.faces)
+        bm.uv_select_sync_to_mesh()
+        self.assertEqual(bm_loop_select_count_vert_edge_face(bm), ((36, 36, 9), (16, 24, 9)))
+        self.assertEqual(bm_uv_select_check_non_zero(bm, sync=True, flush=True, contiguous=True), {})
+
+        # De-select the center face, it's UV vertices & edges stay selected via the surrounding faces.
+        face_center.uv_select = False
+        bm.uv_select_sync_to_mesh()
+        self.assertFalse(face_center.select)
+        self.assertEqual(bm_loop_select_count_vert_edge_face(bm), ((36, 36, 8), (16, 24, 8)))
+        self.assertEqual(bm_uv_select_check_non_zero(bm, sync=True, flush=True, contiguous=True), {})
+
+        # Syncing back must round-trip, leaving the UV selection unchanged.
+        # Selecting the mesh face flushed back to the UV's, re-selecting the face the user de-selected.
+        bm.uv_select_sync_from_mesh()
+        self.assertFalse(face_center.uv_select)
+        self.assertEqual(bm_loop_select_count_vert_edge_face(bm), ((36, 36, 8), (16, 24, 8)))
+        self.assertEqual(bm_uv_select_check_non_zero(bm, sync=True, flush=True, contiguous=True), {})
+
+        bm.free()
+
     def test_uv_select_foreach_set(self):
         # Select UV's directly, similar to selecting in the UV editor.
         bm = bmesh.new()
@@ -804,9 +846,6 @@ class TestBMeshOperators(unittest.TestCase):
                     self.assertAlmostEqual(total_length, 651.346448, places=4)
 
                 unique_coords_pair[do_dupli] = {v.co[:] for v in bm.verts}
-
-                if not do_dupli:
-                    save_to_blend_file_for_testing(bm)
 
                 bm.free()
 

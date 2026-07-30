@@ -103,10 +103,22 @@ static void wm_xr_session_controller_data_free(wmXrSessionState *state)
 
 static void wm_xr_session_viewfinder_data_free(wmXrSessionState *state)
 {
-  BKE_id_free(nullptr, id_cast<ID *>(state->viewfinder.render_cam_data_id));
+  if (state->viewfinder.render_cam_data_id != nullptr) {
+    BKE_id_free(nullptr, id_cast<ID *>(state->viewfinder.render_cam_data_id));
+    state->viewfinder.render_cam_data_id = nullptr;
+  }
+
+  if (state->viewfinder.offscreen != nullptr) {
+    GPU_offscreen_free(state->viewfinder.offscreen);
+    state->viewfinder.offscreen = nullptr;
+  }
+
+  if (state->viewfinder.viewport != nullptr) {
+    GPU_viewport_free(state->viewfinder.viewport);
+    state->viewfinder.viewport = nullptr;
+  }
+
   GPU_TEXTURE_FREE_SAFE(state->viewfinder.backside_logo_texture);
-  GPU_offscreen_free(state->viewfinder.offscreen);
-  GPU_viewport_free(state->viewfinder.viewport);
 }
 
 void wm_xr_session_data_free(wmXrSessionState *state)

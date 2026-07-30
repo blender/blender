@@ -178,7 +178,7 @@ View3DCameraControl *ED_view3d_cameracontrol_acquire(Depsgraph *depsgraph,
     /* Done with correcting for the dist */
   }
 
-  ED_view3d_to_m4(vctrl->view_mat_prev, rv3d->ofs, rv3d->viewquat, rv3d->dist);
+  ED_view3d_to_m4(vctrl->view_mat_prev, rv3d->ofs, rv3d->viewquat, rv3d->dist, rv3d->camroll);
 
   return vctrl;
 }
@@ -226,7 +226,7 @@ static bool object_apply_mat4_with_protect(
       mul_m4_m4m4(diff_mat, obmat_protect, obmat_noprotect_inv);
 
       mul_m4_m4m4(view_mat_protect, diff_mat, view_mat);
-      ED_view3d_from_m4(view_mat_protect, rv3d->ofs, rv3d->viewquat, &rv3d->dist);
+      ED_view3d_from_m4(view_mat_protect, rv3d->ofs, rv3d->viewquat, &rv3d->dist, 0.0f);
       view_changed = true;
     }
   }
@@ -249,7 +249,7 @@ void ED_view3d_cameracontrol_update(View3DCameraControl *vctrl, /* args for keyf
   ID *id_key;
 
   float view_mat[4][4];
-  ED_view3d_to_m4(view_mat, rv3d->ofs, rv3d->viewquat, rv3d->dist);
+  ED_view3d_to_m4(view_mat, rv3d->ofs, rv3d->viewquat, rv3d->dist, rv3d->camroll);
 
   /* transform the parent or the camera? */
   if (vctrl->root_parent) {
@@ -265,7 +265,7 @@ void ED_view3d_cameracontrol_update(View3DCameraControl *vctrl, /* args for keyf
 
     if (object_apply_mat4_with_protect(vctrl->root_parent, parent_mat, false, rv3d, view_mat)) {
       /* Calculate again since the view locking changes the matrix. */
-      ED_view3d_to_m4(view_mat, rv3d->ofs, rv3d->viewquat, rv3d->dist);
+      ED_view3d_to_m4(view_mat, rv3d->ofs, rv3d->viewquat, rv3d->dist, rv3d->camroll);
     }
 
     ob_update = v3d->camera->parent;

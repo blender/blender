@@ -96,7 +96,6 @@ std::optional<int2> sequencer_text_editing_cursor_region_xy_get(const Scene *sce
         co += float2(0.0f, float(runtime->font_descender));
         co += float2(-scene->r.xsch / 2.0f, -scene->r.ysch / 2.0f);
         co = math::transform_point(seq::image_transform_matrix_get(scene, strip), co);
-        co.x *= scene->r.xasp / scene->r.yasp;
 
         int2 r;
         ui::view2d_view_to_region(&region->v2d, co.x, co.y, &r.x, &r.y);

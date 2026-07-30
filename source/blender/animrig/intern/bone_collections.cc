@@ -20,9 +20,12 @@
 #include "MEM_guardedalloc.h"
 
 #include "BKE_animsys.hh"
+#include "BKE_global.hh"
 #include "BKE_idprop.hh"
 #include "BKE_lib_id.hh"
 #include "BKE_lib_override.hh"
+
+#include "RNA_path.hh"
 
 #include "ANIM_armature_iter.hh"
 #include "ANIM_bone_collections.hh"
@@ -585,7 +588,10 @@ bool ANIM_armature_bonecoll_move(bArmature *armature, BoneCollection *bcoll, con
   return true;
 }
 
-void ANIM_armature_bonecoll_name_set(bArmature *armature, BoneCollection *bcoll, const char *name)
+void ANIM_armature_bonecoll_name_set(Main &bmain,
+                                     bArmature *armature,
+                                     BoneCollection *bcoll,
+                                     const char *name)
 {
   char old_name[sizeof(bcoll->name)];
 
@@ -604,8 +610,19 @@ void ANIM_armature_bonecoll_name_set(bArmature *armature, BoneCollection *bcoll,
 
   /* Bone collections can be reached via .collections (4.0+) and .collections_all (4.1+).
    * Animation data from 4.0 should have been versioned to only use `.collections_all`. */
-  BKE_animdata_fix_paths_rename_all(&armature->id, "collections", old_name, bcoll->name);
-  BKE_animdata_fix_paths_rename_all(&armature->id, "collections_all", old_name, bcoll->name);
+  const DriverMap driver_map = BKE_animdata_build_driver_target_map(bmain);
+  BKE_animdata_fix_paths(armature->id,
+                         "collections",
+                         RNA_path_name_to_infix(old_name),
+                         RNA_path_name_to_infix(bcoll->name),
+                         /*verify_paths=*/true,
+                         driver_map);
+  BKE_animdata_fix_paths(armature->id,
+                         "collections_all",
+                         RNA_path_name_to_infix(old_name),
+                         RNA_path_name_to_infix(bcoll->name),
+                         /*verify_paths=*/true,
+                         driver_map);
 }
 
 void ANIM_armature_bonecoll_remove_from_index(bArmature *armature, int index)

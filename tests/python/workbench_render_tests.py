@@ -37,9 +37,16 @@ BLOCKLIST_AMD_VK = [
     ".*"
 ]
 
+BLOCKLIST_NON_RT = [
+    "shadows_rt.blend",
+]
+
 
 def setup():
     import bpy
+
+    # The setting will be ignored if the system/backend doesn't support ray queries.
+    bpy.context.preferences.system.use_rt_shadows = not bpy.context.scene.get("Workbench_disable_rt", False)
 
     for scene in bpy.data.scenes:
         if scene.get("Workbench_skip_setup", False):
@@ -113,10 +120,15 @@ def main():
     if args.gpu_backend == "vulkan":
         blocklist += BLOCKLIST_VULKAN
 
-    gpu_vendor = render_report.get_gpu_device_vendor(args.blender, args.gpu_backend)
+    gpu_info = render_report.get_gpu_device_info(args.blender, args.gpu_backend)
+    gpu_vendor = gpu_info["DEVICE_TYPE"]
+
     if os.getenv("BLENDER_TEST_IGNORE_VENDOR_BLOCKLIST") is None:
         if gpu_vendor == "AMD" and args.gpu_backend == "vulkan":
             blocklist += BLOCKLIST_AMD_VK
+
+    if not gpu_info["RAY_QUERY_SUPPORT"]:
+        blocklist += BLOCKLIST_NON_RT
 
     report = WorkbenchReport("Workbench", args.outdir, args.oiiotool, variation=args.gpu_backend, blocklist=blocklist)
     if args.gpu_backend == "vulkan":

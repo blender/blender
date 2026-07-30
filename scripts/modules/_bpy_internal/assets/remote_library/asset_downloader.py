@@ -71,6 +71,8 @@ def download_asset_file(
             asset_library_local_path,
             reporter=AssetReporter(asset_library_url=asset_library_url),
             on_queue_empty_callback=on_asset_download_queue_empty,
+            queue_side=http_dl.QueueSide.BACK,  # FIFO queue.
+            num_parallel_downloads=1,
         )
         downloader.start()
         _asset_downloaders[asset_library_url] = downloader
@@ -138,6 +140,8 @@ def download_preview(
             asset_library_local_path,
             reporter=PreviewReporter(),
             on_queue_empty_callback=None,
+            queue_side=http_dl.QueueSide.FRONT,  # LIFO queue.
+            num_parallel_downloads=5,
         )
         downloader.start()
         _preview_downloaders[asset_library_url] = downloader
@@ -251,6 +255,9 @@ class AssetDownloader:
 
     _HTTP_METHOD = "GET"
 
+    _queue_side: http_dl.QueueSide
+    """Previews are queued at the front (LIFO), and assets at the back (FIFO)."""
+
     def __init__(
         self,
         remote_url: str,
@@ -258,6 +265,8 @@ class AssetDownloader:
         *,
         reporter: http_dl.DownloadReporter,
         on_queue_empty_callback: QueueEmptyCallback | None,
+        queue_side: http_dl.QueueSide,
+        num_parallel_downloads: int,
     ) -> None:
         """Create a downloader for assets of a specific asset library.
 
@@ -280,21 +289,23 @@ class AssetDownloader:
         # Work around a limitation of Blender, see bug report #139720 for details.
         self.on_timer_event = self.on_timer_event  # type: ignore[method-assign]
 
-        self._http_metadata_provider = http_dl.MetadataProviderFilesystem(
-            cache_location=self._locator.http_metadata_cache_location,
+        self._downloader_options = http_dl.DownloaderOptions(
+            metadata_provider=http_dl.MetadataProviderFilesystem(
+                cache_location=self._locator.http_metadata_cache_location,
+            ),
+            timeout=300,
+            http_headers={
+                'X-Blender': "{:d}.{:d}".format(*bpy.app.version),
+            },
+            num_parallel_downloads=num_parallel_downloads,
         )
 
         self._bg_downloader = None
+        self._queue_side = queue_side
 
     def _create_bg_downloader(self) -> None:
         self._bg_downloader = http_dl.BackgroundDownloader(
-            options=http_dl.DownloaderOptions(
-                metadata_provider=self._http_metadata_provider,
-                timeout=300,
-                http_headers={
-                    'X-Blender': "{:d}.{:d}".format(*bpy.app.version),
-                },
-            ),
+            options=self._downloader_options,
             on_callback_error=self._on_callback_error,
         )
 
@@ -415,6 +426,7 @@ class AssetDownloader:
             remote_url,
             download_to_path,
             http_method=self._HTTP_METHOD,
+            queue_side=self._queue_side,
         )
         return request_descr.url
 
@@ -635,7 +647,9 @@ class PreviewReporter:
         error: Exception,
     ) -> None:
         # TODO: create an empty file in the correct `.../_thumbs/failed` directory.
-        self.download_finished(http_req_descr, local_file)
+
+        # Poke Blender so it knows there's a thumbnail update.
+        bpy.types.WindowManager.asset_library_status_ping_loaded_new_preview(str(local_file))
 
     def download_progress(
         self,

@@ -648,5 +648,6 @@ std::optional<StringRef> BKE_paint_canvas_uvmap_name_get(const PaintModeSettings
                                                          Object *ob);
 CurveMapping *BKE_sculpt_default_cavity_curve();
 CurveMapping *BKE_paint_default_curve();
+CurveMapping *BKE_paint_default_curve_inverted();
 
 }  // namespace blender

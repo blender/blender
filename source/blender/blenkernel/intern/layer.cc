@@ -46,6 +46,8 @@
 #include "DNA_windowmanager_types.h"
 #include "DNA_world_types.h"
 
+#include "RNA_path.hh"
+
 #include "DEG_depsgraph.hh"
 #include "DEG_depsgraph_debug.hh"
 #include "DEG_depsgraph_query.hh"
@@ -590,7 +592,12 @@ void BKE_view_layer_rename(Main *bmain, Scene *scene, ViewLayer *view_layer, con
   }
 
   /* Fix all the animation data and windows which may link to this. */
-  BKE_animdata_fix_paths_rename_all(nullptr, "view_layers", oldname, view_layer->name);
+  BKE_animdata_fix_paths(scene->id,
+                         "view_layers",
+                         RNA_path_name_to_infix(oldname),
+                         RNA_path_name_to_infix(view_layer->name),
+                         /*verify_paths=*/true,
+                         *bmain);
 
   /* WM can be missing on startup. */
   wmWindowManager *wm = static_cast<wmWindowManager *>(bmain->wm.first);

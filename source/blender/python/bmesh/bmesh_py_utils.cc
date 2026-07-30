@@ -459,6 +459,8 @@ PyDoc_STRVAR(
     "   :rtype: tuple[:class:`bmesh.types.BMFace`, :class:`bmesh.types.BMLoop`]\n");
 static PyObject *bpy_bm_utils_face_split(PyObject * /*self*/, PyObject *args, PyObject *kw)
 {
+  const char *error_prefix = "face_split(...)";
+
   BPy_BMFace *py_face;
   BPy_BMVert *py_vert_a;
   BPy_BMVert *py_vert_b;
@@ -514,7 +516,9 @@ static PyObject *bpy_bm_utils_face_split(PyObject * /*self*/, PyObject *args, Py
   BPY_BM_CHECK_OBJ(py_vert_b);
 
   if (py_edge_source) {
-    BPY_BM_CHECK_OBJ(py_edge_source);
+    /* Check the source edge is from the same mesh,
+     * its custom-data is read using the destination mesh's layout. */
+    BPY_BM_CHECK_SOURCE_OBJ(py_face->bm, error_prefix, py_edge_source);
   }
 
   /* this doubles for checking that the verts are in the same mesh */
@@ -524,13 +528,13 @@ static PyObject *bpy_bm_utils_face_split(PyObject * /*self*/, PyObject *args, Py
     /* pass */
   }
   else {
-    PyErr_SetString(PyExc_ValueError,
-                    "face_split(...): one of the verts passed is not found in the face");
+    PyErr_Format(
+        PyExc_ValueError, "%s: one of the verts passed is not found in the face", error_prefix);
     return nullptr;
   }
 
   if (py_vert_a->v == py_vert_b->v) {
-    PyErr_SetString(PyExc_ValueError, "face_split(...): vert arguments must differ");
+    PyErr_Format(PyExc_ValueError, "%s: vert arguments must differ", error_prefix);
     return nullptr;
   }
 
@@ -542,7 +546,7 @@ static PyObject *bpy_bm_utils_face_split(PyObject * /*self*/, PyObject *args, Py
   }
   else {
     if (BM_loop_is_adjacent(l_a, l_b)) {
-      PyErr_SetString(PyExc_ValueError, "face_split(...): verts are adjacent in the face");
+      PyErr_Format(PyExc_ValueError, "%s: verts are adjacent in the face", error_prefix);
       return nullptr;
     }
   }
@@ -578,7 +582,7 @@ static PyObject *bpy_bm_utils_face_split(PyObject * /*self*/, PyObject *args, Py
     return ret;
   }
 
-  PyErr_SetString(PyExc_ValueError, "face_split(...): couldn't split the face, internal error");
+  PyErr_Format(PyExc_ValueError, "%s: couldn't split the face, internal error", error_prefix);
   return nullptr;
 }
 

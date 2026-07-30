@@ -890,8 +890,7 @@ struct WeightPaintStroke final : public PaintStroke {
   VPaint *weight_paint_;
   Base *base_;
 
-  WeightPaintStroke(bContext *C, wmOperator *op, const int event_type)
-      : PaintStroke(C, op, event_type)
+  WeightPaintStroke(bContext *C, wmOperator *op, const wmEvent *event) : PaintStroke(C, op, event)
   {
     bmain_ = CTX_data_main(C);
     tool_settings_ = CTX_data_tool_settings(C);
@@ -1981,7 +1980,7 @@ static wmOperatorStatus wpaint_invoke(bContext *C, wmOperator *op, const wmEvent
     view3d_operator_needs_gpu(C);
   }
 
-  WeightPaintStroke *stroke = MEM_new<WeightPaintStroke>(__func__, C, op, event->type);
+  WeightPaintStroke *stroke = MEM_new<WeightPaintStroke>(__func__, C, op, event);
   op->customdata = stroke;
   vwpaint::init_stroke(*op, *stroke->bmain_, *stroke->paint, *stroke->depsgraph, *stroke->object);
 
@@ -2005,7 +2004,7 @@ static wmOperatorStatus wpaint_invoke(bContext *C, wmOperator *op, const wmEvent
 
 static wmOperatorStatus wpaint_exec(bContext *C, wmOperator *op)
 {
-  WeightPaintStroke *stroke = MEM_new<WeightPaintStroke>(__func__, C, op, 0);
+  WeightPaintStroke *stroke = MEM_new<WeightPaintStroke>(__func__, C, op, nullptr);
   op->customdata = stroke;
 
   vwpaint::init_stroke(*op, *stroke->bmain_, *stroke->paint, *stroke->depsgraph, *stroke->object);

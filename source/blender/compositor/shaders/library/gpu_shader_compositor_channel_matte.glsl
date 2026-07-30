@@ -79,35 +79,28 @@ int2 compute_limit_channels(const int limit_method,
 void node_composite_channel_matte(const float4 color,
                                   const float minimum,
                                   const float maximum,
-                                  const float color_space,
-                                  const float rgb_key_channel,
-                                  const float hsv_key_channel,
-                                  const float yuv_key_channel,
-                                  const float ycc_key_channel,
-                                  const float limit_method,
-                                  const float rgb_limit_channel,
-                                  const float hsv_limit_channel,
-                                  const float yuv_limit_channel,
-                                  const float ycc_limit_channel,
+                                  const int color_space,
+                                  const int rgb_key_channel,
+                                  const int hsv_key_channel,
+                                  const int yuv_key_channel,
+                                  const int ycc_key_channel,
+                                  const int limit_method,
+                                  const int rgb_limit_channel,
+                                  const int hsv_limit_channel,
+                                  const int yuv_limit_channel,
+                                  const int ycc_limit_channel,
                                   float4 &output_color,
                                   float &matte)
 {
-  const float3 channels = compute_channels(color, int(color_space));
-  const int matte_channel = get_channel_index(int(color_space),
-                                              int(rgb_key_channel),
-                                              int(hsv_key_channel),
-                                              int(yuv_key_channel),
-                                              int(ycc_key_channel));
-  const int limit_channel = get_channel_index(int(color_space),
-                                              int(rgb_limit_channel),
-                                              int(hsv_limit_channel),
-                                              int(yuv_limit_channel),
-                                              int(ycc_limit_channel));
-  const int2 limit_channels = compute_limit_channels(
-      int(limit_method), int(matte_channel), int(limit_channel));
+  const float3 channels = compute_channels(color, color_space);
+  const int matte_channel = get_channel_index(
+      color_space, rgb_key_channel, hsv_key_channel, yuv_key_channel, ycc_key_channel);
+  const int limit_channel = get_channel_index(
+      color_space, rgb_limit_channel, hsv_limit_channel, yuv_limit_channel, ycc_limit_channel);
+  const int2 limit_channels = compute_limit_channels(limit_method, matte_channel, limit_channel);
 
-  float matte_value = channels[int(matte_channel)];
-  float limit_value = max(channels[int(limit_channels.x)], channels[int(limit_channels.y)]);
+  float matte_value = channels[matte_channel];
+  float limit_value = max(channels[limit_channels.x], channels[limit_channels.y]);
 
   float alpha = 1.0f - (matte_value - limit_value);
   if (alpha > maximum) {

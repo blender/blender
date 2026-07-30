@@ -44,6 +44,8 @@ enum class TimeFormat : uint8_t {
   H12 = 1,
 };
 
+std::tm localtime_safe(time_t time);
+
 std::string date(const std::tm &date_time,
                  StringRef locale_iso = {},
                  DateFormat format = DateFormat::Default);

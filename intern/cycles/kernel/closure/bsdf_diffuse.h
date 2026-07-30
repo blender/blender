@@ -31,7 +31,7 @@ ccl_device void bsdf_diffuse_setup(ccl_private ShaderData *sd,
   if (bsdf) {
     bsdf->N = N;
     bsdf->type = CLOSURE_BSDF_DIFFUSE_ID;
-    sd->flag |= (SD_BSDF | SD_BSDF_HAS_EVAL);
+    sd->runtime_flag |= (SR_BSDF | SR_BSDF_HAS_EVAL);
   }
 }
 
@@ -83,7 +83,7 @@ ccl_device void bsdf_translucent_setup(ccl_private ShaderData *sd,
   if (bsdf) {
     bsdf->N = N;
     bsdf->type = CLOSURE_BSDF_TRANSLUCENT_ID;
-    sd->flag |= (SD_BSDF | SD_BSDF_HAS_EVAL | SD_BSDF_HAS_TRANSMISSION);
+    sd->runtime_flag |= (SR_BSDF | SR_BSDF_HAS_EVAL | SR_BSDF_HAS_TRANSMISSION);
   }
 }
 

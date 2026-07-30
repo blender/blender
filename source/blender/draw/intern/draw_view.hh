@@ -164,6 +164,17 @@ class View {
     return data_[view_id].winmat * data_[view_id].viewmat;
   }
 
+  /** Compute the approximate world space radius of 1 pixel at 1 unit from the view origin. */
+  static float screen_pixel_radius(const float4x4 &wininv,
+                                   bool is_perspective,
+                                   const int2 &extent);
+
+  /** The approximate world space radius of 1 pixel at 1 unit from the view origin. */
+  float screen_pixel_radius(const int2 &extent, int view_id = 0) const
+  {
+    return screen_pixel_radius(wininv(view_id), is_persp(view_id), extent);
+  }
+
   int visibility_word_per_draw() const
   {
     return (view_len_ == 1) ? 0 : divide_ceil_u(view_len_, 32);

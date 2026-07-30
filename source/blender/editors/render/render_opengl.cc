@@ -55,6 +55,7 @@
 
 #include "ED_gpencil_legacy.hh"
 #include "ED_screen.hh"
+#include "ED_util.hh"
 #include "ED_view3d.hh"
 #include "ED_view3d_offscreen.hh"
 
@@ -777,6 +778,9 @@ static bool screen_opengl_render_init(bContext *C, wmOperator *op)
     return false;
   }
 
+  Main *bmain = CTX_data_main(C);
+  ED_editors_flush_edits(bmain);
+
   /* allocate opengl render */
   oglrender = MEM_new<OGLRender>("OGLRender");
   op->customdata = oglrender;
@@ -785,7 +789,7 @@ static bool screen_opengl_render_init(bContext *C, wmOperator *op)
   oglrender->sizex = sizex;
   oglrender->sizey = sizey;
   oglrender->viewport = GPU_viewport_create();
-  oglrender->bmain = CTX_data_main(C);
+  oglrender->bmain = bmain;
   oglrender->scene = scene;
   oglrender->current_scene = scene;
   oglrender->workspace = workspace;

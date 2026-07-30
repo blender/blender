@@ -637,6 +637,12 @@ class ShaderNodesInliner {
       this->store_socket_value_fallback(socket);
       return;
     }
+    if (socket.context && socket.context->parents_num() >= U.nodes_stack_limit) {
+      this->store_socket_value_fallback(socket);
+      params_.r_error_messages.append(
+          {&*node, TIP_("Nodes stack limit reached (too many levels of nested nodes)")});
+      return;
+    }
     group->ensure_interface_cache();
     group->ensure_topology_cache();
     const bNode *group_output_node = group->group_output_node();
@@ -871,6 +877,14 @@ class ShaderNodesInliner {
       }
       return;
     }
+    if (socket.context && socket.context->parents_num() >= U.nodes_stack_limit) {
+      this->store_socket_value_fallback(socket);
+      params_.r_error_messages.append(
+          {&*evaluate_closure_node,
+           TIP_("Nodes stack limit reached (too many levels of nested nodes)")});
+      return;
+    }
+
     const auto *evaluate_closure_storage = static_cast<const NodeEvaluateClosure *>(
         evaluate_closure_node->storage);
     const bNode &closure_output_node = *closure_zone_value->zone->output_node();
@@ -891,13 +905,6 @@ class ShaderNodesInliner {
                                                     &socket->owner_tree(),
                                                     closure_source_location);
     parent_zone_contexts_.add(&closure_eval_context, closure_zone_value->closure_creation_context);
-
-    if (closure_eval_context.is_recursive()) {
-      this->store_socket_value_fallback(socket);
-      params_.r_error_messages.append(
-          {&*evaluate_closure_node, TIP_("Recursive closures are not supported")});
-      return;
-    }
 
     for (const int i : IndexRange(closure_storage.output_items.items_num)) {
       const NodeClosureOutputItem &item = closure_storage.output_items.items[i];

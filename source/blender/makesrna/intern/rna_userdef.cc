@@ -2730,6 +2730,12 @@ static void rna_def_userdef_theme_space_common(StructRNA *srna)
 {
   PropertyRNA *prop;
 
+  /* header */
+  prop = RNA_def_property(srna, "header", PROP_FLOAT, PROP_COLOR_GAMMA);
+  RNA_def_property_array(prop, 4);
+  RNA_def_property_ui_text(prop, "Header", "");
+  RNA_def_property_update(prop, 0, "rna_userdef_gpu_update");
+
   prop = RNA_def_property(srna, "text", PROP_FLOAT, PROP_COLOR_GAMMA);
   RNA_def_property_array(prop, 3);
   RNA_def_property_ui_text(prop, "Text", "");
@@ -2738,22 +2744,6 @@ static void rna_def_userdef_theme_space_common(StructRNA *srna)
   prop = RNA_def_property(srna, "text_hi", PROP_FLOAT, PROP_COLOR_GAMMA);
   RNA_def_property_array(prop, 3);
   RNA_def_property_ui_text(prop, "Text Highlight", "");
-  RNA_def_property_update(prop, 0, "rna_userdef_theme_update");
-
-  /* header */
-  prop = RNA_def_property(srna, "header", PROP_FLOAT, PROP_COLOR_GAMMA);
-  RNA_def_property_array(prop, 4);
-  RNA_def_property_ui_text(prop, "Header", "");
-  RNA_def_property_update(prop, 0, "rna_userdef_gpu_update");
-
-  prop = RNA_def_property(srna, "header_text", PROP_FLOAT, PROP_COLOR_GAMMA);
-  RNA_def_property_array(prop, 3);
-  RNA_def_property_ui_text(prop, "Header Text", "");
-  RNA_def_property_update(prop, 0, "rna_userdef_theme_update");
-
-  prop = RNA_def_property(srna, "header_text_hi", PROP_FLOAT, PROP_COLOR_GAMMA);
-  RNA_def_property_array(prop, 3);
-  RNA_def_property_ui_text(prop, "Header Text Highlight", "");
   RNA_def_property_update(prop, 0, "rna_userdef_theme_update");
 }
 
@@ -6164,16 +6154,17 @@ static void rna_def_userdef_system(BlenderRNA *brna)
   RNA_def_property_ui_text(prop, "Memory Cache Limit", "Memory cache limit (in megabytes)");
   RNA_def_property_update(prop, 0, "rna_Userdef_memcache_update");
 
-  /* Geometry Nodes. */
+  /* Nodes. */
 
-  prop = RNA_def_property(srna, "geometry_nodes_stack_limit", PROP_INT, PROP_NONE);
+  prop = RNA_def_property(srna, "nodes_stack_limit", PROP_INT, PROP_NONE);
   RNA_def_property_range(prop, 1, INT32_MAX);
-  RNA_def_property_ui_text(prop,
-                           "Geometry Nodes Stack Limit",
-                           "Approximate maximum size of the call stack used by Geometry Nodes. "
-                           "For example, this corresponds to the number of allowed nested node "
-                           "groups. Setting this too high can result in crashes caused by "
-                           "running out of stack memory.");
+  RNA_def_property_ui_text(
+      prop,
+      "Nodes Stack Limit",
+      "Approximate maximum size of the call stack used by node group evaluation. "
+      "For example, this corresponds to the number of allowed nested node "
+      "groups. Setting this too high can result in crashes caused by "
+      "running out of stack memory.");
   RNA_def_property_update(prop, 0, "rna_userdef_update");
 
   /* Sequencer proxy setup */
@@ -6205,6 +6196,14 @@ static void rna_def_userdef_system(BlenderRNA *brna)
       prop,
       "Edit Mode Smooth Wires",
       "Enable edit mode edge smoothing, reducing aliasing (requires restart)");
+  RNA_def_property_update(prop, 0, "rna_userdef_gpu_update");
+
+  prop = RNA_def_property(srna, "use_rt_shadows", PROP_BOOLEAN, PROP_NONE);
+  RNA_def_property_boolean_sdna(prop, nullptr, "gpu_flag", USER_GPU_FLAG_WORKBENCH_RT_SHADOWS);
+  RNA_def_property_ui_text(
+      prop,
+      "Raytraced Shadows",
+      "Enable raytraced shadows. Requires Vulkan and a GPU with hardware raytracing support");
   RNA_def_property_update(prop, 0, "rna_userdef_gpu_update");
 
   prop = RNA_def_property(srna, "use_region_overlap", PROP_BOOLEAN, PROP_NONE);

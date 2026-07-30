@@ -299,11 +299,15 @@ void BKE_undosys_stack_clear(UndoStack *ustack)
 
 void BKE_undosys_stack_clear_active(UndoStack *ustack)
 {
-  /* Remove active and all following undo-steps. */
-  UndoStep *us = ustack->step_active;
+  /* Remove active and all following undo-steps.
+   * Rewind over any "skip" steps leading up to the active as these must never be made active. */
+  if (ustack->step_active) {
+    UndoStep *us = ustack->step_active->prev;
+    while (us && us->skip) {
+      us = us->prev;
+    }
+    ustack->step_active = us;
 
-  if (us) {
-    ustack->step_active = us->prev;
     bool is_not_empty = ustack->step_active != nullptr;
 
     while (ustack->steps.last != ustack->step_active) {

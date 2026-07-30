@@ -396,11 +396,16 @@ static int rna_ensure_property_array_length(PointerRNA *ptr, PropertyRNA *prop)
 {
   if (prop->magic == RNA_MAGIC) {
     int arraylen[RNA_MAX_ARRAY_DIMENSION];
-    return (prop->getlength && ptr->data) ? prop->getlength(ptr, arraylen) :
-                                            int(prop->totarraylength);
+    if (prop->getlength && ptr->data) {
+      BLI_assert(rna_property_can_access_pointer_data(*ptr, *prop));
+      return prop->getlength(ptr, arraylen);
+    }
+    else {
+      return int(prop->totarraylength);
+    }
   }
-  IDProperty *idprop = reinterpret_cast<IDProperty *>(prop);
 
+  IDProperty *idprop = reinterpret_cast<IDProperty *>(prop);
   if (idprop->type == IDP_ARRAY) {
     return idprop->len;
   }
@@ -423,6 +428,7 @@ static void rna_ensure_property_multi_array_length(const PointerRNA *ptr,
 {
   if (prop->magic == RNA_MAGIC) {
     if (prop->getlength) {
+      BLI_assert(rna_property_can_access_pointer_data(*ptr, *prop));
       prop->getlength(ptr, length);
     }
     else {
@@ -532,7 +538,7 @@ static PropertyRNA *arraytypemap[IDP_NUMTYPES] = {
     &rna_PropertyGroupItem_bool_array,
 };
 
-bool rna_property_can_access_pointer_data(PointerRNA &ptr, PropertyRNA &prop)
+bool rna_property_can_access_pointer_data(const PointerRNA &ptr, PropertyRNA &prop)
 {
   const bool is_meta_type = ptr.type && (ptr.type->flag & STRUCT_RNA_DEFINITION) != 0;
   const bool is_prop_of_meta_type = (prop.flag_internal & PROP_INTERN_RNA_DEFINITION) != 0;

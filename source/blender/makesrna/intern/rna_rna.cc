@@ -3512,7 +3512,12 @@ static void rna_def_function(BlenderRNA *brna)
   PropertyRNA *prop;
 
   srna = RNA_def_struct(brna, "Function", nullptr);
-  RNA_def_struct_flag(srna, STRUCT_RNA_DEFINITION);
+  /* While this is technically a meta-data definition, functions never really wrap actual data, so
+   * all of there parameters should always be accessible.
+   *
+   * TODO: Re-check this and see if maybe all parameters of functions should automatically be
+   * tagged as `PROP_INTERN_RNA_DEFINITION` instead? */
+  // RNA_def_struct_flag(srna, STRUCT_RNA_DEFINITION);
   RNA_def_struct_ui_text(srna, "Function Definition", "RNA function definition");
   RNA_def_struct_ui_icon(srna, ICON_RNA);
 

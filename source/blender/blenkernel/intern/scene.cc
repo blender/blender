@@ -162,6 +162,15 @@ CurveMapping *BKE_paint_default_curve()
   return cumap;
 }
 
+CurveMapping *BKE_paint_default_curve_inverted()
+{
+  CurveMapping *cumap = BKE_curvemapping_add(1, 0, 0, 1, 1);
+  BKE_curvemap_reset(cumap->cm, &cumap->clipr, CURVE_PRESET_LINE, CurveMapSlopeType::Negative);
+  BKE_curvemapping_init(cumap);
+
+  return cumap;
+}
+
 static void scene_init_data(ID *id)
 {
   Scene *scene = id_cast<Scene *>(id);
@@ -1077,7 +1086,9 @@ static void scene_blend_write_compositor_forward_compat(Scene &scene,
                                                  "Final render output",
                                                  "COMPOSITE",
                                                  NODE_CLASS_OUTPUT,
-                                                 false);
+                                                 140.0f,
+                                                 100.0f,
+                                                 true);
       composite_input = &version_node_add_socket(
           *temp_nodetree_copy, *composite_node, SOCK_IN, "NodeSocketColor", "Image");
 

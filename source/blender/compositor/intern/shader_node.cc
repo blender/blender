@@ -45,11 +45,9 @@ static GPUType gpu_type_from_socket(const bNodeSocket &socket)
     case SOCK_FLOAT:
       return GPU_FLOAT;
     case SOCK_INT:
-      /* GPUMaterial doesn't support int, so it is passed as a float. */
-      return GPU_FLOAT;
+      return GPU_INT;
     case SOCK_BOOLEAN:
-      /* GPUMaterial doesn't support boolean, so it is passed as a float. */
-      return GPU_FLOAT;
+      return GPU_BOOL;
     case SOCK_VECTOR:
       switch (socket.default_value_typed<bNodeSocketValueVector>()->dimensions) {
         case 2:
@@ -63,12 +61,11 @@ static GPUType gpu_type_from_socket(const bNodeSocket &socket)
           return GPU_NONE;
       }
     case SOCK_INT_VECTOR:
-      /* GPUMaterial doesn't support int[23], so it is passed as a float[23]. */
       switch (socket.default_value_typed<bNodeSocketValueIntVector>()->dimensions) {
         case 2:
-          return GPU_VEC2;
+          return GPU_INT2;
         case 3:
-          return GPU_VEC3;
+          return GPU_INT3;
         default:
           BLI_assert_unreachable();
           return GPU_NONE;
@@ -79,8 +76,7 @@ static GPUType gpu_type_from_socket(const bNodeSocket &socket)
     case SOCK_MATRIX:
       return GPU_MAT4;
     case SOCK_MENU:
-      /* GPUMaterial doesn't support int, so it is passed as a float. */
-      return GPU_FLOAT;
+      return GPU_INT;
     case SOCK_STRING:
     case SOCK_OBJECT:
     case SOCK_IMAGE:
@@ -105,11 +101,31 @@ static void populate_gpu_node_stack(const bNodeSocket &socket, GPUNodeStack &sta
   stack.end = false;
   /* This will be initialized later by the GPU material compiler or the compile method. */
   stack.link = nullptr;
-  /* This will be initialized by the GPU material compiler if needed. */
-  zero_v4(stack.vec);
 
   stack.sockettype = socket.type;
   stack.type = gpu_type_from_socket(socket);
+
+  /* This will be initialized by the GPU material compiler if needed. */
+  switch (stack.type) {
+    case GPU_FLOAT:
+    case GPU_VEC2:
+    case GPU_VEC3:
+    case GPU_VEC4:
+      zero_v4(stack.vec);
+      break;
+    case GPU_INT:
+    case GPU_INT2:
+    case GPU_INT3:
+    case GPU_INT4:
+      stack.integer_data = int4(0);
+      break;
+    case GPU_BOOL:
+      stack.boolean_data = false;
+      break;
+    default:
+      zero_v4(stack.vec);
+      break;
+  }
 
   stack.hasinput = socket.is_logically_linked();
   stack.hasoutput = socket.is_logically_linked();

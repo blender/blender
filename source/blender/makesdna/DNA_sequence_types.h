@@ -267,10 +267,12 @@ struct StripTransform {
   float scale_x = 0;
   float scale_y = 0;
   float rotation = 0;
-  /** Relative 0-1 range, where (0,0) is the bottom-left of the image.
+  /**
+   * Relative 0-1 range, where (0,0) is the bottom-left of the image.
    * NOTE: Do not access directly outside of internal transform code!
-   * Either call #image_transform_origin_get, or convert to absolute viewspace pixel offset from
-   * the preview center with #image_transform_origin_preview_offset_get. */
+   * Either call #image_transform_origin_get, or convert to absolute view-space pixel offset from
+   * the preview center with #image_transform_origin_preview_offset_get.
+   */
   float origin[2] = {};
   eStripTransformFilter filter = SEQ_TRANSFORM_FILTER_AUTO;
 };

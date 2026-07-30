@@ -63,10 +63,8 @@ MaskSpline *BKE_mask_spline_copy(const MaskSpline *spline);
 void BKE_mask_point_free(MaskSplinePoint *point);
 
 void BKE_mask_layer_unique_name(Mask *mask, MaskLayer *masklay);
-void BKE_mask_layer_rename(Mask *mask,
-                           MaskLayer *masklay,
-                           const char *oldname,
-                           const char *newname);
+void BKE_mask_layer_rename(
+    Main &bmain, Mask *mask, MaskLayer *masklay, const char *oldname, const char *newname);
 
 MaskLayer *BKE_mask_layer_copy(const MaskLayer *masklay);
 void BKE_mask_layer_copy_list(ListBaseT<MaskLayer> *masklayers_new,

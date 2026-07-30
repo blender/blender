@@ -1744,6 +1744,48 @@ class USDExportTest(AbstractUSDTest):
         self.assertEqual(stats['primary']['primCountsByType']['Mesh'], 2, "Unexpected number of primary meshes")
         self.assertEqual(stats['primary']['primCountsByType']['Points'], 4, "Unexpected number of primary point clouds")
 
+    def test_instancing_nonmesh(self):
+        """Test that certain non-mesh object types are properly instanced correctly."""
+
+        bpy.ops.wm.open_mainfile(filepath=str(self.testdir / "usd_instancing_nonmesh.blend"))
+
+        export_path = self.tempdir / "usd_instancing_nonmesh.usda"
+        self.export_and_validate(
+            filepath=str(export_path),
+            use_instancing=True
+        )
+
+        stage = Usd.Stage.Open(str(export_path))
+
+        # Note: This test purposely uses Text, Metaball, and NURBS surface objects which are non
+        # meshes but are currently converted to mesh on export.
+        stats = UsdUtils.ComputeUsdStageStats(stage)
+        self.assertEqual(stats['totalInstanceCount'], 6, "Unexpected number of instances")
+        self.assertEqual(stats['prototypeCount'], 4, "Unexpected number of prototypes")
+        self.assertEqual(stats['primary']['primCountsByType']['Mesh'], 4, "Unexpected number of primary meshes")
+        self.assertEqual(
+            stats['primary']['primCountsByType']['PointInstancer'], 1, "Unexpected number of primary point clouds")
+        self.assertEqual(stats['prototypes']['primCountsByType']['Mesh'], 4, "Unexpected number of prototype meshes")
+
+        # Ensure the prims are marked as instances
+        prim_list = [
+            ("/root/Text", True),
+            ("/root/SurfPatch", True),
+            ("/root/Mball", False),  # Metaballs are not instanced in Blender at the moment
+        ]
+        for prim_path, expected in prim_list:
+            prim = stage.GetPrimAtPath(prim_path)
+            self.assertEqual(prim.IsInstance(), expected, f"Unexpected result for {prim_path}")
+
+        # Ensure all the prototype paths are under the pototypes root.
+        protos_root_path = Sdf.Path("/root/prototypes")
+        for prim in stage.Traverse():
+            if prim.IsInstance():
+                arcs = Usd.PrimCompositionQuery.GetDirectReferences(prim).GetCompositionArcs()
+                for arc in arcs:
+                    target_path = arc.GetTargetPrimPath()
+                    self.assertTrue(target_path.HasPrefix(protos_root_path))
+
     def test_texture_export_hook(self):
         """Exporting textures from on_material_export USD hook."""
 

@@ -630,7 +630,8 @@ static float paint_space_stroke_spacing(const ViewContext &vc,
 
   /* apply spacing pressure */
   if (brush->stroke_method == BRUSH_STROKE_SPACE && brush->flag & BRUSH_SPACING_PRESSURE) {
-    spacing = spacing * (1.5f - pressure);
+    const float spacing_factor = BKE_curvemapping_evaluateF(brush->curve_spacing, 0, pressure);
+    spacing = spacing * (1.5f - spacing_factor);
   }
 
   if (cloth::is_cloth_deform_brush(*brush)) {
@@ -850,7 +851,7 @@ static bool print_pressure_status_enabled()
 
 /**** Public API ****/
 
-PaintStroke::PaintStroke(bContext *C, wmOperator *op, int event_type) : event_type_(event_type)
+PaintStroke::PaintStroke(bContext *C, wmOperator *op, const wmEvent *event)
 {
   this->depsgraph = CTX_data_ensure_evaluated_depsgraph(C);
   this->paint = BKE_paint_get_active_from_context(C);
@@ -863,6 +864,16 @@ PaintStroke::PaintStroke(bContext *C, wmOperator *op, int event_type) : event_ty
   this->vc = ED_view3d_viewcontext_init(C, this->depsgraph);
   this->object = CTX_data_active_object(C);
   this->scene = CTX_data_scene(C);
+
+  if (event) {
+    WM_event_tablet_data(event, &pen_flip_, nullptr);
+    RNA_boolean_set(op->ptr, "pen_flip", pen_flip_);
+    event_type_ = event->type;
+  }
+  else {
+    pen_flip_ = RNA_boolean_get(op->ptr, "pen_flip");
+    event_type_ = 0;
+  }
 
   stroke_mode_ = BrushStrokeMode(RNA_enum_get(op->ptr, "mode"));
   brush_switch_mode_ = BrushSwitchMode(RNA_enum_get(op->ptr, "brush_toggle"));
@@ -1408,7 +1419,7 @@ wmOperatorStatus PaintStroke::modal(bContext *C, wmOperator *op, const wmEvent *
   }
 
   /* see if tablet affects event. Line, anchored and drag dot strokes do not support pressure */
-  const float tablet_pressure = WM_event_tablet_data(event, &pen_flip_, nullptr);
+  const float tablet_pressure = WM_event_tablet_data(event, nullptr, nullptr);
   float pressure =
       ELEM(br->stroke_method, BRUSH_STROKE_LINE, BRUSH_STROKE_ANCHORED, BRUSH_STROKE_DRAG_DOT) ?
           1.0f :
@@ -1461,7 +1472,7 @@ wmOperatorStatus PaintStroke::modal(bContext *C, wmOperator *op, const wmEvent *
 
   /* one time stroke initialization */
   if (!stroke_started_) {
-    RNA_boolean_set(op->ptr, "pen_flip", pen_flip_);
+    pen_flip_ = RNA_boolean_get(op->ptr, "pen_flip");
 
     last_pressure_ = sample_average.pressure;
     this->last_mouse_position = sample_average.mouse;

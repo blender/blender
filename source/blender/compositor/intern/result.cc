@@ -806,29 +806,31 @@ void Result::share_data(const Result &source)
   derived_resources_ = nullptr;
 }
 
-/* Returns true if the given GPU texture is compatible with the type and precision of the given
- * result. */
+/* Returns true if the given GPU texture is compatible with the type of the given result. */
 [[maybe_unused]] static bool is_compatible_texture(const gpu::Texture *texture,
                                                    const Result &result)
 {
   /* Float3 and Int3 types are an exception, see the documentation on the get_gpu_texture_format
    * method for more information. */
   if (result.type() == ResultType::Float3) {
-    if (GPU_texture_format(texture) ==
-        Result::gpu_texture_format(gpu::TextureFormat::SFLOAT_32_32_32, result.precision()))
+    if (ELEM(GPU_texture_format(texture),
+             gpu::TextureFormat::SFLOAT_32_32_32,
+             gpu::TextureFormat::SFLOAT_16_16_16))
     {
       return true;
     }
   }
   else if (result.type() == ResultType::Int3) {
-    if (GPU_texture_format(texture) ==
-        Result::gpu_texture_format(gpu::TextureFormat::SINT_32_32_32, result.precision()))
+    if (ELEM(GPU_texture_format(texture),
+             gpu::TextureFormat::SINT_32_32_32,
+             gpu::TextureFormat::SINT_16_16_16))
     {
       return true;
     }
   }
 
-  return GPU_texture_format(texture) == result.get_gpu_texture_format();
+  return Result::gpu_texture_format(GPU_texture_format(texture), result.precision()) ==
+         result.get_gpu_texture_format();
 }
 
 void Result::share_data(gpu::Texture *texture, ImplicitSharingPtr<> sharing_info)

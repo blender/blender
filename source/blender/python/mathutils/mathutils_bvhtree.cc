@@ -785,6 +785,11 @@ static PyObject *C_BVHTree_FromPolygons(PyObject * /*cls*/, PyObject *args, PyOb
       }
 
       Py_DECREF(py_tricoords_fast);
+
+      if (!valid) {
+        /* Stop at the first bad triangle, else the error reported is the last one. */
+        break;
+      }
     }
   }
   else {
@@ -839,72 +844,79 @@ static PyObject *C_BVHTree_FromPolygons(PyObject * /*cls*/, PyObject *args, PyOb
 
       Py_DECREF(py_tricoords_fast);
 
+      if (!valid) {
+        break;
+      }
+
       if (py_tricoords_len >= 3) {
         tris_len += (py_tricoords_len - 2);
       }
     }
     *p_plink_prev = nullptr;
 
-    /* All NGON's are parsed, now tessellate. */
+    /* All NGON's are parsed, now tessellate.
+     * Skipped when a polygon was rejected above as its indices are
+     * out of range or were never assigned. */
+    if (valid) {
+      pf_arena = BLI_memarena_new(BLI_POLYFILL_ARENA_SIZE, __func__);
+      tris = MEM_new_array_uninitialized<uint[3]>(size_t(tris_len), __func__);
 
-    pf_arena = BLI_memarena_new(BLI_POLYFILL_ARENA_SIZE, __func__);
-    tris = MEM_new_array_uninitialized<uint[3]>(size_t(tris_len), __func__);
+      orig_index = MEM_new_array_uninitialized<int>(size_t(tris_len), __func__);
+      orig_normal = MEM_new_array_uninitialized<float[3]>(size_t(polys_len), __func__);
 
-    orig_index = MEM_new_array_uninitialized<int>(size_t(tris_len), __func__);
-    orig_normal = MEM_new_array_uninitialized<float[3]>(size_t(polys_len), __func__);
-
-    for (plink = plink_first, poly_index = 0, i = 0; plink; plink = plink->next, poly_index++) {
-      if (plink->len == 3) {
-        uint *tri = tris[i];
-        memcpy(tri, plink->poly, sizeof(uint[3]));
-        orig_index[i] = poly_index;
-        normal_tri_v3(orig_normal[poly_index], coords[tri[0]], coords[tri[1]], coords[tri[2]]);
-        i++;
-      }
-      else if (plink->len > 3) {
-        float (*proj_coords)[2] = static_cast<float (*)[2]>(
-            BLI_memarena_alloc(pf_arena, sizeof(*proj_coords) * plink->len));
-        float *normal = orig_normal[poly_index];
-        const float *co_prev;
-        const float *co_curr;
-        float axis_mat[3][3];
-        uint(*tris_offset)[3] = &tris[i];
-        uint j;
-
-        /* calc normal and setup 'proj_coords' */
-        zero_v3(normal);
-        co_prev = coords[plink->poly[plink->len - 1]];
-        for (j = 0; j < plink->len; j++) {
-          co_curr = coords[plink->poly[j]];
-          add_newell_cross_v3_v3v3(normal, co_prev, co_curr);
-          co_prev = co_curr;
-        }
-        normalize_v3(normal);
-
-        axis_dominant_v3_to_m3_negate(axis_mat, normal);
-
-        for (j = 0; j < plink->len; j++) {
-          mul_v2_m3v3(proj_coords[j], axis_mat, coords[plink->poly[j]]);
-        }
-
-        BLI_polyfill_calc_arena(proj_coords, plink->len, 1, tris_offset, pf_arena);
-
-        j = plink->len - 2;
-        while (j--) {
-          uint *tri = tris_offset[j];
-          /* remap to global indices */
-          tri[0] = plink->poly[tri[0]];
-          tri[1] = plink->poly[tri[1]];
-          tri[2] = plink->poly[tri[2]];
-
+      for (plink = plink_first, poly_index = 0, i = 0; plink; plink = plink->next, poly_index++) {
+        if (plink->len == 3) {
+          uint *tri = tris[i];
+          memcpy(tri, plink->poly, sizeof(uint[3]));
           orig_index[i] = poly_index;
+          normal_tri_v3(orig_normal[poly_index], coords[tri[0]], coords[tri[1]], coords[tri[2]]);
           i++;
         }
+        else if (plink->len > 3) {
+          float (*proj_coords)[2] = static_cast<float (*)[2]>(
+              BLI_memarena_alloc(pf_arena, sizeof(*proj_coords) * plink->len));
+          float *normal = orig_normal[poly_index];
+          const float *co_prev;
+          const float *co_curr;
+          float axis_mat[3][3];
+          uint(*tris_offset)[3] = &tris[i];
+          uint j;
 
-        BLI_memarena_clear(pf_arena);
-      }
-      else {
-        zero_v3(orig_normal[poly_index]);
+          /* calc normal and setup 'proj_coords' */
+          zero_v3(normal);
+          co_prev = coords[plink->poly[plink->len - 1]];
+          for (j = 0; j < plink->len; j++) {
+            co_curr = coords[plink->poly[j]];
+            add_newell_cross_v3_v3v3(normal, co_prev, co_curr);
+            co_prev = co_curr;
+          }
+          normalize_v3(normal);
+
+          axis_dominant_v3_to_m3_negate(axis_mat, normal);
+
+          for (j = 0; j < plink->len; j++) {
+            mul_v2_m3v3(proj_coords[j], axis_mat, coords[plink->poly[j]]);
+          }
+
+          BLI_polyfill_calc_arena(proj_coords, plink->len, 1, tris_offset, pf_arena);
+
+          j = plink->len - 2;
+          while (j--) {
+            uint *tri = tris_offset[j];
+            /* remap to global indices */
+            tri[0] = plink->poly[tri[0]];
+            tri[1] = plink->poly[tri[1]];
+            tri[2] = plink->poly[tri[2]];
+
+            orig_index[i] = poly_index;
+            i++;
+          }
+
+          BLI_memarena_clear(pf_arena);
+        }
+        else {
+          zero_v3(orig_normal[poly_index]);
+        }
       }
     }
   }

@@ -1,9 +1,9 @@
 
 msgid ""
 msgstr ""
-"Project-Id-Version: Blender 5.3.0 Alpha (b'96294be75080')\n"
+"Project-Id-Version: Blender 5.3.0 Alpha (b'bf67fb078da0')\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-07-20 07:29+0000\n"
+"POT-Creation-Date: 2026-07-27 09:52+0000\n"
 "PO-Revision-Date: 2026-05-04 00:12+0000\n"
 "Last-Translator: Alessandro Vecchio <alessandrovecchio1907@gmail.com>\n"
 "Language-Team: Italian <https://translate.blender.org/projects/blender-ui/ui/it/>\n"
@@ -4542,10 +4542,6 @@ msgstr "ID Set di Colori"
 
 msgid "Add Selection Set"
 msgstr "Aggiungi Set di Selezione"
-
-
-msgid "UI Title"
-msgstr "Titolo dell'UI"
 
 
 msgid "The Bone Collections that contain this Bone"
@@ -14092,10 +14088,6 @@ msgid "Theme"
 msgstr "Tema"
 
 
-msgid "Widgets Collection"
-msgstr "Raccolta di Widgets"
-
-
 msgid "Display Axes"
 msgstr "Mostra Assi"
 
@@ -16129,10 +16121,6 @@ msgstr "Modifica Veloce"
 
 msgid "Don't fill polygons while editing"
 msgstr "Non riempie i poligoni durante la modifica"
-
-
-msgid "Collision distance"
-msgstr "Distanza di collisione"
 
 
 msgid "Use Sculpt Collision"
@@ -24490,84 +24478,20 @@ msgid "Material slot name"
 msgstr "Nome dello slot materiale"
 
 
-msgid "Apply"
-msgstr "Applica"
-
-
-msgid "Track"
-msgstr "Traccia"
-
-
-msgid "Quick Effects"
-msgstr "Effetti Veloci"
-
-
-msgid "Show/Hide"
-msgstr "Mostra/Nascondi"
-
-
-msgid "Clean Up"
-msgstr "Ripulisci"
-
-
-msgid "Asset"
-msgstr "Risorsa"
-
-
-msgid "Make Single User"
-msgstr "Rendi Utilizzatore Singolo"
-
-
-msgid "Convert"
-msgstr "Converti"
-
-
-msgid "Link/Transfer Data"
-msgstr "Collega/Trasferisci Dati"
-
-
-msgid "Hooks"
-msgstr "Ganci"
-
-
-msgid "Vertex Group Locks"
-msgstr "Blocchi del Gruppo di Vertici"
-
-
-msgid "Face Sets Init"
-msgstr "Init Sets di Facce"
-
-
-msgid "Random Mask"
-msgstr "Maschera Casuale"
-
-
-msgid "Math"
-msgstr "Matematica"
-
-
-msgid "Clear Transform"
-msgstr "Cancella Trasformazione"
-
-
-msgid "Utilities"
-msgstr "Utilità"
-
-
-msgid "In-Betweens"
-msgstr "Intermedio"
-
-
-msgid "Propagate"
-msgstr "Propaga"
-
-
 msgid "Bone Collections"
 msgstr "Raccolte di Ossa"
 
 
 msgid "Names"
 msgstr "Nomi"
+
+
+msgid "Show/Hide"
+msgstr "Mostra/Nascondi"
+
+
+msgid "Apply"
+msgstr "Applica"
 
 
 msgid "Toggle Bone Options"
@@ -24590,36 +24514,20 @@ msgid "Face Data"
 msgstr "Dati Faccia"
 
 
-msgid "Read"
-msgstr "Lettura"
-
-
-msgid "Sample"
-msgstr "Campione"
-
-
 msgid "Select by Face Strength"
 msgstr "Seleziona per Intensità delle Facce"
-
-
-msgid "Write"
-msgstr "Scrittura"
 
 
 msgid "Set Face Strength"
 msgstr "Imposta Intensità Faccia"
 
 
-msgid "Primitives"
-msgstr "Primitive"
+msgid "Clean Up"
+msgstr "Ripulisci"
 
 
 msgid "Merge"
 msgstr "Unisci"
-
-
-msgid "Instances"
-msgstr "Istanze"
 
 
 msgid "Special Characters"
@@ -24630,20 +24538,36 @@ msgid "Kerning"
 msgstr "Crenatura"
 
 
+msgid "Math"
+msgstr "Matematica"
+
+
 msgid "Metaball"
 msgstr "Metaball"
 
 
-msgid "Import"
-msgstr "Importa"
+msgid "Utilities"
+msgstr "Utilità"
 
 
 msgid "Bone Roll"
 msgstr "Rollio Osso"
 
 
-msgid "UV"
-msgstr "UV"
+msgid "Read"
+msgstr "Lettura"
+
+
+msgid "Sample"
+msgstr "Campione"
+
+
+msgid "Write"
+msgstr "Scrittura"
+
+
+msgid "Primitives"
+msgstr "Primitive"
 
 
 msgid "Pivot Point"
@@ -24670,6 +24594,18 @@ msgid "Face Sets Edit"
 msgstr "Modifica Sets di Facce"
 
 
+msgid "Vertex Group Locks"
+msgstr "Blocchi del Gruppo di Vertici"
+
+
+msgid "Instances"
+msgstr "Istanze"
+
+
+msgid "Import"
+msgstr "Importa"
+
+
 msgid "Mirror"
 msgstr "Specchia"
 
@@ -24694,6 +24630,10 @@ msgid "Align View"
 msgstr "Allinea Vista"
 
 
+msgid "UV"
+msgstr "UV"
+
+
 msgid "Align View to Active"
 msgstr "Allinea Vista a Attivo"
 
@@ -24714,14 +24654,6 @@ msgid "Select All by Trait"
 msgstr "Seleziona Tutto per Caratteristica"
 
 
-msgid "Linked"
-msgstr "Collegato"
-
-
-msgid "Layout"
-msgstr "Layout"
-
-
 msgid "Select Linked"
 msgstr "Seleziona Collegati"
 
@@ -24732,18 +24664,6 @@ msgstr "Seleziona Anelli"
 
 msgid "Assign Material"
 msgstr "Assegna Materiale"
-
-
-msgid "Adjust"
-msgstr "Regola"
-
-
-msgid "Keying"
-msgstr "Keying"
-
-
-msgid "Tracking"
-msgstr "Tracciamento"
 
 
 msgid "Light"
@@ -24764,6 +24684,74 @@ msgstr "Relazioni"
 
 msgid "Rigid Body"
 msgstr "Corpo Rigido"
+
+
+msgid "Track"
+msgstr "Traccia"
+
+
+msgid "Linked"
+msgstr "Collegato"
+
+
+msgid "Layout"
+msgstr "Layout"
+
+
+msgid "Quick Effects"
+msgstr "Effetti Veloci"
+
+
+msgid "Asset"
+msgstr "Risorsa"
+
+
+msgid "Make Single User"
+msgstr "Rendi Utilizzatore Singolo"
+
+
+msgid "Convert"
+msgstr "Converti"
+
+
+msgid "Link/Transfer Data"
+msgstr "Collega/Trasferisci Dati"
+
+
+msgid "Hooks"
+msgstr "Ganci"
+
+
+msgid "Adjust"
+msgstr "Regola"
+
+
+msgid "Keying"
+msgstr "Keying"
+
+
+msgid "Tracking"
+msgstr "Tracciamento"
+
+
+msgid "Face Sets Init"
+msgstr "Init Sets di Facce"
+
+
+msgid "Random Mask"
+msgstr "Maschera Casuale"
+
+
+msgid "Clear Transform"
+msgstr "Cancella Trasformazione"
+
+
+msgid "In-Betweens"
+msgstr "Intermedio"
+
+
+msgid "Propagate"
+msgstr "Propaga"
 
 
 msgid "Keyframe Insert Pie"
@@ -50714,8 +50702,8 @@ msgid "Find & Replace"
 msgstr "Trova & Sostituisci"
 
 
-msgid "Auto Keyframing"
-msgstr "Keyframing Automatico"
+msgid "Auto Keying"
+msgstr "Auto-Chiavi"
 
 
 msgid "Playback"
@@ -53746,10 +53734,6 @@ msgstr "Dimensione Pennello"
 
 msgid "Max Lights"
 msgstr "Max Luci"
-
-
-msgid "object_color"
-msgstr "colore_oggetto"
 
 
 msgid "Widget"
@@ -58157,10 +58141,6 @@ msgid "Window Background"
 msgstr "Sfondo Finestra"
 
 
-msgid "Header Text Highlight"
-msgstr "Testo Evidenziato Intestazione"
-
-
 msgid "Text Highlight"
 msgstr "Testo Evidenziato"
 
@@ -58572,10 +58552,6 @@ msgstr "Maschera Selezione"
 
 msgid "Only sculpt selected stroke points"
 msgstr "Scolpisce solo i punti selezionati del tratto"
-
-
-msgid "Auto Keying"
-msgstr "Auto-Chiavi"
 
 
 msgid "Automatic keyframe insertion using active Keying Set only"
@@ -60221,11 +60197,6 @@ msgstr "Propaga:"
 
 msgid "Overwrite Existing:"
 msgstr "Sovrascrivi Esistenti:"
-
-
-msgctxt "Operator"
-msgid "Apply"
-msgstr "Applica"
 
 
 msgid "Options:"
@@ -62617,10 +62588,6 @@ msgid "Duplicate Marker to Scene"
 msgstr "Duplica Marcatore alla Scena"
 
 
-msgid "New Keyframe Type"
-msgstr "Tipo Nuovo Keyframe"
-
-
 msgid "Intersections"
 msgstr "Intersezioni"
 
@@ -64235,6 +64202,11 @@ msgstr "Multi-Pittura"
 msgctxt "Operator"
 msgid "Quick Edit"
 msgstr "Modifica Veloce"
+
+
+msgctxt "Operator"
+msgid "Apply"
+msgstr "Applica"
 
 
 msgctxt "Operator"

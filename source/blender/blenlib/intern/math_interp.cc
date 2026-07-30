@@ -118,8 +118,8 @@ BLI_INLINE void bicubic_interpolation(const T *src_buffer,
   BLI_assert(src_buffer && output);
   BLI_assert(components > 0 && components <= 4);
 
-  /* GCC 15.x can't reliably detect that `components` is never over 4. */
-#if (defined(__GNUC__) && (__GNUC__ >= 15) && !defined(__clang__))
+  /* GCC 14.x and newer can't reliably detect that `components` is never over 4. */
+#if (defined(__GNUC__) && (__GNUC__ >= 14) && !defined(__clang__))
   [[assume(components <= 4)]];
 #endif
 

@@ -1410,7 +1410,7 @@ void IMB_exr_read_passes(ExrReadHandle *handle,
   const int width = handle->width;
   const int height = handle->height;
 
-  /* Find matching layer and pass for every pass info to read .*/
+  /* Find matching layer and pass for every pass info to read. */
   for (ExrPassInfo &entry : entries) {
     bool found = false;
     for (ExrLayer &lay : handle->layers) {

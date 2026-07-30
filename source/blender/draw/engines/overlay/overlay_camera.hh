@@ -12,6 +12,7 @@
 #include "BKE_image_gpu.hh"
 #include "BKE_tracking.hh"
 #include "BLI_math_color_c.hh"
+#include "BLI_math_matrix_c.hh"
 #include "BLI_math_rotation_c.hh"
 #include "DEG_depsgraph_query.hh"
 #include "DNA_camera_types.h"
@@ -595,6 +596,13 @@ class Cameras : Overlay {
 
       if (tex) {
         image_camera_background_matrix_get(&cam, bgpic, state, aspect, mat);
+
+        /* Apply roll to image. */
+        if (state.rv3d->camroll != 0.0f) {
+          transpose_m4(mat.ptr());
+          rotate_m4(mat.ptr(), 'Z', -state.rv3d->camroll);
+          transpose_m4(mat.ptr());
+        }
 
         const bool is_foreground = (bgpic->flag & CAM_BGIMG_FLAG_FOREGROUND) != 0;
         /* Alpha is clamped just below 1.0 to fix background images to interfere with foreground

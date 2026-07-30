@@ -54,6 +54,10 @@ void ED_render_scene_update(const DEGEditorUpdateContext *update_ctx, bool updat
  * Update 3D viewport render or draw engine on changes to the scene or view settings.
  */
 void ED_render_view3d_update(Depsgraph *depsgraph, wmWindow *window, ScrArea *area, bool updated);
+/**
+ * Pause or resume 3D viewport render engines.
+ */
+void ED_render_view3d_pause_resume(Main *bmain, bool pause);
 
 Scene *ED_render_job_get_scene(const bContext *C);
 Scene *ED_render_job_get_current_scene(const bContext *C);

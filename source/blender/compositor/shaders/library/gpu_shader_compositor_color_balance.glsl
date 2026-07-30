@@ -235,7 +235,7 @@ float4 white_point_variable(const float4 color,
 [[node]]
 void node_composite_color_balance(const float4 color,
                                   const float factor,
-                                  const float type,
+                                  const int type,
                                   const float base_lift,
                                   const float4 color_lift,
                                   const float base_gamma,
@@ -256,7 +256,7 @@ void node_composite_color_balance(const float4 color,
                                   const float4x4 xyz_to_scene,
                                   float4 &result)
 {
-  switch (int(type)) {
+  switch (type) {
     case CMP_NODE_COLOR_BALANCE_LGG:
       result = lift_gamma_gain(
           color, base_lift, color_lift, base_gamma, color_gamma, base_gain, color_gain);
@@ -282,7 +282,7 @@ void node_composite_color_balance(const float4 color,
 [[node]]
 void node_composite_color_balance_white_point_constant(const float4 color,
                                                        const float factor,
-                                                       const float type,
+                                                       const int type,
                                                        const float base_lift,
                                                        const float4 color_lift,
                                                        const float base_gamma,

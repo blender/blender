@@ -84,9 +84,8 @@ class PoseBoneRenameTest(unittest.TestCase):
         self.armature_obj.pose.bones[_BONE_NAME_B].name = bone_b_new_name
 
         # Testing if driver targets are still correct after a rename.
-        # TODO: this currently does not work!
-        # driver_target = fcu.driver.variables[0].targets[0]
-        # self.assertEqual(driver_target.data_path, f"pose.bones[\"{bone_b_new_name}\"].location[0]")
+        driver_target = fcu.driver.variables[0].targets[0]
+        self.assertEqual(driver_target.data_path, f"pose.bones[\"{bone_b_new_name}\"].location[0]")
 
     def test_rename_pose_bone_driver(self) -> None:
         fcu = self.armature_obj.pose.bones[_BONE_NAME_A].driver_add("hide", -1)
@@ -114,9 +113,8 @@ class PoseBoneRenameTest(unittest.TestCase):
         self.armature_obj.pose.bones[_BONE_NAME_B].name = bone_b_new_name
 
         # Testing if driver targets are still correct after a rename.
-        # TODO: this currently does not work!
-        # driver_target = fcu.driver.variables[0].targets[0]
-        # self.assertEqual(driver_target.data_path, f"pose.bones[\"{bone_b_new_name}\"].location[0]")
+        driver_target = fcu.driver.variables[0].targets[0]
+        self.assertEqual(driver_target.data_path, f"pose.bones[\"{bone_b_new_name}\"].location[0]")
 
     def test_rename_bone_animation(self) -> None:
         # Not particularly useful to animate this property, but it can be done, so better test it.

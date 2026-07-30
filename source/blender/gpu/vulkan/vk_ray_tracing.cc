@@ -287,7 +287,8 @@ void VKTopLevelAS::build()
       ceil_to_multiple_ul(
           do_update ? vk_acceleration_structure_build_sizes_info.updateScratchSize :
                       vk_acceleration_structure_build_sizes_info.buildScratchSize,
-          acceleration_structure_properties.minAccelerationStructureScratchOffsetAlignment),
+          acceleration_structure_properties.minAccelerationStructureScratchOffsetAlignment) +
+          acceleration_structure_properties.minAccelerationStructureScratchOffsetAlignment,
       VK_BUFFER_USAGE_STORAGE_BUFFER_BIT | VK_BUFFER_USAGE_SHADER_DEVICE_ADDRESS_BIT,
       VMA_MEMORY_USAGE_AUTO_PREFER_DEVICE,
       VmaAllocationCreateFlags(0),
@@ -305,6 +306,7 @@ void VKTopLevelAS::build()
   node_data.vk_acceleration_structure_build_geometry_info.dstAccelerationStructure =
       vk_acceleration_structure_;
   build_acceleration_structure_info_.dst_acceleration_structure = buffer_.resource();
+  build_acceleration_structure_info_.scratch_buffer = device_scratch_space.resource();
 
   render_graph::VKRenderGraph &render_graph = context.render_graph();
   render_graph.add_node(build_acceleration_structure_info_);
@@ -416,7 +418,10 @@ void VKBottomLevelAS::add_geometry(IndexBuf &index_buffer_, VertBuf &vertex_buff
        VK_GEOMETRY_OPAQUE_BIT_KHR});
   const uint32_t num_primitives = uint32_t(index_buffer.index_len_get() / 3);
   build_acceleration_structure_info_.node_data.vk_acceleration_structure_build_range_infos.append(
-      {num_primitives, 0, index_buffer.index_base_get(), 0});
+      {num_primitives,
+       index_buffer.index_start_get() * (index_buffer.is_32bit() ? 4u : 2u),
+       index_buffer.index_base_get(),
+       0});
   max_primitive_count_per_geometry_.append(num_primitives);
 
   build_acceleration_structure_info_.src_buffers.add(index_buffer.resource());
@@ -498,7 +503,8 @@ void VKBottomLevelAS::build()
   device_scratch_space.create(
       ceil_to_multiple_ul(
           vk_acceleration_structure_build_sizes_info.buildScratchSize,
-          acceleration_structure_properties.minAccelerationStructureScratchOffsetAlignment),
+          acceleration_structure_properties.minAccelerationStructureScratchOffsetAlignment) +
+          acceleration_structure_properties.minAccelerationStructureScratchOffsetAlignment,
       VK_BUFFER_USAGE_STORAGE_BUFFER_BIT | VK_BUFFER_USAGE_SHADER_DEVICE_ADDRESS_BIT,
       VMA_MEMORY_USAGE_AUTO_PREFER_DEVICE,
       0,
@@ -516,6 +522,7 @@ void VKBottomLevelAS::build()
   node_data.vk_acceleration_structure_build_geometry_info.dstAccelerationStructure =
       vk_acceleration_structure_;
   build_acceleration_structure_info_.dst_acceleration_structure = buffer_.resource();
+  build_acceleration_structure_info_.scratch_buffer = device_scratch_space.resource();
 
   VKContext &context = *VKContext::get();
   render_graph::VKRenderGraph &render_graph = context.render_graph();

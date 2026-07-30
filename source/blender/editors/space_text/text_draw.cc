@@ -193,7 +193,7 @@ static void format_draw_color(const TextDrawContext *tdc, char formatchar)
  *             draw_end = pos+1
  *         pos += 1
  *     print line[draw_start:]
- * \encode
+ * \endcode
  *
  * \{ */
 
@@ -1036,7 +1036,7 @@ static void calc_text_rcts(SpaceText *st, ARegion *region, rcti *r_scroll, rcti 
 
 static void draw_textscroll(const SpaceText *st, const rcti *scroll, const rcti *back)
 {
-  bTheme *btheme = ui::theme::theme_get();
+  const bTheme *btheme = ui::theme::theme_get();
   uiWidgetColors wcol = btheme->tui.wcol_scroll;
   float col[4];
   float rad;

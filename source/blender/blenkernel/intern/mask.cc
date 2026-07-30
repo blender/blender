@@ -30,10 +30,13 @@
 #include "DNA_movieclip_types.h"
 #include "DNA_object_types.h"
 
+#include "RNA_path.hh"
+
 #include "BKE_animsys.hh"
 #include "BKE_curve.hh"
 #include "BKE_idtype.hh"
 
+#include "BKE_global.hh"
 #include "BKE_image.hh"
 #include "BKE_lib_id.hh"
 #include "BKE_lib_query.hh"
@@ -361,17 +364,20 @@ void BKE_mask_layer_unique_name(Mask *mask, MaskLayer *masklay)
                  sizeof(masklay->name));
 }
 
-void BKE_mask_layer_rename(Mask *mask,
-                           MaskLayer *masklay,
-                           const char *oldname,
-                           const char *newname)
+void BKE_mask_layer_rename(
+    Main &bmain, Mask *mask, MaskLayer *masklay, const char *oldname, const char *newname)
 {
   STRNCPY_UTF8(masklay->name, newname);
 
   BKE_mask_layer_unique_name(mask, masklay);
 
   /* now fix animation paths */
-  BKE_animdata_fix_paths_rename_all(&mask->id, "layers", oldname, masklay->name);
+  BKE_animdata_fix_paths(mask->id,
+                         "layers",
+                         RNA_path_name_to_infix(oldname),
+                         RNA_path_name_to_infix(masklay->name),
+                         /*verify_paths=*/true,
+                         bmain);
 }
 
 MaskLayer *BKE_mask_layer_copy(const MaskLayer *masklay)

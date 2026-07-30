@@ -900,42 +900,44 @@ struct ccl_align(16) ShaderClosure {
  * are in world space.
  */
 
-enum ShaderDataFlag {
-  /* Runtime flags. */
-
+/* Shader runtime flags, determined during rendering. */
+enum ShaderRuntimeFlag {
   /* Set when ray hits backside of surface. */
-  SD_BACKFACING = (1 << 0),
-  /* Shader has non-zero emission. */
-  SD_EMISSION = (1 << 1),
-  /* Shader has BSDF closure. */
-  SD_BSDF = (1 << 2),
-  /* Shader has non-singular BSDF closure. */
-  SD_BSDF_HAS_EVAL = (1 << 3),
-  /* Shader has BSSRDF closure. */
-  SD_BSSRDF = (1 << 4),
-  /* Shader has holdout closure. */
-  SD_HOLDOUT = (1 << 5),
-  /* Shader has non-zero volume extinction. */
-  SD_EXTINCTION = (1 << 6),
-  /* Shader has a volume phase (scatter) closure. */
-  SD_SCATTER = (1 << 7),
-  /* Shader is being evaluated in a volume. */
-  SD_IS_VOLUME_SHADER_EVAL = (1 << 8),
-  /* Shader has transparent closure. */
-  SD_TRANSPARENT = (1 << 9),
-  /* BSDF has a transmissive component. */
-  SD_BSDF_HAS_TRANSMISSION = (1 << 10),
-  /* Shader has ray portal closure. */
-  SD_RAY_PORTAL = (1 << 11),
+  SR_BACKFACING = (1 << 0),
   /* Shader evaluation needs to be redone, because of texture cache miss */
-  SD_CACHE_MISS = (1 << 12),
+  SR_CACHE_MISS = (1 << 1),
 
-  SD_CLOSURE_FLAGS = (SD_EMISSION | SD_BSDF | SD_BSDF_HAS_EVAL | SD_BSSRDF | SD_HOLDOUT |
-                      SD_EXTINCTION | SD_SCATTER | SD_IS_VOLUME_SHADER_EVAL |
-                      SD_BSDF_HAS_TRANSMISSION | SD_RAY_PORTAL | SD_CACHE_MISS),
+  /* Shader has non-zero emission. */
+  SR_EMISSION = (1 << 2),
+  /* Shader has BSDF closure. */
+  SR_BSDF = (1 << 3),
+  /* Shader has non-singular BSDF closure. */
+  SR_BSDF_HAS_EVAL = (1 << 4),
+  /* Shader has BSSRDF closure. */
+  SR_BSSRDF = (1 << 5),
+  /* Shader has holdout closure. */
+  SR_HOLDOUT = (1 << 6),
+  /* Shader has non-zero volume extinction. */
+  SR_EXTINCTION = (1 << 7),
+  /* Shader has a volume phase (scatter) closure. */
+  SR_SCATTER = (1 << 8),
+  /* Shader is being evaluated in a volume. */
+  SR_IS_VOLUME_SHADER_EVAL = (1 << 9),
+  /* Shader has transparent closure. */
+  SR_TRANSPARENT = (1 << 10),
+  /* BSDF has a transmissive component. */
+  SR_BSDF_HAS_TRANSMISSION = (1 << 11),
+  /* Shader has ray portal closure. */
+  SR_RAY_PORTAL = (1 << 12),
 
-  /* Shader flags. */
+  /* Flags that indicate the presence of closures. */
+  SR_CLOSURE_FLAG = (SR_EMISSION | SR_BSDF | SR_BSDF_HAS_EVAL | SR_BSSRDF | SR_HOLDOUT |
+                     SR_EXTINCTION | SR_SCATTER | SR_IS_VOLUME_SHADER_EVAL | SR_TRANSPARENT |
+                     SR_BSDF_HAS_TRANSMISSION | SR_RAY_PORTAL)
+};
 
+/* Shader flags that are set after compiling the shaders. */
+enum ShaderDataFlag {
   /* If Light Path Node is present in the shader graph. */
   SD_HAS_LIGHT_PATH_NODE = (1 << 13),
   /* Has bump mapping from BSDF connected to surface socket. */
@@ -975,12 +977,6 @@ enum ShaderDataFlag {
   SD_HAS_RAYTRACE = (1 << 30),
   /* Use back side for direct light sampling. */
   SD_MIS_BACK = (1 << 31),
-
-  SD_SHADER_FLAGS = (SD_MIS_FRONT | SD_HAS_TRANSPARENT_SHADOW | SD_HAS_VOLUME |
-                     SD_HAS_ONLY_VOLUME | SD_HETEROGENEOUS_VOLUME | SD_HAS_BSSRDF_BUMP |
-                     SD_VOLUME_EQUIANGULAR | SD_VOLUME_MIS | SD_VOLUME_CUBIC | SD_HAS_BUMP |
-                     SD_HAS_DISPLACEMENT | SD_HAS_CONSTANT_EMISSION | SD_NEED_VOLUME_ATTRIBUTES |
-                     SD_HAS_EMISSION | SD_HAS_RAYTRACE | SD_MIS_BACK)
 };
 
 /* Object flags. */
@@ -1037,8 +1033,10 @@ struct ccl_align(16) ShaderData {
 
   /* shader id */
   int shader;
+  /* booleans describing shader, see ShaderRuntimeFlag */
+  int runtime_flag;
   /* booleans describing shader, see ShaderDataFlag */
-  int flag;
+  int shader_flag;
   /* booleans describing object of the shader, see ShaderDataObjectFlag */
   uint object_flag;
 

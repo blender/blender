@@ -27,7 +27,7 @@ void userpref_panels_register(ARegionType &region_type);
 
 void userpref_asset_libraries_panel_draw(const bContext *C, Panel *panel);
 
-/* `userpref_asset_libraries_list.cc */
+/* `userpref_asset_libraries_list.cc` */
 
 /* -------------------------------------------------------------------- */
 /** \name Asset UI List

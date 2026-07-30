@@ -16,6 +16,7 @@ struct GHOST_CSD_Layout;
 namespace blender {
 
 struct bContext;
+struct bScreen;
 struct wmWindow;
 
 /* *************** Message box *************** */
@@ -34,6 +35,15 @@ void WM_ghost_show_message_box(const char *title,
 GHOST_TDrawingContextType wm_ghost_drawing_context_type(const GPUBackendType gpu_backend);
 
 void wm_test_gpu_backend_fallback(bContext *C);
+
+/**
+ * Set the theme context (space type & region id) used to source colors for the window's
+ * title bar decoration, matching the space/region whose header color represents the window.
+ *  - Main window: the top-bar header.
+ *  - Single-editor floating window: that editor's header.
+ * \param screen: May be null, in which case the window is used as a theme provider.
+ */
+void wm_window_titlebar_theme_context_set(const wmWindow *win, const bScreen *screen);
 
 /* wm_window_csd_draw.cc */
 
@@ -64,6 +74,12 @@ void WM_window_csd_draw_titlebar_ex(const int win_size[2],
 void WM_window_csd_draw_titlebar(const wmWindow *win);
 
 /* wm_window_csd_layout.cc */
+
+/**
+ * Extra margin (in points) outside the visible window where the pointer still resizes the main
+ * window. Not applied when maximized or full-screen.
+ */
+#define WM_WINDOW_CSD_RESIZE_MARGIN_SIZE 10
 
 /**
  * Apply fractional scale for client side decorations.

@@ -5833,7 +5833,7 @@ static void join_object_with_active(Main &bmain,
           if (dtar->rna_path && strstr(dtar->rna_path, "layers[")) {
             for (auto [name_src, name_dst] : layer_name_map.items()) {
               if (name_dst != name_src) {
-                const char *old_path = fcu->rna_path;
+                const char *old_path = dtar->rna_path;
                 dtar->rna_path = BKE_animsys_fix_rna_path_rename(
                     id, dtar->rna_path, "layers", name_src, name_dst);
                 if (old_path != dtar->rna_path) {

@@ -65,6 +65,8 @@
 #include "BKE_pointcache.h"
 #include "BKE_report.hh"
 
+#include "RNA_path.hh"
+
 #include "BLT_translation.hh"
 
 #include "BLO_read_write.hh"
@@ -1312,10 +1314,9 @@ static void do_version_convert_to_generic_nodes(bNodeTree *node_tree)
 
 /* Equivalent to do_version_convert_to_generic_nodes but performed after linking for handing things
  * like animation or node construction. */
-static void do_version_convert_to_generic_nodes_after_linking(Main *bmain,
-                                                              bNodeTree *node_tree,
-                                                              ID *id)
+static void do_version_convert_to_generic_nodes_after_linking(Main *bmain, bNodeTree *node_tree)
 {
+  const DriverMap driver_map = BKE_animdata_build_driver_target_map(*bmain);
   for (bNode &node : node_tree->nodes.items_mutable()) {
     char escaped_node_name[sizeof(node.name) * 2 + 1];
     BLI_str_escape(escaped_node_name, node.name, sizeof(escaped_node_name));
@@ -1327,15 +1328,12 @@ static void do_version_convert_to_generic_nodes_after_linking(Main *bmain,
       case SH_NODE_CURVE_VEC: {
         /* The node gained a new Factor input as a first socket, so the vector socket moved to be
          * the second socket and we need to transfer its animation as well. */
-        BKE_animdata_fix_paths_rename_all_ex(bmain,
-                                             id,
-                                             rna_path_prefix.c_str(),
-                                             nullptr,
-                                             nullptr,
-                                             0,
-                                             1,
-                                             /*verify_paths=*/false,
-                                             /*infix_is_name=*/true);
+        BKE_animdata_fix_paths(node_tree->id,
+                               rna_path_prefix,
+                               RNA_path_number_to_infix(0),
+                               RNA_path_number_to_infix(1),
+                               /*verify_paths=*/false,
+                               driver_map);
         break;
       }
       /* Notice that we use the shader type because the node is already converted in versioning
@@ -1343,24 +1341,18 @@ static void do_version_convert_to_generic_nodes_after_linking(Main *bmain,
       case SH_NODE_MIX: {
         /* The node gained multiple new sockets after the factor socket, so the second and third
          * sockets moved to be the 7th and 8th sockets. */
-        BKE_animdata_fix_paths_rename_all_ex(bmain,
-                                             id,
-                                             rna_path_prefix.c_str(),
-                                             nullptr,
-                                             nullptr,
-                                             1,
-                                             6,
-                                             /*verify_paths=*/false,
-                                             /*infix_is_name=*/true);
-        BKE_animdata_fix_paths_rename_all_ex(bmain,
-                                             id,
-                                             rna_path_prefix.c_str(),
-                                             nullptr,
-                                             nullptr,
-                                             2,
-                                             7,
-                                             /*verify_paths=*/false,
-                                             /*infix_is_name=*/true);
+        BKE_animdata_fix_paths(node_tree->id,
+                               rna_path_prefix,
+                               RNA_path_number_to_infix(1),
+                               RNA_path_number_to_infix(6),
+                               /*verify_paths=*/false,
+                               driver_map);
+        BKE_animdata_fix_paths(node_tree->id,
+                               rna_path_prefix,
+                               RNA_path_number_to_infix(2),
+                               RNA_path_number_to_infix(7),
+                               /*verify_paths=*/false,
+                               driver_map);
         break;
       }
       default:
@@ -2611,7 +2603,7 @@ static bool window_has_sequence_editor_open(const wmWindow *win)
 
 /* Merge transform effect properties with strip transform. Because this effect could use modifiers,
  * change its type to gaussian blur with 0 radius. */
-static void sequencer_substitute_transform_effects(Scene *scene)
+static void sequencer_substitute_transform_effects(Main &bmain, Scene *scene)
 {
   seq::foreach_strip(&scene->ed->seqbase, [&](Strip *strip) -> bool {
     if (strip->type == STRIP_TYPE_TRANSFORM_LEGACY && strip->effectdata != nullptr) {
@@ -2633,7 +2625,7 @@ static void sequencer_substitute_transform_effects(Scene *scene)
       GaussianBlurVars *gv = static_cast<GaussianBlurVars *>(strip->effectdata);
       gv->size_x = gv->size_y = 0.0f;
       seq::edit_strip_name_set(scene, strip, "Transform Placeholder (Migrated)");
-      seq::ensure_unique_name(strip, scene);
+      seq::ensure_unique_name(bmain, strip, scene);
     }
     return true;
   });
@@ -2769,7 +2761,7 @@ void do_versions_after_linking_500(FileData *fd, Main *bmain)
   if (!MAIN_VERSION_FILE_ATLEAST(bmain, 500, 27)) {
     FOREACH_NODETREE_BEGIN (bmain, ntree, id) {
       if (ntree->type == NTREE_COMPOSIT) {
-        do_version_convert_to_generic_nodes_after_linking(bmain, ntree, id);
+        do_version_convert_to_generic_nodes_after_linking(bmain, ntree);
       }
     }
     FOREACH_NODETREE_END;
@@ -2884,7 +2876,7 @@ void do_versions_after_linking_500(FileData *fd, Main *bmain)
   if (!MAIN_VERSION_FILE_ATLEAST(bmain, 500, 97)) {
     for (Scene &scene : bmain->scenes) {
       if (scene.ed != nullptr) {
-        sequencer_substitute_transform_effects(&scene);
+        sequencer_substitute_transform_effects(*bmain, &scene);
       }
     }
   }

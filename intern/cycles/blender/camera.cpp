@@ -221,7 +221,7 @@ static void blender_camera_from_object(BlenderCamera *bcam,
 {
   blender::ID &b_ob_data = *static_cast<blender::ID *>(b_ob.data);
 
-  if (GS(b_ob_data.name) == blender::ID_CA) {
+  if (blender::GS(b_ob_data.name) == blender::ID_CA) {
     blender::Camera &b_camera = blender::id_cast<blender::Camera &>(b_ob_data);
 
     bcam->nearclip = b_camera.clip_start;
@@ -353,7 +353,7 @@ static void blender_camera_from_object(BlenderCamera *bcam,
       }
     }
   }
-  else if (GS(b_ob_data.name) == blender::ID_LA) {
+  else if (blender::GS(b_ob_data.name) == blender::ID_LA) {
     /* Can also look through spot light. */
     const blender::Light &b_light = reinterpret_cast<const blender::Light &>(b_ob_data);
     const float lens = 16.0f / tanf(b_light.spotsize * 0.5f);

@@ -37,12 +37,12 @@
 
 namespace blender::ed::transform {
 
-#define STRIP_EDGE_PAN_INSIDE_PAD 3.5
-#define STRIP_EDGE_PAN_OUTSIDE_PAD 0 /* Disable clamping for panning, use whole screen. */
-#define STRIP_EDGE_PAN_SPEED_RAMP 1
-#define STRIP_EDGE_PAN_MAX_SPEED 4 /* In UI units per second, slower than default. */
-#define STRIP_EDGE_PAN_DELAY 1.0f
-#define STRIP_EDGE_PAN_ZOOM_INFLUENCE 0.5f
+#define STRIP_EDGE_PAN_INSIDE_PAD 3.5f
+#define STRIP_EDGE_PAN_OUTSIDE_PAD 0.0f /* Disable clamping for panning, use whole screen. */
+#define STRIP_EDGE_PAN_SPEED_RAMP 1.0f
+#define STRIP_EDGE_PAN_MAX_SPEED 26.0f /* In UI units per second, slower than default. */
+#define STRIP_EDGE_PAN_DELAY 0.5f
+#define STRIP_EDGE_PAN_ZOOM_INFLUENCE 0.0f
 
 namespace {
 
@@ -265,7 +265,7 @@ static void seq_transform_cancel(TransInfo *t, Span<Strip *> transformed_strips)
 
   if (t->remove_on_cancel) {
     for (Strip *strip : transformed_strips) {
-      seq::edit_flag_for_removal(scene, seqbase, strip);
+      seq::edit_flag_for_removal(scene, strip);
     }
     seq::edit_remove_flagged_strips(scene, seqbase);
     vse::sync_active_scene_and_time_with_scene_strip(*t->context);

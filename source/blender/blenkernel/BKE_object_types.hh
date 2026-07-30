@@ -44,6 +44,15 @@ struct ObjectRuntime {
   /** Did last modifier stack generation need mapping support? */
   char last_need_mapping = false;
 
+#ifndef NDEBUG
+  /**
+   * Draw code generates a single reference temporary object for multiple instances,
+   * but this means `object_to_world` and `world_to_object` can't be valid.
+   * This is just a debug flag to ensure no code uses these when it shouldn't.
+   */
+  char is_draw_dupli_reference_tmp_object = false;
+#endif
+
   /** Only used for drawing the parent/child help-line. */
   float3 parent_display_origin;
 

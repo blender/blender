@@ -207,7 +207,8 @@ std::string MTLShader::entry_point_name_get(const ShaderStage stage)
 
 /* Note: returns a retained object. */
 static ::MTLCompileOptions *get_compile_options(const bool use_subpass_input,
-                                                const bool use_texture_atomic)
+                                                const bool use_texture_atomic,
+                                                const bool use_ray_query)
 {
   ::MTLCompileOptions *options = [[MTLCompileOptions alloc] init];
   options.languageVersion = MTLLanguageVersion2_2;
@@ -220,6 +221,14 @@ static ::MTLCompileOptions *get_compile_options(const bool use_subpass_input,
   if (use_subpass_input) {
     options.languageVersion = MTLLanguageVersion2_3;
   }
+#if defined(MAC_OS_VERSION_13_0)
+  if (@available(macOS 13.0, *)) {
+    /* Inline ray queries require Metal 3.0. */
+    if (use_ray_query) {
+      options.languageVersion = MTLLanguageVersion3_0;
+    }
+  }
+#endif
 #if defined(MAC_OS_VERSION_14_0)
   if (@available(macOS 14.00, *)) {
     /* Texture atomics require Metal 3.1. */
@@ -256,6 +265,10 @@ id<MTLLibrary> MTLShader::create_shader_library(const shader::ShaderCreateInfo &
       ss << "#define MTL_SUPPORTS_TEXTURE_ATOMICS 1\n";
     }
 
+    if (flag_is_set(info.builtins_, BuiltinBits::RAY_QUERY)) {
+      ss << "#define MTL_USE_RAY_QUERY\n";
+    }
+
     shader::GeneratedSource defines_src{"gpu_shader_msl_defines.msl", {}, ss.str()};
     shader::GeneratedSource wrapper_src{
         "gpu_shader_msl_wrapper.msl", {"gpu_shader_msl_types.msl"}, wrapper.first};
@@ -287,9 +300,17 @@ id<MTLLibrary> MTLShader::create_shader_library(const shader::ShaderCreateInfo &
     processed_source = original_source;
   }
 
+  /* Ray-query shaders need the Metal raytracing header prepended to the final source. */
+  if (flag_is_set(info.builtins_, BuiltinBits::RAY_QUERY)) {
+    processed_source = "#include <metal_raytracing>\nusing namespace metal::raytracing;\n" +
+                       processed_source;
+  }
+
   {
     ::MTLCompileOptions *options = get_compile_options(
-        !info.subpass_inputs_.is_empty(), bool(info.builtins_ & BuiltinBits::TEXTURE_ATOMIC));
+        !info.subpass_inputs_.is_empty(),
+        bool(info.builtins_ & BuiltinBits::TEXTURE_ATOMIC),
+        flag_is_set(info.builtins_, BuiltinBits::RAY_QUERY));
 
     NSError *error = nullptr;
     id<MTLLibrary> library = [context_->device

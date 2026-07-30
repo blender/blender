@@ -550,6 +550,14 @@ static PyObject *_bpy_ids_info(BPy_Library *self, int blocktype)
 
 static PyObject *bpy_lib_enter(BPy_Library *self)
 {
+  /* The dummy returned as `data_from` has no `bmain` to link into.
+   * A non-null `blo_handle` means this context is already entered, re-entering
+   * would leak the handle. */
+  if ((self->bmain == nullptr) || (self->blo_handle != nullptr)) [[unlikely]] {
+    PyErr_SetString(PyExc_RuntimeError, "This context manager cannot be entered");
+    return nullptr;
+  }
+
   ReportList *reports = &self->reports;
   BlendFileReadReport *bf_reports = &self->bf_reports;
 
@@ -622,6 +630,8 @@ static PyObject *bpy_lib_enter(BPy_Library *self)
     Py_DECREF(identifier);
   }
 
+  self_src->bmain = nullptr;
+  self_src->bmain_is_temp = false;
   self_src->blo_handle = nullptr;
   self_src->flag = 0;
   self_src->create_liboverrides = false;
@@ -742,6 +752,12 @@ static bool bpy_lib_exit_lapp_context_items_cb(BlendfileLinkAppendContext *lapp_
 
 static PyObject *bpy_lib_exit(BPy_Library *self, PyObject * /*args*/)
 {
+  /* Members used below are only initialized by `__enter__`. */
+  if (self->blo_handle == nullptr) [[unlikely]] {
+    PyErr_SetString(PyExc_RuntimeError, "Context manager not entered");
+    return nullptr;
+  }
+
   Main *bmain = self->bmain;
   const bool do_pack = ((self->flag & BLO_LIBLINK_PACK) != 0);
   const bool do_append = ((self->flag & FILE_LINK) == 0);

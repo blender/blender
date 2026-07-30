@@ -3774,11 +3774,11 @@ static void do_brush_action(const Depsgraph &depsgraph,
   if (!ELEM(brush.sculpt_brush_type, SCULPT_BRUSH_TYPE_SMOOTH, SCULPT_BRUSH_TYPE_MASK) &&
       brush.autosmooth_factor > 0)
   {
-    if (bke::brush::supports_auto_smooth_pressure(brush) &&
-        brush.flag & BRUSH_INVERSE_SMOOTH_PRESSURE)
-    {
-      brushes::do_smooth_brush(
-          depsgraph, sd, ob, node_mask, brush.autosmooth_factor * (1.0f - ss.cache->pressure));
+    if (bke::brush::supports_auto_smooth_pressure(brush) && brush.flag & BRUSH_SMOOTH_PRESSURE) {
+      const float auto_smooth_factor = brush.autosmooth_factor *
+                                       BKE_curvemapping_evaluateF(
+                                           brush.curve_auto_smooth, 0, ss.cache->pressure);
+      brushes::do_smooth_brush(depsgraph, sd, ob, node_mask, auto_smooth_factor);
     }
     else {
       brushes::do_smooth_brush(depsgraph, sd, ob, node_mask, brush.autosmooth_factor);
@@ -4512,9 +4512,7 @@ static void cache_paint_invariants_update(StrokeCache &cache, const Brush &brush
   if (bke::brush::supports_hardness_pressure(brush) &&
       brush.paint_flags & BRUSH_PAINT_HARDNESS_PRESSURE)
   {
-    cache.hardness *= brush.paint_flags & BRUSH_PAINT_HARDNESS_PRESSURE_INVERT ?
-                          1.0f - cache.pressure :
-                          cache.pressure;
+    cache.hardness *= BKE_curvemapping_evaluateF(brush.curve_hardness, 0, cache.pressure);
   }
 
   cache.paint_brush.flow = brush.flow;
@@ -5202,8 +5200,7 @@ struct SculptPaintStroke final : public PaintStroke {
   /* Needed to tag other viewports */
   wmWindowManager *wm_;
 
-  SculptPaintStroke(bContext *C, wmOperator *op, const int event_type)
-      : PaintStroke(C, op, event_type)
+  SculptPaintStroke(bContext *C, wmOperator *op, const wmEvent *event) : PaintStroke(C, op, event)
   {
     bmain_ = CTX_data_main(C);
 
@@ -6221,7 +6218,10 @@ static wmOperatorStatus sculpt_brush_stroke_invoke(bContext *C,
     return OPERATOR_CANCELLED;
   }
 
-  stroke = MEM_new<SculptPaintStroke>(__func__, C, op, event->type);
+  bool pen_flip;
+  WM_event_tablet_data(event, &pen_flip, nullptr);
+
+  stroke = MEM_new<SculptPaintStroke>(__func__, C, op, event);
   brush_stroke_init(C, op);
 
   Sculpt &sd = *CTX_data_tool_settings(C)->sculpt;
@@ -6302,7 +6302,7 @@ static wmOperatorStatus sculpt_brush_stroke_exec(bContext *C, wmOperator *op)
 {
   brush_stroke_init(C, op);
 
-  SculptPaintStroke *stroke = MEM_new<SculptPaintStroke>(__func__, C, op, 0);
+  SculptPaintStroke *stroke = MEM_new<SculptPaintStroke>(__func__, C, op, nullptr);
   op->customdata = stroke;
 
   stroke->exec(C, op);

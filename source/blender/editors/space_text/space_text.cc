@@ -121,7 +121,7 @@ static std::optional<rcti> text_main_region_cursor_ime(wmWindow * /*win*/,
                                                        const ARegion *region)
 {
   SpaceText *st = static_cast<SpaceText *>(area->spacedata.first);
-  /* Defer while the scrollbar is being dragged. */
+  /* Defer while the scroll-bar is being dragged. */
   if (st->flags & ST_SCROLL_SELECT) {
     return std::nullopt;
   }

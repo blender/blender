@@ -5,6 +5,8 @@
 #include "node_geometry_util.hh"
 
 #include "DNA_mesh_types.h"
+#include "DNA_pointcloud_types.h"
+#include "DNA_volume_types.h"
 
 #include "GEO_foreach_geometry.hh"
 
@@ -17,7 +19,11 @@ static void node_declare(NodeDeclarationBuilder &b)
   b.use_custom_socket_order();
   b.allow_any_socket_order();
   b.add_input<decl::Geometry>("Geometry"_ustr)
-      .supported_type({GeometryComponent::Type::Mesh, GeometryComponent::Type::GreasePencil})
+      .supported_type({GeometryComponent::Type::Mesh,
+                       GeometryComponent::Type::Volume,
+                       GeometryComponent::Type::PointCloud,
+                       GeometryComponent::Type::Curve,
+                       GeometryComponent::Type::GreasePencil})
       .description("Geometry to replace materials on");
   b.add_output<decl::Geometry>("Geometry"_ustr).propagate_all_geometry().align_with_previous();
   b.add_input<decl::Material>("Old"_ustr);
@@ -45,6 +51,15 @@ static void node_geo_exec(GeoNodeExecParams params)
   geometry::foreach_real_geometry(geometry_set, [&](GeometrySet &geometry_set) {
     if (Mesh *mesh = geometry_set.get_mesh_for_write()) {
       replace_materials({mesh->mat, mesh->totcol}, old_material, new_material);
+    }
+    if (Volume *volume = geometry_set.get_volume_for_write()) {
+      replace_materials({volume->mat, volume->totcol}, old_material, new_material);
+    }
+    if (PointCloud *pointcloud = geometry_set.get_pointcloud_for_write()) {
+      replace_materials({pointcloud->mat, pointcloud->totcol}, old_material, new_material);
+    }
+    if (Curves *curves = geometry_set.get_curves_for_write()) {
+      replace_materials({curves->mat, curves->totcol}, old_material, new_material);
     }
     if (GreasePencil *grease_pencil = geometry_set.get_grease_pencil_for_write()) {
       replace_materials({grease_pencil->material_array, grease_pencil->material_array_num},

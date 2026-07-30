@@ -738,10 +738,11 @@ struct PreviewImage {
  * type. ID_IP was removed in Blender 5.0. */
 #define ID_TYPE_IS_DEPRECATED(id_type) false
 
-#ifdef GS
-#  undef GS
-#endif
-#define GS(a) (CHECK_TYPE_ANY(a, char *, const char *), (ID_Type)(*((const short *)(a))))
+/** Return the #ID_Type encoded in the first two bytes of #ID::name. */
+inline ID_Type GS(const char *name)
+{
+  return ID_Type(*reinterpret_cast<const short *>(name));
+}
 
 #define ID_NEW_SET(_id, _idn) \
   (((id_cast<ID *>)(_id))->newid = (id_cast<ID *>)(_idn), \

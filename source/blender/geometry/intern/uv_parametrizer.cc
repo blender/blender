@@ -5365,8 +5365,6 @@ void uv_parametrizer_slim_solve(ParamHandle *phandle,
   slim_flush_uvs(phandle, mt, count_changed, count_failed);
   slim_free_matrix_transfer(phandle);
 #else
-  *count_changed = 0;
-  *count_failed = 0;
   UNUSED_VARS(phandle, slim_options, use_original_bounds, count_changed, count_failed);
 #endif /* !WITH_UV_SLIM */
 }

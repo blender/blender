@@ -208,6 +208,7 @@ void VKTexture::read_sub(
   const int3 extent = int3(region[3] - region[0], region[4] - region[1], region[5] - region[2]);
   TransferRegion full_transfer_region({offset, extent, layers});
   const VkDeviceSize sample_bytesize = to_bytesize(device_format_);
+  const VkDeviceSize host_sample_bytesize = to_bytesize(format_, format);
   const uint64_t x_bytesize = sample_bytesize * extent.x;
   const uint64_t xy_bytesize = x_bytesize * extent.y;
   const uint64_t xyz_bytesize = xy_bytesize * extent.z;
@@ -317,7 +318,7 @@ void VKTexture::read_sub(
 
     size_t data_offset = full_transfer_region.result_offset(transfer_region.offset,
                                                             transfer_region.layers.start()) *
-                         sample_bytesize;
+                         host_sample_bytesize;
     staging_buffer.invalidate_mapped_memory();
     convert_device_to_host(static_cast<void *>(static_cast<uint8_t *>(r_data) + data_offset),
                            staging_buffer.mapped_memory_get(),

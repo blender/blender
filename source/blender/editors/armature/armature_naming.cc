@@ -40,6 +40,7 @@
 
 #include "RNA_access.hh"
 #include "RNA_define.hh"
+#include "RNA_path.hh"
 
 #include "WM_api.hh"
 #include "WM_types.hh"
@@ -166,7 +167,6 @@ void ED_armature_bone_rename(Main *bmain,
                              const char *oldnamep,
                              const char *newnamep)
 {
-
   /* If old and new name match we don't need to do anything. */
   if (STREQLEN(oldnamep, newnamep, MAXBONENAME)) {
     return;
@@ -215,39 +215,41 @@ void ED_armature_bone_rename(Main *bmain,
 
   /* force evaluation copy to update database */
   DEG_id_tag_update(&arm->id, ID_RECALC_SYNC_TO_EVAL);
+  const DriverMap driver_map = BKE_animdata_build_driver_target_map(*bmain);
+  std::string old_name_esc = RNA_path_name_to_infix(oldname);
+  std::string new_name_esc = RNA_path_name_to_infix(newname);
 
   Object *ob;
-  /* do entire dbase - objects */
+  /* Find all uses of the bone name in Main. Bones are usually referred to by name which is why we
+   * need to fix the string in all possible places.  */
   for (ob = static_cast<Object *>(bmain->objects.first); ob;
        ob = static_cast<Object *>(ob->id.next))
   {
-
-    /* we have the object using the armature */
+    /* We have an object using the armature. */
     if (id_cast<const ID *>(arm) == ob->data) {
-      Object *cob;
-
       /* Rename the pose channel, if it exists */
       if (ob->pose) {
         bPoseChannel *pchan = BKE_pose_channel_find_name(ob->pose, oldname);
         if (pchan) {
           GHash *gh = ob->pose->chanhash;
-
-          /* remove the old hash entry, and replace with the new name */
           if (gh) {
             BLI_assert(BLI_ghash_haskey(gh, pchan->name));
             BLI_ghash_remove(gh, pchan->name, nullptr, nullptr);
           }
-
           STRNCPY_UTF8(pchan->name, newname);
-
           if (gh) {
+            BLI_assert(!BLI_ghash_haskey(gh, pchan->name));
             BLI_ghash_insert(gh, pchan->name, pchan);
           }
+
+          BKE_animdata_fix_paths(
+              ob->id, "pose.bones", old_name_esc, new_name_esc, /*verify_paths=*/true, driver_map);
         }
 
-        BLI_assert(BKE_pose_channels_is_valid(ob->pose) == true);
+        BLI_assert(BKE_pose_channels_is_valid(ob->pose));
       }
 
+      Object *cob;
       /* Update any object constraints to use the new bone name */
       for (cob = static_cast<Object *>(bmain->objects.first); cob;
            cob = static_cast<Object *>(cob->id.next))
@@ -360,15 +362,13 @@ void ED_armature_bone_rename(Main *bmain,
     DEG_id_tag_update(&ob->id, ID_RECALC_SYNC_TO_EVAL);
   }
 
-  /* Fix all animdata that may refer to this bone -
+  /* Fix all animdata that may refer to this `Bone` -
    * we can't just do the ones attached to objects,
-   * since other ID-blocks may have drivers referring to this bone #29822. */
-
-  /* XXX: the ID here is for armatures,
-   * but most bone drivers are actually on the object instead. */
-  {
-    BKE_animdata_fix_paths_rename_all(&arm->id, "bones", oldname, newname);
-  }
+   * since other ID-blocks may have drivers referring to this bone #29822.
+   * This also works for edit bones since those have an rna path of "edit_bones" which is also
+   * caught by the rename function. */
+  BKE_animdata_fix_paths(
+      arm->id, "bones", old_name_esc, new_name_esc, /*verify_paths=*/true, driver_map);
 
   /* correct view locking */
   {

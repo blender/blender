@@ -314,6 +314,7 @@ ENUM_OPERATORS(eAutomasking_flag)
 
 enum ePaintBrush_flag : int {
   BRUSH_PAINT_HARDNESS_PRESSURE = (1 << 0),
+  /* DEPRECATED: replaced by pressure curves. */
   BRUSH_PAINT_HARDNESS_PRESSURE_INVERT = (1 << 1),
   BRUSH_PAINT_FLOW_PRESSURE = (1 << 2),
   BRUSH_PAINT_FLOW_PRESSURE_INVERT = (1 << 3),
@@ -375,7 +376,7 @@ enum eBrushFlags : uint32_t {
   BRUSH_USE_GRADIENT = (1 << 21),
   BRUSH_EDGE_TO_EDGE = (1 << 22),
   BRUSH_UNUSED_4 = (1 << 23),
-  BRUSH_INVERSE_SMOOTH_PRESSURE = (1 << 24),
+  BRUSH_SMOOTH_PRESSURE = (1 << 24),
   BRUSH_FRONTFACE_FALLOFF = (1 << 25),
   BRUSH_PLANE_TRIM = (1 << 26),
   BRUSH_FRONTFACE = (1 << 27),

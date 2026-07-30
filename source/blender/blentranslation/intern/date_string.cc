@@ -8,6 +8,7 @@
 
 #include <algorithm>
 #include <array>
+#include <ctime>
 #include <string>
 
 #include <fmt/format.h>
@@ -45,6 +46,18 @@ static const LocalePatterns &get_locale_patterns(const StringRef locale_iso)
 
   /* Fallback default pattern (index 0). */
   return patterns[0];
+}
+
+std::tm localtime_safe(const time_t time)
+{
+  const std::tm *ltime = std::localtime(&time);
+  if (ltime) {
+    return *ltime;
+  }
+
+  /* If localtime fails, return the epoch time. */
+  const time_t zero = 0;
+  return *std::localtime(&zero);
 }
 
 std::string time(const std::tm &date_time, TimeFormat format)

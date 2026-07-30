@@ -324,7 +324,16 @@ std::optional<std::string> RNA_path_struct_property_py(PointerRNA *ptr,
  *   some_prop[10]
  */
 std::string RNA_path_property_py(const PointerRNA *ptr, PropertyRNA *prop, int index);
-
+/**
+ * Escapes the given string and formats it to be within square brackets and quotation marks.
+ * For example `Bone "test"` -> `["Bone \"test\""]`.
+ */
+std::string RNA_path_name_to_infix(StringRefNull string);
+/**
+ * Turns the number into a string surrounded by square brackets.
+ * For example `1` -> `[1]`.
+ */
+std::string RNA_path_number_to_infix(int number);
 /**
  * Generate RNA path keys matching the given infixes (or subscript if the infixes are empty),
  * including the opening and closing braces (e.g. `["OldModifierName"]` and `["NewModifierName"]`).
@@ -332,11 +341,11 @@ std::string RNA_path_property_py(const PointerRNA *ptr, PropertyRNA *prop, int i
  * Typically used by code updating RNA paths after some sub-data (modifier, bone...) has been
  * renamed or re-arranged inside a collection.
  *
- * \param old_infix Old string form of the renamed item identifier.
- * \param new_infix New string form of the renamed item identifier.
- * \param old_subscript Old numeric index of the renamed item identifier.
- * \param new_subscript New numeric index of the renamed item identifier.
- * \param infix_is_name Whether the given infixes are actual item names (need to be escaped and
+ * \param old_infix: Old string form of the renamed item identifier.
+ * \param new_infix: New string form of the renamed item identifier.
+ * \param old_subscript: Old numeric index of the renamed item identifier.
+ * \param new_subscript: New numeric index of the renamed item identifier.
+ * \param infix_is_name: Whether the given infixes are actual item names (need to be escaped and
  * quoted) or not.
  * \return A pair of old & new std::string keys.
  */

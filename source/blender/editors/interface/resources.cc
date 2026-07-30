@@ -77,9 +77,9 @@ namespace theme {
 /** \name Themes
  * \{ */
 
-const uchar *get_color_ptr(bTheme *btheme, int spacetype, int colorid)
+const uchar *get_color_ptr(const bTheme *btheme, int spacetype, int colorid)
 {
-  ThemeSpace *ts = nullptr;
+  const ThemeSpace *ts = nullptr;
   static uchar error[4] = {240, 0, 240, 255};
   static uchar back[4] = {0, 0, 0, 255};
   static uchar none[4] = {0, 0, 0, 0};
@@ -235,13 +235,6 @@ const uchar *get_color_ptr(bTheme *btheme, int spacetype, int colorid)
           else if (g_theme_state.regionid == RGN_TYPE_CHANNELS) {
             cp = btheme->regions.channels.text;
           }
-          else if (ELEM(g_theme_state.regionid,
-                        RGN_TYPE_HEADER,
-                        RGN_TYPE_FOOTER,
-                        RGN_TYPE_ASSET_SHELF_HEADER))
-          {
-            cp = ts->header_text;
-          }
           else {
             cp = ts->text;
           }
@@ -250,13 +243,6 @@ const uchar *get_color_ptr(bTheme *btheme, int spacetype, int colorid)
           if (g_theme_state.regionid == RGN_TYPE_CHANNELS) {
             cp = btheme->regions.channels.text_selected;
           }
-          else if (ELEM(g_theme_state.regionid,
-                        RGN_TYPE_HEADER,
-                        RGN_TYPE_FOOTER,
-                        RGN_TYPE_ASSET_SHELF_HEADER))
-          {
-            cp = ts->header_text_hi;
-          }
           else {
             cp = ts->text_hi;
           }
@@ -264,13 +250,6 @@ const uchar *get_color_ptr(bTheme *btheme, int spacetype, int colorid)
 
         case TH_HEADER:
           cp = ts->header;
-          break;
-
-        case TH_HEADER_TEXT:
-          cp = ts->header_text;
-          break;
-        case TH_HEADER_TEXT_HI:
-          cp = ts->header_text_hi;
           break;
 
         case TH_PANEL_HEADER:
@@ -1115,7 +1094,7 @@ const uchar *get_color_ptr(bTheme *btheme, int spacetype, int colorid)
     }
   }
 
-  return static_cast<const uchar *>(cp);
+  return cp;
 }
 
 void init_default()
@@ -1161,7 +1140,7 @@ void theme_set(int spacetype, int regionid)
   }
 }
 
-bTheme *theme_get()
+const bTheme *theme_get()
 {
   return static_cast<bTheme *>(U.themes.first);
 }

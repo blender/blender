@@ -650,9 +650,9 @@ BaseSocketDeclarationBuilder &BaseSocketDeclarationBuilder::label_fn(CustomSocke
   return *this;
 }
 
-BaseSocketDeclarationBuilder &BaseSocketDeclarationBuilder::short_label(std::string value)
+BaseSocketDeclarationBuilder &BaseSocketDeclarationBuilder::short_label(const UString value)
 {
-  decl_base_->short_label = std::move(value);
+  decl_base_->short_label = value;
   return *this;
 }
 

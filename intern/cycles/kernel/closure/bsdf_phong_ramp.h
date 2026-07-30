@@ -44,7 +44,7 @@ ccl_device int bsdf_phong_ramp_setup(ccl_private PhongRampBsdf *bsdf)
 {
   bsdf->type = CLOSURE_BSDF_PHONG_RAMP_ID;
   bsdf->exponent = max(bsdf->exponent, 0.0f);
-  return SD_BSDF | SD_BSDF_HAS_EVAL;
+  return SR_BSDF | SR_BSDF_HAS_EVAL;
 }
 
 ccl_device Spectrum bsdf_phong_ramp_eval(const ccl_private ShaderClosure *sc,

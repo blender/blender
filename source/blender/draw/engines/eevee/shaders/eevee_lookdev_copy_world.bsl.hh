@@ -13,7 +13,8 @@ namespace eevee::lookdev {
 struct CopyWorld {
   [[storage(0, read)]] const SphereProbeHarmonic &in_sh;
   [[storage(1, write)]] SphereProbeHarmonic &out_sh;
-  /* WORKAROUND: The no_restrict flag is here to workaround an NVidia linker quirk (see #134239).*/
+  /* WORKAROUND: The no_restrict flag is here to workaround an NVidia linker quirk
+   * (see #134239). */
   [[storage(2, read_no_restrict)]] const LightData &in_sun;
   [[storage(3, write)]] LightData &out_sun;
   [[push_constant]] const int4 read_coord_packed;

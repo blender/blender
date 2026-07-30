@@ -112,6 +112,7 @@ static void version_geometry_nodes_properties(FileData &fd,
   IDP_AddToGroup(system_props, inputs);
 
   const std::string inputs_path_prefix = fmt::format("modifiers[\"{}\"]", nmd.modifier.name);
+  const DriverMap driver_map = BKE_animdata_build_driver_target_map(bmain);
   for (const bNodeTreeInterfaceSocket *input : ntree.interface_inputs()) {
     const StringRefNull identifier = input->identifier;
     IDProperty *old_value_prop = IDP_GetPropertyFromGroup(old_props, identifier);
@@ -143,15 +144,12 @@ static void version_geometry_nodes_properties(FileData &fd,
 
     const std::string old_value_path = fmt::format("[\"{}\"]", identifier);
     const std::string new_value_path = fmt::format(".properties.inputs.{}.value", identifier);
-    BKE_animdata_fix_paths_rename_all_ex(&bmain,
-                                         &object.id,
-                                         inputs_path_prefix.c_str(),
-                                         old_value_path.c_str(),
-                                         new_value_path.c_str(),
-                                         0,
-                                         0,
-                                         false,
-                                         false);
+    BKE_animdata_fix_paths(object.id,
+                           inputs_path_prefix,
+                           old_value_path,
+                           new_value_path,
+                           /*verify_paths=*/false,
+                           driver_map);
 
     if (IDOverrideLibrary *override_library = object.id.override_library) {
       for (IDOverrideLibraryProperty &prop : override_library->properties) {
@@ -501,14 +499,14 @@ void do_versions_after_linking_520(FileData *fd, Main *bmain)
      * very expensive. */
     for (Object &object : bmain->objects) {
       if (object.mpath && (object.avs.path_bakeflag & MOTIONPATH_BAKE_CAMERA_SPACE)) {
-        animviz_free_motionpath(object.mpath);
+        bke::motionpath::free(object.mpath);
         object.mpath = nullptr;
         object.avs.path_bakeflag &= ~MOTIONPATH_BAKE_HAS_PATHS;
       }
       if (object.pose && (object.pose->avs.path_bakeflag & MOTIONPATH_BAKE_CAMERA_SPACE)) {
         for (bPoseChannel &pose_bone : object.pose->chanbase) {
           if (pose_bone.mpath) {
-            animviz_free_motionpath(pose_bone.mpath);
+            bke::motionpath::free(pose_bone.mpath);
             pose_bone.mpath = nullptr;
           }
         }

@@ -33,6 +33,7 @@
 #  include "BLI_string.hh"
 #  include "BLI_string_utf8.hh"
 
+#  include "BKE_global.hh"
 #  include "BKE_mask.hh"
 #  include "BKE_movieclip.hh"
 #  include "BKE_tracking.hh"
@@ -199,7 +200,7 @@ static void rna_MaskLayer_name_set(PointerRNA *ptr, const char *value)
   STRNCPY(oldname, masklay->name);
   STRNCPY_UTF8(newname, value);
 
-  BKE_mask_layer_rename(mask, masklay, oldname, newname);
+  BKE_mask_layer_rename(*G_MAIN, mask, masklay, oldname, newname);
 }
 
 static PointerRNA rna_MaskLayer_active_spline_get(PointerRNA *ptr)

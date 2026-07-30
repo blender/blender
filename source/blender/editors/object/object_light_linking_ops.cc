@@ -186,8 +186,8 @@ void OBJECT_OT_light_linking_receivers_link(wmOperatorType *ot)
   };
 
   /* identifiers */
-  ot->name = "Link Receivers to Emitter";
-  ot->description = "Light link selected receivers to the active emitter object";
+  ot->name = "Link Receiver Objects to Emitter";
+  ot->description = "Light link selected objects to the active emitter object";
   ot->idname = "OBJECT_OT_light_linking_receivers_link";
 
   /* API callbacks. */

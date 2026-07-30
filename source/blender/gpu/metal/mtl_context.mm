@@ -11,6 +11,7 @@
 #include "mtl_immediate.hh"
 #include "mtl_memory.hh"
 #include "mtl_primitive.hh"
+#include "mtl_ray_tracing.hh"
 #include "mtl_shader.hh"
 #include "mtl_shader_generate.hh"
 #include "mtl_shader_interface.hh"
@@ -947,6 +948,22 @@ static void ensure_buffer_bindings(MTLContext &ctx,
       MTL_LOG_ERROR("Shader %s: Missing SSBO bind: %s slot(%d).",
                     shader.name_get().c_str(),
                     shader_interface.name_at_offset(name_ofs),
+                    slot);
+    }
+  }
+
+  /* Bind acceleration structures for any shader stage that declares one. */
+  for (const uint slot : bits::iter_1_indices(shader_interface.enabled_accel_mask())) {
+    MTLAccelerationStructureBinding &bind =
+        ctx.pipeline_state.acceleration_structure_bindings[slot];
+    if (bind.tlas) {
+      enc.set_acceleration_structure(bind.tlas->acceleration_structure(),
+                                     MTL_ACCELERATION_STRUCTURE_SLOT + slot);
+      bind.tlas->make_resident(enc);
+    }
+    else {
+      MTL_LOG_ERROR("Shader %s: Missing acceleration structure bind at slot(%d).",
+                    shader.name_get().c_str(),
                     slot);
     }
   }

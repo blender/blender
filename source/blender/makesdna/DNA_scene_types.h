@@ -1074,10 +1074,18 @@ struct TimeMarker {
   struct TimeMarker *next = nullptr, *prev = nullptr;
   int frame = 0;
   char name[64] = "";
+  /* TimeMarkerFlag */
   unsigned int flag = 0;
   struct Object *camera = nullptr;
   struct IDProperty *prop = nullptr;
 };
+
+typedef enum TimeMarkerFlag : unsigned int {
+  /* SELECT = 1 */
+
+  /* Temporarily tag markers as elevated within draw functions. Flag is cleared afterwards. */
+  TIME_MARKER_ELEVATED_TEMP = (1 << 1),
+} TimeMarkerFlag;
 
 /** \} */
 

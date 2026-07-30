@@ -116,28 +116,20 @@ template<typename T> struct DefaultHash<const T> {
   }
 };
 
-#define TRIVIAL_DEFAULT_INT_HASH(TYPE) \
-  template<> struct DefaultHash<TYPE> { \
-    constexpr uint64_t operator()(TYPE value) const \
-    { \
-      return uint64_t(value); \
-    } \
-  }
-
 /**
  * We cannot make any assumptions about the distribution of keys, so use a trivial hash function by
  * default. The default probing strategy is designed to take all bits of the hash into account
  * to avoid worst case behavior when the lower bits are all zero. Special hash functions can be
  * implemented when more knowledge about a specific key distribution is available.
  */
-TRIVIAL_DEFAULT_INT_HASH(int8_t);
-TRIVIAL_DEFAULT_INT_HASH(uint8_t);
-TRIVIAL_DEFAULT_INT_HASH(int16_t);
-TRIVIAL_DEFAULT_INT_HASH(uint16_t);
-TRIVIAL_DEFAULT_INT_HASH(int32_t);
-TRIVIAL_DEFAULT_INT_HASH(uint32_t);
-TRIVIAL_DEFAULT_INT_HASH(int64_t);
-TRIVIAL_DEFAULT_INT_HASH(uint64_t);
+template<typename T>
+  requires(std::is_integral_v<T> && !std::is_same_v<T, bool>)
+struct DefaultHash<T> {
+  constexpr uint64_t operator()(const T &value) const
+  {
+    return uint64_t(value);
+  }
+};
 
 /**
  * One should try to avoid using floats as keys in hash tables, but sometimes it is convenient.

@@ -19,25 +19,31 @@
 
 namespace eevee::shadow {
 
-ShadowTileDataPacked init_tile_data(ShadowTileDataPacked tile, bool do_update)
-{
-  if (flag_test(tile, SHADOW_IS_RENDERED)) {
-    tile &= ~(SHADOW_DO_UPDATE | SHADOW_IS_RENDERED);
-  }
-  if (do_update) {
-    tile |= SHADOW_DO_UPDATE;
-  }
-  tile &= ~SHADOW_IS_USED;
-  return tile;
-}
-
 struct TilemapInit {
   [[storage(0, read_write)]] ShadowTileMapData (&tilemaps_buf)[];
   [[storage(1, read_write)]] uint (&tiles_buf)[];
   [[storage(2, read_write)]] ShadowTileMapClip (&tilemaps_clip_buf)[];
   [[storage(4, read_write)]] uint2 (&pages_cached_buf)[];
 
+  /* When rendering shadows in a loop, we only tag for usage once and setup multiple times.
+   * In this case `reset_used_flag` is set to false after the first iteration. */
+  [[push_constant]] bool reset_used_flag;
+
   [[shared]] int directional_range_changed;
+
+  ShadowTileDataPacked init_tile_data(ShadowTileDataPacked tile, bool do_update)
+  {
+    if (flag_test(tile, SHADOW_IS_RENDERED)) {
+      tile &= ~(SHADOW_DO_UPDATE | SHADOW_IS_RENDERED);
+    }
+    if (do_update) {
+      tile |= SHADOW_DO_UPDATE;
+    }
+    if (reset_used_flag) {
+      tile &= ~SHADOW_IS_USED;
+    }
+    return tile;
+  }
 };
 
 [[compute, local_size(SHADOW_TILEMAP_RES, SHADOW_TILEMAP_RES)]]
@@ -108,7 +114,7 @@ void tilemap_init_main([[resource_table]] TilemapInit &srt,
     ShadowTileDataPacked tile = 0;
     int tile_load = shadow_tile_offset(uint2(tile_wrapped), tilemap.tiles_index, lod);
     if (thread_active) {
-      tile = init_tile_data(srt.tiles_buf[tile_load], do_update);
+      tile = srt.init_tile_data(srt.tiles_buf[tile_load], do_update);
     }
 
     /* Uniform control flow for barrier. Needed to avoid race condition on shifted loads. */

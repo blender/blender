@@ -44,6 +44,8 @@
 
 #include "outliner_intern.hh" /* own include */
 
+#include "tree/tree_iterator.hh"
+
 namespace blender {
 
 namespace ed::outliner {
@@ -234,8 +236,6 @@ static wmOperatorStatus collection_new_exec(bContext *C, wmOperator *op)
   Collection *collection = nullptr;
 
   if (RNA_boolean_get(op->ptr, "nested")) {
-    outliner_build_tree(bmain, workspace, scene, view_layer, space_outliner, region);
-
     if (TreeElement *active_te = outliner_find_element_with_flag(&space_outliner->runtime->tree,
                                                                  TSE_ACTIVE))
     {
@@ -267,6 +267,18 @@ static wmOperatorStatus collection_new_exec(bContext *C, wmOperator *op)
     ED_outliner_select_sync_from_collection_tag(C);
     ED_outliner_select_sync_flag_outliners(C);
   }
+
+  outliner_build_tree(bmain, workspace, scene, view_layer, space_outliner, region);
+  bool is_textbut_set = false;
+  tree_iterator::all_open(*space_outliner, [&](TreeElement *te) {
+    TreeStoreElem *tselem = TREESTORE(te);
+    if (Collection *collection = outliner_collection_from_tree_element(te)) {
+      if ((new_collection == collection) && !is_textbut_set) {
+        tselem->flag |= TSE_TEXTBUT;
+        is_textbut_set = true;
+      }
+    }
+  });
 
   DEG_id_tag_update(&collection->id, ID_RECALC_SYNC_TO_EVAL);
   DEG_relations_tag_update(bmain);
@@ -1467,6 +1479,7 @@ struct OutlinerHideEditData {
   SpaceOutliner *space_outliner;
   Set<LayerCollection *> collections_to_edit;
   Set<Base *> bases_to_edit;
+  bool hide_unselected;
 };
 
 /** \} */
@@ -1491,23 +1504,25 @@ static TreeTraversalAction outliner_hide_collect_data_to_edit(TreeElement *te, v
       /* Skip - showing warning/error message might be misleading
        * when deleting multiple collections, so just do nothing. */
     }
-    else {
+    else if (tselem->flag & TSE_SELECTED) {
       /* Delete, duplicate and link don't edit children,
        * those will come along with the parents. */
       data->collections_to_edit.add(lc);
     }
   }
   else if ((tselem->type == TSE_SOME_ID) && (te->idcode == ID_OB)) {
-    Object *ob = id_cast<Object *>(tselem->id);
-    BKE_view_layer_synced_ensure(*data->bmain, data->scene, data->view_layer);
-    Base *base = BKE_view_layer_base_find(data->view_layer, ob);
-    data->bases_to_edit.add(base);
+    if (data->hide_unselected != bool(tselem->flag & TSE_SELECTED)) {
+      Object *ob = id_cast<Object *>(tselem->id);
+      BKE_view_layer_synced_ensure(*data->bmain, data->scene, data->view_layer);
+      Base *base = BKE_view_layer_base_find(data->view_layer, ob);
+      data->bases_to_edit.add(base);
+    }
   }
 
   return TRAVERSE_CONTINUE;
 }
 
-static wmOperatorStatus outliner_hide_exec(bContext *C, wmOperator * /*op*/)
+static wmOperatorStatus outliner_hide_exec(bContext *C, wmOperator *op)
 {
   const Main *bmain = CTX_data_main(C);
   Scene *scene = CTX_data_scene(C);
@@ -1518,11 +1533,12 @@ static wmOperatorStatus outliner_hide_exec(bContext *C, wmOperator * /*op*/)
   data.scene = scene;
   data.view_layer = view_layer;
   data.space_outliner = space_outliner;
+  data.hide_unselected = RNA_boolean_get(op->ptr, "unselected");
 
   outliner_tree_traverse(space_outliner,
                          &space_outliner->runtime->tree,
                          0,
-                         TSE_SELECTED,
+                         0,
                          outliner_hide_collect_data_to_edit,
                          &data);
 
@@ -1554,6 +1570,10 @@ void OUTLINER_OT_hide(wmOperatorType *ot)
 
   /* flags */
   ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO;
+
+  ot->prop = RNA_def_boolean(
+      ot->srna, "unselected", false, "Unselected", "Hide unselected objects");
+  RNA_def_property_flag(ot->prop, PROP_SKIP_SAVE);
 }
 
 static wmOperatorStatus outliner_unhide_all_exec(bContext *C, wmOperator * /*op*/)

@@ -126,6 +126,10 @@ class StringRefBase {
   constexpr StringRef trim() const;
   constexpr StringRef trim(StringRef characters_to_remove) const;
   constexpr StringRef trim(char character_to_remove) const;
+  constexpr StringRef trim_left() const;
+  constexpr StringRef trim_left(StringRef characters_to_remove) const;
+  constexpr StringRef trim_right() const;
+  constexpr StringRef trim_right(StringRef characters_to_remove) const;
 };
 
 /**
@@ -397,13 +401,17 @@ constexpr int64_t StringRefBase::find_last_not_of(char c, int64_t pos) const
   return index_or_npos_to_int64(std::string_view(*this).find_last_not_of(c, size_t(pos)));
 }
 
+/**
+ * Return a new StringRef that does not contain leading and trailing white-space.
+ */
 constexpr StringRef StringRefBase::trim() const
 {
   return this->trim(" \t\r\n");
 }
 
 /**
- * Return a new StringRef that does not contain leading and trailing white-space.
+ * Return a new StringRef that does not contain leading and trailing `character_to_remove`
+ * characters.
  */
 constexpr StringRef StringRefBase::trim(const char character_to_remove) const
 {
@@ -428,6 +436,48 @@ constexpr StringRef StringRefBase::trim(StringRef characters_to_remove) const
                  "forward search found characters-to-not-remove, but backward search did not");
   const int64_t substr_len = find_end - find_front + 1;
   return this->substr(find_front, substr_len);
+}
+
+/**
+ * Return a new StringRef that does not contain leading white-space.
+ */
+constexpr StringRef StringRefBase::trim_left() const
+{
+  return this->trim_left(" \t\r\n");
+}
+
+/**
+ * Return a new StringRef that removes all the leading characters that occur in
+ * `characters_to_remove`.
+ */
+constexpr StringRef StringRefBase::trim_left(StringRef characters_to_remove) const
+{
+  const int64_t find_front = this->find_first_not_of(characters_to_remove);
+  if (find_front == not_found) {
+    return StringRef();
+  }
+  return this->substr(find_front);
+}
+
+/**
+ * Return a new StringRef that does not contain trailing white-space.
+ */
+constexpr StringRef StringRefBase::trim_right() const
+{
+  return this->trim_right(" \t\r\n");
+}
+
+/**
+ * Return a new StringRef that removes all the trailing characters that occur in
+ * `characters_to_remove`.
+ */
+constexpr StringRef StringRefBase::trim_right(StringRef characters_to_remove) const
+{
+  const int64_t find_end = this->find_last_not_of(characters_to_remove);
+  if (find_end == not_found) {
+    return StringRef();
+  }
+  return this->substr(0, find_end + 1);
 }
 
 /** \} */

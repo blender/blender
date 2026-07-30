@@ -286,6 +286,7 @@ static const EnumPropertyItem euler_order_items[] = {
 #  include "BKE_animsys.hh"
 #  include "BKE_constraint.h"
 #  include "BKE_context.hh"
+#  include "BKE_global.hh"
 #  include "BKE_lib_id.hh"
 
 #  ifdef WITH_ALEMBIC
@@ -441,7 +442,12 @@ static void rna_Constraint_name_set(PointerRNA *ptr, const char *value)
   }
 
   /* fix all the animation data which may link to this */
-  BKE_animdata_fix_paths_rename_all(nullptr, "constraints", oldname, con->name);
+  BKE_animdata_fix_paths(*ptr->owner_id,
+                         "constraints",
+                         RNA_path_name_to_infix(oldname),
+                         RNA_path_name_to_infix(con->name),
+                         /*verify_paths=*/true,
+                         *G_MAIN);
 }
 
 static std::optional<std::string> rna_Constraint_do_compute_path(Object *ob, bConstraint *con)

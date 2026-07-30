@@ -1,9 +1,9 @@
 
 msgid ""
 msgstr ""
-"Project-Id-Version: Blender 5.3.0 Alpha (b'96294be75080')\n"
+"Project-Id-Version: Blender 5.3.0 Alpha (b'bf67fb078da0')\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-07-20 07:29+0000\n"
+"POT-Creation-Date: 2026-07-27 09:52+0000\n"
 "PO-Revision-Date: 2026-06-02 05:12+0000\n"
 "Last-Translator: Fadli Birdie Zeinda <justbirdie00@gmail.com>\n"
 "Language-Team: Indonesian <https://translate.blender.org/projects/blender-ui/ui/id/>\n"
@@ -4760,18 +4760,6 @@ msgstr "Tambah Set Seleksi"
 
 msgid "Add Selection Set for this collection"
 msgstr "Tambah Set Seleksi untuk koleksi ini"
-
-
-msgid "UI Row"
-msgstr "Barisan UI"
-
-
-msgid "If not zero, row of the UI panel where the button for this collection is shown"
-msgstr "Jika bukan nol, barisan panel UI dimana tombol untuk koleksi ini ditampilkan"
-
-
-msgid "UI Title"
-msgstr "Judul UI"
 
 
 msgid "Text to use on the UI panel button instead of the collection name"
@@ -15712,40 +15700,36 @@ msgid "Use Material Mask"
 msgstr "Gunakan Masker Bahan"
 
 
+msgid "Names"
+msgstr "Nama"
+
+
 msgid "Apply"
 msgstr "Tetapkan"
 
 
-msgid "Track"
-msgstr "Lacak"
-
-
-msgid "Asset"
-msgstr "Aset"
-
-
-msgid "Hooks"
-msgstr "Kait"
+msgid "Merge"
+msgstr "Menggabungkan"
 
 
 msgid "Math"
 msgstr "Matematika"
 
 
+msgid "Metaball"
+msgstr "Metabola"
+
+
 msgid "Utilities"
 msgstr "Utilitas"
-
-
-msgid "Names"
-msgstr "Nama"
 
 
 msgid "Sample"
 msgstr "Sampel"
 
 
-msgid "Merge"
-msgstr "Menggabungkan"
+msgid "Snap"
+msgstr "Jepret"
 
 
 msgid "Gizmo"
@@ -15756,20 +15740,8 @@ msgid "Instances"
 msgstr "Contoh-contoh"
 
 
-msgid "Metaball"
-msgstr "Metabola"
-
-
 msgid "Import"
 msgstr "Impor"
-
-
-msgid "UV"
-msgstr "UV"
-
-
-msgid "Snap"
-msgstr "Jepret"
 
 
 msgid "Mirror"
@@ -15780,12 +15752,8 @@ msgid "Navigation"
 msgstr "Navigasi"
 
 
-msgid "Linked"
-msgstr "Terkoleksi"
-
-
-msgid "Layout"
-msgstr "Tata Letak"
+msgid "UV"
+msgstr "UV"
 
 
 msgid "Select Linked"
@@ -15794,10 +15762,6 @@ msgstr "Seleksi yang Terhubung"
 
 msgid "Assign Material"
 msgstr "Tugaskan Bahan"
-
-
-msgid "Tracking"
-msgstr "Pelacakan"
 
 
 msgid "Light"
@@ -15810,6 +15774,30 @@ msgstr "Probe Cahaya"
 
 msgid "Add Image"
 msgstr "Tambah Gambar"
+
+
+msgid "Track"
+msgstr "Lacak"
+
+
+msgid "Linked"
+msgstr "Terkoleksi"
+
+
+msgid "Layout"
+msgstr "Tata Letak"
+
+
+msgid "Asset"
+msgstr "Aset"
+
+
+msgid "Hooks"
+msgstr "Kait"
+
+
+msgid "Tracking"
+msgstr "Pelacakan"
 
 
 msgid "Animals"
@@ -26497,10 +26485,6 @@ msgid "Tiny Prim Culling"
 msgstr "Culling Prim Kecil"
 
 
-msgid "object_color"
-msgstr "benda_warna"
-
-
 msgid "Arm"
 msgstr "Arm"
 
@@ -28613,11 +28597,6 @@ msgstr " (tidak terpasang)"
 
 msgid "File:"
 msgstr "Berkas:"
-
-
-msgctxt "Operator"
-msgid "Apply"
-msgstr "Setujui"
 
 
 msgid "Incorrect armature..."
@@ -31158,6 +31137,11 @@ msgstr "Cat Multi"
 msgctxt "Operator"
 msgid "Quick Edit"
 msgstr "Sunting Cepat"
+
+
+msgctxt "Operator"
+msgid "Apply"
+msgstr "Setujui"
 
 
 msgid "Editing Type"

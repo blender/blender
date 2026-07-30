@@ -7,8 +7,11 @@
  */
 
 #include <cstdlib>
+#include <optional>
 
 #include "DNA_scene_types.h"
+
+#include "MEM_guardedalloc.h"
 
 #include "BLI_listbase.hh"
 #include "BLI_math_base_c.hh"
@@ -145,7 +148,10 @@ static wmOperatorStatus graphview_cursor_invoke(bContext *C, wmOperator *op, con
 
   /* Signal that a scrubbing operating is starting */
   if (screen) {
-    screen->scrubbing = true;
+    const std::optional<PreScrubbingState> pre_scrubbing = ED_screen_scrubbing_enable(*C, *screen);
+    if (pre_scrubbing) {
+      op->customdata = MEM_new<PreScrubbingState>(__func__, *pre_scrubbing);
+    }
   }
 
   /* add temp handler */
@@ -156,44 +162,45 @@ static wmOperatorStatus graphview_cursor_invoke(bContext *C, wmOperator *op, con
 /* Modal event handling of cursor changing */
 static wmOperatorStatus graphview_cursor_modal(bContext *C, wmOperator *op, const wmEvent *event)
 {
-  bScreen *screen = CTX_wm_screen(C);
   Scene *scene = CTX_data_scene(C);
 
   /* execute the events */
   switch (event->type) {
     case EVT_ESCKEY:
-      if (screen) {
-        screen->scrubbing = false;
-      }
-
       WM_event_add_notifier(C, NC_SCENE | ND_FRAME, scene);
-      return OPERATOR_FINISHED;
+      break;
 
     case MOUSEMOVE:
       /* set the new values */
       graphview_cursor_setprops(C, op, event);
       graphview_cursor_apply(C, op);
-      break;
+      return OPERATOR_RUNNING_MODAL; /* Scrubbing continues. */
 
     case LEFTMOUSE:
     case RIGHTMOUSE:
     case MIDDLEMOUSE:
       /* We check for either mouse-button to end, to work with all user keymaps. */
       if (event->val == KM_RELEASE) {
-        if (screen) {
-          screen->scrubbing = false;
-        }
-
         WM_event_add_notifier(C, NC_SCENE | ND_FRAME, scene);
-        return OPERATOR_FINISHED;
       }
       break;
-    default: {
-      break;
-    }
+    default:
+      return OPERATOR_RUNNING_MODAL; /* Scrubbing continues. */
   }
 
-  return OPERATOR_RUNNING_MODAL;
+  /* Scrubbing ended, so return the playback state to what it was before scrubbing started. */
+  PreScrubbingState *pre_scrubbing = static_cast<PreScrubbingState *>(op->customdata);
+  bScreen *screen = CTX_wm_screen(C);
+  if (screen) {
+    std::optional<PreScrubbingState> resume = pre_scrubbing ? std::optional(*pre_scrubbing) :
+                                                              std::nullopt;
+    ED_screen_scrubbing_disable(*C, *screen, resume);
+  }
+
+  MEM_delete(pre_scrubbing);
+  op->customdata = nullptr;
+
+  return OPERATOR_FINISHED;
 }
 
 static void GRAPH_OT_cursor_set(wmOperatorType *ot)

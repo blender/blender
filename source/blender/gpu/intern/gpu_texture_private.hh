@@ -31,6 +31,19 @@ inline bool is_half_float(TextureFormat format)
   }
 }
 
+inline bool is_half_integer(TextureFormat format)
+{
+  switch (format) {
+    case TextureFormat::SINT_16_16_16_16:
+    case TextureFormat::SINT_16_16_16:
+    case TextureFormat::SINT_16_16:
+    case TextureFormat::SINT_16:
+      return true;
+    default:
+      return false;
+  }
+}
+
 enum GPUTextureFormatFlag {
   /* The format has a depth component and can be used as depth attachment. */
   GPU_FORMAT_DEPTH = (1 << 0),

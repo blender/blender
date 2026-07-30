@@ -93,6 +93,8 @@ struct LayoutRoot {
   const uiStyle *style;
   Block *block;
   Layout *layout;
+  /** Direction of #ItemType::LayoutRoot layouts, used for resolving the height of multi-line
+   * labels. */
   LayoutDirection direction;
   bool use_dynamic_height;
 };
@@ -311,6 +313,8 @@ struct LayoutItemSplit : public LayoutRow {
 };
 
 /** \} */
+
+static void item_disabled(Layout *layout, const char *name);
 
 /* -------------------------------------------------------------------- */
 /** \name Item
@@ -597,7 +601,6 @@ LayoutDirection Layout::local_direction() const
 {
   switch (this->type()) {
     case ItemType::LayoutRoot:
-      return this->root_->direction;
     case ItemType::LayoutRow:
     case ItemType::LayoutOverlap:
     case ItemType::LayoutPanelHeader:
@@ -993,6 +996,10 @@ static void item_enum_expand_exec(Layout *layout,
   }
   else {
     block_layout_set_current(block, item_local_sublayout(layout, layout, true));
+  }
+
+  if (!item_array->identifier) {
+    item_disabled(layout, IFACE_("Empty list"));
   }
 
   for (const EnumPropertyItem *item = item_array; item->identifier; item++) {
@@ -2828,7 +2835,7 @@ void Layout::textbox_with_state(PointerRNA *ptr,
 
   this->row(true).alignment_set(LayoutAlign::Expand);
 
-  const float line_heigth = fontstyle_height_max(UI_FSTYLE_WIDGET);
+  const float line_height = fontstyle_height_max(UI_FSTYLE_WIDGET);
 
   /** Ensure minimum value is set. */
   textbox_state->visible_lines = std::max(textbox_state->visible_lines,
@@ -2844,7 +2851,7 @@ void Layout::textbox_with_state(PointerRNA *ptr,
       0,
       w,
       std::max<int>(UI_UNIT_Y,
-                    std::round(line_heigth * textbox_state->visible_lines) +
+                    std::round(line_height * textbox_state->visible_lines) +
                         (textbox_vertical_padding() * 2.0f)),
       ptr,
       prop,
@@ -5725,7 +5732,7 @@ static void resolve_label_multiline(ButtonLabel *button)
   }
   label_multiline_wrap_lines(button, icon_pad);
   const float line_height = ui::fontstyle_height_max(UI_FSTYLE_WIDGET);
-  /* Top and bottom Text text padding. */
+  /* Top and bottom text padding. */
   const float padding = std::max(UI_UNIT_Y - line_height, 0.0f);
   int lines = button->wrap_cache->wrapped_lines.size();
   if (button->max_lines > 0) {
@@ -5740,14 +5747,16 @@ void Layout::resolve_dynamic_height()
   if (this->items().is_empty()) {
     return;
   }
-  /* Extra vertical offsset. */
+  /* Extra vertical offset. */
   int y_offs = 0;
 
   /* For simplicity a column is a grid of n rows and 1 columns, and a row is a grid of 1 rows and n
    * columns. */
-  int rows = this->local_direction() == LayoutDirection::Vertical ? this->items().size() : 1;
-  int cols = this->local_direction() == LayoutDirection::Horizontal ? this->items().size() : 1;
-  bool row_major = this->local_direction() == LayoutDirection::Vertical;
+  const LayoutDirection direction = this->type() == ItemType::LayoutRoot ? this->root_->direction :
+                                                                           this->local_direction();
+  int rows = direction == LayoutDirection::Vertical ? this->items().size() : 1;
+  int cols = direction == LayoutDirection::Horizontal ? this->items().size() : 1;
+  bool row_major = direction == LayoutDirection::Vertical;
 
   if (const LayoutItemGridFlow *flow = this->type() == ItemType::LayoutGridFlow ?
                                            static_cast<const LayoutItemGridFlow *>(this) :
@@ -5767,9 +5776,9 @@ void Layout::resolve_dynamic_height()
   }
   /* Dynamic height is resolved row by row, and each row pushes down following rows. */
   for (const int row : IndexRange(rows)) {
-    /* Maximun sub-item heigth in the row before resolving its dynamic heigth. */
+    /* Maximum sub-item height in the row before resolving its dynamic height. */
     int max_row_subitem_heigth = 0;
-    /* Maximun sub-item heigth in the row after resolving its dynamic heigth. */
+    /* Maximum sub-item height in the row after resolving its dynamic height. */
     int max_row_subitem_heigth_new = 0;
 
     for (const int col : IndexRange(cols)) {
@@ -5781,10 +5790,10 @@ void Layout::resolve_dynamic_height()
       const int2 size = subitem->size();
       max_row_subitem_heigth = std::max(max_row_subitem_heigth, size.y);
 
-      /* Apply acumulated offset from previous rows. */
+      /* Apply accumulated offset from previous rows. */
       item_translate_y(subitem, -y_offs);
 
-      /* Resolve sub-item dynamic heigth. */
+      /* Resolve sub-item dynamic height. */
       if (subitem->type() == ItemType::Button) {
         const auto *sub_bitem = static_cast<const ButtonItem *>(subitem);
         if (button_label_is_multiline(sub_bitem->but)) {
@@ -5801,7 +5810,7 @@ void Layout::resolve_dynamic_height()
     y_offs += std::max(max_row_subitem_heigth_new - max_row_subitem_heigth, 0);
   }
 
-  /* Apply change in heigth to this layout. */
+  /* Apply change in height to this layout. */
   this->y_ -= y_offs;
   this->h_ += y_offs;
 }

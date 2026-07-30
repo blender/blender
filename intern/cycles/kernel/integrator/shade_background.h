@@ -86,7 +86,7 @@ ccl_device Spectrum integrator_eval_background_shader(KernelGlobals kg,
   surface_shader_eval<KERNEL_FEATURE_NODE_MASK_SURFACE_BACKGROUND>(
       kg, state, emission_sd, render_buffer, path_visibility, path_flag | PATH_RAY_EMISSION);
 
-  result = (emission_sd->flag & SD_CACHE_MISS) ? SHADER_EVAL_CACHE_MISS : SHADER_EVAL_OK;
+  result = (emission_sd->runtime_flag & SR_CACHE_MISS) ? SHADER_EVAL_CACHE_MISS : SHADER_EVAL_OK;
   return surface_shader_background(emission_sd);
 }
 

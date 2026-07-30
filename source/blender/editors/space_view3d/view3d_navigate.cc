@@ -97,6 +97,7 @@ void ViewOpsData::state_backup()
   this->init.camdx = rv3d->camdx;
   this->init.camdy = rv3d->camdy;
   this->init.camzoom = rv3d->camzoom;
+  this->init.camroll = rv3d->camroll;
   this->init.dist = rv3d->dist;
   copy_qt_qt(this->init.quat, rv3d->viewquat);
 
@@ -159,6 +160,7 @@ void ViewOpsData::state_restore()
   {
     /* Note this does not remove auto-keys on locked cameras. */
     copy_qt_qt(this->rv3d->viewquat, this->init.quat);
+    this->rv3d->camroll = this->init.camroll;
   }
 
   /* ROTATE. */
@@ -1003,7 +1005,7 @@ void axis_set_view(bContext *C,
 
     /* so we animate _from_ the camera location */
     Object *camera_eval = DEG_get_evaluated(CTX_data_ensure_evaluated_depsgraph(C), v3d->camera);
-    ED_view3d_from_object(camera_eval, rv3d->ofs, nullptr, &rv3d->dist, nullptr);
+    ED_view3d_from_object(camera_eval, rv3d->ofs, nullptr, &rv3d->dist, 0.0f, nullptr);
 
     V3D_SmoothParams sview = {nullptr};
     sview.camera_old = camera_eval;

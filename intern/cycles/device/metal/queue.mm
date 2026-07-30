@@ -786,7 +786,7 @@ void *MetalDeviceQueue::copy_from_device_synchronized(device_memory &mem,
 void MetalDeviceQueue::prepare_resources()
 {
   if (metal_device_->mtlResidencySet_enabled) {
-    /* All resources are already resident — skip per-encoder useResource calls. */
+    /* All resources are already resident - skip per-encoder useResource calls. */
     return;
   }
 

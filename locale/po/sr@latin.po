@@ -1,9 +1,9 @@
 
 msgid ""
 msgstr ""
-"Project-Id-Version: Blender 5.3.0 Alpha (b'96294be75080')\n"
+"Project-Id-Version: Blender 5.3.0 Alpha (b'bf67fb078da0')\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-07-20 07:29+0000\n"
+"POT-Creation-Date: 2026-07-27 09:52+0000\n"
 "PO-Revision-Date: 2025-07-23 14:56+0000\n"
 "Last-Translator: Anonymous <noreply@weblate.org>\n"
 "Language-Team: Serbian (Latin script) <https://translate.blender.org/projects/blender-ui/ui/sr_Latn/>\n"
@@ -8498,44 +8498,16 @@ msgid "Material slot name"
 msgstr "Naziv slota materijala"
 
 
-msgid "Apply"
-msgstr "Primeni"
-
-
-msgid "Track"
-msgstr "Staza"
-
-
-msgid "Quick Effects"
-msgstr "Brzi efekti"
+msgid "Names"
+msgstr "Imena"
 
 
 msgid "Show/Hide"
 msgstr "Prikaži/sakrij"
 
 
-msgid "Hooks"
-msgstr "Udice"
-
-
-msgid "Math"
-msgstr "Matematika"
-
-
-msgid "Clear Transform"
-msgstr "Očisti transformacije"
-
-
-msgid "In-Betweens"
-msgstr "U međuvremenu"
-
-
-msgid "Propagate"
-msgstr "Prenesi"
-
-
-msgid "Names"
-msgstr "Imena"
+msgid "Apply"
+msgstr "Primeni"
 
 
 msgid "Toggle Bone Options"
@@ -8562,24 +8534,24 @@ msgid "Special Characters"
 msgstr "Specijalni znaci"
 
 
+msgid "Math"
+msgstr "Matematika"
+
+
 msgid "Metaball"
 msgstr "Meta lopta"
-
-
-msgid "Import"
-msgstr "Uvoz"
 
 
 msgid "Bone Roll"
 msgstr "Rolna kostiju"
 
 
-msgid "UV"
-msgstr "UV"
-
-
 msgid "Snap"
 msgstr "Lepljenje"
+
+
+msgid "Import"
+msgstr "Uvoz"
 
 
 msgid "Mirror"
@@ -8602,20 +8574,12 @@ msgid "Align View"
 msgstr "Poravnaj pogled"
 
 
-msgid "Linked"
-msgstr "Povezano"
+msgid "UV"
+msgstr "UV"
 
 
 msgid "Select Linked"
 msgstr "Izaberi povezano"
-
-
-msgid "Keying"
-msgstr "Zbirka tastera"
-
-
-msgid "Tracking"
-msgstr "Praćenje"
 
 
 msgid "Light"
@@ -8628,6 +8592,42 @@ msgstr "Odnosi"
 
 msgid "Rigid Body"
 msgstr "Kruto telo"
+
+
+msgid "Track"
+msgstr "Staza"
+
+
+msgid "Linked"
+msgstr "Povezano"
+
+
+msgid "Quick Effects"
+msgstr "Brzi efekti"
+
+
+msgid "Hooks"
+msgstr "Udice"
+
+
+msgid "Keying"
+msgstr "Zbirka tastera"
+
+
+msgid "Tracking"
+msgstr "Praćenje"
+
+
+msgid "Clear Transform"
+msgstr "Očisti transformacije"
+
+
+msgid "In-Betweens"
+msgstr "U međuvremenu"
+
+
+msgid "Propagate"
+msgstr "Prenesi"
 
 
 msgid "Basic"
@@ -21887,10 +21887,6 @@ msgid "Window Background"
 msgstr "Pozadina prozora"
 
 
-msgid "Header Text Highlight"
-msgstr "Tekst istaknutog naslova"
-
-
 msgid "Text Highlight"
 msgstr "Istaknut tekst"
 
@@ -22584,11 +22580,6 @@ msgstr "Upozorenje:"
 
 msgid "File:"
 msgstr "Datoteka:"
-
-
-msgctxt "Operator"
-msgid "Apply"
-msgstr "Primeni"
 
 
 msgid "Options:"
@@ -23751,6 +23742,11 @@ msgstr "Brza izmena"
 
 
 msgctxt "Operator"
+msgid "Apply"
+msgstr "Primeni"
+
+
+msgctxt "Operator"
 msgid "Apply Camera Image"
 msgstr "Primeni sliku kamere"
 
@@ -24380,10 +24376,6 @@ msgstr "Objekat (zadrži transformaciju)"
 
 msgid "No active bone"
 msgstr "Bez aktivne kosti"
-
-
-msgid "Editmode lattice is not supported yet"
-msgstr "Format nije podržan u datoteci: \"%s\"."
 
 
 msgid "Vertex group is locked"

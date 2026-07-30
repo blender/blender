@@ -363,7 +363,8 @@ class DATA_PT_shape_keys(MeshButtonsPanel, Panel):
             subsub = sub.row(align=True)
             subsub.active = enable_pin
             subsub.prop(ob, "show_only_shape_key", text="")
-            sub.prop(ob, "use_shape_key_edit_mode", text="")
+            if ob.type == 'MESH':
+                sub.prop(ob, "use_shape_key_edit_mode", text="")
 
             sub = row.row()
             if key.use_relative:

@@ -1359,7 +1359,7 @@ static void graph_draw_driver_debug(bAnimContext *ac, ID *id, FCurve *fcu)
   if ((driver->flag & DRIVER_FLAG_INVALID) == 0) {
     /* grab "coordinates" for driver outputs */
     float x = driver->curval;
-    float y = fcu->curval * unitfac;
+    float y = fcu->runtime->curval * unitfac;
 
     /* Only draw indicators if the point is in range. */
     if (x >= v2d->cur.xmin) {

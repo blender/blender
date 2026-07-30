@@ -21,6 +21,7 @@
 
 #include "RNA_define.hh"
 #include "RNA_enum_types.hh"
+#include "RNA_path.hh"
 
 #include "rna_internal.hh"
 
@@ -89,6 +90,7 @@ static const EnumPropertyItem rna_enum_glow_blend_modes_items[] = {
 #  include "BLI_string.hh"
 #  include "BLI_string_utf8.hh"
 
+#  include "BKE_global.hh"
 #  include "BKE_lib_id.hh"
 #  include "BKE_shader_fx.hh"
 
@@ -145,10 +147,15 @@ static void rna_ShaderFx_name_set(PointerRNA *ptr, const char *value)
   if (ptr->owner_id) {
     Object *ob = id_cast<Object *>(ptr->owner_id);
     BKE_shaderfx_unique_name(&ob->shader_fx, gmd);
-  }
 
-  /* fix all the animation data which may link to this */
-  BKE_animdata_fix_paths_rename_all(nullptr, "shader_effects", oldname, gmd->name);
+    /* Fix all the animation data which may link to this. */
+    BKE_animdata_fix_paths(ob->id,
+                           "shader_effects",
+                           RNA_path_name_to_infix(oldname),
+                           RNA_path_name_to_infix(gmd->name),
+                           /*verify_paths=*/true,
+                           *G_MAIN);
+  }
 }
 
 static std::optional<std::string> rna_ShaderFx_path(const PointerRNA *ptr)

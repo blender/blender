@@ -285,10 +285,10 @@ static void slider_draw(const bContext * /*C*/, ARegion *region, void *arg)
   uint8_t color_bg[4];
 
   /* Get theme colors. */
-  ui::theme::get_color_4ubv(TH_HEADER_TEXT_HI, color_handle);
-  ui::theme::get_color_4ubv(TH_HEADER_TEXT, color_text);
-  ui::theme::get_color_4ubv(TH_HEADER_TEXT, color_line);
-  ui::theme::get_color_4ubv(TH_HEADER_TEXT, color_overshoot);
+  ui::theme::get_color_4ubv(TH_TEXT_HI, color_handle);
+  ui::theme::get_color_4ubv(TH_TEXT, color_text);
+  ui::theme::get_color_4ubv(TH_TEXT, color_line);
+  ui::theme::get_color_4ubv(TH_TEXT, color_overshoot);
   ui::theme::get_color_4ubv(TH_HEADER, color_bg);
 
   color_overshoot[0] = color_overshoot[0] * 0.8;

@@ -7,8 +7,10 @@
  */
 
 #include <algorithm>
+#include <cinttypes>
 #include <cmath>
 #include <cstdlib>
+#include <optional>
 
 #include "BLI_listbase.hh"
 #include "BLI_math_base_c.hh"
@@ -81,6 +83,8 @@ class FrameChangeModalData {
    */
  public:
   AnimKeylist *keylist;
+  /** Playback state to restore when scrubbing ends. */
+  std::optional<PreScrubbingState> pre_scrubbing;
 
   FrameChangeModalData()
   {
@@ -715,7 +719,7 @@ static wmOperatorStatus change_frame_invoke(bContext *C, wmOperator *op, const w
     RNA_boolean_set(op->ptr, "snap", true);
   }
 
-  screen->scrubbing = true;
+  op_data->pre_scrubbing = ED_screen_scrubbing_enable(*C, *screen);
 
   if (RNA_boolean_get(op->ptr, "seq_solo_preview")) {
     SpaceSeq *sseq = CTX_wm_space_seq(C);
@@ -748,8 +752,11 @@ static bool need_extra_redraw_after_scrubbing_ends(bContext *C)
 
 static void change_frame_cancel(bContext *C, wmOperator *op)
 {
+  FrameChangeModalData *op_data = static_cast<FrameChangeModalData *>(op->customdata);
   bScreen *screen = CTX_wm_screen(C);
-  screen->scrubbing = false;
+  if (screen) {
+    ED_screen_scrubbing_disable(*C, *screen, op_data->pre_scrubbing);
+  }
 
   if (RNA_boolean_get(op->ptr, "seq_solo_preview")) {
     SpaceSeq *sseq = CTX_wm_space_seq(C);
@@ -819,9 +826,10 @@ static wmOperatorStatus change_frame_modal(bContext *C, wmOperator *op, const wm
   if (ret != OPERATOR_RUNNING_MODAL) {
     ED_workspace_status_text(C, nullptr);
     bScreen *screen = CTX_wm_screen(C);
-    screen->scrubbing = false;
-
     FrameChangeModalData *op_data = static_cast<FrameChangeModalData *>(op->customdata);
+    if (screen) {
+      ED_screen_scrubbing_disable(*C, *screen, op_data->pre_scrubbing);
+    }
     MEM_delete(op_data);
     op->customdata = nullptr;
 
@@ -1797,7 +1805,7 @@ static wmOperatorStatus rotation_mode_convert_exec(bContext *C, wmOperator *op)
   if (skipped_actions.size() > 0) {
     BKE_reportf(op->reports,
                 RPT_WARNING,
-                "Skipped actions because they cannot be edited: %ld",
+                "Skipped actions because they cannot be edited: %" PRId64,
                 skipped_actions.size());
   }
 
@@ -1838,6 +1846,8 @@ static void ANIM_OT_rotation_mode_convert(wmOperatorType *ot)
                   "Creates a key on every frame before conversion so interpolation is preserved "
                   "in the new mode");
 }
+
+/** \} */
 
 /* -------------------------------------------------------------------- */
 /** \name Registration

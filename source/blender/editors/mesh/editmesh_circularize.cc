@@ -60,7 +60,8 @@ static wmOperatorStatus edbm_circularize_exec(bContext *C, wmOperator *op)
 
   const Vector<Object *> objects = BKE_view_layer_array_from_objects_in_edit_mode_unique_data(
       *bmain, scene, view_layer, CTX_wm_view3d(C));
-  bool changed = false;
+  bool changed_multi = false;
+  bool has_valid_selection = false;
 
   for (Object *obedit : objects) {
     BMEditMesh *em = BKE_editmesh_from_object(obedit);
@@ -69,6 +70,7 @@ static wmOperatorStatus edbm_circularize_exec(bContext *C, wmOperator *op)
     if (bm->totvertsel < 3) {
       continue;
     }
+    has_valid_selection = true;
     bool mirror_axis[3];
     BKE_object_get_mirror_axes(obedit, mirror_axis);
 
@@ -93,14 +95,19 @@ static wmOperatorStatus edbm_circularize_exec(bContext *C, wmOperator *op)
     {
       continue;
     }
-    changed = true;
+    changed_multi = true;
     EDBMUpdate_Params params{};
     params.calc_looptris = true;
     params.calc_normals = true;
     EDBM_update(id_cast<Mesh *>(obedit->data), &params);
   }
+  if (!changed_multi) {
+    if (!has_valid_selection) {
+      BKE_report(op->reports, RPT_WARNING, "No edge loops found containing 2 or more edges");
+    }
+  }
 
-  return changed ? OPERATOR_FINISHED : OPERATOR_CANCELLED;
+  return changed_multi ? OPERATOR_FINISHED : OPERATOR_CANCELLED;
 }
 
 static void edbm_circularize_ui(bContext * /*C*/, wmOperator *op)

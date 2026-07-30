@@ -222,8 +222,8 @@ gpu::Batch *LookdevModule::sphere_get(const SphereLOD level_of_detail)
 {
   BLI_assert(level_of_detail >= SphereLOD::LOW && level_of_detail < SphereLOD::MAX);
 
-  /* GCC 15.x triggers an array-bounds warning without this. */
-#if (defined(__GNUC__) && (__GNUC__ >= 15) && !defined(__clang__))
+  /* GCC 14.x and newer trigger an array-bounds warning without this. */
+#if (defined(__GNUC__) && (__GNUC__ >= 14) && !defined(__clang__))
   [[assume((level_of_detail >= 0) && (level_of_detail < SphereLOD::MAX))]];
 #endif
 
@@ -378,7 +378,7 @@ void LookdevModule::sync()
   const Camera &cam = inst_.camera;
   float sphere_distance = cam.data_get().clip_near;
   int2 display_extent = inst_.film.display_extent_get();
-  float pixel_radius = ShadowModule::screen_pixel_radius(
+  float pixel_radius = View::screen_pixel_radius(
       cam.data_get().wininv, cam.is_perspective(), display_extent);
 
   if (cam.is_perspective()) {

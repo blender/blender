@@ -274,6 +274,12 @@ bool MTLCommandBufferManager::end_active_command_encoder(bool retain_framebuffer
       [active_compute_command_encoder_ release];
       active_compute_command_encoder_ = nil;
       break;
+    case MTL_ACCELERATION_STRUCTURE_COMMAND_ENCODER:
+      BLI_assert(active_acceleration_structure_command_encoder_ != nil);
+      [active_acceleration_structure_command_encoder_ endEncoding];
+      [active_acceleration_structure_command_encoder_ release];
+      active_acceleration_structure_command_encoder_ = nil;
+      break;
     default: {
       BLI_assert(false && "Invalid command encoder type");
       return false;
@@ -434,6 +440,43 @@ id<MTLComputeCommandEncoder> MTLCommandBufferManager::ensure_begin_compute_encod
   }
   BLI_assert(active_compute_command_encoder_ != nil);
   return active_compute_command_encoder_;
+}
+
+id<MTLAccelerationStructureCommandEncoder> MTLCommandBufferManager::
+    ensure_begin_acceleration_structure_encoder()
+{
+  /* Ensure active command buffer. */
+  id<MTLCommandBuffer> cmd_buf = this->ensure_begin();
+  BLI_assert(cmd_buf);
+
+  /* Ensure no existing command encoder of a different type is active. */
+  if (active_command_encoder_type_ != MTL_ACCELERATION_STRUCTURE_COMMAND_ENCODER) {
+    this->end_active_command_encoder();
+  }
+
+  /* Begin new Acceleration Structure Encoder. */
+  if (active_acceleration_structure_command_encoder_ == nil) {
+    active_acceleration_structure_command_encoder_ = [cmd_buf accelerationStructureCommandEncoder];
+    BLI_assert(active_acceleration_structure_command_encoder_ != nil);
+    [active_acceleration_structure_command_encoder_ retain];
+    active_command_encoder_type_ = MTL_ACCELERATION_STRUCTURE_COMMAND_ENCODER;
+
+    /* Add debug label. */
+    if (G.debug & G_DEBUG_GPU) {
+      std::string debug_name = GPU_debug_get_groups_names({1, 1});
+      [active_acceleration_structure_command_encoder_ setLabel:@(debug_name.c_str())];
+    }
+
+    /* Unroll pending debug groups. */
+    if (G.debug & G_DEBUG_GPU) {
+      unfold_pending_debug_groups();
+    }
+
+    /* Update command buffer encoder heuristics. */
+    this->register_encoder_counters();
+  }
+  BLI_assert(active_acceleration_structure_command_encoder_ != nil);
+  return active_acceleration_structure_command_encoder_;
 }
 
 /** \} */
@@ -651,7 +694,8 @@ bool MTLCommandBufferManager::insert_memory_barrier(GPUBarrier barrier_bits,
     /* Issue barrier based on encoder. */
     switch (active_command_encoder_type_) {
       case MTL_NO_COMMAND_ENCODER:
-      case MTL_BLIT_COMMAND_ENCODER: {
+      case MTL_BLIT_COMMAND_ENCODER:
+      case MTL_ACCELERATION_STRUCTURE_COMMAND_ENCODER: {
         /* No barrier to be inserted. */
         return false;
       }
@@ -894,6 +938,15 @@ void MTLComputeCommandEncoder::set_sampler(id<MTLSamplerState> sampler_state, in
 {
   [enc setSamplerState:sampler_state atIndex:index];
 }
+void MTLComputeCommandEncoder::set_acceleration_structure(id<MTLAccelerationStructure> accel,
+                                                          int index)
+{
+  [enc setAccelerationStructure:accel atBufferIndex:index];
+}
+void MTLComputeCommandEncoder::use_resource(id<MTLResource> resource, MTLResourceUsage usage)
+{
+  [enc useResource:resource usage:usage];
+}
 
 void MTLVertexCommandEncoder::set_buffer_offset(size_t offset, int index)
 {
@@ -915,6 +968,17 @@ void MTLVertexCommandEncoder::set_sampler(id<MTLSamplerState> sampler_state, int
 {
   [enc setVertexSamplerState:sampler_state atIndex:index];
 }
+void MTLVertexCommandEncoder::set_acceleration_structure(id<MTLAccelerationStructure> accel,
+                                                         int index)
+{
+  if (@available(macOS 12.0, *)) {
+    [enc setVertexAccelerationStructure:accel atBufferIndex:index];
+  }
+}
+void MTLVertexCommandEncoder::use_resource(id<MTLResource> resource, MTLResourceUsage usage)
+{
+  [enc useResource:resource usage:usage stages:MTLRenderStageVertex];
+}
 
 void MTLFragmentCommandEncoder::set_buffer_offset(size_t offset, int index)
 {
@@ -935,6 +999,17 @@ void MTLFragmentCommandEncoder::set_texture(id<MTLTexture> tex, int index)
 void MTLFragmentCommandEncoder::set_sampler(id<MTLSamplerState> sampler_state, int index)
 {
   [enc setFragmentSamplerState:sampler_state atIndex:index];
+}
+void MTLFragmentCommandEncoder::set_acceleration_structure(id<MTLAccelerationStructure> accel,
+                                                           int index)
+{
+  if (@available(macOS 12.0, *)) {
+    [enc setFragmentAccelerationStructure:accel atBufferIndex:index];
+  }
+}
+void MTLFragmentCommandEncoder::use_resource(id<MTLResource> resource, MTLResourceUsage usage)
+{
+  [enc useResource:resource usage:usage stages:MTLRenderStageFragment];
 }
 
 }  // namespace blender::gpu

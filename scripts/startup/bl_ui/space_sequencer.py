@@ -434,6 +434,9 @@ class SEQUENCER_MT_view(Menu):
         if is_sequencer_only:
             layout.prop(st, "show_region_channels")
         layout.prop(st, "show_region_footer", text="Playback Controls")
+        col = layout.column()
+        col.prop(st, "show_scrubbing_region", text="Scrubbing")
+        col.enabled = st.show_region_footer
         layout.separator()
 
         if is_preview:

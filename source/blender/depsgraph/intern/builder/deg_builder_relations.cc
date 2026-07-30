@@ -987,7 +987,9 @@ void DepsgraphRelationBuilder::build_object_modifiers(Object *object)
 
 void DepsgraphRelationBuilder::build_object_data(Object *object)
 {
-  if (object->type == OB_EMPTY && !BLI_listbase_is_empty(&object->modifiers)) {
+  if (object->type == OB_EMPTY &&
+      (!BLI_listbase_is_empty(&object->modifiers) || object->instance_collection))
+  {
     build_object_data_empty(object);
     return;
   }
@@ -2909,6 +2911,14 @@ void DepsgraphRelationBuilder::build_object_data_empty(Object *object)
   OperationKey synchronize_key(
       &object->id, NodeType::SYNCHRONIZATION, OperationCode::SYNCHRONIZE_TO_ORIGINAL);
   add_relation(final_geometry_key, synchronize_key, "Synchronize to Original");
+
+  /* If the empty is an instanced collection, the geometry of the empty depends on the geometry of
+   * the collection (and hence all the geometry of all contained objects).*/
+  if (object->instance_collection) {
+    ComponentKey collection_geometry_key(&object->instance_collection->id, NodeType::GEOMETRY);
+    add_relation(
+        collection_geometry_key, final_geometry_key, "Collection Geometry -> Empty Geometry");
+  }
 }
 
 void DepsgraphRelationBuilder::build_armature(bArmature *armature)

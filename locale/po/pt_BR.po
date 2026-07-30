@@ -1,9 +1,9 @@
 
 msgid ""
 msgstr ""
-"Project-Id-Version: Blender 5.3.0 Alpha (b'96294be75080')\n"
+"Project-Id-Version: Blender 5.3.0 Alpha (b'bf67fb078da0')\n"
 "Report-Msgid-Bugs-To: Leandro Paganelli <leandrobp@fastmail.com>\n"
-"POT-Creation-Date: 2026-07-20 07:29+0000\n"
+"POT-Creation-Date: 2026-07-27 09:52+0000\n"
 "PO-Revision-Date: 2026-04-13 10:12+0000\n"
 "Last-Translator: Gilberto Rodrigues <gilbertorodrigues@outlook.com>\n"
 "Language-Team: Portuguese (Brazil) <https://translate.blender.org/projects/blender-ui/ui/pt_BR/>\n"
@@ -12091,14 +12091,6 @@ msgid "Blend brush influence by how much they face the front"
 msgstr "Mesclagem da influência do pincel pela quantidade de faceamento frontal."
 
 
-msgid "Inverse Smooth Pressure"
-msgstr "Pressão de suavização inversa"
-
-
-msgid "Lighter pressure causes more smoothing to be applied"
-msgstr "Pressão mais leve faz com que mais suavização seja aplicada"
-
-
 msgid "Plane Offset Pressure"
 msgstr "Pressão de deslocamento de plano"
 
@@ -21160,60 +21152,16 @@ msgid "Material slot name"
 msgstr "Nome do compartimento do material."
 
 
-msgid "Apply"
-msgstr "Aplicar"
-
-
-msgid "Track"
-msgstr "Rastrear"
-
-
-msgid "Quick Effects"
-msgstr "Efeitos instantâneos"
+msgid "Names"
+msgstr "Nomes"
 
 
 msgid "Show/Hide"
 msgstr "Mostrar ou ocultar"
 
 
-msgid "Clean Up"
-msgstr "Limpeza"
-
-
-msgid "Make Single User"
-msgstr "Tornar usuário único"
-
-
-msgid "Convert"
-msgstr "Converter"
-
-
-msgid "Hooks"
-msgstr "Ganchos"
-
-
-msgid "Random Mask"
-msgstr "Máscara Aleatória"
-
-
-msgid "Math"
-msgstr "Matemática"
-
-
-msgid "Clear Transform"
-msgstr "Limpar transformações"
-
-
-msgid "In-Betweens"
-msgstr "Entre as continuidades"
-
-
-msgid "Propagate"
-msgstr "Propagar"
-
-
-msgid "Names"
-msgstr "Nomes"
+msgid "Apply"
+msgstr "Aplicar"
 
 
 msgid "Toggle Bone Options"
@@ -21236,32 +21184,28 @@ msgid "Face Data"
 msgstr "Dados das faces"
 
 
+msgid "Clean Up"
+msgstr "Limpeza"
+
+
 msgid "Merge"
 msgstr "Fundir"
-
-
-msgid "Instances"
-msgstr "Instâncias"
 
 
 msgid "Special Characters"
 msgstr "Caracteres especiais"
 
 
+msgid "Math"
+msgstr "Matemática"
+
+
 msgid "Metaball"
 msgstr "Meta-esfera"
 
 
-msgid "Import"
-msgstr "Importar"
-
-
 msgid "Bone Roll"
 msgstr "Rolagem dos ossos"
-
-
-msgid "UV"
-msgstr "UV"
 
 
 msgid "Pivot Point"
@@ -21274,6 +21218,14 @@ msgstr "Atrair"
 
 msgid "Proportional Editing Falloff"
 msgstr "Tipo de decaimento para edição proporcional"
+
+
+msgid "Instances"
+msgstr "Instâncias"
+
+
+msgid "Import"
+msgstr "Importar"
 
 
 msgid "Mirror"
@@ -21300,6 +21252,10 @@ msgid "Align View"
 msgstr "Alinhar visualização"
 
 
+msgid "UV"
+msgstr "UV"
+
+
 msgid "Align View to Active"
 msgstr "Alinhar vista para o ativo"
 
@@ -21320,28 +21276,12 @@ msgid "Select All by Trait"
 msgstr "Selecionar todos por características..."
 
 
-msgid "Linked"
-msgstr "Vinculando"
-
-
-msgid "Layout"
-msgstr "Organizar"
-
-
 msgid "Select Linked"
 msgstr "Selecionar vinculados(as)"
 
 
 msgid "Select Loops"
 msgstr "Selecionar anéis"
-
-
-msgid "Keying"
-msgstr "Inserção de chaves"
-
-
-msgid "Tracking"
-msgstr "Rastreamento"
 
 
 msgid "Light"
@@ -21362,6 +21302,58 @@ msgstr "Relações"
 
 msgid "Rigid Body"
 msgstr "Corpo rígido"
+
+
+msgid "Track"
+msgstr "Rastrear"
+
+
+msgid "Linked"
+msgstr "Vinculando"
+
+
+msgid "Layout"
+msgstr "Organizar"
+
+
+msgid "Quick Effects"
+msgstr "Efeitos instantâneos"
+
+
+msgid "Make Single User"
+msgstr "Tornar usuário único"
+
+
+msgid "Convert"
+msgstr "Converter"
+
+
+msgid "Hooks"
+msgstr "Ganchos"
+
+
+msgid "Keying"
+msgstr "Inserção de chaves"
+
+
+msgid "Tracking"
+msgstr "Rastreamento"
+
+
+msgid "Random Mask"
+msgstr "Máscara Aleatória"
+
+
+msgid "Clear Transform"
+msgstr "Limpar transformações"
+
+
+msgid "In-Betweens"
+msgstr "Entre as continuidades"
+
+
+msgid "Propagate"
+msgstr "Propagar"
 
 
 msgid "Basic"
@@ -48391,7 +48383,7 @@ msgid "Feature Weights"
 msgstr "Pesos da funcionalidade"
 
 
-msgid "Auto Keyframing"
+msgid "Auto Keying"
 msgstr "Inserção de chaves automática"
 
 
@@ -57157,10 +57149,6 @@ msgid "Window Background"
 msgstr "Plano de fundo da janela"
 
 
-msgid "Header Text Highlight"
-msgstr "Texto - Realce de cabeçalho"
-
-
 msgid "Text Highlight"
 msgstr "Texto - Realce"
 
@@ -57632,10 +57620,6 @@ msgstr "Máscara de seleção"
 
 msgid "Only sculpt selected stroke points"
 msgstr "Esculpe somente os pontos dos traços selecionados."
-
-
-msgid "Auto Keying"
-msgstr "Inserção de chaves automática"
 
 
 msgid "Auto Keyframe Insert Keying Set"
@@ -58967,11 +58951,6 @@ msgstr "Documentação"
 
 msgid "File:"
 msgstr "Arquivo:"
-
-
-msgctxt "Operator"
-msgid "Apply"
-msgstr "Aplicar"
 
 
 msgid "Options:"
@@ -60759,10 +60738,6 @@ msgid "Play In"
 msgstr "Tocar Em"
 
 
-msgid "New Keyframe Type"
-msgstr "Tipo para novos quadros-chave"
-
-
 msgid "Unable to find toolbar group"
 msgstr "Não é possível encontrar o grupo da barra de ferramentas"
 
@@ -62038,6 +62013,11 @@ msgstr "Pintura múltipla"
 msgctxt "Operator"
 msgid "Quick Edit"
 msgstr "Edição rápida"
+
+
+msgctxt "Operator"
+msgid "Apply"
+msgstr "Aplicar"
 
 
 msgctxt "Operator"

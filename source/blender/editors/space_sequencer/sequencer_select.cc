@@ -501,10 +501,10 @@ static void sequencer_select_side_of_frame(const bContext *C,
         if (((x < scene->r.cfra) && (tmarker.frame <= scene->r.cfra)) ||
             ((x >= scene->r.cfra) && (tmarker.frame >= scene->r.cfra)))
         {
-          tmarker.flag |= SEQ_SELECT;
+          tmarker.flag |= SELECT;
         }
         else {
-          tmarker.flag &= ~SEQ_SELECT;
+          tmarker.flag &= ~SELECT;
         }
       }
     }

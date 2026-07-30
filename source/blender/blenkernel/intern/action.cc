@@ -1112,7 +1112,7 @@ void BKE_pose_copy_data_ex(bPose **dst,
 
       /* XXX: This is needed for motionpath drawing to work.
        * Dunno why it was setting to null before... */
-      pchan.mpath = animviz_copy_motionpath(pchan.mpath);
+      pchan.mpath = bke::motionpath::copy(pchan.mpath);
     }
 
     if (pchan.prop) {
@@ -1340,7 +1340,7 @@ void BKE_pose_channel_free_ex(bPoseChannel *pchan, bool do_id_user)
   }
 
   if (pchan->mpath) {
-    animviz_free_motionpath(pchan->mpath);
+    bke::motionpath::free(pchan->mpath);
     pchan->mpath = nullptr;
   }
 
@@ -1899,7 +1899,7 @@ void BKE_pose_blend_write(BlendWriter *writer, bPose *pose)
 
     BKE_constraint_blend_write(writer, &chan.constraints);
 
-    animviz_motionpath_blend_write(writer, chan.mpath);
+    bke::motionpath::blend_write(writer, chan.mpath);
 
     writer->write_struct(&chan);
   }
@@ -1953,7 +1953,7 @@ void BKE_pose_blend_read_data(BlendDataReader *reader, ID *id_owner, bPose *pose
 
     BLO_read_struct(reader, bMotionPath, &pchan.mpath);
     if (pchan.mpath) {
-      animviz_motionpath_blend_read_data(reader, pchan.mpath);
+      bke::motionpath::blend_read_data(reader, pchan.mpath);
     }
 
     pchan.iktree.clear_no_delete();

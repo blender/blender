@@ -331,8 +331,8 @@ set(VULKAN_SRC
   vulkan/vk_ray_tracing.hh
   vulkan/render_graph/nodes/vk_begin_query_node.hh
   vulkan/render_graph/nodes/vk_begin_rendering_node.hh
-  vulkan/render_graph/nodes/vk_build_acceleration_structure_node.hh
   vulkan/render_graph/nodes/vk_blit_image_node.hh
+  vulkan/render_graph/nodes/vk_build_acceleration_structure_node.hh
   vulkan/render_graph/nodes/vk_clear_attachments_node.hh
   vulkan/render_graph/nodes/vk_clear_color_image_node.hh
   vulkan/render_graph/nodes/vk_clear_depth_stencil_image_node.hh
@@ -397,6 +397,7 @@ set(METAL_SRC
   metal/mtl_memory.mm
   metal/mtl_push_constant.cc
   metal/mtl_query.mm
+  metal/mtl_ray_tracing.mm
   metal/mtl_shader.mm
   metal/mtl_shader_generate.cc
   metal/mtl_shader_interface.mm
@@ -424,6 +425,7 @@ set(METAL_SRC
   metal/mtl_pso_descriptor_state.hh
   metal/mtl_push_constant.hh
   metal/mtl_query.hh
+  metal/mtl_ray_tracing.hh
   metal/mtl_shader.hh
   metal/mtl_shader_generate.hh
   metal/mtl_shader_interface.hh
@@ -667,6 +669,7 @@ set(GLSL_SRC
   shaders/material/gpu_shader_material_clamp.glsl
   shaders/material/gpu_shader_material_compare.glsl
   shaders/material/gpu_shader_material_combine_color.glsl
+  shaders/material/gpu_shader_material_combine_transform.glsl
   shaders/material/gpu_shader_material_combine_xyz.glsl
   shaders/material/gpu_shader_material_diffuse.glsl
   shaders/material/gpu_shader_material_displacement.glsl
@@ -686,6 +689,7 @@ set(GLSL_SRC
   shaders/material/gpu_shader_material_holdout.glsl
   shaders/material/gpu_shader_material_hue_sat_val.glsl
   shaders/material/gpu_shader_material_implicit_defaults.glsl
+  shaders/material/gpu_shader_material_integer_math.glsl
   shaders/material/gpu_shader_material_invert.glsl
   shaders/material/gpu_shader_material_invert_rotation.glsl
   shaders/material/gpu_shader_material_layer_weight.glsl
@@ -722,6 +726,7 @@ set(GLSL_SRC
   shaders/material/gpu_shader_material_rotation_to_quaternion.glsl
   shaders/material/gpu_shader_material_scene_time.glsl
   shaders/material/gpu_shader_material_separate_color.glsl
+  shaders/material/gpu_shader_material_separate_transform.glsl
   shaders/material/gpu_shader_material_separate_xyz.glsl
   shaders/material/gpu_shader_material_set.glsl
   shaders/material/gpu_shader_material_shader_to_rgba.glsl
@@ -794,6 +799,8 @@ set(GLSL_TEST_SRC
   tests/shaders/gpu_framebuffer_subpass_input_test.glsl
   tests/shaders/gpu_push_constants_test.glsl
   tests/shaders/gpu_ray_query_test.glsl
+  tests/shaders/gpu_ray_query_raster_test.glsl
+  tests/shaders/gpu_ray_query_custom_index_test.glsl
   tests/shaders/gpu_texture_test.glsl
   tests/shaders/gpu_texture_atomic_test.glsl
 )
@@ -815,6 +822,7 @@ set(MTL_BACKEND_GLSL_SRC
   shaders/gpu_shader_msl_image.msl
   shaders/gpu_shader_msl_matrix_legacy.msl
   shaders/gpu_shader_msl_matrix.msl
+  shaders/gpu_shader_msl_ray_query.msl
   shaders/gpu_shader_msl_sampler.msl
   shaders/gpu_shader_msl_string.msl
   shaders/gpu_shader_msl_types.msl

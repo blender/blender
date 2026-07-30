@@ -4775,6 +4775,8 @@ static void bevel_build_rings(BevelState &state, BevVert *bv)
   } while ((bndv = bndv->next) != vm->boundstart);
 }
 
+/** \} */
+
 /* -------------------------------------------------------------------- */
 /** \name Face rebuild
  * \{ */
@@ -5366,6 +5368,10 @@ static void bevel_build_edge_polygons(BevelState &state, const int edge_index)
 }
 
 /** \} */
+
+/* -------------------------------------------------------------------- */
+/** \name VMesh building
+ * \{ */
 
 static BoundVert *pipe_test(const BevelState &state, BevVert *bv);
 static VMesh pipe_adj_vmesh(BevelState &state, BevVert *bv, BoundVert *vpipe);

@@ -136,10 +136,10 @@ struct NearestPointKernel {
 
   static float weight(float x)
   {
-    if (x < 0.0f) {
+    if (x < -0.5f) {
       return 0.0f;
     }
-    if (x < 1.0f) {
+    if (x < 0.5f) {
       return 1.0f;
     }
     return 0.0f;

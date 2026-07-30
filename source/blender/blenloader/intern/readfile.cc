@@ -1571,6 +1571,10 @@ struct BLOCacheStorageValue {
 static void blo_cache_storage_entry_register(
     ID *id, const IDCacheKey *key, void **cache_p, uint /*flags*/, void *cache_storage_v)
 {
+  if (*cache_p == nullptr) {
+    return;
+  }
+
   BLI_assert(key->id_session_uid == id->session_uid);
   UNUSED_VARS_NDEBUG(id);
 
@@ -2455,7 +2459,8 @@ static void lib_link_scenes_check_set(Main *bmain)
 static void library_filedata_release(Library *lib)
 {
   if (lib->runtime->filedata) {
-    BLI_assert(lib->runtime->versionfile != 0);
+    /* External libraries have no version info. */
+    BLI_assert(lib->runtime->versionfile != 0 || (lib->flag & LIBRARY_FLAG_IS_EXTERNAL));
     BLI_assert_msg(!lib->runtime->is_filedata_owner || (lib->flag & LIBRARY_FLAG_IS_ARCHIVE) == 0,
                    "Packed Archive libraries should never own their filedata");
     if (lib->runtime->is_filedata_owner) {
@@ -2478,7 +2483,8 @@ static Main *blo_add_main_for_library(FileData *fd,
                                       Library *reference_lib,
                                       const char *lib_filepath,
                                       char (&filepath_abs)[FILE_MAX],
-                                      const bool is_packed_library)
+                                      const bool is_packed_library,
+                                      const bool is_external_lib)
 {
   Main *bmain = BKE_main_new();
   fd->bmain->split_mains->add_new(bmain);
@@ -2506,6 +2512,10 @@ static Main *blo_add_main_for_library(FileData *fd,
       lib->archive_parent_library = reference_lib;
       constexpr uint16_t copy_flag = ~LIBRARY_FLAG_IS_ARCHIVE;
       lib->flag = (reference_lib->flag & copy_flag) | LIBRARY_FLAG_IS_ARCHIVE;
+
+      if (is_external_lib) {
+        lib->flag |= LIBRARY_FLAG_IS_EXTERNAL;
+      }
 
       lib->runtime->parent = reference_lib->runtime->parent;
       /* Only copy a subset of the reference library tags. E.g. an archive library should never be
@@ -2618,7 +2628,7 @@ static void direct_link_library(FileData *fd, Library *lib, Main *main)
                        lib->runtime->filepath_abs);
 
       Main *parent_lib_bmain = blo_add_main_for_library(
-          fd, nullptr, nullptr, lib->filepath, lib->runtime->filepath_abs, false);
+          fd, nullptr, nullptr, lib->filepath, lib->runtime->filepath_abs, false, false);
       parent_lib = parent_lib_bmain->curlib;
       BLI_assert(parent_lib);
       oldnewmap_lib_insert(fd, lib->archive_parent_library, &parent_lib->id, ID_LI);
@@ -3251,8 +3261,14 @@ static void read_libblock_undo_restore_identical(
       /* The archive library ID has been moved in the new Main, but not its own old split main, as
        * these packed IDs should be handled like local ones in undo case. So a new split libmain
        * needs to be created to contain its packed IDs. */
-      blo_add_main_for_library(
-          fd, lib, lib->archive_parent_library, lib->filepath, lib->runtime->filepath_abs, true);
+      const bool is_external_lib = lib->flag & LIBRARY_FLAG_IS_EXTERNAL;
+      blo_add_main_for_library(fd,
+                               lib,
+                               lib->archive_parent_library,
+                               lib->filepath,
+                               lib->runtime->filepath_abs,
+                               true,
+                               is_external_lib);
     }
     else {
       BLI_assert_unreachable();
@@ -3443,6 +3459,22 @@ static BHead *read_libblock(FileData *fd,
 {
   const bool do_partial_undo = (fd->skip_flags & BLO_READ_SKIP_UNDO_OLD_MAIN) == 0;
 
+  auto process_packed_id = [&fd, &main](ID &id) -> void {
+    if (!ID_IS_PACKED(&id)) {
+      return;
+    }
+    UNUSED_VARS_NDEBUG(main);
+    BLI_assert(main->curlib);
+    if ((id.lib->flag & LIBRARY_FLAG_IS_EXTERNAL) != 0) {
+      /* External libraries should have a null deep hash. */
+      BLI_assert(id.deep_hash == IDHash::get_null());
+    }
+    else {
+      BLI_assert(id.deep_hash != IDHash::get_null());
+      fd->id_by_deep_hash->add_new(id.deep_hash, &id);
+    }
+  };
+
   /* First attempt to restore existing datablocks for undo.
    * When datablocks are changed but still exist, we restore them at the old
    * address and inherit recalc flags for the dependency graph. */
@@ -3456,11 +3488,7 @@ static BHead *read_libblock(FileData *fd,
         if (main->id_map != nullptr) {
           BKE_main_idmap_insert_id(main->id_map, id_old);
         }
-        if (ID_IS_PACKED(id_old)) {
-          BLI_assert(id_old->deep_hash != IDHash::get_null());
-          fd->id_by_deep_hash->add_new(id_old->deep_hash, id_old);
-          BLI_assert(main->curlib);
-        }
+        process_packed_id(*id_old);
       }
 
       return blo_bhead_next(fd, bhead);
@@ -3565,11 +3593,7 @@ static BHead *read_libblock(FileData *fd,
     if (main->id_map != nullptr) {
       BKE_main_idmap_insert_id(main->id_map, id_target);
     }
-    if (ID_IS_PACKED(id_target)) {
-      BLI_assert(id_target->deep_hash != IDHash::get_null());
-      fd->id_by_deep_hash->add_new(id_target->deep_hash, id_target);
-      BLI_assert(main->curlib);
-    }
+    process_packed_id(*id_target);
     if (fd->file_stat) {
       id->runtime->src_blend_modifification_time = fd->file_stat->st_mtime;
     }
@@ -4527,8 +4551,11 @@ BlendFileData *blo_read_file_internal(FileData *fd, const char *filepath)
        *  - In case it is a reference library for archived ones, its runtime #archived_libraries
        *    vector will not be empty, and it must be kept, even if no data is directly linked from
        *    it anymore.
+       *  - External libraries never have versionfile info, so always skip them here.
        */
-      if (lib.runtime->versionfile == 0 && lib.runtime->archived_libraries.is_empty()) {
+      if (lib.runtime->versionfile == 0 && lib.runtime->archived_libraries.is_empty() &&
+          (lib.flag & LIBRARY_FLAG_IS_EXTERNAL) == 0)
+      {
 #ifndef NDEBUG
         ID *id_iter;
         FOREACH_MAIN_ID_BEGIN (bfd->main, id_iter) {
@@ -4835,7 +4862,8 @@ static Main *blo_find_main_for_library_and_idname(FileData *fd,
                                                   const char *relabase,
                                                   const BHead *id_bhead,
                                                   const char *id_name,
-                                                  const bool is_packed_id)
+                                                  const bool is_packed_id,
+                                                  const bool is_external_lib)
 {
   Library *parent_lib = nullptr;
   char filepath_abs[FILE_MAX];
@@ -4885,6 +4913,27 @@ static Main *blo_find_main_for_library_and_idname(FileData *fd,
           UNUSED_VARS_NDEBUG(packed_id, id_bhead);
           continue;
         }
+        if (main_it->curlib->runtime->filedata) {
+          /* If this Main was already used to read and store some packed data, it will have an
+           * assigned (non-owned) FileData pointer.
+           *
+           * Even though that Main does not contain any version of the linked packed ID being
+           * read, it cannot be used as its container if the FileData does not match.
+           *
+           * Otherwise, in complex cases, code can end up putting some packed IDs from libC, used
+           * in (and read from) libA, into the same Main as other packed IDs from libC, read from
+           * libB.
+           *
+           * This would result in 'stealing' the FileData of this Main, which will likely result in
+           * liblink failure later on in reading process, as the old addresses of some packed data
+           * in that Main will not be found anymore in the libmap of the currently assigned
+           * FileData.
+           */
+          BLI_assert(main_it->curlib->runtime->is_filedata_owner == false);
+          if (main_it->curlib->runtime->filedata != fd) {
+            continue;
+          }
+        }
         /* Since an archive library is an abstract, local storage for packed data, in complex
          * production files with many layers of libraries, a single archive library may end up
          * 'containing' packed IDs from _different_ sources (reminder, packed IDs are stored in
@@ -4913,7 +4962,7 @@ static Main *blo_find_main_for_library_and_idname(FileData *fd,
       /* An archive library requires an existing parent library, create an empty, 'virtual' one if
        * needed. */
       Main *reference_bmain = blo_add_main_for_library(
-          fd, nullptr, nullptr, lib_filepath, filepath_abs, false);
+          fd, nullptr, nullptr, lib_filepath, filepath_abs, false, false);
       parent_lib = reference_bmain->curlib;
       CLOG_DEBUG(&LOG,
                  "Added new parent library '%s' for file path '%s'",
@@ -4924,7 +4973,7 @@ static Main *blo_find_main_for_library_and_idname(FileData *fd,
   BLI_assert(parent_lib || !is_packed_id);
 
   Main *bmain = blo_add_main_for_library(
-      fd, nullptr, parent_lib, lib_filepath, filepath_abs, is_packed_id);
+      fd, nullptr, parent_lib, lib_filepath, filepath_abs, is_packed_id, is_external_lib);
 
   read_file_version_and_colorspace(fd, bmain);
 
@@ -5072,7 +5121,7 @@ static void expand_doit_library(void *fdhandle,
     Library *lib = reinterpret_cast<Library *>(
         read_id_struct(fd, bheadlib, "Data for Library ID type", INDEX_ID_NULL));
     Main *libmain = blo_find_main_for_library_and_idname(
-        fd, lib->filepath, fd->relabase, nullptr, nullptr, false);
+        fd, lib->filepath, fd->relabase, nullptr, nullptr, false, false);
     MEM_delete(lib);
 
     if (libmain->curlib == nullptr) {
@@ -5112,8 +5161,10 @@ static void expand_doit_library(void *fdhandle,
 
     Library *lib = reinterpret_cast<Library *>(
         read_id_struct(fd, bheadlib, "Data for Library ID type", INDEX_ID_NULL));
+    const bool is_external_lib = bool(lib->flag & LIBRARY_FLAG_IS_EXTERNAL);
+
     Main *libmain = blo_find_main_for_library_and_idname(
-        fd, lib->filepath, fd->relabase, bhead, id_name, is_packed_id);
+        fd, lib->filepath, fd->relabase, bhead, id_name, is_packed_id, is_external_lib);
     MEM_delete(lib);
 
     if (libmain->curlib == nullptr) {
@@ -5331,7 +5382,7 @@ static Main *library_link_begin(Main *mainvar,
   /* Find or create a Main matching the current library filepath. */
   /* Note: Directly linking packed IDs is not supported currently. */
   mainl = blo_find_main_for_library_and_idname(
-      fd, filepath, BKE_main_blendfile_path(mainvar), nullptr, nullptr, false);
+      fd, filepath, BKE_main_blendfile_path(mainvar), nullptr, nullptr, false, false);
   fd->fd_bmain = mainl;
   if (mainl->curlib) {
     mainl->curlib->runtime->filedata = fd;
@@ -5669,17 +5720,6 @@ static void read_library_linked_ids(FileData *basefd, FileData *fd, Main *mainva
           loaded_ids.add_overwrite(id->name, realid);
         }
 
-        /* A failed on-demand block read only clears `FD_FLAGS_FILE_OK` on `fd` (as for the
-         * local-data read loop in #blo_read_file_internal), it doesn't invalidate `mainvar` by
-         * itself. Without this check such a failure looks just like a "missing linked ID" below,
-         * silently continuing the read instead of reporting the corrupt library and aborting. */
-        if (fd && !(fd->flags & FD_FLAGS_FILE_OK)) [[unlikely]] {
-          if (!mainvar->is_read_invalid) {
-            blo_readfile_invalidate(fd, mainvar, "Corrupt .blend file, failed to read a block");
-          }
-          return;
-        }
-
         /* `realid` shall never be nullptr - unless some source file/lib is broken
          * (known case: some directly linked shape-key from a missing lib...). */
         // BLI_assert(*realid != nullptr);
@@ -5705,8 +5745,20 @@ static void read_library_linked_ids(FileData *basefd, FileData *fd, Main *mainva
          * ID common data actually valid and needing to be freed. Therefore, calling
          * #BKE_libblock_free_data on it would not work. */
         BKE_libblock_free_runtime_data(id);
-
         MEM_delete(id);
+
+        /* A failed on-demand block read only clears `FD_FLAGS_FILE_OK` on `fd` (as for the
+         * local-data read loop in #blo_read_file_internal), it doesn't invalidate `mainvar` by
+         * itself. Without this check such a failure looks just like a "missing linked ID" below,
+         * silently continuing the read instead of reporting the corrupt library and aborting.
+         *
+         * Note: Needs to be done at the end, to ensure placeholder `id` is correctly freed. */
+        if (fd && !(fd->flags & FD_FLAGS_FILE_OK)) [[unlikely]] {
+          if (!mainvar->is_read_invalid) {
+            blo_readfile_invalidate(fd, mainvar, "Failed to read a block");
+          }
+          return;
+        }
       }
       id = id_next;
     }
@@ -5849,6 +5901,9 @@ static void read_libraries(FileData *basefd)
     for (int i = 1; i < bmain->split_mains->size(); i++) {
       Main *libmain = (*bmain->split_mains)[i];
       BLI_assert(libmain->curlib);
+      if (libmain->is_read_invalid) [[unlikely]] {
+        return;
+      }
       /* Always skip archived libraries here, these should _never_ need to be processed here, as
        * their data is local data from a blendfile perspective. */
       if (libmain->curlib->flag & LIBRARY_FLAG_IS_ARCHIVE) {
@@ -5866,6 +5921,12 @@ static void read_libraries(FileData *basefd)
         FileData *fd = read_library_file_data(basefd, bmain, libmain);
 
         if (fd) {
+          if (!(fd->flags & FD_FLAGS_FILE_OK)) [[unlikely]] {
+            if (!libmain->is_read_invalid) {
+              blo_readfile_invalidate(fd, libmain, "Failed to open the library blendfile");
+            }
+            return;
+          }
           do_it = true;
 
           if (libmain->id_map == nullptr) {
@@ -5876,10 +5937,16 @@ static void read_libraries(FileData *basefd)
         /* Read linked data-blocks for each link placeholder, and replace
          * the placeholder with the real data-block. */
         read_library_linked_ids(basefd, fd, libmain);
+        if (libmain->is_read_invalid) [[unlikely]] {
+          return;
+        }
 
         /* Test if linked data-blocks need to read further linked data-blocks
          * and create link placeholders for them. */
         expand_main(fd, libmain, expand_doit_library);
+        if (libmain->is_read_invalid) [[unlikely]] {
+          return;
+        }
       }
     }
   }
@@ -5889,6 +5956,9 @@ static void read_libraries(FileData *basefd)
      * Since this can remap pointers in `libmap` of all libraries, it needs to be performed in its
      * own loop, before any call to `lib_link_all` (and the freeing of the libraries' filedata). */
     read_library_clear_weak_links(basefd, libmain);
+    if (libmain->is_read_invalid) [[unlikely]] {
+      return;
+    }
   }
 
   Main *main_newid = BKE_main_new();
@@ -5913,10 +5983,18 @@ static void read_libraries(FileData *basefd)
 
       add_main_to_main(libmain, main_newid);
     }
+    if (libmain->is_read_invalid) [[unlikely]] {
+      BKE_main_free(main_newid);
+      return;
+    }
 
     /* Lib linking. */
     if (libmain->curlib->runtime->filedata) {
       lib_link_all(libmain->curlib->runtime->filedata, libmain);
+    }
+    if (libmain->is_read_invalid) [[unlikely]] {
+      BKE_main_free(main_newid);
+      return;
     }
 
     /* NOTE: No need to call #do_versions_after_linking() or #BKE_main_id_refcount_recompute()

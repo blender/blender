@@ -29,7 +29,7 @@ ccl_device int bsdf_hair_reflection_setup(ccl_private HairBsdf *bsdf)
   bsdf->type = CLOSURE_BSDF_HAIR_REFLECTION_ID;
   bsdf->roughness1 = clamp(bsdf->roughness1, 0.001f, 1.0f);
   bsdf->roughness2 = clamp(bsdf->roughness2, 0.001f, 1.0f);
-  return SD_BSDF | SD_BSDF_HAS_EVAL;
+  return SR_BSDF | SR_BSDF_HAS_EVAL;
 }
 
 ccl_device int bsdf_hair_transmission_setup(ccl_private HairBsdf *bsdf)
@@ -37,7 +37,7 @@ ccl_device int bsdf_hair_transmission_setup(ccl_private HairBsdf *bsdf)
   bsdf->type = CLOSURE_BSDF_HAIR_TRANSMISSION_ID;
   bsdf->roughness1 = clamp(bsdf->roughness1, 0.001f, 1.0f);
   bsdf->roughness2 = clamp(bsdf->roughness2, 0.001f, 1.0f);
-  return SD_BSDF | SD_BSDF_HAS_EVAL | SD_BSDF_HAS_TRANSMISSION;
+  return SR_BSDF | SR_BSDF_HAS_EVAL | SR_BSDF_HAS_TRANSMISSION;
 }
 
 ccl_device Spectrum bsdf_hair_reflection_eval(const ccl_private ShaderClosure *sc,

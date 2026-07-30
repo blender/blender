@@ -81,8 +81,8 @@ namespace ed::sculpt_paint {
  * \{ */
 
 struct GreasePencilPaintStroke final : public PaintStroke {
-  GreasePencilPaintStroke(bContext *C, wmOperator *op, const int event_type)
-      : PaintStroke(C, op, event_type)
+  GreasePencilPaintStroke(bContext *C, wmOperator *op, const wmEvent *event)
+      : PaintStroke(C, op, event)
   {
   }
 
@@ -293,7 +293,7 @@ static wmOperatorStatus grease_pencil_brush_stroke_invoke(bContext *C,
     return retval;
   }
 
-  GreasePencilPaintStroke *stroke = MEM_new<GreasePencilPaintStroke>(__func__, C, op, event->type);
+  GreasePencilPaintStroke *stroke = MEM_new<GreasePencilPaintStroke>(__func__, C, op, event);
   op->customdata = stroke;
 
   retval = op->type->modal(C, op, event);
@@ -402,7 +402,7 @@ static wmOperatorStatus grease_pencil_sculpt_paint_invoke(bContext *C,
   }
   WM_event_add_notifier(C, NC_GPENCIL | NA_EDITED, nullptr);
 
-  GreasePencilPaintStroke *stroke = MEM_new<GreasePencilPaintStroke>(__func__, C, op, event->type);
+  GreasePencilPaintStroke *stroke = MEM_new<GreasePencilPaintStroke>(__func__, C, op, event);
   op->customdata = stroke;
 
   const wmOperatorStatus retval = op->type->modal(C, op, event);
@@ -504,7 +504,7 @@ static wmOperatorStatus grease_pencil_weight_brush_stroke_invoke(bContext *C,
     return OPERATOR_CANCELLED;
   }
 
-  GreasePencilPaintStroke *stroke = MEM_new<GreasePencilPaintStroke>(__func__, C, op, event->type);
+  GreasePencilPaintStroke *stroke = MEM_new<GreasePencilPaintStroke>(__func__, C, op, event);
   op->customdata = stroke;
 
   const wmOperatorStatus retval = op->type->modal(C, op, event);
@@ -613,7 +613,7 @@ static wmOperatorStatus grease_pencil_vertex_brush_stroke_invoke(bContext *C,
   }
   WM_event_add_notifier(C, NC_GPENCIL | NA_EDITED, nullptr);
 
-  GreasePencilPaintStroke *stroke = MEM_new<GreasePencilPaintStroke>(__func__, C, op, event->type);
+  GreasePencilPaintStroke *stroke = MEM_new<GreasePencilPaintStroke>(__func__, C, op, event);
   op->customdata = stroke;
 
   const wmOperatorStatus retval = op->type->modal(C, op, event);
@@ -2120,30 +2120,32 @@ static wmOperatorStatus grease_pencil_erase_lasso_exec(bContext *C, wmOperator *
       const float4x4 layer_to_world = layer.to_world_space(*ob_eval);
 
       const bke::CurvesGeometry &curves = info.drawing.strokes();
-      Array<float2> screen_space_positions(curves.points_num());
-      threading::parallel_for(curves.points_range(), 4096, [&](const IndexRange points) {
-        for (const int point : points) {
-          const float3 pos = math::transform_point(layer_to_world, deformation.positions[point]);
-          eV3DProjStatus result = ED_view3d_project_float_global(
-              region, pos, screen_space_positions[point], V3D_PROJ_TEST_NOP);
-          if (result != V3D_PROJ_RET_OK) {
-            screen_space_positions[point] = float2(0);
-          }
-        }
-      });
-
-      const OffsetIndices<int> points_by_curve = curves.points_by_curve();
-      Array<Bounds<float2>> screen_space_curve_bounds(curves.curves_num());
-      threading::parallel_for(curves.curves_range(), 512, [&](const IndexRange range) {
-        for (const int curve : range) {
-          screen_space_curve_bounds[curve] = *bounds::min_max(
-              screen_space_positions.as_span().slice(points_by_curve[curve]));
-        }
-      });
-
+      Array<float2> screen_space_positions(curves.points_num(), float2(0));
       IndexMaskMemory &memory = memories[drawing_i];
+      const IndexMask editable_points = retrieve_editable_points(
+          *object, info.drawing, info.layer_index, memory);
+      editable_points.foreach_index(
+          [&](const int point) {
+            const float3 pos = math::transform_point(layer_to_world, deformation.positions[point]);
+            ED_view3d_project_float_global(
+                region, pos, screen_space_positions[point], V3D_PROJ_TEST_NOP);
+          },
+          exec_mode::grain_size(4096));
+
+      const IndexMask editable_strokes = retrieve_editable_strokes(
+          *object, info.drawing, info.layer_index, memory);
+      const OffsetIndices<int> points_by_curve = curves.points_by_curve();
+      Array<Bounds<float2>> screen_space_curve_bounds(curves.curves_num(),
+                                                      {float2(0.0f), float2(0.0f)});
+      editable_strokes.foreach_index(
+          [&](const int curve) {
+            screen_space_curve_bounds[curve] = *bounds::min_max(
+                screen_space_positions.as_span().slice(points_by_curve[curve]));
+          },
+          exec_mode::grain_size(512));
+
       const IndexMask curve_selection = IndexMask::from_predicate(
-          curves.curves_range(), memory, [&](const int64_t index) {
+          editable_strokes, memory, [&](const int64_t index) {
             /* For a single point curve, its screen_space_curve_bounds Bounds will be empty (by
              * definition), so intersecting will fail. Check if the single point is in the bounds
              * instead. */
@@ -2230,21 +2232,20 @@ static wmOperatorStatus grease_pencil_erase_box_exec(bContext *C, wmOperator *op
       const float4x4 layer_to_world = layer.to_world_space(*ob_eval);
 
       const bke::CurvesGeometry &curves = info.drawing.strokes();
-      Array<float2> screen_space_positions(curves.points_num());
-      threading::parallel_for(curves.points_range(), 4096, [&](const IndexRange points) {
-        for (const int point : points) {
-          const float3 pos = math::transform_point(layer_to_world, deformation.positions[point]);
-          eV3DProjStatus result = ED_view3d_project_float_global(
-              region, pos, screen_space_positions[point], V3D_PROJ_TEST_NOP);
-          if (result != V3D_PROJ_RET_OK) {
-            screen_space_positions[point] = float2(0);
-          }
-        }
-      });
-
+      Array<float2> screen_space_positions(curves.points_num(), float2(0));
       IndexMaskMemory &memory = memories[drawing_i];
+      const IndexMask editable_points = retrieve_editable_points(
+          *object, info.drawing, info.layer_index, memory);
+      editable_points.foreach_index(
+          [&](const int point) {
+            const float3 pos = math::transform_point(layer_to_world, deformation.positions[point]);
+            ED_view3d_project_float_global(
+                region, pos, screen_space_positions[point], V3D_PROJ_TEST_NOP);
+          },
+          exec_mode::grain_size(4096));
+
       points_to_remove_per_drawing[drawing_i] = IndexMask::from_predicate(
-          curves.points_range(), memory, [&](const int64_t index) {
+          editable_points, memory, [&](const int64_t index) {
             return is_point_inside_bounds(box_bounds, int2(screen_space_positions[index]));
           });
     }

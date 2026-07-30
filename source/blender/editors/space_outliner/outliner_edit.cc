@@ -1617,7 +1617,7 @@ void outliner_scroll_to_active(SpaceOutliner *space_outliner, ARegion *region, s
   const View2D *v2d = &region->v2d;
   TreeElement *active_te = nullptr;
 
-  tree_iterator::all_open(*space_outliner, [&](TreeElement *te) {
+  tree_iterator::all(space_outliner->runtime->tree, [&](TreeElement *te) {
     TreeStoreElem *tselem = TREESTORE(te);
     if (tselem->flag & TSE_ACTIVE) {
       if (tselem->type == TSE_SOME_ID) {
@@ -1630,14 +1630,24 @@ void outliner_scroll_to_active(SpaceOutliner *space_outliner, ARegion *region, s
       }
     }
   });
-  if (active_te) {
-    if (!BLI_rctf_isect_y(&v2d->cur, active_te->ys)) {
-      outliner_show_active(space_outliner, region, active_te, TREESTORE(active_te)->id);
-      const int size_y = BLI_rcti_size_y(&v2d->mask) + 1;
-      const int ytop = (active_te->ys + (size_y / 2));
-      const int delta_y = ytop - v2d->cur.ymax;
-      outliner_scroll_view(space_outliner, region, delta_y);
-    }
+
+  if (!active_te) {
+    return;
+  }
+
+  TreeElement *scroll_to_te = active_te;
+  TreeElement *iter = active_te->parent;
+  while (iter && !TSELEM_OPEN(iter->store_elem, space_outliner)) {
+    scroll_to_te = iter;
+    iter = iter->parent;
+  }
+
+  if (!BLI_rctf_isect_y(&v2d->cur, scroll_to_te->ys)) {
+    outliner_show_active(space_outliner, region, scroll_to_te, TREESTORE(scroll_to_te)->id);
+    const int size_y = BLI_rcti_size_y(&v2d->mask) + 1;
+    const int ytop = (scroll_to_te->ys + (size_y / 2));
+    const int delta_y = ytop - v2d->cur.ymax;
+    outliner_scroll_view(space_outliner, region, delta_y);
   }
 }
 

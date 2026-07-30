@@ -238,13 +238,17 @@ static std::optional<rcti> console_main_region_cursor_ime(wmWindow * /*win*/,
   if (cl == nullptr) {
     return std::nullopt;
   }
-  const std::optional<blender::int2> xy = console_cursor_region_xy_get(sc, region, cl->cursor);
-  if (!xy) {
+  const std::optional<blender::int2> xy_region = console_cursor_region_xy_get(
+      sc, region, cl->cursor);
+  if (!xy_region) {
     return std::nullopt;
   }
+  /* Convert to pixel space, X is pinned by #V2D_LOCKOFS_X. */
+  const int2 xy = {xy_region->x, xy_region->y - int(region->v2d.cur.ymin)};
+
   /* Extend the caret position upward by the line height; the caller clamps to the region
    * bounds (the cursor may be scrolled out of view). */
-  return rcti{xy->x, xy->x, xy->y, xy->y + line_height};
+  return rcti{xy.x, xy.x, xy.y, xy.y + line_height};
 }
 
 #endif

@@ -162,7 +162,7 @@ struct BSLParser {
     match('}');
   }
 
-  /* Example : `struct [[a]] A {}`.*/
+  /* Example : `struct [[a]] A {}`. */
   void struct_decl(bool is_template_inst = false)
   {
     NODE(ClassDecl);
@@ -311,7 +311,7 @@ struct BSLParser {
   {
     NODE(Declarator);
     bool par = match_if('(');
-    /*NOTE: Require Ampersand after parenthesis to avoid mistaking the decl with a func call. */
+    /* NOTE: Require Ampersand after parenthesis to avoid mistaking the decl with a func call. */
     if (par || peek() == '&') {
       NODE(Reference);
       match('&');

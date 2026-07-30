@@ -2973,7 +2973,7 @@ void BKE_pose_rebuild(Main *bmain, Object *ob, bArmature *arm, const bool do_id_
     ob->pose = MEM_new<bPose>("new pose");
 
     /* set default settings for animviz */
-    animviz_settings_init(&ob->pose->avs);
+    bke::animviz::settings_init(&ob->pose->avs);
   }
   pose = ob->pose;
 

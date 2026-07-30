@@ -420,8 +420,8 @@ static bool should_add_attribute_to_mesh(const AttributeAccessor &curve_attribut
                                          const AttributeFilter &attribute_filter)
 {
 
-  if (name == "position") {
-    /* The position attribute has special non-generic evaluation. */
+  if (ELEM(name, "position", ".edge_verts", ".corner_vert", ".corner_edge")) {
+    /* These attributes have non-generic evaluation. */
     return false;
   }
   if (name == "custom_normal") {

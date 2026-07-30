@@ -21,7 +21,7 @@ static_assert(sizeof(ShaderVolumeClosure) >= sizeof(RayleighVolume),
 ccl_device int volume_rayleigh_setup(ccl_private RayleighVolume *volume)
 {
   volume->type = CLOSURE_VOLUME_RAYLEIGH_ID;
-  return SD_SCATTER;
+  return SR_SCATTER;
 }
 
 ccl_device Spectrum volume_rayleigh_eval(const ccl_private ShaderData *sd,

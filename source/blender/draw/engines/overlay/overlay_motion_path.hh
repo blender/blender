@@ -103,7 +103,7 @@ class MotionPath : Overlay {
                         bMotionPath *mpath)
   {
     /* Avoid 0 size allocations. Current code to calculate motion paths should
-     * sanitize this already [see animviz_verify_motionpaths()], we might however
+     * sanitize this already [see animviz_ensure_motionpath()], we might however
      * encounter an older file where this was still possible. */
     if (mpath->length == 0) {
       return;

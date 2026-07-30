@@ -73,6 +73,9 @@ static void brush_init_data(ID *id)
   brush->curve_size = BKE_paint_default_curve();
   brush->curve_strength = BKE_paint_default_curve();
   brush->curve_jitter = BKE_paint_default_curve();
+  brush->curve_hardness = BKE_paint_default_curve();
+  brush->curve_auto_smooth = BKE_paint_default_curve_inverted();
+  brush->curve_spacing = BKE_paint_default_curve();
 }
 
 static void brush_copy_data(Main * /*bmain*/,
@@ -101,6 +104,9 @@ static void brush_copy_data(Main * /*bmain*/,
   brush_dst->curve_size = BKE_curvemapping_copy(brush_src->curve_size);
   brush_dst->curve_strength = BKE_curvemapping_copy(brush_src->curve_strength);
   brush_dst->curve_jitter = BKE_curvemapping_copy(brush_src->curve_jitter);
+  brush_dst->curve_hardness = BKE_curvemapping_copy(brush_src->curve_hardness);
+  brush_dst->curve_auto_smooth = BKE_curvemapping_copy(brush_src->curve_auto_smooth);
+  brush_dst->curve_spacing = BKE_curvemapping_copy(brush_src->curve_spacing);
 
   if (brush_src->gpencil_settings != nullptr) {
     brush_dst->gpencil_settings = MEM_new<BrushGpencilSettings>(
@@ -158,6 +164,9 @@ static void brush_free_data(ID *id)
   BKE_curvemapping_free(brush->curve_size);
   BKE_curvemapping_free(brush->curve_strength);
   BKE_curvemapping_free(brush->curve_jitter);
+  BKE_curvemapping_free(brush->curve_hardness);
+  BKE_curvemapping_free(brush->curve_auto_smooth);
+  BKE_curvemapping_free(brush->curve_spacing);
 
   if (brush->gpencil_settings != nullptr) {
     BKE_curvemapping_free(brush->gpencil_settings->curve_sensitivity);
@@ -285,6 +294,15 @@ static void brush_blend_write(BlendWriter *writer, ID *id, const void *id_addres
   if (brush->curve_jitter) {
     BKE_curvemapping_blend_write(writer, brush->curve_jitter);
   }
+  if (brush->curve_hardness) {
+    BKE_curvemapping_blend_write(writer, brush->curve_hardness);
+  }
+  if (brush->curve_auto_smooth) {
+    BKE_curvemapping_blend_write(writer, brush->curve_auto_smooth);
+  }
+  if (brush->curve_spacing) {
+    BKE_curvemapping_blend_write(writer, brush->curve_spacing);
+  }
 
   if (brush->gpencil_settings) {
     writer->write_struct(brush->gpencil_settings);
@@ -403,6 +421,30 @@ static void brush_blend_read_data(BlendDataReader *reader, ID *id)
   }
   else {
     brush->curve_jitter = BKE_paint_default_curve();
+  }
+
+  BLO_read_struct(reader, CurveMapping, &brush->curve_hardness);
+  if (brush->curve_hardness) {
+    BKE_curvemapping_blend_read(reader, brush->curve_hardness);
+  }
+  else {
+    brush->curve_hardness = BKE_paint_default_curve();
+  }
+
+  BLO_read_struct(reader, CurveMapping, &brush->curve_auto_smooth);
+  if (brush->curve_auto_smooth) {
+    BKE_curvemapping_blend_read(reader, brush->curve_auto_smooth);
+  }
+  else {
+    brush->curve_auto_smooth = BKE_paint_default_curve_inverted();
+  }
+
+  BLO_read_struct(reader, CurveMapping, &brush->curve_spacing);
+  if (brush->curve_spacing) {
+    BKE_curvemapping_blend_read(reader, brush->curve_spacing);
+  }
+  else {
+    brush->curve_spacing = BKE_paint_default_curve();
   }
 
   /* grease pencil */
@@ -856,7 +898,7 @@ void BKE_brush_debug_print_state(Brush *br)
   BR_TEST_FLAG(BRUSH_ADAPTIVE_SPACE);
   BR_TEST_FLAG(BRUSH_LOCK_SIZE);
   BR_TEST_FLAG(BRUSH_EDGE_TO_EDGE);
-  BR_TEST_FLAG(BRUSH_INVERSE_SMOOTH_PRESSURE);
+  BR_TEST_FLAG(BRUSH_SMOOTH_PRESSURE);
   BR_TEST_FLAG(BRUSH_PLANE_TRIM);
   BR_TEST_FLAG(BRUSH_FRONTFACE);
 
@@ -1471,7 +1513,10 @@ void common_pressure_curves_init(Brush &brush)
   BKE_curvemapping_init(brush.curve_size);
   BKE_curvemapping_init(brush.curve_strength);
   BKE_curvemapping_init(brush.curve_jitter);
+  BKE_curvemapping_init(brush.curve_hardness);
+  BKE_curvemapping_init(brush.curve_auto_smooth);
   BKE_curvemapping_init(brush.curve_distance_falloff);
+  BKE_curvemapping_init(brush.curve_spacing);
 }
 }  // namespace bke::brush
 

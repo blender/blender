@@ -526,8 +526,7 @@ void BPY_callback_screen_free(ARegionType *art)
 
 void BPY_callback_wm_free(wmWindowManager *wm)
 {
-  WM_paint_cursor_remove_by_type(
-      wm, reinterpret_cast<void *>(cb_wm_cursor_draw), cb_customdata_free);
+  WM_paint_cursor_remove_by_type(wm, cb_wm_cursor_draw, cb_customdata_free);
 }
 
 /** \} */
