@@ -445,7 +445,7 @@ void version_node_socket_index_animdata(Main *bmain,
   for (int input_index = total_number_of_sockets - 1; input_index >= socket_index_orig;
        input_index--)
   {
-    FOREACH_NODETREE_BEGIN (bmain, ntree, owner_id) {
+    FOREACH_NODETREE_BEGIN (bmain, ntree, _owner_id) {
       if (ntree->type != node_tree_type) {
         continue;
       }
@@ -460,7 +460,10 @@ void version_node_socket_index_animdata(Main *bmain,
         char *rna_path_prefix = BLI_sprintfN("nodes[\"%s\"].inputs", node_name_escaped);
 
         const int new_index = input_index + socket_index_offset;
-        BKE_animdata_fix_paths(*owner_id,
+        /* Note: this should not use `owner_id`, as in the case of embedded node trees, that is set
+         * to the owning ID (like a material owning its shader node tree). It's the node tree
+         * itself that needs its animation versioned. */
+        BKE_animdata_fix_paths(ntree->id,
                                rna_path_prefix,
                                RNA_path_number_to_infix(input_index),
                                RNA_path_number_to_infix(new_index),
