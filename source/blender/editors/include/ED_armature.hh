@@ -139,6 +139,10 @@ wmOperatorStatus ED_armature_join_objects_exec(bContext *C, wmOperator *op);
 
 /* `armature_select.cc` */
 
+/**
+ * To avoid/skip non-bone hits.
+ */
+bool ED_armature_selectresult_is_bone(const GPUSelectResult &hit_result);
 Base *ED_armature_base_and_ebone_from_select_buffer(Span<Base *> bases,
                                                     unsigned int select_id,
                                                     EditBone **r_ebone);
