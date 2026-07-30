@@ -1,0 +1,9 @@
+--- a/Misc/python.pc.in
++++ b/Misc/python.pc.in
+@@ -9,5 +9,5 @@
+ Requires:
+ Version: @VERSION@
+ Libs.private: @LIBS@
+-Libs: -L${libdir} @LIBPYTHON@
++Libs: -L${libdir} -lpython@VERSION@@ABIFLAGS@
+ Cflags: -I${includedir}/python@VERSION@@ABIFLAGS@
