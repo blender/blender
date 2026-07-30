@@ -102,9 +102,9 @@ if(DEFINED LIBDIR)
 
   if(ANDROID)
     # The Android CMake toolchain sets the CMAKE_FIND_ROOT_PATH to the NDK root and
-    # the ROOT_PATH_MODE_PACKAGE to ONLY, set it to LIB_SUBDIRS (then prepended before
-    # the NDK by the toolchain) to allow it to find the pre-compiled libraries.
-    set(CMAKE_FIND_ROOT_PATH ${LIB_SUBDIRS})
+    # the ROOT_PATH_MODE_PACKAGE to ONLY, prepend LIBDIR to allow it to find the
+    # pre-compiled libraries.
+    list(PREPEND CMAKE_FIND_ROOT_PATH ${LIBDIR})
   endif()
 
   # NOTE: Make sure "proper" compiled zlib comes first
