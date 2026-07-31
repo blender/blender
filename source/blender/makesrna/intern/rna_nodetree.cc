@@ -7762,7 +7762,7 @@ static void def_geo_merge_layers(BlenderRNA * /*brna*/, StructRNA *srna)
   RNA_def_property_enum_funcs(
       prop, "rna_MergeLayers_mode_get", "rna_MergeLayers_mode_set", nullptr);
   RNA_def_property_update(prop, NC_NODE | NA_EDITED, "rna_Node_update");
-  RNA_def_property_deprecated(prop, "Replaced by '.inputs[\"Mode\"]'.", 530, 600);
+  RNA_def_property_deprecated(prop, "Replaced by '.inputs[\"Mode\"]'.", 503, 600);
 }
 
 static void def_geo_set_grease_pencil_color(BlenderRNA * /*brna*/, StructRNA *srna)
@@ -7773,7 +7773,7 @@ static void def_geo_set_grease_pencil_color(BlenderRNA * /*brna*/, StructRNA *sr
   RNA_def_property_enum_funcs(
       prop, "rna_SetGreasePencilColor_mode_get", "rna_SetGreasePencilColor_mode_set", nullptr);
   RNA_def_property_update(prop, NC_NODE | NA_EDITED, "rna_Node_update");
-  RNA_def_property_deprecated(prop, "Replaced by '.inputs[\"Mode\"]'.", 530, 600);
+  RNA_def_property_deprecated(prop, "Replaced by '.inputs[\"Mode\"]'.", 503, 600);
 }
 
 static void def_geo_set_grease_pencil_depth(BlenderRNA * /*brna*/, StructRNA *srna)
@@ -7786,7 +7786,7 @@ static void def_geo_set_grease_pencil_depth(BlenderRNA * /*brna*/, StructRNA *sr
                               "rna_SetGreasePencilDepth_depth_order_set",
                               nullptr);
   RNA_def_property_update(prop, NC_NODE | NA_EDITED, "rna_Node_update");
-  RNA_def_property_deprecated(prop, "Replaced by '.inputs[\"Depth Order\"]'.", 530, 600);
+  RNA_def_property_deprecated(prop, "Replaced by '.inputs[\"Depth Order\"]'.", 503, 600);
 }
 
 static void rna_def_geo_repeat_item(BlenderRNA *brna)

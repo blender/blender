@@ -510,6 +510,14 @@ void RNA_def_property_ui_text(PropertyRNA *prop, const char *name, const char *d
 void RNA_def_property_ui_name_func(PropertyRNA *prop, const char *name_func);
 void RNA_def_property_ui_description_func(PropertyRNA *prop, const char *description_func);
 
+/**
+ * Mark a property as deprecated.
+ *
+ * See #DeprecatedRNA for details.
+ *
+ * \note The version values represent major, minor versions (sub-version isn't supported).
+ * Compatible with #Main::versionfile (e.g. `502` for `v5.2`).
+ */
 void RNA_def_property_deprecated(PropertyRNA *prop,
                                  const char *note,
                                  short version,

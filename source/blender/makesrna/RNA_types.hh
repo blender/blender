@@ -1088,7 +1088,11 @@ struct ExtensionRNA {
 struct DeprecatedRNA {
   /** Single line deprecation message, suggest alternatives where possible. */
   const char *note;
-  /** The released version this was deprecated. */
+  /**
+   * The released version this was deprecated.
+   * The value represents major, minor versions (sub-version isn't supported).
+   * Compatible with #Main::versionfile (e.g. `502` for `v5.2`).
+   */
   short version;
   /**
    * The version this will be removed.
