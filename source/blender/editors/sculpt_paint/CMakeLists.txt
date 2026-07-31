@@ -76,6 +76,7 @@ set(SRC
   grease_pencil/weight_draw.cc
   grease_pencil/weight_smear.cc
 
+  mesh/mesh_stroke_common.cc
   mesh/paint_canvas.cc
   mesh/paint_cursor.cc
   mesh/paint_hide.cc
@@ -127,6 +128,7 @@ set(SRC
   grease_pencil/weight_paint.hh
 
   mesh/mesh_brush_common.hh
+  mesh/mesh_stroke_common.hh
   mesh/paint_hide.hh
   mesh/paint_mask.hh
   mesh/sculpt_automask.hh

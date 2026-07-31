@@ -69,6 +69,7 @@
 
 #include "../paint_intern.hh" /* own include */
 #include "mesh_brush_common.hh"
+#include "mesh_stroke_common.hh"
 #include "sculpt_automask.hh"
 #include "sculpt_intern.hh"
 #include "sculpt_pose.hh"
@@ -1968,10 +1969,11 @@ static void vpaint_paint_leaves(const Depsgraph &depsgraph,
 
 static void vpaint_do_paint(const Depsgraph &depsgraph,
                             const Scene &scene,
-                            VPaintData &vpd,
+                            const Brush &brush,
                             Object &ob,
-                            const Brush &brush)
+                            PaintModeData *paint_mode_data)
 {
+  VPaintData &vpd = *static_cast<VPaintData *>(paint_mode_data);
   const VPaint &vp = *scene.toolsettings->vpaint;
   Mesh &mesh = *id_cast<Mesh *>(ob.data);
   IndexMaskMemory memory;
@@ -2001,54 +2003,6 @@ static void vpaint_do_paint(const Depsgraph &depsgraph,
   attribute.finish();
 }
 
-static void vpaint_do_radial_symmetry(const Depsgraph &depsgraph,
-                                      const Scene &scene,
-                                      const Paint & /*paint*/,
-                                      const Brush &brush,
-                                      Object &ob,
-                                      VPaintData &vpd,
-                                      const ePaintSymmetryFlags symm,
-                                      const int axis)
-{
-  SculptSession &ss = *ob.runtime->sculpt_session;
-  const Mesh &mesh = *id_cast<Mesh *>(ob.data);
-  for (int i = 1; i < mesh.radial_symmetry[axis - 'X']; i++) {
-    const float angle = (2.0 * M_PI) * i / mesh.radial_symmetry[axis - 'X'];
-    ss.cache->radial_symmetry_pass = i;
-    cache_calc_brushdata_symm(*ss.cache, symm, axis, angle);
-    vpaint_do_paint(depsgraph, scene, vpd, ob, brush);
-  }
-}
-
-/* near duplicate of: sculpt.cc's,
- * 'do_symmetrical_brush_actions' and 'wpaint_do_symmetrical_brush_actions'. */
-static void vpaint_do_symmetrical_brush_actions(const Depsgraph &depsgraph,
-                                                const Scene &scene,
-                                                const Paint &paint,
-                                                Object &ob,
-                                                VPaintData &vpd)
-{
-  const Brush &brush = *BKE_paint_brush_for_read(&paint);
-  SculptSession &ss = *ob.runtime->sculpt_session;
-  StrokeCache &cache = *ss.cache;
-  const ePaintSymmetryFlags symm = mesh_symmetry_xyz_get(ob);
-
-  for (int i = 0; i <= symm; i++) {
-    if (!is_symmetry_iteration_valid(i, symm)) {
-      continue;
-    }
-    const ePaintSymmetryFlags symm_pass = ePaintSymmetryFlags(i);
-    cache.mirror_symmetry_pass = symm_pass;
-    cache.radial_symmetry_pass = 0;
-    cache_calc_brushdata_symm(cache, symm_pass, 0, 0);
-
-    vpaint_do_paint(depsgraph, scene, vpd, ob, brush);
-    vpaint_do_radial_symmetry(depsgraph, scene, paint, brush, ob, vpd, symm_pass, 'X');
-    vpaint_do_radial_symmetry(depsgraph, scene, paint, brush, ob, vpd, symm_pass, 'Y');
-    vpaint_do_radial_symmetry(depsgraph, scene, paint, brush, ob, vpd, symm_pass, 'Z');
-  }
-}
-
 void VertexPaintStroke::update_step(wmOperator * /*op*/, PointerRNA *itemptr)
 {
   VPaintData &vpd = *static_cast<VPaintData *>(mode_data_.get());
@@ -2069,8 +2023,8 @@ void VertexPaintStroke::update_step(wmOperator * /*op*/, PointerRNA *itemptr)
 
   swap_m4m4(vc.rv3d->persmat, mat);
 
-  vpaint_do_symmetrical_brush_actions(
-      *this->depsgraph, *this->scene, vertex_paint_->paint, ob, vpd);
+  ed::sculpt_paint::do_symmetrical_brush_actions(
+      *this->depsgraph, *this->scene, vertex_paint_->paint, ob, vpaint_do_paint, &vpd);
 
   copy_v3_v3(cache.last_location, cache.location);
   cache.is_last_valid = true;
