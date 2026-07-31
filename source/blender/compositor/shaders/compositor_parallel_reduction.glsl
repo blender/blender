@@ -364,10 +364,11 @@ void reduction()
     barrier();
 
     /* Only the threads up to the current stride should be active as can be seen in the diagram
-     * above, but Vulkan requires that all invocations need to access shared memory identically
-     * without conditionals, so we read all unconditionally and ignore inactive ones below. */
+     * above. Clamp the second read index to avoid out-of-bounds access for invocations at the
+     * end of the work group, which would be undefined behavior in Vulkan. */
     const T first_value = load_shared_data<T>(gl_LocalInvocationIndex);
-    const T second_value = load_shared_data<T>(gl_LocalInvocationIndex + stride);
+    const T second_value = load_shared_data<T>(
+        min(gl_LocalInvocationIndex + stride, reduction_size - 1));
 
     /* Barrier ensures all reads complete before any writes begin. */
     barrier();
