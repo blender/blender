@@ -1419,6 +1419,7 @@ const char *BLI_getenv(const char *env)
         free(res_utf8);
       }
     }
+    free(env_16);
   }
   return result;
 #else
