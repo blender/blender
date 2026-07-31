@@ -1626,6 +1626,11 @@ void RNA_def_property_deprecated(PropertyRNA *prop,
   BLI_assert(note != nullptr);
   BLI_assert(version > 0);
   BLI_assert(removal_version > version);
+  /* Prevent adding deprecation warnings for future Blender versions, this should never be needed.
+   * Note that one version in the future is still allowed, as this might be useful in some rare
+   * cases. */
+  BLI_assert_msg(version <= BLENDER_VERSION + 1,
+                 "Deprecation version is set in a future version of Blender");
 
   /* This message is to alert developers of deprecation
    * without breaking the build after a version bump. */
