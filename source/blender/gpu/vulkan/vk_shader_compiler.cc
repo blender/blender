@@ -216,6 +216,13 @@ static bool compile_ex(shaderc::Compiler &compiler,
   if (GPU_type_matches(GPU_DEVICE_QUALCOMM, GPU_OS_ANY, GPU_DRIVER_ANY)) {
     do_optimize = false;
   }
+  /* WORKAROUND: On Android (Wacom MovinkPad 14) Adreno's shader compiler fails with
+   * `VK_ERROR_UNKNOWN` at pipeline creation on `OpCopyLogical`, which glslang emits
+   * for struct copies when targeting SPIR-V >= 1.4. Target SPIR-V 1.3 so such copies
+   * are expanded member-wise instead. */
+  if (GPU_type_matches(GPU_DEVICE_QUALCOMM, GPU_OS_UNIX, GPU_DRIVER_ANY)) {
+    options.SetTargetSpirv(shaderc_spirv_version_1_3);
+  }
   options.SetOptimizationLevel(do_optimize ? shaderc_optimization_level_performance :
                                              shaderc_optimization_level_zero);
 
