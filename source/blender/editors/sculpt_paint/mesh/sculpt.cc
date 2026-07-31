@@ -2326,10 +2326,7 @@ static float brush_flip(const Brush &brush, const StrokeCache &cache)
  * values pull vertices, negative values push. Uses tablet pressure and a
  * special multiplier found experimentally to scale the strength factor.
  */
-static float brush_strength(const Sculpt &sd,
-                            const StrokeCache &cache,
-                            const float feather,
-                            const PaintModeSettings & /*paint_mode_settings*/)
+static float brush_strength(const Sculpt &sd, const StrokeCache &cache, const float feather)
 {
   const Brush &brush = *BKE_paint_brush_for_read(&sd.paint);
   const bke::PaintRuntime &paint_runtime = *sd.paint.runtime;
@@ -3243,8 +3240,7 @@ static void dynamic_topology_update(const Depsgraph &depsgraph,
                                     const Scene & /*scene*/,
                                     Sculpt &sd,
                                     Object &ob,
-                                    const Brush &brush,
-                                    PaintModeSettings & /*paint_mode_settings*/)
+                                    const Brush &brush)
 {
   SculptSession &ss = *ob.runtime->sculpt_session;
   bke::pbvh::Tree &pbvh = *bke::object::pbvh_get(ob);
@@ -3533,16 +3529,13 @@ static const char *sculpt_brush_type_name(const Brush &brush)
   return "Sculpting";
 }
 
-static void do_brush_action(const Depsgraph &depsgraph,
-                            const Scene & /*scene*/,
-                            Sculpt &sd,
-                            Object &ob,
-                            const Brush &brush,
-                            PaintModeSettings &paint_mode_settings)
+static void do_brush_action(
+    const Depsgraph &depsgraph, const Scene &scene, Sculpt &sd, Object &ob, const Brush &brush)
 {
   PRF_scope(ProfileCategory::Editor);
   PRF_scope_set_dynamic_name("%s", sculpt_brush_type_name(brush));
   SculptSession &ss = *ob.runtime->sculpt_session;
+  PaintModeSettings &paint_mode_settings = scene.toolsettings->paint_mode;
   IndexMaskMemory memory;
   IndexMask texnode_mask;
 
@@ -3870,19 +3863,14 @@ void cache_calc_brushdata_symm(StrokeCache &cache,
   }
 }
 
-using BrushActionFunc = void (*)(const Depsgraph &depsgraph,
-                                 const Scene &scene,
-                                 Sculpt &sd,
-                                 Object &ob,
-                                 const Brush &brush,
-                                 PaintModeSettings &paint_mode_settings);
+using BrushActionFunc = void (*)(
+    const Depsgraph &depsgraph, const Scene &scene, Sculpt &sd, Object &ob, const Brush &brush);
 
 static void do_tiled(const Depsgraph &depsgraph,
                      const Scene &scene,
                      Sculpt &sd,
                      Object &ob,
                      const Brush &brush,
-                     PaintModeSettings &paint_mode_settings,
                      const BrushActionFunc action)
 {
   SculptSession &ss = *ob.runtime->sculpt_session;
@@ -3917,7 +3905,7 @@ static void do_tiled(const Depsgraph &depsgraph,
 
   /* First do the "un-tiled" position to initialize the stroke for this location. */
   cache->tile_pass = 0;
-  action(depsgraph, scene, sd, ob, brush, paint_mode_settings);
+  action(depsgraph, scene, sd, ob, brush);
 
   /* Now do it for all the tiles. */
   copy_v3_v3_int(cur, start);
@@ -3937,7 +3925,7 @@ static void do_tiled(const Depsgraph &depsgraph,
           cache->initial_location_symm[dim] = cur[dim] * step[dim] +
                                               original_initial_location[dim];
         }
-        action(depsgraph, scene, sd, ob, brush, paint_mode_settings);
+        action(depsgraph, scene, sd, ob, brush);
       }
     }
   }
@@ -3948,7 +3936,6 @@ static void do_radial_symmetry(const Depsgraph &depsgraph,
                                Sculpt &sd,
                                Object &ob,
                                const Brush &brush,
-                               PaintModeSettings &paint_mode_settings,
                                const BrushActionFunc action,
                                const ePaintSymmetryFlags symm,
                                const int axis,
@@ -3961,7 +3948,7 @@ static void do_radial_symmetry(const Depsgraph &depsgraph,
     const float angle = 2.0f * M_PI * i / mesh.radial_symmetry[axis - 'X'];
     ss.cache->radial_symmetry_pass = i;
     cache_calc_brushdata_symm(*ss.cache, symm, axis, angle);
-    do_tiled(depsgraph, scene, sd, ob, brush, paint_mode_settings, action);
+    do_tiled(depsgraph, scene, sd, ob, brush, action);
   }
 }
 
@@ -3984,8 +3971,8 @@ static void do_symmetrical_brush_actions(const Depsgraph &depsgraph,
                                          const Scene &scene,
                                          Sculpt &sd,
                                          Object &ob,
-                                         const BrushActionFunc action,
-                                         PaintModeSettings &paint_mode_settings)
+                                         const BrushActionFunc action)
+
 {
   const Brush &brush = *BKE_paint_brush_for_read(&sd.paint);
   const Mesh &mesh = *id_cast<Mesh *>(ob.data);
@@ -3995,7 +3982,7 @@ static void do_symmetrical_brush_actions(const Depsgraph &depsgraph,
 
   float feather = calc_symmetry_feather(sd, symm, mesh, *ss.cache);
 
-  cache.bstrength = brush_strength(sd, cache, feather, paint_mode_settings);
+  cache.bstrength = brush_strength(sd, cache, feather);
 
   /* `symm` is a bit combination of XYZ -
    * 1 is mirror X; 2 is Y; 3 is XY; 4 is Z; 5 is XZ; 6 is YZ; 7 is XYZ */
@@ -4008,14 +3995,11 @@ static void do_symmetrical_brush_actions(const Depsgraph &depsgraph,
     cache.radial_symmetry_pass = 0;
 
     cache_calc_brushdata_symm(cache, symm, 0, 0);
-    do_tiled(depsgraph, scene, sd, ob, brush, paint_mode_settings, action);
+    do_tiled(depsgraph, scene, sd, ob, brush, action);
 
-    do_radial_symmetry(
-        depsgraph, scene, sd, ob, brush, paint_mode_settings, action, symm, 'X', feather);
-    do_radial_symmetry(
-        depsgraph, scene, sd, ob, brush, paint_mode_settings, action, symm, 'Y', feather);
-    do_radial_symmetry(
-        depsgraph, scene, sd, ob, brush, paint_mode_settings, action, symm, 'Z', feather);
+    do_radial_symmetry(depsgraph, scene, sd, ob, brush, action, symm, 'X', feather);
+    do_radial_symmetry(depsgraph, scene, sd, ob, brush, action, symm, 'Y', feather);
+    do_radial_symmetry(depsgraph, scene, sd, ob, brush, action, symm, 'Z', feather);
   }
 }
 
@@ -6092,12 +6076,10 @@ void SculptPaintStroke::update_step(wmOperator * /*op*/, PointerRNA *itemptr)
   restore_from_undo_step_if_necessary(depsgraph, sd, ob);
 
   if (dyntopo::stroke_is_dyntopo(ob, brush)) {
-    do_symmetrical_brush_actions(
-        depsgraph, scene, sd, ob, dynamic_topology_update, *this->paint_mode_settings_);
+    do_symmetrical_brush_actions(depsgraph, scene, sd, ob, dynamic_topology_update);
   }
 
-  do_symmetrical_brush_actions(
-      depsgraph, scene, sd, ob, do_brush_action, *this->paint_mode_settings_);
+  do_symmetrical_brush_actions(depsgraph, scene, sd, ob, do_brush_action);
 
   /* Hack to fix noise texture tearing mesh. */
   sculpt_fix_noise_tear(sd, ob);
