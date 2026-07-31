@@ -264,12 +264,21 @@ struct StrokeCache {
 
   float pressure = 0.0f;
   float hardness = 0.0f;
+
   /**
    * Depending on the mode, can either be the raw brush strength, or a scaled (possibly negative)
    * value.
    *
    * \see #brush_strength for Sculpt Mode.
    */
+  float base_brush_strength = 0.0f;
+
+  /**
+   * Feather factor, calculated on a per-overall brush step, modulates #base_brush_strength
+   */
+  float feather = 0.0f;
+
+  /* TODO: Remove storage and usage in most dependent code */
   float bstrength = 0.0f;
   float2 tilt = float2(0);
 
