@@ -2087,6 +2087,8 @@ static int id_indirect_linked_update_fn(LibraryIDLinkCallbackData *cb_data)
   const LibraryForeachIDCallbackFlag cb_flag = cb_data->cb_flag;
   auto &extern_packed_ids = *static_cast<VectorSet<ID *> *>(cb_data->user_data);
 
+  /* Note: Embedded IDs are processed as part of their owner's processing here. */
+
   if (!id) {
     return IDWALK_RET_NOP;
   }
@@ -2130,14 +2132,20 @@ static int id_indirect_linked_update_fn(LibraryIDLinkCallbackData *cb_data)
 void BKE_main_id_indirect_linked_update(Main &bmain, std::optional<Span<ID *>> local_ids)
 {
   auto reset_linked_status_cb = [](ID &id) -> void {
-    if (ID_IS_LINKED(&id) && BKE_idtype_idcode_is_linkable(GS(id.name))) {
+    ID *id_owner = BKE_id_owner_get(&id);
+    if (!id_owner) {
+      id_owner = &id;
+    }
+    BLI_assert_msg(id_owner->lib == id.lib,
+                   "An embedded ID should always have the same library as its regular ID owner");
+    if (ID_IS_LINKED(id_owner) && BKE_idtype_idcode_is_linkable(GS(id_owner->name))) {
       if (USER_DEVELOPER_TOOL_TEST(&U, use_all_linked_data_direct)) {
         /* Forces all linked data to be considered as directly linked.
          * FIXME: Workaround some BAT tool limitations for Heist production, should be removed
          * asap afterward. */
         id_lib_extern(&id);
       }
-      else if (GS(id.name) == ID_SCE) {
+      else if (GS(id_owner->name) == ID_SCE) {
         /* For scenes, do not force them into 'indirectly linked' status.
          * The main reason is that scenes typically have no users, so most linked scene would be
          * systematically 'lost' on file save.
@@ -2152,6 +2160,14 @@ void BKE_main_id_indirect_linked_update(Main &bmain, std::optional<Span<ID *>> l
          *     practice in data dependencies.
          *   - There are typically not hundreds of scenes in a file, and they are always very
          *     easily discoverable and browsable from the main UI. */
+        BLI_assert((id_owner->tag & (ID_TAG_EXTERN | ID_TAG_INDIRECT)) !=
+                   (ID_TAG_EXTERN | ID_TAG_INDIRECT));
+        /* Ensure that embedded IDs of a scene are in sync with their scene's directly/indirectly
+         * linked status. */
+        if (&id != id_owner) {
+          id.tag &= ~(ID_TAG_EXTERN | ID_TAG_INDIRECT);
+          id.tag |= id_owner->tag & (ID_TAG_EXTERN | ID_TAG_INDIRECT);
+        }
       }
       else {
         id.tag |= ID_TAG_INDIRECT;
