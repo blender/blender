@@ -2712,12 +2712,14 @@ static ID *create_placeholder(Main *mainvar,
 {
   ListBaseT<ID> *lb = which_libbase(mainvar, idcode);
   ID *ph_id = BKE_libblock_alloc_notest(idcode);
+  /* Important to immediately set the library, as API like `BKE_libblock_init_empty` might rely on
+   * it e.g. to allocate an embedded ID in the correct library too. */
+  ph_id->lib = mainvar->curlib;
   BKE_libblock_runtime_ensure(*ph_id);
 
   *(reinterpret_cast<short *>(ph_id->name)) = idcode;
   BLI_strncpy(ph_id->name + 2, idname, sizeof(ph_id->name) - 2);
   BKE_libblock_init_empty(ph_id);
-  ph_id->lib = mainvar->curlib;
   ph_id->tag = tag | ID_TAG_MISSING;
   ph_id->us = ID_FAKE_USERS(ph_id);
   ph_id->icon_id = 0;
