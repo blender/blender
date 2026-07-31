@@ -1770,21 +1770,14 @@ void PAINT_OT_weight_paint_toggle(wmOperatorType *ot)
  * \{ */
 
 static void wpaint_do_paint(const Depsgraph &depsgraph,
+                            const Scene &scene,
                             Object &ob,
-                            VPaint &wp,
                             WPaintData &wpd,
                             WeightPaintInfo &wpi,
-                            Mesh &mesh,
-                            Brush &brush,
-                            const ePaintSymmetryFlags symm,
-                            const int axis,
-                            const int i,
-                            const float angle)
+                            const Brush &brush)
 {
-  SculptSession &ss = *ob.runtime->sculpt_session;
-  ss.cache->radial_symmetry_pass = i;
-  cache_calc_brushdata_symm(*ss.cache, symm, axis, angle);
-
+  VPaint &wp = *scene.toolsettings->wpaint;
+  Mesh &mesh = *id_cast<Mesh *>(ob.data);
   IndexMaskMemory memory;
   const IndexMask node_mask = vwpaint::pbvh_gather_generic(depsgraph, ob, wp, brush, memory);
 
@@ -1798,71 +1791,54 @@ static void wpaint_do_paint(const Depsgraph &depsgraph,
   wpaint_paint_leaves(depsgraph, ob, wp, wpd, wpi, mesh, node_mask);
 }
 
-static void wpaint_do_radial_symmetry(Depsgraph &depsgraph,
+static void wpaint_do_radial_symmetry(const Depsgraph &depsgraph,
+                                      const Scene &scene,
+                                      const Paint & /*paint*/,
+                                      const Brush &brush,
                                       Object &ob,
-                                      VPaint &wp,
                                       WPaintData &wpd,
                                       WeightPaintInfo &wpi,
-                                      Mesh &mesh,
-                                      Brush &brush,
                                       const ePaintSymmetryFlags symm,
                                       const int axis)
 {
+  SculptSession &ss = *ob.runtime->sculpt_session;
+  Mesh &mesh = *id_cast<Mesh *>(ob.data);
   for (int i = 1; i < mesh.radial_symmetry[axis - 'X']; i++) {
     const float angle = (2.0 * M_PI) * i / mesh.radial_symmetry[axis - 'X'];
-    wpaint_do_paint(depsgraph, ob, wp, wpd, wpi, mesh, brush, symm, axis, i, angle);
+    ss.cache->radial_symmetry_pass = i;
+    cache_calc_brushdata_symm(*ss.cache, symm, axis, angle);
+    wpaint_do_paint(depsgraph, scene, ob, wpd, wpi, brush);
   }
 }
 
 /* near duplicate of: sculpt.cc's,
  * 'do_symmetrical_brush_actions' and 'vpaint_do_symmetrical_brush_actions'. */
-static void wpaint_do_symmetrical_brush_actions(
-    Depsgraph &depsgraph, Object &ob, VPaint &wp, WPaintData &wpd, WeightPaintInfo &wpi)
+static void wpaint_do_symmetrical_brush_actions(const Depsgraph &depsgraph,
+                                                const Scene &scene,
+                                                const Paint &paint,
+                                                Object &ob,
+                                                WPaintData &wpd,
+                                                WeightPaintInfo &wpi)
 {
-  Brush &brush = *BKE_paint_brush(&wp.paint);
-  Mesh &mesh = *id_cast<Mesh *>(ob.data);
+  const Brush &brush = *BKE_paint_brush_for_read(&paint);
   SculptSession &ss = *ob.runtime->sculpt_session;
   StrokeCache &cache = *ss.cache;
-  const char symm = mesh_symmetry_xyz_get(ob);
-  int i = 0;
+  const ePaintSymmetryFlags symm = mesh_symmetry_xyz_get(ob);
 
-  /* initial stroke */
-  cache.mirror_symmetry_pass = ePaintSymmetryFlags(0);
-  wpaint_do_paint(depsgraph, ob, wp, wpd, wpi, mesh, brush, ePaintSymmetryFlags(0), 'X', 0, 0);
-  wpaint_do_radial_symmetry(depsgraph, ob, wp, wpd, wpi, mesh, brush, ePaintSymmetryFlags(0), 'X');
-  wpaint_do_radial_symmetry(depsgraph, ob, wp, wpd, wpi, mesh, brush, ePaintSymmetryFlags(0), 'Y');
-  wpaint_do_radial_symmetry(depsgraph, ob, wp, wpd, wpi, mesh, brush, ePaintSymmetryFlags(0), 'Z');
-
-  if (mesh.editflag & ME_EDIT_MIRROR_VERTEX_GROUPS) {
-    /* We don't do any symmetry strokes when mirroring vertex groups. */
-    copy_v3_v3(cache.last_location, cache.location);
-    cache.is_last_valid = true;
-    return;
-  }
-
-  for (i = 1; i <= symm; i++) {
-    if (is_symmetry_iteration_valid(i, symm)) {
-      const ePaintSymmetryFlags symm = ePaintSymmetryFlags(i);
-      cache.mirror_symmetry_pass = symm;
-      cache.radial_symmetry_pass = 0;
-      cache_calc_brushdata_symm(cache, symm, 0, 0);
-
-      if (i & (1 << 0)) {
-        wpaint_do_paint(depsgraph, ob, wp, wpd, wpi, mesh, brush, symm, 'X', 0, 0);
-        wpaint_do_radial_symmetry(depsgraph, ob, wp, wpd, wpi, mesh, brush, symm, 'X');
-      }
-      if (i & (1 << 1)) {
-        wpaint_do_paint(depsgraph, ob, wp, wpd, wpi, mesh, brush, symm, 'Y', 0, 0);
-        wpaint_do_radial_symmetry(depsgraph, ob, wp, wpd, wpi, mesh, brush, symm, 'Y');
-      }
-      if (i & (1 << 2)) {
-        wpaint_do_paint(depsgraph, ob, wp, wpd, wpi, mesh, brush, symm, 'Z', 0, 0);
-        wpaint_do_radial_symmetry(depsgraph, ob, wp, wpd, wpi, mesh, brush, symm, 'Z');
-      }
+  for (int i = 0; i <= symm; i++) {
+    if (!is_symmetry_iteration_valid(i, symm)) {
+      continue;
     }
+    const ePaintSymmetryFlags symm_pass = ePaintSymmetryFlags(i);
+    cache.mirror_symmetry_pass = symm_pass;
+    cache.radial_symmetry_pass = 0;
+    cache_calc_brushdata_symm(cache, symm_pass, 0, 0);
+
+    wpaint_do_paint(depsgraph, scene, ob, wpd, wpi, brush);
+    wpaint_do_radial_symmetry(depsgraph, scene, paint, brush, ob, wpd, wpi, symm_pass, 'X');
+    wpaint_do_radial_symmetry(depsgraph, scene, paint, brush, ob, wpd, wpi, symm_pass, 'Y');
+    wpaint_do_radial_symmetry(depsgraph, scene, paint, brush, ob, wpd, wpi, symm_pass, 'Z');
   }
-  copy_v3_v3(cache.last_location, cache.location);
-  cache.is_last_valid = true;
 }
 
 void WeightPaintStroke::update_step(wmOperator * /*op*/, PointerRNA *itemptr)
@@ -1875,6 +1851,7 @@ void WeightPaintStroke::update_step(wmOperator * /*op*/, PointerRNA *itemptr)
   Object *ob = this->object;
 
   SculptSession &ss = *ob->runtime->sculpt_session;
+  StrokeCache &cache = *ss.cache;
 
   vwpaint::update_cache_variants(*this->depsgraph, *vc, wp, *ob, *this->base_, itemptr);
 
@@ -1926,7 +1903,19 @@ void WeightPaintStroke::update_step(wmOperator * /*op*/, PointerRNA *itemptr)
     precompute_weight_values(*ob, brush, *wpd, wpi, mesh);
   }
 
-  wpaint_do_symmetrical_brush_actions(*this->depsgraph, *ob, wp, *wpd, wpi);
+  if (mesh.editflag & ME_EDIT_MIRROR_VERTEX_GROUPS) {
+    /* We don't do any symmetry strokes when mirroring vertex groups. */
+    cache.mirror_symmetry_pass = ePaintSymmetryFlags(0);
+    cache.radial_symmetry_pass = 0;
+    cache_calc_brushdata_symm(cache, ePaintSymmetryFlags(0), 0, 0);
+    wpaint_do_paint(*this->depsgraph, *this->scene, *ob, *wpd, wpi, brush);
+  }
+  else {
+    wpaint_do_symmetrical_brush_actions(*this->depsgraph, *this->scene, wp.paint, *ob, *wpd, wpi);
+  }
+
+  copy_v3_v3(cache.last_location, cache.location);
+  cache.is_last_valid = true;
 
   swap_m4m4(vc->rv3d->persmat, mat);
 
