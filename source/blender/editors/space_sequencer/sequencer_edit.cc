@@ -3397,59 +3397,36 @@ void SEQUENCER_OT_swap(wmOperatorType *ot)
 /** \name Set Render Size Operator
  * \{ */
 
-static std::optional<int2> strip_source_size_get(const Scene *scene, const Strip *strip)
-{
-  switch (strip->type) {
-    case STRIP_TYPE_IMAGE: {
-      const StripElem *se = seq::render_give_stripelem(scene, strip, scene->r.cfra);
-      if (se == nullptr) {
-        return std::nullopt;
-      }
-      return int2(se->orig_width, se->orig_height);
-    }
-    case STRIP_TYPE_MOVIE: {
-      const StripElem *se = strip->data->stripdata;
-      return int2(se->orig_width, se->orig_height);
-    }
-    case STRIP_TYPE_SCENE:
-      if (strip->scene == nullptr) {
-        return std::nullopt;
-      }
-      return int2(strip->scene->r.xsch, strip->scene->r.ysch);
-    case STRIP_TYPE_COLOR: {
-      const SolidColorVars *cv = static_cast<const SolidColorVars *>(strip->effectdata);
-      return int2(cv->width, cv->height);
-    }
-    default:
-      return std::nullopt;
-  }
-}
-
 static wmOperatorStatus sequencer_rendersize_exec(bContext *C, wmOperator * /*op*/)
 {
   Scene *scene = CTX_data_sequencer_scene(C);
   Strip *active_strip = seq::select_active_get(scene);
 
-  if (active_strip == nullptr || active_strip->data == nullptr) {
+  if (active_strip == nullptr || active_strip->data == nullptr ||
+      active_strip->type == STRIP_TYPE_SOUND)
+  {
     return OPERATOR_CANCELLED;
   }
 
-  std::optional<int2> size = strip_source_size_get(scene, active_strip);
-
-  if (!size) {
-    return OPERATOR_CANCELLED;
-  }
+  const int2 old_size(scene->r.xsch, scene->r.ysch);
+  const int2 size = seq::image_transform_box_size_get(scene, active_strip);
 
   /* Prevent setting the render size if values aren't initialized. */
-  if (size->x <= 0 || size->y <= 0) {
+  if (size.x <= 0 || size.y <= 0) {
     return OPERATOR_CANCELLED;
   }
 
-  scene->r.xsch = size->x;
-  scene->r.ysch = size->y;
+  scene->r.xsch = size.x;
+  scene->r.ysch = size.y;
 
   active_strip->data->transform->scale_x = active_strip->data->transform->scale_y = 1.0f;
   active_strip->data->transform->xofs = active_strip->data->transform->yofs = 0.0f;
+
+  /* Reset properties that are relative to the scene resolution so they match the new size. */
+  if (active_strip->type == STRIP_TYPE_TEXT) {
+    seq::text_effect_adjust_relative(
+        *static_cast<TextVars *>(active_strip->effectdata), old_size, size);
+  }
 
   seq::relations_invalidate_cache(scene, active_strip);
   WM_event_add_notifier(C, NC_SCENE | ND_RENDER_OPTIONS, scene);
@@ -4363,24 +4340,9 @@ static wmOperatorStatus sequencer_strip_transform_fit_exec(bContext *C, wmOperat
   const eSeqImageFitMethod fit_method = eSeqImageFitMethod(RNA_enum_get(op->ptr, "fit_method"));
 
   for (Strip &strip : *ed->current_strips()) {
-    if (strip.flag & SEQ_SELECT && strip.type != STRIP_TYPE_SOUND) {
-      int src_w, src_h;
-      if (strip.type == STRIP_TYPE_COLOR) {
-        const SolidColorVars *cv = static_cast<const SolidColorVars *>(strip.effectdata);
-        src_w = cv->width;
-        src_h = cv->height;
-      }
-      else {
-        const int timeline_frame = scene->r.cfra;
-        const StripElem *strip_elem = seq::render_give_stripelem(scene, &strip, timeline_frame);
-        if (strip_elem == nullptr) {
-          continue;
-        }
-        src_w = strip_elem->orig_width;
-        src_h = strip_elem->orig_height;
-      }
-
-      seq::set_scale_to_fit(&strip, src_w, src_h, scene->r.xsch, scene->r.ysch, fit_method);
+    if (strip.flag & SEQ_SELECT) {
+      const int2 size = seq::image_transform_box_size_get(scene, &strip);
+      seq::set_scale_to_fit(&strip, size.x, size.y, scene->r.xsch, scene->r.ysch, fit_method);
       seq::relations_invalidate_cache(scene, &strip);
     }
   }

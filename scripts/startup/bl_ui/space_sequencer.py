@@ -1178,7 +1178,7 @@ class SEQUENCER_MT_strip(Menu):
                     layout.separator()
                     layout.operator("sequencer.rendersize")
                     layout.operator("sequencer.images_separate")
-                elif strip_type in {'SCENE', 'COLOR'}:
+                elif strip_type != 'SOUND':
                     layout.separator()
                     layout.operator("sequencer.rendersize")
                 elif strip_type == 'META':
@@ -1359,7 +1359,7 @@ class SEQUENCER_MT_context_menu(Menu):
             }:
                 layout.separator()
                 layout.menu("SEQUENCER_MT_strip_effect")
-            elif strip_type in {'MOVIE', 'SCENE', 'COLOR'}:
+            elif strip_type != 'SOUND':
                 layout.separator()
                 layout.operator("sequencer.rendersize")
             elif strip_type == 'IMAGE':

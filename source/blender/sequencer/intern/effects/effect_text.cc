@@ -1072,6 +1072,19 @@ void text_effect_update_runtime(const RenderData *context, TextVars &text, const
   calc_boundbox(&text, &runtime, image_size);
 }
 
+void text_effect_adjust_relative(TextVars &text, const int2 old_size, const int2 new_size)
+{
+  /* Word wrap is relative to image width. Adjust to avoid text reflow at the new size. */
+  text.wrap_width *= float(old_size.x) / float(new_size.x);
+
+  /* Location is relative to image size. Shift so it sits at the origin, filling the new size. */
+  std::scoped_lock runtime_lock(text_runtime_mutex_get());
+  text_effect_update_runtime(nullptr, text, new_size);
+  BLF_disable(text.runtime->font, BLF_BOLD | BLF_ITALIC);
+  text.loc[0] -= float(text.runtime->text_boundbox.xmin) / new_size.x;
+  text.loc[1] -= float(text.runtime->text_boundbox.ymin) / new_size.y;
+}
+
 static SeqResult do_text_effect(const RenderData *context,
                                 SeqRenderState * /*state*/,
                                 Strip *strip,

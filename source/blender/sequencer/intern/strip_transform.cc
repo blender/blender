@@ -26,6 +26,7 @@
 #include "SEQ_edit.hh"
 #include "SEQ_iterator.hh"
 #include "SEQ_relations.hh"
+#include "SEQ_render.hh"
 #include "SEQ_sequencer.hh"
 #include "SEQ_time.hh"
 #include "SEQ_transform.hh"
@@ -532,6 +533,47 @@ void transform_strips_after_frame(Scene *scene,
 /** \name Preview Image Transform
  * \{ */
 
+/** Get size of strip's rendered `ImBuf` (may be different than drawn boundbox in preview). */
+static int2 strip_source_size_get(const Scene *scene, const Strip *strip)
+{
+  const int2 parent_scene_size = int2(scene->r.xsch, scene->r.ysch);
+
+  switch (strip->type) {
+    case STRIP_TYPE_IMAGE: {
+      const StripElem *se = seq::render_give_stripelem(scene, strip, scene->r.cfra);
+      if (se == nullptr) {
+        return parent_scene_size;
+      }
+      return int2(se->orig_width, se->orig_height);
+    }
+    case STRIP_TYPE_MOVIE: {
+      const StripElem *se = strip->data->stripdata;
+      return int2(se->orig_width, se->orig_height);
+    }
+    case STRIP_TYPE_MOVIECLIP: {
+      const MovieClip *clip = strip->clip;
+      if (clip && clip->lastsize[0] != 0 && clip->lastsize[1] != 0) {
+        return int2(clip->lastsize[0], clip->lastsize[1]);
+      }
+      return parent_scene_size;
+    }
+    case STRIP_TYPE_SCENE: {
+      /* TODO(@john): Sequencer-input scene strips render at their parent sequencer scene's
+       * resolution; they should probably only render their own scene resolution. */
+      if (strip->scene == nullptr || (strip->flag & SEQ_SCENE_STRIPS) != 0) {
+        return parent_scene_size;
+      }
+      return int2(strip->scene->r.xsch, strip->scene->r.ysch);
+    }
+    case STRIP_TYPE_COLOR: {
+      const SolidColorVars *cv = static_cast<const SolidColorVars *>(strip->effectdata);
+      return int2(cv->width, cv->height);
+    }
+    default:
+      return parent_scene_size;
+  }
+}
+
 float2 image_transform_mirror_factor_get(const Strip *strip)
 {
   float2 mirror(1.0f, 1.0f);
@@ -545,45 +587,28 @@ float2 image_transform_mirror_factor_get(const Strip *strip)
   return mirror;
 }
 
-float2 image_transform_box_size_get(const Scene *scene, const Strip *strip)
+int2 image_transform_box_size_get(const Scene *scene, const Strip *strip)
 {
-  float2 scene_render_size(scene->r.xsch, scene->r.ysch);
-
-  if (ELEM(strip->type, STRIP_TYPE_MOVIE, STRIP_TYPE_IMAGE)) {
-    const StripElem *selem = strip->data->stripdata;
-    return {float(selem->orig_width), float(selem->orig_height)};
-  }
-
-  if (strip->type == STRIP_TYPE_MOVIECLIP) {
-    const MovieClip *clip = strip->clip;
-    if (clip != nullptr && clip->lastsize[0] != 0 && clip->lastsize[1] != 0) {
-      return {float(clip->lastsize[0]), float(clip->lastsize[1])};
-    }
-  }
-
-  if (strip->type == STRIP_TYPE_COLOR) {
-    const SolidColorVars *data = static_cast<const SolidColorVars *>(strip->effectdata);
-    return {float(data->width), float(data->height)};
-  }
+  const int2 source_size = strip_source_size_get(scene, strip);
 
   if (strip->type == STRIP_TYPE_TEXT) {
     TextVars *data = static_cast<TextVars *>(strip->effectdata);
     std::scoped_lock runtime_lock(text_runtime_mutex_get());
-    text_effect_update_runtime(nullptr, *data, int2(scene_render_size));
+    text_effect_update_runtime(nullptr, *data, source_size);
     BLF_disable(data->runtime->font, BLF_BOLD | BLF_ITALIC);
-    const float2 text_size(float(BLI_rcti_size_x(&data->runtime->text_boundbox)),
-                           float(BLI_rcti_size_y(&data->runtime->text_boundbox)));
+    const int2 text_size(BLI_rcti_size_x(&data->runtime->text_boundbox),
+                         BLI_rcti_size_y(&data->runtime->text_boundbox));
     return text_size;
   }
 
-  return scene_render_size;
+  return source_size;
 }
 
 /* Convert origin from a 0->1 range (where (0,0) is the bottom left of the image)
  * to the offset in image-space pixels from an image's center. */
 static float2 convert_origin_to_image_offset(const Scene *scene, const Strip *strip, float2 origin)
 {
-  const float2 box_size = image_transform_box_size_get(scene, strip);
+  const float2 box_size = float2(image_transform_box_size_get(scene, strip));
   return box_size * origin - (box_size / 2.0f);
 }
 
@@ -597,7 +622,7 @@ float2 image_transform_origin_get(const Scene *scene, const Strip *strip)
 
   /* Text strips are the only type where their box is not the size of the rendered image. We must
    * convert from an origin relative to the text box -> an origin relative to the whole render. */
-  const float2 text_size = image_transform_box_size_get(scene, strip);
+  const float2 text_size = float2(image_transform_box_size_get(scene, strip));
   const float2 render_size(scene->r.xsch, scene->r.ysch);
 
   /* Before we scale the text origin down to produce the render origin, we must offset the origin
@@ -638,7 +663,7 @@ float3x3 image_transform_matrix_get(const Scene *scene, const Strip *strip)
 Array<float2> image_transform_quad_get(const Scene *scene, const Strip *strip)
 {
   constexpr int num_corners = 4;
-  const float2 box_size = image_transform_box_size_get(scene, strip);
+  const float2 box_size = float2(image_transform_box_size_get(scene, strip));
 
   /* Raw quad before any rotation/scaling or text anchoring is applied.
    *

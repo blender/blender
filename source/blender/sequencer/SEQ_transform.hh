@@ -115,9 +115,9 @@ float3x3 image_transform_matrix_get(const Scene *scene, const Strip *strip);
  * For the fully-processed quad, see #image_transform_quad_get.
  * For the bounding box of the quad, see #image_transform_bounding_box_from_strips_get.
  *
- * \return float2 with (width, height) in view-space pixels
+ * \return int2 with (width, height) in view-space pixels
  */
-float2 image_transform_box_size_get(const Scene *scene, const Strip *strip);
+int2 image_transform_box_size_get(const Scene *scene, const Strip *strip);
 
 /**
  * Get 4 corner points of strip image. Corner vectors are in viewport space.

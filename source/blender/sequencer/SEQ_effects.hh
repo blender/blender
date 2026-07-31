@@ -39,6 +39,11 @@ bool effect_is_transition(StripType type);
 void effect_text_font_set(Strip *strip, VFont *font);
 bool effects_can_render_text(const Strip *strip);
 void text_effect_update_runtime(const RenderData *context, TextVars &text, const int2 image_size);
+/**
+ * Adjust properties stored relative to the image size so that the text box exactly fills an image
+ * of \a new_size, which was previously laid out against an image of \a old_size.
+ */
+void text_effect_adjust_relative(TextVars &text, const int2 old_size, const int2 new_size);
 int text_effect_font_get(TextVars &text);
 std::recursive_mutex &text_runtime_mutex_get();
 
