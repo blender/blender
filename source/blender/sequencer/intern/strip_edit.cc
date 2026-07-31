@@ -502,12 +502,12 @@ bool edit_remove_gaps(Scene *scene,
 
   if (remove_all_gaps) {
     while (gap_info.gap_exists) {
-      transform_offset_after_frame(scene, seqbase, -gap_info.gap_length, gap_info.gap_start_frame);
+      transform_strips_after_frame(scene, seqbase, gap_info.gap_start_frame, -gap_info.gap_length);
       seq_time_gap_info_get(scene, seqbase, initial_frame, &gap_info);
     }
   }
   else {
-    transform_offset_after_frame(scene, seqbase, -gap_info.gap_length, gap_info.gap_start_frame);
+    transform_strips_after_frame(scene, seqbase, gap_info.gap_start_frame, -gap_info.gap_length);
   }
   return true;
 }

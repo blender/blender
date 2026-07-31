@@ -558,7 +558,7 @@ static wmOperatorStatus sequencer_gap_insert_exec(bContext *C, wmOperator *op)
   Scene *scene = CTX_data_sequencer_scene(C);
   const int frames = RNA_int_get(op->ptr, "frames");
   const Editing *ed = seq::editing_get(scene);
-  seq::transform_offset_after_frame(scene, ed->current_strips(), frames, scene->r.cfra);
+  seq::transform_strips_after_frame(scene, ed->current_strips(), scene->r.cfra, frames);
 
   WM_event_add_notifier(C, NC_SCENE | ND_SEQUENCER, scene);
 
