@@ -242,6 +242,9 @@ static void version_idproperty_ui_data(IDProperty *idprop_group)
     if (prop_ui_data == nullptr) {
       continue;
     }
+    if (prop_ui_data->type != IDP_GROUP) {
+      continue;
+    }
 
     if (!IDP_ui_data_supported(&prop)) {
       continue;

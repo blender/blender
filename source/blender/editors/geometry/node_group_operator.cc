@@ -1120,25 +1120,27 @@ static Array<EnumPropertyItem, 0> get_input_enum_items(const IDProperty &input_i
     return {rna_enum_dummy_NULL_items[0]};
   }
 
-  if (!items_idprop->data.children_map || items_idprop->data.children_map->children.is_empty()) {
-    return {rna_enum_dummy_NULL_items[0]};
-  }
-
-  const int items_num = items_idprop->data.children_map->children.size();
-  Array<EnumPropertyItem, 0> items(items_num + 1);
-  for (const auto [i, item_idprop] : items_idprop->data.group.enumerate()) {
-    items[i] = EnumPropertyItem{
+  Vector<EnumPropertyItem> items;
+  for (const IDProperty &item_idprop : items_idprop->data.group) {
+    if (item_idprop.type != IDP_GROUP) {
+      continue;
+    }
+    items.append(EnumPropertyItem{
         .value = IDP_group_lookup_int(item_idprop, "value").value_or(0),
         .identifier = item_idprop.name,
         .icon = ICON_NONE,
         .name = item_idprop.name,
         .description = IDP_group_lookup_string(item_idprop, "description").value_or("").c_str(),
-    };
+    });
   }
 
-  items.last() = {0, nullptr, 0, nullptr, nullptr};
+  if (items.is_empty()) {
+    return {rna_enum_dummy_NULL_items[0]};
+  }
 
-  return items;
+  items.append({0, nullptr, 0, nullptr, nullptr});
+
+  return Array<EnumPropertyItem, 0>(items.as_span());
 }
 
 static void make_common_type_prop(StructRNA &srna,
@@ -1383,7 +1385,7 @@ static StructRNA *create_panels_srna(const IDProperty &properties,
                                      Vector<StructRNA *> &r_generated)
 {
   const IDProperty *panels_props = IDP_GetPropertyFromGroup(&properties, "panels");
-  if (!panels_props) {
+  if (!panels_props || panels_props->type != IDP_GROUP) {
     return nullptr;
   }
   StructRNA *srna = RNA_def_struct_ptr(
@@ -1391,6 +1393,9 @@ static StructRNA *create_panels_srna(const IDProperty &properties,
   BLI_assert(!RNA_struct_in_public_namespace(srna));
   r_generated.append(srna);
   for (IDProperty &panel_prop : panels_props->data.group) {
+    if (panel_prop.type != IDP_BOOLEAN) {
+      continue;
+    }
     RNA_def_boolean(srna, panel_prop.name, IDP_bool_get(&panel_prop), "Is Open", "");
   }
   return srna;

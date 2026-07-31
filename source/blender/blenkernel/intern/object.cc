@@ -719,6 +719,9 @@ static void create_legacy_geometry_nodes_properties(Object &ob)
     const IDProperty *inputs = IDP_GetPropertyFromGroup(system_props, "inputs");
     if (inputs && inputs->type == IDP_GROUP) {
       for (const IDProperty &prop : inputs->data.group) {
+        if (prop.type != IDP_GROUP) {
+          continue;
+        }
         const StringRefNull identifier = prop.name;
         const IDProperty *type_prop = IDP_GetPropertyFromGroup(&prop, "type");
         if (!type_prop) {
@@ -756,6 +759,9 @@ static void create_legacy_geometry_nodes_properties(Object &ob)
     const IDProperty *outputs = IDP_GetPropertyFromGroup(system_props, "outputs");
     if (outputs && outputs->type == IDP_GROUP) {
       for (const IDProperty &prop : outputs->data.group) {
+        if (prop.type != IDP_GROUP) {
+          continue;
+        }
         const StringRefNull identifier = prop.name;
         if (const IDProperty *name = IDP_GetPropertyFromGroup(&prop, "attribute_name")) {
           IDProperty *legacy_prop = IDP_CopyProperty(name);

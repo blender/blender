@@ -1781,7 +1781,7 @@ static void rna_def_ID_properties(BlenderRNA *brna)
    */
   prop = RNA_def_property(srna, "name", PROP_STRING, PROP_NONE);
   RNA_def_property_flag(prop, PROP_IDPROPERTY);
-  // RNA_def_property_clear_flag(prop, PROP_EDITABLE);
+  RNA_def_property_clear_flag(prop, PROP_EDITABLE);
   RNA_def_property_ui_text(prop,
                            "Name",
                            "Unique name used in the code and scripting, can be re-defined in "

@@ -10644,6 +10644,15 @@ static PyObject *pyrna_register_class(PyObject * /*self*/, PyObject *py_class)
     {
       RNA_def_struct_name_property(srna_new, name_prop, true);
     }
+    else if (name_prop == RNA_struct_name_property(RNA_PropertyGroup)) {
+      /* The `name` property inherited from 'PropertyGroup' is read-only, to avoid issues
+       * with types that have a fixed set of ID properties. For backwards compatibility,
+       * add a writable property here. */
+      name_prop = RNA_def_property(srna_new, "name", PROP_STRING, PROP_NONE);
+      RNA_def_property_ui_text(name_prop, "Name", "Unique name used in the code and scripting");
+      RNA_def_property_duplicate_pointers(srna_new, name_prop);
+      RNA_def_struct_name_property(srna_new, name_prop, true);
+    }
   }
 
   /* Call classed register method.

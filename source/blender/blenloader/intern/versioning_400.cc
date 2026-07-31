@@ -541,6 +541,9 @@ static void version_mesh_crease_generic(Main &bmain)
               reinterpret_cast<NodesModifierData *>(&md)->settings_legacy.properties)
       {
         for (IDProperty &prop : settings->data.group) {
+          if (prop.type != IDP_STRING) {
+            continue;
+          }
           if (StringRef(prop.name).endswith("_attribute_name")) {
             if (STREQ(IDP_string_get(&prop), "crease")) {
               IDP_AssignString(&prop, "crease_edge");
