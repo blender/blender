@@ -316,5 +316,26 @@ void memory_bandwidth_bound_task_impl(const FunctionRef<void()> function)
 #endif
 }
 
+void max_threads_task_impl(const int max_threads, const FunctionRef<void()> function)
+{
+  BLI_assert(max_threads >= 1);
+
+#ifdef WITH_TBB
+  if (max_threads >= BLI_task_scheduler_num_threads()) {
+    function();
+    return;
+  }
+
+  tbb::task_arena arena{max_threads};
+  lazy_threading::send_hint();
+  lazy_threading::ReceiverIsolation isolation;
+
+  arena.execute(function);
+#else
+  UNUSED_VARS(max_threads);
+  function();
+#endif
+}
+
 }  // namespace threading::detail
 }  // namespace blender

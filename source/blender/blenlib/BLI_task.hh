@@ -45,6 +45,7 @@ void parallel_for_impl(IndexRange range,
                        FunctionRef<void(IndexRange)> function,
                        const TaskSizeHints &size_hints);
 void memory_bandwidth_bound_task_impl(FunctionRef<void()> function);
+void max_threads_task_impl(int max_threads, FunctionRef<void()> function);
 }  // namespace detail
 
 /**
@@ -228,6 +229,16 @@ template<typename Function> inline auto isolate_task(const Function &function)
 #else
   return function();
 #endif
+}
+
+/**
+ * Runs the function with at most #max_threads threads participating in parallel work,
+ * including the calling thread.
+ */
+template<typename Function>
+inline void max_threads_task(const int max_threads, const Function &function)
+{
+  detail::max_threads_task_impl(max_threads, function);
 }
 
 /**
