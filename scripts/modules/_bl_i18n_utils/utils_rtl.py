@@ -159,7 +159,7 @@ def protect_format_seq(msg):
                     tk_len = len(token.token)
                     if (tk_start_index > idx_fmt and (tk_start_index + tk_len) < (ln - 1) and
                         msg[tk_start_index - 1] in '\'"' and
-                        msg[tk_start_index + tk_len + 1] == msg[tk_start_index - 1]
+                        msg[tk_start_index + tk_len] == msg[tk_start_index - 1]
                         ):
                         stride = token.start_index - idx - 1
                         ltr_len = len(token.token) + 2

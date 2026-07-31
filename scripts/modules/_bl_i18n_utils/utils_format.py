@@ -101,10 +101,9 @@ class FormatToken:
                     tk_len += 1
                 if (idx_fmt + tk_len) < ln and string[idx_fmt + tk_len] == ':':
                     if has_explicit_key:
-                        key = string[idx_fmt:idx_fmt + tk_len]
+                        key = string[idx_fmt + 1:idx_fmt + tk_len]
                         if (key.isdecimal()):
                             key = int(key)
-                        has_explicit_key = False
                     tk_len += 1
                 # {:.4}, {:6d}, ...
                 while (idx_fmt + tk_len) < ln and string[idx_fmt + tk_len] in cls.fmt_format_widthprec:
@@ -114,11 +113,10 @@ class FormatToken:
                     tk_len += 1
                 if (idx_fmt + tk_len) < ln and string[idx_fmt + tk_len] == '}':
                     # {my_key}, {2}...
-                    if has_explicit_key:
-                        key = string[idx_fmt: idx_fmt + tk_len]
+                    if has_explicit_key and key is ...:
+                        key = string[idx_fmt + 1: idx_fmt + tk_len]
                         if (key.isdecimal()):
                             key = int(key)
-                        has_explicit_key = False
                     else:
                         key = token_idx
                     tk_len += 1
