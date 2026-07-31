@@ -206,23 +206,31 @@ void sort_groups(OffsetIndices<int> groups, MutableSpan<int> indices);
 /**
  * Where the `group_indices` argument maps elements into buckets, and the `offsets` argument
  * describes the size of each bucket, this function fills `results` with the indices in each bucket
- * grouped by `offsets`. The `sort` argument makes the results deterministic (i.e. the indices in
- * each bucket are sorted), otherwise internal parallelism makes this non-deterministic.
+ * grouped by `offsets`. The `sort` argument makes the results deterministic, ordering each bucket
+ * by the position in `group_indices`. Otherwise internal parallelism makes this non-deterministic.
+ *
+ * By default the position of an element in `group_indices` is stored in `results`. If `values` is
+ * provided, `values[i]` is stored instead of `i`. Note that `sort` still orders by `i`.
  */
 void reverse_indices_in_groups(Span<int> group_indices,
                                OffsetIndices<int> offsets,
                                MutableSpan<int> results,
-                               bool sort = true);
+                               bool sort = true,
+                               Span<int> values = {});
 
 /**
  * With `indices` divided in a certain number of unique groups, reverse the index mapping so that
  * the indices in each group can be index by the group index. Similar to
  * #reverse_indices_in_groups, but also creates the offsets.
+ *
+ * By default the position of an element in `indices` is stored in `index_data`. If `values` is
+ * provided, `values[i]` is stored instead of `i`.
  */
 GroupedSpan<int> build_groups_from_indices(const Span<int> indices,
                                            const int groups_num,
                                            Array<int> &offset_data,
-                                           Array<int> &index_data);
+                                           Array<int> &index_data,
+                                           Span<int> values = {});
 
 }  // namespace offset_indices
 
