@@ -686,6 +686,7 @@ set(GLSL_SRC
   shaders/material/gpu_shader_material_glossy.glsl
   shaders/material/gpu_shader_material_hair_info.glsl
   shaders/material/gpu_shader_material_hair.glsl
+  shaders/material/gpu_shader_material_hash_value.glsl
   shaders/material/gpu_shader_material_holdout.glsl
   shaders/material/gpu_shader_material_hue_sat_val.glsl
   shaders/material/gpu_shader_material_implicit_defaults.glsl

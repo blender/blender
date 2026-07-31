@@ -363,6 +363,7 @@ class NODE_MT_compositor_node_math_base(node_add_menu.NodeMenu):
             defaults_callback=node_add_menu.set_int_math_node_default_props)
         self.node_operator_with_searchable_enum(context, layout, "FunctionNodeFloatToInt", "rounding_mode")
         self.node_operator(layout, "ShaderNodeFloatCurve")
+        self.node_operator(layout, "FunctionNodeHashValue")
         self.node_operator(layout, "ShaderNodeMapRange")
         self.node_operator_with_searchable_enum(
             context,
