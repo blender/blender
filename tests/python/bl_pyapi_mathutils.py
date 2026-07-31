@@ -1005,19 +1005,16 @@ class TypeTesting(unittest.TestCase):
 
 class KDTreeTesting(unittest.TestCase):
     @staticmethod
-    def kdtree_create_grid_3d_data(tot):
-        index = 0
+    def kdtree_create_grid_data(tot, dimensions):
+        import itertools
         mul = 1.0 / (tot - 1)
-        for x in range(tot):
-            for y in range(tot):
-                for z in range(tot):
-                    yield (x * mul, y * mul, z * mul), index
-                    index += 1
+        for index, co in enumerate(itertools.product(range(tot), repeat=dimensions)):
+            yield tuple(axis * mul for axis in co), index
 
     @staticmethod
-    def kdtree_create_grid_3d(tot, *, filter_fn=None):
-        k = kdtree.KDTree(tot * tot * tot)
-        for co, index in KDTreeTesting.kdtree_create_grid_3d_data(tot):
+    def kdtree_create_grid(tot, dimensions, *, filter_fn=None):
+        k = kdtree.KDTree(tot ** dimensions, dimensions=dimensions)
+        for co, index in KDTreeTesting.kdtree_create_grid_data(tot, dimensions):
             if (filter_fn is not None) and (not filter_fn(co, index)):
                 continue
             k.insert(co, index)
@@ -1029,13 +1026,15 @@ class KDTreeTesting(unittest.TestCase):
         self.assertAlmostEqual(first[1], second[1], places=places, msg=msg, delta=delta)
         self.assertAlmostEqual(first[2], second[2], places=places, msg=msg, delta=delta)
 
-    def test_kdtree_single(self):
-        co = (0,) * 3
+    def _test_kdtree_single_test_impl(self, dimensions):
+        # Use a different value for each axis to detect axis mix-ups.
+        co = tuple(range(5, 5 + dimensions))
         index = 2
 
-        k = kdtree.KDTree(1)
+        k = kdtree.KDTree(1, dimensions=dimensions)
         k.insert(co, index)
         k.balance()
+        self.assertEqual(k.dimensions, dimensions)
 
         co_found, index_found, dist_found = k.find(co)
 
@@ -1043,10 +1042,16 @@ class KDTreeTesting(unittest.TestCase):
         self.assertEqual(index_found, index)
         self.assertEqual(dist_found, 0.0)
 
-    def test_kdtree_empty(self):
-        co = (0,) * 3
+    def test_kdtree_single_2d(self):
+        self._test_kdtree_single_test_impl(dimensions=2)
 
-        k = kdtree.KDTree(0)
+    def test_kdtree_single_3d(self):
+        self._test_kdtree_single_test_impl(dimensions=3)
+
+    def _test_kdtree_empty_test_impl(self, dimensions):
+        co = (0,) * dimensions
+
+        k = kdtree.KDTree(0, dimensions=dimensions)
         k.balance()
 
         co_found, index_found, dist_found = k.find(co)
@@ -1055,94 +1060,133 @@ class KDTreeTesting(unittest.TestCase):
         self.assertIsNone(index_found)
         self.assertIsNone(dist_found)
 
-    def test_kdtree_line(self):
+    def test_kdtree_empty_2d(self):
+        self._test_kdtree_empty_test_impl(dimensions=2)
+
+    def test_kdtree_empty_3d(self):
+        self._test_kdtree_empty_test_impl(dimensions=3)
+
+    def _test_kdtree_line_test_impl(self, dimensions):
         tot = 10
 
-        k = kdtree.KDTree(tot)
+        k = kdtree.KDTree(tot, dimensions=dimensions)
 
         for i in range(tot):
-            k.insert((i,) * 3, i)
+            k.insert((i,) * dimensions, i)
 
         k.balance()
 
-        co_found, index_found, dist_found = k.find((-1,) * 3)
-        self.assertEqual(tuple(co_found), (0,) * 3)
+        # The nearest point is one unit away on every axis.
+        dist_expect = math.sqrt(dimensions)
 
-        co_found, index_found, dist_found = k.find((tot,) * 3)
-        self.assertEqual(tuple(co_found), (tot - 1,) * 3)
+        co_found, index_found, dist_found = k.find((-1,) * dimensions)
+        self.assertEqual(tuple(co_found), (0,) * dimensions)
+        self.assertEqual(index_found, 0)
+        self.assertAlmostEqual(dist_found, dist_expect)
 
-    def test_kdtree_grid(self):
+        co_found, index_found, dist_found = k.find((tot,) * dimensions)
+        self.assertEqual(tuple(co_found), (tot - 1,) * dimensions)
+        self.assertEqual(index_found, tot - 1)
+        self.assertAlmostEqual(dist_found, dist_expect)
+
+    def test_kdtree_line_2d(self):
+        self._test_kdtree_line_test_impl(dimensions=2)
+
+    def test_kdtree_line_3d(self):
+        self._test_kdtree_line_test_impl(dimensions=3)
+
+    def _test_kdtree_grid_test_impl(self, dimensions):
         size = 10
-        k = self.kdtree_create_grid_3d(size)
+        k = self.kdtree_create_grid(size, dimensions)
+        self.assertEqual(k.dimensions, dimensions)
 
         # find_range
-        ret = k.find_range((0.5,) * 3, 2.0)
-        self.assertEqual(len(ret), size * size * size)
+        ret = k.find_range((0.5,) * dimensions, 2.0)
+        self.assertEqual(len(ret), size ** dimensions)
+        self.assertEqual(len(ret[0][0]), dimensions)
 
-        ret = k.find_range((1.0,) * 3, 1.0 / size)
+        ret = k.find_range((1.0,) * dimensions, 1.0 / size)
         self.assertEqual(len(ret), 1)
 
-        ret = k.find_range((1.0,) * 3, 2.0 / size)
-        self.assertEqual(len(ret), 8)
+        ret = k.find_range((1.0,) * dimensions, 2.0 / size)
+        self.assertEqual(len(ret), 2 ** dimensions)
 
-        ret = k.find_range((10,) * 3, 0.5)
+        ret = k.find_range((10,) * dimensions, 0.5)
         self.assertEqual(len(ret), 0)
 
         # find_n
         tot = 0
-        ret = k.find_n((1.0,) * 3, tot)
+        ret = k.find_n((1.0,) * dimensions, tot)
         self.assertEqual(len(ret), tot)
 
         tot = 10
-        ret = k.find_n((1.0,) * 3, tot)
+        ret = k.find_n((1.0,) * dimensions, tot)
         self.assertEqual(len(ret), tot)
+        self.assertEqual(len(ret[0][0]), dimensions)
         self.assertEqual(ret[0][2], 0.0)
 
-        tot = size * size * size
-        ret = k.find_n((1.0,) * 3, tot)
+        tot = size ** dimensions
+        ret = k.find_n((1.0,) * dimensions, tot)
         self.assertEqual(len(ret), tot)
 
-    def test_kdtree_grid_filter_simple(self):
+    def test_kdtree_grid_2d(self):
+        self._test_kdtree_grid_test_impl(dimensions=2)
+
+    def test_kdtree_grid_3d(self):
+        self._test_kdtree_grid_test_impl(dimensions=3)
+
+    def _test_kdtree_grid_filter_simple_test_impl(self, dimensions):
         size = 10
-        k = self.kdtree_create_grid_3d(size)
+        k = self.kdtree_create_grid(size, dimensions)
 
         # filter exact index
-        ret_regular = k.find((1.0,) * 3)
-        ret_filter = k.find((1.0,) * 3, filter=lambda i: i == ret_regular[1])
+        ret_regular = k.find((1.0,) * dimensions)
+        ret_filter = k.find((1.0,) * dimensions, filter=lambda i: i == ret_regular[1])
         self.assertEqual(ret_regular, ret_filter)
-        ret_filter = k.find((-1.0,) * 3, filter=lambda i: i == ret_regular[1])
+        ret_filter = k.find((-1.0,) * dimensions, filter=lambda i: i == ret_regular[1])
         self.assertEqual(ret_regular[:2], ret_filter[:2])  # ignore distance
 
-    def test_kdtree_grid_filter_pairs(self):
+    def test_kdtree_grid_filter_simple_2d(self):
+        self._test_kdtree_grid_filter_simple_test_impl(dimensions=2)
+
+    def test_kdtree_grid_filter_simple_3d(self):
+        self._test_kdtree_grid_filter_simple_test_impl(dimensions=3)
+
+    def _test_kdtree_grid_filter_pairs_test_impl(self, dimensions):
+        import itertools
         size = 10
-        k_all = self.kdtree_create_grid_3d(size)
-        k_odd = self.kdtree_create_grid_3d(size, filter_fn=lambda co, i: (i % 2) == 1)
-        k_evn = self.kdtree_create_grid_3d(size, filter_fn=lambda co, i: (i % 2) == 0)
+        k_all = self.kdtree_create_grid(size, dimensions)
+        k_odd = self.kdtree_create_grid(size, dimensions, filter_fn=lambda co, i: (i % 2) == 1)
+        k_evn = self.kdtree_create_grid(size, dimensions, filter_fn=lambda co, i: (i % 2) == 0)
 
         samples = 5
         mul = 1 / (samples - 1)
-        for x in range(samples):
-            for y in range(samples):
-                for z in range(samples):
-                    co = (x * mul, y * mul, z * mul)
+        for co_grid in itertools.product(range(samples), repeat=dimensions):
+            co = tuple(axis * mul for axis in co_grid)
 
-                    ret_regular = k_odd.find(co)
-                    self.assertEqual(ret_regular[1] % 2, 1)
-                    ret_filter = k_all.find(co, filter=lambda i: (i % 2) == 1)
-                    self.assertAlmostEqualVector(ret_regular, ret_filter)
+            ret_regular = k_odd.find(co)
+            self.assertEqual(ret_regular[1] % 2, 1)
+            ret_filter = k_all.find(co, filter=lambda i: (i % 2) == 1)
+            self.assertAlmostEqualVector(ret_regular, ret_filter)
 
-                    ret_regular = k_evn.find(co)
-                    self.assertEqual(ret_regular[1] % 2, 0)
-                    ret_filter = k_all.find(co, filter=lambda i: (i % 2) == 0)
-                    self.assertAlmostEqualVector(ret_regular, ret_filter)
+            ret_regular = k_evn.find(co)
+            self.assertEqual(ret_regular[1] % 2, 0)
+            ret_filter = k_all.find(co, filter=lambda i: (i % 2) == 0)
+            self.assertAlmostEqualVector(ret_regular, ret_filter)
 
         # filter out all values (search odd tree for even values and the reverse)
-        co = (0,) * 3
+        co = (0,) * dimensions
         ret_filter = k_odd.find(co, filter=lambda i: (i % 2) == 0)
         self.assertEqual(ret_filter[1], None)
 
         ret_filter = k_evn.find(co, filter=lambda i: (i % 2) == 1)
         self.assertEqual(ret_filter[1], None)
+
+    def test_kdtree_grid_filter_pairs_2d(self):
+        self._test_kdtree_grid_filter_pairs_test_impl(dimensions=2)
+
+    def test_kdtree_grid_filter_pairs_3d(self):
+        self._test_kdtree_grid_filter_pairs_test_impl(dimensions=3)
 
     def test_kdtree_invalid_size(self):
         with self.assertRaises(ValueError):
