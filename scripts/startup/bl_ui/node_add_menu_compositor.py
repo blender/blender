@@ -299,6 +299,7 @@ class NODE_MT_compositor_node_utilities_base(node_add_menu.NodeMenu):
         self.node_operator(layout, "NodeImplicitConversion")
         self.node_operator(layout, "CompositorNodeLevels")
         self.node_operator(layout, "CompositorNodeNormalize")
+        self.node_operator(layout, "FunctionNodeRandomValue")
         layout.separator()
         self.node_operator(layout, "GeometryNodeIndexSwitch")
         self.node_operator(layout, "GeometryNodeMenuSwitch")
