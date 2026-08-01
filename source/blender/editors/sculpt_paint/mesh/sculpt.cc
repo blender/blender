@@ -1385,17 +1385,16 @@ static float calc_radial_symmetry_feather(const Mesh &mesh,
   return overlap;
 }
 
-static float calc_symmetry_feather(const Sculpt &sd,
+static float calc_symmetry_feather(const Paint &paint,
                                    const ePaintSymmetryFlags symm,
                                    const Mesh &mesh,
                                    const StrokeCache &cache)
 {
-  if (!(sd.paint.symmetry_flags & PAINT_SYMMETRY_FEATHER)) {
+  if (!(paint.symmetry_flags & PAINT_SYMMETRY_FEATHER)) {
     return 1.0f;
   }
-  float overlap;
 
-  overlap = 0.0f;
+  float overlap = 0.0f;
   for (int i = 0; i <= symm; i++) {
     if (!is_symmetry_iteration_valid(i, symm)) {
       continue;
@@ -3238,11 +3237,11 @@ float brush_plane_offset_get(const Brush &brush, const SculptSession &ss)
  * \{ */
 
 static void dynamic_topology_update(const Depsgraph &depsgraph,
-                                    const Scene & /*scene*/,
-                                    Sculpt &sd,
+                                    const Scene &scene,
                                     Object &ob,
                                     const Brush &brush)
 {
+  Sculpt &sd = *scene.toolsettings->sculpt;
   SculptSession &ss = *ob.runtime->sculpt_session;
   bke::pbvh::Tree &pbvh = *bke::object::pbvh_get(ob);
 
@@ -3530,11 +3529,14 @@ static const char *sculpt_brush_type_name(const Brush &brush)
   return "Sculpting";
 }
 
-static void do_brush_action(
-    const Depsgraph &depsgraph, const Scene &scene, Sculpt &sd, Object &ob, const Brush &brush)
+static void do_brush_action(const Depsgraph &depsgraph,
+                            const Scene &scene,
+                            Object &ob,
+                            const Brush &brush)
 {
   PRF_scope(ProfileCategory::Editor);
   PRF_scope_set_dynamic_name("%s", sculpt_brush_type_name(brush));
+  Sculpt &sd = *scene.toolsettings->sculpt;
   SculptSession &ss = *ob.runtime->sculpt_session;
   PaintModeSettings &paint_mode_settings = scene.toolsettings->paint_mode;
   IndexMaskMemory memory;
@@ -3864,12 +3866,14 @@ void cache_calc_brushdata_symm(StrokeCache &cache,
   }
 }
 
-using BrushActionFunc = void (*)(
-    const Depsgraph &depsgraph, const Scene &scene, Sculpt &sd, Object &ob, const Brush &brush);
+using BrushActionFunc = void (*)(const Depsgraph &depsgraph,
+                                 const Scene &scene,
+                                 Object &ob,
+                                 const Brush &brush);
 
 static void do_tiled(const Depsgraph &depsgraph,
                      const Scene &scene,
-                     Sculpt &sd,
+                     const Paint &paint,
                      Object &ob,
                      const Brush &brush,
                      const BrushActionFunc action)
@@ -3880,7 +3884,7 @@ static void do_tiled(const Depsgraph &depsgraph,
   const Bounds<float3> bb = *BKE_object_boundbox_get(&ob);
   const float *bbMin = bb.min;
   const float *bbMax = bb.max;
-  const float *step = sd.paint.tile_offset;
+  const float *step = paint.tile_offset;
 
   /* These are integer locations, for real location: multiply with step and add orgLoc.
    * So 0,0,0 is at orgLoc. */
@@ -3895,7 +3899,7 @@ static void do_tiled(const Depsgraph &depsgraph,
   copy_v3_v3(original_initial_location, cache->initial_location_symm);
 
   for (int dim = 0; dim < 3; dim++) {
-    if ((sd.paint.symmetry_flags & (PAINT_TILE_X << dim)) && step[dim] > 0) {
+    if ((paint.symmetry_flags & (PAINT_TILE_X << dim)) && step[dim] > 0) {
       start[dim] = (bbMin[dim] - orgLoc[dim] - radius) / step[dim];
       end[dim] = (bbMax[dim] - orgLoc[dim] + radius) / step[dim];
     }
@@ -3906,7 +3910,7 @@ static void do_tiled(const Depsgraph &depsgraph,
 
   /* First do the "un-tiled" position to initialize the stroke for this location. */
   cache->tile_pass = 0;
-  action(depsgraph, scene, sd, ob, brush);
+  action(depsgraph, scene, ob, brush);
 
   /* Now do it for all the tiles. */
   copy_v3_v3_int(cur, start);
@@ -3926,7 +3930,7 @@ static void do_tiled(const Depsgraph &depsgraph,
           cache->initial_location_symm[dim] = cur[dim] * step[dim] +
                                               original_initial_location[dim];
         }
-        action(depsgraph, scene, sd, ob, brush);
+        action(depsgraph, scene, ob, brush);
       }
     }
   }
@@ -3934,9 +3938,9 @@ static void do_tiled(const Depsgraph &depsgraph,
 
 static void do_radial_symmetry(const Depsgraph &depsgraph,
                                const Scene &scene,
-                               Sculpt &sd,
-                               Object &ob,
+                               const Paint &paint,
                                const Brush &brush,
+                               Object &ob,
                                const BrushActionFunc action,
                                const ePaintSymmetryFlags symm,
                                const int axis)
@@ -3949,7 +3953,7 @@ static void do_radial_symmetry(const Depsgraph &depsgraph,
     const float angle = 2.0f * M_PI * i / mesh.radial_symmetry[axis - 'X'];
     ss.cache->radial_symmetry_pass = i;
     cache_calc_brushdata_symm(*ss.cache, symm, axis, angle);
-    do_tiled(depsgraph, scene, sd, ob, brush, action);
+    do_tiled(depsgraph, scene, paint, ob, brush, action);
   }
 }
 
@@ -3970,18 +3974,18 @@ static void sculpt_fix_noise_tear(const Sculpt &sd, Object &ob)
 
 static void do_symmetrical_brush_actions(const Depsgraph &depsgraph,
                                          const Scene &scene,
-                                         Sculpt &sd,
+                                         Paint &paint,
                                          Object &ob,
                                          const BrushActionFunc action)
 
 {
-  const Brush &brush = *BKE_paint_brush_for_read(&sd.paint);
+  const Brush &brush = *BKE_paint_brush_for_read(&paint);
   const Mesh &mesh = *id_cast<Mesh *>(ob.data);
   SculptSession &ss = *ob.runtime->sculpt_session;
   StrokeCache &cache = *ss.cache;
   const ePaintSymmetryFlags symm = mesh_symmetry_xyz_get(ob);
 
-  cache.feather = calc_symmetry_feather(sd, symm, mesh, *ss.cache);
+  cache.feather = calc_symmetry_feather(paint, symm, mesh, *ss.cache);
   cache.bstrength = cache.base_brush_strength * cache.feather;
 
   /* `symm` is a bit combination of XYZ -
@@ -3995,11 +3999,11 @@ static void do_symmetrical_brush_actions(const Depsgraph &depsgraph,
     cache.radial_symmetry_pass = 0;
 
     cache_calc_brushdata_symm(cache, symm_pass, 0, 0);
-    do_tiled(depsgraph, scene, sd, ob, brush, action);
+    do_tiled(depsgraph, scene, paint, ob, brush, action);
 
-    do_radial_symmetry(depsgraph, scene, sd, ob, brush, action, symm_pass, 'X');
-    do_radial_symmetry(depsgraph, scene, sd, ob, brush, action, symm_pass, 'Y');
-    do_radial_symmetry(depsgraph, scene, sd, ob, brush, action, symm_pass, 'Z');
+    do_radial_symmetry(depsgraph, scene, paint, brush, ob, action, symm_pass, 'X');
+    do_radial_symmetry(depsgraph, scene, paint, brush, ob, action, symm_pass, 'Y');
+    do_radial_symmetry(depsgraph, scene, paint, brush, ob, action, symm_pass, 'Z');
   }
 }
 
@@ -6077,11 +6081,11 @@ void SculptPaintStroke::update_step(wmOperator * /*op*/, PointerRNA *itemptr)
 
   if (dyntopo::stroke_is_dyntopo(ob, brush)) {
     cache->base_brush_strength = brush_strength(sd, *cache);
-    do_symmetrical_brush_actions(depsgraph, scene, sd, ob, dynamic_topology_update);
+    do_symmetrical_brush_actions(depsgraph, scene, sd.paint, ob, dynamic_topology_update);
   }
 
   cache->base_brush_strength = brush_strength(sd, *cache);
-  do_symmetrical_brush_actions(depsgraph, scene, sd, ob, do_brush_action);
+  do_symmetrical_brush_actions(depsgraph, scene, sd.paint, ob, do_brush_action);
 
   /* Hack to fix noise texture tearing mesh. */
   sculpt_fix_noise_tear(sd, ob);
