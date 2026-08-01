@@ -402,14 +402,14 @@ inline ShuffleIndicesResult<4> shuffle_indices_from_emit_mask(uint64_t emit_mask
    * We don't care about values after the last valid index. */
   alignas(64) uint8_t combined[64];
   int popcount = 0;
-  *(uint64_t *)combined = v0, popcount += mask_popcount_0;
-  *(uint64_t *)(combined + popcount) = v1, popcount += mask_popcount_1;
-  *(uint64_t *)(combined + popcount) = v2, popcount += mask_popcount_2;
-  *(uint64_t *)(combined + popcount) = v3, popcount += mask_popcount_3;
-  *(uint64_t *)(combined + popcount) = v4, popcount += mask_popcount_4;
-  *(uint64_t *)(combined + popcount) = v5, popcount += mask_popcount_5;
-  *(uint64_t *)(combined + popcount) = v6, popcount += mask_popcount_6;
-  *(uint64_t *)(combined + popcount) = v7, popcount += mask_popcount_7;
+  std::memcpy(combined + popcount, &v0, sizeof(uint64_t)), popcount += mask_popcount_0;
+  std::memcpy(combined + popcount, &v1, sizeof(uint64_t)), popcount += mask_popcount_1;
+  std::memcpy(combined + popcount, &v2, sizeof(uint64_t)), popcount += mask_popcount_2;
+  std::memcpy(combined + popcount, &v3, sizeof(uint64_t)), popcount += mask_popcount_3;
+  std::memcpy(combined + popcount, &v4, sizeof(uint64_t)), popcount += mask_popcount_4;
+  std::memcpy(combined + popcount, &v5, sizeof(uint64_t)), popcount += mask_popcount_5;
+  std::memcpy(combined + popcount, &v6, sizeof(uint64_t)), popcount += mask_popcount_6;
+  std::memcpy(combined + popcount, &v7, sizeof(uint64_t)), popcount += mask_popcount_7;
 
   return {simd::u8x64::load((const uint8_t *)&combined), popcount};
 }
