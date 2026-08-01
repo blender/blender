@@ -2740,7 +2740,7 @@ static bool select_grouped_visual_overlap(const Scene *scene,
     strips_to_select.add(strip);
   }
 
-  seq::iterator_set_expand(ed, strips_to_select, seq::query_strip_effect_chain);
+  seq::expand_strips(ed, strips_to_select, seq::StripRelation::EffectChain);
 
   const bool changed = !strips_to_select.is_empty();
   if (changed) {

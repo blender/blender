@@ -362,7 +362,9 @@ static void strip_transform_handle_overwrite_trim(Scene *scene,
                                                   bool covers_left)
 {
   Editing *ed = seq::editing_get(scene);
-  VectorSet targets = query_by_reference(target, ed, query_strip_effect_chain);
+  VectorSet<Strip *> targets;
+  targets.add(target);
+  expand_strips(ed, targets, StripRelation::EffectChain);
 
   /* We can't just let `left/right_handle_set` trim effect chains, since `target` may be an
    * effect itself. So we need to find all non-effects that may be inputs to effects, and

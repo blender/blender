@@ -2260,14 +2260,14 @@ static wmOperatorStatus sequencer_box_blade_exec(bContext *C, wmOperator *op)
       if (strip->channel <= int(box_rect.ymax) && strip->channel >= int(box_rect.ymin) &&
           (strip->left_handle() > rect_frames[0]))
       {
-        if (ignore_connections) {
-          seq::query_strip_effect_chain(strip, ed, to_offset);
-        }
-        else {
-          seq::query_strip_connected_and_effect_chain(strip, ed, to_offset);
-        }
+        to_offset.add(strip);
       }
     }
+
+    const seq::StripRelation include = ignore_connections ?
+                                           seq::StripRelation::EffectChain :
+                                           seq::StripRelation::ConnectedEffectChain;
+    seq::expand_strips(ed, to_offset, include);
 
     for (Strip *strip : to_offset) {
       seq::relations_invalidate_cache(scene, strip);
@@ -3027,7 +3027,7 @@ static wmOperatorStatus sequencer_meta_make_exec(bContext *C, wmOperator * /*op*
    * Strip is moved within the same edit, no need to re-generate the UID. */
   VectorSet<Strip *> strips_to_move;
   strips_to_move.add_multiple(selected);
-  seq::iterator_set_expand(ed, strips_to_move, seq::query_strip_connected_and_effect_chain);
+  seq::expand_strips(ed, strips_to_move, seq::StripRelation::ConnectedEffectChain);
 
   for (Strip *strip : strips_to_move) {
     seq::relations_invalidate_cache(scene, strip);

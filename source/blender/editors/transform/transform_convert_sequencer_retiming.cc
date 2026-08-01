@@ -85,7 +85,7 @@ static void freeSeqData(TransInfo *t, TransDataContainer *tc, TransCustomData *c
   }
 
   ListBaseT<Strip> *seqbasep = seq::active_seqbase_get(ed);
-  seq::iterator_set_expand(ed, transformed_strips, seq::query_strip_direct_effect_chain);
+  seq::expand_strips(ed, transformed_strips, seq::StripRelation::Effects);
 
   VectorSet<Strip *> dependant;
   dependant.add_multiple(transformed_strips);
@@ -249,7 +249,7 @@ static void recalcData_sequencer_retiming(TransInfo *t)
 
   /* Test overlap, displays red outline. */
   Editing *ed = seq::editing_get(t->scene);
-  seq::iterator_set_expand(ed, transformed_strips, seq::query_strip_direct_effect_chain);
+  seq::expand_strips(ed, transformed_strips, seq::StripRelation::Effects);
   for (Strip *strip : transformed_strips) {
     strip->runtime->flag &= ~seq::StripRuntimeFlag::Overlap;
     if (seq::transform_test_overlap(t->scene, seq::active_seqbase_get(ed), strip)) {

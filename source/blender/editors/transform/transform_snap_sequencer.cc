@@ -126,7 +126,7 @@ static VectorSet<Strip *> query_strip_targets_timeline(Scene *scene,
   /* Effects will always change position with strip to which they are connected and they don't
    * have to be selected. Remove such strips from `snap_targets` collection. */
   VectorSet effects_of_strip_sources = strip_sources;
-  seq::iterator_set_expand(ed, effects_of_strip_sources, seq::query_strip_direct_effect_chain);
+  seq::expand_strips(ed, effects_of_strip_sources, seq::StripRelation::Effects);
   effects_of_strip_sources.remove_if(
       [&](Strip *strip) { return strip->is_effect() && !strip->is_effect_with_inputs(); });
 
