@@ -2832,15 +2832,33 @@ static void find_bevel_edge_order(const ExtendableMesh &emesh,
       continue;
     }
     int bestf = -1;
+    bool bestf_is_directional = false;
     for (const int f : emesh.src_edge_to_face[e]) {
-      if (emesh.src_edge_to_face[e2].contains(f)) {
-        const IndexRange corners = emesh.face_corners(f);
-        for (const int c : corners) {
-          if (emesh.corner_vert(c) == bv->v) {
-            bestf = f;
-            break;
-          }
+      if (!emesh.src_edge_to_face[e2].contains(f)) {
+        continue;
+      }
+      const IndexRange corners = emesh.face_corners(f);
+      for (const int c : corners) {
+        if (emesh.corner_vert(c) != bv->v) {
+          continue;
         }
+        /* Mirror BMesh's `l->v == bv->v` preference: prefer the face where the corner
+         * at bv->v has its outgoing edge equal to e (the "fnext" direction).
+         * Without this, for 2-edge vertices where both edges share both adjacent faces,
+         * both loop iterations may select the same face, causing wrong BoundVert positions. */
+        if (emesh.corner_edge(c) == e) {
+          /* Directionally correct face: always prefer this and stop searching. */
+          bestf = f;
+          bestf_is_directional = true;
+          break;
+        }
+        if (bestf == -1) {
+          /* Fall back: accept any face containing bv->v if no directional match yet. */
+          bestf = f;
+        }
+      }
+      if (bestf_is_directional) {
+        break;
       }
     }
     if (bestf != -1) {
