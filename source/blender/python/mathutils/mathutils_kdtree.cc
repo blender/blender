@@ -618,7 +618,7 @@ PyDoc_STRVAR(
     py_KDtree_doc,
     ".. class:: KDTree(size, *, dimensions=3)\n"
     "\n"
-    "   KDTree(size, *, dimensions=3) -> new kd-tree initialized to hold up to ``size`` items.\n"
+    "   KDTree(size, \*, dimensions=3) -> new kd-tree initialized to hold up to ``size`` items.\n"
     "\n"
     "   :param size: Maximum number of items.\n"
     "   :type size: int\n"
