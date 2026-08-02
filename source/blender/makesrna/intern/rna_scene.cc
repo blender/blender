@@ -6349,7 +6349,8 @@ static void rna_def_render_views(BlenderRNA *brna, PropertyRNA *cprop)
   func = RNA_def_function(srna, "new", "rna_RenderView_new");
   RNA_def_function_ui_description(func, "Add a render view to scene");
   RNA_def_function_flag(func, FUNC_USE_SELF_ID);
-  parm = RNA_def_string(func, "name", "RenderView", 0, "", "New name for the marker (not unique)");
+  parm = RNA_def_string(
+      func, "name", "RenderView", 0, "", "New name for the render view (not unique)");
   RNA_def_parameter_flags(parm, PropertyFlag(0), PARM_REQUIRED);
   parm = RNA_def_pointer(func, "result", "SceneRenderView", "", "Newly created render view");
   RNA_def_function_return(func, parm);
