@@ -226,6 +226,30 @@ static void pyrna_prop_warn_deprecated(const PointerRNA *ptr,
                    deprecated->note);
 }
 
+static bool pyrna_status_ok_or_error(eRNAStatus status, const char *error_prefix)
+{
+  switch (status) {
+    case eRNAStatus::Success: {
+      return true;
+    }
+    case eRNAStatus::IndexOutOfRange: {
+      PyErr_Format(PyExc_IndexError, "%.200s: index out of range", error_prefix);
+      return false;
+    }
+    case eRNAStatus::Immutable: {
+      PyErr_Format(PyExc_TypeError, "%.200s: is not editable", error_prefix);
+      return false;
+    }
+    case eRNAStatus::Unsupported: {
+      PyErr_Format(PyExc_TypeError, "%.200s: not supported for this collection", error_prefix);
+      return false;
+    }
+  }
+
+  BLI_assert_unreachable();
+  return true;
+}
+
 #ifdef USE_PYRNA_INVALIDATE_GC
 #  define FROM_GC(g) ((PyObject *)(((PyGC_Head *)g) + 1))
 
@@ -5436,7 +5460,7 @@ PyDoc_STRVAR(
     "   :type dst_index: int\n");
 static PyObject *pyrna_prop_collection_idprop_move(BPy_PropertyRNA *self, PyObject *args)
 {
-  int key = 0, pos = 0;
+  int src_index = 0, dst_index = 0;
 
 #ifdef USE_PEDANTIC_WRITE
   if (rna_disallow_writes && rna_id_write_error(&self->ptr.value(), nullptr)) {
@@ -5448,16 +5472,16 @@ static PyObject *pyrna_prop_collection_idprop_move(BPy_PropertyRNA *self, PyObje
                         "i" /* `src_index` */
                         "i" /* `dst_index` */
                         ":move",
-                        &key,
-                        &pos))
+                        &src_index,
+                        &dst_index))
   {
     PyErr_SetString(PyExc_TypeError, "bpy_prop_collection.move(): expected two ints as arguments");
     return nullptr;
   }
 
-  if (!RNA_property_collection_move(&self->ptr.value(), self->prop, key, pos)) {
-    PyErr_SetString(PyExc_TypeError,
-                    "bpy_prop_collection.move() not supported for this collection");
+  eRNAStatus status = RNA_property_collection_move(
+      &self->ptr.value(), self->prop, src_index, dst_index);
+  if (!pyrna_status_ok_or_error(status, "bpy_prop_collection.move")) {
     return nullptr;
   }
 

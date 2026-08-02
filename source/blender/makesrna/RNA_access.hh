@@ -37,6 +37,21 @@ struct bContext;
 
 enum eID_OverrideLib_Op : short;
 
+/**
+ * \note Some functions perform multiple checks whose results are more
+ * accurately and informatively represented using an enum status.
+ */
+enum class eRNAStatus {
+  /** The operation completed successfully. */
+  Success = 0,
+  /** The specified index is outside the valid range. */
+  IndexOutOfRange,
+  /** The property cannot be edited. */
+  Immutable,
+  /** An unexpected property was encountered. */
+  Unsupported,
+};
+
 /* Types */
 BlenderRNA &RNA_blender_rna_get();
 
@@ -696,7 +711,10 @@ void RNA_property_pointer_remove(PointerRNA *ptr, PropertyRNA *prop);
 void RNA_property_collection_add(PointerRNA *ptr, PropertyRNA *prop, PointerRNA *r_ptr);
 bool RNA_property_collection_remove(PointerRNA *ptr, PropertyRNA *prop, int key);
 void RNA_property_collection_clear(PointerRNA *ptr, PropertyRNA *prop);
-bool RNA_property_collection_move(PointerRNA *ptr, PropertyRNA *prop, int key, int pos);
+eRNAStatus RNA_property_collection_move(PointerRNA *ptr,
+                                        PropertyRNA *prop,
+                                        int src_index,
+                                        int dst_index);
 
 /* copy/reset */
 bool RNA_property_copy(Main *bmain,

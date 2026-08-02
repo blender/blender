@@ -5139,47 +5139,55 @@ bool RNA_property_collection_remove(PointerRNA *ptr, PropertyRNA *prop, int key)
   return false;
 }
 
-bool RNA_property_collection_move(PointerRNA *ptr, PropertyRNA *prop, int key, int pos)
+eRNAStatus RNA_property_collection_move(PointerRNA *ptr,
+                                        PropertyRNA *prop,
+                                        int src_index,
+                                        int dst_index)
 {
-  IDProperty *idprop;
-
   BLI_assert(RNA_property_type(prop) == PROP_COLLECTION);
 
   bool is_liboverride;
   if (!property_collection_liboverride_editable(ptr, prop, &is_liboverride)) {
-    return false;
+    return eRNAStatus::Immutable;
   }
 
+  IDProperty *idprop;
   if ((idprop = rna_idproperty_check(&prop, ptr))) {
-    IDProperty tmp, *array;
-    int len;
+    int len = idprop->len;
+    IDProperty *array = IDP_property_array_get(idprop);
 
-    len = idprop->len;
-    array = IDP_property_array_get(idprop);
-
-    if (key >= 0 && key < len && pos >= 0 && pos < len && key != pos) {
-      if (is_liboverride && (array[key].flag & IDP_FLAG_OVERRIDELIBRARY_LOCAL) == 0) {
-        /* We can only move items that we actually inserted in the local override. */
-        return false;
-      }
-
-      memcpy(&tmp, &array[key], sizeof(IDProperty));
-      if (pos < key) {
-        memmove(array + pos + 1, array + pos, sizeof(IDProperty) * (key - pos));
-      }
-      else {
-        memmove(array + key, array + key + 1, sizeof(IDProperty) * (pos - key));
-      }
-      memcpy(&array[pos], &tmp, sizeof(IDProperty));
+    if (src_index < 0 || src_index >= len || dst_index < 0 || dst_index >= len) {
+      return eRNAStatus::IndexOutOfRange;
     }
 
-    return true;
+    if (is_liboverride && (array[src_index].flag & IDP_FLAG_OVERRIDELIBRARY_LOCAL) == 0) {
+      /* We can only move items that we actually inserted in the local override. */
+      return eRNAStatus::Immutable;
+    }
+
+    if (src_index != dst_index) {
+      IDProperty tmp;
+      memcpy(&tmp, &array[src_index], sizeof(IDProperty));
+      if (dst_index < src_index) {
+        memmove(array + dst_index + 1,
+                array + dst_index,
+                sizeof(IDProperty) * (src_index - dst_index));
+      }
+      else {
+        memmove(array + src_index,
+                array + src_index + 1,
+                sizeof(IDProperty) * (dst_index - src_index));
+      }
+      memcpy(&array[dst_index], &tmp, sizeof(IDProperty));
+    }
+    return eRNAStatus::Success;
   }
   if (prop->flag & PROP_IDPROPERTY) {
-    return true;
+    /* No-init empty collection. */
+    return eRNAStatus::IndexOutOfRange;
   }
 
-  return false;
+  return eRNAStatus::Unsupported;
 }
 
 void RNA_property_collection_clear(PointerRNA *ptr, PropertyRNA *prop)

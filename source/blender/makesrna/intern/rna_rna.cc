@@ -3105,7 +3105,8 @@ bool rna_property_override_apply_default(Main *bmain,
           IDP_CopyPropertyContent(item_idprop_dst, item_idprop_src);
 
           ret_success = RNA_property_collection_move(
-              ptr_dst, prop_dst, item_index_added, item_index_dst);
+                            ptr_dst, prop_dst, item_index_added, item_index_dst) ==
+                        eRNAStatus::Success;
           break;
         }
         default:
