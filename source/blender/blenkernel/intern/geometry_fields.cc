@@ -931,7 +931,7 @@ static bool try_add_shared_field_attribute(MutableAttributeAccessor attributes,
   }
   const AttributeInitShared init(attribute.varray.get_internal_span().data(),
                                  *attribute.sharing_info);
-  return attributes.add(id_to_create, domain, data_type, init);
+  return attributes.add_override(id_to_create, domain, data_type, init);
 }
 
 static bool attribute_data_matches_varray(const GAttributeReader &attribute,
@@ -1043,17 +1043,17 @@ bool try_capture_fields_on_geometry(MutableAttributeAccessor attributes,
     const AttributeValidator validator = attributes.lookup_validator(name);
     const fn::GField field = validator.validate_field_if_necessary(fields[input_index]);
 
+    if (!validator && selection_is_full) {
+      if (try_add_shared_field_attribute(attributes, name, domain, field)) {
+        continue;
+      }
+    }
+
     /* We are writing to an attribute that exists already with the correct domain and type. */
     if (const GAttributeReader dst = attributes.lookup(name)) {
       if (dst.domain == domain && dst.varray.type() == field.cpp_type()) {
         const int evaluator_index = evaluator.add(field);
         results_to_store.append({input_index, evaluator_index});
-        continue;
-      }
-    }
-
-    if (!validator && selection_is_full) {
-      if (try_add_shared_field_attribute(attributes, name, domain, field)) {
         continue;
       }
     }
