@@ -6836,6 +6836,7 @@ static wmOperatorStatus start_playback(bContext *C, int sync, int mode)
       const int start_frame = is_playing_forward ? scene->playback_start() : scene->playback_end();
       scene->r.cfra = start_frame;
       scene->r.subframe = 0.0f;
+      DEG_id_tag_update(&scene->id, ID_RECALC_FRAME_CHANGE);
     }
   }
 
