@@ -58,8 +58,16 @@ ccl_device float cubic_h1(const float a)
 
 /* Fast bicubic texture lookup using 4 bilinear lookups, adapted from CUDA samples. */
 template<typename T>
-ccl_device_noinline T kernel_image_interp_bicubic(const ccl_global KernelImageInfo &info,
-                                                  const float2 uv)
+/* Workaround for an apparent compiler bug with CUDA 12.8 and Blackwell.
+ * This appears to be fixed with CUDA 12.9, so this workaround can be removed
+ * when the minimum toolkit version is increased. */
+#if defined(__KERNEL_CUDA__) && (__CUDA_ARCH__ >= 1000)
+ccl_device_inline
+#else
+ccl_device_noinline
+#endif
+T kernel_image_interp_bicubic(const ccl_global KernelImageInfo &info,
+                                                const float2 uv)
 {
   ccl_gpu_image_object_2D tex = (ccl_gpu_image_object_2D)info.data;
 
