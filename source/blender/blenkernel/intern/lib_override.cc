@@ -50,6 +50,7 @@
 #include "BKE_lib_remap.hh"
 #include "BKE_library.hh"
 #include "BKE_main.hh"
+#include "BKE_main_invariants.hh"
 #include "BKE_main_namemap.hh"
 #include "BKE_node.hh"
 #include "BKE_report.hh"
@@ -2933,6 +2934,11 @@ static bool lib_override_library_resync(Main *bmain,
 /** Cleanup: Remove unused 'place holder' linked IDs. */
 static void lib_override_cleanup_after_resync(Main *bmain)
 {
+  /* Deletions during the resync itself skip the invariants update. Ensure it happened before
+   * searching for unused IDs, since obsolete node sockets kept alive by an outdated node tree
+   * still count as users of the IDs they reference. */
+  BKE_main_ensure_invariants(*bmain);
+
   LibQueryUnusedIDsData parameters;
   parameters.do_local_ids = true;
   parameters.do_linked_ids = true;
