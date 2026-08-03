@@ -1011,6 +1011,12 @@ void RNA_def_collections(BlenderRNA *brna)
                            "Collection Children",
                            "Children collections with their parent-collection-specific settings");
 
+  /* Importer Handler. */
+  prop = RNA_def_property(srna, "importer", PROP_POINTER, PROP_NONE);
+  RNA_def_property_struct_type(prop, "CollectionImport");
+  RNA_def_property_ui_text(
+      prop, "Collection Import Handler", "Import Handler configured for the collection");
+
   /* Export Handlers. */
   prop = RNA_def_property(srna, "exporters", PROP_COLLECTION, PROP_NONE);
   RNA_def_property_struct_type(prop, "CollectionExport");

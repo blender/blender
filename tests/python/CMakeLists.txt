@@ -1377,6 +1377,14 @@ if(WITH_USD AND TEST_SRC_DIR_EXISTS)
     --testdir "${TEST_SRC_DIR}/usd"
     --outdir "${TEST_OUT_DIR}/io_usd"
   )
+
+  # The collection IO tests need USD
+  add_blender_test(
+    io_collections
+    --python ${CMAKE_CURRENT_LIST_DIR}/io_collections_test.py
+    --
+    --testdir "${TEST_SRC_DIR}/io_tests/io_collections"
+  )
 endif()
 
 if(TEST_SRC_DIR_EXISTS)
