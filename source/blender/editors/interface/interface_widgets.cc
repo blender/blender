@@ -1629,7 +1629,7 @@ float text_clip_middle_ex(const uiFontStyle *fstyle,
         memcpy(str + l_end, sep, sep_len);
         final_lpart_len = size_t(l_end + sep_len + r_len);
         /* Set string null terminator. */
-        str[final_lpart_len + 1] = '\0';
+        str[final_lpart_len] = '\0';
 
 /* Seems like this was only needed because of an error in #BLF_width_to_rstrlen(), not because of
  * integer imprecision. See PR #135239. */
