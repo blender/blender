@@ -13,6 +13,8 @@
 #include "BLI_math_base_c.hh"
 #include "BLI_math_vector_types.hh"
 
+#include "vk_common.hh"
+
 namespace blender::gpu {
 
 /**
@@ -80,13 +82,7 @@ template<typename LayoutT>
 static void align(const shader::Type &type, const int32_t array_size, uint32_t *r_offset)
 {
   uint32_t alignment = LayoutT::element_alignment(type, array_size != 0);
-  uint32_t alignment_mask = alignment - 1;
-  uint32_t offset = *r_offset;
-  if ((offset & alignment_mask) != 0) {
-    offset &= ~alignment_mask;
-    offset += alignment;
-    *r_offset = offset;
-  }
+  *r_offset = ceil_to_multiple_ul(*r_offset, alignment);
 }
 
 /**

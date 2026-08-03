@@ -82,7 +82,11 @@ static const EnumPropertyItem rna_node_geometry_string_to_curves_align_x_items[]
 };
 
 static const EnumPropertyItem rna_node_geometry_string_to_curves_align_y_items[] = {
-    {GEO_NODE_STRING_TO_CURVES_ALIGN_Y_TOP, "TOP", ICON_ALIGN_TOP, "Top", "Align text to the top"},
+    {GEO_NODE_STRING_TO_CURVES_ALIGN_Y_TOP,
+     "TOP",
+     ICON_ALIGN_TOP,
+     N_("Top"),
+     N_("Align text to the top")},
     {GEO_NODE_STRING_TO_CURVES_ALIGN_Y_TOP_BASELINE,
      "TOP_BASELINE",
      ICON_ALIGN_TOP,
@@ -107,25 +111,41 @@ static const EnumPropertyItem rna_node_geometry_string_to_curves_align_y_items[]
 };
 
 static const EnumPropertyItem rna_node_geometry_string_to_curves_pivot_mode[] = {
-    {GEO_NODE_STRING_TO_CURVES_PIVOT_MODE_MIDPOINT, "MIDPOINT", 0, "Midpoint", "Midpoint"},
-    {GEO_NODE_STRING_TO_CURVES_PIVOT_MODE_TOP_LEFT, "TOP_LEFT", 0, "Top Left", "Top Left"},
-    {GEO_NODE_STRING_TO_CURVES_PIVOT_MODE_TOP_CENTER, "TOP_CENTER", 0, "Top Center", "Top Center"},
-    {GEO_NODE_STRING_TO_CURVES_PIVOT_MODE_TOP_RIGHT, "TOP_RIGHT", 0, "Top Right", "Top Right"},
+    {GEO_NODE_STRING_TO_CURVES_PIVOT_MODE_MIDPOINT,
+     "MIDPOINT",
+     0,
+     N_("Midpoint"),
+     N_("Set the pivot point for each character at its midpoint")},
+    {GEO_NODE_STRING_TO_CURVES_PIVOT_MODE_TOP_LEFT,
+     "TOP_LEFT",
+     0,
+     N_("Top Left"),
+     N_("Set the pivot point for each character at its top left")},
+    {GEO_NODE_STRING_TO_CURVES_PIVOT_MODE_TOP_CENTER,
+     "TOP_CENTER",
+     0,
+     N_("Top Center"),
+     N_("Set the pivot point for each character at its top center")},
+    {GEO_NODE_STRING_TO_CURVES_PIVOT_MODE_TOP_RIGHT,
+     "TOP_RIGHT",
+     0,
+     N_("Top Right"),
+     N_("Set the pivot point for each character at its top right")},
     {GEO_NODE_STRING_TO_CURVES_PIVOT_MODE_BOTTOM_LEFT,
      "BOTTOM_LEFT",
      0,
      N_("Bottom Left"),
-     N_("Bottom Left")},
+     N_("Set the pivot point for each character at its bottom left")},
     {GEO_NODE_STRING_TO_CURVES_PIVOT_MODE_BOTTOM_CENTER,
      "BOTTOM_CENTER",
      0,
      N_("Bottom Center"),
-     N_("Bottom Center")},
+     N_("Set the pivot point for each character at its bottom center")},
     {GEO_NODE_STRING_TO_CURVES_PIVOT_MODE_BOTTOM_RIGHT,
      "BOTTOM_RIGHT",
      0,
      N_("Bottom Right"),
-     N_("Bottom Right")},
+     N_("Set the pivot point for each character at its bottom right")},
     {0, nullptr, 0, nullptr, nullptr},
 };
 
@@ -160,7 +180,8 @@ static void node_declare(NodeDeclarationBuilder &b)
         .static_items(rna_node_geometry_string_to_curves_align_y_items)
         .optional_label();
     p.add_input<decl::Menu>("Pivot Point"_ustr)
-        .static_items(rna_node_geometry_string_to_curves_pivot_mode);
+        .static_items(rna_node_geometry_string_to_curves_pivot_mode)
+        .description("Point around which to rotate each character instance");
   }
   {
     auto &p = b.add_panel("Spacing"_ustr).default_closed(true);

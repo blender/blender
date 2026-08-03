@@ -35,7 +35,7 @@ ccl_device int volume_fournier_forand_setup(ccl_private FournierForandVolume *vo
   volume->c2 = coeffs.y;
   volume->c3 = coeffs.z;
 
-  return SD_SCATTER;
+  return SR_SCATTER;
 }
 
 ccl_device Spectrum volume_fournier_forand_eval(const ccl_private ShaderData *sd,

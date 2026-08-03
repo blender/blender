@@ -39,6 +39,7 @@
 #  include "GPU_texture.hh"
 
 #  include "IMB_imbuf.hh"
+#  include "IMB_partial_update.hh"
 
 #  include "DNA_image_types.h"
 #  include "DNA_scene_types.h"
@@ -177,8 +178,7 @@ static void rna_Image_update(Image *image, ReportList *reports)
     IMB_byte_from_float(ibuf);
   }
 
-  ibuf->userflags |= IB_DISPLAY_BUFFER_INVALID;
-  BKE_image_partial_update_mark_full_update(image);
+  IMB_partial_update_mark_full(ibuf);
 
   BKE_image_release_ibuf(image, ibuf, nullptr);
 }
@@ -200,7 +200,6 @@ static void rna_Image_scale(
     BKE_reportf(reports, RPT_ERROR, "Image '%s' failed to load image buffer", image->id.name + 2);
     return;
   }
-  BKE_image_partial_update_mark_full_update(image);
   WM_main_add_notifier(NC_IMAGE | NA_EDITED, image);
 }
 

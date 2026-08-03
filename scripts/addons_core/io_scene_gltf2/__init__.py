@@ -7,8 +7,8 @@ bl_info = {
     # This is now displayed as the maintainer, so show the foundation.
     # "author": "Julien Duroure, Scurest, Norbert Nopper, Urs Hanselmann, Moritz Becher, Benjamin Schmithüsen, Jim Eckerlein", # Original Authors
     'author': "Blender Foundation, Khronos Group",
-    "version": (5, 3, 14),
-    'blender': (5, 2, 0),
+    "version": (5, 3, 19),
+    'blender': (5, 2, 1),
     'location': 'File > Import-Export',
     'description': 'Import-Export as glTF 2.0',
     'warning': '',
@@ -1081,13 +1081,13 @@ class ExportGLTF2_Base(ConvertGLTF2_Base):
                     setattr(self, k, v)
                 self.will_save_settings = True
 
-                # Update filter if user saved settings
-                if hasattr(self, 'export_format'):
-                    self.filter_glob = '*.glb' if self.export_format == 'GLB' else '*.gltf'
-
             except (AttributeError, TypeError):
                 self.report({"ERROR"}, "Loading export settings failed. Removed corrupted settings")
                 del context.scene[self.scene_key]
+
+        # Update filter if user saved settings or use last used format
+        if hasattr(self, 'export_format'):
+            self.filter_glob = '*.glb' if self.export_format == 'GLB' else '*.gltf'
 
         return ExportHelper.invoke(self, context, event)
 
@@ -1448,7 +1448,7 @@ def export_main(layout, operator, is_file_browser):
     if operator.export_format == 'GLTF_EMBEDDED':
         layout.label(
             text="This is the least efficient of the available forms, and should only be used when required.",
-            icon='ERROR')
+            icon='STATUS_WARNING')
 
     layout.prop(operator, 'export_copyright')
     if is_file_browser:
@@ -1551,7 +1551,7 @@ def export_panel_data_mesh(layout, operator):
                 row = sub_body.row()
                 row.label(
                     text="Note that fully compliant glTF 2.0 engine/viewer will use it as multiplicative factor for base color.",
-                    icon='ERROR')
+                    icon='STATUS_WARNING')
                 row = sub_body.row()
                 row.label(text="If you want to use VC for any other purpose than vertex color, you should use custom attributes.")
             row = sub_body.row()
@@ -2244,7 +2244,7 @@ class GLTF_AddonPreferences(bpy.types.AddonPreferences):
         if self.allow_embedded_format:
             layout.label(
                 text="This is the least efficient of the available forms, and should only be used when required.",
-                icon='ERROR')
+                icon='STATUS_WARNING')
 
 
 class IO_FH_gltf2(bpy.types.FileHandler):

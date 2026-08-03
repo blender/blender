@@ -7,13 +7,11 @@
 #include "infos/eevee_geom_infos.hh"
 #include "infos/eevee_nodetree_infos.hh"
 
-VERTEX_SHADER_CREATE_INFO(eevee_nodetree)
-
 #include "draw_model.bsl.hh"
 #include "draw_view.bsl.hh"
 #include "eevee_pipeline.bsl.hh"
 #include "eevee_reverse_z_lib.bsl.hh"
-#include "eevee_sampling_shared.hh" /* TODO(fclem): Remove. Needed becaused of fragment shader. */
+#include "eevee_sampling_shared.hh" /* TODO(fclem): Remove. Needed because of fragment shader. */
 #include "eevee_surf_common.bsl.hh"
 #include "eevee_uniform.bsl.hh"
 

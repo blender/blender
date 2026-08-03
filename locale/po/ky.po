@@ -1,9 +1,9 @@
 
 msgid ""
 msgstr ""
-"Project-Id-Version: Blender 5.2.0 LTS Beta (b'051706edb5e5')\n"
+"Project-Id-Version: Blender 5.3.0 Alpha (b'bf67fb078da0')\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-06-22 07:24+0000\n"
+"POT-Creation-Date: 2026-07-27 09:52+0000\n"
 "PO-Revision-Date: 2025-07-23 15:20+0000\n"
 "Last-Translator: Anonymous <noreply@weblate.org>\n"
 "Language-Team: Kyrgyz <https://translate.blender.org/projects/blender-ui/ui/ky/>\n"
@@ -1306,16 +1306,16 @@ msgid "Import"
 msgstr "Импорттоо"
 
 
+msgid "Mirror"
+msgstr "Чагылтуу"
+
+
 msgid "UV"
 msgstr "UV"
 
 
 msgid "Tracking"
 msgstr "Трекинг"
-
-
-msgid "Mirror"
-msgstr "Чагылтуу"
 
 
 msgctxt "MovieClip"
@@ -2339,6 +2339,10 @@ msgid "Refresh Sequencer"
 msgstr "Секвенсорду жаңылоо"
 
 
+msgid "Movie"
+msgstr "Тасма"
+
+
 msgid "Effect"
 msgstr "Эффект"
 
@@ -2849,10 +2853,6 @@ msgid "Selected Marker"
 msgstr "Тандалган маркер"
 
 
-msgid "Selected File"
-msgstr "Тандалган файл"
-
-
 msgid "Font Style"
 msgstr "Арип стили"
 
@@ -3035,11 +3035,6 @@ msgstr "Документация"
 
 msgid "File:"
 msgstr "Файлы:"
-
-
-msgctxt "Operator"
-msgid "Apply"
-msgstr "Колдонуу"
 
 
 msgid "Options:"
@@ -3302,6 +3297,11 @@ msgid "Quick Edit"
 msgstr "Тез оңдоо"
 
 
+msgctxt "Operator"
+msgid "Apply"
+msgstr "Колдонуу"
+
+
 msgid "Untitled"
 msgstr "Аты жок"
 
@@ -3326,10 +3326,6 @@ msgstr "Hex"
 
 msgid "OK"
 msgstr "ООБА"
-
-
-msgid "Movie"
-msgstr "Тасма"
 
 
 msgid "Zoom in"

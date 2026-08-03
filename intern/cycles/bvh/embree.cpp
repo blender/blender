@@ -750,6 +750,7 @@ void BVHEmbree::refit(Progress &progress)
         if (pointcloud->num_points() > 0) {
           RTCGeometry geom = rtcGetGeometry(scene, geom_id);
           set_point_vertex_buffer(geom, pointcloud, true);
+          rtcSetGeometryUserData(geom, (void *)pointcloud->prim_offset);
           rtcCommitGeometry(geom);
         }
       }

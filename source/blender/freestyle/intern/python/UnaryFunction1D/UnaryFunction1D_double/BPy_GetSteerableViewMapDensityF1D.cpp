@@ -60,8 +60,18 @@ static int GetSteerableViewMapDensityF1D___init__(BPy_GetSteerableViewMapDensity
   int i;
   float f = 2.0;
 
-  if (!PyArg_ParseTupleAndKeywords(
-          args, kwds, "i|O!f", (char **)kwlist, &i, &IntegrationType_Type, &obj, &f))
+  if (!PyArg_ParseTupleAndKeywords(args,
+                                   kwds,
+                                   "i"  /* `level` */
+                                   "|"  /* Optional arguments. */
+                                   "O!" /* `integration_type` */
+                                   "f"  /* `sampling` */
+                                   ":__init__",
+                                   (char **)kwlist,
+                                   &i,
+                                   &IntegrationType_Type,
+                                   &obj,
+                                   &f))
   {
     return -1;
   }

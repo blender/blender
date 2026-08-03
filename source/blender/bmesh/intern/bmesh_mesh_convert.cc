@@ -1650,6 +1650,15 @@ static void bm_to_mesh_loops(Mesh &mesh,
 void BM_mesh_bm_to_me(Main *bmain, BMesh *bm, Mesh *mesh, const BMeshToMeshParams *params)
 {
   const int old_verts_num = mesh->verts_num;
+  AttributeOwner owner = AttributeOwner::from_id(&mesh->id);
+  const std::string attributes_active_name = BKE_attributes_active_name_get(owner).value_or("");
+
+  /* Override (wrong) DNA default of 0 for attributes_active_index. See comments on the
+   * Mesh.attributes_active_index declaration. */
+  if (attributes_active_name.empty()) {
+    BLI_assert(ELEM(mesh->attributes_active_index, 0, -1));
+    mesh->attributes_active_index = -1;
+  }
 
   BKE_mesh_clear_geometry(mesh);
 
@@ -1923,6 +1932,23 @@ void BM_mesh_bm_to_me(Main *bmain, BMesh *bm, Mesh *mesh, const BMeshToMeshParam
   edge_single_checker.optimize_storage();
   face_single_checker.optimize_storage();
   corner_single_checker.optimize_storage();
+
+  /* Conversion to edit-mesh may have modified the attribute layers.
+   * Re-resolve the active attribute by name to keep it stable. */
+  if (!attributes_active_name.empty()) {
+    /* Invalid active attributes can happen because of wrong DNA default, see comment
+     * on the Mesh.attributes_active_index declaration. */
+    if (bke::allow_procedural_attribute_access(attributes_active_name)) {
+      BKE_attributes_active_set(owner, attributes_active_name);
+    }
+    else {
+      mesh->attributes_active_index = -1;
+    }
+  }
+  else {
+    BLI_assert(ELEM(mesh->attributes_active_index, 0, -1));
+    mesh->attributes_active_index = -1;
+  }
 }
 
 void BM_mesh_bm_to_me_compact(BMesh &bm,
@@ -1935,6 +1961,12 @@ void BM_mesh_bm_to_me_compact(BMesh &bm,
 
   /* Must be an empty mesh. */
   BLI_assert(mesh.verts_num == 0);
+
+  /* New Mesh is created with this at 0, but if the conversion from BMesh potentially adds
+   * some attributes we should make sure it is at -1 or it might point to an invalid internal
+   * attribute. */
+  mesh.attributes_active_index = -1;
+
   /* Just in case, clear the derived geometry caches from the input mesh. */
   BKE_mesh_runtime_clear_geometry(&mesh);
 

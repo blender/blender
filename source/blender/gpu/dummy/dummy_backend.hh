@@ -93,6 +93,14 @@ class DummyBackend : public GPUBackend {
   {
     return new DummyVertexBuffer;
   }
+  TopLevelAS *tlas_alloc(const char * /*name*/) override
+  {
+    return nullptr;
+  }
+  BottomLevelAS *blas_alloc(const char * /*name*/) override
+  {
+    return nullptr;
+  }
   void shader_cache_dir_clear_old() override {}
   void render_begin() override {}
   void render_end() override {}

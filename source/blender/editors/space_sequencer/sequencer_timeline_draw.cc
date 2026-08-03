@@ -300,7 +300,7 @@ static void color3ubv_from_seq(const Scene *curscene,
   if (show_strip_color_tag && uint(strip->color_tag) < STRIP_COLOR_TOT &&
       strip->color_tag != STRIP_COLOR_NONE)
   {
-    bTheme *btheme = ui::theme::theme_get();
+    const bTheme *btheme = ui::theme::theme_get();
     const ThemeStripColor *strip_color = &btheme->strip_color[strip->color_tag];
     copy_v3_v3_uchar(r_col, strip_color->color);
     return;
@@ -974,7 +974,7 @@ static void draw_strip_icons(const TimelineDrawContext &ctx,
       if (missing_media) {
         rect.xmax = min_ff(strip.right_handle - strip.handle_width,
                            rect.xmin + icon_size_x + icon_spacing);
-        draw_icon_centered(ctx, rect, ICON_ERROR, col);
+        draw_icon_centered(ctx, rect, ICON_STATUS_WARNING_FILLED, col);
         rect.xmin = rect.xmax;
       }
       if (is_connected) {
@@ -1002,7 +1002,7 @@ static void draw_strip_icons(const TimelineDrawContext &ctx,
         draw_icon_centered(ctx, rect, ICON_LIBRARY_DATA_BROKEN, col);
       }
       if (missing_media) {
-        draw_icon_centered(ctx, rect, ICON_ERROR, col);
+        draw_icon_centered(ctx, rect, ICON_STATUS_ERROR, col);
       }
     }
   }

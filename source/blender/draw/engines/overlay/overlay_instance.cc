@@ -369,7 +369,7 @@ void Resources::update_theme_settings(const DRWContext *ctx, const State &state)
       state.rv3d ? TH_GRID_MAJOR : TH_GRID, is_bg_darker ? 20 : -10, gb.colors.grid_emphasis);
 
   /* Grid axes */
-  bTheme *btheme = ui::theme::theme_get();
+  const bTheme *btheme = ui::theme::theme_get();
   const float grid_axis_brightness = btheme->space_view3d.grid_axis_brightness;
   const int grid_axis_offset_i = static_cast<int>((grid_axis_brightness * 2.0f - 1.0f) * 255.0f);
   ui::theme::get_color_blend_shade_4fv(
@@ -878,9 +878,12 @@ void Instance::draw_v3d(Manager &manager, View &view)
     layer.curves.draw_line(framebuffer, manager, view);
   };
 
+  auto draw_line_only = [&](OverlayLayer &layer, Framebuffer &framebuffer) {
+    layer.meshes.draw_line_only(framebuffer, manager, view);
+  };
+
   auto draw_color_only = [&](OverlayLayer &layer, Framebuffer &framebuffer) {
     layer.light_probes.draw_color_only(framebuffer, manager, view);
-    layer.meshes.draw_color_only(framebuffer, manager, view);
     layer.curves.draw_color_only(framebuffer, manager, view);
     layer.grease_pencil.draw_color_only(framebuffer, manager, view);
   };
@@ -972,6 +975,8 @@ void Instance::draw_v3d(Manager &manager, View &view)
 
     draw_color_only(regular, resources.overlay_color_only_fb);
     draw_color_only(infront, resources.overlay_color_only_fb);
+    draw_line_only(regular, resources.overlay_line_only_fb);
+    draw_line_only(infront, resources.overlay_line_only_fb);
 
     /* TODO(fclem): Split overlay and rename draw functions. */
     regular.empties.draw_in_front_images(resources.overlay_color_only_fb, manager, view);

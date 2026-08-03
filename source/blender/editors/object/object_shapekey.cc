@@ -152,6 +152,13 @@ static void object_shape_key_add(bContext *C, Object *ob, const bool from_mix)
     /* for absolute shape keys, new keys may not be added last */
     ob->shapenr = BLI_findindex(&key->block, kb) + 1;
 
+    /* Explicitly deselect current selection when adding a new key, rather than
+     * relying on the tree view's state. This is problematic when the same data is
+     * shown in more than one view instance, see #161071. */
+    for (KeyBlock &other : key->block) {
+      SET_FLAG_FROM_TEST(other.flag, &other == kb, KEYBLOCK_SEL);
+    }
+
     WM_event_add_notifier(C, NC_OBJECT | ND_DRAW, ob);
   }
 }

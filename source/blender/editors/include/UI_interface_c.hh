@@ -992,14 +992,24 @@ Layout *pie_menu_layout(PieMenu *pie);
 using BlockCreateFunc = Block *(*)(bContext * C, ARegion *region, void *arg1);
 using BlockCancelFunc = void (*)(bContext *C, void *arg1);
 
-void popup_block_invoke(bContext *C, BlockCreateFunc func, void *arg, FreeArgFunc arg_free);
+void popup_block_invoke(bContext *C,
+                        BlockCreateFunc func,
+                        void *arg,
+                        FreeArgFunc arg_free,
+                        StructRNA *srna_owner = nullptr);
 /**
  * \param can_refresh: When true, the popup may be refreshed (updated after creation).
  * \note It can be useful to disable refresh (even though it will work)
  * as this exits text fields which can be disruptive if refresh isn't needed.
+ * \param srna_owner: The StructRNA type that owns this popup, this popup should be removed if this
+ * type gets unregistered.
  */
-void popup_block_invoke_ex(
-    bContext *C, BlockCreateFunc func, void *arg, FreeArgFunc arg_free, bool can_refresh);
+void popup_block_invoke_ex(bContext *C,
+                           BlockCreateFunc func,
+                           void *arg,
+                           FreeArgFunc arg_free,
+                           bool can_refresh,
+                           StructRNA *srna_owner = nullptr);
 void popup_block_ex(bContext *C,
                     BlockCreateFunc func,
                     BlockHandleFunc popup_func,
@@ -2306,6 +2316,13 @@ void popup_handlers_add(bContext *C,
 void popup_handlers_remove(ListBaseT<wmEventHandler> *handlers, PopupBlockHandle *popup);
 void popup_handlers_remove_all(bContext *C, ListBaseT<wmEventHandler> *handlers);
 
+/**
+ * Tags for refresh popup/menu handlers referencing a #StructRNA that is being unregistered,
+ * popups/menus that can't be refreshed or are created using the \a srna_to_unreg reference will
+ * be removed.
+ */
+void refresh_for_srna_unregister(Main *bmain, StructRNA *srna_to_unreg);
+
 /* Module
  *
  * init and exit should be called before using this module. init_userdef must
@@ -2866,13 +2883,6 @@ Block *region_block_find_mouse_over(const ARegion *region, const int xy[2], bool
  */
 ARegion *region_searchbox_region_get(const ARegion *button_region);
 
-/** #uiFontStyle.align */
-enum FontStyleAlign {
-  UI_STYLE_TEXT_LEFT = 0,
-  UI_STYLE_TEXT_CENTER = 1,
-  UI_STYLE_TEXT_RIGHT = 2,
-};
-
 struct FontStyleDrawParams {
   FontStyleAlign align;
   uint word_wrap : 1;
@@ -3138,5 +3148,28 @@ AbstractViewItem *region_views_find_active_item(const ARegion *region, const Abs
 Button *region_views_find_active_item_but(const ARegion *region);
 void region_views_clear_search_highlight(const ARegion *region);
 
+enum class ActivationButtonState : int8_t {
+  Highlight,
+  WaitKeyEvent,
+  NumEditing,
+  TextEditing,
+};
+
+/**
+ * Attempt to activate an button referencing an RNA property. If any other button in the screen is
+ * active, it will be deactivated.
+ * \param state: Activation state for the button. Some states are specific to certain button types;
+ * when an incompatible state is provided, the button will be activated with the
+ * #ActivationButtonState::Highlight state.
+ * \param index: Index of the button that references the RNA property.
+ * \return The center point of the button in window coordinates when successfully activated.
+ */
+std::optional<int2> try_activate_rna_button(bContext *C,
+                                            ARegion *region,
+                                            ActivationButtonState target_state,
+                                            PointerRNA *ptr,
+                                            PropertyRNA *prop,
+                                            bool warp_cursor_at_button = false,
+                                            int index = 0);
 }  // namespace ui
 }  // namespace blender

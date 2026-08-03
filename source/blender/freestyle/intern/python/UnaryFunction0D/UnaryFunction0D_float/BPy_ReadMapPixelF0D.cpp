@@ -46,7 +46,15 @@ static int ReadMapPixelF0D___init__(BPy_ReadMapPixelF0D *self, PyObject *args, P
   const char *s;
   int i;
 
-  if (!PyArg_ParseTupleAndKeywords(args, kwds, "si", (char **)kwlist, &s, &i)) {
+  if (!PyArg_ParseTupleAndKeywords(args,
+                                   kwds,
+                                   "s" /* `map_name` */
+                                   "i" /* `level` */
+                                   ":__init__",
+                                   (char **)kwlist,
+                                   &s,
+                                   &i))
+  {
     return -1;
   }
   self->py_uf0D_float.uf0D_float = new Functions0D::ReadMapPixelF0D(s, i);

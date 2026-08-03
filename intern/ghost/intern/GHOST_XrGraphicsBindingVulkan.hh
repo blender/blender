@@ -10,11 +10,9 @@
 
 #include <list>
 
-#include <vulkan/vulkan.h>
-#ifdef _WIN32
-#  include <vulkan/vulkan_win32.h>
-#endif
-
+#define VOLK_NAMESPACE
+#define VOLK_NO_DEVICE_PROTOTYPES
+#include "volk.h"
 #define VMA_VULKAN_VERSION 1002000  // Vulkan 1.2
 #if !defined(_WIN32) or defined(_M_ARM64)
 /* Silence compilation warning on non-windows x64 systems. */
@@ -129,6 +127,7 @@ class GHOST_XrGraphicsBindingVulkan : public GHOST_IXrGraphicsBinding {
   VkBuffer vk_buffer_ = VK_NULL_HANDLE;
   VmaAllocationInfo vk_buffer_allocation_info_ = {};
   GHOST_TVulkanXRModes data_transfer_mode_ = GHOST_kVulkanXRModeCPU;
+  volk::VolkDeviceTable functions = {};
 
   std::list<std::vector<XrSwapchainImageVulkan2KHR>> image_cache_;
   VkCommandPool vk_command_pool_ = VK_NULL_HANDLE;

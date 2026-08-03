@@ -316,6 +316,11 @@ void IMB_thumb_makedirs()
   }
 }
 
+static bool thumb_cancel_requested(const ThumbCancellationToken *cancel_token)
+{
+  return cancel_token && cancel_token->is_cancelled();
+}
+
 /* create thumbnail for file and returns new imbuf for thumbnail */
 static ImBuf *thumb_create_ex(const char *file_path,
                               const char *uri,
@@ -326,8 +331,13 @@ static ImBuf *thumb_create_ex(const char *file_path,
                               const char *blen_id,
                               ThumbSize size,
                               ThumbSource source,
-                              ImBuf *img)
+                              ImBuf *img,
+                              const ThumbCancellationToken *cancel_token = nullptr)
 {
+  if (thumb_cancel_requested(cancel_token)) {
+    return nullptr;
+  }
+
   /* Just in case these folders got deleted somehow. */
   IMB_thumb_makedirs();
 
@@ -423,6 +433,11 @@ static ImBuf *thumb_create_ex(const char *file_path,
         return nullptr;
       }
 
+      if (thumb_cancel_requested(cancel_token)) {
+        IMB_freeImBuf(img);
+        return nullptr;
+      }
+
       if (img->x > tsize || img->y > tsize) {
         float scale = std::min(float(tsize) / float(img->x), float(tsize) / float(img->y));
         /* Scaling down must never assign zero width/height, see: #89868. */
@@ -438,6 +453,12 @@ static ImBuf *thumb_create_ex(const char *file_path,
         IMB_scale(img, ex, ey, IMBScaleFilter::Box, false);
       }
     }
+
+    if (thumb_cancel_requested(cancel_token)) {
+      IMB_freeImBuf(img);
+      return nullptr;
+    }
+
     SNPRINTF_UTF8(desc, "Thumbnail for %s", uri);
     IDProperty *metadata = img->metadata_for_write();
     IMB_metadata_set_field(metadata, "Software", "Blender");
@@ -474,12 +495,22 @@ static ImBuf *thumb_create_or_fail(const char *file_path,
                                    const char *blen_group,
                                    const char *blen_id,
                                    ThumbSize size,
-                                   ThumbSource source)
+                                   ThumbSource source,
+                                   const ThumbCancellationToken *cancel_token)
 {
-  ImBuf *img = thumb_create_ex(
-      file_path, uri, thumb, use_hash, hash, blen_group, blen_id, size, source, nullptr);
+  ImBuf *img = thumb_create_ex(file_path,
+                               uri,
+                               thumb,
+                               use_hash,
+                               hash,
+                               blen_group,
+                               blen_id,
+                               size,
+                               source,
+                               nullptr,
+                               cancel_token);
 
-  if (!img) {
+  if (!img && !thumb_cancel_requested(cancel_token)) {
     /* thumb creation failed, write fail thumb */
     img = thumb_create_ex(
         file_path, uri, thumb, use_hash, hash, blen_group, blen_id, THB_FAIL, source, nullptr);
@@ -567,8 +598,15 @@ void IMB_thumb_delete(const char *file_or_lib_path, ThumbSize size)
   }
 }
 
-ImBuf *IMB_thumb_manage(const char *file_or_lib_path, ThumbSize size, ThumbSource source)
+ImBuf *IMB_thumb_manage(const char *file_or_lib_path,
+                        ThumbSize size,
+                        ThumbSource source,
+                        const ThumbCancellationToken *cancel_token)
 {
+  if (thumb_cancel_requested(cancel_token)) {
+    return nullptr;
+  }
+
   if (source == THB_SOURCE_DIRECT) {
     const eFileAttributes file_attributes = BLI_file_attributes(file_or_lib_path);
     /* Don't trigger download files from online drives. Maybe less of a problem for
@@ -692,16 +730,32 @@ ImBuf *IMB_thumb_manage(const char *file_or_lib_path, ThumbSize size, ThumbSourc
           IMB_thumb_delete(file_or_lib_path, THB_NORMAL);
           IMB_thumb_delete(file_or_lib_path, THB_LARGE);
           IMB_thumb_delete(file_or_lib_path, THB_FAIL);
-          img = thumb_create_or_fail(
-              file_path, uri, thumb_name, use_hash, thumb_hash, blen_group, blen_id, size, source);
+          img = thumb_create_or_fail(file_path,
+                                     uri,
+                                     thumb_name,
+                                     use_hash,
+                                     thumb_hash,
+                                     blen_group,
+                                     blen_id,
+                                     size,
+                                     source,
+                                     cancel_token);
         }
       }
       else {
         char thumb_hash[33];
         const bool use_hash = thumbhash_from_path(file_path, source, thumb_hash);
 
-        img = thumb_create_or_fail(
-            file_path, uri, thumb_name, use_hash, thumb_hash, blen_group, blen_id, size, source);
+        img = thumb_create_or_fail(file_path,
+                                   uri,
+                                   thumb_name,
+                                   use_hash,
+                                   thumb_hash,
+                                   blen_group,
+                                   blen_id,
+                                   size,
+                                   source,
+                                   cancel_token);
       }
     }
   }

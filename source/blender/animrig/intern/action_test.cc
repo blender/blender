@@ -1288,7 +1288,7 @@ TEST_F(ActionQueryTest, BKE_action_frame_range_calc)
 
   /* One curve with one key. */
   {
-    FCurve &fcu = *MEM_new<FCurve>(__func__);
+    FCurve &fcu = *BKE_fcurve_create();
     allocate_keyframes(fcu, 1);
     add_keyframe(fcu, 1.0f, 2.0f);
 
@@ -1302,8 +1302,8 @@ TEST_F(ActionQueryTest, BKE_action_frame_range_calc)
 
   /* Two curves with one key each on different frames. */
   {
-    FCurve &fcu1 = *MEM_new<FCurve>(__func__);
-    FCurve &fcu2 = *MEM_new<FCurve>(__func__);
+    FCurve &fcu1 = *BKE_fcurve_create();
+    FCurve &fcu2 = *BKE_fcurve_create();
     allocate_keyframes(fcu1, 1);
     allocate_keyframes(fcu2, 1);
     add_keyframe(fcu1, 1.0f, 2.0f);
@@ -1320,7 +1320,7 @@ TEST_F(ActionQueryTest, BKE_action_frame_range_calc)
 
   /* One curve with two keys. */
   {
-    FCurve &fcu = *MEM_new<FCurve>(__func__);
+    FCurve &fcu = *BKE_fcurve_create();
     allocate_keyframes(fcu, 2);
     add_keyframe(fcu, 1.0f, 2.0f);
     add_keyframe(fcu, 1.5f, 2.0f);
@@ -1347,7 +1347,7 @@ TEST_F(ActionQueryTest, action_has_single_frame)
 
   /* One curve with one key. */
   {
-    FCurve &fcu = *MEM_new<FCurve>(__func__);
+    FCurve &fcu = *BKE_fcurve_create();
     allocate_keyframes(fcu, 1);
     add_keyframe(fcu, 1.0f, 2.0f);
 
@@ -1361,8 +1361,8 @@ TEST_F(ActionQueryTest, action_has_single_frame)
 
   /* Two curves with one key each. */
   {
-    FCurve &fcu1 = *MEM_new<FCurve>(__func__);
-    FCurve &fcu2 = *MEM_new<FCurve>(__func__);
+    FCurve &fcu1 = *BKE_fcurve_create();
+    FCurve &fcu2 = *BKE_fcurve_create();
     allocate_keyframes(fcu1, 1);
     allocate_keyframes(fcu2, 1);
     add_keyframe(fcu1, 1.0f, 327.0f);
@@ -1383,7 +1383,7 @@ TEST_F(ActionQueryTest, action_has_single_frame)
 
   /* One curve with two keys. */
   {
-    FCurve &fcu = *MEM_new<FCurve>(__func__);
+    FCurve &fcu = *BKE_fcurve_create();
     allocate_keyframes(fcu, 2);
     add_keyframe(fcu, 1.0f, 2.0f);
     add_keyframe(fcu, 2.0f, 2.5f);

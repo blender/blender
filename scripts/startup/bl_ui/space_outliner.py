@@ -470,7 +470,6 @@ class OUTLINER_PT_options_search(Panel):
 
     @classmethod
     def poll(cls, context):
-        st = context.space_data
         space = context.space_data
         display_mode = space.display_mode
 
@@ -484,7 +483,6 @@ class OUTLINER_PT_options_search(Panel):
     def draw(self, context):
         layout = self.layout
         space = context.space_data
-        display_mode = space.display_mode
 
         col = layout.column(align=True)
         col.prop(space, "use_filter_complete", text="Exact Match")
@@ -506,7 +504,6 @@ class OUTLINER_PT_options_filter(Panel):
     def draw(self, context):
         layout = self.layout
         space = context.space_data
-        display_mode = space.display_mode
         col = layout.column(align=True)
 
         row = col.row()

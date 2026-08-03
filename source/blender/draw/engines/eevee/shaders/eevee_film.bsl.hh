@@ -137,10 +137,11 @@ struct Film {
   [[image(1, write, SFLOAT_32)]] image2DArray out_weight_img;
 
   /* Accumulation buffers. */
-  [[image(3, read_write, SFLOAT_16_16_16_16)]] image2D out_combined_img;
-  [[image(4, read_write, SFLOAT_32)]] image2D depth_img;
-  [[image(5, read_write, SFLOAT_16_16_16_16)]] image2DArray color_accum_img;
-  [[image(6, read_write, SFLOAT_16)]] image2DArray value_accum_img;
+  [[image(2, read_write, SFLOAT_16_16_16_16)]] image2D out_combined_img;
+  [[image(3, read_write, SFLOAT_32)]] image2D depth_img;
+  [[image(4, read_write, SFLOAT_16_16_16_16)]] image2DArray color_accum_img;
+  [[image(5, read_write, SFLOAT_16)]] image2DArray value_accum_img;
+  [[image(6, read_write, SFLOAT_32)]] image2D denoising_depth_img;
 
   [[resource_table]] srt_t<Cryptomatte> cryptomatte;
   [[resource_table]] srt_t<Uniform> uniforms;
@@ -787,6 +788,26 @@ struct Film {
     imageStoreFast(depth_img, texel_film, float4(depth_value));
   }
 
+  void store_denoising_depth(FilmSample dst, float value, float4 &display)
+  {
+    [[resource_table]] const Uniform &uni = this->uniforms;
+
+    if (uni.uniform_buf.film.denoising_depth_id == -1) {
+      return;
+    }
+
+    float data_film = imageLoadFast(denoising_depth_img, dst.texel).x;
+
+    value = (data_film * dst.weight + value) * dst.weight_sum_inv;
+
+    if (uni.uniform_buf.film.display_storage_type == PASS_STORAGE_DENOISING_DEPTH &&
+        display_id == uni.uniform_buf.film.denoising_depth_id)
+    {
+      display = float4(value, value, value, 1.0f);
+    }
+    imageStoreFast(denoising_depth_img, dst.texel, float4(value));
+  }
+
   void store_distance(int2 texel, float value)
   {
     imageStoreFast(out_weight_img, int3(texel, FILM_WEIGHT_LAYER_DISTANCE), float4(value));
@@ -988,6 +1009,65 @@ struct Film {
       store_color(dst, uni.uniform_buf.film.transparent_id, transparent_accum, out_color);
     }
 
+    if (flag_test(enabled_categories, PASS_CATEGORY_DENOISE)) {
+      float denoising_depth_accum = 0.0f;
+      float4 denoising_normal_accum = float4(0.0f);
+      float denoising_roughness_accum = 0.0f;
+      float4 denoising_diffuse_albedo_accum = float4(0.0f);
+      float4 denoising_specular_albedo_accum = float4(0.0f);
+
+      for (int i = 0; i < samples_len; i++) {
+        FilmSample src = sample_get(i, texel_film);
+        if (uni.uniform_buf.film.denoising_depth_id >= 0) {
+          float depth = reverse_z::read(texelFetch(depth_tx, src.texel, 0).x);
+          if (depth == 1.0f) {
+            /* Match clear value of depth pass. */
+            depth = 1e10f;
+          }
+          else {
+            /* Average over view space z. */
+            [[resource_table]] const draw::View &views = this->views_;
+            depth = depth_convert_to_scene(views.get(0), depth);
+          }
+          denoising_depth_accum += depth * src.weight;
+        }
+        sample_accum(src,
+                     uni.uniform_buf.film.denoising_normal_id,
+                     uni.uniform_buf.render_pass.denoising_normal_id,
+                     rp_color_tx,
+                     denoising_normal_accum);
+        sample_accum(src,
+                     uni.uniform_buf.film.denoising_roughness_id,
+                     uni.uniform_buf.render_pass.denoising_roughness_id,
+                     rp_value_tx,
+                     denoising_roughness_accum);
+        sample_accum(src,
+                     uni.uniform_buf.film.denoising_diffuse_albedo_id,
+                     uni.uniform_buf.render_pass.denoising_diffuse_albedo_id,
+                     rp_color_tx,
+                     denoising_diffuse_albedo_accum);
+        sample_accum(src,
+                     uni.uniform_buf.film.denoising_specular_albedo_id,
+                     uni.uniform_buf.render_pass.denoising_specular_albedo_id,
+                     rp_color_tx,
+                     denoising_specular_albedo_accum);
+      }
+
+      store_denoising_depth(dst, denoising_depth_accum, out_color);
+      store_color(
+          dst, uni.uniform_buf.film.denoising_normal_id, denoising_normal_accum, out_color, false);
+      store_value(
+          dst, uni.uniform_buf.film.denoising_roughness_id, denoising_roughness_accum, out_color);
+      store_color(dst,
+                  uni.uniform_buf.film.denoising_diffuse_albedo_id,
+                  denoising_diffuse_albedo_accum,
+                  out_color);
+      store_color(dst,
+                  uni.uniform_buf.film.denoising_specular_albedo_id,
+                  denoising_specular_albedo_accum,
+                  out_color);
+    }
+
     if (flag_test(enabled_categories, PASS_CATEGORY_AOV)) {
       for (int aov = 0; aov < uni.uniform_buf.film.aov_color_len; aov++) {
         float4 aov_accum = float4(0.0f);
@@ -1075,9 +1155,13 @@ void accumulate_or_display_frag([[resource_table]] const FilmDisplay &srt,
     else if (uni.uniform_buf.film.display_storage_type == PASS_STORAGE_COLOR) {
       frag_out.color = imageLoadFast(film.color_accum_img, int3(texel_film, film.display_id));
     }
-    else /* PASS_STORAGE_CRYPTOMATTE */ {
+    else if (uni.uniform_buf.film.display_storage_type == PASS_STORAGE_CRYPTOMATTE) {
       frag_out.color = cryptomatte::false_color(
           imageLoadFast(cryptomatte.cryptomatte_img, int3(texel_film, film.display_id)).r);
+    }
+    else /* PASS_STORAGE_DENOISING_DEPTH */ {
+      frag_out.color.rgb = imageLoadFast(film.denoising_depth_img, texel_film).rrr;
+      frag_out.color.a = 1.0f;
     }
   }
   else {
@@ -1118,9 +1202,12 @@ void display_frag([[resource_table]] Film &film,
   else if (uni.uniform_buf.film.display_storage_type == PASS_STORAGE_COLOR) {
     frag_out.color = imageLoadFast(film.color_accum_img, int3(texel, film.display_id));
   }
-  else /* PASS_STORAGE_CRYPTOMATTE */ {
+  else if (uni.uniform_buf.film.display_storage_type == PASS_STORAGE_CRYPTOMATTE) {
     frag_out.color = cryptomatte::false_color(
         imageLoadFast(cryptomatte.cryptomatte_img, int3(texel, film.display_id)).r);
+  }
+  else /* PASS_STORAGE_DENOISING_DEPTH */ {
+    frag_out.color = imageLoadFast(film.denoising_depth_img, texel);
   }
 
   out_depth = imageLoadFast(film.depth_img, texel).r;

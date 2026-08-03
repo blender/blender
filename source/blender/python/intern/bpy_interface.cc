@@ -124,10 +124,11 @@ void BPY_context_update(bContext *C)
  * \param allow_null_context: Ideally we would phase this out,
  * however some code uses a null context, see: `bpy_context_set_allow_null` docstring for details.
  */
-static void bpy_context_set_ex(bContext *C,
+static bool bpy_context_set_ex(bContext *C,
                                PyGILState_STATE *gilstate,
                                const bool allow_null_context)
 {
+  bool context_set = false;
   py_call_level++;
 
   if (gilstate) {
@@ -140,6 +141,7 @@ static void bpy_context_set_ex(bContext *C,
     }
 
     BPY_context_update(C);
+    context_set = true;
 
     if (C != nullptr) {
       pyrna_context_init(C);
@@ -156,16 +158,18 @@ static void bpy_context_set_ex(bContext *C,
     bpy_timer_count++;
 #endif
   }
+
+  return context_set;
 }
 
-void bpy_context_set(bContext *C, PyGILState_STATE *gilstate)
+bool bpy_context_set(bContext *C, PyGILState_STATE *gilstate)
 {
-  bpy_context_set_ex(C, gilstate, false);
+  return bpy_context_set_ex(C, gilstate, false);
 }
 
-void bpy_context_set_allow_null(bContext *C, PyGILState_STATE *gilstate)
+bool bpy_context_set_allow_null(bContext *C, PyGILState_STATE *gilstate)
 {
-  bpy_context_set_ex(C, gilstate, true);
+  return bpy_context_set_ex(C, gilstate, true);
 }
 
 void bpy_context_clear(bContext *C, const PyGILState_STATE *gilstate)
@@ -1164,6 +1168,16 @@ PyMODINIT_FUNC PyInit_bpy()
     return nullptr; /* The error has been set. */
   }
 
+  /* Assign dummy type. */
+  dealloc_obj_Type.tp_name = "dealloc_obj";
+  dealloc_obj_Type.tp_basicsize = sizeof(dealloc_obj);
+  dealloc_obj_Type.tp_dealloc = dealloc_obj_dealloc;
+  dealloc_obj_Type.tp_flags = Py_TPFLAGS_DEFAULT;
+
+  if (PyType_Ready(&dealloc_obj_Type) < 0) {
+    return nullptr;
+  }
+
   PyObject *bpy_proxy = PyModule_Create(&bpy_proxy_def);
 
   /* Problem:
@@ -1182,16 +1196,6 @@ PyMODINIT_FUNC PyInit_bpy()
 
   /* Assign an object which is freed after `__file__` is assigned. */
   dealloc_obj *dob;
-
-  /* Assign dummy type. */
-  dealloc_obj_Type.tp_name = "dealloc_obj";
-  dealloc_obj_Type.tp_basicsize = sizeof(dealloc_obj);
-  dealloc_obj_Type.tp_dealloc = dealloc_obj_dealloc;
-  dealloc_obj_Type.tp_flags = Py_TPFLAGS_DEFAULT;
-
-  if (PyType_Ready(&dealloc_obj_Type) < 0) {
-    return nullptr;
-  }
 
   dob = (dealloc_obj *)dealloc_obj_Type.tp_alloc(&dealloc_obj_Type, 0);
   dob->mod = bpy_proxy;                                       /* borrow */

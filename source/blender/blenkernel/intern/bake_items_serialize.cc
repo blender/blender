@@ -786,6 +786,48 @@ static GreasePencil *try_load_grease_pencil(const DictionaryValue &io_geometry,
   return grease_pencil;
 }
 
+static void load_texspace(const DictionaryValue *io_mesh, Mesh *mesh)
+{
+
+  const auto reset_texspace_default = [](Mesh *mesh) {
+    std::ranges::fill(mesh->texspace_location, 0.0f);
+    std::ranges::fill(mesh->texspace_size, 1.0f);
+  };
+
+  const auto fill_texspace_values = [](const io::serialize::ArrayValue *io_array,
+                                       float r_texspace_property[3]) -> bool {
+    size_t i = 0;
+    for (const std::shared_ptr<Value> &value : io_array->elements()) {
+      if (value->type() != io::serialize::eValueType::Double) {
+        return false;
+      }
+      r_texspace_property[i++] = static_cast<float>(value->as_double_value()->value());
+    }
+    return true;
+  };
+
+  mesh->texspace_flag = io_mesh->lookup_bool("texture_space_flag").value_or(false);
+
+  const io::serialize::ArrayValue *io_texloc_array = io_mesh->lookup_array(
+      "texture_space_location");
+  const io::serialize::ArrayValue *io_texsize_array = io_mesh->lookup_array("texture_space_size");
+
+  if (!io_texloc_array || !io_texsize_array) {
+    reset_texspace_default(mesh);
+    return;
+  }
+
+  BLI_assert(io_texloc_array->elements().size() == 3);
+  BLI_assert(io_texsize_array->elements().size() == 3);
+
+  if (!fill_texspace_values(io_texloc_array, mesh->texspace_location) ||
+      !fill_texspace_values(io_texsize_array, mesh->texspace_size))
+  {
+    reset_texspace_default(mesh);
+    return;
+  }
+}
+
 static Mesh *try_load_mesh(const DictionaryValue &io_geometry,
                            const BlobReader &blob_reader,
                            const BlobReadSharing &blob_sharing)
@@ -850,6 +892,8 @@ static Mesh *try_load_mesh(const DictionaryValue &io_geometry,
       return cancel();
     }
   }
+
+  load_texspace(io_mesh, mesh);
 
   if (const std::optional<StringRefNull> default_uv_map_name = io_mesh->lookup_str(
           "default_uv_map_name"))
@@ -1110,6 +1154,22 @@ static void serialize_curves_geometry(DictionaryValue &io_curves,
   io_curves.append("attributes", io_attributes);
 }
 
+static void serialize_texture_space(const Mesh &mesh, std::shared_ptr<DictionaryValue> io_mesh)
+{
+  io_mesh->append_bool("texture_space_flag", mesh.texspace_flag);
+
+  std::shared_ptr<ArrayValue> texspace_location_array = io_mesh->append_array(
+      "texture_space_location");
+  for (float value : Span(mesh.texspace_location, 3)) {
+    texspace_location_array->append_double(value);
+  }
+
+  std::shared_ptr<ArrayValue> texspace_size_array = io_mesh->append_array("texture_space_size");
+  for (float value : Span(mesh.texspace_size, 3)) {
+    texspace_size_array->append_double(value);
+  }
+}
+
 static std::shared_ptr<DictionaryValue> serialize_geometry_set(const GeometrySet &geometry,
                                                                BlobWriter &blob_writer,
                                                                BlobWriteSharing &blob_sharing)
@@ -1141,6 +1201,8 @@ static std::shared_ptr<DictionaryValue> serialize_geometry_set(const GeometrySet
         io_vertex_group_names->append_str(defgroup.name);
       }
     }
+
+    serialize_texture_space(mesh, io_mesh);
 
     const StringRef default_uv_map_name = mesh.default_uv_map_name();
     if (!default_uv_map_name.is_empty()) {
@@ -1635,11 +1697,21 @@ static void serialize_list(const nodes::GListPtr &list_ptr,
   }
   const nodes::GList &list = *list_ptr;
   const CPPType &type = list.cpp_type();
+  std::optional<eCustomDataType> data_type;
   if (type.is<SocketValueVariant>()) {
     r_io_item.append_str("item_type", "SOCKET_VALUE_VARIANT");
   }
+  else if (type.is<GeometrySet>()) {
+    r_io_item.append_str("item_type", "GEOMETRY");
+  }
+  else if (type.is<nodes::BundlePtr>()) {
+    r_io_item.append_str("item_type", "BUNDLE");
+  }
+  else if (type.is<std::string>()) {
+    r_io_item.append_str("item_type", "STRING");
+  }
   else {
-    const std::optional<eCustomDataType> data_type = cpp_type_to_custom_data_type(type);
+    data_type = cpp_type_to_custom_data_type(type);
     BLI_assert(data_type);
     r_io_item.append_str("item_type", get_data_type_io_name(*data_type));
   }
@@ -1651,7 +1723,7 @@ static void serialize_list(const nodes::GListPtr &list_ptr,
   }
   else if (const auto *array_data = std::get_if<nodes::GList::ArrayData>(&list.data())) {
     const GSpan array_span{type, array_data->data, list.size()};
-    if (type.is_trivial) {
+    if (type.is_trivial && data_type) {
       r_io_item.append("data",
                        write_blob_shared_simple_gspan(
                            blob_writer, blob_sharing, array_span, array_data->sharing_info.get()));
@@ -1664,6 +1736,56 @@ static void serialize_list(const nodes::GListPtr &list_ptr,
       }
     }
   }
+}
+
+template<typename T>
+static std::optional<T> deserialize_list_item(const DictionaryValue &io_value,
+                                              const BlobReader &blob_reader,
+                                              const BlobReadSharing &blob_sharing)
+{
+  std::optional<SocketValueVariant> value = deserialize_bake_item(
+      io_value, blob_reader, blob_sharing);
+  if (!value || !value->is_single()) {
+    return std::nullopt;
+  }
+  return value->extract<T>();
+}
+
+template<typename T>
+static std::optional<SocketValueVariant> deserialize_value_list(
+    const DictionaryValue &io_item,
+    const int num_items,
+    const BlobReader &blob_reader,
+    const BlobReadSharing &blob_sharing)
+{
+  const CPPType &cpp_type = CPPType::get<T>();
+  if (const DictionaryValue *io_value = io_item.lookup_dict("value")) {
+    std::optional<T> value = deserialize_list_item<T>(*io_value, blob_reader, blob_sharing);
+    if (!value) {
+      return std::nullopt;
+    }
+    nodes::GListPtr list = nodes::GList::create(
+        cpp_type, nodes::GList::SingleData::ForValue(GPointer{cpp_type, &*value}), num_items);
+    return SocketValueVariant::From(std::move(list));
+  }
+  const ArrayValue *io_values = io_item.lookup_array("data");
+  if (!io_values || io_values->elements().size() != num_items) {
+    return std::nullopt;
+  }
+  GArray<> values(cpp_type, num_items);
+  MutableSpan<T> values_span = values.as_mutable_span().typed<T>();
+  for (const int i : IndexRange(num_items)) {
+    const DictionaryValue *io_value = io_values->elements()[i]->as_dictionary_value();
+    if (!io_value) {
+      return std::nullopt;
+    }
+    std::optional<T> value = deserialize_list_item<T>(*io_value, blob_reader, blob_sharing);
+    if (!value) {
+      return std::nullopt;
+    }
+    values_span[i] = std::move(*value);
+  }
+  return SocketValueVariant::From(nodes::GList::from_garray(std::move(values)));
 }
 
 static void serialize_socket_value_variant(const SocketValueVariant &value_variant,
@@ -1843,6 +1965,16 @@ static std::optional<SocketValueVariant> deserialize_bake_item(const DictionaryV
         values[i] = std::move(*value);
       }
       return SocketValueVariant::From(nodes::GList::from_container(values));
+    }
+    if (io_list_item_type == "GEOMETRY") {
+      return deserialize_value_list<GeometrySet>(io_item, *num_items, blob_reader, blob_sharing);
+    }
+    if (io_list_item_type == "BUNDLE") {
+      return deserialize_value_list<nodes::BundlePtr>(
+          io_item, *num_items, blob_reader, blob_sharing);
+    }
+    if (io_list_item_type == "STRING") {
+      return deserialize_value_list<std::string>(io_item, *num_items, blob_reader, blob_sharing);
     }
     if (const std::optional<eCustomDataType> data_type = get_data_type_from_io_name(
             *io_list_item_type))

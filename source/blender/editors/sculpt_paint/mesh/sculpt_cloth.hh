@@ -147,6 +147,7 @@ void simulation_limits_draw(uint gpuattr,
                             const float outline_col[3],
                             float alpha);
 void plane_falloff_preview_draw(uint gpuattr,
+                                Brush &brush,
                                 SculptSession &ss,
                                 const float outline_col[3],
                                 float outline_alpha);

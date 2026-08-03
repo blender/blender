@@ -1,9 +1,41 @@
-# this otherwise leads to error C1258 due to too long path for XML log files
+diff --git a/CMakeLists.txt b/CMakeLists.txt
+index 59c4c53..4e69a8e 100644
+--- a/CMakeLists.txt
++++ b/CMakeLists.txt
+@@ -516,6 +516,16 @@ if(WINDOWS AND UMF_USE_DEBUG_POSTFIX)
+     # The build_umfd target's configuration command requires to have
+     # CMAKE_PREFIX_PATH with semicolons escaped
+     string(JOIN "\;" UMFD_CMAKE_PREFIX_PATH ${CMAKE_PREFIX_PATH})
++
++    # Verify that Level Zero headers are available before the umfd sub-build
++    # needs them. If LEVEL_ZERO_INCLUDE_DIRS is empty, the umfd sub-build will
++    # attempt to fetch Level Zero from GitHub, which will fail when
++    # FETCHCONTENT_FULLY_DISCONNECTED is ON.
++    if(UMF_BUILD_LEVEL_ZERO_PROVIDER AND NOT LEVEL_ZERO_INCLUDE_DIRS)
++        message(FATAL_ERROR "LEVEL_ZERO_INCLUDE_DIRS is not defined but UMF_BUILD_LEVEL_ZERO_PROVIDER is ON. "
++          "Cannot forward Level Zero headers to the umfd sub-build.")
++    endif()
++
+     add_custom_target(
+         build_umfd ALL
+         COMMAND
+@@ -541,6 +551,11 @@ if(WINDOWS AND UMF_USE_DEBUG_POSTFIX)
+             -DUMF_USE_ASAN=OFF -DUMF_USE_UBSAN=OFF -DUMF_USE_TSAN=OFF
+             -DUMF_USE_MSAN=OFF -DUMF_USE_VALGRIND=OFF -DUMF_USE_COVERAGE=OFF
+             -DUMF_PROXY_LIB_BASED_ON_POOL=${UMF_PROXY_LIB_BASED_ON_POOL}
++            # The umfd sub-build must not download anything from the network.
++            # FETCHCONTENT_FULLY_DISCONNECTED is not inherited by sub-builds
++            # spawned via add_custom_target, so we forward it explicitly.
++            -DFETCHCONTENT_FULLY_DISCONNECTED=ON
++            -DUMF_LEVEL_ZERO_INCLUDE_DIR=${LEVEL_ZERO_INCLUDE_DIRS}
+         COMMAND ${CMAKE_COMMAND} --build ${CMAKE_BINARY_DIR}/umfd_build --target
+                 umf --config Debug
+         COMMENT
 diff --git a/cmake/helpers.cmake b/cmake/helpers.cmake
-index 2544a15..a6bfe76 100644
+index 8fea0a7..991bfb0 100644
 --- a/cmake/helpers.cmake
 +++ b/cmake/helpers.cmake
-@@ -265,7 +265,6 @@ function(add_umf_target_compile_options name)
+@@ -270,7 +270,6 @@ function(add_umf_target_compile_options name)
              ${name}
              PRIVATE /MD$<$<CONFIG:Debug>:d>
                      $<$<CONFIG:Release>:/sdl>

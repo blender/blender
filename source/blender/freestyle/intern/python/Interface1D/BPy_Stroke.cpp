@@ -52,7 +52,15 @@ static int Stroke_init(BPy_Stroke *self, PyObject *args, PyObject *kwds)
   static const char *kwlist[] = {"brother", nullptr};
   PyObject *brother = nullptr;
 
-  if (!PyArg_ParseTupleAndKeywords(args, kwds, "|O!", (char **)kwlist, &Stroke_Type, &brother)) {
+  if (!PyArg_ParseTupleAndKeywords(args,
+                                   kwds,
+                                   "|"  /* Optional arguments. */
+                                   "O!" /* `brother` */
+                                   ":Stroke",
+                                   (char **)kwlist,
+                                   &Stroke_Type,
+                                   &brother))
+  {
     return -1;
   }
   if (!brother) {
@@ -110,7 +118,13 @@ static PyObject *Stroke_compute_sampling(BPy_Stroke *self, PyObject *args, PyObj
   static const char *kwlist[] = {"n", nullptr};
   int i;
 
-  if (!PyArg_ParseTupleAndKeywords(args, kwds, "i", (char **)kwlist, &i)) {
+  if (!PyArg_ParseTupleAndKeywords(args,
+                                   kwds,
+                                   "i" /* `n` */
+                                   ":compute_sampling",
+                                   (char **)kwlist,
+                                   &i))
+  {
     return nullptr;
   }
   return PyFloat_FromDouble(self->s->ComputeSampling(i));
@@ -144,14 +158,25 @@ static PyObject *Stroke_resample(BPy_Stroke *self, PyObject *args, PyObject *kwd
   int i;
   float f;
 
-  if (PyArg_ParseTupleAndKeywords(args, kwds, "i", (char **)kwlist_1, &i)) {
+  if (PyArg_ParseTupleAndKeywords(args,
+                                  kwds,
+                                  "i" /* `n` */
+                                  ":resample",
+                                  (char **)kwlist_1,
+                                  &i))
+  {
     if (self->s->Resample(i) < 0) {
       PyErr_SetString(PyExc_RuntimeError, "Stroke resampling (by vertex count) failed");
       return nullptr;
     }
   }
   else if ((void)PyErr_Clear(),
-           PyArg_ParseTupleAndKeywords(args, kwds, "f", (char **)kwlist_2, &f))
+           PyArg_ParseTupleAndKeywords(args,
+                                       kwds,
+                                       "f" /* `sampling` */
+                                       ":resample",
+                                       (char **)kwlist_2,
+                                       &f))
   {
     if (self->s->Resample(f) < 0) {
       PyErr_SetString(PyExc_RuntimeError, "Stroke resampling (by vertex interval) failed");
@@ -186,7 +211,9 @@ static PyObject *Stroke_insert_vertex(BPy_Stroke *self, PyObject *args, PyObject
 
   if (!PyArg_ParseTupleAndKeywords(args,
                                    kwds,
-                                   "O!O!",
+                                   "O!" /* `vertex` */
+                                   "O!" /* `next` */
+                                   ":insert_vertex",
                                    (char **)kwlist,
                                    &StrokeVertex_Type,
                                    &py_sv,
@@ -220,7 +247,13 @@ static PyObject *Stroke_remove_vertex(BPy_Stroke *self, PyObject *args, PyObject
   static const char *kwlist[] = {"vertex", nullptr};
   PyObject *py_sv = nullptr;
 
-  if (!PyArg_ParseTupleAndKeywords(args, kwds, "O!", (char **)kwlist, &StrokeVertex_Type, &py_sv))
+  if (!PyArg_ParseTupleAndKeywords(args,
+                                   kwds,
+                                   "O!" /* `vertex` */
+                                   ":remove_vertex",
+                                   (char **)kwlist,
+                                   &StrokeVertex_Type,
+                                   &py_sv))
   {
     return nullptr;
   }
@@ -277,7 +310,14 @@ static PyObject *Stroke_stroke_vertices_begin(BPy_Stroke *self, PyObject *args, 
   static const char *kwlist[] = {"t", nullptr};
   float f = 0.0f;
 
-  if (!PyArg_ParseTupleAndKeywords(args, kwds, "|f", (char **)kwlist, &f)) {
+  if (!PyArg_ParseTupleAndKeywords(args,
+                                   kwds,
+                                   "|" /* Optional arguments. */
+                                   "f" /* `t` */
+                                   ":stroke_vertices_begin",
+                                   (char **)kwlist,
+                                   &f))
+  {
     return nullptr;
   }
   StrokeInternal::StrokeVertexIterator sv_it(self->s->strokeVerticesBegin(f));

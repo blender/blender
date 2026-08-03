@@ -47,7 +47,7 @@ bool edit_move_strip_to_meta(Scene *scene,
 /**
  * Flag strip and its users (effects) for removal.
  */
-void edit_flag_for_removal(Scene *scene, ListBaseT<Strip> *seqbase, Strip *strip);
+void edit_flag_for_removal(Scene *scene, Strip *strip);
 /**
  * Remove all flagged strips, return true if strip is removed.
  */

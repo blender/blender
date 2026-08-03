@@ -13,12 +13,11 @@
 namespace blender::gpu::shader {
 using namespace std;
 using namespace shader::parser;
+using namespace shader::parser::ast;
 using namespace metadata;
 
 void SourceProcessor::lower_maybe_unused(Parser &parser)
 {
-  using namespace metadata;
-
   parser().foreach_token(SquareOpen, [&](Token par_open) {
     if (par_open.next() != '[') {
       return;
@@ -72,8 +71,9 @@ void SourceProcessor::lint_attributes(Parser &parser)
           invalid = true;
         }
       }
-      else if (attr_str == "attribute" || attr_str == "index" || attr_str == "frag_color" ||
-               attr_str == "frag_depth" || attr_str == "uniform" || attr_str == "condition" ||
+      else if (attr_str == "acceleration_structure" || attr_str == "attribute" ||
+               attr_str == "index" || attr_str == "frag_color" || attr_str == "frag_depth" ||
+               attr_str == "uniform" || attr_str == "condition" ||
                attr_str == "raster_order_group" || attr_str == "frequency" ||
                attr_str == "sampler" || attr_str == "specialization_constant")
       {
@@ -177,6 +177,17 @@ void SourceProcessor::lower_attribute_sequences(Parser &parser)
       parser.erase(toks[4], toks[7]);
     });
   } while (parser.apply_mutations());
+}
+
+void SourceProcessor::lower_attribute_sequences_ast(Parser &parser)
+{
+  parser.root().foreach_recursive<AttrList>([&](AttrList list) {
+    if (list.parent().type() == NodeType::AttrList) {
+      Token front = list.front().prev(2);
+      parser.replace(front, ",");
+      parser.erase(front.next(1), front.next(3));
+    }
+  });
 }
 
 }  // namespace blender::gpu::shader

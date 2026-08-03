@@ -194,9 +194,7 @@ void register_node_tree_type_sh()
   tt->ui_name = N_("Shader Editor");
   tt->ui_icon = ICON_NODE_MATERIAL;
   tt->ui_description = N_("Edit materials, lights, and world shading using nodes");
-  /* Don't define this yet since we don't know which exact catalog name to use yet. Otherwise this
-   * has to be kept for compatibility. */
-  // tt->asset_catalog_path_prefix = "Shading";
+  tt->asset_catalog_path_prefix = "Shading";
 
   tt->foreach_nodeclass = foreach_nodeclass;
   tt->localize = localize;

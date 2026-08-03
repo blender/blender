@@ -45,7 +45,15 @@ static int ThicknessNoiseShader___init__(BPy_ThicknessNoiseShader *self,
   static const char *kwlist[] = {"amplitude", "period", nullptr};
   float f1, f2;
 
-  if (!PyArg_ParseTupleAndKeywords(args, kwds, "ff", (char **)kwlist, &f1, &f2)) {
+  if (!PyArg_ParseTupleAndKeywords(args,
+                                   kwds,
+                                   "f" /* `amplitude` */
+                                   "f" /* `period` */
+                                   ":__init__",
+                                   (char **)kwlist,
+                                   &f1,
+                                   &f2))
+  {
     return -1;
   }
   self->py_ss.ss = new StrokeShaders::ThicknessNoiseShader(f1, f2);

@@ -74,14 +74,14 @@ constexpr int MAX_IDPROP_DEPTH_LEVEL = 1026;
  * Write code uses one level less than runtime processing code, because it still has to write
  * something when it detects the issue, to ensure references to the 'limit properties' remain
  * valid.
- * Limits overly noisy continous error messages in the console due to runtime processing and
+ * Limits overly noisy continuous error messages in the console due to runtime processing and
  * undo/redo. */
 constexpr int MAX_IDPROP_DEPTH_LEVEL_FOR_WRITE = MAX_IDPROP_DEPTH_LEVEL - 1;
 /**
  * Read code uses two level less than runtime processing code, because it still has to read
  * something when it detects the issue, to ensure references to the 'limit properties' remain
  * valid.
- * Limits overly noisy continous error messages in the console due to runtime processing and
+ * Limits overly noisy continuous error messages in the console due to runtime processing and
  * undo/redo. */
 constexpr int MAX_IDPROP_DEPTH_LEVEL_FOR_READ = MAX_IDPROP_DEPTH_LEVEL - 2;
 
@@ -520,15 +520,21 @@ void IDP_FreeString(IDProperty *prop)
 /** \name Enum Type (IDProperty Enum API)
  * \{ */
 
-static void IDP_int_ui_data_free_enum_items(IDPropertyUIDataInt *ui_data)
+void IDP_EnumItemsFree(IDPropertyUIDataEnumItem *items, const int items_num)
 {
-  for (const int64_t i : IndexRange(ui_data->enum_items_num)) {
-    IDPropertyUIDataEnumItem &item = ui_data->enum_items[i];
+  for (const int64_t i : IndexRange(items_num)) {
+    IDPropertyUIDataEnumItem &item = items[i];
     MEM_SAFE_DELETE(item.identifier);
     MEM_SAFE_DELETE(item.name);
     MEM_SAFE_DELETE(item.description);
   }
-  MEM_SAFE_DELETE(ui_data->enum_items);
+  MEM_SAFE_DELETE(items);
+}
+
+static void IDP_int_ui_data_free_enum_items(IDPropertyUIDataInt *ui_data)
+{
+  IDP_EnumItemsFree(ui_data->enum_items, ui_data->enum_items_num);
+  ui_data->enum_items = nullptr;
 }
 
 const IDPropertyUIDataEnumItem *IDP_EnumItemFind(const IDProperty *prop)
@@ -1579,7 +1585,7 @@ static void IDP_WriteIDPArray(const IDProperty *prop,
       CLOG_ERROR(&LOG,
                  "Too deep level of IDProperties embedding detected (over %d levels), this is "
                  "likely caused by a buggy script or add-on. The data in property '%s' will not "
-                 "be written in the blendfile or memfile undo step",
+                 "be written in the blend-file or memfile undo step",
                  MAX_IDPROP_DEPTH_LEVEL_FOR_WRITE,
                  prop->name);
       IDProperty *empty_prop_idparray = IDP_NewIDPArray(prop->name);
@@ -1663,7 +1669,7 @@ static void idp_blend_write_recurse(BlendWriter *writer,
     CLOG_ERROR(&LOG,
                "Too deep level of IDProperties embedding detected (over %d levels), this is "
                "likely caused by a buggy script or add-on. The data in property '%s' will not "
-               "be written in the blendfile or memfile undo step",
+               "be written in the blend-file or memfile undo step",
                MAX_IDPROP_DEPTH_LEVEL_FOR_WRITE,
                prop->name);
     IDProperty empty_prop = {};
@@ -1883,7 +1889,7 @@ static void IDP_DirectLinkProperty(IDProperty *prop,
     CLOG_ERROR(&LOG,
                "Too deep level of IDProperties embedding detected (over %d levels), this is "
                "likely caused by a buggy script or add-on. The data in property '%s' will not "
-               "be read from the blendfile",
+               "be read from the blend-file",
                MAX_IDPROP_DEPTH_LEVEL_FOR_READ,
                prop->name);
     /* NOTE: No attempt to free the property, as it may lead to further recursion. */

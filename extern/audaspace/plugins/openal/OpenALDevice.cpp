@@ -933,7 +933,7 @@ void OpenALDevice::updateStreams()
 
 					ALCint attribs[] = { ALC_FREQUENCY, (ALCint)specs.rate, 0 };
 					ALCint* attributes = attribs;
-					if(specs.rate == double(RATE_INVALID))
+					if(specs.rate == RATE_INVALID)
 						attributes = nullptr;
 
 					m_context = alcCreateContext(m_device, attributes);
@@ -1154,7 +1154,7 @@ OpenALDevice::OpenALDevice(DeviceSpecs specs, int buffersize, const std::string 
 	// at least try to set the frequency
 	ALCint attribs[] = { ALC_FREQUENCY, (ALCint)specs.rate, 0 };
 	ALCint* attributes = attribs;
-	if(specs.rate == double(RATE_INVALID))
+	if(specs.rate == RATE_INVALID)
 		attributes = nullptr;
 
 	m_context = alcCreateContext(m_device, attributes);

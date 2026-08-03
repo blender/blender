@@ -58,7 +58,12 @@ static int SpatialNoiseShader___init__(BPy_SpatialNoiseShader *self,
 
   if (!PyArg_ParseTupleAndKeywords(args,
                                    kwds,
-                                   "ffiO!O!",
+                                   "f"  /* `amount` */
+                                   "f"  /* `scale` */
+                                   "i"  /* `num_octaves` */
+                                   "O!" /* `smooth` */
+                                   "O!" /* `pure_random` */
+                                   ":__init__",
                                    (char **)kwlist,
                                    &f1,
                                    &f2,

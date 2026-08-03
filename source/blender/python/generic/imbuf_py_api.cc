@@ -265,7 +265,7 @@ static PyObject *py_imbuf_resize(Py_ImBuf *self, PyObject *args, PyObject *kw)
   };
   static _PyArg_Parser _parser = {
       "(ii)" /* `size` */
-      "|$"   /* Optional keyword only arguments. */
+      "|$"   /* Optional, keyword only arguments. */
       "O&"   /* `method` */
       ":resize",
       _keywords,
@@ -413,7 +413,7 @@ static PyObject *py_imbuf_with_buffer(Py_ImBuf *self, PyObject *args, PyObject *
       nullptr,
   };
   static _PyArg_Parser _parser = {
-      "|$" /* Optional keyword only arguments. */
+      "|$" /* Optional, keyword only arguments. */
       "O&" /* `write` */
       "O&" /* `region` */
       ":with_buffer",
@@ -1310,7 +1310,7 @@ static PyObject *M_imbuf_new(PyObject * /*self*/, PyObject *args, PyObject *kw)
   };
   static _PyArg_Parser _parser = {
       "(ii)" /* `size` */
-      "|$"   /* Optional keyword only arguments. */
+      "|$"   /* Optional, keyword only arguments. */
       "i"    /* `planes` */
       "O&"   /* `buffer_type` */
       ":new",
@@ -1493,6 +1493,28 @@ static PyObject *imbuf_write_impl(ImBuf *ibuf, const char *filepath)
   Py_RETURN_NONE;
 }
 
+static PyObject *py_imbuf_write_impl(Py_ImBuf *py_imb, const char *filepath_or_null)
+{
+  if (py_imbuf_valid_check(py_imb) == -1) [[unlikely]] {
+    return nullptr;
+  }
+
+  if ((IMB_ftype_capability_write(py_imb->ibuf->ftype) & eImFileTypeCapability::File) ==
+      eImFileTypeCapability::Zero)
+  {
+    const char *id = py_imbuf_ftype_to_id_with_fallback(py_imb->ibuf->ftype);
+    PyErr_Format(
+        PyExc_ValueError, "write: file type '%.200s' does not support writing to a file", id);
+    return nullptr;
+  }
+
+  if (filepath_or_null == nullptr) {
+    /* Argument omitted, use images path. */
+    filepath_or_null = py_imb->ibuf->filepath.c_str();
+  }
+  return imbuf_write_impl(py_imb->ibuf, filepath_or_null);
+}
+
 PyDoc_STRVAR(
     /* Wrap. */
     M_imbuf_write_doc,
@@ -1516,7 +1538,7 @@ static PyObject *M_imbuf_write(PyObject * /*self*/, PyObject *args, PyObject *kw
   };
   static _PyArg_Parser _parser = {
       "O!" /* `image` */
-      "|$" /* Optional keyword only arguments. */
+      "|$" /* Optional, keyword only arguments. */
       "O&" /* `filepath` */
       ":write",
       _keywords,
@@ -1533,23 +1555,7 @@ static PyObject *M_imbuf_write(PyObject * /*self*/, PyObject *args, PyObject *kw
     return nullptr;
   }
 
-  PY_IMBUF_CHECK_OBJ(py_imb);
-
-  if ((IMB_ftype_capability_write(py_imb->ibuf->ftype) & eImFileTypeCapability::File) ==
-      eImFileTypeCapability::Zero)
-  {
-    const char *id = py_imbuf_ftype_to_id_with_fallback(py_imb->ibuf->ftype);
-    PyErr_Format(
-        PyExc_ValueError, "write: file type '%.200s' does not support writing to a file", id);
-    return nullptr;
-  }
-
-  const char *filepath = filepath_data.value;
-  if (filepath == nullptr) {
-    /* Argument omitted, use images path. */
-    filepath = py_imb->ibuf->filepath.c_str();
-  }
-  PyObject *result = imbuf_write_impl(py_imb->ibuf, filepath);
+  PyObject *result = py_imbuf_write_impl(py_imb, filepath_data.value);
   Py_XDECREF(filepath_data.value_coerce);
   return result;
 }
@@ -1767,6 +1773,10 @@ static PyModuleDef IMB_module_def = {
 
 PyObject *BPyInit_imbuf()
 {
+  if (PyType_Ready(&Py_ImBufFileType_Type) < 0) {
+    return nullptr;
+  }
+
   PyObject *mod;
   PyObject *submodule;
   PyObject *sys_modules = PyImport_GetModuleDict();
@@ -1779,9 +1789,6 @@ PyObject *BPyInit_imbuf()
 
   /* `imbuf.file_types` (read-only dict of supported file type identifiers). */
   {
-    if (PyType_Ready(&Py_ImBufFileType_Type) < 0) {
-      return nullptr;
-    }
     PyObject *dict = _PyDict_NewPresized(IMB_FTYPE_LAST + 1);
     for (int ftype = 0; ftype <= IMB_FTYPE_LAST; ftype++) {
       const char *id = (ftype != IMB_FTYPE_NONE) ? IMB_ftype_to_id(eImbFileType(ftype)) :
@@ -1833,11 +1840,11 @@ static PyModuleDef IMB_types_module_def = {
 
 PyObject *BPyInit_imbuf_types()
 {
-  PyObject *submodule = PyModule_Create(&IMB_types_module_def);
-
   if (PyType_Ready(&Py_ImBuf_Type) < 0) {
     return nullptr;
   }
+
+  PyObject *submodule = PyModule_Create(&IMB_types_module_def);
 
   PyModule_AddType(submodule, &Py_ImBuf_Type);
   PyModule_AddType(submodule, &Py_ImBufBuffer_Type);

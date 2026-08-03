@@ -445,7 +445,8 @@ class NodeTreeMainUpdater {
             ModifierData *md = pair.second;
 
             if (md->type == eModifierType_Nodes) {
-              MOD_nodes_update_interface(object, reinterpret_cast<NodesModifierData *>(md));
+              MOD_nodes_update_interface(
+                  *bmain_, object, reinterpret_cast<NodesModifierData *>(md));
             }
           }
         }
@@ -457,7 +458,7 @@ class NodeTreeMainUpdater {
 
             if (md->type == eSeqModifierType_Compositor) {
               seq::compositor_nodes_update_interface(
-                  *scene, *reinterpret_cast<SequencerCompositorModifierData *>(md));
+                  *bmain_, *scene, *reinterpret_cast<SequencerCompositorModifierData *>(md));
             }
           }
         }
@@ -578,6 +579,11 @@ class NodeTreeMainUpdater {
     ntree.runtime->link_errors.clear();
     ntree.runtime->invalid_zone_output_node_ids.clear();
     ntree.runtime->shader_node_errors.clear();
+
+    if (ntree.runtime->changed_flag & NTREE_CHANGED_ANY) {
+      result.interface_changed = true;
+      result.output_changed = true;
+    }
 
     if (this->update_panel_toggle_names(ntree)) {
       result.interface_changed = true;
@@ -1454,14 +1460,6 @@ class NodeTreeMainUpdater {
 
   void update_link_validation(bNodeTree &ntree)
   {
-    /* Tests if enum references are undefined. */
-    const auto is_invalid_enum_ref = [](const bNodeSocket &socket) -> bool {
-      if (socket.type == SOCK_MENU) {
-        return socket.default_value_typed<bNodeSocketValueMenu>()->enum_items == nullptr;
-      }
-      return false;
-    };
-
     const bNodeTreeZones *fallback_zones = nullptr;
     if (ELEM(ntree.type, NTREE_GEOMETRY, NTREE_SHADER) && !ntree.zones() &&
         ntree.runtime->last_valid_zones)
@@ -1475,12 +1473,18 @@ class NodeTreeMainUpdater {
         link.flag &= ~NODE_LINK_VALID;
         continue;
       }
-      if (is_invalid_enum_ref(*link.fromsock) || is_invalid_enum_ref(*link.tosock)) {
-        link.flag &= ~NODE_LINK_VALID;
-        ntree.runtime->link_errors.add(
-            NodeLinkKey{link},
-            NodeLinkError{TIP_("Use node groups to reuse the same menu multiple times")});
-        continue;
+      if (link.fromsock->type == SOCK_MENU && link.tosock->type == SOCK_MENU) {
+        const bNodeSocketValueMenu *from_value =
+            link.fromsock->default_value_typed<bNodeSocketValueMenu>();
+        const bNodeSocketValueMenu *to_value =
+            link.tosock->default_value_typed<bNodeSocketValueMenu>();
+        if (from_value->has_conflict() || to_value->has_conflict()) {
+          link.flag &= ~NODE_LINK_VALID;
+          ntree.runtime->link_errors.add(
+              NodeLinkKey{link},
+              NodeLinkError{TIP_("Use node groups to reuse the same menu multiple times")});
+          continue;
+        }
       }
       const bNode &from_node = *link.fromnode;
       const bNode &to_node = *link.tonode;

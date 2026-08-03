@@ -85,7 +85,8 @@ GPUPixelBufferNativeHandle VKPixelBuffer::get_native_handle()
   info.handleType = VK_EXTERNAL_MEMORY_HANDLE_TYPE_OPAQUE_WIN32_BIT;
 
   HANDLE handle = 0;
-  if (device.functions.vkGetMemoryWin32Handle(device.vk_handle(), &info, &handle) != VK_SUCCESS) {
+  if (device.functions.vkGetMemoryWin32HandleKHR(device.vk_handle(), &info, &handle) != VK_SUCCESS)
+  {
     CLOG_ERROR(&LOG, "Failed to get Windows handle for Vulkan pixel buffer");
     return native_handle;
   }
@@ -101,7 +102,7 @@ GPUPixelBufferNativeHandle VKPixelBuffer::get_native_handle()
   info.handleType = VK_EXTERNAL_MEMORY_HANDLE_TYPE_OPAQUE_FD_BIT;
 
   int fd = -1;
-  if (device.functions.vkGetMemoryFd(device.vk_handle(), &info, &fd) != VK_SUCCESS) {
+  if (device.functions.vkGetMemoryFdKHR(device.vk_handle(), &info, &fd) != VK_SUCCESS) {
     CLOG_ERROR(&LOG, "Failed to get file descriptor for Vulkan pixel buffer");
     return native_handle;
   }

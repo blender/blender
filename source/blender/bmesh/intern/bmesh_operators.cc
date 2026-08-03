@@ -1060,14 +1060,21 @@ void BMO_slot_buffer_hflag_enable(BMesh *bm,
                                   BMOpSlot slot_args[BMO_OP_MAX_SLOTS],
                                   const char *slot_name,
                                   const char htype,
-                                  const char hflag,
+                                  char hflag,
                                   const bool do_flush)
 {
+  /* Mutually exclusive, hidden wins but this points to an error with the caller. */
+  if ((hflag & BM_ELEM_SELECT) && (hflag & BM_ELEM_HIDDEN)) {
+    hflag &= ~BM_ELEM_SELECT;
+    BLI_assert_unreachable();
+  }
+
   BMOpSlot *slot = BMO_slot_get(slot_args, slot_name);
   BMElem **data = reinterpret_cast<BMElem **>(slot->data.buf);
   int i;
   const bool do_flush_select = (do_flush && (hflag & BM_ELEM_SELECT));
   const bool do_flush_hide = (do_flush && (hflag & BM_ELEM_HIDDEN));
+  const bool do_check_select = hflag & BM_ELEM_SELECT;
 
   BLI_assert(slot->slot_type == BMO_OP_SLOT_ELEMENT_BUF);
   BLI_assert(((slot->slot_subtype.elem & BM_ALL_NOLOOP) & htype) == htype);
@@ -1083,10 +1090,16 @@ void BMO_slot_buffer_hflag_enable(BMesh *bm,
     }
 
     if (do_flush_hide) {
-      BM_elem_hide_set(bm, *data, false);
+      BM_elem_hide_set(bm, *data, true);
     }
 
-    BM_elem_flag_enable(*data, hflag);
+    /* Prevent hidden geometry from becoming selected. */
+    char hflag_final = hflag;
+    if (do_check_select && BM_elem_flag_test(*data, BM_ELEM_HIDDEN)) {
+      hflag_final &= ~BM_ELEM_SELECT;
+    }
+
+    BM_elem_flag_enable(*data, hflag_final);
   }
 }
 

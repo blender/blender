@@ -61,6 +61,26 @@ ScopedTimer::~ScopedTimer()
   std::cout << StringRef(buf.data(), buf.size());
 }
 
+ScopedTimerAveraged::ScopedTimerAveraged(std::string name,
+                                         int64_t &total_count,
+                                         Nanoseconds &total_time,
+                                         Nanoseconds &min_time,
+                                         const std::optional<int64_t> window_size,
+                                         const std::optional<int64_t> nth_samples_report)
+    : name_(std::move(name)),
+      total_count_(total_count),
+      total_time_(total_time),
+      min_time_(min_time),
+      window_size_(window_size),
+      nth_samples_report_(nth_samples_report)
+{
+  BLI_assert_msg(!window_size_ || window_size_.value() >= 2,
+                 "`window_size` value must be at least 2");
+  BLI_assert_msg(!nth_samples_report_ || nth_samples_report_.value() >= 1,
+                 "`nth_samples_report` value must be at least 1");
+  start_ = Clock::now();
+}
+
 ScopedTimerAveraged::~ScopedTimerAveraged()
 {
   const TimePoint end = Clock::now();
@@ -69,7 +89,7 @@ ScopedTimerAveraged::~ScopedTimerAveraged()
   total_count_++;
   total_time_ += duration;
 
-  if (!window_size_ || total_count_ < window_size_) {
+  if (!window_size_ || total_count_ < window_size_.value()) {
     rolling_average_ = total_time_ / total_count_;
   }
   else {
@@ -78,6 +98,10 @@ ScopedTimerAveraged::~ScopedTimerAveraged()
   }
 
   min_time_ = std::min(duration, min_time_);
+
+  if (nth_samples_report_ && (total_count_ % nth_samples_report_.value()) != 0) {
+    return;
+  }
 
   fmt::memory_buffer buf;
   fmt::format_to(fmt::appender(buf), FMT_STRING("Timer '{}': (Average: "), name_);
@@ -90,7 +114,9 @@ ScopedTimerAveraged::~ScopedTimerAveraged()
   format_duration(min_time_, buf);
   buf.append(StringRef(", Last: "));
   format_duration(duration, buf);
-  fmt::format_to(fmt::appender(buf), ", Samples: {})\n", total_count_);
+  fmt::format_to(fmt::appender(buf), ", Samples: {}, Total: ", total_count_);
+  format_duration(total_time_, buf);
+  buf.append(StringRef(")\n"));
   std::cout << StringRef(buf.data(), buf.size());
 }
 

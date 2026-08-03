@@ -45,7 +45,7 @@
 #undef DNA_GENFILE_VERSIONING_MACROS
 
 #include "BKE_anim_data.hh"
-#include "BKE_animsys.h"
+#include "BKE_animsys.hh"
 #include "BKE_colortools.hh"
 #include "BKE_customdata.hh"
 #include "BKE_fcurve_driver.h"

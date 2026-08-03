@@ -1,3 +1,6 @@
+/* SPDX-FileCopyrightText: 2026 Blender Authors
+ *
+ * SPDX-License-Identifier: Apache-2.0 */
 
 #include "BLI_listbase.hh"
 #include "BLI_math_base_c.hh"

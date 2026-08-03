@@ -97,13 +97,13 @@ static const EnumPropertyItem limit_method_items[] = {
     {CMP_NODE_CHANNEL_MATTE_LIMIT_ALGORITHM_SINGLE,
      "SINGLE",
      0,
-     "Single",
-     "Limit by single channel"},
+     N_("Single"),
+     N_("Limit by single channel")},
     {CMP_NODE_CHANNEL_MATTE_LIMIT_ALGORITHM_MAX,
      "MAX",
      0,
-     "Max",
-     "Limit by maximum of other channels"},
+     N_("Max"),
+     N_("Limit by maximum of other channels")},
     {0, nullptr, 0, nullptr, nullptr},
 };
 

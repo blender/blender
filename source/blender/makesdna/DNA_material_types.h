@@ -295,7 +295,7 @@ struct MaterialGPencilStyle {
   float mix_rgba[4] = {};
   /** Settings. */
   eMaterialGPencilStyle_Flag flag = {};
-  /** Custom index for passes. */
+  /** Pass index (only used for modifiers to restrict their influence). */
   short index = 0;
   /** Style for drawing strokes (used to select shader type). */
   eMaterialGPencilStyle_StrokeStyle stroke_style = GP_MATERIAL_STROKE_STYLE_SOLID;

@@ -18,6 +18,9 @@ ARCH=$(uname -i)
 # Required by: config manager command below to enable powertools.
 dnf -y install 'dnf-command(config-manager)'
 
+# Required for version locking CUDA installation
+dnf -y install 'dnf-command(versionlock)'
+
 # Packages `ninja-build` and `meson` are not available unless CBR or PowerTools repositories are enabled.
 # See: https://wiki.rockylinux.org/rocky/repo/#notes-on-unlisted-repositories
 dnf config-manager --set-enabled powertools
@@ -40,8 +43,10 @@ dnf -y install gcc-toolset-14
 if [ "$ARCH" = "aarch64" ]; then
     CUDA_ARCH="sbsa"
 fi
-# Repository for CUDA (`nvcc`).
+# Repository for CUDA (`nvcc`)
 dnf config-manager --add-repo http://developer.download.nvidia.com/compute/cuda/repos/rhel8/${CUDA_ARCH-x86_64}/cuda-rhel8.repo
+# Version lock CUDA install/update candidates to 12.8
+dnf versionlock add 'cuda-*-12-8*'
 
 # Install packages needed for Blender's dependencies.
 PACKAGES_FOR_LIBS=(

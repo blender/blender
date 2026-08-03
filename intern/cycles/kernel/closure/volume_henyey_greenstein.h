@@ -26,7 +26,7 @@ ccl_device int volume_henyey_greenstein_setup(ccl_private HenyeyGreensteinVolume
   /* clamp anisotropy to avoid delta function */
   volume->g = signf(volume->g) * min(fabsf(volume->g), 1.0f - 1e-3f);
 
-  return SD_SCATTER;
+  return SR_SCATTER;
 }
 
 ccl_device Spectrum volume_henyey_greenstein_eval(const ccl_private ShaderData *sd,

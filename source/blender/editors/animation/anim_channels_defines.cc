@@ -57,7 +57,7 @@
 #include "RNA_prototypes.hh"
 
 #include "BKE_anim_data.hh"
-#include "BKE_animsys.h"
+#include "BKE_animsys.hh"
 #include "BKE_context.hh"
 #include "BKE_curve.hh"
 #include "BKE_grease_pencil.hh"
@@ -5135,7 +5135,7 @@ static bool achannel_is_broken(const bAnimListElem *ale)
 
 float ANIM_UI_get_keyframe_scale_factor()
 {
-  bTheme *btheme = ui::theme::theme_get();
+  const bTheme *btheme = ui::theme::theme_get();
   const float yscale_fac = btheme->space_action.keyframe_scale_fac;
 
   /* clamp to avoid problems with uninitialized values... */

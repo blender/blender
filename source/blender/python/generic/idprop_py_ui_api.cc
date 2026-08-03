@@ -146,7 +146,7 @@ static IDPropertyUIDataEnumItem *idprop_enum_items_from_py(PyObject *seq_fast, i
       items[i].identifier = nullptr;
     }
     else {
-      MEM_delete(items);
+      IDP_EnumItemsFree(items, i);
       PyErr_SetString(PyExc_TypeError,
                       "expected a tuple containing "
                       "(identifier, name, description) and optionally an "
@@ -226,7 +226,7 @@ static bool idprop_ui_data_update_int(IDProperty *idprop, PyObject *args, PyObje
       nullptr,
   };
   static _PyArg_Parser _parser = {
-      "|$" /* Optional keyword only arguments. */
+      "|$" /* Optional, keyword only arguments. */
       "O&" /* `min` */
       "O&" /* `max` */
       "O&" /* `soft_min` */
@@ -306,6 +306,8 @@ static bool idprop_ui_data_update_int(IDProperty *idprop, PyObject *args, PyObje
     PyObject *items_fast;
     if (!(items_fast = PySequence_Fast(items, "expected a sequence of tuples for the enum items")))
     {
+      IDP_ui_data_free_unique_contents(
+          &ui_data.base, IDP_ui_data_type(idprop), &ui_data_orig->base);
       return false;
     }
 
@@ -402,7 +404,11 @@ static bool idprop_ui_data_update_bool(IDProperty *idprop, PyObject *args, PyObj
   const char *kwlist[] = {"default", "subtype", "description", nullptr};
   if (!PyArg_ParseTupleAndKeywords(args,
                                    kwargs,
-                                   "|$Ozz:update",
+                                   "|$" /* Optional, keyword only arguments. */
+                                   "O"  /* `default` */
+                                   "z"  /* `subtype` */
+                                   "z"  /* `description` */
+                                   ":update",
                                    const_cast<char **>(kwlist),
                                    &default_value,
                                    &rna_subtype,
@@ -505,7 +511,7 @@ static bool idprop_ui_data_update_float(IDProperty *idprop, PyObject *args, PyOb
       nullptr,
   };
   static _PyArg_Parser _parser = {
-      "|$" /* Optional keyword only arguments. */
+      "|$" /* Optional, keyword only arguments. */
       "O&" /* `min` */
       "O&" /* `max` */
       "O&" /* `soft_min` */
@@ -602,7 +608,11 @@ static bool idprop_ui_data_update_string(IDProperty *idprop, PyObject *args, PyO
   const char *kwlist[] = {"default", "subtype", "description", nullptr};
   if (!PyArg_ParseTupleAndKeywords(args,
                                    kwargs,
-                                   "|$zzz:update",
+                                   "|$" /* Optional, keyword only arguments. */
+                                   "z"  /* `default` */
+                                   "z"  /* `subtype` */
+                                   "z"  /* `description` */
+                                   ":update",
                                    const_cast<char **>(kwlist),
                                    &default_value,
                                    &rna_subtype,
@@ -642,7 +652,11 @@ static bool idprop_ui_data_update_id(IDProperty *idprop, PyObject *args, PyObjec
   const char *kwlist[] = {"subtype", "description", "id_type", nullptr};
   if (!PyArg_ParseTupleAndKeywords(args,
                                    kwargs,
-                                   "|$zzz:update",
+                                   "|$" /* Optional, keyword only arguments. */
+                                   "z"  /* `subtype` */
+                                   "z"  /* `description` */
+                                   "z"  /* `id_type` */
+                                   ":update",
                                    const_cast<char **>(kwlist),
                                    &rna_subtype,
                                    &description,
@@ -992,7 +1006,12 @@ static PyObject *BPy_IDPropertyUIManager_update_from(BPy_IDPropertyUIManager *se
   BLI_assert(IDP_ui_data_supported(property));
 
   BPy_IDPropertyUIManager *ui_manager_src;
-  if (!PyArg_ParseTuple(args, "O!:update_from", &BPy_IDPropertyUIManager_Type, &ui_manager_src)) {
+  if (!PyArg_ParseTuple(args,
+                        "O!" /* `ui_manager_source` */
+                        ":update_from",
+                        &BPy_IDPropertyUIManager_Type,
+                        &ui_manager_src))
+  {
     return nullptr;
   }
 

@@ -22,6 +22,8 @@
 #include "devices/DeviceManager.h"
 #include "devices/IDeviceFactory.h"
 
+#include <string>
+
 AUD_NAMESPACE_BEGIN
 
 void PulseAudioDevice::preMixingWork(bool playing)

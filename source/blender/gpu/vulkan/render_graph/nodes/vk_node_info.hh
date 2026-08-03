@@ -24,6 +24,7 @@ enum class VKNodeType {
   BEGIN_QUERY,
   BEGIN_RENDERING,
   BLIT_IMAGE,
+  BUILD_ACCELERATION_STRUCTURE,
   CLEAR_ATTACHMENTS,
   CLEAR_COLOR_IMAGE,
   CLEAR_DEPTH_STENCIL_IMAGE,
@@ -57,6 +58,9 @@ BLI_INLINE std::ostream &operator<<(std::ostream &os, const VKNodeType node_type
       break;
     case VKNodeType::BEGIN_RENDERING:
       os << "BEGIN_RENDERING";
+      break;
+    case VKNodeType::BUILD_ACCELERATION_STRUCTURE:
+      os << "BUILD_ACCELERATION_STRUCTURE";
       break;
     case VKNodeType::END_QUERY:
       os << "END_QUERY";
@@ -206,6 +210,64 @@ class VKNodeInfo : public NonCopyable {
    *
    * The command buffer is passed as an interface as this is replaced by a logger when running test
    * cases. The test cases will validate the log to find out if the correct commands where added.
+   */
+  virtual void build_commands(VKCommandBufferInterface &command_buffer,
+                              Data &data,
+                              Span<uint8_t> storage_push_constants,
+                              VKBoundPipelines &r_bound_pipelines) = 0;
+};
+/**
+ * Info class for a draw node type using the new allocation model.
+ *
+ * Instead of copying data from CreateInfo into storage via `set_node_data`,
+ * nodes use `alloc_node_data` to get a reference to an in-place storage slot,
+ * then `build_links` reads directly from that already-written data.
+ *
+ * Parameter order for build_links: resources, links, create_info, data.
+ */
+template<VKNodeType NodeType,
+         typename NodeCreateInfo,
+         typename NodeData,
+         VkPipelineStageFlags PipelineStage,
+         VKResourceType ResourceUsages>
+class VKDrawNodeInfo : public NonCopyable {
+
+ public:
+  using CreateInfo = NodeCreateInfo;
+  using Data = NodeData;
+
+  /**
+   * Node type of this class.
+   */
+  static constexpr VKNodeType node_type = NodeType;
+
+  /**
+   * Which pipeline stage does this command belongs to.
+   */
+  static constexpr VkPipelineStageFlags pipeline_stage = PipelineStage;
+
+  /**
+   * Which resource types are relevant.
+   */
+  static constexpr VKResourceType resource_usages = ResourceUsages;
+
+  /**
+   * Allocate node data in the storage. Must be implemented by each node class.
+   */
+  template<typename Storage>
+  static Data &alloc_node_data(Storage &storage, int64_t &r_storage_index);
+
+  /**
+   * Extract read/write resource dependencies from `create_info` and add them to `node_links`.
+   * Data is read directly from `data` (the in-place storage slot).
+   */
+  virtual void build_links(VKResourceStateTracker &resources,
+                           VKRenderGraphLinks &links,
+                           const CreateInfo &create_info,
+                           Data &data) = 0;
+
+  /**
+   * Build the commands and add them to the command_buffer.
    */
   virtual void build_commands(VKCommandBufferInterface &command_buffer,
                               Data &data,

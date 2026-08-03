@@ -187,6 +187,13 @@ void version_node_socket_index_animdata(
     int socket_index_offset,
     int total_number_of_sockets);
 
+void version_node_socket_index_animdata(Main *bmain,
+                                        int node_tree_type,
+                                        const char *node_idname,
+                                        int socket_index_orig,
+                                        int socket_index_offset,
+                                        int total_number_of_sockets);
+
 /**
  * Replace the ID name of all nodes in the tree with the given type with the new name.
  */

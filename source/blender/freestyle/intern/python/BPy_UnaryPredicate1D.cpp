@@ -148,7 +148,13 @@ static PyObject *UnaryPredicate1D___call__(BPy_UnaryPredicate1D *self,
   static const char *kwlist[] = {"inter", nullptr};
   PyObject *py_if1D;
 
-  if (!PyArg_ParseTupleAndKeywords(args, kwds, "O!", (char **)kwlist, &Interface1D_Type, &py_if1D))
+  if (!PyArg_ParseTupleAndKeywords(args,
+                                   kwds,
+                                   "O!" /* `inter` */
+                                   ":__call__",
+                                   (char **)kwlist,
+                                   &Interface1D_Type,
+                                   &py_if1D))
   {
     return nullptr;
   }

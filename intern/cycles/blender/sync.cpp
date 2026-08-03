@@ -3,6 +3,8 @@
  * SPDX-License-Identifier: Apache-2.0 */
 
 #include "BKE_appdir.hh"
+#include "BKE_geometry_set.hh"
+#include "BKE_object_types.hh"
 #include "BKE_scene.hh"
 #include "DEG_depsgraph_query.hh"
 #include "DNA_scene_types.h"
@@ -134,16 +136,16 @@ void BlenderSync::sync_recalc(blender::Depsgraph &b_depsgraph,
                                                    blender::ID_RECALC_ANIMATION)) != 0);
 
     /* Material */
-    if (GS(b_id->name) == blender::ID_MA) {
+    if (blender::GS(b_id->name) == blender::ID_MA) {
       shader_map.set_recalc(b_id);
     }
     /* Light */
-    else if (GS(b_id->name) == blender::ID_LA) {
+    else if (blender::GS(b_id->name) == blender::ID_LA) {
       shader_map.set_recalc(b_id);
       geometry_map.set_recalc(b_id);
     }
     /* Object */
-    else if (GS(b_id->name) == blender::ID_OB) {
+    else if (blender::GS(b_id->name) == blender::ID_OB) {
       blender::Object *b_ob = blender::id_cast<blender::Object *>(b_id);
       const bool can_have_geometry = object_can_have_geometry(*b_ob);
       const bool is_light = !can_have_geometry && object_is_light(*b_ob);
@@ -214,11 +216,11 @@ void BlenderSync::sync_recalc(blender::Depsgraph &b_depsgraph,
       }
     }
     /* Mesh */
-    else if (GS(b_id->name) == blender::ID_ME) {
+    else if (blender::GS(b_id->name) == blender::ID_ME) {
       geometry_map.set_recalc(b_id);
     }
     /* World */
-    else if (GS(b_id->name) == blender::ID_WO) {
+    else if (blender::GS(b_id->name) == blender::ID_WO) {
       const blender::World *b_world = blender::id_cast<blender::World *>(b_id);
       if (world_map == b_world) {
         world_recalc = true;
@@ -226,15 +228,15 @@ void BlenderSync::sync_recalc(blender::Depsgraph &b_depsgraph,
       shader_map.set_recalc(b_id);
     }
     /* Scene */
-    else if (GS(b_id->name) == blender::ID_SCE) {
+    else if (blender::GS(b_id->name) == blender::ID_SCE) {
       shader_map.set_recalc(b_id);
     }
     /* Volume */
-    else if (GS(b_id->name) == blender::ID_VO) {
+    else if (blender::GS(b_id->name) == blender::ID_VO) {
       geometry_map.set_recalc(b_id);
     }
     /* Camera */
-    else if (GS(b_id->name) == blender::ID_CA) {
+    else if (blender::GS(b_id->name) == blender::ID_CA) {
       if (b_dicing_camera_object && b_dicing_camera_object->data == b_id) {
         dicing_camera_updated = true;
       }
@@ -786,6 +788,7 @@ static bool get_known_pass_type(blender::RenderPass &b_pass, PassType &type, Pas
   MAP_PASS("Denoising Roughness", PASS_DENOISING_ROUGHNESS, true);
   MAP_PASS("Denoising Depth", PASS_DENOISING_DEPTH, true);
   MAP_PASS("Denoising Backward Motion", PASS_DENOISING_BACKWARD_MOTION, true);
+  MAP_PASS("Denoising Specular Motion", PASS_DENOISING_SPECULAR_MOTION, true);
 
   MAP_PASS("Shadow Catcher", PASS_SHADOW_CATCHER, false);
   MAP_PASS("Noisy Shadow Catcher", PASS_SHADOW_CATCHER, true);
@@ -945,7 +948,10 @@ void BlenderSync::free_data_after_sync(blender::Depsgraph &b_depsgraph)
   {
     /* Grease pencil render requires all evaluated objects available as-is after Cycles is done
      * with its part. */
-    if (b_ob->type == blender::OB_GREASE_PENCIL) {
+    if (b_ob->type == blender::OB_GREASE_PENCIL ||
+        (b_ob->runtime->contained_geometry_types &
+         (1 << int(blender::bke::GeometryComponent::Type::GreasePencil))))
+    {
       continue;
     }
     BKE_object_free_caches(b_ob);

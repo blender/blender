@@ -18,6 +18,7 @@ set(INC_SYS
 )
 
 set(SRC
+  buttons/interface_label.cc
   buttons/interface_textbox.cc
   eyedroppers/eyedropper_bone.cc
   eyedroppers/eyedropper_color.cc
@@ -108,6 +109,7 @@ set(SRC
   views/interface_view.cc
   views/tree_view.cc
 
+  buttons/interface_label.hh
   buttons/interface_textbox.hh
   eyedroppers/eyedropper_intern.hh
   templates/interface_templates_intern.hh

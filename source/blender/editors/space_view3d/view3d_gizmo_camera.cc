@@ -444,6 +444,7 @@ struct CameraViewWidgetGroup {
   struct {
     rctf *edit_border;
     rctf view_border;
+    float roll;
   } state;
 };
 
@@ -557,7 +558,8 @@ static void WIDGETGROUP_camera_view_draw_prepare(const bContext *C, wmGizmoGroup
     Scene *scene = CTX_data_scene(C);
     View3D *v3d = CTX_wm_view3d(C);
     ED_view3d_calc_camera_border(
-        scene, depsgraph, region, v3d, rv3d, false, &viewgroup->state.view_border);
+        scene, depsgraph, region, v3d, rv3d, false, true, &viewgroup->state.view_border);
+    viewgroup->state.roll = rv3d->camroll;
   }
   else {
     rctf rect{};
@@ -574,6 +576,21 @@ static void WIDGETGROUP_camera_view_draw_prepare(const bContext *C, wmGizmoGroup
   mul_v3_fl(gz->matrix_space[1], BLI_rctf_size_y(&viewgroup->state.view_border));
   gz->matrix_space[3][0] = viewgroup->state.view_border.xmin;
   gz->matrix_space[3][1] = viewgroup->state.view_border.ymin;
+
+  /* Apply roll. */
+  if (viewgroup->state.roll != 0.0f) {
+    const int center_x = region->winx / 2;
+    const int center_y = region->winy / 2;
+    gz->matrix_space[3][0] -= center_x;
+    gz->matrix_space[3][1] -= center_y;
+
+    transpose_m4(gz->matrix_space);
+    rotate_m4(gz->matrix_space, 'Z', -viewgroup->state.roll);
+    transpose_m4(gz->matrix_space);
+
+    gz->matrix_space[3][0] += center_x;
+    gz->matrix_space[3][1] += center_y;
+  }
 }
 
 static void WIDGETGROUP_camera_view_refresh(const bContext *C, wmGizmoGroup *gzgroup)
@@ -598,6 +615,7 @@ static void WIDGETGROUP_camera_view_refresh(const bContext *C, wmGizmoGroup *gzg
     if (rv3d->persp == RV3D_CAMOB) {
       viewgroup->state.edit_border = &scene->r.border;
       viewgroup->is_camera = true;
+      viewgroup->state.roll = rv3d->camroll;
     }
     else {
       viewgroup->state.edit_border = &v3d->render_border;

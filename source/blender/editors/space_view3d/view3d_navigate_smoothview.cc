@@ -282,7 +282,8 @@ void ED_view3d_smooth_view_ex(
       sms.dst.dist = ED_view3d_offset_distance(
           ob_camera_eval->object_to_world().ptr(), sview->ofs, VIEW3D_DIST_FALLBACK);
     }
-    ED_view3d_from_object(ob_camera_eval, sms.dst.ofs, sms.dst.quat, &sms.dst.dist, &sms.dst.lens);
+    ED_view3d_from_object(
+        ob_camera_eval, sms.dst.ofs, sms.dst.quat, &sms.dst.dist, rv3d->camroll, &sms.dst.lens);
     /* Restore view3d values in end. */
     sms.to_camera = true;
   }
@@ -311,8 +312,12 @@ void ED_view3d_smooth_view_ex(
         sms.src.dist = ED_view3d_offset_distance(
             ob_camera_old_eval->object_to_world().ptr(), sview->ofs, 0.0f);
       }
-      ED_view3d_from_object(
-          ob_camera_old_eval, sms.src.ofs, sms.src.quat, &sms.src.dist, &sms.src.lens);
+      ED_view3d_from_object(ob_camera_old_eval,
+                            sms.src.ofs,
+                            sms.src.quat,
+                            &sms.src.dist,
+                            rv3d->camroll,
+                            &sms.src.lens);
     }
     /* Grid draw as floor. */
     if ((RV3D_LOCK_FLAGS(rv3d) & RV3D_LOCK_ROTATION) == 0) {

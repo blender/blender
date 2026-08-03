@@ -260,7 +260,7 @@ def draw_material_surface_settings(layout, mat, is_eevee=True):
     col.prop(mat, "max_vertex_displacement", text=max_diplacement_text)
 
     if mat.displacement_method == 'DISPLACEMENT':
-        layout.label(text="Unsupported displacement method", icon='ERROR')
+        layout.label(text="Unsupported displacement method", icon='STATUS_ERROR')
 
     if is_eevee:
         layout.prop(mat, "use_transparent_shadow")

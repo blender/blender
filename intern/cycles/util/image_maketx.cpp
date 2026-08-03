@@ -710,6 +710,17 @@ static bool write_mipmap_tx(std::unique_ptr<ImageOutput> &out,
   return true;
 }
 
+ustring make_tx_get_file_colorspace(const ImageMetaData &metadata)
+{
+  /* Tx files are written in a handful of colorspace that can be directly loaded into
+   * memory without colorspace conversion. */
+  const bool is_data = ColorSpaceManager::colorspace_is_data(metadata.colorspace);
+  const bool compress_as_srgb = metadata.is_compressible_as_srgb;
+  return is_data          ? u_colorspace_data :
+         compress_as_srgb ? u_colorspace_scene_linear_srgb :
+                            u_colorspace_scene_linear;
+}
+
 static bool make_tx(const string &filepath,
                     const string &out_filepath,
                     ImageMetaData &metadata,
@@ -746,17 +757,23 @@ static bool make_tx(const string &filepath,
   spec.attribute("planarconfig", "contig");
 
   /* Always convert to scene linear or data colorspace with associated alpha. */
-  const bool is_data = ColorSpaceManager::colorspace_is_data(metadata.colorspace);
-  const bool compress_as_srgb = metadata.is_compressible_as_srgb;
-  const ustring colorspace = is_data          ? u_colorspace_data :
-                             compress_as_srgb ? u_colorspace_scene_linear_srgb :
-                                                u_colorspace_scene_linear;
+  const ustring colorspace = make_tx_get_file_colorspace(metadata);
 
   spec.attribute("oiio:ColorSpace", colorspace);
   const char *interop_id = ColorSpaceManager::colorspace_interop_id(colorspace);
   if (interop_id) {
     spec.attribute("colorInteropID", interop_id);
   }
+  else {
+    spec.erase_attribute("colorInteropID");
+  }
+  /* Remove other potentially interfering colorspace metadata, that is no
+   * longer correct after colorspace conversion. Cycles itself does not use this,
+   * but other software could. */
+  spec.erase_attribute("Exif:ColorSpace");
+  spec.erase_attribute("ICCProfile");
+  spec.erase_attribute("CICP");
+
   spec.attribute("oiio:UnassociatedAlpha", 0);
 
   /* Source image metadata. */

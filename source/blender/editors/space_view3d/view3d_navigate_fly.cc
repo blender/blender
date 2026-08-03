@@ -22,12 +22,14 @@
 
 #include "MEM_guardedalloc.h"
 
+#include "BLI_listbase.hh"
 #include "BLI_math_matrix_c.hh"
 #include "BLI_math_rotation_c.hh"
 #include "BLI_math_vector_c.hh"
 #include "BLI_rect.hh"
 #include "BLI_time.hh" /* Smooth-view. */
 
+#include "BKE_constraint.h"
 #include "BKE_context.hh"
 #include "BKE_lib_id.hh"
 #include "BKE_report.hh"
@@ -234,7 +236,7 @@ static void drawFlyPixel(const bContext * /*C*/, ARegion * /*region*/, void *arg
 
   if (ED_view3d_cameracontrol_object_get(fly->v3d_camera_control)) {
     ED_view3d_calc_camera_border(
-        fly->scene, fly->depsgraph, fly->region, fly->v3d, fly->rv3d, false, &viewborder);
+        fly->scene, fly->depsgraph, fly->region, fly->v3d, fly->rv3d, false, false, &viewborder);
     xoff = int(viewborder.xmin);
     yoff = int(viewborder.ymin);
   }
@@ -344,9 +346,14 @@ static bool initFlyInfo(bContext *C, FlyInfo *fly, wmOperator *op, const wmEvent
     return false;
   }
 
-  if (fly->rv3d->persp == RV3D_CAMOB && fly->v3d->camera->constraints.first) {
-    BKE_report(op->reports, RPT_ERROR, "Cannot fly an object with constraints");
-    return false;
+  if (fly->rv3d->persp == RV3D_CAMOB) {
+    for (const bConstraint &con : fly->v3d->camera->constraints) {
+      if (!BKE_constraint_has_influence(&con)) {
+        continue;
+      }
+      BKE_report(op->reports, RPT_ERROR, "Cannot fly an object with effective constraints");
+      return false;
+    }
   }
 
   fly->state = FLY_RUNNING;
@@ -396,7 +403,7 @@ static bool initFlyInfo(bContext *C, FlyInfo *fly, wmOperator *op, const wmEvent
   /* Calculate center. */
   if (ED_view3d_cameracontrol_object_get(fly->v3d_camera_control)) {
     ED_view3d_calc_camera_border(
-        fly->scene, fly->depsgraph, fly->region, fly->v3d, fly->rv3d, false, &viewborder);
+        fly->scene, fly->depsgraph, fly->region, fly->v3d, fly->rv3d, false, false, &viewborder);
 
     fly->viewport_size[0] = BLI_rctf_size_x(&viewborder);
     fly->viewport_size[1] = BLI_rctf_size_y(&viewborder);

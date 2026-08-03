@@ -549,12 +549,20 @@ def _remote_asset_library_sync_all_periodic():
     if not bpy.context.preferences.experimental.use_remote_asset_libraries:
         return
 
-    for asset_lib in bpy.context.preferences.filepaths.asset_libraries:
+    prefs = bpy.context.preferences
+    for asset_lib in prefs.filepaths.asset_libraries:
         if not asset_lib.enabled:
             continue
         if not asset_lib.use_remote_url:
             continue
         remote_asset_library_sync(asset_lib.remote_url, Path(asset_lib.path),
+                                  only_if_older_than_sec=REMOTE_ASSET_LIBS_AUTOSYNC_PERIOD_SEC)
+
+    # The online essentials library is not listed in the 'asset_libraries' list above, because it's not a preference.
+    if prefs.asset_libraries.use_online_essentials:
+        remote_url = bpy.types.AssetLibrary.online_assets_url()
+        cache_path = bpy.types.AssetLibrary.online_assets_cache_path()
+        remote_asset_library_sync(remote_url, Path(cache_path),
                                   only_if_older_than_sec=REMOTE_ASSET_LIBS_AUTOSYNC_PERIOD_SEC)
 
 
@@ -569,14 +577,13 @@ def _remote_asset_library_restore_backups() -> None:
     if not bpy.context.preferences.experimental.use_remote_asset_libraries:
         return
 
-    from _bpy_internal.assets.remote_library import listing_downloader
-
     for asset_lib in bpy.context.preferences.filepaths.asset_libraries:
         if not asset_lib.enabled:
             continue
         if not asset_lib.use_remote_url:
             continue
 
+        from _bpy_internal.assets.remote_library import listing_downloader
         listing_downloader.restore_backup_if_exists_locked(asset_lib.remote_url, Path(asset_lib.path))
 
 

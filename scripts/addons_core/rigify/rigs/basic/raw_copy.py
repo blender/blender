@@ -127,7 +127,7 @@ class RelinkConstraintsMixin(BaseRigMixin):
             r = layout.row()
             r.prop(params, "parent_bone")
 
-            layout.label(text="Constraint names have special meanings.", icon='ERROR')
+            layout.label(text="Constraint names have special meanings.", icon='STATUS_ERROR')
 
 
 class Rig(BaseRig, RelinkConstraintsMixin):

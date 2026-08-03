@@ -653,6 +653,14 @@ if(TEST_SRC_DIR_EXISTS)
     --run-all-tests
   )
 
+  if(WITH_MOD_FLUID)
+    add_blender_test(
+      physics_fluid_cache
+      ${TEST_SRC_DIR}/render/motion_blur/fluid_motion_blur.blend
+      --python ${TEST_PYTHON_DIR}/physics_fluid_cache.py
+    )
+  endif()
+
   add_blender_test(
     deform_modifiers
     ${TEST_SRC_DIR}/modeling/deform_modifiers.blend
@@ -677,6 +685,12 @@ if(TEST_SRC_DIR_EXISTS)
     --python ${TEST_PYTHON_DIR}/physics_particle_system.py
     --
     --run-all-tests
+  )
+
+  add_blender_test(
+    physics_particle_legacy_texture_uv
+    ${TEST_SRC_DIR}/physics/particle_legacy_texture_uv.blend
+    --python ${TEST_PYTHON_DIR}/physics_particle_legacy_texture_uv.py
   )
 
   add_blender_test(
@@ -768,6 +782,13 @@ if(TEST_SRC_DIR_EXISTS)
     --
     --testdir "${TEST_SRC_DIR}/animation"
     --output-dir "${TEST_OUT_DIR}/bl_animation_action"
+  )
+
+  add_blender_test(
+    bl_animation_convert
+    --python ${CMAKE_CURRENT_LIST_DIR}/bl_animation_convert.py
+    --
+    --testdir "${TEST_SRC_DIR}/animation"
   )
 
   add_blender_test(
@@ -1254,6 +1275,7 @@ if(TEST_SRC_DIR_EXISTS)
     mesh/split_edges
     mesh/triangulate
     points
+    simulation
     texture
     utilities
     vector
@@ -1283,15 +1305,6 @@ if(TEST_SRC_DIR_EXISTS)
     endforeach()
   endforeach()
 
-  file(GLOB files "${TEST_SRC_DIR}/modeling/geometry_nodes/simulation/*.blend")
-  foreach(file ${files})
-    get_filename_component(filename ${file} NAME_WE)
-    add_blender_test(
-      geo_node_simulation_test_${filename}
-      ${file}
-      --python ${TEST_PYTHON_DIR}/geo_node_sim_test.py
-    )
-  endforeach()
 endif()
 
 # ------------------------------------------------------------------------------
@@ -1709,10 +1722,12 @@ if(WITH_UI_TESTS)
     test_undo.view3d_mesh_particle_edit_mode_simple
     test_undo.view3d_multi_mode_multi_window
     test_undo.view3d_multi_mode_select
+    test_undo.view3d_particle_edit_undo_from_texture_paint
     test_undo.view3d_sculpt_dyntopo_and_edit
     test_undo.view3d_sculpt_dyntopo_simple
     test_undo.view3d_sculpt_dyntopo_stroke_toggle
     test_undo.view3d_sculpt_with_memfile_step
+    test_undo.view3d_sculpt_with_empty_memfile_step
     test_undo.view3d_sculpt_trim
     test_undo.view3d_simple
     test_undo.view3d_texture_paint_complex
@@ -1733,6 +1748,34 @@ if(WITH_UI_TESTS)
     test_render.interactive_rendering_cycles
     test_render.interactive_rendering_eevee
     test_render.animation_rendering_and_player
+    test_bpy_types.unregister_referenced_type
+    test_pie_menus.test_object_mode_pie_edit
+    test_pie_menus.test_snap_pie_cursor_to_world_origin
+    test_pie_menus.test_pivot_pie_cursor
+    test_pie_menus.test_orientation_pie_cursor
+    test_pie_menus.test_shading_pie_solid
+    test_pie_menus.test_view_pie_camera
+    test_pie_menus.test_transform_gizmo_pie_show_gizmos
+    test_pie_menus.test_shading_ex_pie_toggle_overlays
+    test_pie_menus.test_proportional_editing_falloff_pie_sphere
+    test_pie_menus.test_sculpt_automasking_pie_topology
+    test_pie_menus.test_graph_editor_pivot_pie_cursor
+    test_pie_menus.test_graph_editor_view_pie_view_all
+    test_pie_menus.test_dopesheet_snap_pie_current_frame
+    test_pie_menus.test_dopesheet_view_pie_view_all
+    test_pie_menus.test_sequencer_pivot_pie_cursor
+    test_pie_menus.test_nla_snap_pie_current_frame
+    test_pie_menus.test_nla_view_pie_view_all
+    test_pie_menus.test_image_pivot_pie_cursor
+    test_pie_menus.test_image_view_pie_view_all
+    test_pie_menus.test_filebrowser_view_pie_list_horizontal
+    test_pie_menus.test_clip_pivot_pie_cursor
+    test_pie_menus.test_clip_marker_pie_affine
+    test_pie_menus.test_clip_solving_pie_tripod_solver
+    test_pie_menus.test_clip_view_pie_view_all
+    test_pie_menus.test_anim_keyframe_insert_pie_location
+    test_pie_menus.test_weight_paint_vgroup_lock_pie
+    test_button_input.test_string_buttons_interactions
   )
   foreach(ui_test ${_ui_tests})
     add_blender_test_ui(

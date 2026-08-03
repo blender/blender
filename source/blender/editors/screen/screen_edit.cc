@@ -952,12 +952,7 @@ void ED_screen_exit(bContext *C, wmWindow *window, bScreen *screen)
   CTX_wm_window_set(C, window);
 
   if (screen->animtimer) {
-    WM_event_timer_remove(wm, window, screen->animtimer);
-
-    Depsgraph *depsgraph = CTX_data_depsgraph_pointer(C);
-    Scene *scene = WM_window_get_active_scene(prevwin);
-    Scene *scene_eval = DEG_get_evaluated(depsgraph, scene);
-    BKE_sound_stop_scene(scene_eval);
+    screen_stop_playback(CTX_data_main(C), wm, window, screen);
   }
   screen->animtimer = nullptr;
   screen->scrubbing = false;
@@ -1173,6 +1168,12 @@ void ED_screen_set_active_region(bContext *C, wmWindow *win, const int xy[2])
       }
     }
   }
+
+#ifdef WITH_INPUT_IME
+  if (region_prev != screen->active_region) {
+    WM_window_IME_region_refresh(win, area, screen->active_region);
+  }
+#endif
 }
 
 int ED_screen_area_active(const bContext *C)
@@ -1926,18 +1927,45 @@ ScrArea *ED_screen_temp_space_open(
   return nullptr;
 }
 
+void ED_screen_animation_stop(Main *bmain,
+                              wmWindowManager *wm,
+                              FunctionRef<bool(const bScreen &screen)> should_stop_fn)
+{
+  /* Cannot use ED_window_animation_playing_no_scrub() here, because that only returns the window,
+   * and we need the screen too. */
+  for (wmWindow &win : wm->windows) {
+    bScreen *screen = WM_window_get_active_screen(&win);
+    if (!screen || !screen->animtimer) {
+      continue;
+    }
+    if (!should_stop_fn(*screen)) {
+      continue;
+    }
+
+    screen_stop_playback(bmain, wm, &win, screen);
+  }
+}
+
+void ED_screen_animation_timer_remove(wmWindowManager *wm, wmWindow *win)
+{
+  /* `ED_screen_animation_playing` isn't used, as it also checks for screens with
+   *  scrubbing enabled*/
+  bScreen *stopscreen = ED_screen_animation_no_scrub(wm);
+  if (!stopscreen) {
+    return;
+  }
+  WM_event_timer_remove(wm, win, stopscreen->animtimer);
+  stopscreen->animtimer = nullptr;
+}
+
 void ED_screen_animation_timer(
     bContext *C, Scene *scene, ViewLayer *view_layer, int redraws, int sync, int enable)
 {
   bScreen *screen = CTX_wm_screen(C);
   wmWindowManager *wm = CTX_wm_manager(C);
   wmWindow *win = CTX_wm_window(C);
-  bScreen *stopscreen = ED_screen_animation_playing(wm);
 
-  if (stopscreen) {
-    WM_event_timer_remove(wm, win, stopscreen->animtimer);
-    stopscreen->animtimer = nullptr;
-  }
+  ED_screen_animation_timer_remove(wm, win);
 
   if (enable) {
     ScreenAnimData *sad = MEM_new_zeroed<ScreenAnimData>("ScreenAnimData");

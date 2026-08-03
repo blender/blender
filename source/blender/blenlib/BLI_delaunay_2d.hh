@@ -5,9 +5,8 @@
 #pragma once
 
 #include "BLI_array.hh"
-#include "BLI_math_mpq.hh"
-#include "BLI_math_vector_mpq_types.hh"
 #include "BLI_math_vector_types.hh"
+#include "BLI_offset_indices.hh"
 #include "BLI_vector.hh"
 
 namespace blender {
@@ -149,9 +148,10 @@ namespace meshintersect {
  */
 template<typename T> class CDT_input {
  public:
-  Array<VecBase<T, 2>> vert;
-  Array<std::pair<int, int>> edge;
-  Array<Vector<int>> face;
+  Span<VecBase<T, 2>> vert;
+  Span<int2> edge;
+  OffsetIndices<int> face_offsets;
+  Span<int> face_vert_indices;
   T epsilon{0};
   bool need_ids{true};
 };
@@ -185,7 +185,7 @@ template<typename T> class CDT_input {
 template<typename T> class CDT_result {
  public:
   Array<VecBase<T, 2>> vert;
-  Array<std::pair<int, int>> edge;
+  Array<int2> edge;
   Array<Vector<int>> face;
   /* The orig vectors are only populated if the need_ids input field is true. */
   /** For each output vert, which input verts correspond to it? */
@@ -200,18 +200,20 @@ template<typename T> class CDT_result {
    *      and "b" will be a position within that face.
    */
   Array<Vector<uint32_t>> edge_orig;
+  /**
+   * For each output vert, if the output vert is an intersection,
+   * which original edges were intersected?
+   * Note: Indices follow the same encoding as edge_orig (see above).
+   */
+  Array<int2> intersected_edges_orig;
   /** For each output face, which original faces does it overlap? */
   Array<Vector<uint32_t>> face_orig;
   /** Used to encode edge_orig (see above). */
   uint32_t face_edge_offset;
 };
 
-CDT_result<double> delaunay_2d_calc(const CDT_input<double> &input, CDT_output_type output_type);
-
-#ifdef WITH_GMP
-CDT_result<mpq_class> delaunay_2d_calc(const CDT_input<mpq_class> &input,
-                                       CDT_output_type output_type);
-#endif
+template<typename T>
+CDT_result<T> delaunay_2d_calc(const CDT_input<T> &input, CDT_output_type output_type);
 
 }  // namespace meshintersect
 }  // namespace blender

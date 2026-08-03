@@ -525,8 +525,8 @@ static void brush_painter_imbuf_update(BrushPainter *painter,
   float *ibuf_float_data = ibuf->float_data_for_write();
   uchar *texibuf_byte_data = texibuf->byte_data_for_write();
   float *texibuf_float_data = texibuf->float_data_for_write();
-  const uchar *oldtexibuf_byte_data = oldtexibuf->byte_data();
-  const float *oldtexibuf_float_data = oldtexibuf->float_data();
+  const uchar *oldtexibuf_byte_data = (oldtexibuf) ? oldtexibuf->byte_data() : nullptr;
+  const float *oldtexibuf_float_data = (oldtexibuf) ? oldtexibuf->float_data() : nullptr;
   for (y = origy; y < h; y++) {
     for (x = origx; x < w; x++) {
       /* sample texture and multiply with brush color */
@@ -1381,8 +1381,7 @@ static int paint_2d_op(void *state,
                              region[a].destx,
                              region[a].desty,
                              region[a].width,
-                             region[a].height,
-                             true);
+                             region[a].height);
 
     if (s->do_masking) {
       /* masking, find original pixels tiles from undo buffer to composite over */
@@ -1712,7 +1711,7 @@ void paint_2d_redraw(const bContext *C, void *ps, bool final)
     if (s->tiles[i].need_redraw) {
       ImBuf *ibuf = BKE_image_acquire_ibuf(s->image, &s->tiles[i].iuser, nullptr);
 
-      imapaint_image_update(s->sima, s->image, ibuf, &s->tiles[i].iuser, false);
+      imapaint_image_update(ibuf);
 
       BKE_image_release_ibuf(s->image, ibuf, nullptr);
 
@@ -1732,10 +1731,6 @@ void paint_2d_redraw(const bContext *C, void *ps, bool final)
   }
 
   if (final) {
-    if (s->image && !(s->sima && s->sima->lock)) {
-      BKE_image_partial_update_mark_full_update(s->image);
-    }
-
     /* compositor listener deals with updating */
     WM_event_add_notifier(C, NC_IMAGE | NA_EDITED, s->image);
     DEG_id_tag_update(&s->image->id, 0);
@@ -1903,7 +1898,7 @@ void paint_2d_bucket_fill(const bContext *C,
 
   if (!mouse_final || !br) {
     /* first case, no image UV, fill the whole image */
-    ED_imapaint_dirty_region(ima, ibuf, iuser, 0, 0, ibuf->x, ibuf->y, false);
+    ED_imapaint_dirty_region(ima, ibuf, iuser, 0, 0, ibuf->x, ibuf->y);
 
     if (do_float) {
       float *float_data = ibuf->float_data_for_write();
@@ -1947,7 +1942,7 @@ void paint_2d_bucket_fill(const bContext *C,
     }
 
     /* change image invalidation method later */
-    ED_imapaint_dirty_region(ima, ibuf, iuser, 0, 0, ibuf->x, ibuf->y, false);
+    ED_imapaint_dirty_region(ima, ibuf, iuser, 0, 0, ibuf->x, ibuf->y);
 
     stack = BLI_stack_new(sizeof(size_t), __func__);
     touched = BLI_BITMAP_NEW(size_t(ibuf->x) * ibuf->y, "bucket_fill_bitmap");
@@ -2033,7 +2028,7 @@ void paint_2d_bucket_fill(const bContext *C,
     BLI_stack_free(stack);
   }
 
-  imapaint_image_update(sima, ima, ibuf, iuser, false);
+  imapaint_image_update(ibuf);
   ED_imapaint_clear_partial_redraw();
 
   BKE_image_release_ibuf(ima, ibuf, nullptr);
@@ -2095,7 +2090,7 @@ void paint_2d_gradient_fill(
   do_float = (ibuf->float_data() != nullptr);
 
   /* this will be substituted by something else when selection is available */
-  ED_imapaint_dirty_region(ima, ibuf, iuser, 0, 0, ibuf->x, ibuf->y, false);
+  ED_imapaint_dirty_region(ima, ibuf, iuser, 0, 0, ibuf->x, ibuf->y);
 
   if (do_float) {
     float *float_data = ibuf->float_data_for_write();
@@ -2157,7 +2152,7 @@ void paint_2d_gradient_fill(
     }
   }
 
-  imapaint_image_update(sima, ima, ibuf, iuser, false);
+  imapaint_image_update(ibuf);
   ED_imapaint_clear_partial_redraw();
 
   BKE_image_release_ibuf(ima, ibuf, nullptr);

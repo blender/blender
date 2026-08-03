@@ -559,7 +559,6 @@ static void wm_init_userdef(Main *bmain)
   BLO_sanitize_experimental_features_userpref_blend(&U);
 
   wm_gpu_backend_override_from_userdef();
-  GPU_backend_type_selection_detect();
 }
 
 /* Return codes. */
@@ -3312,9 +3311,9 @@ static std::string wm_open_mainfile_get_description(bContext * /*C*/,
   }
 
   /* Date. */
-  const tm mod_time = *localtime(&stats.st_mtime);
+  const tm mod_time = date_string::localtime_safe(stats.st_mtime);
   const time_t ts_now = time(nullptr);
-  const tm now_tm = *localtime(&ts_now);
+  const tm now_tm = date_string::localtime_safe(ts_now);
   const char *lang = BLT_lang_get();
   std::string modified_s = blender::date_string::datetime(mod_time,
                                                           lang,
@@ -3784,8 +3783,8 @@ static ui::Block *block_create_save_modified_images_dialog(bContext *C, ARegion 
   wm_block_image_save_errors(layout, reports);
 
   /* Modified Images Checkbox. */
-  char message[64];
-  SNPRINTF(message, RPT_("Save %u modified image(s)"), modified_images_count);
+  std::string message = fmt::format(fmt::runtime(RPT_("Save {} modified image(s)")),
+                                    modified_images_count);
   layout.separator();
   uiDefButV(block,
             ui::ButtonType::Checkbox,
@@ -5076,8 +5075,8 @@ static ui::Block *block_create__close_file_dialog(bContext *C, ARegion *region, 
 
   /* Modified Images Checkbox. */
   if (modified_images_count > 0) {
-    char message[64];
-    SNPRINTF(message, RPT_("Save %u modified image(s)"), modified_images_count);
+    std::string message = fmt::format(fmt::runtime(RPT_("Save {} modified image(s)")),
+                                      modified_images_count);
     /* Only the first checkbox should get extra separation. */
     if (!has_extra_checkboxes) {
       layout.separator();

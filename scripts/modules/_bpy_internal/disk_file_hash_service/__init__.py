@@ -132,7 +132,10 @@ def _cleanup_all_services() -> None:
             # DFHS instances created in a thread MUST be freed by that thread.
             if thread_id != current_thread_id:
                 print(
-                    "WARNING: Disk File Hash Service was created on thread {:d} but not released by that thread".format(thread_id))
+                    "WARNING: Disk File Hash Service was created on thread {:d} but not released by that thread".format(
+                        thread_id,
+                    )
+                )
                 # Keep running, maybe it can still be freed from this thread, and then we don't leak instances.
 
             try:

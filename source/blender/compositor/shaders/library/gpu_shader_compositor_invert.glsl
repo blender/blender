@@ -6,13 +6,13 @@
 
 [[node]]
 void node_composite_invert(
-    float4 color, float factor, float invert_color, float invert_alpha, float4 &result)
+    float4 color, float factor, bool invert_color, bool invert_alpha, float4 &result)
 {
   result = color;
-  if (invert_color != 0.0f) {
+  if (invert_color) {
     result.rgb = 1.0f - result.rgb;
   }
-  if (invert_alpha != 0.0f) {
+  if (invert_alpha) {
     result.a = 1.0f - result.a;
   }
   result = mix(color, result, factor);

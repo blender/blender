@@ -13,31 +13,21 @@
 
 namespace blender::gpu::shader {
 
-enum class Language {
-  UNKNOWN = 0,
-  /* Shared header. */
-  CPP,
-  /* Metal Shading Language. */
-  MSL,
-  /* OpenGL Shading Language. */
-  GLSL,
-  /* Blender Shading Language. */
-  BSL,
-  /* Same as GLSL but enable partial C++ feature support like template, references,
-   * include system, etc ... */
-  BLENDER_GLSL,
-};
-
 static inline Language language_from_filename(const std::string &filename)
 {
-  if (filename.find(".msl") != std::string::npos) {
+  if (filename.ends_with(".msl")) {
     return Language::MSL;
   }
-  if (filename.find(".glsl") != std::string::npos || filename.find(".bsl.hh") != std::string::npos)
-  {
+  if (filename.ends_with(".glsl")) {
     return Language::GLSL;
   }
-  if (filename.find(".hh") != std::string::npos) {
+  if (filename.ends_with(".bsl.hh")) {
+    return Language::BSL;
+  }
+  if (filename.ends_with("_infos.hh")) {
+    return Language::INFO;
+  }
+  if (filename.ends_with(".hh")) {
     return Language::CPP;
   }
   return Language::UNKNOWN;
@@ -65,6 +55,7 @@ class SourceProcessor {
  private:
   const std::string source_;
   const std::string filepath_;
+  const std::string filename;
   metadata::Source metadata_;
 
   Language language_;
@@ -84,7 +75,10 @@ class SourceProcessor {
 
  public:
   SourceProcessor(const std::string &source, const std::string &filepath, Language language)
-      : source_(source), filepath_(filepath), language_(language)
+      : source_(source),
+        filepath_(filepath),
+        filename(filepath_.substr(filepath_.find_last_of('/') + 1)),
+        language_(language)
   {
   }
 
@@ -119,18 +113,21 @@ class SourceProcessor {
   }
 
  private:
+  Result convert_info();
   Result convert_glsl();
   Result convert_msl();
-  Result convert_bsl(metadata::Source external_sources_symbols);
+  Result convert_bsl_legacy(metadata::Source external_sources_symbols);
 
   /* --- Cleanup --- */
 
   /** Remove single and multi-line comments to avoid this complexity during parsing. */
   std::string remove_comments(const std::string &str);
+  void remove_comments(Parser &parser);
   /* Lower preprocessor directives containing `GPU_SHADER`.
    * Avoid processing code that is not destined to be shader code and could contain unsupported
    * syntax. */
   std::string disabled_code_mutation(const std::string &str);
+  void disabled_code_mutation(Parser &parser);
   /* Remove trailing white spaces. */
   template<typename ParserT> void cleanup_whitespace(ParserT &parser);
   /* Successive mutations can introduce a lot of unneeded line directives. */
@@ -158,9 +155,11 @@ class SourceProcessor {
    * This is mostly legacy path as most builtin should be explicitly defined inside the BSL entry
    * points. */
   void parse_builtins(const std::string &str, const std::string &filename, bool pure_glsl = false);
+  void parse_builtins(Parser &parser, const std::string &filename);
 
   /* Legacy shared variable support. */
   std::string threadgroup_variables_parse_and_remove(const std::string &str);
+  void threadgroup_variables_parse_and_remove(Parser &parser);
 
   /* --- Linting --- */
 
@@ -184,6 +183,7 @@ class SourceProcessor {
   void lower_maybe_unused(Parser &parser);
   /* Lower parameters that have no name (invalid in GLSL). */
   void lower_namesless_parameters(Parser &parser);
+  void lower_namesless_parameters_ast(Parser &parser);
   /**
    * Given our code-style, we don't need the disambiguation.
    * Example: `x.template foo<int>()` > `x.foo<int>()`
@@ -227,6 +227,7 @@ class SourceProcessor {
   /* Support for BLI swizzle syntax.
    * Examples `a.xy()` --> `a.xy`. */
   void lower_swizzle_methods(Parser &parser);
+  void lower_swizzle_methods_ast(Parser &parser);
   /* Support for binary literals.
    * Examples `0b1001` --> `0x9`. */
   void lower_binary_literals(Parser &parser);
@@ -266,10 +267,12 @@ class SourceProcessor {
   void lower_resource_access_functions(Parser &parser);
   /* Lower enums to constants. */
   void lower_enums(Parser &parser);
+  void lower_enums_ast(Parser &parser);
   /* Merge attribute scopes. They are equivalent in the C++ standard.
    * This allow to simplify parsing later on.
    * `[[a]] [[b]]` > `[[a, b]]` */
   void lower_attribute_sequences(Parser &parser);
+  void lower_attribute_sequences_ast(Parser &parser);
   /* Lint host shared structure for padding and alignment.
    * Remove the [[host_shared]] attribute. */
   void lower_host_shared_structures(Parser &parser);
@@ -282,13 +285,16 @@ class SourceProcessor {
   void lower_comma_separated_declarations(Parser &parser);
   /* Example: `return {1, 2};` --> `T tmp = T{1, 2}; return tmp;`. */
   void lower_implicit_return_types(Parser &parser);
+  void lower_implicit_return_types_ast(Parser &parser);
   /* Example: `int a{1};` --> `int a = int{1};`. */
   void lower_initializer_implicit_types(Parser &parser);
+  void lower_initializer_implicit_types_ast(Parser &parser);
   /* Example: `T a{.a=1};` --> `T a; a.a=1;`. */
   void lower_designated_initializers(Parser &parser);
   /* Support for **full** aggregate initialization.
    * They are converted to default constructor for GLSL. */
   void lower_aggregate_initializers(Parser &parser);
+  void lower_aggregate_initializers_ast(Parser &parser);
   /* Auto detect array length, and lower to GLSL compatible syntax.
    * TODO(fclem): GLSL 4.3 already supports initializer list. So port the old GLSL syntax to
    * initializer list instead. */
@@ -336,6 +342,8 @@ class SourceProcessor {
   void lower_gather_component(Parser &parser);
   /* Lower test expect clauses to SSBO assignments. */
   void lower_tests(Parser &parser);
+  /* Lower resource pragmas to macros (breaks BSL parsing). */
+  void lower_resource_macro_placeholder_ast(Parser &parser);
 
   /* --- Legacy passes for GLSL --- */
 

@@ -96,6 +96,14 @@ struct MutableString {
     return substr_range_inclusive_view(start.str_index_start(), end.str_index_last());
   }
 
+  std::string last_substitution_failure;
+
+  bool report_failure()
+  {
+    std::cerr << last_substitution_failure << std::endl;
+    return false;
+  }
+
   /* Replace everything from `from` to `to` (inclusive).
    * Return true on success. */
   bool replace_try(size_t from, size_t to, const std::string &replacement)
@@ -103,6 +111,13 @@ struct MutableString {
     IndexRange range = IndexRange(from, to + 1 - from);
     for (const Mutation &mut : mutations_) {
       if (mut.src_range.overlaps(range)) {
+#ifndef NDEBUG
+        last_substitution_failure = "Trying to substitute \n\"" +
+                                    str_.substr(range.start, range.size) + "\"\nwith \n\"" +
+                                    replacement + "\"\nbut it overlaps with substituting \n\"" +
+                                    str_.substr(mut.src_range.start, mut.src_range.size) +
+                                    "\"\nwith \n\"" + mut.replacement + "\"";
+#endif
         return false;
       }
     }
@@ -127,7 +142,7 @@ struct MutableString {
   {
 #ifndef NDEBUG
     bool success = replace_try(from, to, replacement);
-    assert(success);
+    assert(success || report_failure());
     (void)success;
 #else
     /* No check in release. */
@@ -171,6 +186,20 @@ struct MutableString {
       replace(scope.front(), scope.back(), replacement);
     }
   }
+  /* Replace Scope by string. */
+  void replace(ast::Node node,
+               const std::string &replacement,
+               bool keep_trailing_whitespaces = false)
+  {
+    if (keep_trailing_whitespaces) {
+      replace(Token(node.front()).str_index_start(),
+              Token(node.back()).str_index_last_no_whitespace(),
+              replacement);
+    }
+    else {
+      replace(node.front(), node.back(), replacement);
+    }
+  }
 
   /* Replace the content from `from` to `to` (inclusive) by whitespaces without changing
    * line count and keep the remaining indentation spaces. */
@@ -191,7 +220,7 @@ struct MutableString {
   void erase(size_t from, size_t to)
   {
     bool result = erase_try(from, to);
-    assert(result);
+    assert(result || report_failure());
     (void)result;
   }
   /* Replace the content from `from` to `to` (inclusive) by whitespaces without changing
@@ -207,7 +236,7 @@ struct MutableString {
   void erase(Token from, Token to)
   {
     bool result = erase_try(from, to);
-    assert(result);
+    assert(result || report_failure());
     (void)result;
   }
   /* Replace the content from `from` to `to` (inclusive) by whitespaces without changing
@@ -222,7 +251,7 @@ struct MutableString {
   void erase(Token tok)
   {
     bool result = erase_try(tok);
-    assert(result);
+    assert(result || report_failure());
     (void)result;
   }
   /* Replace the content of the scope by whitespaces without changing
@@ -234,7 +263,19 @@ struct MutableString {
   void erase(Scope scope)
   {
     bool result = erase_try(scope);
-    assert(result);
+    assert(result || report_failure());
+    (void)result;
+  }
+  /* Replace the content of the scope by whitespaces without changing
+   * line count and keep the remaining indentation spaces. */
+  bool erase_try(ast::Node node)
+  {
+    return erase_try(node.front(), node.back());
+  }
+  void erase(ast::Node node)
+  {
+    bool result = erase_try(node);
+    assert(result || report_failure());
     (void)result;
   }
 
@@ -330,6 +371,8 @@ inline std::ostream &operator<<(std::ostream &out, const std::vector<int> &v)
   return out;
 }
 
+class ParserException : public std::exception {};
+
 /* Structure holding an intermediate form of the source code.
  * It is made for fast traversal and mutation of source code. */
 template<typename LexerFn, typename ParserFn>
@@ -338,9 +381,22 @@ struct IntermediateForm : MutableString, Parser<LexerFn, ParserFn> {
   ErrorHandler &report_error;
 
  public:
+  Language language = Language::BLENDER_GLSL;
+
   IntermediateForm(const std::string_view input, ErrorHandler &report_error)
       : MutableString(input), report_error(report_error)
   {
+    parse(report_error);
+  }
+
+  IntermediateForm(ErrorHandler &report_error) : MutableString(""), report_error(report_error)
+  {
+    parse(report_error);
+  }
+
+  void set_str(const std::string_view input)
+  {
+    str_ = input;
     parse(report_error);
   }
 
@@ -381,6 +437,16 @@ struct IntermediateForm : MutableString, Parser<LexerFn, ParserFn> {
   {
     this->lexical_analysis(str_);
     this->semantic_analysis(report_error);
+    switch (language) {
+      case Language::BSL:
+        this->parse_bsl(report_error);
+        break;
+      default:
+        break;
+    }
+    if (report_error.err.has_value()) {
+      throw ParserException();
+    }
   }
 
   void debug_print()

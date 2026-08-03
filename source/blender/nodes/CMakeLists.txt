@@ -85,8 +85,8 @@ set(SRC
   intern/geometry_nodes_gizmos.cc
   intern/geometry_nodes_lazy_function.cc
   intern/geometry_nodes_list.cc
-  intern/geometry_nodes_repeat_zone.cc
   intern/geometry_nodes_physics_bundles.cc
+  intern/geometry_nodes_repeat_zone.cc
   intern/geometry_nodes_srna.cc
   intern/geometry_nodes_warning.cc
   intern/inverse_eval.cc
@@ -232,6 +232,7 @@ if(WITH_GTESTS)
   set(TEST_SRC
     intern/geometry_nodes_bundle_tests.cc
     intern/node_iterator_tests.cc
+    intern/node_structure_type_inferencing_tests.cc
   )
   set(TEST_LIB
     ${LIB}

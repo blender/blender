@@ -77,6 +77,9 @@ enum PaintCurveVisibilityFlags : int {
   PAINT_CURVE_SHOW_STRENGTH = (1 << 0),
   PAINT_CURVE_SHOW_SIZE = (1 << 1),
   PAINT_CURVE_SHOW_JITTER = (1 << 2),
+  PAINT_CURVE_SHOW_HARDNESS = (1 << 3),
+  PAINT_CURVE_SHOW_AUTO_SMOOTH = (1 << 4),
+  PAINT_CURVE_SHOW_SPACING = (1 << 5),
 };
 ENUM_OPERATORS(PaintCurveVisibilityFlags)
 
@@ -157,6 +160,12 @@ ENUM_OPERATORS(eScenePassType)
 #define RE_PASSNAME_CRYPTOMATTE_MATERIAL "CryptoMaterial"
 
 #define RE_PASSNAME_GREASE_PENCIL "Grease Pencil"
+
+#define RE_PASSNAME_DENOISING_DEPTH "Denoising Depth"
+#define RE_PASSNAME_DENOISING_NORMAL "Denoising Normal"
+#define RE_PASSNAME_DENOISING_ROUGHNESS "Denoising Roughness"
+#define RE_PASSNAME_DENOISING_DIFFUSE_ALBEDO "Denoising Diffuse Albedo"
+#define RE_PASSNAME_DENOISING_SPECULAR_ALBEDO "Denoising Specular Albedo"
 
 /** #SceneRenderLayer::layflag */
 enum eSceneLayer_Flag : int {

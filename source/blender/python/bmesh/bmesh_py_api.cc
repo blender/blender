@@ -50,8 +50,14 @@ static PyObject *bpy_bm_new(PyObject * /*self*/, PyObject *args, PyObject *kw)
 
   bool use_operators = true;
 
-  if (!PyArg_ParseTupleAndKeywords(
-          args, kw, "|$O&:new", const_cast<char **>(kwlist), PyC_ParseBool, &use_operators))
+  if (!PyArg_ParseTupleAndKeywords(args,
+                                   kw,
+                                   "|$" /* Optional, keyword only arguments. */
+                                   "O&" /* `use_operators` */
+                                   ":new",
+                                   const_cast<char **>(kwlist),
+                                   PyC_ParseBool,
+                                   &use_operators))
   {
     return nullptr;
   }
@@ -120,7 +126,11 @@ static PyObject *bpy_bm_update_edit_mesh(PyObject * /*self*/, PyObject *args, Py
 
   if (!PyArg_ParseTupleAndKeywords(args,
                                    kw,
-                                   "O|$O&O&:update_edit_mesh",
+                                   "O"  /* `mesh` */
+                                   "|$" /* Optional, keyword only arguments. */
+                                   "O&" /* `loop_triangles` */
+                                   "O&" /* `destructive` */
+                                   ":update_edit_mesh",
                                    const_cast<char **>(kwlist),
                                    &py_me,
                                    PyC_ParseBool,

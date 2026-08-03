@@ -1218,7 +1218,7 @@ void blo_do_versions_250(FileData *fd, Library * /*lib*/, Main *bmain)
     /* anim viz changes */
     for (Object &ob : bmain->objects) {
       /* initialize object defaults */
-      animviz_settings_init(&ob.avs);
+      bke::animviz::settings_init(&ob.avs);
 
       /* if armature, copy settings for pose from armature data
        * performing initialization where appropriate
@@ -1262,7 +1262,7 @@ void blo_do_versions_250(FileData *fd, Library * /*lib*/, Main *bmain)
           avs->path_step = 1;
         }
         else {
-          animviz_settings_init(&ob.pose->avs);
+          bke::animviz::settings_init(&ob.pose->avs);
         }
       }
     }

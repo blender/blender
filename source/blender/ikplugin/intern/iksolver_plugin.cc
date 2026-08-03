@@ -217,7 +217,7 @@ static void initialize_posetree(Object * /*ob*/, bPoseChannel *pchan_tip)
 
     /* Per bone only one active IK constraint is supported. Inactive constraints still need to be
      * added for the depsgraph to evaluate properly. */
-    if (constraint->enforce != 0.0 && !(constraint->flag & CONSTRAINT_OFF)) {
+    if (BKE_constraint_has_influence(constraint)) {
       break;
     }
   }
@@ -623,7 +623,7 @@ void iksolver_execute_tree(
     /* Test if this IK tree has any influence, so we can skip computations. */
     bool has_influence = false;
     for (PoseTarget &target : tree->targets) {
-      if (!(target.con->flag & CONSTRAINT_OFF) && target.con->enforce != 0.0f) {
+      if (BKE_constraint_has_influence(target.con)) {
         has_influence = true;
         break;
       }

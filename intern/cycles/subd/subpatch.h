@@ -141,11 +141,11 @@ class SubPatch {
 
   /*
    *               edge2
-   *        uv3 ←------------ uv2
-   *        |                   ↑
+   *        uv3 <------------ uv2
+   *        |                   ^
    *  edge3 |                   | edge1
-   *        ↓                   |
-   *        uv0 ------------→ uv1
+   *        v                   |
+   *        uv0 ------------> uv1
    *               edge0
    *
    *         uv2
@@ -153,8 +153,8 @@ class SubPatch {
    *         |  \
    *  edge2  |   \  edge1
    *         |    \
-   *         ↓     \
-   *         uv0 --→ uv1
+   *         v     \
+   *         uv0 --> uv1
    *            edge0
    */
 

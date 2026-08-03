@@ -74,8 +74,13 @@ static int ChainSilhouetteIterator_init(BPy_ChainSilhouetteIterator *self,
   static const char *kwlist_2[] = {"restrict_to_selection", "begin", "orientation", nullptr};
   PyObject *obj1 = nullptr, *obj2 = nullptr, *obj3 = nullptr;
 
-  if (PyArg_ParseTupleAndKeywords(
-          args, kwds, "O!", (char **)kwlist_1, &ChainSilhouetteIterator_Type, &obj1))
+  if (PyArg_ParseTupleAndKeywords(args,
+                                  kwds,
+                                  "O!" /* `brother` */
+                                  ":__init__",
+                                  (char **)kwlist_1,
+                                  &ChainSilhouetteIterator_Type,
+                                  &obj1))
   {
     self->cs_it = new ChainSilhouetteIterator(*(((BPy_ChainSilhouetteIterator *)obj1)->cs_it));
   }
@@ -83,7 +88,11 @@ static int ChainSilhouetteIterator_init(BPy_ChainSilhouetteIterator *self,
            (void)(obj1 = obj2 = obj3 = nullptr),
            PyArg_ParseTupleAndKeywords(args,
                                        kwds,
-                                       "|O!O&O!",
+                                       "|"  /* Optional arguments. */
+                                       "O!" /* `restrict_to_selection` */
+                                       "O&" /* `begin` */
+                                       "O!" /* `orientation` */
+                                       ":__init__",
                                        (char **)kwlist_2,
                                        &PyBool_Type,
                                        &obj1,

@@ -52,6 +52,13 @@ using ButtonToolTipFunc = std::string (*)(bContext *C, void *argN, StringRef tip
  */
 using ButtonToolTipCustomFunc = void (*)(bContext &C, TooltipData &data, Button *but, void *argN);
 
+/** #uiFontStyle.align */
+enum FontStyleAlign {
+  UI_STYLE_TEXT_LEFT = 0,
+  UI_STYLE_TEXT_CENTER = 1,
+  UI_STYLE_TEXT_RIGHT = 2,
+};
+
 }  // namespace ui
 
 namespace ocio {

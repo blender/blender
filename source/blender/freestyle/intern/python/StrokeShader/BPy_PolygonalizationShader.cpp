@@ -50,7 +50,13 @@ static int PolygonalizationShader___init__(BPy_PolygonalizationShader *self,
   static const char *kwlist[] = {"error", nullptr};
   float f;
 
-  if (!PyArg_ParseTupleAndKeywords(args, kwds, "f", (char **)kwlist, &f)) {
+  if (!PyArg_ParseTupleAndKeywords(args,
+                                   kwds,
+                                   "f" /* `error` */
+                                   ":__init__",
+                                   (char **)kwlist,
+                                   &f))
+  {
     return -1;
   }
   self->py_ss.ss = new StrokeShaders::PolygonalizationShader(f);

@@ -282,7 +282,7 @@ static void rna_def_light(BlenderRNA *brna)
   RNA_def_property_deprecated(prop,
                               "Unused but kept for compatibility reasons. Setting the property "
                               "has no effect, and getting it always returns True.",
-                              510,
+                              501,
                               600);
 
   /* common */

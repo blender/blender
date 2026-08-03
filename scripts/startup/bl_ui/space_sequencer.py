@@ -434,6 +434,9 @@ class SEQUENCER_MT_view(Menu):
         if is_sequencer_only:
             layout.prop(st, "show_region_channels")
         layout.prop(st, "show_region_footer", text="Playback Controls")
+        col = layout.column()
+        col.prop(st, "show_scrubbing_region", text="Scrubbing")
+        col.enabled = st.show_region_footer
         layout.separator()
 
         if is_preview:
@@ -1175,6 +1178,9 @@ class SEQUENCER_MT_strip(Menu):
                     layout.separator()
                     layout.operator("sequencer.rendersize")
                     layout.operator("sequencer.images_separate")
+                elif strip_type != 'SOUND':
+                    layout.separator()
+                    layout.operator("sequencer.rendersize")
                 elif strip_type == 'META':
                     layout.separator()
                     layout.operator("sequencer.meta_make")
@@ -1202,8 +1208,8 @@ class SEQUENCER_MT_strip(Menu):
 
         layout.separator()
         if strip and strip.type == 'SCENE':
-            layout.operator("sequencer.scene_frame_range_update")
             layout.operator("sequencer.delete", text="Delete Strip & Data").delete_data = True
+        layout.operator("sequencer.ripple_delete", text="Ripple Delete")
         layout.operator("sequencer.delete", text="Delete", icon='X')
 
 
@@ -1335,8 +1341,6 @@ class SEQUENCER_MT_context_menu(Menu):
             layout.separator()
             layout.operator("sequencer.set_range_to_strips", text="Set Preview Range to Selected").preview = True
             layout.operator("sequencer.set_range_to_strips", text="Set Render Range to Selected")
-            if strip_type == 'SCENE':
-                layout.operator("sequencer.scene_frame_range_update", text="Update Scene Strip Range")
 
         if has_selection:
             layout.separator()
@@ -1355,7 +1359,7 @@ class SEQUENCER_MT_context_menu(Menu):
             }:
                 layout.separator()
                 layout.menu("SEQUENCER_MT_strip_effect")
-            elif strip_type == 'MOVIE':
+            elif strip_type != 'SOUND':
                 layout.separator()
                 layout.operator("sequencer.rendersize")
             elif strip_type == 'IMAGE':
@@ -1368,7 +1372,7 @@ class SEQUENCER_MT_context_menu(Menu):
             layout.separator()
         in_meta = len(context.sequencer_scene.sequence_editor.meta_stack) > 0
         show_make = has_selection
-        show_separate = strip_type == 'META'
+        show_separate = strip_type == 'META' and context.active_strip and context.active_strip.select
         show_toggle = in_meta or (strip_type == 'META' and has_selection)
         if show_make or show_separate or show_toggle:
             if show_make:
@@ -1396,9 +1400,10 @@ class SEQUENCER_MT_context_menu(Menu):
 
         if has_selection:
             layout.separator()
-            layout.operator("sequencer.delete", text="Delete", icon='X')
+            layout.operator("sequencer.ripple_delete", text="Ripple Delete")
             if has_active and has_active.type == 'SCENE':
                 layout.operator("sequencer.delete", text="Delete Strip & Data").delete_data = True
+            layout.operator("sequencer.delete", text="Delete", icon='X')
 
     def draw_retime(self, context):
         layout = self.layout
@@ -1928,8 +1933,7 @@ class SEQUENCER_PT_view_composition_guides(SequencerButtonsPanel_Output, Panel):
         return is_preview and (st.display_mode == 'IMAGE') and context.sequencer_scene
 
     def draw_header(self, context):
-        layout = self.layout
-        overlay_settings = context.space_data.preview_overlay
+        pass
 
     def draw(self, context):
         overlay_settings = context.space_data.preview_overlay

@@ -12,6 +12,7 @@
 #include "RNA_enum_types.hh"
 
 #include "node_function_util.hh"
+#include "node_shader_util.hh"
 
 #include "UI_interface_layout.hh"
 #include "UI_resources.hh"
@@ -146,6 +147,47 @@ static void node_gather_link_searches(GatherLinkSearchOpParams &params)
   }
 }
 
+static const char *gpu_shader_get_name(const eNodeSocketDatatype data_type)
+{
+  switch (data_type) {
+    case SOCK_FLOAT:
+      return "hash_value_float";
+    case SOCK_VECTOR:
+      return "hash_value_vector";
+    case SOCK_RGBA:
+      return "hash_value_color";
+    case SOCK_INT:
+      return "hash_value_int";
+    case SOCK_ROTATION:
+      return "hash_value_rotation";
+    case SOCK_MATRIX:
+      return "hash_value_matrix";
+    case SOCK_STRING:
+      /* Strings are single-value, so they are executed via the multi-function path. */
+      return nullptr;
+    default:
+      break;
+  }
+
+  BLI_assert_unreachable();
+  return nullptr;
+}
+
+static int node_gpu_material(GPUMaterial *mat,
+                             bNode *node,
+                             bNodeExecData * /*execdata*/,
+                             GPUNodeStack *in,
+                             GPUNodeStack *out)
+{
+  const char *name = gpu_shader_get_name(eNodeSocketDatatype(node->custom1));
+
+  if (name == nullptr) {
+    return 0;
+  }
+
+  return GPU_stack_link(mat, node, name, in, out);
+}
+
 static void node_rna(StructRNA *srna)
 {
   RNA_def_node_enum(
@@ -175,7 +217,7 @@ static void node_rna(StructRNA *srna)
 static void node_register()
 {
   static bke::bNodeType ntype;
-  fn_node_type_base(&ntype, "FunctionNodeHashValue"_ustr, FN_NODE_HASH_VALUE);
+  fn_cmp_node_type_base(&ntype, "FunctionNodeHashValue"_ustr, FN_NODE_HASH_VALUE);
   ntype.ui_name = "Hash Value";
   ntype.ui_description = "Generate a randomized integer using the given input value as a seed";
   ntype.enum_name_legacy = "HASH_VALUE";
@@ -183,6 +225,7 @@ static void node_register()
   ntype.declare = node_declare;
   ntype.initfunc = node_init;
   ntype.build_multi_function = node_build_multi_function;
+  ntype.gpu_fn = node_gpu_material;
   ntype.draw_buttons = node_layout;
   ntype.gather_link_search_ops = node_gather_link_searches;
   bke::node_register_type(ntype);

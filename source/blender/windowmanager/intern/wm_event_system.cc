@@ -2411,6 +2411,11 @@ BLI_INLINE bool wm_eventmatch(const wmEvent *winevent, const wmKeyMapItem *kmi)
 
   /* The matching rules. */
   if (kmitype == KM_TEXTINPUT) {
+#ifdef WITH_INPUT_IME
+    if (IS_EVENT_IME_ANY(winevent->type)) {
+      return true;
+    }
+#endif
     if (winevent->val == KM_PRESS) { /* Prevent double clicks. */
       if (ISKEYBOARD(winevent->type) && winevent->utf8_buf[0]) {
         return true;
@@ -6698,6 +6703,43 @@ wmKeyMapItem *WM_event_match_keymap_item_from_handlers(bContext *C,
 bool WM_event_match(const wmEvent *winevent, const wmKeyMapItem *kmi)
 {
   return wm_eventmatch(winevent, kmi);
+}
+
+bool WM_event_modifier_flag_match_kmi_press(const wmEventModifierFlag event_modifier,
+                                            const wmKeyMapItem *kmi)
+{
+  /* The caller is expected to skip. */
+  BLI_assert((kmi->flag & KMI_INACTIVE) == 0);
+
+  if (event_modifier == 0) {
+    return false;
+  }
+  if (kmi->val != KM_PRESS) {
+    return false;
+  }
+  switch (kmi->type) {
+    case EVT_LEFTCTRLKEY:
+    case EVT_RIGHTCTRLKEY: {
+      return event_modifier & KM_CTRL;
+    }
+    case EVT_LEFTSHIFTKEY:
+    case EVT_RIGHTSHIFTKEY: {
+      return event_modifier & KM_SHIFT;
+    }
+    case EVT_LEFTALTKEY:
+    case EVT_RIGHTALTKEY: {
+      return event_modifier & KM_ALT;
+    }
+    case EVT_OSKEY: {
+      return event_modifier & KM_OSKEY;
+    }
+    case EVT_HYPER: {
+      return event_modifier & KM_HYPER;
+    }
+    default: {
+      return false;
+    }
+  }
 }
 
 /** \} */

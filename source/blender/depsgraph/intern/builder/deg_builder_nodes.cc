@@ -51,7 +51,7 @@
 
 #include "BKE_action.hh"
 #include "BKE_anim_data.hh"
-#include "BKE_animsys.h"
+#include "BKE_animsys.hh"
 #include "BKE_armature.hh"
 #include "BKE_bake_geometry_nodes_modifier.hh"
 #include "BKE_cachefile.hh"
@@ -1733,8 +1733,9 @@ void DepsgraphNodeBuilder::build_empty_object(Object *object)
   Scene *scene_cow = get_cow_datablock(scene_);
   Object *object_cow = get_cow_datablock(object);
 
-  const bool has_modifiers = !BLI_listbase_is_empty(&object->modifiers);
-  if (!has_modifiers) {
+  const bool can_have_geometry = !BLI_listbase_is_empty(&object->modifiers) ||
+                                 object->instance_collection;
+  if (!can_have_geometry) {
     if (deg_eval_copy_is_expanded(&object_cow->id)) {
       /* The empty might have had modifiers previously, so it might still have cached evaluated
        * geometry. Usually this would be freed by #BKE_object_eval_uber_data during the next

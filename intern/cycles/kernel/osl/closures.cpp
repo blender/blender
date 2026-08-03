@@ -135,7 +135,7 @@ void osl_eval_nodes_surface(const ThreadKernelGlobalsCPU *kg,
       const OSL::Vec3 dPdy = globals->dPdy;
 
       /* set state as if undisplaced */
-      if (sd->flag & SD_HAS_DISPLACEMENT) {
+      if (sd->shader_flag & SD_HAS_DISPLACEMENT) {
         const AttributeDescriptor desc = find_attribute(kg, sd, ATTR_STD_POSITION_UNDISPLACED);
         kernel_assert(is_attribute_found(desc));
 

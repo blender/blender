@@ -8,12 +8,12 @@
  * Circularize selected boundary chains.
  */
 #include "BLI_kdopbvh.hh"
+#include "BLI_listbase.hh"
 #include "BLI_map.hh"
 #include "BLI_math_geom_c.hh"
 #include "BLI_math_matrix.hh"
 #include "BLI_math_matrix_c.hh"
 #include "BLI_math_vector.hh"
-#include "BLI_set.hh"
 #include "BLI_span.hh"
 #include "BLI_vector.hh"
 
@@ -50,6 +50,8 @@ struct VertChain {
   Vector<BMVert *> verts;
   /** This is true if the path forms a closed chain, for open chains it's false. */
   bool is_closed;
+  /** True if the chain is formed entirely from wire edges. */
+  bool is_wire;
 };
 
 /**
@@ -57,16 +59,19 @@ struct VertChain {
  * edge for circularization.
  * Valid boundary edges are edges that are selected, not hidden
  * and are not interior. They lie on the boundary between a selected
- * face and an unselected face and do not lie on the mirror plane.
+ * face and an unselected face, or they are only wire edges.
+ * Valid boundary edges also must not lie on the mirror plane.
  */
-static bool is_valid_boundary_edge(BMEdge *e, const char hflag, const bool check_axis[3])
+static bool is_valid_boundary_edge(BMEdge *e,
+                                   const char hflag,
+                                   const bool check_axis[3],
+                                   bool extract_wire_edges)
 {
   if (!BM_elem_flag_test(e, hflag) || BM_elem_flag_test(e, BM_ELEM_HIDDEN)) {
     return false;
   }
 
-  /* Wire edges are not valid boundary edges. */
-  if (!e->l) {
+  if (extract_wire_edges ? e->l != nullptr : e->l == nullptr) {
     return false;
   }
 
@@ -100,117 +105,69 @@ static bool is_valid_boundary_edge(BMEdge *e, const char hflag, const bool check
   return true;
 }
 
-/**
- * Traverses a connected path of boundary edges to form a continuous sequence of vertices.
- * This function handles two cases:
- * Closed chains: walks until the traversal returns to the start vertex.
- * Open chains: walks in one direction until a dead end, then walks in the
- * opposite direction from the start edge and merges the results.
- */
-static std::optional<VertChain> walk_boundary_chain(BMEdge *start_edge,
-                                                    Set<BMEdge *> &visited,
-                                                    const char hflag,
-                                                    const bool check_axis[3])
-{
-  VertChain chain_data;
-  /* Finds the next valid boundary edge that isn't visited. */
-  auto get_next_edge_fn = [&](BMVert *v, BMEdge *exclude_e) -> BMEdge * {
-    BMIter eiter;
-    BMEdge *e_next;
-    BM_ITER_ELEM (e_next, &eiter, v, BM_EDGES_OF_VERT) {
-      if (e_next != exclude_e && !visited.contains(e_next)) {
-        if (is_valid_boundary_edge(e_next, hflag, check_axis)) {
-          return e_next;
-        }
-      }
-    }
-    return nullptr;
-  };
-
-  /* Walks in one direction until a dead end. */
-  auto walk_fn = [&](BMVert *curr_v, BMEdge *curr_e, Vector<BMVert *> &list) {
-    while (true) {
-      BMEdge *next_e = get_next_edge_fn(curr_v, curr_e);
-      if (!next_e) {
-        break;
-      }
-
-      /* Move to next vertex. */
-      curr_v = BM_edge_other_vert(next_e, curr_v);
-      curr_e = next_e;
-
-      list.append(curr_v);
-      visited.add(curr_e);
-    }
-  };
-
-  chain_data.verts.append(start_edge->v1);
-  chain_data.verts.append(start_edge->v2);
-  visited.add(start_edge);
-
-  /* The initial edge direction (v1 -> v2) is arbitrary.
-   * We walk from v2 to extend this sequence. */
-  walk_fn(start_edge->v2, start_edge, chain_data.verts);
-
-  /* If the traversal forms a closed chain, the last vertex will match the first.
-   * Remove the duplicate end vertex. */
-  if (chain_data.verts.size() > 2 && chain_data.verts.first() == chain_data.verts.last()) {
-    if (chain_data.verts.size() < 4) {
-      return std::nullopt;
-    }
-    chain_data.verts.remove_last();
-    chain_data.is_closed = true;
-    return chain_data;
-  }
-
-  /* If we are here, the chain is open.
-   * We need to check the other direction from the start vertex. */
-  Vector<BMVert *> pre_chain;
-  walk_fn(start_edge->v1, start_edge, pre_chain);
-
-  if (!pre_chain.is_empty()) {
-    std::reverse(pre_chain.begin(), pre_chain.end());
-
-    pre_chain.extend(chain_data.verts);
-    chain_data.verts = std::move(pre_chain);
-  }
-
-  chain_data.is_closed = false;
-
-  if (chain_data.verts.size() < 3) {
-    return std::nullopt;
-  }
-
-  return chain_data;
-}
-
 /** Collects all valid boundary edge chains from the current selection. */
 static void bm_vert_chain_extract_from_boundary_edges(BMesh *bm,
                                                       Vector<VertChain> &r_chains,
                                                       const char hflag,
-                                                      const bool check_axis[3])
+                                                      const bool check_axis[3],
+                                                      bool extract_wire_edges)
 {
-  Set<BMEdge *> visited;
-  BMIter iter;
-  BMEdge *edge;
+  ListBaseT<BMEdgeLoopStore> eloops = {nullptr};
+  const BMEdgeLoopFind_Params params = {
+      .use_vert_junction = true,
+  };
 
-  BM_ITER_MESH (edge, &iter, bm, BM_EDGES_OF_MESH) {
-    if (visited.contains(edge)) {
-      continue;
-    }
-    if (!is_valid_boundary_edge(edge, hflag, check_axis)) {
-      continue;
+  BM_mesh_edgeloops_find(
+      bm,
+      &eloops,
+      [&](BMEdge *e) { return is_valid_boundary_edge(e, hflag, check_axis, extract_wire_edges); },
+      &params);
+
+  for (BMEdgeLoopStore &el_store : eloops) {
+    VertChain chain;
+    chain.is_closed = BM_edgeloop_is_closed(&el_store);
+    chain.is_wire = extract_wire_edges;
+    for (LinkData &node : *BM_edgeloop_verts_get(&el_store)) {
+      chain.verts.append(static_cast<BMVert *>(node.data));
     }
 
-    std::optional<VertChain> ld = walk_boundary_chain(edge, visited, hflag, check_axis);
-    if (ld.has_value()) {
-      r_chains.append(*ld);
+    /* Reject wire edge chains that touch a face region. Wire edges are only circularized if they
+     * are completely isolated. */
+    if (extract_wire_edges) {
+      bool touches_face_region = false;
+      for (BMVert *v : chain.verts) {
+        BMIter eiter;
+        BMEdge *e_other;
+        BM_ITER_ELEM (e_other, &eiter, v, BM_EDGES_OF_VERT) {
+          if (BM_elem_flag_test(e_other, hflag) && e_other->l != nullptr) {
+            touches_face_region = true;
+            break;
+          }
+        }
+        if (touches_face_region) {
+          break;
+        }
+      }
+      if (touches_face_region) {
+        continue;
+      }
+    }
+
+    if (chain.verts.size() >= 3) {
+      r_chains.append(std::move(chain));
     }
   }
+
+  BM_mesh_edgeloops_free(&eloops);
 }
 
-/** Computes the local coordinate system defining the 2D plane of the vertex chain. */
-static float3x3 bm_vert_chain_orientation_matrix_calc(Span<BMVert *> chain, float3 &r_center)
+/**
+ * Computes the local coordinate system defining the 2D plane of the vertex chain.
+ * \return success, false when the matrix could not be computed.
+ */
+static bool bm_vert_chain_orientation_matrix_calc(Span<BMVert *> chain,
+                                                  float3 &r_center,
+                                                  float3x3 &r_mat)
 {
   r_center = float3(0.0f);
   for (BMVert *v : chain) {
@@ -225,6 +182,11 @@ static float3x3 bm_vert_chain_orientation_matrix_calc(Span<BMVert *> chain, floa
     add_newell_cross_v3_v3v3(normal, prev->co, curr->co);
     prev = curr;
   }
+
+  if (math::length(normal) < CIRCULARIZE_EPSILON) {
+    return false;
+  }
+
   normal = math::normalize(normal);
   float3 guess = float3(1.0f, 0.0f, 0.0f);
 
@@ -237,11 +199,10 @@ static float3x3 bm_vert_chain_orientation_matrix_calc(Span<BMVert *> chain, floa
 
   float3 p = math::normalize(math::cross(normal, guess));
   float3 q = math::cross(normal, p);
-  float3x3 mat;
-  mat.x_axis() = p;
-  mat.y_axis() = q;
-  mat.z_axis() = normal;
-  return mat;
+  r_mat.x_axis() = p;
+  r_mat.y_axis() = q;
+  r_mat.z_axis() = normal;
+  return true;
 }
 
 /** Projects 3D vertex coordinates onto a local 2D plane defined by the P and Q basis vectors. */
@@ -279,6 +240,7 @@ static void calculate_circle_best_fit(Span<CircleVert> verts,
   /* Initial guesses. */
   float2 initial_center = float2(0.0f);
   float initial_radius = 1.0f;
+  bool converged = false;
 
   for (int iter = 0; iter < NON_LINEAR_LEAST_SQUARES_MAX_ITERATIONS; iter++) {
     float3x3 normal_matrix = float3x3::zero();
@@ -317,8 +279,20 @@ static void calculate_circle_best_fit(Span<CircleVert> verts,
     if (std::abs(delta.x) < CIRCULARIZE_EPSILON && std::abs(delta.y) < CIRCULARIZE_EPSILON &&
         std::abs(delta.z) < CIRCULARIZE_EPSILON)
     {
+      converged = true;
       break;
     }
+  }
+
+  if (!converged) {
+    /* Fallback for the best fit circle in the scenario that the Gauss-Newton solver
+     * fails to converge. */
+    initial_center = float2(0.0f);
+    initial_radius = 0.0f;
+    for (const CircleVert &cv : verts) {
+      initial_radius += math::length(cv.co_2d);
+    }
+    initial_radius /= verts.size();
   }
 
   r_center = initial_center;
@@ -599,7 +573,16 @@ void bmo_circularize_exec(BMesh *bm, BMOperator *op)
       bm, op->slots_in, "geom", BM_VERT | BM_EDGE | BM_FACE, BM_ELEM_TAG, false);
 
   Vector<VertChain> chains;
-  bm_vert_chain_extract_from_boundary_edges(bm, chains, BM_ELEM_TAG, check_axis);
+
+  /* Uses two passes to detect if edges are wire edges or they have face regions.
+   * Wire edges are rejected in the first pass but included in the second pass. */
+  for (const bool extract_wire_edges : {false, true}) {
+    if (!extract_wire_edges && bm->totface == 0) {
+      continue;
+    }
+    bm_vert_chain_extract_from_boundary_edges(
+        bm, chains, BM_ELEM_TAG, check_axis, extract_wire_edges);
+  }
 
   /* Builds a BVH tree when flatten is disabled. Without this we would have to iterate
    * over every face in the mesh for every vertex which is too slow.
@@ -612,7 +595,7 @@ void bmo_circularize_exec(BMesh *bm, BMOperator *op)
   NearestTriUserData bvh_data = {};
   FaceTessellationCache tess_cache;
 
-  if (flatten < 1.0f) {
+  if ((flatten < 1.0f) && (bm->totface > 0)) {
     const int tot_tri = poly_to_tri_count(bm->totface, bm->totloop);
     looptris.reinitialize(tot_tri);
     BM_mesh_calc_tessellation(bm, looptris);
@@ -635,12 +618,21 @@ void bmo_circularize_exec(BMesh *bm, BMOperator *op)
       normal_accum += float3(v->no);
     }
     float3 center_3d;
-    float3x3 mat = bm_vert_chain_orientation_matrix_calc(chain, center_3d);
+    float3x3 mat;
+    if (!bm_vert_chain_orientation_matrix_calc(chain, center_3d, mat)) {
+      BMO_error_raise(
+          bm, op, BMO_ERROR_CANCEL, "Selection requires at least 3 non-collinear vertices");
+      return;
+    }
 
     /* Reverse the chain winding if the Newell normal opposes the cumulative vertex normal. */
     if (math::dot(mat.z_axis(), normal_accum) < 0.0f) {
       std::reverse(chain.begin(), chain.end());
-      mat = bm_vert_chain_orientation_matrix_calc(chain, center_3d);
+      if (!bm_vert_chain_orientation_matrix_calc(chain, center_3d, mat)) {
+        BMO_error_raise(
+            bm, op, BMO_ERROR_CANCEL, "Selection requires at least 3 non-collinear vertices");
+        return;
+      }
     }
 
     bool is_mirrored = false;
@@ -702,7 +694,9 @@ void bmo_circularize_exec(BMesh *bm, BMOperator *op)
       const float3 target_local(cv.target_2d.x, cv.target_2d.y, 0.0f);
       float3 final_pos = center_3d + mat * target_local;
 
-      if (flatten < 1.0f) {
+      /* Projecting the circle onto the mesh only makes sense for edge chains
+       * that have faces attached. */
+      if (flatten < 1.0f && !chain_data.is_wire) {
         float3 projected_pos;
         project_on_mesh(
             bvh_tree, &bvh_data, cv.v, final_pos, mat.z_axis(), projected_pos, tess_cache);

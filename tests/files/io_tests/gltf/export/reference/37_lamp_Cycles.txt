@@ -21,7 +21,7 @@ None
             0,
             0
           ],
-          "intensity": 54.351,
+          "intensity": 6830.001,
           "type": "point",
           "name": "Light"
         }

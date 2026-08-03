@@ -146,4 +146,16 @@ void VKStateManager::storage_buffer_unbind_all()
   is_dirty = true;
 }
 
+void VKStateManager::toplevelas_bind(VKTopLevelAS &tlas, int slot)
+{
+  acceleration_structures_.bind(&tlas, slot);
+  is_dirty = true;
+}
+
+void VKStateManager::toplevelas_unbind(void *resource)
+{
+  acceleration_structures_.unbind(resource);
+  is_dirty = true;
+}
+
 }  // namespace blender::gpu

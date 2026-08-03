@@ -43,7 +43,7 @@ void ED_keymap_paint(wmKeyConfig *keyconf);
 
 void ED_imapaint_clear_partial_redraw();
 void ED_imapaint_dirty_region(
-    Image *ima, ImBuf *ibuf, ImageUser *iuser, int x, int y, int w, int h, bool find_old);
+    Image *ima, ImBuf *ibuf, ImageUser *iuser, int x, int y, int w, int h);
 void ED_imapaint_bucket_fill(bContext *C,
                              const float color[3],
                              wmOperator *op,
@@ -103,11 +103,7 @@ const ImBuf *ED_image_paint_tile_push(PaintTileMap *paint_tile_map,
                                       int x_tile,
                                       int y_tile,
                                       unsigned short **r_mask,
-                                      bool **r_valid,
-                                      bool use_thread_lock,
-                                      bool find_prev);
-void ED_image_paint_tile_lock_init();
-void ED_image_paint_tile_lock_end();
+                                      bool **r_valid);
 
 PaintTileMap *ED_image_paint_tile_map_get();
 

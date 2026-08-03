@@ -351,10 +351,10 @@ set(OSL_HOMEPAGE https://github.com/AcademySoftwareFoundation/OpenShadingLanguag
 set(OSL_LICENSE SPDX:BSD-3-Clause)
 set(OSL_COPYRIGHT "Copyright (c) 2009-present Contributors to the Open Shading Language project.")
 
-set(MANIFOLD_VERSION v3.4.1)
+set(MANIFOLD_VERSION v3.5.2)
 set(MANIFOLD_NAME "Manifold")
 set(MANIFOLD_URI https://github.com/elalish/manifold/archive/refs/tags/${MANIFOLD_VERSION}.tar.gz)
-set(MANIFOLD_HASH 1fd7e7741cae23db2956159d42ea7017)
+set(MANIFOLD_HASH 4fc28c8318bd052f54e66b86b5947601)
 set(MANIFOLD_HASH_TYPE MD5)
 set(MANIFOLD_FILE Manifold-${MANIFOLD_VERSION}.tar.gz)
 set(MANIFOLD_HOMEPAGE https://github.com/elalish/manifold)
@@ -496,7 +496,6 @@ set(TOMLI_W_VERSION 1.2.0)
 # When this numpy version is bumped, please also change the limit value set for variable `install_requires`
 # in build_files/utils/make_bpy_wheel.py
 set(NUMPY_VERSION 2.3.4)
-set(NUMPY_SHORT_VERSION 2.3)
 set(NUMPY_URI https://github.com/numpy/numpy/releases/download/v${NUMPY_VERSION}/numpy-${NUMPY_VERSION}.tar.gz)
 set(NUMPY_HASH 8717ed1828a8a390c454c6636e91c46a)
 set(NUMPY_HASH_TYPE MD5)
@@ -667,15 +666,6 @@ Copyright (c) 2003, 2007-14 Matteo Frigo.
 Copyright (c) 2003, 2007-14 Massachusetts Institute of Technology
 ]=])
 
-set(ICONV_VERSION 1.16)
-set(ICONV_URI http://ftp.gnu.org/pub/gnu/libiconv/libiconv-${ICONV_VERSION}.tar.gz)
-set(ICONV_HASH 7d2a800b952942bb2880efb00cfd524c)
-set(ICONV_HASH_TYPE MD5)
-set(ICONV_FILE libiconv-${ICONV_VERSION}.tar.gz)
-set(ICONV_HOMEPAGE https://www.gnu.org/software/libiconv/)
-set(ICONV_LICENSE SPDX:LGPL-2.1-or-later)
-set(ICONV_COPYRIGHT "Copyright (C) 1998, 2022 Free Software Foundation, Inc.")
-
 set(SNDFILE_VERSION 1.2.2)
 set(SNDFILE_NAME libsndfile)
 set(SNDFILE_URI https://github.com/libsndfile/libsndfile/releases/download/1.2.2/libsndfile-${SNDFILE_VERSION}.tar.xz)
@@ -766,14 +756,14 @@ set(FLEXBISON_HASH 6b549d43e34ece0e8ed05af92daa31c4)
 set(FLEXBISON_HASH_TYPE MD5)
 set(FLEXBISON_FILE win_flex_bison-${FLEXBISON_VERSION}.zip)
 set(FLEXBISON_HOMEPAGE https://github.com/lexxmark/winflexbison)
-set(FLEXBISON_DEPSBUILDTIMEONLY "Blender ships the produced artifact, but doesn't ship/link with any binary")
+set(FLEXBISON_DEPSBUILDTIMEONLY "This utility is used at dependency build time, but isn't shipped nor used by Blender itself")
 
 set(FLEX_VERSION 2.6.4)
 set(FLEX_URI https://github.com/westes/flex/releases/download/v${FLEX_VERSION}/flex-${FLEX_VERSION}.tar.gz)
 set(FLEX_HASH 2882e3179748cc9f9c23ec593d6adc8d)
 set(FLEX_HASH_TYPE MD5)
 set(FLEX_FILE flex-${FLEX_VERSION}.tar.gz)
-set(FLEX_DEPSBUILDTIMEONLY "Blender ships the produced artifact, but doesn't ship/link with any binary")
+set(FLEX_DEPSBUILDTIMEONLY "This utility is used at dependency build time, but isn't shipped nor used by Blender itself")
 
 # Libraries to keep Python modules static on Linux.
 
@@ -893,7 +883,7 @@ set(NASM_HASH aded8b796c996a486a56e0515c83e414116decc3b184d88043480b32eb0a8589)
 set(NASM_HASH_TYPE SHA256)
 set(NASM_FILE nasm-${NASM_VERSION}.tar.gz)
 set(NASM_CPE "cpe:2.3:a:nasm:nasm:${NASM_VERSION}:*:*:*:*:*:*:*")
-set(NASM_DEPSBUILDTIMEONLY "Blender ships the produced artifact, but doesn't ship/link with any binary")
+set(NASM_DEPSBUILDTIMEONLY "This assembler is used at dependency build time, but isn't shipped nor used by Blender itself")
 
 set(XR_OPENXR_SDK_VERSION 1.1.53)
 set(XR_OPENXR_SDK_URI https://github.com/KhronosGroup/OpenXR-SDK/archive/release-${XR_OPENXR_SDK_VERSION}.tar.gz)
@@ -979,7 +969,7 @@ set(ISPC_URI https://github.com/ispc/ispc/archive/${ISPC_VERSION}.tar.gz)
 set(ISPC_HASH 97efadfb848ef585b8f02cebd9da93e7)
 set(ISPC_HASH_TYPE MD5)
 set(ISPC_FILE ispc-${ISPC_VERSION}.tar.gz)
-set(ISPC_DEPSBUILDTIMEONLY "Blender ships the produced artifact, but doesn't ship/link with any binary")
+set(ISPC_DEPSBUILDTIMEONLY "This compiler is used at dependency build time, but isn't shipped nor used by Blender itself")
 
 set(GMP_VERSION 6.3.0)
 set(GMP_URI https://gmplib.org/download/gmp/gmp-${GMP_VERSION}.tar.xz)

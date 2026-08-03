@@ -431,11 +431,14 @@ Scene::MotionType Scene::need_motion() const
   if (integrator->get_motion_blur()) {
     return MOTION_BLUR;
   }
-  const bool denoiser_motion = integrator->get_use_denoise() &&
-                               (integrator->get_denoiser_passes() &
-                                (DENOISER_PASS_MOTION | DENOISER_PASS_BACKWARD_MOTION)) != 0;
+  const DenoiserPassMask denoiser_motion_passes = DENOISER_PASS_MOTION |
+                                                  DENOISER_PASS_BACKWARD_MOTION |
+                                                  DENOISER_PASS_SPECULAR_MOTION;
+  const bool denoiser_motion = (integrator->get_use_denoise()) &&
+                               (integrator->get_denoiser_passes() & denoiser_motion_passes) != 0;
   if (denoiser_motion || (Pass::contains(passes, PASS_MOTION) ||
-                          Pass::contains(passes, PASS_DENOISING_BACKWARD_MOTION)))
+                          Pass::contains(passes, PASS_DENOISING_BACKWARD_MOTION) ||
+                          Pass::contains(passes, PASS_DENOISING_SPECULAR_MOTION)))
   {
     return params.background ? MOTION_PASS : MOTION_PASS_INTERACTIVE;
   }
@@ -1176,5 +1179,12 @@ template<> void Scene::delete_nodes(const set<Pass *> &nodes, const NodeOwner *o
   passes.erase_in_set(nodes);
   film->tag_modified();
 }
+
+/* Template instantiations so we don't have to inline functions. */
+template PointLight *Scene::create_light_node<PointLight>();
+template SpotLight *Scene::create_light_node<SpotLight>();
+template AreaLight *Scene::create_light_node<AreaLight>();
+template SunLight *Scene::create_light_node<SunLight>();
+template BackgroundLight *Scene::create_light_node<BackgroundLight>();
 
 CCL_NAMESPACE_END

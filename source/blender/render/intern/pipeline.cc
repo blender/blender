@@ -32,17 +32,17 @@
 #include "BLI_map.hh"
 #include "BLI_mutex.hh"
 #include "BLI_rect.hh"
-#include "BLI_set.hh"
 #include "BLI_string_utf8.hh"
 #include "BLI_threads.hh"
 #include "BLI_time.hh"
 #include "BLI_timecode.hh"
 #include "BLI_vector.hh"
+#include "BLI_vector_set.hh"
 
 #include "BLT_translation.hh"
 
 #include "BKE_anim_data.hh"
-#include "BKE_animsys.h" /* <------ should this be here?, needed for sequencer update */
+#include "BKE_animsys.hh" /* <------ should this be here?, needed for sequencer update */
 #include "BKE_callbacks.hh"
 #include "BKE_camera.h"
 #include "BKE_colortools.hh"
@@ -74,6 +74,7 @@
 #include "IMB_imbuf.hh"
 #include "IMB_imbuf_types.hh"
 #include "IMB_metadata.hh"
+#include "IMB_partial_update.hh"
 
 #include "MOV_write.hh"
 
@@ -182,7 +183,7 @@ static bool do_write_image_or_movie(Render *re,
                                     const bool write_anim_or_still);
 
 /* default callbacks, set in each new render */
-static void result_rcti_nothing(void * /*arg*/, RenderResult * /*rr*/, rcti * /*rect*/) {}
+static void result_rcti_nothing(void * /*arg*/, RenderResult * /*rr*/) {}
 static void current_scene_nothing(void * /*arg*/, Scene * /*scene*/) {}
 static void float_nothing(void * /*arg*/, float /*val*/) {}
 static bool default_break(void * /*arg*/)
@@ -887,9 +888,7 @@ void RE_InitState(Render *re,
   RE_init_threadcount(re);
 }
 
-void RE_display_update_cb(Render *re,
-                          void *handle,
-                          void (*f)(void *handle, RenderResult *rr, rcti *rect))
+void RE_display_update_cb(Render *re, void *handle, void (*f)(void *handle, RenderResult *rr))
 {
   re->display->display_update_cb = f;
   re->display->duh = handle;
@@ -1041,7 +1040,7 @@ static void render_result_uncrop(Render *re)
 
       BLI_rw_mutex_unlock(&re->resultmutex);
 
-      re->display->display_update(re->result, nullptr);
+      re->display->display_update(re->result);
 
       /* restore the disprect from border */
       re->disprect = orig_disprect;
@@ -1105,48 +1104,113 @@ static void do_render_compositor_scene(Render *re, Scene *sce, int cfra)
   RE_display_free(resc);
 }
 
-/* Get the scene referenced by the given node if the node uses its render. Returns nullptr
- * otherwise. */
-static Scene *get_scene_referenced_by_node(const bNode *node)
+/* Get the set of all scenes that needs to be rendered by the given compositor node group in the
+ * given pipeline scene. If the node group is the root one, is_root_node_group will be true. */
+static VectorSet<Scene *> get_scenes_that_needs_render_by_node_group(
+    Scene &pipeline_scene,
+    const bNodeTree &node_group,
+    const bool is_root_node_group,
+    VectorSet<const bNodeTree *> &node_trees_already_searched)
 {
-  if (node->is_muted()) {
-    return nullptr;
-  }
+  VectorSet<Scene *> needed_scenes_to_render;
+  node_group.ensure_topology_cache();
 
-  if (node->type_legacy == CMP_NODE_R_LAYERS) {
-    return reinterpret_cast<Scene *>(node->id);
-  }
-  if (node->type_legacy == CMP_NODE_CRYPTOMATTE &&
-      node->custom1 == CMP_NODE_CRYPTOMATTE_SOURCE_RENDER)
-  {
-    return reinterpret_cast<Scene *>(node->id);
-  }
-
-  return nullptr;
-}
-
-/* Returns true if the given scene needs a render, either because it doesn't use the compositor
- * pipeline and thus needs a simple render, or that its compositor node tree requires the scene to
- * be rendered. */
-static bool compositor_needs_render(Scene *scene)
-{
-  bNodeTree *ntree = scene->compositing_node_group;
-
-  if (ntree == nullptr) {
-    return true;
-  }
-  if ((scene->r.scemode & R_DOCOMP) == 0) {
-    return true;
-  }
-
-  for (const bNode *node : ntree->all_nodes()) {
-    Scene *node_scene = get_scene_referenced_by_node(node);
-    if (node_scene && node_scene == scene) {
-      return true;
+  /* Group Input nodes. */
+  if (is_root_node_group) {
+    for (const bNode *node : node_group.group_input_nodes()) {
+      if (!node->is_muted()) {
+        needed_scenes_to_render.add(&pipeline_scene);
+      }
     }
   }
 
-  return false;
+  /* Render Layers nodes. */
+  for (const bNode *node : node_group.nodes_by_type("CompositorNodeRLayers"_ustr)) {
+    if (!node->is_muted() && node->id) {
+      needed_scenes_to_render.add(id_cast<Scene *>(node->id));
+    }
+  }
+
+  /* Cryptomatte nodes. */
+  for (const bNode *node : node_group.nodes_by_type("CompositorNodeCryptomatteV2"_ustr)) {
+    if (!node->is_muted() && node->custom1 == CMP_NODE_CRYPTOMATTE_SOURCE_RENDER && node->id) {
+      needed_scenes_to_render.add(id_cast<Scene *>(node->id));
+    }
+  }
+
+  /* Group nodes. */
+  for (const bNode *node : node_group.group_nodes()) {
+    if (node->is_muted() || !node->id) {
+      continue;
+    }
+
+    const bNodeTree &child_node_group = *id_cast<const bNodeTree *>(node->id);
+    if (node_trees_already_searched.contains(&child_node_group)) {
+      continue;
+    }
+    node_trees_already_searched.add_new(&child_node_group);
+
+    needed_scenes_to_render.add_multiple(get_scenes_that_needs_render_by_node_group(
+        pipeline_scene, child_node_group, false, node_trees_already_searched));
+  }
+
+  return needed_scenes_to_render;
+}
+
+static bool is_compositor_enabled(Scene &pipeline_scene)
+{
+  bNodeTree *node_group = pipeline_scene.compositing_node_group;
+  if (!node_group) {
+    return false;
+  }
+
+  if (!(pipeline_scene.r.scemode & R_DOCOMP)) {
+    return false;
+  }
+
+  return true;
+}
+
+/* Get the set of all scenes that needs to be rendered by the compositor of the given pipeline
+ * scene. */
+static VectorSet<Scene *> get_scenes_that_needs_render_by_compositor(Scene &pipeline_scene)
+{
+  if (!is_compositor_enabled(pipeline_scene)) {
+    return VectorSet<Scene *>();
+  }
+
+  VectorSet<const bNodeTree *> node_trees_already_searched;
+  return get_scenes_that_needs_render_by_node_group(
+      pipeline_scene, *pipeline_scene.compositing_node_group, true, node_trees_already_searched);
+}
+
+/* Render all scenes needed by the compositor. */
+static void do_render_compositor_scenes(Render *re, VectorSet<Scene *> &needed_scenes_to_render)
+{
+  bool a_scene_was_rendered = false;
+  for (Scene *scene : needed_scenes_to_render) {
+    /* The provided needed_scenes_to_render might contain evaluated scenes, so get the original
+     * scene instead, because we will be doing raw pointer comparison below and the render function
+     * expects original scenes. */
+    Scene *original_scene = DEG_get_original(scene);
+
+    /* The pipeline scene was already rendered. */
+    if (original_scene == re->scene) {
+      continue;
+    }
+
+    if (!render_scene_has_layers_to_render(scene, nullptr)) {
+      continue;
+    }
+
+    do_render_compositor_scene(re, original_scene, re->scene->r.cfra);
+    a_scene_was_rendered = true;
+  }
+
+  /* If a scene was rendered, switch back to the current scene. */
+  if (a_scene_was_rendered) {
+    re->display->current_scene_update(re->scene);
+  }
 }
 
 /** Returns true if the node tree has a group output node. */
@@ -1166,49 +1230,6 @@ static bool node_tree_has_group_output(const bNodeTree *node_tree)
   return false;
 }
 
-/* Render all scenes references by the compositor of the given render's scene. */
-static void do_render_compositor_scenes(Render *re)
-{
-  if (re->scene->compositing_node_group == nullptr) {
-    return;
-  }
-
-  /* For each node that requires a scene we do a full render. Results are stored in a way
-   * compositor will find it. */
-  Set<Scene *> scenes_rendered;
-  for (bNode *node : re->scene->compositing_node_group->all_nodes()) {
-    Scene *node_scene = get_scene_referenced_by_node(node);
-    if (!node_scene) {
-      continue;
-    }
-
-    /* References the current scene, which was already rendered. */
-    if (node_scene == re->scene) {
-      continue;
-    }
-
-    /* Scene already rendered as required by another node. */
-    if (scenes_rendered.contains(node_scene)) {
-      continue;
-    }
-
-    if (!render_scene_has_layers_to_render(node_scene, nullptr)) {
-      continue;
-    }
-
-    scenes_rendered.add_new(node_scene);
-    do_render_compositor_scene(re, node_scene, re->scene->r.cfra);
-    if (node->typeinfo->updatefunc) {
-      node->typeinfo->updatefunc(re->scene->compositing_node_group, node);
-    }
-  }
-
-  /* If another scene was rendered, switch back to the current scene. */
-  if (!scenes_rendered.is_empty()) {
-    re->display->current_scene_update(re->scene);
-  }
-}
-
 /* Render compositor nodes, along with any scenes required for them.
  * The result will be output into a compositing render layer in the render result. */
 static void do_render_compositor(Render *re)
@@ -1216,7 +1237,14 @@ static void do_render_compositor(Render *re)
   bNodeTree *ntree = re->pipeline_scene_eval->compositing_node_group;
   bool update_newframe = false;
 
-  if (compositor_needs_render(re->pipeline_scene_eval)) {
+  VectorSet<Scene *> needed_scenes_to_render = get_scenes_that_needs_render_by_compositor(
+      *re->pipeline_scene_eval);
+
+  /* Render the pipeline scene because the compositor is disabled and thus we do a simple render,
+   * or the compositor is enabled and requires the scene to be rendered. */
+  if (!is_compositor_enabled(*re->pipeline_scene_eval) ||
+      needed_scenes_to_render.contains(re->pipeline_scene_eval))
+  {
     /* render the frames
      * it could be optimized to render only the needed view
      * but what if a scene has a different number of views
@@ -1258,7 +1286,7 @@ static void do_render_compositor(Render *re)
     if (ntree && re->r.scemode & R_DOCOMP) {
       /* checks if there are render-result nodes that need scene */
       if ((re->r.scemode & R_SINGLE_LAYER) == 0) {
-        do_render_compositor_scenes(re);
+        do_render_compositor_scenes(re, needed_scenes_to_render);
       }
 
       if (!re->display->test_break()) {
@@ -1267,7 +1295,6 @@ static void do_render_compositor(Render *re)
         }
 
         compositor::NodeGroupOutputTypes needed_outputs =
-            compositor::NodeGroupOutputTypes::GroupOutputNode |
             compositor::NodeGroupOutputTypes::FileOutputNode;
         if (!G.background) {
           needed_outputs |= compositor::NodeGroupOutputTypes::ViewerNode |
@@ -1301,7 +1328,7 @@ static void do_render_compositor(Render *re)
   /* Weak: the display callback wants an active render-layer pointer. */
   if (re->result != nullptr) {
     re->result->renlay = render_get_single_layer(re, re->result);
-    re->display->display_update(re->result, nullptr);
+    re->display->display_update(re->result);
   }
 }
 
@@ -1458,7 +1485,7 @@ static void do_render_sequencer(Render *re)
 
     /* would mark display buffers as invalid */
     RE_SetActiveRenderView(re, rv->name);
-    re->display->display_update(re->result, nullptr);
+    re->display->display_update(re->result);
   }
 
   recurs_depth--;
@@ -1502,7 +1529,7 @@ static void do_render_full_pipeline(Render *re)
     }
 
     re->display->stats_draw(&re->i);
-    re->display->display_update(re->result, nullptr);
+    re->display->display_update(re->result);
   }
   else {
     do_render_compositor(re);
@@ -1525,7 +1552,7 @@ static void do_render_full_pipeline(Render *re)
     /* stamp image info here */
     if ((re->scene->r.stamp & R_STAMP_ALL) && (re->scene->r.stamp & R_STAMP_DRAW)) {
       renderresult_stampinfo(re);
-      re->display->display_update(re->result, nullptr);
+      re->display->display_update(re->result);
     }
   }
 }
@@ -1879,6 +1906,7 @@ void RE_SetReports(Render *re, ReportList *reports)
 static void render_update_depsgraph(Render *re)
 {
   Scene *scene = re->scene;
+  BKE_scene_camera_switch_update(re->scene);
   DEG_evaluate_on_framechange(re->pipeline_depsgraph, BKE_scene_frame_get(scene));
   BKE_scene_update_sound(re->pipeline_depsgraph, re->main);
 }
@@ -2748,6 +2776,7 @@ void RE_layer_load_from_file(
       }
 
       rpass->ibuf->float_buffer = ibuf->float_buffer;
+      IMB_partial_update_mark_full(rpass->ibuf);
     }
     else {
       if ((ibuf->x - x >= layer->rectx) && (ibuf->y - y >= layer->recty)) {
@@ -2755,6 +2784,7 @@ void RE_layer_load_from_file(
           IMB_float_from_byte(ibuf);
         }
         IMB_copy_rect(rpass->ibuf, ibuf, int2(x, y), int2(0, 0), int2(layer->rectx, layer->recty));
+        IMB_partial_update_mark_full(rpass->ibuf);
       }
       else {
         BKE_reportf(reports,

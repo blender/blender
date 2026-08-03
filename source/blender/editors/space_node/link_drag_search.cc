@@ -222,6 +222,8 @@ static void search_link_ops_for_asset_metadata(const bNodeTree &node_tree,
              return;
            }
            bNode &node = params.add_node(params.node_tree.typeinfo->group_idname);
+           STRNCPY_UTF8(node.name, BKE_id_name(group->id));
+           bke::node_unique_name(params.node_tree, node);
            node.id = &group->id;
            id_us_plus(node.id);
            BKE_ntree_update_tag_node_property(&params.node_tree, &node);

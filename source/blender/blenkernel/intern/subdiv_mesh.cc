@@ -839,10 +839,15 @@ static void create_attrs_and_retrieve_interp_spans(const AttributeAccessor src_a
         }
       }
     }
+    GSpanAttributeWriter dst = dst_attrs.lookup_or_add_for_write_only_span(
+        iter.name, domain, iter.data_type);
+    if (!dst) {
+      /* Attribute creation can fail with a vertex group name conflict. */
+      return;
+    }
     coarse_varray_spans.append(std::move(src));
     coarse_spans.append(coarse_varray_spans.last());
-    dst_writers.append(
-        dst_attrs.lookup_or_add_for_write_only_span(iter.name, domain, iter.data_type));
+    dst_writers.append(std::move(dst));
     dst_spans.append(dst_writers.last().span);
   });
 }

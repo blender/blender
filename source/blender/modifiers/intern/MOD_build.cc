@@ -6,6 +6,7 @@
  * \ingroup modifiers
  */
 
+#include "BLI_array_utils.hh"
 #include "MEM_guardedalloc.h"
 
 #include "BLI_utildefines.hh"
@@ -71,9 +72,9 @@ static Mesh *modify_mesh(ModifierData *md, const ModifierEvalContext *ctx, Mesh 
   int *edgeMap = MEM_new_array_uninitialized<int>(size_t(edges_src.size()), __func__);
   int *faceMap = MEM_new_array_uninitialized<int>(size_t(faces_src.size()), __func__);
 
-  range_vn_i(vertMap, vert_src_num, 0);
-  range_vn_i(edgeMap, edges_src.size(), 0);
-  range_vn_i(faceMap, faces_src.size(), 0);
+  array_utils::fill_index_range<int>({vertMap, vert_src_num});
+  array_utils::fill_index_range<int>({edgeMap, edges_src.size()});
+  array_utils::fill_index_range<int>({faceMap, faces_src.size()});
 
   Scene *scene = DEG_get_input_scene(ctx->depsgraph);
   frac = (BKE_scene_ctime_get(scene) - bmd->start) / bmd->length;

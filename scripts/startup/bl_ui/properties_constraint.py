@@ -877,7 +877,7 @@ class ConstraintButtonsPanel:
         self.draw_influence(layout, con)
 
         if not con.targets:
-            layout.label(text="No target bones added", icon='ERROR')
+            layout.label(text="No target bones added", icon='STATUS_WARNING')
 
     def draw_kinematic(self, context):
         layout = self.layout

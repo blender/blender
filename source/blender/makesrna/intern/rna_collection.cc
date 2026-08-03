@@ -576,6 +576,55 @@ static PointerRNA rna_CollectionExport_export_properties_get(PointerRNA *ptr)
   return RNA_pointer_create_discrete(ptr->owner_id, ot->srna, data->export_properties);
 }
 
+static const char *rna_CollectionImport_filepath_value_from_idprop(CollectionImport *data)
+{
+  if (IDProperty *group = data->import_properties) {
+    IDProperty *filepath_prop = IDP_GetPropertyFromGroup(group, "filepath");
+    if (filepath_prop && filepath_prop->type == IDP_STRING) {
+      return IDP_string_get(filepath_prop);
+    }
+  }
+  return nullptr;
+}
+
+static void rna_CollectionImport_filepath_get(PointerRNA *ptr, char *value)
+{
+  CollectionImport *data = reinterpret_cast<CollectionImport *>(ptr->data);
+  const char *value_src = rna_CollectionImport_filepath_value_from_idprop(data);
+  strcpy(value, value_src ? value_src : "");
+}
+static int rna_CollectionImport_filepath_length(PointerRNA *ptr)
+{
+  CollectionImport *data = reinterpret_cast<CollectionImport *>(ptr->data);
+  const char *value_src = rna_CollectionImport_filepath_value_from_idprop(data);
+  return value_src ? strlen(value_src) : 0;
+}
+static void rna_CollectionImport_filepath_set(PointerRNA *ptr, const char *value)
+{
+  CollectionImport *data = reinterpret_cast<CollectionImport *>(ptr->data);
+  if (!data->import_properties) {
+    IDPropertyTemplate val{};
+    data->import_properties = IDP_New(IDP_GROUP, &val, "import_properties");
+  }
+  IDProperty *group = data->import_properties;
+  /* By convention all exporters are expected to have a `filepath` property.
+   * See #WM_operator_properties_filesel. */
+  const char *prop_id = "filepath";
+  const size_t value_maxsize = FILE_MAX;
+  IDProperty *prop = IDP_GetPropertyFromGroup(group, prop_id);
+  if (prop && prop->type != IDP_STRING) {
+    IDP_FreeFromGroup(group, prop);
+    prop = nullptr;
+  }
+  if (prop == nullptr) {
+    prop = IDP_NewStringMaxSize(value, value_maxsize, prop_id);
+    IDP_AddToGroup(group, prop);
+  }
+  else {
+    IDP_AssignStringMaxSize(prop, value, value_maxsize);
+  }
+}
+
 static const char *rna_CollectionExport_filepath_value_from_idprop(CollectionExport *data)
 {
   if (IDProperty *group = data->export_properties) {
@@ -819,6 +868,18 @@ static void rna_def_collection_importer_data(BlenderRNA *brna)
       prop, "Import Properties", "Properties associated with the configured importer");
   RNA_def_property_pointer_funcs(
       prop, "rna_CollectionImport_import_properties_get", nullptr, nullptr, nullptr);
+
+  /* Wrap the operator property for same reason as the CollectionExport filepath property below. */
+  prop = RNA_def_property(srna, "filepath", PROP_STRING, PROP_FILEPATH);
+  RNA_def_property_flag(prop, PROP_PATH_SUPPORTS_BLEND_RELATIVE);
+  RNA_def_property_string_funcs(prop,
+                                "rna_CollectionImport_filepath_get",
+                                "rna_CollectionImport_filepath_length",
+                                "rna_CollectionImport_filepath_set");
+  RNA_def_property_string_maxlength(prop, FILE_MAX);
+  RNA_def_property_ui_text(prop, "File Path", "The file path used for importing");
+  RNA_def_property_flag(prop, PROP_NO_DEG_UPDATE);
+  RNA_def_property_update(prop, NC_SPACE | ND_SPACE_PROPERTIES, nullptr);
 }
 
 static void rna_def_collection_exporter_data(BlenderRNA *brna)

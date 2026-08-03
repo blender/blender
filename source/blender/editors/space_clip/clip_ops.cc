@@ -341,7 +341,7 @@ static wmOperatorStatus reload_exec(bContext *C, wmOperator * /*op*/)
   }
 
   WM_jobs_kill_type(CTX_wm_manager(C), nullptr, WM_JOB_TYPE_CLIP_PREFETCH);
-  BKE_movieclip_reload(CTX_data_main(C), clip);
+  DEG_id_tag_update(&clip->id, ID_RECALC_SOURCE);
 
   WM_event_add_notifier(C, NC_MOVIECLIP | NA_EDITED, clip);
 

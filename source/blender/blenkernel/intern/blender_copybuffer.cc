@@ -15,6 +15,7 @@
 #include "BKE_context.hh"
 #include "BKE_layer.hh"
 #include "BKE_lib_id.hh"
+#include "BKE_main.hh"
 
 #include "DEG_depsgraph_build.hh"
 
@@ -61,17 +62,20 @@ static void copybuffer_append(BlendfileLinkAppendContext *lapp_context,
   DEG_relations_tag_update(bmain);
 }
 
-bool BKE_copybuffer_read(Main *bmain_dst,
-                         const char *libname,
-                         ReportList *reports,
-                         const uint64_t id_types_mask)
+Main *BKE_copybuffer_read(Main &reference_bmain,
+                          const char *libname,
+                          ReportList *reports,
+                          const uint64_t id_types_mask)
 {
+  Main *bmain_src = BKE_main_new();
+  BKE_main_init_from_reference(*bmain_src, reference_bmain);
+
   /* NOTE: No recursive append here (no `BLO_LIBLINK_APPEND_RECURSIVE`), external linked data
    * should remain linked. */
   const int flag = 0;
   const int id_tag_extra = 0;
   LibraryLink_Params liblink_params;
-  BLO_library_link_params_init(&liblink_params, bmain_dst, flag, id_tag_extra);
+  BLO_library_link_params_init(&liblink_params, bmain_src, flag, id_tag_extra);
 
   BlendfileLinkAppendContext *lapp_context = BKE_blendfile_link_append_context_new(
       &liblink_params);
@@ -81,13 +85,14 @@ bool BKE_copybuffer_read(Main *bmain_dst,
       lapp_context, reports, id_types_mask, 0);
   if (num_pasted == BLENDFILE_LINK_APPEND_INVALID) {
     BKE_blendfile_link_append_context_free(lapp_context);
-    return false;
+    BKE_main_free(bmain_src);
+    return nullptr;
   }
 
-  copybuffer_append(lapp_context, bmain_dst, reports);
+  copybuffer_append(lapp_context, bmain_src, reports);
 
   BKE_blendfile_link_append_context_free(lapp_context);
-  return true;
+  return bmain_src;
 }
 
 int BKE_copybuffer_paste(bContext *C,

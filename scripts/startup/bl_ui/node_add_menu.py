@@ -11,6 +11,7 @@ __all__ = (
 import bpy
 from bpy.types import Menu
 from bpy.app.translations import (
+    pgettext_n as n_,
     pgettext_iface as iface_,
     contexts as i18n_contexts,
 )
@@ -98,7 +99,8 @@ class NodeMenu(Menu):
 
         bl_rna = bpy.types.Node.bl_rna_get_subclass(node_type)
         if not label:
-            label = bl_rna.name if bl_rna else iface_("Unknown")
+            label = bl_rna.name if bl_rna else n_("Unknown")
+            translate = True
 
         if poll is True or poll is None:
             translation_context = bl_rna.translation_context if bl_rna else i18n_contexts.default

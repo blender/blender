@@ -602,6 +602,14 @@ struct BKEIDDeleteOptions {
    * IDs. Useful e.g. for ID deletion within liboverride resync process and the like.
    */
   bool prevent_liboverride_hierarchy_root_ensure = false;
+
+  /**
+   * Do not update invariants after deletion.
+   *
+   * This is required when deleting data in cases where there is no fully valid Main available
+   * (e.g. from readfile code).
+   */
+  bool prevent_invariants_update = false;
 };
 
 /**

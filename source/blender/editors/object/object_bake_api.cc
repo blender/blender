@@ -60,6 +60,7 @@
 #include "IMB_colormanagement.hh"
 #include "IMB_imbuf.hh"
 #include "IMB_imbuf_types.hh"
+#include "IMB_partial_update.hh"
 
 #include "WM_api.hh"
 #include "WM_types.hh"
@@ -311,12 +312,8 @@ static bool write_internal_bake_pixels(Image *image,
     RE_bake_margin(ibuf, mask_buffer, margin, margin_type, mesh_eval, uv_layer, uv_offset);
   }
 
-  ibuf->userflags |= IB_DISPLAY_BUFFER_INVALID;
-  BKE_image_mark_dirty(image, ibuf);
-
-  if (ibuf->float_data()) {
-    ibuf->userflags |= IB_RECT_INVALID;
-  }
+  IMB_partial_update_mark_full(ibuf);
+  IMB_mark_dirty(ibuf);
 
   BKE_image_release_ibuf(image, ibuf, nullptr);
 
@@ -334,7 +331,6 @@ static void bake_targets_refresh(BakeTargets *targets)
     Image *ima = targets->images[i].image;
 
     if (ima) {
-      BKE_image_partial_update_mark_full_update(ima);
       DEG_id_tag_update(&ima->id, 0);
     }
   }

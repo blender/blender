@@ -55,8 +55,14 @@ static int AdjacencyIterator_init(BPy_AdjacencyIterator *self, PyObject *args, P
       "vertex", "restrict_to_selection", "restrict_to_unvisited", nullptr};
   PyObject *obj1 = nullptr, *obj2 = nullptr, *obj3 = nullptr;
 
-  if (PyArg_ParseTupleAndKeywords(
-          args, kwds, "|O!", (char **)kwlist_1, &AdjacencyIterator_Type, &obj1))
+  if (PyArg_ParseTupleAndKeywords(args,
+                                  kwds,
+                                  "|"  /* Optional arguments. */
+                                  "O!" /* `brother` */
+                                  ":__init__",
+                                  (char **)kwlist_1,
+                                  &AdjacencyIterator_Type,
+                                  &obj1))
   {
     if (!obj1) {
       self->a_it = new AdjacencyIterator();
@@ -71,7 +77,11 @@ static int AdjacencyIterator_init(BPy_AdjacencyIterator *self, PyObject *args, P
            (void)(obj2 = obj3 = nullptr),
            PyArg_ParseTupleAndKeywords(args,
                                        kwds,
-                                       "O!|O!O!",
+                                       "O!" /* `vertex` */
+                                       "|"  /* Optional arguments. */
+                                       "O!" /* `restrict_to_selection` */
+                                       "O!" /* `restrict_to_unvisited` */
+                                       ":__init__",
                                        (char **)kwlist_2,
                                        &ViewVertex_Type,
                                        &obj1,

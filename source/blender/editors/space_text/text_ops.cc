@@ -222,7 +222,7 @@ static char *buf_tabs_to_spaces(const char *in_buf, const int tab_size, int *r_o
 BLI_INLINE int space_text_pixel_x_to_column(const SpaceText *st, const int x)
 {
   /* Add half the char width so mouse cursor selection is in between letters. */
-  return (x + (st->runtime->cwidth_px / 2)) / st->runtime->cwidth_px;
+  return (x + (st->runtime->char_width_px / 2)) / st->runtime->char_width_px;
 }
 
 static void text_select_update_primary_clipboard(const Text *text)
@@ -2487,6 +2487,12 @@ static const EnumPropertyItem delete_type_items[] = {
 
 static wmOperatorStatus text_delete_exec(bContext *C, wmOperator *op)
 {
+#ifdef WITH_INPUT_IME
+  if (const std::optional<wmOperatorStatus> status = WM_operator_IME_edit_maybe(C)) {
+    return *status;
+  }
+#endif
+
   SpaceText *st = CTX_wm_space_text(C);
   Text *text = CTX_data_edit_text(C);
   int type = RNA_enum_get(op->ptr, "type");
@@ -2693,7 +2699,7 @@ static void text_scroll_state_init(TextScroll *tsc, SpaceText *st, ARegion *regi
   tsc->state.ofs_max[1] = max_ii(
       0, space_text_get_total_lines(st, region) - (st->runtime->viewlines / 2));
 
-  tsc->state.size_px[0] = st->runtime->cwidth_px;
+  tsc->state.size_px[0] = st->runtime->char_width_px;
   tsc->state.size_px[1] = TXT_LINE_HEIGHT(st);
 }
 
@@ -2896,8 +2902,8 @@ static wmOperatorStatus text_scroll_invoke(bContext *C, wmOperator *op, const wm
 
     copy_v2_v2_int(tsc->mval_prev, event->xy);
     /* Sensitivity of scroll set to 4pix per line/char. */
-    tsc->mval_delta[0] = (event->xy[0] - event->prev_xy[0]) * st->runtime->cwidth_px / 4;
-    tsc->mval_delta[1] = (event->xy[1] - event->prev_xy[1]) * st->runtime->lheight_px / 4;
+    tsc->mval_delta[0] = (event->xy[0] - event->prev_xy[0]) * st->runtime->char_width_px / 4;
+    tsc->mval_delta[1] = (event->xy[1] - event->prev_xy[1]) * st->runtime->line_height_px / 4;
     tsc->is_first = false;
     tsc->is_scrollbar = false;
     text_scroll_apply(C, op, event);
@@ -3512,7 +3518,7 @@ static wmOperatorStatus text_line_number_invoke(bContext *C,
   }
 
   if (!(mval[0] > 2 &&
-        mval[0] < (TXT_NUMCOL_WIDTH(st) + (TXT_BODY_LPAD * st->runtime->cwidth_px)) &&
+        mval[0] < (TXT_NUMCOL_WIDTH(st) + (TXT_BODY_LPAD * st->runtime->char_width_px)) &&
         mval[1] > 2 && mval[1] < region->winy - 2))
   {
     return OPERATOR_PASS_THROUGH;
@@ -3572,6 +3578,14 @@ static wmOperatorStatus text_insert_exec(bContext *C, wmOperator *op)
 
   str = RNA_string_get_alloc(op->ptr, "text", nullptr, 0, &str_len);
 
+  /* NOTE: we rely on this check to ensure `done` will never be false,
+   * this area of code should be refactored not to depend on `done`
+   * being set as a side-effect of a successful insert. */
+  if (*str == '\0' || text->curl == nullptr) {
+    MEM_delete(str);
+    return OPERATOR_CANCELLED;
+  }
+
   ED_text_undo_push_init(C);
 
   if (st && st->overwrite) {
@@ -3589,9 +3603,8 @@ static wmOperatorStatus text_insert_exec(bContext *C, wmOperator *op)
 
   MEM_delete(str);
 
-  if (!done) {
-    return OPERATOR_CANCELLED;
-  }
+  BLI_assert(done);
+  UNUSED_VARS_NDEBUG(done);
 
   text_update_line_edited(text->curl);
 
@@ -3619,6 +3632,14 @@ static wmOperatorStatus text_insert_invoke(bContext *C, wmOperator *op, const wm
     int selc;
     int curc;
   } auto_close_select = {nullptr}, auto_close_select_backup = {nullptr};
+
+#ifdef WITH_INPUT_IME
+  if (const std::optional<wmOperatorStatus> status = WM_operator_IME_insert_maybe(
+          C, op, event, "text"))
+  {
+    return *status;
+  }
+#endif
 
   /* NOTE: the "text" property is always set from key-map,
    * so we can't use #RNA_struct_property_is_set, check the length instead. */

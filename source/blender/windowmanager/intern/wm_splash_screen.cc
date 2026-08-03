@@ -90,7 +90,7 @@ static void wm_block_splash_image_roundcorners_add(ImBuf *ibuf)
     return;
   }
 
-  bTheme *btheme = ui::theme::theme_get();
+  const bTheme *btheme = ui::theme::theme_get();
   const float roundness = btheme->tui.wcol_menu_back.roundness * UI_SCALE_FAC;
   const int size = roundness * 20;
 
@@ -379,7 +379,8 @@ static ui::Block *wm_block_splash_create(bContext *C, ARegion *region, void * /*
     ui::Layout &row1 = split.row(true);
     ui::Layout &row2 = split.row(true);
 
-    row1.label(RPT_("Intel binary detected. Expect reduced performance."), ICON_ERROR);
+    row1.label(RPT_("Intel binary detected. Expect reduced performance."),
+               ICON_STATUS_WARNING_FILLED);
 
     PointerRNA op_ptr = row2.op("WM_OT_url_open",
                                 CTX_IFACE_(BLT_I18NCONTEXT_OPERATOR_DEFAULT, "Learn More"),
@@ -460,7 +461,7 @@ static ui::Block *wm_block_about_create(bContext *C, ARegion *region, void * /*a
   ImBuf *ibuf = ui::svg_icon_bitmap(ICON_BLENDER_LOGO_LARGE, size, show_color);
 
   if (ibuf) {
-    bTheme *btheme = ui::theme::theme_get();
+    const bTheme *btheme = ui::theme::theme_get();
     const uchar *color = btheme->tui.wcol_menu_back.text_sel;
 
     /* The top margin. */

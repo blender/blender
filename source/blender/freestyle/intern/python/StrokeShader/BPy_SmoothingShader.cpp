@@ -72,8 +72,27 @@ static int SmoothingShader___init__(BPy_SmoothingShader *self, PyObject *args, P
   int i1 = 100;
   double d2 = 0.1, d3 = 0.0, d4 = 0.2, d5 = 0.0, d6 = 0.0, d7 = 0.0, d8 = 1.0;
 
-  if (!PyArg_ParseTupleAndKeywords(
-          args, kwds, "|iddddddd", (char **)kwlist, &i1, &d2, &d3, &d4, &d5, &d6, &d7, &d8))
+  if (!PyArg_ParseTupleAndKeywords(args,
+                                   kwds,
+                                   "|" /* Optional arguments. */
+                                   "i" /* `num_iterations` */
+                                   "d" /* `factor_point` */
+                                   "d" /* `factor_curvature` */
+                                   "d" /* `factor_curvature_difference` */
+                                   "d" /* `aniso_point` */
+                                   "d" /* `aniso_normal` */
+                                   "d" /* `aniso_curvature` */
+                                   "d" /* `carricature_factor` */
+                                   ":__init__",
+                                   (char **)kwlist,
+                                   &i1,
+                                   &d2,
+                                   &d3,
+                                   &d4,
+                                   &d5,
+                                   &d6,
+                                   &d7,
+                                   &d8))
   {
     return -1;
   }

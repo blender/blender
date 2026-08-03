@@ -1599,6 +1599,10 @@ const animrig::Channelbag *channelbag_for_action_slot(const Action &action,
                                                       slot_handle_t slot_handle);
 animrig::Channelbag *channelbag_for_action_slot(Action &action, slot_handle_t slot_handle);
 
+/* Returns all unique channelbags for this action slot combination. */
+Vector<animrig::Channelbag *> channelbags_for_action_slot(Action &action,
+                                                          slot_handle_t slot_handle);
+
 /**
  * Returns the channelbags of the active layer for the given action and slot.
  * The returned Vector can be empty if none of the strips on the active layer have a channelbag for

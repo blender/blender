@@ -70,7 +70,8 @@ static VkImage create_and_bind_vk_image(const VKImageInfo &info, const std::stri
 
   /* Create VkImage handle from provided VkImageCreateInfo */
   VkImage image;
-  VkResult create_result = vkCreateImage(device.vk_handle(), &info.create_info, nullptr, &image);
+  VkResult create_result = device.functions.vkCreateImage(
+      device.vk_handle(), &info.create_info, nullptr, &image);
   UNUSED_VARS_NDEBUG(create_result);
   BLI_assert(create_result == VK_SUCCESS);
 
@@ -103,11 +104,13 @@ inline VkMemoryRequirements get_image_memory_requirements(const VkImageCreateInf
         .pCreateInfo = &image_info,
         .planeAspect = VK_IMAGE_ASPECT_NONE,
     };
-    device.functions.vkGetDeviceImageMemoryRequirements(device.vk_handle(), &reqs_info, &reqs_out);
+    device.functions.vkGetDeviceImageMemoryRequirementsKHR(
+        device.vk_handle(), &reqs_info, &reqs_out);
   }
   else {
     VkImage image = VK_NULL_HANDLE;
-    VkResult result = vkCreateImage(device.vk_handle(), &image_info, nullptr, &image);
+    VkResult result = device.functions.vkCreateImage(
+        device.vk_handle(), &image_info, nullptr, &image);
     UNUSED_VARS_NDEBUG(result);
     BLI_assert(result == VK_SUCCESS);
 
@@ -116,8 +119,8 @@ inline VkMemoryRequirements get_image_memory_requirements(const VkImageCreateInf
         .pNext = nullptr,
         .image = image,
     };
-    vkGetImageMemoryRequirements2(device.vk_handle(), &reqs_info, &reqs_out);
-    vkDestroyImage(device.vk_handle(), image, nullptr);
+    device.functions.vkGetImageMemoryRequirements2(device.vk_handle(), &reqs_info, &reqs_out);
+    device.functions.vkDestroyImage(device.vk_handle(), image, nullptr);
   }
 
   return reqs_out.memoryRequirements;
@@ -385,7 +388,7 @@ Texture *VKTexturePool::acquire_texture_impl(int3 extent,
       .format = to_vk_format(format),
       .extent = texture->vk_extent_3d(0),
       .mipLevels = static_cast<uint32_t>(max_ii(texture->mip_count(), 1)),
-      .arrayLayers = static_cast<uint32_t>(texture->vk_layer_count(1)),
+      .arrayLayers = static_cast<uint32_t>(texture->layer_count()),
       .samples = VK_SAMPLE_COUNT_1_BIT,
       .tiling = VK_IMAGE_TILING_OPTIMAL,
       .usage = to_vk_image_usage(usage, to_format_flag(format), false),

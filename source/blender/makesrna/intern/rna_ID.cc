@@ -19,6 +19,8 @@
 #include "RNA_define.hh"
 #include "RNA_enum_types.hh"
 
+#include "UI_interface_c.hh"
+
 #include "WM_types.hh"
 
 #include "rna_internal.hh"
@@ -699,8 +701,9 @@ IDProperty **rna_PropertyGroup_idprops(PointerRNA *ptr)
   return reinterpret_cast<IDProperty **>(&ptr->data);
 }
 
-bool rna_PropertyGroup_unregister(Main * /*bmain*/, StructRNA *type)
+bool rna_PropertyGroup_unregister(Main *bmain, StructRNA *type)
 {
+  ui::refresh_for_srna_unregister(bmain, type);
 #  ifdef WITH_PYTHON
   /* Ensure that a potential py object representing this RNA type is properly dereferenced. */
   BPY_free_srna_pytype(type);
@@ -1071,6 +1074,19 @@ static void rna_ID_override_library_property_operations_remove(
   BKE_lib_override_library_property_operation_delete(override_property, override_operation);
 
   WM_main_add_notifier(NC_WM | ND_LIB_OVERRIDE_CHANGED, nullptr);
+}
+
+static void rna_ID_deephash_get(PointerRNA *ptr, char *value)
+{
+  ID *id = ptr->data_as<ID>();
+  memcpy(value, id->deep_hash.data, sizeof(id->deep_hash.data));
+  value[sizeof(id->deep_hash.data)] = '\0';
+}
+
+static int rna_ID_deephash_len(PointerRNA *ptr)
+{
+  ID *id = ptr->data_as<ID>();
+  return sizeof(id->deep_hash.data);
 }
 
 static void rna_ID_update_tag(ID *id, Main *bmain, ReportList *reports, int flag)
@@ -1765,7 +1781,7 @@ static void rna_def_ID_properties(BlenderRNA *brna)
    */
   prop = RNA_def_property(srna, "name", PROP_STRING, PROP_NONE);
   RNA_def_property_flag(prop, PROP_IDPROPERTY);
-  // RNA_def_property_clear_flag(prop, PROP_EDITABLE);
+  RNA_def_property_clear_flag(prop, PROP_EDITABLE);
   RNA_def_property_ui_text(prop,
                            "Name",
                            "Unique name used in the code and scripting, can be re-defined in "
@@ -2422,6 +2438,16 @@ static void rna_def_ID(BlenderRNA *brna)
       "same across renames and internal reallocations, unchanged when reloading the file");
   RNA_def_property_clear_flag(prop, PROP_EDITABLE);
 
+  prop = RNA_def_property(srna, "deep_hash", PROP_STRING, PROP_BYTESTRING);
+  RNA_def_property_string_sdna(prop, nullptr, "deep_hash.data");
+  RNA_def_property_ui_text(
+      prop,
+      "Linked Packed Deep Hash",
+      "Hash representing a unique version of a packed linked data and all of its dependencies");
+  RNA_def_property_string_maxlength(prop, int(sizeof(ID::deep_hash.data)) + 1);
+  RNA_def_property_string_funcs(prop, "rna_ID_deephash_get", "rna_ID_deephash_len", nullptr);
+  RNA_def_property_clear_flag(prop, PROP_EDITABLE);
+
   prop = RNA_def_property(srna, "is_evaluated", PROP_BOOLEAN, PROP_NONE);
   RNA_def_property_ui_text(
       prop,
@@ -2786,8 +2812,8 @@ static void rna_def_library(BlenderRNA *brna)
   RNA_def_property_ui_text(prop,
                            "Library Overrides Need resync",
                            "True if this library contains library overrides that are linked in "
-                           "current blendfile, and that had to be recursively resynced on load "
-                           "(it is recommended to open and re-save that library blendfile then)");
+                           "current blend-file, and that had to be recursively resynced on load "
+                           "(it is recommended to open and re-save that library blend-file then)");
 
   prop = RNA_def_property(srna, "is_editable", PROP_BOOLEAN, PROP_NONE);
   RNA_def_property_boolean_sdna(prop, nullptr, "runtime->tag", LIBRARY_ASSET_EDITABLE);

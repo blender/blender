@@ -47,7 +47,14 @@ static int LocalAverageDepthF0D___init__(BPy_LocalAverageDepthF0D *self,
   static const char *kwlist[] = {"mask_size", nullptr};
   double d = 5.0;
 
-  if (!PyArg_ParseTupleAndKeywords(args, kwds, "|d", (char **)kwlist, &d)) {
+  if (!PyArg_ParseTupleAndKeywords(args,
+                                   kwds,
+                                   "|" /* Optional arguments. */
+                                   "d" /* `mask_size` */
+                                   ":__init__",
+                                   (char **)kwlist,
+                                   &d))
+  {
     return -1;
   }
   self->py_uf0D_double.uf0D_double = new Functions0D::LocalAverageDepthF0D(d);

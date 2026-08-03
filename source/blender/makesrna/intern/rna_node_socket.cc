@@ -16,6 +16,8 @@
 
 #include "rna_internal.hh"
 
+#include "UI_interface_c.hh"
+
 #include "WM_api.hh"
 
 #include "CLG_log.h"
@@ -159,7 +161,9 @@ static bool rna_NodeSocket_unregister(Main *bmain, StructRNA *type)
   if (!st) {
     return false;
   }
-
+  ui::refresh_for_srna_unregister(bmain, type);
+  ui::refresh_for_srna_unregister(bmain, st->ext_interface.srna);
+  ui::refresh_for_srna_unregister(bmain, st->ext_socket.srna);
   RNA_struct_free_extension(type, &st->ext_socket);
   RNA_struct_free(&RNA_blender_rna_get(), type);
 
@@ -1688,6 +1692,10 @@ static void rna_def_node_socket_interface_string(BlenderRNA *brna,
   // TODO: Do I need to call RNA_def_property_string_funcs() ?
   RNA_def_property_ui_text(prop, "Default Value", "Input value used for unconnected socket");
   RNA_def_property_update(prop, NC_NODE | NA_EDITED, "rna_NodeTreeInterfaceItem_update");
+
+  if (subtype == PROP_FILEPATH) {
+    RNA_def_property_flag(prop, PROP_PATH_SUPPORTS_BLEND_RELATIVE);
+  }
 
   RNA_def_struct_sdna_from(srna, "bNodeTreeInterfaceSocket", nullptr);
 

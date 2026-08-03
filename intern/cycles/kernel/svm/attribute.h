@@ -31,14 +31,12 @@ ccl_device AttributeDescriptor svm_node_attr_init(KernelGlobals kg,
     desc = find_attribute(kg, sd, node.attr);
     if (!is_attribute_found(desc)) {
       desc = attribute_not_found();
-      desc.offset = 0;
       desc.type = (NodeAttributeType)node.output_type;
     }
   }
   else {
     /* background */
     desc = attribute_not_found();
-    desc.offset = 0;
     desc.type = (NodeAttributeType)node.output_type;
   }
 

@@ -58,14 +58,8 @@ class HIPRTDevice : public HIPDevice {
   hiprtGeometryBuildInput prepare_triangle_blas(BVHHIPRT *bvh, Mesh *mesh);
   hiprtGeometryBuildInput prepare_curve_blas(BVHHIPRT *bvh, Hair *hair);
   hiprtGeometryBuildInput prepare_point_blas(BVHHIPRT *bvh, PointCloud *pointcloud);
-  void build_blas(BVHHIPRT *bvh, Geometry *geom, hiprtBuildOptions options);
-  hiprtBuildFlags select_blas_build_flags(BVHHIPRT *bvh,
-                                          Geometry *geom,
-                                          const hiprtGeometryBuildInput &geom_input);
-  hiprtScene build_tlas(BVHHIPRT *bvh,
-                        const vector<Object *> &objects,
-                        hiprtBuildOptions options,
-                        bool refit);
+  void build_blas(BVHHIPRT *bvh, Geometry *geom);
+  hiprtScene build_tlas(BVHHIPRT *bvh, const vector<Object *> &objects, bool refit);
   void free_bvh_memory_delayed();
 
   hiprtContext hiprt_context;
@@ -126,18 +120,6 @@ class HIPRTDevice : public HIPDevice {
   device_vector<int> user_instance_id;
   device_vector<hiprtInstance> hiprt_blas_ptr;
   device_vector<uint64_t> blas_ptr;
-
-  /* custom_prim_info stores custom information for custom primitives for all the primitives in a
-   * scene. Primitive id that HIP RT returns is local to the geometry that was hit.
-   * custom_prim_info_offset returns the offset required to add to the primitive id to retrieve
-   * primitive info from custom_prim_info. */
-  device_vector<int2> custom_prim_info;
-  device_vector<int2> custom_prim_info_offset;
-
-  /* prims_time stores primitive time for geometries with motion blur.
-   * prim_time_offset returns the offset to add to primitive id to retrieve primitive time. */
-  device_vector<float2> prims_time;
-  device_vector<int> prim_time_offset;
 };
 CCL_NAMESPACE_END
 

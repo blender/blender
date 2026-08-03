@@ -225,7 +225,7 @@ static wmOperatorStatus pose_calculate_paths_exec(bContext *C, wmOperator *op)
   /* set up path data for bones being calculated */
   CTX_DATA_BEGIN (C, bPoseChannel *, pchan, selected_pose_bones_from_active_object) {
     /* verify makes sure that the selected bone has a bone with the appropriate settings */
-    animviz_verify_motionpaths(op->reports, scene, ob, pchan);
+    bke::motionpath::ensure(op->reports, scene, ob, pchan);
   }
   CTX_DATA_END;
 
@@ -308,7 +308,7 @@ static wmOperatorStatus pose_update_paths_exec(bContext *C, wmOperator *op)
 
   /* set up path data for bones being calculated */
   CTX_DATA_BEGIN (C, bPoseChannel *, pchan, selected_pose_bones_from_active_object) {
-    animviz_verify_motionpaths(op->reports, scene, ob, pchan);
+    bke::motionpath::ensure(op->reports, scene, ob, pchan);
   }
   CTX_DATA_END;
 
@@ -352,7 +352,7 @@ static void pose_clear_paths(Object *ob, bool only_selected)
   for (bPoseChannel &pchan : ob->pose->chanbase) {
     if (pchan.mpath) {
       if ((only_selected == false) || (pchan.flag & POSE_SELECTED)) {
-        animviz_free_motionpath(pchan.mpath);
+        bke::motionpath::free(pchan.mpath);
         pchan.mpath = nullptr;
       }
       else {
@@ -583,6 +583,9 @@ void POSE_OT_autoside_names(wmOperatorType *ot)
 
 static wmOperatorStatus pose_bone_rotmode_exec(bContext *C, wmOperator *op)
 {
+  BKE_report(op->reports,
+             RPT_WARNING,
+             "pose.rotation_mode_set is deprecated. Use anim.rotation_mode_convert instead");
   const eRotationModes mode = eRotationModes(RNA_enum_get(op->ptr, "type"));
   Object *prev_ob = nullptr;
 

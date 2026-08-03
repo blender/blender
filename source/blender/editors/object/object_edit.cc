@@ -196,9 +196,7 @@ Vector<Object *> objects_in_mode_or_selected(bContext *C,
      * irrespective of selection. */
     ob = ob_active;
   }
-  else if (ob_active && (ob_active->mode &
-                         (OB_MODE_ALL_PAINT | OB_MODE_ALL_SCULPT | OB_MODE_ALL_PAINT_GPENCIL)))
-  {
+  else if (ob_active && (ob_active->mode & (OB_MODE_ALL_PAINT | OB_MODE_ALL_PAINT_GPENCIL))) {
     /* When painting, limit to active. */
     ob = ob_active;
   }
@@ -871,7 +869,7 @@ bool editmode_enter_ex(Main *bmain, Scene *scene, Object *ob, int flag)
 {
   bool ok = false;
 
-  if (ELEM(nullptr, ob, ob->data) || !ID_IS_EDITABLE(ob) || ID_IS_OVERRIDE_LIBRARY(ob) ||
+  if (ELEM(nullptr, ob, ob->data) || !ID_IS_EDITABLE(ob) || !ID_IS_EDITABLE(ob->data) ||
       ID_IS_OVERRIDE_LIBRARY(ob->data))
   {
     return false;
@@ -1068,7 +1066,7 @@ static bool editmode_toggle_poll(bContext *C)
   Object *ob = BKE_view_layer_active_object_get(view_layer);
 
   /* Covers liboverrides too. */
-  if (ELEM(nullptr, ob, ob->data) || !ID_IS_EDITABLE(ob->data) || ID_IS_OVERRIDE_LIBRARY(ob) ||
+  if (ELEM(nullptr, ob, ob->data) || !ID_IS_EDITABLE(ob) || !ID_IS_EDITABLE(ob->data) ||
       ID_IS_OVERRIDE_LIBRARY(ob->data))
   {
     return false;
@@ -1378,7 +1376,7 @@ static wmOperatorStatus object_calculate_paths_exec(bContext *C, wmOperator *op)
     animviz_motionpath_compute_range(ob, scene);
 
     /* verify that the selected object has the appropriate settings */
-    animviz_verify_motionpaths(op->reports, scene, ob, nullptr);
+    bke::motionpath::ensure(op->reports, scene, ob, nullptr);
   }
   CTX_DATA_END;
 
@@ -1450,7 +1448,7 @@ static wmOperatorStatus object_update_paths_exec(bContext *C, wmOperator *op)
   CTX_DATA_BEGIN (C, Object *, ob, selected_editable_objects) {
     animviz_motionpath_compute_range(ob, scene);
     /* verify that the selected object has the appropriate settings */
-    animviz_verify_motionpaths(op->reports, scene, ob, nullptr);
+    bke::motionpath::ensure(op->reports, scene, ob, nullptr);
   }
   CTX_DATA_END;
 
@@ -1532,7 +1530,7 @@ void OBJECT_OT_paths_update_visible(wmOperatorType *ot)
 static void object_clear_mpath(Object *ob)
 {
   if (ob->mpath) {
-    animviz_free_motionpath(ob->mpath);
+    bke::motionpath::free(ob->mpath);
     ob->mpath = nullptr;
     ob->avs.path_bakeflag &= ~MOTIONPATH_BAKE_HAS_PATHS;
 
@@ -1918,7 +1916,7 @@ static wmOperatorStatus shade_auto_smooth_exec(bContext *C, wmOperator *op)
         smooth_by_angle_nmd->modifier.flag |= eModifierFlag_PinLast;
         smooth_by_angle_nmd->node_group = node_group;
         id_us_plus(&node_group->id);
-        MOD_nodes_update_interface(object, smooth_by_angle_nmd);
+        MOD_nodes_update_interface(bmain, object, smooth_by_angle_nmd);
         smooth_by_angle_nmd->flag |= NODES_MODIFIER_HIDE_DATABLOCK_SELECTOR |
                                      NODES_MODIFIER_HIDE_MANAGE_PANEL;
         STRNCPY_UTF8(smooth_by_angle_nmd->modifier.name, DATA_(node_group->id.name + 2));

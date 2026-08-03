@@ -166,6 +166,19 @@ class GLBackend : public GPUBackend {
     return new GLVertBuf();
   };
 
+  TopLevelAS *tlas_alloc(const char * /*name*/) override
+  {
+    /* OpenGL doesn't support Ray Queries. */
+    BLI_assert_unreachable();
+    return nullptr;
+  }
+  BottomLevelAS *blas_alloc(const char * /*name*/) override
+  {
+    /* OpenGL doesn't support Ray Queries. */
+    BLI_assert_unreachable();
+    return nullptr;
+  }
+
   GLSharedOrphanLists &shared_orphan_list_get()
   {
     return shared_orphan_list_;

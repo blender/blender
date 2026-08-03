@@ -438,6 +438,8 @@ void wm_xr_viewfinder_render_view(wmXrData *xr_data)
                                   state->viewfinder.viewport);
 }
 
+/** \} */
+
 /* -------------------------------------------------------------------- */
 /** \name Location Scouting Viewfinder UI Widgets
  *

@@ -238,7 +238,13 @@ enum PropertySubType {
   PROP_FILEPATH = 1,
   PROP_DIRPATH = 2,
   PROP_FILENAME = 3,
-  /** A string which should be represented as bytes in python, NULL terminated though. */
+  /**
+   * A string which should be represented as bytes in python, NULL terminated though.
+   *
+   * WARNING: Default generated RNA accessor code will treat the underlying data as a regular
+   * C string (using `strlen` e.g. to get its length). If the bytes array may contain null chars,
+   * the RNA property _must_ have custom accessors defined (through
+   * #RNA_def_property_string_funcs). */
   PROP_BYTESTRING = 4,
   /* 5 was used by "PROP_TRANSLATE" sub-type, which is now a flag. */
   /** A string which should not be displayed in UI. */
@@ -311,8 +317,8 @@ inline int operator&(const PropertySubType subtype, const PropertyUnit unit)
 
 /* Make sure enums are updated with these */
 /* HIGHEST FLAG IN USE: 1u << 31
- * FREE FLAGS: 13. */
-enum PropertyFlag {
+ * FREE FLAGS: NONE. */
+enum PropertyFlag : uint32_t {
   /**
    * Editable means the property is editable in the user
    * interface, properties are editable by default except
@@ -489,6 +495,13 @@ enum PropertyFlag {
 
   /** Use full geometry depsgraph evaluation when this property changes. */
   PROP_FORCE_GEOMETRY_EVAL = (1 << 3),
+
+  /**
+   * When set, this property always performs an undo,
+   * even when #STRUCT_UNDO is unset on the struct it contains.
+   */
+  PROP_FORCE_UNDO = (1 << 13),
+
 };
 ENUM_OPERATORS(PropertyFlag)
 
@@ -516,7 +529,7 @@ enum PropertyPathTemplateType {
  *
  * FREE FLAGS: 2, 3, 4, 5, 6, 7, 8, 9, 12 and above.
  */
-enum PropertyOverrideFlag {
+enum PropertyOverrideFlag : int32_t {
   /** Means that the property can be overridden by a local override of some linked datablock. */
   PROPOVERRIDE_OVERRIDABLE_LIBRARY = (1 << 0),
 
@@ -559,7 +572,7 @@ ENUM_OPERATORS(PropertyOverrideFlag);
  * Function parameters flags.
  * \warning 16bits only.
  */
-enum ParameterFlag {
+enum ParameterFlag : int16_t {
   PARM_REQUIRED = (1 << 0),
   PARM_OUTPUT = (1 << 1),
   PARM_RNAPTR = (1 << 2),
@@ -904,7 +917,7 @@ struct ParameterDynAlloc {
  *             <other RNA-defined parameters>);
  * </pre>
  */
-enum FunctionFlag {
+enum FunctionFlag : int32_t {
   /**
    * Pass ID owning 'self' data
    * (i.e. ptr->owner_id, might be same as self in case data is an ID...).
@@ -964,6 +977,7 @@ enum FunctionFlag {
    */
   FUNC_FREE_POINTERS = (1 << 10),
 };
+ENUM_OPERATORS(FunctionFlag)
 
 using CallFunc = void (*)(bContext *C, ReportList *reports, PointerRNA *ptr, ParameterList *parms);
 
@@ -971,7 +985,7 @@ struct FunctionRNA;
 
 /* Struct */
 
-enum StructFlag {
+enum StructFlag : int32_t {
   /** Indicates that this struct is an ID struct. */
   STRUCT_ID = (1 << 0),
   /**
@@ -980,7 +994,12 @@ enum StructFlag {
    * assigned).
    */
   STRUCT_ID_REFCOUNT = (1 << 1),
-  /** defaults on, indicates when changes in members of a StructRNA should trigger undo steps. */
+  /**
+   * Defaults on, indicates when changes in members of a StructRNA should trigger undo steps.
+   *
+   * \note When unset (disabling undo)
+   * this can still be overridden per-property using the #PROP_FORCE_UNDO flag.
+   */
   STRUCT_UNDO = (1 << 2),
 
   /* internal flags */
@@ -1003,7 +1022,19 @@ enum StructFlag {
    * So accessing the property should not read from the current context to derive values/limits.
    */
   STRUCT_NO_CONTEXT_WITHOUT_OWNER_ID = (1 << 11),
+  /**
+   * Set on the RNA definition meta-types (`Struct`, `Property` and their sub-types).
+   *
+   * A #PointerRNA of such a type refers to an RNA type/property *definition*,
+   * never to actual data, so its data callbacks must not be run.
+   * In this case #PointerRNA.data is the definition itself: a #StructRNA for a `Struct`
+   * type, a #PropertyRNA for a `Property` type (not the DNA data such a callback expects).
+   * A more efficient alternative to walking the type hierarchy
+   * checking for Struct or Property types, see: #161362.
+   */
+  STRUCT_RNA_DEFINITION = (1 << 12),
 };
+ENUM_OPERATORS(StructFlag)
 
 using StructValidateFunc = int (*)(PointerRNA *ptr, void *data, bool *have_function);
 using StructCallbackFunc = int (*)(bContext *C,
@@ -1057,7 +1088,11 @@ struct ExtensionRNA {
 struct DeprecatedRNA {
   /** Single line deprecation message, suggest alternatives where possible. */
   const char *note;
-  /** The released version this was deprecated. */
+  /**
+   * The released version this was deprecated.
+   * The value represents major, minor versions (sub-version isn't supported).
+   * Compatible with #Main::versionfile (e.g. `502` for `v5.2`).
+   */
   short version;
   /**
    * The version this will be removed.

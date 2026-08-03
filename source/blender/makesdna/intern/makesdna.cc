@@ -829,11 +829,11 @@ static bool apply_renames(Vector<dna::ParsedStruct> &parsed_structs)
       /* Rewrite the member name. */
       std::string &member_name = parsed_member.member_name;
       StringRef stripped = DNA_member_id_string_ref(member_name);
-      const StringRefNull *member_static = rename_maps.members.lookup_ptr(
+      const StringRef *member_static = rename_maps.members.lookup_ptr(
           {parsed_struct.type_name, std::string(stripped)});
       if (member_static != nullptr) {
         const size_t prefix_len = stripped.data() - member_name.data();
-        member_name.replace(prefix_len, stripped.size(), member_static->c_str());
+        member_name.replace(prefix_len, stripped.size(), *member_static);
         stripped = DNA_member_id_string_ref(member_name);
       }
 

@@ -251,7 +251,13 @@ static PyObject *Euler_rotate_axis(EulerObject *self, PyObject *args)
   float angle = 0.0f;
   int axis; /* actually a character */
 
-  if (!PyArg_ParseTuple(args, "Cf:rotate_axis", &axis, &angle)) {
+  if (!PyArg_ParseTuple(args,
+                        "C" /* `axis` */
+                        "f" /* `angle` */
+                        ":rotate_axis",
+                        &axis,
+                        &angle))
+  {
     PyErr_SetString(PyExc_TypeError,
                     "Euler.rotate_axis(): "
                     "expected an axis 'X', 'Y', 'Z' and an angle (float)");

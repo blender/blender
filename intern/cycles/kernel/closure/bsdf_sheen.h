@@ -50,7 +50,7 @@ ccl_device int bsdf_sheen_setup(KernelGlobals kg,
   bsdf->weight *= albedo;
   bsdf->sample_weight *= albedo;
 
-  return SD_BSDF | SD_BSDF_HAS_EVAL;
+  return SR_BSDF | SR_BSDF_HAS_EVAL;
 }
 
 ccl_device Spectrum bsdf_sheen_eval(const ccl_private ShaderClosure *sc,

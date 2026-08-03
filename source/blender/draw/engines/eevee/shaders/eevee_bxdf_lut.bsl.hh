@@ -250,7 +250,7 @@ struct GGXBtdfGt1Closure {
  * material, back-lit by a directional light. We only care about a single color primary, as the
  * profile is applied to each primary independently. The other components are for debugging.
  *
- * Params: `x = distance`, while output is interpreted as exit radiance.
+ * Parameters: `x = distance`, while output is interpreted as exit radiance.
  */
 float4 burley_sss_translucency(float3 params)
 {

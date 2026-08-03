@@ -4,9 +4,6 @@
 
 /** \file
  * \ingroup render
- *
- * \note Some of this logic has been duplicated in `COM_VectorBlurOperation.cc`
- * changes here may also apply also apply to that file.
  */
 
 /*---------------------------------------------------------------------------*/
@@ -18,6 +15,7 @@
 
 #include "MEM_guardedalloc.h"
 
+#include "BLI_math_base.hh"
 #include "BLI_math_base_c.hh"
 
 /* own includes */
@@ -150,12 +148,12 @@ static void zbuf_add_to_span(ZSpan *zspan, const float v1[2], const float v2[2])
 /* Functions                                                 */
 /*-----------------------------------------------------------*/
 
-void zspan_scanconvert(ZSpan *zspan,
-                       void *handle,
-                       float *v1,
-                       float *v2,
-                       float *v3,
-                       void (*func)(void *, int, int, float, float))
+void zspan_rasterize_triangle(ZSpan *zspan,
+                              void *handle,
+                              const float *v1_in,
+                              const float *v2_in,
+                              const float *v3_in,
+                              void (*func)(void *, int, int, float, float))
 {
   float x0, y0, x1, y1, x2, y2, z0, z1, z2;
   float u, v, uxd, uyd, vxd, vyd, uy0, vy0, xx1;
@@ -164,6 +162,22 @@ void zspan_scanconvert(ZSpan *zspan,
 
   /* init */
   zbuf_init_span(zspan);
+
+  /* NOTE(@ideasman42): workaround for pixel aligned UVs which are common and can screw
+   * up our intersection tests where a pixel gets in between 2 faces or the middle of a
+   * quad, camera aligned quads also have this problem but they are less common. Add a
+   * small offset to the UVs, fixes bug #18685.
+   * This effectively shifts sampling point from top left corner to the texel center. */
+  float v1[2], v2[2], v3[2];
+
+  v1[0] = v1_in[0] - (0.5f + 0.001f);
+  v1[1] = v1_in[1] - (0.5f + 0.002f);
+
+  v2[0] = v2_in[0] - (0.5f + 0.001f);
+  v2[1] = v2_in[1] - (0.5f + 0.002f);
+
+  v3[0] = v3_in[0] - (0.5f + 0.001f);
+  v3[1] = v3_in[1] - (0.5f + 0.002f);
 
   /* set spans */
   zbuf_add_to_span(zspan, v1, v2);
@@ -238,6 +252,95 @@ void zspan_scanconvert(ZSpan *zspan,
       func(handle, x, y, u + (j * uxd), v + (j * vxd));
     }
   }
+}
+
+static void zspan_rasterize_conservative_line(ZSpan *zspan,
+                                              void *handle,
+                                              const float *v1,
+                                              const float *v2,
+                                              const float *uv1,
+                                              const float *uv2,
+                                              void (*func)(void *, int, int, float, float))
+{
+  const float miny = std::min(v1[1], v2[1]);
+  const float maxy = std::max(v1[1], v2[1]);
+
+  int y0 = ceil(miny) - 1;
+  int y1 = floor(maxy);
+
+  /* Clip and cull the line. */
+  y0 = std::max(y0, 0);
+  if (y1 >= zspan->recty) {
+    y1 = zspan->recty - 1;
+  }
+
+  if (y0 > y1) {
+    return;
+  }
+
+  /* Line direction divided by length for uv interpolation. */
+  float dir[2] = {v2[0] - v1[0], v2[1] - v1[1]};
+  float len_sqr = dir[0] * dir[0] + dir[1] * dir[1];
+
+  if (len_sqr > FLT_EPSILON) {
+    dir[0] /= len_sqr;
+    dir[1] /= len_sqr;
+  }
+
+  /* X coordinates of the line endpoints. */
+  const float x_miny = (v1[1] < v2[1]) ? v1[0] : v2[0];
+  const float x_maxy = (v1[1] < v2[1]) ? v2[0] : v1[0];
+  const float inv_dy = math::safe_divide(1.0f, maxy - miny);
+
+  for (; y0 <= y1; y0++) {
+    /* Compute line x range inside current scanline, interpolating between endpoints. */
+    const float ta = (clamp_f(y0, miny, maxy) - miny) * inv_dy;
+    const float tb = (maxy - clamp_f(y0 + 1, miny, maxy)) * inv_dy;
+    const float xa = math::interpolate(x_miny, x_maxy, ta);
+    const float xb = math::interpolate(x_miny, x_maxy, 1.0f - tb);
+
+    const float minx = std::min(xa, xb);
+    const float maxx = std::max(xa, xb);
+
+    int x0 = ceil(minx) - 1;
+    int x1 = floor(maxx);
+
+    /* Clip and cull scanline. */
+    x0 = std::max(x0, 0);
+    if (x1 >= zspan->rectx) {
+      x1 = zspan->rectx - 1;
+    }
+
+    if (x0 > x1) {
+      continue;
+    }
+
+    for (; x0 <= x1; x0++) {
+      float w = (x0 - v1[0] + 0.5f + 0.001f) * dir[0] + (y0 - v1[1] + 0.5f + 0.002f) * dir[1];
+      w = clamp_f(w, 0, 1);
+
+      float u = (1 - w) * uv1[0] + w * uv2[0];
+      float v = (1 - w) * uv1[1] + w * uv2[1];
+
+      func(handle, x0, y0, u, v);
+    }
+  }
+}
+
+void zspan_rasterize_conservative_wireframe(ZSpan *zspan,
+                                            void *handle,
+                                            const float *v1,
+                                            const float *v2,
+                                            const float *v3,
+                                            void (*func)(void *, int, int, float, float))
+{
+  float uv1[2] = {1, 0};
+  float uv2[2] = {0, 1};
+  float uv3[2] = {0, 0};
+
+  zspan_rasterize_conservative_line(zspan, handle, v1, v2, uv1, uv2, func);
+  zspan_rasterize_conservative_line(zspan, handle, v2, v3, uv2, uv3, func);
+  zspan_rasterize_conservative_line(zspan, handle, v3, v1, uv3, uv1, func);
 }
 
 }  // namespace blender

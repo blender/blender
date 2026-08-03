@@ -17,7 +17,7 @@
 
 #ifdef RNA_RUNTIME
 
-#  include "BKE_animsys.h"
+#  include "BKE_animsys.hh"
 #  include "BKE_context.hh"
 #  include "BKE_nla.hh"
 #  include "BKE_report.hh"
@@ -64,15 +64,12 @@ void rna_id_animdata_fix_paths_rename_all(ID *id,
                                           const char *oldName,
                                           const char *newName)
 {
-  BKE_animdata_fix_paths_rename_all_ex(bmain,
-                                       id,
-                                       prefix,
-                                       oldName,
-                                       newName,
-                                       0,
-                                       0,
-                                       /*verify_paths=*/true,
-                                       /*infix_is_name=*/true);
+  BKE_animdata_fix_paths(*id,
+                         prefix,
+                         RNA_path_name_to_infix(oldName),
+                         RNA_path_name_to_infix(newName),
+                         /*verify_paths=*/true,
+                         *bmain);
 }
 
 }  // namespace blender

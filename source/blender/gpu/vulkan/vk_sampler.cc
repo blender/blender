@@ -72,7 +72,7 @@ void VKSampler::create(const GPUSamplerState &sampler_state)
     }
   }
 
-  vkCreateSampler(device.vk_handle(), &sampler_info, nullptr, &vk_sampler_);
+  device.functions.vkCreateSampler(device.vk_handle(), &sampler_info, nullptr, &vk_sampler_);
   debug::object_label(vk_sampler_, sampler_state.to_string().c_str());
 }
 
@@ -82,7 +82,7 @@ void VKSampler::free()
   if (vk_sampler_ != VK_NULL_HANDLE) {
     const VKDevice &device = VKBackend::get().device;
     if (device.vk_handle() != VK_NULL_HANDLE) {
-      vkDestroySampler(device.vk_handle(), vk_sampler_, nullptr);
+      device.functions.vkDestroySampler(device.vk_handle(), vk_sampler_, nullptr);
     }
     vk_sampler_ = VK_NULL_HANDLE;
   }

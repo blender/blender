@@ -61,7 +61,15 @@ static int SShape_init(BPy_SShape *self, PyObject *args, PyObject *kwds)
   static const char *kwlist[] = {"brother", nullptr};
   PyObject *brother = nullptr;
 
-  if (!PyArg_ParseTupleAndKeywords(args, kwds, "|O!", (char **)kwlist, &SShape_Type, &brother)) {
+  if (!PyArg_ParseTupleAndKeywords(args,
+                                   kwds,
+                                   "|"  /* Optional arguments. */
+                                   "O!" /* `brother` */
+                                   ":__init__",
+                                   (char **)kwlist,
+                                   &SShape_Type,
+                                   &brother))
+  {
     return -1;
   }
   if (!brother) {
@@ -100,7 +108,14 @@ static PyObject *SShape_add_edge(BPy_SShape *self, PyObject *args, PyObject *kwd
   static const char *kwlist[] = {"edge", nullptr};
   PyObject *py_fe = nullptr;
 
-  if (!PyArg_ParseTupleAndKeywords(args, kwds, "O!", (char **)kwlist, &FEdge_Type, &py_fe)) {
+  if (!PyArg_ParseTupleAndKeywords(args,
+                                   kwds,
+                                   "O!" /* `edge` */
+                                   ":add_edge",
+                                   (char **)kwlist,
+                                   &FEdge_Type,
+                                   &py_fe))
+  {
     return nullptr;
   }
   self->ss->AddEdge(((BPy_FEdge *)py_fe)->fe);
@@ -122,7 +137,14 @@ static PyObject *SShape_add_vertex(BPy_SShape *self, PyObject *args, PyObject *k
   static const char *kwlist[] = {"edge", nullptr};
   PyObject *py_sv = nullptr;
 
-  if (!PyArg_ParseTupleAndKeywords(args, kwds, "O!", (char **)kwlist, &SVertex_Type, &py_sv)) {
+  if (!PyArg_ParseTupleAndKeywords(args,
+                                   kwds,
+                                   "O!" /* `edge` */
+                                   ":add_vertex",
+                                   (char **)kwlist,
+                                   &SVertex_Type,
+                                   &py_sv))
+  {
     return nullptr;
   }
   self->ss->AddNewVertex(((BPy_SVertex *)py_sv)->sv);

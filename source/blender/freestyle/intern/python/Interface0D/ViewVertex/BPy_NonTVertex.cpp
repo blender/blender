@@ -44,7 +44,15 @@ static int NonTVertex_init(BPy_NonTVertex *self, PyObject *args, PyObject *kwds)
   static const char *kwlist[] = {"svertex", nullptr};
   PyObject *obj = nullptr;
 
-  if (!PyArg_ParseTupleAndKeywords(args, kwds, "|O!", (char **)kwlist, &SVertex_Type, &obj)) {
+  if (!PyArg_ParseTupleAndKeywords(args,
+                                   kwds,
+                                   "|"  /* Optional arguments. */
+                                   "O!" /* `svertex` */
+                                   ":__init__",
+                                   (char **)kwlist,
+                                   &SVertex_Type,
+                                   &obj))
+  {
     return -1;
   }
   if (!obj) {

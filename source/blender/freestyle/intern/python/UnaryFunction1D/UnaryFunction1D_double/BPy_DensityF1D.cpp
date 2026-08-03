@@ -59,8 +59,18 @@ static int DensityF1D___init__(BPy_DensityF1D *self, PyObject *args, PyObject *k
   double d = 2.0;
   float f = 2.0;
 
-  if (!PyArg_ParseTupleAndKeywords(
-          args, kwds, "|dO!f", (char **)kwlist, &d, &IntegrationType_Type, &obj, &f))
+  if (!PyArg_ParseTupleAndKeywords(args,
+                                   kwds,
+                                   "|"  /* Optional arguments. */
+                                   "d"  /* `sigma` */
+                                   "O!" /* `integration_type` */
+                                   "f"  /* `sampling` */
+                                   ":__init__",
+                                   (char **)kwlist,
+                                   &d,
+                                   &IntegrationType_Type,
+                                   &obj,
+                                   &f))
   {
     return -1;
   }

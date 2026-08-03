@@ -146,7 +146,7 @@ static void node_geo_exec(GeoNodeExecParams params)
   }
   else if (selection_variant.is_list()) {
     auto fn = fn::FieldOperation::from(
-        std::make_shared<SampleIndexFunction>(weights_variant.extract<GListPtr>()),
+        std::make_shared<SampleIndexFunction>(selection_variant.extract<GListPtr>()),
         {fn::IndexFieldInput::get_field()});
     field_evaluator.set_selection(fn::Field<bool>(std::move(fn)));
   }
@@ -179,7 +179,7 @@ static void node_geo_exec(GeoNodeExecParams params)
   }
 
   if (const auto *array_data = std::get_if<GList::ArrayData>(&list_data)) {
-    GList::ArrayData sorted_array_data = GList::ArrayData::ForUninitialized(type, list_size);
+    GList::ArrayData sorted_array_data = GList::ArrayData::ForConstructed(type, list_size);
     const GSpan src_span(type, array_data->data, list_size);
     GMutableSpan dst_span = sorted_array_data.span_for_write(type, list_size);
     type.to_static_type<float,
@@ -202,6 +202,7 @@ static void node_geo_exec(GeoNodeExecParams params)
                         GeometrySet,
                         Material *,
                         Object *,
+                        Collection *,
                         Image *,
                         VFont *,
                         Scene *,

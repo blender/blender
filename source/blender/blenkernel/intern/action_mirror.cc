@@ -119,7 +119,6 @@ static void action_flip_pchan_cache_fcurve_assign_array(FCurve_KeyCache *fkc,
  *
  * \param keyed_frames: An array of keyed_frames to evaluate,
  * note that each frame is rounded to the nearest int.
- * \param keyed_frames_len: The length of the `keyed_frames` array.
  */
 static void action_flip_pchan_cache_init(FCurve_KeyCache *fkc, const Span<float> keyed_frames)
 {

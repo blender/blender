@@ -781,7 +781,10 @@ void ntree_update_reroute_nodes(bNodeTree *ntree)
     }
 
     if (reroute_type == nullptr) {
-      continue;
+      const int root_node_index = reroute_nodes[reroute_root_i];
+      const bNode &root_reroute = *all_nodes[root_node_index];
+      const bNodeSocket *root_socket = static_cast<const bNodeSocket *>(root_reroute.inputs.first);
+      reroute_type = root_socket->typeinfo;
     }
 
     const int reroute_index = reroute_nodes[reroute_i];
@@ -1143,7 +1146,7 @@ static void get_compositor_group_output_extra_info(blender::nodes::NodeExtraInfo
   if (group_outputs.is_empty()) {
     blender::nodes::NodeExtraInfoRow row;
     row.text = IFACE_("No Output");
-    row.icon = ICON_ERROR;
+    row.icon = ICON_STATUS_ERROR;
     row.tooltip = TIP_("Node group must have a Color output socket");
     parameters.rows.append(std::move(row));
     return;
@@ -1152,7 +1155,7 @@ static void get_compositor_group_output_extra_info(blender::nodes::NodeExtraInfo
   if (group_outputs[0]->type != SOCK_RGBA) {
     blender::nodes::NodeExtraInfoRow row;
     row.text = IFACE_("Wrong Output Type");
-    row.icon = ICON_ERROR;
+    row.icon = ICON_STATUS_ERROR;
     row.tooltip = TIP_("Node group's first output must be a color output");
     parameters.rows.append(std::move(row));
     return;
@@ -1161,7 +1164,7 @@ static void get_compositor_group_output_extra_info(blender::nodes::NodeExtraInfo
   if (group_outputs.size() > 1) {
     blender::nodes::NodeExtraInfoRow row;
     row.text = IFACE_("Ignored Outputs");
-    row.icon = ICON_WARNING_LARGE;
+    row.icon = ICON_STATUS_WARNING;
     row.tooltip = TIP_("Only the first output is considered while the rest are ignored");
     parameters.rows.append(std::move(row));
     return;
@@ -1180,7 +1183,7 @@ static void node_group_output_extra_info(nodes::NodeExtraInfoParams &params)
   }
   nodes::NodeExtraInfoRow row;
   row.text = IFACE_("Unused Output");
-  row.icon = ICON_ERROR;
+  row.icon = ICON_STATUS_ERROR;
   row.tooltip = TIP_("There are multiple group output nodes and this one is not active");
   params.rows.append(std::move(row));
 }

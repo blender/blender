@@ -91,7 +91,7 @@ light_sample_shader_eval_forward(KernelGlobals kg,
      * weak but we'd have to do multiple evaluations otherwise. */
     surface_shader_eval<KERNEL_FEATURE_NODE_MASK_SURFACE_LIGHT>(
         kg, state, emission_sd, nullptr, PATH_RAY_VISIBILITY_NONE, PATH_RAY_EMISSION);
-    if (emission_sd->flag & SD_CACHE_MISS) {
+    if (emission_sd->runtime_flag & SR_CACHE_MISS) {
       return SHADER_EVAL_CACHE_MISS;
     }
 
@@ -379,11 +379,11 @@ ccl_device_inline bool light_sample_from_volume_segment(KernelGlobals kg,
                                                         const uint32_t path_flag,
                                                         ccl_private LightSample *ls)
 {
-  const int shader_flags = SD_BSDF_HAS_TRANSMISSION;
+  const int runtime_flags = SR_BSDF_HAS_TRANSMISSION;
 
 #ifdef __LIGHT_TREE__
   if (kernel_data.integrator.use_light_tree) {
-    if (!light_tree_sample<true>(kg, rand.z, P, D, t, object_receiver, shader_flags, ls)) {
+    if (!light_tree_sample<true>(kg, rand.z, P, D, t, object_receiver, runtime_flags, ls)) {
       return false;
     }
   }
@@ -397,7 +397,7 @@ ccl_device_inline bool light_sample_from_volume_segment(KernelGlobals kg,
 
   /* Sample position on the selected light. */
   return light_sample<true>(
-      kg, rand, time, P, D, object_receiver, shader_flags, bounce, path_flag, ls);
+      kg, rand, time, P, D, object_receiver, runtime_flags, bounce, path_flag, ls);
 }
 
 ccl_device bool light_sample_from_position(KernelGlobals kg,
@@ -406,7 +406,7 @@ ccl_device bool light_sample_from_position(KernelGlobals kg,
                                            const float3 P,
                                            const float3 N,
                                            const int object_receiver,
-                                           const int shader_flags,
+                                           const int runtime_flags,
                                            const int bounce,
                                            const uint32_t path_flag,
                                            ccl_private LightSample *ls)
@@ -414,7 +414,7 @@ ccl_device bool light_sample_from_position(KernelGlobals kg,
   /* Randomly select a light. */
 #ifdef __LIGHT_TREE__
   if (kernel_data.integrator.use_light_tree) {
-    if (!light_tree_sample<false>(kg, rand.z, P, N, 0.0f, object_receiver, shader_flags, ls)) {
+    if (!light_tree_sample<false>(kg, rand.z, P, N, 0.0f, object_receiver, runtime_flags, ls)) {
       return false;
     }
   }
@@ -428,7 +428,7 @@ ccl_device bool light_sample_from_position(KernelGlobals kg,
 
   /* Sample position on the selected light. */
   return light_sample<false>(
-      kg, rand, time, P, N, object_receiver, shader_flags, bounce, path_flag, ls);
+      kg, rand, time, P, N, object_receiver, runtime_flags, bounce, path_flag, ls);
 }
 
 /* Update light sample with new shading point position for MNEE. The position on the light is fixed
@@ -474,7 +474,8 @@ ccl_device_inline float light_sample_mis_weight_forward_surface(
     const ccl_private ShaderData *sd)
 {
   bool has_mis = !(path_flag & PATH_RAY_MIS_SKIP) &&
-                 (sd->flag & ((sd->flag & SD_BACKFACING) ? SD_MIS_BACK : SD_MIS_FRONT));
+                 (sd->shader_flag &
+                  ((sd->runtime_flag & SR_BACKFACING) ? SD_MIS_BACK : SD_MIS_FRONT));
 
 #ifdef __HAIR__
   has_mis &= (sd->type & PRIMITIVE_TRIANGLE);

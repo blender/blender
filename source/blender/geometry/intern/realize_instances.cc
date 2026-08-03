@@ -805,7 +805,7 @@ static void gather_realize_tasks_recursive(GatherTasksInfo &gather_info,
         const auto &pointcloud_component = *static_cast<const bke::PointCloudComponent *>(
             component);
         const PointCloud *pointcloud = pointcloud_component.get();
-        if (pointcloud != nullptr && pointcloud->totpoint > 0) {
+        if (pointcloud != nullptr) {
           const int pointcloud_index = gather_info.pointclouds.order.index_of(pointcloud);
           const PointCloudRealizeInfo &pointcloud_info =
               gather_info.pointclouds.realize_info[pointcloud_index];
@@ -1258,9 +1258,7 @@ static void gather_pointclouds_to_realize(const bke::GeometrySet &geometry_set,
                                           VectorSet<const PointCloud *> &r_pointclouds)
 {
   if (const PointCloud *pointcloud = geometry_set.get_pointcloud()) {
-    if (pointcloud->totpoint > 0) {
-      r_pointclouds.add(pointcloud);
-    }
+    r_pointclouds.add(pointcloud);
   }
   if (const Instances *instances = geometry_set.get_instances()) {
     instances->foreach_referenced_geometry([&](const bke::GeometrySet &instance_geometry_set) {

@@ -33,7 +33,7 @@ static void node_declare(NodeDeclarationBuilder &b)
     }
 
     if (default_value->has_conflict()) {
-      row.label(IFACE_("Menu Error"), ICON_ERROR);
+      row.label(IFACE_("Menu Error"), ICON_STATUS_ERROR);
     }
     else {
       row.label(IFACE_("Menu Undefined"), ICON_QUESTION);

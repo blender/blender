@@ -173,8 +173,9 @@ struct [[host_shared]] OVERLAY_GridData {
 
 #  define MOTIONPATH_VERT_SEL (1u << 0)
 #  define MOTIONPATH_VERT_KEY (1u << 1)
+#endif
 
-#else
+#ifndef GPU_SHADER
 #  define CURVE_HANDLE_SELECTED blender::CURVE_HANDLE_SELECTED
 #  define CURVE_HANDLE_ALL blender::CURVE_HANDLE_ALL
 #  define MOTIONPATH_VERT_SEL blender::MOTIONPATH_VERT_SEL

@@ -6,6 +6,8 @@
 
 #include "BLI_math_color_blend.hh"
 #include "BLI_math_color_c.hh"
+#include "BLI_math_matrix_c.hh"
+#include "BLI_math_vector_c.hh"
 
 namespace blender {
 
@@ -139,6 +141,48 @@ TEST(math_color, srgb_to_linearrgb_v3_v3)
     EXPECT_NEAR(1.24277031422f, linear_color[0], kTolerance);
     EXPECT_NEAR(8.35472869873f, linear_color[1], kTolerance);
     EXPECT_NEAR(56.2383270264f, linear_color[2], kTolerance);
+  }
+}
+
+TEST(math_color, linearrgb_to_srgb_uchar4_n)
+{
+  const float linear[8][4] = {
+      {0.0f, 0.5f, 1.0f, 1.0f},
+      {0.0023f, 0.0024f, 0.0025f, 0.5f},
+      {0.71f, 0.75f, 0.78f, 0.25f},
+      {0.1f, 0.2f, 0.3f, 1.0f},
+      {0.9f, 0.8f, 0.7f, 0.0f},
+      {0.04f, 0.5f, 0.95f, 0.75f},
+      {1.5f, 2.8f, 5.6f, 1.0f},
+      {0.33f, 0.66f, 0.99f, 0.33f},
+  };
+  const float matrix[3][3] = {{0.9f, 0.05f, 0.05f}, {0.1f, 0.8f, 0.1f}, {0.0f, 0.2f, 0.7f}};
+
+  /* Try different array lengths to ensure remainder is handled correctly. */
+  for (const int size : {1, 2, 3, 4, 5, 6, 7, 8}) {
+    for (const bool use_matrix : {false, true}) {
+      const float (*mat)[3] = use_matrix ? matrix : nullptr;
+      uchar srgb[8][4];
+      linearrgb_to_srgb_uchar4_n(srgb, linear, size, mat);
+
+      for (int i = 0; i < size; i++) {
+        float result[4];
+        if (use_matrix) {
+          mul_v3_m3v3(result, matrix, linear[i]);
+        }
+        else {
+          copy_v3_v3(result, linear[i]);
+        }
+        linearrgb_to_srgb_v3_v3(result, result);
+        result[3] = linear[i][3];
+        uchar expected[4];
+        rgba_float_to_uchar(expected, result);
+        for (int c = 0; c < 4; c++) {
+          EXPECT_NEAR(expected[c], srgb[i][c], 1)
+              << "size " << size << " matrix " << use_matrix << " pixel " << i << " channel " << c;
+        }
+      }
+    }
   }
 }
 

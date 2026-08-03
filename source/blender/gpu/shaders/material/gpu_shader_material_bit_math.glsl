@@ -3,61 +3,61 @@
  * SPDX-License-Identifier: GPL-2.0-or-later */
 
 [[node]]
-void bit_math_and(float a, float b, out float result)
+void bit_math_and(int a, int b, out int result)
 {
-  result = float(int(a) & int(b));
+  result = a & b;
 }
 
 [[node]]
-void bit_math_or(float a, float b, out float result)
+void bit_math_or(int a, int b, out int result)
 {
-  result = float(int(a) | int(b));
+  result = a | b;
 }
 
 [[node]]
-void bit_math_xor(float a, float b, out float result)
+void bit_math_xor(int a, int b, out int result)
 {
-  result = float(int(a) ^ int(b));
+  result = a ^ b;
 }
 
 [[node]]
-void bit_math_not(float a, out float result)
+void bit_math_not(int a, out int result)
 {
-  result = float(~int(a));
+  result = ~a;
 }
 
 [[node]]
-void bit_math_shift(float a, float shift_amount, out float result)
+void bit_math_shift(int a, int shift_amount, out int result)
 {
-  const uint value = uint(int(a));
-  const int shift = int(shift_amount);
+  const uint value = uint(a);
+  const int shift = shift_amount;
 
   if (shift < -31 || shift > 31) {
-    result = 0.0f;
+    result = 0;
   }
   else {
     if (shift >= 0) {
-      result = float(int(value << uint(shift)));
+      result = int(value << uint(shift));
     }
     else {
-      result = float(int(value >> uint(-shift)));
+      result = int(value >> uint(-shift));
     }
   }
 }
 
 [[node]]
-void bit_math_rotate(float a, float shift_amount, out float result)
+void bit_math_rotate(int a, int shift_amount, out int result)
 {
-  const uint value = uint(int(a));
-  int shift = int(shift_amount) % 32;
+  const uint value = uint(a);
+  int shift = shift_amount % 32;
 
   if (shift < 0) {
     shift += 32;
   }
   if (shift == 0) {
-    result = float(int(value));
+    result = int(value);
   }
   else {
-    result = float(int((value << uint(shift)) | (value >> uint(32 - shift))));
+    result = int((value << uint(shift)) | (value >> uint(32 - shift)));
   }
 }

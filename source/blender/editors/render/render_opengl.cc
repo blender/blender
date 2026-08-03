@@ -55,6 +55,7 @@
 
 #include "ED_gpencil_legacy.hh"
 #include "ED_screen.hh"
+#include "ED_util.hh"
 #include "ED_view3d.hh"
 #include "ED_view3d_offscreen.hh"
 
@@ -477,8 +478,6 @@ static void screen_opengl_render_apply(const bke::BlenderProject *project, OGLRe
   RenderResult *rr;
   RenderView *rv;
   int view_id;
-  ImBuf *ibuf;
-  void *lock;
 
   if (oglrender->is_sequencer) {
     Scene *scene = oglrender->scene;
@@ -516,13 +515,6 @@ static void screen_opengl_render_apply(const bke::BlenderProject *project, OGLRe
   }
 
   RE_ReleaseResult(oglrender->re);
-
-  ibuf = BKE_image_acquire_ibuf(oglrender->ima, &oglrender->iuser, &lock);
-  if (ibuf) {
-    ibuf->userflags |= IB_DISPLAY_BUFFER_INVALID;
-  }
-  BKE_image_release_ibuf(oglrender->ima, ibuf, lock);
-  BKE_image_partial_update_mark_full_update(oglrender->ima);
 
   if (oglrender->write_still) {
     screen_opengl_render_write(project, oglrender);
@@ -786,6 +778,9 @@ static bool screen_opengl_render_init(bContext *C, wmOperator *op)
     return false;
   }
 
+  Main *bmain = CTX_data_main(C);
+  ED_editors_flush_edits(bmain);
+
   /* allocate opengl render */
   oglrender = MEM_new<OGLRender>("OGLRender");
   op->customdata = oglrender;
@@ -794,7 +789,7 @@ static bool screen_opengl_render_init(bContext *C, wmOperator *op)
   oglrender->sizex = sizex;
   oglrender->sizey = sizey;
   oglrender->viewport = GPU_viewport_create();
-  oglrender->bmain = CTX_data_main(C);
+  oglrender->bmain = bmain;
   oglrender->scene = scene;
   oglrender->current_scene = scene;
   oglrender->workspace = workspace;

@@ -52,6 +52,7 @@
 #include "GPU_index_buffer.hh"
 #include "GPU_material.hh"
 #include "GPU_pass.hh"
+#include "GPU_ray_tracing.hh"
 
 #include "DRW_gpu_wrapper.hh"
 
@@ -385,6 +386,8 @@ class PassBase {
   void bind_ssbo(const char *name, gpu::IndexBuf **buffer);
   void bind_ssbo(int slot, gpu::IndexBuf *buffer);
   void bind_ssbo(int slot, gpu::IndexBuf **buffer);
+  void bind_tlas(const char *name, gpu::TopLevelAS *tlas);
+  void bind_tlas(int slot, gpu::TopLevelAS *tlas);
   void bind_ubo(const char *name, gpu::UniformBuf *buffer);
   void bind_ubo(const char *name, gpu::UniformBuf **buffer);
   void bind_ubo(int slot, gpu::UniformBuf *buffer);
@@ -1261,6 +1264,12 @@ template<class T> inline void PassBase<T>::bind_ssbo(const char *name, gpu::Inde
   this->bind_ssbo(GPU_shader_get_ssbo_binding(shader_, name), buffer);
 }
 
+template<class T> inline void PassBase<T>::bind_tlas(const char *name, gpu::TopLevelAS *tlas)
+{
+  BLI_assert(tlas != nullptr);
+  this->bind_tlas(GPU_shader_get_tlas_binding(shader_, name), tlas);
+}
+
 template<class T> inline void PassBase<T>::bind_ubo(const char *name, gpu::UniformBuf *buffer)
 {
   BLI_assert(buffer != nullptr);
@@ -1353,6 +1362,12 @@ template<class T> inline void PassBase<T>::bind_ssbo(int slot, gpu::IndexBuf **b
   BLI_assert(buffer != nullptr);
   create_command(Type::ResourceBind).resource_bind = {
       slot, buffer, ResourceBind::Type::IndexAsStorageBuf};
+}
+
+template<class T> inline void PassBase<T>::bind_tlas(int slot, gpu::TopLevelAS *tlas)
+{
+  BLI_assert(tlas != nullptr);
+  create_command(Type::ResourceBind).resource_bind = {slot, tlas};
 }
 
 template<class T> inline void PassBase<T>::bind_ubo(int slot, gpu::UniformBuf *buffer)

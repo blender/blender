@@ -428,7 +428,7 @@ void RE_display_free(Render *re);
 
 void RE_display_update_cb(struct Render *re,
                           void *handle,
-                          void (*f)(void *handle, RenderResult *rr, struct rcti *rect));
+                          void (*f)(void *handle, RenderResult *rr));
 void RE_stats_draw_cb(struct Render *re, void *handle, void (*f)(void *handle, RenderStats *rs));
 void RE_progress_cb(struct Render *re, void *handle, void (*f)(void *handle, float));
 void RE_draw_lock_cb(struct Render *re, void *handle, void (*f)(void *handle, bool lock));

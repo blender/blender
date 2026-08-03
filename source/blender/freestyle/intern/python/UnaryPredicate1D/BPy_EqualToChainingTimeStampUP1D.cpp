@@ -45,7 +45,13 @@ static int EqualToChainingTimeStampUP1D___init__(BPy_EqualToChainingTimeStampUP1
   static const char *kwlist[] = {"ts", nullptr};
   uint u;
 
-  if (!PyArg_ParseTupleAndKeywords(args, kwds, "I", (char **)kwlist, &u)) {
+  if (!PyArg_ParseTupleAndKeywords(args,
+                                   kwds,
+                                   "I" /* `ts` */
+                                   ":__init__",
+                                   (char **)kwlist,
+                                   &u))
+  {
     return -1;
   }
   self->py_up1D.up1D = new Predicates1D::EqualToChainingTimeStampUP1D(u);

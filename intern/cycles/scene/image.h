@@ -224,6 +224,7 @@ class ImageManager {
                          Scene *scene,
                          const size_t image_texture_id,
                          Progress &progress);
+  void device_load_tiled_descriptors(Scene *scene);
   void device_free_image(Scene *scene, const size_t image_texture_id);
 
   void device_update_udims(Device *device, Scene *scene);

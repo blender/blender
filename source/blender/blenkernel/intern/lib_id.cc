@@ -2085,6 +2085,9 @@ static int id_indirect_linked_update_fn(LibraryIDLinkCallbackData *cb_data)
   ID **id_pointer = cb_data->id_pointer;
   ID *id = *id_pointer;
   const LibraryForeachIDCallbackFlag cb_flag = cb_data->cb_flag;
+  auto &extern_packed_ids = *static_cast<VectorSet<ID *> *>(cb_data->user_data);
+
+  /* Note: Embedded IDs are processed as part of their owner's processing here. */
 
   if (!id) {
     return IDWALK_RET_NOP;
@@ -2101,6 +2104,15 @@ static int id_indirect_linked_update_fn(LibraryIDLinkCallbackData *cb_data)
      * directly linked. */
     return IDWALK_RET_NOP;
   }
+
+  if (ID_IS_PACKED(id)) {
+    /* Linked packed IDs are always unconditionally considered extern if used by a local ID. See
+     * also comment in caller #BKE_main_id_indirect_linked_update for more details. */
+    id_lib_extern(id);
+    extern_packed_ids.add(id);
+    return IDWALK_RET_NOP;
+  }
+
   if (!BKE_idtype_idcode_is_linkable(GS(id->name))) {
     /* Usages of unlinkable IDs (aka ShapeKeys and some UI IDs) should never cause them to
      * be considered as directly linked. This can often happen e.g. from UI data (the
@@ -2119,15 +2131,21 @@ static int id_indirect_linked_update_fn(LibraryIDLinkCallbackData *cb_data)
 
 void BKE_main_id_indirect_linked_update(Main &bmain, std::optional<Span<ID *>> local_ids)
 {
-  for (ID &id : MainAllIDsIterator(bmain)) {
-    if (ID_IS_LINKED(&id) && BKE_idtype_idcode_is_linkable(GS(id.name))) {
+  auto reset_linked_status_cb = [](ID &id) -> void {
+    ID *id_owner = BKE_id_owner_get(&id);
+    if (!id_owner) {
+      id_owner = &id;
+    }
+    BLI_assert_msg(id_owner->lib == id.lib,
+                   "An embedded ID should always have the same library as its regular ID owner");
+    if (ID_IS_LINKED(id_owner) && BKE_idtype_idcode_is_linkable(GS(id_owner->name))) {
       if (USER_DEVELOPER_TOOL_TEST(&U, use_all_linked_data_direct)) {
         /* Forces all linked data to be considered as directly linked.
          * FIXME: Workaround some BAT tool limitations for Heist production, should be removed
          * asap afterward. */
         id_lib_extern(&id);
       }
-      else if (GS(id.name) == ID_SCE) {
+      else if (GS(id_owner->name) == ID_SCE) {
         /* For scenes, do not force them into 'indirectly linked' status.
          * The main reason is that scenes typically have no users, so most linked scene would be
          * systematically 'lost' on file save.
@@ -2142,20 +2160,42 @@ void BKE_main_id_indirect_linked_update(Main &bmain, std::optional<Span<ID *>> l
          *     practice in data dependencies.
          *   - There are typically not hundreds of scenes in a file, and they are always very
          *     easily discoverable and browsable from the main UI. */
+        BLI_assert((id_owner->tag & (ID_TAG_EXTERN | ID_TAG_INDIRECT)) !=
+                   (ID_TAG_EXTERN | ID_TAG_INDIRECT));
+        /* Ensure that embedded IDs of a scene are in sync with their scene's directly/indirectly
+         * linked status. */
+        if (&id != id_owner) {
+          id.tag &= ~(ID_TAG_EXTERN | ID_TAG_INDIRECT);
+          id.tag |= id_owner->tag & (ID_TAG_EXTERN | ID_TAG_INDIRECT);
+        }
       }
       else {
         id.tag |= ID_TAG_INDIRECT;
         id.tag &= ~ID_TAG_EXTERN;
       }
     }
+  };
+  for (ID &id : MainAllIDsIterator(bmain)) {
+    reset_linked_status_cb(id);
+    if (GS(id.name) == ID_SCE) {
+      Scene &scene = id_cast<Scene &>(id);
+      if (scene.master_collection) {
+        reset_linked_status_cb(scene.master_collection->id);
+      }
+    }
+    bNodeTree *node_tree = bke::node_tree_from_id(&id);
+    if (node_tree) {
+      reset_linked_status_cb(node_tree->id);
+    }
   }
 
   const LibraryForeachIDFlag foreach_id_flag = IDWALK_READONLY | IDWALK_INCLUDE_UI;
+  VectorSet<ID *> extern_packed_ids;
   if (local_ids.has_value()) {
     for (ID *id : *local_ids) {
       BLI_assert(!ID_IS_LINKED(id));
       BKE_library_foreach_ID_link(
-          &bmain, id, id_indirect_linked_update_fn, nullptr, foreach_id_flag);
+          &bmain, id, id_indirect_linked_update_fn, &extern_packed_ids, foreach_id_flag);
     }
   }
   else {
@@ -2164,8 +2204,43 @@ void BKE_main_id_indirect_linked_update(Main &bmain, std::optional<Span<ID *>> l
         continue;
       }
       BKE_library_foreach_ID_link(
-          &bmain, &id, id_indirect_linked_update_fn, nullptr, foreach_id_flag);
+          &bmain, &id, id_indirect_linked_update_fn, &extern_packed_ids, foreach_id_flag);
     }
+  }
+
+  /* Packed linked IDs have a different understanding of directly vs. indirectly linked.
+   *
+   * Essentially, all IDs which are a dependency of a given directly linked packed data are also
+   * considered directly linked.
+   *
+   * This makes sense on the principle level (packed IDs _never_ use regular other linked
+   * IDs, so they behave as some sort of coherent data unit). And it ensures e.g. that if one
+   * packed ID is written in a blendfile, then all of its dependencies are also written with it.
+   */
+  auto id_indirect_linked_update_packed_ids_fn =
+      [&extern_packed_ids](LibraryIDLinkCallbackData *cb_data) -> int {
+    ID *self_id = cb_data->self_id;
+    ID **id_pointer = cb_data->id_pointer;
+    ID *id = *id_pointer;
+
+    if (!id) {
+      return IDWALK_RET_NOP;
+    }
+
+    BLI_assert(ID_IS_PACKED(self_id) && ID_IS_PACKED(id));
+    BLI_assert(self_id->tag & ID_TAG_EXTERN);
+    UNUSED_VARS_NDEBUG(self_id);
+
+    id_lib_extern(id);
+    extern_packed_ids.add(id);
+    return IDWALK_RET_NOP;
+  };
+  for (int i = 0; i < extern_packed_ids.size(); i++) {
+    BKE_library_foreach_ID_link(&bmain,
+                                extern_packed_ids[i],
+                                id_indirect_linked_update_packed_ids_fn,
+                                nullptr,
+                                foreach_id_flag);
   }
 }
 

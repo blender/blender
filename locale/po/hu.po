@@ -1,9 +1,9 @@
 
 msgid ""
 msgstr ""
-"Project-Id-Version: Blender 5.2.0 LTS Beta (b'051706edb5e5')\n"
+"Project-Id-Version: Blender 5.3.0 Alpha (b'bf67fb078da0')\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-06-22 07:24+0000\n"
+"POT-Creation-Date: 2026-07-27 09:52+0000\n"
 "PO-Revision-Date: 2026-03-19 19:12+0000\n"
 "Last-Translator: Tamás Máté <royalpython132@gmail.com>\n"
 "Language-Team: Hungarian <https://translate.blender.org/projects/blender-ui/ui/hu/>\n"
@@ -840,10 +840,6 @@ msgid "Layer"
 msgstr "Réteg"
 
 
-msgid "Attribute on Grease Pencil layer"
-msgstr "Tulajdonság a zsírkréta rétegen"
-
-
 msgid "Name of the Attribute"
 msgstr "Az attribútum neve"
 
@@ -1098,6 +1094,10 @@ msgstr "Térháló adatblokkok"
 
 msgid "Particles"
 msgstr "Részecskék"
+
+
+msgid "Project"
+msgstr "Vetítés"
 
 
 msgid "Shape Keys"
@@ -2642,10 +2642,6 @@ msgstr "A legközelebbi felületi pont"
 
 msgid "Shrink the location to the nearest target surface"
 msgstr "A helyzet simítása a legközelebbi célfelülethez"
-
-
-msgid "Project"
-msgstr "Vetítés"
 
 
 msgid "Shrink the location to the nearest target surface along a given axis"
@@ -6610,6 +6606,34 @@ msgid "Use Material Mask"
 msgstr "Anyagmaszk használata"
 
 
+msgid "Show/Hide"
+msgstr "Mutat/Rejt"
+
+
+msgid "Apply"
+msgstr "Elfogadás"
+
+
+msgid "Clean Up"
+msgstr "Tisztítás"
+
+
+msgid "Merge"
+msgstr "Összefésülés"
+
+
+msgid "Metaball"
+msgstr "Meta test"
+
+
+msgid "Import"
+msgstr "Importálás"
+
+
+msgid "Mirror"
+msgstr "Tükrözés"
+
+
 msgid "Local View"
 msgstr "Helyi nézet"
 
@@ -6622,8 +6646,8 @@ msgid "Align View"
 msgstr "Nézet igazítása"
 
 
-msgid "Metaball"
-msgstr "Meta test"
+msgid "UV"
+msgstr "UV"
 
 
 msgid "Light"
@@ -6638,32 +6662,8 @@ msgid "Rigid Body"
 msgstr "Szilárd test"
 
 
-msgid "Apply"
-msgstr "Elfogadás"
-
-
 msgid "Track"
 msgstr "Nyom"
-
-
-msgid "Show/Hide"
-msgstr "Mutat/Rejt"
-
-
-msgid "Clean Up"
-msgstr "Tisztítás"
-
-
-msgid "Import"
-msgstr "Importálás"
-
-
-msgid "UV"
-msgstr "UV"
-
-
-msgid "Merge"
-msgstr "Összefésülés"
 
 
 msgid "Keying"
@@ -6672,10 +6672,6 @@ msgstr "Kulcsozás"
 
 msgid "Tracking"
 msgstr "Követés"
-
-
-msgid "Mirror"
-msgstr "Tükrözés"
 
 
 msgctxt "MovieClip"
@@ -6724,6 +6720,10 @@ msgid "Physics"
 msgstr "Fizika"
 
 
+msgid "Save & Load"
+msgstr "Mentés & Betöltés"
+
+
 msgid "Effect Strip"
 msgstr "Effekt sáv"
 
@@ -6762,10 +6762,6 @@ msgstr "Lista elem"
 
 msgid "Presets"
 msgstr "Beállítások"
-
-
-msgid "Save & Load"
-msgstr "Mentés & Betöltés"
 
 
 msgctxt "Operator"
@@ -9280,6 +9276,10 @@ msgid "Bake"
 msgstr "Sütés"
 
 
+msgid "Grease Pencil Opacity"
+msgstr "Zsírkréta átlátszatlanság"
+
+
 msgid "Linear interpolation"
 msgstr "Lineáris interpoláció"
 
@@ -10017,10 +10017,6 @@ msgstr "Bőr átméretezése"
 
 msgid "Bend"
 msgstr "Hajlítás"
-
-
-msgid "Grease Pencil Opacity"
-msgstr "Zsírkréta átlátszatlanság"
 
 
 msgid "Construct a Nurbs Circle"
@@ -11135,10 +11131,6 @@ msgid "From Mix"
 msgstr "Keverékből"
 
 
-msgid "Create the new shape key from the existing mix of keys"
-msgstr "Formakulcs létrehozása meglévő formakulcsok keverékéből"
-
-
 msgctxt "Operator"
 msgid "Clear Shape Keys"
 msgstr "Formakulcsok törlése"
@@ -11153,10 +11145,6 @@ msgid "Mirror Shape Key"
 msgstr "Formakulcs tükrözése"
 
 
-msgid "Mirror the current shape key along the local X axis"
-msgstr "Az aktuális formakulcs tükrözése a helyi X tengelyen"
-
-
 msgctxt "Operator"
 msgid "Move Shape Key"
 msgstr "Formakulcs mozgatása"
@@ -11165,10 +11153,6 @@ msgstr "Formakulcs mozgatása"
 msgctxt "Operator"
 msgid "Remove Shape Key"
 msgstr "Formakulcs eltávolítása"
-
-
-msgid "Remove shape key from the object"
-msgstr "Formakulcs eltávolítása az objektumról"
 
 
 msgid "Remove all shape keys"
@@ -12075,16 +12059,20 @@ msgid "Reload strips in the sequencer"
 msgstr "Sáv(ok) újratöltése a szkvencerben"
 
 
+msgid "Markers"
+msgstr "Markerek"
+
+
 msgid "Select or deselect all strips"
 msgstr "Minden sáv kijelölése / Kijelölés megszüntetése"
 
 
+msgid "Movie"
+msgstr "Film"
+
+
 msgid "Select all strips grouped by various properties"
 msgstr "Az összes azonos típusú sáv kijelölése"
-
-
-msgid "Overlap"
-msgstr "Átfedés"
 
 
 msgid "Select all strips adjacent to the current selection"
@@ -12882,10 +12870,6 @@ msgstr "Jegyzet"
 
 msgid "Keyframing Settings"
 msgstr "Kulcs-képkockázás beállításai"
-
-
-msgid "Auto Keyframing"
-msgstr "Auto kulcs-képkockázás"
 
 
 msgid "Playback"
@@ -14095,10 +14079,6 @@ msgid "Show Source"
 msgstr "Forrás megjelenítése"
 
 
-msgid "Markers"
-msgstr "Markerek"
-
-
 msgid "Shape key in a shape keys data-block"
 msgstr "Formakulcs egy formakulcsok adatblokkban"
 
@@ -14127,16 +14107,8 @@ msgid "Slider Max"
 msgstr "Max csúszka"
 
 
-msgid "Maximum for slider"
-msgstr "A csúszka maximuma"
-
-
 msgid "Slider Min"
 msgstr "Min csúszka"
-
-
-msgid "Minimum for slider"
-msgstr "A csúszka minimuma"
 
 
 msgid "Value of shape key at the current frame"
@@ -14629,10 +14601,6 @@ msgstr "Terület témájának beállításai"
 
 msgid "Window Background"
 msgstr "Ablak háttere"
-
-
-msgid "Header Text Highlight"
-msgstr "Fejléc kiemelt szöveg"
 
 
 msgid "Text Highlight"
@@ -15163,11 +15131,6 @@ msgid "File:"
 msgstr "Fájl:"
 
 
-msgctxt "Operator"
-msgid "Apply"
-msgstr "Elfogadás"
-
-
 msgid "Options:"
 msgstr "Opciók:"
 
@@ -15367,6 +15330,10 @@ msgstr "Spline:"
 
 msgid "Animation:"
 msgstr "Animáció:"
+
+
+msgid "Overlap"
+msgstr "Átfedés"
 
 
 msgid "Material Mask"
@@ -15598,6 +15565,11 @@ msgstr "Gyermek objektumok"
 msgctxt "Operator"
 msgid "Make"
 msgstr "Létrehozás"
+
+
+msgctxt "Operator"
+msgid "Select All by Type"
+msgstr "Minden kijelölése típus alapján"
 
 
 msgctxt "Operator"
@@ -15844,11 +15816,6 @@ msgstr "Aktív kamera igazítása a kijelölt elemhez"
 
 
 msgctxt "Operator"
-msgid "Select All by Type"
-msgstr "Minden kijelölése típus alapján"
-
-
-msgctxt "Operator"
 msgid "Sharp Edges"
 msgstr "Éles élek"
 
@@ -16028,6 +15995,11 @@ msgid "Adjust Focus Distance"
 msgstr "Fókusztávolság beállítása"
 
 
+msgctxt "Operator"
+msgid "Apply"
+msgstr "Elfogadás"
+
+
 msgid "KeyingSet"
 msgstr "Kulcskészlet"
 
@@ -16164,10 +16136,6 @@ msgstr "Átlátszóság:"
 
 msgid "Hex"
 msgstr "Hex"
-
-
-msgid "Movie"
-msgstr "Film"
 
 
 msgid "Sort By:"

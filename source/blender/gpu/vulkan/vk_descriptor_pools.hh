@@ -36,6 +36,7 @@ class VKDescriptorPools {
   static constexpr uint32_t POOL_SIZE_UNIFORM_BUFFER = 500;
   static constexpr uint32_t POOL_SIZE_UNIFORM_TEXEL_BUFFER = 100;
   static constexpr uint32_t POOL_SIZE_INPUT_ATTACHMENT = 100;
+  static constexpr uint32_t POOL_SIZE_ACCELERATION_STRUCTURE = 100;
 
   /**
    * Unused recycled pools.

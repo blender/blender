@@ -16,6 +16,7 @@
 #include "DNA_view3d_enums.h"
 
 #include "GPU_index_buffer.hh"
+#include "GPU_ray_tracing.hh"
 #include "GPU_shader.hh"
 #include "GPU_vertex_buffer.hh"
 
@@ -286,11 +287,15 @@ struct MeshBatchCache {
   /* Index buffer per material. These are sub-ranges of `ibo.tris`. */
   Array<gpu::IndexBufPtr> tris_per_mat;
   Array<gpu::Batch *> surface_per_mat;
+  gpu::BottomLevelAS *surface_blas;
 
   DRWSubdivCache *subdiv_cache;
 
   DRWBatchFlag batch_requested;
   DRWBatchFlag batch_ready;
+
+  bool surface_blas_requested;
+  bool surface_blas_ready;
 
   /* Settings to determine if cache is invalid. */
   int edge_len;

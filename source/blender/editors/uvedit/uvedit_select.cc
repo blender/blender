@@ -4595,58 +4595,6 @@ static void uv_select_tag_update_for_object(Depsgraph *depsgraph,
 }
 
 /**
- * Helper function for #uv_select_flush_from_tag_loop and #uv_select_flush_from_tag_face.
- */
-static void uvedit_uv_select_flush_from_tag_sticky_loc_internal(
-    const Scene *scene, BMesh *bm, BMLoop *l, const bool select, const BMUVOffsets &offsets)
-{
-  uvedit_uv_select_set(scene, bm, l, select);
-
-  BMVert *v = l->v;
-  BLI_assert(v->e);
-  const BMEdge *e_iter, *e_first;
-  e_iter = e_first = v->e;
-  do {
-    if (e_iter->l == nullptr) {
-      continue;
-    }
-    BMLoop *l_first = e_iter->l;
-    BMLoop *l_iter = l_first;
-    do {
-      if (!(l_iter->v == v && l_iter != l)) {
-        continue;
-      }
-      if (!uvedit_face_visible_test(scene, l_iter->f)) {
-        continue;
-      }
-      if (BM_loop_uv_share_vert_check(l, l_iter, offsets.uv)) {
-        uvedit_uv_select_set(scene, bm, l_iter, select);
-      }
-    } while ((l_iter = l_iter->radial_next) != l_first);
-  } while ((e_iter = BM_DISK_EDGE_NEXT(e_iter, v)) != e_first);
-}
-
-/**
- * Helper function for #uv_select_flush_from_tag_face.
- */
-static void uvedit_edge_select_flush_from_tag_sticky_loc_internal(
-    const Scene *scene, BMesh *bm, BMLoop *l, const bool select, const BMUVOffsets &offsets)
-{
-  uvedit_edge_select_set(scene, bm, l, select);
-  if (l->radial_next != l) {
-    BMLoop *l_iter = l->radial_next;
-    do {
-      if (!uvedit_face_visible_test(scene, l_iter->f)) {
-        continue;
-      }
-      if (BM_loop_uv_share_edge_check(l, l_iter, offsets.uv)) {
-        uvedit_edge_select_set(scene, bm, l_iter, select);
-      }
-    } while ((l_iter = l_iter->radial_next) != l);
-  }
-}
-
-/**
  * Flush the selection from face tags based on sticky and selection modes.
  *
  * needed because setting the selection of a face is done in a number of places but it also
@@ -4713,14 +4661,17 @@ static void uv_select_flush_from_tag_face(const Scene *scene, Object *obedit, co
         uvedit_loop_edge_select_set(ts, bm, l, select);
 
         if (select) {
-          uvedit_uv_select_flush_from_tag_sticky_loc_internal(scene, bm, l, select, offsets);
+          uvedit_edge_select_shared_vert(scene, bm, l, select, UV_STICKY_LOCATION, offsets);
         }
         else {
+          /* Match selecting logic, except UV's still used by other selected faces must be kept.
+           * Note that #uvedit_edge_select_shared_vert only de-selects a UV vertex once it's
+           * last selected UV edge is de-selected, see: #161419. */
           if (!uvedit_vert_is_face_select_any_other(ts, bm, l, offsets)) {
-            uvedit_uv_select_flush_from_tag_sticky_loc_internal(scene, bm, l, select, offsets);
+            uvedit_uv_select_shared_vert(scene, bm, l, select, UV_STICKY_LOCATION, offsets);
           }
           if (!uvedit_edge_is_face_select_any_other(ts, bm, l, offsets)) {
-            uvedit_edge_select_flush_from_tag_sticky_loc_internal(scene, bm, l, select, offsets);
+            uvedit_edge_select_shared_vert(scene, bm, l, select, UV_STICKY_LOCATION, offsets);
           }
         }
       }
@@ -4825,7 +4776,7 @@ static void uv_select_flush_from_tag_loop(const Scene *scene, Object *obedit, co
       bool tag_any = false;
       BM_ITER_ELEM (l, &liter, efa, BM_LOOPS_OF_FACE) {
         if (BM_elem_flag_test(l, BM_ELEM_TAG)) {
-          uvedit_uv_select_flush_from_tag_sticky_loc_internal(scene, bm, l, select, offsets);
+          uvedit_uv_select_shared_vert(scene, bm, l, select, UV_STICKY_LOCATION, offsets);
           tag_any = true;
         }
         else {
@@ -4917,8 +4868,8 @@ static void uv_select_flush_from_loop_edge_flag(const Scene *scene, BMesh *bm)
       BM_ITER_ELEM (l, &liter, efa, BM_LOOPS_OF_FACE) {
         /* Select verts based on UV edge flag. */
         if (uvedit_edge_select_get_no_sync(ts, bm, l)) {
-          uvedit_uv_select_flush_from_tag_sticky_loc_internal(scene, bm, l, true, offsets);
-          uvedit_uv_select_flush_from_tag_sticky_loc_internal(scene, bm, l->next, true, offsets);
+          uvedit_uv_select_shared_vert(scene, bm, l, true, UV_STICKY_LOCATION, offsets);
+          uvedit_uv_select_shared_vert(scene, bm, l->next, true, UV_STICKY_LOCATION, offsets);
         }
       }
     }
@@ -5334,6 +5285,9 @@ static wmOperatorStatus uv_circle_select_exec(bContext *C, wmOperator *op)
         BM_mesh_elem_hflag_disable_all(bm, BM_FACE, BM_ELEM_TAG, false);
       }
       BM_ITER_MESH (efa, &iter, bm, BM_FACES_OF_MESH) {
+        if (!uvedit_face_visible_test(scene, efa)) {
+          continue;
+        }
         if (use_select_linked) {
           if (linked_helper->face_check(efa)) {
             continue;
@@ -5569,6 +5523,9 @@ static bool do_lasso_select_mesh_uv(bContext *C, const Span<int2> mcoords, const
         BM_mesh_elem_hflag_disable_all(bm, BM_FACE, BM_ELEM_TAG, false);
       }
       BM_ITER_MESH (efa, &iter, bm, BM_FACES_OF_MESH) {
+        if (!uvedit_face_visible_test(scene, efa)) {
+          continue;
+        }
         if (use_select_linked) {
           if (linked_helper->face_check(efa)) {
             continue;
@@ -5895,8 +5852,8 @@ static wmOperatorStatus uv_select_overlap(bContext *C, const bool extend, const 
       *bmain, scene, view_layer, nullptr);
 
   struct ChangedInfo {
-    uint has_changed : 1;
-    uint has_overlap : 1;
+    uint has_changed : 1 = 0;
+    uint has_overlap : 1 = 0;
   };
 
   struct UVOverlapData {
@@ -5913,7 +5870,7 @@ static wmOperatorStatus uv_select_overlap(bContext *C, const bool extend, const 
     bool found_overlap;
   };
 
-  Array<ChangedInfo> objects_tag(objects.size(), {false, false});
+  Array<ChangedInfo> objects_tag(objects.size());
 
   /* Calculate maximum number of tree nodes and prepare initial selection. */
   uint uv_tri_len = 0;
@@ -6490,22 +6447,8 @@ static wmOperatorStatus uv_select_similar_vert_exec(bContext *C, wmOperator *op)
   Vector<Object *> objects = BKE_view_layer_array_from_objects_in_edit_mode_unique_data_with_uvs(
       *bmain, scene, view_layer, nullptr);
 
-  int max_verts_selected_all = 0;
-  for (Object *ob : objects) {
-    BMesh *bm = BKE_editmesh_from_object(ob)->bm;
-    BMFace *face;
-    BMIter iter;
-    BM_ITER_MESH (face, &iter, bm, BM_FACES_OF_MESH) {
-      if (!uvedit_face_visible_test(scene, face)) {
-        continue;
-      }
-      max_verts_selected_all += face->len;
-    }
-    /* TODO: Get a tighter bounds */
-  }
-
   int tree_index = 0;
-  KDTree<float> *tree_1d = kdtree_new<float>(max_verts_selected_all);
+  Map<float, int> points_1d;
 
   for (Object *ob : objects) {
     BMesh *bm = BKE_editmesh_from_object(ob)->bm;
@@ -6530,15 +6473,16 @@ static wmOperatorStatus uv_select_similar_vert_exec(bContext *C, wmOperator *op)
           continue;
         }
         float needle = get_uv_vert_needle(type, l->v, ob_m3, l, offsets);
-        kdtree_insert<float>(tree_1d, tree_index++, needle);
+        points_1d.add(needle, tree_index++);
       }
     }
   }
 
-  if (tree_1d != nullptr) {
-    kdtree_deduplicate<float>(tree_1d);
-    kdtree_balance<float>(tree_1d);
+  KDTree<float> *tree_1d = kdtree_new<float>(points_1d.size());
+  for (const auto &[pos, index] : points_1d.items()) {
+    kdtree_insert(tree_1d, index, pos);
   }
+  kdtree_balance<float>(tree_1d);
 
   for (Object *ob : objects) {
     BMesh *bm = BKE_editmesh_from_object(ob)->bm;
@@ -6615,22 +6559,8 @@ static wmOperatorStatus uv_select_similar_edge_exec(bContext *C, wmOperator *op)
   Vector<Object *> objects = BKE_view_layer_array_from_objects_in_edit_mode_unique_data_with_uvs(
       *bmain, scene, view_layer, nullptr);
 
-  int max_edges_selected_all = 0;
-  for (Object *ob : objects) {
-    BMesh *bm = BKE_editmesh_from_object(ob)->bm;
-    BMFace *face;
-    BMIter iter;
-    BM_ITER_MESH (face, &iter, bm, BM_FACES_OF_MESH) {
-      if (!uvedit_face_visible_test(scene, face)) {
-        continue;
-      }
-      max_edges_selected_all += face->len;
-    }
-    /* TODO: Get a tighter bounds. */
-  }
-
   int tree_index = 0;
-  KDTree<float> *tree_1d = kdtree_new<float>(max_edges_selected_all);
+  Map<float, int> points_1d;
 
   for (Object *ob : objects) {
     BMesh *bm = BKE_editmesh_from_object(ob)->bm;
@@ -6656,17 +6586,16 @@ static wmOperatorStatus uv_select_similar_edge_exec(bContext *C, wmOperator *op)
         }
 
         float needle = get_uv_edge_needle(type, l->e, ob_m3, l, l->next, offsets);
-        if (tree_1d) {
-          kdtree_insert<float>(tree_1d, tree_index++, needle);
-        }
+        points_1d.add(needle, tree_index++);
       }
     }
   }
 
-  if (tree_1d != nullptr) {
-    kdtree_deduplicate<float>(tree_1d);
-    kdtree_balance<float>(tree_1d);
+  KDTree<float> *tree_1d = kdtree_new<float>(points_1d.size());
+  for (const auto &[pos, index] : points_1d.items()) {
+    kdtree_insert(tree_1d, index, pos);
   }
+  kdtree_balance<float>(tree_1d);
 
   for (Object *ob : objects) {
     BMesh *bm = BKE_editmesh_from_object(ob)->bm;
@@ -6760,15 +6689,8 @@ static wmOperatorStatus uv_select_similar_face_exec(bContext *C, wmOperator *op)
     }
   }
 
-  int max_faces_selected_all = 0;
-  for (Object *ob : objects) {
-    BMesh *bm = BKE_editmesh_from_object(ob)->bm;
-    max_faces_selected_all += bm->totfacesel;
-    /* TODO: Get a tighter bounds */
-  }
-
   int tree_index = 0;
-  KDTree<float> *tree_1d = kdtree_new<float>(max_faces_selected_all);
+  Map<float, int> points_1d;
 
   for (const int ob_index : objects.index_range()) {
     Object *ob = objects[ob_index];
@@ -6796,16 +6718,15 @@ static wmOperatorStatus uv_select_similar_face_exec(bContext *C, wmOperator *op)
       }
 
       float needle = get_uv_face_needle(type, face, ob_index, ob_m3, offsets, material_remap);
-      if (tree_1d) {
-        kdtree_insert<float>(tree_1d, tree_index++, needle);
-      }
+      points_1d.add(needle, tree_index++);
     }
   }
 
-  if (tree_1d != nullptr) {
-    kdtree_deduplicate<float>(tree_1d);
-    kdtree_balance<float>(tree_1d);
+  KDTree<float> *tree_1d = kdtree_new<float>(points_1d.size());
+  for (const auto &[pos, index] : points_1d.items()) {
+    kdtree_insert(tree_1d, index, pos);
   }
+  kdtree_balance<float>(tree_1d);
 
   for (const int ob_index : objects.index_range()) {
     Object *ob = objects[ob_index];
@@ -6909,7 +6830,7 @@ static wmOperatorStatus uv_select_similar_island_exec(bContext *C, wmOperator *o
   FaceIsland **island_array = MEM_new_array_zeroed<FaceIsland *>(island_list_len, __func__);
 
   int tree_index = 0;
-  KDTree<float> *tree_1d = kdtree_new<float>(island_list_len);
+  Map<float, int> points_1d;
 
   for (const int ob_index : objects.index_range()) {
     Object *obedit = objects[ob_index];
@@ -6924,16 +6845,15 @@ static wmOperatorStatus uv_select_similar_island_exec(bContext *C, wmOperator *o
         continue;
       }
       float needle = get_uv_island_needle(type, &island, ob_m3, island.offsets);
-      if (tree_1d) {
-        kdtree_insert<float>(tree_1d, tree_index++, needle);
-      }
+      points_1d.add(needle, tree_index++);
     }
   }
 
-  if (tree_1d != nullptr) {
-    kdtree_deduplicate<float>(tree_1d);
-    kdtree_balance<float>(tree_1d);
+  KDTree<float> *tree_1d = kdtree_new<float>(points_1d.size());
+  for (const auto &[pos, index] : points_1d.items()) {
+    kdtree_insert(tree_1d, index, pos);
   }
+  kdtree_balance<float>(tree_1d);
 
   int tot_island_index = 0;
   for (const int ob_index : objects.index_range()) {

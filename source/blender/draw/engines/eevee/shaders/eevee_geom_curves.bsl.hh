@@ -7,9 +7,6 @@
 #include "infos/eevee_geom_infos.hh"
 #include "infos/eevee_nodetree_infos.hh"
 
-VERTEX_SHADER_CREATE_INFO(eevee_nodetree)
-VERTEX_SHADER_CREATE_INFO(eevee_clip_plane)
-
 #include "draw_curves_lib.glsl"
 #include "draw_model.bsl.hh"
 #include "draw_view_infos.hh"
@@ -100,7 +97,7 @@ struct GeomCurve {
   curve_interp_flat.strand_id = ws_pt.curve_id;
 
   if (pipe.use_velocity) [[static_branch]] {
-    /* clang-format off */ /* Multiline define messes up line index. */
+    /* clang-format off */ /* Multi-line define messes up line index. */
     [[resource_table]] const GeometryVelocity &geo_vel = resource_table_get(eevee::GeometryVelocity);
     /* clang-format on */
     auto &motion = interface_get(eevee_velocity_iface_info, motion);

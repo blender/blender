@@ -102,6 +102,12 @@ MINLINE void srgb_to_linearrgb_uchar4_predivide(float linear[4], const unsigned 
 MINLINE void linearrgb_to_srgb_uchar3(unsigned char srgb[3], const float linear[3]);
 MINLINE void linearrgb_to_srgb_uchar4(unsigned char srgb[4], const float linear[4]);
 
+/* Convert an array with optional 3x3 matrix transform, for additional SIMD optimizations. */
+void linearrgb_to_srgb_uchar4_n(unsigned char (*srgb)[4],
+                                const float (*linear)[4],
+                                int size,
+                                const float (*matrix)[3] = nullptr);
+
 void BLI_init_srgb_conversion();
 
 /** \} */

@@ -399,7 +399,7 @@ void RE_engine_update_result(RenderEngine *engine, RenderResult *result)
     render_result_merge(re->result, result);
     result->renlay = static_cast<RenderLayer *>(
         result->layers.first); /* weak, draws first layer always */
-    re->display->display_update(result, nullptr);
+    re->display->display_update(result);
   }
 }
 
@@ -459,7 +459,7 @@ void RE_engine_end_result(
     if (!re->display->test_break()) {
       result->renlay = static_cast<RenderLayer *>(
           result->layers.first); /* weak, draws first layer always */
-      re->display->display_update(result, nullptr);
+      re->display->display_update(result);
     }
   }
 
@@ -907,10 +907,10 @@ static void engine_render_view_layer(Render *re,
        * context initialization. For the non-background renders the GPU context is already
        * initialized for the Blender interface and no workaround is needed.
        *
-       * Technically it is enough to only call WM_init_gpu() here, but it expects to only be called
-       * once, and from here it is not possible to know whether GPU sub-system is initialized or
-       * not. So instead temporarily enable the render context, which will take care of the GPU
-       * context initialization.
+       * Technically it is enough to only call WM_init_gpu_offscreen() here, but it expects
+       * to only be called once, and from here it is not possible to know whether GPU
+       * sub-system is initialized or not. So instead temporarily enable the render context,
+       * which will take care of the GPU context initialization.
        *
        * For demo file and tracking progress of possible fixes on driver side refer to #120007. */
       DRW_render_context_enable(engine->re);
@@ -1021,12 +1021,15 @@ bool RE_engine_render(Render *re, bool do_all)
   /* Lock drawing in UI during data phase. */
   re->display->draw_lock();
 
-  if ((type->flag & RE_USE_GPU_CONTEXT) && !GPU_backend_supported()) {
-    /* Clear UI drawing locks. */
-    re->display->draw_unlock();
-    BKE_report(re->reports, RPT_ERROR, "Cannot initialize the GPU");
-    G.is_break = true;
-    return true;
+  if (type->flag & RE_USE_GPU_CONTEXT) {
+    WM_init_gpu_backend();
+    if (!GPU_backend_supported()) {
+      /* Clear UI drawing locks. */
+      re->display->draw_unlock();
+      BKE_report(re->reports, RPT_ERROR, "Cannot initialize the GPU");
+      G.is_break = true;
+      return true;
+    }
   }
 
   /* Create engine. */
@@ -1442,6 +1445,25 @@ void RE_engine_gpu_context_unlock(RenderEngine *engine)
       BLI_mutex_unlock(&engine->blender_gpu_context_mutex);
     }
   }
+}
+
+void RE_engine_view_pause(RenderEngine *engine, const bContext *context)
+{
+  if (engine->type->view_pause) {
+    engine->type->view_pause(engine, context);
+    engine->auto_paused = true;
+  }
+}
+
+void RE_engine_view_resume(RenderEngine *engine, const bContext *context)
+{
+  if (!engine->auto_paused) {
+    return;
+  }
+  if (engine->type->view_resume) {
+    engine->type->view_resume(engine, context);
+  }
+  engine->auto_paused = false;
 }
 
 /** \} */

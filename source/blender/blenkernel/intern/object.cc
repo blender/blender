@@ -66,7 +66,7 @@
 #include "BKE_anim_data.hh"
 #include "BKE_anim_path.h"
 #include "BKE_anim_visualization.h"
-#include "BKE_animsys.h"
+#include "BKE_animsys.hh"
 #include "BKE_armature.hh"
 #include "BKE_asset.hh"
 #include "BKE_bpath.hh"
@@ -186,7 +186,7 @@ static void object_init_data(ID *id)
   ob->runtime = MEM_new<bke::ObjectRuntime>(__func__);
 
   /* Animation Visualization defaults */
-  animviz_settings_init(&ob->avs);
+  bke::animviz::settings_init(&ob->avs);
 }
 
 static void object_copy_data(Main *bmain,
@@ -257,7 +257,7 @@ static void object_copy_data(Main *bmain,
   ob_dst->pc_ids.clear_no_delete();
 
   ob_dst->avs = ob_src->avs;
-  ob_dst->mpath = animviz_copy_motionpath(ob_src->mpath);
+  ob_dst->mpath = bke::motionpath::copy(ob_src->mpath);
 
   if ((flag & LIB_ID_COPY_NO_PREVIEW) == 0) {
     BKE_previewimg_id_copy(&ob_dst->id, &ob_src->id);
@@ -305,7 +305,7 @@ static void object_free_data(ID *id)
     ob->pose = nullptr;
   }
   if (ob->mpath) {
-    animviz_free_motionpath(ob->mpath);
+    bke::motionpath::free(ob->mpath);
     ob->mpath = nullptr;
   }
 
@@ -655,6 +655,14 @@ static void object_foreach_cache(ID *id,
                                  void *user_data)
 {
   Object *ob = reinterpret_cast<Object *>(id);
+  IDCacheKey key;
+  key.id_session_uid = id->session_uid;
+
+  constexpr size_t runtime_base_id = size_t(1) << 32u;
+  key.identifier = runtime_base_id + offsetof(bke::ObjectRuntime, sculpt_session);
+  function_callback(
+      id, &key, reinterpret_cast<void **>(&ob->runtime->sculpt_session), 0, user_data);
+
   for (ModifierData &md : ob->modifiers) {
     if (const ModifierTypeInfo *info = BKE_modifier_get_info(md.type)) {
       if (info->foreach_cache) {
@@ -711,6 +719,9 @@ static void create_legacy_geometry_nodes_properties(Object &ob)
     const IDProperty *inputs = IDP_GetPropertyFromGroup(system_props, "inputs");
     if (inputs && inputs->type == IDP_GROUP) {
       for (const IDProperty &prop : inputs->data.group) {
+        if (prop.type != IDP_GROUP) {
+          continue;
+        }
         const StringRefNull identifier = prop.name;
         const IDProperty *type_prop = IDP_GetPropertyFromGroup(&prop, "type");
         if (!type_prop) {
@@ -748,6 +759,9 @@ static void create_legacy_geometry_nodes_properties(Object &ob)
     const IDProperty *outputs = IDP_GetPropertyFromGroup(system_props, "outputs");
     if (outputs && outputs->type == IDP_GROUP) {
       for (const IDProperty &prop : outputs->data.group) {
+        if (prop.type != IDP_GROUP) {
+          continue;
+        }
         const StringRefNull identifier = prop.name;
         if (const IDProperty *name = IDP_GetPropertyFromGroup(&prop, "attribute_name")) {
           IDProperty *legacy_prop = IDP_CopyProperty(name);
@@ -811,7 +825,7 @@ static void object_blend_write(BlendWriter *writer, ID *id, const void *id_addre
     BKE_pose_blend_write(writer, ob->pose);
   }
   BKE_constraint_blend_write(writer, &ob->constraints);
-  animviz_motionpath_blend_write(writer, ob->mpath);
+  bke::motionpath::blend_write(writer, ob->mpath);
 
   writer->write_struct(ob->pd);
   if (ob->soft) {
@@ -891,7 +905,7 @@ static void object_blend_read_data(BlendDataReader *reader, ID *id)
 
   BLO_read_struct(reader, bMotionPath, &ob->mpath);
   if (ob->mpath) {
-    animviz_motionpath_blend_read_data(reader, ob->mpath);
+    bke::motionpath::blend_read_data(reader, ob->mpath);
   }
 
   /* Only for versioning, vertex group names are now stored on object data. */
@@ -1055,16 +1069,6 @@ static void object_blend_read_data(BlendDataReader *reader, ID *id)
   /* in case this value changes in future, clamp else we get undefined behavior */
   CLAMP(ob->rotmode, ROT_MODE_MIN, ROT_MODE_MAX);
 
-  /* Some files were incorrectly written with a dangling pointer to this runtime data. */
-  ob->runtime->sculpt_session = nullptr;
-
-  /* When loading undo steps, for objects in modes that use `sculpt`, recreate the mode runtime
-   * data. For regular non-undo reading, this is currently handled by mode switching after the
-   * initial file read. */
-  if (BLO_read_data_is_undo(reader) && (ob->mode & OB_MODE_ALL_SCULPT)) {
-    BKE_object_sculpt_data_create(ob);
-  }
-
   BLO_read_struct(reader, PreviewImage, &ob->preview);
   BKE_previewimg_blend_read(reader, ob->preview);
 
@@ -1075,6 +1079,8 @@ static void object_blend_read_data(BlendDataReader *reader, ID *id)
   if (ob->lightprobe_cache) {
     BKE_lightprobe_cache_blend_read(reader, ob->lightprobe_cache);
   }
+
+  BKE_object_material_active_index_sanitize(ob);
 }
 
 static void object_blend_read_after_liblink(BlendLibReader *reader, ID *id)
@@ -1138,6 +1144,15 @@ static void object_blend_read_after_liblink(BlendLibReader *reader, ID *id)
   BKE_pose_blend_read_after_liblink(reader, ob, ob->pose);
 
   BKE_particle_system_blend_read_after_liblink(reader, ob, &ob->id, &ob->particlesystem);
+
+  /* When loading undo steps, for objects in modes that use `sculpt_session`, recreate the mode
+   * runtime data. For regular non-undo reading, this is currently handled by mode switching after
+   * the initial file read. */
+  if (BLO_read_lib_is_undo(reader) && ob->mode & OB_MODE_ALL_SCULPT &&
+      ob->runtime->sculpt_session == nullptr)
+  {
+    BKE_object_sculpt_data_create(ob);
+  }
 }
 
 PartEff *BKE_object_do_version_give_parteff_245(Object *ob)
@@ -3980,7 +3995,7 @@ void BKE_object_foreach_display_point(Object *ob,
                                       void (*func_cb)(const float[3], void *),
                                       void *user_data)
 {
-  /* TODO: point-cloud and curves object support. */
+  /* TODO: volume object support. */
   const Mesh *mesh_eval = BKE_object_get_evaluated_mesh(ob);
   float3 co;
 
@@ -4023,6 +4038,25 @@ void BKE_object_foreach_display_point(Object *ob,
         func_cb(co, user_data);
       }
     }
+  }
+  else if (ob->type == OB_POINTCLOUD) {
+    PointCloud &pointcloud = *id_cast<PointCloud *>(ob->data);
+    const Span<float3> positions = pointcloud.positions();
+    threading::parallel_for(positions.index_range(), 4096, [&](const IndexRange range) {
+      for (const int i : range) {
+        func_cb(math::transform_point(float4x4(obmat), positions[i]), user_data);
+      }
+    });
+  }
+  else if (ob->type == OB_CURVES) {
+    Curves &curves_id = *id_cast<Curves *>(ob->data);
+    const bke::CurvesGeometry &curves = curves_id.geometry.wrap();
+    const Span<float3> positions = curves.evaluated_positions();
+    threading::parallel_for(positions.index_range(), 4096, [&](const IndexRange range) {
+      for (const int i : range) {
+        func_cb(math::transform_point(float4x4(obmat), positions[i]), user_data);
+      }
+    });
   }
 }
 
@@ -4148,16 +4182,16 @@ void BKE_object_protected_scale_set(Object *ob, const float scale[3])
 
 void BKE_object_protected_rotation_quaternion_set(Object *ob, const float quat[4])
 {
-  if ((ob->protectflag & OB_LOCK_ROTX) == 0) {
+  if ((ob->protectflag & OB_LOCK_ROTW) == 0) {
     ob->quat[0] = quat[0];
   }
-  if ((ob->protectflag & OB_LOCK_ROTY) == 0) {
+  if ((ob->protectflag & OB_LOCK_ROTX) == 0) {
     ob->quat[1] = quat[1];
   }
-  if ((ob->protectflag & OB_LOCK_ROTZ) == 0) {
+  if ((ob->protectflag & OB_LOCK_ROTY) == 0) {
     ob->quat[2] = quat[2];
   }
-  if ((ob->protectflag & OB_LOCK_ROTW) == 0) {
+  if ((ob->protectflag & OB_LOCK_ROTZ) == 0) {
     ob->quat[3] = quat[3];
   }
 }
@@ -4412,9 +4446,6 @@ const Mesh *BKE_object_get_editmesh_eval_cage(const Object *object)
   BLI_assert(!DEG_is_original(&object->id));
   BLI_assert(object->type == OB_MESH);
 
-  const Mesh &mesh = *id_cast<const Mesh *>(object->data);
-  BLI_assert(mesh.runtime->edit_mesh != nullptr);
-  UNUSED_VARS_NDEBUG(mesh);
   const GeometrySet *geometry_set = object->runtime->geometry_set_eval;
   if (!geometry_set) {
     return nullptr;
@@ -5680,10 +5711,12 @@ void BKE_object_replace_data_on_shallow_copy(Object *ob, ID *new_data)
 
 const float4x4 &Object::object_to_world() const
 {
+  BLI_assert(!this->runtime->is_draw_dupli_reference_tmp_object);
   return this->runtime->object_to_world;
 }
 const float4x4 &Object::world_to_object() const
 {
+  BLI_assert(!this->runtime->is_draw_dupli_reference_tmp_object);
   return this->runtime->world_to_object;
 }
 

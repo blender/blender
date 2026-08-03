@@ -59,7 +59,7 @@
 
 #include "BKE_action.hh"
 #include "BKE_anim_data.hh"
-#include "BKE_animsys.h"
+#include "BKE_animsys.hh"
 #include "BKE_armature.hh"
 #include "BKE_asset.hh"
 #include "BKE_attribute.h"
@@ -240,6 +240,9 @@ static void version_idproperty_ui_data(IDProperty *idprop_group)
   for (IDProperty &prop : idprop_group->data.group) {
     IDProperty *prop_ui_data = IDP_GetPropertyFromGroup(ui_container, prop.name);
     if (prop_ui_data == nullptr) {
+      continue;
+    }
+    if (prop_ui_data->type != IDP_GROUP) {
       continue;
     }
 

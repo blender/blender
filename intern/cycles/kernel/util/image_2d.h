@@ -152,7 +152,7 @@ kernel_image_tile_map(KernelGlobals kg,
           image_texture_tile_access_state)[access_index] = KERNEL_TILE_ACCESS_REQUESTED;
     }
     if (tile_descriptor == KERNEL_TILE_LOAD_REQUEST) {
-      sd->flag |= SD_CACHE_MISS;
+      sd->runtime_flag |= SR_CACHE_MISS;
     }
     return tile_descriptor;
 #else

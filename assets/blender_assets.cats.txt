@@ -50,6 +50,7 @@ a7b80fd1-5de6-4c15-9049-52f25f4376de:Geometry Nodes/Geometry:Geometry Nodes-Geom
 463e71f0-6db1-41af-bc96-6f875196aac7:Geometry Nodes/Geometry/Operations:Geometry Nodes-Geometry-Operations
 9cff2dd6-c78b-41b3-a00e-32f116e1d95a:Geometry Nodes/Geometry/Sample:Geometry Nodes-Geometry-Sample
 5fa1e91c-e798-4051-8e4d-5d47f76f789b:Geometry Nodes/Geometry/Selection:Geometry Nodes-Geometry-Selection
+1599ecb4-d5ef-4dac-bde9-357d938c1bee:Geometry Nodes/Geometry/Write:Geometry Nodes-Geometry-Write
 a01301f0-5ae0-4627-91a4-b7fde91e5c5a:Geometry Nodes/Instances:Geometry Nodes-Instances
 b9d488d7-441e-4f1a-905a-64ab84c31706:Geometry Nodes/Mesh:Geometry Nodes-Mesh
 b6bb38bb-bfe1-4a12-b2bc-fc87d060864f:Geometry Nodes/Mesh/Read:Geometry Nodes-Mesh-Read
@@ -65,3 +66,6 @@ c676fe02-8d25-49a1-b672-11aee0918221:Hair/Read:Hair-Read
 9dedc75a-afe5-472a-9e3f-a555a8df3dff:Hair/Utility:Hair-Utility
 63a83f9c-5a95-476a-9bd5-fcb72414ea0b:Hair/Write:Hair-Write
 689f4607-3a1d-4e2a-a49b-8166dad896ca:Geometry Nodes/Simulation:Geometry Nodes-Simulation
+f8291c19-ec70-4a53-82d5-40b68a0c3a86:Shading:Shading
+2571be08-e20a-48a8-80c8-26171509f863:Shading/Utilities:Shading-Utilities
+9cd554d5-1d8f-43dd-a2ab-41635557769b:Shading/Utilities/Vector:Shading-Utilities-Vector

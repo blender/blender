@@ -12,9 +12,6 @@
 #include "infos/eevee_geom_infos.hh"
 #include "infos/eevee_nodetree_infos.hh"
 
-FRAGMENT_SHADER_CREATE_INFO(eevee_nodetree)
-FRAGMENT_SHADER_CREATE_INFO(eevee_geom_iface_info)
-
 #include "eevee_attributes_world_lib.glsl"
 #include "eevee_colorspace_lib.bsl.hh"
 #include "eevee_lightprobe.bsl.hh"
@@ -56,6 +53,8 @@ void surf_world([[resource_table]] PipelineConstants & /*pipe*/,
                 [[out]] SurfWorldFragOut &frag_out,
                 [[front_facing]] const bool front_face)
 {
+  FRAGMENT_SHADER_CREATE_INFO(eevee_geom_iface_info);
+
   const ViewMatrices view = views.get(0);
   init_globals(uni, view, front_face);
   /* View position is passed to keep accuracy. */

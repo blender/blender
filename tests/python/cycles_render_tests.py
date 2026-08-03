@@ -20,6 +20,8 @@ BLOCKLIST_ALL = [
     "hair_instancer_uv.blend",
     "principled_hair_directcoloring.blend",
     "visibility_particles.blend",
+    # High noise variance between platforms
+    "many_lights.blend",
     # Tests for EEVEE-only setting (duplicates from the Cycles perspective)
     "raytrace_backface_on.blend",
     "raytrace_backface_off.blend",
@@ -230,6 +232,10 @@ def get_arguments(filepath, output_filepath, use_hwrt, osl, extra_args):
 
     if osl:
         args.extend(["--python-expr", "import bpy; bpy.context.scene.cycles.shading_system = True"])
+
+        # Workaround for #152968, issue with OSL and Vulkan on Windows.
+        if sys.platform == "win32":
+            args.extend(["--gpu-backend", "opengl"])
 
     args.extend(extra_args)
 

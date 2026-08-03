@@ -2065,6 +2065,7 @@ static void rearrange_grease_pencil_channels(bAnimContext *ac, eRearrangeAnimCha
       Layer *layer = static_cast<Layer *>(ale.data);
       if (layer->is_selected()) {
         grease_pencil.move_node_top(layer->as_node());
+        DEG_id_tag_update(&grease_pencil.id, ID_RECALC_GEOMETRY);
       }
     }
   }
@@ -2096,6 +2097,7 @@ static void rearrange_grease_pencil_channels(bAnimContext *ac, eRearrangeAnimCha
           /* Handled separately before the switch case. */
           break;
       }
+      DEG_id_tag_update(&grease_pencil.id, ID_RECALC_GEOMETRY);
     }
   }
 

@@ -425,7 +425,7 @@ void *blo_read_struct_no_us_nonnull_impl(BlendDataReader *reader,
  * Somewhat mirrors #BlendWriter::write_struct_array_by_name.
  */
 void *BLO_read_struct_by_name_array(BlendDataReader *reader,
-                                    const char *struct_name,
+                                    StringRef struct_name,
                                     int64_t items_num,
                                     const void *old_address);
 

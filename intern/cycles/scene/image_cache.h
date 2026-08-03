@@ -117,9 +117,10 @@ class ImageCache {
                                 const float texture_resolution,
                                 KernelImageTexture &tex);
 
-  void load_image_tiled(DeviceScene &dscene,
-                        const ImageMetaData &metadata,
-                        KernelImageTexture &tex);
+  void load_image_tiled(const ImageMetaData &metadata, KernelImageTexture &tex);
+
+  void load_image_tiled_descriptors(DeviceScene &dscene,
+                                    std::span<KernelImageTexture> image_textures);
 
   void free_image(DeviceScene &dscene, const KernelImageTexture &tex);
 

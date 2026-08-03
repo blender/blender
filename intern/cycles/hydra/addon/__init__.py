@@ -46,8 +46,16 @@ class CyclesHydraRenderEngine(bpy.types.HydraRenderEngine):
         pxr.Plug.Registry().RegisterPlugins([plugin_dir])
 
     def get_render_settings(self, engine_type):
-        cscene = bpy.context.scene.cycles
-        samples = cscene.preview_samples if engine_type == 'VIEWPORT' else cscene.samples
+        cscene = getattr(bpy.context.scene, 'cycles', None)
+
+        if cscene is None:
+            # Cycles add-on is not enabled, use a default value.
+            samples = 1024
+        elif engine_type == 'VIEWPORT':
+            samples = cscene.preview_samples
+        else:
+            samples = cscene.samples
+
         result = {'cycles:samples': samples}
         if engine_type != 'VIEWPORT':
             result |= {
@@ -63,11 +71,18 @@ class CyclesHydraRenderEngine(bpy.types.HydraRenderEngine):
             self.register_pass(scene, render_layer, 'Depth', 1, 'Z', 'VALUE')
 
 
+def _all_panel_subclasses(cls):
+    # Recurse into subclasses.
+    for panel in cls.__subclasses__():
+        yield panel
+        yield from _all_panel_subclasses(panel)
+
+
 def _shared_panels():
     # Use all the same panels as regular Cycles, even if most options are
     # currently not supported. But for the ones that are supported it's not
     # worth making custom panels just for developer testing.
-    for panel in bpy.types.Panel.__subclasses__():
+    for panel in _all_panel_subclasses(bpy.types.Panel):
         engines = getattr(panel, 'COMPAT_ENGINES', None)
         if engines and 'CYCLES' in engines:
             yield panel

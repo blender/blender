@@ -29,6 +29,11 @@ using AttributeMask = uint16_t;
 class VKVertexAttributeObject {
  public:
   VKVertexInputDescription vertex_input;
+  /**
+   * Key from VKVertexInputDescriptionPool, cached to avoid repeated hash/lookup.
+   * Invalidated in clear(), populated by VKVertexAttributeObjectCache after update_bindings().
+   */
+  VKVertexInputDescriptionPool::Key vertex_input_key = VKVertexInputDescriptionPool::invalid_key;
 
   /* Used for batches. */
   Vector<VKVertexBuffer *> vbos;
@@ -37,6 +42,8 @@ class VKVertexAttributeObject {
 
   VKVertexAttributeObject();
   void clear();
+
+  void update_vertex_input_key(VKVertexInputDescriptionPool &pool);
 
   void bind(render_graph::VKVertexBufferBindings &r_vertex_buffer_bindings) const;
 

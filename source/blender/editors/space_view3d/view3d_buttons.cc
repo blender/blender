@@ -1401,7 +1401,15 @@ static void v3d_editvertex_buts(
       }
     }
   }
-  else { /* apply */
+  else {
+    /* Getting here (via #do_view3d_region_buttons()) if the above buttons return
+     * B_TRANSFORM_PANEL_MEDIAN, so either when multiple elements are selected or no RNA buttons
+     * are used. Either way, we are now setting values directly (not via RNA buttons) and thus lack
+     * automatic RNA updates. We could run the actual RNA updates (creating a PointerRNA, finding
+     * the specific PropertyRNA and calling #RNA_property_update()), but for one, this creates a
+     * lot of noisy code and secondly, it also would not work for bmesh (since that has no RNA
+     * updates). Instead, just run the corresponding notifiers and dependency graph tagging (see
+     * for each object type below). */
     memcpy(&ve_median_basis, &tfp->ve_median, sizeof(tfp->ve_median));
 
     if (v3d->flag & V3D_GLOBAL_STATS) {
@@ -1560,6 +1568,8 @@ static void v3d_editvertex_buts(
           }
         }
       }
+      /* We basically want the same update as in #EDBM_update(), so keep in sync. */
+      WM_main_add_notifier(NC_GEOM | ND_DATA, &mesh->id);
     }
     else if (ELEM(ob->type, OB_CURVES_LEGACY, OB_SURF) &&
              (apply_vcos || median_basis.curve.b_weight || median_basis.curve.weight ||
@@ -1637,6 +1647,8 @@ static void v3d_editvertex_buts(
         if ((nu.type == CU_BEZIER) && apply_vcos) {
           BKE_nurb_handles_test(&nu, NURB_HANDLE_TEST_EACH, false); /* test for bezier too */
         }
+        /* We basically want the same update as in #rna_Curve_update_data_id(), so keep in sync. */
+        WM_main_add_notifier(NC_GEOM | ND_DATA, &cu->id);
       }
     }
     else if ((ob->type == OB_LATTICE) && (apply_vcos || median_basis.lattice.weight)) {
@@ -1660,6 +1672,8 @@ static void v3d_editvertex_buts(
         }
         bp++;
       }
+      /* We basically want the same update as in #rna_Lattice_update_data(), so keep in sync. */
+      WM_main_add_notifier(NC_GEOM | ND_DATA, &lt->id);
     }
     else if (ob->type == OB_GREASE_PENCIL &&
              (apply_vcos || median_basis.curves.nurbs_weight || median_basis.curves.radius ||
@@ -1679,6 +1693,8 @@ static void v3d_editvertex_buts(
           info.drawing.tag_positions_changed();
         }
       });
+      /* We basically want the same update as in #rna_grease_pencil_update(), so keep in sync. */
+      WM_main_add_notifier(NC_GPENCIL | NA_EDITED, &grease_pencil.id);
     }
     else if (ob->type == OB_CURVES && (apply_vcos || median_basis.curves.nurbs_weight ||
                                        median_basis.curves.radius || median_basis.curves.tilt))
@@ -1691,7 +1707,11 @@ static void v3d_editvertex_buts(
       {
         curves.tag_positions_changed();
       }
+      /* We basically want the same update as in #rna_Curves_update_data(), so keep in sync. */
+      WM_main_add_notifier(NC_GEOM | ND_DATA, &curves_id.id);
     }
+
+    DEG_id_tag_update(ob->data, ID_RECALC_GEOMETRY);
   }
 
   // ED_undo_push(C, "Transform properties");
@@ -2191,7 +2211,6 @@ static void do_view3d_region_buttons(bContext *C, void * /*index*/, int event)
     case B_TRANSFORM_PANEL_MEDIAN:
       if (ob) {
         v3d_editvertex_buts(C, nullptr, v3d, ob, 1.0);
-        DEG_id_tag_update(ob->data, ID_RECALC_GEOMETRY);
       }
       break;
     case B_TRANSFORM_PANEL_DIMS:

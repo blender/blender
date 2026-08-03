@@ -21,8 +21,12 @@
 namespace blender::nodes::node_geo_bevel_cc {
 
 static const EnumPropertyItem affect_items[] = {
-    {int(geometry::BevelAffect::Vertices), "VERTICES", 0, "Vertices", "Bevel affects vertices"},
-    {int(geometry::BevelAffect::Edges), "EDGES", 0, "Edges", "Bevel affects edges"},
+    {int(geometry::BevelAffect::Vertices),
+     "VERTICES",
+     0,
+     N_("Vertices"),
+     N_("Bevel affects vertices")},
+    {int(geometry::BevelAffect::Edges), "EDGES", 0, N_("Edges"), N_("Bevel affects edges")},
     {0, nullptr, 0, nullptr, nullptr}};
 
 static void node_declare(NodeDeclarationBuilder &b)
@@ -92,7 +96,7 @@ static void node_declare(NodeDeclarationBuilder &b)
       .default_value(1)
       .description(
           "How many pieces is an edge beveled into, "
-          "or, for vertex bevels, the how many segments on the arcs between the edges.");
+          "or, for vertex bevels, how many segments on the arcs between the edges.");
   b.add_input<decl::Float>("Shape"_ustr)
       .default_value(0.5f)
       .min(0.0f)

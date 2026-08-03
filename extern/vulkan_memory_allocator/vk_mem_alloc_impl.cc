@@ -4,7 +4,9 @@
 
 #include <cstdio>
 
-#include <vulkan/vulkan.h>
+#define VOLK_NAMESPACE
+#define VOLK_NO_DEVICE_PROTOTYPES
+#include "volk.h"
 
 #define VMA_IMPLEMENTATION
 

@@ -39,7 +39,7 @@
 #include "BLT_translation.hh"
 
 #include "BKE_anim_data.hh"
-#include "BKE_animsys.h"
+#include "BKE_animsys.hh"
 #include "BKE_armature.hh"
 #include "BKE_collection.hh"
 #include "BKE_constraint.h"
@@ -3184,7 +3184,7 @@ static const EnumPropertyItem *outliner_id_operation_itemf(bContext *C,
       const SpaceOutliner *space_outliner = CTX_wm_space_outliner(C);
       const TreeElement *te = get_target_element(space_outliner);
       const TreeStoreElem *tselem = TREESTORE(te);
-      if (tselem && (GS(tselem->id->name) != ID_IM)) {
+      if (TSE_IS_REAL_ID(tselem) && tselem->id && (GS(tselem->id->name) != ID_IM)) {
         continue;
       }
     }

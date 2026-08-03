@@ -61,11 +61,13 @@
 
 #include <cerrno>
 #include <climits>
+#include <condition_variable>
 #include <cstdio>
 #include <cstdlib>
 #include <cstring>
 #include <fcntl.h>
 #include <iomanip>
+#include <mutex>
 #include <sstream>
 #include <xxhash.h>
 
@@ -105,6 +107,7 @@
 #include "BLI_path_utils.hh"
 #include "BLI_set.hh"
 #include "BLI_string.hh"
+#include "BLI_task_c.hh"
 #include "BLI_threads.hh"
 #include "BLI_time.hh"
 
@@ -175,13 +178,6 @@ static CLG_LogRef LOG_UNDO = {"undo"};
 /** \name Internal Write Wrapper's (Abstracts Compression)
  * \{ */
 
-struct ZstdFrame {
-  ZstdFrame *next, *prev;
-
-  uint32_t compressed_size;
-  uint32_t uncompressed_size;
-};
-
 class WriteWrap {
  public:
   virtual bool open(const char *filepath) = 0;
@@ -224,23 +220,54 @@ bool RawWriteWrap::write(const void *buf, size_t buf_len)
   return ::write(file_handle, buf, buf_len) == buf_len;
 }
 
-struct ThreadSlot;
-
 class ZstdWriteWrap : public WriteWrap {
-  struct ZstdWriteBlockTask;
+  struct ZstdFrame {
+    const void *uncompressed_data = nullptr;
+    uint32_t uncompressed_size = 0;
+
+    uint32_t compressed_size = 0;
+    const void *compressed_data = nullptr;
+
+    /**
+     * Marker that the related compression task is done.
+     *
+     * Regardless of the status of `write_error`, it implies that:
+     *   - `uncompressed_data` has been freed.
+     *   - `compressed_data` has been set, and needs to be written (if no write error) and freed.
+     */
+    std::atomic<bool> compressed_done = false;
+  };
 
   WriteWrap &base_wrap;
 
-  ListBaseT<ThreadSlot> threadpool = {};
-  ListBaseT<ZstdWriteBlockTask> tasks = {};
-  ThreadMutex mutex = {};
-  ThreadCondition condition = {};
+  /** Workers pool for compression tasks. */
+  TaskPool *pool = nullptr;
+
+  /**
+   * ZSTD frames to compress and write, in order, while the write is in progress. See
+   * #write_compressed_frames.
+   *
+   * Used as a queue for compression tasks, and as an ordered array for writing the seek table of
+   * all frames at the end.
+   *
+   * `next_frame` is the queue head, frames before it have all been compressed and written.
+   *
+   * \note On average frames hold around #ZSTD_CHUNK_SIZE of uncompressed data:
+   * Large writes are split into chunk-sized pieces, the trailing piece of each being smaller.
+   * So the array stays small, in practice ~220 frames per 200MB written,
+   * and a multi-GB file still only holds a few thousand frames.
+   *
+   * \note Only manipulated from the main thread, tasks access their own frame only.
+   */
+  Vector<std::unique_ptr<ZstdFrame>> frames = {};
   int next_frame = 0;
-  int num_frames = 0;
 
-  ListBaseT<ZstdFrame> frames = {};
-
-  bool write_error = false;
+  /**
+   * Set in case of compression error.
+   *
+   * Will prevent any further data to be written in blendfile, and starting new compression tasks.
+   */
+  std::atomic<bool> write_error = false;
 
  public:
   ZstdWriteWrap(WriteWrap &base_wrap) : base_wrap(base_wrap) {}
@@ -250,62 +277,80 @@ class ZstdWriteWrap : public WriteWrap {
   bool write(const void *buf, size_t buf_len) override;
 
  private:
-  void write_task(ZstdWriteBlockTask *task);
+  /** Multiple async tasks, compress each frame's data. */
+  static void compress_task_run(TaskPool *pool, void *taskdata);
+  /**
+   * Write the compressed data of available frames into the blendfile.
+   *
+   * Running both as part of every #write call, to limit the amount of pending compressed frames
+   * to write (and free memory faster), and in the #close function after waiting for all
+   * compression tasks to be done, to ensure that all frames have been compressed and written.
+   */
+  void write_compressed_frames();
+  /** Utils to write uint32_t little endian values.  */
   void write_u32_le(uint32_t val);
+  /**
+   * In order to implement efficient seeking when reading the .blend, a skippable frame that
+   * encodes information about the other frames present in the file is added at the end.
+   *
+   * The format here follows the upstream spec for seekable files:
+   * https://github.com/facebook/zstd/blob/master/contrib/seekable_format/zstd_seekable_compression_format.md
+   *
+   * If this information is not present in a file (e.g. if it was compressed with external tools),
+   * it can still be opened in Blender, but seeking will not be supported, so more memory might be
+   * needed to read it.
+   */
   void write_seekable_frames();
 };
 
-struct ZstdWriteWrap::ZstdWriteBlockTask {
-  ZstdWriteBlockTask *next, *prev;
-  void *data;
-  size_t size;
-  int frame_number;
-  ZstdWriteWrap *ww;
-
-  static void *write_task(void *userdata)
-  {
-    auto *task = static_cast<ZstdWriteBlockTask *>(userdata);
-    task->ww->write_task(task);
-    return nullptr;
-  }
-};
-
-void ZstdWriteWrap::write_task(ZstdWriteBlockTask *task)
+void ZstdWriteWrap::compress_task_run(TaskPool *pool, void *taskdata)
 {
-  size_t out_buf_len = ZSTD_compressBound(task->size);
+  auto *frame = static_cast<ZstdFrame *>(taskdata);
+  auto *ww = static_cast<ZstdWriteWrap *>(BLI_task_pool_user_data(pool));
+
+  size_t out_buf_len = ZSTD_compressBound(frame->uncompressed_size);
   void *out_buf = MEM_new_uninitialized(out_buf_len, "Zstd out buffer");
-  size_t out_size = ZSTD_compress(
-      out_buf, out_buf_len, task->data, task->size, ZSTD_COMPRESSION_LEVEL);
+  const size_t out_size = ZSTD_compress(out_buf,
+                                        out_buf_len,
+                                        frame->uncompressed_data,
+                                        frame->uncompressed_size,
+                                        ZSTD_COMPRESSION_LEVEL);
+  MEM_delete_void(frame->uncompressed_data);
+  frame->uncompressed_data = nullptr;
 
-  MEM_delete_void(task->data);
-
-  BLI_mutex_lock(&mutex);
-
-  while (next_frame != task->frame_number) {
-    BLI_condition_wait(&condition, &mutex);
-  }
-
-  if (ZSTD_isError(out_size)) {
-    write_error = true;
+  frame->compressed_data = out_buf;
+  /* Do not store 'error code' size, as its value will be out of uint32_t range. The size value
+   * is not used in case an error has occurred anyway (compressed frames are not written, and
+   * neither is the final seek table). */
+  if (ZSTD_isError(out_size)) [[unlikely]] {
+    ww->write_error = true;
   }
   else {
-    if (base_wrap.write(out_buf, out_size)) {
-      ZstdFrame *frameinfo = MEM_new_uninitialized<ZstdFrame>("zstd frameinfo");
-      frameinfo->uncompressed_size = task->size;
-      frameinfo->compressed_size = out_size;
-      BLI_addtail(&frames, frameinfo);
-    }
-    else {
-      write_error = true;
-    }
+    frame->compressed_size = uint32_t(out_size);
   }
+  frame->compressed_done = true;
+}
 
-  next_frame++;
-
-  BLI_mutex_unlock(&mutex);
-  BLI_condition_notify_all(&condition);
-
-  MEM_delete_void(out_buf);
+void ZstdWriteWrap::write_compressed_frames()
+{
+  /* Loop over all pending frames in the correct ascendant order, and write them on disk until we
+   * reach one which has not yet available compressed data. */
+  for (const std::unique_ptr<ZstdFrame> &frame : frames.as_span().drop_front(next_frame)) {
+    if (!frame->compressed_done) {
+      /* This frame has not yet been compressed, cannot write further data. */
+      break;
+    }
+    if (!write_error) [[likely]] {
+      BLI_assert(frame->compressed_size > 0);
+      const bool has_error = !base_wrap.write(frame->compressed_data, frame->compressed_size);
+      if (has_error) [[unlikely]] {
+        write_error = true;
+      }
+    }
+    next_frame++;
+    BLI_assert(frame->uncompressed_data == nullptr);
+    MEM_SAFE_DELETE_VOID(frame->compressed_data);
+  }
 }
 
 bool ZstdWriteWrap::open(const char *filepath)
@@ -314,11 +359,7 @@ bool ZstdWriteWrap::open(const char *filepath)
     return false;
   }
 
-  /* Leave one thread open for the main writing logic, unless we only have one HW thread. */
-  int num_threads = max_ii(1, BLI_system_thread_count() - 1);
-  BLI_threadpool_init(&threadpool, ZstdWriteBlockTask::write_task, num_threads);
-  BLI_mutex_init(&mutex);
-  BLI_condition_init(&condition);
+  pool = BLI_task_pool_create_background(this, TASK_PRIORITY_HIGH);
 
   return true;
 }
@@ -331,30 +372,26 @@ void ZstdWriteWrap::write_u32_le(uint32_t val)
   base_wrap.write(&val, sizeof(uint32_t));
 }
 
-/* In order to implement efficient seeking when reading the .blend, we append
- * a skippable frame that encodes information about the other frames present
- * in the file.
- * The format here follows the upstream spec for seekable files:
- * https://github.com/facebook/zstd/blob/master/contrib/seekable_format/zstd_seekable_compression_format.md
- * If this information is not present in a file (e.g. if it was compressed
- * with external tools), it can still be opened in Blender, but seeking will
- * not be supported, so more memory might be needed. */
 void ZstdWriteWrap::write_seekable_frames()
 {
+  if (write_error) [[unlikely]] {
+    /* Do not write a seek table if the data itself could not be fully written. */
+    return;
+  }
+
   /* Write seek table header (magic number and frame size). */
   write_u32_le(0x184D2A5E);
 
-  /* The actual frame number might not match num_frames if there was a write error. */
-  const uint32_t num_frames = frames.count();
+  const uint32_t num_frames = uint32_t(frames.size());
   /* Each frame consists of two u32, so 8 bytes each.
    * After the frames, a footer containing two u32 and one byte (9 bytes total) is written. */
   const uint32_t frame_size = num_frames * 8 + 9;
   write_u32_le(frame_size);
 
   /* Write seek table entries. */
-  for (ZstdFrame &frame : frames) {
-    write_u32_le(frame.compressed_size);
-    write_u32_le(frame.uncompressed_size);
+  for (const std::unique_ptr<ZstdFrame> &frame : frames) {
+    write_u32_le(frame->compressed_size);
+    write_u32_le(frame->uncompressed_size);
   }
 
   /* Write seek table footer (number of frames, option flags and second magic number). */
@@ -366,51 +403,37 @@ void ZstdWriteWrap::write_seekable_frames()
 
 bool ZstdWriteWrap::close()
 {
-  BLI_threadpool_end(&threadpool);
-  tasks.free_no_destruct();
+  BLI_task_pool_work_and_wait(pool);
+  BLI_task_pool_free(pool);
+  pool = nullptr;
 
-  BLI_mutex_end(&mutex);
-  BLI_condition_end(&condition);
+  write_compressed_frames();
+  BLI_assert(next_frame == frames.size());
 
   write_seekable_frames();
-  frames.free_no_destruct();
+  frames.clear();
 
   return base_wrap.close() && !write_error;
 }
 
 bool ZstdWriteWrap::write(const void *buf, const size_t buf_len)
 {
-  if (write_error) {
+  if (write_error) [[unlikely]] {
     return false;
   }
 
-  ZstdWriteBlockTask *task = MEM_new_uninitialized<ZstdWriteBlockTask>(__func__);
-  task->data = MEM_new_uninitialized(buf_len, __func__);
-  memcpy(task->data, buf, buf_len);
-  task->size = buf_len;
-  task->frame_number = num_frames++;
-  task->ww = this;
+  void *uncompressed_data = MEM_new_uninitialized(buf_len, __func__);
+  memcpy(uncompressed_data, buf, buf_len);
 
-  BLI_mutex_lock(&mutex);
-  BLI_addtail(&tasks, task);
+  auto task = std::make_unique<ZstdFrame>();
+  task->uncompressed_data = uncompressed_data;
+  task->uncompressed_size = uint32_t(buf_len);
+  ZstdFrame *frame_p = task.get();
 
-  /* If there's a free worker thread, just push the block into that thread.
-   * Otherwise, we wait for the earliest thread to finish.
-   * We look up the earliest thread while holding the mutex, but release it
-   * before joining the thread to prevent a deadlock. */
-  ZstdWriteBlockTask *first_task = static_cast<ZstdWriteBlockTask *>(tasks.first);
-  BLI_mutex_unlock(&mutex);
-  if (!BLI_available_threads(&threadpool)) {
-    BLI_threadpool_remove(&threadpool, first_task);
+  frames.append(std::move(task));
+  BLI_task_pool_push(pool, compress_task_run, frame_p, false, nullptr);
 
-    /* If the task list was empty before we pushed our task, there should
-     * always be a free thread. */
-    BLI_assert(first_task != task);
-    BLI_remlink(&tasks, first_task);
-    MEM_delete(first_task);
-  }
-  BLI_threadpool_insert(&threadpool, task);
-
+  write_compressed_frames();
   return true;
 }
 
@@ -966,6 +989,8 @@ void BlendStructWriter::runtime_ptr(const int64_t offset)
   const dna::pointers::StructInfo &struct_info =
       wd_->stable_address_ids.sdna_pointers->get_for_struct(struct_nr_);
   BLI_assert(struct_info.has_pointer_at_offset(offset));
+#else
+  UNUSED_VARS_NDEBUG(struct_nr_);
 #endif
 
   data_.slice(offset, sizeof(void *)).fill(0);
@@ -981,6 +1006,8 @@ void BlendStructWriter::generated_ptr(const int64_t offset)
   const dna::pointers::StructInfo &struct_info =
       wd_->stable_address_ids.sdna_pointers->get_for_struct(struct_nr_);
   BLI_assert(struct_info.has_pointer_at_offset(offset));
+#else
+  UNUSED_VARS_NDEBUG(struct_nr_);
 #endif
 
   /* In undo case, replace generated pointers by corresponding stable pointers. */
@@ -1331,137 +1358,159 @@ static void write_id_placeholder(WriteData *wd, ID *id)
   mywrite_id_end(wd, id);
 }
 
-/** Keep it last of `write_*_data` functions. */
-static void write_libraries(WriteData *wd, Main *bmain)
+/**
+ * Write a single library and its content, if needed.
+ *
+ * \return `true` if the library was written, false if it did not need to be written.
+ */
+static bool write_library_if_needed(WriteData *wd,
+                                    MultiValueMap<Library *, ID *> &linked_ids_by_library,
+                                    Set<Library *> &written_libraries,
+                                    Library &library)
 {
   const bool is_undo = wd->use_memfile;
 
-  /* Gather IDs coming from each library. */
-  MultiValueMap<Library *, ID *> linked_ids_by_library;
-  {
-    ID *id;
-    FOREACH_MAIN_ID_BEGIN (bmain, id) {
-      if (!ID_IS_LINKED(id)) {
+  const Span<ID *> ids = linked_ids_by_library.lookup(&library);
+
+  /* Gather IDs that are somehow directly referenced by data in the current blend file. */
+  Vector<ID *> ids_used_from_library;
+  if (is_undo) {
+    /* Always write placeholders for all linked IDs in undo case. This allows to properly remove
+     * linked data that should not exist on undo/redo. See also #read_undo_move_libmain_data,
+     * #read_libblock_undo_restore_linked and #read_undo_libraries_cleanup_unused_ids. */
+    ids_used_from_library = ids;
+  }
+  else {
+    for (ID *id : ids) {
+      if (id->us == 0) {
         continue;
       }
-      BLI_assert(id->lib);
-      linked_ids_by_library.add(id->lib, id);
+      if (id->tag & ID_TAG_EXTERN) {
+        ids_used_from_library.append(id);
+        continue;
+      }
+      if ((id->tag & ID_TAG_INDIRECT) && (id->flag & ID_FLAG_INDIRECT_WEAK_LINK)) {
+        ids_used_from_library.append(id);
+        continue;
+      }
     }
-    FOREACH_MAIN_ID_END;
+  }
+
+  bool should_write_library = false;
+  if (library.packedfile) {
+    should_write_library = true;
+  }
+  else if (!library.runtime->archived_libraries.is_empty()) {
+    /* Reference 'real' blendfile library of archived 'copies' of it containing packed linked
+     * IDs should always be written. */
+    /* FIXME: A bit weak, as it could be that all archive libs are now empty (if all related
+     * packed linked IDs have been deleted e.g.)...
+     * Could be fixed by either adding more checks here, or ensuring empty archive libs are
+     * deleted when no ID uses them anymore? */
+    should_write_library = true;
+  }
+  else if (is_undo) {
+    /* When writing undo step we always write all existing libraries. That makes reading undo
+     * step much easier when dealing with purely indirectly used libraries. */
+    should_write_library = true;
+  }
+  else {
+    should_write_library = !ids_used_from_library.is_empty();
+  }
+
+  if (!should_write_library) {
+    /* Nothing from the library is used, so it does not have to be written. */
+    return false;
+  }
+
+  /* Since code below checking that archive libraries' parents have already been written, may
+   * forcefully write that parent library in some cases, also double-check here that current
+   * library has not yet been written.
+   *
+   * Note: In theory this should never be the case, as a parent library is always expected to be
+   * written before its archives. */
+  if (written_libraries.contains(&library)) {
+    CLOG_ERROR(
+        &LOG, "Attempt to re-write already written library '%s', skipping", library.id.name);
+    return false;
+  }
+
+  if (library.flag & LIBRARY_FLAG_IS_ARCHIVE) {
+    if (!library.archive_parent_library) {
+      CLOG_ERROR(
+          &LOG, "Written archive library '%s' has no parent library, skipping", library.id.name);
+      return false;
+    }
+    if (!written_libraries.contains(library.archive_parent_library)) {
+      CLOG_ERROR(
+          &LOG,
+          "Written archive library '%s', while its parent library '%s' has not been written",
+          library.id.name,
+          library.archive_parent_library->id.name);
+
+      /* Only write the parent library itself, if it was not written so far, none of its IDs was
+       * to be written either. */
+      write_id(wd, &library.archive_parent_library->id);
+      written_libraries.add(library.archive_parent_library);
+    }
+  }
+
+  write_id(wd, &library.id);
+  written_libraries.add(&library);
+
+  /* Write placeholders for linked data-blocks that are used, and real IDs for the packed linked
+   * ones. */
+  for (ID *id : ids_used_from_library) {
+    if (ID_IS_PACKED(id)) {
+      write_id(wd, id);
+    }
+    else {
+      /* In undo case, all existing linked IDs get a placeholder, even the ones not directly
+       * linkable. */
+      if (!is_undo && !BKE_idtype_idcode_is_linkable(GS(id->name))) {
+        CLOG_ERROR(&LOG,
+                   "Data-block '%s' from lib '%s' is not linkable, but is flagged as "
+                   "directly linked",
+                   id->name,
+                   library.runtime->filepath_abs);
+      }
+      write_id_placeholder(wd, id);
+    }
+  }
+  return true;
+}
+
+/** Keep it last of `write_*_data` functions. */
+static void write_libraries(WriteData *wd, Main *bmain)
+{
+  /* Gather IDs coming from each library. */
+  MultiValueMap<Library *, ID *> linked_ids_by_library;
+  for (ID &id : MainAllIDsIterator(*bmain)) {
+    if (!ID_IS_LINKED(&id)) {
+      continue;
+    }
+    BLI_assert(id.lib);
+    linked_ids_by_library.add(id.lib, &id);
   }
 
   Set<Library *> written_libraries;
-  for (Library &library_ptr : bmain->libraries) {
-    Library &library = library_ptr;
-    const Span<ID *> ids = linked_ids_by_library.lookup(&library);
-
-    /* Gather IDs that are somehow directly referenced by data in the current blend file. */
-    Vector<ID *> ids_used_from_library;
-    if (is_undo) {
-      /* Always write placeholders for all linked IDs in undo case. This allows to properly remove
-       * linked data that should not exist on undo/redo. See also #read_undo_move_libmain_data,
-       * #read_libblock_undo_restore_linked and #read_undo_libraries_cleanup_unused_ids. */
-      ids_used_from_library = ids;
-    }
-    else {
-      for (ID *id : ids) {
-        if (id->us == 0) {
-          continue;
-        }
-        if (ID_IS_PACKED(id)) {
-          BLI_assert(library.flag & LIBRARY_FLAG_IS_ARCHIVE);
-          ids_used_from_library.append(id);
-          continue;
-        }
-        if (id->tag & ID_TAG_EXTERN) {
-          ids_used_from_library.append(id);
-          continue;
-        }
-        if ((id->tag & ID_TAG_INDIRECT) && (id->flag & ID_FLAG_INDIRECT_WEAK_LINK)) {
-          ids_used_from_library.append(id);
-          continue;
-        }
-      }
-    }
-
-    bool should_write_library = false;
-    if (library.packedfile) {
-      should_write_library = true;
-    }
-    else if (!library.runtime->archived_libraries.is_empty()) {
-      /* Reference 'real' blendfile library of archived 'copies' of it containing packed linked
-       * IDs should always be written. */
-      /* FIXME: A bit weak, as it could be that all archive libs are now empty (if all related
-       * packed linked IDs have been deleted e.g.)...
-       * Could be fixed by either adding more checks here, or ensuring empty archive libs are
-       * deleted when no ID uses them anymore? */
-      should_write_library = true;
-    }
-    else if (is_undo) {
-      /* When writing undo step we always write all existing libraries. That makes reading undo
-       * step much easier when dealing with purely indirectly used libraries. */
-      should_write_library = true;
-    }
-    else {
-      should_write_library = !ids_used_from_library.is_empty();
-    }
-
-    if (!should_write_library) {
-      /* Nothing from the library is used, so it does not have to be written. */
-      continue;
-    }
-
-    /* Since code below checking that archive libraries' parents have already been written, may
-     * forcefully write that parent library in some cases, also double-check here that current
-     * library has not yet been written.
-     *
-     * Note: In theory this should never be the case, as a parent library is always expected to be
-     * written before its archives. */
-    if (written_libraries.contains(&library)) {
-      CLOG_ERROR(
-          &LOG, "Attempt to re-write already written library '%s', skipping", library.id.name);
-      continue;
-    }
-
+  for (Library &library : bmain->libraries) {
+    /* This ensures parent regular library is always written immediately before all of its archive
+     * 'children'. Due to ID naming, actual order of these libraries in Main is unknown. */
     if (library.flag & LIBRARY_FLAG_IS_ARCHIVE) {
-      if (!library.archive_parent_library) {
-        CLOG_ERROR(&LOG, "Written archive library '%s' has no parent library", library.id.name);
-      }
-      if (!written_libraries.contains(library.archive_parent_library)) {
-        CLOG_ERROR(
-            &LOG,
-            "Written archive library '%s', while its parent library '%s' has not been written",
-            library.id.name,
-            library.archive_parent_library->id.name);
-
-        /* Only write the parent library itself, if it was not written so far, none of its IDs was
-         * to be written either. */
-        write_id(wd, &library.archive_parent_library->id);
-        written_libraries.add(library.archive_parent_library);
-      }
+      continue;
     }
-
-    write_id(wd, &library.id);
-    written_libraries.add(&library);
-
-    /* Write placeholders for linked data-blocks that are used, and real IDs for the packed linked
-     * ones. */
-    for (ID *id : ids_used_from_library) {
-      if (ID_IS_PACKED(id)) {
-        write_id(wd, id);
-      }
-      else {
-        /* In undo case, all existing linked IDs get a placeholder, even the ones not directly
-         * linkable. */
-        if (!is_undo && !BKE_idtype_idcode_is_linkable(GS(id->name))) {
-          CLOG_ERROR(&LOG,
-                     "Data-block '%s' from lib '%s' is not linkable, but is flagged as "
-                     "directly linked",
-                     id->name,
-                     library.runtime->filepath_abs);
-        }
-        write_id_placeholder(wd, id);
-      }
+    const bool is_mainlib_written = write_library_if_needed(
+        wd, linked_ids_by_library, written_libraries, library);
+    UNUSED_VARS_NDEBUG(is_mainlib_written);
+    for (Library *archive_library : library.runtime->archived_libraries) {
+      BLI_assert(archive_library->flag & LIBRARY_FLAG_IS_ARCHIVE);
+      const bool is_archivelib_written = write_library_if_needed(
+          wd, linked_ids_by_library, written_libraries, *archive_library);
+      BLI_assert_msg(
+          is_mainlib_written || !is_archivelib_written,
+          "Archive libraries should never be written if their owner 'parent' library is not");
+      UNUSED_VARS_NDEBUG(is_archivelib_written);
     }
   }
 
@@ -1662,27 +1711,26 @@ static void write_blend_file_header(WriteData *wd)
 static Vector<ID *> gather_local_ids_to_write(Main *bmain, const bool is_undo)
 {
   Vector<ID *> local_ids_to_write;
-  ID *id;
-  FOREACH_MAIN_ID_BEGIN (bmain, id) {
-    if (GS(id->name) == ID_LI) {
+  for (ID &id : MainAllIDsIterator(*bmain)) {
+    if (GS(id.name) == ID_LI) {
       /* Libraries are handled separately below. */
       continue;
     }
-    if (ID_IS_LINKED(id)) {
+    if (ID_IS_LINKED(&id)) {
       /* Linked data-blocks are handled separately below. */
       continue;
     }
-    const IDTypeInfo *id_type = BKE_idtype_get_info_from_id(id);
+    const IDTypeInfo *id_type = BKE_idtype_get_info_from_id(&id);
     UNUSED_VARS_NDEBUG(id_type);
     /* We should never attempt to write non-regular IDs
      * (i.e. all kind of temp/runtime ones). */
-    BLI_assert((id->tag & (ID_TAG_NO_MAIN | ID_TAG_NO_USER_REFCOUNT | ID_TAG_NOT_ALLOCATED)) == 0);
+    BLI_assert((id.tag & (ID_TAG_NO_MAIN | ID_TAG_NO_USER_REFCOUNT | ID_TAG_NOT_ALLOCATED)) == 0);
     /* We only write unused IDs in undo case. */
     if (!is_undo) {
       /* NOTE: All 'never unused' local IDs (Scenes, WindowManagers, ...) should always be
        * written to disk, so their user-count should never be zero currently. Note that
        * libraries have already been skipped above, as they need a specific handling. */
-      if (id->us == 0) {
+      if (id.us == 0) {
         /* FIXME: #124857: Some old files seem to cause incorrect handling of their temp
          * screens.
          *
@@ -1701,26 +1749,25 @@ static Vector<ID *> gather_local_ids_to_write(Main *bmain, const bool is_undo)
        * NOTE: Since ShapeKeys are conceptually embedded IDs (like root node trees e.g.), this
        * behavior actually makes sense anyway. This remains more of a temp hack until topic of
        * how to handle unused data on save is properly tackled. */
-      if (GS(id->name) == ID_KE) {
-        Key *shape_key = reinterpret_cast<Key *>(id);
+      if (GS(id.name) == ID_KE) {
+        Key &shape_key = id_cast<Key &>(id);
         /* NOTE: Here we are accessing the real owner ID data, not it's 'proxy' shallow copy
          * generated for its file-writing. This is not expected to be an issue, but is worth
          * noting. */
-        if (shape_key->from == nullptr || shape_key->from->us == 0) {
+        if (shape_key.from == nullptr || shape_key.from->us == 0) {
           continue;
         }
       }
     }
 
-    if ((id->tag & ID_TAG_RUNTIME) != 0 && !is_undo) {
+    if ((id.tag & ID_TAG_RUNTIME) != 0 && !is_undo) {
       /* Runtime IDs are never written to .blend files, and they should not influence
        * (in)direct status of linked IDs they may use. */
       continue;
     }
 
-    local_ids_to_write.append(id);
+    local_ids_to_write.append(&id);
   }
-  FOREACH_MAIN_ID_END;
   return local_ids_to_write;
 }
 
@@ -1730,10 +1777,9 @@ static Vector<ID *> gather_local_ids_to_write(Main *bmain, const bool is_undo)
  */
 static void prepare_stable_data_block_ids(WriteData &wd, Main &bmain)
 {
-  ID *id;
-  FOREACH_MAIN_ID_BEGIN (&bmain, id) {
+  for (ID &id : MainAllIDsIterator(bmain)) {
     /* Ensure no other stable pointer has been created before. */
-    BLI_assert(!wd.stable_address_ids.pointer_map.contains(id));
+    BLI_assert(!wd.stable_address_ids.pointer_map.contains(&id));
 
     /* IDs themselves never need to get stable addresses in undo case. */
     if (wd.use_memfile) {
@@ -1742,14 +1788,13 @@ static void prepare_stable_data_block_ids(WriteData &wd, Main &bmain)
 
     /* Derive the stable pointer from the id/library name which is independent of the write-order
      * of data-blocks. */
-    uint64_t hint = get_stable_pointer_hint_for_id(*id, wd.use_memfile);
+    uint64_t hint = get_stable_pointer_hint_for_id(id, wd.use_memfile);
     const uint64_t address_id = get_next_stable_address_id(wd, hint);
 
     /* Store the computed stable pointer so that it is used whenever the data-block is written or
      * referenced. */
-    wd.stable_address_ids.pointer_map.add(id, address_id);
+    wd.stable_address_ids.pointer_map.add(&id, address_id);
   }
-  FOREACH_MAIN_ID_END;
 }
 
 /**
@@ -1936,7 +1981,7 @@ static void write_file_main_validate_post(Main *bmain, ReportList *reports)
 
   if (G.debug & G_DEBUG_IO) {
     BKE_report(
-        reports, RPT_DEBUG, "Checking validity of current .blend file *BEFORE* save to disk");
+        reports, RPT_DEBUG, "Checking validity of current .blend file *AFTER* save to disk");
     BLO_main_validate_libraries(bmain, reports);
   }
 }
@@ -2083,15 +2128,21 @@ static bool BLO_write_file_impl(Main *mainvar,
   const bool err = write_file_handle(
       mainvar, &ww, nullptr, nullptr, write_flags, use_userdef, thumb, debug_dst);
 
-  ww.close();
+  const bool close_error = !ww.close();
 
   if (path_list_backup) [[unlikely]] {
     BKE_bpath_list_restore(mainvar, path_list_flag, path_list_backup);
     BKE_bpath_list_free(path_list_backup);
   }
 
-  if (err) {
-    BKE_report(reports, RPT_ERROR, strerror(errno));
+  if (err || close_error) {
+    if (err) {
+      /* Note: `errno` will often be meaningless in case of a zstd compression error. */
+      BKE_reportf(reports, RPT_ERROR, "Failed to write blendfile: %s", strerror(errno));
+    }
+    else {
+      BKE_report(reports, RPT_ERROR, "Failed to write blendfile");
+    }
     remove(tempname);
 
     return false;

@@ -366,8 +366,8 @@ class GHOST_IWindow {
   /**
    * Enable IME attached to the given window, i.e. allows user-input
    * events to be dispatched to the IME.
-   * \param x: Requested x-coordinate of the rectangle.
-   * \param y: Requested y-coordinate of the rectangle.
+   * \param x: Requested left of the rectangle.
+   * \param y: Requested lower edge of the rectangle.
    * \param w: Requested width of the rectangle.
    * \param h: Requested height of the rectangle.
    * \param completed: Whether or not to complete the ongoing composition.

@@ -194,7 +194,7 @@ ENUM_OPERATORS(eUserpref_UI_Flag2)
 
 /** #UserDef.gpu_flag */
 enum eUserpref_GPU_Flag : char {
-  USER_GPU_FLAG_UNUSED_0 = (1 << 0), /* Unused. To be removed. */
+  USER_GPU_FLAG_WORKBENCH_RT_SHADOWS = (1 << 0),
   USER_GPU_FLAG_NO_EDIT_MODE_SMOOTH_WIRE = (1 << 1),
   USER_GPU_FLAG_OVERLAY_SMOOTH_WIRE = (1 << 2),
   USER_GPU_FLAG_SUBDIVISION_EVALUATION = (1 << 3),
@@ -1106,7 +1106,11 @@ struct UserDef {
   short vbotimeout = 120, vbocollectrate = 60;
   short textimeout = 120, texcollectrate = 60;
   int memcachelimit = 4096;
-  int geometry_nodes_stack_limit = 100;
+  /**
+   * Maximum evaluation depth of node trees (e.g. number of nested node groups, not how many nodes
+   * are in a chain).
+   */
+  int nodes_stack_limit = 100;
   /** Unused. */
   int prefetchframes = 0;
   /** Control the rotation step of the view when PAD2, PAD4, PAD6&PAD8 is use. */

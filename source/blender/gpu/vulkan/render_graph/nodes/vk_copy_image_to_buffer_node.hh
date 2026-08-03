@@ -20,7 +20,7 @@ namespace blender::gpu::render_graph {
  */
 struct VKCopyImageToBufferData {
   VkImage src_image;
-  VkBuffer dst_buffer;
+  VKResourceWithHandle<VkBuffer> dst_buffer;
   VkBufferImageCopy region;
 };
 
@@ -72,8 +72,11 @@ class VKCopyImageToBufferNode : public VKNodeInfo<VKNodeType::COPY_IMAGE_TO_BUFF
                       Span<uint8_t> /*storage_push_constants*/,
                       VKBoundPipelines & /*r_bound_pipelines*/) override
   {
-    command_buffer.copy_image_to_buffer(
-        data.src_image, VK_IMAGE_LAYOUT_TRANSFER_SRC_OPTIMAL, data.dst_buffer, 1, &data.region);
+    command_buffer.copy_image_to_buffer(data.src_image,
+                                        VK_IMAGE_LAYOUT_TRANSFER_SRC_OPTIMAL,
+                                        data.dst_buffer.vk_handle,
+                                        1,
+                                        &data.region);
   }
 };
 }  // namespace blender::gpu::render_graph

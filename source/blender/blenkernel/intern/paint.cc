@@ -1485,6 +1485,7 @@ bool BKE_paint_ensure(ToolSettings *ts, Paint **r_paint)
     VPaint *data = MEM_new<VPaint>(__func__);
     paint = &data->paint;
     paint_init_data(*paint);
+    BKE_paint_mesh_automasking_settings_ensure(*paint);
   }
   else if (reinterpret_cast<Sculpt **>(r_paint) == &ts->sculpt) {
     Sculpt *data = MEM_new<Sculpt>(__func__);
@@ -1565,7 +1566,7 @@ void BKE_paint_init(Main *bmain, Scene *sce, PaintMode mode, const bool ensure_b
     BKE_paint_cavity_curve_preset(paint, CURVE_PRESET_LINE);
   }
 
-  if (mode == PaintMode::Sculpt) {
+  if (ELEM(mode, PaintMode::Sculpt, PaintMode::Vertex, PaintMode::Weight)) {
     BKE_paint_mesh_automasking_settings_ensure(*paint);
   }
 }
@@ -2061,10 +2062,6 @@ void BKE_sculptsession_bm_to_me(Object *ob)
 {
   if (ob && ob->runtime->sculpt_session) {
     sculptsession_bm_to_me_update_data_only(ob);
-
-    /* Ensure the objects evaluated mesh doesn't hold onto arrays
-     * now realloc'd in the mesh #34473. */
-    DEG_id_tag_update(&ob->id, ID_RECALC_GEOMETRY);
   }
 }
 
@@ -2092,28 +2089,6 @@ void BKE_sculptsession_free_pbvh(Object &object)
   ss->clear_active_elements(false);
 }
 
-void BKE_sculptsession_bm_to_me_for_render(Object *object)
-{
-  if (object && object->runtime->sculpt_session) {
-    if (object->runtime->sculpt_session->bm) {
-      /* Ensure no points to old arrays are stored in DM
-       *
-       * Apparently, we could not use DEG_id_tag_update
-       * here because this will lead to the while object
-       * surface to disappear, so we'll release DM in place.
-       */
-      BKE_object_free_derived_caches(object);
-
-      sculptsession_bm_to_me_update_data_only(object);
-
-      /* In contrast with sculptsession_bm_to_me no need in
-       * DAG tag update here - derived mesh was freed and
-       * old pointers are nowhere stored.
-       */
-    }
-  }
-}
-
 void BKE_sculptsession_free(Object *ob)
 {
   if (ob && ob->runtime->sculpt_session) {
@@ -2121,6 +2096,7 @@ void BKE_sculptsession_free(Object *ob)
 
     if (ss->bm) {
       BKE_sculptsession_bm_to_me(ob);
+      DEG_id_tag_update(&ob->id, ID_RECALC_GEOMETRY);
       BM_mesh_free(ss->bm);
     }
 
@@ -2396,7 +2372,7 @@ static void sculpt_update_object(Depsgraph *depsgraph,
 
     if (ob->mode & (OB_MODE_VERTEX_PAINT | OB_MODE_WEIGHT_PAINT)) {
       const Mesh *me_eval_deform = BKE_object_get_mesh_deform_eval(ob_eval);
-
+      BLI_assert(me_eval_deform != nullptr);
       /* If the fully evaluated mesh has the same topology as the deform-only version, use it.
        * This matters because crazyspace evaluation is very restrictive and excludes even modifiers
        * that simply recompute vertex weights (which can even include Geometry Nodes). */

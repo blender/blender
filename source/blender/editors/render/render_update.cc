@@ -65,6 +65,20 @@ namespace blender {
 /** \name Render Engines
  * \{ */
 
+static bContext *render_view3d_context_create(
+    Main *bmain, wmWindow *window, ScrArea *area, ARegion *region, Scene *scene)
+{
+  bContext *C = CTX_create();
+  CTX_data_main_set(C, bmain);
+  CTX_data_scene_set(C, scene);
+  CTX_wm_manager_set(C, static_cast<wmWindowManager *>(bmain->wm.first));
+  CTX_wm_window_set(C, window);
+  CTX_wm_screen_set(C, WM_window_get_active_screen(window));
+  CTX_wm_area_set(C, area);
+  CTX_wm_region_set(C, region);
+  return C;
+}
+
 void ED_render_view3d_update(Depsgraph *depsgraph,
                              wmWindow *window,
                              ScrArea *area,
@@ -81,24 +95,10 @@ void ED_render_view3d_update(Depsgraph *depsgraph,
     RegionView3D *rv3d = static_cast<RegionView3D *>(region.regiondata);
     RenderEngine *engine = rv3d->view_render ? RE_view_engine_get(rv3d->view_render) : nullptr;
 
-    /* call update if the scene changed, or if the render engine
-     * tagged itself for update (e.g. because it was busy at the
-     * time of the last update) */
     if (engine && (updated || (engine->flag & RE_ENGINE_DO_UPDATE))) {
-      /* Create temporary context to execute callback in. */
-      bContext *C = CTX_create();
-      CTX_data_main_set(C, bmain);
-      CTX_data_scene_set(C, scene);
-      CTX_wm_manager_set(C, static_cast<wmWindowManager *>(bmain->wm.first));
-      CTX_wm_window_set(C, window);
-      CTX_wm_screen_set(C, WM_window_get_active_screen(window));
-      CTX_wm_area_set(C, area);
-      CTX_wm_region_set(C, &region);
+      bContext *C = render_view3d_context_create(bmain, window, area, &region, scene);
 
       engine->flag &= ~RE_ENGINE_DO_UPDATE;
-      /* NOTE: Important to pass non-updated depsgraph, This is because this function is called
-       * from inside dependency graph evaluation. Additionally, if we pass fully evaluated one
-       * we will lose updates stored in the graph. */
       engine->type->view_update(engine, C, CTX_data_depsgraph_pointer(C));
 
       CTX_free(C);
@@ -106,24 +106,64 @@ void ED_render_view3d_update(Depsgraph *depsgraph,
   }
 }
 
+void ED_render_view3d_pause_resume(Main *bmain, const bool pause)
+{
+  wmWindowManager *wm = static_cast<wmWindowManager *>(bmain->wm.first);
+  if (!wm) {
+    return;
+  }
+  for (wmWindow &win : wm->windows) {
+    Scene *scene = WM_window_get_active_scene(&win);
+    const bScreen *screen = WM_window_get_active_screen(&win);
+    if (!screen) {
+      continue;
+    }
+    for (ScrArea &area : screen->areabase) {
+      if (area.spacetype != SPACE_VIEW3D) {
+        continue;
+      }
+      for (ARegion &region : area.regionbase) {
+        if (region.regiontype != RGN_TYPE_WINDOW) {
+          continue;
+        }
+        RegionView3D *rv3d = static_cast<RegionView3D *>(region.regiondata);
+        if (!rv3d || !rv3d->view_render) {
+          continue;
+        }
+        RenderEngine *engine = RE_view_engine_get(rv3d->view_render);
+        if (!engine) {
+          continue;
+        }
+
+        bContext *C = render_view3d_context_create(bmain, &win, &area, &region, scene);
+
+        if (pause) {
+          RE_engine_view_pause(engine, C);
+        }
+        else {
+          RE_engine_view_resume(engine, C);
+        }
+
+        CTX_free(C);
+      }
+    }
+  }
+}
+
 static void update_compositor(const DEGEditorUpdateContext *update_context)
 {
   const Scene *scene = DEG_get_evaluated(update_context->depsgraph, update_context->scene);
-  const bNodeTree *node_tree = scene->compositing_node_group;
-  if (!node_tree) {
+  if (!(scene->id.recalc & ID_RECALC_COMPOSITOR)) {
     return;
   }
 
-  if (node_tree->id.recalc & ID_RECALC_NTREE_OUTPUT) {
-    if (DEG_id_is_user_modified(update_context->depsgraph, &node_tree->id)) {
-      update_context->scene->runtime->compositor.cache.clear_frames();
-    }
-
-    ED_node_compositor_job(update_context->bmain,
-                           update_context->scene,
-                           update_context->view_layer,
-                           DEG_id_is_user_modified(update_context->depsgraph, &node_tree->id));
+  const bool is_user_modified = DEG_id_is_user_modified(update_context->depsgraph, &scene->id);
+  if (is_user_modified) {
+    update_context->scene->runtime->compositor.cache.clear_frames();
   }
+
+  ED_node_compositor_job(
+      update_context->bmain, update_context->scene, update_context->view_layer, is_user_modified);
 }
 
 void ED_render_scene_update(const DEGEditorUpdateContext *update_ctx, const bool updated)
@@ -320,21 +360,17 @@ static void scene_changed(Main *bmain, Scene *scene)
 
 static void update_sequencer(const DEGEditorUpdateContext *update_ctx, Main *bmain, ID *id)
 {
-  if (ELEM(id->recalc,
-           0,
-           ID_RECALC_SELECT,
-           ID_RECALC_FRAME_CHANGE,
-           ID_RECALC_AUDIO_FPS,
-           ID_RECALC_AUDIO_VOLUME,
-           ID_RECALC_AUDIO_MUTE,
-           ID_RECALC_AUDIO_LISTENER,
-           ID_RECALC_AUDIO))
-  {
+  const uint ignored = ID_RECALC_SELECT | ID_RECALC_FRAME_CHANGE | ID_RECALC_AUDIO_FPS |
+                       ID_RECALC_AUDIO_VOLUME | ID_RECALC_AUDIO_MUTE | ID_RECALC_AUDIO_LISTENER |
+                       ID_RECALC_AUDIO;
+  if ((id->recalc & ~ignored) == 0) {
     return;
   }
   Scene *changed_scene = update_ctx->scene;
 
-  if (GS(id->name) != ID_SCE) {
+  /* Changed datablocks invalidate camera-input scene strips.
+   * Changed strips invalidate sequencer-input scene strips. */
+  if (GS(id->name) != ID_SCE || id->recalc & ID_RECALC_SEQUENCER_STRIPS) {
     seq::relations_invalidate_scene_strips(bmain, changed_scene);
   }
 

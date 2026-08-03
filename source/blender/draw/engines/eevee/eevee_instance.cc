@@ -95,7 +95,8 @@ void Instance::init()
         else {
           rctf viewborder;
           /* TODO(fclem) Might be better to get it from DRW. */
-          ED_view3d_calc_camera_border(scene, depsgraph, region, v3d, rv3d, false, &viewborder);
+          ED_view3d_calc_camera_border(
+              scene, depsgraph, region, v3d, rv3d, false, true, &viewborder);
           float viewborder_sizex = BLI_rctf_size_x(&viewborder);
           float viewborder_sizey = BLI_rctf_size_y(&viewborder);
           rect.xmin = floorf(viewborder.xmin + (scene->r.border.xmin * viewborder_sizex));
@@ -211,7 +212,7 @@ void Instance::init(const int2 &output_res,
     rctf camera_border;
     /* Anchor reference spheres to camera border. */
     ED_view3d_calc_camera_border(
-        scene, depsgraph, draw_ctx->region, v3d, rv3d, false, &camera_border);
+        scene, depsgraph, draw_ctx->region, v3d, rv3d, false, false, &camera_border);
     BLI_rcti_rctf_copy(&lookdev_rect, &camera_border);
   }
 
@@ -836,6 +837,12 @@ void Instance::update_passes(RenderEngine *engine, Scene *scene, ViewLayer *view
         engine, scene, view_layer, RE_PASSNAME_##name, channels, chanid, type); \
   } \
   ((void)0)
+#define CHECK_PASS_DENOISING(name, type, channels, chanid) \
+  if (view_layer->eevee.denoising_pass_flags & (EEVEE_DENOISING_PASS_STORE)) { \
+    RE_engine_register_pass( \
+        engine, scene, view_layer, RE_PASSNAME_##name, channels, chanid, type); \
+  } \
+  ((void)0)
 
   CHECK_PASS_LEGACY(DEPTH, SOCK_FLOAT, 1, "Z");
   CHECK_PASS_LEGACY(MIST, SOCK_FLOAT, 1, "Z");
@@ -852,6 +859,11 @@ void Instance::update_passes(RenderEngine *engine, Scene *scene, ViewLayer *view
   CHECK_PASS_LEGACY(SHADOW, SOCK_RGBA, 3, "RGB");
   CHECK_PASS_LEGACY(AO, SOCK_RGBA, 3, "RGB");
   CHECK_PASS_EEVEE(TRANSPARENT, SOCK_RGBA, 4, "RGBA");
+  CHECK_PASS_DENOISING(DENOISING_DEPTH, SOCK_FLOAT, 1, "X");
+  CHECK_PASS_DENOISING(DENOISING_NORMAL, SOCK_VECTOR, 3, "XYZ");
+  CHECK_PASS_DENOISING(DENOISING_ROUGHNESS, SOCK_FLOAT, 1, "X");
+  CHECK_PASS_DENOISING(DENOISING_DIFFUSE_ALBEDO, SOCK_RGBA, 3, "RGB");
+  CHECK_PASS_DENOISING(DENOISING_SPECULAR_ALBEDO, SOCK_RGBA, 3, "RGB");
 
   for (ViewLayerAOV &aov : view_layer->aovs) {
     if ((aov.flag & AOV_CONFLICT) != 0) {

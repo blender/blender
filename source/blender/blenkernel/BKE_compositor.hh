@@ -10,6 +10,7 @@
 
 #include <string>
 
+#include "BLI_compute_context.hh"
 #include "BLI_index_range.hh"
 #include "BLI_map.hh"
 #include "BLI_mutex.hh"
@@ -92,6 +93,12 @@ bool node_tree_has_linked_file_output(const bNodeTree *node_tree);
 /* Add the depsgraph relations needed by the compositor node tree of the given scene. A handle for
  * the compositor output depsgraph node is given to be the target of the relation. */
 void add_depsgraph_relations(Scene &scene, DepsNodeHandle *compositor_output_depsgraph_node);
+
+/* Computes the hash of the compositor active compute context. The active compute context is the
+ * context that the user last interacted with, see root_node_group.active_viewer_key for more
+ * information. */
+ComputeContextHash compute_active_compute_context_hash(const Scene &scene,
+                                                       const bNodeTree &root_node_group);
 
 }  // namespace bke::compositor
 }  // namespace blender

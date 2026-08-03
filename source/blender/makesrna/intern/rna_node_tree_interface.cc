@@ -14,6 +14,8 @@
 
 #include "rna_internal.hh"
 
+#include "UI_interface_c.hh"
+
 #include "WM_types.hh"
 
 namespace blender {
@@ -216,13 +218,16 @@ static int rna_NodeTreeInterfaceItem_index_get(PointerRNA *ptr)
   return ntree->tree_interface.find_item_index(*item);
 }
 
-static bool rna_NodeTreeInterfaceSocket_unregister(Main * /*bmain*/, StructRNA *type)
+static bool rna_NodeTreeInterfaceSocket_unregister(Main *bmain, StructRNA *type)
 {
   bke::bNodeSocketType *st = static_cast<bke::bNodeSocketType *>(
       RNA_struct_blender_type_get(type));
   if (!st) {
     return false;
   }
+  ui::refresh_for_srna_unregister(bmain, type);
+  ui::refresh_for_srna_unregister(bmain, st->ext_interface.srna);
+  ui::refresh_for_srna_unregister(bmain, st->ext_socket.srna);
 
   RNA_struct_free_extension(type, &st->ext_interface);
 
@@ -340,7 +345,7 @@ static void rna_NodeTreeInterfaceSocket_from_socket_custom(
   RNA_parameter_list_free(&list);
 }
 
-static StructRNA *rna_NodeTreeInterfaceSocket_register(Main * /*bmain*/,
+static StructRNA *rna_NodeTreeInterfaceSocket_register(Main *bmain,
                                                        ReportList * /*reports*/,
                                                        void *data,
                                                        const char *identifier,
@@ -378,6 +383,7 @@ static StructRNA *rna_NodeTreeInterfaceSocket_register(Main * /*bmain*/,
 
   /* if RNA type is already registered, unregister first */
   if (st->ext_interface.srna) {
+    ui::refresh_for_srna_unregister(bmain, st->ext_interface.srna);
     StructRNA *srna = st->ext_interface.srna;
     RNA_struct_free_extension(srna, &st->ext_interface);
     RNA_struct_free(&RNA_blender_rna_get(), srna);
@@ -1160,6 +1166,15 @@ static bool rna_NodeTreeInterface_items_lookup_string(PointerRNA *ptr,
   return false;
 }
 
+static PointerRNA rna_NodeTreeInterface_root_panel_get(PointerRNA *ptr)
+{
+  bNodeTree *ntree = id_cast<bNodeTree *>(ptr->owner_id);
+  bNodeTreeInterface *interface = static_cast<bNodeTreeInterface *>(ptr->data);
+  PointerRNA result = RNA_pointer_create_discrete(
+      &ntree->id, RNA_NodeTreeInterfacePanel, &interface->root_panel);
+  return result;
+}
+
 const EnumPropertyItem *RNA_node_tree_interface_socket_menu_itemf(bContext * /*C*/,
                                                                   PointerRNA *ptr,
                                                                   PropertyRNA * /*prop*/,
@@ -1636,6 +1651,16 @@ static void rna_def_node_tree_interface(BlenderRNA *brna)
   RNA_def_property_struct_type(prop, "NodeTreeInterfaceItem");
   RNA_def_property_clear_flag(prop, PROP_EDITABLE);
   RNA_def_property_ui_text(prop, "Items", "Items in the node interface");
+
+  prop = RNA_def_property(srna, "root_panel", PROP_POINTER, PROP_NONE);
+  RNA_def_property_struct_type(prop, "NodeTreeInterfacePanel");
+  RNA_def_property_pointer_funcs(
+      prop, "rna_NodeTreeInterface_root_panel_get", nullptr, nullptr, nullptr);
+  RNA_def_property_clear_flag(prop, PROP_EDITABLE);
+  RNA_def_property_ui_text(
+      prop,
+      "Root Panel",
+      "Root panel containing all items not directly parented to another panel");
 
   rna_def_node_tree_interface_items_api(srna);
 }

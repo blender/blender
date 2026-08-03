@@ -83,6 +83,11 @@ void WM_gizmo_target_property_def_func_ptr(wmGizmo *gz,
   /* If gizmo evokes an operator we cannot use it for property manipulation. */
   BLI_assert(gz->op_data.is_empty());
 
+  /* Unlikely, but shouldn't leak memory. */
+  if (gz_prop->custom_func.free_fn) {
+    gz_prop->custom_func.free_fn(gz, gz_prop);
+  }
+
   gz_prop->type = gz_prop_type;
 
   gz_prop->custom_func.value_get_fn = params->value_get_fn;
@@ -111,6 +116,11 @@ void WM_gizmo_target_property_clear_rna_ptr(wmGizmo *gz, const wmGizmoPropertyTy
 
   /* If gizmo evokes an operator we cannot use it for property manipulation. */
   BLI_assert(gz->op_data.is_empty());
+
+  /* Unlikely, but shouldn't leak memory. */
+  if (gz_prop->custom_func.free_fn) {
+    gz_prop->custom_func.free_fn(gz, gz_prop);
+  }
 
   *gz_prop = {};
 }

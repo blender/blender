@@ -188,7 +188,11 @@ AssetCatalogTreeView::AssetCatalogTreeView(asset_system::AssetLibrary *library,
     : asset_library_(library), params_(params), space_file_(space_file)
 {
   if (library) {
-    catalog_tree_ = library->catalog_service().catalog_tree();
+    /* Take shared ownership of the catalog service so it can't be freed by a concurrent catalog
+     * reload job (running on a separate thread) while we're reading the catalog tree from it. */
+    std::shared_ptr<asset_system::AssetCatalogService> catalog_service =
+        library->catalog_service_ptr();
+    catalog_tree_ = catalog_service ? catalog_service->catalog_tree() : nullptr;
   }
   else {
     catalog_tree_ = nullptr;

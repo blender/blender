@@ -34,4 +34,6 @@ bool make_tx(const string &filepath,
              const ImageAlphaType alpha_type,
              const ImageFormatType format_type);
 
+ustring make_tx_get_file_colorspace(const ImageMetaData &metadata);
+
 CCL_NAMESPACE_END

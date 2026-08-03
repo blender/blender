@@ -72,6 +72,7 @@ AUTHOR_DIRECTORIES_SKIP: tuple[bytes, ...] = (
 # Some projects prefer not to have their developers listed.
 author_exclude_individuals = {
     "Jason Fielder <jason-fielder@noreply.localhost>",  # `@apple.com` developer.
+    "LLM Assistant <llm-assistant>",  # Set as a co-author for some commits.
     "Michael B Johnson <wave@noreply.localhost>",  # `@apple.com` developer.
 }
 
@@ -254,7 +255,15 @@ class Credits:
             for match_glob in author_exclude_glob
         )
 
-        sorted_authors = dict(sorted(self.users.items()))
+        # Normalize using decomposed strings for sorting.
+        # That makes letters with diacritics grouped with the undiacritized variant.
+        # Collation is not perfect, but better than having non-English letters at the very bottom of the list.
+        from unicodedata import normalize
+        sorted_authors = dict(sorted(
+            self.users.items(),
+            key=lambda item: (normalize('NFD', item[0]).casefold(), item[1].commit_total),
+        ))
+
         for author_with_email, cu in sorted_authors.items():
             if author_with_email.endswith(" <>"):
                 if verbose:
@@ -263,10 +272,6 @@ class Credits:
             if cu.lines_change <= AUTHOR_LINES_SKIP:
                 if verbose:
                     print("Skipping:", author_with_email, cu.lines_change, "line(s) changed.")
-                continue
-            if author_with_email in author_exclude_individuals:
-                if verbose:
-                    print("Skipping:", author_with_email, "explicit exclusion requested.")
                 continue
             if author_with_email in author_exclude_individuals:
                 if verbose:

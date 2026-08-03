@@ -66,7 +66,7 @@ class MotionPathButtonsPanel:
         else:
             # Calculate.
             col = layout.column(align=True)
-            col.label(text="Nothing to show yet...", icon='ERROR')
+            col.label(text="Nothing to show yet...", icon='STATUS_ERROR')
             col.operator(op_category + ".paths_calculate", text="Calculate...", icon=icon)
 
         # Update All & Clear All.

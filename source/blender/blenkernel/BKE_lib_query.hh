@@ -435,6 +435,10 @@ struct LibQueryUnusedIDsData {
    *
    * Allows for more complex handling of which IDs should be deleted, on top of the basic
    * local/linked choices.
+   *
+   * TODO: Refactor this to return some optional `UnusedIDsData::Status` value instead, and always
+   * call it. This will allow this callback to have full control over the final status of the given
+   * ID, if it decides to.
    */
   FunctionRef<bool(ID *id)> filter_fn = nullptr;
 

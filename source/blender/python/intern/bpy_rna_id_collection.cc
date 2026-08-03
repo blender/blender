@@ -183,7 +183,7 @@ static PyObject *bpy_user_map(PyObject *self, PyObject *args, PyObject *kwds)
 
   static const char *_keywords[] = {"subset", "key_types", "value_types", nullptr};
   static _PyArg_Parser _parser = {
-      "|$" /* Optional keyword only arguments. */
+      "|$" /* Optional, keyword only arguments. */
       "O"  /* `subset` */
       "O&" /* `key_types` */
       "O&" /* `value_types` */
@@ -407,7 +407,7 @@ static PyObject *bpy_file_path_map(PyObject *self, PyObject *args, PyObject *kwd
 
   static const char *_keywords[] = {"subset", "key_types", "include_libraries", nullptr};
   static _PyArg_Parser _parser = {
-      "|$" /* Optional keyword only arguments. */
+      "|$" /* Optional, keyword only arguments. */
       "O"  /* `subset` */
       "O&" /* `key_types` */
       "O!" /* `include_libraries` */
@@ -596,13 +596,14 @@ const EnumPropertyItem rna_enum_file_path_foreach_flag_items[] = {
     {0, nullptr, 0, nullptr, nullptr},
 };
 
-/* Metadata for path visited by `file_path_foreach.
+/**
+ * Metadata for path visited by `file_path_foreach`.
  *
  * In the future it may be useful to extend this:
  *  - Is the path intended to reference a directory or a file.
  *  - Does the path support templates.
- *  - Is the path referring to input or output (the render output, or file output nodes). */
-
+ *  - Is the path referring to input or output (the render output, or file output nodes).
+ */
 struct BPy_FilePathMeta {
   PyObject_HEAD
   bool is_expanded;
@@ -875,7 +876,7 @@ static PyObject *bpy_file_path_foreach(PyObject *self, PyObject *args, PyObject 
   static const char *_keywords[] = {"visit_path_fn", "subset", "visit_types", "flags", nullptr};
   static _PyArg_Parser _parser = {
       "O!" /* `visit_path_fn` */
-      "|$" /* Optional keyword only arguments. */
+      "|$" /* Optional, keyword only arguments. */
       "O"  /* `subset` */
       "O&" /* `visit_types` */
       "O!" /* `flags` */

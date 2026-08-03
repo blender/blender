@@ -14,7 +14,7 @@
 #include "BLI_rect.hh"
 #include "BLI_utildefines.hh"
 
-#include "BKE_animsys.h"
+#include "BKE_animsys.hh"
 #include "BKE_context.hh"
 #include "BKE_mask.hh"
 #include "BKE_movieclip.hh"

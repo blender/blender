@@ -561,7 +561,12 @@ GAttributeWriter MutableAttributeAccessor::convert_or_add_for_write(
     }
     /* The attribute already exists, but with the wrong domain or type.
      * Convert it. */
-    AttributeInitVArray attributeInit(lookup(name, domain, data_type).varray);
+    GVArray data_on_domain = *this->lookup(name, domain, data_type);
+    const CPPType &type = data_on_domain.type();
+    void *converted_data = MEM_new_array_uninitialized_aligned(
+        data_on_domain.size(), type.size, type.alignment, __func__);
+    data_on_domain.materialize_to_uninitialized(converted_data);
+    AttributeInitMoveArray attributeInit(converted_data);
     if (this->add_override(name, domain, data_type, attributeInit)) {
       return this->lookup_for_write(name);
     }

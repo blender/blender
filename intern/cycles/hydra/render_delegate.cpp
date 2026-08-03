@@ -94,8 +94,14 @@ SessionParams GetSessionParams(const HdRenderSettingsMap &settings)
   // Move to all uppercase for Device::type_from_string
   std::transform(deviceType.begin(), deviceType.end(), deviceType.begin(), ::toupper);
 
-  vector<DeviceInfo> devices = Device::available_devices(
-      DEVICE_MASK(Device::type_from_string(deviceType.c_str())));
+  vector<DeviceInfo> devices;
+  for (const DeviceInfo &info :
+       Device::available_devices(DEVICE_MASK(Device::type_from_string(deviceType.c_str()))))
+  {
+    if (info.meets_driver_requirement) {
+      devices.push_back(info);
+    }
+  }
   if (devices.empty()) {
     devices = Device::available_devices(DEVICE_MASK_CPU);
     if (!devices.empty()) {

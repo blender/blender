@@ -61,11 +61,6 @@ static CLG_LogRef LOG = {"wm.xr"};
 
 /* -------------------------------------------------------------------- */
 
-static void wm_xr_session_base_pose_calc(const Scene *scene,
-                                         const XrSessionSettings *settings,
-                                         GHOST_XrPose *r_base_pose,
-                                         float *r_base_scale);
-
 static void wm_xr_session_create_cb()
 {
   Main *bmain = G_MAIN;
@@ -78,10 +73,6 @@ static void wm_xr_session_create_cb()
   BKE_callback_exec_null(bmain, BKE_CB_EVT_XR_SESSION_START_PRE);
 
   wm_xr_session_actions_init(xr_data);
-
-  const bContext *xr_context = WM_xr_session_context_ensure(xr_data, wm);
-  const Scene *scene = CTX_data_scene(xr_context);
-  wm_xr_session_base_pose_calc(scene, settings, &state->base_pose, &state->base_scale);
 
   /* Initialize navigation. */
   WM_xr_session_state_navigation_reset(state);
@@ -112,10 +103,22 @@ static void wm_xr_session_controller_data_free(wmXrSessionState *state)
 
 static void wm_xr_session_viewfinder_data_free(wmXrSessionState *state)
 {
-  BKE_id_free(nullptr, id_cast<ID *>(state->viewfinder.render_cam_data_id));
+  if (state->viewfinder.render_cam_data_id != nullptr) {
+    BKE_id_free(nullptr, id_cast<ID *>(state->viewfinder.render_cam_data_id));
+    state->viewfinder.render_cam_data_id = nullptr;
+  }
+
+  if (state->viewfinder.offscreen != nullptr) {
+    GPU_offscreen_free(state->viewfinder.offscreen);
+    state->viewfinder.offscreen = nullptr;
+  }
+
+  if (state->viewfinder.viewport != nullptr) {
+    GPU_viewport_free(state->viewfinder.viewport);
+    state->viewfinder.viewport = nullptr;
+  }
+
   GPU_TEXTURE_FREE_SAFE(state->viewfinder.backside_logo_texture);
-  GPU_offscreen_free(state->viewfinder.offscreen);
-  GPU_viewport_free(state->viewfinder.viewport);
 }
 
 void wm_xr_session_data_free(wmXrSessionState *state)
@@ -230,9 +233,14 @@ static void wm_xr_session_base_pose_calc(const Scene *scene,
 
 static void wm_xr_session_draw_data_populate(wmXrData *xr_data, wmXrDrawData *r_draw_data)
 {
+  const XrSessionSettings *settings = &xr_data->session_settings;
+
   memset(r_draw_data, 0, sizeof(*r_draw_data));
   r_draw_data->xr_data = xr_data;
   r_draw_data->surface_data = static_cast<wmXrSurfaceData *>(g_xr_surface->customdata);
+
+  Scene *scene = CTX_data_scene(WM_xr_session_context_get(xr_data));
+  wm_xr_session_base_pose_calc(scene, settings, &r_draw_data->base_pose, &r_draw_data->base_scale);
 }
 
 wmWindow *wm_xr_session_root_window_or_fallback_get(const wmWindowManager *wm,
@@ -409,7 +417,7 @@ void wm_xr_session_state_update(const XrSessionSettings *settings,
   wm_xr_pose_to_mat(&viewer_pose, viewer_mat);
 
   /* Apply base pose and navigation. */
-  wm_xr_pose_scale_to_mat(&state->base_pose, state->base_scale, base_mat);
+  wm_xr_pose_scale_to_mat(&draw_data->base_pose, draw_data->base_scale, base_mat);
   wm_xr_pose_scale_to_mat(&state->nav_pose_last_actions_sync, state->viewer_scale, nav_mat);
   mul_m4_m4m4(state->viewer_mat_base, base_mat, viewer_mat);
   mul_m4_m4m4(viewer_mat, nav_mat, state->viewer_mat_base);
@@ -417,7 +425,7 @@ void wm_xr_session_state_update(const XrSessionSettings *settings,
   /* Save final viewer pose and viewmat. */
   mat4_to_loc_quat(state->viewer_pose.position, state->viewer_pose.orientation_quat, viewer_mat);
   wm_xr_pose_scale_to_imat(&state->viewer_pose,
-                           state->base_scale * state->viewer_scale_last_actions_sync,
+                           draw_data->base_scale * state->viewer_scale_last_actions_sync,
                            state->viewer_viewmat);
 
   /* No idea why, but multiplying by two seems to make it match the VR view more. */
@@ -426,8 +434,8 @@ void wm_xr_session_state_update(const XrSessionSettings *settings,
                                         DEFAULT_SENSOR_WIDTH);
 
   copy_v3_v3(state->prev_eye_position_ofs, draw_data->eye_position_ofs);
-  memcpy(&state->prev_base_pose, &state->base_pose, sizeof(state->prev_base_pose));
-  state->prev_base_scale = state->base_scale;
+  memcpy(&state->prev_base_pose, &draw_data->base_pose, sizeof(state->prev_base_pose));
+  state->prev_base_scale = draw_data->base_scale;
   memcpy(&state->prev_local_pose, &draw_view->local_pose, sizeof(state->prev_local_pose));
   copy_v3_v3(state->prev_eye_position_ofs, draw_data->eye_position_ofs);
 

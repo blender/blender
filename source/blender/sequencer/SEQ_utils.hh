@@ -62,7 +62,7 @@ void set_scale_to_fit(const Strip *strip,
  * \param strip: Strip which name will be ensured to be unique
  * \param scene: Scene in which name must be unique
  */
-void ensure_unique_name(Strip *strip, Scene *scene);
+void ensure_unique_name(Main &bmain, Strip *strip, Scene *scene);
 
 void fontmap_clear();
 

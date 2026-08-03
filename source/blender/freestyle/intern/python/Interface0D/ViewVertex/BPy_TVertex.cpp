@@ -67,7 +67,14 @@ static PyObject *TVertex_get_svertex(BPy_TVertex *self, PyObject *args, PyObject
   static const char *kwlist[] = {"fedge", nullptr};
   PyObject *py_fe;
 
-  if (!PyArg_ParseTupleAndKeywords(args, kwds, "O!", (char **)kwlist, &FEdge_Type, &py_fe)) {
+  if (!PyArg_ParseTupleAndKeywords(args,
+                                   kwds,
+                                   "O!" /* `fedge` */
+                                   ":get_svertex",
+                                   (char **)kwlist,
+                                   &FEdge_Type,
+                                   &py_fe))
+  {
     return nullptr;
   }
   SVertex *sv = self->tv->getSVertex(((BPy_FEdge *)py_fe)->fe);
@@ -95,7 +102,14 @@ static PyObject *TVertex_get_mate(BPy_TVertex *self, PyObject *args, PyObject *k
   static const char *kwlist[] = {"viewedge", nullptr};
   PyObject *py_ve;
 
-  if (!PyArg_ParseTupleAndKeywords(args, kwds, "O!", (char **)kwlist, &ViewEdge_Type, &py_ve)) {
+  if (!PyArg_ParseTupleAndKeywords(args,
+                                   kwds,
+                                   "O!" /* `viewedge` */
+                                   ":get_mate",
+                                   (char **)kwlist,
+                                   &ViewEdge_Type,
+                                   &py_ve))
+  {
     return nullptr;
   }
   ViewEdge *ve = self->tv->mate(((BPy_ViewEdge *)py_ve)->ve);

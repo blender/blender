@@ -10,12 +10,9 @@
 gbuffer::InputClosures gbuffer_new()
 {
   gbuffer::InputClosures data;
-  data.closure[0].type = CLOSURE_NONE_ID;
-  data.closure[0].weight = 0.0f;
-  data.closure[1].type = CLOSURE_NONE_ID;
-  data.closure[1].weight = 0.0f;
-  data.closure[2].type = CLOSURE_NONE_ID;
-  data.closure[2].weight = 0.0f;
+  data.closure[0] = ClosureUndetermined{};
+  data.closure[1] = ClosureUndetermined{};
+  data.closure[2] = ClosureUndetermined{};
   return data;
 }
 
@@ -28,22 +25,18 @@ void eevee_test_gbuffer_normal_main([[resource_table]] const ShaderTestOutput & 
   Thickness thickness = Thickness::from(0.2f, ThicknessMode::Slab);
 
   ClosureUndetermined cl1 = closure_new(CLOSURE_BSDF_DIFFUSE_ID);
-  cl1.weight = 1.0f;
   cl1.color = float3(1);
   cl1.N = normalize(float3(0.2f, 0.1f, 0.3f));
 
   ClosureUndetermined cl2 = closure_new(CLOSURE_BSDF_DIFFUSE_ID);
-  cl2.weight = 1.0f;
   cl2.color = float3(1);
   cl2.N = normalize(float3(0.1f, 0.2f, 0.3f));
 
   ClosureUndetermined cl3 = closure_new(CLOSURE_BSDF_DIFFUSE_ID);
-  cl3.weight = 1.0f;
   cl3.color = float3(1);
   cl3.N = normalize(float3(0.3f, 0.2f, 0.1f));
 
   ClosureUndetermined cl_none = closure_new(CLOSURE_NONE_ID);
-  cl_none.weight = 1.0f;
   cl_none.color = float3(1);
   cl_none.N = normalize(float3(0.0f, 0.0f, 1.0f));
 

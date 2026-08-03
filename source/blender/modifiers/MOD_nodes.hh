@@ -11,6 +11,7 @@
 
 namespace blender {
 
+struct Main;
 struct NodesModifierData;
 struct NodesModifierDataBlock;
 struct Object;
@@ -29,7 +30,7 @@ class NodesEvalLog;
  * inputs. If any properties correspond to the old properties by name and type, carry over
  * the values.
  */
-void MOD_nodes_update_interface(Object *object, NodesModifierData *nmd);
+void MOD_nodes_update_interface(Main &bmain, Object *object, NodesModifierData *nmd);
 
 class NodesModifierUsageInferenceCache {
  private:

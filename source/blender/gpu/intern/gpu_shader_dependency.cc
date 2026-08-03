@@ -171,6 +171,16 @@ struct GPUSource {
         return GPU_MAT3;
       case metadata::Type::float4x4:
         return GPU_MAT4;
+      case metadata::Type::int1:
+        return GPU_INT;
+      case metadata::Type::int2:
+        return GPU_INT2;
+      case metadata::Type::int3:
+        return GPU_INT3;
+      case metadata::Type::int4:
+        return GPU_INT4;
+      case metadata::Type::bool1:
+        return GPU_BOOL;
       case metadata::Type::sampler1DArray:
         return GPU_TEX1D_ARRAY;
       case metadata::Type::sampler2DArray:

@@ -317,7 +317,7 @@ class AttributeTableBuilder {
   AttributeTableEntry<uchar4> attr_uchar4;
   AttributeTableEntry<packed_normal> attr_normal;
 
-  /* Positions in dedicated arrays, gives better BVH2 perforamnce. */
+  /* Positions in dedicated arrays, gives better BVH2 performance. */
   AttributeTableEntry<packed_float3> tri_verts;
   AttributeTableEntry<float4> curve_keys;
   AttributeTableEntry<float4> points;

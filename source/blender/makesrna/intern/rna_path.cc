@@ -1359,4 +1359,44 @@ std::string RNA_path_property_py(const PointerRNA *ptr, PropertyRNA *prop, int i
   return RNA_path_from_ptr_to_property_index(ptr, prop, index_dim, index);
 }
 
+std::string RNA_path_name_to_infix(const StringRefNull string)
+{
+  const std::string old_name_esc = BLI_str_escape(string);
+  return fmt::format("[\"{}\"]", old_name_esc);
+}
+
+std::string RNA_path_number_to_infix(const int number)
+{
+  return fmt::format("[{}]", number);
+}
+
+std::pair<std::string, std::string> RNA_generate_keys_for_path_rename(
+    const StringRefNull old_infix,
+    const StringRefNull new_infix,
+    const int old_subscript,
+    const int new_subscript,
+    const bool infix_is_name)
+
+{
+  std::string old_key;
+  std::string new_key;
+
+  if (!old_infix.is_empty() && !new_infix.is_empty()) {
+    if (infix_is_name) {
+      old_key = RNA_path_name_to_infix(old_infix);
+      new_key = RNA_path_name_to_infix(new_infix);
+    }
+    else {
+      old_key = old_infix;
+      new_key = new_infix;
+    }
+  }
+  else {
+    old_key = RNA_path_number_to_infix(old_subscript);
+    new_key = RNA_path_number_to_infix(new_subscript);
+  }
+
+  return {old_key, new_key};
+}
+
 }  // namespace blender

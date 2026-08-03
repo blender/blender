@@ -53,12 +53,12 @@ LightProbeRay bxdf_diffuse_lightprobe(float3 N)
   return probe;
 }
 
-ClosureLight bxdf_diffuse_light(ClosureUndetermined cl)
+ClosureLight bxdf_diffuse_light(ClosureUndetermined cl, float3 V)
 {
   ClosureLight light;
-  light.ltc_mat = eevee::lut::ltc::identity(); /* No transform, just plain cosine distribution. */
   light.N = cl.N;
   light.type = LIGHT_DIFFUSE;
+  eevee::LTCData::pack_identity(light, light.N, V);
   return light;
 }
 
@@ -78,7 +78,7 @@ ClosureLight bxdf_diffuse_light(ClosureUndetermined cl)
  */
 BsdfSample bxdf_translucent_sample(float3 rand, Thickness thickness)
 {
-  if (thickness.mode() == ThicknessMode::Sphere) {
+  if (thickness.mode() == ThicknessMode::Sphere && thickness.value() != 0.0f) {
     /* Two transmission events inside a sphere is a uniform sphere distribution. */
     float cos_theta = rand.x * 2.0f - 1.0f;
     BsdfSample samp;
@@ -95,7 +95,7 @@ BsdfSample bxdf_translucent_sample(float3 rand, Thickness thickness)
 
 BsdfEval bxdf_translucent_eval(float3 N, float3 L, Thickness thickness)
 {
-  if (thickness.mode() == ThicknessMode::Sphere) {
+  if (thickness.mode() == ThicknessMode::Sphere && thickness.value() != 0.0f) {
     /* Two transmission events inside a sphere is a uniform sphere distribution. */
     BsdfEval eval;
     eval.throughput = eval.pdf = 0.25f * M_1_PI;
@@ -117,7 +117,9 @@ LightProbeRay bxdf_translucent_lightprobe(float3 N, Thickness thickness)
   LightProbeRay probe;
   probe.perceptual_roughness = bxdf_translucent_perceived_roughness();
   /* If using the spherical assumption, discard any directionality from the lighting. */
-  probe.dominant_direction = (thickness.mode() == ThicknessMode::Sphere) ? float3(0.0f) : -N;
+  const bool sphere_with_thickness = thickness.mode() == ThicknessMode::Sphere &&
+                                     thickness.value() != 0.0f;
+  probe.dominant_direction = sphere_with_thickness ? float3(0.0f) : -N;
   return probe;
 }
 
@@ -131,19 +133,28 @@ Ray bxdf_translucent_ray_amend(ClosureUndetermined cl, float3 /*V*/, Ray ray, Th
   return ray;
 }
 
-ClosureLight bxdf_translucent_light(ClosureUndetermined cl, float3 /*V*/, Thickness thickness)
+ClosureLight bxdf_translucent_light(ClosureUndetermined cl, float3 V, Thickness thickness)
 {
   /* A translucent sphere lit by a light outside the sphere transmits the
-   * light uniformly over the sphere. To mimic this phenomenon, we use the light vector
-   * as normal. This is done inside `light_eval_single`.
+   * light uniformly over the sphere. To mimic this phenomenon, the LTC evaluation
+   * does not horizon-clip lights if we set `LTCFormFactorType::TwoSidedCosineSphere`.
    *
    * For slab model, the approximation has little to no impact on the lighting in practice,
    * only focusing the light a tiny bit. Using the flipped normal is good enough approximation.
    */
+  const bool sphere_with_thickness = thickness.mode() == ThicknessMode::Sphere &&
+                                     thickness.value() != 0.0f;
+
   ClosureLight light;
-  light.ltc_mat = eevee::lut::ltc::identity(); /* No transform, just plain cosine distribution. */
   light.N = -cl.N;
-  light.type = (thickness.value() != 0.0f) ? LIGHT_TRANSLUCENT_WITH_THICKNESS : LIGHT_DIFFUSE;
+  light.type = sphere_with_thickness ? LIGHT_TRANSLUCENT_WITH_THICKNESS : LIGHT_DIFFUSE;
+
+  eevee::LTCData ltc_data = eevee::LTCData::identity(light.N, V);
+  if (sphere_with_thickness) {
+    ltc_data.form_factor_type = LTCFormFactorType::TwoSidedCosineSphere;
+  }
+  ltc_data.pack_to(light);
+
   return light;
 }
 

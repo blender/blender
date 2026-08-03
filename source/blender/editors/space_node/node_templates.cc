@@ -685,7 +685,9 @@ void uiTemplateNodeLink(
 
   ui::block_layout_set_current(block, layout);
 
-  if (input->link || input->type == SOCK_SHADER || (input->flag & SOCK_HIDE_VALUE)) {
+  if ((input->link && !input->link->fromsock->owner_node().is_muted()) ||
+      (input->type == SOCK_SHADER || (input->flag & SOCK_HIDE_VALUE)))
+  {
     char name[UI_MAX_NAME_STR];
     ui_node_sock_name(ntree, input, name);
     but = uiDefMenuBut(
@@ -912,7 +914,7 @@ static void ui_node_draw_input(ui::Layout &layout,
             }
           }
         }
-        if (can_expand) {
+        if (can_expand && !lnode->is_muted()) {
           int icon = (input.flag & SOCK_COLLAPSED) ? ICON_RIGHTARROW : ICON_DOWNARROW_HLT;
           sub->prop(&inputptr, "show_expanded", ui::ITEM_R_ICON_ONLY, "", icon);
         }
@@ -927,10 +929,10 @@ static void ui_node_draw_input(ui::Layout &layout,
   }
 
   if (dependency_loop) {
-    row->label(RPT_("Dependency Loop"), ICON_ERROR);
+    row->label(RPT_("Dependency Loop"), ICON_STATUS_WARNING_FILLED);
     add_dummy_decorator = true;
   }
-  else if (lnode) {
+  else if (lnode && !lnode->is_muted()) {
     /* input linked to a node */
     uiTemplateNodeLink(row, &C, &ntree, &node, &input);
     add_dummy_decorator = true;

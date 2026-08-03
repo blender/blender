@@ -821,6 +821,9 @@ void view2d_curRect_changed(const bContext *C, View2D *v2d)
   if (region->runtime->type->on_view2d_changed != nullptr) {
     region->runtime->type->on_view2d_changed(C, region);
   }
+
+  /* Tag IME cursor refresh after the view changes (pan, zoom, etc). */
+  region->runtime->do_ime = true;
 }
 
 void view2d_curRect_clamp_y(View2D *v2d)
@@ -1485,7 +1488,7 @@ void view2d_scrollers_draw(View2D *v2d, const rcti *mask_custom)
 {
   View2DScrollers scrollers;
   view2d_scrollers_calc(v2d, mask_custom, &scrollers);
-  bTheme *btheme = theme::theme_get();
+  const bTheme *btheme = theme::theme_get();
   rcti vert, hor;
   const int scroll = view2d_scroll_mapped(v2d->scroll);
   const char emboss_alpha = btheme->tui.widget_emboss[3];
@@ -1526,7 +1529,7 @@ void view2d_scrollers_draw(View2D *v2d, const rcti *mask_custom)
     }
     wcol.item[3] *= alpha_fac;
     wcol.outline[3] = 0;
-    btheme->tui.widget_emboss[3] = 0; /* will be reset later */
+    const_cast<bTheme *>(btheme)->tui.widget_emboss[3] = 0; /* will be reset later */
 
     /* show zoom handles if:
      * - zooming on x-axis is allowed (no scroll otherwise)
@@ -1570,7 +1573,7 @@ void view2d_scrollers_draw(View2D *v2d, const rcti *mask_custom)
     }
     wcol.item[3] *= alpha_fac;
     wcol.outline[3] = 0;
-    btheme->tui.widget_emboss[3] = 0; /* will be reset later */
+    const_cast<bTheme *>(btheme)->tui.widget_emboss[3] = 0; /* will be reset later */
 
     /* show zoom handles if:
      * - zooming on y-axis is allowed (no scroll otherwise)
@@ -1589,7 +1592,7 @@ void view2d_scrollers_draw(View2D *v2d, const rcti *mask_custom)
   }
 
   /* Was changed above, so reset. */
-  btheme->tui.widget_emboss[3] = emboss_alpha;
+  const_cast<bTheme *>(btheme)->tui.widget_emboss[3] = emboss_alpha;
 }
 
 /** \} */

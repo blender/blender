@@ -170,7 +170,8 @@ void SyncModule::sync_common(const ObjectHandle &ob_handle,
 
     is_alpha_blend |= material->is_alpha_blend_transparent;
     has_transparent_shadows |= material->has_transparent_shadows;
-    has_time_dependent_shadows |= has_time_node && (has_transparent_shadows || has_displacement);
+    has_time_dependent_shadows |= has_time_node &&
+                                  (material->has_transparent_shadows || has_displacement);
 
     if (has_displacement) {
       inflate_bounds = math::max(inflate_bounds, bl_material->inflate_bounds);

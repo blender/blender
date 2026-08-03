@@ -195,14 +195,18 @@ static void node_gather_link_searches(GatherLinkSearchOpParams &params)
     }
   }
 
-  if (params.in_out() == SOCK_IN &&
-      (type != SOCK_STRING || is_supported_data_block_type(&ntree, type)))
-  {
-    params.add_item(
-        IFACE_("Angle"),
-        SocketSearchOp{
-            "Angle"_ustr, SOCK_VECTOR, NODE_COMPARE_GREATER_THAN, NODE_COMPARE_MODE_DIRECTION});
+  if (params.in_out() != SOCK_IN) {
+    return;
   }
+
+  if (type == SOCK_STRING || is_supported_data_block_type(&ntree, type)) {
+    return;
+  }
+
+  params.add_item(
+      IFACE_("Angle"),
+      SocketSearchOp{
+          "Angle"_ustr, SOCK_VECTOR, NODE_COMPARE_GREATER_THAN, NODE_COMPARE_MODE_DIRECTION});
 }
 
 static void node_label(const bNodeTree * /*tree*/,

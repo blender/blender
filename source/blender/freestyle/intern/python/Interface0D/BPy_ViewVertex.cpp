@@ -95,7 +95,14 @@ static PyObject *ViewVertex_edges_iterator(BPy_ViewVertex *self, PyObject *args,
   static const char *kwlist[] = {"edge", nullptr};
   PyObject *py_ve;
 
-  if (PyArg_ParseTupleAndKeywords(args, kwds, "O!", (char **)kwlist, &ViewEdge_Type, &py_ve)) {
+  if (PyArg_ParseTupleAndKeywords(args,
+                                  kwds,
+                                  "O!" /* `edge` */
+                                  ":edges_iterator",
+                                  (char **)kwlist,
+                                  &ViewEdge_Type,
+                                  &py_ve))
+  {
     return nullptr;
   }
   ViewEdge *ve = ((BPy_ViewEdge *)py_ve)->ve;

@@ -36,6 +36,7 @@
 
 #include "RNA_define.hh"
 
+#include "RNA_types.hh"
 #include "rna_internal.hh"
 
 #include "SEQ_sequencer.hh"
@@ -565,6 +566,21 @@ static const EnumPropertyItem rna_enum_view3dshading_render_pass_type_items[] = 
     {EEVEE_RENDER_PASS_CRYPTOMATTE_ASSET, "CryptoAsset", 0, "CryptoAsset", ""},
     {EEVEE_RENDER_PASS_CRYPTOMATTE_MATERIAL, "CryptoMaterial", 0, "CryptoMaterial", ""},
 
+    RNA_ENUM_ITEM_HEADING(CTX_N_(BLT_I18NCONTEXT_RENDER_LAYER, "Denoising Data"), nullptr),
+    {EEVEE_RENDER_PASS_DENOISING_DEPTH, "DENOISING_DEPTH", 0, "Denoising Depth", ""},
+    {EEVEE_RENDER_PASS_DENOISING_NORMAL, "DENOISING_NORMAL", 0, "Denoising Normal", ""},
+    {EEVEE_RENDER_PASS_DENOISING_ROUGHNESS, "DENOISING_ROUGHNESS", 0, "Denoising Roughness", ""},
+    {EEVEE_RENDER_PASS_DENOISING_DIFFUSE_ALBEDO,
+     "DIFFUSE_ALBEDO",
+     0,
+     "Denoising Diffuse Albedo",
+     ""},
+    {EEVEE_RENDER_PASS_DENOISING_SPECULAR_ALBEDO,
+     "SPECULAR_ALBEDO",
+     0,
+     "Denoising Specular Albedo",
+     ""},
+
     RNA_ENUM_ITEM_HEADING(CTX_N_(BLT_I18NCONTEXT_RENDER_LAYER, "Shader AOV"), nullptr),
     {EEVEE_RENDER_PASS_AOV, "AOV", 0, "AOV", ""},
 
@@ -608,7 +624,7 @@ const EnumPropertyItem buttons_context_items[] = {
     {BCONTEXT_PARTICLE, "PARTICLES", ICON_PARTICLES, "Particles", "Particle Properties"},
     {BCONTEXT_PHYSICS, "PHYSICS", ICON_PHYSICS, "Physics", "Physics Properties"},
     {BCONTEXT_SHADERFX, "SHADERFX", ICON_SHADERFX, "Effects", "Visual Effects Properties"},
-    {BCONTEXT_STRIP, "STRIP", ICON_SEQ_SEQUENCER, "Strip", "Strip Properties"},
+    {BCONTEXT_STRIP, "STRIP", ICON_SEQ_STRIP, "Strip", "Strip Properties"},
     {BCONTEXT_STRIP_MODIFIER,
      "STRIP_MODIFIER",
      ICON_SEQ_STRIP_MODIFIER,
@@ -817,9 +833,29 @@ static StructRNA *rna_Space_refine(PointerRNA *ptr)
 static ScrArea *rna_area_from_space(const PointerRNA *ptr)
 {
   BLI_assert(RNA_struct_is_a(ptr->type, RNA_Space));
-  bScreen *screen = reinterpret_cast<bScreen *>(ptr->owner_id);
   SpaceLink *link = static_cast<SpaceLink *>(ptr->data);
-  return BKE_screen_find_area_from_space(screen, link);
+
+  switch (GS(ptr->owner_id->name)) {
+    case ID_WM: {
+      const wmWindowManager *wm = id_cast<wmWindowManager *>(ptr->owner_id);
+      for (const wmWindow &win : wm->windows) {
+        for (ScrArea &area : win.global_areas.areabase) {
+          if (BLI_findindex(&area.spacedata, link) != -1) {
+            return &area;
+          }
+        }
+      }
+      break;
+    }
+    case ID_SCR: {
+      const bScreen *screen = id_cast<bScreen *>(ptr->owner_id);
+      return BKE_screen_find_area_from_space(screen, link);
+    }
+    default:
+      break;
+  }
+  BLI_assert_unreachable();
+  return nullptr;
 }
 
 static void area_region_from_regiondata(bScreen *screen,
@@ -1396,7 +1432,7 @@ static void rna_RegionView3D_view_matrix_set(PointerRNA *ptr, const float *value
   RegionView3D *rv3d = static_cast<RegionView3D *>(ptr->data);
   float mat[4][4];
   invert_m4_m4(mat, reinterpret_cast<float (*)[4]>(const_cast<float *>(values)));
-  ED_view3d_from_m4(mat, rv3d->ofs, rv3d->viewquat, &rv3d->dist);
+  ED_view3d_from_m4(mat, rv3d->ofs, rv3d->viewquat, &rv3d->dist, 0.0f);
   rna_RegionView3D_view_rotation_set_validate_view_axis(rv3d);
 }
 
@@ -1893,7 +1929,7 @@ static PointerRNA rna_SpaceView3D_overlay_get(PointerRNA *ptr)
 
 static std::optional<std::string> rna_View3DOverlay_path(const PointerRNA *ptr)
 {
-  std::optional<std::string> editor_path = BKE_screen_path_from_screen_to_space(ptr);
+  std::optional<std::string> editor_path = BKE_screen_path_to_space(ptr);
   return fmt::format("{}{}{}", editor_path.value_or(""), editor_path ? "." : "", "overlay");
 }
 
@@ -1906,13 +1942,13 @@ static PointerRNA rna_SpaceImage_overlay_get(PointerRNA *ptr)
 
 static std::optional<std::string> rna_SpaceImageOverlay_path(const PointerRNA *ptr)
 {
-  std::optional<std::string> editor_path = BKE_screen_path_from_screen_to_space(ptr);
+  std::optional<std::string> editor_path = BKE_screen_path_to_space(ptr);
   return fmt::format("{}{}{}", editor_path.value_or(""), editor_path ? "." : "", "overlay");
 }
 
 static std::optional<std::string> rna_SpaceUVEditor_path(const PointerRNA *ptr)
 {
-  std::optional<std::string> editor_path = BKE_screen_path_from_screen_to_space(ptr);
+  std::optional<std::string> editor_path = BKE_screen_path_to_space(ptr);
   return fmt::format("{}{}{}", editor_path.value_or(""), editor_path ? "." : "", "uv_editor");
 }
 
@@ -2730,7 +2766,7 @@ static PointerRNA rna_SpaceSequenceEditor_preview_overlay_get(PointerRNA *ptr)
 
 static std::optional<std::string> rna_SpaceSequencerPreviewOverlay_path(const PointerRNA *ptr)
 {
-  std::optional<std::string> editor_path = BKE_screen_path_from_screen_to_space(ptr);
+  std::optional<std::string> editor_path = BKE_screen_path_to_space(ptr);
   return fmt::format(
       "{}{}{}", editor_path.value_or(""), editor_path ? "." : "", "preview_overlay");
 }
@@ -2742,7 +2778,7 @@ static PointerRNA rna_SpaceSequenceEditor_timeline_overlay_get(PointerRNA *ptr)
 
 static std::optional<std::string> rna_SpaceSequencerTimelineOverlay_path(const PointerRNA *ptr)
 {
-  std::optional<std::string> editor_path = BKE_screen_path_from_screen_to_space(ptr);
+  std::optional<std::string> editor_path = BKE_screen_path_to_space(ptr);
   return fmt::format(
       "{}{}{}", editor_path.value_or(""), editor_path ? "." : "", "timeline_overlay");
 }
@@ -2754,7 +2790,7 @@ static PointerRNA rna_SpaceSequenceEditor_cache_overlay_get(PointerRNA *ptr)
 
 static std::optional<std::string> rna_SpaceSequencerCacheOverlay_path(const PointerRNA *ptr)
 {
-  std::optional<std::string> editor_path = BKE_screen_path_from_screen_to_space(ptr);
+  std::optional<std::string> editor_path = BKE_screen_path_to_space(ptr);
   return fmt::format("{}{}{}", editor_path.value_or(""), editor_path ? "." : "", "cache_overlay");
 }
 
@@ -2800,7 +2836,7 @@ static PointerRNA rna_SpaceDopeSheet_overlay_get(PointerRNA *ptr)
 
 static std::optional<std::string> rna_SpaceDopeSheetOverlay_path(const PointerRNA *ptr)
 {
-  std::optional<std::string> editor_path = BKE_screen_path_from_screen_to_space(ptr);
+  std::optional<std::string> editor_path = BKE_screen_path_to_space(ptr);
   if (!editor_path) {
     return std::nullopt;
   }
@@ -2820,7 +2856,7 @@ static bool rna_SpaceNode_supports_previews(PointerRNA *ptr)
 
 static std::optional<std::string> rna_SpaceNodeOverlay_path(const PointerRNA *ptr)
 {
-  std::optional<std::string> editor_path = BKE_screen_path_from_screen_to_space(ptr);
+  std::optional<std::string> editor_path = BKE_screen_path_to_space(ptr);
   return fmt::format("{}{}{}", editor_path.value_or(""), editor_path ? "." : "", "overlay");
 }
 
@@ -3071,9 +3107,7 @@ static void rna_SpaceNodeEditor_show_backdrop_update(Main * /*bmain*/,
                                                      Scene *scene,
                                                      PointerRNA * /*ptr*/)
 {
-  if (scene->compositing_node_group) {
-    DEG_id_tag_update(&scene->compositing_node_group->id, ID_RECALC_NTREE_OUTPUT);
-  }
+  DEG_id_tag_update(&scene->id, ID_RECALC_COMPOSITOR);
   WM_main_add_notifier(NC_NODE | NA_EDITED, nullptr);
   WM_main_add_notifier(NC_SCENE | ND_NODES, nullptr);
 }
@@ -3166,7 +3200,7 @@ static PointerRNA rna_SpaceClip_overlay_get(PointerRNA *ptr)
 
 static std::optional<std::string> rna_SpaceClipOverlay_path(const PointerRNA *ptr)
 {
-  std::optional<std::string> editor_path = BKE_screen_path_from_screen_to_space(ptr);
+  std::optional<std::string> editor_path = BKE_screen_path_to_space(ptr);
   return fmt::format("{}{}{}", editor_path.value_or(""), editor_path ? "." : "", "overlay");
 }
 
@@ -3179,7 +3213,7 @@ static std::optional<std::string> rna_FileSelectParams_path(const PointerRNA *pt
     return std::nullopt;
   }
 
-  std::optional<std::string> editor_path = BKE_screen_path_from_screen_to_space(&space_ptr);
+  std::optional<std::string> editor_path = BKE_screen_path_to_space(&space_ptr);
   if (!editor_path) {
     return std::nullopt;
   }
@@ -4169,7 +4203,7 @@ static void rna_def_space(BlenderRNA *brna)
   srna = RNA_def_struct(brna, "Space", nullptr);
   RNA_def_struct_sdna(srna, "SpaceLink");
   RNA_def_struct_ui_text(srna, "Space", "Space data for a screen area");
-  RNA_def_struct_path_func(srna, "BKE_screen_path_from_screen_to_space");
+  RNA_def_struct_path_func(srna, "BKE_screen_path_to_space");
   RNA_def_struct_refine_func(srna, "rna_Space_refine");
 
   prop = RNA_def_property(srna, "type", PROP_ENUM, PROP_NONE);
@@ -6149,6 +6183,12 @@ static void rna_def_space_view3d(BlenderRNA *brna)
   RNA_def_property_ui_text(prop, "Camera Offset", "View shift in camera view");
   RNA_def_property_update(prop, NC_SPACE | ND_SPACE_VIEW3D, nullptr);
 
+  prop = RNA_def_property(srna, "view_camera_roll", PROP_FLOAT, PROP_ANGLE);
+  RNA_def_property_float_sdna(prop, nullptr, "camroll");
+  RNA_def_property_ui_text(prop, "Camera Roll", "Roll angle in camera view");
+  RNA_def_property_range(prop, -M_PI, M_PI);
+  RNA_def_property_update(prop, NC_SPACE | ND_SPACE_VIEW3D, nullptr);
+
   RNA_api_region_view3d(srna);
 }
 
@@ -7097,7 +7137,7 @@ static void rna_def_space_text(BlenderRNA *brna)
   RNA_def_property_update(prop, NC_SPACE | ND_SPACE_TEXT, "rna_SpaceTextEditor_updateEdited");
 
   prop = RNA_def_property(srna, "font_size", PROP_INT, PROP_NONE);
-  RNA_def_property_int_sdna(prop, nullptr, "lheight");
+  RNA_def_property_int_sdna(prop, nullptr, "line_height");
   RNA_def_property_range(prop, 1, 256); /* Large range since Hi-DPI scales down size. */
   RNA_def_property_ui_text(prop, "Font Size", "Font size to use for displaying the text");
   RNA_def_property_update(prop, NC_SPACE | ND_SPACE_TEXT, nullptr);
@@ -7605,7 +7645,7 @@ static void rna_def_space_console(BlenderRNA *brna)
 
   /* display */
   prop = RNA_def_property(srna, "font_size", PROP_INT, PROP_NONE); /* copied from text editor */
-  RNA_def_property_int_sdna(prop, nullptr, "lheight");
+  RNA_def_property_int_sdna(prop, nullptr, "line_height");
   RNA_def_property_range(prop, 1, 256); /* Large range since Hi-DPI scales down size. */
   RNA_def_property_ui_text(prop, "Font Size", "Font size to use for displaying the text");
   RNA_def_property_update(prop, 0, "rna_SpaceConsole_rect_update");

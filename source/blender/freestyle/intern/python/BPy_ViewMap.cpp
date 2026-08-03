@@ -82,7 +82,15 @@ static PyObject *ViewMap_get_closest_viewedge(BPy_ViewMap *self, PyObject *args,
   static const char *kwlist[] = {"x", "y", nullptr};
   double x, y;
 
-  if (!PyArg_ParseTupleAndKeywords(args, kwds, "dd", (char **)kwlist, &x, &y)) {
+  if (!PyArg_ParseTupleAndKeywords(args,
+                                   kwds,
+                                   "d" /* `x` */
+                                   "d" /* `y` */
+                                   ":get_closest_viewedge",
+                                   (char **)kwlist,
+                                   &x,
+                                   &y))
+  {
     return nullptr;
   }
   ViewEdge *ve = const_cast<ViewEdge *>(self->vm->getClosestViewEdge(x, y));
@@ -110,7 +118,15 @@ static PyObject *ViewMap_get_closest_fedge(BPy_ViewMap *self, PyObject *args, Py
   static const char *kwlist[] = {"x", "y", nullptr};
   double x, y;
 
-  if (!PyArg_ParseTupleAndKeywords(args, kwds, "dd", (char **)kwlist, &x, &y)) {
+  if (!PyArg_ParseTupleAndKeywords(args,
+                                   kwds,
+                                   "d" /* `x` */
+                                   "d" /* `y` */
+                                   ":get_closest_fedge",
+                                   (char **)kwlist,
+                                   &x,
+                                   &y))
+  {
     return nullptr;
   }
   FEdge *fe = const_cast<FEdge *>(self->vm->getClosestFEdge(x, y));

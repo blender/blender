@@ -151,7 +151,7 @@ void RE_bake_margin(ImBuf *ibuf,
   /* margin */
   switch (margin_type) {
     case R_BAKE_ADJACENT_FACES:
-      RE_generate_texturemargin_adjacentfaces(ibuf, mask, margin, mesh, uv_layer, uv_offset);
+      RE_generate_texturemargin_adjacentfaces(ibuf, mask, margin, mesh, uv_layer, uv_offset, true);
       break;
     default:
     /* fall through */
@@ -692,7 +692,7 @@ static void bake_differentials(BakeDataZSpan *bd,
   A = (uv2[0] - uv1[0]) * (uv3[1] - uv1[1]) - (uv3[0] - uv1[0]) * (uv2[1] - uv1[1]);
 
   if (fabsf(A) > FLT_EPSILON) {
-    A = 0.5f / A;
+    A = 1.0f / A;
 
     bd->du_dx = (uv2[1] - uv3[1]) * A;
     bd->dv_dx = (uv3[1] - uv1[1]) * A;
@@ -752,41 +752,54 @@ void RE_bake_pixels_populate(Mesh *mesh,
 
   const int materials_num = targets->materials_num;
 
-  for (int i = 0; i < tottri; i++) {
-    const int3 &tri = corner_tris[i];
-    const int face_i = tri_faces[i];
+  for (int fill = 0; fill < 2; fill++) {
+    for (int i = 0; i < tottri; i++) {
+      const int3 &tri = corner_tris[i];
+      const int face_i = tri_faces[i];
 
-    bd.primitive_id = i;
+      bd.primitive_id = i;
 
-    /* Find images matching this material. */
-    const int material_index = (!material_indices.is_empty() && materials_num) ?
-                                   clamp_i(material_indices[face_i], 0, materials_num - 1) :
-                                   0;
-    Image *image = targets->material_to_image[material_index];
-    for (int image_id = 0; image_id < targets->images_num; image_id++) {
-      BakeImage *bk_image = &targets->images[image_id];
-      if (bk_image->image != image) {
-        continue;
+      /* Find images matching this material. */
+      const int material_index = (!material_indices.is_empty() && materials_num) ?
+                                     clamp_i(material_indices[face_i], 0, materials_num - 1) :
+                                     0;
+      Image *image = targets->material_to_image[material_index];
+      for (int image_id = 0; image_id < targets->images_num; image_id++) {
+        BakeImage *bk_image = &targets->images[image_id];
+        if (bk_image->image != image) {
+          continue;
+        }
+
+        /* Compute triangle vertex UV coordinates. */
+        float vec[3][2];
+        for (int a = 0; a < 3; a++) {
+          const float2 &uv = uv_map[tri[a]];
+
+          vec[a][0] = (uv[0] - bk_image->uv_offset[0]) * float(bk_image->width);
+          vec[a][1] = (uv[1] - bk_image->uv_offset[1]) * float(bk_image->height);
+        }
+
+        /* Rasterize triangle. */
+        bd.bk_image = bk_image;
+        bake_differentials(&bd, vec[0], vec[1], vec[2]);
+
+        if (!fill) {
+          zspan_rasterize_conservative_wireframe(&bd.zspan[image_id],
+                                                 static_cast<void *>(&bd),
+                                                 vec[0],
+                                                 vec[1],
+                                                 vec[2],
+                                                 store_bake_pixel);
+        }
+        else {
+          zspan_rasterize_triangle(&bd.zspan[image_id],
+                                   static_cast<void *>(&bd),
+                                   vec[0],
+                                   vec[1],
+                                   vec[2],
+                                   store_bake_pixel);
+        }
       }
-
-      /* Compute triangle vertex UV coordinates. */
-      float vec[3][2];
-      for (int a = 0; a < 3; a++) {
-        const float2 &uv = uv_map[tri[a]];
-
-        /* NOTE(@ideasman42): workaround for pixel aligned UVs which are common and can screw
-         * up our intersection tests where a pixel gets in between 2 faces or the middle of a quad,
-         * camera aligned quads also have this problem but they are less common.
-         * Add a small offset to the UVs, fixes bug #18685. */
-        vec[a][0] = (uv[0] - bk_image->uv_offset[0]) * float(bk_image->width) - (0.5f + 0.001f);
-        vec[a][1] = (uv[1] - bk_image->uv_offset[1]) * float(bk_image->height) - (0.5f + 0.002f);
-      }
-
-      /* Rasterize triangle. */
-      bd.bk_image = bk_image;
-      bake_differentials(&bd, vec[0], vec[1], vec[2]);
-      zspan_scanconvert(
-          &bd.zspan[image_id], static_cast<void *>(&bd), vec[0], vec[1], vec[2], store_bake_pixel);
     }
   }
 

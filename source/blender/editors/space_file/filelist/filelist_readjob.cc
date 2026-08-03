@@ -269,7 +269,7 @@ void filelist_readjob_blocking_run(FileList *filelist, int space_notifier, const
 
 void filelist_readjob_stop(FileList *filelist, wmWindowManager *wm)
 {
-  WM_jobs_kill_type(wm, filelist, filelist_jobtype_get(filelist));
+  WM_jobs_kill_all_from_owner(wm, filelist);
 }
 
 int filelist_readjob_running(FileList *filelist, wmWindowManager *wm)

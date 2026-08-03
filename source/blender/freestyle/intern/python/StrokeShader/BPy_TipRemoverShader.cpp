@@ -42,7 +42,13 @@ static int TipRemoverShader___init__(BPy_TipRemoverShader *self, PyObject *args,
   static const char *kwlist[] = {"tip_length", nullptr};
   double d;
 
-  if (!PyArg_ParseTupleAndKeywords(args, kwds, "d", (char **)kwlist, &d)) {
+  if (!PyArg_ParseTupleAndKeywords(args,
+                                   kwds,
+                                   "d" /* `tip_length` */
+                                   ":__init__",
+                                   (char **)kwlist,
+                                   &d))
+  {
     return -1;
   }
   self->py_ss.ss = new StrokeShaders::TipRemoverShader(d);

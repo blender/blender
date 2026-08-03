@@ -133,7 +133,14 @@ static PyObject *init_func(PyObject * /*self*/, PyObject *args)
   PyObject *user_path;
   int headless;
 
-  if (!PyArg_ParseTuple(args, "OOi", &path, &user_path, &headless)) {
+  if (!PyArg_ParseTuple(args,
+                        "O" /* `path` */
+                        "O" /* `user_path` */
+                        "i" /* `headless` */,
+                        &path,
+                        &user_path,
+                        &headless))
+  {
     return nullptr;
   }
 
@@ -174,7 +181,14 @@ static PyObject *create_func(PyObject * /*self*/, PyObject *args)
   int preview_osl;
 
   if (!PyArg_ParseTuple(args,
-                        "OOOOOOOi",
+                        "O" /* `engine` */
+                        "O" /* `preferences` */
+                        "O" /* `data` */
+                        "O" /* `screen` */
+                        "O" /* `region` */
+                        "O" /* `v3d` */
+                        "O" /* `rv3d` */
+                        "i" /* `preview_osl` */,
                         &pyengine,
                         &pypreferences,
                         &pydata,
@@ -234,7 +248,12 @@ static PyObject *render_func(PyObject * /*self*/, PyObject *args)
   PyObject *pysession;
   PyObject *pydepsgraph;
 
-  if (!PyArg_ParseTuple(args, "OO", &pysession, &pydepsgraph)) {
+  if (!PyArg_ParseTuple(args,
+                        "O" /* `session` */
+                        "O" /* `depsgraph` */,
+                        &pysession,
+                        &pydepsgraph))
+  {
     return nullptr;
   }
 
@@ -256,7 +275,7 @@ static PyObject *render_frame_finish_func(PyObject * /*self*/, PyObject *args)
 {
   PyObject *pysession;
 
-  if (!PyArg_ParseTuple(args, "O", &pysession)) {
+  if (!PyArg_ParseTuple(args, "O" /* `session` */, &pysession)) {
     return nullptr;
   }
 
@@ -279,7 +298,16 @@ static PyObject *draw_func(PyObject * /*self*/, PyObject *args)
   PyObject *py_screen;
   PyObject *py_space_image;
 
-  if (!PyArg_ParseTuple(args, "OOOO", &py_session, &py_graph, &py_screen, &py_space_image)) {
+  if (!PyArg_ParseTuple(args,
+                        "O" /* `session` */
+                        "O" /* `graph` */
+                        "O" /* `screen` */
+                        "O" /* `space_image` */,
+                        &py_session,
+                        &py_graph,
+                        &py_screen,
+                        &py_space_image))
+  {
     return nullptr;
   }
 
@@ -307,7 +335,13 @@ static PyObject *bake_func(PyObject * /*self*/, PyObject *args)
   int height;
 
   if (!PyArg_ParseTuple(args,
-                        "OOOsiii",
+                        "O" /* `session` */
+                        "O" /* `depsgraph` */
+                        "O" /* `object` */
+                        "s" /* `pass_type` */
+                        "i" /* `pass_filter` */
+                        "i" /* `width` */
+                        "i" /* `height` */,
                         &pysession,
                         &pydepsgraph,
                         &pyobject,
@@ -341,7 +375,16 @@ static PyObject *view_draw_func(PyObject * /*self*/, PyObject *args)
   PyObject *pyv3d;
   PyObject *pyrv3d;
 
-  if (!PyArg_ParseTuple(args, "OOOO", &pysession, &pygraph, &pyv3d, &pyrv3d)) {
+  if (!PyArg_ParseTuple(args,
+                        "O" /* `session` */
+                        "O" /* `graph` */
+                        "O" /* `v3d` */
+                        "O" /* `rv3d` */,
+                        &pysession,
+                        &pygraph,
+                        &pyv3d,
+                        &pyrv3d))
+  {
     return nullptr;
   }
 
@@ -364,7 +407,14 @@ static PyObject *reset_func(PyObject * /*self*/, PyObject *args)
   PyObject *pydata;
   PyObject *pydepsgraph;
 
-  if (!PyArg_ParseTuple(args, "OOO", &pysession, &pydata, &pydepsgraph)) {
+  if (!PyArg_ParseTuple(args,
+                        "O" /* `session` */
+                        "O" /* `data` */
+                        "O" /* `depsgraph` */,
+                        &pysession,
+                        &pydata,
+                        &pydepsgraph))
+  {
     return nullptr;
   }
 
@@ -388,7 +438,12 @@ static PyObject *sync_func(PyObject * /*self*/, PyObject *args)
   PyObject *pysession;
   PyObject *pydepsgraph;
 
-  if (!PyArg_ParseTuple(args, "OO", &pysession, &pydepsgraph)) {
+  if (!PyArg_ParseTuple(args,
+                        "O" /* `session` */
+                        "O" /* `depsgraph` */,
+                        &pysession,
+                        &pydepsgraph))
+  {
     return nullptr;
   }
 
@@ -409,7 +464,7 @@ static PyObject *sync_func(PyObject * /*self*/, PyObject *args)
 static PyObject *available_devices_func(PyObject * /*self*/, PyObject *args)
 {
   const char *type_name;
-  if (!PyArg_ParseTuple(args, "s", &type_name)) {
+  if (!PyArg_ParseTuple(args, "s" /* `type_name` */, &type_name)) {
     return nullptr;
   }
 
@@ -453,7 +508,12 @@ static PyObject *osl_compile_func(PyObject * /*self*/, PyObject *args)
   const char *inputfile = nullptr;
   const char *outputfile = nullptr;
 
-  if (!PyArg_ParseTuple(args, "ss", &inputfile, &outputfile)) {
+  if (!PyArg_ParseTuple(args,
+                        "s" /* `inputfile` */
+                        "s" /* `outputfile` */,
+                        &inputfile,
+                        &outputfile))
+  {
     return nullptr;
   }
 
@@ -513,7 +573,12 @@ static PyObject *denoise_func(PyObject * /*self*/, PyObject *args, PyObject *key
 
   if (!PyArg_ParseTupleAndKeywords(args,
                                    keywords,
-                                   "OOOO|O",
+                                   "O" /* `preferences` */
+                                   "O" /* `scene` */
+                                   "O" /* `view_layer` */
+                                   "O" /* `input` */
+                                   "|" /* Optional arguments. */
+                                   "O" /* `output` */,
                                    (char **)keyword_list,
                                    &pypreferences,
                                    &pyscene,
@@ -590,8 +655,13 @@ static PyObject *merge_func(PyObject * /*self*/, PyObject *args, PyObject *keywo
   PyObject *pyinput;
   PyObject *pyoutput = nullptr;
 
-  if (!PyArg_ParseTupleAndKeywords(
-          args, keywords, "OO", (char **)keyword_list, &pyinput, &pyoutput))
+  if (!PyArg_ParseTupleAndKeywords(args,
+                                   keywords,
+                                   "O" /* `input` */
+                                   "O" /* `output` */,
+                                   (char **)keyword_list,
+                                   &pyinput,
+                                   &pyoutput))
   {
     return nullptr;
   }
@@ -625,7 +695,7 @@ static PyObject *merge_func(PyObject * /*self*/, PyObject *args, PyObject *keywo
 static PyObject *debug_flags_update_func(PyObject * /*self*/, PyObject *args)
 {
   PyObject *pyscene;
-  if (!PyArg_ParseTuple(args, "O", &pyscene)) {
+  if (!PyArg_ParseTuple(args, "O" /* `scene` */, &pyscene)) {
     return nullptr;
   }
 
@@ -736,7 +806,11 @@ static PyObject *maketx_func(PyObject * /*self*/, PyObject *args, PyObject *keyw
 
   if (!PyArg_ParseTupleAndKeywords(args,
                                    keywords,
-                                   "s|sss",
+                                   "s" /* `filepath` */
+                                   "|" /* Optional arguments. */
+                                   "s" /* `colorspace` */
+                                   "s" /* `alpha_type` */
+                                   "s" /* `cache_dir` */,
                                    (char **)keyword_list,
                                    &filepath,
                                    &colorspace,

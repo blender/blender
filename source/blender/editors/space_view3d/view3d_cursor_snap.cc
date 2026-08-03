@@ -545,14 +545,10 @@ static bool v3d_cursor_is_snap_invert(SnapCursorDataIntern *data_intern, uint8_t
       continue;
     }
 
-    if (kmi.propvalue == snap_on) {
-      if ((ELEM(kmi.type, EVT_LEFTCTRLKEY, EVT_RIGHTCTRLKEY) && (event_modifier & KM_CTRL)) ||
-          (ELEM(kmi.type, EVT_LEFTSHIFTKEY, EVT_RIGHTSHIFTKEY) && (event_modifier & KM_SHIFT)) ||
-          (ELEM(kmi.type, EVT_LEFTALTKEY, EVT_RIGHTALTKEY) && (event_modifier & KM_ALT)) ||
-          ((kmi.type == EVT_OSKEY) && (event_modifier & KM_OSKEY)))
-      {
-        return true;
-      }
+    if ((kmi.propvalue == snap_on) &&
+        WM_event_modifier_flag_match_kmi_press(wmEventModifierFlag(event_modifier), &kmi))
+    {
+      return true;
     }
   }
   return false;

@@ -611,24 +611,24 @@ class MultiDevice : public Device {
     }
   }
 
-  bool has_unified_memory() const override
+  bool has_unified_memory_any() const override
   {
     for (const SubDevice &sub : devices) {
-      if (sub.device->has_unified_memory()) {
+      if (sub.device->has_unified_memory_any()) {
         return true;
       }
     }
     return false;
   }
 
-  bool has_unified_image_memory() const override
+  bool has_unified_image_memory_all() const override
   {
     for (const SubDevice &sub : devices) {
-      if (sub.device->has_unified_image_memory()) {
-        return true;
+      if (!sub.device->has_unified_image_memory_all()) {
+        return false;
       }
     }
-    return false;
+    return true;
   }
 };
 

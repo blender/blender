@@ -71,15 +71,15 @@ static bool sequencer_refresh_sound_length_recursive(Main *bmain,
         continue;
       }
 
-      int old = strip.len;
+      int old = strip.content_length();
       float fac;
 
-      strip.len = std::max(
-          1, int(round((info.length - strip.sound->offset_time) * scene->frames_per_second())));
-      fac = float(strip.len) / float(old);
+      strip.content_length_set(std::max(
+          1, int(round((info.length - strip.sound->offset_time) * scene->frames_per_second()))));
+      fac = float(strip.content_length()) / float(old);
       old = strip.startofs;
       strip.startofs *= fac;
-      strip.endofs *= fac;
+      strip.endofs = strip.end_offset() * fac;
       strip.start += (old -
                       strip.startofs); /* So that visual/"real" start frame does not change! */
 

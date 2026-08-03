@@ -54,7 +54,7 @@ ccl_device_inline void surface_shader_prepare_guiding(KernelGlobals kg,
                                                       const ccl_private RNGState *rng_state)
 {
   /* Have any BSDF to guide? */
-  if (!(kernel_data.integrator.use_surface_guiding && (sd->flag & SD_BSDF_HAS_EVAL))) {
+  if (!(kernel_data.integrator.use_surface_guiding && (sd->runtime_flag & SR_BSDF_HAS_EVAL))) {
     INTEGRATOR_STATE_WRITE(state, guiding, use_surface_guiding) = false;
     return;
   }
@@ -153,9 +153,9 @@ ccl_device_inline void surface_shader_prepare_closures(KernelGlobals kg,
 
     if (path_visibility & PATH_RAY_VISIBILITY_CAMERA) {
       if (filter_closures & FILTER_CLOSURE_DIRECT_LIGHT) {
-        sd->flag &= ~SD_BSDF_HAS_EVAL;
+        sd->runtime_flag &= ~SR_BSDF_HAS_EVAL;
       }
-
+      bool has_bsdf_closure = false;
       for (int i = 0; i < sd->num_closure; i++) {
         ccl_private ShaderClosure *sc = &sd->closure[i];
 
@@ -176,8 +176,14 @@ ccl_device_inline void surface_shader_prepare_closures(KernelGlobals kg,
         {
           sc->type = CLOSURE_HOLDOUT_ID;
           sc->sample_weight = 0.0f;
-          sd->flag |= SD_HOLDOUT;
+          sd->runtime_flag |= SR_HOLDOUT;
         }
+        else if (CLOSURE_IS_BSDF(sc->type)) {
+          has_bsdf_closure = true;
+        }
+      }
+      if (!has_bsdf_closure) {
+        sd->runtime_flag &= ~SR_BSDF;
       }
     }
   }
@@ -208,7 +214,7 @@ ccl_device_inline void surface_shader_prepare_closures(KernelGlobals kg,
       /* NOTE: this is a sufficient condition. If `blur_roughness < THRESH < original_roughness`
        * then the flag was already set. */
       if (!roughness_is_almost_specular(blur_roughness, blur_roughness)) {
-        sd->flag |= SD_BSDF_HAS_EVAL;
+        sd->runtime_flag |= SR_BSDF_HAS_EVAL;
       }
     }
   }
@@ -1046,10 +1052,10 @@ ccl_device float surface_shader_average_roughness(const ccl_private ShaderData *
 
 ccl_device Spectrum surface_shader_transparency(const ccl_private ShaderData *sd)
 {
-  if (sd->flag & SD_HAS_ONLY_VOLUME) {
+  if (sd->shader_flag & SD_HAS_ONLY_VOLUME) {
     return one_spectrum();
   }
-  if (sd->flag & (SD_TRANSPARENT | SD_RAY_PORTAL)) {
+  if (sd->runtime_flag & (SR_TRANSPARENT | SR_RAY_PORTAL)) {
     return sd->closure_transparent_extinction;
   }
   return zero_spectrum();
@@ -1190,7 +1196,7 @@ ccl_device bool surface_shader_constant_emission(KernelGlobals kg,
 
 ccl_device Spectrum surface_shader_background(const ccl_private ShaderData *sd)
 {
-  if (sd->flag & SD_EMISSION) {
+  if (sd->runtime_flag & SR_EMISSION) {
     return sd->closure_emission_background;
   }
   return zero_spectrum();
@@ -1200,7 +1206,7 @@ ccl_device Spectrum surface_shader_background(const ccl_private ShaderData *sd)
 
 ccl_device Spectrum surface_shader_emission(const ccl_private ShaderData *sd)
 {
-  if (sd->flag & SD_EMISSION) {
+  if (sd->runtime_flag & SR_EMISSION) {
     return emissive_simple_eval(sd->Ng, sd->wi) * sd->closure_emission_background;
   }
   return zero_spectrum();
@@ -1215,7 +1221,7 @@ ccl_device Spectrum surface_shader_apply_holdout(ccl_private ShaderData *sd)
   /* For objects marked as holdout, preserve transparency and remove all other
    * closures, replacing them with a holdout weight. */
   if (sd->object_flag & SD_OBJECT_HOLDOUT_MASK) {
-    if ((sd->flag & SD_TRANSPARENT) && !(sd->flag & SD_HAS_ONLY_VOLUME)) {
+    if ((sd->runtime_flag & SR_TRANSPARENT) && !(sd->shader_flag & SD_HAS_ONLY_VOLUME)) {
       weight = one_spectrum() - sd->closure_transparent_extinction;
 
       for (int i = 0; i < sd->num_closure; i++) {
@@ -1225,7 +1231,7 @@ ccl_device Spectrum surface_shader_apply_holdout(ccl_private ShaderData *sd)
         }
       }
 
-      sd->flag &= ~(SD_CLOSURE_FLAGS - (SD_TRANSPARENT | SD_BSDF));
+      sd->runtime_flag &= (~SR_CLOSURE_FLAG | SR_TRANSPARENT | SR_BSDF);
     }
     else {
       weight = one_spectrum();
@@ -1287,7 +1293,7 @@ ccl_device void surface_shader_eval(KernelGlobals kg,
 #else
     if (sd->object == OBJECT_NONE) {
       sd->closure_emission_background = make_spectrum(0.8f);
-      sd->flag |= SD_EMISSION;
+      sd->runtime_flag |= SR_EMISSION;
     }
     else {
       bsdf_diffuse_setup(sd, sd->N, make_spectrum(0.8f));

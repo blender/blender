@@ -23,6 +23,7 @@
 
 #include "rna_internal.hh"
 
+#include "UI_interface_c.hh"
 #include "UI_interface_layout.hh"
 
 #include "WM_api.hh"
@@ -1363,7 +1364,7 @@ static IDProperty **rna_wmKeyConfigPref_idprops(PointerRNA *ptr)
   return reinterpret_cast<IDProperty **>(&ptr->data);
 }
 
-static bool rna_wmKeyConfigPref_unregister(Main * /*bmain*/, StructRNA *type)
+static bool rna_wmKeyConfigPref_unregister(Main *bmain, StructRNA *type)
 {
   wmKeyConfigPrefType_Runtime *kpt_rt = static_cast<wmKeyConfigPrefType_Runtime *>(
       RNA_struct_blender_type_get(type));
@@ -1371,7 +1372,7 @@ static bool rna_wmKeyConfigPref_unregister(Main * /*bmain*/, StructRNA *type)
   if (!kpt_rt) {
     return false;
   }
-
+  ui::refresh_for_srna_unregister(bmain, type);
   RNA_struct_free_extension(type, &kpt_rt->rna_ext);
   RNA_struct_free(&RNA_blender_rna_get(), type);
 
@@ -1944,7 +1945,8 @@ static bool rna_Operator_unregister(Main *bmain, StructRNA *type)
   if (!ot) {
     return false;
   }
-
+  ui::refresh_for_srna_unregister(bmain, ot->srna);
+  ui::refresh_for_srna_unregister(bmain, type);
   /* update while blender is running */
   wm = static_cast<wmWindowManager *>(bmain->wm.first);
   if (wm) {
@@ -2793,6 +2795,14 @@ static void rna_def_window(BlenderRNA *brna)
   RNA_def_property_ui_text(prop, "Scene", "Active scene to be edited in the window");
   RNA_def_property_flag(prop, PROP_CONTEXT_UPDATE);
   RNA_def_property_update(prop, 0, "rna_Window_scene_update");
+
+  prop = RNA_def_property(srna, "global_areas", PROP_COLLECTION, PROP_NONE);
+  RNA_def_property_collection_sdna(prop, nullptr, "global_areas.areabase", nullptr);
+  RNA_def_property_struct_type(prop, "Area");
+  RNA_def_property_ui_text(prop,
+                           "Areas",
+                           "Areas at the edges of the window that are not part of the flexible "
+                           "screen layout (such as top and status bar)");
 
   prop = RNA_def_property(srna, "workspace", PROP_POINTER, PROP_NONE);
   RNA_def_property_flag(prop, PROP_NEVER_NULL);

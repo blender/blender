@@ -2,9 +2,11 @@
 #
 # SPDX-License-Identifier: GPL-2.0-or-later
 
+import shutil
 import sys
 import unittest
 from pathlib import Path, PurePath, PurePosixPath, PureWindowsPath
+from typing import override
 
 from _bpy_internal.assets.remote_library import json_parsing, listing_downloader
 from _bpy_internal.assets.remote_library import blender_asset_library_openapi as api_models
@@ -42,8 +44,17 @@ class ListingDownloaderTest(unittest.TestCase):
         self.assertTrue(self.json_path.exists(), "JSON file should have been rewritten")
         self._test_sanitize_asset_page_with_specific_bad_path(r"\\NAS\share\temp\kubus.blend", "temp/kubus.blend")
         self.assertTrue(self.json_path.exists(), "JSON file should have been rewritten")
+        self._test_sanitize_asset_page_with_specific_bad_path("/temp/kubus.blend", "temp/kubus.blend")
+        self.assertTrue(self.json_path.exists(), "JSON file should have been rewritten")
+        self._test_sanitize_asset_page_with_specific_bad_path(r"\temp\kubus.blend", "temp/kubus.blend")
+        self.assertTrue(self.json_path.exists(), "JSON file should have been rewritten")
         self._test_sanitize_asset_page_with_specific_bad_path(
             r"//NAS/share/temp/kubus.blend", "NAS/share/temp/kubus.blend")
+        self.assertTrue(self.json_path.exists(), "JSON file should have been rewritten")
+        self._test_sanitize_asset_page_with_specific_bad_path(
+            r"//localhost\C$\Windows\System32\kubus.blend", "Windows/System32/kubus.blend")
+        self._test_sanitize_asset_page_with_specific_bad_path(
+            r"//localhost/C$/Windows/System32/kubus.blend", "localhost/C$/Windows/System32/kubus.blend")
         self.assertTrue(self.json_path.exists(), "JSON file should have been rewritten")
 
         # Relative path that attempts to break out of the asset library.
@@ -229,6 +240,45 @@ class SanitizePathFromURLTest(unittest.TestCase):
             PurePosixPath('etc/passwd'),
             _sanitize_path_from_url(PurePosixPath('/../../../../../etc/passwd')),
         )
+
+
+class RemoteAssetListingLocatorTest(unittest.TestCase):
+    asset_lib_path: Path
+
+    @override
+    def setUp(self) -> None:
+        arg_outdir.mkdir(parents=True, exist_ok=True)
+        self.asset_lib_path = arg_outdir / "test_asset_library"
+
+    @override
+    def tearDown(self) -> None:
+        if self.asset_lib_path.exists():
+            shutil.rmtree(self.asset_lib_path)
+
+    def test_is_system_path(self) -> None:
+        locator = listing_downloader.RemoteAssetListingLocator('https://example.com/', self.asset_lib_path)
+
+        self.assertFalse(locator.is_system_path(Path()))
+        self.assertFalse(locator.is_system_path(arg_outdir))
+        self.assertFalse(locator.is_system_path(self.asset_lib_path))
+        self.assertFalse(locator.is_system_path(self.asset_lib_path / "valid-download.blend"))
+
+        self.assertTrue(locator.is_system_path(self.asset_lib_path / "_asset-library-meta.json"))
+        self.assertTrue(locator.is_system_path(self.asset_lib_path / "_v1/asset-index.json"))
+        self.assertTrue(locator.is_system_path(self.asset_lib_path / "_v1/assets-00000.json"))
+        self.assertTrue(locator.is_system_path(self.asset_lib_path / "_v1/file-that-is-not-used.toml"))
+        self.assertTrue(locator.is_system_path(self.asset_lib_path / "_listing_backup"))
+        self.assertTrue(locator.is_system_path(self.asset_lib_path / "_listing_backup/whatever.txt"))
+
+        # Check the file hash path. It's a special case, because it's constructed from various parts and thus uses
+        # pattern matching.
+        self.assertTrue(locator.is_system_path(self.asset_lib_path / "_file_hashes_v1.sqlite"))
+        self.assertTrue(locator.is_system_path(self.asset_lib_path / "_FILE_hashes_v2.SqLiTe"))
+        self.assertFalse(locator.is_system_path(self.asset_lib_path / "harmless_file_hashes_v1.sqlite"))
+
+        # Test some sneaky indirection. This is why the resolve() function is called in is_listing_path().
+        self.assertTrue(locator.is_system_path(self.asset_lib_path / "../.." /
+                        self.asset_lib_path.parts[-2] / self.asset_lib_path.parts[-1] / "_v1"))
 
 
 def main():

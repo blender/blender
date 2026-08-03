@@ -163,6 +163,7 @@ struct TileColorspaceProcessor : NonCopyable {
   ColormanageProcessor buffer_to_linear_processor = {};
   ColormanageProcessor linear_to_buffer_processor = {};
   bool is_noop = true;
+  bool is_srgb_byte = false;
 };
 
 struct ImageData : NonCopyable {
@@ -171,6 +172,12 @@ struct ImageData : NonCopyable {
 
   Map<bke::image::TileNumber, ImBuf *> buffers = {};
   Map<bke::image::TileNumber, TileColorspaceProcessor> processors = {};
+
+  /** Per undo tile, to quickly check if it was already pushed. */
+  Map<bke::image::TileNumber, Array<uint32_t>> undo_tile_pushed = {};
+
+  /** Per seam tile modified state, to only do seam bleeding where needed. */
+  Map<bke::image::TileNumber, Array<uint8_t>> seam_tile_modified = {};
 
   ~ImageData();
 
@@ -770,7 +777,7 @@ bool node_in_cylinder(const DistRayAABB_Precalc &ray_dist_precalc,
                       const bke::pbvh::Node &node,
                       float radius_sq,
                       bool original);
-/** Calculates whether node intersects the [-1,1] x [-1,1] x [-1,1] volume in local space.*/
+/** Calculates whether node intersects the [-1,1] x [-1,1] x [-1,1] volume in local space. */
 bool node_in_box(const float4x4 &mat,
                  const Bounds<float3> &bounds,
                  const float3 brush_center = float3(0.0f, 0.0f, 0.0f),

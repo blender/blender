@@ -25,6 +25,7 @@
 
 #include "BKE_context.hh"
 #include "BKE_idprop.hh"
+#include "BKE_main.hh"
 #include "BKE_screen.hh"
 
 #include "ED_asset.hh"
@@ -526,6 +527,17 @@ static bool but_menu_add_path_operators(Layout &layout, PointerRNA *ptr, Propert
   UNUSED_VARS_NDEBUG(subtype);
 
   RNA_property_string_get(ptr, prop, filepath);
+
+  if (BLI_path_is_rel(filepath)) {
+    if (ptr->owner_id == nullptr) {
+      return false;
+    }
+    const char *base_path = ID_BLEND_PATH_FROM_GLOBAL(ptr->owner_id);
+    if (base_path[0] == '\0') {
+      return false;
+    }
+    BLI_path_abs(filepath, base_path);
+  }
 
   if (!BLI_exists(filepath)) {
     return false;
@@ -1352,17 +1364,21 @@ bool popup_context_menu_for_button(bContext *C, Button *but, const wmEvent *even
 /** \name Panel Context Menu
  * \{ */
 
-void popup_context_menu_for_panel(bContext *C, ARegion *region, Panel *panel)
+int popup_context_menu_for_panel(bContext *C, ARegion *region, Panel *panel)
 {
   bScreen *screen = CTX_wm_screen(C);
   const bool has_panel_category = panel_category_tabs_is_visible(region);
   const bool any_item_visible = has_panel_category;
 
   if (!any_item_visible) {
-    return;
+    return WM_UI_HANDLER_CONTINUE;
   }
   if (panel && panel->type->parent != nullptr) {
-    return;
+    return WM_UI_HANDLER_CONTINUE;
+  }
+
+  if (!BKE_regiontype_uses_category_tabs(region->runtime->type)) {
+    return WM_UI_HANDLER_CONTINUE;
   }
 
   PointerRNA ptr = RNA_pointer_create_discrete(&screen->id, RNA_Panel, panel);
@@ -1386,9 +1402,11 @@ void popup_context_menu_for_panel(bContext *C, ARegion *region, Panel *panel)
   }
 
   PointerRNA prefs_ptr = RNA_pointer_create_discrete(nullptr, RNA_PreferencesSystem, &U);
-  layout.prop(&prefs_ptr, "show_panel_tabs_compact", UI_ITEM_NONE, "Compact Tabs", ICON_NONE);
+  layout.prop(
+      &prefs_ptr, "show_panel_tabs_compact", UI_ITEM_NONE, IFACE_("Compact Tabs"), ICON_NONE);
 
   popup_menu_end(C, pup);
+  return WM_UI_HANDLER_BREAK;
 }
 
 /** \} */

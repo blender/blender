@@ -57,8 +57,14 @@ static int SVertexIterator_init(BPy_SVertexIterator *self, PyObject *args, PyObj
   PyObject *obj1 = nullptr, *obj2 = nullptr, *obj3 = nullptr, *obj4 = nullptr;
   float t;
 
-  if (PyArg_ParseTupleAndKeywords(
-          args, kwds, "|O!", (char **)kwlist_1, &SVertexIterator_Type, &obj1))
+  if (PyArg_ParseTupleAndKeywords(args,
+                                  kwds,
+                                  "|"  /* Optional arguments. */
+                                  "O!" /* `brother` */
+                                  ":__init__",
+                                  (char **)kwlist_1,
+                                  &SVertexIterator_Type,
+                                  &obj1))
   {
     if (!obj1) {
       self->sv_it = new ViewEdgeInternal::SVertexIterator();
@@ -70,7 +76,12 @@ static int SVertexIterator_init(BPy_SVertexIterator *self, PyObject *args, PyObj
   else if ((void)PyErr_Clear(),
            PyArg_ParseTupleAndKeywords(args,
                                        kwds,
-                                       "O!O!O!O!f",
+                                       "O!" /* `vertex` */
+                                       "O!" /* `begin` */
+                                       "O!" /* `previous_edge` */
+                                       "O!" /* `next_edge` */
+                                       "f"  /* `t` */
+                                       ":__init__",
                                        (char **)kwlist_2,
                                        &SVertex_Type,
                                        &obj1,

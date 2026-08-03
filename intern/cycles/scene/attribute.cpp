@@ -805,6 +805,7 @@ static TypeDesc find_type_from_geometry_std(Geometry *geometry, AttributeStandar
       case ATTR_STD_RANDOM_PER_ISLAND:
         return TypeFloat;
       case ATTR_STD_SHADOW_TRANSPARENCY:
+        /* Stored as float but uses RGBE encoding. */
         return TypeFloat;
       default:
         assert(0);

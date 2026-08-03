@@ -109,6 +109,9 @@ void ResourceBind::execute() const
     case ResourceBind::Type::IndexAsStorageBuf:
       GPU_indexbuf_bind_as_ssbo(is_reference ? *index_buf_ref : index_buf, slot);
       break;
+    case ResourceBind::Type::TopLevelAS:
+      tlas->bind(slot);
+      break;
   }
 }
 

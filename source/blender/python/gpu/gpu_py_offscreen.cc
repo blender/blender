@@ -241,7 +241,12 @@ static PyObject *pygpu_offscreen_bind(BPyGPUOffScreen *self)
   ret->is_explicitly_bound = false;
   Py_INCREF(self);
 
-  pygpu_offscreen_stack_context_enter(ret);
+  PyObject *enter_ret = pygpu_offscreen_stack_context_enter(ret);
+  if (enter_ret == nullptr) [[unlikely]] {
+    Py_DECREF(ret);
+    return nullptr;
+  }
+  Py_DECREF(enter_ret);
   ret->is_explicitly_bound = true;
 
   return reinterpret_cast<PyObject *>(ret);
@@ -265,7 +270,7 @@ static PyObject *pygpu_offscreen_unbind(BPyGPUOffScreen *self, PyObject *args, P
 
   static const char *_keywords[] = {"restore", nullptr};
   static _PyArg_Parser _parser = {
-      "|$" /* Optional keyword only arguments. */
+      "|$" /* Optional, keyword only arguments. */
       "O&" /* `restore` */
       ":unbind",
       _keywords,
@@ -300,7 +305,7 @@ static PyObject *pygpu_offscreen__tp_new(PyTypeObject * /*self*/, PyObject *args
   static _PyArg_Parser _parser = {
       "i"  /* `width` */
       "i"  /* `height` */
-      "|$" /* Optional keyword only arguments. */
+      "|$" /* Optional, keyword only arguments. */
       "O&" /* `format` */
       ":GPUOffScreen.__new__",
       _keywords,
@@ -430,7 +435,7 @@ static PyObject *pygpu_offscreen_draw_view3d(BPyGPUOffScreen *self, PyObject *ar
       "O"  /* `region` */
       "O&" /* `view_matrix` */
       "O&" /* `projection_matrix` */
-      "|$" /* Optional keyword only arguments. */
+      "|$" /* Optional, keyword only arguments. */
       "O&" /* `do_color_management` */
       "O&" /* `draw_background` */
       ":draw_view3d",

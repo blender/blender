@@ -258,8 +258,6 @@ static void callback_main_atexit(void *user_data)
     BKE_blender_globals_clear();
     BKE_appdir_exit();
 
-    DNA_sdna_current_free();
-
     CLG_exit();
   }
 }
@@ -487,8 +485,6 @@ int main(int argc,
   BKE_appdir_program_path_init(argv[0]);
 
   BLI_threadapi_init();
-
-  DNA_sdna_current_init();
 
   BKE_blender_globals_init(); /* `blender.cc` */
 

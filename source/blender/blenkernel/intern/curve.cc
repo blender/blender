@@ -3113,6 +3113,11 @@ static void calchandleNurb_intern(BezTriple *bezt,
     return;
   }
 
+  if (prev == nullptr && next == nullptr) {
+    /* Single point, no need to calculat handles. */
+    return;
+  }
+
   p2 = bezt->vec[1];
 
   if (prev == nullptr) {

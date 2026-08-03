@@ -2534,6 +2534,12 @@ static int arg_handle_render_frame(int argc, const char **argv, void *data)
         return 1;
       }
 
+      if (!RE_is_rendering_allowed(*bmain, scene, nullptr, nullptr, &reports)) {
+        BKE_reports_free(&reports);
+        MEM_delete(frame_range_arr);
+        return 1;
+      }
+
       re = RE_NewSceneRender(scene);
       RE_SetReports(re, &reports);
 
@@ -2576,6 +2582,11 @@ static int arg_handle_render_animation(int /*argc*/, const char ** /*argv*/, voi
     BKE_reports_init(&reports, RPT_STORE);
 
     if (!RE_disable_save_output_allowed(true, *scene, &reports)) {
+      BKE_reports_free(&reports);
+      return 0;
+    }
+
+    if (!RE_is_rendering_allowed(*bmain, scene, nullptr, nullptr, &reports)) {
       BKE_reports_free(&reports);
       return 0;
     }

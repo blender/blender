@@ -132,7 +132,7 @@ class Rig(BaseSkinChainRigWithRotationOption, RelinkConstraintsMixin):
 
         layout.prop(params, "relink_constraints")
 
-        layout.label(text="All constraints are moved to the control bone.", icon='INFO')
+        layout.label(text="All constraints are moved to the control bone.", icon='STATUS_INFO')
 
         super().parameters_ui(layout, params)
 

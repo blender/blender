@@ -194,7 +194,7 @@ static PyObject *pygpu_texture__tp_new(PyTypeObject * /*self*/, PyObject *args, 
   static const char *_keywords[] = {"size", "layers", "is_cubemap", "format", "data", nullptr};
   static _PyArg_Parser _parser = {
       "O"  /* `size` */
-      "|$" /* Optional keyword only arguments. */
+      "|$" /* Optional, keyword only arguments. */
       "i"  /* `layers` */
       "p"  /* `is_cubemap` */
       "O&" /* `format` */
@@ -514,7 +514,7 @@ static PyObject *pygpu_texture_mipmap_mode(BPyGPUTexture *self, PyObject *args, 
   bool use_filter = true;
   static const char *_keywords[] = {"use_mipmap", "use_filter"};
   static _PyArg_Parser _parser = {
-      "|$" /* Optional keyword only arguments. */
+      "|$" /* Optional, keyword only arguments. */
       "b"  /* `use_mipmap` */
       "b"  /* `use_filter` */
       ":mipmap_mode",

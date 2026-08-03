@@ -544,9 +544,11 @@ struct View2DEdgePanData {
   /** Delay in seconds before maximum speed is reached. */
   float delay;
   /**
-   * Influence factor for view zoom:
+   * Influence factor for horizontal view zoom:
    * - 0 = Constant speed in UI units.
-   * - 1 = Constant speed in view space, UI speed slows down when zooming out.
+   * - 1 = Constant speed in view space, UI speed slows down when zooming out horizontally.
+   * \note For spaces that have different zoom levels along separate axes, vertical pan speed is
+   * also based on this horizontal zoom, which may feel unexpected!
    */
   float zoom_influence;
 

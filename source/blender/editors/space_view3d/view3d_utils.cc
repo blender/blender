@@ -30,6 +30,7 @@
 #include "BLI_listbase.hh"
 #include "BLI_math_color_c.hh"
 #include "BLI_math_geom_c.hh"
+#include "BLI_math_matrix.hh"
 #include "BLI_math_matrix_c.hh"
 #include "BLI_math_rotation_c.hh"
 #include "BLI_math_vector_c.hh"
@@ -527,7 +528,8 @@ void ED_view3d_persp_switch_from_camera(const Depsgraph *depsgraph,
     Object *ob_camera_eval = DEG_get_evaluated(depsgraph, v3d->camera);
     rv3d->dist = ED_view3d_offset_distance(
         ob_camera_eval->object_to_world().ptr(), rv3d->ofs, VIEW3D_DIST_FALLBACK);
-    ED_view3d_from_object(ob_camera_eval, rv3d->ofs, rv3d->viewquat, &rv3d->dist, nullptr);
+    ED_view3d_from_object(
+        ob_camera_eval, rv3d->ofs, rv3d->viewquat, &rv3d->dist, rv3d->camroll, nullptr);
     WM_main_add_notifier(NC_SPACE | ND_SPACE_VIEW3D, v3d);
   }
 
@@ -589,8 +591,25 @@ bool ED_view3d_camera_view_pan(ARegion *region, const float event_ofs[2])
   RegionView3D *rv3d = static_cast<RegionView3D *>(region->regiondata);
   const float camdxy_init[2] = {rv3d->camdx, rv3d->camdy};
   const float zoomfac = BKE_screen_view3d_zoom_to_fac(rv3d->camzoom) * 2.0f;
-  rv3d->camdx += event_ofs[0] / (region->winx * zoomfac);
-  rv3d->camdy += event_ofs[1] / (region->winy * zoomfac);
+  float2 xy = {
+      event_ofs[0] / (region->winx * zoomfac),
+      event_ofs[1] / (region->winy * zoomfac),
+  };
+
+  /* Calculate pan direction after roll. */
+  if (rv3d->camroll != 0.0f) {
+    const float aspect = float(region->winx) / float(region->winy);
+    xy.x *= aspect;
+
+    const float2x2 rot_invert = math::from_rotation<float2x2>(math::AngleRadian(-rv3d->camroll));
+    xy = rot_invert * xy;
+
+    xy.x /= aspect;
+  }
+
+  rv3d->camdx += xy.x;
+  rv3d->camdy += xy.y;
+
   CLAMP(rv3d->camdx, -1.0f, 1.0f);
   CLAMP(rv3d->camdy, -1.0f, 1.0f);
   return (camdxy_init[0] != rv3d->camdx) || (camdxy_init[1] != rv3d->camdy);
@@ -622,7 +641,9 @@ void ED_view3d_camera_lock_init_ex(const Depsgraph *depsgraph,
       rv3d->dist = ED_view3d_offset_distance(
           ob_camera_eval->object_to_world().ptr(), rv3d->ofs, VIEW3D_DIST_FALLBACK);
     }
-    ED_view3d_from_object(ob_camera_eval, rv3d->ofs, rv3d->viewquat, &rv3d->dist, nullptr);
+    /* Restore the roll removed when syncing from the camera object. */
+    ED_view3d_from_object(
+        ob_camera_eval, rv3d->ofs, rv3d->viewquat, &rv3d->dist, rv3d->camroll, nullptr);
   }
 }
 
@@ -653,7 +674,7 @@ bool ED_view3d_camera_lock_sync(const Depsgraph *depsgraph, View3D *v3d, RegionV
       Object *ob_camera_eval = DEG_get_evaluated(depsgraph, v3d->camera);
       Object *root_parent_eval = DEG_get_evaluated(depsgraph, root_parent);
 
-      ED_view3d_to_m4(view_mat, rv3d->ofs, rv3d->viewquat, rv3d->dist);
+      ED_view3d_to_m4(view_mat, rv3d->ofs, rv3d->viewquat, rv3d->dist, rv3d->camroll);
 
       normalize_m4_m4(tmat, ob_camera_eval->object_to_world().ptr());
 
@@ -677,7 +698,8 @@ bool ED_view3d_camera_lock_sync(const Depsgraph *depsgraph, View3D *v3d, RegionV
       /* always maintain the same scale */
       const short protect_scale_all = (OB_LOCK_SCALEX | OB_LOCK_SCALEY | OB_LOCK_SCALEZ);
       BKE_object_tfm_protected_backup(v3d->camera, &obtfm);
-      ED_view3d_to_object(depsgraph, v3d->camera, rv3d->ofs, rv3d->viewquat, rv3d->dist);
+      ED_view3d_to_object(
+          depsgraph, v3d->camera, rv3d->ofs, rv3d->viewquat, rv3d->dist, rv3d->camroll);
       BKE_object_tfm_protected_restore(
           v3d->camera, &obtfm, v3d->camera->protectflag | protect_scale_all);
 
@@ -1607,7 +1629,8 @@ bool ED_view3d_lock(RegionView3D *rv3d)
 /** \name View Transform Utilities
  * \{ */
 
-void ED_view3d_from_m4(const float mat[4][4], float ofs[3], float quat[4], const float *dist)
+void ED_view3d_from_m4(
+    const float mat[4][4], float ofs[3], float quat[4], const float *dist, const float roll)
 {
   float nmat[3][3];
 
@@ -1626,6 +1649,12 @@ void ED_view3d_from_m4(const float mat[4][4], float ofs[3], float quat[4], const
   if (quat) {
     mat3_normalized_to_quat(quat, nmat);
     invert_qt_normalized(quat);
+
+    if (roll != 0.0f) {
+      float quat_roll[4];
+      axis_angle_to_quat_single(quat_roll, 'Z', roll);
+      mul_qt_qtqt(quat, quat_roll, quat);
+    }
   }
 
   if (ofs && dist) {
@@ -1633,9 +1662,19 @@ void ED_view3d_from_m4(const float mat[4][4], float ofs[3], float quat[4], const
   }
 }
 
-void ED_view3d_to_m4(float mat[4][4], const float ofs[3], const float quat[4], const float dist)
+void ED_view3d_to_m4(
+    float mat[4][4], const float ofs[3], const float quat[4], const float dist, const float roll)
 {
-  const float iviewquat[4] = {-quat[0], quat[1], quat[2], quat[3]};
+  float quat_no_roll[4];
+  const float *quat_p = quat;
+  if (roll != 0.0f) {
+    /* Remove roll. */
+    axis_angle_to_quat_single(quat_no_roll, 'Z', -roll);
+    mul_qt_qtqt(quat_no_roll, quat_no_roll, quat);
+    quat_p = quat_no_roll;
+  }
+
+  const float iviewquat[4] = {-quat_p[0], quat_p[1], quat_p[2], quat_p[3]};
   float dvec[3] = {0.0f, 0.0f, dist};
 
   quat_to_mat4(mat, iviewquat);
@@ -1643,17 +1682,21 @@ void ED_view3d_to_m4(float mat[4][4], const float ofs[3], const float quat[4], c
   sub_v3_v3v3(mat[3], dvec, ofs);
 }
 
-void ED_view3d_from_object(
-    const Object *ob, float ofs[3], float quat[4], const float *dist, float *lens)
+void ED_view3d_from_object(const Object *ob,
+                           float ofs[3],
+                           float quat[4],
+                           const float *dist,
+                           const float roll,
+                           float *r_lens)
 {
-  ED_view3d_from_m4(ob->object_to_world().ptr(), ofs, quat, dist);
+  ED_view3d_from_m4(ob->object_to_world().ptr(), ofs, quat, dist, roll);
 
-  if (lens) {
+  if (r_lens) {
     CameraParams params;
 
     BKE_camera_params_init(&params);
     BKE_camera_params_from_object(&params, ob);
-    *lens = params.lens;
+    *r_lens = params.lens;
   }
 }
 
@@ -1661,10 +1704,11 @@ void ED_view3d_to_object(const Depsgraph *depsgraph,
                          Object *ob,
                          const float ofs[3],
                          const float quat[4],
-                         const float dist)
+                         const float dist,
+                         const float roll)
 {
   float mat[4][4];
-  ED_view3d_to_m4(mat, ofs, quat, dist);
+  ED_view3d_to_m4(mat, ofs, quat, dist, roll);
 
   Object *ob_eval = DEG_get_evaluated(depsgraph, ob);
   BKE_object_apply_mat4_ex(ob, mat, ob_eval->parent, ob_eval->parentinv, true);

@@ -8,6 +8,8 @@
 
 #pragma once
 
+#include <optional>
+
 #include "DNA_screen_types.h"
 #include "DNA_space_types.h"
 #include "DNA_userdef_types.h"
@@ -243,6 +245,9 @@ void ED_area_tag_redraw(ScrArea *area);
 void ED_area_tag_redraw_no_rebuild(ScrArea *area);
 void ED_area_tag_redraw_regiontype(ScrArea *area, int regiontype);
 void ED_area_tag_refresh(ScrArea *area);
+void ED_area_hud_region_set_padding_flag(ScrArea *area,
+                                         ARegion *changed_region,
+                                         const bool set_padding = false);
 /**
  * For regions that change the region size in their #ARegionType.layout() callback: Mark the area
  * as having a changed region size, requiring refitting of regions within the area.
@@ -355,7 +360,20 @@ void ED_screen_exit(bContext *C, wmWindow *window, bScreen *screen);
  */
 void ED_screen_animation_timer(
     bContext *C, Scene *scene, ViewLayer *view_layer, int redraws, int sync, int enable);
+/**
+ * Remove the animation timer, same as calling ED_screen_animation_timer(..., enable=0).
+ */
+void ED_screen_animation_timer_remove(wmWindowManager *wm, wmWindow *win);
 void ED_screen_animation_timer_update(bScreen *screen, int redraws);
+/**
+ * Stop the animation in all screens where should_stop_fn(screen) returns true.
+ *
+ * The callback is only called for screens that have an animation timer.
+ */
+void ED_screen_animation_stop(Main *bmain,
+                              wmWindowManager *wm,
+                              FunctionRef<bool(const bScreen &screen)> should_stop_fn);
+
 void ED_screen_restore_temp_type(bContext *C, ScrArea *area);
 ScrArea *ED_screen_full_newspace(bContext *C, ScrArea *area, int type);
 /**
@@ -533,6 +551,26 @@ void ED_update_for_newframe(Main *bmain, Depsgraph *depsgraph);
  */
 void ED_reset_audio_device(bContext *C);
 wmOperatorStatus ED_screen_animation_play(bContext *C, int sync, int mode);
+
+/**
+ * Start scrubbing, returns optional playback state.
+ * \param C: The current context, which is used to find the screen that is currently managing the
+ * animation playback.
+ * \param screen: The screen that is currently being used to scrub.
+ */
+std::optional<PreScrubbingState> ED_screen_scrubbing_enable(bContext &C, bScreen &screen);
+/**
+ * Stop scrubbing, optionally resumes playback.
+ * \param C: The current context, which is used to find the screen that is currently managing the
+ * animation playback.
+ * \param screen: The screen that is currently being used to scrub.
+ * \param resume: Optional saved playback data - if it has a value, playback is started with the
+ * given settings.
+ */
+void ED_screen_scrubbing_disable(bContext &C,
+                                 bScreen &screen,
+                                 const std::optional<PreScrubbingState> &resume);
+
 /**
  * Find window that owns the animation timer.
  */
@@ -627,6 +665,7 @@ bool ED_operator_preferences_active(bContext *C);
 /** Only check there is an active object (no visibility check). */
 bool ED_operator_object_active_only(bContext *C);
 bool ED_operator_object_active(bContext *C);
+bool ED_operator_object_active_objectmode(bContext *C);
 bool ED_operator_object_active_editable_ex(bContext *C, const Object *ob);
 bool ED_operator_object_active_editable(bContext *C);
 

@@ -147,9 +147,9 @@ class Rig(BaseRig, RelinkConstraintsMixin):
         if params.relink_constraints and (params.make_control or params.make_deform):
             col = layout.column()
             if params.make_control:
-                col.label(text="'CTRL:...' constraints are moved to the control bone.", icon='INFO')
+                col.label(text="'CTRL:...' constraints are moved to the control bone.", icon='STATUS_INFO')
             if params.make_deform:
-                col.label(text="'DEF:...' constraints are moved to the deform bone.", icon='INFO')
+                col.label(text="'DEF:...' constraints are moved to the deform bone.", icon='STATUS_INFO')
 
 
 def create_sample(obj):

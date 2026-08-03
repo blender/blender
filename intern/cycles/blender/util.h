@@ -91,7 +91,7 @@ void python_thread_state_restore(void **python_thread_state);
 
 static inline blender::Mesh *object_to_mesh(BObjectInfo &b_ob_info)
 {
-  blender::Mesh *mesh = (GS(b_ob_info.object_data->name) == blender::ID_ME) ?
+  blender::Mesh *mesh = (blender::GS(b_ob_info.object_data->name) == blender::ID_ME) ?
                             blender::id_cast<blender::Mesh *>(b_ob_info.object_data) :
                             nullptr;
 
@@ -513,7 +513,7 @@ static inline string get_text_datablock_content(const blender::ID *id)
   if (id == nullptr) {
     return "";
   }
-  if (GS(id->name) != blender::ID_TXT) {
+  if (blender::GS(id->name) != blender::ID_TXT) {
     return "";
   }
   const auto &text = *blender::id_cast<const blender::Text *>(id);

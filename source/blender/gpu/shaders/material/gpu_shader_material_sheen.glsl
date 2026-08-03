@@ -14,8 +14,7 @@ void node_bsdf_sheen(float4 color, float roughness, float3 N, float weight, Clos
 
   /* Fall back to diffuse. */
   ClosureDiffuse diffuse_data;
-  diffuse_data.weight = weight;
-  diffuse_data.color = color.rgb;
+  diffuse_data.color = color.rgb * weight;
   diffuse_data.N = N;
 
   result = closure_eval(diffuse_data);

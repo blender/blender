@@ -13,6 +13,7 @@
 
 #include "BLI_enum_flags.hh"
 #include "BLI_math_matrix_types.hh"
+#include "BLI_math_vector_types.hh"
 #include "BLI_span.hh"
 #include "BLI_vector.hh"
 
@@ -26,6 +27,10 @@ struct rcti;
 
 struct ImageFormatData;
 struct Stereo3dFormat;
+
+namespace imbuf::partial_update {
+struct Changes;
+}
 
 /**
  * Module init/exit.
@@ -364,13 +369,15 @@ void IMB_scale_box(const float *src_buffer,
                    int channels,
                    float *dst_buffer,
                    int2 dst_size,
-                   bool threaded);
+                   bool threaded,
+                   int src_stride = 0);
 void IMB_scale_box(const uchar *src_buffer,
                    int2 src_size,
                    int channels,
                    uchar *dst_buffer,
                    int2 dst_size,
-                   bool threaded);
+                   bool threaded,
+                   int src_stride = 0);
 
 /**
  * Scale/resize image to new dimensions.
@@ -416,14 +423,14 @@ void IMB_saturation(ImBuf *ibuf, float sat);
 
 /**
  * Convert float pixels to byte pixels.
- * \param dest Destination, always 4 channel RGBA, non-premultiplied.
- * \param src Source.
- * \param src_channels Source channels (1, 3, 4).
- * \param dither Amount of dithering to apply to destination.
- * \param predivide Is source alpha premultiplied.
- * \param width Width in pixels.
- * \param height Height in pixels.
- * \param stride Row stride in pixels.
+ * \param dest: Destination, always 4 channel RGBA, non-premultiplied.
+ * \param src: Source.
+ * \param src_channels: Source channels (1, 3, 4).
+ * \param dither: Amount of dithering to apply to destination.
+ * \param predivide: Is source alpha premultiplied.
+ * \param width: Width in pixels.
+ * \param height: Height in pixels.
+ * \param stride: Row stride in pixels.
  */
 void IMB_buffer_byte_from_float(unsigned char *dest,
                                 const float *src,
@@ -447,23 +454,23 @@ void IMB_buffer_byte_from_float_mask(unsigned char *dest,
                                      const char *mask);
 /**
  * Convert byte pixels to float pixels.
- * \param dest Destination, always 4 channel RGBA, non-premultiplied.
- * \param src Source, always 4 channel RGBA, non-premultiplied.
- * \param width Width in pixels.
- * \param height Height in pixels.
- * \param dest_stride Destination row stride in pixels.
- * \param src_stride Source row stride in pixels.
+ * \param dest: Destination, always 4 channel RGBA, non-premultiplied.
+ * \param src: Source, always 4 channel RGBA, non-premultiplied.
+ * \param width: Width in pixels.
+ * \param height: Height in pixels.
+ * \param dest_stride: Destination row stride in pixels.
+ * \param src_stride: Source row stride in pixels.
  */
 void IMB_buffer_float_from_byte(
     float *dest, const unsigned char *src, int width, int height, int dest_stride, int src_stride);
 
 /**
  * Convert 1/3/4 channel float pixels to 4 channel (RGBA) float pixels.
- * \param dest Destination, always 4 channel.
- * \param src Source.
- * \param src_channels Source channels (1, 3, 4).
- * \param width Width in pixels.
- * \param height Height in pixels.
+ * \param dest: Destination, always 4 channel.
+ * \param src: Source.
+ * \param src_channels: Source channels (1, 3, 4).
+ * \param width: Width in pixels.
+ * \param height: Height in pixels.
  */
 void IMB_buffer_float_rgba_from_float(
     float *dest, const float *src, int src_channels, int width, int height);
@@ -551,11 +558,6 @@ void IMB_free_all_data(ImBuf *ibuf);
  * The ibuf can be nullptr, in which case the function does nothing.
  */
 void IMB_free_gpu_textures(ImBuf *ibuf);
-
-/**
- * Clear #IMB_GPU_LOAD_FAILED flag, to retry failed GPU texture creation.
- */
-void IMB_clear_gpu_load_failed(ImBuf *ibuf);
 
 /**
  * \brief Transform modes to use for IMB_transform function.
@@ -664,6 +666,20 @@ void IMB_update_gpu_texture_sub(gpu::Texture *tex,
                                 int h,
                                 bool use_grayscale,
                                 bool use_premult);
+
+/**
+ * Update GPU texture from host buffer, changing just the subset that was modified.
+ *
+ * When #layer is specified, the corresponding layered texture is updated at the
+ * specified #tile_offset and #tile_size, for multiple tiles packed into one layer.
+ */
+void IMB_gpu_texture_apply_partial_update(gpu::Texture *tex,
+                                          ImBuf *ibuf,
+                                          bool store_premultiplied,
+                                          const imbuf::partial_update::Changes &changes,
+                                          int layer = -1,
+                                          int2 tile_offset = int2(0),
+                                          int2 tile_size = int2(0));
 
 void IMB_stereo3d_write_dimensions(
     char mode, bool is_squeezed, size_t width, size_t height, size_t *r_width, size_t *r_height);

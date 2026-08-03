@@ -8,6 +8,7 @@
  */
 
 #include <memory>
+#include <optional>
 #include <string>
 
 #include "BLI_compiler_attrs.hh"
@@ -315,6 +316,23 @@ struct ARegionType {
    */
   void (*on_view2d_changed)(const bContext *C, ARegion *region);
 
+  /**
+   * Return the IME cursor (caret) rectangle in region-relative coordinates,
+   * or nullopt if IME should not be active in this region
+   * (e.g. during navigation, or when no text is being edited).
+   *
+   * The rectangle's lower-left corner positions the IME candidate window, while its size
+   * lets the OS keep the candidate window clear of the caret line.
+   *
+   * Called on region activation and after each draw (when `ARegionRuntime::do_ime` is set)
+   * to position the IME candidate window.
+   * The caller converts to window coordinates and calls `WM_window_IME_begin`/`end`.
+   *
+   * \note A zero width/height is acceptable when the caret extent isn't well defined in region
+   * space (e.g. 3D text, whose caret may be rotated), in which case only the corner is used.
+   */
+  std::optional<rcti> (*cursor_ime)(wmWindow *win, const ScrArea *area, const ARegion *region);
+
   ARegionTypeFlag flag;
 
   /** Custom drawing callbacks. */
@@ -509,6 +527,12 @@ enum class ARegionQuadviewIndex : uint8_t {
   TopRight = 4,
 };
 
+enum ARegionRuntimeFlag : uint8_t {
+  /** Move redo panel in +Y direction to avoid overlapping with other UI elements, see: #62258 */
+  HUD_PADDING = (1 << 0),
+};
+ENUM_OPERATORS(ARegionRuntimeFlag)
+
 struct ARegionRuntime {
   /** Callbacks for this region type. */
   struct ARegionType *type;
@@ -563,10 +587,14 @@ struct ARegionRuntime {
   /** Private, cached notifier events. */
   short do_draw_paintcursor;
 
+  /** Tag for IME cursor position refresh on next draw. */
+  bool do_ime = false;
+
   ARegionQuadviewIndex quadview_index = ARegionQuadviewIndex::None;
 
   /** Dummy panel used in popups so they can support layout panels. */
   Panel *popup_block_panel = nullptr;
+  ARegionRuntimeFlag flag = {};
 };
 
 }  // namespace bke
@@ -883,9 +911,13 @@ ARegion *BKE_screen_find_region_in_space(const bScreen *screen,
     ATTR_NONNULL(1, 2);
 /**
  * \note used to get proper RNA paths for spaces (editors).
+ * \note This handles both normal screen areas, and global areas that are owned by the window.
  */
-std::optional<std::string> BKE_screen_path_from_screen_to_space(const PointerRNA *ptr);
-std::optional<std::string> BKE_screen_path_from_screen_to_area(const PointerRNA *ptr);
+std::optional<std::string> BKE_screen_path_to_space(const PointerRNA *ptr);
+/**
+ * \note This handles both normal screen areas, and global areas that are owned by the window.
+ */
+std::optional<std::string> BKE_screen_path_to_area(const PointerRNA *ptr);
 /**
  * \note Using this function is generally a last resort, you really want to be
  * using the context when you can - campbell

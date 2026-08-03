@@ -78,10 +78,14 @@ static PreviewImage *previewimg_deferred_create(const char *filepath, ThumbSourc
   return prv;
 }
 
-static void previewimg_free_or_defer(PreviewImage **prv)
+/**
+ * \return True if the preview image was deleted or marked for deferred deletion. User counting may
+ *     prevent the freeing so this will return false then.
+ */
+static bool previewimg_free_or_defer(PreviewImage **prv)
 {
   if (*prv == nullptr) {
-    return;
+    return false;
   }
 
   BLI_assert(BLI_thread_is_main());
@@ -91,7 +95,7 @@ static void previewimg_free_or_defer(PreviewImage **prv)
     (*prv)->runtime->user_count--;
     if ((*prv)->runtime->user_count > 0) {
       /* Don't free yet. */
-      return;
+      return false;
     }
   }
 
@@ -110,6 +114,7 @@ static void previewimg_free_or_defer(PreviewImage **prv)
     BKE_previewimg_free(prv);
   }
   *prv = nullptr;
+  return true;
 }
 
 PreviewImage *BKE_previewimg_create()
@@ -379,8 +384,12 @@ void BKE_previewimg_cached_release(const char *name)
 {
   BLI_assert(BLI_thread_is_main());
   CachedPreviewMap &cache = get_cached_previews_map();
-  PreviewImage *prv = cache.pop_default_as(name, nullptr);
-  previewimg_free_or_defer(&prv);
+  PreviewImage *prv = cache.lookup_default(name, nullptr);
+  /* The preview may not be freed when there are more users still. In that case, keep the preview
+   * in the cache, so other users can still find it an free it eventually. */
+  if (previewimg_free_or_defer(&prv)) {
+    cache.pop_try(name);
+  }
 }
 
 void BKE_previewimg_ensure(PreviewImage *prv, const int size)

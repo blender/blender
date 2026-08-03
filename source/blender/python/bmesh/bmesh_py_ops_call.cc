@@ -60,7 +60,7 @@ static int bpy_slot_from_py_elem_check(BPy_BMElem *value,
 {
   if (!BPy_BMElem_Check(value) || !(value->ele->head.htype & htype)) {
     PyErr_Format(PyExc_TypeError,
-                 "%.200s: keyword \"%.200s\" %.200s, expected a %.200s not *.200s",
+                 "%.200s: keyword \"%.200s\" %.200s, expected a %.200s not %.200s",
                  opname,
                  slot_name,
                  descr,
@@ -78,7 +78,7 @@ static int bpy_slot_from_py_elem_check(BPy_BMElem *value,
   }
   if (value->bm != bm) { /* we may want to make this check optional by setting 'bm' to nullptr */
     PyErr_Format(PyExc_TypeError,
-                 "%.200s: keyword \"%.200s\" %.200s invalidated element",
+                 "%.200s: keyword \"%.200s\" %.200s from another mesh",
                  opname,
                  slot_name,
                  descr);

@@ -1064,17 +1064,17 @@ static void panel_title_color_get(const Panel *panel,
                                   const bool region_search_filter_active,
                                   uchar r_color[4])
 {
+  const bTheme *btheme = theme::theme_get();
+
   if (!show_background) {
     /* Use menu colors for floating panels. */
-    bTheme *btheme = theme::theme_get();
     const uiWidgetColors *wcol = &btheme->tui.wcol_menu_back;
     copy_v4_v4_uchar(r_color, static_cast<const uchar *>(wcol->text));
     return;
   }
 
   const bool search_match = panel_matches_search_filter(panel);
-
-  theme::get_color_4ubv(TH_TITLE, r_color);
+  copy_v4_v4_uchar(r_color, static_cast<const uchar *>(btheme->tui.panel_title));
   if (region_search_filter_active && !search_match) {
     r_color[0] *= 0.5;
     r_color[1] *= 0.5;
@@ -2665,9 +2665,8 @@ int handler_panel_region(bContext *C,
     }
     else if ((event->type == RIGHTMOUSE) && panel_categories_tab_is_mouse_over(region, event)) {
       BLI_assert(retval == WM_UI_HANDLER_CONTINUE);
-      retval = WM_UI_HANDLER_BREAK;
       WM_tooltip_clear(C, CTX_wm_window(C));
-      popup_context_menu_for_panel(C, region, nullptr);
+      retval = popup_context_menu_for_panel(C, region, nullptr);
     }
   }
 
@@ -2715,14 +2714,6 @@ int handler_panel_region(bContext *C,
       continue;
     }
 
-    if (has_panel_header && event->type == RIGHTMOUSE) {
-      if (ELEM(mouse_state, PANEL_MOUSE_INSIDE_HEADER, PANEL_MOUSE_INSIDE_CONTENT)) {
-        retval = WM_UI_HANDLER_BREAK;
-        popup_context_menu_for_panel(C, region, block.panel);
-        break;
-      }
-    }
-
     if ((has_panel_header && mouse_state == PANEL_MOUSE_INSIDE_HEADER)) {
       /* All mouse clicks inside panel headers should return in break. */
       if (ELEM(event->type, EVT_RETKEY, EVT_PADENTER, LEFTMOUSE)) {
@@ -2731,8 +2722,7 @@ int handler_panel_region(bContext *C,
             C, &block, mx, event->type, event->modifier & KM_CTRL, event->modifier & KM_SHIFT);
       }
       else if (event->type == RIGHTMOUSE) {
-        retval = WM_UI_HANDLER_BREAK;
-        popup_context_menu_for_panel(C, region, block.panel);
+        retval = popup_context_menu_for_panel(C, region, block.panel);
       }
       break;
     }

@@ -97,6 +97,11 @@ void ED_gizmo_arrow3d_set_ui_range(wmGizmo *gz, float min, float max);
  */
 void ED_gizmo_arrow3d_set_range_fac(wmGizmo *gz, float range_fac);
 
+/**
+ * Reset the offset of the arrow gizmo.
+ */
+void ED_gizmo_arrow3d_reset_offset(wmGizmo *gz);
+
 /* -------------------------------------------------------------------- */
 /* Cage Gizmo */
 

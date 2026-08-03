@@ -81,8 +81,13 @@ static PyObject *UnaryFunction0DId___call__(BPy_UnaryFunction0DId *self,
   static const char *kwlist[] = {"it", nullptr};
   PyObject *obj;
 
-  if (!PyArg_ParseTupleAndKeywords(
-          args, kwds, "O!", (char **)kwlist, &Interface0DIterator_Type, &obj))
+  if (!PyArg_ParseTupleAndKeywords(args,
+                                   kwds,
+                                   "O!" /* `it` */
+                                   ":__call__",
+                                   (char **)kwlist,
+                                   &Interface0DIterator_Type,
+                                   &obj))
   {
     return nullptr;
   }

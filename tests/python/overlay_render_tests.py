@@ -83,7 +83,7 @@ def main():
     report.set_reference_dir("overlay_renders")
 
     test_dir_name = Path(args.testdir).name
-    gpu_vendor = render_report.get_gpu_device_vendor(args.blender)
+    gpu_vendor = render_report.get_gpu_device_vendor(args.blender, args.gpu_backend)
 
     if gpu_vendor == 'INTEL':
         # Intel shows larger differences in Point Primitive coordinates,

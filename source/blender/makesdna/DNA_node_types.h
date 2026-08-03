@@ -1404,6 +1404,16 @@ enum NodeGeometryTransformMode {
   GEO_NODE_TRANSFORM_MODE_MATRIX = 1,
 };
 
+enum NodeGeometryMergeLayersMode {
+  GEO_NODE_MERGE_LAYERS_BY_NAME = 0,
+  GEO_NODE_MERGE_LAYERS_BY_ID = 1,
+};
+
+enum NodeGeometryGreasePencilStrokeType : int8_t {
+  GEO_NODE_GREASE_PENCIL_STROKE = 0,
+  GEO_NODE_GREASE_PENCIL_FILL = 1,
+};
+
 struct bNodeStack {
   float vec[4] = {};
   float min = 0, max = 0;
@@ -2006,8 +2016,10 @@ struct bNodeTree {
   Span<bNodeLink *> all_links();
   Span<const bNodeLink *> all_links() const;
   /**
-   * Cached toposort of all nodes. If there are cycles, the returned array is not actually a
-   * toposort. However, if a connected component does not contain a cycle, this component is sorted
+   * Cached toposort of all nodes.
+   * As if you go from left to right then for any right node all connected left nodes already being
+   * visited and vice versa. If there are cycles, the returned array is not actually a toposort.
+   * However, if a connected component does not contain a cycle, this component is sorted
    * correctly. Use #has_available_link_cycle to check for cycles.
    */
   Span<bNode *> toposort_left_to_right();
@@ -3423,7 +3435,7 @@ struct NodeGeometryMergeLayers {
   DNA_DEFINE_CXX_METHODS(NodeGeometryMergeLayers)
 
   /** #MergeLayerMode. */
-  int8_t mode = 0;
+  DNA_DEPRECATED int8_t mode = 0;
 };
 
 struct NodeGeometrySeparateGeometry {
@@ -3798,6 +3810,51 @@ struct NodeGeometryDistributePointsInVolume {
   /** #GeometryNodePointDistributeVolumeMode. */
   uint8_t mode = 0;
 };
+
+typedef struct NodeGeometryRasterizePointsItem {
+  char *name;
+  /* #NodeGeometryRasterizePointsItemType */
+  short type;
+  char _pad1[2];
+  /**
+   * Generated unique identifier for sockets which stays the same even when the item order or
+   * names change.
+   */
+  int identifier;
+} NodeGeometryRasterizePointsItem;
+
+/* Note: The field/grid type combination of an item is using this enum instead of a simple
+ * eNodeSocketDatatype. This is because in the future other modes of attribute rasterization will
+ * likely be added, such as
+ *   scalar -> vector gradients
+ *   vector -> scalar divergence
+ *   3x3 matrix -> vector divergence
+ *   full APIC transfer schemes (4x4 matrix -> vector)
+ *
+ * In these modes the input field type does not match the output grid type, so identifying an item
+ * by socket type would require additional mode selection, which is unnecessarily complicated.
+ * A dedicated enum for these modes makes it easier to add such advanced conversions later.
+ */
+typedef enum NodeGeometryRasterizePointsItemType {
+  GEO_NODE_RASTERIZE_POINTS_ITEM_TYPE_SCALAR = 0,
+  GEO_NODE_RASTERIZE_POINTS_ITEM_TYPE_VECTOR = 1,
+} NodeGeometryRasterizePointsItemType;
+
+typedef struct NodeGeometryRasterizePoints {
+  DNA_DEFINE_CXX_METHODS(NodeGeometryRasterizePoints)
+
+  NodeGeometryRasterizePointsItem *items;
+  int items_num;
+  int active_index;
+  /** Identifier to give to the next repeat item. */
+  int next_identifier;
+  char _pad[4];
+
+#ifdef __cplusplus
+  blender::Span<NodeGeometryRasterizePointsItem> items_span() const;
+  blender::MutableSpan<NodeGeometryRasterizePointsItem> items_span();
+#endif
+} NodeGeometryRasterizePoints;
 
 struct NodeFunctionCompare {
   DNA_DEFINE_CXX_METHODS(NodeFunctionCompare)

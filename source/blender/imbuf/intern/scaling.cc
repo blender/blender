@@ -95,6 +95,7 @@ static void to_static_pixel_type(const BufferT *src_buffer,
 template<typename BufferT>
 static void scale_down_x_func(const BufferT *src_buffer,
                               const int2 src_size,
+                              const int src_stride,
                               const int channels,
                               BufferT *dst_buffer,
                               const int2 dst_size,
@@ -110,7 +111,7 @@ static void scale_down_x_func(const BufferT *src_buffer,
     const int grain_size = threaded ? 32 : ibufy;
     threading::parallel_for(IndexRange(ibufy), grain_size, [&](IndexRange range) {
       for (const int y : range) {
-        const T *src_ptr = src + (int64_t(y) * ibufx);
+        const T *src_ptr = src + (int64_t(y) * src_stride);
         T *dst_ptr = dst + (int64_t(y) * newx);
         float sample = 0.0f;
         float4 val(0.0f);
@@ -187,6 +188,7 @@ static void scale_down_y_func(const BufferT *src_buffer,
 template<typename BufferT>
 static void scale_up_x_func(const BufferT *src_buffer,
                             const int2 src_size,
+                            const int src_stride,
                             const int channels,
                             BufferT *dst_buffer,
                             const int2 dst_size,
@@ -204,7 +206,7 @@ static void scale_up_x_func(const BufferT *src_buffer,
           *dst = *src;
           dst++;
         }
-        src++;
+        src += src_stride;
       }
     }
     else {
@@ -213,7 +215,7 @@ static void scale_up_x_func(const BufferT *src_buffer,
         for (const int y : range) {
           float sample = -0.5f + add * 0.5f;
           int counter = 0;
-          const T *src_ptr = src + (int64_t(y) * ibufx);
+          const T *src_ptr = src + (int64_t(y) * src_stride);
           T *dst_ptr = dst + (int64_t(y) * newx);
           float4 val = load_pixel(src_ptr);
           float4 nval = load_pixel(src_ptr + 1);
@@ -309,17 +311,29 @@ static void imb_scale_box(const BufferT *src_buffer,
                           const int channels,
                           BufferT *dst_buffer,
                           const int2 dst_size,
-                          const bool threaded)
+                          const bool threaded,
+                          const int src_stride = 0)
 {
+  const int stride = (src_stride != 0) ? src_stride : src_size.x;
   BufferT *tmp_buffer = MEM_new_array_uninitialized<BufferT>(
       int64_t(channels) * dst_size.x * src_size.y, __func__);
   if (dst_size.x < src_size.x) {
-    scale_down_x_func(
-        src_buffer, src_size, channels, tmp_buffer, int2(dst_size.x, src_size.y), threaded);
+    scale_down_x_func(src_buffer,
+                      src_size,
+                      stride,
+                      channels,
+                      tmp_buffer,
+                      int2(dst_size.x, src_size.y),
+                      threaded);
   }
   else {
-    scale_up_x_func(
-        src_buffer, src_size, channels, tmp_buffer, int2(dst_size.x, src_size.y), threaded);
+    scale_up_x_func(src_buffer,
+                    src_size,
+                    stride,
+                    channels,
+                    tmp_buffer,
+                    int2(dst_size.x, src_size.y),
+                    threaded);
   }
 
   if (dst_size.y < src_size.y) {
@@ -339,9 +353,10 @@ void IMB_scale_box(const float *src_buffer,
                    const int channels,
                    float *dst_buffer,
                    const int2 dst_size,
-                   const bool threaded)
+                   const bool threaded,
+                   const int src_stride)
 {
-  imb_scale_box(src_buffer, src_size, channels, dst_buffer, dst_size, threaded);
+  imb_scale_box(src_buffer, src_size, channels, dst_buffer, dst_size, threaded, src_stride);
 }
 
 void IMB_scale_box(const uchar *src_buffer,
@@ -349,9 +364,10 @@ void IMB_scale_box(const uchar *src_buffer,
                    const int channels,
                    uchar *dst_buffer,
                    const int2 dst_size,
-                   const bool threaded)
+                   const bool threaded,
+                   const int src_stride)
 {
-  imb_scale_box(src_buffer, src_size, channels, dst_buffer, dst_size, threaded);
+  imb_scale_box(src_buffer, src_size, channels, dst_buffer, dst_size, threaded, src_stride);
 }
 
 template<typename T>

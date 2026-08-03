@@ -102,8 +102,12 @@ static BPy_GeometrySet *BPy_GeometrySet_static_from_evaluated_object(PyObject * 
 {
   static const char *kwlist[] = {"evaluated_object", nullptr};
   PyObject *py_evaluated_object;
-  if (!PyArg_ParseTupleAndKeywords(
-          args, kwds, "O", const_cast<char **>(kwlist), &py_evaluated_object))
+  if (!PyArg_ParseTupleAndKeywords(args,
+                                   kwds,
+                                   "O" /* `evaluated_object` */
+                                   ":from_evaluated_object",
+                                   const_cast<char **>(kwlist),
+                                   &py_evaluated_object))
   {
     return nullptr;
   }

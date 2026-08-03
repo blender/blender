@@ -341,7 +341,16 @@ static PyObject *py_bvhtree_ray_cast(PyBVHTree *self, PyObject *args)
   {
     PyObject *py_co, *py_direction;
 
-    if (!PyArg_ParseTuple(args, "OO|f:ray_cast", &py_co, &py_direction, &max_dist)) {
+    if (!PyArg_ParseTuple(args,
+                          "O" /* `origin` */
+                          "O" /* `direction` */
+                          "|" /* Optional arguments. */
+                          "f" /* `distance` */
+                          ":ray_cast",
+                          &py_co,
+                          &py_direction,
+                          &max_dist))
+    {
       return nullptr;
     }
 
@@ -392,7 +401,14 @@ static PyObject *py_bvhtree_find_nearest(PyBVHTree *self, PyObject *args)
   {
     PyObject *py_co;
 
-    if (!PyArg_ParseTuple(args, "O|f:find_nearest", &py_co, &max_dist)) {
+    if (!PyArg_ParseTuple(args,
+                          "O" /* `origin` */
+                          "|" /* Optional arguments. */
+                          "f" /* `distance` */
+                          ":find_nearest",
+                          &py_co,
+                          &max_dist))
+    {
       return nullptr;
     }
 
@@ -475,7 +491,14 @@ static PyObject *py_bvhtree_find_nearest_range(PyBVHTree *self, PyObject *args)
   {
     PyObject *py_co;
 
-    if (!PyArg_ParseTuple(args, "O|f:find_nearest_range", &py_co, &max_dist)) {
+    if (!PyArg_ParseTuple(args,
+                          "O" /* `origin` */
+                          "|" /* Optional arguments. */
+                          "f" /* `distance` */
+                          ":find_nearest_range",
+                          &py_co,
+                          &max_dist))
+    {
       return nullptr;
     }
 
@@ -673,7 +696,12 @@ static PyObject *C_BVHTree_FromPolygons(PyObject * /*cls*/, PyObject *args, PyOb
 
   if (!PyArg_ParseTupleAndKeywords(args,
                                    kwargs,
-                                   "OO|$O&f:BVHTree.FromPolygons",
+                                   "O"  /* `vertices` */
+                                   "O"  /* `polygons` */
+                                   "|$" /* Optional, keyword only arguments. */
+                                   "O&" /* `all_triangles` */
+                                   "f"  /* `epsilon` */
+                                   ":BVHTree.FromPolygons",
                                    const_cast<char **>(keywords),
                                    &py_coords,
                                    &py_tris,
@@ -757,6 +785,11 @@ static PyObject *C_BVHTree_FromPolygons(PyObject * /*cls*/, PyObject *args, PyOb
       }
 
       Py_DECREF(py_tricoords_fast);
+
+      if (!valid) {
+        /* Stop at the first bad triangle, else the error reported is the last one. */
+        break;
+      }
     }
   }
   else {
@@ -811,72 +844,79 @@ static PyObject *C_BVHTree_FromPolygons(PyObject * /*cls*/, PyObject *args, PyOb
 
       Py_DECREF(py_tricoords_fast);
 
+      if (!valid) {
+        break;
+      }
+
       if (py_tricoords_len >= 3) {
         tris_len += (py_tricoords_len - 2);
       }
     }
     *p_plink_prev = nullptr;
 
-    /* All NGON's are parsed, now tessellate. */
+    /* All NGON's are parsed, now tessellate.
+     * Skipped when a polygon was rejected above as its indices are
+     * out of range or were never assigned. */
+    if (valid) {
+      pf_arena = BLI_memarena_new(BLI_POLYFILL_ARENA_SIZE, __func__);
+      tris = MEM_new_array_uninitialized<uint[3]>(size_t(tris_len), __func__);
 
-    pf_arena = BLI_memarena_new(BLI_POLYFILL_ARENA_SIZE, __func__);
-    tris = MEM_new_array_uninitialized<uint[3]>(size_t(tris_len), __func__);
+      orig_index = MEM_new_array_uninitialized<int>(size_t(tris_len), __func__);
+      orig_normal = MEM_new_array_uninitialized<float[3]>(size_t(polys_len), __func__);
 
-    orig_index = MEM_new_array_uninitialized<int>(size_t(tris_len), __func__);
-    orig_normal = MEM_new_array_uninitialized<float[3]>(size_t(polys_len), __func__);
-
-    for (plink = plink_first, poly_index = 0, i = 0; plink; plink = plink->next, poly_index++) {
-      if (plink->len == 3) {
-        uint *tri = tris[i];
-        memcpy(tri, plink->poly, sizeof(uint[3]));
-        orig_index[i] = poly_index;
-        normal_tri_v3(orig_normal[poly_index], coords[tri[0]], coords[tri[1]], coords[tri[2]]);
-        i++;
-      }
-      else if (plink->len > 3) {
-        float (*proj_coords)[2] = static_cast<float (*)[2]>(
-            BLI_memarena_alloc(pf_arena, sizeof(*proj_coords) * plink->len));
-        float *normal = orig_normal[poly_index];
-        const float *co_prev;
-        const float *co_curr;
-        float axis_mat[3][3];
-        uint(*tris_offset)[3] = &tris[i];
-        uint j;
-
-        /* calc normal and setup 'proj_coords' */
-        zero_v3(normal);
-        co_prev = coords[plink->poly[plink->len - 1]];
-        for (j = 0; j < plink->len; j++) {
-          co_curr = coords[plink->poly[j]];
-          add_newell_cross_v3_v3v3(normal, co_prev, co_curr);
-          co_prev = co_curr;
-        }
-        normalize_v3(normal);
-
-        axis_dominant_v3_to_m3_negate(axis_mat, normal);
-
-        for (j = 0; j < plink->len; j++) {
-          mul_v2_m3v3(proj_coords[j], axis_mat, coords[plink->poly[j]]);
-        }
-
-        BLI_polyfill_calc_arena(proj_coords, plink->len, 1, tris_offset, pf_arena);
-
-        j = plink->len - 2;
-        while (j--) {
-          uint *tri = tris_offset[j];
-          /* remap to global indices */
-          tri[0] = plink->poly[tri[0]];
-          tri[1] = plink->poly[tri[1]];
-          tri[2] = plink->poly[tri[2]];
-
+      for (plink = plink_first, poly_index = 0, i = 0; plink; plink = plink->next, poly_index++) {
+        if (plink->len == 3) {
+          uint *tri = tris[i];
+          memcpy(tri, plink->poly, sizeof(uint[3]));
           orig_index[i] = poly_index;
+          normal_tri_v3(orig_normal[poly_index], coords[tri[0]], coords[tri[1]], coords[tri[2]]);
           i++;
         }
+        else if (plink->len > 3) {
+          float (*proj_coords)[2] = static_cast<float (*)[2]>(
+              BLI_memarena_alloc(pf_arena, sizeof(*proj_coords) * plink->len));
+          float *normal = orig_normal[poly_index];
+          const float *co_prev;
+          const float *co_curr;
+          float axis_mat[3][3];
+          uint(*tris_offset)[3] = &tris[i];
+          uint j;
 
-        BLI_memarena_clear(pf_arena);
-      }
-      else {
-        zero_v3(orig_normal[poly_index]);
+          /* calc normal and setup 'proj_coords' */
+          zero_v3(normal);
+          co_prev = coords[plink->poly[plink->len - 1]];
+          for (j = 0; j < plink->len; j++) {
+            co_curr = coords[plink->poly[j]];
+            add_newell_cross_v3_v3v3(normal, co_prev, co_curr);
+            co_prev = co_curr;
+          }
+          normalize_v3(normal);
+
+          axis_dominant_v3_to_m3_negate(axis_mat, normal);
+
+          for (j = 0; j < plink->len; j++) {
+            mul_v2_m3v3(proj_coords[j], axis_mat, coords[plink->poly[j]]);
+          }
+
+          BLI_polyfill_calc_arena(proj_coords, plink->len, 1, tris_offset, pf_arena);
+
+          j = plink->len - 2;
+          while (j--) {
+            uint *tri = tris_offset[j];
+            /* remap to global indices */
+            tri[0] = plink->poly[tri[0]];
+            tri[1] = plink->poly[tri[1]];
+            tri[2] = plink->poly[tri[2]];
+
+            orig_index[i] = poly_index;
+            i++;
+          }
+
+          BLI_memarena_clear(pf_arena);
+        }
+        else {
+          zero_v3(orig_normal[poly_index]);
+        }
       }
     }
   }
@@ -952,7 +992,10 @@ static PyObject *C_BVHTree_FromBMesh(PyObject * /*cls*/, PyObject *args, PyObjec
 
   if (!PyArg_ParseTupleAndKeywords(args,
                                    kwargs,
-                                   "O!|$f:BVHTree.FromBMesh",
+                                   "O!" /* `bmesh` */
+                                   "|$" /* Optional, keyword only arguments. */
+                                   "f"  /* `epsilon` */
+                                   ":BVHTree.FromBMesh",
                                    const_cast<char **>(keywords),
                                    &BPy_BMesh_Type,
                                    &py_bm,
@@ -1162,7 +1205,13 @@ static PyObject *C_BVHTree_FromObject(PyObject * /*cls*/, PyObject *args, PyObje
 
   if (!PyArg_ParseTupleAndKeywords(args,
                                    kwargs,
-                                   "OO|$O&O&f:BVHTree.FromObject",
+                                   "O"  /* `object` */
+                                   "O"  /* `depsgraph` */
+                                   "|$" /* Optional, keyword only arguments. */
+                                   "O&" /* `deform` */
+                                   "O&" /* `cage` */
+                                   "f"  /* `epsilon` */
+                                   ":BVHTree.FromObject",
                                    const_cast<char **>(keywords),
                                    &py_ob,
                                    &py_depsgraph,
@@ -1375,14 +1424,14 @@ static PyModuleDef bvhtree_moduledef = {
 
 PyMODINIT_FUNC PyInit_mathutils_bvhtree()
 {
-  PyObject *m = PyModule_Create(&bvhtree_moduledef);
-
-  if (m == nullptr) {
+  /* Register classes */
+  if (PyType_Ready(&PyBVHTree_Type) < 0) {
     return nullptr;
   }
 
-  /* Register classes */
-  if (PyType_Ready(&PyBVHTree_Type) < 0) {
+  PyObject *m = PyModule_Create(&bvhtree_moduledef);
+
+  if (m == nullptr) {
     return nullptr;
   }
 

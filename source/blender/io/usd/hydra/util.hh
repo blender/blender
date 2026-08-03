@@ -50,7 +50,7 @@ template<typename T> inline void resize_uninitialized(pxr::VtArray<T> &array, co
   array.resize(new_size, [](auto /*begin*/, auto /*end*/) {});
 }
 
-/* Helper for building flat name → value Hydra container data sources. */
+/* Helper for building flat name -> value Hydra container data sources. */
 struct HdContainerBuilder {
   Vector<pxr::TfToken> names;
   Vector<pxr::HdDataSourceBaseHandle> values;

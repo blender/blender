@@ -10,9 +10,14 @@
 
 #pragma once
 
+#include <variant>
+
 #include "DNA_listBase.h"
 
 #include "BLI_enum_flags.hh"
+#include "BLI_math_matrix_types.hh"
+#include "BLI_math_vector_types.hh"
+#include "BLI_span.hh"
 
 #include "GPU_material.hh"
 
@@ -81,15 +86,17 @@ struct GPUNode {
   bool is_zone_end;
 };
 
-struct GPUNodeLink {
-  GPUNodeStack *socket;
+using GPUNodeLinkData = std::variant<const float *, const int *, const bool *>;
 
-  GPUNodeLinkType link_type;
-  int users; /* Refcount */
+struct GPUNodeLink {
+  GPUNodeStack *socket = nullptr;
+
+  GPUNodeLinkType link_type = GPU_NODE_LINK_NONE;
+  int users = 0; /* Refcount */
 
   union {
     /* GPU_NODE_LINK_CONSTANT | GPU_NODE_LINK_UNIFORM */
-    const float *data;
+    GPUNodeLinkData data = static_cast<const float *>(nullptr);
     /* GPU_NODE_LINK_COLORBAND */
     gpu::Texture **colorband;
     /* GPU_NODE_LINK_OUTPUT */
@@ -124,21 +131,29 @@ struct GPUOutput {
   bool is_duplicate;
 };
 
+using GPUInputConstantData =
+    std::variant<float, float2, float3, float4, float3x3, float4x4, int, int2, int3, int4, bool>;
+
+Span<float> gpu_constant_to_float_span(const GPUInputConstantData &data, const GPUType type);
+Span<int> gpu_constant_to_int_span(const GPUInputConstantData &data, const GPUType type);
+bool gpu_constant_to_bool(const GPUInputConstantData &data);
+
 struct GPUInput {
-  GPUInput *next, *prev;
+  GPUInput *next = nullptr;
+  GPUInput *prev = nullptr;
 
-  GPUNode *node;
-  GPUType type; /* data-type. */
-  GPUNodeLink *link;
-  int id; /* unique id as created by code generator */
+  GPUNode *node = nullptr;
+  GPUType type = GPU_NONE; /* data-type. */
+  GPUNodeLink *link = nullptr;
+  int id = 0; /* unique id as created by code generator */
 
-  GPUDataSource source; /* data source */
+  GPUDataSource source = GPU_SOURCE_OUTPUT; /* data source */
 
   /* Content based on GPUDataSource */
   union {
     /* GPU_SOURCE_CONSTANT | GPU_SOURCE_UNIFORM */
-    float vec[16]; /* vector data */
-                   /* GPU_SOURCE_TEX | GPU_SOURCE_TEX_TILED_MAPPING */
+    GPUInputConstantData constant_data{};
+    /* GPU_SOURCE_TEX | GPU_SOURCE_TEX_TILED_MAPPING */
     GPUMaterialTexture *texture;
     /* GPU_SOURCE_ATTR */
     GPUMaterialAttribute *attr;
@@ -151,9 +166,9 @@ struct GPUInput {
   };
 
   /* True for Zone Items. */
-  bool is_zone_io;
+  bool is_zone_io = false;
   /* This variable is shared with other socket/s and doesn't need to be declared. */
-  bool is_duplicate;
+  bool is_duplicate = false;
 };
 
 struct GPUNodeGraphOutputLink {

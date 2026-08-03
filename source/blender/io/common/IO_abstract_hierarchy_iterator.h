@@ -356,7 +356,8 @@ class AbstractHierarchyIterator {
    */
   virtual bool mark_as_weak_export(const Object *object) const;
 
-  virtual bool should_visit_dupli_object(const DupliObject *dupli_object) const;
+  virtual bool should_visit_dupli_object(const DupliObject *dupli_object,
+                                         const Object *duplicator) const;
 
   virtual ObjectIdentifier determine_graph_index_object(const HierarchyContext *context);
   virtual ObjectIdentifier determine_graph_index_dupli(

@@ -812,6 +812,12 @@ static void rna_def_paint(BlenderRNA *brna)
       srna, "show_size_curve", "Show Size Curve", PAINT_CURVE_SHOW_SIZE);
   rna_def_paint_curve_visibility_flag(
       srna, "show_jitter_curve", "Show Jitter Curve", PAINT_CURVE_SHOW_JITTER);
+  rna_def_paint_curve_visibility_flag(
+      srna, "show_hardness_curve", "Show Hardness Curve", PAINT_CURVE_SHOW_HARDNESS);
+  rna_def_paint_curve_visibility_flag(
+      srna, "show_auto_smooth_curve", "Show Auto-Smooth Curve", PAINT_CURVE_SHOW_AUTO_SMOOTH);
+  rna_def_paint_curve_visibility_flag(
+      srna, "show_spacing_curve", "Show Spacing Curve", PAINT_CURVE_SHOW_SPACING);
 
   /* Unified Paint Settings */
   prop = RNA_def_property(srna, "unified_paint_settings", PROP_POINTER, PROP_NONE);
@@ -1073,7 +1079,6 @@ static void rna_def_mesh_automasking_settings(BlenderRNA *brna)
   RNA_def_property_flag(prop, PROP_CONTEXT_UPDATE);
   RNA_def_property_float_sdna(prop, nullptr, "cavity_factor");
   RNA_def_property_ui_text(prop, "Cavity Factor", "The contrast of the cavity mask");
-  RNA_def_property_float_default(prop, 1.0f);
   RNA_def_property_range(prop, 0.0f, 5.0f);
   RNA_def_property_ui_range(prop, 0.0f, 1.0f, 0.1, 3);
   RNA_def_property_update(prop, 0, "rna_MeshAutomaskingSettings_update");
@@ -1082,7 +1087,6 @@ static void rna_def_mesh_automasking_settings(BlenderRNA *brna)
   RNA_def_property_flag(prop, PROP_CONTEXT_UPDATE);
   RNA_def_property_int_sdna(prop, nullptr, "cavity_blur_steps");
   RNA_def_property_ui_text(prop, "Blur Steps", "The number of times the cavity mask is blurred");
-  RNA_def_property_int_default(prop, 0);
   RNA_def_property_range(prop, 0, 25);
   RNA_def_property_ui_range(prop, 0, 10, 1, 1);
   RNA_def_property_update(prop, 0, "rna_MeshAutomaskingSettings_update");

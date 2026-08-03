@@ -1133,7 +1133,7 @@ class USDImportTest(AbstractUSDTest):
         blender_mat = blender_data.attributes["p_mat4x4"].data[3].value
         blender_values = [blender_mat[i][j] for i in range(0, 4) for j in range(0, 4)]
         expected = [0.4, 0.8, 1.2, 1.6] * 4
-        self.assertTrue(self.round_vector(blender_values), expected)
+        self.assertEqual(self.round_vector(blender_values), expected)
 
         # Find the non "bezier" Curves object -- Has 2 curves (12 vertices each)
         all_curves = [o for o in bpy.data.objects if o.type == 'CURVES']

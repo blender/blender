@@ -550,6 +550,14 @@ static wmOperatorStatus console_insert_exec(bContext *C, wmOperator *op)
 
 static wmOperatorStatus console_insert_invoke(bContext *C, wmOperator *op, const wmEvent *event)
 {
+#ifdef WITH_INPUT_IME
+  if (const std::optional<wmOperatorStatus> status = WM_operator_IME_insert_maybe(
+          C, op, event, "text"))
+  {
+    return *status;
+  }
+#endif
+
   /* NOTE: the "text" property is always set from key-map,
    * so we can't use #RNA_struct_property_is_set, check the length instead. */
   if (!RNA_string_length(op->ptr, "text")) {
@@ -754,6 +762,12 @@ static const EnumPropertyItem console_delete_type_items[] = {
 
 static wmOperatorStatus console_delete_exec(bContext *C, wmOperator *op)
 {
+#ifdef WITH_INPUT_IME
+  if (const std::optional<wmOperatorStatus> status = WM_operator_IME_edit_maybe(C)) {
+    return *status;
+  }
+#endif
+
   SpaceConsole *sc = CTX_wm_space_console(C);
   ConsoleLine *ci = console_history_verify(C);
   ScrArea *area = CTX_wm_area(C);
@@ -1201,7 +1215,6 @@ static wmOperatorStatus console_paste_exec(bContext *C, wmOperator *op)
   SpaceConsole *sc = CTX_wm_space_console(C);
   ConsoleLine *ci = console_history_verify(C);
   ScrArea *area = CTX_wm_area(C);
-  ARegion *region = BKE_area_find_region_type(area, RGN_TYPE_WINDOW);
 
   int buf_str_len;
 
@@ -1213,6 +1226,7 @@ static wmOperatorStatus console_paste_exec(bContext *C, wmOperator *op)
     MEM_delete(buf_str);
     return OPERATOR_CANCELLED;
   }
+  bool context_valid = true;
   const char *buf_step = buf_str;
   do {
     const char *buf = buf_step;
@@ -1221,6 +1235,14 @@ static wmOperatorStatus console_paste_exec(bContext *C, wmOperator *op)
     if (buf != buf_str) {
       WM_operator_name_call(
           C, "CONSOLE_OT_execute", wm::OpCallContext::ExecDefault, nullptr, nullptr);
+      /* Detect context changes from actions such as loading a new file or direct
+       * context manipulation (switching area type for e.g.).
+       * While it's not an error, we only support executing in the active context.
+       * So bail out with a warning, see: #161595. */
+      if (sc != CTX_wm_space_console(C)) {
+        context_valid = false;
+        break;
+      }
       ci = console_history_verify(C);
     }
     console_delete_editable_selection(sc);
@@ -1230,10 +1252,19 @@ static wmOperatorStatus console_paste_exec(bContext *C, wmOperator *op)
 
   MEM_delete(buf_str);
 
-  console_textview_update_rect(sc, region);
-  ED_area_tag_redraw(area);
+  if (context_valid) {
+    ARegion *region = BKE_area_find_region_type(area, RGN_TYPE_WINDOW);
+    console_textview_update_rect(sc, region);
+    ED_area_tag_redraw(area);
 
-  console_scroll_bottom(region);
+    console_scroll_bottom(region);
+  }
+  else {
+    BKE_report(op->reports,
+               RPT_WARNING,
+               "Context changed during paste, "
+               "console execution may be incomplete");
+  }
 
   return OPERATOR_FINISHED;
 }

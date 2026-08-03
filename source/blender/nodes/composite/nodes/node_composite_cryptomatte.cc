@@ -625,7 +625,7 @@ static void node_extra_info(NodeExtraInfoParams &parameters)
     row.text = RPT_("Node Unsupported");
     row.tooltip = TIP_(
         "The Cryptomatte node in render mode is only supported for scene compositing");
-    row.icon = ICON_ERROR;
+    row.icon = ICON_STATUS_ERROR;
     parameters.rows.append(std::move(row));
     return;
   }
@@ -643,7 +643,7 @@ static void node_extra_info(NodeExtraInfoParams &parameters)
   NodeExtraInfoRow row;
   row.text = RPT_("Passes Not Supported");
   row.tooltip = TIP_("Render passes in the Viewport compositor are only supported in EEVEE");
-  row.icon = ICON_ERROR;
+  row.icon = ICON_STATUS_ERROR;
   parameters.rows.append(std::move(row));
 }
 

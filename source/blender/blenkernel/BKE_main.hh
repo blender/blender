@@ -470,6 +470,11 @@ struct Main : NonCopyable, NonMovable {
  */
 Main *BKE_main_new();
 /**
+ * Initialize a new Main data-base, based on a reference for relative path and colorspace
+ * conversions.
+ */
+void BKE_main_init_from_reference(Main &bmain, const Main &reference);
+/**
  * Make given \a bmain empty again, and free all runtime mappings.
  *
  * This is similar to deleting and re-creating the Main, however the internal #Main::lock is kept
@@ -537,6 +542,21 @@ void BKE_main_merge(Main *bmain_dst,
                     MainMergeReport &reports);
 /** Simpler overload of the other #BKE_main_merge. */
 void BKE_main_merge(Main *bmain_dst, Main **r_bmain_src, MainMergeReport &reports);
+
+/**
+ * Simplified merge that moves all non-Library IDs from `bmain_src` into `bmain_dst`, assigning
+ * them all to `dst_external_library` as their owning library namespace.
+ *
+ * Unlike the general #BKE_main_merge, this overload skips deduplication and filepath rebasing.
+ * It is intended for merging data imported from an external (non-blend) source that has already
+ * been given a dedicated archive library in `bmain_dst`.
+ *
+ * The source Main is always freed and `*r_bmain_src` is set to nullptr on return.
+ */
+void BKE_main_merge_as_archive_library(Main &bmain_dst,
+                                       Main *&r_bmain_src,
+                                       Library &dst_external_library,
+                                       MainMergeReport &reports);
 
 /**
  * Check whether given `bmain` is empty or contains some IDs.

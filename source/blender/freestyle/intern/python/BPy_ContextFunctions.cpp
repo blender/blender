@@ -106,8 +106,19 @@ static PyObject *ContextFunctions_load_map(PyObject * /*self*/, PyObject *args, 
   uint nbLevels = 4;
   float sigma = 1.0;
 
-  if (!PyArg_ParseTupleAndKeywords(
-          args, kwds, "ss|If", (char **)kwlist, &fileName, &mapName, &nbLevels, &sigma))
+  if (!PyArg_ParseTupleAndKeywords(args,
+                                   kwds,
+                                   "s" /* `file_name` */
+                                   "s" /* `map_name` */
+                                   "|" /* Optional arguments. */
+                                   "I" /* `num_levels` */
+                                   "f" /* `sigma` */
+                                   ":load_map",
+                                   (char **)kwlist,
+                                   &fileName,
+                                   &mapName,
+                                   &nbLevels,
+                                   &sigma))
   {
     return nullptr;
   }
@@ -144,7 +155,18 @@ static PyObject *ContextFunctions_read_map_pixel(PyObject * /*self*/,
   int level;
   uint x, y;
 
-  if (!PyArg_ParseTupleAndKeywords(args, kwds, "siII", (char **)kwlist, &mapName, &level, &x, &y))
+  if (!PyArg_ParseTupleAndKeywords(args,
+                                   kwds,
+                                   "s" /* `map_name` */
+                                   "i" /* `level` */
+                                   "I" /* `x` */
+                                   "I" /* `y` */
+                                   ":read_map_pixel",
+                                   (char **)kwlist,
+                                   &mapName,
+                                   &level,
+                                   &x,
+                                   &y))
   {
     return nullptr;
   }
@@ -177,7 +199,17 @@ static PyObject *ContextFunctions_read_complete_view_map_pixel(PyObject * /*self
   int level;
   uint x, y;
 
-  if (!PyArg_ParseTupleAndKeywords(args, kwds, "iII", (char **)kwlist, &level, &x, &y)) {
+  if (!PyArg_ParseTupleAndKeywords(args,
+                                   kwds,
+                                   "i" /* `level` */
+                                   "I" /* `x` */
+                                   "I" /* `y` */
+                                   ":read_complete_view_map_pixel",
+                                   (char **)kwlist,
+                                   &level,
+                                   &x,
+                                   &y))
+  {
     return nullptr;
   }
   return PyFloat_FromDouble(ContextFunctions::ReadCompleteViewMapPixelCF(level, x, y));
@@ -212,8 +244,18 @@ static PyObject *ContextFunctions_read_directional_view_map_pixel(PyObject * /*s
   int orientation, level;
   uint x, y;
 
-  if (!PyArg_ParseTupleAndKeywords(
-          args, kwds, "iiII", (char **)kwlist, &orientation, &level, &x, &y))
+  if (!PyArg_ParseTupleAndKeywords(args,
+                                   kwds,
+                                   "i" /* `orientation` */
+                                   "i" /* `level` */
+                                   "I" /* `x` */
+                                   "I" /* `y` */
+                                   ":read_directional_view_map_pixel",
+                                   (char **)kwlist,
+                                   &orientation,
+                                   &level,
+                                   &x,
+                                   &y))
   {
     return nullptr;
   }

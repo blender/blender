@@ -10,6 +10,7 @@
 
 #pragma once
 
+#include "BLI_array_utils.hh"
 #include "BLI_enum_flags.hh"
 #include "BLI_math_base_c.hh"
 #include "BLI_span.hh"
@@ -142,7 +143,7 @@ class VertBuf {
         GenericVertexFormat<T>::format(), GPU_USAGE_STATIC | GPU_USAGE_FLAG_BUFFER_TEXTURE_ONLY));
     /* GPU formats needs to be aligned to 4 bytes. */
     buf->allocate(ceil_to_multiple_u(data.size_in_bytes(), 4) / sizeof(GenericVertexFormat<T>));
-    buf->data<T>().slice(0, data.size()).copy_from(data);
+    array_utils::copy(data, buf->data<T>().slice(0, data.size()));
     return buf;
   }
 
@@ -154,7 +155,7 @@ class VertBuf {
     /* GPU formats needs to be aligned to 4 bytes. */
     buf->allocate(ceil_to_multiple_u(array.size() * sizeof(T), 4) /
                   sizeof(GenericVertexFormat<T>));
-    array.materialize(buf->data<T>().slice(0, array.size()));
+    array_utils::copy(array, buf->data<T>().slice(0, array.size()));
     return buf;
   }
 

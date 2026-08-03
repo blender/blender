@@ -476,15 +476,16 @@ struct SculptSession : NonCopyable, NonMovable {
 
   /* Transform operator */
   float3 pivot_pos = {};
-  float4 pivot_rot = float4(0.0f, 0.0f, 0.0f, 1.0f);
+  /* TODO: Switch this and other `pivot_rot` to C++, so this can be `Quaternion::identity` */
+  float4 pivot_rot = float4(1.0f, 0.0f, 0.0f, 0.0f);
   float3 pivot_scale = {};
 
   float3 init_pivot_pos = {};
-  float4 init_pivot_rot = float4(0.0f, 0.0f, 0.0f, 1.0f);
+  float4 init_pivot_rot = float4(1.0f, 0.0f, 0.0f, 0.0f);
   float3 init_pivot_scale = {};
 
   float3 prev_pivot_pos = {};
-  float4 prev_pivot_rot = float4(0.0f, 0.0f, 0.0f, 1.0f);
+  float4 prev_pivot_rot = float4(1.0f, 0.0f, 0.0f, 0.0f);
   float3 prev_pivot_scale = {};
 
   eObjectMode mode_type;
@@ -571,7 +572,6 @@ void BKE_sculptsession_free(Object *ob);
 void BKE_sculptsession_free_deformMats(SculptSession *ss);
 void BKE_sculptsession_free_pbvh(Object &object);
 void BKE_sculptsession_bm_to_me(Object *ob);
-void BKE_sculptsession_bm_to_me_for_render(Object *object);
 
 /**
  * Create new color layer on object if it doesn't have one and if experimental feature set has
@@ -648,5 +648,6 @@ std::optional<StringRef> BKE_paint_canvas_uvmap_name_get(const PaintModeSettings
                                                          Object *ob);
 CurveMapping *BKE_sculpt_default_cavity_curve();
 CurveMapping *BKE_paint_default_curve();
+CurveMapping *BKE_paint_default_curve_inverted();
 
 }  // namespace blender

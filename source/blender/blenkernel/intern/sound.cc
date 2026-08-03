@@ -1316,6 +1316,11 @@ static int sound_read(
 
 void BKE_sound_read_waveform(Main *bmain, bSound *sound, bool *stop)
 {
+  if (*stop) {
+    BKE_sound_runtime_clear_waveform_loading_tag(sound);
+    return;
+  }
+
   bool need_close_audio_handles = false;
   bke::SoundRuntime *runtime = sound->runtime;
   if (runtime->playback_handle == nullptr) {
@@ -1337,10 +1342,14 @@ void BKE_sound_read_waveform(Main *bmain, bSound *sound, bool *stop)
   }
 
   if (*stop) {
+    MEM_delete(waveform);
     MEM_SAFE_DELETE(runtime->waveform);
     BLI_spin_lock(&runtime->spinlock);
     runtime->tags &= ~bke::SoundTags::WaveformLoading;
     BLI_spin_unlock(&runtime->spinlock);
+    if (need_close_audio_handles) {
+      sound_free_audio(sound);
+    }
     return;
   }
 

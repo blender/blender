@@ -299,18 +299,12 @@ typedef struct ThemeSpace {
   char background_type;
   char _pad0[3];
 
-  /** Panel title. */
-  unsigned char title[4];
+  /* General text color. */
   unsigned char text[4];
   unsigned char text_hi[4];
 
-  /* header colors */
-  /** Region background. */
+  /* Header background. */
   unsigned char header[4];
-  /** Unused. */
-  unsigned char header_title[4];
-  unsigned char header_text[4];
-  unsigned char header_text_hi[4];
 
   /* button/tool regions */
   unsigned char shade1[4];

@@ -38,11 +38,6 @@ ResultPrecision Context::get_precision() const
 
 void Context::set_info_message(StringRef /*message*/) const {}
 
-bool Context::treat_viewer_as_group_output() const
-{
-  return false;
-}
-
 void Context::populate_meta_data_for_pass(const Scene * /*scene*/,
                                           int /*view_layer_id*/,
                                           const char * /*pass_name*/,

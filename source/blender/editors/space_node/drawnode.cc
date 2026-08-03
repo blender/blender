@@ -905,7 +905,7 @@ static void node_socket_undefined_draw(bContext * /*C*/,
                                        PointerRNA * /*node_ptr*/,
                                        StringRef /*text*/)
 {
-  layout->label(IFACE_("Undefined Socket Type"), ICON_ERROR);
+  layout->label(IFACE_("Undefined Socket Type"), ICON_STATUS_ERROR);
 }
 
 static void node_socket_undefined_draw_color(bContext * /*C*/,
@@ -933,7 +933,7 @@ static void node_socket_undefined_interface_draw(ID * /*id*/,
                                                  bContext * /*C*/,
                                                  ui::Layout *layout)
 {
-  layout->label(IFACE_("Undefined Socket Type"), ICON_ERROR);
+  layout->label(IFACE_("Undefined Socket Type"), ICON_STATUS_ERROR);
 }
 
 /** \} */
@@ -1123,7 +1123,8 @@ static void draw_node_socket_name_editable(ui::Layout *layout,
       layout->emboss_set(ui::EmbossType::None);
       layout->prop((&sock->runtime->declaration->socket_name_rna->owner),
                    sock->runtime->declaration->socket_name_rna->property_name,
-                   sock->in_out == SOCK_OUT ? ui::eUI_Item_Flag::ITEM_R_TEXT_RIGHT : UI_ITEM_NONE,
+                   ui::ITEM_R_TEXT_BUT_LABEL_STYLE |
+                       (sock->in_out == SOCK_OUT ? ui::ITEM_R_TEXT_RIGHT : UI_ITEM_NONE),
                    "",
                    ICON_NONE);
       return;
@@ -1378,7 +1379,7 @@ static void std_node_socket_draw(
         }
       }
       else if (default_value->has_conflict()) {
-        layout->label(IFACE_("Menu Error"), ICON_ERROR);
+        layout->label(IFACE_("Menu Error"), ICON_STATUS_ERROR);
       }
       else {
         layout->label(IFACE_("Menu Undefined"), ICON_QUESTION);
@@ -2287,7 +2288,7 @@ static NodeLinkDrawConfig nodelink_get_draw_config(const bContext &C,
 
   draw_config.dim_factor = selected ? 1.0f : node_link_dim_factor(v2d, link);
 
-  bTheme *btheme = ui::theme::theme_get();
+  const bTheme *btheme = ui::theme::theme_get();
   draw_config.dash_alpha = btheme->space_node.dash_alpha;
 
   const bool field_link = node_link_is_field_link(snode, link);

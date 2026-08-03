@@ -26,6 +26,38 @@
 
 namespace blender::compositor {
 
+bool has_viewer_node(const bNodeTree &node_group,
+                     const ComputeContext &compute_context,
+                     const ComputeContextHash &active_compute_context_hash)
+{
+  node_group.ensure_topology_cache();
+
+  /* If this is the active node group, check if a viewer node exists.  */
+  if (compute_context.hash() == active_compute_context_hash) {
+    for (const bNode *node : node_group.nodes_by_type("CompositorNodeViewer"_ustr)) {
+      if (node->flag & NODE_DO_OUTPUT && !node->is_muted()) {
+        return true;
+      }
+    }
+  }
+
+  /* Otherwise, we have to check node groups recursively. */
+  for (const bNode *group_node : node_group.group_nodes()) {
+    if (group_node->is_muted() || !group_node->id) {
+      continue;
+    }
+
+    const bNodeTree &child_node_group = *reinterpret_cast<const bNodeTree *>(group_node->id);
+    const bke::GroupNodeComputeContext node_compute_context(
+        &compute_context, group_node->identifier, &group_node->owner_tree());
+    if (has_viewer_node(child_node_group, node_compute_context, active_compute_context_hash)) {
+      return true;
+    }
+  }
+
+  return false;
+}
+
 /* Checks if the node group has a File Output node in it or in one of its descendants. */
 static bool has_file_output_recursive(const bNodeTree &node_group)
 {
@@ -47,56 +79,17 @@ static bool has_file_output_recursive(const bNodeTree &node_group)
   return false;
 }
 
-/* Checks if the node group with the given instance key has a Viewer node in it or in one of its
- * descendants. Only nodes of node groups whose instance key match that of the given active node
- * group instance key are considered active. */
-static bool has_viewer_recursive(const bNodeTree &node_group,
-                                 const bNodeInstanceKey instance_key,
-                                 const bNodeInstanceKey active_node_group_instance_key)
-{
-  node_group.ensure_topology_cache();
-
-  /* If this is the active node group, check if a viewer node exists.  */
-  if (active_node_group_instance_key == instance_key) {
-    for (const bNode *node : node_group.nodes_by_type("CompositorNodeViewer"_ustr)) {
-      if (node->flag & NODE_DO_OUTPUT && !node->is_muted()) {
-        return true;
-      }
-    }
-  }
-
-  /* Otherwise, we have to check node groups recursively. */
-  for (const bNode *group_node : node_group.group_nodes()) {
-    if (group_node->is_muted() || !group_node->id) {
-      continue;
-    }
-
-    const bNodeTree &child_node_group = *reinterpret_cast<const bNodeTree *>(group_node->id);
-    const bNodeInstanceKey child_instance_key = bke::node_instance_key(
-        instance_key, &node_group, group_node);
-    if (has_viewer_recursive(child_node_group, child_instance_key, active_node_group_instance_key))
-    {
-      return true;
-    }
-  }
-
-  return false;
-}
-
 /* Add the output nodes whose result should be computed to the given stack. This includes File
  * Output, Group Output, and Viewer nodes. This might also include group nodes that contain File
  * Output or Viewer nodes. */
-static void add_output_nodes(const Context &context,
-                             const bNodeTree &node_group,
-                             NodeGroupOperation &node_group_operation,
-                             NodeGroupOutputTypes needed_outputs_types,
-                             const bNodeInstanceKey instance_key,
-                             const bNodeInstanceKey active_node_group_instance_key,
+static void add_output_nodes(NodeGroupOperation &node_group_operation,
                              Stack<const bNode *> &node_stack)
 {
+  const bNodeTree &node_group = node_group_operation.node_group();
+  const NodeGroupOutputTypes needed_output_types = node_group_operation.needed_output_types();
   node_group.ensure_topology_cache();
 
-  bool viewer_exists = false;
+  bool viewer_exists_in_descendant_node_group = false;
   /* Add group nodes that contain File Output and Viewer nodes. */
   for (const bNode *group_node : node_group.group_nodes()) {
     if (group_node->is_muted() || !group_node->id) {
@@ -104,17 +97,21 @@ static void add_output_nodes(const Context &context,
     }
 
     const bNodeTree &child_tree = *reinterpret_cast<const bNodeTree *>(group_node->id);
-    const bNodeInstanceKey child_instance_key = bke::node_instance_key(
-        instance_key, &node_group, group_node);
-    if (flag_is_set(needed_outputs_types, NodeGroupOutputTypes::ViewerNode) &&
-        has_viewer_recursive(child_tree, child_instance_key, active_node_group_instance_key))
+    const bke::GroupNodeComputeContext node_compute_context(
+        &node_group_operation.compute_context(),
+        group_node->identifier,
+        &group_node->owner_tree());
+    if (flag_is_set(needed_output_types, NodeGroupOutputTypes::ViewerNode) &&
+        has_viewer_node(child_tree,
+                        node_compute_context,
+                        node_group_operation.context().get_active_compute_context_hash()))
     {
       node_stack.push(group_node);
-      viewer_exists = true;
+      viewer_exists_in_descendant_node_group = true;
       continue;
     }
 
-    if (flag_is_set(needed_outputs_types, NodeGroupOutputTypes::FileOutputNode) &&
+    if (flag_is_set(needed_output_types, NodeGroupOutputTypes::FileOutputNode) &&
         has_file_output_recursive(child_tree))
     {
       node_stack.push(group_node);
@@ -129,7 +126,7 @@ static void add_output_nodes(const Context &context,
   }
 
   /* Add File Output nodes. */
-  if (flag_is_set(needed_outputs_types, NodeGroupOutputTypes::FileOutputNode)) {
+  if (flag_is_set(needed_output_types, NodeGroupOutputTypes::FileOutputNode)) {
     for (const bNode *node : node_group.nodes_by_type("CompositorNodeOutputFile"_ustr)) {
       if (!node->is_muted()) {
         node_stack.push(node);
@@ -137,16 +134,24 @@ static void add_output_nodes(const Context &context,
     }
   }
 
-  /* Add Viewer node. Only add the node if the node group is active or is a root node group and no
+  /* Identify if the node group is the base context or the active context. */
+  const bke::DataBlockComputeContext base_compute_context(
+      nullptr, node_group_operation.context().get_scene().id);
+  const bool is_base_node_group = node_group_operation.compute_context().hash() ==
+                                  base_compute_context.hash();
+  const bool is_active_node_group =
+      node_group_operation.compute_context().hash() ==
+      node_group_operation.context().get_active_compute_context_hash();
+
+  /* Add Viewer node. Only add the node if the node group is active or is a base node group and no
    * viewer node exists in descendants node groups. */
-  const bool is_active_node_group = active_node_group_instance_key == instance_key;
-  const bool is_root_node_group = instance_key == bke::NODE_INSTANCE_KEY_BASE;
-  const bool should_add_viewer = is_active_node_group || (is_root_node_group && !viewer_exists);
-  if (flag_is_set(needed_outputs_types, NodeGroupOutputTypes::ViewerNode) && should_add_viewer) {
+  const bool consider_base_viewer = !viewer_exists_in_descendant_node_group;
+  const bool should_add_base_viewer = is_base_node_group && consider_base_viewer;
+  const bool should_add_viewer = is_active_node_group || should_add_base_viewer;
+  if (flag_is_set(needed_output_types, NodeGroupOutputTypes::ViewerNode) && should_add_viewer) {
     for (const bNode *node : node_group.nodes_by_type("CompositorNodeViewer"_ustr)) {
       if (node->flag & NODE_DO_OUTPUT && !node->is_muted()) {
         node_stack.push(node);
-        viewer_exists = true;
         break;
       }
     }
@@ -160,19 +165,8 @@ static void add_output_nodes(const Context &context,
     }
   }
 
-  /* None of the node groups outputs are needed, so no need to add the Group Output node. */
-  if (!is_any_group_output_needed) {
-    return;
-  }
-
-  /* Add Group Output node. None root node groups should always had a group output node. If the
-   * context is treating viewer nodes as group outputs, then the group output should be ignored
-   * even if needed. */
-  const bool context_ignores_output = context.treat_viewer_as_group_output() && viewer_exists;
-  if (!is_root_node_group ||
-      (flag_is_set(needed_outputs_types, NodeGroupOutputTypes::GroupOutputNode) &&
-       !context_ignores_output))
-  {
+  /* Add Group Output node if any of its outputs are needed. */
+  if (is_any_group_output_needed) {
     const bNode *output_node = node_group.group_output_node();
     if (output_node && !output_node->is_muted()) {
       node_stack.push(output_node);
@@ -499,19 +493,14 @@ static NeededBuffers compute_number_of_needed_buffers(Stack<const bNode *> &outp
  * doesn't always guarantee an optimal evaluation order, as the optimal evaluation order is very
  * difficult to compute, however, this method works well in most cases. Moreover it assumes that
  * all buffers will have roughly the same size, which may not always be the case. */
-Schedule compute_schedule(const Context &context,
-                          const bNodeTree &node_group,
-                          NodeGroupOperation &node_group_operation,
-                          NodeGroupOutputTypes needed_outputs_types,
-                          const bNodeInstanceKey instance_key,
-                          const bNodeInstanceKey active_node_group_instance_key)
+Schedule compute_schedule(NodeGroupOperation &node_group_operation)
 {
   Schedule schedule;
 
   /* Validate node group. */
-  node_group.ensure_topology_cache();
-  if (node_group.has_available_link_cycle()) {
-    context.set_info_message("Compositor node group has cyclic links.");
+  node_group_operation.node_group().ensure_topology_cache();
+  if (node_group_operation.node_group().has_available_link_cycle()) {
+    node_group_operation.context().set_info_message("Compositor node group has cyclic links.");
     return schedule;
   }
 
@@ -519,13 +508,7 @@ Schedule compute_schedule(const Context &context,
   Stack<const bNode *> node_stack;
 
   /* Add the output nodes whose result should be computed to the stack. */
-  add_output_nodes(context,
-                   node_group,
-                   node_group_operation,
-                   needed_outputs_types,
-                   instance_key,
-                   active_node_group_instance_key,
-                   node_stack);
+  add_output_nodes(node_group_operation, node_stack);
 
   /* No output nodes, the node group has no effect, return an empty schedule. */
   if (node_stack.is_empty()) {

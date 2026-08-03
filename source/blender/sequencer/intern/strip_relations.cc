@@ -160,6 +160,7 @@ void relations_invalidate_cache_raw(Scene *scene, Strip *strip)
   source_image_cache_invalidate_strip(scene, strip);
   media_presence_invalidate_strip(scene, strip);
   relations_invalidate_cache(scene, strip);
+  thumbnail_cache_invalidate_strip(scene, strip);
 }
 
 void relations_invalidate_cache(Scene *scene, Strip *strip)

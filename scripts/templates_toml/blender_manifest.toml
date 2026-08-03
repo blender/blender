@@ -10,8 +10,9 @@ maintainer = "Developer name <email@address.com>"
 # Supported types: "add-on", "theme"
 type = "add-on"
 
-# # Optional: link to documentation, support, source files, etc
+# # Optional: link to documentation, support (bug tracker), source files, etc.
 # website = "https://extensions.blender.org/add-ons/my-example-package/"
+# support = "https://projects.blender.org/user/my-example-package/issues/"
 
 # # Optional: tag list defined by Blender and server, see:
 # # https://docs.blender.org/manual/en/dev/advanced/extensions/tags.html

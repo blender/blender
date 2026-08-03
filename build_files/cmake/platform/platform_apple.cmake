@@ -324,6 +324,7 @@ endif()
 if(WITH_XR_OPENXR)
   find_package(XR_OpenXR_SDK REQUIRED)
 endif()
+add_bundled_libraries(xr_openxr_sdk/lib)
 
 if(WITH_GMP)
   find_package(GMP REQUIRED)
@@ -412,35 +413,28 @@ string(APPEND CMAKE_CXX_FLAGS " -ftemplate-depth=1024")
 set(PLATFORM_SYMBOLS_MAP ${CMAKE_SOURCE_DIR}/source/creator/symbols_apple.map)
 set(PLATFORM_LINKFLAGS_SYMBOL_HIDING "-Wl,-unexported_symbols_list,'${PLATFORM_SYMBOLS_MAP}'")
 
-if(${XCODE_VERSION} VERSION_EQUAL 15.0)
-  # V4.5 specific workaround: Enforce the legacy Xcode linker to avoid incorrect
-  # assembly generation caused by known bugs in the modern linker shipped with
-  # Xcode 15.0. See issue #148792 for details.
+if("${CMAKE_OSX_ARCHITECTURES}" STREQUAL "x86_64" AND WITH_LEGACY_MACOS_X64_LINKER)
+  # Silence "no platform load command found in <static library>, assuming: macOS".
+  #
+  # NOTE: Using ld_classic costs minutes of extra linking time.
   string(APPEND PLATFORM_LINKFLAGS " -Wl,-ld_classic")
-elseif(${XCODE_VERSION} VERSION_GREATER_EQUAL 15.0)
-  if("${CMAKE_OSX_ARCHITECTURES}" STREQUAL "x86_64" AND WITH_LEGACY_MACOS_X64_LINKER)
-    # Silence "no platform load command found in <static library>, assuming: macOS".
-    #
-    # NOTE: Using ld_classic costs minutes of extra linking time.
-    string(APPEND PLATFORM_LINKFLAGS " -Wl,-ld_classic")
-  else()
-    # Silence "ld: warning: ignoring duplicate libraries".
-    #
-    # The warning is introduced with Xcode 15 and is triggered when the same library
-    # is passed to the linker multiple times. This situation could happen with either
-    # cyclic libraries, or some transitive dependencies where CMake might decide to
-    # pass library to the linker multiple times to force it re-scan symbols. It is
-    # not necessary for Xcode linker to ensure all symbols from library are used and
-    # it is corrected in CMake 3.29:
-    #    https://gitlab.kitware.com/cmake/cmake/-/issues/25297
-    string(APPEND PLATFORM_LINKFLAGS " -Xlinker -no_warn_duplicate_libraries")
+else()
+  # Silence "ld: warning: ignoring duplicate libraries".
+  #
+  # The warning is introduced with Xcode 15 and is triggered when the same library
+  # is passed to the linker multiple times. This situation could happen with either
+  # cyclic libraries, or some transitive dependencies where CMake might decide to
+  # pass library to the linker multiple times to force it re-scan symbols. It is
+  # not necessary for Xcode linker to ensure all symbols from library are used and
+  # it is corrected in CMake 3.29:
+  #    https://gitlab.kitware.com/cmake/cmake/-/issues/25297
+  string(APPEND PLATFORM_LINKFLAGS " -Xlinker -no_warn_duplicate_libraries")
 
-    # Silence: ld: warning: reducing alignment of section __DATA,__common from 0x8000
-    #          to 0x4000 because it exceeds segment maximum alignment
-    # The flag to silence this warning is only available on Xcode 26.4 and above.
-    if(${XCODE_VERSION} VERSION_GREATER_EQUAL 26.4)
-      string(APPEND PLATFORM_LINKFLAGS " -Xlinker -no_warn_reduced_section_align")
-    endif()
+  # Silence: ld: warning: reducing alignment of section __DATA,__common from 0x8000
+  #          to 0x4000 because it exceeds segment maximum alignment
+  # The flag to silence this warning is only available on Xcode 26.4 and above.
+  if(${XCODE_VERSION} VERSION_GREATER_EQUAL 26.4)
+    string(APPEND PLATFORM_LINKFLAGS " -Xlinker -no_warn_reduced_section_align")
   endif()
 endif()
 

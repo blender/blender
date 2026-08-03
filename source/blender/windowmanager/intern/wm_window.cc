@@ -833,13 +833,10 @@ void WM_window_decoration_style_flags_set(const wmWindow *win,
       static_cast<GHOST_TWindowDecorationStyleFlags>(ghost_style_flags));
 }
 
-static void wm_window_decoration_style_set_from_theme(const wmWindow *win, const bScreen *screen)
+void wm_window_titlebar_theme_context_set(const wmWindow *win, const bScreen *screen)
 {
-  /* Set the decoration style settings from the current theme colors.
-   * NOTE: screen may be null. In which case, only the window is used as a theme provider. */
-  GHOST_WindowDecorationStyleSettings decoration_settings = {};
+  /* NOTE: screen may be null. In which case, only the window is used as a theme provider. */
 
-  /* Colored TitleBar Decoration. */
   /* For main windows, use the top-bar color. */
   if (WM_window_is_main_top_level(win)) {
     ui::theme::theme_set(SPACE_TOPBAR, RGN_TYPE_HEADER);
@@ -853,6 +850,15 @@ static void wm_window_decoration_style_set_from_theme(const wmWindow *win, const
   else {
     ui::theme::theme_set(0, RGN_TYPE_WINDOW);
   }
+}
+
+static void wm_window_decoration_style_set_from_theme(const wmWindow *win, const bScreen *screen)
+{
+  /* Set the decoration style settings from the current theme colors. */
+  GHOST_WindowDecorationStyleSettings decoration_settings = {};
+
+  /* Colored TitleBar Decoration. */
+  wm_window_titlebar_theme_context_set(win, screen);
 
   float titlebar_bg_color[3];
   ui::theme::get_color_3fv(TH_BACK, titlebar_bg_color);
@@ -2259,6 +2265,7 @@ void WM_window_csd_params_update()
 
       /*cursor_drag_threshold*/ U.drag_threshold_mouse,
       /*cursor_double_click_ms*/ U.dbl_click_time,
+      /*resize_margin_size*/ WM_WINDOW_CSD_RESIZE_MARGIN_SIZE,
   };
   g_system->setWindowCSD(csd_params);
 }
@@ -3427,9 +3434,9 @@ bool WM_window_is_temp_screen(const wmWindow *win)
  * \{ */
 
 #ifdef WITH_INPUT_IME
-void wm_window_IME_begin(wmWindow *win, int x, int y, int w, int h, bool complete)
+void WM_window_IME_begin(wmWindow *win, int x, int y, int w, int h, bool complete)
 {
-  /* NOTE: Keep in mind #wm_window_IME_begin is also used to reposition the IME window. */
+  /* NOTE: Keep in mind #WM_window_IME_begin is also used to reposition the IME window. */
 
   BLI_assert(win);
   if ((WM_capabilities_flag() & WM_CAPABILITY_INPUT_IME) == 0) {
@@ -3441,10 +3448,12 @@ void wm_window_IME_begin(wmWindow *win, int x, int y, int w, int h, bool complet
   const float fac = ghost_window->getNativePixelSize();
   x /= fac;
   y /= fac;
+  w /= fac;
+  h /= fac;
   ghost_window->beginIME(x, win->sizey - y, w, h, complete);
 }
 
-void wm_window_IME_end(wmWindow *win)
+void WM_window_IME_end(wmWindow *win)
 {
   if ((WM_capabilities_flag() & WM_CAPABILITY_INPUT_IME) == 0) {
     return;
@@ -3455,7 +3464,12 @@ void wm_window_IME_end(wmWindow *win)
    * Even if no IME events were generated (which assigned `ime_data`).
    * TODO: check if #GHOST_EndIME can run on APPLE without causing problems. */
 #  ifdef __APPLE__
-  BLI_assert(win->runtime->ime_data);
+  /* Null when no IME events occurred since the last "end",
+   * common as callers end without checking an IME editor exists,
+   * see #WM_window_IME_region_refresh. */
+  if (win->runtime->ime_data == nullptr) {
+    return;
+  }
 #  endif
 
   GHOST_IWindow *ghost_window = static_cast<GHOST_IWindow *>(win->runtime->ghostwin);
@@ -3464,6 +3478,29 @@ void wm_window_IME_end(wmWindow *win)
   MEM_delete(win->runtime->ime_data);
   win->runtime->ime_data = nullptr;
   win->runtime->ime_data_is_composing = false;
+}
+
+void WM_window_IME_region_refresh(wmWindow *win, const ScrArea *area, const ARegion *region)
+{
+  WM_window_IME_end(win);
+
+  if (!region || !region->runtime->type->cursor_ime) {
+    return;
+  }
+
+  const std::optional<rcti> rect = region->runtime->type->cursor_ime(win, area, region);
+  if (rect) {
+    /* Clamp the caret origin to the region bounds so a cursor scrolled out of view keeps the
+     * IME window at the region edge instead of placing it outside the region. */
+    const int x = region->winrct.xmin +
+                  std::clamp(rect->xmin, 0, BLI_rcti_size_x(&region->winrct));
+    const int y = region->winrct.ymin +
+                  std::clamp(rect->ymin, 0, BLI_rcti_size_y(&region->winrct));
+    const int w = BLI_rcti_size_x(&*rect);
+    const int h = BLI_rcti_size_y(&*rect);
+    /* `WM_window_IME_end` above always ends any session, so this is always a fresh begin. */
+    WM_window_IME_begin(win, x, y, w, h, true);
+  }
 }
 #endif /* WITH_INPUT_IME */
 
