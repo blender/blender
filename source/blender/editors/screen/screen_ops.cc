@@ -6824,6 +6824,14 @@ static wmOperatorStatus start_playback(bContext *C, int sync, int mode)
     return OPERATOR_CANCELLED;
   }
 
+  /* The anim timer MUST be created before the 'jump to the start frame' code below executes. The
+   * anim timer data structure also contains the 'started from' frame, which gets restored on
+   * cancelling the playback, and that should be the actual current frame, not the one that's set
+   * below. */
+  ViewLayer *view_layer = is_sequencer ? BKE_view_layer_default_render(scene) :
+                                         CTX_data_view_layer(C);
+  ED_screen_animation_timer(C, scene, view_layer, screen->redraws_flag, sync, mode);
+
   /* The SCE_LOOP_MODE_STOP_END_FRAME loop mode is special: playback should stop at the end frame,
    * but when playback starts, in this mode, already at the end frame, it should actually start
    * playback from the start frame. This way, you can repeatedly play back the scene, each time
@@ -6840,8 +6848,6 @@ static wmOperatorStatus start_playback(bContext *C, int sync, int mode)
     }
   }
 
-  ViewLayer *view_layer = is_sequencer ? BKE_view_layer_default_render(scene) :
-                                         CTX_data_view_layer(C);
   Depsgraph *depsgraph = is_sequencer ? BKE_scene_ensure_depsgraph(bmain, scene, view_layer) :
                                         CTX_data_ensure_evaluated_depsgraph(C);
   if (is_sequencer) {
@@ -6856,7 +6862,6 @@ static wmOperatorStatus start_playback(bContext *C, int sync, int mode)
     BKE_sound_play_scene(scene_eval);
   }
 
-  ED_screen_animation_timer(C, scene, view_layer, screen->redraws_flag, sync, mode);
   ED_scene_fps_average_clear(scene);
 
   if (screen->animtimer) {
