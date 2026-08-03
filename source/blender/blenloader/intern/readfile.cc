@@ -4376,8 +4376,9 @@ BlendFileData *blo_read_file_internal(FileData *fd, const char *filepath)
       }
     }
     if (bmain_to_read_into) {
+      const eID_Tag id_tag = is_linked_packed_id ? ID_TAG_EXTERN : ID_TAG_LOCAL;
       bhead = read_libblock(
-          fd, bmain_to_read_into, bhead, {}, {}, placeholder_set_indirect_extern, nullptr);
+          fd, bmain_to_read_into, bhead, id_tag, {}, placeholder_set_indirect_extern, nullptr);
     }
 
     /* It's not enough to check `bfd->main->is_read_invalid` because the error may have
