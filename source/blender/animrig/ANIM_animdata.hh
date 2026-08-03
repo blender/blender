@@ -81,7 +81,6 @@ const FCurve *fcurve_find_by_rna_path(const AnimData &adt,
                                       StringRefNull rna_path,
                                       int array_index);
 
-Vector<FCurve *> fcurves_for_assigned_action(AnimData *adt);
 namespace legacy {
 /**
  * Return the F-Curves for the assigned Action Slot.

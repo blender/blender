@@ -395,7 +395,7 @@ static void build_keylist_for_target(MPathTarget &target, AnimKeylist &keylist)
 {
   /* For object level motion paths this is a nullptr in which case the filtering is ignored. */
   bPoseChannel *pose_bone = target.pchan;
-  for (FCurve *fcu : animrig::fcurves_for_assigned_action(target.ob->adt)) {
+  for (FCurve *fcu : animrig::legacy::fcurves_for_assigned_action(target.ob->adt)) {
     if (pose_bone &&
         !animrig::fcurve_matches_collection_path(*fcu, "pose.bones[", pose_bone->name))
     {

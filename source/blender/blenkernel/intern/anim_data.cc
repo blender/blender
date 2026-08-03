@@ -833,12 +833,16 @@ static bool rename_paths_action(bAction *dna_action,
   /* Since this code path is used for versioning of actions before they are converted to layered,
    * we have to keep support for legacy actions here. */
   if (animrig::versioning::action_is_layered(action)) {
-    auto callback = [&](animrig::Layer & /* layer */,
-                        animrig::Strip & /* strip */,
-                        animrig::Channelbag &channelbag) {
-      is_changed_action |= fcurves_path_rename_fix(
-          owner_id, prefix, old_infix, new_infix, channelbag.fcurves(), verify_paths);
-    } animrig::foreach_keyframe_strip_in_action_slot(action, slot_handle, callback);
+    animrig::foreach_keyframe_strip_in_action_slot(
+        action,
+        slot_handle,
+        [&](animrig::Layer & /* layer */,
+            animrig::Strip & /* strip */,
+            animrig::Channelbag &channelbag) {
+          is_changed_action |= fcurves_path_rename_fix(
+              owner_id, prefix, old_infix, new_infix, channelbag.fcurves(), verify_paths);
+          return true;
+        });
   }
   else {
     const Vector<FCurve *> fcurves = animrig::versioning::fcurves_for_legacy_action(dna_action);
