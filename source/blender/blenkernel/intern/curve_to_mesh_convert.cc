@@ -221,6 +221,35 @@ static float4x4 build_point_matrix_miter_scale(const float3 &location_prev,
   return matrix;
 }
 
+static float4x4 build_point_matrix(const Span<float3> main_positions,
+                                   const Span<float3> tangents,
+                                   const Span<float3> normals,
+                                   const Span<float> scales,
+                                   const bool main_cyclic,
+                                   const std::optional<float> miter_scale_limit,
+                                   const int i_ring)
+{
+  const bool is_end = !main_cyclic && (i_ring == 0 || i_ring == main_positions.size() - 1);
+  float4x4 point_matrix;
+  if (!miter_scale_limit || is_end) {
+    point_matrix = build_point_matrix(main_positions[i_ring], normals[i_ring], tangents[i_ring]);
+  }
+  else {
+    const int i_ring_prev = i_ring == 0 ? main_positions.size() - 1 : i_ring - 1;
+    const int i_ring_next = i_ring == main_positions.size() - 1 ? 0 : i_ring + 1;
+    point_matrix = build_point_matrix_miter_scale(main_positions[i_ring_prev],
+                                                  main_positions[i_ring],
+                                                  main_positions[i_ring_next],
+                                                  normals[i_ring],
+                                                  tangents[i_ring],
+                                                  *miter_scale_limit);
+  }
+  if (!scales.is_empty()) {
+    point_matrix = math::scale(point_matrix, float3(scales[i_ring]));
+  }
+  return point_matrix;
+}
+
 static void fill_mesh_positions(const Span<float3> main_positions,
                                 const Span<float3> profile_positions,
                                 const Span<float3> tangents,
@@ -232,36 +261,15 @@ static void fill_mesh_positions(const Span<float3> main_positions,
 {
   if (profile_positions.size() == 1) {
     for (const int i_ring : main_positions.index_range()) {
-      float4x4 point_matrix = build_point_matrix(
-          main_positions[i_ring], normals[i_ring], tangents[i_ring]);
-      if (!scales.is_empty()) {
-        point_matrix = math::scale(point_matrix, float3(scales[i_ring]));
-      }
+      const float4x4 point_matrix = build_point_matrix(
+          main_positions, tangents, normals, scales, main_cyclic, miter_scale_limit, i_ring);
       mesh_positions[i_ring] = math::transform_point(point_matrix, profile_positions.first());
     }
   }
   else {
     for (const int i_ring : main_positions.index_range()) {
-      const bool is_end = !main_cyclic && (i_ring == 0 || i_ring == main_positions.size() - 1);
-      float4x4 point_matrix;
-      if (!miter_scale_limit || is_end) {
-        point_matrix = build_point_matrix(
-            main_positions[i_ring], normals[i_ring], tangents[i_ring]);
-      }
-      else {
-        const int i_ring_prev = i_ring == 0 ? main_positions.size() - 1 : i_ring - 1;
-        const int i_ring_next = i_ring == main_positions.size() - 1 ? 0 : i_ring + 1;
-        point_matrix = build_point_matrix_miter_scale(main_positions[i_ring_prev],
-                                                      main_positions[i_ring],
-                                                      main_positions[i_ring_next],
-                                                      normals[i_ring],
-                                                      tangents[i_ring],
-                                                      *miter_scale_limit);
-      }
-      if (!scales.is_empty()) {
-        point_matrix = math::scale(point_matrix, float3(scales[i_ring]));
-      }
-
+      const float4x4 point_matrix = build_point_matrix(
+          main_positions, tangents, normals, scales, main_cyclic, miter_scale_limit, i_ring);
       const int ring_vert_start = i_ring * profile_positions.size();
       for (const int i_profile : profile_positions.index_range()) {
         mesh_positions[ring_vert_start + i_profile] = math::transform_point(
