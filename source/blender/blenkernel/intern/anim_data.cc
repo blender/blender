@@ -836,12 +836,9 @@ static bool rename_paths_action(bAction *dna_action,
     auto callback = [&](animrig::Layer & /* layer */,
                         animrig::Strip & /* strip */,
                         animrig::Channelbag &channelbag) {
-                          
-                          is_changed_action |= fcurves_path_rename_fix(
-                              owner_id, prefix, old_infix, new_infix, channelbag.fcurves(), verify_paths);
-
-                        }
-        animrig::foreach_keyframe_strip_in_action_slot(action, slot_handle, callback);
+      is_changed_action |= fcurves_path_rename_fix(
+          owner_id, prefix, old_infix, new_infix, channelbag.fcurves(), verify_paths);
+    } animrig::foreach_keyframe_strip_in_action_slot(action, slot_handle, callback);
   }
   else {
     const Vector<FCurve *> fcurves = animrig::versioning::fcurves_for_legacy_action(dna_action);
