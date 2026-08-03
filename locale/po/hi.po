@@ -1,9 +1,9 @@
 
 msgid ""
 msgstr ""
-"Project-Id-Version: Blender 5.3.0 Alpha (b'bf67fb078da0')\n"
+"Project-Id-Version: Blender 5.3.0 Alpha (b'af9ba6af7621')\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-07-27 09:52+0000\n"
+"POT-Creation-Date: 2026-08-03 07:24+0000\n"
 "PO-Revision-Date: 2025-12-04 22:18+0000\n"
 "Last-Translator: Jackson Zheng <business.jackson.zheng@gmail.com>\n"
 "Language-Team: Hindi <https://translate.blender.org/projects/blender-ui/ui/hi/>\n"
@@ -2586,18 +2586,6 @@ msgid "Placement"
 msgstr "नियोजन"
 
 
-msgid "Names"
-msgstr "नाम"
-
-
-msgid "Show/Hide"
-msgstr "छुपाएँ / दिखाएँ"
-
-
-msgid "Apply"
-msgstr "लागू करें"
-
-
 msgid "Toggle Bone Options"
 msgstr "हड्डी विकल्प बंद/बुझ"
 
@@ -2610,12 +2598,20 @@ msgid "Merge"
 msgstr "विलय करें"
 
 
-msgid "Math"
-msgstr "गणित"
+msgid "Show/Hide"
+msgstr "छुपाएँ / दिखाएँ"
+
+
+msgid "Names"
+msgstr "नाम"
 
 
 msgid "Bone Roll"
 msgstr "हड्डी पंजी"
+
+
+msgid "Math"
+msgstr "गणित"
 
 
 msgid "Snap"
@@ -2640,6 +2636,10 @@ msgstr "प्रकाश"
 
 msgid "Rigid Body"
 msgstr "कठोर-पदार्थ"
+
+
+msgid "Apply"
+msgstr "लागू करें"
 
 
 msgid "Track"

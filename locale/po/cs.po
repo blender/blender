@@ -1,9 +1,9 @@
 
 msgid ""
 msgstr ""
-"Project-Id-Version: Blender 5.3.0 Alpha (b'bf67fb078da0')\n"
+"Project-Id-Version: Blender 5.3.0 Alpha (b'af9ba6af7621')\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-07-27 09:52+0000\n"
+"POT-Creation-Date: 2026-08-03 07:24+0000\n"
 "PO-Revision-Date: 2025-12-01 09:17+0000\n"
 "Last-Translator: Matt Mitacek <mattmitacek@gmail.com>\n"
 "Language-Team: Czech <https://translate.blender.org/projects/blender-ui/ui/cs/>\n"
@@ -13807,18 +13807,6 @@ msgid "Material slot name"
 msgstr "Název okénka materiálu"
 
 
-msgid "Names"
-msgstr "Názvy"
-
-
-msgid "Show/Hide"
-msgstr "Zobrazit/skrýt"
-
-
-msgid "Apply"
-msgstr "Použít"
-
-
 msgid "Mesh Select Mode"
 msgstr "Síťový mód výběru"
 
@@ -13835,24 +13823,32 @@ msgid "Merge"
 msgstr "Sloučit"
 
 
+msgid "Show/Hide"
+msgstr "Zobrazit/skrýt"
+
+
 msgid "Special Characters"
 msgstr "Speciální Znaky"
-
-
-msgid "Math"
-msgstr "Matematika"
 
 
 msgid "Metaball"
 msgstr "Meta objekt"
 
 
-msgid "Utilities"
-msgstr "Nástroje"
+msgid "Names"
+msgstr "Názvy"
 
 
 msgid "Bone Roll"
 msgstr "Kost"
+
+
+msgid "Math"
+msgstr "Matematika"
+
+
+msgid "Utilities"
+msgstr "Nástroje"
 
 
 msgid "Pivot Point"
@@ -13915,16 +13911,12 @@ msgid "Rigid Body"
 msgstr "Tuhé Těleso"
 
 
+msgid "Apply"
+msgstr "Použít"
+
+
 msgid "Track"
 msgstr "Sledování"
-
-
-msgid "Linked"
-msgstr "Propojené"
-
-
-msgid "Layout"
-msgstr "Rozložení"
 
 
 msgid "Quick Effects"
@@ -13935,6 +13927,14 @@ msgid "Make Single User"
 msgstr "Přivlastnit"
 
 
+msgid "Linked"
+msgstr "Propojené"
+
+
+msgid "Layout"
+msgstr "Rozložení"
+
+
 msgid "Hooks"
 msgstr "Háky"
 
@@ -13943,12 +13943,12 @@ msgid "Keying"
 msgstr "Klíčovací sestava"
 
 
-msgid "Tracking"
-msgstr "Sledování"
-
-
 msgid "Clear Transform"
 msgstr "Vyčistit transformaci"
+
+
+msgid "Tracking"
+msgstr "Sledování"
 
 
 msgid "Propagate"
@@ -17633,6 +17633,10 @@ msgid "Value to Normal"
 msgstr "Hodnota k Normále"
 
 
+msgid "Scalar"
+msgstr "Změna velikosti"
+
+
 msgid "Node Inputs"
 msgstr "Vstupy Uzlu"
 
@@ -18567,11 +18571,6 @@ msgstr "Chvění"
 
 msgid "Generated"
 msgstr "Oddělit"
-
-
-msgctxt "Operator"
-msgid "Make Markers Local"
-msgstr "Vytvořit lokální"
 
 
 msgctxt "Operator"
@@ -19598,10 +19597,6 @@ msgstr "Přesunout modifikátor"
 
 msgid "Move boid state up in the list"
 msgstr "Odstraní duplicity označených vertexů"
-
-
-msgid "Scalar"
-msgstr "Změna velikosti"
 
 
 msgctxt "Operator"
@@ -38851,12 +38846,12 @@ msgid "Jump to Next Marker"
 msgstr "Skončit na Další Značku"
 
 
-msgid "Active Editor"
-msgstr "Aktivní editor"
-
-
 msgid "Only Active Keying Set"
 msgstr "Pouze Aktivní Klíčová Sestava"
+
+
+msgid "Active Editor"
+msgstr "Aktivní editor"
 
 
 msgid "Intersections"
@@ -42103,10 +42098,6 @@ msgstr "Perspektiva Uživatele"
 
 msgid " (Local)"
 msgstr " (Místní)"
-
-
-msgid "Cannot fly an object with constraints"
-msgstr "Vyčistit vazby objektu"
 
 
 msgid "Depth too large"

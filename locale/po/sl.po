@@ -1,10 +1,10 @@
 
 msgid ""
 msgstr ""
-"Project-Id-Version: Blender 5.3.0 Alpha (b'bf67fb078da0')\n"
+"Project-Id-Version: Blender 5.3.0 Alpha (b'af9ba6af7621')\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-07-27 09:52+0000\n"
-"PO-Revision-Date: 2026-07-28 20:12+0000\n"
+"POT-Creation-Date: 2026-08-03 07:24+0000\n"
+"PO-Revision-Date: 2026-08-03 01:28+0000\n"
 "Last-Translator: Matic <matic.jelen2002@gmail.com>\n"
 "Language-Team: Slovenian <https://translate.blender.org/projects/blender-ui/ui/sl/>\n"
 "Language: sl\n"
@@ -26931,22 +26931,6 @@ msgid "Creative"
 msgstr "Ustvarjanje"
 
 
-msgid "Bone Collections"
-msgstr "Zbirke kosti"
-
-
-msgid "Names"
-msgstr "Imena"
-
-
-msgid "Show/Hide"
-msgstr "Pokaži / skrij"
-
-
-msgid "Apply"
-msgstr "Uveljavi"
-
-
 msgid "Face Data"
 msgstr "Podatki lic"
 
@@ -26967,6 +26951,10 @@ msgid "Merge"
 msgstr "Združi"
 
 
+msgid "Show/Hide"
+msgstr "Pokaži / skrij"
+
+
 msgid "Special Characters"
 msgstr "Posebni znaki"
 
@@ -26975,36 +26963,24 @@ msgid "Kerning"
 msgstr "Spodsekavanje"
 
 
-msgid "Math"
-msgstr "Matematika"
-
-
 msgid "Metaball"
 msgstr "Metažoga"
 
 
-msgid "Utilities"
-msgstr "Pripomočki"
+msgid "Names"
+msgstr "Imena"
 
 
 msgid "Bone Roll"
 msgstr "Zasukaj kost"
 
 
-msgid "Read"
-msgstr "Branje"
+msgid "Math"
+msgstr "Matematika"
 
 
-msgid "Sample"
-msgstr "Vzorčenje"
-
-
-msgid "Write"
-msgstr "Zapiši"
-
-
-msgid "Primitives"
-msgstr "Primitivi"
+msgid "Utilities"
+msgstr "Pripomočki"
 
 
 msgid "Pivot Point"
@@ -27019,12 +26995,28 @@ msgid "Proportional Editing Falloff"
 msgstr "Slabljenje sorazmernega urejanja"
 
 
+msgid "Read"
+msgstr "Branje"
+
+
 msgid "Mask Edit"
 msgstr "Urejanje maske"
 
 
+msgid "Sample"
+msgstr "Vzorčenje"
+
+
 msgid "Automasking"
 msgstr "Samodejno maskiranje"
+
+
+msgid "Write"
+msgstr "Zapiši"
+
+
+msgid "Primitives"
+msgstr "Primitivi"
 
 
 msgid "Gizmo"
@@ -27047,10 +27039,6 @@ msgid "Mirror"
 msgstr "Zrcali"
 
 
-msgid "Deprecated"
-msgstr "Zastarelo"
-
-
 msgid "UV Mapping"
 msgstr "Preslikanje UV"
 
@@ -27071,8 +27059,8 @@ msgid "Align View"
 msgstr "Poravnava pogleda"
 
 
-msgid "UV"
-msgstr "UV"
+msgid "Deprecated"
+msgstr "Zastarelo"
 
 
 msgid "Align View to Active"
@@ -27089,6 +27077,10 @@ msgstr "Izberi več / manj"
 
 msgid "Select Similar"
 msgstr "Izberi sorodne"
+
+
+msgid "UV"
+msgstr "UV"
 
 
 msgid "Select All by Trait"
@@ -27127,16 +27119,12 @@ msgid "Rigid Body"
 msgstr "Togo telo"
 
 
+msgid "Apply"
+msgstr "Uveljavi"
+
+
 msgid "Track"
 msgstr "Obriši"
-
-
-msgid "Linked"
-msgstr "Povezano"
-
-
-msgid "Layout"
-msgstr "Ureditev"
 
 
 msgid "Quick Effects"
@@ -27155,16 +27143,20 @@ msgid "Convert"
 msgstr "Pretvori"
 
 
+msgid "Linked"
+msgstr "Povezano"
+
+
 msgid "Link/Transfer Data"
 msgstr "Poveži / prenesi podatke"
 
 
+msgid "Layout"
+msgstr "Ureditev"
+
+
 msgid "Hooks"
 msgstr "Kavlji"
-
-
-msgid "Adjust"
-msgstr "Prilagoditev"
 
 
 msgid "Trim/Add"
@@ -27175,16 +27167,16 @@ msgid "Add Primitive"
 msgstr "Dodaj primitiv"
 
 
-msgid "Keying"
-msgstr "Ključenje"
-
-
-msgid "Tracking"
-msgstr "Sledenje"
-
-
 msgid "Random Mask"
 msgstr "Naključna maska"
+
+
+msgid "Adjust"
+msgstr "Prilagoditev"
+
+
+msgid "Keying"
+msgstr "Ključenje"
 
 
 msgid "Clear Transform"
@@ -27195,8 +27187,16 @@ msgid "In-Betweens"
 msgstr "Vmesni okvirji"
 
 
+msgid "Tracking"
+msgstr "Sledenje"
+
+
 msgid "Propagate"
 msgstr "Razširjanje"
+
+
+msgid "Bone Collections"
+msgstr "Zbirke kosti"
 
 
 msgid "Animals"
@@ -35174,6 +35174,10 @@ msgid "Collection of main items"
 msgstr "Zbirka glavnih elementov"
 
 
+msgid "Scalar"
+msgstr "Skalar"
+
+
 msgid "Viewer Item"
 msgstr "Element prikazovalnika"
 
@@ -37261,11 +37265,6 @@ msgstr "Generirani"
 
 
 msgctxt "Operator"
-msgid "Make Markers Local"
-msgstr "Naredi oznake krajevne"
-
-
-msgctxt "Operator"
 msgid "Mirror Keys"
 msgstr "Zrcali ključe"
 
@@ -38356,10 +38355,6 @@ msgstr "Omogoči več pogledov"
 msgctxt "Operator"
 msgid "Save Brush Asset"
 msgstr "Shrani sredstvo čopiča"
-
-
-msgid "Scalar"
-msgstr "Skalar"
 
 
 msgctxt "Operator"
@@ -44735,11 +44730,6 @@ msgstr "Nova zbirka povezovanja luči"
 msgctxt "Operator"
 msgid "Link Blockers to Emitter"
 msgstr "Poveži zaviralce z oddajnikom"
-
-
-msgctxt "Operator"
-msgid "Link Receivers to Emitter"
-msgstr "Poveži prejemnike z oddajnikom"
 
 
 msgctxt "Operator"
@@ -54153,6 +54143,14 @@ msgid "Grease Pencil Eraser Radius"
 msgstr "Polmer Grease Pencil radirke"
 
 
+msgid "Grease Pencil Euclidean Distance"
+msgstr "Grease Pencil Evklidska razdalja"
+
+
+msgid "Grease Pencil Manhattan Distance"
+msgstr "Grease Pencil Manhattanska razdalja"
+
+
 msgid "Default Key Channels"
 msgstr "Privzeti kanali ključev"
 
@@ -54164,6 +54162,10 @@ msgstr "Nov tip interpolacije"
 
 msgid "Auto-offset Margin"
 msgstr "Samodejno odmikanje"
+
+
+msgid "Node Preview Resolution"
+msgstr "Ločljivost predogleda vozlišč"
 
 
 msgid "Auto-offset"
@@ -54272,6 +54274,10 @@ msgstr "Globalno razveljavljanje"
 
 msgid "Allow Negative Frames"
 msgstr "Dovoli negativne okvirje"
+
+
+msgid "Current frame number can be manually set to a negative value"
+msgstr "Številka trenutnega okvirja je lahko ročno nastavljena na negativno vrednost"
 
 
 msgid "Auto Close Character Pairs"
@@ -55220,10 +55226,6 @@ msgid "Danish - Dansk"
 msgstr "Danščina - Dansk"
 
 
-msgid "Locale code: da. Translation progress: 3%"
-msgstr "Območni identifikator: da. Napredek prevoda: 3 %"
-
-
 msgid "Dutch - Nederlands"
 msgstr "Nizozemščina - Nederlands"
 
@@ -55234,10 +55236,6 @@ msgstr "Območni identifikator: nl_NL. Napredek prevoda: 7 %"
 
 msgid "English (UK)"
 msgstr "Britanska angleščina - English (UK)"
-
-
-msgid "Locale code: en_GB. Translation progress: 95%"
-msgstr "Območni identifikator: en_GB. Napredek prevoda: 95 %"
 
 
 msgid "English (US)"
@@ -55258,10 +55256,6 @@ msgstr "Območni identifikator: eo. Napredek prevoda: 0 %"
 
 msgid "Finnish - Suomi"
 msgstr "Finščina - Suomi"
-
-
-msgid "Locale code: fi_FI. Translation progress: 11%"
-msgstr "Območni identifikator: fi_FI. Napredek prevoda: 11 %"
 
 
 msgid "French - Français"
@@ -55314,10 +55308,6 @@ msgstr "Območni identifikator: hu_HU. Napredek prevoda: 10 %"
 
 msgid "Indonesian - Bahasa indonesia"
 msgstr "Indonezijščina - Bahasa indonesia"
-
-
-msgid "Locale code: id_ID. Translation progress: 21%"
-msgstr "Območni identifikator: id_ID. Napredek prevoda: 21 %"
 
 
 msgid "Italian - Italiano"
@@ -55446,10 +55436,6 @@ msgstr "Območni identifikator: th_TH. Napredek prevoda: 5 %"
 
 msgid "Turkish - Türkçe"
 msgstr "Turščina - Türkçe"
-
-
-msgid "Locale code: tr_TR. Translation progress: 75%"
-msgstr "Območni identifikator: tr_TR. Napredek prevoda: 75 %"
 
 
 msgid "Ukrainian - Українська"
@@ -55752,8 +55738,16 @@ msgid "SMPTE (Full)"
 msgstr "SMPTE (vse)"
 
 
+msgid "Full SMPTE timecode (format is HH:MM:SS:FF)"
+msgstr "Polna SMPTE časovna koda (format je HH:MM:SS:FF)"
+
+
 msgid "SMPTE (Compact)"
 msgstr "SMPTE (strnjeno)"
+
+
+msgid "SMPTE timecode showing minutes, seconds, and frames only - hours are also shown if necessary, but not by default"
+msgstr "SMPTE časovna koda, ki prikazuje samo minute sekunde in okvirje - ure so prikazane samo ko je to potrebno, a ne privzeto"
 
 
 msgid "Compact with Decimals"
@@ -55762,6 +55756,10 @@ msgstr "Strnjeno z decimalkami"
 
 msgid "Only Seconds"
 msgstr "Samo sekunde"
+
+
+msgid "Direct conversion of frame numbers to seconds"
+msgstr "Neposredna pretvorba številk okvirjev v sekunde"
 
 
 msgid "Changes the thickness of widget outlines, lines and dots in the interface"
@@ -55846,6 +55844,10 @@ msgstr "Prevedi namige"
 
 msgid "Translate the descriptions when hovering UI elements (recommended)"
 msgstr "Prevede namige ob premiku miške čez gradnike vmesnika (priporočeno)"
+
+
+msgid "Minimum number of pixels between each gridline in 2D Viewports"
+msgstr "Najmanjše število pikslov med mrežnimi črtami v 2D pogledu"
 
 
 msgid "Zoom Keyframes"
@@ -71175,6 +71177,14 @@ msgid "Duplicate Marker to Scene"
 msgstr "Podvoji oznako v prizor"
 
 
+msgid "Only Active Keying Set"
+msgstr "Samo aktivna množica ključev"
+
+
+msgid "Jump Unit"
+msgstr "Enota skoka"
+
+
 msgid "Limit to Frame Range"
 msgstr "Omeji na interval okvirjev"
 
@@ -71193,18 +71203,6 @@ msgstr "Trenutni urejevalnik"
 
 msgid "Properties and Sidebars"
 msgstr "Lastnosti in stranske vrstice"
-
-
-msgid "Only Active Keying Set"
-msgstr "Samo aktivna množica ključev"
-
-
-msgid "Jump Unit"
-msgstr "Enota skoka"
-
-
-msgid "Scrubbing Region"
-msgstr "Področje prevrtavanja"
 
 
 msgid "Layered Recording"
@@ -71733,6 +71731,10 @@ msgstr "Privzete ročice"
 
 msgid "XYZ to RGB"
 msgstr "XYZ v RGB"
+
+
+msgid "Negative frames can cause issues with audio playback and exporters."
+msgstr "Negativni okvirji lahko povzročijo probleme s predvajanjem zvoka in izvozniki."
 
 
 msgid "Mixing Buffer"
@@ -76079,6 +76081,14 @@ msgid "Internal clipboard has no pose"
 msgstr "Notranje odložišče ne vsebuje nobene poze"
 
 
+msgid "file does not exist: {:s}"
+msgstr "datoteka ne obstaja: {:s}"
+
+
+msgid "Asset Library '%s': %s"
+msgstr "Knjižnica sredstev '%s': %s"
+
+
 msgid "Asset loading is unfinished"
 msgstr "Sredstva še niso naložena do konca"
 
@@ -79226,6 +79236,10 @@ msgstr "Naj ustvarim nov imenik?"
 
 msgid "Delete selected files?"
 msgstr "Naj izbrišem izbrane datoteke?"
+
+
+msgid "File does not exist"
+msgstr "Datoteka ne obstaja"
 
 
 msgid "Could not create new folder: %s"

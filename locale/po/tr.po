@@ -1,9 +1,9 @@
 
 msgid ""
 msgstr ""
-"Project-Id-Version: Blender 5.3.0 Alpha (b'bf67fb078da0')\n"
+"Project-Id-Version: Blender 5.3.0 Alpha (b'af9ba6af7621')\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-07-27 09:52+0000\n"
+"POT-Creation-Date: 2026-08-03 07:24+0000\n"
 "PO-Revision-Date: 2025-07-23 15:31+0000\n"
 "Last-Translator: VertexSelection <amacsizk2021@gmail.com>\n"
 "Language-Team: Turkish <https://translate.blender.org/projects/blender-ui/ui/tr/>\n"
@@ -28739,22 +28739,6 @@ msgid "Editor menu containing buttons"
 msgstr "Düğmeler içeren düzenleyici menüsü"
 
 
-msgid "Bone Collections"
-msgstr "Kemik Koleksiyonları"
-
-
-msgid "Names"
-msgstr "Adlar"
-
-
-msgid "Show/Hide"
-msgstr "Göster/Gizle"
-
-
-msgid "Apply"
-msgstr "Uygula"
-
-
 msgid "Toggle Bone Options"
 msgstr "Kemik Seçeneklerini Değiştir"
 
@@ -28791,6 +28775,10 @@ msgid "Merge"
 msgstr "Birleştir"
 
 
+msgid "Show/Hide"
+msgstr "Göster/Gizle"
+
+
 msgid "Special Characters"
 msgstr "Özel Karakterler"
 
@@ -28799,36 +28787,24 @@ msgid "Kerning"
 msgstr "Harf aralığı"
 
 
-msgid "Math"
-msgstr "Matematik"
-
-
 msgid "Metaball"
 msgstr "Metabol"
 
 
-msgid "Utilities"
-msgstr "Kamu hizmetleri"
+msgid "Names"
+msgstr "Adlar"
 
 
 msgid "Bone Roll"
 msgstr "Kemik Rulosu"
 
 
-msgid "Read"
-msgstr "Okumak"
+msgid "Math"
+msgstr "Matematik"
 
 
-msgid "Sample"
-msgstr "Örnek"
-
-
-msgid "Write"
-msgstr "Yazmak"
-
-
-msgid "Primitives"
-msgstr "İlkel"
+msgid "Utilities"
+msgstr "Kamu hizmetleri"
 
 
 msgid "Pivot Point"
@@ -28843,16 +28819,32 @@ msgid "Proportional Editing Falloff"
 msgstr "Orantılı Düzenleme Düşüşü"
 
 
+msgid "Read"
+msgstr "Okumak"
+
+
 msgid "Mask Edit"
 msgstr "Maske Düzenleme"
+
+
+msgid "Sample"
+msgstr "Örnek"
 
 
 msgid "Automasking"
 msgstr "Otomatik maskeleme"
 
 
+msgid "Write"
+msgstr "Yazmak"
+
+
 msgid "Face Sets Edit"
 msgstr "Yüz Setleri Düzenle"
+
+
+msgid "Primitives"
+msgstr "İlkel"
 
 
 msgid "Vertex Group Locks"
@@ -28869,10 +28861,6 @@ msgstr "İçe Aktar"
 
 msgid "Mirror"
 msgstr "Yansıtma"
-
-
-msgid "Deprecated"
-msgstr "Kullanım dışı bırakıldı"
 
 
 msgid "UV Mapping"
@@ -28895,8 +28883,8 @@ msgid "Align View"
 msgstr "Görünümü hizala"
 
 
-msgid "UV"
-msgstr "UV"
+msgid "Deprecated"
+msgstr "Kullanım dışı bırakıldı"
 
 
 msgid "Align View to Active"
@@ -28913,6 +28901,10 @@ msgstr "Daha Fazla/Daha Az Seç"
 
 msgid "Select Similar"
 msgstr "Benzerini Seç"
+
+
+msgid "UV"
+msgstr "UV"
 
 
 msgid "Select All by Trait"
@@ -28951,16 +28943,12 @@ msgid "Rigid Body"
 msgstr "Sert Gövde"
 
 
+msgid "Apply"
+msgstr "Uygula"
+
+
 msgid "Track"
 msgstr "İzlemek"
-
-
-msgid "Linked"
-msgstr "Bağlantılı"
-
-
-msgid "Layout"
-msgstr "Yerleşim"
 
 
 msgid "Quick Effects"
@@ -28979,32 +28967,28 @@ msgid "Convert"
 msgstr "Çevir"
 
 
+msgid "Linked"
+msgstr "Bağlantılı"
+
+
 msgid "Link/Transfer Data"
 msgstr "Veriyi Bağlantıla/Aktar"
+
+
+msgid "Layout"
+msgstr "Yerleşim"
 
 
 msgid "Hooks"
 msgstr "Kancalar"
 
 
-msgid "Adjust"
-msgstr "Ayarlamak"
-
-
 msgid "Trim/Add"
 msgstr "Kırp/Ekle"
 
 
-msgid "Keying"
-msgstr "Anahtarlama"
-
-
 msgid "Sculpt Set Pivot"
 msgstr "Heykel Seti Pivot"
-
-
-msgid "Tracking"
-msgstr "Takip"
 
 
 msgid "Face Sets Init"
@@ -29015,6 +28999,14 @@ msgid "Random Mask"
 msgstr "Rastgele Maske"
 
 
+msgid "Adjust"
+msgstr "Ayarlamak"
+
+
+msgid "Keying"
+msgstr "Anahtarlama"
+
+
 msgid "Clear Transform"
 msgstr "Temizle Dönüşüm"
 
@@ -29023,8 +29015,16 @@ msgid "In-Betweens"
 msgstr "Arada Kalanlar"
 
 
+msgid "Tracking"
+msgstr "Takip"
+
+
 msgid "Propagate"
 msgstr "Yaymak"
+
+
+msgid "Bone Collections"
+msgstr "Kemik Koleksiyonları"
 
 
 msgid "Keyframe Insert Pie"
@@ -42420,6 +42420,10 @@ msgid "Generation Items"
 msgstr "Nesil Öğeleri"
 
 
+msgid "Scalar"
+msgstr "Skaler"
+
+
 msgid "Collection of repeat items"
 msgstr "Yinelenen ögeler koleksiyonu"
 
@@ -45887,15 +45891,6 @@ msgstr "Oluşturuldu"
 
 
 msgctxt "Operator"
-msgid "Make Markers Local"
-msgstr "İşaretleyicileri Yerel Yapın"
-
-
-msgid "Move selected scene markers to the active Action as local 'pose' markers"
-msgstr "Seçili sahne işaretleyicilerini yerel 'poz' işaretleyicileri olarak etkin Eyleme taşıyın"
-
-
-msgctxt "Operator"
 msgid "Mirror Keys"
 msgstr "Ayna Anahtarları"
 
@@ -47835,10 +47830,6 @@ msgstr "Ölçek Heykel/Boya Fırçası Boyutu"
 
 msgid "Change brush size by a scalar"
 msgstr "Fırça boyutunu bir skaler ile değiştir"
-
-
-msgid "Scalar"
-msgstr "Skaler"
 
 
 msgid "Factor to scale brush size by"
@@ -61142,15 +61133,6 @@ msgstr "Işık Bağlantı Engelleyicileri Seçin"
 
 msgid "Select all objects which block light from this emitter"
 msgstr "Bu yayıcıdan gelen ışığı engelleyen tüm nesneleri seçin"
-
-
-msgctxt "Operator"
-msgid "Link Receivers to Emitter"
-msgstr "Alıcıları Vericiye Bağlayın"
-
-
-msgid "Light link selected receivers to the active emitter object"
-msgstr "Işık bağlantısı seçili alıcıları aktif yayıcı nesneye bağlar"
 
 
 msgid "State of the light linking"
@@ -103608,6 +103590,10 @@ msgid "Duplicate Marker to Scene"
 msgstr "Sahneye İşaretçiyi Kopyala"
 
 
+msgid "Only Active Keying Set"
+msgstr "Yalnızca Etkin Anahtarlama Ayarı"
+
+
 msgid "Limit to Frame Range"
 msgstr "Çerçeve Aralığını Sınırla"
 
@@ -103626,10 +103612,6 @@ msgstr "Aktif Editör"
 
 msgid "Properties and Sidebars"
 msgstr "Özellikler ve Kenar Çubukları"
-
-
-msgid "Only Active Keying Set"
-msgstr "Yalnızca Etkin Anahtarlama Ayarı"
 
 
 msgid "Layered Recording"
@@ -114039,20 +114021,12 @@ msgid "Cannot fly when the view offset is locked"
 msgstr "Görünüm ofseti kilitliyken uçulamaz"
 
 
-msgid "Cannot fly an object with constraints"
-msgstr "Kısıtlamaları olan bir nesneyi uçuramazsınız"
-
-
 msgid "Cannot dolly when the view offset is locked"
 msgstr "Görünüm ofseti kilitliyken kaydırma yapılamaz"
 
 
 msgid "Cannot navigate when the view offset is locked"
 msgstr "Görünüm ofseti kilitliyken gezinilemez"
-
-
-msgid "Cannot navigate an object with constraints"
-msgstr "Kısıtlamaları olan bir nesnede gezinilemez"
 
 
 msgid "Depth too large"

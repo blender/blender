@@ -1,9 +1,9 @@
 
 msgid ""
 msgstr ""
-"Project-Id-Version: Blender 5.3.0 Alpha (b'bf67fb078da0')\n"
+"Project-Id-Version: Blender 5.3.0 Alpha (b'af9ba6af7621')\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-07-27 09:52+0000\n"
+"POT-Creation-Date: 2026-08-03 07:24+0000\n"
 "PO-Revision-Date: 2025-07-23 14:56+0000\n"
 "Last-Translator: Anonymous <noreply@weblate.org>\n"
 "Language-Team: Serbian (Latin script) <https://translate.blender.org/projects/blender-ui/ui/sr_Latn/>\n"
@@ -8498,18 +8498,6 @@ msgid "Material slot name"
 msgstr "Naziv slota materijala"
 
 
-msgid "Names"
-msgstr "Imena"
-
-
-msgid "Show/Hide"
-msgstr "Prikaži/sakrij"
-
-
-msgid "Apply"
-msgstr "Primeni"
-
-
 msgid "Toggle Bone Options"
 msgstr "Manje/više informacija"
 
@@ -8530,20 +8518,28 @@ msgid "Merge"
 msgstr "Sjedini"
 
 
+msgid "Show/Hide"
+msgstr "Prikaži/sakrij"
+
+
 msgid "Special Characters"
 msgstr "Specijalni znaci"
-
-
-msgid "Math"
-msgstr "Matematika"
 
 
 msgid "Metaball"
 msgstr "Meta lopta"
 
 
+msgid "Names"
+msgstr "Imena"
+
+
 msgid "Bone Roll"
 msgstr "Rolna kostiju"
+
+
+msgid "Math"
+msgstr "Matematika"
 
 
 msgid "Snap"
@@ -8594,16 +8590,20 @@ msgid "Rigid Body"
 msgstr "Kruto telo"
 
 
+msgid "Apply"
+msgstr "Primeni"
+
+
 msgid "Track"
 msgstr "Staza"
 
 
-msgid "Linked"
-msgstr "Povezano"
-
-
 msgid "Quick Effects"
 msgstr "Brzi efekti"
+
+
+msgid "Linked"
+msgstr "Povezano"
 
 
 msgid "Hooks"
@@ -8614,16 +8614,16 @@ msgid "Keying"
 msgstr "Zbirka tastera"
 
 
-msgid "Tracking"
-msgstr "Praćenje"
-
-
 msgid "Clear Transform"
 msgstr "Očisti transformacije"
 
 
 msgid "In-Betweens"
 msgstr "U međuvremenu"
+
+
+msgid "Tracking"
+msgstr "Praćenje"
 
 
 msgid "Propagate"
@@ -11054,6 +11054,10 @@ msgid "Value to Normal"
 msgstr "Vrednost u normalu"
 
 
+msgid "Scalar"
+msgstr "Skalar"
+
+
 msgid "Name of the socket"
 msgstr "Ime utičnice"
 
@@ -11593,11 +11597,6 @@ msgstr "Nervozno"
 
 msgid "Generated"
 msgstr "Generisano"
-
-
-msgctxt "Operator"
-msgid "Make Markers Local"
-msgstr "Stvori veze..."
 
 
 msgctxt "Operator"
@@ -12240,10 +12239,6 @@ msgstr "Filtriraj tekstualne datoteke"
 msgctxt "Operator"
 msgid "Remove Boid State"
 msgstr "Izaberite sliku za pozadinu"
-
-
-msgid "Scalar"
-msgstr "Skalar"
 
 
 msgid "Factor to scale brush size by"
@@ -24832,10 +24827,6 @@ msgstr "Težine temena"
 
 msgid "Object as Camera"
 msgstr "Objekat kao kamera"
-
-
-msgid "Cannot fly an object with constraints"
-msgstr "Ograničenja objekta"
 
 
 msgid "No active camera"

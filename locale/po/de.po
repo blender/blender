@@ -1,9 +1,9 @@
 
 msgid ""
 msgstr ""
-"Project-Id-Version: Blender 5.3.0 Alpha (b'bf67fb078da0')\n"
+"Project-Id-Version: Blender 5.3.0 Alpha (b'af9ba6af7621')\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-07-27 09:52+0000\n"
+"POT-Creation-Date: 2026-08-03 07:24+0000\n"
 "PO-Revision-Date: 2025-12-02 20:06+0000\n"
 "Last-Translator: Bastitron <bastitronhd@gmail.com>\n"
 "Language-Team: German <https://translate.blender.org/projects/blender-ui/ui/de/>\n"
@@ -18671,18 +18671,6 @@ msgid "Material slot name"
 msgstr "Materialsteckplatzname"
 
 
-msgid "Names"
-msgstr "Namen"
-
-
-msgid "Show/Hide"
-msgstr "Zeigen/Verbergen"
-
-
-msgid "Apply"
-msgstr "Anwenden"
-
-
 msgid "Toggle Bone Options"
 msgstr "Knochen-Optionen umschalten"
 
@@ -18711,6 +18699,10 @@ msgid "Merge"
 msgstr "Zusammenführen"
 
 
+msgid "Show/Hide"
+msgstr "Zeigen/Verbergen"
+
+
 msgid "Special Characters"
 msgstr "Sonderzeichen"
 
@@ -18719,28 +18711,16 @@ msgid "Kerning"
 msgstr "Kerning"
 
 
-msgid "Math"
-msgstr "Mathematisch"
-
-
 msgid "Metaball"
 msgstr "Metaball"
 
 
-msgid "Read"
-msgstr "Lesen"
+msgid "Names"
+msgstr "Namen"
 
 
-msgid "Sample"
-msgstr "Beispiel"
-
-
-msgid "Write"
-msgstr "Schreiben"
-
-
-msgid "Primitives"
-msgstr "Grundkörper"
+msgid "Math"
+msgstr "Mathematisch"
 
 
 msgid "Pivot Point"
@@ -18755,8 +18735,24 @@ msgid "Proportional Editing Falloff"
 msgstr "Proportionaler Bearbeitungsabfall"
 
 
+msgid "Read"
+msgstr "Lesen"
+
+
 msgid "Mask Edit"
 msgstr "Maskenbearbeitung"
+
+
+msgid "Sample"
+msgstr "Beispiel"
+
+
+msgid "Write"
+msgstr "Schreiben"
+
+
+msgid "Primitives"
+msgstr "Grundkörper"
 
 
 msgid "Vertex Group Locks"
@@ -18791,10 +18787,6 @@ msgid "Align View"
 msgstr "Ansicht ausrichten"
 
 
-msgid "UV"
-msgstr "UV"
-
-
 msgid "Align View to Active"
 msgstr "Ansicht auf Aktiv ausrichten"
 
@@ -18809,6 +18801,10 @@ msgstr "Mehr/weniger anzeigen"
 
 msgid "Select Similar"
 msgstr "Ähnliche auswählen"
+
+
+msgid "UV"
+msgstr "UV"
 
 
 msgid "Select All by Trait"
@@ -18847,16 +18843,12 @@ msgid "Rigid Body"
 msgstr "Rigid Body"
 
 
+msgid "Apply"
+msgstr "Anwenden"
+
+
 msgid "Track"
 msgstr "Spur"
-
-
-msgid "Linked"
-msgstr "Verknüpft"
-
-
-msgid "Layout"
-msgstr "Layout"
 
 
 msgid "Quick Effects"
@@ -18875,20 +18867,24 @@ msgid "Convert"
 msgstr "Konvertieren"
 
 
+msgid "Linked"
+msgstr "Verknüpft"
+
+
+msgid "Layout"
+msgstr "Layout"
+
+
 msgid "Hooks"
 msgstr "Haken"
 
 
-msgid "Keying"
-msgstr "Schlüsselbilder"
-
-
-msgid "Tracking"
-msgstr "Verfolgen"
-
-
 msgid "Random Mask"
 msgstr "Zufällige Maske"
+
+
+msgid "Keying"
+msgstr "Schlüsselbilder"
 
 
 msgid "Clear Transform"
@@ -18897,6 +18893,10 @@ msgstr "Transformation löschen"
 
 msgid "In-Betweens"
 msgstr "Dazwischen"
+
+
+msgid "Tracking"
+msgstr "Verfolgen"
 
 
 msgid "Assets"
@@ -24363,6 +24363,10 @@ msgid "Attribute Domain"
 msgstr "Attributdomäne"
 
 
+msgid "Scalar"
+msgstr "Skalar"
+
+
 msgid "Node Inputs"
 msgstr "Knoteneingaben"
 
@@ -25537,11 +25541,6 @@ msgstr "Generieren"
 
 
 msgctxt "Operator"
-msgid "Make Markers Local"
-msgstr "Marker lokal machen"
-
-
-msgctxt "Operator"
 msgid "Mirror Keys"
 msgstr "Spiegel"
 
@@ -26544,10 +26543,6 @@ msgstr "Boid-Zustand löschen"
 
 msgid "Delete current boid state"
 msgstr "Aktuellen Boid-Zustand löschen"
-
-
-msgid "Scalar"
-msgstr "Skalar"
 
 
 msgctxt "Operator"
@@ -51426,6 +51421,10 @@ msgid "Duplicate Marker to Scene"
 msgstr "Marker der Szene duplizieren"
 
 
+msgid "Only Active Keying Set"
+msgstr "Nur aktiver Schlüsselbildsatz"
+
+
 msgid "Limit to Frame Range"
 msgstr "Limit für Einzelbildbereich"
 
@@ -51440,10 +51439,6 @@ msgstr "Abspielen in"
 
 msgid "Active Editor"
 msgstr "Aktiver Editor"
-
-
-msgid "Only Active Keying Set"
-msgstr "Nur aktiver Schlüsselbildsatz"
 
 
 msgid "Layered Recording"
@@ -56236,16 +56231,8 @@ msgid "fps: %i"
 msgstr "fps: %i"
 
 
-msgid "Cannot fly an object with constraints"
-msgstr "Ein Objekt mit Einschränkungen kann nicht geflogen werden"
-
-
 msgid "Cannot navigate when the view offset is locked"
 msgstr "Navigieren ist nicht möglich wenn der Sichtversatz gesperrt ist"
-
-
-msgid "Cannot navigate an object with constraints"
-msgstr "Navigation nicht möglich bei einem Objekt mit Beschränkung"
 
 
 msgid "Depth too large"

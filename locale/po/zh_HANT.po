@@ -1,11 +1,11 @@
 
 msgid ""
 msgstr ""
-"Project-Id-Version: Blender 5.3.0 Alpha (b'bf67fb078da0')\n"
+"Project-Id-Version: Blender 5.3.0 Alpha (b'af9ba6af7621')\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-07-27 09:52+0000\n"
-"PO-Revision-Date: 2026-07-27 19:38+0000\n"
-"Last-Translator: 游博凱 <augustus85918@gmail.com>\n"
+"POT-Creation-Date: 2026-08-03 07:24+0000\n"
+"PO-Revision-Date: 2026-07-31 17:12+0000\n"
+"Last-Translator: Ye Gui <ziweidao@foxmail.com>\n"
 "Language-Team: Chinese (Traditional Han script) <https://translate.blender.org/projects/blender-ui/ui/zh_Hant/>\n"
 "Language: zh_HANT\n"
 "MIME-Version: 1.0\n"
@@ -26376,22 +26376,6 @@ msgid "Creative"
 msgstr "創意"
 
 
-msgid "Bone Collections"
-msgstr "骨骼集盒"
-
-
-msgid "Names"
-msgstr "名稱"
-
-
-msgid "Show/Hide"
-msgstr "顯示/隱藏"
-
-
-msgid "Apply"
-msgstr "套用"
-
-
 msgid "Toggle Bone Options"
 msgstr "開關骨骼選項"
 
@@ -26424,6 +26408,10 @@ msgid "Merge"
 msgstr "合併"
 
 
+msgid "Show/Hide"
+msgstr "顯示/隱藏"
+
+
 msgid "Special Characters"
 msgstr "特殊字元"
 
@@ -26432,36 +26420,24 @@ msgid "Kerning"
 msgstr "字間微調"
 
 
-msgid "Math"
-msgstr "數學公式"
-
-
 msgid "Metaball"
 msgstr "變幻球"
 
 
-msgid "Utilities"
-msgstr "效用"
+msgid "Names"
+msgstr "名稱"
 
 
 msgid "Bone Roll"
 msgstr "骨骼滾動"
 
 
-msgid "Read"
-msgstr "讀取"
+msgid "Math"
+msgstr "數學公式"
 
 
-msgid "Sample"
-msgstr "取樣"
-
-
-msgid "Write"
-msgstr "寫入"
-
-
-msgid "Primitives"
-msgstr "原形"
+msgid "Utilities"
+msgstr "效用"
 
 
 msgid "Pivot Point"
@@ -26476,16 +26452,32 @@ msgid "Proportional Editing Falloff"
 msgstr "比例化編輯衰落"
 
 
+msgid "Read"
+msgstr "讀取"
+
+
 msgid "Mask Edit"
 msgstr "遮罩編輯"
+
+
+msgid "Sample"
+msgstr "取樣"
 
 
 msgid "Automasking"
 msgstr "自動遮罩"
 
 
+msgid "Write"
+msgstr "寫入"
+
+
 msgid "Face Sets Edit"
 msgstr "面集編輯"
+
+
+msgid "Primitives"
+msgstr "原形"
 
 
 msgid "Vertex Group Locks"
@@ -26512,10 +26504,6 @@ msgid "Mirror"
 msgstr "鏡像"
 
 
-msgid "Deprecated"
-msgstr "已棄用"
-
-
 msgid "UV Mapping"
 msgstr "UV 映射處理"
 
@@ -26536,8 +26524,8 @@ msgid "Align View"
 msgstr "對齊檢視"
 
 
-msgid "UV"
-msgstr "UV"
+msgid "Deprecated"
+msgstr "已棄用"
 
 
 msgid "Align View to Active"
@@ -26554,6 +26542,10 @@ msgstr "選取更多/更少"
 
 msgid "Select Similar"
 msgstr "選取相似者"
+
+
+msgid "UV"
+msgstr "UV"
 
 
 msgid "Select All by Trait"
@@ -26592,16 +26584,12 @@ msgid "Rigid Body"
 msgstr "剛體"
 
 
+msgid "Apply"
+msgstr "套用"
+
+
 msgid "Track"
 msgstr "追蹤"
-
-
-msgid "Linked"
-msgstr "已連結"
-
-
-msgid "Layout"
-msgstr "配置"
 
 
 msgid "Quick Effects"
@@ -26620,32 +26608,28 @@ msgid "Convert"
 msgstr "轉換"
 
 
+msgid "Linked"
+msgstr "已連結"
+
+
 msgid "Link/Transfer Data"
 msgstr "連結/傳輸資料"
+
+
+msgid "Layout"
+msgstr "配置"
 
 
 msgid "Hooks"
 msgstr "鉤"
 
 
-msgid "Adjust"
-msgstr "調整"
-
-
 msgid "Trim/Add"
 msgstr "修剪/增加"
 
 
-msgid "Keying"
-msgstr "鍵處理"
-
-
 msgid "Sculpt Set Pivot"
 msgstr "雕刻設定樞紐"
-
-
-msgid "Tracking"
-msgstr "跟蹤"
 
 
 msgid "Face Sets Init"
@@ -26656,6 +26640,14 @@ msgid "Random Mask"
 msgstr "隨機遮罩"
 
 
+msgid "Adjust"
+msgstr "調整"
+
+
+msgid "Keying"
+msgstr "鍵處理"
+
+
 msgid "Clear Transform"
 msgstr "清除變換"
 
@@ -26664,8 +26656,16 @@ msgid "In-Betweens"
 msgstr "內部之間"
 
 
+msgid "Tracking"
+msgstr "跟蹤"
+
+
 msgid "Propagate"
 msgstr "增生"
+
+
+msgid "Bone Collections"
+msgstr "骨骼集盒"
 
 
 msgid "Keyframe Insert Pie"
@@ -36416,6 +36416,10 @@ msgid "Main Items"
 msgstr "主要項目"
 
 
+msgid "Scalar"
+msgstr "純量"
+
+
 msgid "Viewer Item"
 msgstr "檢視器項目"
 
@@ -38998,15 +39002,6 @@ msgstr "生成的"
 
 
 msgctxt "Operator"
-msgid "Make Markers Local"
-msgstr "讓標記變為區域性"
-
-
-msgid "Move selected scene markers to the active Action as local 'pose' markers"
-msgstr "將所選場景標記移動到作用中動作，作為區域「姿勢」標記"
-
-
-msgctxt "Operator"
 msgid "Mirror Keys"
 msgstr "鏡像鍵"
 
@@ -40585,10 +40580,6 @@ msgstr "縮放雕塑/繪圖筆刷大小"
 
 msgid "Change brush size by a scalar"
 msgstr "依純量變更筆刷大小"
-
-
-msgid "Scalar"
-msgstr "純量"
 
 
 msgid "Factor to scale brush size by"
@@ -52995,10 +52986,6 @@ msgstr "反轉可見性"
 msgctxt "Operator"
 msgid "Weight from Bones"
 msgstr "權重來自骨骼"
-
-
-msgid "Set the weights of the groups matching the attached armature's selected bones, using the distance between the vertices and the bones"
-msgstr "設定符合連接的骨架其所選骨骼的群組權重，用的是頂點與骨骼之間的距離"
 
 
 msgid "Method to use for assigning weights"
@@ -78539,6 +78526,10 @@ msgid "Repository: {:s}"
 msgstr "儲存庫： {:s}"
 
 
+msgid "Size: {:s}"
+msgstr "大小：{:s}"
+
+
 msgid "Age: {:s}"
 msgstr "Age: {:s}"
 
@@ -83881,6 +83872,10 @@ msgid "Duplicate Marker to Scene"
 msgstr "製作標記複本至場景"
 
 
+msgid "Jump Unit"
+msgstr "跳躍單位"
+
+
 msgid "Limit to Frame Range"
 msgstr "限制於影格區間"
 
@@ -83899,10 +83894,6 @@ msgstr "作用中編輯器"
 
 msgid "Properties and Sidebars"
 msgstr "屬性與側邊欄"
-
-
-msgid "Jump Unit"
-msgstr "跳躍單位"
 
 
 msgid "Layered Recording"

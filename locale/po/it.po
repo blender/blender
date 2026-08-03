@@ -1,9 +1,9 @@
 
 msgid ""
 msgstr ""
-"Project-Id-Version: Blender 5.3.0 Alpha (b'bf67fb078da0')\n"
+"Project-Id-Version: Blender 5.3.0 Alpha (b'af9ba6af7621')\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-07-27 09:52+0000\n"
+"POT-Creation-Date: 2026-08-03 07:24+0000\n"
 "PO-Revision-Date: 2026-05-04 00:12+0000\n"
 "Last-Translator: Alessandro Vecchio <alessandrovecchio1907@gmail.com>\n"
 "Language-Team: Italian <https://translate.blender.org/projects/blender-ui/ui/it/>\n"
@@ -24478,22 +24478,6 @@ msgid "Material slot name"
 msgstr "Nome dello slot materiale"
 
 
-msgid "Bone Collections"
-msgstr "Raccolte di Ossa"
-
-
-msgid "Names"
-msgstr "Nomi"
-
-
-msgid "Show/Hide"
-msgstr "Mostra/Nascondi"
-
-
-msgid "Apply"
-msgstr "Applica"
-
-
 msgid "Toggle Bone Options"
 msgstr "Attiva/disattiva Opzioni Osso"
 
@@ -24530,6 +24514,10 @@ msgid "Merge"
 msgstr "Unisci"
 
 
+msgid "Show/Hide"
+msgstr "Mostra/Nascondi"
+
+
 msgid "Special Characters"
 msgstr "Caratteri Speciali"
 
@@ -24538,36 +24526,24 @@ msgid "Kerning"
 msgstr "Crenatura"
 
 
-msgid "Math"
-msgstr "Matematica"
-
-
 msgid "Metaball"
 msgstr "Metaball"
 
 
-msgid "Utilities"
-msgstr "Utilità"
+msgid "Names"
+msgstr "Nomi"
 
 
 msgid "Bone Roll"
 msgstr "Rollio Osso"
 
 
-msgid "Read"
-msgstr "Lettura"
+msgid "Math"
+msgstr "Matematica"
 
 
-msgid "Sample"
-msgstr "Campione"
-
-
-msgid "Write"
-msgstr "Scrittura"
-
-
-msgid "Primitives"
-msgstr "Primitive"
+msgid "Utilities"
+msgstr "Utilità"
 
 
 msgid "Pivot Point"
@@ -24582,16 +24558,32 @@ msgid "Proportional Editing Falloff"
 msgstr "Decadimento Modifica Proporzionale"
 
 
+msgid "Read"
+msgstr "Lettura"
+
+
 msgid "Mask Edit"
 msgstr "Modifica Maschera"
+
+
+msgid "Sample"
+msgstr "Campione"
 
 
 msgid "Automasking"
 msgstr "Automascheramento"
 
 
+msgid "Write"
+msgstr "Scrittura"
+
+
 msgid "Face Sets Edit"
 msgstr "Modifica Sets di Facce"
+
+
+msgid "Primitives"
+msgstr "Primitive"
 
 
 msgid "Vertex Group Locks"
@@ -24630,10 +24622,6 @@ msgid "Align View"
 msgstr "Allinea Vista"
 
 
-msgid "UV"
-msgstr "UV"
-
-
 msgid "Align View to Active"
 msgstr "Allinea Vista a Attivo"
 
@@ -24648,6 +24636,10 @@ msgstr "Seleziona Più/Meno"
 
 msgid "Select Similar"
 msgstr "Seleziona Simili"
+
+
+msgid "UV"
+msgstr "UV"
 
 
 msgid "Select All by Trait"
@@ -24686,16 +24678,12 @@ msgid "Rigid Body"
 msgstr "Corpo Rigido"
 
 
+msgid "Apply"
+msgstr "Applica"
+
+
 msgid "Track"
 msgstr "Traccia"
-
-
-msgid "Linked"
-msgstr "Collegato"
-
-
-msgid "Layout"
-msgstr "Layout"
 
 
 msgid "Quick Effects"
@@ -24714,24 +24702,20 @@ msgid "Convert"
 msgstr "Converti"
 
 
+msgid "Linked"
+msgstr "Collegato"
+
+
 msgid "Link/Transfer Data"
 msgstr "Collega/Trasferisci Dati"
 
 
+msgid "Layout"
+msgstr "Layout"
+
+
 msgid "Hooks"
 msgstr "Ganci"
-
-
-msgid "Adjust"
-msgstr "Regola"
-
-
-msgid "Keying"
-msgstr "Keying"
-
-
-msgid "Tracking"
-msgstr "Tracciamento"
 
 
 msgid "Face Sets Init"
@@ -24742,6 +24726,14 @@ msgid "Random Mask"
 msgstr "Maschera Casuale"
 
 
+msgid "Adjust"
+msgstr "Regola"
+
+
+msgid "Keying"
+msgstr "Keying"
+
+
 msgid "Clear Transform"
 msgstr "Cancella Trasformazione"
 
@@ -24750,8 +24742,16 @@ msgid "In-Betweens"
 msgstr "Intermedio"
 
 
+msgid "Tracking"
+msgstr "Tracciamento"
+
+
 msgid "Propagate"
 msgstr "Propaga"
+
+
+msgid "Bone Collections"
+msgstr "Raccolte di Ossa"
 
 
 msgid "Keyframe Insert Pie"
@@ -32737,6 +32737,10 @@ msgid "Capture Attribute Item"
 msgstr "Elemento dell'Attributo di Cattura"
 
 
+msgid "Scalar"
+msgstr "Scalare"
+
+
 msgid "Node Inputs"
 msgstr "Ingressi Nodo"
 
@@ -34022,15 +34026,6 @@ msgstr "Tremolio"
 
 msgid "Generated"
 msgstr "Generate"
-
-
-msgctxt "Operator"
-msgid "Make Markers Local"
-msgstr "Rendi Marcatori Locali"
-
-
-msgid "Move selected scene markers to the active Action as local 'pose' markers"
-msgstr "Sposta i marcatori della scena selezionati dall'Azione attiva come marcatori di 'posa' locale"
 
 
 msgctxt "Operator"
@@ -35375,10 +35370,6 @@ msgstr "Scala la grandezza del pennello scultura/pittura"
 
 msgid "Change brush size by a scalar"
 msgstr "Modifica la grandezza del pennello in modo scalare"
-
-
-msgid "Scalar"
-msgstr "Scalare"
 
 
 msgid "Factor to scale brush size by"

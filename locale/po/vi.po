@@ -1,9 +1,9 @@
 
 msgid ""
 msgstr ""
-"Project-Id-Version: Blender 5.3.0 Alpha (b'bf67fb078da0')\n"
+"Project-Id-Version: Blender 5.3.0 Alpha (b'af9ba6af7621')\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-07-27 09:52+0000\n"
+"POT-Creation-Date: 2026-08-03 07:24+0000\n"
 "PO-Revision-Date: 2026-07-18 14:58+0000\n"
 "Last-Translator: Hoang Duy Tran <hoangduytran1960@googlemail.com>\n"
 "Language-Team: Vietnamese <https://translate.blender.org/projects/blender-ui/ui/vi/>\n"
@@ -34983,22 +34983,6 @@ msgid "Creative"
 msgstr "Kiến Tạo"
 
 
-msgid "Bone Collections"
-msgstr "Bộ Sưu Tập Xương"
-
-
-msgid "Names"
-msgstr "Tên"
-
-
-msgid "Show/Hide"
-msgstr "Hiện/Ẩn Giấu"
-
-
-msgid "Apply"
-msgstr "Áp Dụng"
-
-
 msgid "Toggle Bone Options"
 msgstr "Bật/Tắt Tùy Chọn về Xương"
 
@@ -35035,6 +35019,10 @@ msgid "Merge"
 msgstr "Hợp Nhất"
 
 
+msgid "Show/Hide"
+msgstr "Hiện/Ẩn Giấu"
+
+
 msgid "Special Characters"
 msgstr "Các Ký Tự Đặc Biệt"
 
@@ -35043,36 +35031,24 @@ msgid "Kerning"
 msgstr "Tinh Chỉnh Khoảng Cách Ký Tự"
 
 
-msgid "Math"
-msgstr "Toán"
-
-
 msgid "Metaball"
 msgstr "Siêu Cầu"
 
 
-msgid "Utilities"
-msgstr "Thường Trình"
+msgid "Names"
+msgstr "Tên"
 
 
 msgid "Bone Roll"
 msgstr "Lăn Xương"
 
 
-msgid "Read"
-msgstr "Đọc"
+msgid "Math"
+msgstr "Toán"
 
 
-msgid "Sample"
-msgstr "Lấy Mẫu Vật"
-
-
-msgid "Write"
-msgstr "Viết"
-
-
-msgid "Primitives"
-msgstr "Hình Cơ Bản"
+msgid "Utilities"
+msgstr "Thường Trình"
 
 
 msgid "Pivot Point"
@@ -35087,16 +35063,32 @@ msgid "Proportional Editing Falloff"
 msgstr "Suy Giảm Dần trong Biên Soạn Cân Đối"
 
 
+msgid "Read"
+msgstr "Đọc"
+
+
 msgid "Mask Edit"
 msgstr "Biên Soạn Màn Chắn Lọc"
+
+
+msgid "Sample"
+msgstr "Lấy Mẫu Vật"
 
 
 msgid "Automasking"
 msgstr "Tự Động Chắn Lọc"
 
 
+msgid "Write"
+msgstr "Viết"
+
+
 msgid "Face Sets Edit"
 msgstr "Biên Soạn các Tập Hợp Mặt"
+
+
+msgid "Primitives"
+msgstr "Hình Cơ Bản"
 
 
 msgid "Vertex Group Locks"
@@ -35123,10 +35115,6 @@ msgid "Mirror"
 msgstr "Phản Chiếu Đối Xứng"
 
 
-msgid "Deprecated"
-msgstr "Lỗi Thời"
-
-
 msgid "UV Mapping"
 msgstr "Ánh Xạ UV"
 
@@ -35147,8 +35135,8 @@ msgid "Align View"
 msgstr "Căn Chỉnh Góc Nhìn"
 
 
-msgid "UV"
-msgstr "UV"
+msgid "Deprecated"
+msgstr "Lỗi Thời"
 
 
 msgid "Align View to Active"
@@ -35165,6 +35153,10 @@ msgstr "Tăng/Giảm Lựa Chọn"
 
 msgid "Select Similar"
 msgstr "Chọn Tương Tự"
+
+
+msgid "UV"
+msgstr "UV"
 
 
 msgid "Select All by Trait"
@@ -35203,16 +35195,12 @@ msgid "Rigid Body"
 msgstr "Thân Cứng"
 
 
+msgid "Apply"
+msgstr "Áp Dụng"
+
+
 msgid "Track"
 msgstr "Giám Sát"
-
-
-msgid "Linked"
-msgstr "Kết Nối"
-
-
-msgid "Layout"
-msgstr "Bố Trí"
 
 
 msgid "Quick Effects"
@@ -35231,16 +35219,20 @@ msgid "Convert"
 msgstr "Chuyển Đổi"
 
 
+msgid "Linked"
+msgstr "Kết Nối"
+
+
 msgid "Link/Transfer Data"
 msgstr "Kết Nối/Thuyên Chuyển Dữ Liệu"
 
 
+msgid "Layout"
+msgstr "Bố Trí"
+
+
 msgid "Hooks"
 msgstr "Móc"
-
-
-msgid "Adjust"
-msgstr "Điều Chỉnh"
 
 
 msgid "Trim/Add"
@@ -35251,16 +35243,8 @@ msgid "Add Primitive"
 msgstr "Thêm Hình Cơ Bản"
 
 
-msgid "Keying"
-msgstr "Khóa Hóa"
-
-
 msgid "Sculpt Set Pivot"
 msgstr "Điêu Khắc: Đặt Điểm Tựa"
-
-
-msgid "Tracking"
-msgstr "Giám Sát"
 
 
 msgid "Face Sets Init"
@@ -35271,6 +35255,14 @@ msgid "Random Mask"
 msgstr "Màn Chắn Lọc Ngẫu Nhiên"
 
 
+msgid "Adjust"
+msgstr "Điều Chỉnh"
+
+
+msgid "Keying"
+msgstr "Khóa Hóa"
+
+
 msgid "Clear Transform"
 msgstr "Xóa Biến Hóa"
 
@@ -35279,8 +35271,16 @@ msgid "In-Betweens"
 msgstr "Bước Trung Gian"
 
 
+msgid "Tracking"
+msgstr "Giám Sát"
+
+
 msgid "Propagate"
 msgstr "Lan Truyền"
+
+
+msgid "Bone Collections"
+msgstr "Bộ Sưu Tập Xương"
 
 
 msgid "Keyframe Insert Pie"
@@ -52177,6 +52177,10 @@ msgid "Collection of main items"
 msgstr "Bộ sưu tập các mục chính"
 
 
+msgid "Scalar"
+msgstr "Tỷ Lệ"
+
+
 msgid "Collection of repeat items"
 msgstr "Bộ sưu tập các chỉ mục lặp lại"
 
@@ -56515,15 +56519,6 @@ msgstr "Do Máy Sinh Tạo"
 
 
 msgctxt "Operator"
-msgid "Make Markers Local"
-msgstr "Cục Bộ Hóa Dấu Mốc"
-
-
-msgid "Move selected scene markers to the active Action as local 'pose' markers"
-msgstr "Di chuyển các dấu mốc cảnh được chọn vào Hành Động đang hoạt động, biến chúng thành các dấu mốc 'tư thế' cục bộ"
-
-
-msgctxt "Operator"
 msgid "Mirror Keys"
 msgstr "Phản Chiếu Đối Xứng Khung Khóa"
 
@@ -58834,10 +58829,6 @@ msgstr "Đổi Tỷ Lệ Kích Thước Bút Điêu Khắc/Bút Sơn"
 
 msgid "Change brush size by a scalar"
 msgstr "Đổi kích thước đầu bút bằng một tỷ lệ (lượng vô hướng)"
-
-
-msgid "Scalar"
-msgstr "Tỷ Lệ"
 
 
 msgid "Factor to scale brush size by"
@@ -75005,15 +74996,6 @@ msgid "Select all objects which block light from this emitter"
 msgstr "Chọn toàn bộ các vật cản trở ánh sáng từ vật phát xạ này"
 
 
-msgctxt "Operator"
-msgid "Link Receivers to Emitter"
-msgstr "Liên Kết Vật Tiếp Nhận với Vật Phát Xạ"
-
-
-msgid "Light link selected receivers to the active emitter object"
-msgstr "Liên kết ánh sáng từ các vật tiếp nhận đã chọn với đối tượng phát xạ đang hoạt động"
-
-
 msgid "State of the light linking"
 msgstr "Trạng thái liên kết ánh sáng"
 
@@ -79016,10 +78998,6 @@ msgstr "Đảo ngược khả năng nhìn thấy được của toàn bộ các 
 msgctxt "Operator"
 msgid "Weight from Bones"
 msgstr "Trọng Lượng từ các Xương"
-
-
-msgid "Set the weights of the groups matching the attached armature's selected bones, using the distance between the vertices and the bones"
-msgstr "Đặt trọng lượng của những nhóm xứng khớp với các xương của khung rối gắn liền được chọn, dùng khoảng cách giữa các điểm đỉnh và các xương"
 
 
 msgid "Method to use for assigning weights"
@@ -97591,10 +97569,6 @@ msgid "Danish - Dansk"
 msgstr "Tiếng Đan Mạch (Dansk)"
 
 
-msgid "Locale code: da. Translation progress: 3%"
-msgstr "Mã ngôn ngữ: da. Tiến độ dịch thuật: 3%"
-
-
 msgid "Dutch - Nederlands"
 msgstr "Tiếng Hà Lan (Nederlands)"
 
@@ -97621,10 +97595,6 @@ msgstr "Mã ngôn ngữ: eo. Tiến độ dịch thuật: 0%"
 
 msgid "Finnish - Suomi"
 msgstr "Tiếng Phần Lan (Suomi)"
-
-
-msgid "Locale code: fi_FI. Translation progress: 11%"
-msgstr "Mã ngôn ngữ: fi_FI. Tiến độ dịch thuật: 11%"
 
 
 msgid "French - Français"
@@ -97669,10 +97639,6 @@ msgstr "Tiếng Hungary (Magyar)"
 
 msgid "Indonesian - Bahasa indonesia"
 msgstr "Tiếng Indonesia (Bahasa indonesia)"
-
-
-msgid "Locale code: id_ID. Translation progress: 21%"
-msgstr "Mã ngôn ngữ: id_ID. Tiến độ dịch thuật: 21%"
 
 
 msgid "Italian - Italiano"
@@ -127404,6 +127370,14 @@ msgid "Duplicate Marker to Scene"
 msgstr "Nhân Đôi Dấu Mốc sang Cảnh"
 
 
+msgid "Only Active Keying Set"
+msgstr "Duy Bộ Khóa đang Hoạt Động"
+
+
+msgid "Jump Unit"
+msgstr "Đơn Vị Nhảy"
+
+
 msgid "Limit to Frame Range"
 msgstr "Hạn Chế trong Phạm Vi Khung Hình"
 
@@ -127422,14 +127396,6 @@ msgstr "Trình Biên Soạn đang Hoạt Động"
 
 msgid "Properties and Sidebars"
 msgstr "Bảng Tính Chất và Thanh Bên"
-
-
-msgid "Only Active Keying Set"
-msgstr "Duy Bộ Khóa đang Hoạt Động"
-
-
-msgid "Jump Unit"
-msgstr "Đơn Vị Nhảy"
 
 
 msgid "Layered Recording"
@@ -142453,10 +142419,6 @@ msgid "Cannot fly when the view offset is locked"
 msgstr "Không thể bay lượn khi dịch chuyển góc nhìn bị khóa"
 
 
-msgid "Cannot fly an object with constraints"
-msgstr "Không thể cho đối tượng có các ràng buộc bay được"
-
-
 msgid "Cannot dolly when the view offset is locked"
 msgstr "Không thể lướt được khi dịch chuyển góc nhìn bị khóa"
 
@@ -142479,10 +142441,6 @@ msgstr "Hiệu Chỉnh Trục Z"
 
 msgid "Cannot navigate when the view offset is locked"
 msgstr "Không thể di chuyển khi dịch chuyển của góc nhìn bị khóa"
-
-
-msgid "Cannot navigate an object with constraints"
-msgstr "Không thể điều hành một đối tượng có các ràng buộc"
 
 
 msgid "Depth too large"

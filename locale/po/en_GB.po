@@ -1,9 +1,9 @@
 
 msgid ""
 msgstr ""
-"Project-Id-Version: Blender 5.3.0 Alpha (b'bf67fb078da0')\n"
+"Project-Id-Version: Blender 5.3.0 Alpha (b'af9ba6af7621')\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-07-27 09:52+0000\n"
+"POT-Creation-Date: 2026-08-03 07:24+0000\n"
 "PO-Revision-Date: 2026-02-16 18:12+0000\n"
 "Last-Translator: Deniz Jones <sdfoakes@gmail.com>\n"
 "Language-Team: English (United Kingdom) <https://translate.blender.org/projects/blender-ui/ui/en_GB/>\n"
@@ -34774,22 +34774,6 @@ msgid "Creative"
 msgstr "Creative"
 
 
-msgid "Bone Collections"
-msgstr "Bone Collections"
-
-
-msgid "Names"
-msgstr "Names"
-
-
-msgid "Show/Hide"
-msgstr "Show/Hide"
-
-
-msgid "Apply"
-msgstr "Apply"
-
-
 msgid "Toggle Bone Options"
 msgstr "Toggle Bone Options"
 
@@ -34826,6 +34810,10 @@ msgid "Merge"
 msgstr "Merge"
 
 
+msgid "Show/Hide"
+msgstr "Show/Hide"
+
+
 msgid "Special Characters"
 msgstr "Special Characters"
 
@@ -34834,36 +34822,24 @@ msgid "Kerning"
 msgstr "Kerning"
 
 
-msgid "Math"
-msgstr "Maths"
-
-
 msgid "Metaball"
 msgstr "Metaball"
 
 
-msgid "Utilities"
-msgstr "Utilities"
+msgid "Names"
+msgstr "Names"
 
 
 msgid "Bone Roll"
 msgstr "Bone Roll"
 
 
-msgid "Read"
-msgstr "Read"
+msgid "Math"
+msgstr "Maths"
 
 
-msgid "Sample"
-msgstr "Sample"
-
-
-msgid "Write"
-msgstr "Write"
-
-
-msgid "Primitives"
-msgstr "Primitives"
+msgid "Utilities"
+msgstr "Utilities"
 
 
 msgid "Pivot Point"
@@ -34878,16 +34854,32 @@ msgid "Proportional Editing Falloff"
 msgstr "Proportional Editing Falloff"
 
 
+msgid "Read"
+msgstr "Read"
+
+
 msgid "Mask Edit"
 msgstr "Mask Edit"
+
+
+msgid "Sample"
+msgstr "Sample"
 
 
 msgid "Automasking"
 msgstr "Automasking"
 
 
+msgid "Write"
+msgstr "Write"
+
+
 msgid "Face Sets Edit"
 msgstr "Face Sets Edit"
+
+
+msgid "Primitives"
+msgstr "Primitives"
 
 
 msgid "Vertex Group Locks"
@@ -34914,10 +34906,6 @@ msgid "Mirror"
 msgstr "Mirror"
 
 
-msgid "Deprecated"
-msgstr "Deprecated"
-
-
 msgid "UV Mapping"
 msgstr "UV Mapping"
 
@@ -34938,8 +34926,8 @@ msgid "Align View"
 msgstr "Align View"
 
 
-msgid "UV"
-msgstr "UV"
+msgid "Deprecated"
+msgstr "Deprecated"
 
 
 msgid "Align View to Active"
@@ -34956,6 +34944,10 @@ msgstr "Select More/Less"
 
 msgid "Select Similar"
 msgstr "Select Similar"
+
+
+msgid "UV"
+msgstr "UV"
 
 
 msgid "Select All by Trait"
@@ -34994,16 +34986,12 @@ msgid "Rigid Body"
 msgstr "Rigid Body"
 
 
+msgid "Apply"
+msgstr "Apply"
+
+
 msgid "Track"
 msgstr "Track"
-
-
-msgid "Linked"
-msgstr "Linked"
-
-
-msgid "Layout"
-msgstr "Layout"
 
 
 msgid "Quick Effects"
@@ -35022,32 +35010,28 @@ msgid "Convert"
 msgstr "Convert"
 
 
+msgid "Linked"
+msgstr "Linked"
+
+
 msgid "Link/Transfer Data"
 msgstr "Link/Transfer Data"
+
+
+msgid "Layout"
+msgstr "Layout"
 
 
 msgid "Hooks"
 msgstr "Hooks"
 
 
-msgid "Adjust"
-msgstr "Adjust"
-
-
 msgid "Trim/Add"
 msgstr "Trim/Add"
 
 
-msgid "Keying"
-msgstr "Keying"
-
-
 msgid "Sculpt Set Pivot"
 msgstr "Sculpt Set Pivot"
-
-
-msgid "Tracking"
-msgstr "Tracking"
 
 
 msgid "Face Sets Init"
@@ -35058,6 +35042,14 @@ msgid "Random Mask"
 msgstr "Random Mask"
 
 
+msgid "Adjust"
+msgstr "Adjust"
+
+
+msgid "Keying"
+msgstr "Keying"
+
+
 msgid "Clear Transform"
 msgstr "Clear Transform"
 
@@ -35066,8 +35058,16 @@ msgid "In-Betweens"
 msgstr "In-Betweens"
 
 
+msgid "Tracking"
+msgstr "Tracking"
+
+
 msgid "Propagate"
 msgstr "Propagate"
+
+
+msgid "Bone Collections"
+msgstr "Bone Collections"
 
 
 msgid "Keyframe Insert Pie"
@@ -51775,6 +51775,10 @@ msgid "Collection of main items"
 msgstr "Collection of main items"
 
 
+msgid "Scalar"
+msgstr "Scalar"
+
+
 msgid "Collection of repeat items"
 msgstr "Collection of repeat items"
 
@@ -55900,15 +55904,6 @@ msgstr "Generated"
 
 
 msgctxt "Operator"
-msgid "Make Markers Local"
-msgstr "Make Markers Local"
-
-
-msgid "Move selected scene markers to the active Action as local 'pose' markers"
-msgstr "Move selected scene markers to the active Action as local 'pose' markers"
-
-
-msgctxt "Operator"
 msgid "Mirror Keys"
 msgstr "Mirror Keys"
 
@@ -58193,10 +58188,6 @@ msgstr "Scale Sculpt/Paint Brush Size"
 
 msgid "Change brush size by a scalar"
 msgstr "Change brush size by a scalar"
-
-
-msgid "Scalar"
-msgstr "Scalar"
 
 
 msgid "Factor to scale brush size by"
@@ -74037,15 +74028,6 @@ msgid "Select all objects which block light from this emitter"
 msgstr "Select all objects which block light from this emitter"
 
 
-msgctxt "Operator"
-msgid "Link Receivers to Emitter"
-msgstr "Link Receivers to Emitter"
-
-
-msgid "Light link selected receivers to the active emitter object"
-msgstr "Light link selected receivers to the active emitter object"
-
-
 msgid "State of the light linking"
 msgstr "State of the light linking"
 
@@ -77995,10 +77977,6 @@ msgstr "Invert the visibility of all vertices"
 msgctxt "Operator"
 msgid "Weight from Bones"
 msgstr "Weight from Bones"
-
-
-msgid "Set the weights of the groups matching the attached armature's selected bones, using the distance between the vertices and the bones"
-msgstr "Set the weights of the groups matching the attached armature's selected bones, using the distance between the vertices and the bones"
 
 
 msgid "Method to use for assigning weights"
@@ -96294,10 +96272,6 @@ msgid "Danish - Dansk"
 msgstr "Danish - Dansk"
 
 
-msgid "Locale code: da. Translation progress: 3%"
-msgstr "Locale code: da. Translation progress: 3%"
-
-
 msgid "Dutch - Nederlands"
 msgstr "Dutch - Nederlands"
 
@@ -96324,10 +96298,6 @@ msgstr "Locale code: eo. Translation progress: 0%"
 
 msgid "Finnish - Suomi"
 msgstr "Finnish - Suomi"
-
-
-msgid "Locale code: fi_FI. Translation progress: 11%"
-msgstr "Locale code: fi_FI. Translation progress: 11%"
 
 
 msgid "French - Français"
@@ -125776,6 +125746,14 @@ msgid "Duplicate Marker to Scene"
 msgstr "Duplicate Marker to Scene"
 
 
+msgid "Only Active Keying Set"
+msgstr "Only Active Keying Set"
+
+
+msgid "Jump Unit"
+msgstr "Jump Unit"
+
+
 msgid "Limit to Frame Range"
 msgstr "Limit to Frame Range"
 
@@ -125794,14 +125772,6 @@ msgstr "Active Editor"
 
 msgid "Properties and Sidebars"
 msgstr "Properties and Sidebars"
-
-
-msgid "Only Active Keying Set"
-msgstr "Only Active Keying Set"
-
-
-msgid "Jump Unit"
-msgstr "Jump Unit"
 
 
 msgid "Layered Recording"
@@ -140384,10 +140354,6 @@ msgid "Cannot fly when the view offset is locked"
 msgstr "Cannot fly when the view offset is locked"
 
 
-msgid "Cannot fly an object with constraints"
-msgstr "Cannot fly an object with constraints"
-
-
 msgid "Cannot dolly when the view offset is locked"
 msgstr "Cannot dolly when the view offset is locked"
 
@@ -140410,10 +140376,6 @@ msgstr "Z Axis Correction"
 
 msgid "Cannot navigate when the view offset is locked"
 msgstr "Cannot navigate when the view offset is locked"
-
-
-msgid "Cannot navigate an object with constraints"
-msgstr "Cannot navigate an object with constraints"
 
 
 msgid "Depth too large"

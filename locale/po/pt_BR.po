@@ -1,9 +1,9 @@
 
 msgid ""
 msgstr ""
-"Project-Id-Version: Blender 5.3.0 Alpha (b'bf67fb078da0')\n"
+"Project-Id-Version: Blender 5.3.0 Alpha (b'af9ba6af7621')\n"
 "Report-Msgid-Bugs-To: Leandro Paganelli <leandrobp@fastmail.com>\n"
-"POT-Creation-Date: 2026-07-27 09:52+0000\n"
+"POT-Creation-Date: 2026-08-03 07:24+0000\n"
 "PO-Revision-Date: 2026-04-13 10:12+0000\n"
 "Last-Translator: Gilberto Rodrigues <gilbertorodrigues@outlook.com>\n"
 "Language-Team: Portuguese (Brazil) <https://translate.blender.org/projects/blender-ui/ui/pt_BR/>\n"
@@ -21152,18 +21152,6 @@ msgid "Material slot name"
 msgstr "Nome do compartimento do material."
 
 
-msgid "Names"
-msgstr "Nomes"
-
-
-msgid "Show/Hide"
-msgstr "Mostrar ou ocultar"
-
-
-msgid "Apply"
-msgstr "Aplicar"
-
-
 msgid "Toggle Bone Options"
 msgstr "Alternar opções de ossos"
 
@@ -21192,20 +21180,28 @@ msgid "Merge"
 msgstr "Fundir"
 
 
+msgid "Show/Hide"
+msgstr "Mostrar ou ocultar"
+
+
 msgid "Special Characters"
 msgstr "Caracteres especiais"
-
-
-msgid "Math"
-msgstr "Matemática"
 
 
 msgid "Metaball"
 msgstr "Meta-esfera"
 
 
+msgid "Names"
+msgstr "Nomes"
+
+
 msgid "Bone Roll"
 msgstr "Rolagem dos ossos"
+
+
+msgid "Math"
+msgstr "Matemática"
 
 
 msgid "Pivot Point"
@@ -21252,10 +21248,6 @@ msgid "Align View"
 msgstr "Alinhar visualização"
 
 
-msgid "UV"
-msgstr "UV"
-
-
 msgid "Align View to Active"
 msgstr "Alinhar vista para o ativo"
 
@@ -21270,6 +21262,10 @@ msgstr "Selecionar mais ou menos"
 
 msgid "Select Similar"
 msgstr "Selecionar por similaridades"
+
+
+msgid "UV"
+msgstr "UV"
 
 
 msgid "Select All by Trait"
@@ -21304,16 +21300,12 @@ msgid "Rigid Body"
 msgstr "Corpo rígido"
 
 
+msgid "Apply"
+msgstr "Aplicar"
+
+
 msgid "Track"
 msgstr "Rastrear"
-
-
-msgid "Linked"
-msgstr "Vinculando"
-
-
-msgid "Layout"
-msgstr "Organizar"
 
 
 msgid "Quick Effects"
@@ -21328,20 +21320,24 @@ msgid "Convert"
 msgstr "Converter"
 
 
+msgid "Linked"
+msgstr "Vinculando"
+
+
+msgid "Layout"
+msgstr "Organizar"
+
+
 msgid "Hooks"
 msgstr "Ganchos"
 
 
-msgid "Keying"
-msgstr "Inserção de chaves"
-
-
-msgid "Tracking"
-msgstr "Rastreamento"
-
-
 msgid "Random Mask"
 msgstr "Máscara Aleatória"
+
+
+msgid "Keying"
+msgstr "Inserção de chaves"
 
 
 msgid "Clear Transform"
@@ -21350,6 +21346,10 @@ msgstr "Limpar transformações"
 
 msgid "In-Betweens"
 msgstr "Entre as continuidades"
+
+
+msgid "Tracking"
+msgstr "Rastreamento"
 
 
 msgid "Propagate"
@@ -27932,6 +27932,10 @@ msgid "Enum Item"
 msgstr "Item de menu"
 
 
+msgid "Scalar"
+msgstr "Escalonar"
+
+
 msgid "Node Inputs"
 msgstr "Entradas de nós"
 
@@ -29675,15 +29679,6 @@ msgstr "Geradas"
 
 
 msgctxt "Operator"
-msgid "Make Markers Local"
-msgstr "Tornar marcadores locais"
-
-
-msgid "Move selected scene markers to the active Action as local 'pose' markers"
-msgstr "Move os marcadores de cena selecionados para a ação ativa como marcadores de \"pose\" locais."
-
-
-msgctxt "Operator"
 msgid "Mirror Keys"
 msgstr "Espelhar chaves"
 
@@ -31112,10 +31107,6 @@ msgstr "Escalonar o tamanho do pincel de escultura ou pintura"
 
 msgid "Change brush size by a scalar"
 msgstr "Altera o tamanho do pincel por uma escala."
-
-
-msgid "Scalar"
-msgstr "Escalonar"
 
 
 msgid "Factor to scale brush size by"
@@ -41685,10 +41676,6 @@ msgstr "Alterna para o modo de pintura de vértices na janela de visualização 
 msgctxt "Operator"
 msgid "Weight from Bones"
 msgstr "Peso a partir dos ossos"
-
-
-msgid "Set the weights of the groups matching the attached armature's selected bones, using the distance between the vertices and the bones"
-msgstr "Configura os pesos dos grupos que combinem com os ossos da armação conectada, usando a distância entre os vértices e os ossos."
 
 
 msgid "Method to use for assigning weights"
@@ -65725,20 +65712,12 @@ msgid "Cannot fly when the view offset is locked"
 msgstr "Não é possível voar quando o deslocamento de visão está bloqueado."
 
 
-msgid "Cannot fly an object with constraints"
-msgstr "Não é possível fazer voo de um objeto com restrições."
-
-
 msgid "Cannot dolly when the view offset is locked"
 msgstr "Não é possível mover-se como em carrinho quando o deslocamento de visão está bloqueado."
 
 
 msgid "Cannot navigate when the view offset is locked"
 msgstr "Não é possível navegar quando o deslocamento de visão está bloqueado."
-
-
-msgid "Cannot navigate an object with constraints"
-msgstr "Não é possível navegar usando um objeto com restrições."
 
 
 msgid "Depth too large"

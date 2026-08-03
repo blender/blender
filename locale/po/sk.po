@@ -1,9 +1,9 @@
 
 msgid ""
 msgstr ""
-"Project-Id-Version: Blender 5.3.0 Alpha (b'bf67fb078da0')\n"
+"Project-Id-Version: Blender 5.3.0 Alpha (b'af9ba6af7621')\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-07-27 09:52+0000\n"
+"POT-Creation-Date: 2026-08-03 07:24+0000\n"
 "PO-Revision-Date: 2026-07-28 06:14+0000\n"
 "Last-Translator: Jozef Matta <jozef.m923@gmail.com>\n"
 "Language-Team: Slovak <https://translate.blender.org/projects/blender-ui/ui/sk/>\n"
@@ -36009,22 +36009,6 @@ msgid "Creative"
 msgstr "Kreatívne"
 
 
-msgid "Bone Collections"
-msgstr "Kolekcie kostí"
-
-
-msgid "Names"
-msgstr "Názvy"
-
-
-msgid "Show/Hide"
-msgstr "Ukázať/skryť"
-
-
-msgid "Apply"
-msgstr "Použiť"
-
-
 msgid "Toggle Bone Options"
 msgstr "Prepínač možnosti kostí"
 
@@ -36061,6 +36045,10 @@ msgid "Merge"
 msgstr "Zlúčiť"
 
 
+msgid "Show/Hide"
+msgstr "Ukázať/skryť"
+
+
 msgid "Special Characters"
 msgstr "Špeciálne znaky"
 
@@ -36069,36 +36057,24 @@ msgid "Kerning"
 msgstr "Zhustenie znakov"
 
 
-msgid "Math"
-msgstr "Matematika"
-
-
 msgid "Metaball"
 msgstr "Meta guľa"
 
 
-msgid "Utilities"
-msgstr "Obslužné programy"
+msgid "Names"
+msgstr "Názvy"
 
 
 msgid "Bone Roll"
 msgstr "Kývanie kosti"
 
 
-msgid "Read"
-msgstr "Čítanie"
+msgid "Math"
+msgstr "Matematika"
 
 
-msgid "Sample"
-msgstr "Snímka"
-
-
-msgid "Write"
-msgstr "Zápis"
-
-
-msgid "Primitives"
-msgstr "Prvotné tvary"
+msgid "Utilities"
+msgstr "Obslužné programy"
 
 
 msgid "Pivot Point"
@@ -36113,16 +36089,32 @@ msgid "Proportional Editing Falloff"
 msgstr "Dopad proporcionálnej úpravy"
 
 
+msgid "Read"
+msgstr "Čítanie"
+
+
 msgid "Mask Edit"
 msgstr "Úprava masky"
+
+
+msgid "Sample"
+msgstr "Snímka"
 
 
 msgid "Automasking"
 msgstr "Automatické maskovanie"
 
 
+msgid "Write"
+msgstr "Zápis"
+
+
 msgid "Face Sets Edit"
 msgstr "Úprava nastavenia plôšok"
+
+
+msgid "Primitives"
+msgstr "Prvotné tvary"
 
 
 msgid "Vertex Group Locks"
@@ -36149,10 +36141,6 @@ msgid "Mirror"
 msgstr "Zrkadlo"
 
 
-msgid "Deprecated"
-msgstr "Zastarané"
-
-
 msgid "UV Mapping"
 msgstr "UV mapovanie"
 
@@ -36173,8 +36161,8 @@ msgid "Align View"
 msgstr "Zarovnať pohľad"
 
 
-msgid "UV"
-msgstr "UV"
+msgid "Deprecated"
+msgstr "Zastarané"
 
 
 msgid "Align View to Active"
@@ -36191,6 +36179,10 @@ msgstr "Vybrať viac/menej"
 
 msgid "Select Similar"
 msgstr "Vybrať podobné"
+
+
+msgid "UV"
+msgstr "UV"
 
 
 msgid "Select All by Trait"
@@ -36229,16 +36221,12 @@ msgid "Rigid Body"
 msgstr "Pevné teleso"
 
 
+msgid "Apply"
+msgstr "Použiť"
+
+
 msgid "Track"
 msgstr "Stopa"
-
-
-msgid "Linked"
-msgstr "Prepojené"
-
-
-msgid "Layout"
-msgstr "Rozloženie"
 
 
 msgid "Quick Effects"
@@ -36257,16 +36245,20 @@ msgid "Convert"
 msgstr "Konvertovať"
 
 
+msgid "Linked"
+msgstr "Prepojené"
+
+
 msgid "Link/Transfer Data"
 msgstr "Prepojiť/preniesť údaje"
 
 
+msgid "Layout"
+msgstr "Rozloženie"
+
+
 msgid "Hooks"
 msgstr "Háky"
-
-
-msgid "Adjust"
-msgstr "Prispôsobenie"
 
 
 msgid "Trim/Add"
@@ -36277,16 +36269,8 @@ msgid "Add Primitive"
 msgstr "Pridať prvotný tvar"
 
 
-msgid "Keying"
-msgstr "Kľúčovanie"
-
-
 msgid "Sculpt Set Pivot"
 msgstr "Nastavenie otočného bodu tvarovania"
-
-
-msgid "Tracking"
-msgstr "Snímanie"
 
 
 msgid "Face Sets Init"
@@ -36297,6 +36281,14 @@ msgid "Random Mask"
 msgstr "Náhodná maska"
 
 
+msgid "Adjust"
+msgstr "Prispôsobenie"
+
+
+msgid "Keying"
+msgstr "Kľúčovanie"
+
+
 msgid "Clear Transform"
 msgstr "Zmazať transformáciu"
 
@@ -36305,8 +36297,16 @@ msgid "In-Betweens"
 msgstr "Sprostredkovatelia"
 
 
+msgid "Tracking"
+msgstr "Snímanie"
+
+
 msgid "Propagate"
 msgstr "Propagovať"
+
+
+msgid "Bone Collections"
+msgstr "Kolekcie kostí"
 
 
 msgid "Keyframe Insert Pie"
@@ -53572,6 +53572,10 @@ msgid "Collection of main items"
 msgstr "Kolekcia hlavných položiek"
 
 
+msgid "Scalar"
+msgstr "Skalár"
+
+
 msgid "Collection of repeat items"
 msgstr "Kolekcia opakujúcich sa položiek"
 
@@ -58051,15 +58055,6 @@ msgstr "Vygenerované"
 
 
 msgctxt "Operator"
-msgid "Make Markers Local"
-msgstr "Vytvoriť lokálne značky"
-
-
-msgid "Move selected scene markers to the active Action as local 'pose' markers"
-msgstr "Presunie vybrané značky scén do aktívnej akcie ako lokálne značky \"pózy\""
-
-
-msgctxt "Operator"
 msgid "Mirror Keys"
 msgstr "Kľúče zrkadla"
 
@@ -60536,10 +60531,6 @@ msgstr "Mierka veľkosti štetca tvarovanie/maľovanie"
 
 msgid "Change brush size by a scalar"
 msgstr "Zmení veľkosť štetca podľa skalára"
-
-
-msgid "Scalar"
-msgstr "Skalár"
 
 
 msgid "Factor to scale brush size by"
@@ -76984,15 +76975,6 @@ msgid "Select all objects which block light from this emitter"
 msgstr "Vyberie všetky objekty, ktoré blokujú svetlo z tohto žiariča"
 
 
-msgctxt "Operator"
-msgid "Link Receivers to Emitter"
-msgstr "Prepojiť prijímače so žiaričom"
-
-
-msgid "Light link selected receivers to the active emitter object"
-msgstr "Prepojí vybrané prijímače svetla s aktívnym objektom žiariča"
-
-
 msgid "State of the light linking"
 msgstr "Stav prepojenia svetla"
 
@@ -81041,10 +81023,6 @@ msgstr "Invertuje viditeľnosť všetkých vrcholov"
 msgctxt "Operator"
 msgid "Weight from Bones"
 msgstr "Váha podľa kostí"
-
-
-msgid "Set the weights of the groups matching the attached armature's selected bones, using the distance between the vertices and the bones"
-msgstr "Nastaví váhu skupín zhodných vybraných kostí pripojených na armatúru, použitím vzdialenosti medzi vrcholmi a kosťami"
 
 
 msgid "Method to use for assigning weights"
@@ -100228,16 +100206,8 @@ msgid "Catalan - Català"
 msgstr "Katalánsky - Català"
 
 
-msgid "Locale code: ca_AD. Translation progress: 99%"
-msgstr "Kód lokalizácie: ca_AD. Pokrok prekladu: 99%"
-
-
 msgid "Chinese (Simplified) - 简体中文"
 msgstr "Čínsky (zjednodušená) - 简体中文"
-
-
-msgid "Locale code: zh_HANS. Translation progress: 99%"
-msgstr "Kód lokalizácie: zh_HANS. Pokrok prekladu: 99%"
 
 
 msgid "Chinese (Traditional) - 繁體中文"
@@ -100268,10 +100238,6 @@ msgid "Danish - Dansk"
 msgstr "Dánsky - Dansk"
 
 
-msgid "Locale code: da. Translation progress: 3%"
-msgstr "Kód lokalizácie: da. Pokrok prekladu: 3 %"
-
-
 msgid "Dutch - Nederlands"
 msgstr "Holandsky - Nederlands"
 
@@ -100282,10 +100248,6 @@ msgstr "Kód lokalizácie: nl_NL. Pokrok prekladu: 7%"
 
 msgid "English (UK)"
 msgstr "Anglicky (UK)"
-
-
-msgid "Locale code: en_GB. Translation progress: 95%"
-msgstr "Kód lokalizácie: en_GB. Pokrok prekladu: 95%"
 
 
 msgid "English (US)"
@@ -100308,10 +100270,6 @@ msgid "Finnish - Suomi"
 msgstr "Fínsky - Suomi"
 
 
-msgid "Locale code: fi_FI. Translation progress: 11%"
-msgstr "Kód lokalizácie: fi_FI. Pokrok prekladu: 11 %"
-
-
 msgid "French - Français"
 msgstr "Francúzky - Français"
 
@@ -100322,10 +100280,6 @@ msgstr "Kód lokalizácie: fr_FR. Translation progress: 99%"
 
 msgid "Georgian - ქართული"
 msgstr "Gruzínsky - ქართული"
-
-
-msgid "Locale code: ka. Translation progress: 99%"
-msgstr "Kód lokalizácie: ta. Pokrok prekladu: 99%"
 
 
 msgid "German - Deutsch"
@@ -100370,10 +100324,6 @@ msgstr "Kód lokalizácie: hu_HU. Pokrok prekladu: 10 %"
 
 msgid "Indonesian - Bahasa indonesia"
 msgstr "Indonézsky - Bahasa indonesia"
-
-
-msgid "Locale code: id_ID. Translation progress: 21%"
-msgstr "Kód lokalizácie: id_ID. Pokrok prekladu: 21%"
 
 
 msgid "Italian - Italiano"
@@ -100444,10 +100394,6 @@ msgid "Polish - Polski"
 msgstr "Poľsky - Polski"
 
 
-msgid "Locale code: pl_PL. Translation progress: 99%"
-msgstr "Kód lokalizácie: pl_PL. Pokrok prekladu: 99%"
-
-
 msgid "Portuguese (Brazil) - Português brasileiro"
 msgstr "Portugalsky (Brazília) - Português brasileiro"
 
@@ -100476,10 +100422,6 @@ msgid "Russian - Русский"
 msgstr "Rusky - Русский"
 
 
-msgid "Locale code: ru_RU. Translation progress: 99%"
-msgstr "Kód lokalizácie: ru_RU. Pokrok prekladu: 99%"
-
-
 msgid "Serbian (Cyrillic) - Српски"
 msgstr "Srbsky (Cyrillic) - Српски"
 
@@ -100500,24 +100442,12 @@ msgid "Slovak - Slovenčina"
 msgstr "Slovensky - slovenčina"
 
 
-msgid "Locale code: sk_SK. Translation progress: 99%"
-msgstr "Kód lokalizácie: sk_SK. Pokrok prekladu: 99%"
-
-
 msgid "Slovenian - Slovenščina"
 msgstr "Slovinsky - Slovenščina"
 
 
-msgid "Locale code: sl. Translation progress: 51%"
-msgstr "Kód lokalizácie: sl. Pokrok prekladu: 51%"
-
-
 msgid "Spanish - Español"
 msgstr "Španielsky - Español"
-
-
-msgid "Locale code: es. Translation progress: 99%"
-msgstr "Kód lokalizácie: es. Pokrok prekladu: 99%"
 
 
 msgid "Swahili - Kiswahili"
@@ -100554,10 +100484,6 @@ msgstr "Kód lokalizácie: th_TH. Pokrok prekladu: 5%"
 
 msgid "Turkish - Türkçe"
 msgstr "Turecky - Türkçe"
-
-
-msgid "Locale code: tr_TR. Translation progress: 75%"
-msgstr "Kód lokalizácie: tr_TR. Pokrok prekladu: 75%"
 
 
 msgid "Ukrainian - Українська"
@@ -131352,6 +131278,22 @@ msgid "Duplicate Marker to Scene"
 msgstr "Vytvoriť kópiu značky na scéne"
 
 
+msgid "New Keyframes"
+msgstr "Nová kľúčová snímka"
+
+
+msgid "Cycle Aware"
+msgstr "Cyklus vnímania"
+
+
+msgid "Only Active Keying Set"
+msgstr "Len aktívna sústava kľúčovania"
+
+
+msgid "Jump Unit"
+msgstr "Jednotka skoku"
+
+
 msgid "Limit to Frame Range"
 msgstr "Obmedziť na rozsah snímok"
 
@@ -131370,26 +131312,6 @@ msgstr "Aktívny editor"
 
 msgid "Properties and Sidebars"
 msgstr "Vlastnosti a bočné panely"
-
-
-msgid "New Keyframes"
-msgstr "Nová kľúčová snímka"
-
-
-msgid "Cycle Aware"
-msgstr "Cyklus vnímania"
-
-
-msgid "Only Active Keying Set"
-msgstr "Len aktívna sústava kľúčovania"
-
-
-msgid "Jump Unit"
-msgstr "Jednotka skoku"
-
-
-msgid "Scrubbing Region"
-msgstr "Oblasť snímania"
 
 
 msgid "Layered Recording"
@@ -140244,6 +140166,10 @@ msgid "Selected edges/faces required"
 msgstr "Požadované vybrané hrany/plôšky"
 
 
+msgid "No edge loops found containing 2 or more edges"
+msgstr "Nenašli sa žiadne slučky hrán obsahujúce 2 alebo viac hrán"
+
+
 msgid "Not a valid selection for extrude"
 msgstr "Nie je platný výber pre vyťahovanie"
 
@@ -140334,10 +140260,6 @@ msgstr "Operátor vyžaduje samostatné slučky hrán, vybrané plôšky boli n�
 
 msgid "No edges selected"
 msgstr "Nie sú vybraté žiadne hrany"
-
-
-msgid "No edge loops found containing 2 or more edges"
-msgstr "Nenašli sa žiadne slučky hrán obsahujúce 2 alebo viac hrán"
 
 
 msgid "Cannot rip faces"
@@ -147223,10 +147145,6 @@ msgid "Cannot fly when the view offset is locked"
 msgstr "Nemožno lietať, keď je uzamknutý posuv zobrazenia"
 
 
-msgid "Cannot fly an object with constraints"
-msgstr "Nemožno oblietavať objekt s vynúteniami"
-
-
 msgid "Cannot dolly when the view offset is locked"
 msgstr "Nemožno použiť dolly, keď je uzamknutý posuv zobrazenia"
 
@@ -147249,10 +147167,6 @@ msgstr "Korekcia osi Z"
 
 msgid "Cannot navigate when the view offset is locked"
 msgstr "Nemožno navigovať, keď je posuv zobrazenia uzamknutý"
-
-
-msgid "Cannot navigate an object with constraints"
-msgstr "Nemožno navigovať objekt s vynúteniami"
 
 
 msgid "Depth too large"

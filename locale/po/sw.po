@@ -1,9 +1,9 @@
 
 msgid ""
 msgstr ""
-"Project-Id-Version: Blender 5.3.0 Alpha (b'bf67fb078da0')\n"
+"Project-Id-Version: Blender 5.3.0 Alpha (b'af9ba6af7621')\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-07-27 09:52+0000\n"
+"POT-Creation-Date: 2026-08-03 07:24+0000\n"
 "PO-Revision-Date: 2025-11-14 10:59+0000\n"
 "Last-Translator: Isaac Gicheha <shwaky3@gmail.com>\n"
 "Language-Team: Swahili <https://translate.blender.org/projects/blender-ui/ui/sw/>\n"
@@ -28226,18 +28226,6 @@ msgid "Editor menu containing buttons"
 msgstr "Menyu ya mhariri iliyo na vitufe"
 
 
-msgid "Bone Collections"
-msgstr "Mikusanyo ya Mifupa"
-
-
-msgid "Show/Hide"
-msgstr "Onyesha/Ficha"
-
-
-msgid "Apply"
-msgstr "Tumia"
-
-
 msgid "Clean Up"
 msgstr "Safisha"
 
@@ -28246,16 +28234,28 @@ msgid "Merge"
 msgstr "Unganisha"
 
 
-msgid "Math"
-msgstr "Hisabati"
+msgid "Show/Hide"
+msgstr "Onyesha/Ficha"
 
 
 msgid "Metaball"
 msgstr "Mpira wa miguu"
 
 
+msgid "Math"
+msgstr "Hisabati"
+
+
 msgid "Utilities"
 msgstr "Huduma"
+
+
+msgid "Pivot Point"
+msgstr "Egemeo"
+
+
+msgid "Snap"
+msgstr "Picha"
 
 
 msgid "Read"
@@ -28274,14 +28274,6 @@ msgid "Primitives"
 msgstr "Watu wa kwanza"
 
 
-msgid "Pivot Point"
-msgstr "Egemeo"
-
-
-msgid "Snap"
-msgstr "Picha"
-
-
 msgid "Instances"
 msgstr "Matukio"
 
@@ -28294,12 +28286,12 @@ msgid "Mirror"
 msgstr "Kioo"
 
 
-msgid "Deprecated"
-msgstr "Imeacha kutumika"
-
-
 msgid "Navigation"
 msgstr "Urambazaji"
+
+
+msgid "Deprecated"
+msgstr "Imeacha kutumika"
 
 
 msgid "Select Linked"
@@ -28314,16 +28306,20 @@ msgid "Light Probe"
 msgstr "Uchunguzi wa Mwanga"
 
 
+msgid "Apply"
+msgstr "Tumia"
+
+
+msgid "Asset"
+msgstr "Mali"
+
+
 msgid "Linked"
 msgstr "Imeunganishwa"
 
 
 msgid "Layout"
 msgstr "Mpangilio"
-
-
-msgid "Asset"
-msgstr "Mali"
 
 
 msgid "Adjust"
@@ -28336,6 +28332,10 @@ msgstr "Kuweka"
 
 msgid "Tracking"
 msgstr "Kufuatilia"
+
+
+msgid "Bone Collections"
+msgstr "Mikusanyo ya Mifupa"
 
 
 msgid "Keyframe Insert Pie"
@@ -44205,15 +44205,6 @@ msgstr "Imetolewa"
 
 
 msgctxt "Operator"
-msgid "Make Markers Local"
-msgstr "Weka Alama za Kieneo"
-
-
-msgid "Move selected scene markers to the active Action as local 'pose' markers"
-msgstr "Sogeza alama za eneo zilizochaguliwa hadi kwa Kitendo amilifu kama vialamisho vya karibu vya 'pozi'"
-
-
-msgctxt "Operator"
 msgid "Mirror Keys"
 msgstr "Funguo za Kioo"
 
@@ -59099,15 +59090,6 @@ msgid "Select all objects which block light from this emitter"
 msgstr "Chagua vitu vyote vinavyozuia mwanga kutoka kwa mtoaji huyu"
 
 
-msgctxt "Operator"
-msgid "Link Receivers to Emitter"
-msgstr "Unganisha Wapokeaji kwa Emitter"
-
-
-msgid "Light link selected receivers to the active emitter object"
-msgstr "Kiungo chepesi kilichochaguliwa kwa vipokezi kwa kitu amilifu cha emitter"
-
-
 msgid "State of the light linking"
 msgstr "Hali ya kuunganisha mwanga"
 
@@ -62555,10 +62537,6 @@ msgstr "Geuza mwonekano wa wima zote"
 msgctxt "Operator"
 msgid "Weight from Bones"
 msgstr "Uzito kutoka kwa Mifupa"
-
-
-msgid "Set the weights of the groups matching the attached armature's selected bones, using the distance between the vertices and the bones"
-msgstr "Weka uzani wa vikundi vinavyolingana na mifupa iliyochaguliwa ya silaha, kwa kutumia umbali kati ya vipeo na mifupa."
 
 
 msgid "Method to use for assigning weights"
@@ -105733,20 +105711,12 @@ msgid "Cannot fly when the view offset is locked"
 msgstr "Haiwezi kuruka wakati kipengele cha kutazama kimefungwa"
 
 
-msgid "Cannot fly an object with constraints"
-msgstr "Haiwezi kuruka kitu chenye vikwazo"
-
-
 msgid "Cannot dolly when the view offset is locked"
 msgstr "Haiwezi kufanya doli wakati mwonekano wa kukabiliana umefungwa"
 
 
 msgid "Cannot navigate when the view offset is locked"
 msgstr "Haiwezi kusogeza wakati mwonekano wa kukabiliana umefungwa"
-
-
-msgid "Cannot navigate an object with constraints"
-msgstr "Haiwezi kusogeza kwenye kitu chenye vizuizi"
 
 
 msgid "Depth too large"

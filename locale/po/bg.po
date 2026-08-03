@@ -1,9 +1,9 @@
 
 msgid ""
 msgstr ""
-"Project-Id-Version: Blender 5.3.0 Alpha (b'bf67fb078da0')\n"
+"Project-Id-Version: Blender 5.3.0 Alpha (b'af9ba6af7621')\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-07-27 09:52+0000\n"
+"POT-Creation-Date: 2026-08-03 07:24+0000\n"
 "PO-Revision-Date: 2025-07-23 15:34+0000\n"
 "Last-Translator: Just Adam <adam.abbas2009@gmail.com>\n"
 "Language-Team: Bulgarian <https://translate.blender.org/projects/blender-ui/ui/bg/>\n"
@@ -1148,10 +1148,6 @@ msgid "ID Type"
 msgstr "ID тип"
 
 
-msgid "Apply"
-msgstr "Прилагане"
-
-
 msgid "Merge"
 msgstr "Слей"
 
@@ -1170,6 +1166,10 @@ msgstr "Светлина"
 
 msgid "Rigid Body"
 msgstr "Твърдо тяло"
+
+
+msgid "Apply"
+msgstr "Прилагане"
 
 
 msgid "Make Single User"

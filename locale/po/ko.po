@@ -1,9 +1,9 @@
 
 msgid ""
 msgstr ""
-"Project-Id-Version: Blender 5.3.0 Alpha (b'bf67fb078da0')\n"
+"Project-Id-Version: Blender 5.3.0 Alpha (b'af9ba6af7621')\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-07-27 09:52+0000\n"
+"POT-Creation-Date: 2026-08-03 07:24+0000\n"
 "PO-Revision-Date: 2026-03-27 12:12+0000\n"
 "Last-Translator: kim nahyeong <weiing0123@ajou.ac.kr>\n"
 "Language-Team: Korean <https://translate.blender.org/projects/blender-ui/ui/ko/>\n"
@@ -34629,22 +34629,6 @@ msgid "Creative"
 msgstr "크리에이티브"
 
 
-msgid "Bone Collections"
-msgstr "뼈대 컬렉션"
-
-
-msgid "Names"
-msgstr "이름"
-
-
-msgid "Show/Hide"
-msgstr "표시/숨기기"
-
-
-msgid "Apply"
-msgstr "적용"
-
-
 msgid "Toggle Bone Options"
 msgstr "뼈대 옵션을 토글"
 
@@ -34681,6 +34665,10 @@ msgid "Merge"
 msgstr "병합"
 
 
+msgid "Show/Hide"
+msgstr "표시/숨기기"
+
+
 msgid "Special Characters"
 msgstr "특수 문자"
 
@@ -34689,36 +34677,24 @@ msgid "Kerning"
 msgstr "자간"
 
 
-msgid "Math"
-msgstr "수학"
-
-
 msgid "Metaball"
 msgstr "메타볼"
 
 
-msgid "Utilities"
-msgstr "유틸리티"
+msgid "Names"
+msgstr "이름"
 
 
 msgid "Bone Roll"
 msgstr "뼈대 롤"
 
 
-msgid "Read"
-msgstr "읽기"
+msgid "Math"
+msgstr "수학"
 
 
-msgid "Sample"
-msgstr "샘플"
-
-
-msgid "Write"
-msgstr "쓰기"
-
-
-msgid "Primitives"
-msgstr "프리미티브"
+msgid "Utilities"
+msgstr "유틸리티"
 
 
 msgid "Pivot Point"
@@ -34733,16 +34709,32 @@ msgid "Proportional Editing Falloff"
 msgstr "비례 편집 감소"
 
 
+msgid "Read"
+msgstr "읽기"
+
+
 msgid "Mask Edit"
 msgstr "마스크 편집"
+
+
+msgid "Sample"
+msgstr "샘플"
 
 
 msgid "Automasking"
 msgstr "오토마스킹"
 
 
+msgid "Write"
+msgstr "쓰기"
+
+
 msgid "Face Sets Edit"
 msgstr "페이스 세트 편집"
+
+
+msgid "Primitives"
+msgstr "프리미티브"
 
 
 msgid "Vertex Group Locks"
@@ -34769,10 +34761,6 @@ msgid "Mirror"
 msgstr "미러"
 
 
-msgid "Deprecated"
-msgstr "사용 중단"
-
-
 msgid "UV Mapping"
 msgstr "UV 맵핑"
 
@@ -34793,8 +34781,8 @@ msgid "Align View"
 msgstr "뷰를 정렬"
 
 
-msgid "UV"
-msgstr "UV"
+msgid "Deprecated"
+msgstr "사용 중단"
 
 
 msgid "Align View to Active"
@@ -34811,6 +34799,10 @@ msgstr "선택 증가/감소"
 
 msgid "Select Similar"
 msgstr "유사한 선택"
+
+
+msgid "UV"
+msgstr "UV"
 
 
 msgid "Select All by Trait"
@@ -34849,16 +34841,12 @@ msgid "Rigid Body"
 msgstr "리지드 바디"
 
 
+msgid "Apply"
+msgstr "적용"
+
+
 msgid "Track"
 msgstr "트랙"
-
-
-msgid "Linked"
-msgstr "연결됨"
-
-
-msgid "Layout"
-msgstr "레이아웃"
 
 
 msgid "Quick Effects"
@@ -34877,32 +34865,28 @@ msgid "Convert"
 msgstr "변환"
 
 
+msgid "Linked"
+msgstr "연결됨"
+
+
 msgid "Link/Transfer Data"
 msgstr "데이터 연결/전송"
+
+
+msgid "Layout"
+msgstr "레이아웃"
 
 
 msgid "Hooks"
 msgstr "후크"
 
 
-msgid "Adjust"
-msgstr "조정"
-
-
 msgid "Trim/Add"
 msgstr "트림/추가"
 
 
-msgid "Keying"
-msgstr "키잉"
-
-
 msgid "Sculpt Set Pivot"
 msgstr "스컬프트 설정 피벗"
-
-
-msgid "Tracking"
-msgstr "트래킹"
 
 
 msgid "Face Sets Init"
@@ -34913,6 +34897,14 @@ msgid "Random Mask"
 msgstr "랜덤 마스크"
 
 
+msgid "Adjust"
+msgstr "조정"
+
+
+msgid "Keying"
+msgstr "키잉"
+
+
 msgid "Clear Transform"
 msgstr "변환을 지우기"
 
@@ -34921,8 +34913,16 @@ msgid "In-Betweens"
 msgstr "사이에서"
 
 
+msgid "Tracking"
+msgstr "트래킹"
+
+
 msgid "Propagate"
 msgstr "전파"
+
+
+msgid "Bone Collections"
+msgstr "뼈대 컬렉션"
 
 
 msgid "Keyframe Insert Pie"
@@ -51450,6 +51450,10 @@ msgid "Collection of main items"
 msgstr "주요 항목 컬렉션"
 
 
+msgid "Scalar"
+msgstr "스칼라"
+
+
 msgid "Collection of repeat items"
 msgstr "반복 항목 컬렉션"
 
@@ -55517,15 +55521,6 @@ msgstr "생성됨"
 
 
 msgctxt "Operator"
-msgid "Make Markers Local"
-msgstr "마커 로컬을 만들기"
-
-
-msgid "Move selected scene markers to the active Action as local 'pose' markers"
-msgstr "로컬 '포즈' 마커로 활성 액션에 선택된 씬 마커를 이동"
-
-
-msgctxt "Operator"
 msgid "Mirror Keys"
 msgstr "미러 키"
 
@@ -57774,10 +57769,6 @@ msgstr "스컬프트/페인트 브러시 크기를 스케일"
 
 msgid "Change brush size by a scalar"
 msgstr "스칼라로 브러시 크기를 변경"
-
-
-msgid "Scalar"
-msgstr "스칼라"
 
 
 msgid "Factor to scale brush size by"
@@ -73361,15 +73352,6 @@ msgid "Select all objects which block light from this emitter"
 msgstr "이 이미터에서 빛을 차단하는 모든 오브젝트를 선택함"
 
 
-msgctxt "Operator"
-msgid "Link Receivers to Emitter"
-msgstr "이미터에 수신기 연결"
-
-
-msgid "Light link selected receivers to the active emitter object"
-msgstr "라이트는 선택한 리시버를 활성 이미터 오브젝트에 연결함"
-
-
 msgid "State of the light linking"
 msgstr "조명 연결 상태"
 
@@ -77298,10 +77280,6 @@ msgstr "모든 버텍스의 가시성 반전"
 msgctxt "Operator"
 msgid "Weight from Bones"
 msgstr "뼈대에서 웨이트"
-
-
-msgid "Set the weights of the groups matching the attached armature's selected bones, using the distance between the vertices and the bones"
-msgstr "연결된 암마튜어의 선택한 뼈대과 일치하는 그룹의 웨이트를 설정, 버텍스와 뼈대 사이의 거리를 사용"
 
 
 msgid "Method to use for assigning weights"
@@ -95323,10 +95301,6 @@ msgid "Danish - Dansk"
 msgstr "덴마크어 - Dansk"
 
 
-msgid "Locale code: da. Translation progress: 3%"
-msgstr "로캘 코드: da. 번역 진행률: 3%"
-
-
 msgid "Dutch - Nederlands"
 msgstr "네덜란드어 - Nederlands"
 
@@ -95353,10 +95327,6 @@ msgstr "로캘 코드: eo. 번역 진행률: 0%"
 
 msgid "Finnish - Suomi"
 msgstr "핀란드어 - Suomi"
-
-
-msgid "Locale code: fi_FI. Translation progress: 11%"
-msgstr "로캘 코드: fi_FI. 번역 진행률: 11%"
 
 
 msgid "French - Français"
@@ -124147,6 +124117,14 @@ msgid "Duplicate Marker to Scene"
 msgstr "마커를 씬에 복제"
 
 
+msgid "Only Active Keying Set"
+msgstr "활성 키잉 세트만"
+
+
+msgid "Jump Unit"
+msgstr "점프 유닛"
+
+
 msgid "Limit to Frame Range"
 msgstr "프레임 범위 제한"
 
@@ -124165,14 +124143,6 @@ msgstr "활성 에디터"
 
 msgid "Properties and Sidebars"
 msgstr "특성 및 사이드바"
-
-
-msgid "Only Active Keying Set"
-msgstr "활성 키잉 세트만"
-
-
-msgid "Jump Unit"
-msgstr "점프 유닛"
 
 
 msgid "Layered Recording"
@@ -138323,10 +138293,6 @@ msgid "Cannot fly when the view offset is locked"
 msgstr "뷰 오프셋이 잠겨있을 때 비행 할 수 없습니다"
 
 
-msgid "Cannot fly an object with constraints"
-msgstr "제약 있는 오브젝트는 비행 할 수 없습니다"
-
-
 msgid "Cannot dolly when the view offset is locked"
 msgstr "뷰 오프셋이 잠길 때 돌리를 사용할 수 없습니다"
 
@@ -138349,10 +138315,6 @@ msgstr "Z축 보정"
 
 msgid "Cannot navigate when the view offset is locked"
 msgstr "뷰 오프셋이 잠겨 있을 때 탐색할 수 없습니다"
-
-
-msgid "Cannot navigate an object with constraints"
-msgstr "제약이 있는 오브젝트를 탐색 할 수 없습니다"
 
 
 msgid "Depth too large"
