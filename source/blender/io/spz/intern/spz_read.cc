@@ -24,7 +24,7 @@ static CLG_LogRef LOG = {"io.spz"};
 
 template<class T> static bool read_spz_scalar(FILE *file, T &data)
 {
-  if (fread(&data, sizeof(T), 1, file) != sizeof(T)) {
+  if (fread(&data, sizeof(T), 1, file) != 1) {
     return false;
   }
   return true;
@@ -44,7 +44,7 @@ PointCloud *read_spz_file(const StringRefNull filepath, ReportList *reports)
   }
 
   uint32_t magic = 0;
-  if (read_spz_scalar(file, magic)) {
+  if (!read_spz_scalar(file, magic)) {
     BKE_report(reports, RPT_ERROR, "SPZ Read: Error reading magic value from file");
     fclose(file);
     return nullptr;
