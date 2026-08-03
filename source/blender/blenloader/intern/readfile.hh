@@ -147,7 +147,7 @@ struct FileData {
    * \note This is initialized from #LibraryLink_Params.id_tag_extra since passing it as an
    * argument would need an additional argument to be passed around when expanding library data.
    */
-  int id_tag_extra = 0;
+  eID_Tag id_tag_extra = {};
 
   OldNewMap *datamap = nullptr;
   OldNewMap *globmap = nullptr;
