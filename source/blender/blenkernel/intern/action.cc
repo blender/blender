@@ -324,7 +324,9 @@ static void write_channelbag(BlendWriter *writer, animrig::Channelbag &channelba
   Span<FCurve *> fcurves = channelbag.fcurves();
   writer->write_pointer_array(fcurves.size(), fcurves.data());
   for (FCurve *fcurve : fcurves) {
-    writer->write_struct(fcurve);
+    writer->write_struct(fcurve, [](BlendStructWriter &struct_writer) {
+      struct_writer.runtime_ptr(offsetof(FCurve, runtime));
+    });
     BKE_fcurve_blend_write_data(writer, fcurve);
   }
 }
