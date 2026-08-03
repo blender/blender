@@ -229,7 +229,7 @@ static bool is_data_gaussian_splat(const PlyData &data)
 
   constexpr auto required_attr_names = std::to_array<const char *>({"f_dc_0",
                                                                     "f_dc_1",
-                                                                    "f_dc_0",
+                                                                    "f_dc_2",
                                                                     "opacity",
                                                                     "scale_0",
                                                                     "scale_1",
