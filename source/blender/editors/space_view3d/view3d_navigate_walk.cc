@@ -20,6 +20,7 @@
 
 #include "BLI_enum_flags.hh"
 #include "BLI_kdopbvh.hh"
+#include "BLI_listbase.hh"
 #include "BLI_math_matrix.hh"
 #include "BLI_math_matrix_c.hh"
 #include "BLI_math_rotation.hh"
@@ -28,6 +29,7 @@
 #include "BLI_rect.hh"
 #include "BLI_time.hh" /* Smooth-view. */
 
+#include "BKE_constraint.h"
 #include "BKE_context.hh"
 #include "BKE_lib_id.hh"
 #include "BKE_report.hh"
@@ -557,9 +559,14 @@ static bool initWalkInfo(bContext *C, WalkInfo *walk, wmOperator *op, const int 
     return false;
   }
 
-  if (walk->rv3d->persp == RV3D_CAMOB && walk->v3d->camera->constraints.first) {
-    BKE_report(op->reports, RPT_ERROR, "Cannot navigate an object with constraints");
-    return false;
+  if (walk->rv3d->persp == RV3D_CAMOB) {
+    for (const bConstraint &con : walk->v3d->camera->constraints) {
+      if (!BKE_constraint_has_influence(&con)) {
+        continue;
+      }
+      BKE_report(op->reports, RPT_ERROR, "Cannot navigate an object with effective constraints");
+      return false;
+    }
   }
 
   walk->state = WALK_RUNNING;

@@ -6441,6 +6441,17 @@ void BKE_constraints_active_set(ListBaseT<bConstraint> *list, bConstraint *con)
   }
 }
 
+bool BKE_constraint_has_influence(const bConstraint *con)
+{
+  if (con->flag & (CONSTRAINT_DISABLE | CONSTRAINT_OFF)) {
+    return false;
+  }
+  if (con->enforce == 0.0f) {
+    return false;
+  }
+  return true;
+}
+
 static bConstraint *constraint_list_find_from_target(ListBaseT<bConstraint> *constraints,
                                                      bConstraintTarget *tgt)
 {
@@ -6770,15 +6781,11 @@ void BKE_constraints_solve(Depsgraph *depsgraph,
     if (cti == nullptr) {
       continue;
     }
-    if (con.flag & (CONSTRAINT_DISABLE | CONSTRAINT_OFF)) {
+    if (!BKE_constraint_has_influence(&con)) {
       continue;
     }
     /* these constraints can't be evaluated anyway */
     if (cti->evaluate_constraint == nullptr) {
-      continue;
-    }
-    /* influence == 0 should be ignored */
-    if (con.enforce == 0.0f) {
       continue;
     }
 
