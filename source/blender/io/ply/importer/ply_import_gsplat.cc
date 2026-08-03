@@ -102,7 +102,7 @@ PointCloud *convert_gsplat_ply_to_point_cloud(const PlyData &data,
   const Span<float> ply_rot_3_attr = get_custom_attribute(data, "rot_3");
 
   /* f_rest_<i> */
-  static Vector<Span<float>> f_rest = get_rest_custom_attributes(data);
+  const Vector<Span<float>> f_rest = get_rest_custom_attributes(data);
   const int num_sh_dimensions = static_cast<int>(f_rest.size() / 3);
   const int sh_degree = degree_for_dim(num_sh_dimensions);
 
