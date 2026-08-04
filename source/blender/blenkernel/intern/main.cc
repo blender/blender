@@ -607,13 +607,11 @@ void BKE_main_merge_as_archive_library(Main &bmain_dst,
     /* Need to tag embedded IDs as well. */
     bNodeTree *ntree = bke::node_tree_from_id(id);
     if (ntree != nullptr) {
-      ntree->id.lib = &dst_external_library;
       ntree->id.flag |= ID_FLAG_LINKED_AND_PACKED;
     }
     if (GS(id->name) == ID_SCE) {
       Collection *master_collection = (id_cast<Scene *>(id))->master_collection;
       if (master_collection != nullptr) {
-        master_collection->id.lib = &dst_external_library;
         master_collection->id.flag |= ID_FLAG_LINKED_AND_PACKED;
       }
     }
