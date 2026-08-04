@@ -682,6 +682,7 @@ void BKE_libblock_management_usercounts_clear(Main *bmain, void *idv);
  * This ensures that no reference to indirectly used IDs are kept in the written blend-file.
  */
 void id_lib_extern(ID *id);
+void id_lib_indirect(ID *id);
 void id_lib_indirect_weak_link(ID *id);
 /**
  * Ensure we have a real user
