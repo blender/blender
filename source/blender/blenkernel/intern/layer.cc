@@ -171,6 +171,7 @@ static ViewLayer *view_layer_add(const char *name)
   }
 
   ViewLayer *view_layer = MEM_new<ViewLayer>("View Layer");
+  view_layer->runtime = MEM_new<ViewLayerRuntime>("View Layer Runtime");
   STRNCPY_UTF8(view_layer->name, name);
 
   BKE_freestyle_config_init(&view_layer->freestyle_config);
@@ -283,8 +284,9 @@ void BKE_view_layer_free_ex(ViewLayer *view_layer, const bool do_id_user)
     IDP_FreeProperty_ex(view_layer->system_properties, do_id_user);
   }
 
-  MEM_SAFE_DELETE(view_layer->object_bases_array);
+  MEM_SAFE_DELETE(view_layer->runtime->object_bases_array);
 
+  MEM_delete(view_layer->runtime);
   MEM_delete(view_layer);
 }
 
@@ -294,7 +296,7 @@ void BKE_view_layer_free_object_content(ViewLayer *view_layer)
 
   view_layer->object_bases.free_no_destruct();
 
-  MEM_delete(view_layer->object_bases_hash);
+  MEM_SAFE_DELETE(view_layer->runtime->object_bases_hash);
 
   for (LayerCollection &lc : view_layer->layer_collections.items_mutable()) {
     layer_collection_free(view_layer, &lc);
@@ -362,10 +364,10 @@ static void view_layer_bases_hash_create(ViewLayer *view_layer, const bool do_ba
 {
   static Mutex hash_lock;
 
-  if (view_layer->object_bases_hash == nullptr) {
+  if (view_layer->runtime->object_bases_hash == nullptr) {
     std::scoped_lock lock(hash_lock);
 
-    if (view_layer->object_bases_hash == nullptr) {
+    if (view_layer->runtime->object_bases_hash == nullptr) {
       ObjectBasesMap *hash = MEM_new<ObjectBasesMap>(__func__);
 
       for (Base &base : view_layer->object_bases.items_mutable()) {
@@ -394,7 +396,7 @@ static void view_layer_bases_hash_create(ViewLayer *view_layer, const bool do_ba
       }
 
       /* Assign pointer only after hash is complete. */
-      view_layer->object_bases_hash = hash;
+      view_layer->runtime->object_bases_hash = hash;
     }
   }
 }
@@ -403,11 +405,11 @@ Base *BKE_view_layer_base_find(ViewLayer *view_layer, Object *ob)
 {
   BLI_assert_msg((view_layer->flag & VIEW_LAYER_OUT_OF_SYNC) == 0,
                  "View layer out of sync, invoke BKE_view_layer_synced_ensure.");
-  if (!view_layer->object_bases_hash) {
+  if (!view_layer->runtime->object_bases_hash) {
     view_layer_bases_hash_create(view_layer, false);
   }
 
-  return view_layer->object_bases_hash->lookup_default(ob, nullptr);
+  return view_layer->runtime->object_bases_hash->lookup_default(ob, nullptr);
 }
 
 void BKE_view_layer_base_deselect_all(const Main &bmain, const Scene *scene, ViewLayer *view_layer)
@@ -513,6 +515,10 @@ void BKE_view_layer_copy_data(Scene *scene_dst,
                               const ViewLayer *view_layer_src,
                               const int flag)
 {
+  BLI_assert_msg(view_layer_dst->runtime == view_layer_src->runtime,
+                 "view_layer_dst must be a shallow copy of view_layer_src");
+  view_layer_dst->runtime = MEM_new<ViewLayerRuntime>(__func__);
+
   if (view_layer_dst->id_properties != nullptr) {
     view_layer_dst->id_properties = IDP_CopyProperty_ex(view_layer_dst->id_properties, flag);
   }
@@ -524,10 +530,6 @@ void BKE_view_layer_copy_data(Scene *scene_dst,
       &view_layer_dst->freestyle_config, &view_layer_src->freestyle_config, flag);
 
   view_layer_dst->stats = nullptr;
-
-  /* Clear temporary data. */
-  view_layer_dst->object_bases_array = nullptr;
-  view_layer_dst->object_bases_hash = nullptr;
 
   /* Copy layer collections and object bases. */
   /* Inline #BLI_duplicatelist and update the active base. */
@@ -1105,7 +1107,7 @@ static void layer_collection_objects_sync(ViewLayer *view_layer,
      * base pointer on file load and remember hidden state. */
     id_lib_indirect_weak_link(&cob.ob->id);
 
-    Base *base = view_layer->object_bases_hash->add_or_modify(
+    Base *base = view_layer->runtime->object_bases_hash->add_or_modify(
         cob.ob,
         [&](Base **base_p) {
           /* Create new base. */
@@ -1324,7 +1326,7 @@ static bool view_layer_objects_base_cache_validate(ViewLayer *view_layer, LayerC
       if (cob.ob == nullptr) {
         continue;
       }
-      if (!view_layer->object_bases_hash->contains(cob.ob)) {
+      if (!view_layer->runtime->object_bases_hash->contains(cob.ob)) {
         CLOG_FATAL(
             &LOG,
             "Object '%s' from collection '%s' has no entry in view layer's object bases cache",
@@ -1407,10 +1409,10 @@ bool BKE_layer_collection_sync(const Main &bmain, const Scene *scene, ViewLayer 
 #endif
 
   /* Free cache. */
-  MEM_SAFE_DELETE(view_layer->object_bases_array);
+  MEM_SAFE_DELETE(view_layer->runtime->object_bases_array);
 
   /* Create object to base hash if it does not exist yet. */
-  if (!view_layer->object_bases_hash) {
+  if (!view_layer->runtime->object_bases_hash) {
     view_layer_bases_hash_create(view_layer, false);
   }
 
@@ -1462,7 +1464,7 @@ bool BKE_layer_collection_sync(const Main &bmain, const Scene *scene, ViewLayer 
       BLI_assert(BLI_findindex(&new_object_bases, base) == -1);
       BLI_assert(BLI_findptr(&new_object_bases, base->object, offsetof(Base, object)) == nullptr);
 #endif
-      view_layer->object_bases_hash->remove(base.object);
+      view_layer->runtime->object_bases_hash->remove(base.object);
     }
   }
 
@@ -1542,10 +1544,9 @@ bool BKE_main_collection_sync_remap(const Main *bmain)
        scene = static_cast<Scene *>(scene->id.next))
   {
     for (ViewLayer &view_layer : scene->view_layers) {
-      MEM_SAFE_DELETE(view_layer.object_bases_array);
+      MEM_SAFE_DELETE(view_layer.runtime->object_bases_array);
 
-      MEM_delete(view_layer.object_bases_hash);
-      view_layer.object_bases_hash = nullptr;
+      MEM_SAFE_DELETE(view_layer.runtime->object_bases_hash);
 
       /* Directly re-create the mapping here, so that we can also deal with duplicates in
        * `view_layer->object_bases` list of bases properly. This is the only place where such
@@ -2457,12 +2458,12 @@ static void layer_eval_view_layer(Depsgraph *depsgraph, Scene *scene, ViewLayer 
   /* Create array of bases, for fast index-based lookup. */
   BKE_view_layer_synced_ensure(*DEG_get_bmain(depsgraph), scene, view_layer);
   const int num_object_bases = BLI_listbase_count(BKE_view_layer_object_bases_get(view_layer));
-  MEM_SAFE_DELETE(view_layer->object_bases_array);
-  view_layer->object_bases_array = MEM_new_array_uninitialized<Base *>(
-      size_t(num_object_bases), "view_layer->object_bases_array");
+  MEM_SAFE_DELETE(view_layer->runtime->object_bases_array);
+  view_layer->runtime->object_bases_array = MEM_new_array_uninitialized<Base *>(
+      size_t(num_object_bases), "view_layer->runtime->object_bases_array");
   int base_index = 0;
   for (Base &base : *BKE_view_layer_object_bases_get(view_layer)) {
-    view_layer->object_bases_array[base_index++] = &base;
+    view_layer->runtime->object_bases_array[base_index++] = &base;
   }
 }
 
@@ -2547,6 +2548,7 @@ static void direct_link_layer_collections(BlendDataReader *reader,
 
 void BKE_view_layer_blend_read_data(BlendDataReader *reader, ViewLayer *view_layer)
 {
+  view_layer->runtime = MEM_new<ViewLayerRuntime>(__func__);
   view_layer->stats = nullptr;
   BLO_read_struct_list(reader, Base, &view_layer->object_bases);
   BLO_read_struct(reader, Base, &view_layer->basact);
@@ -2576,9 +2578,6 @@ void BKE_view_layer_blend_read_data(BlendDataReader *reader, ViewLayer *view_lay
 
   BLO_read_struct_list(reader, ViewLayerLightgroup, &view_layer->lightgroups);
   BLO_read_struct(reader, ViewLayerLightgroup, &view_layer->active_lightgroup);
-
-  view_layer->object_bases_array = nullptr;
-  view_layer->object_bases_hash = nullptr;
 }
 
 void BKE_view_layer_blend_read_after_liblink(BlendLibReader * /*reader*/,
