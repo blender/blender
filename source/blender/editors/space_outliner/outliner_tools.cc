@@ -667,8 +667,7 @@ static void outliner_do_libdata_operation_selection_set(bContext *C,
                                                         const bool do_active_element_first)
 {
   if (do_active_element_first) {
-    TreeElement *active_element = outliner_find_element_with_flag(&space_outliner->runtime->tree,
-                                                                  TSE_ACTIVE);
+    TreeElement *active_element = get_target_element(space_outliner);
     if (active_element != nullptr) {
       TreeStoreElem *tselem = TREESTORE(active_element);
       ListBaseT<TreeElement> subtree = active_element->subtree;
