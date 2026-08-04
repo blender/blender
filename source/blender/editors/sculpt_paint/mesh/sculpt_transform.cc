@@ -74,7 +74,7 @@ void init_transform(bContext *C, Object &ob, const float mval_fl[2], const char 
     return;
   }
 
-  BKE_sculpt_update_object_for_edit(depsgraph, &ob, false);
+  BKE_sculptsession_update_for_edit(depsgraph, &ob, false);
   undo::push_begin_ex(scene, ob, undo_name);
 
   vert_random_access_ensure(ob);
@@ -578,7 +578,7 @@ void update_modal_transform(bContext *C, Object &ob)
 
   if ((ts.transform_flag & SCE_XFORM_SCULPT_PIVOT) == 0) {
     vert_random_access_ensure(ob);
-    BKE_sculpt_update_object_for_edit(depsgraph, &ob, false);
+    BKE_sculptsession_update_for_edit(depsgraph, &ob, false);
 
     switch (sd.transform_mode) {
       case SCULPT_TRANSFORM_MODE_ALL_VERTICES: {
@@ -973,7 +973,7 @@ static wmOperatorStatus set_pivot_position_exec(bContext *C, wmOperator *op)
     return OPERATOR_CANCELLED;
   }
 
-  BKE_sculpt_update_object_for_edit(depsgraph, &ob, false);
+  BKE_sculptsession_update_for_edit(depsgraph, &ob, false);
 
   switch (mode) {
     case PivotPositionMode::Origin:

@@ -570,7 +570,7 @@ static int sculpt_color_filter_init(bContext *C, wmOperator *op)
   /* CTX_data_ensure_evaluated_depsgraph should be used at the end to include the potential
    * creation of color layer data. */
   Depsgraph *depsgraph = CTX_data_ensure_evaluated_depsgraph(C);
-  BKE_sculpt_update_object_for_edit(depsgraph, &ob, true);
+  BKE_sculptsession_update_for_edit(depsgraph, &ob, true);
 
   filter::cache_init(C,
                      ob,

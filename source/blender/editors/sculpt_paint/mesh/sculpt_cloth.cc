@@ -2345,7 +2345,7 @@ static wmOperatorStatus sculpt_cloth_filter_modal(bContext *C,
 
   vert_random_access_ensure(object);
 
-  BKE_sculpt_update_object_for_edit(depsgraph, &object, false);
+  BKE_sculptsession_update_for_edit(depsgraph, &object, false);
 
   brush_store_simulation_state(*depsgraph, object, *ss.filter_cache->cloth_sim);
 
@@ -2469,7 +2469,7 @@ static wmOperatorStatus sculpt_cloth_filter_invoke(bContext *C,
   cursor_geometry_info_update(C, mval_fl, false);
 
   /* Needs mask data to be available as it is used when solving the constraints. */
-  BKE_sculpt_update_object_for_edit(depsgraph, &ob, false);
+  BKE_sculptsession_update_for_edit(depsgraph, &ob, false);
 
   if (!shape_key_check(ob, op->reports)) {
     return OPERATOR_CANCELLED;

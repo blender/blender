@@ -533,7 +533,7 @@ static bool restore_active_shape_key(bContext &C,
     if (kb) {
       object.shapenr = BLI_findindex(&key->block, kb) + 1;
 
-      BKE_sculpt_update_object_for_edit(&depsgraph, &object, false);
+      BKE_sculptsession_update_for_edit(&depsgraph, &object, false);
       WM_event_add_notifier(&C, NC_OBJECT | ND_DATA, &object);
     }
     else {
@@ -1012,17 +1012,17 @@ static int bmesh_restore(bContext *C, Depsgraph &depsgraph, StepData &step_data,
   SculptSession &ss = *object.runtime->sculpt_session;
   switch (step_data.type) {
     case Type::DyntopoBegin:
-      BKE_sculpt_update_object_for_edit(&depsgraph, &object, false);
+      BKE_sculptsession_update_for_edit(&depsgraph, &object, false);
       bmesh_handle_dyntopo_begin(C, step_data, object);
       return true;
 
     case Type::DyntopoEnd:
-      BKE_sculpt_update_object_for_edit(&depsgraph, &object, false);
+      BKE_sculptsession_update_for_edit(&depsgraph, &object, false);
       bmesh_handle_dyntopo_end(C, step_data, object);
       return true;
     default:
       if (ss.bm_log) {
-        BKE_sculpt_update_object_for_edit(&depsgraph, &object, false);
+        BKE_sculptsession_update_for_edit(&depsgraph, &object, false);
         bmesh_restore_generic(step_data, object);
         return true;
       }
@@ -1121,7 +1121,7 @@ static void restore_list(bContext *C, Depsgraph *depsgraph, StepData &step_data)
       IndexMaskMemory memory;
       const IndexMask node_mask = bke::pbvh::all_leaf_nodes(pbvh, memory);
 
-      BKE_sculpt_update_object_for_edit(depsgraph, &object, false);
+      BKE_sculptsession_update_for_edit(depsgraph, &object, false);
       if (!topology_matches(step_data, object)) {
         return;
       }
@@ -1182,7 +1182,7 @@ static void restore_list(bContext *C, Depsgraph *depsgraph, StepData &step_data)
       IndexMaskMemory memory;
       const IndexMask node_mask = bke::pbvh::all_leaf_nodes(pbvh, memory);
 
-      BKE_sculpt_update_object_for_edit(depsgraph, &object, false);
+      BKE_sculptsession_update_for_edit(depsgraph, &object, false);
       if (!topology_matches(step_data, object)) {
         return;
       }
@@ -1229,7 +1229,7 @@ static void restore_list(bContext *C, Depsgraph *depsgraph, StepData &step_data)
       IndexMaskMemory memory;
       const IndexMask node_mask = bke::pbvh::all_leaf_nodes(pbvh, memory);
 
-      BKE_sculpt_update_object_for_edit(depsgraph, &object, false);
+      BKE_sculptsession_update_for_edit(depsgraph, &object, false);
       if (!topology_matches(step_data, object)) {
         return;
       }
@@ -1273,7 +1273,7 @@ static void restore_list(bContext *C, Depsgraph *depsgraph, StepData &step_data)
       IndexMaskMemory memory;
       const IndexMask node_mask = bke::pbvh::all_leaf_nodes(pbvh, memory);
 
-      BKE_sculpt_update_object_for_edit(depsgraph, &object, false);
+      BKE_sculptsession_update_for_edit(depsgraph, &object, false);
       if (!topology_matches(step_data, object)) {
         return;
       }
@@ -1315,7 +1315,7 @@ static void restore_list(bContext *C, Depsgraph *depsgraph, StepData &step_data)
       IndexMaskMemory memory;
       const IndexMask node_mask = bke::pbvh::all_leaf_nodes(pbvh, memory);
 
-      BKE_sculpt_update_object_for_edit(depsgraph, &object, false);
+      BKE_sculptsession_update_for_edit(depsgraph, &object, false);
       if (!topology_matches(step_data, object)) {
         return;
       }
@@ -1355,7 +1355,7 @@ static void restore_list(bContext *C, Depsgraph *depsgraph, StepData &step_data)
       IndexMaskMemory memory;
       const IndexMask node_mask = bke::pbvh::all_leaf_nodes(pbvh, memory);
 
-      BKE_sculpt_update_object_for_edit(depsgraph, &object, false);
+      BKE_sculptsession_update_for_edit(depsgraph, &object, false);
       if (!topology_matches(step_data, object)) {
         return;
       }

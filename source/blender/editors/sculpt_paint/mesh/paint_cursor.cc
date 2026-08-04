@@ -516,7 +516,7 @@ static void boundary_preview_update(const PaintCursorContext &pcontext)
   SculptSession &ss = *pcontext.ss;
   /* Needed for updating the necessary SculptSession data in order to initialize the
    * boundary data for the preview. */
-  BKE_sculpt_update_object_for_edit(pcontext.depsgraph, pcontext.vc.obact, false);
+  BKE_sculptsession_update_for_edit(pcontext.depsgraph, pcontext.vc.obact, false);
 
   ss.boundary_preview = boundary::preview_data_init(
       *pcontext.depsgraph, *pcontext.vc.obact, pcontext.brush, pcontext.radius);
@@ -608,7 +608,7 @@ static void screen_space_overlays_draw(const PaintCursorContext &pcontext)
       const bool update_previews = pcontext.prev_active_vert_index !=
                                    pcontext.ss->active_vert_index();
       if (update_previews || !ss.pose_ik_chain_preview) {
-        BKE_sculpt_update_object_for_edit(pcontext.depsgraph, &active_object, false);
+        BKE_sculptsession_update_for_edit(pcontext.depsgraph, &active_object, false);
 
         /* Free the previous pose brush preview. */
         if (ss.pose_ik_chain_preview) {

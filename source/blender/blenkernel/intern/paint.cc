@@ -2331,7 +2331,7 @@ static bool sculpt_modifiers_active(const Scene *scene, const Sculpt *sd, Object
   return false;
 }
 
-static void sculpt_update_object(Depsgraph *depsgraph,
+static void sculptsession_update(Depsgraph *depsgraph,
                                  Object *ob,
                                  Object *ob_eval,
                                  bool is_paint_tool)
@@ -2444,7 +2444,7 @@ static void sculpt_update_object(Depsgraph *depsgraph,
   bke::pbvh::update_normals(*depsgraph, *ob, pbvh);
 }
 
-void BKE_sculpt_update_object_before_eval(Object *ob_eval)
+void BKE_sculptsession_update_before_eval(Object *ob_eval)
 {
   /* Update before mesh evaluation in the dependency graph. */
   Object *ob_orig = DEG_get_original(ob_eval);
@@ -2480,13 +2480,13 @@ void BKE_sculpt_update_object_before_eval(Object *ob_eval)
   }
 }
 
-void BKE_sculpt_update_object_after_eval(Depsgraph *depsgraph, Object *ob_eval)
+void BKE_sculptsession_update_after_eval(Depsgraph *depsgraph, Object *ob_eval)
 {
   /* Update after mesh evaluation in the dependency graph, to rebuild pbvh::Tree or
    * other data when modifiers change the mesh. */
   Object *ob_orig = DEG_get_original(ob_eval);
 
-  sculpt_update_object(depsgraph, ob_orig, ob_eval, false);
+  sculptsession_update(depsgraph, ob_orig, ob_eval, false);
 }
 
 void BKE_sculpt_color_layer_create_if_needed(Object *object)
@@ -2512,14 +2512,14 @@ void BKE_sculpt_color_layer_create_if_needed(Object *object)
   BKE_mesh_tessface_clear(orig_me);
 }
 
-void BKE_sculpt_update_object_for_edit(Depsgraph *depsgraph, Object *ob_orig, bool is_paint_tool)
+void BKE_sculptsession_update_for_edit(Depsgraph *depsgraph, Object *ob_orig, bool is_paint_tool)
 {
   PRF_scope(ProfileCategory::Editor);
   BLI_assert(ob_orig == DEG_get_original(ob_orig));
 
   Object *ob_eval = DEG_get_evaluated(depsgraph, ob_orig);
 
-  sculpt_update_object(depsgraph, ob_orig, ob_eval, is_paint_tool);
+  sculptsession_update(depsgraph, ob_orig, ob_eval, is_paint_tool);
 }
 
 void BKE_sculpt_mask_layers_ensure(Depsgraph *depsgraph,

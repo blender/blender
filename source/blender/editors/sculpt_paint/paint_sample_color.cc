@@ -333,7 +333,7 @@ static float3 paint_sample_color(bContext *C,
       sampled_color = sample_texture_paint_color(*depsgraph, *scene, vc, ob, mval);
     }
     else if (ELEM(mode, PaintMode::Sculpt, PaintMode::Vertex)) {
-      BKE_sculpt_update_object_for_edit(depsgraph, ob, false);
+      BKE_sculptsession_update_for_edit(depsgraph, ob, false);
       sampled_color = sample_mesh_attribute_color(vc, *ob, mval);
     }
   }

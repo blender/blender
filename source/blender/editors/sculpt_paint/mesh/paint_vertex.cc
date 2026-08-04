@@ -205,7 +205,7 @@ bool brush_use_accumulate(const VPaint &vp)
 
 void init_stroke(const wmOperator &op, Main &main, Paint &paint, Depsgraph &depsgraph, Object &ob)
 {
-  BKE_sculpt_update_object_for_edit(&depsgraph, &ob, true);
+  BKE_sculptsession_update_for_edit(&depsgraph, &ob, true);
   SculptSession &ss = *ob.runtime->sculpt_session;
 
   /* Ensure ss.cache is allocated.  It will mostly be initialized in
@@ -263,7 +263,7 @@ static void init_session(Main &bmain,
   BLI_assert(ob.runtime->sculpt_session == nullptr);
   ob.runtime->sculpt_session = MEM_new<SculptSession>(__func__);
   ob.runtime->sculpt_session->mode_type = object_mode;
-  BKE_sculpt_update_object_for_edit(&depsgraph, &ob, true);
+  BKE_sculptsession_update_for_edit(&depsgraph, &ob, true);
 
   ensure_valid_pivot(ob, paint);
 }
@@ -2332,7 +2332,7 @@ static wmOperatorStatus vertex_color_set_exec(bContext *C, wmOperator *op)
   const bool affect_alpha = RNA_boolean_get(op->ptr, "use_alpha");
 
   /* Ensure valid sculpt state. */
-  BKE_sculpt_update_object_for_edit(CTX_data_ensure_evaluated_depsgraph(C), &obact, true);
+  BKE_sculptsession_update_for_edit(CTX_data_ensure_evaluated_depsgraph(C), &obact, true);
 
   bke::pbvh::Tree &pbvh = *bke::object::pbvh_get(obact);
 

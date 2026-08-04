@@ -950,7 +950,7 @@ static void mesh_build_data(Depsgraph &depsgraph,
 
   if ((ob.mode & OB_MODE_ALL_SCULPT) && ob.runtime->sculpt_session) {
     if (DEG_is_active(&depsgraph)) {
-      BKE_sculpt_update_object_after_eval(&depsgraph, &ob);
+      BKE_sculptsession_update_after_eval(&depsgraph, &ob);
     }
   }
 
@@ -1054,7 +1054,7 @@ void mesh_data_update(Depsgraph &depsgraph,
 
   BKE_object_free_derived_caches(&ob);
   if (DEG_is_active(&depsgraph)) {
-    BKE_sculpt_update_object_before_eval(&ob);
+    BKE_sculptsession_update_before_eval(&ob);
   }
 
   /* NOTE: Access the `edit_mesh` after freeing the derived caches, so that `ob.data` is restored
