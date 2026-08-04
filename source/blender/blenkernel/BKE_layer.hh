@@ -40,6 +40,11 @@ enum eViewLayerCopyMethod {
   VIEWLAYER_ADD_COPY = 2,
 };
 
+struct ViewLayerRuntime {
+  Base **object_bases_array = nullptr;
+  ObjectBasesMap *object_bases_hash = nullptr;
+};
+
 /**
  * Returns the default view layer to view in work-spaces if there is
  * none linked to the workspace yet.
