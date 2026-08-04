@@ -3894,20 +3894,20 @@ static void fluid_modifier_processDomain(FluidModifierData *fmd,
 
   /* Try to read from cache and keep track of read success. */
   if (read_cache) {
-
-    /* Reallocate fluid object to match cached config before reading mesh/particles. */
-    if (has_config && manta_needs_realloc(fds->fluid, fmd)) {
-      BKE_fluid_reallocate_fluid(fds, fds->res, 1);
-    }
-
     /* Read mesh cache. */
     if (with_liquid && with_mesh) {
       if (mesh_frame != scene_framenr) {
         has_config = manta_read_config(fds->fluid, fmd, mesh_frame);
       }
 
-      /* Only load the mesh at the resolution it ways originally simulated at.
-       * The mesh files don't have a header, i.e. the don't store the grid resolution. */
+      /* The liquid mesh cache is read before the regular data-cache allocation. Ensure the Manta
+       * instance matches the cached configuration here instead of reallocating all cache types. */
+      if (has_config && manta_needs_realloc(fds->fluid, fmd)) {
+        BKE_fluid_reallocate_fluid(fds, fds->res, 1);
+      }
+
+      /* Only load the mesh at the resolution it was originally simulated at.
+       * The mesh files don't have a header, i.e. they don't store the grid resolution. */
       if (!manta_needs_realloc(fds->fluid, fmd)) {
         has_mesh = manta_read_mesh(fds->fluid, fmd, mesh_frame);
       }
@@ -3917,6 +3917,11 @@ static void fluid_modifier_processDomain(FluidModifierData *fmd,
     if (with_liquid && with_particles) {
       if (particles_frame != scene_framenr) {
         has_config = manta_read_config(fds->fluid, fmd, particles_frame);
+      }
+
+      /* The liquid particle cache is also read before the regular data-cache allocation. */
+      if (has_config && manta_needs_realloc(fds->fluid, fmd)) {
+        BKE_fluid_reallocate_fluid(fds, fds->res, 1);
       }
 
       read_partial = !baking_data && !baking_particles && next_particles;
@@ -3954,6 +3959,13 @@ static void fluid_modifier_processDomain(FluidModifierData *fmd,
     else {
       if (data_frame != scene_framenr) {
         has_config = manta_read_config(fds->fluid, fmd, data_frame);
+      }
+
+      if (with_smoke || with_liquid) {
+        /* Read config and realloc fluid object if needed. */
+        if (has_config && manta_needs_realloc(fds->fluid, fmd)) {
+          BKE_fluid_reallocate_fluid(fds, fds->res, 1);
+        }
       }
 
       read_partial = !baking_data && !baking_particles && !baking_mesh && next_data &&
