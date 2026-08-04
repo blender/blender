@@ -4037,10 +4037,17 @@ BlendFileData *blo_read_file_internal(FileData *fd, const char *filepath)
   if ((fd->skip_flags & BLO_READ_SKIP_DATA) == 0) {
     fd->reports->duration.libraries = BLI_time_now_seconds();
     read_libraries(fd, &mainlist);
+    if (bfd->main->is_read_invalid) {
+      return bfd;
+    }
 
     blo_join_main(&mainlist);
 
     lib_link_all(fd, bfd->main);
+    if (bfd->main->is_read_invalid) {
+      return bfd;
+    }
+
     after_liblink_merged_bmain_process(bfd->main, fd->reports);
 
     if (is_undo) {
