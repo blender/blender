@@ -103,7 +103,7 @@ static meshintersect::CDT_result<double> do_cdt(const bke::CurvesGeometry &curve
   input.vert = positions_2d;
   input.face_offsets = points_by_curve;
   input.face_vert_indices = face_vert_indices;
-  input.need_ids = false;
+  input.needed_ids = CDT_NO_ORIG_IDS;
   return delaunay_2d_calc(input, output_type);
 }
 
@@ -138,7 +138,7 @@ static meshintersect::CDT_result<double> do_cdt_with_mask(const bke::CurvesGeome
   input.vert = positions_2d;
   input.face_offsets = points_by_curve_masked;
   input.face_vert_indices = face_vert_indices;
-  input.need_ids = false;
+  input.needed_ids = CDT_NO_ORIG_IDS;
 
   return delaunay_2d_calc(input, output_type);
 }
