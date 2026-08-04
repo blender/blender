@@ -57,6 +57,7 @@ bool Texture::init_1D(int w, int layers, int mip_len, TextureFormat format)
   d_ = 0;
   int mip_len_max = 1 + floorf(log2f(w));
   mipmaps_ = min_ii(mip_len, mip_len_max);
+  mip_max_ = mip_min_ + mipmaps_ - 1;
   format_ = format;
   format_flag_ = to_format_flag(format);
   type_ = (layers > 0) ? GPU_TEXTURE_1D_ARRAY : GPU_TEXTURE_1D;
@@ -73,6 +74,7 @@ bool Texture::init_2D(int w, int h, int layers, int mip_len, TextureFormat forma
   d_ = layers;
   int mip_len_max = 1 + floorf(log2f(max_ii(w, h)));
   mipmaps_ = min_ii(mip_len, mip_len_max);
+  mip_max_ = mip_min_ + mipmaps_ - 1;
   format_ = format;
   format_flag_ = to_format_flag(format);
   type_ = (layers > 0) ? GPU_TEXTURE_2D_ARRAY : GPU_TEXTURE_2D;
@@ -89,6 +91,7 @@ bool Texture::init_3D(int w, int h, int d, int mip_len, TextureFormat format)
   d_ = d;
   int mip_len_max = 1 + floorf(log2f(std::max({w, h, d})));
   mipmaps_ = min_ii(mip_len, mip_len_max);
+  mip_max_ = mip_min_ + mipmaps_ - 1;
   format_ = format;
   format_flag_ = to_format_flag(format);
   type_ = GPU_TEXTURE_3D;
@@ -105,6 +108,7 @@ bool Texture::init_cubemap(int w, int layers, int mip_len, TextureFormat format)
   d_ = max_ii(1, layers) * 6;
   int mip_len_max = 1 + floorf(log2f(w));
   mipmaps_ = min_ii(mip_len, mip_len_max);
+  mip_max_ = mip_min_ + mipmaps_ - 1;
   format_ = format;
   format_flag_ = to_format_flag(format);
   type_ = (layers > 0) ? GPU_TEXTURE_CUBE_ARRAY : GPU_TEXTURE_CUBE;
@@ -156,7 +160,7 @@ bool Texture::init_view(Texture *src,
     view_extent[src->dimensions_count() - 1] = std::min(layer_len,
                                                         (src->layer_count() - view_layer_start_));
   }
-  else {
+  else if (src->type_get() & GPU_TEXTURE_ARRAY) {
     view_extent[src->dimensions_count()] = 0;
   }
 

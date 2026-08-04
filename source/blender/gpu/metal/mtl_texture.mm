@@ -122,7 +122,7 @@ void gpu::MTLTexture::bake_mip_swizzle_view()
         texture_view_dirty_flags_ == TEXTURE_VIEW_MIP_DIRTY && mip_swizzle_view_ == nil)
     {
 
-      if (mip_min_ == 0 && mip_max_ == mtl_max_mips_) {
+      if (mip_min_ == 0 && mipmaps_ == mtl_max_mips_) {
         texture_view_dirty_flags_ = TEXTURE_VIEW_NOT_DIRTY;
         return;
       }

@@ -177,15 +177,18 @@ void VKTexture::clear_depth_stencil(const GPUFrameBufferBits buffers,
   clear_depth_stencil_image.node_data.vk_clear_depth_stencil_value.depth = clear_depth;
   clear_depth_stencil_image.node_data.vk_clear_depth_stencil_value.stencil = clear_stencil;
   clear_depth_stencil_image.node_data.vk_image_subresource_range.aspectMask = vk_image_aspect;
-  clear_depth_stencil_image.node_data.vk_image_subresource_range.baseArrayLayer =
-      view_layer_start_;
-  clear_depth_stencil_image.node_data.vk_image_subresource_range.layerCount = layer_count();
+
+  IndexRange layers = layer_range();
+  clear_depth_stencil_image.node_data.vk_image_subresource_range.baseArrayLayer = layers.start();
+  clear_depth_stencil_image.node_data.vk_image_subresource_range.layerCount = layers.size();
   if (layer.has_value()) {
     clear_depth_stencil_image.node_data.vk_image_subresource_range.baseArrayLayer += *layer;
     clear_depth_stencil_image.node_data.vk_image_subresource_range.layerCount = 1;
   }
-  clear_depth_stencil_image.node_data.vk_image_subresource_range.levelCount =
-      VK_REMAINING_MIP_LEVELS;
+
+  IndexRange levels = mip_map_range();
+  clear_depth_stencil_image.node_data.vk_image_subresource_range.baseMipLevel = levels.start();
+  clear_depth_stencil_image.node_data.vk_image_subresource_range.levelCount = levels.size();
 
   VKContext &context = *VKContext::get();
   context.render_graph().add_node(clear_depth_stencil_image);
