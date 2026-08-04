@@ -5752,8 +5752,11 @@ void Layout::resolve_dynamic_height()
 
   /* For simplicity a column is a grid of n rows and 1 columns, and a row is a grid of 1 rows and n
    * columns. */
-  const LayoutDirection direction = this->type() == ItemType::LayoutRoot ? this->root_->direction :
-                                                                           this->local_direction();
+  const LayoutDirection direction = this->type() == ItemType::LayoutRoot ?
+                                        this->root_->direction :
+                                    this->type() == ItemType::LayoutSplit ?
+                                        LayoutDirection::Horizontal :
+                                        this->local_direction();
   int rows = direction == LayoutDirection::Vertical ? this->items().size() : 1;
   int cols = direction == LayoutDirection::Horizontal ? this->items().size() : 1;
   bool row_major = direction == LayoutDirection::Vertical;
