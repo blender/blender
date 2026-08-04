@@ -47,13 +47,14 @@ enum [[host_shared]] eSamplingDimension : uint32_t {
   SAMPLING_GBUFFER_U = 29u,
   SAMPLING_GBUFFER_V = 30u,
   SAMPLING_GBUFFER_W = 31u,
+  SAMPLING_FILM_U = 32u,
 };
 
 /**
  * IMPORTANT: Make sure the array can contain all sampling dimensions.
  * Also note that it needs to be multiple of 4.
  */
-#define SAMPLING_DIMENSION_COUNT 32
+#define SAMPLING_DIMENSION_COUNT 36
 
 /* NOTE(@fclem): Needs to be used in #StorageBuffer because of arrays of scalar. */
 struct [[host_shared]] SamplingData {
