@@ -251,16 +251,18 @@ static void draw_error_message(const bNodeTree &tree, ui::Layout &layout, const 
   }
 
   if (is_mask_used) {
-    if (interface_inputs.size() < 1) {
+    if (interface_inputs.size() < 2) {
       ui::Layout &row = layout.row(false);
       row.label(RPT_("Node group must have at least two inputs to use the mask input"),
                 ICON_STATUS_ERROR);
     }
-    const bke::bNodeSocketType *typeinfo = interface_inputs[1]->socket_typeinfo();
-    const eNodeSocketDatatype socket_type = typeinfo ? typeinfo->type : SOCK_CUSTOM;
-    if (socket_type != SOCK_RGBA) {
-      ui::Layout &row = layout.row(false);
-      row.label(RPT_("The second node group input must have the Color type"), ICON_STATUS_ERROR);
+    else {
+      const bke::bNodeSocketType *typeinfo = interface_inputs[1]->socket_typeinfo();
+      const eNodeSocketDatatype socket_type = typeinfo ? typeinfo->type : SOCK_CUSTOM;
+      if (socket_type != SOCK_RGBA) {
+        ui::Layout &row = layout.row(false);
+        row.label(RPT_("The second node group input must have the Color type"), ICON_STATUS_ERROR);
+      }
     }
   }
 
