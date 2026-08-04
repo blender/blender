@@ -283,6 +283,11 @@ struct ViewLayer {
   ViewLayerLightgroup *active_lightgroup = nullptr;
 
   ViewLayerRuntime *runtime = nullptr;
+
+#ifdef __cplusplus
+  /** This is the same as #object_bases but cached as an array for faster index-based access. */
+  Span<Base *> object_bases_array() const;
+#endif
 };
 
 }  // namespace blender

@@ -282,8 +282,6 @@ void BKE_view_layer_free_ex(ViewLayer *view_layer, const bool do_id_user)
     IDP_FreeProperty_ex(view_layer->system_properties, do_id_user);
   }
 
-  MEM_SAFE_DELETE(view_layer->runtime->object_bases_array);
-
   MEM_delete(view_layer->runtime);
   MEM_delete(view_layer);
 }
@@ -1402,7 +1400,7 @@ bool BKE_layer_collection_sync(const Main &bmain, const Scene *scene, ViewLayer 
 #endif
 
   /* Free cache. */
-  MEM_SAFE_DELETE(view_layer->runtime->object_bases_array);
+  view_layer->runtime->object_bases_array_mutex.tag_dirty();
 
   /* Create object to base hash if it does not exist yet. */
   if (!view_layer->runtime->object_bases_hash) {
@@ -1537,7 +1535,7 @@ bool BKE_main_collection_sync_remap(const Main *bmain)
        scene = static_cast<Scene *>(scene->id.next))
   {
     for (ViewLayer &view_layer : scene->view_layers) {
-      MEM_SAFE_DELETE(view_layer.runtime->object_bases_array);
+      view_layer.runtime->object_bases_array_mutex.tag_dirty();
 
       MEM_SAFE_DELETE(view_layer.runtime->object_bases_hash);
 
@@ -2444,20 +2442,24 @@ void BKE_base_eval_flags(Base *base)
   }
 }
 
+Span<Base *> ViewLayer::object_bases_array() const
+{
+  this->runtime->object_bases_array_mutex.ensure([&]() {
+    this->runtime->object_bases_array.clear();
+    for (Base &base : *BKE_view_layer_object_bases_get(const_cast<ViewLayer *>(this))) {
+      this->runtime->object_bases_array.append(&base);
+    }
+  });
+  return this->runtime->object_bases_array;
+}
+
 static void layer_eval_view_layer(Depsgraph *depsgraph, Scene *scene, ViewLayer *view_layer)
 {
   DEG_debug_print_eval(depsgraph, __func__, view_layer->name, view_layer);
 
-  /* Create array of bases, for fast index-based lookup. */
   BKE_view_layer_synced_ensure(*DEG_get_bmain(depsgraph), scene, view_layer);
-  const int num_object_bases = BLI_listbase_count(BKE_view_layer_object_bases_get(view_layer));
-  MEM_SAFE_DELETE(view_layer->runtime->object_bases_array);
-  view_layer->runtime->object_bases_array = MEM_new_array_uninitialized<Base *>(
-      size_t(num_object_bases), "view_layer->runtime->object_bases_array");
-  int base_index = 0;
-  for (Base &base : *BKE_view_layer_object_bases_get(view_layer)) {
-    view_layer->runtime->object_bases_array[base_index++] = &base;
-  }
+  /* Compute bases cache eagerly because it will be used later. */
+  view_layer->object_bases_array();
 }
 
 void BKE_layer_eval_view_layer_indexed(Depsgraph *depsgraph, Scene *scene, int view_layer_index)
