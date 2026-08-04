@@ -264,6 +264,7 @@ class ProximityFunction : public mf::MultiFunction {
     static constexpr int8_t id = 0;
     hash.add(&id);
     hash.add(target_.get_mesh());
+    hash.add(target_.get_pointcloud());
     hash.add(type_);
     fn::FieldHashDeep field_hash;
     hash.add(field_hash.ensure(group_id_field_));
