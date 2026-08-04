@@ -618,7 +618,7 @@ PyDoc_STRVAR(
     py_KDtree_doc,
     ".. class:: KDTree(size, *, dimensions=3)\n"
     "\n"
-    "   KDTree(size, \*, dimensions=3) -> new kd-tree initialized to hold up to ``size`` items.\n"
+    "   A KD-tree initialized to hold up to ``size`` items.\n"
     "\n"
     "   :param size: Maximum number of items.\n"
     "   :type size: int\n"
@@ -684,7 +684,7 @@ PyTypeObject PyKDTree_Type = {
 PyDoc_STRVAR(
     /* Wrap. */
     py_kdtree_doc,
-    "Generic 2D/3D kd-tree to perform spatial searches.");
+    "Generic 2D/3D KD-tree to perform spatial searches.");
 static PyModuleDef kdtree_moduledef = {
     /*m_base*/ PyModuleDef_HEAD_INIT,
     /*m_name*/ "mathutils.kdtree",
