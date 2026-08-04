@@ -283,7 +283,6 @@ eDriverVariablePropertyResult driver_get_variable_property(
     ChannelDriver *driver,
     DriverVar *dvar,
     DriverTarget *dtar,
-    const bool allow_no_index,
     PointerRNA *r_ptr,
     PropertyRNA **r_prop,
     int *r_index)
@@ -349,6 +348,7 @@ eDriverVariablePropertyResult driver_get_variable_property(
   *r_ptr = ptr;
   *r_prop = prop;
   *r_index = index;
+  const bool allow_no_index = true;
 
   /* Verify the array index and apply fallback if appropriate. */
   if (prop && RNA_property_array_check(prop)) {

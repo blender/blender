@@ -158,7 +158,6 @@ eDriverVariablePropertyResult driver_get_variable_property(
     struct ChannelDriver *driver,
     struct DriverVar *dvar,
     struct DriverTarget *dtar,
-    bool allow_no_index,
     struct PointerRNA *r_ptr,
     struct PropertyRNA **r_prop,
     int *r_index);
