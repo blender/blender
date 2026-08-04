@@ -57,12 +57,15 @@ class FormatToken:
         return match.start()
 
     @classmethod
-    def parse_string_lookup_first_token(cls, string, start_idx, token_idx=0):
+    def parse_string_lookup_first_token(cls, string, start_idx, token_idx=0, only_at_start_idx = False):
         """
         Search for the first instance of a formatting sequences (like %s, {:.4f}, etc.) in the given string,
         and return a FormatToken for it (or None is none is found).
 
         NOTE: This is not covering all exotic syntax cases of 'printf' or 'format'!
+        
+        If `only_at_start_idx` is True, this function will only return a valid token if it starts at given `start_idx`.
+        Useful e.g. for code already calling `next_potential_formatting_index` itself.
         """
         # Current position in the parsed text.
         idx = start_idx
@@ -77,6 +80,8 @@ class FormatToken:
             next_format_candidate = FormatToken.next_potential_formatting_index(string, idx)
             if next_format_candidate == -1:
                 return None
+            if only_at_start_idx and next_format_candidate != start_idx:
+                return None
 
             stride = 0
             tk_len = 0
@@ -85,7 +90,9 @@ class FormatToken:
             idx_fmt = next_format_candidate
             key = ...
             # `{{` is escaping `{` in 'format' syntax.
-            if idx_fmt < (ln - 1) and string[idx_fmt] == '{' and string[idx_fmt + 1] != '{':
+            if idx_fmt < (ln - 1) and string[idx_fmt] == '{' and string[idx_fmt + 1] == '{':
+                stride = idx_fmt - idx + 2
+            elif idx_fmt < (ln - 1) and string[idx_fmt] == '{':
                 # The whole 'format' syntax (both from C++ `fmt::format` and Python).
                 # Coverage of this one is still fairly limited and basic currently.
                 # TODO: support more of the 'format' mini-language.
@@ -113,12 +120,13 @@ class FormatToken:
                     tk_len += 1
                 if (idx_fmt + tk_len) < ln and string[idx_fmt + tk_len] == '}':
                     # {my_key}, {2}...
-                    if has_explicit_key and key is ...:
-                        key = string[idx_fmt + 1: idx_fmt + tk_len]
-                        if (key.isdecimal()):
-                            key = int(key)
-                    else:
-                        key = token_idx
+                    if key is ...:
+                        if has_explicit_key:
+                            key = string[idx_fmt + 1: idx_fmt + tk_len]
+                            if (key.isdecimal()):
+                                key = int(key)
+                        else:
+                            key = token_idx
                     tk_len += 1
                     is_valid_format = True
                     stride = idx_fmt - idx
@@ -128,7 +136,9 @@ class FormatToken:
                     # Stride past the invalid potential next format token.
                     stride = idx_fmt - idx + 1
             # `%%` is escaping `%` in 'printf' syntax.
-            elif idx_fmt < (ln - 1) and string[idx_fmt] == '%' and string[idx_fmt + 1] != '%':
+            elif idx_fmt < (ln - 1) and string[idx_fmt] == '%' and string[idx_fmt + 1] == '%':
+                stride = idx_fmt - idx + 2
+            elif idx_fmt < (ln - 1) and string[idx_fmt] == '%':
                 # The whole 'printf' syntax...
                 # Not fully covering the format, but most of it, and should cover all of Blender usages.
                 orig_tk_len = tk_len
@@ -172,6 +182,9 @@ class FormatToken:
             else:
                 # Stride past the invalid potential next format token.
                 stride = idx_fmt - idx + 1
+
+            if only_at_start_idx and not (is_valid_format and stride == 0):
+                return None
 
             assert is_valid_format or tk_len == 0
             if stride > 0:
