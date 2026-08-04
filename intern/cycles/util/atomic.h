@@ -62,21 +62,21 @@ ccl_device_inline float atomic_add_and_fetch_float(volatile ccl_global float *_s
 {
 #    if __METAL_VERSION__ >= 300
   return atomic_fetch_add_explicit(
-      (ccl_global atomic_float *)_source, operand, memory_order_relaxed);
+      (ccl_global metal::atomic_float *)_source, operand, metal::memory_order_relaxed);
 #    else
-  volatile ccl_global atomic_int *source = (ccl_global atomic_int *)_source;
+  volatile ccl_global metal::atomic_int *source = (ccl_global metal::atomic_int *)_source;
   union {
     int int_value;
     float float_value;
   } new_value, prev_value;
-  prev_value.int_value = atomic_load_explicit(source, memory_order_relaxed);
+  prev_value.int_value = atomic_load_explicit(source, metal::memory_order_relaxed);
   do {
     new_value.float_value = prev_value.float_value + operand;
   } while (!atomic_compare_exchange_weak_explicit(source,
                                                   &prev_value.int_value,
                                                   new_value.int_value,
-                                                  memory_order_relaxed,
-                                                  memory_order_relaxed));
+                                                  metal::memory_order_relaxed,
+                                                  metal::memory_order_relaxed));
 
   return new_value.float_value;
 #    endif
@@ -84,55 +84,60 @@ ccl_device_inline float atomic_add_and_fetch_float(volatile ccl_global float *_s
 
 template<class T> ccl_device_inline uint32_t atomic_fetch_and_add_uint32(device T *p, const int x)
 {
-  return atomic_fetch_add_explicit((device atomic_uint *)p, x, memory_order_relaxed);
+  return atomic_fetch_add_explicit((device metal::atomic_uint *)p, x, metal::memory_order_relaxed);
 }
 
 template<class T> ccl_device_inline uint32_t atomic_fetch_and_sub_uint32(device T *p, const int x)
 {
-  return atomic_fetch_sub_explicit((device atomic_uint *)p, x, memory_order_relaxed);
+  return atomic_fetch_sub_explicit((device metal::atomic_uint *)p, x, metal::memory_order_relaxed);
 }
 
 template<class T> ccl_device_inline uint32_t atomic_fetch_and_inc_uint32(device T *p)
 {
-  return atomic_fetch_add_explicit((device atomic_uint *)p, 1, memory_order_relaxed);
+  return atomic_fetch_add_explicit((device metal::atomic_uint *)p, 1, metal::memory_order_relaxed);
 }
 
 template<class T> ccl_device_inline uint32_t atomic_fetch_and_dec_uint32(device T *p)
 {
-  return atomic_fetch_sub_explicit((device atomic_uint *)p, 1, memory_order_relaxed);
+  return atomic_fetch_sub_explicit((device metal::atomic_uint *)p, 1, metal::memory_order_relaxed);
 }
 
 template<class T> ccl_device_inline uint32_t atomic_fetch_and_or_uint32(device T *p, const int x)
 {
-  return atomic_fetch_or_explicit((device atomic_uint *)p, x, memory_order_relaxed);
+  return atomic_fetch_or_explicit((device metal::atomic_uint *)p, x, metal::memory_order_relaxed);
 }
 
 template<class T>
 ccl_device_inline uint32_t atomic_fetch_and_add_uint32(threadgroup T *p, const int x)
 {
-  return atomic_fetch_add_explicit((threadgroup atomic_uint *)p, x, memory_order_relaxed);
+  return atomic_fetch_add_explicit(
+      (threadgroup metal::atomic_uint *)p, x, metal::memory_order_relaxed);
 }
 
 template<class T>
 ccl_device_inline uint32_t atomic_fetch_and_sub_uint32(threadgroup T *p, const int x)
 {
-  return atomic_fetch_sub_explicit((threadgroup atomic_uint *)p, x, memory_order_relaxed);
+  return atomic_fetch_sub_explicit(
+      (threadgroup metal::atomic_uint *)p, x, metal::memory_order_relaxed);
 }
 
 template<class T> ccl_device_inline uint32_t atomic_fetch_and_inc_uint32(threadgroup T *p)
 {
-  return atomic_fetch_add_explicit((threadgroup atomic_uint *)p, 1, memory_order_relaxed);
+  return atomic_fetch_add_explicit(
+      (threadgroup metal::atomic_uint *)p, 1, metal::memory_order_relaxed);
 }
 
 template<class T> ccl_device_inline uint32_t atomic_fetch_and_dec_uint32(threadgroup T *p)
 {
-  return atomic_fetch_sub_explicit((threadgroup atomic_uint *)p, 1, memory_order_relaxed);
+  return atomic_fetch_sub_explicit(
+      (threadgroup metal::atomic_uint *)p, 1, metal::memory_order_relaxed);
 }
 
 template<class T>
 ccl_device_inline uint32_t atomic_fetch_and_or_uint32(threadgroup T *p, const int x)
 {
-  return atomic_fetch_or_explicit((threadgroup atomic_uint *)p, x, memory_order_relaxed);
+  return atomic_fetch_or_explicit(
+      (threadgroup metal::atomic_uint *)p, x, metal::memory_order_relaxed);
 }
 
 ccl_device_inline float atomic_compare_and_swap_float(volatile ccl_global float *dest,
@@ -141,33 +146,33 @@ ccl_device_inline float atomic_compare_and_swap_float(volatile ccl_global float 
 {
 #    if __METAL_VERSION__ >= 300
   float prev_value = old_val;
-  atomic_compare_exchange_weak_explicit((ccl_global atomic_float *)dest,
+  atomic_compare_exchange_weak_explicit((ccl_global metal::atomic_float *)dest,
                                         &prev_value,
                                         new_val,
-                                        memory_order_relaxed,
-                                        memory_order_relaxed);
+                                        metal::memory_order_relaxed,
+                                        metal::memory_order_relaxed);
   return prev_value;
 #    else
   int prev_value;
   prev_value = __float_as_int(old_val);
-  atomic_compare_exchange_weak_explicit((ccl_global atomic_int *)dest,
+  atomic_compare_exchange_weak_explicit((ccl_global metal::atomic_int *)dest,
                                         &prev_value,
                                         __float_as_int(new_val),
-                                        memory_order_relaxed,
-                                        memory_order_relaxed);
+                                        metal::memory_order_relaxed,
+                                        metal::memory_order_relaxed);
   return __int_as_float(prev_value);
 #    endif
 }
 
-#    define atomic_store(p, x) atomic_store_explicit(p, x, memory_order_relaxed)
-#    define atomic_fetch(p) atomic_load_explicit(p, memory_order_relaxed)
+#    define atomic_store(p, x) atomic_store_explicit(p, x, metal::memory_order_relaxed)
+#    define atomic_fetch(p) atomic_load_explicit(p, metal::memory_order_relaxed)
 
 #    define atomic_store_local(p, x) \
-      atomic_store_explicit((ccl_gpu_shared atomic_int *)p, x, memory_order_relaxed)
+      atomic_store_explicit((ccl_gpu_shared metal::atomic_int *)p, x, metal::memory_order_relaxed)
 #    define atomic_load_local(p) \
-      atomic_load_explicit((ccl_gpu_shared atomic_int *)p, memory_order_relaxed)
+      atomic_load_explicit((ccl_gpu_shared metal::atomic_int *)p, metal::memory_order_relaxed)
 
-#    define CCL_LOCAL_MEM_FENCE mem_flags::mem_threadgroup
+#    define CCL_LOCAL_MEM_FENCE metal::mem_flags::mem_threadgroup
 #    define ccl_barrier(flags) threadgroup_barrier(flags)
 
 #  endif /* __KERNEL_METAL__ */

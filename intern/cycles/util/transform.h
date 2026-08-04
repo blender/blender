@@ -78,7 +78,7 @@ struct DecomposedTransform {
 /* transform_point specialized for ccl_global */
 ccl_device_inline float3 transform_point(const ccl_global Transform *t, const float3 a)
 {
-  const ccl_global float3x3 &b(*(const ccl_global float3x3 *)t);
+  const ccl_global metal::float3x3 &b(*(const ccl_global metal::float3x3 *)t);
   return (a * b).xyz + make_float3(t->x.w, t->y.w, t->z.w);
 }
 #endif
@@ -98,7 +98,7 @@ ccl_device_inline float3 transform_point(const ccl_private Transform *t, const f
   tmp = madd(shuffle<0>(aa), x, tmp);
   return float3(tmp.m128);
 #elif defined(__KERNEL_METAL__)
-  const ccl_private float3x3 &b(*(const ccl_private float3x3 *)t);
+  const ccl_private metal::float3x3 &b(*(const ccl_private metal::float3x3 *)t);
   return (a * b).xyz + make_float3(t->x.w, t->y.w, t->z.w);
 #else
   const float4 a_ = make_homogeneous(a);
@@ -146,7 +146,7 @@ ccl_device_inline dual3 transform_point(const ccl_private Transform *t, const du
 
   return result;
 #elif defined(__KERNEL_METAL__)
-  const ccl_private float3x3 &b(*(const ccl_private float3x3 *)t);
+  const ccl_private metal::float3x3 &b(*(const ccl_private metal::float3x3 *)t);
   return {(a.val * b).xyz + make_float3(t->x.w, t->y.w, t->z.w), (a.dx * b).xyz, (a.dy * b).xyz};
 #else
   const dual4 a_ = make_homogeneous(a);
@@ -168,7 +168,7 @@ ccl_device_inline float3 transform_direction(const ccl_private Transform *t, con
   tmp = madd(shuffle<0>(aa), x, tmp);
   return float3(tmp.m128);
 #elif defined(__KERNEL_METAL__)
-  const ccl_private float3x3 &b(*(const ccl_private float3x3 *)t);
+  const ccl_private metal::float3x3 &b(*(const ccl_private metal::float3x3 *)t);
   return (a * b).xyz;
 #else
   const float4 a_ = make_float4(a, 0.0f);
