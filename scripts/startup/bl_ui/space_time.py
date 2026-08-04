@@ -68,6 +68,7 @@ def playback_controls(layout, context):
 
     row = layout.row(align=True)
     row.operator("screen.frame_jump", text="", icon='REW').end = False
+    row.operator("screen.time_jump", text="", icon='FRAME_PREV').backward = True
     row.operator("screen.keyframe_jump", text="", icon='PREV_KEYFRAME').next = False
 
     if not screen.is_animation_playing:
@@ -87,12 +88,9 @@ def playback_controls(layout, context):
         row.scale_x = 1
 
     row.operator("screen.keyframe_jump", text="", icon='NEXT_KEYFRAME').next = True
+    row.operator("screen.time_jump", text="", icon='FRAME_NEXT').backward = False
     row.operator("screen.frame_jump", text="", icon='FF').end = True
 
-    # Time jump
-    row = layout.row(align=True)
-    row.operator("screen.time_jump", text="", icon='FRAME_PREV').backward = True
-    row.operator("screen.time_jump", text="", icon='FRAME_NEXT').backward = False
     row.popover(panel="TIME_PT_jump", text="")
 
     if tool_settings:
