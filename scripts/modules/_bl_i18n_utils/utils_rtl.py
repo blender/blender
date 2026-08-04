@@ -154,7 +154,7 @@ def protect_format_seq(msg):
                 # Formatting tokens (%s, {:.4f}, etc.).
                 # Find if potential next token is actually a valid one.
                 token = FormatToken.parse_string_lookup_first_token(
-                            msg, start_idx=idx_fmt, token_idx=token_idx, only_at_start_idx=True)
+                    msg, start_idx=idx_fmt, token_idx=token_idx, only_at_start_idx=True)
                 if token is not None:
                     assert token.start_index == idx_fmt
                     tk_start_index = token.start_index
@@ -165,10 +165,10 @@ def protect_format_seq(msg):
                     # processed escape group is enough to avoid wrongly including e.g. the '"' with the '%s' in
                     # unlikely cases like this: `'foo\"%s" bar'`
                     if (tk_start_index > idx and tk_start_index > last_idx_escape + 2 and
-                        (tk_start_index + tk_len) < ln and
-                        msg[tk_start_index - 1] in '\'"' and
-                        msg[tk_start_index + tk_len] == msg[tk_start_index - 1]
-                        ):
+                            (tk_start_index + tk_len) < ln and
+                            msg[tk_start_index - 1] in '\'"' and
+                            msg[tk_start_index + tk_len] == msg[tk_start_index - 1]
+                            ):
                         stride = token.start_index - idx - 1
                         ltr_len = len(token.token) + 2
                     else:

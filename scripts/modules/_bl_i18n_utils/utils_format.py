@@ -57,13 +57,13 @@ class FormatToken:
         return match.start()
 
     @classmethod
-    def parse_string_lookup_first_token(cls, string, start_idx, token_idx=0, only_at_start_idx = False):
+    def parse_string_lookup_first_token(cls, string, start_idx, token_idx=0, only_at_start_idx=False):
         """
         Search for the first instance of a formatting sequences (like %s, {:.4f}, etc.) in the given string,
         and return a FormatToken for it (or None is none is found).
 
         NOTE: This is not covering all exotic syntax cases of 'printf' or 'format'!
-        
+
         If `only_at_start_idx` is True, this function will only return a valid token if it starts at given `start_idx`.
         Useful e.g. for code already calling `next_potential_formatting_index` itself.
         """
@@ -148,7 +148,7 @@ class FormatToken:
                 # `%x12|` - What is this for actually?
                 # It also 'steals' the standard printf format for hexadecimal prints...
                 if (idx_fmt < (ln - 2) and string[idx_fmt + 1] == 'x' and
-                    string[idx_fmt + 2] in cls.printf_format_widthprec
+                        string[idx_fmt + 2] in cls.printf_format_widthprec
                     ):
                     tk_len = 2
                     while (idx_fmt + tk_len) < ln and string[idx_fmt + tk_len] in cls.printf_format_widthprec:
