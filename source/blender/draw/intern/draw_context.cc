@@ -669,8 +669,8 @@ namespace draw {
 static bool supports_handle_ranges(DupliObject *dupli, Object *parent, const DRWContext &draw_ctx)
 {
   int ob_type = dupli->ob_data ? BKE_object_obdata_to_type(dupli->ob_data) : OB_EMPTY;
-  if (!ELEM(ob_type, OB_MESH, OB_CURVES_LEGACY, OB_SURF, OB_FONT, OB_POINTCLOUD, OB_GREASE_PENCIL))
-  {
+  if (!ELEM(ob_type, OB_MESH, OB_CURVES_LEGACY, OB_SURF, OB_FONT, OB_POINTCLOUD)) {
+    /* TODO: Add Grease Pencil support. */
     return false;
   }
 
@@ -698,11 +698,6 @@ static bool supports_handle_ranges(DupliObject *dupli, Object *parent, const DRW
     }
     /* Smoke drawing doesn't support handle ranges. */
     return !BKE_modifiers_findby_type(ob, eModifierType_Fluid);
-  }
-
-  if (ob_type == OB_GREASE_PENCIL) {
-    GreasePencil *grease_pencil = reinterpret_cast<GreasePencil *>(dupli->ob_data);
-    return grease_pencil->flag & GREASE_PENCIL_STROKE_ORDER_3D;
   }
 
   return true;
