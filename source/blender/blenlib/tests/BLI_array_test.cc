@@ -6,6 +6,7 @@
 
 #include "BLI_array.hh"
 #include "BLI_exception_safety_test_utils.hh"
+#include "BLI_math_vector_types.hh"
 #include "BLI_vector.hh"
 
 #include "BLI_strict_flags.hh" /* IWYU pragma: keep. Keep last. */
@@ -279,6 +280,40 @@ TEST(array, Reinitialize)
   EXPECT_EQ(array[2], "");
   array.reinitialize(0);
   EXPECT_EQ(array.size(), 0);
+}
+
+TEST(array, ConstructStructWithBitFields)
+{
+  /* See bug report in #161714. */
+  struct TestStruct {
+    uint a : 1;
+    uint b : 1;
+  };
+
+  {
+    Array<TestStruct> array(3, {false, false});
+    EXPECT_EQ(array[0].a, 0);
+    EXPECT_EQ(array[0].b, 0);
+  }
+  {
+    Array<TestStruct> array(3, {true, false});
+    EXPECT_EQ(array[0].a, 1);
+    EXPECT_EQ(array[0].b, 0);
+  }
+  {
+    Array<TestStruct> array(3, {true, true});
+    EXPECT_EQ(array[0].a, 1);
+    EXPECT_EQ(array[0].b, 1);
+  }
+}
+
+TEST(array, ConstructZeroVector)
+{
+  /* This mainly exercises the #value_is_zero_memory specialization for VecBase. */
+  static_assert(!std::has_unique_object_representations_v<float3>);
+  float3 vec{0};
+  Array<float3> array(3, vec);
+  EXPECT_EQ(array[0], vec);
 }
 
 }  // namespace blender::tests
