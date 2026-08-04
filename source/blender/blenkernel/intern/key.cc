@@ -164,8 +164,8 @@ static void shapekey_blend_read_data(BlendDataReader *reader, ID *id)
 static void shapekey_blend_read_after_liblink(BlendLibReader * /*reader*/, ID *id)
 {
   /* ShapeKeys should always only be linked indirectly through their user ID (mesh, Curve etc.), or
-   * be fully local data. */
-  BLI_assert((id->tag & ID_TAG_EXTERN) == 0);
+   * be fully local data, or part of linked packed data. */
+  BLI_assert((id->tag & ID_TAG_EXTERN) == 0 || ID_IS_PACKED(id));
   UNUSED_VARS_NDEBUG(id);
 }
 

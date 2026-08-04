@@ -5647,7 +5647,7 @@ static void read_library_linked_id(
 {
   BHead *bhead = nullptr;
   const bool is_valid = BKE_idtype_idcode_is_linkable(GS(id->name)) ||
-                        ((id->tag & ID_TAG_EXTERN) == 0);
+                        ((id->tag & ID_TAG_EXTERN) == 0) || ID_IS_PACKED(id);
 
   if (fd) {
     /* About future longer ID names: This is one of the main places that prevent linking IDs with
