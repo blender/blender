@@ -324,6 +324,8 @@ void BKE_pointcloud_material_remap(PointCloud *pointcloud, const uint *remap, co
 void pointcloud_copy_parameters(const PointCloud &src, PointCloud &dst)
 {
   dst.flag = src.flag;
+  dst.render_as = src.render_as;
+  dst.spherical_harmonics_degree = src.spherical_harmonics_degree;
   MEM_SAFE_DELETE(dst.mat);
   dst.mat = MEM_new_array_uninitialized<Material *>(src.totcol, __func__);
   dst.totcol = src.totcol;
