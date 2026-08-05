@@ -433,7 +433,7 @@ ccl_device
 #ifdef __RAY_DIFFERENTIALS__
     /* Widen ray differences, with same logic as forward sampling to ensure
      * both MIS strategies converge to the same result. */
-    ray.dD = bsdf_widen_dD(INTEGRATOR_STATE(state, ray, dD), avg_roughness_squared);
+    ray.dD = bsdf_widen_dD(kg, INTEGRATOR_STATE(state, ray, dD), avg_roughness_squared);
 #endif
   }
 
@@ -586,7 +586,8 @@ ccl_device_forceinline int integrate_surface_bsdf_bssrdf_bounce(
 
     /* Widen ray differences, with same logic as NEE sampling to ensure
      * both MIS strategies converge to the same result. */
-    const float dD = bsdf_widen_dD(INTEGRATOR_STATE(state, ray, dD), bsdf_avg_roughness_squared);
+    const float dD = bsdf_widen_dD(
+        kg, INTEGRATOR_STATE(state, ray, dD), bsdf_avg_roughness_squared);
     INTEGRATOR_STATE_WRITE(state, ray, dD) = dD;
 #endif
   }
