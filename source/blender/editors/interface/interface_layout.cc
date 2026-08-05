@@ -3295,7 +3295,15 @@ static Button *uiItem_simple(Layout *layout,
     icon = ICON_BLANK1;
   }
 
-  const int w = text_icon_width_ex(layout, name, icon, text_pad_none, UI_FSTYLE_WIDGET);
+  /* When drawing text over an emboss background (like for a normal push button), the widget needs
+   * to be slightly wider than just the text, since the text will get some horizontal padding
+   * inside the background box when drawing. Otherwise drawing would truncate the text to fit.
+   * This is not the most thorough check, but should work well enough and can be expanded as
+   * needed. */
+  const bool has_emboss = but_type != ButtonType::Label &&
+                          layout->emboss() == ui::EmbossType::Emboss;
+  const int w = text_icon_width_ex(
+      layout, name, icon, has_emboss ? text_pad_default : text_pad_none, UI_FSTYLE_WIDGET);
   Button *but;
   if (icon && !name.is_empty()) {
     but = uiDefIconTextBut(block, but_type, icon, name, 0, 0, w, UI_UNIT_Y, nullptr, tooltip);
