@@ -93,7 +93,7 @@ template<typename TexT, typename OutT = float4> struct ImageInterpolator {
   static ccl_always_inline OutT
   read(const TexT *data, const int x, int y, const int width, const int /*height*/)
   {
-    return read(data[y * width + x]);
+    return read(data[int64_t(y) * width + x]);
   }
 
   /* Read 2D Texture Data Clip
@@ -104,7 +104,7 @@ template<typename TexT, typename OutT = float4> struct ImageInterpolator {
     if (x < 0 || x >= width || y < 0 || y >= height) {
       return zero();
     }
-    return read(data[y * width + x]);
+    return read(data[int64_t(y) * width + x]);
   }
 
   static ccl_always_inline int wrap_periodic(int x, const int width)
