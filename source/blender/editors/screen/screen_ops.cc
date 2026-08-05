@@ -7483,9 +7483,52 @@ float ED_region_blend_alpha(ARegion *region)
     }
 
     CLAMP(alpha, 0.0f, 1.0f);
-    return alpha;
+    /* Quadratic ease-out: 1 - (1 - alpha)^2 == alpha * (2 - alpha). */
+    const float alpha_easing = alpha * (2.0f - alpha);
+    return alpha_easing;
   }
   return 1.0f;
+}
+
+void ED_region_blend_rect(ARegion *region, rcti *r_rect)
+{
+  *r_rect = region->winrct;
+  const float alpha = ED_region_blend_alpha(region);
+  if (alpha >= 1.0f) {
+    return;
+  }
+  const float ofs_x = BLI_rcti_size_x(r_rect) * (1.0f - alpha);
+  const float ofs_y = BLI_rcti_size_y(r_rect) * (1.0f - alpha);
+  switch (RGN_ALIGN_ENUM_FROM_MASK(region->alignment)) {
+    case RGN_ALIGN_RIGHT:
+      r_rect->xmin += ofs_x;
+      break;
+    case RGN_ALIGN_LEFT:
+      r_rect->xmax -= ofs_x;
+      break;
+    case RGN_ALIGN_TOP:
+      r_rect->ymin += ofs_y;
+      break;
+    case RGN_ALIGN_BOTTOM:
+      r_rect->ymax -= ofs_y;
+      break;
+    default:
+      break;
+  }
+}
+
+/**
+ * Region-blend animations don't re-run area layout on every tick, so the cached
+ * #ARegion::runtime::visible_rect of every region in the area needs to be invalidated on each
+ * tick, the same way normal area resizing does, otherwise it stays stale for the whole
+ * animation and anything positioned from #ED_region_visible_rect (navigate gizmos, lookdev
+ * preview, etc.) won't look correct.
+ */
+static void region_blend_invalidate_visible_rect(ScrArea *area)
+{
+  for (ARegion &region_iter : area->regionbase) {
+    region_iter.runtime->visible_rect = rcti{};
+  }
 }
 
 /* assumes region has running region-blend timer */
@@ -7550,6 +7593,11 @@ void ED_region_visibility_change_update_animated(bContext *C, ScrArea *area, ARe
   /* new timer */
   region->runtime->regiontimer = WM_event_timer_add(wm, win, TIMERREGION, TIMESTEP);
   region->runtime->regiontimer->customdata = rgi;
+
+  /* Ensure the first redraw already reflects the animation's starting alpha,
+   * rather than one stale frame at the pre-animation state. */
+  region_blend_invalidate_visible_rect(area);
+  ED_area_tag_redraw(area);
 }
 
 /* timer runs in win->handlers, so it cannot use context to find area/region */
@@ -7564,11 +7612,9 @@ static wmOperatorStatus region_blend_invoke(bContext *C, wmOperator * /*op*/, co
 
   RegionAlphaInfo *rgi = static_cast<RegionAlphaInfo *>(timer->customdata);
 
+  region_blend_invalidate_visible_rect(rgi->area);
   /* always send redraws */
-  ED_region_tag_redraw(rgi->region);
-  if (rgi->child_region) {
-    ED_region_tag_redraw(rgi->child_region);
-  }
+  ED_area_tag_redraw(rgi->area);
 
   /* end timer? */
   if (rgi->region->runtime->regiontimer->time_duration > double(TIMEOUT)) {

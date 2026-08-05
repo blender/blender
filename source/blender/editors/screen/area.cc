@@ -4378,27 +4378,32 @@ static void region_visible_rect_calc(ARegion *region, rcti *rect)
   /* check if a region overlaps with the current one */
   for (; region_iter; region_iter = region_iter->next) {
     if (region != region_iter && region_iter->overlap) {
-      if (BLI_rcti_isect(rect, &region_iter->winrct, nullptr)) {
+      /* Use the region's animated rect so the visible area tracks its slide/fade animation instead
+       * of jumping to the final size at the start or end of the animation. */
+      rcti sibling_rect;
+      ED_region_blend_rect(region_iter, &sibling_rect);
+
+      if (BLI_rcti_isect(rect, &sibling_rect, nullptr)) {
         int alignment = RGN_ALIGN_ENUM_FROM_MASK(region_iter->alignment);
 
         if (ELEM(alignment, RGN_ALIGN_LEFT, RGN_ALIGN_RIGHT)) {
           /* Overlap left, also check 1 pixel offset (2 regions on one side). */
-          if (abs(rect->xmin - region_iter->winrct.xmin) < 2) {
-            rect->xmin = region_iter->winrct.xmax;
+          if (abs(rect->xmin - sibling_rect.xmin) < 2) {
+            rect->xmin = sibling_rect.xmax;
           }
 
           /* Overlap right. */
-          if (abs(rect->xmax - region_iter->winrct.xmax) < 2) {
-            rect->xmax = region_iter->winrct.xmin;
+          if (abs(rect->xmax - sibling_rect.xmax) < 2) {
+            rect->xmax = sibling_rect.xmin;
           }
         }
         else if (ELEM(alignment, RGN_ALIGN_TOP, RGN_ALIGN_BOTTOM)) {
           /* Same logic as above for vertical regions. */
-          if (abs(rect->ymin - region_iter->winrct.ymin) < 2) {
-            rect->ymin = region_iter->winrct.ymax;
+          if (abs(rect->ymin - sibling_rect.ymin) < 2) {
+            rect->ymin = sibling_rect.ymax;
           }
-          if (abs(rect->ymax - region_iter->winrct.ymax) < 2) {
-            rect->ymax = region_iter->winrct.ymin;
+          if (abs(rect->ymax - sibling_rect.ymax) < 2) {
+            rect->ymax = sibling_rect.ymin;
           }
         }
         else if (alignment == RGN_ALIGN_FLOAT) {
