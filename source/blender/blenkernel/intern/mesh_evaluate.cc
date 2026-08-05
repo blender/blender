@@ -563,10 +563,25 @@ void mesh_hide_face_flush(Mesh &mesh)
   const OffsetIndices faces = mesh.faces();
   const Span<int> corner_verts = mesh.corner_verts();
   const Span<int> corner_edges = mesh.corner_edges();
+
+  const bool vert_attr_existed = attributes.contains(".hide_vert");
+  const bool edge_attr_existed = attributes.contains(".hide_edge");
+
   SpanAttributeWriter<bool> hide_vert = attributes.convert_or_add_for_write_only_span<bool>(
       ".hide_vert", AttrDomain::Point);
   SpanAttributeWriter<bool> hide_edge = attributes.convert_or_add_for_write_only_span<bool>(
       ".hide_edge", AttrDomain::Edge);
+
+  /* If the attribute is newly created, ensure the loose edges and vertices are properly
+   * initialized, as the face-based fill below will not guarantee this. */
+  if (!vert_attr_existed) {
+    index_mask::masked_fill(hide_vert.span, false, mesh.loose_verts());
+    index_mask::masked_fill(hide_vert.span, false, mesh.verts_no_face());
+  }
+
+  if (!edge_attr_existed) {
+    index_mask::masked_fill(hide_edge.span, false, mesh.loose_edges());
+  }
 
   /* Hide all edges or vertices connected to hidden polygons. */
   threading::parallel_for(faces.index_range(), 1024, [&](const IndexRange range) {

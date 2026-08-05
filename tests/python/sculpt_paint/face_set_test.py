@@ -137,6 +137,21 @@ class ChangeVisibilityTest(unittest.TestCase):
         self.assertEqual(np.count_nonzero(hidden_faces), 0, "No faces should be hidden")
 
 
+class ChangeVisibilityLooseGeometryTest(unittest.TestCase):
+    """
+    Test that the internal mesh .hide attributes are all correctly initialized
+    """
+
+    def setUp(self):
+        bpy.ops.wm.open_mainfile(filepath=str(args.testdir / "cube-face-set-loose-geom.blend"), load_ui=False)
+        bpy.ops.ed.undo_push()
+
+    def test_hide_results_in_valid_mesh(self):
+        bpy.ops.sculpt.face_set_change_visibility(mode='HIDE_ACTIVE', active_face_set=2)
+        mesh = bpy.context.active_object.data
+        self.assertFalse(mesh.validate(verbose=True))
+
+
 def main():
     global args
     import argparse
