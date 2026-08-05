@@ -84,7 +84,7 @@ void WM_window_csd_draw_titlebar(const wmWindow *win);
 /**
  * Apply fractional scale for client side decorations.
  */
-int WM_window_csd_fracitonal_scale_apply(int value, const int fractional_scale[2]);
+int WM_window_csd_fractional_scale_apply(int value, const int fractional_scale[2]);
 /**
  * Callback for GHOST that defines the layout of client side decorations.
  *

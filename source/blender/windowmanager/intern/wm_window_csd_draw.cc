@@ -74,7 +74,7 @@ void WM_window_csd_draw_titlebar_ex(const int win_size[2],
           255,
       };
       const int border_outline_width = std::max<int>(
-          1, WM_window_csd_fracitonal_scale_apply(2, fractional_scale));
+          1, WM_window_csd_fractional_scale_apply(2, fractional_scale));
       const rcti window_rect = {
           /*xmin*/ 0,
           /*xmax*/ win_size[0],
@@ -170,7 +170,7 @@ void WM_window_csd_draw_titlebar_ex(const int win_size[2],
       BLF_shadow_offset(font_id, 0, 0);
     }
     BLF_enable(font_id, BLF_BOLD);
-    BLF_size(font_id, WM_window_csd_fracitonal_scale_apply(int(font_size), fractional_scale));
+    BLF_size(font_id, WM_window_csd_fractional_scale_apply(int(font_size), fractional_scale));
 
     const int title_width = BLF_width(font_id, title, title_len);
     const int title_decender = -BLF_descender(font_id);
@@ -247,7 +247,7 @@ void WM_window_csd_draw_titlebar_ex(const int win_size[2],
     }
 
     const float button_color[4] = {1.0f, 1.0f, 1.0f, alpha};
-    const int icon_size = WM_window_csd_fracitonal_scale_apply(ICON_DEFAULT_HEIGHT,
+    const int icon_size = WM_window_csd_fractional_scale_apply(ICON_DEFAULT_HEIGHT,
                                                                fractional_scale);
     for (int i = 0; i < ARRAY_SIZE(button_types); i++) {
       const GHOST_TCSD_Type ty = button_types[i];
