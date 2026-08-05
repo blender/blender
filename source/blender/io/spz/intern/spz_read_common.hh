@@ -15,6 +15,8 @@
 #include "BLI_span.hh"
 #include "BLI_unroll.hh"
 
+#include "IO_gsplat.hh"
+
 namespace blender ::io::spz {
 
 namespace internal {
@@ -75,6 +77,7 @@ bool read_alphas(ReaderType &reader, const MutableSpan<ColorGeometry4f> colors)
       return false;
     }
     color.a = internal::inv_sigmoid(float(alpha) / 255.0f);
+    color.a = gsplat::OriginalActivationFunctions::decode_opacity(color.a);
   }
   return true;
 }
@@ -114,6 +117,7 @@ template<class ReaderType> bool read_scales(ReaderType &reader, const MutableSpa
       return false;
     }
     scale = float3(encoded[0], encoded[1], encoded[2]) / 16.0f - 10.0f;
+    scale = gsplat::OriginalActivationFunctions::decode_scale(scale);
   }
   return true;
 }

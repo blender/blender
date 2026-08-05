@@ -119,6 +119,9 @@ PointCloud *convert_gsplat_ply_to_point_cloud(const PlyData &data,
     rotation[i] = math::Quaternion(
         ply_rot_0_attr[i], ply_rot_1_attr[i], ply_rot_2_attr[i], ply_rot_3_attr[i]);
 
+    color[i].a = gsplat::OriginalActivationFunctions::decode_opacity(color[i].a);
+    scale[i] = gsplat::OriginalActivationFunctions::decode_scale(scale[i]);
+
     for (int dimension = 0; dimension < num_sh_dimensions; dimension++) {
       sh_attrs[dimension][i] = float3(f_rest[dimension][i],
                                       f_rest[dimension + num_sh_dimensions][i],
