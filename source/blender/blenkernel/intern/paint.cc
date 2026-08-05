@@ -2588,41 +2588,6 @@ void BKE_sculpt_mask_layers_ensure(Depsgraph *depsgraph,
   }
 }
 
-void BKE_sculpt_toolsettings_data_ensure(Main *bmain, Scene *scene)
-{
-  BKE_paint_init(bmain, scene, PaintMode::Sculpt, true);
-
-  Sculpt *sd = scene->toolsettings->sculpt;
-
-  const Sculpt defaults = {};
-
-  /* We have file versioning code here for historical
-   * reasons.  Don't add more checks here, do it properly
-   * in blenloader.
-   */
-
-  if (sd->detail_percent == 0.0f) {
-    sd->detail_percent = defaults.detail_percent;
-  }
-  if (sd->constant_detail == 0.0f) {
-    sd->constant_detail = defaults.constant_detail;
-  }
-  if (sd->detail_size == 0.0f) {
-    sd->detail_size = defaults.detail_size;
-  }
-
-  /* Set sane default tiling offsets. */
-  if (!sd->paint.tile_offset[0]) {
-    sd->paint.tile_offset[0] = 1.0f;
-  }
-  if (!sd->paint.tile_offset[1]) {
-    sd->paint.tile_offset[1] = 1.0f;
-  }
-  if (!sd->paint.tile_offset[2]) {
-    sd->paint.tile_offset[2] = 1.0f;
-  }
-}
-
 static bool check_sculpt_object_deformed(Object *object, const bool for_construction)
 {
   bool deformed = false;

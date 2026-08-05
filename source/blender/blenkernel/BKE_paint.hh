@@ -612,7 +612,6 @@ void BKE_sculpt_mask_layers_ensure(Depsgraph *depsgraph,
                                    Main *bmain,
                                    Object *ob,
                                    MultiresModifierData *mmd);
-void BKE_sculpt_toolsettings_data_ensure(Main *bmain, Scene *scene);
 
 void BKE_sculpt_sync_face_visibility_to_grids(const Mesh &mesh, SubdivCCG &subdiv_ccg);
 

@@ -250,16 +250,8 @@ IndexMask pbvh_gather_generic(const Depsgraph &depsgraph,
 }
 
 /** Toggle operator for turning vertex paint mode on or off (copied from `sculpt.cc`) */
-static void init_session(Main &bmain,
-                         Depsgraph &depsgraph,
-                         Scene &scene,
-                         Paint &paint,
-                         Object &ob,
-                         eObjectMode object_mode)
+static void init_session(Depsgraph &depsgraph, Paint &paint, Object &ob, eObjectMode object_mode)
 {
-  /* Create persistent sculpt mode data */
-  BKE_sculpt_toolsettings_data_ensure(&bmain, &scene);
-
   BLI_assert(ob.runtime->sculpt_session == nullptr);
   ob.runtime->sculpt_session = MEM_new<SculptSession>(__func__);
   ob.runtime->sculpt_session->mode_type = object_mode;
@@ -313,7 +305,7 @@ void mode_enter_generic(
   }
 
   BLI_assert(paint != nullptr);
-  init_session(bmain, depsgraph, scene, *paint, ob, mode_flag);
+  init_session(depsgraph, *paint, ob, mode_flag);
 
   /* Flush object mode. */
   DEG_id_tag_update(&ob.id, ID_RECALC_SYNC_TO_EVAL);

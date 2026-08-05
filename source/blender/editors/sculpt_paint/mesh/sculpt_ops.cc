@@ -321,8 +321,7 @@ static void SCULPT_OT_symmetrize(wmOperatorType *ot)
 
 static void init_sculpt_mode_session(Main &bmain, Depsgraph &depsgraph, Scene &scene, Object &ob)
 {
-  /* Create persistent sculpt mode data. */
-  BKE_sculpt_toolsettings_data_ensure(&bmain, &scene);
+  BKE_paint_init(&bmain, &scene, PaintMode::Sculpt, true);
 
   /* Create sculpt mode session data. */
   if (ob.runtime->sculpt_session != nullptr) {
