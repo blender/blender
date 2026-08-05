@@ -194,7 +194,7 @@ static bool actedit_get_context(bAnimContext *ac, SpaceAction *saction)
       ac->datatype = ANIMCONT_ACTION;
       ac->data = ac->active_action;
 
-      if (saction->flag & SACTION_POSEMARKERS_SHOW) {
+      if (ac->active_action && (saction->flag & SACTION_POSEMARKERS_SHOW)) {
         ac->markers = &ac->active_action->markers;
       }
 
@@ -204,7 +204,7 @@ static bool actedit_get_context(bAnimContext *ac, SpaceAction *saction)
       ac->datatype = ANIMCONT_SHAPEKEY;
       ac->data = actedit_get_shapekeys(ac);
 
-      if (saction->flag & SACTION_POSEMARKERS_SHOW) {
+      if (ac->active_action && (saction->flag & SACTION_POSEMARKERS_SHOW)) {
         ac->markers = &ac->active_action->markers;
       }
 
