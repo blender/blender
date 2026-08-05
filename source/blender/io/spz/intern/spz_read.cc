@@ -49,7 +49,7 @@ PointCloud *read_spz_file(const StringRefNull filepath, ReportList *reports)
     fclose(file);
     return nullptr;
   }
-  CLOG_DEBUG(&LOG, "God file header magic: 0x%X", magic);
+  CLOG_DEBUG(&LOG, "Got file header magic: 0x%X", magic);
 
   /* Rewind the file stream so that specialized version reading can start from its beginning. */
   if (fseek(file, 0, SEEK_SET) == -1) {
