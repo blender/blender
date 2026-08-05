@@ -186,10 +186,10 @@ static bool resize_block_2pass(OIIO::ImageBuf &dst, const OIIO::ImageBuf &src, O
    * any NDC -> pixel math, and just directly traverse pixels. */
   const SRCTYPE *s = (const SRCTYPE *)src.localpixels();
   SRCTYPE *d = (SRCTYPE *)dst.localpixels();
-  assert(s && d);                                      /* Assume contig bufs */
-  d += roi.ybegin * dst.spec().width * nchannels;      /* Top of dst OIIO::ROI */
-  const size_t ystride = src.spec().width * nchannels; /* Scanline offset */
-  s += 2 * roi.ybegin * ystride;                       /* Top of src OIIO::ROI */
+  assert(s && d);                                          /* Assume contig bufs */
+  d += int64_t(roi.ybegin) * dst.spec().width * nchannels; /* Top of dst OIIO::ROI */
+  const size_t ystride = src.spec().width * nchannels;     /* Scanline offset */
+  s += 2 * roi.ybegin * ystride;                           /* Top of src OIIO::ROI */
 
   /* Run through destination rows, doing the two-pass bilerp filter. */
   const size_t dw = roi.width(), dh = roi.height(); /* Loop invariants */
@@ -557,7 +557,7 @@ static void clamp_half_tx(OIIO::ImageBuf &buf, const TypeDesc out_format)
 
   assert(buf.spec().format == TypeFloat);
 
-  const int64_t num_values = buf.spec().width * buf.spec().height * buf.spec().nchannels;
+  const int64_t num_values = int64_t(buf.spec().width) * buf.spec().height * buf.spec().nchannels;
   float *pixels = static_cast<float *>(buf.localpixels());
   for (int64_t i = 0; i < num_values; i++) {
     pixels[i] = clamp(pixels[i], -HALF_MAX, HALF_MAX);
@@ -569,7 +569,7 @@ static void convert_srgb_tx(OIIO::ImageBuf &buf, const bool from_srgb)
   assert(buf.spec().format == TypeFloat);
   assert(buf.spec().nchannels == 1 || buf.spec().nchannels == 4);
 
-  const int64_t num_pixels = buf.spec().width * buf.spec().height;
+  const int64_t num_pixels = int64_t(buf.spec().width) * buf.spec().height;
 
   if (buf.spec().nchannels == 1) {
     float *pixels = static_cast<float *>(buf.localpixels());
