@@ -326,8 +326,7 @@ void id_lib_extern(ID *id, const bool enforce_fix)
 {
   if (id && ID_IS_LINKED(id)) {
 #ifndef NDEBUG
-    /* Disabled until issues in Collection Import's external packed linked data is fixed. */
-    if (0 && !enforce_fix) {
+    if (!enforce_fix) {
       const eID_Tag linked_tags = eID_Tag(id->tag & (ID_TAG_EXTERN | ID_TAG_INDIRECT));
       BLI_assert_msg(
           linked_tags != (ID_TAG_EXTERN | ID_TAG_INDIRECT),
@@ -353,8 +352,7 @@ void id_lib_indirect(ID *id, const bool enforce_fix)
 {
   if (id && ID_IS_LINKED(id)) {
 #ifndef NDEBUG
-    /* Disabled until issues in Collection Import's external packed linked data is fixed. */
-    if (0 && !enforce_fix) {
+    if (!enforce_fix) {
       const eID_Tag linked_tags = eID_Tag(id->tag & (ID_TAG_EXTERN | ID_TAG_INDIRECT));
       BLI_assert_msg(
           linked_tags != (ID_TAG_EXTERN | ID_TAG_INDIRECT),

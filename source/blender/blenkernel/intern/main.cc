@@ -601,20 +601,25 @@ void BKE_main_merge_as_archive_library(Main &bmain_dst,
     BKE_libblock_management_main_remove(&bmain_src, id);
     id->lib = &dst_external_library;
 
-    /* Consider these IDs as linked and packed. */
+    /* Consider these IDs as directly linked and packed. */
     id->flag |= ID_FLAG_LINKED_AND_PACKED;
 
     /* Need to tag embedded IDs as well. */
     bNodeTree *ntree = bke::node_tree_from_id(id);
     if (ntree != nullptr) {
+      ntree->id.lib = &dst_external_library;
       ntree->id.flag |= ID_FLAG_LINKED_AND_PACKED;
     }
     if (GS(id->name) == ID_SCE) {
       Collection *master_collection = (id_cast<Scene *>(id))->master_collection;
       if (master_collection != nullptr) {
+        master_collection->id.lib = &dst_external_library;
         master_collection->id.flag |= ID_FLAG_LINKED_AND_PACKED;
       }
     }
+
+    /* Needs to be done after setting library for embedded IDs above too. */
+    id_lib_extern(id, true);
   }
 
   /* Add all IDs into the destination Main under the external library. */
