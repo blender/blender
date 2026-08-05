@@ -194,6 +194,7 @@ KERNEL_STRUCT_MEMBER(integrator, int, transparent_shadows)
 KERNEL_STRUCT_MEMBER(integrator, int, caustics_reflective)
 KERNEL_STRUCT_MEMBER(integrator, int, caustics_refractive)
 KERNEL_STRUCT_MEMBER(integrator, float, filter_glossy)
+KERNEL_STRUCT_MEMBER(integrator, float, differential_widen_scale)
 /* Seed. */
 KERNEL_STRUCT_MEMBER_DONT_SPECIALIZE
 KERNEL_STRUCT_MEMBER(integrator, int, seed)
