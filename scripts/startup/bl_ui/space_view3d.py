@@ -3773,10 +3773,6 @@ class VIEW3D_MT_sculpt(Menu):
 
         layout.separator()
 
-        layout.menu("VIEW3D_MT_add_object", text="Add Primitive")
-
-        layout.separator()
-
         sculpt_filters_types = [
             ('SMOOTH', iface_("Smooth", i18n_contexts.operator_default)),
             ('SURFACE_SMOOTH', iface_("Surface Smooth")),
@@ -3896,33 +3892,6 @@ class VIEW3D_MT_sculpt_trim(Menu):
 
         props = layout.operator("sculpt.trim_polyline_gesture", text="Polyline Add")
         props.trim_mode = 'JOIN'
-
-
-class VIEW3D_MT_add_object(Menu):
-    bl_label = "Add Primitive"
-
-    def draw(self, _context):
-        layout = self.layout
-
-        props = layout.operator("wm.tool_set_by_id", text="Add Cube")
-        props.name = "builtin.primitive_cube_add"
-        props.space_type = 'VIEW_3D'
-
-        props = layout.operator("wm.tool_set_by_id", text="Add Cylinder")
-        props.name = "builtin.primitive_cylinder_add"
-        props.space_type = 'VIEW_3D'
-
-        props = layout.operator("wm.tool_set_by_id", text="Add Cone")
-        props.name = "builtin.primitive_cone_add"
-        props.space_type = 'VIEW_3D'
-
-        props = layout.operator("wm.tool_set_by_id", text="Add UV Sphere")
-        props.name = "builtin.primitive_uv_sphere_add"
-        props.space_type = 'VIEW_3D'
-
-        props = layout.operator("wm.tool_set_by_id", text="Add Ico Sphere")
-        props.name = "builtin.primitive_ico_sphere_add"
-        props.space_type = 'VIEW_3D'
 
 
 class VIEW3D_MT_sculpt_curves(Menu):
@@ -9334,7 +9303,6 @@ classes = (
     VIEW3D_MT_sculpt_transform,
     VIEW3D_MT_sculpt_showhide,
     VIEW3D_MT_sculpt_trim,
-    VIEW3D_MT_add_object,
     VIEW3D_MT_mask,
     VIEW3D_MT_face_sets,
     VIEW3D_MT_face_sets_init,
