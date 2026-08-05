@@ -454,7 +454,7 @@ static bool rna_id_write_error(PointerRNA *ptr, PyObject *key)
 {
   ID *id = ptr->owner_id;
   if (id) {
-    const short idcode = GS(id->name);
+    const short idcode = id->id_type();
     /* May need more ID types added here. */
     if (!ELEM(idcode, ID_WM, ID_SCR, ID_WS)) {
       const char *idtype = BKE_idtype_idcode_to_name(idcode);
@@ -1094,7 +1094,7 @@ static PyObject *pyrna_struct_repr(BPy_StructRNA *self)
 
   if (RNA_struct_is_ID(self->ptr->type) && (id->flag & ID_FLAG_EMBEDDED_DATA) == 0) {
     ret = PyUnicode_FromFormat(
-        "bpy.data.%s[%R]", BKE_idtype_idcode_to_name_plural(GS(id->name)), tmp_str);
+        "bpy.data.%s[%R]", BKE_idtype_idcode_to_name_plural(id->id_type()), tmp_str);
   }
   else {
     ID *real_id = nullptr;
@@ -1110,14 +1110,14 @@ static PyObject *pyrna_struct_repr(BPy_StructRNA *self)
         Py_DECREF(tmp_str);
         tmp_str = PyUnicode_FromString(real_id->name + 2);
         ret = PyUnicode_FromFormat("bpy.data.%s[%R].%s",
-                                   BKE_idtype_idcode_to_name_plural(GS(real_id->name)),
+                                   BKE_idtype_idcode_to_name_plural(real_id->id_type()),
                                    tmp_str,
                                    path->c_str());
       }
       else {
         /* Can't find the path, print something useful as a fallback. */
         ret = PyUnicode_FromFormat("bpy.data.%s[%R]...%s",
-                                   BKE_idtype_idcode_to_name_plural(GS(id->name)),
+                                   BKE_idtype_idcode_to_name_plural(id->id_type()),
                                    tmp_str,
                                    RNA_struct_identifier(self->ptr->type));
       }
@@ -1125,7 +1125,7 @@ static PyObject *pyrna_struct_repr(BPy_StructRNA *self)
     else {
       /* Can't find the path, print something useful as a fallback. */
       ret = PyUnicode_FromFormat("bpy.data.%s[%R]...%s",
-                                 BKE_idtype_idcode_to_name_plural(GS(id->name)),
+                                 BKE_idtype_idcode_to_name_plural(id->id_type()),
                                  tmp_str,
                                  RNA_struct_identifier(self->ptr->type));
     }
@@ -1236,7 +1236,7 @@ static PyObject *pyrna_prop_repr_ex(BPy_PropertyRNA *self, const int index_dim, 
     }
     const char *data_delim = ((*path)[0] == '[') ? "" : ".";
     ret = PyUnicode_FromFormat("bpy.data.%s[%R]%s%s",
-                               BKE_idtype_idcode_to_name_plural(GS(real_id->name)),
+                               BKE_idtype_idcode_to_name_plural(real_id->id_type()),
                                tmp_str,
                                data_delim,
                                path->c_str());
@@ -1244,7 +1244,7 @@ static PyObject *pyrna_prop_repr_ex(BPy_PropertyRNA *self, const int index_dim, 
   else {
     /* Can't find the path, print something useful as a fallback. */
     ret = PyUnicode_FromFormat("bpy.data.%s[%R]...%s",
-                               BKE_idtype_idcode_to_name_plural(GS(id->name)),
+                               BKE_idtype_idcode_to_name_plural(id->id_type()),
                                tmp_str,
                                RNA_property_identifier(self->prop));
   }

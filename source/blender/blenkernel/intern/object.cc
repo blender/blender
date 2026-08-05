@@ -1787,7 +1787,7 @@ void BKE_object_eval_assign_data(Object *object_eval, ID *data_eval, bool is_own
 
   /* Overwrite data of evaluated object, if the data-block types match. */
   ID *data = object_eval->data;
-  if (GS(data->name) == GS(data_eval->name)) {
+  if (data->id_type() == data_eval->id_type()) {
     /* NOTE: we are not supposed to invoke evaluation for original objects,
      * but some areas are still being ported, so we play safe here. */
     if (object_eval->id.tag & ID_TAG_COPIED_ON_EVAL) {
@@ -1808,7 +1808,7 @@ void BKE_object_free_derived_caches(Object *ob)
   if (ob->runtime->data_eval != nullptr) {
     if (ob->runtime->is_data_eval_owned) {
       ID *data_eval = ob->runtime->data_eval;
-      if (GS(data_eval->name) == ID_ME) {
+      if (data_eval->id_type() == ID_ME) {
         BKE_id_free(nullptr, id_cast<Mesh *>(data_eval));
       }
       else {
@@ -1923,7 +1923,7 @@ bool BKE_object_is_in_editmode_vgroup(const Object *ob)
 
 bool BKE_object_data_is_in_editmode(const Object *ob, const ID *id)
 {
-  const short type = GS(id->name);
+  const short type = id->id_type();
   BLI_assert(OB_DATA_SUPPORT_EDITMODE(type));
   switch (type) {
     case ID_ME:
@@ -1952,7 +1952,7 @@ bool BKE_object_data_is_in_editmode(const Object *ob, const ID *id)
 
 char *BKE_object_data_editmode_flush_ptr_get(ID *id)
 {
-  const short type = GS(id->name);
+  const short type = id->id_type();
   switch (type) {
     case ID_ME: {
       if (BMEditMesh *em = (id_cast<Mesh *>(id))->runtime->edit_mesh.get()) {
@@ -2222,7 +2222,7 @@ void *BKE_object_obdata_add_from_type(Main *bmain, ObjectType type, const char *
 int BKE_object_obdata_to_type(const ID *id)
 {
   /* Keep in sync with #OB_DATA_SUPPORT_ID macro. */
-  switch (GS(id->name)) {
+  switch (id->id_type()) {
     case ID_ME:
       return OB_MESH;
     case ID_CU_LEGACY:
@@ -4301,7 +4301,7 @@ bool BKE_object_obdata_texspace_get(Object *ob,
     return false;
   }
 
-  switch (GS(ob->data->name)) {
+  switch (ob->data->id_type()) {
     case ID_ME: {
       BKE_mesh_texspace_get_reference(
           id_cast<Mesh *>(ob->data), r_texspace_flag, r_texspace_location, r_texspace_size);
@@ -4360,7 +4360,7 @@ Mesh *BKE_object_get_evaluated_mesh_no_subsurf_unchecked(const Object *object)
    * not support evaluating to multiple data types. Eventually this should be removed, when all
    * object types use #geometry_set_eval. */
   ID *data_eval = object->runtime->data_eval;
-  if (data_eval && GS(data_eval->name) == ID_ME) {
+  if (data_eval && data_eval->id_type() == ID_ME) {
     return reinterpret_cast<Mesh *>(data_eval);
   }
 
@@ -4400,7 +4400,7 @@ const Mesh *BKE_object_get_pre_modified_mesh(const Object *object)
     BLI_assert(object->id.orig_id != nullptr);
     BLI_assert(data_orig->orig_id == ((const Object *)object->id.orig_id)->data);
     BLI_assert((data_orig->tag & ID_TAG_COPIED_ON_EVAL) != 0);
-    if (GS(data_orig->name) != ID_ME) {
+    if (data_orig->id_type() != ID_ME) {
       return nullptr;
     }
     return reinterpret_cast<const Mesh *>(data_orig);
@@ -4496,7 +4496,7 @@ const Mesh *BKE_object_get_mesh_deform_eval(const Object *object)
 Lattice *BKE_object_get_lattice(const Object *object)
 {
   ID *data = object->data;
-  if (data == nullptr || GS(data->name) != ID_LT) {
+  if (data == nullptr || data->id_type() != ID_LT) {
     return nullptr;
   }
 
@@ -4512,7 +4512,7 @@ Lattice *BKE_object_get_evaluated_lattice(const Object *object)
 {
   ID *data_eval = object->runtime->data_eval;
 
-  if (data_eval == nullptr || GS(data_eval->name) != ID_LT) {
+  if (data_eval == nullptr || data_eval->id_type() != ID_LT) {
     return nullptr;
   }
 

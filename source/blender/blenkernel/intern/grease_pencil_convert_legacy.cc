@@ -399,7 +399,7 @@ class AnimDataConvertor {
       return false;
     }
 
-    if (GS(id_src.name) != GS(id_dst.name)) {
+    if (id_src.id_type() != id_dst.id_type()) {
       return true;
     }
 
@@ -3138,7 +3138,7 @@ void legacy_main(Main &bmain,
         [&conversion_data](BlendfileLinkAppendContext *lapp_context,
                            BlendfileLinkAppendContextItem *item) -> bool {
           ID *item_new_id = BKE_blendfile_link_append_context_item_newid_get(lapp_context, item);
-          if (!item_new_id || GS(item_new_id->name) != ID_GD_LEGACY) {
+          if (!item_new_id || item_new_id->id_type() != ID_GD_LEGACY) {
             return true;
           }
           GreasePencil **item_grease_pencil =

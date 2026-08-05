@@ -1676,7 +1676,7 @@ void BlenderSync::sync_materials(blender::Depsgraph &b_depsgraph,
               blender::ID *,
               b_id)
   {
-    if (blender::GS(b_id->name) != blender::ID_MA) {
+    if (b_id->id_type() != blender::ID_MA) {
       continue;
     }
 
@@ -1938,7 +1938,7 @@ void BlenderSync::sync_lights(blender::Depsgraph &b_depsgraph, bool update_all, 
               blender::ID *,
               b_id)
   {
-    if (blender::GS(b_id->name) != blender::ID_LA) {
+    if (b_id->id_type() != blender::ID_LA) {
       continue;
     }
 

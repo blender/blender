@@ -2122,16 +2122,16 @@ void do_versions_after_linking_250(Main *bmain)
       if (adt != nullptr) {
         /* Fix actions' id-roots (i.e. if they come from a pre 2.57 .blend file). */
         if ((adt->action) && (adt->action->idroot == 0)) {
-          adt->action->idroot = GS(id->name);
+          adt->action->idroot = id->id_type();
         }
         if ((adt->tmpact) && (adt->tmpact->idroot == 0)) {
-          adt->tmpact->idroot = GS(id->name);
+          adt->tmpact->idroot = id->id_type();
         }
 
         for (NlaTrack &nla_track : adt->nla_tracks) {
           for (NlaStrip &nla_strip : nla_track.strips) {
             if ((nla_strip.act) && (nla_strip.act->idroot == 0)) {
-              nla_strip.act->idroot = GS(id->name);
+              nla_strip.act->idroot = id->id_type();
             }
           }
         }

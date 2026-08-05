@@ -257,7 +257,7 @@ static bool sequencer_write_copy_paste_file(Main *bmain_src,
     }
 
     ID *id_dst = nullptr;
-    const ID_Type id_type = GS((id_src)->name);
+    const ID_Type id_type = id_src->id_type();
     /* Only add (and follow) IDs which usage is marked as 'never null', or are from following
      * types: #bSound, #MovieClip, #Image, #Text, #VFont, #bAction, #bNodeTree, #Mask. */
     if (ELEM(id_type, VSE_COPYBUFFER_IDTYPES) || (cb_data->cb_flag & IDWALK_CB_NEVER_NULL)) {
@@ -268,7 +268,7 @@ static bool sequencer_write_copy_paste_file(Main *bmain_src,
                                                      PartialWriteContext::IDAddOptions /*options*/)
           -> PartialWriteContext::IDAddOperations {
         ID *id_deps_src = *cb_deps_data->id_pointer;
-        const ID_Type id_type = GS((id_deps_src)->name);
+        const ID_Type id_type = id_deps_src->id_type();
         if (ELEM(id_type, VSE_COPYBUFFER_IDTYPES) ||
             (cb_deps_data->cb_flag & IDWALK_CB_NEVER_NULL))
         {

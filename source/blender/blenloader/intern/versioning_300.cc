@@ -3079,7 +3079,7 @@ void blo_do_versions_300(FileData *fd, Library * /*lib*/, Main *bmain)
     FOREACH_MAIN_ID_BEGIN (bmain, id_iter) {
       if (ID_IS_OVERRIDE_LIBRARY_REAL(id_iter)) {
         version_liboverride_rnacollections_insertion_animdata(id_iter);
-        if (GS(id_iter->name) == ID_OB) {
+        if (id_iter->id_type() == ID_OB) {
           version_liboverride_rnacollections_insertion_object(id_cast<Object *>(id_iter));
         }
       }
@@ -3365,7 +3365,7 @@ void blo_do_versions_300(FileData *fd, Library * /*lib*/, Main *bmain)
         /* Ignore non-real liboverrides, and linked ones. */
         continue;
       }
-      if (GS(id->name) == ID_OB) {
+      if (id->id_type() == ID_OB) {
         /* Never 'lock' an object into a system override for now. */
         continue;
       }

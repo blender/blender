@@ -172,7 +172,7 @@ PointerRNA RNA_main_pointer_create(Main *main)
 PointerRNA RNA_id_pointer_create(ID *id)
 {
   if (id) {
-    PointerRNA ptr{id, ID_code_to_RNA_type(GS(id->name)), id};
+    PointerRNA ptr{id, ID_code_to_RNA_type(id->id_type()), id};
     rna_pointer_refine(ptr);
     return ptr;
   }
@@ -2561,7 +2561,7 @@ static void rna_property_update(
       WM_msg_publish_rna(mbus, ptr, prop);
     }
     if (ptr->owner_id != nullptr && ((prop->flag & PROP_NO_DEG_UPDATE) == 0)) {
-      const short id_type = GS(ptr->owner_id->name);
+      const short id_type = ptr->owner_id->id_type();
       if (ID_TYPE_USE_COPY_ON_EVAL(id_type)) {
         if (prop->flag & PROP_DEG_SYNC_ONLY) {
           DEG_id_tag_update(ptr->owner_id, ID_RECALC_SYNC_TO_EVAL);
@@ -2606,7 +2606,7 @@ static void rna_property_update(
      * is updated with custom nodes.
      */
     if ((prop->flag & PROP_IDPROPERTY) != 0 && (ptr->owner_id != nullptr) &&
-        (GS(ptr->owner_id->name) == ID_NT))
+        (ptr->owner_id->id_type() == ID_NT))
     {
       WM_main_add_notifier(NC_MATERIAL | ND_SHADING, nullptr);
     }

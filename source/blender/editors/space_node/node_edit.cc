@@ -293,7 +293,7 @@ void ED_node_set_active(
           /* Sync to active texpaint slot, otherwise we can end up painting on a different slot
            * than we are looking at. */
           if (ma.texpaintslot) {
-            if (node->id != nullptr && GS(node->id->name) == ID_IM) {
+            if (node->id != nullptr && node->id->id_type() == ID_IM) {
               Image *image = id_cast<Image *>(node->id);
               for (int i = 0; i < ma.tot_slots; i++) {
                 if (ma.texpaintslot[i].ima == image) {
@@ -315,7 +315,7 @@ void ED_node_set_active(
       /* Sync to Image Editor under the following conditions:
        * - current image is not pinned
        * - current image is not a Render Result or ViewerNode (want to keep looking at these) */
-      if (node->id != nullptr && GS(node->id->name) == ID_IM) {
+      if (node->id != nullptr && node->id->id_type() == ID_IM) {
         Image *image = id_cast<Image *>(node->id);
         ED_space_image_sync(bmain, image, true);
       }

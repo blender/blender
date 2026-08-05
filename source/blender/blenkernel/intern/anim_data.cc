@@ -87,7 +87,7 @@ bool id_can_have_animdata(const ID *id)
     return false;
   }
 
-  return id_type_can_have_animdata(GS(id->name));
+  return id_type_can_have_animdata(id->id_type());
 }
 
 AnimData *BKE_animdata_from_id(const ID *id)
@@ -352,7 +352,7 @@ bool BKE_animdata_copy_id(Main *bmain, ID *id_to, ID *id_from, const int flag)
 {
   AnimData *adt;
 
-  if ((id_to && id_from) && (GS(id_to->name) != GS(id_from->name))) {
+  if ((id_to && id_from) && (id_to->id_type() != id_from->id_type())) {
     return false;
   }
 
@@ -961,7 +961,7 @@ static bool driver_target_path_fix(ID &owner_id,
       }
     }
 
-    if (GS(owner_id.name) == ID_OB && target->pchan_name[0] && prefix.find("bones")) {
+    if (owner_id.id_type() == ID_OB && target->pchan_name[0] && prefix.find("bones")) {
       /* If the target is a bone we can assume that the infix will be surrounded with square
        * brackets and escaped. */
       BLI_assert(old_infix.size() >= 4);

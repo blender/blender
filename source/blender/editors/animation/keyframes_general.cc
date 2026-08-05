@@ -1365,7 +1365,7 @@ static bool is_animating_bone(const bAnimListElem *ale)
 {
   BLI_assert(ale->datatype == ALE_FCURVE);
 
-  if (!ale->id || GS(ale->id->name) != ID_OB) {
+  if (!ale->id || ale->id->id_type() != ID_OB) {
     return false;
   }
 
@@ -1434,7 +1434,7 @@ class SlotMapper {
     /* Slots really only exist with F-Curves from Actions. */
     const Action *map_key_action;
     slot_handle_t map_key_handle;
-    if (GS(ale->fcurve_owner_id->name) == ID_AC) {
+    if (ale->fcurve_owner_id->id_type() == ID_AC) {
       map_key_action = &reinterpret_cast<bAction *>(ale->fcurve_owner_id)->wrap();
       map_key_handle = ale->slot_handle;
     }
@@ -1707,7 +1707,7 @@ static const FCurve *pastebuf_find_matching_copybuf_item(const pastebuf_match_fu
    * for example for NLA control curves. */
   const Slot *ale_slot = nullptr;
   const Action *ale_action = nullptr;
-  if (GS(ale_to_paste_into.fcurve_owner_id->name) == ID_AC) {
+  if (ale_to_paste_into.fcurve_owner_id->id_type() == ID_AC) {
     ale_action = &reinterpret_cast<bAction *>(ale_to_paste_into.fcurve_owner_id)->wrap();
     ale_slot = ale_action->slot_for_handle(ale_to_paste_into.slot_handle);
     BLI_assert(ale_slot);
@@ -1849,7 +1849,7 @@ bool pastebuf_match_path_property(Main *bmain,
     return false;
   }
   ID *animated_id = optional_id.value();
-  if (BLI_findindex(which_libbase(bmain, GS(animated_id->name)), animated_id) == -1) {
+  if (BLI_findindex(which_libbase(bmain, animated_id->id_type()), animated_id) == -1) {
     /* The ID could have been removed after copying the keys. This function
      * needs it to resolve the property & get the name. */
     printf("paste_animedit_keys: error ID has been removed!\n");

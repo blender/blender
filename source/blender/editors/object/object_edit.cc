@@ -183,7 +183,7 @@ Vector<Object *> objects_in_mode_or_selected(bContext *C,
     id_pin = sbuts->pinid;
   }
 
-  if (id_pin && (GS(id_pin->name) == ID_OB)) {
+  if (id_pin && (id_pin->id_type() == ID_OB)) {
     /* Pinned data takes priority, in this case ignore selection & other objects in the mode. */
     ob = id_cast<Object *>(id_pin);
   }
@@ -1701,7 +1701,7 @@ static wmOperatorStatus shade_smooth_exec(bContext *C, wmOperator *op)
     }
 
     bool changed = false;
-    if (GS(data->name) == ID_ME) {
+    if (data->id_type() == ID_ME) {
       Mesh &mesh = *reinterpret_cast<Mesh *>(data);
       const bool keep_sharp_edges = RNA_boolean_get(op->ptr, "keep_sharp_edges");
       bke::mesh_smooth_set(mesh, use_smooth || use_smooth_by_angle, keep_sharp_edges);
@@ -1712,7 +1712,7 @@ static wmOperatorStatus shade_smooth_exec(bContext *C, wmOperator *op)
       BKE_mesh_batch_cache_dirty_tag(reinterpret_cast<Mesh *>(data), BKE_MESH_BATCH_DIRTY_ALL);
       changed = true;
     }
-    else if (GS(data->name) == ID_CU_LEGACY) {
+    else if (data->id_type() == ID_CU_LEGACY) {
       BKE_curve_smooth_flag_set(reinterpret_cast<Curve *>(data), use_smooth);
       changed = true;
     }
@@ -1876,7 +1876,7 @@ static wmOperatorStatus shade_auto_smooth_exec(bContext *C, wmOperator *op)
       if (!node_group_id) {
         return OPERATOR_CANCELLED;
       }
-      if (GS(node_group_id->name) != ID_NT) {
+      if (node_group_id->id_type() != ID_NT) {
         return OPERATOR_CANCELLED;
       }
       node_group = reinterpret_cast<bNodeTree *>(node_group_id);

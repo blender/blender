@@ -504,7 +504,7 @@ uint64_t BKE_library_id_can_use_filter_id(const ID *owner_id,
   }
   /* When including UI data (i.e. editors), Screen UI IDs can also link to virtually any ID
    * (through e.g. the Outliner). */
-  if (include_ui && GS(owner_id->name) == ID_SCR) {
+  if (include_ui && owner_id->id_type() == ID_SCR) {
     return FILTER_ID_ALL;
   }
 
@@ -624,7 +624,7 @@ static bool library_ID_is_used(Main *bmain, void *idv, const bool check_linked)
   while (i-- && !is_defined) {
     ID *id_curr = static_cast<ID *>(lb_array[i]->first);
 
-    if (!id_curr || !BKE_library_id_can_use_idtype(id_curr, GS(id->name))) {
+    if (!id_curr || !BKE_library_id_can_use_idtype(id_curr, id->id_type())) {
       continue;
     }
 
@@ -670,7 +670,7 @@ void BKE_library_ID_test_usages(Main *bmain,
   while (i-- && !is_defined) {
     ID *id_curr = static_cast<ID *>(lb_array[i]->first);
 
-    if (!id_curr || !BKE_library_id_can_use_idtype(id_curr, GS(id->name))) {
+    if (!id_curr || !BKE_library_id_can_use_idtype(id_curr, id->id_type())) {
       continue;
     }
 
@@ -796,7 +796,7 @@ class UnusedIDsData {
     ID *id;
     FOREACH_MAIN_ID_BEGIN (this->bmain, id) {
       const Status status = ids_status_.lookup_default(id, Status::Unknown);
-      const int id_type_index = BKE_idtype_idcode_to_index(GS(id->name));
+      const int id_type_index = BKE_idtype_idcode_to_index(id->id_type());
       if (status == Status::Unused) {
         id->tag |= this->id_tag;
         (*this->num_total)[INDEX_ID_NULL]++;
@@ -829,7 +829,7 @@ static bool id_is_enforced_used(ID &id, UnusedIDsData &data)
     return true;
   }
 
-  switch (GS(id.name)) {
+  switch (id.id_type()) {
     case ID_IM: {
       /* Images which have a 'viewer' source (e.g. render results) should not be considered as
        * orphaned/unused data. */
@@ -859,7 +859,7 @@ static bool id_is_enforced_used(ID &id, UnusedIDsData &data)
  */
 static bool id_is_used_dependency_exception(ID &id)
 {
-  switch (GS(id.name)) {
+  switch (id.id_type()) {
     case ID_OB: {
       /* FIXME: This is a workaround until Object usages are handled more soundly.
        *

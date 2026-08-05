@@ -309,7 +309,7 @@ static DupliObject *make_dupli(const DupliContext *ctx,
   /* Meta-balls never draw in duplis, they are instead merged into one by the basis
    * meta-ball outside of the group. this does mean that if that meta-ball is not in the
    * scene, they will not show up at all, limitation that should be solved once. */
-  if (object_data && GS(object_data->name) == ID_MB) {
+  if (object_data && object_data->id_type() == ID_MB) {
     dob->no_draw = true;
   }
 

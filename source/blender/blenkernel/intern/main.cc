@@ -222,7 +222,7 @@ static bool are_ids_from_different_mains_matching(Main *bmain_1, ID *id_1, Main 
    *     - Neither of their absolute filepaths should match any of the bmain filepaths.
    *   - If one of the library is null:
    *      - The other library should match the bmain filepath of the null library. */
-  if ((!id_1 && GS(id_2->name) == ID_LI) || GS(id_1->name) == ID_LI) {
+  if ((!id_1 && id_2->id_type() == ID_LI) || id_1->id_type() == ID_LI) {
     BLI_assert(!id_1 || !ID_IS_LINKED(id_1));
     BLI_assert(!id_2 || !ID_IS_LINKED(id_2));
 
@@ -372,7 +372,7 @@ void BKE_main_merge(Main *bmain_dst,
   Map<IDHash, ID *> id_packed_map_dst;
   ID *id_iter_dst, *id_iter_src;
   FOREACH_MAIN_ID_BEGIN (bmain_dst, id_iter_dst) {
-    if (GS(id_iter_dst->name) == ID_LI) {
+    if (id_iter_dst->id_type() == ID_LI) {
       /* Libraries need specific handling, as we want to check them by their filepath, not the IDs
        * themselves. */
       Library *lib_dst = reinterpret_cast<Library *>(id_iter_dst);
@@ -407,7 +407,7 @@ void BKE_main_merge(Main *bmain_dst,
   Vector<ID *> ids_to_move;
 
   FOREACH_MAIN_ID_BEGIN (bmain_src, id_iter_src) {
-    const bool is_library = GS(id_iter_src->name) == ID_LI;
+    const bool is_library = id_iter_src->id_type() == ID_LI;
     const bool is_packed = ID_IS_PACKED(id_iter_src);
     BLI_assert(!is_packed || !is_library);
     BLI_assert(!is_library || !ID_IS_LINKED(id_iter_src));
@@ -586,7 +586,7 @@ void BKE_main_merge_as_archive_library(Main &bmain_dst,
   /* Collect all non-Library IDs from the source Main. Library IDs are dropped: the destination
    * already has the authoritative external_library representing this import source. */
   for (ID &id_iter : MainAllIDsIterator(bmain_src)) {
-    if (GS(id_iter.name) == ID_LI) {
+    if (id_iter.id_type() == ID_LI) {
       BLI_assert_msg(false,
                      "Unexpected Library ID in source Main when merging as archive library");
       continue;
@@ -610,7 +610,7 @@ void BKE_main_merge_as_archive_library(Main &bmain_dst,
       ntree->id.lib = &dst_external_library;
       ntree->id.flag |= ID_FLAG_LINKED_AND_PACKED;
     }
-    if (GS(id->name) == ID_SCE) {
+    if (id->id_type() == ID_SCE) {
       Collection *master_collection = (id_cast<Scene *>(id))->master_collection;
       if (master_collection != nullptr) {
         master_collection->id.lib = &dst_external_library;
@@ -835,10 +835,10 @@ MainLibraryWeakReferenceMap *BKE_main_library_weak_reference_create(Main *bmain)
     if (id_iter == nullptr) {
       continue;
     }
-    if (!BKE_idtype_idcode_append_is_reusable(GS(id_iter->name))) {
+    if (!BKE_idtype_idcode_append_is_reusable(id_iter->id_type())) {
       continue;
     }
-    BLI_assert(BKE_idtype_idcode_is_linkable(GS(id_iter->name)));
+    BLI_assert(BKE_idtype_idcode_is_linkable(id_iter->id_type()));
 
     FOREACH_MAIN_LISTBASE_ID_BEGIN (lb, id_iter) {
       if (id_iter->library_weak_reference == nullptr) {

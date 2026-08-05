@@ -547,10 +547,10 @@ Library *bke::library::ensure_archive_library(
     BLI_assert(lib_iter->archive_parent_library != nullptr);
     BLI_assert(lib_iter->archive_parent_library == &reference_library);
     /* Check if current archive library already contains an ID of same type and name. */
-    if (BKE_main_namemap_contain_name(bmain, lib_iter, GS(id.name), BKE_id_name(id))) {
+    if (BKE_main_namemap_contain_name(bmain, lib_iter, id.id_type(), BKE_id_name(id))) {
 #ifndef NDEBUG
       ID *packed_id = BKE_libblock_find_name_and_library(
-          &bmain, GS(id.name), BKE_id_name(id), BKE_id_name(lib_iter->id));
+          &bmain, id.id_type(), BKE_id_name(id), BKE_id_name(lib_iter->id));
       BLI_assert_msg(
           packed_id && packed_id->deep_hash != id_deep_hash,
           "An already packed ID with same deep hash as the one to be packed, should have already "
@@ -640,7 +640,7 @@ static void pack_linked_id(Main &bmain,
           BLI_assert(packed_id->lib == archive_lib);
           UNUSED_VARS_NDEBUG(archive_lib);
 
-          if (GS(packed_id->name) == ID_SCE) {
+          if (packed_id->id_type() == ID_SCE) {
             /* Like in #scene_blend_read_data. */
             id_us_ensure_real(packed_id);
           }
@@ -771,7 +771,7 @@ void bke::library::pack_linked_id_hierarchy(Main &bmain, ID &root_id)
           }
           return IDWALK_RET_NOP;
         }
-        if (GS(referenced_id->name) == ID_KE) {
+        if (referenced_id->id_type() == ID_KE) {
           /* Shape keys cannot be directly linked, from linking code PoV they behave as embedded
            * data (i.e. their owning data is responsible to handle them). */
           return IDWALK_RET_NOP;

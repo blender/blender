@@ -320,7 +320,7 @@ class ShaderNodesInliner {
     };
 
     /* owner_id can be null for DefaultSurfaceNodeTree. */
-    ID_Type tree_type = src_tree_.owner_id ? GS(src_tree_.owner_id->name) : ID_MA;
+    ID_Type tree_type = src_tree_.owner_id ? src_tree_.owner_id->id_type() : ID_MA;
 
     switch (tree_type) {
       case ID_MA:

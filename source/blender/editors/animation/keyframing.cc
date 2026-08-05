@@ -1461,7 +1461,7 @@ static wmOperatorStatus delete_key_button_exec(bContext *C, wmOperator *op)
               RPT_WARNING,
               "Not deleting keyframe for locked F-Curve for NLA Strip influence on %s - %s '%s'",
               strip->name,
-              BKE_idtype_idcode_to_name(GS(id->name)),
+              BKE_idtype_idcode_to_name(id->id_type()),
               id->name + 2);
         }
         else {

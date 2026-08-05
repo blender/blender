@@ -969,7 +969,7 @@ ID *RNA_find_real_ID_and_path(ID *id, const char **r_path)
   }
 
   if (r_path) {
-    switch (GS(id->name)) {
+    switch (id->id_type()) {
       case ID_NT:
         *r_path = "node_tree";
         break;
@@ -1258,7 +1258,7 @@ std::string RNA_path_full_ID_py(ID *id)
   BLI_str_escape(id_esc, id->name + 2, sizeof(id_esc));
 
   return fmt::format("bpy.data.{}[\"{}\"{}]{}{}",
-                     BKE_idtype_idcode_to_name_plural(GS(id->name)),
+                     BKE_idtype_idcode_to_name_plural(id->id_type()),
                      id_esc,
                      lib_filepath_esc,
                      path[0] ? "." : "",

@@ -399,7 +399,7 @@ static BMEditMesh *mesh_get_original_edit_mesh(const Object &object)
 {
   BLI_assert(object.type == OB_MESH);
   if (const ID *data_orig = object.runtime->data_orig) {
-    if (GS(data_orig->name) == blender::ID_ME) {
+    if (data_orig->id_type() == ID_ME) {
       return id_cast<const Mesh *>(data_orig)->runtime->edit_mesh.get();
     }
   }

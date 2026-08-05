@@ -370,13 +370,13 @@ static void update_sequencer(const DEGEditorUpdateContext *update_ctx, Main *bma
 
   /* Changed datablocks invalidate camera-input scene strips.
    * Changed strips invalidate sequencer-input scene strips. */
-  if (GS(id->name) != ID_SCE || id->recalc & ID_RECALC_SEQUENCER_STRIPS) {
+  if (id->id_type() != ID_SCE || id->recalc & ID_RECALC_SEQUENCER_STRIPS) {
     seq::relations_invalidate_scene_strips(bmain, changed_scene);
   }
 
   /* Invalidate rendered VSE caches in `changed_scene`, because strip animation may have been
    * updated. */
-  if (GS(id->name) == ID_AC) {
+  if (id->id_type() == ID_AC) {
     Editing *ed = seq::editing_get(changed_scene);
     if (ed != nullptr && seq::animation_keyframes_exist(changed_scene) &&
         &changed_scene->adt->action->id == id)
@@ -387,7 +387,7 @@ static void update_sequencer(const DEGEditorUpdateContext *update_ctx, Main *bma
   }
 
   /* Invalidate cache for strips that use this compositing tree. */
-  if (GS(id->name) == ID_NT) {
+  if (id->id_type() == ID_NT) {
     const bNodeTree *node_tree = reinterpret_cast<const bNodeTree *>(id);
     if (node_tree->type == NTREE_COMPOSIT) {
       seq::relations_invalidate_compositor_users(bmain, node_tree);
@@ -405,7 +405,7 @@ void ED_render_id_flush_update(const DEGEditorUpdateContext *update_ctx, ID *id)
   }
   Main *bmain = update_ctx->bmain;
   /* Internal ID update handlers. */
-  switch (GS(id->name)) {
+  switch (id->id_type()) {
     case ID_MA:
       material_changed(bmain, id_cast<Material *>(id));
       break;

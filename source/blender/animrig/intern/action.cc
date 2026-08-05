@@ -530,7 +530,7 @@ Slot &Action::slot_add_for_id_type(const ID_Type idtype)
 Slot &Action::slot_add_for_id(const ID &animated_id)
 {
   Slot &slot = this->slot_add();
-  slot.idtype = GS(animated_id.name);
+  slot.idtype = animated_id.id_type();
 
   /* Determine the identifier for this slot, prioritizing transparent
    * auto-selection when toggling between Actions. That's why the last-used slot
@@ -717,7 +717,7 @@ void Action::slot_setup_for_id(Slot &slot, const ID &animated_id)
     return;
   }
 
-  slot.idtype = GS(animated_id.name);
+  slot.idtype = animated_id.id_type();
   this->slot_identifier_ensure_prefix(slot);
 }
 
@@ -1010,7 +1010,7 @@ bool Slot::is_suitable_for(const ID &animated_id) const
   }
 
   /* Check that the ID type is compatible with this slot. */
-  const int animated_idtype = GS(animated_id.name);
+  const int animated_idtype = animated_id.id_type();
   return this->idtype == animated_idtype;
 }
 

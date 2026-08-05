@@ -107,7 +107,7 @@ TreeTraversalAction outliner_collect_selected_collections(TreeElement *te, void 
     return TRAVERSE_CONTINUE;
   }
 
-  if ((tselem->type != TSE_SOME_ID) || (tselem->id && GS(tselem->id->name) != ID_GR)) {
+  if ((tselem->type != TSE_SOME_ID) || (tselem->id && tselem->id->id_type() != ID_GR)) {
     return TRAVERSE_SKIP_CHILDS;
   }
 
@@ -138,7 +138,7 @@ TreeTraversalAction outliner_collect_selected_objects(TreeElement *te, void *cus
     return TRAVERSE_CONTINUE;
   }
 
-  if ((tselem->type != TSE_SOME_ID) || (tselem->id == nullptr) || (GS(tselem->id->name) != ID_OB))
+  if ((tselem->type != TSE_SOME_ID) || (tselem->id == nullptr) || (tselem->id->id_type() != ID_OB))
   {
     return TRAVERSE_SKIP_CHILDS;
   }

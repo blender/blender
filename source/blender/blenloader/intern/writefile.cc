@@ -1467,7 +1467,7 @@ static bool write_library_if_needed(WriteData *wd,
     else {
       /* In undo case, all existing linked IDs get a placeholder, even the ones not directly
        * linkable. */
-      if (!is_undo && !BKE_idtype_idcode_is_linkable(GS(id->name))) {
+      if (!is_undo && !BKE_idtype_idcode_is_linkable(id->id_type())) {
         CLOG_ERROR(&LOG,
                    "Data-block '%s' from lib '%s' is not linkable, but is flagged as "
                    "directly linked",
@@ -1712,7 +1712,7 @@ static Vector<ID *> gather_local_ids_to_write(Main *bmain, const bool is_undo)
 {
   Vector<ID *> local_ids_to_write;
   for (ID &id : MainAllIDsIterator(*bmain)) {
-    if (GS(id.name) == ID_LI) {
+    if (id.id_type() == ID_LI) {
       /* Libraries are handled separately below. */
       continue;
     }
@@ -1749,7 +1749,7 @@ static Vector<ID *> gather_local_ids_to_write(Main *bmain, const bool is_undo)
        * NOTE: Since ShapeKeys are conceptually embedded IDs (like root node trees e.g.), this
        * behavior actually makes sense anyway. This remains more of a temp hack until topic of
        * how to handle unused data on save is properly tackled. */
-      if (GS(id.name) == ID_KE) {
+      if (id.id_type() == ID_KE) {
         Key &shape_key = id_cast<Key &>(id);
         /* NOTE: Here we are accessing the real owner ID data, not it's 'proxy' shallow copy
          * generated for its file-writing. This is not expected to be an issue, but is worth

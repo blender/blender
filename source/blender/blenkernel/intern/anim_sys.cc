@@ -214,7 +214,7 @@ KS_Path *BKE_keyingset_add_path(KeyingSet *ks,
 
   /* store additional info for relative paths (just in case user makes the set relative) */
   if (id) {
-    ksp->idtype = GS(id->name);
+    ksp->idtype = id->id_type();
   }
 
   /* just copy path info */
@@ -4213,7 +4213,7 @@ void BKE_animsys_eval_driver(Depsgraph *depsgraph, ID *id, int driver_index, FCu
       if (ok == 0) {
         CLOG_WARN(&LOG_ANIM_DRIVER,
                   "Invalid driver on %s '%s' - %s[%d]",
-                  BKE_idtype_idcode_to_name(GS(id->name)),
+                  BKE_idtype_idcode_to_name(id->id_type()),
                   id->name + 2,
                   rna_path.c_str(),
                   fcu->array_index);

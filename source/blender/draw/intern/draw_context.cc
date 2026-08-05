@@ -1731,7 +1731,7 @@ static bool depsgraph_contains_visible_grease_pencil_geometry(Depsgraph *depsgra
     if (found) {
       return;
     }
-    if (GS(id_eval->name) == ID_OB) {
+    if (id_eval->id_type() == ID_OB) {
       const Object *ob = reinterpret_cast<const Object *>(id_eval);
       const bool is_self_visible = BKE_object_visibility(ob, DAG_EVAL_RENDER) & OB_VISIBLE_SELF;
       const bool contains_grease_pencil_geometry =
