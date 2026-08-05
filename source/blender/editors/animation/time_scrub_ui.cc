@@ -84,47 +84,68 @@ static void get_current_time_str(
 
 struct PlayheadDimensions {
   float text_width;
-  float text_padding;
 
-  float box_width;
-  float box_margin;
-  float shadow_width;
+  float outline_width;
 
-  float tri_top;
-  float tri_half_width;
-  float tri_height;
+  float tip_top;
+  float tip_half_width;
+  float tip_height;
+
+  rctf stalk_rect;
+  rctf box_rect;
 };
 
 static PlayheadDimensions get_playhead_dimensions(const Scene *scene,
                                                   const rcti *scrub_region_rect,
                                                   const float current_frame,
-                                                  const bool display_seconds)
+                                                  const bool display_seconds,
+                                                  const float region_x)
 {
   PlayheadDimensions dimensions;
   constexpr int max_frame_string_len = 64;
   char frame_str[max_frame_string_len];
   get_current_time_str(scene, display_seconds, current_frame, frame_str, max_frame_string_len);
 
+  dimensions.outline_width = UI_SCALE_FAC;
   dimensions.text_width = ui::fontstyle_string_width(UI_FSTYLE_WIDGET, frame_str);
-  dimensions.text_padding = 4.0f * UI_SCALE_FAC;
+  const float text_padding = 4.0f * UI_SCALE_FAC;
   const float box_min_width = 24.0f * UI_SCALE_FAC;
-  dimensions.box_width = std::max(dimensions.text_width + (2.0f * dimensions.text_padding),
-                                  box_min_width);
-  dimensions.box_margin = 2.0f * UI_SCALE_FAC;
-  dimensions.shadow_width = UI_SCALE_FAC;
-  dimensions.tri_top = ceil(scrub_region_rect->ymin + dimensions.box_margin);
-  dimensions.tri_half_width = 6.0f * UI_SCALE_FAC;
-  dimensions.tri_height = 6.0f * UI_SCALE_FAC;
+  const float box_width = std::max(dimensions.text_width + (2.0f * text_padding), box_min_width);
+  const float box_margin = 2.0f * UI_SCALE_FAC;
+
+  /* Vertical line. */
+  if (UI_SCALE_FAC < 0.91f) {
+    dimensions.stalk_rect.xmin = floor(region_x) - 1;
+    dimensions.stalk_rect.xmax = dimensions.stalk_rect.xmin + U.pixelsize + 2;
+  }
+  else {
+    dimensions.stalk_rect.xmin = floor(region_x - U.pixelsize) - dimensions.outline_width;
+    dimensions.stalk_rect.xmax = floor(region_x + U.pixelsize + 1.0f) + dimensions.outline_width;
+  }
+  dimensions.stalk_rect.ymin = 0.0f;
+  dimensions.stalk_rect.ymax = scrub_region_rect->ymin;
+
+  /* Box where the frame number is drawn. */
+  dimensions.box_rect.xmin = region_x - (box_width / 2.0f);
+  dimensions.box_rect.xmax = region_x + (box_width / 2.0f) + 1.0f;
+  dimensions.box_rect.ymin = floor(scrub_region_rect->ymin +
+                                   (box_margin - dimensions.outline_width));
+  dimensions.box_rect.ymax = ceil(scrub_region_rect->ymax - box_margin + dimensions.outline_width);
+
+  /* Connecting shape between box and stalk. */
+  dimensions.tip_top = ceil(scrub_region_rect->ymin + box_margin);
+  dimensions.tip_half_width = 6.0f * UI_SCALE_FAC;
+  dimensions.tip_height = 6.0f * UI_SCALE_FAC;
+
   return dimensions;
 }
 
 static void draw_playhead_stalk(const float region_x,
-                                const rcti *scrub_region_rect,
                                 const PlayheadDimensions &dimensions,
                                 const float fg_color[4],
                                 const float bg_color[4])
 {
-  float shadow_width = dimensions.shadow_width;
+  float outline_width = dimensions.outline_width;
 
   /* Shadow for triangle below frame box. */
   GPUVertFormat *format = immVertexFormat();
@@ -136,33 +157,21 @@ static void draw_playhead_stalk(const float region_x,
   immBegin(GPU_PRIM_TRIS, 3);
   const float diag_offset = 0.4f * UI_SCALE_FAC;
   immVertex2f(pos,
-              floor(region_x - dimensions.tri_half_width - shadow_width - diag_offset),
-              dimensions.shadow_width);
+              floor(region_x - dimensions.tip_half_width - outline_width - diag_offset),
+              dimensions.outline_width);
   immVertex2f(pos,
-              floor(region_x + dimensions.tri_half_width + shadow_width + 1.0f + diag_offset),
-              dimensions.shadow_width);
+              floor(region_x + dimensions.tip_half_width + outline_width + 1.0f + diag_offset),
+              dimensions.outline_width);
   immVertex2f(pos,
               region_x + 0.5f,
-              dimensions.shadow_width - dimensions.tri_height - diag_offset - shadow_width);
+              dimensions.outline_width - dimensions.tip_height - diag_offset - outline_width);
   immEnd();
   immUnbindProgram();
   GPU_polygon_smooth(false);
   GPU_blend(GPU_BLEND_NONE);
 
-  rctf rect{};
-  /* Vertical line. */
-  if (UI_SCALE_FAC < 0.91f) {
-    shadow_width = 1.0f;
-    rect.xmin = floor(region_x) - shadow_width;
-    rect.xmax = rect.xmin + U.pixelsize + shadow_width + shadow_width;
-  }
-  else {
-    rect.xmin = floor(region_x - U.pixelsize) - shadow_width;
-    rect.xmax = floor(region_x + U.pixelsize + 1.0f) + shadow_width;
-  }
-  rect.ymin = 0.0f;
-  rect.ymax = scrub_region_rect->ymin;
-  ui::draw_roundbox_4fv_ex(&rect, fg_color, nullptr, 1.0f, bg_color, shadow_width, 0.0f);
+  ui::draw_roundbox_4fv_ex(
+      &dimensions.stalk_rect, fg_color, nullptr, 1.0f, bg_color, outline_width, 0.0f);
 }
 
 static void draw_playhead_box(const float region_x,
@@ -172,15 +181,16 @@ static void draw_playhead_box(const float region_x,
                               const float fg_color[4],
                               const float bg_color[4])
 {
-  rctf rect{};
   draw_roundbox_corner_set(ui::CNR_ALL);
   const float box_corner_radius = 4.0f * UI_SCALE_FAC;
-  rect.xmin = region_x - (dimensions.box_width / 2.0f);
-  rect.xmax = region_x + (dimensions.box_width / 2.0f) + 1.0f;
-  rect.ymin = floor(scrub_region_rect->ymin + (dimensions.box_margin - dimensions.shadow_width));
-  rect.ymax = ceil(scrub_region_rect->ymax - dimensions.box_margin + dimensions.shadow_width);
-  ui::draw_roundbox_4fv_ex(
-      &rect, fg_color, nullptr, 1.0f, bg_color, dimensions.shadow_width, box_corner_radius);
+
+  ui::draw_roundbox_4fv_ex(&dimensions.box_rect,
+                           fg_color,
+                           nullptr,
+                           1.0f,
+                           bg_color,
+                           dimensions.outline_width,
+                           box_corner_radius);
 
   /* Frame number text. */
   const uiFontStyle *fstyle = UI_FSTYLE_WIDGET;
@@ -204,9 +214,9 @@ static void draw_playhead_tip(const float region_x,
   GPU_blend(GPU_BLEND_ALPHA);
   immBegin(GPU_PRIM_TRIS, 3);
   immUniformColor4fv(fg_color);
-  immVertex2f(pos, region_x - dimensions.tri_half_width, dimensions.tri_top);
-  immVertex2f(pos, region_x + dimensions.tri_half_width + 1, dimensions.tri_top);
-  immVertex2f(pos, region_x + 0.5f, dimensions.tri_top - dimensions.tri_height);
+  immVertex2f(pos, region_x - dimensions.tip_half_width, dimensions.tip_top);
+  immVertex2f(pos, region_x + dimensions.tip_half_width + 1, dimensions.tip_top);
+  immVertex2f(pos, region_x + 0.5f, dimensions.tip_top - dimensions.tip_height);
   immEnd();
   immUnbindProgram();
   GPU_polygon_smooth(false);
@@ -226,7 +236,7 @@ static void draw_playhead_ghost(const float frame,
   const float region_x = ui::view2d_view_to_region_x(v2d, frame);
 
   PlayheadDimensions dimensions = get_playhead_dimensions(
-      scene, scrub_region_rect, frame, display_seconds);
+      scene, scrub_region_rect, frame, display_seconds, region_x);
   float fg_color[4];
   ui::theme::get_color_4fv(TH_CFRAME, fg_color);
   float bg_color[4];
@@ -234,7 +244,7 @@ static void draw_playhead_ghost(const float frame,
   fg_color[3] /= 2;
   bg_color[3] /= 2;
   if (display_stalk) {
-    draw_playhead_stalk(region_x, scrub_region_rect, dimensions, fg_color, bg_color);
+    draw_playhead_stalk(region_x, dimensions, fg_color, bg_color);
   }
 
   constexpr int max_frame_string_len = 64;
@@ -262,7 +272,7 @@ static void draw_current_frame(const Scene *scene,
   get_current_time_str(scene, display_seconds, current_frame, frame_str, max_frame_string_len);
 
   PlayheadDimensions dimensions = get_playhead_dimensions(
-      scene, scrub_region_rect, current_frame, display_seconds);
+      scene, scrub_region_rect, current_frame, display_seconds, region_x);
 
   if (clamp_playhead) {
     region_x = math::clamp(region_x,
@@ -276,7 +286,7 @@ static void draw_current_frame(const Scene *scene,
   ui::theme::get_color_shade_4fv(TH_BACK, -20, bg_color);
 
   if (display_stalk) {
-    draw_playhead_stalk(region_x, scrub_region_rect, dimensions, fg_color, bg_color);
+    draw_playhead_stalk(region_x, dimensions, fg_color, bg_color);
   }
 
   draw_playhead_box(region_x, frame_str, scrub_region_rect, dimensions, fg_color, bg_color);
