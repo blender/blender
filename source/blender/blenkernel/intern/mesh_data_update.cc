@@ -269,6 +269,14 @@ static MeshEditHints &geometry_mesh_edit_hints_ensure(GeometrySet &geometry)
   return *edit_data.mesh_edit_hints_;
 }
 
+static void mesh_eval_assign_key(GeometrySet &geometry, Key *key)
+{
+  BLI_assert(DEG_is_evaluated_id(&key->id));
+  if (const Mesh *mesh = geometry.get_mesh(); mesh && mesh->key != key) {
+    geometry.get_mesh_for_write()->key = key;
+  }
+}
+
 static GeometrySet mesh_calc_modifiers(Depsgraph &depsgraph,
                                        const Scene &scene,
                                        Object &ob,
@@ -867,6 +875,9 @@ static GeometrySet editbmesh_calc_modifiers(Depsgraph &depsgraph,
     }
 
     if (i == cageIndex) {
+      if (Key *key = mesh_input.key) {
+        mesh_eval_assign_key(geometry_set, key);
+      }
       cage_mesh = cage_mesh_or_fallback(ob, geometry_set, mesh_input, final_datamask);
     }
   }
@@ -885,6 +896,12 @@ static GeometrySet editbmesh_calc_modifiers(Depsgraph &depsgraph,
 
   if (mesh_orco) {
     BKE_id_free(nullptr, mesh_orco);
+  }
+
+  /* Assign the key before sharing the final mesh component with the cage. Writable access after
+   * sharing can copy the BMesh wrapper without the required Edit Mode runtime state. */
+  if (Key *key = mesh_input.key) {
+    mesh_eval_assign_key(geometry_set, key);
   }
 
   /* In all likelihood, when `cageIndex == -1`. */
@@ -929,19 +946,14 @@ static void mesh_build_data(Depsgraph &depsgraph,
   const Mesh &mesh_input = *id_cast<const Mesh *>(ob.data);
   GeometrySet geometry_set = mesh_calc_modifiers(
       depsgraph, scene, ob, true, need_mapping, dataMask, true);
-  const Mesh *mesh_eval = geometry_set.get_mesh();
 
   /* Make sure that drivers can target shapekey properties.
-   * Note that this causes a potential inconsistency, as the shapekey may have a
-   * different topology than the evaluated mesh. */
+   * Note that this causes a potential inconsistency, as the shapekey may have a different topology
+   * than the evaluated mesh. */
   if (Key *key = mesh_input.key) {
-    BLI_assert(DEG_is_evaluated_id(&key->id));
-    if (geometry_set.get_mesh() != &mesh_input) {
-      if (Mesh *mesh = geometry_set.get_mesh_for_write()) {
-        mesh->key = key;
-      }
-    }
+    mesh_eval_assign_key(geometry_set, key);
   }
+  const Mesh *mesh_eval = geometry_set.get_mesh();
 
   BKE_object_eval_assign_data(&ob, &const_cast<ID &>(mesh_eval->id), false);
   ob.runtime->geometry_set_eval = new GeometrySet(std::move(geometry_set));
@@ -962,19 +974,7 @@ static void editbmesh_build_data(Depsgraph &depsgraph,
                                  Object &obedit,
                                  CustomData_MeshMasks &dataMask)
 {
-  const Mesh &mesh_input = *id_cast<const Mesh *>(obedit.data);
-
   GeometrySet geometry_set = editbmesh_calc_modifiers(depsgraph, scene, obedit, dataMask);
-
-  /* Make sure that drivers can target shapekey properties.
-   * Note that this causes a potential inconsistency, as the shapekey may have a
-   * different topology than the evaluated mesh. */
-  if (Key *key = mesh_input.key) {
-    BLI_assert(DEG_is_evaluated_id(&key->id));
-    if (Mesh *mesh = geometry_set.get_mesh_for_write()) {
-      mesh->key = key;
-    }
-  }
 
   BKE_object_eval_assign_data(
       &obedit, id_cast<ID *>(const_cast<Mesh *>(geometry_set.get_mesh())), false);

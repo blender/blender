@@ -258,6 +258,49 @@ def _view3d_startup_area_single(e):
     assert len(e.window.screen.areas) == 1
 
 
+def view3d_mesh_edit_shape_key():
+    """Test drawing the final shape-key BMesh wrapper in Edit Mode and basic undo/redo."""
+    e, t, window = ui.test_window()
+    yield e.shift.f5()                  # 3D Viewport.
+    yield e.ctrl.alt.space()            # Full-screen.
+
+    def assert_state(mode, key_count, x_bounds):
+        cube = window.view_layer.objects.active
+        t.assertEqual(cube.name, "Cube")
+        t.assertEqual(cube.mode, mode)
+        shape_keys = cube.data.shape_keys
+        t.assertEqual(0 if shape_keys is None else len(shape_keys.key_blocks), key_count)
+        t.assertEqual(
+            (min(co[0] for co in cube.bound_box), max(co[0] for co in cube.bound_box)),
+            x_bounds,
+        )
+
+    assert_state('OBJECT', 0, (-1.0, 1.0))
+
+    yield from ui.call_operator(e, "Add Shape Key")  # Basis.
+    yield from ui.call_operator(e, "Add Shape Key")  # Key 1.
+
+    yield e.tab()                       # Edit mode.
+    assert_state('EDIT', 2, (-1.0, 1.0))
+    yield                               # Draw the evaluated BMesh wrapper.
+    yield e.a()                         # Select all.
+    yield e.g().x().two().ret()         # Translate the active shape key.
+    yield e.tab()                       # Object mode.
+    assert_state('OBJECT', 2, (1.0, 3.0))
+    yield from ui.call_operator(e, "Apply to Basis Key")
+
+    yield e.tab()                       # Edit mode.
+    yield                               # Draw the final evaluated BMesh wrapper.
+    assert_state('EDIT', 1, (1.0, 3.0))
+
+    yield e.ctrl.z(8)                   # Undo to the initial state.
+    assert_state('OBJECT', 0, (-1.0, 1.0))
+
+    yield e.ctrl.shift.z(8)             # Redo to the final state.
+    yield                               # Redraw after restoring Edit Mode.
+    assert_state('EDIT', 1, (1.0, 3.0))
+
+
 def view3d_simple():
     e, t, window = ui.test_window()
     yield from _view3d_startup_area_maximized(e)
