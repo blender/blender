@@ -26,6 +26,8 @@
 
 #include "DRW_render.hh"
 
+#include "GPU_work_in_flight.hh"
+
 #include "eevee_ambient_occlusion.hh"
 #include "eevee_camera.hh"
 #include "eevee_cryptomatte.hh"
@@ -53,6 +55,10 @@
 #include "eevee_view.hh"
 #include "eevee_volume.hh"
 #include "eevee_world.hh"
+
+namespace blender::gpu {
+class WorkInFlight;
+}  // namespace blender::gpu
 
 namespace blender::eevee {
 
@@ -183,6 +189,9 @@ class Instance : public DrawEngine {
   bool use_volumes = true;
 
   GPUSamplerFiltering anisotropic_filtering = GPU_SAMPLER_FILTERING_DEFAULT;
+
+  /** For limiting number of submitted samples in flight on the GPU. */
+  gpu::WorkInFlightPtr samples_in_flight;
 
   /** Debug mode from debug value. */
   eDebugMode debug_mode = eDebugMode::DEBUG_NONE;

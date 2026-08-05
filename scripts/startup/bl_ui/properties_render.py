@@ -728,6 +728,7 @@ class RENDER_PT_eevee_sampling_render(RenderButtonsPanel, Panel):
 
         col = layout.column(align=True)
         col.prop(props, "taa_render_samples", text="Samples")
+        col.prop(props, "time_limit")
 
         # Add SSS sample count here.
 

@@ -36,6 +36,7 @@
 #include "vk_texture_pool.hh"
 #include "vk_uniform_buffer.hh"
 #include "vk_vertex_buffer.hh"
+#include "vk_work_in_flight.hh"
 
 #include "vk_backend.hh"
 
@@ -750,6 +751,11 @@ Batch *VKBackend::batch_alloc()
 Fence *VKBackend::fence_alloc()
 {
   return new VKFence();
+}
+
+WorkInFlight *VKBackend::work_in_flight_alloc(unsigned int max_in_flight)
+{
+  return new VKWorkInFlight(max_in_flight);
 }
 
 FrameBuffer *VKBackend::framebuffer_alloc(const char *name)

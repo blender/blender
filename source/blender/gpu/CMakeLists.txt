@@ -108,6 +108,7 @@ set(SRC
   intern/gpu_vertex_format_normals.cc
   intern/gpu_viewport.cc
   intern/gpu_worker.cc
+  intern/gpu_work_in_flight.cc
 
   shader_tool/ast.cc
   shader_tool/attribute.cc
@@ -164,6 +165,7 @@ set(SRC
   GPU_vertex_buffer.hh
   GPU_vertex_format.hh
   GPU_viewport.hh
+  GPU_work_in_flight.hh
   GPU_worker.hh
 
   intern/gpu_backend.hh
@@ -225,6 +227,7 @@ set(OPENGL_SRC
   opengl/gl_uniform_buffer.cc
   opengl/gl_vertex_array.cc
   opengl/gl_vertex_buffer.cc
+  opengl/gl_work_in_flight.cc
 
   opengl/gl_backend.hh
   opengl/gl_batch.hh
@@ -246,6 +249,7 @@ set(OPENGL_SRC
   opengl/gl_uniform_buffer.hh
   opengl/gl_vertex_array.hh
   opengl/gl_vertex_buffer.hh
+  opengl/gl_work_in_flight.hh
 )
 
 set(VULKAN_SRC
@@ -301,6 +305,7 @@ set(VULKAN_SRC
   vulkan/vk_vertex_attribute_object.cc
   vulkan/vk_vertex_attribute_object_cache.cc
   vulkan/vk_vertex_buffer.cc
+  vulkan/vk_work_in_flight.cc
 
   vulkan/vk_backend.hh
   vulkan/vk_batch.hh
@@ -383,6 +388,7 @@ set(VULKAN_SRC
   vulkan/vk_vertex_attribute_object_cache.hh
   vulkan/vk_vertex_buffer.hh
   vulkan/vk_vertex_input_description.hh
+  vulkan/vk_work_in_flight.hh
 )
 
 set(METAL_SRC
@@ -409,6 +415,7 @@ set(METAL_SRC
   metal/mtl_texture_util.mm
   metal/mtl_uniform_buffer.mm
   metal/mtl_vertex_buffer.mm
+  metal/mtl_work_in_flight.mm
 
   metal/mtl_backend.hh
   metal/mtl_batch.hh
@@ -438,6 +445,7 @@ set(METAL_SRC
   metal/mtl_texture_pool.hh
   metal/mtl_uniform_buffer.hh
   metal/mtl_vertex_buffer.hh
+  metal/mtl_work_in_flight.hh
 )
 
 set(LIB
