@@ -12,6 +12,8 @@ endif()
 if(WIN32)
   # We need to keep BOOST_DEBUG_PYTHON for the vendored copy of boost inside USD.
   add_definitions(-DBOOST_DEBUG_PYTHON)
+  # Silence warnings from HD_DECLARE_DATASOURCE macro defined in USD headers.
+  add_definitions(-D_SILENCE_CXX20_OLD_SHARED_PTR_ATOMIC_SUPPORT_DEPRECATION_WARNING)
 endif()
 
 # Pre-compiled Linux libraries are made with GCC, and USD uses some extensions
