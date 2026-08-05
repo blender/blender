@@ -14,6 +14,7 @@ GsplatMutableAttributeAccessor::GsplatMutableAttributeAccessor(PointCloud &point
                                                                const int sh_degrees)
     : point_cloud_(point_cloud), attributes_(point_cloud.attributes_for_write())
 {
+  /* TODO(sergey): Proper attribute type. ColorGeometry4f is wrong for sRGB with straight alpha. */
   colors_attr_ = attributes_.lookup_or_add_for_write_span<ColorGeometry4f>("color",
                                                                            bke::AttrDomain::Point);
   scales_attr_ = attributes_.lookup_or_add_for_write_span<float3>("scale", bke::AttrDomain::Point);
