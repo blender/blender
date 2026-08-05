@@ -1497,6 +1497,17 @@ void *BKE_libblock_alloc_in_lib(Main *bmain,
       id->lib = owner_library ? *owner_library : nullptr;
     }
 
+    /* When creating an ID in a library, ensure it is properly tagged as either directly or
+     * indirectly linked.
+     *
+     * Note: Using the library parent here to decide if the type of linking is somewhat weak, but
+     * there is no other info at this level. In any case, this status is reset/revalidated on file
+     * save and read, and caller code is free to reset this value to its liking using
+     * `id_lib_extern`/`id_lib_indirect`. */
+    if (ID_IS_LINKED(id)) {
+      id->tag |= (id->lib->runtime->parent) ? ID_TAG_INDIRECT : ID_TAG_EXTERN;
+    }
+
     /* We also need to ensure a valid `session_uid` for some non-main data (like embedded IDs).
      * IDs not allocated however should not need those (this would e.g. avoid generating session
      * UIDs for depsgraph evaluated IDs, if it was using this function). */
