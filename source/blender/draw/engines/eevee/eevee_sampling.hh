@@ -68,6 +68,7 @@ class Sampling {
    */
   float time_limit_ = 0.0f;
   float start_render_time_ = 0.0f;
+  float current_time_ = 0.0f;
   /**
    * For overwriting pixel jitter sample position.
    */
@@ -155,6 +156,10 @@ class Sampling {
   {
     return sample_;
   }
+
+  /* Updates the current progress towards the time limit. Must be called after a sample has been
+   * rendered and before `finished` or `finished_viewport` are called. */
+  void update_time();
 
   /* Returns true if a custom pixel jitter sample position is set. */
   bool use_custom_pixel_jitter_sample() const

@@ -699,6 +699,7 @@ void Instance::render_frame(RenderEngine *engine, RenderLayer *render_layer, con
 
     samples_in_flight->end_work();
     GPU_render_step();
+    sampling.update_time();
 
 #if 0
     /* TODO(fclem) print progression. */
@@ -725,7 +726,7 @@ void Instance::render_frame(RenderEngine *engine, RenderLayer *render_layer, con
     double time_elapsed = BLI_time_now_seconds() - start_time;
     std::string message = fmt::format(
         "Rendered {} samples in {:.6f} seconds", sampling.sample_index(), time_elapsed);
-    CLOG_INFO(&Instance::log, message.c_str());
+    CLOG_INFO(&Instance::log, "%s", message.c_str());
   }
 
   if (!info_.empty()) {
@@ -804,6 +805,7 @@ void Instance::draw_viewport_image_render()
     samples_in_flight->begin_work();
     this->render_sample();
     samples_in_flight->end_work();
+    sampling.update_time();
   } while (!sampling.finished_viewport());
   velocity.step_swap();
 
