@@ -1449,6 +1449,7 @@ void RNA_api_ui_layout(StructRNA *srna)
                   "Open by Default",
                   "When true, the panel will be open the first time it is shown");
   parm = RNA_def_pointer(func, "layout_header", "UILayout", "", "Sub-layout to put items in");
+  RNA_def_parameter_flags(parm, PROP_NEVER_NULL, ParameterFlag(0));
   RNA_def_function_output(func, parm);
   parm = RNA_def_pointer(func,
                          "layout_body",
@@ -1478,6 +1479,7 @@ void RNA_api_ui_layout(StructRNA *srna)
       "Identifier of the boolean property that determines whether the panel is open or closed");
   RNA_def_parameter_flags(parm, PropertyFlag(0), PARM_REQUIRED);
   parm = RNA_def_pointer(func, "layout_header", "UILayout", "", "Sub-layout to put items in");
+  RNA_def_parameter_flags(parm, PROP_NEVER_NULL, ParameterFlag(0));
   RNA_def_function_output(func, parm);
   parm = RNA_def_pointer(func,
                          "layout_body",
