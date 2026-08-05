@@ -3394,6 +3394,9 @@ void Layout::label_multiline(StringRefNull text, int icon, FontStyleAlign align,
   label->text_align = align;
   label->is_multiline = true;
   label->max_lines = max_lines;
+  if (this->red_alert()) {
+    button_flag_enable(button, BUT_REDALERT);
+  }
 }
 
 void Layout::link(const StringRef url, const StringRef name, int icon)
