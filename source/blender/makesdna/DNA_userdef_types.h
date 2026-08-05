@@ -564,6 +564,7 @@ enum eUserpref_SeqProxySetup : short {
 enum eUserpref_SeqEditorFlags : int {
   USER_SEQ_ED_UNUSED_0 = (1 << 0), /* Dirty. */
   USER_SEQ_ED_CONNECT_STRIPS_BY_DEFAULT = (1 << 1),
+  USER_SEQ_ED_CLAMP_STRIPS_BY_DEFAULT = (1 << 2),
 };
 ENUM_OPERATORS(eUserpref_SeqEditorFlags)
 

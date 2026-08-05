@@ -5867,6 +5867,15 @@ static void rna_def_userdef_edit(BlenderRNA *brna)
       "Connect Movie Strips by Default",
       "Connect newly added movie strips by default if they have multiple channels");
 
+  prop = RNA_def_property(srna, "clamp_strips_by_default", PROP_BOOLEAN, PROP_NONE);
+  RNA_def_property_boolean_sdna(
+      prop, nullptr, "sequencer_editor_flag", USER_SEQ_ED_CLAMP_STRIPS_BY_DEFAULT);
+  RNA_def_property_ui_text(
+      prop,
+      "Clamp Strips by Default",
+      "When slipping or adjusting handles, clamp movement to the underlying content bounds by "
+      "default to avoid producing extra hold frames or silence");
+
   /* duplication linking */
   prop = RNA_def_property(srna, "use_duplicate_mesh", PROP_BOOLEAN, PROP_NONE);
   RNA_def_property_boolean_sdna(prop, nullptr, "dupflag", USER_DUP_MESH);
