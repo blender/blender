@@ -3038,10 +3038,18 @@ void EDBM_selectmode_set(BMEditMesh *em, const short selectmode)
   }
 
   if (em->bm->uv_select_sync_valid) {
-    /* NOTE(@ideasman42): this could/should use the "sticky" tool setting.
-     * Although in practice it's OK to assume "connected" sticky in this case. */
-    const int cd_loop_uv_offset = CustomData_get_offset(&em->bm->ldata, CD_PROP_FLOAT2);
-    BM_mesh_uvselect_mode_flush_update(em->bm, selectmode_prev, selectmode, cd_loop_uv_offset);
+    if (em->selectmode & (SCE_SELECT_VERTEX | SCE_SELECT_EDGE)) {
+      /* NOTE(@ideasman42): this could/should use the "sticky" tool setting.
+       * Although in practice it's OK to assume "connected" sticky in this case. */
+      const int cd_loop_uv_offset = CustomData_get_offset(&em->bm->ldata, CD_PROP_FLOAT2);
+      BM_mesh_uvselect_mode_flush_update(em->bm, selectmode_prev, selectmode, cd_loop_uv_offset);
+    }
+    else {
+      /* Always clear for face-only selection, because any discrepancy
+       * between UV/Viewport selection caused by de-selecting verts/edges
+       * can't be represented in face-only selection mode. */
+      BM_mesh_uvselect_clear(em->bm);
+    }
   }
 }
 

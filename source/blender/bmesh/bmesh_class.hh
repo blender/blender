@@ -380,6 +380,9 @@ struct BMesh {
    * - This should be cleared aggressively when there is no need
    *   to store a separate UV selection to avoid unnecessary overhead.
    * - Clear using #BM_mesh_uvselect_clear (instead of setting directly).
+   * - When in `selectmode` is set to #SCE_SELECT_FACE this should typically be false,
+   *   because there is no reason to sync two different selections in this case.
+   *   However it's not an error either. Mode switching is responsible for clearing it.
    *
    * - See `bmesh_uvselect.hh` for a more comprehensive explanation.
    */
