@@ -2412,7 +2412,6 @@ class USERPREF_PT_addons(AddOnPanel, Panel):
     _support_icon_mapping = {
         'OFFICIAL': 'BLENDER',
         'COMMUNITY': 'COMMUNITY',
-        'TESTING': 'EXPERIMENTAL',
     }
 
     @staticmethod

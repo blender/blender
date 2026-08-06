@@ -1207,7 +1207,7 @@ def dump_messages(do_messages, do_checks, settings):
     #     (could not even reproduce it from regular py console in Blender with UI...).
     #     For some reasons, cleanup does not happen properly, *and* we have no way to tell which class is valid
     #     and which has been unregistered. So for now, just go for the dirty, easy way: do not disable add-ons. :(
-    # ~ utils.enable_addons(support={"COMMUNITY", "TESTING"}, disable=True)
+    # ~ utils.enable_addons(support={"COMMUNITY"}, disable=True)
 
     reports = _gen_reports(_gen_check_ctxt(settings) if do_checks else None)
 
