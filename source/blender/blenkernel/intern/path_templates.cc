@@ -766,6 +766,38 @@ static std::optional<Token> next_token(StringRef path, const int from_char)
   return token;
 }
 
+namespace bke::path_templates {
+
+std::optional<ExpressionInfo> next_template_variable_expression(StringRef text,
+                                                                size_t starting_offset)
+{
+  while (const std::optional<Token> token = next_token(text, starting_offset)) {
+    switch (token->type) {
+      case TokenType::LEFT_CURLY_BRACE:
+      case TokenType::RIGHT_CURLY_BRACE: {
+        starting_offset = token->byte_range.one_after_last();
+        continue;
+      }
+
+      case TokenType::VARIABLE_EXPRESSION: {
+        ExpressionInfo info;
+        info.byte_range = token->byte_range;
+        info.variable_name = token->variable_name;
+        return info;
+      }
+
+      case TokenType::VARIABLE_SYNTAX_ERROR:
+      case TokenType::UNESCAPED_CURLY_BRACE_ERROR: {
+        return std::nullopt;
+      }
+    }
+  }
+
+  return std::nullopt;
+}
+
+}  // namespace bke::path_templates
+
 /* Parse the given template and return the list of tokens found, in the same
  * order as they appear in the template. */
 static Vector<Token> parse_template(StringRef path)
