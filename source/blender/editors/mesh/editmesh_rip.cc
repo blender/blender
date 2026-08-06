@@ -11,6 +11,7 @@
 #include "DNA_mesh_types.h"
 #include "DNA_object_types.h"
 
+#include "BLI_array.hh"
 #include "BLI_math_geom_c.hh"
 #include "BLI_math_vector.hh"
 #include "BLI_math_vector_c.hh"
@@ -399,7 +400,7 @@ enum {
   ULP_FLIP_1 = (1 << 1),
 };
 
-static UnorderedLoopPair *edbm_tagged_loop_pairs_to_fill(BMesh *bm)
+static Array<UnorderedLoopPair> edbm_tagged_loop_pairs_to_fill(BMesh *bm)
 {
   BMIter iter;
   BMEdge *e;
@@ -412,70 +413,63 @@ static UnorderedLoopPair *edbm_tagged_loop_pairs_to_fill(BMesh *bm)
     }
   }
 
-  if (total_tag) {
-    UnorderedLoopPair *uloop_pairs = MEM_new_array_uninitialized<UnorderedLoopPair>(total_tag,
-                                                                                    __func__);
-    UnorderedLoopPair *ulp = uloop_pairs;
+  Array<UnorderedLoopPair> uloop_pairs(total_tag);
+  UnorderedLoopPair *ulp = uloop_pairs.data();
 
-    BM_ITER_MESH (e, &iter, bm, BM_EDGES_OF_MESH) {
-      if (BM_elem_flag_test(e, BM_ELEM_TAG)) {
-        BMLoop *l1, *l2;
-        if (BM_edge_loop_pair(e, &l1, &l2)) {
-          BMVert *v_cmp = l1->e->v1;
-          ulp->flag = (((l1->v != v_cmp) ? ULP_FLIP_0 : 0) | ((l2->v == v_cmp) ? ULP_FLIP_1 : 0));
-        }
-        else {
-          ulp->flag = 0;
-        }
-        ulp->l_pair[0] = l1;
-        ulp->l_pair[1] = l2;
-
-        ulp++;
+  BM_ITER_MESH (e, &iter, bm, BM_EDGES_OF_MESH) {
+    if (BM_elem_flag_test(e, BM_ELEM_TAG)) {
+      BMLoop *l1, *l2;
+      if (BM_edge_loop_pair(e, &l1, &l2)) {
+        BMVert *v_cmp = l1->e->v1;
+        ulp->flag = (((l1->v != v_cmp) ? ULP_FLIP_0 : 0) | ((l2->v == v_cmp) ? ULP_FLIP_1 : 0));
       }
-    }
+      else {
+        ulp->flag = 0;
+      }
+      ulp->l_pair[0] = l1;
+      ulp->l_pair[1] = l2;
 
-    return uloop_pairs;
+      ulp++;
+    }
   }
-  return nullptr;
+
+  return uloop_pairs;
 }
 
-static void edbm_tagged_loop_pairs_do_fill_faces(BMesh *bm, UnorderedLoopPair *uloop_pairs)
+static void edbm_tagged_loop_pairs_do_fill_faces(BMesh *bm,
+                                                 const Span<UnorderedLoopPair> uloop_pairs)
 {
-  UnorderedLoopPair *ulp;
-  uint total_tag = MEM_allocN_len(uloop_pairs) / sizeof(UnorderedLoopPair);
-  uint i;
-
-  for (i = 0, ulp = uloop_pairs; i < total_tag; i++, ulp++) {
-    if ((ulp->l_pair[0] && ulp->l_pair[1]) && (ulp->l_pair[0]->e != ulp->l_pair[1]->e)) {
+  for (const UnorderedLoopPair &ulp : uloop_pairs) {
+    if ((ulp.l_pair[0] && ulp.l_pair[1]) && (ulp.l_pair[0]->e != ulp.l_pair[1]->e)) {
       /* time has come to make a face! */
-      BMVert *v_shared = BM_edge_share_vert(ulp->l_pair[0]->e, ulp->l_pair[1]->e);
-      BMFace *f, *f_example = ulp->l_pair[0]->f;
+      BMVert *v_shared = BM_edge_share_vert(ulp.l_pair[0]->e, ulp.l_pair[1]->e);
+      BMFace *f, *f_example = ulp.l_pair[0]->f;
       BMLoop *l_iter;
       BMVert *f_verts[4];
 
       if (v_shared == nullptr) {
         /* quad */
-        f_verts[0] = ulp->l_pair[0]->e->v1;
-        f_verts[1] = ulp->l_pair[1]->e->v1;
-        f_verts[2] = ulp->l_pair[1]->e->v2;
-        f_verts[3] = ulp->l_pair[0]->e->v2;
+        f_verts[0] = ulp.l_pair[0]->e->v1;
+        f_verts[1] = ulp.l_pair[1]->e->v1;
+        f_verts[2] = ulp.l_pair[1]->e->v2;
+        f_verts[3] = ulp.l_pair[0]->e->v2;
 
-        if (ulp->flag & ULP_FLIP_0) {
+        if (ulp.flag & ULP_FLIP_0) {
           std::swap(f_verts[0], f_verts[3]);
         }
-        if (ulp->flag & ULP_FLIP_1) {
+        if (ulp.flag & ULP_FLIP_1) {
           std::swap(f_verts[1], f_verts[2]);
         }
       }
       else {
         /* tri */
         f_verts[0] = v_shared;
-        f_verts[1] = BM_edge_other_vert(ulp->l_pair[0]->e, v_shared);
-        f_verts[2] = BM_edge_other_vert(ulp->l_pair[1]->e, v_shared);
+        f_verts[1] = BM_edge_other_vert(ulp.l_pair[0]->e, v_shared);
+        f_verts[2] = BM_edge_other_vert(ulp.l_pair[1]->e, v_shared);
         f_verts[3] = nullptr;
 
         /* don't use the flip flags */
-        if (v_shared == ulp->l_pair[0]->v) {
+        if (v_shared == ulp.l_pair[0]->v) {
           std::swap(f_verts[0], f_verts[1]);
         }
       }
@@ -488,20 +482,20 @@ static void edbm_tagged_loop_pairs_do_fill_faces(BMesh *bm, UnorderedLoopPair *u
       l_iter = BM_FACE_FIRST_LOOP(f);
 
       if (f_verts[3]) {
-        BM_elem_attrs_copy(bm, BM_edge_other_loop(ulp->l_pair[0]->e, l_iter), l_iter);
+        BM_elem_attrs_copy(bm, BM_edge_other_loop(ulp.l_pair[0]->e, l_iter), l_iter);
         l_iter = l_iter->next;
-        BM_elem_attrs_copy(bm, BM_edge_other_loop(ulp->l_pair[1]->e, l_iter), l_iter);
+        BM_elem_attrs_copy(bm, BM_edge_other_loop(ulp.l_pair[1]->e, l_iter), l_iter);
         l_iter = l_iter->next;
-        BM_elem_attrs_copy(bm, BM_edge_other_loop(ulp->l_pair[1]->e, l_iter), l_iter);
+        BM_elem_attrs_copy(bm, BM_edge_other_loop(ulp.l_pair[1]->e, l_iter), l_iter);
         l_iter = l_iter->next;
-        BM_elem_attrs_copy(bm, BM_edge_other_loop(ulp->l_pair[0]->e, l_iter), l_iter);
+        BM_elem_attrs_copy(bm, BM_edge_other_loop(ulp.l_pair[0]->e, l_iter), l_iter);
       }
       else {
-        BM_elem_attrs_copy(bm, BM_edge_other_loop(ulp->l_pair[0]->e, l_iter), l_iter);
+        BM_elem_attrs_copy(bm, BM_edge_other_loop(ulp.l_pair[0]->e, l_iter), l_iter);
         l_iter = l_iter->next;
-        BM_elem_attrs_copy(bm, BM_edge_other_loop(ulp->l_pair[0]->e, l_iter), l_iter);
+        BM_elem_attrs_copy(bm, BM_edge_other_loop(ulp.l_pair[0]->e, l_iter), l_iter);
         l_iter = l_iter->next;
-        BM_elem_attrs_copy(bm, BM_edge_other_loop(ulp->l_pair[1]->e, l_iter), l_iter);
+        BM_elem_attrs_copy(bm, BM_edge_other_loop(ulp.l_pair[1]->e, l_iter), l_iter);
       }
     }
   }
@@ -518,7 +512,7 @@ static void edbm_tagged_loop_pairs_do_fill_faces(BMesh *bm, UnorderedLoopPair *u
  */
 static int edbm_rip_invoke__vert(bContext *C, const wmEvent *event, Object *obedit, bool do_fill)
 {
-  UnorderedLoopPair *fill_uloop_pairs = nullptr;
+  Array<UnorderedLoopPair> fill_uloop_pairs;
   ARegion *region = CTX_wm_region(C);
   RegionView3D *rv3d = CTX_wm_region_view3d(C);
   BMEditMesh *em = BKE_editmesh_from_object(obedit);
@@ -820,9 +814,6 @@ static int edbm_rip_invoke__vert(bContext *C, const wmEvent *event, Object *obed
       BM_vert_select_set(bm, v_rip, true);
     }
     else {
-      if (fill_uloop_pairs) {
-        MEM_delete(fill_uloop_pairs);
-      }
       return OPERATOR_CANCELLED;
     }
   }
@@ -861,9 +852,8 @@ static int edbm_rip_invoke__vert(bContext *C, const wmEvent *event, Object *obed
     }
   }
 
-  if (do_fill && fill_uloop_pairs) {
+  if (do_fill && !fill_uloop_pairs.is_empty()) {
     edbm_tagged_loop_pairs_do_fill_faces(bm, fill_uloop_pairs);
-    MEM_delete(fill_uloop_pairs);
   }
 
   if (totvert_orig == bm->totvert) {
@@ -884,7 +874,7 @@ static int edbm_rip_invoke__vert(bContext *C, const wmEvent *event, Object *obed
  */
 static int edbm_rip_invoke__edge(bContext *C, const wmEvent *event, Object *obedit, bool do_fill)
 {
-  UnorderedLoopPair *fill_uloop_pairs = nullptr;
+  Array<UnorderedLoopPair> fill_uloop_pairs;
   ARegion *region = CTX_wm_region(C);
   RegionView3D *rv3d = CTX_wm_region_view3d(C);
   BMEditMesh *em = BKE_editmesh_from_object(obedit);
@@ -994,9 +984,8 @@ static int edbm_rip_invoke__edge(bContext *C, const wmEvent *event, Object *obed
   /* deselect loose verts */
   BM_mesh_select_mode_clean_ex(bm, SCE_SELECT_EDGE);
 
-  if (do_fill && fill_uloop_pairs) {
+  if (do_fill && !fill_uloop_pairs.is_empty()) {
     edbm_tagged_loop_pairs_do_fill_faces(bm, fill_uloop_pairs);
-    MEM_delete(fill_uloop_pairs);
   }
 
   if ((totvert_orig == bm->totvert) && (totedge_orig == bm->totedge)) {
