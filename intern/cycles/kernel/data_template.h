@@ -235,6 +235,7 @@ KERNEL_STRUCT_MEMBER(integrator, int, use_surface_guiding)
 KERNEL_STRUCT_MEMBER(integrator, int, use_volume_guiding)
 KERNEL_STRUCT_MEMBER(integrator, int, use_guiding_direct_light)
 KERNEL_STRUCT_MEMBER(integrator, int, use_guiding_mis_weights)
+KERNEL_STRUCT_MEMBER(integrator, int, pad1)
 
 KERNEL_STRUCT_MEMBER(integrator, float2, pixel_jitter)
 KERNEL_STRUCT_END(KernelIntegrator)
