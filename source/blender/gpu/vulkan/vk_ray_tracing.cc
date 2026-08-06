@@ -128,6 +128,7 @@ void VKTopLevelAS::build()
   }
 
   build_acceleration_structure_info_.src_buffers.clear_and_keep_capacity();
+  build_acceleration_structure_info_.src_acceleration_structures.clear_and_keep_capacity();
 
   for (int64_t blas_index : instances_.index_range()) {
     VkAccelerationStructureInstanceKHR &instance = instances_[blas_index];
@@ -139,7 +140,7 @@ void VKTopLevelAS::build()
       return;
     }
     instance.accelerationStructureReference = blas.vk_device_address();
-    build_acceleration_structure_info_.src_buffers.add(blas.vk_buffer());
+    build_acceleration_structure_info_.src_acceleration_structures.add(blas.vk_buffer());
   }
 
   /* Create the instances buffer and upload the instance data. */
