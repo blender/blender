@@ -2115,13 +2115,6 @@ class ActionFCurveMoveTest : public bke::BlenderGTestBase {
   {
     BKE_main_free(bmain);
   }
-
-  static FCurve *fcurve_create(const StringRefNull rna_path, const int array_index)
-  {
-    FCurve *fcurve = BKE_fcurve_create();
-    fcurve->rna_path_set(rna_path.substr(0, std::min<int64_t>(rna_path.size(), array_index)));
-    return fcurve;
-  };
 };
 
 TEST_F(ActionFCurveMoveTest, test_fcurve_move_layered)
