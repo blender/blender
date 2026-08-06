@@ -83,7 +83,7 @@ void Sampling::init(const Scene *scene)
   /* Only multiply after to have full the full DoF web pattern for each time steps. */
   sample_count_ *= motion_blur_steps_;
 
-  auto clamp_value_load = [](float value) { return (value > 0.0) ? value : 1e20; };
+  auto clamp_value_load = [](float value) { return (value > 0.0) ? value : unclamped_max; };
 
   clamp_data_.sun_threshold = clamp_value_load(inst_.world.sun_threshold());
   clamp_data_.surface_direct = clamp_value_load(scene->eevee.clamp_surface_direct);

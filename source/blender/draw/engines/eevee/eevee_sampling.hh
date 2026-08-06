@@ -37,6 +37,7 @@ class Sampling {
   static constexpr uint64_t interactive_sample_max_ = interactive_sample_aa_ *
                                                       interactive_sample_raytrace_ *
                                                       interactive_sample_volume_;
+  static constexpr float unclamped_max = 1e20;
 
   /** 0 based current sample. Might not increase sequentially in viewport. */
   uint64_t sample_ = 0;
@@ -169,12 +170,12 @@ class Sampling {
 
   bool use_clamp_direct() const
   {
-    return clamp_data_.surface_direct != 0.0f;
+    return clamp_data_.surface_direct != unclamped_max;
   }
 
   bool use_clamp_indirect() const
   {
-    return clamp_data_.surface_indirect != 0.0f;
+    return clamp_data_.surface_indirect != unclamped_max;
   }
 
   bool use_direct_scale() const
