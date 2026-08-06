@@ -14,10 +14,11 @@
 
 #include "BLF_api.hh"
 
-#include "BLI_linklist.hh"
+#include "BLI_array.hh"
 #include "BLI_listbase.hh"
 #include "BLI_map.hh"
 #include "BLI_math_color_c.hh"
+#include "BLI_math_geom.hh"
 #include "BLI_math_geom_c.hh"
 #include "BLI_math_matrix_c.hh"
 #include "BLI_math_rotation_c.hh"
@@ -4730,16 +4731,12 @@ void MESH_OT_knife_tool(wmOperatorType *ot)
  * Can be used for internal slicing operations.
  * \{ */
 
-static bool edbm_mesh_knife_point_isect(LinkNode *polys, const float cent_ss[2])
+static bool edbm_mesh_knife_point_isect(const Span<Array<float2>> polys, const float2 cent_ss)
 {
-  LinkNode *p = polys;
   int isect = 0;
 
-  while (p) {
-    const float (*mval_fl)[2] = static_cast<const float (*)[2]>(p->link);
-    const int mval_tot = MEM_allocN_len(mval_fl) / sizeof(*mval_fl);
-    isect += int(isect_point_poly_v2(cent_ss, mval_fl, mval_tot - 1));
-    p = p->next;
+  for (const Array<float2> &poly : polys) {
+    isect += int(math::isect_point_poly(cent_ss, poly.as_span().drop_back(1)));
   }
 
   if (isect % 2) {
@@ -4748,8 +4745,11 @@ static bool edbm_mesh_knife_point_isect(LinkNode *polys, const float cent_ss[2])
   return false;
 }
 
-void EDBM_mesh_knife(
-    ViewContext *vc, const Span<Object *> objects, LinkNode *polys, bool use_tag, bool cut_through)
+void EDBM_mesh_knife(ViewContext *vc,
+                     const Span<Object *> objects,
+                     const Span<Array<float2>> polys,
+                     bool use_tag,
+                     bool cut_through)
 {
   KnifeTool_OpData *kcd;
 
@@ -4781,26 +4781,19 @@ void EDBM_mesh_knife(
 
   /* Execute. */
   {
-    LinkNode *p = polys;
-
     knife_recalc_ortho(kcd);
 
-    while (p) {
-      const float (*mval_fl)[2] = static_cast<const float (*)[2]>(p->link);
-      const int mval_tot = MEM_allocN_len(mval_fl) / sizeof(*mval_fl);
-      int i;
-
-      knife_start_cut(kcd, mval_fl[0]);
+    for (const Array<float2> &poly : polys) {
+      knife_start_cut(kcd, poly[0]);
       kcd->mode = MODE_DRAGGING;
 
-      for (i = 1; i < mval_tot; i++) {
-        knifetool_update_mval(kcd, mval_fl[i]);
+      for (const float2 &mval : poly.as_span().drop_front(1)) {
+        knifetool_update_mval(kcd, mval);
         knife_add_cut(kcd);
       }
 
       knife_finish_cut(kcd);
       kcd->mode = MODE_IDLE;
-      p = p->next;
     }
   }
 
