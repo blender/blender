@@ -388,7 +388,7 @@ mf::Variable *MultiFunctionProcedureOperation::get_multi_function_input_variable
   if (result.is_single_value()) {
     const mf::MultiFunction &constant_function =
         procedure_.construct_function<mf::CustomMF_GenericConstant>(
-            *result.single_value().type(), result.single_value().get(), false);
+            *result.single_value().type(), result.single_value().get(), true);
     mf::Variable *constant_variable = procedure_builder_.add_call<1>(constant_function)[0];
     implicit_variables_.append(constant_variable);
     result.release();
