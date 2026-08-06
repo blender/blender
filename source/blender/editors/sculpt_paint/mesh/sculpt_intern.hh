@@ -166,11 +166,14 @@ struct TileColorspaceProcessor : NonCopyable {
   bool is_srgb_byte = false;
 };
 
+using BufferType = std::variant<std::monostate, MutableSpan<float4>, MutableSpan<uchar4>>;
+
 struct ImageData : NonCopyable {
   Image *image = nullptr;
   ImageUser *image_user = nullptr;
 
-  Map<bke::image::TileNumber, ImBuf *> buffers = {};
+  Map<bke::image::TileNumber, ImBuf *> image_buffers = {};
+  Map<bke::image::TileNumber, BufferType> data_buffers = {};
   Map<bke::image::TileNumber, TileColorspaceProcessor> processors = {};
 
   /** Per undo tile, to quickly check if it was already pushed. */

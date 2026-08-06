@@ -56,14 +56,14 @@ ImageData::~ImageData()
     return;
   }
 
-  BLI_assert(buffers.size() <= image->tiles.count());
-  for (ImBuf *buffer : buffers.values()) {
+  BLI_assert(image_buffers.size() <= image->tiles.count());
+  for (ImBuf *buffer : image_buffers.values()) {
     if (buffer) {
       buffer->gpu.flag &= ~IMB_GPU_DISABLE_MIPMAP_UPDATE;
     }
     BKE_image_release_ibuf(image, buffer, nullptr);
   }
-  buffers.clear();
+  image_buffers.clear();
 }
 std::unique_ptr<ImageData> ImageData::init_active_image(Object &ob,
                                                         PaintModeSettings &paint_mode_settings)
@@ -87,7 +87,7 @@ static void fetch_image_buffers(ImageData &image_data,
 {
   PRF_scope(ProfileCategory::Editor);
   for (const UDIMTilePixels &tile : pixel_node.tiles) {
-    const ImBuf *buffer = image_data.buffers.lookup_or_add_cb(tile.tile_number, [&]() {
+    ImBuf *buffer = image_data.image_buffers.lookup_or_add_cb(tile.tile_number, [&]() {
       ImageUser tile_user = *image_data.image_user;
       tile_user.tile = tile.tile_number;
 
@@ -146,6 +146,19 @@ static void fetch_image_buffers(ImageData &image_data,
 
         return processor;
       });
+      if (buffer->float_data()) {
+        BLI_assert(ELEM(buffer->channels, 0, 4));
+        image_data.data_buffers.add_overwrite(
+            tile.tile_number,
+            MutableSpan(reinterpret_cast<float4 *>(buffer->float_data_for_write()),
+                        IMB_get_pixel_count(buffer)));
+      }
+      else {
+        image_data.data_buffers.add_overwrite(
+            tile.tile_number,
+            MutableSpan(reinterpret_cast<uchar4 *>(buffer->byte_data_for_write()),
+                        IMB_get_pixel_count(buffer)));
+      }
     }
   }
 }
@@ -491,22 +504,16 @@ static void do_paint_pixels(const Depsgraph &depsgraph,
   const Bounds<float3> brush_bounds(location - radius, location + radius);
 
   for (UDIMTilePixels &tile_data : pixel_node.tiles) {
-    ImBuf *image_buffer = image_data.buffers.lookup_default(tile_data.tile_number, nullptr);
+    ImBuf *image_buffer = image_data.image_buffers.lookup_default(tile_data.tile_number, nullptr);
     if (image_buffer == nullptr) {
       continue;
     }
 
-    MutableSpan<float4> float_buffer;
-    MutableSpan<uchar4> byte_buffer;
-
-    if (image_buffer->float_data()) {
-      BLI_assert(ELEM(image_buffer->channels, 0, 4));
-      float_buffer = MutableSpan(reinterpret_cast<float4 *>(image_buffer->float_data_for_write()),
-                                 image_buffer->x * image_buffer->y);
-    }
-    else {
-      byte_buffer = MutableSpan(reinterpret_cast<uchar4 *>(image_buffer->byte_data_for_write()),
-                                image_buffer->x * image_buffer->y);
+    BufferType mutable_buffer = image_data.data_buffers.lookup_default(tile_data.tile_number,
+                                                                       BufferType{});
+    if (std::holds_alternative<std::monostate>(mutable_buffer)) {
+      BLI_assert_unreachable();
+      continue;
     }
 
     const TileColorspaceProcessor *processors = image_data.processors.lookup_ptr(
@@ -631,12 +638,12 @@ static void do_paint_pixels(const Depsgraph &depsgraph,
                         run_y);
 
         /* Blend pixels with computed factors. */
-        if (!float_buffer.is_empty()) {
+        if (std::holds_alternative<MutableSpan<float4>>(mutable_buffer)) {
           paint_blend_pixels<float4>(blend_settings,
                                      factors,
                                      run_active_begin,
                                      run_active_size,
-                                     float_buffer,
+                                     std::get<MutableSpan<float4>>(mutable_buffer),
                                      run_y * image_buffer->x + run_active_x,
                                      run_y,
                                      *processors,
@@ -647,7 +654,7 @@ static void do_paint_pixels(const Depsgraph &depsgraph,
                                      factors,
                                      run_active_begin,
                                      run_active_size,
-                                     byte_buffer,
+                                     std::get<MutableSpan<uchar4>>(mutable_buffer),
                                      run_y * image_buffer->x + run_active_x,
                                      run_y,
                                      *processors,
@@ -707,7 +714,7 @@ static void fix_non_manifold_seam_bleeding(bke::pbvh::Tree &pbvh,
 {
   PRF_scope(ProfileCategory::Editor);
   for (image::TileNumber tile_number : tile_numbers_to_fix) {
-    ImBuf *image_buffer = image_data.buffers.lookup_default(tile_number, nullptr);
+    ImBuf *image_buffer = image_data.image_buffers.lookup_default(tile_number, nullptr);
     if (image_buffer == nullptr) {
       continue;
     }
@@ -715,7 +722,7 @@ static void fix_non_manifold_seam_bleeding(bke::pbvh::Tree &pbvh,
 
     bke::pbvh::pixels::copy_pixels(
         pbvh,
-        image_data.buffers,
+        image_data.image_buffers,
         tile_number,
         image_data.seam_tile_modified.lookup(tile_number),
         [&](const int x_start, const int x_end, const int y) {
@@ -791,7 +798,7 @@ void SCULPT_do_paint_brush_image(const Depsgraph &depsgraph,
 
   node_mask.foreach_index([&](const int i) {
     bke::pbvh::pixels::mark_image_dirty(
-        nodes[i], pixel_nodes[i], *image_data.image, image_data.buffers);
+        nodes[i], pixel_nodes[i], *image_data.image, image_data.image_buffers);
   });
 }
 
