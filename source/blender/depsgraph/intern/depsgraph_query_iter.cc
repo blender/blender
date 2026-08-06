@@ -306,7 +306,7 @@ static Object *find_object_with_preview_geometry(const ViewerPath &viewer_path)
     return nullptr;
   }
   Object *object = reinterpret_cast<Object *>(id_elem->id);
-  if (elem->next->type != VIEWER_PATH_ELEM_TYPE_MODIFIER) {
+  if (elem->next == nullptr || elem->next->type != VIEWER_PATH_ELEM_TYPE_MODIFIER) {
     return nullptr;
   }
   const ModifierViewerPathElem *modifier_elem = reinterpret_cast<const ModifierViewerPathElem *>(
