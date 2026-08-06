@@ -356,7 +356,7 @@ bNodeSocket &version_node_add_socket(bNodeTree &ntree,
     BLI_addtail(&node.outputs, socket);
   }
 
-  node_socket_init_default_value_data(stype->type, stype->subtype, &socket->default_value);
+  socket->default_value = bke::socket_value_new(stype->type, stype->subtype);
 
   BKE_ntree_update_tag_socket_new(&ntree, socket);
   return *socket;

@@ -65,208 +65,16 @@ static bool is_supported_socket_type(const StringRef socket_type)
 }
 
 /* -------------------------------------------------------------------- */
-/** \name ID User Increment in Socket Data
+/** \name Allocate Socket Data
  * \{ */
-
-template<typename T> void socket_data_id_user_increment(T & /*data*/) {}
-template<> void socket_data_id_user_increment(bNodeSocketValueObject &data)
-{
-  id_us_plus(reinterpret_cast<ID *>(data.value));
-}
-template<> void socket_data_id_user_increment(bNodeSocketValueImage &data)
-{
-  id_us_plus(reinterpret_cast<ID *>(data.value));
-}
-template<> void socket_data_id_user_increment(bNodeSocketValueCollection &data)
-{
-  id_us_plus(reinterpret_cast<ID *>(data.value));
-}
-template<> void socket_data_id_user_increment(bNodeSocketValueTexture &data)
-{
-  id_us_plus(reinterpret_cast<ID *>(data.value));
-}
-template<> void socket_data_id_user_increment(bNodeSocketValueMaterial &data)
-{
-  id_us_plus(reinterpret_cast<ID *>(data.value));
-}
-template<> void socket_data_id_user_increment(bNodeSocketValueFont &data)
-{
-  id_us_plus(reinterpret_cast<ID *>(data.value));
-}
-template<> void socket_data_id_user_increment(bNodeSocketValueScene &data)
-{
-  id_us_plus(reinterpret_cast<ID *>(data.value));
-}
-template<> void socket_data_id_user_increment(bNodeSocketValueText &data)
-{
-  id_us_plus(reinterpret_cast<ID *>(data.value));
-}
-template<> void socket_data_id_user_increment(bNodeSocketValueMask &data)
-{
-  id_us_plus(reinterpret_cast<ID *>(data.value));
-}
-template<> void socket_data_id_user_increment(bNodeSocketValueSound &data)
-{
-  id_us_plus(reinterpret_cast<ID *>(data.value));
-}
-
-/** \} */
-
-/* -------------------------------------------------------------------- */
-/** \name ID User Decrement in Socket Data
- * \{ */
-
-template<typename T> void socket_data_id_user_decrement(T & /*data*/) {}
-template<> void socket_data_id_user_decrement(bNodeSocketValueObject &data)
-{
-  id_us_min(reinterpret_cast<ID *>(data.value));
-}
-template<> void socket_data_id_user_decrement(bNodeSocketValueImage &data)
-{
-  id_us_min(reinterpret_cast<ID *>(data.value));
-}
-template<> void socket_data_id_user_decrement(bNodeSocketValueCollection &data)
-{
-  id_us_min(reinterpret_cast<ID *>(data.value));
-}
-template<> void socket_data_id_user_decrement(bNodeSocketValueTexture &data)
-{
-  id_us_min(reinterpret_cast<ID *>(data.value));
-}
-template<> void socket_data_id_user_decrement(bNodeSocketValueMaterial &data)
-{
-  id_us_min(reinterpret_cast<ID *>(data.value));
-}
-template<> void socket_data_id_user_decrement(bNodeSocketValueFont &data)
-{
-  id_us_min(reinterpret_cast<ID *>(data.value));
-}
-template<> void socket_data_id_user_decrement(bNodeSocketValueScene &data)
-{
-  id_us_min(reinterpret_cast<ID *>(data.value));
-}
-template<> void socket_data_id_user_decrement(bNodeSocketValueText &data)
-{
-  id_us_min(reinterpret_cast<ID *>(data.value));
-}
-template<> void socket_data_id_user_decrement(bNodeSocketValueMask &data)
-{
-  id_us_min(reinterpret_cast<ID *>(data.value));
-}
-template<> void socket_data_id_user_decrement(bNodeSocketValueSound &data)
-{
-  id_us_min(reinterpret_cast<ID *>(data.value));
-}
-
-/** \} */
-
-/* -------------------------------------------------------------------- */
-/** \name Initialize Socket Data
- * \{ */
-
-template<typename T> void socket_data_init_impl(T & /*data*/) {}
-template<> void socket_data_init_impl(bNodeSocketValueFloat &data)
-{
-  data.subtype = PROP_NONE;
-  data.value = 0.0f;
-  data.min = -FLT_MAX;
-  data.max = FLT_MAX;
-}
-template<> void socket_data_init_impl(bNodeSocketValueInt &data)
-{
-  data.subtype = PROP_NONE;
-  data.value = 0;
-  data.min = INT_MIN;
-  data.max = INT_MAX;
-}
-template<> void socket_data_init_impl(bNodeSocketValueBoolean &data)
-{
-  data.value = false;
-}
-template<> void socket_data_init_impl(bNodeSocketValueRotation & /*data*/) {}
-template<> void socket_data_init_impl(bNodeSocketValueVector &data)
-{
-  static float default_value[] = {0.0f, 0.0f, 0.0f};
-  data.subtype = PROP_NONE;
-  data.dimensions = 3;
-  copy_v3_v3(data.value, default_value);
-  data.min = -FLT_MAX;
-  data.max = FLT_MAX;
-}
-template<> void socket_data_init_impl(bNodeSocketValueIntVector &data)
-{
-  data.subtype = PROP_NONE;
-  data.dimensions = 3;
-  zero_v3_int(data.value);
-  data.min = INT_MIN;
-  data.max = INT_MAX;
-}
-template<> void socket_data_init_impl(bNodeSocketValueRGBA &data)
-{
-  static float default_value[] = {0.0f, 0.0f, 0.0f, 1.0f};
-  copy_v4_v4(data.value, default_value);
-}
-template<> void socket_data_init_impl(bNodeSocketValueString &data)
-{
-  data.subtype = PROP_NONE;
-  data.value[0] = '\0';
-}
-template<> void socket_data_init_impl(bNodeSocketValueObject &data)
-{
-  data.value = nullptr;
-}
-template<> void socket_data_init_impl(bNodeSocketValueImage &data)
-{
-  data.value = nullptr;
-}
-template<> void socket_data_init_impl(bNodeSocketValueCollection &data)
-{
-  data.value = nullptr;
-}
-template<> void socket_data_init_impl(bNodeSocketValueTexture &data)
-{
-  data.value = nullptr;
-}
-template<> void socket_data_init_impl(bNodeSocketValueMaterial &data)
-{
-  data.value = nullptr;
-}
-template<> void socket_data_init_impl(bNodeSocketValueFont &data)
-{
-  data.value = nullptr;
-}
-template<> void socket_data_init_impl(bNodeSocketValueScene &data)
-{
-  data.value = nullptr;
-}
-template<> void socket_data_init_impl(bNodeSocketValueText &data)
-{
-  data.value = nullptr;
-}
-template<> void socket_data_init_impl(bNodeSocketValueMask &data)
-{
-  data.value = nullptr;
-}
-template<> void socket_data_init_impl(bNodeSocketValueSound &data)
-{
-  data.value = nullptr;
-}
-template<> void socket_data_init_impl(bNodeSocketValueMenu &data)
-{
-  data.value = -1;
-  data.enum_items = nullptr;
-  data.runtime_flag = 0;
-}
 
 static void *make_socket_data(const StringRef socket_type)
 {
-  void *socket_data = nullptr;
-  socket_data_to_static_type(socket_type, [&socket_data]<typename SocketDataType>() {
-    SocketDataType *new_socket_data = MEM_new<SocketDataType>("make_socket_data");
-    socket_data_init_impl(*new_socket_data);
-    socket_data = new_socket_data;
-  });
-  return socket_data;
+  const bNodeSocketType *stype = node_socket_type_find(socket_type);
+  if (!stype) {
+    return nullptr;
+  }
+  return socket_value_new(stype->type, stype->subtype);
 }
 
 /** \} */
@@ -275,28 +83,15 @@ static void *make_socket_data(const StringRef socket_type)
 /** \name Free Allocated Socket Data
  * \{ */
 
-template<typename T> void socket_data_free_impl(T *data, const bool /*do_id_user*/)
-{
-  MEM_delete(data);
-}
-template<> void socket_data_free_impl(bNodeSocketValueMenu *data, const bool /*do_id_user*/)
-{
-  if (data->enum_items) {
-    /* Release shared data pointer. */
-    data->enum_items->remove_user_and_delete_if_last();
-  }
-  MEM_delete(data);
-}
-
 static void socket_data_free(bNodeTreeInterfaceSocket &socket, const bool do_id_user)
 {
-  socket_data_to_static_type(socket.socket_type, [&]<typename SocketDataType>() {
-    if (do_id_user) {
-      socket_data_id_user_decrement(get_socket_data_as<SocketDataType>(socket));
-    }
-    socket_data_free_impl(&get_socket_data_as<SocketDataType>(socket), do_id_user);
-    socket.socket_data = nullptr;
-  });
+  if (socket.socket_data == nullptr) {
+    return;
+  }
+  if (const bNodeSocketType *stype = socket.socket_typeinfo()) {
+    socket_value_free(stype->type, socket.socket_data, do_id_user);
+  }
+  socket.socket_data = nullptr;
 }
 
 /** \} */
@@ -305,32 +100,14 @@ static void socket_data_free(bNodeTreeInterfaceSocket &socket, const bool do_id_
 /** \name Copy Allocated Socket Data
  * \{ */
 
-template<typename T> T *socket_data_copy_impl(const T &src)
-{
-  return MEM_new<T>(__func__, src);
-}
-template<> bNodeSocketValueMenu *socket_data_copy_impl(const bNodeSocketValueMenu &src)
-{
-  bNodeSocketValueMenu *dst = MEM_new<bNodeSocketValueMenu>(__func__, src);
-  /* Copy of shared data pointer. */
-  if (dst->enum_items) {
-    dst->enum_items->add_user();
-  }
-  return dst;
-}
-
 static void socket_data_copy(bNodeTreeInterfaceSocket &dst,
                              const bNodeTreeInterfaceSocket &src,
                              int flag)
 {
-  socket_data_to_static_type(dst.socket_type, [&]<typename SocketDataType>() {
-    if (src.socket_data) {
-      dst.socket_data = socket_data_copy_impl(get_socket_data_as<SocketDataType>(src));
-    }
-    if ((flag & LIB_ID_CREATE_NO_USER_REFCOUNT) == 0) {
-      socket_data_id_user_increment(get_socket_data_as<SocketDataType>(dst));
-    }
-  });
+  const bool do_id_user = (flag & LIB_ID_CREATE_NO_USER_REFCOUNT) == 0;
+  if (const bNodeSocketType *stype = src.socket_typeinfo()) {
+    dst.socket_data = socket_value_copy(stype->type, src.socket_data, do_id_user);
+  }
 }
 
 /* Copy socket data from a raw pointer, e.g. from a #bNodeSocket. */
@@ -338,19 +115,14 @@ static void socket_data_copy_ptr(bNodeTreeInterfaceSocket &dst,
                                  const void *src_socket_data,
                                  int flag)
 {
-  socket_data_to_static_type(dst.socket_type, [&]<typename SocketDataType>() {
-    if (dst.socket_data != nullptr) {
-      socket_data_free(dst, true);
-    }
+  if (dst.socket_data != nullptr) {
+    socket_data_free(dst, true);
+  }
 
-    if (src_socket_data) {
-      dst.socket_data = socket_data_copy_impl(
-          *static_cast<const SocketDataType *>(src_socket_data));
-    }
-    if ((flag & LIB_ID_CREATE_NO_USER_REFCOUNT) == 0) {
-      socket_data_id_user_increment(get_socket_data_as<SocketDataType>(dst));
-    }
-  });
+  const bool do_id_user = (flag & LIB_ID_CREATE_NO_USER_REFCOUNT) == 0;
+  if (const bNodeSocketType *stype = dst.socket_typeinfo()) {
+    dst.socket_data = socket_value_copy(stype->type, src_socket_data, do_id_user);
+  }
 }
 
 /** \} */
@@ -1607,8 +1379,7 @@ bNode *create_proxy_const_input_node(const eNodeSocketDatatype socket_type,
     case SOCK_FLOAT: {
       bNode *node = bke::node_add_node(&C, dst_tree, "ShaderNodeValue"_ustr);
       bNodeSocket *socket = static_cast<bNodeSocket *>(node->outputs.first);
-      *socket->default_value_typed<bNodeSocketValueFloat>() =
-          *static_cast<const bNodeSocketValueFloat *>(value);
+      socket_value_copy_content(SOCK_FLOAT, socket->default_value, value, true);
       anim_basepaths.append(
           {src_property_path, get_socket_property_path(dst_tree, *socket, "default_value")});
       return node;
@@ -1886,7 +1657,7 @@ bNode *create_proxy_converter_node(const eNodeSocketDatatype socket_type,
   BKE_ntree_update_after_single_tree_change(*CTX_data_main(&C), dst_tree);
 
   bNodeSocket *socket = static_cast<bNodeSocket *>(proxy_node->inputs.first);
-  node_socket_copy_default_value_data(socket->type, socket->default_value, src_value);
+  bke::socket_value_copy_content(socket->type, socket->default_value, src_value, true);
 
   proxy_node->flag |= NODE_COLLAPSED;
 
