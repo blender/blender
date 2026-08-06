@@ -110,7 +110,7 @@ BLOCKLIST_AMD_VK = [
     ".*"
 ]
 
-BLOCKLIST_INTEL_WINDOWS_GL = [
+BLOCKLIST_INTEL_WINDOWS = [
     # Fails sporadically and causes all subsequent volume tests to fail (See #153612).
     "volume_instance.blend"
 ]
@@ -348,8 +348,8 @@ def main():
     if os.getenv("BLENDER_TEST_IGNORE_VENDOR_BLOCKLIST") is None:
         if gpu_vendor == "INTEL":
             blocklist += BLOCKLIST_INTEL
-        if gpu_vendor == "INTEL" and sys.platform == "win32" and args.gpu_backend == "opengl":
-            blocklist += BLOCKLIST_INTEL_WINDOWS_GL
+        if gpu_vendor == "INTEL" and sys.platform == "win32":
+            blocklist += BLOCKLIST_INTEL_WINDOWS
         if gpu_vendor == "NVIDIA" and args.gpu_backend == "opengl":
             blocklist += BLOCKLIST_NVIDIA_GL
         if gpu_vendor == "AMD" and sys.platform == "win32" and args.gpu_backend == "vulkan":
