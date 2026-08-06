@@ -467,6 +467,17 @@ void VKTexturePool::release_texture(Texture *texture)
   VKImageInfo image_info = texture_handle.image_info;
   AllocationHandle allocation_handle = allocations_.lookup_key({image_info.allocation});
 
+  /* Avoiding WRITE_AFTER_WRITE/READ_AFTER_WRITE hazards (#161990) when reusing the same cached
+   * VkImage. */
+  VKContext &context = *VKContext::get();
+  render_graph::VKSynchronizationNode::CreateInfo synchronization = {
+      .vk_image = texture_handle.texture->vk_image_handle(),
+      .vk_image_layout = VK_IMAGE_LAYOUT_GENERAL,
+      .vk_image_aspect = to_vk_image_aspect_flag_bits(texture_handle.texture->device_format_get()),
+      .vk_access_flags = VK_ACCESS_MEMORY_READ_BIT | VK_ACCESS_MEMORY_WRITE_BIT,
+  };
+  context.render_graph().add_node(synchronization);
+
   if (G.debug & G_DEBUG_GPU) {
     current_usage_data_.acquired_segment_size -= image_info.segment.size;
   }
