@@ -4634,6 +4634,9 @@ BlendFileData *blo_read_file_internal(FileData *fd, const char *filepath)
       /* Update invariants after re-generating overrides. */
       BKE_main_ensure_invariants(*bfd->main);
 
+      /* Some versioning code can leave some ID link status tags in invalid state, due to low-level
+       * manipulations of these instead of using API like `id_lib_extern`, which will be also fixed
+       * by this call. */
       BKE_main_id_indirect_linked_update(*bfd->main);
 
       fd->reports->duration.lib_overrides = BLI_time_now_seconds() -
@@ -5588,6 +5591,12 @@ static void library_link_end(Main *mainl, FileData **fd, const int flag, ReportL
   if ((flag & BLO_LIBLINK_COLLECTION_NO_HIERARCHY_REBUILD) == 0) {
     BKE_main_collections_parent_relations_rebuild(mainvar);
   }
+
+  /* Linking may have changed some data link status.
+   * Further more, some versioning code can leave some ID link status tags in invalid state, due to
+   * low-level manipulations of these instead of using API like `id_lib_extern`, which will be also
+   * fixed by this call. */
+  BKE_main_id_indirect_linked_update(*mainvar);
 
   /* Make all relative paths, relative to the open blend file. */
   fix_relpaths_library(BKE_main_blendfile_path(mainvar), mainvar);
