@@ -25,6 +25,7 @@
 
 #include "SEQ_animation.hh"
 #include "SEQ_channels.hh"
+#include "SEQ_effects.hh"
 #include "SEQ_iterator.hh"
 #include "SEQ_render.hh"
 #include "SEQ_retiming.hh"
@@ -176,6 +177,17 @@ void time_update_meta_strip_range(const Scene *scene, Strip *strip_meta)
   time_update_meta_strip_range(scene, lookup_meta_by_strip(scene->ed, strip_meta));
 }
 
+static bool transition_inputs_have_wrong_order(const Scene *scene,
+                                               const Strip *input1,
+                                               const Strip *input2)
+{
+  const int first_start = input1->left_handle();
+  const int second_start = input2->left_handle();
+  return (first_start > second_start) ||
+         (first_start == second_start &&
+          input1->right_handle(scene) > input2->right_handle(scene));
+}
+
 void strip_time_effect_range_set(const Scene *scene, Strip *strip)
 {
   if (strip->input1 == nullptr && strip->input2 == nullptr) {
@@ -186,6 +198,13 @@ void strip_time_effect_range_set(const Scene *scene, Strip *strip)
     strip->startdisp = max_ii(strip->input1->left_handle(), strip->input2->left_handle());
     strip->enddisp = min_ii(strip->input1->right_handle(scene),
                             strip->input2->right_handle(scene));
+
+    /* Sort by timeline frame so 2-input transitions go "from" earlier "to" later. */
+    if (effect_is_transition(strip->type) &&
+        transition_inputs_have_wrong_order(scene, strip->input1, strip->input2))
+    {
+      std::swap(strip->input1, strip->input2);
+    }
   }
   else if (strip->input1) { /* Single input effect. */
     strip->startdisp = strip->input1->right_handle(scene);
