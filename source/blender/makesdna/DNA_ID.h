@@ -712,6 +712,7 @@ struct PreviewImage {
  * BKE_library_override typically (especially due to the check on ID_TAG_EXTERN). */
 #define ID_IS_OVERRIDABLE_LIBRARY_HIERARCHY(_id) \
   (ID_IS_LINKED(_id) && !ID_MISSING(_id) && \
+   (id_cast<const ID *>(_id)->flag & ID_FLAG_EMBEDDED_DATA) == 0 && \
    (BKE_idtype_get_info_from_id(id_cast<const ID *>(_id))->flags & IDTYPE_FLAGS_NO_LIBLINKING) == \
        0 && \
    !ELEM((id_cast<const ID *>(_id))->id_type(), ID_SCE))
