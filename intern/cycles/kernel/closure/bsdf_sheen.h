@@ -9,6 +9,7 @@
  * https://tizianzeltner.com/projects/Zeltner2022Practical/
  */
 
+#include "kernel/closure/alloc.h"
 #include "kernel/sample/mapping.h"
 
 #include "kernel/util/lookup_table.h"
@@ -24,13 +25,24 @@ struct SheenBsdf {
 
 static_assert(sizeof(ShaderClosure) >= sizeof(SheenBsdf), "SheenBsdf is too large!");
 
-ccl_device int bsdf_sheen_setup(KernelGlobals kg,
-                                const ccl_private ShaderData *sd,
-                                ccl_private SheenBsdf *bsdf)
+/* Set up sheen BSDF, and return the closure albedo for layering. */
+ccl_device Spectrum bsdf_sheen_setup(KernelGlobals kg,
+                                     ccl_private ShaderData *sd,
+                                     const uint32_t path_flag,
+                                     const Spectrum weight,
+                                     const float3 N,
+                                     const float roughness)
 {
-  bsdf->type = CLOSURE_BSDF_SHEEN_ID;
+  SheenBsdf sheen;
+  ccl_private SheenBsdf *bsdf = bsdf_alloc_maybe_emission(sd, &sheen, path_flag, weight);
 
-  bsdf->roughness = clamp(bsdf->roughness, 1e-3f, 1.0f);
+  if (!bsdf) {
+    return zero_spectrum();
+  }
+
+  bsdf->type = CLOSURE_BSDF_SHEEN_ID;
+  bsdf->N = N;
+  bsdf->roughness = clamp(roughness, 1e-3f, 1.0f);
   make_orthonormals_safe_tangent(bsdf->N, sd->wi, &bsdf->T, &bsdf->B);
   const float cosNI = dot(bsdf->N, sd->wi);
 
@@ -44,13 +56,17 @@ ccl_device int bsdf_sheen_setup(KernelGlobals kg,
   if (fabsf(bsdf->transformA) < 1e-5f || albedo < 1e-5f) {
     bsdf->type = CLOSURE_NONE_ID;
     bsdf->sample_weight = 0.0f;
-    return 0;
+    return zero_spectrum();
   }
 
   bsdf->weight *= albedo;
   bsdf->sample_weight *= albedo;
+  if (bsdf != &sheen) {
+    /* Add flag only if the closure is actually allocated in `sd->closure`. */
+    sd->runtime_flag |= (SR_BSDF | SR_BSDF_HAS_EVAL);
+  }
 
-  return SR_BSDF | SR_BSDF_HAS_EVAL;
+  return bsdf->weight;
 }
 
 ccl_device Spectrum bsdf_sheen_eval(const ccl_private ShaderClosure *sc,

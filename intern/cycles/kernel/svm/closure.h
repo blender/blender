@@ -119,28 +119,16 @@ principled_bsdf_emission(KernelGlobals kg,
   if (sheen_weight > CLOSURE_WEIGHT_CUTOFF) {
     const float3 sheen_tint = max(stack_load(stack, data.sheen_tint), zero_float3());
     const float sheen_roughness = saturatef(stack_load(stack, data.sheen_roughness));
-    SheenBsdf sheen;
-    ccl_private SheenBsdf *bsdf = bsdf_alloc_maybe_emission(
-        sd, &sheen, path_flag, sheen_weight * rgb_to_spectrum(sheen_tint) * weight);
+    const float3 coat_normal = safe_normalize_fallback(
+        stack_load_float3_default(stack, data.coat_normal_offset, N), sd->N);
+    const float3 sheen_N = safe_normalize(mix(N, coat_normal, saturatef(coat_weight)));
 
-    if (bsdf) {
-      const float3 coat_normal = safe_normalize_fallback(
-          stack_load_float3_default(stack, data.coat_normal_offset, N), sd->N);
-      bsdf->N = safe_normalize(mix(N, coat_normal, saturatef(coat_weight)));
-      bsdf->roughness = sheen_roughness;
+    const Spectrum closure_weight = sheen_weight * rgb_to_spectrum(sheen_tint) * weight;
+    const Spectrum albedo = bsdf_sheen_setup(
+        kg, sd, path_flag, closure_weight, sheen_N, sheen_roughness);
 
-      /* setup bsdf */
-      const int sheen_flag = bsdf_sheen_setup(kg, sd, bsdf);
-
-      if (sheen_flag) {
-        sd->runtime_flag |= sheen_flag;
-
-        /* Attenuate lower layers */
-        const Spectrum albedo = bsdf_albedo(
-            kg, sd, (ccl_private ShaderClosure *)bsdf, true, false);
-        weight = closure_layering_weight(albedo, weight);
-      }
-    }
+    /* Attenuate lower layers */
+    weight = closure_layering_weight(albedo, weight);
   }
 
   /* Second layer: Coat */
@@ -862,15 +850,8 @@ ccl_device
       N = safe_normalize_fallback(N, sd->N);
 
       const Spectrum weight = closure_weight * mix_weight;
-      ccl_private SheenBsdf *bsdf = (ccl_private SheenBsdf *)bsdf_alloc(
-          sd, sizeof(SheenBsdf), weight);
-
-      if (bsdf) {
-        bsdf->N = N;
-        bsdf->roughness = saturatef(stack_load(stack, bsdf_data.param1));
-
-        sd->runtime_flag |= bsdf_sheen_setup(kg, sd, bsdf);
-      }
+      const float roughness = saturatef(stack_load(stack, bsdf_data.param1));
+      bsdf_sheen_setup(kg, sd, path_flag, weight, N, roughness);
       break;
     }
     case CLOSURE_BSDF_GLOSSY_TOON_ID:

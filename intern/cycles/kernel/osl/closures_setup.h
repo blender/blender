@@ -782,47 +782,10 @@ ccl_device void osl_closure_ashikhmin_velvet_setup(
 }
 
 /* Sheen */
-
-ccl_device void osl_closure_sheen_setup(KernelGlobals kg,
-                                        ccl_private ShaderData *sd,
-                                        const PathRayVisibility path_visibility,
-                                        const uint32_t path_flag,
-                                        const float3 weight,
-                                        const ccl_private SheenClosure *closure,
-                                        float3 *layer_albedo)
-{
-  osl_zero_albedo(layer_albedo);
-
-  if (osl_closure_skip(kg, path_visibility, LABEL_DIFFUSE)) {
-    return;
-  }
-
-  SheenBsdf sheen;
-  ccl_private SheenBsdf *bsdf = bsdf_alloc_maybe_emission(
-      sd, &sheen, path_flag, rgb_to_spectrum(weight));
-  if (!bsdf) {
-    return;
-  }
-
-  bsdf->N = safe_normalize_fallback(closure->N, sd->N);
-  bsdf->roughness = closure->roughness;
-
-  const int sheen_flag = bsdf_sheen_setup(kg, sd, bsdf);
-
-  if (sheen_flag) {
-    sd->runtime_flag |= sheen_flag;
-
-    if (layer_albedo != nullptr) {
-      *layer_albedo = bsdf->weight;
-    }
-  }
-}
-
-/* MaterialX compatibility */
 ccl_device void osl_closure_sheen_bsdf_setup(KernelGlobals kg,
                                              ccl_private ShaderData *sd,
                                              const PathRayVisibility path_visibility,
-                                             const uint32_t /*path_flag*/,
+                                             const uint32_t path_flag,
                                              const float3 weight,
                                              const ccl_private SheenBSDFClosure *closure,
                                              float3 *layer_albedo)
@@ -833,23 +796,13 @@ ccl_device void osl_closure_sheen_bsdf_setup(KernelGlobals kg,
     return;
   }
 
-  ccl_private SheenBsdf *bsdf = (ccl_private SheenBsdf *)bsdf_alloc(
-      sd, sizeof(SheenBsdf), rgb_to_spectrum(weight * closure->albedo));
-  if (!bsdf) {
-    return;
-  }
+  const float3 N = safe_normalize_fallback(closure->N, sd->N);
+  const Spectrum color = rgb_to_spectrum(closure->albedo);
+  const Spectrum albedo = bsdf_sheen_setup(
+      kg, sd, path_flag, rgb_to_spectrum(weight) * color, N, closure->roughness);
 
-  bsdf->N = safe_normalize_fallback(closure->N, sd->N);
-  bsdf->roughness = closure->roughness;
-
-  const int sheen_flag = bsdf_sheen_setup(kg, sd, bsdf);
-
-  if (sheen_flag) {
-    sd->runtime_flag |= sheen_flag;
-
-    if (layer_albedo != nullptr) {
-      *layer_albedo = bsdf->weight * closure->albedo;
-    }
+  if (layer_albedo) {
+    *layer_albedo = spectrum_to_rgb(albedo);
   }
 }
 

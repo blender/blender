@@ -173,11 +173,6 @@ OSL_CLOSURE_STRUCT_BEGIN(AshikhminVelvet, ashikhmin_velvet)
   OSL_CLOSURE_STRUCT_MEMBER(AshikhminVelvet, FLOAT, float, sigma, nullptr)
 OSL_CLOSURE_STRUCT_END(AshikhminVelvet, ashikhmin_velvet)
 
-OSL_CLOSURE_STRUCT_BEGIN(Sheen, sheen)
-  OSL_CLOSURE_STRUCT_MEMBER(Sheen, VECTOR, packed_float3, N, nullptr)
-  OSL_CLOSURE_STRUCT_MEMBER(Sheen, FLOAT, float, roughness, nullptr)
-OSL_CLOSURE_STRUCT_END(Sheen, sheen)
-
 OSL_CLOSURE_STRUCT_BEGIN(SheenBSDF, sheen_bsdf)
   OSL_CLOSURE_STRUCT_MEMBER(SheenBSDF, VECTOR, packed_float3, N, nullptr)
   OSL_CLOSURE_STRUCT_MEMBER(SheenBSDF, VECTOR, packed_float3, albedo, nullptr)

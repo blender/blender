@@ -26,7 +26,6 @@ closure color phong_ramp(normal N, float exponent, color colors[8]) BUILTIN;
 closure color diffuse_toon(normal N, float size, float smooth) BUILTIN;
 closure color glossy_toon(normal N, float size, float smooth) BUILTIN;
 closure color ashikhmin_velvet(normal N, float sigma) BUILTIN;
-closure color sheen(normal N, float roughness) BUILTIN;
 closure color ambient_occlusion() BUILTIN;
 
 closure color microfacet_f82_tint(
@@ -90,6 +89,12 @@ point camera_shader_raster_position()
 vector camera_shader_random_sample()
 {
   return vector(N);
+}
+
+/* Deprecated, should use `sheen_bsdf()` instead. Can remove in 6.0. */
+closure color sheen(normal N, float roughness)
+{
+  return sheen_bsdf(N, color(1.0), roughness);
 }
 
 #endif /* CCL_STDOSL_H */
