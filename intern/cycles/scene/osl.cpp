@@ -1637,6 +1637,8 @@ void OSLCompiler::parameter_color_array(const char * /*name*/, const array<packe
 
 void OSLCompiler::parameter_string_array(const char * /*name*/, const array<ustring> & /*a*/) {}
 
+void OSLCompiler::parameter_attribute(const char * /*name*/, ustring /*s*/) {}
+
 void OSLCompiler::parameter_texture(const char * /*name*/, const ImageHandle & /*handle*/) {}
 
 void OSLCompiler::parameter_texture_ies(const char * /*name*/, int /*svm_image_texture_id*/) {}
