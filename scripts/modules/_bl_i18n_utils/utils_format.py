@@ -25,7 +25,8 @@ class FormatToken:
     fmt_format_widthprec = set(".0123456789")  # For width and precision.
     fmt_format_codes = set("aAbBcdeEfFgGnopsxX?%")
 
-    quick_re_check = re.compile(r"%|{")
+    # Note: We also need to consider a closing `}` here, to handle properly the escaping `}}` case.
+    quick_re_check = re.compile(r"%|{|}")
 
     __slots__ = [
         "token",
@@ -89,8 +90,8 @@ class FormatToken:
 
             idx_fmt = next_format_candidate
             key = ...
-            # `{{` is escaping `{` in 'format' syntax.
-            if idx_fmt < (ln - 1) and string[idx_fmt] == '{' and string[idx_fmt + 1] == '{':
+            # `{{`/`}}` are escaping `{`/`}` in 'format' syntax.
+            if idx_fmt < (ln - 1) and string[idx_fmt] in '{}' and string[idx_fmt + 1] == string[idx_fmt]:
                 stride = idx_fmt - idx + 2
             elif idx_fmt < (ln - 1) and string[idx_fmt] == '{':
                 # The whole 'format' syntax (both from C++ `fmt::format` and Python).
