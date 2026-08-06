@@ -150,6 +150,7 @@ static void node_layout(ui::Layout &layout, bContext * /*C*/, PointerRNA *ptr)
 
 static void node_layout_ex(ui::Layout &layout, bContext *C, PointerRNA *ptr)
 {
+  layout.prop(ptr, "data_type", UI_ITEM_NONE, "", ICON_NONE);
   bNode &node = *static_cast<bNode *>(ptr->data);
   NodeIndexSwitch &storage = node_storage(node);
   if (ui::Layout *panel = layout.panel(C, "index_switch_items", false, IFACE_("Items"))) {
