@@ -304,6 +304,12 @@ static CustomData get_mesh_to_bm_custom_data(const Mesh &mesh,
     }
     CustomData_add_layer_named(
         &custom_data, eCustomDataType(layer.type), CD_SET_DEFAULT, 0, layer.name);
+    if (layer.type == CD_MDISPS && layer.flag & CD_FLAG_EXTERNAL) {
+      const int new_layer_i = CustomData_get_layer_index(&custom_data, layer.type);
+      BLI_assert(new_layer_i != -1);
+      CustomDataLayer &new_layer = custom_data.layers[new_layer_i];
+      new_layer.flag = layer.flag;
+    }
   }
   return custom_data;
 }
@@ -326,6 +332,11 @@ void BM_mesh_bm_from_me(BMesh *bm, const Mesh *mesh, const BMeshFromMeshParams *
   CustomData mesh_pdata = get_mesh_to_bm_custom_data(*mesh, bke::AttrDomain::Face, mask.pmask);
   CustomData mesh_ldata = get_mesh_to_bm_custom_data(*mesh, bke::AttrDomain::Corner, mask.lmask);
 
+  const CustomData &mesh_data = get_mesh_custom_data(*mesh, AttrDomain::Corner);
+  if (mesh_data.external) {
+    mesh_ldata.external = MEM_dupalloc(mesh_data.external);
+  }
+
   Vector<std::string> temporary_layers_to_delete;
 
   for (const int layer_index :
@@ -347,6 +358,8 @@ void BM_mesh_bm_from_me(BMesh *bm, const Mesh *mesh, const BMeshFromMeshParams *
     for (const std::string &name : temporary_layers_to_delete) {
       CustomData_free_layer_named(&mesh_ldata, name);
     }
+
+    MEM_SAFE_DELETE(mesh_ldata.external);
 
     MEM_SAFE_DELETE(mesh_vdata.layers);
     MEM_SAFE_DELETE(mesh_edata.layers);
@@ -1606,6 +1619,12 @@ static void add_bm_cd_to_mesh(const BMesh &bm,
         continue;
       }
       CustomData_add_layer_named(&mesh_data, cd_type, CD_CONSTRUCT, domain_size, layer.name);
+      if (layer.type == CD_MDISPS && layer.flag & CD_FLAG_EXTERNAL) {
+        const int new_layer_i = CustomData_get_layer_index(&mesh_data, layer.type);
+        BLI_assert(new_layer_i != -1);
+        CustomDataLayer &new_layer = mesh_data.layers[new_layer_i];
+        new_layer.flag = layer.flag;
+      }
     }
   }
 }
@@ -1721,6 +1740,13 @@ void BM_mesh_bm_to_me(Main *bmain, BMesh *bm, Mesh *mesh, const BMeshToMeshParam
   {
     CustomData_MeshMasks mask = CD_MASK_MESH;
     CustomData_MeshMasks_update(&mask, &params->cd_mask_extra);
+
+    const CustomData &bm_data = get_bm_custom_data(*bm, AttrDomain::Corner);
+    CustomData &mesh_data = get_mesh_custom_data(*mesh, AttrDomain::Corner);
+    if (bm_data.external) {
+      mesh_data.external = MEM_dupalloc(bm_data.external);
+    }
+
     add_bm_cd_to_mesh(*bm, bke::AttrDomain::Point, mask.vmask, *mesh);
     add_bm_cd_to_mesh(*bm, bke::AttrDomain::Edge, mask.emask, *mesh);
     add_bm_cd_to_mesh(*bm, bke::AttrDomain::Face, mask.pmask, *mesh);
@@ -2035,6 +2061,13 @@ void BM_mesh_bm_to_me_compact(BMesh &bm,
 
   if (add_mesh_attributes) {
     const CustomData_MeshMasks &mask_final = mask ? *mask : CD_MASK_DERIVEDMESH;
+
+    const CustomData &bm_data = get_bm_custom_data(bm, AttrDomain::Corner);
+    CustomData &mesh_data = get_mesh_custom_data(mesh, AttrDomain::Corner);
+    if (bm_data.external) {
+      mesh_data.external = MEM_dupalloc(bm_data.external);
+    }
+
     add_bm_cd_to_mesh(bm, bke::AttrDomain::Point, mask_final.vmask, mesh);
     add_bm_cd_to_mesh(bm, bke::AttrDomain::Edge, mask_final.emask, mesh);
     add_bm_cd_to_mesh(bm, bke::AttrDomain::Face, mask_final.pmask, mesh);
