@@ -55,7 +55,11 @@ static CLG_LogRef LOG = {"asset.remote_library"};
 namespace blender::asset_system {
 
 RemoteLibraryDefinitionRef::RemoteLibraryDefinitionRef(const bUserAssetLibrary &library_definition)
-    : remote_url(library_definition.remote_url), cache_dirpath(library_definition.dirpath)
+    : remote_url(library_definition.remote_url),
+      cache_dirpath(library_definition.dirpath),
+      auth_token(library_definition.auth_token ?
+                     std::optional<StringRefNull>(library_definition.auth_token) :
+                     std::nullopt)
 {
   BLI_assert((library_definition.flag & ASSET_LIBRARY_USE_REMOTE_URL) != 0);
 }
@@ -78,7 +82,8 @@ RemoteAssetLibrary::RemoteAssetLibrary(const eAssetLibraryType library_type,
 
 void RemoteAssetLibrary::force_remote_listing_download() const
 {
-  remote_library_request_download(RemoteLibraryDefinitionRef{remote_url_, root_path()});
+  remote_library_request_download(
+      RemoteLibraryDefinitionRef{remote_url_, root_path(), auth_token()});
 }
 
 std::optional<eAssetImportMethod> RemoteAssetLibrary::import_method() const
@@ -146,6 +151,22 @@ bool PreferencesRemoteAssetLibrary::is_enabled() const
   }
 
   return (library_definition->flag & ASSET_LIBRARY_DISABLED) == 0;
+}
+
+std::optional<StringRefNull> PreferencesRemoteAssetLibrary::auth_token() const
+{
+  const bUserAssetLibrary *library_definition = user_library_.user_asset_library();
+  if (library_definition == nullptr) {
+    return std::nullopt;
+  }
+
+  StringRefNull token(library_definition->auth_token);
+  if (token.is_empty()) {
+    return std::nullopt;
+  }
+
+  BLI_assert(library_definition->flag & ASSET_LIBRARY_USE_AUTH_TOKEN);
+  return token;
 }
 
 /** \} */
@@ -628,12 +649,14 @@ void remote_library_request_download(const RemoteLibraryDefinitionRef &library_d
         "from pathlib import Path\n"
         "\n"
         "bl_pkg.remote_asset_library_sync(\n"
-        "    library_url, Path(library_path),\n"
+        "    library_url, auth_token, Path(library_path)\n"
         ")\n";
 
     std::unique_ptr locals = bke::idprop::create_group("locals");
     IDP_AddToGroup(locals.get(), IDP_NewString(library_definition.remote_url, "library_url"));
     IDP_AddToGroup(locals.get(), IDP_NewString(library_definition.cache_dirpath, "library_path"));
+    IDP_AddToGroup(locals.get(),
+                   IDP_NewString(library_definition.auth_token.value_or(""), "auth_token"));
 
     /* TODO: report errors in the UI somehow. */
     BPY_run_string_exec_with_locals(nullptr, script, *locals);
@@ -723,12 +746,13 @@ static std::optional<std::string> remote_library_request_asset_download_file(
       "from pathlib import Path\n"
       "\n"
       "_result = asset_dl.download_asset_file(\n"
-      "    library_url, Path(library_path),\n"
+      "    library_url, auth_token, Path(library_path),\n"
       "    asset_url, asset_hash, Path(dst_filepath),\n"
       ")\n";
 
   std::unique_ptr locals = bke::idprop::create_group("locals");
   IDP_AddToGroup(locals.get(), IDP_NewString(*library.remote_url(), "library_url"));
+  IDP_AddToGroup(locals.get(), IDP_NewString(library.auth_token().value_or(""), "auth_token"));
   IDP_AddToGroup(locals.get(), IDP_NewString(library.root_path(), "library_path"));
   IDP_AddToGroup(locals.get(), IDP_NewString(dst_filepath, "dst_filepath"));
   IDP_AddToGroup(locals.get(), IDP_NewString(asset_url.url, "asset_url"));
@@ -868,12 +892,14 @@ void remote_library_request_preview_download(const bContext &C,
         "from pathlib import Path\n"
         "\n"
         "asset_dl.download_preview(\n"
-        "    library_url, Path(library_path),\n"
+        "    library_url, library_auth_token, Path(library_path),\n"
         "    preview_url, preview_hash, Path(dst_filepath),\n"
         ")\n";
 
     std::unique_ptr locals = bke::idprop::create_group("locals");
     IDP_AddToGroup(locals.get(), IDP_NewString(*library_url, "library_url"));
+    IDP_AddToGroup(locals.get(),
+                   IDP_NewString(library.auth_token().value_or(""), "library_auth_token"));
     IDP_AddToGroup(locals.get(), IDP_NewString(library.root_path(), "library_path"));
     IDP_AddToGroup(locals.get(), IDP_NewString(*preview_url, "preview_url"));
     IDP_AddToGroup(locals.get(), IDP_NewString(*preview_hash, "preview_hash"));

@@ -36,7 +36,8 @@ void AllAssetLibrary::force_remote_listing_download() const
       [&](AssetLibrary &nested) {
         const std::optional<StringRefNull> url = nested.remote_url();
         if (url.has_value()) {
-          remote_library_request_download(RemoteLibraryDefinitionRef{*url, nested.root_path()});
+          remote_library_request_download(
+              RemoteLibraryDefinitionRef{*url, nested.root_path(), nested.auth_token()});
         }
       },
       /*include_all_library=*/false);

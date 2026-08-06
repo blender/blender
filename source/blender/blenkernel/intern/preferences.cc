@@ -88,6 +88,7 @@ bUserAssetLibrary *BKE_preferences_asset_library_add(UserDef *userdef,
 
 void BKE_preferences_asset_library_remove(UserDef *userdef, bUserAssetLibrary *library)
 {
+  MEM_delete(library->auth_token);
   BLI_freelinkN(&userdef->asset_libraries, library);
 }
 
@@ -188,6 +189,21 @@ void BKE_preferences_asset_library_default_add(UserDef *userdef)
   /* Add new "Default" library under '[doc_path]/Blender/Assets'. */
   BLI_path_join(
       library->dirpath, sizeof(library->dirpath), documents_path, N_("Blender"), N_("Assets"));
+}
+
+void BKE_preferences_asset_library_read_data(BlendDataReader *reader, bUserAssetLibrary *library)
+{
+  if (library->auth_token) {
+    BLO_read_string(reader, &library->auth_token);
+  }
+}
+
+void BKE_preferences_asset_library_write_data(BlendWriter *writer,
+                                              const bUserAssetLibrary *library)
+{
+  if (library->auth_token) {
+    writer->write_string(library->auth_token);
+  }
 }
 
 bUserAssetLibrary *BKE_preferences_remote_asset_library_add(UserDef *userdef,

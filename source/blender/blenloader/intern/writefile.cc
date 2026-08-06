@@ -1315,6 +1315,7 @@ static void write_userdef(BlendWriter *writer, const UserDef *userdef)
 
   for (const bUserAssetLibrary &asset_library_ref : userdef->asset_libraries) {
     writer->write_struct(&asset_library_ref);
+    BKE_preferences_asset_library_write_data(writer, &asset_library_ref);
   }
 
   for (const bUserExtensionRepo &repo_ref : userdef->extension_repos) {

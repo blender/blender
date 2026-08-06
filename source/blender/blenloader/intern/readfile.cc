@@ -4139,6 +4139,10 @@ static BHead *read_userdef(BlendFileData *bfd, FileData *fd, BHead *bhead)
     IDP_BlendDataRead(reader, &addon.prop);
   }
 
+  for (bUserAssetLibrary &asset_library_ref : user->asset_libraries) {
+    BKE_preferences_asset_library_read_data(reader, &asset_library_ref);
+  }
+
   for (bUserExtensionRepo &repo_ref : user->extension_repos) {
     BKE_preferences_extension_repo_read_data(reader, &repo_ref);
   }

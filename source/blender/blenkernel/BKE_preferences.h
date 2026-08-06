@@ -122,6 +122,12 @@ bool BKE_preferences_asset_library_is_valid(const UserDef *userdef,
 
 void BKE_preferences_asset_library_default_add(struct UserDef *userdef) ATTR_NONNULL();
 
+void BKE_preferences_asset_library_read_data(struct BlendDataReader *reader,
+                                             struct bUserAssetLibrary *library);
+
+void BKE_preferences_asset_library_write_data(struct BlendWriter *writer,
+                                              const struct bUserAssetLibrary *library);
+
 /** \} */
 
 /* -------------------------------------------------------------------- */

@@ -184,7 +184,8 @@ static void draw_library_list(const bContext &C, ui::Layout &layout)
   ui::TreeViewBuilder::build_tree_view(C, *tree_view, layout);
 }
 
-static void draw_active_library_settings(ui::Layout &layout,
+static void draw_active_library_settings(const bContext *C,
+                                         ui::Layout &layout,
                                          const AnyAssetLibraryDefinition &library)
 {
   if (library.type == ASSET_LIBRARY_ESSENTIALS) {
@@ -217,6 +218,23 @@ static void draw_active_library_settings(ui::Layout &layout,
                  IFACE_("Repository URL"));
       }
       layout.prop(&library_ptr, "import_method", UI_ITEM_NONE, IFACE_("Import Method"), ICON_NONE);
+
+      if (ui::Layout *panel = layout.panel(C, "advanced", true, IFACE_("Advanced"))) {
+        panel->use_property_split_set(true);
+        ui::Layout &column = panel->column(true, IFACE_("Authentication"));
+        column.prop(&library_ptr, "use_auth_token", UI_ITEM_NONE, std::nullopt, ICON_NONE);
+
+        if (library.user_library->flag & ASSET_LIBRARY_USE_AUTH_TOKEN) {
+          column.prop(&library_ptr,
+                      RNA_struct_find_property(&library_ptr, "auth_token"),
+                      RNA_NO_INDEX,
+                      0,
+                      UI_ITEM_NONE,
+                      IFACE_("Secret"),
+                      library.user_library->auth_token ? ICON_LOCKED : ICON_UNLOCKED,
+                      std::nullopt);
+        }
+      }
     }
     else {
       layout.prop(&library_ptr, "path", UI_ITEM_NONE, std::nullopt, ICON_NONE);
@@ -260,7 +278,7 @@ void userpref_asset_libraries_panel_draw(const bContext *C, Panel *panel)
 
   layout.separator();
 
-  draw_active_library_settings(layout, libraries[U.active_asset_library]);
+  draw_active_library_settings(C, layout, libraries[U.active_asset_library]);
 }
 
 }  // namespace blender
