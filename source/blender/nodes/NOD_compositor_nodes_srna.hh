@@ -24,5 +24,8 @@ extern const EnumPropertyItem compositor_nodes_input_type_items_value[];
 std::shared_ptr<GeneratedTreeSrnaData> create_compositor_nodes_rna_for_strip_modifier(
     const bNodeTree &tree);
 
+std::shared_ptr<GeneratedTreeSrnaData> create_compositor_nodes_rna_for_effect(
+    const bNodeTree &tree);
+
 }  // namespace nodes
 }  // namespace blender

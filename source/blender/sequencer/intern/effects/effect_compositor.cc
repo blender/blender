@@ -6,10 +6,14 @@
  * \ingroup sequencer
  */
 
+#include "BLI_resource_scope.hh"
+
 #include "BKE_compositor.hh"
+#include "BKE_idprop.hh"
 #include "BKE_node_runtime.hh"
 
 #include "COM_domain.hh"
+#include "COM_utilities.hh"
 
 #include "DEG_depsgraph_query.hh"
 
@@ -18,8 +22,14 @@
 #include "IMB_colormanagement.hh"
 #include "IMB_imbuf.hh"
 
+#include "NOD_socket_usage_inference.hh"
+
 #include "PRF_profile.hh"
 
+#include "RNA_access.hh"
+#include "RNA_prototypes.hh"
+
+#include "SEQ_effects.hh"
 #include "SEQ_sequencer.hh"
 
 #include "cache/compositor_cache.hh"
@@ -84,35 +94,49 @@ class CompositorEffectContext : public CompositorContext {
         *this, node_group, this->needed_outputs(), compute_context);
     set_output_refcount(node_group, node_group_operation);
 
+    node_group.ensure_topology_cache();
+    PointerRNA strip_ptr = RNA_pointer_create_discrete(
+        &render_data_.scene->id, RNA_CompositorStrip, const_cast<Strip *>(strip_));
+    PointerRNA properties_ptr = RNA_pointer_get(&strip_ptr, "properties");
+    PointerRNA inputs_ptr = RNA_pointer_get(&properties_ptr, "inputs");
+
     /* Map the inputs to the operation. */
     Vector<std::unique_ptr<Result>> inputs;
     int float_counter = 0;
     int color_counter = 0;
     for (const bNodeTreeInterfaceSocket *input_socket : node_group.interface_inputs()) {
-      const bke::bNodeSocketType *typeinfo = input_socket->socket_typeinfo();
-      Result *input_result = nullptr;
-      if (typeinfo && typeinfo->type == SOCK_FLOAT && float_counter == 0) {
-        /* First float input is factor. */
-        input_result = new Result(this->create_result(ResultType::Float, ResultPrecision::Full));
+      bke::bNodeSocketType *typeinfo = input_socket->socket_typeinfo();
+      const eNodeSocketDatatype socket_type = typeinfo ? typeinfo->type : SOCK_CUSTOM;
+      const bool valid_socket_type = typeinfo && node_group.typeinfo->valid_socket_type(
+                                                     node_group.typeinfo, typeinfo);
+      /* Fallback to ResultType::Float for invalid inputs. */
+      const ResultType result_type = valid_socket_type ?
+                                         compositor::get_node_interface_socket_result_type(
+                                             *input_socket) :
+                                         ResultType::Float;
+      Result *input_result = new Result(this->create_result(result_type, ResultPrecision::Full));
+      if (socket_type == SOCK_FLOAT && float_counter == 0) {
+        /* First float input is the effect fader factor. */
         input_result->allocate_single_value();
         input_result->set_single_value(this->factor_);
         float_counter++;
       }
-      else if (color_counter == 0 && this->input_1_) {
-        /* First input image. */
-        input_result = new Result(this->create_result(ResultType::Color, ResultPrecision::Full));
+      else if (socket_type == SOCK_RGBA && color_counter == 0 && this->input_1_) {
+        /* First color input is the first image. */
         create_result_from_input(*input_result, *this->input_1_);
         color_counter++;
       }
-      else if (color_counter == 1 && this->input_2_) {
-        /* Second input image. */
-        input_result = new Result(this->create_result(ResultType::Color, ResultPrecision::Full));
+      else if (socket_type == SOCK_RGBA && color_counter == 1 && this->input_2_) {
+        /* Second color input is the second image. */
         create_result_from_input(*input_result, *this->input_2_);
         color_counter++;
       }
+      else if (valid_socket_type && inputs_ptr.data != nullptr) {
+        /* Remaining inputs read their value from the exposed RNA property. */
+        set_input_result_from_rna(inputs_ptr, *input_socket, socket_type, *input_result);
+      }
       else {
         /* Unsupported sockets. */
-        input_result = new Result(this->create_result(ResultType::Color, ResultPrecision::Full));
         input_result->allocate_invalid();
       }
 
@@ -184,9 +208,24 @@ static void free_compositor_effect(Strip *strip, const bool /*do_id_user*/)
 {
   if (strip->effectdata) {
     CompositorEffectVars *data = static_cast<CompositorEffectVars *>(strip->effectdata);
+    if (data->system_properties != nullptr) {
+      IDP_FreeProperty_ex(data->system_properties, false);
+    }
     MEM_delete(data);
     strip->effectdata = nullptr;
   }
+}
+
+static void copy_compositor_effect(Strip *dst, const Strip *src, const int flag)
+{
+  CompositorEffectVars *dst_data = MEM_new<CompositorEffectVars>(__func__);
+  const auto *src_data = static_cast<const CompositorEffectVars *>(src->effectdata);
+  *dst_data = *src_data;
+  dst_data->system_properties = nullptr;
+  if (src_data->system_properties != nullptr) {
+    dst_data->system_properties = IDP_CopyProperty_ex(src_data->system_properties, flag);
+  }
+  dst->effectdata = dst_data;
 }
 
 static StripEarlyOut early_out_compositor(const Strip *strip, float /*fac*/)
@@ -200,10 +239,91 @@ static StripEarlyOut early_out_compositor(const Strip *strip, float /*fac*/)
   return StripEarlyOut::DoEffect;
 }
 
+void compositor_effect_nodes_update_interface(Main &bmain, Scene &sequencer_scene, Strip &strip)
+{
+  if (strip.type != STRIP_TYPE_COMPOSITOR || strip.effectdata == nullptr) {
+    return;
+  }
+  CompositorEffectVars *comp = static_cast<CompositorEffectVars *>(strip.effectdata);
+  if (!comp->system_properties) {
+    comp->system_properties =
+        bke::idprop::create_group("SequencerCompositorEffectProperties").release();
+  }
+  PointerRNA properties_ptr = RNA_pointer_create_discrete(
+      &sequencer_scene.id, RNA_SequencerCompositorEffectProperties, comp);
+  RNA_ensure_and_sync_system_properties(bmain, properties_ptr, *comp->system_properties);
+
+  DEG_id_tag_update(&sequencer_scene.id, ID_RECALC_SEQUENCER_STRIPS);
+}
+
+void compositor_effect_nodes_input_usages(const Scene &sequencer_scene,
+                                          Strip &strip,
+                                          Vector<bool> &r_used,
+                                          Vector<bool> &r_visible)
+{
+  r_used.clear();
+  r_visible.clear();
+  if (strip.type != STRIP_TYPE_COMPOSITOR || strip.effectdata == nullptr) {
+    return;
+  }
+  CompositorEffectVars *comp = static_cast<CompositorEffectVars *>(strip.effectdata);
+  if (comp->node_group == nullptr || ID_MISSING(comp->node_group)) {
+    return;
+  }
+  bNodeTree &tree = *comp->node_group;
+  tree.ensure_interface_cache();
+  const int inputs_num = tree.interface_inputs().size();
+  if (inputs_num == 0) {
+    return;
+  }
+
+  /* Get to the generated properties interface struct. */
+  PointerRNA strip_ptr = RNA_pointer_create_discrete(
+      &const_cast<Scene &>(sequencer_scene).id, RNA_CompositorStrip, &strip);
+  PointerRNA properties_ptr = RNA_pointer_get(&strip_ptr, "properties");
+  if (properties_ptr.data == nullptr) {
+    return;
+  }
+
+  ResourceScope scope;
+  Vector<nodes::InferenceValue> input_values = nodes::get_geometry_nodes_input_inference_values(
+      tree, properties_ptr, scope);
+
+  /* Effect fader and first N color inputs are supplied by the strips during evaluation, so
+   * treat them as unknown. Otherwise an input with usage conditional on the fader (e.g. mixed
+   * with the fader as a factor) might wrongly inferred as unused. */
+  const int images_num = strip.effect_num_inputs_get();
+  int float_counter = 0;
+  int color_counter = 0;
+  for (const int i : IndexRange(inputs_num)) {
+    const bNodeTreeInterfaceSocket &socket = *tree.interface_inputs()[i];
+    const bke::bNodeSocketType *typeinfo = socket.socket_typeinfo();
+    const eNodeSocketDatatype socket_type = typeinfo ? typeinfo->type : SOCK_CUSTOM;
+    if (socket_type == SOCK_FLOAT && float_counter == 0) {
+      input_values[i] = nodes::InferenceValue::Unknown();
+      float_counter++;
+    }
+    else if (socket_type == SOCK_RGBA && color_counter < images_num) {
+      input_values[i] = nodes::InferenceValue::Unknown();
+      color_counter++;
+    }
+  }
+
+  Array<nodes::socket_usage_inference::SocketUsage> usages(inputs_num);
+  nodes::socket_usage_inference::infer_group_interface_usage(tree, input_values, usages);
+  r_used.resize(inputs_num);
+  r_visible.resize(inputs_num);
+  for (const int i : IndexRange(inputs_num)) {
+    r_used[i] = usages[i].is_used;
+    r_visible[i] = usages[i].is_visible;
+  }
+}
+
 void compositor_effect_get_handle(EffectHandle &rval)
 {
   rval.init = init_compositor_effect;
   rval.free = free_compositor_effect;
+  rval.copy = copy_compositor_effect;
   rval.execute = do_compositor_effect;
   rval.early_out = early_out_compositor;
 }

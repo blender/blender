@@ -333,6 +333,9 @@ class STRIP_PT_effect(StripButtonsPanel, Panel):
             row = layout.row(align=True)
             row.prop(strip, "factor", slider=True)
 
+        if strip_type == 'COMPOSITOR':
+            layout.template_compositor_strip_inputs(strip)
+
 
 class STRIP_PT_effect_text_layout(StripButtonsPanel, Panel):
     bl_label = "Layout"

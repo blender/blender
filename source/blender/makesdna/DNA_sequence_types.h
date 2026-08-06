@@ -878,6 +878,7 @@ struct ColorMixVars {
 
 struct CompositorEffectVars {
   struct bNodeTree *node_group = nullptr;
+  struct IDProperty *system_properties = nullptr;
 };
 
 /** \} */

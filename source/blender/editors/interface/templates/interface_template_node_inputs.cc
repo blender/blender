@@ -15,6 +15,7 @@
 
 #include "BLT_translation.hh"
 
+#include "NOD_compositor_nodes_caller_ui.hh"
 #include "NOD_node_declaration.hh"
 
 #include "RNA_access.hh"
@@ -190,6 +191,17 @@ void template_node_inputs(Layout *layout, bContext *C, PointerRNA *ptr)
       nodes::draw_node_input(C, *layout, ptr, *input);
     }
   }
+}
+
+/** \} */
+
+/* -------------------------------------------------------------------- */
+/** \name Compositor Effect Strip Inputs Template
+ * \{ */
+
+void template_compositor_strip_inputs(Layout *layout, bContext *C, PointerRNA *strip_ptr)
+{
+  blender::nodes::draw_compositor_nodes_effect_ui(*C, strip_ptr, *layout);
 }
 
 /** \} */

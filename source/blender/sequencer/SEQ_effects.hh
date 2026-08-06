@@ -19,6 +19,8 @@ namespace blender {
  * \ingroup sequencer
  */
 
+struct Main;
+struct Scene;
 struct Strip;
 struct VFont;
 
@@ -28,6 +30,17 @@ struct RenderData;
 
 void effect_ensure_initialized(Strip *strip);
 void effect_free(Strip *strip);
+
+void compositor_effect_nodes_update_interface(Main &bmain, Scene &sequencer_scene, Strip &strip);
+
+/**
+ * For a compositor strip, compute per-input usage of the node group:
+ * whether input is used and whether it should be displayed in the UI.
+ */
+void compositor_effect_nodes_input_usages(const Scene &sequencer_scene,
+                                          Strip &strip,
+                                          Vector<bool> &r_used,
+                                          Vector<bool> &r_visible);
 
 /* Returns the minimum number of inputs needed by the effect type.
  * Note: some effects (compositor) will return zero; they can

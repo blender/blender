@@ -1211,15 +1211,50 @@ static void make_common_type_prop(StructRNA &srna,
       "");
   RNA_def_property_clear_flag(prop, PROP_ANIMATABLE);
 }
-static PointerRNA find_compositor_modifier(PointerRNA *ptr)
+
+/* Find the strip that owns the compositor properties an input value belongs to. Works both
+ * for strip modifiers and compositor effects. */
+static Strip *find_compositor_properties_strip(PointerRNA *ptr, Editing *ed)
 {
+  if (const std::optional<AncestorPointerRNA> strip = RNA_struct_search_closest_ancestor_by_type(
+          ptr, RNA_Strip))
+  {
+    return static_cast<Strip *>(strip->data);
+  }
+
+  /* Modifier fallback for properties pointers created without a strip ancestor. */
   if (const std::optional<AncestorPointerRNA> ancestor =
           RNA_struct_search_closest_ancestor_by_type(ptr,
                                                      RNA_SequencerCompositorModifierProperties))
   {
-    return PointerRNA(ptr->owner_id, ancestor->type, ancestor->data);
+    auto *cmd = static_cast<SequencerCompositorModifierData *>(ancestor->data);
+    Strip *found_strip = nullptr;
+    seq::foreach_strip(&ed->seqbase, [&](Strip *strip) {
+      if (BLI_findindex(&strip->modifiers, cmd) != -1) {
+        found_strip = strip;
+        return false;
+      }
+      return true;
+    });
+    return found_strip;
   }
-  return PointerRNA_NULL;
+
+  /* Effect fallback for properties pointers created without a strip ancestor. */
+  if (const std::optional<AncestorPointerRNA> ancestor =
+          RNA_struct_search_closest_ancestor_by_type(ptr, RNA_SequencerCompositorEffectProperties))
+  {
+    const void *effectdata = ancestor->data;
+    Strip *found_strip = nullptr;
+    seq::foreach_strip(&ed->seqbase, [&](Strip *strip) {
+      if (strip->effectdata == effectdata) {
+        found_strip = strip;
+        return false;
+      }
+      return true;
+    });
+    return found_strip;
+  }
+  return nullptr;
 }
 static void set_common_sequencer_update_function(PropertyRNA *prop)
 {
@@ -1229,19 +1264,10 @@ static void set_common_sequencer_update_function(PropertyRNA *prop)
     if (!ed) {
       return;
     }
-    PointerRNA cmd_ptr = find_compositor_modifier(ptr);
-    auto *cmd = cmd_ptr.data_as<SequencerCompositorModifierData>();
-
-    /* TODO: Should be in ancestors?? */
-    Strip *modifier_strip = nullptr;
-    seq::foreach_strip(&ed->seqbase, [&](Strip *strip) {
-      if (BLI_findindex(&strip->modifiers, cmd) != -1) {
-        modifier_strip = strip;
-        return false;
-      }
-      return true;
-    });
-    seq::relations_invalidate_cache(sequencer_scene, modifier_strip);
+    Strip *properties_strip = find_compositor_properties_strip(ptr, ed);
+    if (properties_strip) {
+      seq::relations_invalidate_cache(sequencer_scene, properties_strip);
+    }
   });
   RNA_def_property_update_notifier(prop, NC_SCENE | ND_SEQUENCER);
 }
