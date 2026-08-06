@@ -2,6 +2,8 @@
  *
  * SPDX-License-Identifier: Apache-2.0 */
 
+#include <algorithm>
+
 #include "testing/testing.h"
 
 #include "BLI_index_mask.hh"
@@ -115,6 +117,124 @@ TEST(offset_indices, build_groups_from_indices_small)
 {
   test_build_groups_from_indices(64, 1000, false);
   test_build_groups_from_indices(1000, 1000, false);
+}
+
+static void test_build_groups_from_indices_mask(const int64_t groups_num,
+                                                const int64_t indices_num)
+{
+  BLI_task_scheduler_init();
+
+  Array<int> indices(indices_num);
+  for (const int64_t i : indices.index_range()) {
+    indices[i] = int((i * 4241) % groups_num);
+  }
+
+  /* A mask with gaps, so that the original indices differ from the positions. */
+  IndexMaskMemory memory;
+  const IndexMask mask = IndexMask::from_every_nth(3, indices_num, 1, memory);
+
+  Array<int> offset_data;
+  Array<int> index_data;
+  const GroupedSpan<int> groups = build_groups_from_indices(
+      indices, int(groups_num), offset_data, index_data);
+
+  Array<int> mask_offset_data;
+  Array<int> mask_index_data;
+  const GroupedSpan<int> mask_groups = build_groups_from_indices(
+      indices, int(groups_num), mask_offset_data, mask_index_data, mask);
+
+  ASSERT_EQ(mask_groups.offsets.total_size(), groups.offsets.total_size());
+  for (const int64_t i : index_data.index_range()) {
+    ASSERT_EQ(mask_index_data[i], mask[index_data[i]]);
+  }
+}
+
+TEST(offset_indices, build_groups_from_indices_mask)
+{
+  test_build_groups_from_indices_mask(64, 200000);
+  test_build_groups_from_indices_mask(150000, 200000);
+  test_build_groups_from_indices_mask(1000, 1000);
+}
+
+static void test_reverse_indices_in_value_groups(const int64_t groups_num,
+                                                 const int64_t indices_num)
+{
+  BLI_task_scheduler_init();
+
+  Array<int> indices(indices_num);
+  Array<int> offset_data(groups_num + 1, 0);
+  for (const int64_t i : indices.index_range()) {
+    indices[i] = int((i * 4241) % groups_num);
+    offset_data[indices[i]]++;
+  }
+  const OffsetIndices<int> offsets = accumulate_counts_to_offsets(offset_data);
+
+  /* Build irregular "face"-like groups spanning the same index space as `indices`, each covering
+   * a handful of consecutive positions, mimicking mesh faces referencing corners. */
+  Array<int> value_group_offset_data;
+  {
+    Vector<int> sizes;
+    int64_t remaining = indices_num;
+    while (remaining > 0) {
+      sizes.append(int(std::min<int64_t>(remaining, 3 + sizes.size() % 4)));
+      remaining -= sizes.last();
+    }
+    value_group_offset_data.reinitialize(sizes.size() + 1);
+    value_group_offset_data.as_mutable_span().drop_back(1).copy_from(sizes);
+  }
+  const OffsetIndices<int> value_groups = accumulate_counts_to_offsets(value_group_offset_data);
+  ASSERT_EQ(value_groups.total_size(), indices_num);
+
+  Array<int> positions(indices_num);
+  reverse_indices_in_groups(indices, offsets, positions);
+
+  Array<int> results(indices_num);
+  reverse_indices_in_groups(indices, offsets, results, value_groups);
+
+  const Span<int> value_group_offsets = value_group_offset_data;
+  for (const int64_t i : results.index_range()) {
+    const int64_t expected = std::ranges::upper_bound(value_group_offsets, positions[i]) -
+                             value_group_offsets.begin() - 1;
+    ASSERT_EQ(results[i], expected);
+  }
+}
+
+TEST(offset_indices, reverse_indices_in_value_groups)
+{
+  test_reverse_indices_in_value_groups(20000, 150000);
+  test_reverse_indices_in_value_groups(20000, 300000);
+  test_reverse_indices_in_value_groups(1000, 1000);
+}
+
+static void test_reverse_indices_in_uniform_value_groups(const int64_t groups_num,
+                                                         const int64_t pairs_num)
+{
+  BLI_task_scheduler_init();
+
+  Array<int> indices(pairs_num * 2);
+  Array<int> offset_data(groups_num + 1, 0);
+  for (const int64_t i : indices.index_range()) {
+    indices[i] = int((i * 4241) % groups_num);
+    offset_data[indices[i]]++;
+  }
+  const OffsetIndices<int> offsets = accumulate_counts_to_offsets(offset_data);
+
+  Array<int> positions(indices.size());
+  reverse_indices_in_groups(indices, offsets, positions);
+
+  Array<int> results(indices.size());
+  reverse_indices_in_groups(indices, offsets, results, 2);
+
+  for (const int64_t i : results.index_range()) {
+    ASSERT_EQ(results[i], positions[i] / 2);
+  }
+}
+
+TEST(offset_indices, reverse_indices_in_uniform_value_groups)
+{
+  test_reverse_indices_in_uniform_value_groups(20000, 75000);
+  test_reverse_indices_in_uniform_value_groups(20000, 150000);
+  test_reverse_indices_in_uniform_value_groups(1000, 500);
 }
 
 }  // namespace blender::offset_indices::tests
