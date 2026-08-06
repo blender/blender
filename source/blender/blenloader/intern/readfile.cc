@@ -2255,27 +2255,6 @@ static void direct_link_id_common(BlendDataReader *reader,
     id->session_uid = MAIN_ID_SESSION_UID_UNSET;
   }
 
-  if (id->flag & ID_FLAG_LINKED_AND_PACKED) {
-    if (!current_library) {
-      CLOG_ERROR(&LOG,
-                 "Data-block '%s' flagged as packed, but without a valid library, fixing by "
-                 "making fully local...",
-                 id->name);
-      id->tag &= ~(ID_TAG_INDIRECT | ID_TAG_EXTERN);
-      id->flag &= ~(ID_FLAG_INDIRECT_WEAK_LINK | ID_FLAG_LINKED_AND_PACKED);
-    }
-    else if ((current_library->flag & LIBRARY_FLAG_IS_ARCHIVE) == 0) {
-      CLOG_ERROR(&LOG,
-                 "Data-block '%s' flagged as packed, but using a regular library, fixing by "
-                 "making fully indirectly linked...",
-                 id->name);
-      id->flag &= ~ID_FLAG_LINKED_AND_PACKED;
-      if (id->tag & ID_TAG_EXTERN) {
-        id->tag &= ~ID_TAG_EXTERN;
-        id->tag |= ID_TAG_INDIRECT;
-      }
-    }
-  }
   id->lib = current_library;
   if (id->lib) {
     /* Always fully clear fake user flag for linked data. */
@@ -2293,6 +2272,28 @@ static void direct_link_id_common(BlendDataReader *reader,
   }
   else {
     id->tag = id_tag;
+  }
+
+  if (id->flag & ID_FLAG_LINKED_AND_PACKED) {
+    if (!id->lib) {
+      CLOG_ERROR(&LOG,
+                 "Data-block '%s' flagged as packed, but without a valid library, fixing by "
+                 "making fully local...",
+                 id->name);
+      id->tag &= ~(ID_TAG_INDIRECT | ID_TAG_EXTERN);
+      id->flag &= ~(ID_FLAG_INDIRECT_WEAK_LINK | ID_FLAG_LINKED_AND_PACKED);
+    }
+    else if ((id->lib->flag & LIBRARY_FLAG_IS_ARCHIVE) == 0) {
+      CLOG_ERROR(&LOG,
+                 "Data-block '%s' flagged as packed, but using a regular library, fixing by "
+                 "making fully indirectly linked...",
+                 id->name);
+      id->flag &= ~ID_FLAG_LINKED_AND_PACKED;
+      if (id->tag & ID_TAG_EXTERN) {
+        id->tag &= ~ID_TAG_EXTERN;
+        id->tag |= ID_TAG_INDIRECT;
+      }
+    }
   }
 
   readfile_id_runtime_data_ensure(*id);
