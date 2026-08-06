@@ -732,7 +732,7 @@ void multiresModifier_prepare_join(Depsgraph *depsgraph, Scene *scene, Object *o
 
 void multires_topology_changed(Mesh *mesh)
 {
-  CustomData_external_read(&mesh->corner_data, &mesh->id, CD_MASK_MDISPS, mesh->corners_num);
+  CustomData_external_read(&mesh->corner_data, "", &mesh->id, CD_MASK_MDISPS, mesh->corners_num);
   MDisps *mdisp = static_cast<MDisps *>(
       CustomData_get_layer_for_write(&mesh->corner_data, CD_MDISPS, mesh->corners_num));
 
@@ -795,7 +795,7 @@ void multires_ensure_external_read(Mesh *mesh, const int top_level)
     mdisps[i].totdisp = totdisp;
   }
 
-  CustomData_external_read(&mesh->corner_data, &mesh->id, CD_MASK_MDISPS, mesh->corners_num);
+  CustomData_external_read(&mesh->corner_data, "", &mesh->id, CD_MASK_MDISPS, mesh->corners_num);
 }
 void multiresModifier_ensure_external_read(Mesh *mesh, const MultiresModifierData *mmd)
 {

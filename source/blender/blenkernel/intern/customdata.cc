@@ -4245,11 +4245,17 @@ static bool CustomData_layer_ensure_data_exists(CustomDataLayer *layer, size_t c
  * \{ */
 
 static void customdata_external_filename(char filepath[FILE_MAX],
+                                         StringRefNull basepath,
                                          ID *id,
                                          CustomDataExternal *external)
 {
   BLI_strncpy(filepath, external->filepath, FILE_MAX);
-  BLI_path_abs(filepath, ID_BLEND_PATH_FROM_GLOBAL(id));
+  if (basepath.is_empty()) {
+    BLI_path_abs(filepath, ID_BLEND_PATH_FROM_GLOBAL(id));
+  }
+  else {
+    BLI_path_abs(filepath, basepath.c_str());
+  }
 }
 
 void CustomData_external_reload(CustomData *data, ID * /*id*/, eCustomDataMask mask, int totelem)
@@ -4270,7 +4276,8 @@ void CustomData_external_reload(CustomData *data, ID * /*id*/, eCustomDataMask m
   }
 }
 
-void CustomData_external_read(CustomData *data, ID *id, eCustomDataMask mask, const int totelem)
+void CustomData_external_read(
+    CustomData *data, StringRefNull basepath, ID *id, eCustomDataMask mask, const int totelem)
 {
   CustomDataExternal *external = data->external;
   CustomDataLayer *layer;
@@ -4300,7 +4307,7 @@ void CustomData_external_read(CustomData *data, ID *id, eCustomDataMask mask, co
     return;
   }
 
-  customdata_external_filename(filepath, id, external);
+  customdata_external_filename(filepath, basepath, id, external);
 
   CDataFile *cdf = cdf_create(CDF_TYPE_MESH);
   if (!cdf_read_open(cdf, filepath)) {
@@ -4346,8 +4353,12 @@ void CustomData_external_read(CustomData *data, ID *id, eCustomDataMask mask, co
   cdf_free(cdf);
 }
 
-void CustomData_external_write(
-    CustomData *data, ID *id, eCustomDataMask mask, const int totelem, const int free)
+void CustomData_external_write(CustomData *data,
+                               StringRefNull basepath,
+                               ID *id,
+                               eCustomDataMask mask,
+                               const int totelem,
+                               const int free)
 {
   CustomDataExternal *external = data->external;
   int update = 0;
@@ -4375,8 +4386,8 @@ void CustomData_external_write(
   }
 
   /* make sure data is read before we try to write */
-  CustomData_external_read(data, id, mask, totelem);
-  customdata_external_filename(filepath, id, external);
+  CustomData_external_read(data, basepath, id, mask, totelem);
+  customdata_external_filename(filepath, basepath, id, external);
 
   CDataFile *cdf = cdf_create(CDF_TYPE_MESH);
 
@@ -4497,7 +4508,8 @@ void CustomData_external_remove(CustomData *data,
 
   if (layer->flag & CD_FLAG_EXTERNAL) {
     if (!(layer->flag & CD_FLAG_IN_MEMORY)) {
-      CustomData_external_read(data, id, CD_TYPE_AS_MASK(eCustomDataType(layer->type)), totelem);
+      CustomData_external_read(
+          data, "", id, CD_TYPE_AS_MASK(eCustomDataType(layer->type)), totelem);
     }
 
     layer->flag &= ~CD_FLAG_EXTERNAL;
@@ -4868,7 +4880,7 @@ void CustomData_blend_write(BlendWriter *writer,
 {
   /* write external customdata (not for undo) */
   if (data->external && !BLO_write_is_undo(writer)) {
-    CustomData_external_write(data, id, cddata_mask, count, 0);
+    CustomData_external_write(data, BLO_write_filepath(writer), id, cddata_mask, count, 0);
   }
 
   for (const CustomDataLayer &layer : layers_to_write) {
@@ -4903,7 +4915,7 @@ static void blend_read_mdisps(BlendDataReader *reader,
                              reinterpret_cast<int8_t **>(&md.hidden),
                              BLI_BITMAP_SIZE(md.totdisp) * sizeof(BLI_bitmap));
       }
-      if (!ok) {
+      if (!external && !ok) {
         md.totdisp = 0;
       }
 

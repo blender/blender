@@ -233,6 +233,21 @@ class Unsubdivide(unittest.TestCase):
         self.assertAlmostEqual(self._mesh_volume(ob_unsubdiv.data), ob_src_volume, places=4)
 
 
+class ExternalData(unittest.TestCase):
+    def setUp(self):
+        bpy.ops.wm.open_mainfile(filepath=str(args.testdir / "external-multires.blend"), load_ui=False)
+
+    def test_persists_in_bmesh_mesh_round_trip(self):
+        bpy.ops.object.editmode_toggle()
+        bpy.ops.object.editmode_toggle()
+
+        cube = bpy.context.active_object
+        multires_mod = cube.modifiers['Multires']
+
+        self.assertTrue(multires_mod.is_external)
+        self.assertEqual(multires_mod.filepath, "//Cube.btx")
+
+
 def main():
     global args
     import argparse

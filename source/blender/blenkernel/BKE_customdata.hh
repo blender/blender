@@ -608,8 +608,9 @@ void CustomData_external_remove(CustomData *data, ID *id, eCustomDataType type, 
 bool CustomData_external_test(CustomData *data, eCustomDataType type);
 
 void CustomData_external_write(
-    CustomData *data, ID *id, eCustomDataMask mask, int totelem, int free);
-void CustomData_external_read(CustomData *data, ID *id, eCustomDataMask mask, int totelem);
+    CustomData *data, StringRefNull basepath, ID *id, eCustomDataMask mask, int totelem, int free);
+void CustomData_external_read(
+    CustomData *data, StringRefNull basepath, ID *id, eCustomDataMask mask, int totelem);
 void CustomData_external_reload(CustomData *data, ID *id, eCustomDataMask mask, int totelem);
 
 /* Mesh-to-mesh transfer data. */
