@@ -176,12 +176,14 @@ class PROJECT_PT_main_unset(Panel, CenterAlignMixIn):
             col.separator()
 
             row = col.row()
-            row.alignment = 'CENTER'
-            row.label(text="Save the current file, and make sure to place it in a folder that will be part of the project")
+            row.label_multiline(
+                text="Save the current file, and make sure to place it in a folder that will be part of the project",
+                alignment='CENTER')
 
             row = col.row()
-            row.alignment = 'CENTER'
-            row.label(text="Alternatively, open a file inside of a project directory to see its settings.")
+            row.label_multiline(
+                text="Alternatively, open a file inside of a project directory to see its settings.",
+                alignment='CENTER')
 
             col.separator()
             row = col.row()
@@ -198,11 +200,13 @@ class PROJECT_PT_main_unset(Panel, CenterAlignMixIn):
             col.separator()
 
             row = col.row()
-            row.alignment = 'CENTER'
-            row.label(text="Set up a new project by choosing any parent directory of the current file.")
+            row.label_multiline(
+                text="Set up a new project by choosing any parent directory of the current file.",
+                alignment='CENTER')
             row = col.row()
-            row.alignment = 'CENTER'
-            row.label(text="Alternatively, open a file inside of a project directory to see its settings.")
+            row.label_multiline(
+                text="Alternatively, open a file inside of a project directory to see its settings.",
+                alignment='CENTER')
 
             col.separator()
             row = col.row()

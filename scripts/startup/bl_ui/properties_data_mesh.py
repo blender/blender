@@ -609,7 +609,7 @@ def draw_attribute_warnings(context, layout, attributes):
     if not colliding_names:
         return
 
-    layout.label(
+    layout.label_multiline(
         text=rpt_("Name collisions: ") +
         ", ".join(
             set(colliding_names)),
