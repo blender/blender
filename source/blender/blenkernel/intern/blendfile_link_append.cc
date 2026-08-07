@@ -380,6 +380,12 @@ void BKE_blendfile_link_append_context_finalize(BlendfileLinkAppendContext *lapp
                   BlendfileLinkAppendContext::ProcessStage::Instantiating));
   lapp_context->process_stage = BlendfileLinkAppendContext::ProcessStage::Done;
 
+  /* Linking may have changed some data link status.
+   * Further more, some versioning code can leave some ID link status tags in invalid state, due to
+   * low-level manipulations of these instead of using API like `id_lib_extern`, which will be also
+   * fixed by this call. */
+  BKE_main_id_indirect_linked_update(*lapp_context->params->bmain);
+
   /* Tag node trees to update generated RNA with potentially updated session uid values from
    * data-block defaults in interfaces. This is only necessary because RNA types were already
    * generated before these data-blocks were local; theoretically that shouldn't be necessary. */

@@ -5596,12 +5596,6 @@ static void library_link_end(Main *mainl, FileData **fd, const int flag, ReportL
     BKE_main_collections_parent_relations_rebuild(mainvar);
   }
 
-  /* Linking may have changed some data link status.
-   * Further more, some versioning code can leave some ID link status tags in invalid state, due to
-   * low-level manipulations of these instead of using API like `id_lib_extern`, which will be also
-   * fixed by this call. */
-  BKE_main_id_indirect_linked_update(*mainvar);
-
   /* Make all relative paths, relative to the open blend file. */
   fix_relpaths_library(BKE_main_blendfile_path(mainvar), mainvar);
 
