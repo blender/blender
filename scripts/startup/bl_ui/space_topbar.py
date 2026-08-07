@@ -340,6 +340,7 @@ class TOPBAR_MT_file_defaults(Menu):
 
 class TOPBAR_MT_file_project(Menu):
     bl_label = "Project"
+    bl_translation_context = i18n_contexts.editor_preferences
 
     def draw(self, _context):
         layout = self.layout

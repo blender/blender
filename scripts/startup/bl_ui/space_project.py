@@ -5,7 +5,10 @@
 import bpy
 from bpy.types import Header, Menu, Panel
 
-from bpy.app.translations import pgettext_iface
+from bpy.app.translations import (
+    pgettext_iface as iface_,
+    contexts as i18n_contexts,
+)
 
 from .space_userpref import CenterAlignMixIn
 
@@ -34,7 +37,7 @@ class PROJECT_MT_editor_menus(Menu):
     def draw(self, context):
         layout = self.layout
         layout.menu("PROJECT_MT_view")
-        layout.menu("PROJECT_MT_save_load", text="Project")
+        layout.menu("PROJECT_MT_save_load", text="Project", text_ctxt=i18n_contexts.editor_preferences)
 
 
 class PROJECT_MT_view(Menu):
@@ -87,7 +90,7 @@ class PROJECT_PT_save_project(Panel):
             # and for consistency with unsaved files in the title bar.
             layout.operator(
                 "project.save_project",
-                text=("* " if bpy.data.project.is_dirty else "") + pgettext_iface("Save Project"),
+                text=("* " if bpy.data.project.is_dirty else "") + iface_("Save Project"),
                 icon='FILE_TICK',
                 translate=False,
             )
@@ -131,6 +134,7 @@ class PROJECT_PT_navigation_bar(Panel):
 
 class PROJECT_PT_main(Panel, CenterAlignMixIn):
     bl_label = "Project"
+    bl_translation_context = i18n_contexts.editor_preferences
     bl_space_type = 'PROJECT'
     bl_region_type = 'WINDOW'
     bl_category = MAIN_SECTION_NAME
