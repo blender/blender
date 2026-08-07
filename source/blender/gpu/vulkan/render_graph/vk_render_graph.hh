@@ -155,7 +155,6 @@ class VKRenderGraph : public NonCopyable {
    */
   template<typename NodeInfo> VKNodeData<NodeInfo> alloc_node()
   {
-    std::scoped_lock lock(resources_.mutex);
     static VKRenderGraphNode node_template = {};
     NodeHandle node_handle = nodes_.append_and_get_index(node_template);
     VKRenderGraphNode &node = nodes_[node_handle];
