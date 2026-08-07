@@ -937,6 +937,10 @@ static int node_link_viewer(const bContext &C, bNode &bnode_to_view, bNodeSocket
     return OPERATOR_CANCELLED;
   }
 
+  if (!socket_can_be_viewed(*bsocket_to_view)) {
+    return OPERATOR_CANCELLED;
+  }
+
   return view_socket(C, snode, *btree, bnode_to_view, *bsocket_to_view);
 }
 
