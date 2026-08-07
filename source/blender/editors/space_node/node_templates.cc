@@ -835,7 +835,8 @@ static void ui_node_draw_node(
       {
         if (!layout_decl->is_default) {
           PointerRNA nodeptr = RNA_pointer_create_discrete(&ntree.id, RNA_Node, &node);
-          layout_decl->draw(layout, &C, &nodeptr);
+          ui::Layout &column = layout.column(false);
+          layout_decl->draw(column, &C, &nodeptr);
         }
       }
     }
