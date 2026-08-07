@@ -19,6 +19,7 @@
 #include "BLI_math_rotation_c.hh"
 #include "BLI_math_vector_c.hh"
 #include "BLI_set.hh"
+#include "BLI_vector.hh"
 
 #include "BKE_action.hh"
 #include "BKE_armature.hh"
@@ -782,6 +783,14 @@ static void createTransPose(bContext * /*C*/, TransInfo *t)
   }
 }
 
+static void free_bone_init_data(TransInfo * /*t*/,
+                                TransDataContainer * /*tc*/,
+                                TransCustomData *custom_data)
+{
+  MEM_delete(static_cast<Vector<BoneInitData> *>(custom_data->data));
+  custom_data->data = nullptr;
+}
+
 static void createTransArmatureVerts(bContext * /*C*/, TransInfo *t)
 {
   t->data_len_all = 0;
@@ -829,13 +838,11 @@ static void createTransArmatureVerts(bContext * /*C*/, TransInfo *t)
     }
 
     if (mirror) {
-      BoneInitData *bid = MEM_new_array_uninitialized<BoneInitData>((total_mirrored + 1),
-                                                                    "BoneInitData");
-
-      /* Trick to terminate iteration. */
-      bid[total_mirrored].bone = nullptr;
+      Vector<BoneInitData> *bid = MEM_new<Vector<BoneInitData>>(__func__);
+      bid->reserve(total_mirrored);
 
       tc->custom.type.data = bid;
+      tc->custom.type.free_cb = free_bone_init_data;
       tc->custom.type.use_free = true;
     }
     t->data_len_all += tc->data_len;
@@ -854,13 +861,12 @@ static void createTransArmatureVerts(bContext * /*C*/, TransInfo *t)
     TransData *td, *td_old;
     float mtx[3][3], smtx[3][3], bonemat[3][3];
     bool mirror = ((arm->flag & ARM_MIRROR_EDIT) != 0);
-    BoneInitData *bid = static_cast<BoneInitData *>(tc->custom.type.data);
+    auto &bid = *static_cast<Vector<BoneInitData> *>(tc->custom.type.data);
 
     copy_m3_m4(mtx, tc->obedit->object_to_world().ptr());
     pseudoinverse_m3_m3(smtx, mtx, PSEUDOINVERSE_EPSILON);
 
     td = tc->data = MEM_new_array_zeroed<TransData>(tc->data_len, "TransEditBone");
-    int i = 0;
 
     for (EditBone &ebo : *edbo) {
       td_old = td;
@@ -1001,24 +1007,19 @@ static void createTransArmatureVerts(bContext * /*C*/, TransInfo *t)
       if (mirror && (td_old != td)) {
         EditBone *eboflip = ED_armature_ebone_get_mirrored(arm->edbo, &ebo);
         if (eboflip) {
-          bid[i].bone = eboflip;
-          bid[i].dist = eboflip->dist;
-          bid[i].rad_head = eboflip->rad_head;
-          bid[i].rad_tail = eboflip->rad_tail;
-          bid[i].roll = eboflip->roll;
-          bid[i].xwidth = eboflip->xwidth;
-          bid[i].zwidth = eboflip->zwidth;
-          copy_v3_v3(bid[i].head, eboflip->head);
-          copy_v3_v3(bid[i].tail, eboflip->tail);
-          i++;
+          BoneInitData bone_data{};
+          bone_data.bone = eboflip;
+          bone_data.dist = eboflip->dist;
+          bone_data.rad_head = eboflip->rad_head;
+          bone_data.rad_tail = eboflip->rad_tail;
+          bone_data.roll = eboflip->roll;
+          bone_data.xwidth = eboflip->xwidth;
+          bone_data.zwidth = eboflip->zwidth;
+          copy_v3_v3(bone_data.head, eboflip->head);
+          copy_v3_v3(bone_data.tail, eboflip->tail);
+          bid.append(bone_data);
         }
       }
-    }
-
-    if (mirror) {
-      /* Trick to terminate iteration. */
-      BLI_assert(i + 1 == (MEM_allocN_len(bid) / sizeof(*bid)));
-      bid[i].bone = nullptr;
     }
   }
 }
@@ -1032,8 +1033,7 @@ static void createTransArmatureVerts(bContext * /*C*/, TransInfo *t)
 static void restoreBones(TransDataContainer *tc)
 {
   bArmature *arm;
-  BoneInitData *bid = static_cast<BoneInitData *>(tc->custom.type.data);
-  EditBone *ebo;
+  auto &bid = *static_cast<Vector<BoneInitData> *>(tc->custom.type.data);
 
   if (tc->obedit) {
     arm = id_cast<bArmature *>(tc->obedit->data);
@@ -1043,17 +1043,17 @@ static void restoreBones(TransDataContainer *tc)
     arm = id_cast<bArmature *>(tc->poseobj->data);
   }
 
-  while (bid->bone) {
-    ebo = bid->bone;
+  for (const BoneInitData &init : bid) {
+    EditBone *ebo = init.bone;
 
-    ebo->dist = bid->dist;
-    ebo->rad_head = bid->rad_head;
-    ebo->rad_tail = bid->rad_tail;
-    ebo->roll = bid->roll;
-    ebo->xwidth = bid->xwidth;
-    ebo->zwidth = bid->zwidth;
-    copy_v3_v3(ebo->head, bid->head);
-    copy_v3_v3(ebo->tail, bid->tail);
+    ebo->dist = init.dist;
+    ebo->rad_head = init.rad_head;
+    ebo->rad_tail = init.rad_tail;
+    ebo->roll = init.roll;
+    ebo->xwidth = init.xwidth;
+    ebo->zwidth = init.zwidth;
+    copy_v3_v3(ebo->head, init.head);
+    copy_v3_v3(ebo->tail, init.tail);
 
     if (arm->flag & ARM_MIRROR_EDIT) {
       /* Also move connected ebo_child, in case ebo_child's name aren't mirrored properly. */
@@ -1071,8 +1071,6 @@ static void restoreBones(TransDataContainer *tc)
         parent->rad_tail = ebo->rad_head;
       }
     }
-
-    bid++;
   }
 }
 
