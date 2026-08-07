@@ -582,12 +582,12 @@ static void draw_layer_splines(const bContext *C,
 
     /* show undeform for testing */
     if (false) {
-      MaskSplinePoint *back = spline.points_deform;
+      MaskSplinePoint *back = spline.runtime->points_deform;
 
-      spline.points_deform = nullptr;
+      spline.runtime->points_deform = nullptr;
       draw_spline_curve(C, layer, &spline, draw_type, is_active, width, height);
       draw_spline_points(C, layer, &spline, draw_type);
-      spline.points_deform = back;
+      spline.runtime->points_deform = back;
     }
   }
 }

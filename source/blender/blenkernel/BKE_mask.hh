@@ -25,6 +25,13 @@ struct Main;
 struct MovieClip;
 struct MovieClipUser;
 
+namespace bke {
+struct MaskSplineRuntime {
+  /** Deformed copy of 'points' BezTriple data - not saved. */
+  MaskSplinePoint *points_deform = nullptr;
+};
+}  // namespace bke
+
 /* `mask_ops.cc` */
 
 enum eMaskWhichHandle {
