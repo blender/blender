@@ -8,6 +8,8 @@
  * \ingroup bke
  */
 
+#include "BLI_array.hh"
+
 #include "DNA_listBase.h"
 #include "DNA_mask_types.h"
 
@@ -27,8 +29,13 @@ struct MovieClipUser;
 
 namespace bke {
 struct MaskSplineRuntime {
-  /** Deformed copy of 'points' BezTriple data - not saved. */
-  MaskSplinePoint *points_deform = nullptr;
+  /**
+   * Deformed copy of 'points' BezTriple data - not saved.
+   *
+   * \note Elements own their #MaskSplinePoint::uw array, callers are responsible for freeing it
+   * (e.g. with #BKE_mask_point_free) before the array is resized or destroyed.
+   */
+  Array<MaskSplinePoint> points_deform;
 };
 }  // namespace bke
 
