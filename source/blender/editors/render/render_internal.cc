@@ -230,6 +230,9 @@ static wmOperatorStatus screen_render_exec(bContext *C, wmOperator *op)
     return OPERATOR_CANCELLED;
   }
 
+  /* Flush sculpt and editmode changes. */
+  ED_editors_flush_edits(mainp);
+
   re = RE_NewSceneRender(scene);
 
   G.is_break = false;
@@ -887,7 +890,7 @@ static wmOperatorStatus screen_render_invoke(bContext *C, wmOperator *op, const 
   /* handle UI stuff */
   WM_cursor_wait(true);
 
-  /* flush sculpt and editmode changes */
+  /* Flush sculpt and editmode changes. */
   ED_editors_flush_edits(bmain);
 
   /* store spare
