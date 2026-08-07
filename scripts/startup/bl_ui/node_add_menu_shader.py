@@ -491,6 +491,7 @@ class NODE_MT_shader_node_utilities_base(node_add_menu.NodeMenu):
         layout.separator()
         self.node_operator(layout, "GeometryNodeIndexSwitch")
         self.node_operator(layout, "GeometryNodeMenuSwitch")
+        self.node_operator(layout, "GeometryNodeSwitch")
         if cycles_shader_nodes_poll(context):
             layout.separator()
             self.node_operator(layout, "ShaderNodeScript")
