@@ -333,6 +333,11 @@ int2 WM_window_native_pixel_size(const wmWindow *win);
 
 void WM_window_native_pixel_coords(const wmWindow *win, int *x, int *y);
 /**
+ * Return true when this session draws its own window decorations, whether or not any particular
+ * window currently shows them (see #WM_window_is_csd).
+ */
+bool WM_window_csd_is_active();
+/**
  * Return non-nil if the CSD is used.
  */
 bool WM_window_is_csd(const wmWindow *win);

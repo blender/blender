@@ -522,6 +522,7 @@ set(GLSL_SRC
   shaders/infos/gpu_shader_2D_point_uniform_size_uniform_color_aa_infos.hh
   shaders/infos/gpu_shader_2D_point_uniform_size_uniform_color_outline_aa_infos.hh
   shaders/infos/gpu_shader_2D_point_varying_size_varying_color_infos.hh
+  shaders/infos/gpu_shader_2D_rounded_corner_mask_infos.hh
   shaders/infos/gpu_shader_2D_widget_infos.hh
   shaders/infos/gpu_shader_3D_depth_only_infos.hh
   shaders/infos/gpu_shader_3D_flat_color_infos.hh
@@ -551,6 +552,8 @@ set(GLSL_SRC
   shaders/gpu_shader_2D_vert.glsl
   shaders/gpu_shader_2D_area_borders_vert.glsl
   shaders/gpu_shader_2D_area_borders_frag.glsl
+  shaders/gpu_shader_2D_rounded_corner_mask_vert.glsl
+  shaders/gpu_shader_2D_rounded_corner_mask_frag.glsl
   shaders/gpu_shader_2D_widget_base.bsl.hh
   shaders/gpu_shader_2D_widget_shadow_vert.glsl
   shaders/gpu_shader_2D_widget_shadow_frag.glsl

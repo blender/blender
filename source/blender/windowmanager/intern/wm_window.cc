@@ -1092,10 +1092,24 @@ static void wm_window_ghostwindow_add(wmWindowManager *wm,
     /* Needed here, because it's used before it reads #UserDef. */
     WM_window_dpi_set_userdef(win);
 
+#ifdef WITH_GHOST_CSD
+    /* This background is presented before anything else is drawn, so it needs its corners cut
+     * away too. Without this the window opens as a hard edged rectangle and visibly rounds off
+     * once the editors first draw. */
+    if (WM_window_is_csd(win)) {
+      WM_window_csd_draw_corner_mask(win);
+    }
+#endif
+
     wm_window_swap_buffer_release(win);
 
     /* Clear double buffer to avoids flickering of new windows on certain drivers, see #97600. */
     GPU_clear_color(window_bg_color[0], window_bg_color[1], window_bg_color[2], 1.0f);
+#ifdef WITH_GHOST_CSD
+    if (WM_window_is_csd(win)) {
+      WM_window_csd_draw_corner_mask(win);
+    }
+#endif
 
     GPU_render_end();
   }
@@ -2266,6 +2280,7 @@ void WM_window_csd_params_update()
       /*cursor_drag_threshold*/ U.drag_threshold_mouse,
       /*cursor_double_click_ms*/ U.dbl_click_time,
       /*resize_margin_size*/ WM_WINDOW_CSD_RESIZE_MARGIN_SIZE,
+      /*corner_radius*/ WM_WINDOW_CSD_CORNER_RADIUS,
   };
   g_system->setWindowCSD(csd_params);
 }
@@ -3147,6 +3162,15 @@ static void wm_window_csd_title_redraw_tag(wmWindowManager *wm, wmWindow *win)
   }
 #else
   UNUSED_VARS(wm, win);
+#endif
+}
+
+bool WM_window_csd_is_active()
+{
+#ifdef WITH_GHOST_CSD
+  return g_system_use_csd;
+#else
+  return false;
 #endif
 }
 
