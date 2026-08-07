@@ -948,8 +948,6 @@ inline bool brush_uses_vector_displacement(const Brush &brush)
          brush.mtex.brush_map_mode == MTEX_MAP_MODE_AREA;
 }
 
-void ensure_valid_pivot(const Object &ob, Paint &paint);
-
 /** Retrieve or calculate the object space radius depending on brush settings. */
 float object_space_radius_get(const ViewContext &vc,
                               const Paint &paint,

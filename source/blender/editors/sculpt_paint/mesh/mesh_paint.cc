@@ -4,9 +4,15 @@
 
 #include "mesh_paint.hh"
 
+#include "BKE_mesh.h"
+#include "BKE_mesh.hh"
 #include "BKE_object.hh"
 #include "BKE_object_types.hh"
 #include "BKE_paint.hh"
+#include "BKE_paint_types.hh"
+#include "BKE_scene.hh"
+
+#include "BLI_math_matrix.hh"
 #include "BLI_math_rotation_c.hh"
 
 #include "DEG_depsgraph.hh"
@@ -15,11 +21,140 @@
 #include "DNA_object_types.h"
 #include "DNA_scene_types.h"
 
+#include "ED_image.hh"
+#include "ED_paint.hh"
+
 #include "sculpt_intern.hh"
 
 #include "../paint_intern.hh"
 
 namespace blender::ed::sculpt_paint {
+
+/* -------------------------------------------------------------------- */
+/** \name Mode toggling
+ * \{ */
+
+static void ensure_valid_pivot(const Object &ob, Paint &paint)
+{
+  bke::PaintRuntime &paint_runtime = *paint.runtime;
+  const bke::pbvh::Tree *pbvh = bke::object::pbvh_get(ob);
+
+  /* Account for the case where no objects are evaluated. */
+  if (!pbvh) {
+    return;
+  }
+
+  /* No valid pivot? Use bounding box center. */
+  if (paint_runtime.average_stroke_counter == 0 || !paint_runtime.last_stroke_valid) {
+    const Bounds<float3> bounds = bke::pbvh::bounds_get(*pbvh);
+    const float3 center = math::midpoint(bounds.min, bounds.max);
+    const float3 location = math::transform_point(ob.object_to_world(), center);
+
+    copy_v3_v3(paint_runtime.average_stroke_accum, location);
+    paint_runtime.average_stroke_counter = 1;
+
+    /* Update last stroke position. */
+    paint_runtime.last_stroke_valid = true;
+  }
+}
+
+static void init_session(
+    Main &bmain, Depsgraph &depsgraph, Paint &paint, Object &ob, eObjectMode object_mode)
+{
+  BLI_assert(ob.runtime->sculpt_session == nullptr);
+  ob.runtime->sculpt_session = MEM_new<SculptSession>(__func__);
+  ob.runtime->sculpt_session->mode_type = object_mode;
+
+  DEG_id_tag_update(&ob.id, ID_RECALC_GEOMETRY);
+  BKE_scene_graph_evaluated_ensure(&depsgraph, &bmain);
+  BKE_sculptsession_update_for_edit(&depsgraph, &ob, true);
+
+  ensure_valid_pivot(ob, paint);
+}
+
+void mode_enter_generic(
+    Main &bmain, Depsgraph &depsgraph, Scene &scene, Object &ob, const eObjectMode mode_flag)
+{
+  ob.mode |= mode_flag;
+
+  BKE_object_free_derived_caches(&ob);
+
+  Paint *paint = nullptr;
+  if (mode_flag == OB_MODE_VERTEX_PAINT) {
+    const PaintMode paint_mode = PaintMode::Vertex;
+
+    BKE_paint_ensure(scene.toolsettings, reinterpret_cast<Paint **>(&scene.toolsettings->vpaint));
+    paint = BKE_paint_get_active_from_paintmode(&scene, paint_mode);
+    ED_paint_cursor_start(paint, vertex_paint_poll);
+    BKE_paint_init(&bmain, &scene, paint_mode);
+  }
+  else if (mode_flag == OB_MODE_WEIGHT_PAINT) {
+    const PaintMode paint_mode = PaintMode::Weight;
+
+    BKE_paint_ensure(scene.toolsettings, reinterpret_cast<Paint **>(&scene.toolsettings->wpaint));
+    paint = BKE_paint_get_active_from_paintmode(&scene, paint_mode);
+    ED_paint_cursor_start(paint, weight_paint_poll);
+    BKE_paint_init(&bmain, &scene, paint_mode);
+  }
+  else if (mode_flag == OB_MODE_SCULPT) {
+    const PaintMode paint_mode = PaintMode::Sculpt;
+
+    BKE_paint_ensure(scene.toolsettings, reinterpret_cast<Paint **>(&scene.toolsettings->sculpt));
+    paint = BKE_paint_get_active_from_paintmode(&scene, paint_mode);
+    ED_paint_cursor_start(paint, brush_cursor_poll);
+    BKE_paint_init(&bmain, &scene, paint_mode);
+  }
+  else {
+    BLI_assert(0);
+  }
+
+  BKE_paint_brushes_validate(&bmain, paint);
+
+  if (ob.runtime->sculpt_session) {
+    MEM_delete(ob.runtime->sculpt_session->cache);
+    ob.runtime->sculpt_session->cache = nullptr;
+    BKE_sculptsession_free(&ob);
+  }
+
+  BLI_assert(paint != nullptr);
+  init_session(bmain, depsgraph, *paint, ob, mode_flag);
+}
+
+void mode_exit_generic(Object &ob, const eObjectMode mode_flag)
+{
+  Mesh *mesh = BKE_mesh_from_object(&ob);
+  ob.mode &= ~mode_flag;
+
+  if (ELEM(mode_flag, OB_MODE_VERTEX_PAINT, OB_MODE_WEIGHT_PAINT)) {
+    if (mesh->editflag & ME_EDIT_PAINT_FACE_SEL) {
+      bke::mesh_select_face_flush(*mesh);
+    }
+    else if (mesh->editflag & ME_EDIT_PAINT_VERT_SEL) {
+      bke::mesh_select_vert_flush(*mesh);
+    }
+  }
+
+  /* If the cache is not released by a cancel or a done, free it now. */
+  if (ob.runtime->sculpt_session) {
+    MEM_delete(ob.runtime->sculpt_session->cache);
+    ob.runtime->sculpt_session->cache = nullptr;
+  }
+
+  BKE_sculptsession_free(&ob);
+
+  paint_cursor_delete_textures();
+
+  /* Never leave derived meshes behind. */
+  BKE_object_free_derived_caches(&ob);
+
+  /* Flush object mode. */
+  DEG_id_tag_update(&ob.id, ID_RECALC_SYNC_TO_EVAL);
+}
+
+/** \} */
+/* -------------------------------------------------------------------- */
+/** \name Stroke-level Symmetry
+ * \{ */
 
 static void do_radial_symmetry(const Depsgraph &depsgraph,
                                const Scene &scene,
@@ -263,4 +398,7 @@ void do_symmetrical_brush_actions_with_tiling_and_feathering(const Depsgraph &de
         depsgraph, scene, paint, brush, object, action_fn, paint_mode_data, symm_pass, 'Z');
   }
 }
+
+/** \} */
+
 }  // namespace blender::ed::sculpt_paint

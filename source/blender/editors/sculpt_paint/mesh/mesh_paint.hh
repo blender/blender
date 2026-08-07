@@ -2,9 +2,18 @@
  *
  * SPDX-License-Identifier: GPL-2.0-or-later */
 
+/** \file
+ * \ingroup edsculpt
+ * Common utilities for mesh painting & sculpting
+ */
+
 #pragma once
+
 #include "BLI_function_ref.hh"
+
 #include "DEG_depsgraph.hh"
+
+#include "DNA_object_enums.h"
 
 namespace blender {
 struct Paint;
@@ -22,9 +31,9 @@ struct Sculpt;
 
 namespace blender::ed::sculpt_paint {
 
-/**
- * Common utilities for mesh painting & sculpting at the stroke level.
- */
+void mode_enter_generic(
+    Main &bmain, Depsgraph &depsgraph, Scene &scene, Object &ob, eObjectMode mode_flag);
+void mode_exit_generic(Object &ob, eObjectMode mode_flag);
 
 /** Main brush action callback */
 using BrushActionFn = FunctionRef<void(const Depsgraph &depsgraph,

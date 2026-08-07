@@ -58,9 +58,6 @@ IndexMask pbvh_gather_generic(const Depsgraph &depsgraph,
                               const Brush &brush,
                               IndexMaskMemory &memory);
 
-void mode_enter_generic(
-    Main &bmain, Depsgraph &depsgraph, Scene &scene, Object &ob, eObjectMode mode_flag);
-void mode_exit_generic(Object &ob, eObjectMode mode_flag);
 bool mode_toggle_poll_test(bContext *C);
 
 void smooth_brush_toggle_off(Paint *paint, StrokeCache *cache);
