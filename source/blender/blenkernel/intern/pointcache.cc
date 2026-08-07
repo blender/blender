@@ -2603,7 +2603,7 @@ void BKE_ptcache_id_clear(PTCacheID *pid, int mode, uint cfra)
         closedir(dir);
 
         if (mode == PTCACHE_CLEAR_ALL && pid->cache->cached_frames) {
-          memset(pid->cache->cached_frames, 0, MEM_allocN_len(pid->cache->cached_frames));
+          memset(pid->cache->cached_frames, 0, pid->cache->cached_frames_len);
         }
       }
       else {
@@ -2619,7 +2619,7 @@ void BKE_ptcache_id_clear(PTCacheID *pid, int mode, uint cfra)
           pid->cache->mem_cache.free_no_destruct();
 
           if (pid->cache->cached_frames) {
-            memset(pid->cache->cached_frames, 0, MEM_allocN_len(pid->cache->cached_frames));
+            memset(pid->cache->cached_frames, 0, pid->cache->cached_frames_len);
           }
         }
         else {
