@@ -536,6 +536,11 @@ void PAINT_OT_weight_set(wmOperatorType *ot)
 /** \name Interactive Weight Gradient Operator
  * \{ */
 
+enum {
+  WPAINT_GRADIENT_TYPE_LINEAR,
+  WPAINT_GRADIENT_TYPE_RADIAL,
+};
+
 /* *** VGroups Gradient *** */
 struct WPGradient_vertStore {
   enum Flag {

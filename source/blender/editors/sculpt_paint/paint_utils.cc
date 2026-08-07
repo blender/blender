@@ -8,10 +8,9 @@
 
 #include <cmath>
 
+#include "DNA_brush_types.h"
 #include "DNA_mesh_types.h"
 #include "DNA_object_types.h"
-
-#include "DNA_brush_types.h"
 #include "DNA_scene_types.h"
 
 #include "BLI_listbase.hh"
@@ -26,11 +25,16 @@
 #include "BKE_bvhutils.hh"
 #include "BKE_colortools.hh"
 #include "BKE_context.hh"
+#include "BKE_curves.hh"
 #include "BKE_layer.hh"
 #include "BKE_mesh.hh"
 #include "BKE_mesh_sample.hh"
+#include "BKE_object.hh"
 #include "BKE_paint.hh"
+#include "BKE_paint_types.hh"
 #include "BKE_report.hh"
+#include "DNA_curves_types.h"
+#include "DNA_grease_pencil_types.h"
 
 #include "RNA_access.hh"
 #include "RNA_define.hh"
@@ -38,11 +42,10 @@
 
 #include "RE_texture.h"
 
+#include "ED_mesh.hh" /* for face mask functions */
 #include "ED_screen.hh"
 #include "ED_select_utils.hh"
 #include "ED_view3d.hh"
-
-#include "ED_mesh.hh" /* for face mask functions */
 
 #include "WM_api.hh"
 #include "WM_types.hh"
@@ -51,47 +54,67 @@
 
 namespace blender {
 
-bool paint_convert_bb_to_rect(rcti *rect,
-                              const float bb_min[3],
-                              const float bb_max[3],
-                              const ARegion &region,
-                              const RegionView3D &rv3d,
-                              const Object &ob)
+static float3 paint_init_pivot_mesh(Object *ob)
 {
-  int i, j, k;
-
-  BLI_rcti_init_minmax(rect);
-
-  /* return zero if the bounding box has non-positive volume */
-  if (bb_min[0] > bb_max[0] || bb_min[1] > bb_max[1] || bb_min[2] > bb_max[2]) {
-    return false;
+  const Mesh *mesh_eval = BKE_object_get_evaluated_mesh(ob);
+  if (!mesh_eval) {
+    mesh_eval = id_cast<const Mesh *>(ob->data);
   }
 
-  const float4x4 projection = ED_view3d_ob_project_mat_get(&rv3d, &ob);
-
-  for (i = 0; i < 2; i++) {
-    for (j = 0; j < 2; j++) {
-      for (k = 0; k < 2; k++) {
-        float vec[3];
-        int proj_i[2];
-        vec[0] = i ? bb_min[0] : bb_max[0];
-        vec[1] = j ? bb_min[1] : bb_max[1];
-        vec[2] = k ? bb_min[2] : bb_max[2];
-        /* convert corner to screen space */
-        const float2 proj = ED_view3d_project_float_v2_m4(&region, vec, projection);
-        /* expand 2D rectangle */
-
-        /* we could project directly to int? */
-        proj_i[0] = proj[0];
-        proj_i[1] = proj[1];
-
-        BLI_rcti_do_minmax_v(rect, proj_i);
-      }
-    }
+  const std::optional<Bounds<float3>> bounds = mesh_eval->bounds_min_max();
+  if (!bounds) {
+    return float3(0.0f);
   }
 
-  /* return false if the rectangle has non-positive area */
-  return rect->xmin < rect->xmax && rect->ymin < rect->ymax;
+  return math::midpoint(bounds->min, bounds->max);
+}
+
+static float3 paint_init_pivot_curves(Object *ob)
+{
+  const Curves &curves = *id_cast<const Curves *>(ob->data);
+  const std::optional<Bounds<float3>> bounds = curves.geometry.wrap().bounds_min_max();
+  if (bounds.has_value()) {
+    return math::midpoint(bounds->min, bounds->max);
+  }
+  return float3(0);
+}
+
+static float3 paint_init_pivot_grease_pencil(Object *ob, const int frame)
+{
+  const GreasePencil &grease_pencil = *id_cast<const GreasePencil *>(ob->data);
+  const std::optional<Bounds<float3>> bounds = grease_pencil.bounds_min_max(frame);
+  if (bounds.has_value()) {
+    return math::midpoint(bounds->min, bounds->max);
+  }
+  return float3(0.0f);
+}
+
+void paint_init_pivot(Object *ob, Scene *scene, Paint *paint)
+{
+  bke::PaintRuntime &paint_runtime = *paint->runtime;
+
+  float3 location;
+  switch (ob->type) {
+    case OB_MESH:
+      location = paint_init_pivot_mesh(ob);
+      break;
+    case OB_CURVES:
+      location = paint_init_pivot_curves(ob);
+      break;
+    case OB_GREASE_PENCIL:
+      location = paint_init_pivot_grease_pencil(ob, scene->r.cfra);
+      break;
+    default:
+      BLI_assert_unreachable();
+      paint_runtime.last_stroke_valid = false;
+      return;
+  }
+
+  mul_m4_v3(ob->object_to_world().ptr(), location);
+
+  paint_runtime.last_stroke_valid = true;
+  paint_runtime.average_stroke_counter = 1;
+  copy_v3_v3(paint_runtime.average_stroke_accum, location);
 }
 
 float paint_calc_object_space_radius(const ViewContext &vc,

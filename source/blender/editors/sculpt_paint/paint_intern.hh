@@ -89,9 +89,8 @@ enum class BrushSwitchMode : int8_t {
 
 namespace ed::sculpt_paint {
 
-using StrokeDone = void (*)(PaintStroke *stroke, bool is_cancel);
-
 /* stroke operator */
+#define PAINT_STROKE_MODAL_CANCEL 1
 
 struct PaintSample {
   float2 mouse = float2(0.0f, 0.0f);
@@ -186,14 +185,14 @@ struct PaintStroke : NonCopyable, NonMovable {
    *
    * At a high level, this function performs the following steps for interactive stroke types:
    * 1. Initialization of necessary common `PaintStroke` values.
-   * 2. Custom paint initialization via `StrokeTestStart`>
-   * 3. Create an `OperatorStrokeElement` for a given mouse position by calling `StrokeGetLocation`
+   * 2. Custom paint initialization via `test_start`>
+   * 3. Create an `OperatorStrokeElement` for a given mouse position by calling `get_location`
    *    to potentially turn screen space coordinates into object space coordinates.
-   * 4. Call `StrokeUpdateStep` to perform custom paint operation on the most recent
+   * 4. Call `update_step` to perform custom paint operation on the most recent
    *    `OperatorStrokeElement` data.
-   * 5. Tag extra redraws if necessary via `StrokeRedraw`.
+   * 5. Tag extra redraws if necessary via `redraw`.
    * 6. Return to step 3 while stroke is ongoing.
-   * 7. Call `StrokeDone` when finished to perform any cleanup or finalization.
+   * 7. Call `done` when finished to perform any cleanup or finalization.
    */
   wmOperatorStatus modal(bContext *C, wmOperator *op, const wmEvent *event);
   wmOperatorStatus exec(bContext *C, wmOperator *op);
@@ -234,7 +233,7 @@ struct PaintStroke : NonCopyable, NonMovable {
   /**
    * Callback function to retrieve the object space coordinates based on screen space coordinates.
    * \param location: resulting object space coordinates
-   * \returns whether or not a value was actually found & the value in location is usable
+   * \returns whether a value was actually found & the value in location is usable
    */
   virtual bool get_location(float location[3], const float mouse[2], bool force_original) = 0;
 
@@ -308,7 +307,7 @@ float2 paint_stroke_jitter_pos(Paint *paint,
                                const float2 &mval);
 
 /**
- * Returns zero if the stroke dots should not be spaced, non-zero otherwise.
+ * Returns true if the stroke dots should be spaced.
  */
 bool paint_space_stroke_enabled(const Brush &br, PaintMode mode);
 /**
@@ -323,11 +322,6 @@ bool paint_supports_smooth_stroke(const Brush &brush,
                                   PaintMode mode,
                                   BrushSwitchMode brush_switch_mode);
 bool paint_supports_texture(PaintMode mode);
-
-/**
- * Called in paint_ops.cc, on each regeneration of key-maps.
- */
-wmKeyMap *paint_stroke_modal_keymap(wmKeyConfig *keyconf);
 
 class PaintModeData {
  public:
@@ -353,6 +347,9 @@ void BRUSH_OT_asset_revert(wmOperatorType *ot);
 
 }  // namespace ed::sculpt_paint
 
+/** Initialize viewport pivot from evaluated bounding box center of `ob`. */
+void paint_init_pivot(Object *ob, Scene *scene, Paint *paint);
+
 /**
  * Delete overlay cursor textures to preserve memory and invalidate all overlay flags.
  */
@@ -366,32 +363,16 @@ bool weight_paint_mode_poll(bContext *C);
 bool weight_paint_mode_region_view3d_poll(bContext *C);
 bool vertex_paint_poll(bContext *C);
 bool vertex_paint_poll_ignore_tool(bContext *C);
-/**
- * Returns true if vertex paint mode is active.
- */
 bool vertex_paint_mode_poll(bContext *C);
-
-using VPaintTransform_Callback = void (*)(const float col[3],
-                                          const void *user_data,
-                                          float r_col[3]);
 
 void PAINT_OT_weight_paint_toggle(wmOperatorType *ot);
 void PAINT_OT_weight_paint(wmOperatorType *ot);
 void PAINT_OT_weight_set(wmOperatorType *ot);
 
-enum {
-  WPAINT_GRADIENT_TYPE_LINEAR,
-  WPAINT_GRADIENT_TYPE_RADIAL,
-};
 void PAINT_OT_weight_gradient(wmOperatorType *ot);
 
 void PAINT_OT_vertex_paint_toggle(wmOperatorType *ot);
 void PAINT_OT_vertex_paint(wmOperatorType *ot);
-
-/**
- * \note weight-paint has an equivalent function: #ED_wpaint_blend_tool
- */
-unsigned int ED_vpaint_blend_tool(int tool, uint col, uint paintcol, int alpha_i);
 
 /* `paint_vertex_weight_utils.cc` */
 
@@ -400,8 +381,6 @@ unsigned int ED_vpaint_blend_tool(int tool, uint col, uint paintcol, int alpha_i
  *
  * \return The final weight, note that this is _not_ clamped from [0-1].
  * Clamping must be done on the final #MDeformWeight.weight
- *
- * \note vertex-paint has an equivalent function: #ED_vpaint_blend_tool
  */
 float ED_wpaint_blend_tool(int tool, float weight, float paintval, float alpha);
 /* Utility for tools to ensure vertex groups exist before they begin. */
@@ -565,19 +544,6 @@ void SCULPT_OT_uv_sculpt_relax(wmOperatorType *ot);
 void SCULPT_OT_uv_sculpt_pinch(wmOperatorType *ot);
 
 /* paint_utils.cc */
-
-/**
- * Convert the object-space axis-aligned bounding box (expressed as
- * its minimum and maximum corners) into a screen-space rectangle,
- * returns zero if the result is empty.
- */
-bool paint_convert_bb_to_rect(rcti *rect,
-                              const float bb_min[3],
-                              const float bb_max[3],
-                              const ARegion &region,
-                              const RegionView3D &rv3d,
-                              const Object &ob);
-
 float paint_calc_object_space_radius(const ViewContext &vc,
                                      const float3 &center,
                                      float pixel_radius);
@@ -614,11 +580,10 @@ void PAINT_OT_vert_select_more(wmOperatorType *ot);
 void PAINT_OT_vert_select_less(wmOperatorType *ot);
 void PAINT_OT_vert_select_loop(wmOperatorType *ot);
 
+bool facemask_paint_poll(bContext *C);
 bool vert_paint_poll(bContext *C);
 bool mask_paint_poll(bContext *C);
 bool paint_curve_poll(bContext *C);
-
-bool facemask_paint_poll(bContext *C);
 
 namespace ed::sculpt_paint {
 
@@ -662,6 +627,7 @@ inline float3 symmetry_flip(const float3 &src, const ePaintSymmetryFlags symm)
 }  // namespace ed::sculpt_paint
 
 /* `paint_curve.cc` */
+#define PAINT_CURVE_NUM_SEGMENTS 40
 
 void PAINTCURVE_OT_new(wmOperatorType *ot);
 void PAINTCURVE_OT_add_point(wmOperatorType *ot);
@@ -685,12 +651,6 @@ struct BlurKernel {
  */
 BlurKernel *paint_new_blur_kernel(Brush *br, bool proj);
 void paint_delete_blur_kernel(BlurKernel *);
-
-/** Initialize viewport pivot from evaluated bounding box center of `ob`. */
-void paint_init_pivot(Object *ob, Scene *scene, Paint *paint);
-
-/* paint curve defines */
-#define PAINT_CURVE_NUM_SEGMENTS 40
 
 /* palette.cc */
 

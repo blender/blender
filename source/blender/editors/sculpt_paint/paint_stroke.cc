@@ -1109,26 +1109,6 @@ bool paint_supports_dynamic_tex_coords(const Brush &br, const PaintMode mode)
   return true;
 }
 
-#define PAINT_STROKE_MODAL_CANCEL 1
-
-wmKeyMap *paint_stroke_modal_keymap(wmKeyConfig *keyconf)
-{
-  static const EnumPropertyItem modal_items[] = {
-      {PAINT_STROKE_MODAL_CANCEL, "CANCEL", 0, "Cancel", "Cancel and undo a stroke in progress"},
-      {0}};
-
-  static const char *name = "Paint Stroke Modal";
-
-  wmKeyMap *keymap = WM_modalkeymap_find(keyconf, name);
-
-  /* This function is called for each space-type, only needs to add map once. */
-  if (!keymap) {
-    keymap = WM_modalkeymap_ensure(keyconf, name, modal_items);
-  }
-
-  return keymap;
-}
-
 void PaintStroke::add_sample(const int input_samples,
                              const float x,
                              const float y,

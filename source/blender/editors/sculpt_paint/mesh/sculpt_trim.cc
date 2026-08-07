@@ -15,6 +15,7 @@
 #include "BLI_math_vector.hh"
 #include "BLI_math_vector_c.hh"
 #include "BLI_polyfill_2d.hh"
+#include "BLI_rect.hh"
 
 #include "BKE_brush.hh"
 #include "BKE_context.hh"
@@ -283,6 +284,54 @@ static void calculate_depth(gesture::GestureData &gesture_data,
 
   r_depth_front = depth_front;
   r_depth_back = depth_back;
+}
+
+/**
+ * Convert the object-space axis-aligned bounding box (expressed as
+ * its minimum and maximum corners) into a screen-space rectangle,
+ * returns zero if the result is empty.
+ */
+static bool paint_convert_bb_to_rect(rcti *rect,
+                                     const float bb_min[3],
+                                     const float bb_max[3],
+                                     const ARegion &region,
+                                     const RegionView3D &rv3d,
+                                     const Object &ob)
+{
+  int i, j, k;
+
+  BLI_rcti_init_minmax(rect);
+
+  /* return zero if the bounding box has non-positive volume */
+  if (bb_min[0] > bb_max[0] || bb_min[1] > bb_max[1] || bb_min[2] > bb_max[2]) {
+    return false;
+  }
+
+  const float4x4 projection = ED_view3d_ob_project_mat_get(&rv3d, &ob);
+
+  for (i = 0; i < 2; i++) {
+    for (j = 0; j < 2; j++) {
+      for (k = 0; k < 2; k++) {
+        float vec[3];
+        int proj_i[2];
+        vec[0] = i ? bb_min[0] : bb_max[0];
+        vec[1] = j ? bb_min[1] : bb_max[1];
+        vec[2] = k ? bb_min[2] : bb_max[2];
+        /* convert corner to screen space */
+        const float2 proj = ED_view3d_project_float_v2_m4(&region, vec, projection);
+        /* expand 2D rectangle */
+
+        /* we could project directly to int? */
+        proj_i[0] = proj[0];
+        proj_i[1] = proj[1];
+
+        BLI_rcti_do_minmax_v(rect, proj_i);
+      }
+    }
+  }
+
+  /* return false if the rectangle has non-positive area */
+  return rect->xmin < rect->xmax && rect->ymin < rect->ymax;
 }
 
 /* Calculates a scalar factor to use to ensure a drawn line gesture
