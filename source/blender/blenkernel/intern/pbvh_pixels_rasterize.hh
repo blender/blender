@@ -6,6 +6,7 @@
 
 #include <utility>
 
+#include "BLI_bounds_types.hh"
 #include "BLI_math_vector.hh"
 
 namespace blender::bke::pbvh {
@@ -30,9 +31,23 @@ struct TriRasterizer {
   Edge edges[3];
 
  public:
-  TriRasterizer(const float2 p0, const float2 p1, const float2 p2)
+  Bounds<int2> bounds;
+
+  TriRasterizer(const float2 uv0, const float2 uv1, const float2 uv2, const int2 image_size)
   {
-    const float2 p[3] = {p0, p1, p2};
+    const float2 f_image_size(image_size.x, image_size.y);
+    const float2 p[3] = {uv0 * f_image_size, uv1 * f_image_size, uv2 * f_image_size};
+
+    if (isfinite(p[0].x) && isfinite(p[0].y) && isfinite(p[1].x) && isfinite(p[1].y) &&
+        isfinite(p[2].x) && isfinite(p[2].y))
+    {
+      Bounds<float2> f_bounds(math::min({p[0], p[1], p[2]}), math::max({p[0], p[1], p[2]}));
+      bounds = Bounds<int2>(math::clamp(int2(math::floor(f_bounds.min)), int2(0), image_size),
+                            math::clamp(int2(math::ceil(f_bounds.max)), int2(0), image_size));
+    }
+    else {
+      bounds = Bounds<int2>(int2(1), int2(0)); /* Empty bounds. */
+    }
 
     for (int i = 0; i < 3; i++) {
       float2 a = p[i];
