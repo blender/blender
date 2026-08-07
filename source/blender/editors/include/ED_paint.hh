@@ -33,6 +33,8 @@ struct UndoType;
 struct wmKeyConfig;
 struct wmOperator;
 
+void ED_paint_cursor_start(Paint *paint, bool (*poll)(bContext *C));
+
 /* `paint_ops.cc` */
 
 void ED_operatortypes_paint();
