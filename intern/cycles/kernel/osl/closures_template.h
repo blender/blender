@@ -301,6 +301,13 @@ OSL_CLOSURE_STRUCT_BEGIN(AnisotropicVDF, anisotropic_vdf)
   OSL_CLOSURE_STRUCT_MEMBER(AnisotropicVDF, FLOAT, float, anisotropy, nullptr)
 OSL_CLOSURE_STRUCT_END(AnisotropicVDF, anisotropic_vdf)
 
+OSL_CLOSURE_STRUCT_BEGIN(CoatBSDF, coat_bsdf)
+  OSL_CLOSURE_STRUCT_MEMBER(CoatBSDF, COLOR, packed_float3, color, nullptr)
+  OSL_CLOSURE_STRUCT_MEMBER(CoatBSDF, FLOAT, float, ior, nullptr)
+  OSL_CLOSURE_STRUCT_MEMBER(CoatBSDF, FLOAT, float, roughness, nullptr)
+  OSL_CLOSURE_STRUCT_MEMBER(CoatBSDF, VECTOR, packed_float3, N, nullptr)
+OSL_CLOSURE_STRUCT_END(CoatBSDF, coat_bsdf)
+
 #undef OSL_CLOSURE_STRUCT_BEGIN
 #undef OSL_CLOSURE_STRUCT_END
 #undef OSL_CLOSURE_STRUCT_MEMBER

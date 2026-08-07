@@ -65,7 +65,11 @@ ccl_device Spectrum bsdf_sheen_setup(KernelGlobals kg,
     sd->runtime_flag |= (SR_BSDF | SR_BSDF_HAS_EVAL);
   }
 
-  return bsdf->weight;
+  /* Sheen do not tint the base. */
+  /* NOTE(OpenPBR): spec v1.1.1 mentions the albedo-scaling for sheen is explicitly modified to not
+   * tint the base, but it is unclear how to remove the tint, so we use `reduce_max` to keep
+   * compatibility. */
+  return make_spectrum(reduce_max(bsdf->weight));
 }
 
 ccl_device Spectrum bsdf_sheen_eval(const ccl_private ShaderClosure *sc,

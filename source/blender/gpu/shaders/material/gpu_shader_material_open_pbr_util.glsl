@@ -109,7 +109,7 @@ float3 openpbr_eval_fuzz(const float3 weight,
   return weight * max((1.0f - math_reduce_max(fuzz_color)), 0.0f);
 }
 
-float3 openpbr_eval_coat(float3 weight, const Coat coat, const float3 V)
+float3 openpbr_eval_coat(float3 weight, Coat coat, const float3 V)
 {
 #ifdef MAT_CLEARCOAT
   if (coat.weight == 0.0f) {
@@ -125,14 +125,12 @@ float3 openpbr_eval_coat(float3 weight, const Coat coat, const float3 V)
   coat_data.color = weight * coat.weight * reflectance;
   closure_eval(coat_data);
 
-  /* Attenuate lower layers */
-  weight *= max((1.0f - reflectance * coat.weight), 0.0f);
-
   if (!all(equal(coat.tint, float3(1.0f)))) {
-    /* Tint lower layers. */
-    const float3 tint = slab_transmittance_at_angle(coat.tint, coat_NV, coat.ior);
-    weight *= mix(float3(1.0f), tint, coat.weight);
+    coat.tint = slab_transmittance_at_angle(coat.tint, coat_NV, coat.ior);
   }
+
+  /* Attenuate lower layers */
+  weight *= saturate(1.0f - (1.0f - coat.tint * (1.0f - reflectance)) * coat.weight);
 #endif
 
   return weight;

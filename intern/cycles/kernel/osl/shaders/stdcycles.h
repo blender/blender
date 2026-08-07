@@ -46,6 +46,8 @@ closure color thin_glass(normal N,
 closure color
 thin_subsurface(normal N, vector T, color C, float anisotropy, float roughness) BUILTIN;
 
+closure color coat_bsdf(color C, float ior, float roughness, normal N) BUILTIN;
+
 // BSSRDF
 closure color bssrdf(string method, normal N, vector radius, color albedo) BUILTIN;
 

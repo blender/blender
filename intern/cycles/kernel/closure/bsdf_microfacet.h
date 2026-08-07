@@ -123,6 +123,14 @@ struct MicrofacetBsdf {
 
 static_assert(sizeof(ShaderClosure) >= sizeof(MicrofacetBsdf), "MicrofacetBsdf is too large!");
 
+struct Coat {
+  PackedSpectrum tint;
+  float ior;
+  packed_float3 N;
+  float roughness;
+  Spectrum weight;
+};
+
 ccl_device_inline void adjust_thin_film_ior_at_backface(ccl_private float &film_ior,
                                                         const float inv_bulk_ior)
 {
@@ -1472,5 +1480,67 @@ ccl_device FresnelCoeff bsdf_thin_glass_setup(KernelGlobals kg,
 }
 
 /** \} */
+
+/* Given the transmittance through a slab at normal incidence, compute the transmittance at a
+ * certain incident angle, based on Beer-Lambert law. */
+ccl_device_inline Spectrum slab_color_at_angle(const float3 color,
+                                               const float cos_theta_i,
+                                               const float ior)
+{
+  const float optical_depth = ior * inversesqrtf(sqr(ior) - (1.0f - sqr(cos_theta_i)));
+  return power(color, optical_depth);
+}
+
+/* Set up coat BSDF, and return the coat albedo for layering. */
+ccl_device Spectrum bsdf_coat_setup(KernelGlobals kg,
+                                    ccl_private ShaderData *sd,
+                                    const PathRayVisibility ray_visibility,
+                                    ccl_private Coat &coat)
+
+{
+#ifdef __CAUSTICS_TRICKS__
+  const bool reflective_caustics = (kernel_data.integrator.caustics_reflective ||
+                                    (ray_visibility & PATH_RAY_VISIBILITY_DIFFUSE) == 0);
+#else
+  const bool reflective_caustics = true;
+#endif
+
+  coat.N = maybe_ensure_valid_specular_reflection(sd, coat.N);
+
+  if (!isequal(coat.tint, one_spectrum())) {
+    /* Compute the color at viewing angle, based on the given tint at normal incidence.
+     * OpenPBR Surface Specification v1.1.1, Section 3.4.2.
+     * NOTE(OpenPBR): Eq. (77) requires the cosines of both the incoming and the outgoing
+     * directions, but we only have access to the incoming direction. We therefore assume that the
+     * refracted cosine of both directions are the same. The same approaximation is done in Adobe's
+     * implementation. */
+    const float cosNI = dot(sd->wi, coat.N);
+    coat.tint = slab_color_at_angle(coat.tint, cosNI, coat.ior);
+  }
+
+  Spectrum albedo = zero_spectrum();
+  if (reflective_caustics) {
+    MicrofacetBsdf coat_bsdf;
+    ccl_private MicrofacetBsdf *bsdf = bsdf_alloc_maybe_emission(sd, &coat_bsdf, coat.weight);
+    if (bsdf) {
+      bsdf->N = coat.N;
+      bsdf->T = zero_float3();
+      bsdf->ior = coat.ior;
+      bsdf->alpha_x = bsdf->alpha_y = sqr(coat.roughness);
+
+      const int runtime_flag = bsdf_microfacet_ggx_setup(bsdf);
+      if (bsdf != &coat_bsdf) {
+        /* Add flag only if the closure is actually allocated in `sd->closure`. */
+        sd->runtime_flag |= runtime_flag;
+      }
+      bsdf_microfacet_setup_fresnel_dielectric(kg, bsdf, sd->wi);
+
+      albedo = bsdf_microfacet_estimate_albedo(kg, sd->wi, bsdf, true, false);
+    }
+  }
+
+  /* Attenuate lower layers. */
+  return (1.0f - coat.tint * (1.0f - albedo)) * coat.weight;
+}
 
 CCL_NAMESPACE_END

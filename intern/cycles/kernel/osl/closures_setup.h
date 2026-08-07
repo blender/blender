@@ -269,6 +269,33 @@ ccl_device void osl_closure_ray_portal_bsdf_setup(KernelGlobals /*kg*/,
   bsdf_ray_portal_setup(sd, rgb_to_spectrum(weight), closure->position, closure->direction);
 }
 
+ccl_device void osl_closure_coat_bsdf_setup(KernelGlobals kg,
+                                            ccl_private ShaderData *sd,
+                                            const PathRayVisibility path_visibility,
+                                            const uint32_t /*path_flag*/,
+                                            const float3 weight,
+                                            const ccl_private CoatBSDFClosure *closure,
+                                            float3 *layer_albedo)
+{
+  osl_zero_albedo(layer_albedo);
+
+  if (osl_closure_skip(kg, path_visibility, LABEL_GLOSSY | LABEL_REFLECT)) {
+    return;
+  }
+
+  Coat coat;
+  coat.tint = rgb_to_spectrum(closure->color);
+  coat.ior = closure->ior;
+  coat.N = maybe_ensure_valid_specular_reflection(sd, safe_normalize_fallback(closure->N, sd->N));
+  coat.roughness = closure->roughness;
+  coat.weight = rgb_to_spectrum(weight);
+  const Spectrum albedo = bsdf_coat_setup(kg, sd, path_visibility, coat);
+
+  if (layer_albedo) {
+    *layer_albedo = spectrum_to_rgb(albedo);
+  }
+}
+
 /* MaterialX closures */
 ccl_device void osl_closure_dielectric_bsdf_setup(KernelGlobals kg,
                                                   ccl_private ShaderData *sd,
@@ -284,22 +311,14 @@ ccl_device void osl_closure_dielectric_bsdf_setup(KernelGlobals kg,
     return;
   }
 
-  MicrofacetBsdf dielectric;
-  ccl_private MicrofacetBsdf *bsdf = bsdf_alloc_maybe_emission(
-      sd, &dielectric, rgb_to_spectrum(weight));
+  ccl_private MicrofacetBsdf *bsdf = (ccl_private MicrofacetBsdf *)bsdf_alloc(
+      sd, sizeof(MicrofacetBsdf), rgb_to_spectrum(weight));
   if (!bsdf) {
     return;
   }
 
-  FresnelDielectricTint fresnel_;
-  ccl_private FresnelDielectricTint *fresnel = nullptr;
-  if ((sd->num_closure_left == 0) && (sd->shader_flag & SD_HAS_EMISSION)) {
-    fresnel = &fresnel_;
-  }
-  else {
-    fresnel = (ccl_private FresnelDielectricTint *)closure_alloc_extra(
-        sd, sizeof(FresnelDielectricTint));
-  }
+  ccl_private FresnelDielectricTint *fresnel = (ccl_private FresnelDielectricTint *)
+      closure_alloc_extra(sd, sizeof(FresnelDielectricTint));
 
   if (!fresnel) {
     return;
@@ -321,7 +340,7 @@ ccl_device void osl_closure_dielectric_bsdf_setup(KernelGlobals kg,
 
   if (layer_albedo != nullptr) {
     if (!(sd->runtime_flag & SR_BSDF_HAS_TRANSMISSION)) {
-      *layer_albedo = bsdf_albedo(kg, sd, (ccl_private ShaderClosure *)bsdf, true, false);
+      *layer_albedo = closure_layer_albedo(kg, sd, (ccl_private ShaderClosure *)bsdf);
     }
     else {
       *layer_albedo = one_float3();
@@ -476,7 +495,7 @@ ccl_device void osl_closure_generalized_schlick_bsdf_setup(
 
   if (layer_albedo != nullptr) {
     if (has_reflection && !has_transmission) {
-      *layer_albedo = bsdf_albedo(kg, sd, (ccl_private ShaderClosure *)bsdf, true, false);
+      *layer_albedo = closure_layer_albedo(kg, sd, (ccl_private ShaderClosure *)bsdf);
     }
     else {
       *layer_albedo = one_float3();
@@ -624,7 +643,7 @@ ccl_device void osl_closure_microfacet_setup(KernelGlobals kg,
 
   if (layer_albedo != nullptr) {
     if (closure->refract == 0) {
-      *layer_albedo = bsdf_albedo(kg, sd, (ccl_private ShaderClosure *)bsdf, true, false);
+      *layer_albedo = closure_layer_albedo(kg, sd, (ccl_private ShaderClosure *)bsdf);
     }
     else {
       *layer_albedo = one_float3();
@@ -750,7 +769,7 @@ ccl_device void osl_closure_microfacet_multi_ggx_aniso_setup(
   bsdf_microfacet_setup_fresnel_constant(kg, bsdf, sd->wi, rgb_to_spectrum(closure->color));
 
   if (layer_albedo != nullptr) {
-    *layer_albedo = bsdf_albedo(kg, sd, (ccl_private ShaderClosure *)bsdf, true, false);
+    *layer_albedo = closure_layer_albedo(kg, sd, (ccl_private ShaderClosure *)bsdf);
   }
 }
 
