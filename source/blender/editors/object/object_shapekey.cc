@@ -400,9 +400,34 @@ static wmOperatorStatus shape_key_copy_exec(bContext *C, wmOperator * /*op*/)
 {
   Object *ob = context_object(C);
   Key *key = BKE_key_from_object(ob);
-  KeyBlock *kb_src = BKE_keyblock_from_object(ob);
-  KeyBlock *kb_new = BKE_keyblock_duplicate(key, kb_src);
-  ob->shapenr = BLI_findindex(&key->block, kb_new) + 1;
+
+  /* List selected shape keys. */
+  blender::Vector<KeyBlock *> to_duplicate;
+  for (auto [index, keyblock] : key->block.enumerate()) {
+    const bool is_selected = shape_key_is_selected(*ob, keyblock, index);
+
+    /* Deselect all keys, so that only new ones are selected. */
+    keyblock.flag &= ~KEYBLOCK_SEL;
+
+    if (index == 0) {
+      /* Never duplicate the base key, it's special. */
+      continue;
+    }
+    if (is_selected) {
+      to_duplicate.append(&keyblock);
+    }
+  }
+
+  KeyBlock *kb_new = nullptr;
+  for (KeyBlock *kb_src : to_duplicate) {
+    kb_new = BKE_keyblock_duplicate(key, kb_src);
+    kb_new->flag |= KEYBLOCK_SEL;
+  }
+
+  if (kb_new != nullptr) {
+    ob->shapenr = BLI_findindex(&key->block, kb_new) + 1;
+  }
+
   WM_event_add_notifier(C, NC_OBJECT | ND_DRAW, ob);
   DEG_id_tag_update(&ob->id, ID_RECALC_GEOMETRY);
   DEG_relations_tag_update(CTX_data_main(C));
