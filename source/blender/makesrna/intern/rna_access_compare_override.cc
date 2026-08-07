@@ -426,7 +426,7 @@ static int rna_property_override_diff(Main *bmain,
     CLOG_ERROR(
         &LOG,
         "'%s' gives unmatching or nullptr RNA diff callbacks, should not happen (%d vs. %d)",
-        rna_path ? rna_path : prop_a->identifier,
+        rna_path ? rna_path : prop_a->identifier.c_str(),
         !prop_a->is_idprop,
         !prop_b->is_idprop);
     BLI_assert_unreachable();
@@ -609,7 +609,8 @@ static bool rna_property_override_operation_apply(Main *bmain,
     CLOG_ERROR(
         &LOG,
         "'%s' gives unmatching or nullptr RNA apply callbacks, should not happen (%d vs. %d)",
-        prop_dst->magic != RNA_MAGIC ? ((IDProperty *)prop_dst)->name : prop_dst->identifier,
+        prop_dst->magic != RNA_MAGIC ? ((IDProperty *)prop_dst)->name :
+                                       prop_dst->identifier.c_str(),
         prop_dst->magic == RNA_MAGIC,
         prop_src->magic == RNA_MAGIC);
     BLI_assert_unreachable();
@@ -747,8 +748,8 @@ bool RNA_struct_override_matches(Main *bmain,
     if (root_path) {
       BLI_assert(strlen(root_path) == root_path_len);
 
-      const char *prop_name = prop_local.identifier;
-      const size_t prop_name_len = strlen(prop_name);
+      const char *prop_name = prop_local.identifier.c_str();
+      const size_t prop_name_len = prop_local.identifier.size();
 
       char rna_path_buffer[RNA_PATH_BUFFSIZE];
       char *rna_path_c = rna_path_buffer;
