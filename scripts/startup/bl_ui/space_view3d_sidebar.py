@@ -77,8 +77,10 @@ class VIEW3D_PT_copy_global_transform_fix_to_camera(GlobalTransformPanelMixin, P
             # case because it also has options for selecting what to key. The
             # logical AND of the settings is used, so a property is only keyed
             # when the keying set AND the above check-boxes say it's OK.
-            props_box.label(text="Keying set is active, which may")
-            props_box.label(text="reduce the effect of the above options")
+            props_box.label_multiline(
+                text="A keying set is active, which may reduce the effect of the options above.",
+                icon="STATUS_WARNING",
+                max_lines=3)
 
         row = layout.row(align=True)
         props = row.operator("object.fix_to_camera")
