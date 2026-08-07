@@ -218,6 +218,7 @@ set(SRC_RNA_INC
   ../RNA_enum_items.hh
   ../RNA_enum_types.hh
   ../RNA_path.hh
+  ../RNA_path_fwd.hh
   ../RNA_types.hh
 
   rna_action_tools.hh

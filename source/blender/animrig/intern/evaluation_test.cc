@@ -74,7 +74,13 @@ class AnimationEvaluationTest : public bke::BlenderGTestBase {
     EvaluationResult result = evaluate_layer(
         cube_rna_ptr, *action, *layer, slot->handle, anim_eval_context);
 
-    const AnimatedProperty *loc0_result = result.lookup_ptr(PropIdentifier(rna_path, array_index));
+    std::optional<ParsedRNAPath<>> parsed_rna_path = ParsedRNAPath<>::from_string(rna_path);
+    if (!parsed_rna_path) {
+      return {};
+    }
+
+    const AnimatedProperty *loc0_result = result.lookup_ptr(
+        PropIdentifier(*parsed_rna_path, array_index));
     if (!loc0_result) {
       return {};
     }
@@ -154,9 +160,12 @@ TEST_F(AnimationEvaluationTest, evaluate_layer__keyframes)
   EvaluationResult result = evaluate_layer(
       cube_rna_ptr, *action, *layer, slot->handle, anim_eval_context);
 
+  std::optional<ParsedRNAPath<>> parsed_rna_path = ParsedRNAPath<>::from_string("location");
+  EXPECT_TRUE(parsed_rna_path.has_value());
+
   /* Check the result. */
   ASSERT_FALSE(result.is_empty());
-  AnimatedProperty *loc0_result = result.lookup_ptr(PropIdentifier("location", 0));
+  AnimatedProperty *loc0_result = result.lookup_ptr(PropIdentifier(*parsed_rna_path, 0));
   ASSERT_NE(nullptr, loc0_result) << "location[0] should have been animated";
   EXPECT_EQ(47.3f, loc0_result->value);
 
@@ -284,24 +293,27 @@ TEST_F(AnimationEvaluationResultTest, prop_identifier_hashing)
 
   /* Test storing the same result twice, with different memory locations of the RNA paths. This
    * tests that the mapping uses the actual string, and not just pointer comparison. */
-  const char *rna_path_1 = "pose.bones['Root'].location";
+  const char *rna_path_1 = "pose.bones[\"Root\"].location";
   const std::string rna_path_2(rna_path_1);
   ASSERT_NE(rna_path_1, rna_path_2.c_str())
       << "This test requires different addresses for the RNA path strings";
 
+  std::optional<ParsedRNAPath<>> parsed_rna_path_1 = ParsedRNAPath<>::from_string(rna_path_1);
+  std::optional<ParsedRNAPath<>> parsed_rna_path_2 = ParsedRNAPath<>::from_string(rna_path_2);
+
   PathResolvedRNA fake_resolved_rna;
-  result.store(rna_path_1, 0, 1.0f, fake_resolved_rna);
-  result.store(rna_path_2, 0, 2.0f, fake_resolved_rna);
+  result.store(*parsed_rna_path_1, 0, 1.0f, fake_resolved_rna);
+  result.store(*parsed_rna_path_2, 0, 2.0f, fake_resolved_rna);
   EXPECT_EQ(1, result.get_map().size())
       << "Storing a result for the same property twice should just overwrite the previous value";
 
   {
-    PropIdentifier key(rna_path_1, 0);
+    PropIdentifier key(*parsed_rna_path_1, 0);
     AnimatedProperty *anim_prop = result.lookup_ptr(key);
     EXPECT_EQ(2.0f, anim_prop->value) << "The last-stored result should survive.";
   }
   {
-    PropIdentifier key(rna_path_2, 0);
+    PropIdentifier key(*parsed_rna_path_2, 0);
     AnimatedProperty *anim_prop = result.lookup_ptr(key);
     EXPECT_EQ(2.0f, anim_prop->value) << "The last-stored result should survive.";
   }

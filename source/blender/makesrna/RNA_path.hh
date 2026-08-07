@@ -17,6 +17,8 @@
 
 #include <optional>
 #include <string>
+#include <variant>
+
 #include <utility>
 
 #include "DNA_listBase.h"
@@ -24,6 +26,7 @@
 #include "RNA_types.hh"
 
 #include "BLI_string_ref.hh"
+#include "BLI_ustring.hh"
 
 namespace blender {
 
@@ -72,6 +75,84 @@ struct RNAPath {
   std::optional<int> index = std::nullopt;
 
   int64_t hash() const;
+};
+
+namespace rna_path {
+
+/** Access a property of an RNA type, like "object.location". */
+struct Member {
+  UString identifier;
+
+  bool operator==(const Member &other) const = default;
+};
+
+/**
+ * Access an element in a collection property, like "data.points[10]", or an element from a
+ * property like "location[1]".
+ */
+struct LookupIndex {
+  int64_t index;
+
+  bool operator==(const LookupIndex &other) const = default;
+};
+
+/** Quoted access with brackets, like "object["my_custom_property"]". */
+struct LookupKey {
+  UString key;
+
+  bool operator==(const LookupKey &other) const = default;
+};
+
+using Item = std::variant<Member, LookupIndex, LookupKey>;
+
+/** Convert a parsed path back to a string representation. */
+std::string to_string(Span<Item> items);
+
+}  // namespace rna_path
+
+using ParsedRNAPathRef = Span<rna_path::Item>;
+
+template<> struct DefaultHash<rna_path::Item> {
+  uint64_t operator()(const rna_path::Item &value) const
+  {
+    return get_default_hash(uint64_t(value.index()),
+                            std::visit(
+                                []<typename T>(const T &value) -> uint64_t {
+                                  if constexpr (std::is_same_v<T, rna_path::Member>) {
+                                    return get_default_hash(value.identifier);
+                                  }
+                                  else if constexpr (std::is_same_v<T, rna_path::LookupIndex>) {
+                                    return get_default_hash(value.index);
+                                  }
+                                  else if constexpr (std::is_same_v<T, rna_path::LookupKey>) {
+                                    return get_default_hash(value.key);
+                                  }
+                                },
+                                value));
+  }
+};
+
+/**
+ * Storage for a parsed path, using a variable inline buffer to avoid allocations. This class helps
+ * to amortize the cost of string parsing across multiple uses of the RNA path. If this is just
+ * stored on the stack, a larger inline buffer can make more sense.
+ *
+ * \param N: The inline buffer size of the vector for optimized storage of common shorter paths.
+ */
+template<int64_t N = 4> class ParsedRNAPath {
+ public:
+  Vector<rna_path::Item, N> items;
+
+  ParsedRNAPath() = default;
+
+  static std::optional<ParsedRNAPath> from_string(StringRefNull path);
+
+  std::string to_string() const;
+
+  operator ParsedRNAPathRef() const
+  {
+    return this->items;
+  }
 };
 
 /**
@@ -156,6 +237,10 @@ bool RNA_path_resolve_full_maybe_null(const PointerRNA *ptr,
  */
 bool RNA_path_resolve_property(const PointerRNA *ptr,
                                const char *path,
+                               PointerRNA *r_ptr,
+                               PropertyRNA **r_prop);
+bool RNA_path_resolve_property(const PointerRNA *ptr,
+                               ParsedRNAPathRef path,
                                PointerRNA *r_ptr,
                                PropertyRNA **r_prop);
 

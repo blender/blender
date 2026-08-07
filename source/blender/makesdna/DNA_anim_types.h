@@ -14,6 +14,7 @@
 #include "DNA_listBase.h"
 
 #include <type_traits>
+#include <variant>
 
 namespace blender {
 
@@ -24,6 +25,14 @@ struct NlaStripRuntime;
 }  // namespace bke
 using FCurveRuntime = bke::FCurveRuntime;
 using NlaStripRuntime = bke::NlaStripRuntime;
+template<typename T> class Span;
+namespace rna_path {
+struct Member;
+struct LookupIndex;
+struct LookupKey;
+using Item = std::variant<Member, LookupIndex, LookupKey>;
+}  // namespace rna_path
+using ParsedRNAPathRef = Span<rna_path::Item>;
 #else
 typedef struct FCurveRuntime FCurveRuntime;
 typedef struct NlaStripRuntime NlaStripRuntime;
@@ -415,6 +424,17 @@ struct FCurve {
    * \note String look-ups for collection and custom-properties are escaped using #BLI_str_escape.
    */
   StringRefNull rna_path() const;
+
+  /**
+   * Retrieve a pre-parsed version of the FCurve's RNA path, owned by the FCurve itself. The
+   * referenced memory is only valid as long as the FCurve's path is not changed. Due to its use of
+   * specialized RNA path storage types, this can be much more efficient to work with than the
+   * string representation.
+   * \note This path does not include FCurve::array_index.
+   * \note This may return empty when an invalid RNA path that cannot be parsed is set, or when the
+   * `rna_path_set` API is skipped.
+   */
+  ParsedRNAPathRef rna_path_parsed() const;
 
   /** Set the RNA path for this F-Curve, copying the given string. */
   void rna_path_set(StringRef path);
