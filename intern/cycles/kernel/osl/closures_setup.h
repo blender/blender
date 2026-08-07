@@ -273,7 +273,7 @@ ccl_device void osl_closure_ray_portal_bsdf_setup(KernelGlobals /*kg*/,
 ccl_device void osl_closure_dielectric_bsdf_setup(KernelGlobals kg,
                                                   ccl_private ShaderData *sd,
                                                   const PathRayVisibility path_visibility,
-                                                  const uint32_t path_flag,
+                                                  const uint32_t /*path_flag*/,
                                                   const float3 weight,
                                                   const ccl_private DielectricBSDFClosure *closure,
                                                   float3 *layer_albedo)
@@ -286,14 +286,14 @@ ccl_device void osl_closure_dielectric_bsdf_setup(KernelGlobals kg,
 
   MicrofacetBsdf dielectric;
   ccl_private MicrofacetBsdf *bsdf = bsdf_alloc_maybe_emission(
-      sd, &dielectric, path_flag, rgb_to_spectrum(weight));
+      sd, &dielectric, rgb_to_spectrum(weight));
   if (!bsdf) {
     return;
   }
 
   FresnelDielectricTint fresnel_;
   ccl_private FresnelDielectricTint *fresnel = nullptr;
-  if (path_flag & PATH_RAY_EMISSION) {
+  if ((sd->num_closure_left == 0) && (sd->shader_flag & SD_HAS_EMISSION)) {
     fresnel = &fresnel_;
   }
   else {
@@ -785,7 +785,7 @@ ccl_device void osl_closure_ashikhmin_velvet_setup(
 ccl_device void osl_closure_sheen_bsdf_setup(KernelGlobals kg,
                                              ccl_private ShaderData *sd,
                                              const PathRayVisibility path_visibility,
-                                             const uint32_t path_flag,
+                                             const uint32_t /*path_flag*/,
                                              const float3 weight,
                                              const ccl_private SheenBSDFClosure *closure,
                                              float3 *layer_albedo)
@@ -799,7 +799,7 @@ ccl_device void osl_closure_sheen_bsdf_setup(KernelGlobals kg,
   const float3 N = safe_normalize_fallback(closure->N, sd->N);
   const Spectrum color = rgb_to_spectrum(closure->albedo);
   const Spectrum albedo = bsdf_sheen_setup(
-      kg, sd, path_flag, rgb_to_spectrum(weight) * color, N, closure->roughness);
+      kg, sd, rgb_to_spectrum(weight) * color, N, closure->roughness);
 
   if (layer_albedo) {
     *layer_albedo = spectrum_to_rgb(albedo);

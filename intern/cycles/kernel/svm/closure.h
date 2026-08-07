@@ -124,8 +124,7 @@ principled_bsdf_emission(KernelGlobals kg,
     const float3 sheen_N = safe_normalize(mix(N, coat_normal, saturatef(coat_weight)));
 
     const Spectrum closure_weight = sheen_weight * rgb_to_spectrum(sheen_tint) * weight;
-    const Spectrum albedo = bsdf_sheen_setup(
-        kg, sd, path_flag, closure_weight, sheen_N, sheen_roughness);
+    const Spectrum albedo = bsdf_sheen_setup(kg, sd, closure_weight, sheen_N, sheen_roughness);
 
     /* Attenuate lower layers */
     weight = closure_layering_weight(albedo, weight);
@@ -143,7 +142,7 @@ principled_bsdf_emission(KernelGlobals kg,
     if (reflective_caustics) {
       MicrofacetBsdf coat;
       ccl_private MicrofacetBsdf *bsdf = bsdf_alloc_maybe_emission(
-          sd, &coat, path_flag, coat_weight * weight);
+          sd, &coat, coat_weight * weight);
 
       if (bsdf) {
         bsdf->N = valid_coat_normal;
@@ -851,7 +850,7 @@ ccl_device
 
       const Spectrum weight = closure_weight * mix_weight;
       const float roughness = saturatef(stack_load(stack, bsdf_data.param1));
-      bsdf_sheen_setup(kg, sd, path_flag, weight, N, roughness);
+      bsdf_sheen_setup(kg, sd, weight, N, roughness);
       break;
     }
     case CLOSURE_BSDF_GLOSSY_TOON_ID:

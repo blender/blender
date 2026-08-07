@@ -28,13 +28,12 @@ static_assert(sizeof(ShaderClosure) >= sizeof(SheenBsdf), "SheenBsdf is too larg
 /* Set up sheen BSDF, and return the closure albedo for layering. */
 ccl_device Spectrum bsdf_sheen_setup(KernelGlobals kg,
                                      ccl_private ShaderData *sd,
-                                     const uint32_t path_flag,
                                      const Spectrum weight,
                                      const float3 N,
                                      const float roughness)
 {
   SheenBsdf sheen;
-  ccl_private SheenBsdf *bsdf = bsdf_alloc_maybe_emission(sd, &sheen, path_flag, weight);
+  ccl_private SheenBsdf *bsdf = bsdf_alloc_maybe_emission(sd, &sheen, weight);
 
   if (!bsdf) {
     return zero_spectrum();
