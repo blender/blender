@@ -64,7 +64,7 @@
 
 #include "../paint_intern.hh" /* own include */
 #include "mesh_brush_common.hh"
-#include "mesh_stroke_common.hh"
+#include "mesh_paint.hh"
 #include "sculpt_automask.hh"
 #include "sculpt_intern.hh"
 #include "vw_paint_intern.hh" /* own include */

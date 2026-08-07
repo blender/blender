@@ -105,7 +105,7 @@
 
 #include "editors/sculpt_paint/mesh/brushes/brushes.hh"
 #include "mesh_brush_common.hh"
-#include "mesh_stroke_common.hh"
+#include "mesh_paint.hh"
 
 namespace blender {
 

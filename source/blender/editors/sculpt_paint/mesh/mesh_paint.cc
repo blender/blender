@@ -2,7 +2,7 @@
  *
  * SPDX-License-Identifier: GPL-2.0-or-later */
 
-#include "mesh_stroke_common.hh"
+#include "mesh_paint.hh"
 
 #include "BKE_object.hh"
 #include "BKE_object_types.hh"
