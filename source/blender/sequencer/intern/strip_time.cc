@@ -243,7 +243,7 @@ void strip_time_update_effects_strip_range(const Scene *scene, const Span<Strip 
 
 int time_find_next_prev_edit(Scene *scene,
                              int timeline_frame,
-                             const short side,
+                             const Side side,
                              const bool do_skip_mute,
                              const bool do_center,
                              const bool do_unselected)
@@ -291,18 +291,20 @@ int time_find_next_prev_edit(Scene *scene,
       dist = MAXFRAME * 2;
 
       switch (side) {
-        case SIDE_LEFT:
+        case Side::Left:
           if (strip_frame < timeline_frame) {
             dist = timeline_frame - strip_frame;
           }
           break;
-        case SIDE_RIGHT:
+        case Side::Right:
           if (strip_frame > timeline_frame) {
             dist = strip_frame - timeline_frame;
           }
           break;
-        case SIDE_BOTH:
+        case Side::Both:
           dist = abs(strip_frame - timeline_frame);
+          break;
+        default:
           break;
       }
 
