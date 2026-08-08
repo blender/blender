@@ -215,6 +215,12 @@ static void update_mipmaps(Texture &texture, Shader &shader)
 
 using namespace blender::gpu;
 
+eGPUTextureUsage GPU_texture_mipmap_usage(TextureFormat /*format*/)
+{
+  /* Mipmaps generated with the compute shader need write support. */
+  return GPU_TEXTURE_USAGE_SHADER_WRITE;
+}
+
 void GPU_texture_update_mipmap_chain(Texture *tex)
 {
   BLI_assert(tex);

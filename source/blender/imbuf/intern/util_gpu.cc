@@ -375,6 +375,28 @@ static void get_gpu_texture_data(ImBuf *source_buffer,
   r_upload.size = size;
 }
 
+static void imb_gpu_texture_default_init(gpu::Texture *tex, const ImBuf *ibuf)
+{
+  GPU_texture_swizzle_set(tex, imb_gpu_get_swizzle(ibuf));
+  GPU_texture_anisotropic_filter(tex, true);
+}
+
+static void imb_gpu_texture_default_init_mipmap(gpu::Texture *tex)
+{
+  GPU_texture_extend_mode(tex, GPU_SAMPLER_EXTEND_MODE_REPEAT);
+  GPU_texture_mipmap_mode(tex, true, true);
+}
+
+static void imb_gpu_texture_default_init_array(gpu::Texture *tex)
+{
+  const char *swizzle = (GPU_texture_component_len(GPU_texture_format(tex)) == 1) ? "rrra" :
+                                                                                    "rgba";
+  GPU_texture_swizzle_set(tex, swizzle);
+  GPU_texture_anisotropic_filter(tex, true);
+  GPU_texture_extend_mode(tex, GPU_SAMPLER_EXTEND_MODE_CLAMP_TO_BORDER);
+  GPU_texture_mipmap_mode(tex, true, true);
+}
+
 gpu::Texture *IMB_touch_gpu_texture(const char *name,
                                     ImBuf *ibuf,
                                     int w,
@@ -386,30 +408,18 @@ gpu::Texture *IMB_touch_gpu_texture(const char *name,
   gpu::TextureFormat tex_format;
   imb_gpu_get_format(ibuf, use_high_bitdepth, use_grayscale, &tex_format);
 
+  const eGPUTextureUsage usage = GPU_TEXTURE_USAGE_SHADER_READ |
+                                 GPU_texture_mipmap_usage(tex_format);
+
   gpu::Texture *tex;
   if (layers > 0) {
-    tex = GPU_texture_create_2d_array(name,
-                                      w,
-                                      h,
-                                      layers,
-                                      9999,
-                                      tex_format,
-                                      GPU_TEXTURE_USAGE_SHADER_READ |
-                                          GPU_TEXTURE_USAGE_SHADER_WRITE,
-                                      nullptr);
+    tex = GPU_texture_create_2d_array(name, w, h, layers, 9999, tex_format, usage, nullptr);
+    imb_gpu_texture_default_init_array(tex);
   }
   else {
-    tex = GPU_texture_create_2d(name,
-                                w,
-                                h,
-                                9999,
-                                tex_format,
-                                GPU_TEXTURE_USAGE_SHADER_READ | GPU_TEXTURE_USAGE_SHADER_WRITE,
-                                nullptr);
+    tex = GPU_texture_create_2d(name, w, h, 9999, tex_format, usage, nullptr);
+    imb_gpu_texture_default_init(tex, ibuf);
   }
-
-  GPU_texture_swizzle_set(tex, imb_gpu_get_swizzle(ibuf));
-  GPU_texture_anisotropic_filter(tex, true);
   return tex;
 }
 
@@ -517,12 +527,11 @@ gpu::Texture *IMB_create_gpu_texture(const char *name,
       ibuf, flag_is_set(flags, GPUTextureCreateFlags::HighBitDepth), true, &tex_format);
 
   /* Create Texture. Specify read usage to allow both shader and host reads, the latter is needed
-   * by the GPU compositor. */
-  const eGPUTextureUsage usage = use_mipmap ?
-                                     GPU_TEXTURE_USAGE_SHADER_READ |
-                                         GPU_TEXTURE_USAGE_SHADER_WRITE |
-                                         GPU_TEXTURE_USAGE_HOST_READ :
-                                     GPU_TEXTURE_USAGE_SHADER_READ | GPU_TEXTURE_USAGE_HOST_READ;
+   * by the GPU compositor. Mipmaps need additional usage flags. */
+  eGPUTextureUsage usage = GPU_TEXTURE_USAGE_SHADER_READ | GPU_TEXTURE_USAGE_HOST_READ;
+  if (use_mipmap) {
+    usage |= GPU_texture_mipmap_usage(tex_format);
+  }
   tex = GPU_texture_create_2d(
       name, UNPACK2(size), use_mipmap ? 9999 : 1, tex_format, usage, nullptr);
   if (tex == nullptr) {
@@ -549,8 +558,7 @@ gpu::Texture *IMB_create_gpu_texture(const char *name,
     GPU_texture_update(tex, upload.format, upload.data);
   }
 
-  GPU_texture_swizzle_set(tex, imb_gpu_get_swizzle(ibuf));
-  GPU_texture_anisotropic_filter(tex, true);
+  imb_gpu_texture_default_init(tex, ibuf);
 
   return tex;
 }
@@ -744,10 +752,8 @@ gpu::Texture *IMB_acquire_gpu_texture(const char *name,
   }
   ibuf->gpu.flag &= ~IMB_GPU_LOAD_FAILED;
 
-  GPU_texture_extend_mode(tex, GPU_SAMPLER_EXTEND_MODE_REPEAT);
-
   GPU_texture_update_mipmap_chain(tex);
-  GPU_texture_mipmap_mode(tex, true, true);
+  imb_gpu_texture_default_init_mipmap(tex);
 
   ibuf->gpu.partial_update_changeset = changeset_id;
   ibuf->gpu.texture = tex;

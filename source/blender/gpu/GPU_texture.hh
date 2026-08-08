@@ -1013,6 +1013,11 @@ void GPU_texture_clear(gpu::Texture *texture, eGPUDataFormat data_format, const 
 void GPU_texture_copy(gpu::Texture *dst, gpu::Texture *src);
 
 /**
+ * Returns the texture usage flags needed for generating a mipmap.
+ */
+eGPUTextureUsage GPU_texture_mipmap_usage(gpu::TextureFormat format);
+
+/**
  * Update the mip-map levels using the mip 0 data.
  *
  * \note this doesn't work on depth or compressed textures.

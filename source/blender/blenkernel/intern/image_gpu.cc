@@ -326,7 +326,6 @@ static gpu::Texture *gpu_texture_create_tile_array(Image *ima, ImBuf *main_ibuf)
   }
 
   GPU_texture_update_mipmap_chain(tex);
-  GPU_texture_mipmap_mode(tex, true, true);
   GPU_texture_original_size_set(tex, main_ibuf->x, main_ibuf->y);
 
   return tex;
