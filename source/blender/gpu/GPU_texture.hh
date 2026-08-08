@@ -15,6 +15,7 @@
 #include <string>
 
 #include "BLI_assert.hh"
+#include "BLI_bit_span.hh"
 #include "BLI_enum_flags.hh"
 #include "BLI_index_range.hh"
 
@@ -1024,6 +1025,20 @@ eGPUTextureUsage GPU_texture_mipmap_usage(gpu::TextureFormat format);
  * \note post-condition: All bound images could be unbound.
  */
 void GPU_texture_update_mipmap_chain(gpu::Texture *texture);
+
+/** Chunk size for partial updates of the mipmaps, must match #MIPMAP_UPDATE_CHUNK_SIZE in
+ * GPU_shader_shared.hh. */
+constexpr int GPU_TEXTURE_MIPMAP_UPDATE_CHUNK_SIZE = 256;
+
+/**
+ * Like #GPU_texture_update_mipmap_chain, but regenerate only modified chunks.
+ *
+ * \a modified_chunks is a bit mask that covers the texture split into
+ * MIPMAP_UPDATE_CHUNK_SIZE x MIPMAP_UPDATE_CHUNK_SIZE chunks.
+ */
+void GPU_texture_update_mipmap_chain_partial(gpu::Texture *texture,
+                                             int layer,
+                                             BitSpan modified_chunks);
 
 /**
  * Read the content of a \a mip_level from a \a texture and returns a copy of its data.

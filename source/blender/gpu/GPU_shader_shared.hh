@@ -68,6 +68,17 @@ struct [[host_shared]] NodeLinkData {
   float _pad1;
 };
 
+/* Destination tile size handled by one workgroup of the mipmap compute shader. */
+#define MIPMAP_UPDATE_TILE_SIZE 8
+
+/* Chunk size for partial mipmap updates. */
+#define MIPMAP_UPDATE_CHUNK_SIZE 256
+
+/* Coordinate of a mipmap chunk for partial mipmap updates. */
+struct [[host_shared]] MipmapChunkCoord {
+  int2 coord;
+};
+
 /* Data common to all links. */
 struct [[host_shared]] NodeLinkUniformData {
   float4 colors[6];

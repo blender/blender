@@ -518,12 +518,6 @@ static void image_gpu_atlas_try_partial_update(Image *image, ImageUser *iuser)
     }
   }
 
-  if (!need_full_rebuild) {
-    if (atlas_tex != nullptr) {
-      GPU_texture_update_mipmap_chain(atlas_tex);
-    }
-  }
-
   atlas_ibuf->gpu.partial_update_changeset = new_changeset_id;
   IMB_freeImBuf(atlas_ibuf);
 
