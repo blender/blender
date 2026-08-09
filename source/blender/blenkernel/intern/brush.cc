@@ -708,7 +708,7 @@ Brush *BKE_brush_add(Main *bmain, const char *name, const eObjectMode ob_mode)
   {
     BKE_brush_init_gpencil_settings(brush);
   }
-  else if (ob_mode == OB_MODE_SCULPT) {
+  else if (ELEM(ob_mode, OB_MODE_SCULPT, OB_MODE_WEIGHT_PAINT, OB_MODE_VERTEX_PAINT)) {
     BKE_brush_init_mesh_automasking_settings(brush);
   }
 
