@@ -434,10 +434,6 @@ struct wmGizmoGroupType {
   /** Optional, see: #wmOwnerID. */
   char owner_id[128];
 
-  /** Optional, used when drawing a group background with `draw_background`. */
-  float4 background_color;
-  float4 outline_color;
-
   /** Poll if gizmo-map should be visible. */
   wmGizmoGroupFnPoll poll;
   /** Initially create gizmos and set permanent data - stuff you only need to do once. */
