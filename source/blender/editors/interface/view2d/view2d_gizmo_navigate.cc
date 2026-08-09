@@ -254,8 +254,6 @@ void VIEW2D_GGT_navigate_impl(wmGizmoGroupType *gzgt, const char *idname)
   gzgt->setup = WIDGETGROUP_navigate_setup;
   gzgt->draw_prepare = WIDGETGROUP_navigate_draw_prepare;
   gzgt->draw_background = ED_gizmo_button2d_group_background;
-  gzgt->background_color = {0.0f, 0.0f, 0.0f, 0.3f};
-  gzgt->outline_color = {0.0f, 0.0f, 0.0f, 0.4f};
 }
 
 /** \} */
