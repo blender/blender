@@ -424,7 +424,7 @@ static void draw_histogram(ARegion &region,
    * measurements are accurate. */
   const int font_id = BLF_set_default();
   float text_scale_x, text_scale_y;
-  ui::view2d_scale_get_inverse(&region.v2d, &text_scale_x, &text_scale_y);
+  ui::view2d_pixel_size_get(&region.v2d, &text_scale_x, &text_scale_y);
 
   float prev_label_right = -FLT_MAX;
 
@@ -512,7 +512,7 @@ static void draw_waveform_graticule(ARegion *region,
 
   const int font_id = BLF_set_default();
   float text_scale_x, text_scale_y;
-  ui::view2d_scale_get_inverse(&region->v2d, &text_scale_x, &text_scale_y);
+  ui::view2d_pixel_size_get(&region->v2d, &text_scale_x, &text_scale_y);
 
   float prev_label_top = -FLT_MAX;
 
@@ -671,7 +671,7 @@ static void draw_vectorscope_graticule(ARegion *region,
   /* Calculate size of single text letter. */
   char buf[2] = {'M', 0};
   float text_scale_x, text_scale_y;
-  ui::view2d_scale_get_inverse(&region->v2d, &text_scale_x, &text_scale_y);
+  ui::view2d_pixel_size_get(&region->v2d, &text_scale_x, &text_scale_y);
   float text_width, text_height;
   BLF_width_and_height(BLF_default(), buf, 1, &text_width, &text_height);
   text_width *= text_scale_x;

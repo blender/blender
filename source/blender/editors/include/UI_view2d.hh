@@ -408,9 +408,11 @@ void view2d_scale_get(const View2D *v2d, float *r_x, float *r_y);
 float view2d_scale_get_x(const View2D *v2d);
 float view2d_scale_get_y(const View2D *v2d);
 /**
- * Same as `view2d_scale_get() - 1.0f / x, y`.
+ * Calculate the size of a pixel in view-space. This is the inverse of `view2d_scale_get()`.
  */
-void view2d_scale_get_inverse(const View2D *v2d, float *r_x, float *r_y);
+void view2d_pixel_size_get(const View2D *v2d, float *r_x, float *r_y);
+float view2d_pixel_size_get_x(const View2D *v2d);
+float view2d_pixel_size_get_y(const View2D *v2d);
 
 /**
  * Simple functions for consistent center offset access.
