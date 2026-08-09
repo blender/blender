@@ -120,7 +120,17 @@ static void calc_faces(const Depsgraph &depsgraph,
   MutableSpan<float2> xy_positions = tls.xy_positions;
   MutableSpan<float> z_positions = tls.z_positions;
 
-  calc_local_positions(position_data.eval, verts, mat, xy_positions, z_positions);
+  calc_local_positions(position_data.eval,
+                       verts,
+                       mat,
+                       cache.location_symm,
+                       cache.view_normal_symm,
+                       eBrushFalloffShape(brush.falloff_shape),
+                       xy_positions,
+                       z_positions);
+  if (eBrushFalloffShape(brush.falloff_shape) == PAINT_FALLOFF_SHAPE_TUBE) {
+    z_positions.fill(brush.plane_offset);
+  }
   apply_z_axis_factors(z_positions, factors);
   apply_plane_trim_factors(brush, z_positions, factors);
 
@@ -175,7 +185,16 @@ static void calc_grids(const Depsgraph &depsgraph,
   MutableSpan<float2> xy_positions = tls.xy_positions;
   MutableSpan<float> z_positions = tls.z_positions;
 
-  calc_local_positions(positions, mat, xy_positions, z_positions);
+  calc_local_positions(positions,
+                       mat,
+                       cache.location_symm,
+                       cache.view_normal_symm,
+                       eBrushFalloffShape(brush.falloff_shape),
+                       xy_positions,
+                       z_positions);
+  if (eBrushFalloffShape(brush.falloff_shape) == PAINT_FALLOFF_SHAPE_TUBE) {
+    z_positions.fill(brush.plane_offset);
+  }
   apply_z_axis_factors(z_positions, factors);
   apply_plane_trim_factors(brush, z_positions, factors);
 
@@ -229,7 +248,16 @@ static void calc_bmesh(const Depsgraph &depsgraph,
   MutableSpan<float2> xy_positions = tls.xy_positions;
   MutableSpan<float> z_positions = tls.z_positions;
 
-  calc_local_positions(positions, mat, xy_positions, z_positions);
+  calc_local_positions(positions,
+                       mat,
+                       cache.location_symm,
+                       cache.view_normal_symm,
+                       eBrushFalloffShape(brush.falloff_shape),
+                       xy_positions,
+                       z_positions);
+  if (eBrushFalloffShape(brush.falloff_shape) == PAINT_FALLOFF_SHAPE_TUBE) {
+    z_positions.fill(brush.plane_offset);
+  }
   apply_z_axis_factors(z_positions, factors);
   apply_plane_trim_factors(brush, z_positions, factors);
 
@@ -276,8 +304,13 @@ void do_clay_strips_brush(const Depsgraph &depsgraph,
     return;
   }
 
+  const float3 &tip_normal = eBrushFalloffShape(brush.falloff_shape) ==
+                                     PAINT_FALLOFF_SHAPE_SPHERE ?
+                                 plane_normal :
+                                 ss.cache->view_normal_symm;
   const float4x4 mat = clay_strips::calc_local_matrix(
-      brush, *ss.cache, plane_normal, plane_center, flip);
+      brush, *ss.cache, tip_normal, plane_center, flip);
+
   const float3 offset = plane_normal * ss.cache->bstrength * ss.cache->radius;
 
   threading::EnumerableThreadSpecific<LocalData> all_tls;
@@ -340,14 +373,17 @@ namespace clay_strips {
 
 float4x4 calc_local_matrix(const Brush &brush,
                            const StrokeCache &cache,
-                           const float3 &plane_normal,
+                           const float3 &tip_normal,
                            const float3 &plane_center,
                            const bool flip)
 {
+  /* TODO: the current calculations always behave as if Rake is enabled. Use similar logic to
+   * calc_brush_local_mat in sculpt.cc to fix the issue. */
+
   float4x4 mat = float4x4::identity();
-  mat.x_axis() = math::cross(plane_normal, cache.grab_delta_symm);
-  mat.y_axis() = math::cross(plane_normal, mat.x_axis());
-  mat.z_axis() = plane_normal;
+  mat.x_axis() = math::cross(tip_normal, cache.grab_delta_symm);
+  mat.y_axis() = math::cross(tip_normal, mat.x_axis());
+  mat.z_axis() = tip_normal;
 
   /* Flip the z-axis so that the vertices below the plane have positive z-coordinates. When the
    * brush is inverted, the affected z-coordinates are already positive. */
@@ -374,6 +410,8 @@ CursorSampleResult calc_node_mask(const Depsgraph &depsgraph,
   const bke::pbvh::Tree &pbvh = *bke::object::pbvh_get(object);
   const SculptSession &ss = *object.runtime->sculpt_session;
 
+  const eBrushFalloffShape falloff_shape = eBrushFalloffShape(brush.falloff_shape);
+
   const bool flip = (ss.cache->bstrength < 0.0f);
   const float displace = ss.cache->radius * brush_plane_offset_get(brush, ss) *
                          (flip ? -1.0f : 1.0f);
@@ -383,7 +421,7 @@ CursorSampleResult calc_node_mask(const Depsgraph &depsgraph,
 
   const bool use_original = !ss.cache->accum;
   const IndexMask initial_node_mask = gather_nodes(pbvh,
-                                                   eBrushFalloffShape(brush.falloff_shape),
+                                                   falloff_shape,
                                                    use_original,
                                                    ss.cache->location_symm,
                                                    initial_radius_squared,
@@ -401,17 +439,35 @@ CursorSampleResult calc_node_mask(const Depsgraph &depsgraph,
     return {IndexMask(), plane_center, plane_normal};
   }
 
-  const float4x4 mat = calc_local_matrix(brush, *ss.cache, plane_normal, plane_center, flip);
+  switch (falloff_shape) {
+    case PAINT_FALLOFF_SHAPE_SPHERE: {
+      const float4x4 mat = calc_local_matrix(brush, *ss.cache, plane_normal, plane_center, flip);
+      const IndexMask plane_mask = bke::pbvh::search_nodes(
+          pbvh, memory, [&](const bke::pbvh::Node &node) {
+            if (node_fully_masked_or_hidden(node)) {
+              return false;
+            }
+            return node_in_box_positive_z(mat, node.bounds());
+          });
+      return {plane_mask, plane_center, plane_normal};
+    }
 
-  const IndexMask plane_mask = bke::pbvh::search_nodes(
-      pbvh, memory, [&](const bke::pbvh::Node &node) {
-        if (node_fully_masked_or_hidden(node)) {
-          return false;
-        }
-        return node_in_box_positive_z(node.bounds(), mat);
-      });
+    case PAINT_FALLOFF_SHAPE_TUBE: {
+      const float4x4 mat = calc_local_matrix(
+          brush, *ss.cache, ss.cache->view_normal_symm, plane_center, flip);
+      const IndexMask plane_mask = bke::pbvh::search_nodes(
+          pbvh, memory, [&](const bke::pbvh::Node &node) {
+            if (node_fully_masked_or_hidden(node)) {
+              return false;
+            }
+            return node_in_box(mat, node.bounds(), float3(0.0f), float3(1.0f, 1.0f, 1.0f), false);
+          });
+      return {plane_mask, plane_center, plane_normal};
+    }
+  }
 
-  return {plane_mask, plane_center, plane_normal};
+  BLI_assert_unreachable();
+  return {};
 }
 }  // namespace clay_strips
 
