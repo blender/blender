@@ -200,7 +200,7 @@ void blo_do_versions_530(FileData * /*fd*/, Library * /*lib*/, Main *bmain)
     }
   }
 
-  if (!MAIN_VERSION_FILE_ATLEAST(bmain, 503, 10)) {
+  if (!MAIN_VERSION_FILE_ATLEAST(bmain, 503, 11)) {
     /* This code formerly ran whenever entering Sculpt Mode, it is unlikely that there are any
      * files that have these settings with invalid values, but since these values have never been
      * set in versioning, perform this
