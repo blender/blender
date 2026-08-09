@@ -145,6 +145,34 @@ class PROJECT_PT_navigation_bar(Panel):
 # -------------------------------------------------------------
 # Main Area
 
+def _draw_ocio_config_path(layout, project):
+    config_source = bpy.data.colorspace.ocio_config_source
+    overridden = config_source in {'BLENDER_OCIO', 'OCIO'}
+
+    col = layout.column()
+    col.active = not overridden
+    col.prop(project, "ocio_config_path")
+
+    if overridden:
+        row = layout.split(factor=0.4)
+        row.label()
+        row.label(
+            text=f"Overridden by the {config_source} environment variable",
+            icon='STATUS_INFO',
+        )
+
+    colorspace = bpy.data.colorspace
+    if colorspace.ocio_config_source == 'PROJECT':
+        needs_reload = colorspace.ocio_config_path != project.ocio_config_path
+    else:
+        needs_reload = not overridden and bool(project.ocio_config_path)
+
+    if needs_reload:
+        row = layout.split(factor=0.4)
+        row.label()
+        row.label(text="Save and reload the blend file to apply", icon='STATUS_INFO')
+
+
 class PROJECT_PT_main(Panel, CenterAlignMixIn):
     bl_label = "Project"
     bl_translation_context = i18n_contexts.editor_preferences
@@ -162,6 +190,10 @@ class PROJECT_PT_main(Panel, CenterAlignMixIn):
         col = layout.column()
         col.prop(project, "name")
         col.prop(project, "root_path")
+
+        layout.separator()
+
+        _draw_ocio_config_path(layout, project)
 
 
 class PROJECT_PT_main_unset(Panel, CenterAlignMixIn):

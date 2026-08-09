@@ -50,6 +50,7 @@
 #include "BLI_vector_set.hh"
 
 #include "BKE_appdir.hh"
+#include "BKE_blender_project.hh"
 #include "BKE_colortools.hh"
 #include "BKE_context.hh"
 #include "BKE_idtype.hh"
@@ -58,6 +59,7 @@
 #include "BKE_main.hh"
 #include "BKE_node.hh"
 #include "BKE_node_legacy_types.hh"
+#include "BKE_path_templates.hh"
 
 #include "GPU_capabilities.hh"
 
@@ -103,11 +105,13 @@ static VectorSet<StringRefNull> &g_all_view_names()
 struct ColorManagedConfigPath {
   /* Absolute file path or URI. */
   std::string path;
+  /* Unresolved path with templates. */
+  std::string unresolved_path;
   ColorManagedConfigSource source = ColorManagedConfigSource::Fallback;
 
   friend bool operator==(const ColorManagedConfigPath &a, const ColorManagedConfigPath &b)
   {
-    return a.source == b.source && a.path == b.path;
+    return a.source == b.source && a.path == b.path && a.unresolved_path == b.unresolved_path;
   }
 };
 
@@ -377,18 +381,59 @@ static void colormanage_restore_ocio_env(const std::optional<std::string> &old_o
   BLI_setenv("OCIO", old_ocio_env.has_value() ? old_ocio_env->c_str() : nullptr);
 }
 
-static Vector<ColorManagedConfigPath> colormanage_config_candidates_get()
+static std::string colormanage_project_config_path_resolve(const StringRef path,
+                                                           const bke::BlenderProject &project)
+{
+  /* URI for configs built into OpenColorIO. */
+  if (path.startswith("ocio://")) {
+    return path;
+  }
+
+  /* Resolve path templates. */
+  char path_expanded[FILE_MAX];
+  path.copy_utf8_truncated(path_expanded);
+
+  bke::path_templates::VariableMap variables;
+  BKE_add_template_variables_for_project(variables, project);
+  if (!BKE_path_apply_template(path_expanded, sizeof(path_expanded), variables).is_empty()) {
+    return "";
+  }
+
+  /* Require absolute path, and no // blend file relative path. */
+  if (BLI_path_is_rel(path_expanded) || !BLI_path_is_abs_from_cwd(path_expanded)) {
+    return "";
+  }
+
+  return path_expanded;
+}
+
+static Vector<ColorManagedConfigPath> colormanage_config_candidates_get(const Main *bmain)
 {
   Vector<ColorManagedConfigPath> candidates;
 
   const ColorManagedStartupEnv &env = g_startup_env();
   if (env.blender_ocio.has_value()) {
     if (!env.blender_ocio->empty()) {
-      candidates.append({*env.blender_ocio, ColorManagedConfigSource::EnvBlenderOCIO});
+      candidates.append(
+          {*env.blender_ocio, *env.blender_ocio, ColorManagedConfigSource::EnvBlenderOCIO});
     }
   }
   else if (env.ocio.has_value() && !env.ocio->empty()) {
-    candidates.append({*env.ocio, ColorManagedConfigSource::EnvOCIO});
+    candidates.append({*env.ocio, *env.ocio, ColorManagedConfigSource::EnvOCIO});
+  }
+
+  /* Active project. */
+  if (bmain != nullptr) {
+    BKE_blender_project_read_callback(bmain, [&](const bke::BlenderProject *project) {
+      if (project == nullptr) {
+        return;
+      }
+      const StringRefNull unresolved_path = project->get_ocio_config_path();
+      if (!unresolved_path.is_empty()) {
+        std::string path = colormanage_project_config_path_resolve(unresolved_path, *project);
+        candidates.append({std::move(path), unresolved_path, ColorManagedConfigSource::Project});
+      }
+    });
   }
 
   /* Blender config. */
@@ -397,11 +442,11 @@ static Vector<ColorManagedConfigPath> colormanage_config_candidates_get()
   if (configdir.has_value()) {
     char configfile[FILE_MAX];
     BLI_path_join(configfile, sizeof(configfile), configdir->c_str(), BCM_CONFIG_FILE);
-    candidates.append({configfile, ColorManagedConfigSource::Blender});
+    candidates.append({configfile, configfile, ColorManagedConfigSource::Blender});
   }
 
   /* Fallback config. */
-  candidates.append({"", ColorManagedConfigSource::Fallback});
+  candidates.append({"", "", ColorManagedConfigSource::Fallback});
 
   return candidates;
 }
@@ -413,6 +458,8 @@ static const char *colormanage_config_source_identifier(const ColorManagedConfig
       return "BLENDER_OCIO";
     case ColorManagedConfigSource::EnvOCIO:
       return "OCIO";
+    case ColorManagedConfigSource::Project:
+      return "project";
     case ColorManagedConfigSource::Blender:
       return "Blender";
     case ColorManagedConfigSource::Fallback:
@@ -431,6 +478,14 @@ static void colormanage_config_load_candidates(const Span<ColorManagedConfigPath
     /* Already active? */
     if (g_config() && g_config_active() == candidate) {
       break;
+    }
+
+    if (candidate.source == ColorManagedConfigSource::Project &&
+        !candidate.unresolved_path.empty() && candidate.path.empty())
+    {
+      CLOG_ERROR(
+          &LOG, "Invalid project config path, skipping: %s", candidate.unresolved_path.c_str());
+      continue;
     }
 
     const bool is_fallback = candidate.source == ColorManagedConfigSource::Fallback;
@@ -480,6 +535,9 @@ static void colormanage_config_load_candidates(const Span<ColorManagedConfigPath
   if (g_config_active().source == ColorManagedConfigSource::Blender) {
     CLOG_INFO(&LOG, "Using Blender config: \"%s\"", g_config_active().path.c_str());
   }
+  else if (g_config_active().source == ColorManagedConfigSource::Project) {
+    CLOG_INFO(&LOG, "Using project config: \"%s\"", g_config_active().path.c_str());
+  }
   else {
     CLOG_INFO_NOCHECK(&LOG,
                       "Using config from %s: \"%s\"",
@@ -498,9 +556,17 @@ void colormanagement_init()
     g_startup_env().ocio = env;
   }
 
-  colormanage_config_load_candidates(colormanage_config_candidates_get());
+  /* No project yet without a `Main`, the config is re-resolved on file read. */
+  colormanage_config_load_candidates(colormanage_config_candidates_get(nullptr));
 
   BLI_init_srgb_conversion();
+}
+
+void colormanage_environment_setup_for_test(std::optional<std::string> blender_ocio_env,
+                                            std::optional<std::string> ocio_env)
+{
+  g_startup_env().blender_ocio = std::move(blender_ocio_env);
+  g_startup_env().ocio = std::move(ocio_env);
 }
 
 void colormanagement_exit()
@@ -511,12 +577,30 @@ void colormanagement_exit()
 
 StringRefNull IMB_colormanagement_config_path_get()
 {
-  return g_config_active().path;
+  return g_config_active().unresolved_path;
 }
 
 ColorManagedConfigSource IMB_colormanagement_config_source_get()
 {
   return g_config_active().source;
+}
+
+bool colormanage_config_reload(Main *bmain)
+{
+  const Vector<ColorManagedConfigPath> candidates = colormanage_config_candidates_get(bmain);
+
+  /* Already loaded? */
+  if (candidates == g_config_requested()) {
+    return false;
+  }
+
+  CLOG_INFO(&LOG, "Reloading OpenColorIO config");
+
+  const ColorManagedConfigPath old_config = g_config_active();
+
+  colormanage_config_load_candidates(candidates);
+
+  return g_config_active() != old_config;
 }
 
 /** \} */
@@ -545,7 +629,7 @@ bool IMB_colormanagement_switch_config(const char *filepath)
   colormanage_load_config(*g_config());
 
   /* The `OCIO` environment variable now points to this config. */
-  g_config_active() = {filepath, ColorManagedConfigSource::EnvOCIO};
+  g_config_active() = {filepath, filepath, ColorManagedConfigSource::EnvOCIO};
 
   CLOG_INFO_NOCHECK(&LOG, "Switched OpenColorIO config to '%s'", filepath);
   return true;
@@ -3256,9 +3340,7 @@ static bool imb_colormanagement_working_space_set_from_matrix(Main *bmain,
   return IMB_colormanagement_working_space_set_from_name(global_role_scene_linear_default);
 }
 
-void IMB_colormanagement_working_space_check(Main *bmain,
-                                             const bool for_undo,
-                                             const bool have_editable_assets)
+static void imb_colormanagement_working_space_set_from_file(Main *bmain)
 {
   /* For old files without info, assume current OpenColorIO config. */
   if (math::is_zero(bmain->colorspace.scene_linear_to_xyz)) {
@@ -3268,27 +3350,9 @@ void IMB_colormanagement_working_space_check(Main *bmain,
                "Blend file has unknown scene linear working color space, setting to default");
   }
 
-  const float3x3 current_scene_linear_to_xyz = colorspace::scene_linear_to_xyz;
-
   /* Change the working space to the one from the blend file. */
-  const bool working_space_changed = imb_colormanagement_working_space_set_from_matrix(
+  imb_colormanagement_working_space_set_from_matrix(
       bmain, bmain->colorspace.scene_linear_name, bmain->colorspace.scene_linear_to_xyz);
-  if (!working_space_changed) {
-    return;
-  }
-
-  /* For undo, we need to convert the linked datablocks as they were left unchanged by undo.
-   * For file load, we need to convert editable assets that came from the previous main. */
-  if (!(for_undo || have_editable_assets)) {
-    return;
-  }
-
-  IMB_colormanagement_working_space_convert(bmain,
-                                            current_scene_linear_to_xyz,
-                                            math::invert(bmain->colorspace.scene_linear_to_xyz),
-                                            for_undo,
-                                            for_undo,
-                                            !for_undo && have_editable_assets);
 }
 
 static float3 imb_working_space_convert(const float3x3 &m,
@@ -3507,7 +3571,7 @@ void IMB_colormanagement_working_space_init_default(Main *bmain)
   bmain->colorspace.scene_linear_to_xyz = global_scene_linear_to_xyz_default;
 }
 
-void IMB_colormanagement_working_space_init_startup(Main *bmain)
+static void imb_colormanagement_working_space_init_startup(Main *bmain)
 {
   /* If using the default config, keep the one saved in the startup blend.
    * If using the non-default OCIO config, assume we want the working space from that config. */
@@ -3517,6 +3581,47 @@ void IMB_colormanagement_working_space_init_startup(Main *bmain)
   if (math::is_zero(bmain->colorspace.scene_linear_to_xyz) || is_custom_config) {
     IMB_colormanagement_working_space_init_default(bmain);
   }
+}
+
+void IMB_colormanagement_project_read_post(Main *bmain)
+{
+  colormanage_config_reload(bmain);
+}
+
+void IMB_colormanagement_file_read_post(Main *bmain,
+                                        Main *old_bmain,
+                                        const bool is_startup,
+                                        const bool have_editable_assets)
+{
+  if (is_startup) {
+    imb_colormanagement_working_space_init_startup(bmain);
+  }
+
+  imb_colormanagement_working_space_set_from_file(bmain);
+
+  /* Convert editable assets in the previous file, before they are moved to the new file. */
+  if (have_editable_assets) {
+    IMB_colormanagement_working_space_convert(old_bmain,
+                                              old_bmain->colorspace.scene_linear_to_xyz,
+                                              math::invert(bmain->colorspace.scene_linear_to_xyz),
+                                              false,
+                                              false,
+                                              true);
+  }
+}
+
+void IMB_colormanagement_undo_read_post(Main *bmain)
+{
+  /* Undo leaves linked data unchanged, in the working space from before undo. */
+  const float3x3 previous_scene_linear_to_xyz = colorspace::scene_linear_to_xyz;
+
+  imb_colormanagement_working_space_set_from_file(bmain);
+
+  IMB_colormanagement_working_space_convert(bmain,
+                                            previous_scene_linear_to_xyz,
+                                            math::invert(bmain->colorspace.scene_linear_to_xyz),
+                                            true,
+                                            true);
 }
 
 /** \} */

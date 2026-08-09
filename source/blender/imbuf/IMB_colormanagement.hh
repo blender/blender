@@ -67,6 +67,7 @@ enum class ColorManagedFileOutput { Image, Video };
 enum class ColorManagedConfigSource {
   EnvBlenderOCIO = 0, /**< BLENDER_OCIO environment variable. */
   EnvOCIO = 1,        /**< OCIO environment variable. */
+  Project = 2,        /**< Project OCIO config setting. */
   Blender = 3,        /**< Blender default OCIO config. */
   Fallback = 4,       /**< Embedded fallback OCIO config. */
 };
@@ -79,6 +80,30 @@ ColorManagedConfig &IMB_colormanagement_get_config();
 
 StringRefNull IMB_colormanagement_config_path_get();
 ColorManagedConfigSource IMB_colormanagement_config_source_get();
+
+/**
+ * Reload the OpenColorIO config after the project of a blend file was loaded.
+ * This must be done before reading the blend file, which involves converting
+ * linked libraries to the same working space.
+ */
+void IMB_colormanagement_project_read_post(Main *bmain);
+
+/**
+ * Set up color management after reading a blend file, before it replaces #old_bmain:
+ * - Set the working space from the file
+ * - Convert editable asset data in #old_bmain to it, before it is moved to #bmain.
+ */
+void IMB_colormanagement_file_read_post(Main *bmain,
+                                        Main *old_bmain,
+                                        bool is_startup,
+                                        bool have_editable_assets);
+
+/**
+ * Set up color management after undo:
+ * - Set the working space from the file
+ * - Convert linked data (which undo left unchanged) to it.
+ */
+void IMB_colormanagement_undo_read_post(Main *bmain);
 
 void IMB_colormanagement_check_file_config(Main *bmain);
 
@@ -457,12 +482,8 @@ const char *IMB_colormanagement_working_space_get_default();
 const char *IMB_colormanagement_working_space_get();
 
 bool IMB_colormanagement_working_space_set_from_name(const char *name);
-void IMB_colormanagement_working_space_check(Main *bmain,
-                                             bool for_undo,
-                                             bool have_editable_assets);
 
 void IMB_colormanagement_working_space_init_default(Main *bmain);
-void IMB_colormanagement_working_space_init_startup(Main *bmain);
 void IMB_colormanagement_working_space_convert(Main *bmain,
                                                const float3x3 &current_scene_linear_to_xyz,
                                                const float3x3 &new_xyz_to_scene_linear,

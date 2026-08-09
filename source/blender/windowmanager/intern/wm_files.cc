@@ -101,6 +101,7 @@
 #include "RNA_access.hh"
 #include "RNA_define.hh"
 
+#include "IMB_colormanagement.hh"
 #include "IMB_imbuf.hh"
 #include "IMB_imbuf_types.hh"
 #include "IMB_metadata.hh"
@@ -855,6 +856,10 @@ static void wm_read_callback_pre_wrapper(bContext *C, const char *filepath)
   /* NOTE: either #BKE_CB_EVT_LOAD_POST or #BKE_CB_EVT_LOAD_POST_FAIL must run.
    * Runs at the end of this function, don't return beforehand. */
   BKE_callback_exec_string(CTX_data_main(C), filepath, BKE_CB_EVT_LOAD_PRE);
+
+  /* The handlers above switch to the project of the new file, immediately update
+   * color management to match as blend file read needs the project config. */
+  IMB_colormanagement_project_read_post(CTX_data_main(C));
 }
 
 static void wm_read_callback_post_wrapper(bContext *C, const char *filepath, const bool success)

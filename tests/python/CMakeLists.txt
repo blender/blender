@@ -259,6 +259,12 @@ add_python_test(
   --blender "${TEST_BLENDER_EXE}"
 )
 
+# OpenColorIO config of projects found when opening blend files.
+add_blender_test(
+  script_ocio_config
+  --python ${CMAKE_CURRENT_LIST_DIR}/bl_ocio_config_tests.py
+)
+
 # test running operators doesn't segfault under various conditions
 if(WITH_TESTS_EXPERIMENTAL)
   add_blender_test(

@@ -211,6 +211,13 @@ void BlenderProject::set_root_path(StringRef root_path)
   this->is_dirty = true;
 }
 
+void BlenderProject::set_ocio_config_path(StringRef ocio_config_path)
+{
+  this->ocio_config_path_ = ocio_config_path;
+
+  this->is_dirty = true;
+}
+
 StringRefNull BlenderProject::get_name() const
 {
   return StringRefNull(this->name_);
@@ -219,6 +226,11 @@ StringRefNull BlenderProject::get_name() const
 StringRefNull BlenderProject::get_root_path() const
 {
   return StringRefNull(this->root_path_);
+}
+
+StringRefNull BlenderProject::get_ocio_config_path() const
+{
+  return StringRefNull(this->ocio_config_path_);
 }
 
 int BlenderProject::find_variable_index(ProjectVariable *var)
