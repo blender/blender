@@ -23,6 +23,7 @@
 #include "BKE_image.hh"
 #include "BKE_main.hh"
 
+#include "SEQ_add.hh"
 #include "SEQ_channels.hh"
 #include "SEQ_iterator.hh"
 #include "SEQ_sequencer.hh"
@@ -668,7 +669,7 @@ static void image_drop_on_enter(wmDropBox *drop, wmDrag * /*drag*/)
   }
 
   SeqDropCoords *coords = static_cast<SeqDropCoords *>(drop->draw_data);
-  coords->strip_length = DEFAULT_IMG_STRIP_LENGTH;
+  coords->strip_length = seq::DEFAULT_STRIP_LENGTH;
   coords->num_channels = 1;
 }
 

@@ -63,8 +63,6 @@ namespace ed::vse {
 class SeqQuadsBatch;
 class StripsDrawBatch;
 
-#define DEFAULT_IMG_STRIP_LENGTH 25 /* XXX arbitrary but ok for now. */
-
 struct SpaceSeq_Runtime : public NonCopyable {
   int rename_channel_index = 0;
   float timeline_clamp_custom_range = 0;

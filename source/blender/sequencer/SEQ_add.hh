@@ -25,6 +25,9 @@ struct Stereo3dFormat;
 
 namespace seq {
 
+/** Length of strips which have no inherent duration, like color, text, and images. */
+constexpr int DEFAULT_STRIP_LENGTH = 25; /* XXX arbitrary but ok for now. */
+
 /** #SeqLoadData.flags */
 enum eLoadFlags {
   SEQ_LOAD_SOUND_CACHE = (1 << 1),

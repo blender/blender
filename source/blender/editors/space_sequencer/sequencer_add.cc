@@ -481,7 +481,7 @@ static void sequencer_generic_invoke_xy__internal(
   }
 
   if ((flag & SEQPROP_LENGTH) && !RNA_struct_property_is_set(op->ptr, "length")) {
-    RNA_int_set(op->ptr, "length", DEFAULT_IMG_STRIP_LENGTH);
+    RNA_int_set(op->ptr, "length", seq::DEFAULT_STRIP_LENGTH);
   }
 
   if (!(flag & SEQPROP_NOPATHS)) {
@@ -634,7 +634,7 @@ static bool load_data_init_from_operator(seq::LoadData *load_data, bContext *C, 
 
     load_data->start_frame = std::trunc(mouse_view.x);
     load_data->channel = std::trunc(mouse_view.y);
-    load_data->image.length = DEFAULT_IMG_STRIP_LENGTH;
+    load_data->image.length = seq::DEFAULT_STRIP_LENGTH;
     load_data->effect.length = load_data->image.length;
   }
   return true;
