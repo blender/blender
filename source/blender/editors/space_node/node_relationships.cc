@@ -440,6 +440,13 @@ static bool socket_can_be_viewed(const bNodeSocket &socket)
   if (STREQ(socket.idname, "NodeSocketVirtual")) {
     return false;
   }
+
+  /* The compositor viewer can only view color sockets, so we make sure the socket can be converted
+   * into a color. */
+  if (socket.owner_tree().type == NTREE_COMPOSIT) {
+    return socket.owner_tree().typeinfo->validate_link(socket.type, SOCK_RGBA);
+  }
+
   return true;
 }
 
