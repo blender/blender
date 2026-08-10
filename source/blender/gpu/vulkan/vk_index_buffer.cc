@@ -113,7 +113,14 @@ void VKIndexBuffer::update_sub(uint start, uint len, const void *data)
   else {
     VKContext &context = *VKContext::get();
     VKStagingBuffer staging_buffer(buffer_, VKStagingBuffer::Direction::HostToDevice, start, len);
-    memcpy(staging_buffer.host_buffer_get().mapped_memory_get(), data, len);
+    VKBuffer &host_buffer = staging_buffer.host_buffer_get();
+    if (!host_buffer.is_mapped()) {
+      CLOG_ERROR(&LOG,
+                 "Unable to update index buffer via a staging buffer as the staging buffer could "
+                 "not be allocated. The previous contents of the updated range are kept.");
+      return;
+    }
+    host_buffer.update_sub_immediately(0, len, data);
     staging_buffer.copy_to_device(context);
   }
 }

@@ -91,7 +91,14 @@ void VKVertexBuffer::update_sub(uint start_offset, uint data_size_in_bytes, cons
     VKContext &context = *VKContext::get();
     VKStagingBuffer staging_buffer(
         buffer_, VKStagingBuffer::Direction::HostToDevice, start_offset, data_size_in_bytes);
-    memcpy(staging_buffer.host_buffer_get().mapped_memory_get(), data, data_size_in_bytes);
+    VKBuffer &host_buffer = staging_buffer.host_buffer_get();
+    if (!host_buffer.is_mapped()) {
+      CLOG_ERROR(&LOG,
+                 "Unable to update vertex buffer via a staging buffer as the staging buffer could "
+                 "not be allocated. The previous contents of the updated range are kept.");
+      return;
+    }
+    host_buffer.update_sub_immediately(0, data_size_in_bytes, data);
     staging_buffer.copy_to_device(context);
   }
 }
