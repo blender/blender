@@ -784,6 +784,9 @@ static void assign_final_coords_from_mdisps(const MultiresReshapeContext *reshap
 void multires_reshape_assign_final_coords_from_mdisps(
     const MultiresReshapeContext *reshape_context)
 {
+  /* The final coordinates are calculated from the original grids. */
+  BLI_assert(reshape_context->orig.mdisps != nullptr);
+
   foreach_grid_coordinate(
       reshape_context, reshape_context->top.level, assign_final_coords_from_mdisps, nullptr);
 }
@@ -814,6 +817,9 @@ static void assign_final_elements_from_orig_mdisps(const MultiresReshapeContext 
 void multires_reshape_assign_final_elements_from_orig_mdisps(
     const MultiresReshapeContext *reshape_context)
 {
+  /* The final elements are calculated from the original grids. */
+  BLI_assert(reshape_context->orig.mdisps != nullptr);
+
   foreach_grid_coordinate(reshape_context,
                           reshape_context->top.level,
                           assign_final_elements_from_orig_mdisps,
