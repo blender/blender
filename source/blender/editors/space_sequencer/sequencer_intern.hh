@@ -131,7 +131,8 @@ struct TimelineDrawContext {
   ListBaseT<SeqTimelineChannel> *channels;
   GPUViewport *viewport;
   gpu::FrameBuffer *framebuffer_overlay;
-  float pixelx, pixely; /* Width and height of pixel in timeline space. */
+  /** Width and height of pixel in timeline space, calculated from #view2d_pixel_size_get. */
+  float pixelx, pixely;
   Map<SeqRetimingKey *, Strip *> retiming_selection;
 
   SeqQuadsBatch *quads;

@@ -856,7 +856,7 @@ static float inner_clickable_handle_size_get(const Scene *scene,
                                              const Strip *strip,
                                              const View2D *v2d)
 {
-  const float pixelx = 1 / ui::view2d_scale_get_x(v2d);
+  const float pixelx = ui::view2d_pixel_size_get_x(v2d);
   const float strip_len = strip->right_handle(scene) - strip->left_handle();
   return min_ff(15.0f * pixelx * U.pixelsize, strip_len / 4);
 }
@@ -878,7 +878,7 @@ bool can_select_handle(const Scene *scene, const Strip *strip, const View2D *v2d
    * `inner_clickable_handle_size_get`), this means handles cannot be smaller than 25/3 = 8px. */
   int min_len = 25 * U.pixelsize;
 
-  const float pixelx = 1 / ui::view2d_scale_get_x(v2d);
+  const float pixelx = ui::view2d_pixel_size_get_x(v2d);
   const int strip_len = strip->right_handle(scene) - strip->left_handle();
   if (strip_len / pixelx < min_len) {
     return false;

@@ -518,13 +518,12 @@ static void sequencer_main_clamp_view(const bContext *C, ARegion *region)
    */
   float pad_top, pad_bottom;
   SEQ_get_timeline_region_padding(C, &pad_top, &pad_bottom);
-  const float pixel_view_size_y = BLI_rctf_size_y(&v2d->cur) / (BLI_rcti_size_y(&v2d->mask) + 1);
   /* Add padding to be able to scroll the view so that the collapsed redo panel doesn't occlude any
    * strips. */
-  float bottom_channel_padding = UI_MARKER_MARGIN_Y * pixel_view_size_y;
+  float bottom_channel_padding = UI_MARKER_MARGIN_Y * ui::view2d_pixel_size_get_y(v2d);
   bottom_channel_padding = std::max(bottom_channel_padding, 1.0f);
   /* Add the padding and make sure we have a margin of one channel in each direction. */
-  strip_boundbox.ymax += 1.0f + pad_top * pixel_view_size_y;
+  strip_boundbox.ymax += 1.0f + pad_top * ui::view2d_pixel_size_get_y(v2d);
   strip_boundbox.ymin -= bottom_channel_padding;
 
   /* If a strip has been deleted, don't move the view automatically, keep current range until it is
