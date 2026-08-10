@@ -1393,20 +1393,39 @@ class USERPREF_PT_theme_bone_color_sets(ThemePanel, CenterAlignMixIn, Panel):
     bl_options = {'DEFAULT_CLOSED'}
     bl_parent_id = "USERPREF_PT_theme_color_sets"
 
+    @staticmethod
+    def create_column(layout, heading="", width=None):
+        col = layout.column(align=True)
+        if width is not None:
+            col.ui_units_x = width
+
+        row = col.row()
+        row.alignment = 'CENTER'
+        row.label(text=heading)
+
+        return col
+
     def draw_centered(self, context, layout):
         theme = context.preferences.themes[0]
 
-        layout.use_property_split = True
+        row = layout.row()
+
+        color_set_col = self.create_column(row)
+        color_set_col.alignment = 'RIGHT'
+
+        row.separator()
+
+        normal_col = self.create_column(row, heading="Normal")
+        selected_col = self.create_column(row, heading="Selected")
+        active_col = self.create_column(row, heading="Active")
+        constraints_col = self.create_column(row, heading="Colored Constraints", width=10)
 
         for i, ui in enumerate(theme.bone_color_sets, 1):
-            layout.label(text=iface_("Color Set {:d}").format(i), translate=False)
-
-            flow = layout.grid_flow(row_major=False, columns=0, even_columns=True, even_rows=False, align=True)
-
-            flow.prop(ui, "normal")
-            flow.prop(ui, "select", text="Selected")
-            flow.prop(ui, "active")
-            flow.prop(ui, "show_colored_constraints")
+            color_set_col.label(text=iface_("Color Set {:d}").format(i), translate=False)
+            normal_col.prop(ui, "normal", text="")
+            selected_col.prop(ui, "select", text="")
+            active_col.prop(ui, "active", text="")
+            constraints_col.prop(ui, "show_colored_constraints", text="")
 
 
 class USERPREF_PT_theme_collection_colors(ThemePanel, CenterAlignMixIn, Panel):
