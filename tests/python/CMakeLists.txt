@@ -1281,6 +1281,10 @@ if(TEST_SRC_DIR_EXISTS)
     vector
   )
 
+  if(WITH_AUDASPACE AND WITH_FFTW3)
+    list(APPEND geo_node_tests sound)
+  endif()
+
   if(WITH_GMP)
     list(APPEND geo_node_tests mesh/boolean)
   endif()
