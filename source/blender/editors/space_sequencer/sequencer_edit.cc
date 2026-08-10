@@ -1687,14 +1687,8 @@ bool effect_inputs_validate(int have_inputs, int num_inputs, ReportList *reports
 
 VectorSet<Strip *> strip_effect_get_new_inputs(const Scene *scene,
                                                StripType effect_type,
-                                               int num_inputs,
                                                bool ignore_active)
 {
-  BLI_assert(num_inputs <= 2);
-  if (num_inputs == 0) {
-    return {};
-  }
-
   Editing *ed = seq::editing_get(scene);
   VectorSet<Strip *> inputs = seq::query_selected_strips(ed->current_strips());
   /* Ignore sound strips for now (avoids unnecessary errors when connected strips are
@@ -1708,13 +1702,9 @@ VectorSet<Strip *> strip_effect_get_new_inputs(const Scene *scene,
     inputs.remove_if([&](Strip *strip) { return strip == active_strip; });
   }
 
-  while (inputs.size() > num_inputs) {
-    inputs.pop();
-  }
-
   /* Reorganize inputs before creating effect strip. Note that transition inputs are automatically
    * swapped after add & during transform by #strip_time_effect_range_set, so ignore that here. */
-  if (inputs.size() == 2 && num_inputs == 2 && !seq::effect_is_transition(effect_type)) {
+  if (inputs.size() == 2 && !seq::effect_is_transition(effect_type)) {
     Strip *first = inputs[0];
     Strip *second = inputs[1];
 
@@ -1744,8 +1734,7 @@ static wmOperatorStatus sequencer_reassign_inputs_exec(bContext *C, wmOperator *
     return OPERATOR_CANCELLED;
   }
 
-  VectorSet<Strip *> inputs = strip_effect_get_new_inputs(
-      scene, active_strip->type, num_inputs, true);
+  VectorSet<Strip *> inputs = strip_effect_get_new_inputs(scene, active_strip->type, true);
 
   if (!effect_inputs_validate(inputs.size(), num_inputs, op->reports)) {
     return OPERATOR_CANCELLED;
