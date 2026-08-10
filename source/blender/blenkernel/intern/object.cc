@@ -1148,10 +1148,16 @@ static void object_blend_read_after_liblink(BlendLibReader *reader, ID *id)
   /* When loading undo steps, for objects in modes that use `sculpt_session`, recreate the mode
    * runtime data. For regular non-undo reading, this is currently handled by mode switching after
    * the initial file read. */
-  if (BLO_read_lib_is_undo(reader) && ob->mode & OB_MODE_ALL_SCULPT &&
-      ob->runtime->sculpt_session == nullptr)
-  {
-    BKE_object_sculpt_data_create(ob);
+  if (BLO_read_lib_is_undo(reader) && ob->mode & OB_MODE_ALL_SCULPT) {
+    /* The runtime may have been created in a non-matching mode and should be deleted here. */
+    if (ob->runtime->sculpt_session != nullptr &&
+        ob->runtime->sculpt_session->mode_type != ob->mode)
+    {
+      BKE_sculptsession_free(ob);
+    }
+    if (ob->runtime->sculpt_session == nullptr) {
+      BKE_object_sculpt_data_create(ob);
+    }
   }
 }
 
