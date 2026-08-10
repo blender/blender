@@ -138,10 +138,10 @@ void PixelOperation::log_data()
       }
 
       /* Otherwise, it is linked to a node that is outside of the compile unit. If it is a single
-       * value, log that single value, if not, we log the operation domain. */
+       * value, skip it since it will inherit its value from an output that was logged before, if
+       * not, we log the operation domain. */
       const Result &input = compile_state_.get_result_from_output_socket(linked_output);
       if (input.is_single_value()) {
-        tree_logger.log_value(*node, *input_socket, input.single_value());
         continue;
       }
 
