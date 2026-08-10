@@ -329,7 +329,7 @@ class BokehBlurOperation : public NodeOperation {
        * invert the textures coordinates by subtracting from 1 to maintain the shape of the weights
        * as mentioned above. */
       const float2 weight_coordinates = 1.0f - ((float2(texel) + 0.5f) / float2(kernel_size));
-      float4 weight = float4(bokeh.sample_bilinear_extended<Color>(weight_coordinates));
+      float4 weight = float4(bokeh.sample_bilinear_extended<Color, true>(weight_coordinates));
       kernel.store_pixel(texel, Color(weight));
     });
 
