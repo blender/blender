@@ -1,9 +1,9 @@
 
 msgid ""
 msgstr ""
-"Project-Id-Version: Blender 5.3.0 Alpha (b'af9ba6af7621')\n"
+"Project-Id-Version: Blender 5.3.0 Alpha (b'af4852ed4560')\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-08-03 07:24+0000\n"
+"POT-Creation-Date: 2026-08-10 07:54+0000\n"
 "PO-Revision-Date: 2026-03-17 14:12+0000\n"
 "Last-Translator: Daniel Nylander <blender@danielnylander.se>\n"
 "Language-Team: Swedish <https://translate.blender.org/projects/blender-ui/ui/sv/>\n"
@@ -3448,10 +3448,6 @@ msgstr "Partikel-datablock"
 
 msgid "Point cloud data-blocks"
 msgstr "Punktmolnsdatablock"
-
-
-msgid "Project"
-msgstr "Projekt"
 
 
 msgid "Scene data-blocks"
@@ -10009,6 +10005,10 @@ msgstr "Närmaste ytpunkt"
 
 msgid "Shrink the location to the nearest target surface"
 msgstr "Minska platsen till närmaste målyta"
+
+
+msgid "Project"
+msgstr "Projekt"
 
 
 msgid "Shrink the location to the nearest target surface along a given axis"
@@ -34894,8 +34894,256 @@ msgid "Editor menu containing buttons"
 msgstr "Redigeringsmeny med knappar"
 
 
+msgid "Names"
+msgstr "Namn"
+
+
+msgid "Bone Roll"
+msgstr "Benrulle"
+
+
+msgid "Show/Hide"
+msgstr "Visa/Dölj"
+
+
+msgid "Clean Up"
+msgstr "Rensa upp"
+
+
+msgid "Adjust"
+msgstr "Justera"
+
+
+msgid "Keying"
+msgstr "Nyckel"
+
+
+msgid "Tracking"
+msgstr "Spårning"
+
+
+msgid "Utilities"
+msgstr "Allmännyttiga tjänster"
+
+
+msgid "Math"
+msgstr "Matematik"
+
+
+msgid "Pivot Point"
+msgstr "Pivotpunkt"
+
+
 msgid "Creative"
 msgstr "Kreativ"
+
+
+msgid "Snap"
+msgstr "Fäst"
+
+
+msgid "Proportional Editing Falloff"
+msgstr "Proportionell redigering Falloff"
+
+
+msgid "Mask Edit"
+msgstr "Maskredigering"
+
+
+msgid "Automasking"
+msgstr "Automatisk maskering"
+
+
+msgid "Face Sets Edit"
+msgstr "Ansiktsuppsättningar Redigera"
+
+
+msgid "Vertex Group Locks"
+msgstr "Vertex Group Lås"
+
+
+msgid "Mirror"
+msgstr "Spegel"
+
+
+msgid "UV Mapping"
+msgstr "UV-mappning"
+
+
+msgid "Local View"
+msgstr "Lokal vy"
+
+
+msgid "Viewpoint"
+msgstr "Synpunkt"
+
+
+msgid "Navigation"
+msgstr "Navigering"
+
+
+msgid "Align View"
+msgstr "Justera vy"
+
+
+msgid "Align View to Active"
+msgstr "Justera vy till aktiv"
+
+
+msgid "View Regions"
+msgstr "Visa regioner"
+
+
+msgid "Select More/Less"
+msgstr "Välj Mer/Mindre"
+
+
+msgid "Select Similar"
+msgstr "Välj liknande"
+
+
+msgid "Select All by Trait"
+msgstr "Välj alla efter egenskap"
+
+
+msgid "Select Linked"
+msgstr "Välj länkad"
+
+
+msgid "Select Loops"
+msgstr "Välj slingor"
+
+
+msgid "Assign Material"
+msgstr "Tilldela material"
+
+
+msgid "Read"
+msgstr "Läs"
+
+
+msgid "Sample"
+msgstr "Exempel"
+
+
+msgid "Write"
+msgstr "Skriv"
+
+
+msgid "Primitives"
+msgstr "Primitiva"
+
+
+msgid "Metaball"
+msgstr "Metaball"
+
+
+msgid "Light"
+msgstr "Ljus"
+
+
+msgid "Light Probe"
+msgstr "Ljusprob"
+
+
+msgid "Add Image"
+msgstr "Lägg till bild"
+
+
+msgid "Gizmo"
+msgstr "Gizmo"
+
+
+msgid "Relations"
+msgstr "Relationer"
+
+
+msgid "Instances"
+msgstr "Instanser"
+
+
+msgid "Render Preview"
+msgstr "Förhandsgranska rendering"
+
+
+msgid "Rigid Body"
+msgstr "Stel kropp"
+
+
+msgid "Apply"
+msgstr "Ansök"
+
+
+msgid "Import"
+msgstr "Importera"
+
+
+msgid "Track"
+msgstr "Spår"
+
+
+msgid "Quick Effects"
+msgstr "Snabba effekter"
+
+
+msgid "Asset"
+msgstr "Tillgång"
+
+
+msgid "Deprecated"
+msgstr "Föråldrad"
+
+
+msgid "Make Single User"
+msgstr "Gör till enskild användare"
+
+
+msgid "Convert"
+msgstr "Konvertera"
+
+
+msgid "Link/Transfer Data"
+msgstr "Länk/överför data"
+
+
+msgid "Hooks"
+msgstr "Krokar"
+
+
+msgid "UV"
+msgstr "UV"
+
+
+msgid "Trim/Add"
+msgstr "Trimma/Lägg till"
+
+
+msgid "Sculpt Set Pivot"
+msgstr "Skulptera Set Pivot"
+
+
+msgid "Face Sets Init"
+msgstr "Ansiktsuppsättningar Init"
+
+
+msgid "Random Mask"
+msgstr "Slumpmässig mask"
+
+
+msgid "Clear Transform"
+msgstr "Rensa Transform"
+
+
+msgid "In-Betweens"
+msgstr "Mellanliggande"
+
+
+msgid "Propagate"
+msgstr "Föröka"
+
+
+msgid "Bone Collections"
+msgstr "Benskörningar"
 
 
 msgid "Toggle Bone Options"
@@ -34926,272 +35174,24 @@ msgid "Set Face Strength"
 msgstr "Ställ in ansiktsstyrka"
 
 
-msgid "Clean Up"
-msgstr "Rensa upp"
-
-
 msgid "Merge"
 msgstr "Sammanfoga"
-
-
-msgid "Show/Hide"
-msgstr "Visa/Dölj"
-
-
-msgid "Special Characters"
-msgstr "Specialtecken"
-
-
-msgid "Kerning"
-msgstr "Kerning"
-
-
-msgid "Metaball"
-msgstr "Metaball"
-
-
-msgid "Names"
-msgstr "Namn"
-
-
-msgid "Bone Roll"
-msgstr "Benrulle"
-
-
-msgid "Math"
-msgstr "Matematik"
-
-
-msgid "Utilities"
-msgstr "Allmännyttiga tjänster"
-
-
-msgid "Pivot Point"
-msgstr "Pivotpunkt"
-
-
-msgid "Snap"
-msgstr "Fäst"
-
-
-msgid "Proportional Editing Falloff"
-msgstr "Proportionell redigering Falloff"
-
-
-msgid "Read"
-msgstr "Läs"
-
-
-msgid "Mask Edit"
-msgstr "Maskredigering"
-
-
-msgid "Sample"
-msgstr "Exempel"
-
-
-msgid "Automasking"
-msgstr "Automatisk maskering"
-
-
-msgid "Write"
-msgstr "Skriv"
-
-
-msgid "Face Sets Edit"
-msgstr "Ansiktsuppsättningar Redigera"
-
-
-msgid "Primitives"
-msgstr "Primitiva"
-
-
-msgid "Vertex Group Locks"
-msgstr "Vertex Group Lås"
-
-
-msgid "Gizmo"
-msgstr "Gizmo"
-
-
-msgid "Instances"
-msgstr "Instanser"
-
-
-msgid "Render Preview"
-msgstr "Förhandsgranska rendering"
-
-
-msgid "Import"
-msgstr "Importera"
-
-
-msgid "Mirror"
-msgstr "Spegel"
-
-
-msgid "UV Mapping"
-msgstr "UV-mappning"
-
-
-msgid "Local View"
-msgstr "Lokal vy"
-
-
-msgid "Viewpoint"
-msgstr "Synpunkt"
-
-
-msgid "Navigation"
-msgstr "Navigering"
-
-
-msgid "Align View"
-msgstr "Justera vy"
-
-
-msgid "Deprecated"
-msgstr "Föråldrad"
-
-
-msgid "Align View to Active"
-msgstr "Justera vy till aktiv"
-
-
-msgid "View Regions"
-msgstr "Visa regioner"
-
-
-msgid "Select More/Less"
-msgstr "Välj Mer/Mindre"
-
-
-msgid "Select Similar"
-msgstr "Välj liknande"
-
-
-msgid "UV"
-msgstr "UV"
-
-
-msgid "Select All by Trait"
-msgstr "Välj alla efter egenskap"
-
-
-msgid "Select Linked"
-msgstr "Välj länkad"
-
-
-msgid "Select Loops"
-msgstr "Välj slingor"
-
-
-msgid "Assign Material"
-msgstr "Tilldela material"
-
-
-msgid "Light"
-msgstr "Ljus"
-
-
-msgid "Light Probe"
-msgstr "Ljusprob"
-
-
-msgid "Add Image"
-msgstr "Lägg till bild"
-
-
-msgid "Relations"
-msgstr "Relationer"
-
-
-msgid "Rigid Body"
-msgstr "Stel kropp"
-
-
-msgid "Apply"
-msgstr "Ansök"
-
-
-msgid "Track"
-msgstr "Spår"
-
-
-msgid "Quick Effects"
-msgstr "Snabba effekter"
-
-
-msgid "Asset"
-msgstr "Tillgång"
-
-
-msgid "Make Single User"
-msgstr "Gör till enskild användare"
-
-
-msgid "Convert"
-msgstr "Konvertera"
 
 
 msgid "Linked"
 msgstr "Länkad"
 
 
-msgid "Link/Transfer Data"
-msgstr "Länk/överför data"
+msgid "Special Characters"
+msgstr "Specialtecken"
 
 
 msgid "Layout"
 msgstr "Layout"
 
 
-msgid "Hooks"
-msgstr "Krokar"
-
-
-msgid "Trim/Add"
-msgstr "Trimma/Lägg till"
-
-
-msgid "Sculpt Set Pivot"
-msgstr "Skulptera Set Pivot"
-
-
-msgid "Face Sets Init"
-msgstr "Ansiktsuppsättningar Init"
-
-
-msgid "Random Mask"
-msgstr "Slumpmässig mask"
-
-
-msgid "Adjust"
-msgstr "Justera"
-
-
-msgid "Keying"
-msgstr "Nyckel"
-
-
-msgid "Clear Transform"
-msgstr "Rensa Transform"
-
-
-msgid "In-Betweens"
-msgstr "Mellanliggande"
-
-
-msgid "Tracking"
-msgstr "Spårning"
-
-
-msgid "Propagate"
-msgstr "Föröka"
-
-
-msgid "Bone Collections"
-msgstr "Benskörningar"
+msgid "Kerning"
+msgstr "Kerning"
 
 
 msgid "Keyframe Insert Pie"
@@ -91653,10 +91653,6 @@ msgid "Panel containing UI elements"
 msgstr "Panel som innehåller UI-element"
 
 
-msgid "glTF Variants"
-msgstr "glTF-varianter"
-
-
 msgid "glTF Material Variants"
 msgstr "glTF-materialvarianter"
 
@@ -91787,6 +91783,10 @@ msgstr "VR"
 
 msgid "VR Info"
 msgstr "VR-information"
+
+
+msgid "glTF Variants"
+msgstr "glTF-varianter"
 
 
 msgid "Import Settings"
@@ -98751,10 +98751,6 @@ msgstr "Typ av pass för bakning"
 
 msgid "Filter Glossy"
 msgstr "Filter Glansig"
-
-
-msgid "Adaptively blur glossy shaders after blurry bounces, to reduce noise at the cost of accuracy"
-msgstr "Anpassa suddiga glansiga shaderar efter suddiga studsar för att minska bruset på bekostnad av noggrannheten."
 
 
 msgid "Camera Cull Margin"
@@ -129671,14 +129667,6 @@ msgstr "Klistra in till valda tangenter"
 msgctxt "Operator"
 msgid "Paste and Bake"
 msgstr "Klistra in och baka"
-
-
-msgid "Keying set is active, which may"
-msgstr "Nyckelsatsen är aktiv, vilket kan"
-
-
-msgid "reduce the effect of the above options"
-msgstr "minska effekten av ovanstående alternativ"
 
 
 msgid "Using Active Scene Camera"

@@ -1,10 +1,10 @@
 
 msgid ""
 msgstr ""
-"Project-Id-Version: Blender 5.3.0 Alpha (b'af9ba6af7621')\n"
+"Project-Id-Version: Blender 5.3.0 Alpha (b'af4852ed4560')\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-08-03 07:24+0000\n"
-"PO-Revision-Date: 2026-07-31 20:07+0000\n"
+"POT-Creation-Date: 2026-08-10 07:54+0000\n"
+"PO-Revision-Date: 2026-08-03 20:02+0000\n"
 "Last-Translator: Gabriel Gazzán <gabcorreo@gmail.com>\n"
 "Language-Team: Spanish <https://translate.blender.org/projects/blender-ui/ui/es/>\n"
 "Language: es\n"
@@ -3424,10 +3424,6 @@ msgid "All Data-Blocks"
 msgstr "Todos los bloques de datos"
 
 
-msgid "Read-only list of all IDs listed in Blender data-base"
-msgstr "Lista de sólo lectura con todos los ID listados en la base de datos de Blender"
-
-
 msgid "Annotation"
 msgstr "Anotación"
 
@@ -3590,10 +3586,6 @@ msgstr "Bloques de datos de partícula"
 
 msgid "Point cloud data-blocks"
 msgstr "Bloques de datos de nube de puntos"
-
-
-msgid "Project"
-msgstr "Proyectar"
 
 
 msgid "The currently active Blender project, if any"
@@ -7663,6 +7655,10 @@ msgid "Importer configured for the collection"
 msgstr "Importador configurado para la colección"
 
 
+msgid "The file path used for importing"
+msgstr "La ruta usada para importar"
+
+
 msgid "Import Properties"
 msgstr "Propiedades de importación"
 
@@ -10594,6 +10590,10 @@ msgstr "Punto más cercano de la superficie"
 
 msgid "Shrink the location to the nearest target surface"
 msgstr "Contrae la posición al punto más cercano de la superficie objetivo"
+
+
+msgid "Project"
+msgstr "Proyectar"
 
 
 msgid "Shrink the location to the nearest target surface along a given axis"
@@ -30753,14 +30753,6 @@ msgid "Maintained by community developers"
 msgstr "Mantenidos por desarrolladores de la comunidad"
 
 
-msgid "Testing"
-msgstr "A prueba"
-
-
-msgid "Newly contributed scripts (excluded from release builds)"
-msgstr "Scripts recientemente contribuidos (excluidos de las versiones oficiales)"
-
-
 msgid "Addon Tags"
 msgstr "Etiquetas de complementos"
 
@@ -36005,8 +35997,256 @@ msgid "Editor menu containing buttons"
 msgstr "Menú del editor que contiene botones"
 
 
+msgid "Names"
+msgstr "Nombres"
+
+
+msgid "Bone Roll"
+msgstr "Giro de huesos"
+
+
+msgid "Show/Hide"
+msgstr "Mostrar / Ocultar"
+
+
+msgid "Clean Up"
+msgstr "Limpiar"
+
+
+msgid "Adjust"
+msgstr "Ajustar"
+
+
+msgid "Keying"
+msgstr "Recortar"
+
+
+msgid "Tracking"
+msgstr "Rastreo"
+
+
+msgid "Utilities"
+msgstr "Utilitarios"
+
+
+msgid "Math"
+msgstr "Operar"
+
+
+msgid "Pivot Point"
+msgstr "Punto de pivote"
+
+
 msgid "Creative"
 msgstr "Creatividad"
+
+
+msgid "Snap"
+msgstr "Adherir"
+
+
+msgid "Proportional Editing Falloff"
+msgstr "Decaimiento de edición proporcional"
+
+
+msgid "Mask Edit"
+msgstr "Edición de máscara"
+
+
+msgid "Automasking"
+msgstr "Autoenmascarar"
+
+
+msgid "Face Sets Edit"
+msgstr "Edición de conjuntos de caras"
+
+
+msgid "Vertex Group Locks"
+msgstr "Bloqueos de grupo de vértices"
+
+
+msgid "Mirror"
+msgstr "Simetrizar"
+
+
+msgid "UV Mapping"
+msgstr "Mapeo UV"
+
+
+msgid "Local View"
+msgstr "Vista local"
+
+
+msgid "Viewpoint"
+msgstr "Punto de vista"
+
+
+msgid "Navigation"
+msgstr "Navegación"
+
+
+msgid "Align View"
+msgstr "Alinear vista"
+
+
+msgid "Align View to Active"
+msgstr "Alinear vista al activo"
+
+
+msgid "View Regions"
+msgstr "Regiones de la vista"
+
+
+msgid "Select More/Less"
+msgstr "Seleccionar más / menos"
+
+
+msgid "Select Similar"
+msgstr "Seleccionar similar"
+
+
+msgid "Select All by Trait"
+msgstr "Seleccionar por condición"
+
+
+msgid "Select Linked"
+msgstr "Seleccionar vinculado"
+
+
+msgid "Select Loops"
+msgstr "Seleccionar bucles"
+
+
+msgid "Assign Material"
+msgstr "Asignar material"
+
+
+msgid "Read"
+msgstr "Lectura"
+
+
+msgid "Sample"
+msgstr "Muestreo"
+
+
+msgid "Write"
+msgstr "Escritura"
+
+
+msgid "Primitives"
+msgstr "Primitivas"
+
+
+msgid "Metaball"
+msgstr "Metabola"
+
+
+msgid "Light"
+msgstr "Luz"
+
+
+msgid "Light Probe"
+msgstr "Sonda de luz"
+
+
+msgid "Add Image"
+msgstr "Agregar imagen"
+
+
+msgid "Gizmo"
+msgstr "Manipulador"
+
+
+msgid "Relations"
+msgstr "Relaciones"
+
+
+msgid "Instances"
+msgstr "Instancias"
+
+
+msgid "Render Preview"
+msgstr "Procesar previsualización"
+
+
+msgid "Rigid Body"
+msgstr "Cuerpo rígido"
+
+
+msgid "Apply"
+msgstr "Aplicar"
+
+
+msgid "Import"
+msgstr "Importar"
+
+
+msgid "Track"
+msgstr "Rastrear"
+
+
+msgid "Quick Effects"
+msgstr "Efectos rápidos"
+
+
+msgid "Asset"
+msgstr "Recurso"
+
+
+msgid "Deprecated"
+msgstr "Obsoleto"
+
+
+msgid "Make Single User"
+msgstr "Hacer de único usuario"
+
+
+msgid "Convert"
+msgstr "Convertir"
+
+
+msgid "Link/Transfer Data"
+msgstr "Vincular / Transferir datos"
+
+
+msgid "Hooks"
+msgstr "Asignar gancho"
+
+
+msgid "UV"
+msgstr "UV"
+
+
+msgid "Trim/Add"
+msgstr "Recortar / Agregar"
+
+
+msgid "Sculpt Set Pivot"
+msgstr "Esculpido definir pivote"
+
+
+msgid "Face Sets Init"
+msgstr "Inicialización de conjuntos de caras"
+
+
+msgid "Random Mask"
+msgstr "Máscara aleatoria"
+
+
+msgid "Clear Transform"
+msgstr "Restablecer transformación"
+
+
+msgid "In-Betweens"
+msgstr "Intermedios"
+
+
+msgid "Propagate"
+msgstr "Propagar"
+
+
+msgid "Bone Collections"
+msgstr "Colecciones de huesos"
 
 
 msgid "Toggle Bone Options"
@@ -36037,276 +36277,24 @@ msgid "Set Face Strength"
 msgstr "Definir intensidad de caras"
 
 
-msgid "Clean Up"
-msgstr "Limpiar"
-
-
 msgid "Merge"
 msgstr "Fusionar"
-
-
-msgid "Show/Hide"
-msgstr "Mostrar / Ocultar"
-
-
-msgid "Special Characters"
-msgstr "Caracteres especiales"
-
-
-msgid "Kerning"
-msgstr "Espaciado"
-
-
-msgid "Metaball"
-msgstr "Metabola"
-
-
-msgid "Names"
-msgstr "Nombres"
-
-
-msgid "Bone Roll"
-msgstr "Giro de huesos"
-
-
-msgid "Math"
-msgstr "Operar"
-
-
-msgid "Utilities"
-msgstr "Utilitarios"
-
-
-msgid "Pivot Point"
-msgstr "Punto de pivote"
-
-
-msgid "Snap"
-msgstr "Adherir"
-
-
-msgid "Proportional Editing Falloff"
-msgstr "Decaimiento de edición proporcional"
-
-
-msgid "Read"
-msgstr "Lectura"
-
-
-msgid "Mask Edit"
-msgstr "Edición de máscara"
-
-
-msgid "Sample"
-msgstr "Muestreo"
-
-
-msgid "Automasking"
-msgstr "Autoenmascarar"
-
-
-msgid "Write"
-msgstr "Escritura"
-
-
-msgid "Face Sets Edit"
-msgstr "Edición de conjuntos de caras"
-
-
-msgid "Primitives"
-msgstr "Primitivas"
-
-
-msgid "Vertex Group Locks"
-msgstr "Bloqueos de grupo de vértices"
-
-
-msgid "Gizmo"
-msgstr "Manipulador"
-
-
-msgid "Instances"
-msgstr "Instancias"
-
-
-msgid "Render Preview"
-msgstr "Procesar previsualización"
-
-
-msgid "Import"
-msgstr "Importar"
-
-
-msgid "Mirror"
-msgstr "Simetrizar"
-
-
-msgid "UV Mapping"
-msgstr "Mapeo UV"
-
-
-msgid "Local View"
-msgstr "Vista local"
-
-
-msgid "Viewpoint"
-msgstr "Punto de vista"
-
-
-msgid "Navigation"
-msgstr "Navegación"
-
-
-msgid "Align View"
-msgstr "Alinear vista"
-
-
-msgid "Deprecated"
-msgstr "Obsoleto"
-
-
-msgid "Align View to Active"
-msgstr "Alinear vista al activo"
-
-
-msgid "View Regions"
-msgstr "Regiones de la vista"
-
-
-msgid "Select More/Less"
-msgstr "Seleccionar más / menos"
-
-
-msgid "Select Similar"
-msgstr "Seleccionar similar"
-
-
-msgid "UV"
-msgstr "UV"
-
-
-msgid "Select All by Trait"
-msgstr "Seleccionar por condición"
-
-
-msgid "Select Linked"
-msgstr "Seleccionar vinculado"
-
-
-msgid "Select Loops"
-msgstr "Seleccionar bucles"
-
-
-msgid "Assign Material"
-msgstr "Asignar material"
-
-
-msgid "Light"
-msgstr "Luz"
-
-
-msgid "Light Probe"
-msgstr "Sonda de luz"
-
-
-msgid "Add Image"
-msgstr "Agregar imagen"
-
-
-msgid "Relations"
-msgstr "Relaciones"
-
-
-msgid "Rigid Body"
-msgstr "Cuerpo rígido"
-
-
-msgid "Apply"
-msgstr "Aplicar"
-
-
-msgid "Track"
-msgstr "Rastrear"
-
-
-msgid "Quick Effects"
-msgstr "Efectos rápidos"
-
-
-msgid "Asset"
-msgstr "Recurso"
-
-
-msgid "Make Single User"
-msgstr "Hacer de único usuario"
-
-
-msgid "Convert"
-msgstr "Convertir"
 
 
 msgid "Linked"
 msgstr "Vinculado"
 
 
-msgid "Link/Transfer Data"
-msgstr "Vincular / Transferir datos"
+msgid "Special Characters"
+msgstr "Caracteres especiales"
 
 
 msgid "Layout"
 msgstr "Organizar"
 
 
-msgid "Hooks"
-msgstr "Asignar gancho"
-
-
-msgid "Trim/Add"
-msgstr "Recortar / Agregar"
-
-
-msgid "Add Primitive"
-msgstr "Agregar primitiva"
-
-
-msgid "Sculpt Set Pivot"
-msgstr "Esculpido definir pivote"
-
-
-msgid "Face Sets Init"
-msgstr "Inicialización de conjuntos de caras"
-
-
-msgid "Random Mask"
-msgstr "Máscara aleatoria"
-
-
-msgid "Adjust"
-msgstr "Ajustar"
-
-
-msgid "Keying"
-msgstr "Recortar"
-
-
-msgid "Clear Transform"
-msgstr "Restablecer transformación"
-
-
-msgid "In-Betweens"
-msgstr "Intermedios"
-
-
-msgid "Tracking"
-msgstr "Rastreo"
-
-
-msgid "Propagate"
-msgstr "Propagar"
-
-
-msgid "Bone Collections"
-msgstr "Colecciones de huesos"
+msgid "Kerning"
+msgstr "Espaciado"
 
 
 msgid "Keyframe Insert Pie"
@@ -48910,6 +48898,14 @@ msgid "Iteration index that is used by inspection features like the viewer node 
 msgstr "Número de iteración usado por las funciones de inspección, como el nodo Visor o Inspección de conectores"
 
 
+msgid "Geometry Materials"
+msgstr "Materiales de geometría"
+
+
+msgid "Get a list of the materials used by a geometry component"
+msgstr "Permite obtener una lista de los materiales usados por un componente de la geometría"
+
+
 msgid "Geometry to Instance"
 msgstr "Geometría a instancia"
 
@@ -50001,6 +49997,14 @@ msgstr "Calcular proximidad hasta los bordes del objetivo"
 
 msgid "Calculate the proximity to the target's faces"
 msgstr "Calcular proximidad hasta las caras del objetivo"
+
+
+msgid "Rasterize Points"
+msgstr "Reticular puntos"
+
+
+msgid "Create volume grids from points with a weighted sum"
+msgstr "Permite crear cuadrículas volumétricas a partir de puntos, usando una suma ponderada"
 
 
 msgid "Raycast"
@@ -53572,8 +53576,24 @@ msgid "Collection of main items"
 msgstr "Colección de elementos principales"
 
 
+msgid "Rasterize Points Item"
+msgstr "Elemento"
+
+
 msgid "Scalar"
 msgstr "Escalar"
+
+
+msgid "Rasterize a scalar attribute"
+msgstr "Reticula un atributo escalar"
+
+
+msgid "Rasterize a vector attribute"
+msgstr "Reticula un atributo vectorial"
+
+
+msgid "Collection of grid items"
+msgstr "Colección de elementos de cuadrícula"
 
 
 msgid "Collection of repeat items"
@@ -54110,6 +54130,14 @@ msgstr "Identificador activo"
 
 msgid "Items in the node interface"
 msgstr "Elementos en interfaz de nodo"
+
+
+msgid "Root Panel"
+msgstr "Panel principal"
+
+
+msgid "Root panel containing all items not directly parented to another panel"
+msgstr "Panel principal, que contiene todos los elementos no subordinados directamente a otros paneles"
 
 
 msgid "Node Tree Interface Item"
@@ -58052,6 +58080,15 @@ msgstr "Alteración"
 
 msgid "Generated"
 msgstr "Generado"
+
+
+msgctxt "Operator"
+msgid "Convert to Pose Markers"
+msgstr "Convertir a marcadores de pose"
+
+
+msgid "Move selected scene markers to the active action as pose markers"
+msgstr "Mueve los marcadores seleccionados de la escena a la acción activa, como marcadores de pose"
 
 
 msgctxt "Operator"
@@ -76951,7 +76988,7 @@ msgstr "Vincular bloqueadores al emisor"
 
 
 msgid "Light link selected blockers to the active emitter object"
-msgstr "Vincula los objetos seleccionados al emisor activo, como bloqueadores de luz"
+msgstr "Vincula los objetos seleccionados al emisor de luz activo, como bloqueadores de luz"
 
 
 msgid "State of the shadow linking"
@@ -76973,6 +77010,15 @@ msgstr "Seleccionar bloqueadores de iluminación"
 
 msgid "Select all objects which block light from this emitter"
 msgstr "Selecciona todos los objetos que bloquean la luz de este emisor"
+
+
+msgctxt "Operator"
+msgid "Link Receiver Objects to Emitter"
+msgstr "Vincular objetos receptores al emisor"
+
+
+msgid "Light link selected objects to the active emitter object"
+msgstr "Vincula los objetos seleccionados al emisor de luz activo"
 
 
 msgid "State of the light linking"
@@ -81023,6 +81069,10 @@ msgstr "Invierte la visibilidad de todos los vértices"
 msgctxt "Operator"
 msgid "Weight from Bones"
 msgstr "Influencia desde huesos"
+
+
+msgid "Set the weights of the groups matching the attached armature's bones that have \"Deform\" option enabled, using the distance between the vertices and the bones"
+msgstr "Define las influencias de los grupos que coinciden con los huesos del esqueleto vinculado que tengan la opción \"Deformación\" activa, usando la distancia entre los vértices y los huesos"
 
 
 msgid "Method to use for assigning weights"
@@ -94693,10 +94743,6 @@ msgid "Panel containing UI elements"
 msgstr "Panel que contiene elementos de la interfaz"
 
 
-msgid "glTF Variants"
-msgstr "Variantes glTF"
-
-
 msgid "glTF Material Variants"
 msgstr "Variantes de material glTF"
 
@@ -94827,6 +94873,10 @@ msgstr "RV"
 
 msgid "VR Info"
 msgstr "Info de RV"
+
+
+msgid "glTF Variants"
+msgstr "Variantes glTF"
 
 
 msgid "Import Settings"
@@ -100206,8 +100256,16 @@ msgid "Catalan - Català"
 msgstr "Catalán - Català"
 
 
+msgid "Locale code: ca_AD. Translation progress: 100%"
+msgstr "Código de localización: ca_AD. Progreso de la traducción: 100%"
+
+
 msgid "Chinese (Simplified) - 简体中文"
 msgstr "Chino (simplificado) - 简体中文"
+
+
+msgid "Locale code: zh_HANS. Translation progress: 100%"
+msgstr "Código de localización: zh_HANS. Progreso de la traducción: 100%"
 
 
 msgid "Chinese (Traditional) - 繁體中文"
@@ -100238,6 +100296,10 @@ msgid "Danish - Dansk"
 msgstr "Danés - Dansk"
 
 
+msgid "Locale code: da. Translation progress: 2%"
+msgstr "Código de localización: da. Progreso de la traducción: 2%"
+
+
 msgid "Dutch - Nederlands"
 msgstr "Holandés - Nederlands"
 
@@ -100248,6 +100310,10 @@ msgstr "Código de localización: nl_NL. Progreso de la traducción: 8%"
 
 msgid "English (UK)"
 msgstr "Inglés (Reino Unido) - English (UK)"
+
+
+msgid "Locale code: en_GB. Translation progress: 94%"
+msgstr "Código de localización: en_GB. Progreso de la traducción: 94%"
 
 
 msgid "English (US)"
@@ -100270,16 +100336,20 @@ msgid "Finnish - Suomi"
 msgstr "Finlandés - Suomi"
 
 
+msgid "Locale code: fi_FI. Translation progress: 10%"
+msgstr "Código de localización: fi_FI. Progreso de la traducción: 10%"
+
+
 msgid "French - Français"
 msgstr "Francés - Français"
 
 
-msgid "Locale code: fr_FR. Translation progress: 99%"
-msgstr "Código de localización: fr_FR. Progreso de la traducción: 100%"
-
-
 msgid "Georgian - ქართული"
 msgstr "Georgiano - ქართული"
+
+
+msgid "Locale code: ka. Translation progress: 100%"
+msgstr "Código de localización: ka. Progreso de la traducción: 100%"
 
 
 msgid "German - Deutsch"
@@ -100324,6 +100394,10 @@ msgstr "Código de localización: hu_HU. Progreso de la traducción: 11%"
 
 msgid "Indonesian - Bahasa indonesia"
 msgstr "Indonesio - Bahasa indonesia"
+
+
+msgid "Locale code: id_ID. Translation progress: 20%"
+msgstr "Código de localización: id_ID. Progreso de la traducción: 20%"
 
 
 msgid "Italian - Italiano"
@@ -100394,6 +100468,10 @@ msgid "Polish - Polski"
 msgstr "Polaco - Polski"
 
 
+msgid "Locale code: pl_PL. Translation progress: 100%"
+msgstr "Código de localización: pl_PL. Progreso de la traducción: 100%"
+
+
 msgid "Portuguese (Brazil) - Português brasileiro"
 msgstr "Portugués (Brasil) - Português (Brazil)"
 
@@ -100406,10 +100484,6 @@ msgid "Portuguese (Portugal) - Português europeu"
 msgstr "Portugués (Portugal) - Português (Portugal)"
 
 
-msgid "Locale code: pt_PT. Translation progress: 80%"
-msgstr "Código de localización: pt_PT. Progreso de la traducción: 80%"
-
-
 msgid "Romanian - Român"
 msgstr "Rumano - Român"
 
@@ -100420,6 +100494,10 @@ msgstr "Código de localización: ro_RO. Progreso de la traducción: 2%"
 
 msgid "Russian - Русский"
 msgstr "Ruso - Русский"
+
+
+msgid "Locale code: ru_RU. Translation progress: 100%"
+msgstr "Código de localización: ru_RU. Progreso de la traducción: 100%"
 
 
 msgid "Serbian (Cyrillic) - Српски"
@@ -100442,12 +100520,24 @@ msgid "Slovak - Slovenčina"
 msgstr "Eslovaco - Slovenčina"
 
 
+msgid "Locale code: sk_SK. Translation progress: 100%"
+msgstr "Código de localización: sk_SK. Progreso de la traducción: 100%"
+
+
 msgid "Slovenian - Slovenščina"
 msgstr "Esloveno - Slovenščina"
 
 
+msgid "Locale code: sl. Translation progress: 52%"
+msgstr "Código de localización: sl. Progreso de la traducción: 52%"
+
+
 msgid "Spanish - Español"
 msgstr "Español"
+
+
+msgid "Locale code: es. Translation progress: 100%"
+msgstr "Código de localización: es. Progreso de la traducción: 100%"
 
 
 msgid "Swahili - Kiswahili"
@@ -100486,6 +100576,10 @@ msgid "Turkish - Türkçe"
 msgstr "Turco - Türkçe"
 
 
+msgid "Locale code: tr_TR. Translation progress: 74%"
+msgstr "Código de localización: tr_TR. Progreso de la traducción: 74%"
+
+
 msgid "Ukrainian - Українська"
 msgstr "Ucraniano - Українська"
 
@@ -100504,10 +100598,6 @@ msgstr "Código de localización: ur. Progreso de la traducción: 82%"
 
 msgid "Vietnamese - Tiếng Việt"
 msgstr "Vietnamita - Tiếng Việt"
-
-
-msgid "Locale code: vi_VN. Translation progress: 96%"
-msgstr "Código de localización: vi_VN. Progreso de la traducción: 96%"
 
 
 msgid "Reference Sphere Size"
@@ -101215,7 +101305,11 @@ msgstr "La propiedad es una ruta que soporta el prefijo \"//\", significando que
 
 
 msgid "Variable Expression Support"
-msgstr "Soporte de expresiones variables"
+msgstr "Soportar expresiones de variables"
+
+
+msgid "Property is a path which supports the \"{variable_name}\" variable expression syntax, which substitutes the value of the referenced variable in place of the expression"
+msgstr "La propiedad es una ruta que soporta la sintaxis de expresiones de variables \"{nombre_de_variable}\", que sustituye el valor de la variable referenciada en lugar de la expresión"
 
 
 msgid "Read Only"
@@ -102147,10 +102241,6 @@ msgstr "Tipo de pasada a capturar"
 
 msgid "Filter Glossy"
 msgstr "Filtrar reflejos"
-
-
-msgid "Adaptively blur glossy shaders after blurry bounces, to reduce noise at the cost of accuracy"
-msgstr "Desenfoca adaptativamente los sombreadores reflectivos, para reducir el ruido a costa de la precisión"
 
 
 msgid "Camera Cull Margin"
@@ -131535,11 +131625,6 @@ msgstr "Preferencias..."
 
 
 msgctxt "Operator"
-msgid "Project Setup..."
-msgstr "Configuración de proyecto..."
-
-
-msgctxt "Operator"
 msgid "Save Screenshot..."
 msgstr "Guardar captura de pantalla..."
 
@@ -134448,14 +134533,6 @@ msgid "Paste and Bake"
 msgstr "Pegar y capturar"
 
 
-msgid "Keying set is active, which may"
-msgstr "Un conjunto de claves está activo, lo cual podría"
-
-
-msgid "reduce the effect of the above options"
-msgstr "reducir el efecto de las opciones de arriba"
-
-
 msgid "Using Active Scene Camera"
 msgstr "Usando la cámara activa"
 
@@ -136418,6 +136495,10 @@ msgid "Found IDs flagged as copy/paste clipboard data while writing a regular bl
 msgstr "Se encontraron ID marcados como datos del portapapeles al escribir un archivo .blend normal, los indicadores han sido eliminados de esos ID"
 
 
+msgid "Checking validity of current .blend file *AFTER* save to disk"
+msgstr "Comprobando la validez del archivo .blend actual *DESPUÉS* de ser guardado en el disco"
+
+
 msgid "Failed to write blendfile"
 msgstr "Error al escribir archivo .blend"
 
@@ -136526,6 +136607,10 @@ msgstr "Seleccionar una cantidad par de bucles para puentear"
 
 msgid "Selected loops must have equal edge counts"
 msgstr "Los bucles seleccionados deben tener igual número de bordes"
+
+
+msgid "Selection requires at least 3 non-collinear vertices"
+msgstr "La selección requiere al menos 3 vértices no alineados"
 
 
 msgid "Could not connect vertices"
@@ -147153,6 +147238,10 @@ msgid "Cannot fly when the view offset is locked"
 msgstr "No es posible volar cuando el desplazamiento de la vista se encuentra bloqueado"
 
 
+msgid "Cannot fly an object with effective constraints"
+msgstr "No es posible volar con un objeto con restricciones en funcionamiento"
+
+
 msgid "Cannot dolly when the view offset is locked"
 msgstr "No es posible avanzar cuando el desplazamiento de la vista se encuentra bloqueado"
 
@@ -147175,6 +147264,10 @@ msgstr "Corrección de eje Z"
 
 msgid "Cannot navigate when the view offset is locked"
 msgstr "No es posible navegar cuando el desplazamiento de la vista se encuentra bloqueado"
+
+
+msgid "Cannot navigate an object with effective constraints"
+msgstr "No es posible navegar con un objeto con restricciones en funcionamiento"
 
 
 msgid "Depth too large"
@@ -155961,6 +156054,54 @@ msgstr "Divide los elementos de la geometría entrante en grupos, que podrán se
 
 msgid "Whether the sampling was successful. It can fail when the sampled group is empty"
 msgstr "Indica si el muestreo fue exitoso. Podría fallar en caso de que el grupo a ser muestreado se encontrara vacío"
+
+
+msgid "Could not generate grid for \"{}\""
+msgstr "No fue posible generar una cuadrícula para \"{}\""
+
+
+msgid "Use uniform voxel scale with no translation or rotation"
+msgstr "Usa una escala uniforme de vóxeles sin traslación ni rotación"
+
+
+msgid "Define grid transform with a matrix"
+msgstr "Define la transformación de la cuadrícula mediante una matriz"
+
+
+msgid "Assign points to the closest voxel"
+msgstr "Asigna puntos al vóxel más cercano"
+
+
+msgid "Linear falloff over the voxel range"
+msgstr "Decaimiento lineal a lo largo del rango de vóxeles"
+
+
+msgid "Quadratic B-Spline"
+msgstr "B-spline cuadrática"
+
+
+msgid "Quadratic b-spline kernel over 1.5 voxels"
+msgstr "Núcleo de B-spline cuadrática a lo largo de 1.5 vóxeles"
+
+
+msgid "Cube b-spline kernel over 2 voxels"
+msgstr "Núcleo de B-spline cúbica a lo largo de 2 vóxeles"
+
+
+msgid "Grid Transform Mode"
+msgstr "Modo de transformación de cuadrícula"
+
+
+msgid "Kernel Type"
+msgstr "Tipo de núcleo"
+
+
+msgid "Method of defining the grid transform"
+msgstr "Método para definir la transformación de la cuadrícula"
+
+
+msgid "Kernel function for computing weights at each voxel"
+msgstr "Función del núcleo para calcular las influencias en cada vóxel"
 
 
 msgid "The target mesh must have faces"

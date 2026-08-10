@@ -1,9 +1,9 @@
 
 msgid ""
 msgstr ""
-"Project-Id-Version: Blender 5.3.0 Alpha (b'af9ba6af7621')\n"
+"Project-Id-Version: Blender 5.3.0 Alpha (b'af4852ed4560')\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-08-03 07:24+0000\n"
+"POT-Creation-Date: 2026-08-10 07:54+0000\n"
 "PO-Revision-Date: 2026-07-31 17:12+0000\n"
 "Last-Translator: Ye Gui <ziweidao@foxmail.com>\n"
 "Language-Team: Chinese (Traditional Han script) <https://translate.blender.org/projects/blender-ui/ui/zh_Hant/>\n"
@@ -3413,10 +3413,6 @@ msgstr "粒子數據組塊"
 
 msgid "Point cloud data-blocks"
 msgstr "點雲數據組塊"
-
-
-msgid "Project"
-msgstr "投影"
 
 
 msgid "Scene data-blocks"
@@ -8591,6 +8587,10 @@ msgstr "最近的表面點"
 
 msgid "Shrink the location to the nearest target surface"
 msgstr "將位置收縮至最近的目標表面"
+
+
+msgid "Project"
+msgstr "投影"
 
 
 msgid "Shrink the location to the nearest target surface along a given axis"
@@ -26372,58 +26372,6 @@ msgid "Material slot name"
 msgstr "材質槽名稱"
 
 
-msgid "Creative"
-msgstr "創意"
-
-
-msgid "Toggle Bone Options"
-msgstr "開關骨骼選項"
-
-
-msgid "Enable Bone Options"
-msgstr "啟用骨骼設定"
-
-
-msgid "Disable Bone Options"
-msgstr "停用骨骼設定"
-
-
-msgid "Mesh Select Mode"
-msgstr "網格選取模式"
-
-
-msgid "Face Data"
-msgstr "面資料"
-
-
-msgid "Set Face Strength"
-msgstr "設定面強度"
-
-
-msgid "Clean Up"
-msgstr "清理"
-
-
-msgid "Merge"
-msgstr "合併"
-
-
-msgid "Show/Hide"
-msgstr "顯示/隱藏"
-
-
-msgid "Special Characters"
-msgstr "特殊字元"
-
-
-msgid "Kerning"
-msgstr "字間微調"
-
-
-msgid "Metaball"
-msgstr "變幻球"
-
-
 msgid "Names"
 msgstr "名稱"
 
@@ -26432,16 +26380,40 @@ msgid "Bone Roll"
 msgstr "骨骼滾動"
 
 
-msgid "Math"
-msgstr "數學公式"
+msgid "Show/Hide"
+msgstr "顯示/隱藏"
+
+
+msgid "Clean Up"
+msgstr "清理"
+
+
+msgid "Adjust"
+msgstr "調整"
+
+
+msgid "Keying"
+msgstr "鍵處理"
+
+
+msgid "Tracking"
+msgstr "跟蹤"
 
 
 msgid "Utilities"
 msgstr "效用"
 
 
+msgid "Math"
+msgstr "數學公式"
+
+
 msgid "Pivot Point"
 msgstr "樞紐點"
+
+
+msgid "Creative"
+msgstr "創意"
 
 
 msgid "Snap"
@@ -26452,52 +26424,20 @@ msgid "Proportional Editing Falloff"
 msgstr "比例化編輯衰落"
 
 
-msgid "Read"
-msgstr "讀取"
-
-
 msgid "Mask Edit"
 msgstr "遮罩編輯"
-
-
-msgid "Sample"
-msgstr "取樣"
 
 
 msgid "Automasking"
 msgstr "自動遮罩"
 
 
-msgid "Write"
-msgstr "寫入"
-
-
 msgid "Face Sets Edit"
 msgstr "面集編輯"
 
 
-msgid "Primitives"
-msgstr "原形"
-
-
 msgid "Vertex Group Locks"
 msgstr "頂點群組鎖定"
-
-
-msgid "Gizmo"
-msgstr "操縱器"
-
-
-msgid "Instances"
-msgstr "實例化"
-
-
-msgid "Render Preview"
-msgstr "算繪預覽"
-
-
-msgid "Import"
-msgstr "匯入"
 
 
 msgid "Mirror"
@@ -26524,10 +26464,6 @@ msgid "Align View"
 msgstr "對齊檢視"
 
 
-msgid "Deprecated"
-msgstr "已棄用"
-
-
 msgid "Align View to Active"
 msgstr "對齊檢視至作用項"
 
@@ -26542,10 +26478,6 @@ msgstr "選取更多/更少"
 
 msgid "Select Similar"
 msgstr "選取相似者"
-
-
-msgid "UV"
-msgstr "UV"
 
 
 msgid "Select All by Trait"
@@ -26564,6 +26496,26 @@ msgid "Assign Material"
 msgstr "指派材質"
 
 
+msgid "Read"
+msgstr "讀取"
+
+
+msgid "Sample"
+msgstr "取樣"
+
+
+msgid "Write"
+msgstr "寫入"
+
+
+msgid "Primitives"
+msgstr "原形"
+
+
+msgid "Metaball"
+msgstr "變幻球"
+
+
 msgid "Light"
 msgstr "燈光"
 
@@ -26576,8 +26528,20 @@ msgid "Add Image"
 msgstr "新增影像"
 
 
+msgid "Gizmo"
+msgstr "操縱器"
+
+
 msgid "Relations"
 msgstr "關係"
+
+
+msgid "Instances"
+msgstr "實例化"
+
+
+msgid "Render Preview"
+msgstr "算繪預覽"
 
 
 msgid "Rigid Body"
@@ -26586,6 +26550,10 @@ msgstr "剛體"
 
 msgid "Apply"
 msgstr "套用"
+
+
+msgid "Import"
+msgstr "匯入"
 
 
 msgid "Track"
@@ -26600,6 +26568,10 @@ msgid "Asset"
 msgstr "素材"
 
 
+msgid "Deprecated"
+msgstr "已棄用"
+
+
 msgid "Make Single User"
 msgstr "製作單一使用者"
 
@@ -26608,20 +26580,16 @@ msgid "Convert"
 msgstr "轉換"
 
 
-msgid "Linked"
-msgstr "已連結"
-
-
 msgid "Link/Transfer Data"
 msgstr "連結/傳輸資料"
 
 
-msgid "Layout"
-msgstr "配置"
-
-
 msgid "Hooks"
 msgstr "鉤"
+
+
+msgid "UV"
+msgstr "UV"
 
 
 msgid "Trim/Add"
@@ -26640,14 +26608,6 @@ msgid "Random Mask"
 msgstr "隨機遮罩"
 
 
-msgid "Adjust"
-msgstr "調整"
-
-
-msgid "Keying"
-msgstr "鍵處理"
-
-
 msgid "Clear Transform"
 msgstr "清除變換"
 
@@ -26656,16 +26616,56 @@ msgid "In-Betweens"
 msgstr "內部之間"
 
 
-msgid "Tracking"
-msgstr "跟蹤"
-
-
 msgid "Propagate"
 msgstr "增生"
 
 
 msgid "Bone Collections"
 msgstr "骨骼集盒"
+
+
+msgid "Toggle Bone Options"
+msgstr "開關骨骼選項"
+
+
+msgid "Enable Bone Options"
+msgstr "啟用骨骼設定"
+
+
+msgid "Disable Bone Options"
+msgstr "停用骨骼設定"
+
+
+msgid "Mesh Select Mode"
+msgstr "網格選取模式"
+
+
+msgid "Face Data"
+msgstr "面資料"
+
+
+msgid "Set Face Strength"
+msgstr "設定面強度"
+
+
+msgid "Merge"
+msgstr "合併"
+
+
+msgid "Linked"
+msgstr "已連結"
+
+
+msgid "Special Characters"
+msgstr "特殊字元"
+
+
+msgid "Layout"
+msgstr "配置"
+
+
+msgid "Kerning"
+msgstr "字間微調"
 
 
 msgid "Keyframe Insert Pie"
@@ -61190,10 +61190,6 @@ msgid "Palette Splines"
 msgstr "調色盤雲型線"
 
 
-msgid "glTF Variants"
-msgstr "glTF 變體"
-
-
 msgid "glTF Material Variants"
 msgstr "glTF 材質變體"
 
@@ -61308,6 +61304,10 @@ msgstr "VR"
 
 msgid "VR Info"
 msgstr "VR 資訊"
+
+
+msgid "glTF Variants"
+msgstr "glTF 變體"
 
 
 msgid "Import Settings"
@@ -66476,10 +66476,6 @@ msgstr "烘焙的通遞類型"
 
 msgid "Filter Glossy"
 msgstr "過濾光澤"
-
-
-msgid "Adaptively blur glossy shaders after blurry bounces, to reduce noise at the cost of accuracy"
-msgstr "適應性地讓光澤著色器在模糊反彈之後變得模糊，可犧牲精確度以換取噪訊的降低"
 
 
 msgid "Camera Cull Margin"

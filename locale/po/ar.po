@@ -1,9 +1,9 @@
 
 msgid ""
 msgstr ""
-"Project-Id-Version: Blender 5.3.0 Alpha (b'af9ba6af7621')\n"
+"Project-Id-Version: Blender 5.3.0 Alpha (b'af4852ed4560')\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-08-03 07:24+0000\n"
+"POT-Creation-Date: 2026-08-10 07:54+0000\n"
 "PO-Revision-Date: 2025-07-23 14:53+0000\n"
 "Last-Translator: Anonymous <noreply@weblate.org>\n"
 "Language-Team: Arabic <https://translate.blender.org/projects/blender-ui/ui/ar/>\n"
@@ -1398,10 +1398,6 @@ msgstr "ﺪﻘﻌﻟﺍ ﺔﻋﻮﻤﺠﻣ"
 
 msgid "Particles"
 msgstr "ﺕﺎﺌﻳﺰﺟ"
-
-
-msgid "Project"
-msgstr "ﻂﻘﺳﺍ"
 
 
 msgid "Screens"
@@ -4559,6 +4555,10 @@ msgstr "ﺢﻄﺳ ﺔﻄﻘﻧ ﺏﺮﻗﺍ"
 
 msgid "Shrink the location to the nearest target surface"
 msgstr "ﻑﺪﻬﻠﻟ ﺢﻄﺳ ﺏﺮﻗﻻ﻿ ﻊﻗﻮﻤﻟﺍ ﺺﻠﻗ"
+
+
+msgid "Project"
+msgstr "ﻂﻘﺳﺍ"
 
 
 msgid "Shrink the location to the nearest target surface along a given axis"
@@ -15648,28 +15648,20 @@ msgid "Material slot name"
 msgstr "ﺔﻣﺎﺨﻟﺍ ﺔﺤﺘﻓ ﻢﺳﺇ"
 
 
-msgid "Face Data"
-msgstr "ﻪﺟﻮﻟﺍ ﺕﺎﻧﺎﻴﺑ"
-
-
-msgid "Merge"
-msgstr "ﺞﻣﺩﺇ"
-
-
-msgid "Special Characters"
-msgstr "ﺔﺻﺎﺧ ﻑﺮﺣﺃ"
-
-
-msgid "Metaball"
-msgstr "ﺔﻠﻋﺎﻔﺘﻣ ﺓﺮﻛ"
-
-
 msgid "Names"
 msgstr "ءﺎﻤﺳﺃ"
 
 
 msgid "Bone Roll"
 msgstr "ﺔﻤﻈﻌﻟﺍ ءﺍﻮﺘﻟﺍ"
+
+
+msgid "Keying"
+msgstr "ﺺﺤﻔﻟﺍ"
+
+
+msgid "Tracking"
+msgstr "ﺔﻘﺣﻼ﻿ﻤﻟﺍ"
 
 
 msgid "Math"
@@ -15682,10 +15674,6 @@ msgstr "ﻱﺫﺎﺣ"
 
 msgid "Proportional Editing Falloff"
 msgstr "ﻲﺒﺴﻨﻟﺍ ﺮﻳﺮﺤﺘﻟﺍ ﻲﺷﻼ﻿ﺗ"
-
-
-msgid "Import"
-msgstr "ﺩﺭﻮﺘﺳﺇ"
 
 
 msgid "Mirror"
@@ -15716,16 +15704,16 @@ msgid "Select Similar"
 msgstr "ﻞﺛﺎﻤﻤﻟﺍ ﺮﺘﺧﺇ"
 
 
-msgid "UV"
-msgstr "ﺭﻭﺎﺤﻣ"
-
-
 msgid "Select All by Trait"
 msgstr "ﺔﻤﺴﻟﺍ ﺐﺴﺣ ﻞﻛ ﺭﺎﻴﺘﺧﺍ"
 
 
 msgid "Select Linked"
 msgstr "ﺔﻄﺒﺗﺮﻤﻟﺍ ﺭﺎﺘﺧﺇ"
+
+
+msgid "Metaball"
+msgstr "ﺔﻠﻋﺎﻔﺘﻣ ﺓﺮﻛ"
 
 
 msgid "Light"
@@ -15744,6 +15732,10 @@ msgid "Apply"
 msgstr "ﻖﺒﻃ"
 
 
+msgid "Import"
+msgstr "ﺩﺭﻮﺘﺳﺇ"
+
+
 msgid "Track"
 msgstr "ﺐﻘّﻌﺗ"
 
@@ -15756,28 +15748,36 @@ msgid "Make Single User"
 msgstr "ﻡﺪﺨﺘﺴﻤﻟﺍ ﺪﻴﺣﻭ ﻪﻠﻌﺟﺍ"
 
 
-msgid "Layout"
-msgstr "ﻖﻴﺴﻨﺗ"
-
-
 msgid "Hooks"
 msgstr "ﺕﺎﻓﺎﻄﺧ"
 
 
-msgid "Keying"
-msgstr "ﺺﺤﻔﻟﺍ"
+msgid "UV"
+msgstr "ﺭﻭﺎﺤﻣ"
 
 
 msgid "In-Betweens"
 msgstr "ﻦﻴﺑ ﺎﻣ"
 
 
-msgid "Tracking"
-msgstr "ﺔﻘﺣﻼ﻿ﻤﻟﺍ"
-
-
 msgid "Propagate"
 msgstr "ﻢﻤﻋ"
+
+
+msgid "Face Data"
+msgstr "ﻪﺟﻮﻟﺍ ﺕﺎﻧﺎﻴﺑ"
+
+
+msgid "Merge"
+msgstr "ﺞﻣﺩﺇ"
+
+
+msgid "Special Characters"
+msgstr "ﺔﺻﺎﺧ ﻑﺮﺣﺃ"
+
+
+msgid "Layout"
+msgstr "ﻖﻴﺴﻨﺗ"
 
 
 msgctxt "MovieClip"
@@ -36462,7 +36462,7 @@ msgstr "ﺢﻴﺗﺎﻔﻤﻟﺍ ﺔﻋﻮﻤﺠﻤﻟ ﺭﺎﺘﺨﻤﻟﺍ ﻒ
 
 
 msgid "Line set '%s' could not be removed"
-msgstr "'%s‬‪' ﻂﺨﻟﺍ ﺔﻋﻮﻤﺠﻣ ﺔﻟﺍﺯﺍ ﻦﻜﻤﻳ ﻻ﻿"
+msgstr "‬'%s'‪ ﻂﺨﻟﺍ ﺔﻋﻮﻤﺠﻣ ﺔﻟﺍﺯﺍ ﻦﻜﻤﻳ ﻻ﻿"
 
 
 msgid "Modifier was not found in the stack"

@@ -1,9 +1,9 @@
 
 msgid ""
 msgstr ""
-"Project-Id-Version: Blender 5.3.0 Alpha (b'af9ba6af7621')\n"
+"Project-Id-Version: Blender 5.3.0 Alpha (b'af4852ed4560')\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-08-03 07:24+0000\n"
+"POT-Creation-Date: 2026-08-10 07:54+0000\n"
 "PO-Revision-Date: 2025-07-23 14:56+0000\n"
 "Last-Translator: Anonymous <noreply@weblate.org>\n"
 "Language-Team: Serbian (Latin script) <https://translate.blender.org/projects/blender-ui/ui/sr_Latn/>\n"
@@ -1033,10 +1033,6 @@ msgstr "Grupe čvorova"
 
 msgid "Particles"
 msgstr "Čestice"
-
-
-msgid "Project"
-msgstr "Projekcija"
 
 
 msgid "Screens"
@@ -2770,6 +2766,10 @@ msgstr "Udaljenost projekcije"
 
 msgid "Nearest Surface Point"
 msgstr "Najbliža tačka na površi"
+
+
+msgid "Project"
+msgstr "Projekcija"
 
 
 msgid "Nearest Vertex"
@@ -8498,38 +8498,6 @@ msgid "Material slot name"
 msgstr "Naziv slota materijala"
 
 
-msgid "Toggle Bone Options"
-msgstr "Manje/više informacija"
-
-
-msgid "Enable Bone Options"
-msgstr "Omogući opcije kostiju"
-
-
-msgid "Disable Bone Options"
-msgstr "Onemogući opcije kostiju"
-
-
-msgid "Mesh Select Mode"
-msgstr "Mod izbora mreže"
-
-
-msgid "Merge"
-msgstr "Sjedini"
-
-
-msgid "Show/Hide"
-msgstr "Prikaži/sakrij"
-
-
-msgid "Special Characters"
-msgstr "Specijalni znaci"
-
-
-msgid "Metaball"
-msgstr "Meta lopta"
-
-
 msgid "Names"
 msgstr "Imena"
 
@@ -8538,16 +8506,24 @@ msgid "Bone Roll"
 msgstr "Rolna kostiju"
 
 
+msgid "Show/Hide"
+msgstr "Prikaži/sakrij"
+
+
+msgid "Keying"
+msgstr "Zbirka tastera"
+
+
+msgid "Tracking"
+msgstr "Praćenje"
+
+
 msgid "Math"
 msgstr "Matematika"
 
 
 msgid "Snap"
 msgstr "Lepljenje"
-
-
-msgid "Import"
-msgstr "Uvoz"
 
 
 msgid "Mirror"
@@ -8570,12 +8546,12 @@ msgid "Align View"
 msgstr "Poravnaj pogled"
 
 
-msgid "UV"
-msgstr "UV"
-
-
 msgid "Select Linked"
 msgstr "Izaberi povezano"
+
+
+msgid "Metaball"
+msgstr "Meta lopta"
 
 
 msgid "Light"
@@ -8594,6 +8570,10 @@ msgid "Apply"
 msgstr "Primeni"
 
 
+msgid "Import"
+msgstr "Uvoz"
+
+
 msgid "Track"
 msgstr "Staza"
 
@@ -8602,16 +8582,12 @@ msgid "Quick Effects"
 msgstr "Brzi efekti"
 
 
-msgid "Linked"
-msgstr "Povezano"
-
-
 msgid "Hooks"
 msgstr "Udice"
 
 
-msgid "Keying"
-msgstr "Zbirka tastera"
+msgid "UV"
+msgstr "UV"
 
 
 msgid "Clear Transform"
@@ -8622,12 +8598,36 @@ msgid "In-Betweens"
 msgstr "U međuvremenu"
 
 
-msgid "Tracking"
-msgstr "Praćenje"
-
-
 msgid "Propagate"
 msgstr "Prenesi"
+
+
+msgid "Toggle Bone Options"
+msgstr "Manje/više informacija"
+
+
+msgid "Enable Bone Options"
+msgstr "Omogući opcije kostiju"
+
+
+msgid "Disable Bone Options"
+msgstr "Onemogući opcije kostiju"
+
+
+msgid "Mesh Select Mode"
+msgstr "Mod izbora mreže"
+
+
+msgid "Merge"
+msgstr "Sjedini"
+
+
+msgid "Linked"
+msgstr "Povezano"
+
+
+msgid "Special Characters"
+msgstr "Specijalni znaci"
 
 
 msgid "Basic"

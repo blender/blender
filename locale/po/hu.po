@@ -1,9 +1,9 @@
 
 msgid ""
 msgstr ""
-"Project-Id-Version: Blender 5.3.0 Alpha (b'af9ba6af7621')\n"
+"Project-Id-Version: Blender 5.3.0 Alpha (b'af4852ed4560')\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-08-03 07:24+0000\n"
+"POT-Creation-Date: 2026-08-10 07:54+0000\n"
 "PO-Revision-Date: 2026-03-19 19:12+0000\n"
 "Last-Translator: Tamás Máté <royalpython132@gmail.com>\n"
 "Language-Team: Hungarian <https://translate.blender.org/projects/blender-ui/ui/hu/>\n"
@@ -1094,10 +1094,6 @@ msgstr "Térháló adatblokkok"
 
 msgid "Particles"
 msgstr "Részecskék"
-
-
-msgid "Project"
-msgstr "Vetítés"
 
 
 msgid "Shape Keys"
@@ -2642,6 +2638,10 @@ msgstr "A legközelebbi felületi pont"
 
 msgid "Shrink the location to the nearest target surface"
 msgstr "A helyzet simítása a legközelebbi célfelülethez"
+
+
+msgid "Project"
+msgstr "Vetítés"
 
 
 msgid "Shrink the location to the nearest target surface along a given axis"
@@ -6606,24 +6606,20 @@ msgid "Use Material Mask"
 msgstr "Anyagmaszk használata"
 
 
-msgid "Clean Up"
-msgstr "Tisztítás"
-
-
-msgid "Merge"
-msgstr "Összefésülés"
-
-
 msgid "Show/Hide"
 msgstr "Mutat/Rejt"
 
 
-msgid "Metaball"
-msgstr "Meta test"
+msgid "Clean Up"
+msgstr "Tisztítás"
 
 
-msgid "Import"
-msgstr "Importálás"
+msgid "Keying"
+msgstr "Kulcsozás"
+
+
+msgid "Tracking"
+msgstr "Követés"
 
 
 msgid "Mirror"
@@ -6642,8 +6638,8 @@ msgid "Align View"
 msgstr "Nézet igazítása"
 
 
-msgid "UV"
-msgstr "UV"
+msgid "Metaball"
+msgstr "Meta test"
 
 
 msgid "Light"
@@ -6662,16 +6658,20 @@ msgid "Apply"
 msgstr "Elfogadás"
 
 
+msgid "Import"
+msgstr "Importálás"
+
+
 msgid "Track"
 msgstr "Nyom"
 
 
-msgid "Keying"
-msgstr "Kulcsozás"
+msgid "UV"
+msgstr "UV"
 
 
-msgid "Tracking"
-msgstr "Követés"
+msgid "Merge"
+msgstr "Összefésülés"
 
 
 msgctxt "MovieClip"

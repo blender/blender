@@ -1,9 +1,9 @@
 
 msgid ""
 msgstr ""
-"Project-Id-Version: Blender 5.3.0 Alpha (b'af9ba6af7621')\n"
+"Project-Id-Version: Blender 5.3.0 Alpha (b'af4852ed4560')\n"
 "Report-Msgid-Bugs-To: Leandro Paganelli <leandrobp@fastmail.com>\n"
-"POT-Creation-Date: 2026-08-03 07:24+0000\n"
+"POT-Creation-Date: 2026-08-10 07:54+0000\n"
 "PO-Revision-Date: 2026-04-13 10:12+0000\n"
 "Last-Translator: Gilberto Rodrigues <gilbertorodrigues@outlook.com>\n"
 "Language-Team: Portuguese (Brazil) <https://translate.blender.org/projects/blender-ui/ui/pt_BR/>\n"
@@ -2715,10 +2715,6 @@ msgstr "Blocos de dados de partículas"
 
 msgid "Point cloud data-blocks"
 msgstr "Blocos de dados na nuvem de pontos"
-
-
-msgid "Project"
-msgstr "Projetar"
 
 
 msgid "Scene data-blocks"
@@ -6625,6 +6621,10 @@ msgstr "Pontos mais próximos da superfície"
 
 msgid "Shrink the location to the nearest target surface"
 msgstr "Encolhe a localização para as superfícies mais próximas do alvo."
+
+
+msgid "Project"
+msgstr "Projetar"
 
 
 msgid "Shrink the location to the nearest target surface along a given axis"
@@ -21152,52 +21152,28 @@ msgid "Material slot name"
 msgstr "Nome do compartimento do material."
 
 
-msgid "Toggle Bone Options"
-msgstr "Alternar opções de ossos"
-
-
-msgid "Enable Bone Options"
-msgstr "Habilitar opções de ossos"
-
-
-msgid "Disable Bone Options"
-msgstr "Desabilitar as opções de ossos"
-
-
-msgid "Mesh Select Mode"
-msgstr "Modo de seleção de malhas"
-
-
-msgid "Face Data"
-msgstr "Dados das faces"
-
-
-msgid "Clean Up"
-msgstr "Limpeza"
-
-
-msgid "Merge"
-msgstr "Fundir"
-
-
-msgid "Show/Hide"
-msgstr "Mostrar ou ocultar"
-
-
-msgid "Special Characters"
-msgstr "Caracteres especiais"
-
-
-msgid "Metaball"
-msgstr "Meta-esfera"
-
-
 msgid "Names"
 msgstr "Nomes"
 
 
 msgid "Bone Roll"
 msgstr "Rolagem dos ossos"
+
+
+msgid "Show/Hide"
+msgstr "Mostrar ou ocultar"
+
+
+msgid "Clean Up"
+msgstr "Limpeza"
+
+
+msgid "Keying"
+msgstr "Inserção de chaves"
+
+
+msgid "Tracking"
+msgstr "Rastreamento"
 
 
 msgid "Math"
@@ -21214,14 +21190,6 @@ msgstr "Atrair"
 
 msgid "Proportional Editing Falloff"
 msgstr "Tipo de decaimento para edição proporcional"
-
-
-msgid "Instances"
-msgstr "Instâncias"
-
-
-msgid "Import"
-msgstr "Importar"
 
 
 msgid "Mirror"
@@ -21264,10 +21232,6 @@ msgid "Select Similar"
 msgstr "Selecionar por similaridades"
 
 
-msgid "UV"
-msgstr "UV"
-
-
 msgid "Select All by Trait"
 msgstr "Selecionar todos por características..."
 
@@ -21278,6 +21242,10 @@ msgstr "Selecionar vinculados(as)"
 
 msgid "Select Loops"
 msgstr "Selecionar anéis"
+
+
+msgid "Metaball"
+msgstr "Meta-esfera"
 
 
 msgid "Light"
@@ -21296,12 +21264,20 @@ msgid "Relations"
 msgstr "Relações"
 
 
+msgid "Instances"
+msgstr "Instâncias"
+
+
 msgid "Rigid Body"
 msgstr "Corpo rígido"
 
 
 msgid "Apply"
 msgstr "Aplicar"
+
+
+msgid "Import"
+msgstr "Importar"
 
 
 msgid "Track"
@@ -21320,24 +21296,16 @@ msgid "Convert"
 msgstr "Converter"
 
 
-msgid "Linked"
-msgstr "Vinculando"
-
-
-msgid "Layout"
-msgstr "Organizar"
-
-
 msgid "Hooks"
 msgstr "Ganchos"
 
 
+msgid "UV"
+msgstr "UV"
+
+
 msgid "Random Mask"
 msgstr "Máscara Aleatória"
-
-
-msgid "Keying"
-msgstr "Inserção de chaves"
 
 
 msgid "Clear Transform"
@@ -21348,12 +21316,44 @@ msgid "In-Betweens"
 msgstr "Entre as continuidades"
 
 
-msgid "Tracking"
-msgstr "Rastreamento"
-
-
 msgid "Propagate"
 msgstr "Propagar"
+
+
+msgid "Toggle Bone Options"
+msgstr "Alternar opções de ossos"
+
+
+msgid "Enable Bone Options"
+msgstr "Habilitar opções de ossos"
+
+
+msgid "Disable Bone Options"
+msgstr "Desabilitar as opções de ossos"
+
+
+msgid "Mesh Select Mode"
+msgstr "Modo de seleção de malhas"
+
+
+msgid "Face Data"
+msgstr "Dados das faces"
+
+
+msgid "Merge"
+msgstr "Fundir"
+
+
+msgid "Linked"
+msgstr "Vinculando"
+
+
+msgid "Special Characters"
+msgstr "Caracteres especiais"
+
+
+msgid "Layout"
+msgstr "Organizar"
 
 
 msgid "Basic"
@@ -51270,10 +51270,6 @@ msgstr "Tipo de passo para gerar e gravar"
 
 msgid "Filter Glossy"
 msgstr "Filtro de polimento"
-
-
-msgid "Adaptively blur glossy shaders after blurry bounces, to reduce noise at the cost of accuracy"
-msgstr "Adaptativamente desfocar os sombreadores de polimento após os saltos de desfocagem, para reduzir o ruído ao custo da precisão."
 
 
 msgid "Camera Cull Margin"

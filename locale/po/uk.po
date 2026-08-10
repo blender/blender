@@ -1,9 +1,9 @@
 
 msgid ""
 msgstr ""
-"Project-Id-Version: Blender 5.3.0 Alpha (b'af9ba6af7621')\n"
+"Project-Id-Version: Blender 5.3.0 Alpha (b'af4852ed4560')\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-08-03 07:24+0000\n"
+"POT-Creation-Date: 2026-08-10 07:54+0000\n"
 "PO-Revision-Date: 2026-07-22 11:12+0000\n"
 "Last-Translator: Gamfid <gamfid@users.noreply.translate.blender.org>\n"
 "Language-Team: Ukrainian <https://translate.blender.org/projects/blender-ui/ui/uk/>\n"
@@ -2389,10 +2389,6 @@ msgstr "Частинки"
 
 msgid "Particle data-blocks"
 msgstr "Блоки даних частинок"
-
-
-msgid "Project"
-msgstr "Проєктування"
 
 
 msgid "Scene data-blocks"
@@ -7260,6 +7256,10 @@ msgstr "Найближча точка поверхні"
 
 msgid "Shrink the location to the nearest target surface"
 msgstr "Змістити положення до найближчої цільової поверхні"
+
+
+msgid "Project"
+msgstr "Проєктування"
 
 
 msgid "Shrink the location to the nearest target surface along a given axis"
@@ -26356,58 +26356,6 @@ msgid "Material slot name"
 msgstr "Назва гнізда матеріалу"
 
 
-msgid "Toggle Bone Options"
-msgstr "Перемкнути параметри кісток"
-
-
-msgid "Enable Bone Options"
-msgstr "Увімкнути параметри кісток"
-
-
-msgid "Disable Bone Options"
-msgstr "Відключити параметри кісток"
-
-
-msgid "Mesh Select Mode"
-msgstr "Режим Вибору Сіті"
-
-
-msgid "Face Data"
-msgstr "Дані граней"
-
-
-msgid "Select by Face Strength"
-msgstr "Вибрати за Силою Грані"
-
-
-msgid "Set Face Strength"
-msgstr "Задати Силу Грані"
-
-
-msgid "Clean Up"
-msgstr "Вичищення"
-
-
-msgid "Merge"
-msgstr "Об'єднання"
-
-
-msgid "Show/Hide"
-msgstr "Показати/приховати"
-
-
-msgid "Special Characters"
-msgstr "Спеціальні символи"
-
-
-msgid "Kerning"
-msgstr "Кернінг"
-
-
-msgid "Metaball"
-msgstr "Метакуля"
-
-
 msgid "Names"
 msgstr "Назви"
 
@@ -26416,12 +26364,28 @@ msgid "Bone Roll"
 msgstr "Прокручення Кістки"
 
 
-msgid "Math"
-msgstr "Математика"
+msgid "Show/Hide"
+msgstr "Показати/приховати"
+
+
+msgid "Clean Up"
+msgstr "Вичищення"
+
+
+msgid "Keying"
+msgstr "Ключування"
+
+
+msgid "Tracking"
+msgstr "Стеження"
 
 
 msgid "Utilities"
 msgstr "Утиліти"
+
+
+msgid "Math"
+msgstr "Математика"
 
 
 msgid "Pivot Point"
@@ -26440,10 +26404,6 @@ msgid "Mask Edit"
 msgstr "Редагування Маски"
 
 
-msgid "Sample"
-msgstr "Вибірка"
-
-
 msgid "Automasking"
 msgstr "Автомаскування"
 
@@ -26452,16 +26412,8 @@ msgid "Face Sets Edit"
 msgstr "Редагування Наборів Граней"
 
 
-msgid "Primitives"
-msgstr "Примітиви"
-
-
 msgid "Vertex Group Locks"
 msgstr "Блокування Груп Вершин"
-
-
-msgid "Import"
-msgstr "Імпортувати"
 
 
 msgid "Mirror"
@@ -26504,10 +26456,6 @@ msgid "Select Similar"
 msgstr "Вибрати подібні"
 
 
-msgid "UV"
-msgstr "UV"
-
-
 msgid "Select All by Trait"
 msgstr "Вибрати все за рисою"
 
@@ -26522,6 +26470,18 @@ msgstr "Виділити петлі"
 
 msgid "Assign Material"
 msgstr "Призначити Матеріал"
+
+
+msgid "Sample"
+msgstr "Вибірка"
+
+
+msgid "Primitives"
+msgstr "Примітиви"
+
+
+msgid "Metaball"
+msgstr "Метакуля"
 
 
 msgid "Light"
@@ -26548,6 +26508,10 @@ msgid "Apply"
 msgstr "Застосувати"
 
 
+msgid "Import"
+msgstr "Імпортувати"
+
+
 msgid "Track"
 msgstr "Стеження"
 
@@ -26568,20 +26532,16 @@ msgid "Convert"
 msgstr "Конвертування"
 
 
-msgid "Linked"
-msgstr "Пов'язане"
-
-
 msgid "Link/Transfer Data"
 msgstr "Пов'язати/Перенести Дані"
 
 
-msgid "Layout"
-msgstr "Розстановка"
-
-
 msgid "Hooks"
 msgstr "Гачки"
+
+
+msgid "UV"
+msgstr "UV"
 
 
 msgid "Sculpt Set Pivot"
@@ -26592,10 +26552,6 @@ msgid "Face Sets Init"
 msgstr "Ініціація Наборів Граней"
 
 
-msgid "Keying"
-msgstr "Ключування"
-
-
 msgid "Clear Transform"
 msgstr "Зчистити трансформації"
 
@@ -26604,12 +26560,56 @@ msgid "In-Betweens"
 msgstr "У проміжках"
 
 
-msgid "Tracking"
-msgstr "Стеження"
-
-
 msgid "Propagate"
 msgstr "Поширити"
+
+
+msgid "Toggle Bone Options"
+msgstr "Перемкнути параметри кісток"
+
+
+msgid "Enable Bone Options"
+msgstr "Увімкнути параметри кісток"
+
+
+msgid "Disable Bone Options"
+msgstr "Відключити параметри кісток"
+
+
+msgid "Mesh Select Mode"
+msgstr "Режим Вибору Сіті"
+
+
+msgid "Face Data"
+msgstr "Дані граней"
+
+
+msgid "Select by Face Strength"
+msgstr "Вибрати за Силою Грані"
+
+
+msgid "Set Face Strength"
+msgstr "Задати Силу Грані"
+
+
+msgid "Merge"
+msgstr "Об'єднання"
+
+
+msgid "Linked"
+msgstr "Пов'язане"
+
+
+msgid "Special Characters"
+msgstr "Спеціальні символи"
+
+
+msgid "Layout"
+msgstr "Розстановка"
+
+
+msgid "Kerning"
+msgstr "Кернінг"
 
 
 msgid "Basic"
@@ -65038,10 +65038,6 @@ msgstr "Тип проходу для запікання"
 
 msgid "Filter Glossy"
 msgstr "Фільтр глянцю"
-
-
-msgid "Adaptively blur glossy shaders after blurry bounces, to reduce noise at the cost of accuracy"
-msgstr "Адаптивно розмивати відтінювачі глянцю після розмитих відбиттів, щоб зменшити шум за рахунок точності"
 
 
 msgid "Camera Cull Margin"

@@ -1,9 +1,9 @@
 
 msgid ""
 msgstr ""
-"Project-Id-Version: Blender 5.3.0 Alpha (b'af9ba6af7621')\n"
+"Project-Id-Version: Blender 5.3.0 Alpha (b'af4852ed4560')\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-08-03 07:24+0000\n"
+"POT-Creation-Date: 2026-08-10 07:54+0000\n"
 "PO-Revision-Date: 2025-07-23 15:12+0000\n"
 "Last-Translator: Anonymous <noreply@weblate.org>\n"
 "Language-Team: Urdu <https://translate.blender.org/projects/blender-ui/ui/ur/>\n"
@@ -3133,10 +3133,6 @@ msgstr "ﺲﮐﻼ﻿ﺑ ﺎﭩﯾﮈ ﻞﮑﯿﭨﺭﺎﭘ"
 
 msgid "Point cloud data-blocks"
 msgstr "ﺲﮐﻼ﻿ﺑ ﺎﭩﯾﮈ ﮈﺅﻼ﻿ﮐ ﭧﻨﺋﺍﻮﭘ"
-
-
-msgid "Project"
-msgstr "ﭧﮑﯿﺟﻭﺮﭘ"
 
 
 msgid "Scene data-blocks"
@@ -9043,6 +9039,10 @@ msgstr "ﮧﻄﻘﻧ ﯽﺤﻄﺳ ﻦﯾﺮﺗ ﺐﯾﺮﻗ"
 
 msgid "Shrink the location to the nearest target surface"
 msgstr "ﮟﯾﮍﮑﺳ ﺮﭘ ﺢﻄﺳ ﯽﮐ ﻑﺪﮨ ﻦﯾﺮﺗ ﺐﯾﺮﻗ ﻮﮐ ﻡﺎﻘﻣ"
+
+
+msgid "Project"
+msgstr "ﭧﮑﯿﺟﻭﺮﭘ"
 
 
 msgid "Shrink the location to the nearest target surface along a given axis"
@@ -32327,6 +32327,250 @@ msgid "Editor menu containing buttons"
 msgstr "ﻮﻨﯿﻣ ﺮﭩﯾﮉﯾﺍ ﻞﻤﺘﺸﻣ ﺮﭘ ﮞﻮﻨﭩﺑ"
 
 
+msgid "Names"
+msgstr "ﻡﺎﻧ"
+
+
+msgid "Bone Roll"
+msgstr "ﻝﻭﺭ ﻥﻮﺑ"
+
+
+msgid "Show/Hide"
+msgstr "ﮟﯿﺋﺎﭙﮭﭼ/ﮟﯿﺋﺎﮭﮐﺩ"
+
+
+msgid "Clean Up"
+msgstr "ﯽﺋﺎﻔﺻ"
+
+
+msgid "Adjust"
+msgstr "ﮟﯾﺮﮐ ﭧﺴﺟﮉﯾﺍ"
+
+
+msgid "Keying"
+msgstr "ﮓﻨﯿﻠﮐ"
+
+
+msgid "Tracking"
+msgstr "ﮓﻨﮑﯾﺮﭨ"
+
+
+msgid "Utilities"
+msgstr "ﺖﯾﺩﺎﻓﺍ"
+
+
+msgid "Math"
+msgstr "ﯽﺿﺎﯾﺭ"
+
+
+msgid "Pivot Point"
+msgstr "ﭧﻨﺋﺍﻮﭘ ﭦﻮﯿﭘ"
+
+
+msgid "Snap"
+msgstr "ﭗﯿﻨﺳ"
+
+
+msgid "Proportional Editing Falloff"
+msgstr "ﻑﺁ ﻝﺎﻓ ﺮﺋﺎﻔﯾﮈﻮﻣ ﺐﺳﺎﻨﺘﻣ"
+
+
+msgid "Mask Edit"
+msgstr "ﮟﯾﺮﮐ ﺮﺋﺎﻔﯾﮈﻮﻣ ﮟﯿﻣ ﮏﺳﺎﻣ"
+
+
+msgid "Automasking"
+msgstr "ﮓﻨﮑﺳﺎﻣﻮﭨﺁ"
+
+
+msgid "Face Sets Edit"
+msgstr "ﮟﯾﺮﮐ ﺮﺋﺎﻔﯾﮈﻮﻣ ﮟﯿﻣ ﭧﯿﺳ ﮯﮐ ﮮﺮﮩﭼ"
+
+
+msgid "Vertex Group Locks"
+msgstr "ﮎﻻ﻿ ﮦﻭﺮﮔ ﺲﮑﯿﭨﺭﻭ"
+
+
+msgid "Mirror"
+msgstr "ﮧﻨﯿﺋﺁ"
+
+
+msgid "UV Mapping"
+msgstr "ﮓﻨﭙﯿﻣ ﯼﻭﻮﯾ"
+
+
+msgid "Local View"
+msgstr "ﺮﻈﻨﻣ ﯽﻣﺎﻘﻣ"
+
+
+msgid "Viewpoint"
+msgstr "ﺮﻈﻧ ﮧﻄﻘﻧ"
+
+
+msgid "Navigation"
+msgstr "ﻦﺸﯿﮕﯾﻮﯿﻧ"
+
+
+msgid "Align View"
+msgstr "ﮟﯿﮭﮑﯾﺩ ﮟﯿﻣ ﮪﺪﯿﺳ"
+
+
+msgid "Align View to Active"
+msgstr "ﮟﯾﺮﮐ ﮪﺪﯿﺳ ﮟﯿﻣ ﻝﺎﻌﻓ ﻮﮐ ﺮﻈﻨﻣ"
+
+
+msgid "View Regions"
+msgstr "ﮟﯿﮭﮑﯾﺩ ﻮﮐ ﮞﻮﻗﻼ﻿ﻋ"
+
+
+msgid "Select More/Less"
+msgstr "ﮟﯾﺮﮐ ﺐﺨﺘﻨﻣ ﻢﮐ/ﮦﺩﺎﯾﺯ"
+
+
+msgid "Select Similar"
+msgstr "ﮟﯾﺮﮐ ﺏﺎﺨﺘﻧﺍ ﺎﮐ ﺡﺮﻃ ﯽﺳﺍ"
+
+
+msgid "Select All by Trait"
+msgstr "ﮟﯾﺮﮐ ﺐﺨﺘﻨﻣ ﻮﮐ ﯽﮭﺒﺳ ﮯﺳ ﻅﺎﺤﻟ ﮯﮐ ﺖﯿﺻﻮﺼﺧ"
+
+
+msgid "Select Linked"
+msgstr "ﮟﯾﺮﮐ ﺐﺨﺘﻨﻣ ﻮﮐ ﮉﮑﻨﻟ"
+
+
+msgid "Select Loops"
+msgstr "ﮟﯾﺮﮐ ﺐﺨﺘﻨﻣ ﻮﮐ ﺲﭘﻮﻟ"
+
+
+msgid "Assign Material"
+msgstr "ﮟﯾﺮﮐ ﺾﯾﻮﻔﺗ ﺩﺍﻮﻣ"
+
+
+msgid "Read"
+msgstr "ﮟﯿﮬﮍﭘ"
+
+
+msgid "Sample"
+msgstr "ﮧﻧﻮﻤﻧ"
+
+
+msgid "Write"
+msgstr "ﮟﯿﮭﮑﻟ"
+
+
+msgid "Primitives"
+msgstr "ﻢﯾﺪﻗ"
+
+
+msgid "Metaball"
+msgstr "ﻝﺎﺑ ﺎﭩﯿﻣ"
+
+
+msgid "Light"
+msgstr "ﯽﻨﺷﻭﺭ"
+
+
+msgid "Light Probe"
+msgstr "ﺏﻭﺮﭘ ﭧﺋﻻ﻿"
+
+
+msgid "Add Image"
+msgstr "ﮟﯾﺮﮐ ﻞﻣﺎﺷ ﺮﯾﻮﺼﺗ"
+
+
+msgid "Gizmo"
+msgstr "ﻮﻣﺰﯿﮔ"
+
+
+msgid "Relations"
+msgstr "ﮯﺘﺷﺭ"
+
+
+msgid "Instances"
+msgstr "ﮟﯿﻟﺎﺜﻣ"
+
+
+msgid "Rigid Body"
+msgstr "ﻢﺴﺟ ﺖﺨﺳ"
+
+
+msgid "Apply"
+msgstr "ﮟﯿﺋﺎﮕﻟ"
+
+
+msgid "Import"
+msgstr "ﮟﯾﺮﮐ ﺪﻣﺁﺭﺩ"
+
+
+msgid "Track"
+msgstr "ﮏﯾﺮﭨ"
+
+
+msgid "Quick Effects"
+msgstr "ﺕﺍﺮﺛﺍ ﯼﺭﻮﻓ"
+
+
+msgid "Asset"
+msgstr "ﮧﺛﺎﺛﺍ"
+
+
+msgid "Deprecated"
+msgstr "ﮦﺩﻮﺳﺮﻓ"
+
+
+msgid "Make Single User"
+msgstr "ﮟﯿﺋﺎﻨﺑ ﻑﺭﺎﺻ ﻞﮕﻨﺳ"
+
+
+msgid "Convert"
+msgstr "ﮟﯾﺮﮐ ﻞﯾﺪﺒﺗ"
+
+
+msgid "Link/Transfer Data"
+msgstr "ﮟﯾﺮﮐ ﻞﻘﺘﻨﻣ/ﮏﻨﻟ ﻮﮐ ﺎﭩﯾﮈ"
+
+
+msgid "Hooks"
+msgstr "ﮯﭩﻧﺎﮐ"
+
+
+msgid "UV"
+msgstr "ﯼﻭﻮﯾ"
+
+
+msgid "Trim/Add"
+msgstr "ﮟﯾﺮﮐ ﻞﻣﺎﺷ/ﻡﺮﭨ"
+
+
+msgid "Sculpt Set Pivot"
+msgstr "ﭦﻮﯿﭘ ﭧﯿﺳ ﮧﻤﺴﺠﻣ"
+
+
+msgid "Face Sets Init"
+msgstr "ﭧﻧﺍ ﺲﭩﯿﺳ ﺲﯿﻓ"
+
+
+msgid "Random Mask"
+msgstr "ﮏﺳﺎﻣ ﺐﯿﺗﺮﺗ ﮯﺑ"
+
+
+msgid "Clear Transform"
+msgstr "ﻡﺭﺎﻔﺴﻧﺍﺮﭨ  ﺕﺮﭘ ﮎ"
+
+
+msgid "In-Betweens"
+msgstr "ﮟﯿﻣ ﻥﺎﯿﻣﺭﺩ"
+
+
+msgid "Propagate"
+msgstr "ﺎﻧﺮﮐ ﻎﯿﻠﺒﺗ"
+
+
+msgid "Bone Collections"
+msgstr "ﮧﻋﻮﻤﺠﻣ ﺎﮐ ﮞﻮﯾﮉﮨ"
+
+
 msgid "Toggle Bone Options"
 msgstr "ﮟﯾﺮﮐ ﻞﮔﻮﭨ ﻮﮐ ﺕﺍﺭﺎﯿﺘﺧﺍ ﮯﮐ ﯼﮉﮨ"
 
@@ -32355,268 +32599,24 @@ msgid "Set Face Strength"
 msgstr "ﮟﯾﺮﮐ ﻦﯿﻌﺗ ﺎﮐ ﺖﻗﺎﻃ ﯽﮐ ﮮﺮﮩﭼ"
 
 
-msgid "Clean Up"
-msgstr "ﯽﺋﺎﻔﺻ"
-
-
 msgid "Merge"
 msgstr "ﺎﻧﺮﮐ ﻢﺿ"
-
-
-msgid "Show/Hide"
-msgstr "ﮟﯿﺋﺎﭙﮭﭼ/ﮟﯿﺋﺎﮭﮐﺩ"
-
-
-msgid "Special Characters"
-msgstr "ﺭﺍﺩﺮﮐ ﯽﺻﻮﺼﺧ"
-
-
-msgid "Kerning"
-msgstr "ﮓﻨﻧﺮﮐ"
-
-
-msgid "Metaball"
-msgstr "ﻝﺎﺑ ﺎﭩﯿﻣ"
-
-
-msgid "Names"
-msgstr "ﻡﺎﻧ"
-
-
-msgid "Bone Roll"
-msgstr "ﻝﻭﺭ ﻥﻮﺑ"
-
-
-msgid "Math"
-msgstr "ﯽﺿﺎﯾﺭ"
-
-
-msgid "Utilities"
-msgstr "ﺖﯾﺩﺎﻓﺍ"
-
-
-msgid "Pivot Point"
-msgstr "ﭧﻨﺋﺍﻮﭘ ﭦﻮﯿﭘ"
-
-
-msgid "Snap"
-msgstr "ﭗﯿﻨﺳ"
-
-
-msgid "Proportional Editing Falloff"
-msgstr "ﻑﺁ ﻝﺎﻓ ﺮﺋﺎﻔﯾﮈﻮﻣ ﺐﺳﺎﻨﺘﻣ"
-
-
-msgid "Read"
-msgstr "ﮟﯿﮬﮍﭘ"
-
-
-msgid "Mask Edit"
-msgstr "ﮟﯾﺮﮐ ﺮﺋﺎﻔﯾﮈﻮﻣ ﮟﯿﻣ ﮏﺳﺎﻣ"
-
-
-msgid "Sample"
-msgstr "ﮧﻧﻮﻤﻧ"
-
-
-msgid "Automasking"
-msgstr "ﮓﻨﮑﺳﺎﻣﻮﭨﺁ"
-
-
-msgid "Write"
-msgstr "ﮟﯿﮭﮑﻟ"
-
-
-msgid "Face Sets Edit"
-msgstr "ﮟﯾﺮﮐ ﺮﺋﺎﻔﯾﮈﻮﻣ ﮟﯿﻣ ﭧﯿﺳ ﮯﮐ ﮮﺮﮩﭼ"
-
-
-msgid "Primitives"
-msgstr "ﻢﯾﺪﻗ"
-
-
-msgid "Vertex Group Locks"
-msgstr "ﮎﻻ﻿ ﮦﻭﺮﮔ ﺲﮑﯿﭨﺭﻭ"
-
-
-msgid "Gizmo"
-msgstr "ﻮﻣﺰﯿﮔ"
-
-
-msgid "Instances"
-msgstr "ﮟﯿﻟﺎﺜﻣ"
-
-
-msgid "Import"
-msgstr "ﮟﯾﺮﮐ ﺪﻣﺁﺭﺩ"
-
-
-msgid "Mirror"
-msgstr "ﮧﻨﯿﺋﺁ"
-
-
-msgid "UV Mapping"
-msgstr "ﮓﻨﭙﯿﻣ ﯼﻭﻮﯾ"
-
-
-msgid "Local View"
-msgstr "ﺮﻈﻨﻣ ﯽﻣﺎﻘﻣ"
-
-
-msgid "Viewpoint"
-msgstr "ﺮﻈﻧ ﮧﻄﻘﻧ"
-
-
-msgid "Navigation"
-msgstr "ﻦﺸﯿﮕﯾﻮﯿﻧ"
-
-
-msgid "Align View"
-msgstr "ﮟﯿﮭﮑﯾﺩ ﮟﯿﻣ ﮪﺪﯿﺳ"
-
-
-msgid "Deprecated"
-msgstr "ﮦﺩﻮﺳﺮﻓ"
-
-
-msgid "Align View to Active"
-msgstr "ﮟﯾﺮﮐ ﮪﺪﯿﺳ ﮟﯿﻣ ﻝﺎﻌﻓ ﻮﮐ ﺮﻈﻨﻣ"
-
-
-msgid "View Regions"
-msgstr "ﮟﯿﮭﮑﯾﺩ ﻮﮐ ﮞﻮﻗﻼ﻿ﻋ"
-
-
-msgid "Select More/Less"
-msgstr "ﮟﯾﺮﮐ ﺐﺨﺘﻨﻣ ﻢﮐ/ﮦﺩﺎﯾﺯ"
-
-
-msgid "Select Similar"
-msgstr "ﮟﯾﺮﮐ ﺏﺎﺨﺘﻧﺍ ﺎﮐ ﺡﺮﻃ ﯽﺳﺍ"
-
-
-msgid "UV"
-msgstr "ﯼﻭﻮﯾ"
-
-
-msgid "Select All by Trait"
-msgstr "ﮟﯾﺮﮐ ﺐﺨﺘﻨﻣ ﻮﮐ ﯽﮭﺒﺳ ﮯﺳ ﻅﺎﺤﻟ ﮯﮐ ﺖﯿﺻﻮﺼﺧ"
-
-
-msgid "Select Linked"
-msgstr "ﮟﯾﺮﮐ ﺐﺨﺘﻨﻣ ﻮﮐ ﮉﮑﻨﻟ"
-
-
-msgid "Select Loops"
-msgstr "ﮟﯾﺮﮐ ﺐﺨﺘﻨﻣ ﻮﮐ ﺲﭘﻮﻟ"
-
-
-msgid "Assign Material"
-msgstr "ﮟﯾﺮﮐ ﺾﯾﻮﻔﺗ ﺩﺍﻮﻣ"
-
-
-msgid "Light"
-msgstr "ﯽﻨﺷﻭﺭ"
-
-
-msgid "Light Probe"
-msgstr "ﺏﻭﺮﭘ ﭧﺋﻻ﻿"
-
-
-msgid "Add Image"
-msgstr "ﮟﯾﺮﮐ ﻞﻣﺎﺷ ﺮﯾﻮﺼﺗ"
-
-
-msgid "Relations"
-msgstr "ﮯﺘﺷﺭ"
-
-
-msgid "Rigid Body"
-msgstr "ﻢﺴﺟ ﺖﺨﺳ"
-
-
-msgid "Apply"
-msgstr "ﮟﯿﺋﺎﮕﻟ"
-
-
-msgid "Track"
-msgstr "ﮏﯾﺮﭨ"
-
-
-msgid "Quick Effects"
-msgstr "ﺕﺍﺮﺛﺍ ﯼﺭﻮﻓ"
-
-
-msgid "Asset"
-msgstr "ﮧﺛﺎﺛﺍ"
-
-
-msgid "Make Single User"
-msgstr "ﮟﯿﺋﺎﻨﺑ ﻑﺭﺎﺻ ﻞﮕﻨﺳ"
-
-
-msgid "Convert"
-msgstr "ﮟﯾﺮﮐ ﻞﯾﺪﺒﺗ"
 
 
 msgid "Linked"
 msgstr "ﮏﻠﺴﻨﻣ"
 
 
-msgid "Link/Transfer Data"
-msgstr "ﮟﯾﺮﮐ ﻞﻘﺘﻨﻣ/ﮏﻨﻟ ﻮﮐ ﺎﭩﯾﮈ"
+msgid "Special Characters"
+msgstr "ﺭﺍﺩﺮﮐ ﯽﺻﻮﺼﺧ"
 
 
 msgid "Layout"
 msgstr "ﭦﺅﺁ ﮯﻟ"
 
 
-msgid "Hooks"
-msgstr "ﮯﭩﻧﺎﮐ"
-
-
-msgid "Trim/Add"
-msgstr "ﮟﯾﺮﮐ ﻞﻣﺎﺷ/ﻡﺮﭨ"
-
-
-msgid "Sculpt Set Pivot"
-msgstr "ﭦﻮﯿﭘ ﭧﯿﺳ ﮧﻤﺴﺠﻣ"
-
-
-msgid "Face Sets Init"
-msgstr "ﭧﻧﺍ ﺲﭩﯿﺳ ﺲﯿﻓ"
-
-
-msgid "Random Mask"
-msgstr "ﮏﺳﺎﻣ ﺐﯿﺗﺮﺗ ﮯﺑ"
-
-
-msgid "Adjust"
-msgstr "ﮟﯾﺮﮐ ﭧﺴﺟﮉﯾﺍ"
-
-
-msgid "Keying"
-msgstr "ﮓﻨﯿﻠﮐ"
-
-
-msgid "Clear Transform"
-msgstr "ﻡﺭﺎﻔﺴﻧﺍﺮﭨ  ﺕﺮﭘ ﮎ"
-
-
-msgid "In-Betweens"
-msgstr "ﮟﯿﻣ ﻥﺎﯿﻣﺭﺩ"
-
-
-msgid "Tracking"
-msgstr "ﮓﻨﮑﯾﺮﭨ"
-
-
-msgid "Propagate"
-msgstr "ﺎﻧﺮﮐ ﻎﯿﻠﺒﺗ"
-
-
-msgid "Bone Collections"
-msgstr "ﮧﻋﻮﻤﺠﻣ ﺎﮐ ﮞﻮﯾﮉﮨ"
+msgid "Kerning"
+msgstr "ﮓﻨﻧﺮﮐ"
 
 
 msgid "Keyframe Insert Pie"
@@ -89062,10 +89062,6 @@ msgid "Filter Glossy"
 msgstr "ﮟﯾﺮﮐ ﺮﭩﻠﻓ ﺭﺍﺪﮑﻤﭼ"
 
 
-msgid "Adaptively blur glossy shaders after blurry bounces, to reduce noise at the cost of accuracy"
-msgstr "ﮟﯾﺮﮐ ﻻ﻿ﺪﻨﮬﺩ ﮯﺳ ﺖﻘﻓﺍﻮﻣ ﻮﮐ ﺯﺭﮉﯿﺷ ﺭﺍﺪﮑﻤﭼ ﺪﻌﺑ ﮯﮐ ﻦﭘ ﻻ﻿ﺪﻨﮬﺩ ،ﮯﯿﻟ ﮯﮐ ﮯﻧﺮﮐ ﻢﮐ ﻮﮐ ﺭﻮﺷ ﺮﭘ ﺖﻤﯿﻗ ﯽﮐ ﯽﮕﺘﺳﺭﺩ"
-
-
 msgid "Camera Cull Margin"
 msgstr "ﻦﺟﺭﺎﻣ ﻞﮐ ﮦﺮﻤﯿﮐ"
 
@@ -107154,7 +107150,7 @@ msgstr "...ﮯﮨ ﺎﮨﺭ ﻮﮨ ﮈﻮﻟ ﻥﺅﺍﮈ"
 
 
 msgid "Downloading \"{:s}\""
-msgstr "\"{:s}‬‪\" ﮯﮨ ﺎﮨﺭ ﻮﮨ ﮈﻮﻟ ﻥﺅﺍﮈ"
+msgstr "‬\"{:s}\"‪ ﮯﮨ ﺎﮨﺭ ﻮﮨ ﮈﻮﻟ ﻥﺅﺍﮈ"
 
 
 msgid "OSL support disabled in this build"
@@ -108079,7 +108075,7 @@ msgstr "ﮯﮨ ﺐﺋﺎﻏ init__.py__ ﺎﯾ ،ﮯﮨ ﮟﯿﮩﻧ ﮓﯾﺮ�
 
 
 msgid "The feature set archive base directory name is not a valid identifier: '{:s}'"
-msgstr "'{:s}‬‪' :ﮯﮨ ﮟﯿﮩﻧ ﮦﺪﻨﻨﮐ ﺖﺧﺎﻨﺷ ﺖﺳﺭﺩ ﻡﺎﻧ ﺎﮐ ﯼﺮﭩﮐﺮﺋﺍﮈ ﺲﯿﺑ ﻮﯿﺋﺎﮐﺭﺁ ﭧﯿﺳ ﺮﭽﯿﻓ"
+msgstr "‬'{:s}'‪ :ﮯﮨ ﮟﯿﮩﻧ ﮦﺪﻨﻨﮐ ﺖﺧﺎﻨﺷ ﺖﺳﺭﺩ ﻡﺎﻧ ﺎﮐ ﯼﺮﭩﮐﺮﺋﺍﮈ ﺲﯿﺑ ﻮﯿﺋﺎﮐﺭﺁ ﭧﯿﺳ ﺮﭽﯿﻓ"
 
 
 msgid "The name '{:s}' is not allowed for feature sets"
@@ -108087,7 +108083,7 @@ msgstr "ﮯﮨ ﮟﯿﮩﻧ ﺕﺯﺎﺟﺍ ﯽﮐ ﻡﺎﻧ '{:s}'‬‪ ﮯﯿ
 
 
 msgid "Feature set directory already exists: '{:s}'"
-msgstr "'{:s}‬‪' :ﮯﮨ ﺩﻮﺟﻮﻣ ﮯﺳ ﮯﻠﮩﭘ ﯼﺮﭩﮐﺮﺋﺍﮈ ﭧﯿﺳ ﺮﭽﯿﻓ"
+msgstr "‬'{:s}'‪ :ﮯﮨ ﺩﻮﺟﻮﻣ ﮯﺳ ﮯﻠﮩﭘ ﯼﺮﭩﮐﺮﺋﺍﮈ ﭧﯿﺳ ﺮﭽﯿﻓ"
 
 
 msgid "Status:"
@@ -108501,7 +108497,7 @@ msgstr " :ﮯﮨ ﺎﯾﺩ ءﺎﻨﺜﺘﺳﺍ ﮏﯾﺍ ﮯﻧ ﻦﺸﯾﺮﻨ
 
 
 msgid "Successfully generated: \"{:s}\""
-msgstr "\"{:s}‬‪\" :ﺎﯿﮔ ﺎﯿﮐ ﺭﺎﯿﺗ ﮫﺗﺎﺳ ﮯﮐ ﯽﺑﺎﯿﻣﺎﮐ"
+msgstr "‬\"{:s}\"‪ :ﺎﯿﮔ ﺎﯿﮐ ﺭﺎﯿﺗ ﮫﺗﺎﺳ ﮯﮐ ﯽﺑﺎﯿﻣﺎﮐ"
 
 
 msgid "ERROR: type \"{:s}\" does not exist!"
@@ -116548,7 +116544,7 @@ msgstr "ﻡﺎﮐﺎﻧ ﮟﯿﻣ ﮯﻧﺮﮐ ﻑﺬﺣ ﻮﮐ ﻞﺋﺎﻓ ﯼ
 
 
 msgid "Saved \"%s\""
-msgstr "\"%s‬‪\" ﺎﯿﮔ ﺎﯿﮐ ﻅﻮﻔﺤﻣ"
+msgstr "‬\"%s\"‪ ﺎﯿﮔ ﺎﯿﮐ ﻅﻮﻔﺤﻣ"
 
 
 msgid "Attribute name cannot be empty"
@@ -116576,7 +116572,7 @@ msgstr "۔ﮟﯿﮨ ﮯﺘﮑﺳ ﻝﻮﮭﮐ ﻮﮐ ﮏﯿﺑ ﯽﮨ ﺮﭘ ﮯ
 
 
 msgid "LIB: %s: '%s' missing from '%s', parent '%s'"
-msgstr "LIB: ‪%s‬: ‪'%s'‬ ‪'%s'‬ ﻦﯾﺪﻟﺍﻭ ،ﮯﮨ ﺐﺋﺎﻏ ﮯﺳ '‪%s‬'"
+msgstr "LIB: ‪%s‬: ‪'%s'‬ ‪'%s'‬ ﻦﯾﺪﻟﺍﻭ ،ﮯﮨ ﺐﺋﺎﻏ ﮯﺳ ‪'%s'‬"
 
 
 msgid "This file is managed by the asset system, you cannot overwrite it (using \"Save As\" is possible)"
@@ -116946,7 +116942,7 @@ msgstr "(ﮟﯿﮭﮑﯾﺩ ﻝﻮﺴﻨﮐ) %s‬‪ ،ﯽﺑﺍﺮﺧ ﮟﯿ�
 
 
 msgid "Render error (%s) cannot save: '%s'"
-msgstr "'%s‬‪' :ﯽﺘﮑﺳ ﻮﮨ ﮟﯿﮩﻧ ﻅﻮﻔﺤﻣ (%s‬‪) ﯽﺑﺍﺮﺧ ﯽﮐ ﺭﮉﻨﯾﺭ"
+msgstr "‬'%s'‪ :ﯽﺘﮑﺳ ﻮﮨ ﮟﯿﮩﻧ ﻅﻮﻔﺤﻣ (%s‬‪) ﯽﺑﺍﺮﺧ ﯽﮐ ﺭﮉﻨﯾﺭ"
 
 
 msgid "Basis"
@@ -117143,7 +117139,7 @@ msgstr "ﺮﺻﺎﻗ ﮯﺳ ﮯﻧﺮﮐ ﻞﺻﺎﺣ ﯽﺋﺎﺳﺭ ﮏﺗ ﺰ
 
 
 msgid "Unable to pack files over 2gb, source path '%s'"
-msgstr "'%s‬‪' ﮧﺘﺳﺍﺭ ﺱﺭﻮﺳ ،ﺮﺻﺎﻗ ﮯﺳ ﮯﻧﺮﮐ ﮏﯿﭘ ﮟﯿﻠﺋﺎﻓ ﮦﺩﺎﯾﺯ ﮯﺳ ﯽﺑ ﯽﺟ 2"
+msgstr "‬'%s'‪ ﮧﺘﺳﺍﺭ ﺱﺭﻮﺳ ،ﺮﺻﺎﻗ ﮯﺳ ﮯﻧﺮﮐ ﮏﯿﭘ ﮟﯿﻠﺋﺎﻓ ﮦﺩﺎﯾﺯ ﮯﺳ ﯽﺑ ﯽﺟ 2"
 
 
 msgid "Image '%s' skipped, packing movies or image sequences not supported"
@@ -117179,11 +117175,11 @@ msgstr "‬%s‪ :(ﮉﮑﯿﭘ ﮯﺋﺎﺠﺑ) ﮟﯾﺮﮐ ﻝﺎﻤﻌﺘﺳ
 
 
 msgid "Cannot pack absolute file: '%s'"
-msgstr "'%s‬‪' :ﺎﺘﮑﺳ ﺎﺟ ﺎﯿﮐ ﮟﯿﮩﻧ ﮏﯿﭘ ﻮﮐ ﻞﺋﺎﻓ ﻖﻠﻄﻣ"
+msgstr "‬'%s'‪ :ﺎﺘﮑﺳ ﺎﺟ ﺎﯿﮐ ﮟﯿﮩﻧ ﮏﯿﭘ ﻮﮐ ﻞﺋﺎﻓ ﻖﻠﻄﻣ"
 
 
 msgid "Cannot unpack individual Library file, '%s'"
-msgstr "'%s‬‪' ،ﺎﺘﮑﺳ ﮟﯿﮩﻧ ﻝﻮﮭﮐ ﻮﮐ ﻞﺋﺎﻓ ﯼﺮﯾﺮﺒﺋﻻ﻿ ﯼﺩﺍﺮﻔﻧﺍ"
+msgstr "‬'%s'‪ ،ﺎﺘﮑﺳ ﮟﯿﮩﻧ ﻝﻮﮭﮐ ﻮﮐ ﻞﺋﺎﻓ ﯼﺮﯾﺮﺒﺋﻻ﻿ ﯼﺩﺍﺮﻔﻧﺍ"
 
 
 msgid "palettes"
@@ -117279,7 +117275,7 @@ msgstr "ﺎﯿﮔ ﺎﯿﮐ ﺐﺗﺮﻣ ﺮﯿﻐﺑ ﮯﮐ ﻦﺠﻧﺍ ﺲﮐ
 
 
 msgid "LIB: object lost from scene: '%s'"
-msgstr "LIB: ﺰﯿﭼ ﮦﺪﺷ ﻢﮔ ﮯﺳﻮﯾﻭ: '‪%s‬'"
+msgstr "LIB: ﺰﯿﭼ ﮦﺪﺷ ﻢﮔ ﮯﺳﻮﯾﻭ: ‪'%s'‬"
 
 
 msgid "RenderView"
@@ -117716,11 +117712,11 @@ msgstr "LIB: ‪%s‬: ‪'%s'‬ ﺖﺳﺍﺭ ﮦﺍﺮﺑ ‪'%s'‬ (ﻦﯾ�
 
 
 msgid "Read packed library: '%s', parent '%s'"
-msgstr "'%s‬‪' ﻦﯾﺪﻟﺍﻭ ،'%s'‬‪ :ﮟﯿﮬﮍﭘ ﯼﺮﯾﺮﺒﺋﻻ﻿ ﮉﮑﯿﭘ"
+msgstr "‬'%s'‪ ﻦﯾﺪﻟﺍﻭ ،'%s'‬‪ :ﮟﯿﮬﮍﭘ ﯼﺮﯾﺮﺒﺋﻻ﻿ ﮉﮑﯿﭘ"
 
 
 msgid "Read library: '%s', '%s', parent '%s'"
-msgstr "'%s‬‪' ﻦﯾﺪﻟﺍﻭ ،'%s'‬، ‪'%s'‬‪ :ﮟﯿﮬﮍﭘ ﯼﺮﯾﺮﺒﺋﻻ﻿"
+msgstr "‬'%s'‪ ﻦﯾﺪﻟﺍﻭ ،'%s'‬، ‪'%s'‬‪ :ﮟﯿﮬﮍﭘ ﯼﺮﯾﺮﺒﺋﻻ﻿"
 
 
 msgid "Cannot find lib '%s'"
@@ -117744,7 +117740,7 @@ msgstr "‬%s‪ :ﻡﺎﮐﺎﻧ ﮟﯿﻣ ﮯﻨﮬﮍﭘ '%s'‬‪ ﻞﺋﺎ
 
 
 msgid "Unrecognized file format '%s'"
-msgstr "'%s‬‪' ﭧﯿﻣﺭﺎﻓ ﻞﺋﺎﻓ ﮦﺪﺷ ﻢﯿﻠﺴﺗ ﺮﯿﻏ"
+msgstr "‬'%s'‪ ﭧﯿﻣﺭﺎﻓ ﻞﺋﺎﻓ ﮦﺪﺷ ﻢﯿﻠﺴﺗ ﺮﯿﻏ"
 
 
 msgid "Unable to open '%s': %s"
@@ -118250,7 +118246,7 @@ msgstr "ﺎﯿﮔ ﺎﯾﺩ ﺎﭩﮨ ﻮﮐ ﯽﭨﺮﭘﺍﺮﭘ ﮯﺳ ﭧﯿ
 
 
 msgid "Property added to Keying Set: '%s'"
-msgstr "'%s‬‪' :ﯽﺌﮔ ﯽﮐ ﻞﻣﺎﺷ ﯽﭨﺮﭘﺍﺮﭘ ﮟﯿﻣ ﭧﯿﺳ ﮓﻨﯿﮐ"
+msgstr "‬'%s'‪ :ﯽﺌﮔ ﯽﮐ ﻞﻣﺎﺷ ﯽﭨﺮﭘﺍﺮﭘ ﮟﯿﻣ ﭧﯿﺳ ﮓﻨﯿﮐ"
 
 
 msgid "Delete selected bones?"
@@ -120870,7 +120866,7 @@ msgstr "ﮯﮨ ﮟﯿﮩﻧ ﻞﺋﺎﻓ ﺖﺳﺭﺩ ﮏﯾﺍ '%s'‬‪ﮧﺘ
 
 
 msgid "Exported '%s'"
-msgstr "'%s‬‪' ﺎﯿﮔ ﺎﯿﮐ ﺪﻣﺁﺮﺑ"
+msgstr "‬'%s'‪ ﺎﯿﮔ ﺎﯿﮐ ﺪﻣﺁﺮﺑ"
 
 
 msgid "Exported %d files from %d collections"
@@ -124683,7 +124679,7 @@ msgstr "ﮯﮨ ﮈﺮﭩﺴﺟﺭ ﺮﯿﻏ ﻦﺸﯾﺍ ﯽﺳﻮﺴﯾﺍ ﻞ�
 
 
 msgid "Added %s \"%s\""
-msgstr "\"%s‬ \"‪%s‬‪ ﺎﯿﮔ ﺎﯿﮐ ﻞﻣﺎﺷ"
+msgstr "‬%s‬ ‪\"%s\"‪ ﺎﯿﮔ ﺎﯿﮐ ﻞﻣﺎﺷ"
 
 
 msgid "Unable to remove directory: %s"
@@ -126002,7 +125998,7 @@ msgstr "OBJ ﭦﺭﻮﭙﺴﮑﯾﺍ: ‪'%s'‬ ﮯﯿﻟ ﮯﮐ mtl ﯽﺘﮑ�
 
 
 msgid "OBJ Export: Unable to find collection '%s'"
-msgstr "OBJ ﮟﯾﺮﮐ ﺪﻣﺁﺮﺑ: Unable to ﮧﻋﻮﻤﺠﻣ ﮟﯾﺮﮐ ﺵﻼ﻿ﺗ '‪%s‬'"
+msgstr "OBJ ﮟﯾﺮﮐ ﺪﻣﺁﺮﺑ: Unable to ﮧﻋﻮﻤﺠﻣ ﮟﯾﺮﮐ ﺵﻼ﻿ﺗ ‪'%s'‬"
 
 
 msgid "OBJ Import: Cannot open file '%s'"
@@ -126929,7 +126925,7 @@ msgstr "ﺎﮑﺳ ﺎﺟ ﺎﯿﮐ ﮟﯿﮩﻧ ﻞﻘﺘﻨﻣ ﻮﮐ ﭦﻭﺎ
 
 
 msgid "Invalid original modifier index '%d'"
-msgstr "'%d‬‪' ﺖﺳﺮﮩﻓ ﺮﺋﺎﻔﯾﮈﻮﻣ ﻞﺻﺍ ﻂﻠﻏ"
+msgstr "‬'%d'‪ ﺖﺳﺮﮩﻓ ﺮﺋﺎﻔﯾﮈﻮﻣ ﻞﺻﺍ ﻂﻠﻏ"
 
 
 msgid "Modifier \"%s\" is not in the object's modifier list"
@@ -127077,7 +127073,7 @@ msgstr "ﺎﮑﺳ ﺎﺟ ﮟﯿﮩﻧ ﺎﯾﺎﭩﮨ ﻮﮐ '%s'‬‪ ﮧﻧ�
 
 
 msgid "Could not move layer from index '%d' to '%d'"
-msgstr "Could not ﺲﮑﯾﮉﻧﺍ ﮯﺳ ﮟﯾﺮﮐ ﻞﻘﺘﻨﻣ ﻮﮐ ﺕﺮﭘ ‪'%d'‬ to '‪%d‬'"
+msgstr "Could not ﺲﮑﯾﮉﻧﺍ ﮯﺳ ﮟﯾﺮﮐ ﻞﻘﺘﻨﻣ ﻮﮐ ﺕﺮﭘ ‪'%d'‬ to ‪'%d'‬"
 
 
 msgid "Only supported for \"TEMPORARY\" type regions (pop-ups)"
@@ -127525,7 +127521,7 @@ msgstr "ﮯﯿﮨﺎﭼ ﺎﻧﻮﮨ ﻢﮐ ﮯﺳ %d‬ ‪%d‬‪ ﺖﺳﺮ�
 
 
 msgid "%s '%s'"
-msgstr "‪%s‬ '‪%s‬'"
+msgstr "‪%s‬ ‪'%s'‬"
 
 
 msgid "wmOwnerID '%s' not in workspace '%s'"
@@ -131581,7 +131577,7 @@ msgstr "‪%s‬: %.*s"
 
 
 msgid "Text '%s'"
-msgstr "'%s‬‪' ﻦﺘﻣ"
+msgstr "‬'%s'‪ ﻦﺘﻣ"
 
 
 msgid "Could not resolve path (%s)"

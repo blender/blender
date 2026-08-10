@@ -1,9 +1,9 @@
 
 msgid ""
 msgstr ""
-"Project-Id-Version: Blender 5.3.0 Alpha (b'af9ba6af7621')\n"
+"Project-Id-Version: Blender 5.3.0 Alpha (b'af4852ed4560')\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-08-03 07:24+0000\n"
+"POT-Creation-Date: 2026-08-10 07:54+0000\n"
 "PO-Revision-Date: 2026-05-04 00:12+0000\n"
 "Last-Translator: Alessandro Vecchio <alessandrovecchio1907@gmail.com>\n"
 "Language-Team: Italian <https://translate.blender.org/projects/blender-ui/ui/it/>\n"
@@ -3175,10 +3175,6 @@ msgstr "Blocchi-dati Particelle"
 
 msgid "Point cloud data-blocks"
 msgstr "Blocchi-dati delle Nuvole di Punti"
-
-
-msgid "Project"
-msgstr "Proiezione"
 
 
 msgid "Scene data-blocks"
@@ -8347,6 +8343,10 @@ msgstr "Punto Superficie Più Vicino"
 
 msgid "Shrink the location to the nearest target surface"
 msgstr "Stringe la posizione alla superficie obiettivo più vicina"
+
+
+msgid "Project"
+msgstr "Proiezione"
 
 
 msgid "Shrink the location to the nearest target surface along a given axis"
@@ -24478,58 +24478,6 @@ msgid "Material slot name"
 msgstr "Nome dello slot materiale"
 
 
-msgid "Toggle Bone Options"
-msgstr "Attiva/disattiva Opzioni Osso"
-
-
-msgid "Enable Bone Options"
-msgstr "Abilita Opzioni Osso"
-
-
-msgid "Disable Bone Options"
-msgstr "Disabilita Opzioni Osso"
-
-
-msgid "Mesh Select Mode"
-msgstr "Modalità Selezione Mesh"
-
-
-msgid "Face Data"
-msgstr "Dati Faccia"
-
-
-msgid "Select by Face Strength"
-msgstr "Seleziona per Intensità delle Facce"
-
-
-msgid "Set Face Strength"
-msgstr "Imposta Intensità Faccia"
-
-
-msgid "Clean Up"
-msgstr "Ripulisci"
-
-
-msgid "Merge"
-msgstr "Unisci"
-
-
-msgid "Show/Hide"
-msgstr "Mostra/Nascondi"
-
-
-msgid "Special Characters"
-msgstr "Caratteri Speciali"
-
-
-msgid "Kerning"
-msgstr "Crenatura"
-
-
-msgid "Metaball"
-msgstr "Metaball"
-
-
 msgid "Names"
 msgstr "Nomi"
 
@@ -24538,12 +24486,32 @@ msgid "Bone Roll"
 msgstr "Rollio Osso"
 
 
-msgid "Math"
-msgstr "Matematica"
+msgid "Show/Hide"
+msgstr "Mostra/Nascondi"
+
+
+msgid "Clean Up"
+msgstr "Ripulisci"
+
+
+msgid "Adjust"
+msgstr "Regola"
+
+
+msgid "Keying"
+msgstr "Keying"
+
+
+msgid "Tracking"
+msgstr "Tracciamento"
 
 
 msgid "Utilities"
 msgstr "Utilità"
+
+
+msgid "Math"
+msgstr "Matematica"
 
 
 msgid "Pivot Point"
@@ -24558,44 +24526,20 @@ msgid "Proportional Editing Falloff"
 msgstr "Decadimento Modifica Proporzionale"
 
 
-msgid "Read"
-msgstr "Lettura"
-
-
 msgid "Mask Edit"
 msgstr "Modifica Maschera"
-
-
-msgid "Sample"
-msgstr "Campione"
 
 
 msgid "Automasking"
 msgstr "Automascheramento"
 
 
-msgid "Write"
-msgstr "Scrittura"
-
-
 msgid "Face Sets Edit"
 msgstr "Modifica Sets di Facce"
 
 
-msgid "Primitives"
-msgstr "Primitive"
-
-
 msgid "Vertex Group Locks"
 msgstr "Blocchi del Gruppo di Vertici"
-
-
-msgid "Instances"
-msgstr "Istanze"
-
-
-msgid "Import"
-msgstr "Importa"
 
 
 msgid "Mirror"
@@ -24638,10 +24582,6 @@ msgid "Select Similar"
 msgstr "Seleziona Simili"
 
 
-msgid "UV"
-msgstr "UV"
-
-
 msgid "Select All by Trait"
 msgstr "Seleziona Tutto per Caratteristica"
 
@@ -24656,6 +24596,26 @@ msgstr "Seleziona Anelli"
 
 msgid "Assign Material"
 msgstr "Assegna Materiale"
+
+
+msgid "Read"
+msgstr "Lettura"
+
+
+msgid "Sample"
+msgstr "Campione"
+
+
+msgid "Write"
+msgstr "Scrittura"
+
+
+msgid "Primitives"
+msgstr "Primitive"
+
+
+msgid "Metaball"
+msgstr "Metaball"
 
 
 msgid "Light"
@@ -24674,12 +24634,20 @@ msgid "Relations"
 msgstr "Relazioni"
 
 
+msgid "Instances"
+msgstr "Istanze"
+
+
 msgid "Rigid Body"
 msgstr "Corpo Rigido"
 
 
 msgid "Apply"
 msgstr "Applica"
+
+
+msgid "Import"
+msgstr "Importa"
 
 
 msgid "Track"
@@ -24702,20 +24670,16 @@ msgid "Convert"
 msgstr "Converti"
 
 
-msgid "Linked"
-msgstr "Collegato"
-
-
 msgid "Link/Transfer Data"
 msgstr "Collega/Trasferisci Dati"
 
 
-msgid "Layout"
-msgstr "Layout"
-
-
 msgid "Hooks"
 msgstr "Ganci"
+
+
+msgid "UV"
+msgstr "UV"
 
 
 msgid "Face Sets Init"
@@ -24726,14 +24690,6 @@ msgid "Random Mask"
 msgstr "Maschera Casuale"
 
 
-msgid "Adjust"
-msgstr "Regola"
-
-
-msgid "Keying"
-msgstr "Keying"
-
-
 msgid "Clear Transform"
 msgstr "Cancella Trasformazione"
 
@@ -24742,16 +24698,60 @@ msgid "In-Betweens"
 msgstr "Intermedio"
 
 
-msgid "Tracking"
-msgstr "Tracciamento"
-
-
 msgid "Propagate"
 msgstr "Propaga"
 
 
 msgid "Bone Collections"
 msgstr "Raccolte di Ossa"
+
+
+msgid "Toggle Bone Options"
+msgstr "Attiva/disattiva Opzioni Osso"
+
+
+msgid "Enable Bone Options"
+msgstr "Abilita Opzioni Osso"
+
+
+msgid "Disable Bone Options"
+msgstr "Disabilita Opzioni Osso"
+
+
+msgid "Mesh Select Mode"
+msgstr "Modalità Selezione Mesh"
+
+
+msgid "Face Data"
+msgstr "Dati Faccia"
+
+
+msgid "Select by Face Strength"
+msgstr "Seleziona per Intensità delle Facce"
+
+
+msgid "Set Face Strength"
+msgstr "Imposta Intensità Faccia"
+
+
+msgid "Merge"
+msgstr "Unisci"
+
+
+msgid "Linked"
+msgstr "Collegato"
+
+
+msgid "Special Characters"
+msgstr "Caratteri Speciali"
+
+
+msgid "Layout"
+msgstr "Layout"
+
+
+msgid "Kerning"
+msgstr "Crenatura"
 
 
 msgid "Keyframe Insert Pie"
@@ -53345,10 +53345,6 @@ msgstr "Tipo di passaggio di cui fare il precalcolo"
 
 msgid "Filter Glossy"
 msgstr "Filtro Lucido"
-
-
-msgid "Adaptively blur glossy shaders after blurry bounces, to reduce noise at the cost of accuracy"
-msgstr "Sfoca adattivamente gli shader lucidi dopo i rimbalzi sfocatura, per ridurre il rumore a scapito dell'accuratezza"
 
 
 msgid "Camera Cull Margin"

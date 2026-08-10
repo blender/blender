@@ -1,9 +1,9 @@
 
 msgid ""
 msgstr ""
-"Project-Id-Version: Blender 5.3.0 Alpha (b'af9ba6af7621')\n"
+"Project-Id-Version: Blender 5.3.0 Alpha (b'af4852ed4560')\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-08-03 07:24+0000\n"
+"POT-Creation-Date: 2026-08-10 07:54+0000\n"
 "PO-Revision-Date: 2026-06-02 05:12+0000\n"
 "Last-Translator: Fadli Birdie Zeinda <justbirdie00@gmail.com>\n"
 "Language-Team: Indonesian <https://translate.blender.org/projects/blender-ui/ui/id/>\n"
@@ -3281,10 +3281,6 @@ msgstr "Partikel data-blok"
 
 msgid "Point cloud data-blocks"
 msgstr "Data-blok awan titik"
-
-
-msgid "Project"
-msgstr "Proyek"
 
 
 msgid "Scene data-blocks"
@@ -8017,6 +8013,10 @@ msgstr "Jarak Proyeksi"
 
 msgid "Nearest Surface Point"
 msgstr "Titik Permukaan Terdekat"
+
+
+msgid "Project"
+msgstr "Proyek"
 
 
 msgid "Shrink the location to the nearest target surface along a given axis"
@@ -15700,44 +15700,24 @@ msgid "Use Material Mask"
 msgstr "Gunakan Masker Bahan"
 
 
-msgid "Merge"
-msgstr "Menggabungkan"
-
-
-msgid "Metaball"
-msgstr "Metabola"
-
-
 msgid "Names"
 msgstr "Nama"
 
 
-msgid "Math"
-msgstr "Matematika"
+msgid "Tracking"
+msgstr "Pelacakan"
 
 
 msgid "Utilities"
 msgstr "Utilitas"
 
 
+msgid "Math"
+msgstr "Matematika"
+
+
 msgid "Snap"
 msgstr "Jepret"
-
-
-msgid "Sample"
-msgstr "Sampel"
-
-
-msgid "Gizmo"
-msgstr "Gizmo"
-
-
-msgid "Instances"
-msgstr "Contoh-contoh"
-
-
-msgid "Import"
-msgstr "Impor"
 
 
 msgid "Mirror"
@@ -15748,16 +15728,20 @@ msgid "Navigation"
 msgstr "Navigasi"
 
 
-msgid "UV"
-msgstr "UV"
-
-
 msgid "Select Linked"
 msgstr "Seleksi yang Terhubung"
 
 
 msgid "Assign Material"
 msgstr "Tugaskan Bahan"
+
+
+msgid "Sample"
+msgstr "Sampel"
+
+
+msgid "Metaball"
+msgstr "Metabola"
 
 
 msgid "Light"
@@ -15772,8 +15756,20 @@ msgid "Add Image"
 msgstr "Tambah Gambar"
 
 
+msgid "Gizmo"
+msgstr "Gizmo"
+
+
+msgid "Instances"
+msgstr "Contoh-contoh"
+
+
 msgid "Apply"
 msgstr "Tetapkan"
+
+
+msgid "Import"
+msgstr "Impor"
 
 
 msgid "Track"
@@ -15784,20 +15780,24 @@ msgid "Asset"
 msgstr "Aset"
 
 
+msgid "Hooks"
+msgstr "Kait"
+
+
+msgid "UV"
+msgstr "UV"
+
+
+msgid "Merge"
+msgstr "Menggabungkan"
+
+
 msgid "Linked"
 msgstr "Terkoleksi"
 
 
 msgid "Layout"
 msgstr "Tata Letak"
-
-
-msgid "Hooks"
-msgstr "Kait"
-
-
-msgid "Tracking"
-msgstr "Pelacakan"
 
 
 msgid "Animals"
@@ -26395,10 +26395,6 @@ msgstr "AO Memantul"
 
 msgid "AO Bounces Render"
 msgstr "AO Memantul Render"
-
-
-msgid "Adaptively blur glossy shaders after blurry bounces, to reduce noise at the cost of accuracy"
-msgstr "Secara adaptif blur shader glossy setelah blur memantul, untuk mengurangi noise dengan mengorbankan akurasi"
 
 
 msgid "GPU Compute"

@@ -1,9 +1,9 @@
 
 msgid ""
 msgstr ""
-"Project-Id-Version: Blender 5.3.0 Alpha (b'af9ba6af7621')\n"
+"Project-Id-Version: Blender 5.3.0 Alpha (b'af4852ed4560')\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-08-03 07:24+0000\n"
+"POT-Creation-Date: 2026-08-10 07:54+0000\n"
 "PO-Revision-Date: 2026-02-16 18:12+0000\n"
 "Last-Translator: Deniz Jones <sdfoakes@gmail.com>\n"
 "Language-Team: English (United Kingdom) <https://translate.blender.org/projects/blender-ui/ui/en_GB/>\n"
@@ -3450,10 +3450,6 @@ msgstr "Particle data-blocks"
 
 msgid "Point cloud data-blocks"
 msgstr "Point cloud data-blocks"
-
-
-msgid "Project"
-msgstr "Project"
 
 
 msgid "Scene data-blocks"
@@ -9969,6 +9965,10 @@ msgstr "Nearest Surface Point"
 
 msgid "Shrink the location to the nearest target surface"
 msgstr "Shrink the location to the nearest target surface"
+
+
+msgid "Project"
+msgstr "Project"
 
 
 msgid "Shrink the location to the nearest target surface along a given axis"
@@ -34770,8 +34770,256 @@ msgid "Editor menu containing buttons"
 msgstr "Editor menu containing buttons"
 
 
+msgid "Names"
+msgstr "Names"
+
+
+msgid "Bone Roll"
+msgstr "Bone Roll"
+
+
+msgid "Show/Hide"
+msgstr "Show/Hide"
+
+
+msgid "Clean Up"
+msgstr "Clean Up"
+
+
+msgid "Adjust"
+msgstr "Adjust"
+
+
+msgid "Keying"
+msgstr "Keying"
+
+
+msgid "Tracking"
+msgstr "Tracking"
+
+
+msgid "Utilities"
+msgstr "Utilities"
+
+
+msgid "Math"
+msgstr "Maths"
+
+
+msgid "Pivot Point"
+msgstr "Pivot Point"
+
+
 msgid "Creative"
 msgstr "Creative"
+
+
+msgid "Snap"
+msgstr "Snap"
+
+
+msgid "Proportional Editing Falloff"
+msgstr "Proportional Editing Falloff"
+
+
+msgid "Mask Edit"
+msgstr "Mask Edit"
+
+
+msgid "Automasking"
+msgstr "Automasking"
+
+
+msgid "Face Sets Edit"
+msgstr "Face Sets Edit"
+
+
+msgid "Vertex Group Locks"
+msgstr "Vertex Group Locks"
+
+
+msgid "Mirror"
+msgstr "Mirror"
+
+
+msgid "UV Mapping"
+msgstr "UV Mapping"
+
+
+msgid "Local View"
+msgstr "Local View"
+
+
+msgid "Viewpoint"
+msgstr "Viewpoint"
+
+
+msgid "Navigation"
+msgstr "Navigation"
+
+
+msgid "Align View"
+msgstr "Align View"
+
+
+msgid "Align View to Active"
+msgstr "Align View to Active"
+
+
+msgid "View Regions"
+msgstr "View Regions"
+
+
+msgid "Select More/Less"
+msgstr "Select More/Less"
+
+
+msgid "Select Similar"
+msgstr "Select Similar"
+
+
+msgid "Select All by Trait"
+msgstr "Select All by Trait"
+
+
+msgid "Select Linked"
+msgstr "Select Linked"
+
+
+msgid "Select Loops"
+msgstr "Select Loops"
+
+
+msgid "Assign Material"
+msgstr "Assign Material"
+
+
+msgid "Read"
+msgstr "Read"
+
+
+msgid "Sample"
+msgstr "Sample"
+
+
+msgid "Write"
+msgstr "Write"
+
+
+msgid "Primitives"
+msgstr "Primitives"
+
+
+msgid "Metaball"
+msgstr "Metaball"
+
+
+msgid "Light"
+msgstr "Light"
+
+
+msgid "Light Probe"
+msgstr "Light Probe"
+
+
+msgid "Add Image"
+msgstr "Add Image"
+
+
+msgid "Gizmo"
+msgstr "Gizmo"
+
+
+msgid "Relations"
+msgstr "Relations"
+
+
+msgid "Instances"
+msgstr "Instances"
+
+
+msgid "Render Preview"
+msgstr "Render Preview"
+
+
+msgid "Rigid Body"
+msgstr "Rigid Body"
+
+
+msgid "Apply"
+msgstr "Apply"
+
+
+msgid "Import"
+msgstr "Import"
+
+
+msgid "Track"
+msgstr "Track"
+
+
+msgid "Quick Effects"
+msgstr "Quick Effects"
+
+
+msgid "Asset"
+msgstr "Asset"
+
+
+msgid "Deprecated"
+msgstr "Deprecated"
+
+
+msgid "Make Single User"
+msgstr "Make Single User"
+
+
+msgid "Convert"
+msgstr "Convert"
+
+
+msgid "Link/Transfer Data"
+msgstr "Link/Transfer Data"
+
+
+msgid "Hooks"
+msgstr "Hooks"
+
+
+msgid "UV"
+msgstr "UV"
+
+
+msgid "Trim/Add"
+msgstr "Trim/Add"
+
+
+msgid "Sculpt Set Pivot"
+msgstr "Sculpt Set Pivot"
+
+
+msgid "Face Sets Init"
+msgstr "Face Sets Init"
+
+
+msgid "Random Mask"
+msgstr "Random Mask"
+
+
+msgid "Clear Transform"
+msgstr "Clear Transform"
+
+
+msgid "In-Betweens"
+msgstr "In-Betweens"
+
+
+msgid "Propagate"
+msgstr "Propagate"
+
+
+msgid "Bone Collections"
+msgstr "Bone Collections"
 
 
 msgid "Toggle Bone Options"
@@ -34802,272 +35050,24 @@ msgid "Set Face Strength"
 msgstr "Set Face Strength"
 
 
-msgid "Clean Up"
-msgstr "Clean Up"
-
-
 msgid "Merge"
 msgstr "Merge"
-
-
-msgid "Show/Hide"
-msgstr "Show/Hide"
-
-
-msgid "Special Characters"
-msgstr "Special Characters"
-
-
-msgid "Kerning"
-msgstr "Kerning"
-
-
-msgid "Metaball"
-msgstr "Metaball"
-
-
-msgid "Names"
-msgstr "Names"
-
-
-msgid "Bone Roll"
-msgstr "Bone Roll"
-
-
-msgid "Math"
-msgstr "Maths"
-
-
-msgid "Utilities"
-msgstr "Utilities"
-
-
-msgid "Pivot Point"
-msgstr "Pivot Point"
-
-
-msgid "Snap"
-msgstr "Snap"
-
-
-msgid "Proportional Editing Falloff"
-msgstr "Proportional Editing Falloff"
-
-
-msgid "Read"
-msgstr "Read"
-
-
-msgid "Mask Edit"
-msgstr "Mask Edit"
-
-
-msgid "Sample"
-msgstr "Sample"
-
-
-msgid "Automasking"
-msgstr "Automasking"
-
-
-msgid "Write"
-msgstr "Write"
-
-
-msgid "Face Sets Edit"
-msgstr "Face Sets Edit"
-
-
-msgid "Primitives"
-msgstr "Primitives"
-
-
-msgid "Vertex Group Locks"
-msgstr "Vertex Group Locks"
-
-
-msgid "Gizmo"
-msgstr "Gizmo"
-
-
-msgid "Instances"
-msgstr "Instances"
-
-
-msgid "Render Preview"
-msgstr "Render Preview"
-
-
-msgid "Import"
-msgstr "Import"
-
-
-msgid "Mirror"
-msgstr "Mirror"
-
-
-msgid "UV Mapping"
-msgstr "UV Mapping"
-
-
-msgid "Local View"
-msgstr "Local View"
-
-
-msgid "Viewpoint"
-msgstr "Viewpoint"
-
-
-msgid "Navigation"
-msgstr "Navigation"
-
-
-msgid "Align View"
-msgstr "Align View"
-
-
-msgid "Deprecated"
-msgstr "Deprecated"
-
-
-msgid "Align View to Active"
-msgstr "Align View to Active"
-
-
-msgid "View Regions"
-msgstr "View Regions"
-
-
-msgid "Select More/Less"
-msgstr "Select More/Less"
-
-
-msgid "Select Similar"
-msgstr "Select Similar"
-
-
-msgid "UV"
-msgstr "UV"
-
-
-msgid "Select All by Trait"
-msgstr "Select All by Trait"
-
-
-msgid "Select Linked"
-msgstr "Select Linked"
-
-
-msgid "Select Loops"
-msgstr "Select Loops"
-
-
-msgid "Assign Material"
-msgstr "Assign Material"
-
-
-msgid "Light"
-msgstr "Light"
-
-
-msgid "Light Probe"
-msgstr "Light Probe"
-
-
-msgid "Add Image"
-msgstr "Add Image"
-
-
-msgid "Relations"
-msgstr "Relations"
-
-
-msgid "Rigid Body"
-msgstr "Rigid Body"
-
-
-msgid "Apply"
-msgstr "Apply"
-
-
-msgid "Track"
-msgstr "Track"
-
-
-msgid "Quick Effects"
-msgstr "Quick Effects"
-
-
-msgid "Asset"
-msgstr "Asset"
-
-
-msgid "Make Single User"
-msgstr "Make Single User"
-
-
-msgid "Convert"
-msgstr "Convert"
 
 
 msgid "Linked"
 msgstr "Linked"
 
 
-msgid "Link/Transfer Data"
-msgstr "Link/Transfer Data"
+msgid "Special Characters"
+msgstr "Special Characters"
 
 
 msgid "Layout"
 msgstr "Layout"
 
 
-msgid "Hooks"
-msgstr "Hooks"
-
-
-msgid "Trim/Add"
-msgstr "Trim/Add"
-
-
-msgid "Sculpt Set Pivot"
-msgstr "Sculpt Set Pivot"
-
-
-msgid "Face Sets Init"
-msgstr "Face Sets Init"
-
-
-msgid "Random Mask"
-msgstr "Random Mask"
-
-
-msgid "Adjust"
-msgstr "Adjust"
-
-
-msgid "Keying"
-msgstr "Keying"
-
-
-msgid "Clear Transform"
-msgstr "Clear Transform"
-
-
-msgid "In-Betweens"
-msgstr "In-Betweens"
-
-
-msgid "Tracking"
-msgstr "Tracking"
-
-
-msgid "Propagate"
-msgstr "Propagate"
-
-
-msgid "Bone Collections"
-msgstr "Bone Collections"
+msgid "Kerning"
+msgstr "Kerning"
 
 
 msgid "Keyframe Insert Pie"
@@ -90984,10 +90984,6 @@ msgid "Panel containing UI elements"
 msgstr "Panel containing UI elements"
 
 
-msgid "glTF Variants"
-msgstr "glTF Variants"
-
-
 msgid "glTF Material Variants"
 msgstr "glTF Material Variants"
 
@@ -91118,6 +91114,10 @@ msgstr "VR"
 
 msgid "VR Info"
 msgstr "VR Info"
+
+
+msgid "glTF Variants"
+msgstr "glTF Variants"
 
 
 msgid "Import Settings"
@@ -98069,10 +98069,6 @@ msgstr "Type of pass to bake"
 
 msgid "Filter Glossy"
 msgstr "Filter Glossy"
-
-
-msgid "Adaptively blur glossy shaders after blurry bounces, to reduce noise at the cost of accuracy"
-msgstr "Adaptively blur glossy shaders after blurry bounces, to reduce noise at the cost of accuracy"
 
 
 msgid "Camera Cull Margin"
@@ -128798,14 +128794,6 @@ msgstr "Paste to Selected Keys"
 msgctxt "Operator"
 msgid "Paste and Bake"
 msgstr "Paste and Bake"
-
-
-msgid "Keying set is active, which may"
-msgstr "Keying set is active, which may"
-
-
-msgid "reduce the effect of the above options"
-msgstr "reduce the effect of the above options"
 
 
 msgid "Using Active Scene Camera"

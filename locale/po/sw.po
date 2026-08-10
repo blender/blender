@@ -1,9 +1,9 @@
 
 msgid ""
 msgstr ""
-"Project-Id-Version: Blender 5.3.0 Alpha (b'af9ba6af7621')\n"
+"Project-Id-Version: Blender 5.3.0 Alpha (b'af4852ed4560')\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-08-03 07:24+0000\n"
+"POT-Creation-Date: 2026-08-10 07:54+0000\n"
 "PO-Revision-Date: 2025-11-14 10:59+0000\n"
 "Last-Translator: Isaac Gicheha <shwaky3@gmail.com>\n"
 "Language-Team: Swahili <https://translate.blender.org/projects/blender-ui/ui/sw/>\n"
@@ -2853,10 +2853,6 @@ msgstr "Vizuizi vya data vya chembe"
 
 msgid "Point cloud data-blocks"
 msgstr "Vizuizi vya data vya wingu la uhakika"
-
-
-msgid "Project"
-msgstr "Mradi"
 
 
 msgid "Scene data-blocks"
@@ -8135,6 +8131,10 @@ msgstr "Uso wa Karibu zaidi"
 
 msgid "Shrink the location to the nearest target surface"
 msgstr "Punguza eneo hadi eneo lengwa la karibu zaidi"
+
+
+msgid "Project"
+msgstr "Mradi"
 
 
 msgid "Shrink the location to the nearest target surface along a given axis"
@@ -28226,28 +28226,32 @@ msgid "Editor menu containing buttons"
 msgstr "Menyu ya mhariri iliyo na vitufe"
 
 
-msgid "Clean Up"
-msgstr "Safisha"
-
-
-msgid "Merge"
-msgstr "Unganisha"
-
-
 msgid "Show/Hide"
 msgstr "Onyesha/Ficha"
 
 
-msgid "Metaball"
-msgstr "Mpira wa miguu"
+msgid "Clean Up"
+msgstr "Safisha"
 
 
-msgid "Math"
-msgstr "Hisabati"
+msgid "Adjust"
+msgstr "Rekebisha"
+
+
+msgid "Keying"
+msgstr "Kuweka"
+
+
+msgid "Tracking"
+msgstr "Kufuatilia"
 
 
 msgid "Utilities"
 msgstr "Huduma"
+
+
+msgid "Math"
+msgstr "Hisabati"
 
 
 msgid "Pivot Point"
@@ -28256,6 +28260,18 @@ msgstr "Egemeo"
 
 msgid "Snap"
 msgstr "Picha"
+
+
+msgid "Mirror"
+msgstr "Kioo"
+
+
+msgid "Navigation"
+msgstr "Urambazaji"
+
+
+msgid "Select Linked"
+msgstr "Chagua Imeunganishwa"
 
 
 msgid "Read"
@@ -28274,28 +28290,8 @@ msgid "Primitives"
 msgstr "Watu wa kwanza"
 
 
-msgid "Instances"
-msgstr "Matukio"
-
-
-msgid "Import"
-msgstr "Ingiza"
-
-
-msgid "Mirror"
-msgstr "Kioo"
-
-
-msgid "Navigation"
-msgstr "Urambazaji"
-
-
-msgid "Deprecated"
-msgstr "Imeacha kutumika"
-
-
-msgid "Select Linked"
-msgstr "Chagua Imeunganishwa"
+msgid "Metaball"
+msgstr "Mpira wa miguu"
 
 
 msgid "Light"
@@ -28306,12 +28302,32 @@ msgid "Light Probe"
 msgstr "Uchunguzi wa Mwanga"
 
 
+msgid "Instances"
+msgstr "Matukio"
+
+
 msgid "Apply"
 msgstr "Tumia"
 
 
+msgid "Import"
+msgstr "Ingiza"
+
+
 msgid "Asset"
 msgstr "Mali"
+
+
+msgid "Deprecated"
+msgstr "Imeacha kutumika"
+
+
+msgid "Bone Collections"
+msgstr "Mikusanyo ya Mifupa"
+
+
+msgid "Merge"
+msgstr "Unganisha"
 
 
 msgid "Linked"
@@ -28320,22 +28336,6 @@ msgstr "Imeunganishwa"
 
 msgid "Layout"
 msgstr "Mpangilio"
-
-
-msgid "Adjust"
-msgstr "Rekebisha"
-
-
-msgid "Keying"
-msgstr "Kuweka"
-
-
-msgid "Tracking"
-msgstr "Kufuatilia"
-
-
-msgid "Bone Collections"
-msgstr "Mikusanyo ya Mifupa"
 
 
 msgid "Keyframe Insert Pie"
@@ -76957,10 +76957,6 @@ msgstr "Aina ya pasi ya kuoka"
 
 msgid "Filter Glossy"
 msgstr "Kichujio Kinang'aa"
-
-
-msgid "Adaptively blur glossy shaders after blurry bounces, to reduce noise at the cost of accuracy"
-msgstr "Weka ukungu wa vivuli vinavyometa baada ya kuteleza kwa ukungu, ili kupunguza kelele kwa gharama ya usahihi"
 
 
 msgid "Camera Cull Margin"

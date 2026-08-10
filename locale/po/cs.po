@@ -1,9 +1,9 @@
 
 msgid ""
 msgstr ""
-"Project-Id-Version: Blender 5.3.0 Alpha (b'af9ba6af7621')\n"
+"Project-Id-Version: Blender 5.3.0 Alpha (b'af4852ed4560')\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-08-03 07:24+0000\n"
+"POT-Creation-Date: 2026-08-10 07:54+0000\n"
 "PO-Revision-Date: 2025-12-01 09:17+0000\n"
 "Last-Translator: Matt Mitacek <mattmitacek@gmail.com>\n"
 "Language-Team: Czech <https://translate.blender.org/projects/blender-ui/ui/cs/>\n"
@@ -2398,10 +2398,6 @@ msgstr "Datové bloky částic"
 
 msgid "Point cloud data-blocks"
 msgstr "Datové bloky bodových mraků"
-
-
-msgid "Project"
-msgstr "Projekce"
 
 
 msgid "Scene data-blocks"
@@ -5584,6 +5580,10 @@ msgstr "Nejbližší Povrchový Bod"
 
 msgid "Shrink the location to the nearest target surface"
 msgstr "Odstranit označené Objekt(y)"
+
+
+msgid "Project"
+msgstr "Projekce"
 
 
 msgid "Shrink the location to the nearest target surface along a given axis"
@@ -13807,34 +13807,6 @@ msgid "Material slot name"
 msgstr "Název okénka materiálu"
 
 
-msgid "Mesh Select Mode"
-msgstr "Síťový mód výběru"
-
-
-msgid "Face Data"
-msgstr "Data Ploch"
-
-
-msgid "Clean Up"
-msgstr "Vyčistit"
-
-
-msgid "Merge"
-msgstr "Sloučit"
-
-
-msgid "Show/Hide"
-msgstr "Zobrazit/skrýt"
-
-
-msgid "Special Characters"
-msgstr "Speciální Znaky"
-
-
-msgid "Metaball"
-msgstr "Meta objekt"
-
-
 msgid "Names"
 msgstr "Názvy"
 
@@ -13843,12 +13815,28 @@ msgid "Bone Roll"
 msgstr "Kost"
 
 
-msgid "Math"
-msgstr "Matematika"
+msgid "Show/Hide"
+msgstr "Zobrazit/skrýt"
+
+
+msgid "Clean Up"
+msgstr "Vyčistit"
+
+
+msgid "Keying"
+msgstr "Klíčovací sestava"
+
+
+msgid "Tracking"
+msgstr "Sledování"
 
 
 msgid "Utilities"
 msgstr "Nástroje"
+
+
+msgid "Math"
+msgstr "Matematika"
 
 
 msgid "Pivot Point"
@@ -13861,14 +13849,6 @@ msgstr "Přichytit"
 
 msgid "Proportional Editing Falloff"
 msgstr "Způsob útlumu"
-
-
-msgid "Instances"
-msgstr "Instance"
-
-
-msgid "Import"
-msgstr "Importovat"
 
 
 msgid "Mirror"
@@ -13899,6 +13879,10 @@ msgid "Assign Material"
 msgstr "Přiřadit Materiál"
 
 
+msgid "Metaball"
+msgstr "Meta objekt"
+
+
 msgid "Light"
 msgstr "Světlo"
 
@@ -13907,12 +13891,20 @@ msgid "Relations"
 msgstr "Vztahy"
 
 
+msgid "Instances"
+msgstr "Instance"
+
+
 msgid "Rigid Body"
 msgstr "Tuhé Těleso"
 
 
 msgid "Apply"
 msgstr "Použít"
+
+
+msgid "Import"
+msgstr "Importovat"
 
 
 msgid "Track"
@@ -13927,32 +13919,40 @@ msgid "Make Single User"
 msgstr "Přivlastnit"
 
 
-msgid "Linked"
-msgstr "Propojené"
-
-
-msgid "Layout"
-msgstr "Rozložení"
-
-
 msgid "Hooks"
 msgstr "Háky"
-
-
-msgid "Keying"
-msgstr "Klíčovací sestava"
 
 
 msgid "Clear Transform"
 msgstr "Vyčistit transformaci"
 
 
-msgid "Tracking"
-msgstr "Sledování"
-
-
 msgid "Propagate"
 msgstr "Vložit"
+
+
+msgid "Mesh Select Mode"
+msgstr "Síťový mód výběru"
+
+
+msgid "Face Data"
+msgstr "Data Ploch"
+
+
+msgid "Merge"
+msgstr "Sloučit"
+
+
+msgid "Linked"
+msgstr "Propojené"
+
+
+msgid "Special Characters"
+msgstr "Speciální Znaky"
+
+
+msgid "Layout"
+msgstr "Rozložení"
 
 
 msgid "Basic"
