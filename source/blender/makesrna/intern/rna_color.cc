@@ -1411,6 +1411,7 @@ static void rna_def_colormanage(BlenderRNA *brna)
       "Display name. For viewing, this is the display device that will be emulated by limiting "
       "the gamut and HDR colors. For image and video output, this is the display space used for "
       "writing.");
+  RNA_def_property_translation_context(prop, BLT_I18NCONTEXT_COLOR_MANAGEMENT);
   RNA_def_property_update(
       prop, NC_WINDOW, "rna_ColorManagedDisplaySettings_display_device_update");
 
@@ -1438,6 +1439,7 @@ static void rna_def_colormanage(BlenderRNA *brna)
                               "rna_ColorManagedViewSettings_look_itemf");
   RNA_def_property_ui_text(
       prop, "Look", "Additional transform applied before view transform for artistic needs");
+  RNA_def_property_translation_context(prop, BLT_I18NCONTEXT_COLOR_MANAGEMENT);
   RNA_def_property_update(prop, NC_WINDOW, "rna_ColorManagement_update");
 
   prop = RNA_def_property(srna, "view_transform", PROP_ENUM, PROP_NONE);
@@ -1447,6 +1449,7 @@ static void rna_def_colormanage(BlenderRNA *brna)
                               "rna_ColorManagedViewSettings_view_transform_set",
                               "rna_ColorManagedViewSettings_view_transform_itemf");
   RNA_def_property_ui_text(prop, "View", "View used when converting image to a display space");
+  RNA_def_property_translation_context(prop, BLT_I18NCONTEXT_COLOR_MANAGEMENT);
   RNA_def_property_update(prop, NC_WINDOW, "rna_ColorManagement_update");
 
   prop = RNA_def_property(srna, "exposure", PROP_FLOAT, PROP_FACTOR);
@@ -1557,6 +1560,7 @@ static void rna_def_colormanage(BlenderRNA *brna)
       prop,
       "Input Color Space",
       "Color space in the image file, to convert to and from when saving and loading the image");
+  RNA_def_property_translation_context(prop, BLT_I18NCONTEXT_COLOR_MANAGEMENT);
   RNA_def_property_update(prop, NC_WINDOW, "rna_ColorManagedColorspaceSettings_reload_update");
 
   prop = RNA_def_property(srna, "is_data", PROP_BOOLEAN, PROP_NONE);
@@ -1584,6 +1588,7 @@ static void rna_def_colormanage(BlenderRNA *brna)
                               "rna_ColorManagedColorspaceSettings_colorspace_set",
                               "rna_ColorManagedColorspaceSettings_colorspace_itemf");
   RNA_def_property_ui_text(prop, "Color Space", "Color space that the sequencer operates in");
+  RNA_def_property_translation_context(prop, BLT_I18NCONTEXT_COLOR_MANAGEMENT);
   RNA_def_property_update(prop, NC_WINDOW, "rna_ColorManagedColorspaceSettings_reload_update");
 }
 

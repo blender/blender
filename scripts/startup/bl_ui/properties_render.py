@@ -122,7 +122,7 @@ class RENDER_PT_color_management_working_space(RenderButtonsPanel, Panel):
             "wm.set_working_color_space",
             "working_space",
             text=blend_colorspace.working_space,
-            text_ctxt=i18n_contexts.default,
+            text_ctxt=i18n_contexts.color_management,
         )
 
         col.prop_with_menu(

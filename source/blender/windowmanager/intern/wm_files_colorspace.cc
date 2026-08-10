@@ -205,6 +205,7 @@ void WM_OT_set_working_color_space(wmOperatorType *ot)
                                    "Working Space",
                                    "Color space to set");
   RNA_def_enum_funcs(prop, working_space_itemf);
+  RNA_def_property_translation_context(prop, BLT_I18NCONTEXT_COLOR_MANAGEMENT);
 
   ot->prop = prop;
 }

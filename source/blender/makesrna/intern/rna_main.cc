@@ -10,7 +10,6 @@
 #include <cstring>
 
 #include "BLI_path_utils.hh"
-
 #include "BLI_string_ref.hh"
 
 #include "BLT_translation.hh"
@@ -299,6 +298,7 @@ static void rna_def_main_colorspace(BlenderRNA *brna)
                            "Working Space",
                            "Color space used for all scene linear colors in this file, and "
                            "for compositing, shader and geometry nodes processing");
+  RNA_def_property_translation_context(prop, BLT_I18NCONTEXT_COLOR_MANAGEMENT);
   RNA_def_property_enum_funcs(prop,
                               "rna_MainColorspace_working_space_get",
                               nullptr,
