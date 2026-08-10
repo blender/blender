@@ -544,7 +544,7 @@ static void foreach_vert(const bke::subdiv::ForeachContext *foreach_context,
                                                              grid_coord.grid_index);
 
   const int num_corners = reshape_context->base_faces[face_index].size();
-  const int start_grid_index = reshape_context->face_start_grid_index[face_index];
+  const int start_grid_index = reshape_context->base_faces[face_index].start();
   const int corner = grid_coord.grid_index - start_grid_index;
 
   if (grid_coord.u == 0.0f && grid_coord.v == 0.0f) {
@@ -649,7 +649,7 @@ static void foreach_loop(const bke::subdiv::ForeachContext *foreach_context,
   Corner *corner = &reshape_smooth_context->geometry.corners[subdiv_loop_index];
   corner->vert_index = subdiv_vert_index;
 
-  const int first_grid_index = reshape_context->face_start_grid_index[coarse_face_index];
+  const int first_grid_index = reshape_context->base_faces[coarse_face_index].start();
   corner->grid_index = first_grid_index + coarse_corner;
 }
 
