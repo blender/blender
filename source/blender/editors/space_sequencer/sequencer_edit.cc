@@ -1668,18 +1668,21 @@ void SEQUENCER_OT_refresh_all(wmOperatorType *ot)
 /** \name Reassign Inputs Operator
  * \{ */
 
-const char *effect_inputs_validate(int have_inputs, int num_inputs)
+bool effect_inputs_validate(int have_inputs, int num_inputs, ReportList *reports)
 {
   if (have_inputs > 2) {
-    return "Cannot apply effect to more than 2 strips with video content";
+    BKE_report(reports, RPT_ERROR, "Cannot apply effect to more than 2 strips with video content");
+    return false;
   }
   if (num_inputs == 2 && have_inputs != 2) {
-    return "Exactly 2 selected strips with video content are needed";
+    BKE_report(reports, RPT_ERROR, "Exactly 2 selected strips with video content are needed");
+    return false;
   }
   if (num_inputs == 1 && have_inputs != 1) {
-    return "Exactly one selected strip with video content is needed";
+    BKE_report(reports, RPT_ERROR, "Exactly one selected strip with video content is needed");
+    return false;
   }
-  return nullptr;
+  return true;
 }
 
 VectorSet<Strip *> strip_effect_get_new_inputs(const Scene *scene,
@@ -1743,10 +1746,8 @@ static wmOperatorStatus sequencer_reassign_inputs_exec(bContext *C, wmOperator *
 
   VectorSet<Strip *> inputs = strip_effect_get_new_inputs(
       scene, active_strip->type, num_inputs, true);
-  StringRef error_msg = effect_inputs_validate(inputs.size(), num_inputs);
 
-  if (!error_msg.is_empty()) {
-    BKE_report(op->reports, RPT_ERROR, error_msg.data());
+  if (!effect_inputs_validate(inputs.size(), num_inputs, op->reports)) {
     return OPERATOR_CANCELLED;
   }
 
