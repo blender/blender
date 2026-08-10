@@ -213,6 +213,9 @@ class GHOST_DeviceVK {
   VkPhysicalDeviceVulkan12Properties properties_12 = {
       VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_VULKAN_1_2_PROPERTIES,
   };
+  VkPhysicalDeviceDriverProperties device_driver_properties = {
+      VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_DRIVER_PROPERTIES,
+  };
   VkPhysicalDeviceFeatures2 features = {};
   VkPhysicalDeviceVulkan11Features features_11 = {};
   VkPhysicalDeviceVulkan12Features features_12 = {};
@@ -235,6 +238,7 @@ class GHOST_DeviceVK {
         use_vk_ext_swapchain_colorspace(use_vk_ext_swapchain_colorspace)
   {
     properties.pNext = &properties_12;
+    properties_12.pNext = &device_driver_properties;
     volk::vkGetPhysicalDeviceProperties2(vk_physical_device, &properties);
 
     features.sType = VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_FEATURES_2;
@@ -788,9 +792,28 @@ struct GHOST_InstanceVK {
     }
 
     device_create_info.pNext = feature_struct_ptr[0];
-    VK_CHECK(
-        volk::vkCreateDevice(vk_physical_device, &device_create_info, nullptr, &device.vk_device),
-        GHOST_kFailure);
+
+    VkResult result = volk::vkCreateDevice(
+        vk_physical_device, &device_create_info, nullptr, &device.vk_device);
+
+    if (result != VK_SUCCESS) {
+#if (defined(__SANITIZE_ADDRESS__) || __has_feature(address_sanitizer)) && defined(__linux__)
+      if (device.device_driver_properties.driverID == VK_DRIVER_ID_NVIDIA_PROPRIETARY) {
+        CLOG_ERROR(
+            &LOG,
+            "Vulkan: vkCreateDevice resulted in code %s.\n"
+            "Address Sanitizer has known incompatibilities with Nvidia Vulkan drivers on Linux,"
+            "see https://developer.blender.org/docs/handbook/tooling/asan/"
+            "#shadow-memory-issue-with-vulkan-on-nvidia-linux-drivers for more info.",
+            blender::gpu::to_string(result));
+        return GHOST_kFailure;
+      }
+#endif
+      CLOG_ERROR(
+          &LOG, "Vulkan: vkCreateDevice resulted in code %s.", blender::gpu::to_string(result));
+      return GHOST_kFailure;
+    }
+
     volkLoadDeviceTable(&device.functions, device.vk_device);
     device.init_generic_queue();
     device.init_memory_allocator(vk_instance);
