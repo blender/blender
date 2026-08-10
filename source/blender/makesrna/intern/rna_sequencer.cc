@@ -671,10 +671,19 @@ static void rna_Strip_right_handle_offset_set(PointerRNA *ptr, float value)
   strip->end_offset_set(value);
 }
 
+static int strip_content_trim_max(const Strip *strip, const int anim_offset)
+{
+  /* Hold frames (negative `startofs`/`end_offset`) must not be counted as available content. */
+  return strip->content_length() + anim_offset - std::max(0, int(strip->startofs)) -
+         std::max(0, int(strip->end_offset())) - 1;
+}
+
 static void rna_Strip_content_trim_start_set(PointerRNA *ptr, int value)
 {
   Strip *strip = static_cast<Strip *>(ptr->data);
   Scene *scene = id_cast<Scene *>(ptr->owner_id);
+
+  value = std::clamp(value, 0, strip_content_trim_max(strip, strip->anim_startofs));
 
   /* As `anim_startofs` is changed, strip shrinks on the right with left handle position unchanged.
    * To give the appearance as if the strip is trimmed from the left, add move compensation. */
@@ -690,7 +699,7 @@ static void rna_Strip_content_trim_end_set(PointerRNA *ptr, int value)
   Strip *strip = static_cast<Strip *>(ptr->data);
   Scene *scene = id_cast<Scene *>(ptr->owner_id);
 
-  strip->anim_endofs = value;
+  strip->anim_endofs = std::clamp(value, 0, strip_content_trim_max(strip, strip->anim_endofs));
 
   seq::add_reload_new_file(G.main, scene, strip, false);
   do_strip_frame_change_update(scene, strip);
@@ -702,7 +711,7 @@ static void rna_Strip_content_trim_end_range(
   Strip *strip = static_cast<Strip *>(ptr->data);
 
   *min = 0;
-  *max = strip->content_length() + strip->anim_endofs - strip->startofs - strip->end_offset() - 1;
+  *max = strip_content_trim_max(strip, strip->anim_endofs);
 }
 
 static void rna_Strip_content_trim_start_range(
@@ -711,8 +720,7 @@ static void rna_Strip_content_trim_start_range(
   Strip *strip = static_cast<Strip *>(ptr->data);
 
   *min = 0;
-  *max = strip->content_length() + strip->anim_startofs - strip->startofs - strip->end_offset() -
-         1;
+  *max = strip_content_trim_max(strip, strip->anim_startofs);
 }
 
 static void rna_Strip_left_handle_range(
