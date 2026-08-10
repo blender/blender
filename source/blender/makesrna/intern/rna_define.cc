@@ -1929,8 +1929,8 @@ void RNA_def_property_enum_items(PropertyRNA *prop, const EnumPropertyItem *item
           if (!type_info.is_integer) {
             CLOG_ERROR(&LOG,
                        "\"%s.%s\", enum type \"%s\" size is not known.",
-                       srna->identifier,
-                       prop->identifier,
+                       srna->identifier.c_str(),
+                       prop->identifier.c_str(),
                        dp->dnatype.c_str());
           }
           else {
@@ -3128,7 +3128,7 @@ void RNA_def_property_poll_runtime(PropertyRNA *prop, const void *func)
     ((PointerPropertyRNA *)prop)->poll = (PropPointerPollFunc)func;
   }
   else {
-    CLOG_ERROR(&LOG, "%s is not a Pointer Property.", prop->identifier);
+    CLOG_ERROR(&LOG, "%s is not a Pointer Property.", prop->identifier.c_str());
   }
 }
 
