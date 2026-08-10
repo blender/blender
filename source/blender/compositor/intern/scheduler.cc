@@ -3,6 +3,7 @@
  * SPDX-License-Identifier: GPL-2.0-or-later */
 
 #include <algorithm>
+#include <type_traits>
 
 #include "BLI_index_range.hh"
 #include "BLI_map.hh"
@@ -16,6 +17,7 @@
 
 #include "BKE_node.hh"
 #include "BKE_node_runtime.hh"
+#include "BKE_type_conversions.hh"
 
 #include "NOD_geo_index_switch.hh"
 #include "NOD_geo_menu_switch.hh"
@@ -176,8 +178,8 @@ static void add_output_nodes(NodeGroupOperation &node_group_operation,
 
 /* Returns the value of input of the node with the given identifier in the given node group
  * operation. If the value can not be determined statically, a nullopt is returned. The value is
- * only known statically if the input is not connected or directly connected to a group input node
- * with the same socket type. */
+ * only known statically if the input is not connected, directly connected to a group input node
+ * with the same socket type, or connected to an Is Viewport node. */
 template<typename T, typename SocketT>
 static std::optional<T> get_input_socket_value(const bNode &node,
                                                const UString &identifier,
@@ -189,7 +191,29 @@ static std::optional<T> get_input_socket_value(const bNode &node,
   }
 
   const bNodeSocket *linked_output = input.logically_linked_sockets()[0];
-  if (!linked_output->owner_node().is_group_input()) {
+  const bNode &linked_node = linked_output->owner_node();
+
+  if (linked_node.is_type("GeometryNodeIsViewport"_ustr)) {
+    /* Is Viewport node's value can be determined statically.
+     * Convert according to the same implicit conversion table used at runtime. */
+    const bool is_viewport = node_group_operation.context().is_viewport();
+    if constexpr (std::is_same_v<T, bool>) {
+      return is_viewport;
+    }
+    else {
+      const CPPType &from_type = CPPType::get<bool>();
+      const CPPType &to_type = CPPType::get<T>();
+      const bke::DataTypeConversions &conversions = bke::get_implicit_type_conversions();
+      if (!conversions.is_convertible(from_type, to_type)) {
+        return std::nullopt;
+      }
+      T converted_value;
+      conversions.convert_to_uninitialized(from_type, to_type, &is_viewport, &converted_value);
+      return converted_value;
+    }
+  }
+
+  if (!linked_node.is_group_input()) {
     return std::nullopt;
   }
 

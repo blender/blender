@@ -84,6 +84,11 @@ class Context : public compositor::Context {
     return true;
   }
 
+  bool is_viewport() const override
+  {
+    return true;
+  }
+
   const ComputeContextHash &get_active_compute_context_hash() const override
   {
     return active_compute_context_hash_;
