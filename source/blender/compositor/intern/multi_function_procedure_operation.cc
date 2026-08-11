@@ -330,6 +330,10 @@ mf::Variable *MultiFunctionProcedureOperation::get_constant_input_variable(
       constant_function = &procedure_.construct_function<mf::CustomMF_Constant<Mask *>>(value);
       break;
     }
+    case SOCK_BUNDLE:
+      /* Not supported in multi-function nodes. */
+      BLI_assert_unreachable();
+      break;
     default:
       BLI_assert_unreachable();
       break;

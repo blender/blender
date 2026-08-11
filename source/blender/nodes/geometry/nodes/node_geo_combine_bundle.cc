@@ -16,6 +16,9 @@
 
 #include "UI_interface_layout.hh"
 
+#include "COM_bundle_item.hh"
+#include "COM_node_operation.hh"
+
 #include "node_geometry_util.hh"
 #include "shader/node_shader_util.hh"
 
@@ -166,6 +169,39 @@ static void node_geo_exec(GeoNodeExecParams params)
   params.set_output("Bundle"_ustr, std::move(bundle_ptr));
 }
 
+using namespace blender::compositor;
+
+class CombineBundleOperation : public NodeOperation {
+ public:
+  using NodeOperation::NodeOperation;
+
+  void execute() override
+  {
+    BundlePtr bundle_ptr = Bundle::create();
+    Bundle &bundle = bundle_ptr.ensure_mutable_inplace();
+
+    const NodeCombineBundle &storage = node_storage(this->node());
+    for (const int i : IndexRange(storage.items_num)) {
+      const StringRef name = storage.items[i].name;
+      const std::optional<BundleKey> key = BundleKey::from_str(name);
+      if (!key) {
+        continue;
+      }
+      Result &input = this->get_input(this->node().input_socket(i).identifier);
+      bundle.add(*key, BundleItem::new_bundle_item_value(this->context(), input));
+    }
+
+    Result &output = this->get_result("Bundle");
+    output.allocate_single_value();
+    output.set_single_value(std::move(bundle_ptr));
+  }
+};
+
+static NodeOperation *get_compositor_operation(Context &context, const bNode &node)
+{
+  return new CombineBundleOperation(context, node);
+}
+
 static void node_gather_link_searches(GatherLinkSearchOpParams &params)
 {
   const bNodeSocket &other_socket = params.other_socket();
@@ -211,7 +247,7 @@ static void node_register()
 {
   static bke::bNodeType ntype;
 
-  sh_geo_node_type_base(&ntype, "NodeCombineBundle"_ustr, NODE_COMBINE_BUNDLE);
+  common_node_type_base(&ntype, "NodeCombineBundle"_ustr, NODE_COMBINE_BUNDLE);
   ntype.ui_name = "Combine Bundle";
   ntype.ui_description = "Combine multiple socket values into one.";
   ntype.nclass = NODE_CLASS_CONVERTER;
@@ -224,6 +260,7 @@ static void node_register()
   ntype.register_operators = node_operators;
   ntype.blend_write_storage_content = node_blend_write;
   ntype.blend_data_read_storage_content = node_blend_read;
+  ntype.get_compositor_operation = get_compositor_operation;
   bke::node_type_storage(ntype, "NodeCombineBundle", node_free_storage, node_copy_storage);
   bke::node_register_type(ntype);
 }

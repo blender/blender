@@ -9,6 +9,7 @@ set(INC
   ../compositor/algorithms
   ../compositor/cached_resources
   ../compositor/derived_resources
+  ../functions
   ../editors/include
   ../animrig
   ../makesrna

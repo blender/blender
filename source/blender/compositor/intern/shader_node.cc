@@ -84,6 +84,7 @@ static GPUType gpu_type_from_socket(const bNodeSocket &socket)
     case SOCK_SCENE:
     case SOCK_TEXT_ID:
     case SOCK_MASK:
+    case SOCK_BUNDLE:
       /* Single only types do not support GPU code path. */
       BLI_assert(Result::is_single_value_only_type(get_node_socket_result_type(&socket)));
       BLI_assert_unreachable();

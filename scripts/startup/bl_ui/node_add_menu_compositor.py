@@ -4,6 +4,7 @@
 
 from bl_ui import node_add_menu
 from bpy.app.translations import (
+    pgettext_n as n_,
     contexts as i18n_contexts,
 )
 
@@ -294,6 +295,7 @@ class NODE_MT_compositor_node_utilities_base(node_add_menu.NodeMenu):
         self.draw_menu(layout, path="Utilities/Text")
         self.draw_menu(layout, path="Utilities/Vector")
         layout.separator()
+        self.draw_menu(layout, path="Utilities/Bundle")
         self.draw_menu(layout, path="Utilities/Matrix")
         self.draw_menu(layout, path="Utilities/Rotation")
         layout.separator()
@@ -400,6 +402,23 @@ class NODE_MT_compositor_node_text_base(node_add_menu.NodeMenu):
         self.node_operator(layout, "FunctionNodeValueToString")
         layout.separator()
         self.node_operator(layout, "FunctionNodeInputSpecialCharacters")
+
+        self.draw_assets_for_catalog(layout, self.menu_path)
+
+
+class NODE_MT_compositor_utilities_bundle_base(node_add_menu.NodeMenu):
+    bl_label = "Bundle"
+    menu_path = "Utilities/Bundle"
+
+    def draw(self, context):
+        layout = self.layout
+        self.node_operator(layout, "NodeCombineBundle")
+        self.node_operator(layout, "NodeSeparateBundle")
+        layout.separator()
+        self.node_operator(layout, "NodeGetBundleItem")
+        self.node_operator(layout, "NodeStoreBundleItem")
+        layout.separator()
+        self.typed_bundle(layout, label=n_("Typed Bundle"))
 
         self.draw_assets_for_catalog(layout, self.menu_path)
 
@@ -517,6 +536,7 @@ add_menus = {
     "NODE_MT_category_compositor_math": NODE_MT_compositor_node_math_base,
     "NODE_MT_category_compositor_text": NODE_MT_compositor_node_text_base,
     "NODE_MT_category_compositor_matrix": NODE_MT_compositor_utilities_matrix_base,
+    "NODE_MT_category_compositor_bundle": NODE_MT_compositor_utilities_bundle_base,
     "NODE_MT_category_compositor_rotation": NODE_MT_compositor_node_rotation_base,
     "NODE_MT_compositor_node_add_all": NODE_MT_compositor_node_all_base,
 }
@@ -548,6 +568,7 @@ swap_menus = {
     "NODE_MT_compositor_node_math_swap": NODE_MT_compositor_node_math_base,
     "NODE_MT_compositor_node_text_swap": NODE_MT_compositor_node_text_base,
     "NODE_MT_compositor_node_matrix_swap": NODE_MT_compositor_utilities_matrix_base,
+    "NODE_MT_compositor_node_bundle_swap": NODE_MT_compositor_utilities_bundle_base,
     "NODE_MT_compositor_node_rotation_swap": NODE_MT_compositor_node_rotation_base,
     "NODE_MT_compositor_node_swap_all": NODE_MT_compositor_node_all_base,
 }

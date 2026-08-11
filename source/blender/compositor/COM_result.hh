@@ -28,6 +28,7 @@
 #include "GPU_shader.hh"
 #include "GPU_texture.hh"
 
+#include "NOD_geometry_nodes_bundle.hh"
 #include "NOD_menu_value.hh"
 
 #include "COM_domain.hh"
@@ -71,6 +72,7 @@ enum class ResultType : uint8_t {
   Scene,
   Text,
   Mask,
+  Bundle,
 };
 
 /* The precision of the data. CPU data is always stored using full precision at the moment. */
@@ -179,7 +181,8 @@ class Result {
                VFont *,
                Scene *,
                Text *,
-               Mask *>
+               Mask *,
+               nodes::BundlePtr>
       single_value_ = 0.0f;
   /* The domain of the result. This only matters if the result was not a single value. See the
    * discussion in COM_domain.hh for more information. */

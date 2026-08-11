@@ -8,6 +8,7 @@ set(INC
   cached_resources
   derived_resources
   utilities
+  ../functions
   ../nodes/geometry/include
   ../gpu/intern
   ../makesrna
@@ -19,6 +20,7 @@ set(INC_SYS
 )
 
 set(SRC
+  COM_bundle_item.hh
   COM_compile_state.hh
   COM_context.hh
   COM_conversion_operation.hh
@@ -47,6 +49,7 @@ set(SRC
   COM_undefined_node_operation.hh
   COM_utilities.hh
 
+  intern/bundle_item.cc
   intern/compile_state.cc
   intern/context.cc
   intern/conversion_operation.cc
