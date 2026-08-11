@@ -10,6 +10,7 @@
 
 #include "BLI_utildefines.hh"
 
+#include "BLI_array.hh"
 #include "BLI_kdtree.hh"
 #include "BLI_map.hh"
 #include "BLI_math_matrix_c.hh"
@@ -48,6 +49,11 @@
 
 namespace blender {
 
+static Array<int, 0> *facepa_array(ExplodeModifierData *emd)
+{
+  return static_cast<Array<int, 0> *>(emd->facepa);
+}
+
 static void init_data(ModifierData *md)
 {
   ExplodeModifierData *emd = reinterpret_cast<ExplodeModifierData *>(md);
@@ -57,7 +63,10 @@ static void free_data(ModifierData *md)
 {
   ExplodeModifierData *emd = reinterpret_cast<ExplodeModifierData *>(md);
 
-  MEM_SAFE_DELETE(emd->facepa);
+  if (emd->facepa) {
+    MEM_delete(facepa_array(emd));
+    emd->facepa = nullptr;
+  }
 }
 static void copy_data(const ModifierData *md, ModifierData *target, const int flag)
 {
@@ -105,9 +114,11 @@ static void createFacepa(ExplodeModifierData *emd, ParticleSystemModifierData *p
   rng = BLI_rng_new_srandom(psys->seed);
 
   if (emd->facepa) {
-    MEM_delete(emd->facepa);
+    MEM_delete(facepa_array(emd));
   }
-  facepa = emd->facepa = MEM_new_array_zeroed<int>(totface, __func__);
+  auto *facepa_array = MEM_new<Array<int, 0>>(__func__, totface, 0);
+  emd->facepa = facepa_array;
+  facepa = facepa_array->data();
 
   vertpa = MEM_new_array_zeroed<int>(totvert, __func__);
 
@@ -657,7 +668,7 @@ static Mesh *cutEdges(ExplodeModifierData *emd, Mesh *mesh)
 
   int *facesplit = MEM_new_array_zeroed<int>(totface, __func__);
   int *vertpa = MEM_new_array_zeroed<int>(totvert, __func__);
-  int *facepa = emd->facepa;
+  int *facepa = facepa_array(emd)->data();
   int *fs, totfsplit = 0, curdupface = 0;
   int i, v1, v2, v3, v4, v[4] = {0, 0, 0, 0}, /* To quite gcc barking... */
       uv[4] = {0, 0, 0, 0};                   /* To quite gcc barking... */
@@ -746,9 +757,11 @@ static Mesh *cutEdges(ExplodeModifierData *emd, Mesh *mesh)
    * later interpreted as triangles, for this to work right I think we probably
    * have to stop using tessface. */
 
-  facepa = MEM_new_array_zeroed<int>(size_t(totface) + (size_t(totfsplit) * 2), __func__);
+  auto *facepa_array = MEM_new<Array<int, 0>>(
+      __func__, size_t(totface) + (size_t(totfsplit) * 2), 0);
+  facepa = facepa_array->data();
   // memcpy(facepa, emd->facepa, totface*sizeof(int));
-  emd->facepa = facepa;
+  emd->facepa = facepa_array;
 
   /* create new verts */
   for (const auto [edge, esplit] : edgehash.items()) {
@@ -903,7 +916,7 @@ static Mesh *explodeMesh(ExplodeModifierData *emd,
   float rot[4];
   float ctime;
   // float timestep;
-  const int *facepa = emd->facepa;
+  const int *facepa = facepa_array(emd)->data();
   int totdup = 0, totvert = 0, totface = 0, totpart = 0, delface = 0;
   int i, u;
   uint mindex = 0;
@@ -1128,8 +1141,7 @@ static Mesh *modify_mesh(ModifierData *md, const ModifierEvalContext *ctx, Mesh 
 
     /* 1. find faces to be exploded if needed */
     if (emd->facepa == nullptr || psmd->flag & eParticleSystemFlag_Pars ||
-        emd->flag & eExplodeFlag_CalcFaces ||
-        MEM_allocN_len(emd->facepa) / sizeof(int) != mesh->totface_legacy)
+        emd->flag & eExplodeFlag_CalcFaces || facepa_array(emd)->size() != mesh->totface_legacy)
     {
       if (psmd->flag & eParticleSystemFlag_Pars) {
         psmd->flag &= ~eParticleSystemFlag_Pars;
@@ -1142,11 +1154,11 @@ static Mesh *modify_mesh(ModifierData *md, const ModifierEvalContext *ctx, Mesh 
     /* 2. create new mesh */
     Scene *scene = DEG_get_evaluated_scene(ctx->depsgraph);
     if (emd->flag & eExplodeFlag_EdgeCut) {
-      int *facepa = emd->facepa;
+      void *facepa = emd->facepa;
       Mesh *split_m = cutEdges(emd, mesh);
       Mesh *explode = explodeMesh(emd, psmd, ctx, scene, split_m);
 
-      MEM_delete(emd->facepa);
+      MEM_delete(facepa_array(emd));
       emd->facepa = facepa;
       BKE_id_free(nullptr, split_m);
       return explode;
