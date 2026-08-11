@@ -263,12 +263,6 @@ GPU_OPENGL_TEST(texture_view_UINT_8);
 
 static void test_texture_view_mip_layer_test()
 {
-  if (GPU_type_matches_ex(GPU_DEVICE_ATI, GPU_OS_ANY, GPU_DRIVER_ANY, GPU_BACKEND_OPENGL) ||
-      GPU_type_matches_ex(GPU_DEVICE_INTEL, GPU_OS_UNIX, GPU_DRIVER_ANY, GPU_BACKEND_OPENGL))
-  {
-    GTEST_SKIP() << "Broken on AMD and Intel-Linux.";
-  }
-
   GPU_render_begin();
 
   /* Test operates on a 4x4 texture patch. */

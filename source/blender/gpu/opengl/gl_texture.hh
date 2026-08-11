@@ -48,6 +48,8 @@ class GLTexture : public Texture {
   GLuint tex_id_ = 0;
   /** Legacy workaround for texture copy. Created when using framebuffer_get(). */
   FrameBuffer *framebuffer_ = nullptr;
+  /* Mip level currently bound to the framebuffer. */
+  int framebuffer_mip_ = -1;
   /** True if this texture is bound to at least one texture unit. */
   /* TODO(fclem): How do we ensure thread safety here? */
   bool is_bound_ = false;
@@ -117,7 +119,7 @@ class GLTexture : public Texture {
   void stencil_texture_mode_set(bool use_stencil);
   void update_sub_direct_state_access(
       int mip, int offset[3], int extent[3], GLenum gl_format, GLenum gl_type, const void *data);
-  FrameBuffer *framebuffer_get();
+  FrameBuffer *framebuffer_get(int mip);
 
   MEM_CXX_CLASS_ALLOC_FUNCS("GLTexture")
 };

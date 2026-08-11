@@ -427,9 +427,13 @@ void GLTexture::clear(const double4 data)
 
   gpu::FrameBuffer *prev_fb = GPU_framebuffer_active_get();
 
-  FrameBuffer *fb = this->framebuffer_get();
-  fb->bind(true);
-  fb->clear_attachment(this->attachment_type(0), data);
+  /* fb->clear_attachment only affects one mip level. Iterate in reverse order so at the end, mip
+   * level 0 is bound to the framebuffer. */
+  for (int mip = mipmaps_ - 1; mip >= 0; mip--) {
+    FrameBuffer *fb = this->framebuffer_get(mip);
+    fb->bind(true);
+    fb->clear_attachment(this->attachment_type(0), data);
+  }
 
   GPU_framebuffer_bind(prev_fb);
 }
@@ -571,11 +575,16 @@ void GLTexture::mip_range_set(int min, int max)
   }
 }
 
-FrameBuffer *GLTexture::framebuffer_get()
+FrameBuffer *GLTexture::framebuffer_get(int mip)
 {
   if (framebuffer_) {
     GLFrameBuffer *gl_framebuffer = static_cast<GLFrameBuffer *>(framebuffer_);
     if (gl_framebuffer->context_get() == GLContext::get()) {
+      if (framebuffer_mip_ != mip) {
+        framebuffer_->attachment_set(this->attachment_type(0),
+                                     GPU_ATTACHMENT_TEXTURE_MIP(this, mip));
+        framebuffer_mip_ = mip;
+      }
       return framebuffer_;
     }
 
@@ -585,7 +594,8 @@ FrameBuffer *GLTexture::framebuffer_get()
   }
   BLI_assert(!(type_ & GPU_TEXTURE_1D));
   framebuffer_ = GPU_framebuffer_create(name_.c_str());
-  framebuffer_->attachment_set(this->attachment_type(0), GPU_ATTACHMENT_TEXTURE(this));
+  framebuffer_->attachment_set(this->attachment_type(0), GPU_ATTACHMENT_TEXTURE_MIP(this, mip));
+  framebuffer_mip_ = mip;
   has_pixels_ = true;
   return framebuffer_;
 }
