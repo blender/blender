@@ -14,6 +14,8 @@
 
 #include "RNA_types.hh"
 
+#include "WM_types.hh"
+
 namespace blender {
 
 struct AssetWeakReference;
@@ -40,6 +42,7 @@ void draw_node_menu_for_catalog(const asset_system::AssetCatalogTreeItem &item,
                                 ui::Layout &layout);
 void draw_asset_menu_item(const asset_system::AssetRepresentation *asset,
                           StringRefNull opname,
+                          wm::OpCallContext operator_call_context,
                           ui::Layout &layout);
 
 void operator_asset_reference_props_set(const asset_system::AssetRepresentation &asset,

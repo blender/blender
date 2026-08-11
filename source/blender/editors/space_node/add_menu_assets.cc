@@ -200,7 +200,8 @@ static void node_catalog_assets_draw(const bContext *C, Menu *menu)
       layout->separator();
       add_separator = false;
     }
-    ed::asset::draw_asset_menu_item(asset, *operator_id, *layout);
+    ed::asset::draw_asset_menu_item(
+        asset, *operator_id, wm::OpCallContext::InvokeRegionWin, *layout);
   }
 
   const Set<StringRef> all_builtin_menus = get_builtin_menus(edit_tree->type);
@@ -237,7 +238,8 @@ static void node_unassigned_assets_draw(const bContext *C, Menu *menu)
   }
   asset::AssetItemTree &tree = *snode.runtime->assets_for_menu;
   for (const asset_system::AssetRepresentation *asset : tree.unassigned_assets) {
-    asset::draw_asset_menu_item(asset, *operator_id, *menu->layout);
+    asset::draw_asset_menu_item(
+        asset, *operator_id, wm::OpCallContext::InvokeRegionWin, *menu->layout);
   }
 }
 
