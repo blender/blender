@@ -241,7 +241,17 @@ static void file_refresh(const bContext *C, ScrArea *area)
   filelist_setdir(sfile->files, params->dir);
   filelist_setrecursion(sfile->files, params->recursion_level);
   filelist_setsorting(sfile->files, params->sort, params->flag & FILE_SORT_INVERT);
-  filelist_setlibrary(sfile->files, asset_params ? &asset_params->asset_library_ref : nullptr);
+  filelist_setlibrary(
+      sfile->files, asset_params ? &asset_params->asset_library_ref : nullptr, [&]() {
+        /* When switching to the essentials library and the "Unassigned" catalog is active, switch
+         * to the "All" library instead. The "Unassigned" catalog should be empty for the
+         * essentials library and isn't shown in the UI. */
+        if ((asset_params->asset_library_ref.type == ASSET_LIBRARY_ESSENTIALS) &&
+            asset_params->asset_catalog_visibility == FILE_SHOW_ASSETS_WITHOUT_CATALOG)
+        {
+          asset_params->asset_catalog_visibility = FILE_SHOW_ASSETS_ALL_CATALOGS;
+        }
+      });
 
   const bool show_assets_online = asset_params && ELEM(asset_params->asset_access,
                                                        AssetAccess::OnlineAndOffline,

@@ -211,7 +211,14 @@ void AssetCatalogTreeView::build_tree()
     });
   }
 
-  add_unassigned_item();
+  /* Hide the unassigned catalog for the Essentials library, it should be empty in releases. Still
+   * show it when "Unassigned" _is_ active. */
+  const bool is_essentials = params_->asset_library_ref.type == ASSET_LIBRARY_ESSENTIALS;
+  const bool shows_unassigned_item = params_->asset_catalog_visibility ==
+                                     FILE_SHOW_ASSETS_WITHOUT_CATALOG;
+  if (!is_essentials || shows_unassigned_item) {
+    add_unassigned_item();
+  }
 }
 
 ui::BasicTreeViewItem &AssetCatalogTreeView::build_catalog_items_recursive(
