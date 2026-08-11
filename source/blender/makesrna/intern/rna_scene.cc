@@ -9115,6 +9115,15 @@ void RNA_def_scene(BlenderRNA *brna)
       prop, "Only Show Selected", "Only include channels relating to selected objects and data");
   RNA_def_property_update(prop, NC_SCENE | ND_FRAME, nullptr);
 
+  prop = RNA_def_property(srna, "wrap_timeline_navigation", PROP_BOOLEAN, PROP_NONE);
+  RNA_def_property_clear_flag(prop, PROP_ANIMATABLE);
+  RNA_def_property_boolean_sdna(prop, nullptr, "r.flag", SCER_WRAP_TIMELINE_NAVIGATION);
+  RNA_def_property_ui_text(
+      prop,
+      "Wrap Timeline",
+      "Wrap the playhead around the playback range when navigating the timeline");
+  RNA_def_property_update(prop, NC_SCENE | ND_FRAME, nullptr);
+
   /* Stamp */
   prop = RNA_def_property(srna, "use_stamp_note", PROP_STRING, PROP_NONE);
   RNA_def_property_string_sdna(prop, nullptr, "r.stamp_udata");
