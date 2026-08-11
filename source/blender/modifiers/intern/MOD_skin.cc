@@ -940,8 +940,9 @@ static Mesh *subdivide_base(const Mesh *orig)
 
   MutableSpan<float3> out_vert_positions = result->vert_positions_for_write();
   MutableSpan<int2> result_edges = result->edges_for_write();
-  bke::SpanAttributeWriter<float2> outnode =
-      result->attributes_for_write().lookup_for_write_span<float2>("skin_modifier_radius");
+  bke::MutableAttributeAccessor attributes = result->attributes_for_write();
+  bke::SpanAttributeWriter<float2> outnode = attributes.convert_or_add_for_write_span<float2>(
+      "skin_modifier_radius", bke::AttrDomain::Point);
   MDeformVert *outdvert = nullptr;
   if (origdvert) {
     outdvert = result->deform_verts_for_write().data();

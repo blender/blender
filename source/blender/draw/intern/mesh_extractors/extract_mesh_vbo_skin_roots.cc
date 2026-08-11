@@ -34,6 +34,10 @@ gpu::VertBufPtr extract_skin_roots(const MeshRenderData &mr)
       &mr.bm->vdata, CD_PROP_FLOAT2, "skin_modifier_radius");
   const int root_offset = CustomData_get_offset_named(
       &mr.bm->vdata, CD_PROP_BOOL, "skin_modifier_root");
+  if (radius_offset == -1 || root_offset == -1) {
+    return {};
+  }
+
   BMIter iter;
   BMVert *vert;
   BM_ITER_MESH (vert, &iter, mr.bm, BM_VERTS_OF_MESH) {

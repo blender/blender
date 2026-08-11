@@ -1775,7 +1775,7 @@ static std::optional<std::string> rna_MeshSkinVertex_path(const PointerRNA *ptr)
   if (!index) {
     return std::nullopt;
   }
-  return fmt::format("skin_vertices[\"skin_modifier_radius\"].data[{}]", *index);
+  return fmt::format("skin_vertices[\"\"].data[{}]", *index);
 }
 
 static void rna_MeshSkinVertex_radius_get(PointerRNA *ptr, float *value)
