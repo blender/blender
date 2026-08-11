@@ -8,6 +8,7 @@
 
 #include "MEM_guardedalloc.h"
 
+#include "BLI_array.hh"
 #include "BLI_fileops.h"
 #include "BLI_threads.h"
 
@@ -120,6 +121,39 @@ static void info_callback(const char *msg, void * /*client_data*/)
   } \
   } \
   (void)0
+
+/**
+ * JPEG 2000 allows each component to use their own sampling grid (e.g. for sub-sampled chroma).
+ * For such cases, this function samples the data up with nearest neighbor and returns the
+ * upsampled result.
+ */
+static const int *jp2_component_at_size(const opj_image_comp_t &comp,
+                                        const uint w,
+                                        const uint h,
+                                        Array<int> &r_buffer)
+{
+  /* Size already matches, just return it. */
+  if (comp.w == w && comp.h == h) {
+    return comp.data;
+  }
+
+  r_buffer.reinitialize(size_t(w) * size_t(h));
+
+  if (comp.data == nullptr || comp.w == 0 || comp.h == 0) {
+    /* Nothing to sample from. */
+    r_buffer.fill(0);
+    return r_buffer.data();
+  }
+
+  for (uint y = 0; y < h; y++) {
+    const int *src_row = comp.data + size_t(uint64_t(y) * comp.h / h) * size_t(comp.w);
+    int *dst_row = r_buffer.data() + size_t(y) * size_t(w);
+    for (uint x = 0; x < w; x++) {
+      dst_row[x] = src_row[uint64_t(x) * comp.w / w];
+    }
+  }
+  return r_buffer.data();
+}
 
 /* -------------------------------------------------------------------- */
 /** \name Buffer Stream
@@ -324,31 +358,6 @@ ImBuf *imb_load_jp2(const uchar *mem,
   return ibuf;
 }
 
-ImBuf *imb_load_jp2_filepath(const char *filepath,
-                             ImBufFlags flags,
-                             ImFileColorSpace &r_colorspace)
-{
-  FILE *p_file = nullptr;
-  uchar mem[JP2_FILEHEADER_SIZE];
-  opj_stream_t *stream = opj_stream_create_from_file(
-      filepath, OPJ_J2K_STREAM_CHUNK_SIZE, true, &p_file);
-  if (stream) {
-    return nullptr;
-  }
-
-  if (fread(mem, sizeof(mem), 1, p_file) != sizeof(mem)) {
-    opj_stream_destroy(stream);
-    return nullptr;
-  }
-
-  fseek(p_file, 0, SEEK_SET);
-
-  const OPJ_CODEC_FORMAT format = format_from_header(mem, sizeof(mem));
-  ImBuf *ibuf = imb_load_jp2_stream(stream, format, flags, r_colorspace);
-  opj_stream_destroy(stream);
-  return ibuf;
-}
-
 static ImBuf *imb_load_jp2_stream(opj_stream_t *stream,
                                   const OPJ_CODEC_FORMAT format,
                                   ImBufFlags flags,
@@ -368,7 +377,10 @@ static ImBuf *imb_load_jp2_stream(opj_stream_t *stream,
 
   uint i, i_next, w, h;
   uint y;
+  uint used_comps;
   const int *r, *g, *b, *a; /* matching 'opj_image_comp.data' type */
+  /* Storage for components that had to be scaled up to the image size. */
+  Array<int> comp_buffers[4];
 
   opj_dparameters_t parameters; /* decompression parameters */
 
@@ -411,8 +423,15 @@ static ImBuf *imb_load_jp2_stream(opj_stream_t *stream,
     goto finally;
   }
 
-  w = image->comps[0].w;
-  h = image->comps[0].h;
+  used_comps = std::min<uint>(image->numcomps, 4);
+
+  /* Components can have different sizes, use the largest one as the image size. */
+  w = 0;
+  h = 0;
+  for (i = 0; i < used_comps; i++) {
+    w = std::max(w, uint(image->comps[i].w));
+    h = std::max(h, uint(image->comps[i].h));
+  }
 
   switch (image->numcomps) {
     case 1: /* Gray-scale. */
@@ -433,8 +452,7 @@ static ImBuf *imb_load_jp2_stream(opj_stream_t *stream,
       break;
   }
 
-  i = image->numcomps;
-  i = std::min<uint>(i, 4);
+  i = used_comps;
 
   while (i) {
     i--;
@@ -466,15 +484,28 @@ static ImBuf *imb_load_jp2_stream(opj_stream_t *stream,
     ibuf->foptions.flag |= JP2_J2K;
   }
 
+  /* Component data, scaled up to the image size when a component is smaller. */
+  r = jp2_component_at_size(image->comps[0], w, h, comp_buffers[0]);
+  g = b = a = nullptr;
+  if (image->numcomps < 3) {
+    if (use_alpha) {
+      a = jp2_component_at_size(image->comps[1], w, h, comp_buffers[1]);
+    }
+  }
+  else {
+    g = jp2_component_at_size(image->comps[1], w, h, comp_buffers[1]);
+    b = jp2_component_at_size(image->comps[2], w, h, comp_buffers[2]);
+    if (use_alpha) {
+      a = jp2_component_at_size(image->comps[3], w, h, comp_buffers[3]);
+    }
+  }
+
   if (use_float) {
     float *rect_float = ibuf->float_data_for_write();
 
     if (image->numcomps < 3) {
-      r = image->comps[0].data;
-
       /* Gray-scale 12bits+ */
       if (use_alpha) {
-        a = image->comps[1].data;
         PIXEL_LOOPER_BEGIN (rect_float) {
           rect_float[0] = rect_float[1] = rect_float[2] = float(r[i] + signed_offsets[0]) /
                                                           float_divs[0];
@@ -492,13 +523,8 @@ static ImBuf *imb_load_jp2_stream(opj_stream_t *stream,
       }
     }
     else {
-      r = image->comps[0].data;
-      g = image->comps[1].data;
-      b = image->comps[2].data;
-
       /* RGB or RGBA 12bits+ */
       if (use_alpha) {
-        a = image->comps[3].data;
         PIXEL_LOOPER_BEGIN (rect_float) {
           rect_float[0] = float(r[i] + signed_offsets[0]) / float_divs[0];
           rect_float[1] = float(g[i] + signed_offsets[1]) / float_divs[1];
@@ -522,11 +548,8 @@ static ImBuf *imb_load_jp2_stream(opj_stream_t *stream,
     uchar *rect_uchar = ibuf->byte_data_for_write();
 
     if (image->numcomps < 3) {
-      r = image->comps[0].data;
-
       /* Gray-scale. */
       if (use_alpha) {
-        a = image->comps[1].data;
         PIXEL_LOOPER_BEGIN (rect_uchar) {
           rect_uchar[0] = rect_uchar[1] = rect_uchar[2] = (r[i] + signed_offsets[0]);
           rect_uchar[3] = a[i] + signed_offsets[1];
@@ -542,13 +565,8 @@ static ImBuf *imb_load_jp2_stream(opj_stream_t *stream,
       }
     }
     else {
-      r = image->comps[0].data;
-      g = image->comps[1].data;
-      b = image->comps[2].data;
-
       /* 8bit RGB or RGBA */
       if (use_alpha) {
-        a = image->comps[3].data;
         PIXEL_LOOPER_BEGIN (rect_uchar) {
           rect_uchar[0] = r[i] + signed_offsets[0];
           rect_uchar[1] = g[i] + signed_offsets[1];
