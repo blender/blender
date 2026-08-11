@@ -1328,7 +1328,7 @@ static void draw_strips_background(const TimelineDrawContext &ctx,
     /* Darker color band for thumbnail strips. */
     if (show_overlay && seq::strip_can_have_thumbnail(scene, strip.strip) && show_thumbnails) {
       /* The more negative the offset, darker the color. */
-      const int color_offset = -20;
+      const int color_offset = -15;
       uchar col_in[3] = {col[0], col[1], col[2]};
       uchar col_out[3];
 
@@ -1338,7 +1338,7 @@ static void draw_strips_background(const TimelineDrawContext &ctx,
       col[1] = col_out[1];
       col[2] = col_out[2];
 
-      data.flags |= GPU_SEQ_FLAG_COLOR_BAND;
+      data.flags |= GPU_SEQ_FLAG_THUMBNAILS_BACKGROUND;
       data.col_color_band = color_pack(col);
     }
 
