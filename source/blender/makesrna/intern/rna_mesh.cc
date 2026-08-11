@@ -1212,7 +1212,7 @@ static void rna_Mesh_skin_vertices_begin(CollectionPropertyIterator *iter, Point
   memset(&iter->internal.array, 0, sizeof(iter->internal.array));
   const PointerRNA attr_ptr = rna_AttributeGroup_lookup_string(
       *ptr, "skin_modifier_radius", ATTR_DOMAIN_MASK_POINT, CD_MASK_PROP_FLOAT2);
-  void *layer = RNA_pointer_is_null(&attr_ptr) ? nullptr : attr_ptr.data;
+  void *layer = attr_ptr ? attr_ptr.data : nullptr;
   rna_iterator_array_begin(
       iter, ptr, layer, sizeof(CustomDataLayer), layer ? 1 : 0, false, nullptr);
 }
@@ -1227,7 +1227,7 @@ static int rna_Mesh_skin_vertices_length(PointerRNA *ptr)
 {
   const PointerRNA attr_ptr = rna_AttributeGroup_lookup_string(
       *ptr, "skin_modifier_radius", ATTR_DOMAIN_MASK_POINT, CD_MASK_PROP_FLOAT2);
-  return RNA_pointer_is_null(&attr_ptr) ? 0 : 1;
+  return attr_ptr ? 1 : 0;
 }
 
 /* poly.vertices - this is faked loop access for convenience */
@@ -1837,13 +1837,13 @@ static bool rna_MeshSkinVertexLayer_data_lookup_int(PointerRNA *ptr, int index, 
   CollectionPropertyIterator iter;
   rna_Attribute_data_begin(&iter, ptr);
   if (!iter.valid) {
-    *r_ptr = PointerRNA_NULL;
+    *r_ptr = {};
     return false;
   }
 
   ArrayIterator *internal = &iter.internal.array;
   if (index < 0 || index >= internal->length) {
-    *r_ptr = PointerRNA_NULL;
+    *r_ptr = {};
     return false;
   }
 
