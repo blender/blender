@@ -161,9 +161,6 @@ ImBuf *imb_load_jp2(const unsigned char *mem,
                     size_t size,
                     ImBufFlags flags,
                     ImFileColorSpace &r_colorspace);
-ImBuf *imb_load_jp2_filepath(const char *filepath,
-                             ImBufFlags flags,
-                             ImFileColorSpace &r_colorspace);
 bool imb_save_jp2(ImBuf *ibuf, const char *filepath, ImBufFlags flags);
 
 /** \} */
