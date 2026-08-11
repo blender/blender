@@ -546,7 +546,11 @@ static bke::GeometrySet get_original_geometry_eval_copy(Depsgraph &depsgraph,
         operator_data.active_face_index = BM_mesh_active_face_index_get(em->bm, false, true);
         EDBM_mesh_load_ex(DEG_get_bmain(&depsgraph), &object, true);
         EDBM_mesh_free_data(mesh->runtime->edit_mesh.get());
-        em->bm = nullptr;
+        /* Clear the edit-mesh entirely rather than just freeing its #BMesh. Leaving a #BMEditMesh
+         * with a null `bm` behind is a non-standard state that other code (e.g. the active
+         * attribute lookup when the tool result is stored back) doesn't expect. The edit-mesh is
+         * rebuilt from the tool result in #EDBM_mesh_make_from_mesh. */
+        mesh->runtime->edit_mesh.reset();
       }
 
       if (bke::pbvh::Tree *pbvh = bke::object::pbvh_get(object)) {
