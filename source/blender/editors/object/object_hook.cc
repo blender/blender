@@ -423,7 +423,7 @@ static void object_hook_from_context(
   Object *ob;
   HookModifierData *hmd;
 
-  if (ptr->data) { /* if modifier context is available, use that */
+  if (*ptr) { /* if modifier context is available, use that */
     ob = id_cast<Object *>(ptr->owner_id);
     hmd = static_cast<HookModifierData *>(ptr->data);
   }

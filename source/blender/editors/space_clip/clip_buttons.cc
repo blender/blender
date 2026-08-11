@@ -94,7 +94,7 @@ void ED_clip_buttons_register(ARegionType *art)
 void uiTemplateMovieClip(
     ui::Layout *layout, bContext *C, PointerRNA *ptr, const StringRefNull propname, bool compact)
 {
-  if (!ptr->data) {
+  if (!*ptr) {
     return;
   }
 
@@ -147,7 +147,7 @@ void uiTemplateMovieClip(
 
 void uiTemplateTrack(ui::Layout *layout, PointerRNA *ptr, const StringRefNull propname)
 {
-  if (!ptr->data) {
+  if (!*ptr) {
     return;
   }
 
@@ -379,7 +379,7 @@ void uiTemplateMarker(ui::Layout *layout,
                       PointerRNA *trackptr,
                       bool compact)
 {
-  if (!ptr->data) {
+  if (!*ptr) {
     return;
   }
 
@@ -719,7 +719,7 @@ void uiTemplateMovieclipInformation(ui::Layout *layout,
                                     const StringRefNull propname,
                                     PointerRNA *userptr)
 {
-  if (!ptr->data) {
+  if (!*ptr) {
     return;
   }
 

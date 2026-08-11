@@ -416,7 +416,7 @@ void template_color_ramp(Layout *layout,
   }
 
   const PointerRNA cptr = RNA_property_pointer_get(ptr, prop);
-  if (!cptr.data || !RNA_struct_is_a(cptr.type, RNA_ColorRamp)) {
+  if (!cptr || !RNA_struct_is_a(cptr.type, RNA_ColorRamp)) {
     return;
   }
 

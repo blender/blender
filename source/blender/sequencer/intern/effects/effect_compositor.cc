@@ -131,7 +131,7 @@ class CompositorEffectContext : public CompositorContext {
         create_result_from_input(*input_result, *this->input_2_);
         color_counter++;
       }
-      else if (valid_socket_type && inputs_ptr.data != nullptr) {
+      else if (valid_socket_type && inputs_ptr) {
         /* Remaining inputs read their value from the exposed RNA property. */
         set_input_result_from_rna(inputs_ptr, *input_socket, socket_type, *input_result);
       }
@@ -281,7 +281,7 @@ void compositor_effect_nodes_input_usages(const Scene &sequencer_scene,
   PointerRNA strip_ptr = RNA_pointer_create_discrete(
       &const_cast<Scene &>(sequencer_scene).id, RNA_CompositorStrip, &strip);
   PointerRNA properties_ptr = RNA_pointer_get(&strip_ptr, "properties");
-  if (properties_ptr.data == nullptr) {
+  if (!properties_ptr) {
     return;
   }
 

@@ -920,7 +920,7 @@ static PointerRNA rna_ParticleSystem_active_particle_target_get(PointerRNA *ptr)
       return RNA_pointer_create_with_parent(*ptr, RNA_ParticleTarget, pt);
     }
   }
-  return PointerRNA_NULL;
+  return {};
 }
 static void rna_ParticleSystem_active_particle_target_index_range(
     PointerRNA *ptr, int *min, int *max, int * /*softmin*/, int * /*softmax*/)
@@ -1061,7 +1061,7 @@ static PointerRNA rna_ParticleDupliWeight_active_get(PointerRNA *ptr)
       return RNA_pointer_create_with_parent(*ptr, RNA_ParticleDupliWeight, dw);
     }
   }
-  return PointerRNA_NULL;
+  return {};
 }
 static void rna_ParticleDupliWeight_active_index_range(
     PointerRNA *ptr, int *min, int *max, int * /*softmin*/, int * /*softmax*/)

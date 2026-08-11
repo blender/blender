@@ -450,7 +450,7 @@ static PointerRNA rna_RenderEngine_render_get(PointerRNA *ptr)
 
     return RNA_pointer_create_with_parent(*ptr, RNA_RenderSettings, r);
   }
-  return PointerRNA_NULL;
+  return {};
 }
 
 static PointerRNA rna_RenderEngine_camera_override_get(PointerRNA *ptr)

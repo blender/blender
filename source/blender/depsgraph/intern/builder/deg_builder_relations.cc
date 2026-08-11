@@ -1901,7 +1901,7 @@ void DepsgraphRelationBuilder::build_driver_data(ID *id, FCurve *fcu)
   }
   /* Parse the RNA path to find the target property pointer. */
   RNAPathKey property_entry_key(id, rna_path.c_str(), RNAPointerSource::ENTRY);
-  if (RNA_pointer_is_null(&property_entry_key.ptr)) {
+  if (!property_entry_key.ptr) {
     /* TODO(sergey): This would only mean that driver is broken.
      * so we can't create relation anyway. However, we need to avoid
      * adding drivers which are known to be buggy to a dependency
@@ -2140,7 +2140,7 @@ void DepsgraphRelationBuilder::build_driver_rna_path_variable(const OperationKey
                                                               const char *rna_path)
 {
   RNAPathKey variable_exit_key(target_prop, rna_path, RNAPointerSource::EXIT);
-  if (RNA_pointer_is_null(&variable_exit_key.ptr)) {
+  if (!variable_exit_key.ptr) {
     return;
   }
   if (is_same_bone_dependency(variable_exit_key, self_key) ||

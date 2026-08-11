@@ -1312,7 +1312,7 @@ static PointerRNA rna_Addon_preferences_get(PointerRNA *ptr)
     return RNA_pointer_create_with_parent(*ptr, apt->rna_ext.srna, addon->prop);
   }
   else {
-    return PointerRNA_NULL;
+    return {};
   }
 }
 

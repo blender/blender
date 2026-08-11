@@ -105,12 +105,12 @@ static void rna_MovieClipUser_proxy_render_settings_update(Main *bmain,
 static PointerRNA rna_MovieClip_metadata_get(MovieClip *clip)
 {
   if (clip == nullptr || clip->anim == nullptr) {
-    return PointerRNA_NULL;
+    return {};
   }
 
   IDProperty *metadata = MOV_load_metadata(clip->anim);
   if (metadata == nullptr) {
-    return PointerRNA_NULL;
+    return {};
   }
 
   PointerRNA ptr = RNA_pointer_create_discrete(nullptr, RNA_IDPropertyWrapPtr, metadata);

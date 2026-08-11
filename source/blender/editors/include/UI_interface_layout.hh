@@ -471,8 +471,7 @@ struct Layout : public Item, NonCopyable, NonMovable {
    * Adds a operator item, places a button in the layout to call the operator.
    * \param opname: Operator id name.
    * \param name: Text to show in the layout.
-   * \returns Operator pointer to write properties, might be #PointerRNA_NULL if operator does not
-   * exists.
+   * \returns Operator pointer to write properties, might be null if operator does not exists.
    */
   PointerRNA op(StringRefNull opname, std::optional<StringRef> name, int icon);
 
@@ -481,8 +480,7 @@ struct Layout : public Item, NonCopyable, NonMovable {
    * \param opname: Operator id name.
    * \param name: Text to show in the layout.
    * \param context: Operator call context for #WM_operator_name_call.
-   * \returns Operator pointer to write properties, might be #PointerRNA_NULL if operator does not
-   * exists.
+   * \returns Operator pointer to write properties, might be null if operator does not exists.
    */
   PointerRNA op(StringRefNull opname,
                 std::optional<StringRef> name,
@@ -527,7 +525,7 @@ struct Layout : public Item, NonCopyable, NonMovable {
   /**
    * Adds a #op_enum menu.
    * \returns Operator pointer to write extra properties to set when menu buttons are
-   * displayed, might be #PointerRNA_NULL if operator does not exist.
+   * displayed, might be null if operator does not exist.
    */
   PointerRNA op_menu_enum(const bContext *C,
                           wmOperatorType *ot,
@@ -537,7 +535,7 @@ struct Layout : public Item, NonCopyable, NonMovable {
   /**
    * Adds a #op_enum menu.
    * \returns Operator pointer to write extra properties to set when menu buttons are
-   * displayed, might be #PointerRNA_NULL if operator does not exist.
+   * displayed, might be null if operator does not exist.
    */
   PointerRNA op_menu_enum(const bContext *C,
                           StringRefNull opname,
@@ -551,8 +549,7 @@ struct Layout : public Item, NonCopyable, NonMovable {
    * \param name: Text to show in the layout.
    * \param context: Operator call context for #WM_operator_name_call.
    * \param menu_id: menu to show on held down.
-   * \returns Operator pointer to write properties, might be #PointerRNA_NULL if operator does not
-   * exists.
+   * \returns Operator pointer to write properties, might be null if operator does not exists.
    */
   PointerRNA op_menu_hold(wmOperatorType *ot,
                           std::optional<StringRef> name,

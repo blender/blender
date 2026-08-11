@@ -75,7 +75,7 @@ RNAPathKey::RNAPathKey(ID *id, const char *path, RNAPointerSource source) : id(i
   /* Try to resolve path. */
   int index;
   if (!RNA_path_resolve_full(&id_ptr, path, &ptr, &prop, &index)) {
-    ptr = PointerRNA_NULL;
+    ptr = {};
     prop = nullptr;
   }
 }
@@ -93,7 +93,7 @@ RNAPathKey::RNAPathKey(const PointerRNA &target_prop,
   /* Try to resolve path. */
   int index;
   if (!RNA_path_resolve_full(&target_prop, rna_path_from_target_prop, &ptr, &prop, &index)) {
-    ptr = PointerRNA_NULL;
+    ptr = {};
     prop = nullptr;
   }
 }

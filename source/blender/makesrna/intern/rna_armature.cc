@@ -118,7 +118,7 @@ static void rna_Armature_act_bone_set(PointerRNA *ptr, PointerRNA value, ReportL
 {
   bArmature *arm = static_cast<bArmature *>(ptr->data);
 
-  if (value.owner_id == nullptr && value.data == nullptr) {
+  if (!value) {
     arm->act_bone = nullptr;
   }
   else {
@@ -142,7 +142,7 @@ static void rna_Armature_act_edit_bone_set(PointerRNA *ptr,
 {
   bArmature *arm = static_cast<bArmature *>(ptr->data);
 
-  if (value.owner_id == nullptr && value.data == nullptr) {
+  if (!value) {
     arm->act_edbone = nullptr;
   }
   else {
@@ -280,7 +280,7 @@ static PointerRNA rna_BoneCollection_parent_get(PointerRNA *ptr)
   const int parent_index = armature_bonecoll_find_parent_index(arm, bcoll_index);
 
   if (parent_index < 0) {
-    return PointerRNA_NULL;
+    return {};
   }
 
   BoneCollection *parent = arm->collection_array[parent_index];

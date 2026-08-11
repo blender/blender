@@ -81,7 +81,7 @@ static void datadropper_draw_cb(const bContext * /*C*/, ARegion * /*region*/, vo
 
 static bool is_bone_dropper_valid(BoneDropper *bone_dropper)
 {
-  if ((bone_dropper->ptr.data == nullptr) || (bone_dropper->prop == nullptr)) {
+  if (!bone_dropper->ptr || (bone_dropper->prop == nullptr)) {
     return false;
   }
   if (!RNA_property_editable(&bone_dropper->ptr, bone_dropper->prop)) {

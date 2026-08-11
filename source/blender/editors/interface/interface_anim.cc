@@ -128,7 +128,7 @@ static Button *but_anim_decorate_find_attached_button(ButtonDecorator *but)
   Button *but_iter = nullptr;
 
   BLI_assert(button_is_decorator(but));
-  BLI_assert(but->decorated_rnapoin.data && but->decorated_rnaprop);
+  BLI_assert(but->decorated_rnapoin && but->decorated_rnaprop);
   if (but->block->buttons_ptrs.is_empty()) {
     return nullptr;
   }
@@ -151,7 +151,7 @@ static Button *but_anim_decorate_find_attached_button(ButtonDecorator *but)
 
 void button_anim_decorate_update_from_flag(ButtonDecorator *but)
 {
-  if (!but->decorated_rnapoin.data || !but->decorated_rnaprop) {
+  if (!but->decorated_rnapoin || !but->decorated_rnaprop) {
     /* Nothing to do. */
     return;
   }
@@ -257,7 +257,7 @@ bool button_anim_expression_create(Button *but, const char *str)
   bool ok = false;
 
   /* button must have RNA-pointer to a numeric-capable property */
-  if (ELEM(nullptr, but->rnapoin.data, but->rnaprop)) {
+  if (!but->rnapoin || !but->rnaprop) {
     if (G.debug & G_DEBUG) {
       printf("ERROR: create expression failed - button has no RNA info attached\n");
     }

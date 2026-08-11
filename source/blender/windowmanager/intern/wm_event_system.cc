@@ -2043,7 +2043,7 @@ static void ui_handler_wait_for_input_remove(bContext *C, void *userdata)
 {
   OperatorWaitForInput *opwait = static_cast<OperatorWaitForInput *>(userdata);
   if (opwait->optype_params.opptr) {
-    if (opwait->optype_params.opptr->data) {
+    if (*opwait->optype_params.opptr) {
       IDP_FreeProperty(static_cast<IDProperty *>(opwait->optype_params.opptr->data));
     }
     MEM_delete(opwait->optype_params.opptr);

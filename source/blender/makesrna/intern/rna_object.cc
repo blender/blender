@@ -905,7 +905,7 @@ static PointerRNA rna_Object_active_vertex_group_get(PointerRNA *ptr)
 {
   Object *ob = reinterpret_cast<Object *>(ptr->owner_id);
   if (!BKE_object_supports_vertex_groups(ob)) {
-    return PointerRNA_NULL;
+    return {};
   }
 
   const ListBaseT<bDeformGroup> *defbase = BKE_object_defgroup_list(ob);
@@ -1564,7 +1564,7 @@ static PointerRNA rna_Object_active_shape_key_get(PointerRNA *ptr)
   KeyBlock *kb;
 
   if (key == nullptr) {
-    return PointerRNA_NULL;
+    return {};
   }
 
   kb = static_cast<KeyBlock *>(BLI_findlink(&key->block, ob->shapenr - 1));
@@ -1584,7 +1584,7 @@ static PointerRNA rna_Object_collision_get(PointerRNA *ptr)
   Object *ob = reinterpret_cast<Object *>(ptr->owner_id);
 
   if (ob->type != OB_MESH) {
-    return PointerRNA_NULL;
+    return {};
   }
 
   return RNA_pointer_create_with_parent(*ptr, RNA_CollisionSettings, ob->pd);
@@ -1788,7 +1788,7 @@ static void rna_Object_active_modifier_set(PointerRNA *ptr, PointerRNA value, Re
 
   WM_main_add_notifier(NC_OBJECT | ND_MODIFIER, ob);
 
-  if (RNA_pointer_is_null(&value)) {
+  if (!value) {
     BKE_object_modifier_set_active(ob, nullptr);
     return;
   }

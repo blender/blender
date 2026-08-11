@@ -42,16 +42,28 @@ struct AncestorPointerRNA {
 constexpr int64_t ANCESTOR_POINTERRNA_DEFAULT_SIZE = 2;
 
 /**
- * Pointer
+ * RNA pointers are not a single C pointer but include additional information. This allows
+ * e.g. computing rna paths or triggering updates after changes.
  *
- * RNA pointers are not a single C pointer but include the type,
- * and a pointer to the ID struct that owns the struct, since
- * in some cases this information is needed to correctly get/set
- * the properties and validate them. */
+ * Null-checks should generally not check the data members directly but use the provided API
+ * (including the implicit to-bool-conversion).
+ */
 
 struct PointerRNA {
+  /**
+   * The ID owning the referenced data. May be null when there is no owner ID. Generally, whenever
+   * these is an owner ID this should be set though for things like rna paths and ancestors to
+   * work.
+   */
   ID *owner_id = nullptr;
+  /**
+   * Type of the referenced data. If there is any data, this has to be set. This may also be set in
+   * some cases even if the data is null, leading to a "typed null" which is used in some cases.
+   */
   StructRNA *type = nullptr;
+  /**
+   * Actual referenced data of the given #type. If set, the #type must also be set.
+   */
   void *data = nullptr;
 
   /**
@@ -77,6 +89,7 @@ struct PointerRNA {
    */
   Vector<AncestorPointerRNA, ANCESTOR_POINTERRNA_DEFAULT_SIZE> ancestors = {};
 
+  /** Default constructor creates the equivalent of a null pointer. */
   PointerRNA() = default;
   PointerRNA(const PointerRNA &) = default;
   PointerRNA(PointerRNA &&) = default;
@@ -97,7 +110,7 @@ struct PointerRNA {
   {
   }
 
-  /** Reset the pointer to its initial empty state, such that it equals to PointerRNA_NULL. */
+  /** Reset the pointer to its initial empty state which is equivalent to a null pointer. */
   void reset()
   {
     *this = {};
@@ -139,9 +152,42 @@ struct PointerRNA {
 
     return PointerRNA(owner_id, ancestors.last().type, ancestors.last().data);
   }
-};
 
-extern const PointerRNA PointerRNA_NULL;
+  /**
+   * Evaluates to true if data is set. In this case, the type must also be set.
+   * This is similar how raw pointers are std::optional cast to bool.
+   */
+  operator bool() const
+  {
+    return this->has_data();
+  }
+
+  /**
+   * True when #data is set.
+   * If #data is set, #type is expected to be set as well.
+   */
+  bool has_data() const
+  {
+    /* If there is data, there should also be a type. */
+    BLI_assert(!this->data || this->type);
+    return this->data != nullptr;
+  }
+
+  /**
+   * True when the type is set.
+   * The data may still be null.
+   */
+  bool has_type() const
+  {
+    return this->type != nullptr;
+  }
+
+  /** True when #owner_id is set. */
+  bool has_owner_id() const
+  {
+    return this->owner_id != nullptr;
+  }
+};
 
 struct PropertyPointerRNA {
   PointerRNA ptr = {};

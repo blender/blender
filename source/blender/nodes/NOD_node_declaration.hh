@@ -132,7 +132,7 @@ class ItemDeclaration {
 using ItemDeclarationPtr = std::unique_ptr<ItemDeclaration>;
 
 struct SocketNameRNA {
-  PointerRNA owner = PointerRNA_NULL;
+  PointerRNA owner = {};
   std::string property_name;
 };
 

@@ -1364,7 +1364,7 @@ static wmOperatorStatus node_activate_viewer_exec(bContext *C, wmOperator * /*op
   bNodeTree *ntree = nullptr;
   bNode *node = nullptr;
 
-  if (ptr.data) {
+  if (ptr) {
     node = static_cast<bNode *>(ptr.data);
     ntree = reinterpret_cast<bNodeTree *>(ptr.owner_id);
   }
@@ -1496,7 +1496,7 @@ static wmOperatorStatus node_toggle_viewer_exec(bContext *C, wmOperator * /*op*/
   bNodeTree *ntree = nullptr;
   wmOperatorStatus ret = OPERATOR_FINISHED;
 
-  if (ptr.data) {
+  if (ptr) {
     node = static_cast<bNode *>(ptr.data);
     ntree = reinterpret_cast<bNodeTree *>(ptr.owner_id);
   }
@@ -1863,7 +1863,7 @@ static wmOperatorStatus node_shader_script_update_exec(bContext *C, wmOperator *
 
   bNodeTree *ntree_base = nullptr;
   bNode *node = nullptr;
-  if (nodeptr.data) {
+  if (nodeptr) {
     ntree_base = id_cast<bNodeTree *>(nodeptr.owner_id);
     node = static_cast<bNode *>(nodeptr.data);
   }
@@ -2034,7 +2034,7 @@ static wmOperatorStatus node_cryptomatte_add_socket_exec(bContext *C, wmOperator
   bNodeTree *ntree = nullptr;
   bNode *node = nullptr;
 
-  if (ptr.data) {
+  if (ptr) {
     node = static_cast<bNode *>(ptr.data);
     ntree = id_cast<bNodeTree *>(ptr.owner_id);
   }
@@ -2083,7 +2083,7 @@ static wmOperatorStatus node_cryptomatte_remove_socket_exec(bContext *C, wmOpera
   bNodeTree *ntree = nullptr;
   bNode *node = nullptr;
 
-  if (ptr.data) {
+  if (ptr) {
     node = static_cast<bNode *>(ptr.data);
     ntree = id_cast<bNodeTree *>(ptr.owner_id);
   }

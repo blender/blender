@@ -446,7 +446,7 @@ static const ColorManagedDisplaySettings *rna_display_settings_from_view_setting
 {
   /* Assumes view_settings and display_settings are stored next to each other. */
   PointerRNA parent_ptr = ptr->parent();
-  if (parent_ptr.data) {
+  if (parent_ptr) {
     PointerRNA display_ptr = RNA_pointer_get(&parent_ptr, "display_settings");
     if (display_ptr.type == RNA_ColorManagedDisplaySettings) {
       return display_ptr.data_as<const ColorManagedDisplaySettings>();
@@ -469,7 +469,7 @@ static ColorManagedViewSettings *rna_view_settings_from_display_settings(Pointer
 {
   /* Assumes view_settings and display_settings are stored next to each other. */
   PointerRNA parent_ptr = ptr->parent();
-  if (parent_ptr.data) {
+  if (parent_ptr) {
     PointerRNA view_ptr = RNA_pointer_get(&parent_ptr, "view_settings");
     if (view_ptr.type == RNA_ColorManagedViewSettings) {
       return view_ptr.data_as<ColorManagedViewSettings>();
@@ -517,11 +517,11 @@ static void rna_display_and_view_settings_node_update(Main *bmain, PointerRNA *p
   if (id && GS(id->name) == ID_NT) {
     /* Find a node ancestor and tag it. */
     PointerRNA node_ptr = ptr->parent();
-    while (node_ptr.data && !RNA_struct_is_a(node_ptr.type, RNA_Node)) {
+    while (node_ptr && !RNA_struct_is_a(node_ptr.type, RNA_Node)) {
       node_ptr = node_ptr.parent();
     }
 
-    if (node_ptr.data) {
+    if (node_ptr) {
       bNodeTree *ntree = reinterpret_cast<bNodeTree *>(id);
       bNode *node = node_ptr.data_as<bNode>();
       BKE_ntree_update_tag_node_property(ntree, node);

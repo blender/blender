@@ -155,7 +155,7 @@ static PointerRNA rna_ParticleEdit_brush_get(PointerRNA *ptr)
 
 static PointerRNA rna_ParticleBrush_curve_get(PointerRNA * /*ptr*/)
 {
-  return PointerRNA_NULL;
+  return {};
 }
 
 static void rna_ParticleEdit_redo(bContext *C, PointerRNA * /*ptr*/)
@@ -279,7 +279,7 @@ static PointerRNA rna_Paint_brush_get(PointerRNA *ptr)
   Paint *paint = static_cast<Paint *>(ptr->data);
   Brush *brush = BKE_paint_brush(paint);
   if (!brush) {
-    return PointerRNA_NULL;
+    return {};
   }
   return RNA_id_pointer_create(&brush->id);
 }

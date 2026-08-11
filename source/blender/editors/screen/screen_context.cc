@@ -571,7 +571,7 @@ static eContextResult screen_ctx_property(const bContext *C, bContextDataResult 
   int index;
 
   ui::context_active_but_prop_get(C, &ptr, &prop, &index);
-  if (ptr.data && prop) {
+  if (ptr && prop) {
     /* context_active_but_prop_get returns an index of 0 if the property is not
      * an array, but other functions expect -1 for non-arrays. */
     if (!RNA_property_array_check(prop)) {

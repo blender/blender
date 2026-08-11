@@ -1323,7 +1323,7 @@ void WM_toolsystem_ref_properties_init_for_keymap(bToolRef *tref,
                                                   wmOperatorType *ot)
 {
   *dst_ptr = *src_ptr;
-  if (dst_ptr->data) {
+  if (*dst_ptr) {
     dst_ptr->data = IDP_CopyProperty(static_cast<const IDProperty *>(dst_ptr->data));
   }
   else {

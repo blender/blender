@@ -1984,7 +1984,7 @@ static bool find_geonode_attribute_rgba(const DupliObject *dupli,
 /** Lookup an arbitrary Custom or RNA property and convert it to RGBA if possible. */
 static bool find_property_rgba(PointerRNA *id_ptr, const char *name, float r_data[4])
 {
-  if (id_ptr->data == nullptr) {
+  if (!*id_ptr) {
     return false;
   }
 

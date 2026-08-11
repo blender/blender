@@ -97,11 +97,11 @@ static void drop_name_copy(bContext *C, wmDrag *drag, wmDropBox *drop)
 static bool drop_material_poll(bContext *C, wmDrag *drag, const wmEvent * /*event*/)
 {
   PointerRNA mat_slot = CTX_data_pointer_get_type(C, "material_slot", RNA_MaterialSlot);
-  if (RNA_pointer_is_null(&mat_slot)) {
+  if (!mat_slot) {
     return false;
   }
   PointerRNA ob_ptr = CTX_data_pointer_get_type(C, "object", RNA_Object);
-  if (RNA_pointer_is_null(&ob_ptr)) {
+  if (!ob_ptr) {
     return false;
   }
 
@@ -129,7 +129,7 @@ static std::string drop_material_tooltip(bContext *C,
   BLI_assert(ob);
 
   PointerRNA mat_slot = CTX_data_pointer_get_type(C, "material_slot", RNA_MaterialSlot);
-  BLI_assert(mat_slot.data);
+  BLI_assert(mat_slot);
 
   const int target_slot = RNA_int_get(&mat_slot, "slot_index") + 1;
 

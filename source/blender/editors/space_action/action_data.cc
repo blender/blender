@@ -577,7 +577,7 @@ void ED_animedit_unlink_action(
     PointerRNA ptr = RNA_pointer_create_discrete(id, RNA_AnimData, adt);
     PropertyRNA *prop = RNA_struct_find_property(&ptr, "action");
 
-    RNA_property_pointer_set(&ptr, prop, PointerRNA_NULL, nullptr);
+    RNA_property_pointer_set(&ptr, prop, {}, nullptr);
     RNA_property_update(C, &ptr, prop);
   }
 }

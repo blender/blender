@@ -1173,7 +1173,7 @@ static void apply_but_funcs_after(bContext *C)
       WM_operator_properties_free(&opptr);
     }
 
-    if (after.rnapoin.data) {
+    if (after.rnapoin) {
       RNA_property_update(C, &after.rnapoin, after.rnaprop);
     }
 
@@ -1716,7 +1716,7 @@ static bool drag_toggle_but_is_supported(const Button *but)
  * then just true or false for toggle buttons with more than 2 states. */
 static int drag_toggle_but_pushed_state(Button *but)
 {
-  if (but->rnapoin.data == nullptr && but->poin == nullptr && but->icon) {
+  if (!but->rnapoin && but->poin == nullptr && but->icon) {
     /* Assume icon identifies a unique state, for buttons that
      * work through functions callbacks and don't have an boolean
      * value that indicates the state. */
@@ -1938,7 +1938,7 @@ static bool selectcontext_begin(bContext *C, Button *but, uiSelectContextStore *
   }
 
   /* if there is a valid property that is editable... */
-  if (ptr.data && prop) {
+  if (ptr && prop) {
     bool use_path_from_id;
 
     /* some facts we want to know */
@@ -2944,7 +2944,7 @@ static bool but_copy(bContext *C, Button *but, const bool copy_array)
   /* Left false for copying internal data (color-band for eg). */
   bool is_buf_set = false;
 
-  const bool has_required_data = !(but->poin == nullptr && but->rnapoin.data == nullptr);
+  const bool has_required_data = but->poin || but->rnapoin;
 
   switch (but->type) {
     case ButtonType::Num:
@@ -3045,7 +3045,7 @@ static void but_paste(bContext *C, Button *but, HandleButtonData *data, const bo
   but_get_pasted_text_from_clipboard(
       but_is_utf8(but), &buf_paste, &buf_paste_len, but->type == ButtonType::TextBox);
 
-  const bool has_required_data = !(but->poin == nullptr && but->rnapoin.data == nullptr);
+  const bool has_required_data = but->poin || but->rnapoin;
 
   switch (but->type) {
     case ButtonType::Num:
@@ -7260,7 +7260,7 @@ static int do_but_COLOR(bContext *C, Button *but, HandleButtonData *data, const 
 
       /* this is risky. it works OK for now,
        * but if it gives trouble we should delay execution */
-      but->rnapoin = PointerRNA_NULL;
+      but->rnapoin = {};
       but->rnaprop = nullptr;
 
       return WM_UI_HANDLER_BREAK;
@@ -10020,7 +10020,7 @@ Button *region_active_but_prop_get(const ARegion *region,
 {
   Button *activebut = region_active_but_get(region);
 
-  if (activebut && activebut->rnapoin.data) {
+  if (activebut && activebut->rnapoin) {
     *r_ptr = activebut->rnapoin;
     *r_prop = activebut->rnaprop;
     *r_index = activebut->rnaindex;
@@ -11969,7 +11969,7 @@ static int handle_menu_event(bContext *C,
               }
 
               /* exception for rna layer buts */
-              if (but.rnapoin.data && but.rnaprop &&
+              if (but.rnapoin && but.rnaprop &&
                   ELEM(RNA_property_subtype(but.rnaprop), PROP_LAYER, PROP_LAYER_MEMBER))
               {
                 if (but.rnaindex == act - 1) {

@@ -2111,7 +2111,7 @@ static void do_outliner_drivers_editop(SpaceOutliner *space_outliner,
     eKSP_Grouping groupmode = KSP_GROUP_KSNAME;
 
     TreeElementRNACommon *te_rna = tree_element_cast<TreeElementRNACommon>(te);
-    PointerRNA ptr = te_rna ? te_rna->get_pointer_rna() : PointerRNA_NULL;
+    PointerRNA ptr = te_rna ? te_rna->get_pointer_rna() : PointerRNA();
     PropertyRNA *prop = te_rna ? te_rna->get_property_rna() : nullptr;
 
     /* check if RNA-property described by this selected element is an animatable prop */

@@ -73,7 +73,7 @@ struct ButtonItem;
   if (ot == nullptr) { \
     item_disabled(this, _opname); \
     RNA_warning_bare("%s: '%s' unknown operator", _caller_fn_name, _opname); \
-    return PointerRNA_NULL; \
+    return {}; \
   } \
   (void)0
 
@@ -1341,7 +1341,7 @@ void context_active_but_prop_get_filebrowser(const bContext *C,
 
   for (Block &block : region->runtime->uiblocks) {
     for (Button &but : block.buttons()) {
-      if (but.rnapoin.data) {
+      if (but.rnapoin) {
         if (RNA_property_type(but.rnaprop) == PROP_STRING) {
           prevbut = &but;
         }
@@ -2764,7 +2764,7 @@ void button_configure_search(Button *but,
     }
     else {
       /* Rely on `has_search_fn`. */
-      coll_search->search_ptr = PointerRNA_NULL;
+      coll_search->search_ptr = {};
       coll_search->search_prop = nullptr;
       coll_search->item_search_prop = nullptr;
     }
@@ -3519,7 +3519,7 @@ void uiItemLDrag(Layout *layout, PointerRNA *ptr, StringRef name, int icon)
 {
   Button *but = uiItem_simple(layout, name, icon);
 
-  if (ptr && ptr->type) {
+  if (ptr && ptr->has_type()) {
     if (RNA_struct_is_ID(ptr->type)) {
       button_drag_set_id(but, ptr->owner_id);
     }
@@ -3756,7 +3756,7 @@ PointerRNA Layout::op_menu_enum(const bContext *C,
   /* Use the menu button as owner for the operator properties, which will then be passed to the
    * individual menu items. */
   but->opptr = MEM_new<PointerRNA>("uiButOpPtr", WM_operator_properties_create_ptr(ot));
-  BLI_assert(but->opptr->data == nullptr);
+  BLI_assert(!*but->opptr);
   WM_operator_properties_alloc(
       &but->opptr, reinterpret_cast<IDProperty **>(&but->opptr->data), ot->idname);
 
@@ -3784,7 +3784,7 @@ PointerRNA Layout::op_menu_enum(const bContext *C,
   if (!ot->srna) {
     item_disabled(this, opname.c_str());
     RNA_warning_bare("UILayout.operator_menu_enum(): operator missing srna '%s'", opname.c_str());
-    return PointerRNA_NULL;
+    return {};
   }
 
   return this->op_menu_enum(C, ot, propname, name, icon);
@@ -6209,7 +6209,7 @@ void Layout::context_set_from_but(const Button *but)
     this->context_ptr_set("button_operator", but->opptr);
   }
 
-  if (but->rnapoin.data && but->rnaprop) {
+  if (but->rnapoin && but->rnaprop) {
     /* TODO: index could be supported as well */
     PointerRNA ptr_prop = RNA_pointer_create_discrete(nullptr, RNA_Property, but->rnaprop);
     this->context_ptr_set("button_prop", &ptr_prop);

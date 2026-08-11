@@ -106,7 +106,7 @@ void modifier_error_message_draw(ui::Layout &layout, PointerRNA *ptr)
 PointerRNA *modifier_panel_get_property_pointers(Panel *panel, PointerRNA *r_ob_ptr)
 {
   PointerRNA *ptr = ui::panel_custom_data_get(panel);
-  BLI_assert(!RNA_pointer_is_null(ptr));
+  BLI_assert(*ptr);
   BLI_assert(RNA_struct_is_a(ptr->type, RNA_Modifier));
 
   if (r_ob_ptr != nullptr) {
@@ -436,14 +436,14 @@ static void modifier_panel_header(const bContext *C, Panel *panel)
   /* Switch context buttons. */
   if (modifier_is_simulation(md) == 1) {
     PointerRNA op_ptr = row.op("WM_OT_properties_context_change", "", ICON_PROPERTIES);
-    if (!RNA_pointer_is_null(&op_ptr)) {
+    if (op_ptr) {
       RNA_string_set(&op_ptr, "context", "PHYSICS");
     }
     buttons_number++;
   }
   else if (modifier_is_simulation(md) == 2) {
     PointerRNA op_ptr = row.op("WM_OT_properties_context_change", "", ICON_PROPERTIES);
-    if (!RNA_pointer_is_null(&op_ptr)) {
+    if (op_ptr) {
       RNA_string_set(&op_ptr, "context", "PARTICLES");
     }
     buttons_number++;

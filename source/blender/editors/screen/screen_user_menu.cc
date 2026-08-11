@@ -335,7 +335,7 @@ static void screen_user_menu_draw(const bContext *C, Menu *menu)
           *data_path = '\0';
         }
         PointerRNA ptr = CTX_data_pointer_get(C, umi_pr->context_data_path);
-        if (ptr.type == nullptr) {
+        if (!ptr.has_type()) {
           PointerRNA ctx_ptr = RNA_pointer_create_discrete(nullptr, RNA_Context, (void *)C);
           if (!RNA_path_resolve_full(&ctx_ptr, umi_pr->context_data_path, &ptr, nullptr, nullptr))
           {
@@ -348,7 +348,7 @@ static void screen_user_menu_draw(const bContext *C, Menu *menu)
         }
 
         bool ok = false;
-        if (ptr.type != nullptr) {
+        if (ptr.has_type()) {
           PropertyRNA *prop = nullptr;
           PointerRNA prop_ptr = ptr;
           if ((data_path == nullptr) ||

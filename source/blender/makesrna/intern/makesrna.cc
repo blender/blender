@@ -1200,7 +1200,7 @@ static char *rna_def_property_set_func(
         if (type && (type->flag & STRUCT_ID)) {
           /* Check if pointers between datablocks are allowed. */
           fprintf(f,
-                  "    if (value.data && ptr->owner_id && value.owner_id && "
+                  "    if (value && ptr->has_owner_id() && value.has_owner_id() && "
                   "!BKE_id_can_use_id(*ptr->owner_id, *value.owner_id)) {\n");
           fprintf(f, "      return;\n");
           fprintf(f, "    }\n");
@@ -1211,13 +1211,13 @@ static char *rna_def_property_set_func(
           fprintf(f, "\n    if (data->%s) {\n", dp->dnaname.c_str());
           fprintf(f, "        id_us_min((ID *)data->%s);\n", dp->dnaname.c_str());
           fprintf(f, "    }\n");
-          fprintf(f, "    if (value.data) {\n");
+          fprintf(f, "    if (value) {\n");
           fprintf(f, "        id_us_plus((ID *)value.data);\n");
           fprintf(f, "    }\n");
         }
         else if (type && (type->flag & STRUCT_ID)) {
           /* Still mark linked data as used if not reference counting. */
-          fprintf(f, "    if (value.data) {\n");
+          fprintf(f, "    if (value) {\n");
           fprintf(f, "        id_lib_extern((ID *)value.data);\n");
           fprintf(f, "    }\n");
         }
@@ -1813,7 +1813,7 @@ static char *rna_def_property_lookup_string_func(FILE *f,
           rna_safe_id(prop->identifier));
 
   fprintf(f, "    while (iter.valid) {\n");
-  fprintf(f, "        if (iter.ptr.data) {\n");
+  fprintf(f, "        if (iter.ptr) {\n");
   fprintf(f,
           "            int namelen = %s_%s_length(&iter.ptr);\n",
           item_name_base->identifier.c_str(),

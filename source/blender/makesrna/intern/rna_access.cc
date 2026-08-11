@@ -84,9 +84,6 @@ static CLG_LogRef LOG = {"rna.access"};
 
 /* Init/Exit */
 
-/* NOTE: Initializing this object here is fine for now, as it should not allocate any memory. */
-extern const PointerRNA PointerRNA_NULL = {};
-
 void RNA_init()
 {
   BlenderRNA &brna = RNA_blender_rna_get();
@@ -177,7 +174,7 @@ PointerRNA RNA_id_pointer_create(ID *id)
     return ptr;
   }
 
-  return PointerRNA_NULL;
+  return {};
 }
 
 PointerRNA RNA_pointer_create_discrete(ID *id, StructRNA *type, void *data)
@@ -228,11 +225,6 @@ PointerRNA RNA_pointer_create_from_ancestor(const PointerRNA &ptr, const int anc
   return ancestor_ptr;
 }
 
-bool RNA_pointer_is_null(const PointerRNA *ptr)
-{
-  return (ptr->data == nullptr) || (ptr->type == nullptr);
-}
-
 PointerRNA RNA_blender_rna_pointer_create()
 {
   PointerRNA ptr = {};
@@ -259,7 +251,7 @@ PointerRNA RNA_pointer_recast(PointerRNA *ptr)
     for (base = ptr->type->base; base; base = base->base) {
       t_ptr.type = base;
       rna_pointer_refine(t_ptr);
-      if (t_ptr.type && t_ptr.type != ptr->type) {
+      if (t_ptr.has_type() && t_ptr.type != ptr->type) {
         ptr_result = t_ptr;
       }
     }
@@ -396,7 +388,7 @@ static int rna_ensure_property_array_length(PointerRNA *ptr, PropertyRNA *prop)
 {
   if (prop->magic == RNA_MAGIC) {
     int arraylen[RNA_MAX_ARRAY_DIMENSION];
-    if (prop->getlength && ptr->data) {
+    if (prop->getlength && *ptr) {
       BLI_assert(rna_property_can_access_pointer_data(*ptr, *prop));
       return prop->getlength(ptr, arraylen);
     }
@@ -576,7 +568,7 @@ void rna_property_rna_or_id_get(PropertyRNA *prop,
       int arraylen[RNA_MAX_ARRAY_DIMENSION];
       /* Do not call actual data callbacks on definition data (i.e. it `ptr` is a struct or
        * property definition, and not the actual data type). See e.g. #161362. */
-      r_prop_rna_or_id->array_len = (prop->getlength && ptr->data && is_ptr_data_usable) ?
+      r_prop_rna_or_id->array_len = (prop->getlength && *ptr && is_ptr_data_usable) ?
                                         uint(prop->getlength(ptr, arraylen)) :
                                         prop->totarraylength;
     }
@@ -1151,7 +1143,7 @@ void RNA_struct_blender_type_set(StructRNA *srna, void *blender_type)
 char *RNA_struct_name_get_alloc_ex(
     PointerRNA *ptr, char *fixedbuf, int fixedlen, int *r_len, PropertyRNA **r_nameprop)
 {
-  if (ptr->data) {
+  if (*ptr) {
     if (PropertyRNA *nameprop = RNA_struct_name_property(ptr->type)) {
       *r_nameprop = nameprop;
       return RNA_property_string_get_alloc(ptr, nameprop, fixedbuf, fixedlen, r_len);
@@ -1162,7 +1154,7 @@ char *RNA_struct_name_get_alloc_ex(
 
 char *RNA_struct_name_get_alloc(PointerRNA *ptr, char *fixedbuf, int fixedlen, int *r_len)
 {
-  if (ptr->data) {
+  if (*ptr) {
     if (PropertyRNA *nameprop = RNA_struct_name_property(ptr->type)) {
       return RNA_property_string_get_alloc(ptr, nameprop, fixedbuf, fixedlen, r_len);
     }
@@ -2762,7 +2754,7 @@ static void rna_property_boolean_get_default_array_values(PointerRNA *ptr,
                                                           BoolPropertyRNA *bprop,
                                                           bool *r_values)
 {
-  if (ptr->data && bprop->get_default_array) {
+  if (*ptr && bprop->get_default_array) {
     bprop->get_default_array(ptr, bprop, r_values);
     return;
   }
@@ -3251,7 +3243,7 @@ static void rna_property_int_get_default_array_values(PointerRNA *ptr,
                                                       IntPropertyRNA *iprop,
                                                       int *r_values)
 {
-  if (ptr->data && iprop->get_default_array) {
+  if (*ptr && iprop->get_default_array) {
     iprop->get_default_array(ptr, iprop, r_values);
     return;
   }
@@ -3734,7 +3726,7 @@ static void rna_property_float_get_default_array_values(PointerRNA *ptr,
                                                         FloatPropertyRNA *fprop,
                                                         float *r_values)
 {
-  if (ptr->data && fprop->get_default_array) {
+  if (*ptr && fprop->get_default_array) {
     fprop->get_default_array(ptr, fprop, r_values);
     return;
   }
@@ -4626,7 +4618,7 @@ static PointerRNA property_pointer_get(PointerRNA *ptr, PropertyRNA *prop, const
     RNA_property_pointer_add(ptr, prop);
     return RNA_property_pointer_get(ptr, prop);
   }
-  return PointerRNA_NULL;
+  return {};
 }
 
 PointerRNA RNA_property_pointer_get(PointerRNA *ptr, PropertyRNA *prop)
@@ -4654,7 +4646,7 @@ void RNA_property_pointer_set(PointerRNA *ptr,
   /* This is a 'real' RNA property, not an IDProperty or a dynamic RNA property using an IDProperty
    * as backend storage. */
   if (pprop->set) {
-    if (ptr_value.type != nullptr && !RNA_struct_is_a(ptr_value.type, pprop->pointer_type)) {
+    if (ptr_value.has_type() && !RNA_struct_is_a(ptr_value.type, pprop->pointer_type)) {
       BKE_reportf(reports,
                   RPT_ERROR,
                   "%s: expected %s type, not %s",
@@ -4675,10 +4667,10 @@ void RNA_property_pointer_set(PointerRNA *ptr,
     const bool is_id_refcounting = (prop->flag & PROP_ID_REFCOUNT) != 0;
 
     const PointerRNA old_id_ptr = pprop->get(ptr);
-    BLI_assert_msg(!is_id_refcounting || !old_id_ptr.data || RNA_struct_is_ID(old_id_ptr.type),
+    BLI_assert_msg(!is_id_refcounting || !old_id_ptr || RNA_struct_is_ID(old_id_ptr.type),
                    "If the property is tagged with ID reference-counting, "
                    "its current value should be null or an ID");
-    const ID *old_id = (old_id_ptr.type && RNA_struct_is_ID(old_id_ptr.type)) ?
+    const ID *old_id = (old_id_ptr.has_type() && RNA_struct_is_ID(old_id_ptr.type)) ?
                            old_id_ptr.data_as<ID>() :
                            nullptr;
     const int old_id_old_refcount = old_id ? ID_REFCOUNTING_USERS(old_id) : 0;
@@ -4689,7 +4681,7 @@ void RNA_property_pointer_set(PointerRNA *ptr,
     const int new_id_old_refcount = new_id ? ID_REFCOUNTING_USERS(new_id) : 0;
 #endif
 
-    if (!((prop->flag & PROP_NEVER_NULL) && ptr_value.data == nullptr) &&
+    if (!((prop->flag & PROP_NEVER_NULL) && !ptr_value) &&
         !((prop->flag & PROP_ID_SELF_CHECK) && ptr->owner_id == ptr_value.owner_id))
     {
       pprop->set(ptr, ptr_value, reports);
@@ -4704,10 +4696,10 @@ void RNA_property_pointer_set(PointerRNA *ptr,
      * tweaked, e.g. by adding a special 'skip checks' flag to such RNA properties. */
     PointerRNA current_id_ptr = pprop->get(ptr);
     BLI_assert_msg(
-        !is_id_refcounting || !current_id_ptr.data || RNA_struct_is_ID(current_id_ptr.type),
+        !is_id_refcounting || !current_id_ptr || RNA_struct_is_ID(current_id_ptr.type),
         "If the property is tagged with ID reference-counting, its current value should be "
         "null or an ID");
-    ID *current_id = (current_id_ptr.type && RNA_struct_is_ID(current_id_ptr.type)) ?
+    ID *current_id = (current_id_ptr.has_type() && RNA_struct_is_ID(current_id_ptr.type)) ?
                          static_cast<ID *>(current_id_ptr.data) :
                          nullptr;
 
@@ -4759,7 +4751,7 @@ void RNA_property_pointer_set(PointerRNA *ptr,
   /* Assigning to an IDProperty. */
   ID *value = static_cast<ID *>(ptr_value.data);
 
-  if (ptr_value.type != nullptr && !RNA_struct_is_a(ptr_value.type, RNA_ID)) {
+  if (ptr_value.has_type() && !RNA_struct_is_a(ptr_value.type, RNA_ID)) {
     BKE_reportf(reports,
                 RPT_ERROR,
                 "%s: expected ID type, not %s",
@@ -4815,7 +4807,7 @@ PointerRNA RNA_property_pointer_get_default(Main &bmain, PointerRNA & /*ptr*/, P
     }
   }
 
-  return PointerRNA_NULL;
+  return {};
 }
 
 void RNA_property_pointer_add(PointerRNA *ptr, PropertyRNA *prop)
@@ -5332,7 +5324,7 @@ bool RNA_property_collection_lookup_string_index(
 
   if (!key) {
     *r_index = -1;
-    *r_ptr = PointerRNA_NULL;
+    *r_ptr = {};
     return false;
   }
 
@@ -5351,7 +5343,7 @@ bool RNA_property_collection_lookup_string_index(
 
   RNA_property_collection_begin(ptr, prop, &iter);
   for (; iter.valid; RNA_property_collection_next(&iter), index++) {
-    if (iter.ptr.data && iter.ptr.type->nameproperty) {
+    if (iter.ptr && iter.ptr.type->nameproperty) {
       nameprop = iter.ptr.type->nameproperty;
 
       name = RNA_property_string_get_alloc(
@@ -5716,7 +5708,7 @@ static int rna_raw_access(ReportList *reports,
     /* no item property pointer, can still be id property, or
      * property of a type derived from the collection pointer type */
     RNA_PROP_BEGIN (ptr, itemptr, prop) {
-      if (itemptr.data) {
+      if (itemptr) {
         if (itemprop) {
           /* we got the property already */
           iprop = itemprop;
@@ -6679,12 +6671,12 @@ PointerRNA rna_array_lookup_int(
     PointerRNA *ptr, StructRNA *type, void *data, size_t itemsize, int64_t length, int64_t index)
 {
   if (index < 0 || index >= length) {
-    return PointerRNA_NULL;
+    return {};
   }
   if (index > std::numeric_limits<uint64_t>::max() / itemsize) [[unlikely]] {
     /* This path is never expected to execute. Assert and trace if it ever does. */
     BLI_assert_unreachable();
-    return PointerRNA_NULL;
+    return {};
   }
 
   return RNA_pointer_create_with_parent(
@@ -7018,7 +7010,7 @@ PointerRNA RNA_pointer_get(PointerRNA *ptr, const char *name)
   }
   printf("%s: %s.%s not found.\n", __func__, ptr->type->identifier.c_str(), name);
 
-  return PointerRNA_NULL;
+  return {};
 }
 
 void RNA_pointer_set(PointerRNA *ptr, const char *name, PointerRNA ptr_value)
@@ -7211,7 +7203,7 @@ std::string RNA_pointer_as_string_id(bContext *C, PointerRNA *ptr)
 
 static std::optional<std::string> rna_pointer_as_string__bldata(PointerRNA *ptr)
 {
-  if (ptr->type == nullptr || ptr->owner_id == nullptr) {
+  if (!ptr->has_type() || !ptr->has_owner_id()) {
     return "None";
   }
   if (RNA_struct_is_ID(ptr->type)) {
@@ -7226,7 +7218,7 @@ std::optional<std::string> RNA_pointer_as_string(bContext *C,
                                                  PointerRNA *ptr_prop)
 {
   IDProperty *prop;
-  if (ptr_prop->data == nullptr) {
+  if (!*ptr_prop) {
     return "None";
   }
   if ((prop = rna_idproperty_check(&prop_ptr, ptr)) && prop->type != IDP_ID) {
@@ -7646,7 +7638,7 @@ ParameterList *RNA_parameter_list_create(ParameterList *parms,
                                          PointerRNA * /*ptr*/,
                                          FunctionRNA *func)
 {
-  PointerRNA null_ptr = PointerRNA_NULL;
+  PointerRNA null_ptr = {};
   void *data;
   int alloc_size = 0, size;
 
@@ -8107,7 +8099,7 @@ bool RNA_property_reset(Main *bmain, PointerRNA *ptr, PropertyRNA *prop, int ind
         value = RNA_property_pointer_get_default(*bmain, *ptr, *prop);
       }
       else {
-        value = PointerRNA_NULL;
+        value = {};
       }
       RNA_property_pointer_set(ptr, prop, value, nullptr);
       return true;

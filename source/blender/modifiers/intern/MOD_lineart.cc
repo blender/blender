@@ -275,7 +275,7 @@ static void edge_types_panel_draw(const bContext * /*C*/, Panel *panel)
   const bool use_cache = RNA_boolean_get(ptr, "use_cache");
   const bool is_first = is_first_lineart(
       *static_cast<const GreasePencilLineartModifierData *>(ptr->data));
-  const bool has_light = RNA_pointer_get(ptr, "light_contour_object").data != nullptr;
+  const bool has_light = RNA_pointer_get(ptr, "light_contour_object").has_data();
 
   layout.enabled_set(!is_baked);
 
@@ -353,7 +353,7 @@ static void options_light_reference_draw(const bContext * /*C*/, Panel *panel)
 
   const bool is_baked = RNA_boolean_get(ptr, "is_baked");
   const bool use_cache = RNA_boolean_get(ptr, "use_cache");
-  const bool has_light = RNA_pointer_get(ptr, "light_contour_object").data != nullptr;
+  const bool has_light = RNA_pointer_get(ptr, "light_contour_object").has_data();
   const bool is_first = is_first_lineart(
       *static_cast<const GreasePencilLineartModifierData *>(ptr->data));
 

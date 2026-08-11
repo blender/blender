@@ -484,7 +484,7 @@ static void panel_draw(const bContext * /*C*/, Panel *panel)
   modifier_vgroup_ui(layout, ptr, &ob_ptr, "vertex_group", "invert_vertex_group", std::nullopt);
 
   layout.prop(ptr, "object", UI_ITEM_NONE, std::nullopt, ICON_NONE);
-  if (!RNA_pointer_is_null(&cast_object_ptr)) {
+  if (cast_object_ptr) {
     layout.prop(ptr, "use_transform", UI_ITEM_NONE, std::nullopt, ICON_NONE);
   }
 

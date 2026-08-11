@@ -110,8 +110,6 @@ PointerRNA RNA_pointer_create_id_subdata(ID &id, StructRNA *type, void *data);
  */
 PointerRNA RNA_pointer_create_from_ancestor(const PointerRNA &ptr, const int ancestor_idx);
 
-bool RNA_pointer_is_null(const PointerRNA *ptr);
-
 bool RNA_path_resolved_create(PointerRNA *ptr,
                               PropertyRNA *prop,
                               int prop_index,

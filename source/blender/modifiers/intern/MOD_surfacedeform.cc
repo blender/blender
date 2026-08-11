@@ -1630,7 +1630,7 @@ static void panel_draw(const bContext * /*C*/, Panel *panel)
     col->op("OBJECT_OT_surfacedeform_bind", IFACE_("Unbind"), ICON_NONE);
   }
   else {
-    col->active_set(!RNA_pointer_is_null(&target_ptr));
+    col->active_set(target_ptr);
     col->op("OBJECT_OT_surfacedeform_bind", IFACE_("Bind"), ICON_NONE);
   }
   modifier_error_message_draw(layout, ptr);

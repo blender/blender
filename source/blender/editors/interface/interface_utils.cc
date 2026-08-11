@@ -763,7 +763,7 @@ int calc_float_precision(int prec, double value)
 
 std::optional<std::string> button_online_manual_id(const Button *but)
 {
-  if (but->rnapoin.data && but->rnaprop) {
+  if (but->rnapoin && but->rnaprop) {
     return fmt::format(
         "{}.{}", RNA_struct_identifier(but->rnapoin.type), RNA_property_identifier(but->rnaprop));
   }

@@ -503,7 +503,7 @@ static bool link_drag_operation_test_poll(bContext *C)
     return false;
   }
   PointerRNA socket_ptr = CTX_data_pointer_get_type(C, "socket", RNA_NodeSocket);
-  if (!socket_ptr.data) {
+  if (!socket_ptr) {
     return false;
   }
   return true;
@@ -517,7 +517,7 @@ static wmOperatorStatus link_drag_operation_test_exec(bContext *C, wmOperator *o
   }
   bNodeTree &ntree = *snode.edittree;
   PointerRNA socket_ptr = CTX_data_pointer_get_type(C, "socket", RNA_NodeSocket);
-  if (!socket_ptr.data) {
+  if (!socket_ptr) {
     return OPERATOR_CANCELLED;
   }
   bNodeSocket &socket = *socket_ptr.data_as<bNodeSocket>();

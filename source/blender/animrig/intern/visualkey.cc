@@ -40,7 +40,7 @@ bool visualkey_can_use(PointerRNA *ptr, PropertyRNA *prop)
   bool has_rigidbody = false;
   bool has_parent = false;
 
-  if (ELEM(nullptr, ptr, ptr->data, prop)) {
+  if (!ptr || !*ptr || !prop) {
     return false;
   }
 

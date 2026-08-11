@@ -642,7 +642,7 @@ static bool edit_constraint_invoke_properties(bContext *C,
     return true;
   }
 
-  if (ptr.data) {
+  if (ptr) {
     con = static_cast<bConstraint *>(ptr.data);
     RNA_string_set(op->ptr, "constraint", con->name);
 
@@ -668,7 +668,7 @@ static bool edit_constraint_invoke_properties(bContext *C,
   /* Check the custom data of panels under the mouse for an effect. */
   PointerRNA *panel_ptr = ui::region_panel_custom_data_under_cursor(C, event);
 
-  if (panel_ptr == nullptr || RNA_pointer_is_null(panel_ptr)) {
+  if (panel_ptr == nullptr || !*panel_ptr) {
     /* The operators using this function can typically be called from UIs that aren't related to
      * the constraints UI at all. So include #OPERATOR_PASS_THROUGH to not block events from
      * reaching other operators/handlers. */

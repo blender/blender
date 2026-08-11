@@ -464,7 +464,7 @@ static GreasePencilLayer *rna_GreasePencil_layer_new(GreasePencil *grease_pencil
 {
   using namespace bke::greasepencil;
   LayerGroup *layer_group = nullptr;
-  if (layer_group_ptr && layer_group_ptr->data) {
+  if (layer_group_ptr && *layer_group_ptr) {
     layer_group = static_cast<LayerGroup *>(layer_group_ptr->data);
   }
   Layer *layer;
@@ -543,7 +543,7 @@ static void rna_GreasePencil_layer_move_to_layer_group(GreasePencil *grease_penc
   using namespace bke::greasepencil;
   TreeNode &layer_node = static_cast<Layer *>(layer_ptr->data)->as_node();
   LayerGroup *layer_group;
-  if (layer_group_ptr && layer_group_ptr->data) {
+  if (layer_group_ptr && *layer_group_ptr) {
     layer_group = static_cast<LayerGroup *>(layer_group_ptr->data);
   }
   else {
@@ -564,7 +564,7 @@ static PointerRNA rna_GreasePencil_layer_group_new(GreasePencil *grease_pencil,
 {
   using namespace bke::greasepencil;
   LayerGroup *parent_group;
-  if (parent_group_ptr && parent_group_ptr->data) {
+  if (parent_group_ptr && *parent_group_ptr) {
     parent_group = static_cast<LayerGroup *>(parent_group_ptr->data);
   }
   else {
@@ -644,7 +644,7 @@ static void rna_GreasePencil_layer_group_move_to_layer_group(GreasePencil *greas
   using namespace bke::greasepencil;
   TreeNode &layer_group_node = static_cast<LayerGroup *>(layer_group_ptr->data)->as_node();
   LayerGroup *parent_group;
-  if (parent_group_ptr && parent_group_ptr->data) {
+  if (parent_group_ptr && *parent_group_ptr) {
     parent_group = static_cast<LayerGroup *>(parent_group_ptr->data);
   }
   else {

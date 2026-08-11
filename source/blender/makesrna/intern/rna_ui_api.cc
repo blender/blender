@@ -357,7 +357,7 @@ static void rna_uiItemTabsEnumR(Layout *layout,
 
   /* Get the highlight property used to gray out some of the tabs. */
   PropertyRNA *prop_highlight = nullptr;
-  if (!RNA_pointer_is_null(ptr_highlight)) {
+  if (*ptr_highlight) {
     prop_highlight = RNA_struct_find_property(ptr_highlight, propname_highlight);
     if (!prop_highlight) {
       RNA_warning_bare("UILayout.prop_tabs_enum(): property not found: %s.%s",
@@ -481,7 +481,7 @@ static PointerRNA rna_uiItemO(Layout *layout,
   if (!ot || !ot->srna) {
     RNA_warning_bare(
         "UILayout.operator(): %s '%s'", ot ? "operator missing srna" : "unknown operator", opname);
-    return PointerRNA_NULL;
+    return {};
   }
 
   /* Get translated name (label). */
@@ -524,7 +524,7 @@ static PointerRNA rna_uiItemOMenuHold(Layout *layout,
     RNA_warning_bare("UILayout.operator_menu_hold(): %s '%s'",
                      ot ? "operator missing srna" : "unknown operator",
                      opname);
-    return PointerRNA_NULL;
+    return {};
   }
 
   /* Get translated name (label). */
@@ -568,7 +568,7 @@ static PointerRNA rna_uiItemMenuEnumO(Layout *layout,
     RNA_warning_bare("UILayout.operator_menu_enum(): %s '%s'",
                      ot ? "operator missing srna" : "unknown operator",
                      opname);
-    return PointerRNA_NULL;
+    return {};
   }
 
   /* Get translated name (label). */
@@ -1231,7 +1231,7 @@ PointerRNA rna_uiTemplatePopupConfirm(Layout *layout,
                                       const char *cancel_text,
                                       bool cancel_default)
 {
-  PointerRNA opptr = PointerRNA_NULL;
+  PointerRNA opptr = {};
 
   /* This allows overriding buttons in `WM_operator_props_dialog_popup` and other popups. */
   wmOperatorType *ot = nullptr;

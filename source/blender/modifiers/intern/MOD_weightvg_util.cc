@@ -311,7 +311,7 @@ void weightvg_update_vg(MDeformVert *dvert,
 void weightvg_ui_common(const bContext *C, PointerRNA *ob_ptr, PointerRNA *ptr, ui::Layout &layout)
 {
   PointerRNA mask_texture_ptr = RNA_pointer_get(ptr, "mask_texture");
-  bool has_mask_texture = !RNA_pointer_is_null(&mask_texture_ptr);
+  bool has_mask_texture = mask_texture_ptr;
   bool has_mask_vertex_group = RNA_string_length(ptr, "mask_vertex_group") != 0;
   int mask_tex_mapping = RNA_enum_get(ptr, "mask_tex_mapping");
 

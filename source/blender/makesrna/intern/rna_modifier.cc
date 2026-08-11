@@ -1873,7 +1873,7 @@ static PointerRNA rna_ParticleInstanceModifier_particle_system_get(PointerRNA *p
   ParticleSystem *psys;
 
   if (!psmd->ob) {
-    return PointerRNA_NULL;
+    return {};
   }
 
   psys = static_cast<ParticleSystem *>(BLI_findlink(&psmd->ob->particlesystem, psmd->psys - 1));
@@ -1967,7 +1967,7 @@ static PointerRNA rna_NodesModifierProperties_get(PointerRNA *ptr)
 {
   auto *nmd = ptr->data_as<NodesModifierData>();
   if (!nmd->node_group) {
-    return PointerRNA_NULL;
+    return {};
   }
   return RNA_pointer_create_with_parent(*ptr, RNA_NodesModifierProperties, nmd);
 }
@@ -2130,12 +2130,12 @@ static PointerRNA rna_NodesModifierBake_node_get(PointerRNA *ptr)
   const NodesModifierBake *bake = static_cast<NodesModifierBake *>(ptr->data);
   const NodesModifierData *nmd = find_nodes_modifier_by_bake(*ob, *bake);
   if (!nmd->node_group) {
-    return PointerRNA_NULL;
+    return {};
   }
   const bNodeTree *tree;
   const bNode *node = nmd->node_group->find_nested_node(bake->id, &tree);
   if (!node) {
-    return PointerRNA_NULL;
+    return {};
   }
   BLI_assert(tree != nullptr);
   return RNA_pointer_create_discrete(

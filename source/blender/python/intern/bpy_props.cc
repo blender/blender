@@ -423,7 +423,7 @@ static PyObject *pyrna_struct_as_instance(PointerRNA *ptr)
   PyObject *self = nullptr;
   /* first get self */
   /* operators can store their own instance for later use */
-  if (ptr->data) {
+  if (*ptr) {
     void **instance = RNA_struct_instance(ptr);
 
     if (instance) {

@@ -92,7 +92,7 @@ static void wm_msg_rna_repr(FILE *stream, const wmMsgSubscribeKey *msg_key)
           "%s.%s values_len=%d\n",
           m,
           m->msg.head.id,
-          m->msg.params.ptr.type ? RNA_struct_identifier(m->msg.params.ptr.type) : none,
+          m->msg.params.ptr.has_type() ? RNA_struct_identifier(m->msg.params.ptr.type) : none,
           m->msg.params.prop ?
               RNA_property_identifier(const_cast<PropertyRNA *>(m->msg.params.prop)) :
               none,
@@ -247,12 +247,12 @@ void WM_msg_publish_rna_params(wmMsgBus *mbus, const wmMsgParams_RNA *msg_key_pa
   wmMsgSubscribeKey_RNA *key;
 
   const char *none = "<none>";
-  CLOG_DEBUG(WM_LOG_MSGBUS_PUB,
-             "rna(id='%s', %s.%s)",
-             msg_key_params->ptr.owner_id ? ((ID *)msg_key_params->ptr.owner_id)->name : none,
-             msg_key_params->ptr.type ? RNA_struct_identifier(msg_key_params->ptr.type) : none,
-             msg_key_params->prop ? RNA_property_identifier((PropertyRNA *)msg_key_params->prop) :
-                                    none);
+  CLOG_DEBUG(
+      WM_LOG_MSGBUS_PUB,
+      "rna(id='%s', %s.%s)",
+      msg_key_params->ptr.has_owner_id() ? ((ID *)msg_key_params->ptr.owner_id)->name : none,
+      msg_key_params->ptr.has_type() ? RNA_struct_identifier(msg_key_params->ptr.type) : none,
+      msg_key_params->prop ? RNA_property_identifier((PropertyRNA *)msg_key_params->prop) : none);
 
   if ((key = WM_msg_lookup_rna(mbus, msg_key_params))) {
     WM_msg_publish_with_key(mbus, &key->head);
@@ -260,7 +260,7 @@ void WM_msg_publish_rna_params(wmMsgBus *mbus, const wmMsgParams_RNA *msg_key_pa
 
   /* Support anonymous subscribers, this may be some extra overhead
    * but we want to be able to be more ambiguous. */
-  if (msg_key_params->ptr.owner_id || msg_key_params->ptr.data) {
+  if (msg_key_params->ptr.has_owner_id() || msg_key_params->ptr.has_data()) {
     wmMsgParams_RNA msg_key_params_anon = *msg_key_params;
 
     /* We might want to enable this later? */
@@ -311,13 +311,13 @@ void WM_msg_subscribe_rna_params(wmMsgBus *mbus,
   msg_key_test.msg.params = *msg_key_params;
 
   const char *none = "<none>";
-  CLOG_TRACE(WM_LOG_MSGBUS_SUB,
-             "rna(id='%s', %s.%s, info='%s')",
-             msg_key_params->ptr.owner_id ? ((ID *)msg_key_params->ptr.owner_id)->name : none,
-             msg_key_params->ptr.type ? RNA_struct_identifier(msg_key_params->ptr.type) : none,
-             msg_key_params->prop ? RNA_property_identifier((PropertyRNA *)msg_key_params->prop) :
-                                    none,
-             id_repr);
+  CLOG_TRACE(
+      WM_LOG_MSGBUS_SUB,
+      "rna(id='%s', %s.%s, info='%s')",
+      msg_key_params->ptr.has_owner_id() ? ((ID *)msg_key_params->ptr.owner_id)->name : none,
+      msg_key_params->ptr.has_type() ? RNA_struct_identifier(msg_key_params->ptr.type) : none,
+      msg_key_params->prop ? RNA_property_identifier((PropertyRNA *)msg_key_params->prop) : none,
+      id_repr);
 
   wmMsgSubscribeKey_RNA *msg_key = reinterpret_cast<wmMsgSubscribeKey_RNA *>(
       WM_msg_subscribe_with_key(mbus, &msg_key_test.head, msg_val_params));

@@ -101,7 +101,7 @@ static void colorspaces_menu_draw(const bContext *C, Menu *menu)
   std::optional<StringRefNull> parent_path = colorspace_rna_details_from_context(C, &ptr, &prop);
 
   /* In case menu is invoked from invalid context. */
-  if (ptr.data == nullptr || prop == nullptr) {
+  if (!ptr || prop == nullptr) {
     return;
   }
 

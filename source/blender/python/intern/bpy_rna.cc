@@ -174,7 +174,7 @@ static PyObject *pyweakref_get_ref(PyObject *ref)
 
 int pyrna_struct_validity_check_only(const BPy_StructRNA *pysrna)
 {
-  if (pysrna->ptr->type) {
+  if (pysrna->ptr->has_type()) {
     return 0;
   }
   return -1;
@@ -188,7 +188,7 @@ void pyrna_struct_validity_exception_only(const BPy_StructRNA *pysrna)
 
 int pyrna_struct_validity_check(const BPy_StructRNA *pysrna)
 {
-  if (pysrna->ptr->type) {
+  if (pysrna->ptr->has_type()) {
     return 0;
   }
   pyrna_struct_validity_exception_only(pysrna);
@@ -197,7 +197,7 @@ int pyrna_struct_validity_check(const BPy_StructRNA *pysrna)
 
 int pyrna_prop_validity_check(const BPy_PropertyRNA *self)
 {
-  if (self->ptr->type) {
+  if (self->ptr->has_type()) {
     return 0;
   }
   PyErr_Format(PyExc_ReferenceError,
@@ -1306,7 +1306,7 @@ static Py_hash_t pyrna_struct_hash(BPy_StructRNA *self)
 static long pyrna_prop_hash(BPy_PropertyRNA *self)
 {
   long x, y;
-  if (self->ptr->data == nullptr) {
+  if (!*self->ptr) {
     x = 0;
   }
   else {
@@ -1587,7 +1587,7 @@ PyObject *pyrna_prop_to_py(PointerRNA *ptr, PropertyRNA *prop)
     case PROP_POINTER: {
       PointerRNA newptr;
       newptr = RNA_property_pointer_get(ptr, prop);
-      if (newptr.data) {
+      if (newptr) {
         ret = pyrna_struct_CreatePyObject(&newptr);
       }
       else {
@@ -1994,7 +1994,7 @@ static int pyrna_py_to_prop(
           const StructRNA *base_type = RNA_struct_base_child_of(ptr_type, nullptr);
           if (ELEM(base_type, RNA_OperatorProperties, RNA_GizmoProperties, RNA_PropertyGroup)) {
             PointerRNA opptr = RNA_property_pointer_get(ptr, prop);
-            if (opptr.type) {
+            if (opptr.has_type()) {
               return pyrna_pydict_to_props(&opptr, value, false, error_prefix);
             }
             /* Converting a dictionary to properties is not supported
@@ -2139,7 +2139,7 @@ static int pyrna_py_to_prop(
             ReportList reports;
             BKE_reports_init(&reports, RPT_STORE | RPT_PRINT_HANDLED_BY_OWNER);
             RNA_property_pointer_set(
-                ptr, prop, (param == nullptr) ? PointerRNA_NULL : *param->ptr, &reports);
+                ptr, prop, (param == nullptr) ? PointerRNA() : *param->ptr, &reports);
             const int err = BPy_reports_to_error(&reports, PyExc_RuntimeError, true);
             if (err == -1) {
               Py_XDECREF(value_new);
@@ -2404,7 +2404,7 @@ static int pyrna_prop_collection_subscript_is_valid_or_error(const PyObject *val
   if (value != Py_None) {
     BLI_assert(BPy_StructRNA_Check(value));
     const BPy_StructRNA *value_pyrna = reinterpret_cast<const BPy_StructRNA *>(value);
-    if (value_pyrna->ptr->type == nullptr) [[unlikely]] {
+    if (!value_pyrna->ptr->has_type()) [[unlikely]] {
       /* It's important to use a `TypeError` as that is what's returned when `__getitem__` is
        * called on an object that doesn't support item access. */
       PyErr_Format(PyExc_TypeError,
@@ -2503,8 +2503,9 @@ static int pyrna_prop_collection_ass_subscript_int(BPy_PropertyRNA *self,
                                                    PyObject *value)
 {
   Py_ssize_t keynum_abs = keynum;
+  static const PointerRNA null_ptr;
   const PointerRNA *ptr = (value == Py_None) ?
-                              (&PointerRNA_NULL) :
+                              &null_ptr :
                               &(reinterpret_cast<BPy_StructRNA *>(value))->ptr.value();
 
   PYRNA_PROP_CHECK_INT(self);
@@ -4915,7 +4916,7 @@ static PyObject *pyrna_struct_getattro(BPy_StructRNA *self, PyObject *pyname)
       if (done == CTX_RESULT_OK) {
         switch (newtype) {
           case ContextDataType::Pointer:
-            if (newptr.data == nullptr) {
+            if (!newptr) {
               ret = Py_None;
               Py_INCREF(ret);
             }
@@ -5386,7 +5387,7 @@ static PyObject *pyrna_prop_collection_idprop_add(BPy_PropertyRNA *self)
 #endif /* USE_PEDANTIC_WRITE */
 
   RNA_property_collection_add(&self->ptr.value(), self->prop, &r_ptr);
-  if (!r_ptr.data) {
+  if (!r_ptr) {
     PyErr_SetString(PyExc_TypeError,
                     "bpy_prop_collection.add(): not supported for this collection");
     return nullptr;
@@ -5614,7 +5615,7 @@ static PyObject *pyrna_prop_collection_items(BPy_PropertyRNA *self)
 
   BPy_NamePropAsPyObject_Cache nameprop_cache = {nullptr};
   RNA_PROP_BEGIN (&self->ptr.value(), itemptr, self->prop) {
-    if (itemptr.data == nullptr) [[unlikely]] {
+    if (!itemptr) [[unlikely]] {
       continue;
     }
     /* Add to Python list. */
@@ -6982,7 +6983,7 @@ static PyObject *pyrna_param_to_py(PointerRNA *ptr, PropertyRNA *prop, void *dat
           newptr_p = &newptr;
         }
 
-        if (newptr_p->data) {
+        if (*newptr_p) {
           ret = pyrna_struct_CreatePyObject(newptr_p);
         }
         else {
@@ -7669,7 +7670,7 @@ static void pyrna_struct_dealloc(PyObject *self)
   BPy_StructRNA *self_struct = reinterpret_cast<BPy_StructRNA *>(self);
 
 #ifdef PYRNA_FREE_SUPPORT
-  if (self_struct->freeptr && self_struct->ptr->data) {
+  if (self_struct->freeptr && *self_struct->ptr) {
     IDP_FreeProperty(self_struct->ptr->data);
     self_struct->ptr->data = nullptr;
   }
@@ -8824,8 +8825,8 @@ static PyObject *pyrna_struct_CreatePyObject_from_type(const PointerRNA *ptr,
 PyObject *pyrna_struct_CreatePyObject(PointerRNA *ptr)
 {
   /* NOTE: don't rely on this to return None since nullptr data with a valid type can often crash.
-   */
-  if (ptr->data == nullptr && ptr->type == nullptr) { /* Operator RNA has nullptr data. */
+   * Operator RNA can have null data with a type set; only treat untyped pointers as None. */
+  if (!ptr->has_type()) {
     Py_RETURN_NONE;
   }
 
@@ -8833,7 +8834,7 @@ PyObject *pyrna_struct_CreatePyObject(PointerRNA *ptr)
 
   /* NOTE(@ideasman42): New in 2.8x, since not many types support instancing
    * we may want to use a flag to avoid looping over all classes. */
-  void **instance = ptr->data ? RNA_struct_instance(ptr) : nullptr;
+  void **instance = *ptr ? RNA_struct_instance(ptr) : nullptr;
   if (instance && *instance) {
     pyrna = static_cast<BPy_StructRNA *>(*instance);
 
@@ -9355,7 +9356,8 @@ const PointerRNA *pyrna_struct_as_ptr(PyObject *py_obj, const StructRNA *srna)
 const PointerRNA *pyrna_struct_as_ptr_or_null(PyObject *py_obj, const StructRNA *srna)
 {
   if (py_obj == Py_None) {
-    return &PointerRNA_NULL;
+    static const PointerRNA null_ptr;
+    return &null_ptr;
   }
   return pyrna_struct_as_ptr(py_obj, srna);
 }
@@ -9952,7 +9954,7 @@ static int bpy_class_call(bContext *C, PointerRNA *ptr, FunctionRNA *func, Param
 
   if (!(is_staticmethod || is_classmethod)) {
     /* Some data-types (operator, render engine) can store PyObjects for re-use. */
-    if (ptr->data) {
+    if (*ptr) {
       void **instance = RNA_struct_instance(ptr);
 
       if (instance) {
@@ -10222,7 +10224,7 @@ static int bpy_class_call(bContext *C, PointerRNA *ptr, FunctionRNA *func, Param
   if (err != 0) {
     ReportList *reports;
     /* Alert the user, else they won't know unless they see the console. */
-    if ((!is_staticmethod) && (!is_classmethod) && (ptr->data) &&
+    if ((!is_staticmethod) && (!is_classmethod) && (*ptr) &&
         RNA_struct_is_a(ptr->type, RNA_Operator) &&
         (is_valid_wm == (CTX_wm_manager(C) != nullptr)))
     {

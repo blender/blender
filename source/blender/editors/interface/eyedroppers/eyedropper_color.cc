@@ -120,7 +120,7 @@ static bool eyedropper_init(bContext *C, wmOperator *op)
   const enum PropertySubType prop_subtype = eye->prop ? RNA_property_subtype(eye->prop) :
                                                         PropertySubType(0);
 
-  if ((eye->ptr.data == nullptr) || (eye->prop == nullptr) ||
+  if (!eye->ptr || (eye->prop == nullptr) ||
       (RNA_property_editable(&eye->ptr, eye->prop) == false) ||
       (RNA_property_array_length(&eye->ptr, eye->prop) < 3) ||
       (RNA_property_type(eye->prop) != PROP_FLOAT) ||

@@ -543,7 +543,7 @@ static void panel_draw(const bContext * /*C*/, Panel *panel)
   layout.use_property_split_set(true);
 
   layout.prop(ptr, "object", UI_ITEM_NONE, std::nullopt, ICON_NONE);
-  if (!RNA_pointer_is_null(&particle_obj_ptr)) {
+  if (particle_obj_ptr) {
     layout.prop_search(ptr,
                        "particle_system",
                        &particle_obj_ptr,

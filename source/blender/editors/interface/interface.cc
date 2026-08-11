@@ -1276,7 +1276,7 @@ static bool but_is_rna_undo(const Button *but)
 
   /* No owner or type known. Assume we do not undo push as it may be a property from
    * the preferences stored outside datablocks. */
-  if (but->rnapoin.owner_id == nullptr || but->rnapoin.type == nullptr) {
+  if (!but->rnapoin.has_owner_id() || !but->rnapoin.has_type()) {
     return false;
   }
 
@@ -2791,7 +2791,7 @@ double button_value_get(Button *but)
   if (but->editval) {
     return *(but->editval);
   }
-  if (but->poin == nullptr && but->rnapoin.data == nullptr) {
+  if (but->poin == nullptr && !but->rnapoin) {
     return 0.0;
   }
 
@@ -3417,7 +3417,7 @@ bool button_string_eval_number(bContext *C, const Button *but, const char *str, 
 
 bool button_string_set(bContext *C, Button *but, const char *str)
 {
-  if (but->rnaprop && but->rnapoin.data &&
+  if (but->rnaprop && but->rnapoin &&
       ELEM(but->type, ButtonType::Text, ButtonType::TextBox, ButtonType::SearchMenu))
   {
     if (RNA_property_editable(&but->rnapoin, but->rnaprop)) {
@@ -3439,7 +3439,7 @@ bool button_string_set(bContext *C, Button *but, const char *str)
 
       if (type == PROP_POINTER) {
         if (str[0] == '\0') {
-          RNA_property_pointer_set(&but->rnapoin, but->rnaprop, PointerRNA_NULL, nullptr);
+          RNA_property_pointer_set(&but->rnapoin, but->rnaprop, {}, nullptr);
           return true;
         }
 
@@ -4662,8 +4662,7 @@ static void def_but_rna__menu(bContext *C, Layout *layout, void *but_p)
     rows = totitems;
   }
 
-  const char *title = RNA_property_ui_name(
-      but->rnaprop, RNA_pointer_is_null(&but->rnapoin) ? nullptr : &but->rnapoin);
+  const char *title = RNA_property_ui_name(but->rnaprop, but->rnapoin ? &but->rnapoin : nullptr);
 
   /* Is there a non-blank label before this button on the same row? */
   Button *but_prev = but->block->prev_but(but);
@@ -5054,7 +5053,7 @@ static Button *def_but_rna(Block *block,
   }
 
   const char *info;
-  if (but->rnapoin.data && !RNA_property_editable_info(&but->rnapoin, prop, &info)) {
+  if (but->rnapoin && !RNA_property_editable_info(&but->rnapoin, prop, &info)) {
     button_disable(but, info);
   }
 
@@ -5062,7 +5061,7 @@ static Button *def_but_rna(Block *block,
     /* If the button shows an ID, automatically set it as focused in context so operators can
      * access it. */
     const PointerRNA pptr = RNA_property_pointer_get(ptr, prop);
-    if (pptr.data && RNA_struct_is_ID(pptr.type)) {
+    if (pptr && RNA_struct_is_ID(pptr.type)) {
       but->context = CTX_store_add(block->contexts, "id", &pptr);
     }
   }
@@ -6516,7 +6515,7 @@ std::string button_string_get_rna_property_identifier(const Button &but)
 
 std::string button_string_get_rna_struct_identifier(const Button &but)
 {
-  if (but.rnaprop && but.rnapoin.data) {
+  if (but.rnaprop && but.rnapoin) {
     return RNA_struct_identifier(but.rnapoin.type);
   }
   if (but.optype) {

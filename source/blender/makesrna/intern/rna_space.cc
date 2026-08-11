@@ -3408,7 +3408,7 @@ static PointerRNA rna_FileBrowser_FileSelectEntry_asset_data_get_impl(const Poin
   const FileDirEntry *entry = static_cast<const FileDirEntry *>(ptr->data);
 
   if (!entry->asset) {
-    return PointerRNA_NULL;
+    return {};
   }
 
   AssetMetaData *asset_data = &entry->asset->get_metadata();
@@ -3504,7 +3504,7 @@ static PointerRNA rna_FileBrowser_params_get(PointerRNA *ptr)
     return RNA_pointer_create_with_parent(*ptr, params_struct, params);
   }
 
-  return PointerRNA_NULL;
+  return {};
 }
 
 static void rna_FileBrowser_FSMenuEntry_path_get(PointerRNA *ptr, char *value)

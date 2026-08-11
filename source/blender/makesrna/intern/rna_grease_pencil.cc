@@ -218,14 +218,14 @@ static PointerRNA rna_Frame_drawing_get(PointerRNA *ptr)
   const GreasePencil &grease_pencil = *rna_grease_pencil(ptr);
   GreasePencilFrame &frame_to_find = *static_cast<GreasePencilFrame *>(ptr->data);
   if (frame_to_find.is_end()) {
-    return PointerRNA_NULL;
+    return {};
   }
 
   /* RNA doesn't give access to the parented layer object, so we have to iterate over all layers
    * and search for the matching GreasePencilFrame pointer in the frames collection. */
   auto [frame_number, this_layer] = find_layer_of_frame(grease_pencil, frame_to_find);
   if (this_layer == nullptr) {
-    return PointerRNA_NULL;
+    return {};
   }
 
   const Drawing *drawing = grease_pencil.get_drawing_at(*this_layer, frame_number);
@@ -396,7 +396,7 @@ static PointerRNA rna_GreasePencilTreeNode_parent_layer_group_get(PointerRNA *pt
   GreasePencilLayerTreeNode *node = static_cast<GreasePencilLayerTreeNode *>(ptr->data);
   /* Return 'None' when node is in the root group. This group is not meant to be seen. */
   if (node->parent == nullptr || node->parent == grease_pencil->root_group_ptr) {
-    return PointerRNA_NULL;
+    return {};
   }
   return RNA_pointer_create_with_parent(
       *ptr, RNA_GreasePencilLayerGroup, static_cast<void *>(node->parent));
@@ -611,7 +611,7 @@ static PointerRNA rna_GreasePencil_active_layer_get(PointerRNA *ptr)
     return RNA_pointer_create_with_parent(
         *ptr, RNA_GreasePencilLayer, static_cast<void *>(grease_pencil->get_active_layer()));
   }
-  return PointerRNA_NULL;
+  return {};
 }
 
 static void rna_GreasePencil_active_layer_set(PointerRNA *ptr,
@@ -630,7 +630,7 @@ static PointerRNA rna_GreasePencil_active_group_get(PointerRNA *ptr)
     return RNA_pointer_create_with_parent(
         *ptr, RNA_GreasePencilLayerGroup, static_cast<void *>(grease_pencil->get_active_group()));
   }
-  return PointerRNA_NULL;
+  return {};
 }
 
 static void rna_GreasePencil_active_group_set(PointerRNA *ptr,

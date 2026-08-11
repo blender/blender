@@ -93,7 +93,7 @@ static Base *find_view_layer_base_with_synced_ensure(
 
   Scene *scene;
   ViewLayer *view_layer;
-  if (view_layer_ptr->data) {
+  if (*view_layer_ptr) {
     scene = id_cast<Scene *>(view_layer_ptr->owner_id);
     view_layer = static_cast<ViewLayer *>(view_layer_ptr->data);
   }
@@ -495,7 +495,7 @@ static PointerRNA rna_Object_shape_key_add(
   }
   else {
     BKE_reportf(reports, RPT_ERROR, "Object '%s' does not support shapes", ob->id.name + 2);
-    return PointerRNA_NULL;
+    return {};
   }
 }
 

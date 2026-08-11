@@ -329,7 +329,7 @@ static void panel_draw(const bContext *C, Panel *panel)
   PointerRNA *ptr = modifier_panel_get_property_pointers(panel, &ob_ptr);
 
   PointerRNA cache_file_ptr = RNA_pointer_get(ptr, "cache_file");
-  bool has_cache_file = !RNA_pointer_is_null(&cache_file_ptr);
+  bool has_cache_file = cache_file_ptr.has_data();
 
   layout.use_property_split_set(true);
 
