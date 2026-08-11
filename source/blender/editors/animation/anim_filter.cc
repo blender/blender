@@ -3863,6 +3863,9 @@ static size_t animdata_filter_animchan(bAnimContext *ac,
   /* data to filter depends on channel type */
   /* NOTE: only common channel-types have been handled for now. More can be added as necessary */
   switch (channel->type) {
+    case ANIMTYPE_NONE:
+      return 0;
+
     case ANIMTYPE_SUMMARY:
       items += animdata_filter_dopesheet(ac, anim_data, filter_mode);
       break;
