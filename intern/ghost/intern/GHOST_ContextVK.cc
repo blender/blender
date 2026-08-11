@@ -797,6 +797,9 @@ struct GHOST_InstanceVK {
         vk_physical_device, &device_create_info, nullptr, &device.vk_device);
 
     if (result != VK_SUCCESS) {
+#ifndef __has_feature
+#  define __has_feature(x) 0
+#endif
 #if (defined(__SANITIZE_ADDRESS__) || __has_feature(address_sanitizer)) && defined(__linux__)
       if (device.device_driver_properties.driverID == VK_DRIVER_ID_NVIDIA_PROPRIETARY) {
         CLOG_ERROR(
