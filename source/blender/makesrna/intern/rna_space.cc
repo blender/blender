@@ -752,6 +752,7 @@ static const EnumPropertyItem spreadsheet_table_id_type_items[] = {
 #  include "ED_fileselect.hh"
 #  include "ED_image.hh"
 #  include "ED_node.hh"
+#  include "ED_render.hh"
 #  include "ED_screen.hh"
 #  include "ED_sequencer.hh"
 #  include "ED_spreadsheet.hh"
@@ -1382,6 +1383,36 @@ static void rna_RegionView3D_quadview_clip_update(Main * /*main*/,
   if (area && region && region->alignment == RGN_ALIGN_QSPLIT) {
     ED_view3d_quadview_update(area, region, true);
   }
+}
+
+static RenderEngine *rna_RegionView3D_engine_get(const PointerRNA *ptr)
+{
+  const RegionView3D *rv3d = static_cast<RegionView3D *>(ptr->data);
+  return rv3d->view_render ? RE_view_engine_get(rv3d->view_render) : nullptr;
+}
+
+static bool rna_RegionView3D_pause_render_get(PointerRNA *ptr)
+{
+  const RenderEngine *engine = rna_RegionView3D_engine_get(ptr);
+  return engine && RE_engine_view_pause_get(engine);
+}
+
+static void rna_RegionView3D_pause_render_set(PointerRNA *ptr, const bool value)
+{
+  if (RenderEngine *engine = rna_RegionView3D_engine_get(ptr)) {
+    RE_engine_view_pause_set(engine, value);
+  }
+}
+
+static bool rna_RegionView3D_support_pause_render_get(PointerRNA *ptr)
+{
+  const RenderEngine *engine = rna_RegionView3D_engine_get(ptr);
+  return engine && engine->type->view_pause && engine->type->view_resume;
+}
+
+static void rna_RegionView3D_pause_render_update(Main *bmain, Scene * /*scene*/, PointerRNA *ptr)
+{
+  ED_render_view3d_pause_notify(bmain, static_cast<RegionView3D *>(ptr->data));
 }
 
 /**
@@ -6188,6 +6219,22 @@ static void rna_def_space_view3d(BlenderRNA *brna)
   RNA_def_property_ui_text(prop, "Camera Roll", "Roll angle in camera view");
   RNA_def_property_range(prop, -M_PI, M_PI);
   RNA_def_property_update(prop, NC_SPACE | ND_SPACE_VIEW3D, nullptr);
+
+  prop = RNA_def_property(srna, "pause_render", PROP_BOOLEAN, PROP_NONE);
+  RNA_def_property_boolean_funcs(
+      prop, "rna_RegionView3D_pause_render_get", "rna_RegionView3D_pause_render_set");
+  RNA_def_property_clear_flag(prop, PROP_ANIMATABLE);
+  RNA_def_property_ui_text(prop, "Pause Render", "Pause the rendered viewport");
+  RNA_def_property_update(
+      prop, NC_SPACE | ND_SPACE_VIEW3D, "rna_RegionView3D_pause_render_update");
+
+  prop = RNA_def_property(srna, "support_pause_render", PROP_BOOLEAN, PROP_NONE);
+  RNA_def_property_clear_flag(prop, PROP_EDITABLE);
+  RNA_def_property_ui_text(
+      prop,
+      "Support Pause Render",
+      "The render engine currently rendering this viewport can be paused and resumed");
+  RNA_def_property_boolean_funcs(prop, "rna_RegionView3D_support_pause_render_get", nullptr);
 
   RNA_api_region_view3d(srna);
 }

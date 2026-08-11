@@ -25,6 +25,7 @@
 
 #include "DRW_engine.hh"
 
+#include "BLI_function_ref.hh"
 #include "BLI_listbase.hh"
 #include "BLI_threads.hh"
 
@@ -52,6 +53,7 @@
 #include "ED_node_preview.hh"
 #include "ED_paint.hh"
 #include "ED_render.hh"
+#include "ED_screen.hh"
 #include "ED_view3d.hh"
 
 #include "DEG_depsgraph.hh"
@@ -66,14 +68,14 @@ namespace blender {
  * \{ */
 
 static bContext *render_view3d_context_create(
-    Main *bmain, wmWindow *window, ScrArea *area, ARegion *region, Scene *scene)
+    Main *bmain, wmWindow *window, bScreen *screen, ScrArea *area, ARegion *region, Scene *scene)
 {
   bContext *C = CTX_create();
   CTX_data_main_set(C, bmain);
   CTX_data_scene_set(C, scene);
   CTX_wm_manager_set(C, static_cast<wmWindowManager *>(bmain->wm.first));
   CTX_wm_window_set(C, window);
-  CTX_wm_screen_set(C, WM_window_get_active_screen(window));
+  CTX_wm_screen_set(C, screen);
   CTX_wm_area_set(C, area);
   CTX_wm_region_set(C, region);
   return C;
@@ -96,7 +98,8 @@ void ED_render_view3d_update(Depsgraph *depsgraph,
     RenderEngine *engine = rv3d->view_render ? RE_view_engine_get(rv3d->view_render) : nullptr;
 
     if (engine && (updated || (engine->flag & RE_ENGINE_DO_UPDATE))) {
-      bContext *C = render_view3d_context_create(bmain, window, area, &region, scene);
+      bContext *C = render_view3d_context_create(
+          bmain, window, WM_window_get_active_screen(window), area, &region, scene);
 
       engine->flag &= ~RE_ENGINE_DO_UPDATE;
       engine->type->view_update(engine, C, CTX_data_depsgraph_pointer(C));
@@ -106,48 +109,61 @@ void ED_render_view3d_update(Depsgraph *depsgraph,
   }
 }
 
-void ED_render_view3d_pause_resume(Main *bmain, const bool pause)
+static void render_view3d_engines_foreach(
+    Main *bmain, const FunctionRef<void(RenderEngine *engine, bContext *C, ARegion *region)> fn)
 {
   wmWindowManager *wm = static_cast<wmWindowManager *>(bmain->wm.first);
-  if (!wm) {
-    return;
-  }
-  for (wmWindow &win : wm->windows) {
-    Scene *scene = WM_window_get_active_scene(&win);
-    const bScreen *screen = WM_window_get_active_screen(&win);
-    if (!screen) {
-      continue;
-    }
-    for (ScrArea &area : screen->areabase) {
+
+  for (bScreen &screen : bmain->screens) {
+    wmWindow *window = wm ? ED_screen_window_find(&screen, wm) : nullptr;
+
+    for (ScrArea &area : screen.areabase) {
       if (area.spacetype != SPACE_VIEW3D) {
         continue;
       }
+
       for (ARegion &region : area.regionbase) {
         if (region.regiontype != RGN_TYPE_WINDOW) {
           continue;
         }
-        RegionView3D *rv3d = static_cast<RegionView3D *>(region.regiondata);
-        if (!rv3d || !rv3d->view_render) {
-          continue;
-        }
-        RenderEngine *engine = RE_view_engine_get(rv3d->view_render);
+
+        const RegionView3D *rv3d = static_cast<RegionView3D *>(region.regiondata);
+        RenderEngine *engine = (rv3d && rv3d->view_render) ?
+                                   RE_view_engine_get(rv3d->view_render) :
+                                   nullptr;
         if (!engine) {
           continue;
         }
 
-        bContext *C = render_view3d_context_create(bmain, &win, &area, &region, scene);
+        Scene *scene = window ? WM_window_get_active_scene(window) : nullptr;
+        bContext *C = render_view3d_context_create(bmain, window, &screen, &area, &region, scene);
 
-        if (pause) {
-          RE_engine_view_pause(engine, C);
-        }
-        else {
-          RE_engine_view_resume(engine, C);
-        }
+        fn(engine, C, &region);
 
         CTX_free(C);
       }
     }
   }
+}
+
+void ED_render_view3d_auto_pause(Main *bmain, const bool pause)
+{
+  render_view3d_engines_foreach(bmain, [&](RenderEngine *engine, bContext *C, ARegion *region) {
+    RE_engine_view_auto_pause_set(engine, pause);
+    RE_engine_view_pause_notify(engine, C);
+    ED_region_tag_redraw(region);
+  });
+}
+
+void ED_render_view3d_pause_notify(Main *bmain, const RegionView3D *rv3d)
+{
+  render_view3d_engines_foreach(bmain, [&](RenderEngine *engine, bContext *C, ARegion *region) {
+    if (region->regiondata != rv3d) {
+      return;
+    }
+    RE_engine_view_pause_notify(engine, C);
+    ED_region_tag_redraw(region);
+  });
 }
 
 static void update_compositor(const DEGEditorUpdateContext *update_context)

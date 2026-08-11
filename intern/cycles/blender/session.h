@@ -77,6 +77,7 @@ class BlenderSession {
   /* drawing */
   void draw(blender::bScreen &b_screen, blender::SpaceImage &space_image);
   void view_draw(const int w, const int h);
+  void view_pause(const bool pause);
   void tag_redraw();
   void tag_update();
   void get_status(string &status, string &substatus);
@@ -86,6 +87,7 @@ class BlenderSession {
   void update_bake_progress();
 
   bool background;
+  bool view_paused = false;
   unique_ptr<Session> session;
   Scene *scene;
   unique_ptr<BlenderSync> sync;

@@ -10,6 +10,7 @@
 #include "DNA_scene_types.h"
 #include "DNA_userdef_types.h"
 #include "DNA_world_types.h"
+#include "RE_engine.h"
 #include "RNA_prototypes.hh"
 #include "RNA_types.hh"
 
@@ -1027,13 +1028,6 @@ SceneParams BlenderSync::get_scene_params(blender::UserDef &b_preferences,
 }
 
 /* Session Parameters */
-
-bool BlenderSync::get_session_pause(blender::Scene &b_scene, bool background)
-{
-  blender::PointerRNA scene_rna_ptr = RNA_id_pointer_create(&b_scene.id);
-  blender::PointerRNA cscene = RNA_pointer_get(&scene_rna_ptr, "cycles");
-  return (background) ? false : get_boolean(cscene, "preview_pause");
-}
 
 SessionParams BlenderSync::get_session_params(blender::RenderEngine &b_engine,
                                               blender::UserDef &b_preferences,

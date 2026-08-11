@@ -1447,23 +1447,43 @@ void RE_engine_gpu_context_unlock(RenderEngine *engine)
   }
 }
 
-void RE_engine_view_pause(RenderEngine *engine, const bContext *context)
+void RE_engine_view_pause_set(RenderEngine *engine, const bool pause)
 {
-  if (engine->type->view_pause) {
-    engine->type->view_pause(engine, context);
-    engine->auto_paused = true;
-  }
+  SET_FLAG_FROM_TEST(engine->flag, pause, RE_ENGINE_VIEW_PAUSED);
 }
 
-void RE_engine_view_resume(RenderEngine *engine, const bContext *context)
+bool RE_engine_view_pause_get(const RenderEngine *engine)
 {
-  if (!engine->auto_paused) {
+  return (engine->flag & RE_ENGINE_VIEW_PAUSED) != 0;
+}
+
+void RE_engine_view_auto_pause_set(RenderEngine *engine, const bool pause)
+{
+  SET_FLAG_FROM_TEST(engine->flag, pause, RE_ENGINE_VIEW_PAUSED_AUTO);
+}
+
+void RE_engine_view_pause_notify(RenderEngine *engine, const bContext *context)
+{
+  const bool is_paused = (engine->flag & (RE_ENGINE_VIEW_PAUSED | RE_ENGINE_VIEW_PAUSED_AUTO)) !=
+                         0;
+  const bool was_paused = (engine->flag & RE_ENGINE_VIEW_PAUSED_NOTIFIED) != 0;
+
+  if (is_paused == was_paused) {
     return;
   }
-  if (engine->type->view_resume) {
-    engine->type->view_resume(engine, context);
+
+  SET_FLAG_FROM_TEST(engine->flag, is_paused, RE_ENGINE_VIEW_PAUSED_NOTIFIED);
+
+  if (is_paused) {
+    if (engine->type->view_pause) {
+      engine->type->view_pause(engine, context);
+    }
   }
-  engine->auto_paused = false;
+  else {
+    if (engine->type->view_resume) {
+      engine->type->view_resume(engine, context);
+    }
+  }
 }
 
 /** \} */
