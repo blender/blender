@@ -174,7 +174,7 @@ void ED_paintcurve_undo_push_begin(const char *name)
 void ED_paintcurve_undo_push_end(bContext *C)
 {
   UndoStack *ustack = ED_undo_stack_get();
-  BKE_undosys_step_push(ustack, C, nullptr);
+  BKE_undosys_step_push(ustack, C, nullptr, UndoEncodeHints::None);
   BKE_undosys_stack_limit_steps_and_memory_defaults(ustack);
   WM_file_tag_modified();
 }

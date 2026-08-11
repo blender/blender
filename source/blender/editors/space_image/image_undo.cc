@@ -1117,7 +1117,7 @@ void ED_image_undo_push(Image *image, ImBuf *ibuf, ImageUser *iuser, ImageUndoSt
 void ED_image_undo_push_end()
 {
   UndoStack *ustack = ED_undo_stack_get();
-  BKE_undosys_step_push(ustack, nullptr, nullptr);
+  BKE_undosys_step_push(ustack, nullptr, nullptr, UndoEncodeHints::None);
   BKE_undosys_stack_limit_steps_and_memory_defaults(ustack);
   WM_file_tag_modified();
 }

@@ -561,6 +561,7 @@ struct AfterFunc {
   char undostr[BKE_UNDO_STR_MAX];
   std::string drawstr;
   bool use_undo_grouped = false;
+  UndoEncodeHints undo_hints = UndoEncodeHints::None;
 };
 
 static void button_activate_init(bContext *C,
@@ -1047,7 +1048,6 @@ static void apply_but_undo(Button *but, bool use_undo_grouped = false)
 
   std::optional<StringRef> str;
   size_t str_len_clip = SIZE_MAX - 1;
-  bool skip_undo = false;
 
   /* define which string to use for undo */
   if (but->type == ButtonType::Menu) {
@@ -1072,6 +1072,7 @@ static void apply_but_undo(Button *but, bool use_undo_grouped = false)
   }
 
   /* Optionally override undo when undo system doesn't support storing properties. */
+  std::optional<UndoEncodeHints> undo_hints_or_none = UndoEncodeHints::None;
   if (but->rnapoin.owner_id) {
     /* Exception for renaming ID data, we always need undo pushes in this case,
      * because undo systems track data by their ID, see: #67002. */
@@ -1082,25 +1083,22 @@ static void apply_but_undo(Button *but, bool use_undo_grouped = false)
     }
     else if (but->rnaprop) {
       ID *id = but->rnapoin.owner_id;
-      if (!ED_undo_is_legacy_compatible_for_property(
-              static_cast<bContext *>(but->block->evil_C), id, but->rnapoin, *but->rnaprop))
-      {
-        skip_undo = true;
-      }
+      undo_hints_or_none = ED_undo_is_legacy_compatible_for_property(
+          static_cast<bContext *>(but->block->evil_C), id, but->rnapoin, *but->rnaprop);
     }
   }
 
-  if (skip_undo == false) {
+  if (undo_hints_or_none.has_value()) {
     /* XXX: disable all undo pushes from UI changes from sculpt mode as they cause memfile undo
      * steps to be written which cause lag: #71434. */
     if (BKE_paintmode_get_active_from_context(static_cast<bContext *>(but->block->evil_C)) ==
         PaintMode::Sculpt)
     {
-      skip_undo = true;
+      undo_hints_or_none = std::nullopt;
     }
   }
 
-  if (skip_undo) {
+  if (!undo_hints_or_none.has_value()) {
     str = "";
   }
 
@@ -1108,6 +1106,7 @@ static void apply_but_undo(Button *but, bool use_undo_grouped = false)
   AfterFunc *after = afterfunc_new();
   str->copy_utf8_truncated(after->undostr, min_zz(str_len_clip + 1, sizeof(after->undostr)));
   after->use_undo_grouped = use_undo_grouped;
+  after->undo_hints = undo_hints_or_none.value_or(UndoEncodeHints::None);
 }
 
 static void apply_but_autokey(bContext *C, Button *but)
@@ -1234,10 +1233,10 @@ static void apply_but_funcs_after(bContext *C)
        * obvious, see #78171. */
       WM_operator_stack_clear(CTX_wm_manager(C));
       if (after.use_undo_grouped) {
-        ED_undo_grouped_push(C, after.undostr);
+        ED_undo_grouped_push(C, after.undostr, after.undo_hints);
       }
       else {
-        ED_undo_push(C, after.undostr);
+        ED_undo_push(C, after.undostr, after.undo_hints);
       }
     }
   }

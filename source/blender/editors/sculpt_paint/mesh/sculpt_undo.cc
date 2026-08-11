@@ -2113,7 +2113,7 @@ void push_end_ex(Object &ob, const bool use_nested_undo)
   wmWindowManager *wm = static_cast<wmWindowManager *>(G_MAIN->wm.first);
   if (wm->op_undo_depth == 0 || use_nested_undo) {
     UndoStack *ustack = ED_undo_stack_get();
-    BKE_undosys_step_push(ustack, nullptr, nullptr);
+    BKE_undosys_step_push(ustack, nullptr, nullptr, UndoEncodeHints::None);
     if (wm->op_undo_depth == 0) {
       BKE_undosys_stack_limit_steps_and_memory_defaults(ustack);
     }
@@ -2411,7 +2411,7 @@ void geometry_end(Object &ob)
   wmWindowManager *wm = static_cast<wmWindowManager *>(G_MAIN->wm.first);
   if (wm->op_undo_depth == 0) {
     UndoStack *ustack = ED_undo_stack_get();
-    BKE_undosys_step_push(ustack, nullptr, nullptr);
+    BKE_undosys_step_push(ustack, nullptr, nullptr, UndoEncodeHints::None);
     if (wm->op_undo_depth == 0) {
       BKE_undosys_stack_limit_steps_and_memory_defaults(ustack);
     }

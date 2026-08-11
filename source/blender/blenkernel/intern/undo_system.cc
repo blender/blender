@@ -79,7 +79,7 @@ void bke_undo_system_linker_workaround()
   BKE_memfile_undo_free(nullptr);
 }
 
-static const UndoType *BKE_undosys_type_from_context(bContext *C)
+const UndoType *BKE_undosys_type_from_context(bContext *C)
 {
   for (const UndoType &ut : g_undo_types) {
     /* No poll means we don't check context. */
@@ -362,7 +362,7 @@ static bool undosys_stack_push_main(UndoStack *ustack, const char *name, Main *b
   bContext *C_temp = CTX_create();
   CTX_data_main_set(C_temp, bmain);
   eUndoPushReturn ret = BKE_undosys_step_push_with_type(
-      ustack, C_temp, name, BKE_UNDOSYS_TYPE_MEMFILE);
+      ustack, C_temp, name, UndoEncodeHints::None, BKE_UNDOSYS_TYPE_MEMFILE);
   CTX_free(C_temp);
   return (ret & UNDO_PUSH_RET_SUCCESS);
 }
@@ -377,7 +377,7 @@ void BKE_undosys_stack_init_from_context(UndoStack *ustack, bContext *C)
 {
   const UndoType *ut = BKE_undosys_type_from_context(C);
   if (!ELEM(ut, nullptr, BKE_UNDOSYS_TYPE_MEMFILE)) {
-    BKE_undosys_step_push_with_type(ustack, C, IFACE_("Original Mode"), ut);
+    BKE_undosys_step_push_with_type(ustack, C, IFACE_("Original Mode"), UndoEncodeHints::None, ut);
   }
 }
 
@@ -529,6 +529,7 @@ UndoStep *BKE_undosys_step_push_init(UndoStack *ustack, bContext *C, const char 
 eUndoPushReturn BKE_undosys_step_push_with_type(UndoStack *ustack,
                                                 bContext *C,
                                                 const char *name,
+                                                const UndoEncodeHints hints,
                                                 const UndoType *ut)
 {
   BLI_assert((ut->flags & UNDOTYPE_FLAG_NEED_CONTEXT_FOR_ENCODE) == 0 || C != nullptr);
@@ -558,9 +559,15 @@ eUndoPushReturn BKE_undosys_step_push_with_type(UndoStack *ustack,
     BLI_assert(BLI_findindex(&ustack->steps, ustack->step_active) != -1);
   }
 
+  const bool force_memfile_step = bool(hints & UndoEncodeHints::PreMemFileChanges);
+
+  /* The hint must only be used with undo types that opted into `memfile` co-existence.
+   * Otherwise setting it indicates a bug in the caller. */
+  BLI_assert(!force_memfile_step || (ut->flags & UNDOTYPE_FLAG_ENCODE_PRE_MEMFILE_SUPPORTED));
+
 #ifdef WITH_GLOBAL_UNDO_ENSURE_UPDATED
-  if (ut->step_foreach_ID_ref != nullptr) {
-    if (G_MAIN->is_memfile_undo_written == false) {
+  if (ut->step_foreach_ID_ref != nullptr || force_memfile_step) {
+    if (G_MAIN->is_memfile_undo_written == false || force_memfile_step) {
       const char *name_internal = "MemFile Internal (pre)";
       /* Don't let 'step_init' cause issues when adding memfile undo step. */
       void *step_init = ustack->step_init;
@@ -595,6 +602,18 @@ eUndoPushReturn BKE_undosys_step_push_with_type(UndoStack *ustack,
     /* Initialized, not added yet. */
 
     CLOG_DEBUG(&LOG, "addr=%p, name='%s', type='%s'", us, us->name, us->type->identifier);
+
+    /* The step is considered changed unless the hint states all changes are in the
+     * memfile step, in that case the local data of the step is unchanged. */
+
+    /* TODO(@ideasman42): Use #UndoEncodeHints::HasMemFileChangesOnly from `hints` to detect
+     * if we actually need to store a new undo step.
+     * To implement this we will likely need to pass `hints` to #undosys_step_encode.
+     * This can save significant overhead by avoiding storage of a new undo step,
+     * using the undo step more as a place-holder
+     * (needed to ensure mode-switching in the case of edit-mode).
+     * This needs to be done carefully for each mode,
+     * so for now keep this as a TODO. See: !161566. */
 
     if (!undosys_step_encode(C, G_MAIN, ustack, us)) {
       MEM_delete(us);
@@ -633,7 +652,10 @@ eUndoPushReturn BKE_undosys_step_push_with_type(UndoStack *ustack,
   return (retval | UNDO_PUSH_RET_SUCCESS);
 }
 
-eUndoPushReturn BKE_undosys_step_push(UndoStack *ustack, bContext *C, const char *name)
+eUndoPushReturn BKE_undosys_step_push(UndoStack *ustack,
+                                      bContext *C,
+                                      const char *name,
+                                      const UndoEncodeHints hints)
 {
   UNDO_NESTED_ASSERT(false);
   const UndoType *ut = ustack->step_init ? ustack->step_init->type :
@@ -641,7 +663,7 @@ eUndoPushReturn BKE_undosys_step_push(UndoStack *ustack, bContext *C, const char
   if (ut == nullptr) {
     return UNDO_PUSH_RET_FAILURE;
   }
-  return BKE_undosys_step_push_with_type(ustack, C, name, ut);
+  return BKE_undosys_step_push_with_type(ustack, C, name, hints, ut);
 }
 
 UndoStep *BKE_undosys_step_same_type_next(UndoStep *us)
