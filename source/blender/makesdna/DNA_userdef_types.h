@@ -661,8 +661,8 @@ struct bUserAssetLibrary {
   char remote_url[/*FILE_MAX*/ 1024];
   /**
    * Secret access token for remote repositories (allocated).
-   * Only use when #ASSET_LIBRARY_USE_AUTH_TOKEN is set.
-   */
+   * Only use when #ASSET_LIBRARY_USE_AUTH_TOKEN is set. Update using
+   * #BKE_preferences_remote_asset_library_auth_token_set() only. */
   char *auth_token = nullptr;
 
   short import_method = ASSET_IMPORT_PACK;  /* eAssetImportMethod */

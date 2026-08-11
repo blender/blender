@@ -183,6 +183,8 @@ static wmOperatorStatus preferences_asset_library_add_exec(bContext *C, wmOperat
     }
     case bUserAssetLibraryAddType::Remote: {
       char *remote_url = RNA_string_get_alloc(op->ptr, "remote_url", nullptr, 0, nullptr);
+      char *auth_token = RNA_string_get_alloc(op->ptr, "auth_token", nullptr, 0, nullptr);
+      const bool use_auth_token = RNA_boolean_get(op->ptr, "use_auth_token");
 
       if (!name[0]) {
         BKE_preferences_remote_to_name(remote_url, name);
@@ -191,9 +193,11 @@ static wmOperatorStatus preferences_asset_library_add_exec(bContext *C, wmOperat
         STRNCPY(name, DATA_("Remote Asset Library"));
       }
 
-      new_library = BKE_preferences_remote_asset_library_add(&U, name, remote_url);
+      new_library = BKE_preferences_remote_asset_library_add(
+          &U, name, remote_url, use_auth_token ? auth_token : nullptr);
 
       MEM_delete(remote_url);
+      MEM_delete(auth_token);
       break;
     }
   }
@@ -247,6 +251,19 @@ static void preferences_asset_library_add_ui(bContext * /*C*/, wmOperator *op)
   switch (library_type) {
     case bUserAssetLibraryAddType::Remote: {
       layout->prop(op->ptr, "remote_url", ui::ITEM_R_IMMEDIATE, std::nullopt, ICON_NONE);
+
+      const bool use_auth_token = RNA_boolean_get(ptr, "use_auth_token");
+      const int token_icon = (use_auth_token && RNA_string_length(ptr, "auth_token")) ?
+                                 ICON_LOCKED :
+                                 ICON_UNLOCKED;
+
+      ui::Layout &col = layout->column(true, IFACE_("Authentication"));
+      col.prop(ptr, "use_auth_token", UI_ITEM_NONE, std::nullopt, ICON_NONE);
+      if (use_auth_token) {
+        ui::Layout &row = col.row(false);
+        /* Use "immediate" flag to refresh the icon. */
+        row.prop(ptr, "auth_token", ui::ITEM_R_IMMEDIATE, IFACE_("Secret"), token_icon);
+      }
       break;
     }
     case bUserAssetLibraryAddType::Local: {
@@ -335,6 +352,28 @@ static void PREFERENCES_OT_asset_library_add(wmOperatorType *ot)
                                        RNA_property_ui_name_raw(prop_ref),
                                        RNA_property_ui_description_raw(prop_ref));
     RNA_def_property_flag(prop, PROP_SKIP_SAVE);
+  }
+  { /* Use Authentication Token. */
+    const char *prop_id = "use_auth_token";
+    const PropertyRNA *prop_ref = RNA_struct_type_find_property(type_ref, prop_id);
+    PropertyRNA *prop = RNA_def_boolean(ot->srna,
+                                        prop_id,
+                                        false,
+                                        RNA_property_ui_name_raw(prop_ref),
+                                        RNA_property_ui_description_raw(prop_ref));
+    RNA_def_property_flag(prop, PROP_SKIP_SAVE);
+  }
+  { /* Authentication Token (dynamic length). */
+    const char *prop_id = "auth_token";
+    const PropertyRNA *prop_ref = RNA_struct_type_find_property(type_ref, prop_id);
+    PropertyRNA *prop = RNA_def_string(ot->srna,
+                                       prop_id,
+                                       nullptr,
+                                       0,
+                                       RNA_property_ui_name_raw(prop_ref),
+                                       RNA_property_ui_description_raw(prop_ref));
+    RNA_def_property_flag(prop, PROP_SKIP_SAVE);
+    RNA_def_property_subtype(prop, PROP_PASSWORD);
   }
 
   ot->prop = RNA_def_enum(ot->srna,
@@ -614,11 +653,12 @@ static void preferences_extension_repo_add_ui(bContext * /*C*/, wmOperator *op)
 
       ui::Layout &row = layout.row(true, IFACE_("Authentication"));
       row.prop(op->ptr, "use_access_token", UI_ITEM_NONE, std::nullopt, ICON_NONE);
-      ui::Layout &col = layout.row(false);
-      col.active_set(use_access_token);
-      /* Use "immediate" flag to refresh the icon. */
-      col.prop(op->ptr, "access_token", ui::ITEM_R_IMMEDIATE, std::nullopt, token_icon);
-
+      if (use_access_token) {
+        ui::Layout &col = layout.row(false);
+        col.active_set(use_access_token);
+        /* Use "immediate" flag to refresh the icon. */
+        col.prop(op->ptr, "access_token", ui::ITEM_R_IMMEDIATE, std::nullopt, token_icon);
+      }
       layout.separator(0.2f, ui::LayoutSeparatorType::Line);
 
       break;

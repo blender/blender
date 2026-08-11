@@ -521,8 +521,7 @@ static void rna_userdef_asset_library_auth_token_set(PointerRNA *ptr, const char
   }
 
   if (value[0]) {
-    const StringRef auth_token = StringRef{value}.trim();
-    library->auth_token = BLI_strdupn(auth_token.data(), auth_token.size());
+    BKE_preferences_remote_asset_library_auth_token_set(library, value);
   }
 }
 
