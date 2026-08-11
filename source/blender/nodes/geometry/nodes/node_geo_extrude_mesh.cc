@@ -119,7 +119,6 @@ static void remove_unsupported_vert_data(Mesh &mesh)
   CustomData_free_layers(&mesh.vert_data, CD_ORCO);
   CustomData_free_layers(&mesh.vert_data, CD_SHAPEKEY);
   CustomData_free_layers(&mesh.vert_data, CD_CLOTH_ORCO);
-  CustomData_free_layers(&mesh.vert_data, CD_MVERT_SKIN);
 }
 
 static void remove_unsupported_corner_data(Mesh &mesh)

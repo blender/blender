@@ -187,7 +187,7 @@ int BKE_object_data_transfer_dttype_to_cdtype(const int dtdata_type)
     case DT_TYPE_MDEFORMVERT:
       return CD_FAKE_MDEFORMVERT;
     case DT_TYPE_SKIN:
-      return CD_MVERT_SKIN;
+      return CD_FAKE_SKIN_RADIUS;
     case DT_TYPE_BWEIGHT_VERT:
       return CD_FAKE_BWEIGHT;
 
@@ -1003,35 +1003,7 @@ static bool data_transfer_layersmapping_generate(Vector<CustomDataTransferLayerM
                                                  SpaceTransform *space_transform)
 {
   if (elem_type == ME_VERT) {
-    if (cddata_type == CD_MVERT_SKIN) {
-      const void *data_src = CustomData_get_layer(&me_src->vert_data, CD_MVERT_SKIN);
-      if (data_src) {
-        void *data_dst = CustomData_get_layer_for_write(
-            &me_dst->vert_data, CD_MVERT_SKIN, me_dst->verts_num);
-        if (!data_dst && use_create) {
-          data_dst = CustomData_add_layer(
-              &me_dst->vert_data, CD_MVERT_SKIN, CD_SET_DEFAULT, me_dst->verts_num);
-        }
-
-        if (r_map && data_dst) {
-          data_transfer_layersmapping_add_item_cd(r_map,
-                                                  CD_MVERT_SKIN,
-                                                  mix_mode,
-                                                  mix_factor,
-                                                  mix_weights,
-                                                  data_src,
-                                                  data_dst,
-                                                  nullptr,
-                                                  nullptr);
-        }
-      }
-      else {
-        if (use_delete) {
-          CustomData_free_layer(&me_dst->vert_data, CD_MVERT_SKIN, 0);
-        }
-      }
-    }
-    else if (cddata_type == CD_PROP_BYTE_COLOR) {
+    if (cddata_type == CD_PROP_BYTE_COLOR) {
       if (!data_transfer_layersmapping_cdlayers(r_map,
                                                 CD_PROP_BYTE_COLOR,
                                                 bke::AttrDomain::Point,
@@ -1087,6 +1059,20 @@ static bool data_transfer_layersmapping_generate(Vector<CustomDataTransferLayerM
                                                 CD_PROP_FLOAT,
                                                 bke::AttrDomain::Point,
                                                 "bevel_weight_vert",
+                                                mix_mode,
+                                                mix_factor,
+                                                mix_weights,
+                                                use_create,
+                                                use_delete,
+                                                *me_src,
+                                                *me_dst);
+      return true;
+    }
+    if (cddata_type == CD_FAKE_SKIN_RADIUS) {
+      data_transfer_layersmapping_add_item_attr(r_map,
+                                                CD_PROP_FLOAT2,
+                                                bke::AttrDomain::Point,
+                                                "skin_modifier_radius",
                                                 mix_mode,
                                                 mix_factor,
                                                 mix_weights,

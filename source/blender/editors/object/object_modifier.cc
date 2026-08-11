@@ -356,7 +356,7 @@ static bool object_modifier_remove(
     }
   }
   else if (md->type == eModifierType_Skin) {
-    /* Delete MVertSkin layer if not used by another skin modifier */
+    /* Delete skin vertex attributes if not used by another skin modifier */
     if (object_modifier_safe_to_delete(bmain, ob, md, eModifierType_Skin)) {
       modifier_skin_customdata_delete(ob);
     }
@@ -2559,10 +2559,14 @@ static void modifier_skin_customdata_delete(Object *ob)
 {
   Mesh *mesh = id_cast<Mesh *>(ob->data);
   if (BMEditMesh *em = mesh->runtime->edit_mesh.get()) {
-    BM_data_layer_free(em->bm, &em->bm->vdata, CD_MVERT_SKIN);
+    BM_data_layer_free_named(em->bm, &em->bm->vdata, "skin_modifier_radius");
+    BM_data_layer_free_named(em->bm, &em->bm->vdata, "skin_modifier_root");
+    BM_data_layer_free_named(em->bm, &em->bm->vdata, "skin_modifier_loose");
   }
   else {
-    CustomData_free_layer_active(&mesh->vert_data, CD_MVERT_SKIN);
+    mesh->attributes_for_write().remove("skin_modifier_radius");
+    mesh->attributes_for_write().remove("skin_modifier_root");
+    mesh->attributes_for_write().remove("skin_modifier_loose");
   }
 }
 
@@ -2582,7 +2586,7 @@ static bool skin_edit_poll(bContext *C)
           !ID_IS_OVERRIDE_LIBRARY(ob) && !ID_IS_OVERRIDE_LIBRARY(ob->data));
 }
 
-static void skin_root_clear(BMVert *bm_vert, Set<BMVert *> &visited, const int cd_vert_skin_offset)
+static void skin_root_clear(BMVert *bm_vert, Set<BMVert *> &visited, const int cd_skin_root_offset)
 {
   BMEdge *bm_edge;
   BMIter bm_iter;
@@ -2591,12 +2595,10 @@ static void skin_root_clear(BMVert *bm_vert, Set<BMVert *> &visited, const int c
     BMVert *v2 = BM_edge_other_vert(bm_edge, bm_vert);
 
     if (visited.add(v2)) {
-      MVertSkin *vs = static_cast<MVertSkin *>(BM_ELEM_CD_GET_VOID_P(v2, cd_vert_skin_offset));
-
       /* clear vertex root flag and add to visited set */
-      vs->flag &= ~MVERT_SKIN_ROOT;
+      BM_ELEM_CD_SET_BOOL(v2, cd_skin_root_offset, false);
 
-      skin_root_clear(v2, visited, cd_vert_skin_offset);
+      skin_root_clear(v2, visited, cd_skin_root_offset);
     }
   }
 }
@@ -2612,20 +2614,18 @@ static wmOperatorStatus skin_root_mark_exec(bContext *C, wmOperator * /*op*/)
 
   BKE_mesh_ensure_skin_customdata(id_cast<Mesh *>(ob->data));
 
-  const int cd_vert_skin_offset = CustomData_get_offset(&bm->vdata, CD_MVERT_SKIN);
+  const int cd_skin_root_offset = CustomData_get_offset_named(
+      &bm->vdata, CD_PROP_BOOL, "skin_modifier_root");
 
   BMVert *bm_vert;
   BMIter bm_iter;
   BM_ITER_MESH (bm_vert, &bm_iter, bm, BM_VERTS_OF_MESH) {
     if (BM_elem_flag_test(bm_vert, BM_ELEM_SELECT) && visited.add(bm_vert)) {
-      MVertSkin *vs = static_cast<MVertSkin *>(
-          BM_ELEM_CD_GET_VOID_P(bm_vert, cd_vert_skin_offset));
-
       /* mark vertex as root and add to visited set */
-      vs->flag |= MVERT_SKIN_ROOT;
+      BM_ELEM_CD_SET_BOOL(bm_vert, cd_skin_root_offset, true);
 
       /* clear root flag from all connected vertices (recursively) */
-      skin_root_clear(bm_vert, visited, cd_vert_skin_offset);
+      skin_root_clear(bm_vert, visited, cd_skin_root_offset);
     }
   }
 
@@ -2661,23 +2661,24 @@ static wmOperatorStatus skin_loose_mark_clear_exec(bContext *C, wmOperator *op)
   BMesh *bm = em->bm;
   SkinLooseAction action = static_cast<SkinLooseAction>(RNA_enum_get(op->ptr, "action"));
 
-  if (!CustomData_has_layer(&bm->vdata, CD_MVERT_SKIN)) {
+  if (!CustomData_has_layer_named(&bm->vdata, CD_PROP_FLOAT2, "skin_modifier_radius")) {
     return OPERATOR_CANCELLED;
   }
+
+  BM_data_layer_ensure_named(bm, &bm->vdata, CD_PROP_BOOL, "skin_modifier_loose");
+  const int cd_skin_loose_offset = CustomData_get_offset_named(
+      &bm->vdata, CD_PROP_BOOL, "skin_modifier_loose");
 
   BMVert *bm_vert;
   BMIter bm_iter;
   BM_ITER_MESH (bm_vert, &bm_iter, bm, BM_VERTS_OF_MESH) {
     if (BM_elem_flag_test(bm_vert, BM_ELEM_SELECT)) {
-      MVertSkin *vs = static_cast<MVertSkin *>(
-          CustomData_bmesh_get(&bm->vdata, bm_vert->head.data, CD_MVERT_SKIN));
-
       switch (action) {
         case SKIN_LOOSE_MARK:
-          vs->flag |= MVERT_SKIN_LOOSE;
+          BM_ELEM_CD_SET_BOOL(bm_vert, cd_skin_loose_offset, true);
           break;
         case SKIN_LOOSE_CLEAR:
-          vs->flag &= ~MVERT_SKIN_LOOSE;
+          BM_ELEM_CD_SET_BOOL(bm_vert, cd_skin_loose_offset, false);
           break;
       }
     }
@@ -2717,7 +2718,9 @@ static wmOperatorStatus skin_radii_equalize_exec(bContext *C, wmOperator * /*op*
   BMEditMesh *em = BKE_editmesh_from_object(ob);
   BMesh *bm = em->bm;
 
-  if (!CustomData_has_layer(&bm->vdata, CD_MVERT_SKIN)) {
+  const int cd_skin_radius_offset = CustomData_get_offset_named(
+      &bm->vdata, CD_PROP_FLOAT2, "skin_modifier_radius");
+  if (cd_skin_radius_offset == -1) {
     return OPERATOR_CANCELLED;
   }
 
@@ -2725,11 +2728,10 @@ static wmOperatorStatus skin_radii_equalize_exec(bContext *C, wmOperator * /*op*
   BMIter bm_iter;
   BM_ITER_MESH (bm_vert, &bm_iter, bm, BM_VERTS_OF_MESH) {
     if (BM_elem_flag_test(bm_vert, BM_ELEM_SELECT)) {
-      MVertSkin *vs = static_cast<MVertSkin *>(
-          CustomData_bmesh_get(&bm->vdata, bm_vert->head.data, CD_MVERT_SKIN));
-      float avg = (vs->radius[0] + vs->radius[1]) * 0.5f;
-
-      vs->radius[0] = vs->radius[1] = avg;
+      float2 *radius = static_cast<float2 *>(
+          BM_ELEM_CD_GET_VOID_P(bm_vert, cd_skin_radius_offset));
+      const float avg = ((*radius)[0] + (*radius)[1]) * 0.5f;
+      *radius = float2(avg);
     }
   }
 
@@ -2822,8 +2824,8 @@ static Object *modifier_skin_armature_create(Depsgraph *depsgraph, Main *bmain, 
   arm->drawtype = ARM_DRAW_TYPE_STICK;
   arm->edbo = MEM_new_zeroed<ListBaseT<EditBone>>("edbo armature");
 
-  MVertSkin *mvert_skin = static_cast<MVertSkin *>(
-      CustomData_get_layer_for_write(&mesh->vert_data, CD_MVERT_SKIN, mesh->verts_num));
+  const VArray<bool> skin_root = *mesh->attributes().lookup_or_default<bool>(
+      "skin_modifier_root", bke::AttrDomain::Point, false);
 
   Array<int> vert_to_edge_offsets;
   Array<int> vert_to_edge_indices;
@@ -2835,7 +2837,7 @@ static Object *modifier_skin_armature_create(Depsgraph *depsgraph, Main *bmain, 
   /* NOTE: we use EditBones here, easier to set them up and use
    * edit-armature functions to convert back to regular bones */
   for (int v = 0; v < mesh->verts_num; v++) {
-    if (mvert_skin[v].flag & MVERT_SKIN_ROOT) {
+    if (skin_root[v]) {
       EditBone *bone = nullptr;
 
       /* Unless the skin root has just one adjacent edge, create
@@ -2875,7 +2877,7 @@ static wmOperatorStatus skin_armature_create_exec(bContext *C, wmOperator *op)
   Mesh *mesh = id_cast<Mesh *>(ob->data);
   ModifierData *skin_md;
 
-  if (!CustomData_has_layer(&mesh->vert_data, CD_MVERT_SKIN)) {
+  if (!mesh->attributes().contains("skin_modifier_radius")) {
     BKE_reportf(op->reports, RPT_WARNING, "Mesh '%s' has no skin vertex data", mesh->id.name + 2);
     return OPERATOR_CANCELLED;
   }

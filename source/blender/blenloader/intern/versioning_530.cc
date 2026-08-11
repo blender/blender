@@ -10,12 +10,14 @@
 
 #include "DNA_ID.h"
 #include "DNA_brush_types.h"
+#include "DNA_mesh_types.h"
 #include "DNA_scene_types.h"
 
 #include "BLI_listbase_iterator.hh"
 #include "BLI_sys_types.hh"
 
 #include "BKE_main.hh"
+#include "BKE_mesh_legacy_convert.hh"
 #include "BKE_node.hh"
 #include "BKE_node_runtime.hh"
 #include "BKE_paint.hh"
@@ -239,6 +241,16 @@ void blo_do_versions_530(FileData * /*fd*/, Library * /*lib*/, Main *bmain)
    *
    * \note Keep this message at the bottom of the function.
    */
+
+  /* Keep this versioning always enabled at the bottom of the function; it can only be moved
+   * behind a subversion bump when the file format is changed (#mesh_skin_to_legacy is removed from
+   * #mesh_blend_write). Since that function keeps writing the old-format #CD_MVERT_SKIN layer for
+   * forward compatibility, files saved by *this* version also need
+   * this conversion to run unconditionally on read, not just for files older than this subversion.
+   */
+  for (Mesh &mesh : bmain->meshes) {
+    bke::mesh_skin_to_generic(mesh);
+  }
 }
 
 }  // namespace blender

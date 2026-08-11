@@ -721,7 +721,8 @@ static void v3d_editvertex_buts(
         &bm->vdata, CD_PROP_FLOAT, "bevel_weight_vert");
     const int cd_vert_crease_offset = CustomData_get_offset_named(
         &bm->vdata, CD_PROP_FLOAT, "crease_vert");
-    const int cd_vert_skin_offset = CustomData_get_offset(&bm->vdata, CD_MVERT_SKIN);
+    const int cd_vert_skin_offset = CustomData_get_offset_named(
+        &bm->vdata, CD_PROP_FLOAT2, "skin_modifier_radius");
     const int cd_edge_bweight_offset = CustomData_get_offset_named(
         &bm->edata, CD_PROP_FLOAT, "bevel_weight_edge");
     const int cd_edge_crease_offset = CustomData_get_offset_named(
@@ -744,9 +745,9 @@ static void v3d_editvertex_buts(
           }
 
           if (has_skinradius) {
-            MVertSkin *vs = static_cast<MVertSkin *>(
+            const float2 *radius = static_cast<const float2 *>(
                 BM_ELEM_CD_GET_VOID_P(eve, cd_vert_skin_offset));
-            add_v2_v2(median->skin, vs->radius); /* Third val not used currently. */
+            add_v2_v2(median->skin, *radius);
           }
         }
       }
@@ -1479,7 +1480,8 @@ static void v3d_editvertex_buts(
 
         for (int i = 0; i < 2; i++) {
           if (median->skin[i]) {
-            cd_vert_skin_offset = CustomData_get_offset(&bm->vdata, CD_MVERT_SKIN);
+            cd_vert_skin_offset = CustomData_get_offset_named(
+                &bm->vdata, CD_PROP_FLOAT2, "skin_modifier_radius");
             BLI_assert(cd_vert_skin_offset != -1);
 
             if (ve_median->skin[i] != median->skin[i]) {
@@ -1507,14 +1509,14 @@ static void v3d_editvertex_buts(
             }
 
             if (cd_vert_skin_offset != -1) {
-              MVertSkin *vs = static_cast<MVertSkin *>(
+              float2 *radius = static_cast<float2 *>(
                   BM_ELEM_CD_GET_VOID_P(eve, cd_vert_skin_offset));
 
               /* That one is not clamped to [0.0, 1.0]. */
               for (int i = 0; i < 2; i++) {
                 if (median->skin[i] != 0.0f) {
                   apply_scale_factor(
-                      &vs->radius[i], tot, ve_median->skin[i], median->skin[i], scale_skin[i]);
+                      &(*radius)[i], tot, ve_median->skin[i], median->skin[i], scale_skin[i]);
                 }
               }
             }

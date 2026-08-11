@@ -13,6 +13,7 @@
 
 #include "BLI_math_matrix_c.hh"
 #include "BLI_math_vector_c.hh"
+#include "BLI_math_vector_types.hh"
 
 #include "BKE_context.hh"
 #include "BKE_editmesh.hh"
@@ -25,7 +26,7 @@
 namespace blender::ed::transform {
 
 /* -------------------------------------------------------------------- */
-/** \name Edit Mesh #CD_MVERT_SKIN Transform Creation
+/** \name Edit Mesh Skin Modifier Radius Transform Creation
  * \{ */
 
 static float *mesh_skin_transdata_center(const TransIslandData *island_data,
@@ -39,18 +40,17 @@ static float *mesh_skin_transdata_center(const TransIslandData *island_data,
 }
 
 static void mesh_skin_transdata_create(TransDataBasic *td,
-                                       BMEditMesh *em,
                                        BMVert *eve,
                                        const TransIslandData *island_data,
-                                       const int island_index)
+                                       const int island_index,
+                                       const int cd_skin_radius_offset)
 {
   BLI_assert(BM_elem_flag_test(eve, BM_ELEM_HIDDEN) == 0);
-  MVertSkin *vs = static_cast<MVertSkin *>(
-      CustomData_bmesh_get(&em->bm->vdata, eve->head.data, CD_MVERT_SKIN));
   td->flag = 0;
-  if (vs) {
-    copy_v3_v3(td->iloc, vs->radius);
-    td->loc = vs->radius;
+  if (cd_skin_radius_offset != -1) {
+    float2 *radius = static_cast<float2 *>(BM_ELEM_CD_GET_VOID_P(eve, cd_skin_radius_offset));
+    copy_v2_v2(td->iloc, *radius);
+    td->loc = *radius;
   }
   else {
     td->flag |= TD_SKIP;
@@ -88,7 +88,9 @@ static void createTransMeshSkin(bContext * /*C*/, TransInfo *t)
      * transform data is created by selected vertices.
      */
 
-    if (!CustomData_has_layer(&bm->vdata, CD_MVERT_SKIN)) {
+    const int cd_skin_radius_offset = CustomData_get_offset_named(
+        &bm->vdata, CD_PROP_FLOAT2, "skin_modifier_radius");
+    if (cd_skin_radius_offset == -1) {
       continue;
     }
 
@@ -192,21 +194,27 @@ static void createTransMeshSkin(bContext * /*C*/, TransInfo *t)
       }
 
       if (mirror_data.vert_map && mirror_data.vert_map[a].index != -1) {
-        mesh_skin_transdata_create(
-            static_cast<TransDataBasic *>(td_mirror), em, eve, &island_data, island_index);
+        mesh_skin_transdata_create(static_cast<TransDataBasic *>(td_mirror),
+                                   eve,
+                                   &island_data,
+                                   island_index,
+                                   cd_skin_radius_offset);
 
         int elem_index = mirror_data.vert_map[a].index;
         BMVert *v_src = BM_vert_at_index(bm, elem_index);
-        MVertSkin *vs = static_cast<MVertSkin *>(
-            CustomData_bmesh_get(&em->bm->vdata, v_src->head.data, CD_MVERT_SKIN));
+        float2 *radius_src = static_cast<float2 *>(
+            BM_ELEM_CD_GET_VOID_P(v_src, cd_skin_radius_offset));
 
         td_mirror->flag |= mirror_data.vert_map[a].flag;
-        td_mirror->loc_src = vs->radius;
+        td_mirror->loc_src = *radius_src;
         td_mirror++;
       }
       else if (prop_mode || BM_elem_flag_test(eve, BM_ELEM_SELECT)) {
-        mesh_skin_transdata_create(
-            static_cast<TransDataBasic *>(td), em, eve, &island_data, island_index);
+        mesh_skin_transdata_create(static_cast<TransDataBasic *>(td),
+                                   eve,
+                                   &island_data,
+                                   island_index,
+                                   cd_skin_radius_offset);
 
         if (t->around == V3D_AROUND_LOCAL_ORIGINS) {
           createSpaceNormal(td->axismtx, eve->no);

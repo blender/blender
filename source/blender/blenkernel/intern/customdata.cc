@@ -1102,48 +1102,6 @@ static void layerInterp_shapekey(const void **sources, const float *weights, int
 /** \} */
 
 /* -------------------------------------------------------------------- */
-/** \name Callbacks for (#MVertSkin, #CD_MVERT_SKIN)
- * \{ */
-
-static void layerDefault_mvert_skin(void *data, const int count)
-{
-  MVertSkin *vs = static_cast<MVertSkin *>(data);
-
-  for (int i = 0; i < count; i++) {
-    copy_v3_fl(vs[i].radius, 0.25f);
-    vs[i].flag = eMVertSkinFlag{};
-  }
-}
-
-static void layerCopy_mvert_skin(const void *source, void *dest, const int count)
-{
-  memcpy(dest, source, sizeof(MVertSkin) * count);
-}
-
-static void layerInterp_mvert_skin(const void **sources,
-                                   const float *weights,
-                                   int count,
-                                   void *dest)
-{
-  float radius[3];
-  zero_v3(radius);
-
-  for (int i = 0; i < count; i++) {
-    const float interp_weight = weights[i];
-    const MVertSkin *vs_src = static_cast<const MVertSkin *>(sources[i]);
-
-    madd_v3_v3fl(radius, vs_src->radius, interp_weight);
-  }
-
-  /* Delay writing to the destination in case dest is in sources. */
-  MVertSkin *vs_dst = static_cast<MVertSkin *>(dest);
-  copy_v3_v3(vs_dst->radius, radius);
-  vs_dst->flag &= ~MVERT_SKIN_ROOT;
-}
-
-/** \} */
-
-/* -------------------------------------------------------------------- */
 /** \name Callbacks for (`short[4][3]`, #CD_TESSLOOPNORMAL)
  * \{ */
 
@@ -1845,15 +1803,12 @@ static const LayerTypeInfo LAYERTYPEINFO[CD_NUMTYPES] = {
         .free = layerFree_grid_paint_mask,
         .construct = layerConstruct_grid_paint_mask,
     },
-    /* 36: CD_MVERT_SKIN */
+    /* 36: CD_MVERT_SKIN */ /* DEPRECATED */
     {
         .size = sizeof(MVertSkin),
         .alignment = alignof(MVertSkin),
         .structname = "MVertSkin",
         .structnum = 1,
-        .copy = layerCopy_mvert_skin,
-        .interp = layerInterp_mvert_skin,
-        .set_default_value = layerDefault_mvert_skin,
     },
     /* 37: CD_FREESTYLE_EDGE */ /* DEPRECATED */
     {
@@ -2074,7 +2029,7 @@ const CustomData_MeshMasks CD_MASK_BAREMESH_ORIGINDEX = {
     /*lmask*/ CD_MASK_PROP_INT32,
 };
 const CustomData_MeshMasks CD_MASK_MESH = {
-    /*vmask*/ (CD_MASK_PROP_FLOAT3 | CD_MASK_MDEFORMVERT | CD_MASK_MVERT_SKIN | CD_MASK_PROP_ALL),
+    /*vmask*/ (CD_MASK_PROP_FLOAT3 | CD_MASK_MDEFORMVERT | CD_MASK_PROP_ALL),
     /*emask*/
     CD_MASK_PROP_ALL,
     /*fmask*/ 0,
@@ -2084,8 +2039,8 @@ const CustomData_MeshMasks CD_MASK_MESH = {
     (CD_MASK_MDISPS | CD_MASK_GRID_PAINT_MASK | CD_MASK_PROP_ALL),
 };
 const CustomData_MeshMasks CD_MASK_DERIVEDMESH = {
-    /*vmask*/ (CD_MASK_ORIGINDEX | CD_MASK_MDEFORMVERT | CD_MASK_SHAPEKEY | CD_MASK_MVERT_SKIN |
-               CD_MASK_ORCO | CD_MASK_CLOTH_ORCO | CD_MASK_PROP_ALL),
+    /*vmask*/ (CD_MASK_ORIGINDEX | CD_MASK_MDEFORMVERT | CD_MASK_SHAPEKEY | CD_MASK_ORCO |
+               CD_MASK_CLOTH_ORCO | CD_MASK_PROP_ALL),
     /*emask*/
     (CD_MASK_ORIGINDEX | CD_MASK_PROP_ALL),
     /*fmask*/ (CD_MASK_ORIGINDEX | CD_MASK_ORIGSPACE),
@@ -2095,8 +2050,7 @@ const CustomData_MeshMasks CD_MASK_DERIVEDMESH = {
     (CD_MASK_ORIGSPACE_MLOOP | CD_MASK_PROP_ALL), /* XXX: MISSING #CD_MASK_MLOOPTANGENT ? */
 };
 const CustomData_MeshMasks CD_MASK_BMESH = {
-    /*vmask*/ (CD_MASK_MDEFORMVERT | CD_MASK_MVERT_SKIN | CD_MASK_SHAPEKEY |
-               CD_MASK_SHAPE_KEYINDEX | CD_MASK_PROP_ALL),
+    /*vmask*/ (CD_MASK_MDEFORMVERT | CD_MASK_SHAPEKEY | CD_MASK_SHAPE_KEYINDEX | CD_MASK_PROP_ALL),
     /*emask*/ CD_MASK_PROP_ALL,
     /*fmask*/ 0,
     /*pmask*/
@@ -2105,9 +2059,8 @@ const CustomData_MeshMasks CD_MASK_BMESH = {
     (CD_MASK_MDISPS | CD_MASK_GRID_PAINT_MASK | CD_MASK_PROP_ALL),
 };
 const CustomData_MeshMasks CD_MASK_EVERYTHING = {
-    /*vmask*/ (CD_MASK_BM_ELEM_PYPTR | CD_MASK_ORIGINDEX | CD_MASK_MDEFORMVERT |
-               CD_MASK_MVERT_SKIN | CD_MASK_ORCO | CD_MASK_CLOTH_ORCO | CD_MASK_SHAPEKEY |
-               CD_MASK_SHAPE_KEYINDEX | CD_MASK_PROP_ALL),
+    /*vmask*/ (CD_MASK_BM_ELEM_PYPTR | CD_MASK_ORIGINDEX | CD_MASK_MDEFORMVERT | CD_MASK_ORCO |
+               CD_MASK_CLOTH_ORCO | CD_MASK_SHAPEKEY | CD_MASK_SHAPE_KEYINDEX | CD_MASK_PROP_ALL),
     /*emask*/
     (CD_MASK_BM_ELEM_PYPTR | CD_MASK_ORIGINDEX | CD_MASK_PROP_ALL),
     /*fmask*/

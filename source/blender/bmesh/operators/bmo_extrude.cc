@@ -155,13 +155,11 @@ static void bm_extrude_copy_face_loop_attributes(BMesh *bm, BMFace *f)
 }
 
 /* Disable the skin root flag on the input vert, assumes that the vert
- * data includes an CD_MVERT_SKIN layer */
+ * data includes a "skin_modifier_root" layer. */
 static void bm_extrude_disable_skin_root(BMesh *bm, BMVert *v)
 {
-  MVertSkin *vs;
-
-  vs = static_cast<MVertSkin *>(CustomData_bmesh_get(&bm->vdata, v->head.data, CD_MVERT_SKIN));
-  vs->flag &= ~MVERT_SKIN_ROOT;
+  const int offset = CustomData_get_offset_named(&bm->vdata, CD_PROP_BOOL, "skin_modifier_root");
+  BM_ELEM_CD_SET_BOOL(v, offset, false);
 }
 
 void bmo_extrude_edge_only_exec(BMesh *bm, BMOperator *op)
@@ -188,7 +186,7 @@ void bmo_extrude_edge_only_exec(BMesh *bm, BMOperator *op)
   BMO_op_exec(bm, &dupeop);
 
   /* disable root flag on all new skin nodes */
-  if (CustomData_has_layer(&bm->vdata, CD_MVERT_SKIN)) {
+  if (CustomData_has_layer_named(&bm->vdata, CD_PROP_BOOL, "skin_modifier_root")) {
     BMVert *v;
     BMO_ITER (v, &siter, dupeop.slots_out, "geom.out", BM_VERT) {
       bm_extrude_disable_skin_root(bm, v);
@@ -239,7 +237,8 @@ void bmo_extrude_vert_indiv_exec(BMesh *bm, BMOperator *op)
   BMOIter siter;
   BMVert *v, *dupev;
   BMEdge *e;
-  const bool has_vskin = CustomData_has_layer(&bm->vdata, CD_MVERT_SKIN);
+  const bool has_vskin = CustomData_has_layer_named(
+      &bm->vdata, CD_PROP_BOOL, "skin_modifier_root");
   GHash *select_history_map = nullptr;
 
   if (use_select_history) {
@@ -415,7 +414,7 @@ void bmo_extrude_face_region_exec(BMesh *bm, BMOperator *op)
   BMO_op_exec(bm, &dupeop);
 
   /* disable root flag on all new skin nodes */
-  if (CustomData_has_layer(&bm->vdata, CD_MVERT_SKIN)) {
+  if (CustomData_has_layer_named(&bm->vdata, CD_PROP_BOOL, "skin_modifier_root")) {
     BMO_ITER (v, &siter, dupeop.slots_out, "geom.out", BM_VERT) {
       bm_extrude_disable_skin_root(bm, v);
     }
