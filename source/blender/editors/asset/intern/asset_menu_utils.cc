@@ -165,6 +165,7 @@ void draw_node_menu_for_catalog(const asset_system::AssetCatalogTreeItem &item,
 
 void draw_asset_menu_item(const asset_system::AssetRepresentation *asset,
                           StringRefNull opname,
+                          const wm::OpCallContext operator_call_context,
                           ui::Layout &layout)
 {
   ui::Layout &row = layout.row(true);
@@ -181,7 +182,7 @@ void draw_asset_menu_item(const asset_system::AssetRepresentation *asset,
                              ICON_NONE;
   const int icon = asset->is_online_only() ? ICON_INTERNET : icon_local;
   PointerRNA props_ptr = row.op(
-      opname, IFACE_(asset->get_name()), icon, wm::OpCallContext::InvokeDefault, UI_ITEM_NONE);
+      opname, IFACE_(asset->get_name()), icon, operator_call_context, UI_ITEM_NONE);
   asset::operator_asset_reference_props_set(*asset, props_ptr);
 }
 
