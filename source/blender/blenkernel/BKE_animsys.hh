@@ -356,15 +356,6 @@ void animsys_evaluate_action(PointerRNA *ptr,
                              const AnimationEvalContext *anim_eval_context,
                              bool flush_to_original);
 
-/**
- * Evaluate action, and blend the result into the current values (instead of overwriting fully).
- */
-void animsys_blend_in_action(PointerRNA *ptr,
-                             bAction *act,
-                             int32_t action_slot_handle,
-                             const AnimationEvalContext *anim_eval_context,
-                             float blend_factor);
-
 /** Evaluate Action Group. */
 void animsys_evaluate_action_group(PointerRNA *ptr,
                                    bAction *act,
