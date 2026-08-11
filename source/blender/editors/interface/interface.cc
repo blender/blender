@@ -992,7 +992,6 @@ static void but_update_old_active_from_new(Button *oldbut, Button *but)
     ButtonSearch *search_oldbut = static_cast<ButtonSearch *>(oldbut),
                  *search_but = static_cast<ButtonSearch *>(but);
 
-    std::swap(search_oldbut->arg_free_fn, search_but->arg_free_fn);
     std::swap(search_oldbut->arg, search_but->arg);
   }
   if (oldbut->type == ButtonType::Label) {
@@ -3729,10 +3728,6 @@ static void but_free_type_specific(Button *but)
       ButtonSearch *search_but = static_cast<ButtonSearch *>(but);
       MEM_SAFE_DELETE(search_but->item_active_str);
 
-      if (search_but->arg_free_fn) {
-        search_but->arg_free_fn(search_but->arg);
-        search_but->arg = nullptr;
-      }
       break;
     }
     default:
@@ -6155,17 +6150,18 @@ void button_func_search_set(Button *but,
     search_create_fn = searchbox_create_generic;
   }
 
-  if (search_but->arg_free_fn != nullptr) {
-    search_but->arg_free_fn(search_but->arg);
-    search_but->arg = nullptr;
-  }
-
   search_but->popup_create_fn = search_create_fn;
   search_but->items_update_fn = search_update_fn;
   search_but->item_active = active;
 
-  search_but->arg = arg;
-  search_but->arg_free_fn = search_arg_free_fn;
+  if (free_arg && !search_arg_free_fn) {
+    search_arg_free_fn = MEM_delete_void;
+  }
+  search_but->arg = std::shared_ptr<void>(
+      arg,
+      search_arg_free_fn ?
+          search_arg_free_fn :
+          [](void *) { /* Pointer does not need freeing, do nothing in the deleter callback. */ });
 
   if (search_exec_fn) {
 #ifndef NDEBUG
@@ -6177,10 +6173,15 @@ void button_func_search_set(Button *but,
 #endif
     /* Handling will pass the active item as arg2 later, so keep it nullptr here. */
     if (free_arg) {
-      button_funcN_set(but, search_exec_fn, search_but->arg, nullptr);
+      /* XXX This is only done so `but_equals_old()` can recognize this button over redraws,
+       * otherwise interaction breaks entirely. Unlike #button_funcN_set(), #button_func_set() sets
+       * arg1, which takes part in the comparison, so the pointer needs to be stable over redraws.
+       * #button_funcN_set() doesn't set it, but takes ownership of the memory and frees it later.
+       * So give it a duplicate of the memory. */
+      button_funcN_set(but, search_exec_fn, MEM_dupalloc_void(search_but->arg.get()), nullptr);
     }
     else {
-      button_func_set(but, search_exec_fn, search_but->arg, nullptr);
+      button_func_set(but, search_exec_fn, search_but->arg.get(), nullptr);
     }
   }
 

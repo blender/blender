@@ -2020,7 +2020,7 @@ static bool jump_to_target_button(bContext *C, bool poll)
                                            nullptr;
 
       if (search_but && search_but->items_update_fn == rna_collection_search_update_fn) {
-        RNACollectionSearch *coll_search = static_cast<RNACollectionSearch *>(search_but->arg);
+        auto *coll_search = static_cast<RNACollectionSearch *>(search_but->arg.get());
 
         char str_buf[MAXBONENAME];
         char *str_ptr = RNA_property_string_get_alloc(
