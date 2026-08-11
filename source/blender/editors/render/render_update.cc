@@ -150,19 +150,18 @@ void ED_render_view3d_auto_pause(Main *bmain, const bool pause)
 {
   render_view3d_engines_foreach(bmain, [&](RenderEngine *engine, bContext *C, ARegion *region) {
     RE_engine_view_auto_pause_set(engine, pause);
-    RE_engine_view_pause_notify(engine, C);
-    ED_region_tag_redraw(region);
+    if (RE_engine_view_pause_notify(engine, C)) {
+      ED_region_tag_redraw(region);
+    }
   });
 }
 
-void ED_render_view3d_pause_notify(Main *bmain, const RegionView3D *rv3d)
+void ED_render_view3d_pause_notify(Main *bmain)
 {
   render_view3d_engines_foreach(bmain, [&](RenderEngine *engine, bContext *C, ARegion *region) {
-    if (region->regiondata != rv3d) {
-      return;
+    if (RE_engine_view_pause_notify(engine, C)) {
+      ED_region_tag_redraw(region);
     }
-    RE_engine_view_pause_notify(engine, C);
-    ED_region_tag_redraw(region);
   });
 }
 

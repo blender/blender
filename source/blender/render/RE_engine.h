@@ -281,7 +281,7 @@ void RE_engine_gpu_context_unlock(struct RenderEngine *engine);
 void RE_engine_view_pause_set(struct RenderEngine *engine, bool pause);
 bool RE_engine_view_pause_get(const struct RenderEngine *engine);
 void RE_engine_view_auto_pause_set(struct RenderEngine *engine, bool pause);
-void RE_engine_view_pause_notify(struct RenderEngine *engine, const struct bContext *context);
+bool RE_engine_view_pause_notify(struct RenderEngine *engine, const struct bContext *context);
 
 /* Engine Types */
 

@@ -1462,14 +1462,14 @@ void RE_engine_view_auto_pause_set(RenderEngine *engine, const bool pause)
   SET_FLAG_FROM_TEST(engine->flag, pause, RE_ENGINE_VIEW_PAUSED_AUTO);
 }
 
-void RE_engine_view_pause_notify(RenderEngine *engine, const bContext *context)
+bool RE_engine_view_pause_notify(RenderEngine *engine, const bContext *context)
 {
   const bool is_paused = (engine->flag & (RE_ENGINE_VIEW_PAUSED | RE_ENGINE_VIEW_PAUSED_AUTO)) !=
                          0;
   const bool was_paused = (engine->flag & RE_ENGINE_VIEW_PAUSED_NOTIFIED) != 0;
 
   if (is_paused == was_paused) {
-    return;
+    return false;
   }
 
   SET_FLAG_FROM_TEST(engine->flag, is_paused, RE_ENGINE_VIEW_PAUSED_NOTIFIED);
@@ -1484,6 +1484,8 @@ void RE_engine_view_pause_notify(RenderEngine *engine, const bContext *context)
       engine->type->view_resume(engine, context);
     }
   }
+
+  return true;
 }
 
 /** \} */

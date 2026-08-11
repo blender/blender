@@ -243,6 +243,8 @@ static wmOperatorStatus screen_render_exec(bContext *C, wmOperator *op)
 
   RE_SetReports(re, op->reports);
 
+  ED_render_view3d_auto_pause(mainp, true);
+
   if (is_animation) {
     RE_RenderAnim(re,
                   mainp,
@@ -265,6 +267,8 @@ static wmOperatorStatus screen_render_exec(bContext *C, wmOperator *op)
   }
 
   RE_SetReports(re, nullptr);
+
+  ED_render_view3d_auto_pause(mainp, false);
 
   const bool cancelled = G.is_break;
 

@@ -19,7 +19,6 @@ struct Depsgraph;
 struct ID;
 struct MTex;
 struct Main;
-struct RegionView3D;
 struct Render;
 struct Scene;
 struct ScrArea;
@@ -60,9 +59,9 @@ void ED_render_view3d_update(Depsgraph *depsgraph, wmWindow *window, ScrArea *ar
  */
 void ED_render_view3d_auto_pause(Main *bmain, bool pause);
 /**
- * Notify the render engine of 3D pause state changes.
+ * Notify 3D viewport render engines of 3D pause state changes.
  */
-void ED_render_view3d_pause_notify(Main *bmain, const RegionView3D *rv3d);
+void ED_render_view3d_pause_notify(Main *bmain);
 
 Scene *ED_render_job_get_scene(const bContext *C);
 Scene *ED_render_job_get_current_scene(const bContext *C);
