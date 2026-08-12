@@ -2581,6 +2581,7 @@ static struct Clipboard {
    * clipboard into another object. */
   Vector<std::pair<uint, int>> materials;
   int materials_in_source_num;
+  ListBaseT<bDeformGroup> defnames;
 } *grease_pencil_clipboard = nullptr;
 
 /** The clone brush accesses the clipboard from multiple threads. Protect from parallel access. */
@@ -2756,6 +2757,8 @@ static wmOperatorStatus grease_pencil_copy_strokes_exec(bContext *C, wmOperator 
     const Material *material = BKE_object_material_get(object, material_index + 1);
     clipboard.materials.append({material ? material->id.session_uid : 0, material_index});
   }
+
+  BKE_defgroup_copy_list(&clipboard.defnames, BKE_id_defgroup_list_get(object->data));
 
   /* Report the numbers. */
   if (selection_domain == bke::AttrDomain::Curve) {
@@ -2984,6 +2987,18 @@ static wmOperatorStatus grease_pencil_paste_strokes_exec(bContext *C, wmOperator
   }
   else {
     BLI_assert_unreachable();
+  }
+
+  if (!clipboard.defnames.is_empty()) {
+    ListBaseT<bDeformGroup> *deflist = BKE_id_defgroup_list_get_mutable(object->data);
+    for (const bDeformGroup &defgroup : clipboard.defnames) {
+      if (BKE_defgroup_name_index(deflist, defgroup.name) != -1) {
+        continue;
+      }
+      bDeformGroup *new_group = BKE_defgroup_duplicate(&defgroup);
+      BLI_addtail(deflist, new_group);
+    }
+    clipboard.defnames.free_no_destruct();
   }
 
   DEG_id_tag_update(&grease_pencil.id, ID_RECALC_GEOMETRY);
