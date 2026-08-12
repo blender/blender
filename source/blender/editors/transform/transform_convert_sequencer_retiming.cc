@@ -18,6 +18,7 @@
 
 #include "BKE_context.hh"
 
+#include "SEQ_channels.hh"
 #include "SEQ_iterator.hh"
 #include "SEQ_relations.hh"
 #include "SEQ_retiming.hh"
@@ -176,7 +177,9 @@ static void createTransSeqRetimingData(bContext * /*C*/, TransInfo *t)
     return;
   }
 
-  const Map selection = seq::retiming_selection_get(seq::editing_get(t->scene));
+  const ListBaseT<SeqTimelineChannel> *channels = seq::channels_displayed_get(ed);
+  Map selection = seq::retiming_selection_get(ed);
+  selection.remove_if([&](auto item) { return seq::transform_is_locked(channels, item.value); });
 
   if (selection.is_empty()) {
     return;
