@@ -10,12 +10,17 @@
 
 #include "DNA_ID.h"
 #include "DNA_brush_types.h"
+#include "DNA_curves_types.h"
+#include "DNA_grease_pencil_types.h"
 #include "DNA_mesh_types.h"
+#include "DNA_pointcloud_types.h"
 #include "DNA_scene_types.h"
 
 #include "BLI_listbase_iterator.hh"
 #include "BLI_sys_types.hh"
 
+#include "BKE_attribute.h"
+#include "BKE_attribute.hh"
 #include "BKE_main.hh"
 #include "BKE_mesh_legacy_convert.hh"
 #include "BKE_node.hh"
@@ -255,6 +260,42 @@ void blo_do_versions_503(FileData * /*fd*/, Library * /*lib*/, Main *bmain)
           }
         }
       }
+    }
+  }
+
+  if (!MAIN_VERSION_FILE_ATLEAST(bmain, 503, 13)) {
+    auto validate_active_index_fn = [](const AttributeOwner &owner, int &active_index) -> void {
+      const bke::AttributeStorage *storage = owner.get_storage();
+      if ((active_index < 0) || (active_index >= storage->count()) ||
+          !bke::allow_procedural_attribute_access(storage->at_index(active_index).name()))
+      {
+        active_index = -1;
+      }
+    };
+
+    for (Mesh &mesh : bmain->meshes) {
+      validate_active_index_fn(AttributeOwner::from_id(&mesh.id), mesh.attributes_active_index);
+    }
+    for (Curves &curves : bmain->hair_curves) {
+      validate_active_index_fn(AttributeOwner::from_id(&curves.id),
+                               curves.geometry.attributes_active_index);
+    }
+    for (GreasePencil &grease_pencil : bmain->grease_pencils) {
+      validate_active_index_fn(AttributeOwner::from_id(&grease_pencil.id),
+                               grease_pencil.attributes_active_index);
+      /* Also check the attributes_active_index in the individual drawings */
+      for (GreasePencilDrawingBase *drawing_base : grease_pencil.drawings()) {
+        if (drawing_base->type == GP_DRAWING) {
+          GreasePencilDrawing *drawing = reinterpret_cast<GreasePencilDrawing *>(drawing_base);
+          validate_active_index_fn(
+              AttributeOwner(AttributeOwnerType::GreasePencilDrawing, drawing),
+              drawing->geometry.attributes_active_index);
+        }
+      }
+    }
+    for (PointCloud &pointcloud : bmain->pointclouds) {
+      validate_active_index_fn(AttributeOwner::from_id(&pointcloud.id),
+                               pointcloud.attributes_active_index);
     }
   }
   /**

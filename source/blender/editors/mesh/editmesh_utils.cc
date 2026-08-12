@@ -333,19 +333,11 @@ void EDBM_mesh_make_from_mesh(Object *ob,
   /* Conversion to edit-mesh may have modified the attribute layers.
    * Re-resolve the active attribute by name to keep it stable. */
   if (!attributes_active_name.empty()) {
-    /* Invalid active attributes can happen because of wrong DNA default, see comment
-     * on the Mesh.attributes_active_index declaration. */
-    if (bke::allow_procedural_attribute_access(attributes_active_name)) {
-      BKE_attributes_active_set(owner, attributes_active_name);
-    }
-    else {
-      mesh->attributes_active_index = -1;
-    }
+    BLI_assert(bke::allow_procedural_attribute_access(attributes_active_name));
+    BKE_attributes_active_set(owner, attributes_active_name);
   }
   else {
-    /* 0 can happen for newly created meshes. See comment on Mesh.attributes_active_index
-     * declaration. */
-    BLI_assert(ELEM(mesh->attributes_active_index, 0, -1));
+    BLI_assert(mesh->attributes_active_index == -1);
     mesh->attributes_active_index = -1;
   }
 }

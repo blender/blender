@@ -61,7 +61,7 @@ struct PointCloud {
   /* Custom Data */
   struct CustomData pdata_legacy;
   /** Set to -1 when none is active. */
-  int attributes_active_index = 0;
+  int attributes_active_index = -1;
   int _pad4 = {};
 
   /* Material */
