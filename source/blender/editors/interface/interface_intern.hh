@@ -1630,6 +1630,10 @@ void button_anim_autokey(bContext *C, Button *but, Scene *scene, float cfra);
 
 void button_anim_decorate_cb(bContext *C, void *arg_but, void *arg_dummy);
 void button_anim_decorate_update_from_flag(ButtonDecorator *but);
+/**
+ * \return True when the decorated button should be considered "pushed".
+ */
+bool button_anim_decorate_pushed_state(ButtonDecorator *but);
 
 /* `interface_query.cc` */
 

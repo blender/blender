@@ -192,6 +192,15 @@ void button_anim_decorate_update_from_flag(ButtonDecorator *but)
   but->flag = (but->flag & ~flag_copy) | (flag & flag_copy);
 }
 
+bool button_anim_decorate_pushed_state(ButtonDecorator *but)
+{
+  const Button *but_anim = but_anim_decorate_find_attached_button(but);
+  if (but_anim == nullptr) [[unlikely]] {
+    return false;
+  }
+  return (but_anim->flag & BUT_ANIMATED_KEY) != 0;
+}
+
 bool button_anim_expression_get(Button *but, char *str, size_t str_maxncpy)
 {
   FCurve *fcu;
