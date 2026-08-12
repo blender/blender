@@ -2896,7 +2896,7 @@ static void widget_draw_multiline_text(const uiFontStyle *fstyle,
                         total_lines;
 
   const float line_height = ui::fontstyle_height_max(UI_FSTYLE_WIDGET) / but->block->aspect;
-  const float padding = (std::max(UI_UNIT_Y - line_height, 0.0f) / 2.0f) / but->block->aspect;
+  const float padding = (std::max(UI_UNIT_Y / but->block->aspect - line_height, 0.0f) / 2.0f);
 
   FontStyleDrawParams params{};
   params.align = multiline_label->text_align;
