@@ -4035,7 +4035,7 @@ static void clamp_subdivision_node_level_input(bNodeTree &tree)
   version_socket_update_is_used(&tree);
 }
 
-void do_versions_after_linking_450(FileData * /*fd*/, Main *bmain)
+void do_versions_after_linking_405(FileData * /*fd*/, Main *bmain)
 {
   if (!MAIN_VERSION_FILE_ATLEAST(bmain, 405, 12)) {
     version_node_socket_index_animdata(bmain, NTREE_COMPOSIT, CMP_NODE_GLARE, 3, 1, 14);
@@ -4930,7 +4930,7 @@ static void version_set_default_bone_drawtype(Main *bmain)
   }
 }
 
-void blo_do_versions_450(FileData * /*fd*/, Library * /*lib*/, Main *bmain)
+void blo_do_versions_405(FileData * /*fd*/, Library * /*lib*/, Main *bmain)
 {
 
   if (!MAIN_VERSION_FILE_ATLEAST(bmain, 405, 2)) {

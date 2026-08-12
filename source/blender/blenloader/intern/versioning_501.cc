@@ -611,7 +611,7 @@ static void convert_brush_flags_to_type(Brush &brush)
   }
 }
 
-void do_versions_after_linking_510(FileData *fd, Main *bmain)
+void do_versions_after_linking_501(FileData *fd, Main *bmain)
 {
   /* Some blend files were saved with an invalid active viewer key, possibly due to a bug that
    * was fixed already in c8cb24121f, but blend files were never updated. So starting in 5.1, we
@@ -684,7 +684,7 @@ void do_versions_after_linking_510(FileData *fd, Main *bmain)
    */
 }
 
-void blo_do_versions_510(FileData * /*fd*/, Library * /*lib*/, Main *bmain)
+void blo_do_versions_501(FileData * /*fd*/, Library * /*lib*/, Main *bmain)
 {
   if (!MAIN_VERSION_FILE_ATLEAST(bmain, 501, 1)) {
     FOREACH_NODETREE_BEGIN (bmain, node_tree, id) {

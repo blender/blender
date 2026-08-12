@@ -400,7 +400,7 @@ static void do_version_bump_filter_width(bNodeTree *node_tree)
   }
 }
 
-void do_versions_after_linking_440(FileData *fd, Main *bmain)
+void do_versions_after_linking_404(FileData *fd, Main *bmain)
 {
   if (!MAIN_VERSION_FILE_ATLEAST(bmain, 404, 2)) {
     animrig::versioning::convert_legacy_animato_actions(*bmain);
@@ -770,7 +770,7 @@ static void do_version_viewer_shortcut(bNodeTree *node_tree)
   }
 }
 
-void blo_do_versions_440(FileData *fd, Library * /*lib*/, Main *bmain)
+void blo_do_versions_404(FileData *fd, Library * /*lib*/, Main *bmain)
 {
   if (!MAIN_VERSION_FILE_ATLEAST(bmain, 404, 1)) {
     for (Scene &scene : bmain->scenes) {

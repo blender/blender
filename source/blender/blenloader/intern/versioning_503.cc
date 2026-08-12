@@ -67,7 +67,7 @@ static void do_version_merge_layers_options_to_inputs(bNodeTree &ntree, bNode &n
   socket.default_value_typed<bNodeSocketValueMenu>()->value = storage.mode;
 }
 
-void do_versions_after_linking_530(FileData * /*fd*/, Main *bmain)
+void do_versions_after_linking_503(FileData * /*fd*/, Main *bmain)
 {
   if (!MAIN_VERSION_FILE_ATLEAST(bmain, 503, 8)) {
     version_node_socket_index_animdata(
@@ -82,7 +82,7 @@ void do_versions_after_linking_530(FileData * /*fd*/, Main *bmain)
    */
 }
 
-void blo_do_versions_530(FileData * /*fd*/, Library * /*lib*/, Main *bmain)
+void blo_do_versions_503(FileData * /*fd*/, Library * /*lib*/, Main *bmain)
 {
   if (!MAIN_VERSION_FILE_ATLEAST(bmain, 503, 1)) {
     for (Scene &scene : bmain->scenes) {

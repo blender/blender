@@ -96,7 +96,7 @@ static void version_nla_tweakmode_incomplete(Main *bmain)
   }
 }
 
-void do_versions_after_linking_410(FileData * /*fd*/, Main *bmain)
+void do_versions_after_linking_401(FileData * /*fd*/, Main *bmain)
 {
   if (!MAIN_VERSION_FILE_ATLEAST(bmain, 401, 23)) {
     version_nla_tweakmode_incomplete(bmain);
@@ -832,7 +832,7 @@ static bool strip_filter_bilinear_to_auto(Strip *strip, void * /*user_data*/)
   return true;
 }
 
-void blo_do_versions_410(FileData *fd, Library * /*lib*/, Main *bmain)
+void blo_do_versions_401(FileData *fd, Library * /*lib*/, Main *bmain)
 {
   if (!MAIN_VERSION_FILE_ATLEAST(bmain, 401, 1)) {
     for (GreasePencil &grease_pencil : bmain->grease_pencils) {

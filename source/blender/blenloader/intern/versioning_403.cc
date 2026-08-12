@@ -43,7 +43,7 @@
 
 namespace blender {
 
-void do_versions_after_linking_430(FileData * /*fd*/, Main *bmain)
+void do_versions_after_linking_403(FileData * /*fd*/, Main *bmain)
 {
   if (!MAIN_VERSION_FILE_ATLEAST(bmain, 403, 6)) {
     /* Shift animation data to accommodate the new Diffuse Roughness input. */
@@ -205,7 +205,7 @@ static void hide_simulation_node_skip_socket_value(Main &bmain)
   }
 }
 
-void blo_do_versions_430(FileData * /*fd*/, Library * /*lib*/, Main *bmain)
+void blo_do_versions_403(FileData * /*fd*/, Library * /*lib*/, Main *bmain)
 {
   if (!MAIN_VERSION_FILE_ATLEAST(bmain, 403, 2)) {
     for (bScreen &screen : bmain->screens) {

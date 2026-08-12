@@ -335,15 +335,15 @@ void blo_do_versions_280(FileData *fd, Library *lib, Main *bmain);
 void blo_do_versions_290(FileData *fd, Library *lib, Main *bmain);
 void blo_do_versions_300(FileData *fd, Library *lib, Main *bmain);
 void blo_do_versions_400(FileData *fd, Library *lib, Main *bmain);
-void blo_do_versions_410(FileData *fd, Library *lib, Main *bmain);
-void blo_do_versions_420(FileData *fd, Library *lib, Main *bmain);
-void blo_do_versions_430(FileData *fd, Library *lib, Main *bmain);
-void blo_do_versions_440(FileData *fd, Library *lib, Main *bmain);
-void blo_do_versions_450(FileData *fd, Library *lib, Main *bmain);
+void blo_do_versions_401(FileData *fd, Library *lib, Main *bmain);
+void blo_do_versions_402(FileData *fd, Library *lib, Main *bmain);
+void blo_do_versions_403(FileData *fd, Library *lib, Main *bmain);
+void blo_do_versions_404(FileData *fd, Library *lib, Main *bmain);
+void blo_do_versions_405(FileData *fd, Library *lib, Main *bmain);
 void blo_do_versions_500(FileData *fd, Library *lib, Main *bmain);
-void blo_do_versions_510(FileData *fd, Library *lib, Main *bmain);
-void blo_do_versions_520(FileData *fd, Library *lib, Main *bmain);
-void blo_do_versions_530(FileData *fd, Library *lib, Main *bmain);
+void blo_do_versions_501(FileData *fd, Library *lib, Main *bmain);
+void blo_do_versions_502(FileData *fd, Library *lib, Main *bmain);
+void blo_do_versions_503(FileData *fd, Library *lib, Main *bmain);
 
 void do_versions_after_linking_250(Main *bmain);
 void do_versions_after_linking_260(Main *bmain);
@@ -352,15 +352,15 @@ void do_versions_after_linking_280(FileData *fd, Main *bmain);
 void do_versions_after_linking_290(FileData *fd, Main *bmain);
 void do_versions_after_linking_300(FileData *fd, Main *bmain);
 void do_versions_after_linking_400(FileData *fd, Main *bmain);
-void do_versions_after_linking_410(FileData *fd, Main *bmain);
-void do_versions_after_linking_420(FileData *fd, Main *bmain);
-void do_versions_after_linking_430(FileData *fd, Main *bmain);
-void do_versions_after_linking_440(FileData *fd, Main *bmain);
-void do_versions_after_linking_450(FileData *fd, Main *bmain);
+void do_versions_after_linking_401(FileData *fd, Main *bmain);
+void do_versions_after_linking_402(FileData *fd, Main *bmain);
+void do_versions_after_linking_403(FileData *fd, Main *bmain);
+void do_versions_after_linking_404(FileData *fd, Main *bmain);
+void do_versions_after_linking_405(FileData *fd, Main *bmain);
 void do_versions_after_linking_500(FileData *fd, Main *bmain);
-void do_versions_after_linking_510(FileData *fd, Main *bmain);
-void do_versions_after_linking_520(FileData *fd, Main *bmain);
-void do_versions_after_linking_530(FileData *fd, Main *bmain);
+void do_versions_after_linking_501(FileData *fd, Main *bmain);
+void do_versions_after_linking_502(FileData *fd, Main *bmain);
+void do_versions_after_linking_503(FileData *fd, Main *bmain);
 
 void do_versions_after_setup(Main *new_bmain,
                              BlendfileLinkAppendContext *lapp_context,
