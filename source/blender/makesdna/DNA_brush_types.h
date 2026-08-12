@@ -298,7 +298,7 @@ struct Brush {
 
   /** Projection shape (sphere, circle). */
   eBrushFalloffShape falloff_shape = PAINT_FALLOFF_SHAPE_SPHERE;
-  float falloff_angle = 0;
+  float falloff_angle_legacy = 0;
 
   /** Active sculpt brush type. */
   eBrushSculptType sculpt_brush_type = SCULPT_BRUSH_TYPE_DRAW;

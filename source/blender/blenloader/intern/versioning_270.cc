@@ -1579,12 +1579,13 @@ void blo_do_versions_270(FileData *fd, Library * /*lib*/, Main *bmain)
       }
     }
 
-    if (!DNA_struct_member_exists(fd->filesdna, "Brush", "float", "falloff_angle")) {
+    if (!DNA_struct_member_exists(fd->filesdna, "Brush", "float", "falloff_angle_legacy")) {
       for (Brush &br : bmain->brushes) {
-        br.falloff_angle = DEG2RADF(80);
+        br.falloff_angle_legacy = DEG2RADF(80);
         /* These flags are used for new features. They are not related to `falloff_angle`. */
         br.flag &= ~(BRUSH_INVERT_TO_SCRAPE_FILL | BRUSH_ORIGINAL_PLANE |
-                     BRUSH_GRAB_ACTIVE_VERTEX | BRUSH_SCENE_SPACING | BRUSH_FRONTFACE_FALLOFF);
+                     BRUSH_GRAB_ACTIVE_VERTEX | BRUSH_SCENE_SPACING |
+                     BRUSH_FRONTFACE_FALLOFF_DEPRECATED);
       }
 
       for (Scene &scene : bmain->scenes) {

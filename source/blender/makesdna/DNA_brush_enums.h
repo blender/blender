@@ -377,7 +377,8 @@ enum eBrushFlags : uint32_t {
   BRUSH_EDGE_TO_EDGE = (1 << 22),
   BRUSH_UNUSED_4 = (1 << 23),
   BRUSH_SMOOTH_PRESSURE = (1 << 24),
-  BRUSH_FRONTFACE_FALLOFF = (1 << 25),
+  /* Deprecated. To be removed in 6.0 - @Sean-Kim */
+  BRUSH_FRONTFACE_FALLOFF_DEPRECATED = (1 << 25),
   BRUSH_PLANE_TRIM = (1 << 26),
   BRUSH_FRONTFACE = (1 << 27),
   /* BRUSH_CUSTOM_ICON = (1 << 28), */

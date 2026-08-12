@@ -235,6 +235,28 @@ void blo_do_versions_503(FileData * /*fd*/, Library * /*lib*/, Main *bmain)
       }
     }
   }
+
+  if (!MAIN_VERSION_FILE_ATLEAST(bmain, 503, 12)) {
+    for (Brush &brush : bmain->brushes) {
+      if (brush.ob_mode & OB_MODE_WEIGHT_PAINT || brush.ob_mode & OB_MODE_VERTEX_PAINT) {
+        if (brush.flag & BRUSH_FRONTFACE_FALLOFF_DEPRECATED && brush.falloff_angle_legacy != 0.0f)
+        {
+          switch (brush.falloff_shape) {
+            case PAINT_FALLOFF_SHAPE_SPHERE:
+              brush.mesh_automasking_settings->flags |= BRUSH_AUTOMASKING_BRUSH_NORMAL;
+              brush.mesh_automasking_settings->start_normal_falloff = 0.5f;
+              brush.mesh_automasking_settings->start_normal_limit = brush.falloff_angle_legacy;
+              break;
+            case PAINT_FALLOFF_SHAPE_TUBE:
+              brush.mesh_automasking_settings->flags |= BRUSH_AUTOMASKING_VIEW_NORMAL;
+              brush.mesh_automasking_settings->view_normal_falloff = 0.5f;
+              brush.mesh_automasking_settings->view_normal_limit = brush.falloff_angle_legacy;
+              break;
+          }
+        }
+      }
+    }
+  }
   /**
    * Always bump subversion in BKE_blender_version.h when adding versioning
    * code here, and wrap it inside a MAIN_VERSION_FILE_ATLEAST check.

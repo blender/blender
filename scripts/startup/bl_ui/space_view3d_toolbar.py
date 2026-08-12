@@ -866,36 +866,6 @@ class VIEW3D_PT_tools_brush_falloff(Panel, View3DPaintPanel, FalloffPanel):
     bl_options = {'DEFAULT_CLOSED'}
 
 
-class VIEW3D_PT_tools_brush_falloff_frontface(View3DPaintPanel, Panel):
-    bl_context = ".imagepaint"  # dot on purpose (access from topbar)
-    bl_label = "Front-Face Falloff"
-    bl_parent_id = "VIEW3D_PT_tools_brush_falloff"
-    bl_options = {'DEFAULT_CLOSED'}
-
-    @classmethod
-    def poll(cls, context):
-        return (context.weight_paint_object or context.vertex_paint_object)
-
-    def draw_header(self, context):
-        settings = self.paint_settings_from_active_tool(context)
-        brush = settings.brush
-
-        self.layout.prop(brush, "use_frontface_falloff", text=self.bl_label if self.is_popover else "")
-
-    def draw(self, context):
-        settings = self.paint_settings_from_active_tool(context)
-        brush = settings.brush
-
-        layout = self.layout
-
-        layout.use_property_split = True
-        layout.use_property_decorate = False
-
-        row = layout.row()
-        row.active = brush.use_frontface_falloff
-        row.prop(brush, "falloff_angle", text="Angle")
-
-
 class VIEW3D_PT_tools_brush_falloff_normal(View3DPaintPanel, Panel):
     bl_context = ".imagepaint"  # dot on purpose (access from topbar)
     bl_label = "Normal Falloff"
@@ -2369,7 +2339,6 @@ classes = (
     VIEW3D_PT_tools_brush_stroke,
     VIEW3D_PT_tools_brush_stroke_smooth_stroke,
     VIEW3D_PT_tools_brush_falloff,
-    VIEW3D_PT_tools_brush_falloff_frontface,
     VIEW3D_PT_tools_brush_falloff_normal,
     VIEW3D_PT_tools_brush_display,
     VIEW3D_PT_tools_weight_gradient,

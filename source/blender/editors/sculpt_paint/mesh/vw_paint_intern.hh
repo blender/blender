@@ -18,24 +18,7 @@
 #include "sculpt_intern.hh"
 
 namespace blender::ed::sculpt_paint::vwpaint {
-struct NormalAnglePrecalc {
-  bool do_mask_normal;
-  /* what angle to mask at */
-  float angle;
-  /* cos(angle), faster to compare */
-  float angle__cos;
-  float angle_inner;
-  float angle_inner__cos;
-  /* difference between angle and angle_inner, for easy access */
-  float angle_range;
-};
-
-void view_angle_limits_init(NormalAnglePrecalc *a, float angle, bool do_mask_normal);
-float view_angle_limits_apply_falloff(const NormalAnglePrecalc *a, float angle_cos, float *mask_p);
-bool test_brush_angle_falloff(const Brush &brush,
-                              const NormalAnglePrecalc &normal_angle_precalc,
-                              float angle_cos,
-                              float *brush_strength);
+bool test_brush_angle_falloff(const Brush &brush, float angle_cos);
 bool use_normal(const VPaint &vp);
 
 bool brush_use_accumulate_ex(const Brush &brush, eObjectMode ob_mode);

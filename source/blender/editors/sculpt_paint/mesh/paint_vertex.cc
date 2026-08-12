@@ -79,7 +79,6 @@ namespace blender {
 using bke::AttrDomain;
 using namespace color;
 using namespace ed::sculpt_paint; /* For vwpaint namespace. */
-using ed::sculpt_paint::vwpaint::NormalAnglePrecalc;
 
 static CLG_LogRef LOG = {"paint.vertex"};
 
@@ -131,61 +130,19 @@ namespace ed::sculpt_paint::vwpaint {
 /** \name Shared vertex/weight paint code.
  * \{ */
 
-void view_angle_limits_init(NormalAnglePrecalc *a, float angle, bool do_mask_normal)
+bool test_brush_angle_falloff(const Brush &brush, const float angle_cos)
 {
-  angle = RAD2DEGF(angle);
-  a->do_mask_normal = do_mask_normal;
-  if (do_mask_normal) {
-    a->angle_inner = angle;
-    a->angle = (a->angle_inner + 90.0f) * 0.5f;
-  }
-  else {
-    a->angle_inner = a->angle = angle;
-  }
-
-  a->angle_inner *= float(M_PI_2 / 90);
-  a->angle *= float(M_PI_2 / 90);
-  a->angle_range = a->angle - a->angle_inner;
-
-  if (a->angle_range <= 0.0f) {
-    a->do_mask_normal = false; /* no need to do blending */
-  }
-
-  a->angle__cos = cosf(a->angle);
-  a->angle_inner__cos = cosf(a->angle_inner);
-}
-
-float view_angle_limits_apply_falloff(const NormalAnglePrecalc *a, float angle_cos, float *mask_p)
-{
-  if (angle_cos <= a->angle__cos) {
-    /* outsize the normal limit */
-    return false;
-  }
-  if (angle_cos < a->angle_inner__cos) {
-    *mask_p *= (a->angle - acosf(angle_cos)) / a->angle_range;
+  if ((brush.flag & BRUSH_FRONTFACE) == 0) {
     return true;
   }
-  return true;
-}
 
-bool test_brush_angle_falloff(const Brush &brush,
-                              const NormalAnglePrecalc &normal_angle_precalc,
-                              const float angle_cos,
-                              float *brush_strength)
-{
-  if (((brush.flag & BRUSH_FRONTFACE) == 0 || (angle_cos > 0.0f)) &&
-      ((brush.flag & BRUSH_FRONTFACE_FALLOFF) == 0 ||
-       vwpaint::view_angle_limits_apply_falloff(&normal_angle_precalc, angle_cos, brush_strength)))
-  {
-    return true;
-  }
-  return false;
+  return angle_cos > 0.0f;
 }
 
 bool use_normal(const VPaint &vp)
 {
   const Brush &brush = *BKE_paint_brush_for_read(&vp.paint);
-  return ((brush.flag & BRUSH_FRONTFACE) != 0) || ((brush.flag & BRUSH_FRONTFACE_FALLOFF) != 0);
+  return ((brush.flag & BRUSH_FRONTFACE) != 0);
 }
 
 bool brush_use_accumulate_ex(const Brush &brush, const eObjectMode ob_mode)
@@ -804,8 +761,6 @@ struct VPaintData : public PaintModeData {
   AttrDomain domain;
   bke::AttrType type;
 
-  NormalAnglePrecalc normal_angle_precalc;
-
   ColorPaint4f paintcol;
 
   bool is_texbrush;
@@ -835,10 +790,6 @@ static std::unique_ptr<VPaintData> vpaint_init_vpaint(wmOperator *op,
   vpd->domain = domain;
 
   vpd->vc = vc;
-
-  vwpaint::view_angle_limits_init(&vpd->normal_angle_precalc,
-                                  brush.falloff_angle,
-                                  (brush.flag & BRUSH_FRONTFACE_FALLOFF) != 0);
 
   vpd->paintcol = vpaint_get_current_col(
       vp, (BrushStrokeMode(RNA_enum_get(op->ptr, "mode")) == BrushStrokeMode::Invert));
@@ -1047,9 +998,7 @@ static void do_vpaint_brush_blur_loops(const Depsgraph &depsgraph,
           const float angle_cos = use_normal ?
                                       dot_v3v3(sculpt_normal_frontface, vert_normals[vert]) :
                                       1.0f;
-          if (!vwpaint::test_brush_angle_falloff(
-                  brush, vpd.normal_angle_precalc, angle_cos, &brush_strength))
-          {
+          if (!vwpaint::test_brush_angle_falloff(brush, angle_cos)) {
             continue;
           }
 
@@ -1211,9 +1160,7 @@ static void do_vpaint_brush_blur_verts(const Depsgraph &depsgraph,
           const float angle_cos = use_normal ?
                                       dot_v3v3(sculpt_normal_frontface, vert_normals[vert]) :
                                       1.0f;
-          if (!vwpaint::test_brush_angle_falloff(
-                  brush, vpd.normal_angle_precalc, angle_cos, &brush_strength))
-          {
+          if (!vwpaint::test_brush_angle_falloff(brush, angle_cos)) {
             continue;
           }
           const float brush_fade = factors[i];
@@ -1376,9 +1323,7 @@ static void do_vpaint_brush_smear(const Depsgraph &depsgraph,
           const float angle_cos = use_normal ?
                                       dot_v3v3(sculpt_normal_frontface, vert_normals[vert]) :
                                       1.0f;
-          if (!vwpaint::test_brush_angle_falloff(
-                  brush, vpd.normal_angle_precalc, angle_cos, &brush_strength))
-          {
+          if (!vwpaint::test_brush_angle_falloff(brush, angle_cos)) {
             continue;
           }
           const float brush_fade = factors[i];
@@ -1726,9 +1671,7 @@ static void vpaint_do_draw(const Depsgraph &depsgraph,
           const float angle_cos = use_normal ?
                                       dot_v3v3(sculpt_normal_frontface, vert_normals[vert]) :
                                       1.0f;
-          if (!vwpaint::test_brush_angle_falloff(
-                  brush, vpd.normal_angle_precalc, angle_cos, &brush_strength))
-          {
+          if (!vwpaint::test_brush_angle_falloff(brush, angle_cos)) {
             continue;
           }
           const float brush_fade = factors[i];
