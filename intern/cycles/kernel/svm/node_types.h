@@ -374,6 +374,16 @@ struct SVMNodeCombineVector {
 static_assert(alignof(SVMNodeCombineVector) <= alignof(uint));
 static_assert(sizeof(SVMNodeCombineVector) % sizeof(uint) == 0);
 
+/* NODE_GET_VECTOR_COMPONENT / NODE_GET_VECTOR_COMPONENT_DERIVATIVE */
+struct SVMNodeGetVectorComponent {
+  SVMInputFloat3 vector;
+  SVMInputInt index;
+  SVMStackOffset out_offset;
+  uint8_t _pad[3];
+};
+static_assert(alignof(SVMNodeGetVectorComponent) <= alignof(uint));
+static_assert(sizeof(SVMNodeGetVectorComponent) % sizeof(uint) == 0);
+
 /* NODE_SEPARATE_COLOR */
 struct SVMNodeSeparateColor {
   NodeCombSepColorType color_type;

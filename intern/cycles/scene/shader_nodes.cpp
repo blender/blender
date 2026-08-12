@@ -6113,6 +6113,45 @@ void SeparateXYZNode::compile(OSLCompiler &compiler)
   compiler.add(this, "node_separate_xyz");
 }
 
+/* Get Vector Component */
+
+NODE_DEFINE(GetVectorComponentNode)
+{
+  NodeType *type = NodeType::add("get_vector_component", create, NodeType::SHADER);
+
+  SOCKET_IN_VECTOR(vector, "Vector", zero_float3());
+  SOCKET_IN_INT(index, "Index", 0);
+
+  SOCKET_OUT_FLOAT(value, "Value");
+
+  return type;
+}
+
+GetVectorComponentNode::GetVectorComponentNode() : ShaderNode(get_node_type()) {}
+
+void GetVectorComponentNode::constant_fold(const ConstantFolder &folder)
+{
+  if (folder.all_inputs_constant()) {
+    folder.make_constant(index >= 0 && index <= 2 ? vector[index] : 0.0f);
+  }
+}
+
+void GetVectorComponentNode::compile(SVMCompiler &compiler)
+{
+  compiler.add_node(this,
+                    NODE_GET_VECTOR_COMPONENT,
+                    SVMNodeGetVectorComponent{
+                        .vector = compiler.input_float3("Vector"),
+                        .index = compiler.input_int("Index"),
+                        .out_offset = compiler.output("Value"),
+                    });
+}
+
+void GetVectorComponentNode::compile(OSLCompiler &compiler)
+{
+  compiler.add(this, "node_get_vector_component");
+}
+
 /* Hue/Saturation/Value */
 
 NODE_DEFINE(HSVNode)

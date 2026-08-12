@@ -1375,6 +1375,19 @@ class SeparateXYZNode : public ShaderNode {
   NODE_SOCKET_API(float3, vector)
 };
 
+class GetVectorComponentNode : public ShaderNode {
+ public:
+  SHADER_NODE_CLASS(GetVectorComponentNode)
+  void constant_fold(const ConstantFolder &folder) override;
+  ShaderNodeType shader_node_type() const override
+  {
+    return NODE_GET_VECTOR_COMPONENT;
+  }
+
+  NODE_SOCKET_API(float3, vector)
+  NODE_SOCKET_API(int, index)
+};
+
 class HSVNode : public ShaderNode {
  public:
   SHADER_NODE_CLASS(HSVNode)

@@ -506,6 +506,9 @@ static ShaderNode *add_node(Scene *scene,
   else if (b_node.is_type("ShaderNodeSeparateXYZ"_ustr)) {
     node = graph->create_node<SeparateXYZNode>();
   }
+  else if (b_node.is_type("FunctionNodeGetVectorComponent"_ustr)) {
+    node = graph->create_node<GetVectorComponentNode>();
+  }
   else if (b_node.is_type("ShaderNodeCombineXYZ"_ustr)) {
     node = graph->create_node<CombineXYZNode>();
   }
