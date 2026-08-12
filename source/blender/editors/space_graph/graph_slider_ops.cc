@@ -1278,7 +1278,7 @@ void GRAPH_OT_blend_to_ease(wmOperatorType *ot)
   ot->poll = graphop_editable_keyframes_poll;
 
   /* Flags. */
-  ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO;
+  ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO | OPTYPE_BLOCKING | OPTYPE_GRAB_CURSOR_X;
 
   RNA_def_float_factor(ot->srna,
                        "factor",
@@ -1403,7 +1403,7 @@ void GRAPH_OT_match_slope(wmOperatorType *ot)
   ot->poll = graphop_editable_keyframes_poll;
 
   /* Flags. */
-  ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO;
+  ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO | OPTYPE_BLOCKING | OPTYPE_GRAB_CURSOR_X;
 
   RNA_def_float_factor(ot->srna,
                        "factor",
@@ -2003,7 +2003,7 @@ void GRAPH_OT_gaussian_smooth(wmOperatorType *ot)
   ot->poll = graphop_editable_keyframes_poll;
 
   /* Flags. */
-  ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO;
+  ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO | OPTYPE_BLOCKING | OPTYPE_GRAB_CURSOR_X;
 
   RNA_def_float_factor(ot->srna,
                        "factor",
