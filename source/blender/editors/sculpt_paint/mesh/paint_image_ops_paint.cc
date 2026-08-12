@@ -362,15 +362,6 @@ struct ImagePaintStroke final : public PaintStroke {
   void redraw(bool final) override;
   bool test_cancel() override;
   void done(bool is_cancel, bool stroke_started) override;
-
-  void update_for_exec(bContext *C,
-                       const Brush &brush,
-                       PaintMode mode,
-                       const float mouse_init[2],
-                       float mouse[2],
-                       float pressure,
-                       float r_location[3],
-                       bool *r_location_is_set);
 };
 
 void ImagePaintStroke::update_step(wmOperator *op, PointerRNA *itemptr)
@@ -521,54 +512,11 @@ static wmOperatorStatus paint_invoke(bContext *C, wmOperator *op, const wmEvent 
   return OPERATOR_RUNNING_MODAL;
 }
 
-void ImagePaintStroke::update_for_exec(bContext *C,
-                                       const Brush &brush,
-                                       PaintMode mode,
-                                       const float mouse_init[2],
-                                       float mouse[2],
-                                       float pressure,
-                                       float r_location[3],
-                                       bool *r_location_is_set)
-{
-  this->update(C, brush, mode, mouse_init, mouse, pressure, r_location, r_location_is_set);
-}
-
 static wmOperatorStatus paint_exec(bContext *C, wmOperator *op)
 {
-  PropertyRNA *strokeprop;
-  PointerRNA firstpoint;
-  float mouse[2];
-
-  strokeprop = RNA_struct_find_property(op->ptr, "stroke");
-
-  if (!RNA_property_collection_lookup_int(op->ptr, strokeprop, 0, &firstpoint)) {
-    return OPERATOR_CANCELLED;
-  }
-
-  RNA_float_get_array(&firstpoint, "mouse", mouse);
-
   ImagePaintStroke *stroke = MEM_new<ImagePaintStroke>(__func__, C, op, nullptr);
   op->customdata = stroke;
 
-  /* Make sure we have proper coordinates for sampling (mask) textures -- these get stored in
-   * #UnifiedPaintSettings -- as well as support randomness and jitter. */
-  PaintMode mode = BKE_paintmode_get_active_from_context(C);
-  Paint &paint = *BKE_paint_get_active_from_context(C);
-  const Brush &brush = *BKE_paint_brush_for_read(&paint);
-  float pressure;
-  pressure = RNA_float_get(&firstpoint, "pressure");
-  bool dummy;
-  float dummy_location[3];
-
-  BrushStrokeMode stroke_mode = BrushStrokeMode(RNA_enum_get(op->ptr, "mode"));
-  float zoomx;
-  float zoomy;
-  get_imapaint_zoom(C, &zoomx, &zoomy);
-  float zoom_2d = std::max(zoomx, zoomy);
-  float2 mouse_out = paint_stroke_jitter_pos(
-      &paint, mode, brush, pressure, stroke_mode, zoom_2d, mouse);
-
-  stroke->update_for_exec(C, brush, mode, mouse, mouse_out, pressure, dummy_location, &dummy);
   wmOperatorStatus ret_val = stroke->exec(C, op);
 
   MEM_delete(stroke);

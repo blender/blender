@@ -269,7 +269,8 @@ struct PaintStroke : NonCopyable, NonMovable {
    */
   virtual void done(bool is_cancel, bool stroke_started) = 0;
 
-  /* TODO: This can probably be private, but `paint_image_ops_paint` depends on this */
+ private:
+  void done(bContext *C, bool is_cancel);
   bool update(bContext *C,
               const Brush &brush,
               PaintMode mode,
@@ -278,9 +279,6 @@ struct PaintStroke : NonCopyable, NonMovable {
               float pressure,
               float r_location[3],
               bool *r_location_is_set);
-
- private:
-  void done(bContext *C, bool is_cancel);
   void add_step(bContext *C, wmOperator *op, float2 mval, float pressure);
 
   void add_sample(int input_samples, float x, float y, float pressure);
