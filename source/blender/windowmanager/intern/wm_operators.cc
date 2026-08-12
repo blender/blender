@@ -64,6 +64,7 @@
 #include "BKE_library.hh"
 #include "BKE_main.hh"
 #include "BKE_material.hh"
+#include "BKE_paint.hh"
 #include "BKE_preview_image.hh"
 #include "BKE_report.hh"
 #include "BKE_scene.hh"
@@ -2829,7 +2830,7 @@ static void radial_control_paint_curve(uint pos, Brush *br, float radius, int li
   immEnd();
 }
 
-static void radial_control_paint_cursor(bContext * /*C*/,
+static void radial_control_paint_cursor(bContext *C,
                                         const int2 & /*xy*/,
                                         const float2 & /*tilt*/,
                                         void *customdata)
@@ -2950,14 +2951,49 @@ static void radial_control_paint_cursor(bContext * /*C*/,
     GPU_matrix_pop();
   }
 
+  bool draw_rounded_box = false;
+  float roundness = 1.0f;
+  float tip_scale_x = 1.0f;
+  if (RNA_type_to_ID_code(rc->image_id_ptr.type) == ID_BR && rc->prop &&
+      STREQ(RNA_property_identifier(rc->prop), "size"))
+  {
+    const Brush *br = static_cast<const Brush *>(rc->image_id_ptr.data);
+    if (br) {
+      const PaintMode paint_mode = BKE_paintmode_get_active_from_context(C);
+      draw_rounded_box = BKE_brush_has_cube_tip(br, paint_mode);
+      roundness = br->tip_roundness;
+      tip_scale_x = br->tip_scale_x;
+    }
+  }
+
   /* Draw circles on top. */
   GPU_line_width(2.0f);
   immUniformColor3fvAlpha(col, 0.8f);
-  imm_draw_circle_wire_2d(pos, 0.0f, 0.0f, r1, 80);
+  if (draw_rounded_box) {
+    gpu::imm_draw_rounded_box_wire_2d(pos,
+                                      0,
+                                      0,
+                                      float2(r1, r1 * tip_scale_x),
+                                      float2(r1 * roundness, r1 * roundness * tip_scale_x),
+                                      80);
+  }
+  else {
+    imm_draw_circle_wire_2d(pos, 0.0f, 0.0f, r1, 80);
+  }
 
   GPU_line_width(1.0f);
   immUniformColor3fvAlpha(col, 0.5f);
-  imm_draw_circle_wire_2d(pos, 0.0f, 0.0f, r2, 80);
+  if (draw_rounded_box) {
+    gpu::imm_draw_rounded_box_wire_2d(pos,
+                                      0,
+                                      0,
+                                      float2(r2, r2 * tip_scale_x),
+                                      float2(r2 * roundness, r2 * roundness * tip_scale_x),
+                                      80);
+  }
+  else {
+    imm_draw_circle_wire_2d(pos, 0.0f, 0.0f, r2, 80);
+  }
   if (rmin > 0.0f) {
     /* Inner fill circle to increase the contrast of the value. */
     const float black[3] = {0.0f};

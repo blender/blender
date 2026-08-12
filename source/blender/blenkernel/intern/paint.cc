@@ -9,6 +9,7 @@
 /* ALlow using deprecated color for sync legacy. */
 #define DNA_DEPRECATED_ALLOW
 
+#include <algorithm>
 #include <cstdlib>
 #include <cstring>
 #include <optional>
@@ -1959,9 +1960,24 @@ float paint_grid_paint_mask(const GridPaintMask *gpm, uint level, uint x, uint y
 }
 
 /* Threshold to move before updating the brush rotation, reduces jitter. */
-static float paint_rake_rotation_spacing(const Paint & /*ups*/, const Brush &brush)
+static float paint_rake_rotation_spacing(const Paint & /*paint*/,
+                                         const Brush &brush,
+                                         bool in_stroke,
+                                         bool is_first_dab)
 {
-  return brush.sculpt_brush_type == SCULPT_BRUSH_TYPE_CLAY_STRIPS ? 1.0f : 20.0f;
+  const float rotation_spacing = brush.sculpt_brush_type == SCULPT_BRUSH_TYPE_CLAY_STRIPS ? 1.0f :
+                                                                                            20.0f;
+  if (!in_stroke) {
+    /* Increase spacing when not in stroke to avoid cursor jitter. */
+    return std::max(rotation_spacing, 20.0f);
+  }
+  else if (is_first_dab) {
+    /* Use a smaller limit if the stroke hasn't started to prevent excessive pre-roll. */
+    return std::min(rotation_spacing, 4.0f);
+  }
+  else {
+    return rotation_spacing;
+  }
 }
 
 void paint_update_brush_rake_rotation(Paint &paint, const Brush &brush, float rotation)
@@ -1992,19 +2008,15 @@ bool paint_calculate_rake_rotation(Paint &paint,
                                    const Brush &brush,
                                    const float mouse_pos[2],
                                    const PaintMode paint_mode,
-                                   bool stroke_has_started)
+                                   bool in_stroke,
+                                   bool is_first_dab)
 {
   bke::PaintRuntime &paint_runtime = *paint.runtime;
 
   bool ok = false;
   if (paint_rake_rotation_active(brush, paint_mode)) {
-    float r = paint_rake_rotation_spacing(paint, brush);
+    const float r = paint_rake_rotation_spacing(paint, brush, in_stroke, is_first_dab);
     float rotation;
-
-    /* Use a smaller limit if the stroke hasn't started to prevent excessive pre-roll. */
-    if (!stroke_has_started) {
-      r = min_ff(r, 4.0f);
-    }
 
     float dpos[2];
     sub_v2_v2v2(dpos, mouse_pos, paint_runtime.last_rake);

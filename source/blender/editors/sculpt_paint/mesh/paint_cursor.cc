@@ -443,18 +443,29 @@ static void point_with_symmetry_draw(const PaintMode paint_mode,
 
 static void inactive_cursor_draw(PaintCursorContext &pcontext)
 {
+  const bool has_cube_tip = BKE_brush_has_cube_tip(pcontext.brush, pcontext.mode);
+  const float roundness = has_cube_tip ? pcontext.brush->tip_roundness : 1.0f;
+  const float tip_scale_x = has_cube_tip ? pcontext.brush->tip_scale_x : 1.0f;
+  const float alpha = std::clamp(BKE_brush_alpha_get(pcontext.paint, pcontext.brush), 0.0f, 1.0f);
+
   GPU_line_width(1.0f);
   /* Reduce alpha to increase the contrast when the cursor is over the mesh. */
   immUniformColor3fvAlpha(pcontext.outline_col, pcontext.outline_alpha * 0.8);
-  imm_draw_circle_wire_3d(
-      pcontext.pos, pcontext.translation[0], pcontext.translation[1], pcontext.final_radius, 80);
-  immUniformColor3fvAlpha(pcontext.outline_col, pcontext.outline_alpha * 0.35f);
-  imm_draw_circle_wire_3d(
+  gpu::imm_draw_rounded_box_wire_3d(
       pcontext.pos,
       pcontext.translation[0],
       pcontext.translation[1],
-      pcontext.final_radius *
-          clamp_f(BKE_brush_alpha_get(pcontext.paint, pcontext.brush), 0.0f, 1.0f),
+      float2(pcontext.final_radius, pcontext.final_radius * tip_scale_x),
+      float2(pcontext.final_radius * roundness, pcontext.final_radius * roundness * tip_scale_x),
+      80);
+  immUniformColor3fvAlpha(pcontext.outline_col, pcontext.outline_alpha * 0.35f);
+  gpu::imm_draw_rounded_box_wire_3d(
+      pcontext.pos,
+      pcontext.translation[0],
+      pcontext.translation[1],
+      float2(pcontext.final_radius * alpha, pcontext.final_radius * alpha * tip_scale_x),
+      float2(pcontext.final_radius * alpha * roundness,
+             pcontext.final_radius * alpha * roundness * tip_scale_x),
       80);
 }
 
@@ -670,11 +681,6 @@ static void object_space_overlays_draw(const PaintCursorContext &pcontext)
 
 static void cursor_space_drawing_setup(const PaintCursorContext &pcontext)
 {
-  const float4x4 cursor_trans = math::translate(pcontext.vc.obact->object_to_world(),
-                                                pcontext.location);
-
-  const float3 z_axis = {0.0f, 0.0f, 1.0f};
-
   const float3 normal = bke::brush::supports_tilt(*pcontext.brush) ?
                             tilt_apply_to_normal(*pcontext.vc.obact,
                                                  float4x4(pcontext.vc.rv3d->viewinv),
@@ -682,6 +688,30 @@ static void cursor_space_drawing_setup(const PaintCursorContext &pcontext)
                                                  pcontext.tilt,
                                                  pcontext.brush->tilt_strength_factor) :
                             pcontext.normal;
+
+  if (BKE_brush_has_cube_tip(pcontext.brush, pcontext.mode)) {
+    float local_mat[4][4];
+    float local_mat_inv[4][4];
+
+    calc_brush_local_mat(0,
+                         pcontext.paint->runtime->brush_rotation,
+                         pcontext.vc,
+                         *pcontext.vc.obact,
+                         normal,
+                         pcontext.location,
+                         1.0f,
+                         local_mat,
+                         local_mat_inv);
+
+    GPU_matrix_mul(pcontext.vc.obact->object_to_world().ptr());
+    GPU_matrix_mul(local_mat_inv);
+    return;
+  }
+
+  const float4x4 cursor_trans = math::translate(pcontext.vc.obact->object_to_world(),
+                                                pcontext.location);
+
+  const float3 z_axis = {0.0f, 0.0f, 1.0f};
 
   const math::AxisAngle between_vecs(z_axis, normal);
   const float4x4 cursor_rot = math::from_rotation<float4x4>(between_vecs);
@@ -692,17 +722,31 @@ static void cursor_space_drawing_setup(const PaintCursorContext &pcontext)
 
 static void main_inactive_cursor_draw(const PaintCursorContext &pcontext)
 {
+  bool has_cube_tip = BKE_brush_has_cube_tip(pcontext.brush, pcontext.mode);
+  const float roundness = has_cube_tip ? pcontext.brush->tip_roundness : 1.0f;
+  const float tip_scale_x = has_cube_tip ? pcontext.brush->tip_scale_x : 1.0f;
+  const float alpha = std::clamp(BKE_brush_alpha_get(pcontext.paint, pcontext.brush), 0.0f, 1.0f);
+
   immUniformColor3fvAlpha(pcontext.outline_col, pcontext.outline_alpha);
   GPU_line_width(2.0f);
-  imm_draw_circle_wire_3d(pcontext.pos, 0, 0, pcontext.radius, 80);
 
-  GPU_line_width(1.0f);
-  immUniformColor3fvAlpha(pcontext.outline_col, pcontext.outline_alpha * 0.5f);
-  imm_draw_circle_wire_3d(
+  gpu::imm_draw_rounded_box_wire_3d(
       pcontext.pos,
       0,
       0,
-      pcontext.radius * clamp_f(BKE_brush_alpha_get(pcontext.paint, pcontext.brush), 0.0f, 1.0f),
+      float2(pcontext.radius, pcontext.radius * tip_scale_x),
+      float2(pcontext.radius * roundness, pcontext.radius * roundness * tip_scale_x),
+      80);
+
+  GPU_line_width(1.0f);
+  immUniformColor3fvAlpha(pcontext.outline_col, pcontext.outline_alpha * 0.5f);
+  gpu::imm_draw_rounded_box_wire_3d(
+      pcontext.pos,
+      0,
+      0,
+      float2(pcontext.radius * alpha, pcontext.radius * alpha * tip_scale_x),
+      float2(pcontext.radius * alpha * roundness,
+             pcontext.radius * alpha * roundness * tip_scale_x),
       80);
 }
 

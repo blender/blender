@@ -2824,13 +2824,6 @@ static void calc_local_from_screen(const ViewContext &vc,
   mul_m4_v3(ob.world_to_object().ptr(), r_local_dir);
 }
 
-/**
- * Calculates the local matrix of the brush and its inverse, which are used to transform points
- * from object-space to brush-space and vice versa respectively.
- *
- * \param tip_normal Tip normal is the sculpt normal under spherical falloff, but when under
- * projected falloff, it is the view normal.
- */
 static void calc_brush_local_mat(const float rotation,
                                  const Object &ob,
                                  const float3 &tip_normal,
@@ -2838,6 +2831,28 @@ static void calc_brush_local_mat(const float rotation,
                                  float local_mat_inv[4][4])
 {
   const StrokeCache *cache = ob.runtime->sculpt_session->cache;
+
+  calc_brush_local_mat(rotation,
+                       cache->special_rotation,
+                       *cache->vc,
+                       ob,
+                       tip_normal,
+                       cache->location_symm,
+                       cache->radius,
+                       local_mat,
+                       local_mat_inv);
+}
+
+void calc_brush_local_mat(const float rotation,
+                          const float special_rotation,
+                          const ViewContext &vc,
+                          const Object &ob,
+                          const float3 &tip_normal,
+                          const float3 &tip_location,
+                          const float radius,
+                          float local_mat[4][4],
+                          float local_mat_inv[4][4])
+{
   float tmat[4][4];
   float mat[4][4];
   float scale[4][4];
@@ -2854,7 +2869,7 @@ static void calc_brush_local_mat(const float rotation,
 
   /* Read rotation (user angle, rake, etc.) to find the view's movement direction (negative X of
    * the brush). */
-  angle = rotation + cache->special_rotation;
+  angle = rotation + special_rotation;
   /* By convention, motion direction points down the brush's Y axis, the angle represents the X
    * axis, normal is a 90 deg CCW rotation of the motion direction. */
   float motion_normal_screen[2];
@@ -2863,8 +2878,7 @@ static void calc_brush_local_mat(const float rotation,
   /* Convert view's brush transverse direction to object-space,
    * i.e. the normal of the plane described by the motion */
   float motion_normal_local[3];
-  calc_local_from_screen(
-      *cache->vc, cache->location_symm, motion_normal_screen, motion_normal_local);
+  calc_local_from_screen(vc, tip_location, motion_normal_screen, motion_normal_local);
 
   /* Calculate the movement direction for the local matrix.
    * Note that there is a deliberate prioritization here: Our calculations are
@@ -2881,11 +2895,9 @@ static void calc_brush_local_mat(const float rotation,
   copy_v3_v3(mat[2], tip_normal);
 
   /* Set location. */
-  copy_v3_v3(mat[3], cache->location_symm);
+  copy_v3_v3(mat[3], tip_location);
 
   /* Scale by brush radius. */
-  float radius = cache->radius;
-
   normalize_m4(mat);
   scale_m4_fl(scale, radius);
   mul_m4_m4m4(tmat, mat, scale);
