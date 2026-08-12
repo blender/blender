@@ -920,17 +920,20 @@ bool seq_image_strip_is_multiview_render(const Scene *scene,
                                          char *r_prefix,
                                          const char *r_ext)
 {
+  r_prefix[0] = '\0';
+
+  if ((strip->flag & SEQ_USE_VIEWS) == 0 || (scene->r.scemode & R_MULTIVIEW) == 0) {
+    return false;
+  }
+
   if (totfiles > 1) {
     BKE_scene_multiview_view_prefix_get(scene, filepath, r_prefix, &r_ext);
     if (r_prefix[0] == '\0') {
       return false;
     }
   }
-  else {
-    r_prefix[0] = '\0';
-  }
 
-  return (strip->flag & SEQ_USE_VIEWS) != 0 && (scene->r.scemode & R_MULTIVIEW) != 0;
+  return true;
 }
 
 static ImBuf *create_missing_media_image(const RenderData *context, int width, int height)
