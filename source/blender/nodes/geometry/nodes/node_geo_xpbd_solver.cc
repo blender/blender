@@ -2,6 +2,7 @@
  *
  * SPDX-License-Identifier: GPL-2.0-or-later */
 
+#include "BKE_bvh.hh"
 #include "BKE_bvhutils.hh"
 #include "BKE_curves.hh"
 #include "BKE_geometry_fields.hh"
@@ -283,7 +284,7 @@ struct CrossEdgeLengthConstraintUsage {
 
 struct StaticMeshInfo {
   const Mesh *mesh;
-  bke::BVHTreeFromMesh corner_tris_bvh;
+  const bke::bvh::Tree *corner_tris_bvh;
   bke::BVHTreeFromMesh edges_bvh;
 };
 
@@ -294,7 +295,7 @@ struct DeformingMeshInfo {
    * This contains one bvh tree per substep. A future optimization could be to not build
    * independent BVH trees for each mesh because the are usually very similar.
    */
-  Vector<bke::BVHTreeFromMesh> substep_corner_tris_bvh_trees;
+  Vector<const bke::bvh::Tree *> substep_corner_tris_bvh_trees;
   Vector<bke::BVHTreeFromMesh> substep_edges_bvh_trees;
 };
 
@@ -951,14 +952,14 @@ class XpbdSolverStep {
                                       ExternalEdgeContacts &r_edge_contacts)
   {
     const Mesh *mesh;
-    const bke::BVHTreeFromMesh *corner_tris_bvh;
+    const bke::bvh::Tree *corner_tris_bvh;
     const bke::BVHTreeFromMesh *edges_bvh;
     Span<float3> prev_vert_positions;
     if (is_deforming) {
       BLI_assert(std::holds_alternative<DeformingMeshInfo>(collider.mesh));
       const auto &deforming_mesh = std::get<DeformingMeshInfo>(collider.mesh);
       mesh = deforming_mesh.substep_meshes[substep.current_i + 1];
-      corner_tris_bvh = &deforming_mesh.substep_corner_tris_bvh_trees[substep.current_i];
+      corner_tris_bvh = deforming_mesh.substep_corner_tris_bvh_trees[substep.current_i];
       edges_bvh = &deforming_mesh.substep_edges_bvh_trees[substep.current_i];
       prev_vert_positions = deforming_mesh.substep_meshes[substep.current_i]->vert_positions();
     }
@@ -966,7 +967,7 @@ class XpbdSolverStep {
       BLI_assert(std::holds_alternative<StaticMeshInfo>(collider.mesh));
       const auto &static_mesh = std::get<StaticMeshInfo>(collider.mesh);
       mesh = static_mesh.mesh;
-      corner_tris_bvh = &static_mesh.corner_tris_bvh;
+      corner_tris_bvh = static_mesh.corner_tris_bvh;
       edges_bvh = &static_mesh.edges_bvh;
     }
     const Span<float3> vert_positions = mesh->vert_positions();
@@ -1197,27 +1198,24 @@ class XpbdSolverStep {
 
   std::optional<ClosestMeshFaceContact> get_closest_mesh_face_contact(
       const float3 &sample_pos,
-      const bke::BVHTreeFromMesh &corner_tris_bvh,
+      const bke::bvh::Tree &corner_tris_bvh,
       const Span<int3> corner_tris,
       const Span<int> corner_verts,
       const Span<float3> vert_positions,
       const float max_distance) const
   {
-    BVHTreeNearest nearest{};
-    nearest.index = -1;
-    nearest.dist_sq = pow2f(max_distance);
-    BLI_bvhtree_find_nearest(corner_tris_bvh.tree,
-                             sample_pos,
-                             &nearest,
-                             corner_tris_bvh.nearest_callback,
-                             (void *)&corner_tris_bvh);
-    if (nearest.index == -1) {
+    const std::optional<bke::bvh::ClosestPointResult> nearest = corner_tris_bvh.closest_point(
+        sample_pos, max_distance);
+    if (!nearest) {
       return std::nullopt;
     }
-    const int tri_i = nearest.index;
+    const int tri_i = nearest->index;
     const int3 &tri = corner_tris[tri_i];
-    const float3 &contact_pos = float3(nearest.co);
-    const float3 &contact_nor = float3(nearest.no);
+    const float3 &contact_pos = float3(nearest->position);
+    const float3 contact_nor = math::normal_tri(
+        vert_positions[corner_verts[corner_tris[tri_i][0]]],
+        vert_positions[corner_verts[corner_tris[tri_i][1]]],
+        vert_positions[corner_verts[corner_tris[tri_i][2]]]);
     const float3 bary_coords = bke::mesh_surface_sample::compute_bary_coord_in_triangle(
         vert_positions, corner_verts, tri, contact_pos);
     const float3 direction_to_mesh = contact_pos - sample_pos;
@@ -1298,7 +1296,7 @@ class XpbdSolverStep {
   }
 
   bool is_inside_ray_using_rays(const float3 &pos,
-                                const bke::BVHTreeFromMesh &bvh,
+                                const bke::bvh::Tree &bvh,
                                 const float3 &approx_ray_direction) const
   {
     /* Shoot rays in the approximate direction of where the nearest point is. This is a heuristic
@@ -1310,13 +1308,11 @@ class XpbdSolverStep {
          math::normalize(approx_ray_direction_normalized + float3{-0.140f, 0.151f, -0.126f})}};
     int inside_count = 0;
     for (const float3 &dir : dirs) {
-      BVHTreeRayHit hit{};
-      hit.index = -1;
-      hit.dist = FLT_MAX;
-      BLI_bvhtree_ray_cast(bvh.tree, pos, dir, 0.0f, &hit, bvh.raycast_callback, (void *)&bvh);
-      if (hit.index != -1) {
-        const float3 dir = float3(hit.co) - pos;
-        const bool is_inside = math::dot(dir, float3(hit.no)) > 0.0f;
+      const bke::bvh::Ray ray(pos, dir);
+      const std::optional<bke::bvh::RayHit> hit = bvh.ray_intersect(ray);
+      if (hit) {
+        const float3 dir = hit->position(ray) - pos;
+        const bool is_inside = math::dot(dir, math::normalize(hit->normal)) > 0.0f;
         inside_count += is_inside ? 1 : -1;
         if (std::abs(inside_count) >= 2) {
           break;
@@ -1436,10 +1432,10 @@ class XpbdSolverStep {
                                                                           const bool deforming)
   {
     if (!deforming || !prev_mesh) {
-      return StaticMeshInfo{&mesh, mesh.bvh_corner_tris(), mesh.bvh_edges()};
+      return StaticMeshInfo{&mesh, &mesh.bvh_tris(), mesh.bvh_edges()};
     }
     if (mesh.verts_num != prev_mesh->verts_num) {
-      return StaticMeshInfo{&mesh, mesh.bvh_corner_tris(), mesh.bvh_edges()};
+      return StaticMeshInfo{&mesh, &mesh.bvh_tris(), mesh.bvh_edges()};
     }
     const int verts_num = mesh.verts_num;
     DeformingMeshInfo result;
@@ -1480,7 +1476,7 @@ class XpbdSolverStep {
             result.substep_meshes[mesh_i] = substep_mesh;
             if (mesh_i > 0) {
               /* The bvh tree is not needed for the first substep. */
-              result.substep_corner_tris_bvh_trees[mesh_i - 1] = substep_mesh->bvh_corner_tris();
+              result.substep_corner_tris_bvh_trees[mesh_i - 1] = &substep_mesh->bvh_tris();
               result.substep_edges_bvh_trees[mesh_i - 1] = substep_mesh->bvh_edges();
             }
           }

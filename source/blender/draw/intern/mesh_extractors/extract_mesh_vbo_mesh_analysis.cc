@@ -15,8 +15,10 @@
 #include "BLI_math_geom_c.hh"
 #include "BLI_math_matrix_c.hh"
 #include "BLI_math_rotation_c.hh"
+#include "BLI_math_vector.hh"
 #include "BLI_ordered_edge.hh"
 
+#include "BKE_bvh.hh"
 #include "BKE_bvhutils.hh"
 #include "BKE_editmesh.hh"
 #include "BKE_editmesh_bvh.hh"
@@ -201,12 +203,10 @@ static void statvis_calc_thickness(const MeshRenderData &mr,
     }
   }
   else {
-    bke::BVHTreeFromMesh treeData = mr.mesh->bvh_corner_tris();
-    const BVHTree *tree = treeData.tree;
-    if (tree == nullptr) {
+    if (mr.mesh->faces_num == 0) {
       return;
     }
-
+    const bke::bvh::Tree &tree = mr.mesh->bvh_tris();
     const Span<int3> corner_tris = mr.mesh->corner_tris();
     const Span<int> tri_faces = mr.mesh->corner_tri_faces();
     for (const int i : corner_tris.index_range()) {
@@ -223,19 +223,14 @@ static void statvis_calc_thickness(const MeshRenderData &mr,
         interp_v3_v3v3v3_uv(ray_co, cos[0], cos[1], cos[2], jit_ofs[j]);
         madd_v3_v3fl(ray_co, ray_no, eps_offset);
 
-        BVHTreeRayHit hit;
-        hit.index = -1;
-        hit.dist = face_dists[index];
-        if ((BLI_bvhtree_ray_cast(
-                 tree, ray_co, ray_no, 0.0f, &hit, treeData.raycast_callback, &treeData) != -1) &&
-            hit.dist < face_dists[index])
-        {
-          float angle_fac = fabsf(dot_v3v3(mr.face_normals[index], hit.no));
+        const bke::bvh::Ray ray(ray_co, ray_no, face_dists[index]);
+        const std::optional<bke::bvh::RayHit> hit = tree.ray_intersect(ray);
+        if (hit && hit->distance < face_dists[index]) {
+          float angle_fac = fabsf(dot_v3v3(mr.face_normals[index], math::normalize(hit->normal)));
           angle_fac = 1.0f - angle_fac;
           angle_fac = angle_fac * angle_fac * angle_fac;
           angle_fac = 1.0f - angle_fac;
-          hit.dist /= angle_fac;
-          face_dists[index] = std::min(hit.dist, face_dists[index]);
+          face_dists[index] = std::min(hit->distance / angle_fac, face_dists[index]);
         }
       }
     }

@@ -70,6 +70,7 @@ set(SRC
   intern/boids.cc
   intern/bpath.cc
   intern/brush.cc
+  intern/bvh.cc
   intern/bvhutils.cc
   intern/cachefile.cc
   intern/callbacks.cc
@@ -357,6 +358,7 @@ set(SRC
   BKE_boids.h
   BKE_bpath.hh
   BKE_brush.hh
+  BKE_bvh.hh
   BKE_bvhutils.hh
   BKE_cachefile.hh
   BKE_callbacks.hh
@@ -619,6 +621,13 @@ if(WITH_BINRELOC)
     PRIVATE bf::extern::binreloc
   )
   add_definitions(-DWITH_BINRELOC)
+endif()
+
+if(WITH_EMBREE)
+  list(APPEND LIB
+    PRIVATE bf::dependencies::optional::embree
+  )
+  add_definitions(-DWITH_EMBREE)
 endif()
 
 

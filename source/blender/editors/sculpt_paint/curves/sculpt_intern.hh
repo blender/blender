@@ -28,8 +28,8 @@ struct RegionView3D;
 struct Scene;
 struct View3D;
 
-namespace bke {
-struct BVHTreeFromMesh;
+namespace bke::bvh {
+class Tree;
 }
 
 struct ReportList;
@@ -150,7 +150,7 @@ std::optional<CurvesBrush3D> sample_curves_surface_3d_brush(
     const ARegion &region,
     const View3D &v3d,
     const CurvesSurfaceTransforms &transforms,
-    const bke::BVHTreeFromMesh &surface_bvh,
+    const bke::bvh::Tree &surface_bvh,
     const float2 &brush_pos_re,
     const float brush_radius_re);
 

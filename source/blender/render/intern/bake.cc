@@ -314,7 +314,7 @@ static void barycentric_differentials_from_position(const float co[3],
 /**
  * This function populates pixel_array and returns TRUE if things are correct
  */
-static bool cast_ray_highpoly(bke::BVHTreeFromMesh *treeData,
+static bool cast_ray_highpoly(const bke::bvh::Tree **treeData,
                               TriTessFace *triangle_low,
                               TriTessFace *triangles[],
                               BakePixel *pixel_array_low,
@@ -322,7 +322,7 @@ static bool cast_ray_highpoly(bke::BVHTreeFromMesh *treeData,
                               const float mat_low[4][4],
                               BakeHighPolyData *highpoly,
                               const int highpoly_num,
-                              MutableSpan<BVHTreeRayHit> hits,
+                              MutableSpan<std::optional<bke::bvh::RayHit>> hits,
                               const float co[3],
                               const float dir[3],
                               const int pixel_id,
@@ -338,10 +338,6 @@ static bool cast_ray_highpoly(bke::BVHTreeFromMesh *treeData,
   for (int i = 0; i < highpoly_num; i++) {
     float co_high[3], dir_high[3];
 
-    hits[i].index = -1;
-    /* TODO: we should use FLT_MAX here, but sweep-sphere code isn't prepared for that. */
-    hits[i].dist = BVH_RAYCAST_DIST_MAX;
-
     /* Transform the ray from the world space to the `highpoly` space. */
     mul_v3_m4v3(co_high, highpoly[i].imat, co);
 
@@ -350,20 +346,16 @@ static bool cast_ray_highpoly(bke::BVHTreeFromMesh *treeData,
     normalize_v3(dir_high);
 
     /* cast ray */
-    if (treeData[i].tree) {
-      BLI_bvhtree_ray_cast(treeData[i].tree,
-                           co_high,
-                           dir_high,
-                           0.0f,
-                           &hits[i],
-                           treeData[i].raycast_callback,
-                           &treeData[i]);
+    /* TODO: we should use FLT_MAX here, but sweep-sphere code isn't prepared for that. */
+    const bke::bvh::Ray ray(co_high, dir_high, BVH_RAYCAST_DIST_MAX);
+    if (treeData[i]) {
+      hits[i] = treeData[i]->ray_intersect(ray);
     }
 
-    if (hits[i].index != -1) {
+    if (hits[i]) {
       /* distance comparison in world space */
       float hit_world[3];
-      mul_v3_m4v3(hit_world, highpoly[i].obmat, hits[i].co);
+      mul_v3_m4v3(hit_world, highpoly[i].obmat, hits[i]->position(ray));
       float distance_squared = len_squared_v3v3(hit_world, co);
 
       if (distance_squared < hit_distance_squared) {
@@ -374,7 +366,7 @@ static bool cast_ray_highpoly(bke::BVHTreeFromMesh *treeData,
   }
 
   if (hit_mesh != -1) {
-    int primitive_id_high = hits[hit_mesh].index;
+    int primitive_id_high = hits[hit_mesh]->index;
     TriTessFace *triangle_high = &triangles[hit_mesh][primitive_id_high];
     BakePixel *pixel_low = &pixel_array_low[pixel_id];
     BakePixel *pixel_high = &pixel_array[pixel_id];
@@ -384,7 +376,8 @@ static bool cast_ray_highpoly(bke::BVHTreeFromMesh *treeData,
     pixel_high->seed = pixel_id;
 
     /* ray direction in high poly object space */
-    float dir_high[3];
+    float co_high[3], dir_high[3];
+    mul_v3_m4v3(co_high, highpoly[hit_mesh].imat, co);
     mul_v3_mat3_m4v3(dir_high, highpoly[hit_mesh].imat, dir);
     normalize_v3(dir_high);
 
@@ -411,7 +404,8 @@ static bool cast_ray_highpoly(bke::BVHTreeFromMesh *treeData,
     madd_v3_v3fl(dyco, tmp, -dot_v3v3(dyco, triangle_high->normal));
 
     /* compute barycentric differentials from position differentials */
-    barycentric_differentials_from_position(hits[hit_mesh].co,
+    const bke::bvh::Ray ray(co_high, dir_high);
+    barycentric_differentials_from_position(hits[hit_mesh]->position(ray),
                                             triangle_high->positions[0],
                                             triangle_high->positions[1],
                                             triangle_high->positions[2],
@@ -571,7 +565,7 @@ bool RE_bake_pixels_populate_from_objects(Mesh *me_low,
 
   /* Assume all high-poly tessfaces are triangles. */
   me_highpoly = MEM_new_array_uninitialized<Mesh *>(highpoly_num, "Highpoly Derived Meshes");
-  Array<bke::BVHTreeFromMesh> treeData(highpoly_num);
+  Array<const bke::bvh::Tree *> treeData(highpoly_num, nullptr);
 
   if (!is_cage) {
     me_eval_low = BKE_mesh_copy_for_eval(*me_low);
@@ -593,18 +587,12 @@ bool RE_bake_pixels_populate_from_objects(Mesh *me_low,
     me_highpoly[i] = highpoly[i].mesh;
 
     if (BKE_mesh_runtime_corner_tris_len(me_highpoly[i]) != 0) {
-      treeData[i] = me_highpoly[i]->bvh_corner_tris();
-      if (treeData[i].tree == nullptr) {
-        printf("Baking: out of memory while creating BHVTree for object \"%s\"\n",
-               highpoly[i].ob->id.name + 2);
-        result = false;
-        goto cleanup;
-      }
+      treeData[i] = &me_highpoly[i]->bvh_tris();
     }
   }
 
   threading::parallel_for(IndexRange(pixels_num), 1024, [&](const IndexRange range) {
-    Array<BVHTreeRayHit> hits(highpoly_num);
+    Array<std::optional<bke::bvh::RayHit>> hits(highpoly_num);
     for (const IndexRange::Iterator::value_type i : range) {
       int primitive_id = pixel_array_from[i].primitive_id;
 
@@ -658,7 +646,6 @@ bool RE_bake_pixels_populate_from_objects(Mesh *me_low,
   });
 
   /* garbage collection */
-cleanup:
   for (int i = 0; i < highpoly_num; i++) {
     if (tris_high[i]) {
       MEM_delete(tris_high[i]);

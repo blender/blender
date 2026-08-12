@@ -66,6 +66,9 @@ struct ReportList;
 struct wmKeyConfig;
 struct wmKeyMap;
 struct wmOperatorType;
+namespace bke::bvh {
+class Tree;
+}
 
 /* -------------------------------------------------------------------- */
 /** \name Sculpt Types
@@ -153,7 +156,7 @@ enum class TransformDisplacementMode {
 static constexpr int plane_brush_max_rolling_average_num = 20;
 
 struct ProjectBrushTarget {
-  bke::BVHTreeFromMesh tree_data;
+  const bke::bvh::Tree *tree_data;
   float4x4 active_to_target_matrix;
 };
 

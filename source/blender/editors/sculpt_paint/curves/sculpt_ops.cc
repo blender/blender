@@ -6,6 +6,7 @@
 
 #include "BLI_kdtree.hh"
 #include "BLI_listbase.hh"
+#include "BLI_math_vector.hh"
 #include "BLI_rand.hh"
 #include "BLI_task.hh"
 #include "BLI_utildefines.hh"
@@ -13,6 +14,7 @@
 
 #include "BKE_attribute.hh"
 #include "BKE_brush.hh"
+#include "BKE_bvh.hh"
 #include "BKE_bvhutils.hh"
 #include "BKE_colortools.hh"
 #include "BKE_context.hh"
@@ -1065,7 +1067,7 @@ static wmOperatorStatus min_distance_edit_invoke(bContext *C, wmOperator *op, co
     return OPERATOR_CANCELLED;
   }
 
-  bke::BVHTreeFromMesh surface_bvh_eval = surface_me_eval->bvh_corner_tris();
+  const bke::bvh::Tree &surface_bvh_eval = surface_me_eval->bvh_tris();
 
   const int2 mouse_pos_int_re{event->mval};
   const float2 mouse_pos_re{mouse_pos_int_re};
@@ -1080,23 +1082,15 @@ static wmOperatorStatus min_distance_edit_invoke(bContext *C, wmOperator *op, co
   const float3 ray_end_su = math::transform_point(transforms.world_to_surface, ray_end_wo);
   const float3 ray_direction_su = math::normalize(ray_end_su - ray_start_su);
 
-  BVHTreeRayHit ray_hit;
-  ray_hit.dist = FLT_MAX;
-  ray_hit.index = -1;
-  BLI_bvhtree_ray_cast(surface_bvh_eval.tree,
-                       ray_start_su,
-                       ray_direction_su,
-                       0.0f,
-                       &ray_hit,
-                       surface_bvh_eval.raycast_callback,
-                       &surface_bvh_eval);
-  if (ray_hit.index == -1) {
+  const bke::bvh::Ray ray(ray_start_su, ray_direction_su);
+  const std::optional<bke::bvh::RayHit> ray_hit = surface_bvh_eval.ray_intersect(ray);
+  if (!ray_hit) {
     WM_global_report(RPT_ERROR, "Cursor must be over the surface mesh");
     return OPERATOR_CANCELLED;
   }
 
-  const float3 hit_pos_su = ray_hit.co;
-  const float3 hit_normal_su = ray_hit.no;
+  const float3 hit_pos_su = ray_hit->position(ray);
+  const float3 hit_normal_su = math::normalize(ray_hit->normal);
 
   const float3 hit_pos_cu = math::transform_point(transforms.surface_to_curves, hit_pos_su);
   const float3 hit_normal_cu = math::normalize(

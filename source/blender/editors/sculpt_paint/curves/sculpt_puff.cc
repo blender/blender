@@ -3,6 +3,7 @@
  * SPDX-License-Identifier: GPL-2.0-or-later */
 
 #include "BKE_brush.hh"
+#include "BKE_bvh.hh"
 #include "BKE_bvhutils.hh"
 #include "BKE_context.hh"
 #include "BKE_crazyspace.hh"
@@ -76,7 +77,7 @@ struct PuffOperationExecutor {
   Span<int> surface_corner_verts_;
   Span<int3> surface_corner_tris_;
   Span<float3> corner_normals_su_;
-  bke::BVHTreeFromMesh surface_bvh_;
+  const bke::bvh::Tree *surface_bvh_;
 
   PuffOperationExecutor(const PaintStroke &stroke) : ctx_(stroke) {}
 
@@ -117,7 +118,7 @@ struct PuffOperationExecutor {
     surface_corner_verts_ = surface_->corner_verts();
     surface_corner_tris_ = surface_->corner_tris();
     corner_normals_su_ = surface_->corner_normals();
-    surface_bvh_ = surface_->bvh_corner_tris();
+    surface_bvh_ = &surface_->bvh_tris();
 
     if (stroke_extension.is_first) {
       if (falloff_shape == PAINT_FALLOFF_SHAPE_SPHERE || (U.uiflag & USER_ORBIT_SELECTION)) {
@@ -290,16 +291,14 @@ struct PuffOperationExecutor {
 
             /* Find the nearest position on the surface. The curve will be aligned to the normal of
              * that point. */
-            BVHTreeNearest nearest;
-            nearest.dist_sq = FLT_MAX;
-            BLI_bvhtree_find_nearest(surface_bvh_.tree,
-                                     first_pos_su,
-                                     &nearest,
-                                     surface_bvh_.nearest_callback,
-                                     &surface_bvh_);
+            const std::optional<bke::bvh::ClosestPointResult> nearest =
+                surface_bvh_->closest_point(first_pos_su);
+            if (!nearest) {
+              continue;
+            }
 
-            const int3 &tri = surface_corner_tris_[nearest.index];
-            const float3 closest_pos_su = nearest.co;
+            const int3 &tri = surface_corner_tris_[nearest->index];
+            const float3 closest_pos_su = nearest->position;
             const float3 &v0_su = surface_positions_[surface_corner_verts_[tri[0]]];
             const float3 &v1_su = surface_positions_[surface_corner_verts_[tri[1]]];
             const float3 &v2_su = surface_positions_[surface_corner_verts_[tri[2]]];

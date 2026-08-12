@@ -55,6 +55,7 @@ static void free_bvh_caches(MeshRuntime &mesh_runtime)
   mesh_runtime.bvh_cache_loose_verts_no_hidden.tag_dirty();
   mesh_runtime.bvh_cache_loose_edges.tag_dirty();
   mesh_runtime.bvh_cache_loose_edges_no_hidden.tag_dirty();
+  mesh_runtime.bvh_embree_cache.tag_dirty();
 }
 
 MeshRuntime::MeshRuntime() = default;

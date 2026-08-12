@@ -27,6 +27,7 @@
 #include "BLT_translation.hh"
 
 #include "BKE_brush.hh"
+#include "BKE_bvh.hh"
 #include "BKE_bvhutils.hh"
 #include "BKE_context.hh"
 #include "BKE_customdata.hh"
@@ -132,27 +133,21 @@ static bool imapaint_pick_face(ViewContext *vc,
   const float3 start_object = math::transform_point(world_to_object, start_world);
   const float3 end_object = math::transform_point(world_to_object, end_world);
 
-  bke::BVHTreeFromMesh mesh_bvh = mesh.bvh_corner_tris();
-
-  BVHTreeRayHit ray_hit;
-  ray_hit.dist = FLT_MAX;
-  ray_hit.index = -1;
-  BLI_bvhtree_ray_cast(mesh_bvh.tree,
-                       start_object,
-                       math::normalize(end_object - start_object),
-                       0.0f,
-                       &ray_hit,
-                       mesh_bvh.raycast_callback,
-                       &mesh_bvh);
-  if (ray_hit.index == -1) {
+  const bke::bvh::Tree &mesh_bvh = mesh.bvh_tris();
+  const bke::bvh::Ray ray(start_object, math::normalize(end_object - start_object));
+  const std::optional<bke::bvh::RayHit> ray_hit = mesh_bvh.ray_intersect(ray);
+  if (!ray_hit) {
     return false;
   }
 
   *r_bary_coord = bke::mesh_surface_sample::compute_bary_coord_in_triangle(
-      mesh.vert_positions(), mesh.corner_verts(), mesh.corner_tris()[ray_hit.index], ray_hit.co);
+      mesh.vert_positions(),
+      mesh.corner_verts(),
+      mesh.corner_tris()[ray_hit->index],
+      ray_hit->position(ray));
 
-  *r_tri_index = ray_hit.index;
-  *r_face_index = mesh.corner_tri_faces()[ray_hit.index];
+  *r_tri_index = ray_hit->index;
+  *r_face_index = mesh.corner_tri_faces()[ray_hit->index];
   return true;
 }
 

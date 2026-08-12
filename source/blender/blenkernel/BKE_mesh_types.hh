@@ -25,6 +25,8 @@
 #include "BLI_vector_set.hh"
 #include "BLI_virtual_array_fwd.hh"
 
+#include "BKE_bvh.hh"
+
 #include "DNA_customdata_types.h"
 
 namespace blender {
@@ -193,6 +195,8 @@ struct MeshRuntime {
   SharedCache<std::unique_ptr<BVHTree, BVHTreeDeleter>> bvh_cache_loose_verts_no_hidden;
   SharedCache<std::unique_ptr<BVHTree, BVHTreeDeleter>> bvh_cache_loose_edges;
   SharedCache<std::unique_ptr<BVHTree, BVHTreeDeleter>> bvh_cache_loose_edges_no_hidden;
+
+  SharedCache<bke::bvh::Tree> bvh_embree_cache;
 
   SharedCache<std::optional<int>> max_material_index;
   SharedCache<VectorSet<int>> used_material_indices;

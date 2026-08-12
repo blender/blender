@@ -297,7 +297,7 @@ add_bundled_libraries(osl/lib)
 # OSL dependency
 add_bundled_libraries(openjph/lib)
 
-if(WITH_CYCLES AND WITH_CYCLES_EMBREE)
+if(WITH_EMBREE)
   find_package(Embree 4.0.0 REQUIRED)
 endif()
 add_bundled_libraries(embree/lib)

@@ -562,7 +562,7 @@ static float calc_voxel_transp(
     float *result, const float *input, int res[3], int *pixel, float *t_ray, float correct);
 static void update_distances(int index,
                              float *distance_map,
-                             bke::BVHTreeFromMesh *tree_data,
+                             const bke::bvh::Tree &tree,
                              const float ray_start[3],
                              float surface_thickness,
                              bool use_plane_init);
@@ -862,35 +862,29 @@ static void update_velocities(FluidEffectorSettings *fes,
                               const int3 *corner_tris,
                               float *velocity_map,
                               int index,
-                              bke::BVHTreeFromMesh *tree_data,
+                              const bke::bvh::Tree &tree,
                               const float ray_start[3],
                               const float *vert_vel,
                               bool has_velocity)
 {
-  BVHTreeNearest nearest = {0};
-  nearest.index = -1;
-
   /* Distance between two opposing vertices in a unit cube.
    * I.e. the unit cube diagonal or `sqrt(3)`.
    * This value is our nearest neighbor search distance. */
   const float surface_distance = 1.732;
-  /* find_nearest uses squared distance */
-  nearest.dist_sq = surface_distance * surface_distance;
 
   /* Find the nearest point on the mesh. */
-  if (has_velocity &&
-      BLI_bvhtree_find_nearest(
-          tree_data->tree, ray_start, &nearest, tree_data->nearest_callback, tree_data) != -1)
-  {
+  const std::optional<bke::bvh::ClosestPointResult> nearest = tree.closest_point(ray_start,
+                                                                                 surface_distance);
+  if (has_velocity && nearest) {
     float weights[3];
-    int v1, v2, v3, tri_i = nearest.index;
+    int v1, v2, v3, tri_i = nearest->index;
 
     /* Calculate barycentric weights for nearest point. */
     v1 = corner_verts[corner_tris[tri_i][0]];
     v2 = corner_verts[corner_tris[tri_i][1]];
     v3 = corner_verts[corner_tris[tri_i][2]];
     interp_weights_tri_v3(
-        weights, vert_positions[v1], vert_positions[v2], vert_positions[v3], nearest.co);
+        weights, vert_positions[v1], vert_positions[v2], vert_positions[v3], nearest->position);
 
     /* Apply object velocity. */
     float hit_vel[3];
@@ -957,7 +951,7 @@ struct ObstaclesFromDMData {
   Span<int> corner_verts;
   Span<int3> corner_tris;
 
-  bke::BVHTreeFromMesh *tree;
+  const bke::bvh::Tree *tree;
   FluidObjectBB *bb;
 
   bool has_velocity;
@@ -981,7 +975,7 @@ static void obstacles_from_mesh_task_cb(void *__restrict userdata,
       /* Calculate levelset values from meshes. Result in bb->distances. */
       update_distances(index,
                        bb->distances,
-                       data->tree,
+                       *data->tree,
                        ray_start,
                        data->fes->surface_distance,
                        data->fes->flags & FLUID_EFFECTOR_USE_PLANE_INIT);
@@ -993,7 +987,7 @@ static void obstacles_from_mesh_task_cb(void *__restrict userdata,
                         data->corner_tris.data(),
                         bb->velocity,
                         index,
-                        data->tree,
+                        *data->tree,
                         ray_start,
                         data->vert_vel,
                         data->has_velocity);
@@ -1082,8 +1076,8 @@ static void obstacles_from_mesh(Object *coll_ob,
 
     /* Skip effector sampling loop if object has disabled effector. */
     bool use_effector = fes->flags & FLUID_EFFECTOR_USE_EFFEC;
-    bke::BVHTreeFromMesh tree_data = mesh->bvh_corner_tris();
-    if (use_effector && tree_data.tree != nullptr) {
+    if (use_effector && mesh->faces_num > 0) {
+      const bke::bvh::Tree &tree_data = mesh->bvh_tris();
       ObstaclesFromDMData data{};
       data.fes = fes;
       data.vert_positions = positions;
@@ -1703,7 +1697,7 @@ static void emit_from_particles(Object *flow_ob,
  * positive, inside negative. */
 static void update_distances(int index,
                              float *distance_map,
-                             bke::BVHTreeFromMesh *tree_data,
+                             const bke::bvh::Tree &tree,
                              const float ray_start[3],
                              float surface_thickness,
                              bool use_plane_init)
@@ -1712,25 +1706,21 @@ static void update_distances(int index,
 
   /* Planar initialization: Find nearest cells around mesh. */
   if (use_plane_init) {
-    BVHTreeNearest nearest = {0};
-    nearest.index = -1;
     /* Distance between two opposing vertices in a unit cube.
      * I.e. the unit cube diagonal or `sqrt(3)`.
      * This value is our nearest neighbor search distance. */
-    const float surface_distance = 1.732;
+    float surface_distance = 1.732;
     /* find_nearest uses squared distance. */
-    nearest.dist_sq = surface_distance * surface_distance;
 
     /* Subtract optional surface thickness value and virtually increase the object size. */
     if (surface_thickness) {
-      nearest.dist_sq += surface_thickness;
+      surface_distance = std::sqrt(surface_distance * surface_distance + surface_thickness);
     }
-
-    if (BLI_bvhtree_find_nearest(
-            tree_data->tree, ray_start, &nearest, tree_data->nearest_callback, tree_data) != -1)
+    if (const std::optional<bke::bvh::ClosestPointResult> nearest = tree.closest_point(
+            ray_start, surface_distance))
     {
       float ray[3] = {0};
-      sub_v3_v3v3(ray, ray_start, nearest.co);
+      sub_v3_v3v3(ray, ray_start, nearest->position);
       min_dist = len_v3(ray);
       min_dist = (-1.0f) * fabsf(min_dist);
     }
@@ -1754,33 +1744,23 @@ static void update_distances(int index,
     int miss_count = 0, dir_count = 0;
 
     for (int i = 0; i < ARRAY_SIZE(ray_dirs); i++) {
-      BVHTreeRayHit hit_tree = {0};
-      hit_tree.index = -1;
-      hit_tree.dist = PHI_MAX;
-
       normalize_v3(ray_dirs[i]);
-      BLI_bvhtree_ray_cast(tree_data->tree,
-                           ray_start,
-                           ray_dirs[i],
-                           0.0f,
-                           &hit_tree,
-                           tree_data->raycast_callback,
-                           tree_data);
-
+      const bke::bvh::Ray ray(ray_start, ray_dirs[i], PHI_MAX);
+      const std::optional<bke::bvh::RayHit> hit_tree = tree.ray_intersect(ray);
       /* Ray did not hit mesh.
        * Current point definitely not inside mesh. Inside mesh as all rays have to hit. */
-      if (hit_tree.index == -1) {
+      if (!hit_tree) {
         miss_count++;
         /* Skip this ray since nothing was hit. */
         continue;
       }
 
       /* Ray and normal are pointing in opposite directions. */
-      if (dot_v3v3(ray_dirs[i], hit_tree.no) <= 0) {
+      if (dot_v3v3(ray_dirs[i], math::normalize(hit_tree->normal)) <= 0) {
         dir_count++;
       }
 
-      min_dist = std::min(hit_tree.dist, min_dist);
+      min_dist = std::min(hit_tree->distance, min_dist);
     }
 
     /* Point lies inside mesh. Use negative sign for distance value.
@@ -1814,7 +1794,7 @@ static void sample_mesh(FluidFlowSettings *ffs,
                         const int base_res[3],
                         const float global_size[3],
                         const float flow_center[3],
-                        bke::BVHTreeFromMesh *tree_data,
+                        const bke::bvh::Tree &tree,
                         const float ray_start[3],
                         const float *vert_vel,
                         bool has_velocity,
@@ -1825,21 +1805,13 @@ static void sample_mesh(FluidFlowSettings *ffs,
                         float z)
 {
   float ray_dir[3] = {1.0f, 0.0f, 0.0f};
-  BVHTreeRayHit hit = {0};
-  BVHTreeNearest nearest = {0};
 
   float volume_factor = 0.0f;
-
-  hit.index = -1;
-  hit.dist = PHI_MAX;
-  nearest.index = -1;
 
   /* Distance between two opposing vertices in a unit cube.
    * I.e. the unit cube diagonal or `sqrt(3)`.
    * This value is our nearest neighbor search distance. */
   const float surface_distance = 1.732;
-  /* find_nearest uses squared distance. */
-  nearest.dist_sq = surface_distance * surface_distance;
 
   bool is_gas_flow = ELEM(
       ffs->type, FLUID_FLOW_TYPE_SMOKE, FLUID_FLOW_TYPE_FIRE, FLUID_FLOW_TYPE_SMOKEFIRE);
@@ -1851,31 +1823,17 @@ static void sample_mesh(FluidFlowSettings *ffs,
 
   /* Emission inside the flow object. */
   if (is_gas_flow && ffs->volume_density) {
-    if (BLI_bvhtree_ray_cast(tree_data->tree,
-                             ray_start,
-                             ray_dir,
-                             0.0f,
-                             &hit,
-                             tree_data->raycast_callback,
-                             tree_data) != -1)
-    {
-      float dot = ray_dir[0] * hit.no[0] + ray_dir[1] * hit.no[1] + ray_dir[2] * hit.no[2];
+    const bke::bvh::Ray ray(ray_start, ray_dir, PHI_MAX);
+    if (const std::optional<bke::bvh::RayHit> hit = tree.ray_intersect(ray)) {
+      const float dot = math::dot(float3(ray_dir), math::normalize(hit->normal));
       /* If ray and hit face normal are facing same direction hit point is inside a closed mesh. */
       if (dot >= 0) {
         /* Also cast a ray in opposite direction to make sure point is at least surrounded by two
          * faces. */
         negate_v3(ray_dir);
-        hit.index = -1;
-        hit.dist = PHI_MAX;
-
-        BLI_bvhtree_ray_cast(tree_data->tree,
-                             ray_start,
-                             ray_dir,
-                             0.0f,
-                             &hit,
-                             tree_data->raycast_callback,
-                             tree_data);
-        if (hit.index != -1) {
+        const bke::bvh::Ray opposite_ray(ray_start, ray_dir, PHI_MAX);
+        const std::optional<bke::bvh::RayHit> hit_opposite = tree.ray_intersect(opposite_ray);
+        if (hit_opposite) {
           volume_factor = ffs->volume_density;
         }
       }
@@ -1883,11 +1841,11 @@ static void sample_mesh(FluidFlowSettings *ffs,
   }
 
   /* Find the nearest point on the mesh. */
-  if (BLI_bvhtree_find_nearest(
-          tree_data->tree, ray_start, &nearest, tree_data->nearest_callback, tree_data) != -1)
+  if (const std::optional<bke::bvh::ClosestPointResult> nearest = tree.closest_point(
+          ray_start, surface_distance))
   {
     float weights[3];
-    int v1, v2, v3, tri_i = nearest.index;
+    int v1, v2, v3, tri_i = nearest->index;
     float hit_normal[3];
 
     /* Calculate barycentric weights for nearest point. */
@@ -1895,13 +1853,14 @@ static void sample_mesh(FluidFlowSettings *ffs,
     v2 = corner_verts[corner_tris[tri_i][1]];
     v3 = corner_verts[corner_tris[tri_i][2]];
     interp_weights_tri_v3(
-        weights, vert_positions[v1], vert_positions[v2], vert_positions[v3], nearest.co);
+        weights, vert_positions[v1], vert_positions[v2], vert_positions[v3], nearest->position);
 
     /* Compute emission strength for smoke flow. */
     if (is_gas_flow) {
       /* Emission from surface is based on UI configurable distance value. */
       if (ffs->surface_distance) {
-        emission_strength = sqrtf(nearest.dist_sq) / ffs->surface_distance;
+        emission_strength = math::distance(nearest->position, float3(ray_start)) /
+                            ffs->surface_distance;
         CLAMP(emission_strength, 0.0f, 1.0f);
         emission_strength = pow(1.0f - emission_strength, 0.5f);
       }
@@ -2009,7 +1968,7 @@ struct EmitFromDMData {
   const MDeformVert *dvert;
   int defgrp_index;
 
-  bke::BVHTreeFromMesh *tree;
+  const bke::bvh::Tree *tree;
   FluidObjectBB *bb;
 
   bool has_velocity;
@@ -2046,7 +2005,7 @@ static void emit_from_mesh_task_cb(void *__restrict userdata,
                     data->fds->base_res,
                     data->fds->global_size,
                     data->flow_center,
-                    data->tree,
+                    *data->tree,
                     ray_start,
                     data->vert_vel,
                     data->has_velocity,
@@ -2060,7 +2019,7 @@ static void emit_from_mesh_task_cb(void *__restrict userdata,
       /* Calculate levelset values from meshes. Result in bb->distances. */
       update_distances(index,
                        bb->distances,
-                       data->tree,
+                       *data->tree,
                        ray_start,
                        data->ffs->surface_distance,
                        data->ffs->flags & FLUID_FLOW_USE_PLANE_INIT);
@@ -2149,8 +2108,8 @@ static void emit_from_mesh(
 
     /* Skip flow sampling loop if object has disabled flow. */
     bool use_flow = ffs->flags & FLUID_FLOW_USE_INFLOW;
-    bke::BVHTreeFromMesh tree_data = mesh->bvh_corner_tris();
-    if (use_flow && tree_data.tree != nullptr) {
+    if (use_flow && mesh->faces_num > 0) {
+      const bke::bvh::Tree &tree_data = mesh->bvh_tris();
 
       EmitFromDMData data{};
       data.fds = fds;

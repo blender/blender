@@ -390,6 +390,13 @@ void closest_to_plane3_v3(float r_close[3], const float plane[3], const float pt
 void closest_on_tri_to_point_v3(
     float r[3], const float p[3], const float v1[3], const float v2[3], const float v3[3]);
 
+void closest_on_tri_to_point_v3(float r[3],
+                                float r_bary[3],
+                                const float p[3],
+                                const float v1[3],
+                                const float v2[3],
+                                const float v3[3]);
+
 float ray_point_factor_v3_ex(const float p[3],
                              const float ray_origin[3],
                              const float ray_direction[3],
