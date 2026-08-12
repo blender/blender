@@ -471,22 +471,6 @@ void ImagePaintStroke::done(const bool is_cancel, const bool /*stroke_started*/)
   if (!is_cancel) {
     ED_image_undo_push_end();
   }
-
-/* duplicate warning, see texpaint_init */
-#if 0
-  if (pop->s.warnmultifile) {
-    BKE_reportf(op->reports,
-                RPT_WARNING,
-                "Image requires 4 color channels to paint: %s",
-                pop->s.warnmultifile);
-  }
-  if (pop->s.warnpackedfile) {
-    BKE_reportf(op->reports,
-                RPT_WARNING,
-                "Packed MultiLayer files cannot be painted: %s",
-                pop->s.warnpackedfile);
-  }
-#endif
 }
 bool ImagePaintStroke::get_location(float /*location*/[3],
                                     const float /*mouse*/[2],
@@ -503,9 +487,6 @@ bool ImagePaintStroke::test_cancel()
 bool ImagePaintStroke::test_start(wmOperator *op, const float mouse[2])
 {
   std::unique_ptr<PaintOperation> pop;
-
-  /* TODO: Should avoid putting this here. Instead, last position should be requested
-   * from stroke system. */
 
   if (!(pop = texture_paint_init(this->evil_C, op, mouse))) {
     return false;
