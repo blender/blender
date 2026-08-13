@@ -250,6 +250,56 @@ void MTLVertBuf::update_sub(uint start, uint len, const void *data)
   }
 }
 
+void MTLVertBuf::copy_sub(VertBuf &source_buf,
+                          uint source_first_vertex,
+                          uint dest_first_vertex,
+                          uint vertex_len)
+{
+  BLI_assert(format.stride == source_buf.format.stride);
+  MTLVertBuf &src = static_cast<MTLVertBuf &>(source_buf);
+  BLI_assert_msg(vbo_, "GPU_vertbuf_use() not called on this buffer");
+  BLI_assert_msg(src.vbo_, "GPU_vertbuf_use() not called on the source buffer");
+
+  const size_t src_offset = size_t(source_first_vertex) * src.format.stride;
+  const size_t dst_offset = size_t(dest_first_vertex) * format.stride;
+  const size_t copy_size = size_t(vertex_len) * format.stride;
+
+  if (copy_size == 0) {
+    return;
+  }
+
+  BLI_assert(src_offset + copy_size <= src.vbo_->get_size());
+  BLI_assert(dst_offset + copy_size <= vbo_->get_size());
+
+  /* Fetch active context. */
+  MTLContext *ctx = MTLContext::get();
+  BLI_assert(ctx);
+
+  /* Fetch destination and source buffers. */
+  id<MTLBuffer> src_buf = src.vbo_->get_metal_buffer();
+  id<MTLBuffer> dst_buf = vbo_->get_metal_buffer();
+  BLI_assert(src_buf != nil);
+  BLI_assert(dst_buf != nil);
+
+  /* Ensure a blit command encoder is active for the buffer copy operation. */
+  id<MTLBlitCommandEncoder> enc = ctx->main_command_buffer.ensure_begin_blit_encoder();
+  [enc copyFromBuffer:src_buf
+           sourceOffset:src_offset
+               toBuffer:dst_buf
+      destinationOffset:dst_offset
+                   size:copy_size];
+
+  /* Flush copied data back to the host-side buffer, if one exists.
+   * Ensures data and cache coherency for managed MTLBuffers. */
+  if (dst_buf.storageMode == MTLStorageModeManaged) {
+    [enc synchronizeResource:dst_buf];
+  }
+
+  /* Flag as in-use, as contents are in use by the GPU. */
+  this->flag_used();
+  src.flag_used();
+}
+
 void MTLVertBuf::bind_as_ssbo(uint binding)
 {
   this->flag_used();

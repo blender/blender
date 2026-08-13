@@ -130,4 +130,66 @@ static void test_vertex_buffer_fetch_mode__GPU_COMP_F32__GPU_FETCH_FLOAT()
 }
 GPU_TEST(vertex_buffer_fetch_mode__GPU_COMP_F32__GPU_FETCH_FLOAT);
 
+static void test_vertex_buffer_copy_sub()
+{
+  GPUVertFormat format = {0};
+  GPU_vertformat_attr_add(&format, "pos", gpu::VertAttrType::SFLOAT_32_32);
+  GPU_vertformat_attr_add(&format, "color", gpu::VertAttrType::SFLOAT_32_32_32_32);
+
+  struct Vert {
+    float2 pos;
+    float4 color;
+  };
+
+  /* Create source vertex buffer with known data. */
+  VertBuf *src_vbo = GPU_vertbuf_create_with_format(format);
+  GPU_vertbuf_data_alloc(*src_vbo, 4);
+
+  Vert src_data[4] = {
+      {float2(-1.0, -1.0), float4(0.0, 0.0, 0.0, 1.0)},
+      {float2(1.0, -1.0), float4(1.0, 0.0, 0.0, 1.0)},
+      {float2(1.0, 1.0), float4(1.0, 1.0, 0.0, 1.0)},
+      {float2(-1.0, 1.0), float4(0.0, 1.0, 0.0, 1.0)},
+  };
+  for (int i : IndexRange(4)) {
+    GPU_vertbuf_vert_set(src_vbo, i, &src_data[i]);
+  }
+  GPU_vertbuf_use(src_vbo);
+
+  /* Create destination vertex buffer, pre-filled with sentinel data. */
+  VertBuf *dst_vbo = GPU_vertbuf_create_with_format(format);
+  GPU_vertbuf_data_alloc(*dst_vbo, 4);
+
+  Vert dest_data[4] = {
+      {float2(-2.0, -2.0), float4(0.0, 0.0, 0.0, 0.0)},
+      {float2(-1.0, -2.0), float4(0.0, 0.0, 0.0, 0.0)},
+      {float2(0.0, -2.0), float4(0.0, 0.0, 0.0, 0.0)},
+      {float2(1.0, -2.0), float4(0.0, 0.0, 0.0, 0.0)},
+  };
+  for (int i : IndexRange(4)) {
+    GPU_vertbuf_vert_set(dst_vbo, i, &dest_data[i]);
+  }
+  GPU_vertbuf_use(dst_vbo);
+
+  /* Copy vertices [1, 3) from the source buffer to [0, 2) of the destination buffer. */
+  dst_vbo->copy_sub(*src_vbo, 1, 0, 2);
+
+  /* Read back and validate content. */
+  Vert read_data[4];
+  GPU_vertbuf_read(dst_vbo, read_data);
+  for (int i : IndexRange(2)) {
+    EXPECT_EQ(read_data[i].pos, src_data[i + 1].pos);
+    EXPECT_EQ(read_data[i].color, src_data[i + 1].color);
+  }
+  for (int i : IndexRange(2, 2)) {
+    EXPECT_EQ(read_data[i].pos, dest_data[i].pos);
+    EXPECT_EQ(read_data[i].color, dest_data[i].color);
+  }
+
+  GPU_vertbuf_discard(dst_vbo);
+  GPU_vertbuf_discard(src_vbo);
+}
+
+GPU_TEST(vertex_buffer_copy_sub);
+
 }  // namespace blender::gpu::tests
