@@ -26,17 +26,18 @@ void seq_anim_add_suffix(Scene *scene, MovieReader *anim, const int view_id)
   MOV_set_multiview_suffix(anim, suffix);
 }
 
-int seq_num_files(Scene *scene, char views_format, const bool is_multiview)
+int seq_multiview_num_files_get(const Scene *scene, eImageFormat_ViewsFormat views_format)
 {
-  if (!is_multiview) {
-    return 1;
+  switch (views_format) {
+    case R_IMF_VIEWS_MULTIVIEW:
+      /* Unsupported currently, pass through. */
+    case R_IMF_VIEWS_STEREO_3D:
+      return 1; /* Single lossy combined image. */
+    case R_IMF_VIEWS_INDIVIDUAL:
+      return BKE_scene_multiview_num_views_get(&scene->r);
   }
-  if (views_format == R_IMF_VIEWS_STEREO_3D) {
-    return 1;
-  }
-  /* R_IMF_VIEWS_INDIVIDUAL */
-
-  return BKE_scene_multiview_num_views_get(&scene->r);
+  BLI_assert_unreachable();
+  return 1;
 }
 
 void seq_multiview_name(Scene *scene,

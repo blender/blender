@@ -277,7 +277,7 @@ static bool open_anim_file_multiview(Scene *scene, Strip *strip, const char *fil
 
   Editing *ed = scene->ed;
   bool is_multiview_loaded = false;
-  int totfiles = seq_num_files(scene, strip->views_format, true);
+  int totfiles = seq_multiview_num_files_get(scene, strip->views_format);
 
   for (int i = 0; i < totfiles; i++) {
     const char *suffix = BKE_scene_multiview_view_id_suffix_get(&scene->r, i);

@@ -578,11 +578,11 @@ static void image_proxy_builder_process(ProxyBuildContext &context,
     BLI_path_join(filepath, sizeof(filepath), strip.data->dirpath, s_elem.filename);
     BLI_path_abs(filepath, base_path);
 
-    const int totfiles = seq_num_files(context.scene, strip.views_format, true);
-    bool is_multiview_render = seq_image_strip_is_multiview_render(
-        context.scene, &strip, totfiles, filepath, prefix, ext);
+    const bool do_multiview_render = seq_strip_do_multiview_render(
+        context.scene, &strip, filepath, prefix);
 
-    if (is_multiview_render) {
+    if (do_multiview_render) {
+      const int totfiles = seq_multiview_num_files_get(context.scene, strip.views_format);
       Array<ImBuf *> ibufs_arr(tot_views, nullptr);
 
       for (int view_id = 0; view_id < totfiles; view_id++) {

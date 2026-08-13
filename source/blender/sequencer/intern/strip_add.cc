@@ -389,7 +389,9 @@ Strip *add_movie_strip(Main *bmain, Scene *scene, ListBaseT<Strip> *seqbase, Loa
 
   char colorspace[/*MAX_COLORSPACE_NAME*/ 64] = "\0";
   bool is_multiview_loaded = false;
-  const int totfiles = seq_num_files(scene, load_data->views_format, load_data->use_multiview);
+  const int totfiles = load_data->use_multiview ?
+                           seq_multiview_num_files_get(scene, load_data->views_format) :
+                           1;
   Array<MovieReader *> anim_arr(totfiles, nullptr);
 
   int orig_width = 0;
@@ -569,7 +571,7 @@ void add_reload_new_file(Main *bmain, Scene *scene, Strip *strip, const bool loc
       if (is_multiview && (strip->views_format == R_IMF_VIEWS_INDIVIDUAL)) {
         char prefix[FILE_MAX];
         const char *ext = nullptr;
-        const int totfiles = seq_num_files(scene, strip->views_format, true);
+        const int totfiles = seq_multiview_num_files_get(scene, strip->views_format);
         int i = 0;
 
         BKE_scene_multiview_view_prefix_get(scene, filepath, prefix, &ext);

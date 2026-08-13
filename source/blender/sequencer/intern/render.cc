@@ -913,27 +913,29 @@ static ImBuf *seq_render_image_strip_view(const RenderData *context,
   return ibuf;
 }
 
-bool seq_image_strip_is_multiview_render(const Scene *scene,
-                                         const Strip *strip,
-                                         int totfiles,
-                                         const char *filepath,
-                                         char *r_prefix,
-                                         const char *r_ext)
+bool seq_strip_do_multiview_render(const Scene *scene,
+                                   const Strip *strip,
+                                   const char *filepath,
+                                   char *r_prefix)
 {
   r_prefix[0] = '\0';
 
-  if ((strip->flag & SEQ_USE_VIEWS) == 0 || (scene->r.scemode & R_MULTIVIEW) == 0) {
+  if ((strip->flag & SEQ_USE_VIEWS) == 0 || (scene->r.scemode & R_MULTIVIEW) == 0 ||
+      BKE_scene_multiview_num_views_get(&scene->r) <= 1)
+  {
     return false;
   }
 
-  if (totfiles > 1) {
-    BKE_scene_multiview_view_prefix_get(scene, filepath, r_prefix, &r_ext);
-    if (r_prefix[0] == '\0') {
-      return false;
-    }
+  if (strip->views_format != R_IMF_VIEWS_INDIVIDUAL) {
+    /* Strips interpreted as a single stereo file always force multiview. */
+    return true;
   }
 
-  return true;
+  /* For "Individual" view, if strip's file suffix does not match any view suffix,
+   * (implying no common prefix), fallback to mono render. */
+  const char *ext = nullptr;
+  BKE_scene_multiview_view_prefix_get(scene, filepath, r_prefix, &ext);
+  return r_prefix[0] != '\0';
 }
 
 static ImBuf *create_missing_media_image(const RenderData *context, int width, int height)
@@ -981,12 +983,12 @@ static ImBuf *seq_render_image_strip(const RenderData *context,
   }
 
   /* Proxy not found, render original. */
-  const int totfiles = seq_num_files(context->scene, strip->views_format, true);
-  bool is_multiview_render = seq_image_strip_is_multiview_render(
-      context->scene, strip, totfiles, filepath, prefix, ext);
+  const bool do_multiview_render = seq_strip_do_multiview_render(
+      context->scene, strip, filepath, prefix);
 
-  if (is_multiview_render) {
-    int totviews = BKE_scene_multiview_num_views_get(&context->scene->r);
+  if (do_multiview_render) {
+    const int totfiles = seq_multiview_num_files_get(context->scene, strip->views_format);
+    const int totviews = BKE_scene_multiview_num_views_get(&context->scene->r);
     Array<ImBuf *> ibufs_arr(totviews, nullptr);
 
     for (int view_id = 0; view_id < totfiles; view_id++) {
@@ -1110,13 +1112,13 @@ static ImBuf *seq_render_movie_strip(const RenderData *context,
 
   ImBuf *ibuf = nullptr;
   MovieReader *first_reader = strip->runtime->movie_reader_get();
-  const int totfiles = seq_num_files(context->scene, strip->views_format, true);
-  bool is_multiview_render = (strip->flag & SEQ_USE_VIEWS) != 0 &&
-                             (context->scene->r.scemode & R_MULTIVIEW) != 0 &&
-                             totfiles == strip->runtime->movie_readers.size();
+  const int totfiles = seq_multiview_num_files_get(context->scene, strip->views_format);
+  const bool do_multiview_render = (strip->flag & SEQ_USE_VIEWS) != 0 &&
+                                   (context->scene->r.scemode & R_MULTIVIEW) != 0 &&
+                                   totfiles == strip->runtime->movie_readers.size();
 
-  if (is_multiview_render) {
-    int totviews = BKE_scene_multiview_num_views_get(&context->scene->r);
+  if (do_multiview_render) {
+    const int totviews = BKE_scene_multiview_num_views_get(&context->scene->r);
     Array<ImBuf *> ibuf_arr(totviews, nullptr);
 
     int ibuf_view_id = 0;
