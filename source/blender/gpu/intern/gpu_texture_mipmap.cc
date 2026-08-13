@@ -8,6 +8,7 @@
 
 #include "BLI_index_range.hh"
 
+#include "GPU_capabilities.hh"
 #include "GPU_compute.hh"
 #include "GPU_debug.hh"
 #include "GPU_shader.hh"
@@ -74,6 +75,42 @@ static Shader *get_update_mipmap_shader(TextureFormat texture_format, bool is_la
   return nullptr;
 }
 
+constexpr int max_levels_per_dispatch = 2;
+
+/**
+ * Compute the number of work groups required to dispatch a single pass of the mipmap update
+ * shader.
+ *
+ * \param mip_start: The first mipmap level that is processed by the dispatch.
+ */
+uint mipmap_dispatch_group_len(Texture &texture, int mip_start)
+{
+  const int num_mipmaps = texture.mip_count();
+  if (mip_start >= num_mipmaps - 1) {
+    return 0;
+  }
+
+  int num_levels = min_ii(num_mipmaps - mip_start - 1, max_levels_per_dispatch);
+  int3 mip_size(1, 1, 1);
+  texture.mip_size_get(mip_start + num_levels, mip_size);
+
+  if (num_levels == 1u) {
+    /* Each thread writes one sample. */
+    constexpr uint32_t warps = 4;
+    const uint32_t samples = mip_size.x * mip_size.y;
+    const uint32_t threads = warps * 32U;
+    return divide_ceil_u(samples, threads);
+  }
+  else {
+    /* Each workgroup handles a tile. */
+    constexpr uint32_t TileWidth = 8;
+    constexpr uint32_t TileHeight = 8;
+    const uint32_t horizontalTiles = divide_ceil_u(mip_size.x, TileWidth);
+    const uint32_t verticalTiles = divide_ceil_u(mip_size.y, TileHeight);
+    return horizontalTiles * verticalTiles;
+  }
+}
+
 static void update_mipmaps(Texture &texture, Shader &shader, int layer)
 {
   const int num_mipmaps = texture.mip_count();
@@ -84,8 +121,6 @@ static void update_mipmaps(Texture &texture, Shader &shader, int layer)
         __func__, &texture, view_format, mipmap, 1, layer, 1, false, false));
   }
 
-  constexpr int max_levels_per_dispatch = 2;
-
   for (int mip_start = 0; mip_start < num_mipmaps - 1; mip_start += max_levels_per_dispatch) {
     GPU_memory_barrier(GPU_BARRIER_SHADER_IMAGE_ACCESS);
     GPU_texture_image_bind(views[mip_start], 0);
@@ -95,26 +130,8 @@ static void update_mipmaps(Texture &texture, Shader &shader, int layer)
     int num_levels = min_ii(views.size() - mip_start - 1, max_levels_per_dispatch);
     GPU_shader_uniform_1i(&shader, "num_levels", num_levels);
 
-    int3 mip_size(1, 1, 1);
-    texture.mip_size_get(mip_start + num_levels, mip_size);
-
-    if (num_levels == 1u) {
-      /* Each thread writes one sample. */
-      constexpr uint32_t warps = 4;
-      const uint32_t samples = mip_size.x * mip_size.y;
-      const uint32_t threads = warps * 32U;
-      int group_len = divide_ceil_u(samples, threads);
-      GPU_compute_dispatch(&shader, group_len, 1, 1);
-    }
-    else {
-      /* Each workgroup handles a tile. */
-      constexpr uint32_t TileWidth = 8;
-      constexpr uint32_t TileHeight = 8;
-      const uint32_t horizontalTiles = divide_ceil_u(mip_size.x, TileWidth);
-      const uint32_t verticalTiles = divide_ceil_u(mip_size.y, TileHeight);
-      int group_len = horizontalTiles * verticalTiles;
-      GPU_compute_dispatch(&shader, group_len, 1, 1);
-    }
+    uint group_len = mipmap_dispatch_group_len(texture, mip_start);
+    GPU_compute_dispatch(&shader, group_len, 1, 1);
   }
 
   for (Texture *view : views) {
@@ -209,6 +226,16 @@ void GPU_texture_update_mipmap_chain(Texture *tex)
                "Texture doesn't have `GPU_TEXTURE_USAGE_SHADER_WRITE` set. Fallback to backend "
                "implementation");
     use_compute_shaders = false;
+  }
+
+  /* The number of work groups is bounded by `GPU_max_work_group_count()`. Only the dispatch of
+   * the largest mipmap levels has to be checked, as each subsequent dispatch covers halved
+   * dimensions and the required work group count only decreases. */
+  if (use_compute_shaders && mipmap_dispatch_group_len(*tex, 0) > GPU_max_work_group_count(0)) {
+    use_compute_shaders = false;
+    CLOG_INFO(&LOG,
+              "Texture size exceeds `maxComputeWorkGroupCount[0]`. Fallback to backend "
+              "implementation, this could lead to different results between platforms.");
   }
 
   if (use_compute_shaders) {
