@@ -153,7 +153,10 @@ if(WITH_BUILDINFO)
 endif()
 
 if(WITH_INSTALL_PORTABLE)
-  add_definitions(-DWITH_INSTALL_PORTABLE)
+  # TODO: match the CMake define, this check is historic.
+  if(UNIX AND (NOT APPLE OR WITH_PYTHON_MODULE))
+    add_definitions(-DWITH_INSTALL_PORTABLE)
+  endif()
 endif()
 
 if(WITH_PYTHON_MODULE)
@@ -165,7 +168,7 @@ endif()
 # Without this, the absolute path on the builder is used, causing HTTPS access to fail.
 # For example `urllib.request.urlopen("https://projects.blender.org")` fails
 # (or any other HTTPS site). see: #102300 for details.
-if(WITH_PYTHON AND WITH_PYTHON_INSTALL AND (APPLE OR WIN32 OR WITH_INSTALL_PORTABLE))
+if(WITH_PYTHON AND WITH_PYTHON_INSTALL AND WITH_INSTALL_PORTABLE)
   # - `PYTHON_SSL_CERT_FILE` absolute path to the PEM file.
   find_python_module_file("certifi/cacert.pem" PYTHON_SSL_CERT_FILE _python_ssl_cert_file_relative)
   mark_as_advanced(PYTHON_SSL_CERT_FILE)
