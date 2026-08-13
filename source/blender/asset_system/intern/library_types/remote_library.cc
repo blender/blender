@@ -160,6 +160,10 @@ std::optional<StringRefNull> PreferencesRemoteAssetLibrary::auth_token() const
     return std::nullopt;
   }
 
+  if (library_definition->auth_token == nullptr) {
+    return std::nullopt;
+  }
+
   StringRefNull token(library_definition->auth_token);
   if (token.is_empty()) {
     return std::nullopt;
