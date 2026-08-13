@@ -16,6 +16,7 @@
 #include "NOD_fn_format_string.hh"
 #include "NOD_geometry_nodes_lazy_function.hh"
 #include "NOD_socket_items_blend.hh"
+#include "NOD_socket_items_name_util.hh"
 #include "NOD_socket_items_ops.hh"
 #include "NOD_socket_items_ui.hh"
 
@@ -819,64 +820,6 @@ void FormatStringItemsAccessor::blend_write_item(BlendWriter *writer, const Item
 void FormatStringItemsAccessor::blend_read_data_item(BlendDataReader *reader, ItemT &item)
 {
   BLO_read_string(reader, &item.name);
-}
-
-std::string FormatStringItemsAccessor::custom_initial_name(const bNode &node, StringRef src_name)
-{
-  /* The goal is to find a single-letter name that is not used already. Ideally, it starts with the
-   * same letter as the given name. */
-
-  const auto &storage = *static_cast<NodeFunctionFormatString *>(node.storage);
-  char initial = 'a';
-  if (!src_name.is_empty()) {
-    const char first_c = src_name[0];
-    if (first_c >= 'a' && first_c <= 'z') {
-      initial = first_c;
-    }
-    else if (first_c >= 'A' && first_c <= 'Z') {
-      initial = first_c - 'A' + 'a';
-    }
-  }
-  for (const int i : IndexRange('z' - 'a' + 1)) {
-    char c = initial + i;
-    if (c > 'z') {
-      /* Start at 'a' again. */
-      c = c - 'z' + 'a' - 1;
-    }
-    const std::string potential_name = std::string(1, c);
-    const bool name_exists = std::any_of(
-        storage.items,
-        storage.items + storage.items_num,
-        [&](const NodeFunctionFormatStringItem &item) { return item.name == potential_name; });
-    if (!name_exists) {
-      return potential_name;
-    }
-  }
-  return src_name;
-}
-
-std::string FormatStringItemsAccessor::validate_name(const StringRef name)
-{
-  /* The name has to start with a letter or underscore. The remaining letters may additionally be
-   * digits. */
-  std::string result;
-  if (name.is_empty()) {
-    return result;
-  }
-  const char first_char = name[0];
-  if (!std::isalpha(first_char) && first_char != '_') {
-    result += '_';
-  }
-  for (const char c : name) {
-    if (std::isalnum(c) || c == '_') {
-      result += c;
-    }
-    if (ELEM(c, '-', '.', ' ', '\t')) {
-      result += '_';
-    }
-  }
-
-  return result;
 }
 
 }  // namespace nodes
