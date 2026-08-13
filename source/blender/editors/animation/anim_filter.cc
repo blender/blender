@@ -85,6 +85,7 @@
 #include "BKE_node_runtime.hh"
 
 #include "ED_anim_api.hh"
+#include "ED_anim_filter.hh"
 
 #include "SEQ_iterator.hh"
 #include "SEQ_modifier.hh"
@@ -1129,7 +1130,7 @@ static bool name_matches_dopesheet_filter(const bDopeSheet *ads, const char *nam
     const size_t str_len = strlen(ads->searchstr);
     const int words_max = BLI_string_max_possible_word_count(str_len);
 
-    int (*words)[2] = static_cast<int (*)[2]>(BLI_array_alloca(words, words_max));
+    int(*words)[2] = static_cast<int(*)[2]>(BLI_array_alloca(words, words_max));
     const int words_len = BLI_string_find_split_words(
         ads->searchstr, str_len, ' ', words, words_max);
     bool found = false;
@@ -4099,5 +4100,106 @@ size_t ANIM_animdata_filter(bAnimContext *ac,
 }
 
 /* ************************************************************ */
+namespace ed::animfilter {
+
+AnimationChannel::AnimationChannel(const ChannelType type, const StringRef label)
+    : type_(type), label_(label)
+{
+}
+
+SummaryChannel::SummaryChannel(const StringRef label)
+    : AnimationChannel(ChannelType::SUMMARY, label)
+{
+}
+
+Span<AnimationChannel *> SummaryChannel::children() const
+{
+  return this->children_;
+}
+
+void SummaryChannel::add_child(AnimationChannel &child)
+{
+  BLI_assert(&child != this);
+  this->children_.append(&child);
+  child.parent = this;
+}
+
+void SummaryChannel::remove_child(AnimationChannel &child)
+{
+  BLI_assert(&child != this);
+  const int index = this->children_.first_index_of(&child);
+  if (index == -1) {
+    return;
+  }
+  this->children_.remove(index);
+  child.parent = nullptr;
+}
+
+void FCurveChannel::gather_channeldata()
+{
+  FCurve *fcurve = reinterpret_cast<FCurve *>(source_);
+  if (!fcurve->bezt) {
+    /* Sampled FCurves cannot be edited and don't show up in the dopesheet. */
+    return;
+  }
+  this->datapoints_.resize(fcurve->totvert);
+  for (int i = 0; i < fcurve->totvert; i++) {
+    this->datapoints_[i] = fcurve->bezt[i].vec[1][0];
+  }
+}
+
+void GreasePencilChannel::gather_channeldata()
+{
+  bke::greasepencil::Layer &layer = reinterpret_cast<GreasePencilLayer *>(source_)->wrap();
+  for (int frame : layer.frames().keys()) {
+    this->datapoints_.append(float(frame));
+  }
+}
+
+void iter_action_channels()
+{
+  /* TODO */
+}
+
+void iter_animation_channels(bContext &C)
+{
+  /* TODO */
+}
+
+SummaryTree group_channels(MutableSpan<DataChannel> channels,
+                           Span<ChannelTagType> tag_order,
+                           const bool use_minimal_grouping)
+{
+  SummaryTree tree;
+  tree.summaries.append({"Summary"});
+  SummaryChannel &root = tree.summaries[0];
+  tree.root = &root;
+
+  for (DataChannel &channel : channels) {
+    root.add_child(channel);
+  }
+
+  Vector<SummaryChannel *> potentially_splittable_summaries = {&root};
+  for (const ChannelTagType tag_type : tag_order) {
+    Vector<SummaryChannel *> completely_split;
+    Vector<SummaryChannel *> new_summaries;
+
+    for (SummaryChannel *summary : potentially_splittable_summaries) {
+      int data_channel_count = 0;
+      /* TODO */
+    }
+
+    potentially_splittable_summaries.extend(new_summaries);
+    for (SummaryChannel *summary : completely_split) {
+      /* We don't care in which order the summaries are processed since they don't influence each
+       * other. */
+      potentially_splittable_summaries.remove_first_occurrence_and_reorder(summary);
+    }
+  }
+
+  return tree;
+}
+
+}  // namespace ed::animfilter
 
 }  // namespace blender
