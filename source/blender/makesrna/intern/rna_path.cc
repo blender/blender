@@ -347,7 +347,7 @@ static bool rna_path_parse(const PointerRNA *ptr,
     /* look up property name in current struct */
     prop = nullptr;
     if (const auto *member = std::get_if<rna_path::Member>(item_iter)) {
-      prop = RNA_struct_find_property(&curptr, member->identifier.c_str());
+      prop = RNA_struct_find_property(&curptr, member->identifier);
     }
     else if (const auto *lookup_key = std::get_if<rna_path::LookupKey>(item_iter)) {
       IDProperty *group = RNA_struct_idprops(&curptr, false);
