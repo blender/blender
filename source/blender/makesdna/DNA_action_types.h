@@ -637,14 +637,14 @@ struct bAnimVizSettings {
   short path_step = 0;
   eMotionPath_Ranges path_range = {};
 
-  eMotionPaths_ViewFlag path_viewflag = {};
+  eMotionPaths_ViewFlag path_viewflag = MOTIONPATH_VIEW_KFRAS | MOTIONPATH_VIEW_KFNOS;
   eMotionPath_BakeFlag path_bakeflag = {};
   char _pad[4] = {};
 
   /** Start and end frames of path-calculation range. Both are inclusive. */
-  int path_sf = 0, path_ef = 0;
+  int path_sf = 1, path_ef = 250;
   /** Number of frames before/after current frame to show. Both are inclusive. */
-  int path_bc = 0, path_ac = 0;
+  int path_bc = 10, path_ac = 10;
 };
 
 /* runtime */
