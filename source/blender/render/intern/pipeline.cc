@@ -773,7 +773,7 @@ static void re_init_resolution(
   }
 }
 
-void render_copy_renderdata(RenderData *to, RenderData *from)
+void render_copy_renderdata(RenderData *to, const RenderData *from)
 {
   /* Mostly shallow copy referencing pointers in scene renderdata. */
   BKE_curvemapping_free_data(&to->mblur_shutter_curve);
@@ -785,7 +785,7 @@ void render_copy_renderdata(RenderData *to, RenderData *from)
 
 void RE_InitState(Render *re,
                   Render *source,
-                  RenderData *rd,
+                  const RenderData *rd,
                   ListBaseT<ViewLayer> * /*render_layers*/,
                   ViewLayer *single_layer,
                   int winx,
@@ -1372,7 +1372,7 @@ static void renderresult_stampinfo(Render *re)
   }
 }
 
-bool RE_seq_render_active(Scene *scene, RenderData *rd)
+bool RE_seq_render_active(Scene *scene, const RenderData *rd)
 {
   Editing *ed = scene->ed;
 
@@ -2113,7 +2113,7 @@ bool RE_WriteRenderViewsMovie(ReportList *reports,
                               RenderResult *rr,
                               const bke::BlenderProject *project,
                               Scene *scene,
-                              RenderData *rd,
+                              const RenderData *rd,
                               MovieWriter **movie_writers,
                               const int totvideos,
                               bool preview)
