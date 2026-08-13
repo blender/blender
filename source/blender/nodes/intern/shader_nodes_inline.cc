@@ -275,7 +275,7 @@ class ShaderNodesInliner {
       bNodeSocket *copied_socket = static_cast<bNodeSocket *>(
           BLI_findlink(&copied_node->inputs, socket.socket->index()));
       this->set_input_socket_value(
-          *src_node, *copied_node, *copied_socket, value_by_socket_.lookup(socket));
+          src_node, *copied_node, *copied_socket, value_by_socket_.lookup(socket));
     }
 
     this->restore_zones_in_output_tree();
@@ -647,8 +647,8 @@ class ShaderNodesInliner {
     }
     if (socket.context && socket.context->parents_num() >= U.nodes_stack_limit) {
       this->store_socket_value_fallback(socket);
-      params_.r_error_messages.append(
-          {&*node, TIP_("Nodes stack limit reached (too many levels of nested nodes)")});
+      this->report_error(node,
+                         TIP_("Nodes stack limit reached (too many levels of nested nodes)"));
       return;
     }
     group->ensure_interface_cache();
@@ -744,7 +744,7 @@ class ShaderNodesInliner {
     const std::optional<PrimitiveSocketValue> iterations_value_opt =
         iterations_socket_value->to_primitive(*iterations_input->typeinfo);
     if (!iterations_value_opt) {
-      this->add_dynamic_repeat_zone_iterations_error(*repeat_input_node);
+      this->add_dynamic_repeat_zone_iterations_error(repeat_input_node);
     }
     const int iterations = iterations_value_opt.has_value() ?
                                std::get<int>(iterations_value_opt->value) :
@@ -804,10 +804,9 @@ class ShaderNodesInliner {
     preserved_zone.input_node = &copied_node;
   }
 
-  void add_dynamic_repeat_zone_iterations_error(const bNode &repeat_input_node)
+  void add_dynamic_repeat_zone_iterations_error(const NodeInContext &repeat_input_node)
   {
-    params_.r_error_messages.append(
-        {&repeat_input_node, TIP_("Iterations input has to be a constant value")});
+    this->report_error(repeat_input_node, TIP_("Iterations input has to be a constant value"));
   }
 
   void handle_output_socket__repeat_input(const SocketInContext &socket)
@@ -887,9 +886,8 @@ class ShaderNodesInliner {
     }
     if (socket.context && socket.context->parents_num() >= U.nodes_stack_limit) {
       this->store_socket_value_fallback(socket);
-      params_.r_error_messages.append(
-          {&*evaluate_closure_node,
-           TIP_("Nodes stack limit reached (too many levels of nested nodes)")});
+      this->report_error(evaluate_closure_node,
+                         TIP_("Nodes stack limit reached (too many levels of nested nodes)"));
       return;
     }
 
@@ -1079,7 +1077,7 @@ class ShaderNodesInliner {
       /* This limitation may be lifted in the future. Menu Switch nodes could be supported natively
        * by render engines or we convert them to a bunch of mix nodes. */
       this->store_socket_value_fallback(socket);
-      params_.r_error_messages.append({node.node, TIP_("Menu value has to be a constant value")});
+      this->report_error(node, TIP_("Menu value has to be a constant value"));
       return;
     }
     const MenuValue menu_value = std::get<MenuValue>(menu_value_opt->value);
@@ -1244,7 +1242,7 @@ class ShaderNodesInliner {
     truncate_math_node.custom1 = NODE_MATH_TRUNC;
     bNodeSocket &truncate_input = *static_cast<bNodeSocket *>(truncate_math_node.inputs.first);
     bNodeSocket &truncate_output = *static_cast<bNodeSocket *>(truncate_math_node.outputs.first);
-    this->set_input_socket_value(*node, truncate_math_node, truncate_input, *index_input_value);
+    this->set_input_socket_value(node, truncate_math_node, truncate_input, *index_input_value);
 
     bNode *prev_mix = nullptr;
     bNodeSocket *prev_mix_result = nullptr;
@@ -1275,7 +1273,7 @@ class ShaderNodesInliner {
       const MixNodeInfo mix = this->create_mix_node(*internal_mix_type);
       bke::node_add_link(dst_tree_, *factor_node, *factor_out, *mix.node, *mix.factor_in);
       if (i == 0) {
-        this->set_input_socket_value(*node, *mix.node, *mix.a_in, {FallbackValue{}});
+        this->set_input_socket_value(node, *mix.node, *mix.a_in, {FallbackValue{}});
       }
       else {
         bke::node_add_link(dst_tree_, *prev_mix, *prev_mix_result, *mix.node, *mix.a_in);
@@ -1285,10 +1283,10 @@ class ShaderNodesInliner {
         const SocketValue &input_value = value_by_socket_.lookup(input_socket);
         const SocketValue converted_value = this->handle_implicit_conversion(
             input_value, *input_socket->typeinfo, *mix.b_in->typeinfo);
-        this->set_input_socket_value(*node, *mix.node, *mix.b_in, converted_value);
+        this->set_input_socket_value(node, *mix.node, *mix.b_in, converted_value);
       }
       else {
-        this->set_input_socket_value(*node, *mix.node, *mix.b_in, {FallbackValue{}});
+        this->set_input_socket_value(node, *mix.node, *mix.b_in, {FallbackValue{}});
       }
 
       prev_mix = mix.node;
@@ -1344,7 +1342,7 @@ class ShaderNodesInliner {
     bNodeSocket &to_bool_in_1 = *static_cast<bNodeSocket *>(to_bool_math_node.inputs.first);
     bNodeSocket &to_bool_in_2 = *to_bool_in_1.next;
     bNodeSocket &to_bool_out = *static_cast<bNodeSocket *>(to_bool_math_node.outputs.first);
-    this->set_input_socket_value(*node, to_bool_math_node, to_bool_in_1, *switch_input_value);
+    this->set_input_socket_value(node, to_bool_math_node, to_bool_in_1, *switch_input_value);
     static_cast<bNodeSocketValueFloat *>(to_bool_in_2.default_value)->value = 0.0f;
 
     const MixNodeInfo mix = this->create_mix_node(*internal_mix_type);
@@ -1354,13 +1352,13 @@ class ShaderNodesInliner {
     const SocketInContext true_input = node.input_socket(2);
     const SocketValue &false_value = value_by_socket_.lookup(false_input);
     const SocketValue &true_value = value_by_socket_.lookup(true_input);
-    this->set_input_socket_value(*node,
+    this->set_input_socket_value(node,
                                  *mix.node,
                                  *mix.a_in,
                                  this->handle_implicit_conversion(
                                      false_value, *false_input->typeinfo, *mix.a_in->typeinfo));
     this->set_input_socket_value(
-        *node,
+        node,
         *mix.node,
         *mix.b_in,
         this->handle_implicit_conversion(true_value, *true_input->typeinfo, *mix.b_in->typeinfo));
@@ -1519,7 +1517,7 @@ class ShaderNodesInliner {
       bNodeSocket &dst_input_socket = *socket_map.lookup(src_input_socket);
       const SocketInContext input_socket_ctx = {node.context, src_input_socket};
       const SocketValue &value = value_by_socket_.lookup(input_socket_ctx);
-      this->set_input_socket_value(*node, copied_node, dst_input_socket, value);
+      this->set_input_socket_value(node, copied_node, dst_input_socket, value);
     }
     for (const bNodeSocket *src_output_socket : node->output_sockets()) {
       if (!src_output_socket->is_available()) {
@@ -1580,7 +1578,7 @@ class ShaderNodesInliner {
     return SocketValue{FallbackValue{}};
   }
 
-  void set_input_socket_value(const bNode &original_node,
+  void set_input_socket_value(const NodeInContext &original_node,
                               bNode &dst_node,
                               bNodeSocket &dst_socket,
                               const SocketValue &value)
@@ -1827,6 +1825,21 @@ class ShaderNodesInliner {
   {
     const bool use_refcounting = !(dst_tree_.id.tag & ID_TAG_NO_MAIN);
     return use_refcounting ? 0 : LIB_ID_CREATE_NO_USER_REFCOUNT;
+  }
+
+  void report_error(const NodeInContext &node, const StringRef message)
+  {
+    Vector<NodeInContext> nodes;
+    nodes.append(node);
+    for (const ComputeContext *context = node.context; context; context = context->parent()) {
+      if (const auto *group_context = dynamic_cast<const bke::GroupNodeComputeContext *>(context))
+      {
+        nodes.append({context->parent(), group_context->node()});
+      }
+    }
+    for (const NodeInContext &node : nodes) {
+      params_.r_error_messages.append({&*node, message});
+    }
   }
 };
 
