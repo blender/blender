@@ -6343,7 +6343,7 @@ void paint_proj_redraw(const bContext *C, void *ps_handle_p, bool final)
   }
 }
 
-void paint_proj_stroke_done(void *ps_handle_p)
+void paint_proj_stroke_done(void *ps_handle_p, wmPaintCursor *cursor)
 {
   ProjStrokeHandle *ps_handle = static_cast<ProjStrokeHandle *>(ps_handle_p);
 
@@ -6368,6 +6368,9 @@ void paint_proj_stroke_done(void *ps_handle_p)
   }
 
   MEM_delete(ps_handle);
+  if (cursor) {
+    WM_paint_cursor_end(cursor);
+  }
 }
 /* use project paint to re-apply an image */
 static wmOperatorStatus texture_paint_camera_project_exec(bContext *C, wmOperator *op)

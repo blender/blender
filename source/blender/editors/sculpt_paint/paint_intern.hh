@@ -55,6 +55,7 @@ struct wmKeyConfig;
 struct wmKeyMap;
 struct wmOperator;
 struct wmOperatorType;
+struct wmPaintCursor;
 
 namespace bke::pbvh {
 class Node;
@@ -437,7 +438,7 @@ void imapaint_region_tiles(
 bool get_imapaint_zoom(bContext *C, float *zoomx, float *zoomy);
 void *paint_2d_new_stroke(bContext *, wmOperator *, BrushStrokeMode mode);
 void paint_2d_redraw(const bContext *C, void *ps, bool final);
-void paint_2d_stroke_done(void *ps);
+void paint_2d_stroke_done(void *ps, wmPaintCursor *cursor);
 void paint_2d_stroke(void *ps,
                      const float prev_mval[2],
                      const float mval[2],
@@ -470,7 +471,7 @@ void paint_proj_stroke(const bContext *C,
                        float distance,
                        float size);
 void paint_proj_redraw(const bContext *C, void *ps_handle_p, bool final);
-void paint_proj_stroke_done(void *ps_handle_p);
+void paint_proj_stroke_done(void *ps_handle_p, wmPaintCursor *cursor);
 
 void paint_brush_color_get(const Paint *paint,
                            Brush *br,
