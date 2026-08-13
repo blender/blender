@@ -83,7 +83,7 @@ constexpr int max_levels_per_dispatch = 2;
  *
  * \param mip_start: The first mipmap level that is processed by the dispatch.
  */
-uint mipmap_dispatch_group_len(Texture &texture, int mip_start)
+static uint mipmap_dispatch_group_len(Texture &texture, int mip_start)
 {
   const int num_mipmaps = texture.mip_count();
   if (mip_start >= num_mipmaps - 1) {
