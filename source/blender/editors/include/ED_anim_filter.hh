@@ -14,6 +14,8 @@
 namespace blender {
 
 struct bContext;
+struct FCurve;
+struct GreasePencilLayer;
 
 namespace ed::animfilter {
 
@@ -86,18 +88,38 @@ enum DataChannelFlags {
 };
 
 class DataChannel : public AnimationChannel {
+ public:
+  DataChannel(ChannelType type, void *source, StringRef label);
+
  protected:
+  /* The datatype of this is determined by the inheriting class. */
   void *source_;
   Set<ChannelTag> tags_;
   DataChannelFlags flags_;
 };
 
 class FCurveChannel : public DataChannel {
+ public:
+  FCurveChannel(FCurve &fcurve);
+
+  FCurve *get_source()
+  {
+    return reinterpret_cast<FCurve *>(this->source_);
+  }
+
  protected:
   void gather_channeldata() override;
 };
 
 class GreasePencilChannel : public DataChannel {
+ public:
+  GreasePencilChannel(GreasePencilLayer &gp_layer);
+
+  GreasePencilLayer *get_source()
+  {
+    return reinterpret_cast<GreasePencilLayer *>(this->source_);
+  }
+
  protected:
   void gather_channeldata() override;
 };

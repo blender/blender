@@ -4135,9 +4135,17 @@ void SummaryChannel::remove_child(AnimationChannel &child)
   child.parent = nullptr;
 }
 
+DataChannel::DataChannel(ChannelType type, void *source, const StringRef label)
+    : AnimationChannel(type, label), source_(source)
+{
+}
+
+/* TODO pass label */
+FCurveChannel::FCurveChannel(FCurve &fcurve) : DataChannel(ChannelType::FCURVE, &fcurve, "") {}
+
 void FCurveChannel::gather_channeldata()
 {
-  FCurve *fcurve = reinterpret_cast<FCurve *>(source_);
+  FCurve *fcurve = this->get_source();
   if (!fcurve->bezt) {
     /* Sampled FCurves cannot be edited and don't show up in the dopesheet. */
     return;
@@ -4148,9 +4156,15 @@ void FCurveChannel::gather_channeldata()
   }
 }
 
+/* TODO pass label */
+GreasePencilChannel::GreasePencilChannel(GreasePencilLayer &gp_layer)
+    : DataChannel(ChannelType::GREASE_PENCIL, &gp_layer, "")
+{
+}
+
 void GreasePencilChannel::gather_channeldata()
 {
-  bke::greasepencil::Layer &layer = reinterpret_cast<GreasePencilLayer *>(source_)->wrap();
+  bke::greasepencil::Layer &layer = this->get_source()->wrap();
   for (int frame : layer.frames().keys()) {
     this->datapoints_.append(float(frame));
   }
