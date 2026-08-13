@@ -19,20 +19,12 @@
 #include "BLI_vector.hh"
 
 #include "BLI_dot_export_attribute_enums.hh"
+#include "BLI_dot_export_fwd.hh"
 
 #include <iosfwd>
 #include <optional>
 
 namespace blender::dot_export {
-
-class Graph;
-class DirectedGraph;
-class UndirectedGraph;
-class Node;
-class NodePort;
-class DirectedEdge;
-class UndirectedEdge;
-class Cluster;
 
 class Attributes {
  private:
