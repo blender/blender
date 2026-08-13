@@ -307,10 +307,6 @@ enum eAnimData_Recalc {
 };
 
 bool BKE_animsys_rna_path_resolve(PointerRNA *ptr,
-                                  const char *rna_path,
-                                  int array_index,
-                                  PathResolvedRNA *r_result);
-bool BKE_animsys_rna_path_resolve(PointerRNA *ptr,
                                   ParsedRNAPathRef rna_path,
                                   int array_index,
                                   PathResolvedRNA *r_result);
