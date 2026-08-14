@@ -386,8 +386,7 @@ TreeElement *AbstractTreeDisplay::add_element(ListBaseT<TreeElement> *lb,
   else if (te->abstract_element) {
     tree_element_expand(*te->abstract_element, space_outliner_);
   }
-  /* Only #TSE_ID_BASE isn't ported to use the abstract elements design yet. */
-  else if (!ELEM(type, TSE_ID_BASE)) {
+  else {
     BLI_assert_msg(false, "Element type should use `AbstractTreeElement`");
   }
 
