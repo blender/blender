@@ -1895,6 +1895,7 @@ bNodeTreeInterfacePanel *bNodeTreeInterface::insert_panel(const StringRef name,
 bNodeTreeInterfaceItem *bNodeTreeInterface::add_item_copy(const bNodeTreeInterfaceItem &item,
                                                           bNodeTreeInterfacePanel *parent)
 {
+  BLI_assert(&item != &this->root_panel.item);
   if (parent == nullptr) {
     parent = &root_panel;
   }
@@ -1912,6 +1913,7 @@ bNodeTreeInterfaceItem *bNodeTreeInterface::insert_item_copy(const bNodeTreeInte
                                                              bNodeTreeInterfacePanel *parent,
                                                              int position)
 {
+  BLI_assert(&item != &this->root_panel.item);
   if (parent == nullptr) {
     parent = &root_panel;
   }
@@ -1927,6 +1929,7 @@ bNodeTreeInterfaceItem *bNodeTreeInterface::insert_item_copy(const bNodeTreeInte
 
 bool bNodeTreeInterface::remove_item(bNodeTreeInterfaceItem &item, bool move_content_to_parent)
 {
+  BLI_assert(&item != &this->root_panel.item);
   bNodeTreeInterfacePanel *parent = this->find_item_parent(item, true);
   if (parent == nullptr) {
     return false;
@@ -1955,6 +1958,7 @@ void bNodeTreeInterface::clear_items()
 
 bool bNodeTreeInterface::move_item(bNodeTreeInterfaceItem &item, const int new_position)
 {
+  BLI_assert(&item != &this->root_panel.item);
   bNodeTreeInterfacePanel *parent = this->find_item_parent(item, true);
   if (parent == nullptr) {
     return false;
@@ -1971,6 +1975,7 @@ bool bNodeTreeInterface::move_item_to_parent(bNodeTreeInterfaceItem &item,
                                              bNodeTreeInterfacePanel *new_parent,
                                              int new_position)
 {
+  BLI_assert(&item != &this->root_panel.item);
   if (new_parent == nullptr) {
     new_parent = &this->root_panel;
   }
