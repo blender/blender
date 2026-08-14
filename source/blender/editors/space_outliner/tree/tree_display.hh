@@ -197,33 +197,6 @@ class AbstractTreeDisplay {
   virtual bool is_lazy_built() const;
 
   /**
-   * \note If child items are only added to the tree if the item is open, the `TSE_` type _must_ be
-   *       added to #outliner_element_needs_rebuild_on_open_change().
-   *
-   * \param owner_id: The ID owning the represented data (or the ID itself if the element
-   *                  represents an ID directly). This is crucial to recognize tree elements over
-   *                  rebuilds, so that state like opened and selected is preserved. If this is not
-   *                  null, the \a create_data pointer will be used instead, refer to its
-   *                  description.
-   * \param create_data: Data passed to the constructor of the corresponding #AbstractTreeElement
-   *                     sub-type. If \a owner_id is not set, this pointer will be stored in an
-   *                     attempt to identify the element over rebuilds, so that state like opened
-   *                     and selected is preserved. Of course that won't work for volatile data
-   *                     (like stack variables).
-   * \param expand: If true, the element may add its own sub-tree. E.g. objects will list their
-   *                animation data, object data, constraints, modifiers, ... This often adds visual
-   *                noise, and can be expensive to add in big scenes. So prefer setting this to
-   *                false.
-   */
-  TreeElement *add_element(ListBaseT<TreeElement> *lb,
-                           ID *owner_id,
-                           void *create_data,
-                           TreeElement *parent,
-                           short type,
-                           short index,
-                           const bool expand = true);
-
-  /**
    * Add a tree element of \a ElementType, forwarding \a args to its constructor. The remaining
    * information the tree needs is queried from \a ElementType itself:
    * - `ElementType::element_type` gives the `TSE_` type to store in the tree-store.

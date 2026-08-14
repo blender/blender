@@ -47,11 +47,6 @@ class AbstractTreeElement {
  public:
   virtual ~AbstractTreeElement() = default;
 
-  static std::unique_ptr<AbstractTreeElement> create_from_type(int type,
-                                                               TreeElement &legacy_te,
-                                                               ID *owner_id,
-                                                               void *create_data);
-
   /**
    * Check if the type is expandable in current context.
    */
@@ -109,15 +104,6 @@ class AbstractTreeElement {
    * Let the type add its own children.
    */
   virtual void expand(SpaceOutliner & /*soops*/) const {}
-
-  /** See #AbstractTreeDisplay::add_element() (which this forwards to). */
-  TreeElement *add_element(ListBaseT<TreeElement> *lb,
-                           ID *owner_id,
-                           void *create_data,
-                           TreeElement *parent,
-                           short type,
-                           short index,
-                           const bool expand = true) const;
 
   /**
    * See #AbstractTreeDisplay::add_element(). Adds a child to this element's own sub-tree by
