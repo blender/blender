@@ -24,7 +24,6 @@
 #include "DNA_scene_types.h"
 
 #include "BLI_assert.hh"
-#include "BLI_ghash.hh"
 #include "BLI_listbase.hh"
 #include "BLI_math_color_c.hh"
 #include "BLI_math_matrix_c.hh"
@@ -893,9 +892,9 @@ bPoseChannel *BKE_pose_channel_find_name(const bPose *pose, const char *name)
     return nullptr;
   }
 
-  if (pose->runtime->chanhash) {
-    return static_cast<bPoseChannel *>(
-        BLI_ghash_lookup(pose->runtime->chanhash, static_cast<const void *>(name)));
+  if (!pose->runtime->chanhash.is_empty()) {
+    bPoseChannel *const *found = pose->runtime->chanhash.lookup_ptr(name);
+    return found ? *found : nullptr;
   }
 
   return static_cast<bPoseChannel *>(
@@ -948,8 +947,8 @@ bPoseChannel *BKE_pose_channel_ensure(bPose *pose, const char *name)
   chan->protectflag = OB_LOCK_ROT4D; /* lock by components by default */
 
   BLI_addtail(&pose->chanbase, chan);
-  if (pose->runtime->chanhash) {
-    BLI_ghash_insert(pose->runtime->chanhash, chan->name, chan);
+  if (!pose->runtime->chanhash.is_empty()) {
+    pose->runtime->chanhash.add_overwrite(chan->name, chan);
   }
 
   return chan;
@@ -958,10 +957,11 @@ bPoseChannel *BKE_pose_channel_ensure(bPose *pose, const char *name)
 #ifndef NDEBUG
 bool BKE_pose_channels_is_valid(const bPose *pose)
 {
-  if (pose->runtime->chanhash) {
+  if (!pose->runtime->chanhash.is_empty()) {
     bPoseChannel *pchan;
     for (pchan = static_cast<bPoseChannel *>(pose->chanbase.first); pchan; pchan = pchan->next) {
-      if (BLI_ghash_lookup(pose->runtime->chanhash, pchan->name) != pchan) {
+      bPoseChannel *const *found = pose->runtime->chanhash.lookup_ptr(pchan->name);
+      if (!found || *found != pchan) {
         return false;
       }
     }
@@ -1241,20 +1241,16 @@ void BKE_pose_channel_transform_location(const bArmature *arm,
 
 void BKE_pose_channels_hash_ensure(bPose *pose)
 {
-  if (!pose->runtime->chanhash) {
-    pose->runtime->chanhash = BLI_ghash_str_new("make_pose_chan gh");
+  if (pose->runtime->chanhash.is_empty()) {
     for (bPoseChannel &pchan : pose->chanbase) {
-      BLI_ghash_insert(pose->runtime->chanhash, pchan.name, &pchan);
+      pose->runtime->chanhash.add_overwrite(pchan.name, &pchan);
     }
   }
 }
 
 void BKE_pose_channels_hash_free(bPose *pose)
 {
-  if (pose->runtime->chanhash) {
-    BLI_ghash_free(pose->runtime->chanhash, nullptr, nullptr);
-    pose->runtime->chanhash = nullptr;
-  }
+  pose->runtime->chanhash.clear();
 }
 
 static void pose_channels_remove_internal_links(Object *ob, bPoseChannel *unlinked_pchan)
@@ -1288,8 +1284,8 @@ void BKE_pose_channels_remove(Object *ob,
         /* Bone itself is being removed */
         BKE_pose_channel_free(pchan);
         pose_channels_remove_internal_links(ob, pchan);
-        if (ob->pose->runtime->chanhash) {
-          BLI_ghash_remove(ob->pose->runtime->chanhash, pchan->name, nullptr, nullptr);
+        if (!ob->pose->runtime->chanhash.is_empty()) {
+          ob->pose->runtime->chanhash.remove(pchan->name);
         }
         BLI_freelinkN(&ob->pose->chanbase, pchan);
       }
@@ -1410,7 +1406,7 @@ void BKE_pose_channels_free_ex(bPose *pose, bool do_id_user)
 
   BKE_pose_channels_hash_free(pose);
 
-  MEM_SAFE_DELETE(pose->runtime->chan_array);
+  pose->runtime->chan_array.reinitialize(0);
 }
 
 void BKE_pose_channels_free(bPose *pose)

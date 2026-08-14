@@ -797,10 +797,8 @@ void BKE_splineik_execute_tree(
 
 void BKE_pose_pchan_index_rebuild(bPose *pose)
 {
-  MEM_SAFE_DELETE(pose->runtime->chan_array);
   const int num_channels = pose->chanbase.count();
-  pose->runtime->chan_array = MEM_new_array_uninitialized<bPoseChannel *>(size_t(num_channels),
-                                                                          "pose->chan_array");
+  pose->runtime->chan_array.reinitialize(num_channels);
   int pchan_index = 0;
   for (bPoseChannel *pchan = static_cast<bPoseChannel *>(pose->chanbase.first); pchan != nullptr;
        pchan = pchan->next)
@@ -813,9 +811,9 @@ BLI_INLINE bPoseChannel *pose_pchan_get_indexed(Object *ob, int pchan_index)
 {
   bPose *pose = ob->pose;
   BLI_assert(pose != nullptr);
-  BLI_assert(pose->runtime->chan_array != nullptr);
+  BLI_assert(!pose->runtime->chan_array.is_empty());
   BLI_assert(pchan_index >= 0);
-  BLI_assert(pchan_index < MEM_allocN_len(pose->runtime->chan_array) / sizeof(bPoseChannel *));
+  BLI_assert(pchan_index < pose->runtime->chan_array.size());
   return pose->runtime->chan_array[pchan_index];
 }
 
@@ -848,7 +846,7 @@ void BKE_pose_eval_init(Depsgraph *depsgraph, Scene * /*scene*/, Object *object)
     }
   }
 
-  BLI_assert(pose->runtime->chan_array != nullptr || pose->chanbase.is_empty());
+  BLI_assert(!pose->runtime->chan_array.is_empty() || pose->chanbase.is_empty());
 }
 
 void BKE_pose_eval_init_ik(Depsgraph *depsgraph, Scene *scene, Object *object)
@@ -1044,7 +1042,7 @@ static void pose_eval_cleanup_common(Object *object)
 {
   bPose *pose = object->pose;
   BLI_assert(pose != nullptr);
-  BLI_assert(pose->runtime->chan_array != nullptr || pose->chanbase.is_empty());
+  BLI_assert(!pose->runtime->chan_array.is_empty() || pose->chanbase.is_empty());
   UNUSED_VARS_NDEBUG(pose);
 }
 
