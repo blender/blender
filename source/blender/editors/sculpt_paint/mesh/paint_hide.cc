@@ -1251,12 +1251,21 @@ static void partialvis_gesture_update_mesh(gesture::GestureData &gesture_data)
     return;
   }
 
+  const View3D *v3d = gesture_data.vc.v3d;
+  RegionView3D *rv3d = gesture_data.vc.rv3d;
+  const bool clipping_enabled = RV3D_CLIPPING_ENABLED(v3d, rv3d);
+  if (clipping_enabled) {
+    ED_view3d_clipping_local(rv3d, object->object_to_world().ptr());
+  }
   const bool value = action_to_hide(action);
   const Span<float3> positions = bke::pbvh::vert_positions_eval(depsgraph, *object);
   const Span<float3> normals = bke::pbvh::vert_normals_eval(depsgraph, *object);
   vert_hide_update(
       depsgraph, *object, node_mask, [&](const Span<int> verts, MutableSpan<bool> hide) {
         for (const int i : verts.index_range()) {
+          if (clipping_enabled && ED_view3d_clipping_test(rv3d, positions[verts[i]], true)) {
+            continue;
+          }
           if (gesture::is_affected(gesture_data, positions[verts[i]], normals[verts[i]])) {
             hide[i] = value;
           }
@@ -1274,6 +1283,13 @@ static void partialvis_gesture_update_grids(Depsgraph &depsgraph,
 
   SubdivCCG &subdiv_ccg = *object->runtime->sculpt_session->subdiv_ccg;
 
+  const View3D *v3d = gesture_data.vc.v3d;
+  RegionView3D *rv3d = gesture_data.vc.rv3d;
+  const bool clipping_enabled = RV3D_CLIPPING_ENABLED(v3d, rv3d);
+  if (clipping_enabled) {
+    ED_view3d_clipping_local(rv3d, object->object_to_world().ptr());
+  }
+
   const bool value = action_to_hide(action);
   const CCGKey key = BKE_subdiv_ccg_key_top_level(subdiv_ccg);
   const Span<float3> positions = subdiv_ccg.positions;
@@ -1282,6 +1298,9 @@ static void partialvis_gesture_update_grids(Depsgraph &depsgraph,
     const Span<float3> grid_positions = positions.slice(bke::ccg::grid_range(key, grid));
     const Span<float3> grid_normals = normals.slice(bke::ccg::grid_range(key, grid));
     for (const int i : grid_positions.index_range()) {
+      if (clipping_enabled && ED_view3d_clipping_test(rv3d, grid_positions[i], true)) {
+        continue;
+      }
       if (gesture::is_affected(gesture_data, grid_positions[i], grid_normals[i])) {
         hide[i].set(value);
       }
@@ -1291,7 +1310,19 @@ static void partialvis_gesture_update_grids(Depsgraph &depsgraph,
 
 static void partialvis_gesture_update_bmesh(gesture::GestureData &gesture_data)
 {
+  const View3D *v3d = gesture_data.vc.v3d;
+  RegionView3D *rv3d = gesture_data.vc.rv3d;
+  Object *object = gesture_data.vc.obact;
+
+  const bool clipping_enabled = RV3D_CLIPPING_ENABLED(v3d, rv3d);
+  if (clipping_enabled) {
+    ED_view3d_clipping_local(rv3d, object->object_to_world().ptr());
+  }
+
   const auto selection_test_fn = [&](const BMVert *v) {
+    if (clipping_enabled && ED_view3d_clipping_test(rv3d, v->co, true)) {
+      return false;
+    }
     return gesture::is_affected(gesture_data, v->co, v->no);
   };
 
