@@ -180,6 +180,7 @@ struct PaintStroke : NonCopyable, NonMovable {
 
  public:
   PaintStroke() = delete;
+  virtual ~PaintStroke() = default;
 
   /**
    * The main modal callback shared by any custom operator that implements a form of painting.
@@ -228,7 +229,6 @@ struct PaintStroke : NonCopyable, NonMovable {
   }
 
  protected:
-  ~PaintStroke() = default;
   PaintStroke(bContext *C, wmOperator *op, const wmEvent *event);
 
   /**
