@@ -267,6 +267,32 @@ TreeElement *AbstractTreeElement::add_element(ListBaseT<TreeElement> *lb,
   return display_->add_element(lb, owner_id, create_data, parent, type, index, expand);
 }
 
+AbstractTreeDisplay *AbstractTreeElement::display_for_adding(TreeElementAddParams &params) const
+{
+  if (!display_) {
+    BLI_assert_msg(false,
+                   "Element not registered properly through AbstractTreeDisplay::add_element(), "
+                   "cannot expand the tree further");
+    return nullptr;
+  }
+
+  /* Default to adding a child to this element itself. Note that the sub-tree to add to is derived
+   * from the parent by #AbstractTreeDisplay::add_element(), so it doesn't have to be filled in
+   * here (which would need a complete #TreeElement in the header). */
+  if (!params.parent) {
+    params.parent = &legacy_te_;
+  }
+
+  return display_;
+}
+
+TreeElement *AbstractTreeElement::add_id_element(const TreeElementAddParams &params, ID *id) const
+{
+  TreeElementAddParams resolved_params = params;
+  AbstractTreeDisplay *display = display_for_adding(resolved_params);
+  return display ? display->add_id_element(resolved_params, id) : nullptr;
+}
+
 void tree_element_expand(const AbstractTreeElement &tree_element, SpaceOutliner &space_outliner)
 {
   /* Most types can just expand. IDs optionally expand (hence the poll) and do additional, common

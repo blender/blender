@@ -34,6 +34,7 @@
 #include "outliner_intern.hh"
 #include "tree/tree_display.hh"
 #include "tree/tree_element.hh"
+#include "tree/tree_element_id.hh"
 
 #ifdef WIN32
 #  include "BLI_math_base_c.hh" /* M_PI */
@@ -333,6 +334,87 @@ TreeElement *AbstractTreeDisplay::add_element(ListBaseT<TreeElement> *lb,
   }
   else {
     BLI_assert_msg(false, "Element type should use `AbstractTreeElement`");
+  }
+
+  return te;
+}
+
+TreeElement *AbstractTreeDisplay::add_id_element(const TreeElementAddParams &params, ID *id)
+{
+  if (id == nullptr) {
+    return nullptr;
+  }
+  /* Real ID, ensure we do not get non-outliner ID types here... */
+  BLI_assert(TREESTORE_ID_TYPE(id));
+
+  TreeElement *te = add_element_impl(
+      params,
+      TSE_SOME_ID,
+      id,
+      nullptr,
+      false,
+      [&](TreeElement &legacy_te) -> std::unique_ptr<AbstractTreeElement> {
+        return TreeElementID::create_from_id(legacy_te, *id);
+      });
+  BLI_assert_msg(te->abstract_element != nullptr,
+                 "Expected this ID type to be ported to new Outliner tree-element design");
+  return te;
+}
+
+TreeElement *AbstractTreeDisplay::add_element_impl(
+    const TreeElementAddParams &params,
+    const short type,
+    ID *owner_id,
+    const void *persistent_ptr,
+    const bool allow_null_identity,
+    FunctionRef<std::unique_ptr<AbstractTreeElement>(TreeElement &)> construct_fn)
+{
+  ListBaseT<TreeElement> *lb = params.lb ? params.lb :
+                                           (params.parent ? &params.parent->subtree : nullptr);
+  BLI_assert_msg(lb != nullptr, "Either a sub-tree or a parent to add the element to is required");
+
+  /* Pointer to store in #TreeStoreElem.id to identify the element over rebuilds and reconstruct it
+   * on file read. This is never an arbitrary pointer that happens to be reinterpreted as an ID: it
+   * is either an actual ID, or a pointer the element type explicitly nominated for identification
+   * purposes only. */
+  ID *persistent_dataptr = owner_id ? owner_id :
+                                      static_cast<ID *>(const_cast<void *>(persistent_ptr));
+  if (persistent_dataptr == nullptr && !allow_null_identity) {
+    /* Nothing to identify the element by, so it could not be recognized over rebuilds. Matches the
+     * behavior of the `void *` #add_element(), which skips such elements entirely. */
+    return nullptr;
+  }
+
+  const short index = short(params.index);
+
+  TreeElement *te = MEM_new<TreeElement>(__func__);
+  /* add to the visual tree */
+  BLI_addtail(lb, te);
+  /* add to the storage */
+  check_persistent(&space_outliner_, te, persistent_dataptr, type, index);
+
+  /* if we are searching for something expand to see child elements */
+  if (SEARCHING_OUTLINER(&space_outliner_)) {
+    TREESTORE(te)->flag |= TSE_CHILDSEARCH;
+  }
+
+  te->parent = params.parent;
+  te->index = index; /* For data arrays. */
+
+  /* Note that this may fail, #TreeElementID::create_from_id() returns null for ID types the
+   * Outliner doesn't build elements for (e.g. deprecated ones). */
+  te->abstract_element = construct_fn(*te);
+  if (te->abstract_element == nullptr) {
+    return te;
+  }
+  /* Let the new element inherit the tree display that creates this current tree. */
+  te->abstract_element->display_ = this;
+
+  /* Element types are expected to have their name set at this point! */
+  BLI_assert(te->name != nullptr);
+
+  if (params.expand) {
+    tree_element_expand(*te->abstract_element, space_outliner_);
   }
 
   return te;

@@ -26,6 +26,12 @@
 
 #include <cstdint>
 #include <memory>
+#include <utility>
+
+#include "BLI_assert.hh"
+#include "BLI_function_ref.hh"
+
+#include "tree_element.hh"
 
 namespace blender {
 
@@ -58,6 +64,97 @@ struct TreeSourceData {
   {
   }
 };
+
+/* -------------------------------------------------------------------- */
+/* Tree-Element Creation */
+
+/**
+ * The non type specific parameters of #AbstractTreeDisplay::add_element(). Grouped into a struct
+ * so the type safe overload can take the element type's own construction data as a trailing
+ * parameter pack. All of them have a sensible default, so simple cases can just pass `{}`.
+ */
+struct TreeElementAddParams {
+  /** The sub-tree to add the new element to. If null, the sub-tree of #parent is used. */
+  ListBaseT<TreeElement> *lb = nullptr;
+  /**
+   * The parent of the new element. When adding through #AbstractTreeElement::add_element(), null
+   * means the element it's called on will be used as parent.
+   */
+  TreeElement *parent = nullptr;
+  /**
+   * Index for data arrays. Part of the tree-store identity of the element, to preserve state over
+   * rebuilds and file loads.
+   */
+  int64_t index = 0;
+  /**
+   * The ID owning the data this element represents, for element types that don't get it passed as
+   * construction data (e.g. #TreeElementAnimData, which is constructed from the #AnimData alone).
+   * Types that can derive it from their own construction data define a static `owner_id()`
+   * instead, and callers don't have to repeat it, see #AbstractTreeDisplay::add_element().
+   */
+  ID *owner_id = nullptr;
+  /**
+   * If true, the element may add its own sub-tree. E.g. objects will list their animation data,
+   * object data, constraints, modifiers, ... This often adds visual noise, and can be expensive to
+   * add in big scenes. So prefer setting this to false when not all too relevant.
+   */
+  bool expand = true;
+  /**
+   * The tree-store identity for element types that have no owner ID, and no construction data to
+   * derive one from (e.g. #TreeElementIDBase). Only needed if the element type does not define
+   * `owner_id()`, see #AbstractTreeDisplay::add_element().
+   *
+   * \note This is stored in #TreeStoreElem.id, which is an `ID *`. It does not have to point to an
+   *       actual ID (yikes!), it is only ever compared, never dereferenced. Of course identifying
+   *       the element over rebuilds won't work for volatile data (like stack variables) and
+   *       neither will it work over file loads for non-DNA data.
+   */
+  const void *persistent_ptr = nullptr;
+};
+
+namespace detail {
+
+/**
+ * Query the tree-store identity of \a ElementType from its static `owner_id()`, which mirrors the
+ * type's constructor signature (minus the #TreeElement). Types without an owner ID simply don't
+ * define it, and can use #TreeElementAddParams.persistent_ptr instead.
+ */
+template<typename ElementType, typename... Args> ID *element_owner_id(Args &...args)
+{
+  if constexpr (requires { ElementType::owner_id(args...); }) {
+    return ElementType::owner_id(args...);
+  }
+  else {
+    ((void)args, ...);
+    return nullptr;
+  }
+}
+
+/**
+ * Query the tree-store identity of \a ElementType from its static `persistent_ptr()`, for types
+ * that have no owner ID but can point at their own data to be identified by. Falls back to
+ * #TreeElementAddParams.persistent_ptr for types that only the caller can identify.
+ *
+ * Having no persistent data pointer can be valid, by defining #ElementType::allow_null_identity.
+ * But then state (like open/collapsed state) is not preserved over rebuilds and file loads, and
+ * there may be glitches because the wrong tree-store element gets reused.
+ */
+template<typename ElementType, typename... Args>
+const void *element_persistent_ptr(const TreeElementAddParams &params, Args &...args)
+{
+  if constexpr (requires { ElementType::persistent_ptr(args...); }) {
+    BLI_assert_msg(params.persistent_ptr == nullptr,
+                   "Element type nominates its own tree-store identity, passing one explicitly "
+                   "would have no effect");
+    return ElementType::persistent_ptr(args...);
+  }
+  else {
+    ((void)args, ...);
+    return params.persistent_ptr;
+  }
+}
+
+}  // namespace detail
 
 /* -------------------------------------------------------------------- */
 /* Tree-Display Interface */
@@ -126,10 +223,81 @@ class AbstractTreeDisplay {
                            short index,
                            const bool expand = true);
 
+  /**
+   * Add a tree element of \a ElementType, forwarding \a args to its constructor. The remaining
+   * information the tree needs is queried from \a ElementType itself:
+   * - `ElementType::element_type` gives the `TSE_` type to store in the tree-store.
+   * - `ElementType::owner_id(args...)` gives the ID identifying the element over rebuilds and file
+   *    loads, so that state like opened and selected is preserved.
+   * - `ElementType::persistent_ptr(args...)` gives that identity for types that have no owner ID
+   *   (see also #TreeElementAddParams.owner_id and #TreeElementAddParams.persistent_ptr, for the
+   *   types only the caller can identify).
+   *
+   * So a call only mentions the element type and its actual data:
+   * \code
+   * add_element<TreeElementConstraint>({.parent = tenla, .index = index}, object, con);
+   * \endcode
+   *
+   * \note If child items are only added to the tree if the item is open, the `TSE_` type _must_ be
+   *       added to #outliner_element_needs_rebuild_on_open_change().
+   */
+  template<typename ElementType, typename... Args>
+  TreeElement *add_element(const TreeElementAddParams &params, Args &&...args);
+
+  /**
+   * Add an element representing the ID \a id itself (`TSE_SOME_ID`). Unlike the types handled by
+   * #add_element() above, the concrete #TreeElementID sub-type to construct is only known at
+   * run-time, from the ID's type.
+   *
+   * \note Tolerates a null \a id, in which case no element is added and null is returned. Callers
+   *       commonly pass an optional ID pointer (e.g. an object's data).
+   */
+  TreeElement *add_id_element(const TreeElementAddParams &params, ID *id);
+
  protected:
+  /**
+   * The non-template part of #add_element(), so the tree building logic stays in one place and
+   * isn't instantiated per element type. #add_id_element() shares it.
+   */
+  TreeElement *add_element_impl(
+      const TreeElementAddParams &params,
+      short type,
+      ID *owner_id,
+      const void *persistent_ptr,
+      bool allow_null_identity,
+      FunctionRef<std::unique_ptr<AbstractTreeElement>(TreeElement &)> construct_fn);
+
   /** All derived classes will need a handle to this, so storing it in the base for convenience. */
   SpaceOutliner &space_outliner_;
 };
+
+template<typename ElementType, typename... Args>
+TreeElement *AbstractTreeDisplay::add_element(const TreeElementAddParams &params, Args &&...args)
+{
+  ID *owner_id = detail::element_owner_id<ElementType>(args...);
+  if (owner_id) {
+    BLI_assert_msg(params.owner_id == nullptr,
+                   "Element type derives its owner ID from its own construction data, passing one "
+                   "explicitly would have no effect");
+  }
+  else {
+    owner_id = params.owner_id;
+  }
+
+  /* Types that represent no data at all (e.g. #TreeElementLabel) have nothing to be identified by
+   * and opt out of the identity requirement. */
+  constexpr bool allow_null_identity = requires { ElementType::allow_null_identity; };
+
+  return add_element_impl(params,
+                          ElementType::element_type,
+                          owner_id,
+                          detail::element_persistent_ptr<ElementType>(params, args...),
+                          allow_null_identity,
+                          [&](TreeElement &legacy_te) -> std::unique_ptr<AbstractTreeElement> {
+                            return std::make_unique<ElementType>(legacy_te,
+                                                                 std::forward<Args>(args)...);
+                          });
+}
 
 /* -------------------------------------------------------------------- */
 /* View Layer Tree-Display */
@@ -279,6 +447,21 @@ class TreeDisplayDataAPI final : public AbstractTreeDisplay {
 
   bool is_lazy_built() const override;
 };
+
+/* -------------------------------------------------------------------- */
+/* Tree-Element Creation (needs the complete #AbstractTreeDisplay above) */
+
+template<typename ElementType, typename... Args>
+TreeElement *AbstractTreeElement::add_element(const TreeElementAddParams &params,
+                                              Args &&...args) const
+{
+  TreeElementAddParams resolved_params = params;
+  AbstractTreeDisplay *display = display_for_adding(resolved_params);
+  if (!display) {
+    return nullptr;
+  }
+  return display->add_element<ElementType>(resolved_params, std::forward<Args>(args)...);
+}
 
 }  // namespace ed::outliner
 }  // namespace blender
