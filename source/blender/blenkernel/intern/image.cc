@@ -3214,13 +3214,13 @@ void BKE_image_walk_all_users(
     image_walk_id_all_users(&ma->id, false, customdata, callback);
   }
 
-  for (Light *light = static_cast<Light *>(mainp->materials.first); light;
+  for (Light *light = static_cast<Light *>(mainp->lights.first); light;
        light = static_cast<Light *>(light->id.next))
   {
     image_walk_id_all_users(&light->id, false, customdata, callback);
   }
 
-  for (World *world = static_cast<World *>(mainp->materials.first); world;
+  for (World *world = static_cast<World *>(mainp->worlds.first); world;
        world = static_cast<World *>(world->id.next))
   {
     image_walk_id_all_users(&world->id, false, customdata, callback);
