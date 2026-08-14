@@ -227,7 +227,9 @@ class VertBuf {
    * \brief Copy from part of source vertex buffer into the vertex buffer.
    *
    * \note: format of the vertex buffers should be identical.
-   * \note: asserts when the copy range exceeds the bounds of either vertex buffer.
+   * \note: asserts when the copy range exceeds the used vertex range of either vertex buffer.
+   *        Only that range is guaranteed to exist in the device buffer, the remainder of the
+   *        allocated space is not uploaded by all backends.
    * \note: both vertex buffers must be uploaded to the GPU with GPU_vertbuf_use before calling.
    *
    * \param source_buf: source vertex buffer to copy data from.
