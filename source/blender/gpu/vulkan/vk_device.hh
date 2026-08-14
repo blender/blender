@@ -106,6 +106,12 @@ struct VKExtensions {
    */
   bool host_image_copy = false;
 
+  /**
+   * Does the device support VkPhysicalDeviceFeatures::multiDrawIndirect.
+   * When false, multi_draw_indirect is emulated with individual draw calls.
+   */
+  bool multi_draw_indirect = false;
+
   /** Log enabled features and extensions. */
   void log() const;
 };

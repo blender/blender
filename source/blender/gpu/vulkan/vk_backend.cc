@@ -180,9 +180,6 @@ static Vector<StringRefNull> missing_capabilities_get(VkPhysicalDevice vk_physic
   if (features.features.imageCubeArray == VK_FALSE) {
     missing_capabilities.append("image cube array");
   }
-  if (features.features.multiDrawIndirect == VK_FALSE) {
-    missing_capabilities.append("multi draw indirect");
-  }
   if (features.features.drawIndirectFirstInstance == VK_FALSE) {
     missing_capabilities.append("draw indirect first instance");
   }
@@ -537,6 +534,7 @@ void VKBackend::detect_workarounds(VKDevice &device)
     extensions.wide_lines = false;
     extensions.line_rasterization = false;
     extensions.extended_dynamic_state = false;
+    extensions.multi_draw_indirect = false;
     GCaps.ray_query_support = false;
     GCaps.stencil_export_support = false;
     GCaps.texture_pool_workaround = true;
@@ -574,6 +572,8 @@ void VKBackend::detect_workarounds(VKDevice &device)
       VK_EXT_EXTENDED_DYNAMIC_STATE_EXTENSION_NAME);
   extensions.vertex_input_dynamic_state = device.supports_extension(
       VK_EXT_VERTEX_INPUT_DYNAMIC_STATE_EXTENSION_NAME);
+  extensions.multi_draw_indirect = device.physical_device_features_get().multiDrawIndirect ==
+                                   VK_TRUE;
 #if 0
   extensions.host_image_copy = device.supports_extension(VK_EXT_HOST_IMAGE_COPY_EXTENSION_NAME);
 #endif

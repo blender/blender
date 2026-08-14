@@ -41,6 +41,7 @@ void VKExtensions::log() const
              " - [%c] shader output layer\n"
              " - [%c] fragment shader barycentric\n"
              " - [%c] wide lines\n"
+             " - [%c] multi draw indirect\n"
              "Device extensions\n"
              " - [%c] dynamic rendering local read\n"
              " - [%c] dynamic rendering unused attachments\n"
@@ -59,6 +60,7 @@ void VKExtensions::log() const
              shader_output_layer ? 'X' : ' ',
              fragment_shader_barycentric ? 'X' : ' ',
              wide_lines ? 'X' : ' ',
+             multi_draw_indirect ? 'X' : ' ',
              dynamic_rendering_local_read ? 'X' : ' ',
              dynamic_rendering_unused_attachments ? 'X' : ' ',
              extended_dynamic_state ? 'X' : ' ',
