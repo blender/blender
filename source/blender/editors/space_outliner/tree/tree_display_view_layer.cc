@@ -29,7 +29,7 @@ class ObjectsChildrenBuilder {
   using TreeChildren = Vector<TreeElement *>;
   using ObjectTreeElementsMap = Map<Object *, TreeChildren>;
 
-  SpaceOutliner &outliner_;
+  AbstractTreeDisplay &tree_display_;
   ObjectTreeElementsMap object_tree_elements_map_;
   /**
    * Stores objects such that parents are before children.
@@ -41,7 +41,7 @@ class ObjectsChildrenBuilder {
   Set<Object *> objects_in_ordered_objects_;
 
  public:
-  ObjectsChildrenBuilder(SpaceOutliner &space_outliner);
+  ObjectsChildrenBuilder(AbstractTreeDisplay &tree_display);
   ~ObjectsChildrenBuilder() = default;
 
   void operator()(TreeElement &collection_tree_elem);
@@ -125,8 +125,8 @@ void TreeDisplayViewLayer::add_view_layer(Scene &scene,
   }
   else {
     /* Show collections in the view layer. */
-    TreeElement &ten = *AbstractTreeDisplay::add_element(
-        &space_outliner_, &tree, &scene.id, nullptr, parent, TSE_VIEW_COLLECTION_BASE, 0);
+    TreeElement &ten = *add_element(
+        &tree, &scene.id, nullptr, parent, TSE_VIEW_COLLECTION_BASE, 0);
     TREESTORE(&ten)->flag &= ~TSE_CLOSED;
 
     /* First layer collection is for master collection, don't show it. */
@@ -191,7 +191,7 @@ void TreeDisplayViewLayer::add_layer_collection_objects(ListBaseT<TreeElement> &
 void TreeDisplayViewLayer::add_layer_collection_objects_children(TreeElement &collection_tree_elem)
 {
   /* Call helper to add children. */
-  ObjectsChildrenBuilder child_builder{space_outliner_};
+  ObjectsChildrenBuilder child_builder{*this};
   child_builder(collection_tree_elem);
 }
 
@@ -205,8 +205,8 @@ void TreeDisplayViewLayer::add_layer_collection_objects_children(TreeElement &co
  *
  * \{ */
 
-ObjectsChildrenBuilder::ObjectsChildrenBuilder(SpaceOutliner &space_outliner)
-    : outliner_(space_outliner)
+ObjectsChildrenBuilder::ObjectsChildrenBuilder(AbstractTreeDisplay &tree_display)
+    : tree_display_(tree_display)
 {
 }
 
@@ -289,8 +289,7 @@ void ObjectsChildrenBuilder::make_object_parent_hierarchy_collections()
       if (!found) {
         /* We add the child in the tree even if it is not in the collection.
          * We don't expand its sub-tree though, to make it less prominent. */
-        TreeElement *child_ob_tree_element = AbstractTreeDisplay::add_element(
-            &outliner_,
+        TreeElement *child_ob_tree_element = tree_display_.add_element(
             &parent_ob_tree_element->subtree,
             reinterpret_cast<ID *>(ob),
             nullptr,

@@ -23,7 +23,7 @@ void TreeElementIDCollection::expand(SpaceOutliner &space_outliner) const
 {
   /* Don't expand for instances, creates too many elements. */
   if (!(legacy_te_.parent && legacy_te_.parent->idcode == ID_OB)) {
-    outliner_add_collection_recursive(&space_outliner, &collection_, &legacy_te_);
+    outliner_add_collection_recursive(*display_, &space_outliner, &collection_, &legacy_te_);
   }
 }
 

@@ -26,7 +26,7 @@ class TreeElementIDArmature final : public TreeElementID {
 
  private:
   void expand_edit_bones() const;
-  void expand_bones(SpaceOutliner &) const;
+  void expand_bones() const;
 };
 
 }  // namespace ed::outliner

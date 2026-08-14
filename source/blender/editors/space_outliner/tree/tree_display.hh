@@ -75,18 +75,6 @@ class AbstractTreeDisplay {
   static std::unique_ptr<AbstractTreeDisplay> create_from_display_mode(
       int /*eSpaceOutliner_Mode*/ mode, SpaceOutliner &space_outliner);
 
-  /** Static version of the function below, which can be called by helper functions/classes that
-   * have access to the #SpaceOutliner instance but not the tree-display directly. Should be
-   * avoided and instead use the tree-display. */
-  static TreeElement *add_element(SpaceOutliner *space_outliner,
-                                  ListBaseT<TreeElement> *lb,
-                                  ID *owner_id,
-                                  void *create_data,
-                                  TreeElement *parent,
-                                  short type,
-                                  short index,
-                                  const bool expand = true);
-
   /**
    * Build a tree for this display mode with the Blender context data given in \a source_data and
    * the view settings in \a space_outliner.

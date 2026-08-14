@@ -28,7 +28,7 @@ TreeElementIDArmature::TreeElementIDArmature(TreeElement &legacy_te, bArmature &
 {
 }
 
-void TreeElementIDArmature::expand(SpaceOutliner &space_outliner) const
+void TreeElementIDArmature::expand(SpaceOutliner & /*space_outliner*/) const
 {
   expand_animation_data(arm_.adt);
 
@@ -44,7 +44,7 @@ void TreeElementIDArmature::expand(SpaceOutliner &space_outliner) const
       /* pass */
     }
     else {
-      expand_bones(space_outliner);
+      expand_bones();
     }
   }
 
@@ -79,28 +79,27 @@ void TreeElementIDArmature::expand_edit_bones() const
 }
 
 /* special handling of hierarchical non-lib data */
-static void outliner_add_bone(SpaceOutliner *space_outliner,
+static void outliner_add_bone(AbstractTreeDisplay &tree_display,
                               ListBaseT<TreeElement> *lb,
                               ID *id,
                               Bone *curBone,
                               TreeElement *parent,
                               int *a)
 {
-  TreeElement *te = AbstractTreeDisplay::add_element(
-      space_outliner, lb, id, curBone, parent, TSE_BONE, *a);
+  TreeElement *te = tree_display.add_element(lb, id, curBone, parent, TSE_BONE, *a);
 
   (*a)++;
 
   for (Bone &child_bone : curBone->childbase) {
-    outliner_add_bone(space_outliner, &te->subtree, id, &child_bone, te, a);
+    outliner_add_bone(tree_display, &te->subtree, id, &child_bone, te, a);
   }
 }
 
-void TreeElementIDArmature::expand_bones(SpaceOutliner &space_outliner) const
+void TreeElementIDArmature::expand_bones() const
 {
   int a = 0;
   for (Bone &bone : arm_.bonebase) {
-    outliner_add_bone(&space_outliner, &legacy_te_.subtree, &arm_.id, &bone, &legacy_te_, &a);
+    outliner_add_bone(*display_, &legacy_te_.subtree, &arm_.id, &bone, &legacy_te_, &a);
   }
 }
 

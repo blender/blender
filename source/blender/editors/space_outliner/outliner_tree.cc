@@ -182,24 +182,6 @@ bool outliner_requires_rebuild_on_select_or_active_change(const SpaceOutliner *s
   return exclude_flags & (SO_FILTER_OB_STATE_SELECTED | SO_FILTER_OB_STATE_ACTIVE);
 }
 
-TreeElement *AbstractTreeDisplay::add_element(SpaceOutliner *space_outliner,
-                                              ListBaseT<TreeElement> *lb,
-                                              ID *owner_id,
-                                              void *create_data,
-                                              TreeElement *parent,
-                                              short type,
-                                              short index,
-                                              const bool expand)
-{
-  if (!space_outliner->runtime || !space_outliner->runtime->tree_display) {
-    BLI_assert_unreachable();
-    return nullptr;
-  }
-
-  return space_outliner->runtime->tree_display->add_element(
-      lb, owner_id, create_data, parent, type, index, expand);
-}
-
 TreeElement *AbstractTreeDisplay::add_element(ListBaseT<TreeElement> *lb,
                                               ID *owner_id,
                                               void *create_data,
@@ -362,30 +344,30 @@ BLI_INLINE void outliner_add_collection_init(TreeElement *te, Collection *collec
   te->directdata = collection;
 }
 
-BLI_INLINE void outliner_add_collection_objects(SpaceOutliner *space_outliner,
+BLI_INLINE void outliner_add_collection_objects(AbstractTreeDisplay &tree_display,
                                                 ListBaseT<TreeElement> *tree,
                                                 Collection *collection,
                                                 TreeElement *parent)
 {
   for (CollectionObject &cob : collection->gobject) {
-    AbstractTreeDisplay::add_element(
-        space_outliner, tree, reinterpret_cast<ID *>(cob.ob), nullptr, parent, TSE_SOME_ID, 0);
+    tree_display.add_element(
+        tree, reinterpret_cast<ID *>(cob.ob), nullptr, parent, TSE_SOME_ID, 0);
   }
 }
 
-TreeElement *outliner_add_collection_recursive(SpaceOutliner *space_outliner,
+TreeElement *outliner_add_collection_recursive(AbstractTreeDisplay &tree_display,
+                                               SpaceOutliner *space_outliner,
                                                Collection *collection,
                                                TreeElement *ten)
 {
   outliner_add_collection_init(ten, collection);
 
   for (CollectionChild &child : collection->children) {
-    AbstractTreeDisplay::add_element(
-        space_outliner, &ten->subtree, &child.collection->id, nullptr, ten, TSE_SOME_ID, 0);
+    tree_display.add_element(&ten->subtree, &child.collection->id, nullptr, ten, TSE_SOME_ID, 0);
   }
 
   if (space_outliner->outlinevis != SO_SCENES) {
-    outliner_add_collection_objects(space_outliner, &ten->subtree, collection, ten);
+    outliner_add_collection_objects(tree_display, &ten->subtree, collection, ten);
   }
 
   return ten;
