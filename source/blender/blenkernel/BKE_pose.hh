@@ -18,10 +18,26 @@
 namespace blender {
 struct bArmature;
 struct Bone;
+struct GHash;
 struct bPoseChannel;
 }  // namespace blender
 
 namespace blender::bke {
+
+/** Non-serialized runtime data for #bPose, always valid for code handling a #bPose. */
+struct bPoseRuntime {
+  /** Hash-table for quicker string lookups, keyed by #bPoseChannel::name. */
+  GHash *chanhash = nullptr;
+
+  /**
+   * Flat array of pose channels. It references pointers from #bPose::chanbase.
+   * Used for quick pose channel lookup from an index.
+   */
+  bPoseChannel **chan_array = nullptr;
+
+  /** Temporary IK data, depends on the IK solver. Not saved in file. */
+  void *ikdata = nullptr;
+};
 
 /**
  * Pairing of a pose channel with its corresponding armature bone.

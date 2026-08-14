@@ -893,9 +893,9 @@ bPoseChannel *BKE_pose_channel_find_name(const bPose *pose, const char *name)
     return nullptr;
   }
 
-  if (pose->chanhash) {
+  if (pose->runtime->chanhash) {
     return static_cast<bPoseChannel *>(
-        BLI_ghash_lookup(pose->chanhash, static_cast<const void *>(name)));
+        BLI_ghash_lookup(pose->runtime->chanhash, static_cast<const void *>(name)));
   }
 
   return static_cast<bPoseChannel *>(
@@ -948,8 +948,8 @@ bPoseChannel *BKE_pose_channel_ensure(bPose *pose, const char *name)
   chan->protectflag = OB_LOCK_ROT4D; /* lock by components by default */
 
   BLI_addtail(&pose->chanbase, chan);
-  if (pose->chanhash) {
-    BLI_ghash_insert(pose->chanhash, chan->name, chan);
+  if (pose->runtime->chanhash) {
+    BLI_ghash_insert(pose->runtime->chanhash, chan->name, chan);
   }
 
   return chan;
@@ -958,10 +958,10 @@ bPoseChannel *BKE_pose_channel_ensure(bPose *pose, const char *name)
 #ifndef NDEBUG
 bool BKE_pose_channels_is_valid(const bPose *pose)
 {
-  if (pose->chanhash) {
+  if (pose->runtime->chanhash) {
     bPoseChannel *pchan;
     for (pchan = static_cast<bPoseChannel *>(pose->chanbase.first); pchan; pchan = pchan->next) {
-      if (BLI_ghash_lookup(pose->chanhash, pchan->name) != pchan) {
+      if (BLI_ghash_lookup(pose->runtime->chanhash, pchan->name) != pchan) {
         return false;
       }
     }
@@ -1070,6 +1070,7 @@ void BKE_pose_copy_data_ex(bPose **dst,
   }
 
   outPose = MEM_new<bPose>("pose");
+  outPose->runtime = MEM_new<bke::bPoseRuntime>(__func__);
 
   BLI_duplicatelist(&outPose->chanbase, &src->chanbase);
 
@@ -1078,12 +1079,10 @@ void BKE_pose_copy_data_ex(bPose **dst,
    * if BKE_pose_rebuild() gets called after this...
    */
   if (outPose->chanbase.first != outPose->chanbase.last) {
-    outPose->chanhash = nullptr;
     BKE_pose_channels_hash_ensure(outPose);
   }
 
   outPose->iksolver = src->iksolver;
-  outPose->ikdata = nullptr;
   if (src->ikparam) {
     outPose->ikparam = MEM_new<bItasc>(__func__, *src->ikparam);
   }
@@ -1242,19 +1241,19 @@ void BKE_pose_channel_transform_location(const bArmature *arm,
 
 void BKE_pose_channels_hash_ensure(bPose *pose)
 {
-  if (!pose->chanhash) {
-    pose->chanhash = BLI_ghash_str_new("make_pose_chan gh");
+  if (!pose->runtime->chanhash) {
+    pose->runtime->chanhash = BLI_ghash_str_new("make_pose_chan gh");
     for (bPoseChannel &pchan : pose->chanbase) {
-      BLI_ghash_insert(pose->chanhash, pchan.name, &pchan);
+      BLI_ghash_insert(pose->runtime->chanhash, pchan.name, &pchan);
     }
   }
 }
 
 void BKE_pose_channels_hash_free(bPose *pose)
 {
-  if (pose->chanhash) {
-    BLI_ghash_free(pose->chanhash, nullptr, nullptr);
-    pose->chanhash = nullptr;
+  if (pose->runtime->chanhash) {
+    BLI_ghash_free(pose->runtime->chanhash, nullptr, nullptr);
+    pose->runtime->chanhash = nullptr;
   }
 }
 
@@ -1289,8 +1288,8 @@ void BKE_pose_channels_remove(Object *ob,
         /* Bone itself is being removed */
         BKE_pose_channel_free(pchan);
         pose_channels_remove_internal_links(ob, pchan);
-        if (ob->pose->chanhash) {
-          BLI_ghash_remove(ob->pose->chanhash, pchan->name, nullptr, nullptr);
+        if (ob->pose->runtime->chanhash) {
+          BLI_ghash_remove(ob->pose->runtime->chanhash, pchan->name, nullptr, nullptr);
         }
         BLI_freelinkN(&ob->pose->chanbase, pchan);
       }
@@ -1411,7 +1410,7 @@ void BKE_pose_channels_free_ex(bPose *pose, bool do_id_user)
 
   BKE_pose_channels_hash_free(pose);
 
-  MEM_SAFE_DELETE(pose->chan_array);
+  MEM_SAFE_DELETE(pose->runtime->chan_array);
 }
 
 void BKE_pose_channels_free(bPose *pose)
@@ -1436,6 +1435,9 @@ void BKE_pose_free_data_ex(bPose *pose, bool do_id_user)
   if (pose->ikparam) {
     MEM_delete(pose->ikparam);
   }
+
+  MEM_delete(pose->runtime);
+  pose->runtime = nullptr;
 }
 
 void BKE_pose_free_data(bPose *pose)
@@ -1923,7 +1925,9 @@ void BKE_pose_blend_write(BlendWriter *writer, bPose *pose)
   }
 
   /* Write this pose */
-  writer->write_struct(pose);
+  writer->write_struct(pose, [](BlendStructWriter &struct_writer) {
+    struct_writer.runtime_ptr(offsetof(bPose, runtime));
+  });
 }
 
 void BKE_pose_blend_read_data(BlendDataReader *reader, ID *id_owner, bPose *pose)
@@ -1935,8 +1939,7 @@ void BKE_pose_blend_read_data(BlendDataReader *reader, ID *id_owner, bPose *pose
   BLO_read_struct_list(reader, bPoseChannel, &pose->chanbase);
   BLO_read_struct_list(reader, bActionGroup, &pose->agroups);
 
-  pose->chanhash = nullptr;
-  pose->chan_array = nullptr;
+  pose->runtime = MEM_new<bke::bPoseRuntime>(__func__);
 
   for (bPoseChannel &pchan : pose->chanbase) {
     BKE_pose_channel_runtime_reset(&pchan.runtime);
@@ -1969,7 +1972,6 @@ void BKE_pose_blend_read_data(BlendDataReader *reader, ID *id_owner, bPose *pose
 
     pchan.draw_data = nullptr;
   }
-  pose->ikdata = nullptr;
   if (pose->ikparam != nullptr) {
     const char *structname = BKE_pose_ikparam_get_name(pose);
     if (structname) {

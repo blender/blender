@@ -63,7 +63,7 @@ static bItasc DefIKParam;
 #define ANIM_FEEDBACK 0.8
 // #define ANIM_QMAX       0.52
 
-/* Structure pointed by bPose.ikdata
+/* Structure pointed by bPose.runtime->ikdata
  * It contains everything needed to simulate the armatures
  * There can be several simulation islands independent to each other */
 struct IK_Data {
@@ -423,17 +423,17 @@ static int initialize_scene(Object *ob, bPoseChannel *pchan_tip)
 
 static IK_Data *get_ikdata(bPose *pose)
 {
-  if (pose->ikdata) {
-    return static_cast<IK_Data *>(pose->ikdata);
+  if (pose->runtime->ikdata) {
+    return static_cast<IK_Data *>(pose->runtime->ikdata);
   }
-  pose->ikdata = MEM_new_zeroed<IK_Data>("iTaSC ikdata");
+  pose->runtime->ikdata = MEM_new_zeroed<IK_Data>("iTaSC ikdata");
   /* here init ikdata if needed
    * now that we have scene, make sure the default param are initialized */
   if (!DefIKParam.iksolver) {
     BKE_pose_itasc_init(&DefIKParam);
   }
 
-  return static_cast<IK_Data *>(pose->ikdata);
+  return static_cast<IK_Data *>(pose->runtime->ikdata);
 }
 static double EulerAngleFromMatrix(const KDL::Rotation &R, int axis)
 {
@@ -1700,8 +1700,8 @@ static int init_scene(Object *ob)
   float scale = len_v3(ob->object_to_world().ptr()[1]);
   IK_Scene *scene;
 
-  if (ob->pose->ikdata) {
-    for (scene = (static_cast<IK_Data *>(ob->pose->ikdata))->first; scene != nullptr;
+  if (ob->pose->runtime->ikdata) {
+    for (scene = (static_cast<IK_Data *>(ob->pose->runtime->ikdata))->first; scene != nullptr;
          scene = scene->next)
     {
       if (fabs(scene->blScale - scale) > KDL::epsilon) {
@@ -1900,7 +1900,7 @@ void itasc_initialize_tree(Depsgraph *depsgraph, Scene *scene, Object *ob, float
 {
   int count = 0;
 
-  if (ob->pose->ikdata != nullptr && !(ob->pose->flag & POSE_WAS_REBUILT)) {
+  if (ob->pose->runtime->ikdata != nullptr && !(ob->pose->flag & POSE_WAS_REBUILT)) {
     if (!init_scene(ob)) {
       return;
     }
@@ -1927,8 +1927,8 @@ void itasc_initialize_tree(Depsgraph *depsgraph, Scene *scene, Object *ob, float
 void itasc_execute_tree(
     Depsgraph *depsgraph, Scene *scene, Object *ob, bPoseChannel *pchan_root, float ctime)
 {
-  if (ob->pose->ikdata) {
-    IK_Data *ikdata = static_cast<IK_Data *>(ob->pose->ikdata);
+  if (ob->pose->runtime->ikdata) {
+    IK_Data *ikdata = static_cast<IK_Data *>(ob->pose->runtime->ikdata);
     bItasc *ikparam = static_cast<bItasc *>(ob->pose->ikparam);
     /* we need default parameters */
     if (!ikparam) {
@@ -1952,21 +1952,21 @@ void itasc_release_tree(Scene * /*scene*/, Object * /*ob*/, float /*ctime*/)
 
 void itasc_clear_data(bPose *pose)
 {
-  if (pose->ikdata) {
-    IK_Data *ikdata = static_cast<IK_Data *>(pose->ikdata);
+  if (pose->runtime->ikdata) {
+    IK_Data *ikdata = static_cast<IK_Data *>(pose->runtime->ikdata);
     for (IK_Scene *scene = ikdata->first; scene; scene = ikdata->first) {
       ikdata->first = scene->next;
       delete scene;
     }
     MEM_delete(ikdata);
-    pose->ikdata = nullptr;
+    pose->runtime->ikdata = nullptr;
   }
 }
 
 void itasc_clear_cache(bPose *pose)
 {
-  if (pose->ikdata) {
-    IK_Data *ikdata = static_cast<IK_Data *>(pose->ikdata);
+  if (pose->runtime->ikdata) {
+    IK_Data *ikdata = static_cast<IK_Data *>(pose->runtime->ikdata);
     for (IK_Scene *scene = ikdata->first; scene; scene = scene->next) {
       if (scene->cache) {
         /* clear all cache but leaving the timestamp 0 (=rest pose) */
@@ -1978,8 +1978,8 @@ void itasc_clear_cache(bPose *pose)
 
 void itasc_update_param(bPose *pose)
 {
-  if (pose->ikdata && pose->ikparam) {
-    IK_Data *ikdata = static_cast<IK_Data *>(pose->ikdata);
+  if (pose->runtime->ikdata && pose->ikparam) {
+    IK_Data *ikdata = static_cast<IK_Data *>(pose->runtime->ikdata);
     bItasc *ikparam = static_cast<bItasc *>(pose->ikparam);
     for (IK_Scene *ikscene = ikdata->first; ikscene; ikscene = ikscene->next) {
       double armlength = ikscene->armature->getArmLength();

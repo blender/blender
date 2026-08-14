@@ -231,7 +231,7 @@ void ED_armature_bone_rename(Main *bmain,
       if (ob->pose) {
         bPoseChannel *pchan = BKE_pose_channel_find_name(ob->pose, oldname);
         if (pchan) {
-          GHash *gh = ob->pose->chanhash;
+          GHash *gh = ob->pose->runtime->chanhash;
           if (gh) {
             BLI_assert(BLI_ghash_haskey(gh, pchan->name));
             BLI_ghash_remove(gh, pchan->name, nullptr, nullptr);
