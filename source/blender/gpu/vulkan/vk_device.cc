@@ -55,7 +55,8 @@ void VKExtensions::log() const
              " - [%c] pageable device local memory\n"
              " - [%c] shader stencil export\n"
              " - [%c] ray queries\n"
-             " - [%c] vertex input dynamic state",
+             " - [%c] vertex input dynamic state\n"
+             " - [%c] vertex pipeline stores and atomics",
              shader_output_viewport_index ? 'X' : ' ',
              shader_output_layer ? 'X' : ' ',
              fragment_shader_barycentric ? 'X' : ' ',
@@ -73,7 +74,8 @@ void VKExtensions::log() const
              pageable_device_local_memory ? 'X' : ' ',
              GPU_stencil_export_support() ? 'X' : ' ',
              GPU_ray_query_support() ? 'X' : ' ',
-             vertex_input_dynamic_state ? 'X' : ' ');
+             vertex_input_dynamic_state ? 'X' : ' ',
+             GPU_vertex_pipeline_stores_and_atomics_support() ? 'X' : ' ');
 }
 
 void VKWorkarounds::log() const

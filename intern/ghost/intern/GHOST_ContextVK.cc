@@ -431,7 +431,6 @@ struct GHOST_InstanceVK {
 #ifndef __APPLE__
           !device_vk.features.features.geometryShader ||
 #endif
-          !device_vk.features.features.vertexPipelineStoresAndAtomics ||
           !device_vk.features.features.multiViewport ||
           !device_vk.features.features.shaderClipDistance ||
           !device_vk.features.features.fragmentStoresAndAtomics ||
@@ -605,7 +604,8 @@ struct GHOST_InstanceVK {
 #ifndef __APPLE__
     device_features.geometryShader = VK_TRUE;
 #endif
-    device_features.vertexPipelineStoresAndAtomics = VK_TRUE;
+    device_features.vertexPipelineStoresAndAtomics =
+        device.features.features.vertexPipelineStoresAndAtomics;
     device_features.multiViewport = VK_TRUE;
     device_features.shaderClipDistance = VK_TRUE;
     device_features.fragmentStoresAndAtomics = VK_TRUE;
