@@ -3343,7 +3343,6 @@ static const EnumPropertyItem *rna_Node_image_layer_itemf(bContext * /*C*/,
   bNode *node = ptr->data_as<bNode>();
   Image *ima = reinterpret_cast<Image *>(node->id);
   const EnumPropertyItem *item = nullptr;
-  RenderLayer *rl;
 
   if (node->type_legacy == CMP_NODE_CRYPTOMATTE &&
       node->custom1 != CMP_NODE_CRYPTOMATTE_SOURCE_IMAGE)
