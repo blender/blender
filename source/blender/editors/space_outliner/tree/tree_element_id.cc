@@ -29,6 +29,8 @@
 #include "tree_element_id_texture.hh"
 #include "tree_element_shapekey.hh"
 
+#include "tree_display.hh"
+#include "tree_element_anim_data.hh"
 #include "tree_element_id.hh"
 
 namespace blender::ed::outliner {
@@ -133,7 +135,7 @@ void TreeElementID::expand(SpaceOutliner & /*space_outliner*/) const
 void TreeElementID::expand_animation_data(AnimData *anim_data) const
 {
   if (outliner_animdata_test(anim_data)) {
-    add_element(&legacy_te_.subtree, &id_, anim_data, &legacy_te_, TSE_ANIM_DATA, 0);
+    add_element<TreeElementAnimData>({.owner_id = &id_}, *anim_data);
   }
 }
 

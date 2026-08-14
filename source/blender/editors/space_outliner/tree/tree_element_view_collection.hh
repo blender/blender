@@ -8,6 +8,8 @@
 
 #pragma once
 
+#include "DNA_outliner_types.h"
+
 #include "tree_element.hh"
 
 namespace blender {
@@ -21,7 +23,13 @@ class TreeElementViewCollectionBase final : public AbstractTreeElement {
   // Scene &scene_;
 
  public:
+  static constexpr eTreeStoreElemType element_type = TSE_VIEW_COLLECTION_BASE;
+
   TreeElementViewCollectionBase(TreeElement &legacy_te, Scene &scene);
+
+  /** The ID identifying this element in the tree-store, see #AbstractTreeDisplay::add_element().
+   */
+  static ID *owner_id(Scene &scene);
 };
 
 }  // namespace ed::outliner

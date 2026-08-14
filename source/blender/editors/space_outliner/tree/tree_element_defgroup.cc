@@ -17,6 +17,7 @@
 
 #include "../outliner_intern.hh"
 
+#include "tree_display.hh"
 #include "tree_element_defgroup.hh"
 
 namespace blender::ed::outliner {
@@ -28,17 +29,18 @@ TreeElementDeformGroupBase::TreeElementDeformGroupBase(TreeElement &legacy_te, O
   legacy_te.name = IFACE_("Vertex Groups");
 }
 
+ID *TreeElementDeformGroupBase::owner_id(Object &object)
+{
+  return &object.id;
+}
+
 void TreeElementDeformGroupBase::expand(SpaceOutliner & /*space_outliner*/) const
 {
   const ListBaseT<bDeformGroup> *defbase = BKE_object_defgroup_list(&object_);
 
   for (auto [index, defgroup] : (defbase)->enumerate()) {
-    add_element(&legacy_te_.subtree,
-                &object_.id,
-                const_cast<bDeformGroup *>(&defgroup),
-                &legacy_te_,
-                TSE_DEFGROUP,
-                index);
+    add_element<TreeElementDeformGroup>(
+        {.index = index}, object_, const_cast<bDeformGroup &>(defgroup));
   }
 }
 
@@ -50,6 +52,11 @@ TreeElementDeformGroup::TreeElementDeformGroup(TreeElement &legacy_te,
   BLI_assert(legacy_te.store_elem->type == TSE_DEFGROUP);
   legacy_te.name = defgroup_.name;
   legacy_te.directdata = &defgroup_;
+}
+
+ID *TreeElementDeformGroup::owner_id(Object &object, bDeformGroup & /*defgroup*/)
+{
+  return &object.id;
 }
 
 }  // namespace blender::ed::outliner

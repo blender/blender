@@ -432,8 +432,7 @@ BLI_INLINE void outliner_add_collection_objects(AbstractTreeDisplay &tree_displa
                                                 TreeElement *parent)
 {
   for (CollectionObject &cob : collection->gobject) {
-    tree_display.add_element(
-        tree, reinterpret_cast<ID *>(cob.ob), nullptr, parent, TSE_SOME_ID, 0);
+    tree_display.add_id_element({.lb = tree, .parent = parent}, reinterpret_cast<ID *>(cob.ob));
   }
 }
 
@@ -445,7 +444,7 @@ TreeElement *outliner_add_collection_recursive(AbstractTreeDisplay &tree_display
   outliner_add_collection_init(ten, collection);
 
   for (CollectionChild &child : collection->children) {
-    tree_display.add_element(&ten->subtree, &child.collection->id, nullptr, ten, TSE_SOME_ID, 0);
+    tree_display.add_id_element({.lb = &ten->subtree, .parent = ten}, &child.collection->id);
   }
 
   if (space_outliner->outlinevis != SO_SCENES) {

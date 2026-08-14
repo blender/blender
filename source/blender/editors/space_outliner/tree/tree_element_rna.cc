@@ -20,6 +20,7 @@
 
 #include "../outliner_intern.hh"
 
+#include "tree_display.hh"
 #include "tree_element_rna.hh"
 
 namespace blender::ed::outliner {
@@ -49,6 +50,27 @@ bool TreeElementRNACommon::is_rna_valid() const
 bool TreeElementRNACommon::expand_poll(const SpaceOutliner & /*space_outliner*/) const
 {
   return is_rna_valid();
+}
+
+ID *TreeElementRNACommon::owner_id(PointerRNA &rna_ptr)
+{
+  return rna_ptr.owner_id;
+}
+
+ID *TreeElementRNACommon::owner_id(PointerRNA &rna_ptr, int /*index*/)
+{
+  return owner_id(rna_ptr);
+}
+
+const void *TreeElementRNACommon::persistent_ptr(PointerRNA &rna_ptr)
+{
+  /* Not owned by an ID (e.g. a run-time only pointer), identify it by the data it points at. */
+  return rna_ptr.data;
+}
+
+const void *TreeElementRNACommon::persistent_ptr(PointerRNA &rna_ptr, int /*index*/)
+{
+  return persistent_ptr(rna_ptr);
 }
 
 const PointerRNA &TreeElementRNACommon::get_pointer_rna() const
@@ -112,7 +134,7 @@ void TreeElementRNAStruct::expand(SpaceOutliner &space_outliner) const
       PointerRNA propptr;
       RNA_property_collection_lookup_int(&ptr, iterprop, index, &propptr);
       if (!(RNA_property_flag(static_cast<PropertyRNA *>(propptr.data)) & PROP_HIDDEN)) {
-        add_element(&legacy_te_.subtree, ptr.owner_id, &ptr, &legacy_te_, TSE_RNA_PROPERTY, index);
+        add_element<TreeElementRNAProperty>({.index = index}, ptr, index);
       }
     }
   }
@@ -176,7 +198,7 @@ void TreeElementRNAProperty::expand(SpaceOutliner &space_outliner) const
 
     if (pptr) {
       if (TSELEM_OPEN(&tselem, &space_outliner)) {
-        add_element(&legacy_te_.subtree, pptr.owner_id, &pptr, &legacy_te_, TSE_RNA_STRUCT, -1);
+        add_element<TreeElementRNAStruct>({.index = -1}, pptr);
       }
       else {
         legacy_te_.flag |= TE_PRETEND_HAS_CHILDREN;
@@ -191,7 +213,7 @@ void TreeElementRNAProperty::expand(SpaceOutliner &space_outliner) const
       for (int index = 0; index < tot; index++) {
         PointerRNA pptr;
         RNA_property_collection_lookup_int(&rna_ptr, rna_prop_, index, &pptr);
-        add_element(&legacy_te_.subtree, pptr.owner_id, &pptr, &legacy_te_, TSE_RNA_STRUCT, index);
+        add_element<TreeElementRNAStruct>({.index = index}, pptr);
       }
     }
     else if (tot) {
@@ -204,12 +226,7 @@ void TreeElementRNAProperty::expand(SpaceOutliner &space_outliner) const
 
     if (TSELEM_OPEN(&tselem, &space_outliner)) {
       for (int index = 0; index < tot; index++) {
-        add_element(&legacy_te_.subtree,
-                    rna_ptr.owner_id,
-                    &rna_ptr,
-                    &legacy_te_,
-                    TSE_RNA_ARRAY_ELEM,
-                    index);
+        add_element<TreeElementRNAArrayElement>({.index = index}, rna_ptr, index);
       }
     }
     else if (tot) {

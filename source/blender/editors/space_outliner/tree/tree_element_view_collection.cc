@@ -25,4 +25,9 @@ TreeElementViewCollectionBase::TreeElementViewCollectionBase(TreeElement &legacy
   legacy_te.name = IFACE_("Scene Collection");
 }
 
+ID *TreeElementViewCollectionBase::owner_id(Scene &scene)
+{
+  return &scene.id;
+}
+
 }  // namespace blender::ed::outliner

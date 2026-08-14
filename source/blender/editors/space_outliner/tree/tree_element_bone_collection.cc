@@ -13,6 +13,7 @@
 
 #include "../outliner_intern.hh"
 
+#include "tree_display.hh"
 #include "tree_element_bone_collection.hh"
 
 namespace blender::ed::outliner {
@@ -25,12 +26,16 @@ TreeElementBoneCollectionBase::TreeElementBoneCollectionBase(TreeElement &legacy
   legacy_te.name = IFACE_("Bone Collections");
 }
 
+ID *TreeElementBoneCollectionBase::owner_id(bArmature &armature)
+{
+  return &armature.id;
+}
+
 void TreeElementBoneCollectionBase::expand(SpaceOutliner & /*space_outliner*/) const
 {
   int index = 0;
   for (BoneCollection *bcoll : armature_.collections_roots()) {
-    add_element(
-        &legacy_te_.subtree, &armature_.id, bcoll, &legacy_te_, TSE_BONE_COLLECTION, index);
+    add_element<TreeElementBoneCollection>({.index = index}, armature_, *bcoll);
     index++;
   }
 }
@@ -45,12 +50,16 @@ TreeElementBoneCollection::TreeElementBoneCollection(TreeElement &legacy_te,
   legacy_te.directdata = &bcoll_;
 }
 
+ID *TreeElementBoneCollection::owner_id(bArmature &armature, BoneCollection & /*bcoll*/)
+{
+  return &armature.id;
+}
+
 void TreeElementBoneCollection::expand(SpaceOutliner & /*space_outliner*/) const
 {
   int index = 0;
   for (BoneCollection *child_bcoll : armature_.collection_children(&bcoll_)) {
-    add_element(
-        &legacy_te_.subtree, &armature_.id, child_bcoll, &legacy_te_, TSE_BONE_COLLECTION, index);
+    add_element<TreeElementBoneCollection>({.index = index}, armature_, *child_bcoll);
     index++;
   }
 }

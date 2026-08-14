@@ -8,6 +8,8 @@
 
 #pragma once
 
+#include "DNA_outliner_types.h"
+
 #include "tree_element.hh"
 
 namespace blender {
@@ -23,7 +25,16 @@ class TreeElementBone final : public AbstractTreeElement {
   Bone &bone_;
 
  public:
+  static constexpr eTreeStoreElemType element_type = TSE_BONE;
+
   TreeElementBone(TreeElement &legacy_te, ID &armature_id, Bone &bone);
+
+  /** The ID identifying this element in the tree-store, see #AbstractTreeDisplay::add_element().
+   */
+  static ID *owner_id(ID &armature_id, Bone & /*bone*/)
+  {
+    return &armature_id;
+  }
 
   std::optional<BIFIconID> get_icon() const override
   {

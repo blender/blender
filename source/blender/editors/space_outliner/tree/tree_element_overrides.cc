@@ -167,6 +167,16 @@ void TreeElementOverridesBase::expand(SpaceOutliner &space_outliner) const
  *
  * \{ */
 
+ID *TreeElementOverridesProperty::owner_id(TreeElementOverridesData &override_data)
+{
+  return &override_data.id;
+}
+
+ID *TreeElementOverridesPropertyOperation::owner_id(TreeElementOverridesData &override_data)
+{
+  return &override_data.id;
+}
+
 TreeElementOverridesProperty::TreeElementOverridesProperty(TreeElement &legacy_te,
                                                            TreeElementOverridesData &override_data)
     : AbstractTreeElement(legacy_te),
@@ -413,12 +423,8 @@ void OverrideRNAPathTreeBuilder::build_path(TreeElement &parent,
    * values), so the element may already be present. At this point they are displayed as a single
    * property in the tree, so don't add it multiple times here. */
   else if (!path_te_map.contains(override_data.override_property.rna_path)) {
-    tree_display_.add_element(&te_to_expand->subtree,
-                              &override_data.id,
-                              &override_data,
-                              te_to_expand,
-                              TSE_LIBRARY_OVERRIDE,
-                              index++);
+    tree_display_.add_element<TreeElementOverridesProperty>(
+        {.parent = te_to_expand, .index = index++}, override_data);
   }
 
   MEM_delete(elem_path);
@@ -474,13 +480,9 @@ void OverrideRNAPathTreeBuilder::ensure_entire_collection(
       TreeElementOverridesData override_op_data = override_data;
       override_op_data.operation = item_operation;
 
-      current_te = tree_display_.add_element(&te_to_expand.subtree,
-                                             &override_op_data.id,
-                                             /* Element will store a copy. */
-                                             &override_op_data,
-                                             &te_to_expand,
-                                             TSE_LIBRARY_OVERRIDE_OPERATION,
-                                             index++);
+      /* Element will store a copy. */
+      current_te = tree_display_.add_element<TreeElementOverridesPropertyOperation>(
+          {.parent = &te_to_expand, .index = index++}, override_op_data);
     }
     else {
       /* NOTE: Do not generate entries for collection items which are not affected by liboverride,
@@ -520,13 +522,8 @@ TreeElement &OverrideRNAPathTreeBuilder::ensure_label_element_for_prop(
     TreeElement &parent, StringRef elem_path, PointerRNA &ptr, PropertyRNA &prop, short &index)
 {
   return *path_te_map.lookup_or_add_cb(elem_path, [&]() {
-    TreeElement *new_te = tree_display_.add_element(&parent.subtree,
-                                                    nullptr,
-                                                    (void *)RNA_property_ui_name(&prop),
-                                                    &parent,
-                                                    TSE_GENERIC_LABEL,
-                                                    index++,
-                                                    false);
+    TreeElement *new_te = tree_display_.add_element<TreeElementLabel>(
+        {.parent = &parent, .index = index++, .expand = false}, RNA_property_ui_name(&prop));
     TreeElementLabel *te_label = tree_element_cast<TreeElementLabel>(new_te);
 
     te_label->set_icon(get_property_icon(ptr, prop));
@@ -542,13 +539,8 @@ TreeElement &OverrideRNAPathTreeBuilder::ensure_label_element_for_ptr(TreeElemen
   return *path_te_map.lookup_or_add_cb(elem_path, [&]() {
     const char *dyn_name = RNA_struct_name_get_alloc(&ptr, nullptr, 0, nullptr);
 
-    TreeElement *new_te = tree_display_.add_element(
-        &parent.subtree,
-        nullptr,
-        (void *)(dyn_name ? dyn_name : RNA_struct_ui_name(ptr.type)),
-        &parent,
-        TSE_GENERIC_LABEL,
-        index++);
+    TreeElement *new_te = tree_display_.add_element<TreeElementLabel>(
+        {.parent = &parent, .index = index++}, dyn_name ? dyn_name : RNA_struct_ui_name(ptr.type));
     TreeElementLabel *te_label = tree_element_cast<TreeElementLabel>(new_te);
     te_label->set_icon(RNA_struct_ui_icon(ptr.type));
 

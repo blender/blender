@@ -28,6 +28,11 @@ TreeElementConstraintBase::TreeElementConstraintBase(TreeElement &legacy_te, Obj
   legacy_te.name = IFACE_("Constraints");
 }
 
+ID *TreeElementConstraintBase::owner_id(Object &object)
+{
+  return &object.id;
+}
+
 TreeElementConstraint::TreeElementConstraint(TreeElement &legacy_te,
                                              Object & /*object*/,
                                              bConstraint &con)
@@ -37,6 +42,12 @@ TreeElementConstraint::TreeElementConstraint(TreeElement &legacy_te,
   legacy_te.name = con_.name;
   legacy_te.directdata = &con_;
 }
+
+ID *TreeElementConstraint::owner_id(Object &object, bConstraint & /*con*/)
+{
+  return &object.id;
+}
+
 std::optional<BIFIconID> TreeElementConstraint::get_icon() const
 {
   bConstraint *con = static_cast<bConstraint *>(legacy_te_.directdata);

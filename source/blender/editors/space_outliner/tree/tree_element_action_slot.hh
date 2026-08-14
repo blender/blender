@@ -8,6 +8,8 @@
 
 #pragma once
 
+#include "DNA_outliner_types.h"
+
 #include "tree_element.hh"
 
 namespace blender {
@@ -22,6 +24,8 @@ namespace ed::outliner {
 class TreeElementActionSlot final : public AbstractTreeElement {
 
  public:
+  static constexpr eTreeStoreElemType element_type = TSE_ACTION_SLOT;
+
   TreeElementActionSlot(TreeElement &legacy_te, animrig::Slot &slot);
   std::optional<BIFIconID> get_icon() const override
   {

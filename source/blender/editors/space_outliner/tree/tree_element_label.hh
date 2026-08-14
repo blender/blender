@@ -29,6 +29,10 @@ class TreeElementLabel final : public AbstractTreeElement {
   BIFIconID icon_ = ICON_NONE;
 
  public:
+  static constexpr eTreeStoreElemType element_type = TSE_GENERIC_LABEL;
+  /** A label represents no data, so there is nothing to identify it by. */
+  static constexpr bool allow_null_identity = true;
+
   TreeElementLabel(TreeElement &legacy_te, const char *label);
 
   void set_icon(BIFIconID icon);

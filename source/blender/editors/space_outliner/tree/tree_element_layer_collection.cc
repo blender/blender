@@ -25,4 +25,9 @@ TreeElementLayerCollection::TreeElementLayerCollection(TreeElement &legacy_te, L
   legacy_te.directdata = &lc_;
 }
 
+ID *TreeElementLayerCollection::owner_id(LayerCollection &lc)
+{
+  return &lc.collection->id;
+}
+
 }  // namespace blender::ed::outliner

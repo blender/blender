@@ -14,6 +14,7 @@
 #include "BLT_translation.hh"
 
 #include "../outliner_intern.hh"
+#include "tree_display.hh"
 #include "tree_element_seq.hh"
 
 namespace blender::ed::outliner {
@@ -40,11 +41,11 @@ void TreeElementStrip::expand(SpaceOutliner & /*space_outliner*/) const
 
   if (strip_.type == STRIP_TYPE_META) {
     for (Strip &child : strip_.seqbase) {
-      add_element(&legacy_te_.subtree, nullptr, &child, &legacy_te_, TSE_STRIP, 0);
+      add_element<TreeElementStrip>({}, child);
     }
   }
   else {
-    add_element(&legacy_te_.subtree, nullptr, strip_.data, &legacy_te_, TSE_STRIP_DATA, 0);
+    add_element<TreeElementStripData>({}, *strip_.data);
   }
 }
 

@@ -15,6 +15,7 @@
 
 #include "../outliner_intern.hh"
 
+#include "tree_display.hh"
 #include "tree_element_nla.hh"
 
 namespace blender::ed::outliner {
@@ -31,7 +32,7 @@ void TreeElementNLA::expand(SpaceOutliner & /*space_outliner*/) const
 {
   int a = 0;
   for (NlaTrack *nlt : ListBaseWrapper<NlaTrack>(anim_data_.nla_tracks)) {
-    add_element(&legacy_te_.subtree, nullptr, nlt, &legacy_te_, TSE_NLA_TRACK, a);
+    add_element<TreeElementNLATrack>({.index = a}, *nlt);
     a++;
   }
 }
@@ -49,17 +50,20 @@ void TreeElementNLATrack::expand(SpaceOutliner & /*space_outliner*/) const
 {
   int a = 0;
   for (NlaStrip *strip : ListBaseWrapper<NlaStrip>(track_.strips)) {
-    add_element(&legacy_te_.subtree,
-                reinterpret_cast<ID *>(strip->act),
-                nullptr,
-                &legacy_te_,
-                TSE_NLA_ACTION,
-                a);
+    /* A strip may have no Action assigned. */
+    if (strip->act) {
+      add_element<TreeElementNLAAction>({.index = a}, *strip->act);
+    }
     a++;
   }
 }
 
 /* -------------------------------------------------------------------- */
+
+ID *TreeElementNLAAction::owner_id(const bAction &action)
+{
+  return &const_cast<bAction &>(action).id;
+}
 
 TreeElementNLAAction::TreeElementNLAAction(TreeElement &legacy_te, const bAction &action)
     : AbstractTreeElement(legacy_te)

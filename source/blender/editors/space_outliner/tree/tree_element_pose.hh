@@ -8,6 +8,8 @@
 
 #pragma once
 
+#include "DNA_outliner_types.h"
+
 #include "tree_element.hh"
 
 namespace blender {
@@ -21,8 +23,14 @@ class TreeElementPoseBase final : public AbstractTreeElement {
   Object &object_;
 
  public:
+  static constexpr eTreeStoreElemType element_type = TSE_POSE_BASE;
+
   TreeElementPoseBase(TreeElement &legacy_te, Object &object);
   void expand(SpaceOutliner & /*soops*/) const override;
+
+  /** The ID identifying this element in the tree-store, see #AbstractTreeDisplay::add_element().
+   */
+  static ID *owner_id(Object &object);
 
   std::optional<BIFIconID> get_icon() const override
   {
@@ -36,7 +44,13 @@ class TreeElementPoseChannel final : public AbstractTreeElement {
   bPoseChannel &pchan_;
 
  public:
+  static constexpr eTreeStoreElemType element_type = TSE_POSE_CHANNEL;
+
   TreeElementPoseChannel(TreeElement &legacy_te, Object &object, bPoseChannel &pchan);
+
+  /** The ID identifying this element in the tree-store, see #AbstractTreeDisplay::add_element().
+   */
+  static ID *owner_id(Object &object, bPoseChannel &pchan);
 
   std::optional<BIFIconID> get_icon() const override
   {

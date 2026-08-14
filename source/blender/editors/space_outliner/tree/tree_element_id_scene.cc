@@ -11,7 +11,11 @@
 
 #include "../outliner_intern.hh"
 
+#include "tree_display.hh"
+#include "tree_element_collection.hh"
 #include "tree_element_id_scene.hh"
+#include "tree_element_scene_objects.hh"
+#include "tree_element_view_layer.hh"
 
 namespace blender::ed::outliner {
 
@@ -32,27 +36,22 @@ void TreeElementIDScene::expand(SpaceOutliner & /*space_outliner*/) const
 
 void TreeElementIDScene::expand_view_layers() const
 {
-  add_element(&legacy_te_.subtree, &scene_.id, nullptr, &legacy_te_, TSE_R_LAYER_BASE, 0);
+  add_element<TreeElementViewLayerBase>({}, scene_);
 }
 
 void TreeElementIDScene::expand_world() const
 {
-  add_element(&legacy_te_.subtree,
-              reinterpret_cast<ID *>(scene_.world),
-              nullptr,
-              &legacy_te_,
-              TSE_SOME_ID,
-              0);
+  add_id_element({}, reinterpret_cast<ID *>(scene_.world));
 }
 
 void TreeElementIDScene::expand_collections() const
 {
-  add_element(&legacy_te_.subtree, &scene_.id, nullptr, &legacy_te_, TSE_SCENE_COLLECTION_BASE, 0);
+  add_element<TreeElementCollectionBase>({}, scene_);
 }
 
 void TreeElementIDScene::expand_objects() const
 {
-  add_element(&legacy_te_.subtree, &scene_.id, nullptr, &legacy_te_, TSE_SCENE_OBJECTS_BASE, 0);
+  add_element<TreeElementSceneObjectsBase>({}, scene_);
 }
 
 }  // namespace blender::ed::outliner

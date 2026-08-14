@@ -11,7 +11,9 @@
 
 #include "../outliner_intern.hh"
 
+#include "tree_display.hh"
 #include "tree_element_id_mesh.hh"
+#include "tree_element_shapekey.hh"
 
 namespace blender::ed::outliner {
 
@@ -30,23 +32,16 @@ void TreeElementIDMesh::expand(SpaceOutliner & /*space_outliner*/) const
 
 void TreeElementIDMesh::expand_key() const
 {
-  add_element(&legacy_te_.subtree,
-              reinterpret_cast<ID *>(mesh_.key),
-              nullptr,
-              &legacy_te_,
-              TSE_SHAPE_KEY_BASE,
-              0);
+  /* Not every mesh has shape keys. */
+  if (mesh_.key) {
+    add_element<TreeElementShapeKeyBase>({}, *mesh_.key);
+  }
 }
 
 void TreeElementIDMesh::expand_materials() const
 {
   for (int a = 0; a < mesh_.totcol; a++) {
-    add_element(&legacy_te_.subtree,
-                reinterpret_cast<ID *>(mesh_.mat[a]),
-                nullptr,
-                &legacy_te_,
-                TSE_SOME_ID,
-                a);
+    add_id_element({.index = a}, reinterpret_cast<ID *>(mesh_.mat[a]));
   }
 }
 

@@ -19,6 +19,9 @@
 #include "../outliner_intern.hh"
 #include "tree_display.hh"
 
+#include "tree_element_bone.hh"
+#include "tree_element_bone_collection.hh"
+#include "tree_element_edit_bone.hh"
 #include "tree_element_id_armature.hh"
 
 namespace blender::ed::outliner {
@@ -49,7 +52,7 @@ void TreeElementIDArmature::expand(SpaceOutliner & /*space_outliner*/) const
   }
 
   if (arm_.collection_array_num > 0) {
-    add_element(&legacy_te_.subtree, &arm_.id, nullptr, &legacy_te_, TSE_BONE_COLLECTION_BASE, 0);
+    add_element<TreeElementBoneCollectionBase>({}, arm_);
   }
 }
 
@@ -57,8 +60,7 @@ void TreeElementIDArmature::expand_edit_bones() const
 {
 
   for (const auto [a, ebone] : (arm_.edbo)->enumerate()) {
-    TreeElement *ten = add_element(
-        &legacy_te_.subtree, &arm_.id, &ebone, &legacy_te_, TSE_EBONE, a);
+    TreeElement *ten = add_element<TreeElementEditBone>({.index = a}, arm_.id, ebone);
     ebone.temp.p = ten;
   }
   /* make hierarchy */
@@ -86,7 +88,8 @@ static void outliner_add_bone(AbstractTreeDisplay &tree_display,
                               TreeElement *parent,
                               int *a)
 {
-  TreeElement *te = tree_display.add_element(lb, id, curBone, parent, TSE_BONE, *a);
+  TreeElement *te = tree_display.add_element<TreeElementBone>(
+      {.lb = lb, .parent = parent, .index = *a}, *id, *curBone);
 
   (*a)++;
 
