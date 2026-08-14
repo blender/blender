@@ -205,3 +205,41 @@ def largest_area(screen):
         screen.areas,
         key=lambda a: a.width * a.height
     )
+
+
+def split_area(area, direction='VERTICAL', factor=0.5):
+    """
+    Split an area using Blender's screen split operator.
+
+    :param area: area to split.
+    :param direction: plit direction: 'VERTICAL' / 'HORIZONTAL'.
+    :param factor: Split ratio in normalized coordinates.
+        Default 0.5 creates an even split.
+    """
+
+    import bpy
+    with bpy.context.temp_override(area=area):
+
+        bpy.ops.screen.area_split(
+            direction=direction,
+            factor=factor,
+        )
+
+
+def build_grid(screen, target_count):
+    """
+    Dynamically construct a visible grid of areas.
+    """
+    while len(screen.areas) < target_count:
+        prev_count = len(screen.areas)
+        area = largest_area(screen)
+        direction = (
+            'VERTICAL'
+            if area.width >= area.height
+            else 'HORIZONTAL'
+        )
+
+        split_area(area, direction, 0.5)
+        yield
+        if len(screen.areas) == prev_count:
+            raise Exception(f"Area split did not increase area count (stuck at {prev_count}). ")
