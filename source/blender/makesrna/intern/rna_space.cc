@@ -4622,6 +4622,14 @@ static void rna_def_space_outliner(BlenderRNA *brna)
       "Scroll the active item into view when it changes outside of the Outliner");
   RNA_def_property_update(prop, NC_SPACE | ND_SPACE_OUTLINER, nullptr);
 
+  prop = RNA_def_property(srna, "expand_on_focus", PROP_BOOLEAN, PROP_NONE);
+  RNA_def_property_boolean_sdna(prop, nullptr, "flag", SO_EXPAND_ON_FOCUS);
+  RNA_def_property_ui_text(
+      prop,
+      "Expand on Focus",
+      "Uncollapse the active item and scroll it into view when it changes outside the Outliner");
+  RNA_def_property_update(prop, NC_SPACE | ND_SPACE_OUTLINER, nullptr);
+
   /* Granular restriction column option. */
   prop = RNA_def_property(srna, "show_restrict_column_enable", PROP_BOOLEAN, PROP_NONE);
   RNA_def_property_boolean_sdna(prop, nullptr, "show_restrict_flags", SO_RESTRICT_ENABLE);

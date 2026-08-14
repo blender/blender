@@ -1525,11 +1525,13 @@ void outliner_set_coordinates(const ARegion *region, SpaceOutliner *space_outlin
 {
   int starty = int(region->v2d.tot.ymax) - UI_UNIT_Y;
 
-  tree_iterator::all_open(*space_outliner, [&](TreeElement *te) {
+  tree_iterator::all(space_outliner->runtime->tree, [&](TreeElement *te) {
     /* store coord and continue, we need coordinates for elements outside view too */
     te->xs = 0;
-    te->ys = float(starty);
-    starty -= UI_UNIT_Y;
+    /* Set coordinates to zero for collapsed elements. */
+    const bool is_open = te->parent && TSELEM_OPEN(te->parent->store_elem, space_outliner);
+    te->ys = is_open ? float(starty) : 0;
+    starty -= is_open ? UI_UNIT_Y : 0;
   });
 }
 
@@ -1636,13 +1638,17 @@ void outliner_scroll_to_active(SpaceOutliner *space_outliner, ARegion *region, s
   }
 
   TreeElement *scroll_to_te = active_te;
-  TreeElement *iter = active_te->parent;
-  while (iter && !TSELEM_OPEN(iter->store_elem, space_outliner)) {
-    scroll_to_te = iter;
-    iter = iter->parent;
+  if ((space_outliner->flag & SO_EXPAND_ON_FOCUS) == 0) {
+    TreeElement *iter = active_te->parent;
+    while (iter) {
+      if (!TSELEM_OPEN(iter->store_elem, space_outliner)) {
+        scroll_to_te = iter;
+      }
+      iter = iter->parent;
+    }
   }
 
-  if (!BLI_rctf_isect_y(&v2d->cur, scroll_to_te->ys)) {
+  if (!(scroll_to_te->ys && BLI_rctf_isect_y(&v2d->cur, scroll_to_te->ys))) {
     outliner_show_active(space_outliner, region, scroll_to_te, TREESTORE(scroll_to_te)->id);
     const int size_y = BLI_rcti_size_y(&v2d->mask) + 1;
     const int ytop = (scroll_to_te->ys + (size_y / 2));
