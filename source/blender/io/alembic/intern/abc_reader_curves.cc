@@ -41,11 +41,36 @@ using Alembic::AbcGeom::ICurvesSchema;
 using Alembic::AbcGeom::IFloatGeomParam;
 using Alembic::AbcGeom::IInt16Property;
 using Alembic::AbcGeom::ISampleSelector;
+using Alembic::AbcGeom::IV3fArrayProperty;
 using Alembic::AbcGeom::kWrapExisting;
 
 namespace io::alembic {
 
 static CLG_LogRef LOG = {"io.alembic"};
+
+/* Specialization of #has_animations() as defined in abc_reader_object.h. */
+template<> bool has_animations(Alembic::AbcGeom::ICurvesSchema &schema, ImportSettings *settings)
+{
+  if (settings->is_sequence || !schema.isConstant()) {
+    return true;
+  }
+
+  /* NOTE: ICurvesSchema::isConstant() checks a few attributes already, here we check for widths
+   * and velocities. There are other attributes which may be animated, like curve orders or
+   * periodicity, which we ignore for now until we meet such files in the wild. */
+
+  IFloatGeomParam widths_param = schema.getWidthsParam();
+  if (widths_param.valid() && !widths_param.isConstant()) {
+    return true;
+  }
+
+  IV3fArrayProperty velocities_prop = schema.getVelocitiesProperty();
+  if (velocities_prop.valid() && !velocities_prop.isConstant()) {
+    return true;
+  }
+
+  return false;
+}
 
 static int16_t get_curve_resolution(const ICurvesSchema &schema,
                                     const Alembic::Abc::ISampleSelector &sample_sel)
