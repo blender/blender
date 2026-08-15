@@ -57,6 +57,8 @@
 #include "SEQ_transform.hh"
 #include "SEQ_utils.hh"
 
+#include "cache/movie_reader_cache.hh"
+
 #include "BLO_read_write.hh"
 
 #include "cache/compositor_cache.hh"
@@ -174,8 +176,6 @@ static void seq_strip_free_ex(Scene *scene,
     strip->data = nullptr;
   }
 
-  strip_free_movie_readers(strip);
-
   if (strip->is_effect()) {
     EffectHandle sh = strip_effect_handle_get(strip);
     if (sh.free) {
@@ -277,6 +277,9 @@ void seq_free_strip_recurse(Scene *scene, Strip *strip, const bool do_id_user)
 
 StripRuntime::~StripRuntime()
 {
+  if (movie_metadata != nullptr) {
+    IDP_FreeProperty(movie_metadata);
+  }
   clear_sound_time_stretch();
 }
 
@@ -1284,8 +1287,11 @@ void eval_strips(Depsgraph *depsgraph, Scene *scene, ListBaseT<Strip> *seqbase)
   sound_update_bounds_all(scene);
 }
 
+EditingRuntime::EditingRuntime() : movie_reader_cache(movie_reader_cache_create()) {}
+
 EditingRuntime::~EditingRuntime()
 {
+  movie_reader_cache_destroy(this->movie_reader_cache);
   MEM_delete(this->compositor_cache);
 }
 

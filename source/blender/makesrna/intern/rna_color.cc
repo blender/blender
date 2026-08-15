@@ -808,8 +808,6 @@ static void rna_ColorManagedColorspaceSettings_reload_update(Main *bmain,
         Strip *strip = rna_strip_find_by_colorspace_settings(scene->ed, colorspace_settings);
 
         if (strip) {
-          seq::strip_free_movie_readers(strip);
-
           if (strip->data->proxy && strip->data->proxy->anim) {
             MOV_close(strip->data->proxy->anim);
             strip->data->proxy->anim = nullptr;

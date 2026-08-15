@@ -581,6 +581,10 @@ static bool rna_SequenceEditor_selected_retiming_key_get(PointerRNA *ptr)
 
 static void rna_Strip_views_format_update(Main *bmain, Scene *scene, PointerRNA *ptr)
 {
+  Strip &strip = *static_cast<Strip *>(ptr->data);
+  if (strip.type == STRIP_TYPE_MOVIE) {
+    seq::movie_metadata_invalidate(strip);
+  }
   rna_Strip_invalidate_raw_update(bmain, scene, ptr);
 }
 
@@ -690,7 +694,7 @@ static void rna_Strip_content_trim_start_set(PointerRNA *ptr, int value)
   seq::transform_translate_strip(scene, strip, value - strip->anim_startofs);
   strip->anim_startofs = value;
 
-  seq::add_reload_new_file(G.main, scene, strip, false);
+  seq::add_update_content_length(G.main, scene, strip);
   do_strip_frame_change_update(scene, strip);
 }
 
@@ -701,7 +705,7 @@ static void rna_Strip_content_trim_end_set(PointerRNA *ptr, int value)
 
   strip->anim_endofs = std::clamp(value, 0, strip_content_trim_max(strip, strip->anim_endofs));
 
-  seq::add_reload_new_file(G.main, scene, strip, false);
+  seq::add_update_content_length(G.main, scene, strip);
   do_strip_frame_change_update(scene, strip);
 }
 
@@ -1175,16 +1179,12 @@ static bool rna_MovieStrip_reload_if_needed(ID *scene_id, Strip *strip, Main *bm
 
 static PointerRNA rna_MovieStrip_metadata_get(ID *scene_id, Strip *strip)
 {
-  if (strip == nullptr || strip->runtime->movie_readers.is_empty()) {
+  if (strip == nullptr) {
     return {};
   }
 
-  MovieReader *anim = strip->runtime->movie_readers.first();
-  if (anim == nullptr) {
-    return {};
-  }
-
-  IDProperty *metadata = MOV_load_metadata(anim);
+  Scene &scene = *id_cast<Scene *>(scene_id);
+  IDProperty *metadata = seq::movie_metadata_ensure(scene, *strip);
   if (metadata == nullptr) {
     return {};
   }

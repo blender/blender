@@ -182,6 +182,8 @@ void add_image_load_file(Scene *scene, Strip *strip, size_t strip_frame, const c
  */
 void add_image_init_alpha_mode(Main *bmain, Scene *scene, Strip *strip);
 void add_reload_new_file(Main *bmain, Scene *scene, Strip *strip, bool lock_range);
+/** Recalculate content length without reopening an unchanged source. */
+void add_update_content_length(Main *bmain, Scene *scene, Strip *strip);
 void add_movie_reload_if_needed(
     Main *bmain, Scene *scene, Strip *strip, bool *r_was_reloaded, bool *r_can_produce_frames);
 
