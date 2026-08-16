@@ -141,16 +141,18 @@ static std::optional<StringRef> find_format_specifier(const StringRef format)
   return std::nullopt;
 }
 
+/** Returns the index of the next unescaped '{', the string size, or -1 on error.*/
 static int64_t find_next_format_start_or_end(const StringRef format,
                                              const int64_t start,
-                                             std::string &r_out)
+                                             std::string &r_out,
+                                             std::optional<std::string> &r_error)
 {
   int64_t i = start;
   while (i < format.size()) {
     const char c = format[i];
     switch (c) {
-      case '{':
-      case '}': {
+      case '{': {
+        /* '{{' is an escaped '{'. */
         if (i + 1 < format.size()) {
           const char next_c = format[i + 1];
           if (next_c == c) {
@@ -159,7 +161,21 @@ static int64_t find_next_format_start_or_end(const StringRef format,
             continue;
           }
         }
+        /* Not escaped, so this is the start of the next format group. */
         return i;
+      }
+      case '}': {
+        /* '}}' is an escaped '}'. */
+        if (i + 1 < format.size()) {
+          const char next_c = format[i + 1];
+          if (next_c == c) {
+            i += 2;
+            r_out += c;
+            continue;
+          }
+        }
+        r_error = fmt::format("{}: \"{}\"", TIP_("Unescaped '}' in format string"), format);
+        return -1;
       }
       default: {
         r_out += c;
@@ -636,7 +652,11 @@ static bool format_strings(const StringRef format,
     /* Find the string until the next format starts or the string ends. */
     std::string copy_str;
     const int64_t next_format_start_or_end = find_next_format_start_or_end(
-        format, current_index, copy_str);
+        format, current_index, copy_str, r_error);
+    if (next_format_start_or_end < 0) {
+      BLI_assert(r_error);
+      return false;
+    }
 
     /* Append the non-formatted string to the outputs. */
     if (!copy_str.empty()) {
