@@ -107,15 +107,16 @@ static void freeSeqData(TransInfo *t, TransDataContainer *tc, TransCustomData *c
   }
 }
 
-static void create_trans_seq_clamp_data(TransInfo *t, const Scene *scene)
+static void create_trans_seq_clamp_data(TransInfo *t,
+                                        const Scene *scene,
+                                        const Map<SeqRetimingKey *, Strip *> &selection)
 {
   TransSeq *ts = static_cast<TransSeq *>(TRANS_DATA_CONTAINER_FIRST_SINGLE(t)->custom.type.data);
   const Editing *ed = seq::editing_get(scene);
 
-  /* Prevent snaps and change in `values` past `offset_clamp` for all selected retiming keys. */
+  /* Prevent snaps and change in `values` past `offset_clamp` for all transformed retiming keys. */
   BLI_rcti_init(&ts->offset_clamp, INT_MIN, INT_MAX, 0, 0);
 
-  Map selection = seq::retiming_selection_get(ed);
   for (auto item : selection.items()) {
     SeqRetimingKey *key = item.key;
 
@@ -204,7 +205,7 @@ static void createTransSeqRetimingData(bContext * /*C*/, TransInfo *t)
     SeqToTransData(t->scene, item.value, item.key, td++, td2d++, tdseq++);
   }
 
-  create_trans_seq_clamp_data(t, t->scene);
+  create_trans_seq_clamp_data(t, t->scene, selection);
 }
 
 static void recalcData_sequencer_retiming(TransInfo *t)
