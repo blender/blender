@@ -472,6 +472,7 @@ static SeqRetimingKey *strip_retiming_add_key(Strip *strip, float frame_index)
   MEM_delete(keys);
   strip->retiming_keys = new_keys;
   strip->retiming_keys_num++;
+  strip->flag |= SEQ_SHOW_RETIMING;
 
   SeqRetimingKey *added_key = (new_keys + new_key_index);
   added_key->strip_frame_index = frame_index;
