@@ -182,6 +182,7 @@ static wmOperatorStatus retiming_key_add_from_selection(const Scene *scene,
     }
     if (seq::retiming_key_add_new_for_strip(scene, op->reports, strip, frame)) {
       inserted = true;
+      strip->flag |= SEQ_SHOW_RETIMING;
     }
   }
 
@@ -203,6 +204,7 @@ static wmOperatorStatus retiming_key_add_to_editable_strips(const Scene *scene,
   for (Strip *strip : selection.values()) {
     if (seq::retiming_key_add_new_for_strip(scene, op->reports, strip, frame)) {
       inserted = true;
+      strip->flag |= SEQ_SHOW_RETIMING;
     }
   }
 
