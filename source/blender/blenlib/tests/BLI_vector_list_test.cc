@@ -9,6 +9,7 @@
 #include "BLI_strict_flags.hh" /* IWYU pragma: keep. Keep last. */
 
 namespace blender::tests {
+namespace {
 
 TEST(vectorlist, DefaultConstructor)
 {
@@ -267,4 +268,5 @@ TEST(vectorlist, AppendExceptions)
   EXPECT_EQ(ptr1, ptr2);
 }
 
+}  // namespace
 }  // namespace blender::tests

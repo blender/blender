@@ -21,6 +21,7 @@
 
 #ifdef WITH_GMP
 namespace blender::meshintersect::tests {
+namespace {
 
 constexpr bool DO_OBJ = false;
 
@@ -1273,5 +1274,6 @@ TEST(mesh_intersect_perf, GridGridTilt)
 
 #  endif
 
+}  // namespace
 }  // namespace blender::meshintersect::tests
 #endif
