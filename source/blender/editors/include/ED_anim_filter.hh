@@ -9,7 +9,6 @@
 #include <iostream>
 
 #include "BLI_set.hh"
-#include "BLI_stack.hh"
 #include "BLI_vector.hh"
 
 #include "DNA_ID_enums.h"
@@ -75,6 +74,26 @@ class ChannelTag {
   }
 };
 
+/* Not using BLI_set because that can't be iterated thus not turned into a set. */
+class ChannelTagStack {
+  Vector<ChannelTag> tags_;
+
+ public:
+  void push(const ChannelTag &tag)
+  {
+    tags_.append(tag);
+  }
+  void pop()
+  {
+    tags_.pop_last();
+  };
+
+  Set<ChannelTag> as_set() const
+  {
+    return {tags_};
+  };
+};
+
 class AnimationChannel {
  protected:
   ChannelType type_;
@@ -118,13 +137,13 @@ enum DataChannelFlags {
   DATACHANNEL_FLAG_PINNED,
 };
 
-enum class DatachannelType {
+enum class DataChannelType {
   FCURVE,
   GREASE_PENCIL,
 };
 
 class DataChannel : public AnimationChannel {
-  DatachannelType type_;
+  DataChannelType type_;
   /* The datatype of this is determined by the type. */
   void *source_;
   Set<ChannelTag> tags_;
@@ -135,11 +154,11 @@ class DataChannel : public AnimationChannel {
   DataChannel(GreasePencilLayer &gp_layer);
   bool operator==(const DataChannel &other) const
   {
-    /* TODO */
+    /* TODO compare data instead of pointers. */
     return &other == this;
   }
 
-  DatachannelType type() const
+  DataChannelType type() const
   {
     return this->type_;
   }
@@ -150,6 +169,10 @@ class DataChannel : public AnimationChannel {
     return get_default_hash(this->type_, this->source_);
   }
 
+  /**
+   * Makes a local copy of the tag elements.
+   */
+  void set_tags(const ChannelTagStack &tags);
   template<typename T> T get_source() const;
 
  protected:

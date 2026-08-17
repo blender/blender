@@ -2,8 +2,6 @@
  *
  * SPDX-License-Identifier: GPL-2.0-or-later */
 
-#include "BLI_set.hh"
-
 #include "DNA_ID.h"
 #include "DNA_anim_types.h"
 #include "DNA_material_types.h"
@@ -20,8 +18,6 @@
 
 namespace blender::ed::animfilter {
 
-using ChannelTagStack = Stack<ChannelTag>;
-
 static bool has_assigned_action(AnimData &anim_data)
 {
   return anim_data.action != nullptr && anim_data.slot_handle != animrig::Slot::unassigned;
@@ -37,6 +33,7 @@ static void channels_for_channelbag(animrig::Channelbag &channelbag,
     }
 
     DataChannel channel(*fcu);
+    channel.set_tags(tags);
     r_channels.add(channel);
 
     if (fcu->grp) {

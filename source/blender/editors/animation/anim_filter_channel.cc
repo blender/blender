@@ -55,34 +55,39 @@ void SummaryChannel::remove_child(AnimationChannel &child)
 
 DataChannel::DataChannel(FCurve &fcurve)
     : AnimationChannel(ChannelType::FCURVE, fcurve.rna_path()),
-      type_(DatachannelType::FCURVE),
+      type_(DataChannelType::FCURVE),
       source_(&fcurve)
 {
 }
 
 DataChannel::DataChannel(GreasePencilLayer &gp_layer)
     : AnimationChannel(ChannelType::GREASE_PENCIL, ""),
-      type_(DatachannelType::GREASE_PENCIL),
+      type_(DataChannelType::GREASE_PENCIL),
       source_(&gp_layer)
 {
 }
 
+void DataChannel::set_tags(const ChannelTagStack &tags)
+{
+  this->tags_ = tags.as_set();
+}
+
 template<> FCurve *DataChannel::get_source<FCurve *>() const
 {
-  BLI_assert(this->type_ == DatachannelType::FCURVE);
+  BLI_assert(this->type_ == DataChannelType::FCURVE);
   return static_cast<FCurve *>(this->source_);
 }
 
 template<> GreasePencilLayer *DataChannel::get_source<GreasePencilLayer *>() const
 {
-  BLI_assert(this->type_ == DatachannelType::GREASE_PENCIL);
+  BLI_assert(this->type_ == DataChannelType::GREASE_PENCIL);
   return static_cast<GreasePencilLayer *>(this->source_);
 }
 
 void DataChannel::gather_channeldata()
 {
   switch (this->type_) {
-    case DatachannelType::FCURVE: {
+    case DataChannelType::FCURVE: {
       const FCurve *fcurve = this->get_source<FCurve *>();
       if (!fcurve->bezt) {
         /* Sampled FCurves cannot be edited and don't show up in the dopesheet. */
@@ -95,7 +100,7 @@ void DataChannel::gather_channeldata()
       break;
     }
 
-    case DatachannelType::GREASE_PENCIL: {
+    case DataChannelType::GREASE_PENCIL: {
       bke::greasepencil::Layer &layer = this->get_source<GreasePencilLayer *>()->wrap();
       for (int frame : layer.frames().keys()) {
         this->datapoints_.append(float(frame));
