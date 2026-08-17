@@ -1806,8 +1806,8 @@ Public License instead of this License.
 
 | Library | Version | Copyright |
 | ------- | ------- | --------- |
-| [FFmpeg](https://ffmpeg.org/) | 8.1 | `The FFmpeg contributors https://github.com/FFmpeg/FFmpeg/blob/master/CREDITS` |
-| [Fribidi](https://github.com/fribidi/fribidi) | v1.0.12 | `Behdad Esfahbod <behdad@gnu.org>, Dov Grobgeld <dov.grobgeld@gmail.com>, Roozbeh Pournader <roozbeh@gnu.org>, Khaled Hosny <khaledhosny@eglug.org>` |
+| [FFmpeg](https://ffmpeg.org/) | 8.1 | `Copyright (c) 2000-2017 the FFMPEG developers` |
+| [Fribidi](https://github.com/fribidi/fribidi) | v1.0.12 | `Copyright (c) 2004-2012 Behdad Esfahbod, Dov Grobgeld, Roozbeh Pournader` |
 | [Iconv](https://www.gnu.org/software/libiconv/) | 1.16 | `Copyright (C) 1998, 2022 Free Software Foundation, Inc.` |
 | [LAME](https://lame.sourceforge.io/) | 3.100 | `Copyrights (c) 1999-2011 by The LAME Project. Copyrights (c) 1999,2000,2001 by Mark Taylor. Copyrights (c) 1998 by Michael Cheng. Copyrights (c) 1995,1996,1997 by Michael Hipp: mpglib.` |
 | [libsndfile](http://libsndfile.github.io/libsndfile/) | 1.2.2 | `Copyright (C) 2011-2016 Erik de Castro Lopo <erikd@mega-nerd.com>` |
