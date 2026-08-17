@@ -82,6 +82,9 @@ class SummaryChannel : public AnimationChannel {
   Span<AnimationChannel *> children() const;
   void add_child(AnimationChannel &child);
   void remove_child(AnimationChannel &child);
+
+ protected:
+  void gather_channeldata() override;
 };
 
 enum DataChannelFlags {

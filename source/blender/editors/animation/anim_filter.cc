@@ -4114,6 +4114,11 @@ SummaryChannel::SummaryChannel(const StringRef label)
 {
 }
 
+void SummaryChannel::gather_channeldata()
+{
+  /* TODO implement. */
+}
+
 Span<AnimationChannel *> SummaryChannel::children() const
 {
   return this->children_;
@@ -4200,8 +4205,7 @@ void collect_animation_channels(bContext &C,
 
   for (PointerRNA &obj_ptr : objects) {
     BLI_assert(obj_ptr.type == RNA_Object);
-    Object *obj = id_cast<Object *>(obj_ptr.data);
-    collect_animation_channels_for_id(obj->id, r_channels);
+    collect_animation_channels_for_id(*obj_ptr.owner_id, r_channels);
   }
 }
 
