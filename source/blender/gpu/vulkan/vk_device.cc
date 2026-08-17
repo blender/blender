@@ -41,6 +41,7 @@ void VKExtensions::log() const
              " - [%c] shader output layer\n"
              " - [%c] fragment shader barycentric\n"
              " - [%c] wide lines\n"
+             " - [%c] multi draw indirect\n"
              "Device extensions\n"
              " - [%c] dynamic rendering local read\n"
              " - [%c] dynamic rendering unused attachments\n"
@@ -52,13 +53,16 @@ void VKExtensions::log() const
              " - [%c] maintenance4\n"
              " - [%c] memory priority\n"
              " - [%c] pageable device local memory\n"
+             " - [%c] provoking vertex\n"
              " - [%c] shader stencil export\n"
              " - [%c] ray queries\n"
-             " - [%c] vertex input dynamic state",
+             " - [%c] vertex input dynamic state\n"
+             " - [%c] vertex pipeline stores and atomics",
              shader_output_viewport_index ? 'X' : ' ',
              shader_output_layer ? 'X' : ' ',
              fragment_shader_barycentric ? 'X' : ' ',
              wide_lines ? 'X' : ' ',
+             multi_draw_indirect ? 'X' : ' ',
              dynamic_rendering_local_read ? 'X' : ' ',
              dynamic_rendering_unused_attachments ? 'X' : ' ',
              extended_dynamic_state ? 'X' : ' ',
@@ -69,9 +73,11 @@ void VKExtensions::log() const
              maintenance4 ? 'X' : ' ',
              memory_priority ? 'X' : ' ',
              pageable_device_local_memory ? 'X' : ' ',
+             provoking_vertex ? 'X' : ' ',
              GPU_stencil_export_support() ? 'X' : ' ',
              GPU_ray_query_support() ? 'X' : ' ',
-             vertex_input_dynamic_state ? 'X' : ' ');
+             vertex_input_dynamic_state ? 'X' : ' ',
+             GPU_vertex_pipeline_stores_and_atomics_support() ? 'X' : ' ');
 }
 
 void VKWorkarounds::log() const
@@ -311,6 +317,9 @@ shader::GeneratedSource VKDevice::extensions_define(StringRefNull stage_define,
   }
   if (use_ray_query) {
     ss << "#extension GL_EXT_ray_query : enable\n";
+  }
+  if (!extensions_.provoking_vertex) {
+    ss << "#define GPU_PROVOKING_VERTEX_LAST\n";
   }
   ss << stage_define;
 

@@ -88,12 +88,10 @@ StripScreenQuad get_strip_screen_quad(const RenderData *context, const Strip *st
 
 /** Ensure image buffer has 4 channels, most sequencer code assumes this. */
 void ensure_ibuf_is_rgba(ImBuf *ibuf);
-bool seq_image_strip_is_multiview_render(const Scene *scene,
-                                         const Strip *strip,
-                                         int totfiles,
-                                         const char *filepath,
-                                         char *r_prefix,
-                                         const char *r_ext);
+bool seq_strip_do_multiview_render(const Scene *scene,
+                                   const Strip *strip,
+                                   const char *filepath,
+                                   char *r_prefix);
 
 }  // namespace seq
 }  // namespace blender

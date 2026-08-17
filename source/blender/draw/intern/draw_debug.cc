@@ -13,6 +13,7 @@
 #include "BLI_math_matrix.hh"
 #include "BLI_math_matrix_c.hh"
 #include "GPU_batch.hh"
+#include "GPU_capabilities.hh"
 #include "GPU_debug.hh"
 
 #include "draw_context_private.hh"
@@ -199,6 +200,9 @@ void drw_debug_matrix_as_bbox(const float4x4 &mat, const float4 color, const uin
 
 void DebugDraw::draw_line(float3 v1, float3 v2, uint color, const uint lifetime)
 {
+  if (!GPU_vertex_pipeline_stores_and_atomics_support()) {
+    return;
+  }
   DebugDrawBuf &buf = *cpu_draw_buf_.current();
   uint index = vertex_len_.fetch_add(2);
   if (index + 2 < DRW_DEBUG_DRAW_VERT_MAX) {
@@ -222,6 +226,9 @@ void DebugDraw::draw_line(float3 v1, float3 v2, uint color, const uint lifetime)
 
 void DebugDraw::display_lines(View &view)
 {
+  if (!GPU_vertex_pipeline_stores_and_atomics_support()) {
+    return;
+  }
   const bool cpu_draw_buf_used = vertex_len_.load() != 0;
 
   if (!cpu_draw_buf_used && !gpu_draw_buf_used) {
@@ -284,6 +291,10 @@ void DebugDraw::display_to_view(View &view)
 {
   /* Display only on the main thread. Avoid concurrent usage of the resource. */
   BLI_assert(BLI_thread_is_main());
+
+  if (!GPU_vertex_pipeline_stores_and_atomics_support()) {
+    return;
+  }
 
   GPU_debug_group_begin("DebugDraw");
 

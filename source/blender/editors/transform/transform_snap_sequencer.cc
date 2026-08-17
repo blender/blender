@@ -134,8 +134,9 @@ static VectorSet<Strip *> query_strip_targets_timeline(Scene *scene,
 
   VectorSet<Strip *> strip_targets;
   for (Strip &strip : *seqbase) {
-    if (!drag_and_drop && strip.flag & SEQ_SELECT) {
-      continue; /* Selected strips are being transformed, they shouldn't be a target. */
+    if (!drag_and_drop && strip.flag & SEQ_SELECT && !seq::transform_is_locked(channels, &strip)) {
+      /* Selected (and unlocked) strips are being transformed, they shouldn't be a target. */
+      continue;
     }
     if (seq::render_is_muted(channels, &strip) && (snap_flag & SEQ_SNAP_IGNORE_MUTED)) {
       continue;

@@ -159,9 +159,6 @@ static Vector<StringRefNull> missing_capabilities_get(VkPhysicalDevice vk_physic
     missing_capabilities.append("geometry shaders");
   }
 #endif
-  if (features.features.vertexPipelineStoresAndAtomics == VK_FALSE) {
-    missing_capabilities.append("vertex pipeline stores and atomics");
-  }
   if (features.features.multiViewport == VK_FALSE) {
     missing_capabilities.append("multi viewport");
   }
@@ -179,9 +176,6 @@ static Vector<StringRefNull> missing_capabilities_get(VkPhysicalDevice vk_physic
   }
   if (features.features.imageCubeArray == VK_FALSE) {
     missing_capabilities.append("image cube array");
-  }
-  if (features.features.multiDrawIndirect == VK_FALSE) {
-    missing_capabilities.append("multi draw indirect");
   }
   if (features.features.drawIndirectFirstInstance == VK_FALSE) {
     missing_capabilities.append("draw indirect first instance");
@@ -214,13 +208,6 @@ static Vector<StringRefNull> missing_capabilities_get(VkPhysicalDevice vk_physic
   if (!extensions.contains(VK_KHR_DYNAMIC_RENDERING_EXTENSION_NAME)) {
     missing_capabilities.append(VK_KHR_DYNAMIC_RENDERING_EXTENSION_NAME);
   }
-#ifndef __APPLE__
-  /* Metal doesn't support provoking vertex. */
-  if (!extensions.contains(VK_EXT_PROVOKING_VERTEX_EXTENSION_NAME)) {
-    missing_capabilities.append(VK_EXT_PROVOKING_VERTEX_EXTENSION_NAME);
-  }
-#endif
-
   return missing_capabilities;
 }
 
@@ -537,9 +524,12 @@ void VKBackend::detect_workarounds(VKDevice &device)
     extensions.wide_lines = false;
     extensions.line_rasterization = false;
     extensions.extended_dynamic_state = false;
+    extensions.multi_draw_indirect = false;
+    extensions.provoking_vertex = false;
     GCaps.ray_query_support = false;
     GCaps.stencil_export_support = false;
     GCaps.texture_pool_workaround = true;
+    GCaps.vertex_pipeline_stores_and_atomics_support = false;
 
     device.workarounds_ = workarounds;
     device.extensions_ = extensions;
@@ -574,6 +564,9 @@ void VKBackend::detect_workarounds(VKDevice &device)
       VK_EXT_EXTENDED_DYNAMIC_STATE_EXTENSION_NAME);
   extensions.vertex_input_dynamic_state = device.supports_extension(
       VK_EXT_VERTEX_INPUT_DYNAMIC_STATE_EXTENSION_NAME);
+  extensions.multi_draw_indirect = device.physical_device_features_get().multiDrawIndirect ==
+                                   VK_TRUE;
+  extensions.provoking_vertex = device.supports_extension(VK_EXT_PROVOKING_VERTEX_EXTENSION_NAME);
 #if 0
   extensions.host_image_copy = device.supports_extension(VK_EXT_HOST_IMAGE_COPY_EXTENSION_NAME);
 #endif
@@ -875,6 +868,8 @@ void VKBackend::capabilities_init(VKDevice &device)
   GCaps.geometry_shader_support = true;
   GCaps.stencil_export_support = device.supports_extension(
       VK_EXT_SHADER_STENCIL_EXPORT_EXTENSION_NAME);
+  GCaps.vertex_pipeline_stores_and_atomics_support =
+      device.physical_device_features_get().vertexPipelineStoresAndAtomics;
   GCaps.ray_query_support =
       device.supports_extension(VK_KHR_RAY_QUERY_EXTENSION_NAME) &&
       device.physical_device_acceleration_structure_properties_get().maxGeometryCount > 0 &&

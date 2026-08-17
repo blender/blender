@@ -22,8 +22,6 @@
 
 #include "DEG_depsgraph.hh"
 
-#include "MOV_read.hh"
-
 #include "SEQ_iterator.hh"
 #include "SEQ_prefetch.hh"
 #include "SEQ_preview_cache.hh"
@@ -34,6 +32,7 @@
 
 #include "cache/final_image_cache.hh"
 #include "cache/intra_frame_cache.hh"
+#include "cache/movie_reader_cache.hh"
 #include "cache/source_image_cache.hh"
 #include "effects/effects.hh"
 #include "sequencer.hh"
@@ -269,6 +268,9 @@ void relations_free_imbuf(Scene *scene, ListBaseT<Strip> *seqbase, bool for_rend
   }
 
   prefetch_stop(scene);
+  if (!for_render && seqbase == &scene->ed->seqbase) {
+    movie_reader_cache_clear(*scene);
+  }
 
   for (Strip &strip : *seqbase) {
     if (for_render && strip.intersects_frame(scene, scene->r.cfra)) {
@@ -276,8 +278,8 @@ void relations_free_imbuf(Scene *scene, ListBaseT<Strip> *seqbase, bool for_rend
     }
 
     if (strip.data) {
-      if (strip.type == STRIP_TYPE_MOVIE) {
-        strip_free_movie_readers(&strip);
+      if (!for_render && strip.type == STRIP_TYPE_MOVIE) {
+        movie_metadata_invalidate(strip);
       }
       if (strip.type == STRIP_TYPE_SPEED) {
         strip_effect_speed_rebuild_map(scene, &strip);
@@ -291,49 +293,6 @@ void relations_free_imbuf(Scene *scene, ListBaseT<Strip> *seqbase, bool for_rend
        * but do recurse protection somehow! */
     }
   }
-}
-
-static void sequencer_all_free_anim_ibufs(const Scene *scene,
-                                          ListBaseT<Strip> *seqbase,
-                                          int timeline_frame,
-                                          const int frame_range[2])
-{
-  Editing *ed = editing_get(scene);
-  for (Strip *strip = static_cast<Strip *>(seqbase->first); strip != nullptr; strip = strip->next)
-  {
-    if (!strip->intersects_frame(scene, timeline_frame) ||
-        !((frame_range[0] <= timeline_frame) && (frame_range[1] > timeline_frame)))
-    {
-      strip_free_movie_readers(strip);
-    }
-    if (strip->type == STRIP_TYPE_META) {
-      int meta_range[2];
-
-      MetaStack *ms = meta_stack_active_get(ed);
-      if (ms != nullptr && ms->parent_strip == strip) {
-        meta_range[0] = -MAXFRAME;
-        meta_range[1] = MAXFRAME;
-      }
-      else {
-        /* Limit frame range to meta strip. */
-        meta_range[0] = max_ii(frame_range[0], strip->left_handle());
-        meta_range[1] = min_ii(frame_range[1], strip->right_handle(scene));
-      }
-
-      sequencer_all_free_anim_ibufs(scene, &strip->seqbase, timeline_frame, meta_range);
-    }
-  }
-}
-
-void relations_free_all_anim_ibufs(Scene *scene, int timeline_frame)
-{
-  Editing *ed = editing_get(scene);
-  if (ed == nullptr) {
-    return;
-  }
-
-  const int frame_range[2] = {-MAXFRAME, MAXFRAME};
-  sequencer_all_free_anim_ibufs(scene, &ed->seqbase, timeline_frame, frame_range);
 }
 
 static Strip *sequencer_check_scene_recursion(Scene *scene, ListBaseT<Strip> *seqbase)
@@ -411,14 +370,6 @@ bool relations_render_loop_check(Strip *strip_main, Strip *strip)
   }
 
   return false;
-}
-
-void strip_free_movie_readers(Strip *strip)
-{
-  for (MovieReader *anim : strip->runtime->movie_readers) {
-    MOV_close(anim);
-  }
-  strip->runtime->movie_readers.clear();
 }
 
 void relations_session_uid_generate(Strip *strip)

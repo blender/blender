@@ -13,13 +13,11 @@
 #include "BKE_sound_types.hh"
 
 #include "BLI_map.hh"
-#include "BLI_vector.hh"
 
 #include "SEQ_modifier.hh"
 
 namespace blender {
 
-struct MovieReader;
 struct Strip;
 struct StripModifierData;
 
@@ -60,7 +58,6 @@ class StripBackup {
   AUD_SequenceEntry scene_sound;
   AUD_Sound sound_time_stretch;
   float sound_time_stretch_fps;
-  Vector<MovieReader *, 1> movie_readers;
   Map<int, StripModifierDataBackup> modifiers;
 };
 

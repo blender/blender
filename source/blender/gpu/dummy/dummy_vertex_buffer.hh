@@ -22,6 +22,12 @@ class DummyVertexBuffer : public VertBuf {
   void wrap_handle(uint64_t /*handle*/) override {}
 
   void update_sub(uint /*start*/, uint /*len*/, const void * /*data*/) override {}
+  void copy_sub(VertBuf & /*source_buf*/,
+                uint /*source_first_vertex*/,
+                uint /*dest_first_vertex*/,
+                uint /*vertex_len*/) override
+  {
+  }
   void read(void * /*data*/) const override {}
 
  protected:

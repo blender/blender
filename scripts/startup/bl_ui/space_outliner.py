@@ -451,6 +451,9 @@ class OUTLINER_PT_filter(Panel):
             row = col.row(align=True)
             row.active = space.use_sync_select
             row.prop(space, "scroll_to_active", text="Scroll to Active")
+            row = col.row(align=True)
+            row.active = space.scroll_to_active and space.use_sync_select
+            row.prop(space, "expand_on_focus")
 
             row = layout.row(align=True)
             row.prop(space, "show_mode_column", text="Show Mode Column")

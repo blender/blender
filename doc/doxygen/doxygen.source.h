@@ -102,8 +102,6 @@
 
 /** \defgroup blenloader Blend file IO
  *  \ingroup blender data
- *  \todo check if \ref blo and \ref blenloader groups can be
- *   merged in docs.
  */
 
 /** \defgroup gui GUI

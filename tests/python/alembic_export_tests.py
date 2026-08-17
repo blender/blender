@@ -601,6 +601,25 @@ class CustomPropertiesExportTest(AbstractAlembicTest):
         self.assertNotIn('type', abcprop, 'Custom properties should not be written')
 
 
+class PointCloudExportTest(AbstractAlembicTest):
+    """Test export of point cloud objects."""
+
+    @with_tempdir
+    def test_export_single_point(self, tempdir: pathlib.Path) -> pathlib.Path:
+        abc = tempdir / 'single-point.abc'
+        script = (
+            "import bpy; bpy.context.scene.frame_set(1); "
+            "bpy.ops.wm.alembic_export(filepath='%s', start=1, end=1)" % abc.as_posix()
+        )
+        self.run_blender('single-point.blend', script)
+
+        abcprop = self.abcprop(abc, '/PointCloud/PointCloud/.geom')
+
+        self.assertEqual(abcprop['.pointIds'], [0])
+        self.assertEqual(abcprop['.widths'], [0.2])
+        self.assertEqual(abcprop['.velocities'], [[0, 0, -1]])
+
+
 if __name__ == '__main__':
     parser = argparse.ArgumentParser()
     parser.add_argument('--blender', required=True)

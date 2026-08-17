@@ -259,7 +259,7 @@ static void view3d_ndof_orbit(const wmNDOFMotionData &ndof,
     /* Level the view to a "horizon plane", an upside down view is kept that way,
      * the turn-table direction is flipped below. */
     const float horizon_plane[3] = {0.0f, 0.0f, 1.0f};
-    view3d_horizon_correct_quat(rv3d->viewquat, horizon_plane, true, nullptr, 1.0f);
+    view3d_horizon_correct_quat(rv3d->viewquat, horizon_plane, true, nullptr, 0.0f, 1.0f);
 
     /* Perform the up/down rotation */
     angle = ndof.time_delta * rot[0];

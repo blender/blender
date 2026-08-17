@@ -140,13 +140,15 @@ const char *DNA_struct_get_compareflags(const struct SDNA *oldsdna, const struct
  * \param blocks: The number of array elements.
  * \param old_blocks: Array of struct data.
  * \param alloc_name: String to pass to the allocation calls for reconstructed data.
+ * \param r_alloc_size: If not null, set to the size in bytes of the returned allocation.
  * \return An allocated reconstructed struct.
  */
 void *DNA_struct_reconstruct(const struct DNA_ReconstructInfo *reconstruct_info,
                              int old_struct_index,
                              int blocks,
                              const void *old_blocks,
-                             const char *alloc_name);
+                             const char *alloc_name,
+                             int64_t *r_alloc_size = nullptr);
 
 /**
  * A version of #DNA_struct_member_offset_by_name_with_alias that uses the non-aliased name.

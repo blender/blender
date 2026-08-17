@@ -194,7 +194,11 @@ static CLG_LogRef LOG_UNDO = {"undo"};
 
 /* local prototypes */
 static void read_libraries(FileData *basefd);
-static void *read_struct(FileData *fd, BHead *bh, const char *blockname, const int id_type_index);
+static void *read_struct(FileData *fd,
+                         BHead *bh,
+                         const char *blockname,
+                         const int id_type_index,
+                         int64_t *r_alloc_len = nullptr);
 static BHead *find_bhead_from_code_name(FileData *fd, const short idcode, const char *name);
 
 struct BHeadN {
@@ -258,6 +262,14 @@ static const char *library_parent_filepath(Library *lib)
 struct NewAddress {
   void *newp;
 
+  /**
+   * Size in bytes of the allocation `newp` points to. Tracked for #FileData::datamap entries,
+   * where it is used to sanity-check that blocks read from the file are large enough for what is
+   * being requested from them. Zero for entries where the size is not tracked (e.g.
+   * #FileData::libmap, #FileData::globmap).
+   */
+  int64_t alloc_len;
+
   /** `nr` is "user count" for data, and ID code for libdata. */
   int nr;
 };
@@ -275,13 +287,14 @@ static OldNewMap *oldnewmap_new()
  * \return `true` if the \a oldaddr key has been successfully added to the \a onm, and no existing
  * entry was overwritten.
  */
-static bool oldnewmap_insert(OldNewMap *onm, const void *oldaddr, void *newaddr, const int nr)
+static bool oldnewmap_insert(
+    OldNewMap *onm, const void *oldaddr, void *newaddr, const int nr, const int64_t alloc_len = 0)
 {
   if (oldaddr == nullptr || newaddr == nullptr) {
     return false;
   }
 
-  return onm->map.add_overwrite(oldaddr, NewAddress{newaddr, nr});
+  return onm->map.add_overwrite(oldaddr, NewAddress{newaddr, alloc_len, nr});
 }
 
 static void oldnewmap_lib_insert(FileData *fd, const void *oldaddr, ID *newaddr, const int id_code)
@@ -297,7 +310,10 @@ void blo_do_versions_oldnewmap_insert(OldNewMap *onm,
   oldnewmap_insert(onm, oldaddr, newaddr, nr);
 }
 
-static void *oldnewmap_lookup_and_inc(OldNewMap *onm, const void *addr, const bool increase_users)
+static void *oldnewmap_lookup_and_inc(OldNewMap *onm,
+                                      const void *addr,
+                                      const bool increase_users,
+                                      int64_t *r_alloc_len = nullptr)
 {
   NewAddress *entry = onm->map.lookup_ptr(addr);
   if (entry == nullptr) {
@@ -305,6 +321,9 @@ static void *oldnewmap_lookup_and_inc(OldNewMap *onm, const void *addr, const bo
   }
   if (increase_users) {
     entry->nr++;
+  }
+  if (r_alloc_len) {
+    *r_alloc_len = entry->alloc_len;
   }
   return entry->newp;
 }
@@ -1459,15 +1478,15 @@ short BLO_version_from_file(const char *filepath)
  * \{ */
 
 /* Only direct data-blocks. */
-static void *newdataadr(FileData *fd, const void *adr)
+static void *newdataadr(FileData *fd, const void *adr, int64_t *r_alloc_len = nullptr)
 {
-  return oldnewmap_lookup_and_inc(fd->datamap, adr, true);
+  return oldnewmap_lookup_and_inc(fd->datamap, adr, true, r_alloc_len);
 }
 
 /* Only direct data-blocks. */
-static void *newdataadr_no_us(FileData *fd, const void *adr)
+static void *newdataadr_no_us(FileData *fd, const void *adr, int64_t *r_alloc_len = nullptr)
 {
-  return oldnewmap_lookup_and_inc(fd->datamap, adr, false);
+  return oldnewmap_lookup_and_inc(fd->datamap, adr, false, r_alloc_len);
 }
 
 void *blo_read_get_new_globaldata_address(FileData *fd, const void *adr)
@@ -1812,7 +1831,8 @@ static const char *get_alloc_name(FileData *fd,
 #endif
 }
 
-static void *read_struct(FileData *fd, BHead *bh, const char *blockname, const int id_type_index)
+static void *read_struct(
+    FileData *fd, BHead *bh, const char *blockname, const int id_type_index, int64_t *r_alloc_len)
 {
   void *temp = nullptr;
 
@@ -1875,7 +1895,7 @@ static void *read_struct(FileData *fd, BHead *bh, const char *blockname, const i
         }
 #endif
         temp = DNA_struct_reconstruct(
-            fd->reconstruct_info, bh->SDNAnr, bh->nr, (bh + 1), alloc_name);
+            fd->reconstruct_info, bh->SDNAnr, bh->nr, (bh + 1), alloc_name, r_alloc_len);
       }
       else {
         /* SDNA_CMP_EQUAL */
@@ -1897,6 +1917,9 @@ static void *read_struct(FileData *fd, BHead *bh, const char *blockname, const i
 #else
         memcpy(temp, (bh + 1), bh->len);
 #endif
+        if (r_alloc_len && temp) {
+          *r_alloc_len = bh->len;
+        }
       }
     }
 
@@ -2824,9 +2847,10 @@ static BHead *read_data_into_datamap(FileData *fd,
   bhead = blo_bhead_next(fd, bhead);
 
   while (bhead && bhead->code == BLO_CODE_DATA) {
-    void *data = read_struct(fd, bhead, allocname, id_type_index);
+    int64_t alloc_len = 0;
+    void *data = read_struct(fd, bhead, allocname, id_type_index, &alloc_len);
     if (data) {
-      const bool is_new = oldnewmap_insert(fd->datamap, bhead->old, data, 0);
+      const bool is_new = oldnewmap_insert(fd->datamap, bhead->old, data, 0, alloc_len);
       if (!is_new) {
         CLOG_ERROR(&LOG,
                    "Blendfile corruption: Invalid, or multiple `bhead` with same old address "
@@ -6040,12 +6064,13 @@ static void read_libraries(FileData *basefd)
 static void *blo_verify_data_address(FileData *fd,
                                      void *new_address,
                                      const void * /*old_address*/,
+                                     const int64_t alloc_len,
                                      const size_t expected_size)
 {
   if (new_address != nullptr) {
     /* Not testing equality, since size might have been aligned up,
      * or might be passed the size of a base struct with inheritance. */
-    if (MEM_allocN_len(new_address) < expected_size) {
+    if (alloc_len < int64_t(expected_size)) {
       blo_readfile_invalidate(fd,
                               (*fd->bmain->split_mains)[fd->bmain->split_mains->size() - 1],
                               "Corrupt .blend file, unexpected data size.");
@@ -6070,16 +6095,18 @@ void *blo_read_struct_impl(BlendDataReader *reader,
                            const void *old_address,
                            const size_t expected_size)
 {
-  void *new_address = newdataadr(reader->fd, old_address);
-  return blo_verify_data_address(reader->fd, new_address, old_address, expected_size);
+  int64_t alloc_len = 0;
+  void *new_address = newdataadr(reader->fd, old_address, &alloc_len);
+  return blo_verify_data_address(reader->fd, new_address, old_address, alloc_len, expected_size);
 }
 
 void *blo_read_struct_no_us_impl(BlendDataReader *reader,
                                  const void *old_address,
                                  const size_t expected_size)
 {
-  void *new_address = newdataadr_no_us(reader->fd, old_address);
-  return blo_verify_data_address(reader->fd, new_address, old_address, expected_size);
+  int64_t alloc_len = 0;
+  void *new_address = newdataadr_no_us(reader->fd, old_address, &alloc_len);
+  return blo_verify_data_address(reader->fd, new_address, old_address, alloc_len, expected_size);
 }
 
 static void *blo_check_data_address_nonnull(FileData *fd,
@@ -6132,13 +6159,14 @@ bool blo_read_array_impl(BlendDataReader *reader,
     return false;
   }
 
-  void *new_address = newdataadr(reader->fd, *ptr_p);
+  int64_t alloc_len = 0;
+  void *new_address = newdataadr(reader->fd, *ptr_p, &alloc_len);
   if (new_address == nullptr) {
     *ptr_p = nullptr;
     return total_elems == 0;
   }
   if (elem_size > 0) {
-    const int64_t max_array_size = int64_t(MEM_allocN_len(new_address) / elem_size);
+    const int64_t max_array_size = alloc_len / int64_t(elem_size);
     if (total_elems > max_array_size) {
       blo_readfile_invalidate(
           reader->fd,
@@ -6205,13 +6233,14 @@ void BLO_read_struct_list_with_size(BlendDataReader *reader,
 
 void BLO_read_string(BlendDataReader *reader, char **ptr_p)
 {
-  BLO_read_raw_address(reader, ptr_p);
-
 #ifndef NDEBUG
+  int64_t alloc_len = 0;
+  *ptr_p = static_cast<char *>(newdataadr(reader->fd, *ptr_p, &alloc_len));
+
   const char *str = *ptr_p;
   if (str) {
     /* Verify that we have a null terminator. */
-    for (size_t len = MEM_allocN_len(str); len > 0; len--) {
+    for (int64_t len = alloc_len; len > 0; len--) {
       if (str[len - 1] == '\0') {
         return;
       }
@@ -6219,6 +6248,8 @@ void BLO_read_string(BlendDataReader *reader, char **ptr_p)
 
     BLI_assert_msg(0, "Corrupt .blend file, expected string to be null terminated.");
   }
+#else
+  BLO_read_raw_address(reader, ptr_p);
 #endif
 }
 
@@ -6268,7 +6299,8 @@ bool blo_read_pointer_array_impl(BlendDataReader *reader, const int64_t array_si
     return false;
   }
 
-  void *orig_array = newdataadr(fd, *ptr_p);
+  int64_t alloc_len = 0;
+  void *orig_array = newdataadr(fd, *ptr_p, &alloc_len);
   if (orig_array == nullptr) {
     /* See comment in #blo_read_array_impl. */
     *ptr_p = nullptr;
@@ -6278,7 +6310,7 @@ bool blo_read_pointer_array_impl(BlendDataReader *reader, const int64_t array_si
   const int file_pointer_size = fd->filesdna->pointer_size;
   const int current_pointer_size = fd->memsdna->pointer_size;
 
-  const int64_t max_array_size = int64_t(MEM_allocN_len(orig_array)) / file_pointer_size;
+  const int64_t max_array_size = alloc_len / file_pointer_size;
   if (array_size > max_array_size) {
     blo_readfile_invalidate(fd,
                             (*fd->bmain->split_mains)[fd->bmain->split_mains->size() - 1],

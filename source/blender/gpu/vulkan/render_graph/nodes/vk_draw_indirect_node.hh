@@ -96,7 +96,16 @@ class VKDrawIndirectNode : public VKDrawNodeInfo<VKNodeType::DRAW_INDIRECT,
     vk_vertex_buffer_bindings_build_commands(
         command_buffer, data.vertex_buffers, r_bound_pipelines.graphics.vertex_buffers);
 
-    command_buffer.draw_indirect(data.indirect_buffer, data.offset, data.draw_count, data.stride);
+    if (command_buffer.use_multi_draw_indirect) {
+      command_buffer.draw_indirect(
+          data.indirect_buffer, data.offset, data.draw_count, data.stride);
+    }
+    else {
+      for (uint32_t i : IndexRange(data.draw_count)) {
+        command_buffer.draw_indirect(
+            data.indirect_buffer, data.offset + i * data.stride, 1, data.stride);
+      }
+    }
   }
 };
 }  // namespace blender::gpu::render_graph

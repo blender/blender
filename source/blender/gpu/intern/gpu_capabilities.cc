@@ -174,6 +174,11 @@ bool GPU_ray_query_support()
   return GCaps.ray_query_support;
 }
 
+bool GPU_vertex_pipeline_stores_and_atomics_support()
+{
+  return GCaps.vertex_pipeline_stores_and_atomics_support;
+}
+
 int GPU_max_shader_storage_buffer_bindings()
 {
   return GCaps.max_shader_storage_buffer_bindings;

@@ -9,6 +9,7 @@
 #include "abc_custom_props.h"
 
 #include "abc_writer_abstract.h"
+#include "intern/abc_axis_conversion.h"
 
 #include <string>
 
@@ -260,6 +261,35 @@ OArrayProperty CustomPropertiesExporter::create_abc_property(const StringRef pro
   ABCPropertyType abc_property(abc_prop_for_custom_props, property_name);
   abc_property.setTimeSampling(timesample_index);
   return abc_property;
+}
+
+void get_positions(const Span<float3> positions, std::vector<Imath::V3f> &points)
+{
+  points.clear();
+  points.resize(positions.size());
+
+  for (const int i : positions.index_range()) {
+    copy_yup_from_zup(points[i].getValue(), positions[i]);
+  }
+}
+
+bool get_velocities(const bke::AttributeAccessor &attributes, std::vector<Imath::V3f> &velocities)
+{
+  /* Export velocity attribute output by fluid sim, sequence cache modifier
+   * and geometry nodes. */
+  const VArraySpan attr = *attributes.lookup<float3>("velocity", bke::AttrDomain::Point);
+  if (attr.is_empty()) {
+    return false;
+  }
+
+  velocities.clear();
+  velocities.resize(attr.size());
+
+  for (const int i : attr.index_range()) {
+    copy_yup_from_zup(velocities[i].getValue(), attr[i]);
+  }
+
+  return true;
 }
 
 }  // namespace io::alembic

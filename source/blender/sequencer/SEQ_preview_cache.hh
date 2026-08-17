@@ -23,17 +23,13 @@ class Texture;
 namespace seq {
 
 gpu::Texture *preview_cache_get_gpu_texture(
-    Scene *scene, int timeline_frame, int display_channel, int width, int height);
-void preview_cache_set_gpu_texture(Scene *scene,
-                                   int timeline_frame,
-                                   int display_channel,
-                                   gpu::Texture *texture);
+    Scene *scene, int timeline_frame, int view_id, int display_channel, int width, int height);
+void preview_cache_set_gpu_texture(
+    Scene *scene, int timeline_frame, int view_id, int display_channel, gpu::Texture *texture);
 gpu::Texture *preview_cache_get_gpu_scope_texture(
-    Scene *scene, int timeline_frame, int display_channel, int width, int height);
-void preview_cache_set_gpu_scope_texture(Scene *scene,
-                                         int timeline_frame,
-                                         int display_channel,
-                                         gpu::Texture *texture);
+    Scene *scene, int timeline_frame, int view_id, int display_channel, int width, int height);
+void preview_cache_set_gpu_scope_texture(
+    Scene *scene, int timeline_frame, int view_id, int display_channel, gpu::Texture *texture);
 
 void preview_cache_invalidate(Scene *scene);
 void preview_cache_destroy(Scene *scene);

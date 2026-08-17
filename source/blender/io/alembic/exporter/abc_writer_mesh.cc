@@ -59,7 +59,6 @@ namespace io::alembic {
 
 /* NOTE: Alembic's polygon winding order is clockwise, to match with Renderman. */
 
-static void get_vertices(Mesh *mesh, std::vector<Imath::V3f> &points);
 static void get_topology(Mesh *mesh,
                          std::vector<int32_t> &face_verts,
                          std::vector<int32_t> &loop_counts);
@@ -256,7 +255,7 @@ void ABCGenericMeshWriter::write_mesh(HierarchyContext &context, Mesh *mesh)
   std::vector<int32_t> face_verts, loop_counts;
   std::vector<Imath::V3f> velocities;
 
-  get_vertices(mesh, points);
+  get_positions(mesh->vert_positions(), points);
   get_topology(mesh, face_verts, loop_counts);
 
   if (!frame_has_been_written_ && args_.export_params->face_sets) {
@@ -301,7 +300,7 @@ void ABCGenericMeshWriter::write_mesh(HierarchyContext &context, Mesh *mesh)
     write_generated_coordinates(abc_poly_mesh_schema_.getArbGeomParams(), m_custom_data_config);
   }
 
-  if (get_velocities(mesh, velocities)) {
+  if (get_velocities(mesh->attributes(), velocities)) {
     mesh_sample.setVelocities(V3fArraySample(velocities));
   }
 
@@ -320,7 +319,7 @@ void ABCGenericMeshWriter::write_subd(HierarchyContext &context, Mesh *mesh)
   std::vector<int32_t> face_verts, loop_counts;
   std::vector<int32_t> edge_crease_indices, edge_crease_lengths, vert_crease_indices;
 
-  get_vertices(mesh, points);
+  get_positions(mesh->vert_positions(), points);
   get_topology(mesh, face_verts, loop_counts);
   get_edge_creases(mesh, edge_crease_indices, edge_crease_lengths, edge_crease_sharpness);
   get_vert_creases(mesh, vert_crease_indices, vert_crease_sharpness);
@@ -450,28 +449,6 @@ void ABCGenericMeshWriter::write_arb_geo_params(Mesh *mesh)
   write_custom_data(arb_geom_params, m_custom_data_config, *mesh, CD_PROP_BYTE_COLOR);
 }
 
-bool ABCGenericMeshWriter::get_velocities(Mesh *mesh, std::vector<Imath::V3f> &vels)
-{
-  /* Export velocity attribute output by fluid sim, sequence cache modifier
-   * and geometry nodes. */
-  const bke::AttributeAccessor attributes = mesh->attributes();
-  const VArraySpan attr = *attributes.lookup<float3>("velocity", bke::AttrDomain::Point);
-  if (attr.is_empty()) {
-    return false;
-  }
-
-  const int totverts = mesh->verts_num;
-
-  vels.clear();
-  vels.resize(totverts);
-
-  for (int i = 0; i < totverts; i++) {
-    copy_yup_from_zup(vels[i].getValue(), attr[i]);
-  }
-
-  return true;
-}
-
 void ABCGenericMeshWriter::get_geo_groups(Object *object,
                                           Mesh *mesh,
                                           std::map<std::string, std::vector<int32_t>> &geo_groups)
@@ -515,17 +492,6 @@ void ABCGenericMeshWriter::get_geo_groups(Object *object,
 }
 
 /* NOTE: Alembic's polygon winding order is clockwise, to match with Renderman. */
-
-static void get_vertices(Mesh *mesh, std::vector<Imath::V3f> &points)
-{
-  points.clear();
-  points.resize(mesh->verts_num);
-
-  const Span<float3> positions = mesh->vert_positions();
-  for (int i = 0, e = mesh->verts_num; i < e; i++) {
-    copy_yup_from_zup(points[i].getValue(), positions[i]);
-  }
-}
 
 static void get_topology(Mesh *mesh,
                          std::vector<int32_t> &face_verts,

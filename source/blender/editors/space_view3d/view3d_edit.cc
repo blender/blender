@@ -18,6 +18,7 @@
 #include "BLI_math_geom_c.hh"
 #include "BLI_math_matrix.hh"
 #include "BLI_math_matrix_c.hh"
+#include "BLI_math_quaternion.hh"
 #include "BLI_math_rotation_c.hh"
 #include "BLI_math_vector_c.hh"
 #include "BLI_rect.hh"
@@ -487,6 +488,70 @@ void VIEW3D_OT_zoom_camera_1_to_1(wmOperatorType *ot)
 
   /* flags */
   ot->flag = 0;
+}
+
+/** \} */
+
+/* -------------------------------------------------------------------- */
+/** \name Set View Roll Operator
+ *
+ * Sets the roll of the view to an angle.
+ * \{ */
+
+static void view3d_set_view_angle(ARegion *region, View3D *v3d, const float input_angle)
+{
+  RegionView3D *rv3d = static_cast<RegionView3D *>(region->regiondata);
+  const float angle = angle_wrap_rad(input_angle);
+
+  if (rv3d->persp == RV3D_CAMOB) {
+    const bool is_camera_lock = ED_view3d_camera_lock_check(v3d, rv3d);
+    if (!is_camera_lock) {
+      rv3d->camroll = angle;
+      return;
+    }
+  }
+
+  const float horizon_plane[3] = {0.0f, 0.0f, 1.0f};
+  /* Match the top & bottom axis-views, without this the angle
+   * would be relative and repeated runs would accumulate. */
+  const float axis_fallback[3] = {1.0f, 0.0f, 0.0f};
+
+  view3d_horizon_correct_quat(rv3d->viewquat, horizon_plane, false, axis_fallback, angle, 1.0f);
+
+  rv3d->view = RV3D_VIEW_USER;
+}
+
+static wmOperatorStatus view3d_set_roll_exec(bContext *C, wmOperator *op)
+{
+  View3D *v3d;
+  ARegion *region;
+
+  const float angle = RNA_float_get(op->ptr, "angle");
+
+  /* no nullptr check is needed, poll checks */
+  ED_view3d_context_user_region(C, &v3d, &region);
+  ED_view3d_smooth_view_force_finish(C, v3d, region);
+
+  view3d_set_view_angle(region, v3d, angle);
+  ED_region_tag_redraw(region);
+
+  return OPERATOR_FINISHED;
+}
+
+void VIEW3D_OT_view_roll_set(wmOperatorType *ot)
+{
+  /* identifiers */
+  ot->name = "Set View Roll";
+  ot->description = "Set the view roll angle";
+  ot->idname = "VIEW3D_OT_view_roll_set";
+
+  /* API callbacks. */
+  ot->exec = view3d_set_roll_exec;
+  ot->poll = ED_operator_rv3d_user_region_poll;
+
+  /* properties */
+  ot->prop = RNA_def_float(ot->srna, "angle", 0, -FLT_MAX, FLT_MAX, "Roll", "", -FLT_MAX, FLT_MAX);
+  RNA_def_property_flag(ot->prop, PROP_SKIP_SAVE);
 }
 
 /** \} */

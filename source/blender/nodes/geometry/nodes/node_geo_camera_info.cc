@@ -102,6 +102,7 @@ static void node_geo_exec(GeoNodeExecParams params)
   const Object *camera_obj = params.extract_input<Object *>("Camera"_ustr);
 
   if (!camera_obj || camera_obj->type != OB_CAMERA) {
+    params.error_message_add(NodeWarningType::Error, TIP_("Object is not a camera"));
     params.set_default_remaining_outputs();
     return;
   }
@@ -139,6 +140,7 @@ class CameraInfoOperation : public NodeOperation {
   {
     const Object *camera_object = this->get_input("Camera").get_single_value<Object *>();
     if (!camera_object || camera_object->type != OB_CAMERA) {
+      this->add_warning(NodeWarningType::Error, TIP_("Object is not a camera"));
       this->allocate_default_remaining_outputs();
       return;
     }

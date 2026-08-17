@@ -509,6 +509,9 @@ void MTLBackend::capabilities_init(MTLContext *ctx)
 #endif
   GCaps.ray_query_support = MTLBackend::capabilities.supports_ray_tracing;
 
+  /* Vertex pipeline stores and atomics support. */
+  GCaps.vertex_pipeline_stores_and_atomics_support = true;
+
   /** Identify support for tile inputs. */
   const bool is_tile_based_arch = (GPU_platform_architecture() == GPU_ARCHITECTURE_TBDR);
   if (is_tile_based_arch) {

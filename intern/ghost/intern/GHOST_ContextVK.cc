@@ -431,11 +431,9 @@ struct GHOST_InstanceVK {
 #ifndef __APPLE__
           !device_vk.features.features.geometryShader ||
 #endif
-          !device_vk.features.features.vertexPipelineStoresAndAtomics ||
           !device_vk.features.features.multiViewport ||
           !device_vk.features.features.shaderClipDistance ||
           !device_vk.features.features.fragmentStoresAndAtomics ||
-          !device_vk.features.features.multiDrawIndirect ||
           !device_vk.features.features.imageCubeArray ||
           !device_vk.features.features.dualSrcBlend || !device_vk.features.features.logicOp ||
           !device_vk.features.features.imageCubeArray)
@@ -606,14 +604,15 @@ struct GHOST_InstanceVK {
 #ifndef __APPLE__
     device_features.geometryShader = VK_TRUE;
 #endif
-    device_features.vertexPipelineStoresAndAtomics = VK_TRUE;
+    device_features.vertexPipelineStoresAndAtomics =
+        device.features.features.vertexPipelineStoresAndAtomics;
     device_features.multiViewport = VK_TRUE;
     device_features.shaderClipDistance = VK_TRUE;
     device_features.fragmentStoresAndAtomics = VK_TRUE;
     device_features.logicOp = VK_TRUE;
     device_features.dualSrcBlend = VK_TRUE;
     device_features.imageCubeArray = VK_TRUE;
-    device_features.multiDrawIndirect = VK_TRUE;
+    device_features.multiDrawIndirect = device.features.features.multiDrawIndirect;
     device_features.drawIndirectFirstInstance = VK_TRUE;
     device_features.samplerAnisotropy = device.features.features.samplerAnisotropy;
     device_features.wideLines = device.features.features.wideLines;
@@ -643,14 +642,14 @@ struct GHOST_InstanceVK {
     vulkan_12_features.timelineSemaphore = VK_TRUE;
     feature_struct_ptr.push_back(&vulkan_12_features);
 
-#ifndef __APPLE__
-    /* Enable provoking vertex. */
+    /* Enable provoking vertex if available. */
     VkPhysicalDeviceProvokingVertexFeaturesEXT provoking_vertex_features = {};
-    provoking_vertex_features.sType =
-        VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_PROVOKING_VERTEX_FEATURES_EXT;
-    provoking_vertex_features.provokingVertexLast = VK_TRUE;
-    feature_struct_ptr.push_back(&provoking_vertex_features);
-#endif
+    if (device.extensions.is_supported(VK_EXT_PROVOKING_VERTEX_EXTENSION_NAME)) {
+      provoking_vertex_features.sType =
+          VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_PROVOKING_VERTEX_FEATURES_EXT;
+      provoking_vertex_features.provokingVertexLast = VK_TRUE;
+      feature_struct_ptr.push_back(&provoking_vertex_features);
+    }
 
     /* Enable dynamic rendering. */
     VkPhysicalDeviceDynamicRenderingFeatures dynamic_rendering = {};
@@ -1870,9 +1869,7 @@ GHOST_TSuccess GHOST_ContextVK::initializeDrawingContext()
     optional_device_extensions.append(VK_KHR_EXTERNAL_MEMORY_FD_EXTENSION_NAME);
 #endif
 
-#ifndef __APPLE__
-    required_device_extensions.append(VK_EXT_PROVOKING_VERTEX_EXTENSION_NAME);
-#endif
+    optional_device_extensions.append(VK_EXT_PROVOKING_VERTEX_EXTENSION_NAME);
     required_device_extensions.append(VK_KHR_DYNAMIC_RENDERING_EXTENSION_NAME);
     optional_device_extensions.append(VK_KHR_DYNAMIC_RENDERING_LOCAL_READ_EXTENSION_NAME);
     optional_device_extensions.append(VK_EXT_DYNAMIC_RENDERING_UNUSED_ATTACHMENTS_EXTENSION_NAME);

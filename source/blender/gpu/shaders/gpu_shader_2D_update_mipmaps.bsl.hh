@@ -165,6 +165,7 @@ struct Resources {
   [[compilation_constant]] const bool is_srgb_texture;
   [[compilation_constant]] const bool is_layered;
   [[push_constant]] const int num_levels;
+  [[push_constant]] const int group_offset;
   [[image(0, read, format), condition(!is_layered)]] image2D mip_in;
   [[image(1, write, format), condition(!is_layered)]] image2D mip_out1;
   [[image(2, write, format), condition(!is_layered)]] image2D mip_out2;
@@ -528,10 +529,11 @@ void update_mipmaps([[global_invocation_id]] const uint3 global_id,
                     [[resource_table]] Resources<format, SharedStorage, InnerType> &srt)
 {
   if (srt.num_levels == 1u) {
+    uint sample_index = global_id.x + uint(srt.group_offset) * uint(LOCAL_SIZE_X);
     int2 kernel_size = kernel_size_from_input_size(srt.level_size(INPUT_LEVEL));
     int2 dst_image_size = srt.level_size(INPUT_LEVEL + 1);
-    int2 dst_coord = int2(int(global_id.x) % dst_image_size.x,
-                          int(global_id.x) / dst_image_size.x);
+    int2 dst_coord = int2(int(sample_index) % dst_image_size.x,
+                          int(sample_index) / dst_image_size.x);
     int2 src_coord = dst_coord * 2;
 
     if (dst_coord.y < dst_image_size.y) {
@@ -542,12 +544,13 @@ void update_mipmaps([[global_invocation_id]] const uint3 global_id,
   else {
     /* Handling two levels.
      * Assign a 8x8 tile of mip level inputLevel_ + 2 to this workgroup. */
+    uint group_index = group_id.x + uint(srt.group_offset);
     int level2 = INPUT_LEVEL + 2;
     int2 level2_size = srt.level_size(level2);
     int2 tile_count;
     tile_count.x = int(uint(level2_size.x + 7) / 8u);
     tile_count.y = int(uint(level2_size.y + 7) / 8u);
-    int2 tile_index = int2(group_id.x % uint(tile_count.x), group_id.x / uint(tile_count.x));
+    int2 tile_index = int2(group_index % uint(tile_count.x), group_index / uint(tile_count.x));
 
     /* Determine if bounds checking is needed; this is only the case
      * for tiles at the right or bottom fringe that might be cut off

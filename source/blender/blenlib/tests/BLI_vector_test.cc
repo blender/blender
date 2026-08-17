@@ -10,6 +10,7 @@
 #include "BLI_strict_flags.hh" /* IWYU pragma: keep. Keep last. */
 
 namespace blender::tests {
+namespace {
 
 TEST(vector, DefaultConstructor)
 {
@@ -1020,4 +1021,5 @@ TEST(vector, ReleaseAllocated)
   MEM_delete(data.data);
 }
 
+}  // namespace
 }  // namespace blender::tests

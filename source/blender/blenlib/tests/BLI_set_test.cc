@@ -314,13 +314,13 @@ static bool operator==(const Type2 &a, const Type1 &b)
 }  // namespace tests
 
 /* This has to be defined in ::blender namespace. */
-template<> struct DefaultHash<tests::Type1> {
-  uint32_t operator()(const tests::Type1 &value) const
+template<> struct DefaultHash<blender::tests::Type1> {
+  uint32_t operator()(const blender::tests::Type1 &value) const
   {
     return value.value;
   }
 
-  uint32_t operator()(const tests::Type2 &value) const
+  uint32_t operator()(const blender::tests::Type2 &value) const
   {
     return value.value;
   }

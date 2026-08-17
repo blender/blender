@@ -1087,6 +1087,7 @@ static const float view3d_horizon_eps = 1e-5f;
 /**
  * The roll of `quat` relative to the horizon, see #view3d_horizon_correct_quat.
  *
+ * \param angle_target: The roll to rotate to, zero levels the view.
  * \param use_ease_out: Scale the angle down as the view turns to face along `horizon_plane`.
  * \return the angle to rotate by, zero when there is nothing to do.
  */
@@ -1094,6 +1095,7 @@ static float view3d_horizon_angle_calc(const float quat[4],
                                        const float horizon_plane[3],
                                        const bool horizon_plane_no_flip,
                                        const float axis_fallback[3],
+                                       const float angle_target,
                                        const bool use_ease_out)
 {
   BLI_ASSERT_UNIT_V3(horizon_plane);
@@ -1137,6 +1139,8 @@ static float view3d_horizon_angle_calc(const float quat[4],
     angle = copysignf(dot_v3v3(imat[0], horizon_plane), angle);
   }
 
+  angle -= angle_target;
+
   return (fabsf(angle) < view3d_horizon_eps) ? 0.0f : angle;
 }
 
@@ -1152,10 +1156,11 @@ float view3d_horizon_correct_quat(float quat[4],
                                   const float horizon_plane[3],
                                   const bool horizon_plane_no_flip,
                                   const float axis_fallback[3],
+                                  const float angle_target,
                                   const float factor)
 {
   const float angle = view3d_horizon_angle_calc(
-      quat, horizon_plane, horizon_plane_no_flip, axis_fallback, false);
+      quat, horizon_plane, horizon_plane_no_flip, axis_fallback, angle_target, false);
   if (angle != 0.0f) {
     view3d_horizon_angle_apply(quat, angle * factor);
   }
@@ -1169,7 +1174,7 @@ float view3d_horizon_correct_quat_ease_out(float quat[4],
                                            const float factor)
 {
   const float angle = view3d_horizon_angle_calc(
-      quat, horizon_plane, horizon_plane_no_flip, nullptr, true);
+      quat, horizon_plane, horizon_plane_no_flip, nullptr, 0.0f, true);
   if (angle != 0.0f) {
     view3d_horizon_angle_apply(quat, angle * factor);
   }

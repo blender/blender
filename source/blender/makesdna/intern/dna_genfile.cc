@@ -1328,7 +1328,8 @@ void *DNA_struct_reconstruct(const DNA_ReconstructInfo *reconstruct_info,
                              int old_struct_index,
                              int blocks,
                              const void *old_blocks,
-                             const char *alloc_name)
+                             const char *alloc_name,
+                             int64_t *r_alloc_size)
 {
   const SDNA *oldsdna = reconstruct_info->oldsdna;
   const SDNA *newsdna = reconstruct_info->newsdna;
@@ -1353,6 +1354,9 @@ void *DNA_struct_reconstruct(const DNA_ReconstructInfo *reconstruct_info,
                       new_struct_index,
                       static_cast<const char *>(old_blocks),
                       new_blocks);
+  if (r_alloc_size) {
+    *r_alloc_size = int64_t(new_block_size) * blocks;
+  }
   return new_blocks;
 }
 

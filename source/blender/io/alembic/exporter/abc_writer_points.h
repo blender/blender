@@ -31,4 +31,19 @@ class ABCPointsWriter : public ABCAbstractWriter {
   void do_write(HierarchyContext &context) override;
 };
 
+class ABCPointCloudWriter : public ABCAbstractWriter {
+  Alembic::AbcGeom::OPoints abc_points_;
+  Alembic::AbcGeom::OPointsSchema abc_points_schema_;
+
+ public:
+  explicit ABCPointCloudWriter(const ABCWriterConstructorArgs &args);
+
+  virtual void create_alembic_objects(const HierarchyContext *context) override;
+  virtual Alembic::Abc::OObject get_alembic_object() const override;
+  Alembic::Abc::OCompoundProperty abc_prop_for_custom_props() override;
+
+ protected:
+  virtual void do_write(HierarchyContext &context) override;
+};
+
 }  // namespace blender::io::alembic

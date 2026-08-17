@@ -33,9 +33,9 @@
 #include "SEQ_time.hh"
 #include "SEQ_transform.hh"
 
+#include "cache/movie_reader_cache.hh"
 #include "sequencer.hh"
 #include "strip_time.hh"
-#include "utils.hh"
 
 namespace blender {
 namespace seq {
@@ -489,12 +489,11 @@ float Strip::media_fps(Scene *scene)
 {
   switch (this->type) {
     case STRIP_TYPE_MOVIE: {
-      seq::strip_open_anim_file(scene, this, true);
-      const MovieReader *anim = this->runtime->movie_reader_get();
-      if (anim == nullptr) {
+      seq::MovieReaderAccessor reader = seq::movie_reader_cache_acquire_any(*scene, *this);
+      if (!reader) {
         return 0.0f;
       }
-      return MOV_get_fps(anim);
+      return MOV_get_fps(reader.reader());
     }
     case STRIP_TYPE_MOVIECLIP:
       if (this->clip != nullptr) {

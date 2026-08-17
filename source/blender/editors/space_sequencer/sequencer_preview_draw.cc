@@ -738,10 +738,14 @@ static void sequencer_draw_scopes(Scene *scene,
   /* Get display-space texture for scope values (positions, histogram bins).
    * Falls back to the raw input texture if no color management is needed. */
   gpu::Texture *scope_texture = seq::preview_cache_get_gpu_scope_texture(
-      scene, timeline_frame, 0, image_width, image_height);
+      scene, timeline_frame, space_sequencer.multiview_eye, 0, image_width, image_height);
   if (scope_texture == nullptr) {
-    scope_texture = seq::preview_cache_get_gpu_texture(
-        scene, timeline_frame, space_sequencer.chanshown, image_width, image_height);
+    scope_texture = seq::preview_cache_get_gpu_texture(scene,
+                                                       timeline_frame,
+                                                       space_sequencer.multiview_eye,
+                                                       space_sequencer.chanshown,
+                                                       image_width,
+                                                       image_height);
   }
 
   SeqQuadsBatch quads;
@@ -934,7 +938,12 @@ static void update_gpu_scopes(const ImBuf *input_ibuf,
   const int width = GPU_texture_width(input_texture);
   const int height = GPU_texture_height(input_texture);
   gpu::Texture *scope_texture = seq::preview_cache_get_gpu_scope_texture(
-      scene, timeline_frame, space_sequencer.chanshown, width, height);
+      scene,
+      timeline_frame,
+      space_sequencer.multiview_eye,
+      space_sequencer.chanshown,
+      width,
+      height);
   if (scope_texture != nullptr) {
     return;
   }
@@ -988,8 +997,11 @@ static void update_gpu_scopes(const ImBuf *input_ibuf,
   GPU_matrix_pop();
   GPU_matrix_pop_projection();
 
-  seq::preview_cache_set_gpu_scope_texture(
-      scene, timeline_frame, space_sequencer.chanshown, scope_texture);
+  seq::preview_cache_set_gpu_scope_texture(scene,
+                                           timeline_frame,
+                                           space_sequencer.multiview_eye,
+                                           space_sequencer.chanshown,
+                                           scope_texture);
 }
 
 static void update_cpu_scopes(const SpaceSeq &space_sequencer,
@@ -1891,12 +1903,19 @@ void sequencer_preview_region_draw(const bContext *C, ARegion *region)
     current_ibuf = sequencer_ibuf_get(
         C, timeline_frame, view_names[space_sequencer.multiview_eye]);
     if (use_gpu_texture && current_ibuf) {
-      current_texture = seq::preview_cache_get_gpu_texture(
-          scene, timeline_frame, space_sequencer.chanshown, current_ibuf->x, current_ibuf->y);
+      current_texture = seq::preview_cache_get_gpu_texture(scene,
+                                                           timeline_frame,
+                                                           space_sequencer.multiview_eye,
+                                                           space_sequencer.chanshown,
+                                                           current_ibuf->x,
+                                                           current_ibuf->y);
       if (current_texture == nullptr) {
         current_texture = create_texture(*current_ibuf);
-        seq::preview_cache_set_gpu_texture(
-            scene, timeline_frame, space_sequencer.chanshown, current_texture);
+        seq::preview_cache_set_gpu_texture(scene,
+                                           timeline_frame,
+                                           space_sequencer.multiview_eye,
+                                           space_sequencer.chanshown,
+                                           current_texture);
       }
     }
   }
