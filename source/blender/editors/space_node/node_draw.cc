@@ -164,7 +164,7 @@ struct TreeDrawContext {
    */
   Array<Vector<NodeExtraInfoRow>> extra_info_rows_per_node;
 
-  Map<int32_t, VectorSet<std::string>> shader_node_errors;
+  Map<int32_t, VectorSet<nodes::NodeWarning>> shader_node_errors;
 
   ~TreeDrawContext()
   {
@@ -2104,11 +2104,12 @@ static void node_draw_panels(bNodeTree &ntree, const bNode &node, ui::Block &blo
   }
 }
 
-static nodes::NodeWarningType node_error_highest_priority(Span<nodes::NodeWarning> warnings)
+template<typename WarningsRange>
+static nodes::NodeWarningType node_error_highest_priority(const WarningsRange &warnings)
 {
   int highest_priority = 0;
   nodes::NodeWarningType highest_priority_type = nodes::NodeWarningType::Info;
-  for (const nodes::NodeWarning &warning : warnings) {
+  for (const auto &warning : warnings) {
     const int priority = node_warning_type_severity(warning.type);
     if (priority > highest_priority) {
       highest_priority = priority;
@@ -2203,7 +2204,7 @@ static void node_add_error_message_button(const TreeDrawContext &tree_draw_ctx,
     return;
   }
   if (ntree.type == NTREE_SHADER) {
-    const VectorSet<std::string> *errors = tree_draw_ctx.shader_node_errors.lookup_ptr(
+    const VectorSet<nodes::NodeWarning> *errors = tree_draw_ctx.shader_node_errors.lookup_ptr(
         node.identifier);
     if (!errors) {
       return;
@@ -2211,17 +2212,22 @@ static void node_add_error_message_button(const TreeDrawContext &tree_draw_ctx,
     if (errors->is_empty()) {
       return;
     }
-    ui::Button *but = add_error_message_button(block, rect, ICON_STATUS_ERROR, icon_offset);
+    const nodes::NodeWarningType display_type = node_error_highest_priority(*errors);
+    ui::Button *but = add_error_message_button(
+        block, rect, nodes::node_warning_type_icon(display_type), icon_offset);
     button_func_quick_tooltip_set(but, [errors = *errors](const ui::Button * /*but*/) {
-      std::string tooltip;
-      for (const int i : errors.index_range()) {
-        const StringRefNull error = errors[i];
-        tooltip += error.c_str();
-        if (i + 1 < errors.size()) {
-          tooltip += ".\n";
+      Vector<std::string> tooltip_lines;
+      for (const nodes::NodeWarning &error : errors) {
+        std::string message = error.message;
+        if (message.empty()) {
+          continue;
         }
+        if (!message.ends_with(".")) {
+          message += ".";
+        }
+        tooltip_lines.append(std::move(message));
       }
-      return tooltip;
+      return fmt::format("{}", fmt::join(tooltip_lines, "\n"));
     });
   }
 }

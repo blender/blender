@@ -1619,7 +1619,7 @@ void report_from_multi_function(const mf::Context &context,
   if (auto *shader_nodes_user_data = dynamic_cast<ShaderNodesMultiFunctionUserData *>(
           context.user_data))
   {
-    shader_nodes_user_data->error_messages.append(std::move(message));
+    shader_nodes_user_data->warnings.append({type, std::move(message)});
     return;
   }
 

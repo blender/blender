@@ -357,7 +357,9 @@ class ShaderNodesInliner {
           }
           const bke::bNodeTreeZone *zone = zones.get_zone_by_node(node->identifier);
           if (zone) {
-            params_.r_error_messages.append({node, TIP_("Output node must not be in zone")});
+            this->report_error({tree.context, node},
+                               TIP_("Output node must not be in zone"),
+                               NodeWarningType::Error);
             continue;
           }
           for (const bNodeSocket *socket : node->input_sockets()) {
@@ -695,7 +697,8 @@ class ShaderNodesInliner {
     if (socket.context && socket.context->parents_num() >= U.nodes_stack_limit) {
       this->store_socket_value_fallback(socket);
       this->report_error(node,
-                         TIP_("Nodes stack limit reached (too many levels of nested nodes)"));
+                         TIP_("Nodes stack limit reached (too many levels of nested nodes)"),
+                         NodeWarningType::Error);
       return;
     }
     group->ensure_interface_cache();
@@ -897,7 +900,9 @@ class ShaderNodesInliner {
 
   void add_dynamic_repeat_zone_iterations_error(const NodeInContext &repeat_input_node)
   {
-    this->report_error(repeat_input_node, TIP_("Iterations input has to be a constant value"));
+    this->report_error(repeat_input_node,
+                       TIP_("Iterations input has to be a constant value"),
+                       NodeWarningType::Error);
   }
 
   void handle_output_socket__repeat_input(const SocketInContext &socket)
@@ -978,7 +983,8 @@ class ShaderNodesInliner {
     if (socket.context && socket.context->parents_num() >= U.nodes_stack_limit) {
       this->store_socket_value_fallback(socket);
       this->report_error(evaluate_closure_node,
-                         TIP_("Nodes stack limit reached (too many levels of nested nodes)"));
+                         TIP_("Nodes stack limit reached (too many levels of nested nodes)"),
+                         NodeWarningType::Error);
       return;
     }
 
@@ -989,8 +995,9 @@ class ShaderNodesInliner {
         closure_output_node.storage);
     const StringRef key = evaluate_closure_storage->output_items.items[socket->index()].name;
 
+    const bNodeTree &closure_tree = closure_output_node.owner_tree();
     const ClosureSourceLocation closure_source_location{
-        &closure_output_node.owner_tree(),
+        &closure_tree,
         closure_output_node.identifier,
         closure_zone_value->closure_creation_context ?
             closure_zone_value->closure_creation_context->hash() :
@@ -1168,7 +1175,8 @@ class ShaderNodesInliner {
       /* This limitation may be lifted in the future. Menu Switch nodes could be supported natively
        * by render engines or we convert them to a bunch of mix nodes. */
       this->store_socket_value_fallback(socket);
-      this->report_error(node, TIP_("Menu value has to be a constant value"));
+      this->report_required_constant_input_or_backtrack(
+          node, TIP_("Menu value has to be a constant value"));
       return;
     }
     const MenuValue menu_value = std::get<MenuValue>(menu_value_opt->value);
@@ -1302,8 +1310,9 @@ class ShaderNodesInliner {
       const int index = std::get<int>(primitive_index_value_opt->value);
       if (index < 0 || index >= storage.items_num) {
         this->store_socket_value_fallback(socket);
-        params_.r_error_messages.append(
-            {node.node, fmt::format("{}: {}", TIP_("Index out of range"), index)});
+        this->report_error(node,
+                           fmt::format("{}: {}", TIP_("Index out of range"), index),
+                           NodeWarningType::Error);
         return;
       }
       this->forward_value_or_schedule(socket, node.input_socket(index + 1));
@@ -1316,8 +1325,8 @@ class ShaderNodesInliner {
     const std::optional<eNodeSocketDatatype> internal_mix_type =
         this->get_internal_mix_socket_type(storage.data_type);
     if (!internal_mix_type) {
-      params_.r_error_messages.append(
-          {node.node, TIP_("Index must be a constant value for this data type")});
+      this->report_required_constant_input_or_backtrack(
+          node, TIP_("Index must be a constant value for this data type"));
       this->store_socket_value_fallback(socket);
       return;
     }
@@ -1414,8 +1423,8 @@ class ShaderNodesInliner {
     const std::optional<eNodeSocketDatatype> internal_mix_type =
         this->get_internal_mix_socket_type(storage.input_type);
     if (!internal_mix_type) {
-      params_.r_error_messages.append(
-          {node.node, TIP_("Switch must be a constant value for this data type")});
+      this->report_required_constant_input_or_backtrack(
+          node, TIP_("Switch must be a constant value for this data type"));
       this->store_socket_value_fallback(socket);
       return;
     }
@@ -1504,25 +1513,37 @@ class ShaderNodesInliner {
     /* Check if this node is supported by the renderer. If not, either try inlining it harder to
      * eliminate the node, or report an error and skip it. */
     if (this->is_inliner_evaluation_node(*node)) {
-      bool found_repeat_zone_to_force_inline = false;
-      for (const ComputeContext *ctx = node.context; ctx; ctx = ctx->parent()) {
-        if (const auto *repeat_zone_ctx = dynamic_cast<const bke::RepeatZoneComputeContext *>(ctx))
-        {
-          if (repeat_zone_ctx->iteration() == preserved_repeat_zone_iteration) {
-            repeat_zones_to_force_inline_.add(
-                {repeat_zone_ctx->parent(), repeat_zone_ctx->output_node_id()});
-            found_repeat_zone_to_force_inline = true;
-          }
-        }
-      }
-      if (!found_repeat_zone_to_force_inline) {
-        this->report_error(node, TIP_("Node requires constant input values"));
-      }
+      this->report_required_constant_input_or_backtrack(
+          node, TIP_("Node requires constant input values"));
       this->store_socket_value_fallback(socket);
       return;
     }
     /* The node can't be constant-folded. So copy it to the destination tree instead. */
     this->handle_output_socket__eval_copy_node(*node, node.context, node.context);
+  }
+
+  /**
+   * Can be called when an input socket that only supports constant values got a non-constant one.
+   * This may either be caused by an issue in the original tree, or because a repeat-zone has been
+   * attempted to preserve that can't be preserved. In the latter case, no error is reported yet.
+   * Instead, the repeat zone is force-inlined which generally either fixes the issue or makes it
+   * obvious that the issue is in fact in the original tree (and then this function will be called
+   * again and the error is actually reported).
+   */
+  void report_required_constant_input_or_backtrack(const NodeInContext node,
+                                                   const StringRef message)
+  {
+    /* Before reporting an error, attempt to inline a surrounding repeat zone. */
+    for (const ComputeContext *ctx = node.context; ctx; ctx = ctx->parent()) {
+      if (const auto *repeat_zone_ctx = dynamic_cast<const bke::RepeatZoneComputeContext *>(ctx)) {
+        if (repeat_zone_ctx->iteration() == preserved_repeat_zone_iteration) {
+          repeat_zones_to_force_inline_.add(
+              {repeat_zone_ctx->parent(), repeat_zone_ctx->output_node_id()});
+          return;
+        }
+      }
+    }
+    this->report_error(node, message, NodeWarningType::Error);
   }
 
   struct EnsureInputsResult {
@@ -1602,8 +1623,8 @@ class ShaderNodesInliner {
           {PrimitiveSocketValue::from_value({output_socket->typeinfo->base_cpp_type, value})});
     }
 
-    for (const StringRef message : user_data.error_messages) {
-      this->report_error(node, message);
+    for (const NodeWarning &warning : user_data.warnings) {
+      this->report_error(node, warning.message, warning.type);
     }
   }
 
@@ -1967,7 +1988,7 @@ class ShaderNodesInliner {
     return !socket.is_available() || socket.typeinfo->idname == "NodeSocketVirtual"_ustr;
   }
 
-  void report_error(const NodeInContext &node, const StringRef message)
+  void report_error(const NodeInContext &node, const StringRef message, const NodeWarningType type)
   {
     Vector<NodeInContext> nodes;
     nodes.append(node);
@@ -1978,7 +1999,7 @@ class ShaderNodesInliner {
       }
     }
     for (const NodeInContext &node : nodes) {
-      params_.r_error_messages.append({&*node, message});
+      params_.r_error_messages.append({&*node, message, type});
     }
   }
 };
