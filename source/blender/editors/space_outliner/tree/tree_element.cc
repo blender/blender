@@ -56,7 +56,7 @@ std::unique_ptr<AbstractTreeElement> AbstractTreeElement::create_from_type(const
                                                                            ID *owner_id,
                                                                            void *create_data)
 {
-  if (owner_id == nullptr && create_data == nullptr) {
+  if (owner_id == nullptr && create_data == nullptr && type != TSE_ID_BASE) {
     return nullptr;
   }
 
