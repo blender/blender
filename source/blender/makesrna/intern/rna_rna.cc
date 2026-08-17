@@ -599,7 +599,13 @@ PointerRNA rna_builtin_properties_get(CollectionPropertyIterator *iter)
 
 bool rna_builtin_properties_lookup_string(PointerRNA *ptr, const char *key, PointerRNA *r_ptr)
 {
-  return RNA_struct_find_property(ptr, UString(key));
+  PropertyRNA *prop = RNA_struct_find_property(ptr, UString(key));
+  if (!prop) {
+    *r_ptr = {};
+    return false;
+  }
+  *r_ptr = {nullptr, RNA_Property, prop};
+  return true;
 }
 
 PointerRNA rna_builtin_type_get(PointerRNA *ptr)
