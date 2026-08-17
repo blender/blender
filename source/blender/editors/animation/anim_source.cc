@@ -25,27 +25,26 @@ static bool has_assigned_action(AnimData &anim_data)
   return anim_data.action != nullptr && anim_data.slot_handle != animrig::Slot::unassigned;
 }
 
-static void channels_for_channelbag(const animrig::Channelbag &channelbag,
-                                    Set<DataChannel> &r_channels)
+static void channels_for_channelbag(animrig::Channelbag &channelbag, Set<DataChannel> &r_channels)
 {
-  for (const FCurve *fcu : channelbag.fcurves()) {
+  for (FCurve *fcu : channelbag.fcurves()) {
     FCurveChannel channel(*fcu);
     r_channels.add(channel);
   }
 }
 
-static void channels_for_action_slot(const animrig::Action &action,
+static void channels_for_action_slot(animrig::Action &action,
                                      const animrig::slot_handle_t slot_handle,
                                      Set<DataChannel> &r_channels)
 {
   using namespace animrig;
-  for (const Layer *layer : action.layers()) {
-    for (const Strip *strip : layer->strips()) {
+  for (Layer *layer : action.layers()) {
+    for (Strip *strip : layer->strips()) {
       if (strip->type() != Strip::Type::Keyframe) {
         continue;
       }
-      const StripKeyframeData &action_strip = strip->data<StripKeyframeData>(action);
-      const Channelbag *channelbag = action_strip.channelbag_for_slot(slot_handle);
+      StripKeyframeData &action_strip = strip->data<StripKeyframeData>(action);
+      Channelbag *channelbag = action_strip.channelbag_for_slot(slot_handle);
       if (!channelbag) {
         continue;
       }

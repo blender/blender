@@ -104,7 +104,7 @@ class DataChannel : public AnimationChannel {
 
 class FCurveChannel : public DataChannel {
  public:
-  FCurveChannel(const FCurve &fcurve);
+  FCurveChannel(FCurve &fcurve);
 
   FCurve *get_source()
   {

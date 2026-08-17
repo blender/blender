@@ -4148,9 +4148,7 @@ DataChannel::DataChannel(ChannelType type, void *source, const StringRef label)
 }
 
 /* TODO pass label */
-FCurveChannel::FCurveChannel(const FCurve &fcurve) : DataChannel(ChannelType::FCURVE, &fcurve, "")
-{
-}
+FCurveChannel::FCurveChannel(FCurve &fcurve) : DataChannel(ChannelType::FCURVE, &fcurve, "") {}
 
 void FCurveChannel::gather_channeldata()
 {
