@@ -4177,38 +4177,6 @@ void GreasePencilChannel::gather_channeldata()
   }
 }
 
-static void collect_animation_channels_for_id(ID &animated_id, Set<DataChannel> &r_channels)
-{
-  AnimData *adt = BKE_animdata_from_id(&animated_id);
-  if (!adt) {
-    return;
-  }
-}
-
-void collect_action_channels(Set<DataChannel> &r_channels)
-{
-  /* TODO */
-}
-
-void collect_animation_channels(bContext &C,
-                                const CollectionFilters &collection_filters,
-                                Set<DataChannel> &r_channels)
-{
-  Vector<PointerRNA> objects;
-  if (collection_filters.only_selected) {
-    CTX_data_selected_objects(&C, &objects);
-  }
-  else {
-    /* TODO review if this is the correct list. */
-    CTX_data_visible_objects(&C, &objects);
-  }
-
-  for (PointerRNA &obj_ptr : objects) {
-    BLI_assert(obj_ptr.type == RNA_Object);
-    collect_animation_channels_for_id(*obj_ptr.owner_id, r_channels);
-  }
-}
-
 SummaryTree group_channels(MutableSpan<DataChannel> channels,
                            Span<ChannelTagType> tag_order,
                            const bool use_minimal_grouping)
