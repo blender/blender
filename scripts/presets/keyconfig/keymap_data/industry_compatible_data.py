@@ -473,6 +473,11 @@ def km_property_editor(params):
         ("constraint.copy", {"type": 'D', "value": 'PRESS', "ctrl": True}, None),
         # Strip modifiers
         ("sequencer.strip_modifier_set_active", {"type": 'LEFTMOUSE', "value": 'PRESS'}, None),
+        # Scene Compositor Effects
+        ("scene.set_active_compositor_effect", {"type": 'LEFTMOUSE', "value": 'PRESS'}, None),
+        ("scene.remove_compositor_effect", {"type": 'BACK_SPACE', "value": 'PRESS'}, None),
+        ("scene.remove_compositor_effect", {"type": 'DEL', "value": 'PRESS'}, None),
+        ("scene.duplicate_compositor_effect", {"type": 'D', "value": 'PRESS', "ctrl": True}, None),
     ])
 
     return keymap

@@ -15,6 +15,7 @@
 #include "RNA_access.hh"
 #include "RNA_define.hh"
 #include "RNA_enum_types.hh"
+#include "RNA_prototypes.hh"
 #include "RNA_types.hh"
 
 #include "WM_api.hh"
@@ -52,6 +53,51 @@
 #include "ED_scene.hh"
 
 namespace blender {
+
+/* --------------------------------------------------------------------
+ * Operator utilities.
+ */
+
+/* If the "name" property is not set, fill the name property with the name of the effect with a UI
+ * panel below the mouse cursor, unless a specific effect is set with a context pointer. Used in
+ * order to apply effect operators on hover over their panels. */
+static wmOperatorStatus compositor_effect_invoke_properties_with_hover(bContext *C,
+                                                                       wmOperator *op,
+                                                                       const wmEvent *event)
+{
+  if (RNA_struct_property_is_set(op->ptr, "name")) {
+    return OPERATOR_FINISHED;
+  }
+
+  /* Note that the context pointer is *not* the active effect, it is set in UI layouts, see the
+   * panel_context_pointer_set calls in effect panel draw functions. */
+  PointerRNA ctx_ptr = CTX_data_pointer_get_type(C, "effect", RNA_SceneCompositorEffect);
+  if (ctx_ptr) {
+    SceneCompositorEffect *effect = static_cast<SceneCompositorEffect *>(ctx_ptr.data);
+    RNA_string_set(op->ptr, "name", effect->name);
+    return OPERATOR_FINISHED;
+  }
+
+  PointerRNA *panel_ptr = ui::region_panel_custom_data_under_cursor(C, event);
+  if (panel_ptr == nullptr || !*panel_ptr) {
+    /* The operators using this function can typically be called from UIs that aren't related to
+     * the effects UI at all. So include #OPERATOR_PASS_THROUGH to not block events from reaching
+     * other operators/handlers. */
+    return OPERATOR_PASS_THROUGH | OPERATOR_CANCELLED;
+  }
+
+  if (!RNA_struct_is_a(panel_ptr->type, RNA_SceneCompositorEffect)) {
+    /* Work around multiple operators using the same shortcut. The operators for the other
+     * stacks in the property editor use the same key, and will not run after these return
+     * OPERATOR_CANCELLED. */
+    return OPERATOR_PASS_THROUGH | OPERATOR_CANCELLED;
+  }
+
+  const SceneCompositorEffect *effect = static_cast<const SceneCompositorEffect *>(
+      panel_ptr->data);
+  RNA_string_set(op->ptr, "name", effect->name);
+  return OPERATOR_FINISHED;
+}
 
 /* --------------------------------------------------------------------
  * Add Effect Operator.
@@ -102,6 +148,18 @@ static wmOperatorStatus remove_compositor_effect_exec(bContext *C, wmOperator *o
 
   return OPERATOR_FINISHED;
 }
+
+static wmOperatorStatus remove_compositor_effect_invoke(bContext *C,
+                                                        wmOperator *op,
+                                                        const wmEvent *event)
+{
+  wmOperatorStatus status = compositor_effect_invoke_properties_with_hover(C, op, event);
+  if (!(status & OPERATOR_CANCELLED)) {
+    return remove_compositor_effect_exec(C, op);
+  }
+  return status;
+}
+
 static void SCENE_OT_remove_compositor_effect(wmOperatorType *ot)
 {
   PropertyRNA *prop;
@@ -110,6 +168,7 @@ static void SCENE_OT_remove_compositor_effect(wmOperatorType *ot)
   ot->idname = "SCENE_OT_remove_compositor_effect";
   ot->description = "Remove a scene compositor effect from the scene";
 
+  ot->invoke = remove_compositor_effect_invoke;
   ot->exec = remove_compositor_effect_exec;
 
   ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO;
@@ -154,12 +213,24 @@ static wmOperatorStatus duplicate_compositor_effect_exec(bContext *C, wmOperator
   return OPERATOR_FINISHED;
 }
 
+static wmOperatorStatus duplicate_compositor_effect_invoke(bContext *C,
+                                                           wmOperator *op,
+                                                           const wmEvent *event)
+{
+  wmOperatorStatus status = compositor_effect_invoke_properties_with_hover(C, op, event);
+  if (!(status & OPERATOR_CANCELLED)) {
+    return duplicate_compositor_effect_exec(C, op);
+  }
+  return status;
+}
+
 static void SCENE_OT_duplicate_compositor_effect(wmOperatorType *ot)
 {
   ot->name = "Duplicate Scene Compositor Effect";
   ot->idname = "SCENE_OT_duplicate_compositor_effect";
   ot->description = "Duplicate the active or the given scene compositor effect";
 
+  ot->invoke = duplicate_compositor_effect_invoke;
   ot->exec = duplicate_compositor_effect_exec;
 
   ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO;
@@ -253,9 +324,13 @@ static wmOperatorStatus set_active_compositor_effect_exec(bContext *C, wmOperato
 
 static wmOperatorStatus set_active_compositor_effect_invoke(bContext *C,
                                                             wmOperator *op,
-                                                            const wmEvent * /*event*/)
+                                                            const wmEvent *event)
 {
-  return set_active_compositor_effect_exec(C, op);
+  wmOperatorStatus status = compositor_effect_invoke_properties_with_hover(C, op, event);
+  if (!(status & OPERATOR_CANCELLED)) {
+    return set_active_compositor_effect_exec(C, op);
+  }
+  return status;
 }
 
 static void SCENE_OT_set_active_compositor_effect(wmOperatorType *ot)
