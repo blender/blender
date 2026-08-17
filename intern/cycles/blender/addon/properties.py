@@ -1890,7 +1890,7 @@ class CyclesPreferences(bpy.types.AddonPreferences):
                 found_device = True
                 break
 
-        optix_minimum_driver_version = "535"
+        optix_minimum_driver_version = "575"
         hip_minimum_adrenalin_driver_version = "24.9.1"
         hip_minimum_pro_driver_version = "24.Q4"
         hip_minimum_linux_driver_version = "24.30"
