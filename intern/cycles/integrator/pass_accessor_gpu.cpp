@@ -31,6 +31,9 @@ void PassAccessorGPU::run_film_convert_kernels(DeviceKernel kernel,
   init_kernel_film_convert(&kfilm_convert, buffer_params, destination);
 
   const int work_size = buffer_params.window_width * buffer_params.window_height;
+  if (!work_size) {
+    return;
+  }
 
   const int destination_stride = destination.stride != 0 ? destination.stride :
                                                            buffer_params.window_width;
