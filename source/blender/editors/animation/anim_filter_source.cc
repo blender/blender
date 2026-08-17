@@ -34,7 +34,7 @@ static void channels_for_channelbag(animrig::Channelbag &channelbag,
 
     DataChannel channel(*fcu);
     channel.set_tags(tags);
-    r_channels.append(channel);
+    r_channels.append(std::move(channel));
 
     if (fcu->grp) {
       tags.pop();
@@ -108,7 +108,7 @@ static void collection_channels_for_object(Object &obj,
   }
 }
 
-void collect_action_channels(Vector<DataChannel> &r_channels)
+void collect_action_channels(Vector<DataChannel> & /* r_channels */)
 {
   /* TODO */
 }

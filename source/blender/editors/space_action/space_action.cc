@@ -353,13 +353,15 @@ static void action_channel_region_draw(const bContext *C, ARegion *region)
     using namespace ed::animfilter;
     Vector<DataChannel> channels;
     collect_animation_channels(*C, {}, channels);
-    SummaryTree summary_tree = group_channels(channels, {}, false);
+    /* TODO don't hardcode tag_order. */
+    SummaryTree summaries = group_channels(
+        channels, {ChannelTagType::ID, ChannelTagType::ACTION}, false);
     /* The View2D's height needs to be set before calling view2d_view_ortho because the latter
      * uses the View2D's `cur` rect which might be modified when setting the height. */
     /* TODO draw markers, get info if markers exist without anim context. */
-    set_v2d_height(v2d, summary_tree.summaries.size() + channels.size(), false);
+    set_v2d_height(v2d, summaries.summary_count() + channels.size(), false);
     ui::view2d_view_ortho(v2d);
-    draw_channel_tree(*summary_tree.root, *v2d);
+    draw_channel_tree(*summaries.root(), *v2d);
     ui::view2d_view_restore(C);
   }
   else {

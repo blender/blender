@@ -4109,14 +4109,14 @@ SummaryTree group_channels(MutableSpan<DataChannel> channels,
                            const bool use_minimal_grouping)
 {
   SummaryTree tree;
-  tree.summaries.append({"Summary"});
-  SummaryChannel &root = tree.summaries[0];
-  tree.root = &root;
+  SummaryChannel &root = tree.allocate_summary("Summary");
 
   for (DataChannel &channel : channels) {
     root.add_child(channel);
   }
 
+  /* Store the indices of all summary channels that can potentially be broken down with child
+   * summaries. */
   Vector<SummaryChannel *> potentially_splittable_summaries = {&root};
   for (const ChannelTagType tag_type : tag_order) {
     Vector<SummaryChannel *> completely_split;
@@ -4124,7 +4124,44 @@ SummaryTree group_channels(MutableSpan<DataChannel> channels,
 
     for (SummaryChannel *summary : potentially_splittable_summaries) {
       int data_channel_count = 0;
-      /* TODO */
+
+      Map<ChannelTag, Vector<DataChannel *>> potential_tags;
+      for (AnimationChannel *child : summary->children()) {
+        if (child->type() != ChannelType::DATA) {
+          continue;
+        }
+        data_channel_count++;
+        DataChannel *data_channel = reinterpret_cast<DataChannel *>(child);
+        const ChannelTag *tag = data_channel->get_tag(tag_type);
+        if (tag) {
+          potential_tags.lookup_or_add_default(*tag).append(data_channel);
+        }
+      }
+
+      if (data_channel_count == 0) {
+        completely_split.append(summary);
+        continue;
+      }
+
+      if (potential_tags.is_empty()) {
+        /* No child channel contains the current tag. */
+        continue;
+      }
+
+      if (use_minimal_grouping && potential_tags.size() == 1) {
+        /* Cannot split group further with this group type. */
+        continue;
+      }
+
+      for (const auto &[tag, tag_channels] : potential_tags.items()) {
+        SummaryChannel &new_summary = tree.allocate_summary(tag.label());
+        for (DataChannel *child : tag_channels) {
+          summary->remove_child(*child);
+          new_summary.add_child(*child);
+        }
+        summary->add_child(new_summary);
+        new_summaries.append(&new_summary);
+      }
     }
 
     potentially_splittable_summaries.extend(new_summaries);

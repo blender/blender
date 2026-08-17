@@ -16,7 +16,7 @@ ChannelTag::ChannelTag(const ChannelTagType type, const StringRef label, void *s
 }
 
 AnimationChannel::AnimationChannel(const ChannelType type, const StringRef label)
-    : type_(type), label_(label)
+    : type_(type), label_(label), source_(nullptr), is_dirty_(true)
 {
 }
 
@@ -27,7 +27,8 @@ SummaryChannel::SummaryChannel(const StringRef label)
 
 void SummaryChannel::gather_channeldata()
 {
-  /* TODO implement. */
+  for (AnimationChannel *child : this->children_) {
+  }
 }
 
 Span<AnimationChannel *> SummaryChannel::children() const
@@ -39,31 +40,26 @@ void SummaryChannel::add_child(AnimationChannel &child)
 {
   BLI_assert(&child != this);
   this->children_.append(&child);
-  child.parent = this;
 }
 
 void SummaryChannel::remove_child(AnimationChannel &child)
 {
   BLI_assert(&child != this);
-  const int index = this->children_.first_index_of(&child);
+  const int index = this->children_.first_index_of_try(&child);
   if (index == -1) {
+    BLI_assert_unreachable();
     return;
   }
   this->children_.remove(index);
-  child.parent = nullptr;
 }
 
 DataChannel::DataChannel(FCurve &fcurve)
-    : AnimationChannel(ChannelType::FCURVE, fcurve.rna_path()),
-      type_(DataChannelType::FCURVE),
-      source_(&fcurve)
+    : AnimationChannel(ChannelType::DATA, fcurve.rna_path()), source_(&fcurve)
 {
 }
 
 DataChannel::DataChannel(GreasePencilLayer &gp_layer)
-    : AnimationChannel(ChannelType::GREASE_PENCIL, ""),
-      type_(DataChannelType::GREASE_PENCIL),
-      source_(&gp_layer)
+    : AnimationChannel(ChannelType::DATA, ""), source_(&gp_layer)
 {
 }
 
@@ -72,21 +68,32 @@ void DataChannel::set_tags(const ChannelTagStack &tags)
   this->tags_ = tags.as_set();
 }
 
+ChannelTag *DataChannel::get_tag(ChannelTagType tag_type)
+{
+  /* TODO store in map so we don't have to search here. */
+  for (const ChannelTag &tag : this->tags_) {
+    if (tag.tag_type() == tag_type) {
+      return const_cast<ChannelTag *>(&tag);
+    }
+  }
+  return nullptr;
+}
+
 template<> FCurve *DataChannel::get_source<FCurve *>() const
 {
-  BLI_assert(this->type_ == DataChannelType::FCURVE);
+  BLI_assert(this->source_type_ == DataChannelType::FCURVE);
   return static_cast<FCurve *>(this->source_);
 }
 
 template<> GreasePencilLayer *DataChannel::get_source<GreasePencilLayer *>() const
 {
-  BLI_assert(this->type_ == DataChannelType::GREASE_PENCIL);
+  BLI_assert(this->source_type_ == DataChannelType::GREASE_PENCIL);
   return static_cast<GreasePencilLayer *>(this->source_);
 }
 
 void DataChannel::gather_channeldata()
 {
-  switch (this->type_) {
+  switch (this->source_type_) {
     case DataChannelType::FCURVE: {
       const FCurve *fcurve = this->get_source<FCurve *>();
       if (!fcurve->bezt) {

@@ -22,8 +22,7 @@ struct GreasePencilLayer;
 namespace ed::animfilter {
 
 enum class ChannelType {
-  FCURVE,
-  GREASE_PENCIL,
+  DATA,
   SUMMARY,
 };
 
@@ -98,13 +97,12 @@ class AnimationChannel {
  protected:
   ChannelType type_;
   std::string label_;
+  /* Change to RNA pointer? */
   void *source_;
   bool is_dirty_;
   Vector<float> datapoints_;
 
  public:
-  AnimationChannel *parent;
-
   AnimationChannel(ChannelType type, StringRef label);
 
   ChannelType type() const
@@ -128,11 +126,16 @@ class AnimationChannel {
   virtual void gather_channeldata() = 0;
 };
 
+/* This is the class responsible for generating the tree structure. We only track children, which
+ * allows us to generate multiple summary trees for the same data channels. */
 class SummaryChannel : public AnimationChannel {
   Vector<AnimationChannel *> children_;
 
  public:
   SummaryChannel(StringRef label);
+  /**
+   * The pointer will always be valid.
+   */
   Span<AnimationChannel *> children() const;
   void add_child(AnimationChannel &child);
   void remove_child(AnimationChannel &child);
@@ -151,8 +154,8 @@ enum class DataChannelType {
 };
 
 class DataChannel : public AnimationChannel {
-  DataChannelType type_;
-  /* The datatype of this is determined by the type. */
+  DataChannelType source_type_;
+  /* The datatype of this is determined by the source_type_. */
   void *source_;
   Set<ChannelTag> tags_;
   DataChannelFlags flags_;
@@ -166,9 +169,9 @@ class DataChannel : public AnimationChannel {
     return &other == this;
   }
 
-  DataChannelType type() const
+  DataChannelType source_type() const
   {
-    return this->type_;
+    return this->source_type_;
   }
 
   int64_t hash() const
@@ -181,6 +184,7 @@ class DataChannel : public AnimationChannel {
    * Makes a local copy of the tag elements.
    */
   void set_tags(const ChannelTagStack &tags);
+  ChannelTag *get_tag(ChannelTagType tag_type);
   template<typename T> T get_source() const;
 
  protected:
@@ -211,10 +215,41 @@ void collect_animation_channels(const bContext &C,
 
 /**
  * Data structure that holds all summary channels and the root of the tree.
+ * This owns the memory.
  */
-struct SummaryTree {
-  SummaryChannel *root;
-  Vector<SummaryChannel> summaries;
+class SummaryTree {
+  Vector<SummaryChannel *> summaries_;
+
+ public:
+  SummaryTree() = default;
+  ~SummaryTree()
+  {
+    for (SummaryChannel *summary : summaries_) {
+      MEM_delete(summary);
+    }
+  }
+
+  SummaryChannel &allocate_summary(StringRef label)
+  {
+    /* We have to heap allocate to get stable pointers to each summary channel. Those are used to
+     * point at children. */
+    SummaryChannel *new_summary = MEM_new<SummaryChannel>(__func__, label);
+    summaries_.append(new_summary);
+    return *new_summary;
+  }
+
+  SummaryChannel *root() const
+  {
+    if (summaries_.size() == 0) {
+      return nullptr;
+    }
+    return summaries_[0];
+  }
+
+  int summary_count() const
+  {
+    return summaries_.size();
+  }
 };
 
 /**
@@ -225,7 +260,7 @@ struct SummaryTree {
  * \param use_minimal_grouping: If true, group creation is skipped if it would move all chilren to
  * a subgroup.
  *
- * \returns: the root channel.
+ * \returns: all summary channels that were created. The root is always index 0.
  */
 SummaryTree group_channels(MutableSpan<DataChannel> channels,
                            Span<ChannelTagType> tag_order,
