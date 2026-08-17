@@ -269,33 +269,61 @@ void PathTrace::render_deinit_kernel_execution()
   }
 }
 
+/* Scale down an Y coordinate for slicing the buffer. */
+static int scale_window_y(const int window_y,
+                          const int window_height,
+                          const int scaled_window_height,
+                          const float resolution_divider)
+{
+  if (window_y >= window_height) {
+    return scaled_window_height;
+  }
+
+  return min(int(window_y / resolution_divider), scaled_window_height);
+}
+
 /*
  * Get the parameters of the horizontal slice of the buffer, for a given work index and
  * balancing weights. Note the result can be empty with many devices and small height.
- * */
+ *
+ * The split is computed at the full resolution, and then scaled down. This keeps the slices
+ * filling the window exactly at every resolution and keeps a slice that is empty at full
+ * resolution empty at the downscaled resolution. Slicing at different resolutions with
+ * float weights can lead to mismatches.
+ */
 static BufferParams slice_buffer_params(const BufferParams &buffer_params,
+                                        const float resolution_divider,
+                                        const int full_res_window_height,
                                         const vector<WorkBalanceInfo> &work_balance_infos,
                                         const int index,
                                         const int overscan)
 {
   const int num_works = work_balance_infos.size();
-  const int window_height = buffer_params.window_height;
 
-  /* Find the rows at which the slice starts and ends. */
-  int window_y = 0;
-  int window_end_y = 0;
+  /* Find the Y coordinates at which the slice starts and ends, at the full resolution. */
+  int full_res_window_y = 0;
+  int full_res_window_end_y = 0;
 
   for (int i = 0; i <= index; i++) {
-    window_y = window_end_y;
+    full_res_window_y = full_res_window_end_y;
 
     const double weight = work_balance_infos[i].weight;
-    const int slice_window_height = max(lround(window_height * weight), 1);
+    const int slice_window_height = max(lround(full_res_window_height * weight), 1);
 
-    const int remaining_window_height = max(0, window_height - window_y);
-    window_end_y = window_y + ((i < num_works - 1) ?
-                                   min(slice_window_height, remaining_window_height) :
-                                   remaining_window_height);
+    const int remaining_window_height = max(0, full_res_window_height - full_res_window_y);
+    full_res_window_end_y = full_res_window_y +
+                            ((i < num_works - 1) ?
+                                 min(slice_window_height, remaining_window_height) :
+                                 remaining_window_height);
   }
+
+  /* Scale the Y coordinates down to the resolution of the buffer. */
+  const int window_y = scale_window_y(
+      full_res_window_y, full_res_window_height, buffer_params.window_height, resolution_divider);
+  const int window_end_y = scale_window_y(full_res_window_end_y,
+                                          full_res_window_height,
+                                          buffer_params.window_height,
+                                          resolution_divider);
 
   const int slice_window_full_y = buffer_params.full_y + buffer_params.window_y + window_y;
 
@@ -321,7 +349,7 @@ void PathTrace::update_allocated_work_buffer_params()
   const int num_works = path_trace_works_.size();
   for (int i = 0; i < num_works; ++i) {
     const BufferParams slice_params = slice_buffer_params(
-        big_tile_params_, work_balance_infos_, i, overscan);
+        big_tile_params_, 1.0f, big_tile_params_.window_height, work_balance_infos_, i, overscan);
 
     RenderBuffers *buffers = path_trace_works_[i]->get_render_buffers();
     buffers->reset(slice_params);
@@ -332,13 +360,16 @@ static BufferParams scale_buffer_params(const BufferParams &params, const float 
 {
   BufferParams scaled_params = params;
 
-  scaled_params.width = max(1, int(params.width / resolution_divider));
-  scaled_params.height = max(1, int(params.height / resolution_divider));
-
   scaled_params.window_x = int(params.window_x / resolution_divider);
   scaled_params.window_y = int(params.window_y / resolution_divider);
   scaled_params.window_width = max(1, int(params.window_width / resolution_divider));
   scaled_params.window_height = max(1, int(params.window_height / resolution_divider));
+
+  /* Scaled down buffer size, but not smaller than the window that we need to write into. */
+  scaled_params.width = max(int(params.width / resolution_divider),
+                            scaled_params.window_x + scaled_params.window_width);
+  scaled_params.height = max(int(params.height / resolution_divider),
+                             scaled_params.window_y + scaled_params.window_height);
 
   scaled_params.full_x = int(params.full_x / resolution_divider);
   scaled_params.full_y = int(params.full_y / resolution_divider);
@@ -361,17 +392,24 @@ void PathTrace::update_effective_work_buffer_params(const RenderWork &render_wor
                                                                   resolution_divider);
 
   const int overscan = tile_manager_.get_tile_overscan();
+  const int scaled_overscan = int(overscan / resolution_divider);
+  const int full_res_window_height = big_tile_params_.window_height;
 
   const int num_works = path_trace_works_.size();
   for (int i = 0; i < num_works; ++i) {
-    const BufferParams denoised_slice_params = slice_buffer_params(
-        denoised_big_tile_params, work_balance_infos_, i, overscan);
+    const BufferParams denoised_slice_params = slice_buffer_params(denoised_big_tile_params,
+                                                                   denoised_resolution_divider,
+                                                                   full_res_window_height,
+                                                                   work_balance_infos_,
+                                                                   i,
+                                                                   overscan);
 
-    /* Scale down the sliced buffer parameters again that were scaled by denoising upscale
-     * factor above. This should match the values that would occur when slicing
-     * 'scaled_big_tile_params' directly. */
-    const BufferParams slice_params = scale_buffer_params(denoised_slice_params,
-                                                          resolution_divider);
+    const BufferParams slice_params = slice_buffer_params(scaled_big_tile_params,
+                                                          render_work.resolution_divider,
+                                                          full_res_window_height,
+                                                          work_balance_infos_,
+                                                          i,
+                                                          scaled_overscan);
 
     path_trace_works_[i]->set_effective_buffer_params(
         scaled_big_tile_params, slice_params, denoised_big_tile_params, denoised_slice_params);

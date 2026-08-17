@@ -1225,6 +1225,10 @@ void PathTraceWorkGPU::cryptomatte_postproces()
 
 void PathTraceWorkGPU::denoise_volume_guiding_buffers()
 {
+  if (effective_buffer_params_.width == 0 || effective_buffer_params_.height == 0) {
+    return;
+  }
+
   const DeviceKernelArguments args(&buffers_->buffer.device_pointer,
                                    &effective_buffer_params_.full_x,
                                    &effective_buffer_params_.full_y,
