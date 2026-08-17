@@ -11,6 +11,8 @@
 #include "BLI_set.hh"
 #include "BLI_vector.hh"
 
+#include "DNA_ID_enums.h"
+
 namespace blender {
 
 struct bContext;
@@ -55,8 +57,7 @@ class AnimationChannel {
   Vector<float> datapoints_;
 
  public:
-
- AnimationChannel(ChannelType type, StringRef label);
+  AnimationChannel(ChannelType type, StringRef label);
 
   AnimationChannel *parent;
 
@@ -124,15 +125,27 @@ class GreasePencilChannel : public DataChannel {
   void gather_channeldata() override;
 };
 
+struct CollectionFilters {
+  bool only_selected;
+
+  /* Limit the returned data to only channels of the given type.
+   * If empty, all channel types are returned. */
+  Set<ChannelType> channel_type_whitelist;
+  /* Any id types put here will be ignored in the query process. */
+  Set<ID_Type> id_type_blacklist;
+};
+
 /**
  * Iterate all channels of the given Action.
  */
-void iter_action_channels();
+void collect_action_channels(Set<DataChannel> &r_channels);
 
 /**
  * Iterate all channels in the given context.
  */
-void iter_animation_channels(bContext &C);
+void collect_animation_channels(bContext &C,
+                                const CollectionFilters &collection_filters,
+                                Set<DataChannel> &r_channels);
 
 /**
  * Data structure that holds all summary channels and the root of the tree.
