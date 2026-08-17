@@ -22,6 +22,8 @@ set(SRC
   anim_convert.cc
   anim_deps.cc
   anim_draw.cc
+  anim_filter_channel.cc
+  anim_filter_source.cc
   anim_filter.cc
   anim_ipo_utils.cc
   anim_markers.cc

@@ -50,6 +50,11 @@ class ChannelTag {
 
  public:
   ChannelTag(ChannelTagType type, StringRef label, void *source_data);
+
+  int64_t hash() const
+  {
+    return get_default_hash(this->tag_type_, this->label_, this->source_data);
+  }
 };
 
 class AnimationChannel {
