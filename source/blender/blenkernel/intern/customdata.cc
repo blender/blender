@@ -5019,20 +5019,17 @@ void CustomData_debug_info_from_layers(const CustomData *data, const char *inden
       const char *name = CustomData_layertype_name(type);
       const int size = CustomData_sizeof(type);
       const void *pt = CustomData_get_layer(data, type);
-      const int pt_size = pt ? int(MEM_allocN_len(pt) / size) : 0;
       const char *structname;
       int structnum;
       get_type_file_write_info(type, &structname, &structnum);
-      BLI_dynstr_appendf(
-          dynstr,
-          "%sdict(name='%s', struct='%s', type=%d, ptr='%p', elem=%d, length=%d),\n",
-          indent,
-          name,
-          structname,
-          type,
-          pt,
-          size,
-          pt_size);
+      BLI_dynstr_appendf(dynstr,
+                         "%sdict(name='%s', struct='%s', type=%d, ptr='%p', elem=%d),\n",
+                         indent,
+                         name,
+                         structname,
+                         type,
+                         pt,
+                         size);
     }
   }
 }
