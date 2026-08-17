@@ -92,6 +92,8 @@ void ED_spacetypes_init()
   ED_operatortypes_userpref();
   ED_operatortypes_workspace();
   ED_operatortypes_scene();
+  ED_operatortypes_scene_compositor();
+  ED_menutypes_scene_compositor();
   ED_operatortypes_screen();
   ED_operatortypes_anim();
   ED_operatortypes_animchannels();

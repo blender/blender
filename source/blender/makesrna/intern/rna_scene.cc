@@ -750,6 +750,7 @@ static const EnumPropertyItem eevee_resolution_scale_items[] = {
 #  include "BKE_bake_geometry_nodes_modifier.hh"
 #  include "BKE_brush.hh"
 #  include "BKE_collection.hh"
+#  include "BKE_compositor.hh"
 #  include "BKE_context.hh"
 #  include "BKE_editmesh.hh"
 #  include "BKE_freestyle.h"
@@ -773,6 +774,7 @@ static const EnumPropertyItem eevee_resolution_scale_items[] = {
 
 #  include "NOD_composite.hh"
 #  include "NOD_compositor_file_output.hh"
+#  include "NOD_nodes_srna.hh"
 
 #  include "ED_grease_pencil.hh"
 #  include "ED_image.hh"
@@ -1260,22 +1262,56 @@ static bool rna_Scene_compositing_node_group_poll(PointerRNA * /*ptr*/, PointerR
   return ntree->type == NTREE_COMPOSIT;
 }
 
-static void rna_Scene_compositing_node_group_set(PointerRNA *ptr,
+static PointerRNA rna_Scene_compositing_node_group_get(PointerRNA *scene_ptr)
+{
+  Scene *scene = scene_ptr->data_as<Scene>();
+  SceneCompositorEffect *effect = bke::compositor::get_active_effect(*scene);
+  if (!effect) {
+    return RNA_pointer_create_with_parent(*scene_ptr, RNA_NodeTree, nullptr);
+  }
+  return RNA_pointer_create_with_parent(*scene_ptr, RNA_NodeTree, effect->node_group);
+}
+
+static void rna_Scene_compositing_node_group_set(PointerRNA *scene_ptr,
                                                  const PointerRNA value,
                                                  ReportList *reports)
 {
-  Scene *scene = static_cast<Scene *>(ptr->data);
-  bNodeTree *ntree = static_cast<bNodeTree *>(value.data);
-  if (ntree && ntree->type != NTREE_COMPOSIT) {
-    BKE_reportf(
-        reports, RPT_ERROR, "Node tree '%s' is not a compositing node group.", ntree->id.name + 2);
+  Scene *scene = scene_ptr->data_as<Scene>();
+  bNodeTree *node_tree = value.data_as<bNodeTree>();
+  if (node_tree && node_tree->type != NTREE_COMPOSIT) {
+    BKE_reportf(reports,
+                RPT_ERROR,
+                "Node tree '%s' is not a compositing node group.",
+                node_tree->id.name + 2);
     return;
   }
-  if (scene->compositing_node_group) {
-    id_us_min(&scene->compositing_node_group->id);
+
+  SceneCompositorEffect *effect = bke::compositor::get_active_effect(*scene);
+  if (!effect) {
+    effect = &bke::compositor::new_effect(*scene, "Effect");
   }
-  scene->compositing_node_group = ntree;
-  id_us_plus(&scene->compositing_node_group->id);
+
+  if (effect->node_group) {
+    id_us_min(&effect->node_group->id);
+  }
+  effect->node_group = node_tree;
+  if (effect->node_group) {
+    id_us_plus(&effect->node_group->id);
+  }
+}
+
+void rna_Scene_compositing_node_group_update(Main *bmain, Scene * /*scene*/, PointerRNA *ptr)
+{
+  Scene *scene = id_cast<Scene *>(ptr->owner_id);
+
+  DEG_relations_tag_update(bmain);
+  DEG_id_tag_update(&scene->id, ID_RECALC_COMPOSITOR);
+  WM_main_add_notifier(NC_SCENE | ND_COMPO_RESULT, scene);
+
+  SceneCompositorEffect *effect = bke::compositor::get_active_effect(*scene);
+  if (effect) {
+    bke::compositor::update_effect_node_group_interface(*bmain, *scene, *effect);
+  }
 }
 
 static std::optional<std::string> rna_SceneEEVEE_path(const PointerRNA * /*ptr*/)
@@ -1971,17 +2007,11 @@ void rna_Scene_use_freestyle_update(Main *bmain, Scene * /*scene*/, PointerRNA *
   BKE_ntree_update(*bmain);
 }
 
-void rna_Scene_compositor_update(Main *bmain, Scene * /*scene*/, PointerRNA *ptr)
+void rna_Scene_compositor_update(Main * /*bmain*/, Scene * /*scene*/, PointerRNA *ptr)
 {
   Scene *scene = id_cast<Scene *>(ptr->owner_id);
   DEG_id_tag_update(&scene->id, ID_RECALC_COMPOSITOR);
-
-  if (scene->compositing_node_group) {
-    bNodeTree *ntree = reinterpret_cast<bNodeTree *>(scene->compositing_node_group);
-    WM_main_add_notifier(NC_NODE | NA_EDITED, &ntree->id);
-    WM_main_add_notifier(NC_SCENE | ND_NODES, &ntree->id);
-    BKE_main_ensure_invariants(*bmain, ntree->id);
-  }
+  WM_main_add_notifier(NC_SCENE | ND_COMPO_RESULT, scene);
 }
 
 void rna_Scene_use_view_map_cache_update(Main * /*bmain*/, Scene * /*scene*/, PointerRNA * /*ptr*/)
@@ -3134,6 +3164,154 @@ static void rna_FFmpegSettings_codec_update(Main * /*bmain*/, Scene * /*scene*/,
   }
 }
 #  endif
+
+static std::optional<std::string> rna_SceneCompositorEffect_path(const PointerRNA *ptr)
+{
+  SceneCompositorEffect *effect = ptr->data_as<SceneCompositorEffect>();
+  const std::string escaped_effect_name = BLI_str_escape(effect->name);
+  return fmt::format("compositor_effects[\"{}\"]", escaped_effect_name);
+}
+
+static void rna_SceneCompositorEffect_name_set(PointerRNA *ptr, const char *value)
+{
+  Scene *scene = id_cast<Scene *>(ptr->owner_id);
+  SceneCompositorEffect *effect = ptr->data_as<SceneCompositorEffect>();
+  bke::compositor::rename_effect(*scene, *effect, value);
+  WM_main_add_notifier(NC_SCENE | ND_COMPO_RESULT, scene);
+}
+
+static void rna_SceneCompositorEffect_is_active_set(PointerRNA *ptr, bool is_active)
+{
+  /* We only support setting an effect as active, since we always need an active effect. */
+  if (!is_active) {
+    return;
+  }
+
+  Scene *scene = id_cast<Scene *>(ptr->owner_id);
+  SceneCompositorEffect *effect = ptr->data_as<SceneCompositorEffect>();
+  bke::compositor::set_active_effect(*scene, *effect);
+  DEG_id_tag_update(&scene->id, ID_RECALC_COMPOSITOR);
+  WM_main_add_notifier(NC_SCENE | ND_COMPO_RESULT, scene);
+}
+
+static bool rna_SceneCompositorEffect_node_group_poll(PointerRNA * /*ptr*/, PointerRNA value)
+{
+  const bNodeTree *node_tree = value.data_as<bNodeTree>();
+  if (node_tree->type != NTREE_COMPOSIT) {
+    return false;
+  }
+  if (node_tree->compositor_node_asset_traits) {
+    if ((node_tree->compositor_node_asset_traits->flag & COMPOSIT_NODE_ASSET_SCENE_EFFECT) == 0) {
+      return false;
+    }
+  }
+  return true;
+}
+
+static void rna_SceneCompositorEffect_node_group_update(Main *bmain,
+                                                        Scene * /*scene*/,
+                                                        PointerRNA *effect_ptr)
+{
+  Scene *scene = id_cast<Scene *>(effect_ptr->owner_id);
+
+  DEG_relations_tag_update(bmain);
+  DEG_id_tag_update(&scene->id, ID_RECALC_COMPOSITOR);
+  WM_main_add_notifier(NC_SCENE | ND_COMPO_RESULT, scene);
+
+  SceneCompositorEffect *effect = effect_ptr->data_as<SceneCompositorEffect>();
+  bke::compositor::update_effect_node_group_interface(*bmain, *scene, *effect);
+}
+
+static SceneCompositorEffect *rna_SceneCompositorEffects_new(ID *scene_id, const char *name)
+{
+  Scene *scene = id_cast<Scene *>(scene_id);
+  SceneCompositorEffect &effect = bke::compositor::new_effect(*scene, name);
+  WM_main_add_notifier(NC_SCENE | ND_COMPO_RESULT, scene);
+  return &effect;
+}
+
+static void rna_SceneCompositorEffects_remove(ID *scene_id,
+                                              ReportList *reports,
+                                              PointerRNA *effect_ptr)
+{
+  Scene *scene = id_cast<Scene *>(scene_id);
+  SceneCompositorEffect *effect = effect_ptr->data_as<SceneCompositorEffect>();
+  if (BLI_findindex(&scene->compositor_effects, effect) == -1) {
+    BKE_report(reports, RPT_ERROR, "Effect was not found in the stack");
+    return;
+  }
+  bke::compositor::remove_effect(*scene, *effect);
+  effect_ptr->invalidate();
+
+  DEG_id_tag_update(&scene->id, ID_RECALC_COMPOSITOR);
+  WM_main_add_notifier(NC_SCENE | ND_COMPO_RESULT, scene);
+}
+
+static void rna_SceneCompositorEffects_clear(ID *scene_id, Main *bmain)
+{
+  Scene *scene = id_cast<Scene *>(scene_id);
+  bke::compositor::free_effects(*scene);
+
+  DEG_relations_tag_update(bmain);
+  DEG_id_tag_update(&scene->id, ID_RECALC_COMPOSITOR);
+  WM_main_add_notifier(NC_SCENE | ND_COMPO_RESULT, scene);
+}
+
+static PointerRNA rna_SceneCompositorEffects_active_get(PointerRNA *ptr)
+{
+  const Scene *scene = ptr->data_as<Scene>();
+  SceneCompositorEffect *effect = bke::compositor::get_active_effect(*scene);
+  return RNA_pointer_create_with_parent(*ptr, RNA_SceneCompositorEffect, effect);
+}
+
+static void rna_SceneCompositorEffects_active_set(PointerRNA *ptr,
+                                                  PointerRNA value,
+                                                  ReportList * /*reports*/)
+{
+  Scene *scene = ptr->data_as<Scene>();
+  SceneCompositorEffect *effect = value.data_as<SceneCompositorEffect>();
+  bke::compositor::set_active_effect(*scene, *effect);
+
+  if (bke::compositor::is_effect_enabled(*effect, bke::compositor::ExecutionMode::Preview)) {
+    DEG_id_tag_update(&scene->id, ID_RECALC_COMPOSITOR);
+    WM_main_add_notifier(NC_SCENE | ND_COMPO_RESULT, scene);
+  }
+}
+
+static StructRNA *rna_SceneCompositorEffectProperties_refine(PointerRNA *effect_ptr)
+{
+  SceneCompositorEffect *effect = effect_ptr->data_as<SceneCompositorEffect>();
+  if (!effect->node_group || ID_MISSING(effect->node_group)) {
+    return RNA_SceneCompositorEffectPropertiesEmpty;
+  }
+  if (!effect->node_group->runtime->scene_compositor_effect_srna_data) {
+    return RNA_SceneCompositorEffectPropertiesEmpty;
+  }
+  return effect->node_group->runtime->scene_compositor_effect_srna_data->properties_struct;
+}
+
+static std::optional<std::string> rna_SceneCompositorEffectProperties_path(
+    const PointerRNA *effect_ptr)
+{
+  const SceneCompositorEffect *effect = effect_ptr->data_as<SceneCompositorEffect>();
+  return fmt::format("compositor_effects[\"{}\"].properties", BLI_str_escape(effect->name));
+}
+
+static IDProperty **rna_SceneCompositorEffect_idprops(PointerRNA *effect_ptr)
+{
+  SceneCompositorEffect *effect = effect_ptr->data_as<SceneCompositorEffect>();
+  return &effect->system_properties;
+}
+
+static PointerRNA rna_SceneCompositorEffectProperties_get(PointerRNA *effect_ptr)
+{
+  SceneCompositorEffect *effect = effect_ptr->data_as<SceneCompositorEffect>();
+  if (!effect->node_group) {
+    return {};
+  }
+  return RNA_pointer_create_discrete(
+      effect_ptr->owner_id, RNA_SceneCompositorEffectProperties, effect);
+}
 
 }  // namespace blender
 
@@ -8853,6 +9031,147 @@ static void rna_def_scene_gpencil(BlenderRNA *brna)
   RNA_def_property_update(prop, NC_SCENE | ND_RENDER_OPTIONS, nullptr);
 }
 
+static void rna_def_compositor_effect_nodes_properties(BlenderRNA *brna)
+{
+  StructRNA *srna;
+
+  srna = RNA_def_struct(brna, "SceneCompositorEffectProperties", nullptr);
+  RNA_def_struct_ui_text(srna, "Scene Compositor Effect Properties", "");
+  RNA_def_struct_refine_func(srna, "rna_SceneCompositorEffectProperties_refine");
+  RNA_def_struct_system_idprops_func(srna, "rna_SceneCompositorEffect_idprops");
+  RNA_def_struct_path_func(srna, "rna_SceneCompositorEffectProperties_path");
+
+  srna = RNA_def_struct(brna, "SceneCompositorEffectPropertiesEmpty", nullptr);
+  RNA_def_struct_ui_text(srna, "Scene Compositor Effect Empty Properties", "");
+  RNA_def_struct_system_idprops_func(srna, "rna_SceneCompositorEffect_idprops");
+  RNA_def_struct_path_func(srna, "rna_SceneCompositorEffectProperties_path");
+}
+
+static void rna_def_compositor_effect(BlenderRNA *brna)
+{
+  StructRNA *srna;
+  PropertyRNA *prop;
+
+  srna = RNA_def_struct(brna, "SceneCompositorEffect", nullptr);
+  RNA_def_struct_sdna(srna, "SceneCompositorEffect");
+  RNA_def_struct_ui_text(srna, "Scene Compositor Effect", "Compositor effect for scene");
+  RNA_def_struct_ui_icon(srna, ICON_NODE_COMPOSITING);
+  RNA_def_struct_path_func(srna, "rna_SceneCompositorEffect_path");
+
+  prop = RNA_def_property(srna, "name", PROP_STRING, PROP_NONE);
+  RNA_def_property_string_funcs(prop, nullptr, nullptr, "rna_SceneCompositorEffect_name_set");
+  RNA_def_property_ui_text(prop, "Name", "");
+  RNA_def_struct_name_property(srna, prop);
+  RNA_def_property_update(prop, NC_NODE | ND_DISPLAY, nullptr);
+
+  prop = RNA_def_property(srna, "enable_for_render", PROP_BOOLEAN, PROP_NONE);
+  RNA_def_property_boolean_sdna(
+      prop, nullptr, "flags", uint8_t(SceneCompositorEffectFlags::EnableForRender));
+  RNA_def_property_ui_text(prop, "Render", "Use effect during render");
+  RNA_def_property_ui_icon(prop, ICON_RESTRICT_RENDER_ON, 1);
+  RNA_def_property_override_flag(prop, PROPOVERRIDE_OVERRIDABLE_LIBRARY);
+  RNA_def_property_update(prop, NC_SCENE | ND_COMPO_RESULT, "rna_Scene_compositor_update");
+
+  prop = RNA_def_property(srna, "enable_for_preview", PROP_BOOLEAN, PROP_NONE);
+  RNA_def_property_boolean_sdna(
+      prop, nullptr, "flags", uint8_t(SceneCompositorEffectFlags::EnableForPreview));
+  RNA_def_property_ui_text(prop, "Preview", "Use effect during preview");
+  RNA_def_property_ui_icon(prop, ICON_RESTRICT_VIEW_ON, 1);
+  RNA_def_property_override_flag(prop, PROPOVERRIDE_OVERRIDABLE_LIBRARY);
+  RNA_def_property_update(prop, NC_SCENE | ND_COMPO_RESULT, "rna_Scene_compositor_update");
+
+  prop = RNA_def_property(srna, "is_active", PROP_BOOLEAN, PROP_NONE);
+  RNA_def_property_boolean_sdna(
+      prop, nullptr, "flags", uint8_t(SceneCompositorEffectFlags::IsActive));
+  RNA_def_property_boolean_funcs(prop, nullptr, "rna_SceneCompositorEffect_is_active_set");
+  RNA_def_property_clear_flag(prop, PROP_ANIMATABLE);
+  RNA_def_property_ui_text(prop, "Is Active", "This effect is active");
+  RNA_def_property_override_flag(prop, PROPOVERRIDE_OVERRIDABLE_LIBRARY);
+  RNA_def_property_update(prop, NC_SCENE | ND_COMPO_RESULT, "rna_Scene_compositor_update");
+
+  prop = RNA_def_property(srna, "show_expanded", PROP_BOOLEAN, PROP_NONE);
+  RNA_def_property_flag(prop, PROP_NO_DEG_UPDATE);
+  RNA_def_property_boolean_sdna(
+      prop, nullptr, "ui_panel_data_expansion", UI_PANEL_DATA_EXPAND_ROOT);
+  RNA_def_property_ui_text(prop, "Expanded", "Show effect expanded");
+  RNA_def_property_override_flag(prop, PROPOVERRIDE_OVERRIDABLE_LIBRARY);
+  RNA_def_property_update(prop, NC_SPACE | ND_SPACE_PROPERTIES, nullptr);
+
+  prop = RNA_def_property(srna, "show_node_group_selector", PROP_BOOLEAN, PROP_NONE);
+  RNA_def_property_boolean_sdna(
+      prop, nullptr, "flags", uint8_t(SceneCompositorEffectFlags::ShowNodeGroupSelector));
+  RNA_def_property_ui_text(prop, "Show Node Group Selector", "");
+  RNA_def_property_flag(prop, PROP_NO_DEG_UPDATE);
+  RNA_def_property_update(prop, NC_SPACE | ND_SPACE_PROPERTIES, nullptr);
+
+  prop = RNA_def_property(srna, "node_group", PROP_POINTER, PROP_NONE);
+  RNA_def_property_ui_text(prop, "Node Group", "Node group that controls what this effect does");
+  RNA_def_property_pointer_funcs(
+      prop, nullptr, nullptr, nullptr, "rna_SceneCompositorEffect_node_group_poll");
+  RNA_def_property_flag(prop, PROP_EDITABLE);
+  RNA_def_property_update(
+      prop, NC_SCENE | ND_SEQUENCER, "rna_SceneCompositorEffect_node_group_update");
+
+  rna_def_compositor_effect_nodes_properties(brna);
+
+  prop = RNA_def_property(srna, "properties", PROP_POINTER, PROP_NONE);
+  RNA_def_property_struct_type(prop, "SceneCompositorEffectProperties");
+  RNA_def_property_ui_text(prop, "Properties", "");
+  RNA_def_property_pointer_funcs(
+      prop, "rna_SceneCompositorEffectProperties_get", nullptr, nullptr, nullptr);
+}
+
+static void rna_def_compositor_effects(BlenderRNA *brna, PropertyRNA *cprop)
+{
+  StructRNA *srna;
+  PropertyRNA *prop;
+
+  FunctionRNA *func;
+  PropertyRNA *parm;
+
+  RNA_def_property_srna(cprop, "SceneCompositorEffects");
+  srna = RNA_def_struct(brna, "SceneCompositorEffects", nullptr);
+  RNA_def_struct_sdna(srna, "Scene");
+  RNA_def_struct_ui_text(
+      srna, "Scene Compositor Effects", "Collection of scene compositor effects");
+
+  /* add effect */
+  func = RNA_def_function(srna, "new", "rna_SceneCompositorEffects_new");
+  RNA_def_function_flag(func, FUNC_NO_SELF | FUNC_USE_SELF_ID);
+  RNA_def_function_ui_description(func, "Add a new effect");
+  parm = RNA_def_string(func, "name", "Name", 0, "", "New name for the effect");
+  RNA_def_parameter_flags(parm, PropertyFlag(0), PARM_REQUIRED);
+  /* return type */
+  parm = RNA_def_pointer(func, "effect", "SceneCompositorEffect", "", "Newly created effect");
+  RNA_def_function_return(func, parm);
+
+  /* remove effect */
+  func = RNA_def_function(srna, "remove", "rna_SceneCompositorEffects_remove");
+  RNA_def_function_flag(func, FUNC_NO_SELF | FUNC_USE_SELF_ID | FUNC_USE_REPORTS);
+  RNA_def_function_ui_description(func, "Remove an existing effect from the strip");
+  /* effect to remove */
+  parm = RNA_def_pointer(func, "effect", "SceneCompositorEffect", "", "Effect to remove");
+  RNA_def_parameter_flags(parm, PROP_NEVER_NULL, PARM_REQUIRED | PARM_RNAPTR);
+  RNA_def_parameter_clear_flags(parm, PROP_THICK_WRAP, ParameterFlag(0));
+
+  /* clear all effects */
+  func = RNA_def_function(srna, "clear", "rna_SceneCompositorEffects_clear");
+  RNA_def_function_flag(func, FUNC_NO_SELF | FUNC_USE_SELF_ID | FUNC_USE_MAIN);
+  RNA_def_function_ui_description(func, "Remove all effects from the strip");
+
+  /* Active effect. */
+  prop = RNA_def_property(srna, "active", PROP_POINTER, PROP_NONE);
+  RNA_def_property_struct_type(prop, "SceneCompositorEffect");
+  RNA_def_property_pointer_funcs(prop,
+                                 "rna_SceneCompositorEffects_active_get",
+                                 "rna_SceneCompositorEffects_active_set",
+                                 nullptr,
+                                 nullptr);
+  RNA_def_property_flag(prop, PROP_EDITABLE | PROP_NEVER_NULL);
+  RNA_def_property_ui_text(prop, "Active Effect", "The active strip effect in the list");
+  RNA_def_property_update(prop, NC_SCENE | ND_COMPO_RESULT, "rna_Scene_compositor_update");
+}
+
 static void rna_def_scene_hydra(BlenderRNA *brna)
 {
   StructRNA *srna;
@@ -9202,19 +9521,27 @@ void RNA_def_scene(BlenderRNA *brna)
   RNA_def_property_ui_text(prop, "Loop Mode", "What to do when playback reaches the last frame");
   RNA_def_property_update(prop, NC_SCENE, nullptr);
 
+  prop = RNA_def_property(srna, "compositor_effects", PROP_COLLECTION, PROP_NONE);
+  RNA_def_property_struct_type(prop, "SceneCompositorEffect");
+  RNA_def_property_ui_text(prop, "Compositor Effects", "Compositor effects for this scene");
+  rna_def_compositor_effects(brna, prop);
+
   /* Nodes (Compositing) */
   prop = RNA_def_property(srna, "compositing_node_group", PROP_POINTER, PROP_NONE);
-  RNA_def_property_pointer_sdna(prop, nullptr, "compositing_node_group");
   RNA_def_property_struct_type(prop, "NodeTree");
   RNA_def_property_flag(prop, PROP_EDITABLE | PROP_ID_REFCOUNT);
   RNA_def_property_override_flag(prop, PROPOVERRIDE_OVERRIDABLE_LIBRARY);
-  RNA_def_property_ui_text(prop, "Node Tree", "Compositor Nodes");
-  RNA_def_property_update(prop, 0, "rna_Scene_compositor_update");
+  RNA_def_property_ui_text(prop,
+                           "Node Tree",
+                           "Returns and sets the node group of the active scene compositor "
+                           "effect. Creates a new effect if none exists");
+  RNA_def_property_update(prop, 0, "rna_Scene_compositing_node_group_update");
   RNA_def_property_pointer_funcs(prop,
-                                 nullptr,
+                                 "rna_Scene_compositing_node_group_get",
                                  "rna_Scene_compositing_node_group_set",
                                  nullptr,
                                  "rna_Scene_compositing_node_group_poll");
+  RNA_def_property_deprecated(prop, "Use compositor_effects instead.", 500, 600);
 
   /* Todo(#140111): Remove in 6.0. */
   prop = RNA_def_property(srna, "use_nodes", PROP_BOOLEAN, PROP_NONE);
@@ -9509,6 +9836,7 @@ void RNA_def_scene(BlenderRNA *brna)
   rna_def_view_layer_lightgroup(brna);
   rna_def_view_layer_eevee(brna);
   rna_def_scene_gpencil(brna);
+  rna_def_compositor_effect(brna);
   RNA_define_animate_sdna(true);
   /* *** Animated *** */
   rna_def_scene_render_data(brna);

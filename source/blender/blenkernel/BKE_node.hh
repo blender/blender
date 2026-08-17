@@ -217,6 +217,7 @@ struct bNodeSocketType {
 
   SocketMakeNodesInputSrnaFunction make_geometry_nodes_input_srna = nullptr;
   SocketMakeNodesInputSrnaFunction make_compositor_nodes_input_srna = nullptr;
+  SocketMakeNodesInputSrnaFunction make_scene_compositor_effect_input_srna = nullptr;
 };
 
 using NodeInitExecFunction = void *(*)(bNodeExecContext * context,

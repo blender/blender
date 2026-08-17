@@ -2,6 +2,7 @@
  *
  * SPDX-License-Identifier: GPL-2.0-or-later */
 
+#include "BKE_compositor.hh"
 #include "BLI_listbase.hh"
 
 #include "GPU_capabilities.hh"
@@ -41,7 +42,6 @@ struct CompositorJob {
   Main *bmain;
   Scene *scene;
   ViewLayer *view_layer;
-  bNodeTree *evaluated_node_tree;
   Render *render;
   compositor::NodeGroupOutputTypes needed_outputs;
   /* Identifies if the compositor is executing due to the user making a modification or if it is
@@ -87,9 +87,6 @@ static void compositor_job_init(void *compositor_job_data)
    * evaluate_on_framechange. */
   DEG_evaluate_on_refresh(compositor_runtime.preview_depsgraph);
 
-  compositor_job->evaluated_node_tree = DEG_get_evaluated(compositor_runtime.preview_depsgraph,
-                                                          scene->compositing_node_group);
-
   compositor_job->render = RE_NewInteractiveCompositorRender(scene);
   if (scene->r.compositor_device == SCE_COMPOSITOR_DEVICE_GPU) {
     RE_display_ensure_gpu_context(compositor_job->render);
@@ -118,7 +115,6 @@ static void compositor_job_start(void *compositor_job_data, wmJobWorkerStatus *w
                                          *compositor_job->bmain,
                                          *evaluated_scene,
                                          evaluated_scene->r,
-                                         *compositor_job->evaluated_node_tree,
                                          "",
                                          nullptr,
                                          compositor_job->needed_outputs,
@@ -180,7 +176,7 @@ static bool is_compositing_possible(const Scene *scene)
     return false;
   }
 
-  if (!scene->compositing_node_group) {
+  if (!bke::compositor::is_enabled(*scene, bke::compositor::ExecutionMode::Preview)) {
     return false;
   }
 

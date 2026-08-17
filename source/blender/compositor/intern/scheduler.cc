@@ -91,7 +91,6 @@ static void add_output_nodes(NodeGroupOperation &node_group_operation,
   const NodeGroupOutputTypes needed_output_types = node_group_operation.needed_output_types();
   node_group.ensure_topology_cache();
 
-  bool viewer_exists_in_descendant_node_group = false;
   /* Add group nodes that contain File Output and Viewer nodes. */
   for (const bNode *group_node : node_group.group_nodes()) {
     if (group_node->is_muted() || !group_node->id) {
@@ -109,7 +108,6 @@ static void add_output_nodes(NodeGroupOperation &node_group_operation,
                         node_group_operation.context().get_active_compute_context_hash()))
     {
       node_stack.push(group_node);
-      viewer_exists_in_descendant_node_group = true;
       continue;
     }
 
@@ -136,21 +134,10 @@ static void add_output_nodes(NodeGroupOperation &node_group_operation,
     }
   }
 
-  /* Identify if the node group is the base context or the active context. */
-  const bke::DataBlockComputeContext base_compute_context(
-      nullptr, node_group_operation.context().get_scene().id);
-  const bool is_base_node_group = node_group_operation.compute_context().hash() ==
-                                  base_compute_context.hash();
-  const bool is_active_node_group =
-      node_group_operation.compute_context().hash() ==
-      node_group_operation.context().get_active_compute_context_hash();
-
-  /* Add Viewer node. Only add the node if the node group is active or is a base node group and no
-   * viewer node exists in descendants node groups. */
-  const bool consider_base_viewer = !viewer_exists_in_descendant_node_group;
-  const bool should_add_base_viewer = is_base_node_group && consider_base_viewer;
-  const bool should_add_viewer = is_active_node_group || should_add_base_viewer;
-  if (flag_is_set(needed_output_types, NodeGroupOutputTypes::ViewerNode) && should_add_viewer) {
+  /* Add Viewer node if this is the active context. */
+  const bool is_active_context = node_group_operation.compute_context().hash() ==
+                                 node_group_operation.context().get_active_compute_context_hash();
+  if (flag_is_set(needed_output_types, NodeGroupOutputTypes::ViewerNode) && is_active_context) {
     for (const bNode *node : node_group.nodes_by_type("CompositorNodeViewer"_ustr)) {
       if (node->flag & NODE_DO_OUTPUT && !node->is_muted()) {
         node_stack.push(node);

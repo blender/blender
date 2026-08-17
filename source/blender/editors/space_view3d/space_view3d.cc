@@ -29,6 +29,7 @@
 #include "BLI_utildefines.hh"
 
 #include "BKE_asset.hh"
+#include "BKE_compositor.hh"
 #include "BKE_context.hh"
 #include "BKE_global.hh"
 #include "BKE_gpencil_legacy.h"
@@ -694,6 +695,11 @@ static void view3d_main_region_listener(const wmRegionListenerParams *params)
           }
           break;
         }
+        case ND_COMPO_RESULT:
+          if (bke::compositor::is_viewport_compositor_used(*scene, *v3d, *rv3d)) {
+            ED_region_tag_redraw(region);
+          }
+          break;
       }
       if (wmn->action == NA_EDITED) {
         ED_region_tag_redraw(region);

@@ -84,4 +84,13 @@ void ED_scene_fps_average_clear(Scene *scene) ATTR_NONNULL(1);
 
 /** \} */
 
+/* -------------------------------------------------------------------- */
+/** \name Scene Compositor
+ * \{ */
+
+void ED_operatortypes_scene_compositor();
+void ED_menutypes_scene_compositor();
+
+/** \} */
+
 }  // namespace blender

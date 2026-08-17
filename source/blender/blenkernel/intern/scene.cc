@@ -376,6 +376,8 @@ static void scene_copy_data(Main *bmain,
 
   BKE_scene_copy_data_eevee(scene_dst, scene_src);
 
+  bke::compositor::copy_effects(*scene_dst, *scene_src, flag_subdata);
+
   scene_dst->runtime = MEM_new<SceneRuntime>(__func__);
 }
 
@@ -398,7 +400,7 @@ static void scene_free_data(ID *id)
 
   BKE_keyingsets_free(&scene->keyingsets);
 
-  BLI_assert_msg(scene->nodetree == nullptr,
+  BLI_assert_msg(!scene->nodetree && !scene->compositing_node_group,
                  "Pointer should not be valid after blend file reading.");
 
   if (scene->rigidbody_world) {
@@ -451,6 +453,8 @@ static void scene_free_data(ID *id)
     IDP_FreeProperty(scene->display.shading.prop);
     scene->display.shading.prop = nullptr;
   }
+
+  bke::compositor::free_effects(*scene);
 
   /* These are freed on `do_versions`. */
   BLI_assert(scene->layer_properties == nullptr);
@@ -879,6 +883,8 @@ static void scene_foreach_id(ID *id, LibraryForeachIDData *data)
   BKE_LIB_FOREACHID_PROCESS_IDSUPER(data, scene->r.bake.cage_object, IDWALK_CB_NOP);
   BKE_LIB_FOREACHID_PROCESS_IDSUPER(data, scene->compositing_node_group, IDWALK_CB_USER);
 
+  bke::compositor::for_each_id_in_effects(*scene, *data);
+
   if (scene->nodetree) {
     /* nodetree **are owned by IDs**, treat them as mere sub-data and not real ID! */
     BKE_LIB_FOREACHID_PROCESS_FUNCTION_CALL(
@@ -1133,6 +1139,7 @@ static void scene_blend_write_compositor_forward_compat(Scene &scene,
   temp_nodetree_copy = nullptr;
   MEM_delete_void(reinterpret_cast<void *>(scene.nodetree));
   scene.nodetree = nullptr;
+  scene.compositing_node_group = nullptr;
 }
 
 static void scene_blend_write(BlendWriter *writer, ID *id, const void *id_address)
@@ -1144,6 +1151,16 @@ static void scene_blend_write(BlendWriter *writer, ID *id, const void *id_addres
     /* Clean up, important in undo case to reduce false detection of changed data-blocks. */
     /* XXX This UI data should not be stored in Scene at all... */
     sce->cursor = View3DCursor{};
+  }
+
+  /* Todo(#140111): Forward compatibility support will be removed in 6.0. */
+  if (!is_write_undo) {
+    for (const SceneCompositorEffect &effect : sce->compositor_effects) {
+      if (bke::compositor::is_effect_enabled(effect, bke::compositor::ExecutionMode::Render)) {
+        sce->compositing_node_group = effect.node_group;
+        break;
+      }
+    }
   }
 
   /* Todo(#140111): Forward compatibility support will be removed in 6.0. Do not initialize the
@@ -1313,6 +1330,8 @@ static void scene_blend_write(BlendWriter *writer, ID *id, const void *id_addres
   }
 
   BKE_screen_view3d_shading_blend_write(writer, &sce->display.shading);
+
+  bke::compositor::write_effects(*sce, *writer);
 
   /* Freed on `do_versions()`. */
   BLI_assert(sce->layer_properties == nullptr);
@@ -1555,6 +1574,8 @@ static void scene_blend_read_data(BlendDataReader *reader, ID *id)
 
   BLO_read_struct(reader, IDProperty, &sce->layer_properties);
   IDP_BlendDataRead(reader, &sce->layer_properties);
+
+  bke::compositor::read_effects(*sce, *reader);
 }
 
 /* patch for missing scene IDs, can't be in do-versions */
@@ -1995,8 +2016,10 @@ Scene *BKE_scene_duplicate(Main *bmain,
    * compositing node tree with a Render Layers node that referred to the new scene.
    * To preserve this behavior, we make a full copy when creating a linked copy as well as a full
    * copy of the scene.*/
-  BKE_id_copy_for_duplicate(
-      bmain, reinterpret_cast<ID *>(sce->compositing_node_group), duplicate_flags, copy_flags);
+  for (SceneCompositorEffect &effect : sce->compositor_effects) {
+    BKE_id_copy_for_duplicate(
+        bmain, reinterpret_cast<ID *>(effect.node_group), duplicate_flags, copy_flags);
+  }
 
   if (type == SCE_COPY_FULL) {
     /* Copy Freestyle LineStyle datablocks. */

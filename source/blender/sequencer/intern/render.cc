@@ -25,6 +25,7 @@
 
 #include "BKE_anim_data.hh"
 #include "BKE_animsys.hh"
+#include "BKE_compositor.hh"
 #include "BKE_global.hh"
 #include "BKE_image.hh"
 #include "BKE_layer.hh"
@@ -1512,11 +1513,6 @@ static ImBuf *seq_render_scene_strip_ex(const RenderData *context,
   const bool is_preview = !context->render && (context->scene->r.seq_prev_type) != OB_RENDER;
   const float frame = float(scene->r.sfra) + frame_index + float(strip->anim_startofs);
 
-#if 0 /* UNUSED */
-  bool have_seq = (scene->r.scemode & R_DOSEQ) && scene->ed && scene->ed->seqbase.first;
-#endif
-  const bool have_comp = (scene->r.scemode & R_DOCOMP) && scene->compositing_node_group;
-
   ViewLayer *view_layer = get_view_layer_for_scene_strip(scene, strip);
   Depsgraph *depsgraph = get_depsgraph_for_scene_strip(context->bmain, scene, view_layer);
 
@@ -1530,6 +1526,15 @@ static ImBuf *seq_render_scene_strip_ex(const RenderData *context,
     camera = scene->camera;
   }
 
+#if 0 /* UNUSED */
+  bool have_seq = (scene->r.scemode & R_DOSEQ) && scene->ed && scene->ed->seqbase.first;
+#endif
+  const bool is_viewport_render = view3d_fn && is_preview && camera;
+  const bke::compositor::ExecutionMode execution_mode =
+      is_viewport_render ? bke::compositor::ExecutionMode::Preview :
+                           bke::compositor::ExecutionMode::Render;
+  const bool have_comp = bke::compositor::is_enabled(*scene, execution_mode);
+
   if (have_comp == false && camera == nullptr) {
     return nullptr;
   }
@@ -1540,7 +1545,7 @@ static ImBuf *seq_render_scene_strip_ex(const RenderData *context,
   /* Temporarily disable camera switching to enforce using `camera`. */
   scene->r.mode |= R_NO_CAMERA_SWITCH;
 
-  if (view3d_fn && is_preview && camera) {
+  if (is_viewport_render) {
     int width, height;
     BKE_render_resolution(&scene->r, false, &width, &height);
 

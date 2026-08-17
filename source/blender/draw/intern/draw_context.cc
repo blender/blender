@@ -27,6 +27,7 @@
 
 #include "BLT_translation.hh"
 
+#include "BKE_compositor.hh"
 #include "BKE_context.hh"
 #include "BKE_curve.hh"
 #include "BKE_curves.h"
@@ -2246,33 +2247,11 @@ bool DRWContext::is_transforming() const
 
 bool DRWContext::is_viewport_compositor_enabled() const
 {
-  if (!this->v3d) {
+  if (!this->v3d || !this->rv3d) {
     return false;
   }
 
-  if (this->v3d->shading.use_compositor == V3D_SHADING_USE_COMPOSITOR_DISABLED) {
-    return false;
-  }
-
-  if (!(this->v3d->shading.type >= OB_MATERIAL)) {
-    return false;
-  }
-
-  if (!this->scene->compositing_node_group) {
-    return false;
-  }
-
-  if (!this->rv3d) {
-    return false;
-  }
-
-  if (this->v3d->shading.use_compositor == V3D_SHADING_USE_COMPOSITOR_CAMERA &&
-      this->rv3d->persp != RV3D_CAMOB)
-  {
-    return false;
-  }
-
-  return true;
+  return bke::compositor::is_viewport_compositor_used(*this->scene, *this->v3d, *this->rv3d);
 }
 
 /** \} */

@@ -12,6 +12,7 @@
 
 #include "BLI_listbase.hh"
 
+#include "BKE_compositor.hh"
 #include "BKE_context.hh"
 #include "BKE_global.hh"
 #include "BKE_image.hh"
@@ -77,10 +78,14 @@ static void composite_get_from_context(const bContext *C,
   }
 
   Scene *scene = CTX_data_scene(C);
+  SceneCompositorEffect *effect = bke::compositor::get_active_effect(*scene);
+  if (!effect || !effect->node_group || ID_MISSING(effect->node_group)) {
+    return;
+  }
 
-  *r_from = nullptr;
+  *r_from = &scene->id;
   *r_id = &scene->id;
-  *r_ntree = scene->compositing_node_group;
+  *r_ntree = effect->node_group;
 }
 
 static void foreach_nodeclass(void *calldata, bke::bNodeClassCallback func)
@@ -198,10 +203,12 @@ void ntreeCompositTagRender(Scene *scene)
   for (Scene *sce_iter = static_cast<Scene *>(G_MAIN->scenes.first); sce_iter;
        sce_iter = static_cast<Scene *>(sce_iter->id.next))
   {
-    if (sce_iter->compositing_node_group) {
-      for (bNode *node : sce_iter->compositing_node_group->all_nodes()) {
-        if (node->id == (ID *)scene) {
-          BKE_ntree_update_tag_node_property(sce_iter->compositing_node_group, node);
+    for (const SceneCompositorEffect &effect : sce_iter->compositor_effects) {
+      if (effect.node_group && !ID_MISSING(effect.node_group)) {
+        for (bNode *node : effect.node_group->all_nodes()) {
+          if (node->id == (ID *)scene) {
+            BKE_ntree_update_tag_node_property(effect.node_group, node);
+          }
         }
       }
     }

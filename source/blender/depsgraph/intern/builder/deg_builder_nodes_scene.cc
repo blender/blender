@@ -8,6 +8,7 @@
 
 #include "intern/builder/deg_builder_nodes.h"
 
+#include "DNA_node_types.h"
 #include "DNA_scene_types.h"
 
 #include "BLI_listbase.hh"
@@ -69,9 +70,6 @@ void DepsgraphNodeBuilder::build_scene_compositor(Scene *scene)
   if (built_map_.check_is_built_and_tag(scene, BuilderMap::TAG_SCENE_COMPOSITOR)) {
     return;
   }
-  if (scene->compositing_node_group == nullptr) {
-    return;
-  }
 
   add_operation_node(&scene->id,
                      NodeType::COMPOSITOR,
@@ -81,7 +79,13 @@ void DepsgraphNodeBuilder::build_scene_compositor(Scene *scene)
                         * considered a no-op. */
                      });
 
-  build_nodetree(scene->compositing_node_group);
+  for (SceneCompositorEffect &effect : scene->compositor_effects) {
+    if (!effect.node_group || ID_MISSING(effect.node_group)) {
+      continue;
+    }
+    build_nodetree(effect.node_group);
+    build_idproperties(effect.system_properties);
+  }
 }
 
 }  // namespace blender::deg

@@ -31,6 +31,7 @@
 #include "DNA_layer_types.h"
 #include "DNA_listBase.h"
 #include "DNA_scene_enums.h"
+#include "DNA_screen_types.h"
 #include "DNA_vec_types.h"
 #include "DNA_view3d_types.h"
 
@@ -2787,6 +2788,41 @@ struct TransformOrientationSlot {
 /** \} */
 
 /* -------------------------------------------------------------------- */
+/** \name Scene Compositor Effect
+ * \{ */
+
+enum class SceneCompositorEffectFlags : uint8_t {
+  None = 0,
+  /* The effect is enabled for final render compositing. */
+  EnableForRender = (1 << 0),
+  /* The effect is enabled for preview compositing, like the interactive compositor or the
+   * viewport compositor. */
+  EnableForPreview = (1 << 1),
+  /* The effect is the currently active one in the effects stack. Only one effect can be
+     marked as active in the stack. One effect is guaranteed to be active at all time. */
+  IsActive = (1 << 2),
+  /* Show the node group selector in the effect, this can be disabled for assets for instance to
+   * make the effect look more like a built-in effect. */
+  ShowNodeGroupSelector = (1 << 3),
+};
+ENUM_OPERATORS(SceneCompositorEffectFlags);
+
+struct SceneCompositorEffect {
+  struct SceneCompositorEffect *next = nullptr, *previous = nullptr;
+  char name[/*MAX_NAME*/ 64] = "";
+  struct bNodeTree *node_group = nullptr;
+  struct IDProperty *system_properties = nullptr;
+  SceneCompositorEffectFlags flags = SceneCompositorEffectFlags::EnableForRender |
+                                     SceneCompositorEffectFlags::EnableForPreview |
+                                     SceneCompositorEffectFlags::ShowNodeGroupSelector;
+  char _pad0[1] = {};
+  uiPanelDataExpansion ui_panel_data_expansion = UI_PANEL_DATA_EXPAND_ROOT;
+  char _pad1[4] = {};
+};
+
+/** \} */
+
+/* -------------------------------------------------------------------- */
 /** \name Scene ID-Block
  * \{ */
 
@@ -2855,7 +2891,9 @@ struct Scene {
   char _pad3[1] = {};
 
   DNA_DEPRECATED struct bNodeTree *nodetree = nullptr;
-  struct bNodeTree *compositing_node_group = nullptr;
+  DNA_DEPRECATED struct bNodeTree *compositing_node_group = nullptr;
+
+  ListBaseT<SceneCompositorEffect> compositor_effects = {nullptr, nullptr};
 
   /** Sequence editor data is allocated here. */
   struct Editing *ed = nullptr;

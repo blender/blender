@@ -17,10 +17,12 @@
 #include "DNA_scene_types.h"
 
 #include "BLI_listbase_iterator.hh"
+#include "BLI_string_ref.hh"
 #include "BLI_sys_types.hh"
 
 #include "BKE_attribute.h"
 #include "BKE_attribute.hh"
+#include "BKE_compositor.hh"
 #include "BKE_main.hh"
 #include "BKE_mesh_legacy_convert.hh"
 #include "BKE_node.hh"
@@ -72,11 +74,44 @@ static void do_version_merge_layers_options_to_inputs(bNodeTree &ntree, bNode &n
   socket.default_value_typed<bNodeSocketValueMenu>()->value = storage.mode;
 }
 
+static void compositing_node_group_to_effect(Main &main, Scene &scene)
+{
+  bNodeTree *node_group = version_get_scene_compositor_node_tree(&main, &scene);
+  if (!node_group) {
+    return;
+  }
+
+  SceneCompositorEffect &effect = bke::compositor::new_effect(scene, "Effect");
+  effect.node_group = node_group;
+  if (!node_group->compositor_node_asset_traits) {
+    node_group->compositor_node_asset_traits = MEM_new<CompositorNodeAssetTraits>(__func__);
+  }
+  node_group->compositor_node_asset_traits->flag |= COMPOSIT_NODE_ASSET_SCENE_EFFECT;
+  bke::node_update_asset_metadata(*node_group);
+  scene.compositing_node_group = nullptr;
+}
+
 void do_versions_after_linking_503(FileData * /*fd*/, Main *bmain)
 {
   if (!MAIN_VERSION_FILE_ATLEAST(bmain, 503, 8)) {
     version_node_socket_index_animdata(
         bmain, NTREE_GEOMETRY, "GeometryNodeSetGreasePencilColor", 5, 1, 6);
+  }
+
+  if (!MAIN_VERSION_FILE_ATLEAST(bmain, 503, 15)) {
+    for (Scene &scene : bmain->scenes) {
+      compositing_node_group_to_effect(*bmain, scene);
+    }
+  }
+  else {
+    /* The now deprecated compositing_node_group is always written on file writes for forward
+     * compatibility, so it has to be reset to nullptr if no versioning was needed.
+     *
+     * Todo(#140111): Forward compatibility support will be removed in 6.0, and this loop can then
+     * be placed behind a `MAIN_VERSION_FILE_OLDER(bmain, 600, xxx)` check . */
+    for (Scene &scene : bmain->scenes) {
+      scene.compositing_node_group = nullptr;
+    }
   }
 
   /**
@@ -311,6 +346,7 @@ void blo_do_versions_503(FileData * /*fd*/, Library * /*lib*/, Main *bmain)
       }
     }
   }
+
   /**
    * Always bump subversion in BKE_blender_version.h when adding versioning
    * code here, and wrap it inside a MAIN_VERSION_FILE_ATLEAST check.

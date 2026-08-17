@@ -892,7 +892,6 @@ void do_versions_after_setup(Main *new_bmain,
       ntree->owner_id = nullptr;
       ntree->id.tag |= ID_TAG_NO_MAIN;
 
-      scene.compositing_node_group = ntree;
       scene.nodetree = nullptr;
 
       BKE_libblock_management_main_add(new_bmain, ntree);

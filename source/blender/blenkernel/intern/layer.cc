@@ -579,10 +579,14 @@ void BKE_view_layer_rename(Main *bmain, Scene *scene, ViewLayer *view_layer, con
                  offsetof(ViewLayer, name),
                  sizeof(view_layer->name));
 
-  if (scene->compositing_node_group) {
+  for (const SceneCompositorEffect &effect : scene->compositor_effects) {
+    if (!effect.node_group || ID_MISSING(effect.node_group)) {
+      continue;
+    }
+
     int index = BLI_findindex(&scene->view_layers, view_layer);
 
-    for (bNode *node : scene->compositing_node_group->all_nodes()) {
+    for (bNode *node : effect.node_group->all_nodes()) {
       if (node->type_legacy == CMP_NODE_R_LAYERS && node->id == nullptr) {
         if (node->custom1 == index) {
           STRNCPY_UTF8(node->name, view_layer->name);
