@@ -529,7 +529,7 @@ void slide_subjects_autokey(bContext *C,
   }
   /* This includes all motion paths for bones. Could be more fine grained in the future to avoid
    * needless updates to data that was not changed. */
-  ed::object::motion_paths_recalc(C, scene, ANIMVIZ_CALC_RANGE_CHANGED, objects);
+  ed::object::motion_paths_recalc(C, scene, objects);
   WM_event_add_notifier(C, NC_ANIMATION | ND_KEYFRAME | NA_ADDED, nullptr);
 }
 
