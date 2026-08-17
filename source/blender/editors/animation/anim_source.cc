@@ -27,20 +27,36 @@ static bool has_assigned_action(AnimData &anim_data)
   return anim_data.action != nullptr && anim_data.slot_handle != animrig::Slot::unassigned;
 }
 
-static void channels_for_channelbag(animrig::Channelbag &channelbag, Set<DataChannel> &r_channels)
+static void channels_for_channelbag(animrig::Channelbag &channelbag,
+                                    ChannelTagStack &tags,
+                                    Set<DataChannel> &r_channels)
 {
   for (FCurve *fcu : channelbag.fcurves()) {
+    if (fcu->grp) {
+      tags.push({ChannelTagType::FCURVE_GROUP, fcu->grp->name, fcu->grp});
+    }
+
     FCurveChannel channel(*fcu);
     r_channels.add(channel);
+
+    if (fcu->grp) {
+      tags.pop();
+    }
   }
 }
 
 static void channels_for_action_slot(animrig::Action &action,
                                      const animrig::slot_handle_t slot_handle,
+                                     ChannelTagStack &tags,
                                      Set<DataChannel> &r_channels)
 {
   using namespace animrig;
+  tags.push({ChannelTagType::ACTION, action.id.name, &action});
+  Slot *slot = action.slot_for_handle(slot_handle);
+  tags.push({ChannelTagType::ACTION_SLOT, slot->identifier, slot});
+
   for (Layer *layer : action.layers()) {
+    tags.push({ChannelTagType::ACTION_LAYER, layer->name, layer});
     for (Strip *strip : layer->strips()) {
       if (strip->type() != Strip::Type::Keyframe) {
         continue;
@@ -50,9 +66,15 @@ static void channels_for_action_slot(animrig::Action &action,
       if (!channelbag) {
         continue;
       }
-      channels_for_channelbag(*channelbag, r_channels);
+      tags.push({ChannelTagType::ACTION_STRIP, "strip_name_placeholder", strip});
+      channels_for_channelbag(*channelbag, tags, r_channels);
+      tags.pop();
     }
+    tags.pop();
   }
+
+  tags.pop();
+  tags.pop();
 }
 
 static void collect_channels_for_id(ID *animated_id,
@@ -74,7 +96,7 @@ static void collect_channels_for_id(ID *animated_id,
 
   ChannelTagStack tags;
   tags.push({ChannelTagType::ID, animated_id->name, animated_id});
-  channels_for_action_slot(adt->action->wrap(), adt->slot_handle, r_channels);
+  channels_for_action_slot(adt->action->wrap(), adt->slot_handle, tags, r_channels);
   tags.pop();
 }
 
