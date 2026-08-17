@@ -4,7 +4,9 @@
 
 #include "BLT_translation.hh"
 
-#include "NOD_geometry_nodes_warning.hh"
+#include "BKE_report.hh"
+
+#include "NOD_warning.hh"
 
 #include "RNA_access.hh"
 #include "RNA_enum_types.hh"
@@ -12,6 +14,19 @@
 #include "UI_resources.hh"
 
 namespace blender::nodes {
+
+NodeWarning::NodeWarning(const Report &report)
+{
+  switch (report.type) {
+    case RPT_ERROR:
+      this->type = NodeWarningType::Error;
+      break;
+    default:
+      this->type = NodeWarningType::Info;
+      break;
+  }
+  this->message = report.message;
+}
 
 int node_warning_type_icon(const NodeWarningType type)
 {

@@ -2104,12 +2104,11 @@ static void node_draw_panels(bNodeTree &ntree, const bNode &node, ui::Block &blo
   }
 }
 
-static nodes::NodeWarningType node_error_highest_priority(
-    Span<nodes::eval_log::NodeWarning> warnings)
+static nodes::NodeWarningType node_error_highest_priority(Span<nodes::NodeWarning> warnings)
 {
   int highest_priority = 0;
   nodes::NodeWarningType highest_priority_type = nodes::NodeWarningType::Info;
-  for (const nodes::eval_log::NodeWarning &warning : warnings) {
+  for (const nodes::NodeWarning &warning : warnings) {
     const int priority = node_warning_type_severity(warning.type);
     if (priority > highest_priority) {
       highest_priority = priority;
@@ -2119,11 +2118,11 @@ static nodes::NodeWarningType node_error_highest_priority(
   return highest_priority_type;
 }
 
-static std::string node_errors_tooltip_fn(const Span<nodes::eval_log::NodeWarning> warnings)
+static std::string node_errors_tooltip_fn(const Span<nodes::NodeWarning> warnings)
 {
   std::string complete_string;
 
-  for (const nodes::eval_log::NodeWarning &warning : warnings.drop_back(1)) {
+  for (const nodes::NodeWarning &warning : warnings.drop_back(1)) {
     complete_string += warning.message;
     /* Adding the period is not ideal for multi-line messages, but it is consistent
      * with other tooltip implementations in Blender, so it is added here. */
@@ -2182,7 +2181,7 @@ static void node_add_error_message_button(const TreeDrawContext &tree_draw_ctx,
       return tree_draw_ctx.tree_logs.get_main_tree_log(zone);
     }();
 
-    Span<nodes::eval_log::NodeWarning> warnings;
+    Span<nodes::NodeWarning> warnings;
     if (geo_tree_log) {
       nodes::eval_log::NodeLog *node_log = geo_tree_log->find_node_log(node.identifier);
       if (node_log != nullptr) {
@@ -2198,8 +2197,7 @@ static void node_add_error_message_button(const TreeDrawContext &tree_draw_ctx,
     ui::Button *but = add_error_message_button(
         block, rect, nodes::node_warning_type_icon(display_type), icon_offset);
     button_func_quick_tooltip_set(
-        but,
-        [warnings = Array<nodes::eval_log::NodeWarning>(warnings)](const ui::Button * /*but*/) {
+        but, [warnings = Array<nodes::NodeWarning>(warnings)](const ui::Button * /*but*/) {
           return node_errors_tooltip_fn(warnings);
         });
     return;
