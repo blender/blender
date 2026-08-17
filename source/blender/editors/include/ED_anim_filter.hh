@@ -46,14 +46,32 @@ class ChannelTag {
   std::string label_;
 
   /* This could be a PointerRNA. */
-  void *source_data;
+  void *source_data_;
 
  public:
   ChannelTag(ChannelTagType type, StringRef label, void *source_data);
+  bool operator==(const ChannelTag &other) const
+  {
+    return other.tag_type() == this->tag_type_ && other.source_data() == this->source_data_ &&
+           other.label() == this->label_;
+  }
+
+  ChannelTagType tag_type() const
+  {
+    return this->tag_type_;
+  }
+  StringRef label() const
+  {
+    return this->label_;
+  }
+  void *source_data() const
+  {
+    return this->source_data_;
+  }
 
   int64_t hash() const
   {
-    return get_default_hash(this->tag_type_, this->label_, this->source_data);
+    return get_default_hash(this->tag_type_, this->label_, this->source_data_);
   }
 };
 
@@ -100,38 +118,39 @@ enum DataChannelFlags {
   DATACHANNEL_FLAG_PINNED,
 };
 
-class DataChannel : public AnimationChannel {
- public:
-  DataChannel(ChannelType type, void *source, StringRef label);
+enum class DatachannelType {
+  FCURVE,
+  GREASE_PENCIL,
+};
 
- protected:
-  /* The datatype of this is determined by the inheriting class. */
+class DataChannel : public AnimationChannel {
+  DatachannelType type_;
+  /* The datatype of this is determined by the type. */
   void *source_;
   Set<ChannelTag> tags_;
   DataChannelFlags flags_;
-};
 
-class FCurveChannel : public DataChannel {
  public:
-  FCurveChannel(FCurve &fcurve);
-
-  FCurve *get_source()
+  DataChannel(FCurve &fcurve);
+  DataChannel(GreasePencilLayer &gp_layer);
+  bool operator==(const DataChannel &other) const
   {
-    return reinterpret_cast<FCurve *>(this->source_);
+    /* TODO */
+    return &other == this;
   }
 
- protected:
-  void gather_channeldata() override;
-};
-
-class GreasePencilChannel : public DataChannel {
- public:
-  GreasePencilChannel(GreasePencilLayer &gp_layer);
-
-  GreasePencilLayer *get_source()
+  DatachannelType type() const
   {
-    return reinterpret_cast<GreasePencilLayer *>(this->source_);
+    return this->type_;
   }
+
+  int64_t hash() const
+  {
+    /* TODO hash tags too. */
+    return get_default_hash(this->type_, this->source_);
+  }
+
+  template<typename T> T get_source() const;
 
  protected:
   void gather_channeldata() override;

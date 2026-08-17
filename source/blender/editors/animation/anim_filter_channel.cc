@@ -11,7 +11,7 @@
 namespace blender::ed::animfilter {
 
 ChannelTag::ChannelTag(const ChannelTagType type, const StringRef label, void *source_data)
-    : tag_type_(type), label_(label), source_data(source_data)
+    : tag_type_(type), label_(label), source_data_(source_data)
 {
 }
 
@@ -53,38 +53,56 @@ void SummaryChannel::remove_child(AnimationChannel &child)
   child.parent = nullptr;
 }
 
-DataChannel::DataChannel(ChannelType type, void *source, const StringRef label)
-    : AnimationChannel(type, label), source_(source)
+DataChannel::DataChannel(FCurve &fcurve)
+    : AnimationChannel(ChannelType::FCURVE, fcurve.rna_path()),
+      type_(DatachannelType::FCURVE),
+      source_(&fcurve)
 {
 }
 
-/* TODO pass label */
-FCurveChannel::FCurveChannel(FCurve &fcurve) : DataChannel(ChannelType::FCURVE, &fcurve, "") {}
-
-void FCurveChannel::gather_channeldata()
+DataChannel::DataChannel(GreasePencilLayer &gp_layer)
+    : AnimationChannel(ChannelType::GREASE_PENCIL, ""),
+      type_(DatachannelType::GREASE_PENCIL),
+      source_(&gp_layer)
 {
-  const FCurve *fcurve = this->get_source();
-  if (!fcurve->bezt) {
-    /* Sampled FCurves cannot be edited and don't show up in the dopesheet. */
-    return;
+}
+
+template<> FCurve *DataChannel::get_source<FCurve *>() const
+{
+  BLI_assert(this->type_ == DatachannelType::FCURVE);
+  return static_cast<FCurve *>(this->source_);
+}
+
+template<> GreasePencilLayer *DataChannel::get_source<GreasePencilLayer *>() const
+{
+  BLI_assert(this->type_ == DatachannelType::GREASE_PENCIL);
+  return static_cast<GreasePencilLayer *>(this->source_);
+}
+
+void DataChannel::gather_channeldata()
+{
+  switch (this->type_) {
+    case DatachannelType::FCURVE: {
+      const FCurve *fcurve = this->get_source<FCurve *>();
+      if (!fcurve->bezt) {
+        /* Sampled FCurves cannot be edited and don't show up in the dopesheet. */
+        return;
+      }
+      this->datapoints_.resize(fcurve->totvert);
+      for (int i = 0; i < fcurve->totvert; i++) {
+        this->datapoints_[i] = fcurve->bezt[i].vec[1][0];
+      }
+      break;
+    }
+
+    case DatachannelType::GREASE_PENCIL: {
+      bke::greasepencil::Layer &layer = this->get_source<GreasePencilLayer *>()->wrap();
+      for (int frame : layer.frames().keys()) {
+        this->datapoints_.append(float(frame));
+      }
+      break;
+    }
   }
-  this->datapoints_.resize(fcurve->totvert);
-  for (int i = 0; i < fcurve->totvert; i++) {
-    this->datapoints_[i] = fcurve->bezt[i].vec[1][0];
-  }
 }
 
-/* TODO pass label */
-GreasePencilChannel::GreasePencilChannel(GreasePencilLayer &gp_layer)
-    : DataChannel(ChannelType::GREASE_PENCIL, &gp_layer, "")
-{
-}
-
-void GreasePencilChannel::gather_channeldata()
-{
-  bke::greasepencil::Layer &layer = this->get_source()->wrap();
-  for (int frame : layer.frames().keys()) {
-    this->datapoints_.append(float(frame));
-  }
-}
 }  // namespace blender::ed::animfilter

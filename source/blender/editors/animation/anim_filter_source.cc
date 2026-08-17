@@ -36,7 +36,7 @@ static void channels_for_channelbag(animrig::Channelbag &channelbag,
       tags.push({ChannelTagType::FCURVE_GROUP, fcu->grp->name, fcu->grp});
     }
 
-    FCurveChannel channel(*fcu);
+    DataChannel channel(*fcu);
     r_channels.add(channel);
 
     if (fcu->grp) {
