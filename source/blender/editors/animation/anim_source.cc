@@ -20,6 +20,8 @@
 
 namespace blender::ed::animfilter {
 
+using ChannelTagStack = Stack<ChannelTag>;
+
 static bool has_assigned_action(AnimData &anim_data)
 {
   return anim_data.action != nullptr && anim_data.slot_handle != animrig::Slot::unassigned;
@@ -60,13 +62,20 @@ static void collect_channels_for_id(ID *animated_id,
   if (!animated_id) {
     return;
   }
+
   AnimData *adt = BKE_animdata_from_id(animated_id);
   if (!adt || !has_assigned_action(*adt)) {
     return;
   }
+
   if (collection_filters.id_type_blacklist.contains(animated_id->id_type())) {
     return;
   }
+
+  ChannelTagStack tags;
+  tags.push({ChannelTagType::ID, animated_id->name, animated_id});
+  channels_for_action_slot(adt->action->wrap(), adt->slot_handle, r_channels);
+  tags.pop();
 }
 
 static void collection_channels_for_object(Object &obj,

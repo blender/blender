@@ -9,6 +9,7 @@
 #include <iostream>
 
 #include "BLI_set.hh"
+#include "BLI_stack.hh"
 #include "BLI_vector.hh"
 
 #include "DNA_ID_enums.h"
@@ -46,6 +47,9 @@ class ChannelTag {
 
   /* This could be a PointerRNA. */
   void *source_data;
+
+ public:
+  ChannelTag(ChannelTagType type, StringRef label, void *source_data);
 };
 
 class AnimationChannel {
