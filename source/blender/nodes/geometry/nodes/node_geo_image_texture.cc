@@ -85,20 +85,6 @@ class ImageFieldsFunction : public mf::MultiFunction {
     if (image_buffer_ == nullptr) {
       throw std::runtime_error("cannot acquire image buffer");
     }
-
-    if (image_buffer_->float_data() == nullptr) {
-      BLI_thread_lock(LOCK_IMAGE);
-      /* Isolate because we are holding a lock. */
-      if (!image_buffer_->float_data()) {
-        threading::isolate_task([&]() { IMB_float_from_byte(image_buffer_); });
-      }
-      BLI_thread_unlock(LOCK_IMAGE);
-    }
-
-    if (image_buffer_->float_data() == nullptr) {
-      BKE_image_release_ibuf(&image_, image_buffer_, image_lock_);
-      throw std::runtime_error("cannot get float buffer");
-    }
   }
 
   ~ImageFieldsFunction() override
@@ -138,6 +124,18 @@ class ImageFieldsFunction : public mf::MultiFunction {
     return ((const float4 *)buffer)[size_t(px) + size_t(py) * size_t(width)];
   }
 
+  static float4 image_pixel_lookup(
+      const uint8_t *buffer, const int width, const int height, const int px, const int py)
+  {
+    if (px < 0 || py < 0 || px >= width || py >= height) {
+      return float4(0.0f, 0.0f, 0.0f, 0.0f);
+    }
+    float4 float_array;
+    const uint8_t *pixel_start = &buffer[(size_t(px) + size_t(py) * size_t(width)) * 4];
+    rgba_uchar_to_float(float_array, pixel_start);
+    return float_array;
+  }
+
   static float frac(const float x, int *ix)
   {
     const int i = int(x) - ((x < 0.0f) ? 1 : 0);
@@ -145,7 +143,8 @@ class ImageFieldsFunction : public mf::MultiFunction {
     return x - float(i);
   }
 
-  static float4 image_cubic_texture_lookup(const float *buffer,
+  template<typename BufferT>
+  static float4 image_cubic_texture_lookup(const BufferT *buffer,
                                            const int width,
                                            const int height,
                                            const float2 coord,
@@ -235,7 +234,8 @@ class ImageFieldsFunction : public mf::MultiFunction {
                     u[3] * image_pixel_lookup(buffer, width, height, xc[3], yc[3])));
   }
 
-  static float4 image_linear_texture_lookup(const float *buffer,
+  template<typename BufferT>
+  static float4 image_linear_texture_lookup(const BufferT *buffer,
                                             const int width,
                                             const int height,
                                             const float2 coord,
@@ -282,7 +282,8 @@ class ImageFieldsFunction : public mf::MultiFunction {
            image_pixel_lookup(buffer, width, height, nix, niy) * nfx * nfy;
   }
 
-  static float4 image_closest_texture_lookup(const float *buffer,
+  template<typename BufferT>
+  static float4 image_closest_texture_lookup(const BufferT *buffer,
                                              const int width,
                                              const int height,
                                              const float2 coord,
@@ -322,19 +323,14 @@ class ImageFieldsFunction : public mf::MultiFunction {
     }
   }
 
-  void call(const IndexMask &mask, mf::Params params, mf::Context /*context*/) const override
+  template<typename BufferT>
+  void sample_buffer(const BufferT *buffer,
+                     const IndexMask &mask,
+                     const VArray<float3> &vectors,
+                     int width,
+                     int height,
+                     MutableSpan<float4> &color_data) const
   {
-    const VArray<float3> &vectors = params.readonly_single_input<float3>(0, "Vector");
-    MutableSpan<ColorGeometry4f> r_color = params.uninitialized_single_output<ColorGeometry4f>(
-        1, "Color");
-    MutableSpan<float> r_alpha = params.uninitialized_single_output_if_required<float>(2, "Alpha");
-
-    MutableSpan<float4> color_data{reinterpret_cast<float4 *>(r_color.data()), r_color.size()};
-
-    const int width = image_buffer_->x;
-    const int height = image_buffer_->y;
-    const float *buffer = image_buffer_->float_data();
-
     /* Sample image texture. */
     switch (interpolation_) {
       case SHD_INTERP_LINEAR:
@@ -356,6 +352,29 @@ class ImageFieldsFunction : public mf::MultiFunction {
           color_data[i] = image_cubic_texture_lookup(buffer, width, height, p.xy(), extension_);
         });
         break;
+    }
+  }
+
+  void call(const IndexMask &mask, mf::Params params, mf::Context /*context*/) const override
+  {
+    const VArray<float3> &vectors = params.readonly_single_input<float3>(0, "Vector");
+    MutableSpan<ColorGeometry4f> r_color = params.uninitialized_single_output<ColorGeometry4f>(
+        1, "Color");
+    MutableSpan<float> r_alpha = params.uninitialized_single_output_if_required<float>(2, "Alpha");
+
+    MutableSpan<float4> color_data{reinterpret_cast<float4 *>(r_color.data()), r_color.size()};
+
+    const int width = image_buffer_->x;
+    const int height = image_buffer_->y;
+
+    if (image_buffer_->float_data()) {
+      sample_buffer(image_buffer_->float_data(), mask, vectors, width, height, color_data);
+    }
+    else if (image_buffer_->byte_data()) {
+      sample_buffer(image_buffer_->byte_data(), mask, vectors, width, height, color_data);
+    }
+    else {
+      BLI_assert_unreachable();
     }
 
     int alpha_mode = image_.alpha_mode;
