@@ -103,10 +103,18 @@ class AnimationChannel {
   Vector<float> datapoints_;
 
  public:
-  AnimationChannel(ChannelType type, StringRef label);
-
   AnimationChannel *parent;
 
+  AnimationChannel(ChannelType type, StringRef label);
+
+  ChannelType type() const
+  {
+    return this->type_;
+  }
+  StringRef label() const
+  {
+    return this->label_;
+  }
   Span<float> datapoints()
   {
     if (this->is_dirty_) {
@@ -190,16 +198,16 @@ struct CollectionFilters {
 };
 
 /**
- * Iterate all channels of the given Action.
+ * Collect all channels of the given Action.
  */
-void collect_action_channels(Set<DataChannel> &r_channels);
+void collect_action_channels(Vector<DataChannel> &r_channels);
 
 /**
- * Iterate all channels in the given context.
+ * Collect all channels in the given context.
  */
-void collect_animation_channels(bContext &C,
+void collect_animation_channels(const bContext &C,
                                 const CollectionFilters &collection_filters,
-                                Set<DataChannel> &r_channels);
+                                Vector<DataChannel> &r_channels);
 
 /**
  * Data structure that holds all summary channels and the root of the tree.
@@ -223,5 +231,9 @@ SummaryTree group_channels(MutableSpan<DataChannel> channels,
                            Span<ChannelTagType> tag_order,
                            bool use_minimal_grouping);
 
+/**
+ * Draw the whole tree starting at the root.
+ */
+void draw_channel_tree(SummaryChannel &root);
 }  // namespace ed::animfilter
 }  // namespace blender

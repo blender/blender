@@ -39,6 +39,7 @@
 #include "UI_view2d.hh"
 
 #include "ED_anim_api.hh"
+#include "ED_anim_filter.hh"
 #include "ED_markers.hh"
 #include "ED_screen.hh"
 #include "ED_space_api.hh"
@@ -344,40 +345,54 @@ static void action_channel_region_init(wmWindowManager *wm, ARegion *region)
 
 static void action_channel_region_draw(const bContext *C, ARegion *region)
 {
-  /* draw entirely, view changes should be handled here */
-  bAnimContext ac;
-  const bool has_valid_animcontext = ANIM_animdata_get_context(C, &ac);
-
   /* clear and setup matrix */
   ui::theme::frame_buffer_clear(TH_BACK);
-
-  if (!has_valid_animcontext) {
-    return;
-  }
-
   View2D *v2d = &region->v2d;
 
-  ListBaseT<bAnimListElem> anim_data = {nullptr, nullptr};
-  /* Build list of channels to draw. */
-  const eAnimFilter_Flags filter = (ANIMFILTER_DATA_VISIBLE | ANIMFILTER_LIST_VISIBLE |
-                                    ANIMFILTER_LIST_CHANNELS);
-  const size_t item_count = ANIM_animdata_filter(
-      &ac, &anim_data, filter, ac.data, eAnimCont_Types(ac.datatype));
-  /* The View2D's height needs to be set before calling view2d_view_ortho because the latter
-   * uses the View2D's `cur` rect which might be modified when setting the height. */
-  set_v2d_height(v2d, item_count, !ac.markers->is_empty());
+  if (USER_EXPERIMENTAL_TEST(&U, use_new_animfilter)) {
+    using namespace ed::animfilter;
+    Vector<DataChannel> channels;
+    collect_animation_channels(*C, {}, channels);
+    SummaryTree summary_tree = group_channels(channels, {}, false);
+    /* The View2D's height needs to be set before calling view2d_view_ortho because the latter
+     * uses the View2D's `cur` rect which might be modified when setting the height. */
+    /* TODO draw markers, get info if markers exist without anim context. */
+    set_v2d_height(v2d, summary_tree.summaries.size() + channels.size(), false);
+    ui::view2d_view_ortho(v2d);
+    draw_channel_tree(*summary_tree.root);
+    ui::view2d_view_restore(C);
+  }
+  else {
+    /* draw entirely, view changes should be handled here */
+    bAnimContext ac;
+    const bool has_valid_animcontext = ANIM_animdata_get_context(C, &ac);
 
-  ui::view2d_view_ortho(v2d);
-  draw_channel_names(const_cast<bContext *>(C), &ac, region, anim_data);
+    if (!has_valid_animcontext) {
+      return;
+    }
 
-  /* channel filter next to scrubbing area */
-  ED_time_scrub_channel_search_draw(C, region, ac.ads);
+    ListBaseT<bAnimListElem> anim_data = {nullptr, nullptr};
+    /* Build list of channels to draw. */
+    const eAnimFilter_Flags filter = (ANIMFILTER_DATA_VISIBLE | ANIMFILTER_LIST_VISIBLE |
+                                      ANIMFILTER_LIST_CHANNELS);
+    const size_t item_count = ANIM_animdata_filter(
+        &ac, &anim_data, filter, ac.data, eAnimCont_Types(ac.datatype));
+    /* The View2D's height needs to be set before calling view2d_view_ortho because the latter
+     * uses the View2D's `cur` rect which might be modified when setting the height. */
+    set_v2d_height(v2d, item_count, !ac.markers->is_empty());
 
-  /* reset view matrix */
-  ui::view2d_view_restore(C);
+    ui::view2d_view_ortho(v2d);
+    draw_channel_names(const_cast<bContext *>(C), &ac, region, anim_data);
 
-  /* no scrollers here */
-  ANIM_animdata_freelist(&anim_data);
+    /* channel filter next to scrubbing area */
+    ED_time_scrub_channel_search_draw(C, region, ac.ads);
+
+    /* reset view matrix */
+    ui::view2d_view_restore(C);
+
+    /* no scrollers here */
+    ANIM_animdata_freelist(&anim_data);
+  }
 }
 
 /* add handlers, stuff you only do once or on area/region changes */
