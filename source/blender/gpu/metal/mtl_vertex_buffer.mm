@@ -363,7 +363,7 @@ void MTLVertBuf::read(void *data) const
 
     /* Simple direct read. */
     void *host_ptr = vbo_->get_host_ptr();
-    memcpy(data, host_ptr, alloc_size_);
+    memcpy(data, host_ptr, this->size_used_get());
   }
   else {
     /* Copy private data into temporary staging buffer. */
@@ -394,7 +394,7 @@ void MTLVertBuf::read(void *data) const
 
     /* Simple direct read. */
     void *host_ptr = dst_tmp_vbo_->get_host_ptr();
-    memcpy(data, host_ptr, alloc_size_);
+    memcpy(data, host_ptr, this->size_used_get());
     dst_tmp_vbo_->free();
   }
 }
