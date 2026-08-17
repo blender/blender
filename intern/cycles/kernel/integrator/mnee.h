@@ -644,9 +644,7 @@ ccl_device_inline Spectrum mnee_eval_bsdf_contribution(KernelGlobals kg,
     G = bsdf_G<MicrofacetType::GGX>(alpha2, cosNI, cosNO);
   }
 
-  Spectrum reflectance;
-  Spectrum transmittance;
-  microfacet_fresnel(kg, bsdf, cosHI, nullptr, &reflectance, &transmittance);
+  const FresnelCoeff fresnel = microfacet_fresnel(kg, bsdf, cosHI, nullptr);
 
   /*
    * bsdf_do = (1 - F) * D_do * G * |h.wi| / (n.wi * n.wo)
@@ -657,7 +655,7 @@ ccl_device_inline Spectrum mnee_eval_bsdf_contribution(KernelGlobals kg,
    *              = (1 - F) * G * |h.wi / (n.wi * n.h^2)|
    */
   /* TODO: energy compensation for multi-GGX. */
-  return bsdf->weight * transmittance * G * fabsf(cosHI / (cosNI * sqr(cosThetaM)));
+  return bsdf->weight * fresnel.transmittance * G * fabsf(cosHI / (cosNI * sqr(cosThetaM)));
 }
 
 /* Compute transfer matrix determinant |T1| = |dx1/dxn| (and |dh/dx| in the process) */
