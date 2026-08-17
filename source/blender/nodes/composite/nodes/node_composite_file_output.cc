@@ -593,7 +593,7 @@ class FileOutputOperation : public NodeOperation {
     if (result.is_single_value()) {
       /* For single values, we fill a buffer that covers the domain of the operation with the value
        * of the result. */
-      data.allocate_texture(this->compute_domain(), true, ResultStorageType::CPU);
+      data.allocate_texture(this->compute_domain(), true, ResultStorageType::CPUImage);
       const GPointer single_value = result.single_value();
       const int64_t pixel_count = int64_t(data.domain().data_size.x) * data.domain().data_size.y;
       single_value.type()->fill_assign_n(

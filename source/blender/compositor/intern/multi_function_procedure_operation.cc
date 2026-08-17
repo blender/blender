@@ -100,16 +100,6 @@ void MultiFunctionProcedureOperation::execute()
 
   mf::ContextBuilder context_builder;
   procedure_executor_->call_auto(mask, parameter_builder, context_builder);
-
-  /* In case of single value execution, update single value data. */
-  if (is_single_value_) {
-    for (int i = 0; i < procedure_.params().size(); i++) {
-      if (procedure_.params()[i].type == mf::ParamType::InterfaceType::Output) {
-        Result &output = get_result(parameter_identifiers_[i]);
-        output.update_single_value_data();
-      }
-    }
-  }
 }
 
 void MultiFunctionProcedureOperation::build_procedure()
