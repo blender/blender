@@ -269,64 +269,63 @@ void PathTrace::render_deinit_kernel_execution()
   }
 }
 
-/* TODO(sergey): Look into `std::function` rather than using a template. Should not be a
- * measurable performance impact at runtime, but will make compilation faster and binary somewhat
- * smaller. */
-template<typename Callback>
-static void foreach_sliced_buffer_params(const vector<unique_ptr<PathTraceWork>> &path_trace_works,
-                                         const vector<WorkBalanceInfo> &work_balance_infos,
-                                         const BufferParams &buffer_params,
-                                         const int overscan,
-                                         const Callback &callback)
+/*
+ * Get the parameters of the horizontal slice of the buffer, for a given work index and
+ * balancing weights. Note the result can be empty with many devices and small height.
+ * */
+static BufferParams slice_buffer_params(const BufferParams &buffer_params,
+                                        const vector<WorkBalanceInfo> &work_balance_infos,
+                                        const int index,
+                                        const int overscan)
 {
-  const int num_works = path_trace_works.size();
+  const int num_works = work_balance_infos.size();
   const int window_height = buffer_params.window_height;
 
-  int current_y = 0;
-  for (int i = 0; i < num_works; ++i) {
+  /* Find the rows at which the slice starts and ends. */
+  int window_y = 0;
+  int window_end_y = 0;
+
+  for (int i = 0; i <= index; i++) {
+    window_y = window_end_y;
+
     const double weight = work_balance_infos[i].weight;
-    const int slice_window_full_y = buffer_params.full_y + buffer_params.window_y + current_y;
     const int slice_window_height = max(lround(window_height * weight), 1);
 
-    /* Disallow negative values to deal with situations when there are more compute devices than
-     * scan-lines. */
-    const int remaining_window_height = max(0, window_height - current_y);
-
-    BufferParams slice_params = buffer_params;
-
-    slice_params.full_y = max(slice_window_full_y - overscan, buffer_params.full_y);
-    slice_params.window_y = slice_window_full_y - slice_params.full_y;
-
-    if (i < num_works - 1) {
-      slice_params.window_height = min(slice_window_height, remaining_window_height);
-    }
-    else {
-      slice_params.window_height = remaining_window_height;
-    }
-
-    slice_params.height = slice_params.window_y + slice_params.window_height + overscan;
-    slice_params.height = min(slice_params.height,
-                              buffer_params.height + buffer_params.full_y - slice_params.full_y);
-
-    slice_params.update_offset_stride();
-
-    callback(path_trace_works[i].get(), slice_params);
-
-    current_y += slice_params.window_height;
+    const int remaining_window_height = max(0, window_height - window_y);
+    window_end_y = window_y + ((i < num_works - 1) ?
+                                   min(slice_window_height, remaining_window_height) :
+                                   remaining_window_height);
   }
+
+  const int slice_window_full_y = buffer_params.full_y + buffer_params.window_y + window_y;
+
+  BufferParams slice_params = buffer_params;
+
+  slice_params.full_y = max(slice_window_full_y - overscan, buffer_params.full_y);
+  slice_params.window_y = slice_window_full_y - slice_params.full_y;
+  slice_params.window_height = window_end_y - window_y;
+
+  slice_params.height = slice_params.window_y + slice_params.window_height + overscan;
+  slice_params.height = min(slice_params.height,
+                            buffer_params.height + buffer_params.full_y - slice_params.full_y);
+
+  slice_params.update_offset_stride();
+
+  return slice_params;
 }
 
 void PathTrace::update_allocated_work_buffer_params()
 {
   const int overscan = tile_manager_.get_tile_overscan();
-  foreach_sliced_buffer_params(path_trace_works_,
-                               work_balance_infos_,
-                               big_tile_params_,
-                               overscan,
-                               [](PathTraceWork *path_trace_work, const BufferParams &params) {
-                                 RenderBuffers *buffers = path_trace_work->get_render_buffers();
-                                 buffers->reset(params);
-                               });
+
+  const int num_works = path_trace_works_.size();
+  for (int i = 0; i < num_works; ++i) {
+    const BufferParams slice_params = slice_buffer_params(
+        big_tile_params_, work_balance_infos_, i, overscan);
+
+    RenderBuffers *buffers = path_trace_works_[i]->get_render_buffers();
+    buffers->reset(slice_params);
+  }
 }
 
 static BufferParams scale_buffer_params(const BufferParams &params, const float resolution_divider)
@@ -363,19 +362,20 @@ void PathTrace::update_effective_work_buffer_params(const RenderWork &render_wor
 
   const int overscan = tile_manager_.get_tile_overscan();
 
-  foreach_sliced_buffer_params(
-      path_trace_works_,
-      work_balance_infos_,
-      denoised_big_tile_params,
-      overscan,
-      [&](PathTraceWork *path_trace_work, const BufferParams params) {
-        /* Scale down the sliced buffer parameters again that were scaled by denoising upscale
-         * factor above. This should match the values that would occur when slicing
-         * 'scaled_big_tile_params' directly. */
-        const BufferParams scaled_params = scale_buffer_params(params, resolution_divider);
-        path_trace_work->set_effective_buffer_params(
-            scaled_big_tile_params, scaled_params, denoised_big_tile_params, params);
-      });
+  const int num_works = path_trace_works_.size();
+  for (int i = 0; i < num_works; ++i) {
+    const BufferParams denoised_slice_params = slice_buffer_params(
+        denoised_big_tile_params, work_balance_infos_, i, overscan);
+
+    /* Scale down the sliced buffer parameters again that were scaled by denoising upscale
+     * factor above. This should match the values that would occur when slicing
+     * 'scaled_big_tile_params' directly. */
+    const BufferParams slice_params = scale_buffer_params(denoised_slice_params,
+                                                          resolution_divider);
+
+    path_trace_works_[i]->set_effective_buffer_params(
+        scaled_big_tile_params, slice_params, denoised_big_tile_params, denoised_slice_params);
+  }
 
   render_state_.effective_big_tile_params = scaled_big_tile_params;
   render_state_.effective_denoised_big_tile_params = denoised_big_tile_params;
