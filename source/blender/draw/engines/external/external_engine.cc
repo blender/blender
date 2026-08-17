@@ -206,6 +206,11 @@ class Instance : public DrawEngine {
     return "External";
   }
 
+  bool uses_render_border() const final
+  {
+    return true;
+  }
+
   void init() final
   {
     draw_ctx = DRW_context_get();

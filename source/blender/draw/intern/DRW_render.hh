@@ -78,6 +78,12 @@ struct DrawEngine {
 
   virtual StringRefNull name_get() = 0;
 
+  /** True if the render engine takes the render border into account. */
+  virtual bool uses_render_border() const
+  {
+    return false;
+  }
+
   /* Functions called for viewport. */
 
   /** Init engine. Run first and for every redraw. */

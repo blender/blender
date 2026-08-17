@@ -233,6 +233,11 @@ class Instance : public DrawEngine {
     return "EEVEE";
   }
 
+  bool uses_render_border() const final
+  {
+    return true;
+  }
+
   /* Render & Viewport. */
   /* TODO(fclem): Split for clarity. */
   void init(const int2 &output_res,
