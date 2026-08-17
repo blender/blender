@@ -5,22 +5,79 @@
 #include "BLI_set.hh"
 
 #include "DNA_ID.h"
+#include "DNA_anim_types.h"
+#include "DNA_material_types.h"
+#include "DNA_object_types.h"
 
 #include "RNA_access.hh"
 
 #include "BKE_anim_data.hh"
 #include "BKE_context.hh"
 
-#include "ED_anim_filter.hh"
+#include "ANIM_action.hh"
 
+#include "ED_anim_filter.hh"
 
 namespace blender::ed::animfilter {
 
-static void collect_animation_channels_for_id(ID &animated_id, Set<DataChannel> &r_channels)
+static bool has_assigned_action(AnimData &anim_data)
 {
-  AnimData *adt = BKE_animdata_from_id(&animated_id);
-  if (!adt) {
+  return anim_data.action != nullptr && anim_data.slot_handle != animrig::Slot::unassigned;
+}
+
+static void channels_for_channelbag(const animrig::Channelbag &channelbag,
+                                    Set<DataChannel> &r_channels)
+{
+  for (const FCurve *fcu : channelbag.fcurves()) {
+    FCurveChannel channel(*fcu);
+    r_channels.add(channel);
+  }
+}
+
+static void channels_for_action_slot(const animrig::Action &action,
+                                     const animrig::slot_handle_t slot_handle,
+                                     Set<DataChannel> &r_channels)
+{
+  using namespace animrig;
+  for (const Layer *layer : action.layers()) {
+    for (const Strip *strip : layer->strips()) {
+      if (strip->type() != Strip::Type::Keyframe) {
+        continue;
+      }
+      const StripKeyframeData &action_strip = strip->data<StripKeyframeData>(action);
+      const Channelbag *channelbag = action_strip.channelbag_for_slot(slot_handle);
+      if (!channelbag) {
+        continue;
+      }
+      channels_for_channelbag(*channelbag, r_channels);
+    }
+  }
+}
+
+static void collect_channels_for_id(ID *animated_id,
+                                    const CollectionFilters &collection_filters,
+                                    Set<DataChannel> &r_channels)
+{
+  if (!animated_id) {
     return;
+  }
+  AnimData *adt = BKE_animdata_from_id(animated_id);
+  if (!adt || !has_assigned_action(*adt)) {
+    return;
+  }
+  if (collection_filters.id_type_blacklist.contains(animated_id->id_type())) {
+    return;
+  }
+}
+
+static void collection_channels_for_object(Object &obj,
+                                           const CollectionFilters &collection_filters,
+                                           Set<DataChannel> &r_channels)
+{
+  collect_channels_for_id(&obj.id, collection_filters, r_channels);
+  collect_channels_for_id(obj.data, collection_filters, r_channels);
+  for (int i = 0; i < obj.totcol; i++) {
+    collect_channels_for_id(&obj.mat[i]->id, collection_filters, r_channels);
   }
 }
 
@@ -43,7 +100,8 @@ void collect_animation_channels(bContext &C,
   }
 
   for (PointerRNA &obj_ptr : objects) {
-    collect_animation_channels_for_id(*obj_ptr.owner_id, r_channels);
+    Object *obj = static_cast<Object *>(obj_ptr.data);
+    collection_channels_for_object(*obj, collection_filters, r_channels);
   }
 }
 

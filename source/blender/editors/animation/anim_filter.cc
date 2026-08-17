@@ -4148,11 +4148,13 @@ DataChannel::DataChannel(ChannelType type, void *source, const StringRef label)
 }
 
 /* TODO pass label */
-FCurveChannel::FCurveChannel(FCurve &fcurve) : DataChannel(ChannelType::FCURVE, &fcurve, "") {}
+FCurveChannel::FCurveChannel(const FCurve &fcurve) : DataChannel(ChannelType::FCURVE, &fcurve, "")
+{
+}
 
 void FCurveChannel::gather_channeldata()
 {
-  FCurve *fcurve = this->get_source();
+  const FCurve *fcurve = this->get_source();
   if (!fcurve->bezt) {
     /* Sampled FCurves cannot be edited and don't show up in the dopesheet. */
     return;

@@ -104,7 +104,7 @@ class DataChannel : public AnimationChannel {
 
 class FCurveChannel : public DataChannel {
  public:
-  FCurveChannel(FCurve &fcurve);
+  FCurveChannel(const FCurve &fcurve);
 
   FCurve *get_source()
   {
@@ -134,7 +134,7 @@ struct CollectionFilters {
   /* Limit the returned data to only channels of the given type.
    * If empty, all channel types are returned. */
   Set<ChannelType> channel_type_whitelist;
-  /* Any id types put here will be ignored in the query process. */
+  /* Any id types put here will be ignored in the channel collection process. */
   Set<ID_Type> id_type_blacklist;
 };
 
