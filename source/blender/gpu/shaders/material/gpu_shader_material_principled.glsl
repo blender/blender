@@ -39,7 +39,7 @@ float thin_glass_transmission_roughness(float roughness, float ior)
  * certain incident angle, based on Beer-Lambert law. */
 float3 slab_transmittance_at_angle(float3 color, float cos_theta_i, float ior)
 {
-  const float inv_cos_theta_t = ior * inversesqrt(square(ior) - (1.0f - square(cos_theta_i)));
+  const float inv_cos_theta_t = ior / sqrt_fast(square(ior) - (1.0f - square(cos_theta_i)));
   return pow(color, float3(inv_cos_theta_t));
 }
 
