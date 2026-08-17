@@ -2165,10 +2165,11 @@ class _defs_weight_paint:
     def sample_weight():
         def draw_settings(context, layout, _tool):
             ups = context.tool_settings.weight_paint.unified_paint_settings
-            if ups.use_unified_weight:
+            brush = context.tool_settings.weight_paint.brush
+            if brush.use_unified_weight:
                 weight = ups.weight
-            elif context.tool_settings.weight_paint.brush:
-                weight = context.tool_settings.weight_paint.brush.weight
+            elif brush:
+                weight = brush.weight
             else:
                 return
             layout.label(text=iface_("Weight: {:.3f}").format(weight), translate=False)
