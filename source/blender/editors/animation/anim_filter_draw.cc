@@ -31,10 +31,11 @@ static float draw_channel_tree_recurse(AnimationChannel &anim_channel,
   return row_top;
 }
 
-void draw_channel_tree(SummaryChannel &root)
+void draw_channel_tree(SummaryChannel &root, View2D &v2d)
 {
   const float channel_step = ANIM_UI_get_channel_step();
-  draw_channel_tree_recurse(root, 0, 0, channel_step);
+  const float first_channel = ANIM_UI_get_first_channel_top(&v2d);
+  draw_channel_tree_recurse(root, 0, first_channel, channel_step);
 }
 
 }  // namespace blender::ed::animfilter

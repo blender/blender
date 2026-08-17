@@ -359,7 +359,7 @@ static void action_channel_region_draw(const bContext *C, ARegion *region)
     /* TODO draw markers, get info if markers exist without anim context. */
     set_v2d_height(v2d, summary_tree.summaries.size() + channels.size(), false);
     ui::view2d_view_ortho(v2d);
-    draw_channel_tree(*summary_tree.root);
+    draw_channel_tree(*summary_tree.root, *v2d);
     ui::view2d_view_restore(C);
   }
   else {

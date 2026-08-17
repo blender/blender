@@ -234,6 +234,7 @@ SummaryTree group_channels(MutableSpan<DataChannel> channels,
 /**
  * Draw the whole tree starting at the root.
  */
-void draw_channel_tree(SummaryChannel &root);
+void draw_channel_tree(SummaryChannel &root, View2D &v2d);
+
 }  // namespace ed::animfilter
 }  // namespace blender
