@@ -73,7 +73,7 @@ class MetalDevice : public Device {
   std::mutex mtlResidencySet_mutex;
 #  endif
 
-  uint kernel_features = 0;
+  uint64_t kernel_features = 0;
   bool using_nanovdb = false;
   int max_threads_per_threadgroup;
 
@@ -116,7 +116,7 @@ class MetalDevice : public Device {
 
   void cancel() override;
 
-  BVHLayoutMask get_bvh_layout_mask(uint /*kernel_features*/) const override;
+  BVHLayoutMask get_bvh_layout_mask(uint64_t kernel_features) const override;
 
   void set_error(const string &error) override;
 
@@ -124,7 +124,7 @@ class MetalDevice : public Device {
 
   ~MetalDevice() override;
 
-  bool support_device(const uint /*kernel_features*/);
+  bool support_device(uint64_t kernel_features);
 
   bool check_peer_access(Device *peer_device) override;
 
@@ -133,14 +133,14 @@ class MetalDevice : public Device {
   bool use_local_atomic_sort() const;
 
   string preprocess_source(MetalPipelineType pso_type,
-                           const uint kernel_features,
+                           uint64_t kernel_features,
                            string *source = nullptr);
 
   void refresh_source_and_kernels_md5(MetalPipelineType pso_type);
 
-  void make_source(MetalPipelineType pso_type, const uint kernel_features);
+  void make_source(MetalPipelineType pso_type, uint64_t kernel_features);
 
-  bool load_kernels(const uint kernel_features) override;
+  bool load_kernels(uint64_t kernel_features) override;
 
   void load_image_info();
 

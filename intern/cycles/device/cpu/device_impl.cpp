@@ -69,7 +69,7 @@ CPUDevice::~CPUDevice()
   image_info->free();
 }
 
-BVHLayoutMask CPUDevice::get_bvh_layout_mask(uint /*kernel_features*/) const
+BVHLayoutMask CPUDevice::get_bvh_layout_mask(uint64_t /*kernel_features*/) const
 {
   BVHLayoutMask bvh_layout_mask = BVH_LAYOUT_BVH2;
 #ifdef WITH_EMBREE
@@ -361,7 +361,7 @@ void CPUDevice::set_image_cache_func(KernelImageLoadRequestedCPU image_load_requ
   kernel_globals.image_load_requested_cpu = image_load_requested_cpu;
 }
 
-bool CPUDevice::load_kernels(const uint /*kernel_features*/)
+bool CPUDevice::load_kernels(const uint64_t /*kernel_features*/)
 {
   return true;
 }

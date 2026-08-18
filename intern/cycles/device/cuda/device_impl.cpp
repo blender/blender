@@ -39,7 +39,7 @@ bool CUDADevice::have_precompiled_kernels()
   return path_exists(cubins_path);
 }
 
-BVHLayoutMask CUDADevice::get_bvh_layout_mask(uint /*kernel_features*/) const
+BVHLayoutMask CUDADevice::get_bvh_layout_mask(const uint64_t /*kernel_features*/) const
 {
   return BVH_LAYOUT_BVH2;
 }
@@ -140,7 +140,7 @@ CUDADevice::~CUDADevice()
   cuda_assert(cuDevicePrimaryCtxRelease(cuDevice));
 }
 
-bool CUDADevice::support_device(const uint /*kernel_features*/)
+bool CUDADevice::support_device(const uint64_t /*kernel_features*/)
 {
   int major, minor;
   cuDeviceGetAttribute(&major, CU_DEVICE_ATTRIBUTE_COMPUTE_CAPABILITY_MAJOR, cuDevId);
@@ -213,7 +213,7 @@ bool CUDADevice::use_adaptive_compilation()
 /* Common NVCC flags which stays the same regardless of shading model,
  * kernel sources md5 and only depends on compiler or compilation settings.
  */
-string CUDADevice::compile_kernel_get_common_cflags(const uint kernel_features)
+string CUDADevice::compile_kernel_get_common_cflags(const uint64_t kernel_features)
 {
   const int machine = system_cpu_bits();
   const string source_path = path_get("source");
@@ -410,7 +410,7 @@ string CUDADevice::compile_kernel(const string &common_cflags, const char *name,
   return cubin;
 }
 
-bool CUDADevice::load_kernels(const uint kernel_features)
+bool CUDADevice::load_kernels(const uint64_t kernel_features)
 {
   /* TODO(sergey): Support kernels re-load for CUDA devices adaptive compile.
    *
@@ -468,7 +468,7 @@ bool CUDADevice::load_kernels(const uint kernel_features)
   return (result == CUDA_SUCCESS);
 }
 
-void CUDADevice::reserve_local_memory(const uint kernel_features)
+void CUDADevice::reserve_local_memory(const uint64_t kernel_features)
 {
   /* Together with CU_CTX_LMEM_RESIZE_TO_MAX, this reserves local memory
    * needed for kernel launches, so that we can reliably figure out when

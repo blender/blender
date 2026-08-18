@@ -18,7 +18,7 @@ CCL_NAMESPACE_BEGIN
 /* Undefine macro flags used for code adaption. */
 #undef ADAPT_TO_SVM
 
-template<uint node_feature_mask>
+template<uint64_t node_feature_mask>
 ccl_device_noinline void svm_node_radial_tiling(
     ccl_private float *ccl_restrict stack, const ccl_global SVMNodeRadialTiling &ccl_restrict node)
 {

@@ -450,9 +450,9 @@ void Integrator::tag_update(Scene *scene, const uint32_t flag)
   }
 }
 
-uint Integrator::get_kernel_features() const
+uint64_t Integrator::get_kernel_features() const
 {
-  uint kernel_features = 0;
+  uint64_t kernel_features = 0;
 
   if (ao_additive_factor != 0.0f) {
     kernel_features |= KERNEL_FEATURE_AO_ADDITIVE;

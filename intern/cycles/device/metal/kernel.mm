@@ -462,9 +462,20 @@ static MTLFunctionConstantValues *GetConstantValues(const KernelData *data = nul
 
 #  include "kernel/data_template.h"
 
-  [constant_values setConstantValue:&data->kernel_features
-                               type:MTLDataTypeInt
-                            atIndex:KernelData_kernel_features];
+  const uint32_t kernel_features_hi = data->kernel_features >> 32;
+  const uint32_t kernel_features_lo = data->kernel_features & 0xffffffff;
+  [constant_values setConstantValue:&kernel_features_hi
+                               type:MTLDataTypeUInt
+                            atIndex:KernelData_kernel_features_hi];
+  [constant_values setConstantValue:&kernel_features_lo
+                               type:MTLDataTypeUInt
+                            atIndex:KernelData_kernel_features_lo];
+
+  if (@available(macOS 12.0, *)) {
+    [constant_values setConstantValue:&data->kernel_features
+                                 type:MTLDataTypeULong
+                              atIndex:KernelData_kernel_features_64bit];
+  }
 
   return constant_values;
 }
