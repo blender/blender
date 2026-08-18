@@ -348,16 +348,15 @@ static void texture_update_mipmap_chain(Texture *tex,
   if (use_compute_shaders) {
     const TextureFormat texture_format = tex->format_get();
     const bool is_layered = tex->type_get() & GPU_TEXTURE_ARRAY;
+    const bool is_srgb = texture_format == TextureFormat::SRGBA_8_8_8_8;
     /* For sRGB without direct write support, write with a UNORM_8_8_8_8 format,
      * either in a temporary texture or through a texture view. */
-    const TextureFormat write_format = ((tex->format_flag_get() & GPU_FORMAT_SRGB) &&
-                                        !GCaps.srgb_write_direct_support) ?
+    const TextureFormat write_format = (is_srgb && !GCaps.srgb_write_direct_support) ?
                                            TextureFormat::UNORM_8_8_8_8 :
                                            texture_format;
     /* For sRGB with direct write support, the shader is that same as UNORM_8_8_8_8 and
      * any conversion to/from sRGB happens automatically. */
-    const TextureFormat shader_format = ((tex->format_flag_get() & GPU_FORMAT_SRGB) &&
-                                         GCaps.srgb_write_direct_support) ?
+    const TextureFormat shader_format = (is_srgb && GCaps.srgb_write_direct_support) ?
                                             TextureFormat::UNORM_8_8_8_8 :
                                             texture_format;
     Shader *shader = get_update_mipmap_shader(shader_format, is_layered);

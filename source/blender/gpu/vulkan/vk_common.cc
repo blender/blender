@@ -842,8 +842,9 @@ bool vk_need_extended_usage_for_storage_image(const eGPUTextureUsage usage,
                                               const GPUTextureFormatFlag format_flag)
 {
   /* sRGB textures are not directly writable as storage images. These need EXTENDED_USAGE to bind
-   * them as another format. */
-  return (usage & GPU_TEXTURE_USAGE_FORMAT_VIEW) && (format_flag & GPU_FORMAT_SRGB);
+   * them as another format. Compressed formats have no storage capable format to bind as. */
+  return (usage & GPU_TEXTURE_USAGE_FORMAT_VIEW) && (format_flag & GPU_FORMAT_SRGB) &&
+         !(format_flag & GPU_FORMAT_COMPRESSED);
 }
 
 VkFormat vk_extended_usage_storage_image_format(const VkFormat format)
