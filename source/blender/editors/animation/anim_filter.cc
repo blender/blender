@@ -4123,6 +4123,23 @@ size_t ANIM_animdata_filter(bAnimContext *ac,
 /* ************************************************************ */
 namespace ed::animfilter {
 
+SummaryChannel &SummaryTree::allocate_summary(const StringRef label)
+{
+  /* We have to heap allocate to get stable pointers to each summary channel. Those are used to
+   * point at children. */
+  SummaryChannel *new_summary = MEM_new<SummaryChannel>(__func__, label);
+  summaries_.append(new_summary);
+  return *new_summary;
+}
+
+SummaryChannel *SummaryTree::root() const
+{
+  if (summaries_.size() == 0) {
+    return nullptr;
+  }
+  return summaries_[0];
+}
+
 SummaryTree group_channels(MutableSpan<DataChannel> channels,
                            Span<ChannelTagType> tag_order,
                            const bool use_minimal_grouping)

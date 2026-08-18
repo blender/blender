@@ -24,6 +24,15 @@ AnimationChannel::AnimationChannel(const ChannelType type, const StringRef label
 {
 }
 
+Span<float> AnimationChannel::datapoints()
+{
+  if (this->is_dirty_) {
+    this->gather_channeldata();
+    this->is_dirty_ = false;
+  }
+  return this->datapoints_;
+}
+
 SummaryChannel::SummaryChannel(const StringRef label)
     : AnimationChannel(ChannelType::SUMMARY, label)
 {

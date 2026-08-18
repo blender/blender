@@ -112,14 +112,7 @@ class AnimationChannel {
   {
     return this->label_;
   }
-  Span<float> datapoints()
-  {
-    if (this->is_dirty_) {
-      this->gather_channeldata();
-      this->is_dirty_ = false;
-    }
-    return this->datapoints_;
-  };
+  Span<float> datapoints();
 
  protected:
   virtual void gather_channeldata() = 0;
@@ -129,6 +122,7 @@ class AnimationChannel {
  * allows us to generate multiple summary trees for the same data channels. */
 class SummaryChannel : public AnimationChannel {
   Vector<AnimationChannel *> children_;
+  bool is_expanded_ = true;
 
  public:
   SummaryChannel(StringRef label);
@@ -138,6 +132,10 @@ class SummaryChannel : public AnimationChannel {
   Span<AnimationChannel *> children() const;
   void add_child(AnimationChannel &child);
   void remove_child(AnimationChannel &child);
+  bool is_expanded()
+  {
+    return this->is_expanded_;
+  }
 
  protected:
   void gather_channeldata() override;
@@ -226,22 +224,8 @@ class SummaryTree {
     }
   }
 
-  SummaryChannel &allocate_summary(StringRef label)
-  {
-    /* We have to heap allocate to get stable pointers to each summary channel. Those are used to
-     * point at children. */
-    SummaryChannel *new_summary = MEM_new<SummaryChannel>(__func__, label);
-    summaries_.append(new_summary);
-    return *new_summary;
-  }
-
-  SummaryChannel *root() const
-  {
-    if (summaries_.size() == 0) {
-      return nullptr;
-    }
-    return summaries_[0];
-  }
+  SummaryChannel &allocate_summary(StringRef label);
+  SummaryChannel *root() const;
 
   int summary_count() const
   {
