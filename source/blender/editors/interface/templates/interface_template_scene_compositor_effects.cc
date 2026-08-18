@@ -20,13 +20,16 @@
 
 #include "WM_api.hh"
 
+#include "BKE_compute_contexts.hh"
 #include "BKE_context.hh"
+#include "BKE_scene_runtime.hh"
 #include "BKE_screen.hh"
 
 #include "RNA_access.hh"
 #include "RNA_prototypes.hh"
 
 #include "NOD_caller_ui.hh"
+#include "NOD_eval_log.hh"
 #include "NOD_socket_usage_inference.hh"
 
 #include "UI_interface_c.hh"
@@ -283,6 +286,104 @@ static void draw_effect_inputs(const bContext &C, PointerRNA &effect_ptr, ui::La
   }
 }
 
+static nodes::eval_log::NodeTreeLog *get_root_tree_log(const Scene &scene,
+                                                       const SceneCompositorEffect &effect)
+{
+  if (!scene.runtime->compositor.nodes_evaluation_log) {
+    return nullptr;
+  }
+  bke::DataBlockComputeContext data_block_context{nullptr, scene.id};
+  bke::SceneCompositorEffectComputeContext modifier_context{&data_block_context, effect};
+  return &scene.runtime->compositor.nodes_evaluation_log->get_tree_log(modifier_context.hash());
+}
+
+static std::string get_node_warning_panel_name(const int num_errors,
+                                               const int num_warnings,
+                                               const int num_infos)
+{
+  fmt::memory_buffer buffer;
+  fmt::appender buf = fmt::appender(buffer);
+  if (num_errors > 0) {
+    fmt::format_to(buf, "{} ({})", IFACE_("Errors"), num_errors);
+  }
+  if (num_warnings > 0) {
+    if (num_errors > 0) {
+      fmt::format_to(buf, ", ");
+    }
+    fmt::format_to(buf, "{} ({})", IFACE_("Warnings"), num_warnings);
+  }
+  if (num_infos > 0) {
+    if (num_errors > 0 || num_warnings > 0) {
+      fmt::format_to(buf, ", ");
+    }
+    fmt::format_to(buf, "{} ({})", IFACE_("Info"), num_infos);
+  }
+  return std::string(buffer.data(), buffer.size());
+}
+
+static void draw_warnings(const bContext *C, ui::Layout &layout, PointerRNA &effect_ptr)
+{
+  using namespace nodes::eval_log;
+  Scene &scene = *id_cast<Scene *>(effect_ptr.owner_id);
+  SceneCompositorEffect &effect = *effect_ptr.data_as<SceneCompositorEffect>();
+  NodeTreeLog *tree_log = get_root_tree_log(scene, effect);
+  if (!tree_log) {
+    return;
+  }
+
+  tree_log->ensure_node_warnings(*CTX_data_main(C));
+  if (tree_log->all_warnings.is_empty()) {
+    return;
+  }
+
+  Map<nodes::NodeWarningType, int> count_by_type;
+  for (const nodes::NodeWarning &warning : tree_log->all_warnings) {
+    count_by_type.lookup_or_add(warning.type, 0)++;
+  }
+  const int num_errors = count_by_type.lookup_default(nodes::NodeWarningType::Error, 0);
+  const int num_warnings = count_by_type.lookup_default(nodes::NodeWarningType::Warning, 0);
+  const int num_infos = count_by_type.lookup_default(nodes::NodeWarningType::Info, 0);
+  const std::string panel_name = get_node_warning_panel_name(num_errors, num_warnings, num_infos);
+  ui::Layout *panel = layout.panel(C, "Warnings", true, panel_name);
+  if (!panel) {
+    return;
+  }
+
+  Vector<const nodes::NodeWarning *> warnings(tree_log->all_warnings.size());
+  for (const int i : warnings.index_range()) {
+    warnings[i] = &tree_log->all_warnings[i];
+  }
+  std::ranges::sort(warnings, [](const nodes::NodeWarning *a, const nodes::NodeWarning *b) {
+    const int severity_a = node_warning_type_severity(a->type);
+    const int severity_b = node_warning_type_severity(b->type);
+    if (severity_a > severity_b) {
+      return true;
+    }
+    if (severity_a < severity_b) {
+      return false;
+    }
+    return BLI_strcasecmp_natural(a->message.c_str(), b->message.c_str()) < 0;
+  });
+
+  ui::Layout &col = panel->column(false);
+  ui::Block *block = col.block();
+  for (const nodes::NodeWarning *warning : warnings) {
+    const int icon = node_warning_type_icon(warning->type);
+    const StringRef message = RPT_(warning->message);
+    ui::Button *but = uiDefIconTextBut(
+        block, ui::ButtonType::Label, icon, message, 0, 0, 1, UI_UNIT_Y, nullptr, std::nullopt);
+    /* Add tooltip containing the same message. This is helpful if the message is very long so that
+     * it doesn't fit in the panel. */
+    button_func_tooltip_set(
+        but,
+        [](bContext * /*C*/, void *argN, StringRef /*tip*/) -> std::string {
+          return *static_cast<std::string *>(argN);
+        },
+        MEM_new<std::string>(__func__, message),
+        [](void *arg) { MEM_delete(static_cast<std::string *>(arg)); });
+  }
+}
+
 static void draw_effect_panel(const bContext *C, Panel *panel)
 {
   PointerRNA *effect_ptr = ui::panel_custom_data_get(panel);
@@ -303,6 +404,8 @@ static void draw_effect_panel(const bContext *C, Panel *panel)
   if (effect.node_group && !ID_MISSING(effect.node_group)) {
     draw_effect_inputs(*C, *effect_ptr, layout);
   }
+
+  draw_warnings(C, layout, *effect_ptr);
 }
 
 static constexpr char SCENE_COMPOSITOR_EFFECT_PANEL_IDNAME[] = "SCENE_COMPOSITOR_EFFECT_PT";
