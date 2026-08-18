@@ -320,6 +320,13 @@ void free_effects(Scene &scene)
   scene.compositor_effects.clear_no_delete();
 }
 
+void clear_effects(Scene &scene)
+{
+  for (SceneCompositorEffect &effect : scene.compositor_effects.items_reversed_mutable()) {
+    remove_effect(scene, effect);
+  }
+}
+
 void for_each_id_in_effects(const Scene &scene, LibraryForeachIDData &data)
 {
   for (SceneCompositorEffect &effect : scene.compositor_effects) {
