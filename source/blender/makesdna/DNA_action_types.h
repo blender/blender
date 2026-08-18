@@ -1138,8 +1138,10 @@ struct bAction {
 struct bDopeSheet {
   /** Currently ID_SCE (for Dope-sheet), and ID_SC (for Grease Pencil). */
   ID *source = nullptr;
-  /** Cache for channels (only initialized when pinned). */ /* XXX not used! */
-  ListBase chanbase = {nullptr, nullptr};
+  /* Array of pinned channels */
+  struct AnimationChannel *pins = nullptr;
+  int pins_len = 0;
+  char _pad[4];
 
   /** Object group for option to only include objects that belong to this Collection. */
   struct Collection *filter_grp = nullptr;

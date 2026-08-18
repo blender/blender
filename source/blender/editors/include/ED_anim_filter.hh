@@ -169,6 +169,10 @@ class AnimationChannel {
   {
     return this->label_;
   }
+  AnimationChannelFlags *flags_ptr()
+  {
+    return &this->flags_;
+  }
   Span<float> datapoints();
 
  protected:
@@ -304,7 +308,7 @@ SummaryTree group_channels(MutableSpan<DataChannel> channels,
  * Draw the whole tree starting at the root.
  * TODO maybe the drawing code should not be in this header?
  */
-void draw_channel_tree(SummaryChannel &root, View2D &v2d);
+void draw_channel_tree(const bContext &C, SummaryChannel &root, View2D &v2d);
 
 }  // namespace ed::animfilter
 }  // namespace blender

@@ -153,6 +153,9 @@ ChannelTag *DataChannel::get_tag(ChannelTagType tag_type)
 template<> FCurve *DataChannel::get_source<FCurve *>() const
 {
   /* TODO Remove access to GMAIN!!! */
+  /* Ideally this issue is split into 2 steps where we dereference all pointers and clean up
+   * anything now invalid. Then in a second step we use that data. The dereferenced data has to be
+   * held in a scoped cache so we can control the validity of it. */
   Main *bmain = G.main;
   BLI_assert(this->source_type_ == DataChannelType::FCURVE);
   PointerRNA fcu_ptr = this->source_.dereference(*bmain);

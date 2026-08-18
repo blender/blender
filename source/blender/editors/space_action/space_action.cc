@@ -362,7 +362,7 @@ static void action_channel_region_draw(const bContext *C, ARegion *region)
     const bool has_markers = markers != nullptr && !markers->is_empty();
     set_v2d_height(v2d, summaries.summary_count() + channels.size(), has_markers);
     ui::view2d_view_ortho(v2d);
-    draw_channel_tree(*summaries.root(), *v2d);
+    draw_channel_tree(*C, *summaries.root(), *v2d);
     ui::view2d_view_restore(C);
   }
   else {

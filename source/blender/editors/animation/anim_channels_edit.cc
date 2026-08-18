@@ -4706,6 +4706,33 @@ static void ANIM_OT_channels_click(wmOperatorType *ot)
   RNA_def_property_flag(prop, PROP_SKIP_SAVE);
 }
 
+static wmOperatorStatus channel_pin_exec(bContext *C, wmOperator *op)
+{
+  if (!USER_EXPERIMENTAL_TEST(&U, use_new_animfilter)) {
+    return OPERATOR_CANCELLED;
+  }
+  /* Find channel under cursor. */
+  /* Call Pin channel function. This needs the current editor (or just the dope sheet from it) */
+  return OPERATOR_FINISHED;
+}
+
+static bool channel_pin_poll(bContext *C)
+{
+  return USER_EXPERIMENTAL_TEST(&U, use_new_animfilter);
+}
+
+static void ANIM_OT_channel_pin(wmOperatorType *ot)
+{
+  ot->name = "anim.channel_pin";
+  ot->idname = "ANIM_OT_channel_pin";
+  ot->description = "todo";
+
+  ot->exec = channel_pin_exec;
+  ot->poll = channel_pin_poll;
+
+  ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO;
+}
+
 static bool select_anim_channel_keys(bAnimContext *ac, int channel_index, bool extend)
 {
   ListBaseT<bAnimListElem> anim_data = {nullptr, nullptr};
@@ -5724,6 +5751,7 @@ void ED_operatortypes_animchannels()
   WM_operatortype_append(ANIM_OT_channels_select_all);
   WM_operatortype_append(ANIM_OT_channels_select_box);
 
+  WM_operatortype_append(ANIM_OT_channel_pin);
   WM_operatortype_append(ANIM_OT_channels_click);
   WM_operatortype_append(ANIM_OT_channel_select_keys);
   WM_operatortype_append(ANIM_OT_channels_rename);
