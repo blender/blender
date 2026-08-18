@@ -1245,8 +1245,11 @@ void uiTemplateImageInfo(ui::Layout *layout, bContext *C, Image *ima, ImageUser 
 
     gpu::TextureFormat texture_format = gpu::TextureFormat::Invalid;
 
-    /* Try to see if this texture is a compressed format, if not, get the generic format. */
-    if (!IMB_gpu_get_compressed_format(ibuf, &texture_format)) {
+    /* Try to see if this texture is a compressed format, if not, get the generic format.
+     * A modified image is uploaded uncompressed so it can be written to. */
+    const bool is_compressed = (ibuf->userflags & IB_BITMAPDIRTY) == 0 &&
+                               IMB_gpu_get_compressed_format(ibuf, &texture_format);
+    if (!is_compressed) {
       texture_format = IMB_gpu_get_texture_format(
           ibuf, ima->flag & IMA_HIGH_BITDEPTH, ibuf->color_mode == ImColorMode::BW);
     }

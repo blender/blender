@@ -649,7 +649,7 @@ float ANIM_unit_mapping_get_factor(Scene *scene, ID *id, FCurve *fcu, short flag
     return 1.0f;
   }
 
-  const StringRefNull rna_path = fcu->rna_path();
+  const ParsedRNAPathRef rna_path = fcu->rna_path_parsed();
   if (rna_path.is_empty()) {
     return 1.0f;
   }
@@ -657,7 +657,7 @@ float ANIM_unit_mapping_get_factor(Scene *scene, ID *id, FCurve *fcu, short flag
   PointerRNA ptr;
   PropertyRNA *prop;
   PointerRNA id_ptr = RNA_id_pointer_create(id);
-  if (!RNA_path_resolve_property(&id_ptr, rna_path.c_str(), &ptr, &prop)) {
+  if (!RNA_path_resolve_property(&id_ptr, rna_path, &ptr, &prop)) {
     /* Without resolving the property, its type & subtype are unknown; remapping is impossible. */
     return 1.0f;
   }

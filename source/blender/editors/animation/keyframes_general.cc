@@ -221,7 +221,7 @@ void clean_fcurve(bAnimListElem *ale,
     PointerRNA id_ptr = RNA_id_pointer_create(ale->id);
 
     /* get property to read from, and get value as appropriate */
-    if (RNA_path_resolve_property(&id_ptr, fcu->rna_path().c_str(), &ptr, &prop)) {
+    if (RNA_path_resolve_property(&id_ptr, fcu->rna_path_parsed(), &ptr, &prop)) {
       if (RNA_property_type(prop) == PROP_FLOAT) {
         default_value = RNA_property_float_get_default_index(&ptr, prop, fcu->array_index);
       }
@@ -382,7 +382,7 @@ void blend_to_default_fcurve(PointerRNA *id_ptr, FCurve *fcu, const float factor
   PropertyRNA *prop;
 
   /* Check if path is valid. */
-  if (!RNA_path_resolve_property(id_ptr, fcu->rna_path().c_str(), &ptr, &prop)) {
+  if (!RNA_path_resolve_property(id_ptr, fcu->rna_path_parsed(), &ptr, &prop)) {
     return;
   }
 

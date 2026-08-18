@@ -447,7 +447,9 @@ ChannelbagFCurveMap build_rotation_fcurve_map(animrig::Action &action,
     RNAFCurveMap &curves = rotation_map.lookup_or_add(channelbag, {});
     for (FCurve *fcurve : channelbag->fcurves()) {
       StringRefNull rna_path = fcurve->rna_path();
-      if (!animrig::is_rotation_path(rna_path) && !is_rotation_mode_path(rna_path)) {
+      if (!animrig::is_rotation_path(fcurve->rna_path_parsed()) &&
+          !is_rotation_mode_path(rna_path))
+      {
         continue;
       }
       SortedFCurveBuffer &fcurve_buffer = curves.lookup_or_add(rna_path, {});

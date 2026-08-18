@@ -38,6 +38,9 @@ namespace blender {
 
 struct MemBuf {
   MemBuf *next;
+#ifdef WITH_ASAN
+  size_t size;
+#endif
   uchar data[0];
 };
 
@@ -57,8 +60,10 @@ static void memarena_buf_free_all(MemBuf *mb)
   while (mb != nullptr) {
     MemBuf *mb_next = mb->next;
 
+#ifdef WITH_ASAN
     /* Unpoison memory because #MEM_delete_void might overwrite it. */
-    BLI_asan_unpoison(mb, uint(MEM_allocN_len(mb)));
+    BLI_asan_unpoison(mb, uint(mb->size));
+#endif
 
     MEM_delete(mb);
     mb = mb_next;
@@ -141,6 +146,9 @@ void *BLI_memarena_alloc(MemArena *ma, size_t size)
     }
     ma->curbuf = mb->data;
     mb->next = ma->bufs;
+#ifdef WITH_ASAN
+    mb->size = sizeof(*mb) + ma->cursize;
+#endif
     ma->bufs = mb;
 
     BLI_asan_poison(ma->curbuf, ma->cursize);

@@ -25,6 +25,7 @@
 
 #include "BLT_translation.hh"
 
+#include "BKE_compositor.hh"
 #include "BKE_context.hh"
 #include "BKE_image.hh"
 #include "BKE_lib_id.hh"
@@ -1731,12 +1732,15 @@ static wmOperatorStatus new_compositing_node_group_invoke(bContext *C,
   return new_compositing_node_group_exec(C, op);
 }
 
+/* Todo(#140111): Unused, remove in 6.0. */
 void NODE_OT_new_compositing_node_group(wmOperatorType *ot)
 {
   /* identifiers */
   ot->name = "New Compositing Node Group";
   ot->idname = "NODE_OT_new_compositing_node_group";
-  ot->description = "Create a new compositing node group and initialize it with default nodes";
+  ot->description =
+      "Create a new compositing node group and initialize it with default nodes. Deprecated and "
+      "will be removed in 6.0";
 
   /* api callbacks */
   ot->exec = new_compositing_node_group_exec;
@@ -1773,28 +1777,6 @@ static wmOperatorStatus duplicate_and_assign_node_tree(bContext *C, bNodeTree *s
   return OPERATOR_FINISHED;
 }
 
-static wmOperatorStatus duplicate_compositing_node_group_exec(bContext *C, wmOperator * /*op*/)
-{
-  Scene *scene = CTX_data_scene(C);
-  return duplicate_and_assign_node_tree(C, scene->compositing_node_group);
-}
-
-void NODE_OT_duplicate_compositing_node_group(wmOperatorType *ot)
-{
-  ot->name = "New Compositing Node Group";
-  ot->idname = "NODE_OT_duplicate_compositing_node_group";
-  ot->description = "Duplicate the currently assigned compositing node group.";
-
-  ot->exec = duplicate_compositing_node_group_exec;
-
-  ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO;
-}
-
-/** \} */
-
-/* -------------------------------------------------------------------- */
-/** \name Duplicate Compositing Modifier Node Tree Operator
- * \{ */
 static wmOperatorStatus duplicate_compositing_modifier_node_group_exec(bContext *C,
                                                                        wmOperator * /*op*/)
 {

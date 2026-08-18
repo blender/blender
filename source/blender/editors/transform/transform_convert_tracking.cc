@@ -14,6 +14,7 @@
 #include "BLI_math_matrix_c.hh"
 #include "BLI_math_vector_c.hh"
 
+#include "BKE_compositor.hh"
 #include "BKE_context.hh"
 #include "BKE_movieclip.hh"
 #include "BKE_node_tree_update.hh"
@@ -602,7 +603,8 @@ static void special_aftertrans_update__movieclip(bContext *C, TransInfo *t)
       BKE_tracking_track_plane_from_existing_motion(&plane_track, framenr);
     }
   }
-  if (t->scene->compositing_node_group != nullptr) {
+
+  if (bke::compositor::is_enabled(*t->scene, bke::compositor::ExecutionMode::Preview)) {
     /* Tracks can be used for stabilization nodes,
      * flush update for such nodes.
      */

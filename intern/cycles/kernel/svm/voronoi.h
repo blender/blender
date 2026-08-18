@@ -1061,7 +1061,7 @@ ccl_device void svm_voronoi_output(ccl_private float *ccl_restrict stack,
   }
 }
 
-template<uint node_feature_mask>
+template<uint64_t node_feature_mask>
 ccl_device_noinline void svm_node_tex_voronoi(
     ccl_private float *ccl_restrict stack, const ccl_global SVMNodeTexVoronoi &ccl_restrict node)
 {

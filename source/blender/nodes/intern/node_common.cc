@@ -1144,11 +1144,6 @@ static void get_compositor_group_output_extra_info(blender::nodes::NodeExtraInfo
 
   blender::Span<const bNodeSocket *> group_outputs = parameters.node.input_sockets().drop_back(1);
   if (group_outputs.is_empty()) {
-    blender::nodes::NodeExtraInfoRow row;
-    row.text = IFACE_("No Output");
-    row.icon = ICON_STATUS_ERROR;
-    row.tooltip = TIP_("Node group must have a Color output socket");
-    parameters.rows.append(std::move(row));
     return;
   }
 

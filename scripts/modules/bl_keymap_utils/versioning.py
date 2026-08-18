@@ -360,4 +360,50 @@ def keyconfig_update(keyconfig_data, keyconfig_version):
                     if index_to_fix != -1:
                         item_prop["properties"][index_to_fix] = ("brush_toggle", value_to_copy)
 
+    if keyconfig_version < (5, 3, 16):
+        if not has_copy:
+            keyconfig_data = copy.deepcopy(keyconfig_data)
+            has_copy = True
+
+        # The `use_unified_*` toggle for radial controls was moved from the paint mode's
+        # `unified_paint_settings` to brushes.
+        #
+        # The following conversion maps from the old values of
+        # `tool_settings.<paint_mode>.unified_paint_settings.use_unified_<property_name>`
+        # to
+        # `tool_settings.<paint_mode>.brush.use_unified_<property_name>`
+        #
+        # It also updates the color override test path:
+        # `tool_settings.<paint_mode>.unified_paint_settings.use_unified_color`
+        # becomes
+        # `tool_settings.<paint_mode>.brush.use_unified_color`
+
+        re_unified_paint_settings = re.compile(r"^(tool_settings)\.([a-z_]+)\.(unified_paint_settings)\.(.*)")
+
+        for _km_name, _km_parms, km_items_data in keyconfig_data:
+            for item_op, _item_event, item_prop in km_items_data["items"]:
+
+                if item_op == "wm.radial_control":
+                    use_secondary_path_index = -1
+                    new_use_secondary_path = ""
+                    fill_color_override_test_path_index = -1
+                    new_fill_color_override_test_path = ""
+
+                    for prop_index, (prop_id, prop_path) in enumerate(item_prop["properties"]):
+                        if (prop_id == "use_secondary" and re_unified_paint_settings.fullmatch(prop_path)):
+
+                            use_secondary_path_index = prop_index
+                            new_use_secondary_path = prop_path.replace("unified_paint_settings", "brush")
+                        elif (prop_id == "fill_color_override_test_path" and re_unified_paint_settings.fullmatch(prop_path)):
+
+                            fill_color_override_test_path_index = prop_index
+                            new_fill_color_override_test_path = prop_path.replace("unified_paint_settings", "brush")
+
+                    if (use_secondary_path_index != -1 and new_use_secondary_path):
+                        item_prop["properties"][use_secondary_path_index] = (
+                            "use_secondary", new_use_secondary_path)
+                    if (fill_color_override_test_path_index != -1 and new_fill_color_override_test_path):
+                        item_prop["properties"][fill_color_override_test_path_index] = (
+                            "fill_color_override_test_path", new_fill_color_override_test_path)
+
     return keyconfig_data

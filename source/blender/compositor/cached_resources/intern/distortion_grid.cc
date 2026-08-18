@@ -185,7 +185,7 @@ DistortionGrid::DistortionGrid(Context &context,
 
   const Domain output_domain = compute_output_domain(distortion, calibration_size, type, domain);
   Result distortion_grid_cpu = context.create_result(ResultType::Float2, ResultPrecision::Full);
-  distortion_grid_cpu.allocate_texture(output_domain, false, ResultStorageType::CPU);
+  distortion_grid_cpu.allocate_texture(output_domain, false, ResultStorageType::CPUImage);
 
   parallel_for(distortion_grid_cpu.domain().data_size, [&](const int2 texel) {
     /* We are looping over the data space, so transfer to the display space by adding the data

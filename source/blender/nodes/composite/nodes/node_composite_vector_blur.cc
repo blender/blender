@@ -578,7 +578,8 @@ class VectorBlurOperation : public NodeOperation {
 
     GPU_shader_uniform_1f(shader, "shutter_speed", this->get_shutter());
 
-    max_tile_velocity.bind_as_texture(shader, "input_tx");
+    gpu::Texture *max_tile_veloicty_texture = max_tile_velocity.bind_as_texture_or_single_value(
+        shader, "input_tx");
 
     /* The shader assumes a maximum input size of 16k, and since the max tile velocity image is
      * composed of blocks of 32, we get 16k / 32 = 512. So the table is 512x512, but we store two
@@ -593,7 +594,7 @@ class VectorBlurOperation : public NodeOperation {
     compute_dispatch_threads_at_least(shader, max_tile_velocity.domain().data_size);
 
     GPU_shader_unbind();
-    max_tile_velocity.unbind_as_texture();
+    max_tile_velocity.unbind_as_texture_or_single_value(max_tile_veloicty_texture);
     GPU_storagebuf_unbind(tile_indirection_buffer);
 
     return tile_indirection_buffer;
@@ -611,12 +612,14 @@ class VectorBlurOperation : public NodeOperation {
     input.bind_as_texture(shader, "input_tx");
 
     Result &depth = get_input("Z");
-    depth.bind_as_texture(shader, "depth_tx");
+    gpu::Texture *depth_texture = depth.bind_as_texture_or_single_value(shader, "depth_tx");
 
     Result &velocity = get_input("Speed");
-    velocity.bind_as_texture(shader, "velocity_tx");
+    gpu::Texture *velocity_texture = velocity.bind_as_texture_or_single_value(shader,
+                                                                              "velocity_tx");
 
-    max_tile_velocity.bind_as_texture(shader, "max_velocity_tx");
+    gpu::Texture *max_tile_velocity_texture = max_tile_velocity.bind_as_texture_or_single_value(
+        shader, "max_velocity_tx");
 
     GPU_memory_barrier(GPU_BARRIER_SHADER_STORAGE);
     const int slot = GPU_shader_get_ssbo_binding(shader, "tile_indirection_buf");
@@ -631,9 +634,9 @@ class VectorBlurOperation : public NodeOperation {
 
     GPU_shader_unbind();
     input.unbind_as_texture();
-    depth.unbind_as_texture();
-    velocity.unbind_as_texture();
-    max_tile_velocity.unbind_as_texture();
+    depth.unbind_as_texture_or_single_value(depth_texture);
+    velocity.unbind_as_texture_or_single_value(velocity_texture);
+    max_tile_velocity.unbind_as_texture_or_single_value(max_tile_velocity_texture);
     output.unbind_as_image();
   }
 

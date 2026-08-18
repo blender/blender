@@ -27,16 +27,16 @@ class HIPRTDevice : public HIPDevice {
  public:
   static bool is_supported();
 
-  BVHLayoutMask get_bvh_layout_mask(const uint kernel_features) const override;
+  BVHLayoutMask get_bvh_layout_mask(uint64_t kernel_features) const override;
 
   HIPRTDevice(const DeviceInfo &info, Stats &stats, Profiler &profiler, bool headless);
 
   ~HIPRTDevice() override;
   unique_ptr<DeviceQueue> gpu_queue_create() override;
-  string compile_kernel_get_common_cflags(const uint kernel_features);
-  string compile_kernel(const uint kernel_features, const char *name, const char *base = "hiprt");
+  string compile_kernel_get_common_cflags(uint64_t kernel_features);
+  string compile_kernel(uint64_t kernel_features, const char *name, const char *base = "hiprt");
 
-  bool load_kernels(const uint kernel_features) override;
+  bool load_kernels(uint64_t kernel_features) override;
 
   void const_copy_to(const char *name, void *host, const size_t size) override;
 

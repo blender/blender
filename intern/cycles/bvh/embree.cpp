@@ -313,8 +313,6 @@ void BVHEmbree::add_instance(Object *ob, const int i)
 
 void BVHEmbree::add_triangles(const Object *ob, const Mesh *mesh, const int i)
 {
-  const size_t prim_offset = mesh->prim_offset;
-
   const Attribute *attr_P = nullptr;
   size_t num_motion_steps = 1;
   if (mesh->has_motion_blur()) {
@@ -375,7 +373,6 @@ void BVHEmbree::add_triangles(const Object *ob, const Mesh *mesh, const int i)
   }
   set_tri_vertex_buffer(geom_id, mesh, false);
 
-  rtcSetGeometryUserData(geom_id, (void *)prim_offset);
   rtcSetGeometryMask(geom_id, ob->visibility_for_tracing());
   rtcSetGeometryEnableFilterFunctionFromArguments(geom_id, true);
 
@@ -613,8 +610,6 @@ void BVHEmbree::set_point_vertex_buffer(RTCGeometry geom_id,
 
 void BVHEmbree::add_points(const Object *ob, const PointCloud *pointcloud, const int i)
 {
-  const size_t prim_offset = pointcloud->prim_offset;
-
   size_t num_motion_steps = 1;
   if (pointcloud->has_motion_blur()) {
     const Attribute *attr_P = pointcloud->attributes.find(ATTR_STD_POSITION);
@@ -632,7 +627,6 @@ void BVHEmbree::add_points(const Object *ob, const PointCloud *pointcloud, const
 
   set_point_vertex_buffer(geom_id, pointcloud, false);
 
-  rtcSetGeometryUserData(geom_id, (void *)prim_offset);
   rtcSetGeometryMask(geom_id, ob->visibility_for_tracing());
   rtcSetGeometryEnableFilterFunctionFromArguments(geom_id, true);
 
@@ -643,8 +637,6 @@ void BVHEmbree::add_points(const Object *ob, const PointCloud *pointcloud, const
 
 void BVHEmbree::add_curves(const Object *ob, const Hair *hair, const int i)
 {
-  const size_t prim_offset = hair->curve_segment_offset;
-
   const Attribute *attr_P = hair->attributes.find(ATTR_STD_POSITION);
   size_t num_motion_steps = 1;
   if (hair->has_motion_blur() && attr_P->has_motion()) {
@@ -708,7 +700,6 @@ void BVHEmbree::add_curves(const Object *ob, const Hair *hair, const int i)
 
   set_curve_vertex_buffer(geom_id, hair, false);
 
-  rtcSetGeometryUserData(geom_id, (void *)prim_offset);
   rtcSetGeometryMask(geom_id, ob->visibility_for_tracing());
   rtcSetGeometryEnableFilterFunctionFromArguments(geom_id, true);
 
@@ -732,7 +723,6 @@ void BVHEmbree::refit(Progress &progress)
         if (mesh->num_triangles() > 0) {
           RTCGeometry geom = rtcGetGeometry(scene, geom_id);
           set_tri_vertex_buffer(geom, mesh, true);
-          rtcSetGeometryUserData(geom, (void *)mesh->prim_offset);
           rtcCommitGeometry(geom);
         }
       }
@@ -741,7 +731,6 @@ void BVHEmbree::refit(Progress &progress)
         if (hair->is_traceable()) {
           RTCGeometry geom = rtcGetGeometry(scene, geom_id + 1);
           set_curve_vertex_buffer(geom, hair, true);
-          rtcSetGeometryUserData(geom, (void *)hair->curve_segment_offset);
           rtcCommitGeometry(geom);
         }
       }
@@ -750,7 +739,6 @@ void BVHEmbree::refit(Progress &progress)
         if (pointcloud->num_points() > 0) {
           RTCGeometry geom = rtcGetGeometry(scene, geom_id);
           set_point_vertex_buffer(geom, pointcloud, true);
-          rtcSetGeometryUserData(geom, (void *)pointcloud->prim_offset);
           rtcCommitGeometry(geom);
         }
       }

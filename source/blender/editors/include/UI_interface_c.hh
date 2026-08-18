@@ -2527,6 +2527,8 @@ void template_path_builder(Layout *layout,
                            std::optional<StringRefNull> text);
 void template_modifiers(Layout *layout, bContext *C);
 void template_strip_modifiers(Layout *layout, bContext *C);
+void template_scene_compositor_effects(Layout *layout, bContext *C);
+
 /**
  * Check if the shader effect panels don't match the data and rebuild the panels if so.
  */
@@ -3157,6 +3159,8 @@ AbstractViewItem *region_views_find_item_at(const ARegion &region, const int xy[
 AbstractViewItem *region_views_find_active_item(const ARegion *region, const AbstractView *view);
 Button *region_views_find_active_item_but(const ARegion *region);
 void region_views_clear_search_highlight(const ARegion *region);
+
+void register_scene_compositor_effects_panel(ARegionType *region_type);
 
 enum class ActivationButtonState : int8_t {
   Highlight,

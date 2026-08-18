@@ -452,6 +452,10 @@ struct Brush {
 
   DNA_DEPRECATED struct CurveMapping *automasking_cavity_curve = nullptr;
   struct MeshAutomaskingSettings *mesh_automasking_settings = nullptr;
+  eBrushUnifiedPaintFlags unified_paint_flags = BRUSH_USE_UNIFIED_PAINT_SIZE |
+                                                BRUSH_USE_UNIFIED_PAINT_COLOR |
+                                                BRUSH_USE_UNIFIED_PAINT_WEIGHT;
+  char _pad3[4] = {};
 };
 
 struct PaletteColor {

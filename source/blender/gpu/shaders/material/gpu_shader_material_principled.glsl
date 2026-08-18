@@ -39,7 +39,7 @@ float thin_glass_transmission_roughness(float roughness, float ior)
  * certain incident angle, based on Beer-Lambert law. */
 float3 slab_transmittance_at_angle(float3 color, float cos_theta_i, float ior)
 {
-  const float inv_cos_theta_t = ior * inversesqrt(square(ior) - (1.0f - square(cos_theta_i)));
+  const float inv_cos_theta_t = ior / sqrt_fast(square(ior) - (1.0f - square(cos_theta_i)));
   return pow(color, float3(inv_cos_theta_t));
 }
 
@@ -64,6 +64,8 @@ void node_bsdf_principled(float4 base_color,
                           float anisotropic_rotation,
                           float3 T,
                           float transmission_weight,
+                          float transmission_dispersion_scale,
+                          float transmission_dispersion_abbe_number,
                           float coat_weight,
                           float coat_roughness,
                           float coat_ior,
@@ -94,6 +96,9 @@ void node_bsdf_principled(float4 base_color,
   /* Not used by EEVEE */
   /* anisotropic = saturate(anisotropic); */
   transmission_weight = saturate(transmission_weight);
+  /* Not used by EEVEE */
+  /* transmission_dispersion_scale = saturate(transmission_dispersion_scale); */
+  /* transmission_dispersion_abbe_number = max(transmission_dispersion_abbe_number, 0.0f); */
   coat_weight = max(coat_weight, 0.0f);
   coat_roughness = saturate(coat_roughness);
   coat_ior = max(coat_ior, 1.0f);

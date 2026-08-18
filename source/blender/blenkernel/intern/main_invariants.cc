@@ -36,6 +36,7 @@ static void send_notifiers_after_node_tree_change(ID *id, bNodeTree *ntree)
      * scene, then the notifier is dropped. So we need to pass `nullptr` here to make sure the
      * notifier is sent. */
     WM_main_add_notifier(NC_SCENE | ND_NODES, nullptr);
+    WM_main_add_notifier(NC_SCENE | ND_COMPO_RESULT, nullptr);
   }
   else if (ntree->type == NTREE_TEXTURE) {
     WM_main_add_notifier(NC_TEXTURE | ND_NODES, id);

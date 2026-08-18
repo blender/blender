@@ -759,7 +759,7 @@ void SVMCompiler::generate_closure_node(ShaderNode *node, CompilerState *state)
 {
   /* Skip generating closure that are not supported or needed for a particular
    * type of shader. For example a BSDF in a volume shader. */
-  const uint node_feature = node->get_feature();
+  const uint64_t node_feature = node->get_feature();
   if ((state->node_feature_mask & node_feature) != node_feature) {
     return;
   }
@@ -802,6 +802,9 @@ void SVMCompiler::generate_closure_node(ShaderNode *node, CompilerState *state)
     }
     if (node->has_bump()) {
       current_shader->has_bump_from_surface = true;
+    }
+    if (node->has_dispersion()) {
+      current_shader->has_dispersion = true;
     }
   }
 }

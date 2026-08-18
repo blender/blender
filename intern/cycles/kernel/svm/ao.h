@@ -95,7 +95,7 @@ ccl_device float svm_ao(
   return ((float)unoccluded) / num_samples;
 }
 
-template<uint node_feature_mask, typename ConstIntegratorGenericState>
+template<uint64_t node_feature_mask, typename ConstIntegratorGenericState>
 #  if defined(__KERNEL_OPTIX__)
 ccl_device_inline
 #  else

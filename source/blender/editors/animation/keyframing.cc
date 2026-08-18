@@ -96,7 +96,7 @@ void update_autoflags_fcurve(FCurve *fcu, bContext *C, ReportList *reports, Poin
   }
 
   /* try to get property we should be affecting */
-  if (RNA_path_resolve_property(ptr, fcu->rna_path().c_str(), &tmp_ptr, &prop) == false) {
+  if (RNA_path_resolve_property(ptr, fcu->rna_path_parsed(), &tmp_ptr, &prop) == false) {
     /* property not found... */
     const char *idname = (ptr->owner_id) ? ptr->owner_id->name : RPT_("<No ID pointer>");
 

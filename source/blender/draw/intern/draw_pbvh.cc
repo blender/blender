@@ -1183,7 +1183,7 @@ BLI_NOINLINE static void fill_uvs_grids(const Object &object,
       [&](const int i) {
         float2 *data = vbos[i]->data<float2>().data();
 
-        const int uv_channel = orig_mesh_data.uv_map_names.index_of(name);
+        const int uv_channel = orig_mesh_data.uv_map_names.index_of_try(name);
         if (uv_channel == -1) [[unlikely]] {
           BLI_assert_msg(uv_channel != -1,
                          "Unable to find appropriate FVar channel for given UV map");

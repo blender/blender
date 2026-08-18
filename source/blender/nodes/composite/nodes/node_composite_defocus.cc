@@ -133,7 +133,7 @@ class DefocusOperation : public NodeOperation {
 
     input.bind_as_texture(shader, "input_tx");
 
-    radius.bind_as_texture(shader, "radius_tx");
+    gpu::Texture *radius_texture = radius.bind_as_texture_or_single_value(shader, "radius_tx");
 
     GPU_texture_filter_mode(bokeh_kernel, true);
     bokeh_kernel.bind_as_texture(shader, "weights_tx");
@@ -146,7 +146,7 @@ class DefocusOperation : public NodeOperation {
 
     GPU_shader_unbind();
     input.unbind_as_texture();
-    radius.unbind_as_texture();
+    radius.unbind_as_texture_or_single_value(radius_texture);
     bokeh_kernel.unbind_as_texture();
     output.unbind_as_image();
   }

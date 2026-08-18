@@ -303,9 +303,9 @@ static void animsys_blend_in_fcurves(PointerRNA &ptr,
 {
   /* Rotations are a special case since the rotation mode of the pose may not match with the
    * current rotation mode of the `ptr`. Also quaternions need to be handled together. */
-  Map<StringRefNull, Vector<FCurve *>> rotation_fcurve_map;
+  Map<ParsedRNAPathRef, Vector<FCurve *>> rotation_fcurve_map;
   for (FCurve *fcurve : fcurves) {
-    StringRefNull rna_path = fcurve->rna_path();
+    ParsedRNAPathRef rna_path = fcurve->rna_path_parsed();
 
     if (!is_fcurve_evaluatable(*fcurve)) {
       continue;
@@ -322,7 +322,7 @@ static void animsys_blend_in_fcurves(PointerRNA &ptr,
   for (const auto &[rna_path, rotation_fcurves] : rotation_fcurve_map.items()) {
     PointerRNA resolved_ptr;
     PropertyRNA *resolved_prop;
-    if (!RNA_path_resolve_property(&ptr, rna_path.data(), &resolved_ptr, &resolved_prop)) {
+    if (!RNA_path_resolve_property(&ptr, rna_path, &resolved_ptr, &resolved_prop)) {
       continue;
     }
 
@@ -370,13 +370,13 @@ static void animsys_blend_in_fcurves(PointerRNA &ptr,
       continue;
     }
 
-    const StringRefNull rna_path = fcu->rna_path();
+    const ParsedRNAPathRef rna_path = fcu->rna_path_parsed();
     if (rotation_fcurve_map.contains(rna_path)) {
       continue;
     }
 
     PathResolvedRNA anim_rna;
-    if (!BKE_animsys_rna_path_resolve(&ptr, rna_path.c_str(), fcu->array_index, &anim_rna)) {
+    if (!BKE_animsys_rna_path_resolve(&ptr, rna_path, fcu->array_index, &anim_rna)) {
       continue;
     }
 

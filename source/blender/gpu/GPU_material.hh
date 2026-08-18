@@ -118,9 +118,17 @@ using GPUMaterialPassReplacementCallbackFn = GPUPass *(*)(void *thunk, GPUMateri
 struct GPUMaterialFromNodeTreeResult {
   GPUMaterial *material = nullptr;
 
+  /** Compatible with #NodeWarningType. */
+  enum class WarningType {
+    Error = 0,
+    Warning = 1,
+    Info = 2,
+  };
+
   struct Error {
     const bNode *node;
     std::string message;
+    WarningType type;
   };
   Vector<Error> errors;
 };

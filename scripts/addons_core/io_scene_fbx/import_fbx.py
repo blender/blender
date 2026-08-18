@@ -2250,7 +2250,7 @@ def blen_read_light(fbx_tmpl, fbx_obj, settings):
     lamp.color = elem_props_get_color_rgb(fbx_props, b'Color', (1.0, 1.0, 1.0))
     lamp.energy = elem_props_get_number(fbx_props, b'Intensity', 100.0) / 100.0
     lamp.exposure = elem_props_get_number(fbx_props, b'Exposure', 0.0)
-    lamp.use_shadow = elem_props_get_bool(fbx_props, b'CastShadow', True)
+    lamp.use_shadow = elem_props_get_bool(fbx_props, b'CastShadows', True)
 
     # Removed but could be restored if the value can be applied.
     # `lamp.shadow_color = elem_props_get_color_rgb(fbx_props, b'ShadowColor', (0.0, 0.0, 0.0))`

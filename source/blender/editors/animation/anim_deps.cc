@@ -90,7 +90,7 @@ void ANIM_list_elem_update(Main *bmain, Scene *scene, bAnimListElem *ale)
 
     PointerRNA id_ptr = RNA_id_pointer_create(id);
 
-    if (RNA_path_resolve_property(&id_ptr, fcu->rna_path().c_str(), &ptr, &prop)) {
+    if (RNA_path_resolve_property(&id_ptr, fcu->rna_path_parsed(), &ptr, &prop)) {
       RNA_property_update_main(bmain, scene, &ptr, prop);
     }
   }

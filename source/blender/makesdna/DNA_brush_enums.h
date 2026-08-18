@@ -411,6 +411,16 @@ enum eBrushFlags2 : int {
 };
 ENUM_OPERATORS(eBrushFlags2)
 
+/** #Brush.unified_paint_flags */
+enum eBrushUnifiedPaintFlags : int {
+  BRUSH_USE_UNIFIED_PAINT_SIZE = (1 << 0),
+  BRUSH_USE_UNIFIED_PAINT_ALPHA = (1 << 1),
+  BRUSH_USE_UNIFIED_PAINT_WEIGHT = (1 << 2),
+  BRUSH_USE_UNIFIED_PAINT_COLOR = (1 << 3),
+  BRUSH_USE_UNIFIED_PAINT_INPUT_SAMPLES = (1 << 4),
+};
+ENUM_OPERATORS(eBrushUnifiedPaintFlags)
+
 enum BrushMaskPressureFlags : int {
   BRUSH_MASK_PRESSURE_RAMP = (1 << 1),
   BRUSH_MASK_PRESSURE_CUTOFF = (1 << 2),

@@ -262,19 +262,6 @@ ListInfoLog::ListInfoLog(const GListPtr &list)
   this->size = list->size();
 }
 
-NodeWarning::NodeWarning(const Report &report)
-{
-  switch (report.type) {
-    case RPT_ERROR:
-      this->type = NodeWarningType::Error;
-      break;
-    default:
-      this->type = NodeWarningType::Info;
-      break;
-  }
-  this->message = report.message;
-}
-
 ImageInfoLog::ImageInfoLog(const int2 data_size,
                            const int2 display_size,
                            const int2 data_offset,

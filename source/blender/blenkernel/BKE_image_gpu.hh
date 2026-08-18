@@ -110,11 +110,4 @@ void BKE_image_free_anim_gpu_texture_caches(Main *bmain);
  */
 int64_t BKE_image_partial_update_flush(Image *ima, const ImageUser *iuser);
 
-/**
- * Called on entering and exiting texture paint mode, temporarily disabling/enabling
- * mipmapping on all images for quick partial texture updates. Images that didn't
- * change don't have to be re-uploaded to the GPU.
- */
-void BKE_image_paint_set_mipmap(Main *bmain, bool mipmap);
-
 }  // namespace blender

@@ -8,7 +8,7 @@
 
 #include "BKE_node.hh"
 
-#include "NOD_geometry_nodes_warning.hh"
+#include "NOD_warning.hh"
 
 #include "COM_context.hh"
 #include "COM_operation.hh"

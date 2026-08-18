@@ -3,6 +3,7 @@
  * SPDX-License-Identifier: GPL-2.0-or-later */
 
 #include "node_function_util.hh"
+#include "node_shader_util.hh"
 
 namespace blender::nodes::node_fn_input_special_characters_cc {
 
@@ -48,7 +49,7 @@ static void node_register()
 {
   static bke::bNodeType ntype;
 
-  fn_cmp_node_type_base(
+  common_node_type_base(
       &ntype, "FunctionNodeInputSpecialCharacters"_ustr, FN_NODE_INPUT_SPECIAL_CHARACTERS);
   ntype.ui_name = "Special Characters";
   ntype.ui_description =

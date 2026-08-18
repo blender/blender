@@ -876,6 +876,8 @@ void VKBackend::capabilities_init(VKDevice &device)
       device.physical_device_acceleration_structure_properties_get().maxPrimitiveCount > 0 &&
       device.physical_device_acceleration_structure_properties_get().maxInstanceCount > 0;
 
+  GCaps.srgb_write_view_support = true;
+
   GCaps.max_texture_size = max_ii(limits.maxImageDimension1D, limits.maxImageDimension2D);
   GCaps.max_texture_3d_size = min_uu(limits.maxImageDimension3D, INT_MAX);
   GCaps.max_buffer_texture_size = min_uu(limits.maxTexelBufferElements, UINT_MAX);

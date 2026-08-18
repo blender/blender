@@ -394,21 +394,6 @@ bool BKE_animsys_rna_path_resolve(
   return true;
 }
 
-bool BKE_animsys_rna_path_resolve(PointerRNA *ptr,
-                                  const char *rna_path,
-                                  const int array_index,
-                                  PathResolvedRNA *r_result)
-{
-  if (rna_path == nullptr) {
-    return false;
-  }
-  const std::optional<ParsedRNAPath<>> path = ParsedRNAPath<>::from_string(rna_path);
-  if (!path) {
-    return false;
-  }
-  return BKE_animsys_rna_path_resolve(ptr, *path, array_index, r_result);
-}
-
 /* less than 1.0 evaluates to false, use epsilon to avoid float error */
 #define ANIMSYS_FLOAT_AS_BOOL(value) ((value) > (1.0f - FLT_EPSILON))
 
@@ -566,7 +551,7 @@ static bool animsys_construct_orig_pointer_rna(const PointerRNA *ptr, PointerRNA
 }
 
 static void animsys_write_orig_anim_rna(PointerRNA *ptr,
-                                        const char *rna_path,
+                                        const ParsedRNAPathRef rna_path,
                                         int array_index,
                                         float value)
 {
@@ -598,14 +583,14 @@ static void animsys_evaluate_fcurves(PointerRNA *ptr,
       continue;
     }
 
-    const StringRefNull rna_path = fcu->rna_path();
+    const ParsedRNAPathRef rna_path = fcu->rna_path_parsed();
 
     PathResolvedRNA anim_rna;
-    if (BKE_animsys_rna_path_resolve(ptr, rna_path.c_str(), fcu->array_index, &anim_rna)) {
+    if (BKE_animsys_rna_path_resolve(ptr, rna_path, fcu->array_index, &anim_rna)) {
       const float curval = calculate_fcurve(&anim_rna, fcu, anim_eval_context);
       BKE_animsys_write_to_rna_path(&anim_rna, curval);
       if (flush_to_original) {
-        animsys_write_orig_anim_rna(ptr, rna_path.c_str(), fcu->array_index, curval);
+        animsys_write_orig_anim_rna(ptr, rna_path, fcu->array_index, curval);
       }
     }
   }
@@ -649,8 +634,7 @@ static void animsys_evaluate_drivers(PointerRNA *ptr,
          * NOTE: for 'layering' option later on, we should check if we should remove old value
          * before adding new to only be done when drivers only changed. */
         PathResolvedRNA anim_rna;
-        if (BKE_animsys_rna_path_resolve(ptr, fcu.rna_path().c_str(), fcu.array_index, &anim_rna))
-        {
+        if (BKE_animsys_rna_path_resolve(ptr, fcu.rna_path_parsed(), fcu.array_index, &anim_rna)) {
           const float curval = calculate_fcurve(&anim_rna, &fcu, anim_eval_context);
           ok = BKE_animsys_write_to_rna_path(&anim_rna, curval);
         }
@@ -686,8 +670,7 @@ void animsys_evaluate_action_group(PointerRNA *ptr,
     /* check if this curve should be skipped */
     if ((fcu->flag & FCURVE_MUTED) == 0 && !BKE_fcurve_is_empty(fcu)) {
       PathResolvedRNA anim_rna;
-      if (BKE_animsys_rna_path_resolve(ptr, fcu->rna_path().c_str(), fcu->array_index, &anim_rna))
-      {
+      if (BKE_animsys_rna_path_resolve(ptr, fcu->rna_path_parsed(), fcu->array_index, &anim_rna)) {
         const float curval = calculate_fcurve(&anim_rna, fcu, anim_eval_context);
         BKE_animsys_write_to_rna_path(&anim_rna, curval);
       }
@@ -2899,7 +2882,10 @@ void nladata_flush_channels(PointerRNA *ptr,
         }
         BKE_animsys_write_to_rna_path(&rna, value);
         if (flush_to_original) {
-          animsys_write_orig_anim_rna(ptr, nec.rna_path, rna.prop_index, value);
+          if (std::optional<ParsedRNAPath<>> rna_path = ParsedRNAPath<>::from_string(nec.rna_path))
+          {
+            animsys_write_orig_anim_rna(ptr, *rna_path, rna.prop_index, value);
+          }
         }
       }
     }
@@ -3677,7 +3663,11 @@ static void animsys_evaluate_overrides(PointerRNA *ptr, AnimData *adt)
   /* for each override, simply execute... */
   for (AnimOverride &aor : adt->overrides) {
     PathResolvedRNA anim_rna;
-    if (BKE_animsys_rna_path_resolve(ptr, aor.rna_path, aor.array_index, &anim_rna)) {
+    const std::optional<ParsedRNAPath<>> rna_path = ParsedRNAPath<>::from_string(aor.rna_path);
+    if (!rna_path) {
+      continue;
+    }
+    if (BKE_animsys_rna_path_resolve(ptr, *rna_path, aor.array_index, &anim_rna)) {
       BKE_animsys_write_to_rna_path(&anim_rna, aor.value);
     }
   }
@@ -3828,8 +3818,8 @@ void BKE_animsys_eval_driver_unshare(Depsgraph *depsgraph, ID *id_eval)
   for (FCurve &fcu : adt->drivers) {
     /* Resolve the driver RNA path. */
     PathResolvedRNA anim_rna;
-    const StringRefNull rna_path = fcu.rna_path();
-    if (!BKE_animsys_rna_path_resolve(&id_ptr, rna_path.c_str(), fcu.array_index, &anim_rna)) {
+    const ParsedRNAPathRef rna_path = fcu.rna_path_parsed();
+    if (!BKE_animsys_rna_path_resolve(&id_ptr, rna_path, fcu.array_index, &anim_rna)) {
       continue;
     }
 
@@ -3844,7 +3834,7 @@ void BKE_animsys_eval_driver_unshare(Depsgraph *depsgraph, ID *id_eval)
 
     if (is_active_depsgraph) {
       /* Also un-share the original data, as the driver evaluation will write here too. */
-      animsys_write_orig_anim_rna(&id_ptr, rna_path.c_str(), fcu.array_index, curval);
+      animsys_write_orig_anim_rna(&id_ptr, rna_path, fcu.array_index, curval);
     }
   }
 }
@@ -3891,8 +3881,8 @@ void BKE_animsys_eval_driver(Depsgraph *depsgraph, ID *id, int driver_index, FCu
       // printf("\told val = %f\n", fcu->curval);
 
       PathResolvedRNA anim_rna;
-      const StringRefNull rna_path = fcu->rna_path();
-      if (BKE_animsys_rna_path_resolve(&id_ptr, rna_path.c_str(), fcu->array_index, &anim_rna)) {
+      const ParsedRNAPathRef rna_path = fcu->rna_path_parsed();
+      if (BKE_animsys_rna_path_resolve(&id_ptr, rna_path, fcu->array_index, &anim_rna)) {
         /* Evaluate driver, and write results to copy-on-eval-domain destination */
         const float ctime = DEG_get_ctime(depsgraph);
         const AnimationEvalContext anim_eval_context = BKE_animsys_eval_context_construct(
@@ -3902,7 +3892,7 @@ void BKE_animsys_eval_driver(Depsgraph *depsgraph, ID *id, int driver_index, FCu
 
         /* Flush results & status codes to original data for UI (#59984) */
         if (ok && DEG_is_active(depsgraph)) {
-          animsys_write_orig_anim_rna(&id_ptr, rna_path.c_str(), fcu->array_index, curval);
+          animsys_write_orig_anim_rna(&id_ptr, rna_path, fcu->array_index, curval);
 
           /* curval is displayed in the UI, and flag contains error-status codes */
           fcu_orig->runtime->curval = fcu->runtime->curval;
@@ -3930,7 +3920,7 @@ void BKE_animsys_eval_driver(Depsgraph *depsgraph, ID *id, int driver_index, FCu
                   "Invalid driver on %s '%s' - %s[%d]",
                   BKE_idtype_idcode_to_name(id->id_type()),
                   id->name + 2,
-                  rna_path.c_str(),
+                  fcu->rna_path().c_str(),
                   fcu->array_index);
         driver_orig->flag |= DRIVER_FLAG_INVALID;
       }

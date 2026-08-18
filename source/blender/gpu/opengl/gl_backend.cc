@@ -533,6 +533,8 @@ static void detect_workarounds()
        * these devices use driver 30.x.x.x */
       if (ver0 == 30) {
         GCaps.texture_pool_workaround = true;
+        /* sRGB texture writes through non-sRGB texture view fails on these devices. */
+        GCaps.srgb_write_view_support = false;
       }
     }
   }
@@ -650,6 +652,8 @@ void GLBackend::capabilities_init()
   GCaps.geometry_shader_support = true;
   GCaps.hdr_viewport_support = false;
   GCaps.vertex_pipeline_stores_and_atomics_support = true;
+
+  GCaps.srgb_write_view_support = true;
 
   glGetIntegeri_v(GL_MAX_COMPUTE_WORK_GROUP_COUNT, 0, &GCaps.max_work_group_count[0]);
   glGetIntegeri_v(GL_MAX_COMPUTE_WORK_GROUP_COUNT, 1, &GCaps.max_work_group_count[1]);

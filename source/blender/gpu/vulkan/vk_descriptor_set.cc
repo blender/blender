@@ -331,12 +331,14 @@ void VKDescriptorSetUpdator::bind_image_resource(const VKStateManager &state_man
                                                  const VKResourceBinding &resource_binding)
 {
   VKTexture &texture = *state_manager.images_.get(resource_binding.binding);
-  bind_image(
-      VK_DESCRIPTOR_TYPE_STORAGE_IMAGE,
-      VK_NULL_HANDLE,
-      texture.image_view_get(resource_binding.arrayed, VKImageViewFlags::NO_SWIZZLING).vk_handle(),
-      VK_IMAGE_LAYOUT_GENERAL,
-      resource_binding.location);
+  const VKImageView &view = texture.image_view_get(resource_binding.arrayed,
+                                                   VKImageViewFlags::NO_SWIZZLING |
+                                                       VKImageViewFlags::FOR_STORAGE_IMAGE);
+  bind_image(VK_DESCRIPTOR_TYPE_STORAGE_IMAGE,
+             VK_NULL_HANDLE,
+             view.vk_handle(),
+             VK_IMAGE_LAYOUT_GENERAL,
+             resource_binding.location);
 }
 
 void VKDescriptorSetUpdator::bind_texture_resource(const VKDevice &device,

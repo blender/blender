@@ -29,6 +29,7 @@
 #include "DNA_world_types.h"
 
 #include "BKE_action.hh"
+#include "BKE_compositor.hh"
 #include "BKE_context.hh"
 #include "BKE_layer.hh"
 #include "BKE_linestyle.h"
@@ -581,6 +582,29 @@ static bool buttons_context_path_strip_modifier(Scene *sequencer_scene, ButsCont
   return false;
 }
 
+static bool buttons_context_path_compositor(ButsContextPath *path)
+{
+  PointerRNA *ptr = &path->ptr[path->len - 1];
+
+  /* If we already have a pinned effect, we're done. */
+  if (RNA_struct_is_a(ptr->type, RNA_SceneCompositorEffect)) {
+    return true;
+  }
+
+  if (buttons_context_path_scene(path)) {
+    Scene *scene = ptr->data_as<Scene>();
+    SceneCompositorEffect *effect = bke::compositor::get_active_effect(*scene);
+    if (effect) {
+      path->ptr[path->len] = RNA_pointer_create_discrete(
+          &scene->id, RNA_SceneCompositorEffect, effect);
+      path->len++;
+    }
+    return true;
+  }
+
+  return false;
+}
+
 #ifdef WITH_FREESTYLE
 static bool buttons_context_linestyle_pinnable(const bContext *C, ViewLayer *view_layer)
 {
@@ -647,7 +671,8 @@ static bool buttons_context_path(
               BCONTEXT_VIEW_LAYER,
               BCONTEXT_WORLD,
               BCONTEXT_STRIP,
-              BCONTEXT_STRIP_MODIFIER))
+              BCONTEXT_STRIP_MODIFIER,
+              BCONTEXT_COMPOSITOR))
     {
       path->ptr[path->len] = RNA_pointer_create_discrete(nullptr, RNA_ViewLayer, view_layer);
       path->len++;
@@ -721,6 +746,9 @@ static bool buttons_context_path(
       break;
     case BCONTEXT_STRIP_MODIFIER:
       found = buttons_context_path_strip_modifier(sequencer_scene, path);
+      break;
+    case BCONTEXT_COMPOSITOR:
+      found = buttons_context_path_compositor(path);
       break;
     default:
       found = false;
@@ -1298,7 +1326,8 @@ static void buttons_panel_context_draw(const bContext *C, Panel *panel)
               BCONTEXT_VIEW_LAYER,
               BCONTEXT_WORLD,
               BCONTEXT_STRIP,
-              BCONTEXT_STRIP_MODIFIER) &&
+              BCONTEXT_STRIP_MODIFIER,
+              BCONTEXT_COMPOSITOR) &&
         ptr->type == RNA_Scene)
     {
       continue;

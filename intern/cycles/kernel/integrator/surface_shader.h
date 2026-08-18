@@ -1251,7 +1251,7 @@ ccl_device Spectrum surface_shader_apply_holdout(ccl_private ShaderData *sd)
 
 /* Surface Evaluation */
 
-template<uint node_feature_mask, typename ConstIntegratorGenericState>
+template<uint64_t node_feature_mask, typename ConstIntegratorGenericState>
 ccl_device void surface_shader_eval(KernelGlobals kg,
                                     ConstIntegratorGenericState state,
                                     ccl_private ShaderData *ccl_restrict sd,

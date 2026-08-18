@@ -1162,6 +1162,9 @@ struct SVMNodePrincipledBsdfData {
   SVMInputFloat specular_ior_level;
   SVMInputFloat anisotropic;
   SVMInputFloat anisotropic_rotation;
+  /* Transmission. */
+  SVMInputFloat transmission_dispersion_scale;
+  SVMInputFloat transmission_dispersion_abbe_number;
   /* Emission. */
   SVMInputFloat3 emission_color;
   SVMInputFloat emission_strength;

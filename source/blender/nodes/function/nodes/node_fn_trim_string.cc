@@ -3,6 +3,7 @@
  * SPDX-License-Identifier: GPL-2.0-or-later */
 
 #include "node_function_util.hh"
+#include "node_shader_util.hh"
 
 namespace blender::nodes::node_fn_trim_string_cc {
 
@@ -68,7 +69,7 @@ static void node_register()
 {
   static bke::bNodeType ntype;
 
-  fn_cmp_node_type_base(&ntype, "FunctionNodeTrimString"_ustr);
+  common_node_type_base(&ntype, "FunctionNodeTrimString"_ustr);
   ntype.ui_name = "Trim String";
   ntype.ui_description = "Remove characters from the beginning and end of a string";
   ntype.nclass = NODE_CLASS_CONVERTER;

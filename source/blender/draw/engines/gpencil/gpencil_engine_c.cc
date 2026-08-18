@@ -173,8 +173,9 @@ void Instance::begin_sync()
   this->use_object_fb = false;
   this->use_mask_fb = false;
 
-  const bool use_viewport_compositor = draw_ctx->is_viewport_compositor_enabled();
-  const Set<std::string> needed_passes = bke::compositor::get_used_passes(*scene, view_layer);
+  const bool use_viewport_compositor = draw_ctx->is_viewport_compositor_used();
+  const Set<std::string> needed_passes = bke::compositor::get_used_passes(
+      *scene, view_layer, bke::compositor::ExecutionMode::Preview);
   this->need_combined_pass = use_viewport_compositor &&
                              needed_passes.contains(RE_PASSNAME_COMBINED);
   this->need_grease_pencil_pass = use_viewport_compositor &&

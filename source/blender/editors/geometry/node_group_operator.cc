@@ -1042,7 +1042,7 @@ static wmOperatorStatus run_node_group_exec(bContext *C, wmOperator *op)
 
   nodes::eval_log::NodeTreeLog &tree_log = eval_log.log->get_tree_log(compute_context.hash());
   tree_log.ensure_node_warnings(*bmain);
-  for (const nodes::eval_log::NodeWarning &warning : tree_log.all_warnings) {
+  for (const nodes::NodeWarning &warning : tree_log.all_warnings) {
     if (warning.type == nodes::NodeWarningType::Info) {
       BKE_report(op->reports, RPT_INFO, warning.message.c_str());
     }

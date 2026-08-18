@@ -1048,7 +1048,7 @@ static void acf_fcurve_name(bAnimListElem *ale, char *name)
       PointerRNA id_ptr = RNA_id_pointer_create(ale->id);
       PointerRNA ptr;
       PropertyRNA *prop;
-      if (!RNA_path_resolve_property(&id_ptr, fcurve->rna_path().c_str(), &ptr, &prop)) {
+      if (!RNA_path_resolve_property(&id_ptr, fcurve->rna_path_parsed(), &ptr, &prop)) {
         fcurve->flag |= FCURVE_DISABLED;
       }
     }
@@ -5725,7 +5725,7 @@ static void achannel_setting_slider_cb(bContext *C, void *id_poin, void *fcu_poi
   flag = animrig::get_keyframing_flags(scene);
 
   /* try to resolve the path stored in the F-Curve */
-  if (RNA_path_resolve_property(&id_ptr, fcu->rna_path().c_str(), &ptr, &prop)) {
+  if (RNA_path_resolve_property(&id_ptr, fcu->rna_path_parsed(), &ptr, &prop)) {
     /* set the special 'replace' flag if on a keyframe */
     if (animrig::fcurve_frame_has_keyframe(fcu, cfra)) {
       flag |= INSERTKEY_REPLACE;

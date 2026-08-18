@@ -18,12 +18,6 @@
 #include <metal_stdlib>
 #include <simd/simd.h>
 
-using namespace metal;
-
-#ifdef __KERNEL_METALRT__
-using namespace metal::raytracing;
-#endif
-
 #pragma clang diagnostic ignored "-Wunused-variable"
 #pragma clang diagnostic ignored "-Wsign-compare"
 #pragma clang diagnostic ignored "-Wuninitialized"
@@ -76,8 +70,9 @@ using namespace metal::raytracing;
 #define ccl_gpu_thread_idx_x simd_group_index
 #define ccl_gpu_thread_mask(thread_warp) uint64_t((1ull << thread_warp) - 1)
 
-#define ccl_gpu_ballot(predicate) ((uint64_t)((simd_vote::vote_t)simd_ballot(predicate)))
-#define ccl_gpu_syncthreads() threadgroup_barrier(mem_flags::mem_threadgroup);
+#define ccl_gpu_ballot(predicate) \
+  ((uint64_t)((metal::simd_vote::vote_t)metal::simd_ballot(predicate)))
+#define ccl_gpu_syncthreads() threadgroup_barrier(metal::mem_flags::mem_threadgroup);
 
 // clang-format off
 
@@ -118,21 +113,21 @@ using namespace metal::raytracing;
 #ifdef __METAL_GLOBAL_BUILTINS__
 
 #define ccl_gpu_kernel_signature(name, ...) \
-struct kernel_gpu_##name \
+struct kernel_gpu_## name \
 { \
   PARAMS_MAKER(__VA_ARGS__)(__VA_ARGS__) \
   void run(thread MetalKernelContext& context, \
-           threadgroup atomic_int *threadgroup_array) ccl_global const; \
+           threadgroup metal::atomic_int *threadgroup_array) ccl_global const; \
 }; \
-kernel void cycles_metal_##name(device const kernel_gpu_##name *params_struct, \
+kernel void cycles_metal_## name(device const kernel_gpu_## name *params_struct, \
                                 constant KernelParamsMetal &ccl_restrict   _launch_params_metal, \
                                 constant MetalAncillaries *_metal_ancillaries, \
-                                threadgroup atomic_int *threadgroup_array[[ threadgroup(0) ]]) { \
+                                threadgroup metal::atomic_int *threadgroup_array[[ threadgroup(0) ]]) { \
   MetalKernelContext context(_launch_params_metal, _metal_ancillaries); \
   params_struct->run(context, threadgroup_array); \
 } \
-void kernel_gpu_##name::run(thread MetalKernelContext& context, \
-                  threadgroup atomic_int *threadgroup_array) ccl_global const
+void kernel_gpu_## name::run(thread MetalKernelContext& context, \
+                  threadgroup metal::atomic_int *threadgroup_array) ccl_global const
 
 #else
 
@@ -140,11 +135,11 @@ void kernel_gpu_##name::run(thread MetalKernelContext& context, \
  * be accessed through attributed entry-point parameters. */
 
 #define ccl_gpu_kernel_signature(name, ...) \
-struct kernel_gpu_##name \
+struct kernel_gpu_## name \
 { \
   PARAMS_MAKER(__VA_ARGS__)(__VA_ARGS__) \
   void run(thread MetalKernelContext& context, \
-           threadgroup atomic_int *threadgroup_array, \
+           threadgroup metal::atomic_int *threadgroup_array, \
            const uint metal_global_id, \
            const ushort metal_local_id, \
            const ushort metal_local_size, \
@@ -154,10 +149,10 @@ struct kernel_gpu_##name \
            uint simd_group_index, \
            uint num_simd_groups) ccl_global const; \
 }; \
-kernel void cycles_metal_##name(device const kernel_gpu_##name *params_struct, \
+kernel void cycles_metal_## name(device const kernel_gpu_## name *params_struct, \
                                 constant KernelParamsMetal &ccl_restrict   _launch_params_metal, \
                                 constant MetalAncillaries *_metal_ancillaries, \
-                                threadgroup atomic_int *threadgroup_array[[ threadgroup(0) ]], \
+                                threadgroup metal::atomic_int *threadgroup_array[[ threadgroup(0) ]], \
                                 const uint metal_global_id [[thread_position_in_grid]], \
                                 const ushort metal_local_id   [[thread_position_in_threadgroup]], \
                                 const ushort metal_local_size [[threads_per_threadgroup]], \
@@ -169,8 +164,8 @@ kernel void cycles_metal_##name(device const kernel_gpu_##name *params_struct, \
   MetalKernelContext context(_launch_params_metal, _metal_ancillaries); \
   params_struct->run(context, threadgroup_array, metal_global_id, metal_local_id, metal_local_size, metal_grid_id, simdgroup_size, simd_lane_index, simd_group_index, num_simd_groups); \
 } \
-void kernel_gpu_##name::run(thread MetalKernelContext& context, \
-                  threadgroup atomic_int *threadgroup_array, \
+void kernel_gpu_## name::run(thread MetalKernelContext& context, \
+                  threadgroup metal::atomic_int *threadgroup_array, \
                   const uint metal_global_id, \
                   const ushort metal_local_id, \
                   const ushort metal_local_size, \
@@ -262,29 +257,29 @@ ccl_device_forceinline uchar4 make_uchar4(const uchar x,
 #define __int_as_float(x) as_type<float>(x)
 #define __float_as_int(x) as_type<int>(x)
 #define __float2half(x) half(x)
-#define powf(x, y) pow(float(x), float(y))
-#define fabsf(x) fabs(float(x))
-#define copysignf(x, y) copysign(float(x), float(y))
-#define asinf(x) asin(float(x))
-#define acosf(x) acos(float(x))
-#define atanf(x) atan(float(x))
-#define floorf(x) floor(float(x))
-#define ceilf(x) ceil(float(x))
-#define roundf(x) round(float(x))
-#define hypotf(x, y) hypot(float(x), float(y))
-#define atan2f(x, y) atan2(float(x), float(y))
-#define fmaxf(x, y) fmax(float(x), float(y))
-#define fminf(x, y) fmin(float(x), float(y))
-#define fmodf(x, y) fmod(float(x), float(y))
-#define sinhf(x) sinh(float(x))
-#define coshf(x) cosh(float(x))
-#define tanhf(x) tanh(float(x))
-#define saturatef(x) saturate(float(x))
-#define ldexpf(x, y) ldexp(float(x), int(y))
+#define powf(x, y) metal::pow(float(x), float(y))
+#define fabsf(x) metal::fabs(float(x))
+#define copysignf(x, y) metal::copysign(float(x), float(y))
+#define asinf(x) metal::asin(float(x))
+#define acosf(x) metal::acos(float(x))
+#define atanf(x) metal::atan(float(x))
+#define floorf(x) metal::floor(float(x))
+#define ceilf(x) metal::ceil(float(x))
+#define roundf(x) metal::round(float(x))
+#define hypotf(x, y) metal::hypot(float(x), float(y))
+#define atan2f(x, y) metal::atan2(float(x), float(y))
+#define fmaxf(x, y) metal::fmax(float(x), float(y))
+#define fminf(x, y) metal::fmin(float(x), float(y))
+#define fmodf(x, y) metal::fmod(float(x), float(y))
+#define sinhf(x) metal::sinh(float(x))
+#define coshf(x) metal::cosh(float(x))
+#define tanhf(x) metal::tanh(float(x))
+#define saturatef(x) metal::saturate(float(x))
+#define ldexpf(x, y) metal::ldexp(float(x), int(y))
 
 /* Use native functions with possibly lower precision for performance,
  * no issues found so far. */
-#define trigmode fast
+#define trigmode metal::fast
 #define sinf(x) trigmode::sin(float(x))
 #define cosf(x) trigmode::cos(float(x))
 #define tanf(x) trigmode::tan(float(x))
@@ -292,40 +287,82 @@ ccl_device_forceinline uchar4 make_uchar4(const uchar x,
 #define sqrtf(x) trigmode::sqrt(float(x))
 #define logf(x) trigmode::log(float(x))
 
+using metal::all;
+using metal::atan2;
+using metal::ceil;
+using metal::clamp;
+using metal::cos;
+using metal::cross;
+using metal::distance;
+using metal::dot;
+using metal::exp;
+using metal::fabs;
+using metal::faceforward;
+using metal::floor;
+using metal::fmod;
+using metal::log;
+using metal::log2;
+using metal::max;
+using metal::min;
+using metal::normalize;
+using metal::reflect;
+using metal::refract;
+using metal::round;
+using metal::saturate;
+using metal::sin;
+using metal::sincos;
+using metal::sqrt;
+using metal::tan;
+
 #define __device__
 
 #ifdef __KERNEL_METALRT__
 
 #  if defined(__METALRT_MOTION__)
-#    define METALRT_TAGS instancing, instance_motion, primitive_motion
-#    define METALRT_BLAS_TAGS , primitive_motion
+#    define METALRT_TAGS \
+      metal::raytracing::instancing, metal::raytracing::instance_motion, \
+          metal::raytracing::primitive_motion
+#    define METALRT_BLAS_TAGS , metal::raytracing::primitive_motion
 #  else
-#    define METALRT_TAGS instancing
+#    define METALRT_TAGS metal::raytracing::instancing
 #    define METALRT_BLAS_TAGS
 #  endif /* __METALRT_MOTION__ */
 
 #  if defined(__METALRT_EXTENDED_LIMITS__)
-#    define METALRT_LIMITS , extended_limits
+#    define METALRT_LIMITS , metal::raytracing::extended_limits
 #  else
 #    define METALRT_LIMITS
 #  endif /* __METALRT_MOTION__ */
 
-typedef acceleration_structure<METALRT_TAGS> metalrt_as_type;
-typedef intersection_function_table<triangle_data, curve_data, METALRT_TAGS METALRT_LIMITS>
+typedef metal::raytracing::acceleration_structure<METALRT_TAGS> metalrt_as_type;
+typedef metal::raytracing::intersection_function_table<metal::raytracing::triangle_data,
+                                                       metal::raytracing::curve_data,
+                                                       METALRT_TAGS METALRT_LIMITS>
     metalrt_ift_type;
-typedef metal::raytracing::intersector<triangle_data, curve_data, METALRT_TAGS METALRT_LIMITS>
+typedef metal::raytracing::intersector<metal::raytracing::triangle_data,
+                                       metal::raytracing::curve_data,
+                                       METALRT_TAGS METALRT_LIMITS>
     metalrt_intersector_type;
 #  if defined(__METALRT_MOTION__)
-typedef acceleration_structure<primitive_motion> metalrt_blas_as_type;
-typedef intersection_function_table<triangle_data, curve_data, primitive_motion METALRT_LIMITS>
+typedef metal::raytracing::acceleration_structure<metal::raytracing::primitive_motion>
+    metalrt_blas_as_type;
+typedef metal::raytracing::intersection_function_table<
+    metal::raytracing::triangle_data,
+    metal::raytracing::curve_data,
+    metal::raytracing::primitive_motion METALRT_LIMITS>
     metalrt_blas_ift_type;
-typedef metal::raytracing::intersector<triangle_data, curve_data, primitive_motion METALRT_LIMITS>
+typedef metal::raytracing::intersector<metal::raytracing::triangle_data,
+                                       metal::raytracing::curve_data,
+                                       metal::raytracing::primitive_motion METALRT_LIMITS>
     metalrt_blas_intersector_type;
 #  else
-typedef acceleration_structure<> metalrt_blas_as_type;
-typedef intersection_function_table<triangle_data, curve_data METALRT_LIMITS>
+typedef metal::raytracing::acceleration_structure<> metalrt_blas_as_type;
+typedef metal::raytracing::intersection_function_table<
+    metal::raytracing::triangle_data,
+    metal::raytracing::curve_data METALRT_LIMITS>
     metalrt_blas_ift_type;
-typedef metal::raytracing::intersector<triangle_data, curve_data METALRT_LIMITS>
+typedef metal::raytracing::intersector<metal::raytracing::triangle_data,
+                                       metal::raytracing::curve_data METALRT_LIMITS>
     metalrt_blas_intersector_type;
 #  endif
 
@@ -338,7 +375,7 @@ struct TextureParamsMetal {
   uint64_t tex;
 };
 struct Texture2DParamsMetal {
-  texture2d<float, access::sample> tex;
+  metal::texture2d<float, metal::access::sample> tex;
 };
 
 #ifdef __KERNEL_METALRT__
@@ -384,15 +421,15 @@ enum SamplerType {
   SamplerCount
 };
 
-constexpr constant array<sampler, SamplerCount> metal_samplers = {
-    sampler(address::repeat, filter::nearest),
-    sampler(address::clamp_to_edge, filter::nearest),
-    sampler(address::clamp_to_zero, filter::nearest),
-    sampler(address::mirrored_repeat, filter::nearest),
-    sampler(address::repeat, filter::linear),
-    sampler(address::clamp_to_edge, filter::linear),
-    sampler(address::clamp_to_zero, filter::linear),
-    sampler(address::mirrored_repeat, filter::linear),
+constexpr constant metal::array<metal::sampler, SamplerCount> metal_samplers = {
+    metal::sampler(metal::address::repeat, metal::filter::nearest),
+    metal::sampler(metal::address::clamp_to_edge, metal::filter::nearest),
+    metal::sampler(metal::address::clamp_to_zero, metal::filter::nearest),
+    metal::sampler(metal::address::mirrored_repeat, metal::filter::nearest),
+    metal::sampler(metal::address::repeat, metal::filter::linear),
+    metal::sampler(metal::address::clamp_to_edge, metal::filter::linear),
+    metal::sampler(metal::address::clamp_to_zero, metal::filter::linear),
+    metal::sampler(metal::address::mirrored_repeat, metal::filter::linear),
 };
 
 #ifdef __METAL_GLOBAL_BUILTINS__

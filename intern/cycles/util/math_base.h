@@ -106,6 +106,16 @@ ccl_device_inline float fminf(const float a, const float b)
 #  endif /* _WIN32 */
 #endif   /* __HIP__, __KERNEL_ONEAPI__ */
 
+#if defined(__KERNEL_METAL__)
+using metal::isfinite;
+using metal::isnan;
+using metal::sqrt;
+
+using metal::abs;
+using metal::max;
+using metal::min;
+#endif /* defined(__KERNEL_METAL__) */
+
 #if !defined(__KERNEL_GPU__) || defined(__KERNEL_ONEAPI__)
 #  ifndef __KERNEL_ONEAPI__
 using std::isfinite;
@@ -362,7 +372,11 @@ ccl_device_inline float ensure_finite(const float v)
   return isfinite_safe(v) ? v : 0.0f;
 }
 
-#if !defined(__KERNEL_METAL__)
+#if defined(__KERNEL_METAL__)
+using metal::clamp;
+using metal::mix;
+using metal::smoothstep;
+#else
 ccl_device_inline int clamp(const int a, const int mn, const int mx)
 {
   return min(max(a, mn), mx);
@@ -562,7 +576,7 @@ ccl_device_inline float safe_sqrtf(const float f)
 ccl_device_inline float inversesqrtf(const float f)
 {
 #if defined(__KERNEL_METAL__)
-  return (f > 0.0f) ? rsqrt(f) : 0.0f;
+  return (f > 0.0f) ? metal::rsqrt(f) : 0.0f;
 #else
   return (f > 0.0f) ? 1.0f / sqrtf(f) : 0.0f;
 #endif
@@ -684,9 +698,9 @@ ccl_device_inline float lgammaf(const float x)
    */
   const float _1_180 = 1.0f / 180.0f;
   const float log2pi = 1.83787706641f;
-  const float logx = log(x);
+  const float logx = logf(x);
   return (log2pi - logx +
-          x * (logx * 2.0f + log(x * sinh(1.0f / x) + (_1_180 / pow(x, 6.0f))) - 2.0f)) *
+          x * (logx * 2.0f + logf(x * sinhf(1.0f / x) + (_1_180 / powf(x, 6.0f))) - 2.0f)) *
          0.5f;
 }
 #endif
@@ -730,7 +744,9 @@ ccl_device_inline uint popcount(const uint64_t x)
 #elif defined(__KERNEL_HIP__)
 /* Use popcll to support 64-bit wave for pre-RDNA AMD GPUs */
 #  define popcount(x) __popcll(x)
-#elif !defined(__KERNEL_METAL__)
+#elif defined(__KERNEL_METAL__)
+using metal::popcount;
+#else
 #  define popcount(x) __popc(x)
 #endif
 
@@ -739,7 +755,7 @@ ccl_device_inline uint count_leading_zeros(const uint x)
 #if defined(__KERNEL_CUDA__) || defined(__KERNEL_OPTIX__) || defined(__KERNEL_HIP__)
   return __clz(x);
 #elif defined(__KERNEL_METAL__)
-  return clz(x);
+  return metal::clz(x);
 #elif defined(__KERNEL_ONEAPI__)
   return sycl::clz(x);
 #else
@@ -759,7 +775,7 @@ ccl_device_inline uint count_trailing_zeros(const uint x)
 #if defined(__KERNEL_CUDA__) || defined(__KERNEL_OPTIX__) || defined(__KERNEL_HIP__)
   return (__ffs(x) - 1);
 #elif defined(__KERNEL_METAL__)
-  return ctz(x);
+  return metal::ctz(x);
 #elif defined(__KERNEL_ONEAPI__)
   return sycl::ctz(x);
 #else
@@ -779,7 +795,7 @@ ccl_device_inline uint find_first_set(const uint x)
 #if defined(__KERNEL_CUDA__) || defined(__KERNEL_OPTIX__) || defined(__KERNEL_HIP__)
   return __ffs(x);
 #elif defined(__KERNEL_METAL__)
-  return (x != 0) ? ctz(x) + 1 : 0;
+  return (x != 0) ? metal::ctz(x) + 1 : 0;
 #else
 #  ifdef _MSC_VER
   return (x != 0) ? (32 - count_leading_zeros(x & (~x + 1))) : 0;
@@ -835,7 +851,7 @@ ccl_device_inline uint32_t reverse_integer_bits(uint32_t x)
 #if defined(__KERNEL_CUDA__)
   return __brev(x);
 #elif defined(__KERNEL_METAL__)
-  return reverse_bits(x);
+  return metal::reverse_bits(x);
 #elif defined(__aarch64__) || (defined(_M_ARM64) && !defined(_MSC_VER))
   /* Assume the rbit is always available on 64bit ARM architecture. */
   __asm__("rbit %w0, %w1" : "=r"(x) : "r"(x));

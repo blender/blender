@@ -658,7 +658,7 @@ void RE_FreeUnusedGPUResources()
 
       /* Detect if scene is using GPU compositing, and if either a node editor is
        * showing the nodes, or an image editor is showing the render result or viewer. */
-      if (!(scene->compositing_node_group &&
+      if (!(bke::compositor::is_enabled(*scene, bke::compositor::ExecutionMode::Preview) &&
             scene->r.compositor_device == SCE_COMPOSITOR_DEVICE_GPU))
       {
         continue;
@@ -670,7 +670,9 @@ void RE_FreeUnusedGPUResources()
 
         if (space.spacetype == SPACE_NODE) {
           const SpaceNode &snode = reinterpret_cast<const SpaceNode &>(space);
-          if (snode.nodetree == scene->compositing_node_group) {
+          if (snode.nodetree && snode.nodetree->type == NTREE_COMPOSIT &&
+              snode.node_tree_sub_type == SNODE_COMPOSITOR_SCENE)
+          {
             do_free = false;
           }
         }
@@ -1105,18 +1107,19 @@ static void do_render_compositor_scene(Render *re, Scene *sce, int cfra)
 }
 
 /* Get the set of all scenes that needs to be rendered by the given compositor node group in the
- * given pipeline scene. If the node group is the root one, is_root_node_group will be true. */
+ * given pipeline scene. If the node group is that of the first enabled compositor effect,
+ * is_first_enabled_effect will be true. */
 static VectorSet<Scene *> get_scenes_that_needs_render_by_node_group(
     Scene &pipeline_scene,
     const bNodeTree &node_group,
-    const bool is_root_node_group,
+    const bool is_first_enabled_effect,
     VectorSet<const bNodeTree *> &node_trees_already_searched)
 {
   VectorSet<Scene *> needed_scenes_to_render;
   node_group.ensure_topology_cache();
 
   /* Group Input nodes. */
-  if (is_root_node_group) {
+  if (is_first_enabled_effect) {
     for (const bNode *node : node_group.group_input_nodes()) {
       if (!node->is_muted()) {
         needed_scenes_to_render.add(&pipeline_scene);
@@ -1157,31 +1160,29 @@ static VectorSet<Scene *> get_scenes_that_needs_render_by_node_group(
   return needed_scenes_to_render;
 }
 
-static bool is_compositor_enabled(Scene &pipeline_scene)
-{
-  bNodeTree *node_group = pipeline_scene.compositing_node_group;
-  if (!node_group) {
-    return false;
-  }
-
-  if (!(pipeline_scene.r.scemode & R_DOCOMP)) {
-    return false;
-  }
-
-  return true;
-}
-
 /* Get the set of all scenes that needs to be rendered by the compositor of the given pipeline
  * scene. */
 static VectorSet<Scene *> get_scenes_that_needs_render_by_compositor(Scene &pipeline_scene)
 {
-  if (!is_compositor_enabled(pipeline_scene)) {
+  if (!bke::compositor::is_enabled(pipeline_scene, bke::compositor::ExecutionMode::Render)) {
     return VectorSet<Scene *>();
   }
 
+  bool is_first_enabled_effect = true;
+  VectorSet<Scene *> needed_scenes_to_render;
   VectorSet<const bNodeTree *> node_trees_already_searched;
-  return get_scenes_that_needs_render_by_node_group(
-      pipeline_scene, *pipeline_scene.compositing_node_group, true, node_trees_already_searched);
+  for (SceneCompositorEffect &effect : pipeline_scene.compositor_effects) {
+    if (!bke::compositor::is_effect_enabled(effect, bke::compositor::ExecutionMode::Render)) {
+      continue;
+    }
+
+    needed_scenes_to_render.add_multiple(get_scenes_that_needs_render_by_node_group(
+        pipeline_scene, *effect.node_group, is_first_enabled_effect, node_trees_already_searched));
+
+    is_first_enabled_effect = false;
+  }
+
+  return needed_scenes_to_render;
 }
 
 /* Render all scenes needed by the compositor. */
@@ -1213,16 +1214,53 @@ static void do_render_compositor_scenes(Render *re, VectorSet<Scene *> &needed_s
   }
 }
 
-/** Returns true if the node tree has a group output node. */
-static bool node_tree_has_group_output(const bNodeTree *node_tree)
+/* Checks if the given scene has a compositor output. */
+static bool scene_has_compositor_output(const Scene &scene)
+{
+  /* The last enabled effect determines if the compositor has an output, depending on if it has
+   * an active Group Output or not. */
+  for (const SceneCompositorEffect &effect : scene.compositor_effects.items_reversed()) {
+    if (!is_effect_enabled(effect, bke::compositor::ExecutionMode::Render)) {
+      continue;
+    }
+
+    effect.node_group->ensure_topology_cache();
+    for (const bNode *node : effect.node_group->nodes_by_type("NodeGroupOutput"_ustr)) {
+      if (node->flag & NODE_DO_OUTPUT && !node->is_muted()) {
+        return true;
+      }
+    }
+
+    return false;
+  }
+
+  return false;
+}
+
+/* Checks if the given node tree has any active file output nodes that are directly linked. */
+static bool node_tree_has_linked_file_output(const bNodeTree *node_tree)
 {
   if (node_tree == nullptr) {
     return false;
   }
 
   node_tree->ensure_topology_cache();
-  for (const bNode *node : node_tree->nodes_by_type("NodeGroupOutput"_ustr)) {
-    if (node->flag & NODE_DO_OUTPUT && !node->is_muted()) {
+  for (const bNode *node : node_tree->nodes_by_type("CompositorNodeOutputFile"_ustr)) {
+    if (!node->is_muted()) {
+      for (const bNodeSocket &input : node->inputs) {
+        if (input.is_directly_linked()) {
+          return true;
+        }
+      }
+    }
+  }
+
+  for (const bNode *node : node_tree->group_nodes()) {
+    if (node->is_muted() || !node->id) {
+      continue;
+    }
+
+    if (node_tree_has_linked_file_output(reinterpret_cast<const bNodeTree *>(node->id))) {
       return true;
     }
   }
@@ -1230,11 +1268,37 @@ static bool node_tree_has_group_output(const bNodeTree *node_tree)
   return false;
 }
 
+/* Checks if the given scene has any active compositor file outputs. */
+static bool scene_has_compositor_file_output(const Scene &scene)
+{
+  for (const SceneCompositorEffect &effect : scene.compositor_effects) {
+    if (!is_effect_enabled(effect, bke::compositor::ExecutionMode::Render)) {
+      continue;
+    }
+
+    if (node_tree_has_linked_file_output(effect.node_group)) {
+      return true;
+    }
+  }
+
+  return false;
+}
+
+/* Checks if the given scene has any compositor output, be it the actual compositor output or file
+ * outputs. */
+static bool scene_has_any_compositor_output(const Scene &scene)
+{
+  if (scene_has_compositor_output(scene)) {
+    return true;
+  }
+
+  return scene_has_compositor_file_output(scene);
+}
+
 /* Render compositor nodes, along with any scenes required for them.
  * The result will be output into a compositing render layer in the render result. */
 static void do_render_compositor(Render *re)
 {
-  bNodeTree *ntree = re->pipeline_scene_eval->compositing_node_group;
   bool update_newframe = false;
 
   VectorSet<Scene *> needed_scenes_to_render = get_scenes_that_needs_render_by_compositor(
@@ -1242,7 +1306,8 @@ static void do_render_compositor(Render *re)
 
   /* Render the pipeline scene because the compositor is disabled and thus we do a simple render,
    * or the compositor is enabled and requires the scene to be rendered. */
-  if (!is_compositor_enabled(*re->pipeline_scene_eval) ||
+  if (!bke::compositor::is_enabled(*re->pipeline_scene_eval,
+                                   bke::compositor::ExecutionMode::Render) ||
       needed_scenes_to_render.contains(re->pipeline_scene_eval))
   {
     /* render the frames
@@ -1270,7 +1335,7 @@ static void do_render_compositor(Render *re)
 
     /* The compositor does not have a group output, skip writing the render result. See
      * R_SKIP_WRITE for more information. */
-    if (!node_tree_has_group_output(re->pipeline_scene_eval->compositing_node_group)) {
+    if (!scene_has_compositor_output(*re->pipeline_scene_eval)) {
       re->flag |= R_SKIP_WRITE;
     }
   }
@@ -1283,7 +1348,9 @@ static void do_render_compositor(Render *re)
   }
 
   if (!re->display->test_break()) {
-    if (ntree && re->r.scemode & R_DOCOMP) {
+    if (bke::compositor::is_enabled(*re->pipeline_scene_eval,
+                                    bke::compositor::ExecutionMode::Render))
+    {
       /* checks if there are render-result nodes that need scene */
       if ((re->r.scemode & R_SINGLE_LAYER) == 0) {
         do_render_compositor_scenes(re, needed_scenes_to_render);
@@ -1314,7 +1381,6 @@ static void do_render_compositor(Render *re)
                                                             *re->main,
                                                             *re->pipeline_scene_eval,
                                                             re->r,
-                                                            *ntree,
                                                             rv.name,
                                                             &compositor_render_context,
                                                             needed_outputs,
@@ -1562,21 +1628,28 @@ static bool check_valid_compositing_camera(const Main &bmain,
                                            Object *camera_override,
                                            ReportList *reports)
 {
-  if (scene->r.scemode & R_DOCOMP && scene->compositing_node_group) {
-    for (bNode *node : scene->compositing_node_group->all_nodes()) {
-      if (node->type_legacy == CMP_NODE_R_LAYERS && !node->is_muted()) {
-        Scene *sce = node->id ? id_cast<Scene *>(node->id) : scene;
-        if (sce->camera == nullptr) {
-          sce->camera = BKE_view_layer_camera_find(bmain, sce, BKE_view_layer_default_render(sce));
-        }
-        if (sce->camera == nullptr) {
-          /* all render layers nodes need camera */
-          BKE_reportf(reports,
-                      RPT_ERROR,
-                      "No camera found in scene \"%s\" (used in compositing of scene \"%s\")",
-                      sce->id.name + 2,
-                      scene->id.name + 2);
-          return false;
+  if (bke::compositor::is_enabled(*scene, bke::compositor::ExecutionMode::Render)) {
+    for (SceneCompositorEffect &effect : scene->compositor_effects) {
+      if (!bke::compositor::is_effect_enabled(effect, bke::compositor::ExecutionMode::Render)) {
+        continue;
+      }
+
+      for (bNode *node : effect.node_group->all_nodes()) {
+        if (node->type_legacy == CMP_NODE_R_LAYERS && !node->is_muted()) {
+          Scene *sce = node->id ? id_cast<Scene *>(node->id) : scene;
+          if (sce->camera == nullptr) {
+            sce->camera = BKE_view_layer_camera_find(
+                bmain, sce, BKE_view_layer_default_render(sce));
+          }
+          if (sce->camera == nullptr) {
+            /* all render layers nodes need camera */
+            BKE_reportf(reports,
+                        RPT_ERROR,
+                        "No camera found in scene \"%s\" (used in compositing of scene \"%s\")",
+                        sce->id.name + 2,
+                        scene->id.name + 2);
+            return false;
+          }
         }
       }
     }
@@ -1680,19 +1753,6 @@ static int check_valid_camera(const Main &bmain,
   return true;
 }
 
-static bool scene_has_compositor_output(Scene *scene)
-{
-  if (scene->compositing_node_group == nullptr) {
-    return false;
-  }
-
-  if (node_tree_has_group_output(scene->compositing_node_group)) {
-    return true;
-  }
-
-  return bke::compositor::node_tree_has_linked_file_output(scene->compositing_node_group);
-}
-
 /* Identify if the compositor can run on the GPU. Currently, this only checks if the compositor is
  * set to GPU and the render size exceeds what can be allocated as a texture in it. */
 static bool is_compositing_possible_on_gpu(Scene *scene, ReportList *reports)
@@ -1729,7 +1789,7 @@ bool RE_disable_save_output_allowed(const bool is_animation, Scene &scene, Repor
   }
 
   if (is_animation && !save_output && do_compositing) {
-    if (!bke::compositor::node_tree_has_linked_file_output(scene.compositing_node_group)) {
+    if (!scene_has_compositor_file_output(scene)) {
       BKE_report(reports,
                  RPT_ERROR,
                  "Render output disabled in Output properties and no active compositing File "
@@ -1747,8 +1807,6 @@ bool RE_is_rendering_allowed(const Main &bmain,
                              Object *camera_override,
                              ReportList *reports)
 {
-  const int scemode = scene->r.scemode;
-
   if (scene->r.mode & R_BORDER) {
     if (scene->r.border.xmax <= scene->r.border.xmin ||
         scene->r.border.ymax <= scene->r.border.ymin)
@@ -1765,9 +1823,9 @@ bool RE_is_rendering_allowed(const Main &bmain,
       return false;
     }
   }
-  else if (scemode & R_DOCOMP && scene->compositing_node_group) {
+  else if (bke::compositor::is_enabled(*scene, bke::compositor::ExecutionMode::Render)) {
     /* Compositor */
-    if (!scene_has_compositor_output(scene)) {
+    if (!scene_has_any_compositor_output(*scene)) {
       BKE_report(reports, RPT_ERROR, "No Group Output or File Output nodes in scene");
       return false;
     }

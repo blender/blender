@@ -10,6 +10,7 @@
 #include <cstdlib>
 #include <cstring>
 
+#include "BKE_compositor.hh"
 #include "MEM_guardedalloc.h"
 
 #include "BLI_listbase.hh"
@@ -21,6 +22,7 @@
 #include "DNA_object_types.h"
 
 #include "BKE_camera.h"
+#include "BKE_compositor.hh"
 #include "BKE_global.hh"
 #include "BKE_node.hh"
 #include "BKE_report.hh"
@@ -866,7 +868,11 @@ static bool possibly_using_gpu_compositor(const Render *re)
   /* Note a secondary Render instance from a Render Layers node has a null pipeline scene,
    * but no compositing is performed for it so we can return false. */
   const Scene *scene = re->pipeline_scene_eval;
-  return scene && scene->compositing_node_group && (scene->r.scemode & R_DOCOMP);
+  if (!scene) {
+    return false;
+  }
+
+  return bke::compositor::is_enabled(*scene, bke::compositor::ExecutionMode::Render);
 }
 
 static void engine_render_view_layer(Render *re,

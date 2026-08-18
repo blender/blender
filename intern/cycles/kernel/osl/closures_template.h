@@ -104,9 +104,11 @@ OSL_CLOSURE_STRUCT_BEGIN(GeneralizedSchlickBSDF, generalized_schlick_bsdf)
   OSL_CLOSURE_STRUCT_MEMBER(GeneralizedSchlickBSDF, VECTOR, packed_float3, f90, nullptr)
   OSL_CLOSURE_STRUCT_MEMBER(GeneralizedSchlickBSDF, FLOAT, float, exponent, nullptr)
   OSL_CLOSURE_STRUCT_MEMBER(GeneralizedSchlickBSDF, STRING, DeviceString, distribution, nullptr)
+  /* Optional parameters. */
   OSL_CLOSURE_STRUCT_MEMBER(
       GeneralizedSchlickBSDF, FLOAT, float, thinfilm_thickness, "thinfilm_thickness")
   OSL_CLOSURE_STRUCT_MEMBER(GeneralizedSchlickBSDF, FLOAT, float, thinfilm_ior, "thinfilm_ior")
+  OSL_CLOSURE_STRUCT_MEMBER(GeneralizedSchlickBSDF, FLOAT, float, inv_abbe, "inv_abbe")
 OSL_CLOSURE_STRUCT_END(GeneralizedSchlickBSDF, generalized_schlick_bsdf)
 
 OSL_CLOSURE_STRUCT_BEGIN(ThinGlass, thin_glass)

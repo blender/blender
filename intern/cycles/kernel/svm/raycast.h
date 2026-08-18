@@ -99,7 +99,7 @@ ccl_device_inline void svm_raycast_attr_eval_and_store(
   svm_node_attr_store(type, stack, attribute_node.out_offset, data);
 }
 
-template<uint node_feature_mask, typename ConstIntegratorGenericState>
+template<uint64_t node_feature_mask, typename ConstIntegratorGenericState>
 #  if defined(__KERNEL_OPTIX__)
 ccl_device_inline
 #  else

@@ -1172,9 +1172,17 @@ wmOperatorStatus node_render_changed_exec(bContext *C, wmOperator * /*op*/)
    * All the nodes are using same render result, so there is no need to do
    * anything smart about check how exactly scene is used. */
   bNode *node = nullptr;
-  for (bNode *node_iter : sce->compositing_node_group->all_nodes()) {
-    if (node_iter->id == id_cast<ID *>(sce)) {
-      node = node_iter;
+  for (SceneCompositorEffect &effect : sce->compositor_effects) {
+    if (!effect.node_group || ID_MISSING(effect.node_group)) {
+      continue;
+    }
+    for (bNode *node_iter : effect.node_group->all_nodes()) {
+      if (node_iter->id == id_cast<ID *>(sce)) {
+        node = node_iter;
+        break;
+      }
+    }
+    if (node) {
       break;
     }
   }

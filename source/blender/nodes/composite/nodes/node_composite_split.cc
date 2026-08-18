@@ -62,9 +62,11 @@ class SplitOperation : public NodeOperation {
     GPU_shader_uniform_2fv(shader, "normal", normal);
 
     const Result &first_image = this->get_input("Image");
-    first_image.bind_as_texture(shader, "first_image_tx");
+    gpu::Texture *first_image_texture = first_image.bind_as_texture_or_single_value(
+        shader, "first_image_tx");
     const Result &second_image = this->get_input("Image_001");
-    second_image.bind_as_texture(shader, "second_image_tx");
+    gpu::Texture *second_image_texture = second_image.bind_as_texture_or_single_value(
+        shader, "second_image_tx");
 
     Result &output_image = this->get_result("Image");
     output_image.allocate_texture(domain);
@@ -72,8 +74,8 @@ class SplitOperation : public NodeOperation {
 
     compute_dispatch_threads_at_least(shader, domain.data_size);
 
-    first_image.unbind_as_texture();
-    second_image.unbind_as_texture();
+    first_image.unbind_as_texture_or_single_value(first_image_texture);
+    second_image.unbind_as_texture_or_single_value(second_image_texture);
     output_image.unbind_as_image();
     GPU_shader_unbind();
   }

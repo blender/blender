@@ -225,7 +225,7 @@ class Camera : public Node {
   int motion_step(const float time) const;
   bool use_motion() const;
 
-  uint get_kernel_features() const;
+  uint64_t get_kernel_features() const;
 
   bool set_screen_size(int width, int height);
 

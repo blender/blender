@@ -723,7 +723,7 @@ static void separate_armature_bones(Main *bmain, Object *ob, const bool is_selec
     PointerRNA ptr = RNA_pointer_create_discrete(&ob->id, RNA_Object, ob);
     PathResolvedRNA resolved_rna;
     for (FCurve &fcurve : ob->adt->drivers.items_mutable()) {
-      const StringRefNull rna_path = fcurve.rna_path();
+      const ParsedRNAPathRef rna_path = fcurve.rna_path_parsed();
       if (rna_path.is_empty()) {
         continue;
       }

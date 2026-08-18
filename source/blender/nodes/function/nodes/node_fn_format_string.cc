@@ -23,6 +23,7 @@
 #include "BKE_path_templates.hh"
 
 #include "node_function_util.hh"
+#include "node_shader_util.hh"
 
 namespace blender {
 
@@ -808,7 +809,7 @@ static void node_register()
 {
   static bke::bNodeType ntype;
 
-  fn_cmp_node_type_base(&ntype, "FunctionNodeFormatString"_ustr);
+  common_node_type_base(&ntype, "FunctionNodeFormatString"_ustr);
   ntype.ui_name = "Format String";
   ntype.ui_description =
       "Insert values into a string using a Python and path template compatible formatting syntax";

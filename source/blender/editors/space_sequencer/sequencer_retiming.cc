@@ -77,11 +77,13 @@ static wmOperatorStatus sequencer_retiming_data_show_exec(bContext *C, wmOperato
   VectorSet<Strip *> selected = seq::query_selected_strips(seq::active_seqbase_get(ed));
   selected.remove_if([](Strip *strip) { return !seq::retiming_is_allowed(strip); });
 
+  Set<Strip *> selected_keys;
   Map<SeqRetimingKey *, Strip *> retiming_sel = seq::retiming_selection_get(ed);
   for (Strip *retiming_strip : retiming_sel.values()) {
     if (seq::retiming_show_keys(retiming_strip)) {
       selected.add(retiming_strip);
     }
+    selected_keys.add(retiming_strip);
   }
 
   if (selected.is_empty()) {
@@ -89,9 +91,8 @@ static wmOperatorStatus sequencer_retiming_data_show_exec(bContext *C, wmOperato
   }
 
   /* If all strips show retiming keys, hide keys for all strips, otherwise, show for all. */
-  const bool all_show = std::all_of(selected.begin(), selected.end(), [](Strip *strip) {
-    return seq::retiming_show_keys(strip);
-  });
+  const bool all_show = std::ranges::all_of(
+      selected, [](Strip *strip) { return seq::retiming_show_keys(strip); });
 
   for (Strip *strip : selected) {
     if (all_show) {
@@ -102,8 +103,10 @@ static wmOperatorStatus sequencer_retiming_data_show_exec(bContext *C, wmOperato
     }
     else {
       strip->flag |= SEQ_SHOW_RETIMING;
-      /* Deselect the strip so only retiming keys are selected. */
-      strip->flag &= ~SEQ_SELECT;
+      /* If retiming keys are selected, deselect the strip, since both can't happen. */
+      if (selected_keys.contains(strip)) {
+        strip->flag &= ~SEQ_SELECT;
+      }
     }
   }
 
@@ -179,6 +182,7 @@ static wmOperatorStatus retiming_key_add_from_selection(const Scene *scene,
     }
     if (seq::retiming_key_add_new_for_strip(scene, op->reports, strip, frame)) {
       inserted = true;
+      strip->flag |= SEQ_SHOW_RETIMING;
     }
   }
 
@@ -200,6 +204,7 @@ static wmOperatorStatus retiming_key_add_to_editable_strips(const Scene *scene,
   for (Strip *strip : selection.values()) {
     if (seq::retiming_key_add_new_for_strip(scene, op->reports, strip, frame)) {
       inserted = true;
+      strip->flag |= SEQ_SHOW_RETIMING;
     }
   }
 

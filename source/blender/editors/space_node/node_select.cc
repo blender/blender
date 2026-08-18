@@ -1427,8 +1427,7 @@ static std::string node_find_create_string_value(const bNode &node, const String
   return fmt::format("{}: \"{}\" ({})", TIP_("String"), str, node.name);
 }
 
-static std::string node_find_create_warning(const bNode &node,
-                                            const nodes::eval_log::NodeWarning warning)
+static std::string node_find_create_warning(const bNode &node, const nodes::NodeWarning warning)
 {
   return fmt::format(
       "{}: \"{}\" ({})", nodes::node_warning_type_name(warning.type), warning.message, node.name);
@@ -1512,7 +1511,7 @@ static void node_find_update_fn(const bContext *C,
     }
     if (nodes::eval_log::NodeTreeLog *tree_log = tree_logs.get_main_tree_log(*node)) {
       if (nodes::eval_log::NodeLog *node_log = tree_log->find_node_log(node->identifier)) {
-        for (const nodes::eval_log::NodeWarning &warning : node_log->warnings) {
+        for (const nodes::NodeWarning &warning : node_log->warnings) {
           const StringRef search_str = scope.add_value(node_find_create_warning(*node, warning));
           search.add(search_str, &scope.construct<Item>(Item{node, search_str}));
         }

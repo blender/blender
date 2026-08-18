@@ -144,6 +144,7 @@ template<int64_t N = 4> class ParsedRNAPath {
   Vector<rna_path::Item, N> items;
 
   ParsedRNAPath() = default;
+  ParsedRNAPath(ParsedRNAPathRef path) : items(path) {}
 
   static std::optional<ParsedRNAPath> from_string(StringRefNull path);
 

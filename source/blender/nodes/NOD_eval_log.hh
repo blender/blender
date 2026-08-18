@@ -47,7 +47,7 @@
 
 #include "NOD_geometry_nodes_closure_location.hh"
 #include "NOD_geometry_nodes_list_fwd.hh"
-#include "NOD_geometry_nodes_warning.hh"
+#include "NOD_warning.hh"
 
 #include "DNA_node_types.h"
 
@@ -65,21 +65,6 @@ class GField;
 namespace nodes::eval_log {
 
 using fn::GField;
-
-struct NodeWarning {
-  NodeWarningType type;
-  std::string message;
-
-  NodeWarning(NodeWarningType type, StringRef message) : type(type), message(message) {}
-  NodeWarning(const Report &report);
-
-  uint64_t hash() const
-  {
-    return get_default_hash(this->type, this->message);
-  }
-
-  friend bool operator==(const NodeWarning &a, const NodeWarning &b) = default;
-};
 
 enum class NamedAttributeUsage {
   None = 0,

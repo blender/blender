@@ -133,10 +133,12 @@ class BoxMaskOperation : public NodeOperation {
     GPU_shader_uniform_1f(shader, "sin_angle", std::sin(get_angle()));
 
     const Result &input_mask = get_input("Mask");
-    input_mask.bind_as_texture(shader, "base_mask_tx");
+    gpu::Texture *base_mask_texture = input_mask.bind_as_texture_or_single_value(shader,
+                                                                                 "base_mask_tx");
 
     const Result &value = get_input("Value");
-    value.bind_as_texture(shader, "mask_value_tx");
+    gpu::Texture *value_mask_texture = value.bind_as_texture_or_single_value(shader,
+                                                                             "mask_value_tx");
 
     Result &output_mask = get_result("Mask");
     output_mask.allocate_texture(domain);
@@ -144,8 +146,8 @@ class BoxMaskOperation : public NodeOperation {
 
     compute_dispatch_threads_at_least(shader, domain.data_size);
 
-    input_mask.unbind_as_texture();
-    value.unbind_as_texture();
+    input_mask.unbind_as_texture_or_single_value(base_mask_texture);
+    value.unbind_as_texture_or_single_value(value_mask_texture);
     output_mask.unbind_as_image();
     GPU_shader_unbind();
   }

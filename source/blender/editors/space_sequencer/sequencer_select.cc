@@ -1093,8 +1093,11 @@ wmOperatorStatus sequencer_select_exec(bContext *C, wmOperator *op)
       key = try_to_realize_fake_keys(scene, v2d, strip_key_owner, mouse_co.region);
     }
     else {
-      /* There may be fake key on either side of strip. It must be realized. */
+      /* There may be a fake key on either side of the strip. It must be realized. Realizing
+       * reallocates the key array, so `key` has to be looked up again. */
+      const int key_frame = seq::retiming_key_frame_get(scene, strip_key_owner, key);
       seq::realize_fake_keys(scene, strip_key_owner);
+      key = seq::retiming_key_get_by_frame(scene, strip_key_owner, key_frame);
     }
 
     if (key != nullptr) {

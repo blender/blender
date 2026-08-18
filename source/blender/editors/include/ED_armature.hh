@@ -37,7 +37,6 @@ struct bContext;
 struct bPoseChannel;
 struct wmKeyConfig;
 struct wmOperator;
-enum eAnimvizCalcRange : uint8_t;
 
 #define BONESEL_ROOT (1u << 29)
 #define BONESEL_TIP (1u << 30)
@@ -280,7 +279,7 @@ bool ED_object_posemode_enter(bContext *C, Object *ob);
  *
  * To be called from various tools that do incremental updates.
  */
-void ED_pose_recalculate_paths(bContext *C, Scene *scene, Object *ob, eAnimvizCalcRange range);
+void ED_pose_recalculate_paths(bContext *C, Scene *scene, Object *ob);
 
 /* `pose_select.cc` */
 

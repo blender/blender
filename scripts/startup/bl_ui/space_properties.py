@@ -16,6 +16,7 @@ tabs_attr_infos = (
     ("show_properties_output", "Output", 'OUTPUT'),
     ("show_properties_view_layer", "View Layer", 'RENDERLAYERS'),
     ("show_properties_scene", "Scene", 'SCENE_DATA'),
+    ("show_properties_compositor", "Compositor", 'NODE_COMPOSITING'),
     ("show_properties_world", "World", 'WORLD'),
     ("show_properties_collection", "Collection", 'GROUP'),
     ("show_properties_object", "Object", 'OBJECT_DATA'),

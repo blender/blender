@@ -100,8 +100,7 @@ static float precompute_ggx_gen_schlick_s(
   bsdf_microfacet_ggx_setup(&bsdf);
 
   FresnelGeneralizedSchlick fresnel;
-  fresnel.reflection_tint = one_float3();
-  fresnel.transmission_tint = one_float3();
+  fresnel.tint = {one_float3(), one_float3()};
   fresnel.f0 = make_float3(0.0f, 1.0f, 0.0f);
   fresnel.f90 = make_float3(1.0f, 1.0f, 0.0f);
   fresnel.exponent = exponent;

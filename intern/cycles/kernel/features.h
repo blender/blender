@@ -17,70 +17,70 @@ CCL_NAMESPACE_BEGIN
  * compile time optimization while using adaptive kernel compilation. */
 
 /* Shader nodes. */
-#define KERNEL_FEATURE_NODE_BSDF (1U << 0U)
-#define KERNEL_FEATURE_NODE_EMISSION (1U << 1U)
-#define KERNEL_FEATURE_NODE_VOLUME (1U << 2U)
-#define KERNEL_FEATURE_NODE_BUMP (1U << 3U)
-#define KERNEL_FEATURE_NODE_BUMP_STATE (1U << 4U)
-#define KERNEL_FEATURE_NODE_VORONOI_EXTRA (1U << 5U)
-#define KERNEL_FEATURE_NODE_RAYTRACE (1U << 6U)
-#define KERNEL_FEATURE_NODE_AOV (1U << 7U)
-#define KERNEL_FEATURE_NODE_LIGHT_PATH (1U << 8U)
-#define KERNEL_FEATURE_NODE_PRINCIPLED_HAIR (1U << 9U)
-#define KERNEL_FEATURE_NODE_PORTAL (1U << 10U)
+#define KERNEL_FEATURE_NODE_BSDF (1ULL << 0ULL)
+#define KERNEL_FEATURE_NODE_EMISSION (1ULL << 1ULL)
+#define KERNEL_FEATURE_NODE_VOLUME (1ULL << 2ULL)
+#define KERNEL_FEATURE_NODE_BUMP (1ULL << 3ULL)
+#define KERNEL_FEATURE_NODE_BUMP_STATE (1ULL << 4ULL)
+#define KERNEL_FEATURE_NODE_VORONOI_EXTRA (1ULL << 5ULL)
+#define KERNEL_FEATURE_NODE_RAYTRACE (1ULL << 6ULL)
+#define KERNEL_FEATURE_NODE_AOV (1ULL << 7ULL)
+#define KERNEL_FEATURE_NODE_LIGHT_PATH (1ULL << 8ULL)
+#define KERNEL_FEATURE_NODE_PRINCIPLED_HAIR (1ULL << 9ULL)
+#define KERNEL_FEATURE_NODE_PORTAL (1ULL << 10ULL)
 
 /* Use path tracing kernels. */
-#define KERNEL_FEATURE_PATH_TRACING (1U << 11U)
+#define KERNEL_FEATURE_PATH_TRACING (1ULL << 11ULL)
 
 /* BVH/sampling kernel features. */
-#define KERNEL_FEATURE_POINTCLOUD (1U << 12U)
-#define KERNEL_FEATURE_HAIR_RIBBON (1U << 13U)
-#define KERNEL_FEATURE_HAIR_THICK (1U << 14U)
+#define KERNEL_FEATURE_POINTCLOUD (1ULL << 12ULL)
+#define KERNEL_FEATURE_HAIR_RIBBON (1ULL << 13ULL)
+#define KERNEL_FEATURE_HAIR_THICK (1ULL << 14ULL)
 #define KERNEL_FEATURE_HAIR (KERNEL_FEATURE_HAIR_RIBBON | KERNEL_FEATURE_HAIR_THICK)
-#define KERNEL_FEATURE_OBJECT_MOTION (1U << 15U)
+#define KERNEL_FEATURE_OBJECT_MOTION (1ULL << 15ULL)
 
 /* Denotes whether baking functionality is needed. */
-#define KERNEL_FEATURE_BAKING (1U << 16U)
+#define KERNEL_FEATURE_BAKING (1ULL << 16ULL)
 
 /* Use subsurface scattering materials. */
-#define KERNEL_FEATURE_SUBSURFACE (1U << 17U)
+#define KERNEL_FEATURE_SUBSURFACE (1ULL << 17ULL)
 
 /* Use volume materials. */
-#define KERNEL_FEATURE_VOLUME (1U << 18U)
+#define KERNEL_FEATURE_VOLUME (1ULL << 18ULL)
 
 /* Use Transparent shadows */
-#define KERNEL_FEATURE_TRANSPARENT (1U << 19U)
+#define KERNEL_FEATURE_TRANSPARENT (1ULL << 19ULL)
 
 /* Use shadow catcher. */
-#define KERNEL_FEATURE_SHADOW_CATCHER (1U << 20U)
+#define KERNEL_FEATURE_SHADOW_CATCHER (1ULL << 20ULL)
 
 /* Light render passes. */
-#define KERNEL_FEATURE_LIGHT_PASSES (1U << 21U)
+#define KERNEL_FEATURE_LIGHT_PASSES (1ULL << 21ULL)
 
 /* AO. */
-#define KERNEL_FEATURE_AO_PASS (1U << 22U)
-#define KERNEL_FEATURE_AO_ADDITIVE (1U << 23U)
+#define KERNEL_FEATURE_AO_PASS (1ULL << 22ULL)
+#define KERNEL_FEATURE_AO_ADDITIVE (1ULL << 23ULL)
 #define KERNEL_FEATURE_AO (KERNEL_FEATURE_AO_PASS | KERNEL_FEATURE_AO_ADDITIVE)
 
 /* MNEE. */
-#define KERNEL_FEATURE_MNEE (1U << 24U)
+#define KERNEL_FEATURE_MNEE (1ULL << 24ULL)
 
 /* Path guiding. */
-#define KERNEL_FEATURE_PATH_GUIDING (1U << 25U)
+#define KERNEL_FEATURE_PATH_GUIDING (1ULL << 25ULL)
 
 /* OSL. */
-#define KERNEL_FEATURE_OSL_SHADING (1U << 26U)
-#define KERNEL_FEATURE_OSL_CAMERA (1U << 27U)
+#define KERNEL_FEATURE_OSL_SHADING (1ULL << 26ULL)
+#define KERNEL_FEATURE_OSL_CAMERA (1ULL << 27ULL)
 
 /* Light and shadow linking. */
-#define KERNEL_FEATURE_LIGHT_LINKING (1U << 28U)
-#define KERNEL_FEATURE_SHADOW_LINKING (1U << 29U)
+#define KERNEL_FEATURE_LIGHT_LINKING (1ULL << 28ULL)
+#define KERNEL_FEATURE_SHADOW_LINKING (1ULL << 29ULL)
 
 /* Use denoising kernels and output denoising passes. */
-#define KERNEL_FEATURE_DENOISING (1U << 30U)
+#define KERNEL_FEATURE_DENOISING (1ULL << 30ULL)
 
 /* Light tree. */
-#define KERNEL_FEATURE_LIGHT_TREE (1U << 31U)
+#define KERNEL_FEATURE_LIGHT_TREE (1ULL << 31ULL)
 
 /* Shader node feature mask, to specialize shader evaluation for kernels. */
 
@@ -145,6 +145,7 @@ CCL_NAMESPACE_BEGIN
 #define __RAY_DIFFERENTIALS__
 #define __VISIBILITY_FLAG__
 #define __SVM__
+#define __SPECTRAL__
 
 /* Device specific features */
 
@@ -229,13 +230,13 @@ CCL_NAMESPACE_BEGIN
  * certain features are on or off. */
 
 struct KernelFeatureRequest {
-  uint32_t on;
-  uint32_t off;
+  uint64_t on;
+  uint64_t off;
 
-  explicit KernelFeatureRequest(uint32_t on) : on(on), off(0) {}
-  KernelFeatureRequest(uint32_t on, uint32_t off) : on(on), off(off) {}
+  explicit KernelFeatureRequest(const uint64_t on) : on(on), off(0) {}
+  KernelFeatureRequest(const uint64_t on, const uint64_t off) : on(on), off(off) {}
 
-  bool test(uint32_t features) const
+  bool test(const uint64_t features) const
   {
     return (features & on) && !(features & off);
   }

@@ -113,6 +113,10 @@ static GeometryNodesInputType get_effective_input_type(PointerRNA *input_props_p
                                                        const bNodeTree &ntree,
                                                        const bNodeTreeInterfaceSocket &io_socket)
 {
+  if (ntree.type == NTREE_COMPOSIT) {
+    return GeometryNodesInputType::Value;
+  }
+
   const int input_index = ntree.interface_input_index(io_socket);
   if (PropertyRNA *prop = RNA_struct_find_property(input_props_ptr, "type")) {
     if (nodes::input_has_attribute_toggle(ntree, input_index)) {
@@ -120,6 +124,7 @@ static GeometryNodesInputType get_effective_input_type(PointerRNA *input_props_p
     }
     return GeometryNodesInputType::Value;
   }
+
   return GeometryNodesInputType::Fallback;
 }
 

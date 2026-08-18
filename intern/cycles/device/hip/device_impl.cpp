@@ -38,7 +38,7 @@ bool HIPDevice::have_precompiled_kernels()
   return path_exists(fatbins_path);
 }
 
-BVHLayoutMask HIPDevice::get_bvh_layout_mask(uint /*kernel_features*/) const
+BVHLayoutMask HIPDevice::get_bvh_layout_mask(const uint64_t /*kernel_features*/) const
 {
   return BVH_LAYOUT_BVH2;
 }
@@ -133,7 +133,7 @@ HIPDevice::~HIPDevice()
   hip_assert(hipCtxDestroy(hipContext));
 }
 
-bool HIPDevice::support_device(const uint /*kernel_features*/)
+bool HIPDevice::support_device(const uint64_t /*kernel_features*/)
 {
   if (hipSupportsDevice(hipDevId)) {
     return true;
@@ -202,7 +202,7 @@ bool HIPDevice::use_adaptive_compilation()
 /* Common HIPCC flags which stays the same regardless of shading model,
  * kernel sources md5 and only depends on compiler or compilation settings.
  */
-string HIPDevice::compile_kernel_get_common_cflags(const uint kernel_features)
+string HIPDevice::compile_kernel_get_common_cflags(const uint64_t kernel_features)
 {
   const int machine = system_cpu_bits();
   const string source_path = path_get("source");
@@ -234,7 +234,9 @@ string HIPDevice::compile_kernel_get_common_cflags(const uint kernel_features)
   return cflags;
 }
 
-string HIPDevice::compile_kernel(const uint kernel_features, const char *name, const char *base)
+string HIPDevice::compile_kernel(const uint64_t kernel_features,
+                                 const char *name,
+                                 const char *base)
 {
   /* Compute kernel name. */
   int major, minor;
@@ -359,7 +361,7 @@ string HIPDevice::compile_kernel(const uint kernel_features, const char *name, c
   return fatbin;
 }
 
-bool HIPDevice::load_kernels(const uint kernel_features)
+bool HIPDevice::load_kernels(const uint64_t kernel_features)
 {
   /* TODO(sergey): Support kernels re-load for HIP devices adaptive compile.
    *
@@ -415,7 +417,7 @@ bool HIPDevice::load_kernels(const uint kernel_features)
   return (result == hipSuccess);
 }
 
-void HIPDevice::reserve_local_memory(const uint kernel_features)
+void HIPDevice::reserve_local_memory(const uint64_t kernel_features)
 {
   /* Together with hipDeviceLmemResizeToMax, this reserves local memory
    * needed for kernel launches, so that we can reliably figure out when

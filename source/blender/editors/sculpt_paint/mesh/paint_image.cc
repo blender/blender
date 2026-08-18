@@ -653,11 +653,6 @@ void ED_object_texture_paint_mode_enter_ex(Main &bmain,
 
   BKE_paint_brushes_validate(&bmain, &imapaint.paint);
 
-  if (U.glreslimit != 0) {
-    BKE_image_free_all_gpu_texture_caches(&bmain);
-  }
-  BKE_image_paint_set_mipmap(&bmain, false);
-
   toggle_paint_cursor(scene, true);
 
   Mesh *mesh = BKE_mesh_from_object(&ob);
@@ -684,14 +679,10 @@ void ED_object_texture_paint_mode_enter(bContext *C)
   ED_object_texture_paint_mode_enter_ex(bmain, scene, depsgraph, ob);
 }
 
-void ED_object_texture_paint_mode_exit_ex(Main &bmain, Scene &scene, Object &ob)
+void ED_object_texture_paint_mode_exit_ex(Main & /*bmain*/, Scene &scene, Object &ob)
 {
   ob.mode &= ~OB_MODE_TEXTURE_PAINT;
 
-  if (U.glreslimit != 0) {
-    BKE_image_free_all_gpu_texture_caches(&bmain);
-  }
-  BKE_image_paint_set_mipmap(&bmain, true);
   toggle_paint_cursor(scene, false);
 
   Mesh *mesh = BKE_mesh_from_object(&ob);

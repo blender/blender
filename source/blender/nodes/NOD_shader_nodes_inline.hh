@@ -8,6 +8,8 @@
 
 #include "DNA_node_types.h"
 
+#include "NOD_warning.hh"
+
 namespace blender {
 
 struct bNodeTree;
@@ -33,6 +35,7 @@ struct InlineShaderNodeTreeParams {
      * yet. */
     const bNode *node;
     std::string message;
+    NodeWarningType type;
   };
   Vector<ErrorMessage> r_error_messages;
 };

@@ -169,10 +169,10 @@ class ScaleOperation : public NodeOperation {
     input.bind_as_texture(shader, "input_tx");
 
     Result &x_scale = get_input("X");
-    x_scale.bind_as_texture(shader, "x_scale_tx");
+    gpu::Texture *x_scale_texture = x_scale.bind_as_texture_or_single_value(shader, "x_scale_tx");
 
     Result &y_scale = get_input("Y");
-    y_scale.bind_as_texture(shader, "y_scale_tx");
+    gpu::Texture *y_scale_texture = y_scale.bind_as_texture_or_single_value(shader, "y_scale_tx");
 
     Result &output = get_result("Image");
     const Domain domain = compute_domain();
@@ -182,8 +182,8 @@ class ScaleOperation : public NodeOperation {
     compute_dispatch_threads_at_least(shader, domain.data_size);
 
     input.unbind_as_texture();
-    x_scale.unbind_as_texture();
-    y_scale.unbind_as_texture();
+    x_scale.unbind_as_texture_or_single_value(x_scale_texture);
+    y_scale.unbind_as_texture_or_single_value(y_scale_texture);
     output.unbind_as_image();
     GPU_shader_unbind();
   }

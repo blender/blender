@@ -212,7 +212,7 @@ principled_bsdf_emission(KernelGlobals kg,
   return weight;
 }
 
-template<uint node_feature_mask, ShaderType shader_type>
+template<uint64_t node_feature_mask, ShaderType shader_type>
 #ifndef __KERNEL_ONEAPI__
 ccl_device_noinline
 #else
@@ -269,6 +269,8 @@ ccl_device
     return svm_node_closure_bsdf_skip(offset, type);
   }
 
+  const Spectrum black = zero_spectrum();
+  const Spectrum white = one_spectrum();
   switch (type) {
     case CLOSURE_BSDF_PRINCIPLED_ID: {
       const ccl_global SVMNodePrincipledBsdfData &data = svm_node_get<SVMNodePrincipledBsdfData>(
@@ -289,7 +291,7 @@ ccl_device
 
       const Spectrum base_color = rgb_to_spectrum(
           max(stack_load(stack, data.base_color), zero_float3()));
-      const Spectrum clamped_base_color = min(base_color, one_spectrum());
+      const Spectrum clamped_base_color = min(base_color, white);
       const float ior = fmaxf(stack_load(stack, data.ior), 1e-5f);
       const float roughness = saturatef(stack_load(stack, data.roughness));
       const float3 valid_reflection_N = maybe_ensure_valid_specular_reflection(sd, N);
@@ -336,7 +338,7 @@ ccl_device
             bsdf->alpha_y = alpha_y;
 
             fresnel->f0 = clamped_base_color;
-            const Spectrum f82 = min(specular_tint, one_spectrum());
+            const Spectrum f82 = min(specular_tint, white);
 
             fresnel->thin_film.thickness = thinfilm_thickness;
             fresnel->thin_film.ior = thinfilm_ior;
@@ -364,22 +366,17 @@ ccl_device
       if (transmission_weight > CLOSURE_WEIGHT_CUTOFF) {
         if (reflective_caustics || refractive_caustics) {
           FresnelThinFilm thinfilm = {thinfilm_thickness, thinfilm_ior};
-
           if (thin_wall) {
-            Spectrum reflectance, transmittance;
             bsdf_thin_glass_setup(kg,
                                   sd,
                                   reflective_caustics,
                                   refractive_caustics,
-                                  specular_tint,
-                                  clamped_base_color,
+                                  {specular_tint, clamped_base_color},
                                   transmission_weight * weight,
                                   valid_reflection_N,
                                   sqr(roughness),
                                   ior,
                                   thinfilm,
-                                  &reflectance,
-                                  &transmittance,
                                   ray_visibility,
                                   path_flag);
           }
@@ -395,9 +392,16 @@ ccl_device
               const bool backfacing = (sd->runtime_flag & SR_BACKFACING);
               bsdf->N = valid_reflection_N;
               bsdf->T = zero_float3();
-
               bsdf->alpha_x = bsdf->alpha_y = sqr(roughness);
+
+              const float dispersion_scale = saturatef(
+                  stack_load(stack, data.transmission_dispersion_scale));
+              const float abbe_number = fmaxf(
+                  stack_load(stack, data.transmission_dispersion_abbe_number), 0.0f);
+              const float inv_abbe = safe_divide(dispersion_scale, abbe_number);
               bsdf->ior = backfacing ? 1.0f / ior : ior;
+              bsdf->ior = bsdf_glass_ior(sd, bsdf->ior, inv_abbe);
+
               if (backfacing) {
                 adjust_thin_film_ior_at_backface(thinfilm.ior, bsdf->ior);
               }
@@ -451,12 +455,10 @@ ccl_device
           bsdf->alpha_y = alpha_y;
 
           fresnel->f0 = f0 * specular_tint;
-          fresnel->f90 = one_spectrum();
+          fresnel->f90 = white;
           fresnel->exponent = -eta;
-          fresnel->reflection_tint = one_spectrum();
-          fresnel->transmission_tint = zero_spectrum();
-          fresnel->thin_film.thickness = thinfilm_thickness;
-          fresnel->thin_film.ior = thinfilm_ior;
+          fresnel->tint = {white, black};
+          fresnel->thin_film = {thinfilm_thickness, thinfilm_ior};
 
           /* setup bsdf */
           sd->runtime_flag |= bsdf_microfacet_ggx_setup(bsdf);
@@ -726,8 +728,7 @@ ccl_device
       else {
         sd->runtime_flag |= bsdf_microfacet_ggx_setup(bsdf);
         if (type == CLOSURE_BSDF_MICROFACET_MULTI_GGX_ID) {
-          const Spectrum color = max(rgb_to_spectrum(stack_load(stack, bsdf_data.color)),
-                                     zero_spectrum());
+          const Spectrum color = max(rgb_to_spectrum(stack_load(stack, bsdf_data.color)), black);
           bsdf_microfacet_setup_fresnel_constant(kg, bsdf, sd->wi, color);
         }
       }
@@ -817,12 +818,10 @@ ccl_device
         bsdf->alpha_x = bsdf->alpha_y = sqr(saturatef(stack_load(stack, bsdf_data.roughness)));
 
         fresnel->f0 = make_float3(F0_from_ior(ior));
-        fresnel->f90 = one_spectrum();
+        fresnel->f90 = white;
         fresnel->exponent = -ior;
-        const float3 color = max(stack_load(stack, bsdf_data.color), zero_float3());
-        fresnel->reflection_tint = reflective_caustics ? rgb_to_spectrum(color) : zero_spectrum();
-        fresnel->transmission_tint = refractive_caustics ? rgb_to_spectrum(color) :
-                                                           zero_spectrum();
+        const Spectrum color = max(rgb_to_spectrum(stack_load(stack, bsdf_data.color)), black);
+        fresnel->tint = {float(reflective_caustics) * color, float(refractive_caustics) * color};
         fresnel->thin_film.thickness = thinfilm_thickness;
         fresnel->thin_film.ior = (sd->runtime_flag & SR_BACKFACING) ? thinfilm_ior / ior :
                                                                       thinfilm_ior;
@@ -1116,8 +1115,7 @@ ccl_device
 
       if (bssrdf) {
         const float scale = stack_load(stack, bsdf_data.scale);
-        bssrdf->radius = max(rgb_to_spectrum(stack_load(stack, bsdf_data.radius) * scale),
-                             zero_spectrum());
+        bssrdf->radius = max(rgb_to_spectrum(stack_load(stack, bsdf_data.radius) * scale), black);
         bssrdf->albedo = closure_weight;
         bssrdf->N = maybe_ensure_valid_specular_reflection(sd, N);
         bssrdf->ior = stack_load(stack, bsdf_data.ior);

@@ -1536,7 +1536,7 @@ static void store_node_tree_errors(GPUMaterialFromNodeTreeResult &material_from_
     if (const bNodeTree *tree_orig = DEG_get_original(&tree)) {
       std::lock_guard lock(tree_orig->runtime->shader_node_errors_mutex);
       tree_orig->runtime->shader_node_errors.lookup_or_add_default(error.node->identifier)
-          .add(error.message);
+          .add({nodes::NodeWarningType(error.type), error.message});
     }
   }
 }

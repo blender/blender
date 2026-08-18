@@ -989,6 +989,11 @@ bool GPU_texture_has_signed_format(const gpu::Texture *texture)
   return (texture->format_flag_get() & GPU_FORMAT_SIGNED) != 0;
 }
 
+bool GPU_texture_has_compressed_format(const gpu::Texture *texture)
+{
+  return (texture->format_flag_get() & GPU_FORMAT_COMPRESSED) != 0;
+}
+
 bool GPU_texture_is_cube(const gpu::Texture *texture)
 {
   return (texture->type_get() & GPU_TEXTURE_CUBE) != 0;

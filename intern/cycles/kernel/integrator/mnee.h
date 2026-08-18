@@ -644,9 +644,7 @@ ccl_device_inline Spectrum mnee_eval_bsdf_contribution(KernelGlobals kg,
     G = bsdf_G<MicrofacetType::GGX>(alpha2, cosNI, cosNO);
   }
 
-  Spectrum reflectance;
-  Spectrum transmittance;
-  microfacet_fresnel(kg, bsdf, cosHI, nullptr, &reflectance, &transmittance);
+  const FresnelCoeff fresnel = microfacet_fresnel(kg, bsdf, cosHI, nullptr);
 
   /*
    * bsdf_do = (1 - F) * D_do * G * |h.wi| / (n.wi * n.wo)
@@ -657,7 +655,7 @@ ccl_device_inline Spectrum mnee_eval_bsdf_contribution(KernelGlobals kg,
    *              = (1 - F) * G * |h.wi / (n.wi * n.h^2)|
    */
   /* TODO: energy compensation for multi-GGX. */
-  return bsdf->weight * transmittance * G * fabsf(cosHI / (cosNI * sqr(cosThetaM)));
+  return bsdf->weight * fresnel.transmittance * G * fabsf(cosHI / (cosNI * sqr(cosThetaM)));
 }
 
 /* Compute transfer matrix determinant |T1| = |dx1/dxn| (and |dh/dx| in the process) */
@@ -988,6 +986,7 @@ ccl_device_inline ShaderEvalResult kernel_path_mnee_sample(KernelGlobals kg,
   ManifoldVertex vertices[MNEE_MAX_CAUSTIC_CASTERS];
 
   int vertex_count = 0;
+  bool has_dispersion = false;
   for (int isect_count = 0; isect_count < MNEE_MAX_INTERSECTION_COUNT; isect_count++) {
     const bool hit = scene_intersect(kg, &probe_ray, PATH_RAY_VISIBILITY_TRANSMIT, &probe_isect);
     if (!hit) {
@@ -1012,6 +1011,10 @@ ccl_device_inline ShaderEvalResult kernel_path_mnee_sample(KernelGlobals kg,
       /* Setup shader data on caustic caster and evaluate context. */
       shader_setup_from_ray(kg, sd_mnee, &probe_ray, &probe_isect);
 
+#ifdef __SPECTRAL__
+      shader_setup_wavelength(kg, sd_mnee, state);
+#endif
+
       /* Reject caster if smooth normals are not available: Manifold exploration assumes local
        * differential geometry can be created at any point on the surface which is not possible if
        * normals are not smooth. */
@@ -1024,6 +1027,20 @@ ccl_device_inline ShaderEvalResult kernel_path_mnee_sample(KernelGlobals kg,
           kg, state, sd_mnee, nullptr, PATH_RAY_VISIBILITY_DIFFUSE, PATH_RAY_FLAG_NONE, true);
       if (sd_mnee->runtime_flag & SR_CACHE_MISS) {
         return SHADER_EVAL_CACHE_MISS;
+      }
+
+#if defined(__KERNEL_ONEAPI__)
+      /* FIXME: Temporary workaround for a bug in the oneAPI + Embree backend that sometimes sets
+       * the SR_BSDF_HAS_DISPERSION flag when calling `surface_shader_eval` inside the MNEE code
+       * path. This happens even in scenes where no material uses dispersion. This workaround
+       * disables dispersion support + MNEE for all oneAPI backends. Proper fix should be on the
+       * oneAPI side. */
+      sd_mnee->runtime_flag &= ~SR_BSDF_HAS_DISPERSION;
+#endif
+
+      /* Query before #mnee_setup_manifold_vertex resets the runtime flag. */
+      if (sd_mnee->runtime_flag & SR_BSDF_HAS_DISPERSION) {
+        has_dispersion = true;
       }
 
       /* Get and sample refraction bsdf */
@@ -1123,6 +1140,7 @@ ccl_device_inline ShaderEvalResult kernel_path_mnee_sample(KernelGlobals kg,
                                                      vertices,
                                                      throughput,
                                                      r_receiver_wo);
+
     /* TODO: Cache misses are not handled correctly.
      * - PATH_MNEE_VALID flag is not handled properly
      * - AOVs and other passes have already been written at this point
@@ -1130,6 +1148,12 @@ ccl_device_inline ShaderEvalResult kernel_path_mnee_sample(KernelGlobals kg,
     if (result != SHADER_EVAL_OK) {
       return result;
     }
+
+#ifdef __SPECTRAL__
+    if (has_dispersion && !(INTEGRATOR_STATE(state, path, flag) & PATH_RAY_SPECTRAL)) {
+      *throughput *= dispersion_throughput_weight(kg, sd_mnee->rand_wavelength);
+    }
+#endif
 
     r_vertex_count = vertex_count;
     return SHADER_EVAL_OK;

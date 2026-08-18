@@ -24,6 +24,11 @@ CCL_NAMESPACE_BEGIN
 
 /* Utilities. */
 
+enum CustomPrimitiveHitKind {
+  CUSTOM_PRIMITIVE_HIT_KIND_CURVE,
+  CUSTOM_PRIMITIVE_HIT_KIND_POINT,
+};
+
 template<typename T> ccl_device_forceinline T *get_payload_ptr_0()
 {
   return pointer_unpack_from_uint<T>(optixGetPayload_0(), optixGetPayload_1());
@@ -65,7 +70,7 @@ ccl_device_forceinline Intersection get_intersection()
     isect.type = kernel_data_fetch(objects, isect.object).primitive_type;
   }
 #ifdef __HAIR__
-  else if ((optixGetHitKind() & (~PRIMITIVE_MOTION)) != PRIMITIVE_POINT) {
+  else if (optixGetHitKind() != CUSTOM_PRIMITIVE_HIT_KIND_POINT) {
     /* Curve. */
     isect.u = __uint_as_float(optixGetAttribute_0());
     isect.v = __uint_as_float(optixGetAttribute_1());
@@ -77,6 +82,7 @@ ccl_device_forceinline Intersection get_intersection()
 #endif
   else {
     /* Point. */
+    kernel_assert(optixGetHitKind() == CUSTOM_PRIMITIVE_HIT_KIND_POINT);
     isect.u = 0.0f;
     isect.v = 0.0f;
     isect.type = kernel_data_fetch(objects, isect.object).primitive_type;
@@ -239,7 +245,7 @@ extern "C" __global__ void __anyhit__kernel_optix_visibility_test()
     /* Triangle. */
   }
 #ifdef __HAIR__
-  else if ((optixGetHitKind() & (~PRIMITIVE_MOTION)) != PRIMITIVE_POINT) {
+  else if (optixGetHitKind() != CUSTOM_PRIMITIVE_HIT_KIND_POINT) {
     /* Curve. */
     prim = kernel_data_fetch(curve_segments, prim).prim;
   }
@@ -284,7 +290,7 @@ extern "C" __global__ void __closesthit__kernel_optix_hit()
     optixSetPayload_3(prim);
     optixSetPayload_5(kernel_data_fetch(objects, object).primitive_type);
   }
-  else if ((optixGetHitKind() & (~PRIMITIVE_MOTION)) != PRIMITIVE_POINT) {
+  else if (optixGetHitKind() != CUSTOM_PRIMITIVE_HIT_KIND_POINT) {
     const KernelCurveSegment segment = kernel_data_fetch(curve_segments, prim);
     optixSetPayload_1(optixGetAttribute_0()); /* Same as 'optixGetCurveParameter()' */
     optixSetPayload_2(optixGetAttribute_1());
@@ -292,6 +298,7 @@ extern "C" __global__ void __closesthit__kernel_optix_hit()
     optixSetPayload_5(segment.type);
   }
   else {
+    kernel_assert(optixGetHitKind() == CUSTOM_PRIMITIVE_HIT_KIND_POINT);
     optixSetPayload_1(0);
     optixSetPayload_2(0);
     optixSetPayload_3(prim);
@@ -328,9 +335,8 @@ ccl_device_inline void optix_intersection_curve(const int prim, const int type)
 
   if (curve_intersect(nullptr, &isect, ray_P, ray_D, ray_tmin, isect.t, object, prim, time, type))
   {
-    static_assert(PRIMITIVE_ALL < 128, "Values >= 128 are reserved for OptiX internal use");
     optixReportIntersection(isect.t,
-                            type & PRIMITIVE_ALL,
+                            CUSTOM_PRIMITIVE_HIT_KIND_CURVE,
                             __float_as_int(isect.u),  /* Attribute_0 */
                             __float_as_int(isect.v)); /* Attribute_1 */
   }
@@ -377,8 +383,7 @@ extern "C" __global__ void __intersection__point()
 
   if (point_intersect(nullptr, &isect, ray_P, ray_D, ray_tmin, isect.t, object, prim, time, type))
   {
-    static_assert(PRIMITIVE_ALL < 128, "Values >= 128 are reserved for OptiX internal use");
-    optixReportIntersection(isect.t, type & PRIMITIVE_ALL);
+    optixReportIntersection(isect.t, CUSTOM_PRIMITIVE_HIT_KIND_POINT);
   }
 }
 #endif

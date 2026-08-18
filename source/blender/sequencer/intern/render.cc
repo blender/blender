@@ -25,6 +25,7 @@
 
 #include "BKE_anim_data.hh"
 #include "BKE_animsys.hh"
+#include "BKE_compositor.hh"
 #include "BKE_global.hh"
 #include "BKE_image.hh"
 #include "BKE_layer.hh"
@@ -1512,11 +1513,6 @@ static ImBuf *seq_render_scene_strip_ex(const RenderData *context,
   const bool is_preview = !context->render && (context->scene->r.seq_prev_type) != OB_RENDER;
   const float frame = float(scene->r.sfra) + frame_index + float(strip->anim_startofs);
 
-#if 0 /* UNUSED */
-  bool have_seq = (scene->r.scemode & R_DOSEQ) && scene->ed && scene->ed->seqbase.first;
-#endif
-  const bool have_comp = (scene->r.scemode & R_DOCOMP) && scene->compositing_node_group;
-
   ViewLayer *view_layer = get_view_layer_for_scene_strip(scene, strip);
   Depsgraph *depsgraph = get_depsgraph_for_scene_strip(context->bmain, scene, view_layer);
 
@@ -1530,6 +1526,15 @@ static ImBuf *seq_render_scene_strip_ex(const RenderData *context,
     camera = scene->camera;
   }
 
+#if 0 /* UNUSED */
+  bool have_seq = (scene->r.scemode & R_DOSEQ) && scene->ed && scene->ed->seqbase.first;
+#endif
+  const bool is_viewport_render = view3d_fn && is_preview && camera;
+  const bke::compositor::ExecutionMode execution_mode =
+      is_viewport_render ? bke::compositor::ExecutionMode::Preview :
+                           bke::compositor::ExecutionMode::Render;
+  const bool have_comp = bke::compositor::is_enabled(*scene, execution_mode);
+
   if (have_comp == false && camera == nullptr) {
     return nullptr;
   }
@@ -1540,7 +1545,7 @@ static ImBuf *seq_render_scene_strip_ex(const RenderData *context,
   /* Temporarily disable camera switching to enforce using `camera`. */
   scene->r.mode |= R_NO_CAMERA_SWITCH;
 
-  if (view3d_fn && is_preview && camera) {
+  if (is_viewport_render) {
     int width, height;
     BKE_render_resolution(&scene->r, false, &width, &height);
 
@@ -2209,36 +2214,50 @@ float get_render_scale_factor(const RenderData &context)
   return get_render_scale_factor(context.preview_render_size, context.scene->r.size);
 }
 
-bool render_begin_gpu(const RenderData &rd)
+GpuContextState render_begin_gpu(const RenderData &rd)
 {
+  GPUContext *active_ctx = GPU_context_active_get();
+  if (active_ctx != nullptr) {
+    GPU_render_begin();
+    return GpuContextState::AlreadyActive;
+  }
+
   /* Use GPU context from VSE render data (e.g. prefetch render). */
   if (rd.gpu_context.ghost_context != nullptr) {
     gpu::GPU_activate_secondary_context(rd.gpu_context);
     GPU_render_begin();
-    return true;
+    return GpuContextState::Success;
   }
 
   /* Use main GPU context (regular preview area drawing, or "render sequence preview" operator). */
   if (BLI_thread_is_main() || rd.render == nullptr) {
     DRW_gpu_context_enable();
-    return DRW_gpu_context_is_enabled();
+    return DRW_gpu_context_is_enabled() ? GpuContextState::Success : GpuContextState::Unsupported;
   }
 
   /* Use GPU context from Render. */
   GHOST_IContext *render_ghost_context = RE_system_gpu_context_get(rd.render);
   if (!render_ghost_context) {
-    return false;
+    return GpuContextState::Unsupported;
   }
 
   WM_system_gpu_context_activate(render_ghost_context);
   void *render_gpu_context = RE_blender_gpu_context_ensure(rd.render);
   GPU_render_begin();
   GPU_context_active_set(static_cast<GPUContext *>(render_gpu_context));
-  return true;
+  return GpuContextState::Success;
 }
 
-void render_end_gpu(const RenderData &rd)
+void render_end_gpu(const RenderData &rd, GpuContextState state)
 {
+  if (state == GpuContextState::Unsupported) {
+    return;
+  }
+  if (state == GpuContextState::AlreadyActive) {
+    GPU_render_end();
+    return;
+  }
+
   /* Use GPU context from VSE render data (e.g. prefetch render). */
   if (rd.gpu_context.ghost_context != nullptr) {
     GPU_render_end();

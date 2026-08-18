@@ -529,7 +529,7 @@ class BaseCryptoMatteOperation : public NodeOperation {
     GPU_shader_bind(shader);
 
     Result &input_image = get_input_image();
-    input_image.bind_as_texture(shader, "input_tx");
+    gpu::Texture *input_texture = input_image.bind_as_texture_or_single_value(shader, "input_tx");
 
     matte.bind_as_texture(shader, "matte_tx");
 
@@ -541,7 +541,7 @@ class BaseCryptoMatteOperation : public NodeOperation {
     compute_dispatch_threads_at_least(shader, domain.data_size);
 
     GPU_shader_unbind();
-    input_image.unbind_as_texture();
+    input_image.unbind_as_texture_or_single_value(input_texture);
     matte.unbind_as_texture();
     image_output.unbind_as_image();
   }

@@ -433,6 +433,9 @@ def main():
         # principled_bsdf_thinfilm_metallic has some weird behavior in reflection of
         # black surfaces. to be investigated
         report.set_fail_percent(0.09)
+        # principled_bsdf_dispersion has some difference in the highlights
+        if gpu_vendor == "AMD":
+            report.set_fail_threshold(6.0 / 255.0)
     elif test_dir_name.startswith('integrator'):
         # Noise difference in transparent materials (mostly transparent_spatial_splits)
         report.set_fail_threshold(8.0 / 255.0)

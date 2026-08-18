@@ -147,13 +147,23 @@ class NODE_HT_header(Header):
 
             if snode.node_tree_sub_type == 'SCENE':
                 row = layout.row()
+                active_effect = scene.compositor_effects.active
                 if snode.pin:
                     row.enabled = False
-                    row.template_ID(snode, "node_tree", new="node.new_compositing_node_group")
-                elif scene.compositing_node_group:
-                    row.template_ID(scene, "compositing_node_group", new="node.duplicate_compositing_node_group")
+                    row.template_ID(snode, "node_tree", new="scene.new_compositor_effect_node_group")
+                elif active_effect:
+                    if active_effect.node_group:
+                        row.template_ID(
+                            active_effect,
+                            "node_group",
+                            new="scene.duplicate_compositor_effect_node_group")
+                    else:
+                        row.template_ID(
+                            active_effect,
+                            "node_group",
+                            new="scene.new_compositor_effect_node_group")
                 else:
-                    row.template_ID(scene, "compositing_node_group", new="node.new_compositing_node_group")
+                    row.template_ID(snode, "node_tree", new="scene.new_compositor_effect_node_group")
             elif snode.node_tree_sub_type == 'SEQUENCER':
                 row = layout.row()
                 sequencer_scene = context.workspace.sequencer_scene
@@ -1113,6 +1123,7 @@ class NODE_PT_node_tree_properties(Panel):
             if body:
                 col = body.column(align=True)
                 col.prop(group, "is_strip_modifier")
+                col.prop(group, "allow_usage_in_scene_compositor_effect")
 
 
 class NODE_PT_node_tree_animation(Panel):

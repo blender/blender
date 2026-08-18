@@ -169,8 +169,7 @@ void Instance::init(const int2 &output_res,
     if (depsgraph_last_update_ != DEG_get_update_count(depsgraph)) {
       sampling.reset();
     }
-    if (assign_if_different(is_viewport_compositor_enabled,
-                            draw_ctx->is_viewport_compositor_enabled()))
+    if (assign_if_different(is_viewport_compositor_used, draw_ctx->is_viewport_compositor_used()))
     {
       sampling.reset();
     }
@@ -762,7 +761,7 @@ void Instance::draw_viewport()
   render_sample();
   velocity.step_swap();
 
-  if (is_viewport_compositor_enabled) {
+  if (is_viewport_compositor_used) {
     this->film.write_viewport_compositor_passes();
   }
 
@@ -812,7 +811,7 @@ void Instance::draw_viewport_image_render()
   } while (!sampling.finished_viewport());
   velocity.step_swap();
 
-  if (is_viewport_compositor_enabled) {
+  if (is_viewport_compositor_used) {
     this->film.write_viewport_compositor_passes();
   }
 }

@@ -51,7 +51,7 @@ SymmetricSeparableBlurWeights::SymmetricSeparableBlurWeights(Context &context,
    * compute half of it and no doubling happens. We add 1 to make sure the filter size is always
    * odd and there is a center weight. */
   weights_cpu.allocate_texture(
-      Domain(int2(math::ceil(radius) + 1, 1)), false, ResultStorageType::CPU);
+      Domain(int2(math::ceil(radius) + 1, 1)), false, ResultStorageType::CPUImage);
 
   float sum = 0.0f;
 

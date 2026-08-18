@@ -174,7 +174,7 @@ class Device {
     return !error_message().empty();
   }
   virtual void set_error(const string &error);
-  virtual BVHLayoutMask get_bvh_layout_mask(const uint kernel_features) const = 0;
+  virtual BVHLayoutMask get_bvh_layout_mask(uint64_t kernel_features) const = 0;
 
   /* statistics */
   Stats &stats;
@@ -185,7 +185,7 @@ class Device {
   virtual void const_copy_to(const char *name, void *host, const size_t size) = 0;
 
   /* load/compile kernels, must be called before adding tasks */
-  virtual bool load_kernels(uint /*kernel_features*/)
+  virtual bool load_kernels(const uint64_t /*kernel_features*/)
   {
     return true;
   }

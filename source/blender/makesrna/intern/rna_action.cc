@@ -1139,7 +1139,7 @@ static void reevaluate_fcurve_errors(bAnimContext *ac)
     PointerRNA ptr;
     PropertyRNA *prop;
     PointerRNA id_ptr = RNA_id_pointer_create(ale.id);
-    if (RNA_path_resolve_property(&id_ptr, fcu->rna_path().c_str(), &ptr, &prop)) {
+    if (RNA_path_resolve_property(&id_ptr, fcu->rna_path_parsed(), &ptr, &prop)) {
       fcu->flag &= ~FCURVE_DISABLED;
     }
     else {

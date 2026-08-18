@@ -16,7 +16,7 @@
 CCL_NAMESPACE_BEGIN
 
 /* Bump Node */
-template<uint node_feature_mask>
+template<uint64_t node_feature_mask>
 ccl_device_noinline void svm_node_set_bump(KernelGlobals kg,
                                            ccl_private ShaderData *sd,
                                            ccl_private float *stack,
@@ -99,7 +99,7 @@ ccl_device_noinline void svm_node_set_bump(KernelGlobals kg,
 
 /* Displacement Node */
 
-template<uint node_feature_mask>
+template<uint64_t node_feature_mask>
 ccl_device void svm_node_set_displacement(ccl_private ShaderData *sd,
                                           ccl_private float *stack,
                                           const ccl_global SVMNodeSetDisplacement &node)
@@ -111,7 +111,7 @@ ccl_device void svm_node_set_displacement(ccl_private ShaderData *sd,
   }
 }
 
-template<uint node_feature_mask>
+template<uint64_t node_feature_mask>
 ccl_device_noinline void svm_node_displacement(KernelGlobals kg,
                                                ccl_private ShaderData *sd,
                                                ccl_private float *stack,
@@ -144,7 +144,7 @@ ccl_device_noinline void svm_node_displacement(KernelGlobals kg,
   }
 }
 
-template<uint node_feature_mask>
+template<uint64_t node_feature_mask>
 ccl_device_noinline void svm_node_vector_displacement(
     KernelGlobals kg,
     ccl_private ShaderData *sd,

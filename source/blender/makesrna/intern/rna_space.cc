@@ -630,6 +630,11 @@ const EnumPropertyItem buttons_context_items[] = {
      ICON_SEQ_STRIP_MODIFIER,
      "Strip Modifiers",
      "Strip Modifier Properties"},
+    {BCONTEXT_COMPOSITOR,
+     "COMPOSITOR",
+     ICON_NODE_COMPOSITING,
+     "Compositor & Effects",
+     "Procedural scene post-processing"},
     {0, nullptr, 0, nullptr, nullptr},
 };
 
@@ -3016,7 +3021,7 @@ static const EnumPropertyItem *rna_SpaceNodeEditor_node_tree_sub_type_itemf(
        "SCENE",
        ICON_SCENE_DATA,
        N_("Scene"),
-       N_("Edit compositing node group for the current scene")},
+       N_("Edit compositor node group for the active scene compositor effect")},
       {SNODE_COMPOSITOR_SEQUENCER,
        "SEQUENCER",
        ICON_SEQUENCE,
@@ -3159,7 +3164,7 @@ static void rna_SpaceNodeEditor_path_pop(SpaceNode *snode, bContext *C)
 
 static void rna_SpaceNodeEditor_show_backdrop_update(Main * /*bmain*/,
                                                      Scene *scene,
-                                                     PointerRNA * /*ptr*/)
+                                                     PointerRNA * /*space_node_ptr*/)
 {
   DEG_id_tag_update(&scene->id, ID_RECALC_COMPOSITOR);
   WM_main_add_notifier(NC_NODE | NA_EDITED, nullptr);
@@ -6294,6 +6299,7 @@ static void rna_def_space_properties_filter(StructRNA *srna)
       "show_properties_effects",
       "show_properties_strip",
       "show_properties_strip_modifier",
+      "show_properties_compositor",
   };
 
   for (const int i : IndexRange(BCONTEXT_TOT)) {

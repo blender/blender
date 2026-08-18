@@ -319,7 +319,7 @@ void IMB_float_from_byte_ex(ImBuf *dst, const ImBuf *src, const rcti *region_to_
   BLI_assert_msg(src->byte_data() != nullptr, "Source buffer should have a byte buffer assigned.");
   BLI_assert_msg(dst->x == src->x, "Source and destination buffer should have the same dimension");
   BLI_assert_msg(dst->y == src->y, "Source and destination buffer should have the same dimension");
-  BLI_assert_msg(dst->channels = 4, "Destination buffer should have 4 channels.");
+  BLI_assert_msg(dst->channels == 4, "Destination buffer should have 4 channels.");
   BLI_assert_msg(region_to_update->xmin >= 0,
                  "Region to update should be clipped to the given buffers.");
   BLI_assert_msg(region_to_update->ymin >= 0,

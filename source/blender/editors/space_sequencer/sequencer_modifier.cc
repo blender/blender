@@ -37,6 +37,50 @@
 
 namespace blender::ed::vse {
 
+/**
+ * If the "modifier" property is not set, fill the modifier property with the name of the modifier
+ * with a UI panel below the mouse cursor, unless a specific modifier is set with a context
+ * pointer. Used in order to apply modifier operators on hover over their panels.
+ */
+static bool strip_modifier_invoke_properties_with_hover(bContext *C,
+                                                        wmOperator *op,
+                                                        const wmEvent *event,
+                                                        wmOperatorStatus *r_retval)
+{
+  if (RNA_struct_property_is_set(op->ptr, "modifier")) {
+    return true;
+  }
+
+  /* Note that the context pointer is *not* the active modifier, it is set in UI layouts. */
+  PointerRNA ctx_ptr = CTX_data_pointer_get_type(C, "modifier", RNA_StripModifier);
+  if (ctx_ptr) {
+    StripModifierData *smd = static_cast<StripModifierData *>(ctx_ptr.data);
+    RNA_string_set(op->ptr, "modifier", smd->name);
+    return true;
+  }
+
+  PointerRNA *panel_ptr = ui::region_panel_custom_data_under_cursor(C, event);
+  if (panel_ptr == nullptr || !*panel_ptr) {
+    /* The operators using this function can typically be called from UIs that aren't related to
+     * the modifiers UI at all. So include #OPERATOR_PASS_THROUGH to not block events from reaching
+     * other operators/handlers. */
+    *r_retval = (OPERATOR_PASS_THROUGH | OPERATOR_CANCELLED);
+    return false;
+  }
+
+  if (!RNA_struct_is_a(panel_ptr->type, RNA_StripModifier)) {
+    /* Work around multiple operators using the same shortcut. The operators for the other
+     * stacks in the property editor use the same key, and will not run after these return
+     * OPERATOR_CANCELLED. */
+    *r_retval = (OPERATOR_PASS_THROUGH | OPERATOR_CANCELLED);
+    return false;
+  }
+
+  const StripModifierData *smd = static_cast<const StripModifierData *>(panel_ptr->data);
+  RNA_string_set(op->ptr, "modifier", smd->name);
+  return true;
+}
+
 /* -------------------------------------------------------------------- */
 /** \name Add modifier operator
  * \{ */
@@ -401,12 +445,24 @@ static wmOperatorStatus strip_modifier_duplicate_exec(bContext *C, wmOperator *o
   return OPERATOR_FINISHED;
 }
 
+static wmOperatorStatus strip_modifier_duplicate_invoke(bContext *C,
+                                                        wmOperator *op,
+                                                        const wmEvent *event)
+{
+  wmOperatorStatus retval;
+  if (strip_modifier_invoke_properties_with_hover(C, op, event, &retval)) {
+    return strip_modifier_duplicate_exec(C, op);
+  }
+  return retval;
+}
+
 void SEQUENCER_OT_strip_modifier_duplicate(wmOperatorType *ot)
 {
   ot->name = "Duplicate Modifier";
   ot->idname = "SEQUENCER_OT_strip_modifier_duplicate";
   ot->description = "Duplicate (active) modifier of the active strip";
 
+  ot->invoke = strip_modifier_duplicate_invoke;
   ot->exec = strip_modifier_duplicate_exec;
   ot->poll = sequencer_strip_editable_poll;
 
@@ -556,50 +612,6 @@ void SEQUENCER_OT_strip_modifier_move_to_index(wmOperatorType *ot)
 /* ------------------------------------------------------------------- */
 /** \name Set Active Modifier Operator
  * \{ */
-
-/**
- * If the "modifier" property is not set, fill the modifier property with the name of the modifier
- * with a UI panel below the mouse cursor, unless a specific modifier is set with a context
- * pointer. Used in order to apply modifier operators on hover over their panels.
- */
-static bool strip_modifier_invoke_properties_with_hover(bContext *C,
-                                                        wmOperator *op,
-                                                        const wmEvent *event,
-                                                        wmOperatorStatus *r_retval)
-{
-  if (RNA_struct_property_is_set(op->ptr, "modifier")) {
-    return true;
-  }
-
-  /* Note that the context pointer is *not* the active modifier, it is set in UI layouts. */
-  PointerRNA ctx_ptr = CTX_data_pointer_get_type(C, "modifier", RNA_StripModifier);
-  if (ctx_ptr) {
-    StripModifierData *smd = static_cast<StripModifierData *>(ctx_ptr.data);
-    RNA_string_set(op->ptr, "modifier", smd->name);
-    return true;
-  }
-
-  PointerRNA *panel_ptr = ui::region_panel_custom_data_under_cursor(C, event);
-  if (panel_ptr == nullptr || !*panel_ptr) {
-    /* The operators using this function can typically be called from UIs that aren't related to
-     * the modifiers UI at all. So include #OPERATOR_PASS_THROUGH to not block events from reaching
-     * other operators/handlers. */
-    *r_retval = (OPERATOR_PASS_THROUGH | OPERATOR_CANCELLED);
-    return false;
-  }
-
-  if (!RNA_struct_is_a(panel_ptr->type, RNA_StripModifier)) {
-    /* Work around multiple operators using the same shortcut. The operators for the other
-     * stacks in the property editor use the same key, and will not run after these return
-     * OPERATOR_CANCELLED. */
-    *r_retval = (OPERATOR_PASS_THROUGH | OPERATOR_CANCELLED);
-    return false;
-  }
-
-  const StripModifierData *smd = static_cast<const StripModifierData *>(panel_ptr->data);
-  RNA_string_set(op->ptr, "modifier", smd->name);
-  return true;
-}
 
 static wmOperatorStatus modifier_set_active_exec(bContext *C, wmOperator *op)
 {

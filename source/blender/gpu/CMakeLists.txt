@@ -993,6 +993,7 @@ if(WITH_GTESTS)
       tests/framebuffer_test.cc
       tests/immediate_test.cc
       tests/index_buffer_test.cc
+      tests/mipmap_test.cc
       tests/push_constants_test.cc
       tests/ray_tracing_test.cc
       tests/shader_create_info_test.cc

@@ -4950,6 +4950,11 @@ static void widget_icon_has_anim(Button *but,
     /* Draw menu buttons still with down arrow. */
     widget_menubut_embossn(but, wcol, rect, state, roundboxalign);
   }
+  else if (but->type == ButtonType::Text && static_cast<ButtonText *>(but)->use_label_style) {
+    if (state->but_flag & UI_HOVER && !(state->but_flag & UI_SELECT)) {
+      theme::get_color_3ubv(TH_TEXT_HI, wcol->text);
+    }
+  }
 }
 
 static void widget_textbut(uiWidgetColors *wcol,
