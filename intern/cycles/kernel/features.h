@@ -145,6 +145,7 @@ CCL_NAMESPACE_BEGIN
 #define __RAY_DIFFERENTIALS__
 #define __VISIBILITY_FLAG__
 #define __SVM__
+#define __SPECTRAL__
 
 /* Device specific features */
 

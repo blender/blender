@@ -392,9 +392,16 @@ ccl_device
               const bool backfacing = (sd->runtime_flag & SR_BACKFACING);
               bsdf->N = valid_reflection_N;
               bsdf->T = zero_float3();
-
               bsdf->alpha_x = bsdf->alpha_y = sqr(roughness);
+
+              const float dispersion_scale = saturatef(
+                  stack_load(stack, data.transmission_dispersion_scale));
+              const float abbe_number = fmaxf(
+                  stack_load(stack, data.transmission_dispersion_abbe_number), 0.0f);
+              const float inv_abbe = safe_divide(dispersion_scale, abbe_number);
               bsdf->ior = backfacing ? 1.0f / ior : ior;
+              bsdf->ior = bsdf_glass_ior(sd, bsdf->ior, inv_abbe);
+
               if (backfacing) {
                 adjust_thin_film_ior_at_backface(thinfilm.ior, bsdf->ior);
               }

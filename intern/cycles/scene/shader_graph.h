@@ -185,6 +185,10 @@ class ShaderNode : public Node {
   {
     return false;
   }
+  virtual bool has_dispersion()
+  {
+    return false;
+  }
   virtual bool has_bump()
   {
     return false;

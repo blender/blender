@@ -267,7 +267,7 @@ ccl_device float3 svm_math_wavelength_color_xyz(const float lambda_nm)
   const int i = float_to_int(ii);
   float3 color;
 
-  if (i < 0 || i >= 80) {
+  if (i < 0 || i >= WAVELENGTH_RESOLUTION) {
     color = make_float3(0.0f, 0.0f, 0.0f);
   }
   else {

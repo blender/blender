@@ -38,6 +38,18 @@ ccl_inline_constant float blackbody_table_b[][4] = {
  {6.72650283e-13f, -2.73078809e-08f, 4.24098264e-04f, -7.52335691e-01f}
 };
 
+/* CIE1931 visible wavelength range in um. */
+#define WAVELENGTH_CIE_MIN 0.38f
+#define WAVELENGTH_CIE_MAX 0.78f
+/* Wavelength steps in um. */
+#define WAVELENGTH_DLAMBDA 0.005f
+/* Table resolution, (WAVELENGTH_CIE_MAX - WAVELENGTH_CIE_MIN) / WAVELENGTH_DLAMBDA */
+#define WAVELENGTH_RESOLUTION 80
+
+/* CIE 1931 colour-matching functions, 2 degree observer
+ * x, y, and z for wavelengths from 380 to 780 nm, 5 nm wavelength steps.
+ * https://doi.org/10.25039/CIE.DS.xvudnb9b
+ */
 ccl_inline_constant float cie_color_match[][3] = {
   {0.0014f, 0.0000f, 0.0065f}, {0.0022f, 0.0001f, 0.0105f}, {0.0042f, 0.0001f, 0.0201f},
   {0.0076f, 0.0002f, 0.0362f}, {0.0143f, 0.0004f, 0.0679f}, {0.0232f, 0.0006f, 0.1102f},
@@ -66,6 +78,25 @@ ccl_inline_constant float cie_color_match[][3] = {
   {0.0007f, 0.0002f, 0.0000f}, {0.0005f, 0.0002f, 0.0000f}, {0.0003f, 0.0001f, 0.0000f},
   {0.0002f, 0.0001f, 0.0000f}, {0.0002f, 0.0001f, 0.0000f}, {0.0001f, 0.0000f, 0.0000f},
   {0.0001f, 0.0000f, 0.0000f}, {0.0001f, 0.0000f, 0.0000f}, {0.0000f, 0.0000f, 0.0000f}
+};
+
+/* Normalization factor so that the D65 spectrum integrates to a luminance of 1.0 under
+ * CIE1931 2 degree observer. */
+#define CIE_D65_NORMALIZATION 0.03785528242588043212890625f
+
+/* Spectral power distribution of D65, wavelengths from 380 to 780 nm, 5 nm wavelength steps.
+ * https://doi.org/10.25039/CIE.DS.hjfjmt59
+ */
+ccl_inline_constant float cie_d65_spd[] = {
+    49.9755f, 52.3118f, 54.6482f, 68.7015f, 82.7549f, 87.1204f, 91.486f,  92.4589f, 93.4318f,
+    90.057f,  86.6823f, 95.7736f, 104.865f, 110.936f, 117.008f, 117.41f,  117.812f, 116.336f,
+    114.861f, 115.392f, 115.923f, 112.367f, 108.811f, 109.082f, 109.354f, 108.578f, 107.802f,
+    106.296f, 104.79f,  106.239f, 107.689f, 106.047f, 104.405f, 104.225f, 104.046f, 102.023f,
+    100.0f,   98.1671f, 96.3342f, 96.0611f, 95.788f,  92.2368f, 88.6856f, 89.3459f, 90.0062f,
+    89.8026f, 89.5991f, 88.6489f, 87.6987f, 85.4936f, 83.2886f, 83.4939f, 83.6992f, 81.863f,
+    80.0268f, 80.1207f, 80.2146f, 81.2462f, 82.2778f, 80.281f,  78.2842f, 74.0027f, 69.7213f,
+    70.6652f, 71.6091f, 72.979f,  74.349f,  67.9765f, 61.604f,  65.7448f, 69.8856f, 72.4863f,
+    75.087f,  69.3398f, 63.5927f, 55.0054f, 46.4182f, 56.6118f, 66.8054f, 65.0941f, 63.3828f,
 };
 
 /*

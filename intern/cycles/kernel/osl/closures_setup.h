@@ -423,7 +423,7 @@ ccl_device void osl_closure_generalized_schlick_bsdf_setup(
      * to the F0...F90 range, this allows us to use the real IOR.
      * Computing it back from F0 might give a different result in case of specular
      * tinting. */
-    bsdf->ior = -closure->exponent;
+    bsdf->ior = bsdf_glass_ior(sd, -closure->exponent, closure->inv_abbe);
   }
   else {
     bsdf->ior = ior_from_F0(average(closure->f0));

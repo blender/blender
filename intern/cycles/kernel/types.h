@@ -113,6 +113,9 @@ enum PathTraceDimension {
   /* Volume density baking. */
   PRNG_BAKE_VOLUME_DENSITY_EVAL = 0,
 
+  /* Sample wavelength for dispersion. */
+  PRNG_WAVELENGTH = 12,
+
   /* High enough number so we don't need to change it when adding new dimensions,
    * low enough so there is no uint16_t overflow with many bounces. */
   PRNG_BOUNCE_NUM = 16,
@@ -282,6 +285,9 @@ enum PathRayFlag : uint32_t {
 
   /* Path and shader is being evaluated for volume extinction. */
   PATH_RAY_EXTINCTION = (1U << 26U),
+
+  /* Path has associated wavelength. */
+  PATH_RAY_SPECTRAL = (1U << 27U),
 };
 
 // 8bit enum, just in case we need to move more variables in it
@@ -929,15 +935,19 @@ enum ShaderRuntimeFlag {
   SR_BSDF_HAS_TRANSMISSION = (1 << 11),
   /* Shader has ray portal closure. */
   SR_RAY_PORTAL = (1 << 12),
+  /* BSDF has dispersion. */
+  SR_BSDF_HAS_DISPERSION = (1 << 13),
 
   /* Flags that indicate the presence of closures. */
   SR_CLOSURE_FLAG = (SR_EMISSION | SR_BSDF | SR_BSDF_HAS_EVAL | SR_BSSRDF | SR_HOLDOUT |
                      SR_EXTINCTION | SR_SCATTER | SR_IS_VOLUME_SHADER_EVAL | SR_TRANSPARENT |
-                     SR_BSDF_HAS_TRANSMISSION | SR_RAY_PORTAL)
+                     SR_BSDF_HAS_TRANSMISSION | SR_RAY_PORTAL | SR_BSDF_HAS_DISPERSION)
 };
 
 /* Shader flags that are set after compiling the shaders. */
 enum ShaderDataFlag {
+  /* If the shader is wavelength-dependent. */
+  SD_REQUIRES_WAVELENGTH = (1 << 12),
   /* If Light Path Node is present in the shader graph. */
   SD_HAS_LIGHT_PATH_NODE = (1 << 13),
   /* Has bump mapping from BSDF connected to surface socket. */
@@ -1089,6 +1099,10 @@ struct ccl_align(16) ShaderData {
 
   /* LCG state for closures that require additional random numbers. */
   uint lcg_state;
+#ifdef __SPECTRAL__
+  /* Random number for sampling the wavelength. */
+  float rand_wavelength;
+#endif
 
   /* Closure weights summed directly, so we can evaluate
    * emission and shadow transparency with MAX_CLOSURE 0. */

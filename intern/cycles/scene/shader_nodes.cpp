@@ -2668,6 +2668,9 @@ NODE_DEFINE(PrincipledBsdfNode)
   SOCKET_IN_NORMAL(tangent, "Tangent", zero_float3(), SocketType::LINK_TANGENT);
 
   SOCKET_IN_FLOAT(transmission_weight, "Transmission Weight", 0.0f);
+  SOCKET_IN_FLOAT(transmission_dispersion_scale, "Transmission Dispersion Scale", 0.0f);
+  SOCKET_IN_FLOAT(
+      transmission_dispersion_abbe_number, "Transmission Dispersion Abbe Number", 20.0f);
 
   SOCKET_IN_FLOAT(sheen_weight, "Sheen Weight", 0.0f);
   SOCKET_IN_FLOAT(sheen_roughness, "Sheen Roughness", 0.5f);
@@ -2742,6 +2745,11 @@ void PrincipledBsdfNode::simplify_settings(Scene * /* scene */)
     disconnect_unused_input("Thin Film Thickness");
     disconnect_unused_input("Thin Film IOR");
   }
+
+  if (!has_nonzero_weight("Transmission Weight")) {
+    disconnect_unused_input("Transmission Dispersion Scale");
+    disconnect_unused_input("Transmission Dispersion Abbe Number");
+  }
 }
 
 bool PrincipledBsdfNode::has_surface_transparent()
@@ -2793,6 +2801,12 @@ bool PrincipledBsdfNode::has_surface_bssrdf()
   }
 
   return subsurface_has_positive_weight();
+}
+
+bool PrincipledBsdfNode::has_dispersion()
+{
+  return has_nonzero_weight("Transmission Dispersion Scale") &&
+         has_nonzero_weight("Transmission Weight");
 }
 
 bool PrincipledBsdfNode::has_nonzero_weight(const char *name)
@@ -2854,6 +2868,10 @@ void PrincipledBsdfNode::compile(SVMCompiler &compiler)
           .specular_ior_level = compiler.input_float("Specular IOR Level"),
           .anisotropic = compiler.input_float("Anisotropic"),
           .anisotropic_rotation = compiler.input_float("Anisotropic Rotation"),
+          /* Transmission. */
+          .transmission_dispersion_scale = compiler.input_float("Transmission Dispersion Scale"),
+          .transmission_dispersion_abbe_number = compiler.input_float(
+              "Transmission Dispersion Abbe Number"),
           /* Emission. */
           .emission_color = compiler.input_float3("Emission Color"),
           .emission_strength = compiler.input_float("Emission Strength"),

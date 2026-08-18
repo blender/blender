@@ -571,6 +571,8 @@ class PrincipledBsdfNode : public BsdfBaseNode {
   NODE_SOCKET_API(float, anisotropic_rotation)
   NODE_SOCKET_API(float3, tangent)
   NODE_SOCKET_API(float, transmission_weight)
+  NODE_SOCKET_API(float, transmission_dispersion_scale)
+  NODE_SOCKET_API(float, transmission_dispersion_abbe_number)
   NODE_SOCKET_API(float, sheen_weight)
   NODE_SOCKET_API(float, sheen_roughness)
   NODE_SOCKET_API(float3, sheen_tint)
@@ -593,6 +595,7 @@ class PrincipledBsdfNode : public BsdfBaseNode {
   }
   bool has_surface_transparent() override;
   bool has_surface_emission() override;
+  bool has_dispersion() override;
 
  protected:
   /* Checks whether the given weight input is potentially non-zero. */

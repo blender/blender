@@ -37,6 +37,10 @@ ccl_device_forceinline void integrate_surface_shader_setup(KernelGlobals kg,
   integrator_state_read_ray(state, &ray);
 
   shader_setup_from_ray(kg, sd, &ray, &isect);
+
+#ifdef __SPECTRAL__
+  shader_setup_wavelength(kg, sd, state);
+#endif
 }
 
 ccl_device_forceinline float3 integrate_surface_ray_offset(KernelGlobals kg,
@@ -792,6 +796,12 @@ ccl_device int integrate_surface(KernelGlobals kg,
     if (sd.runtime_flag & SR_CACHE_MISS) {
       return LABEL_CACHE_MISS;
     }
+
+#ifdef __SPECTRAL__
+    if (sd.runtime_flag & SR_BSDF_HAS_DISPERSION) {
+      update_path_throughput_for_dispersion(kg, state, sd.rand_wavelength);
+    }
+#endif
 
     /* After shader evaluation, in case of texture cache miss. */
     guiding_record_surface_segment(kg, state, &sd);
