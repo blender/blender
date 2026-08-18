@@ -10,51 +10,23 @@ CCL_NAMESPACE_BEGIN
 
 ccl_device_inline float3x3 operator*(const float a, const float3x3 m)
 {
-#if defined(__KERNEL_METAL__)
-  return a * m.m;
-#else
   float3x3 t;
   t.x = a * m.x;
   t.y = a * m.y;
   t.z = a * m.z;
   return t;
-#endif
 }
 ccl_device_inline float3x3 operator*(const float3x3 m, const float a)
 {
-#if defined(__KERNEL_METAL__)
-  return m.m * a;
-#else
   float3x3 t;
   t.x = m.x * a;
   t.y = m.y * a;
   t.z = m.z * a;
   return t;
-#endif
 }
 
 ccl_device_inline float3x3 operator*(const float3x3 a, const float3x3 b)
 {
-#if defined(__KERNEL_METAL__)
-  return b.m * a.m;
-#elif defined(__KERNEL_SSE__)
-  auto multiply_row = [](const float3 &a_row, const float3x3 &b) -> float3 {
-    const float4 ax = shuffle<0, 0, 0, 0>(float4(a_row));
-    const float4 ay = shuffle<1, 1, 1, 1>(float4(a_row));
-    const float4 az = shuffle<2, 2, 2, 2>(float4(a_row));
-
-    float4 acc = ax * float4(b.x);
-    acc = madd(ay, float4(b.y), acc);
-    acc = madd(az, float4(b.z), acc);
-    return float3(acc);
-  };
-
-  float3x3 result;
-  result.x = multiply_row(a.x, b);
-  result.y = multiply_row(a.y, b);
-  result.z = multiply_row(a.z, b);
-  return result;
-#else
   const float3 c_x = make_float3(b.x.x, b.y.x, b.z.x);
   const float3 c_y = make_float3(b.x.y, b.y.y, b.z.y);
   const float3 c_z = make_float3(b.x.z, b.y.z, b.z.z);
@@ -64,36 +36,27 @@ ccl_device_inline float3x3 operator*(const float3x3 a, const float3x3 b)
   r.y = make_float3(dot(a.y, c_x), dot(a.y, c_y), dot(a.y, c_z));
   r.z = make_float3(dot(a.z, c_x), dot(a.z, c_y), dot(a.z, c_z));
   return r;
-#endif
 }
 
 /* Multiply 3x3 matrix by a 3-component column-vector.
  * The result is a 3-component column vector. */
 ccl_device_inline float3 operator*(const float3x3 m, const float3 v)
 {
-#if defined(__KERNEL_METAL__)
-  return (v * m.m).xyz;
-#else
   float3 r;
   r.x = dot(m.x, v);
   r.y = dot(m.y, v);
   r.z = dot(m.z, v);
   return r;
-#endif
 }
 
 ccl_device_inline float3x3 operator/(const float3x3 m, const float a)
 {
-#if defined(__KERNEL_METAL__)
-  return m.m / a;
-#else
   const float inv_a = 1.0f / a;
   float3x3 t;
   t.x = m.x * inv_a;
   t.y = m.y * inv_a;
   t.z = m.z * inv_a;
   return t;
-#endif
 }
 
 /* Construct 3x3 scale matrix:
@@ -108,23 +71,15 @@ ccl_device_inline float3x3 float3x3_scale(const float3 s)
 
 ccl_device_inline float3x3 transposed(const float3x3 m)
 {
-#if defined(__KERNEL_METAL__)
-  return metal::transpose(m.m);
-#else
   return make_float3x3(make_float3(m.x.x, m.y.x, m.z.x),
                        make_float3(m.x.y, m.y.y, m.z.y),
                        make_float3(m.x.z, m.y.z, m.z.z));
-#endif
 }
 
 ccl_device_inline float determinant(const float3x3 m)
 {
-#if defined(__KERNEL_METAL__)
-  return metal::determinant(m.m);
-#else
   return (m.x.x * (m.y.y * m.z.z - m.z.y * m.y.z) - m.x.y * (m.y.x * m.z.z - m.z.x * m.y.z) +
           m.x.z * (m.y.x * m.z.y - m.z.x * m.y.y));
-#endif
 }
 
 /* The adjugate or classical adjoint adj(m) */

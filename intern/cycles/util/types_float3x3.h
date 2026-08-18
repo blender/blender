@@ -33,44 +33,10 @@ struct float3x3 {
   }
 #endif
 
-#if defined(__KERNEL_METAL__)
-  ccl_device_inline_method float3x3() = default;
-
-  ccl_device_inline_method float3x3(const ccl_private float3x3 &other) = default;
-  ccl_device_inline_method float3x3(const ccl_global float3x3 &other) = default;
-
-  ccl_device_inline_method float3x3(const metal::float3x3 m)
-  {
-    this->m = m;
-  }
-
-  ccl_device_inline_method float3x3(const float3 x, const float3 y, const float3 z)
-  {
-    this->x = x;
-    this->y = y;
-    this->z = z;
-  }
-
-  union {
-    struct {
-      float3 x, y, z;
-    };
-    /* NOTE: Metal uses column-major notation. */
-    metal::float3x3 m;
-  };
-#else
-  float3 x, y, z;
-#endif
+  float3 x;
+  float3 y;
+  float3 z;
 };
-
-#if defined(__KERNEL_METAL__)
-/* Metal implementation reinterpret-casts float3x3 to metal::float3x3 to take full advantage of the
- * hardware and instruction set. Doing so requires both types to have same size and alignment.
- *
- * NOTE: Metal uses column-major notation. */
-static_assert(sizeof(float3x3) == sizeof(metal::float3x3));
-static_assert(alignof(float3x3) == alignof(metal::float3x3));
-#endif
 
 /* Construct new 3x3 matrix from the given coordinate system (rows of the matrix). */
 ccl_device_inline float3x3 make_float3x3(const float3 x, const float3 y, const float3 z)
