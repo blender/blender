@@ -5,6 +5,7 @@
 #include "DNA_anim_types.h"
 
 #include "RNA_access.hh"
+#include "RNA_prototypes.hh"
 
 #include "BKE_grease_pencil.hh"
 
@@ -20,15 +21,15 @@ ChannelTag::ChannelTag(const ChannelTagType type,
 }
 
 AnimationChannel::AnimationChannel(const ChannelType type, const StringRef label)
-    : type_(type), label_(label), source_(nullptr), is_dirty_(true)
+    : type_(type), label_(label)
 {
 }
 
 Span<float> AnimationChannel::datapoints()
 {
-  if (this->is_dirty_) {
+  if (this->flags_ & ANIM_CHANNEL_DIRTY) {
     this->gather_channeldata();
-    this->is_dirty_ = false;
+    this->flags_ &= ~ANIM_CHANNEL_DIRTY;
   }
   return this->datapoints_;
 }
@@ -36,6 +37,12 @@ Span<float> AnimationChannel::datapoints()
 SummaryChannel::SummaryChannel(const StringRef label)
     : AnimationChannel(ChannelType::SUMMARY, label)
 {
+}
+
+SummaryChannel::SummaryChannel(const StringRef label, const PointerRNA &ptr)
+    : AnimationChannel(ChannelType::SUMMARY, label)
+{
+  this->source_ = ptr;
 }
 
 void SummaryChannel::gather_channeldata()
@@ -68,13 +75,13 @@ void SummaryChannel::remove_child(AnimationChannel &child)
 
 DataChannel::DataChannel(FCurve &fcurve) : AnimationChannel(ChannelType::DATA, fcurve.rna_path())
 {
-  this->source_ = &fcurve;
+  this->source_ = RNA_pointer_create_discrete(nullptr, RNA_FCurve, &fcurve);
 }
 
 DataChannel::DataChannel(GreasePencilLayer &gp_layer)
     : AnimationChannel(ChannelType::DATA, "todo gp layer name")
 {
-  this->source_ = &gp_layer;
+  this->source_ = RNA_pointer_create_discrete(nullptr, RNA_GreasePencilLayer, &gp_layer);
 }
 
 void DataChannel::set_tags(const ChannelTagStack &tags)
@@ -96,13 +103,13 @@ ChannelTag *DataChannel::get_tag(ChannelTagType tag_type)
 template<> FCurve *DataChannel::get_source<FCurve *>() const
 {
   BLI_assert(this->source_type_ == DataChannelType::FCURVE);
-  return static_cast<FCurve *>(this->source_);
+  return static_cast<FCurve *>(this->source_.data);
 }
 
 template<> GreasePencilLayer *DataChannel::get_source<GreasePencilLayer *>() const
 {
   BLI_assert(this->source_type_ == DataChannelType::GREASE_PENCIL);
-  return static_cast<GreasePencilLayer *>(this->source_);
+  return static_cast<GreasePencilLayer *>(this->source_.data);
 }
 
 void DataChannel::gather_channeldata()

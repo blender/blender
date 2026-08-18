@@ -92,13 +92,18 @@ class ChannelTagStack {
   };
 };
 
+enum AnimationChannelFlags : int8_t {
+  ANIM_CHANNEL_DIRTY = 1 << 0,
+  SUMMARY_EXPANDED = 1 << 1,
+};
+ENUM_OPERATORS(AnimationChannelFlags);
+
 class AnimationChannel {
  protected:
   ChannelType type_;
   std::string label_;
-  /* Change to RNA pointer? */
-  void *source_;
-  bool is_dirty_;
+  PointerRNA source_;
+  AnimationChannelFlags flags_ = AnimationChannelFlags(ANIM_CHANNEL_DIRTY | SUMMARY_EXPANDED);
   Vector<float> datapoints_;
 
  public:
@@ -122,10 +127,10 @@ class AnimationChannel {
  * allows us to generate multiple summary trees for the same data channels. */
 class SummaryChannel : public AnimationChannel {
   Vector<AnimationChannel *> children_;
-  bool is_expanded_ = true;
 
  public:
   SummaryChannel(StringRef label);
+  SummaryChannel(StringRef label, const PointerRNA &ptr);
   /**
    * The pointer will always be valid.
    */
@@ -134,7 +139,7 @@ class SummaryChannel : public AnimationChannel {
   void remove_child(AnimationChannel &child);
   bool is_expanded()
   {
-    return this->is_expanded_;
+    return this->flags_ & SUMMARY_EXPANDED;
   }
 
  protected:
@@ -151,6 +156,8 @@ enum class DataChannelType {
 };
 
 class DataChannel : public AnimationChannel {
+  /* While this could read the AnimationChannel::source_ for its type, the RNA types can't be put
+   * into a switch statement which is why I (christoph) ended up keeping this. */
   DataChannelType source_type_;
   Set<ChannelTag> tags_;
   DataChannelFlags flags_;
@@ -172,7 +179,7 @@ class DataChannel : public AnimationChannel {
   int64_t hash() const
   {
     /* TODO hash tags too. */
-    return get_default_hash(this->type_, this->source_);
+    return get_default_hash(this->type_, this->source_.data);
   }
 
   /**
@@ -224,7 +231,7 @@ class SummaryTree {
     }
   }
 
-  SummaryChannel &allocate_summary(StringRef label);
+  SummaryChannel &allocate_summary(StringRef label, const PointerRNA *ptr);
   SummaryChannel *root() const;
 
   int summary_count() const
