@@ -9836,9 +9836,9 @@ void RNA_def_scene(BlenderRNA *brna)
   rna_def_view_layer_lightgroup(brna);
   rna_def_view_layer_eevee(brna);
   rna_def_scene_gpencil(brna);
-  rna_def_compositor_effect(brna);
   RNA_define_animate_sdna(true);
   /* *** Animated *** */
+  rna_def_compositor_effect(brna);
   rna_def_scene_render_data(brna);
   rna_def_scene_render_view(brna);
 
