@@ -59,7 +59,7 @@ void Film::init_aovs(const Set<std::string> &passes_used_by_viewport_compositor)
       }
     }
 
-    if (inst_.is_viewport_compositor_enabled) {
+    if (inst_.is_viewport_compositor_used) {
       for (ViewLayerAOV &aov : inst_.view_layer->aovs) {
         /* Already added as a display pass. No need to add again. */
         if (!aovs.is_empty() && aovs.last() == &aov) {
@@ -310,7 +310,7 @@ void Film::init(const int2 &extent, const rcti *output_rect)
 
   /* Compute the passes needed by the viewport compositor. */
   Set<std::string> passes_used_by_viewport_compositor;
-  if (inst_.is_viewport_compositor_enabled) {
+  if (inst_.is_viewport_compositor_used) {
     passes_used_by_viewport_compositor = bke::compositor::get_used_passes(
         scene, inst_.view_layer, bke::compositor::ExecutionMode::Preview);
     viewport_compositor_enabled_passes_ = get_viewport_compositor_enabled_passes(
@@ -627,7 +627,7 @@ void Film::sync()
 
   const int cryptomatte_layer_count = cryptomatte_layer_len_get();
   const bool is_cryptomatte_pass_enabled = cryptomatte_layer_count > 0;
-  const bool do_cryptomatte_sorting = !inst_.is_viewport() || inst_.is_viewport_compositor_enabled;
+  const bool do_cryptomatte_sorting = !inst_.is_viewport() || inst_.is_viewport_compositor_used;
   cryptomatte_post_ps_.init();
   if (is_cryptomatte_pass_enabled && do_cryptomatte_sorting) {
     cryptomatte_post_ps_.state_set(DRW_STATE_NO_DRAW);

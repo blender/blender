@@ -557,14 +557,8 @@ Set<std::string> get_used_passes(const Scene &scene,
   return used_passes;
 }
 
-bool is_viewport_compositor_used(const Scene &scene,
-                                 const View3D &view_3d,
-                                 const RegionView3D &region_view_3d)
+bool is_viewport_compositor_enabled(const View3D &view_3d, const RegionView3D &region_view_3d)
 {
-  if (!is_enabled(scene, ExecutionMode::Preview)) {
-    return false;
-  }
-
   if (view_3d.shading.use_compositor == V3D_SHADING_USE_COMPOSITOR_DISABLED) {
     return false;
   }
@@ -599,7 +593,7 @@ bool is_viewport_compositor_used(const bContext &context)
         for (ARegion &region : area.regionbase) {
           if (region.regiontype == RGN_TYPE_WINDOW) {
             const RegionView3D &region_view_3d = *static_cast<RegionView3D *>(region.regiondata);
-            if (is_viewport_compositor_used(*scene, view_3d, region_view_3d)) {
+            if (is_viewport_compositor_enabled(view_3d, region_view_3d)) {
               return true;
             }
           }

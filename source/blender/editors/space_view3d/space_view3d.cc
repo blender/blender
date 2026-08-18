@@ -696,7 +696,7 @@ static void view3d_main_region_listener(const wmRegionListenerParams *params)
           break;
         }
         case ND_COMPO_RESULT:
-          if (bke::compositor::is_viewport_compositor_used(*scene, *v3d, *rv3d)) {
+          if (bke::compositor::is_viewport_compositor_enabled(*v3d, *rv3d)) {
             ED_region_tag_redraw(region);
           }
           break;

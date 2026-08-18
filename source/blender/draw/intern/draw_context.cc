@@ -1349,7 +1349,7 @@ void DRWContext::enable_engines(bool gpencil_engine_needed, RenderEngineType *re
       view_data.grease_pencil.set_used(gpencil_engine_needed);
     }
 
-    view_data.compositor.set_used(is_viewport_compositor_enabled());
+    view_data.compositor.set_used(is_viewport_compositor_used());
 
     view_data.overlay.set_used(true);
 
@@ -2374,13 +2374,14 @@ bool DRWContext::is_transforming() const
   return (G.moving & (G_TRANSFORM_OBJ | G_TRANSFORM_EDIT)) != 0;
 }
 
-bool DRWContext::is_viewport_compositor_enabled() const
+bool DRWContext::is_viewport_compositor_used() const
 {
   if (!this->v3d || !this->rv3d) {
     return false;
   }
 
-  return bke::compositor::is_viewport_compositor_used(*this->scene, *this->v3d, *this->rv3d);
+  return bke::compositor::is_viewport_compositor_enabled(*this->v3d, *this->rv3d) &&
+         bke::compositor::is_enabled(*this->scene, bke::compositor::ExecutionMode::Preview);
 }
 
 /** \} */

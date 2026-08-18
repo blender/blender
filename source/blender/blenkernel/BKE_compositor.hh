@@ -172,10 +172,8 @@ Set<std::string> get_used_passes(const Scene &scene,
                                  const ViewLayer *view_layer,
                                  ExecutionMode mode);
 
-/* Checks if the viewport compositor is currently being used in the given 3D viewport. */
-bool is_viewport_compositor_used(const Scene &scene,
-                                 const View3D &view_3d,
-                                 const RegionView3D &region_view_3d);
+/* Checks if the viewport compositor is currently enabled in the given 3D viewport. */
+bool is_viewport_compositor_enabled(const View3D &view_3d, const RegionView3D &region_view_3d);
 
 /* Checks if the viewport compositor is currently being used in any 3D viewport. */
 bool is_viewport_compositor_used(const bContext &context);
