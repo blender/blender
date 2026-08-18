@@ -2218,6 +2218,7 @@ GpuContextState render_begin_gpu(const RenderData &rd)
 {
   GPUContext *active_ctx = GPU_context_active_get();
   if (active_ctx != nullptr) {
+    GPU_render_begin();
     return GpuContextState::AlreadyActive;
   }
 
@@ -2249,7 +2250,11 @@ GpuContextState render_begin_gpu(const RenderData &rd)
 
 void render_end_gpu(const RenderData &rd, GpuContextState state)
 {
-  if (state == GpuContextState::AlreadyActive || state == GpuContextState::Unsupported) {
+  if (state == GpuContextState::Unsupported) {
+    return;
+  }
+  if (state == GpuContextState::AlreadyActive) {
+    GPU_render_end();
     return;
   }
 
