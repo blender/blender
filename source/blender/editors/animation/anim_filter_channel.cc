@@ -4,13 +4,17 @@
 
 #include "DNA_anim_types.h"
 
+#include "RNA_access.hh"
+
 #include "BKE_grease_pencil.hh"
 
 #include "ED_anim_filter.hh"
 
 namespace blender::ed::animfilter {
 
-ChannelTag::ChannelTag(const ChannelTagType type, const StringRef label, void *source_data)
+ChannelTag::ChannelTag(const ChannelTagType type,
+                       const StringRef label,
+                       const PointerRNA &source_data)
     : tag_type_(type), label_(label), source_data_(source_data)
 {
 }
@@ -53,14 +57,15 @@ void SummaryChannel::remove_child(AnimationChannel &child)
   this->children_.remove(index);
 }
 
-DataChannel::DataChannel(FCurve &fcurve)
-    : AnimationChannel(ChannelType::DATA, fcurve.rna_path()), source_(&fcurve)
+DataChannel::DataChannel(FCurve &fcurve) : AnimationChannel(ChannelType::DATA, fcurve.rna_path())
 {
+  this->source_ = &fcurve;
 }
 
 DataChannel::DataChannel(GreasePencilLayer &gp_layer)
-    : AnimationChannel(ChannelType::DATA, ""), source_(&gp_layer)
+    : AnimationChannel(ChannelType::DATA, "todo gp layer name")
 {
+  this->source_ = &gp_layer;
 }
 
 void DataChannel::set_tags(const ChannelTagStack &tags)

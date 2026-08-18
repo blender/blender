@@ -8,6 +8,7 @@
 #include "DNA_object_types.h"
 
 #include "RNA_access.hh"
+#include "RNA_prototypes.hh"
 
 #include "BKE_anim_data.hh"
 #include "BKE_context.hh"
@@ -23,13 +24,17 @@ static bool has_assigned_action(AnimData &anim_data)
   return anim_data.action != nullptr && anim_data.slot_handle != animrig::Slot::unassigned;
 }
 
-static void channels_for_channelbag(animrig::Channelbag &channelbag,
+static void channels_for_channelbag(animrig::Action &containing_action,
+                                    animrig::Channelbag &channelbag,
                                     ChannelTagStack &tags,
                                     Vector<DataChannel> &r_channels)
 {
+
   for (FCurve *fcu : channelbag.fcurves()) {
     if (fcu->grp) {
-      tags.push({ChannelTagType::FCURVE_GROUP, fcu->grp->name, fcu->grp});
+      PointerRNA group_pointer = RNA_pointer_create_discrete(
+          &containing_action.id, RNA_ActionGroup, fcu->grp);
+      tags.push({ChannelTagType::FCURVE_GROUP, fcu->grp->name, group_pointer});
     }
 
     DataChannel channel(*fcu);
@@ -48,12 +53,16 @@ static void channels_for_action_slot(animrig::Action &action,
                                      Vector<DataChannel> &r_channels)
 {
   using namespace animrig;
-  tags.push({ChannelTagType::ACTION, action.id.name, &action});
+  PointerRNA action_ptr = RNA_pointer_create_discrete(&action.id, RNA_Action, &action);
+  tags.push({ChannelTagType::ACTION, action.id.name, action_ptr});
+
   Slot *slot = action.slot_for_handle(slot_handle);
-  tags.push({ChannelTagType::ACTION_SLOT, slot->identifier, slot});
+  PointerRNA slot_ptr = RNA_pointer_create_discrete(&action.id, RNA_ActionSlot, slot);
+  tags.push({ChannelTagType::ACTION_SLOT, slot->identifier, slot_ptr});
 
   for (Layer *layer : action.layers()) {
-    tags.push({ChannelTagType::ACTION_LAYER, layer->name, layer});
+    PointerRNA layer_ptr = RNA_pointer_create_discrete(&action.id, RNA_ActionLayer, layer);
+    tags.push({ChannelTagType::ACTION_LAYER, layer->name, layer_ptr});
     for (Strip *strip : layer->strips()) {
       if (strip->type() != Strip::Type::Keyframe) {
         continue;
@@ -63,8 +72,9 @@ static void channels_for_action_slot(animrig::Action &action,
       if (!channelbag) {
         continue;
       }
-      tags.push({ChannelTagType::ACTION_STRIP, "strip_name_placeholder", strip});
-      channels_for_channelbag(*channelbag, tags, r_channels);
+      PointerRNA strip_ptr = RNA_pointer_create_discrete(&action.id, RNA_ActionStrip, strip);
+      tags.push({ChannelTagType::ACTION_STRIP, "strip_name_placeholder", strip_ptr});
+      channels_for_channelbag(action, *channelbag, tags, r_channels);
       tags.pop();
     }
     tags.pop();
@@ -92,7 +102,9 @@ static void collect_channels_for_id(ID *animated_id,
   }
 
   ChannelTagStack tags;
-  tags.push({ChannelTagType::ID, animated_id->name, animated_id});
+  PointerRNA ptr = RNA_pointer_create_discrete(
+      animated_id, ID_code_to_RNA_type(animated_id->id_type()), animated_id);
+  tags.push({ChannelTagType::ID, animated_id->name, ptr});
   channels_for_action_slot(adt->action->wrap(), adt->slot_handle, tags, r_channels);
   tags.pop();
 }

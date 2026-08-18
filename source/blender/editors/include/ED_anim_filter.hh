@@ -18,6 +18,7 @@ namespace blender {
 struct bContext;
 struct FCurve;
 struct GreasePencilLayer;
+struct PointerRNA;
 
 namespace ed::animfilter {
 
@@ -42,12 +43,10 @@ enum class ChannelTagType {
 class ChannelTag {
   ChannelTagType tag_type_;
   std::string label_;
-
-  /* This could be a PointerRNA. */
-  void *source_data_;
+  PointerRNA source_data_;
 
  public:
-  ChannelTag(ChannelTagType type, StringRef label, void *source_data);
+  ChannelTag(ChannelTagType type, StringRef label, const PointerRNA &source_data);
   bool operator==(const ChannelTag &other) const
   {
     return other.tag_type() == this->tag_type_ && other.source_data() == this->source_data_ &&
@@ -62,14 +61,14 @@ class ChannelTag {
   {
     return this->label_;
   }
-  void *source_data() const
+  const PointerRNA &source_data() const
   {
     return this->source_data_;
   }
 
   int64_t hash() const
   {
-    return get_default_hash(this->tag_type_, this->label_, this->source_data_);
+    return get_default_hash(this->tag_type_, this->label_, this->source_data_.data);
   }
 };
 
@@ -155,8 +154,6 @@ enum class DataChannelType {
 
 class DataChannel : public AnimationChannel {
   DataChannelType source_type_;
-  /* The datatype of this is determined by the source_type_. */
-  void *source_;
   Set<ChannelTag> tags_;
   DataChannelFlags flags_;
 
