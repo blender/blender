@@ -153,10 +153,7 @@ if(WITH_BUILDINFO)
 endif()
 
 if(WITH_INSTALL_PORTABLE)
-  # TODO: match the CMake define, this check is historic.
-  if(UNIX AND (NOT APPLE OR WITH_PYTHON_MODULE))
-    add_definitions(-DWITH_INSTALL_PORTABLE)
-  endif()
+  add_definitions(-DWITH_INSTALL_PORTABLE)
 endif()
 
 if(WITH_PYTHON_MODULE)
