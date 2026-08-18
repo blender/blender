@@ -762,8 +762,14 @@ void ObjectManager::device_update_object_transform(UpdateObjectTransformState *s
   }
 }
 
-void ObjectManager::device_update_prim_offsets(Device *device, DeviceScene *dscene, Scene *scene)
+void ObjectManager::device_update_prim_offsets(Device * /*device*/,
+                                               DeviceScene *dscene,
+                                               Scene *scene)
 {
+  /* Currently only OptiX and BVH2 do not require object_prim_offset (unless light trees are used).
+   * While it is possible to save some computation time here and device memory, the logic for it
+   * becomes tricky and fragile. */
+#if 0
   if (!scene->integrator->get_use_light_tree()) {
     const BVHLayoutMask layout_mask = device->get_bvh_layout_mask(dscene->data.kernel_features);
     if (layout_mask != BVH_LAYOUT_METAL && layout_mask != BVH_LAYOUT_MULTI_METAL &&
@@ -773,6 +779,7 @@ void ObjectManager::device_update_prim_offsets(Device *device, DeviceScene *dsce
       return;
     }
   }
+#endif
 
   /* On MetalRT, primitive / curve segment offsets can't be baked at BVH build time. Intersection
    * handlers need to apply the offset manually. */

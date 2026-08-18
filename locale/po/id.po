@@ -1,9 +1,9 @@
 
 msgid ""
 msgstr ""
-"Project-Id-Version: Blender 5.3.0 Alpha (b'96294be75080')\n"
+"Project-Id-Version: Blender 5.3.0 Alpha (b'af4852ed4560')\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-07-20 07:29+0000\n"
+"POT-Creation-Date: 2026-08-10 07:54+0000\n"
 "PO-Revision-Date: 2026-06-02 05:12+0000\n"
 "Last-Translator: Fadli Birdie Zeinda <justbirdie00@gmail.com>\n"
 "Language-Team: Indonesian <https://translate.blender.org/projects/blender-ui/ui/id/>\n"
@@ -3283,10 +3283,6 @@ msgid "Point cloud data-blocks"
 msgstr "Data-blok awan titik"
 
 
-msgid "Project"
-msgstr "Proyek"
-
-
 msgid "Scene data-blocks"
 msgstr "Adegan data-blok"
 
@@ -4760,18 +4756,6 @@ msgstr "Tambah Set Seleksi"
 
 msgid "Add Selection Set for this collection"
 msgstr "Tambah Set Seleksi untuk koleksi ini"
-
-
-msgid "UI Row"
-msgstr "Barisan UI"
-
-
-msgid "If not zero, row of the UI panel where the button for this collection is shown"
-msgstr "Jika bukan nol, barisan panel UI dimana tombol untuk koleksi ini ditampilkan"
-
-
-msgid "UI Title"
-msgstr "Judul UI"
 
 
 msgid "Text to use on the UI panel button instead of the collection name"
@@ -8029,6 +8013,10 @@ msgstr "Jarak Proyeksi"
 
 msgid "Nearest Surface Point"
 msgstr "Titik Permukaan Terdekat"
+
+
+msgid "Project"
+msgstr "Proyek"
 
 
 msgid "Shrink the location to the nearest target surface along a given axis"
@@ -15712,60 +15700,20 @@ msgid "Use Material Mask"
 msgstr "Gunakan Masker Bahan"
 
 
-msgid "Apply"
-msgstr "Tetapkan"
+msgid "Names"
+msgstr "Nama"
 
 
-msgid "Track"
-msgstr "Lacak"
-
-
-msgid "Asset"
-msgstr "Aset"
-
-
-msgid "Hooks"
-msgstr "Kait"
-
-
-msgid "Math"
-msgstr "Matematika"
+msgid "Tracking"
+msgstr "Pelacakan"
 
 
 msgid "Utilities"
 msgstr "Utilitas"
 
 
-msgid "Names"
-msgstr "Nama"
-
-
-msgid "Sample"
-msgstr "Sampel"
-
-
-msgid "Merge"
-msgstr "Menggabungkan"
-
-
-msgid "Gizmo"
-msgstr "Gizmo"
-
-
-msgid "Instances"
-msgstr "Contoh-contoh"
-
-
-msgid "Metaball"
-msgstr "Metabola"
-
-
-msgid "Import"
-msgstr "Impor"
-
-
-msgid "UV"
-msgstr "UV"
+msgid "Math"
+msgstr "Matematika"
 
 
 msgid "Snap"
@@ -15780,14 +15728,6 @@ msgid "Navigation"
 msgstr "Navigasi"
 
 
-msgid "Linked"
-msgstr "Terkoleksi"
-
-
-msgid "Layout"
-msgstr "Tata Letak"
-
-
 msgid "Select Linked"
 msgstr "Seleksi yang Terhubung"
 
@@ -15796,8 +15736,12 @@ msgid "Assign Material"
 msgstr "Tugaskan Bahan"
 
 
-msgid "Tracking"
-msgstr "Pelacakan"
+msgid "Sample"
+msgstr "Sampel"
+
+
+msgid "Metaball"
+msgstr "Metabola"
 
 
 msgid "Light"
@@ -15810,6 +15754,50 @@ msgstr "Probe Cahaya"
 
 msgid "Add Image"
 msgstr "Tambah Gambar"
+
+
+msgid "Gizmo"
+msgstr "Gizmo"
+
+
+msgid "Instances"
+msgstr "Contoh-contoh"
+
+
+msgid "Apply"
+msgstr "Tetapkan"
+
+
+msgid "Import"
+msgstr "Impor"
+
+
+msgid "Track"
+msgstr "Lacak"
+
+
+msgid "Asset"
+msgstr "Aset"
+
+
+msgid "Hooks"
+msgstr "Kait"
+
+
+msgid "UV"
+msgstr "UV"
+
+
+msgid "Merge"
+msgstr "Menggabungkan"
+
+
+msgid "Linked"
+msgstr "Terkoleksi"
+
+
+msgid "Layout"
+msgstr "Tata Letak"
 
 
 msgid "Animals"
@@ -18920,6 +18908,10 @@ msgid "Node Output"
 msgstr "Keluaran Node"
 
 
+msgid "Scalar"
+msgstr "Skalar"
+
+
 msgid "Tooltip"
 msgstr "Alat"
 
@@ -19728,10 +19720,6 @@ msgstr "Setelah Ini"
 
 msgid "Change brush size by a scalar"
 msgstr "Ganti ukuran kuas oleh skalar"
-
-
-msgid "Scalar"
-msgstr "Skalar"
 
 
 msgctxt "Operator"
@@ -26409,10 +26397,6 @@ msgid "AO Bounces Render"
 msgstr "AO Memantul Render"
 
 
-msgid "Adaptively blur glossy shaders after blurry bounces, to reduce noise at the cost of accuracy"
-msgstr "Secara adaptif blur shader glossy setelah blur memantul, untuk mengurangi noise dengan mengorbankan akurasi"
-
-
 msgid "GPU Compute"
 msgstr "Tipe"
 
@@ -26495,10 +26479,6 @@ msgstr "Miringkan Y"
 
 msgid "Tiny Prim Culling"
 msgstr "Culling Prim Kecil"
-
-
-msgid "object_color"
-msgstr "benda_warna"
 
 
 msgid "Arm"
@@ -28613,11 +28593,6 @@ msgstr " (tidak terpasang)"
 
 msgid "File:"
 msgstr "Berkas:"
-
-
-msgctxt "Operator"
-msgid "Apply"
-msgstr "Setujui"
 
 
 msgid "Incorrect armature..."
@@ -31160,6 +31135,11 @@ msgid "Quick Edit"
 msgstr "Sunting Cepat"
 
 
+msgctxt "Operator"
+msgid "Apply"
+msgstr "Setujui"
+
+
 msgid "Editing Type"
 msgstr "Tipe Mengedit"
 
@@ -32613,10 +32593,6 @@ msgstr "Buat contoh benda dari benda-data"
 
 msgid "Gizmos hidden in this view"
 msgstr "Gizmo-gizmo tidak terlihat di tampilan ini"
-
-
-msgid "Cannot fly an object with constraints"
-msgstr "Data Objek"
 
 
 msgid "Depth too large"

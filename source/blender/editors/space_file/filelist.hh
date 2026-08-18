@@ -81,8 +81,12 @@ void filelist_tag_needs_filtering(FileList *filelist);
 void filelist_filter(FileList *filelist);
 /**
  * \param asset_library_ref: May be NULL to unset the library.
+ * \param on_change: Called when a different asset library was set. NOT called when the asset
+ *     library was unset (i.e. \a asset_library_ref is null).
  */
-void filelist_setlibrary(FileList *filelist, const AssetLibraryReference *asset_library_ref);
+void filelist_setlibrary(FileList *filelist,
+                         const AssetLibraryReference *asset_library_ref,
+                         FunctionRef<void()> on_change = nullptr);
 
 void filelist_init_icons();
 void filelist_free_icons();

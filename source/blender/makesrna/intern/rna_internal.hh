@@ -643,6 +643,26 @@ void rna_iterator_array_end(CollectionPropertyIterator *iter);
 PointerRNA rna_array_lookup_int(
     PointerRNA *ptr, StructRNA *type, void *data, size_t itemsize, int64_t length, int64_t index);
 
+/* Construct a dynamic list of enum property items using a function
+ *   EnumPropertyItem CreateItemFn(const T &list_item, int index) */
+template<typename T, typename CreateItemFn>
+const EnumPropertyItem *rna_enum_property_items_from_listbase(const ListBaseT<T> &listbase,
+                                                              CreateItemFn create_item_fn)
+{
+  EnumPropertyItem *item = nullptr;
+  int i = 0, totitem = 0;
+
+  const T *list_item = static_cast<const T *>(listbase.first);
+  while (list_item) {
+    const EnumPropertyItem tmp = create_item_fn(*list_item, i);
+    RNA_enum_item_add(&item, &totitem, &tmp);
+    list_item = list_item->next;
+    ++i;
+  }
+  RNA_enum_item_end(&item, &totitem);
+  return item;
+}
+
 /* Duplicated code since we can't link in `blenlib`. */
 
 #ifndef RNA_RUNTIME

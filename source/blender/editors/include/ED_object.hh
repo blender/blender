@@ -45,7 +45,6 @@ struct wmKeyConfig;
 struct wmOperator;
 struct wmOperatorType;
 enum eReportType : uint16_t;
-enum eAnimvizCalcRange : uint8_t;
 
 namespace ui {
 struct Layout;
@@ -387,21 +386,7 @@ void motion_paths_clear(bContext *C, bool only_selected);
  * Recalculate the motion paths on the given objects. This includes bones when recalculating
  * armature objects.
  */
-void motion_paths_recalc(bContext *C,
-                         Scene *scene,
-                         const eAnimvizCalcRange range,
-                         const Span<Object *> objects);
-/**
- * Recalculate motion paths on all selected objects. This includes bones when recalculating
- * armature objects.
- */
-void motion_paths_recalc_selected(bContext *C, Scene *scene, eAnimvizCalcRange range);
-
-/**
- * Recalculate motion paths on all visible objects. This includes bones when recalculating armature
- * objects.
- */
-void motion_paths_recalc_visible(bContext *C, Scene *scene, eAnimvizCalcRange range);
+void motion_paths_recalc(bContext *C, Scene *scene, const Span<Object *> objects);
 
 /* constraints */
 /**

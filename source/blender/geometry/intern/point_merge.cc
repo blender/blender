@@ -15,8 +15,6 @@
 #include "GEO_point_merge.hh"
 #include "GEO_randomize.hh"
 
-#include "atomic_ops.h"
-
 namespace blender::geometry {
 
 PointCloud *merge_points(const PointCloud &src_points,
@@ -29,30 +27,18 @@ PointCloud *merge_points(const PointCloud &src_points,
       [&](const int i) { group_indices.add(merge_ids[i]); });
   const int groups_num = group_indices.size();
 
-  Array<int> group_sizes(group_indices.size() + 1, 0);
-  selection.foreach_index_optimized<int>(
-      [&](const int i) {
-        const int group_i = group_indices.index_of(merge_ids[i]);
-        atomic_add_and_fetch_int32(&group_sizes[group_i], 1);
-      },
-      exec_mode::grain_size(8192));
-  BLI_assert(!group_sizes.as_span().drop_back(1).contains(0));
+  const Vector<int> selection_indices = selection.to_indices<int>();
+  Array<int> point_groups(selection_indices.size());
+  threading::parallel_for(selection_indices.index_range(), 8192, [&](const IndexRange range) {
+    for (const int64_t pos : range) {
+      point_groups[pos] = group_indices.index_of(merge_ids[selection_indices[pos]]);
+    }
+  });
 
-  const OffsetIndices<int> group_offsets = offset_indices::accumulate_counts_to_offsets(
-      group_sizes);
-
-  Array<int> all_group_indices(group_offsets.total_size());
-  Array<int> group_counts(groups_num, 0);
-  selection.foreach_index_optimized<int>(
-      [&](const int i) {
-        const int group_i = group_indices.index_of(merge_ids[i]);
-        const int index_in_group = atomic_fetch_and_add_int32(&group_counts[group_i], 1);
-        all_group_indices[group_offsets[group_i][index_in_group]] = int(i);
-      },
-      exec_mode::grain_size(8192));
-  group_counts = {};
-  offset_indices::sort_groups(group_offsets, all_group_indices);
-  const GroupedSpan<int> indices_by_group(group_offsets, all_group_indices);
+  Array<int> group_offset_data;
+  Array<int> all_group_indices;
+  const GroupedSpan<int> indices_by_group = offset_indices::build_groups_from_indices(
+      point_groups, groups_num, group_offset_data, all_group_indices, selection);
 
   IndexMaskMemory memory;
   const IndexMask unselected = selection.complement(IndexMask(src_points.totpoint), memory);

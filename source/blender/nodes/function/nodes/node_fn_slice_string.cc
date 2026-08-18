@@ -5,6 +5,7 @@
 #include "BLI_string_utf8.hh"
 
 #include "node_function_util.hh"
+#include "node_shader_util.hh"
 
 namespace blender::nodes::node_fn_slice_string_cc {
 
@@ -35,7 +36,7 @@ static void node_register()
 {
   static bke::bNodeType ntype;
 
-  fn_cmp_node_type_base(&ntype, "FunctionNodeSliceString"_ustr, FN_NODE_SLICE_STRING);
+  common_node_type_base(&ntype, "FunctionNodeSliceString"_ustr, FN_NODE_SLICE_STRING);
   ntype.ui_name = "Slice String";
   ntype.ui_description = "Extract a string segment from a larger string";
   ntype.enum_name_legacy = "SLICE_STRING";

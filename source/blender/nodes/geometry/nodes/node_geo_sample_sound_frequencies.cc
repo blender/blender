@@ -178,8 +178,8 @@ class SampleSoundFunction : public mf::MultiFunction {
       key.window_function = window_function_;
       key.fft_size = fft_size_;
       key.channel = *all_channels_value ? std::nullopt : channel_value;
-      const bke::bSoundFrequencySampler *sampler = bke::bSoundFrequencySampler::get_cached(sound_,
-                                                                                           key);
+      const std::shared_ptr<const bke::bSoundFrequencySampler> sampler =
+          bke::bSoundFrequencySampler::get_cached(sound_, key);
       if (!sampler) {
         index_mask::masked_fill(amplitudes, 0.0f, mask);
         return;
@@ -227,8 +227,8 @@ class SampleSoundFunction : public mf::MultiFunction {
       key.window_function = window_function_;
       key.fft_size = fft_size_;
       key.channel = channel;
-      const bke::bSoundFrequencySampler *sampler = bke::bSoundFrequencySampler::get_cached(sound_,
-                                                                                           key);
+      const std::shared_ptr<const bke::bSoundFrequencySampler> sampler =
+          bke::bSoundFrequencySampler::get_cached(sound_, key);
       if (!sampler) {
         amplitudes.fill_indices(indices, 0.0f);
         return;

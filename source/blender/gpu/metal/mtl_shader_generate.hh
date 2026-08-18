@@ -23,16 +23,18 @@
  * +-----------------------------+--------+------------+
  * | Vertex Buffers              |     16 |    0..30   |
  * | Storage Buffers             |     16 |    0..15   |
- * | Uniform Buffers             |     13 |   16..28   |
+ * | Uniform Buffers             |     12 |   16..27   |
+ * | Acceleration Structure      |      1 |   28..28   |
  * | Push Constant Buffer        |      1 |   29..29   |
  * | Sampler Argument Buffer     |      1 |   30..30   |
  * +-----------------------------+--------+------------+
  */
 #define MTL_MAX_SSBO 16
-#define MTL_MAX_UBO 13
+#define MTL_MAX_UBO 12
 #define MTL_SSBO_SLOT_OFFSET 0
 #define MTL_UBO_SLOT_OFFSET MTL_MAX_SSBO
-#define MTL_PUSH_CONSTANT_BUFFER_SLOT (MTL_MAX_SSBO + MTL_MAX_UBO)
+#define MTL_ACCELERATION_STRUCTURE_SLOT (MTL_UBO_SLOT_OFFSET + MTL_MAX_UBO)
+#define MTL_PUSH_CONSTANT_BUFFER_SLOT (MTL_ACCELERATION_STRUCTURE_SLOT + 1)
 #define MTL_SAMPLER_ARGUMENT_BUFFER_SLOT (MTL_PUSH_CONSTANT_BUFFER_SLOT + 1)
 
 /**

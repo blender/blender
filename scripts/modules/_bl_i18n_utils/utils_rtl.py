@@ -18,6 +18,9 @@
 import ctypes
 import re
 
+from _bl_i18n_utils import utils_format
+from _bl_i18n_utils.utils_format import FormatToken
+
 
 # define FRIBIDI_MASK_NEUTRAL    0x00000040L /* Is neutral */
 FRIBIDI_PAR_ON = 0x00000040
@@ -93,82 +96,96 @@ def protect_format_seq(msg):
         if msg[0] not in {LRE, LRO}:
             msg = LRE + msg
 
+    # Current position in the text parsing.
     idx = 0
+    # Number of tokens already processed, used to generate token's keys (index based on their order of appearance)
+    # when no explicit key is specified in the token itself. Currently unused here.
+    token_idx = 0
+    # Amount of chars to skip (keep unmodified) from current `idx`,
+    # before protecting the next LtR block with unicode characters.
+    # Typically 'regular' RtL text.
+    stride = 0
+    # Length of the next detected block of text to protect as LtR, starting at `idx + stride`.
+    ltr_len = 0
     ret = []
     ln = len(msg)
+    has_remaining_format = True
+    has_remaining_escape = True
+    last_idx_escape = -2
     while idx < ln:
-        dlt = 1
+        next_format_candidate = -1
+        next_escape_candidate = -1
+        if has_remaining_format:
+            next_format_candidate = FormatToken.next_potential_formatting_index(msg, idx)
+            if next_format_candidate == -1:
+                has_remaining_format = False
+        if has_remaining_escape:
+            next_escape_candidate = msg.find('\\', idx)
+            if next_escape_candidate == -1:
+                has_remaining_escape = False
+        assert next_format_candidate != next_escape_candidate or next_format_candidate == -1
+
+        stride = 0
+        ltr_len = 0
+
 #        # If we find a control char, skip any additional protection!
 #        if msg[idx] in uctrl:
 #            ret.append(msg[idx:])
 #            break
-        # \", \' or \\
-        if idx < (ln - 1) and msg[idx] == '\\' and msg[idx + 1] in "\"\'\\":
-            dlt = 2
-        elif idx < (ln - 1) and msg[idx] == '{':
-            # The whole 'format' syntax...
-            # Coverage of this one is still fairly limited and basic currently.
-            # TODO: support more of the 'format' mini-language (and check how much fmt::format matches with Python's).
-            orig_dlt = dlt
-            valid_format = False
-
-            # {3}, {scale} (positional indicator or named reference)
-            while (idx + dlt) < ln and msg[idx + dlt].isalnum():
-                dlt += 1
-            if (idx + dlt) < ln and msg[idx + dlt] == ":":
-                dlt += 1
-            # {:.4}, {:6d}, ...
-            while (idx + dlt) < ln and msg[idx + dlt] in fmt_format_widthprec:
-                dlt += 1
-            # {:f}, {:s}, ...
-            while (idx + dlt) < ln and msg[idx + dlt] in fmt_format_codes:
-                dlt += 1
-            if (idx + dlt) < ln and msg[idx + dlt] == "}":
-                dlt += 1
-                valid_format = True
-
-            if not valid_format:
-                dlt = orig_dlt
-        # %%
-        elif idx < (ln - 1) and msg[idx] == '%' and msg[idx + 1] == '%':
-            dlt = 2
-        elif idx < (ln - 1) and msg[idx] == '%':
-            # The whole 'printf' syntax...
-            # Not fully covering the format, but most of it, and should cover all Blender usages.
-            orig_dlt = dlt
-            valid_format = False
-
-            # `%x12|` - What is this for actually?
-            if idx < (ln - 2) and msg[idx + 1] in "x" and msg[idx + 2] in printf_format_widthprec:
-                dlt = 2
-                while (idx + dlt) < ln and msg[idx + dlt] in printf_format_widthprec:
-                    dlt += 1
-                if (idx + dlt) < ln and msg[idx + dlt] == '|':
-                    dlt += 1
-                    valid_format = True
+        if not (has_remaining_format or has_remaining_escape):
+            stride = len(msg[idx:])
+        elif has_remaining_escape and (not has_remaining_format or next_escape_candidate < next_format_candidate):
+            # \\, \', \"
+            idx_esc = next_escape_candidate
+            if idx_esc < (ln - 1) and msg[idx_esc] == '\\' and msg[idx_esc + 1] in '\\\'"':
+                stride = idx_esc - idx
+                ltr_len = 2
+                last_idx_escape = idx_esc
             else:
-                # `%+d, %-40s`, ...
-                while (idx + dlt) < ln and msg[idx + dlt] in printf_format_flags:
-                    dlt += 1
-                # `%.4f, %6d`, ...
-                while (idx + dlt) < ln and msg[idx + dlt] in printf_format_widthprec:
-                    dlt += 1
-                # `%lld, %zu`, ...
-                while (idx + dlt) < ln and msg[idx + dlt] in printf_format_datasize:
-                    dlt += 1
-                # `%s, %d`, ...
-                if (idx + dlt) < ln and msg[idx + dlt] in printf_format_codes:
-                    dlt += 1
-                    valid_format = True
+                # Potential next escape is not a valid one, stride past it.
+                stride = idx_esc - idx + 1
+        elif has_remaining_format and (not has_remaining_escape or next_format_candidate < next_escape_candidate):
+            idx_fmt = next_format_candidate
+            # %%, {{, }}
+            if idx_fmt < (ln - 1) and msg[idx_fmt] in '%{}' and msg[idx_fmt + 1] == msg[idx_fmt]:
+                stride = idx_fmt - idx
+                ltr_len = 2
+            else:
+                # Formatting tokens (%s, {:.4f}, etc.).
+                # Find if potential next token is actually a valid one.
+                token = FormatToken.parse_string_lookup_first_token(
+                    msg, start_idx=idx_fmt, token_idx=token_idx, only_at_start_idx=True)
+                if token is not None:
+                    assert token.start_index == idx_fmt
+                    tk_start_index = token.start_index
+                    tk_len = len(token.token)
+                    # Also attempt to make a potential formatting token inside of quotes ('%s' etc.) part of a single
+                    # block.
+                    # NOTE: All escape groups currently are two chars long, so knowing the start index of the last
+                    # processed escape group is enough to avoid wrongly including e.g. the '"' with the '%s' in
+                    # unlikely cases like this: `'foo\"%s" bar'`
+                    if (tk_start_index > idx and tk_start_index > last_idx_escape + 2 and
+                            (tk_start_index + tk_len) < ln and
+                            msg[tk_start_index - 1] in '\'"' and
+                            msg[tk_start_index + tk_len] == msg[tk_start_index - 1]
+                            ):
+                        stride = token.start_index - idx - 1
+                        ltr_len = len(token.token) + 2
+                    else:
+                        stride = token.start_index - idx
+                        ltr_len = len(token.token)
+                    token_idx += 1
+                else:
+                    # Potential next token is not a valid one, stride past it.
+                    stride = next_format_candidate - idx + 1
 
-            if not valid_format:
-                dlt = orig_dlt
-
-        if dlt > 1:
+        if stride > 0:
+            ret.append(msg[idx:idx + stride])
+            idx += stride
+        if ltr_len > 0:
             ret.append(LRE)
-        ret += msg[idx:idx + dlt]
-        idx += dlt
-        if dlt > 1:
+            ret.append(msg[idx:idx + ltr_len])
+            idx += ltr_len
             ret.append(PDF)
 
     return "".join(ret)

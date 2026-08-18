@@ -52,7 +52,8 @@ class VKBuffer : public NonCopyable {
               VmaAllocationCreateFlags vma_allocation_flags,
               float priority,
               bool export_memory = false,
-              const char *debug_name = "VKBuffer");
+              const char *debug_name = "VKBuffer",
+              size_t alignment = 0);
   void clear(VKContext &context, uint32_t clear_value);
   void update_immediately(const void *data) const;
   void update_sub_immediately(size_t start_offset, size_t data_size, const void *data) const;

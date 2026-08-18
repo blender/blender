@@ -40,7 +40,7 @@ integrate_surface_mnee(KernelGlobals kg,
                                     sd->P,
                                     sd->N,
                                     light_link_receiver_nee(kg, sd),
-                                    sd->flag,
+                                    sd->runtime_flag,
                                     bounce,
                                     path_flag,
                                     &ls))

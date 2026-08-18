@@ -11,6 +11,7 @@
 #include "MEM_guardedalloc.h"
 
 #include "BLI_boxpack_2d.hh"
+#include "BLI_fileops.hh"
 #include "BLI_listbase.hh"
 #include "BLI_math_base.hh"
 #include "BLI_math_base_c.hh"
@@ -324,14 +325,7 @@ static gpu::Texture *gpu_texture_create_tile_array(Image *ima, ImBuf *main_ibuf)
     BKE_image_release_ibuf(ima, ibuf, nullptr);
   }
 
-  if (!(main_ibuf->gpu.flag & IMB_GPU_DISABLE_MIPMAP_UPDATE)) {
-    GPU_texture_update_mipmap_chain(tex);
-    GPU_texture_mipmap_mode(tex, true, true);
-    main_ibuf->gpu.flag |= IMB_GPU_MIPMAP_COMPLETE;
-  }
-  else {
-    GPU_texture_mipmap_mode(tex, false, true);
-  }
+  GPU_texture_update_mipmap_chain(tex);
   GPU_texture_original_size_set(tex, main_ibuf->x, main_ibuf->y);
 
   return tex;
@@ -393,7 +387,13 @@ static ImBuf *image_gpu_error_imbuf_ensure()
   return g_error_imbuf;
 }
 
-static void image_gpu_log_load_error_once(Image *ima, ImageUser *iuser)
+enum class ImageLoadError {
+  LoadFailed,
+  FileMissing,
+  GPUTextureFailed,
+};
+
+static void image_gpu_log_load_error_once(Image *ima, ImageUser *iuser, ImageLoadError error)
 {
   if (ELEM(ima->type, IMA_TYPE_R_RESULT, IMA_TYPE_COMPOSITE)) {
     return;
@@ -404,13 +404,31 @@ static void image_gpu_log_load_error_once(Image *ima, ImageUser *iuser)
   ima->runtime->gpu_load_error_logged = true;
 
   char filepath[FILE_MAX];
-  if (iuser != nullptr) {
-    BKE_image_user_file_path(iuser, ima, filepath);
+  BKE_image_user_file_path(iuser, ima, filepath);
+
+  /* Report a missing file separately, matching the Cycles message. */
+  if (BKE_image_source_is_file(ima) && BKE_image_has_filepath(ima)) {
+    if (!BKE_image_has_packedfile(ima) && error == ImageLoadError::LoadFailed &&
+        !BLI_exists(filepath))
+    {
+      error = ImageLoadError::FileMissing;
+    }
   }
   else {
-    BLI_strncpy(filepath, ima->filepath, sizeof(filepath));
+    STRNCPY(filepath, ima->id.name + 2);
   }
-  CLOG_ERROR(&LOG, "Failed to create texture for \"%s\"", filepath);
+
+  switch (error) {
+    case ImageLoadError::LoadFailed:
+      CLOG_ERROR(&LOG, "Failed to load image \"%s\"", filepath);
+      break;
+    case ImageLoadError::FileMissing:
+      CLOG_ERROR(&LOG, "Image file \"%s\" does not exist", filepath);
+      break;
+    case ImageLoadError::GPUTextureFailed:
+      CLOG_ERROR(&LOG, "Failed to create texture for \"%s\"", filepath);
+      break;
+  }
 }
 
 static void image_gpu_clear_load_error(Image *ima)
@@ -451,8 +469,6 @@ static void image_gpu_atlas_try_partial_update(Image *image, ImageUser *iuser)
   /* A resized tile invalidates the atlas packing and forces a rebuild of all tiles. */
   bool need_full_rebuild = false;
 
-  bool need_mipmap_update = false;
-
   ImageUser tile_user = {};
   if (iuser != nullptr) {
     tile_user = *iuser;
@@ -489,7 +505,6 @@ static void image_gpu_atlas_try_partial_update(Image *image, ImageUser *iuser)
                                                  tile.runtime.tilearray_layer,
                                                  int2(tile.runtime.tilearray_offset),
                                                  int2(tile.runtime.tilearray_size));
-            need_mipmap_update |= !(ibuf->gpu.flag & IMB_GPU_DISABLE_MIPMAP_UPDATE);
           }
           break;
         case Changes::Kind::None:
@@ -501,11 +516,6 @@ static void image_gpu_atlas_try_partial_update(Image *image, ImageUser *iuser)
     if (need_full_rebuild) {
       break;
     }
-  }
-
-  if (need_mipmap_update && !need_full_rebuild) {
-    GPU_texture_update_mipmap_chain(atlas_tex);
-    atlas_ibuf->gpu.flag |= IMB_GPU_MIPMAP_COMPLETE;
   }
 
   atlas_ibuf->gpu.partial_update_changeset = new_changeset_id;
@@ -567,7 +577,7 @@ static ImageGPUTextures image_get_gpu_texture_tiled(Image *ima,
   gpu::Texture *mapping_tex = nullptr;
 
   if (ibuf == nullptr) {
-    image_gpu_log_load_error_once(ima, iuser);
+    image_gpu_log_load_error_once(ima, iuser, ImageLoadError::LoadFailed);
   }
   else {
     /* Create atlas and tile mapping textures. */
@@ -579,7 +589,7 @@ static ImageGPUTextures image_get_gpu_texture_tiled(Image *ima,
       image_gpu_clear_load_error(ima);
     }
     else {
-      image_gpu_log_load_error_once(ima, iuser);
+      image_gpu_log_load_error_once(ima, iuser, ImageLoadError::GPUTextureFailed);
     }
   }
 
@@ -656,7 +666,7 @@ static ImageGPUTextures image_get_gpu_texture_single(Image *ima,
       image_gpu_clear_load_error(ima);
     }
     else if (!try_only) {
-      image_gpu_log_load_error_once(ima, iuser);
+      image_gpu_log_load_error_once(ima, iuser, ImageLoadError::GPUTextureFailed);
     }
     if (!try_only) {
       image_cache_free_inactive_frame_gpu_textures(ima, ibuf);
@@ -673,7 +683,9 @@ static ImageGPUTextures image_get_gpu_texture_single(Image *ima,
   if (result.texture == nullptr && (!try_only || cpu_load_failed || gpu_load_failed) &&
       !only_full_resolution)
   {
-    image_gpu_log_load_error_once(ima, iuser);
+    const ImageLoadError error = gpu_load_failed ? ImageLoadError::GPUTextureFailed :
+                                                   ImageLoadError::LoadFailed;
+    image_gpu_log_load_error_once(ima, iuser, error);
     ImBuf *error_ibuf = image_gpu_error_imbuf_ensure();
     result.texture = IMB_acquire_gpu_texture(ima->id.name + 2, error_ibuf, false, false, false);
   }
@@ -839,40 +851,6 @@ void BKE_image_free_anim_gpu_texture_caches(Main *bmain)
         BKE_image_free_gpu_texture_caches(&ima);
       }
     }
-  }
-}
-
-/** \} */
-
-/* -------------------------------------------------------------------- */
-/** \name Paint Update
- * \{ */
-
-void BKE_image_paint_set_mipmap(Main *bmain, bool mipmap)
-{
-  for (Image &ima : bmain->images) {
-    if (ima.runtime->cache == nullptr) {
-      continue;
-    }
-    std::scoped_lock lock(ima.runtime->cache_mutex);
-    ImBufCacheIter *iter = IMB_cacheIter_new(ima.runtime->cache);
-    while (!IMB_cacheIter_done(iter)) {
-      ImBuf *ibuf = IMB_cacheIter_getImBuf(iter);
-      const ImageCacheKey *key = static_cast<const ImageCacheKey *>(
-          IMB_cacheIter_getUserKey(iter));
-      if (ibuf != nullptr && ibuf->gpu.texture != nullptr &&
-          key->index != IMA_INDEX_UDIM_TILE_MAPPING)
-      {
-        if (ibuf->gpu.flag & IMB_GPU_MIPMAP_COMPLETE) {
-          GPU_texture_mipmap_mode(ibuf->gpu.texture, mipmap, true);
-        }
-        else {
-          IMB_free_gpu_textures(ibuf);
-        }
-      }
-      IMB_cacheIter_step(iter);
-    }
-    IMB_cacheIter_free(iter);
   }
 }
 

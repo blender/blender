@@ -11,7 +11,7 @@ CCL_NAMESPACE_BEGIN
 
 /* Light Path Node */
 
-template<uint node_feature_mask, typename ConstIntegratorGenericState>
+template<uint64_t node_feature_mask, typename ConstIntegratorGenericState>
 ccl_device_noinline void svm_node_light_path(KernelGlobals kg,
                                              ConstIntegratorGenericState state,
                                              const ccl_private ShaderData *sd,
@@ -48,7 +48,7 @@ ccl_device_noinline void svm_node_light_path(KernelGlobals kg,
       info = (path_visibility & PATH_RAY_VISIBILITY_VOLUME_SCATTER) ? 1.0f : 0.0f;
       break;
     case NODE_LP_backfacing:
-      info = (sd->flag & SD_BACKFACING) ? 1.0f : 0.0f;
+      info = (sd->runtime_flag & SR_BACKFACING) ? 1.0f : 0.0f;
       break;
     case NODE_LP_ray_length:
       info = sd->ray_length;

@@ -1,9 +1,9 @@
 
 msgid ""
 msgstr ""
-"Project-Id-Version: Blender 5.3.0 Alpha (b'96294be75080')\n"
+"Project-Id-Version: Blender 5.3.0 Alpha (b'af4852ed4560')\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-07-20 07:29+0000\n"
+"POT-Creation-Date: 2026-08-10 07:54+0000\n"
 "PO-Revision-Date: 2025-11-14 10:59+0000\n"
 "Last-Translator: Isaac Gicheha <shwaky3@gmail.com>\n"
 "Language-Team: Swahili <https://translate.blender.org/projects/blender-ui/ui/sw/>\n"
@@ -2853,10 +2853,6 @@ msgstr "Vizuizi vya data vya chembe"
 
 msgid "Point cloud data-blocks"
 msgstr "Vizuizi vya data vya wingu la uhakika"
-
-
-msgid "Project"
-msgstr "Mradi"
 
 
 msgid "Scene data-blocks"
@@ -8135,6 +8131,10 @@ msgstr "Uso wa Karibu zaidi"
 
 msgid "Shrink the location to the nearest target surface"
 msgstr "Punguza eneo hadi eneo lengwa la karibu zaidi"
+
+
+msgid "Project"
+msgstr "Mradi"
 
 
 msgid "Shrink the location to the nearest target surface along a given axis"
@@ -16868,14 +16868,6 @@ msgstr "Tumia Shinikizo kwa Ugumu"
 
 msgid "Use pressure to modulate hardness"
 msgstr "Tumia shinikizo kurekebisha ugumu"
-
-
-msgid "Inverse Smooth Pressure"
-msgstr "Shinikizo Laini Inverse"
-
-
-msgid "Lighter pressure causes more smoothing to be applied"
-msgstr "Shinikizo nyepesi husababisha ulainishaji zaidi kutumika"
 
 
 msgid "Measure brush size relative to the view or the scene"
@@ -28234,10 +28226,6 @@ msgid "Editor menu containing buttons"
 msgstr "Menyu ya mhariri iliyo na vitufe"
 
 
-msgid "Apply"
-msgstr "Tumia"
-
-
 msgid "Show/Hide"
 msgstr "Onyesha/Ficha"
 
@@ -28246,56 +28234,24 @@ msgid "Clean Up"
 msgstr "Safisha"
 
 
-msgid "Asset"
-msgstr "Mali"
+msgid "Adjust"
+msgstr "Rekebisha"
 
 
-msgid "Math"
-msgstr "Hisabati"
+msgid "Keying"
+msgstr "Kuweka"
+
+
+msgid "Tracking"
+msgstr "Kufuatilia"
 
 
 msgid "Utilities"
 msgstr "Huduma"
 
 
-msgid "Bone Collections"
-msgstr "Mikusanyo ya Mifupa"
-
-
-msgid "Read"
-msgstr "Soma"
-
-
-msgid "Sample"
-msgstr "Mfano"
-
-
-msgid "Write"
-msgstr "Andika"
-
-
-msgid "Primitives"
-msgstr "Watu wa kwanza"
-
-
-msgid "Merge"
-msgstr "Unganisha"
-
-
-msgid "Instances"
-msgstr "Matukio"
-
-
-msgid "Metaball"
-msgstr "Mpira wa miguu"
-
-
-msgid "Import"
-msgstr "Ingiza"
-
-
-msgid "Deprecated"
-msgstr "Imeacha kutumika"
+msgid "Math"
+msgstr "Hisabati"
 
 
 msgid "Pivot Point"
@@ -28314,28 +28270,28 @@ msgid "Navigation"
 msgstr "Urambazaji"
 
 
-msgid "Linked"
-msgstr "Imeunganishwa"
-
-
-msgid "Layout"
-msgstr "Mpangilio"
-
-
 msgid "Select Linked"
 msgstr "Chagua Imeunganishwa"
 
 
-msgid "Adjust"
-msgstr "Rekebisha"
+msgid "Read"
+msgstr "Soma"
 
 
-msgid "Keying"
-msgstr "Kuweka"
+msgid "Sample"
+msgstr "Mfano"
 
 
-msgid "Tracking"
-msgstr "Kufuatilia"
+msgid "Write"
+msgstr "Andika"
+
+
+msgid "Primitives"
+msgstr "Watu wa kwanza"
+
+
+msgid "Metaball"
+msgstr "Mpira wa miguu"
 
 
 msgid "Light"
@@ -28344,6 +28300,42 @@ msgstr "Mwanga"
 
 msgid "Light Probe"
 msgstr "Uchunguzi wa Mwanga"
+
+
+msgid "Instances"
+msgstr "Matukio"
+
+
+msgid "Apply"
+msgstr "Tumia"
+
+
+msgid "Import"
+msgstr "Ingiza"
+
+
+msgid "Asset"
+msgstr "Mali"
+
+
+msgid "Deprecated"
+msgstr "Imeacha kutumika"
+
+
+msgid "Bone Collections"
+msgstr "Mikusanyo ya Mifupa"
+
+
+msgid "Merge"
+msgstr "Unganisha"
+
+
+msgid "Linked"
+msgstr "Imeunganishwa"
+
+
+msgid "Layout"
+msgstr "Mpangilio"
 
 
 msgid "Keyframe Insert Pie"
@@ -44213,15 +44205,6 @@ msgstr "Imetolewa"
 
 
 msgctxt "Operator"
-msgid "Make Markers Local"
-msgstr "Weka Alama za Kieneo"
-
-
-msgid "Move selected scene markers to the active Action as local 'pose' markers"
-msgstr "Sogeza alama za eneo zilizochaguliwa hadi kwa Kitendo amilifu kama vialamisho vya karibu vya 'pozi'"
-
-
-msgctxt "Operator"
 msgid "Mirror Keys"
 msgstr "Funguo za Kioo"
 
@@ -59107,15 +59090,6 @@ msgid "Select all objects which block light from this emitter"
 msgstr "Chagua vitu vyote vinavyozuia mwanga kutoka kwa mtoaji huyu"
 
 
-msgctxt "Operator"
-msgid "Link Receivers to Emitter"
-msgstr "Unganisha Wapokeaji kwa Emitter"
-
-
-msgid "Light link selected receivers to the active emitter object"
-msgstr "Kiungo chepesi kilichochaguliwa kwa vipokezi kwa kitu amilifu cha emitter"
-
-
 msgid "State of the light linking"
 msgstr "Hali ya kuunganisha mwanga"
 
@@ -62563,10 +62537,6 @@ msgstr "Geuza mwonekano wa wima zote"
 msgctxt "Operator"
 msgid "Weight from Bones"
 msgstr "Uzito kutoka kwa Mifupa"
-
-
-msgid "Set the weights of the groups matching the attached armature's selected bones, using the distance between the vertices and the bones"
-msgstr "Weka uzani wa vikundi vinavyolingana na mifupa iliyochaguliwa ya silaha, kwa kutumia umbali kati ya vipeo na mifupa."
 
 
 msgid "Method to use for assigning weights"
@@ -72811,6 +72781,14 @@ msgid "Find & Replace"
 msgstr "Tafuta"
 
 
+msgid "Auto Keying"
+msgstr "Uwekaji Kiotomatiki"
+
+
+msgid "Keyframing"
+msgstr "Uwekaji picha muhimu"
+
+
 msgid "Extensions"
 msgstr "Viendelezi"
 
@@ -76979,10 +76957,6 @@ msgstr "Aina ya pasi ya kuoka"
 
 msgid "Filter Glossy"
 msgstr "Kichujio Kinang'aa"
-
-
-msgid "Adaptively blur glossy shaders after blurry bounces, to reduce noise at the cost of accuracy"
-msgstr "Weka ukungu wa vivuli vinavyometa baada ya kuteleza kwa ukungu, ili kupunguza kelele kwa gharama ya usahihi"
 
 
 msgid "Camera Cull Margin"
@@ -86119,10 +86093,6 @@ msgid "Window Background"
 msgstr "Mandharinyuma ya Dirisha"
 
 
-msgid "Header Text Highlight"
-msgstr "Angazia Maandishi ya Kichwa"
-
-
 msgid "Text Highlight"
 msgstr "Angazia Maandishi"
 
@@ -86959,10 +86929,6 @@ msgstr "Ongeza data ya uzito kwa mapigo mapya"
 
 msgid "Cycle-Aware Keying"
 msgstr "Ufunguo wa Kufahamu Mzunguko"
-
-
-msgid "Auto Keying"
-msgstr "Uwekaji Kiotomatiki"
 
 
 msgid "Auto Keyframe Insert Keying Set"
@@ -92292,11 +92258,6 @@ msgid "Overwrite Existing:"
 msgstr "Batilisha faili zilizopo:"
 
 
-msgctxt "Operator"
-msgid "Apply"
-msgstr "Tumia"
-
-
 msgid "Options:"
 msgstr "Chaguo:"
 
@@ -96715,10 +96676,6 @@ msgid "Only Insert Needed"
 msgstr "Ingizo Pekee Inahitajika"
 
 
-msgid "Keyframing"
-msgstr "Uwekaji picha muhimu"
-
-
 msgid "Auto-Keyframing"
 msgstr "Kuweka Muhimu-Kiotomatiki"
 
@@ -98640,6 +98597,11 @@ msgstr "Rangi nyingi"
 msgctxt "Operator"
 msgid "Quick Edit"
 msgstr "Hariri Haraka"
+
+
+msgctxt "Operator"
+msgid "Apply"
+msgstr "Tumia"
 
 
 msgctxt "Operator"
@@ -105745,20 +105707,12 @@ msgid "Cannot fly when the view offset is locked"
 msgstr "Haiwezi kuruka wakati kipengele cha kutazama kimefungwa"
 
 
-msgid "Cannot fly an object with constraints"
-msgstr "Haiwezi kuruka kitu chenye vikwazo"
-
-
 msgid "Cannot dolly when the view offset is locked"
 msgstr "Haiwezi kufanya doli wakati mwonekano wa kukabiliana umefungwa"
 
 
 msgid "Cannot navigate when the view offset is locked"
 msgstr "Haiwezi kusogeza wakati mwonekano wa kukabiliana umefungwa"
-
-
-msgid "Cannot navigate an object with constraints"
-msgstr "Haiwezi kusogeza kwenye kitu chenye vizuizi"
 
 
 msgid "Depth too large"

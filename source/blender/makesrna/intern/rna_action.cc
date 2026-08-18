@@ -174,7 +174,7 @@ static PointerRNA rna_ActionSlots_active_get(PointerRNA *ptr)
   animrig::Slot *active_slot = action.slot_active_get();
 
   if (!active_slot) {
-    return PointerRNA_NULL;
+    return {};
   }
   return RNA_pointer_create_discrete(&action.id, RNA_ActionSlot, active_slot);
 }
@@ -185,7 +185,7 @@ static void rna_ActionSlots_active_set(PointerRNA *ptr,
 {
   animrig::Action &action = rna_action(ptr);
 
-  if (value.data) {
+  if (value) {
     animrig::Slot &slot = rna_data_slot(&value);
     action.slot_active_set(slot.handle);
   }
@@ -668,7 +668,7 @@ static FCurve *rna_Channelbag_fcurve_new_from_fcurve(ID *dna_action_id,
   animrig::Channelbag &self = dna_channelbag->wrap();
 
   if (!data_path) {
-    data_path = source->rna_path;
+    data_path = source->rna_path().c_str();
   }
 
   if (self.fcurve_find({data_path, source->array_index})) {
@@ -680,8 +680,7 @@ static FCurve *rna_Channelbag_fcurve_new_from_fcurve(ID *dna_action_id,
     return nullptr;
   }
   FCurve *copy = BKE_fcurve_copy(source);
-  MEM_SAFE_DELETE(copy->rna_path);
-  copy->rna_path = BLI_strdupn(data_path, strlen(data_path));
+  copy->rna_path_set(data_path);
   self.fcurve_append(*copy);
 
   DEG_id_tag_update(dna_action_id, ID_RECALC_ANIMATION_NO_FLUSH);
@@ -1140,7 +1139,7 @@ static void reevaluate_fcurve_errors(bAnimContext *ac)
     PointerRNA ptr;
     PropertyRNA *prop;
     PointerRNA id_ptr = RNA_id_pointer_create(ale.id);
-    if (RNA_path_resolve_property(&id_ptr, fcu->rna_path, &ptr, &prop)) {
+    if (RNA_path_resolve_property(&id_ptr, fcu->rna_path_parsed(), &ptr, &prop)) {
       fcu->flag &= ~FCURVE_DISABLED;
     }
     else {

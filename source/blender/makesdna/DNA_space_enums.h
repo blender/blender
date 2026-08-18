@@ -114,6 +114,7 @@ enum eSpaceButtons_Context : short {
   BCONTEXT_COLLECTION = 17,
   BCONTEXT_STRIP = 18,
   BCONTEXT_STRIP_MODIFIER = 19,
+  BCONTEXT_COMPOSITOR = 20,
 
   /* Keep last. */
   BCONTEXT_TOT,
@@ -154,6 +155,7 @@ enum eSpaceOutliner_Flag : short {
   SO_SYNC_SELECT = (1 << 5),
   SO_MODE_COLUMN = (1 << 6),
   SO_SCROLL_TO_ACTIVE = (1 << 7),
+  SO_EXPAND_ON_FOCUS = (1 << 8),
 };
 ENUM_OPERATORS(eSpaceOutliner_Flag)
 

@@ -25,6 +25,7 @@
 
 #include "SEQ_animation.hh"
 #include "SEQ_channels.hh"
+#include "SEQ_effects.hh"
 #include "SEQ_iterator.hh"
 #include "SEQ_render.hh"
 #include "SEQ_retiming.hh"
@@ -32,9 +33,9 @@
 #include "SEQ_time.hh"
 #include "SEQ_transform.hh"
 
+#include "cache/movie_reader_cache.hh"
 #include "sequencer.hh"
 #include "strip_time.hh"
-#include "utils.hh"
 
 namespace blender {
 namespace seq {
@@ -176,6 +177,17 @@ void time_update_meta_strip_range(const Scene *scene, Strip *strip_meta)
   time_update_meta_strip_range(scene, lookup_meta_by_strip(scene->ed, strip_meta));
 }
 
+static bool transition_inputs_have_wrong_order(const Scene *scene,
+                                               const Strip *input1,
+                                               const Strip *input2)
+{
+  const int first_start = input1->left_handle();
+  const int second_start = input2->left_handle();
+  return (first_start > second_start) ||
+         (first_start == second_start &&
+          input1->right_handle(scene) > input2->right_handle(scene));
+}
+
 void strip_time_effect_range_set(const Scene *scene, Strip *strip)
 {
   if (strip->input1 == nullptr && strip->input2 == nullptr) {
@@ -186,6 +198,13 @@ void strip_time_effect_range_set(const Scene *scene, Strip *strip)
     strip->startdisp = max_ii(strip->input1->left_handle(), strip->input2->left_handle());
     strip->enddisp = min_ii(strip->input1->right_handle(scene),
                             strip->input2->right_handle(scene));
+
+    /* Sort by timeline frame so 2-input transitions go "from" earlier "to" later. */
+    if (effect_is_transition(strip->type) &&
+        transition_inputs_have_wrong_order(scene, strip->input1, strip->input2))
+    {
+      std::swap(strip->input1, strip->input2);
+    }
   }
   else if (strip->input1) { /* Single input effect. */
     strip->startdisp = strip->input1->right_handle(scene);
@@ -224,7 +243,7 @@ void strip_time_update_effects_strip_range(const Scene *scene, const Span<Strip 
 
 int time_find_next_prev_edit(Scene *scene,
                              int timeline_frame,
-                             const short side,
+                             const Side side,
                              const bool do_skip_mute,
                              const bool do_center,
                              const bool do_unselected)
@@ -272,18 +291,20 @@ int time_find_next_prev_edit(Scene *scene,
       dist = MAXFRAME * 2;
 
       switch (side) {
-        case SIDE_LEFT:
+        case Side::Left:
           if (strip_frame < timeline_frame) {
             dist = timeline_frame - strip_frame;
           }
           break;
-        case SIDE_RIGHT:
+        case Side::Right:
           if (strip_frame > timeline_frame) {
             dist = strip_frame - timeline_frame;
           }
           break;
-        case SIDE_BOTH:
+        case Side::Both:
           dist = abs(strip_frame - timeline_frame);
+          break;
+        default:
           break;
       }
 
@@ -468,12 +489,11 @@ float Strip::media_fps(Scene *scene)
 {
   switch (this->type) {
     case STRIP_TYPE_MOVIE: {
-      seq::strip_open_anim_file(scene, this, true);
-      const MovieReader *anim = this->runtime->movie_reader_get();
-      if (anim == nullptr) {
+      seq::MovieReaderAccessor reader = seq::movie_reader_cache_acquire_any(*scene, *this);
+      if (!reader) {
         return 0.0f;
       }
-      return MOV_get_fps(anim);
+      return MOV_get_fps(reader.reader());
     }
     case STRIP_TYPE_MOVIECLIP:
       if (this->clip != nullptr) {

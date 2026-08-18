@@ -102,7 +102,7 @@ static PyStructSequence_Field app_cb_info_fields[] = {
      "to another mesh) for the new frame. Note that this handler is **not** to be used as 'before "
      "the frame changes' event. The dependency graph is not available in this handler, as data "
      "and relations may have been altered and the dependency graph has not yet been updated for "
-     "that. " DEPSGRAPH_UPDATE_ARG PYDOC_DEPSGRAPH_UPDATE_TYPE},
+     "that. " SCENE_ARG PYDOC_SCENE_TYPE},
     {"frame_change_post",
      "Called after frame change for playback and rendering, after the data has been evaluated "
      "for the new frame. " DEPSGRAPH_UPDATE_ARG PYDOC_DEPSGRAPH_UPDATE_TYPE},

@@ -278,9 +278,7 @@ static void image_foreach_path(ID *id, BPathForeachPathData *bpath_data)
    * don't make sense to add directories to until the image has been saved
    * once to give it a meaningful value. */
   /* TODO re-assess whether this behavior is desired in the new generic code context. */
-  if (!ELEM(ima->source, IMA_SRC_FILE, IMA_SRC_MOVIE, IMA_SRC_SEQUENCE, IMA_SRC_TILED) ||
-      ima->filepath[0] == '\0')
-  {
+  if (!BKE_image_source_is_file(ima) || !BKE_image_has_filepath(ima)) {
     return;
   }
 
@@ -3214,13 +3212,13 @@ void BKE_image_walk_all_users(
     image_walk_id_all_users(&ma->id, false, customdata, callback);
   }
 
-  for (Light *light = static_cast<Light *>(mainp->materials.first); light;
+  for (Light *light = static_cast<Light *>(mainp->lights.first); light;
        light = static_cast<Light *>(light->id.next))
   {
     image_walk_id_all_users(&light->id, false, customdata, callback);
   }
 
-  for (World *world = static_cast<World *>(mainp->materials.first); world;
+  for (World *world = static_cast<World *>(mainp->worlds.first); world;
        world = static_cast<World *>(world->id.next))
   {
     image_walk_id_all_users(&world->id, false, customdata, callback);
@@ -5465,9 +5463,9 @@ void BKE_image_user_file_path_ex(const Main *bmain,
                                  const bool resolve_udim,
                                  const bool resolve_multiview)
 {
-  if (resolve_multiview && BKE_image_is_multiview(ima)) {
+  if (resolve_multiview && BKE_image_is_multiview(ima) && iuser) {
     ImageView *iv = static_cast<ImageView *>(BLI_findlink(&ima->views, iuser->view));
-    if (iv->filepath[0]) {
+    if (iv && iv->filepath[0]) {
       BLI_strncpy(filepath, iv->filepath, FILE_MAX);
     }
     else {
@@ -5640,6 +5638,11 @@ bool BKE_image_has_filepath(const Image *ima)
   /* This could be improved to detect cases like //../../, currently path
    * remapping empty file paths empty. */
   return ima->filepath[0] != '\0';
+}
+
+bool BKE_image_source_is_file(const Image *ima)
+{
+  return ELEM(ima->source, IMA_SRC_FILE, IMA_SRC_MOVIE, IMA_SRC_SEQUENCE, IMA_SRC_TILED);
 }
 
 bool BKE_image_is_animated(Image *image)

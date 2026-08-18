@@ -21,6 +21,7 @@
 #include "DNA_sequence_types.h"
 
 #include "BKE_anim_data.hh"
+#include "BKE_compositor.hh"
 #include "BKE_image.hh"
 #include "BKE_lib_id.hh"
 #include "BKE_library.hh"
@@ -41,6 +42,7 @@
 #include "NOD_geometry_nodes_lazy_function.hh"
 #include "NOD_geometry_nodes_srna.hh"
 #include "NOD_node_declaration.hh"
+#include "NOD_scene_compositor_effect_inputs_srna.hh"
 #include "NOD_socket.hh"
 #include "NOD_socket_declarations.hh"
 #include "NOD_sync_sockets.hh"
@@ -53,6 +55,7 @@
 #include "RNA_access.hh"
 #include "RNA_define.hh"
 
+#include "SEQ_effects.hh"
 #include "SEQ_iterator.hh"
 #include "SEQ_modifier.hh"
 #include "SEQ_sequencer.hh"
@@ -219,6 +222,8 @@ using TreeNodePair = std::pair<bNodeTree *, bNode *>;
 using ObjectModifierPair = std::pair<Object *, ModifierData *>;
 using NodeSocketPair = std::pair<bNode *, bNodeSocket *>;
 using StripModifierPair = std::pair<Scene *, StripModifierData *>;
+using StripEffectPair = std::pair<Scene *, Strip *>;
+using SceneCompositorEffectPair = std::pair<Scene *, SceneCompositorEffect *>;
 
 /**
  * Cache common data about node trees from the #Main database that is expensive to retrieve on
@@ -231,6 +236,9 @@ struct NodeTreeRelations {
   std::optional<MultiValueMap<bNodeTree *, TreeNodePair>> group_node_users_;
   std::optional<MultiValueMap<bNodeTree *, ObjectModifierPair>> modifiers_users_;
   std::optional<MultiValueMap<bNodeTree *, StripModifierPair>> strip_modifier_users_;
+  std::optional<MultiValueMap<bNodeTree *, StripEffectPair>> strip_effect_users_;
+  std::optional<MultiValueMap<bNodeTree *, SceneCompositorEffectPair>>
+      scene_compositor_effects_users_;
 
  public:
   NodeTreeRelations(Main *bmain) : bmain_(bmain) {}
@@ -299,12 +307,13 @@ struct NodeTreeRelations {
     }
   }
 
-  void ensure_strip_modifier_users()
+  void ensure_strip_users()
   {
-    if (strip_modifier_users_.has_value()) {
+    if (strip_modifier_users_.has_value() || strip_effect_users_.has_value()) {
       return;
     }
     strip_modifier_users_.emplace();
+    strip_effect_users_.emplace();
     if (bmain_ == nullptr) {
       return;
     }
@@ -315,6 +324,15 @@ struct NodeTreeRelations {
         continue;
       }
       for (Strip *strip : seq::query_all_strips_recursive(&ed->seqbase)) {
+        /* Compositor effects. */
+        if (strip->type == STRIP_TYPE_COMPOSITOR && strip->effectdata != nullptr) {
+          const auto *comp = static_cast<const CompositorEffectVars *>(strip->effectdata);
+          if (comp->node_group != nullptr && !ID_MISSING(comp->node_group)) {
+            strip_effect_users_->add(comp->node_group, {&scene, strip});
+          }
+        }
+
+        /* Compositor modifiers. */
         for (StripModifierData &modifier : strip->modifiers) {
           if (modifier.type != eSeqModifierType_Compositor) {
             continue;
@@ -324,6 +342,25 @@ struct NodeTreeRelations {
           if (modifier_data->node_group != nullptr && !ID_MISSING(modifier_data->node_group)) {
             strip_modifier_users_->add(modifier_data->node_group, {&scene, &modifier});
           }
+        }
+      }
+    }
+  }
+
+  void ensure_scene_compositor_effects_users()
+  {
+    if (scene_compositor_effects_users_.has_value()) {
+      return;
+    }
+    scene_compositor_effects_users_.emplace();
+    if (bmain_ == nullptr) {
+      return;
+    }
+
+    for (Scene &scene : bmain_->scenes) {
+      for (SceneCompositorEffect &effect : scene.compositor_effects) {
+        if (effect.node_group && !ID_MISSING(effect.node_group)) {
+          scene_compositor_effects_users_->add(effect.node_group, {&scene, &effect});
         }
       }
     }
@@ -339,6 +376,18 @@ struct NodeTreeRelations {
   {
     BLI_assert(strip_modifier_users_.has_value());
     return strip_modifier_users_->lookup(ntree);
+  }
+
+  Span<StripEffectPair> get_compositor_effect_users(bNodeTree *ntree)
+  {
+    BLI_assert(strip_effect_users_.has_value());
+    return strip_effect_users_->lookup(ntree);
+  }
+
+  Span<SceneCompositorEffectPair> get_scene_compositor_effects_users(bNodeTree *ntree)
+  {
+    BLI_assert(scene_compositor_effects_users_.has_value());
+    return scene_compositor_effects_users_->lookup(ntree);
   }
 
   Span<TreeNodePair> get_group_node_users(bNodeTree *ntree)
@@ -451,15 +500,26 @@ class NodeTreeMainUpdater {
           }
         }
         if (ntree->type == NTREE_COMPOSIT) {
-          relations_.ensure_strip_modifier_users();
+          relations_.ensure_strip_users();
           for (const StripModifierPair &pair : relations_.get_strip_modifier_users(ntree)) {
             Scene *scene = pair.first;
             StripModifierData *md = pair.second;
 
             if (md->type == eSeqModifierType_Compositor) {
-              seq::compositor_nodes_update_interface(
+              seq::compositor_modifier_nodes_update_interface(
                   *bmain_, *scene, *reinterpret_cast<SequencerCompositorModifierData *>(md));
             }
+          }
+
+          for (const StripEffectPair &pair : relations_.get_compositor_effect_users(ntree)) {
+            seq::compositor_effect_nodes_update_interface(*bmain_, *pair.first, *pair.second);
+          }
+
+          relations_.ensure_scene_compositor_effects_users();
+          for (const SceneCompositorEffectPair &pair :
+               relations_.get_scene_compositor_effects_users(ntree))
+          {
+            compositor::update_effect_node_group_interface(*bmain_, *pair.first, *pair.second);
           }
         }
       }
@@ -651,6 +711,10 @@ class NodeTreeMainUpdater {
       else if (ntree.type == NTREE_COMPOSIT) {
         ntree.runtime->compositor_nodes_srna_data =
             nodes::create_compositor_nodes_rna_for_strip_modifier(ntree);
+        ntree.runtime->compositor_effect_nodes_srna_data =
+            nodes::create_compositor_nodes_rna_for_effect(ntree);
+        ntree.runtime->scene_compositor_effect_srna_data =
+            nodes::create_scene_compositor_effect_inputs_srna(ntree);
       }
     }
 

@@ -25,7 +25,8 @@ MTLVertexFormat gpu_type_to_metal_vertex_format(shader::Type type);
 class MTLVertBuf : public VertBuf {
   friend class gpu::MTLTexture; /* For buffer texture. */
   friend class MTLBatch;
-  friend class MTLStorageBuf; /* For bind as SSBO resource access and copy sub. */
+  friend class MTLStorageBuf;    /* For bind as SSBO resource access and copy sub. */
+  friend class MTLBottomLevelAS; /* For acceleration structure geometry. */
 
  private:
   /** Metal buffer allocation. */
@@ -60,6 +61,10 @@ class MTLVertBuf : public VertBuf {
   void flag_used();
 
   void update_sub(uint start, uint len, const void *data) override;
+  void copy_sub(VertBuf &source_buf,
+                uint source_first_vertex,
+                uint dest_first_vertex,
+                uint vertex_len) override;
 
   void read(void *data) const override;
 

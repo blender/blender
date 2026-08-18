@@ -54,6 +54,8 @@ struct MTLCapabilities {
   bool supports_texture_gather = false;
   bool supports_texture_atomics = false;
   bool supports_native_tile_inputs = false;
+  /* Hardware ray tracing (ray queries). */
+  bool supports_ray_tracing = false;
 
   /* GPU Family */
   bool supports_family_mac1 = false;

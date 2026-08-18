@@ -280,7 +280,7 @@ if(WITH_CYCLES_DEVICE_ONEAPI)
   add_definitions(-DWITH_ONEAPI)
 endif()
 
-if(WITH_CYCLES_EMBREE)
+if(WITH_EMBREE)
   add_definitions(-DWITH_EMBREE)
   if(WITH_CYCLES_DEVICE_ONEAPI AND EMBREE_SYCL_SUPPORT)
     # NOTE: The debug version of Embree is built without SYCL support on Windows

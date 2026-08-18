@@ -6,9 +6,12 @@
  * \ingroup spconsole
  */
 
+#include <algorithm>
 #include <cstring>
 
 #include "BLI_listbase.hh"
+#include "BLI_span.hh"
+#include "BLI_string_ref.hh"
 #include "BLI_string_utf8.hh"
 
 #include "DNA_screen_types.h"
@@ -111,50 +114,94 @@ static void console_textview_line_get(TextViewContext *tvc, const char **r_line,
   BLI_assert(cl->line[cl->len] == '\0' && (cl->len == 0 || cl->line[cl->len - 1] != '\0'));
 }
 
-static void console_cursor_wrap_offset(
-    const char *str, int width, int *row, int *column, const char *end)
+/** A character's place in the wrapped edit line, rows counted from the top. */
+struct ConsoleWrapOffset {
+  int row = 0;
+  int column = 0;
+};
+
+/** The wrapped edit line as drawn, enough to map a byte offset to a position. */
+struct ConsoleDrawLine {
+  const char *str;
+  int str_len;
+  /** Byte offset each wrapped row starts at. */
+  Span<int> offsets;
+  rcti draw_rect;
+  int char_width;
+  int line_height;
+};
+
+/**
+ * Return the wrap offset of the character at `byte_offset`,
+ * where the cursor sits at its leading edge.
+ * The column is relative to the row start, matching how drawing converts it
+ * (see #textview_draw_sel).
+ */
+static ConsoleWrapOffset console_line_wrap_offset(const ConsoleDrawLine &line,
+                                                  const int byte_offset)
 {
-  int col;
-  const int tab_width = 4;
-
-  for (; *str; str += BLI_str_utf8_size_safe(str)) {
-    col = UNLIKELY(*str == '\t') ? (tab_width - (*column % tab_width)) :
-                                   BLI_str_utf8_char_width_safe(str);
-
-    if (*column + col > width) {
-      (*row)++;
-      *column = 0;
-    }
-
-    if (end && str >= end) {
-      break;
-    }
-
-    *column += col;
+  const Span<int> offsets = line.offsets;
+  int row = 0;
+  while ((row + 1 < offsets.size()) && (offsets[row + 1] <= byte_offset)) {
+    row++;
   }
+  const int row_start = offsets[row];
+  const int row_end = (row + 1 < offsets.size()) ? offsets[row + 1] : line.str_len;
+  const int column = BLI_str_utf8_offset_to_column_with_tabs(
+      line.str + row_start, row_end - row_start, byte_offset - row_start, TVC_TAB_COLUMNS);
+  return {row, column};
+}
+
+/**
+ * Return the position of a wrap offset: X the left of the character, Y the bottom of its row.
+ * Rows count from the top while drawing is anchored to the bottom, hence the flip.
+ */
+static int2 console_line_wrap_offset_to_xy(const ConsoleDrawLine &line,
+                                           const ConsoleWrapOffset &wrap_offset)
+{
+  const int end_row = int(line.offsets.size()) - 1;
+  return {
+      line.draw_rect.xmin + (line.char_width * wrap_offset.column),
+      line.draw_rect.ymin + (line.line_height * (end_row - wrap_offset.row)),
+  };
+}
+
+/** Return the position of the character at `byte_offset`. */
+static int2 console_line_byte_to_xy(const ConsoleDrawLine &line, const int byte_offset)
+{
+  return console_line_wrap_offset_to_xy(line, console_line_wrap_offset(line, byte_offset));
 }
 
 static void console_textview_draw_cursor(TextViewContext *tvc, int char_width, int columns)
 {
-  int pen[2];
+  int2 pen;
   {
     const SpaceConsole *sc = static_cast<SpaceConsole *>(const_cast<void *>(tvc->arg1));
     /* Cache the font metrics computed during draw, reused for IME cursor positioning. */
     sc->runtime->char_width_px = char_width;
     sc->runtime->line_height_px = tvc->line_height;
     const ConsoleLine *cl = static_cast<ConsoleLine *>(sc->history.last);
-    int offl = 0, offc = 0;
 
-    console_cursor_wrap_offset(sc->prompt, columns, &offl, &offc, nullptr);
-    console_cursor_wrap_offset(cl->line, columns, &offl, &offc, cl->line + cl->cursor);
-    pen[0] = char_width * offc;
-    pen[1] = -tvc->line_height * offl;
+    /* Use the dummy scrollback line built for this draw,
+     * see #console_scrollback_prompt_begin. */
+    const ConsoleLine *cl_drawn = static_cast<const ConsoleLine *>(sc->scrollback.last);
+    const int cursor_byte = int(strlen(sc->prompt)) + cl->cursor;
 
-    console_cursor_wrap_offset(cl->line + cl->cursor, columns, &offl, &offc, nullptr);
-    pen[1] += tvc->line_height * offl;
+    /* Rebuild the wrap layout #textview_draw just drew this line with. */
+    int tot_rows;
+    int *offsets_buf;
+    textview_wrap_offsets(cl_drawn->line, cl_drawn->len, columns, &tot_rows, &offsets_buf);
+    const ConsoleDrawLine line = {
+        cl_drawn->line,
+        cl_drawn->len,
+        Span<int>(offsets_buf, tot_rows),
+        tvc->draw_rect,
+        char_width,
+        tvc->line_height,
+    };
 
-    pen[0] += tvc->draw_rect.xmin;
-    pen[1] += tvc->draw_rect.ymin;
+    pen = console_line_byte_to_xy(line, cursor_byte);
+    MEM_delete(offsets_buf);
   }
 
   /* cursor */
@@ -272,23 +319,26 @@ std::optional<blender::int2> console_cursor_region_xy_get(const SpaceConsole *sc
   rcti draw_rect, draw_rect_outer;
   console_textview_draw_rect_calc(region, &draw_rect, &draw_rect_outer);
 
-  const int line_height = sc->runtime->line_height_px;
   const int char_width = sc->runtime->char_width_px;
   const int columns = std::max((draw_rect.xmax - draw_rect.xmin) / std::max(char_width, 1), 1);
 
-  int offl = 0, offc = 0;
-  console_cursor_wrap_offset(sc->prompt, columns, &offl, &offc, nullptr);
-  console_cursor_wrap_offset(cl->line, columns, &offl, &offc, cl->line + offset);
-  int2 xy = {
-      char_width * offc,
-      -line_height * offl,
+  /* Build the edit line as drawn: prompt + input. */
+  const std::string str = StringRef(sc->prompt) + StringRef(cl->line, cl->len);
+
+  int tot_rows;
+  int *offsets_buf;
+  textview_wrap_offsets(str.c_str(), int(str.size()), columns, &tot_rows, &offsets_buf);
+  const ConsoleDrawLine line = {
+      str.c_str(),
+      int(str.size()),
+      Span<int>(offsets_buf, tot_rows),
+      draw_rect,
+      char_width,
+      sc->runtime->line_height_px,
   };
+  const int2 xy = console_line_byte_to_xy(line, int(strlen(sc->prompt)) + offset);
+  MEM_delete(offsets_buf);
 
-  console_cursor_wrap_offset(cl->line + offset, columns, &offl, &offc, nullptr);
-  xy[1] += line_height * offl;
-
-  xy[0] += draw_rect.xmin;
-  xy[1] += draw_rect.ymin;
   return xy;
 }
 

@@ -12,12 +12,17 @@
 #include <Alembic/Abc/OCompoundProperty.h>
 
 #include "BLI_map.hh"
+#include "BLI_math_vector_types.hh"
 
 #include <string>
 
 namespace blender {
 
 struct IDProperty;
+
+namespace bke {
+class AttributeAccessor;
+}
 
 namespace io::alembic {
 
@@ -79,6 +84,12 @@ class CustomPropertiesExporter {
   template<typename ABCPropertyType>
   Alembic::Abc::OArrayProperty create_abc_property(StringRef property_name);
 };
+
+void get_positions(const Span<float3> positions, std::vector<Imath::V3f> &points);
+
+/* Returns true if the attributes have a velocity attribute on the point domain which was used
+ * to fill the velocities. */
+bool get_velocities(const bke::AttributeAccessor &attributes, std::vector<Imath::V3f> &velocities);
 
 }  // namespace io::alembic
 }  // namespace blender

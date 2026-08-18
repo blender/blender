@@ -133,7 +133,7 @@ ccl_device void integrator_volume_stack_init(KernelGlobals kg, IntegratorState s
 
     for (uint hit = 0; hit < num_hits; ++hit, ++isect) {
       shader_setup_from_ray(kg, stack_sd, &volume_ray, isect);
-      if (stack_sd->flag & SD_BACKFACING) {
+      if (stack_sd->runtime_flag & SR_BACKFACING) {
         bool need_add = true;
         for (int i = 0; i < enclosed_index && need_add; ++i) {
           /* If ray exited the volume and never entered to that volume
@@ -179,7 +179,7 @@ ccl_device void integrator_volume_stack_init(KernelGlobals kg, IntegratorState s
     }
 
     shader_setup_from_ray(kg, stack_sd, &volume_ray, &isect);
-    if (stack_sd->flag & SD_BACKFACING) {
+    if (stack_sd->runtime_flag & SR_BACKFACING) {
       /* If ray exited the volume and never entered to that volume
        * it means that camera is inside such a volume.
        */

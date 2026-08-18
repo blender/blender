@@ -565,7 +565,7 @@ static bool panel_custom_pin_to_last_get(const Panel *panel)
 {
   if (panel->type->pin_to_last_property[0] != '\0') {
     PointerRNA *ptr = panel_custom_data_get(panel);
-    if (ptr != nullptr && !RNA_pointer_is_null(ptr)) {
+    if (ptr != nullptr && *ptr) {
       return RNA_boolean_get(ptr, panel->type->pin_to_last_property);
     }
   }
@@ -577,7 +577,7 @@ static void panel_custom_pin_to_last_set(const bContext *C, const Panel *panel, 
 {
   if (panel->type->pin_to_last_property[0] != '\0') {
     PointerRNA *ptr = panel_custom_data_get(panel);
-    if (ptr != nullptr && !RNA_pointer_is_null(ptr)) {
+    if (ptr != nullptr && *ptr) {
       PropertyRNA *prop = RNA_struct_find_property(ptr, panel->type->pin_to_last_property);
       RNA_boolean_set(ptr, panel->type->pin_to_last_property, value);
       RNA_property_update(const_cast<bContext *>(C), ptr, prop);
@@ -593,7 +593,7 @@ static bool panel_custom_data_active_get(const Panel *panel)
 
   if (panel->type->active_property[0] != '\0') {
     PointerRNA *ptr = panel_custom_data_get(panel);
-    if (ptr != nullptr && !RNA_pointer_is_null(ptr)) {
+    if (ptr != nullptr && *ptr) {
       return RNA_boolean_get(ptr, panel->type->active_property);
     }
   }
@@ -610,7 +610,7 @@ static void panel_custom_data_active_set(Panel *panel)
   if (panel->type->active_property[0] != '\0') {
     PointerRNA *ptr = panel_custom_data_get(panel);
     BLI_assert(RNA_struct_find_property(ptr, panel->type->active_property) != nullptr);
-    if (ptr != nullptr && !RNA_pointer_is_null(ptr)) {
+    if (ptr != nullptr && *ptr) {
       RNA_boolean_set(ptr, panel->type->active_property, true);
     }
   }
@@ -1064,7 +1064,7 @@ static void panel_title_color_get(const Panel *panel,
                                   const bool region_search_filter_active,
                                   uchar r_color[4])
 {
-  bTheme *btheme = theme::theme_get();
+  const bTheme *btheme = theme::theme_get();
 
   if (!show_background) {
     /* Use menu colors for floating panels. */
@@ -2665,9 +2665,8 @@ int handler_panel_region(bContext *C,
     }
     else if ((event->type == RIGHTMOUSE) && panel_categories_tab_is_mouse_over(region, event)) {
       BLI_assert(retval == WM_UI_HANDLER_CONTINUE);
-      retval = WM_UI_HANDLER_BREAK;
       WM_tooltip_clear(C, CTX_wm_window(C));
-      popup_context_menu_for_panel(C, region, nullptr);
+      retval = popup_context_menu_for_panel(C, region, nullptr);
     }
   }
 
@@ -2715,14 +2714,6 @@ int handler_panel_region(bContext *C,
       continue;
     }
 
-    if (has_panel_header && event->type == RIGHTMOUSE) {
-      if (ELEM(mouse_state, PANEL_MOUSE_INSIDE_HEADER, PANEL_MOUSE_INSIDE_CONTENT)) {
-        retval = WM_UI_HANDLER_BREAK;
-        popup_context_menu_for_panel(C, region, block.panel);
-        break;
-      }
-    }
-
     if ((has_panel_header && mouse_state == PANEL_MOUSE_INSIDE_HEADER)) {
       /* All mouse clicks inside panel headers should return in break. */
       if (ELEM(event->type, EVT_RETKEY, EVT_PADENTER, LEFTMOUSE)) {
@@ -2731,8 +2722,7 @@ int handler_panel_region(bContext *C,
             C, &block, mx, event->type, event->modifier & KM_CTRL, event->modifier & KM_SHIFT);
       }
       else if (event->type == RIGHTMOUSE) {
-        retval = WM_UI_HANDLER_BREAK;
-        popup_context_menu_for_panel(C, region, block.panel);
+        retval = popup_context_menu_for_panel(C, region, block.panel);
       }
       break;
     }

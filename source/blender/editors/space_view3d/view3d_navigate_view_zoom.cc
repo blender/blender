@@ -6,10 +6,13 @@
  * \ingroup spview3d
  */
 
+#include "BLI_math_matrix.hh"
+#include "BLI_math_rotation.hh"
 #include "BLI_math_vector_c.hh"
 #include "BLI_rect.hh"
 #include "BLI_time.hh"
 
+#include "BKE_camera.h"
 #include "BKE_context.hh"
 #include "BKE_screen.hh"
 
@@ -77,28 +80,55 @@ static void view_zoom_to_window_xy_camera(Scene *scene,
     rctf camera_frame_old;
     rctf camera_frame_new;
 
-    const float pt_src[2] = {float(zoom_xy[0]), float(zoom_xy[1])};
-    float pt_dst[2];
-    float delta_px[2];
+    const float2 pt_src(zoom_xy[0] - region->winrct.xmin, zoom_xy[1] - region->winrct.ymin);
+    float2 pt_dst;
+    float2 delta_px;
 
-    ED_view3d_calc_camera_border(scene, depsgraph, region, v3d, rv3d, false, &camera_frame_old);
-    BLI_rctf_translate(&camera_frame_old, region->winrct.xmin, region->winrct.ymin);
+    /* Calculate the center of zoom with roll applied. */
+    if (rv3d->camroll != 0.0f) {
+      const float2 center(region->winx / 2, region->winy / 2);
 
-    rv3d->camzoom = camzoom_new;
-    CLAMP(rv3d->camzoom, RV3D_CAMZOOM_MIN, RV3D_CAMZOOM_MAX);
+      const float2 pt_src_rotated = rotate_around_point_2d(
+          pt_src, center, math::AngleRadian(-rv3d->camroll));
 
-    ED_view3d_calc_camera_border(scene, depsgraph, region, v3d, rv3d, false, &camera_frame_new);
-    BLI_rctf_translate(&camera_frame_new, region->winrct.xmin, region->winrct.ymin);
+      const float2x2 rot_invert = math::from_rotation<float2x2>(math::AngleRadian(-rv3d->camroll));
 
-    BLI_rctf_transform_pt_v(&camera_frame_new, &camera_frame_old, pt_dst, pt_src);
-    sub_v2_v2v2(delta_px, pt_dst, pt_src);
+      camera_frame_old = BKE_camera_view_border(
+          scene, depsgraph, v3d, rv3d, region->winx, region->winy, false, false, true);
+
+      rv3d->camzoom = camzoom_new;
+      CLAMP(rv3d->camzoom, RV3D_CAMZOOM_MIN, RV3D_CAMZOOM_MAX);
+
+      camera_frame_new = BKE_camera_view_border(
+          scene, depsgraph, v3d, rv3d, region->winx, region->winy, false, false, true);
+
+      BLI_rctf_transform_pt_v(&camera_frame_new, &camera_frame_old, pt_dst, pt_src_rotated);
+      pt_dst = rotate_around_point_2d(pt_dst, center, math::AngleRadian(rv3d->camroll));
+
+      delta_px = pt_dst - pt_src;
+      delta_px = rot_invert * delta_px;
+    }
+    else {
+      camera_frame_old = BKE_camera_view_border(
+          scene, depsgraph, v3d, rv3d, region->winx, region->winy, false, false, true);
+
+      rv3d->camzoom = camzoom_new;
+      CLAMP(rv3d->camzoom, RV3D_CAMZOOM_MIN, RV3D_CAMZOOM_MAX);
+
+      camera_frame_new = BKE_camera_view_border(
+          scene, depsgraph, v3d, rv3d, region->winx, region->winy, false, false, true);
+
+      BLI_rctf_transform_pt_v(&camera_frame_new, &camera_frame_old, pt_dst, pt_src);
+
+      delta_px = pt_dst - pt_src;
+    }
 
     /* translate the camera offset using pixel space delta
      * mapped back to the camera (same logic as panning in camera view) */
     zoomfac_px = BKE_screen_view3d_zoom_to_fac(rv3d->camzoom) * 2.0f;
 
-    rv3d->camdx += delta_px[0] / (region->winx * zoomfac_px);
-    rv3d->camdy += delta_px[1] / (region->winy * zoomfac_px);
+    rv3d->camdx += delta_px.x / (region->winx * zoomfac_px);
+    rv3d->camdy += delta_px.y / (region->winy * zoomfac_px);
     CLAMP(rv3d->camdx, -1.0f, 1.0f);
     CLAMP(rv3d->camdy, -1.0f, 1.0f);
   }

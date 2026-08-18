@@ -130,6 +130,9 @@ class GHOST_WindowWayland : public GHOST_Window {
 
   uint16_t getDPIHint() override;
 
+  /** \copydoc #GHOST_IWindow::getTiledEdges */
+  GHOST_TWindowTiledFlag getTiledEdges() const override;
+
   GHOST_TSuccess setWindowCursorGrab(GHOST_TGrabCursorMode mode) override;
 
   GHOST_TSuccess setWindowCursorShape(GHOST_TStandardCursor shape) override;
@@ -249,6 +252,12 @@ class GHOST_WindowWayland : public GHOST_Window {
 
   GHOST_TCSD_Type csd_elem_active_type_get() const;
   void csd_elem_active_type_set(GHOST_TCSD_Type type);
+
+  /**
+   * The margin & window size in surface local coordinates,
+   * as last applied to the margin surface (see #GWL_WindowCSD).
+   */
+  void csd_margin_geometry_get(int32_t &r_margin_size, int32_t r_window_size[2]) const;
 #endif
 
  private:

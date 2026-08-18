@@ -47,7 +47,7 @@
 #include "IMB_colormanagement.hh"
 #include "IMB_imbuf_types.hh"
 
-#include "ED_image.hh"
+#include "ED_paint.hh"
 #include "ED_view3d.hh"
 
 #include "GPU_immediate.hh"
@@ -1202,10 +1202,15 @@ static void paint_cursor_update_rake_rotation(PaintCursorContext &pcontext)
   /* Don't calculate rake angles while a stroke is active because the rake variables are global
    * and we may get interference with the stroke itself.
    * For line strokes, such interference is visible. */
+
   const bke::PaintRuntime *paint_runtime = pcontext.paint->runtime;
+
+  ARegion *region = pcontext.vc.region;
+  float2 mouse = {pcontext.translation.x - region->winrct.xmin,
+                  pcontext.translation.y - region->winrct.ymin};
   if (!paint_runtime->stroke_active) {
     paint_calculate_rake_rotation(
-        *pcontext.paint, *pcontext.brush, pcontext.translation, pcontext.mode, true);
+        *pcontext.paint, *pcontext.brush, mouse, pcontext.mode, false, false);
   }
 }
 

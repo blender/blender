@@ -3,6 +3,7 @@
  * SPDX-License-Identifier: GPL-2.0-or-later */
 
 #include "node_geometry_util.hh"
+#include "shader/node_shader_util.hh"
 
 #include "BKE_node_tree_reference_lifetimes.hh"
 
@@ -75,10 +76,10 @@ static void node_layout(ui::Layout &layout, bContext * /*C*/, PointerRNA *ptr)
   layout.prop(ptr, "input_type", UI_ITEM_NONE, "", ICON_NONE);
 }
 
-static void node_init(bNodeTree * /*tree*/, bNode *node)
+static void node_init(bNodeTree *tree, bNode *node)
 {
   NodeSwitch *data = MEM_new<NodeSwitch>(__func__);
-  data->input_type = SOCK_FLOAT;
+  data->input_type = tree->type == NTREE_GEOMETRY ? SOCK_FLOAT : SOCK_RGBA;
   node->storage = data;
 }
 
@@ -303,7 +304,7 @@ static void register_node()
 {
   static bke::bNodeType ntype;
 
-  geo_cmp_node_type_base(&ntype, "GeometryNodeSwitch"_ustr, GEO_NODE_SWITCH);
+  common_node_type_base(&ntype, "GeometryNodeSwitch"_ustr, GEO_NODE_SWITCH);
   ntype.ui_name = "Switch";
   ntype.ui_description = "Switch between two inputs";
   ntype.enum_name_legacy = "SWITCH";

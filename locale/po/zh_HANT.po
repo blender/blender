@@ -1,10 +1,10 @@
 
 msgid ""
 msgstr ""
-"Project-Id-Version: Blender 5.3.0 Alpha (b'96294be75080')\n"
+"Project-Id-Version: Blender 5.3.0 Alpha (b'af4852ed4560')\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-07-20 07:29+0000\n"
-"PO-Revision-Date: 2026-06-25 10:12+0000\n"
+"POT-Creation-Date: 2026-08-10 07:54+0000\n"
+"PO-Revision-Date: 2026-07-31 17:12+0000\n"
 "Last-Translator: Ye Gui <ziweidao@foxmail.com>\n"
 "Language-Team: Chinese (Traditional Han script) <https://translate.blender.org/projects/blender-ui/ui/zh_Hant/>\n"
 "Language: zh_HANT\n"
@@ -12,7 +12,7 @@ msgstr ""
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8bit\n"
 "Plural-Forms: nplurals=1; plural=0;\n"
-"X-Generator: Weblate 5.16.2"
+"X-Generator: Weblate 2026.6.1"
 
 
 msgid "Shader AOV"
@@ -3415,10 +3415,6 @@ msgid "Point cloud data-blocks"
 msgstr "點雲數據組塊"
 
 
-msgid "Project"
-msgstr "投影"
-
-
 msgid "Scene data-blocks"
 msgstr "場景數據組塊"
 
@@ -4812,14 +4808,6 @@ msgstr "色彩集 ID"
 
 msgid "Add Selection Set"
 msgstr "加入選取集"
-
-
-msgid "UI Row"
-msgstr "UI 列"
-
-
-msgid "UI Title"
-msgstr "UI 標題"
 
 
 msgid "Unique ID"
@@ -8599,6 +8587,10 @@ msgstr "最近的表面點"
 
 msgid "Shrink the location to the nearest target surface"
 msgstr "將位置收縮至最近的目標表面"
+
+
+msgid "Project"
+msgstr "投影"
 
 
 msgid "Shrink the location to the nearest target surface along a given axis"
@@ -14948,90 +14940,6 @@ msgid "Theme"
 msgstr "主題"
 
 
-msgid "THEME01"
-msgstr "主題01"
-
-
-msgid "THEME02"
-msgstr "主題02"
-
-
-msgid "THEME03"
-msgstr "主題03"
-
-
-msgid "THEME04"
-msgstr "主題04"
-
-
-msgid "THEME05"
-msgstr "主題05"
-
-
-msgid "THEME06"
-msgstr "主題06"
-
-
-msgid "THEME07"
-msgstr "主題07"
-
-
-msgid "THEME08"
-msgstr "主題08"
-
-
-msgid "THEME09"
-msgstr "主題09"
-
-
-msgid "THEME10"
-msgstr "主題10"
-
-
-msgid "THEME11"
-msgstr "主題11"
-
-
-msgid "THEME12"
-msgstr "主題12"
-
-
-msgid "THEME13"
-msgstr "主題13"
-
-
-msgid "THEME14"
-msgstr "主題14"
-
-
-msgid "THEME15"
-msgstr "主題15"
-
-
-msgid "THEME16"
-msgstr "主題16"
-
-
-msgid "THEME17"
-msgstr "主題17"
-
-
-msgid "THEME18"
-msgstr "主題18"
-
-
-msgid "THEME19"
-msgstr "主題19"
-
-
-msgid "THEME20"
-msgstr "主題20"
-
-
-msgid "Widgets Collection"
-msgstr "元件集合"
-
-
 msgid "Display Axes"
 msgstr "顯示軸向"
 
@@ -16095,14 +16003,6 @@ msgid "Grab Silhouette"
 msgstr "抓取剪影"
 
 
-msgid "Inverse Smooth Pressure"
-msgstr "反轉平滑壓力"
-
-
-msgid "Lighter pressure causes more smoothing to be applied"
-msgstr "較輕的壓力導致套用效果更平滑"
-
-
 msgid "Size Unit"
 msgstr "大小單位"
 
@@ -17155,10 +17055,6 @@ msgstr "編輯時不填補多角形"
 
 msgid "Selection Domain"
 msgstr "選取域"
-
-
-msgid "Collision distance"
-msgstr "碰撞距離"
 
 
 msgid "Surface UV Map"
@@ -26476,16 +26372,12 @@ msgid "Material slot name"
 msgstr "材質槽名稱"
 
 
-msgid "Apply"
-msgstr "套用"
+msgid "Names"
+msgstr "名稱"
 
 
-msgid "Track"
-msgstr "追蹤"
-
-
-msgid "Quick Effects"
-msgstr "快速效果"
+msgid "Bone Roll"
+msgstr "骨骼滾動"
 
 
 msgid "Show/Hide"
@@ -26496,160 +26388,32 @@ msgid "Clean Up"
 msgstr "清理"
 
 
-msgid "Asset"
-msgstr "素材"
+msgid "Adjust"
+msgstr "調整"
 
 
-msgid "Make Single User"
-msgstr "製作單一使用者"
+msgid "Keying"
+msgstr "鍵處理"
 
 
-msgid "Convert"
-msgstr "轉換"
-
-
-msgid "Link/Transfer Data"
-msgstr "連結/傳輸資料"
-
-
-msgid "Hooks"
-msgstr "鉤"
-
-
-msgid "Vertex Group Locks"
-msgstr "頂點群組鎖定"
-
-
-msgid "Trim/Add"
-msgstr "修剪/增加"
-
-
-msgid "Sculpt Set Pivot"
-msgstr "雕刻設定樞紐"
-
-
-msgid "Face Sets Init"
-msgstr "面集初始化"
-
-
-msgid "Random Mask"
-msgstr "隨機遮罩"
-
-
-msgid "Math"
-msgstr "數學公式"
-
-
-msgid "Clear Transform"
-msgstr "清除變換"
+msgid "Tracking"
+msgstr "跟蹤"
 
 
 msgid "Utilities"
 msgstr "效用"
 
 
-msgid "In-Betweens"
-msgstr "內部之間"
-
-
-msgid "Propagate"
-msgstr "增生"
-
-
-msgid "Bone Collections"
-msgstr "骨骼集盒"
-
-
-msgid "Names"
-msgstr "名稱"
-
-
-msgid "Toggle Bone Options"
-msgstr "開關骨骼選項"
-
-
-msgid "Enable Bone Options"
-msgstr "啟用骨骼設定"
-
-
-msgid "Disable Bone Options"
-msgstr "停用骨骼設定"
-
-
-msgid "Mesh Select Mode"
-msgstr "網格選取模式"
-
-
-msgid "Face Data"
-msgstr "面資料"
-
-
-msgid "Read"
-msgstr "讀取"
-
-
-msgid "Sample"
-msgstr "取樣"
-
-
-msgid "Write"
-msgstr "寫入"
-
-
-msgid "Set Face Strength"
-msgstr "設定面強度"
-
-
-msgid "Primitives"
-msgstr "原形"
-
-
-msgid "Merge"
-msgstr "合併"
-
-
-msgid "Gizmo"
-msgstr "操縱器"
-
-
-msgid "Render Preview"
-msgstr "算繪預覽"
-
-
-msgid "Instances"
-msgstr "實例化"
-
-
-msgid "Special Characters"
-msgstr "特殊字元"
-
-
-msgid "Kerning"
-msgstr "字間微調"
-
-
-msgid "Metaball"
-msgstr "變幻球"
-
-
-msgid "Import"
-msgstr "匯入"
-
-
-msgid "Bone Roll"
-msgstr "骨骼滾動"
-
-
-msgid "Deprecated"
-msgstr "已棄用"
-
-
-msgid "UV"
-msgstr "UV"
+msgid "Math"
+msgstr "數學公式"
 
 
 msgid "Pivot Point"
 msgstr "樞紐點"
+
+
+msgid "Creative"
+msgstr "創意"
 
 
 msgid "Snap"
@@ -26670,6 +26434,10 @@ msgstr "自動遮罩"
 
 msgid "Face Sets Edit"
 msgstr "面集編輯"
+
+
+msgid "Vertex Group Locks"
+msgstr "頂點群組鎖定"
 
 
 msgid "Mirror"
@@ -26716,14 +26484,6 @@ msgid "Select All by Trait"
 msgstr "依特徵全選"
 
 
-msgid "Linked"
-msgstr "已連結"
-
-
-msgid "Layout"
-msgstr "配置"
-
-
 msgid "Select Linked"
 msgstr "選取連結項"
 
@@ -26736,16 +26496,24 @@ msgid "Assign Material"
 msgstr "指派材質"
 
 
-msgid "Adjust"
-msgstr "調整"
+msgid "Read"
+msgstr "讀取"
 
 
-msgid "Keying"
-msgstr "鍵處理"
+msgid "Sample"
+msgstr "取樣"
 
 
-msgid "Tracking"
-msgstr "跟蹤"
+msgid "Write"
+msgstr "寫入"
+
+
+msgid "Primitives"
+msgstr "原形"
+
+
+msgid "Metaball"
+msgstr "變幻球"
 
 
 msgid "Light"
@@ -26756,20 +26524,148 @@ msgid "Light Probe"
 msgstr "燈光採樣器"
 
 
-msgid "Creative"
-msgstr "創意"
-
-
 msgid "Add Image"
 msgstr "新增影像"
+
+
+msgid "Gizmo"
+msgstr "操縱器"
 
 
 msgid "Relations"
 msgstr "關係"
 
 
+msgid "Instances"
+msgstr "實例化"
+
+
+msgid "Render Preview"
+msgstr "算繪預覽"
+
+
 msgid "Rigid Body"
 msgstr "剛體"
+
+
+msgid "Apply"
+msgstr "套用"
+
+
+msgid "Import"
+msgstr "匯入"
+
+
+msgid "Track"
+msgstr "追蹤"
+
+
+msgid "Quick Effects"
+msgstr "快速效果"
+
+
+msgid "Asset"
+msgstr "素材"
+
+
+msgid "Deprecated"
+msgstr "已棄用"
+
+
+msgid "Make Single User"
+msgstr "製作單一使用者"
+
+
+msgid "Convert"
+msgstr "轉換"
+
+
+msgid "Link/Transfer Data"
+msgstr "連結/傳輸資料"
+
+
+msgid "Hooks"
+msgstr "鉤"
+
+
+msgid "UV"
+msgstr "UV"
+
+
+msgid "Trim/Add"
+msgstr "修剪/增加"
+
+
+msgid "Sculpt Set Pivot"
+msgstr "雕刻設定樞紐"
+
+
+msgid "Face Sets Init"
+msgstr "面集初始化"
+
+
+msgid "Random Mask"
+msgstr "隨機遮罩"
+
+
+msgid "Clear Transform"
+msgstr "清除變換"
+
+
+msgid "In-Betweens"
+msgstr "內部之間"
+
+
+msgid "Propagate"
+msgstr "增生"
+
+
+msgid "Bone Collections"
+msgstr "骨骼集盒"
+
+
+msgid "Toggle Bone Options"
+msgstr "開關骨骼選項"
+
+
+msgid "Enable Bone Options"
+msgstr "啟用骨骼設定"
+
+
+msgid "Disable Bone Options"
+msgstr "停用骨骼設定"
+
+
+msgid "Mesh Select Mode"
+msgstr "網格選取模式"
+
+
+msgid "Face Data"
+msgstr "面資料"
+
+
+msgid "Set Face Strength"
+msgstr "設定面強度"
+
+
+msgid "Merge"
+msgstr "合併"
+
+
+msgid "Linked"
+msgstr "已連結"
+
+
+msgid "Special Characters"
+msgstr "特殊字元"
+
+
+msgid "Layout"
+msgstr "配置"
+
+
+msgid "Kerning"
+msgstr "字間微調"
 
 
 msgid "Keyframe Insert Pie"
@@ -34850,6 +34746,10 @@ msgid "Set Geometry Name"
 msgstr "設定幾何名稱"
 
 
+msgid "Depth Order"
+msgstr "深度順序"
+
+
 msgid "Set Grid Background"
 msgstr "設定格線背景"
 
@@ -36514,6 +36414,10 @@ msgstr "生成項目"
 
 msgid "Main Items"
 msgstr "主要項目"
+
+
+msgid "Scalar"
+msgstr "純量"
 
 
 msgid "Viewer Item"
@@ -39098,15 +39002,6 @@ msgstr "生成的"
 
 
 msgctxt "Operator"
-msgid "Make Markers Local"
-msgstr "讓標記變為區域性"
-
-
-msgid "Move selected scene markers to the active Action as local 'pose' markers"
-msgstr "將所選場景標記移動到作用中動作，作為區域「姿勢」標記"
-
-
-msgctxt "Operator"
 msgid "Mirror Keys"
 msgstr "鏡像鍵"
 
@@ -40685,10 +40580,6 @@ msgstr "縮放雕塑/繪圖筆刷大小"
 
 msgid "Change brush size by a scalar"
 msgstr "依純量變更筆刷大小"
-
-
-msgid "Scalar"
-msgstr "純量"
 
 
 msgid "Factor to scale brush size by"
@@ -53097,10 +52988,6 @@ msgid "Weight from Bones"
 msgstr "權重來自骨骼"
 
 
-msgid "Set the weights of the groups matching the attached armature's selected bones, using the distance between the vertices and the bones"
-msgstr "設定符合連接的骨架其所選骨骼的群組權重，用的是頂點與骨骼之間的距離"
-
-
 msgid "Method to use for assigning weights"
 msgstr "指派權重所使用的方法"
 
@@ -61315,14 +61202,6 @@ msgid "glTF Animations"
 msgstr "glTF 動畫"
 
 
-msgid "VR"
-msgstr "VR"
-
-
-msgid "VR Info"
-msgstr "VR 資訊"
-
-
 msgid "Active Tool"
 msgstr "作用中工具"
 
@@ -61417,6 +61296,14 @@ msgstr "自動遮罩"
 
 msgid "Viewport Debug"
 msgstr "視圖除錯"
+
+
+msgid "VR"
+msgstr "VR"
+
+
+msgid "VR Info"
+msgstr "VR 資訊"
 
 
 msgid "glTF Variants"
@@ -62322,12 +62209,16 @@ msgid "Find & Replace"
 msgstr "尋找與取代"
 
 
-msgid "Auto Keyframing"
+msgid "Auto Keying"
 msgstr "自動插入關鍵影格"
 
 
 msgid "Time Jump"
 msgstr "時間跳躍"
+
+
+msgid "Keyframing"
+msgstr "鍵幀處理"
 
 
 msgid "Playback"
@@ -66587,10 +66478,6 @@ msgid "Filter Glossy"
 msgstr "過濾光澤"
 
 
-msgid "Adaptively blur glossy shaders after blurry bounces, to reduce noise at the cost of accuracy"
-msgstr "適應性地讓光澤著色器在模糊反彈之後變得模糊，可犧牲精確度以換取噪訊的降低"
-
-
 msgid "Camera Cull Margin"
 msgstr "攝影機剔除邊距"
 
@@ -67159,14 +67046,6 @@ msgid "Collection Name"
 msgstr "集盒名稱"
 
 
-msgid "object_color"
-msgstr "物體色彩"
-
-
-msgid "Color picker"
-msgstr "揀色器"
-
-
 msgid "Cluster controls"
 msgstr "叢集控制項"
 
@@ -67457,10 +67336,6 @@ msgstr "建立尾部骨骼"
 
 msgid "Widget Offset"
 msgstr "元件偏移"
-
-
-msgid "color picker"
-msgstr "揀色器"
 
 
 msgid "Selected UV Element"
@@ -74428,10 +74303,6 @@ msgid "Window Background"
 msgstr "視窗背景"
 
 
-msgid "Header Text Highlight"
-msgstr "標頭文字標明"
-
-
 msgid "Text Highlight"
 msgstr "文字標明"
 
@@ -75159,10 +75030,6 @@ msgstr "多影格編輯"
 
 msgid "Cycle-Aware Keying"
 msgstr "循環意識關鍵影格處理"
-
-
-msgid "Auto Keying"
-msgstr "自動插入關鍵影格"
 
 
 msgid "Auto Keyframe Insert Keying Set"
@@ -78656,7 +78523,7 @@ msgstr "儲存庫： {:s}"
 
 
 msgid "Size: {:s}"
-msgstr "大小：%s"
+msgstr "大小：{:s}"
 
 
 msgid "Age: {:s}"
@@ -79689,18 +79556,9 @@ msgid "Rig UI Script"
 msgstr "綁定 UI 腳本"
 
 
-msgid "Run Script"
-msgstr "執行命令稿"
-
-
 msgctxt "Operator"
 msgid "Add sample"
 msgstr "加入採樣"
-
-
-msgctxt "Operator"
-msgid "Apply"
-msgstr "套用"
 
 
 msgctxt "Operator"
@@ -84010,6 +83868,10 @@ msgid "Duplicate Marker to Scene"
 msgstr "製作標記複本至場景"
 
 
+msgid "Jump Unit"
+msgstr "跳躍單位"
+
+
 msgid "Limit to Frame Range"
 msgstr "限制於影格區間"
 
@@ -84028,19 +83890,6 @@ msgstr "作用中編輯器"
 
 msgid "Properties and Sidebars"
 msgstr "屬性與側邊欄"
-
-
-msgid "New Keyframe Type"
-msgstr "新關鍵影格類型"
-
-
-msgid "Jump Unit"
-msgstr "跳躍單位"
-
-
-msgctxt "WindowManager"
-msgid "Keying"
-msgstr "鍵處理"
 
 
 msgid "Layered Recording"
@@ -84428,10 +84277,6 @@ msgstr "最小格線間距"
 
 msgid "Only Insert Needed"
 msgstr "只在需要時插入"
-
-
-msgid "Keyframing"
-msgstr "鍵幀處理"
 
 
 msgid "Auto-Keyframing"
@@ -86588,6 +86433,11 @@ msgstr "多繪製"
 msgctxt "Operator"
 msgid "Quick Edit"
 msgstr "快速編輯"
+
+
+msgctxt "Operator"
+msgid "Apply"
+msgstr "套用"
 
 
 msgctxt "Operator"
@@ -92425,6 +92275,10 @@ msgid "Size:"
 msgstr "大小："
 
 
+msgid "U Scale"
+msgstr "U 縮放"
+
+
 msgid "Displays global values"
 msgstr "顯示全域值"
 
@@ -96018,10 +95872,6 @@ msgid "Scale Mode"
 msgstr "縮放模式"
 
 
-msgid "Depth Order"
-msgstr "深度順序"
-
-
 msgid "Remove Custom"
 msgstr "移除自訂"
 
@@ -98182,6 +98032,10 @@ msgstr "末梢位置"
 
 msgid "Tip Selection"
 msgstr "末梢選取"
+
+
+msgid "Damping settings."
+msgstr "阻尼設定。"
 
 
 msgid "Align Rotation"

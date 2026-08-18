@@ -24,6 +24,7 @@
 #include "BKE_action.hh"
 #include "BKE_anim_path.h"
 #include "BKE_armature.hh"
+#include "BKE_constraint.h"
 #include "BKE_curve.hh"
 #include "BKE_object_types.hh"
 #include "BKE_scene.hh"
@@ -77,7 +78,7 @@ static void splineik_init_tree_from_pchan(Scene * /*scene*/, Object *ob, bPoseCh
         continue;
       }
       /* Skip if disabled. */
-      if ((con->enforce == 0.0f) || (con->flag & (CONSTRAINT_DISABLE | CONSTRAINT_OFF))) {
+      if (!BKE_constraint_has_influence(con)) {
         continue;
       }
 

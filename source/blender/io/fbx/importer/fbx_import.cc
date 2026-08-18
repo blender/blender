@@ -230,10 +230,7 @@ void FbxImportContext::import_lights()
     lamp->b = flight->color.z;
     lamp->energy = flight->intensity;
     lamp->exposure = ufbx_find_real(&flight->props, "Exposure", 0.0);
-    if (flight->cast_shadows) {
-      lamp->mode |= LA_SHADOW;
-    }
-    //@TODO: if hasattr(lamp, "cycles"): lamp.cycles.cast_shadow = lamp.use_shadow
+    lamp->mode = flight->cast_shadows ? (lamp->mode | LA_SHADOW) : (lamp->mode & ~LA_SHADOW);
 
     Object *obj = BKE_object_add_only_object(this->bmain, OB_LAMP, get_fbx_name(node->name));
     obj->data = id_cast<ID *>(lamp);

@@ -99,6 +99,10 @@ class Context {
    * render pipeline. */
   virtual RenderContext *render_context() const;
 
+  /* Returns true if this context is the viewport compositor, as opposed to the interactive
+   * compositor or a final render. */
+  virtual bool is_viewport() const;
+
   /* Returns a pointer to a nodes evaluation log of the context, this can be nullptr for context
    * that does not support logging. */
   virtual nodes::eval_log::NodesEvalLog *nodes_evaluation_log() const;

@@ -16,6 +16,7 @@
 #include "NOD_eval_log.hh"
 
 #include "COM_algorithm_compute_preview.hh"
+#include "COM_bundle_item.hh"
 #include "COM_context.hh"
 #include "COM_input_descriptor.hh"
 #include "COM_node_operation.hh"
@@ -120,6 +121,18 @@ void NodeOperation::set_needs_node_previews(const bool needed)
   needs_node_previews_ = needed;
 }
 
+void NodeOperation::add_warning(nodes::NodeWarningType type, std::string message)
+{
+  nodes::eval_log::NodesEvalLog *log = this->context().nodes_evaluation_log();
+  if (!log) {
+    return;
+  }
+  nodes::eval_log::NodeTreeLogger &tree_logger = log->get_local_tree_logger(
+      this->get_compute_context());
+  tree_logger.node_warnings.append(*tree_logger.allocator,
+                                   {this->node().identifier, {type, message}});
+}
+
 static destruct_ptr<nodes::eval_log::ImageInfoLog> get_image_info_log(LinearAllocator<> *allocator,
                                                                       const Result &result)
 {
@@ -135,16 +148,16 @@ static destruct_ptr<nodes::eval_log::ImageInfoLog> get_image_info_log(LinearAllo
       to_string(result.precision()));
 }
 
-void NodeOperation::add_warning(nodes::NodeWarningType type, std::string message)
+static destruct_ptr<nodes::eval_log::BundleValueLog> get_bundle_info_log(
+    Context &context, LinearAllocator<> *allocator, const Result &result)
 {
-  nodes::eval_log::NodesEvalLog *log = this->context().nodes_evaluation_log();
-  if (!log) {
-    return;
+  Vector<nodes::eval_log::BundleValueLog::Item> items;
+  for (const auto &item : result.get_single_value<nodes::BundlePtr>()->items()) {
+    Result bundle_result = BundleItem::get_result(context, item.value);
+    BLI_SCOPED_DEFER([&]() { bundle_result.release(); });
+    items.append({item.key.ustr(), {Result::type_name(bundle_result.type())}});
   }
-  nodes::eval_log::NodeTreeLogger &tree_logger = log->get_local_tree_logger(
-      this->get_compute_context());
-  tree_logger.node_warnings.append(*tree_logger.allocator,
-                                   {this->node().identifier, {type, message}});
+  return allocator->construct<nodes::eval_log::BundleValueLog>(std::move(items));
 }
 
 void NodeOperation::log_data()
@@ -168,6 +181,14 @@ void NodeOperation::log_data()
 
     const Result &input = this->get_input(input_socket->identifier);
     if (input.is_single_value()) {
+      if (input.type() == ResultType::Bundle) {
+        tree_logger.input_socket_values.append(
+            *tree_logger.allocator,
+            {node_.identifier,
+             input_socket->index(),
+             get_bundle_info_log(this->context(), tree_logger.allocator, input)});
+        continue;
+      }
       tree_logger.log_value(this->node(), *input_socket, input.single_value());
       continue;
     }
@@ -190,6 +211,14 @@ void NodeOperation::log_data()
     }
 
     if (result.is_single_value()) {
+      if (result.type() == ResultType::Bundle) {
+        tree_logger.output_socket_values.append(
+            *tree_logger.allocator,
+            {node_.identifier,
+             output_socket->index(),
+             get_bundle_info_log(this->context(), tree_logger.allocator, result)});
+        continue;
+      }
       tree_logger.log_value(this->node(), *output_socket, result.single_value());
       continue;
     }

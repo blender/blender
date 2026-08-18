@@ -38,7 +38,7 @@ ccl_device void kernel_displace_evaluate(KernelGlobals kg,
   const float3 P = sd.P;
   displacement_shader_eval(kg, state, &sd);
   float3 D = sd.P - P;
-  if (sd.flag & SD_CACHE_MISS) {
+  if (sd.runtime_flag & SR_CACHE_MISS) {
     *cache_miss = true;
   }
   object_inverse_dir_transform(kg, &sd, &D);
@@ -90,7 +90,7 @@ ccl_device void kernel_background_evaluate(KernelGlobals kg,
   surface_shader_eval<KERNEL_FEATURE_NODE_MASK_SURFACE_LIGHT &
                       ~(KERNEL_FEATURE_NODE_RAYTRACE | KERNEL_FEATURE_NODE_LIGHT_PATH)>(
       kg, state, &sd, nullptr, PATH_RAY_VISIBILITY_NONE, path_flag);
-  if (sd.flag & SD_CACHE_MISS) {
+  if (sd.runtime_flag & SR_CACHE_MISS) {
     *cache_miss = true;
   }
 
@@ -133,7 +133,7 @@ ccl_device void kernel_curve_shadow_transparency_evaluate(
                       ~(KERNEL_FEATURE_NODE_RAYTRACE | KERNEL_FEATURE_NODE_LIGHT_PATH)>(
       kg, state, &sd, nullptr, PATH_RAY_VISIBILITY_SHADOW, PATH_RAY_FLAG_NONE);
 
-  if (sd.flag & SD_CACHE_MISS) {
+  if (sd.runtime_flag & SR_CACHE_MISS) {
     *cache_miss = true;
   }
 
@@ -167,7 +167,8 @@ ccl_device void kernel_volume_density_evaluate(KernelGlobals kg,
   /* Setup shader data. */
   ShaderData sd;
   shader_setup_from_volume(&sd, &ray, in.object);
-  sd.flag = SD_IS_VOLUME_SHADER_EVAL;
+  sd.runtime_flag = SR_IS_VOLUME_SHADER_EVAL;
+  sd.shader_flag = 0;
   /* For stochastic texture sampling. */
   sd.lcg_state = lcg_state_init(offset, 0, 0, 0x15b4f88d);
 
@@ -217,7 +218,7 @@ ccl_device void kernel_volume_density_evaluate(KernelGlobals kg,
                              KERNEL_FEATURE_NODE_MASK_VOLUME & ~KERNEL_FEATURE_NODE_LIGHT_PATH>(
         kg, state, &sd, entry, path_visibility, path_flag);
 
-    if (sd.flag & SD_CACHE_MISS) {
+    if (sd.runtime_flag & SR_CACHE_MISS) {
       /* Note we keep rendering other samples so we find all cache misses in one go. */
       *cache_miss = true;
     }

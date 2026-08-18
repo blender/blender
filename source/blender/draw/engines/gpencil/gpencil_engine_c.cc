@@ -174,7 +174,8 @@ void Instance::begin_sync()
   this->use_mask_fb = false;
 
   const bool use_viewport_compositor = draw_ctx->is_viewport_compositor_enabled();
-  const Set<std::string> needed_passes = bke::compositor::get_used_passes(*scene, view_layer);
+  const Set<std::string> needed_passes = bke::compositor::get_used_passes(
+      *scene, view_layer, bke::compositor::ExecutionMode::Preview);
   this->need_combined_pass = use_viewport_compositor &&
                              needed_passes.contains(RE_PASSNAME_COMBINED);
   this->need_grease_pencil_pass = use_viewport_compositor &&
@@ -250,7 +251,7 @@ void Instance::begin_sync()
     /* Merges the object's depth to the viewport compositor depth pass. */
     PassSimple &pass = this->merge_depth_pass_ps;
     pass.init();
-    pass.state_set(DRW_STATE_WRITE_COLOR);
+    pass.state_set(DRW_STATE_NO_DRAW);
     pass.shader_set(ShaderCache::get().depth_pass_merge.get());
     pass.bind_texture("depth_buf", &this->depth_tx);
     pass.bind_image("depth_pass_img", &this->depth_pass_img);

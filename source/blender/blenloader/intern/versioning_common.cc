@@ -18,6 +18,7 @@
 
 #include "RNA_path.hh"
 
+#include "BLI_function_ref.hh"
 #include "BLI_listbase.hh"
 #include "BLI_map.hh"
 #include "BLI_string.hh"
@@ -355,7 +356,7 @@ bNodeSocket &version_node_add_socket(bNodeTree &ntree,
     BLI_addtail(&node.outputs, socket);
   }
 
-  node_socket_init_default_value_data(stype->type, stype->subtype, &socket->default_value);
+  socket->default_value = bke::socket_value_new(stype->type, stype->subtype);
 
   BKE_ntree_update_tag_socket_new(&ntree, socket);
   return *socket;
@@ -430,12 +431,16 @@ void version_node_id(bNodeTree *ntree, const int node_type, const char *new_name
   }
 }
 
-void version_node_socket_index_animdata(Main *bmain,
-                                        const int node_tree_type,
-                                        const int node_type,
-                                        const int socket_index_orig,
-                                        const int socket_index_offset,
-                                        const int total_number_of_sockets)
+/**
+ * Version the animdata of nodes of the given tree type, where node_match_fn(node) returns true.
+ */
+static void version_node_socket_index_animdata_ex(
+    Main *bmain,
+    const int node_tree_type,
+    const FunctionRef<bool(const bNode *)> node_match_fn,
+    const int socket_index_orig,
+    const int socket_index_offset,
+    const int total_number_of_sockets)
 {
 
   /* The for loop for the input ids is at the top level otherwise we lose the animation
@@ -445,13 +450,13 @@ void version_node_socket_index_animdata(Main *bmain,
   for (int input_index = total_number_of_sockets - 1; input_index >= socket_index_orig;
        input_index--)
   {
-    FOREACH_NODETREE_BEGIN (bmain, ntree, owner_id) {
+    FOREACH_NODETREE_BEGIN (bmain, ntree, _owner_id) {
       if (ntree->type != node_tree_type) {
         continue;
       }
 
       for (bNode *node : ntree->all_nodes()) {
-        if (node->type_legacy != node_type) {
+        if (!node_match_fn(node)) {
           continue;
         }
 
@@ -460,7 +465,10 @@ void version_node_socket_index_animdata(Main *bmain,
         char *rna_path_prefix = BLI_sprintfN("nodes[\"%s\"].inputs", node_name_escaped);
 
         const int new_index = input_index + socket_index_offset;
-        BKE_animdata_fix_paths(*owner_id,
+        /* Note: this should not use `owner_id`, as in the case of embedded node trees, that is set
+         * to the owning ID (like a material owning its shader node tree). It's the node tree
+         * itself that needs its animation versioned. */
+        BKE_animdata_fix_paths(ntree->id,
                                rna_path_prefix,
                                RNA_path_number_to_infix(input_index),
                                RNA_path_number_to_infix(new_index),
@@ -475,43 +483,35 @@ void version_node_socket_index_animdata(Main *bmain,
 
 void version_node_socket_index_animdata(Main *bmain,
                                         const int node_tree_type,
+                                        const int node_type,
+                                        const int socket_index_orig,
+                                        const int socket_index_offset,
+                                        const int total_number_of_sockets)
+{
+  version_node_socket_index_animdata_ex(
+      bmain,
+      node_tree_type,
+      [node_type](const bNode *node) -> bool { return node->type_legacy == node_type; },
+      socket_index_orig,
+      socket_index_offset,
+      total_number_of_sockets);
+}
+
+void version_node_socket_index_animdata(Main *bmain,
+                                        const int node_tree_type,
                                         const char *node_idname,
                                         const int socket_index_orig,
                                         const int socket_index_offset,
                                         const int total_number_of_sockets)
 {
-  const DriverMap driver_map = BKE_animdata_build_driver_target_map(*bmain);
-  /* See preceding definition of `version_node_socket_index_animdata` for the reasoning of why the
-   * input ids for loop is at the top level.*/
-  for (int input_index = total_number_of_sockets - 1; input_index >= socket_index_orig;
-       input_index--)
-  {
-    FOREACH_NODETREE_BEGIN (bmain, ntree, owner_id) {
-      if (ntree->type != node_tree_type) {
-        continue;
-      }
-
-      for (bNode *node : ntree->all_nodes()) {
-        if (!STREQ(node->idname, node_idname)) {
-          continue;
-        }
-
-        char node_name_escaped[sizeof(node->name) * 2];
-        BLI_str_escape(node_name_escaped, node->name, sizeof(node_name_escaped));
-        char *rna_path_prefix = BLI_sprintfN("nodes[\"%s\"].inputs", node_name_escaped);
-
-        const int new_index = input_index + socket_index_offset;
-        BKE_animdata_fix_paths(*owner_id,
-                               rna_path_prefix,
-                               RNA_path_number_to_infix(input_index),
-                               RNA_path_number_to_infix(new_index),
-                               /*verify_paths=*/false,
-                               driver_map);
-        MEM_delete(rna_path_prefix);
-      }
-    }
-    FOREACH_NODETREE_END;
-  }
+  const StringRef node_idname_ref(node_idname);
+  version_node_socket_index_animdata_ex(
+      bmain,
+      node_tree_type,
+      [node_idname_ref](const bNode *node) -> bool { return node_idname_ref == node->idname; },
+      socket_index_orig,
+      socket_index_offset,
+      total_number_of_sockets);
 }
 
 void version_socket_update_is_used(bNodeTree *ntree)
@@ -892,7 +892,6 @@ void do_versions_after_setup(Main *new_bmain,
       ntree->owner_id = nullptr;
       ntree->id.tag |= ID_TAG_NO_MAIN;
 
-      scene.compositing_node_group = ntree;
       scene.nodetree = nullptr;
 
       BKE_libblock_management_main_add(new_bmain, ntree);

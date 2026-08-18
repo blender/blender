@@ -82,11 +82,11 @@ ccl_device void volume_stack_enter_exit(KernelGlobals kg,
   /* todo: we should have some way for objects to indicate if they want the
    * world shader to work inside them. excluding it by default is problematic
    * because non-volume objects can't be assumed to be closed manifolds */
-  if (!(sd->flag & SD_HAS_VOLUME)) {
+  if (!(sd->shader_flag & SD_HAS_VOLUME)) {
     return;
   }
 
-  if (sd->flag & SD_BACKFACING) {
+  if (sd->runtime_flag & SR_BACKFACING) {
     /* Exit volume object: remove from stack. */
     for (int i = 0;; i++) {
       const VolumeStack entry = volume_stack_read<shadow>(state, i);

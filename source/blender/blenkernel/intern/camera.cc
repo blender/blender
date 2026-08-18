@@ -22,6 +22,7 @@
 
 #include "BLI_listbase.hh"
 #include "BLI_math_geom_c.hh"
+#include "BLI_math_matrix.hh"
 #include "BLI_math_matrix_c.hh"
 #include "BLI_math_vector_c.hh"
 #include "BLI_rect.hh"
@@ -429,6 +430,7 @@ void BKE_camera_params_from_view3d(CameraParams *params,
 
     params->offsetx = 2.0f * rv3d->camdx * params->zoom;
     params->offsety = 2.0f * rv3d->camdy * params->zoom;
+    params->roll = rv3d->camroll;
 
     params->shiftx *= params->zoom;
     params->shifty *= params->zoom;
@@ -505,10 +507,16 @@ void BKE_camera_params_compute_viewplane(
   dx = params->shiftx * viewfac + winx * params->offsetx;
   dy = params->shifty * viewfac + winy * params->offsety;
 
-  viewplane.xmin += dx;
-  viewplane.ymin += dy;
-  viewplane.xmax += dx;
-  viewplane.ymax += dy;
+  /* Apply roll. */
+  if (params->roll != 0.0f) {
+    const float2x2 rot = math::from_rotation<float2x2>(math::AngleRadian(params->roll));
+    const float2 dxy = rot * float2(dx, dy);
+
+    BLI_rctf_translate(&viewplane, dxy.x, dxy.y);
+  }
+  else {
+    BLI_rctf_translate(&viewplane, dx, dy);
+  }
 
   /* the window matrix is used for clipping, and not changed during OSA steps */
   /* using an offset of +0.5 here would give clip errors on edges */
@@ -556,6 +564,134 @@ void BKE_camera_params_compute_matrix(CameraParams *params)
                    params->clip_start,
                    params->clip_end);
   }
+}
+
+/** \} */
+
+/* -------------------------------------------------------------------- */
+/** \name Camera Border in Viewport
+ * \{ */
+
+rctf BKE_camera_view_border(const Scene *scene,
+                            const Depsgraph *depsgraph,
+                            const View3D *v3d,
+                            const RegionView3D *rv3d,
+                            const int winx,
+                            const int winy,
+                            const bool no_shift,
+                            const bool no_zoom,
+                            const bool no_roll)
+{
+  CameraParams params;
+  rctf rect_view, rect_camera;
+  const Object *camera_eval = DEG_get_evaluated(depsgraph, v3d->camera);
+
+  /* Get viewport view plane. */
+  BKE_camera_params_init(&params);
+  BKE_camera_params_from_view3d(&params, depsgraph, v3d, rv3d);
+  if (no_zoom) {
+    params.zoom = 1.0f;
+  }
+  if (no_roll) {
+    params.roll = 0.0f;
+  }
+  BKE_camera_params_compute_viewplane(&params, winx, winy, 1.0f, 1.0f);
+  rect_view = params.viewplane;
+
+  /* Get camera view plane. */
+  BKE_camera_params_init(&params);
+  params.clip_start = v3d->clip_start;
+  params.clip_end = v3d->clip_end;
+  BKE_camera_params_from_object(&params, camera_eval);
+  if (no_shift) {
+    params.shiftx = 0.0f;
+    params.shifty = 0.0f;
+  }
+  BKE_camera_params_compute_viewplane(
+      &params, scene->r.xsch, scene->r.ysch, scene->r.xasp, scene->r.yasp);
+  rect_camera = params.viewplane;
+
+  /* Get camera border within viewport. */
+  rctf border;
+  border.xmin = ((rect_camera.xmin - rect_view.xmin) / BLI_rctf_size_x(&rect_view)) * winx;
+  border.xmax = ((rect_camera.xmax - rect_view.xmin) / BLI_rctf_size_x(&rect_view)) * winx;
+  border.ymin = ((rect_camera.ymin - rect_view.ymin) / BLI_rctf_size_y(&rect_view)) * winy;
+  border.ymax = ((rect_camera.ymax - rect_view.ymin) / BLI_rctf_size_y(&rect_view)) * winy;
+
+  return border;
+}
+
+/* Test if the camera frame is surrounded by a fully opaque passepartout, hiding
+ * everything outside of it. */
+static bool camera_passepartout_is_opaque(const View3D *v3d)
+{
+  if ((v3d->flag2 & V3D_SHOW_CAMERA_PASSEPARTOUT) == 0) {
+    return false;
+  }
+  if (v3d->camera->type != OB_CAMERA) {
+    return false;
+  }
+
+  const Camera *camera = id_cast<const Camera *>(v3d->camera->data);
+  return (camera->flag & CAM_SHOWPASSEPARTOUT) && camera->passepartalpha == 1.0f;
+}
+
+bool BKE_camera_view_render_border(const Scene *scene,
+                                   const Depsgraph *depsgraph,
+                                   const View3D *v3d,
+                                   const RegionView3D *rv3d,
+                                   const int winx,
+                                   const int winy,
+                                   rctf *r_border,
+                                   rctf *r_unrolled_border)
+{
+  const bool is_camera_view = (rv3d->persp == RV3D_CAMOB) && (v3d->camera != nullptr);
+  rctf border;
+
+  if (is_camera_view) {
+    const bool use_camera_frame = camera_passepartout_is_opaque(v3d);
+
+    if ((scene->r.mode & R_BORDER) == 0 && !use_camera_frame) {
+      return false;
+    }
+
+    /* The border is relative to the camera frame, which is not rolled. */
+    const rctf viewborder = BKE_camera_view_border(
+        scene, depsgraph, v3d, rv3d, winx, winy, false, false, true);
+
+    if (scene->r.mode & R_BORDER) {
+      border.xmin = viewborder.xmin + scene->r.border.xmin * BLI_rctf_size_x(&viewborder);
+      border.ymin = viewborder.ymin + scene->r.border.ymin * BLI_rctf_size_y(&viewborder);
+      border.xmax = viewborder.xmin + scene->r.border.xmax * BLI_rctf_size_x(&viewborder);
+      border.ymax = viewborder.ymin + scene->r.border.ymax * BLI_rctf_size_y(&viewborder);
+    }
+    else {
+      border = viewborder;
+    }
+  }
+  else {
+    if ((v3d->flag2 & V3D_RENDER_BORDER) == 0) {
+      return false;
+    }
+
+    border.xmin = v3d->render_border.xmin * winx;
+    border.ymin = v3d->render_border.ymin * winy;
+    border.xmax = v3d->render_border.xmax * winx;
+    border.ymax = v3d->render_border.ymax * winy;
+  }
+
+  if (r_unrolled_border) {
+    *r_unrolled_border = border;
+  }
+
+  /* The camera view roll rotates the border around the center of the viewport. */
+  if (is_camera_view && rv3d->camroll != 0.0f) {
+    const float pivot[2] = {winx / 2.0f, winy / 2.0f};
+    BLI_rctf_rotate_expand_around(&border, &border, pivot, rv3d->camroll);
+  }
+
+  *r_border = border;
+  return true;
 }
 
 /** \} */

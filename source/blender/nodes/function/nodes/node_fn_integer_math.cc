@@ -17,6 +17,7 @@
 #include "NOD_value_elem_eval.hh"
 
 #include "node_function_util.hh"
+#include "node_shader_util.hh"
 
 namespace blender::nodes::node_fn_integer_math_cc {
 
@@ -195,6 +196,66 @@ static void node_build_multi_function(NodeMultiFunctionBuilder &builder)
   builder.set_matching_fn(fn);
 }
 
+static const char *gpu_shader_get_name(const NodeIntegerMathOperation operation)
+{
+  switch (operation) {
+    case NODE_INTEGER_MATH_ADD:
+      return "integer_math_add";
+    case NODE_INTEGER_MATH_SUBTRACT:
+      return "integer_math_subtract";
+    case NODE_INTEGER_MATH_MULTIPLY:
+      return "integer_math_multiply";
+    case NODE_INTEGER_MATH_DIVIDE:
+      return "integer_math_divide";
+    case NODE_INTEGER_MATH_MULTIPLY_ADD:
+      return "integer_math_multiply_add";
+    case NODE_INTEGER_MATH_POWER:
+      return "integer_math_power";
+    case NODE_INTEGER_MATH_FLOORED_MODULO:
+      return "integer_math_floored_modulo";
+    case NODE_INTEGER_MATH_ABSOLUTE:
+      return "integer_math_absolute";
+    case NODE_INTEGER_MATH_MINIMUM:
+      return "integer_math_minimum";
+    case NODE_INTEGER_MATH_MAXIMUM:
+      return "integer_math_maximum";
+    case NODE_INTEGER_MATH_GCD:
+      return "integer_math_gcd";
+    case NODE_INTEGER_MATH_LCM:
+      return "integer_math_lcm";
+    case NODE_INTEGER_MATH_NEGATE:
+      return "integer_math_negate";
+    case NODE_INTEGER_MATH_SIGN:
+      return "integer_math_sign";
+    case NODE_INTEGER_MATH_DIVIDE_FLOOR:
+      return "integer_math_divide_floor";
+    case NODE_INTEGER_MATH_DIVIDE_CEIL:
+      return "integer_math_divide_ceil";
+    case NODE_INTEGER_MATH_DIVIDE_ROUND:
+      return "integer_math_divide_round";
+    case NODE_INTEGER_MATH_MODULO:
+      return "integer_math_modulo";
+  }
+
+  BLI_assert_unreachable();
+  return nullptr;
+}
+
+static int node_gpu_material(GPUMaterial *mat,
+                             bNode *node,
+                             bNodeExecData * /*execdata*/,
+                             GPUNodeStack *in,
+                             GPUNodeStack *out)
+{
+  const char *name = gpu_shader_get_name(NodeIntegerMathOperation(node->custom1));
+
+  if (name == nullptr) {
+    return 0;
+  }
+
+  return GPU_stack_link(mat, node, name, in, out);
+}
+
 static void node_eval_elem(value_elem::ElemEvalParams &params)
 {
   using namespace value_elem;
@@ -284,7 +345,7 @@ static void node_register()
 {
   static bke::bNodeType ntype;
 
-  fn_node_type_base(&ntype, "FunctionNodeIntegerMath"_ustr, FN_NODE_INTEGER_MATH);
+  fn_cmp_node_type_base(&ntype, "FunctionNodeIntegerMath"_ustr, FN_NODE_INTEGER_MATH);
   ntype.ui_name = "Integer Math";
   ntype.ui_description = "Perform various math operations on the given integer inputs";
   ntype.enum_name_legacy = "INTEGER_MATH";
@@ -293,6 +354,7 @@ static void node_register()
   ntype.labelfunc = node_label;
   ntype.updatefunc = node_update;
   ntype.build_multi_function = node_build_multi_function;
+  ntype.gpu_fn = node_gpu_material;
   ntype.draw_buttons = node_layout;
   ntype.gather_link_search_ops = node_gather_link_searches;
   ntype.eval_elem = node_eval_elem;

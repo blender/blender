@@ -375,7 +375,13 @@ static void do_paint_brush_task(const Depsgraph &depsgraph,
   const MutableSpan<float> distances = tls.distances;
   if (BKE_brush_has_cube_tip(&brush, PaintMode::Sculpt)) {
     tls.positions.resize(verts.size());
-    calc_local_positions(vert_positions, verts, mat, tls.positions);
+    calc_local_positions(vert_positions,
+                         verts,
+                         mat,
+                         cache.location_symm,
+                         cache.view_normal_symm,
+                         eBrushFalloffShape(brush.falloff_shape),
+                         tls.positions);
     calc_brush_cube_distances<float3>(brush, tls.positions, distances);
     radius = 1.0f;
   }

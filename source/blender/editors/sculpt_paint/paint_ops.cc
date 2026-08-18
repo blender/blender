@@ -672,6 +672,24 @@ void ED_operatortypes_paint()
   WM_operatortype_append(mask::PAINT_OT_mask_polyline_gesture);
 }
 
+static wmKeyMap *paint_stroke_modal_keymap(wmKeyConfig *keyconf)
+{
+  static const EnumPropertyItem modal_items[] = {
+      {PAINT_STROKE_MODAL_CANCEL, "CANCEL", 0, "Cancel", "Cancel and undo a stroke in progress"},
+      {0}};
+
+  static const char *name = "Paint Stroke Modal";
+
+  wmKeyMap *keymap = WM_modalkeymap_find(keyconf, name);
+
+  /* This function is called for each space-type, only needs to add map once. */
+  if (!keymap) {
+    keymap = WM_modalkeymap_ensure(keyconf, name, modal_items);
+  }
+
+  return keymap;
+}
+
 void ED_keymap_paint(wmKeyConfig *keyconf)
 {
   using namespace blender::ed::sculpt_paint;

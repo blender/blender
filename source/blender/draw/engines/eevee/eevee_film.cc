@@ -311,7 +311,8 @@ void Film::init(const int2 &extent, const rcti *output_rect)
   /* Compute the passes needed by the viewport compositor. */
   Set<std::string> passes_used_by_viewport_compositor;
   if (inst_.is_viewport_compositor_enabled) {
-    passes_used_by_viewport_compositor = bke::compositor::get_used_passes(scene, inst_.view_layer);
+    passes_used_by_viewport_compositor = bke::compositor::get_used_passes(
+        scene, inst_.view_layer, bke::compositor::ExecutionMode::Preview);
     viewport_compositor_enabled_passes_ = get_viewport_compositor_enabled_passes(
         passes_used_by_viewport_compositor, inst_.view_layer);
   }
@@ -684,6 +685,7 @@ void Film::init_pass(PassSimple &pass, gpu::Shader *sh)
   pass.bind_image("cryptomatte_img", &cryptomatte_tx_);
   pass.bind_image("denoising_depth_img", &denoising_depth_tx_);
   pass.bind_resources(inst_.uniform_data);
+  pass.bind_resources(inst_.sampling);
 }
 
 void Film::end_sync()

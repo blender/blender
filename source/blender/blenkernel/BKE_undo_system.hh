@@ -30,6 +30,32 @@ struct Object;
 struct Scene;
 struct Text;
 
+/**
+ * A per-undo push flag that determines extra behavior when pushing a non `memfile` undo step.
+ *
+ * The default is None (0), no special hints.
+ */
+enum class UndoEncodeHints {
+  /** No hints. */
+  None = 0,
+  /**
+   * When using undo systems that store data outside of edit-mode,
+   * enable this when they should also store edit-mode data before their own data.
+   *
+   * Needed for example when tracking changes outside of edit-mode,
+   * so it's possible to encode/decode changes to modifiers for e.g.
+   */
+  PreMemFileChanges = 1 << 1,
+  /**
+   * The non `memfile` undo step doesn't have any changes.
+   *
+   * This may be used to ensure mode-switching, for example:
+   * entering the associated mode when loading the undo step.
+   */
+  HasMemFileChangesOnly = 1 << 2,
+};
+ENUM_OPERATORS(UndoEncodeHints);
+
 struct UndoRefID {
   ID *ptr;
   char name[MAX_ID_NAME];
@@ -186,6 +212,12 @@ enum eUndoTypeFlags {
    * This is typically used for undo systems that store both before/after states.
    */
   UNDOTYPE_FLAG_DECODE_ACTIVE_STEP = 1 << 1,
+
+  /**
+   * This undo system is compatible with an initial `memfile` step
+   * (it can co-exist with global undo). See: #UndoEncodeHints::PreMemFileChanges.
+   */
+  UNDOTYPE_FLAG_ENCODE_PRE_MEMFILE_SUPPORTED = 1 << 2,
 };
 
 /* -------------------------------------------------------------------- */
@@ -243,11 +275,12 @@ UndoStep *BKE_undosys_step_push_init(UndoStack *ustack, bContext *C, const char 
 /**
  * \param C: Can be nullptr from some callers if their encoding function doesn't need it
  */
-eUndoPushReturn BKE_undosys_step_push_with_type(UndoStack *ustack,
-                                                bContext *C,
-                                                const char *name,
-                                                const UndoType *ut);
-eUndoPushReturn BKE_undosys_step_push(UndoStack *ustack, bContext *C, const char *name);
+eUndoPushReturn BKE_undosys_step_push_with_type(
+    UndoStack *ustack, bContext *C, const char *name, UndoEncodeHints hints, const UndoType *ut);
+eUndoPushReturn BKE_undosys_step_push(UndoStack *ustack,
+                                      bContext *C,
+                                      const char *name,
+                                      UndoEncodeHints hints);
 
 UndoStep *BKE_undosys_step_find_by_name_with_type(UndoStack *ustack,
                                                   const char *name,
@@ -369,6 +402,12 @@ bool BKE_undosys_type_foreach(FunctionRef<bool(const UndoType *ut)> fn);
  */
 UndoType *BKE_undosys_type_append(void (*undosys_fn)(UndoType *));
 void BKE_undosys_type_free_all();
+
+/**
+ * The undo type used for an undo push with this context,
+ * #BKE_UNDOSYS_TYPE_MEMFILE is the catch-all when no mode specific type matches.
+ */
+const UndoType *BKE_undosys_type_from_context(bContext *C);
 
 /* ID Accessor. */
 

@@ -40,6 +40,7 @@
 #include "ED_image.hh"
 #include "ED_mask.hh"
 #include "ED_node.hh"
+#include "ED_paint.hh"
 #include "ED_render.hh"
 #include "ED_screen.hh"
 #include "ED_space_api.hh"

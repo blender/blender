@@ -2361,7 +2361,7 @@ static NodesModifierData *add_essential_asset_modifier(bContext &C,
   if (!asset_id) {
     return nullptr;
   }
-  if (GS(asset_id->name) != ID_NT) {
+  if (asset_id->id_type() != ID_NT) {
     return nullptr;
   }
   bNodeTree *node_group = id_cast<bNodeTree *>(asset_id);

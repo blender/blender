@@ -156,7 +156,7 @@ static PointerRNA rna_gizmo_target_set_operator(wmGizmo *gz,
                 "%s '%s'",
                 ot ? RPT_("Operator missing srna") : RPT_("Unknown operator"),
                 opname);
-    return PointerRNA_NULL;
+    return {};
   }
 
   /* For the return value to be usable, we need 'PointerRNA.data' to be set. */

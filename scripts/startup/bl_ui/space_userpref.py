@@ -590,6 +590,7 @@ class USERPREF_PT_edit_sequence_editor(EditingPanel, CenterAlignMixIn, Panel):
         edit = prefs.edit
 
         layout.prop(edit, "connect_strips_by_default")
+        layout.prop(edit, "clamp_strips_by_default")
 
 
 class USERPREF_PT_edit_misc(EditingPanel, CenterAlignMixIn, Panel):
@@ -1392,20 +1393,39 @@ class USERPREF_PT_theme_bone_color_sets(ThemePanel, CenterAlignMixIn, Panel):
     bl_options = {'DEFAULT_CLOSED'}
     bl_parent_id = "USERPREF_PT_theme_color_sets"
 
+    @staticmethod
+    def create_column(layout, heading="", width=None):
+        col = layout.column(align=True)
+        if width is not None:
+            col.ui_units_x = width
+
+        row = col.row()
+        row.alignment = 'CENTER'
+        row.label(text=heading)
+
+        return col
+
     def draw_centered(self, context, layout):
         theme = context.preferences.themes[0]
 
-        layout.use_property_split = True
+        row = layout.row()
+
+        color_set_col = self.create_column(row)
+        color_set_col.alignment = 'RIGHT'
+
+        row.separator()
+
+        normal_col = self.create_column(row, heading="Normal")
+        selected_col = self.create_column(row, heading="Selected")
+        active_col = self.create_column(row, heading="Active")
+        constraints_col = self.create_column(row, heading="Colored Constraints", width=10)
 
         for i, ui in enumerate(theme.bone_color_sets, 1):
-            layout.label(text=iface_("Color Set {:d}").format(i), translate=False)
-
-            flow = layout.grid_flow(row_major=False, columns=0, even_columns=True, even_rows=False, align=True)
-
-            flow.prop(ui, "normal")
-            flow.prop(ui, "select", text="Selected")
-            flow.prop(ui, "active")
-            flow.prop(ui, "show_colored_constraints")
+            color_set_col.label(text=iface_("Color Set {:d}").format(i), translate=False)
+            normal_col.prop(ui, "normal", text="")
+            selected_col.prop(ui, "select", text="")
+            active_col.prop(ui, "active", text="")
+            constraints_col.prop(ui, "show_colored_constraints", text="")
 
 
 class USERPREF_PT_theme_collection_colors(ThemePanel, CenterAlignMixIn, Panel):
@@ -2323,13 +2343,6 @@ class USERPREF_PT_extensions_repos(Panel):
             split.prop(active_repo, "remote_url", text="", icon='INTERNET', placeholder="Repository URL")
             split = row.split()
 
-            if active_repo.use_access_token:
-                access_token_icon = 'LOCKED' if active_repo.access_token else 'UNLOCKED'
-                row = layout.row()
-                split = row.split(factor=0.936)
-                split.prop(active_repo, "access_token", icon=access_token_icon)
-                split = row.split()
-
             layout.prop(active_repo, "use_sync_on_startup")
 
         layout_header, layout_panel = layout.panel("advanced", default_closed=True)
@@ -2357,8 +2370,12 @@ class USERPREF_PT_extensions_repos(Panel):
                 sub.prop(active_repo, "directory", text="")
 
             if use_remote_url:
-                row = layout_panel.row(align=True, heading="Authentication")
-                row.prop(active_repo, "use_access_token")
+                col = layout_panel.column(align=True, heading="Authentication")
+                col.prop(active_repo, "use_access_token")
+
+                if active_repo.use_access_token:
+                    access_token_icon = 'LOCKED' if active_repo.access_token else 'UNLOCKED'
+                    col.prop(active_repo, "access_token", icon=access_token_icon)
 
                 layout_panel.prop(active_repo, "use_cache")
             else:
@@ -2414,7 +2431,6 @@ class USERPREF_PT_addons(AddOnPanel, Panel):
     _support_icon_mapping = {
         'OFFICIAL': 'BLENDER',
         'COMMUNITY': 'COMMUNITY',
-        'TESTING': 'EXPERIMENTAL',
     }
 
     @staticmethod
@@ -3021,7 +3037,6 @@ class USERPREF_PT_experimental_prototypes(ExperimentalPanel, Panel):
             (
                 ({"property": "use_new_curves_tools"}, ("blender/blender/issues/68981", "#68981")),
                 ({"property": "use_sculpt_texture_paint"}, ("blender/blender/issues/96225", "#96225")),
-                ({"property": "use_workbench_raytraced_shadows"}, ("blender/blender/pulls/146142", "!146142")),
             ),
         )
 

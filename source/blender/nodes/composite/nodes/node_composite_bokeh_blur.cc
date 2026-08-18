@@ -122,10 +122,11 @@ class BokehBlurOperation : public NodeOperation {
     input.bind_as_texture(shader, "input_tx");
 
     const Result &input_weights = this->get_input("Bokeh");
-    input_weights.bind_as_texture(shader, "weights_tx");
+    gpu::Texture *input_weights_texture = input_weights.bind_as_texture_or_single_value(
+        shader, "weights_tx");
 
     const Result &input_mask = this->get_input("Mask");
-    input_mask.bind_as_texture(shader, "mask_tx");
+    gpu::Texture *mask_texture = input_mask.bind_as_texture_or_single_value(shader, "mask_tx");
 
     const Domain domain = input.domain();
     Result &output_image = this->get_result("Image");
@@ -137,8 +138,8 @@ class BokehBlurOperation : public NodeOperation {
     GPU_shader_unbind();
     output_image.unbind_as_image();
     input.unbind_as_texture();
-    input_weights.unbind_as_texture();
-    input_mask.unbind_as_texture();
+    input_weights.unbind_as_texture_or_single_value(input_weights_texture);
+    input_mask.unbind_as_texture_or_single_value(mask_texture);
   }
 
   void execute_constant_size_cpu(const Result &input)
@@ -208,7 +209,7 @@ class BokehBlurOperation : public NodeOperation {
     size.bind_as_texture(shader, "size_tx");
 
     const Result &input_mask = this->get_input("Mask");
-    input_mask.bind_as_texture(shader, "mask_tx");
+    gpu::Texture *mask_texture = input_mask.bind_as_texture_or_single_value(shader, "mask_tx");
 
     const Domain domain = input.domain();
     Result &output_image = this->get_result("Image");
@@ -222,7 +223,7 @@ class BokehBlurOperation : public NodeOperation {
     input.unbind_as_texture();
     input_weights.unbind_as_texture();
     size.unbind_as_texture();
-    input_mask.unbind_as_texture();
+    input_mask.unbind_as_texture_or_single_value(mask_texture);
   }
 
   void execute_variable_size_cpu(const Result &input, const Result &size_input)
@@ -329,7 +330,7 @@ class BokehBlurOperation : public NodeOperation {
        * invert the textures coordinates by subtracting from 1 to maintain the shape of the weights
        * as mentioned above. */
       const float2 weight_coordinates = 1.0f - ((float2(texel) + 0.5f) / float2(kernel_size));
-      float4 weight = float4(bokeh.sample_bilinear_extended<Color>(weight_coordinates));
+      float4 weight = float4(bokeh.sample_bilinear_extended<Color, true>(weight_coordinates));
       kernel.store_pixel(texel, Color(weight));
     });
 

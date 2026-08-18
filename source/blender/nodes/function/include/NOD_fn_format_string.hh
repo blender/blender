@@ -7,6 +7,7 @@
 #include "DNA_node_types.h"
 
 #include "NOD_socket_items.hh"
+#include "NOD_socket_items_name_util.hh"
 
 namespace blender::nodes {
 
@@ -83,8 +84,15 @@ struct FormatStringItemsAccessor : public socket_items::SocketItemsAccessorDefau
     socket_items::set_item_name_and_make_unique<FormatStringItemsAccessor>(node, item, name);
   }
 
-  static std::string custom_initial_name(const bNode &node, StringRef src_name);
-  static std::string validate_name(const StringRef name);
+  static std::string custom_initial_name(const bNode &node, StringRef src_name)
+  {
+    return socket_items::variable_name_find_short<FormatStringItemsAccessor>(node, src_name);
+  }
+
+  static std::string validate_name(const StringRef name)
+  {
+    return socket_items::variable_name_validate(name);
+  }
 
   static std::string socket_identifier_for_item(const NodeFunctionFormatStringItem &item)
   {

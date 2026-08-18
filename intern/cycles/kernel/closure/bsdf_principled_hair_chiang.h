@@ -190,7 +190,7 @@ ccl_device int bsdf_hair_chiang_setup(ccl_private ShaderData *sd, ccl_private Ch
 
   bsdf->N = Y;
   bsdf->alpha = -bsdf->alpha;
-  return SD_BSDF | SD_BSDF_HAS_EVAL | SD_BSDF_HAS_TRANSMISSION;
+  return SR_BSDF | SR_BSDF_HAS_EVAL | SR_BSDF_HAS_TRANSMISSION;
 }
 
 #endif /* __HAIR__ */

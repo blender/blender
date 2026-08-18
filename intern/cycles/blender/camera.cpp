@@ -106,8 +106,6 @@ class BlenderCamera {
   BoundBox2D pano_viewplane = BoundBox2D();
   float pano_aspectratio = 0.0f;
 
-  float passepartout_alpha = 0.5f;
-
   Transform matrix = transform_identity();
 
   float offscreen_dicing_scale = 1.0f;
@@ -221,7 +219,7 @@ static void blender_camera_from_object(BlenderCamera *bcam,
 {
   blender::ID &b_ob_data = *static_cast<blender::ID *>(b_ob.data);
 
-  if (blender::GS(b_ob_data.name) == blender::ID_CA) {
+  if (b_ob_data.id_type() == blender::ID_CA) {
     blender::Camera &b_camera = blender::id_cast<blender::Camera &>(b_ob_data);
 
     bcam->nearclip = b_camera.clip_start;
@@ -279,10 +277,6 @@ static void blender_camera_from_object(BlenderCamera *bcam,
     bcam->ortho_scale = b_camera.ortho_scale;
 
     bcam->lens = b_camera.lens;
-
-    bcam->passepartout_alpha = (b_camera.flag & blender::CAM_SHOWPASSEPARTOUT) != 0 ?
-                                   b_camera.passepartalpha :
-                                   0.0f;
 
     if (b_camera.dof.flag & blender::CAM_DOF_ENABLED) {
       /* allow f/stop number to change aperture_size but still
@@ -353,7 +347,7 @@ static void blender_camera_from_object(BlenderCamera *bcam,
       }
     }
   }
-  else if (blender::GS(b_ob_data.name) == blender::ID_LA) {
+  else if (b_ob_data.id_type() == blender::ID_LA) {
     /* Can also look through spot light. */
     const blender::Light &b_light = reinterpret_cast<const blender::Light &>(b_ob_data);
     const float lens = 16.0f / tanf(b_light.spotsize * 0.5f);
@@ -1047,118 +1041,48 @@ static void blender_camera_view_subset(blender::RenderEngine &b_engine,
   cam_box = cam * (1.0f / cam_aspect);
 }
 
-static void blender_camera_border_subset(blender::RenderEngine &b_engine,
-                                         const blender::RenderData &b_render,
-                                         blender::Scene &b_scene,
-                                         blender::Main &b_data,
-                                         blender::View3D *&b_v3d,
-                                         blender::RegionView3D *b_rv3d,
-                                         blender::Object &b_ob,
-                                         const int width,
-                                         const int height,
-                                         const BoundBox2D &border,
-                                         BoundBox2D *result)
+/* Convert a border in viewport pixels to normalized viewport coordinates. */
+static BoundBox2D blender_camera_border_normalized(const blender::rctf &border,
+                                                   const int width,
+                                                   const int height)
 {
-  /* Determine camera viewport subset. */
-  BoundBox2D view_box;
-  BoundBox2D cam_box;
-  float view_aspect;
-  blender_camera_view_subset(b_engine,
-                             b_render,
-                             b_scene,
-                             b_data,
-                             b_ob,
-                             b_v3d,
-                             b_rv3d,
-                             width,
-                             height,
-                             view_box,
-                             cam_box,
-                             view_aspect);
+  BoundBox2D result;
 
-  /* Determine viewport subset matching given border. */
-  cam_box = cam_box.make_relative_to(view_box);
-  *result = cam_box.subset(border);
+  result.left = border.xmin / (float)width;
+  result.right = border.xmax / (float)width;
+  result.bottom = border.ymin / (float)height;
+  result.top = border.ymax / (float)height;
+
+  return result;
 }
 
 static void blender_camera_border(BlenderCamera *bcam,
-                                  blender::RenderEngine &b_engine,
-                                  const blender::RenderData &b_render,
+                                  const blender::Depsgraph *b_depsgraph,
                                   blender::Scene &b_scene,
-                                  blender::Main &b_data,
                                   blender::View3D *b_v3d,
                                   blender::RegionView3D *b_rv3d,
                                   const int width,
                                   const int height)
 {
-  bool is_camera_view;
-
-  /* camera view? */
-  is_camera_view = b_rv3d->persp == blender::RV3D_CAMOB;
-
-  if (!is_camera_view) {
-    /* for non-camera view check whether render border is enabled for viewport
-     * and if so use border from 3d viewport
-     * assume viewport has got correctly clamped border already
-     */
-    if (b_v3d->flag2 & blender::V3D_RENDER_BORDER) {
-      bcam->border.left = b_v3d->render_border.xmin;
-      bcam->border.right = b_v3d->render_border.xmax;
-      bcam->border.bottom = b_v3d->render_border.ymin;
-      bcam->border.top = b_v3d->render_border.ymax;
-    }
-    return;
-  }
-
-  blender::Object *b_ob = (b_v3d->scenelock) ? b_scene.camera : b_v3d->camera;
-
-  if (!b_ob) {
-    return;
-  }
-
   /* Determine camera border inside the viewport. */
-  const BoundBox2D full_border;
-  blender_camera_border_subset(b_engine,
-                               b_render,
-                               b_scene,
-                               b_data,
-                               b_v3d,
-                               b_rv3d,
-                               *b_ob,
-                               width,
-                               height,
-                               full_border,
-                               &bcam->viewport_camera_border);
-
-  if (b_render.mode & blender::R_BORDER) {
-    bcam->border.left = b_render.border.xmin;
-    bcam->border.right = b_render.border.xmax;
-    bcam->border.bottom = b_render.border.ymin;
-    bcam->border.top = b_render.border.ymax;
-  }
-  else if (bcam->passepartout_alpha == 1.0f) {
-    bcam->border = full_border;
-  }
-  else {
-    return;
+  if (b_rv3d->persp == blender::RV3D_CAMOB && b_v3d->camera) {
+    const blender::rctf camera_border = BKE_camera_view_border(
+        &b_scene, b_depsgraph, b_v3d, b_rv3d, width, height, false, false, true);
+    bcam->viewport_camera_border = blender_camera_border_normalized(camera_border, width, height);
   }
 
-  /* Determine viewport subset matching camera border. */
-  blender_camera_border_subset(b_engine,
-                               b_render,
-                               b_scene,
-                               b_data,
-                               b_v3d,
-                               b_rv3d,
-                               *b_ob,
-                               width,
-                               height,
-                               bcam->border,
-                               &bcam->border);
-  bcam->border = bcam->border.clamp();
+  /* Determine border to render. */
+  blender::rctf border;
+  if (BKE_camera_view_render_border(
+          &b_scene, b_depsgraph, b_v3d, b_rv3d, width, height, &border, nullptr))
+  {
+    bcam->border = blender_camera_border_normalized(border, width, height);
+    bcam->border = bcam->border.clamp();
+  }
 }
 
-void BlenderSync::sync_view(blender::View3D *b_v3d,
+void BlenderSync::sync_view(const blender::Depsgraph *b_depsgraph,
+                            blender::View3D *b_v3d,
                             blender::RegionView3D *b_rv3d,
                             const int width,
                             const int height)
@@ -1167,8 +1091,7 @@ void BlenderSync::sync_view(blender::View3D *b_v3d,
   BlenderCamera bcam(b_render_settings);
   blender_camera_from_view(
       &bcam, *b_engine, b_render_settings, *b_scene, *b_data, b_v3d, b_rv3d, width, height);
-  blender_camera_border(
-      &bcam, *b_engine, b_render_settings, *b_scene, *b_data, b_v3d, b_rv3d, width, height);
+  blender_camera_border(&bcam, b_depsgraph, *b_scene, b_v3d, b_rv3d, width, height);
   bcam.motion_steps = scene->need_motion() == Scene::MOTION_PASS_INTERACTIVE ? 2 : 0;
   blender::PointerRNA scene_rna_ptr = RNA_id_pointer_create(&b_scene->id);
   blender::PointerRNA cscene = RNA_pointer_get(&scene_rna_ptr, "cycles");

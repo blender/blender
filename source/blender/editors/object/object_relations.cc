@@ -1539,7 +1539,7 @@ static bool allow_make_links_data(const int type, Object *ob_src, Object *ob_dst
     case MAKE_LINKS_GROUP:
       return true;
     case MAKE_LINKS_MODIFIERS:
-      if (!ELEM(OB_EMPTY, ob_src->type, ob_dst->type)) {
+      if (BKE_object_supports_modifiers(ob_src) && BKE_object_supports_modifiers(ob_dst)) {
         return true;
       }
       break;

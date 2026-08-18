@@ -81,7 +81,7 @@ void ANIM_list_elem_update(Main *bmain, Scene *scene, bAnimListElem *ale)
   /* update data */
   fcu = static_cast<FCurve *>((ale->datatype == ALE_FCURVE) ? ale->key_data : nullptr);
 
-  if (fcu && fcu->rna_path) {
+  if (fcu && !fcu->rna_path().is_empty()) {
     /* If we have an fcurve, call the update for the property we
      * are editing, this is then expected to do the proper redraws
      * and depsgraph updates. */
@@ -90,7 +90,7 @@ void ANIM_list_elem_update(Main *bmain, Scene *scene, bAnimListElem *ale)
 
     PointerRNA id_ptr = RNA_id_pointer_create(id);
 
-    if (RNA_path_resolve_property(&id_ptr, fcu->rna_path, &ptr, &prop)) {
+    if (RNA_path_resolve_property(&id_ptr, fcu->rna_path_parsed(), &ptr, &prop)) {
       RNA_property_update_main(bmain, scene, &ptr, prop);
     }
   }
@@ -190,7 +190,9 @@ static void animchan_sync_fcurve_scene(bAnimListElem *ale)
 
   /* Only affect if F-Curve involves sequence_editor.strips. */
   char strip_name[sizeof(strip->name)];
-  if (!BLI_str_quoted_substr(fcu->rna_path, "strips_all[", strip_name, sizeof(strip_name))) {
+  if (!BLI_str_quoted_substr(
+          fcu->rna_path().c_str(), "strips_all[", strip_name, sizeof(strip_name)))
+  {
     return;
   }
 
@@ -224,7 +226,11 @@ static void animchan_sync_fcurve(bAnimListElem *ale)
   /* major priority is selection status, so refer to the checks done in `anim_filter.cc`
    * #skip_fcurve_selected_data() for reference about what's going on here.
    */
-  if (ELEM(nullptr, fcu, fcu->rna_path, owner_id)) {
+  if (ELEM(nullptr, fcu, owner_id)) {
+    return;
+  }
+
+  if (fcu->rna_path().is_empty()) {
     return;
   }
 

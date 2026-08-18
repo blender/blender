@@ -37,7 +37,6 @@ struct bContext;
 struct bPoseChannel;
 struct wmKeyConfig;
 struct wmOperator;
-enum eAnimvizCalcRange : uint8_t;
 
 #define BONESEL_ROOT (1u << 29)
 #define BONESEL_TIP (1u << 30)
@@ -139,6 +138,10 @@ wmOperatorStatus ED_armature_join_objects_exec(bContext *C, wmOperator *op);
 
 /* `armature_select.cc` */
 
+/**
+ * To avoid/skip non-bone hits.
+ */
+bool ED_armature_selectresult_is_bone(const GPUSelectResult &hit_result);
 Base *ED_armature_base_and_ebone_from_select_buffer(Span<Base *> bases,
                                                     unsigned int select_id,
                                                     EditBone **r_ebone);
@@ -276,7 +279,7 @@ bool ED_object_posemode_enter(bContext *C, Object *ob);
  *
  * To be called from various tools that do incremental updates.
  */
-void ED_pose_recalculate_paths(bContext *C, Scene *scene, Object *ob, eAnimvizCalcRange range);
+void ED_pose_recalculate_paths(bContext *C, Scene *scene, Object *ob);
 
 /* `pose_select.cc` */
 

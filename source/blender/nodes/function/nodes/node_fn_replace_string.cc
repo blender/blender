@@ -5,6 +5,7 @@
 #include "BLI_string_utils.hh"
 
 #include "node_function_util.hh"
+#include "node_shader_util.hh"
 
 namespace blender::nodes::node_fn_replace_string_cc {
 
@@ -45,7 +46,7 @@ static void node_register()
 {
   static bke::bNodeType ntype;
 
-  fn_cmp_node_type_base(&ntype, "FunctionNodeReplaceString"_ustr, FN_NODE_REPLACE_STRING);
+  common_node_type_base(&ntype, "FunctionNodeReplaceString"_ustr, FN_NODE_REPLACE_STRING);
   ntype.ui_name = "Replace String";
   ntype.ui_description = "Replace a given string segment with another";
   ntype.enum_name_legacy = "REPLACE_STRING";

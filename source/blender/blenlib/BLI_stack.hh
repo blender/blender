@@ -33,6 +33,7 @@
 
 namespace blender {
 
+namespace detail {
 /**
  * A StackChunk references a contiguous memory buffer. Multiple StackChunk instances are linked in
  * a double linked list.
@@ -52,6 +53,7 @@ template<typename T> struct StackChunk {
     return capacity_end - begin;
   }
 };
+}  // namespace detail
 
 template<
     /** Type of the elements that are stored in the stack. */
@@ -77,7 +79,7 @@ class Stack {
   using size_type = int64_t;
 
  private:
-  using Chunk = StackChunk<T>;
+  using Chunk = ::blender::detail::StackChunk<T>;
 
   /**
    * Points to one element after top-most value in the stack.

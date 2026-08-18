@@ -12,6 +12,7 @@
 
 #include "DNA_node_types.h"
 
+#include "BKE_compositor.hh"
 #include "BKE_context.hh"
 #include "BKE_material.hh"
 #include "BKE_object.hh"
@@ -169,17 +170,19 @@ static void get_context_path_node_compositor(const bContext &C,
                                              SpaceNode &snode,
                                              Vector<ui::ContextPathItem> &path)
 {
-  bool skip_base = false;
   if (snode.flag & SNODE_PIN) {
-    /* Pinned: nothing extra; will be handled below. */
+    context_path_add_node_tree_and_node_groups(snode, path);
+    return;
   }
-  else if (snode.node_tree_sub_type == SNODE_COMPOSITOR_SEQUENCER) {
+
+  if (snode.node_tree_sub_type == SNODE_COMPOSITOR_SEQUENCER) {
+    bool skip_base = false;
     Scene *sequencer_scene = CTX_data_sequencer_scene(&C);
     if (sequencer_scene) {
       ui::context_path_add_generic(path, *RNA_Scene, sequencer_scene, ICON_SCENE);
       Strip *strip = seq::select_active_get(sequencer_scene);
       if (strip) {
-        ui::context_path_add_generic(path, *RNA_Strip, strip, ICON_SEQ_STRIP_DUPLICATE);
+        ui::context_path_add_generic(path, *RNA_Strip, strip, ICON_SEQ_STRIP);
         bNodeTree *node_group = nullptr;
         if (strip->type == STRIP_TYPE_COMPOSITOR && strip->effectdata) {
           CompositorEffectVars *comp_data = static_cast<CompositorEffectVars *>(strip->effectdata);
@@ -200,13 +203,20 @@ static void get_context_path_node_compositor(const bContext &C,
         }
       }
     }
-  }
-  else {
-    Scene *scene = CTX_data_scene(&C);
-    ui::context_path_add_generic(path, *RNA_Scene, scene);
+    context_path_add_node_tree_and_node_groups(snode, path, skip_base);
+    return;
   }
 
-  context_path_add_node_tree_and_node_groups(snode, path, skip_base);
+  Scene *scene = CTX_data_scene(&C);
+  ui::context_path_add_generic(path, *RNA_Scene, scene);
+  SceneCompositorEffect *effect = bke::compositor::get_active_effect(*scene);
+  if (!effect) {
+    context_path_add_node_tree_and_node_groups(snode, path);
+    return;
+  }
+
+  ui::context_path_add_generic(path, *RNA_SceneCompositorEffect, effect, ICON_NODE_COMPOSITING);
+  context_path_add_node_tree_and_node_groups(snode, path);
 }
 
 static void get_context_path_node_geometry(const bContext &C,

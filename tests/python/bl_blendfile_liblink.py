@@ -168,8 +168,8 @@ class TestBlendLibLinkIndirect(TestBlendLibLinkHelper):
         self.assertIsNotNone(mesh.library)
         self.assertFalse(mesh.use_fake_user)
         self.assertEqual(mesh.users, 0)
-        # IDs explicitly linked by the user are forcefully considered directly linked.
-        self.assertFalse(mesh.is_library_indirect)
+        # Even if explicitly linked by the user, unused linked IDs are considered indirectly linked.
+        self.assertTrue(mesh.is_library_indirect)
 
         ob = bpy.data.objects.new("LocalMesh", mesh)
         coll = bpy.data.collections.new("LocalMesh")
@@ -181,6 +181,7 @@ class TestBlendLibLinkIndirect(TestBlendLibLinkHelper):
         self.assertEqual(material.users, 1)
         self.assertTrue(material.is_library_indirect)
         self.assertEqual(mesh.users, 1)
+        # Now the linked ID is used by a local ID, and is therefore direclty linked.
         self.assertFalse(mesh.is_library_indirect)
 
         ob.material_slots[0].link = 'OBJECT'

@@ -1103,7 +1103,7 @@ static bool gizmo_3d_calc_pos(const bContext *C,
       BKE_view_layer_synced_ensure(*bmain, scene, view_layer);
       Object *ob = BKE_view_layer_active_object_get(view_layer);
       if (ob != nullptr) {
-        if ((ob->mode & OB_MODE_ALL_SCULPT) && ob->runtime->sculpt_session) {
+        if ((ob->mode & OB_MODE_SCULPT) && ob->runtime->sculpt_session) {
           SculptSession *ss = ob->runtime->sculpt_session;
           copy_v3_v3(r_pivot_pos, ss->pivot_pos);
           return true;

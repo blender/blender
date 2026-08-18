@@ -98,7 +98,7 @@ CCL_NAMESPACE_BEGIN
 #endif
 
 /* Main Interpreter Loop */
-template<uint node_feature_mask, ShaderType type, typename ConstIntegratorGenericState>
+template<uint64_t node_feature_mask, ShaderType type, typename ConstIntegratorGenericState>
 ccl_device void svm_eval_nodes(KernelGlobals kg,
                                ConstIntegratorGenericState state,
                                ccl_private ShaderData *sd,
@@ -535,6 +535,17 @@ ccl_device void svm_eval_nodes(KernelGlobals kg,
       IF_NOT_KERNEL_NODES_FEATURE(VOLUME)
       {
         svm_node_combine_vector<dual3>(stack, svm_node_get<SVMNodeCombineVector>(kg, &offset));
+      }
+      break;
+      SVM_CASE(NODE_GET_VECTOR_COMPONENT)
+      svm_node_get_vector_component<float3>(stack,
+                                            svm_node_get<SVMNodeGetVectorComponent>(kg, &offset));
+      break;
+      SVM_CASE(NODE_GET_VECTOR_COMPONENT_DERIVATIVE)
+      IF_NOT_KERNEL_NODES_FEATURE(VOLUME)
+      {
+        svm_node_get_vector_component<dual3>(stack,
+                                             svm_node_get<SVMNodeGetVectorComponent>(kg, &offset));
       }
       break;
       SVM_CASE(NODE_VECTOR_ROTATE)

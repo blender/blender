@@ -303,83 +303,11 @@ static const bNodeSocketStaticTypeInfo node_socket_subtypes[] = {
     {"NodeSocketSound", "NodeTreeInterfaceSocketSound", SOCK_SOUND, PROP_NONE},
 };
 
-template<typename Fn> bool socket_data_to_static_type(const eNodeSocketDatatype type, const Fn &fn)
-{
-  switch (type) {
-    case SOCK_FLOAT:
-      fn.template operator()<bNodeSocketValueFloat>();
-      return true;
-    case SOCK_INT:
-      fn.template operator()<bNodeSocketValueInt>();
-      return true;
-    case SOCK_BOOLEAN:
-      fn.template operator()<bNodeSocketValueBoolean>();
-      return true;
-    case SOCK_ROTATION:
-      fn.template operator()<bNodeSocketValueRotation>();
-      return true;
-    case SOCK_VECTOR:
-      fn.template operator()<bNodeSocketValueVector>();
-      return true;
-    case SOCK_RGBA:
-      fn.template operator()<bNodeSocketValueRGBA>();
-      return true;
-    case SOCK_STRING:
-      fn.template operator()<bNodeSocketValueString>();
-      return true;
-    case SOCK_OBJECT:
-      fn.template operator()<bNodeSocketValueObject>();
-      return true;
-    case SOCK_IMAGE:
-      fn.template operator()<bNodeSocketValueImage>();
-      return true;
-    case SOCK_COLLECTION:
-      fn.template operator()<bNodeSocketValueCollection>();
-      return true;
-    case SOCK_TEXTURE:
-      fn.template operator()<bNodeSocketValueTexture>();
-      return true;
-    case SOCK_MATERIAL:
-      fn.template operator()<bNodeSocketValueMaterial>();
-      return true;
-    case SOCK_FONT:
-      fn.template operator()<bNodeSocketValueFont>();
-      return true;
-    case SOCK_SCENE:
-      fn.template operator()<bNodeSocketValueScene>();
-      return true;
-    case SOCK_TEXT_ID:
-      fn.template operator()<bNodeSocketValueText>();
-      return true;
-    case SOCK_MASK:
-      fn.template operator()<bNodeSocketValueMask>();
-      return true;
-    case SOCK_SOUND:
-      fn.template operator()<bNodeSocketValueSound>();
-      return true;
-    case SOCK_MENU:
-      fn.template operator()<bNodeSocketValueMenu>();
-      return true;
-    case SOCK_INT_VECTOR:
-      fn.template operator()<bNodeSocketValueIntVector>();
-      return true;
-
-    case SOCK_CUSTOM:
-    case SOCK_SHADER:
-    case SOCK_MATRIX:
-    case SOCK_GEOMETRY:
-    case SOCK_BUNDLE:
-    case SOCK_CLOSURE:
-      return true;
-  }
-  return false;
-}
-
 template<typename Fn> bool socket_data_to_static_type(const StringRef socket_type, const Fn &fn)
 {
   for (const bNodeSocketStaticTypeInfo &info : node_socket_subtypes) {
     if (socket_type == info.socket_identifier) {
-      return socket_data_to_static_type(info.type, fn);
+      return bke::socket_data_to_static_type(info.type, fn);
     }
   }
   return false;

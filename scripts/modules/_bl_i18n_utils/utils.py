@@ -24,6 +24,7 @@ import time
 
 from _bl_i18n_utils import (
     settings,
+    utils_format,
     utils_rtl,
 )
 
@@ -535,7 +536,7 @@ class I18nMessages:
         """
         ret = []
         default_context = self.settings.DEFAULT_CONTEXT
-        _format = re.compile(self.settings.CHECK_PRINTF_FORMAT).findall
+        def _format_tokens(msg): return {t.key: t.token for t in utils_format.FormatToken.parse_string(msg)}
         done_keys = set()
         rem = set()
         tmp = {}
@@ -551,10 +552,17 @@ class I18nMessages:
                 elif fix:
                     tmp[real_key] = msg
             done_keys.add(key)
-            if '%' in msgid and msgstr and _format(msgid) != _format(msgstr):
+            # Only check for mismatches in formatting tokens if the translation is not empty, is not fuzzy,
+            # and is not explicitly skipped for formatting checks.
+            if not msgstr or msg.is_fuzzy or msgid in self.settings.MSGID_FORMATTING_VALIDATION_SKIP:
+                continue
+            msgid_tokens = _format_tokens(msgid)
+            msgstr_tokens = _format_tokens(msgstr)
+            if msgid_tokens != msgstr_tokens:
                 if not msg.is_fuzzy:
-                    ret.append("Error! msg's format entities are not matched in msgid and msgstr ({} / \"{}\")"
-                               "".format(real_key, msgstr))
+                    ret.append("Error! msg's format entities are not matched in msgid and msgstr.\n"
+                               f"({real_key} / \"{msgstr}\")\n"
+                               f"({msgid_tokens} / \"{msgstr_tokens}\")")
                 if fix:
                     msg.msgstr = ""
         for k in rem:

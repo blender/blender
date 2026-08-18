@@ -401,6 +401,21 @@ static PyObject *view_draw_func(PyObject * /*self*/, PyObject *args)
   Py_RETURN_NONE;
 }
 
+static PyObject *view_pause_func(PyObject * /*self*/, PyObject *args)
+{
+  PyObject *pysession;
+  int pause;
+
+  if (!PyArg_ParseTuple(args, "Op", &pysession, &pause)) {
+    return nullptr;
+  }
+
+  BlenderSession *session = (BlenderSession *)PyLong_AsVoidPtr(pysession);
+  session->view_pause(pause);
+
+  Py_RETURN_NONE;
+}
+
 static PyObject *reset_func(PyObject * /*self*/, PyObject *args)
 {
   PyObject *pysession;
@@ -900,6 +915,7 @@ static PyMethodDef methods[] = {
     {"draw", draw_func, METH_VARARGS, ""},
     {"bake", bake_func, METH_VARARGS, ""},
     {"view_draw", view_draw_func, METH_VARARGS, ""},
+    {"view_pause", view_pause_func, METH_VARARGS, ""},
     {"sync", sync_func, METH_VARARGS, ""},
     {"reset", reset_func, METH_VARARGS, ""},
 #ifdef WITH_OSL

@@ -1,9 +1,9 @@
 
 msgid ""
 msgstr ""
-"Project-Id-Version: Blender 5.3.0 Alpha (b'96294be75080')\n"
+"Project-Id-Version: Blender 5.3.0 Alpha (b'af4852ed4560')\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-07-20 07:29+0000\n"
+"POT-Creation-Date: 2026-08-10 07:54+0000\n"
 "PO-Revision-Date: 2026-03-19 12:41+0000\n"
 "Last-Translator: Banditer1483 <pleum.wongvarit@gmail.com>\n"
 "Language-Team: Thai <https://translate.blender.org/projects/blender-ui/ui/th/>\n"
@@ -4909,44 +4909,16 @@ msgid "Mix Color"
 msgstr "ผสมสี"
 
 
-msgid "Apply"
-msgstr "นำไปใช้"
-
-
-msgid "Track"
-msgstr "แทร็ค"
-
-
-msgid "Hooks"
-msgstr "ตะขอ"
-
-
-msgid "Math"
-msgstr "คณิตศาสตร์"
-
-
 msgid "Names"
 msgstr "ชื่อ"
 
 
-msgid "Face Data"
-msgstr "ข้อมูลด้าน"
+msgid "Keying"
+msgstr "คีย์"
 
 
-msgid "Merge"
-msgstr "ผสาน"
-
-
-msgid "Metaball"
-msgstr "เมตาบอล"
-
-
-msgid "Import"
-msgstr "นำเข้า"
-
-
-msgid "UV"
-msgstr "UV"
+msgid "Math"
+msgstr "คณิตศาสตร์"
 
 
 msgid "Pivot Point"
@@ -4993,12 +4965,8 @@ msgid "View Regions"
 msgstr "ขอบเขตมุมมอง"
 
 
-msgid "Layout"
-msgstr "เค้าโครง"
-
-
-msgid "Keying"
-msgstr "คีย์"
+msgid "Metaball"
+msgstr "เมตาบอล"
 
 
 msgid "Light"
@@ -5007,6 +4975,38 @@ msgstr "แสง"
 
 msgid "Add Image"
 msgstr "เพิ่มภาพ"
+
+
+msgid "Apply"
+msgstr "นำไปใช้"
+
+
+msgid "Import"
+msgstr "นำเข้า"
+
+
+msgid "Track"
+msgstr "แทร็ค"
+
+
+msgid "Hooks"
+msgstr "ตะขอ"
+
+
+msgid "UV"
+msgstr "UV"
+
+
+msgid "Face Data"
+msgstr "ข้อมูลด้าน"
+
+
+msgid "Merge"
+msgstr "ผสาน"
+
+
+msgid "Layout"
+msgstr "เค้าโครง"
 
 
 msgid "Zoom"
@@ -6904,11 +6904,6 @@ msgid "File:"
 msgstr "ไฟล์:"
 
 
-msgctxt "Operator"
-msgid "Apply"
-msgstr "นำไปใช้"
-
-
 msgid "3D View"
 msgstr "มุมมองสามมิติ"
 
@@ -7291,10 +7286,6 @@ msgstr "เส้นถัดไป"
 msgctxt "Operator"
 msgid "Next Word"
 msgstr "คำถัดไป"
-
-
-msgid "New Keyframe Type"
-msgstr "ชนิดคีย์เฟรมใหม่"
 
 
 msgctxt "Operator"
@@ -7735,6 +7726,11 @@ msgstr "ต่อแผ่นผิว"
 msgctxt "Operator"
 msgid "Delete Faces"
 msgstr "ลบแผ่นผิว"
+
+
+msgctxt "Operator"
+msgid "Apply"
+msgstr "นำไปใช้"
 
 
 msgctxt "Operator"

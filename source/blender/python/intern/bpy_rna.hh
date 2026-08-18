@@ -110,8 +110,8 @@ extern PyTypeObject pyrna_func_Type;
   } \
   (void)0
 
-#define PYRNA_STRUCT_IS_VALID(pysrna) (LIKELY(((BPy_StructRNA *)(pysrna))->ptr->type != NULL))
-#define PYRNA_PROP_IS_VALID(pysrna) (LIKELY(((BPy_PropertyRNA *)(pysrna))->ptr->type != NULL))
+#define PYRNA_STRUCT_IS_VALID(pysrna) (LIKELY(((BPy_StructRNA *)(pysrna))->ptr->has_type()))
+#define PYRNA_PROP_IS_VALID(pysrna) (LIKELY(((BPy_PropertyRNA *)(pysrna))->ptr->has_type()))
 
 /* 'in_weakreflist' MUST be aligned */
 
@@ -246,7 +246,7 @@ const PointerRNA *pyrna_struct_as_ptr_or_null(PyObject *py_obj, const StructRNA 
 struct BPy_StructRNA_Parse {
   /** The struct RNA must match this type. */
   StructRNA *type;
-  /** Result, may be `PointerRNA_NULL` if #pyrna_struct_as_ptr_or_null_parse is used. */
+  /** Result, may be empty if #pyrna_struct_as_ptr_or_null_parse is used. */
   const PointerRNA *ptr;
 };
 
@@ -258,7 +258,7 @@ struct BPy_StructRNA_Parse {
  */
 [[nodiscard]] int pyrna_struct_as_ptr_parse(PyObject *o, void *p);
 /**
- * A version of #pyrna_struct_as_ptr_parse that maps Python's `None` to #PointerRNA_NULL.
+ * A version of #pyrna_struct_as_ptr_parse that maps Python's `None` to null PointerRNA.
  */
 [[nodiscard]] int pyrna_struct_as_ptr_or_null_parse(PyObject *o, void *p);
 

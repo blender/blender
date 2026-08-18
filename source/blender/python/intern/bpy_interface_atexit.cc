@@ -20,6 +20,8 @@
 #include "WM_api.hh"
 
 #ifdef _WIN32
+#  include <cstdio>
+
 #  include "BLI_winstuff.hh"
 #else
 #  include <cstdlib>
@@ -61,6 +63,11 @@ static PyObject *bpy_atexit(PyObject * /*self*/, PyObject * /*args*/, PyObject *
   std::optional<int> exit_code = PyC_ExceptionSystemExitCode();
   BLI_assert(exit_code.has_value());
   if (exit_code.has_value()) {
+    /* Flush Python & C streams as terminating skips the flushing otherwise
+     * performed by `Py_FinalizeEx` & the CRT at exit, see: #161830. */
+    PyC_StdFilesFlush();
+    fflush(stdout);
+    fflush(stderr);
 #  ifdef _WIN32
     TerminateProcess(GetCurrentProcess(), exit_code.value_or(0));
 #  else

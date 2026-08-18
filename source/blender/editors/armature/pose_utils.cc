@@ -93,11 +93,7 @@ static eAction_TransformFlags get_item_transform_flags_and_fcurves(ID &id,
   }
 
   animrig::foreach_fcurve_in_action_slot(action, adt->slot_handle, [&](FCurve &fcurve) {
-    if (fcurve.rna_path == nullptr) {
-      return;
-    }
-    StringRefNull fcurve_path(fcurve.rna_path);
-
+    const StringRefNull fcurve_path = fcurve.rna_path();
     if (!base_path.is_empty() && !fcurve_path.startswith(base_path)) {
       return;
     }
@@ -533,7 +529,7 @@ void slide_subjects_autokey(bContext *C,
   }
   /* This includes all motion paths for bones. Could be more fine grained in the future to avoid
    * needless updates to data that was not changed. */
-  ed::object::motion_paths_recalc(C, scene, ANIMVIZ_CALC_RANGE_CHANGED, objects);
+  ed::object::motion_paths_recalc(C, scene, objects);
   WM_event_add_notifier(C, NC_ANIMATION | ND_KEYFRAME | NA_ADDED, nullptr);
 }
 

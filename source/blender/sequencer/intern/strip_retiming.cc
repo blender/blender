@@ -405,7 +405,7 @@ static void retiming_key_overlap(Scene *scene, Strip *strip)
   VectorSet<Strip *> strips;
   VectorSet<Strip *> dependant;
   dependant.add(strip);
-  iterator_set_expand(seq::editing_get(scene), dependant, query_strip_effect_chain);
+  expand_strips(editing_get(scene), dependant, StripRelation::EffectChain);
   strips.add_multiple(dependant);
   dependant.remove(strip);
   transform_handle_overlap(scene, seqbase, strips, dependant, true);
@@ -472,6 +472,7 @@ static SeqRetimingKey *strip_retiming_add_key(Strip *strip, float frame_index)
   MEM_delete(keys);
   strip->retiming_keys = new_keys;
   strip->retiming_keys_num++;
+  strip->flag |= SEQ_SHOW_RETIMING;
 
   SeqRetimingKey *added_key = (new_keys + new_key_index);
   added_key->strip_frame_index = frame_index;
@@ -821,7 +822,7 @@ SeqRetimingKey *retiming_add_transition(const Scene *scene,
 static float strip_retiming_clamp_transition_offset(const Scene *scene,
                                                     const Strip *strip,
                                                     SeqRetimingKey *start_key,
-                                                    float offset)
+                                                    float media_offset)
 {
   SeqRetimingKey *end_key = start_key + 1;
   SeqRetimingKey *prev_key = start_key - 1;
@@ -831,15 +832,15 @@ static float strip_retiming_clamp_transition_offset(const Scene *scene,
   const float scene_fps = float(scene->frames_per_second());
   const float min_step = strip->media_playback_rate_factor(scene_fps);
 
-  return std::clamp(offset, prev_max_offset + min_step, next_max_offset - min_step);
+  return std::clamp(media_offset, prev_max_offset + min_step, next_max_offset - min_step);
 }
 
 static void strip_retiming_transition_offset(const Scene *scene,
                                              Strip *strip,
                                              SeqRetimingKey *key,
-                                             const float offset)
+                                             const float media_offset)
 {
-  float clamped_offset = strip_retiming_clamp_transition_offset(scene, strip, key, offset);
+  float clamped_offset = strip_retiming_clamp_transition_offset(scene, strip, key, media_offset);
   const float scene_fps = float(scene->frames_per_second());
   const float duration = (key->original_strip_frame_index - key->strip_frame_index) /
                          strip->media_playback_rate_factor(scene_fps);
@@ -895,13 +896,14 @@ static void strip_retiming_fix_transitions(const Scene *scene, Strip *strip, Seq
 static void strip_retiming_key_offset(const Scene *scene,
                                       Strip *strip,
                                       SeqRetimingKey *key,
-                                      const float offset)
+                                      const float media_offset)
 {
   if ((key->flag & SEQ_SPEED_TRANSITION_IN) != 0) {
-    strip_retiming_transition_offset(scene, strip, key, offset);
+    strip_retiming_transition_offset(scene, strip, key, media_offset);
   }
   else {
-    key->strip_frame_index += offset;
+    /* NOTE: Strip frame indices are in source media frames, not timeline frames. */
+    key->strip_frame_index += media_offset;
     strip_retiming_fix_transitions(scene, strip, key);
   }
 }
@@ -948,30 +950,31 @@ void retiming_key_frame_set(const Scene *scene, Strip *strip, SeqRetimingKey *ke
     return;
   }
 
-  const int orig_frame = retiming_key_frame_get(scene, strip, key);
-  const float scene_fps = float(scene->frames_per_second());
+  const int frame_old = retiming_key_frame_get(scene, strip, key);
+  const int timeline_offset = (frame - frame_old);
 
-  const float offset = (frame - orig_frame) * strip->media_playback_rate_factor(scene_fps);
+  const float scene_fps = float(scene->frames_per_second());
+  const float media_offset = timeline_offset * strip->media_playback_rate_factor(scene_fps);
 
   const int key_count = retiming_keys_get(strip).size();
   const int key_index = retiming_key_index_get(strip, key);
 
-  if (orig_frame == strip->right_handle(scene)) {
+  if (frame_old == strip->right_handle(scene)) {
     for (int i = key_index; i < key_count; i++) {
       SeqRetimingKey *key_iter = &retiming_keys_get(strip)[i];
-      strip_retiming_key_offset(scene, strip, key_iter, offset);
+      strip_retiming_key_offset(scene, strip, key_iter, media_offset);
     }
   }
-  else if (orig_frame == strip->left_handle() || key->strip_frame_index == 0) {
-    strip->start += offset;
+  else if (frame_old == strip->left_handle() || key->strip_frame_index == 0) {
+    strip->start += timeline_offset;
     for (int i = key_index + 1; i < key_count; i++) {
       SeqRetimingKey *key_iter = &retiming_keys_get(strip)[i];
-      strip_retiming_key_offset(scene, strip, key_iter, -offset);
+      strip_retiming_key_offset(scene, strip, key_iter, -media_offset);
     }
   }
   else {
     strip_retiming_key_offset(
-        scene, strip, key, strip_retiming_clamp_offset(scene, strip, key, offset));
+        scene, strip, key, strip_retiming_clamp_offset(scene, strip, key, media_offset));
   }
 
   Span<Strip *> effects = lookup_effects_by_strip(scene->ed, strip);

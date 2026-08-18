@@ -966,17 +966,18 @@ def dump_ocio_config(msgs, reports, settings):
     # This assumes the default Blender config is used when we extract messages.
     import PyOpenColorIO as OCIO
     config = OCIO.GetCurrentConfig()
+    translation_context = bpy.app.translations.contexts.color_management
 
     for display in config.getDisplays():
         msgsrc = "Display name from OCIO config"
         process_msg(
-            msgs, settings.DEFAULT_CONTEXT, display, msgsrc,
+            msgs, translation_context, display, msgsrc,
             reports, None, settings,
         )
         for view in config.getViews(display):
             msgsrc = "View name from OCIO display " + display
             process_msg(
-                msgs, settings.DEFAULT_CONTEXT, view, msgsrc,
+                msgs, translation_context, view, msgsrc,
                 reports, None, settings,
             )
             description = config.getDisplayViewDescription(display, view)
@@ -989,7 +990,7 @@ def dump_ocio_config(msgs, reports, settings):
     for view_transform in config.getViewTransforms():
         msgsrc = "View transform name from OCIO config"
         process_msg(
-            msgs, settings.DEFAULT_CONTEXT, view_transform.getName(), msgsrc,
+            msgs, translation_context, view_transform.getName(), msgsrc,
             reports, None, settings,
         )
         description = config.getDisplayViewDescription(display, view)
@@ -1010,7 +1011,7 @@ def dump_ocio_config(msgs, reports, settings):
             source = "OCIO config"
         msgsrc = "Look name from " + source
         process_msg(
-            msgs, settings.DEFAULT_CONTEXT, name, msgsrc,
+            msgs, translation_context, name, msgsrc,
             reports, None, settings,
         )
         msgsrc = "Look description from " + source
@@ -1024,7 +1025,7 @@ def dump_ocio_config(msgs, reports, settings):
         name = colorspace.getName()
         msgsrc = "Colorspace name from OCIO config"
         process_msg(
-            msgs, settings.DEFAULT_CONTEXT, name, msgsrc,
+            msgs, translation_context, name, msgsrc,
             reports, None, settings,
         )
         description = colorspace.getDescription()
@@ -1038,7 +1039,7 @@ def dump_ocio_config(msgs, reports, settings):
         for family_part in family.split(family_separator):
             msgsrc = "Colorspace family from OCIO config"
             process_msg(
-                msgs, settings.DEFAULT_CONTEXT, family_part, msgsrc,
+                msgs, translation_context, family_part, msgsrc,
                 reports, None, settings,
             )
 
@@ -1207,7 +1208,7 @@ def dump_messages(do_messages, do_checks, settings):
     #     (could not even reproduce it from regular py console in Blender with UI...).
     #     For some reasons, cleanup does not happen properly, *and* we have no way to tell which class is valid
     #     and which has been unregistered. So for now, just go for the dirty, easy way: do not disable add-ons. :(
-    # ~ utils.enable_addons(support={"COMMUNITY", "TESTING"}, disable=True)
+    # ~ utils.enable_addons(support={"COMMUNITY"}, disable=True)
 
     reports = _gen_reports(_gen_check_ctxt(settings) if do_checks else None)
 

@@ -297,15 +297,22 @@ void rayQueryGenerateIntersectionEXT(rayQueryEXT /*rayQuery*/, float /*hitT*/) {
 void rayQueryConfirmIntersectionEXT(rayQueryEXT /*rayQuery*/) {}
 uint rayQueryGetIntersectionTypeEXT(rayQueryEXT /*rayQuery*/, bool /*committed*/) RET;
 float rayQueryGetRayTMinEXT(rayQueryEXT /*rayQuery*/) RET;
+/* Not available on Metal: no query-side ray-flags accessor. Gated off so use is a compile error.
+ */
+#if 0
 uint rayQueryGetRayFlagsEXT(rayQueryEXT /*rayQuery*/) RET;
+#endif
 float3 rayQueryGetWorldRayOriginEXT(rayQueryEXT /*rayQuery*/) RET;
 float3 rayQueryGetWorldRayDirectionEXT(rayQueryEXT /*rayQuery*/) RET;
 float rayQueryGetIntersectionTEXT(rayQueryEXT /*rayQuery*/, bool /*committed*/) RET;
 uint rayQueryGetIntersectionInstanceCustomIndexEXT(rayQueryEXT /*rayQuery*/,
                                                    bool /*committed*/) RET;
 uint rayQueryGetIntersectionInstanceIdEXT(rayQueryEXT /*rayQuery*/, bool /*committed*/) RET;
+/* Not available on Metal: no inline equivalent. Gated off so use is a compile error. */
+#if 0
 uint rayQueryGetIntersectionInstanceShaderBindingTableRecordOffsetEXT(rayQueryEXT /*rayQuery*/,
                                                                       bool /*committed*/) RET;
+#endif
 uint rayQueryGetIntersectionGeometryIndexEXT(rayQueryEXT /*rayQuery*/, bool /*committed*/) RET;
 uint rayQueryGetIntersectionPrimitiveIndexEXT(rayQueryEXT /*rayQuery*/, bool /*committed*/) RET;
 float2 rayQueryGetIntersectionBarycentricsEXT(rayQueryEXT /*rayQuery*/, bool /*committed*/) RET;

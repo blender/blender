@@ -10,11 +10,28 @@
 
 #pragma once
 
+#include "BLI_math_vector_types.hh"
 #include "BLI_sys_types.hh"
 
 namespace blender {
 
+namespace gpu {
+
+void imm_draw_circle_partial_wire_aspect_2d(
+    uint pos, float x, float y, float2 radius, int nsegments, float start, float sweep);
+void imm_draw_circle_partial_wire_aspect_3d(
+    uint pos, float x, float y, float z, float2 radius, int nsegments, float start, float sweep);
+
+void imm_draw_rounded_box_wire_2d(
+    uint pos, float x, float y, float2 radius, float2 corner_radius, int nsegments);
+void imm_draw_rounded_box_wire_3d(
+    uint pos, float x, float y, float2 radius, float2 corner_radius, int nsegments);
+
+}  // namespace gpu
+
 struct rctf;
+
+/* TODO: update the arguments of the methods below to use float2, then move into gpu namespace. */
 
 /* Draw 2D rectangles (replaces glRect functions) */
 /* caller is responsible for vertex format & shader */

@@ -314,7 +314,7 @@ std::string ED_mesh_color_add(Mesh *mesh,
     BKE_id_attributes_active_color_set(&mesh->id, new_name);
   }
 
-  DEG_id_tag_update(&mesh->id, 0);
+  DEG_id_tag_update(&mesh->id, ID_RECALC_GEOMETRY);
   WM_main_add_notifier(NC_GEOM | ND_DATA, mesh);
 
   return new_name;
@@ -340,7 +340,7 @@ bool ED_mesh_color_ensure(Mesh *mesh, const char *name)
   BKE_id_attributes_active_color_set(&mesh->id, unique_name);
   BKE_id_attributes_default_color_set(&mesh->id, unique_name);
   BKE_mesh_tessface_clear(mesh);
-  DEG_id_tag_update(&mesh->id, 0);
+  DEG_id_tag_update(&mesh->id, ID_RECALC_GEOMETRY);
 
   return true;
 }
@@ -586,11 +586,12 @@ static SkinState mesh_customdata_skin_state(bContext *C)
     return SkinState::Invalid;
   }
   if (BMEditMesh *em = mesh->runtime->edit_mesh.get()) {
-    return CustomData_has_layer(&em->bm->vdata, CD_MVERT_SKIN) ? SkinState::HasSkin :
-                                                                 SkinState::NoSkin;
+    return CustomData_has_layer_named(&em->bm->vdata, CD_PROP_FLOAT2, "skin_modifier_radius") ?
+               SkinState::HasSkin :
+               SkinState::NoSkin;
   }
-  return CustomData_has_layer(&mesh->vert_data, CD_MVERT_SKIN) ? SkinState::HasSkin :
-                                                                 SkinState::NoSkin;
+  return mesh->attributes().contains("skin_modifier_radius") ? SkinState::HasSkin :
+                                                               SkinState::NoSkin;
 }
 
 static bool mesh_customdata_skin_add_poll(bContext *C)
@@ -633,15 +634,19 @@ static wmOperatorStatus mesh_customdata_skin_clear_exec(bContext *C, wmOperator 
   Object *object = ed::object::context_object(C);
   Mesh *mesh = id_cast<Mesh *>(object->data);
   if (BMEditMesh *em = mesh->runtime->edit_mesh.get()) {
-    if (!CustomData_has_layer(&em->bm->vdata, CD_MVERT_SKIN)) {
+    if (!CustomData_has_layer_named(&em->bm->vdata, CD_PROP_FLOAT2, "skin_modifier_radius")) {
       return OPERATOR_CANCELLED;
     }
-    BM_data_layer_free(em->bm, &em->bm->vdata, CD_MVERT_SKIN);
+    BM_data_layer_free_named(em->bm, &em->bm->vdata, "skin_modifier_radius");
+    BM_data_layer_free_named(em->bm, &em->bm->vdata, "skin_modifier_root");
+    BM_data_layer_free_named(em->bm, &em->bm->vdata, "skin_modifier_loose");
   }
   else {
-    if (!CustomData_free_layers(&mesh->vert_data, CD_MVERT_SKIN)) {
+    if (!mesh->attributes_for_write().remove("skin_modifier_radius")) {
       return OPERATOR_CANCELLED;
     }
+    mesh->attributes_for_write().remove("skin_modifier_root");
+    mesh->attributes_for_write().remove("skin_modifier_loose");
   }
   DEG_id_tag_update(&mesh->id, ID_RECALC_GEOMETRY);
   WM_event_add_notifier(C, NC_GEOM | ND_DATA, mesh);

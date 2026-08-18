@@ -342,7 +342,7 @@ ccl_device int bssrdf_setup(ccl_private ShaderData *sd,
 
     bssrdf_setup_radius(bssrdf, type);
 
-    flag |= SD_BSSRDF;
+    flag |= SR_BSSRDF;
   }
   else {
     bssrdf->type = CLOSURE_NONE_ID;

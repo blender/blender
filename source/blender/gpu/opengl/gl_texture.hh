@@ -48,6 +48,8 @@ class GLTexture : public Texture {
   GLuint tex_id_ = 0;
   /** Legacy workaround for texture copy. Created when using framebuffer_get(). */
   FrameBuffer *framebuffer_ = nullptr;
+  /* Mip level currently bound to the framebuffer. */
+  int framebuffer_mip_ = -1;
   /** True if this texture is bound to at least one texture unit. */
   /* TODO(fclem): How do we ensure thread safety here? */
   bool is_bound_ = false;
@@ -81,7 +83,6 @@ class GLTexture : public Texture {
   void copy_to(Texture *dst, IndexRange mip_levels) override;
   void clear(const double4 data) override;
   void swizzle_set(const char swizzle_mask[4]) override;
-  void mip_range_set(int min, int max) override;
   void read(int mip, eGPUDataFormat type, void *data) override;
 
   void check_feedback_loop();
@@ -110,17 +111,15 @@ class GLTexture : public Texture {
   /** Return true on success. */
   bool init_internal(VertBuf *vbo) override;
   /** Return true on success. */
-  bool init_internal(gpu::Texture *src,
-                     int mip_offset,
-                     int layer_offset,
-                     bool use_stencil) override;
+  bool init_internal(gpu::Texture *src, bool use_stencil) override;
 
  private:
   bool proxy_check(int mip);
+  void mip_range_set(int min, int max);
   void stencil_texture_mode_set(bool use_stencil);
   void update_sub_direct_state_access(
       int mip, int offset[3], int extent[3], GLenum gl_format, GLenum gl_type, const void *data);
-  FrameBuffer *framebuffer_get();
+  FrameBuffer *framebuffer_get(int mip);
 
   MEM_CXX_CLASS_ALLOC_FUNCS("GLTexture")
 };

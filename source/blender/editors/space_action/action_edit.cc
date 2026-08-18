@@ -71,6 +71,7 @@ namespace blender {
  * 2) that the set of markers being shown are the scene markers, not the list we're merging
  * 3) that the mode will have an active action available
  * 4) that there are some selected markers
+ * 5) that the markers are not locked
  */
 static bool act_markers_make_local_poll(bContext *C)
 {
@@ -95,7 +96,13 @@ static bool act_markers_make_local_poll(bContext *C)
   }
 
   /* 4) */
-  return ED_markers_get_first_selected(ED_context_get_markers(C)) != nullptr;
+  if (ED_markers_get_first_selected(ED_context_get_markers(C)) == nullptr) {
+    return false;
+  }
+
+  /* 5) */
+  ToolSettings *ts = CTX_data_tool_settings(C);
+  return !ts->lock_markers;
 }
 
 static wmOperatorStatus act_markers_make_local_exec(bContext *C, wmOperator * /*op*/)
@@ -138,9 +145,9 @@ static wmOperatorStatus act_markers_make_local_exec(bContext *C, wmOperator * /*
 void ACTION_OT_markers_make_local(wmOperatorType *ot)
 {
   /* identifiers */
-  ot->name = "Make Markers Local";
+  ot->name = "Convert to Pose Markers";
   ot->idname = "ACTION_OT_markers_make_local";
-  ot->description = "Move selected scene markers to the active Action as local 'pose' markers";
+  ot->description = "Move selected scene markers to the active action as pose markers";
 
   /* callbacks */
   ot->exec = act_markers_make_local_exec;
@@ -882,7 +889,7 @@ static void insert_fcurve_key(bAnimContext *ac,
     CombinedKeyingResult result = insert_keyframes(ac->bmain,
                                                    &id_rna_pointer,
                                                    channel_group,
-                                                   {{fcu->rna_path, {}, fcu->array_index}},
+                                                   {{fcu->rna_path(), {}, fcu->array_index}},
                                                    std::nullopt,
                                                    anim_eval_context,
                                                    eBezTriple_KeyframeType(ts->keyframe_type),

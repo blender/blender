@@ -1,9 +1,9 @@
 
 msgid ""
 msgstr ""
-"Project-Id-Version: Blender 5.3.0 Alpha (b'96294be75080')\n"
+"Project-Id-Version: Blender 5.3.0 Alpha (b'af4852ed4560')\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-07-20 07:29+0000\n"
+"POT-Creation-Date: 2026-08-10 07:54+0000\n"
 "PO-Revision-Date: 2026-04-06 09:16+0000\n"
 "Last-Translator: Leevi Oksanen <laavi.oksanen@gmail.com>\n"
 "Language-Team: Finnish <https://translate.blender.org/projects/blender-ui/ui/fi/>\n"
@@ -2701,10 +2701,6 @@ msgstr "Indeksi"
 
 msgid "Visible"
 msgstr "Näkyvä"
-
-
-msgid "UI Row"
-msgstr "UI-rivi"
 
 
 msgid "Active Collection"
@@ -5901,86 +5897,6 @@ msgid "Theme"
 msgstr "Teema"
 
 
-msgid "THEME01"
-msgstr "TEEMA01"
-
-
-msgid "THEME02"
-msgstr "TEEMA02"
-
-
-msgid "THEME03"
-msgstr "TEEMA03"
-
-
-msgid "THEME04"
-msgstr "TEEMA04"
-
-
-msgid "THEME05"
-msgstr "TEEMA05"
-
-
-msgid "THEME06"
-msgstr "TEEMA06"
-
-
-msgid "THEME07"
-msgstr "TEEMA07"
-
-
-msgid "THEME08"
-msgstr "TEEMA08"
-
-
-msgid "THEME09"
-msgstr "TEEMA09"
-
-
-msgid "THEME10"
-msgstr "TEEMA10"
-
-
-msgid "THEME11"
-msgstr "TEEMA11"
-
-
-msgid "THEME12"
-msgstr "TEEMA12"
-
-
-msgid "THEME13"
-msgstr "TEEMA13"
-
-
-msgid "THEME14"
-msgstr "TEEMA14"
-
-
-msgid "THEME15"
-msgstr "TEEMA15"
-
-
-msgid "THEME16"
-msgstr "TEEMA16"
-
-
-msgid "THEME17"
-msgstr "TEEMA17"
-
-
-msgid "THEME18"
-msgstr "TEEMA18"
-
-
-msgid "THEME19"
-msgstr "TEEMA19"
-
-
-msgid "THEME20"
-msgstr "TEEMA20"
-
-
 msgid "Blur Mode"
 msgstr "Sumennustila"
 
@@ -7208,60 +7124,20 @@ msgid "ID Type"
 msgstr "ID-tyyppi"
 
 
-msgid "Track"
-msgstr "Raide"
+msgid "Names"
+msgstr "Nimet"
 
 
 msgid "Show/Hide"
 msgstr "Näytä/Piilota"
 
 
-msgid "Hooks"
-msgstr "Koukut"
-
-
-msgid "Random Mask"
-msgstr "Satunnainen maski"
-
-
-msgid "Math"
-msgstr "Matematiikka"
-
-
 msgid "Utilities"
 msgstr "Työkalut"
 
 
-msgid "Names"
-msgstr "Nimet"
-
-
-msgid "Mesh Select Mode"
-msgstr "Muodon valintatila"
-
-
-msgid "Read"
-msgstr "Lue"
-
-
-msgid "Write"
-msgstr "Kirjoita"
-
-
-msgid "Instances"
-msgstr "Instanssit"
-
-
-msgid "Metaball"
-msgstr "Metapallo"
-
-
-msgid "Import"
-msgstr "Tuo"
-
-
-msgid "UV"
-msgstr "UV"
+msgid "Math"
+msgstr "Matematiikka"
 
 
 msgid "UV Mapping"
@@ -7280,12 +7156,20 @@ msgid "Select All by Trait"
 msgstr "Valitse kaikki piirteen mukaan"
 
 
-msgid "Linked"
-msgstr "Linkitetyt"
-
-
 msgid "Select Loops"
 msgstr "Valitse silmukat"
+
+
+msgid "Read"
+msgstr "Lue"
+
+
+msgid "Write"
+msgstr "Kirjoita"
+
+
+msgid "Metaball"
+msgstr "Metapallo"
 
 
 msgid "Light"
@@ -7298,6 +7182,38 @@ msgstr "Valoluotain"
 
 msgid "Add Image"
 msgstr "Lisää kuva"
+
+
+msgid "Instances"
+msgstr "Instanssit"
+
+
+msgid "Import"
+msgstr "Tuo"
+
+
+msgid "Track"
+msgstr "Raide"
+
+
+msgid "Hooks"
+msgstr "Koukut"
+
+
+msgid "UV"
+msgstr "UV"
+
+
+msgid "Random Mask"
+msgstr "Satunnainen maski"
+
+
+msgid "Mesh Select Mode"
+msgstr "Muodon valintatila"
+
+
+msgid "Linked"
+msgstr "Linkitetyt"
 
 
 msgid "Basic"

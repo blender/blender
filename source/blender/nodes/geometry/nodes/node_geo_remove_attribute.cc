@@ -2,6 +2,8 @@
  *
  * SPDX-License-Identifier: GPL-2.0-or-later */
 
+#include "BKE_curves.hh"
+#include "BKE_grease_pencil.hh"
 #include "BKE_instances.hh"
 
 #include "NOD_string_pattern.hh"
@@ -33,6 +35,53 @@ struct RemoveAttributeParams {
   Set<std::string> failed_attributes;
 };
 
+static void remove_attributes(const bke::AttributeAccessor &accessor,
+                              FunctionRef<MutableAttributeAccessor()> get_write_accessor,
+                              RemoveAttributeParams &params)
+{
+  Vector<std::string> attributes_to_remove;
+  if (const std::optional<StringRef> exact_pattern = params.pattern.exact_pattern()) {
+    if (bke::attribute_name_is_anonymous(*exact_pattern)) {
+      return;
+    }
+    if (!bke::allow_procedural_attribute_access(*exact_pattern)) {
+      return;
+    }
+    if (accessor.contains(*exact_pattern)) {
+      attributes_to_remove.append(*exact_pattern);
+    }
+  }
+  else {
+    accessor.foreach_attribute([&](const bke::AttributeIter &iter) {
+      const StringRef attribute_name = iter.name;
+      if (bke::attribute_name_is_anonymous(attribute_name)) {
+        return;
+      }
+      if (!bke::allow_procedural_attribute_access(attribute_name)) {
+        return;
+      }
+      if (params.pattern.match(attribute_name)) {
+        attributes_to_remove.append(attribute_name);
+      }
+    });
+  }
+  if (attributes_to_remove.is_empty()) {
+    return;
+  }
+  MutableAttributeAccessor write_accessor = get_write_accessor();
+  for (const StringRef attribute_name : attributes_to_remove) {
+    if (!bke::allow_procedural_attribute_access(attribute_name)) {
+      continue;
+    }
+    if (write_accessor.remove(attribute_name)) {
+      params.removed_attributes.add(attribute_name);
+    }
+    else {
+      params.failed_attributes.add(attribute_name);
+    }
+  }
+}
+
 static void remove_attributes_recursive(GeometrySet &geometry_set, RemoveAttributeParams &params)
 {
   for (const GeometryComponent::Type type : {GeometryComponent::Type::Mesh,
@@ -47,40 +96,13 @@ static void remove_attributes_recursive(GeometrySet &geometry_set, RemoveAttribu
     /* First check if the attribute exists before getting write access,
      * to avoid potentially expensive unnecessary copies. */
     const GeometryComponent &read_only_component = *geometry_set.get_component(type);
-    Vector<std::string> attributes_to_remove;
-    if (const std::optional<StringRef> exact_pattern = params.pattern.exact_pattern()) {
-      if (read_only_component.attributes()->contains(*exact_pattern)) {
-        attributes_to_remove.append(*exact_pattern);
-      }
-    }
-    else {
-      read_only_component.attributes()->foreach_attribute([&](const bke::AttributeIter &iter) {
-        const StringRef attribute_name = iter.name;
-        if (bke::attribute_name_is_anonymous(attribute_name)) {
-          return;
-        }
-        if (params.pattern.match(attribute_name)) {
-          attributes_to_remove.append(attribute_name);
-        }
-      });
-    }
-
-    if (attributes_to_remove.is_empty()) {
-      continue;
-    }
-
-    GeometryComponent &component = geometry_set.get_component_for_write(type);
-    for (const StringRef attribute_name : attributes_to_remove) {
-      if (!bke::allow_procedural_attribute_access(attribute_name)) {
-        continue;
-      }
-      if (component.attributes_for_write()->remove(attribute_name)) {
-        params.removed_attributes.add(attribute_name);
-      }
-      else {
-        params.failed_attributes.add(attribute_name);
-      }
-    }
+    remove_attributes(
+        *read_only_component.attributes(),
+        [&]() {
+          GeometryComponent &component = geometry_set.get_component_for_write(type);
+          return *component.attributes_for_write();
+        },
+        params);
   }
 
   if (bke::Instances *instances = geometry_set.get_instances_for_write()) {
@@ -89,6 +111,22 @@ static void remove_attributes_recursive(GeometrySet &geometry_set, RemoveAttribu
       if (reference.type() == bke::InstanceReference::Type::GeometrySet) {
         remove_attributes_recursive(reference.geometry_set(), params);
       }
+    }
+  }
+  if (GreasePencil *grease_pencil = geometry_set.get_grease_pencil_for_write()) {
+    using namespace blender::bke::greasepencil;
+    for (const int layer_index : grease_pencil->layers().index_range()) {
+      Drawing *drawing = grease_pencil->get_eval_drawing(grease_pencil->layer(layer_index));
+      if (drawing == nullptr) {
+        continue;
+      }
+      remove_attributes(
+          drawing->strokes().attributes(),
+          [&]() {
+            bke::CurvesGeometry &curves = drawing->strokes_for_write();
+            return curves.attributes_for_write();
+          },
+          params);
     }
   }
 }

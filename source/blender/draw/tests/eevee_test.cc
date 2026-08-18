@@ -153,6 +153,7 @@ static void test_eevee_shadow_shift()
 
   PassSimple pass("Test");
   pass.shader_set(sh);
+  pass.push_constant("reset_used_flag", true);
   pass.bind_ssbo("tilemaps_buf", tilemaps_data);
   pass.bind_ssbo("tilemaps_clip_buf", tilemaps_clip);
   pass.bind_ssbo("tiles_buf", tiles_data);

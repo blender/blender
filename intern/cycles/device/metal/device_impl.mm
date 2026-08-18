@@ -47,7 +47,7 @@ bool MetalDevice::is_device_cancelled(const int ID)
   return get_device_by_ID(ID, lock) == nullptr;
 }
 
-BVHLayoutMask MetalDevice::get_bvh_layout_mask(uint /*kernel_features*/) const
+BVHLayoutMask MetalDevice::get_bvh_layout_mask(const uint64_t /*kernel_features*/) const
 {
   return use_metalrt ? BVH_LAYOUT_METAL : BVH_LAYOUT_BVH2;
 }
@@ -316,7 +316,7 @@ void MetalDevice::prepare_residency()
 #  endif
 }
 
-bool MetalDevice::support_device(const uint /*kernel_features*/)
+bool MetalDevice::support_device(const uint64_t /*kernel_features*/)
 {
   return true;
 }
@@ -339,7 +339,7 @@ bool MetalDevice::use_local_atomic_sort() const
 }
 
 string MetalDevice::preprocess_source(MetalPipelineType pso_type,
-                                      const uint kernel_features,
+                                      const uint64_t kernel_features,
                                       string *source)
 {
   string global_defines;
@@ -366,6 +366,9 @@ string MetalDevice::preprocess_source(MetalPipelineType pso_type,
 #  endif
 
   global_defines += "#define __KERNEL_METAL_APPLE__\n";
+  if (@available(macos 12.0, *)) {
+    global_defines += "#define __METAL_FUNCTION_CONSTANTS_64BIT__\n";
+  }
   if (@available(macos 14.0, *)) {
     /* Use Program Scope Global Built-ins, when available. */
     global_defines += "#define __METAL_GLOBAL_BUILTINS__\n";
@@ -438,7 +441,7 @@ string MetalDevice::preprocess_source(MetalPipelineType pso_type,
   return md5.get_hex();
 }
 
-void MetalDevice::make_source(MetalPipelineType pso_type, const uint kernel_features)
+void MetalDevice::make_source(MetalPipelineType pso_type, const uint64_t kernel_features)
 {
   string &source = this->source[pso_type];
   source = "\n#include \"kernel/device/metal/kernel.metal\"\n";
@@ -451,7 +454,7 @@ void MetalDevice::make_source(MetalPipelineType pso_type, const uint kernel_feat
   global_defines_md5[pso_type] = preprocess_source(pso_type, kernel_features, &source);
 }
 
-bool MetalDevice::load_kernels(const uint _kernel_features)
+bool MetalDevice::load_kernels(const uint64_t _kernel_features)
 {
   @autoreleasepool {
     kernel_features |= _kernel_features;
@@ -520,11 +523,11 @@ void MetalDevice::refresh_source_and_kernels_md5(MetalPipelineType pso_type)
   md5.append(constant_values);
   md5.append(source[pso_type]);
   if (use_metalrt) {
-    md5.append(string_printf("metalrt_features=%d", kernel_features & METALRT_FEATURE_MASK));
+    md5.append(string_printf("metalrt_features=%llu", kernel_features & METALRT_FEATURE_MASK));
   }
   if (pso_type != PSO_GENERIC) {
     /* Include kernel_features since it's specialized but missed by the constant_values loop. */
-    md5.append(string_printf("kernel_features=%u", launch_params->data.kernel_features));
+    md5.append(string_printf("kernel_features=%llu", launch_params->data.kernel_features));
   }
   kernels_md5[pso_type] = md5.get_hex();
 }

@@ -1,9 +1,9 @@
 
 msgid ""
 msgstr ""
-"Project-Id-Version: Blender 5.3.0 Alpha (b'96294be75080')\n"
+"Project-Id-Version: Blender 5.3.0 Alpha (b'af4852ed4560')\n"
 "Report-Msgid-Bugs-To: Leandro Paganelli <leandrobp@fastmail.com>\n"
-"POT-Creation-Date: 2026-07-20 07:29+0000\n"
+"POT-Creation-Date: 2026-08-10 07:54+0000\n"
 "PO-Revision-Date: 2026-04-13 10:12+0000\n"
 "Last-Translator: Gilberto Rodrigues <gilbertorodrigues@outlook.com>\n"
 "Language-Team: Portuguese (Brazil) <https://translate.blender.org/projects/blender-ui/ui/pt_BR/>\n"
@@ -2715,10 +2715,6 @@ msgstr "Blocos de dados de partículas"
 
 msgid "Point cloud data-blocks"
 msgstr "Blocos de dados na nuvem de pontos"
-
-
-msgid "Project"
-msgstr "Projetar"
 
 
 msgid "Scene data-blocks"
@@ -6625,6 +6621,10 @@ msgstr "Pontos mais próximos da superfície"
 
 msgid "Shrink the location to the nearest target surface"
 msgstr "Encolhe a localização para as superfícies mais próximas do alvo."
+
+
+msgid "Project"
+msgstr "Projetar"
 
 
 msgid "Shrink the location to the nearest target surface along a given axis"
@@ -12089,14 +12089,6 @@ msgstr "Usar o decaimento para faces frontais"
 
 msgid "Blend brush influence by how much they face the front"
 msgstr "Mesclagem da influência do pincel pela quantidade de faceamento frontal."
-
-
-msgid "Inverse Smooth Pressure"
-msgstr "Pressão de suavização inversa"
-
-
-msgid "Lighter pressure causes more smoothing to be applied"
-msgstr "Pressão mais leve faz com que mais suavização seja aplicada"
 
 
 msgid "Plane Offset Pressure"
@@ -21160,16 +21152,12 @@ msgid "Material slot name"
 msgstr "Nome do compartimento do material."
 
 
-msgid "Apply"
-msgstr "Aplicar"
+msgid "Names"
+msgstr "Nomes"
 
 
-msgid "Track"
-msgstr "Rastrear"
-
-
-msgid "Quick Effects"
-msgstr "Efeitos instantâneos"
+msgid "Bone Roll"
+msgstr "Rolagem dos ossos"
 
 
 msgid "Show/Hide"
@@ -21180,88 +21168,16 @@ msgid "Clean Up"
 msgstr "Limpeza"
 
 
-msgid "Make Single User"
-msgstr "Tornar usuário único"
+msgid "Keying"
+msgstr "Inserção de chaves"
 
 
-msgid "Convert"
-msgstr "Converter"
-
-
-msgid "Hooks"
-msgstr "Ganchos"
-
-
-msgid "Random Mask"
-msgstr "Máscara Aleatória"
+msgid "Tracking"
+msgstr "Rastreamento"
 
 
 msgid "Math"
 msgstr "Matemática"
-
-
-msgid "Clear Transform"
-msgstr "Limpar transformações"
-
-
-msgid "In-Betweens"
-msgstr "Entre as continuidades"
-
-
-msgid "Propagate"
-msgstr "Propagar"
-
-
-msgid "Names"
-msgstr "Nomes"
-
-
-msgid "Toggle Bone Options"
-msgstr "Alternar opções de ossos"
-
-
-msgid "Enable Bone Options"
-msgstr "Habilitar opções de ossos"
-
-
-msgid "Disable Bone Options"
-msgstr "Desabilitar as opções de ossos"
-
-
-msgid "Mesh Select Mode"
-msgstr "Modo de seleção de malhas"
-
-
-msgid "Face Data"
-msgstr "Dados das faces"
-
-
-msgid "Merge"
-msgstr "Fundir"
-
-
-msgid "Instances"
-msgstr "Instâncias"
-
-
-msgid "Special Characters"
-msgstr "Caracteres especiais"
-
-
-msgid "Metaball"
-msgstr "Meta-esfera"
-
-
-msgid "Import"
-msgstr "Importar"
-
-
-msgid "Bone Roll"
-msgstr "Rolagem dos ossos"
-
-
-msgid "UV"
-msgstr "UV"
 
 
 msgid "Pivot Point"
@@ -21320,14 +21236,6 @@ msgid "Select All by Trait"
 msgstr "Selecionar todos por características..."
 
 
-msgid "Linked"
-msgstr "Vinculando"
-
-
-msgid "Layout"
-msgstr "Organizar"
-
-
 msgid "Select Linked"
 msgstr "Selecionar vinculados(as)"
 
@@ -21336,12 +21244,8 @@ msgid "Select Loops"
 msgstr "Selecionar anéis"
 
 
-msgid "Keying"
-msgstr "Inserção de chaves"
-
-
-msgid "Tracking"
-msgstr "Rastreamento"
+msgid "Metaball"
+msgstr "Meta-esfera"
 
 
 msgid "Light"
@@ -21360,8 +21264,96 @@ msgid "Relations"
 msgstr "Relações"
 
 
+msgid "Instances"
+msgstr "Instâncias"
+
+
 msgid "Rigid Body"
 msgstr "Corpo rígido"
+
+
+msgid "Apply"
+msgstr "Aplicar"
+
+
+msgid "Import"
+msgstr "Importar"
+
+
+msgid "Track"
+msgstr "Rastrear"
+
+
+msgid "Quick Effects"
+msgstr "Efeitos instantâneos"
+
+
+msgid "Make Single User"
+msgstr "Tornar usuário único"
+
+
+msgid "Convert"
+msgstr "Converter"
+
+
+msgid "Hooks"
+msgstr "Ganchos"
+
+
+msgid "UV"
+msgstr "UV"
+
+
+msgid "Random Mask"
+msgstr "Máscara Aleatória"
+
+
+msgid "Clear Transform"
+msgstr "Limpar transformações"
+
+
+msgid "In-Betweens"
+msgstr "Entre as continuidades"
+
+
+msgid "Propagate"
+msgstr "Propagar"
+
+
+msgid "Toggle Bone Options"
+msgstr "Alternar opções de ossos"
+
+
+msgid "Enable Bone Options"
+msgstr "Habilitar opções de ossos"
+
+
+msgid "Disable Bone Options"
+msgstr "Desabilitar as opções de ossos"
+
+
+msgid "Mesh Select Mode"
+msgstr "Modo de seleção de malhas"
+
+
+msgid "Face Data"
+msgstr "Dados das faces"
+
+
+msgid "Merge"
+msgstr "Fundir"
+
+
+msgid "Linked"
+msgstr "Vinculando"
+
+
+msgid "Special Characters"
+msgstr "Caracteres especiais"
+
+
+msgid "Layout"
+msgstr "Organizar"
 
 
 msgid "Basic"
@@ -27940,6 +27932,10 @@ msgid "Enum Item"
 msgstr "Item de menu"
 
 
+msgid "Scalar"
+msgstr "Escalonar"
+
+
 msgid "Node Inputs"
 msgstr "Entradas de nós"
 
@@ -29683,15 +29679,6 @@ msgstr "Geradas"
 
 
 msgctxt "Operator"
-msgid "Make Markers Local"
-msgstr "Tornar marcadores locais"
-
-
-msgid "Move selected scene markers to the active Action as local 'pose' markers"
-msgstr "Move os marcadores de cena selecionados para a ação ativa como marcadores de \"pose\" locais."
-
-
-msgctxt "Operator"
 msgid "Mirror Keys"
 msgstr "Espelhar chaves"
 
@@ -31120,10 +31107,6 @@ msgstr "Escalonar o tamanho do pincel de escultura ou pintura"
 
 msgid "Change brush size by a scalar"
 msgstr "Altera o tamanho do pincel por uma escala."
-
-
-msgid "Scalar"
-msgstr "Escalonar"
 
 
 msgid "Factor to scale brush size by"
@@ -41695,10 +41678,6 @@ msgid "Weight from Bones"
 msgstr "Peso a partir dos ossos"
 
 
-msgid "Set the weights of the groups matching the attached armature's selected bones, using the distance between the vertices and the bones"
-msgstr "Configura os pesos dos grupos que combinem com os ossos da armação conectada, usando a distância entre os vértices e os ossos."
-
-
 msgid "Method to use for assigning weights"
 msgstr "Método para usar ao atribuir pesos."
 
@@ -48391,7 +48370,7 @@ msgid "Feature Weights"
 msgstr "Pesos da funcionalidade"
 
 
-msgid "Auto Keyframing"
+msgid "Auto Keying"
 msgstr "Inserção de chaves automática"
 
 
@@ -51291,10 +51270,6 @@ msgstr "Tipo de passo para gerar e gravar"
 
 msgid "Filter Glossy"
 msgstr "Filtro de polimento"
-
-
-msgid "Adaptively blur glossy shaders after blurry bounces, to reduce noise at the cost of accuracy"
-msgstr "Adaptativamente desfocar os sombreadores de polimento após os saltos de desfocagem, para reduzir o ruído ao custo da precisão."
 
 
 msgid "Camera Cull Margin"
@@ -57157,10 +57132,6 @@ msgid "Window Background"
 msgstr "Plano de fundo da janela"
 
 
-msgid "Header Text Highlight"
-msgstr "Texto - Realce de cabeçalho"
-
-
 msgid "Text Highlight"
 msgstr "Texto - Realce"
 
@@ -57632,10 +57603,6 @@ msgstr "Máscara de seleção"
 
 msgid "Only sculpt selected stroke points"
 msgstr "Esculpe somente os pontos dos traços selecionados."
-
-
-msgid "Auto Keying"
-msgstr "Inserção de chaves automática"
 
 
 msgid "Auto Keyframe Insert Keying Set"
@@ -58967,11 +58934,6 @@ msgstr "Documentação"
 
 msgid "File:"
 msgstr "Arquivo:"
-
-
-msgctxt "Operator"
-msgid "Apply"
-msgstr "Aplicar"
 
 
 msgid "Options:"
@@ -60759,10 +60721,6 @@ msgid "Play In"
 msgstr "Tocar Em"
 
 
-msgid "New Keyframe Type"
-msgstr "Tipo para novos quadros-chave"
-
-
 msgid "Unable to find toolbar group"
 msgstr "Não é possível encontrar o grupo da barra de ferramentas"
 
@@ -62038,6 +61996,11 @@ msgstr "Pintura múltipla"
 msgctxt "Operator"
 msgid "Quick Edit"
 msgstr "Edição rápida"
+
+
+msgctxt "Operator"
+msgid "Apply"
+msgstr "Aplicar"
 
 
 msgctxt "Operator"
@@ -65745,20 +65708,12 @@ msgid "Cannot fly when the view offset is locked"
 msgstr "Não é possível voar quando o deslocamento de visão está bloqueado."
 
 
-msgid "Cannot fly an object with constraints"
-msgstr "Não é possível fazer voo de um objeto com restrições."
-
-
 msgid "Cannot dolly when the view offset is locked"
 msgstr "Não é possível mover-se como em carrinho quando o deslocamento de visão está bloqueado."
 
 
 msgid "Cannot navigate when the view offset is locked"
 msgstr "Não é possível navegar quando o deslocamento de visão está bloqueado."
-
-
-msgid "Cannot navigate an object with constraints"
-msgstr "Não é possível navegar usando um objeto com restrições."
 
 
 msgid "Depth too large"

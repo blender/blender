@@ -242,7 +242,7 @@ void template_palette(Layout *layout, PointerRNA *ptr, const StringRefNull propn
   }
 
   const PointerRNA cptr = RNA_property_pointer_get(ptr, prop);
-  if (!cptr.data || !RNA_struct_is_a(cptr.type, RNA_Palette)) {
+  if (!cptr || !RNA_struct_is_a(cptr.type, RNA_Palette)) {
     return;
   }
 

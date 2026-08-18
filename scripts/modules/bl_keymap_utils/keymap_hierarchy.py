@@ -53,6 +53,7 @@ _km_hierarchy = [
     ('View2D Buttons List', 'EMPTY', 'WINDOW', []),  # view 2d with buttons navigation
 
     ('User Interface', 'EMPTY', 'WINDOW', []),
+    ('Toolbar Popup', 'EMPTY', 'TEMPORARY', []),  # tool switching popup
 
     ('3D View', 'VIEW_3D', 'WINDOW', [  # view 3d navigation and generic stuff (select, transform)
         ('Object Mode', 'EMPTY', 'WINDOW', [
@@ -64,7 +65,9 @@ _km_hierarchy = [
         ('Curve', 'EMPTY', 'WINDOW', [
             _km_expand_from_toolsystem('VIEW_3D', 'EDIT_CURVE'),
         ]),
-        ('Curves', 'EMPTY', 'WINDOW', []),
+        ('Curves', 'EMPTY', 'WINDOW', [
+            _km_expand_from_toolsystem('VIEW_3D', 'EDIT_CURVES'),
+        ]),
         ('Armature', 'EMPTY', 'WINDOW', [
             _km_expand_from_toolsystem('VIEW_3D', 'EDIT_ARMATURE'),
         ]),
@@ -99,9 +102,7 @@ _km_hierarchy = [
             _km_expand_from_toolsystem('VIEW_3D', 'SCULPT'),
         ]),
 
-        ('Sculpt Curves', 'EMPTY', 'WINDOW', [
-            _km_expand_from_toolsystem('VIEW_3D', 'CURVES_SCULPT'),
-        ]),
+        ('Sculpt Curves', 'EMPTY', 'WINDOW', []),
 
         ('Particle', 'EMPTY', 'WINDOW', [
             _km_expand_from_toolsystem('VIEW_3D', 'PARTICLE'),
@@ -150,14 +151,11 @@ _km_hierarchy = [
         ('UV Editor', 'EMPTY', 'WINDOW', [
             _km_expand_from_toolsystem('IMAGE_EDITOR', 'UV'),
         ]),
-        ('UV Sculpt', 'EMPTY', 'WINDOW', []),
         # Image and view3d.
         ('Image Paint', 'EMPTY', 'WINDOW', [
             _km_expand_from_toolsystem('IMAGE_EDITOR', 'PAINT'),
         ]),
-        ('Image View', 'IMAGE_EDITOR', 'WINDOW', [
-            _km_expand_from_toolsystem('IMAGE_EDITOR', 'VIEW'),
-        ]),
+        _km_expand_from_toolsystem('IMAGE_EDITOR', 'VIEW'),
         ('Image Generic', 'IMAGE_EDITOR', 'WINDOW', [
             _km_expand_from_toolsystem('IMAGE_EDITOR', None),
         ]),
@@ -166,15 +164,12 @@ _km_hierarchy = [
     ('Outliner', 'OUTLINER', 'WINDOW', []),
 
     ('Node Editor', 'NODE_EDITOR', 'WINDOW', [
-        ('Node Generic', 'NODE_EDITOR', 'WINDOW', []),
-        ('Node Tool: Tweak', 'NODE_EDITOR', 'WINDOW', []),
-        ('Node Tool: Tweak (fallback)', 'NODE_EDITOR', 'WINDOW', []),
-        ('Node Tool: Select Box', 'NODE_EDITOR', 'WINDOW', []),
-        ('Node Tool: Select Box (fallback)', 'NODE_EDITOR', 'WINDOW', []),
-        ('Node Tool: Select Lasso', 'NODE_EDITOR', 'WINDOW', []),
-        ('Node Tool: Select Lasso (fallback)', 'NODE_EDITOR', 'WINDOW', []),
-        ('Node Tool: Select Circle', 'NODE_EDITOR', 'WINDOW', []),
-        ('Node Tool: Select Circle (fallback)', 'NODE_EDITOR', 'WINDOW', []),
+        ('Node Generic', 'NODE_EDITOR', 'WINDOW', [
+            # Nodes don't use modes to access different tools, so there is only ever a single context.
+            _km_expand_from_toolsystem('NODE_EDITOR', None),
+        ]),
+        ('Node Link Modal Map', 'EMPTY', 'WINDOW', []),
+        ('Node Resize Modal Map', 'EMPTY', 'WINDOW', []),
     ]),
 
     ('Spreadsheet Generic', 'SPREADSHEET', 'WINDOW', []),
@@ -186,6 +181,8 @@ _km_hierarchy = [
         ('Preview', 'SEQUENCE_EDITOR', 'WINDOW', [
             _km_expand_from_toolsystem('SEQUENCE_EDITOR', 'PREVIEW'),
         ]),
+        ('Sequencer Channels', 'SEQUENCE_EDITOR', 'WINDOW', []),
+        ('Slip Modal', 'EMPTY', 'WINDOW', []),
     ]),
 
     ('File Browser', 'FILE_BROWSER', 'WINDOW', [
@@ -197,6 +194,10 @@ _km_hierarchy = [
 
     ('Property Editor', 'PROPERTIES', 'WINDOW', []),  # align context menu
 
+    ('Preferences', 'PREFERENCES', 'WINDOW', [
+        ('Preferences_nav', 'PREFERENCES', 'UI', []),  # navigation bar
+    ]),
+
     ('Text', 'TEXT_EDITOR', 'WINDOW', [
         ('Text Generic', 'TEXT_EDITOR', 'WINDOW', []),
     ]),
@@ -205,38 +206,52 @@ _km_hierarchy = [
         ('Clip Editor', 'CLIP_EDITOR', 'WINDOW', []),
         ('Clip Graph Editor', 'CLIP_EDITOR', 'WINDOW', []),
         ('Clip Dopesheet Editor', 'CLIP_EDITOR', 'WINDOW', []),
+        ('Clip Time Scrub', 'CLIP_EDITOR', 'PREVIEW', []),
     ]),
 
     ('Grease Pencil', 'EMPTY', 'WINDOW', [
         # Grease Pencil
-        ('Grease Pencil Draw Mode', 'EMPTY', 'WINDOW', []),
+        ('Grease Pencil Draw Mode', 'EMPTY', 'WINDOW', [
+            _km_expand_from_toolsystem('VIEW_3D', 'PAINT_GREASE_PENCIL'),
+        ]),
         ('Grease Pencil Brush Stroke', 'EMPTY', 'WINDOW', []),
-        ('Grease Pencil Edit Mode', 'EMPTY', 'WINDOW', []),
+        ('Grease Pencil Edit Mode', 'EMPTY', 'WINDOW', [
+            _km_expand_from_toolsystem('VIEW_3D', 'EDIT_GREASE_PENCIL'),
+        ]),
         ('Grease Pencil Sculpt Mode', 'EMPTY', 'WINDOW', []),
         ('Grease Pencil Weight Paint', 'EMPTY', 'WINDOW', []),
         ('Grease Pencil Vertex Paint', 'EMPTY', 'WINDOW', []),
+        ('Grease Pencil Selection', 'EMPTY', 'WINDOW', []),
         # Grease Pencil Fill Tool
         ('Grease Pencil Fill Tool', 'EMPTY', 'WINDOW', []),
     ]),
-    ('Mask Editing', 'EMPTY', 'WINDOW', []),
+    ('Mask Editing', 'EMPTY', 'WINDOW', [
+        _km_expand_from_toolsystem('IMAGE_EDITOR', 'MASK'),
+    ]),
     ('Frames', 'EMPTY', 'WINDOW', []),    # frame navigation (per region)
     ('Markers', 'EMPTY', 'WINDOW', []),    # markers (per region)
     ('Animation', 'EMPTY', 'WINDOW', []),    # frame change on click, preview range (per region)
     ('Animation Channels', 'EMPTY', 'WINDOW', []),
+    ('Time Scrub', 'EMPTY', 'WINDOW', []),    # frame change by dragging the scrub-bar (per region)
 
     ('View3D Gesture Circle', 'EMPTY', 'WINDOW', []),
     ('Gesture Straight Line', 'EMPTY', 'WINDOW', []),
     ('Gesture Zoom Border', 'EMPTY', 'WINDOW', []),
     ('Gesture Box', 'EMPTY', 'WINDOW', []),
+    ('Gesture Lasso', 'EMPTY', 'WINDOW', []),
+    ('Gesture Polyline', 'EMPTY', 'WINDOW', []),
 
     ('Standard Modal Map', 'EMPTY', 'WINDOW', []),
     ('Transform Modal Map', 'EMPTY', 'WINDOW', []),
+    ('Transform Axis Target Modal Map', 'EMPTY', 'WINDOW', []),
     ('Eyedropper Modal Map', 'EMPTY', 'WINDOW', []),
     ('Eyedropper ColorRamp PointSampling Map', 'EMPTY', 'WINDOW', []),
     ('Mesh Filter Modal Map', 'EMPTY', 'WINDOW', []),
 
     # Grease Pencil Fill Tool
     ('Fill Tool Modal Map', 'EMPTY', 'WINDOW', []),
+    # Grease Pencil Interpolate Tool
+    ('Interpolate Tool Modal Map', 'EMPTY', 'WINDOW', []),
 
     ('Generic Gizmo', 'EMPTY', 'WINDOW', [
         ('Generic Gizmo Drag', 'EMPTY', 'WINDOW', []),

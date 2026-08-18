@@ -242,6 +242,9 @@ static void version_idproperty_ui_data(IDProperty *idprop_group)
     if (prop_ui_data == nullptr) {
       continue;
     }
+    if (prop_ui_data->type != IDP_GROUP) {
+      continue;
+    }
 
     if (!IDP_ui_data_supported(&prop)) {
       continue;
@@ -485,9 +488,8 @@ static void do_versions_sequencer_speed_effect_recursive(Scene *scene,
             }
           }
           if (substr) {
-            char *new_path = BLI_string_replaceN(fcu->rna_path, "speed_factor", substr);
-            MEM_delete(fcu->rna_path);
-            fcu->rna_path = new_path;
+            char *new_path = BLI_string_replaceN(fcu->rna_path().c_str(), "speed_factor", substr);
+            fcu->rna_path_set_move(new_path);
           }
         }
       }
@@ -646,8 +648,8 @@ static void strip_speed_factor_fix_rna_path(Strip *strip, ListBaseT<FCurve> *fcu
   char *path = BLI_sprintfN("sequence_editor.sequences_all[\"%s\"].pitch", name_esc);
   FCurve *fcu = BKE_fcurve_find(fcurves, path, 0);
   if (fcu != nullptr) {
-    MEM_delete(fcu->rna_path);
-    fcu->rna_path = BLI_sprintfN("sequence_editor.sequences_all[\"%s\"].speed_factor", name_esc);
+    fcu->rna_path_set_move(
+        BLI_sprintfN("sequence_editor.sequences_all[\"%s\"].speed_factor", name_esc));
   }
   MEM_delete(path);
 }
@@ -1405,12 +1407,13 @@ static void version_switch_node_input_prefix(Main *bmain)
   FOREACH_NODETREE_END;
 }
 
-static bool replace_bbone_len_scale_rnapath(char **p_old_path, int *p_index)
+/**
+ * \return a newly allocated replacement path, or nullptr if `old_path` doesn't need replacing.
+ */
+static char *replace_bbone_len_scale_rnapath(const char *old_path, int *p_index)
 {
-  char *old_path = *p_old_path;
-
   if (old_path == nullptr) {
-    return false;
+    return nullptr;
   }
 
   int len = strlen(old_path);
@@ -1418,8 +1421,9 @@ static bool replace_bbone_len_scale_rnapath(char **p_old_path, int *p_index)
   if (BLI_str_endswith(old_path, ".bbone_curveiny") ||
       BLI_str_endswith(old_path, ".bbone_curveouty"))
   {
-    old_path[len - 1] = 'z';
-    return true;
+    char *new_path = BLI_strdup(old_path);
+    new_path[len - 1] = 'z';
+    return new_path;
   }
 
   if (BLI_str_endswith(old_path, ".bbone_scaleinx") ||
@@ -1429,20 +1433,14 @@ static bool replace_bbone_len_scale_rnapath(char **p_old_path, int *p_index)
   {
     int index = (old_path[len - 1] == 'y' ? 2 : 0);
 
-    old_path[len - 1] = 0;
-
     if (p_index) {
       *p_index = index;
+      return BLI_strdupn(old_path, len - 1);
     }
-    else {
-      *p_old_path = BLI_sprintfN("%s[%d]", old_path, index);
-      MEM_delete(old_path);
-    }
-
-    return true;
+    return BLI_sprintfN("%.*s[%d]", len - 1, old_path, index);
   }
 
-  return false;
+  return nullptr;
 }
 
 static void do_version_bbone_len_scale_fcurve_fix(FCurve *fcu)
@@ -1451,14 +1449,20 @@ static void do_version_bbone_len_scale_fcurve_fix(FCurve *fcu)
   if (fcu->driver) {
     for (DriverVar &dvar : fcu->driver->variables) {
       DRIVER_TARGETS_LOOPER_BEGIN (&dvar) {
-        replace_bbone_len_scale_rnapath(&dtar->rna_path, nullptr);
+        if (char *new_path = replace_bbone_len_scale_rnapath(dtar->rna_path, nullptr)) {
+          MEM_delete(dtar->rna_path);
+          dtar->rna_path = new_path;
+        }
       }
       DRIVER_TARGETS_LOOPER_END;
     }
   }
 
   /* Update F-Curve's path. */
-  replace_bbone_len_scale_rnapath(&fcu->rna_path, &fcu->array_index);
+  if (char *new_path = replace_bbone_len_scale_rnapath(fcu->rna_path().c_str(), &fcu->array_index))
+  {
+    fcu->rna_path_set_move(new_path);
+  }
 }
 
 static void do_version_bones_bbone_len_scale(ListBaseT<Bone> *lb)
@@ -3075,7 +3079,7 @@ void blo_do_versions_300(FileData *fd, Library * /*lib*/, Main *bmain)
     FOREACH_MAIN_ID_BEGIN (bmain, id_iter) {
       if (ID_IS_OVERRIDE_LIBRARY_REAL(id_iter)) {
         version_liboverride_rnacollections_insertion_animdata(id_iter);
-        if (GS(id_iter->name) == ID_OB) {
+        if (id_iter->id_type() == ID_OB) {
           version_liboverride_rnacollections_insertion_object(id_cast<Object *>(id_iter));
         }
       }
@@ -3361,7 +3365,7 @@ void blo_do_versions_300(FileData *fd, Library * /*lib*/, Main *bmain)
         /* Ignore non-real liboverrides, and linked ones. */
         continue;
       }
-      if (GS(id->name) == ID_OB) {
+      if (id->id_type() == ID_OB) {
         /* Never 'lock' an object into a system override for now. */
         continue;
       }

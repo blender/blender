@@ -463,4 +463,122 @@ TEST_F(VKRenderGraphTestTransfer, copy_buffer_to_image_dispatch_read_aliased_ima
   EXPECT_EQ("dispatch(group_count_x=1, group_count_y=1, group_count_z=1)", log[5]);
 }
 
+/**
+ * Model the VKTexturePool release/re-acquire cycle with a synchronization node.
+ *
+ * When a pooled texture is released, `VKTexturePool::release_texture()` adds a synchronization
+ * node that re-arms the aliased initial state ({MEMORY_READ|MEMORY_WRITE, ALL_COMMANDS}) for its
+ * VkImage. The backing memory may be reused by another image before the texture is re-acquired.
+ * The re-armed state ensures the next write to the reused memory synchronizes against every prior
+ * access to the aliased memory, avoiding WRITE_AFTER_READ/WRITE_AFTER_WRITE hazards (#161990).
+ */
+TEST_F(VKRenderGraphTestTransfer, copy_buffer_to_image_synchronization_aliased_image_reuse)
+{
+  VKTrackedHandle<VkBuffer> buffer(1u);
+  VkHandle<VkImage> image(2u);
+
+  buffer.set_resource_handle(resources.add_buffer(buffer));
+  resources.add_aliased_image(image, false);
+
+  VKCopyBufferToImageNode::CreateInfo copy_buffer_to_image = {};
+  copy_buffer_to_image.node_data.src_buffer = buffer;
+  copy_buffer_to_image.node_data.dst_image = image;
+  copy_buffer_to_image.node_data.region.imageExtent.width = 64;
+  copy_buffer_to_image.node_data.region.imageExtent.height = 64;
+  copy_buffer_to_image.node_data.region.imageExtent.depth = 1;
+  copy_buffer_to_image.node_data.region.imageOffset.x = 0;
+  copy_buffer_to_image.node_data.region.imageOffset.y = 0;
+  copy_buffer_to_image.node_data.region.imageOffset.z = 0;
+  copy_buffer_to_image.node_data.region.imageSubresource.aspectMask = VK_IMAGE_ASPECT_COLOR_BIT;
+  copy_buffer_to_image.node_data.region.imageSubresource.mipLevel = 0;
+  copy_buffer_to_image.node_data.region.imageSubresource.baseArrayLayer = 0;
+  copy_buffer_to_image.node_data.region.imageSubresource.layerCount = 1;
+  copy_buffer_to_image.vk_image_aspects = VK_IMAGE_ASPECT_COLOR_BIT;
+  render_graph->add_node(copy_buffer_to_image);
+
+  /* Synchronization node added by VKTexturePool::release_texture(). */
+  VKSynchronizationNode::CreateInfo synchronization = {};
+  synchronization.vk_image = image;
+  synchronization.vk_image_layout = VK_IMAGE_LAYOUT_GENERAL;
+  synchronization.vk_image_aspect = VK_IMAGE_ASPECT_COLOR_BIT;
+  synchronization.vk_access_flags = VK_ACCESS_MEMORY_READ_BIT | VK_ACCESS_MEMORY_WRITE_BIT;
+  render_graph->add_node(synchronization);
+
+  /* Second write after the texture has been released and re-acquired. */
+  render_graph->add_node(copy_buffer_to_image);
+
+  submit(render_graph, command_buffer);
+
+  EXPECT_EQ(5, log.size());
+  /* First write: synchronizes against the aliased initial state. */
+  EXPECT_EQ(
+      "pipeline_barrier(src_stage_mask=VK_PIPELINE_STAGE_ALL_COMMANDS_BIT, "
+      "dst_stage_mask=VK_PIPELINE_STAGE_TRANSFER_BIT" +
+          endl() +
+          " - image_barrier(src_access_mask=VK_ACCESS_MEMORY_READ_BIT, "
+          "VK_ACCESS_MEMORY_WRITE_BIT, "
+          "dst_access_mask=VK_ACCESS_TRANSFER_WRITE_BIT, "
+          "old_layout=VK_IMAGE_LAYOUT_UNDEFINED, new_layout=VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL, "
+          "image=0x2, subresource_range=" +
+          endl() +
+          "    aspect_mask=VK_IMAGE_ASPECT_COLOR_BIT, base_mip_level=0, level_count=4294967295, "
+          "base_array_layer=0, layer_count=4294967295  )" +
+          endl() + ")",
+      log[0]);
+  EXPECT_EQ(
+      "copy_buffer_to_image(src_buffer=0x1, dst_image=0x2, "
+      "src_image_layout=VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL" +
+          endl() +
+          " - region(buffer_offset=0, buffer_row_length=0, buffer_image_height=0, "
+          "image_subresource=" +
+          endl() +
+          "    aspect_mask=VK_IMAGE_ASPECT_COLOR_BIT, mip_level=0, base_array_layer=0, "
+          "layer_count=1  , image_offset=" +
+          endl() + "    x=0, y=0, z=0  , image_extent=" + endl() +
+          "    width=64, height=64, depth=1  )" + endl() + ")",
+      log[1]);
+  /* Synchronization node at release: waits for the first write and re-arms the aliased state. */
+  EXPECT_EQ(
+      "pipeline_barrier(src_stage_mask=VK_PIPELINE_STAGE_TRANSFER_BIT, "
+      "dst_stage_mask=VK_PIPELINE_STAGE_ALL_COMMANDS_BIT" +
+          endl() +
+          " - image_barrier(src_access_mask=VK_ACCESS_TRANSFER_WRITE_BIT, "
+          "dst_access_mask=VK_ACCESS_MEMORY_READ_BIT, "
+          "VK_ACCESS_MEMORY_WRITE_BIT, "
+          "old_layout=VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL, "
+          "new_layout=VK_IMAGE_LAYOUT_GENERAL, image=0x2, subresource_range=" +
+          endl() +
+          "    aspect_mask=VK_IMAGE_ASPECT_COLOR_BIT, base_mip_level=0, level_count=4294967295, "
+          "base_array_layer=0, layer_count=4294967295  )" +
+          endl() + ")",
+      log[2]);
+  /* Second write: must synchronize against all prior accesses to the aliased memory. */
+  EXPECT_EQ(
+      "pipeline_barrier(src_stage_mask=VK_PIPELINE_STAGE_ALL_COMMANDS_BIT, "
+      "dst_stage_mask=VK_PIPELINE_STAGE_TRANSFER_BIT" +
+          endl() +
+          " - image_barrier(src_access_mask=VK_ACCESS_MEMORY_READ_BIT, "
+          "VK_ACCESS_MEMORY_WRITE_BIT, "
+          "dst_access_mask=VK_ACCESS_TRANSFER_WRITE_BIT, "
+          "old_layout=VK_IMAGE_LAYOUT_GENERAL, new_layout=VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL, "
+          "image=0x2, subresource_range=" +
+          endl() +
+          "    aspect_mask=VK_IMAGE_ASPECT_COLOR_BIT, base_mip_level=0, level_count=4294967295, "
+          "base_array_layer=0, layer_count=4294967295  )" +
+          endl() + ")",
+      log[3]);
+  EXPECT_EQ(
+      "copy_buffer_to_image(src_buffer=0x1, dst_image=0x2, "
+      "src_image_layout=VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL" +
+          endl() +
+          " - region(buffer_offset=0, buffer_row_length=0, buffer_image_height=0, "
+          "image_subresource=" +
+          endl() +
+          "    aspect_mask=VK_IMAGE_ASPECT_COLOR_BIT, mip_level=0, base_array_layer=0, "
+          "layer_count=1  , image_offset=" +
+          endl() + "    x=0, y=0, z=0  , image_extent=" + endl() +
+          "    width=64, height=64, depth=1  )" + endl() + ")",
+      log[4]);
+}
+
 }  // namespace blender::gpu::render_graph

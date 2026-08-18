@@ -22,6 +22,7 @@
 #include "BLI_enum_flags.hh"
 #include "BLI_function_ref.hh"
 #include "BLI_string_ref.hh"
+#include "BLI_ustring.hh"
 
 namespace blender {
 
@@ -36,6 +37,21 @@ struct Scene;
 struct bContext;
 
 enum eID_OverrideLib_Op : short;
+
+/**
+ * \note Some functions perform multiple checks whose results are more
+ * accurately and informatively represented using an enum status.
+ */
+enum class eRNAStatus {
+  /** The operation completed successfully. */
+  Success = 0,
+  /** The specified index is outside the valid range. */
+  IndexOutOfRange,
+  /** The property cannot be edited. */
+  Immutable,
+  /** An unexpected property was encountered. */
+  Unsupported,
+};
 
 /* Types */
 BlenderRNA &RNA_blender_rna_get();
@@ -94,8 +110,6 @@ PointerRNA RNA_pointer_create_id_subdata(ID &id, StructRNA *type, void *data);
  * #PointerRNA::ancestors for details.
  */
 PointerRNA RNA_pointer_create_from_ancestor(const PointerRNA &ptr, const int ancestor_idx);
-
-bool RNA_pointer_is_null(const PointerRNA *ptr);
 
 bool RNA_path_resolved_create(PointerRNA *ptr,
                               PropertyRNA *prop,
@@ -179,6 +193,17 @@ bool RNA_struct_system_idprops_unset(PointerRNA *ptr, const char *identifier);
 bool RNA_struct_in_public_namespace(const StructRNA *type);
 
 PropertyRNA *RNA_struct_find_property(PointerRNA *ptr, const char *identifier);
+
+/**
+ * Find a struct's RNA property by its identifier.
+ *
+ * This is equivalent to RNA_property_collection_lookup_string searching the "rna_properties"
+ * collection. Calling this function directly is more purposeful and more efficient because it can
+ * avoid UString construction.
+ *
+ * \warning Does not handle ["name"] style lookup.
+ */
+PropertyRNA *RNA_struct_find_property(PointerRNA *ptr, UString identifier);
 
 /**
  * Same as `RNA_struct_find_property` but returns `nullptr` if the property type is no same to
@@ -696,7 +721,10 @@ void RNA_property_pointer_remove(PointerRNA *ptr, PropertyRNA *prop);
 void RNA_property_collection_add(PointerRNA *ptr, PropertyRNA *prop, PointerRNA *r_ptr);
 bool RNA_property_collection_remove(PointerRNA *ptr, PropertyRNA *prop, int key);
 void RNA_property_collection_clear(PointerRNA *ptr, PropertyRNA *prop);
-bool RNA_property_collection_move(PointerRNA *ptr, PropertyRNA *prop, int key, int pos);
+eRNAStatus RNA_property_collection_move(PointerRNA *ptr,
+                                        PropertyRNA *prop,
+                                        int src_index,
+                                        int dst_index);
 
 /* copy/reset */
 bool RNA_property_copy(Main *bmain,

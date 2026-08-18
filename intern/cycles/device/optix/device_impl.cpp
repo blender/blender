@@ -163,7 +163,7 @@ unique_ptr<DeviceQueue> OptiXDevice::gpu_queue_create()
   return make_unique<OptiXDeviceQueue>(this);
 }
 
-BVHLayoutMask OptiXDevice::get_bvh_layout_mask(uint /*kernel_features*/) const
+BVHLayoutMask OptiXDevice::get_bvh_layout_mask(const uint64_t /*kernel_features*/) const
 {
   /* OptiX has its own internal acceleration structure format. */
   return BVH_LAYOUT_OPTIX;
@@ -186,7 +186,7 @@ static string get_optix_include_dir()
   return string();
 }
 
-string OptiXDevice::compile_kernel_get_common_cflags(const uint kernel_features)
+string OptiXDevice::compile_kernel_get_common_cflags(const uint64_t kernel_features)
 {
   string common_cflags = CUDADevice::compile_kernel_get_common_cflags(kernel_features);
 
@@ -252,7 +252,7 @@ static unsigned int hit_program_continuation_stack_size(const OptixStackSizes *s
   return trace_css;
 }
 
-bool OptiXDevice::load_kernels(const uint kernel_features)
+bool OptiXDevice::load_kernels(const uint64_t kernel_features)
 {
   if (have_error()) {
     /* Abort early if context creation failed already. */

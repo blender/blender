@@ -15,6 +15,7 @@
 
 #include "BLI_function_ref.hh"
 #include "BLI_string_ref.hh"
+#include "BLI_string_utf8.hh"
 
 namespace blender {
 

@@ -254,7 +254,7 @@ void geometry_preview_lines_update(Depsgraph &depsgraph,
     return;
   }
 
-  BKE_sculpt_update_object_for_edit(&depsgraph, &object, false);
+  BKE_sculptsession_update_for_edit(&depsgraph, &object, false);
 
   const Mesh &mesh = *id_cast<const Mesh *>(object.data);
   /* Always grab active shape key if the sculpt happens on shapekey. */

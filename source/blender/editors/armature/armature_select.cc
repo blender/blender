@@ -58,6 +58,21 @@ namespace blender {
 /** \name Select Buffer Queries for PoseMode & EditMode
  * \{ */
 
+bool ED_armature_selectresult_is_bone(const GPUSelectResult &hit_result)
+{
+  /* A selectable bone should have a "sub_object_id" been encodedin the select id. */
+  if ((hit_result.id & 0xFFFF0000) == 0) {
+    return false;
+  }
+  /* A selectable bone should be dawn with either BONESEL_ROOT, BONESEL_TIP or BONESEL_BONE encded
+   * in the select id. */
+  if ((hit_result.id & BONESEL_ANY) == 0) {
+    return false;
+  }
+
+  return true;
+}
+
 Base *ED_armature_base_and_ebone_from_select_buffer(const Span<Base *> bases,
                                                     const uint select_id,
                                                     EditBone **r_ebone)
@@ -173,82 +188,85 @@ static void *ed_armature_pick_bone_from_selectbuffer_impl(const bool is_editmode
         gpu_select_buffer_depth_id_cmp);
 
   for (const GPUSelectResult &hit_result : hit_results_sorted) {
+    if (!ED_armature_selectresult_is_bone(hit_result)) {
+      continue;
+    }
+
     uint hit_id = hit_result.id;
-    if (hit_id & BONESEL_ANY) { /* to avoid including objects in selection */
-      Base *base = nullptr;
-      bool sel;
 
-      hit_id &= ~BONESEL_ANY;
-      /* Determine what the current bone is */
-      if (is_editmode == false) {
-        base = ED_armature_base_and_pchan_from_select_buffer(bases, hit_id, &pchan);
-        if (pchan != nullptr) {
-          if (pchan->bone_get(*base->object)->flag & BONE_UNSELECTABLE) {
-            continue;
-          }
-          if (findunsel) {
-            sel = (pchan->flag & POSE_SELECTED);
-          }
-          else {
-            sel = !(pchan->flag & POSE_SELECTED);
-          }
+    Base *base = nullptr;
+    bool sel;
 
-          data = pchan;
-        }
-        else {
-          data = nullptr;
-          sel = false;
-        }
-      }
-      else {
-        base = ED_armature_base_and_ebone_from_select_buffer(bases, hit_id, &ebone);
-        if (ebone->flag & BONE_UNSELECTABLE) {
+    hit_id &= ~BONESEL_ANY;
+    /* Determine what the current bone is */
+    if (is_editmode == false) {
+      base = ED_armature_base_and_pchan_from_select_buffer(bases, hit_id, &pchan);
+      if (pchan != nullptr) {
+        if (pchan->bone_get(*base->object)->flag & BONE_UNSELECTABLE) {
           continue;
         }
         if (findunsel) {
-          sel = (ebone->flag & BONE_SELECTED);
+          sel = (pchan->flag & POSE_SELECTED);
         }
         else {
-          sel = !(ebone->flag & BONE_SELECTED);
+          sel = !(pchan->flag & POSE_SELECTED);
         }
 
-        data = ebone;
+        data = pchan;
+      }
+      else {
+        data = nullptr;
+        sel = false;
+      }
+    }
+    else {
+      base = ED_armature_base_and_ebone_from_select_buffer(bases, hit_id, &ebone);
+      if (ebone->flag & BONE_UNSELECTABLE) {
+        continue;
+      }
+      if (findunsel) {
+        sel = (ebone->flag & BONE_SELECTED);
+      }
+      else {
+        sel = !(ebone->flag & BONE_SELECTED);
       }
 
-      if (data) {
-        if (sel) {
-          if (do_nearest) {
-            if (minsel > hit_result.depth) {
-              firstSel = data;
-              firstSel_base = base;
-              minsel = hit_result.depth;
-            }
-          }
-          else {
-            if (!firstSel) {
-              firstSel = data;
-              firstSel_base = base;
-            }
-            takeNext = true;
+      data = ebone;
+    }
+
+    if (data) {
+      if (sel) {
+        if (do_nearest) {
+          if (minsel > hit_result.depth) {
+            firstSel = data;
+            firstSel_base = base;
+            minsel = hit_result.depth;
           }
         }
         else {
-          if (do_nearest) {
-            if (minunsel > hit_result.depth) {
-              firstunSel = data;
-              firstunSel_base = base;
-              minunsel = hit_result.depth;
-            }
+          if (!firstSel) {
+            firstSel = data;
+            firstSel_base = base;
           }
-          else {
-            if (!firstunSel) {
-              firstunSel = data;
-              firstunSel_base = base;
-            }
-            if (takeNext) {
-              *r_base = base;
-              return data;
-            }
+          takeNext = true;
+        }
+      }
+      else {
+        if (do_nearest) {
+          if (minunsel > hit_result.depth) {
+            firstunSel = data;
+            firstunSel_base = base;
+            minunsel = hit_result.depth;
+          }
+        }
+        else {
+          if (!firstunSel) {
+            firstunSel = data;
+            firstunSel_base = base;
+          }
+          if (takeNext) {
+            *r_base = base;
+            return data;
           }
         }
       }
@@ -731,13 +749,19 @@ cache_end:
 
   Vector<Base *> bases = BKE_view_layer_array_from_bases_in_edit_mode_unique_data(
       *vc->bmain, vc->scene, vc->view_layer, vc->v3d);
-
   /* See if there are any selected bones in this group */
   if (hits > 0) {
     if (hits == 1) {
-      result_bias.select_id = buffer.storage[0].id;
-      result_bias.base = ED_armature_base_and_ebone_from_select_buffer(
-          bases, result_bias.select_id, &result_bias.ebone);
+      const GPUSelectResult &hit_result = buffer.storage[0];
+      if (ED_armature_selectresult_is_bone(hit_result)) {
+        result_bias.base = ED_armature_base_and_ebone_from_select_buffer(
+            bases, hit_result.id, &result_bias.ebone);
+        /* If this fails, selection code is setting the selection IDs incorrectly. */
+        BLI_assert(result_bias.base && result_bias.ebone);
+        if (result_bias.base != nullptr && result_bias.ebone != nullptr) {
+          result_bias.select_id = hit_result.id;
+        }
+      }
     }
     else {
       int bias_max = INT_MIN;
@@ -773,8 +797,11 @@ cache_end:
       int min_depth = INT_MAX;
       for (int i = 0; i < hits; i++) {
         const GPUSelectResult &hit_result = buffer.storage[i];
-        const uint select_id = hit_result.id;
+        if (!ED_armature_selectresult_is_bone(hit_result)) {
+          continue;
+        }
 
+        const uint select_id = hit_result.id;
         Base *base = nullptr;
         EditBone *ebone;
         base = ED_armature_base_and_ebone_from_select_buffer(bases, select_id, &ebone);

@@ -18,6 +18,7 @@
 
 #include "ED_screen.hh"
 
+#include "UI_interface_c.hh"
 #include "UI_interface_icons.hh"
 #include "UI_interface_types.hh"
 
@@ -263,6 +264,36 @@ static int rna_Operator_confirm(bContext *C,
                                 ui::AlertIcon(icon));
 }
 
+static void rna_WM_try_activate_rna_button(blender::wmWindowManager * /*wm*/,
+                                           bContext *C,
+                                           ARegion *region,
+                                           PointerRNA *ptr,
+                                           const char *propname,
+                                           int state,
+                                           bool warp_cursor_at_button,
+                                           int index,
+                                           int **r_xy,
+                                           int *r_xy_total)
+{
+  PropertyRNA *prop = RNA_struct_find_property(ptr, propname);
+  if (!prop) {
+    RNA_warning_bare("WindowManager.try_activate_rna_button(): property not found: %s.%s",
+                     RNA_struct_identifier(ptr->type),
+                     propname);
+    return;
+  }
+  std::optional<int2> xy = ui::try_activate_rna_button(
+      C, region, ui::ActivationButtonState(state), ptr, prop, warp_cursor_at_button, index);
+
+  if (!xy) {
+    return;
+  }
+  *r_xy = MEM_new_array_uninitialized<int>(2, __func__);
+  (*r_xy)[0] = (*xy)[0];
+  (*r_xy)[1] = (*xy)[1];
+  *r_xy_total = 2;
+}
+
 static int rna_Operator_props_popup(bContext *C, wmOperator *op, wmEvent *event)
 {
   return WM_operator_props_popup(C, op, event);
@@ -465,7 +496,7 @@ static PointerRNA rna_KeyMap_item_find_match(
   if (kmi_base) {
     return RNA_pointer_create_discrete(id, RNA_KeyMapItem, kmi_base);
   }
-  return PointerRNA_NULL;
+  return {};
 }
 
 static PointerRNA rna_KeyMap_item_find_from_operator(ID *id,
@@ -637,7 +668,7 @@ static PointerRNA rna_PopMenuBegin(bContext *C,
                                    const int icon)
 {
   if (!rna_popup_context_ok_or_report(C, reports)) {
-    return PointerRNA_NULL;
+    return {};
   }
 
   void *data = static_cast<void *>(ui::popup_menu_begin(C, title, icon));
@@ -657,7 +688,7 @@ static PointerRNA rna_PopoverBegin(bContext *C,
                                    const bool from_active_button)
 {
   if (!rna_popup_context_ok_or_report(C, reports)) {
-    return PointerRNA_NULL;
+    return {};
   }
 
   void *data = static_cast<void *>(
@@ -676,7 +707,7 @@ static PointerRNA rna_PieMenuBegin(
     bContext *C, ReportList *reports, const char *title, const int icon, PointerRNA *event)
 {
   if (!rna_popup_context_ok_or_report(C, reports)) {
-    return PointerRNA_NULL;
+    return {};
   }
 
   void *data = (void *)ui::pie_menu_begin(
@@ -711,7 +742,7 @@ static PointerRNA rna_WindoManager_operator_properties_last(const char *idname)
     WM_operator_last_properties_ensure(ot, &ptr);
     return ptr;
   }
-  return PointerRNA_NULL;
+  return {};
 }
 
 static wmEvent *rna_Window_event_add_simulate(wmWindow *win,
@@ -1005,6 +1036,14 @@ const EnumPropertyItem rna_operator_popup_icon_items[] = {
     {0, nullptr, 0, nullptr, nullptr},
 };
 
+const EnumPropertyItem rna_button_activation[] = {
+    {int(ui::ActivationButtonState::Highlight), "HIGHLIGHT", 0, "HIGHLIGHT", ""},
+    {int(ui::ActivationButtonState::WaitKeyEvent), "WAIT_KEY_EVENT", 0, "WAIT_KEY_EVENT", ""},
+    {int(ui::ActivationButtonState::NumEditing), "NUM_EDITING", 0, "NUM_EDITING", ""},
+    {int(ui::ActivationButtonState::TextEditing), "TEXT_EDITING", 0, "TEXT_EDITING", ""},
+    {0, nullptr, 0, nullptr, nullptr},
+};
+
 void RNA_api_wm(StructRNA *srna)
 {
   FunctionRNA *func;
@@ -1145,6 +1184,42 @@ void RNA_api_wm(StructRNA *srna)
   RNA_def_property_ui_text(parm, "Icon", "Optional icon displayed in the dialog");
 
   api_ui_item_common_translation(func);
+
+  func = RNA_def_function(srna, "try_activate_rna_button", "rna_WM_try_activate_rna_button");
+  RNA_def_function_ui_description(
+      func,
+      "Attempt to activate an button referencing an RNA property. If any other button in the "
+      "screen is active, it will be deactivated");
+  RNA_def_function_flag(func, FUNC_USE_CONTEXT);
+  parm = RNA_def_pointer(func, "region", "Region", "", "");
+  RNA_def_parameter_flags(parm, PROP_NEVER_NULL, PARM_REQUIRED);
+  parm = RNA_def_pointer(func, "data", "AnyType", "", "");
+  RNA_def_parameter_flags(parm, PROP_NEVER_NULL, PARM_REQUIRED | PARM_RNAPTR);
+  parm = RNA_def_string(func, "property", nullptr, 0, "", "Identifier of property in data");
+  RNA_def_parameter_flags(parm, PropertyFlag(0), PARM_REQUIRED);
+  parm = RNA_def_property(func, "state", PROP_ENUM, PROP_NONE);
+  RNA_def_property_ui_text(
+      parm,
+      "State",
+      "Activation state for button. Some states are specific to certain button types; when an "
+      "incompatible state is provided, the button will be activated with the 'HIGHLIGHT' state.");
+  RNA_def_property_enum_items(parm, rna_button_activation);
+  RNA_def_parameter_flags(parm, PropertyFlag(0), PARM_REQUIRED);
+  parm = RNA_def_property(func, "warp_cursor_at_button", PROP_BOOLEAN, PROP_NONE);
+  RNA_def_property_boolean_default(parm, true);
+  parm = RNA_def_property(func, "index", PROP_INT, PROP_NONE);
+  RNA_def_property_ui_text(
+      parm,
+      "Index",
+      "RNA index of the button when a single member of the referenced RNA property is accessed");
+  RNA_def_property_int_default(parm, 0);
+  parm = RNA_def_property(func, "xy", PROP_INT, PROP_NONE);
+  RNA_def_property_ui_text(
+      parm,
+      "xy",
+      "The center point of the button in window coordinates when successfully activated");
+  RNA_def_property_array(parm, 2);
+  RNA_def_parameter_flags(parm, PROP_DYNAMIC, PARM_OUTPUT);
 
   /* wrap popup_menu_begin */
   func = RNA_def_function(srna, "popmenu_begin__internal", "rna_PopMenuBegin");

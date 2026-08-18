@@ -36,7 +36,7 @@ ccl_device void bsdf_ray_portal_setup(ccl_private ShaderData *sd,
       sd, sizeof(RayPortalClosure), CLOSURE_BSDF_RAY_PORTAL_ID, weight);
 
   if (pc) {
-    sd->flag |= SD_BSDF | SD_RAY_PORTAL;
+    sd->runtime_flag |= SR_BSDF | SR_RAY_PORTAL;
     if (is_zero(direction)) {
       direction = -sd->wi;
     }

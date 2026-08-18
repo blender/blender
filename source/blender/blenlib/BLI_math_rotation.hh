@@ -185,6 +185,11 @@ template<typename T>
   return angle_of_signed(rotation_between(a, b));
 }
 
+inline float2 rotate_around_point_2d(const float2 p, const float2 pivot, const AngleRadian angle)
+{
+  return from_rotation<float2x2>(angle) * (p - pivot) + pivot;
+}
+
 /** \} */
 
 /* -------------------------------------------------------------------- */

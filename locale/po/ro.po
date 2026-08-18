@@ -1,9 +1,9 @@
 
 msgid ""
 msgstr ""
-"Project-Id-Version: Blender 5.3.0 Alpha (b'96294be75080')\n"
+"Project-Id-Version: Blender 5.3.0 Alpha (b'af4852ed4560')\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-07-20 07:29+0000\n"
+"POT-Creation-Date: 2026-08-10 07:54+0000\n"
 "PO-Revision-Date: 2026-06-29 10:51+0000\n"
 "Last-Translator: Dominic Iastrebschi <domjotebit@gmail.com>\n"
 "Language-Team: Romanian <https://translate.blender.org/projects/blender-ui/ui/ro/>\n"
@@ -2160,6 +2160,18 @@ msgid "Sampling"
 msgstr "Eșantionare"
 
 
+msgid "Tracking"
+msgstr "Urmărire"
+
+
+msgid "Light"
+msgstr "Lumină"
+
+
+msgid "Add Image"
+msgstr "Adăugare Imagine"
+
+
 msgid "Apply"
 msgstr "Aplicare"
 
@@ -2174,18 +2186,6 @@ msgstr "UV"
 
 msgid "Layout"
 msgstr "Aspect"
-
-
-msgid "Tracking"
-msgstr "Urmărire"
-
-
-msgid "Light"
-msgstr "Lumină"
-
-
-msgid "Add Image"
-msgstr "Adăugare Imagine"
 
 
 msgid "Marker"
@@ -2825,11 +2825,6 @@ msgid "File:"
 msgstr "Fișier:"
 
 
-msgctxt "Operator"
-msgid "Apply"
-msgstr "Aplicare"
-
-
 msgctxt "WindowManager"
 msgid "Add New"
 msgstr "Adăugați Nou"
@@ -3084,6 +3079,11 @@ msgstr "Multi-Pictură"
 msgctxt "Operator"
 msgid "Quick Edit"
 msgstr "Editare Rapidă"
+
+
+msgctxt "Operator"
+msgid "Apply"
+msgstr "Aplicare"
 
 
 msgctxt "Operator"

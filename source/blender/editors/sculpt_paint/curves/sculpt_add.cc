@@ -91,7 +91,7 @@ struct AddOperationExecutor {
   Span<int> surface_corner_verts_eval_;
   Span<int3> surface_corner_tris_eval_;
   VArraySpan<float2> surface_uv_map_eval_;
-  bke::BVHTreeFromMesh surface_bvh_eval_;
+  const bke::bvh::Tree *surface_bvh_eval_;
 
   CurvesSculpt *curves_sculpt_ = nullptr;
   const Brush *brush_ = nullptr;
@@ -140,7 +140,7 @@ struct AddOperationExecutor {
     surface_positions_eval_ = surface_eval_->vert_positions();
     surface_corner_verts_eval_ = surface_eval_->corner_verts();
     surface_corner_tris_eval_ = surface_eval_->corner_tris();
-    surface_bvh_eval_ = surface_eval_->bvh_corner_tris();
+    surface_bvh_eval_ = &surface_eval_->bvh_tris();
 
     curves_sculpt_ = ctx_.scene->toolsettings->curves_sculpt;
     brush_ = BKE_paint_brush_for_read(&curves_sculpt_->paint);
@@ -282,26 +282,15 @@ struct AddOperationExecutor {
                         const float3 &ray_start_su,
                         const float3 &ray_end_su)
   {
-    const float3 ray_direction_su = math::normalize(ray_end_su - ray_start_su);
-
-    BVHTreeRayHit ray_hit;
-    ray_hit.dist = FLT_MAX;
-    ray_hit.index = -1;
-    BLI_bvhtree_ray_cast(surface_bvh_eval_.tree,
-                         ray_start_su,
-                         ray_direction_su,
-                         0.0f,
-                         &ray_hit,
-                         surface_bvh_eval_.raycast_callback,
-                         &surface_bvh_eval_);
-
-    if (ray_hit.index == -1) {
+    const float3 ray_direction_su = ray_end_su - ray_start_su;
+    const bke::bvh::Ray ray(ray_start_su, ray_direction_su);
+    const std::optional<bke::bvh::RayHit> ray_hit = surface_bvh_eval_->ray_intersect(ray);
+    if (!ray_hit) {
       return;
     }
-
-    const int tri_index = ray_hit.index;
+    const int tri_index = ray_hit->index;
     const int3 &tri = surface_corner_tris_eval_[tri_index];
-    const float3 brush_pos_su = ray_hit.co;
+    const float3 brush_pos_su = ray_hit->position(ray);
     const float3 bary_coords = bke::mesh_surface_sample::compute_bary_coord_in_triangle(
         surface_positions_eval_, surface_corner_verts_eval_, tri, brush_pos_su);
 
@@ -341,7 +330,7 @@ struct AddOperationExecutor {
       const int new_points = bke::mesh_surface_sample::sample_surface_points_projected(
           rng,
           *surface_eval_,
-          surface_bvh_eval_,
+          *surface_bvh_eval_,
           brush_pos_re_,
           brush_radius_re_,
           [&](const float2 &pos_re, float3 &r_start_su, float3 &r_end_su) {
@@ -375,13 +364,14 @@ struct AddOperationExecutor {
    */
   void sample_spherical_with_symmetry(RandomNumberGenerator &rng, Vector<float2> &r_sampled_uvs)
   {
-    const std::optional<CurvesBrush3D> brush_3d = sample_curves_surface_3d_brush(*ctx_.depsgraph,
-                                                                                 *ctx_.region,
-                                                                                 *ctx_.v3d,
-                                                                                 transforms_,
-                                                                                 surface_bvh_eval_,
-                                                                                 brush_pos_re_,
-                                                                                 brush_radius_re_);
+    const std::optional<CurvesBrush3D> brush_3d = sample_curves_surface_3d_brush(
+        *ctx_.depsgraph,
+        *ctx_.region,
+        *ctx_.v3d,
+        transforms_,
+        *surface_bvh_eval_,
+        brush_pos_re_,
+        brush_radius_re_);
     if (!brush_3d.has_value()) {
       return;
     }
@@ -427,31 +417,25 @@ struct AddOperationExecutor {
     /* Find surface triangles within brush radius. */
     Vector<int> selected_tri_indices;
     if (use_front_face_) {
-      BLI_bvhtree_range_query_cpp(
-          *surface_bvh_eval_.tree,
-          brush_pos_su,
-          brush_radius_su,
-          [&](const int index, const float3 & /*co*/, const float /*dist_sq*/) {
-            const int3 &tri = surface_corner_tris_eval_[index];
-            const float3 &v0_su = surface_positions_eval_[surface_corner_verts_eval_[tri[0]]];
-            const float3 &v1_su = surface_positions_eval_[surface_corner_verts_eval_[tri[1]]];
-            const float3 &v2_su = surface_positions_eval_[surface_corner_verts_eval_[tri[2]]];
-            float3 normal_su;
-            normal_tri_v3(normal_su, v0_su, v1_su, v2_su);
-            if (math::dot(normal_su, view_direction_su) >= 0.0f) {
-              return;
-            }
-            selected_tri_indices.append(index);
-          });
+      surface_bvh_eval_->range_query(brush_pos_su, brush_radius_su, [&](const int index) {
+        const int3 &tri = surface_corner_tris_eval_[index];
+        const float3 &v0_su = surface_positions_eval_[surface_corner_verts_eval_[tri[0]]];
+        const float3 &v1_su = surface_positions_eval_[surface_corner_verts_eval_[tri[1]]];
+        const float3 &v2_su = surface_positions_eval_[surface_corner_verts_eval_[tri[2]]];
+        float3 normal_su;
+        normal_tri_v3(normal_su, v0_su, v1_su, v2_su);
+        if (math::dot(normal_su, view_direction_su) >= 0.0f) {
+          return true;
+        }
+        selected_tri_indices.append(index);
+        return true;
+      });
     }
     else {
-      BLI_bvhtree_range_query_cpp(
-          *surface_bvh_eval_.tree,
-          brush_pos_su,
-          brush_radius_su,
-          [&](const int index, const float3 & /*co*/, const float /*dist_sq*/) {
-            selected_tri_indices.append(index);
-          });
+      surface_bvh_eval_->range_query(brush_pos_su, brush_radius_su, [&](const int index) {
+        selected_tri_indices.append(index);
+        return true;
+      });
     }
 
     /* Density used for sampling points. This does not have to be exact, because the loop below

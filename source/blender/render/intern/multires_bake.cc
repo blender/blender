@@ -1581,7 +1581,8 @@ static void bake_ibuf_filter(ImBuf &ibuf,
                                                 margin,
                                                 &bake_level_mesh,
                                                 bake_level_mesh.active_uv_map_name(),
-                                                uv_offset);
+                                                uv_offset,
+                                                false);
         break;
       }
       default:

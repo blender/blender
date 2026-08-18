@@ -22,6 +22,8 @@ from bpy.app.translations import (
 
 from math import pi
 
+import warnings
+
 # enums
 
 from . import engine
@@ -234,7 +236,9 @@ enum_view3d_shading_render_pass = (
     ('DENOISING_SPECULAR_ALBEDO', "Denoising Specular Albedo", "Specular albedo pass used by denoiser"),
     ('DENOISING_NORMAL', "Denoising Normal", "Normal pass used by denoiser"),
     ('DENOISING_ROUGHNESS', "Denoising Roughness", "Roughness pass used by denoiser"),
+    ('DENOISING_DEPTH', "Denoising Depth", "Depth pass used by denoiser"),
     ('DENOISING_BACKWARD_MOTION', "Denoising Backward Motion", "Backward motion pass used by denoiser"),
+    ('DENOISING_SPECULAR_MOTION', "Denoising Specular Motion", "Specular motion pass used by denoiser"),
     ('SAMPLE_COUNT', "Sample Count", "Per-pixel number of samples"),
 )
 
@@ -377,8 +381,14 @@ def update_world(self, context):
     context.scene.world.update_tag()
 
 
-def update_pause(self, context):
-    context.area.tag_redraw()
+def set_transform_preview_pause(self, value, current_value, is_set):
+    warnings.warn(
+        "'CyclesRenderSettings.preview_pause' has no effect anymore and will "
+        "be removed in a future version, use RegionView3D.pause_render instead",
+        DeprecationWarning,
+        stacklevel=2,
+    )
+    return value
 
 
 class CyclesRenderSettings(bpy.types.PropertyGroup):
@@ -398,9 +408,8 @@ class CyclesRenderSettings(bpy.types.PropertyGroup):
 
     preview_pause: BoolProperty(
         name="Pause Preview",
-        description="Pause all viewport preview renders",
-        default=False,
-        update=update_pause,
+        description="Deprecated, this has no effect anymore. Use RegionView3D.pause_render instead",
+        set_transform=set_transform_preview_pause,
     )
 
     use_denoising: BoolProperty(
@@ -655,8 +664,9 @@ class CyclesRenderSettings(bpy.types.PropertyGroup):
 
     blur_glossy: FloatProperty(
         name="Filter Glossy",
-        description="Adaptively blur glossy shaders after blurry bounces, "
-        "to reduce noise at the cost of accuracy",
+        description="Adaptively blur glossy shaders and image textures after blurry bounces, "
+        "to reduce noise and improve texture cache efficiency at the cost of accuracy. Lower "
+        "this value to render caustics",
         min=0.0, max=10.0,
         default=1.0,
     )
@@ -1880,7 +1890,7 @@ class CyclesPreferences(bpy.types.AddonPreferences):
                 found_device = True
                 break
 
-        optix_minimum_driver_version = "535"
+        optix_minimum_driver_version = "575"
         hip_minimum_adrenalin_driver_version = "24.9.1"
         hip_minimum_pro_driver_version = "24.Q4"
         hip_minimum_linux_driver_version = "24.30"

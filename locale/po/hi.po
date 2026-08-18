@@ -1,9 +1,9 @@
 
 msgid ""
 msgstr ""
-"Project-Id-Version: Blender 5.3.0 Alpha (b'96294be75080')\n"
+"Project-Id-Version: Blender 5.3.0 Alpha (b'af4852ed4560')\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-07-20 07:29+0000\n"
+"POT-Creation-Date: 2026-08-10 07:54+0000\n"
 "PO-Revision-Date: 2025-12-04 22:18+0000\n"
 "Last-Translator: Jackson Zheng <business.jackson.zheng@gmail.com>\n"
 "Language-Team: Hindi <https://translate.blender.org/projects/blender-ui/ui/hi/>\n"
@@ -2586,8 +2586,48 @@ msgid "Placement"
 msgstr "नियोजन"
 
 
+msgid "Names"
+msgstr "नाम"
+
+
+msgid "Bone Roll"
+msgstr "हड्डी पंजी"
+
+
+msgid "Show/Hide"
+msgstr "छुपाएँ / दिखाएँ"
+
+
+msgid "Keying"
+msgstr "कुंजीयन"
+
+
+msgid "Math"
+msgstr "गणित"
+
+
+msgid "Snap"
+msgstr "स्नैप"
+
+
+msgid "Mirror"
+msgstr "दर्पण"
+
+
+msgid "Light"
+msgstr "प्रकाश"
+
+
+msgid "Rigid Body"
+msgstr "कठोर-पदार्थ"
+
+
 msgid "Apply"
 msgstr "लागू करें"
+
+
+msgid "Import"
+msgstr "आयात करें"
 
 
 msgid "Track"
@@ -2598,10 +2638,6 @@ msgid "Quick Effects"
 msgstr "त्वरित प्रभाव"
 
 
-msgid "Show/Hide"
-msgstr "छुपाएँ / दिखाएँ"
-
-
 msgid "Make Single User"
 msgstr "एकल प्रयोक्ता बनाएँ"
 
@@ -2610,12 +2646,8 @@ msgid "Hooks"
 msgstr "खूँटी"
 
 
-msgid "Math"
-msgstr "गणित"
-
-
-msgid "Names"
-msgstr "नाम"
+msgid "UV"
+msgstr "यूवी"
 
 
 msgid "Toggle Bone Options"
@@ -2628,38 +2660,6 @@ msgstr "हड्डी विकल्प को सक्षम करें"
 
 msgid "Merge"
 msgstr "विलय करें"
-
-
-msgid "Import"
-msgstr "आयात करें"
-
-
-msgid "Bone Roll"
-msgstr "हड्डी पंजी"
-
-
-msgid "UV"
-msgstr "यूवी"
-
-
-msgid "Snap"
-msgstr "स्नैप"
-
-
-msgid "Mirror"
-msgstr "दर्पण"
-
-
-msgid "Keying"
-msgstr "कुंजीयन"
-
-
-msgid "Light"
-msgstr "प्रकाश"
-
-
-msgid "Rigid Body"
-msgstr "कठोर-पदार्थ"
 
 
 msgid "Basic"
@@ -5105,11 +5105,6 @@ msgid "File:"
 msgstr "संचिका:"
 
 
-msgctxt "Operator"
-msgid "Apply"
-msgstr "लागू करें"
-
-
 msgid "Options:"
 msgstr "विकल्प:"
 
@@ -5635,6 +5630,11 @@ msgstr "सब से हटाएँ"
 msgctxt "Operator"
 msgid "Quick Edit"
 msgstr "त्वरित संपादन"
+
+
+msgctxt "Operator"
+msgid "Apply"
+msgstr "लागू करें"
 
 
 msgid ", cannot have single-frame paths"

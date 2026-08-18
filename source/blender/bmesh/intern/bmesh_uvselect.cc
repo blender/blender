@@ -1920,19 +1920,7 @@ void BM_mesh_uvselect_sync_to_mesh(BMesh *bm)
       if (BM_elem_flag_test(f, BM_ELEM_HIDDEN)) {
         continue;
       }
-
-      BMLoop *l_iter, *l_first;
-      l_iter = l_first = BM_FACE_FIRST_LOOP(f);
-      bool face_select = true;
-      do {
-        if (!BM_elem_flag_test(l_iter, BM_ELEM_SELECT_UV) ||
-            !BM_elem_flag_test(l_iter, BM_ELEM_SELECT_UV_EDGE))
-        {
-          face_select = false;
-          break;
-        }
-      } while ((l_iter = l_iter->next) != l_first);
-      if (face_select) {
+      if (BM_elem_flag_test(f, BM_ELEM_SELECT_UV)) {
         BM_face_select_set(bm, f, true);
       }
     }

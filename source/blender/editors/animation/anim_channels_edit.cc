@@ -2726,7 +2726,7 @@ void ED_anim_ale_fcurve_delete(bAnimContext &ac, bAnimListElem &ale)
       FCurve *fcu = static_cast<FCurve *>(ale.data);
       if (!BKE_nlastrip_controlcurve_remove(strip, fcu)) {
         printf("ERROR: Trying to delete NLA Control Curve for unknown property '%s'\n",
-               fcu->rna_path);
+               fcu->rna_path().c_str());
       }
       break;
     }

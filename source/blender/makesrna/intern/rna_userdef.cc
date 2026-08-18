@@ -239,6 +239,7 @@ static const EnumPropertyItem rna_enum_preferences_extension_repo_source_type_it
 #  include "BLI_listbase.hh"
 #  include "BLI_math_vector_c.hh"
 #  include "BLI_memory_cache.hh"
+#  include "BLI_rand_c.hh"
 #  include "BLI_string.hh"
 #  include "BLI_string_utf8.hh"
 #  include "BLI_string_utils.hh"
@@ -486,6 +487,53 @@ static void rna_userdef_asset_libraries_use_online_essentials_update(bContext *C
   const AssetLibraryReference essentials = asset_system::essentials_library_reference();
   ed::asset::list::clear(&essentials, C);
   rna_userdef_update(CTX_data_main(C), CTX_data_scene(C), ptr);
+}
+
+static void rna_userdef_asset_library_auth_token_get(PointerRNA *ptr, char *value)
+{
+  bUserAssetLibrary *library = static_cast<bUserAssetLibrary *>(ptr->data);
+  if (library->auth_token) {
+    strcpy(value, library->auth_token);
+  }
+  else {
+    value[0] = '\0';
+  }
+}
+
+static int rna_userdef_asset_library_auth_token_length(PointerRNA *ptr)
+{
+  bUserAssetLibrary *library = static_cast<bUserAssetLibrary *>(ptr->data);
+  return (library->auth_token) ? strlen(library->auth_token) : 0;
+}
+
+static void rna_userdef_asset_library_auth_token_set(PointerRNA *ptr, const char *value)
+{
+  bUserAssetLibrary *library = static_cast<bUserAssetLibrary *>(ptr->data);
+
+  if (library->auth_token) {
+    /* Replace the existing token with random characters to avoid leaving it in memory. */
+    RNG *rng = BLI_rng_new_srandom(uint(intptr_t(library->auth_token)));
+    BLI_rng_get_char_n(rng, library->auth_token, strlen(library->auth_token));
+    BLI_rng_free(rng);
+    /* Now we can more comfortably delete the token. */
+    MEM_delete(library->auth_token);
+    library->auth_token = nullptr;
+  }
+
+  if (value[0]) {
+    BKE_preferences_remote_asset_library_auth_token_set(library, value);
+  }
+}
+
+static void rna_userdef_asset_library_use_auth_token_update(bContext * /*C*/, PointerRNA *ptr)
+{
+  bUserAssetLibrary *library = static_cast<bUserAssetLibrary *>(ptr->data);
+  const bool use_auth_token = (library->flag & ASSET_LIBRARY_USE_AUTH_TOKEN) != 0;
+
+  if (!use_auth_token && library->auth_token) {
+    /* Make sure the token is wiped if we are not using it. */
+    rna_userdef_asset_library_auth_token_set(ptr, "");
+  }
 }
 
 /**
@@ -1263,7 +1311,7 @@ static PointerRNA rna_Addon_preferences_get(PointerRNA *ptr)
     return RNA_pointer_create_with_parent(*ptr, apt->rna_ext.srna, addon->prop);
   }
   else {
-    return PointerRNA_NULL;
+    return {};
   }
 }
 
@@ -5790,6 +5838,7 @@ static void rna_def_userdef_edit(BlenderRNA *brna)
   prop = RNA_def_property(srna, "keyframe_new_handle_type", PROP_ENUM, PROP_NONE);
   RNA_def_property_enum_items(prop, rna_enum_keyframe_handle_type_items);
   RNA_def_property_enum_sdna(prop, nullptr, "keyhandles_new");
+  RNA_def_property_enum_default(prop, HD_AUTO_ANIM);
   RNA_def_property_ui_text(prop, "New Handles Type", "Handle type for handles of new keyframes");
 
   /* frame numbers */
@@ -5866,6 +5915,15 @@ static void rna_def_userdef_edit(BlenderRNA *brna)
       prop,
       "Connect Movie Strips by Default",
       "Connect newly added movie strips by default if they have multiple channels");
+
+  prop = RNA_def_property(srna, "clamp_strips_by_default", PROP_BOOLEAN, PROP_NONE);
+  RNA_def_property_boolean_sdna(
+      prop, nullptr, "sequencer_editor_flag", USER_SEQ_ED_CLAMP_STRIPS_BY_DEFAULT);
+  RNA_def_property_ui_text(
+      prop,
+      "Clamp Strips by Default",
+      "When slipping or adjusting handles, clamp movement to the underlying content bounds by "
+      "default to avoid producing extra hold frames or silence");
 
   /* duplication linking */
   prop = RNA_def_property(srna, "use_duplicate_mesh", PROP_BOOLEAN, PROP_NONE);
@@ -6997,6 +7055,23 @@ static void rna_def_userdef_filepaths_asset_library(BlenderRNA *brna)
   RNA_def_property_boolean_sdna(prop, nullptr, "flag", ASSET_LIBRARY_USE_REMOTE_URL);
   RNA_def_property_ui_text(prop, "Use Remote", "Synchronize the asset library with a remote URL");
   RNA_def_property_clear_flag(prop, PROP_EDITABLE);
+
+  prop = RNA_def_property(srna, "use_auth_token", PROP_BOOLEAN, PROP_NONE);
+  RNA_def_property_boolean_sdna(prop, nullptr, "flag", ASSET_LIBRARY_USE_AUTH_TOKEN);
+  RNA_def_property_ui_text(
+      prop, "Requires Access Token", "Asset library requires an authentication token");
+  RNA_def_property_flag(prop, PROP_CONTEXT_UPDATE);
+  RNA_def_property_update(prop, 0, "rna_userdef_asset_library_use_auth_token_update");
+
+  prop = RNA_def_property(srna, "auth_token", PROP_STRING, PROP_PASSWORD);
+  RNA_def_property_ui_text(
+      prop,
+      "Access Token",
+      "Personal authentication token, may be required by some asset libraries");
+  RNA_def_property_string_funcs(prop,
+                                "rna_userdef_asset_library_auth_token_get",
+                                "rna_userdef_asset_library_auth_token_length",
+                                "rna_userdef_asset_library_auth_token_set");
 }
 
 static void rna_def_userdef_filepaths_extension_repo(BlenderRNA *brna)

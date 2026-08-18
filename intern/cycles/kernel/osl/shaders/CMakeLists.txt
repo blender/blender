@@ -34,6 +34,7 @@ set(SRC_OSL
   node_gabor_texture.osl
   node_gamma.osl
   node_geometry.osl
+  node_get_vector_component.osl
   node_glass_bsdf.osl
   node_glossy_bsdf.osl
   node_gradient_texture.osl

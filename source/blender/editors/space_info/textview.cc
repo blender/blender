@@ -95,11 +95,7 @@ static void textview_draw_sel(const char *str,
   }
 }
 
-/**
- * \warning Allocated memory for 'r_offsets' must be freed by caller.
- * \return The length in bytes.
- */
-static int textview_wrap_offsets(
+int textview_wrap_offsets(
     const char *str, const int str_len, const int width, int *r_lines, int **r_offsets)
 {
   int i, end; /* Offset as unicode code-point. */

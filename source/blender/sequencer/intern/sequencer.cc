@@ -57,6 +57,8 @@
 #include "SEQ_transform.hh"
 #include "SEQ_utils.hh"
 
+#include "cache/movie_reader_cache.hh"
+
 #include "BLO_read_write.hh"
 
 #include "cache/compositor_cache.hh"
@@ -174,8 +176,6 @@ static void seq_strip_free_ex(Scene *scene,
     strip->data = nullptr;
   }
 
-  strip_free_movie_readers(strip);
-
   if (strip->is_effect()) {
     EffectHandle sh = strip_effect_handle_get(strip);
     if (sh.free) {
@@ -277,6 +277,9 @@ void seq_free_strip_recurse(Scene *scene, Strip *strip, const bool do_id_user)
 
 StripRuntime::~StripRuntime()
 {
+  if (movie_metadata != nullptr) {
+    IDP_FreeProperty(movie_metadata);
+  }
   clear_sound_time_stretch();
 }
 
@@ -899,13 +902,19 @@ static bool strip_write_data_cb(Strip *strip, void *userdata)
           }
           writer->write_struct(text);
           writer->write_string(text->text_ptr);
-        } break;
+          break;
+        }
         case STRIP_TYPE_COLORMIX:
           writer->write_struct_cast<ColorMixVars>(strip->effectdata);
           break;
-        case STRIP_TYPE_COMPOSITOR:
+        case STRIP_TYPE_COMPOSITOR: {
+          CompositorEffectVars *comp = static_cast<CompositorEffectVars *>(strip->effectdata);
+          if (comp->system_properties) {
+            IDP_BlendWrite(writer, comp->system_properties);
+          }
           writer->write_struct_cast<CompositorEffectVars>(strip->effectdata);
           break;
+        }
         default:
           break;
       }
@@ -985,7 +994,8 @@ static bool strip_read_data_cb(Strip *strip, void *user_data)
           SpeedControlVars *speed = static_cast<SpeedControlVars *>(strip->effectdata);
           speed->frameMap = nullptr;
         }
-      } break;
+        break;
+      }
       case STRIP_TYPE_WIPE:
         BLO_read_struct_nonnull(reader, WipeVars, &strip->effectdata);
         break;
@@ -1006,13 +1016,18 @@ static bool strip_read_data_cb(Strip *strip, void *user_data)
           text->text_blf_id = STRIP_FONT_NOT_LOADED;
           text->runtime = nullptr;
         }
-      } break;
+        break;
+      }
       case STRIP_TYPE_COLORMIX:
         BLO_read_struct_nonnull(reader, ColorMixVars, &strip->effectdata);
         break;
-      case STRIP_TYPE_COMPOSITOR:
+      case STRIP_TYPE_COMPOSITOR: {
         BLO_read_struct_nonnull(reader, CompositorEffectVars, &strip->effectdata);
+        CompositorEffectVars *comp = static_cast<CompositorEffectVars *>(strip->effectdata);
+        BLO_read_struct(reader, IDProperty, &comp->system_properties);
+        IDP_BlendDataRead(reader, &comp->system_properties);
         break;
+      }
       default:
         BLI_assert_unreachable();
         strip->effectdata = nullptr;
@@ -1272,8 +1287,11 @@ void eval_strips(Depsgraph *depsgraph, Scene *scene, ListBaseT<Strip> *seqbase)
   sound_update_bounds_all(scene);
 }
 
+EditingRuntime::EditingRuntime() : movie_reader_cache(movie_reader_cache_create()) {}
+
 EditingRuntime::~EditingRuntime()
 {
+  movie_reader_cache_destroy(this->movie_reader_cache);
   MEM_delete(this->compositor_cache);
 }
 

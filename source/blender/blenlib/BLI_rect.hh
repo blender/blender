@@ -164,6 +164,11 @@ bool BLI_rctf_clamp_segment(const struct rctf *rect, float s1[2], float s2[2]);
  */
 void BLI_rctf_rotate_expand(rctf *dst, const rctf *src, float angle);
 
+/**
+ * Rotate \a src around \a pivot and expand the rectangle to fit the result.
+ */
+void BLI_rctf_rotate_expand_around(rctf *dst, const rctf *src, const float pivot[2], float angle);
+
 void print_rctf(const char *str, const struct rctf *rect);
 void print_rcti(const char *str, const struct rcti *rect);
 

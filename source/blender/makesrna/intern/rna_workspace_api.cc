@@ -86,7 +86,7 @@ static PointerRNA rna_WorkSpaceTool_operator_properties(bToolRef *tref,
   }
 
   BKE_reportf(reports, RPT_ERROR, "Operator '%s' not found!", idname);
-  return PointerRNA_NULL;
+  return {};
 }
 
 static PointerRNA rna_WorkSpaceTool_gizmo_group_properties(bToolRef *tref,
@@ -101,7 +101,7 @@ static PointerRNA rna_WorkSpaceTool_gizmo_group_properties(bToolRef *tref,
   }
   BKE_reportf(reports, RPT_ERROR, "Gizmo group '%s' not found!", idname);
 
-  return PointerRNA_NULL;
+  return {};
 }
 
 }  // namespace blender

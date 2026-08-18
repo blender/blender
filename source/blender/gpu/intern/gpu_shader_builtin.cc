@@ -96,6 +96,8 @@ static const char *builtin_shader_create_info_name(GPUBuiltinShader shader)
       return "gpu_shader_3D_point_uniform_color";
     case GPU_SHADER_2D_AREA_BORDERS:
       return "gpu_shader_2D_area_borders";
+    case GPU_SHADER_2D_ROUNDED_CORNER_MASK:
+      return "gpu_shader_2D_rounded_corner_mask";
     case GPU_SHADER_2D_WIDGET_BASE:
       return "gpu_shader_2D_widget_base";
     case GPU_SHADER_2D_WIDGET_BASE_INST:
@@ -309,6 +311,7 @@ void GPU_shader_builtin_warm_up()
   gpu_shader_warm_builtin_shader_async(GPU_SHADER_2D_DIAG_STRIPES, GPU_SHADER_CFG_DEFAULT);
   gpu_shader_warm_builtin_shader_async(GPU_SHADER_2D_IMAGE_RECT_COLOR, GPU_SHADER_CFG_DEFAULT);
   gpu_shader_warm_builtin_shader_async(GPU_SHADER_2D_AREA_BORDERS, GPU_SHADER_CFG_DEFAULT);
+  gpu_shader_warm_builtin_shader_async(GPU_SHADER_2D_ROUNDED_CORNER_MASK, GPU_SHADER_CFG_DEFAULT);
 }
 
 void GPU_shader_free_builtin_shaders()

@@ -168,7 +168,9 @@ static void buffer_reorder_scalar_after_size3_vec(ListBaseT<LinkData> *inputs,
 
 /**
  * Returns 1 if the first item should be after second item.
- * We make sure the vec4 uniforms come first.
+ * Primary key: from larger to smaller element counts.
+ * Secondary key: GPUType, so equal-sized types are grouped together.
+ * Resulting order: mat4, vec4, int4, vec3, int3, vec2, int2, float, int, bool.
  */
 static int inputs_cmp(const void *a, const void *b)
 {
@@ -176,7 +178,12 @@ static int inputs_cmp(const void *a, const void *b)
                  *link_b = static_cast<const LinkData *>(b);
   const GPUInput *input_a = static_cast<const GPUInput *>(link_a->data);
   const GPUInput *input_b = static_cast<const GPUInput *>(link_b->data);
-  return gpu_type_element_count(input_a->type) < gpu_type_element_count(input_b->type) ? 1 : 0;
+  const int count_a = gpu_type_element_count(input_a->type);
+  const int count_b = gpu_type_element_count(input_b->type);
+  if (count_a != count_b) {
+    return count_a < count_b ? 1 : 0;
+  }
+  return input_a->type > input_b->type ? 1 : 0;
 }
 
 static inline bool is_ubo_supported_type(const GPUType type)
@@ -210,11 +217,11 @@ static inline bool is_ubo_supported_type(const GPUType type)
 
 /**
  * Make sure we respect the expected alignment of UBOs.
- * mat4, vec4, pad vec3 as vec4, then vec2, then floats.
+ * mat4, vec4, int4, pad vec3 and int3 as vec4 and int4, vec2, int2, float, int, bool.
  */
 static void buffer_from_list_inputs_sort(ListBaseT<LinkData> *inputs)
 {
-  /* Order them as mat4, vec4, vec3, vec2, float. */
+  /* Order them as mat4, vec4, int4, vec3, int3, vec2, int2, float, int, bool. */
   BLI_listbase_sort(inputs, inputs_cmp);
 
   /* Metal cannot pack scalars after vec3/int3. */

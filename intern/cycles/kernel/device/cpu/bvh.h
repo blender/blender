@@ -130,13 +130,13 @@ ccl_device_inline int kernel_embree_get_hit_object(const RTCHit *hit)
 
 ccl_device_inline bool kernel_embree_is_self_intersection(const KernelGlobals kg,
                                                           const RTCHit *hit,
-                                                          const Ray *ray,
-                                                          const intptr_t prim_offset)
+                                                          const Ray *ray)
 {
   const int object = kernel_embree_get_hit_object(hit);
 
   int prim;
   if ((ray->self.object == object) || (ray->self.light_object == object)) {
+    const int prim_offset = kernel_data_fetch(object_prim_offset, object);
     prim = hit->primID + prim_offset;
   }
   else {
@@ -154,12 +154,14 @@ ccl_device_inline bool kernel_embree_is_self_intersection(const KernelGlobals kg
 ccl_device_inline void kernel_embree_convert_hit(KernelGlobals kg,
                                                  const RTCRay *ray,
                                                  const RTCHit *hit,
-                                                 Intersection *isect,
-                                                 const intptr_t prim_offset)
+                                                 Intersection *isect)
 {
+  const int object = kernel_embree_get_hit_object(hit);
+  const int prim_offset = kernel_data_fetch(object_prim_offset, object);
+
   isect->t = ray->tfar;
   isect->prim = hit->primID + prim_offset;
-  isect->object = kernel_embree_get_hit_object(hit);
+  isect->object = object;
 
   const bool is_hair = hit->geomID & 1;
   if (is_hair) {
@@ -176,31 +178,11 @@ ccl_device_inline void kernel_embree_convert_hit(KernelGlobals kg,
   }
 }
 
-ccl_device_inline void kernel_embree_convert_hit(KernelGlobals kg,
-                                                 const RTCRay *ray,
-                                                 const RTCHit *hit,
-                                                 Intersection *isect)
+ccl_device_inline void kernel_embree_convert_sss_hit(
+    KernelGlobals kg, const RTCRay *ray, const RTCHit *hit, Intersection *isect, const int object)
 {
-  intptr_t prim_offset;
-  if (hit->instID[0] != RTC_INVALID_GEOMETRY_ID) {
-    RTCTraversable inst_scene = (RTCTraversable)rtcGetGeometryUserDataFromTraversable(
-        kernel_data.device_bvh, hit->instID[0]);
-    prim_offset = intptr_t(rtcGetGeometryUserDataFromTraversable(inst_scene, hit->geomID));
-  }
-  else {
-    prim_offset = intptr_t(
-        rtcGetGeometryUserDataFromTraversable(kernel_data.device_bvh, hit->geomID));
-  }
-  kernel_embree_convert_hit(kg, ray, hit, isect, prim_offset);
-}
+  const int prim_offset = kernel_data_fetch(object_prim_offset, object);
 
-ccl_device_inline void kernel_embree_convert_sss_hit(KernelGlobals kg,
-                                                     const RTCRay *ray,
-                                                     const RTCHit *hit,
-                                                     Intersection *isect,
-                                                     const int object,
-                                                     const intptr_t prim_offset)
-{
   isect->u = hit->u;
   isect->v = hit->v;
   isect->t = ray->tfar;
@@ -230,9 +212,7 @@ ccl_device_forceinline void kernel_embree_filter_intersection_func_impl(
 #endif
   const Ray *cray = ctx->ray;
 
-  if (kernel_embree_is_self_intersection(
-          kg, hit, cray, reinterpret_cast<intptr_t>(args->geometryUserPtr)))
-  {
+  if (kernel_embree_is_self_intersection(kg, hit, cray)) {
     *args->valid = 0;
     return;
   }
@@ -269,8 +249,7 @@ ccl_device_forceinline void kernel_embree_filter_occluded_shadow_all_func_impl(
 #endif
 
   Intersection isect;
-  kernel_embree_convert_hit(
-      kg, ray, hit, &isect, reinterpret_cast<intptr_t>(args->geometryUserPtr));
+  kernel_embree_convert_hit(kg, ray, hit, &isect);
 
   if (!bvh_shadow_all_anyhit_filter<ISECT_TEST_ALL & ~ISECT_TEST_VISIBILITY_FLAG>(
           kg, payload.state, payload, payload.base.ray_self, 0, isect))
@@ -300,16 +279,10 @@ ccl_device_forceinline void kernel_embree_filter_occluded_local_func_impl(
   /* Check if it's hitting the correct object. */
   Intersection current_isect;
   if (ctx->is_sss) {
-    kernel_embree_convert_sss_hit(kg,
-                                  ray,
-                                  hit,
-                                  &current_isect,
-                                  ctx->local_object_id,
-                                  reinterpret_cast<intptr_t>(args->geometryUserPtr));
+    kernel_embree_convert_sss_hit(kg, ray, hit, &current_isect, ctx->local_object_id);
   }
   else {
-    kernel_embree_convert_hit(
-        kg, ray, hit, &current_isect, reinterpret_cast<intptr_t>(args->geometryUserPtr));
+    kernel_embree_convert_hit(kg, ray, hit, &current_isect);
     if (ctx->local_object_id != current_isect.object) {
       /* This tells Embree to continue tracing. */
       *args->valid = 0;
@@ -401,8 +374,7 @@ ccl_device_forceinline void kernel_embree_filter_occluded_volume_all_func_impl(
   if (ctx->num_hits < ctx->max_hits) {
 #endif
     Intersection current_isect;
-    kernel_embree_convert_hit(
-        kg, ray, hit, &current_isect, reinterpret_cast<intptr_t>(args->geometryUserPtr));
+    kernel_embree_convert_hit(kg, ray, hit, &current_isect);
 
     if (bvh_volume_anyhit_triangle_filter<false>(
             kg, current_isect.object, current_isect.prim, cray->self, 0))

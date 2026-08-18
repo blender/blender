@@ -142,3 +142,14 @@ float cos_from_tan(float t)
 {
   return inversesqrt(1.0f + square(t));
 }
+
+/**
+ * Matches std::midpoint from C++20.
+ */
+int midpoint(int a, int b)
+{
+  uint smaller = uint(min(a, b));
+  uint larger = uint(max(a, b));
+  int sign = (b > a) ? 1 : -1;
+  return a + sign * int((larger - smaller) / 2u);
+}

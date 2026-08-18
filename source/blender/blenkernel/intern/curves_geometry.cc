@@ -190,7 +190,7 @@ CurvesGeometry::CurvesGeometry(CurvesGeometry &&other)
   other.vertex_group_active_index = 0;
 
   this->attributes_active_index = other.attributes_active_index;
-  other.attributes_active_index = 0;
+  other.attributes_active_index = -1;
 
   this->runtime = other.runtime;
   other.runtime = nullptr;

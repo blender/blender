@@ -85,7 +85,7 @@ ccl_device_inline bool light_sample(KernelGlobals kg,
                                     const float2 rand,
                                     const float3 P,
                                     const float3 N,
-                                    const int shader_flags,
+                                    const int runtime_flags,
                                     const uint32_t path_flag,
                                     ccl_private LightSample *ls)
 {
@@ -132,12 +132,12 @@ ccl_device_inline bool light_sample(KernelGlobals kg,
     ls->eval_fac = 1.0f;
   }
   else if (type == LIGHT_SPOT) {
-    if (!spot_light_sample<in_volume_segment>(kg, klight, rand, P, N, shader_flags, ls)) {
+    if (!spot_light_sample<in_volume_segment>(kg, klight, rand, P, N, runtime_flags, ls)) {
       return false;
     }
   }
   else if (type == LIGHT_POINT) {
-    if (!point_light_sample(klight, rand, P, N, shader_flags, ls)) {
+    if (!point_light_sample(klight, rand, P, N, runtime_flags, ls)) {
       return false;
     }
   }
@@ -160,7 +160,7 @@ ccl_device bool light_sample(KernelGlobals kg,
                              const float3 P,
                              const float3 N,
                              const int object_receiver,
-                             const int shader_flags,
+                             const int runtime_flags,
                              const int bounce,
                              const uint32_t path_flag,
                              ccl_private LightSample *ls)
@@ -216,7 +216,7 @@ ccl_device bool light_sample(KernelGlobals kg,
       return false;
     }
 
-    if (!light_sample<in_volume_segment>(kg, light, rand, P, N, shader_flags, path_flag, ls)) {
+    if (!light_sample<in_volume_segment>(kg, light, rand, P, N, runtime_flags, path_flag, ls)) {
       return false;
     }
   }

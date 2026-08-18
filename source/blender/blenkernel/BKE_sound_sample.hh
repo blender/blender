@@ -4,6 +4,7 @@
 
 #pragma once
 
+#include <memory>
 #include <optional>
 
 #include "BLI_array.hh"
@@ -13,6 +14,10 @@
 #include "BKE_sound.hh"
 
 namespace blender::bke {
+
+#if defined(WITH_AUDASPACE)
+class SoundReaderCache;
+#endif
 
 /**
  * This class allows efficiently sampling an arbitrary frequency range at an arbitrary point in
@@ -79,8 +84,10 @@ class bSoundFrequencySampler {
     mutable std::optional<Array<float, 0>> cumulative_amplitudes;
   };
 
-  AUD_Sound sound_;
   Key key_;
+#if defined(WITH_AUDASPACE)
+  std::shared_ptr<SoundReaderCache> reader_cache_;
+#endif
   /** Derived from the sound. */
   int samples_per_second_;
   /**
@@ -92,15 +99,15 @@ class bSoundFrequencySampler {
   int window_cache_stride_;
   Array<WindowCache> window_caches_;
 
+#if defined(WITH_AUDASPACE)
   /** Cached weights of the selected window function. */
   const WindowWeights &window_weights_;
+#endif
 
  public:
-  /** Construct a new sampler, prefer using #get_cached instead. */
-  bSoundFrequencySampler(AUD_Sound sound, const Key &key);
-
   /** Access a reusable frequency sampler for the given sound.  */
-  static const bSoundFrequencySampler *get_cached(const bSound &sound, const Key &key);
+  static std::shared_ptr<const bSoundFrequencySampler> get_cached(const bSound &sound,
+                                                                  const Key &key);
 
   /** Sample the amplitude a the given time and frequency range. */
   float sample(float time,
@@ -110,6 +117,12 @@ class bSoundFrequencySampler {
                InterpolationMethod frequency_interpolation) const;
 
  private:
+#if defined(WITH_AUDASPACE)
+  /** Construct a sampler sharing the reader cache of its runtime generation. */
+  bSoundFrequencySampler(AUD_Sound sound,
+                         std::shared_ptr<SoundReaderCache> reader_cache,
+                         const Key &key);
+#endif
   float sample_frequency_range_in_window(int window_i,
                                          float low,
                                          float high,

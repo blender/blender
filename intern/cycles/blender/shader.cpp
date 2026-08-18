@@ -506,6 +506,9 @@ static ShaderNode *add_node(Scene *scene,
   else if (b_node.is_type("ShaderNodeSeparateXYZ"_ustr)) {
     node = graph->create_node<SeparateXYZNode>();
   }
+  else if (b_node.is_type("FunctionNodeGetVectorComponent"_ustr)) {
+    node = graph->create_node<GetVectorComponentNode>();
+  }
   else if (b_node.is_type("ShaderNodeCombineXYZ"_ustr)) {
     node = graph->create_node<CombineXYZNode>();
   }
@@ -1676,7 +1679,7 @@ void BlenderSync::sync_materials(blender::Depsgraph &b_depsgraph,
               blender::ID *,
               b_id)
   {
-    if (blender::GS(b_id->name) != blender::ID_MA) {
+    if (b_id->id_type() != blender::ID_MA) {
       continue;
     }
 
@@ -1938,7 +1941,7 @@ void BlenderSync::sync_lights(blender::Depsgraph &b_depsgraph, bool update_all, 
               blender::ID *,
               b_id)
   {
-    if (blender::GS(b_id->name) != blender::ID_LA) {
+    if (b_id->id_type() != blender::ID_LA) {
       continue;
     }
 

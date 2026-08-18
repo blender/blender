@@ -366,7 +366,7 @@ static void panel_draw(const bContext *C, Panel *panel)
 
         if (runtime_data && runtime_data->used_gpu) {
           if (runtime_data->used_cpu) {
-            layout.label(RPT_("Using both CPU and GPU subdivision"), ICON_STATUS_INFO);
+            layout.label_multiline(RPT_("Using both CPU and GPU subdivision"), ICON_STATUS_INFO);
           }
         }
       }

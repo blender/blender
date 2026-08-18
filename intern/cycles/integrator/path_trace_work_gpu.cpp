@@ -20,7 +20,7 @@
 
 CCL_NAMESPACE_BEGIN
 
-static size_t estimate_single_state_size(const uint kernel_features)
+static size_t estimate_single_state_size(const uint64_t kernel_features)
 {
   size_t state_size = 0;
 
@@ -112,7 +112,7 @@ void PathTraceWorkGPU::alloc_integrator_soa()
    * Note that both disabling and enabling features may require memory
    * allocations, so we check for equality. */
   const int requested_volume_stack_size = device_scene_->data.volume_stack_size;
-  const uint kernel_features = device_scene_->data.kernel_features;
+  const uint64_t kernel_features = device_scene_->data.kernel_features;
   if (integrator_state_soa_kernel_features_ == kernel_features &&
       integrator_state_soa_volume_stack_size_ >= requested_volume_stack_size)
   {
@@ -197,6 +197,7 @@ void PathTraceWorkGPU::alloc_integrator_soa()
 
   bool shadow = false;
 #include "kernel/integrator/state_template.h"
+
   shadow = true;
 #include "kernel/integrator/shadow_state_template.h"
 

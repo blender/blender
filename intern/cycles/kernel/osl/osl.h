@@ -54,7 +54,7 @@ ccl_device_inline void shaderdata_to_shaderglobals(ccl_private ShaderData *sd,
   globals->surfacearea = 1.0f;
   globals->raytype = OSL_RAYTYPE_PACK(path_visibility, path_flag);
   globals->flipHandedness = 0;
-  globals->backfacing = (sd->flag & SD_BACKFACING);
+  globals->backfacing = (sd->runtime_flag & SR_BACKFACING);
 
   /* shader data to be used in services callbacks */
   globals->sd = sd;
@@ -214,7 +214,7 @@ ccl_device_inline void osl_eval_nodes(KernelGlobals kg,
   /* For surface shaders, we might have an automatic bump shader that needs to be executed before
    * the main shader to update globals.N. */
   if constexpr (type == SHADER_TYPE_SURFACE) {
-    if (sd->flag & SD_HAS_BUMP_FROM_DISPLACEMENT) {
+    if (sd->shader_flag & SD_HAS_BUMP_FROM_DISPLACEMENT) {
       /* Save state. */
       const float3 P = sd->P;
       const float dP = sd->dP;
@@ -222,7 +222,7 @@ ccl_device_inline void osl_eval_nodes(KernelGlobals kg,
       const packed_float3 dPdy = globals.dPdy;
 
       /* Set position state as if undisplaced. */
-      if (sd->flag & SD_HAS_DISPLACEMENT) {
+      if (sd->shader_flag & SD_HAS_DISPLACEMENT) {
         const AttributeDescriptor desc = find_attribute(kg, sd, ATTR_STD_POSITION_UNDISPLACED);
         kernel_assert(is_attribute_found(desc));
 

@@ -142,18 +142,21 @@ static void joined_armature_fix_animdata_cb(
   bool changed = false;
 
   /* Fix paths - If this is the target object, it will have some "dirty" paths */
-  if ((id == src_id) && strstr(fcu->rna_path, "pose.bones[")) {
+  const StringRefNull rna_path = fcu->rna_path();
+  if ((id == src_id) && strstr(rna_path.c_str(), "pose.bones[")) {
     GHASH_ITER (gh_iter, names_map) {
       const char *old_name = static_cast<const char *>(BLI_ghashIterator_getKey(&gh_iter));
       const char *new_name = static_cast<const char *>(BLI_ghashIterator_getValue(&gh_iter));
 
       /* only remap if changed; this still means there will be some
        * waste if there aren't many drivers/keys */
-      if (!STREQ(old_name, new_name) && strstr(fcu->rna_path, old_name)) {
-        fcu->rna_path = BKE_animsys_fix_rna_path_rename(
-            id, fcu->rna_path, "pose.bones", old_name, new_name);
-
-        changed = true;
+      if (!STREQ(old_name, new_name) && strstr(rna_path.c_str(), old_name)) {
+        if (char *new_path = BKE_animsys_fix_rna_path_rename(
+                id, rna_path.c_str(), "pose.bones", old_name, new_name))
+        {
+          fcu->rna_path_set_move(new_path);
+          changed = true;
+        }
 
         /* we don't want to apply a second remapping on this driver now,
          * so stop trying names, but keep fixing drivers
@@ -196,8 +199,13 @@ static void joined_armature_fix_animdata_cb(
               if (!STREQ(old_name, new_name)) {
                 if ((dtar->rna_path) && strstr(dtar->rna_path, old_name)) {
                   /* Fix up path */
-                  dtar->rna_path = BKE_animsys_fix_rna_path_rename(
-                      id, dtar->rna_path, "pose.bones", old_name, new_name);
+                  if (char *new_path = BKE_animsys_fix_rna_path_rename(
+                          id, dtar->rna_path, "pose.bones", old_name, new_name))
+                  {
+                    MEM_delete(dtar->rna_path);
+                    dtar->rna_path = new_path;
+                    changed = true;
+                  }
                   break; /* no need to try any more names for bone path */
                 }
                 if (STREQ(dtar->pchan_name, old_name)) {
@@ -715,11 +723,11 @@ static void separate_armature_bones(Main *bmain, Object *ob, const bool is_selec
     PointerRNA ptr = RNA_pointer_create_discrete(&ob->id, RNA_Object, ob);
     PathResolvedRNA resolved_rna;
     for (FCurve &fcurve : ob->adt->drivers.items_mutable()) {
-      if (!fcurve.rna_path) {
+      const ParsedRNAPathRef rna_path = fcurve.rna_path_parsed();
+      if (rna_path.is_empty()) {
         continue;
       }
-      std::optional<std::string> bone_name = animrig::pose_bone_name_from_rna_path(
-          fcurve.rna_path);
+      std::optional<std::string> bone_name = animrig::pose_bone_name_from_rna_path(rna_path);
       if (!bone_name.has_value() || !freed_bone_names.contains(bone_name.value())) {
         continue;
       }

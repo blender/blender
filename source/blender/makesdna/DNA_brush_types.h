@@ -244,6 +244,9 @@ struct Brush {
   struct CurveMapping *curve_size = nullptr;
   struct CurveMapping *curve_strength = nullptr;
   struct CurveMapping *curve_jitter = nullptr;
+  struct CurveMapping *curve_hardness = nullptr;
+  struct CurveMapping *curve_auto_smooth = nullptr;
+  struct CurveMapping *curve_spacing = nullptr;
 
   /** Opacity. */
   float alpha = 1.0f; /* brush strength/intensity probably variable should be renamed? */
@@ -295,7 +298,7 @@ struct Brush {
 
   /** Projection shape (sphere, circle). */
   eBrushFalloffShape falloff_shape = PAINT_FALLOFF_SHAPE_SPHERE;
-  float falloff_angle = 0;
+  float falloff_angle_legacy = 0;
 
   /** Active sculpt brush type. */
   eBrushSculptType sculpt_brush_type = SCULPT_BRUSH_TYPE_DRAW;
@@ -449,6 +452,10 @@ struct Brush {
 
   DNA_DEPRECATED struct CurveMapping *automasking_cavity_curve = nullptr;
   struct MeshAutomaskingSettings *mesh_automasking_settings = nullptr;
+  eBrushUnifiedPaintFlags unified_paint_flags = BRUSH_USE_UNIFIED_PAINT_SIZE |
+                                                BRUSH_USE_UNIFIED_PAINT_COLOR |
+                                                BRUSH_USE_UNIFIED_PAINT_WEIGHT;
+  char _pad3[4] = {};
 };
 
 struct PaletteColor {

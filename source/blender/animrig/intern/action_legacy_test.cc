@@ -40,7 +40,7 @@ class ActionLegacyTest : public bke::BlenderGTestBase {
   FCurve *fcurve_add_legacy(bAction *action, const StringRefNull rna_path, const int array_index)
   {
     FCurve *fcurve = BKE_fcurve_create();
-    BKE_fcurve_rnapath_set(*fcurve, rna_path);
+    fcurve->rna_path_set(rna_path);
     fcurve->array_index = array_index;
     BLI_addtail(&action->curves, fcurve);
     return fcurve;

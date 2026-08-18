@@ -1761,7 +1761,7 @@ void blo_do_versions_260(FileData *fd, Library * /*lib*/, Main *bmain)
       ToolSettings *ts = scene.toolsettings;
       if (ts) {
         ts->unified_paint_settings.weight = ts->vgroup_weight;
-        ts->unified_paint_settings.flag |= UNIFIED_PAINT_WEIGHT;
+        ts->unified_paint_settings.flag |= UNIFIED_PAINT_WEIGHT_DEPRECATED;
       }
     }
 
@@ -2090,7 +2090,7 @@ void blo_do_versions_260(FileData *fd, Library * /*lib*/, Main *bmain)
     for (Object &ob : bmain->objects) {
       if (ob.pose) {
         if (ob.pose->avs.path_step == 0) {
-          animviz_settings_init(&ob.pose->avs);
+          bke::animviz::settings_init(&ob.pose->avs);
         }
       }
     }

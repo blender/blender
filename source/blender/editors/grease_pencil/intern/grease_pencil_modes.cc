@@ -19,8 +19,8 @@
 #include "RNA_define.hh"
 
 #include "ED_grease_pencil.hh"
-#include "ED_image.hh"
 #include "ED_object.hh"
+#include "ED_paint.hh"
 
 #include "DEG_depsgraph.hh"
 

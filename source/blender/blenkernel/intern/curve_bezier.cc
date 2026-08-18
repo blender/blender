@@ -94,6 +94,11 @@ static float3 calculate_aligned_handle(const float3 &position,
   const float length = math::distance(aligned_handle, position);
   /* Set the other handle to directly opposite from the current handle. */
   const float3 dir = math::normalize(other_handle - position);
+  if (math::is_zero(dir)) {
+    /* There is no direction to align against when the opposite handle coincides with the
+     * control point, so preserve the existing aligned handle. */
+    return aligned_handle;
+  }
   return position - dir * length;
 }
 

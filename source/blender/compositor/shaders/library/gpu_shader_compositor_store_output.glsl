@@ -48,41 +48,36 @@ void node_compositor_store_output_color(const float id, float4 value, float4 &ou
   out_value = value;
 }
 
-/* GPUMaterial doesn't support int, so it is passed as a float. */
 [[node]]
-void node_compositor_store_output_int(const float id, float value, float &out_value)
+void node_compositor_store_output_int(const float id, int value, int &out_value)
 {
   store_int(floatBitsToUint(id), value);
   out_value = value;
 }
 
-/* GPUMaterial doesn't support int2, so it is passed as a float2. */
 [[node]]
-void node_compositor_store_output_int2(const float id, float2 value, float2 &out_value)
+void node_compositor_store_output_int2(const float id, int2 value, int2 &out_value)
 {
   store_int2(floatBitsToUint(id), value);
   out_value = value;
 }
 
-/* GPUMaterial doesn't support int3, so it is passed as a float3. */
 [[node]]
-void node_compositor_store_output_int3(const float id, float3 value, float3 &out_value)
+void node_compositor_store_output_int3(const float id, int3 value, int3 &out_value)
 {
   store_int3(floatBitsToUint(id), value);
   out_value = value;
 }
 
-/* GPUMaterial doesn't support int4, so it is passed as a float4. */
 [[node]]
-void node_compositor_store_output_int4(const float id, float4 value, float4 &out_value)
+void node_compositor_store_output_int4(const float id, int4 value, int4 &out_value)
 {
   store_int4(floatBitsToUint(id), value);
   out_value = value;
 }
 
-/* GPUMaterial doesn't support bool, so it is passed as a float. */
 [[node]]
-void node_compositor_store_output_bool(const float id, float value, float &out_value)
+void node_compositor_store_output_bool(const float id, bool value, bool &out_value)
 {
   store_bool(floatBitsToUint(id), value);
   out_value = value;
@@ -95,9 +90,8 @@ void node_compositor_store_output_float4x4(const float id, float4x4 value, float
   out_value = value;
 }
 
-/* GPUMaterial doesn't support int, so it is passed as a float. */
 [[node]]
-void node_compositor_store_output_menu(const float id, float value, float &out_value)
+void node_compositor_store_output_menu(const float id, int value, int &out_value)
 {
   store_menu(floatBitsToUint(id), value);
   out_value = value;

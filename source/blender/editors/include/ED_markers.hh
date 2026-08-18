@@ -102,7 +102,7 @@ void ED_markers_make_cfra_list(ListBaseT<TimeMarker> *markers,
                                ListBaseT<CfraElem> *lb,
                                bool only_selected);
 
-void ED_markers_deselect_all(ListBaseT<TimeMarker> *markers, int action);
+void ED_markers_select_all(ListBaseT<TimeMarker> *markers, int action);
 
 /**
  * Get the first selected marker.

@@ -30,6 +30,12 @@ void mesh_sculpt_mask_to_generic(Mesh &mesh);
 
 void mesh_freestyle_marks_to_generic(Mesh &mesh);
 
+void mesh_skin_to_generic(Mesh &mesh);
+void mesh_skin_to_legacy(AttributeStorage::BlendWriteData &attr_write_data,
+                         CustomData &vert_data,
+                         Vector<CustomDataLayer, 16> &vert_layers,
+                         int verts_num);
+
 }  // namespace bke
 
 void BKE_mesh_legacy_convert_uvs_to_generic(Mesh *mesh);

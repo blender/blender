@@ -341,7 +341,7 @@ static float2 calculate_new_origin_position(TransInfo *t, TransDataSeq *tdseq, T
   Scene *scene = CTX_data_sequencer_scene(t->context);
   Strip *strip = tdseq->strip;
 
-  const float2 box_size = seq::image_transform_box_size_get(scene, strip);
+  const float2 box_size = float2(seq::image_transform_box_size_get(scene, strip));
 
   const float2 viewport_pixel_aspect = {scene->r.xasp / scene->r.yasp, 1.0f};
   const float2 mirror = seq::image_transform_mirror_factor_get(strip);

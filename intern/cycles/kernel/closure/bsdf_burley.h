@@ -40,7 +40,7 @@ ccl_device int bsdf_burley_setup(ccl_private BurleyBsdf *bsdf, const float rough
 {
   bsdf->type = CLOSURE_BSDF_BURLEY_ID;
   bsdf->roughness = saturatef(roughness);
-  return SD_BSDF | SD_BSDF_HAS_EVAL;
+  return SR_BSDF | SR_BSDF_HAS_EVAL;
 }
 
 ccl_device Spectrum bsdf_burley_eval(ccl_private const ShaderClosure *sc,

@@ -363,6 +363,15 @@ constexpr int64_t power_of_2_max(const int64_t x)
   } \
   ((void)0)
 
+/**
+ * Check if `size` bytes at `data` are all zero.
+ *
+ * \warning Every byte is compared, including any padding.
+ * Padding is indeterminate even when all struct members have been zeroed,
+ * so only buffers where every byte has been written are safe to pass in
+ * (`memset` or `calloc` for e.g.).
+ * For typed values prefer #value_is_zero which accounts for this.
+ */
 constexpr bool memory_is_zero(const void *data, const size_t size)
 {
   const char *arr_byte = static_cast<const char *>(data);
@@ -375,8 +384,14 @@ constexpr bool memory_is_zero(const void *data, const size_t size)
   return (arr_byte == arr_end);
 }
 
-/** Similar to #memory_is_zero but is easier to see through for the compiler. */
-template<typename T> constexpr bool value_is_zero(const T &value)
+/**
+ * Similar to #memory_is_zero but is easier to see through for the compiler.
+ * This may return false even if the value is technically all zeroes in some cases, because reading
+ * from padding bits/bytes may cause undefined behavior.
+ *
+ * This can be overloaded for custom types if an is-zero check is important for performance.
+ */
+template<typename T> constexpr bool value_is_zero_memory(const T &value)
 {
   if constexpr (std::is_pointer_v<T>) {
     return value == nullptr;
@@ -387,8 +402,13 @@ template<typename T> constexpr bool value_is_zero(const T &value)
   else if constexpr (std::is_floating_point_v<T>) {
     return value == 0.0f;
   }
-  else {
+  else if constexpr (std::has_unique_object_representations_v<T>) {
     return memory_is_zero(&value, sizeof(T));
+  }
+  else {
+    /* Can't use #memory_is_zero here without invoking undefined behavior. Other types can overload
+     * the #value_is_zero_memory function. Also see #161759. */
+    return false;
   }
 }
 

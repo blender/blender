@@ -9,8 +9,6 @@
 
 #include "BKE_geometry_fields.hh"
 
-#include "atomic_ops.h"
-
 #include "node_geometry_util.hh"
 
 namespace blender::nodes::node_geo_cluster_by_distance_cc {
@@ -121,26 +119,19 @@ class ClusterByDistanceFieldInput final : public bke::GeometryFieldInput {
       return VArray<int>::from_container(std::move(cluster_ids));
     }
 
-    Array<int> group_offset_data(groups_num + 1, 0);
-    mask_to_cluster.foreach_index_optimized<int>(
-        [&](const int i) {
-          const int group_i = group_indices.index_of((*group_id_span)[i]);
-          atomic_add_and_fetch_int32(&group_offset_data[group_i], 1);
-        },
-        exec_mode::grain_size(8192));
-    const OffsetIndices<int> group_offsets = offset_indices::accumulate_counts_to_offsets(
-        group_offset_data);
+    const Vector<int> mask_indices = mask_to_cluster.to_indices<int>();
+    Array<int> point_groups(mask_indices.size());
+    threading::parallel_for(mask_indices.index_range(), 8192, [&](const IndexRange range) {
+      for (const int64_t pos : range) {
+        point_groups[pos] = group_indices.index_of((*group_id_span)[mask_indices[pos]]);
+      }
+    });
 
-    Array<int> indices_by_group(group_offsets.total_size());
-    Array<int> group_counts(groups_num, 0);
-    mask_to_cluster.foreach_index_optimized<int>(
-        [&](const int i) {
-          const int group_i = group_indices.index_of((*group_id_span)[i]);
-          const int index_in_group = atomic_fetch_and_add_int32(&group_counts[group_i], 1);
-          indices_by_group[group_offsets[group_i][index_in_group]] = int(i);
-        },
-        exec_mode::grain_size(8192));
-    offset_indices::sort_groups(group_offsets, indices_by_group);
+    Array<int> group_offset_data;
+    Array<int> indices_by_group_data;
+    const GroupedSpan<int> indices_by_group = offset_indices::build_groups_from_indices(
+        point_groups, groups_num, group_offset_data, indices_by_group_data, mask_to_cluster);
+    const OffsetIndices<int> group_offsets = indices_by_group.offsets;
 
     threading::parallel_for(
         IndexRange(groups_num),
@@ -148,7 +139,7 @@ class ClusterByDistanceFieldInput final : public bke::GeometryFieldInput {
         [&](const IndexRange range) {
           Vector<int, 64> group_cluster_ids;
           for (const int group_i : range) {
-            const Span group = indices_by_group.as_span().slice(group_offsets[group_i]);
+            const Span<int> group = indices_by_group[group_i];
             group_cluster_ids.resize(group.size());
             group_cluster_ids.fill(NO_CLUSTER_VALUE);
             KDTree<float3> *tree = kdtree_new<float3>(group.size());

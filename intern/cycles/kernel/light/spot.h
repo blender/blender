@@ -45,7 +45,7 @@ ccl_device_inline bool spot_light_sample(KernelGlobals kg,
                                          const float2 rand,
                                          const float3 P,
                                          const float3 N,
-                                         const int shader_flags,
+                                         const int runtime_flags,
                                          ccl_private LightSample *ls)
 {
   const float r_sq = sqr(klight->spot.radius);
@@ -85,7 +85,7 @@ ccl_device_inline bool spot_light_sample(KernelGlobals kg,
     }
     else {
       /* Inside sphere. */
-      const bool has_transmission = (shader_flags & SD_BSDF_HAS_TRANSMISSION);
+      const bool has_transmission = (runtime_flags & SR_BSDF_HAS_TRANSMISSION);
       if (has_transmission) {
         ls->D = sample_uniform_sphere(rand);
         ls->pdf = M_1_2PI_F * 0.5f;

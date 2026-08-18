@@ -59,15 +59,20 @@ inline ePaintSymmetryFlags operator++(ePaintSymmetryFlags &flags, int)
 
 /** #UnifiedPaintSettings::flag */
 enum eUnifiedPaintSettingsFlags : int {
-  UNIFIED_PAINT_SIZE = (1 << 0),
-  UNIFIED_PAINT_ALPHA = (1 << 1),
-  /** Only used if unified size is enabled, mirrors the brush flag #BRUSH_LOCK_SIZE. */
+  /* DEPRECATED: migrated to per-brush flag BRUSH_USE_UNIFIED_PAINT_SIZE */
+  UNIFIED_PAINT_SIZE_DEPRECATED = (1 << 0),
+  /* DEPRECATED: migrated to per-brush flag BRUSH_USE_UNIFIED_PAINT_ALPHA */
+  UNIFIED_PAINT_ALPHA_DEPRECATED = (1 << 1),
+  /** Only used if per-brush unified size is enabled, mirrors the brush flag #BRUSH_LOCK_SIZE. */
   UNIFIED_PAINT_BRUSH_LOCK_SIZE = (1 << 2),
   UNIFIED_PAINT_FLAG_UNUSED_0 = (1 << 3),
   UNIFIED_PAINT_FLAG_UNUSED_1 = (1 << 4),
-  UNIFIED_PAINT_WEIGHT = (1 << 5),
-  UNIFIED_PAINT_COLOR = (1 << 6),
-  UNIFIED_PAINT_INPUT_SAMPLES = (1 << 7),
+  /* DEPRECATED: migrated to per-brush flag BRUSH_USE_UNIFIED_PAINT_WEIGHT */
+  UNIFIED_PAINT_WEIGHT_DEPRECATED = (1 << 5),
+  /* DEPRECATED: migrated to per-brush flag BRUSH_USE_UNIFIED_PAINT_COLOR */
+  UNIFIED_PAINT_COLOR_DEPRECATED = (1 << 6),
+  /* DEPRECATED: migrated to per-brush flag BRUSH_USE_UNIFIED_PAINT_INPUT_SAMPLES */
+  UNIFIED_PAINT_INPUT_SAMPLES_DEPRECATED = (1 << 7),
   UNIFIED_PAINT_COLOR_JITTER = (1 << 8),
 };
 ENUM_OPERATORS(eUnifiedPaintSettingsFlags)
@@ -77,6 +82,9 @@ enum PaintCurveVisibilityFlags : int {
   PAINT_CURVE_SHOW_STRENGTH = (1 << 0),
   PAINT_CURVE_SHOW_SIZE = (1 << 1),
   PAINT_CURVE_SHOW_JITTER = (1 << 2),
+  PAINT_CURVE_SHOW_HARDNESS = (1 << 3),
+  PAINT_CURVE_SHOW_AUTO_SMOOTH = (1 << 4),
+  PAINT_CURVE_SHOW_SPACING = (1 << 5),
 };
 ENUM_OPERATORS(PaintCurveVisibilityFlags)
 

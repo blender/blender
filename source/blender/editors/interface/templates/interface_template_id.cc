@@ -1082,7 +1082,7 @@ static void template_ID(const bContext *C,
   Block *block = layout.block();
   block_align_begin(block);
 
-  if (idptr.type) {
+  if (idptr.has_type()) {
     type = idptr.type;
   }
 
@@ -1498,7 +1498,7 @@ static void template_ID_tabs(const bContext *C,
     const bool editable = RNA_property_editable(&template_id.ptr, template_id.prop);
     Button *but;
 
-    if (active_ptr.type) {
+    if (active_ptr.has_type()) {
       type = active_ptr.type;
     }
 

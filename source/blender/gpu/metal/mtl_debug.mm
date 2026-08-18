@@ -129,6 +129,12 @@ bool MTLContext::debug_capture_begin(const char * /*title*/)
     /* Early exit if frame capture is disabled. */
     return false;
   }
+  /* MTLCaptureManager always exists but capture only works when running under Xcode with GPU
+   * Frame Capture enabled, or with MTL_CAPTURE_ENABLED=1. Check before attempting to avoid
+   * a noisy error log in normal command-line runs. */
+  if (![capture_manager supportsDestination:MTLCaptureDestinationDeveloperTools]) {
+    return false;
+  }
   MTLCaptureDescriptor *capture_descriptor = [[MTLCaptureDescriptor alloc] init];
   capture_descriptor.captureObject = this->device;
   NSError *error;

@@ -700,6 +700,38 @@ static void generate_texture(GeneratedStreams &generated,
   }
 }
 
+static void generate_acceleration_structure(GeneratedStreams &generated,
+                                            StringRefNull name,
+                                            int slot)
+{
+  {
+    /* Reference definition for global access. */
+    auto &out = generated.wrapper_class_members;
+    out << "  instance_acceleration_structure " << name << ";\n";
+  }
+  {
+    /* Constructor parameters. */
+    auto &out = generated.wrapper_constructor_parameters;
+    out << Sep() << "instance_acceleration_structure " << name;
+  }
+  {
+    /* Constructor assignments. */
+    auto &out = generated.wrapper_constructor_assign;
+    out << Sep() << name << "(" << name << ")";
+  }
+  {
+    /* Constructor arguments. */
+    auto &out = generated.wrapper_instance_init;
+    out << Sep() << name;
+  }
+  {
+    /* Entry point arguments. */
+    auto &out = generated.entry_point_parameters;
+    out << Sep() << "instance_acceleration_structure " << name;
+    out << " [[buffer(" << slot << ")]]";
+  }
+}
+
 static void generate_resource(GeneratedStreams &generated,
                               const ShaderCreateInfo::Resource &res,
                               const ShaderStage stage,
@@ -743,7 +775,8 @@ static void generate_resource(GeneratedStreams &generated,
                       stage);
       break;
     case ShaderCreateInfo::Resource::BindType::ACCELERATION_STRUCTURE:
-      BLI_assert_unreachable();
+      generate_acceleration_structure(
+          generated, res.acceleration_structure.name, MTL_ACCELERATION_STRUCTURE_SLOT + res.slot);
       break;
   }
 }
@@ -1467,7 +1500,7 @@ uint32_t available_buffer_slots(const ShaderCreateInfo &info)
       case ShaderCreateInfo::Resource::BindType::IMAGE:
         break;
       case ShaderCreateInfo::Resource::BindType::ACCELERATION_STRUCTURE:
-        BLI_assert_unreachable();
+        free_slots &= ~(1u << (MTL_ACCELERATION_STRUCTURE_SLOT + res.slot));
         break;
     };
   };
@@ -1531,9 +1564,7 @@ void patch_create_info_atomic_workaround(std::unique_ptr<PatchedShaderCreateInfo
         break;
       case ShaderCreateInfo::Resource::BindType::UNIFORM_BUFFER:
       case ShaderCreateInfo::Resource::BindType::STORAGE_BUFFER:
-        break;
       case ShaderCreateInfo::Resource::BindType::ACCELERATION_STRUCTURE:
-        BLI_assert_unreachable();
         break;
     }
   };

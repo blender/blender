@@ -746,14 +746,14 @@ ccl_device bool light_tree_sample(KernelGlobals kg,
                                   float3 N_or_D,
                                   float t,
                                   const int object_receiver,
-                                  const int shader_flags,
+                                  const int runtime_flags,
                                   ccl_private LightSample *ls)
 {
   if (!kernel_data.integrator.use_direct_light) {
     return false;
   }
 
-  const bool has_transmission = (shader_flags & SD_BSDF_HAS_TRANSMISSION);
+  const bool has_transmission = (runtime_flags & SR_BSDF_HAS_TRANSMISSION);
   float pdf_leaf = 1.0f;
   float pdf_selection = 1.0f;
   int selected_emitter = -1;

@@ -547,10 +547,10 @@ Library *bke::library::ensure_archive_library(
     BLI_assert(lib_iter->archive_parent_library != nullptr);
     BLI_assert(lib_iter->archive_parent_library == &reference_library);
     /* Check if current archive library already contains an ID of same type and name. */
-    if (BKE_main_namemap_contain_name(bmain, lib_iter, GS(id.name), BKE_id_name(id))) {
+    if (BKE_main_namemap_contain_name(bmain, lib_iter, id.id_type(), BKE_id_name(id))) {
 #ifndef NDEBUG
       ID *packed_id = BKE_libblock_find_name_and_library(
-          &bmain, GS(id.name), BKE_id_name(id), BKE_id_name(lib_iter->id));
+          &bmain, id.id_type(), BKE_id_name(id), BKE_id_name(lib_iter->id));
       BLI_assert_msg(
           packed_id && packed_id->deep_hash != id_deep_hash,
           "An already packed ID with same deep hash as the one to be packed, should have already "
@@ -640,7 +640,7 @@ static void pack_linked_id(Main &bmain,
           BLI_assert(packed_id->lib == archive_lib);
           UNUSED_VARS_NDEBUG(archive_lib);
 
-          if (GS(packed_id->name) == ID_SCE) {
+          if (packed_id->id_type() == ID_SCE) {
             /* Like in #scene_blend_read_data. */
             id_us_ensure_real(packed_id);
           }
@@ -771,7 +771,7 @@ void bke::library::pack_linked_id_hierarchy(Main &bmain, ID &root_id)
           }
           return IDWALK_RET_NOP;
         }
-        if (GS(referenced_id->name) == ID_KE) {
+        if (referenced_id->id_type() == ID_KE) {
           /* Shape keys cannot be directly linked, from linking code PoV they behave as embedded
            * data (i.e. their owning data is responsible to handle them). */
           return IDWALK_RET_NOP;
@@ -784,6 +784,45 @@ void bke::library::pack_linked_id_hierarchy(Main &bmain, ID &root_id)
       IDWALK_READONLY | IDWALK_RECURSE);
 
   pack_linked_ids(bmain, ids_to_pack);
+}
+
+static Library *add_external_archive_library(Main &bmain, Library &reference_library)
+{
+  BLI_assert((reference_library.flag & LIBRARY_FLAG_IS_EXTERNAL) != 0);
+  /* Cannot copy libraries using generic ID copying functions, so create the copy manually. */
+  Library *external_library = BKE_id_new<Library>(&bmain, BKE_id_name(reference_library.id));
+
+  /* Like in #direct_link_library. */
+  id_us_ensure_real(&external_library->id);
+
+  external_library->archive_parent_library = &reference_library;
+  constexpr uint16_t copy_flag = ~(LIBRARY_FLAG_IS_ARCHIVE | LIBRARY_FLAG_IS_EXTERNAL);
+  external_library->flag = (reference_library.flag & copy_flag) |
+                           (LIBRARY_FLAG_IS_ARCHIVE | LIBRARY_FLAG_IS_EXTERNAL);
+  BKE_library_filepath_set(&bmain, external_library, reference_library.filepath);
+
+  external_library->runtime->parent = reference_library.runtime->parent;
+  /* Only copy a subset of the reference library tags. E.g. an archive library should never be
+   * considered as writable, so never copy #LIBRARY_ASSET_FILE_WRITABLE. This may need further
+   * tweaking still. */
+  constexpr uint16_t copy_tag = (LIBRARY_TAG_RESYNC_REQUIRED | LIBRARY_ASSET_EDITABLE |
+                                 LIBRARY_IS_ASSET_EDIT_FILE);
+  external_library->runtime->tag = reference_library.runtime->tag & copy_tag;
+
+  reference_library.runtime->archived_libraries.append(external_library);
+
+  return external_library;
+}
+
+Library *bke::library::create_external_archive_library(Main &bmain, Library &external_library)
+{
+  BLI_assert(external_library.flag & LIBRARY_FLAG_IS_EXTERNAL);
+  BLI_assert(external_library.runtime->archived_libraries.is_empty());
+
+  Library *archive_library = add_external_archive_library(bmain, external_library);
+
+  BLI_assert(external_library.runtime->archived_libraries.contains(archive_library));
+  return archive_library;
 }
 
 void bke::library::main_cleanup_parent_archives(Main &bmain)

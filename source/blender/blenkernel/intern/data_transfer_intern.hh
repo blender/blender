@@ -43,6 +43,7 @@ enum {
   CD_FAKE_CREASE = CD_FAKE | 500,
   CD_FAKE_FREESTYLE_EDGE = CD_FAKE | 600,
   CD_FAKE_FREESTYLE_FACE = CD_FAKE | 700,
+  CD_FAKE_SKIN_RADIUS = CD_FAKE | 800,
 };
 
 float data_transfer_interp_float_do(int mix_mode, float val_dst, float val_src, float mix_factor);

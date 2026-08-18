@@ -566,31 +566,46 @@ void filter_above_plane_factors(Span<float3> positions,
                                 const float4 &plane,
                                 MutableSpan<float> factors);
 
-/* Transforms positions from object space positions to brush-local space. */
-void calc_local_positions(const Span<float3> vert_positions,
-                          const Span<int> verts,
+/**
+ * Transforms positions from object space positions to brush-local space. For tube falloff shape,
+ * positions are first projected onto the view plane.
+ */
+void calc_local_positions(Span<float3> vert_positions,
+                          Span<int> verts,
                           const float4x4 &mat,
-                          const MutableSpan<float3> local_positions);
+                          const float3 &plane_center,
+                          const float3 &view_normal,
+                          eBrushFalloffShape falloff_shape,
+                          MutableSpan<float3> local_positions);
 
-void calc_local_positions(const Span<float3> positions,
+void calc_local_positions(Span<float3> positions,
                           const float4x4 &mat,
-                          const MutableSpan<float3> local_positions);
+                          const float3 &plane_center,
+                          const float3 &view_normal,
+                          eBrushFalloffShape falloff_shape,
+                          MutableSpan<float3> local_positions);
 
 /**
- * Transforms positions from object space positions to brush-local space. Splitting the XY and Z
- * components gives slightly better performance. Used by some brushes that only need the XY
- * components for certain calculations.
+ * Transforms positions from object space positions to brush-local space and then splits the XY
+ * and Z components. This gives slightly better performance for brushes that only need the XY
+ * components for certain calculations. For tube falloff shape, positions are first projected onto
+ * the view plane.
  */
-void calc_local_positions(const Span<float3> vert_positions,
-                          const Span<int> verts,
+void calc_local_positions(Span<float3> vert_positions,
+                          Span<int> verts,
                           const float4x4 &mat,
-                          const MutableSpan<float2> xy_positions,
-                          const MutableSpan<float> z_positions);
-
-void calc_local_positions(const Span<float3> positions,
+                          const float3 &plane_center,
+                          const float3 &view_normal,
+                          eBrushFalloffShape falloff_shape,
+                          MutableSpan<float2> xy_positions,
+                          MutableSpan<float> z_positions);
+void calc_local_positions(Span<float3> positions,
                           const float4x4 &mat,
-                          const MutableSpan<float2> xy_positions,
-                          const MutableSpan<float> z_positions);
+                          const float3 &plane_center,
+                          const float3 &view_normal,
+                          eBrushFalloffShape falloff_shape,
+                          MutableSpan<float2> xy_positions,
+                          MutableSpan<float> z_positions);
 
 }  // namespace ed::sculpt_paint
 

@@ -202,6 +202,9 @@ class GHOST_Window : public GHOST_IWindow {
    */
   GHOST_Context *getContext();
 
+  /** \copydoc #GHOST_IWindow::hasAlpha */
+  bool hasAlpha() const override;
+
   /** \copydoc #GHOST_IWindow::getDefaultFramebuffer */
   unsigned int getDefaultFramebuffer() override;
 

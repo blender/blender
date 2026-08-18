@@ -124,7 +124,7 @@ class FilterOperation : public NodeOperation {
     input_image.bind_as_texture(shader, "input_tx");
 
     const Result &factor = get_input("Fac");
-    factor.bind_as_texture(shader, "factor_tx");
+    gpu::Texture *factor_texture = factor.bind_as_texture_or_single_value(shader, "factor_tx");
 
     const Domain domain = compute_domain();
 
@@ -135,7 +135,7 @@ class FilterOperation : public NodeOperation {
     compute_dispatch_threads_at_least(shader, domain.data_size);
 
     input_image.unbind_as_texture();
-    factor.unbind_as_texture();
+    factor.unbind_as_texture_or_single_value(factor_texture);
     output_image.unbind_as_image();
     GPU_shader_unbind();
   }

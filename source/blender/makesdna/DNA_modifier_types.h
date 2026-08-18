@@ -1196,7 +1196,8 @@ ENUM_OPERATORS(ExplodeModifierFlag);
 struct ExplodeModifierData {
   ModifierData modifier;
 
-  int *facepa = nullptr;
+  /** Runtime pointer to `blender::Array<int, 0>`, or null. */
+  void *facepa = nullptr;
   ExplodeModifierFlag flag = eExplodeFlag_Unborn | eExplodeFlag_Alive | eExplodeFlag_Dead;
   short vgroup = 0;
   float protect = 0.0f;

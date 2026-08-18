@@ -357,6 +357,26 @@ class GHOST_IWindow {
   virtual uint16_t getDPIHint() = 0;
 
   /**
+   * True when the window's frame-buffer has an alpha channel the compositor blends against the
+   * desktop. Only requested for client-side-decorations (see `WITH_GHOST_CSD`) and only true when
+   * the driver supports it; callers must handle this returning false.
+   */
+  virtual bool hasAlpha() const
+  {
+    return false;
+  }
+
+  /**
+   * Returns which of the window's edges the compositor has tiled, as a bit-mask of
+   * #GHOST_TWindowTiledFlag. Zero when the window is free floating, or on backends that
+   * don't report tiling.
+   */
+  virtual GHOST_TWindowTiledFlag getTiledEdges() const
+  {
+    return GHOST_kWindowTiledNone;
+  }
+
+  /**
    * Returns high dynamic range color information about this window.
    * \return HDR info.
    * */
@@ -366,8 +386,8 @@ class GHOST_IWindow {
   /**
    * Enable IME attached to the given window, i.e. allows user-input
    * events to be dispatched to the IME.
-   * \param x: Requested x-coordinate of the rectangle.
-   * \param y: Requested y-coordinate of the rectangle.
+   * \param x: Requested left of the rectangle.
+   * \param y: Requested lower edge of the rectangle.
    * \param w: Requested width of the rectangle.
    * \param h: Requested height of the rectangle.
    * \param completed: Whether or not to complete the ongoing composition.

@@ -311,7 +311,7 @@ void WM_operator_type_set(wmOperator *op, wmOperatorType *ot)
 
     WM_operator_properties_default(&ptr, false);
 
-    if (ptr.data) {
+    if (ptr) {
       IDP_SyncGroupTypes(op->properties, static_cast<const IDProperty *>(ptr.data), true);
     }
 

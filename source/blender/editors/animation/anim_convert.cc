@@ -74,7 +74,7 @@ FCurve *SortedFCurveBuffer::get_fcurve_by_array_index(const int array_index) con
  * one entry with the starting mode. */
 static Vector<std::pair<float, eRotationModes>> get_rotation_mode_ranges(const FCurve &fcurve)
 {
-  BLI_assert(StringRefNull(fcurve.rna_path).endswith("rotation_mode"));
+  BLI_assert(fcurve.rna_path().endswith("rotation_mode"));
   if (!fcurve.bezt) {
     return {};
   }
@@ -314,6 +314,7 @@ static void remove_rotation_fcurves(const ed::AnimTransformable &transformable,
     channelbag.fcurve_remove(*fcurve);
   }
   rotation_fcurves->clear();
+  fcu_map.remove(rna_path);
 }
 
 static bool convert_rotation_mode_channelbag(animrig::Channelbag &channelbag,
@@ -445,8 +446,10 @@ ChannelbagFCurveMap build_rotation_fcurve_map(animrig::Action &action,
   for (animrig::Channelbag *channelbag : channelbags_for_action_slot(action, slot_handle)) {
     RNAFCurveMap &curves = rotation_map.lookup_or_add(channelbag, {});
     for (FCurve *fcurve : channelbag->fcurves()) {
-      StringRefNull rna_path(fcurve->rna_path);
-      if (!animrig::is_rotation_path(rna_path) && !is_rotation_mode_path(rna_path)) {
+      StringRefNull rna_path = fcurve->rna_path();
+      if (!animrig::is_rotation_path(fcurve->rna_path_parsed()) &&
+          !is_rotation_mode_path(rna_path))
+      {
         continue;
       }
       SortedFCurveBuffer &fcurve_buffer = curves.lookup_or_add(rna_path, {});

@@ -123,7 +123,7 @@ ccl_device int subsurface_bounce(KernelGlobals kg,
     INTEGRATOR_STATE_WRITE(state, subsurface, N) = sd->N;
   }
 
-  if (sd->flag & SD_BACKFACING) {
+  if (sd->runtime_flag & SR_BACKFACING) {
     path_flag |= PATH_RAY_SUBSURFACE_BACKFACING;
   }
 
@@ -156,12 +156,12 @@ ccl_device void subsurface_shader_data_setup(KernelGlobals kg, ccl_private Shade
 {
   /* Get bump mapped normal from shader evaluation at exit point. */
   float3 N = sd->N;
-  if (sd->flag & SD_HAS_BSSRDF_BUMP) {
+  if (sd->shader_flag & SD_HAS_BSSRDF_BUMP) {
     N = surface_shader_bssrdf_normal(sd);
   }
 
   /* Setup diffuse BSDF at the exit point. This replaces shader_eval_surface. */
-  sd->flag &= ~SD_CLOSURE_FLAGS;
+  sd->runtime_flag &= ~SR_CLOSURE_FLAG;
   sd->num_closure = 0;
   sd->num_closure_left = kernel_data.max_closures;
 

@@ -11,7 +11,7 @@
 [[node]]
 void node_composite_distance_matte(const float4 color,
                                    const float4 key,
-                                   const float color_space,
+                                   const int color_space,
                                    const float tolerance,
                                    const float falloff,
                                    float4 &result,
@@ -19,7 +19,7 @@ void node_composite_distance_matte(const float4 color,
 {
   float4 color_vector = color;
   float4 key_vector = key;
-  switch (int(color_space)) {
+  switch (color_space) {
     case CMP_NODE_DISTANCE_MATTE_COLOR_SPACE_RGBA:
       color_vector = color;
       key_vector = key;

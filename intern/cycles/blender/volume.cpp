@@ -339,42 +339,22 @@ static void sync_volume_object(blender::Main &b_data,
   for (const int grid_index : blender::IndexRange(BKE_volume_num_grids(&b_volume))) {
     const blender::bke::VolumeGridData &b_grid = *BKE_volume_grid_get(&b_volume, grid_index);
     const ustring name = ustring(b_grid.name());
-    AttributeStandard std = ATTR_STD_NONE;
+    AttributeStandard std = Attribute::name_volume_standard(name);
 
-    if (name == Attribute::standard_name(ATTR_STD_VOLUME_DENSITY)) {
-      std = ATTR_STD_VOLUME_DENSITY;
-    }
-    else if (name == Attribute::standard_name(ATTR_STD_VOLUME_COLOR)) {
-      std = ATTR_STD_VOLUME_COLOR;
-    }
-    else if (name == Attribute::standard_name(ATTR_STD_VOLUME_FLAME)) {
-      std = ATTR_STD_VOLUME_FLAME;
-    }
-    else if (name == Attribute::standard_name(ATTR_STD_VOLUME_HEAT)) {
-      std = ATTR_STD_VOLUME_HEAT;
-    }
-    else if (name == Attribute::standard_name(ATTR_STD_VOLUME_TEMPERATURE)) {
-      std = ATTR_STD_VOLUME_TEMPERATURE;
-    }
-    else if (name == Attribute::standard_name(ATTR_STD_VOLUME_VELOCITY) ||
-             name == b_volume.velocity_grid)
-    {
-      std = ATTR_STD_VOLUME_VELOCITY;
-    }
-    else if (name == Attribute::standard_name(ATTR_STD_VOLUME_VELOCITY_X) ||
-             name == b_volume.runtime->velocity_x_grid)
-    {
-      std = ATTR_STD_VOLUME_VELOCITY_X;
-    }
-    else if (name == Attribute::standard_name(ATTR_STD_VOLUME_VELOCITY_Y) ||
-             name == b_volume.runtime->velocity_y_grid)
-    {
-      std = ATTR_STD_VOLUME_VELOCITY_Y;
-    }
-    else if (name == Attribute::standard_name(ATTR_STD_VOLUME_VELOCITY_Z) ||
-             name == b_volume.runtime->velocity_z_grid)
-    {
-      std = ATTR_STD_VOLUME_VELOCITY_Z;
+    if (std == ATTR_STD_NONE) {
+      /* Velocity grid with custom name. */
+      if (name == b_volume.velocity_grid) {
+        std = ATTR_STD_VOLUME_VELOCITY;
+      }
+      else if (name == b_volume.runtime->velocity_x_grid) {
+        std = ATTR_STD_VOLUME_VELOCITY_X;
+      }
+      else if (name == b_volume.runtime->velocity_y_grid) {
+        std = ATTR_STD_VOLUME_VELOCITY_Y;
+      }
+      else if (name == b_volume.runtime->velocity_z_grid) {
+        std = ATTR_STD_VOLUME_VELOCITY_Z;
+      }
     }
 
     const bool need_std = (std != ATTR_STD_NONE && volume->need_attribute(scene, std));
@@ -429,7 +409,7 @@ void BlenderSync::sync_volume(BObjectInfo &b_ob_info, Volume *volume)
   volume->clear(true);
 
   if (view_layer.use_volumes) {
-    if (blender::GS(b_ob_info.object_data->name) == blender::ID_VO) {
+    if (b_ob_info.object_data->id_type() == blender::ID_VO) {
       /* Volume object. Create only attributes, bounding mesh will then
        * be automatically generated later. */
       sync_volume_object(*b_data, *b_scene, b_ob_info, scene, volume);

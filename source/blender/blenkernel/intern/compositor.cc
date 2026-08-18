@@ -7,23 +7,16 @@
 
 #include <fmt/format.h>
 
+#include "BLI_enum_flags.hh"
 #include "BLI_index_range.hh"
 #include "BLI_listbase.hh"
 #include "BLI_math_base.hh"
 #include "BLI_set.hh"
 #include "BLI_string_ref.hh"
+#include "BLI_string_utf8.hh"
+#include "BLI_string_utils.hh"
 
-#include "BKE_compositor.hh"
-#include "BKE_compute_contexts.hh"
-#include "BKE_context.hh"
-#include "BKE_cryptomatte.hh"
-#include "BKE_node.hh"
-#include "BKE_node_legacy_types.hh"
-#include "BKE_node_runtime.hh"
-
-#include "DEG_depsgraph_build.hh"
-
-#include "WM_api.hh"
+#include "BLT_translation.hh"
 
 #include "DNA_layer_types.h"
 #include "DNA_node_types.h"
@@ -33,11 +26,40 @@
 #include "DNA_view3d_types.h"
 #include "DNA_windowmanager_types.h"
 
+#include "RNA_access.hh"
+#include "RNA_path.hh"
+#include "RNA_prototypes.hh"
+
+#include "BLO_read_write.hh"
+
+#include "BKE_anim_data.hh"
+#include "BKE_animsys.hh"
+#include "BKE_compositor.hh"
+#include "BKE_compute_contexts.hh"
+#include "BKE_context.hh"
+#include "BKE_cryptomatte.hh"
+#include "BKE_global.hh"
+#include "BKE_idprop.hh"
+#include "BKE_lib_id.hh"
+#include "BKE_lib_query.hh"
+#include "BKE_node.hh"
+#include "BKE_node_legacy_types.hh"
+#include "BKE_node_runtime.hh"
+
+#include "DEG_depsgraph.hh"
+#include "DEG_depsgraph_build.hh"
+
+#include "WM_api.hh"
+
 #include "IMB_imbuf.hh"
 
 #include "NOD_dependencies.hh"
 
 namespace blender::bke::compositor {
+
+/* --------------------------------------------------------------------
+ * Cache.
+ */
 
 Cache::~Cache()
 {
@@ -143,6 +165,236 @@ int64_t Cache::size()
   return size;
 }
 
+/* --------------------------------------------------------------------
+ * Scene Compositor Effects.
+ */
+
+bool is_enabled(const Scene &scene, const ExecutionMode mode)
+{
+  if (mode == ExecutionMode::Render && !(scene.r.scemode & R_DOCOMP)) {
+    return false;
+  }
+
+  for (SceneCompositorEffect &effect : scene.compositor_effects) {
+    if (is_effect_enabled(effect, mode)) {
+      return true;
+    }
+  }
+
+  return false;
+}
+
+SceneCompositorEffect *get_effect(const Scene &scene, StringRef name)
+{
+  return static_cast<SceneCompositorEffect *>(BLI_findstring(
+      &(scene.compositor_effects), name.data(), offsetof(SceneCompositorEffect, name)));
+}
+
+SceneCompositorEffect *get_active_effect(const Scene &scene)
+{
+  for (SceneCompositorEffect &effect : scene.compositor_effects) {
+    if (flag_is_set(effect.flags, SceneCompositorEffectFlags::IsActive)) {
+      return &effect;
+    }
+  }
+
+  return nullptr;
+}
+
+bool is_effect_enabled(const SceneCompositorEffect &effect, const ExecutionMode mode)
+{
+  if (!effect.node_group) {
+    return false;
+  }
+
+  switch (mode) {
+    case ExecutionMode::Render:
+      return flag_is_set(effect.flags, SceneCompositorEffectFlags::EnableForRender);
+    case ExecutionMode::Preview:
+      return flag_is_set(effect.flags, SceneCompositorEffectFlags::EnableForPreview);
+  }
+
+  BLI_assert_unreachable();
+  return false;
+}
+
+void set_active_effect(const Scene &scene, SceneCompositorEffect &effect)
+{
+  for (SceneCompositorEffect &other_effect : scene.compositor_effects) {
+    other_effect.flags &= ~SceneCompositorEffectFlags::IsActive;
+  }
+
+  /* Activate the active state of the effect. */
+  effect.flags |= SceneCompositorEffectFlags::IsActive;
+}
+
+void rename_effect(Scene &scene,
+                   SceneCompositorEffect &effect,
+                   StringRef new_name,
+                   const bool update_animation_data)
+{
+  std::string old_name = effect.name;
+  new_name.copy_utf8_truncated(effect.name);
+  BLI_uniquename(&scene.compositor_effects,
+                 &effect,
+                 CTX_DATA_(BLT_I18NCONTEXT_ID_SCENE, "Compositor Effect"),
+                 '.',
+                 offsetof(SceneCompositorEffect, name),
+                 sizeof(effect.name));
+
+  if (!update_animation_data) {
+    return;
+  }
+
+  /* Fix all the animation data which may link to this. */
+  BKE_animdata_fix_paths(scene.id,
+                         "compositor_effects",
+                         RNA_path_name_to_infix(old_name.c_str()),
+                         RNA_path_name_to_infix(effect.name),
+                         true,
+                         *G_MAIN);
+}
+
+SceneCompositorEffect &new_effect(Scene &scene, StringRef name)
+{
+  SceneCompositorEffect &effect = *MEM_new<SceneCompositorEffect>("Scene Compositor Effect");
+  rename_effect(scene, effect, name, false);
+  BLI_addtail(&scene.compositor_effects, &effect);
+  set_active_effect(scene, effect);
+  return effect;
+}
+
+SceneCompositorEffect &duplicate_effect(Scene &scene, SceneCompositorEffect &source_effect)
+{
+  SceneCompositorEffect &new_effect = *MEM_dupalloc(&source_effect);
+  if (source_effect.node_group) {
+    id_us_plus(&new_effect.node_group->id);
+  }
+  if (source_effect.system_properties) {
+    new_effect.system_properties = IDP_CopyProperty_ex(source_effect.system_properties, 0);
+  }
+  BLI_addtail(&scene.compositor_effects, &new_effect);
+  rename_effect(scene, new_effect, source_effect.name, false);
+  set_active_effect(scene, new_effect);
+  return new_effect;
+}
+
+static void free_effect(SceneCompositorEffect &effect)
+{
+  if (effect.system_properties) {
+    IDP_FreeProperty_ex(effect.system_properties, false);
+  }
+  MEM_delete(&effect);
+}
+
+void remove_effect(Scene &scene, SceneCompositorEffect &effect)
+{
+  if (effect.node_group) {
+    id_us_min(&effect.node_group->id);
+  }
+  BLI_remlink(&scene.compositor_effects, &effect);
+  const bool was_active = flag_is_set(effect.flags, SceneCompositorEffectFlags::IsActive);
+  if (was_active && !scene.compositor_effects.is_empty()) {
+    set_active_effect(scene, *scene.compositor_effects.begin());
+  }
+  free_effect(effect);
+}
+
+void copy_effects(Scene &target_scene, const Scene &source_scene, const int flags)
+{
+  target_scene.compositor_effects.clear_no_delete();
+  for (const SceneCompositorEffect &source_effect : source_scene.compositor_effects) {
+    SceneCompositorEffect &new_effect = *MEM_dupalloc(&source_effect);
+    BLI_addtail(&target_scene.compositor_effects, &new_effect);
+    if (source_effect.system_properties) {
+      new_effect.system_properties = IDP_CopyProperty_ex(source_effect.system_properties, flags);
+    }
+  }
+}
+
+void free_effects(Scene &scene)
+{
+  for (SceneCompositorEffect &effect : scene.compositor_effects.items_mutable()) {
+    free_effect(effect);
+  }
+  scene.compositor_effects.clear_no_delete();
+}
+
+void for_each_id_in_effects(const Scene &scene, LibraryForeachIDData &data)
+{
+  for (SceneCompositorEffect &effect : scene.compositor_effects) {
+    BKE_LIB_FOREACHID_PROCESS_IDSUPER(&data, effect.node_group, IDWALK_CB_USER);
+    if (effect.system_properties) {
+      BKE_LIB_FOREACHID_PROCESS_FUNCTION_CALL(
+          &data,
+          IDP_foreach_property(
+              effect.system_properties, IDP_TYPE_FILTER_ID, [&](IDProperty *property) {
+                BKE_lib_query_idpropertiesForeachIDLink_callback(property, &data);
+              }));
+    }
+  }
+}
+
+void write_effects(const Scene &scene, BlendWriter &writer)
+{
+  writer.write_struct_list(&scene.compositor_effects);
+  for (const SceneCompositorEffect &effect : scene.compositor_effects) {
+    if (effect.system_properties) {
+      IDP_BlendWrite(&writer, effect.system_properties);
+    }
+  }
+}
+
+void read_effects(Scene &scene, BlendDataReader &reader)
+{
+  BLO_read_struct_list(&reader, SceneCompositorEffect, &scene.compositor_effects);
+  for (SceneCompositorEffect &effect : scene.compositor_effects) {
+    BLO_read_struct(&reader, IDProperty, &effect.system_properties);
+    IDP_BlendDataRead(&reader, &effect.system_properties);
+  }
+}
+
+const SceneCompositorEffect *get_effect_from_property(const PointerRNA &property_ptr)
+{
+  const std::optional<AncestorPointerRNA> effect_ptr = RNA_struct_search_closest_ancestor_by_type(
+      &property_ptr, RNA_SceneCompositorEffect);
+  if (effect_ptr.has_value()) {
+    return static_cast<const SceneCompositorEffect *>(effect_ptr->data);
+  }
+
+  const Scene *scene = id_cast<const Scene *>(property_ptr.owner_id);
+  for (SceneCompositorEffect &effect : scene->compositor_effects) {
+    bool found = false;
+    IDP_foreach_property(effect.system_properties, 0, [&](IDProperty *id_property) {
+      if (id_property == property_ptr.data) {
+        found = true;
+      }
+    });
+    if (found) {
+      return &effect;
+    }
+  }
+  return nullptr;
+}
+
+void update_effect_node_group_interface(Main &main, Scene &scene, SceneCompositorEffect &effect)
+{
+  if (!effect.system_properties) {
+    effect.system_properties =
+        bke::idprop::create_group("SceneCompositorEffectProperties").release();
+  }
+  PointerRNA properties_ptr = RNA_pointer_create_discrete(
+      &scene.id, RNA_SceneCompositorEffectProperties, &effect);
+  RNA_ensure_and_sync_system_properties(main, properties_ptr, *effect.system_properties);
+
+  DEG_id_tag_update(&scene.id, ID_RECALC_COMPOSITOR);
+  WM_main_add_notifier(NC_SCENE | ND_COMPO_RESULT, &scene);
+}
+
+/* --------------------------------------------------------------------
+ * Query.
+ */
+
 /* Adds the pass names of the passes used by the given Render Layer node to the given used passes.
  * This essentially adds the pass names of the outputs that are logically linked. */
 static void add_passes_used_by_render_layer_node(const bNode *node, Set<std::string> &used_passes)
@@ -246,7 +498,7 @@ static void add_passes_used_by_cryptomatte_node(const bNode *node,
  * passes. This is called recursively for node groups. */
 static void add_used_passes_recursive(const bNodeTree *node_tree,
                                       const ViewLayer *view_layer,
-                                      const bool is_root_tree,
+                                      const bool is_root_tree_of_first_effect,
                                       Set<const bNodeTree *> &node_trees_already_searched,
                                       Set<std::string> &used_passes)
 {
@@ -274,7 +526,7 @@ static void add_used_passes_recursive(const bNodeTree *node_tree,
         add_passes_used_by_render_layer_node(node, used_passes);
         break;
       case NODE_GROUP_INPUT:
-        if (is_root_tree) {
+        if (is_root_tree_of_first_effect) {
           add_passes_used_by_group_input_node(node, used_passes);
         }
         break;
@@ -287,19 +539,53 @@ static void add_used_passes_recursive(const bNodeTree *node_tree,
   }
 }
 
-Set<std::string> get_used_passes(const Scene &scene, const ViewLayer *view_layer)
+Set<std::string> get_used_passes(const Scene &scene,
+                                 const ViewLayer *view_layer,
+                                 const ExecutionMode mode)
 {
   Set<std::string> used_passes;
+  bool is_first_effect = true;
   Set<const bNodeTree *> node_trees_already_searched;
-  add_used_passes_recursive(
-      scene.compositing_node_group, view_layer, true, node_trees_already_searched, used_passes);
+  for (const SceneCompositorEffect &effect : scene.compositor_effects) {
+    if (!is_effect_enabled(effect, mode)) {
+      continue;
+    }
+    add_used_passes_recursive(
+        effect.node_group, view_layer, is_first_effect, node_trees_already_searched, used_passes);
+    is_first_effect = false;
+  }
   return used_passes;
+}
+
+bool is_viewport_compositor_used(const Scene &scene,
+                                 const View3D &view_3d,
+                                 const RegionView3D &region_view_3d)
+{
+  if (!is_enabled(scene, ExecutionMode::Preview)) {
+    return false;
+  }
+
+  if (view_3d.shading.use_compositor == V3D_SHADING_USE_COMPOSITOR_DISABLED) {
+    return false;
+  }
+
+  if (!ELEM(view_3d.shading.type, OB_MATERIAL, OB_TEXTURE, OB_RENDER)) {
+    return false;
+  }
+
+  if (view_3d.shading.use_compositor == V3D_SHADING_USE_COMPOSITOR_CAMERA &&
+      region_view_3d.persp != RV3D_CAMOB)
+  {
+    return false;
+  }
+
+  return true;
 }
 
 bool is_viewport_compositor_used(const bContext &context)
 {
   const Scene *scene = CTX_data_scene(&context);
-  if (!scene->compositing_node_group) {
+  if (!is_enabled(*scene, ExecutionMode::Preview)) {
     return false;
   }
 
@@ -310,16 +596,14 @@ bool is_viewport_compositor_used(const bContext &context)
       const SpaceLink &space = *static_cast<const SpaceLink *>(area.spacedata.first);
       if (space.spacetype == SPACE_VIEW3D) {
         const View3D &view_3d = reinterpret_cast<const View3D &>(space);
-
-        if (view_3d.shading.use_compositor == V3D_SHADING_USE_COMPOSITOR_DISABLED) {
-          continue;
+        for (ARegion &region : area.regionbase) {
+          if (region.regiontype == RGN_TYPE_WINDOW) {
+            const RegionView3D &region_view_3d = *static_cast<RegionView3D *>(region.regiondata);
+            if (is_viewport_compositor_used(*scene, view_3d, region_view_3d)) {
+              return true;
+            }
+          }
         }
-
-        if (!(view_3d.shading.type >= OB_MATERIAL)) {
-          continue;
-        }
-
-        return true;
       }
     }
   }
@@ -327,40 +611,22 @@ bool is_viewport_compositor_used(const bContext &context)
   return false;
 }
 
-bool node_tree_has_linked_file_output(const bNodeTree *node_tree)
-{
-  if (node_tree == nullptr) {
-    return false;
-  }
+/* --------------------------------------------------------------------
+ * Depsgraph.
+ */
 
-  node_tree->ensure_topology_cache();
-  for (const bNode *node : node_tree->nodes_by_type("CompositorNodeOutputFile"_ustr)) {
-    if (!node->is_muted()) {
-      for (const bNodeSocket &input : node->inputs) {
-        if (input.is_directly_linked()) {
-          return true;
-        }
-      }
-    }
-  }
-
-  for (const bNode *node : node_tree->group_nodes()) {
-    if (node->is_muted() || !node->id) {
-      continue;
-    }
-
-    if (node_tree_has_linked_file_output(reinterpret_cast<const bNodeTree *>(node->id))) {
-      return true;
-    }
-  }
-
-  return false;
-}
-
-void add_depsgraph_relations(Scene &scene, DepsNodeHandle *compositor_output_depsgraph_node)
+void add_depsgraph_relations(Scene &scene,
+                             const SceneCompositorEffect &effect,
+                             DepsNodeHandle *compositor_output_depsgraph_node)
 {
   nodes::EvalDependencies evaluation_dependencies = nodes::gather_eval_dependencies_recursive(
-      *scene.compositing_node_group);
+      *effect.node_group);
+
+  IDP_foreach_property(effect.system_properties, IDP_TYPE_FILTER_ID, [&](IDProperty *property) {
+    if (ID *id = IDP_ID_get(property)) {
+      evaluation_dependencies.add_generic_id_full(id);
+    }
+  });
 
   for (ID *id : evaluation_dependencies.ids.values()) {
     switch (ID_Type(GS(id->name))) {
@@ -419,6 +685,10 @@ void add_depsgraph_relations(Scene &scene, DepsNodeHandle *compositor_output_dep
   }
 }
 
+/* --------------------------------------------------------------------
+ * Compute Contexts.
+ */
+
 /* Recursively search node groups to find the node group whose instance key matches the given
  * active node group instance key, and returns it compute context hash. */
 static std::optional<ComputeContextHash> compute_active_compute_context_hash_recursive(
@@ -455,6 +725,29 @@ static std::optional<ComputeContextHash> compute_active_compute_context_hash_rec
   }
 
   return std::nullopt;
+}
+
+ComputeContextHash compute_active_compute_context_hash(const Scene &scene)
+{
+  const bke::DataBlockComputeContext scene_compute_context(nullptr, scene.id);
+  const SceneCompositorEffect *active_effect = get_active_effect(scene);
+  if (!active_effect) {
+    return scene_compute_context.hash();
+  }
+
+  const bke::SceneCompositorEffectComputeContext effect_compute_context(&scene_compute_context,
+                                                                        *active_effect);
+
+  if (!active_effect->node_group || ID_MISSING(active_effect->node_group)) {
+    return effect_compute_context.hash();
+  }
+
+  return compute_active_compute_context_hash_recursive(
+             *active_effect->node_group,
+             effect_compute_context,
+             bke::NODE_INSTANCE_KEY_BASE,
+             active_effect->node_group->active_viewer_key)
+      .value_or(effect_compute_context.hash());
 }
 
 ComputeContextHash compute_active_compute_context_hash(const Scene &scene,

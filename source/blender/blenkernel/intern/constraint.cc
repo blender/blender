@@ -53,6 +53,7 @@
 #include "BKE_anim_path.h"
 #include "BKE_animsys.hh"
 #include "BKE_armature.hh"
+#include "BKE_bvh.hh"
 #include "BKE_bvhutils.hh"
 #include "BKE_cachefile.hh"
 #include "BKE_camera.h"
@@ -5159,27 +5160,15 @@ static void followtrack_project_to_depth_object_if_needed(FollowTrackContext *co
    * since this isn't typically used in edit-mode. */
   BKE_mesh_wrapper_ensure_mdata(const_cast<Mesh *>(depth_mesh));
 
-  bke::BVHTreeFromMesh tree_data = depth_mesh->bvh_corner_tris();
-
-  /* Can happen when the mesh has no faces. */
-  if (tree_data.tree == nullptr) {
+  if (depth_mesh->faces_num == 0) {
     return;
   }
 
-  BVHTreeRayHit hit;
-  hit.dist = BVH_RAYCAST_DIST_MAX;
-  hit.index = -1;
-
-  const int result = BLI_bvhtree_ray_cast(tree_data.tree,
-                                          ray_start,
-                                          ray_direction,
-                                          0.0f,
-                                          &hit,
-                                          tree_data.raycast_callback,
-                                          &tree_data);
-
-  if (result != -1) {
-    mul_v3_m4v3(cob->matrix[3], depth_object->object_to_world().ptr(), hit.co);
+  const bke::bvh::Tree &tree = depth_mesh->bvh_tris();
+  const bke::bvh::Ray ray(ray_start, ray_direction);
+  const std::optional<bke::bvh::RayHit> hit = tree.ray_intersect(ray);
+  if (hit) {
+    mul_v3_m4v3(cob->matrix[3], depth_object->object_to_world().ptr(), hit->position(ray));
   }
 }
 
@@ -6441,6 +6430,17 @@ void BKE_constraints_active_set(ListBaseT<bConstraint> *list, bConstraint *con)
   }
 }
 
+bool BKE_constraint_has_influence(const bConstraint *con)
+{
+  if (con->flag & (CONSTRAINT_DISABLE | CONSTRAINT_OFF)) {
+    return false;
+  }
+  if (con->enforce == 0.0f) {
+    return false;
+  }
+  return true;
+}
+
 static bConstraint *constraint_list_find_from_target(ListBaseT<bConstraint> *constraints,
                                                      bConstraintTarget *tgt)
 {
@@ -6770,15 +6770,11 @@ void BKE_constraints_solve(Depsgraph *depsgraph,
     if (cti == nullptr) {
       continue;
     }
-    if (con.flag & (CONSTRAINT_DISABLE | CONSTRAINT_OFF)) {
+    if (!BKE_constraint_has_influence(&con)) {
       continue;
     }
     /* these constraints can't be evaluated anyway */
     if (cti->evaluate_constraint == nullptr) {
-      continue;
-    }
-    /* influence == 0 should be ignored */
-    if (con.enforce == 0.0f) {
       continue;
     }
 

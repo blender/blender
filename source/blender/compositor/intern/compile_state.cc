@@ -333,6 +333,10 @@ bool CompileState::pixel_compile_unit_has_too_many_inputs()
         continue;
       }
 
+      if (this->get_schedule().unneeded_inputs.contains(input)) {
+        continue;
+      }
+
       const bNodeSocket *output = get_output_linked_to_input(*input);
       if (!output) {
         const InputDescriptor input_descriptor = input_descriptor_from_input_socket(input);
@@ -363,6 +367,12 @@ bool CompileState::pixel_compile_unit_has_too_many_inputs()
       /* All inputs linked to the same output share the same input, and this one was counted
        * before, so no need to count it again. */
       if (referenced_output_sockets.contains(output)) {
+        continue;
+      }
+
+      /* Single values are folded into the shader so they do not count toward inputs count. */
+      const Result &result = this->get_result_from_output_socket(*output);
+      if (result.is_single_value()) {
         continue;
       }
 

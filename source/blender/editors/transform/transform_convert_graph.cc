@@ -677,6 +677,16 @@ static void flushTransGraphData(TransInfo *t)
   eSnapMode snap_mode = t->tsnap.mode;
 
   TransDataContainer *tc = TRANS_DATA_CONTAINER_FIRST_SINGLE(t);
+
+  /* Snapping only affects keyframes, never their handles (handles carry #TD_NOTIMESNAP). To keep
+   * the handles at the same time-offset from their key, the snapping offset applied to each key is
+   * collected here and added to that key's handles in a second pass below. The second pass is
+   * needed because a handle's final (scaled/rotated) position may be flushed after its key.
+   * This way, things stay independent of the order of the rest of the code (there's a difference
+   * between the proportional editing and the regular editing, for example). */
+  const bool may_snap = (t->tsnap.flag & SCE_SNAP) && (t->state != TRANS_CANCEL);
+  Vector<float> key_snap_time_offset(may_snap ? tc->data_len : 0, 0.0f);
+
   /* Flush to 2d vector from internally used 3d vector. */
   for (a = 0,
       td = tc->data,
@@ -695,7 +705,9 @@ static void flushTransGraphData(TransInfo *t)
      * - Only apply to keyframes (but never to handles).
      * - Don't do this when canceling, or else these changes won't go away.
      */
-    if ((t->tsnap.flag & SCE_SNAP) && (t->state != TRANS_CANCEL) && !(td->flag & TD_NOTIMESNAP)) {
+    const bool do_snap = may_snap && !(td->flag & TD_NOTIMESNAP);
+    const float presnap_loc = td2d->loc[0];
+    if (do_snap) {
       transform_snap_anim_flush_data(t, td, snap_mode, td->loc);
     }
 
@@ -707,6 +719,15 @@ static void flushTransGraphData(TransInfo *t)
       td2d->loc2d[0] = td2d->loc[0];
     }
 
+    if (do_snap) {
+      /* Record the snapping offset in the same (un-mapped) space as the handle coordinates, so it
+       * can be applied to this key's handles in the second pass below. */
+      const float presnap_loc2d = adt ? BKE_nla_tweakedit_remap(
+                                            adt, presnap_loc, NLATIME_CONVERT_UNMAP) :
+                                        presnap_loc;
+      key_snap_time_offset[a] = td2d->loc2d[0] - presnap_loc2d;
+    }
+
     /* If int-values only, truncate to integers. */
     if (td->flag & TD_INTVALUES) {
       td2d->loc2d[1] = floorf(td2d->loc[1] * inv_unit_scale - tdg->offset + 0.5f);
@@ -716,6 +737,26 @@ static void flushTransGraphData(TransInfo *t)
     }
 
     transform_convert_flush_handle2D(td, td2d, inv_unit_scale);
+  }
+
+  if (may_snap) {
+    /* Second pass of snapping handling for handles: shift each key's handles by the snapping
+     * offset applied to that key, so their position relative to the key is maintained. Handles
+     * flagged with #TD_MOVEHANDLE1 / #TD_MOVEHANDLE2 are already moved by the full key delta
+     * (including snapping) during translation, so they are skipped here to avoid applying the
+     * offset twice. */
+    for (a = 0, td = tc->data, td2d = tc->data_2d; a < tc->data_len; a++, td++, td2d++) {
+      const float offset = key_snap_time_offset[a];
+      if (offset == 0.0f) {
+        continue;
+      }
+      if (td2d->h1 && !(td->flag & TD_MOVEHANDLE1)) {
+        td2d->h1[0] += offset;
+      }
+      if (td2d->h2 && !(td->flag & TD_MOVEHANDLE2)) {
+        td2d->h2[0] += offset;
+      }
+    }
   }
 }
 

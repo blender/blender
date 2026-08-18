@@ -1,9 +1,9 @@
 
 msgid ""
 msgstr ""
-"Project-Id-Version: Blender 5.3.0 Alpha (b'96294be75080')\n"
+"Project-Id-Version: Blender 5.3.0 Alpha (b'af4852ed4560')\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-07-20 07:29+0000\n"
+"POT-Creation-Date: 2026-08-10 07:54+0000\n"
 "PO-Revision-Date: 2026-03-19 19:12+0000\n"
 "Last-Translator: Tamás Máté <royalpython132@gmail.com>\n"
 "Language-Team: Hungarian <https://translate.blender.org/projects/blender-ui/ui/hu/>\n"
@@ -1094,10 +1094,6 @@ msgstr "Térháló adatblokkok"
 
 msgid "Particles"
 msgstr "Részecskék"
-
-
-msgid "Project"
-msgstr "Vetítés"
 
 
 msgid "Shape Keys"
@@ -2642,6 +2638,10 @@ msgstr "A legközelebbi felületi pont"
 
 msgid "Shrink the location to the nearest target surface"
 msgstr "A helyzet simítása a legközelebbi célfelülethez"
+
+
+msgid "Project"
+msgstr "Vetítés"
 
 
 msgid "Shrink the location to the nearest target surface along a given axis"
@@ -6606,14 +6606,6 @@ msgid "Use Material Mask"
 msgstr "Anyagmaszk használata"
 
 
-msgid "Apply"
-msgstr "Elfogadás"
-
-
-msgid "Track"
-msgstr "Nyom"
-
-
 msgid "Show/Hide"
 msgstr "Mutat/Rejt"
 
@@ -6622,20 +6614,12 @@ msgid "Clean Up"
 msgstr "Tisztítás"
 
 
-msgid "Merge"
-msgstr "Összefésülés"
+msgid "Keying"
+msgstr "Kulcsozás"
 
 
-msgid "Metaball"
-msgstr "Meta test"
-
-
-msgid "Import"
-msgstr "Importálás"
-
-
-msgid "UV"
-msgstr "UV"
+msgid "Tracking"
+msgstr "Követés"
 
 
 msgid "Mirror"
@@ -6654,12 +6638,8 @@ msgid "Align View"
 msgstr "Nézet igazítása"
 
 
-msgid "Keying"
-msgstr "Kulcsozás"
-
-
-msgid "Tracking"
-msgstr "Követés"
+msgid "Metaball"
+msgstr "Meta test"
 
 
 msgid "Light"
@@ -6672,6 +6652,26 @@ msgstr "Kapcsolatok"
 
 msgid "Rigid Body"
 msgstr "Szilárd test"
+
+
+msgid "Apply"
+msgstr "Elfogadás"
+
+
+msgid "Import"
+msgstr "Importálás"
+
+
+msgid "Track"
+msgstr "Nyom"
+
+
+msgid "UV"
+msgstr "UV"
+
+
+msgid "Merge"
+msgstr "Összefésülés"
 
 
 msgctxt "MovieClip"
@@ -12872,10 +12872,6 @@ msgid "Keyframing Settings"
 msgstr "Kulcs-képkockázás beállításai"
 
 
-msgid "Auto Keyframing"
-msgstr "Auto kulcs-képkockázás"
-
-
 msgid "Playback"
 msgstr "Lejátszás"
 
@@ -14607,10 +14603,6 @@ msgid "Window Background"
 msgstr "Ablak háttere"
 
 
-msgid "Header Text Highlight"
-msgstr "Fejléc kiemelt szöveg"
-
-
 msgid "Text Highlight"
 msgstr "Kiemelt szöveg"
 
@@ -15137,11 +15129,6 @@ msgstr "Dokumentáció"
 
 msgid "File:"
 msgstr "Fájl:"
-
-
-msgctxt "Operator"
-msgid "Apply"
-msgstr "Elfogadás"
 
 
 msgid "Options:"
@@ -16006,6 +15993,11 @@ msgstr "Törlés mindenhonnan"
 msgctxt "Operator"
 msgid "Adjust Focus Distance"
 msgstr "Fókusztávolság beállítása"
+
+
+msgctxt "Operator"
+msgid "Apply"
+msgstr "Elfogadás"
 
 
 msgid "KeyingSet"

@@ -67,32 +67,38 @@ void foreach_strip(ListBaseT<Strip> *seqbase, FunctionRef<bool(Strip *)> callbac
   strip_for_each_recursive(seqbase, callback);
 }
 
-VectorSet<Strip *> query_by_reference(Strip *strip_reference,
-                                      Editing *ed,
-                                      void strip_query_func(Strip *strip_reference,
-                                                            Editing *ed,
-                                                            VectorSet<Strip *> &strips))
+void expand_strips(Editing *ed, VectorSet<Strip *> &strips, const StripRelation include)
 {
-  VectorSet<Strip *> strips;
-  strip_query_func(strip_reference, ed, strips);
-  return strips;
-}
+  /* Process strips through iteration, since some callers expect no reordering of the #VectorSet.
+   * Its keys remain in insertion order as long as none are removed, which we guarantee here.
+   * Since newly found strips are appended, they will all be eventually visited. */
+  for (int64_t i = 0; i < strips.size(); i++) {
+    Strip *strip = strips[i];
 
-void iterator_set_expand(Editing *ed,
-                         VectorSet<Strip *> &strips,
-                         void strip_query_func(Strip *strip,
-                                               Editing *ed,
-                                               VectorSet<Strip *> &strips))
-{
-  /* Collect expanded results for each sequence in provided VectorSet. */
-  VectorSet<Strip *> query_matches;
-
-  for (Strip *strip : strips) {
-    query_matches.add_multiple(query_by_reference(strip, ed, strip_query_func));
+    if (flag_is_set(include, StripRelation::Effects)) {
+      for (Strip *effect_strip : lookup_effects_by_strip(ed, strip)) {
+        strips.add(effect_strip);
+      }
+    }
+    if (flag_is_set(include, StripRelation::Inputs) && strip->is_effect()) {
+      if (strip->input1) {
+        strips.add(strip->input1);
+      }
+      if (strip->input2) {
+        strips.add(strip->input2);
+      }
+    }
+    if (flag_is_set(include, StripRelation::MetaContents) && strip->type == STRIP_TYPE_META) {
+      for (Strip &meta_child : strip->seqbase) {
+        strips.add(&meta_child);
+      }
+    }
+    if (flag_is_set(include, StripRelation::Connected)) {
+      for (Strip *connection : connected_strips_get(strip)) {
+        strips.add(connection);
+      }
+    }
   }
-
-  /* Merge all expanded results in provided VectorSet. */
-  strips.add_multiple(query_matches);
 }
 
 static void query_all_strips_recursive(const ListBaseT<Strip> *seqbase, VectorSet<Strip *> &strips)
@@ -260,79 +266,6 @@ VectorSet<Strip *> query_unselected_strips(ListBaseT<Strip> *seqbase)
     strips.add(&strip);
   }
   return strips;
-}
-
-void query_strip_direct_effect_chain(Strip *strip, Editing *ed, VectorSet<Strip *> &r_strips)
-{
-  if (r_strips.contains(strip)) {
-    return; /* Strip is already in set, so all effects connected to it are as well. */
-  }
-  r_strips.add(strip);
-
-  /* Find all effect strips connected to #strip. */
-  Span<Strip *> effects = seq::lookup_effects_by_strip(ed, strip);
-  for (Strip *effect_strip : effects) {
-    query_strip_direct_effect_chain(effect_strip, ed, r_strips);
-  }
-}
-
-void query_strip_effect_chain(Strip *strip, Editing *ed, VectorSet<Strip *> &r_strips)
-{
-  if (r_strips.contains(strip)) {
-    return; /* Strip is already in set, so all effects connected to it are as well. */
-  }
-
-  r_strips.add(strip);
-
-  /* Find all input strips for `strip`. */
-  if (strip->is_effect()) {
-    if (strip->input1) {
-      query_strip_effect_chain(strip->input1, ed, r_strips);
-    }
-    if (strip->input2) {
-      query_strip_effect_chain(strip->input2, ed, r_strips);
-    }
-  }
-
-  /* Find all effect strips that have `strip` as an input. */
-  Span<Strip *> effects = seq::lookup_effects_by_strip(ed, strip);
-  for (Strip *effect_strip : effects) {
-    query_strip_effect_chain(effect_strip, ed, r_strips);
-  }
-}
-
-void query_strip_connected_and_effect_chain(Strip *strip,
-                                            Editing *ed,
-                                            VectorSet<Strip *> &r_strips)
-{
-
-  Vector<Strip *> pending;
-  pending.append(strip);
-
-  while (!pending.is_empty()) {
-    Strip *current = pending.pop_last();
-
-    if (r_strips.contains(current)) {
-      continue;
-    }
-
-    r_strips.add(current);
-
-    VectorSet<Strip *> connections = connected_strips_get(current);
-    for (Strip *connection : connections) {
-      if (!r_strips.contains(connection)) {
-        pending.append(connection);
-      }
-    }
-
-    VectorSet<Strip *> effect_chain;
-    query_strip_effect_chain(current, ed, effect_chain);
-    for (Strip *effect_strip : effect_chain) {
-      if (!r_strips.contains(effect_strip)) {
-        pending.append(effect_strip);
-      }
-    }
-  }
 }
 
 }  // namespace blender::seq

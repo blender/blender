@@ -182,6 +182,12 @@ void ED_region_info_draw_multiline(ARegion *region,
 void ED_region_image_metadata_panel_draw(ImBuf *ibuf, ui::Layout *layout);
 void ED_region_grid_draw(ARegion *region, float zoomx, float zoomy, float x0, float y0);
 float ED_region_blend_alpha(ARegion *region);
+/**
+ * The region's on-screen rectangle, accounting for its current blend animation slide offset (see
+ * #ED_region_blend_alpha). Equal to `region->winrct` when the region isn't currently blending
+ * in/out.
+ */
+void ED_region_blend_rect(ARegion *region, rcti *r_rect);
 const rcti *ED_region_visible_rect(ARegion *region);
 /**
  * Overlapping regions only in the following restricted cases.

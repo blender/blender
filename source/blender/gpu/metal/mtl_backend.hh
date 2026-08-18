@@ -59,6 +59,7 @@ class MTLBackend : public GPUBackend {
   Context *context_alloc(GHOST_IWindow *ghost_window, GHOST_IContext *ghost_context) override;
   Batch *batch_alloc() override;
   Fence *fence_alloc() override;
+  WorkInFlight *work_in_flight_alloc(unsigned int max_in_flight) override;
   FrameBuffer *framebuffer_alloc(const char *name) override;
   IndexBuf *indexbuf_alloc() override;
   PixelBuffer *pixelbuf_alloc(size_t size) override;
@@ -69,18 +70,8 @@ class MTLBackend : public GPUBackend {
   UniformBuf *uniformbuf_alloc(size_t size, const char *name) override;
   StorageBuf *storagebuf_alloc(size_t size, GPUUsageType usage, const char *name) override;
   VertBuf *vertbuf_alloc() override;
-  TopLevelAS *tlas_alloc(const char * /*name*/) override
-  {
-    /* TODO: Implement Ray Queries support for Metal. */
-    BLI_assert_unreachable();
-    return nullptr;
-  }
-  BottomLevelAS *blas_alloc(const char * /*name*/) override
-  {
-    /* TODO: Implement Ray Queries support for Metal. */
-    BLI_assert_unreachable();
-    return nullptr;
-  }
+  TopLevelAS *tlas_alloc(const char *name) override;
+  BottomLevelAS *blas_alloc(const char *name) override;
   void shader_cache_dir_clear_old() override {}
 
   /* Render Frame Coordination. */

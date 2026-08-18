@@ -213,7 +213,7 @@ SourceProcessor::Result SourceProcessor::convert_bsl_legacy(
 
     str = parser.result_get();
   }
-  catch (ParserException &e) {
+  catch (ParserException & /*e*/) {
     /* Output the current source state for inspection. */
     return {parser.result_get(), metadata_, error_handler.err};
   }
@@ -252,7 +252,7 @@ SourceProcessor::Result SourceProcessor::convert_info()
 
     str = parser.result_get();
   }
-  catch (ParserException &e) {
+  catch (ParserException & /*e*/) {
     /* Output the current source state for inspection. */
     return {parser.result_get(), metadata_, error_handler.err};
   }
@@ -323,7 +323,7 @@ metadata::Source SourceProcessor::parse_include_and_symbols()
 
     parse_local_symbols(parser);
   }
-  catch (ParserException &e) {
+  catch (ParserException & /*e*/) {
     /* Expect that the parsing will generate error when the file itself is compiled. */
     return {};
   }

@@ -29,10 +29,6 @@ namespace seq {
  * Check if one strip is input to the other.
  */
 bool relation_is_effect_of_strip(const Strip *effect, const Strip *input);
-/**
- * Free currently open movie strip readers.
- */
-void strip_free_movie_readers(Strip *strip);
 bool relations_check_scene_recursion(Scene *scene, ReportList *reports);
 /**
  * Check if "strip_main" (indirectly) uses strip "strip".
@@ -79,10 +75,6 @@ void relations_update_view_layer_scene_strips(Main *bmain,
 void relations_invalidate_compositor_users(const Main *bmain, const bNodeTree *node_tree);
 
 void relations_invalidate_movieclip_strips(Main *bmain, MovieClip *clip_target);
-/**
- * Release FFmpeg handles of strips that are not currently displayed to minimize memory usage.
- */
-void relations_free_all_anim_ibufs(Scene *scene, int timeline_frame);
 /**
  * A debug and development function which checks whether strips have unique UIDs.
  * Errors will be reported to the console.

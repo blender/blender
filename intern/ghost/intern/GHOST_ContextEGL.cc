@@ -462,15 +462,34 @@ GHOST_TSuccess GHOST_ContextEGL::initializeDrawingContext()
     attrib_list.push_back(EGL_PBUFFER_BIT);
   }
 
-  attrib_list.push_back(EGL_NONE);
-
-  if (!EGL_CHK(::eglChooseConfig(display_, &(attrib_list[0]), &config_, 1, &num_config))) {
-    goto error;
+  /* Requested last so the attributes can be dropped when no matching config exists, see below. */
+  if (context_params_.use_alpha) {
+    attrib_list.push_back(EGL_ALPHA_SIZE);
+    attrib_list.push_back(8);
   }
 
-  /* A common error is to assume that ChooseConfig worked because it returned EGL_TRUE. */
-  if (num_config != 1) { /* `num_config` should be exactly 1. */
-    goto error;
+  attrib_list.push_back(EGL_NONE);
+
+  /* A common error is to assume that ChooseConfig worked because it returned EGL_TRUE,
+   * `num_config` should be exactly 1. */
+  if (!EGL_CHK(::eglChooseConfig(display_, attrib_list.data(), &config_, 1, &num_config)) ||
+      (num_config != 1))
+  {
+    if (!context_params_.use_alpha) {
+      goto error;
+    }
+    /* Not all drivers expose a configuration with an alpha channel. Retry without it, the
+     * caller is expected to handle the loss of transparency (drawing square window corners
+     * instead of rounded), see #GHOST_Context::hasAlpha. */
+    context_params_.use_alpha = false;
+    attrib_list.resize(attrib_list.size() - 3);
+    attrib_list.push_back(EGL_NONE);
+
+    if (!EGL_CHK(::eglChooseConfig(display_, attrib_list.data(), &config_, 1, &num_config)) ||
+        (num_config != 1))
+    {
+      goto error;
+    }
   }
 
   if (native_window_ != 0) {
@@ -480,10 +499,15 @@ GHOST_TSuccess GHOST_ContextEGL::initializeDrawingContext()
     /* Fix transparency issue on: `Wayland + Nouveau/Zink+NVK`. Due to unsupported texture formats
      * drivers can hit transparency code-paths resulting in showing the desktop in viewports.
      *
+     * Skipped when transparency is wanted, client-side-decorations need the compositor to blend
+     * the surface so the window corners can be rounded. Limiting this to CSD windows keeps the
+     * fix in place everywhere it was reported.
+     *
      * See #102994. */
     /* EGL_EXT_present_opaque isn't added to the latest release of epoxy, but is part of the latest
      * EGL https://github.com/KhronosGroup/EGL-Registry/blob/main/api/egl.xml */
-    if (epoxy_has_egl_extension(display_, "EGL_EXT_present_opaque")) {
+    if (!context_params_.use_alpha && epoxy_has_egl_extension(display_, "EGL_EXT_present_opaque"))
+    {
 #  ifndef EGL_PRESENT_OPAQUE_EXT
 #    define EGL_PRESENT_OPAQUE_EXT 0x31DF
 #  endif

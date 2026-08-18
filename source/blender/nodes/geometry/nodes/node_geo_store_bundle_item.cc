@@ -13,6 +13,9 @@
 #include "UI_interface_layout.hh"
 #include "UI_resources.hh"
 
+#include "COM_bundle_item.hh"
+#include "COM_node_operation.hh"
+
 namespace blender::nodes::node_geo_store_bundle_item_cc {
 
 NODE_STORAGE_FUNCS(NodeStoreBundleItem)
@@ -50,6 +53,7 @@ static void node_layout(ui::Layout &layout, bContext * /*C*/, PointerRNA *ptr)
 
 static void node_layout_ex(ui::Layout &layout, bContext * /*C*/, PointerRNA *ptr)
 {
+  layout.prop(ptr, "socket_type", UI_ITEM_NONE, "", ICON_NONE);
   layout.use_property_split_set(true);
   layout.use_property_decorate_set(false);
   layout.prop(ptr, "structure_type", UI_ITEM_NONE, IFACE_("Shape"), ICON_NONE);
@@ -101,6 +105,43 @@ static void node_geo_exec(GeoNodeExecParams params)
   params.set_output("Bundle"_ustr, std::move(bundle_ptr));
 }
 
+using namespace blender::compositor;
+
+class StoreBundleItemOperation : public NodeOperation {
+ public:
+  using NodeOperation::NodeOperation;
+
+  void execute() override
+  {
+    const Result &input_bundle = this->get_input("Bundle");
+    BundlePtr bundle_ptr = input_bundle.get_single_value<nodes::BundlePtr>();
+    Bundle &bundle = bundle_ptr.ensure_mutable_inplace();
+
+    Result &output_bundle = this->get_result("Bundle");
+
+    const std::string path = this->get_input("Path").get_single_value<std::string>();
+    const std::optional<Vector<BundleKey>> split_path = Bundle::split_path(path);
+    if (!split_path.has_value()) {
+      if (!path.empty()) {
+        this->add_warning(NodeWarningType::Warning, "Invalid bundle path");
+      }
+      output_bundle.share_data(input_bundle);
+      return;
+    }
+
+    Result &input_item = this->get_input("Item");
+    bundle.add_path_override(*split_path,
+                             BundleItem::new_bundle_item_value(this->context(), input_item));
+    output_bundle.allocate_single_value();
+    output_bundle.set_single_value(bundle_ptr);
+  }
+};
+
+static NodeOperation *get_compositor_operation(Context &context, const bNode &node)
+{
+  return new StoreBundleItemOperation(context, node);
+}
+
 static void node_rna(StructRNA *srna)
 {
   RNA_def_node_enum(srna,
@@ -131,7 +172,7 @@ static void node_register()
 {
   static bke::bNodeType ntype;
 
-  geo_node_type_base(&ntype, "NodeStoreBundleItem"_ustr);
+  geo_cmp_node_type_base(&ntype, "NodeStoreBundleItem"_ustr);
   ntype.ui_name = "Store Bundle Item";
   ntype.ui_description = "Store a bundle item by path and data type.";
   ntype.nclass = NODE_CLASS_CONVERTER;
@@ -140,6 +181,7 @@ static void node_register()
   ntype.geometry_node_execute = node_geo_exec;
   ntype.draw_buttons = node_layout;
   ntype.draw_buttons_ex = node_layout_ex;
+  ntype.get_compositor_operation = get_compositor_operation;
   bke::node_type_storage(
       ntype, "NodeStoreBundleItem", node_free_standard_storage, node_copy_standard_storage);
   bke::node_register_type(ntype);

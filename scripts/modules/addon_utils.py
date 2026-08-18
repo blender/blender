@@ -61,15 +61,7 @@ def _initialize_once():
 
     _initialize_extensions_repos_once()
 
-    for addon in _preferences.addons:
-        if (module_name := addon.module) in _addons_hidden_core:
-            continue
-        enable(
-            module_name,
-            # Ensured by `_initialize_extensions_repos_once`.
-            refresh_handled=True,
-        )
-
+    # Enable "core" add-ons first as other add-ons may import them, see: #161928.
     for module_name in _addons_hidden_core:
         enable(
             module_name,
@@ -77,6 +69,15 @@ def _initialize_once():
             refresh_handled=True,
             default_set=False,
             persistent=True,
+        )
+
+    for addon in _preferences.addons:
+        if (module_name := addon.module) in _addons_hidden_core:
+            continue
+        enable(
+            module_name,
+            # Ensured by `_initialize_extensions_repos_once`.
+            refresh_handled=True,
         )
 
 

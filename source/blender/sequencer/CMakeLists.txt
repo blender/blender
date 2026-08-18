@@ -9,6 +9,7 @@ set(INC
   ../compositor/algorithms
   ../compositor/cached_resources
   ../compositor/derived_resources
+  ../functions
   ../editors/include
   ../animrig
   ../makesrna
@@ -52,6 +53,8 @@ set(SRC
   intern/cache/final_image_cache.hh
   intern/cache/intra_frame_cache.cc
   intern/cache/intra_frame_cache.hh
+  intern/cache/movie_reader_cache.cc
+  intern/cache/movie_reader_cache.hh
   intern/cache/preview_cache.cc
   intern/cache/source_image_cache.cc
   intern/cache/source_image_cache.hh

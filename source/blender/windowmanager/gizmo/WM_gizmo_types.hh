@@ -309,7 +309,7 @@ struct wmGizmo {
 struct wmGizmoProperty {
   const wmGizmoPropertyType *type = nullptr;
 
-  PointerRNA ptr = PointerRNA_NULL;
+  PointerRNA ptr = {};
   PropertyRNA *prop = nullptr;
   int index = -1;
 
@@ -433,10 +433,6 @@ struct wmGizmoGroupType {
   const char *name;
   /** Optional, see: #wmOwnerID. */
   char owner_id[128];
-
-  /** Optional, used when drawing a group background with `draw_background`. */
-  float4 background_color;
-  float4 outline_color;
 
   /** Poll if gizmo-map should be visible. */
   wmGizmoGroupFnPoll poll;

@@ -359,3 +359,62 @@ source/blender/blenkernel/volume.*                      @LukasTonne
 # Hair Sculpt.
 
 source/blender/editors/sculpt_paint/curves/.*           @LukasTonne
+
+# --------------------------------------------------
+# Animation & Rigging
+
+scripts/addons_core/pose_library/.*                         @dr.sybren
+scripts/addons_core/rigify/.*                               @dr.sybren
+scripts/modules/_animsys_refactor.py                        @dr.sybren
+scripts/modules/_keyingsets_utils.py                        @dr.sybren
+scripts/modules/bpy_extras/anim_utils.py                    @dr.sybren
+source/blender/animrig/.*                                   @dr.sybren
+source/blender/blenkernel/BKE_action.hh                     @dr.sybren
+source/blender/blenkernel/BKE_anim_data.hh                  @dr.sybren
+source/blender/blenkernel/BKE_anim_path.h                   @dr.sybren
+source/blender/blenkernel/BKE_anim_visualization.h          @dr.sybren
+source/blender/blenkernel/BKE_animsys.hh                    @dr.sybren
+source/blender/blenkernel/BKE_armature.hh                   @dr.sybren
+source/blender/blenkernel/BKE_constraint.h                  @dr.sybren
+source/blender/blenkernel/BKE_fcurve.hh                     @dr.sybren
+source/blender/blenkernel/BKE_fcurve_driver.h               @dr.sybren
+source/blender/blenkernel/BKE_key.hh                        @dr.sybren
+source/blender/blenkernel/BKE_nla.hh                        @dr.sybren
+source/blender/blenkernel/BKE_pose.hh                       @dr.sybren
+source/blender/blenkernel/BKE_pose_backup.h                 @dr.sybren
+source/blender/blenkernel/intern/action.cc                  @dr.sybren
+source/blender/blenkernel/intern/action_bones.cc            @dr.sybren
+source/blender/blenkernel/intern/action_mirror.cc           @dr.sybren
+source/blender/blenkernel/intern/anim_data.cc               @dr.sybren
+source/blender/blenkernel/intern/anim_data_bmain_utils.cc   @dr.sybren
+source/blender/blenkernel/intern/anim_data_test.cc          @dr.sybren
+source/blender/blenkernel/intern/anim_path.cc               @dr.sybren
+source/blender/blenkernel/intern/anim_sys.cc                @dr.sybren
+source/blender/blenkernel/intern/anim_visualization.cc      @dr.sybren
+source/blender/blenkernel/intern/armature.cc                @dr.sybren
+source/blender/blenkernel/intern/armature_deform.cc         @dr.sybren
+source/blender/blenkernel/intern/armature_deform_test.cc    @dr.sybren
+source/blender/blenkernel/intern/armature_selection.cc      @dr.sybren
+source/blender/blenkernel/intern/armature_test.cc           @dr.sybren
+source/blender/blenkernel/intern/armature_update.cc         @dr.sybren
+source/blender/blenkernel/intern/constraint.cc              @dr.sybren
+source/blender/blenkernel/intern/fcurve.cc                  @dr.sybren
+source/blender/blenkernel/intern/fcurve_driver.cc           @dr.sybren
+source/blender/blenkernel/intern/fcurve_test.cc             @dr.sybren
+source/blender/blenkernel/intern/fmodifier.cc               @dr.sybren
+source/blender/blenkernel/intern/key.cc                     @dr.sybren
+source/blender/blenkernel/intern/key_test.cc                @dr.sybren
+source/blender/blenkernel/intern/nla.cc                     @dr.sybren
+source/blender/blenkernel/intern/nla_test.cc                @dr.sybren
+source/blender/blenkernel/intern/pose.cc                    @dr.sybren
+source/blender/blenkernel/intern/pose_backup.cc             @dr.sybren
+source/blender/blenkernel/nla_private.h                     @dr.sybren
+source/blender/editors/animation/.*                         @dr.sybren
+source/blender/editors/armature/.*                          @dr.sybren
+source/blender/editors/space_action/.*                      @dr.sybren
+source/blender/editors/space_graph/.*                       @dr.sybren
+source/blender/editors/space_nla/.*                         @dr.sybren
+tests/python/bl_animation.*                                 @dr.sybren
+tests/python/bl_constraints.py                              @dr.sybren
+tests/python/bl_pose_assets.py                              @dr.sybren
+tests/python/bl_rigging_symmetrize.py                       @dr.sybren

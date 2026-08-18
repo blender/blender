@@ -16,6 +16,7 @@
 namespace blender::compositor {
 
 struct Schedule;
+class CompileState;
 
 /* A type representing a contiguous subset of the node execution schedule that will be compiled
  * into a Pixel Operation. */
@@ -66,10 +67,9 @@ using PixelCompileUnit = VectorSet<const bNode *>;
  * the link from node 5 to node 6 is declared as an output to the operation. */
 class PixelOperation : public Operation {
  protected:
-  /* The compile unit that will be compiled into this pixel operation. */
-  PixelCompileUnit compile_unit_;
-  /* A reference to the node execution schedule that is being compiled. */
-  const Schedule &schedule_;
+  /* The compile state which currently contains a pixel compile unit that needs to be compiled into
+   * this pixel operation. */
+  CompileState &compile_state_;
   /* The compute context where this pixel operation is executing. */
   const ComputeContext &compute_context_;
   /* False if node previews are not needed and true otherwise. */
@@ -108,8 +108,7 @@ class PixelOperation : public Operation {
 
  public:
   PixelOperation(Context &context,
-                 PixelCompileUnit &compile_unit,
-                 const Schedule &schedule,
+                 CompileState &compile_state,
                  const ComputeContext &compute_context,
                  const bool is_single_value);
 

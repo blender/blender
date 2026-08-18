@@ -652,6 +652,8 @@ using IMB_blend_func = void (*)(uchar *dst, const uchar *src1, const uchar *src2
 using IMB_blend_func_float = void (*)(float *dst, const float *src1, const float *src2);
 
 void IMB_rectblend(ImBuf *dbuf,
+                   uint8_t *dbuf_byte_data,
+                   float *dbuf_float_data,
                    const ImBuf *obuf,
                    const ImBuf *sbuf,
                    ushort *dmask,
@@ -704,16 +706,15 @@ void IMB_rectblend(ImBuf *dbuf,
     return;
   }
 
-  const bool do_char = (sbuf && sbuf->byte_data() && dbuf->byte_data() && obuf->byte_data());
-  const bool do_float = (sbuf && sbuf->float_data() && dbuf->float_data() && obuf->float_data());
+  const bool do_char = (sbuf && sbuf->byte_data() && dbuf_byte_data && obuf->byte_data());
+  const bool do_float = (sbuf && sbuf->float_data() && dbuf_float_data && obuf->float_data());
 
   if (do_char) {
-    drect = reinterpret_cast<uint *>(dbuf->byte_data_for_write()) + size_t(desty) * dbuf->x +
-            destx;
+    drect = reinterpret_cast<uint *>(dbuf_byte_data) + size_t(desty) * dbuf->x + destx;
     orect = reinterpret_cast<const uint *>(obuf->byte_data()) + size_t(origy) * obuf->x + origx;
   }
   if (do_float) {
-    drectf = dbuf->float_data_for_write() + (size_t(desty) * dbuf->x + destx) * 4;
+    drectf = dbuf_float_data + (size_t(desty) * dbuf->x + destx) * 4;
     orectf = obuf->float_data() + (size_t(origy) * obuf->x + origx) * 4;
   }
 
@@ -1135,8 +1136,18 @@ void IMB_rectblend_threaded(ImBuf *dbuf,
                             IMB_BlendMode mode,
                             bool accumulate)
 {
+  if (dbuf == nullptr || obuf == nullptr) {
+    return;
+  }
+
+  /* Acquire mutable data pointers outside of parallel loop. */
+  uint8_t *dbuf_byte_data = dbuf->byte_data_for_write();
+  float *dbuf_float_data = dbuf->float_data_for_write();
+
   threading::parallel_for(IndexRange(height), 16, [&](const IndexRange y_range) {
     IMB_rectblend(dbuf,
+                  dbuf_byte_data,
+                  dbuf_float_data,
                   obuf,
                   sbuf,
                   dmask,

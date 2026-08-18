@@ -11,6 +11,8 @@
 
 #include "NOD_rna_define.hh"
 
+#include "RNA_enum_types.hh"
+
 #include "UI_interface_layout.hh"
 #include "UI_resources.hh"
 
@@ -19,23 +21,8 @@ namespace blender::nodes::node_geo_merge_layers_cc {
 NODE_STORAGE_FUNCS(NodeGeometryMergeLayers);
 
 enum class MergeLayerMode {
-  ByName = 0,
-  ByID = 1,
-};
-
-static const EnumPropertyItem mode_items[] = {
-    {int(MergeLayerMode::ByName),
-     "MERGE_BY_NAME",
-     0,
-     "By Name",
-     "Combine all layers which have the same name"},
-    {int(MergeLayerMode::ByID),
-     "MERGE_BY_ID",
-     0,
-     "By Group ID",
-     "Provide a custom group ID for each layer and all layers with the same ID will be merged "
-     "into one"},
-    {0, nullptr, 0, nullptr, nullptr},
+  ByName = GEO_NODE_MERGE_LAYERS_BY_NAME,
+  ByID = GEO_NODE_MERGE_LAYERS_BY_ID,
 };
 
 static void node_declare(NodeDeclarationBuilder &b)
@@ -52,7 +39,9 @@ static void node_declare(NodeDeclarationBuilder &b)
       .default_value(true)
       .hide_value()
       .evaluated_geometry_field();
-  b.add_input<decl::Menu>("Mode"_ustr).static_items(mode_items).optional_label();
+  b.add_input<decl::Menu>("Mode"_ustr)
+      .static_items(rna_enum_node_grease_pencil_merge_mode_items)
+      .optional_label();
   b.add_input<decl::Int>("Group ID"_ustr)
       .hide_value()
       .evaluated_geometry_field()
@@ -161,18 +150,6 @@ static void node_geo_exec(GeoNodeExecParams params)
   });
 
   params.set_output("Grease Pencil"_ustr, std::move(main_geometry));
-}
-
-static void node_rna(StructRNA *srna)
-{
-  RNA_def_node_enum(srna,
-                    "mode",
-                    "Mode",
-                    "Determines how to choose which layers are merged",
-                    mode_items,
-                    NOD_storage_enum_accessors(mode),
-                    int(MergeLayerMode::ByName),
-                    nullptr);
 }
 
 static void node_register()

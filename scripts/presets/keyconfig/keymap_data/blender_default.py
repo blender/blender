@@ -1301,6 +1301,12 @@ def km_property_editor(_params):
         ("sequencer.strip_modifier_duplicate", {"type": 'D', "value": 'PRESS', "shift": True}, None),
         ("sequencer.add_strip_modifier_menu", {"type": 'A', "value": 'PRESS', "shift": True}, None),
         ("sequencer.strip_modifier_set_active", {"type": 'LEFTMOUSE', "value": 'PRESS'}, None),
+        # Scene Compositor Effects
+        ("scene.set_active_compositor_effect", {"type": 'LEFTMOUSE', "value": 'PRESS'}, None),
+        ("scene.remove_compositor_effect", {"type": 'X', "value": 'PRESS'}, None),
+        ("scene.remove_compositor_effect", {"type": 'DEL', "value": 'PRESS'}, None),
+        ("scene.duplicate_compositor_effect", {"type": 'D', "value": 'PRESS', "shift": True}, None),
+        ("scene.add_compositor_effect_menu", {"type": 'A', "value": 'PRESS', "shift": True}, None),
     ])
 
     return keymap
@@ -1432,6 +1438,8 @@ def km_outliner(params):
         ("outliner.collection_exclude_set", {"type": 'E', "value": 'PRESS'}, None),
         ("outliner.collection_exclude_clear", {"type": 'E', "value": 'PRESS', "alt": True}, None),
         ("outliner.hide", {"type": 'H', "value": 'PRESS'}, None),
+        ("outliner.hide", {"type": 'H', "value": 'PRESS', "shift": True},
+         {"properties": [("unselected", True)]}),
         ("outliner.unhide_all", {"type": 'H', "value": 'PRESS', "alt": True}, None),
         ("outliner.start_filter", {"type": 'F', "value": 'PRESS', "ctrl": True}, None),
         ("outliner.clear_filter", {"type": 'F', "value": 'PRESS', "alt": True}, None),
@@ -4820,12 +4828,12 @@ def radial_control_properties(
         "properties": [
             ("data_path_primary", "{:s}.{:s}".format(brush_path, prop)),
             ("data_path_secondary", "{:s}.{:s}".format(unified_path, prop) if secondary_prop else ""),
-            ("use_secondary", "{:s}.{:s}".format(unified_path, secondary_prop) if secondary_prop else ""),
+            ("use_secondary", "{:s}.{:s}".format(brush_path, secondary_prop) if secondary_prop else ""),
             ("rotation_path", "{:s}.{:s}".format(brush_path, rotation)),
             ("color_path", "{:s}.cursor_color_add".format(brush_path)),
             ("fill_color_path", "{:s}.color".format(brush_path) if color else ""),
             ("fill_color_override_path", "{:s}.color".format(unified_path) if color else ""),
-            ("fill_color_override_test_path", "{:s}.use_unified_color".format(unified_path) if color else ""),
+            ("fill_color_override_test_path", "{:s}.use_unified_color".format(brush_path) if color else ""),
             ("zoom_path", "space_data.zoom" if zoom else ""),
             ("image_id", brush_path),
             ("secondary_tex", secondary_rotation),

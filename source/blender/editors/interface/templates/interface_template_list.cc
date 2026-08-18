@@ -373,13 +373,13 @@ static bool template_uilist_data_retrieve(const StringRef listtype_name,
     return false;
   }
 
-  if (!active_dataptr->data) {
+  if (!*active_dataptr) {
     RNA_warning("No active data");
     return false;
   }
 
   r_input_data->dataptr = *dataptr;
-  if (dataptr->data) {
+  if (*dataptr) {
     r_input_data->prop = RNA_struct_find_property(dataptr, propname.c_str());
     if (!r_input_data->prop) {
       RNA_warning(
@@ -496,7 +496,7 @@ static void template_uilist_collect_display_items(const bContext *C,
   uiListDyn *dyn_data = ui_list->dyn_data;
 
   /* Filter list items! (not for compact layout, though) */
-  if (input_data->dataptr.data && input_data->prop) {
+  if (input_data->dataptr && input_data->prop) {
     int items_shown;
 #if 0
     int prev_ii = -1, prev_i;
@@ -600,7 +600,7 @@ static void uilist_resize_update(bContext *C, uiList *ui_list)
 
 static void *uilist_item_use_dynamic_tooltip(PointerRNA *itemptr, const char *propname)
 {
-  if (propname && propname[0] && itemptr && itemptr->data) {
+  if (propname && propname[0] && itemptr && *itemptr) {
     PropertyRNA *prop = RNA_struct_find_property(itemptr, propname);
 
     if (prop && (RNA_property_type(prop) == PROP_STRING)) {
@@ -697,7 +697,7 @@ static void template_uilist_layout_draw(const bContext *C,
   Block *block = layout.block();
 
   /* get icon */
-  if (input_data->dataptr.data && input_data->prop) {
+  if (input_data->dataptr && input_data->prop) {
     StructRNA *ptype = RNA_property_pointer_type(&input_data->dataptr, input_data->prop);
     rnaicon = RNA_struct_ui_icon(ptype);
   }
@@ -716,7 +716,7 @@ static void template_uilist_layout_draw(const bContext *C,
       uilist_prepare(ui_list, items, &adjusted_layout_data, &visual_info);
 
       int i = 0;
-      if (input_data->dataptr.data && input_data->prop) {
+      if (input_data->dataptr && input_data->prop) {
 
         const bool editable = (RNA_property_flag(input_data->prop) & PROP_EDITABLE);
 
@@ -818,7 +818,7 @@ static void template_uilist_layout_draw(const bContext *C,
     case UILST_LAYOUT_COMPACT:
       row = &layout.row(true);
 
-      if ((input_data->dataptr.data && input_data->prop) && (dyn_data->items_shown > 0) &&
+      if ((input_data->dataptr && input_data->prop) && (dyn_data->items_shown > 0) &&
           (items->active_item_idx >= 0) && (items->active_item_idx < dyn_data->items_shown))
       {
         PointerRNA *itemptr = &items->item_vec[items->active_item_idx].item;

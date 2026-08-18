@@ -124,7 +124,7 @@ static wmOperatorStatus sculpt_mask_init_exec(bContext *C, wmOperator *op)
   SculptSession &ss = *ob.runtime->sculpt_session;
   Depsgraph &depsgraph = *CTX_data_ensure_evaluated_depsgraph(C);
 
-  BKE_sculpt_update_object_for_edit(&depsgraph, &ob, false);
+  BKE_sculptsession_update_for_edit(&depsgraph, &ob, false);
 
   bke::pbvh::Tree &pbvh = *bke::object::pbvh_get(ob);
   IndexMaskMemory memory;

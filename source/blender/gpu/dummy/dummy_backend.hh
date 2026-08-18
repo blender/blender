@@ -51,6 +51,10 @@ class DummyBackend : public GPUBackend {
   {
     return nullptr;
   }
+  WorkInFlight *work_in_flight_alloc(unsigned int /*max_in_flight*/) override
+  {
+    return nullptr;
+  }
   FrameBuffer *framebuffer_alloc(const char *name) override
   {
     return new DummyFrameBuffer(name);

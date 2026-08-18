@@ -92,11 +92,7 @@ static void extract_barycentric_pixels(Vector<BuildPixelRow> &build_rows,
                                        const uv_islands::UVIslandsMask::Tile &mask_tile,
                                        const int uv_island_index,
                                        const int uv_primitive_index,
-                                       const float2 uvs[3],
-                                       const int minx,
-                                       const int miny,
-                                       const int maxx,
-                                       const int maxy)
+                                       const float2 uvs[3])
 {
   const float inv_w = 1.0f / image_buffer->x;
   const float inv_h = 1.0f / image_buffer->y;
@@ -106,11 +102,11 @@ static void extract_barycentric_pixels(Vector<BuildPixelRow> &build_rows,
   const float mask_scale_x = mask_resolution_x * inv_w;
   const float mask_scale_y = mask_resolution_y * inv_h;
 
-  const float2 image_dimensions(image_buffer->x, image_buffer->y);
-  const TriRasterizer rasterizer(
-      uvs[0] * image_dimensions, uvs[1] * image_dimensions, uvs[2] * image_dimensions);
+  const int2 image_size(image_buffer->x, image_buffer->y);
+  const TriRasterizer rasterizer(uvs[0], uvs[1], uvs[2], image_size);
+  const Bounds<int2> bounds = rasterizer.bounds;
 
-  for (int y = miny; y < maxy; y++) {
+  for (int y = bounds.min.y; y < bounds.max.y; y++) {
     bool start_detected = false;
     BuildPixelRow pixel_row;
     pixel_row.uv_primitive_index = uv_primitive_index;
@@ -120,7 +116,7 @@ static void extract_barycentric_pixels(Vector<BuildPixelRow> &build_rows,
     const float fy = float(y) + 0.5f;
     const int mask_y = std::clamp(int(fy * mask_scale_y), 0, mask_resolution_y - 1);
 
-    for (x = minx; x < maxx; x++) {
+    for (x = bounds.min.x; x < bounds.max.x; x++) {
       const float fx = float(x) + 0.5f;
 
       /* The mask UV is always in range, since loop pixels are inside the clamped bounding box. */
@@ -342,32 +338,10 @@ static void do_encode_pixels(const uv_islands::MeshData &mesh_data,
                   tri_uvs[1] - tile_offset,
                   tri_uvs[2] - tile_offset,
               };
-              const float minv = clamp_f(std::min({uvs[0].y, uvs[1].y, uvs[2].y}), 0.0f, 1.0f);
-              const int miny = floor(minv * image_buffer->y);
-              const float maxv = clamp_f(std::max({uvs[0].y, uvs[1].y, uvs[2].y}), 0.0f, 1.0f);
-              const int maxy = min_ii(ceil(maxv * image_buffer->y), image_buffer->y);
-              const float minu = clamp_f(std::min({uvs[0].x, uvs[1].x, uvs[2].x}), 0.0f, 1.0f);
-              const int minx = floor(minu * image_buffer->x);
-              const float maxu = clamp_f(std::max({uvs[0].x, uvs[1].x, uvs[2].x}), 0.0f, 1.0f);
-              const int maxx = min_ii(ceil(maxu * image_buffer->x), image_buffer->x);
-
-              /* Skip primitives that don't overlap this tile. */
-              if (minx >= maxx || miny >= maxy) {
-                return;
-              }
-
               const int uv_prim_index = tri_indices.size();
               const int64_t build_rows_num = build_rows.size();
-              extract_barycentric_pixels(build_rows,
-                                         image_buffer,
-                                         *mask_tile,
-                                         island_index,
-                                         uv_prim_index,
-                                         uvs,
-                                         minx,
-                                         miny,
-                                         maxx,
-                                         maxy);
+              extract_barycentric_pixels(
+                  build_rows, image_buffer, *mask_tile, island_index, uv_prim_index, uvs);
 
               /* Don't append primitive if no pixels were written to this tile. */
               if (build_rows.size() == build_rows_num) {

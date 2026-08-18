@@ -56,7 +56,7 @@ static int Stroke_init(BPy_Stroke *self, PyObject *args, PyObject *kwds)
                                    kwds,
                                    "|"  /* Optional arguments. */
                                    "O!" /* `brother` */
-                                   ":Stroke",
+                                   ":__init__",
                                    (char **)kwlist,
                                    &Stroke_Type,
                                    &brother))

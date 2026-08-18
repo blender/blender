@@ -6,6 +6,7 @@
  * \ingroup imbuf
  */
 
+#include "BLI_utility_mixins.hh"
 #include "IMB_colormanagement.hh"
 #include "IMB_colormanagement_intern.hh"
 
@@ -122,14 +123,24 @@ float3x3 global_scene_linear_to_xyz_default = float3x3::zero();
  */
 static pthread_mutex_t processor_lock = BLI_MUTEX_INITIALIZER;
 
-static struct GlobalGPUState {
+static struct GlobalGPUState : NonCopyable {
   GlobalGPUState() = default;
 
   ~GlobalGPUState()
   {
+    reset();
+  }
+
+  void reset()
+  {
+    gpu_shader_bound = false;
     if (curve_mapping) {
       BKE_curvemapping_free(curve_mapping);
+      curve_mapping = nullptr;
     }
+    orig_curve_mapping = nullptr;
+    use_curve_mapping = false;
+    curve_mapping_timestamp = 0;
   }
 
   /* GPU shader currently bound. */
@@ -348,7 +359,7 @@ void colormanagement_init()
 
 void colormanagement_exit()
 {
-  global_gpu_state = GlobalGPUState();
+  global_gpu_state.reset();
   global_color_picking_state = GlobalColorPickingState();
 
   colormanage_free_config();

@@ -174,6 +174,64 @@ class TestMeshAttributeConvert(MeshObjectTest):
         self.assertTrue(self.mesh.uv_layers.active.name == "UVA")
 
 
+class TestMeshSkinVertices(MeshObjectTest):
+    def test_no_skin_data_by_default(self):
+        self.assertEqual(len(self.mesh.skin_vertices), 0)
+
+    def test_add_and_clear_skin_data(self):
+        bpy.ops.mesh.customdata_skin_add()
+        self.assertEqual(len(self.mesh.skin_vertices), 1)
+        skin_layer = self.mesh.skin_vertices[0]
+        self.assertEqual(skin_layer.name, "skin_modifier_radius")
+        self.assertEqual(len(skin_layer.data), len(self.mesh.vertices))
+
+        bpy.ops.mesh.customdata_skin_clear()
+        self.assertEqual(len(self.mesh.skin_vertices), 0)
+
+    def test_skin_vertex_radius(self):
+        bpy.ops.mesh.customdata_skin_add()
+        skin_layer = self.mesh.skin_vertices[0]
+
+        # Newly added skin data defaults to a radius of 0.25 on both axes.
+        vert = skin_layer.data[0]
+        self.assertAlmostEqual(vert.radius[0], 0.25)
+        self.assertAlmostEqual(vert.radius[1], 0.25)
+
+        vert.radius = (0.5, 0.75)
+        self.assertAlmostEqual(skin_layer.data[0].radius[0], 0.5)
+        self.assertAlmostEqual(skin_layer.data[0].radius[1], 0.75)
+
+    def test_skin_vert_root_and_loose(self):
+        bpy.ops.mesh.customdata_skin_add()
+        skin_layer = self.mesh.skin_vertices[0]
+
+        # An arbitrary vertex (the first) is marked as root by default, the rest are not,
+        # and no vertex is loose by default.
+        self.assertTrue(skin_layer.data[0].use_root)
+        self.assertFalse(skin_layer.data[1].use_root)
+        self.assertFalse(skin_layer.data[0].use_loose)
+
+        skin_layer.data[1].use_root = True
+        self.assertTrue(skin_layer.data[1].use_root)
+        skin_layer.data[1].use_root = False
+        self.assertFalse(skin_layer.data[1].use_root)
+
+        skin_layer.data[2].use_loose = True
+        self.assertTrue(skin_layer.data[2].use_loose)
+        skin_layer.data[2].use_loose = False
+        self.assertFalse(skin_layer.data[2].use_loose)
+
+    def test_skin_vertices_ignores_unrelated_float2_point_attribute(self):
+        # skin_vertices is identified by name, not just by domain and type, so an unrelated
+        # float2 point attribute should not be treated as skin data.
+        self.mesh.attributes.new("my_custom_data", 'FLOAT2', 'POINT')
+        self.assertEqual(len(self.mesh.skin_vertices), 0)
+
+        bpy.ops.mesh.customdata_skin_add()
+        self.assertEqual(len(self.mesh.skin_vertices), 1)
+        self.assertEqual(self.mesh.skin_vertices[0].name, "skin_modifier_radius")
+
+
 if __name__ == '__main__':
     import sys
     sys.argv = [__file__] + (sys.argv[sys.argv.index("--") + 1:] if "--" in sys.argv else [])

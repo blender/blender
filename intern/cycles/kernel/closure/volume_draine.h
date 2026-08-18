@@ -26,7 +26,7 @@ ccl_device int volume_draine_setup(ccl_private DraineVolume *volume)
   /* clamp anisotropy */
   volume->g = signf(volume->g) * min(fabsf(volume->g), 1.0f - 1e-3f);
 
-  return SD_SCATTER;
+  return SR_SCATTER;
 }
 
 ccl_device Spectrum volume_draine_eval(const ccl_private ShaderData *sd,

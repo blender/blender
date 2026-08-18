@@ -470,7 +470,7 @@ static PointerRNA rna_Curve_bevelObject_get(PointerRNA *ptr)
     return RNA_id_pointer_create(reinterpret_cast<ID *>(ob));
   }
 
-  return PointerRNA_NULL;
+  return {};
 }
 
 static void rna_Curve_bevelObject_set(PointerRNA *ptr, PointerRNA value, ReportList * /*reports*/)
@@ -543,7 +543,7 @@ static PointerRNA rna_Curve_taperObject_get(PointerRNA *ptr)
     return RNA_id_pointer_create(reinterpret_cast<ID *>(ob));
   }
 
-  return PointerRNA_NULL;
+  return {};
 }
 
 static void rna_Curve_taperObject_set(PointerRNA *ptr, PointerRNA value, ReportList * /*reports*/)
@@ -789,7 +789,7 @@ static PointerRNA rna_Curve_active_spline_get(PointerRNA *ptr)
     return RNA_pointer_create_with_parent(*ptr, RNA_Spline, nu);
   }
 
-  return PointerRNA_NULL;
+  return {};
 }
 
 static void rna_Curve_active_spline_set(PointerRNA *ptr,

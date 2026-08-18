@@ -379,23 +379,24 @@ struct VKGraphicsPipelineCreateInfoBuilder {
   void build_rasterization_state(const VKGraphicsInfo::Shaders &shaders_info,
                                  const VKExtensions &extensions)
   {
-    vk_pipeline_rasterization_provoking_vertex_state_info = {};
-    vk_pipeline_rasterization_provoking_vertex_state_info.sType =
-        VK_STRUCTURE_TYPE_PIPELINE_RASTERIZATION_PROVOKING_VERTEX_STATE_CREATE_INFO_EXT;
-    vk_pipeline_rasterization_provoking_vertex_state_info.provokingVertexMode =
-        VK_PROVOKING_VERTEX_MODE_LAST_VERTEX_EXT;
-    vk_pipeline_rasterization_provoking_vertex_state_info.provokingVertexMode =
-        shaders_info.state.provoking_vert == GPU_VERTEX_LAST ?
-            VK_PROVOKING_VERTEX_MODE_LAST_VERTEX_EXT :
-            VK_PROVOKING_VERTEX_MODE_FIRST_VERTEX_EXT;
-
     vk_pipeline_rasterization_state_create_info = {};
     vk_pipeline_rasterization_state_create_info.sType =
         VK_STRUCTURE_TYPE_PIPELINE_RASTERIZATION_STATE_CREATE_INFO;
     vk_pipeline_rasterization_state_create_info.lineWidth = 1.0f;
     vk_pipeline_rasterization_state_create_info.frontFace = VK_FRONT_FACE_COUNTER_CLOCKWISE;
-    vk_pipeline_rasterization_state_create_info.pNext =
-        &vk_pipeline_rasterization_provoking_vertex_state_info;
+
+    if (extensions.provoking_vertex) {
+      vk_pipeline_rasterization_provoking_vertex_state_info = {};
+      vk_pipeline_rasterization_provoking_vertex_state_info.sType =
+          VK_STRUCTURE_TYPE_PIPELINE_RASTERIZATION_PROVOKING_VERTEX_STATE_CREATE_INFO_EXT;
+      vk_pipeline_rasterization_provoking_vertex_state_info.provokingVertexMode =
+          shaders_info.state.provoking_vert == GPU_VERTEX_LAST ?
+              VK_PROVOKING_VERTEX_MODE_LAST_VERTEX_EXT :
+              VK_PROVOKING_VERTEX_MODE_FIRST_VERTEX_EXT;
+
+      vk_pipeline_rasterization_state_create_info.pNext =
+          &vk_pipeline_rasterization_provoking_vertex_state_info;
+    }
 
     vk_pipeline_rasterization_state_create_info.cullMode = to_vk_cull_mode_flags(
         static_cast<GPUFaceCullTest>(shaders_info.state.culling_test));

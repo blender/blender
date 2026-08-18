@@ -73,7 +73,7 @@ struct ButtonItem;
   if (ot == nullptr) { \
     item_disabled(this, _opname); \
     RNA_warning_bare("%s: '%s' unknown operator", _caller_fn_name, _opname); \
-    return PointerRNA_NULL; \
+    return {}; \
   } \
   (void)0
 
@@ -1341,7 +1341,7 @@ void context_active_but_prop_get_filebrowser(const bContext *C,
 
   for (Block &block : region->runtime->uiblocks) {
     for (Button &but : block.buttons()) {
-      if (but.rnapoin.data) {
+      if (but.rnapoin) {
         if (RNA_property_type(but.rnaprop) == PROP_STRING) {
           prevbut = &but;
         }
@@ -2764,7 +2764,7 @@ void button_configure_search(Button *but,
     }
     else {
       /* Rely on `has_search_fn`. */
-      coll_search->search_ptr = PointerRNA_NULL;
+      coll_search->search_ptr = {};
       coll_search->search_prop = nullptr;
       coll_search->item_search_prop = nullptr;
     }
@@ -3295,7 +3295,15 @@ static Button *uiItem_simple(Layout *layout,
     icon = ICON_BLANK1;
   }
 
-  const int w = text_icon_width_ex(layout, name, icon, text_pad_none, UI_FSTYLE_WIDGET);
+  /* When drawing text over an emboss background (like for a normal push button), the widget needs
+   * to be slightly wider than just the text, since the text will get some horizontal padding
+   * inside the background box when drawing. Otherwise drawing would truncate the text to fit.
+   * This is not the most thorough check, but should work well enough and can be expanded as
+   * needed. */
+  const bool has_emboss = but_type != ButtonType::Label &&
+                          layout->emboss() == ui::EmbossType::Emboss;
+  const int w = text_icon_width_ex(
+      layout, name, icon, has_emboss ? text_pad_default : text_pad_none, UI_FSTYLE_WIDGET);
   Button *but;
   if (icon && !name.is_empty()) {
     but = uiDefIconTextBut(block, but_type, icon, name, 0, 0, w, UI_UNIT_Y, nullptr, tooltip);
@@ -3386,6 +3394,9 @@ void Layout::label_multiline(StringRefNull text, int icon, FontStyleAlign align,
   label->text_align = align;
   label->is_multiline = true;
   label->max_lines = max_lines;
+  if (this->red_alert()) {
+    button_flag_enable(button, BUT_REDALERT);
+  }
 }
 
 void Layout::link(const StringRef url, const StringRef name, int icon)
@@ -3508,7 +3519,7 @@ void uiItemLDrag(Layout *layout, PointerRNA *ptr, StringRef name, int icon)
 {
   Button *but = uiItem_simple(layout, name, icon);
 
-  if (ptr && ptr->type) {
+  if (ptr && ptr->has_type()) {
     if (RNA_struct_is_ID(ptr->type)) {
       button_drag_set_id(but, ptr->owner_id);
     }
@@ -3745,7 +3756,7 @@ PointerRNA Layout::op_menu_enum(const bContext *C,
   /* Use the menu button as owner for the operator properties, which will then be passed to the
    * individual menu items. */
   but->opptr = MEM_new<PointerRNA>("uiButOpPtr", WM_operator_properties_create_ptr(ot));
-  BLI_assert(but->opptr->data == nullptr);
+  BLI_assert(!*but->opptr);
   WM_operator_properties_alloc(
       &but->opptr, reinterpret_cast<IDProperty **>(&but->opptr->data), ot->idname);
 
@@ -3773,7 +3784,7 @@ PointerRNA Layout::op_menu_enum(const bContext *C,
   if (!ot->srna) {
     item_disabled(this, opname.c_str());
     RNA_warning_bare("UILayout.operator_menu_enum(): operator missing srna '%s'", opname.c_str());
-    return PointerRNA_NULL;
+    return {};
   }
 
   return this->op_menu_enum(C, ot, propname, name, icon);
@@ -5752,8 +5763,11 @@ void Layout::resolve_dynamic_height()
 
   /* For simplicity a column is a grid of n rows and 1 columns, and a row is a grid of 1 rows and n
    * columns. */
-  const LayoutDirection direction = this->type() == ItemType::LayoutRoot ? this->root_->direction :
-                                                                           this->local_direction();
+  const LayoutDirection direction = this->type() == ItemType::LayoutRoot ?
+                                        this->root_->direction :
+                                    this->type() == ItemType::LayoutSplit ?
+                                        LayoutDirection::Horizontal :
+                                        this->local_direction();
   int rows = direction == LayoutDirection::Vertical ? this->items().size() : 1;
   int cols = direction == LayoutDirection::Horizontal ? this->items().size() : 1;
   bool row_major = direction == LayoutDirection::Vertical;
@@ -6195,7 +6209,7 @@ void Layout::context_set_from_but(const Button *but)
     this->context_ptr_set("button_operator", but->opptr);
   }
 
-  if (but->rnapoin.data && but->rnaprop) {
+  if (but->rnapoin && but->rnaprop) {
     /* TODO: index could be supported as well */
     PointerRNA ptr_prop = RNA_pointer_create_discrete(nullptr, RNA_Property, but->rnaprop);
     this->context_ptr_set("button_prop", &ptr_prop);

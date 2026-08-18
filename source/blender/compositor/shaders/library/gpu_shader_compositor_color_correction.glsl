@@ -31,9 +31,9 @@ void node_composite_color_correction(float4 color,
                                      float shadows_offset,
                                      float start_midtones,
                                      float end_midtones,
-                                     float apply_on_red,
-                                     float apply_on_green,
-                                     float apply_on_blue,
+                                     bool apply_on_red,
+                                     bool apply_on_green,
+                                     bool apply_on_blue,
                                      const float3 luminance_coefficients,
                                      float4 &result)
 {
@@ -95,7 +95,6 @@ void node_composite_color_correction(float4 color,
   corrected = fallback_pow(corrected, inverse_gamma, corrected);
   corrected = mix(color.rgb, corrected, min(mask, 1.0f));
 
-  float3 enabled_channels = float3(apply_on_red, apply_on_green, apply_on_blue);
-  result.rgb = mix(corrected, color.rgb, equal(enabled_channels, float3(0.0f)));
+  result.rgb = mix(color.rgb, corrected, bool3(apply_on_red, apply_on_green, apply_on_blue));
   result.a = color.a;
 }

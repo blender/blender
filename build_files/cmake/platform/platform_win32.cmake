@@ -584,6 +584,8 @@ if(WITH_PYTHON)
   set(PYTHON_LIBRARY_DEBUG ${LIBDIR}/python/${_PYTHON_VERSION_NO_DOTS}/libs/python${_PYTHON_VERSION_NO_DOTS}_d.lib)
 
   set(PYTHON_INCLUDE_DIR ${LIBDIR}/python/${_PYTHON_VERSION_NO_DOTS}/include)
+  # Needed to locate bundled modules, see `find_python_module_file`.
+  set(PYTHON_LIBPATH ${LIBDIR}/python/${_PYTHON_VERSION_NO_DOTS}/lib)
   set(PYTHON_NUMPY_INCLUDE_DIRS ${LIBDIR}/python/${_PYTHON_VERSION_NO_DOTS}/lib/site-packages/numpy/_core/include)
   set(NUMPY_FOUND ON)
   # uncached vars
@@ -852,7 +854,7 @@ if(WITH_CYCLES AND WITH_CYCLES_OSL)
   find_package(OSL REQUIRED CONFIG)
 endif()
 
-if(WITH_CYCLES AND WITH_CYCLES_EMBREE)
+if(WITH_EMBREE)
   windows_find_package(Embree)
   if(NOT Embree_FOUND)
     set(EMBREE_ROOT_DIR ${LIBDIR}/embree)
@@ -1124,7 +1126,7 @@ endif()
 set(ZSTD_INCLUDE_DIRS ${LIBDIR}/zstd/include)
 set(ZSTD_LIBRARIES ${LIBDIR}/zstd/lib/zstd_static.lib)
 
-if(WITH_CYCLES AND (WITH_CYCLES_DEVICE_ONEAPI OR (WITH_CYCLES_EMBREE AND EMBREE_SYCL_SUPPORT)))
+if((WITH_EMBREE AND EMBREE_SYCL_SUPPORT) OR (WITH_CYCLES AND WITH_CYCLES_DEVICE_ONEAPI))
   set(LEVEL_ZERO_ROOT_DIR ${LIBDIR}/level_zero)
   set(CYCLES_SYCL ${LIBDIR}/dpcpp CACHE PATH "Path to oneAPI DPC++ compiler")
   mark_as_advanced(CYCLES_SYCL)

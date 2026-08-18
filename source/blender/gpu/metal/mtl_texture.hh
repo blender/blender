@@ -239,7 +239,6 @@ class MTLTexture : public Texture {
    * If this mode is used, source_texture points to a gpu::Texture from which
    * we pull their texture handle as a root.
    */
-  const gpu::Texture *source_texture_ = nullptr;
 
   enum TextureViewDirtyState {
     TEXTURE_VIEW_NOT_DIRTY = 0,
@@ -252,9 +251,6 @@ class MTLTexture : public Texture {
   bool mip_range_dirty_ = false;
 
   bool texture_view_stencil_ = false;
-  int mip_texture_base_level_ = 0;
-  int mip_texture_max_level_ = 1000;
-  int mip_texture_base_layer_ = 0;
   int texture_view_dirty_flags_ = TEXTURE_VIEW_NOT_DIRTY;
 
   /* Max mip-maps for currently allocated texture resource. */
@@ -295,7 +291,6 @@ class MTLTexture : public Texture {
   void copy_to(Texture *dst, IndexRange mip_levels) override;
   void clear(const double4 data) override;
   void swizzle_set(const char swizzle_mask[4]) override;
-  void mip_range_set(int min, int max) override;
   void read(int mip, eGPUDataFormat type, void *data) override;
 
   bool is_format_srgb();
@@ -336,10 +331,7 @@ class MTLTexture : public Texture {
  protected:
   bool init_internal() override;
   bool init_internal(VertBuf *vbo) override;
-  bool init_internal(gpu::Texture *src,
-                     int mip_offset,
-                     int layer_offset,
-                     bool use_stencil) override; /* Texture View */
+  bool init_internal(gpu::Texture *src, bool use_stencil) override; /* Texture View */
 
  private:
   /* Common Constructor, default initialization. */
@@ -354,6 +346,8 @@ class MTLTexture : public Texture {
 
   /* Delete associated Metal GPU resources. */
   void reset();
+
+  void mip_range_set(int min, int max);
   void ensure_mipmaps(int miplvl);
 
   /* Flags a given mip level as being used. */

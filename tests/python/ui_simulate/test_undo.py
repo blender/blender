@@ -85,6 +85,26 @@ def _bmesh_from_object(ob):
     return bmesh.from_edit_mesh(ob.data)
 
 
+def _bounds_from_coords(coords):
+    """
+    Return the min/max bounds of coordinates.
+    """
+    return (
+        tuple(min(co[axis] for co in coords) for axis in range(3)),
+        tuple(max(co[axis] for co in coords) for axis in range(3)),
+    )
+
+
+def _object_bounds(ob):
+    """
+    Return an object's min/max bounds in local space.
+    """
+    if ob.type == 'MESH' and ob.mode == 'EDIT':
+        # The bounding box isn't isn't reliably updated until leaving edit-mode.
+        return _bounds_from_coords([v.co for v in _bmesh_from_object(ob).verts])
+    return _bounds_from_coords(ob.bound_box)
+
+
 # -----------------------------------------------------------------------------
 # Text Editor
 
@@ -258,6 +278,49 @@ def _view3d_startup_area_single(e):
     assert len(e.window.screen.areas) == 1
 
 
+def view3d_mesh_edit_shape_key():
+    """Test drawing the final shape-key BMesh wrapper in Edit Mode and basic undo/redo."""
+    e, t, window = ui.test_window()
+    yield e.shift.f5()                  # 3D Viewport.
+    yield e.ctrl.alt.space()            # Full-screen.
+
+    def assert_state(mode, key_count, x_bounds):
+        cube = window.view_layer.objects.active
+        t.assertEqual(cube.name, "Cube")
+        t.assertEqual(cube.mode, mode)
+        shape_keys = cube.data.shape_keys
+        t.assertEqual(0 if shape_keys is None else len(shape_keys.key_blocks), key_count)
+        t.assertEqual(
+            (min(co[0] for co in cube.bound_box), max(co[0] for co in cube.bound_box)),
+            x_bounds,
+        )
+
+    assert_state('OBJECT', 0, (-1.0, 1.0))
+
+    yield from ui.call_operator(e, "Add Shape Key")  # Basis.
+    yield from ui.call_operator(e, "Add Shape Key")  # Key 1.
+
+    yield e.tab()                       # Edit mode.
+    assert_state('EDIT', 2, (-1.0, 1.0))
+    yield                               # Draw the evaluated BMesh wrapper.
+    yield e.a()                         # Select all.
+    yield e.g().x().two().ret()         # Translate the active shape key.
+    yield e.tab()                       # Object mode.
+    assert_state('OBJECT', 2, (1.0, 3.0))
+    yield from ui.call_operator(e, "Apply to Basis Key")
+
+    yield e.tab()                       # Edit mode.
+    yield                               # Draw the final evaluated BMesh wrapper.
+    assert_state('EDIT', 1, (1.0, 3.0))
+
+    yield e.ctrl.z(8)                   # Undo to the initial state.
+    assert_state('OBJECT', 0, (-1.0, 1.0))
+
+    yield e.ctrl.shift.z(8)             # Redo to the final state.
+    yield                               # Redraw after restoring Edit Mode.
+    assert_state('EDIT', 1, (1.0, 3.0))
+
+
 def view3d_simple():
     e, t, window = ui.test_window()
     yield from _view3d_startup_area_maximized(e)
@@ -294,6 +357,18 @@ def view3d_simple():
     yield e.ctrl.shift.z(12)            # Redo until end.
     t.assertEqual(len(window.view_layer.objects.active.data.polygons), 16)
 
+# Utility to extract current mesh coordinates (used to ensure undo/redo steps are applied properly).
+
+
+def _extract_mesh_positions(window):
+    # TODO: Find/add a way to get that info when there is a multires active in Sculpt mode.
+    window.view_layer.update()
+    tmp_mesh = window.view_layer.objects.active.to_mesh(preserve_all_data_layers=True)
+    tmp_cos = [0.0] * len(tmp_mesh.vertices) * 3
+    tmp_mesh.vertices.foreach_get("co", tmp_cos)
+    window.view_layer.objects.active.to_mesh_clear()
+    return tmp_cos
+
 
 def view3d_sculpt_with_memfile_step():
     e, t, window = ui.test_window()
@@ -316,49 +391,39 @@ def view3d_sculpt_with_memfile_step():
     # available from python anymore while in sculpt mode, so we cannot test/check if undo/redo steps apply properly.
     # yield e.ctrl.two()                  # Add multires modifier.
 
-    # Utility to extract current mesh coordinates (used to ensure undo/redo steps are applied properly).
-    def extract_mesh_cos(window):
-        # TODO: Find/add a way to get that info when there is a multires active in Sculpt mode.
-        window.view_layer.update()
-        tmp_mesh = window.view_layer.objects.active.to_mesh(preserve_all_data_layers=True)
-        tmp_cos = [0.0] * len(tmp_mesh.vertices) * 3
-        tmp_mesh.vertices.foreach_get("co", tmp_cos)
-        window.view_layer.objects.active.to_mesh_clear()
-        return tmp_cos
-
-    mesh_verts_cos_before_sculpt = extract_mesh_cos(window)
+    mesh_verts_cos_before_sculpt = _extract_mesh_positions(window)
 
     # Add a first sculpt stroke.
     yield from e.leftmouse.cursor_motion(ui.cursor_motion_data_x(window))
-    mesh_verts_cos_sculpt_stroke1 = extract_mesh_cos(window)
+    mesh_verts_cos_sculpt_stroke1 = _extract_mesh_positions(window)
     t.assertNotEqual(mesh_verts_cos_before_sculpt, mesh_verts_cos_sculpt_stroke1)
 
     # Add a second sculpt stroke.
     yield from e.leftmouse.cursor_motion(ui.cursor_motion_data_y(window))
-    mesh_verts_cos_sculpt_stroke2 = extract_mesh_cos(window)
+    mesh_verts_cos_sculpt_stroke2 = _extract_mesh_positions(window)
     t.assertNotEqual(mesh_verts_cos_sculpt_stroke1, mesh_verts_cos_sculpt_stroke2)
 
     # Undo to first sculpt stroke.
     yield e.ctrl.z()
-    mesh_verts_cos = extract_mesh_cos(window)
+    mesh_verts_cos = _extract_mesh_positions(window)
     t.assertEqual(mesh_verts_cos, mesh_verts_cos_sculpt_stroke1)
 
     # Undo to memfile step (add constraint), fine here (T82532),
     # but would fail if we had added a Multires modifier instead (T82851).
     yield e.ctrl.z()
-    mesh_verts_cos = extract_mesh_cos(window)
+    mesh_verts_cos = _extract_mesh_positions(window)
     t.assertEqual(mesh_verts_cos, mesh_verts_cos_before_sculpt)
 
     # Redo first sculpt stroke, would now be undone (in Multires case, T82851),
     # or not redone (in constraint case, T82532).
     yield e.ctrl.shift.z()
-    mesh_verts_cos = extract_mesh_cos(window)
+    mesh_verts_cos = _extract_mesh_positions(window)
     t.assertEqual(mesh_verts_cos, mesh_verts_cos_sculpt_stroke1)
 
     # Redo second sculpt stroke, would redo properly,
     # as well as part of the first one that affects the same nodes (T82851, T82532).
     yield e.ctrl.shift.z()
-    mesh_verts_cos = extract_mesh_cos(window)
+    mesh_verts_cos = _extract_mesh_positions(window)
     t.assertEqual(mesh_verts_cos, mesh_verts_cos_sculpt_stroke2)
 
 
@@ -419,28 +484,18 @@ def view3d_sculpt_trim():
     yield from ui.call_operator(e, "Remove UV Map")
     yield e.ctrl.tab().s()              # Sculpt via pie menu.
 
-    # Utility to extract current mesh coordinates (used to ensure undo/redo steps are applied properly).
-    def extract_mesh_positions(window):
-        # TODO: Find/add a way to get that info when there is a multires active in Sculpt mode.
-        window.view_layer.update()
-        tmp_mesh = window.view_layer.objects.active.to_mesh(preserve_all_data_layers=True)
-        tmp_cos = [0.0] * len(tmp_mesh.vertices) * 3
-        tmp_mesh.vertices.foreach_get("co", tmp_cos)
-        window.view_layer.objects.active.to_mesh_clear()
-        return tmp_cos
-
-    beginning_positions = extract_mesh_positions(window)
+    beginning_positions = _extract_mesh_positions(window)
     yield from ui.call_operator(e, "Box Trim")
     yield from e.leftmouse.cursor_motion(ui.cursor_motion_data_xy(window))  # Perform the trim
-    after_trim_positions = extract_mesh_positions(window)
+    after_trim_positions = _extract_mesh_positions(window)
     t.assertNotEqual(beginning_positions, after_trim_positions)
 
     yield e.ctrl.z()                                                        # Undo Trim
-    after_undo_positions = extract_mesh_positions(window)
+    after_undo_positions = _extract_mesh_positions(window)
     t.assertEqual(beginning_positions, after_undo_positions)
 
     yield e.ctrl.shift.z()                                                  # Redo Trim
-    after_redo_positions = extract_mesh_positions(window)
+    after_redo_positions = _extract_mesh_positions(window)
     t.assertEqual(after_trim_positions, after_redo_positions)
 
 
@@ -453,48 +508,55 @@ def view3d_sculpt_dyntopo_stroke_toggle():
     yield from ui.call_operator(e, "Remove UV Map")
     yield e.ctrl.tab().s()              # Sculpt via pie menu.
 
-    # Utility to extract current mesh coordinates (used to ensure undo/redo steps are applied properly).
-    def extract_mesh_positions(window):
-        # TODO: Find/add a way to get that info when there is a multires active in Sculpt mode.
-        window.view_layer.update()
-        tmp_mesh = window.view_layer.objects.active.to_mesh(preserve_all_data_layers=True)
-        tmp_cos = [0.0] * len(tmp_mesh.vertices) * 3
-        tmp_mesh.vertices.foreach_get("co", tmp_cos)
-        window.view_layer.objects.active.to_mesh_clear()
-        return tmp_cos
-
-    original_positions = extract_mesh_positions(window)
+    original_positions = _extract_mesh_positions(window)
     yield from ui.call_operator(e, "Dynamic Topology")  # On
 
     yield from e.leftmouse.cursor_motion(ui.cursor_motion_data_x(window))
 
     yield from ui.call_operator(e, "Dynamic Topology")  # Off
-    after_toggle_off = extract_mesh_positions(window)
+    after_toggle_off = _extract_mesh_positions(window)
     t.assertNotEqual(original_positions, after_toggle_off)
 
     yield from e.leftmouse.cursor_motion(ui.cursor_motion_data_y(window))
-    after_normal_stroke = extract_mesh_positions(window)
+    after_normal_stroke = _extract_mesh_positions(window)
     t.assertNotEqual(after_toggle_off, after_normal_stroke)
 
     yield e.ctrl.z()                          # Undo Stroke
-    after_first_undo = extract_mesh_positions(window)
+    after_first_undo = _extract_mesh_positions(window)
     t.assertEqual(after_first_undo, after_toggle_off)
 
     yield e.ctrl.z()                          # Undo Toggle Off
     yield e.ctrl.z()                          # Undo Dyntopo Stroke
     yield e.ctrl.z()                          # Undo Toggle On
-    after_full_undo = extract_mesh_positions(window)
+    after_full_undo = _extract_mesh_positions(window)
     t.assertEqual(after_full_undo, original_positions)
 
     yield e.ctrl.shift.z()                    # Redo Toggle On
     yield e.ctrl.shift.z()                    # Redo Dyntopo Stroke
     yield e.ctrl.shift.z()                    # Redo Toggle Off
-    after_toggle_off_redo = extract_mesh_positions(window)
+    after_toggle_off_redo = _extract_mesh_positions(window)
     t.assertEqual(after_toggle_off_redo, after_toggle_off)
 
     yield e.ctrl.shift.z()                    # Redo Normal Stroke
-    after_normal_stroke_redo = extract_mesh_positions(window)
+    after_normal_stroke_redo = _extract_mesh_positions(window)
     t.assertEqual(after_normal_stroke, after_normal_stroke_redo)
+
+
+def view3d_sculpt_with_empty_memfile_step():
+    e, t, window = ui.test_window()
+    yield from _view3d_startup_area_maximized(e)
+    yield from ui.call_menu(e, "Add -> Mesh -> Torus")
+    yield e.ctrl.tab().s()              # Sculpt via pie menu.
+
+    original_positions = _extract_mesh_positions(window)
+
+    yield e.ctrl.one()                  # Add and set multires level 1
+    yield e.ctrl.one()                  # Effective no-op that creates undo step
+    # Previously, this would crash due to improper `SculptSession` management, see #152087
+    yield e.ctrl.z()
+
+    after_undo_positions = _extract_mesh_positions(window)
+    t.assertEqual(original_positions, after_undo_positions)
 
 
 def view3d_texture_paint_simple():
@@ -638,6 +700,71 @@ def view3d_particle_edit_undo_from_texture_paint():
     assert_particle_edit_valid()
 
 
+def view3d_mesh_edit_mode_object_mix():
+    """
+    Ensure global (MEMFILE) undo data is properly stored in mesh edit-mode.
+    """
+    import bpy
+    e, t, window = ui.test_window()
+    yield from _view3d_startup_area_maximized(e)
+
+    def state_get():
+        # Re-read the objects, 'memfile' undo steps re-allocate ID's.
+        objects = window.view_layer.objects
+        return (
+            bpy.context.mode,
+            tuple(objects["Camera"].location),
+            _object_bounds(objects["Cube"]),
+        )
+
+    def state_check(state_prev, state_curr, camera_changed):
+        # Only the camera or the mesh may change, never both.
+        (_, camera_prev, bounds_prev) = state_prev
+        (mode_curr, camera_curr, bounds_curr) = state_curr
+        t.assertEqual(mode_curr, 'EDIT_MESH')
+        if camera_changed:
+            t.assertNotEqual(camera_curr, camera_prev)
+            t.assertEqual(bounds_curr, bounds_prev)
+        else:
+            t.assertEqual(camera_curr, camera_prev)
+            t.assertNotEqual(bounds_curr, bounds_prev)
+
+    yield from ui.call_menu(e, "Add -> Camera")
+    yield from ui.call_menu(e, "Add -> Mesh -> Cube")
+    yield e.numpad_period()             # View all.
+
+    # NOTE: framing the camera uses evaluated geometry,
+    # there is a bug in Blender currently that this is skipped for edit-mode geometry.
+    # Adding the simple deform modifier works around this bug.
+    yield from ui.call_menu(e, "Modifiers -> Add Modifier -> Deform -> Simple Deform")
+    t.assertEqual([mod.type for mod in window.view_layer.objects["Cube"].modifiers], ['SIMPLE_DEFORM'])
+
+    yield e.tab()                       # Edit mode.
+
+    steps = [state_get()]
+    t.assertEqual(steps[0][0], 'EDIT_MESH')
+
+    for _ in range(3):
+        yield e.g().z().text("1").ret()  # Edit-mesh change.
+        steps.append(state_get())
+        state_check(steps[-2], steps[-1], camera_changed=False)
+
+        # Object-mode change.
+        yield from ui.call_menu(e, "View -> Align View -> Align Active Camera to Selected")
+        steps.append(state_get())
+        state_check(steps[-2], steps[-1], camera_changed=True)
+
+    # Undo each step, checking the recorded state.
+    for i in reversed(range(len(steps) - 1)):
+        yield e.ctrl.z()
+        t.assertEqual(state_get(), steps[i])
+
+    # Redo each step.
+    for i in range(1, len(steps)):
+        yield e.ctrl.shift.z()
+        t.assertEqual(state_get(), steps[i])
+
+
 def view3d_mesh_edit_separate():
     e, t, window = ui.test_window()
     yield from _view3d_startup_area_maximized(e)
@@ -693,6 +820,65 @@ def view3d_mesh_particle_edit_mode_simple():
     yield e.ctrl.z(7)
     t.assertEqual(window.view_layer.objects.active.mode, 'OBJECT')
     yield e.shift.ctrl.z(7)
+
+
+def view3d_font_edit_mode_object_mix():
+    """
+    Ensure global (MEMFILE) undo data is properly stored for 3D text in edit-mode.
+    """
+    import bpy
+    e, t, window = ui.test_window()
+    yield from _view3d_startup_area_maximized(e)
+
+    def state_get():
+        objects = window.view_layer.objects
+        return (
+            bpy.context.mode,
+            tuple(objects["Camera"].location),
+            _object_bounds(objects["Text"]),
+        )
+
+    def state_check(state_prev, state_curr, camera_changed):
+        # Only the camera or the text may change, never both.
+        (_, camera_prev, bounds_prev) = state_prev
+        (mode_curr, camera_curr, bounds_curr) = state_curr
+        t.assertEqual(mode_curr, 'EDIT_TEXT')
+        if camera_changed:
+            t.assertNotEqual(camera_curr, camera_prev)
+            t.assertEqual(bounds_curr, bounds_prev)
+        else:
+            t.assertEqual(camera_curr, camera_prev)
+            t.assertNotEqual(bounds_curr, bounds_prev)
+
+    yield from ui.call_menu(e, "Add -> Camera")
+    yield from ui.call_menu(e, "Add -> Text")
+    yield e.numpad_period()             # View all.
+
+    yield e.tab()                       # Edit mode.
+
+    steps = [state_get()]
+    t.assertEqual(steps[0][0], 'EDIT_TEXT')
+
+    for chars in ("AB", "CD", "EF"):
+        for ch in chars:
+            yield e.text(ch)            # Text change, each character is its own undo step.
+            steps.append(state_get())
+            state_check(steps[-2], steps[-1], camera_changed=False)
+
+        # Object-mode change.
+        yield from ui.call_menu(e, "View -> Align View -> Align Active Camera to Selected")
+        steps.append(state_get())
+        state_check(steps[-2], steps[-1], camera_changed=True)
+
+    # Undo each step, checking the recorded state.
+    for i in reversed(range(len(steps) - 1)):
+        yield e.ctrl.z()
+        t.assertEqual(state_get(), steps[i])
+
+    # Redo each step.
+    for i in range(1, len(steps)):
+        yield e.ctrl.shift.z()
+        t.assertEqual(state_get(), steps[i])
 
 
 def view3d_font_edit_mode_simple():

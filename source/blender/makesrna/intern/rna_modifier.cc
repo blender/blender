@@ -1873,7 +1873,7 @@ static PointerRNA rna_ParticleInstanceModifier_particle_system_get(PointerRNA *p
   ParticleSystem *psys;
 
   if (!psmd->ob) {
-    return PointerRNA_NULL;
+    return {};
   }
 
   psys = static_cast<ParticleSystem *>(BLI_findlink(&psmd->ob->particlesystem, psmd->psys - 1));
@@ -1967,7 +1967,7 @@ static PointerRNA rna_NodesModifierProperties_get(PointerRNA *ptr)
 {
   auto *nmd = ptr->data_as<NodesModifierData>();
   if (!nmd->node_group) {
-    return PointerRNA_NULL;
+    return {};
   }
   return RNA_pointer_create_with_parent(*ptr, RNA_NodesModifierProperties, nmd);
 }
@@ -1983,8 +1983,8 @@ static nodes::eval_log::NodeTreeLog *get_nodes_modifier_log(const Object &object
   return &nmd.runtime->eval_log->get_tree_log(modifier_context.hash());
 }
 
-static Span<nodes::eval_log::NodeWarning> get_node_modifier_warnings(const Object &object,
-                                                                     NodesModifierData &nmd)
+static Span<nodes::NodeWarning> get_node_modifier_warnings(const Object &object,
+                                                           NodesModifierData &nmd)
 {
   if (auto *log = get_nodes_modifier_log(object, nmd)) {
     log->ensure_node_warnings(nmd);
@@ -2028,19 +2028,19 @@ static int rna_NodesModifier_node_warnings_length(PointerRNA *ptr)
 
 static void rna_NodesModifierWarning_message_get(PointerRNA *ptr, char *r_value)
 {
-  const auto *warning = static_cast<const nodes::eval_log::NodeWarning *>(ptr->data);
+  const auto *warning = static_cast<const nodes::NodeWarning *>(ptr->data);
   strcpy(r_value, warning->message.c_str());
 }
 
 static int rna_NodesModifierWarning_message_length(PointerRNA *ptr)
 {
-  const auto *warning = static_cast<const nodes::eval_log::NodeWarning *>(ptr->data);
+  const auto *warning = static_cast<const nodes::NodeWarning *>(ptr->data);
   return warning->message.size();
 }
 
 static int rna_NodesModifierWarning_type_get(PointerRNA *ptr)
 {
-  const auto *warning = static_cast<const nodes::eval_log::NodeWarning *>(ptr->data);
+  const auto *warning = static_cast<const nodes::NodeWarning *>(ptr->data);
   return int(warning->type);
 }
 
@@ -2130,12 +2130,12 @@ static PointerRNA rna_NodesModifierBake_node_get(PointerRNA *ptr)
   const NodesModifierBake *bake = static_cast<NodesModifierBake *>(ptr->data);
   const NodesModifierData *nmd = find_nodes_modifier_by_bake(*ob, *bake);
   if (!nmd->node_group) {
-    return PointerRNA_NULL;
+    return {};
   }
   const bNodeTree *tree;
   const bNode *node = nmd->node_group->find_nested_node(bake->id, &tree);
   if (!node) {
-    return PointerRNA_NULL;
+    return {};
   }
   BLI_assert(tree != nullptr);
   return RNA_pointer_create_discrete(

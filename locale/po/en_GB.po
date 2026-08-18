@@ -1,9 +1,9 @@
 
 msgid ""
 msgstr ""
-"Project-Id-Version: Blender 5.3.0 Alpha (b'96294be75080')\n"
+"Project-Id-Version: Blender 5.3.0 Alpha (b'af4852ed4560')\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-07-20 07:29+0000\n"
+"POT-Creation-Date: 2026-08-10 07:54+0000\n"
 "PO-Revision-Date: 2026-02-16 18:12+0000\n"
 "Last-Translator: Deniz Jones <sdfoakes@gmail.com>\n"
 "Language-Team: English (United Kingdom) <https://translate.blender.org/projects/blender-ui/ui/en_GB/>\n"
@@ -3452,10 +3452,6 @@ msgid "Point cloud data-blocks"
 msgstr "Point cloud data-blocks"
 
 
-msgid "Project"
-msgstr "Project"
-
-
 msgid "Scene data-blocks"
 msgstr "Scene data-blocks"
 
@@ -5189,18 +5185,6 @@ msgstr "Add Selection Set"
 
 msgid "Add Selection Set for this collection"
 msgstr "Add Selection Set for this collection"
-
-
-msgid "UI Row"
-msgstr "UI Row"
-
-
-msgid "If not zero, row of the UI panel where the button for this collection is shown"
-msgstr "If not zero, row of the UI panel where the button for this collection is shown"
-
-
-msgid "UI Title"
-msgstr "UI Title"
 
 
 msgid "Text to use on the UI panel button instead of the collection name"
@@ -9981,6 +9965,10 @@ msgstr "Nearest Surface Point"
 
 msgid "Shrink the location to the nearest target surface"
 msgstr "Shrink the location to the nearest target surface"
+
+
+msgid "Project"
+msgstr "Project"
 
 
 msgid "Shrink the location to the nearest target surface along a given axis"
@@ -18766,136 +18754,24 @@ msgid "Run this script after generation to apply user-specific changes"
 msgstr "Run this script after generation to apply user-specific changes"
 
 
-msgid "Overwrite Widget Meshes"
-msgstr "Overwrite Widget Meshes"
-
-
-msgid "Forces Rigify to delete and rebuild all of the rig widget objects. By default, already existing widgets are reused as-is to facilitate manual editing"
-msgstr "Forces Rigify to delete and rebuild all of the rig widget objects. By default, already existing widgets are reused as-is to facilitate manual editing"
-
-
 msgid "Mirror Widgets"
 msgstr "Mirror Widgets"
-
-
-msgid "Make widgets for left and right side bones linked duplicates with negative X scale for the right side, based on bone name symmetry"
-msgstr "Make widgets for left and right side bones linked duplicates with negative X scale for the right side, based on bone name symmetry"
 
 
 msgid "Rigify Rig Name"
 msgstr "Rigify Rig Name"
 
 
-msgid "Optional. If specified, this name will be used for the newly generated rig, widget collection and script. Otherwise, a name is generated based on the name of the metarig object by replacing 'metarig' with 'rig', 'META' with 'RIG', or prefixing with 'RIG-'. When updating an already generated rig its name is never changed"
-msgstr "Optional. If specified, this name will be used for the newly generated rig, widget collection and script. Otherwise, a name is generated based on the name of the metarig object by replacing 'metarig' with 'rig', 'META' with 'RIG', or prefixing with 'RIG-'. When updating an already generated rig its name is never changed"
-
-
 msgid "Rigify Target Rig UI"
 msgstr "Rigify Target Rig UI"
-
-
-msgid "Defines the UI to overwrite. If unset, a new one will be created and named based on the name of the rig"
-msgstr "Defines the UI to overwrite. If unset, a new one will be created and named based on the name of the rig"
 
 
 msgid "Rigify Target Rig"
 msgstr "Rigify Target Rig"
 
 
-msgid "Defines which rig to overwrite. If unset, a new one will be created with name based on the Rig Name option or the name of the metarig"
-msgstr "Defines which rig to overwrite. If unset, a new one will be created with name based on the Rig Name option or the name of the metarig"
-
-
 msgid "Theme"
 msgstr "Theme"
-
-
-msgid "THEME01"
-msgstr "THEME01"
-
-
-msgid "THEME02"
-msgstr "THEME02"
-
-
-msgid "THEME03"
-msgstr "THEME03"
-
-
-msgid "THEME04"
-msgstr "THEME04"
-
-
-msgid "THEME05"
-msgstr "THEME05"
-
-
-msgid "THEME06"
-msgstr "THEME06"
-
-
-msgid "THEME07"
-msgstr "THEME07"
-
-
-msgid "THEME08"
-msgstr "THEME08"
-
-
-msgid "THEME09"
-msgstr "THEME09"
-
-
-msgid "THEME10"
-msgstr "THEME10"
-
-
-msgid "THEME11"
-msgstr "THEME11"
-
-
-msgid "THEME12"
-msgstr "THEME12"
-
-
-msgid "THEME13"
-msgstr "THEME13"
-
-
-msgid "THEME14"
-msgstr "THEME14"
-
-
-msgid "THEME15"
-msgstr "THEME15"
-
-
-msgid "THEME16"
-msgstr "THEME16"
-
-
-msgid "THEME17"
-msgstr "THEME17"
-
-
-msgid "THEME18"
-msgstr "THEME18"
-
-
-msgid "THEME19"
-msgstr "THEME19"
-
-
-msgid "THEME20"
-msgstr "THEME20"
-
-
-msgid "Widgets Collection"
-msgstr "Widgets Collection"
-
-
-msgid "Defines which collection to place widget objects in. If unset, a new one will be created based on the name of the rig"
-msgstr "Defines which collection to place widget objects in. If unset, a new one will be created based on the name of the rig"
 
 
 msgid "Display Axes"
@@ -20689,14 +20565,6 @@ msgid "Use pressure to modulate hardness"
 msgstr "Use pressure to modulate hardness"
 
 
-msgid "Inverse Smooth Pressure"
-msgstr "Inverse Smooth Pressure"
-
-
-msgid "Lighter pressure causes more smoothing to be applied"
-msgstr "Lighter pressure causes more smoothing to be applied"
-
-
 msgid "Size Unit"
 msgstr "Size Unit"
 
@@ -22462,10 +22330,6 @@ msgstr "Selection Domain"
 
 msgid "Mesh object that the curves can be attached to"
 msgstr "Mesh object that the curves can be attached to"
-
-
-msgid "Collision distance"
-msgstr "Collision distance"
 
 
 msgid "Distance to keep the curves away from the surface"
@@ -34906,16 +34770,12 @@ msgid "Editor menu containing buttons"
 msgstr "Editor menu containing buttons"
 
 
-msgid "Apply"
-msgstr "Apply"
+msgid "Names"
+msgstr "Names"
 
 
-msgid "Track"
-msgstr "Track"
-
-
-msgid "Quick Effects"
-msgstr "Quick Effects"
+msgid "Bone Roll"
+msgstr "Bone Roll"
 
 
 msgid "Show/Hide"
@@ -34926,164 +34786,32 @@ msgid "Clean Up"
 msgstr "Clean Up"
 
 
-msgid "Asset"
-msgstr "Asset"
+msgid "Adjust"
+msgstr "Adjust"
 
 
-msgid "Make Single User"
-msgstr "Make Single User"
+msgid "Keying"
+msgstr "Keying"
 
 
-msgid "Convert"
-msgstr "Convert"
-
-
-msgid "Link/Transfer Data"
-msgstr "Link/Transfer Data"
-
-
-msgid "Hooks"
-msgstr "Hooks"
-
-
-msgid "Vertex Group Locks"
-msgstr "Vertex Group Locks"
-
-
-msgid "Trim/Add"
-msgstr "Trim/Add"
-
-
-msgid "Sculpt Set Pivot"
-msgstr "Sculpt Set Pivot"
-
-
-msgid "Face Sets Init"
-msgstr "Face Sets Init"
-
-
-msgid "Random Mask"
-msgstr "Random Mask"
-
-
-msgid "Math"
-msgstr "Maths"
-
-
-msgid "Clear Transform"
-msgstr "Clear Transform"
+msgid "Tracking"
+msgstr "Tracking"
 
 
 msgid "Utilities"
 msgstr "Utilities"
 
 
-msgid "In-Betweens"
-msgstr "In-Betweens"
-
-
-msgid "Propagate"
-msgstr "Propagate"
-
-
-msgid "Bone Collections"
-msgstr "Bone Collections"
-
-
-msgid "Names"
-msgstr "Names"
-
-
-msgid "Toggle Bone Options"
-msgstr "Toggle Bone Options"
-
-
-msgid "Enable Bone Options"
-msgstr "Enable Bone Options"
-
-
-msgid "Disable Bone Options"
-msgstr "Disable Bone Options"
-
-
-msgid "Mesh Select Mode"
-msgstr "Mesh Select Mode"
-
-
-msgid "Face Data"
-msgstr "Face Data"
-
-
-msgid "Read"
-msgstr "Read"
-
-
-msgid "Sample"
-msgstr "Sample"
-
-
-msgid "Select by Face Strength"
-msgstr "Select by Face Strength"
-
-
-msgid "Write"
-msgstr "Write"
-
-
-msgid "Set Face Strength"
-msgstr "Set Face Strength"
-
-
-msgid "Primitives"
-msgstr "Primitives"
-
-
-msgid "Merge"
-msgstr "Merge"
-
-
-msgid "Gizmo"
-msgstr "Gizmo"
-
-
-msgid "Render Preview"
-msgstr "Render Preview"
-
-
-msgid "Instances"
-msgstr "Instances"
-
-
-msgid "Special Characters"
-msgstr "Special Characters"
-
-
-msgid "Kerning"
-msgstr "Kerning"
-
-
-msgid "Metaball"
-msgstr "Metaball"
-
-
-msgid "Import"
-msgstr "Import"
-
-
-msgid "Bone Roll"
-msgstr "Bone Roll"
-
-
-msgid "Deprecated"
-msgstr "Deprecated"
-
-
-msgid "UV"
-msgstr "UV"
+msgid "Math"
+msgstr "Maths"
 
 
 msgid "Pivot Point"
 msgstr "Pivot Point"
+
+
+msgid "Creative"
+msgstr "Creative"
 
 
 msgid "Snap"
@@ -35104,6 +34832,10 @@ msgstr "Automasking"
 
 msgid "Face Sets Edit"
 msgstr "Face Sets Edit"
+
+
+msgid "Vertex Group Locks"
+msgstr "Vertex Group Locks"
 
 
 msgid "Mirror"
@@ -35150,14 +34882,6 @@ msgid "Select All by Trait"
 msgstr "Select All by Trait"
 
 
-msgid "Linked"
-msgstr "Linked"
-
-
-msgid "Layout"
-msgstr "Layout"
-
-
 msgid "Select Linked"
 msgstr "Select Linked"
 
@@ -35170,16 +34894,24 @@ msgid "Assign Material"
 msgstr "Assign Material"
 
 
-msgid "Adjust"
-msgstr "Adjust"
+msgid "Read"
+msgstr "Read"
 
 
-msgid "Keying"
-msgstr "Keying"
+msgid "Sample"
+msgstr "Sample"
 
 
-msgid "Tracking"
-msgstr "Tracking"
+msgid "Write"
+msgstr "Write"
+
+
+msgid "Primitives"
+msgstr "Primitives"
+
+
+msgid "Metaball"
+msgstr "Metaball"
 
 
 msgid "Light"
@@ -35190,20 +34922,152 @@ msgid "Light Probe"
 msgstr "Light Probe"
 
 
-msgid "Creative"
-msgstr "Creative"
-
-
 msgid "Add Image"
 msgstr "Add Image"
+
+
+msgid "Gizmo"
+msgstr "Gizmo"
 
 
 msgid "Relations"
 msgstr "Relations"
 
 
+msgid "Instances"
+msgstr "Instances"
+
+
+msgid "Render Preview"
+msgstr "Render Preview"
+
+
 msgid "Rigid Body"
 msgstr "Rigid Body"
+
+
+msgid "Apply"
+msgstr "Apply"
+
+
+msgid "Import"
+msgstr "Import"
+
+
+msgid "Track"
+msgstr "Track"
+
+
+msgid "Quick Effects"
+msgstr "Quick Effects"
+
+
+msgid "Asset"
+msgstr "Asset"
+
+
+msgid "Deprecated"
+msgstr "Deprecated"
+
+
+msgid "Make Single User"
+msgstr "Make Single User"
+
+
+msgid "Convert"
+msgstr "Convert"
+
+
+msgid "Link/Transfer Data"
+msgstr "Link/Transfer Data"
+
+
+msgid "Hooks"
+msgstr "Hooks"
+
+
+msgid "UV"
+msgstr "UV"
+
+
+msgid "Trim/Add"
+msgstr "Trim/Add"
+
+
+msgid "Sculpt Set Pivot"
+msgstr "Sculpt Set Pivot"
+
+
+msgid "Face Sets Init"
+msgstr "Face Sets Init"
+
+
+msgid "Random Mask"
+msgstr "Random Mask"
+
+
+msgid "Clear Transform"
+msgstr "Clear Transform"
+
+
+msgid "In-Betweens"
+msgstr "In-Betweens"
+
+
+msgid "Propagate"
+msgstr "Propagate"
+
+
+msgid "Bone Collections"
+msgstr "Bone Collections"
+
+
+msgid "Toggle Bone Options"
+msgstr "Toggle Bone Options"
+
+
+msgid "Enable Bone Options"
+msgstr "Enable Bone Options"
+
+
+msgid "Disable Bone Options"
+msgstr "Disable Bone Options"
+
+
+msgid "Mesh Select Mode"
+msgstr "Mesh Select Mode"
+
+
+msgid "Face Data"
+msgstr "Face Data"
+
+
+msgid "Select by Face Strength"
+msgstr "Select by Face Strength"
+
+
+msgid "Set Face Strength"
+msgstr "Set Face Strength"
+
+
+msgid "Merge"
+msgstr "Merge"
+
+
+msgid "Linked"
+msgstr "Linked"
+
+
+msgid "Special Characters"
+msgstr "Special Characters"
+
+
+msgid "Layout"
+msgstr "Layout"
+
+
+msgid "Kerning"
+msgstr "Kerning"
 
 
 msgid "Keyframe Insert Pie"
@@ -48822,6 +48686,10 @@ msgid "Set the Grease Pencil depth order to use"
 msgstr "Set the Grease Pencil depth order to use"
 
 
+msgid "Depth Order"
+msgstr "Depth Order"
+
+
 msgid "Set Grease Pencil Softness"
 msgstr "Set Grease Pencil Softness"
 
@@ -51907,6 +51775,10 @@ msgid "Collection of main items"
 msgstr "Collection of main items"
 
 
+msgid "Scalar"
+msgstr "Scalar"
+
+
 msgid "Collection of repeat items"
 msgstr "Collection of repeat items"
 
@@ -53066,16 +52938,6 @@ msgstr "Make Collection Active"
 
 
 msgctxt "Operator"
-msgid "Move Between UI Rows"
-msgstr "Move Between UI Rows"
-
-
-msgctxt "Operator"
-msgid "Rigify Add Color Set"
-msgstr "Rigify Add Colour Set"
-
-
-msgctxt "Operator"
 msgid "Rigify Add Color Set from Theme"
 msgstr "Rigify Add Colour Set from Theme"
 
@@ -53115,11 +52977,6 @@ msgstr "Upgrades the metarig from bone layers to bone collections"
 msgctxt "Operator"
 msgid "Rigify Upgrade Metarig Layers"
 msgstr "Rigify Upgrade Metarig Layers"
-
-
-msgctxt "Operator"
-msgid "Rigify Get active/select colors from current theme"
-msgstr "Rigify Get active/select colours from current theme"
 
 
 msgid "Validates references from rig component settings to bone collections"
@@ -56047,15 +55904,6 @@ msgstr "Generated"
 
 
 msgctxt "Operator"
-msgid "Make Markers Local"
-msgstr "Make Markers Local"
-
-
-msgid "Move selected scene markers to the active Action as local 'pose' markers"
-msgstr "Move selected scene markers to the active Action as local 'pose' markers"
-
-
-msgctxt "Operator"
 msgid "Mirror Keys"
 msgstr "Mirror Keys"
 
@@ -57702,14 +57550,6 @@ msgid "Upgrade the metarig from bone layers to bone collections"
 msgstr "Upgrade the metarig from bone layers to bone collections"
 
 
-msgid ""
-"Validate references from rig component settings to bone collections.\n"
-"Always run this both before and after joining two metarig armature objects into one to avoid glitches"
-msgstr ""
-"Validate references from rig component settings to bone collections.\n"
-"Always run this both before and after joining two metarig armature objects into one to avoid glitches"
-
-
 msgctxt "Operator"
 msgid "Clear Roll"
 msgstr "Clear Roll"
@@ -58348,10 +58188,6 @@ msgstr "Scale Sculpt/Paint Brush Size"
 
 msgid "Change brush size by a scalar"
 msgstr "Change brush size by a scalar"
-
-
-msgid "Scalar"
-msgstr "Scalar"
 
 
 msgid "Factor to scale brush size by"
@@ -74192,15 +74028,6 @@ msgid "Select all objects which block light from this emitter"
 msgstr "Select all objects which block light from this emitter"
 
 
-msgctxt "Operator"
-msgid "Link Receivers to Emitter"
-msgstr "Link Receivers to Emitter"
-
-
-msgid "Light link selected receivers to the active emitter object"
-msgstr "Light link selected receivers to the active emitter object"
-
-
 msgid "State of the light linking"
 msgstr "State of the light linking"
 
@@ -78150,10 +77977,6 @@ msgstr "Invert the visibility of all vertices"
 msgctxt "Operator"
 msgid "Weight from Bones"
 msgstr "Weight from Bones"
-
-
-msgid "Set the weights of the groups matching the attached armature's selected bones, using the distance between the vertices and the bones"
-msgstr "Set the weights of the groups matching the attached armature's selected bones, using the distance between the vertices and the bones"
 
 
 msgid "Method to use for assigning weights"
@@ -91173,14 +90996,6 @@ msgid "glTF Animations"
 msgstr "glTF Animations"
 
 
-msgid "VR"
-msgstr "VR"
-
-
-msgid "VR Info"
-msgstr "VR Info"
-
-
 msgid "Active Tool"
 msgstr "Active Tool"
 
@@ -91291,6 +91106,14 @@ msgstr "Curves Grow/Shrink Scaling"
 
 msgid "Viewport Debug"
 msgstr "Viewport Debug"
+
+
+msgid "VR"
+msgstr "VR"
+
+
+msgid "VR Info"
+msgstr "VR Info"
 
 
 msgid "glTF Variants"
@@ -92257,12 +92080,16 @@ msgid "Find & Replace"
 msgstr "Find & Replace"
 
 
-msgid "Auto Keyframing"
-msgstr "Auto Keyframing"
+msgid "Auto Keying"
+msgstr "Auto Keying"
 
 
 msgid "Time Jump"
 msgstr "Time Jump"
+
+
+msgid "Keyframing"
+msgstr "Keyframing"
 
 
 msgid "Playback"
@@ -96445,10 +96272,6 @@ msgid "Danish - Dansk"
 msgstr "Danish - Dansk"
 
 
-msgid "Locale code: da. Translation progress: 3%"
-msgstr "Locale code: da. Translation progress: 3%"
-
-
 msgid "Dutch - Nederlands"
 msgstr "Dutch - Nederlands"
 
@@ -96475,10 +96298,6 @@ msgstr "Locale code: eo. Translation progress: 0%"
 
 msgid "Finnish - Suomi"
 msgstr "Finnish - Suomi"
-
-
-msgid "Locale code: fi_FI. Translation progress: 11%"
-msgstr "Locale code: fi_FI. Translation progress: 11%"
 
 
 msgid "French - Français"
@@ -98252,10 +98071,6 @@ msgid "Filter Glossy"
 msgstr "Filter Glossy"
 
 
-msgid "Adaptively blur glossy shaders after blurry bounces, to reduce noise at the cost of accuracy"
-msgstr "Adaptively blur glossy shaders after blurry bounces, to reduce noise at the cost of accuracy"
-
-
 msgid "Camera Cull Margin"
 msgstr "Camera Cull Margin"
 
@@ -99536,14 +99351,6 @@ msgid "Name of the referenced bone collection"
 msgstr "Name of the referenced bone collection"
 
 
-msgid "object_color"
-msgstr "object_color"
-
-
-msgid "Color picker"
-msgstr "Colour picker"
-
-
 msgid "Whether this feature-set is registered or not"
 msgstr "Whether this feature-set is registered or not"
 
@@ -100298,10 +100105,6 @@ msgstr "Targets custom WGTs to defined axis (global space)"
 
 msgid "Widget Offset"
 msgstr "Widget Offset"
-
-
-msgid "color picker"
-msgstr "colour picker"
 
 
 msgid "Selected UV Element"
@@ -110404,10 +110207,6 @@ msgid "Window Background"
 msgstr "Window Background"
 
 
-msgid "Header Text Highlight"
-msgstr "Header Text Highlight"
-
-
 msgid "Text Highlight"
 msgstr "Text Highlight"
 
@@ -111637,10 +111436,6 @@ msgstr "Cycle-Aware Keying"
 
 msgid "For channels with cyclic extrapolation, keyframe insertion is automatically remapped inside the cycle time range, and keeps ends in sync. Curves newly added to actions with a Manual Frame Range and Cyclic Animation are automatically made cyclic."
 msgstr "For channels with cyclic extrapolation, keyframe insertion is automatically remapped inside the cycle time range, and keeps ends in sync. Curves newly added to actions with a Manual Frame Range and Cyclic Animation are automatically made cyclic."
-
-
-msgid "Auto Keying"
-msgstr "Auto Keying"
 
 
 msgid "Auto Keyframe Insert Keying Set"
@@ -120082,22 +119877,9 @@ msgid "Rig UI Script"
 msgstr "Rig UI Script"
 
 
-msgid "Run Script"
-msgstr "Run Script"
-
-
 msgctxt "Operator"
 msgid "Add sample"
 msgstr "Add sample"
-
-
-msgid "Unified select/active colors"
-msgstr "Unified select/active colours"
-
-
-msgctxt "Operator"
-msgid "Apply"
-msgstr "Apply"
 
 
 msgctxt "Operator"
@@ -120139,10 +119921,6 @@ msgstr "Generate Rig"
 
 msgid "Click a button to select a collection:"
 msgstr "Click a button to select a collection:"
-
-
-msgid "Permanently hidden collections:"
-msgstr "Permanently hidden collections:"
 
 
 msgctxt "Operator"
@@ -120552,10 +120330,6 @@ msgstr "Removed {:d} empty and/or fake-user only Actions"
 
 msgid "Removed {:d} of {:d} bone collections"
 msgstr "Removed {:d} of {:d} bone collections"
-
-
-msgid "Modified the animation of {:d} armatures"
-msgstr "Modified the animation of armatures"
 
 
 msgid "Nothing to bake"
@@ -125968,6 +125742,14 @@ msgid "Duplicate Marker to Scene"
 msgstr "Duplicate Marker to Scene"
 
 
+msgid "Only Active Keying Set"
+msgstr "Only Active Keying Set"
+
+
+msgid "Jump Unit"
+msgstr "Jump Unit"
+
+
 msgid "Limit to Frame Range"
 msgstr "Limit to Frame Range"
 
@@ -125986,23 +125768,6 @@ msgstr "Active Editor"
 
 msgid "Properties and Sidebars"
 msgstr "Properties and Sidebars"
-
-
-msgid "New Keyframe Type"
-msgstr "New Keyframe Type"
-
-
-msgid "Only Active Keying Set"
-msgstr "Only Active Keying Set"
-
-
-msgid "Jump Unit"
-msgstr "Jump Unit"
-
-
-msgctxt "WindowManager"
-msgid "Keying"
-msgstr "Keying"
 
 
 msgid "Layered Recording"
@@ -126484,10 +126249,6 @@ msgstr "Minimum Grid Spacing"
 
 msgid "Only Insert Needed"
 msgstr "Only Insert Needed"
-
-
-msgid "Keyframing"
-msgstr "Keyframing"
 
 
 msgid "Auto-Keyframing"
@@ -129035,14 +128796,6 @@ msgid "Paste and Bake"
 msgstr "Paste and Bake"
 
 
-msgid "Keying set is active, which may"
-msgstr "Keying set is active, which may"
-
-
-msgid "reduce the effect of the above options"
-msgstr "reduce the effect of the above options"
-
-
 msgid "Using Active Scene Camera"
 msgstr "Using Active Scene Camera"
 
@@ -129107,6 +128860,11 @@ msgstr "Multi-Paint"
 msgctxt "Operator"
 msgid "Quick Edit"
 msgstr "Quick Edit"
+
+
+msgctxt "Operator"
+msgid "Apply"
+msgstr "Apply"
 
 
 msgctxt "Operator"
@@ -140584,10 +140342,6 @@ msgid "Cannot fly when the view offset is locked"
 msgstr "Cannot fly when the view offset is locked"
 
 
-msgid "Cannot fly an object with constraints"
-msgstr "Cannot fly an object with constraints"
-
-
 msgid "Cannot dolly when the view offset is locked"
 msgstr "Cannot dolly when the view offset is locked"
 
@@ -140610,10 +140364,6 @@ msgstr "Z Axis Correction"
 
 msgid "Cannot navigate when the view offset is locked"
 msgstr "Cannot navigate when the view offset is locked"
-
-
-msgid "Cannot navigate an object with constraints"
-msgstr "Cannot navigate an object with constraints"
 
 
 msgid "Depth too large"
@@ -149086,10 +148836,6 @@ msgid "Grease Pencil to change the color of"
 msgstr "Grease Pencil to change the colour of"
 
 
-msgid "Depth Order"
-msgstr "Depth Order"
-
-
 msgid "Grease Pencil to set the depth order of"
 msgstr "Grease Pencil to set the depth order of"
 
@@ -149136,10 +148882,6 @@ msgstr "Volumes only support a single material; selection input cannot be a fiel
 
 msgid "Point clouds only support a single material; selection input cannot be a field"
 msgstr "Point clouds only support a single material; selection input cannot be a field"
-
-
-msgid "Curves only support a single material; selection input cannot be a field"
-msgstr "Curves only support a single material; selection input cannot be a field"
 
 
 msgid "Geometry to assign a material to"
@@ -149638,10 +149380,6 @@ msgstr "Output node must not be in zone"
 
 msgid "Iterations input has to be a constant value"
 msgstr "Iterations input has to be a constant value"
-
-
-msgid "Recursive closures are not supported"
-msgstr "Recursive closures are not supported"
 
 
 msgid "Menu value has to be a constant value"

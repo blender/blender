@@ -602,6 +602,14 @@ struct BKEIDDeleteOptions {
    * IDs. Useful e.g. for ID deletion within liboverride resync process and the like.
    */
   bool prevent_liboverride_hierarchy_root_ensure = false;
+
+  /**
+   * Do not update invariants after deletion.
+   *
+   * This is required when deleting data in cases where there is no fully valid Main available
+   * (e.g. from readfile code).
+   */
+  bool prevent_invariants_update = false;
 };
 
 /**
@@ -669,11 +677,19 @@ void BKE_libblock_management_usercounts_clear(Main *bmain, void *idv);
  *
  * This is a no-op when `id` is `nullptr` or not linked.
  *
+ * \param enforce_fix if true, unconditionally set the linked data as extern (even if it was
+ * already defined as suc, or if it was in a broken state with e.g. no direct/indirect status
+ * defined).
+ *
  * This status is rechecked for the whole Main data-base as a step of pre-blend-file writing
  * (see #write_id_direct_linked_data_process_cb() and its usage in #write_file_handle).
  * This ensures that no reference to indirectly used IDs are kept in the written blend-file.
  */
-void id_lib_extern(ID *id);
+void id_lib_extern(ID *id, bool enforce_fix = false);
+/**
+ * Same as #id_lib_extern, but defines the ID as indirectly linked instead.
+ */
+void id_lib_indirect(ID *id, bool enforce_fix = false);
 void id_lib_indirect_weak_link(ID *id);
 /**
  * Ensure we have a real user

@@ -70,7 +70,7 @@ ccl_device_inline void film_write_data_passes(KernelGlobals kg,
       }
     }
 
-    if (!(sd->flag & (SD_TRANSPARENT | SD_RAY_PORTAL)) ||
+    if (!(sd->runtime_flag & (SR_TRANSPARENT | SR_RAY_PORTAL)) ||
         kernel_data.film.pass_alpha_threshold == 0.0f ||
         average(surface_shader_alpha(sd)) >= kernel_data.film.pass_alpha_threshold)
     {

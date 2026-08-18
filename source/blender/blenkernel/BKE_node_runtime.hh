@@ -26,6 +26,7 @@
 #include "BKE_node_tree_interface.hh"
 
 #include "NOD_socket_usage_inference_fwd.hh"
+#include "NOD_warning.hh"
 
 namespace blender {
 
@@ -164,6 +165,10 @@ class bNodeTreeRuntime : NonCopyable, NonMovable {
   std::shared_ptr<nodes::GeneratedTreeSrnaData> geometry_nodes_srna_data;
   /** Contains RNA types generated for the compositor strip modifier interface. */
   std::shared_ptr<nodes::GeneratedTreeSrnaData> compositor_nodes_srna_data;
+  /** Contains RNA types generated for the compositor effect strip interface. */
+  std::shared_ptr<nodes::GeneratedTreeSrnaData> compositor_effect_nodes_srna_data;
+  /** Contains RNA types generated for the scene compositor effect interface. */
+  std::shared_ptr<nodes::GeneratedTreeSrnaData> scene_compositor_effect_srna_data;
 
   /** Information about usage of anonymous attributes within the group. */
   std::unique_ptr<node_tree_reference_lifetimes::ReferenceLifetimesInfo> reference_lifetimes_info;
@@ -200,9 +205,9 @@ class bNodeTreeRuntime : NonCopyable, NonMovable {
 
   /**
    * Error messages for shading nodes. Those don't have more contextual information yet. Maps
-   * #bNode::identifier to error messages.
+   * #bNode::identifier to warnings.
    */
-  Map<int32_t, VectorSet<std::string>> shader_node_errors;
+  Map<int32_t, VectorSet<nodes::NodeWarning>> shader_node_errors;
   Mutex shader_node_errors_mutex;
 
   /**

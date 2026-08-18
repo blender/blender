@@ -107,7 +107,7 @@ ccl_device void bsdf_oren_nayar_setup(ccl_private ShaderData *sd,
     bsdf->N = N;
     bsdf->type = CLOSURE_BSDF_OREN_NAYAR_ID;
     bsdf->param = bsdf_oren_nayar_param(color, dot(bsdf->N, sd->wi), roughness);
-    sd->flag |= SD_BSDF | SD_BSDF_HAS_EVAL;
+    sd->runtime_flag |= SR_BSDF | SR_BSDF_HAS_EVAL;
   }
 }
 
@@ -199,7 +199,7 @@ ccl_device_inline void bsdf_thin_subsurface_setup(ccl_private ShaderData *sd,
       bsdf->type = CLOSURE_BSDF_OREN_NAYAR_ID;
       bsdf->N = N;
       bsdf->param = param;
-      sd->flag |= SD_BSDF | SD_BSDF_HAS_EVAL;
+      sd->runtime_flag |= SR_BSDF | SR_BSDF_HAS_EVAL;
     }
   }
 
@@ -211,7 +211,7 @@ ccl_device_inline void bsdf_thin_subsurface_setup(ccl_private ShaderData *sd,
       bsdf->type = CLOSURE_BSDF_ROUGH_TRANSLUCENT_ID;
       bsdf->N = -N;
       bsdf->param = param;
-      sd->flag |= SD_BSDF | SD_BSDF_HAS_EVAL | SD_BSDF_HAS_TRANSMISSION;
+      sd->runtime_flag |= SR_BSDF | SR_BSDF_HAS_EVAL | SR_BSDF_HAS_TRANSMISSION;
     }
   }
 }

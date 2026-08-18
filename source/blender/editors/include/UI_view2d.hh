@@ -408,9 +408,11 @@ void view2d_scale_get(const View2D *v2d, float *r_x, float *r_y);
 float view2d_scale_get_x(const View2D *v2d);
 float view2d_scale_get_y(const View2D *v2d);
 /**
- * Same as `view2d_scale_get() - 1.0f / x, y`.
+ * Calculate the size of a pixel in view-space. This is the inverse of `view2d_scale_get()`.
  */
-void view2d_scale_get_inverse(const View2D *v2d, float *r_x, float *r_y);
+void view2d_pixel_size_get(const View2D *v2d, float *r_x, float *r_y);
+float view2d_pixel_size_get_x(const View2D *v2d);
+float view2d_pixel_size_get_y(const View2D *v2d);
 
 /**
  * Simple functions for consistent center offset access.
@@ -544,9 +546,11 @@ struct View2DEdgePanData {
   /** Delay in seconds before maximum speed is reached. */
   float delay;
   /**
-   * Influence factor for view zoom:
+   * Influence factor for horizontal view zoom:
    * - 0 = Constant speed in UI units.
-   * - 1 = Constant speed in view space, UI speed slows down when zooming out.
+   * - 1 = Constant speed in view space, UI speed slows down when zooming out horizontally.
+   * \note For spaces that have different zoom levels along separate axes, vertical pan speed is
+   * also based on this horizontal zoom, which may feel unexpected!
    */
   float zoom_influence;
 

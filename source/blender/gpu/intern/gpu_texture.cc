@@ -57,6 +57,7 @@ bool Texture::init_1D(int w, int layers, int mip_len, TextureFormat format)
   d_ = 0;
   int mip_len_max = 1 + floorf(log2f(w));
   mipmaps_ = min_ii(mip_len, mip_len_max);
+  mip_max_ = mip_min_ + mipmaps_ - 1;
   format_ = format;
   format_flag_ = to_format_flag(format);
   type_ = (layers > 0) ? GPU_TEXTURE_1D_ARRAY : GPU_TEXTURE_1D;
@@ -73,6 +74,7 @@ bool Texture::init_2D(int w, int h, int layers, int mip_len, TextureFormat forma
   d_ = layers;
   int mip_len_max = 1 + floorf(log2f(max_ii(w, h)));
   mipmaps_ = min_ii(mip_len, mip_len_max);
+  mip_max_ = mip_min_ + mipmaps_ - 1;
   format_ = format;
   format_flag_ = to_format_flag(format);
   type_ = (layers > 0) ? GPU_TEXTURE_2D_ARRAY : GPU_TEXTURE_2D;
@@ -89,6 +91,7 @@ bool Texture::init_3D(int w, int h, int d, int mip_len, TextureFormat format)
   d_ = d;
   int mip_len_max = 1 + floorf(log2f(std::max({w, h, d})));
   mipmaps_ = min_ii(mip_len, mip_len_max);
+  mip_max_ = mip_min_ + mipmaps_ - 1;
   format_ = format;
   format_flag_ = to_format_flag(format);
   type_ = GPU_TEXTURE_3D;
@@ -105,6 +108,7 @@ bool Texture::init_cubemap(int w, int layers, int mip_len, TextureFormat format)
   d_ = max_ii(1, layers) * 6;
   int mip_len_max = 1 + floorf(log2f(w));
   mipmaps_ = min_ii(mip_len, mip_len_max);
+  mip_max_ = mip_min_ + mipmaps_ - 1;
   format_ = format;
   format_flag_ = to_format_flag(format);
   type_ = (layers > 0) ? GPU_TEXTURE_CUBE_ARRAY : GPU_TEXTURE_CUBE;
@@ -136,39 +140,41 @@ bool Texture::init_view(Texture *src,
                         bool cube_as_array,
                         bool use_stencil)
 {
-  is_texture_view_ = true;
-  w_ = src->w_;
-  h_ = src->h_;
-  d_ = src->d_;
-  layer_start = min_ii(layer_start, src->layer_count() - 1);
-  layer_len = min_ii(layer_len, (src->layer_count() - layer_start));
-  switch (type) {
-    case GPU_TEXTURE_1D_ARRAY:
-      h_ = layer_len;
-      break;
-    case GPU_TEXTURE_CUBE_ARRAY:
-      BLI_assert(layer_len % 6 == 0);
-      ATTR_FALLTHROUGH;
-    case GPU_TEXTURE_2D_ARRAY:
-      d_ = layer_len;
-      break;
-    default:
-      BLI_assert(layer_len == 1 && layer_start == 0);
-      break;
-  }
-  mip_start = min_ii(mip_start, src->mipmaps_ - 1);
-  mip_len = min_ii(mip_len, (src->mipmaps_ - mip_start));
-  mipmaps_ = mip_len;
-  format_ = format;
-  format_flag_ = to_format_flag(format);
+  BLI_assert(source_texture_ == nullptr);
+  source_texture_ = src;
+  gpu_image_usage_flags_ = src->gpu_image_usage_flags_;
+  sampler_state = src->sampler_state;
+
+  int view_extent[3]{0, 0, 0};
+  src->mip_size_get(mip_start, view_extent);
+
+  view_layer_start_ = min_ii(layer_start, src->layer_count() - 1);
+
   type_ = type;
   if (cube_as_array) {
     BLI_assert(type_ & GPU_TEXTURE_CUBE);
     type_ = (type_ & ~GPU_TEXTURE_CUBE) | GPU_TEXTURE_2D_ARRAY;
   }
-  sampler_state = src->sampler_state;
-  gpu_image_usage_flags_ = src->gpu_image_usage_flags_;
-  return this->init_internal(src, mip_start, layer_start, use_stencil);
+
+  if (type & GPU_TEXTURE_ARRAY) {
+    view_extent[src->dimensions_count() - 1] = std::min(layer_len,
+                                                        (src->layer_count() - view_layer_start_));
+  }
+  else if (src->type_get() & GPU_TEXTURE_ARRAY) {
+    view_extent[src->dimensions_count()] = 0;
+  }
+
+  w_ = view_extent[0];
+  h_ = view_extent[1];
+  d_ = view_extent[2];
+
+  mip_min_ = min_ii(mip_start, src->mipmaps_ - 1);
+  mipmaps_ = min_ii(mip_len, (src->mipmaps_ - mip_min_));
+  mip_max_ = mip_min_ + mipmaps_ - 1;
+  format_ = format;
+  format_flag_ = to_format_flag(format);
+
+  return this->init_internal(src, use_stencil);
 }
 
 void Texture::usage_set(eGPUTextureUsage usage_flags)
@@ -981,6 +987,11 @@ bool GPU_texture_has_normalized_format(const gpu::Texture *texture)
 bool GPU_texture_has_signed_format(const gpu::Texture *texture)
 {
   return (texture->format_flag_get() & GPU_FORMAT_SIGNED) != 0;
+}
+
+bool GPU_texture_has_compressed_format(const gpu::Texture *texture)
+{
+  return (texture->format_flag_get() & GPU_FORMAT_COMPRESSED) != 0;
 }
 
 bool GPU_texture_is_cube(const gpu::Texture *texture)

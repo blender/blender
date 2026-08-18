@@ -48,6 +48,7 @@ struct CameraParams {
   float lens = 0.0f;
   float ortho_scale = 1.0f;
   float zoom = 1.0f;
+  float roll = 0.0f;
 
   float shiftx = 0.0f;
   float shifty = 0.0f;
@@ -94,6 +95,29 @@ void BKE_camera_params_crop_viewplane(rctf *viewplane, int winx, int winy, const
  * View-plane is assumed to be already computed.
  */
 void BKE_camera_params_compute_matrix(CameraParams *params);
+
+/* Camera Border in Viewport */
+
+/** Camera frame within a viewport of the given size, in viewport pixels. */
+rctf BKE_camera_view_border(const struct Scene *scene,
+                            const struct Depsgraph *depsgraph,
+                            const struct View3D *v3d,
+                            const struct RegionView3D *rv3d,
+                            int winx,
+                            int winy,
+                            bool no_shift,
+                            bool no_zoom,
+                            bool no_roll);
+
+/** Border to render within a viewport of the given size, in viewport pixels. */
+bool BKE_camera_view_render_border(const struct Scene *scene,
+                                   const struct Depsgraph *depsgraph,
+                                   const struct View3D *v3d,
+                                   const struct RegionView3D *rv3d,
+                                   int winx,
+                                   int winy,
+                                   rctf *r_border,
+                                   rctf *r_unrolled_border);
 
 /* Camera View Frame */
 

@@ -27,7 +27,7 @@ ccl_device_inline int bsdf_toon_setup_common(ccl_private ToonBsdf *bsdf)
   bsdf->size = clamp(bsdf->size, 1e-5f, 1.0f) * M_PI_2_F;
   bsdf->smooth = saturatef(bsdf->smooth) * M_PI_2_F;
 
-  return SD_BSDF | SD_BSDF_HAS_EVAL;
+  return SR_BSDF | SR_BSDF_HAS_EVAL;
 }
 
 /* DIFFUSE TOON */

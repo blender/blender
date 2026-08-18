@@ -150,7 +150,7 @@ ccl_device void osl_closure_burley_diffuse_bsdf_setup(
 
   bsdf->N = safe_normalize_fallback(closure->N, sd->N);
 
-  sd->flag |= bsdf_burley_setup(bsdf, closure->roughness);
+  sd->runtime_flag |= bsdf_burley_setup(bsdf, closure->roughness);
 }
 
 ccl_device void osl_closure_translucent_setup(KernelGlobals kg,
@@ -207,7 +207,7 @@ ccl_device void osl_closure_reflection_setup(KernelGlobals kg,
   bsdf->N = maybe_ensure_valid_specular_reflection(sd, safe_normalize_fallback(closure->N, sd->N));
   bsdf->alpha_x = bsdf->alpha_y = 0.0f;
 
-  sd->flag |= bsdf_microfacet_ggx_setup(bsdf);
+  sd->runtime_flag |= bsdf_microfacet_ggx_setup(bsdf);
 }
 
 ccl_device void osl_closure_refraction_setup(KernelGlobals kg,
@@ -232,7 +232,7 @@ ccl_device void osl_closure_refraction_setup(KernelGlobals kg,
   bsdf->ior = closure->ior;
   bsdf->alpha_x = bsdf->alpha_y = 0.0f;
 
-  sd->flag |= bsdf_microfacet_ggx_refraction_setup(bsdf);
+  sd->runtime_flag |= bsdf_microfacet_ggx_refraction_setup(bsdf);
 }
 
 ccl_device void osl_closure_transparent_setup(KernelGlobals /*kg*/,
@@ -280,9 +280,6 @@ ccl_device void osl_closure_dielectric_bsdf_setup(KernelGlobals kg,
 {
   osl_zero_albedo(layer_albedo);
 
-  const bool has_reflection = !is_zero(closure->reflection_tint);
-  const bool has_transmission = !is_zero(closure->transmission_tint);
-
   if (osl_closure_skip(kg, path_visibility, LABEL_GLOSSY | LABEL_REFLECT)) {
     return;
   }
@@ -314,43 +311,16 @@ ccl_device void osl_closure_dielectric_bsdf_setup(KernelGlobals kg,
   bsdf->ior = closure->ior;
   bsdf->T = closure->T;
 
-  bool preserve_energy = false;
+  const bool beckmann = closure->distribution == make_string("beckmann", 14712237670914973463ull);
+  const bool multiggx = closure->distribution == make_string("multi_ggx", 16842698693386468366ull);
 
-  /* Beckmann */
-  if (closure->distribution == make_string("beckmann", 14712237670914973463ull)) {
-    if (has_reflection && has_transmission) {
-      sd->flag |= bsdf_microfacet_beckmann_glass_setup(bsdf);
-    }
-    else if (has_transmission) {
-      sd->flag |= bsdf_microfacet_beckmann_refraction_setup(bsdf);
-    }
-    else {
-      sd->flag |= bsdf_microfacet_beckmann_setup(bsdf);
-    }
-  }
-  /* GGX (either single- or multi-scattering). */
-  else {
-    if (has_reflection && has_transmission) {
-      sd->flag |= bsdf_microfacet_ggx_glass_setup(bsdf);
-    }
-    else if (has_transmission) {
-      sd->flag |= bsdf_microfacet_ggx_refraction_setup(bsdf);
-    }
-    else {
-      sd->flag |= bsdf_microfacet_ggx_setup(bsdf);
-    }
-
-    preserve_energy = (closure->distribution == make_string("multi_ggx", 16842698693386468366ull));
-  }
-
-  fresnel->reflection_tint = rgb_to_spectrum(closure->reflection_tint);
-  fresnel->transmission_tint = rgb_to_spectrum(closure->transmission_tint);
-  fresnel->thin_film.thickness = closure->thinfilm_thickness;
-  fresnel->thin_film.ior = closure->thinfilm_ior;
-  bsdf_microfacet_setup_fresnel_dielectric_tint(kg, bsdf, sd->wi, fresnel, preserve_energy);
+  fresnel->thin_film = {closure->thinfilm_thickness, closure->thinfilm_ior};
+  fresnel->tint = {rgb_to_spectrum(closure->reflection_tint),
+                   rgb_to_spectrum(closure->transmission_tint)};
+  bsdf_dielectric_tint_setup(kg, bsdf, sd, fresnel, beckmann, multiggx);
 
   if (layer_albedo != nullptr) {
-    if (has_reflection && !has_transmission) {
+    if (!(sd->runtime_flag & SR_BSDF_HAS_TRANSMISSION)) {
       *layer_albedo = bsdf_albedo(kg, sd, (ccl_private ShaderClosure *)bsdf, true, false);
     }
     else {
@@ -393,11 +363,11 @@ ccl_device void osl_closure_conductor_bsdf_setup(KernelGlobals kg,
 
   /* Beckmann */
   if (closure->distribution == make_string("beckmann", 14712237670914973463ull)) {
-    sd->flag |= bsdf_microfacet_beckmann_setup(bsdf);
+    sd->runtime_flag |= bsdf_microfacet_beckmann_setup(bsdf);
   }
   /* GGX (either single- or multi-scattering) */
   else {
-    sd->flag |= bsdf_microfacet_ggx_setup(bsdf);
+    sd->runtime_flag |= bsdf_microfacet_ggx_setup(bsdf);
     preserve_energy = (closure->distribution == make_string("multi_ggx", 16842698693386468366ull));
   }
 
@@ -453,7 +423,7 @@ ccl_device void osl_closure_generalized_schlick_bsdf_setup(
      * to the F0...F90 range, this allows us to use the real IOR.
      * Computing it back from F0 might give a different result in case of specular
      * tinting. */
-    bsdf->ior = -closure->exponent;
+    bsdf->ior = bsdf_glass_ior(sd, -closure->exponent, closure->inv_abbe);
   }
   else {
     bsdf->ior = ior_from_F0(average(closure->f0));
@@ -464,25 +434,25 @@ ccl_device void osl_closure_generalized_schlick_bsdf_setup(
   /* Beckmann */
   if (closure->distribution == make_string("beckmann", 14712237670914973463ull)) {
     if (has_reflection && has_transmission) {
-      sd->flag |= bsdf_microfacet_beckmann_glass_setup(bsdf);
+      sd->runtime_flag |= bsdf_microfacet_beckmann_glass_setup(bsdf);
     }
     else if (has_transmission) {
-      sd->flag |= bsdf_microfacet_beckmann_refraction_setup(bsdf);
+      sd->runtime_flag |= bsdf_microfacet_beckmann_refraction_setup(bsdf);
     }
     else {
-      sd->flag |= bsdf_microfacet_beckmann_setup(bsdf);
+      sd->runtime_flag |= bsdf_microfacet_beckmann_setup(bsdf);
     }
   }
   /* GGX (either single- or multi-scattering) */
   else {
     if (has_reflection && has_transmission) {
-      sd->flag |= bsdf_microfacet_ggx_glass_setup(bsdf);
+      sd->runtime_flag |= bsdf_microfacet_ggx_glass_setup(bsdf);
     }
     else if (has_transmission) {
-      sd->flag |= bsdf_microfacet_ggx_refraction_setup(bsdf);
+      sd->runtime_flag |= bsdf_microfacet_ggx_refraction_setup(bsdf);
     }
     else {
-      sd->flag |= bsdf_microfacet_ggx_setup(bsdf);
+      sd->runtime_flag |= bsdf_microfacet_ggx_setup(bsdf);
     }
 
     preserve_energy = (closure->distribution == make_string("multi_ggx", 16842698693386468366ull));
@@ -493,10 +463,10 @@ ccl_device void osl_closure_generalized_schlick_bsdf_setup(
   const bool refractive_caustics = (kernel_data.integrator.caustics_refractive ||
                                     (path_visibility & PATH_RAY_VISIBILITY_DIFFUSE) == 0);
 
-  fresnel->reflection_tint = reflective_caustics ? rgb_to_spectrum(closure->reflection_tint) :
-                                                   zero_spectrum();
-  fresnel->transmission_tint = refractive_caustics ? rgb_to_spectrum(closure->transmission_tint) :
-                                                     zero_spectrum();
+  fresnel->tint.reflectance = reflective_caustics ? rgb_to_spectrum(closure->reflection_tint) :
+                                                    zero_spectrum();
+  fresnel->tint.transmittance = refractive_caustics ? rgb_to_spectrum(closure->transmission_tint) :
+                                                      zero_spectrum();
   fresnel->f0 = rgb_to_spectrum(closure->f0);
   fresnel->f90 = rgb_to_spectrum(closure->f90);
   fresnel->exponent = closure->exponent;
@@ -549,26 +519,24 @@ ccl_device void osl_closure_thin_glass_setup(KernelGlobals kg,
   const float3 valid_reflection_N = maybe_ensure_valid_specular_reflection(
       sd, safe_normalize_fallback(closure->N, sd->N));
   const FresnelThinFilm thinfilm = {closure->thinfilm_thickness, closure->thinfilm_ior};
-
-  Spectrum reflectance, transmittance;
-  bsdf_thin_glass_setup(kg,
-                        sd,
-                        reflective_caustics,
-                        refractive_caustics,
-                        closure->reflection_tint,
-                        closure->transmission_tint,
-                        rgb_to_spectrum(weight),
-                        valid_reflection_N,
-                        closure->roughness,
-                        closure->ior,
-                        thinfilm,
-                        &reflectance,
-                        &transmittance,
-                        path_visibility,
-                        path_flag);
+  const FresnelCoeff tint = {rgb_to_spectrum(closure->reflection_tint),
+                             rgb_to_spectrum(closure->transmission_tint)};
+  const FresnelCoeff fresnel = bsdf_thin_glass_setup(kg,
+                                                     sd,
+                                                     reflective_caustics,
+                                                     refractive_caustics,
+                                                     tint,
+                                                     rgb_to_spectrum(weight),
+                                                     valid_reflection_N,
+                                                     closure->roughness,
+                                                     closure->ior,
+                                                     thinfilm,
+                                                     path_visibility,
+                                                     path_flag);
 
   if (layer_albedo != nullptr) {
-    *layer_albedo = transmittance * !!has_transmission + reflectance * !!has_reflection;
+    *layer_albedo = fresnel.transmittance * !!has_transmission +
+                    fresnel.reflectance * !!has_reflection;
   }
 }
 
@@ -623,29 +591,29 @@ ccl_device void osl_closure_microfacet_setup(KernelGlobals kg,
   /* Beckmann */
   if (closure->distribution == make_string("beckmann", 14712237670914973463ull)) {
     if (closure->refract == 1) {
-      sd->flag |= bsdf_microfacet_beckmann_refraction_setup(bsdf);
+      sd->runtime_flag |= bsdf_microfacet_beckmann_refraction_setup(bsdf);
     }
     else if (closure->refract == 2) {
-      sd->flag |= bsdf_microfacet_beckmann_glass_setup(bsdf);
+      sd->runtime_flag |= bsdf_microfacet_beckmann_glass_setup(bsdf);
     }
     else {
-      sd->flag |= bsdf_microfacet_beckmann_setup(bsdf);
+      sd->runtime_flag |= bsdf_microfacet_beckmann_setup(bsdf);
     }
   }
   /* Ashikhmin-Shirley */
   else if (closure->distribution == make_string("ashikhmin_shirley", 11318482998918370922ull)) {
-    sd->flag |= bsdf_ashikhmin_shirley_setup(bsdf);
+    sd->runtime_flag |= bsdf_ashikhmin_shirley_setup(bsdf);
   }
   /* GGX (either single- or multi-scattering) */
   else {
     if (closure->refract == 1) {
-      sd->flag |= bsdf_microfacet_ggx_refraction_setup(bsdf);
+      sd->runtime_flag |= bsdf_microfacet_ggx_refraction_setup(bsdf);
     }
     else if (closure->refract == 2) {
-      sd->flag |= bsdf_microfacet_ggx_glass_setup(bsdf);
+      sd->runtime_flag |= bsdf_microfacet_ggx_glass_setup(bsdf);
     }
     else {
-      sd->flag |= bsdf_microfacet_ggx_setup(bsdf);
+      sd->runtime_flag |= bsdf_microfacet_ggx_setup(bsdf);
     }
 
     if (closure->distribution == make_string("multi_ggx", 16842698693386468366ull)) {
@@ -701,11 +669,11 @@ ccl_device void osl_closure_microfacet_f82_tint_setup(
 
   /* Beckmann */
   if (closure->distribution == make_string("beckmann", 14712237670914973463ull)) {
-    sd->flag |= bsdf_microfacet_beckmann_setup(bsdf);
+    sd->runtime_flag |= bsdf_microfacet_beckmann_setup(bsdf);
   }
   /* GGX (either single- or multi-scattering) */
   else {
-    sd->flag |= bsdf_microfacet_ggx_setup(bsdf);
+    sd->runtime_flag |= bsdf_microfacet_ggx_setup(bsdf);
     preserve_energy = (closure->distribution == make_string("multi_ggx", 16842698693386468366ull));
   }
 
@@ -746,7 +714,7 @@ ccl_device void osl_closure_microfacet_multi_ggx_glass_setup(
 
   bsdf->T = zero_float3();
 
-  sd->flag |= bsdf_microfacet_ggx_glass_setup(bsdf);
+  sd->runtime_flag |= bsdf_microfacet_ggx_glass_setup(bsdf);
   bsdf_microfacet_setup_fresnel_constant(kg, bsdf, sd->wi, rgb_to_spectrum(closure->color));
 }
 
@@ -778,7 +746,7 @@ ccl_device void osl_closure_microfacet_multi_ggx_aniso_setup(
 
   bsdf->T = closure->T;
 
-  sd->flag |= bsdf_microfacet_ggx_setup(bsdf);
+  sd->runtime_flag |= bsdf_microfacet_ggx_setup(bsdf);
   bsdf_microfacet_setup_fresnel_constant(kg, bsdf, sd->wi, rgb_to_spectrum(closure->color));
 
   if (layer_albedo != nullptr) {
@@ -810,7 +778,7 @@ ccl_device void osl_closure_ashikhmin_velvet_setup(
   bsdf->N = maybe_ensure_valid_specular_reflection(sd, safe_normalize_fallback(closure->N, sd->N));
   bsdf->sigma = closure->sigma;
 
-  sd->flag |= bsdf_ashikhmin_velvet_setup(bsdf);
+  sd->runtime_flag |= bsdf_ashikhmin_velvet_setup(bsdf);
 }
 
 /* Sheen */
@@ -842,7 +810,7 @@ ccl_device void osl_closure_sheen_setup(KernelGlobals kg,
   const int sheen_flag = bsdf_sheen_setup(kg, sd, bsdf);
 
   if (sheen_flag) {
-    sd->flag |= sheen_flag;
+    sd->runtime_flag |= sheen_flag;
 
     if (layer_albedo != nullptr) {
       *layer_albedo = bsdf->weight;
@@ -877,7 +845,7 @@ ccl_device void osl_closure_sheen_bsdf_setup(KernelGlobals kg,
   const int sheen_flag = bsdf_sheen_setup(kg, sd, bsdf);
 
   if (sheen_flag) {
-    sd->flag |= sheen_flag;
+    sd->runtime_flag |= sheen_flag;
 
     if (layer_albedo != nullptr) {
       *layer_albedo = bsdf->weight * closure->albedo;
@@ -907,7 +875,7 @@ ccl_device void osl_closure_diffuse_toon_setup(KernelGlobals kg,
   bsdf->size = closure->size;
   bsdf->smooth = closure->smooth;
 
-  sd->flag |= bsdf_diffuse_toon_setup(bsdf);
+  sd->runtime_flag |= bsdf_diffuse_toon_setup(bsdf);
 }
 
 ccl_device void osl_closure_glossy_toon_setup(KernelGlobals kg,
@@ -932,7 +900,7 @@ ccl_device void osl_closure_glossy_toon_setup(KernelGlobals kg,
   bsdf->size = closure->size;
   bsdf->smooth = closure->smooth;
 
-  sd->flag |= bsdf_glossy_toon_setup(bsdf);
+  sd->runtime_flag |= bsdf_glossy_toon_setup(bsdf);
 }
 
 /* Variable cone emissive closure
@@ -949,7 +917,7 @@ ccl_device void osl_closure_emission_setup(KernelGlobals kg,
                                            const ccl_private GenericEmissiveClosure * /*closure*/,
                                            float3 * /*layer_albedo*/)
 {
-  if (sd->flag & SD_IS_VOLUME_SHADER_EVAL) {
+  if (sd->runtime_flag & SR_IS_VOLUME_SHADER_EVAL) {
     if ((path_visibility & PATH_RAY_VISIBILITY_SHADOW) || (path_flag & PATH_RAY_EXTINCTION)) {
       /* Don't need emission for shadows and extinction. */
       return;
@@ -990,7 +958,7 @@ ccl_device void osl_closure_uniform_edf_setup(KernelGlobals kg,
                                               float3 * /*layer_albedo*/)
 {
   weight *= closure->emittance;
-  if (sd->flag & SD_IS_VOLUME_SHADER_EVAL) {
+  if (sd->runtime_flag & SR_IS_VOLUME_SHADER_EVAL) {
     if ((path_visibility & PATH_RAY_VISIBILITY_SHADOW) || (path_flag & PATH_RAY_EXTINCTION)) {
       /* Don't need emission for shadows and extinction. */
       return;
@@ -1014,7 +982,7 @@ ccl_device void osl_closure_holdout_setup(KernelGlobals /*kg*/,
                                           float3 * /*layer_albedo*/)
 {
   closure_alloc(sd, sizeof(ShaderClosure), CLOSURE_HOLDOUT_ID, rgb_to_spectrum(weight));
-  sd->flag |= SD_HOLDOUT;
+  sd->runtime_flag |= SR_HOLDOUT;
 }
 
 ccl_device void osl_closure_diffuse_ramp_setup(KernelGlobals /*kg*/,
@@ -1043,7 +1011,7 @@ ccl_device void osl_closure_diffuse_ramp_setup(KernelGlobals /*kg*/,
     bsdf->colors[i] = closure->colors[i];
   }
 
-  sd->flag |= bsdf_diffuse_ramp_setup(bsdf);
+  sd->runtime_flag |= bsdf_diffuse_ramp_setup(bsdf);
 }
 
 ccl_device void osl_closure_phong_ramp_setup(KernelGlobals /*kg*/,
@@ -1072,7 +1040,7 @@ ccl_device void osl_closure_phong_ramp_setup(KernelGlobals /*kg*/,
     bsdf->colors[i] = closure->colors[i];
   }
 
-  sd->flag |= bsdf_phong_ramp_setup(bsdf);
+  sd->runtime_flag |= bsdf_phong_ramp_setup(bsdf);
 }
 
 ccl_device void osl_closure_bssrdf_setup(KernelGlobals /*kg*/,
@@ -1114,7 +1082,7 @@ ccl_device void osl_closure_bssrdf_setup(KernelGlobals /*kg*/,
   bssrdf->ior = closure->ior;
   bssrdf->anisotropy = closure->anisotropy;
 
-  sd->flag |= bssrdf_setup(sd, bssrdf, path_flag, type);
+  sd->runtime_flag |= bssrdf_setup(sd, bssrdf, path_flag, type);
 }
 
 /* MaterialX-compatible subsurface_bssrdf */
@@ -1145,7 +1113,7 @@ ccl_device void osl_closure_subsurface_bssrdf_setup(
   bssrdf->ior = 1.4f;
   bssrdf->anisotropy = closure->anisotropy;
 
-  sd->flag |= bssrdf_setup(sd, bssrdf, path_flag, CLOSURE_BSSRDF_RANDOM_WALK_ID);
+  sd->runtime_flag |= bssrdf_setup(sd, bssrdf, path_flag, CLOSURE_BSSRDF_RANDOM_WALK_ID);
 }
 
 /* Hair */
@@ -1174,7 +1142,7 @@ ccl_device void osl_closure_hair_reflection_setup(KernelGlobals kg,
   bsdf->roughness2 = closure->roughness2;
   bsdf->offset = closure->offset;
 
-  sd->flag |= bsdf_hair_reflection_setup(bsdf);
+  sd->runtime_flag |= bsdf_hair_reflection_setup(bsdf);
 }
 
 ccl_device void osl_closure_hair_transmission_setup(
@@ -1202,7 +1170,7 @@ ccl_device void osl_closure_hair_transmission_setup(
   bsdf->roughness2 = closure->roughness2;
   bsdf->offset = closure->offset;
 
-  sd->flag |= bsdf_hair_transmission_setup(bsdf);
+  sd->runtime_flag |= bsdf_hair_transmission_setup(bsdf);
 }
 
 ccl_device void osl_closure_hair_chiang_setup(KernelGlobals kg,
@@ -1232,7 +1200,7 @@ ccl_device void osl_closure_hair_chiang_setup(KernelGlobals kg,
   bsdf->eta = closure->eta;
   bsdf->m0_roughness = closure->m0_roughness;
 
-  sd->flag |= bsdf_hair_chiang_setup(sd, bsdf);
+  sd->runtime_flag |= bsdf_hair_chiang_setup(sd, bsdf);
 #endif
 }
 
@@ -1294,7 +1262,7 @@ ccl_device void osl_closure_hair_huang_setup(KernelGlobals kg,
     bsdf->extra->pixel_coverage = 0.5f * sd->dP / radius;
   }
 
-  sd->flag |= bsdf_hair_huang_setup(sd, bsdf, path_flag);
+  sd->runtime_flag |= bsdf_hair_huang_setup(sd, bsdf, path_flag);
 #endif
 }
 
@@ -1332,7 +1300,7 @@ ccl_device void osl_closure_henyey_greenstein_setup(
 
   volume->g = closure->g;
 
-  sd->flag |= volume_henyey_greenstein_setup(volume);
+  sd->runtime_flag |= volume_henyey_greenstein_setup(volume);
 }
 
 ccl_device void osl_closure_fournier_forand_setup(
@@ -1352,7 +1320,7 @@ ccl_device void osl_closure_fournier_forand_setup(
     return;
   }
 
-  sd->flag |= volume_fournier_forand_setup(volume, closure->B, closure->IOR);
+  sd->runtime_flag |= volume_fournier_forand_setup(volume, closure->B, closure->IOR);
 }
 
 ccl_device void osl_closure_draine_setup(KernelGlobals /*kg*/,
@@ -1374,7 +1342,7 @@ ccl_device void osl_closure_draine_setup(KernelGlobals /*kg*/,
   volume->g = closure->g;
   volume->alpha = closure->alpha;
 
-  sd->flag |= volume_draine_setup(volume);
+  sd->runtime_flag |= volume_draine_setup(volume);
 }
 
 ccl_device void osl_closure_rayleigh_setup(KernelGlobals /*kg*/,
@@ -1393,7 +1361,7 @@ ccl_device void osl_closure_rayleigh_setup(KernelGlobals /*kg*/,
     return;
   }
 
-  sd->flag |= volume_rayleigh_setup(volume);
+  sd->runtime_flag |= volume_rayleigh_setup(volume);
 }
 
 ccl_device void osl_closure_anisotropic_vdf_setup(KernelGlobals kg,
@@ -1404,7 +1372,7 @@ ccl_device void osl_closure_anisotropic_vdf_setup(KernelGlobals kg,
                                                   const ccl_private AnisotropicVDFClosure *closure,
                                                   float3 * /*layer_albedo*/)
 {
-  if (!(sd->flag & SD_IS_VOLUME_SHADER_EVAL)) {
+  if (!(sd->runtime_flag & SR_IS_VOLUME_SHADER_EVAL)) {
     return;
   }
 
@@ -1419,7 +1387,7 @@ ccl_device void osl_closure_anisotropic_vdf_setup(KernelGlobals kg,
 
   volume->g = closure->anisotropy;
 
-  sd->flag |= volume_henyey_greenstein_setup(volume);
+  sd->runtime_flag |= volume_henyey_greenstein_setup(volume);
 }
 
 CCL_NAMESPACE_END

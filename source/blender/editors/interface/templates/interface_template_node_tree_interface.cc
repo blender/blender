@@ -600,7 +600,7 @@ bool NodePanelDropTarget::on_drop(bContext *C, const DragInfo &drag_info) const
 
 void template_tree_interface(Layout *layout, const bContext *C, PointerRNA *ptr)
 {
-  if (!ptr->data) {
+  if (!*ptr) {
     return;
   }
   if (!RNA_struct_is_a(ptr->type, RNA_NodeTreeInterface)) {

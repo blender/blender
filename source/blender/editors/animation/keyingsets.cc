@@ -303,7 +303,7 @@ static wmOperatorStatus add_keyingset_button_exec(bContext *C, wmOperator *op)
   /* Check if property is able to be added. */
   const bool all = RNA_boolean_get(op->ptr, "all");
   bool changed = false;
-  if (ptr.owner_id && ptr.data && prop && RNA_property_anim_editable(&ptr, prop)) {
+  if (ptr && ptr.has_owner_id() && prop && RNA_property_anim_editable(&ptr, prop)) {
     if (const std::optional<std::string> path = RNA_path_from_ID_to_property(&ptr, prop)) {
       if (all) {
         pflag |= KSP_FLAG_WHOLE_ARRAY;
@@ -383,7 +383,7 @@ static wmOperatorStatus remove_keyingset_button_exec(bContext *C, wmOperator *op
       BLI_findlink(&scene->keyingsets, scene->active_keyingset - 1));
 
   bool changed = false;
-  if (ptr.owner_id && ptr.data && prop) {
+  if (ptr && ptr.has_owner_id() && prop) {
     if (const std::optional<std::string> path = RNA_path_from_ID_to_property(&ptr, prop)) {
       /* Try to find a path matching this description. */
       KS_Path *keyingset_path = BKE_keyingset_find_path(

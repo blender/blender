@@ -142,8 +142,8 @@ void PAINT_OT_weight_from_bones(wmOperatorType *ot)
   ot->name = "Weight from Bones";
   ot->idname = "PAINT_OT_weight_from_bones";
   ot->description =
-      ("Set the weights of the groups matching the attached armature's selected bones, "
-       "using the distance between the vertices and the bones");
+      ("Set the weights of the groups matching the attached armature's bones that have \"Deform\" "
+       "option enabled, using the distance between the vertices and the bones");
 
   /* API callbacks. */
   ot->exec = weight_from_bones_exec;
@@ -535,6 +535,11 @@ void PAINT_OT_weight_set(wmOperatorType *ot)
 /* -------------------------------------------------------------------- */
 /** \name Interactive Weight Gradient Operator
  * \{ */
+
+enum {
+  WPAINT_GRADIENT_TYPE_LINEAR,
+  WPAINT_GRADIENT_TYPE_RADIAL,
+};
 
 /* *** VGroups Gradient *** */
 struct WPGradient_vertStore {

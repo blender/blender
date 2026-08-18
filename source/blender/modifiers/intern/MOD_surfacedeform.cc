@@ -6,6 +6,7 @@
  * \ingroup modifiers
  */
 
+#include "BKE_bvh.hh"
 #include "BLI_math_geom_c.hh"
 #include "BLI_math_matrix_c.hh"
 #include "BLI_task_c.hh"
@@ -59,7 +60,7 @@ struct SDefEdgePolys {
 };
 
 struct SDefBindCalcData {
-  bke::BVHTreeFromMesh *treeData;
+  const bke::bvh::Tree *treeData;
   const SDefAdjacencyArray *vert_edges;
   const SDefEdgePolys *edge_polys;
   SDefVert *bind_verts;
@@ -364,10 +365,6 @@ BLI_INLINE void sortPolyVertsTri(uint *indices,
 
 BLI_INLINE uint nearestVert(SDefBindCalcData *const data, const float point_co[3])
 {
-  BVHTreeNearest nearest{};
-  nearest.dist_sq = FLT_MAX;
-  nearest.index = -1;
-
   float t_point[3];
   float max_dist = FLT_MAX;
   float dist;
@@ -375,10 +372,11 @@ BLI_INLINE uint nearestVert(SDefBindCalcData *const data, const float point_co[3
 
   mul_v3_m4v3(t_point, data->imat, point_co);
 
-  BLI_bvhtree_find_nearest(
-      data->treeData->tree, t_point, &nearest, data->treeData->nearest_callback, data->treeData);
+  const std::optional<bke::bvh::ClosestPointResult> nearest = data->treeData->closest_point(
+      t_point);
+  BLI_assert(nearest.has_value());
 
-  const IndexRange face = data->polys[data->tri_faces[nearest.index]];
+  const IndexRange face = data->polys[data->tri_faces[nearest->index]];
 
   for (int i = 0; i < face.size(); i++) {
     const int edge_i = data->corner_edges[face.start() + i];
@@ -1220,13 +1218,7 @@ static bool surfacedeformBind(Object *ob,
   smd_orig->verts_sharing_info = MEM_new<BindVertsImplicitSharing>(
       __func__, smd_orig->verts, verts_num);
 
-  bke::BVHTreeFromMesh treeData = target->bvh_corner_tris();
-  if (treeData.tree == nullptr) {
-    BKE_modifier_set_error(ob, reinterpret_cast<ModifierData *>(smd_eval), "Out of memory");
-    freeAdjacencyMap(vert_edges, adj_array, edge_polys);
-    implicit_sharing::free_shared_data(&smd_orig->verts, &smd_orig->verts_sharing_info);
-    return false;
-  }
+  const bke::bvh::Tree &treeData = target->bvh_tris();
 
   adj_result = buildAdjacencyMap(polys, edges, corner_edges, vert_edges, adj_array, edge_polys);
 
@@ -1630,7 +1622,7 @@ static void panel_draw(const bContext * /*C*/, Panel *panel)
     col->op("OBJECT_OT_surfacedeform_bind", IFACE_("Unbind"), ICON_NONE);
   }
   else {
-    col->active_set(!RNA_pointer_is_null(&target_ptr));
+    col->active_set(target_ptr);
     col->op("OBJECT_OT_surfacedeform_bind", IFACE_("Bind"), ICON_NONE);
   }
   modifier_error_message_draw(layout, ptr);

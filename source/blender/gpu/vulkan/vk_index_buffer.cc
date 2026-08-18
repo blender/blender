@@ -100,9 +100,22 @@ void VKIndexBuffer::read(uint32_t *data) const
   }
 }
 
-void VKIndexBuffer::update_sub(uint /*start*/, uint /*len*/, const void * /*data*/)
+void VKIndexBuffer::update_sub(uint start, uint len, const void *data)
 {
-  NOT_YET_IMPLEMENTED
+  if (!buffer_.is_allocated()) {
+    /* Allocating huge buffers can fail, in that case we skip copying data. */
+    return;
+  }
+  BLI_assert_msg(start + len <= buffer_.size_in_bytes(), "Out of bound write to index buffer");
+  if (buffer_.is_mapped()) {
+    buffer_.update_sub_immediately(start, len, data);
+  }
+  else {
+    VKContext &context = *VKContext::get();
+    VKStagingBuffer staging_buffer(buffer_, VKStagingBuffer::Direction::HostToDevice, start, len);
+    memcpy(staging_buffer.host_buffer_get().mapped_memory_get(), data, len);
+    staging_buffer.copy_to_device(context);
+  }
 }
 
 void VKIndexBuffer::strip_restart_indices()

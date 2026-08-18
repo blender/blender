@@ -10,6 +10,7 @@
 
 #include "GPU_capabilities.hh"
 #include "GPU_platform.hh"
+#include "GPU_work_in_flight.hh"
 
 #include "gpu_backend.hh"
 
@@ -35,6 +36,7 @@
 #include "gl_texture_pool.hh"
 #include "gl_uniform_buffer.hh"
 #include "gl_vertex_buffer.hh"
+#include "gl_work_in_flight.hh"
 
 namespace blender::gpu {
 
@@ -117,6 +119,11 @@ class GLBackend : public GPUBackend {
   Fence *fence_alloc() override
   {
     return new GLFence();
+  };
+
+  WorkInFlight *work_in_flight_alloc(unsigned int max_in_flight) override
+  {
+    return new GLWorkInFlight(max_in_flight);
   };
 
   FrameBuffer *framebuffer_alloc(const char *name) override

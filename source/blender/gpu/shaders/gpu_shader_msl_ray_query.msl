@@ -1,0 +1,207 @@
+/* SPDX-FileCopyrightText: 2026 Blender Authors
+ *
+ * SPDX-License-Identifier: GPL-2.0-or-later */
+
+/* Maps the GLSL `GL_EXT_ray_query` API onto Metal's inline ray query.
+ * Only active for shaders that declare an acceleration structure.
+ * `metal::raytracing` is provided by the backend (see `mtl_shader.mm`). */
+
+#pragma once
+
+#ifdef MTL_USE_RAY_QUERY
+
+#  pragma blender dead_code_elimination off
+
+#  define gl_RayFlagsNoneEXT 0u
+#  define gl_RayFlagsOpaqueEXT 1u
+#  define gl_RayFlagsNoOpaqueEXT 2u
+#  define gl_RayFlagsTerminateOnFirstHitEXT 4u
+#  define gl_RayFlagsSkipClosestHitShaderEXT 8u
+#  define gl_RayFlagsCullBackFacingTrianglesEXT 16u
+#  define gl_RayFlagsCullFrontFacingTrianglesEXT 32u
+#  define gl_RayFlagsCullOpaqueEXT 64u
+#  define gl_RayFlagsCullNoOpaqueEXT 128u
+
+#  define gl_RayQueryCommittedIntersectionNoneEXT 0u
+#  define gl_RayQueryCommittedIntersectionTriangleEXT 1u
+#  define gl_RayQueryCommittedIntersectionGeneratedEXT 2u
+#  define gl_RayQueryCandidateIntersectionTriangleEXT 0u
+#  define gl_RayQueryCandidateIntersectionAABBEXT 1u
+
+/* MSL forbids `intersection_query` as a struct field, so alias the GLSL query type to it. */
+using rayQueryEXT = intersection_query<instancing, triangle_data>;
+
+inline void rayQueryInitializeEXT(thread rayQueryEXT &rq,
+                                  instance_acceleration_structure topLevel,
+                                  uint rayFlags,
+                                  uint cullMask,
+                                  float3 origin,
+                                  float tMin,
+                                  float3 direction,
+                                  float tMax)
+{
+  intersection_params params;
+  if (rayFlags & gl_RayFlagsTerminateOnFirstHitEXT) {
+    params.accept_any_intersection(true);
+  }
+  if (rayFlags & gl_RayFlagsOpaqueEXT) {
+    params.force_opacity(forced_opacity::opaque);
+  }
+  else if (rayFlags & gl_RayFlagsNoOpaqueEXT) {
+    params.force_opacity(forced_opacity::non_opaque);
+  }
+  if (rayFlags & gl_RayFlagsCullBackFacingTrianglesEXT) {
+    params.set_triangle_cull_mode(triangle_cull_mode::back);
+  }
+  else if (rayFlags & gl_RayFlagsCullFrontFacingTrianglesEXT) {
+    params.set_triangle_cull_mode(triangle_cull_mode::front);
+  }
+  if (rayFlags & gl_RayFlagsCullOpaqueEXT) {
+    params.set_opacity_cull_mode(opacity_cull_mode::opaque);
+  }
+  else if (rayFlags & gl_RayFlagsCullNoOpaqueEXT) {
+    params.set_opacity_cull_mode(opacity_cull_mode::non_opaque);
+  }
+  rq.reset(ray(origin, direction, tMin, tMax), topLevel, cullMask, params);
+}
+
+inline bool rayQueryProceedEXT(thread rayQueryEXT &rq)
+{
+  return rq.next();
+}
+
+inline void rayQueryTerminateEXT(thread rayQueryEXT &rq)
+{
+  rq.abort();
+}
+
+inline void rayQueryGenerateIntersectionEXT(thread rayQueryEXT &rq, float tHit)
+{
+  rq.commit_bounding_box_intersection(tHit);
+}
+
+inline void rayQueryConfirmIntersectionEXT(thread rayQueryEXT &rq)
+{
+  rq.commit_triangle_intersection();
+}
+
+inline uint rayQueryGetIntersectionTypeEXT(thread rayQueryEXT &rq, bool committed)
+{
+  if (committed) {
+    switch (rq.get_committed_intersection_type()) {
+      case intersection_type::triangle:
+        return gl_RayQueryCommittedIntersectionTriangleEXT;
+      case intersection_type::bounding_box:
+        return gl_RayQueryCommittedIntersectionGeneratedEXT;
+      default:
+        return gl_RayQueryCommittedIntersectionNoneEXT;
+    }
+  }
+  return (rq.get_candidate_intersection_type() == intersection_type::bounding_box) ?
+             gl_RayQueryCandidateIntersectionAABBEXT :
+             gl_RayQueryCandidateIntersectionTriangleEXT;
+}
+
+inline float rayQueryGetRayTMinEXT(thread rayQueryEXT &rq)
+{
+  return rq.get_ray_min_distance();
+}
+
+/* Not mapped to Metal: no query-side ray-flags accessor, and MSL forbids caching the flags on the
+ * query object. Gated off so a shader using it fails to compile rather than silently reading 0. */
+#  if 0
+inline uint rayQueryGetRayFlagsEXT(thread rayQueryEXT &rq)
+{
+  return 0u;
+}
+#  endif
+
+inline float3 rayQueryGetWorldRayOriginEXT(thread rayQueryEXT &rq)
+{
+  return rq.get_world_space_ray_origin();
+}
+
+inline float3 rayQueryGetWorldRayDirectionEXT(thread rayQueryEXT &rq)
+{
+  return rq.get_world_space_ray_direction();
+}
+
+inline float rayQueryGetIntersectionTEXT(thread rayQueryEXT &rq, bool committed)
+{
+  return committed ? rq.get_committed_distance() : rq.get_candidate_triangle_distance();
+}
+
+inline uint rayQueryGetIntersectionInstanceIdEXT(thread rayQueryEXT &rq, bool committed)
+{
+  return committed ? rq.get_committed_instance_id() : rq.get_candidate_instance_id();
+}
+
+inline uint rayQueryGetIntersectionInstanceCustomIndexEXT(thread rayQueryEXT &rq, bool committed)
+{
+  /* Metal's per-instance `userID` is the custom index. Currently 0 for every instance (matches
+   * the Vulkan backend) until the GPU API exposes a per-instance custom index. */
+  return committed ? rq.get_committed_user_instance_id() : rq.get_candidate_user_instance_id();
+}
+
+/* Not mapped to Metal: no inline equivalent. Gated off so use is a compile error, not a wrong 0.
+ */
+#  if 0
+inline uint rayQueryGetIntersectionInstanceShaderBindingTableRecordOffsetEXT(
+    thread rayQueryEXT &rq, bool committed)
+{
+  return 0u;
+}
+#  endif
+
+inline uint rayQueryGetIntersectionGeometryIndexEXT(thread rayQueryEXT &rq, bool committed)
+{
+  return committed ? rq.get_committed_geometry_id() : rq.get_candidate_geometry_id();
+}
+
+inline uint rayQueryGetIntersectionPrimitiveIndexEXT(thread rayQueryEXT &rq, bool committed)
+{
+  return committed ? rq.get_committed_primitive_id() : rq.get_candidate_primitive_id();
+}
+
+inline float2 rayQueryGetIntersectionBarycentricsEXT(thread rayQueryEXT &rq, bool committed)
+{
+  return committed ? rq.get_committed_triangle_barycentric_coord() :
+                     rq.get_candidate_triangle_barycentric_coord();
+}
+
+inline bool rayQueryGetIntersectionFrontFaceEXT(thread rayQueryEXT &rq, bool committed)
+{
+  return committed ? rq.is_committed_triangle_front_facing() :
+                     rq.is_candidate_triangle_front_facing();
+}
+
+inline bool rayQueryGetIntersectionCandidateAABBOpaqueEXT(thread rayQueryEXT &rq)
+{
+  return !rq.is_candidate_non_opaque_bounding_box();
+}
+
+inline float3 rayQueryGetIntersectionObjectRayDirectionEXT(thread rayQueryEXT &rq, bool committed)
+{
+  return committed ? rq.get_committed_ray_direction() : rq.get_candidate_ray_direction();
+}
+
+inline float3 rayQueryGetIntersectionObjectRayOriginEXT(thread rayQueryEXT &rq, bool committed)
+{
+  return committed ? rq.get_committed_ray_origin() : rq.get_candidate_ray_origin();
+}
+
+inline float4x3 rayQueryGetIntersectionObjectToWorldEXT(thread rayQueryEXT &rq, bool committed)
+{
+  return committed ? rq.get_committed_object_to_world_transform() :
+                     rq.get_candidate_object_to_world_transform();
+}
+
+inline float4x3 rayQueryGetIntersectionWorldToObjectEXT(thread rayQueryEXT &rq, bool committed)
+{
+  return committed ? rq.get_committed_world_to_object_transform() :
+                     rq.get_candidate_world_to_object_transform();
+}
+
+#  pragma blender dead_code_elimination on
+
+#endif /* MTL_USE_RAY_QUERY */

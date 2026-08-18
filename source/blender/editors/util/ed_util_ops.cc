@@ -50,7 +50,7 @@ Vector<PointerRNA> ED_operator_single_id_from_context_as_vec(const bContext *C)
 {
   Vector<PointerRNA> ids;
   PointerRNA idptr = CTX_data_pointer_get_type(C, "id", RNA_ID);
-  if (idptr.data) {
+  if (idptr) {
     ids.append(idptr);
   }
   return ids;
@@ -106,7 +106,7 @@ static bool lib_id_preview_editing_poll_ex(const ID *id, const char **r_disabled
 static bool lib_id_preview_editing_poll(bContext *C)
 {
   const PointerRNA idptr = CTX_data_pointer_get(C, "id");
-  BLI_assert(!idptr.data || RNA_struct_is_ID(idptr.type));
+  BLI_assert(!idptr || RNA_struct_is_ID(idptr.type));
 
   const ID *id = static_cast<ID *>(idptr.data);
   const char *disabled_hint = nullptr;
@@ -421,7 +421,7 @@ static void ED_OT_lib_id_remove_preview(wmOperatorType *ot)
 static wmOperatorStatus lib_id_fake_user_toggle_exec(bContext *C, wmOperator *op)
 {
   PropertyPointerRNA pprop;
-  PointerRNA idptr = PointerRNA_NULL;
+  PointerRNA idptr = {};
 
   ui::context_active_but_prop_get_templateID(C, &pprop.ptr, &pprop.prop);
 
@@ -429,7 +429,7 @@ static wmOperatorStatus lib_id_fake_user_toggle_exec(bContext *C, wmOperator *op
     idptr = RNA_property_pointer_get(&pprop.ptr, pprop.prop);
   }
 
-  if ((pprop.prop == nullptr) || RNA_pointer_is_null(&idptr) || !RNA_struct_is_ID(idptr.type)) {
+  if ((pprop.prop == nullptr) || !idptr || !RNA_struct_is_ID(idptr.type)) {
     BKE_report(
         op->reports, RPT_ERROR, "Incorrect context for running data-block fake user toggling");
     return OPERATOR_CANCELLED;
@@ -479,7 +479,7 @@ static wmOperatorStatus lib_id_unlink_exec(bContext *C, wmOperator *op)
     idptr = RNA_property_pointer_get(&pprop.ptr, pprop.prop);
   }
 
-  if ((pprop.prop == nullptr) || RNA_pointer_is_null(&idptr) || !RNA_struct_is_ID(idptr.type)) {
+  if ((pprop.prop == nullptr) || !idptr || !RNA_struct_is_ID(idptr.type)) {
     BKE_report(
         op->reports, RPT_ERROR, "Incorrect context for running data-block fake user toggling");
     return OPERATOR_CANCELLED;

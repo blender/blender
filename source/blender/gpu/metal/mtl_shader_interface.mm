@@ -61,12 +61,13 @@ MTLShaderInterface::MTLShaderInterface(const char *name,
         ssbo_len_++;
         break;
       case ShaderCreateInfo::Resource::BindType::ACCELERATION_STRUCTURE:
-        BLI_assert_unreachable();
+        tlas_len_++;
         break;
     }
   }
 
-  int32_t input_tot_len = attr_len_ + ubo_len_ + uniform_len_ + ssbo_len_ + constant_len_;
+  int32_t input_tot_len = attr_len_ + ubo_len_ + uniform_len_ + ssbo_len_ + tlas_len_ +
+                          constant_len_;
   inputs_ = MEM_new_array_zeroed<ShaderInput>(input_tot_len, __func__);
   ShaderInput *input = inputs_;
 
@@ -133,6 +134,17 @@ MTLShaderInterface::MTLShaderInterface(const char *name,
       input->location = input->binding = res.slot;
       enabled_ssbo_mask_ |= (1 << input->binding);
       vertex_buffer_mask_ &= ~(1 << (input->binding + MTL_SSBO_SLOT_OFFSET));
+      input++;
+    }
+  }
+
+  /* Acceleration structures (top level). */
+  for (const ShaderCreateInfo::Resource &res : all_resources) {
+    if (res.bind_type == ShaderCreateInfo::Resource::BindType::ACCELERATION_STRUCTURE) {
+      copy_input_name(input, res.acceleration_structure.name, name_buffer_, name_buffer_offset);
+      input->location = input->binding = res.slot;
+      enabled_accel_mask_ |= (1 << input->binding);
+      vertex_buffer_mask_ &= ~(1 << (MTL_ACCELERATION_STRUCTURE_SLOT + res.slot));
       input++;
     }
   }

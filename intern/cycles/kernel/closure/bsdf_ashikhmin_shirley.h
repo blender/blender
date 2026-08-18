@@ -29,7 +29,7 @@ ccl_device int bsdf_ashikhmin_shirley_setup(ccl_private MicrofacetBsdf *bsdf)
 
   bsdf->fresnel_type = MicrofacetFresnel::NONE;
   bsdf->type = CLOSURE_BSDF_ASHIKHMIN_SHIRLEY_ID;
-  return SD_BSDF | SD_BSDF_HAS_EVAL;
+  return SR_BSDF | SR_BSDF_HAS_EVAL;
 }
 
 ccl_device void bsdf_ashikhmin_shirley_blur(ccl_private ShaderClosure *sc, const float roughness)

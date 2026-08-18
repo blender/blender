@@ -155,7 +155,7 @@ void OBJECT_OT_particle_system_remove(wmOperatorType *ot)
 static bool psys_poll(bContext *C)
 {
   PointerRNA ptr = CTX_data_pointer_get_type(C, "particle_system", RNA_ParticleSystem);
-  return (ptr.data != nullptr);
+  return ptr;
 }
 
 static wmOperatorStatus new_particle_settings_exec(bContext *C, wmOperator * /*op*/)

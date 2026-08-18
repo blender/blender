@@ -1218,7 +1218,7 @@ void blo_do_versions_250(FileData *fd, Library * /*lib*/, Main *bmain)
     /* anim viz changes */
     for (Object &ob : bmain->objects) {
       /* initialize object defaults */
-      animviz_settings_init(&ob.avs);
+      bke::animviz::settings_init(&ob.avs);
 
       /* if armature, copy settings for pose from armature data
        * performing initialization where appropriate
@@ -1262,7 +1262,7 @@ void blo_do_versions_250(FileData *fd, Library * /*lib*/, Main *bmain)
           avs->path_step = 1;
         }
         else {
-          animviz_settings_init(&ob.pose->avs);
+          bke::animviz::settings_init(&ob.pose->avs);
         }
       }
     }
@@ -2122,16 +2122,16 @@ void do_versions_after_linking_250(Main *bmain)
       if (adt != nullptr) {
         /* Fix actions' id-roots (i.e. if they come from a pre 2.57 .blend file). */
         if ((adt->action) && (adt->action->idroot == 0)) {
-          adt->action->idroot = GS(id->name);
+          adt->action->idroot = id->id_type();
         }
         if ((adt->tmpact) && (adt->tmpact->idroot == 0)) {
-          adt->tmpact->idroot = GS(id->name);
+          adt->tmpact->idroot = id->id_type();
         }
 
         for (NlaTrack &nla_track : adt->nla_tracks) {
           for (NlaStrip &nla_strip : nla_track.strips) {
             if ((nla_strip.act) && (nla_strip.act->idroot == 0)) {
-              nla_strip.act->idroot = GS(id->name);
+              nla_strip.act->idroot = id->id_type();
             }
           }
         }

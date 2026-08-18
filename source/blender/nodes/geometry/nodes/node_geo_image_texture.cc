@@ -85,20 +85,6 @@ class ImageFieldsFunction : public mf::MultiFunction {
     if (image_buffer_ == nullptr) {
       throw std::runtime_error("cannot acquire image buffer");
     }
-
-    if (image_buffer_->float_data() == nullptr) {
-      BLI_thread_lock(LOCK_IMAGE);
-      /* Isolate because we are holding a lock. */
-      if (!image_buffer_->float_data()) {
-        threading::isolate_task([&]() { IMB_float_from_byte(image_buffer_); });
-      }
-      BLI_thread_unlock(LOCK_IMAGE);
-    }
-
-    if (image_buffer_->float_data() == nullptr) {
-      BKE_image_release_ibuf(&image_, image_buffer_, image_lock_);
-      throw std::runtime_error("cannot get float buffer");
-    }
   }
 
   ~ImageFieldsFunction() override
@@ -129,12 +115,25 @@ class ImageFieldsFunction : public mf::MultiFunction {
     return m;
   }
 
-  static float4 image_pixel_lookup(const ImBuf &ibuf, const int px, const int py)
+  static float4 image_pixel_lookup(
+      const float *buffer, const int width, const int height, const int px, const int py)
   {
-    if (px < 0 || py < 0 || px >= ibuf.x || py >= ibuf.y) {
+    if (px < 0 || py < 0 || px >= width || py >= height) {
       return float4(0.0f, 0.0f, 0.0f, 0.0f);
     }
-    return ((const float4 *)ibuf.float_data())[size_t(px) + size_t(py) * size_t(ibuf.x)];
+    return ((const float4 *)buffer)[size_t(px) + size_t(py) * size_t(width)];
+  }
+
+  static float4 image_pixel_lookup(
+      const uint8_t *buffer, const int width, const int height, const int px, const int py)
+  {
+    if (px < 0 || py < 0 || px >= width || py >= height) {
+      return float4(0.0f, 0.0f, 0.0f, 0.0f);
+    }
+    float4 float_array;
+    const uint8_t *pixel_start = &buffer[(size_t(px) + size_t(py) * size_t(width)) * 4];
+    rgba_uchar_to_float(float_array, pixel_start);
+    return float_array;
   }
 
   static float frac(const float x, int *ix)
@@ -144,16 +143,16 @@ class ImageFieldsFunction : public mf::MultiFunction {
     return x - float(i);
   }
 
-  static float4 image_cubic_texture_lookup(const ImBuf &ibuf,
-                                           const float px,
-                                           const float py,
+  template<typename BufferT>
+  static float4 image_cubic_texture_lookup(const BufferT *buffer,
+                                           const int width,
+                                           const int height,
+                                           const float2 coord,
                                            const int extension)
   {
-    const int width = ibuf.x;
-    const int height = ibuf.y;
     int pix, piy, nix, niy;
-    const float tx = frac(px * float(width) - 0.5f, &pix);
-    const float ty = frac(py * float(height) - 0.5f, &piy);
+    const float tx = frac(coord.x * float(width) - 0.5f, &pix);
+    const float ty = frac(coord.y * float(height) - 0.5f, &piy);
     int ppix, ppiy, nnix, nniy;
 
     switch (extension) {
@@ -217,34 +216,34 @@ class ImageFieldsFunction : public mf::MultiFunction {
     v[2] = ((-0.5f * ty + 0.5f) * ty + 0.5f) * ty + (1.0f / 6.0f);
     v[3] = (1.0f / 6.0f) * ty * ty * ty;
 
-    return (v[0] * (u[0] * image_pixel_lookup(ibuf, xc[0], yc[0]) +
-                    u[1] * image_pixel_lookup(ibuf, xc[1], yc[0]) +
-                    u[2] * image_pixel_lookup(ibuf, xc[2], yc[0]) +
-                    u[3] * image_pixel_lookup(ibuf, xc[3], yc[0]))) +
-           (v[1] * (u[0] * image_pixel_lookup(ibuf, xc[0], yc[1]) +
-                    u[1] * image_pixel_lookup(ibuf, xc[1], yc[1]) +
-                    u[2] * image_pixel_lookup(ibuf, xc[2], yc[1]) +
-                    u[3] * image_pixel_lookup(ibuf, xc[3], yc[1]))) +
-           (v[2] * (u[0] * image_pixel_lookup(ibuf, xc[0], yc[2]) +
-                    u[1] * image_pixel_lookup(ibuf, xc[1], yc[2]) +
-                    u[2] * image_pixel_lookup(ibuf, xc[2], yc[2]) +
-                    u[3] * image_pixel_lookup(ibuf, xc[3], yc[2]))) +
-           (v[3] * (u[0] * image_pixel_lookup(ibuf, xc[0], yc[3]) +
-                    u[1] * image_pixel_lookup(ibuf, xc[1], yc[3]) +
-                    u[2] * image_pixel_lookup(ibuf, xc[2], yc[3]) +
-                    u[3] * image_pixel_lookup(ibuf, xc[3], yc[3])));
+    return (v[0] * (u[0] * image_pixel_lookup(buffer, width, height, xc[0], yc[0]) +
+                    u[1] * image_pixel_lookup(buffer, width, height, xc[1], yc[0]) +
+                    u[2] * image_pixel_lookup(buffer, width, height, xc[2], yc[0]) +
+                    u[3] * image_pixel_lookup(buffer, width, height, xc[3], yc[0]))) +
+           (v[1] * (u[0] * image_pixel_lookup(buffer, width, height, xc[0], yc[1]) +
+                    u[1] * image_pixel_lookup(buffer, width, height, xc[1], yc[1]) +
+                    u[2] * image_pixel_lookup(buffer, width, height, xc[2], yc[1]) +
+                    u[3] * image_pixel_lookup(buffer, width, height, xc[3], yc[1]))) +
+           (v[2] * (u[0] * image_pixel_lookup(buffer, width, height, xc[0], yc[2]) +
+                    u[1] * image_pixel_lookup(buffer, width, height, xc[1], yc[2]) +
+                    u[2] * image_pixel_lookup(buffer, width, height, xc[2], yc[2]) +
+                    u[3] * image_pixel_lookup(buffer, width, height, xc[3], yc[2]))) +
+           (v[3] * (u[0] * image_pixel_lookup(buffer, width, height, xc[0], yc[3]) +
+                    u[1] * image_pixel_lookup(buffer, width, height, xc[1], yc[3]) +
+                    u[2] * image_pixel_lookup(buffer, width, height, xc[2], yc[3]) +
+                    u[3] * image_pixel_lookup(buffer, width, height, xc[3], yc[3])));
   }
 
-  static float4 image_linear_texture_lookup(const ImBuf &ibuf,
-                                            const float px,
-                                            const float py,
+  template<typename BufferT>
+  static float4 image_linear_texture_lookup(const BufferT *buffer,
+                                            const int width,
+                                            const int height,
+                                            const float2 coord,
                                             const int8_t extension)
   {
-    const int width = ibuf.x;
-    const int height = ibuf.y;
     int pix, piy, nix, niy;
-    const float nfx = frac(px * float(width) - 0.5f, &pix);
-    const float nfy = frac(py * float(height) - 0.5f, &piy);
+    const float nfx = frac(coord.x * float(width) - 0.5f, &pix);
+    const float nfy = frac(coord.y * float(height) - 0.5f, &piy);
 
     switch (extension) {
       case SHD_IMAGE_EXTENSION_CLIP: {
@@ -277,28 +276,28 @@ class ImageFieldsFunction : public mf::MultiFunction {
     const float ptx = 1.0f - nfx;
     const float pty = 1.0f - nfy;
 
-    return image_pixel_lookup(ibuf, pix, piy) * ptx * pty +
-           image_pixel_lookup(ibuf, nix, piy) * nfx * pty +
-           image_pixel_lookup(ibuf, pix, niy) * ptx * nfy +
-           image_pixel_lookup(ibuf, nix, niy) * nfx * nfy;
+    return image_pixel_lookup(buffer, width, height, pix, piy) * ptx * pty +
+           image_pixel_lookup(buffer, width, height, nix, piy) * nfx * pty +
+           image_pixel_lookup(buffer, width, height, pix, niy) * ptx * nfy +
+           image_pixel_lookup(buffer, width, height, nix, niy) * nfx * nfy;
   }
 
-  static float4 image_closest_texture_lookup(const ImBuf &ibuf,
-                                             const float px,
-                                             const float py,
+  template<typename BufferT>
+  static float4 image_closest_texture_lookup(const BufferT *buffer,
+                                             const int width,
+                                             const int height,
+                                             const float2 coord,
                                              const int extension)
   {
-    const int width = ibuf.x;
-    const int height = ibuf.y;
     int ix, iy;
-    const float tx = frac(px * float(width), &ix);
-    const float ty = frac(py * float(height), &iy);
+    const float tx = frac(coord.x * float(width), &ix);
+    const float ty = frac(coord.y * float(height), &iy);
 
     switch (extension) {
       case SHD_IMAGE_EXTENSION_REPEAT: {
         ix = wrap_periodic(ix, width);
         iy = wrap_periodic(iy, height);
-        return image_pixel_lookup(ibuf, ix, iy);
+        return image_pixel_lookup(buffer, width, height, ix, iy);
       }
       case SHD_IMAGE_EXTENSION_CLIP: {
         if (tx < 0.0f || ty < 0.0f || tx > 1.0f || ty > 1.0f) {
@@ -312,15 +311,47 @@ class ImageFieldsFunction : public mf::MultiFunction {
       case SHD_IMAGE_EXTENSION_EXTEND: {
         ix = wrap_clamp(ix, width);
         iy = wrap_clamp(iy, height);
-        return image_pixel_lookup(ibuf, ix, iy);
+        return image_pixel_lookup(buffer, width, height, ix, iy);
       }
       case SHD_IMAGE_EXTENSION_MIRROR: {
         ix = wrap_mirror(ix, width);
         iy = wrap_mirror(iy, height);
-        return image_pixel_lookup(ibuf, ix, iy);
+        return image_pixel_lookup(buffer, width, height, ix, iy);
       }
       default:
         return float4(0.0f, 0.0f, 0.0f, 0.0f);
+    }
+  }
+
+  template<typename BufferT>
+  void sample_buffer(const BufferT *buffer,
+                     const IndexMask &mask,
+                     const VArray<float3> &vectors,
+                     int width,
+                     int height,
+                     MutableSpan<float4> &color_data) const
+  {
+    /* Sample image texture. */
+    switch (interpolation_) {
+      case SHD_INTERP_LINEAR:
+        mask.foreach_index([&](const int64_t i) {
+          const float3 p = vectors[i];
+          color_data[i] = image_linear_texture_lookup(buffer, width, height, p.xy(), extension_);
+        });
+        break;
+      case SHD_INTERP_CLOSEST:
+        mask.foreach_index([&](const int64_t i) {
+          const float3 p = vectors[i];
+          color_data[i] = image_closest_texture_lookup(buffer, width, height, p.xy(), extension_);
+        });
+        break;
+      case SHD_INTERP_CUBIC:
+      case SHD_INTERP_SMART:
+        mask.foreach_index([&](const int64_t i) {
+          const float3 p = vectors[i];
+          color_data[i] = image_cubic_texture_lookup(buffer, width, height, p.xy(), extension_);
+        });
+        break;
     }
   }
 
@@ -333,27 +364,17 @@ class ImageFieldsFunction : public mf::MultiFunction {
 
     MutableSpan<float4> color_data{reinterpret_cast<float4 *>(r_color.data()), r_color.size()};
 
-    /* Sample image texture. */
-    switch (interpolation_) {
-      case SHD_INTERP_LINEAR:
-        mask.foreach_index([&](const int64_t i) {
-          const float3 p = vectors[i];
-          color_data[i] = image_linear_texture_lookup(*image_buffer_, p.x, p.y, extension_);
-        });
-        break;
-      case SHD_INTERP_CLOSEST:
-        mask.foreach_index([&](const int64_t i) {
-          const float3 p = vectors[i];
-          color_data[i] = image_closest_texture_lookup(*image_buffer_, p.x, p.y, extension_);
-        });
-        break;
-      case SHD_INTERP_CUBIC:
-      case SHD_INTERP_SMART:
-        mask.foreach_index([&](const int64_t i) {
-          const float3 p = vectors[i];
-          color_data[i] = image_cubic_texture_lookup(*image_buffer_, p.x, p.y, extension_);
-        });
-        break;
+    const int width = image_buffer_->x;
+    const int height = image_buffer_->y;
+
+    if (image_buffer_->float_data()) {
+      sample_buffer(image_buffer_->float_data(), mask, vectors, width, height, color_data);
+    }
+    else if (image_buffer_->byte_data()) {
+      sample_buffer(image_buffer_->byte_data(), mask, vectors, width, height, color_data);
+    }
+    else {
+      BLI_assert_unreachable();
     }
 
     int alpha_mode = image_.alpha_mode;
