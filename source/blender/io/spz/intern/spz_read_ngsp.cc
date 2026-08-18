@@ -222,7 +222,7 @@ PointCloud *read_spz_ngsp_file(FILE *file, ReportList *reports)
     return nullptr;
   }
   if (header.version != 4) {
-    BKE_reportf(reports, RPT_ERROR, "SPZ Read: Unsupported SPZ version %d", header.version);
+    BKE_reportf(reports, RPT_ERROR, "SPZ Read: Unsupported SPZ version %u", header.version);
     return nullptr;
   }
 
@@ -231,7 +231,7 @@ PointCloud *read_spz_ngsp_file(FILE *file, ReportList *reports)
   CLOG_DEBUG(&LOG, "SPZ header fractional_bits: %d", int(header.fractional_bits));
   CLOG_DEBUG(&LOG, "SPZ header flags: %d", int(header.flags));
   CLOG_DEBUG(&LOG, "SPZ header num_streams: %d", int(header.num_streams));
-  CLOG_DEBUG(&LOG, "SPZ header toc_byte_offset: %u", int(header.toc_byte_offset));
+  CLOG_DEBUG(&LOG, "SPZ header toc_byte_offset: %u", header.toc_byte_offset);
 
   if (header.toc_byte_offset < sizeof(NgspFileHeader)) {
     BKE_report(

@@ -153,11 +153,11 @@ PointCloud *read_spz_gzip_compressed_file(FILE *file, ReportList *reports)
     return nullptr;
   }
   if (header.version != 2 && header.version != 3) {
-    BKE_reportf(reports, RPT_ERROR, "SPZ Read: Unsupported SPZ version %d", header.version);
+    BKE_reportf(reports, RPT_ERROR, "SPZ Read: Unsupported SPZ version %u", header.version);
     return nullptr;
   }
 
-  CLOG_DEBUG(&LOG, "SPZ header num_points: %d", header.num_points);
+  CLOG_DEBUG(&LOG, "SPZ header num_points: %u", header.num_points);
   CLOG_DEBUG(&LOG, "SPZ header sh_degree: %d", int(header.sh_degree));
   CLOG_DEBUG(&LOG, "SPZ header fractional_bits: %d", int(header.fractional_bits));
   CLOG_DEBUG(&LOG, "SPZ header flags: %d", header.flags);
