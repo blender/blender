@@ -200,5 +200,6 @@ enum {
 #define BLENDER_HISTORY_FILE "recent-files.txt"
 #define BLENDER_RECENT_SEARCHES_FILE "recent-searches.txt"
 #define BLENDER_PLATFORM_SUPPORT_FILE "platform_support.txt"
+#define BLENDER_RECENTS_FILE "recents.toml"
 
 }  // namespace blender

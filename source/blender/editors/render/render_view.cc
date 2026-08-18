@@ -19,6 +19,7 @@
 #include "BKE_context.hh"
 #include "BKE_global.hh"
 #include "BKE_image.hh"
+#include "BKE_recents.hh"
 #include "BKE_report.hh"
 #include "BKE_scene.hh"
 #include "BKE_screen.hh"
@@ -153,13 +154,16 @@ ScrArea *render_view_open(bContext *C, int mx, int my, ReportList *reports)
     sizey = std::max(sizey, 256);
 
     WM_window_dpi_set_userdef(CTX_wm_window(C));
-    rctf *stored_bounds = &U.stored_bounds.image;
-    const bool bounds_valid = (stored_bounds && (BLI_rctf_size_x(stored_bounds) > 150.0f) &&
-                               (BLI_rctf_size_y(stored_bounds) > 100.0f));
+
+    const std::string key = "IMAGE_EDITOR";
+    const auto bounds = recents::Section("temp.window.dimensions").get<std::vector<float>>(key);
+
+    const bool bounds_valid = (bounds.size() == 4 && (bounds[1] - bounds[0] > 150.0f) &&
+                               (bounds[3] - bounds[2] > 100.0f));
     const bool mm_placement = WM_capabilities_flag() & WM_CAPABILITY_MULTIMONITOR_PLACEMENT;
     if (bounds_valid && mm_placement) {
-      mx = int(stored_bounds->xmin * UI_SCALE_FAC);
-      my = int(stored_bounds->ymin * UI_SCALE_FAC);
+      mx = int(bounds[0] * UI_SCALE_FAC);
+      my = int(bounds[2] * UI_SCALE_FAC);
     }
 
     const rcti window_rect = {
@@ -170,20 +174,23 @@ ScrArea *render_view_open(bContext *C, int mx, int my, ReportList *reports)
     };
 
     /* changes context! */
-    if (WM_window_open(C,
-                       IFACE_("Blender Render"),
-                       &window_rect,
-                       SPACE_IMAGE,
-                       true,
-                       false,
-                       true,
-                       WIN_ALIGN_ABSOLUTE,
-                       nullptr,
-                       nullptr) == nullptr)
-    {
+    wmWindow *win = WM_window_open(C,
+                                   IFACE_("Blender Render"),
+                                   &window_rect,
+                                   SPACE_IMAGE,
+                                   true,
+                                   false,
+                                   true,
+                                   WIN_ALIGN_ABSOLUTE,
+                                   nullptr,
+                                   nullptr);
+
+    if (win == nullptr) {
       BKE_report(reports, RPT_ERROR, "Failed to open window!");
       return nullptr;
     }
+
+    win->runtime->recents_storage_key = key;
 
     area = CTX_wm_area(C);
     if (area->spacedata.is_single() == false) {
