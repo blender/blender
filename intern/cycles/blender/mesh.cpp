@@ -39,7 +39,59 @@ using blender::Attribute;
 
 CCL_NAMESPACE_BEGIN
 
+/* Compute corner normals for motion blur with the velocity attribute, */
+static void attr_create_motion_corner_normals(const blender::Mesh &b_mesh,
+                                              const blender::Span<blender::float3> positions,
+                                              packed_normal *N)
+{
+  const blender::Span<int> corner_verts = b_mesh.corner_verts();
+  blender::Array<blender::float3> motion_corner_normals(corner_verts.size());
+
+  const blender::bke::AttributeAccessor b_attributes = b_mesh.attributes();
+  const blender::bke::GAttributeReader custom_normal = b_attributes.lookup("custom_normal");
+
+  if (custom_normal && custom_normal.varray.type().is<blender::float3>()) {
+    /* Existing custom normals take priority, no motion then. */
+    const blender::Span<blender::float3> corner_normals = b_mesh.corner_normals();
+    std::copy_n(corner_normals.data(), corner_normals.size(), motion_corner_normals.data());
+  }
+  else {
+    const blender::OffsetIndices faces = b_mesh.faces();
+    blender::Array<blender::float3> face_normals(faces.size());
+    blender::bke::mesh::normals_calc_faces(positions, faces, corner_verts, face_normals);
+
+    const blender::VArraySpan sharp_edges = *b_attributes.lookup<bool>(
+        "sharp_edge", blender::bke::AttrDomain::Edge);
+    const blender::VArraySpan sharp_faces = *b_attributes.lookup<bool>(
+        "sharp_face", blender::bke::AttrDomain::Face);
+
+    blender::bke::mesh::normals_calc_corners(
+        positions,
+        faces,
+        corner_verts,
+        b_mesh.corner_edges(),
+        b_mesh.vert_to_face_map(),
+        face_normals,
+        sharp_edges,
+        sharp_faces,
+        blender::VArraySpan<blender::short2>(custom_normal.varray.typed<blender::short2>()),
+        nullptr,
+        motion_corner_normals);
+  }
+
+  const blender::Span<blender::int3> corner_tris = b_mesh.corner_tris();
+
+  for (const int i : corner_tris.index_range()) {
+    const blender::int3 &tri = corner_tris[i];
+    for (int j = 0; j < 3; j++) {
+      const blender::float3 &normal = motion_corner_normals[tri[j]];
+      N[i * 3 + j] = packed_normal(make_float3(normal[0], normal[1], normal[2]));
+    }
+  }
+}
+
 static void attr_create_motion_from_velocity(Mesh *mesh,
+                                             const blender::Mesh &b_mesh,
                                              const blender::Span<blender::float3> b_attr,
                                              const float motion_scale)
 {
@@ -57,6 +109,11 @@ static void attr_create_motion_from_velocity(Mesh *mesh,
   attr_P->add_motion(mesh);
   const packed_float3 *P = mesh->get_position();
 
+  Attribute *attr_cN = attributes.find(ATTR_STD_CORNER_NORMAL);
+  if (attr_cN) {
+    attr_cN->add_motion(mesh);
+  }
+
   /* Only export previous and next frame, we don't have any in between data. */
   const float motion_times[2] = {-1.0f, 1.0f};
   for (int step = 1; step <= 2; step++) {
@@ -65,6 +122,13 @@ static void attr_create_motion_from_velocity(Mesh *mesh,
 
     for (int i = 0; i < numverts; i++) {
       mP[i] = float3(P[i]) + make_float3(b_attr[i][0], b_attr[i][1], b_attr[i][2]) * relative_time;
+    }
+
+    if (attr_cN) {
+      const blender::Span<blender::float3> motion_positions(
+          reinterpret_cast<const blender::float3 *>(mP), numverts);
+      attr_create_motion_corner_normals(
+          b_mesh, motion_positions, attr_cN->data_for_write<packed_normal>(step));
     }
   }
 }
@@ -113,7 +177,7 @@ static void attr_create_generic(Scene *scene,
     if (need_motion && name == u_velocity) {
       const blender::VArraySpan b_attribute = *iter.get<blender::float3>(
           blender::bke::AttrDomain::Point);
-      attr_create_motion_from_velocity(mesh, b_attribute, motion_scale);
+      attr_create_motion_from_velocity(mesh, b_mesh, b_attribute, motion_scale);
     }
 
     if (!(mesh->need_attribute(scene, name) ||
