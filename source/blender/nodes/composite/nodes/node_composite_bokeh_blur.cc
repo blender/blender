@@ -204,7 +204,8 @@ class BokehBlurOperation : public NodeOperation {
     input.bind_as_texture(shader, "input_tx");
 
     const Result &input_weights = this->get_input("Bokeh");
-    input_weights.bind_as_texture(shader, "weights_tx");
+    gpu::Texture *input_weights_texture = input_weights.bind_as_texture_or_single_value(
+        shader, "weights_tx");
 
     size.bind_as_texture(shader, "size_tx");
 
@@ -221,7 +222,7 @@ class BokehBlurOperation : public NodeOperation {
     GPU_shader_unbind();
     output_image.unbind_as_image();
     input.unbind_as_texture();
-    input_weights.unbind_as_texture();
+    input_weights.unbind_as_texture_or_single_value(input_weights_texture);
     size.unbind_as_texture();
     input_mask.unbind_as_texture_or_single_value(mask_texture);
   }
