@@ -646,6 +646,12 @@ bAction *ANIM_active_action_from_area(const Main &bmain,
                                       const ScrArea *area,
                                       ID **r_action_user = nullptr);
 
+/**
+ * Return the markers relevant for the given context which is either the scene markers or the
+ * action markers when they are shown.
+ */
+ListBaseT<TimeMarker> *ANIM_marker_list_from_context(const bContext &C);
+
 /* ************************************************ */
 /* ANIMATION CHANNELS LIST */
 /* anim_channels_*.cc */
