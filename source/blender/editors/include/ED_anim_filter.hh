@@ -13,12 +13,58 @@
 
 #include "DNA_ID_enums.h"
 
+#include "RNA_path.hh"
+
 namespace blender {
 
 struct bContext;
 struct FCurve;
+struct GreasePencil;
 struct GreasePencilLayer;
 struct PointerRNA;
+
+/**
+ * Stores data that can resolve to any PointerRNA.
+ * Keeping this out of the ed::animfilter namespace because it likely doesn't belong here.
+ */
+struct WeakRNAPointer {
+  ID_Type type;
+  uint32_t session_uid;
+  /* Only used as fallback in case the session_uid has changed which happens on file load. Has to
+   * be a copy of the name so we don't access memory of the original struct. */
+  std::string id_name;
+  /* `path` can be empty when pointing at IDs
+   * Could this use ParsedRNAPath? So far there seems to be no API to actually use
+   * this anywhere. */
+  std::string path = "";
+
+  /* Default constructor to initialize as null pointer. */
+  WeakRNAPointer() = default;
+  WeakRNAPointer(const PointerRNA &ptr);
+  bool operator==(const WeakRNAPointer &other) const
+  {
+    /* Not comparing  */
+    return this->type == other.type && this->session_uid == other.session_uid &&
+           this->path == other.path;
+  }
+
+  int64_t hash() const
+  {
+    return get_default_hash(this->type, this->session_uid, this->id_name, this->path);
+  }
+
+  bool is_nullptr() const
+  {
+    return this->id_name.empty();
+  }
+
+  /**
+   * Return the data this ptr represents. This can be expensive and should only be done sparingly.
+   *
+   * \warning The returned PointerRNA may not have data if the underlying data no longer exists.
+   */
+  PointerRNA dereference(Main &bmain) const;
+};
 
 namespace ed::animfilter {
 
@@ -43,7 +89,7 @@ enum class ChannelTagType {
 class ChannelTag {
   ChannelTagType tag_type_;
   std::string label_;
-  PointerRNA source_data_;
+  WeakRNAPointer source_data_;
 
  public:
   ChannelTag(ChannelTagType type, StringRef label, const PointerRNA &source_data);
@@ -61,14 +107,14 @@ class ChannelTag {
   {
     return this->label_;
   }
-  const PointerRNA &source_data() const
+  const WeakRNAPointer &source_data() const
   {
     return this->source_data_;
   }
 
   int64_t hash() const
   {
-    return get_default_hash(this->tag_type_, this->label_, this->source_data_.data);
+    return get_default_hash(this->tag_type_, this->label_, this->source_data_);
   }
 };
 
@@ -102,12 +148,18 @@ class AnimationChannel {
  protected:
   ChannelType type_;
   std::string label_;
-  PointerRNA source_;
-  AnimationChannelFlags flags_ = AnimationChannelFlags(ANIM_CHANNEL_DIRTY | SUMMARY_EXPANDED);
+  WeakRNAPointer source_;
+  AnimationChannelFlags flags_ = ANIM_CHANNEL_DIRTY | SUMMARY_EXPANDED;
   Vector<float> datapoints_;
 
  public:
   AnimationChannel(ChannelType type, StringRef label);
+
+  int64_t hash() const
+  {
+    /* TODO maybe special function for DataChannel to also hash tags? */
+    return get_default_hash(this->type_, this->source_);
+  }
 
   ChannelType type() const
   {
@@ -123,14 +175,14 @@ class AnimationChannel {
   virtual void gather_channeldata() = 0;
 };
 
-/* This is the class responsible for generating the tree structure. We only track children, which
- * allows us to generate multiple summary trees for the same data channels. */
+/* This is the class responsible for generating the tree structure. Each channel only tracks its
+ * children, which allows us to generate multiple summary trees for the same data channels. */
 class SummaryChannel : public AnimationChannel {
   Vector<AnimationChannel *> children_;
 
  public:
   SummaryChannel(StringRef label);
-  SummaryChannel(StringRef label, const PointerRNA &ptr);
+  SummaryChannel(StringRef label, const WeakRNAPointer &ptr);
   /**
    * The pointer will always be valid.
    */
@@ -163,8 +215,8 @@ class DataChannel : public AnimationChannel {
   DataChannelFlags flags_;
 
  public:
-  DataChannel(FCurve &fcurve);
-  DataChannel(GreasePencilLayer &gp_layer);
+  DataChannel(animrig::Action &containing_action, FCurve &fcurve);
+  DataChannel(GreasePencil &containing_gp, GreasePencilLayer &gp_layer);
   bool operator==(const DataChannel &other) const
   {
     /* TODO compare data instead of pointers. */
@@ -174,12 +226,6 @@ class DataChannel : public AnimationChannel {
   DataChannelType source_type() const
   {
     return this->source_type_;
-  }
-
-  int64_t hash() const
-  {
-    /* TODO hash tags too. */
-    return get_default_hash(this->type_, this->source_.data);
   }
 
   /**
@@ -231,7 +277,7 @@ class SummaryTree {
     }
   }
 
-  SummaryChannel &allocate_summary(StringRef label, const PointerRNA *ptr);
+  SummaryChannel &allocate_summary(StringRef label, const WeakRNAPointer *ptr);
   SummaryChannel *root() const;
 
   int summary_count() const
@@ -256,6 +302,7 @@ SummaryTree group_channels(MutableSpan<DataChannel> channels,
 
 /**
  * Draw the whole tree starting at the root.
+ * TODO maybe the drawing code should not be in this header?
  */
 void draw_channel_tree(SummaryChannel &root, View2D &v2d);
 

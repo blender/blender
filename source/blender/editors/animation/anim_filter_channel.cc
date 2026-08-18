@@ -7,9 +7,58 @@
 #include "RNA_access.hh"
 #include "RNA_prototypes.hh"
 
+#include "BKE_global.hh"
 #include "BKE_grease_pencil.hh"
+#include "BKE_lib_id.hh"
 
 #include "ED_anim_filter.hh"
+
+#include "ANIM_action.hh"
+
+namespace blender {
+
+WeakRNAPointer::WeakRNAPointer(const PointerRNA &ptr)
+    : type(ptr.owner_id->id_type()),
+      session_uid(ptr.owner_id->session_uid),
+      id_name(ptr.owner_id->name + 2)
+{
+  BLI_assert(ptr.owner_id != nullptr);
+  std::optional<std::string> resolved_path = RNA_path_from_ID_to_struct(&ptr);
+  if (!resolved_path) {
+    /* Happens if the pointer is pointing to an ID. */
+    return;
+  }
+  path = std::move(resolved_path.value());
+}
+
+PointerRNA WeakRNAPointer::dereference(Main &bmain) const
+{
+  if (this->is_nullptr()) {
+    return {};
+  }
+
+  /* TODO I think for linking and lib overrides we have to be smarter about which Main to use? */
+  ID *id = BKE_libblock_find_session_uid(&bmain, this->type, this->session_uid);
+  if (!id) {
+    /* Check by name if the session_uid doesn't return a result. */
+    id = BKE_libblock_find_name(&bmain, this->type, this->id_name.data());
+  }
+
+  if (!id) {
+    return {};
+  }
+  PointerRNA id_ptr = RNA_id_pointer_create(id);
+  if (this->path.empty()) {
+    return id_ptr;
+  }
+
+  PointerRNA resolved_ptr;
+  PropertyRNA *resolved_prop;
+  RNA_path_resolve(&id_ptr, this->path.data(), &resolved_ptr, &resolved_prop);
+  return resolved_ptr;
+}
+
+}  // namespace blender
 
 namespace blender::ed::animfilter {
 
@@ -39,7 +88,7 @@ SummaryChannel::SummaryChannel(const StringRef label)
 {
 }
 
-SummaryChannel::SummaryChannel(const StringRef label, const PointerRNA &ptr)
+SummaryChannel::SummaryChannel(const StringRef label, const WeakRNAPointer &ptr)
     : AnimationChannel(ChannelType::SUMMARY, label)
 {
   this->source_ = ptr;
@@ -73,15 +122,16 @@ void SummaryChannel::remove_child(AnimationChannel &child)
   this->children_.remove(index);
 }
 
-DataChannel::DataChannel(FCurve &fcurve) : AnimationChannel(ChannelType::DATA, fcurve.rna_path())
+DataChannel::DataChannel(animrig::Action &containing_action, FCurve &fcurve)
+    : AnimationChannel(ChannelType::DATA, fcurve.rna_path())
 {
-  this->source_ = RNA_pointer_create_discrete(nullptr, RNA_FCurve, &fcurve);
+  this->source_ = RNA_pointer_create_discrete(&containing_action.id, RNA_FCurve, &fcurve);
 }
 
-DataChannel::DataChannel(GreasePencilLayer &gp_layer)
+DataChannel::DataChannel(GreasePencil &containing_gp, GreasePencilLayer &gp_layer)
     : AnimationChannel(ChannelType::DATA, "todo gp layer name")
 {
-  this->source_ = RNA_pointer_create_discrete(nullptr, RNA_GreasePencilLayer, &gp_layer);
+  this->source_ = RNA_pointer_create_discrete(&containing_gp.id, RNA_GreasePencilLayer, &gp_layer);
 }
 
 void DataChannel::set_tags(const ChannelTagStack &tags)
@@ -102,14 +152,26 @@ ChannelTag *DataChannel::get_tag(ChannelTagType tag_type)
 
 template<> FCurve *DataChannel::get_source<FCurve *>() const
 {
+  /* TODO Remove access to GMAIN!!! */
+  Main *bmain = G.main;
   BLI_assert(this->source_type_ == DataChannelType::FCURVE);
-  return static_cast<FCurve *>(this->source_.data);
+  PointerRNA fcu_ptr = this->source_.dereference(*bmain);
+  if (!fcu_ptr) {
+    return nullptr;
+  }
+  return static_cast<FCurve *>(fcu_ptr.data);
 }
 
 template<> GreasePencilLayer *DataChannel::get_source<GreasePencilLayer *>() const
 {
+  /* TODO Remove access to GMAIN!!! */
+  Main *bmain = G.main;
   BLI_assert(this->source_type_ == DataChannelType::GREASE_PENCIL);
-  return static_cast<GreasePencilLayer *>(this->source_.data);
+  PointerRNA gp_ptr = this->source_.dereference(*bmain);
+  if (!gp_ptr) {
+    return nullptr;
+  }
+  return static_cast<GreasePencilLayer *>(gp_ptr.data);
 }
 
 void DataChannel::gather_channeldata()
@@ -117,7 +179,7 @@ void DataChannel::gather_channeldata()
   switch (this->source_type_) {
     case DataChannelType::FCURVE: {
       const FCurve *fcurve = this->get_source<FCurve *>();
-      if (!fcurve->bezt) {
+      if (!fcurve || !fcurve->bezt) {
         /* Sampled FCurves cannot be edited and don't show up in the dopesheet. */
         return;
       }
@@ -129,7 +191,11 @@ void DataChannel::gather_channeldata()
     }
 
     case DataChannelType::GREASE_PENCIL: {
-      bke::greasepencil::Layer &layer = this->get_source<GreasePencilLayer *>()->wrap();
+      GreasePencilLayer *gp_layer = this->get_source<GreasePencilLayer *>();
+      if (!gp_layer) {
+        return;
+      }
+      bke::greasepencil::Layer &layer = gp_layer->wrap();
       for (int frame : layer.frames().keys()) {
         this->datapoints_.append(float(frame));
       }

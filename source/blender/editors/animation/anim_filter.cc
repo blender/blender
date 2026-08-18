@@ -4121,12 +4121,13 @@ size_t ANIM_animdata_filter(bAnimContext *ac,
 }
 
 /* ************************************************************ */
+
 namespace ed::animfilter {
 
-SummaryChannel &SummaryTree::allocate_summary(const StringRef label, const PointerRNA *ptr)
+SummaryChannel &SummaryTree::allocate_summary(const StringRef label, const WeakRNAPointer *ptr)
 {
-  /* We have to heap allocate to get stable pointers to each summary channel. Those are used to
-   * point at children. */
+  /* We have to heap allocate to get stable pointers to each summary channel. Those pointers are
+   * stored in SummaryChannel::children_ to define the tree structure.  */
   SummaryChannel *new_summary;
   if (ptr) {
     new_summary = MEM_new<SummaryChannel>(__func__, label, *ptr);
