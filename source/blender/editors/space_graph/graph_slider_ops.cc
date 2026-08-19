@@ -606,7 +606,7 @@ void GRAPH_OT_decimate(wmOperatorType *ot)
   ot->poll = graphop_editable_keyframes_poll;
 
   /* Flags */
-  ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO;
+  ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO | OPTYPE_BLOCKING | OPTYPE_GRAB_CURSOR_X;
 
   /* Properties */
   RNA_def_enum(ot->srna,
