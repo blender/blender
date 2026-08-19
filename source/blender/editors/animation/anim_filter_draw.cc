@@ -22,7 +22,7 @@ static void draw_channel(const bContext &C,
                          const int level,
                          const float row_top)
 {
-  const bool is_summary = anim_channel.type() == ChannelType::SUMMARY;
+  const bool is_summary = anim_channel.type() == DNAChannelType::SUMMARY;
   uchar col[4];
   /* TODO color based on selection state. */
   ui::theme::get_color_4ubv(TH_TEXT, col);
@@ -60,7 +60,7 @@ static float draw_channel_tree_recurse(const bContext &C,
   draw_channel(C, anim_channel, level, row_top);
   row_top -= channel_step;
 
-  if (anim_channel.type() == ChannelType::SUMMARY) {
+  if (anim_channel.type() == DNAChannelType::SUMMARY) {
     SummaryChannel &summary = reinterpret_cast<SummaryChannel &>(anim_channel);
     for (AnimationChannel *child : summary.children()) {
       row_top = draw_channel_tree_recurse(C, *child, level + 1, row_top, channel_step);

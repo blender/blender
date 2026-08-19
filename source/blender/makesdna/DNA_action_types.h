@@ -1134,12 +1134,39 @@ struct bAction {
 /* ************************************************ */
 /* Action/Dope-sheet Editor */
 
+/* Ugly prefixes due to lack of namespaces */
+
+enum class DNAChannelType : int8_t {
+  DATA,
+  SUMMARY,
+};
+
+enum AnimationChannelFlags : int8_t {
+  ANIM_CHANNEL_DIRTY = 1 << 0,
+  SUMMARY_EXPANDED = 1 << 1,
+};
+ENUM_OPERATORS(AnimationChannelFlags);
+
+/**
+ * UI element for animation data. Only used for serializing. During runtime
+ * blender::ed::animfilter::AnimationChannel should be used instead.
+ */
+struct DNAAnimationChannel {
+  /* We can write the actual pointer to disk because we can guarantee it won't become dangly
+   * between write and read. That assumes that it is valid at the time of writing. */
+  void *source_ = nullptr;
+  char *label_;
+  DNAChannelType type_;
+  AnimationChannelFlags flags_ = ANIM_CHANNEL_DIRTY | SUMMARY_EXPANDED;
+  char _pad[6];
+};
+
 /** Storage for Dope-sheet/Grease-Pencil Editor data. */
 struct bDopeSheet {
   /** Currently ID_SCE (for Dope-sheet), and ID_SC (for Grease Pencil). */
   ID *source = nullptr;
   /* Array of pinned channels */
-  struct AnimationChannel *pins = nullptr;
+  struct DNAAnimationChannel *pins = nullptr;
   int pins_len = 0;
   char _pad[4];
 
@@ -1159,8 +1186,11 @@ struct bDopeSheet {
 };
 
 struct SpaceAction_Runtime {
+  /* Array of currently buffered channels. */
+  struct DNAAnimationChannel *channels;
+  int channels_len;
   eSAction_Runtime_Flag flag = {};
-  char _pad0[7] = {};
+  char _pad0[3] = {};
 };
 
 struct SpaceActionOverlays {
@@ -1205,7 +1235,7 @@ struct SpaceAction {
 
   SpaceActionOverlays overlays;
 
-  SpaceAction_Runtime runtime;
+  SpaceAction_Runtime *runtime;
 };
 
 /* ************************************************ */

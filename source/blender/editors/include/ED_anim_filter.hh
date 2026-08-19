@@ -68,11 +68,6 @@ struct WeakRNAPointer {
 
 namespace ed::animfilter {
 
-enum class ChannelType {
-  DATA,
-  SUMMARY,
-};
-
 enum class ChannelTagType {
   FCURVE_GROUP,
   ACTION_STRIP,
@@ -138,30 +133,24 @@ class ChannelTagStack {
   };
 };
 
-enum AnimationChannelFlags : int8_t {
-  ANIM_CHANNEL_DIRTY = 1 << 0,
-  SUMMARY_EXPANDED = 1 << 1,
-};
-ENUM_OPERATORS(AnimationChannelFlags);
-
-class AnimationChannel {
+class AnimationChannel : public DNAAnimationChannel {
  protected:
-  ChannelType type_;
-  std::string label_;
-  WeakRNAPointer source_;
-  AnimationChannelFlags flags_ = ANIM_CHANNEL_DIRTY | SUMMARY_EXPANDED;
+  /* For source data lookups during runtime where the data may be removed at any moment. */
+  WeakRNAPointer weak_source_;
+  /* Datapoints is not declared in the dna struct since it can just be calculated at runtime. */
   Vector<float> datapoints_;
 
  public:
-  AnimationChannel(ChannelType type, StringRef label);
+  AnimationChannel(DNAChannelType type, StringRef label);
+  ~AnimationChannel();
 
   int64_t hash() const
   {
     /* TODO maybe special function for DataChannel to also hash tags? */
-    return get_default_hash(this->type_, this->source_);
+    return get_default_hash(this->type_, this->weak_source_);
   }
 
-  ChannelType type() const
+  DNAChannelType type() const
   {
     return this->type_;
   }
@@ -248,7 +237,7 @@ struct CollectionFilters {
 
   /* Limit the returned data to only channels of the given type.
    * If empty, all channel types are returned. */
-  Set<ChannelType> channel_type_whitelist;
+  Set<DNAChannelType> channel_type_whitelist;
   /* Any id types put here will be ignored in the channel collection process. */
   Set<ID_Type> id_type_blacklist;
 };

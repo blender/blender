@@ -2664,7 +2664,7 @@ static void rna_SpaceDopeSheetEditor_mode_update(bContext *C, PointerRNA *ptr)
   }
 
   /* recalculate extents of channel list */
-  saction->runtime.flag |= SACTION_RUNTIME_FLAG_NEED_CHAN_SYNC;
+  saction->runtime->flag |= SACTION_RUNTIME_FLAG_NEED_CHAN_SYNC;
 
   /* store current mode as "old mode",
    * so that returning from other editors doesn't always reset to "Action Editor" */

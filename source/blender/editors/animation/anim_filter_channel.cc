@@ -2,6 +2,8 @@
  *
  * SPDX-License-Identifier: GPL-2.0-or-later */
 
+#include "BLI_string.hh"
+
 #include "DNA_anim_types.h"
 
 #include "RNA_access.hh"
@@ -69,9 +71,17 @@ ChannelTag::ChannelTag(const ChannelTagType type,
 {
 }
 
-AnimationChannel::AnimationChannel(const ChannelType type, const StringRef label)
-    : type_(type), label_(label)
+AnimationChannel::AnimationChannel(const DNAChannelType type, const StringRef label)
 {
+  type_ = type;
+  label_ = BLI_strdup(label.data());
+}
+
+AnimationChannel::~AnimationChannel()
+{
+  /* TODO should this be handled differently? Currently this is only freed via the C++ route but
+   * the property is on the C base class. */
+  // MEM_delete(label_);
 }
 
 Span<float> AnimationChannel::datapoints()
@@ -84,14 +94,14 @@ Span<float> AnimationChannel::datapoints()
 }
 
 SummaryChannel::SummaryChannel(const StringRef label)
-    : AnimationChannel(ChannelType::SUMMARY, label)
+    : AnimationChannel(DNAChannelType::SUMMARY, label)
 {
 }
 
 SummaryChannel::SummaryChannel(const StringRef label, const WeakRNAPointer &ptr)
-    : AnimationChannel(ChannelType::SUMMARY, label)
+    : AnimationChannel(DNAChannelType::SUMMARY, label)
 {
-  this->source_ = ptr;
+  this->weak_source_ = ptr;
 }
 
 void SummaryChannel::gather_channeldata()
@@ -123,15 +133,16 @@ void SummaryChannel::remove_child(AnimationChannel &child)
 }
 
 DataChannel::DataChannel(animrig::Action &containing_action, FCurve &fcurve)
-    : AnimationChannel(ChannelType::DATA, fcurve.rna_path())
+    : AnimationChannel(DNAChannelType::DATA, fcurve.rna_path())
 {
-  this->source_ = RNA_pointer_create_discrete(&containing_action.id, RNA_FCurve, &fcurve);
+  this->weak_source_ = RNA_pointer_create_discrete(&containing_action.id, RNA_FCurve, &fcurve);
 }
 
 DataChannel::DataChannel(GreasePencil &containing_gp, GreasePencilLayer &gp_layer)
-    : AnimationChannel(ChannelType::DATA, "todo gp layer name")
+    : AnimationChannel(DNAChannelType::DATA, "todo gp layer name")
 {
-  this->source_ = RNA_pointer_create_discrete(&containing_gp.id, RNA_GreasePencilLayer, &gp_layer);
+  this->weak_source_ = RNA_pointer_create_discrete(
+      &containing_gp.id, RNA_GreasePencilLayer, &gp_layer);
 }
 
 void DataChannel::set_tags(const ChannelTagStack &tags)
@@ -158,7 +169,7 @@ template<> FCurve *DataChannel::get_source<FCurve *>() const
    * held in a scoped cache so we can control the validity of it. */
   Main *bmain = G.main;
   BLI_assert(this->source_type_ == DataChannelType::FCURVE);
-  PointerRNA fcu_ptr = this->source_.dereference(*bmain);
+  PointerRNA fcu_ptr = this->weak_source_.dereference(*bmain);
   if (!fcu_ptr) {
     return nullptr;
   }
@@ -170,7 +181,7 @@ template<> GreasePencilLayer *DataChannel::get_source<GreasePencilLayer *>() con
   /* TODO Remove access to GMAIN!!! */
   Main *bmain = G.main;
   BLI_assert(this->source_type_ == DataChannelType::GREASE_PENCIL);
-  PointerRNA gp_ptr = this->source_.dereference(*bmain);
+  PointerRNA gp_ptr = this->weak_source_.dereference(*bmain);
   if (!gp_ptr) {
     return nullptr;
   }

@@ -64,6 +64,7 @@ static SpaceLink *action_create(const ScrArea *area, const Scene *scene)
 
   saction = MEM_new<SpaceAction>("initaction");
   saction->spacetype = SPACE_ACTION;
+  saction->runtime = MEM_new<SpaceAction_Runtime>(__func__);
 
   const eAnimEdit_Context desired_mode = area ? eAnimEdit_Context(area->butspacetype_subtype) :
                                                 SACTCONT_DOPESHEET;
@@ -157,27 +158,28 @@ static SpaceLink *action_create(const ScrArea *area, const Scene *scene)
 }
 
 /* Doesn't free the space-link itself. */
-static void action_free(SpaceLink * /*sl*/)
+static void action_free(SpaceLink *sl)
 {
-  //  SpaceAction *saction = (SpaceAction *) sl;
+  SpaceAction *saction = reinterpret_cast<SpaceAction *>(sl);
+  MEM_delete(saction->runtime);
 }
 
 /* spacetype; init callback */
 static void action_init(wmWindowManager * /*wm*/, ScrArea *area)
 {
   SpaceAction *saction = static_cast<SpaceAction *>(area->spacedata.first);
-  saction->runtime.flag |= SACTION_RUNTIME_FLAG_NEED_CHAN_SYNC;
+  saction->runtime->flag |= SACTION_RUNTIME_FLAG_NEED_CHAN_SYNC;
 }
 
 static SpaceLink *action_duplicate(SpaceLink *sl)
 {
-  SpaceAction *sactionn = MEM_dupalloc(reinterpret_cast<SpaceAction *>(sl));
+  SpaceAction *saction = MEM_dupalloc(reinterpret_cast<SpaceAction *>(sl));
 
-  sactionn->runtime = SpaceAction_Runtime{};
+  saction->runtime = MEM_new<SpaceAction_Runtime>(__func__);
 
   /* clear or remove stuff from old */
 
-  return reinterpret_cast<SpaceLink *>(sactionn);
+  return reinterpret_cast<SpaceLink *>(saction);
 }
 
 /* add handlers, stuff you only do once or on area/region changes */
@@ -352,6 +354,7 @@ static void action_channel_region_draw(const bContext *C, ARegion *region)
   if (USER_EXPERIMENTAL_TEST(&U, use_new_animfilter)) {
     using namespace ed::animfilter;
     Vector<DataChannel> channels;
+    /* TODO collect pins here. */
     collect_animation_channels(*C, {}, channels);
     /* TODO don't hardcode tag_order. */
     SummaryTree summaries = group_channels(
@@ -608,7 +611,7 @@ static void action_listener(const wmSpaceTypeListenerParams *params)
           ED_area_tag_redraw(area);
         }
         else if (wmn->action == NA_SELECTED) {
-          saction->runtime.flag |= SACTION_RUNTIME_FLAG_NEED_CHAN_SYNC;
+          saction->runtime->flag |= SACTION_RUNTIME_FLAG_NEED_CHAN_SYNC;
           ED_area_tag_refresh(area);
         }
       }
@@ -616,7 +619,7 @@ static void action_listener(const wmSpaceTypeListenerParams *params)
     case NC_ANIMATION:
       /* For NLA tweak-mode enter/exit, need complete refresh. */
       if (wmn->data == ND_NLA_ACTCHANGE) {
-        saction->runtime.flag |= SACTION_RUNTIME_FLAG_NEED_CHAN_SYNC;
+        saction->runtime->flag |= SACTION_RUNTIME_FLAG_NEED_CHAN_SYNC;
         ED_area_tag_refresh(area);
       }
       /* Auto-color only really needs to change when channels are added/removed,
@@ -640,7 +643,7 @@ static void action_listener(const wmSpaceTypeListenerParams *params)
       switch (wmn->data) {
         case ND_SEQUENCER:
           if (wmn->action == NA_SELECTED) {
-            saction->runtime.flag |= SACTION_RUNTIME_FLAG_NEED_CHAN_SYNC;
+            saction->runtime->flag |= SACTION_RUNTIME_FLAG_NEED_CHAN_SYNC;
             ED_area_tag_refresh(area);
           }
           break;
@@ -648,7 +651,7 @@ static void action_listener(const wmSpaceTypeListenerParams *params)
         case ND_OB_SELECT:
           /* Selection changed, so force refresh to flush
            * (needs flag set to do syncing). */
-          saction->runtime.flag |= SACTION_RUNTIME_FLAG_NEED_CHAN_SYNC;
+          saction->runtime->flag |= SACTION_RUNTIME_FLAG_NEED_CHAN_SYNC;
           ED_area_tag_refresh(area);
           break;
         case ND_RENDER_RESULT:
@@ -675,7 +678,7 @@ static void action_listener(const wmSpaceTypeListenerParams *params)
         case ND_BONE_SELECT: /* Selection changed, so force refresh to flush
                               * (needs flag set to do syncing). */
         case ND_BONE_ACTIVE:
-          saction->runtime.flag |= SACTION_RUNTIME_FLAG_NEED_CHAN_SYNC;
+          saction->runtime->flag |= SACTION_RUNTIME_FLAG_NEED_CHAN_SYNC;
           ED_area_tag_refresh(area);
           break;
         case ND_TRANSFORM:
@@ -706,7 +709,7 @@ static void action_listener(const wmSpaceTypeListenerParams *params)
     case NC_NODE:
       if (wmn->action == NA_SELECTED) {
         /* selection changed, so force refresh to flush (needs flag set to do syncing) */
-        saction->runtime.flag |= SACTION_RUNTIME_FLAG_NEED_CHAN_SYNC;
+        saction->runtime->flag |= SACTION_RUNTIME_FLAG_NEED_CHAN_SYNC;
         ED_area_tag_refresh(area);
       }
       break;
@@ -719,13 +722,13 @@ static void action_listener(const wmSpaceTypeListenerParams *params)
           ED_area_tag_redraw(area);
           break;
         case ND_SPACE_CHANGED:
-          saction->runtime.flag |= SACTION_RUNTIME_FLAG_NEED_CHAN_SYNC;
+          saction->runtime->flag |= SACTION_RUNTIME_FLAG_NEED_CHAN_SYNC;
           ED_area_tag_refresh(area);
           break;
       }
       break;
     case NC_WINDOW:
-      if (saction->runtime.flag & SACTION_RUNTIME_FLAG_NEED_CHAN_SYNC) {
+      if (saction->runtime->flag & SACTION_RUNTIME_FLAG_NEED_CHAN_SYNC) {
         /* force redraw/refresh after undo/redo, see: #28962. */
         ED_area_tag_refresh(area);
       }
@@ -868,12 +871,12 @@ static void action_refresh(const bContext *C, ScrArea *area)
   /* Update the state of the animchannels in response to changes from the data they represent
    * NOTE: the temp flag is used to indicate when this needs to be done,
    * and will be cleared once handled. */
-  if (saction->runtime.flag & SACTION_RUNTIME_FLAG_NEED_CHAN_SYNC) {
+  if (saction->runtime->flag & SACTION_RUNTIME_FLAG_NEED_CHAN_SYNC) {
     /* Perform syncing of channel state incl. selection
      * Active action setting also occurs here
      * (as part of anim channel filtering in `anim_filter.cc`). */
     ANIM_sync_animchannels_to_data(C);
-    saction->runtime.flag &= ~SACTION_RUNTIME_FLAG_NEED_CHAN_SYNC;
+    saction->runtime->flag &= ~SACTION_RUNTIME_FLAG_NEED_CHAN_SYNC;
 
     /* Tag everything for redraw
      * - Regions (such as header) need to be manually tagged for redraw too
@@ -912,7 +915,7 @@ static void action_foreach_id(SpaceLink *space_link, LibraryForeachIDData *data)
   if (!is_readonly) {
     /* Force recalc of list of channels, potentially updating the active action while we're
      * at it (as it can only be updated that way) #28962. */
-    sact->runtime.flag |= SACTION_RUNTIME_FLAG_NEED_CHAN_SYNC;
+    sact->runtime->flag |= SACTION_RUNTIME_FLAG_NEED_CHAN_SYNC;
   }
 }
 
@@ -967,12 +970,16 @@ static int action_space_icon_get(const ScrArea *area)
 static void action_space_blend_read_data(BlendDataReader * /*reader*/, SpaceLink *sl)
 {
   SpaceAction *saction = reinterpret_cast<SpaceAction *>(sl);
-  saction->runtime = SpaceAction_Runtime{};
+  saction->runtime = MEM_new<SpaceAction_Runtime>(__func__);
 }
 
 static void action_space_blend_write(BlendWriter *writer, SpaceLink *sl)
 {
+  SpaceAction *saction = reinterpret_cast<SpaceAction *>(sl);
+  SpaceAction_Runtime *temp = saction->runtime;
+  saction->runtime = nullptr;
   writer->write_struct_cast<SpaceAction>(sl);
+  saction->runtime = temp;
 }
 
 void ED_spacetype_action()

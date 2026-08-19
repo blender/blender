@@ -4178,7 +4178,7 @@ SummaryTree group_channels(MutableSpan<DataChannel> channels,
 
       Map<ChannelTag, Vector<DataChannel *>> potential_tags;
       for (AnimationChannel *child : summary->children()) {
-        if (child->type() != ChannelType::DATA) {
+        if (child->type() != DNAChannelType::DATA) {
           continue;
         }
         data_channel_count++;
