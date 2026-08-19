@@ -141,14 +141,19 @@ if(WITH_HEADLESS)
   add_definitions(-DWITH_HEADLESS)
 elseif(WITH_GHOST_SDL)
   list(APPEND SRC
-    intern/GHOST_ContextSDL.cc
     intern/GHOST_SystemSDL.cc
     intern/GHOST_WindowSDL.cc
 
-    intern/GHOST_ContextSDL.hh
     intern/GHOST_SystemSDL.hh
     intern/GHOST_WindowSDL.hh
   )
+  # SDL/OpenGL uses ContextSDL, while SDL/Vulkan uses the common ContextVK.
+  if(WITH_OPENGL_BACKEND)
+    list(APPEND SRC
+      intern/GHOST_ContextSDL.cc
+      intern/GHOST_ContextSDL.hh
+    )
+  endif()
   add_definitions(-DWITH_GHOST_SDL)
 
   list(APPEND LIB
