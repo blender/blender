@@ -279,25 +279,29 @@ SceneCompositorEffect &duplicate_effect(Scene &scene, SceneCompositorEffect &sou
   return new_effect;
 }
 
-static void free_effect(SceneCompositorEffect &effect)
+static void free_effect(SceneCompositorEffect &effect, const bool decrement_user_count)
 {
-  if (effect.system_properties) {
-    IDP_FreeProperty_ex(effect.system_properties, false);
+  if (decrement_user_count && effect.node_group) {
+    id_us_min(&effect.node_group->id);
   }
+
+  if (effect.system_properties) {
+    IDP_FreeProperty_ex(effect.system_properties, decrement_user_count);
+  }
+
   MEM_delete(&effect);
 }
 
 void remove_effect(Scene &scene, SceneCompositorEffect &effect)
 {
-  if (effect.node_group) {
-    id_us_min(&effect.node_group->id);
-  }
   BLI_remlink(&scene.compositor_effects, &effect);
+
   const bool was_active = flag_is_set(effect.flags, SceneCompositorEffectFlags::IsActive);
   if (was_active && !scene.compositor_effects.is_empty()) {
     set_active_effect(scene, *scene.compositor_effects.begin());
   }
-  free_effect(effect);
+
+  free_effect(effect, true);
 }
 
 void copy_effects(Scene &target_scene, const Scene &source_scene, const int flags)
@@ -315,7 +319,7 @@ void copy_effects(Scene &target_scene, const Scene &source_scene, const int flag
 void free_effects(Scene &scene)
 {
   for (SceneCompositorEffect &effect : scene.compositor_effects.items_mutable()) {
-    free_effect(effect);
+    free_effect(effect, false);
   }
   scene.compositor_effects.clear_no_delete();
 }
