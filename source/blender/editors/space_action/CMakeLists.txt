@@ -25,7 +25,6 @@ set(SRC
   action_select.cc
   space_action.cc
 
-  ED_space_action.hh
   action_intern.hh
 )
 

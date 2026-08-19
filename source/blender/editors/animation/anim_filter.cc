@@ -4155,15 +4155,15 @@ SummaryChannel *SummaryTree::root() const
   return summaries_[0];
 }
 
-SummaryTree group_channels(MutableSpan<DataChannel> channels,
+SummaryTree group_channels(MutableSpan<DataChannel *> channels,
                            Span<ChannelTagType> tag_order,
                            const bool use_minimal_grouping)
 {
   SummaryTree tree;
   SummaryChannel &root = tree.allocate_summary("Summary", nullptr);
 
-  for (DataChannel &channel : channels) {
-    root.add_child(channel);
+  for (DataChannel *channel : channels) {
+    root.add_child(*channel);
   }
 
   /* Store the indices of all summary channels that can potentially be broken down with child

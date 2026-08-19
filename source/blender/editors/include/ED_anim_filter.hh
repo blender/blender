@@ -255,7 +255,7 @@ void collect_action_channels(Vector<DataChannel> &r_channels);
  */
 void collect_animation_channels(const bContext &C,
                                 const CollectionFilters &collection_filters,
-                                Vector<DataChannel> &r_channels);
+                                Vector<DataChannel *> &r_channels);
 
 /**
  * Data structure that holds all summary channels and the root of the tree.
@@ -297,7 +297,7 @@ class SummaryTree {
  *
  * \returns: all summary channels that were created. The root is always index 0.
  */
-SummaryTree group_channels(MutableSpan<DataChannel> channels,
+SummaryTree group_channels(MutableSpan<DataChannel *> channels,
                            Span<ChannelTagType> tag_order,
                            bool use_minimal_grouping);
 

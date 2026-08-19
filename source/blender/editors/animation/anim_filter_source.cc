@@ -27,7 +27,7 @@ static bool has_assigned_action(AnimData &anim_data)
 static void channels_for_channelbag(animrig::Action &containing_action,
                                     animrig::Channelbag &channelbag,
                                     ChannelTagStack &tags,
-                                    Vector<DataChannel> &r_channels)
+                                    Vector<DataChannel *> &r_channels)
 {
 
   for (FCurve *fcu : channelbag.fcurves()) {
@@ -37,9 +37,9 @@ static void channels_for_channelbag(animrig::Action &containing_action,
       tags.push({ChannelTagType::FCURVE_GROUP, fcu->grp->name, group_pointer});
     }
 
-    DataChannel channel(containing_action, *fcu);
-    channel.set_tags(tags);
-    r_channels.append(std::move(channel));
+    DataChannel *channel = MEM_new<DataChannel>(__func__, containing_action, *fcu);
+    channel->set_tags(tags);
+    r_channels.append(channel);
 
     if (fcu->grp) {
       tags.pop();
@@ -50,7 +50,7 @@ static void channels_for_channelbag(animrig::Action &containing_action,
 static void channels_for_action_slot(animrig::Action &action,
                                      const animrig::slot_handle_t slot_handle,
                                      ChannelTagStack &tags,
-                                     Vector<DataChannel> &r_channels)
+                                     Vector<DataChannel *> &r_channels)
 {
   using namespace animrig;
   PointerRNA action_ptr = RNA_pointer_create_discrete(&action.id, RNA_Action, &action);
@@ -86,7 +86,7 @@ static void channels_for_action_slot(animrig::Action &action,
 
 static void collect_channels_for_id(ID *animated_id,
                                     const CollectionFilters &collection_filters,
-                                    Vector<DataChannel> &r_channels)
+                                    Vector<DataChannel *> &r_channels)
 {
   if (!animated_id) {
     return;
@@ -111,7 +111,7 @@ static void collect_channels_for_id(ID *animated_id,
 
 static void collection_channels_for_object(Object &obj,
                                            const CollectionFilters &collection_filters,
-                                           Vector<DataChannel> &r_channels)
+                                           Vector<DataChannel *> &r_channels)
 {
   collect_channels_for_id(&obj.id, collection_filters, r_channels);
   collect_channels_for_id(obj.data, collection_filters, r_channels);
@@ -120,14 +120,14 @@ static void collection_channels_for_object(Object &obj,
   }
 }
 
-void collect_action_channels(Vector<DataChannel> & /* r_channels */)
+void collect_action_channels(Vector<DataChannel *> & /* r_channels */)
 {
   /* TODO */
 }
 
 void collect_animation_channels(const bContext &C,
                                 const CollectionFilters &collection_filters,
-                                Vector<DataChannel> &r_channels)
+                                Vector<DataChannel *> &r_channels)
 {
   Vector<PointerRNA> objects;
   if (collection_filters.only_selected) {

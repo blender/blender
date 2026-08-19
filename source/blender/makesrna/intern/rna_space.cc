@@ -20,6 +20,7 @@
 
 #include "ED_asset.hh"
 #include "ED_buttons.hh"
+#include "ED_space_action.hh"
 #include "ED_spreadsheet.hh"
 #include "ED_userpref.hh"
 

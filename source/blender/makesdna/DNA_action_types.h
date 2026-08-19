@@ -526,13 +526,6 @@ enum eSAction_Flag : short {
 };
 ENUM_OPERATORS(eSAction_Flag);
 
-/** #SpaceAction_Runtime.flag */
-enum eSAction_Runtime_Flag : char {
-  /** Temporary flag to force channel selections to be synced with main */
-  SACTION_RUNTIME_FLAG_NEED_CHAN_SYNC = (1 << 0),
-};
-ENUM_OPERATORS(eSAction_Runtime_Flag);
-
 /** #SpaceAction.mode */
 enum eAnimEdit_Context : char {
   /** Action on the active object. */
@@ -1185,14 +1178,6 @@ struct bDopeSheet {
   int renameIndex = 0;
 };
 
-struct SpaceAction_Runtime {
-  /* Array of currently buffered channels. */
-  struct DNAAnimationChannel *channels;
-  int channels_len;
-  eSAction_Runtime_Flag flag = {};
-  char _pad0[3] = {};
-};
-
 struct SpaceActionOverlays {
   SpaceActionOverlays_Flag flag = {};
   char _pad0[4] = {};
@@ -1235,7 +1220,7 @@ struct SpaceAction {
 
   SpaceActionOverlays overlays;
 
-  SpaceAction_Runtime *runtime;
+  struct SpaceAction_Runtime *runtime;
 };
 
 /* ************************************************ */
