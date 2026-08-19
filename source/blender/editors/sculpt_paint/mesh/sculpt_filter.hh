@@ -81,18 +81,6 @@ struct Cache {
   std::unique_ptr<cloth::SimulationData> cloth_sim;
   float3 cloth_sim_pinch_point;
 
-  /* mask expand iteration caches */
-  int mask_update_current_it;
-  int mask_update_last_it;
-  Array<int> mask_update_it;
-  Array<float> normal_factor;
-  Array<float> edge_factor;
-  Array<float> prev_mask;
-  float3 mask_expand_initial_co;
-
-  int new_face_set;
-  Array<int> prev_face_set;
-
   int active_face_set;
 
   TransformDisplacementMode transform_displacement_mode;
