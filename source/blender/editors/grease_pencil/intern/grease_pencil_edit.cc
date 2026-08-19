@@ -5087,7 +5087,9 @@ static void GREASE_PENCIL_OT_set_corner_type(wmOperatorType *ot)
 /** \name Set Stroke Mode Operator
  * \{ */
 
+namespace {
 enum class StrokeType : int8_t { Stroke = 0, Fill = 1, Both = 2 };
+}
 
 static wmOperatorStatus grease_pencil_set_stroke_type_exec(bContext *C, wmOperator *op)
 {

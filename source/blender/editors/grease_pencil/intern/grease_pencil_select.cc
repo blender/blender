@@ -1198,7 +1198,9 @@ static void GREASE_PENCIL_OT_material_select(wmOperatorType *ot)
   RNA_def_property_flag(ot->prop, PROP_HIDDEN | PROP_SKIP_SAVE);
 }
 
+namespace {
 enum class StrokeType : int8_t { Stroke, Fill };
+}
 
 static wmOperatorStatus grease_pencil_select_by_stroke_type_exec(bContext *C, wmOperator *op)
 {
