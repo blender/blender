@@ -7,6 +7,8 @@
 
 #include "hydra/config.h"
 
+#include "util/unique_ptr.h"
+
 #include <pxr/imaging/hd/material.h>
 #include <pxr/imaging/hd/materialNetworkSchema.h>
 #include <pxr/imaging/hd/materialNodeParameterSchema.h>
@@ -38,8 +40,6 @@ class HdCyclesMaterial final : public PXR_NS::HdMaterial {
     const class UsdToCyclesMapping *mapping;
   };
 
-  void Initialize(PXR_NS::HdRenderParam *renderParam);
-
   void UpdateParameters(NodeDesc &nodeDesc,
                         PXR_NS::HdMaterialNodeParameterContainerSchema params,
                         const PXR_NS::SdfPath &nodePath);
@@ -51,7 +51,7 @@ class HdCyclesMaterial final : public PXR_NS::HdMaterial {
                          const PXR_NS::SdfPath &nodePath,
                          CCL_NS::ShaderGraph *shaderGraph);
 
-  void PopulateShaderGraph(PXR_NS::HdMaterialNetworkSchema network);
+  unique_ptr<CCL_NS::ShaderGraph> BuildShaderGraph(PXR_NS::HdMaterialNetworkSchema network);
 
   CCL_NS::Shader *_shader = nullptr;
   std::unordered_map<PXR_NS::SdfPath, NodeDesc, PXR_NS::SdfPath::Hash> _nodes;
