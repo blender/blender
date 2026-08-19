@@ -15,8 +15,6 @@ namespace blender {
 
 struct Curves;
 
-#define ABC_CURVE_RESOLUTION_U_PROPNAME "blender:resolution"
-
 namespace io::alembic {
 
 class AbcCurveReader final : public AbcObjectReader {

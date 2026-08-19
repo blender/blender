@@ -14,8 +14,6 @@
 
 namespace blender::io::alembic {
 
-extern const std::string ABC_CURVE_RESOLUTION_U_PROPNAME;
-
 class ABCCurveWriter : public ABCAbstractWriter {
  private:
   Alembic::AbcGeom::OCurves abc_curve_;

@@ -11,6 +11,7 @@
 
 #include "abc_writer_curves.h"
 #include "intern/abc_axis_conversion.h"
+#include "intern/abc_util.h"
 
 #include "BLI_array_utils.hh"
 #include "BLI_offset_indices.hh"
@@ -39,8 +40,6 @@ using Alembic::AbcGeom::ON3fGeomParam;
 using Alembic::AbcGeom::OV2fGeomParam;
 
 namespace io::alembic {
-
-const std::string ABC_CURVE_RESOLUTION_U_PROPNAME("blender:resolution");
 
 static inline Imath::V3f to_yup_V3f(float3 v)
 {
