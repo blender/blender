@@ -11,6 +11,13 @@
 
 namespace blender {
 
+void SpaceAction_Runtime::clear_channel_cache()
+{
+  for (ed::animfilter::DataChannel *channel : channels) {
+    MEM_delete(channel);
+  }
+}
+
 namespace ed::action {
 
 Span<ed::animfilter::DataChannel> current_data_channels() {
@@ -27,15 +34,14 @@ static MutableSpan<ed::animfilter::DataChannel *> get_or_collect_data_channels(c
     return {};
   }
 
-  if (!saction->runtime->channels) {
-    /* TODO only return pointer to root, keep summaries buffered. */
-    Vector<DataChannel *> channels;
-    /* TODO collect pins here. */
-    collect_animation_channels(C, {}, channels);
-    saction->runtime->channels = MEM_new_array<DataChannel *>(channels.size(), __func__);
+  /* TODO add extra flag to track if collection ran. An empty list is one of the possible states.
+   */
+  if (saction->runtime->channels.is_empty()) {
+    /* TODO collect pins here? */
+    collect_animation_channels(C, {}, saction->runtime->channels);
   }
 
-  return MutableSpan<DataChannel *>(saction->runtime->channels, saction->runtime->channels_len);
+  return saction->runtime->channels;
 }
 
 ed::animfilter::SummaryTree get_summary_tree(const bContext &C)

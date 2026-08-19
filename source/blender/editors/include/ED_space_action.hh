@@ -22,10 +22,17 @@ enum eSAction_Runtime_Flag : char {
 ENUM_OPERATORS(eSAction_Runtime_Flag);
 
 struct SpaceAction_Runtime {
-  /* Array of currently buffered channels. */
-  struct ed::animfilter::DataChannel **channels;
-  int channels_len;
+  /* Array of currently buffered channels. The channels are heap allocated and owned by this
+   * structure.*/
+  Vector<ed::animfilter::DataChannel *> channels;
   eSAction_Runtime_Flag flag = {};
+
+  ~SpaceAction_Runtime()
+  {
+    clear_channel_cache();
+  }
+
+  void clear_channel_cache();
 };
 
 namespace ed::action {

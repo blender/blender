@@ -248,7 +248,7 @@ struct CollectionFilters {
 /**
  * Collect all channels of the given Action.
  */
-void collect_action_channels(Vector<DataChannel> &r_channels);
+void collect_action_channels(Vector<DataChannel *> &r_channels);
 
 /**
  * Collect all channels in the given context.

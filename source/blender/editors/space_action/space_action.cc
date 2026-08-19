@@ -162,6 +162,7 @@ static SpaceLink *action_create(const ScrArea *area, const Scene *scene)
 static void action_free(SpaceLink *sl)
 {
   SpaceAction *saction = reinterpret_cast<SpaceAction *>(sl);
+
   MEM_delete(saction->runtime);
 }
 
