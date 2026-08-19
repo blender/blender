@@ -2,9 +2,7 @@
  *
  * SPDX-License-Identifier: GPL-2.0-or-later */
 
-/* Use a define instead of `#pragma once` because of `bmesh_iterators_inline.hh` */
-#ifndef __BLI_TASK_H__
-#define __BLI_TASK_H__
+#pragma once
 
 #include <string.h> /* for memset() */
 
@@ -361,5 +359,3 @@ void BLI_task_isolate(void (*func)(void *userdata), void *userdata);
 /** \} */
 
 }  // namespace blender
-
-#endif
