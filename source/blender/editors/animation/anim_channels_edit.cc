@@ -5222,6 +5222,7 @@ static void ANIM_OT_channels_bake(wmOperatorType *ot)
 static wmOperatorStatus slot_channels_move_to_new_action_exec(bContext *C, wmOperator *op)
 {
   using namespace blender::animrig;
+  using animrig::Strip;
   bAnimContext ac;
 
   /* Get editor data. */
@@ -5315,6 +5316,7 @@ static void ANIM_OT_slot_channels_move_to_new_action(wmOperatorType *ot)
 static wmOperatorStatus separate_slots_exec(bContext *C, wmOperator *op)
 {
   using namespace blender::animrig;
+  using animrig::Strip;
   Object *active_object = CTX_data_active_object(C);
   /* Checked by the poll function. */
   BLI_assert(active_object != nullptr);
