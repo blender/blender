@@ -79,8 +79,10 @@ AnimationChannel::AnimationChannel(const DNAChannelType type, const StringRef la
 
 AnimationChannel::AnimationChannel(const AnimationChannel &other)
 {
+  /* TODO copy all properties? */
   type_ = other.type_;
   label_ = BLI_strdup(other.label_);
+  weak_source_ = other.weak_source_;
 }
 AnimationChannel::AnimationChannel(AnimationChannel &&other)
 {
@@ -88,6 +90,7 @@ AnimationChannel::AnimationChannel(AnimationChannel &&other)
   /* TODO is there a way to only do this for label_? */
   label_ = other.label_;
   other.label_ = nullptr;
+  weak_source_ = std::move(other.weak_source_);
 }
 
 AnimationChannel::~AnimationChannel()

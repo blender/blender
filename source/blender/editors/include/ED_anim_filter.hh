@@ -12,6 +12,7 @@
 #include "BLI_vector.hh"
 
 #include "DNA_ID_enums.h"
+#include "DNA_action_types.h"
 
 #include "RNA_path.hh"
 
@@ -275,9 +276,14 @@ class SummaryTree {
   SummaryChannel &allocate_summary(StringRef label, const WeakRNAPointer *ptr);
   SummaryChannel *root() const;
 
-  int summary_count() const
+  int channel_count() const
   {
-    return summaries_.size();
+    /* Starts at 1 since we are only counting the children. */
+    int count = 1;
+    for (SummaryChannel *summary : summaries_) {
+      count += summary->children().size();
+    }
+    return count;
   }
 };
 

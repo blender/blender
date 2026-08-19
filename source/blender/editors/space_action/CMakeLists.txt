@@ -21,9 +21,11 @@ set(SRC
   action_draw.cc
   action_edit.cc
   action_ops.cc
+  action_query.cc
   action_select.cc
   space_action.cc
 
+  ED_space_action.hh
   action_intern.hh
 )
 
