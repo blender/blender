@@ -662,7 +662,9 @@ ccl_device_forceinline float4 camera_motion_vector(KernelGlobals kg,
   return make_float4(motion_pre.x, motion_pre.y, motion_post.x, motion_post.y);
 }
 
-ccl_device_forceinline float4 camera_motion_vector_direction(KernelGlobals kg, const float3 D)
+ccl_device_forceinline float4 camera_motion_vector_direction(KernelGlobals kg,
+                                                             const float3 P,
+                                                             const float3 D)
 {
   Transform tfm;
   float3 motion_center;
@@ -683,6 +685,24 @@ ccl_device_forceinline float4 camera_motion_vector_direction(KernelGlobals kg, c
 
     tfm = kernel_data.cam.motion_pass_post;
     motion_post = normalize(transform_direction(&tfm, D));
+  }
+  else if (kernel_data.cam.type == CAMERA_ORTHOGRAPHIC) {
+    /* For one orthographic camera matrix, all rays meet at the same point at infinity. When
+     * rotating the camera, the motion vectors become infinite. To get reasonable values for both
+     * translation/zoom and rotation, we use points far away:
+     * - Rotation produces very large motion vectors pointing to outside the image, leading to
+     * rejection of the history.
+     * - Translation/zoom produce valid background motion vectors. */
+    float3 point_far = P + D * 1e4f;
+
+    ProjectionTransform projection = kernel_data.cam.worldtoraster;
+    motion_center = transform_perspective(&projection, point_far);
+
+    projection = kernel_data.cam.perspective_pre;
+    motion_pre = transform_perspective(&projection, point_far);
+
+    projection = kernel_data.cam.perspective_post;
+    motion_post = transform_perspective(&projection, point_far);
   }
   else if (kernel_data.cam.type != CAMERA_PANORAMA) {
     /* Perspective and orthographics camera use the world-to-raster matrix. */
