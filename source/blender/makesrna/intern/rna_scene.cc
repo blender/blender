@@ -3231,6 +3231,7 @@ static SceneCompositorEffect *rna_SceneCompositorEffects_new(ID *scene_id, const
 }
 
 static void rna_SceneCompositorEffects_remove(ID *scene_id,
+                                              Main *bmain,
                                               ReportList *reports,
                                               PointerRNA *effect_ptr)
 {
@@ -3243,6 +3244,7 @@ static void rna_SceneCompositorEffects_remove(ID *scene_id,
   bke::compositor::remove_effect(*scene, *effect);
   effect_ptr->invalidate();
 
+  DEG_relations_tag_update(bmain);
   DEG_id_tag_update(&scene->id, ID_RECALC_COMPOSITOR);
   WM_main_add_notifier(NC_SCENE | ND_COMPO_RESULT, scene);
 }
@@ -9147,8 +9149,8 @@ static void rna_def_compositor_effects(BlenderRNA *brna, PropertyRNA *cprop)
 
   /* remove effect */
   func = RNA_def_function(srna, "remove", "rna_SceneCompositorEffects_remove");
-  RNA_def_function_flag(func, FUNC_NO_SELF | FUNC_USE_SELF_ID | FUNC_USE_REPORTS);
-  RNA_def_function_ui_description(func, "Remove an existing effect from the strip");
+  RNA_def_function_flag(func, FUNC_NO_SELF | FUNC_USE_SELF_ID | FUNC_USE_MAIN | FUNC_USE_REPORTS);
+  RNA_def_function_ui_description(func, "Remove an existing effect from the scene");
   /* effect to remove */
   parm = RNA_def_pointer(func, "effect", "SceneCompositorEffect", "", "Effect to remove");
   RNA_def_parameter_flags(parm, PROP_NEVER_NULL, PARM_REQUIRED | PARM_RNAPTR);
