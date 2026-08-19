@@ -15,7 +15,7 @@ Then run `make license` and commit `license.md`.
 # Blender Third-Party Licenses
 
 While Blender itself is released under [GPU-GPL 3.0 or later](https://spdx.org/licenses/GPL-3.0-or-later.html)
-`© 2011-2025 Blender Foundation`,
+`© 2011-2026 Blender Foundation`,
 it contains dependencies which have different licenses.
 
 <details>
@@ -896,8 +896,8 @@ Provided by SIL’s Non-Roman Script Initiative. Contact us at nrsi@sil.org.
 | [Open PGL](http://www.openpgl.org/) | v0.6.0 | `Copyright 2020 Intel Corporation.` |
 | [OpenCL-Headers](https://github.com/KhronosGroup/OpenCL-Headers) | 542d7a8f65e | `Copyright (c) 2023 The Khronos Group Inc.` |
 | [OpenImageDenoise](https://www.openimagedenoise.org/) | 2.3.3 | `Copyright 2009-2025 Intel Corporation` |
-| [OpenImageIO](https://github.com/AcademySoftwareFoundation/OpenImageIO) | v3.0.6.1 | `Copyright Contributors to the OpenImageIO project.` |
-| [OpenSSL](https://www.openssl.org) | 3.1.5 | `Copyright (c) 1998-2024 The OpenSSL Project Authors. Copyright (c) 1995-1998 Eric A. Young, Tim J. Hudson; All rights reserved.` |
+| [OpenImageIO](https://github.com/AcademySoftwareFoundation/OpenImageIO) | v3.0.19.1 | `Copyright Contributors to the OpenImageIO project.` |
+| [OpenSSL](https://www.openssl.org) | 3.1.8 | `Copyright (c) 1998-2024 The OpenSSL Project Authors. Copyright (c) 1995-1998 Eric A. Young, Tim J. Hudson; All rights reserved.` |
 | [OpenXR](https://khronos.org/openxr/) | 1.0.22 | `Copyright (c) 2017-2020 The Khronos Group Inc. Copyright (c) 2017-2019 Valve Corporation. Copyright (c) 2017-2019 LunarG, Inc. Copyright (c) 2019 Collabora, Ltd.` |
 | [Pthreads](https://github.com/fwbuilder/pthreads4w) | 3.0.0 | `Copyright 1998 John E. Bossom Copyright 1999-2018, Pthreads4w contributors  This product includes software developed through the colaborative effort of several individuals, each of whom is listed in the file CONTRIBUTORS included with this software.  The following files are not covered under the Copyrights listed above:      [1] tests/rwlock7.c     [1] tests/rwlock7_1.c     [1] tests/rwlock8.c     [1] tests/rwlock8_1.c     [2] tests/threestage.c  [1] The file tests/rwlock7.c and those similarly named are derived from code written by Dave Butenhof for his book 'Programming With POSIX(R) Threads'. The original code was obtained by free download from his website http://home.earthlink.net/~anneart/family/Threads/source.html  [2] The file tests/threestage.c is taken directly from examples in the book "Windows System Programming, Edition 4" by Johnson (John) Hart Session 6, Chapter 10. ThreeStage.c Several required additional header and source files from the book examples have been included inline to simplify compilation. The only modification to the code has been to provide default values when run without arguments.` |
 | [RangeTree](https://github.com/ideasman42/rangetree-c) | 40ebed8aa20 | `Copyright (c) 2016, Campbell Barton` |
@@ -1169,7 +1169,7 @@ DEALINGS IN THE SOFTWARE.
 | ------- | ------- | --------- |
 | [Aom](https://aomedia.googlesource.com/aom/) | 3.4.0 | `Copyright (c) 2016, Alliance for Open Media. All rights reserved.` |
 | [jemalloc](https://jemalloc.net/) | 5.2.1 | `Copyright (C) 2002-2013 Jason Evans <jasone@canonware.com>. All rights reserved. Copyright (C) 2007-2012 Mozilla Foundation.  All rights reserved. Copyright (C) 2009-2013 Facebook, Inc.  All rights reserved. Copyright (C) 2013 Jason Evans <jasone@canonware.com>.` |
-| [OpenJPEG](https://github.com/uclouvain/openjpeg) | 2.5.0 | `Copyright (c) 2002-2014, Universite catholique de Louvain (UCL), Belgium. Copyright (c) 2002-2014, Professor Benoit Macq. Copyright (c) 2003-2014, Antonin Descampe. Copyright (c) 2003-2009, Francois-Olivier Devaux. Copyright (c) 2005, Herve Drolon, FreeImage Team. Copyright (c) 2002-2003, Yannick Verschueren. Copyright (c) 2001-2003, David Janssens. Copyright (c) 2011-2012, Centre National d'Etudes Spatiales (CNES), France. Copyright (c) 2012, CS Systemes d'Information, France.` |
+| [OpenJPEG](https://github.com/uclouvain/openjpeg) | 2.5.4 | `Copyright (c) 2002-2014, Universite catholique de Louvain (UCL), Belgium. Copyright (c) 2002-2014, Professor Benoit Macq. Copyright (c) 2003-2014, Antonin Descampe. Copyright (c) 2003-2009, Francois-Olivier Devaux. Copyright (c) 2005, Herve Drolon, FreeImage Team. Copyright (c) 2002-2003, Yannick Verschueren. Copyright (c) 2001-2003, David Janssens. Copyright (c) 2011-2012, Centre National d'Etudes Spatiales (CNES), France. Copyright (c) 2012, CS Systemes d'Information, France.` |
 | [Pybind11](https://github.com/pybind/pybind11) | 2.10.1 | `Copyright (c) 2016 Wenzel Jakob <wenzel.jakob@epfl.ch>, All rights reserved.` |
 | [xxHash Library](https://xxhash.com/) | v0.8.2 (202 | `Copyright (c) 2012-2021 Yann Collet` |
 <details>
@@ -1221,7 +1221,7 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 | [Ogg](https://xiph.org/ogg/) | 1.3.5 | `COPYRIGHT (C) 1994-2019 by the Xiph.Org Foundation https://www.xiph.org/` |
 | [Open Shading Language](https://github.com/AcademySoftwareFoundation/OpenShadingLanguage/) | 1.14.3.0-be | `Copyright Contributors to the Open Shading Language project.` |
 | [OpenColorIO](https://github.com/AcademySoftwareFoundation/OpenColorIO) | 2.4.1 | `Copyright Contributors to the OpenColorIO Project.` |
-| [Openexr](https://github.com/AcademySoftwareFoundation/openexr) | 3.3.2 | `Copyright Contributors to the OpenEXR Project. All rights reserved.` |
+| [Openexr](https://github.com/AcademySoftwareFoundation/openexr) | 3.3.11 | `Copyright Contributors to the OpenEXR Project. All rights reserved.` |
 | [OpenGL Extension Wrangler Library](http://glew.sourceforge.net/) | 2.0.0 | `Copyright (C) 2008-2015, Nigel Stewart <nigels[]users sourceforge net>; Copyright (C) 2002-2008, Milan Ikits <milan ikits[]ieee org>; Copyright (C) 2002-2008, Marcelo E. Magallon <mmagallo[]debian org>; Copyright (C) 2002, Lev Povalahev; All rights reserved.` |
 | [Opus](https://opus-codec.org/) | 1.3.1 | `Copyright 2001-2023 Xiph.Org, Skype Limited, Octasic, Jean-Marc Valin, Timothy B. Terriberry, CSIRO, Gregory Maxwell, Mark Borgerding, Erik de Castro Lopo, Mozilla, Amazon` |
 | [Pystring](https://github.com/imageworks/pystring) | v1.1.3 | `Copyright (c) 2008-2010, Sony Pictures Imageworks Inc; All rights reserved.` |
@@ -2509,7 +2509,7 @@ Public License instead of this License.  But first, please read
 
 | Library | Version | Copyright |
 | ------- | ------- | --------- |
-| [FFmpeg](https://ffmpeg.org/) | 7.1.1 | `The FFmpeg contributors https://github.com/FFmpeg/FFmpeg/blob/master/CREDITS` |
+| [FFmpeg](https://ffmpeg.org/) | 7.1.4 | `The FFmpeg contributors https://github.com/FFmpeg/FFmpeg/blob/master/CREDITS` |
 | [Fribidi](https://github.com/fribidi/fribidi) | v1.0.12 | `Behdad Esfahbod <behdad@gnu.org>, Dov Grobgeld <dov.grobgeld@gmail.com>, Roozbeh Pournader <roozbeh@gnu.org>, Khaled Hosny <khaledhosny@eglug.org>` |
 | [Iconv](https://www.gnu.org/software/libiconv/) | 1.16 | `Copyright (C) 1998, 2022 Free Software Foundation, Inc.` |
 | [LAME](https://lame.sourceforge.io/) | 3.100 | `Copyrights (c) 1999-2011 by The LAME Project. Copyrights (c) 1999,2000,2001 by Mark Taylor. Copyrights (c) 1998 by Michael Cheng. Copyrights (c) 1995,1996,1997 by Michael Hipp: mpglib.` |
@@ -3027,7 +3027,7 @@ That's all there is to it!
 
 | Library | Version | Copyright |
 | ------- | ------- | --------- |
-| [libpng](http://www.libpng.org/pub/png/libpng.html) | 1.6.43 | `Copyright (c) 1995-2019 The PNG Reference Library Authors. Copyright (c) 2018-2019 Cosmin Truta. Copyright (c) 2000-2002, 2004, 2006-2018 Glenn Randers-Pehrson. Copyright (c) 1996-1997 Andreas Dilger. Copyright (c) 1995-1996 Guy Eric Schalnat, Group 42, Inc.` |
+| [libpng](http://www.libpng.org/pub/png/libpng.html) | 1.6.58 | `Copyright (c) 1995-2019 The PNG Reference Library Authors. Copyright (c) 2018-2019 Cosmin Truta. Copyright (c) 2000-2002, 2004, 2006-2018 Glenn Randers-Pehrson. Copyright (c) 1996-1997 Andreas Dilger. Copyright (c) 1995-1996 Guy Eric Schalnat, Group 42, Inc.` |
 <details>
 <summary>libpng 2.0 License</summary>
 
@@ -3064,7 +3064,7 @@ subject to the following restrictions:
 
 | Library | Version | Copyright |
 | ------- | ------- | --------- |
-| [LibTIFF](http://www.simplesystems.org/libtiff/) | 4.7.0 | `Copyright © 1988-1997 Sam Leffler. Copyright © 1991-1997 Silicon Graphics, Inc.` |
+| [LibTIFF](http://www.simplesystems.org/libtiff/) | 4.7.1 | `Copyright © 1988-1997 Sam Leffler. Copyright © 1991-1997 Silicon Graphics, Inc.` |
 <details>
 <summary>libtiff License</summary>
 
@@ -3102,7 +3102,7 @@ IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
 | [Intel(R) Graphics Memory Management Library](https://github.com/intel/gmmlib) | intel-gmmli | `Copyright (c) 2017 Intel Corporation. Copyright (c) 2016 Gabi Melman. Copyright 2008, Google Inc. All rights reserved.` |
 | [JSON](https://github.com/nlohmann/json/) | 3.11.3 | `Copyright (c) 2013-2021 Niels Lohmann` |
 | [libffi](https://github.com/libffi/libffi/) | 3.4.4 | `Copyright (c) 1996-2024  Anthony Green, Red Hat, Inc and others.` |
-| [libxml2](https://gitlab.gnome.org/GNOME/libxml2) | 2.13.5 | `Copyright (C) 1998-2012 Daniel Veillard. All Rights Reserved.` |
+| [libxml2](https://gitlab.gnome.org/GNOME/libxml2) | 2.13.9 | `Copyright (C) 1998-2012 Daniel Veillard. All Rights Reserved.` |
 | [Mesa](https://www.mesa3d.org/) | 23.3.0 | `Copyright (C) 1999-2007  Brian Paul   All Rights Reserved.` |
 | [Ocloc](https://github.com/intel/compute-runtime) | 24.45.31740 | `Copyright (C) 2018-2023 Intel Corporation` |
 | [oneAPI Level Zero](https://github.com/oneapi-src/level-zero) | 1.19.2 | `Copyright (C) 2019-2024 Intel Corporation` |
@@ -3570,7 +3570,7 @@ Public domain projects have no specific license or requirements in regards to co
 
 | Library | Version | Copyright |
 | ------- | ------- | --------- |
-| [Python](https://www.python.org/) | 3.11.11 | `Copyright (c) 2001-2023 Python Software Foundation. All rights reserved.` |
+| [Python](https://www.python.org/) | 3.11.15 | `Copyright (c) 2001-2023 Python Software Foundation. All rights reserved.` |
 <details>
 <summary>Python License 2.0</summary>
 
