@@ -13,10 +13,10 @@ diff -Naur orig/CMakeLists.txt external_openimageio/CMakeLists.txt
 diff -Naur orig/src/cmake/compiler.cmake external_openimageio/src/cmake/compiler.cmake
 --- orig/src/cmake/compiler.cmake	2020-05-10 21:43:52 -0600
 +++ external_openimageio/src/cmake/compiler.cmake	2020-05-13 17:02:54 -0600
-@@ -188,6 +189,7 @@
-     add_compile_definitions (_CRT_NONSTDC_NO_WARNINGS)
-     add_compile_definitions (_SCL_SECURE_NO_WARNINGS)
+@@ -204,6 +204,7 @@ if (MSVC)
      add_compile_definitions (JAS_WIN_MSVC_BUILD)
+     # https://github.com/AcademySoftwareFoundation/OpenImageIO/issues/4641#issuecomment-2725013661
+     add_compile_definitions (_DISABLE_CONSTEXPR_MUTEX_CONSTRUCTOR)
 +    add_compile_definitions (OPJ_STATIC)
  endif (MSVC)
  

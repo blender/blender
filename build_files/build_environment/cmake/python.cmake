@@ -55,7 +55,10 @@ if(WIN32)
         ${PYTHON_EXTERNALS_FOLDER}/zlib-1.3.1/zconf.h &&
       ${PATCH_CMD} --verbose -p1 -d
         ${BUILD_DIR}/python/src/external_python <
-        ${PATCH_DIR}/${PYTHON_PATCH_FILE}
+        ${PATCH_DIR}/${PYTHON_PATCH_FILE} &&
+      ${PATCH_CMD} --verbose -p1 --binary -l -d
+        ${BUILD_DIR}/python/src/external_python <
+        ${PATCH_DIR}/python_153610.diff
 
     CONFIGURE_COMMAND echo "."
 

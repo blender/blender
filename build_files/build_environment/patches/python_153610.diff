@@ -1,0 +1,26 @@
+diff --git a/PCbuild/find_python.bat b/PCbuild/find_python.bat
+index d0e4a86b01fd03f..c59479876627dfd 100644
+--- a/PCbuild/find_python.bat
++++ b/PCbuild/find_python.bat
+@@ -45,7 +45,7 @@
+ @set _Py_HOST_PYTHON=%HOST_PYTHON%
+ @if "%_Py_HOST_PYTHON%"=="" set _Py_HOST_PYTHON=py
+ @if "%_Py_NUGET%"=="" (set _Py_NUGET=%_Py_EXTERNALS_DIR%\nuget.exe)
+-@if "%_Py_NUGET_URL%"=="" (set _Py_NUGET_URL=https://aka.ms/nugetclidl)
++@if "%_Py_NUGET_URL%"=="" (set _Py_NUGET_URL=https://dist.nuget.org/win-x86-commandline/latest/nuget.exe)
+ @if NOT exist "%_Py_NUGET%" (
+     @echo Downloading nuget...
+     @rem NB: Must use single quotes around NUGET here, NOT double!
+diff --git a/Tools/msi/get_externals.bat b/Tools/msi/get_externals.bat
+index d66781d7c42ec49..e76ba701171c989 100644
+--- a/Tools/msi/get_externals.bat
++++ b/Tools/msi/get_externals.bat
+@@ -6,7 +6,7 @@ set HERE=%~dp0
+ if "%PCBUILD%"=="" (set PCBUILD=%HERE%..\..\PCbuild\)
+ if "%EXTERNALS_DIR%"=="" (set EXTERNALS_DIR=%HERE%..\..\externals\windows-installer)
+ if "%NUGET%"=="" (set NUGET=%EXTERNALS_DIR%\..\nuget.exe)
+-if "%NUGET_URL%"=="" (set NUGET_URL=https://aka.ms/nugetclidl)
++if "%NUGET_URL%"=="" (set NUGET_URL=https://dist.nuget.org/win-x86-commandline/latest/nuget.exe)
+ 
+ set DO_FETCH=true
+ set DO_CLEAN=false
