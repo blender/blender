@@ -819,23 +819,12 @@ struct ScopeParser {
           }
           assignment();
           break;
-        case String:     /* Needed for legacy create info. */
-        case Or:         /* Needed for legacy create info. */
-        case Equal:      /* Needed for some macros. */
-        case LThan:      /* Needed for some macros. */
-        case GThan:      /* Needed for some macros. */
-        case LogicalOr:  /* Needed for some macros. */
-        case LogicalAnd: /* Needed for some macros. */
-        case Dot:        /* Needed for some macros. */
-        case Star:       /* Needed for pointers in shared files. */
+        case String:            /* Needed for legacy create info. */
+        case EXPRESSION_TOKENS: /* Needed for some macros. */
         case Word:
         case Number:
-        case Minus: /* For C++ constructors.  */
-        case Plus:  /* For C++ constructors.  */
         case Const:
         case Constexpr:
-        case Ampersand:
-        case Colon:
           if (!in_argument) {
             open_scope(curr, ScopeType::FunctionArg);
             in_argument = true;
