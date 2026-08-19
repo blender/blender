@@ -1050,10 +1050,10 @@ static void wm_window_ghostwindow_add(wmWindowManager *wm,
     }
 #endif
 
-    /* Get the window background color from the current theme. Using the top-bar header
+    /* Get the window background color from the current theme. Using the title-bar
      * background theme color to match with the colored title-bar decoration style. */
     float window_bg_color[3];
-    ui::theme::theme_set(SPACE_TOPBAR, RGN_TYPE_HEADER);
+    wm_window_titlebar_theme_context_set(win, nullptr);
     ui::theme::get_color_3fv(TH_BACK, window_bg_color);
 
     /* Until screens get drawn, draw a default background using the window theme color. */
