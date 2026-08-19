@@ -11,6 +11,7 @@
 #include "MEM_guardedalloc.h"
 
 #include "BLI_lazy_threading.hh"
+#include "BLI_simd.hh"
 #include "BLI_task_c.hh"
 #include "BLI_threads.hh"
 
@@ -18,6 +19,7 @@
 /* Need to include at least one header to get the version define. */
 #  include <tbb/blocked_range.h>
 #  include <tbb/task_arena.h>
+#  include <tbb/task_scheduler_observer.h>
 #  if TBB_INTERFACE_VERSION_MAJOR >= 10
 #    include <tbb/global_control.h>
 #    define WITH_TBB_GLOBAL_CONTROL
@@ -33,8 +35,49 @@ static int task_scheduler_num_threads = 1;
 static tbb::global_control *task_scheduler_global_control = nullptr;
 #endif
 
-void BLI_task_scheduler_init()
+#ifdef WITH_TBB
+/**
+ * Enables flush-to-zero and denormals-are-zero on every task scheduler thread.
+ *
+ * Denormal handling is part of the per-thread floating point state, so it has to be set on each
+ * thread rather than once at startup. Applying it consistently everywhere makes results
+ * reproducible no matter which thread a computation uses.
+ */
+class FlushDenormalsObserver : public tbb::task_scheduler_observer {
+ public:
+  FlushDenormalsObserver()
+  {
+    this->observe(true);
+  }
+
+  ~FlushDenormalsObserver() override
+  {
+    this->observe(false);
+  }
+
+  void on_scheduler_entry(bool /*is_worker*/) override
+  {
+    SIMD_SET_FLUSH_TO_ZERO;
+  }
+};
+
+static void ensure_flush_denormals_observer()
 {
+  static FlushDenormalsObserver observer;
+}
+#endif
+
+void BLI_task_scheduler_init(const bool use_flush_denormals_to_zero)
+{
+  if (use_flush_denormals_to_zero) {
+    /* The main thread is not observed by the task scheduler, set it directly. */
+    SIMD_SET_FLUSH_TO_ZERO;
+
+#ifdef WITH_TBB
+    ensure_flush_denormals_observer();
+#endif
+  }
+
 #ifdef WITH_TBB_GLOBAL_CONTROL
   const int threads_override_num = BLI_system_num_threads_override_get();
 

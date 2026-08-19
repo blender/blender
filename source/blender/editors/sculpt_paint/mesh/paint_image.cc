@@ -769,7 +769,7 @@ static wmOperatorStatus brush_colors_flip_exec(bContext *C, wmOperator * /*op*/)
   Paint *paint = BKE_paint_get_active_from_context(C);
   Brush *br = BKE_paint_brush(paint);
 
-  if (BKE_paint_use_unified_color(paint)) {
+  if (BKE_brush_use_unified_color(paint, br)) {
     UnifiedPaintSettings &ups = paint->unified_paint_settings;
     swap_v3_v3(ups.color, ups.secondary_color);
     BKE_brush_color_sync_legacy(&ups);

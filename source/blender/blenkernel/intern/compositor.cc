@@ -203,7 +203,7 @@ SceneCompositorEffect *get_active_effect(const Scene &scene)
 
 bool is_effect_enabled(const SceneCompositorEffect &effect, const ExecutionMode mode)
 {
-  if (!effect.node_group) {
+  if (!effect.node_group || ID_MISSING(effect.node_group)) {
     return false;
   }
 
@@ -320,6 +320,13 @@ void free_effects(Scene &scene)
   scene.compositor_effects.clear_no_delete();
 }
 
+void clear_effects(Scene &scene)
+{
+  for (SceneCompositorEffect &effect : scene.compositor_effects.items_reversed_mutable()) {
+    remove_effect(scene, effect);
+  }
+}
+
 void for_each_id_in_effects(const Scene &scene, LibraryForeachIDData &data)
 {
   for (SceneCompositorEffect &effect : scene.compositor_effects) {
@@ -383,6 +390,13 @@ void update_effect_node_group_interface(Main &main, Scene &scene, SceneComposito
     effect.system_properties =
         bke::idprop::create_group("SceneCompositorEffectProperties").release();
   }
+
+  /* In case the node group is missing, do not update the properties to avoid the values reverting
+   * to their default value if the node group later becomes available. */
+  if (!effect.node_group || ID_MISSING(effect.node_group)) {
+    return;
+  }
+
   PointerRNA properties_ptr = RNA_pointer_create_discrete(
       &scene.id, RNA_SceneCompositorEffectProperties, &effect);
   RNA_ensure_and_sync_system_properties(main, properties_ptr, *effect.system_properties);

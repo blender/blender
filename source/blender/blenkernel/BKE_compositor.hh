@@ -130,7 +130,7 @@ SceneCompositorEffect &new_effect(Scene &scene, StringRef name);
 /* Copy the given compositor effect in the given scene. */
 SceneCompositorEffect &duplicate_effect(Scene &scene, SceneCompositorEffect &source_effect);
 
-/* Frees the given compositor effect from the given scene. */
+/* Frees the given compositor effect from the given scene. Does not decrement user counts. */
 void free_effect(Scene &scene, SceneCompositorEffect &effect);
 
 /* Removes the given compositor effect from the given scene. */
@@ -140,8 +140,11 @@ void remove_effect(Scene &scene, SceneCompositorEffect &effect);
  * copying flags. */
 void copy_effects(Scene &target_scene, const Scene &source_scene, const int flags);
 
-/* Frees all compositor effects in the given scene. */
+/* Frees all compositor effects in the given scene. Does not decrement user counts. */
 void free_effects(Scene &scene);
+
+/* Removes all compositor effects in the given scene. */
+void clear_effects(Scene &scene);
 
 /* Walk over each ID in the effects of the given scene executing the callback defined by the given
  * data. */

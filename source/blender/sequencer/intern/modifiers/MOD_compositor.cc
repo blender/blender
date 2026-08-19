@@ -58,6 +58,13 @@ void compositor_modifier_nodes_update_interface(Main &bmain,
     cmd.modifier.system_properties =
         bke::idprop::create_group("SequencerCompositorModifierProperties").release();
   }
+
+  /* In case the node group is missing, do not update the properties to avoid the values reverting
+   * to their default value if the node group later becomes available. */
+  if (!cmd.node_group || ID_MISSING(cmd.node_group)) {
+    return;
+  }
+
   PointerRNA properties_ptr = RNA_pointer_create_discrete(
       &sequencer_scene.id, RNA_SequencerCompositorModifierProperties, &cmd);
   RNA_ensure_and_sync_system_properties(bmain, properties_ptr, *cmd.modifier.system_properties);

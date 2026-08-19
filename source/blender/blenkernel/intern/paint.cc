@@ -607,36 +607,6 @@ PaintMode BKE_paintmode_get_from_tool(const bToolRef *tref)
   return PaintMode::Invalid;
 }
 
-bool BKE_paint_use_unified_size(const Paint *paint)
-{
-  /* For now, Grease Pencil Draw mode doesn't use the unified paint settings. */
-  if (paint->runtime->ob_mode == OB_MODE_PAINT_GREASE_PENCIL) {
-    return false;
-  }
-
-  return paint->brush->unified_paint_flags & BRUSH_USE_UNIFIED_PAINT_SIZE;
-}
-
-bool BKE_paint_use_unified_strength(const Paint *paint)
-{
-  /* For now, Grease Pencil Draw mode doesn't use the unified paint settings. */
-  if (paint->runtime->ob_mode == OB_MODE_PAINT_GREASE_PENCIL) {
-    return false;
-  }
-
-  return paint->brush->unified_paint_flags & BRUSH_USE_UNIFIED_PAINT_ALPHA;
-}
-
-bool BKE_paint_use_unified_color(const Paint *paint)
-{
-  /* For now, Grease Pencil Draw mode doesn't use the unified paint settings. */
-  if (paint->runtime->ob_mode == OB_MODE_PAINT_GREASE_PENCIL) {
-    return false;
-  }
-
-  return paint->brush->unified_paint_flags & BRUSH_USE_UNIFIED_PAINT_COLOR;
-}
-
 /**
  * After changing #Paint.brush_asset_reference, call this to activate the matching brush, importing
  * it if necessary. Has no effect if #Paint.brush is set already.

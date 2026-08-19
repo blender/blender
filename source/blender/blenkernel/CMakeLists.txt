@@ -262,6 +262,7 @@ set(SRC
   intern/pose_backup.cc
   intern/preferences.cc
   intern/preview_image.cc
+  intern/recents.cc
   intern/report.cc
   intern/rigidbody.cc
   intern/scene.cc
@@ -504,6 +505,7 @@ set(SRC
   BKE_pose_backup.h
   BKE_preferences.h
   BKE_preview_image.hh
+  BKE_recents.hh
   BKE_report.hh
   BKE_rigidbody.h
   BKE_scene.hh
@@ -606,6 +608,7 @@ set(LIB
   PRIVATE bf::sequencer
   bf_shader_fx
   bf_simulation
+  PRIVATE bf::extern::toml
   PRIVATE bf::extern::xxhash
   PRIVATE bf::intern::atomic
   PRIVATE bf::dependencies::zlib
@@ -791,6 +794,7 @@ if(WITH_GTESTS)
     intern/nla_test.cc
     intern/node_socket_value_iter_test.cc
     intern/path_templates_test.cc
+    intern/recents_test.cc
     intern/scene_test.cc
     intern/sound_reader_cache_test.cc
     intern/subdiv_ccg_test.cc

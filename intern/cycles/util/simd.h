@@ -59,6 +59,32 @@
 
 CCL_NAMESPACE_BEGIN
 
+/* Enable flush-to-zero and denormals-are-zero for the lifetime of the object, then restore the
+ * previous state. This is the mode threads that use Embree run in, so this is mainly useful to
+ * check that code behaves the same in both modes.
+ *
+ * Does nothing on platforms where the control register is not accessible this way. Those use the
+ * `set_fz` path above, which can not read back the original state. */
+class ScopedFlushToZero {
+/* Same platforms that use the `_mm_*` intrinsics for SIMD_SET_FLUSH_TO_ZERO above. */
+#if defined(__x86_64__) || defined(_M_X64) || \
+    ((defined(__aarch64__) || defined(_M_ARM64)) && defined(_MM_SET_FLUSH_ZERO_MODE))
+ public:
+  ScopedFlushToZero() : orig_csr_(_mm_getcsr())
+  {
+    SIMD_SET_FLUSH_TO_ZERO;
+  }
+
+  ~ScopedFlushToZero()
+  {
+    _mm_setcsr(orig_csr_);
+  }
+
+ private:
+  unsigned int orig_csr_;
+#endif
+};
+
 /* Data structures used by SSE classes. */
 #ifdef __KERNEL_SSE2__
 

@@ -29,7 +29,12 @@ struct BLI_mempool;
  * be called from the main threads. All other scheduler and pool functions are thread-safe.
  * \{ */
 
-void BLI_task_scheduler_init();
+/**
+ * \param use_flush_denormals_to_zero: Enable flush-to-zero and denormals-are-zero on the main
+ * thread and on every task scheduler thread. Applying this consitently keeps results reproducible
+ * no matter which thread a computation runs on.
+ */
+void BLI_task_scheduler_init(bool use_flush_denormals_to_zero = true);
 void BLI_task_scheduler_exit();
 int BLI_task_scheduler_num_threads();
 

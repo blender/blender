@@ -10,6 +10,8 @@
 
 #pragma once
 
+#include <cstddef>
+
 #include "GHOST_utildefines_variadic.hh"
 
 /* -------------------------------------------------------------------- */
@@ -32,13 +34,11 @@
  * \{ */
 
 /* Assuming a static array. */
-#if defined(__GNUC__) && !defined(__cplusplus) && !defined(__clang__) && !defined(__INTEL_COMPILER)
-#  define ARRAY_SIZE(arr) \
-    ((sizeof(struct { int isnt_array : ((const void *)&(arr) == &(arr)[0]); }) * 0) + \
-     (sizeof(arr) / sizeof(*(arr))))
-#else
-#  define ARRAY_SIZE(arr) (sizeof(arr) / sizeof(*(arr)))
-#endif
+template<class T, size_t N> constexpr size_t ARRAY_SIZE(const T (&arg)[N]) noexcept
+{
+  (void)arg;
+  return N;
+}
 
 /** \} */
 

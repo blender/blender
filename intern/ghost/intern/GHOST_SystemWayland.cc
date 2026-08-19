@@ -3607,9 +3607,9 @@ static void gwl_window_csd_active_elem_button(GWL_Seat *seat,
   GHOST_TCSD_Type press_type = GHOST_kCSDTypeBody;
 
   bool is_double_click = false;
-  if (ebutton < ARRAY_SIZE(GHOST_CSD_EventState::buttons)) {
+  GHOST_CSD_EventState &event_state = win->csd_eventstate_get();
+  if (ebutton < ARRAY_SIZE(event_state.buttons)) {
     const GHOST_CSD_Params &params = seat->system->getWindowCSD();
-    GHOST_CSD_EventState &event_state = win->csd_eventstate_get();
     GHOST_CSD_EventState_Button &event_button = event_state.buttons[ebutton];
 
     if (event_button.action_history_num >= 1) {

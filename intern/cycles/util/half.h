@@ -63,23 +63,51 @@ struct half4 {
  * https://gist.github.com/rygorous/2144712
  * https://gist.github.com/rygorous/2156668
  * https://gist.github.com/rygorous/4d9e9e88cab13c703773dc767a23575f
+ *
+ * The half exponent and mantissa, shifted into float position, need to be scaled by 2^112 to get
+ * the matching float exponent. This is done by adding to the exponent field rather than by
+ * multiplying with 2^112, so that no denormal float is used as intermediate value. Such a value
+ * would be flushed to zero when the CPU runs with flush-to-zero and denormals-are-zero enabled
+ * (as it is for threads that use Embree), making every denormal half decode as zero.
+ *
+ * Denormal halves have a zero exponent, so they instead get a bias that makes them normal floats,
+ * with the implicit leading one that introduces subtracted again afterwards.
  */
+
 ccl_device_inline float fallback_half_to_float(const half h)
 {
+  const int c_min_normal = 1 << 23;
+  const int c_normal_bias = 112 << 23;
+  const int c_denorm_bias = 113 << 23;
+
   const uint32_t bits = uint16_t(h);
   const uint32_t s = (bits & 0x8000) << 16;
-  const uint32_t em = (bits & 0x7fff) << 13;
-  const float f = __int_as_float(em) * __int_as_float(0x77800000 /* 2^112 */);
+  const int em = int((bits & 0x7fff) << 13);
+
+  const float normal = __int_as_float(em + c_normal_bias);
+  const float denorm = __int_as_float(em + c_denorm_bias) - __int_as_float(c_denorm_bias);
+  const float f = (em < c_min_normal) ? denorm : normal;
+
   return __int_as_float(__float_as_uint(f) | s);
 }
 
 ccl_device_inline float4 fallback_half4_to_float4(const half4 h)
 {
+  const int4 c_min_normal = make_int4(1 << 23);
+  const int4 c_normal_bias = make_int4(112 << 23);
+  const int4 c_denorm_bias = make_int4(113 << 23);
+
   const int4 i = make_int4(uint16_t(h.x), uint16_t(h.y), uint16_t(h.z), uint16_t(h.w));
   const int4 s = (i & 0x8000) << 16;
   const int4 em = (i & 0x7fff) << 13;
-  const float4 f = cast(em) * __int_as_float(0x77800000 /* 2^112 */);
-  return cast(cast(f) | s);
+
+  const int4 b_isdenorm = c_min_normal > em;
+
+  const float4 normal = cast(em + c_normal_bias);
+  const float4 denorm = cast(em + c_denorm_bias) - cast(c_denorm_bias);
+  const int4 f = select(b_isdenorm, cast(denorm), cast(normal));
+
+  return cast(f | s);
 }
 
 ccl_device_inline float3 fallback_half3_to_float3(const half3 h)

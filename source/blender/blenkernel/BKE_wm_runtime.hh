@@ -185,6 +185,9 @@ struct WindowRuntime {
    */
   bool ime_data_is_composing = false;
 
+  /* Optionally store the size and position using this key in the user's recents file. */
+  std::string recents_storage_key = {};
+
   /** Don't want to include ghost.h stuff. */
   void *ghostwin = nullptr;
 
