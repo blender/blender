@@ -41,6 +41,8 @@ static void node_declare(NodeDeclarationBuilder &b)
     else {
       decl.structure_type(StructureType(storage.structure_type));
     }
+
+    decl.compositor_realization_mode(CompositorInputRealizationMode::None);
   }
 }
 

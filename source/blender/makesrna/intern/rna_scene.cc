@@ -3250,7 +3250,7 @@ static void rna_SceneCompositorEffects_remove(ID *scene_id,
 static void rna_SceneCompositorEffects_clear(ID *scene_id, Main *bmain)
 {
   Scene *scene = id_cast<Scene *>(scene_id);
-  bke::compositor::free_effects(*scene);
+  bke::compositor::clear_effects(*scene);
 
   DEG_relations_tag_update(bmain);
   DEG_id_tag_update(&scene->id, ID_RECALC_COMPOSITOR);
@@ -9836,9 +9836,9 @@ void RNA_def_scene(BlenderRNA *brna)
   rna_def_view_layer_lightgroup(brna);
   rna_def_view_layer_eevee(brna);
   rna_def_scene_gpencil(brna);
-  rna_def_compositor_effect(brna);
   RNA_define_animate_sdna(true);
   /* *** Animated *** */
+  rna_def_compositor_effect(brna);
   rna_def_scene_render_data(brna);
   rna_def_scene_render_view(brna);
 

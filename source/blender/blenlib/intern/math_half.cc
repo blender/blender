@@ -215,7 +215,15 @@ static inline __m128i F32_to_F16_4x(const __m128 &f)
 static inline __m128 F16_to_F32_4x(const __m128i &h)
 {
   const __m128i mask_nosign = _mm_set1_epi32(0x7fff);
-  const __m128 magic_mult = _mm_castsi128_ps(_mm_set1_epi32((254 - 15) << 23));
+  /* Scaling the shifted exponent and mantissa by 2^112 is done by adding to the exponent
+   * field instead of multiplying, so that subnormal halves do not go through a subnormal
+   * float as intermediate value. Such a value would be flushed to zero when the CPU runs
+   * with flush-to-zero / denormals-are-zero enabled. Subnormal halves have a zero exponent
+   * and need a bias that makes them normal floats, with the implicit leading one that
+   * introduces subtracted again afterwards. */
+  const __m128i min_normal = _mm_set1_epi32(1 << 23);
+  const __m128i normal_bias = _mm_set1_epi32((254 - 15 - 127) << 23);
+  const __m128i subnorm_bias = _mm_set1_epi32((254 - 15 - 126) << 23);
   const __m128i was_infnan = _mm_set1_epi32(0x7bff);
   const __m128 exp_infnan = _mm_castsi128_ps(_mm_set1_epi32(255 << 23));
   const __m128i was_nan = _mm_set1_epi32(0x7c00);
@@ -224,7 +232,12 @@ static inline __m128 F16_to_F32_4x(const __m128i &h)
   __m128i expmant = _mm_and_si128(mask_nosign, h);
   __m128i justsign = _mm_xor_si128(h, expmant);
   __m128i shifted = _mm_slli_epi32(expmant, 13);
-  __m128 scaled = _mm_mul_ps(_mm_castsi128_ps(shifted), magic_mult);
+  __m128i b_wassubnorm = _mm_cmpgt_epi32(min_normal, shifted);
+  __m128 scaled_normal = _mm_castsi128_ps(_mm_add_epi32(shifted, normal_bias));
+  __m128 scaled_subnorm = _mm_sub_ps(_mm_castsi128_ps(_mm_add_epi32(shifted, subnorm_bias)),
+                                     _mm_castsi128_ps(subnorm_bias));
+  __m128 scaled = _mm_or_ps(_mm_and_ps(_mm_castsi128_ps(b_wassubnorm), scaled_subnorm),
+                            _mm_andnot_ps(_mm_castsi128_ps(b_wassubnorm), scaled_normal));
   __m128i b_wasinfnan = _mm_cmpgt_epi32(expmant, was_infnan);
   __m128i sign = _mm_slli_epi32(justsign, 16);
   __m128 infnanexp = _mm_and_ps(_mm_castsi128_ps(b_wasinfnan), exp_infnan);

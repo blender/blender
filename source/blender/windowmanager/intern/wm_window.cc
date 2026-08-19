@@ -53,6 +53,7 @@
 #include "BKE_icons.hh"
 #include "BKE_layer.hh"
 #include "BKE_main.hh"
+#include "BKE_recents.hh"
 #include "BKE_report.hh"
 #include "BKE_screen.hh"
 #include "BKE_wm_runtime.hh"
@@ -463,33 +464,6 @@ void wm_quit_with_optional_confirmation_prompt(bContext *C, wmWindow *win)
 /** \name Window Close
  * \{ */
 
-static rctf *stored_window_bounds(eSpace_Type space_type)
-{
-  if (space_type == SPACE_IMAGE) {
-    return &U.stored_bounds.image;
-  }
-  if (space_type == SPACE_USERPREF) {
-    return &U.stored_bounds.userpref;
-  }
-  if (space_type == SPACE_GRAPH) {
-    return &U.stored_bounds.graph;
-  }
-  if (space_type == SPACE_INFO) {
-    return &U.stored_bounds.info;
-  }
-  if (space_type == SPACE_OUTLINER) {
-    return &U.stored_bounds.outliner;
-  }
-  if (space_type == SPACE_FILE) {
-    return &U.stored_bounds.file;
-  }
-  if (space_type == SPACE_PROJECT) {
-    return &U.stored_bounds.project;
-  }
-
-  return nullptr;
-}
-
 static bool wm_window_is_last_main_window(wmWindowManager *wm, wmWindow *win)
 {
   if (win->parent) {
@@ -521,22 +495,19 @@ void wm_window_close_request(bContext *C, wmWindowManager *wm, wmWindow *win)
   {
     bScreen *screen = WM_window_get_active_screen(win);
     if (screen && screen->temp && BLI_listbase_is_single(&screen->areabase)) {
-      const ScrArea *area = static_cast<const ScrArea *>(screen->areabase.first);
-      rctf *stored_bounds = stored_window_bounds(eSpace_Type(area->spacetype));
-
-      if (stored_bounds) {
+      if (!win->runtime->recents_storage_key.empty()) {
         /* Get DPI and scale from parent window, if there is one. */
         WM_window_dpi_set_userdef(win->parent ? win->parent : win);
 
         GHOST_IWindow *ghost_window = static_cast<GHOST_IWindow *>(win->runtime->ghostwin);
         const float fac = ghost_window->getNativePixelSize() / UI_SCALE_FAC;
 
-        stored_bounds->xmin = float(win->posx) * fac;
-        stored_bounds->xmax = stored_bounds->xmin + float(win->sizex) * fac;
-        stored_bounds->ymin = float(win->posy) * fac;
-        stored_bounds->ymax = stored_bounds->ymin + float(win->sizey) * fac;
-        /* Tag user preferences as dirty. */
-        U.runtime.is_dirty = true;
+        std::vector<float> bounds = {float(win->posx) * fac,
+                                     float(win->posx) * fac + float(win->sizex) * fac,
+                                     float(win->posy) * fac,
+                                     float(win->posy) * fac + float(win->sizey) * fac};
+
+        recents::Section("temp.window.dimensions").set(win->runtime->recents_storage_key, bounds);
       }
     }
   }
@@ -1465,23 +1436,28 @@ wmWindow *WM_window_open_temp(bContext *C, const char *title, int space_type, bo
   rcti rect;
   WM_window_dpi_set_userdef(CTX_wm_window(C));
   eWindowAlignment align;
-  rctf *stored_bounds = stored_window_bounds(eSpace_Type(space_type));
-  const bool bounds_valid = (stored_bounds && (BLI_rctf_size_x(stored_bounds) > 150.0f) &&
-                             (BLI_rctf_size_y(stored_bounds) > 100.0f));
-  const bool mm_placement = WM_capabilities_flag() & WM_CAPABILITY_MULTIMONITOR_PLACEMENT;
 
+  const int index = RNA_enum_from_value(rna_enum_space_type_items, space_type);
+  BLI_assert(index != -1);
+  const EnumPropertyItem item = rna_enum_space_type_items[index];
+
+  std::string key = item.identifier;
+  auto bounds = recents::Section("temp.window.dimensions").get<std::vector<float>>(key);
+
+  const bool bounds_valid = (bounds.size() == 4 && (bounds[1] - bounds[0] > 150.0f) &&
+                             (bounds[3] - bounds[2] > 100.0f));
+  const bool mm_placement = WM_capabilities_flag() & WM_CAPABILITY_MULTIMONITOR_PLACEMENT;
   if (bounds_valid && mm_placement) {
-    rect.xmin = int(stored_bounds->xmin * UI_SCALE_FAC);
-    rect.ymin = int(stored_bounds->ymin * UI_SCALE_FAC);
-    rect.xmax = int(stored_bounds->xmax * UI_SCALE_FAC);
-    rect.ymax = int(stored_bounds->ymax * UI_SCALE_FAC);
+    rect.xmin = int(bounds[0] * UI_SCALE_FAC);
+    rect.xmax = int(bounds[1] * UI_SCALE_FAC);
+    rect.ymin = int(bounds[2] * UI_SCALE_FAC);
+    rect.ymax = int(bounds[3] * UI_SCALE_FAC);
     align = WIN_ALIGN_ABSOLUTE;
   }
   else {
     wmWindow *win_cur = CTX_wm_window(C);
-    const int width = int((bounds_valid ? BLI_rctf_size_x(stored_bounds) : 800.0f) * UI_SCALE_FAC);
-    const int height = int((bounds_valid ? BLI_rctf_size_y(stored_bounds) : 600.0f) *
-                           UI_SCALE_FAC);
+    const int width = int((bounds_valid ? int(bounds[1] - bounds[0]) : 800.0f) * UI_SCALE_FAC);
+    const int height = int((bounds_valid ? int(bounds[3] - bounds[2]) : 600.0f) * UI_SCALE_FAC);
     /* Use eventstate, not event from _invoke, so this can be called through exec(). */
     const wmEvent *event = win_cur->runtime->eventstate;
     rect.xmin = event->xy[0];
@@ -1493,7 +1469,9 @@ wmWindow *WM_window_open_temp(bContext *C, const char *title, int space_type, bo
 
   wmWindow *win = WM_window_open(
       C, title, &rect, space_type, false, dialog, true, align, nullptr, nullptr);
-
+  if (win) {
+    win->runtime->recents_storage_key = std::move(key);
+  }
   return win;
 }
 

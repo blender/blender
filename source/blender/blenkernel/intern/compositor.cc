@@ -320,6 +320,13 @@ void free_effects(Scene &scene)
   scene.compositor_effects.clear_no_delete();
 }
 
+void clear_effects(Scene &scene)
+{
+  for (SceneCompositorEffect &effect : scene.compositor_effects.items_reversed_mutable()) {
+    remove_effect(scene, effect);
+  }
+}
+
 void for_each_id_in_effects(const Scene &scene, LibraryForeachIDData &data)
 {
   for (SceneCompositorEffect &effect : scene.compositor_effects) {
@@ -383,6 +390,13 @@ void update_effect_node_group_interface(Main &main, Scene &scene, SceneComposito
     effect.system_properties =
         bke::idprop::create_group("SceneCompositorEffectProperties").release();
   }
+
+  /* In case the node group is missing, do not update the properties to avoid the values reverting
+   * to their default value if the node group later becomes available. */
+  if (!effect.node_group || ID_MISSING(effect.node_group)) {
+    return;
+  }
+
   PointerRNA properties_ptr = RNA_pointer_create_discrete(
       &scene.id, RNA_SceneCompositorEffectProperties, &effect);
   RNA_ensure_and_sync_system_properties(main, properties_ptr, *effect.system_properties);
@@ -557,14 +571,8 @@ Set<std::string> get_used_passes(const Scene &scene,
   return used_passes;
 }
 
-bool is_viewport_compositor_used(const Scene &scene,
-                                 const View3D &view_3d,
-                                 const RegionView3D &region_view_3d)
+bool is_viewport_compositor_enabled(const View3D &view_3d, const RegionView3D &region_view_3d)
 {
-  if (!is_enabled(scene, ExecutionMode::Preview)) {
-    return false;
-  }
-
   if (view_3d.shading.use_compositor == V3D_SHADING_USE_COMPOSITOR_DISABLED) {
     return false;
   }
@@ -599,7 +607,7 @@ bool is_viewport_compositor_used(const bContext &context)
         for (ARegion &region : area.regionbase) {
           if (region.regiontype == RGN_TYPE_WINDOW) {
             const RegionView3D &region_view_3d = *static_cast<RegionView3D *>(region.regiondata);
-            if (is_viewport_compositor_used(*scene, view_3d, region_view_3d)) {
+            if (is_viewport_compositor_enabled(view_3d, region_view_3d)) {
               return true;
             }
           }

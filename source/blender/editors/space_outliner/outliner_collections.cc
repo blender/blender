@@ -1505,7 +1505,7 @@ static TreeTraversalAction outliner_hide_collect_data_to_edit(TreeElement *te, v
       /* Skip - showing warning/error message might be misleading
        * when deleting multiple collections, so just do nothing. */
     }
-    else if (tselem->flag & TSE_SELECTED) {
+    else if (!data->hide_unselected && tselem->flag & TSE_SELECTED) {
       /* Delete, duplicate and link don't edit children,
        * those will come along with the parents. */
       data->collections_to_edit.add(lc);

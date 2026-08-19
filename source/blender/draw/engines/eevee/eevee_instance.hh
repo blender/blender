@@ -175,8 +175,8 @@ class Instance : public DrawEngine {
   bool is_painting = false;
   /** True if current viewport is drawn during transforming operator. */
   bool is_transforming = false;
-  /** True if viewport compositor is enabled when drawing with this instance. */
-  bool is_viewport_compositor_enabled = false;
+  /** True if viewport compositor is used when drawing with this instance. */
+  bool is_viewport_compositor_used = false;
   /** True if overlays need to be displayed (only for viewport). */
   bool draw_overlays = false;
 
