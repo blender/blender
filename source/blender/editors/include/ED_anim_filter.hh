@@ -142,6 +142,8 @@ class AnimationChannel : public DNAAnimationChannel {
 
  public:
   AnimationChannel(DNAChannelType type, StringRef label);
+  AnimationChannel(const AnimationChannel &other);
+  AnimationChannel(AnimationChannel &&other);
   ~AnimationChannel();
 
   int64_t hash() const

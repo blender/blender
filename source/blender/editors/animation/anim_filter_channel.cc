@@ -77,11 +77,24 @@ AnimationChannel::AnimationChannel(const DNAChannelType type, const StringRef la
   label_ = BLI_strdup(label.data());
 }
 
+AnimationChannel::AnimationChannel(const AnimationChannel &other)
+{
+  type_ = other.type_;
+  label_ = BLI_strdup(other.label_);
+}
+AnimationChannel::AnimationChannel(AnimationChannel &&other)
+{
+  type_ = other.type_;
+  /* TODO is there a way to only do this for label_? */
+  label_ = other.label_;
+  other.label_ = nullptr;
+}
+
 AnimationChannel::~AnimationChannel()
 {
   /* TODO should this be handled differently? Currently this is only freed via the C++ route but
    * the property is on the C base class. */
-  // MEM_delete(label_);
+  MEM_delete(label_);
 }
 
 Span<float> AnimationChannel::datapoints()
