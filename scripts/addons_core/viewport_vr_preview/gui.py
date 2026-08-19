@@ -333,11 +333,10 @@ class VIEW3D_PT_vr_info(VRButtonsPanel, Panel):
     bl_label = "VR Info"
 
     @classmethod
-    def poll(cls, context):
+    def poll(cls, _context):
         return not bpy.app.build_options.xr_openxr
 
-    def draw(self, context):
-        import platform
+    def draw(self, _context):
         layout = self.layout
         missing_support_string = n_("Built without VR/OpenXR features")
         layout.label(icon='STATUS_ERROR', text=missing_support_string)
