@@ -79,6 +79,11 @@ class UsdToCyclesMapping {
     return _nodeType;
   }
 
+  bool hasParameterMapping(const TfToken &name) const
+  {
+    return _paramMap.find(name) != _paramMap.end();
+  }
+
   virtual std::string parameterName(const TfToken &name,
                                     const ShaderInput *inputConnection,
                                     VtValue * /*value*/ = nullptr) const
@@ -321,10 +326,27 @@ void HdCyclesMaterial::UpdateParameters(NodeDesc &nodeDesc,
     }
 
     if (!input) {
-      TF_WARN("Could not find parameter '%s' on node '%s' ('%s')",
-              paramName.GetText(),
-              nodePath.GetText(),
-              nodeDesc.node->name.c_str());
+      if (inputMapping) {
+        if (inputMapping->hasParameterMapping(paramName)) {
+          TF_WARN("USD input '%s' on node '%s' maps to unavailable Cycles input '%s' on '%s'",
+                  paramName.GetText(),
+                  nodePath.GetText(),
+                  inputName.c_str(),
+                  nodeDesc.node->name.c_str());
+        }
+        else {
+          TF_WARN("Unsupported USD input '%s' on node '%s' ('%s'); value ignored",
+                  paramName.GetText(),
+                  nodePath.GetText(),
+                  nodeDesc.node->name.c_str());
+        }
+      }
+      else {
+        TF_WARN("Could not find parameter '%s' on node '%s' ('%s')",
+                paramName.GetText(),
+                nodePath.GetText(),
+                nodeDesc.node->name.c_str());
+      }
       continue;
     }
 
