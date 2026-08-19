@@ -656,7 +656,7 @@ static void snap_curves_to_surface_exec_object(Object &curves_ob,
         *r_missing_uvs = true;
         break;
       }
-      using geometry::ReverseUVSampler;
+      using blender::geometry::ReverseUVSampler;
       ReverseUVSampler reverse_uv_sampler{surface_uv_map, surface_corner_tris};
 
       threading::parallel_for(curves.curves_range(), 256, [&](const IndexRange curves_range) {
@@ -1428,13 +1428,13 @@ static wmOperatorStatus exec(bContext *C, wmOperator *op)
       continue;
     }
 
-    geometry::ConvertCurvesOptions options;
+    blender::geometry::ConvertCurvesOptions options;
     options.convert_bezier_handles_to_poly_points = use_handles;
     options.convert_bezier_handles_to_catmull_rom_points = use_handles;
     options.keep_bezier_shape_as_nurbs = use_handles;
     options.keep_catmull_rom_shape_as_nurbs = use_handles;
 
-    curves = geometry::convert_curves(curves, selection, dst_type, {}, options);
+    curves = blender::geometry::convert_curves(curves, selection, dst_type, {}, options);
 
     DEG_id_tag_update(&curves_id->id, ID_RECALC_GEOMETRY);
     WM_event_add_notifier(C, NC_GEOM | ND_DATA, curves_id);
@@ -1538,7 +1538,7 @@ static wmOperatorStatus exec(bContext *C, wmOperator *op)
       }
     });
 
-    curves = geometry::subdivide_curves(
+    curves = blender::geometry::subdivide_curves(
         curves, curves.curves_range(), VArray<int>::from_span(segment_cuts), {});
 
     DEG_id_tag_update(&curves_id->id, ID_RECALC_GEOMETRY);
@@ -1588,9 +1588,10 @@ static void append_primitive_curve(bContext *C,
   object::add_generic_get_opts(C, &op, 'Z', location, rotation, scale, nullptr, nullptr, nullptr);
   const float4x4 transform = math::from_loc_rot_scale<float4x4>(
       location, math::EulerXYZ(rotation), scale);
-  geometry::transform_geometry(new_geometry, transform);
+  blender::geometry::transform_geometry(new_geometry, transform);
 
-  bke::GeometrySet joined_geometry = geometry::join_geometries({old_geometry, new_geometry}, {});
+  bke::GeometrySet joined_geometry = blender::geometry::join_geometries(
+      {old_geometry, new_geometry}, {});
   Curves *joined_curves_id = joined_geometry.get_curves_for_write();
   CurvesGeometry &dst_curves = curves_id.geometry.wrap();
   dst_curves = std::move(joined_curves_id->geometry.wrap());
