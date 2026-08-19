@@ -203,7 +203,7 @@ SceneCompositorEffect *get_active_effect(const Scene &scene)
 
 bool is_effect_enabled(const SceneCompositorEffect &effect, const ExecutionMode mode)
 {
-  if (!effect.node_group) {
+  if (!effect.node_group || ID_MISSING(effect.node_group)) {
     return false;
   }
 
