@@ -1569,29 +1569,6 @@ static Mesh *create_merged_mesh(const Mesh &mesh,
                     result->verts_num);
     copy_first_from_src(src, dst_to_src_verts, dst);
   }
-  if (CustomData_has_layer(&mesh.vert_data, CD_MVERT_SKIN)) {
-    const Span src(
-        static_cast<const MVertSkin *>(CustomData_get_layer(&mesh.vert_data, CD_MVERT_SKIN)),
-        mesh.verts_num);
-    MutableSpan dst(static_cast<MVertSkin *>(CustomData_add_layer(
-                        &result->vert_data, CD_MVERT_SKIN, CD_CONSTRUCT, result->verts_num)),
-                    result->verts_num);
-    threading::parallel_for(dst.index_range(), 2048, [&](const IndexRange range) {
-      for (const int dst_vert : range) {
-        const Span<int> src_verts = dst_to_src_verts[dst_vert];
-        if (src_verts.size() == 1) {
-          dst[dst_vert] = src[src_verts.first()];
-          continue;
-        }
-        const float src_num_inv = math::rcp(float(src_verts.size()));
-        for (const int src_vert : src_verts) {
-          madd_v3_v3fl(dst[dst_vert].radius, src[src_vert].radius, src_num_inv);
-          dst[dst_vert].flag |= src[src_vert].flag;
-        }
-      }
-    });
-  }
-
   /* Edges. */
 
   Array<int> edge_final_map;

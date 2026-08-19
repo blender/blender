@@ -1091,7 +1091,7 @@ std::optional<std::string> BKE_screen_path_to_space(const PointerRNA *ptr)
 {
   const SpaceLink *link = static_cast<const SpaceLink *>(ptr->data);
 
-  switch (GS(ptr->owner_id->name)) {
+  switch (ptr->owner_id->id_type()) {
     case ID_SCR: {
       const bScreen *screen = id_cast<const bScreen *>(ptr->owner_id);
 
@@ -1129,7 +1129,7 @@ std::optional<std::string> BKE_screen_path_to_area(const PointerRNA *ptr)
 {
   const ScrArea *area = static_cast<const ScrArea *>(ptr->data);
 
-  switch (GS(ptr->owner_id->name)) {
+  switch (ptr->owner_id->id_type()) {
     case ID_SCR: {
       const bScreen *screen = id_cast<const bScreen *>(ptr->owner_id);
       const int area_index = BLI_findindex(&screen->areabase, area);

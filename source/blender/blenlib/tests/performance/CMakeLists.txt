@@ -23,3 +23,9 @@ set(SRC
 )
 
 blender_add_test_performance_executable(BLI_map_performance "${SRC}" "${INC}" "${INC_SYS}" "${LIB}")
+
+set(SRC
+  BLI_group_indices.cc
+)
+
+blender_add_test_performance_executable(BLI_group_indices "${SRC}" "${INC}" "${INC_SYS}" "${LIB}")

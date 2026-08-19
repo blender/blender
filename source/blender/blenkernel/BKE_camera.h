@@ -96,6 +96,29 @@ void BKE_camera_params_crop_viewplane(rctf *viewplane, int winx, int winy, const
  */
 void BKE_camera_params_compute_matrix(CameraParams *params);
 
+/* Camera Border in Viewport */
+
+/** Camera frame within a viewport of the given size, in viewport pixels. */
+rctf BKE_camera_view_border(const struct Scene *scene,
+                            const struct Depsgraph *depsgraph,
+                            const struct View3D *v3d,
+                            const struct RegionView3D *rv3d,
+                            int winx,
+                            int winy,
+                            bool no_shift,
+                            bool no_zoom,
+                            bool no_roll);
+
+/** Border to render within a viewport of the given size, in viewport pixels. */
+bool BKE_camera_view_render_border(const struct Scene *scene,
+                                   const struct Depsgraph *depsgraph,
+                                   const struct View3D *v3d,
+                                   const struct RegionView3D *rv3d,
+                                   int winx,
+                                   int winy,
+                                   rctf *r_border,
+                                   rctf *r_unrolled_border);
+
 /* Camera View Frame */
 
 void BKE_camera_view_frame_ex(const struct Scene *scene,

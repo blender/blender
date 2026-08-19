@@ -47,6 +47,12 @@ struct GPUCapabilities {
   bool hdr_viewport_support = false;
   bool stencil_export_support = false;
   bool ray_query_support = false;
+  bool vertex_pipeline_stores_and_atomics_support = false;
+
+  /** Can an sRGB texture be written, with the hardware performing conversion to sRGB? */
+  bool srgb_write_direct_support = false;
+  /* Can an sRGB texture be bound as writable with a non-sRGB (UNORM) view? */
+  bool srgb_write_view_support = false;
 
   int max_parallel_compilations = -1;
 

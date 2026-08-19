@@ -1192,7 +1192,13 @@ static ImBuf *paint_2d_lift_clone(ImBuf *ibuf, ImBuf *ibufb, const int *pos)
   clonebuf->color_mode = ibufb->color_mode;
 
   IMB_rectclip(clonebuf, ibuf, &destx, &desty, &srcx, &srcy, &w, &h);
+
+  uint8_t *clonebuf_byte_data = clonebuf->byte_data_for_write();
+  float *clonebuf_float_data = clonebuf->float_data_for_write();
+
   IMB_rectblend(clonebuf,
+                clonebuf_byte_data,
+                clonebuf_float_data,
                 clonebuf,
                 ibufb,
                 nullptr,
@@ -1210,6 +1216,8 @@ static ImBuf *paint_2d_lift_clone(ImBuf *ibuf, ImBuf *ibufb, const int *pos)
                 IMB_BLEND_COPY_ALPHA,
                 false);
   IMB_rectblend(clonebuf,
+                clonebuf_byte_data,
+                clonebuf_float_data,
                 clonebuf,
                 ibuf,
                 nullptr,
@@ -1239,6 +1247,8 @@ static void paint_2d_convert_brushco(ImBuf *ibufb, const float pos[2], int ipos[
 static void paint_2d_do_making_brush(ImagePaintState *s,
                                      ImagePaintTile *tile,
                                      ImagePaintRegion *region,
+                                     uint8_t *canvas_byte_data,
+                                     float *canvas_float_data,
                                      ImBuf *frombuf,
                                      float mask_max,
                                      short blend,
@@ -1271,6 +1281,8 @@ static void paint_2d_do_making_brush(ImagePaintState *s,
       }
 
       IMB_rectblend(tile->canvas,
+                    canvas_byte_data,
+                    canvas_float_data,
                     &tmpbuf,
                     frombuf,
                     mask,
@@ -1295,6 +1307,8 @@ struct Paint2DForeachData {
   ImagePaintState *s;
   ImagePaintTile *tile;
   ImagePaintRegion *region;
+  uint8_t *canvas_byte_data;
+  float *canvas_float_data;
   ImBuf *frombuf;
   float mask_max;
   short blend;
@@ -1310,6 +1324,8 @@ static void paint_2d_op_foreach_do(void *__restrict data_v,
   paint_2d_do_making_brush(data->s,
                            data->tile,
                            data->region,
+                           data->canvas_byte_data,
+                           data->canvas_float_data,
                            data->frombuf,
                            data->mask_max,
                            data->blend,
@@ -1397,15 +1413,31 @@ static int paint_2d_op(void *state,
                             &tilew,
                             &tileh);
 
+      /* Acquire mutable data pointers outside of parallel loop. */
+      uint8_t *canvas_byte_data = canvas->byte_data_for_write();
+      float *canvas_float_data = canvas->float_data_for_write();
+
       if (tiley == tileh) {
-        paint_2d_do_making_brush(
-            s, tile, &region[a], frombuf, mask_max, blend, tilex, tiley, tilew, tileh);
+        paint_2d_do_making_brush(s,
+                                 tile,
+                                 &region[a],
+                                 canvas_byte_data,
+                                 canvas_float_data,
+                                 frombuf,
+                                 mask_max,
+                                 blend,
+                                 tilex,
+                                 tiley,
+                                 tilew,
+                                 tileh);
       }
       else {
         Paint2DForeachData data;
         data.s = s;
         data.tile = tile;
         data.region = &region[a];
+        data.canvas_byte_data = canvas_byte_data;
+        data.canvas_float_data = canvas_float_data;
         data.frombuf = frombuf;
         data.mask_max = mask_max;
         data.blend = blend;

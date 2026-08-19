@@ -96,6 +96,7 @@ class ListingDownloaderTest(unittest.TestCase):
         Downloader = listing_downloader.RemoteAssetListingDownloader
         dl = Downloader(
             remote_url="http://localhost/",
+            auth_token="",
             local_path="/tmp/does-not-matter-we-do-not-write",
             on_update_callback=lambda downloader: None,
             on_done_callback=lambda downloader: None,
@@ -151,6 +152,7 @@ class ListingDownloaderTest(unittest.TestCase):
         Downloader = listing_downloader.RemoteAssetListingDownloader
         dl = Downloader(
             remote_url="http://localhost/",
+            auth_token="",
             local_path="/tmp/does-not-matter-we-do-not-write",
             on_update_callback=lambda downloader: None,
             on_done_callback=lambda downloader: None,

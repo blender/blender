@@ -23,6 +23,7 @@
 #include "BKE_image.hh"
 #include "BKE_main.hh"
 
+#include "SEQ_add.hh"
 #include "SEQ_channels.hh"
 #include "SEQ_iterator.hh"
 #include "SEQ_sequencer.hh"
@@ -416,8 +417,6 @@ static void draw_strip_in_view(bContext *C, wmWindow * /*win*/, wmDrag *drag, co
   uchar strip_color[4];
   strip_color[3] = 255;
   uchar text_color[4] = {255, 255, 255, 255};
-  float pixelx = BLI_rctf_size_x(&region->v2d.cur) / (BLI_rcti_size_x(&region->v2d.mask) + 1);
-  float pixely = BLI_rctf_size_y(&region->v2d.cur) / (BLI_rcti_size_y(&region->v2d.mask) + 1);
 
   StripsDrawBatch batch(&region->v2d);
 
@@ -454,6 +453,9 @@ static void draw_strip_in_view(bContext *C, wmWindow * /*win*/, wmDrag *drag, co
     }
     strip_color[3] = 204;
     data.col_outline = color_pack(strip_color);
+
+    const float pixelx = ui::view2d_pixel_size_get_x(&region->v2d);
+    const float pixely = ui::view2d_pixel_size_get_y(&region->v2d);
 
     /* Taken from strip_handle_draw_size_get(). */
     const float handle_size = pixelx * (5.0f * U.pixelsize);
@@ -667,7 +669,7 @@ static void image_drop_on_enter(wmDropBox *drop, wmDrag * /*drag*/)
   }
 
   SeqDropCoords *coords = static_cast<SeqDropCoords *>(drop->draw_data);
-  coords->strip_length = DEFAULT_IMG_STRIP_LENGTH;
+  coords->strip_length = seq::DEFAULT_STRIP_LENGTH;
   coords->num_channels = 1;
 }
 

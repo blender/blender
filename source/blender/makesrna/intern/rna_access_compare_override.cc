@@ -307,8 +307,8 @@ bool RNA_struct_equals(Main *bmain, PointerRNA *ptr_a, PointerRNA *ptr_b, eRNACo
     return false;
   }
 
-  if (RNA_pointer_is_null(ptr_a)) {
-    if (RNA_pointer_is_null(ptr_b)) {
+  if (!*ptr_a) {
+    if (!*ptr_b) {
       return true;
     }
     return false;
@@ -426,7 +426,7 @@ static int rna_property_override_diff(Main *bmain,
     CLOG_ERROR(
         &LOG,
         "'%s' gives unmatching or nullptr RNA diff callbacks, should not happen (%d vs. %d)",
-        rna_path ? rna_path : prop_a->identifier,
+        rna_path ? rna_path : prop_a->identifier.c_str(),
         !prop_a->is_idprop,
         !prop_b->is_idprop);
     BLI_assert_unreachable();
@@ -609,7 +609,8 @@ static bool rna_property_override_operation_apply(Main *bmain,
     CLOG_ERROR(
         &LOG,
         "'%s' gives unmatching or nullptr RNA apply callbacks, should not happen (%d vs. %d)",
-        prop_dst->magic != RNA_MAGIC ? ((IDProperty *)prop_dst)->name : prop_dst->identifier,
+        prop_dst->magic != RNA_MAGIC ? ((IDProperty *)prop_dst)->name :
+                                       prop_dst->identifier.c_str(),
         prop_dst->magic == RNA_MAGIC,
         prop_src->magic == RNA_MAGIC);
     BLI_assert_unreachable();
@@ -747,8 +748,8 @@ bool RNA_struct_override_matches(Main *bmain,
     if (root_path) {
       BLI_assert(strlen(root_path) == root_path_len);
 
-      const char *prop_name = prop_local.identifier;
-      const size_t prop_name_len = strlen(prop_name);
+      const char *prop_name = prop_local.identifier.c_str();
+      const size_t prop_name_len = prop_local.identifier.size();
 
       char rna_path_buffer[RNA_PATH_BUFFSIZE];
       char *rna_path_c = rna_path_buffer;
@@ -1092,7 +1093,7 @@ static bool rna_property_override_collection_subitem_name_id_lookup(
 
     RNA_property_collection_begin(ptr, prop, &iter);
     for (; iter.valid; RNA_property_collection_next(&iter)) {
-      if (iter.ptr.data && iter.ptr.type->nameproperty) {
+      if (iter.ptr && iter.ptr.type->nameproperty) {
         if (rna_property_override_collection_subitem_name_id_match(
                 item_name, item_name_len, do_id_pointer, item_id, &iter.ptr))
         {
@@ -1138,7 +1139,7 @@ static void rna_property_override_collection_subitem_name_index_lookup(
    */
   if (item_index != -1) {
     if (RNA_property_collection_lookup_int(ptr, prop, item_index, r_ptr_item_index)) {
-      if (item_name && r_ptr_item_index->type) {
+      if (item_name && r_ptr_item_index->has_type()) {
         if (rna_property_override_collection_subitem_name_id_match(
                 item_name, item_name_len, do_id_pointer, item_id, r_ptr_item_index))
         {
@@ -1248,7 +1249,7 @@ static void rna_property_override_collection_subitem_lookup(
    * pointers to their expected values.
    * In that case we simply try to get the property from the local expected name. */
   if (opop->subitem_reference_name != nullptr && opop->subitem_local_name != nullptr &&
-      ptr_item_dst_name.type == nullptr)
+      !ptr_item_dst_name.has_type())
   {
     rna_property_override_collection_subitem_name_index_lookup(
         ptr_dst,
@@ -1319,7 +1320,7 @@ static void rna_property_override_collection_subitem_lookup(
                                                                ignore_index_only_lookup,
                                                                &ptr_item_storage_name,
                                                                &ptr_item_storage_index);
-    if (ptr_item_storage_name.data == nullptr) {
+    if (!ptr_item_storage_name) {
       rna_property_override_collection_subitem_name_index_lookup(ptr_storage,
                                                                  prop_storage,
                                                                  opop->subitem_reference_name,
@@ -1329,7 +1330,7 @@ static void rna_property_override_collection_subitem_lookup(
                                                                  &ptr_item_storage_name,
                                                                  &ptr_item_storage_index);
     }
-    if (ptr_item_storage_name.data == nullptr && ptr_item_storage_index.data == nullptr) {
+    if (!ptr_item_storage_name && !ptr_item_storage_index) {
       rna_property_override_collection_subitem_name_index_lookup(ptr_storage,
                                                                  prop_storage,
                                                                  nullptr,
@@ -1344,8 +1345,8 @@ static void rna_property_override_collection_subitem_lookup(
   /* Final selection. Both matches have to be based on names, or indices, but not a mix of both.
    * If we are missing either source or destination data based on names, and based on indices, then
    * use partial data from names (allows to handle 'need resync' detection cases). */
-  if ((ptr_item_src_name.type || ptr_item_dst_name.type) &&
-      !(ptr_item_src_index.type && ptr_item_dst_index.type))
+  if ((ptr_item_src_name.has_type() || ptr_item_dst_name.has_type()) &&
+      !(ptr_item_src_index.has_type() && ptr_item_dst_index.has_type()))
   {
     *ptr_item_src = ptr_item_src_name;
     *ptr_item_dst = ptr_item_dst_name;
@@ -1353,7 +1354,7 @@ static void rna_property_override_collection_subitem_lookup(
       *ptr_item_storage = ptr_item_storage_name;
     }
   }
-  else if (ptr_item_src_index.type != nullptr || ptr_item_dst_index.type != nullptr) {
+  else if (ptr_item_src_index.has_type() || ptr_item_dst_index.has_type()) {
     *ptr_item_src = ptr_item_src_index;
     *ptr_item_dst = ptr_item_dst_index;
     if (prop_storage != nullptr) {
@@ -1364,7 +1365,7 @@ static void rna_property_override_collection_subitem_lookup(
   /* Note that there is no reason to report in case no item is expected, i.e. in case subitem name
    * and index are invalid. This can often happen when inserting new items (constraint,
    * modifier...) in a collection that supports it. */
-  if (ptr_item_dst->type == nullptr &&
+  if (!ptr_item_dst->has_type() &&
       ((opop->subitem_reference_name != nullptr && opop->subitem_reference_name[0] != '\0') ||
        opop->subitem_reference_index != -1))
   {
@@ -1375,7 +1376,7 @@ static void rna_property_override_collection_subitem_lookup(
                op->rna_path,
                ptr_dst->owner_id->name);
   }
-  if (ptr_item_src->type == nullptr &&
+  if (!ptr_item_src->has_type() &&
       ((opop->subitem_local_name != nullptr && opop->subitem_local_name[0] != '\0') ||
        opop->subitem_local_index != -1))
   {

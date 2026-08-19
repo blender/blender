@@ -518,13 +518,12 @@ static void sequencer_main_clamp_view(const bContext *C, ARegion *region)
    */
   float pad_top, pad_bottom;
   SEQ_get_timeline_region_padding(C, &pad_top, &pad_bottom);
-  const float pixel_view_size_y = BLI_rctf_size_y(&v2d->cur) / (BLI_rcti_size_y(&v2d->mask) + 1);
   /* Add padding to be able to scroll the view so that the collapsed redo panel doesn't occlude any
    * strips. */
-  float bottom_channel_padding = UI_MARKER_MARGIN_Y * pixel_view_size_y;
+  float bottom_channel_padding = UI_MARKER_MARGIN_Y * ui::view2d_pixel_size_get_y(v2d);
   bottom_channel_padding = std::max(bottom_channel_padding, 1.0f);
   /* Add the padding and make sure we have a margin of one channel in each direction. */
-  strip_boundbox.ymax += 1.0f + pad_top * pixel_view_size_y;
+  strip_boundbox.ymax += 1.0f + pad_top * ui::view2d_pixel_size_get_y(v2d);
   strip_boundbox.ymin -= bottom_channel_padding;
 
   /* If a strip has been deleted, don't move the view automatically, keep current range until it is
@@ -886,23 +885,35 @@ static void sequencer_preview_region_view2d_changed(const bContext *C, ARegion *
 }
 
 #ifdef WITH_INPUT_IME
-static std::optional<rcti> sequencer_preview_region_cursor_ime(wmWindow *win,
-                                                               const ScrArea * /*area*/,
-                                                               const ARegion *region)
+static std::optional<ARegionIMECursorState> sequencer_preview_region_cursor_ime(
+    wmWindow *win, const ScrArea * /*area*/, const ARegion *region, ARegionIMECursor *r_cursor)
 {
   const WorkSpace *workspace = WM_window_get_active_workspace(win);
   const Scene *scene = workspace->sequencer_scene;
   if (!scene) {
     return std::nullopt;
   }
-  const std::optional<blender::int2> xy = sequencer_text_editing_cursor_region_xy_get(scene,
-                                                                                      region);
-  if (!xy) {
+  const Strip *strip = sequencer_text_editing_cursor_strip_get(scene);
+  if (strip == nullptr) {
     return std::nullopt;
   }
-  /* Zero-size rectangle: the caret may be rotated by the strip transform,
-   * where an axis-aligned size would not properly represent the caret. */
-  return rcti{xy->x, xy->x, xy->y, xy->y};
+  const std::optional<blender::int2> xy = sequencer_text_editing_cursor_region_xy_get(
+      scene, region, strip);
+  if (!xy) {
+    /* Text editing can be active without a position,
+     * e.g. the current-frame moved outside the strip.
+     * Keep the session pending rather than canceling the composition. */
+    return ARegionIMECursorState::PositionPending;
+  }
+
+  r_cursor->rect = {
+      .xmin = xy->x,
+      .xmax = xy->x,
+      .ymin = xy->y,
+      .ymax = xy->y + int(UI_UNIT_Y),
+  };
+  r_cursor->font_size = UI_UNIT_Y;
+  return ARegionIMECursorState::PositionSet;
 }
 #endif
 

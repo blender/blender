@@ -20,7 +20,6 @@
 #include "RNA_path.hh"
 
 #include "BLI_listbase.hh"
-#include "BLI_path_utils.hh"
 #include "BLI_string.hh"
 #include "BLI_string_utf8.hh"
 #include "BLI_string_utils.hh"
@@ -28,10 +27,9 @@
 #include "BLT_translation.hh"
 
 #include "BKE_animsys.hh"
-#include "BKE_global.hh"
+#include "BKE_idprop.hh"
 #include "BKE_image.hh"
 #include "BKE_library.hh"
-#include "BKE_main.hh"
 #include "BKE_scene.hh"
 
 #include "SEQ_channels.hh"
@@ -47,8 +45,7 @@
 
 #include "MOV_read.hh"
 
-#include "multiview.hh"
-#include "proxy.hh"
+#include "cache/movie_reader_cache.hh"
 #include "utils.hh"
 
 namespace blender::seq {
@@ -210,124 +207,37 @@ ListBaseT<Strip> *get_seqbase_from_strip(Strip *strip,
   return seqbase;
 }
 
-static MovieReader *open_anim_filepath(Strip *strip, const char *filepath, bool openfile)
+void MovieReaderDeleter::operator()(MovieReader *reader) const
 {
-  /* Sequencer takes care of colorspace conversion of the result. The input is the best to be
-   * kept unchanged for the performance reasons. */
-  if (openfile) {
-    return openanim(filepath,
-                    (strip->flag & SEQ_DEINTERLACE) ? ImBufFlags::Deinterlace : ImBufFlags::Zero,
-                    strip->streamindex,
-                    true,
-                    strip->data->colorspace_settings.name);
+  MOV_close(reader);
+}
+
+void movie_metadata_invalidate(Strip &strip)
+{
+  if (strip.runtime->movie_metadata != nullptr) {
+    IDP_FreeProperty(strip.runtime->movie_metadata);
   }
-  return openanim_noload(filepath,
-                         (strip->flag & SEQ_DEINTERLACE) ? ImBufFlags::Deinterlace :
-                                                           ImBufFlags::Zero,
-                         strip->streamindex,
-                         true,
-                         strip->data->colorspace_settings.name);
+  strip.runtime->movie_metadata = nullptr;
+  strip.runtime->movie_metadata_is_loaded = false;
 }
 
-static bool use_proxy(Editing *ed, Strip *strip)
+void movie_metadata_set_from_reader(Strip &strip, MovieReader &reader)
 {
-  StripProxy *proxy = strip->data->proxy;
-  return proxy && ((proxy->storage & SEQ_STORAGE_PROXY_CUSTOM_DIR) != 0 ||
-                   (ed->proxy_storage == SEQ_EDIT_PROXY_DIR_STORAGE));
+  movie_metadata_invalidate(strip);
+  const IDProperty *metadata = MOV_load_metadata(&reader);
+  strip.runtime->movie_metadata = metadata != nullptr ? IDP_CopyProperty(metadata) : nullptr;
+  strip.runtime->movie_metadata_is_loaded = true;
 }
 
-static void proxy_dir_get(Editing *ed, Strip *strip, char r_proxy_dirpath[FILE_MAX])
+IDProperty *movie_metadata_ensure(Scene &scene, Strip &strip)
 {
-  if (use_proxy(ed, strip)) {
-    if (ed->proxy_storage == SEQ_EDIT_PROXY_DIR_STORAGE) {
-      if (ed->proxy_dir[0] == 0) {
-        BLI_strncpy(r_proxy_dirpath, "//BL_proxy", FILE_MAX);
-      }
-      else {
-        BLI_strncpy(r_proxy_dirpath, ed->proxy_dir, FILE_MAX);
-      }
+  if (!strip.runtime->movie_metadata_is_loaded) {
+    MovieReaderAccessor reader = movie_reader_cache_acquire_any(scene, strip);
+    if (reader) {
+      movie_metadata_set_from_reader(strip, *reader.reader());
     }
-    else {
-      BLI_strncpy(r_proxy_dirpath, strip->data->proxy->dirpath, FILE_MAX);
-    }
-    BLI_path_abs(r_proxy_dirpath, BKE_main_blendfile_path_from_global());
   }
-}
-
-static void index_dir_set(Editing *ed, Strip *strip, MovieReader *reader)
-{
-  if (reader == nullptr || !use_proxy(ed, strip)) {
-    return;
-  }
-
-  char proxy_dirpath[FILE_MAX];
-  proxy_dir_get(ed, strip, proxy_dirpath);
-  seq_proxy_index_dir_set(reader, proxy_dirpath);
-}
-
-static bool open_anim_file_multiview(Scene *scene, Strip *strip, const char *filepath)
-{
-  char prefix[FILE_MAX];
-  const char *ext = nullptr;
-  BKE_scene_multiview_view_prefix_get(scene, filepath, prefix, &ext);
-
-  if (strip->views_format != R_IMF_VIEWS_INDIVIDUAL || prefix[0] == '\0') {
-    return false;
-  }
-
-  Editing *ed = scene->ed;
-  bool is_multiview_loaded = false;
-  int totfiles = seq_num_files(scene, strip->views_format, true);
-
-  for (int i = 0; i < totfiles; i++) {
-    const char *suffix = BKE_scene_multiview_view_id_suffix_get(&scene->r, i);
-    char filepath_view[FILE_MAX];
-    SNPRINTF(filepath_view, "%s%s%s", prefix, suffix, ext);
-
-    /* Multiview files must be loaded, otherwise it is not possible to detect failure. */
-    MovieReader *reader = open_anim_filepath(strip, filepath_view, true);
-
-    if (reader == nullptr) {
-      strip_free_movie_readers(strip);
-      return false; /* Multiview render failed. */
-    }
-
-    index_dir_set(ed, strip, reader);
-    strip->runtime->movie_readers.append(reader);
-    MOV_set_multiview_suffix(reader, suffix);
-    is_multiview_loaded = true;
-  }
-
-  return is_multiview_loaded;
-}
-
-void strip_open_anim_file(Scene *scene, Strip *strip, bool openfile)
-{
-  if (!openfile && strip->runtime->movie_reader_get() != nullptr) {
-    return;
-  }
-
-  /* Reset all the previously created anims. */
-  strip_free_movie_readers(strip);
-
-  Editing *ed = scene->ed;
-  char filepath[FILE_MAX];
-  BLI_path_join(
-      filepath, sizeof(filepath), strip->data->dirpath, strip->data->stripdata->filename);
-  BLI_path_abs(filepath, ID_BLEND_PATH_FROM_GLOBAL(&scene->id));
-
-  bool is_multiview = (strip->flag & SEQ_USE_VIEWS) != 0 && (scene->r.scemode & R_MULTIVIEW) != 0;
-  bool multiview_is_loaded = false;
-
-  if (is_multiview) {
-    multiview_is_loaded = open_anim_file_multiview(scene, strip, filepath);
-  }
-
-  if (!is_multiview || !multiview_is_loaded) {
-    MovieReader *reader = open_anim_filepath(strip, filepath, openfile);
-    strip->runtime->movie_readers.append(reader);
-    index_dir_set(ed, strip, reader);
-  }
+  return strip.runtime->movie_metadata;
 }
 
 const Strip *strip_topmost_get(const Scene *scene, int frame)

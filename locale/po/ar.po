@@ -1,9 +1,9 @@
 
 msgid ""
 msgstr ""
-"Project-Id-Version: Blender 5.3.0 Alpha (b'bf67fb078da0')\n"
+"Project-Id-Version: Blender 5.3.0 Alpha (b'af4852ed4560')\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-07-27 09:52+0000\n"
+"POT-Creation-Date: 2026-08-10 07:54+0000\n"
 "PO-Revision-Date: 2025-07-23 14:53+0000\n"
 "Last-Translator: Anonymous <noreply@weblate.org>\n"
 "Language-Team: Arabic <https://translate.blender.org/projects/blender-ui/ui/ar/>\n"
@@ -1398,10 +1398,6 @@ msgstr "ﺪﻘﻌﻟﺍ ﺔﻋﻮﻤﺠﻣ"
 
 msgid "Particles"
 msgstr "ﺕﺎﺌﻳﺰﺟ"
-
-
-msgid "Project"
-msgstr "ﻂﻘﺳﺍ"
 
 
 msgid "Screens"
@@ -4559,6 +4555,10 @@ msgstr "ﺢﻄﺳ ﺔﻄﻘﻧ ﺏﺮﻗﺍ"
 
 msgid "Shrink the location to the nearest target surface"
 msgstr "ﻑﺪﻬﻠﻟ ﺢﻄﺳ ﺏﺮﻗﻻ﻿ ﻊﻗﻮﻤﻟﺍ ﺺﻠﻗ"
+
+
+msgid "Project"
+msgstr "ﻂﻘﺳﺍ"
 
 
 msgid "Shrink the location to the nearest target surface along a given axis"
@@ -15652,32 +15652,20 @@ msgid "Names"
 msgstr "ءﺎﻤﺳﺃ"
 
 
-msgid "Apply"
-msgstr "ﻖﺒﻃ"
+msgid "Bone Roll"
+msgstr "ﺔﻤﻈﻌﻟﺍ ءﺍﻮﺘﻟﺍ"
 
 
-msgid "Face Data"
-msgstr "ﻪﺟﻮﻟﺍ ﺕﺎﻧﺎﻴﺑ"
+msgid "Keying"
+msgstr "ﺺﺤﻔﻟﺍ"
 
 
-msgid "Merge"
-msgstr "ﺞﻣﺩﺇ"
-
-
-msgid "Special Characters"
-msgstr "ﺔﺻﺎﺧ ﻑﺮﺣﺃ"
+msgid "Tracking"
+msgstr "ﺔﻘﺣﻼ﻿ﻤﻟﺍ"
 
 
 msgid "Math"
 msgstr "ﺏﺎﺴﺣ"
-
-
-msgid "Metaball"
-msgstr "ﺔﻠﻋﺎﻔﺘﻣ ﺓﺮﻛ"
-
-
-msgid "Bone Roll"
-msgstr "ﺔﻤﻈﻌﻟﺍ ءﺍﻮﺘﻟﺍ"
 
 
 msgid "Snap"
@@ -15686,10 +15674,6 @@ msgstr "ﻱﺫﺎﺣ"
 
 msgid "Proportional Editing Falloff"
 msgstr "ﻲﺒﺴﻨﻟﺍ ﺮﻳﺮﺤﺘﻟﺍ ﻲﺷﻼ﻿ﺗ"
-
-
-msgid "Import"
-msgstr "ﺩﺭﻮﺘﺳﺇ"
 
 
 msgid "Mirror"
@@ -15706,10 +15690,6 @@ msgstr "ﺢﻔّﺼﺗ"
 
 msgid "Align View"
 msgstr "ﺮﻈﻨﻤﻟﺍ ﻱﺫﺎﺣ"
-
-
-msgid "UV"
-msgstr "ﺭﻭﺎﺤﻣ"
 
 
 msgid "Align View to Active"
@@ -15732,6 +15712,10 @@ msgid "Select Linked"
 msgstr "ﺔﻄﺒﺗﺮﻤﻟﺍ ﺭﺎﺘﺧﺇ"
 
 
+msgid "Metaball"
+msgstr "ﺔﻠﻋﺎﻔﺘﻣ ﺓﺮﻛ"
+
+
 msgid "Light"
 msgstr "ءﻮﺿ"
 
@@ -15744,12 +15728,16 @@ msgid "Rigid Body"
 msgstr "ﻞﻋﺎﻔﺘﻣ ﻢﺴﺟ"
 
 
+msgid "Apply"
+msgstr "ﻖﺒﻃ"
+
+
+msgid "Import"
+msgstr "ﺩﺭﻮﺘﺳﺇ"
+
+
 msgid "Track"
 msgstr "ﺐﻘّﻌﺗ"
-
-
-msgid "Layout"
-msgstr "ﻖﻴﺴﻨﺗ"
 
 
 msgid "Quick Effects"
@@ -15764,12 +15752,8 @@ msgid "Hooks"
 msgstr "ﺕﺎﻓﺎﻄﺧ"
 
 
-msgid "Keying"
-msgstr "ﺺﺤﻔﻟﺍ"
-
-
-msgid "Tracking"
-msgstr "ﺔﻘﺣﻼ﻿ﻤﻟﺍ"
+msgid "UV"
+msgstr "ﺭﻭﺎﺤﻣ"
 
 
 msgid "In-Betweens"
@@ -15778,6 +15762,22 @@ msgstr "ﻦﻴﺑ ﺎﻣ"
 
 msgid "Propagate"
 msgstr "ﻢﻤﻋ"
+
+
+msgid "Face Data"
+msgstr "ﻪﺟﻮﻟﺍ ﺕﺎﻧﺎﻴﺑ"
+
+
+msgid "Merge"
+msgstr "ﺞﻣﺩﺇ"
+
+
+msgid "Special Characters"
+msgstr "ﺔﺻﺎﺧ ﻑﺮﺣﺃ"
+
+
+msgid "Layout"
+msgstr "ﻖﻴﺴﻨﺗ"
 
 
 msgctxt "MovieClip"
@@ -20044,11 +20044,6 @@ msgstr "ﻲﺋﺎﻬﻧ"
 
 msgid "Generated"
 msgstr "ﺪﻟﻮﺘﻣ"
-
-
-msgctxt "Operator"
-msgid "Make Markers Local"
-msgstr "ﺔﻴﻠﺤﻣ ﺕﺎﻣﻼ﻿ﻌﻟﺍ ﻞﻌﺟﺍ"
 
 
 msgctxt "Operator"
@@ -25322,10 +25317,6 @@ msgstr "ﺬﻔﻨﻤﻟﺍ ﻲﻓ ﺔﻄﻘﻨﻟﺍ ﻦﻳﻮﻠﺗ ﻊﺿﻭ �
 msgctxt "Operator"
 msgid "Weight from Bones"
 msgstr "ﻡﺎﻈﻌﻟﺍ ﻦﻣ ﻥﺍﺯﻭﻷ﻿ﺍ"
-
-
-msgid "Set the weights of the groups matching the attached armature's selected bones, using the distance between the vertices and the bones"
-msgstr "ﻡﺎﻈﻌﻟﺍ ﻭ ﻂﻘﻨﻟﺍ ﻦﻴﺑ ﺔﻓﺎﺴﻤﻟﺍ ﻝﺎﻤﻌﺘﺳﺎﺑ ،ﺔﻄﺒﺗﺮﻤﻟﺍ ﺓﺭﺎﺘﺨﻤﻟﺍ ﻞﻜﻴﻬﻟﺍ ﻡﺎﻈﻌﻟ ﺔﻘﺑﺎﻄﻤﻟﺍ ﺕﺎﻋﻮﻤﺠﻤﻟﺍ ﻥﺍﺯﻭﺃ ﺩﺪﺣ"
 
 
 msgid "Automatic weights from bones"
@@ -35014,7 +35005,7 @@ msgstr "ﻒﻠﻤﻟﺍ ﺢﺘﻓ ﻰﻠﻋ ﺭﺩﺎﻗ ﺮﻴﻏ"
 
 
 msgid "Cannot open file %s for writing: %s"
-msgstr ".%s‬\", ‪%s‬‪\" :ﻒﻠﻤﻟﺍ ﺓءﺍﺮﻗ ﻦﻜﻤﻳ ﻻ﻿"
+msgstr ".\"%s\"‬, ‪%s‬‪ :ﻒﻠﻤﻟﺍ ﺓءﺍﺮﻗ ﻦﻜﻤﻳ ﻻ﻿"
 
 
 msgid "Could not connect vertices"
@@ -35978,7 +35969,7 @@ msgstr "ﺓﺮﻛﺍﺬﻠﻟ ﺓﺭﺎﺘﺨﻤﻟﺍ ﺪﻘﻌﻟﺍ ﺦﺴﻧ
 
 
 msgid "Cannot read '%s': %s"
-msgstr ".%s‬\", ‪%s‬‪\" :ﻒﻠﻤﻟﺍ ﺓءﺍﺮﻗ ﻦﻜﻤﻳ ﻻ﻿"
+msgstr ".\"%s\"‬, ‪%s‬‪ :ﻒﻠﻤﻟﺍ ﺓءﺍﺮﻗ ﻦﻜﻤﻳ ﻻ﻿"
 
 
 msgid "No active track to join to"
@@ -36289,14 +36280,6 @@ msgid "Vertex Weights"
 msgstr "ﺔﻄﻘﻨﻟﺍ ﻥﺍﺯﻭﺃ"
 
 
-msgid "Cannot fly an object with constraints"
-msgstr "ﻦﺋﺎﻜﻟﺍ ﺩﻮﻴﻗ ﻝﺯﺍ"
-
-
-msgid "Cannot navigate an object with constraints"
-msgstr "ﺩﻮﻴﻘﺑ ﻦﺋﺎﻜﻟﺍ ﺢﻔّﺼﺗ ﻦﻜﻤﻳ ﻻ﻿"
-
-
 msgid "Depth too large"
 msgstr "ﻖﻤﻌﻟﺍ ﺮﻴﻴﻐﺗ"
 
@@ -36455,7 +36438,7 @@ msgstr "ﺪﻘﻋ ﺓﺮﺠﺷ ﻲﻓ ﺪﻘﻋ ﻦﻴﺑ ﻂﺑﺍﺭ"
 
 
 msgid "Unable to locate socket '%s' in node"
-msgstr "ﺓﺪﻘﻌﻟﺍ ﻲﻓ '%s‬‪' ﺔﺤﺘﻔﻟﺍ ﺪﻳﺪﺤﺗ ﻰﻠﻋ ﺭﺩﺎﻗ ﺮﻴﻏ"
+msgstr "ﺓﺪﻘﻌﻟﺍ ﻲﻓ '%s'‬‪ ﺔﺤﺘﻔﻟﺍ ﺪﻳﺪﺤﺗ ﻰﻠﻋ ﺭﺩﺎﻗ ﺮﻴﻏ"
 
 
 msgid "ShapeKey not found"
@@ -36479,7 +36462,7 @@ msgstr "ﺢﻴﺗﺎﻔﻤﻟﺍ ﺔﻋﻮﻤﺠﻤﻟ ﺭﺎﺘﺨﻤﻟﺍ ﻒ
 
 
 msgid "Line set '%s' could not be removed"
-msgstr "'%s‬‪' ﻂﺨﻟﺍ ﺔﻋﻮﻤﺠﻣ ﺔﻟﺍﺯﺍ ﻦﻜﻤﻳ ﻻ﻿"
+msgstr "‬'%s'‪ ﻂﺨﻟﺍ ﺔﻋﻮﻤﺠﻣ ﺔﻟﺍﺯﺍ ﻦﻜﻤﻳ ﻻ﻿"
 
 
 msgid "Modifier was not found in the stack"
@@ -36827,11 +36810,11 @@ msgstr "ﺭﺎﺘﺨﻣ ءﻲﺷ ﻻ﻿"
 
 
 msgid "'%s': nothing indicated"
-msgstr "'‪%s‬': ﺩﺪﺤﻣ ءﻲﺷ ﻻ﻿"
+msgstr "‪'%s'‬: ﺩﺪﺤﻣ ءﻲﺷ ﻻ﻿"
 
 
 msgid "'%s': not a library"
-msgstr "'‪%s‬': ﺔﺒﺘﻜﻣ ﺲﻴﻟ"
+msgstr "‪'%s'‬: ﺔﺒﺘﻜﻣ ﺲﻴﻟ"
 
 
 msgid "unsupported format"
@@ -36852,11 +36835,11 @@ msgstr "ﺔﺿﻭﺮﻌﻤﻟﺍ ﺪﻘﻌﻟﺍ ﺓﺮﺠﺷ"
 
 
 msgid "Cannot read %s '%s': %s"
-msgstr "‬%s‬ '‪%s‬': ‪%s‪ ﺓءﺍﺮﻗ ﻦﻜﻤﻳ ﻻ﻿"
+msgstr "‬%s‬ ‪'%s'‬: ‪%s‪ ﺓءﺍﺮﻗ ﻦﻜﻤﻳ ﻻ﻿"
 
 
 msgid "%s '%s' not found"
-msgstr "‪%s‬ '‪%s‬' ﺩﻮﺟﻮﻣ ﺮﻴﻏ"
+msgstr "‪%s‬ ‪'%s'‬ ﺩﻮﺟﻮﻣ ﺮﻴﻏ"
 
 
 msgid "Pose Library"

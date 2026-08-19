@@ -130,6 +130,9 @@ class GHOST_WindowWayland : public GHOST_Window {
 
   uint16_t getDPIHint() override;
 
+  /** \copydoc #GHOST_IWindow::getTiledEdges */
+  GHOST_TWindowTiledFlag getTiledEdges() const override;
+
   GHOST_TSuccess setWindowCursorGrab(GHOST_TGrabCursorMode mode) override;
 
   GHOST_TSuccess setWindowCursorShape(GHOST_TStandardCursor shape) override;

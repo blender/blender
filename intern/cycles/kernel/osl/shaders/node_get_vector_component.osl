@@ -1,0 +1,15 @@
+/* SPDX-FileCopyrightText: 2026 Blender Foundation
+ *
+ * SPDX-License-Identifier: Apache-2.0 */
+
+#include "stdcycles.h"
+
+shader node_get_vector_component(vector Vector = 0.0, int Index = 0, output float Value = 0.0)
+{
+  if (Index >= 0 && Index <= 2) {
+    Value = Vector[Index];
+  }
+  else {
+    Value = 0.0;
+  }
+}

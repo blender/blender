@@ -52,7 +52,7 @@ FCurvePtr fake_fcurve(const char *rna_path, const int array_index)
   FCurve *fcurve = BKE_fcurve_create();
 
   if (rna_path) {
-    fcurve->rna_path = BLI_strdup(rna_path);
+    fcurve->rna_path_set(rna_path);
   }
   fcurve->array_index = array_index;
 

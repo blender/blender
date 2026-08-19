@@ -596,7 +596,7 @@ static int gather_frames_to_render_for_id(LibraryIDLinkCallbackData *cb_data)
   OGLRender *oglrender = static_cast<OGLRender *>(cb_data->user_data);
 
   /* Whitelist of datablocks to follow pointers into. */
-  const ID_Type id_type = GS(id->name);
+  const ID_Type id_type = id->id_type();
   switch (id_type) {
     /* Whitelist: */
     case ID_ME:        /* Mesh */

@@ -190,7 +190,7 @@ static bool rna_Collection_objects_override_apply(Main *bmain,
 
   Collection *coll_dst = id_cast<Collection *>(ptr_dst->owner_id);
 
-  if (ptr_item_dst->type == nullptr || ptr_item_src->type == nullptr) {
+  if (!ptr_item_dst->has_type() || !ptr_item_src->has_type()) {
     // BLI_assert_msg(0, "invalid source or destination object.");
     return false;
   }
@@ -311,7 +311,7 @@ static bool rna_Collection_children_override_apply(Main *bmain,
 
   Collection *coll_dst = id_cast<Collection *>(ptr_dst->owner_id);
 
-  if (ptr_item_dst->type == nullptr || ptr_item_src->type == nullptr) {
+  if (!ptr_item_dst->has_type() || !ptr_item_src->has_type()) {
     /* This can happen when reference and overrides differ, just ignore then. */
     return false;
   }
@@ -1010,6 +1010,12 @@ void RNA_def_collections(BlenderRNA *brna)
   RNA_def_property_ui_text(prop,
                            "Collection Children",
                            "Children collections with their parent-collection-specific settings");
+
+  /* Importer Handler. */
+  prop = RNA_def_property(srna, "importer", PROP_POINTER, PROP_NONE);
+  RNA_def_property_struct_type(prop, "CollectionImport");
+  RNA_def_property_ui_text(
+      prop, "Collection Import Handler", "Import Handler configured for the collection");
 
   /* Export Handlers. */
   prop = RNA_def_property(srna, "exporters", PROP_COLLECTION, PROP_NONE);

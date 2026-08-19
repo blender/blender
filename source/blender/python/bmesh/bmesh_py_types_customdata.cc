@@ -32,6 +32,22 @@
 
 namespace blender {
 
+/**
+ * Sentinel `type` value for #BPy_BMVertSkin, compositing "skin_modifier_radius",
+ * "skin_modifier_root", "skin_modifier_loose", maintaining legacy API until it can be removed in
+ * Blender 6.0.
+ */
+constexpr int BPY_BM_LAYER_TYPE_SKIN = CD_NUMTYPES;
+
+static const char *bpy_bm_layer_skin_radius_name = "skin_modifier_radius";
+static const char *bpy_bm_layer_skin_root_name = "skin_modifier_root";
+static const char *bpy_bm_layer_skin_loose_name = "skin_modifier_loose";
+
+static bool bpy_bm_layer_type_is_skin(const int type)
+{
+  return type == BPY_BM_LAYER_TYPE_SKIN;
+}
+
 static CustomData *bpy_bm_customdata_get(BMesh *bm, char htype)
 {
   switch (htype) {
@@ -52,8 +68,10 @@ static CustomData *bpy_bm_customdata_get(BMesh *bm, char htype)
 static CustomDataLayer *bpy_bmlayeritem_get(BPy_BMLayerItem *self)
 {
   CustomData *data = bpy_bm_customdata_get(self->bm, self->htype);
-  const int index_absolute = CustomData_get_layer_index_n(
-      data, eCustomDataType(self->type), self->index);
+  const eCustomDataType real_type = bpy_bm_layer_type_is_skin(self->type) ?
+                                        CD_PROP_FLOAT2 :
+                                        eCustomDataType(self->type);
+  const int index_absolute = CustomData_get_layer_index_n(data, real_type, self->index);
   if (index_absolute != -1) {
     return &data->layers[index_absolute];
   }
@@ -162,7 +180,12 @@ static PyObject *bpy_bmlayercollection_active_get(BPy_BMLayerItem *self, void * 
   BPY_BM_CHECK_OBJ(self);
 
   data = bpy_bm_customdata_get(self->bm, self->htype);
-  index = CustomData_get_active_layer(data, eCustomDataType(self->type)); /* type relative */
+  if (bpy_bm_layer_type_is_skin(self->type)) {
+    index = CustomData_get_named_layer(data, CD_PROP_FLOAT2, bpy_bm_layer_skin_radius_name);
+  }
+  else {
+    index = CustomData_get_active_layer(data, eCustomDataType(self->type)); /* type relative */
+  }
 
   if (index != -1) {
     return BPy_BMLayerItem_CreatePyObject(self->bm, self->htype, self->type, index);
@@ -180,6 +203,10 @@ PyDoc_STRVAR(
 static PyObject *bpy_bmlayercollection_is_singleton_get(BPy_BMLayerItem *self, void * /*flag*/)
 {
   BPY_BM_CHECK_OBJ(self);
+
+  if (bpy_bm_layer_type_is_skin(self->type)) {
+    Py_RETURN_TRUE;
+  }
 
   return PyBool_FromLong(CustomData_layertype_is_singleton(eCustomDataType(self->type)));
 }
@@ -256,8 +283,7 @@ static PyGetSetDef bpy_bmlayeraccess_vert_getseters[] = {
      reinterpret_cast<getter>(bpy_bmlayeraccess_collection_get),
      static_cast<setter>(nullptr),
      bpy_bmlayeraccess_collection__skin_doc,
-     reinterpret_cast<void *>(CD_MVERT_SKIN)},
-
+     reinterpret_cast<void *>(BPY_BM_LAYER_TYPE_SKIN)},
     {nullptr, nullptr, nullptr, nullptr, nullptr} /* Sentinel */
 };
 
@@ -458,7 +484,10 @@ static PyObject *bpy_bmlayeritem_copy_from(BPy_BMLayerItem *self, BPy_BMLayerIte
     return nullptr;
   }
 
-  BM_data_layer_copy(self->bm, data, self->type, value->index, self->index);
+  const eCustomDataType real_type = bpy_bm_layer_type_is_skin(self->type) ?
+                                        CD_PROP_FLOAT2 :
+                                        eCustomDataType(self->type);
+  BM_data_layer_copy(self->bm, data, real_type, value->index, self->index);
 
   Py_RETURN_NONE;
 }
@@ -481,6 +510,20 @@ static PyObject *bpy_bmlayercollection_verify(BPy_BMLayerCollection *self)
   BPY_BM_CHECK_OBJ(self);
 
   data = bpy_bm_customdata_get(self->bm, self->htype);
+
+  if (bpy_bm_layer_type_is_skin(self->type)) {
+    index = CustomData_get_named_layer(data, CD_PROP_FLOAT2, bpy_bm_layer_skin_radius_name);
+    if (index == -1) {
+      /* Because adding CustomData layers to a bmesh will invalidate any existing pointers
+       * in Python objects we can't lazily add the associated boolean layers later on. */
+      BM_data_layer_add_named(self->bm, data, CD_PROP_FLOAT2, bpy_bm_layer_skin_radius_name);
+      BM_data_layer_add_named(self->bm, data, CD_PROP_BOOL, bpy_bm_layer_skin_root_name);
+      BM_data_layer_add_named(self->bm, data, CD_PROP_BOOL, bpy_bm_layer_skin_loose_name);
+      index = CustomData_get_named_layer(data, CD_PROP_FLOAT2, bpy_bm_layer_skin_radius_name);
+    }
+    BLI_assert(index != -1);
+    return BPy_BMLayerItem_CreatePyObject(self->bm, self->htype, self->type, index);
+  }
 
   index = CustomData_get_active_layer(data, eCustomDataType(self->type)); /* type relative */
 
@@ -529,6 +572,20 @@ static PyObject *bpy_bmlayercollection_new(BPy_BMLayerCollection *self, PyObject
   }
 
   data = bpy_bm_customdata_get(self->bm, self->htype);
+
+  if (bpy_bm_layer_type_is_skin(self->type)) {
+    if (CustomData_has_layer_named(data, CD_PROP_FLOAT2, bpy_bm_layer_skin_radius_name)) {
+      PyErr_SetString(PyExc_ValueError, "layers.new(): is a singleton, use verify() instead");
+      return nullptr;
+    }
+    /* The name is reserved; user-supplied names are not supported for this composite type. */
+    BM_data_layer_add_named(self->bm, data, CD_PROP_FLOAT2, bpy_bm_layer_skin_radius_name);
+    BM_data_layer_add_named(self->bm, data, CD_PROP_BOOL, bpy_bm_layer_skin_root_name);
+    BM_data_layer_add_named(self->bm, data, CD_PROP_BOOL, bpy_bm_layer_skin_loose_name);
+    index = CustomData_get_named_layer(data, CD_PROP_FLOAT2, bpy_bm_layer_skin_radius_name);
+    BLI_assert(index != -1);
+    return BPy_BMLayerItem_CreatePyObject(self->bm, self->htype, self->type, index);
+  }
 
   if (CustomData_layertype_is_singleton(eCustomDataType(self->type)) &&
       CustomData_has_layer(data, eCustomDataType(self->type)))
@@ -587,7 +644,14 @@ static PyObject *bpy_bmlayercollection_remove(BPy_BMLayerCollection *self, BPy_B
   }
 
   data = bpy_bm_customdata_get(self->bm, self->htype);
-  BM_data_layer_free_n(self->bm, data, self->type, value->index);
+  if (bpy_bm_layer_type_is_skin(self->type)) {
+    BM_data_layer_free_n(self->bm, data, CD_PROP_FLOAT2, value->index);
+    BM_data_layer_free_named(self->bm, data, bpy_bm_layer_skin_root_name);
+    BM_data_layer_free_named(self->bm, data, bpy_bm_layer_skin_loose_name);
+  }
+  else {
+    BM_data_layer_free_n(self->bm, data, self->type, value->index);
+  }
 
   Py_RETURN_NONE;
 }
@@ -613,6 +677,15 @@ static PyObject *bpy_bmlayercollection_keys(BPy_BMLayerCollection *self)
   BPY_BM_CHECK_OBJ(self);
 
   data = bpy_bm_customdata_get(self->bm, self->htype);
+
+  if (bpy_bm_layer_type_is_skin(self->type)) {
+    if (!CustomData_has_layer_named(data, CD_PROP_FLOAT2, bpy_bm_layer_skin_radius_name)) {
+      return PyList_New(0);
+    }
+    ret = PyList_New(1);
+    PyList_SET_ITEM(ret, 0, PyUnicode_FromString(bpy_bm_layer_skin_radius_name));
+    return ret;
+  }
 
   /* Absolute, but no need to make relative. */
   index = CustomData_get_layer_index(data, eCustomDataType(self->type));
@@ -650,6 +723,21 @@ static PyObject *bpy_bmlayercollection_items(BPy_BMLayerCollection *self)
   BPY_BM_CHECK_OBJ(self);
 
   data = bpy_bm_customdata_get(self->bm, self->htype);
+
+  if (bpy_bm_layer_type_is_skin(self->type)) {
+    index = CustomData_get_named_layer(data, CD_PROP_FLOAT2, bpy_bm_layer_skin_radius_name);
+    if (index == -1) {
+      return PyList_New(0);
+    }
+    ret = PyList_New(1);
+    item = PyTuple_New(2);
+    PyTuple_SET_ITEMS(item,
+                      PyUnicode_FromString(bpy_bm_layer_skin_radius_name),
+                      BPy_BMLayerItem_CreatePyObject(self->bm, self->htype, self->type, index));
+    PyList_SET_ITEM(ret, 0, item);
+    return ret;
+  }
+
   index = CustomData_get_layer_index(data, eCustomDataType(self->type));
   tot = (index != -1) ? CustomData_number_of_layers(data, eCustomDataType(self->type)) : 0;
 
@@ -687,6 +775,18 @@ static PyObject *bpy_bmlayercollection_values(BPy_BMLayerCollection *self)
   BPY_BM_CHECK_OBJ(self);
 
   data = bpy_bm_customdata_get(self->bm, self->htype);
+
+  if (bpy_bm_layer_type_is_skin(self->type)) {
+    index = CustomData_get_named_layer(data, CD_PROP_FLOAT2, bpy_bm_layer_skin_radius_name);
+    if (index == -1) {
+      return PyList_New(0);
+    }
+    ret = PyList_New(1);
+    PyList_SET_ITEM(
+        ret, 0, BPy_BMLayerItem_CreatePyObject(self->bm, self->htype, self->type, index));
+    return ret;
+  }
+
   index = CustomData_get_layer_index(data, eCustomDataType(self->type));
   tot = (index != -1) ? CustomData_number_of_layers(data, eCustomDataType(self->type)) : 0;
 
@@ -737,7 +837,14 @@ static PyObject *bpy_bmlayercollection_get(BPy_BMLayerCollection *self, PyObject
   int index;
 
   data = bpy_bm_customdata_get(self->bm, self->htype);
-  index = CustomData_get_named_layer(data, eCustomDataType(self->type), key); /* type relative */
+  if (bpy_bm_layer_type_is_skin(self->type)) {
+    index = STREQ(key, bpy_bm_layer_skin_radius_name) ?
+                CustomData_get_named_layer(data, CD_PROP_FLOAT2, key) :
+                -1;
+  }
+  else {
+    index = CustomData_get_named_layer(data, eCustomDataType(self->type), key); /* type relative */
+  }
 
   if (index != -1) {
     return BPy_BMLayerItem_CreatePyObject(self->bm, self->htype, self->type, index);
@@ -816,6 +923,10 @@ static Py_ssize_t bpy_bmlayercollection_length(BPy_BMLayerCollection *self)
 
   data = bpy_bm_customdata_get(self->bm, self->htype);
 
+  if (bpy_bm_layer_type_is_skin(self->type)) {
+    return CustomData_has_layer_named(data, CD_PROP_FLOAT2, bpy_bm_layer_skin_radius_name) ? 1 : 0;
+  }
+
   return CustomData_number_of_layers(data, eCustomDataType(self->type));
 }
 
@@ -828,8 +939,15 @@ static PyObject *bpy_bmlayercollection_subscript_str(BPy_BMLayerCollection *self
   BPY_BM_CHECK_OBJ(self);
 
   data = bpy_bm_customdata_get(self->bm, self->htype);
-  index = CustomData_get_named_layer(
-      data, eCustomDataType(self->type), keyname); /* type relative */
+  if (bpy_bm_layer_type_is_skin(self->type)) {
+    index = STREQ(keyname, bpy_bm_layer_skin_radius_name) ?
+                CustomData_get_named_layer(data, CD_PROP_FLOAT2, keyname) :
+                -1;
+  }
+  else {
+    index = CustomData_get_named_layer(
+        data, eCustomDataType(self->type), keyname); /* type relative */
+  }
 
   if (index != -1) {
     return BPy_BMLayerItem_CreatePyObject(self->bm, self->htype, self->type, index);
@@ -852,6 +970,13 @@ static PyObject *bpy_bmlayercollection_subscript_int(BPy_BMLayerCollection *self
   }
   if (keynum >= 0) {
     if (keynum < len) {
+      if (bpy_bm_layer_type_is_skin(self->type)) {
+        CustomData *data = bpy_bm_customdata_get(self->bm, self->htype);
+        const int index = CustomData_get_named_layer(
+            data, CD_PROP_FLOAT2, bpy_bm_layer_skin_radius_name);
+        BLI_assert(index != -1);
+        return BPy_BMLayerItem_CreatePyObject(self->bm, self->htype, self->type, index);
+      }
       return BPy_BMLayerItem_CreatePyObject(self->bm, self->htype, self->type, keynum);
     }
   }
@@ -877,9 +1002,7 @@ static PyObject *bpy_bmlayercollection_subscript_slice(BPy_BMLayerCollection *se
   tuple = PyTuple_New(stop - start);
 
   for (count = start; count < stop; count++) {
-    PyTuple_SET_ITEM(tuple,
-                     count - start,
-                     BPy_BMLayerItem_CreatePyObject(self->bm, self->htype, self->type, count));
+    PyTuple_SET_ITEM(tuple, count - start, bpy_bmlayercollection_subscript_int(self, count));
   }
 
   return tuple;
@@ -961,7 +1084,14 @@ static int bpy_bmlayercollection_contains(BPy_BMLayerCollection *self, PyObject 
   }
 
   data = bpy_bm_customdata_get(self->bm, self->htype);
-  index = CustomData_get_named_layer_index(data, eCustomDataType(self->type), keyname);
+  if (bpy_bm_layer_type_is_skin(self->type)) {
+    index = STREQ(keyname, bpy_bm_layer_skin_radius_name) ?
+                CustomData_get_named_layer_index(data, CD_PROP_FLOAT2, keyname) :
+                -1;
+  }
+  else {
+    index = CustomData_get_named_layer_index(data, eCustomDataType(self->type), keyname);
+  }
 
   return (index != -1) ? 1 : 0;
 }
@@ -1183,8 +1313,10 @@ static void *bpy_bmlayeritem_ptr_get(BPy_BMElem *py_ele, BPy_BMLayerItem *py_lay
 
   data = bpy_bm_customdata_get(py_layer->bm, py_layer->htype);
 
-  value = CustomData_bmesh_get_n(
-      data, ele->head.data, eCustomDataType(py_layer->type), py_layer->index);
+  const eCustomDataType real_type = bpy_bm_layer_type_is_skin(py_layer->type) ?
+                                        CD_PROP_FLOAT2 :
+                                        eCustomDataType(py_layer->type);
+  value = CustomData_bmesh_get_n(data, ele->head.data, real_type, py_layer->index);
 
   if (value == nullptr) [[unlikely]] {
     /* this should be fairly unlikely but possible if layers move about after we get them */
@@ -1251,8 +1383,8 @@ PyObject *BPy_BMLayerItem_GetItem(BPy_BMElem *py_ele, BPy_BMLayerItem *py_layer)
       ret = Vector_CreatePyObject_wrap(static_cast<float *>(value), 3, nullptr);
       break;
     }
-    case CD_MVERT_SKIN: {
-      ret = BPy_BMVertSkin_CreatePyObject(static_cast<MVertSkin *>(value));
+    case BPY_BM_LAYER_TYPE_SKIN: {
+      ret = BPy_BMVertSkin_CreatePyObject(py_ele->bm, reinterpret_cast<BMVert *>(py_ele->ele));
       break;
     }
     default: {
@@ -1371,8 +1503,9 @@ int BPy_BMLayerItem_SetItem(BPy_BMElem *py_ele, BPy_BMLayerItem *py_layer, PyObj
       }
       break;
     }
-    case CD_MVERT_SKIN: {
-      ret = BPy_BMVertSkin_AssignPyObject(static_cast<MVertSkin *>(value), py_value);
+    case BPY_BM_LAYER_TYPE_SKIN: {
+      ret = BPy_BMVertSkin_AssignPyObject(
+          py_ele->bm, reinterpret_cast<BMVert *>(py_ele->ele), py_value);
       break;
     }
     default: {

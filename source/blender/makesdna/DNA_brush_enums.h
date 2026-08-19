@@ -377,7 +377,8 @@ enum eBrushFlags : uint32_t {
   BRUSH_EDGE_TO_EDGE = (1 << 22),
   BRUSH_UNUSED_4 = (1 << 23),
   BRUSH_SMOOTH_PRESSURE = (1 << 24),
-  BRUSH_FRONTFACE_FALLOFF = (1 << 25),
+  /* Deprecated. To be removed in 6.0 - @Sean-Kim */
+  BRUSH_FRONTFACE_FALLOFF_DEPRECATED = (1 << 25),
   BRUSH_PLANE_TRIM = (1 << 26),
   BRUSH_FRONTFACE = (1 << 27),
   /* BRUSH_CUSTOM_ICON = (1 << 28), */
@@ -409,6 +410,16 @@ enum eBrushFlags2 : int {
   BRUSH_PROJECT_USE_BIDIRECTIONAL = (1 << 11),
 };
 ENUM_OPERATORS(eBrushFlags2)
+
+/** #Brush.unified_paint_flags */
+enum eBrushUnifiedPaintFlags : int {
+  BRUSH_USE_UNIFIED_PAINT_SIZE = (1 << 0),
+  BRUSH_USE_UNIFIED_PAINT_ALPHA = (1 << 1),
+  BRUSH_USE_UNIFIED_PAINT_WEIGHT = (1 << 2),
+  BRUSH_USE_UNIFIED_PAINT_COLOR = (1 << 3),
+  BRUSH_USE_UNIFIED_PAINT_INPUT_SAMPLES = (1 << 4),
+};
+ENUM_OPERATORS(eBrushUnifiedPaintFlags)
 
 enum BrushMaskPressureFlags : int {
   BRUSH_MASK_PRESSURE_RAMP = (1 << 1),

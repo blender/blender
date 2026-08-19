@@ -321,7 +321,7 @@ static void freeSeqData(TransInfo *t, TransDataContainer *tc, TransCustomData *c
   }
 
   VectorSet transformed_strips = seq_transform_collection_from_transdata(tc);
-  seq::iterator_set_expand(ed, transformed_strips, seq::query_strip_direct_effect_chain);
+  seq::expand_strips(ed, transformed_strips, seq::StripRelation::Effects);
 
   for (Strip *strip : transformed_strips) {
     strip->runtime->flag &= ~(seq::StripRuntimeFlag::ClampedLH | seq::StripRuntimeFlag::ClampedRH);
@@ -401,7 +401,7 @@ static void query_time_dependent_strips_strips(TransInfo *t,
   VectorSet<Strip *> strips_no_handles = query_selected_strips_no_handles(seqbase);
   time_dependent_strips.add_multiple(strips_no_handles);
 
-  seq::iterator_set_expand(ed, strips_no_handles, seq::query_strip_effect_chain);
+  seq::expand_strips(ed, strips_no_handles, seq::StripRelation::EffectChain);
   bool strip_added = true;
 
   while (strip_added) {
@@ -428,7 +428,7 @@ static void query_time_dependent_strips_strips(TransInfo *t,
    * With single input effect, it is less likely desirable to move animation. */
 
   VectorSet selected_strips = seq::query_selected_strips(seqbase);
-  seq::iterator_set_expand(ed, selected_strips, seq::query_strip_effect_chain);
+  seq::expand_strips(ed, selected_strips, seq::StripRelation::EffectChain);
   for (Strip *strip : selected_strips) {
     /* Check only 2 input effects. */
     if (strip->input1 == nullptr || strip->input2 == nullptr) {
@@ -474,8 +474,11 @@ static void create_trans_seq_clamp_data(TransInfo *t, const Scene *scene)
     }
   }
 
-  /* Try to clamp handles by default. */
-  t->modifiers |= MOD_STRIP_CLAMP_HOLDS;
+  const bool clamp_default = (U.sequencer_editor_flag & USER_SEQ_ED_CLAMP_STRIPS_BY_DEFAULT);
+  if (clamp_default) {
+    t->modifiers |= MOD_STRIP_CLAMP_HOLDS;
+  }
+
   ts->hold_clamp_min = INT_MIN;
   ts->hold_clamp_max = INT_MAX;
   for (Strip *strip : strips) {
@@ -487,7 +490,7 @@ static void create_trans_seq_clamp_data(TransInfo *t, const Scene *scene)
     bool right_sel = (strip->flag & SEQ_RIGHTSEL);
 
     /* If any strips start out with hold offsets visible, disable handle clamping on init. */
-    if ((strip->startofs < 0 || strip->end_offset() < 0) &&
+    if (clamp_default && (strip->startofs < 0 || strip->end_offset() < 0) &&
         !seq::transform_single_image_check(strip))
     {
       t->modifiers &= ~MOD_STRIP_CLAMP_HOLDS;
@@ -752,8 +755,7 @@ static void flushTransSeq(TransInfo *t)
   /* Need to do the overlap check in a new loop otherwise adjacent strips
    * will not be updated and we'll get false positives. */
   VectorSet transformed_strips = seq_transform_collection_from_transdata(tc);
-  seq::iterator_set_expand(
-      seq::editing_get(scene), transformed_strips, seq::query_strip_direct_effect_chain);
+  seq::expand_strips(seq::editing_get(scene), transformed_strips, seq::StripRelation::Effects);
 
   for (Strip *strip : transformed_strips) {
     /* Test overlap, displays red outline. */

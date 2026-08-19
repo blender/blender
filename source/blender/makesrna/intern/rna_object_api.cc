@@ -93,7 +93,7 @@ static Base *find_view_layer_base_with_synced_ensure(
 
   Scene *scene;
   ViewLayer *view_layer;
-  if (view_layer_ptr->data) {
+  if (*view_layer_ptr) {
     scene = id_cast<Scene *>(view_layer_ptr->owner_id);
     view_layer = static_cast<ViewLayer *>(view_layer_ptr->data);
   }
@@ -495,7 +495,7 @@ static PointerRNA rna_Object_shape_key_add(
   }
   else {
     BKE_reportf(reports, RPT_ERROR, "Object '%s' does not support shapes", ob->id.name + 2);
-    return PointerRNA_NULL;
+    return {};
   }
 }
 
@@ -659,33 +659,17 @@ static void rna_Object_ray_cast(Object *ob,
           origin, direction_unit, bounds->min, bounds->max, &distmin, nullptr) &&
       distmin <= distance)
   {
+    /* Bounds will be nullopt if the mesh has no faces. */
+    BLI_assert(mesh_eval->faces_num > 0);
+    const bke::bvh::Tree &bvh_tree = mesh_eval->bvh_tris();
+    const bke::bvh::Ray ray(origin, direction_unit, distance);
+    if (const std::optional<bke::bvh::RayHit> hit = bvh_tree.ray_intersect(ray)) {
+      if (hit->distance <= distance) {
+        *r_success = success = true;
 
-    /* No need to managing allocation or freeing of the BVH data.
-     * This is generated and freed as needed. */
-    bke::BVHTreeFromMesh treeData = mesh_eval->bvh_corner_tris();
-
-    /* may fail if the mesh has no faces, in that case the ray-cast misses */
-    if (treeData.tree != nullptr) {
-      BVHTreeRayHit hit;
-
-      hit.index = -1;
-      hit.dist = distance;
-
-      if (BLI_bvhtree_ray_cast(treeData.tree,
-                               origin,
-                               direction_unit,
-                               0.0f,
-                               &hit,
-                               treeData.raycast_callback,
-                               &treeData) != -1)
-      {
-        if (hit.dist <= distance) {
-          *r_success = success = true;
-
-          copy_v3_v3(r_location, hit.co);
-          copy_v3_v3(r_normal, hit.no);
-          *r_index = mesh_corner_tri_to_face_index(mesh_eval, hit.index);
-        }
+        copy_v3_v3(r_location, hit->position(ray));
+        copy_v3_v3(r_normal, math::normalize(hit->normal));
+        *r_index = mesh_corner_tri_to_face_index(mesh_eval, hit->index);
       }
     }
   }
@@ -714,41 +698,33 @@ static void rna_Object_closest_point_on_mesh(Object *ob,
     return;
   }
 
-  /* No need to managing allocation or freeing of the BVH data.
-   * this is generated and freed as needed. */
   Mesh *mesh_eval = BKE_object_get_evaluated_mesh(ob);
-  bke::BVHTreeFromMesh treeData = mesh_eval->bvh_corner_tris();
 
-  if (treeData.tree == nullptr) {
-    BKE_reportf(reports,
-                RPT_ERROR,
-                "Object '%s' could not create internal data for finding nearest point",
-                ob->id.name + 2);
-    return;
-  }
-  else {
-    BVHTreeNearest nearest;
-
-    nearest.index = -1;
-    nearest.dist_sq = distance * distance;
-
-    if (BLI_bvhtree_find_nearest(
-            treeData.tree, origin, &nearest, treeData.nearest_callback, &treeData) != -1)
+  if (mesh_eval->faces_num != 0) {
+    const bke::bvh::Tree &bvh_tree = mesh_eval->bvh_tris();
+    if (const std::optional<bke::bvh::ClosestPointResult> nearest = bvh_tree.closest_point(
+            origin, distance))
     {
       *r_success = true;
+      copy_v3_v3(r_location, nearest->position);
 
-      copy_v3_v3(r_location, nearest.co);
-      copy_v3_v3(r_normal, nearest.no);
-      *r_index = mesh_corner_tri_to_face_index(mesh_eval, nearest.index);
-    }
-    else {
-      *r_success = false;
-
-      zero_v3(r_location);
-      zero_v3(r_normal);
-      *r_index = -1;
+      const Span<float3> positions = mesh_eval->vert_positions();
+      const Span<int> corner_verts = mesh_eval->corner_verts();
+      const Span<int3> corner_tris = mesh_eval->corner_tris();
+      const float3 normal = math::normal_tri(
+          positions[corner_verts[corner_tris[nearest->index][0]]],
+          positions[corner_verts[corner_tris[nearest->index][1]]],
+          positions[corner_verts[corner_tris[nearest->index][2]]]);
+      copy_v3_v3(r_normal, normal);
+      *r_index = mesh_corner_tri_to_face_index(mesh_eval, nearest->index);
+      return;
     }
   }
+  *r_success = false;
+
+  zero_v3(r_location);
+  zero_v3(r_normal);
+  *r_index = -1;
 }
 
 static bool rna_Object_is_modified(Object *ob, Scene *scene, int settings)

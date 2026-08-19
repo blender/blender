@@ -189,11 +189,15 @@ inline OffsetIndices<int> gather_selected_offsets(OffsetIndices<int> src_offsets
 /**
  * Create a map from indexed elements to the source indices, in other words from the larger array
  * to the smaller array.
+ *
+ * Example: `[0, 2, 2, 5] -> [0, 0, 2, 2, 2]`.
  */
 void build_reverse_map(OffsetIndices<int> offsets, MutableSpan<int> r_map);
 
 /**
  * Build offsets to group the elements of \a indices pointing to the same index.
+ *
+ * Example: `[1, 0, 1, 1] -> [0, 1, 4]`.
  */
 OffsetIndices<int> build_reverse_offsets(Span<int> indices, MutableSpan<int> offsets);
 
@@ -206,8 +210,10 @@ void sort_groups(OffsetIndices<int> groups, MutableSpan<int> indices);
 /**
  * Where the `group_indices` argument maps elements into buckets, and the `offsets` argument
  * describes the size of each bucket, this function fills `results` with the indices in each bucket
- * grouped by `offsets`. The `sort` argument makes the results deterministic (i.e. the indices in
- * each bucket are sorted), otherwise internal parallelism makes this non-deterministic.
+ * grouped by `offsets`. The `sort` argument makes the results deterministic, ordering each bucket
+ * by the position in `group_indices`. Otherwise internal parallelism makes this non-deterministic.
+ *
+ * Example: `[1, 0, 1, 1], offsets [0, 1, 4] -> [1, 0, 2, 3]`.
  */
 void reverse_indices_in_groups(Span<int> group_indices,
                                OffsetIndices<int> offsets,
@@ -215,14 +221,50 @@ void reverse_indices_in_groups(Span<int> group_indices,
                                bool sort = true);
 
 /**
+ * Same as above, but every element belongs to one of the larger groups described by `value_groups`
+ * Results contain the index of each group, and are always sorted.
+ *
+ * Example: `[1, 0, 1, 1], offsets [0, 1, 4], value_groups [0, 2, 4] -> [0, 0, 1, 1]`.
+ */
+void reverse_indices_in_groups(Span<int> group_indices,
+                               OffsetIndices<int> offsets,
+                               MutableSpan<int> results,
+                               OffsetIndices<int> value_groups);
+
+/**
+ * Same as above, for the case where every group in `value_groups` has the same size.
+ *
+ * Example: `[1, 0, 1, 1], offsets [0, 1, 4], value_group_size 2 -> [0, 0, 1, 1]`.
+ */
+void reverse_indices_in_groups(Span<int> group_indices,
+                               OffsetIndices<int> offsets,
+                               MutableSpan<int> results,
+                               int value_group_size);
+
+/**
  * With `indices` divided in a certain number of unique groups, reverse the index mapping so that
  * the indices in each group can be index by the group index. Similar to
  * #reverse_indices_in_groups, but also creates the offsets.
+ *
+ * Example: `[1, 0, 1, 1], groups_num 2 -> offsets [0, 1, 4], indices [1, 0, 2, 3]`.
  */
-GroupedSpan<int> build_groups_from_indices(const Span<int> indices,
-                                           const int groups_num,
+GroupedSpan<int> build_groups_from_indices(Span<int> indices,
+                                           int groups_num,
                                            Array<int> &offset_data,
                                            Array<int> &index_data);
+
+/**
+ * Same as above, but for `indices` gathered from a subset of a larger array, described by the
+ * `values` mask. Groups then contain `values[position]` of every element instead of `position`.
+ *
+ * Example: `[1, 0, 1, 1], groups_num 2, values [10, 11, 13, 17]
+ *          -> offsets [0, 1, 4], indices [11, 10, 13, 17]`.
+ */
+GroupedSpan<int> build_groups_from_indices(Span<int> indices,
+                                           int groups_num,
+                                           Array<int> &offset_data,
+                                           Array<int> &index_data,
+                                           const IndexMask &values);
 
 }  // namespace offset_indices
 

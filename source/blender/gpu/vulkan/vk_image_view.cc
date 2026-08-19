@@ -8,6 +8,7 @@
 
 #include "vk_image_view.hh"
 #include "vk_backend.hh"
+#include "vk_common.hh"
 #include "vk_debug.hh"
 #include "vk_device.hh"
 #include "vk_texture.hh"
@@ -31,6 +32,18 @@ VKImageView::VKImageView(VKTexture &texture, const VKImageViewInfo &info, String
   image_view_info.subresourceRange.levelCount = info.mip_range.size();
   image_view_info.subresourceRange.baseArrayLayer = info.layer_range.first();
   image_view_info.subresourceRange.layerCount = info.layer_range.size();
+
+  /* When extended usage is enabled for storage images, it means the original format
+   * is not supported. So we must strip USAGE_STORAGE for that original format, and
+   * only leave it for the other format that will be used for storage images. */
+  VkImageViewUsageCreateInfo view_usage_info = {VK_STRUCTURE_TYPE_IMAGE_VIEW_USAGE_CREATE_INFO};
+  if (vk_need_extended_usage_for_storage_image(texture.usage_get(), texture.format_flag_get()) &&
+      info.vk_format == to_vk_format(texture.device_format_get()))
+  {
+    view_usage_info.usage = texture.vk_image_usage_get() & ~VK_IMAGE_USAGE_STORAGE_BIT;
+    view_usage_info.pNext = image_view_info.pNext;
+    image_view_info.pNext = &view_usage_info;
+  }
 
   const VKDevice &device = VKBackend::get().device;
   device.functions.vkCreateImageView(

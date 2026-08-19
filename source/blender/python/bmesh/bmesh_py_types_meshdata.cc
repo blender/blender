@@ -28,6 +28,7 @@
 #include "BLI_math_base_c.hh"
 #include "BLI_math_color_c.hh"
 #include "BLI_math_vector_c.hh"
+#include "BLI_math_vector_types.hh"
 #include "BLI_utildefines.hh"
 
 #include "BKE_deform.hh"
@@ -189,13 +190,23 @@ PyObject *BPy_BMLoopUV_CreatePyObject(BMesh *bm, BMLoop *loop, int layer)
 /* --- End Mesh Loop UV --- */
 
 /* Mesh Vert Skin
- * ************ */
+ * ************
+ *
+ * The Skin modifier's per-vertex data used to be a single #MVertSkin struct combining the radius
+ * and root/loose flags, but now consists of a float2 "skin_modifier_radius" attribute and two
+ * boolean attributes:  "skin_modifier_root" and "skin_modifier_loose". For backwards
+ * compatibility, the original combined struct is emulated as #BPy_BMVertSkin, compositing the
+ * three correlated attributes, similar to how #BPy_BMLoopUV emulates the old #MLoopUV struct. */
 
 #define BPy_BMVertSkin_Check(v) (Py_TYPE(v) == &BPy_BMVertSkin_Type)
 
 struct BPy_BMVertSkin {
   PyObject_HEAD
-  MVertSkin *data;
+  float2 *radius;
+  /** May be null if the associated layer doesn't exist. */
+  bool *root;
+  /** May be null if the associated layer doesn't exist. */
+  bool *loose;
 };
 
 PyDoc_STRVAR(
@@ -206,18 +217,27 @@ PyDoc_STRVAR(
     ":type: :class:`mathutils.Vector`\n");
 static PyObject *bpy_bmvertskin_radius_get(BPy_BMVertSkin *self, void * /*closure*/)
 {
-  return Vector_CreatePyObject_wrap(self->data->radius, 2, nullptr);
+  return Vector_CreatePyObject_wrap(*self->radius, 2, nullptr);
 }
 
 static int bpy_bmvertskin_radius_set(BPy_BMVertSkin *self, PyObject *value, void * /*closure*/)
 {
   float tvec[2];
   if (mathutils_array_parse(tvec, 2, 2, value, "BMVertSkin.radius") != -1) {
-    copy_v2_v2(self->data->radius, tvec);
+    copy_v2_v2(*self->radius, tvec);
     return 0;
   }
 
   return -1;
+}
+
+static bool bpy_bmvertskin_flag_ok_or_error(const bool *flag)
+{
+  if (flag == nullptr) {
+    PyErr_SetString(PyExc_RuntimeError, "skin layer has no associated root/loose layer.");
+    return false;
+  }
+  return true;
 }
 
 PyDoc_STRVAR(
@@ -226,34 +246,52 @@ PyDoc_STRVAR(
     "Use as root vertex. Setting this flag does not clear other roots in the same mesh island.\n"
     "\n"
     ":type: bool\n");
+static PyObject *bpy_bmvertskin_use_root_get(BPy_BMVertSkin *self, void * /*closure*/)
+{
+  if (!bpy_bmvertskin_flag_ok_or_error(self->root)) [[unlikely]] {
+    return nullptr;
+  }
+  return PyBool_FromLong(*self->root);
+}
+
+static int bpy_bmvertskin_use_root_set(BPy_BMVertSkin *self, PyObject *value, void * /*closure*/)
+{
+  if (!bpy_bmvertskin_flag_ok_or_error(self->root)) [[unlikely]] {
+    return -1;
+  }
+  const int tmp_val = PyC_Long_AsBool(value);
+  if (tmp_val == -1) [[unlikely]] {
+    return -1;
+  }
+  *self->root = tmp_val;
+  return 0;
+}
+
 PyDoc_STRVAR(
     /* Wrap. */
     bpy_bmvertskin_flag__use_loose_doc,
     "Use loose vertex.\n"
     "\n"
     ":type: bool\n");
-
-static PyObject *bpy_bmvertskin_flag_get(BPy_BMVertSkin *self, void *flag_p)
+static PyObject *bpy_bmvertskin_use_loose_get(BPy_BMVertSkin *self, void * /*closure*/)
 {
-  const int flag = POINTER_AS_INT(flag_p);
-  return PyBool_FromLong(self->data->flag & flag);
+  if (!bpy_bmvertskin_flag_ok_or_error(self->loose)) [[unlikely]] {
+    return nullptr;
+  }
+  return PyBool_FromLong(*self->loose);
 }
 
-static int bpy_bmvertskin_flag_set(BPy_BMVertSkin *self, PyObject *value, void *flag_p)
+static int bpy_bmvertskin_use_loose_set(BPy_BMVertSkin *self, PyObject *value, void * /*closure*/)
 {
-  const eMVertSkinFlag flag = eMVertSkinFlag(POINTER_AS_INT(flag_p));
-
-  switch (PyC_Long_AsBool(value)) {
-    case true:
-      self->data->flag |= flag;
-      return 0;
-    case false:
-      self->data->flag &= ~flag;
-      return 0;
-    default:
-      /* error is set */
-      return -1;
+  if (!bpy_bmvertskin_flag_ok_or_error(self->loose)) [[unlikely]] {
+    return -1;
   }
+  const int tmp_val = PyC_Long_AsBool(value);
+  if (tmp_val == -1) [[unlikely]] {
+    return -1;
+  }
+  *self->loose = tmp_val;
+  return 0;
 }
 
 static PyGetSetDef bpy_bmvertskin_getseters[] = {
@@ -264,20 +302,20 @@ static PyGetSetDef bpy_bmvertskin_getseters[] = {
      bpy_bmvertskin_radius_doc,
      nullptr},
     {"use_root",
-     reinterpret_cast<getter>(bpy_bmvertskin_flag_get),
-     reinterpret_cast<setter>(bpy_bmvertskin_flag_set),
+     reinterpret_cast<getter>(bpy_bmvertskin_use_root_get),
+     reinterpret_cast<setter>(bpy_bmvertskin_use_root_set),
      bpy_bmvertskin_flag__use_root_doc,
-     reinterpret_cast<void *>(MVERT_SKIN_ROOT)},
+     nullptr},
     {"use_loose",
-     reinterpret_cast<getter>(bpy_bmvertskin_flag_get),
-     reinterpret_cast<setter>(bpy_bmvertskin_flag_set),
+     reinterpret_cast<getter>(bpy_bmvertskin_use_loose_get),
+     reinterpret_cast<setter>(bpy_bmvertskin_use_loose_set),
      bpy_bmvertskin_flag__use_loose_doc,
-     reinterpret_cast<void *>(MVERT_SKIN_LOOSE)},
+     nullptr},
 
     {nullptr, nullptr, nullptr, nullptr, nullptr} /* Sentinel */
 };
 
-static PyTypeObject BPy_BMVertSkin_Type; /* bm.loops.layers.skin.active */
+static PyTypeObject BPy_BMVertSkin_Type; /* bm.verts.layers.skin.active */
 
 static void bm_init_types_bmvertskin()
 {
@@ -294,21 +332,56 @@ static void bm_init_types_bmvertskin()
   PyType_Ready(&BPy_BMVertSkin_Type);
 }
 
-int BPy_BMVertSkin_AssignPyObject(MVertSkin *mvertskin, PyObject *value)
+int BPy_BMVertSkin_AssignPyObject(BMesh *bm, BMVert *vert, PyObject *value)
 {
   if (!BPy_BMVertSkin_Check(value)) [[unlikely]] {
     PyErr_Format(PyExc_TypeError, "expected BMVertSkin, not a %.200s", Py_TYPE(value)->tp_name);
     return -1;
   }
 
-  *(mvertskin) = *((reinterpret_cast<BPy_BMVertSkin *>(value))->data);
+  BPy_BMVertSkin *src = reinterpret_cast<BPy_BMVertSkin *>(value);
+
+  const int cd_radius_offset = CustomData_get_offset_named(
+      &bm->vdata, CD_PROP_FLOAT2, "skin_modifier_radius");
+  *static_cast<float2 *>(BM_ELEM_CD_GET_VOID_P(vert, cd_radius_offset)) = *src->radius;
+
+  if (src->root) {
+    const int cd_root_offset = CustomData_get_offset_named(
+        &bm->vdata, CD_PROP_BOOL, "skin_modifier_root");
+    if (cd_root_offset != -1) {
+      BM_ELEM_CD_SET_BOOL(vert, cd_root_offset, *src->root);
+    }
+  }
+  if (src->loose) {
+    const int cd_loose_offset = CustomData_get_offset_named(
+        &bm->vdata, CD_PROP_BOOL, "skin_modifier_loose");
+    if (cd_loose_offset != -1) {
+      BM_ELEM_CD_SET_BOOL(vert, cd_loose_offset, *src->loose);
+    }
+  }
+
   return 0;
 }
 
-PyObject *BPy_BMVertSkin_CreatePyObject(MVertSkin *mvertskin)
+PyObject *BPy_BMVertSkin_CreatePyObject(BMesh *bm, BMVert *vert)
 {
   BPy_BMVertSkin *self = PyObject_New(BPy_BMVertSkin, &BPy_BMVertSkin_Type);
-  self->data = mvertskin;
+
+  const int cd_radius_offset = CustomData_get_offset_named(
+      &bm->vdata, CD_PROP_FLOAT2, "skin_modifier_radius");
+  const int cd_root_offset = CustomData_get_offset_named(
+      &bm->vdata, CD_PROP_BOOL, "skin_modifier_root");
+  const int cd_loose_offset = CustomData_get_offset_named(
+      &bm->vdata, CD_PROP_BOOL, "skin_modifier_loose");
+
+  self->radius = static_cast<float2 *>(BM_ELEM_CD_GET_VOID_P(vert, cd_radius_offset));
+  self->root = cd_root_offset != -1 ?
+                   static_cast<bool *>(BM_ELEM_CD_GET_VOID_P(vert, cd_root_offset)) :
+                   nullptr;
+  self->loose = cd_loose_offset != -1 ?
+                    static_cast<bool *>(BM_ELEM_CD_GET_VOID_P(vert, cd_loose_offset)) :
+                    nullptr;
+
   return reinterpret_cast<PyObject *>(self);
 }
 

@@ -1206,7 +1206,7 @@ inline void fill_segment(T *__restrict data, const T &value, const SegmentT segm
 {
   if constexpr (std::is_same_v<SegmentT, IndexRange>) {
     if constexpr (std::is_trivially_copy_assignable_v<T>) {
-      if (value_is_zero(value)) {
+      if (value_is_zero_memory(value)) {
         const IndexRange range = segment;
 /* GCC warns about memset on types without trivial copy-assignment even when guarded by
  * `if constexpr (std::is_trivially_copy_assignable_v<T>)`. Quiet the compiler bug. */

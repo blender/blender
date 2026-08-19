@@ -264,7 +264,7 @@ def git_update_skip(args: argparse.Namespace, check_remote_exists: bool = True) 
     # Abort if uncommitted changes.
     changes = check_output([args.git_command, 'status', '--porcelain', '--untracked-files=no', '--ignore-submodules'])
     if len(changes) != 0:
-        return "you have unstaged changes"
+        return "you have uncommitted changes"
 
     # Test if there is an upstream branch configured
     if check_remote_exists:

@@ -834,6 +834,15 @@ static void wm_draw_region_blit(ARegion *region, int view)
     }
   }
 
+  /* Regions are copied in without blending, so without this, the region's own alpha would land in
+   * the window's frame-buffer. That matters for client-side-decorated windows for rounded corners:
+   * viewports are transparent where nothing was rendered, leading to un-wanted transparency.
+   *
+   * Everything else drawn into the window blends with #GPU_BLEND_ALPHA which leaves an opaque
+   * desination opaque, so masking here is enough to keep the window opaque for the whole frame,
+   * see #WM_window_csd_draw_corner_mask. */
+  GPU_color_mask(true, true, true, false);
+
   if (region->runtime->draw_buffer->viewport) {
     GPU_viewport_draw_to_screen(region->runtime->draw_buffer->viewport, view, &region->winrct);
   }
@@ -841,6 +850,8 @@ static void wm_draw_region_blit(ARegion *region, int view)
     GPU_offscreen_draw_to_screen(
         region->runtime->draw_buffer->offscreen, region->winrct.xmin, region->winrct.ymin);
   }
+
+  GPU_color_mask(true, true, true, true);
 }
 
 gpu::Texture *wm_draw_region_texture(ARegion *region, int view)
@@ -877,6 +888,9 @@ void wm_draw_region_blend(ARegion *region, int view, bool blend)
   const float halfy = GLA_PIXEL_OFS / (BLI_rcti_size_y(&region->winrct) + 1);
 
   rcti rect_geo = region->winrct;
+  if (blend) {
+    ED_region_blend_rect(region, &rect_geo);
+  }
   rect_geo.xmax += 1;
   rect_geo.ymax += 1;
 
@@ -886,27 +900,17 @@ void wm_draw_region_blend(ARegion *region, int view, bool blend)
   rect_tex.xmax = 1.0f + halfx;
   rect_tex.ymax = 1.0f + halfy;
 
-  /* Quadratic ease-out: 1 - (1 - alpha)^2 == alpha * (2 - alpha). */
-  float alpha_easing = alpha * (2.0f - alpha);
-
-  /* Slide panels. */
-  float ofs_x = BLI_rcti_size_x(&region->winrct) * (1.0f - alpha_easing);
-  float ofs_y = BLI_rcti_size_y(&region->winrct) * (1.0f - alpha_easing);
   if (RGN_ALIGN_ENUM_FROM_MASK(region->alignment) == RGN_ALIGN_RIGHT) {
-    rect_geo.xmin += ofs_x;
-    rect_tex.xmax *= alpha_easing;
+    rect_tex.xmax *= alpha;
   }
   else if (RGN_ALIGN_ENUM_FROM_MASK(region->alignment) == RGN_ALIGN_LEFT) {
-    rect_geo.xmax -= ofs_x;
-    rect_tex.xmin += 1.0f - alpha_easing;
+    rect_tex.xmin += 1.0f - alpha;
   }
   else if (RGN_ALIGN_ENUM_FROM_MASK(region->alignment) == RGN_ALIGN_TOP) {
-    rect_geo.ymin += ofs_y;
-    rect_tex.ymax *= alpha_easing;
+    rect_tex.ymax *= alpha;
   }
   else if (RGN_ALIGN_ENUM_FROM_MASK(region->alignment) == RGN_ALIGN_BOTTOM) {
-    rect_geo.ymax -= ofs_y;
-    rect_tex.ymin += 1.0f - alpha_easing;
+    rect_tex.ymin += 1.0f - alpha;
   }
 
   /* Not the same layout as #rctf/#rcti. */
@@ -934,8 +938,7 @@ void wm_draw_region_blend(ARegion *region, int view, bool blend)
 
   GPU_shader_uniform_float_ex(shader, rect_tex_loc, 4, 1, rectt);
   GPU_shader_uniform_float_ex(shader, rect_geo_loc, 4, 1, rectg);
-  GPU_shader_uniform_float_ex(
-      shader, color_loc, 4, 1, float4{alpha_easing, alpha_easing, alpha_easing, alpha_easing});
+  GPU_shader_uniform_float_ex(shader, color_loc, 4, 1, float4{alpha, alpha, alpha, alpha});
 
   gpu::Batch *quad = GPU_batch_preset_quad();
   GPU_batch_set_shader(quad, shader);
@@ -1243,9 +1246,16 @@ static void wm_draw_window(bContext *C, wmWindow *win)
   bool stereo = WM_stereo3d_enabled(win, false);
 
 #ifdef WITH_GHOST_CSD
-  /* Title bar. */
-  if (WM_window_is_csd(win)) {
-    WM_window_csd_draw_titlebar(win);
+  if (WM_window_csd_is_active()) {
+    /* Title bar. */
+    if (WM_window_is_csd(win)) {
+      WM_window_csd_draw_titlebar(win);
+    }
+    else {
+      /* Full-screen windows draw no decorations, so nothing above clears the frame-buffer.
+       * Their alpha channel still has to be made opaque, see #WM_window_csd_clear_alpha. */
+      WM_window_csd_clear_alpha(win);
+    }
   }
 #endif
 
@@ -1319,6 +1329,14 @@ static void wm_draw_window(bContext *C, wmWindow *win)
       wm_draw_window_onscreen(C, win, 0);
     }
   }
+
+#ifdef WITH_GHOST_CSD
+  /* Rounded corners, run last so the corners are cut away no matter what covered them
+   * (the title bar at the top, editor areas & the status bar at the bottom). */
+  if (WM_window_is_csd(win)) {
+    WM_window_csd_draw_corner_mask(win);
+  }
+#endif
 
   screen->do_draw = false;
 

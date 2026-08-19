@@ -220,6 +220,20 @@ static void node_declare(NodeDeclarationBuilder &b)
       .short_label("Weight"_ustr)
       .description("Blend between transmission and other base layer components");
 #define SOCK_TRANSMISSION_WEIGHT_ID 19
+  transmission.add_input<decl::Float>("Transmission Dispersion Scale"_ustr)
+      .default_value(0.0f)
+      .min(0.0f)
+      .max(1.0f)
+      .subtype(PROP_FACTOR)
+      .description("Linearly scales the amount of dispersion");
+#define SOCK_TRANSMISSION_DISPERSION_SCALE_ID 20
+  transmission.add_input<decl::Float>("Transmission Dispersion Abbe Number"_ustr)
+      .default_value(20.0f)
+      .min(9.0f)
+      .max(91.0f)
+      .description(
+          "Abbe number of the base dielectric medium. Smaller number gives stronger dispersion");
+#define SOCK_TRANSMISSION_DISPERSION_ABBE_NUMBER_ID 21
 
   /* Panel for Coat settings. */
   PanelDeclarationBuilder &coat = b.add_panel("Coat"_ustr).default_closed(true);
@@ -232,7 +246,7 @@ static void node_declare(NodeDeclarationBuilder &b)
       .description(
           "Controls the intensity of the coat layer, both the reflection and the tinting. "
           "Typically should be zero or one for physically-based materials");
-#define SOCK_COAT_WEIGHT_ID 20
+#define SOCK_COAT_WEIGHT_ID 22
   coat.add_input<decl::Float>("Coat Roughness"_ustr)
       .default_value(0.03f)
       .min(0.0f)
@@ -240,7 +254,7 @@ static void node_declare(NodeDeclarationBuilder &b)
       .subtype(PROP_FACTOR)
       .short_label("Roughness"_ustr)
       .description("The roughness of the coat layer");
-#define SOCK_COAT_ROUGHNESS_ID 21
+#define SOCK_COAT_ROUGHNESS_ID 23
   coat.add_input<decl::Float>("Coat IOR"_ustr)
       .default_value(1.5f)
       .min(1.0f)
@@ -249,7 +263,7 @@ static void node_declare(NodeDeclarationBuilder &b)
       .description(
           "The Index of Refraction (IOR) of the coat layer "
           "(affects its reflectivity as well as the falloff of coat tinting)");
-#define SOCK_COAT_IOR_ID 22
+#define SOCK_COAT_IOR_ID 24
   coat.add_input<decl::Color>("Coat Tint"_ustr)
       .default_value({1.0f, 1.0f, 1.0f, 1.0f})
       .short_label("Tint"_ustr)
@@ -258,9 +272,9 @@ static void node_declare(NodeDeclarationBuilder &b)
           "Saturation increases at shallower angles, as the light travels farther "
           "through the medium (depending on the Coat IOR)")
       .translation_context(BLT_I18NCONTEXT_ID_NODETREE);
-#define SOCK_COAT_TINT_ID 23
+#define SOCK_COAT_TINT_ID 25
   coat.add_input<decl::Vector>("Coat Normal"_ustr).short_label("Normal"_ustr).hide_value();
-#define SOCK_COAT_NORMAL_ID 24
+#define SOCK_COAT_NORMAL_ID 26
 
   /* Panel for Sheen settings. */
   PanelDeclarationBuilder &sheen = b.add_panel("Sheen"_ustr).default_closed(true);
@@ -272,7 +286,7 @@ static void node_declare(NodeDeclarationBuilder &b)
       .short_label("Weight"_ustr)
       .description(
           "Intensity of the sheen layer, which simulates very small fibers on the surface");
-#define SOCK_SHEEN_WEIGHT_ID 25
+#define SOCK_SHEEN_WEIGHT_ID 27
   sheen.add_input<decl::Float>("Sheen Roughness"_ustr)
       .default_value(0.5f)
       .min(0.0f)
@@ -282,13 +296,13 @@ static void node_declare(NodeDeclarationBuilder &b)
       .description(
           "Roughness of the sheen layer. Low and high roughness values produce fuzzy or dusty "
           "appearance, respectively");
-#define SOCK_SHEEN_ROUGHNESS_ID 26
+#define SOCK_SHEEN_ROUGHNESS_ID 28
   sheen.add_input<decl::Color>("Sheen Tint"_ustr)
       .default_value({1.0f, 1.0f, 1.0f, 1.0f})
       .translation_context(BLT_I18NCONTEXT_ID_NODETREE)
       .short_label("Tint"_ustr)
       .description("Color of the sheen reflection");
-#define SOCK_SHEEN_TINT_ID 27
+#define SOCK_SHEEN_TINT_ID 29
 
   /* Panel for Emission settings. */
   PanelDeclarationBuilder &emis = b.add_panel("Emission"_ustr).default_closed(true);
@@ -296,7 +310,7 @@ static void node_declare(NodeDeclarationBuilder &b)
       .default_value({1.0f, 1.0f, 1.0f, 1.0f})
       .short_label("Color"_ustr)
       .description("Color of light emission from the surface");
-#define SOCK_EMISSION_ID 28
+#define SOCK_EMISSION_ID 30
   emis.add_input<decl::Float>("Emission Strength"_ustr)
       .default_value(0.0)
       .min(0.0f)
@@ -306,7 +320,7 @@ static void node_declare(NodeDeclarationBuilder &b)
           "Strength of the emitted light. A value of 1.0 ensures "
           "that the object in the image has the exact same color as the Emission Color")
       .translation_context(BLT_I18NCONTEXT_AMOUNT);
-#define SOCK_EMISSION_STRENGTH_ID 29
+#define SOCK_EMISSION_STRENGTH_ID 31
 
   /* Panel for Thin Film settings. */
   PanelDeclarationBuilder &film = b.add_panel("Thin Film"_ustr).default_closed(true);
@@ -316,13 +330,13 @@ static void node_declare(NodeDeclarationBuilder &b)
       .max(100000.0f)
       .subtype(PROP_WAVELENGTH)
       .description("Thickness of the film in nanometers");
-#define SOCK_THIN_FILM_THICKNESS_ID 30
+#define SOCK_THIN_FILM_THICKNESS_ID 32
   film.add_input<decl::Float>("Thin Film IOR"_ustr)
       .default_value(1.33f)
       .min(1.0f)
       .max(1000.0f)
       .description("Index of refraction (IOR) of the thin film");
-#define SOCK_THIN_FILM_IOR_ID 31
+#define SOCK_THIN_FILM_IOR_ID 33
 }
 
 static void node_shader_init_principled(bNodeTree * /*ntree*/, bNode *node)

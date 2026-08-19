@@ -156,40 +156,6 @@ void sample_face_attribute(const Span<int> corner_tri_faces,
 }
 
 template<bool check_indices = false>
-static void sample_barycentric_weights(const Span<float3> vert_positions,
-                                       const Span<int> corner_verts,
-                                       const Span<int3> corner_tris,
-                                       const Span<int> tri_indices,
-                                       const Span<float3> sample_positions,
-                                       const IndexMask &mask,
-                                       MutableSpan<float3> bary_coords)
-{
-  mask.foreach_index([&](const int i) {
-    if constexpr (check_indices) {
-      if (tri_indices[i] == -1) {
-        bary_coords[i] = {};
-        return;
-      }
-    }
-    const int3 &tri = corner_tris[tri_indices[i]];
-    bary_coords[i] = compute_bary_coord_in_triangle(
-        vert_positions, corner_verts, tri, sample_positions[i]);
-  });
-}
-
-void sample_barycentric_weights(const Span<float3> vert_positions,
-                                const Span<int> corner_verts,
-                                const Span<int3> corner_tris,
-                                const Span<int> tri_indices,
-                                const Span<float3> sample_positions,
-                                const IndexMask &mask,
-                                MutableSpan<float3> bary_coords)
-{
-  sample_barycentric_weights<false>(
-      vert_positions, corner_verts, corner_tris, tri_indices, sample_positions, mask, bary_coords);
-}
-
-template<bool check_indices = false>
 static void sample_nearest_corner(const Span<float3> vert_positions,
                                   const Span<int> corner_verts,
                                   const Span<int3> corner_tris,
@@ -311,7 +277,7 @@ int sample_surface_points_spherical(RandomNumberGenerator &rng,
 int sample_surface_points_projected(
     RandomNumberGenerator &rng,
     const Mesh &mesh,
-    BVHTreeFromMesh &mesh_bvhtree,
+    const bke::bvh::Tree &mesh_bvhtree,
     const float2 &sample_pos_re,
     const float sample_radius_re,
     const FunctionRef<void(const float2 &pos_re, float3 &r_start, float3 &r_end)>
@@ -340,30 +306,21 @@ int sample_surface_points_projected(
     region_position_to_ray(pos_re, ray_start, ray_end);
     const float3 ray_direction = math::normalize(ray_end - ray_start);
 
-    BVHTreeRayHit ray_hit;
-    ray_hit.dist = FLT_MAX;
-    ray_hit.index = -1;
-    BLI_bvhtree_ray_cast(mesh_bvhtree.tree,
-                         ray_start,
-                         ray_direction,
-                         0.0f,
-                         &ray_hit,
-                         mesh_bvhtree.raycast_callback,
-                         &mesh_bvhtree);
-
-    if (ray_hit.index == -1) {
+    const bke::bvh::Ray ray(ray_start, ray_direction);
+    const std::optional<bke::bvh::RayHit> ray_hit = mesh_bvhtree.ray_intersect(ray);
+    if (!ray_hit) {
       continue;
     }
 
     if (front_face_only) {
-      const float3 normal = ray_hit.no;
+      const float3 normal = math::normalize(ray_hit->normal);
       if (math::dot(ray_direction, normal) >= 0.0f) {
         continue;
       }
     }
 
-    const int tri_index = ray_hit.index;
-    const float3 pos = ray_hit.co;
+    const int tri_index = ray_hit->index;
+    const float3 pos = ray_hit->position(ray);
 
     const float3 bary_coords = compute_bary_coord_in_triangle(
         positions, corner_verts, corner_tris[tri_index], pos);
@@ -387,49 +344,6 @@ float3 compute_bary_coord_in_triangle(const Span<float3> vert_positions,
   float3 bary_coords;
   interp_weights_tri_v3(bary_coords, v0, v1, v2, position);
   return bary_coords;
-}
-
-BaryWeightFromPositionFn::BaryWeightFromPositionFn(GeometrySet geometry)
-    : source_(std::move(geometry))
-{
-  source_.ensure_owns_direct_data();
-  static const mf::Signature signature = []() {
-    mf::Signature signature;
-    mf::SignatureBuilder builder{"Bary Weight from Position", signature};
-    builder.single_input<float3>("Position");
-    builder.single_input<int>("Triangle Index");
-    builder.single_output<float3>("Barycentric Weight");
-    return signature;
-  }();
-  this->set_signature(&signature);
-  const Mesh &mesh = *source_.get_mesh();
-  vert_positions_ = mesh.vert_positions();
-  corner_verts_ = mesh.corner_verts();
-  corner_tris_ = mesh.corner_tris();
-}
-
-void BaryWeightFromPositionFn::call(const IndexMask &mask,
-                                    mf::Params params,
-                                    mf::Context /*context*/) const
-{
-  const VArraySpan<float3> sample_positions = params.readonly_single_input<float3>(0, "Position");
-  const VArraySpan<int> triangle_indices = params.readonly_single_input<int>(1, "Triangle Index");
-  MutableSpan<float3> bary_weights = params.uninitialized_single_output<float3>(
-      2, "Barycentric Weight");
-  sample_barycentric_weights<true>(vert_positions_,
-                                   corner_verts_,
-                                   corner_tris_,
-                                   triangle_indices,
-                                   sample_positions,
-                                   mask,
-                                   bary_weights);
-}
-
-void BaryWeightFromPositionFn::hash_unique(UniqueHashBytes &hash) const
-{
-  static constexpr int8_t id = 0;
-  hash.add(&id);
-  hash.add(source_.get_mesh());
 }
 
 NearestCornerFromPositionFn::NearestCornerFromPositionFn(GeometrySet geometry)

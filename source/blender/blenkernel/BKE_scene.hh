@@ -199,6 +199,12 @@ struct ScenePlaybackRange {
   /** The start frame is always less or equal the end frame. */
   int start_frame;
   int end_frame;
+
+  /** Check whether a given frame falls within this range (inclusive). */
+  bool contains(const int frame) const
+  {
+    return frame >= start_frame && frame <= end_frame;
+  }
 };
 
 /**

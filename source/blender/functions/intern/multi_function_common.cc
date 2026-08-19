@@ -664,6 +664,17 @@ static void register_common_functions_impl()
         },
         exec_fast);
   });
+  registry::add_new_cb([] {
+    return mf::build::SI2_SO<float3, int, float>(
+        "float3[int]",
+        [](const float3 &vec, const int index) {
+          if (index >= 0 && index <= 2) {
+            return vec[index];
+          }
+          return 0.0f;
+        },
+        exec_fast);
+  });
 }
 
 void register_common_functions()

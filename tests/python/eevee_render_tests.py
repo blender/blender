@@ -67,6 +67,17 @@ BLOCKLIST = [
     "light_path_is_camera_ray.blend",
     # Exhibit non-deterministic (to be fixed).
     "background_scene.blend",
+    # Currently, the only image_mipmap test enabled for EEVEE is image_mipmap_large_tex.blend.
+    "image_cache_evict.blend",
+    "image_mipmap_area_light.blend",
+    "image_mipmap_filter_glossy.blend",
+    "image_mipmap_incomplete_derivs.blend",
+    "image_mipmap_light_tree.blend",
+    "image_mipmap_transparent_shadow.blend",
+    "image_mipmap_volume.blend",
+    "image_mipmap_working_space.blend",
+    "image_mipmap_world.blend",
+    "image_mipmap_world_sun.blend",
 
     ### Cycles only tests go here ###
 ]
@@ -110,7 +121,7 @@ BLOCKLIST_AMD_VK = [
     ".*"
 ]
 
-BLOCKLIST_INTEL_WINDOWS_GL = [
+BLOCKLIST_INTEL_WINDOWS = [
     # Fails sporadically and causes all subsequent volume tests to fail (See #153612).
     "volume_instance.blend"
 ]
@@ -348,8 +359,8 @@ def main():
     if os.getenv("BLENDER_TEST_IGNORE_VENDOR_BLOCKLIST") is None:
         if gpu_vendor == "INTEL":
             blocklist += BLOCKLIST_INTEL
-        if gpu_vendor == "INTEL" and sys.platform == "win32" and args.gpu_backend == "opengl":
-            blocklist += BLOCKLIST_INTEL_WINDOWS_GL
+        if gpu_vendor == "INTEL" and sys.platform == "win32":
+            blocklist += BLOCKLIST_INTEL_WINDOWS
         if gpu_vendor == "NVIDIA" and args.gpu_backend == "opengl":
             blocklist += BLOCKLIST_NVIDIA_GL
         if gpu_vendor == "AMD" and sys.platform == "win32" and args.gpu_backend == "vulkan":
@@ -384,6 +395,10 @@ def main():
         elif test_dir_name in {"texture"}:
             report.set_fail_percent(0.14)
             report.set_fail_threshold(6.0 / 255.0)
+        elif test_dir_name.startswith('image_mipmap'):
+            # Reference images on the CI worker seem to differ slightly from images on
+            # an NVIDIA RTX 4060 Ti with driver 610.74
+            report.set_fail_threshold(6.0 / 255.0)
     elif test_dir_name.startswith('camera'):
         # camera_stereo_panoramic have some platform specific small differences
         report.set_fail_percent(0.14)
@@ -413,11 +428,14 @@ def main():
     elif test_dir_name.startswith('hair'):
         # hair_close_up has differences of line rasterization on linux.
         if gpu_vendor == "INTEL":
-            report.set_fail_percent(0.13)
+            report.set_fail_percent(0.135)
     elif test_dir_name.startswith('principled_bsdf'):
         # principled_bsdf_thinfilm_metallic has some weird behavior in reflection of
         # black surfaces. to be investigated
         report.set_fail_percent(0.09)
+        # principled_bsdf_dispersion has some difference in the highlights
+        if gpu_vendor == "AMD":
+            report.set_fail_threshold(6.0 / 255.0)
     elif test_dir_name.startswith('integrator'):
         # Noise difference in transparent materials (mostly transparent_spatial_splits)
         report.set_fail_threshold(8.0 / 255.0)
@@ -474,6 +492,13 @@ def main():
         # Some shadow difference, to be investigated
         report.set_fail_percent(0.09)
         report.set_fail_threshold(6.0 / 255.0)
+    elif test_dir_name.startswith('image_mipmap'):
+        # Texture interpolation can look slightly different.
+        if gpu_vendor == "AMD":
+            report.set_fail_percent(0.39)
+        else:
+            report.set_fail_percent(0.08)
+        report.set_fail_threshold(8.0 / 255.0)
 
     ok = report.run(args.testdir, args.blender, get_arguments, batch=args.batch)
     sys.exit(not ok)

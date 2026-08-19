@@ -15,6 +15,7 @@
 #include <numeric>
 #include <optional>
 #include <thread>
+#include <utility>
 
 #ifdef WITH_FFTW3
 #  include <fftw3.h>
@@ -48,6 +49,7 @@
 
 #ifdef WITH_AUDASPACE
 #  include "BLI_set.hh"
+#  include "BLI_vector.hh"
 
 #  include <Exception.h>
 #  include <IReader.h>
@@ -91,6 +93,8 @@
 #include "BKE_sound.hh"
 #include "BKE_sound_sample.hh"
 
+#include "sound_reader_cache.hh"
+
 #include "DEG_depsgraph.hh"
 #include "DEG_depsgraph_query.hh"
 
@@ -119,6 +123,14 @@ ENUM_OPERATORS(SoundTags);
 using bSoundFrequencySamplerMap =
     ConcurrentMap<bSoundFrequencySampler::Key, std::shared_ptr<bSoundFrequencySampler>>;
 
+#ifdef WITH_AUDASPACE
+struct SoundRuntimeGeneration {
+  AUD_Sound handle;
+  bSoundFrequencySamplerMap samplers;
+  std::shared_ptr<SoundReaderCache> reader_cache;
+};
+#endif
+
 struct SoundRuntime {
   AUD_Sound handle;
   AUD_Sound cache;
@@ -133,8 +145,10 @@ struct SoundRuntime {
   Vector<float> *waveform = nullptr;
   SoundTags tags = SoundTags::None;
 
-  /** Caches frequency samplers for this sound. */
-  bSoundFrequencySamplerMap samplers;
+#ifdef WITH_AUDASPACE
+  std::mutex generation_mutex;
+  std::shared_ptr<SoundRuntimeGeneration> generation;
+#endif
 };
 
 }  // namespace bke
@@ -146,6 +160,28 @@ static void sound_init_runtime(bSound *sound)
   sound->runtime = MEM_new<bke::SoundRuntime>(__func__);
   BLI_spin_init(&sound->runtime->spinlock);
 }
+
+#ifdef WITH_AUDASPACE
+static void sound_runtime_generation_replace(
+    bSound *sound, std::shared_ptr<bke::SoundRuntimeGeneration> generation)
+{
+  bke::SoundRuntime *runtime = sound->runtime;
+  std::shared_ptr<bke::SoundRuntimeGeneration> old_generation;
+  {
+    std::lock_guard lock{runtime->generation_mutex};
+    old_generation = std::move(runtime->generation);
+    runtime->generation = std::move(generation);
+  }
+}
+
+static std::shared_ptr<bke::SoundRuntimeGeneration> sound_runtime_generation_get(
+    const bSound &sound)
+{
+  bke::SoundRuntime *runtime = sound.runtime;
+  std::lock_guard lock{runtime->generation_mutex};
+  return runtime->generation;
+}
+#endif
 
 static void sound_free_waveform(bSound *sound)
 {
@@ -363,6 +399,7 @@ static void sound_free_audio(bSound *sound)
 {
 #ifdef WITH_AUDASPACE
   bke::SoundRuntime *runtime = sound->runtime;
+  sound_runtime_generation_replace(sound, nullptr);
   runtime->handle.reset();
   runtime->playback_handle.reset();
   runtime->cache.reset();
@@ -689,6 +726,7 @@ void BKE_sound_refresh_callback_bmain(Main *bmain)
 static void sound_load_audio(Main *bmain, bSound *sound, bool free_waveform)
 {
   bke::SoundRuntime *runtime = sound->runtime;
+  sound_runtime_generation_replace(sound, nullptr);
   runtime->cache.reset();
   runtime->handle.reset();
   runtime->playback_handle.reset();
@@ -738,6 +776,11 @@ static void sound_load_audio(Main *bmain, bSound *sound, bool free_waveform)
   else {
     runtime->playback_handle = runtime->handle;
   }
+
+  auto generation = std::make_shared<bke::SoundRuntimeGeneration>();
+  generation->handle = runtime->handle;
+  generation->reader_cache = std::make_shared<bke::SoundReaderCache>(generation->handle);
+  sound_runtime_generation_replace(sound, std::move(generation));
 }
 
 void BKE_sound_load(Main *bmain, bSound *sound)
@@ -2147,25 +2190,29 @@ const Vector<float> *BKE_sound_runtime_get_waveform(const bSound *sound)
 
 namespace bke {
 
-const bSoundFrequencySampler *bSoundFrequencySampler::get_cached(const bSound &sound,
-                                                                 const Key &key)
+std::shared_ptr<const bSoundFrequencySampler> bSoundFrequencySampler::get_cached(
+    const bSound &sound, const Key &key)
 {
 #ifdef WITH_AUDASPACE
+  const std::shared_ptr<SoundRuntimeGeneration> generation = sound_runtime_generation_get(sound);
+  if (!generation) {
+    return nullptr;
+  }
   {
     /* Fast common case when the sampler has been created already. */
     bSoundFrequencySamplerMap::ConstAccessor accessor;
-    if (sound.runtime->samplers.lookup(accessor, key)) {
-      return accessor->second.get();
+    if (generation->samplers.lookup(accessor, key)) {
+      return accessor->second;
     }
   }
-  AUD_Sound sound_handle = sound.runtime->handle;
+  AUD_Sound sound_handle = generation->handle;
   if (!sound_handle) {
     /* Maybe try to load the sound in this case instead of relying on cache. */
     return nullptr;
   }
   /* Slower case when the sampler is newly created. */
   bSoundFrequencySamplerMap::MutableAccessor accessor;
-  if (sound.runtime->samplers.add(accessor, key)) {
+  if (generation->samplers.add(accessor, key)) {
     if (key.channel.has_value()) {
       const SoundInfo info = sound_info_get(sound_handle);
       const int channel = *key.channel;
@@ -2173,15 +2220,17 @@ const bSoundFrequencySampler *bSoundFrequencySampler::get_cached(const bSound &s
         return nullptr;
       }
     }
-    accessor->second = std::make_shared<bSoundFrequencySampler>(sound_handle, key);
+    accessor->second = std::shared_ptr<bSoundFrequencySampler>(
+        new bSoundFrequencySampler(sound_handle, generation->reader_cache, key));
   }
-  return accessor->second.get();
+  return accessor->second;
 #else
   UNUSED_VARS(sound, key);
   return nullptr;
 #endif
 }
 
+#ifdef WITH_AUDASPACE
 static bSoundFrequencySampler::WindowWeights compute_window_function_weights(
     const bSoundFrequencySampler::WindowFunction window, const int size)
 {
@@ -2229,14 +2278,17 @@ static const bSoundFrequencySampler::WindowWeights &get_window_function_weights(
         compute_window_function_weights(window, size));
   });
 }
+#endif
 
-bSoundFrequencySampler::bSoundFrequencySampler(AUD_Sound sound, const Key &key)
-    : sound_(sound),
-      key_(key),
+#ifdef WITH_AUDASPACE
+bSoundFrequencySampler::bSoundFrequencySampler(AUD_Sound sound,
+                                               std::shared_ptr<SoundReaderCache> reader_cache,
+                                               const Key &key)
+    : key_(key),
+      reader_cache_(std::move(reader_cache)),
       window_weights_(get_window_function_weights(key.window_function, key.fft_size))
 {
-#ifdef WITH_AUDASPACE
-  const SoundInfo info = bke::sound_info_get(sound_);
+  const SoundInfo info = bke::sound_info_get(sound);
   samples_per_second_ = info.specs.samplerate;
   /* This could be a parameter but a single fixed value seems fine for now and makes caching much
    * simpler. */
@@ -2244,11 +2296,8 @@ bSoundFrequencySampler::bSoundFrequencySampler(AUD_Sound sound, const Key &key)
   const int window_caches_num = std::ceil(info.length * info.specs.samplerate /
                                           window_cache_stride_);
   window_caches_.reinitialize(window_caches_num);
-#else
-  UNUSED_VARS(sound, key);
-  BLI_assert_unreachable();
-#endif
 }
+#endif
 
 std::optional<Array<float>> bSoundFrequencySampler::compute_fft(const int start_sample) const
 {
@@ -2261,17 +2310,26 @@ std::optional<Array<float>> bSoundFrequencySampler::compute_fft(const int start_
    * because the #read function may sometimes give invalid data for the first samples. */
   const int warmup_samples = std::min(2000, start_sample);
 
-  /* Prepare the reader. */
-  std::shared_ptr<aud::IReader> reader = sound_->createReader();
-  const aud::Specs specs = reader->getSpecs();
-  const int channels_num = specs.channels;
-
-  /* Read the raw samples from the audio stream. */
-  Array<float> read_buffer_extra((key_.fft_size + warmup_samples) * channels_num);
+  int channels_num;
+  Array<float> read_buffer_extra;
   bool is_end_of_stream = false;
   int length = key_.fft_size + warmup_samples;
-  reader->seek(std::max(start_sample - warmup_samples, 0));
-  reader->read(length, is_end_of_stream, read_buffer_extra.data());
+  {
+    SoundReaderLease reader = reader_cache_->acquire();
+    if (!reader) {
+      return std::nullopt;
+    }
+    channels_num = reader->getSpecs().channels;
+    read_buffer_extra.reinitialize((key_.fft_size + warmup_samples) * channels_num);
+    try {
+      reader->seek(std::max(start_sample - warmup_samples, 0));
+      reader->read(length, is_end_of_stream, read_buffer_extra.data());
+    }
+    catch (...) {
+      reader.discard();
+      throw;
+    }
+  }
   const Span<float> read_buffer = read_buffer_extra.as_span().drop_front(warmup_samples *
                                                                          channels_num);
   const int read_length = read_buffer.size() / channels_num;

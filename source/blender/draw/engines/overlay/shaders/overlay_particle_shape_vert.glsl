@@ -54,8 +54,8 @@ void main()
   uint axis_id = uint(shape_vert_id) >> 1u;
   uint axis_vert = uint(shape_vert_id) & 1u;
 
-#ifdef GPU_METAL
-  /* Metal has a different provoking vertex convention. */
+#ifdef GPU_PROVOKING_VERTEX_LAST
+  /* Metal and Vulkan (without extension) have different provoking vertex convention. */
   axis_vert ^= 1u;
 #endif
 

@@ -3608,7 +3608,8 @@ static void rna_def_brush(BlenderRNA *brna)
   RNA_def_property_update(prop, 0, "rna_Brush_update");
 
   prop = RNA_def_property(srna, "falloff_angle", PROP_FLOAT, PROP_ANGLE);
-  RNA_def_property_float_sdna(prop, nullptr, "falloff_angle");
+  RNA_def_property_deprecated(prop, "Automasking 'View Normal' should be used instead", 503, 600);
+  RNA_def_property_float_sdna(prop, nullptr, "falloff_angle_legacy");
   RNA_def_property_range(prop, 0, M_PI_2);
   RNA_def_property_ui_text(
       prop,
@@ -3781,7 +3782,8 @@ static void rna_def_brush(BlenderRNA *brna)
   RNA_def_property_update(prop, 0, "rna_Brush_update");
 
   prop = RNA_def_property(srna, "use_frontface_falloff", PROP_BOOLEAN, PROP_NONE);
-  RNA_def_property_boolean_sdna(prop, nullptr, "flag", BRUSH_FRONTFACE_FALLOFF);
+  RNA_def_property_deprecated(prop, "Automasking 'View Normal' should be used instead", 503, 600);
+  RNA_def_property_boolean_sdna(prop, nullptr, "flag", BRUSH_FRONTFACE_FALLOFF_DEPRECATED);
   RNA_def_property_ui_text(
       prop, "Use Front-Face Falloff", "Blend brush influence by how much they face the front");
   RNA_def_property_update(prop, 0, "rna_Brush_update");
@@ -4060,6 +4062,37 @@ static void rna_def_brush(BlenderRNA *brna)
   RNA_def_property_struct_type(prop, "MeshAutomaskingSettings");
   RNA_def_property_clear_flag(prop, PROP_EDITABLE);
   RNA_def_property_ui_text(prop, "Mesh Automasking Settings", nullptr);
+
+  prop = RNA_def_property(srna, "use_unified_size", PROP_BOOLEAN, PROP_NONE);
+  RNA_def_property_boolean_sdna(
+      prop, nullptr, "unified_paint_flags", BRUSH_USE_UNIFIED_PAINT_SIZE);
+  RNA_def_property_ui_text(prop, "Use Unified Size", "Use shared size for this brush");
+  RNA_def_property_update(prop, 0, "rna_Brush_update");
+
+  prop = RNA_def_property(srna, "use_unified_strength", PROP_BOOLEAN, PROP_NONE);
+  RNA_def_property_boolean_sdna(
+      prop, nullptr, "unified_paint_flags", BRUSH_USE_UNIFIED_PAINT_ALPHA);
+  RNA_def_property_ui_text(prop, "Use Unified Strength", "Use shared strength for this brush");
+  RNA_def_property_update(prop, 0, "rna_Brush_update");
+
+  prop = RNA_def_property(srna, "use_unified_weight", PROP_BOOLEAN, PROP_NONE);
+  RNA_def_property_boolean_sdna(
+      prop, nullptr, "unified_paint_flags", BRUSH_USE_UNIFIED_PAINT_WEIGHT);
+  RNA_def_property_ui_text(prop, "Use Unified Weight", "Use shared weight for this brush");
+  RNA_def_property_update(prop, 0, "rna_Brush_update");
+
+  prop = RNA_def_property(srna, "use_unified_color", PROP_BOOLEAN, PROP_NONE);
+  RNA_def_property_boolean_sdna(
+      prop, nullptr, "unified_paint_flags", BRUSH_USE_UNIFIED_PAINT_COLOR);
+  RNA_def_property_ui_text(prop, "Use Unified Color", "Use shared color for this brush");
+  RNA_def_property_update(prop, 0, "rna_Brush_update");
+
+  prop = RNA_def_property(srna, "use_unified_input_samples", PROP_BOOLEAN, PROP_NONE);
+  RNA_def_property_boolean_sdna(
+      prop, nullptr, "unified_paint_flags", BRUSH_USE_UNIFIED_PAINT_INPUT_SAMPLES);
+  RNA_def_property_ui_text(
+      prop, "Use Unified Input Samples", "Use shared input samples for this brush");
+  RNA_def_property_update(prop, 0, "rna_Brush_update");
 }
 
 /**

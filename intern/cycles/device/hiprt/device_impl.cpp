@@ -100,7 +100,7 @@ bool HIPRTDevice::is_supported()
 #  endif
 }
 
-BVHLayoutMask HIPRTDevice::get_bvh_layout_mask(const uint /* kernel_features */) const
+BVHLayoutMask HIPRTDevice::get_bvh_layout_mask(const uint64_t /*kernel_features*/) const
 {
   return BVH_LAYOUT_HIPRT;
 }
@@ -179,7 +179,7 @@ unique_ptr<DeviceQueue> HIPRTDevice::gpu_queue_create()
   return make_unique<HIPRTDeviceQueue>(this);
 }
 
-string HIPRTDevice::compile_kernel_get_common_cflags(const uint kernel_features)
+string HIPRTDevice::compile_kernel_get_common_cflags(const uint64_t kernel_features)
 {
   string cflags = HIPDevice::compile_kernel_get_common_cflags(kernel_features);
 
@@ -188,7 +188,9 @@ string HIPRTDevice::compile_kernel_get_common_cflags(const uint kernel_features)
   return cflags;
 }
 
-string HIPRTDevice::compile_kernel(const uint kernel_features, const char *name, const char *base)
+string HIPRTDevice::compile_kernel(const uint64_t kernel_features,
+                                   const char *name,
+                                   const char *base)
 {
   int major, minor;
   hipDeviceGetAttribute(&major, hipDeviceAttributeComputeCapabilityMajor, hipDevId);
@@ -301,7 +303,7 @@ string HIPRTDevice::compile_kernel(const uint kernel_features, const char *name,
   return fatbin;
 }
 
-bool HIPRTDevice::load_kernels(const uint kernel_features)
+bool HIPRTDevice::load_kernels(const uint64_t kernel_features)
 {
   if (hiprt_module_) {
     if (use_adaptive_compilation()) {

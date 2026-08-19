@@ -363,7 +363,7 @@ static int loopcut_tool_preview_cuts_from_toolsettings(const bContext *C)
   }
 
   PointerRNA loopcut_ptr = RNA_pointer_get(&tool_props, "MESH_OT_loopcut");
-  if (loopcut_ptr.data == nullptr) {
+  if (!loopcut_ptr) {
     return default_cuts;
   }
 

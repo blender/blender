@@ -20,6 +20,7 @@
 #include "BLI_math_geom_c.hh"
 #include "BLI_math_matrix_c.hh"
 #include "BLI_math_rotation_c.hh"
+#include "BLI_math_vector.hh"
 #include "BLI_math_vector_c.hh"
 #include "BLI_rand_c.hh"
 
@@ -1383,7 +1384,10 @@ BLI_INLINE bool cloth_bend_set_poly_vert_array(int **poly, int len, const int *c
   return true;
 }
 
-static bool find_internal_spring_target_vertex(bke::BVHTreeFromMesh *treedata,
+static bool find_internal_spring_target_vertex(const bke::bvh::Tree &treedata,
+                                               const Span<float3> vert_positions,
+                                               const Span<int> corner_verts,
+                                               const Span<int3> corner_tris,
                                                const Span<float3> vert_normals,
                                                uint v_idx,
                                                RNG *rng,
@@ -1393,9 +1397,8 @@ static bool find_internal_spring_target_vertex(bke::BVHTreeFromMesh *treedata,
                                                int *r_tar_v_idx)
 {
   float co[3], no[3], new_co[3];
-  float radius;
 
-  copy_v3_v3(co, treedata->vert_positions[v_idx]);
+  copy_v3_v3(co, vert_positions[v_idx]);
   negate_v3_v3(no, vert_normals[v_idx]);
 
   float vec_len = sin(max_diversion);
@@ -1415,29 +1418,26 @@ static bool find_internal_spring_target_vertex(bke::BVHTreeFromMesh *treedata,
   mul_v3_fl(new_co, FLT_EPSILON);
   add_v3_v3(new_co, co);
 
-  radius = 0.0f;
   if (max_length == 0.0f) {
     max_length = FLT_MAX;
   }
 
-  BVHTreeRayHit rayhit = {0};
-  rayhit.index = -1;
-  rayhit.dist = max_length;
-
-  BLI_bvhtree_ray_cast(
-      treedata->tree, new_co, no, radius, &rayhit, treedata->raycast_callback, treedata);
+  const bke::bvh::Ray ray(new_co, no, max_length);
+  const std::optional<bke::bvh::RayHit> rayhit = treedata.ray_intersect(ray);
+  if (!rayhit) {
+    return false;
+  }
 
   int vert_idx = -1;
-  const int *corner_verts = treedata->corner_verts.data();
 
-  if (rayhit.index != -1 && rayhit.dist <= max_length) {
-    if (check_normal && dot_v3v3(rayhit.no, no) < 0.0f) {
+  if (rayhit->distance <= max_length) {
+    if (check_normal && dot_v3v3(math::normalize(rayhit->normal), no) < 0.0f) {
       /* We hit a point that points in the same direction as our starting point. */
       return false;
     }
 
     float min_len = FLT_MAX;
-    const int3 &tri = treedata->corner_tris[rayhit.index];
+    const int3 &tri = corner_tris[rayhit->index];
 
     for (int i = 0; i < 3; i++) {
       int tmp_vert_idx = corner_verts[tri[i]];
@@ -1446,7 +1446,7 @@ static bool find_internal_spring_target_vertex(bke::BVHTreeFromMesh *treedata,
         return false;
       }
 
-      float len = len_v3v3(co, rayhit.co);
+      float len = len_v3v3(co, rayhit->position(ray));
       if (len < min_len) {
         min_len = len;
         vert_idx = tmp_vert_idx;
@@ -1520,16 +1520,22 @@ static bool cloth_build_springs(ClothModifierData *clmd, const Mesh *mesh)
       tmp_mesh = cloth_make_rest_mesh(clmd, mesh);
     }
 
+    const Mesh &mesh_to_use = tmp_mesh ? *tmp_mesh : *mesh;
+
     Set<OrderedEdge> existing_vert_pairs;
-    bke::BVHTreeFromMesh treedata = tmp_mesh ? tmp_mesh->bvh_corner_tris() :
-                                               mesh->bvh_corner_tris();
+    const bke::bvh::Tree &treedata = mesh_to_use.bvh_tris();
     rng = BLI_rng_new_srandom(0);
 
-    const Span<float3> vert_normals = tmp_mesh ? tmp_mesh->vert_normals() : mesh->vert_normals();
-
+    const Span<float3> vert_positions = mesh_to_use.vert_positions();
+    const Span<int> corner_verts = mesh_to_use.corner_verts();
+    const Span<int3> corner_tris = mesh_to_use.corner_tris();
+    const Span<float3> vert_normals = mesh_to_use.vert_normals();
     for (int i = 0; i < mvert_num; i++) {
       if (find_internal_spring_target_vertex(
-              &treedata,
+              treedata,
+              vert_positions,
+              corner_verts,
+              corner_tris,
               vert_normals,
               i,
               rng,

@@ -959,6 +959,7 @@ class BaseLimbRig(BaseRig):
             name='B-Bone Segments',
             default=10,
             min=1,
+            max=32,
             description='Number of B-Bone segments'
         )
 

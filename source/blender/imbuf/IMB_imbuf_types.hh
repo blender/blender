@@ -123,13 +123,9 @@ struct ImBufFloatBuffer {
 };
 
 enum ImBufGPUFlag : int {
-  /** Mipmap chain has been generated for the GPU texture. */
-  IMB_GPU_MIPMAP_COMPLETE = (1 << 0),
-  /** Disable mipmap updates, primarily used for texture painting. */
-  IMB_GPU_DISABLE_MIPMAP_UPDATE = (1 << 1),
   /** GPU texture failed to be loaded onto the GPU, to distinguish a null
    * texture between not yet loaded and failed to load. */
-  IMB_GPU_LOAD_FAILED = (1 << 2),
+  IMB_GPU_LOAD_FAILED = (1 << 0),
 };
 ENUM_OPERATORS(ImBufGPUFlag)
 
@@ -168,10 +164,14 @@ struct ImBufGPU {
 
 struct ImBuf {
   /* dimensions */
-  /** Width and Height of our image buffer.
-   * Should be 'unsigned int' since most formats use this.
-   * but this is problematic with texture math in `imagetexture.c`
-   * avoid problems and use int. - campbell */
+  /**
+   * Width and Height of our image buffer.
+   *
+   * Should be 'unsigned int' since most formats use this, but this is problematic with texture
+   * math in `imagetexture.c`. Avoid this by using 'int'. - campbell
+   *
+   * \see Prefer #IMB_get_pixel_count over (x * y) to avoid integer overflow for very large images.
+   */
   int x = 0;
   int y = 0;
 

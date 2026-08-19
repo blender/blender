@@ -534,11 +534,11 @@ static float half_v2(const float v[2])
 static void end_node_frames(int v,
                             SkinNode *skin_nodes,
                             const Span<float3> vert_positions,
-                            const MVertSkin *nodes,
+                            const VArray<float2> &radius,
                             GroupedSpan<int> emap,
                             EMat *emat)
 {
-  const float *rad = nodes[v].radius;
+  const float2 rad = radius[v];
   float mat[3][3];
 
   if (emap[v].is_empty()) {
@@ -619,11 +619,11 @@ static int connection_node_mat(float mat[3][3], int v, GroupedSpan<int> emap, EM
 static void connection_node_frames(int v,
                                    SkinNode *skin_nodes,
                                    const Span<float3> vert_positions,
-                                   const MVertSkin *nodes,
+                                   const VArray<float2> &radius,
                                    GroupedSpan<int> emap,
                                    EMat *emat)
 {
-  const float *rad = nodes[v].radius;
+  const float2 rad = radius[v];
   float mat[3][3];
   EMat *e1, *e2;
 
@@ -663,7 +663,7 @@ static void connection_node_frames(int v,
 
 static SkinNode *build_frames(const Span<float3> vert_positions,
                               int verts_num,
-                              const MVertSkin *nodes,
+                              const VArray<float2> &radius,
                               GroupedSpan<int> emap,
                               EMat *emat)
 {
@@ -673,10 +673,10 @@ static SkinNode *build_frames(const Span<float3> vert_positions,
 
   for (v = 0; v < verts_num; v++) {
     if (emap[v].size() <= 1) {
-      end_node_frames(v, skin_nodes, vert_positions, nodes, emap, emat);
+      end_node_frames(v, skin_nodes, vert_positions, radius, emap, emat);
     }
     else if (emap[v].size() == 2) {
-      connection_node_frames(v, skin_nodes, vert_positions, nodes, emap, emat);
+      connection_node_frames(v, skin_nodes, vert_positions, radius, emap, emat);
     }
     else {
       /* Branch node generates no frames */
@@ -732,7 +732,7 @@ static void build_emats_stack(BLI_Stack *stack,
                               EMat *emat,
                               GroupedSpan<int> emap,
                               const Span<int2> edges,
-                              const MVertSkin *vs,
+                              const VArray<bool> &is_root,
                               const Span<float3> vert_positions)
 {
   EdgeStackElem stack_elem;
@@ -753,7 +753,7 @@ static void build_emats_stack(BLI_Stack *stack,
 
   /* Process edge */
 
-  parent_is_branch = ((emap[parent_v].size() > 2) || (vs[parent_v].flag & MVERT_SKIN_ROOT));
+  parent_is_branch = ((emap[parent_v].size() > 2) || is_root[parent_v]);
 
   v = bke::mesh::edge_other_vert(edges[e], parent_v);
   emat[e].origin = parent_v;
@@ -783,7 +783,7 @@ static void build_emats_stack(BLI_Stack *stack,
   }
 }
 
-static EMat *build_edge_mats(const MVertSkin *vs,
+static EMat *build_edge_mats(const VArray<bool> &is_root,
                              const Span<float3> vert_positions,
                              const int verts_num,
                              const Span<int2> edges,
@@ -804,7 +804,7 @@ static EMat *build_edge_mats(const MVertSkin *vs,
   /* Edge matrices are built from the root nodes, add all roots with
    * children to the stack */
   for (v = 0; v < verts_num; v++) {
-    if (vs[v].flag & MVERT_SKIN_ROOT) {
+    if (is_root[v]) {
       if (emap[v].size() >= 1) {
         const int2 &edge = edges[emap[v][0]];
         calc_edge_mat(stack_elem.mat,
@@ -829,7 +829,7 @@ static EMat *build_edge_mats(const MVertSkin *vs,
   }
 
   while (!BLI_stack_is_empty(stack)) {
-    build_emats_stack(stack, visited_e, emat, emap, edges, vs, vert_positions);
+    build_emats_stack(stack, visited_e, emat, emap, edges, is_root, vert_positions);
   }
 
   MEM_delete(visited_e);
@@ -850,14 +850,14 @@ static EMat *build_edge_mats(const MVertSkin *vs,
  * having any special cases for dealing with sharing a frame between
  * two hulls.) */
 static int calc_edge_subdivisions(const Span<float3> vert_positions,
-                                  const MVertSkin *nodes,
+                                  const VArray<float2> &radius,
+                                  const VArray<bool> &is_loose,
                                   const int2 &edge,
                                   const Span<int> degree)
 {
   /* prevent memory errors #38003. */
 #define NUM_SUBDIVISIONS_MAX 128
 
-  const MVertSkin *evs[2] = {&nodes[edge[0]], &nodes[edge[1]]};
   float avg_radius;
   const bool v1_branch = degree[edge[0]] > 2;
   const bool v2_branch = degree[edge[1]] > 2;
@@ -865,9 +865,7 @@ static int calc_edge_subdivisions(const Span<float3> vert_positions,
 
   /* If either end is a branch node marked 'loose', don't subdivide
    * the edge (or subdivide just twice if both are branches) */
-  if ((v1_branch && (evs[0]->flag & MVERT_SKIN_LOOSE)) ||
-      (v2_branch && (evs[1]->flag & MVERT_SKIN_LOOSE)))
-  {
+  if ((v1_branch && is_loose[edge[0]]) || (v2_branch && is_loose[edge[1]])) {
     if (v1_branch && v2_branch) {
       return 2;
     }
@@ -875,7 +873,7 @@ static int calc_edge_subdivisions(const Span<float3> vert_positions,
     return 0;
   }
 
-  avg_radius = half_v2(evs[0]->radius) + half_v2(evs[1]->radius);
+  avg_radius = half_v2(radius[edge[0]]) + half_v2(radius[edge[1]]);
 
   if (avg_radius != 0.0f) {
     /* possible (but unlikely) that we overflow INT_MAX */
@@ -912,8 +910,11 @@ static Mesh *subdivide_base(const Mesh *orig)
   int i, j, k, u, v;
   float radrat;
 
-  const MVertSkin *orignode = static_cast<const MVertSkin *>(
-      CustomData_get_layer(&orig->vert_data, CD_MVERT_SKIN));
+  const bke::AttributeAccessor orig_attributes = orig->attributes();
+  const VArray<float2> orig_radius = *orig_attributes.lookup_or_default<float2>(
+      "skin_modifier_radius", bke::AttrDomain::Point, float2(0.25f));
+  const VArray<bool> orig_loose = *orig_attributes.lookup_or_default<bool>(
+      "skin_modifier_loose", bke::AttrDomain::Point, false);
   const Span<float3> orig_vert_positions = orig->vert_positions();
   const Span<int2> orig_edges = orig->edges();
   const MDeformVert *origdvert = orig->deform_verts().data();
@@ -927,7 +928,8 @@ static Mesh *subdivide_base(const Mesh *orig)
   /* Per edge, store how many subdivisions are needed */
   Array<int> edge_subd(orig_edge_num, 0);
   for (i = 0, subd_num = 0; i < orig_edge_num; i++) {
-    edge_subd[i] += calc_edge_subdivisions(orig_vert_positions, orignode, orig_edges[i], degree);
+    edge_subd[i] += calc_edge_subdivisions(
+        orig_vert_positions, orig_radius, orig_loose, orig_edges[i], degree);
     BLI_assert(edge_subd[i] >= 0);
     subd_num += edge_subd[i];
   }
@@ -938,8 +940,9 @@ static Mesh *subdivide_base(const Mesh *orig)
 
   MutableSpan<float3> out_vert_positions = result->vert_positions_for_write();
   MutableSpan<int2> result_edges = result->edges_for_write();
-  MVertSkin *outnode = static_cast<MVertSkin *>(
-      CustomData_get_layer_for_write(&result->vert_data, CD_MVERT_SKIN, result->verts_num));
+  bke::MutableAttributeAccessor attributes = result->attributes_for_write();
+  bke::SpanAttributeWriter<float2> outnode = attributes.convert_or_add_for_write_span<float2>(
+      "skin_modifier_radius", bke::AttrDomain::Point);
   MDeformVert *outdvert = nullptr;
   if (origdvert) {
     outdvert = result->deform_verts_for_write().data();
@@ -987,7 +990,7 @@ static Mesh *subdivide_base(const Mesh *orig)
     }
 
     u = edge[0];
-    radrat = (half_v2(outnode[edge[1]].radius) / half_v2(outnode[edge[0]].radius));
+    radrat = (half_v2(outnode.span[edge[1]]) / half_v2(outnode.span[edge[0]]));
     if (isfinite(radrat)) {
       radrat = (radrat + 1) / 2;
     }
@@ -1006,7 +1009,7 @@ static Mesh *subdivide_base(const Mesh *orig)
           out_vert_positions[v], out_vert_positions[edge[0]], out_vert_positions[edge[1]], t);
 
       /* Interpolate skin radii */
-      interp_v3_v3v3(outnode[v].radius, orignode[edge[0]].radius, orignode[edge[1]].radius, t);
+      interp_v2_v2v2(outnode.span[v], orig_radius[edge[0]], orig_radius[edge[1]], t);
 
       /* Interpolate vertex group weights */
       for (k = 0; k < vgroups_num; k++) {
@@ -1035,6 +1038,8 @@ static Mesh *subdivide_base(const Mesh *orig)
     result_edges[result_edge_i][1] = edge[1];
     result_edge_i++;
   }
+
+  outnode.finish();
 
   return result;
 }
@@ -1997,8 +2002,11 @@ static Mesh *base_skin(Mesh *origmesh, SkinModifierData *smd, eSkinErrorFlag *r_
   SkinNode *skin_nodes;
   bool has_valid_root = false;
 
-  const MVertSkin *nodes = static_cast<const MVertSkin *>(
-      CustomData_get_layer(&origmesh->vert_data, CD_MVERT_SKIN));
+  const bke::AttributeAccessor attributes = origmesh->attributes();
+  const VArray<float2> radius = *attributes.lookup_or_default<float2>(
+      "skin_modifier_radius", bke::AttrDomain::Point, float2(0.25f));
+  const VArray<bool> is_root = *attributes.lookup_or_default<bool>(
+      "skin_modifier_root", bke::AttrDomain::Point, false);
 
   const Span<float3> vert_positions = origmesh->vert_positions();
   const Span<int2> edges = origmesh->edges();
@@ -2010,8 +2018,8 @@ static Mesh *base_skin(Mesh *origmesh, SkinModifierData *smd, eSkinErrorFlag *r_
   const GroupedSpan<int> vert_to_edge = bke::mesh::build_vert_to_edge_map(
       edges, verts_num, vert_to_edge_offsets, vert_to_edge_indices);
 
-  emat = build_edge_mats(nodes, vert_positions, verts_num, edges, vert_to_edge, &has_valid_root);
-  skin_nodes = build_frames(vert_positions, verts_num, nodes, vert_to_edge, emat);
+  emat = build_edge_mats(is_root, vert_positions, verts_num, edges, vert_to_edge, &has_valid_root);
+  skin_nodes = build_frames(vert_positions, verts_num, radius, vert_to_edge, emat);
   MEM_delete(emat);
   emat = nullptr;
 
@@ -2039,8 +2047,8 @@ static Mesh *final_skin(SkinModifierData *smd, Mesh *mesh, eSkinErrorFlag *r_err
 {
   Mesh *result;
 
-  /* Skin node layer is required */
-  if (!CustomData_get_layer(&mesh->vert_data, CD_MVERT_SKIN)) {
+  /* Skin vertex radius attribute is required. */
+  if (!mesh->attributes().contains("skin_modifier_radius")) {
     return mesh;
   }
 
@@ -2092,7 +2100,7 @@ static Mesh *modify_mesh(ModifierData *md, const ModifierEvalContext *ctx, Mesh 
 
 static void required_data_mask(ModifierData * /*md*/, CustomData_MeshMasks *r_cddata_masks)
 {
-  r_cddata_masks->vmask |= CD_MASK_MVERT_SKIN | CD_MASK_MDEFORMVERT;
+  r_cddata_masks->vmask |= CD_MASK_MDEFORMVERT;
 }
 
 static void panel_draw(const bContext * /*C*/, Panel *panel)

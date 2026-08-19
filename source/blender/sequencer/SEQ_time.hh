@@ -18,6 +18,8 @@ struct rctf;
 
 namespace seq {
 
+enum class Side : int;
+
 /**
  * Initialize given rectangle with the Scene's timeline boundaries.
  *
@@ -44,13 +46,13 @@ void timeline_boundbox(const Scene *scene, const ListBaseT<Strip> *seqbase, rctf
  * Find start or end position of next or previous strip.
  * \param scene: Video editing scene
  * \param timeline_frame: reference frame for searching
- * \param side: direction of searching, `SIDE_LEFT`, `SIDE_RIGHT` or `SIDE_BOTH`.
+ * \param side: direction of searching, `Side::Left`, `Side::Right` or `Side::Both`.
  * \param do_center: find closest strip center if true, otherwise finds closest handle position.
  * \param do_unselected: only find closest position of unselected strip.
  */
 int time_find_next_prev_edit(Scene *scene,
                              int timeline_frame,
-                             short side,
+                             Side side,
                              bool do_skip_mute,
                              bool do_center,
                              bool do_unselected);

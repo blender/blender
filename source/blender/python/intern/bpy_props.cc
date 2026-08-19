@@ -423,7 +423,7 @@ static PyObject *pyrna_struct_as_instance(PointerRNA *ptr)
   PyObject *self = nullptr;
   /* first get self */
   /* operators can store their own instance for later use */
-  if (ptr->data) {
+  if (*ptr) {
     void **instance = RNA_struct_instance(ptr);
 
     if (instance) {
@@ -5730,17 +5730,23 @@ static PyObject *BPy_RemoveProperty(PyObject *self, PyObject *args, PyObject *kw
     Py_DECREF(args);
     return ret;
   }
+
+  const PyMethodDef *method_def =
+      (reinterpret_cast<const PyCFunctionObject *>(pymeth_RemoveProperty))->m_ml;
+  const char *error_prefix = method_def->ml_name;
+
   if (PyTuple_GET_SIZE(args) > 1) {
-    PyErr_SetString(PyExc_ValueError, "expected one positional arg, one keyword arg");
+    PyErr_Format(
+        PyExc_ValueError, "%s: expected one positional arg, one keyword arg", error_prefix);
     return nullptr;
   }
 
-  srna = srna_from_self(self, "RemoveProperty(...):");
+  srna = srna_from_self(self, error_prefix);
   if (srna == nullptr && PyErr_Occurred()) {
     return nullptr; /* self's type was compatible but error getting the srna */
   }
   if (srna == nullptr) {
-    PyErr_SetString(PyExc_TypeError, "RemoveProperty(): struct rna not available for this type");
+    PyErr_Format(PyExc_TypeError, "%s: struct rna not available for this type", error_prefix);
     return nullptr;
   }
 
@@ -5761,7 +5767,7 @@ static PyObject *BPy_RemoveProperty(PyObject *self, PyObject *args, PyObject *kw
   }
 
   if (RNA_def_property_free_identifier(srna, id) != 1) {
-    PyErr_Format(PyExc_TypeError, "RemoveProperty(): '%s' not a defined dynamic property", id);
+    PyErr_Format(PyExc_TypeError, "%s: '%s' not a defined dynamic property", error_prefix, id);
     return nullptr;
   }
 

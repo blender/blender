@@ -149,6 +149,12 @@ def view_draw(engine, depsgraph, region, v3d, rv3d):
     _cycles.view_draw(engine.session, depsgraph, v3d, rv3d)
 
 
+def view_pause(engine, pause):
+    import _cycles
+    if engine.session:
+        _cycles.view_pause(engine.session, pause)
+
+
 def available_devices():
     import _cycles
     return _cycles.available_devices()

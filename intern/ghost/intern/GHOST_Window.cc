@@ -128,6 +128,11 @@ GHOST_Context *GHOST_Window::getContext()
   return context_;
 }
 
+bool GHOST_Window::hasAlpha() const
+{
+  return context_ ? context_->hasAlpha() : false;
+}
+
 uint GHOST_Window::getDefaultFramebuffer()
 {
   return (context_) ? context_->getDefaultFramebuffer() : 0;

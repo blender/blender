@@ -488,7 +488,7 @@ static void node_buts_image_views(ui::Layout &layout,
                                   PointerRNA *ptr,
                                   PointerRNA *imaptr)
 {
-  if (!imaptr->data) {
+  if (!*imaptr) {
     return;
   }
 
@@ -1594,14 +1594,19 @@ static void std_node_socket_interface_draw(ID *id,
     sub->prop(&ptr, "hide_value", DEFAULT_FLAGS, std::nullopt, ICON_NONE);
   }
 
-  if (interface_socket->flag & NODE_INTERFACE_SOCKET_INPUT && node_tree->type == NTREE_GEOMETRY) {
-    if (type == SOCK_BOOLEAN) {
-      col->prop(&ptr, "layer_selection_field", DEFAULT_FLAGS, std::nullopt, ICON_NONE);
+  if (interface_socket->flag & NODE_INTERFACE_SOCKET_INPUT) {
+    if (node_tree->type == NTREE_GEOMETRY) {
+      if (type == SOCK_BOOLEAN) {
+        col->prop(&ptr, "layer_selection_field", DEFAULT_FLAGS, std::nullopt, ICON_NONE);
+      }
+      ui::Layout *sub = &col->column(false);
+      sub->active_set(!is_layer_selection_field(*interface_socket));
+      sub->prop(&ptr, "hide_in_modifier", DEFAULT_FLAGS, std::nullopt, ICON_NONE);
+      sub->prop(&ptr, "structure_type", DEFAULT_FLAGS, IFACE_("Shape"), ICON_NONE);
     }
-    ui::Layout *sub = &col->column(false);
-    sub->active_set(!is_layer_selection_field(*interface_socket));
-    sub->prop(&ptr, "hide_in_modifier", DEFAULT_FLAGS, std::nullopt, ICON_NONE);
-    sub->prop(&ptr, "structure_type", DEFAULT_FLAGS, IFACE_("Shape"), ICON_NONE);
+    else if (node_tree->type == NTREE_COMPOSIT) {
+      col->prop(&ptr, "hide_in_modifier", DEFAULT_FLAGS, std::nullopt, ICON_NONE);
+    }
   }
 }
 

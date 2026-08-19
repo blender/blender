@@ -474,7 +474,15 @@ class Meshes : Overlay {
   {
     Mesh &mesh = DRW_object_get_data_for_drawing<Mesh>(*ob);
     if (BMEditMesh *em = mesh.runtime->edit_mesh.get()) {
-      return CustomData_get_offset(&em->bm->vdata, CD_MVERT_SKIN) != -1;
+      if (CustomData_get_offset_named(&em->bm->vdata, CD_PROP_FLOAT2, "skin_modifier_radius") ==
+          -1)
+      {
+        return false;
+      }
+      if (CustomData_get_offset_named(&em->bm->vdata, CD_PROP_BOOL, "skin_modifier_root") == -1) {
+        return false;
+      }
+      return true;
     }
     return false;
   }

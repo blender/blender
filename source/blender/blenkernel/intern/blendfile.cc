@@ -337,8 +337,8 @@ static bool reuse_bmain_move_id(ReuseOldBMainData *reuse_data,
 
   Main *new_bmain = reuse_data->new_bmain;
   Main *old_bmain = reuse_data->old_bmain;
-  ListBaseT<ID> *new_lb = which_libbase(new_bmain, GS(id->name));
-  ListBaseT<ID> *old_lb = which_libbase(old_bmain, GS(id->name));
+  ListBaseT<ID> *new_lb = which_libbase(new_bmain, id->id_type());
+  ListBaseT<ID> *old_lb = which_libbase(old_bmain, id->id_type());
 
   if (reuse_existing) {
     /* A 'new' version of the same data may already exist in new_bmain, in the rare case
@@ -444,7 +444,7 @@ static int reuse_editable_asset_bmain_data_dependencies_process_cb(
     return IDWALK_RET_NOP;
   }
 
-  if (GS(id->name) == ID_LI) {
+  if (id->id_type() == ID_LI) {
     /* Libraries are handled separately. */
     return IDWALK_RET_STOP_RECURSION;
   }
@@ -465,7 +465,7 @@ static int reuse_editable_asset_bmain_data_dependencies_process_cb(
   }
 
   /* Only preserve specific datablock types. */
-  if (!ID_TYPE_SUPPORTS_ASSET_EDITABLE(GS(id->name))) {
+  if (!ID_TYPE_SUPPORTS_ASSET_EDITABLE(id->id_type())) {
     remapper.add(id, nullptr);
     return IDWALK_RET_STOP_RECURSION;
   }
@@ -1291,7 +1291,7 @@ static void setup_app_data(bContext *C,
         BLO_reportf_wrap(reports,
                          RPT_INFO,
                          RPT_("LIB: %s: '%s' missing from '%s', parent '%s'"),
-                         BKE_idtype_idcode_to_name(GS(id_iter->name)),
+                         BKE_idtype_idcode_to_name(id_iter->id_type()),
                          id_iter->name + 2,
                          id_iter->lib->runtime->filepath_abs,
                          id_iter->lib->runtime->parent ?
@@ -1434,7 +1434,7 @@ void BKE_blendfile_read_make_empty(bContext *C)
 
   FOREACH_MAIN_LISTBASE_BEGIN (bmain, lb) {
     FOREACH_MAIN_LISTBASE_ID_BEGIN (lb, id) {
-      if (ELEM(GS(id->name), ID_SCE, ID_SCR, ID_WM, ID_WS)) {
+      if (ELEM(id->id_type(), ID_SCE, ID_SCR, ID_WM, ID_WS)) {
         break;
       }
       BKE_id_delete(bmain, id);

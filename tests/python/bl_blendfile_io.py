@@ -158,28 +158,32 @@ class TestIdRuntimeTag(TestHelper):
         bpy.ops.wm.link(directory=link_dir, filename="LibMaterial")
 
         linked_material = bpy.data.materials['LibMaterial']
-        self.assertFalse(linked_material.is_library_indirect)
 
         link_dir = os.path.join(output_lib_path, "Mesh")
         bpy.ops.wm.link(directory=link_dir, filename="LibMesh", instance_object_data=False)
 
         linked_mesh = bpy.data.meshes['LibMesh']
-        self.assertFalse(linked_mesh.is_library_indirect)
         self.assertFalse(linked_mesh.use_fake_user)
+
+        # Direct/indirect status validity is also ensured after linking, since these linked data are unused,
+        # they are indirectly used by definition.
+        self.assertTrue(linked_material.is_library_indirect)
+        self.assertTrue(linked_mesh.is_library_indirect)
 
         obj.data = linked_mesh
         obj.material_slots[0].link = 'OBJECT'
         obj.material_slots[0].material = linked_material
 
+        # Now these data are direclty linked by the (local, even though runtime) object ID.
+        self.assertFalse(linked_material.is_library_indirect)
+        self.assertFalse(linked_mesh.is_library_indirect)
+
         output_work_path = os.path.join(output_dir, self.unique_blendfile_name("blendfile"))
         bpy.ops.wm.save_as_mainfile(filepath=output_work_path, check_existing=False, compress=False)
 
-        # Only usage of this linked material is a runtime ID (object),
+        # Only usage of these linked data is a runtime ID (object),
         # so writing .blend file will have properly reset its tag to indirectly linked data.
         self.assertTrue(linked_material.is_library_indirect)
-
-        # Only usage of this linked mesh is a runtime ID (object),
-        # so writing .blend file will have properly reset its tag to indirectly linked data.
         self.assertTrue(linked_mesh.is_library_indirect)
 
         bpy.ops.wm.open_mainfile(filepath=output_work_path, load_ui=False)

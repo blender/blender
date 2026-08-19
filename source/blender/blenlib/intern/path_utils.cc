@@ -1406,6 +1406,7 @@ const char *BLI_getenv(const char *env)
   static wchar_t buffer[32768];
   wchar_t *env_16 = alloc_utf16_from_8(env, 0);
   if (env_16) {
+    /* Skip zero for both empty strings and when the environment variable isn't found. */
     if (GetEnvironmentVariableW(env_16, buffer, ARRAY_SIZE(buffer))) {
       char *res_utf8 = alloc_utf_8_from_16(buffer, 0);
       /* Make sure the result is valid, and will fit into our temporary storage buffer. */
@@ -1419,6 +1420,7 @@ const char *BLI_getenv(const char *env)
         free(res_utf8);
       }
     }
+    free(env_16);
   }
   return result;
 #else

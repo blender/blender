@@ -64,6 +64,12 @@ enum RenderEngineFlag {
   RE_ENGINE_RENDERING = (1 << 4),
   RE_ENGINE_HIGHLIGHT_TILES = (1 << 5),
   RE_ENGINE_CAN_DRAW = (1 << 6),
+  /** Viewport render paused by the user. */
+  RE_ENGINE_VIEW_PAUSED = (1 << 7),
+  /** Viewport render auto paused during final render or bake. */
+  RE_ENGINE_VIEW_PAUSED_AUTO = (1 << 8),
+  /** Pause state the engine was last notified about. */
+  RE_ENGINE_VIEW_PAUSED_NOTIFIED = (1 << 9),
 };
 
 extern ListBaseT<RenderEngineType> R_engines;
@@ -105,7 +111,6 @@ struct RenderEngineType {
   void (*view_draw)(struct RenderEngine *engine,
                     const struct bContext *context,
                     struct Depsgraph *depsgraph);
-
   void (*view_pause)(struct RenderEngine *engine, const struct bContext *context);
   void (*view_resume)(struct RenderEngine *engine, const struct bContext *context);
 
@@ -138,7 +143,6 @@ struct RenderEngine {
   int flag;
   struct Object *camera_override;
   unsigned int layer_override;
-  bool auto_paused;
 
   struct Render *re;
   ListBaseT<RenderResult> fullresult;
@@ -273,8 +277,11 @@ void RE_engine_gpu_context_disable(struct RenderEngine *engine);
 
 void RE_engine_gpu_context_lock(struct RenderEngine *engine);
 void RE_engine_gpu_context_unlock(struct RenderEngine *engine);
-void RE_engine_view_pause(struct RenderEngine *engine, const struct bContext *context);
-void RE_engine_view_resume(struct RenderEngine *engine, const struct bContext *context);
+
+void RE_engine_view_pause_set(struct RenderEngine *engine, bool pause);
+bool RE_engine_view_pause_get(const struct RenderEngine *engine);
+void RE_engine_view_auto_pause_set(struct RenderEngine *engine, bool pause);
+bool RE_engine_view_pause_notify(struct RenderEngine *engine, const struct bContext *context);
 
 /* Engine Types */
 

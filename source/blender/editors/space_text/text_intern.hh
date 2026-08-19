@@ -8,6 +8,10 @@
 
 #pragma once
 
+#include <optional>
+
+#include "BLI_math_vector_types.hh"
+
 #include "DNA_vec_types.h"
 
 namespace blender {
@@ -25,6 +29,16 @@ struct wmOperatorType;
 /* `text_draw.cc` */
 
 void draw_text_main(SpaceText *st, ARegion *region);
+
+/**
+ * Return the region-relative pixel position of the text cursor:
+ * X the left of the cursor cell, Y the top of its line (accounting for scroll & word-wrap).
+ * The cursor is the `sell` / `selc` end of the selection (its leading edge),
+ * matching the cursor drawn by the text editor.
+ * Return none when `st` has no text.
+ * The position may be outside the region.
+ */
+std::optional<int2> space_text_cursor_region_xy_get(const SpaceText *st, const ARegion *region);
 
 void text_update_line_edited(TextLine *line);
 void text_update_edited(Text *text);
@@ -191,6 +205,9 @@ struct SpaceText_Runtime {
 
   /** Runtime computed, character width. */
   int char_width_px = 0;
+
+  /** Runtime computed, font descender, negative as it's below the baseline. */
+  int descender_px = 0;
 
   /** The handle of the scroll-bar which can be clicked and dragged. */
   rcti scroll_region_handle{0, 0, 0, 0};

@@ -158,6 +158,7 @@ StringRef BLT_translate_do_new_dataname(StringRef msgctxt, StringRef msgid);
 /* Generic contexts. */
 #define BLT_I18NCONTEXT_AMOUNT "Amount"
 #define BLT_I18NCONTEXT_COLOR "Color"
+#define BLT_I18NCONTEXT_COLOR_MANAGEMENT "Color Management"
 #define BLT_I18NCONTEXT_CONSTRAINT "Constraint"
 #define BLT_I18NCONTEXT_MODIFIER "Modifier"
 #define BLT_I18NCONTEXT_NAVIGATION "Navigation"
@@ -232,6 +233,7 @@ struct BLT_i18n_contexts_descriptor {
         BLT_I18NCONTEXTS_ITEM(BLT_I18NCONTEXT_EDITOR_VIEW3D, "editor_view3d"), \
         BLT_I18NCONTEXTS_ITEM(BLT_I18NCONTEXT_AMOUNT, "amount"), \
         BLT_I18NCONTEXTS_ITEM(BLT_I18NCONTEXT_COLOR, "color"), \
+        BLT_I18NCONTEXTS_ITEM(BLT_I18NCONTEXT_COLOR_MANAGEMENT, "color_management"), \
         BLT_I18NCONTEXTS_ITEM(BLT_I18NCONTEXT_CONSTRAINT, "constraint"), \
         BLT_I18NCONTEXTS_ITEM(BLT_I18NCONTEXT_MODIFIER, "modifier"), \
         BLT_I18NCONTEXTS_ITEM(BLT_I18NCONTEXT_NAVIGATION, "navigation"), \

@@ -60,12 +60,13 @@ std::optional<int> getname_anim_fcurve(char *name, ID *id, FCurve *fcu)
     BLI_strncpy_utf8(name, RPT_("<invalid>"), name_maxncpy);
     return {};
   }
-  if (fcu->rna_path == nullptr) {
+  const StringRefNull rna_path = fcu->rna_path();
+  if (rna_path.is_empty()) {
     BLI_strncpy_utf8(name, RPT_("<no path>"), name_maxncpy);
     return {};
   }
   if (id == nullptr) {
-    BLI_snprintf_utf8(name, name_maxncpy, "%s[%d]", fcu->rna_path, fcu->array_index);
+    BLI_snprintf_utf8(name, name_maxncpy, "%s[%d]", rna_path.c_str(), fcu->array_index);
     return {};
   }
 
@@ -74,9 +75,9 @@ std::optional<int> getname_anim_fcurve(char *name, ID *id, FCurve *fcu)
   PointerRNA ptr;
   PropertyRNA *prop;
 
-  if (!RNA_path_resolve_property(&id_ptr, fcu->rna_path, &ptr, &prop)) {
+  if (!RNA_path_resolve_property(&id_ptr, rna_path.c_str(), &ptr, &prop)) {
     /* Could not resolve the path, so just use the path itself as 'name'. */
-    BLI_snprintf_utf8(name, name_maxncpy, "\"%s[%d]\"", fcu->rna_path, fcu->array_index);
+    BLI_snprintf_utf8(name, name_maxncpy, "\"%s[%d]\"", rna_path.c_str(), fcu->array_index);
 
     /* Tag F-Curve as disabled - as not usable path. */
     fcu->flag |= FCURVE_DISABLED;
@@ -111,8 +112,8 @@ std::optional<int> getname_anim_fcurve(char *name, ID *id, FCurve *fcu)
    */
 
   char pchanName[name_maxncpy], constName[name_maxncpy];
-  if (BLI_str_quoted_substr(fcu->rna_path, "bones[", pchanName, sizeof(pchanName)) &&
-      BLI_str_quoted_substr(fcu->rna_path, "constraints[", constName, sizeof(constName)))
+  if (BLI_str_quoted_substr(rna_path.c_str(), "bones[", pchanName, sizeof(pchanName)) &&
+      BLI_str_quoted_substr(rna_path.c_str(), "constraints[", constName, sizeof(constName)))
   {
     structname = BLI_sprintfN("%s : %s", pchanName, constName);
     free_structname = true;
@@ -134,10 +135,10 @@ std::optional<int> getname_anim_fcurve(char *name, ID *id, FCurve *fcu)
     if (GS(ptr.owner_id->name) == ID_SCE) {
       char stripname[name_maxncpy];
       if (BLI_str_quoted_substr(
-              fcu->rna_path, "sequence_editor.strips_all[", stripname, sizeof(stripname)))
+              rna_path.c_str(), "sequence_editor.strips_all[", stripname, sizeof(stripname)))
       {
-        if (strstr(fcu->rna_path, ".transform.") || strstr(fcu->rna_path, ".crop.") ||
-            strstr(fcu->rna_path, ".modifiers["))
+        if (strstr(rna_path.c_str(), ".transform.") || strstr(rna_path.c_str(), ".crop.") ||
+            strstr(rna_path.c_str(), ".modifiers["))
         {
           const char *structname_all = BLI_sprintfN("%s : %s", stripname, structname);
           if (free_structname) {
@@ -250,7 +251,7 @@ std::string getname_anim_fcurve_for_slot(Main &bmain, const animrig::Slot &slot,
     /* This slot is assigned to at least one ID, and still the property it animates could not be
      * found. There is no use in continuing. */
     fcurve.flag |= FCURVE_DISABLED;
-    return fmt::format("\"{}[{}]\"", fcurve.rna_path, fcurve.array_index);
+    return fmt::format("\"{}[{}]\"", fcurve.rna_path().c_str(), fcurve.array_index);
   }
 
   /* If this part of the code is hit, the slot is not assigned to anything. The remainder of
@@ -262,24 +263,24 @@ std::string getname_anim_fcurve_for_slot(Main &bmain, const animrig::Slot &slot,
   if (!slot.has_idtype()) {
     /* The Slot has never been assigned to any ID, so we don't even know what type of ID it is
      * meant for. */
-    return fmt::format("\"{}[{}]\"", fcurve.rna_path, fcurve.array_index);
+    return fmt::format("\"{}[{}]\"", fcurve.rna_path().c_str(), fcurve.array_index);
   }
 
-  if (StringRef(fcurve.rna_path).find(".") != StringRef::not_found) {
+  if (fcurve.rna_path().find(".") != StringRef::not_found) {
     /* Not a simple property, so bail out. This needs path resolution, which needs an ID*. */
-    return fmt::format("\"{}[{}]\"", fcurve.rna_path, fcurve.array_index);
+    return fmt::format("\"{}[{}]\"", fcurve.rna_path().c_str(), fcurve.array_index);
   }
 
   /* Find the StructRNA for this Slot's ID type. */
   StructRNA *srna = ID_code_to_RNA_type(slot.idtype);
   if (!srna) {
-    return fmt::format("\"{}[{}]\"", fcurve.rna_path, fcurve.array_index);
+    return fmt::format("\"{}[{}]\"", fcurve.rna_path().c_str(), fcurve.array_index);
   }
 
   /* Find the property. */
-  PropertyRNA *prop = RNA_struct_type_find_property(srna, fcurve.rna_path);
+  PropertyRNA *prop = RNA_struct_type_find_property(srna, fcurve.rna_path().c_str());
   if (!prop) {
-    return fmt::format("\"{}[{}]\"", fcurve.rna_path, fcurve.array_index);
+    return fmt::format("\"{}[{}]\"", fcurve.rna_path().c_str(), fcurve.array_index);
   }
 
   /* Property Name is straightforward */

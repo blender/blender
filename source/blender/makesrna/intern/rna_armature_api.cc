@@ -121,7 +121,7 @@ static bool rna_BoneCollection_assign_abstract(BoneCollection *bcoll,
                                                bonecoll_assign_func_ebone assign_ebone)
 
 {
-  if (RNA_pointer_is_null(bone_ptr)) {
+  if (!*bone_ptr) {
     return false;
   }
 

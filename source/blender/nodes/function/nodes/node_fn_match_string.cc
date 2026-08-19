@@ -8,6 +8,7 @@
 #include "BKE_node_runtime.hh"
 
 #include "node_function_util.hh"
+#include "node_shader_util.hh"
 
 #include "NOD_socket_search_link.hh"
 
@@ -49,11 +50,11 @@ static void node_declare(NodeDeclarationBuilder &b)
 
 static void node_build_multi_function(NodeMultiFunctionBuilder &builder)
 {
-  static auto fn = mf::build::SI3_SO<std::string, int, std::string, bool>(
-      "Starts With", [](const std::string &a, const int mode, const std::string &b) {
+  static auto fn = mf::build::SI3_SO<std::string, MenuValue, std::string, bool>(
+      "Starts With", [](const std::string &a, const MenuValue mode, const std::string &b) {
         const StringRef strref_a(a);
         const StringRef strref_b(b);
-        switch (MatchStringOperation(mode)) {
+        switch (MatchStringOperation(mode.value)) {
           case MatchStringOperation::StartsWith: {
             return strref_a.startswith(strref_b);
           }
@@ -116,7 +117,7 @@ static void node_register()
 {
   static bke::bNodeType ntype;
 
-  fn_cmp_node_type_base(&ntype, "FunctionNodeMatchString"_ustr);
+  common_node_type_base(&ntype, "FunctionNodeMatchString"_ustr);
   ntype.ui_name = "Match String";
   ntype.ui_description = "Check if a given string exists within another string";
   ntype.nclass = NODE_CLASS_CONVERTER;

@@ -239,6 +239,44 @@ void view3d_orbit_apply_dyn_ofs(float r_ofs[3],
 void viewrotate_apply_dyn_ofs(ViewOpsData *vod, const float viewquat_new[4]);
 bool view3d_orbit_calc_center(bContext *C, float r_dyn_ofs[3]);
 
+/**
+ * Roll `quat` about the view Z axis, aligning the views X axis to the horizon.
+ *
+ * \param quat: The view rotation to correct, typically #RegionView3D.viewquat.
+ * \param horizon_plane: Normal of the horizon plane, typically the global Z axis (normalized).
+ * \param horizon_plane_no_flip: When upside down, align to the flipped horizon
+ * instead of rotating the view more than 90 degrees.
+ * \param axis_fallback: The horizon X axis, used when the view looks along `horizon_plane`
+ * and it can't be calculated (normalized). When null or parallel to `horizon_plane`,
+ * `quat` is left unchanged. Its sign sets which way is zero roll,
+ * when `horizon_plane_no_flip` is enabled the sign doesn't matter.
+ * \param angle_target: The roll to rotate to, zero levels the view.
+ * \param factor: The amount to correct, 0.0 for no change, 1.0 to align exactly.
+ * \return the angle needed to fully level the view, zero when it's already level.
+ */
+float view3d_horizon_correct_quat(float quat[4],
+                                  const float horizon_plane[3],
+                                  bool horizon_plane_no_flip,
+                                  const float axis_fallback[3],
+                                  float angle_target,
+                                  float factor);
+
+/**
+ * A version of #view3d_horizon_correct_quat, used to implement view roll alignment that eases-out.
+ *
+ * Useful for interactive operations that correct the roll each update (continuously),
+ * slowing as the view comes level.
+ *
+ * \note A view rolled exactly 180 degrees never rotates, in practice input passes through this.
+ *
+ * \return the angle rotated by before being scaled by `factor`.
+ * Zero when no correction was applied.
+ */
+float view3d_horizon_correct_quat_ease_out(float quat[4],
+                                           const float horizon_plane[3],
+                                           bool horizon_plane_no_flip,
+                                           float factor);
+
 void view3d_operator_properties_common(wmOperatorType *ot, const eV3D_OpPropFlag flag);
 
 /**

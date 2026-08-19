@@ -1,9 +1,9 @@
 
 msgid ""
 msgstr ""
-"Project-Id-Version: Blender 5.3.0 Alpha (b'bf67fb078da0')\n"
+"Project-Id-Version: Blender 5.3.0 Alpha (b'af4852ed4560')\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-07-27 09:52+0000\n"
+"POT-Creation-Date: 2026-08-10 07:54+0000\n"
 "PO-Revision-Date: 2026-07-08 11:12+0000\n"
 "Last-Translator: Timo Hoetmer <timo@timohoetmer.nl>\n"
 "Language-Team: Dutch <https://translate.blender.org/projects/blender-ui/ui/nl/>\n"
@@ -5844,10 +5844,6 @@ msgid "Show/Hide"
 msgstr "Toon/Verberg"
 
 
-msgid "Import"
-msgstr "Importeren"
-
-
 msgid "Mirror"
 msgstr "Spiegel"
 
@@ -5884,12 +5880,8 @@ msgid "Rigid Body"
 msgstr "Star Lichaam"
 
 
-msgid "Linked"
-msgstr "Gekoppeld"
-
-
-msgid "Layout"
-msgstr "Indeling"
+msgid "Import"
+msgstr "Importeren"
 
 
 msgid "Quick Effects"
@@ -5906,6 +5898,14 @@ msgstr "Haken"
 
 msgid "Clear Transform"
 msgstr "Maak Transformatie Leeg"
+
+
+msgid "Linked"
+msgstr "Gekoppeld"
+
+
+msgid "Layout"
+msgstr "Indeling"
 
 
 msgctxt "MovieClip"
@@ -6596,11 +6596,6 @@ msgstr "Afbreken"
 
 msgid "Generated"
 msgstr "Gegenereerd"
-
-
-msgctxt "Operator"
-msgid "Make Markers Local"
-msgstr "Maak Markeringen Lokaal"
 
 
 msgctxt "Operator"

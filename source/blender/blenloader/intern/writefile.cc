@@ -1315,6 +1315,7 @@ static void write_userdef(BlendWriter *writer, const UserDef *userdef)
 
   for (const bUserAssetLibrary &asset_library_ref : userdef->asset_libraries) {
     writer->write_struct(&asset_library_ref);
+    BKE_preferences_asset_library_write_data(writer, &asset_library_ref);
   }
 
   for (const bUserExtensionRepo &repo_ref : userdef->extension_repos) {
@@ -1467,7 +1468,7 @@ static bool write_library_if_needed(WriteData *wd,
     else {
       /* In undo case, all existing linked IDs get a placeholder, even the ones not directly
        * linkable. */
-      if (!is_undo && !BKE_idtype_idcode_is_linkable(GS(id->name))) {
+      if (!is_undo && !BKE_idtype_idcode_is_linkable(id->id_type())) {
         CLOG_ERROR(&LOG,
                    "Data-block '%s' from lib '%s' is not linkable, but is flagged as "
                    "directly linked",
@@ -1712,7 +1713,7 @@ static Vector<ID *> gather_local_ids_to_write(Main *bmain, const bool is_undo)
 {
   Vector<ID *> local_ids_to_write;
   for (ID &id : MainAllIDsIterator(*bmain)) {
-    if (GS(id.name) == ID_LI) {
+    if (id.id_type() == ID_LI) {
       /* Libraries are handled separately below. */
       continue;
     }
@@ -1749,7 +1750,7 @@ static Vector<ID *> gather_local_ids_to_write(Main *bmain, const bool is_undo)
        * NOTE: Since ShapeKeys are conceptually embedded IDs (like root node trees e.g.), this
        * behavior actually makes sense anyway. This remains more of a temp hack until topic of
        * how to handle unused data on save is properly tackled. */
-      if (GS(id.name) == ID_KE) {
+      if (id.id_type() == ID_KE) {
         Key &shape_key = id_cast<Key &>(id);
         /* NOTE: Here we are accessing the real owner ID data, not it's 'proxy' shallow copy
          * generated for its file-writing. This is not expected to be an issue, but is worth
@@ -1805,6 +1806,7 @@ static void prepare_stable_data_block_ids(WriteData &wd, Main &bmain)
  */
 static bool write_file_handle(Main *mainvar,
                               WriteWrap *ww,
+                              StringRefNull filepath,
                               MemFile *compare,
                               MemFile *current,
                               const int write_flags,
@@ -1816,6 +1818,7 @@ static bool write_file_handle(Main *mainvar,
 
   wd = mywrite_begin(ww, compare, current);
   wd->debug_dst = debug_dst;
+  wd->filepath = filepath;
   BlendWriter writer = {wd};
 
   BKE_main_view_layers_synced_ensure(mainvar);
@@ -1981,7 +1984,7 @@ static void write_file_main_validate_post(Main *bmain, ReportList *reports)
 
   if (G.debug & G_DEBUG_IO) {
     BKE_report(
-        reports, RPT_DEBUG, "Checking validity of current .blend file *BEFORE* save to disk");
+        reports, RPT_DEBUG, "Checking validity of current .blend file *AFTER* save to disk");
     BLO_main_validate_libraries(bmain, reports);
   }
 }
@@ -2126,7 +2129,7 @@ static bool BLO_write_file_impl(Main *mainvar,
 
   /* Actual file writing. */
   const bool err = write_file_handle(
-      mainvar, &ww, nullptr, nullptr, write_flags, use_userdef, thumb, debug_dst);
+      mainvar, &ww, filepath, nullptr, nullptr, write_flags, use_userdef, thumb, debug_dst);
 
   const bool close_error = !ww.close();
 
@@ -2197,7 +2200,7 @@ bool BLO_write_file_mem(Main *mainvar, MemFile *compare, MemFile *current, const
   bool use_userdef = false;
 
   const bool err = write_file_handle(
-      mainvar, nullptr, compare, current, write_flags, use_userdef, nullptr, nullptr);
+      mainvar, nullptr, "", compare, current, write_flags, use_userdef, nullptr, nullptr);
 
   return (err == 0);
 }
@@ -2375,6 +2378,11 @@ void BLO_write_generated_pointer_tag(BlendWriter *writer, const void *data)
   BLI_assert(writer->wd->stable_address_ids.pointer_map.lookup_default(data, address_id) ==
              address_id);
   writer->wd->stable_address_ids.pointer_map.add(data, address_id);
+}
+
+StringRefNull BLO_write_filepath(const BlendWriter *writer)
+{
+  return writer->wd->filepath;
 }
 
 void BLO_write_shared(BlendWriter *writer,

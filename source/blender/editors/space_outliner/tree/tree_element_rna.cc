@@ -43,7 +43,7 @@ TreeElementRNACommon::TreeElementRNACommon(TreeElement &legacy_te, PointerRNA &r
 
 bool TreeElementRNACommon::is_rna_valid() const
 {
-  return rna_ptr_.data != nullptr;
+  return rna_ptr_;
 }
 
 bool TreeElementRNACommon::expand_poll(const SpaceOutliner & /*space_outliner*/) const
@@ -174,7 +174,7 @@ void TreeElementRNAProperty::expand(SpaceOutliner &space_outliner) const
   if (proptype == PROP_POINTER) {
     PointerRNA pptr = RNA_property_pointer_get(&rna_ptr, rna_prop_);
 
-    if (pptr.data) {
+    if (pptr) {
       if (TSELEM_OPEN(&tselem, &space_outliner)) {
         add_element(&legacy_te_.subtree, pptr.owner_id, &pptr, &legacy_te_, TSE_RNA_STRUCT, -1);
       }

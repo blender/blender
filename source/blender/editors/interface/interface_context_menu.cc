@@ -113,7 +113,7 @@ static const char *shortcut_get_operator_property(bContext *C, Button *but, IDPr
 {
   if (but->optype) {
     /* Operator */
-    *r_prop = (but->opptr && but->opptr->data) ?
+    *r_prop = (but->opptr && *but->opptr) ?
                   IDP_CopyProperty(static_cast<IDProperty *>(but->opptr->data)) :
                   nullptr;
     return but->optype->idname;
@@ -606,7 +606,7 @@ bool popup_context_menu_for_button(bContext *C, Button *but, const wmEvent *even
       layout.separator();
     }
   }
-  else if (but->rnapoin.data && but->rnaprop) {
+  else if (but->rnapoin && but->rnaprop) {
     PointerRNA *ptr = &but->rnapoin;
     PropertyRNA *prop = but->rnaprop;
     const PropertyType type = RNA_property_type(prop);
@@ -1107,7 +1107,7 @@ bool popup_context_menu_for_button(bContext *C, Button *but, const wmEvent *even
 
   /* Pointer properties and string properties with
    * prop_search support jumping to target object/bone. */
-  if (but->rnapoin.data && but->rnaprop) {
+  if (but->rnapoin && but->rnaprop) {
     const PropertyType prop_type = RNA_property_type(but->rnaprop);
     if (((prop_type == PROP_POINTER) ||
          (prop_type == PROP_STRING && but->type == ButtonType::SearchMenu &&
@@ -1364,17 +1364,21 @@ bool popup_context_menu_for_button(bContext *C, Button *but, const wmEvent *even
 /** \name Panel Context Menu
  * \{ */
 
-void popup_context_menu_for_panel(bContext *C, ARegion *region, Panel *panel)
+int popup_context_menu_for_panel(bContext *C, ARegion *region, Panel *panel)
 {
   bScreen *screen = CTX_wm_screen(C);
   const bool has_panel_category = panel_category_tabs_is_visible(region);
   const bool any_item_visible = has_panel_category;
 
   if (!any_item_visible) {
-    return;
+    return WM_UI_HANDLER_CONTINUE;
   }
   if (panel && panel->type->parent != nullptr) {
-    return;
+    return WM_UI_HANDLER_CONTINUE;
+  }
+
+  if (!BKE_regiontype_uses_category_tabs(region->runtime->type)) {
+    return WM_UI_HANDLER_CONTINUE;
   }
 
   PointerRNA ptr = RNA_pointer_create_discrete(&screen->id, RNA_Panel, panel);
@@ -1402,6 +1406,7 @@ void popup_context_menu_for_panel(bContext *C, ARegion *region, Panel *panel)
       &prefs_ptr, "show_panel_tabs_compact", UI_ITEM_NONE, IFACE_("Compact Tabs"), ICON_NONE);
 
   popup_menu_end(C, pup);
+  return WM_UI_HANDLER_BREAK;
 }
 
 /** \} */

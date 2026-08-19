@@ -209,7 +209,7 @@ PointerRNA *WM_gizmo_operator_set(wmGizmo *gz,
   wmGizmoOpElem &gzop = gz->op_data[part_index];
   gzop.type = ot;
 
-  if (gzop.ptr.data) {
+  if (gzop.ptr) {
     WM_operator_properties_free(&gzop.ptr);
   }
   gzop.ptr = WM_operator_properties_create_ptr(ot);
@@ -231,7 +231,7 @@ wmOperatorStatus WM_gizmo_operator_invoke(bContext *C,
     PointerRNA tref_ptr;
     bToolRef *tref = WM_toolsystem_ref_from_context(C);
     if (tref && WM_toolsystem_ref_properties_get_from_operator(tref, gzop->type, &tref_ptr)) {
-      if (gzop->ptr.data == nullptr) {
+      if (!gzop->ptr) {
         gzop->ptr.data = bke::idprop::create_group("wmOperatorProperties").release();
       }
       IDP_MergeGroup(static_cast<IDProperty *>(gzop->ptr.data),
@@ -672,7 +672,7 @@ bool WM_gizmo_properties_default(PointerRNA *ptr, const bool do_update)
 
 void WM_gizmo_properties_reset(wmGizmo *gz)
 {
-  if (gz->ptr->data) {
+  if (*gz->ptr) {
     PropertyRNA *iterprop;
     iterprop = RNA_struct_iterator_property(gz->type->srna);
 

@@ -749,88 +749,98 @@ static bool multires_unsubdivide_extract_single_grid_from_face_edge(
 
   const bool has_original_grid_data = context->num_original_levels > 0;
 
+  /* NOTE(@ideasman42): early returning on first
+   * encountering null elements cause unexpected regressions.
+   * Instead of early exit, track if #store_vertex_data or #store_grid_data couldn't run,
+   * returning false if any failed. */
+  bool ok = true;
+
   /* If the data is going to be extracted from the already existing grids, there is no need to go
    * to the last vertex of the iteration as that coordinate is also included in the grids
    * corresponding to the loop of the face of the previous iteration. */
   const int grid_iteration_max_steps = grid_size - (has_original_grid_data ? 1 : 0);
-  const int grid_iteration_last_step = grid_iteration_max_steps - 1;
 
   /* Iterate over the mesh vertices in a grid pattern using the axis defined by the two initial
    * edges. */
   for (const int grid_y : IndexRange(grid_iteration_max_steps)) {
-    const bool grid_y_has_next = grid_y != grid_iteration_last_step;
 
     grid_face = current_face;
 
-    /* May be null from assignment at the end of this loop. */
-    if (grid_face == nullptr) [[unlikely]] {
-      return false;
-    }
-
     for (const int grid_x : IndexRange(grid_iteration_max_steps)) {
-      /* Don't step into the next edge at the end,
-       * since failing to walk past the end is *not* an error. */
-      const bool grid_x_has_next = grid_x != grid_iteration_last_step;
-      if (has_original_grid_data) {
-        /* If there were grids in the original mesh,
-         * extract the data from the grids. */
-        store_grid_data(context, grid, current_vertex_x, grid_face, grid_x, grid_y);
-      }
-      else {
-        /* If there were no grids on the original mesh,
-         * extract the data directly from the vertices. */
-        store_vertex_data(grid, current_vertex_x, grid_x, grid_y);
-      }
-      if (grid_x_has_next) {
+      if (has_original_grid_data == false) {
+        /* If there were no grids on the original mesh, extract the data directly from the
+         * vertices. */
+        if (current_vertex_x) {
+          store_vertex_data(grid, current_vertex_x, grid_x, grid_y);
+        }
+        else {
+          ok = false;
+        }
         edge_x = edge_step(current_vertex_x, edge_x, &current_vertex_x);
-        if (edge_x == nullptr) [[unlikely]] {
-          return false;
-        }
-        if (has_original_grid_data) {
-          grid_face = face_step(edge_x, grid_face);
-        }
       }
       else {
-        /* Clear as a signal not to reuse, allow dead assignments. */
-        edge_x = nullptr;
-        grid_face = nullptr;
-        UNUSED_VARS(edge_x, grid_face);
-      }
-    }
-
-    if (grid_y_has_next) {
-      if (edge_y == nullptr) [[unlikely]] {
-        return false;
-      }
-      edge_y = edge_step(current_vertex_y, edge_y, &current_vertex_y);
-      current_vertex_x = current_vertex_y;
-
-      /* Get the next edge_x to extract the next row of the grid. This needs to be done because
-       * there may be two edges connected to current_vertex_x that belong to two different grids.
-       */
-      BMIter iter;
-      BMEdge *ed;
-      edge_x = nullptr;
-      BM_ITER_ELEM (ed, &iter, current_vertex_x, BM_EDGES_OF_VERT) {
-        if (ed != prev_edge_y && BM_edge_in_face(ed, current_face)) {
-          edge_x = ed;
-          break;
+        /* If there were grids in the original mesh, extract the data from the grids and iterate
+         * over the faces. */
+        if (current_vertex_x && grid_face) {
+          store_grid_data(context, grid, current_vertex_x, grid_face, grid_x, grid_y);
         }
+        else {
+          ok = false;
+        }
+        edge_x = edge_step(current_vertex_x, edge_x, &current_vertex_x);
+        grid_face = edge_x ? face_step(edge_x, grid_face) : nullptr;
       }
-      /* May be null, check on next access (if this isn't the end of iteration). */
-      current_face = edge_x ? face_step(edge_x, current_face) : nullptr;
+    }
 
-      prev_edge_y = edge_y;
+    edge_y = edge_step(current_vertex_y, edge_y, &current_vertex_y);
+    current_vertex_x = current_vertex_y;
+
+    /* Get the next edge_x to extract the next row of the grid. This needs to be done because there
+     * may be two edges connected to current_vertex_x that belong to two different grids. */
+    BMIter iter;
+    BMEdge *ed;
+    edge_x = nullptr;
+    BM_ITER_ELEM (ed, &iter, current_vertex_x, BM_EDGES_OF_VERT) {
+      if (ed != prev_edge_y && BM_edge_in_face(ed, current_face)) {
+        edge_x = ed;
+        break;
+      }
     }
-    else {
-      /* Clear as a signal not to reuse, allow dead assignments. */
-      edge_y = nullptr;
-      grid_face = nullptr;
-      UNUSED_VARS(edge_x, grid_face);
-    }
+    /* May be null, check on next access (if this isn't the end of iteration). */
+    current_face = edge_x ? face_step(edge_x, current_face) : nullptr;
+
+    prev_edge_y = edge_y;
   }
 
-  return true;
+  return ok;
+}
+
+/**
+ * Step over edges until a tagged vertex is found, which is part of the base mesh.
+ *
+ * `visit_id` must be unique per walk so the `vert_visit` values don't need clearing.
+ *
+ * \return the tagged vertex, null when the walk can't reach one.
+ */
+static BMVert *unsubdivide_walk_to_tagged_vert(BMVert *v,
+                                               BMEdge *edge,
+                                               int *vert_visit,
+                                               const int visit_id)
+{
+  edge = edge_step(v, edge, &v);
+  while (!BM_elem_flag_test(v, BM_ELEM_TAG)) {
+    /* Prevent an eternal loop - typically caused by degenerate geometry.
+     * Every lookup uses a new ID, so we can detect if we met the vertex before.
+     * See #162395. */
+    const int v_index = BM_elem_index_get(v);
+    if (vert_visit[v_index] == visit_id) [[unlikely]] {
+      return nullptr;
+    }
+    vert_visit[v_index] = visit_id;
+
+    edge = edge_step(v, edge, &v);
+  }
+  return v;
 }
 
 /**
@@ -838,9 +848,13 @@ static bool multires_unsubdivide_extract_single_grid_from_face_edge(
  * e1 is going to be extracted.
  *
  * These vertices should always have an corresponding existing vertex on the base mesh.
+ *
+ * \return success, false when the topology can't be walked, the corners are left unset.
  */
-static void multires_unsubdivide_get_grid_corners_on_base_mesh(BMFace *f1,
+static bool multires_unsubdivide_get_grid_corners_on_base_mesh(BMFace *f1,
                                                                BMEdge *e1,
+                                                               int *vert_visit,
+                                                               int *visit_id,
                                                                BMVert **r_corner_x,
                                                                BMVert **r_corner_y)
 {
@@ -866,19 +880,23 @@ static void multires_unsubdivide_get_grid_corners_on_base_mesh(BMFace *f1,
   BMEdge *edge_y = initial_edge_y;
 
   /* Do an edge step until it finds a tagged vertex, which is part of the base mesh. */
-  /* x axis */
-  edge_x = edge_step(current_vertex_x, edge_x, &current_vertex_x);
-  while (!BM_elem_flag_test(current_vertex_x, BM_ELEM_TAG)) {
-    edge_x = edge_step(current_vertex_x, edge_x, &current_vertex_x);
-  }
-  *r_corner_x = current_vertex_x;
 
-  /* Same for y axis */
-  edge_y = edge_step(current_vertex_y, edge_y, &current_vertex_y);
-  while (!BM_elem_flag_test(current_vertex_y, BM_ELEM_TAG)) {
-    edge_y = edge_step(current_vertex_y, edge_y, &current_vertex_y);
+  /* X axis. */
+  BMVert *corner_x = unsubdivide_walk_to_tagged_vert(
+      current_vertex_x, edge_x, vert_visit, ++(*visit_id));
+  if (corner_x == nullptr) [[unlikely]] {
+    return false;
   }
-  *r_corner_y = current_vertex_y;
+  /* Y axis. */
+  BMVert *corner_y = unsubdivide_walk_to_tagged_vert(
+      current_vertex_y, edge_y, vert_visit, ++(*visit_id));
+  if (corner_y == nullptr) [[unlikely]] {
+    return false;
+  }
+
+  *r_corner_x = corner_x;
+  *r_corner_y = corner_y;
+  return true;
 }
 
 static BMesh *get_bmesh_from_mesh(Mesh *mesh)
@@ -1004,6 +1022,11 @@ static void multires_unsubdivide_extract_grids(MultiresUnsubdivideContext *conte
   /* From vertex index in original to vertex index in base and from vertex index in base to vertex
    * index in original. */
   int *orig_to_base_vmap = MEM_new_array_zeroed<int>(bm_original_mesh->totvert, "orig vmap");
+  /* Per vertex ID's for detecting a walk which loops back on itself, ID's start at 1. */
+  int *vert_visit = MEM_new_array_zeroed<int>(bm_original_mesh->totvert, "vert visit");
+  int visit_id = 0;
+  /* The walk stamps `vert_visit` by vertex index. */
+  BLI_assert((bm_original_mesh->elem_index_dirty & BM_VERT) == 0);
   int *base_to_orig_vmap = MEM_new_array_zeroed<int>(base_mesh->verts_num, "base vmap");
 
   const bke::AttributeAccessor attributes = base_mesh->attributes();
@@ -1054,7 +1077,12 @@ static void multires_unsubdivide_extract_grids(MultiresUnsubdivideContext *conte
       /* For each loop, get the two vertices that should map to the l+1 and l-1 vertices in the
        * base mesh of the face of grid that is going to be extracted. */
       BMVert *corner_x, *corner_y;
-      multires_unsubdivide_get_grid_corners_on_base_mesh(l->f, l->e, &corner_x, &corner_y);
+      if (!multires_unsubdivide_get_grid_corners_on_base_mesh(
+              l->f, l->e, vert_visit, &visit_id, &corner_x, &corner_y))
+      {
+        info.unsupported_grid_count += 1;
+        continue;
+      }
 
       /* Map the two obtained vertices to the base mesh. */
       const int corner_x_index = orig_to_base_vmap[BM_elem_index_get(corner_x)];
@@ -1110,6 +1138,7 @@ static void multires_unsubdivide_extract_grids(MultiresUnsubdivideContext *conte
     }
   }
 
+  MEM_delete(vert_visit);
   MEM_delete(orig_to_base_vmap);
   MEM_delete(base_to_orig_vmap);
 

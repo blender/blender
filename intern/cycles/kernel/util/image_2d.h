@@ -81,10 +81,10 @@ kernel_image_tile_map(KernelGlobals kg,
                       ccl_private float2 &xy)
 {
   /* Find mipmap level. Use squared lengths to avoid two sqrt operations,
-   * compensating with 0.5 factor on the log2. */
-  const float dudxy_sq = len_squared(make_float2(uv.dx.x, uv.dy.x)) * float(tex.width * tex.width);
-  const float dvdxy_sq = len_squared(make_float2(uv.dx.y, uv.dy.y)) *
-                         float(tex.height * tex.height);
+   * compensating with 0.5 factor on the log2. Square as float to avoid
+   * integer overflow. */
+  const float dudxy_sq = len_squared(make_float2(uv.dx.x, uv.dy.x)) * sqr(float(tex.width));
+  const float dvdxy_sq = len_squared(make_float2(uv.dx.y, uv.dy.y)) * sqr(float(tex.height));
 
   /* Limit max anisotropy ratio, to avoid loading too high mip resolutions
    * for stretched UV coordinates, which don't really benefit from it anyway. */

@@ -165,8 +165,7 @@ endif()
 # Without this, the absolute path on the builder is used, causing HTTPS access to fail.
 # For example `urllib.request.urlopen("https://projects.blender.org")` fails
 # (or any other HTTPS site). see: #102300 for details.
-# NOTE: that this isn't necessary on WIN32.
-if(WITH_PYTHON AND WITH_PYTHON_INSTALL AND (APPLE OR WITH_INSTALL_PORTABLE) AND (NOT WIN32))
+if(WITH_PYTHON AND WITH_PYTHON_INSTALL AND WITH_INSTALL_PORTABLE)
   # - `PYTHON_SSL_CERT_FILE` absolute path to the PEM file.
   find_python_module_file("certifi/cacert.pem" PYTHON_SSL_CERT_FILE _python_ssl_cert_file_relative)
   mark_as_advanced(PYTHON_SSL_CERT_FILE)
@@ -217,8 +216,8 @@ if(WITH_CYCLES_OSL)
   add_definitions(-DWITH_CYCLES_OSL)
 endif()
 
-if(WITH_CYCLES_EMBREE)
-  add_definitions(-DWITH_CYCLES_EMBREE)
+if(WITH_EMBREE)
+  add_definitions(-DWITH_EMBREE)
 endif()
 
 if(WITH_FREESTYLE)

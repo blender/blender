@@ -247,6 +247,40 @@ enum ARegionDrawLockFlags {
   REGION_DRAW_LOCK_ALL = (REGION_DRAW_LOCK_RENDER | REGION_DRAW_LOCK_BAKING)
 };
 
+/**
+ * Result of #ARegionType::cursor_ime, describing what should happen to the region's IME session.
+ * Ending a session cancels composition, discarding text the user has entered but not committed,
+ * so a temporary lack of position must *not* end it.
+ *
+ * A `std::nullopt` result means the region isn't editing text, end the session.
+ */
+enum class ARegionIMECursorState : int8_t {
+  /**
+   * The callback filled in its #ARegionIMECursor, (re)position the IME popup.
+   */
+  PositionSet,
+  /**
+   * No usable position right now, e.g. scrolling or the current-frame off a text strip:
+   * keep the session until it returns.
+   */
+  PositionPending,
+};
+
+/**
+ * The cursor position & size to display.
+ * See #ARegionType::cursor_ime for details.
+ */
+struct ARegionIMECursor {
+  /**
+   * Region relative, positions the candidate window & the composition preview.
+   *
+   * The width may be zero but the height should match the cursor size.
+   */
+  rcti rect = {0, 0, 0, 0};
+  /** The size the editor draws text at, so the preview matches it. */
+  int font_size = 0;
+};
+
 struct ARegionType {
   ARegionType *next, *prev;
   /** Unique identifier within this space, defines `RGN_TYPE_xxxx`. */
@@ -317,21 +351,19 @@ struct ARegionType {
   void (*on_view2d_changed)(const bContext *C, ARegion *region);
 
   /**
-   * Return the IME cursor (caret) rectangle in region-relative coordinates,
-   * or nullopt if IME should not be active in this region
-   * (e.g. during navigation, or when no text is being edited).
+   * Report the IME cursor so the candidate window can be positioned,
+   * see #ARegionIMECursorState for the results.
    *
-   * The rectangle's lower-left corner positions the IME candidate window, while its size
-   * lets the OS keep the candidate window clear of the caret line.
+   * On #ARegionIMECursorState::PositionSet, `r_cursor->rect` is the region-relative cursor:
+   * used to position the IME popup. Otherwise `r_cursor` is left untouched.
    *
    * Called on region activation and after each draw (when `ARegionRuntime::do_ime` is set)
    * to position the IME candidate window.
-   * The caller converts to window coordinates and calls `WM_window_IME_begin`/`end`.
-   *
-   * \note A zero width/height is acceptable when the caret extent isn't well defined in region
-   * space (e.g. 3D text, whose caret may be rotated), in which case only the corner is used.
    */
-  std::optional<rcti> (*cursor_ime)(wmWindow *win, const ScrArea *area, const ARegion *region);
+  std::optional<ARegionIMECursorState> (*cursor_ime)(wmWindow *win,
+                                                     const ScrArea *area,
+                                                     const ARegion *region,
+                                                     ARegionIMECursor *r_cursor);
 
   ARegionTypeFlag flag;
 

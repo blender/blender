@@ -1,9 +1,9 @@
 
 msgid ""
 msgstr ""
-"Project-Id-Version: Blender 5.3.0 Alpha (b'bf67fb078da0')\n"
+"Project-Id-Version: Blender 5.3.0 Alpha (b'af4852ed4560')\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-07-27 09:52+0000\n"
+"POT-Creation-Date: 2026-08-10 07:54+0000\n"
 "PO-Revision-Date: 2025-12-01 09:17+0000\n"
 "Last-Translator: Matt Mitacek <mattmitacek@gmail.com>\n"
 "Language-Team: Czech <https://translate.blender.org/projects/blender-ui/ui/cs/>\n"
@@ -2398,10 +2398,6 @@ msgstr "Datové bloky částic"
 
 msgid "Point cloud data-blocks"
 msgstr "Datové bloky bodových mraků"
-
-
-msgid "Project"
-msgstr "Projekce"
 
 
 msgid "Scene data-blocks"
@@ -5584,6 +5580,10 @@ msgstr "Nejbližší Povrchový Bod"
 
 msgid "Shrink the location to the nearest target surface"
 msgstr "Odstranit označené Objekt(y)"
+
+
+msgid "Project"
+msgstr "Projekce"
 
 
 msgid "Shrink the location to the nearest target surface along a given axis"
@@ -13811,48 +13811,32 @@ msgid "Names"
 msgstr "Názvy"
 
 
+msgid "Bone Roll"
+msgstr "Kost"
+
+
 msgid "Show/Hide"
 msgstr "Zobrazit/skrýt"
-
-
-msgid "Apply"
-msgstr "Použít"
-
-
-msgid "Mesh Select Mode"
-msgstr "Síťový mód výběru"
-
-
-msgid "Face Data"
-msgstr "Data Ploch"
 
 
 msgid "Clean Up"
 msgstr "Vyčistit"
 
 
-msgid "Merge"
-msgstr "Sloučit"
+msgid "Keying"
+msgstr "Klíčovací sestava"
 
 
-msgid "Special Characters"
-msgstr "Speciální Znaky"
-
-
-msgid "Math"
-msgstr "Matematika"
-
-
-msgid "Metaball"
-msgstr "Meta objekt"
+msgid "Tracking"
+msgstr "Sledování"
 
 
 msgid "Utilities"
 msgstr "Nástroje"
 
 
-msgid "Bone Roll"
-msgstr "Kost"
+msgid "Math"
+msgstr "Matematika"
 
 
 msgid "Pivot Point"
@@ -13865,14 +13849,6 @@ msgstr "Přichytit"
 
 msgid "Proportional Editing Falloff"
 msgstr "Způsob útlumu"
-
-
-msgid "Instances"
-msgstr "Instance"
-
-
-msgid "Import"
-msgstr "Importovat"
 
 
 msgid "Mirror"
@@ -13903,6 +13879,10 @@ msgid "Assign Material"
 msgstr "Přiřadit Materiál"
 
 
+msgid "Metaball"
+msgstr "Meta objekt"
+
+
 msgid "Light"
 msgstr "Světlo"
 
@@ -13911,20 +13891,24 @@ msgid "Relations"
 msgstr "Vztahy"
 
 
+msgid "Instances"
+msgstr "Instance"
+
+
 msgid "Rigid Body"
 msgstr "Tuhé Těleso"
 
 
+msgid "Apply"
+msgstr "Použít"
+
+
+msgid "Import"
+msgstr "Importovat"
+
+
 msgid "Track"
 msgstr "Sledování"
-
-
-msgid "Linked"
-msgstr "Propojené"
-
-
-msgid "Layout"
-msgstr "Rozložení"
 
 
 msgid "Quick Effects"
@@ -13939,20 +13923,36 @@ msgid "Hooks"
 msgstr "Háky"
 
 
-msgid "Keying"
-msgstr "Klíčovací sestava"
-
-
-msgid "Tracking"
-msgstr "Sledování"
-
-
 msgid "Clear Transform"
 msgstr "Vyčistit transformaci"
 
 
 msgid "Propagate"
 msgstr "Vložit"
+
+
+msgid "Mesh Select Mode"
+msgstr "Síťový mód výběru"
+
+
+msgid "Face Data"
+msgstr "Data Ploch"
+
+
+msgid "Merge"
+msgstr "Sloučit"
+
+
+msgid "Linked"
+msgstr "Propojené"
+
+
+msgid "Special Characters"
+msgstr "Speciální Znaky"
+
+
+msgid "Layout"
+msgstr "Rozložení"
 
 
 msgid "Basic"
@@ -17633,6 +17633,10 @@ msgid "Value to Normal"
 msgstr "Hodnota k Normále"
 
 
+msgid "Scalar"
+msgstr "Změna velikosti"
+
+
 msgid "Node Inputs"
 msgstr "Vstupy Uzlu"
 
@@ -18567,11 +18571,6 @@ msgstr "Chvění"
 
 msgid "Generated"
 msgstr "Oddělit"
-
-
-msgctxt "Operator"
-msgid "Make Markers Local"
-msgstr "Vytvořit lokální"
 
 
 msgctxt "Operator"
@@ -19598,10 +19597,6 @@ msgstr "Přesunout modifikátor"
 
 msgid "Move boid state up in the list"
 msgstr "Odstraní duplicity označených vertexů"
-
-
-msgid "Scalar"
-msgstr "Změna velikosti"
 
 
 msgctxt "Operator"
@@ -38851,12 +38846,12 @@ msgid "Jump to Next Marker"
 msgstr "Skončit na Další Značku"
 
 
-msgid "Active Editor"
-msgstr "Aktivní editor"
-
-
 msgid "Only Active Keying Set"
 msgstr "Pouze Aktivní Klíčová Sestava"
+
+
+msgid "Active Editor"
+msgstr "Aktivní editor"
 
 
 msgid "Intersections"
@@ -42103,10 +42098,6 @@ msgstr "Perspektiva Uživatele"
 
 msgid " (Local)"
 msgstr " (Místní)"
-
-
-msgid "Cannot fly an object with constraints"
-msgstr "Vyčistit vazby objektu"
 
 
 msgid "Depth too large"

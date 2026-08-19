@@ -43,7 +43,7 @@ static void template_keymap_item_properties(Layout &layout, const char *title, P
     if (RNA_property_type(prop) == PROP_POINTER) {
       PointerRNA propptr = RNA_property_pointer_get(ptr, prop);
 
-      if (propptr.data && RNA_struct_is_a(propptr.type, RNA_OperatorProperties)) {
+      if (propptr && RNA_struct_is_a(propptr.type, RNA_OperatorProperties)) {
         const char *name = RNA_property_ui_name(prop);
         template_keymap_item_properties(layout, name, &propptr);
         continue;
@@ -83,7 +83,7 @@ void uiTemplateKeymapItemProperties(Layout *layout, PointerRNA *ptr)
 {
   PointerRNA propptr = RNA_pointer_get(ptr, "properties");
 
-  if (propptr.data) {
+  if (propptr) {
     Block *block = layout->block();
     const int old_but_count = layout->block()->buttons_ptrs.size();
 

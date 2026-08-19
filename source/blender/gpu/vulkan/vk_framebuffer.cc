@@ -96,8 +96,8 @@ void VKFrameBuffer::render_area_update(VkRect2D &render_area) const
     scissor_get(scissor_rect);
     render_area.offset.x = clamp_i(scissor_rect[0], 0, width_);
     render_area.offset.y = clamp_i(scissor_rect[1], 0, height_);
-    render_area.extent.width = clamp_i(scissor_rect[2], 1, width_ - scissor_rect[0]);
-    render_area.extent.height = clamp_i(scissor_rect[3], 1, height_ - scissor_rect[1]);
+    render_area.extent.width = clamp_i(scissor_rect[2], 1, max_ii(1, width_ - scissor_rect[0]));
+    render_area.extent.height = clamp_i(scissor_rect[3], 1, max_ii(1, height_ - scissor_rect[1]));
   }
   else {
     render_area.offset.x = 0;

@@ -12,7 +12,19 @@
 #include "COM_node_group_operation.hh"
 #include "SEQ_render.hh"
 
+struct PointerRNA;
+struct bNodeTreeInterfaceSocket;
+enum eNodeSocketDatatype : short;
+
 namespace blender::seq {
+
+/**
+ * Allocate result as a single value, and fill it from the RNA property of the given input.
+ */
+void set_input_result_from_rna(PointerRNA &inputs_ptr,
+                               const bNodeTreeInterfaceSocket &socket,
+                               eNodeSocketDatatype socket_type,
+                               compositor::Result &result);
 
 class CompositorContext : public compositor::Context {
  protected:

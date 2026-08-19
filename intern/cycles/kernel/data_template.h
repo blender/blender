@@ -195,6 +195,7 @@ KERNEL_STRUCT_MEMBER(integrator, int, transparent_shadows)
 KERNEL_STRUCT_MEMBER(integrator, int, caustics_reflective)
 KERNEL_STRUCT_MEMBER(integrator, int, caustics_refractive)
 KERNEL_STRUCT_MEMBER(integrator, float, filter_glossy)
+KERNEL_STRUCT_MEMBER(integrator, float, differential_widen_scale)
 /* Seed. */
 KERNEL_STRUCT_MEMBER_DONT_SPECIALIZE
 KERNEL_STRUCT_MEMBER(integrator, int, seed)
@@ -235,6 +236,7 @@ KERNEL_STRUCT_MEMBER(integrator, int, use_surface_guiding)
 KERNEL_STRUCT_MEMBER(integrator, int, use_volume_guiding)
 KERNEL_STRUCT_MEMBER(integrator, int, use_guiding_direct_light)
 KERNEL_STRUCT_MEMBER(integrator, int, use_guiding_mis_weights)
+KERNEL_STRUCT_MEMBER(integrator, int, pad1)
 
 KERNEL_STRUCT_MEMBER(integrator, float2, pixel_jitter)
 KERNEL_STRUCT_END(KernelIntegrator)

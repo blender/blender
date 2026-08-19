@@ -98,6 +98,7 @@ set(SRC
   nodes/node_geo_filter_list.cc
   nodes/node_geo_flip_faces.cc
   nodes/node_geo_foreach_geometry_element.cc
+  nodes/node_geo_geometry_materials.cc
   nodes/node_geo_geometry_to_instance.cc
   nodes/node_geo_get_attribute_names.cc
   nodes/node_geo_get_bundle_item.cc

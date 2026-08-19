@@ -1277,15 +1277,13 @@ void ED_drivers_editor_init(bContext *C, ScrArea *area);
 void ED_anim_ale_fcurve_delete(bAnimContext &ac, bAnimListElem &ale);
 
 /* ************************************************ */
-
-enum eAnimvizCalcRange : uint8_t {
-  /** Try to limit updates to a close neighborhood of the current frame. */
-  ANIMVIZ_CALC_RANGE_CHANGED,
-
-  /** Update an entire range of the motion paths. */
-  ANIMVIZ_CALC_RANGE_FULL,
-};
-
+namespace ed::motionpath {
+/**
+ * Tag the motion path for a complete re-evaluation on the next call to `animviz_calc_motionpaths`.
+ * This is cheap to call since it only sets a flag.
+ */
+void tag_for_recalc(bMotionPath &motion_path);
+}  // namespace ed::motionpath
 /**
  * Build a partial depsgraph with only the IDs of the given `targets`.
  */
@@ -1297,13 +1295,14 @@ Depsgraph *animviz_depsgraph_build(Main *bmain,
 /**
  * Evaluated the given `depsgraph` for all targets.
  *
- * \param range: determines which frames the Depsgraph is evaluated for.
- * This can have big performance implications.
+ * \param modified_frame determines around which the calculation should be run. It will stop
+ * automatically if it hits an area where the evaluation returns the same result as is already
+ * stored in the motion path. This is to minimize the calculations done.
  */
 void animviz_calc_motionpaths(Depsgraph *depsgraph,
                               Scene *scene,
                               MutableSpan<MPathTarget> targets,
-                              eAnimvizCalcRange range);
+                              int modified_frame);
 
 /**
  * Update motion path computation range (in `ob.avs` or `armature.avs`) from user choice in

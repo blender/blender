@@ -100,16 +100,6 @@ void MultiFunctionProcedureOperation::execute()
 
   mf::ContextBuilder context_builder;
   procedure_executor_->call_auto(mask, parameter_builder, context_builder);
-
-  /* In case of single value execution, update single value data. */
-  if (is_single_value_) {
-    for (int i = 0; i < procedure_.params().size(); i++) {
-      if (procedure_.params()[i].type == mf::ParamType::InterfaceType::Output) {
-        Result &output = get_result(parameter_identifiers_[i]);
-        output.update_single_value_data();
-      }
-    }
-  }
 }
 
 void MultiFunctionProcedureOperation::build_procedure()
@@ -330,6 +320,10 @@ mf::Variable *MultiFunctionProcedureOperation::get_constant_input_variable(
       constant_function = &procedure_.construct_function<mf::CustomMF_Constant<Mask *>>(value);
       break;
     }
+    case SOCK_BUNDLE:
+      /* Not supported in multi-function nodes. */
+      BLI_assert_unreachable();
+      break;
     default:
       BLI_assert_unreachable();
       break;
@@ -388,7 +382,7 @@ mf::Variable *MultiFunctionProcedureOperation::get_multi_function_input_variable
   if (result.is_single_value()) {
     const mf::MultiFunction &constant_function =
         procedure_.construct_function<mf::CustomMF_GenericConstant>(
-            *result.single_value().type(), result.single_value().get(), false);
+            *result.single_value().type(), result.single_value().get(), true);
     mf::Variable *constant_variable = procedure_builder_.add_call<1>(constant_function)[0];
     implicit_variables_.append(constant_variable);
     result.release();

@@ -39,8 +39,8 @@ const FCurve *fcurve_find(Span<const FCurve *> fcurves, const FCurveDescriptor &
 {
   for (const FCurve *fcurve : fcurves) {
     /* Check indices first, much cheaper than a string comparison. */
-    if (fcurve->array_index == fcurve_descriptor.array_index && fcurve->rna_path &&
-        StringRef(fcurve->rna_path) == fcurve_descriptor.rna_path)
+    if (fcurve->array_index == fcurve_descriptor.array_index &&
+        fcurve->rna_path() == fcurve_descriptor.rna_path)
     {
       return fcurve;
     }
@@ -56,8 +56,7 @@ FCurve *fcurve_find(Span<FCurve *> fcurves, const FCurveDescriptor &fcurve_descr
 FCurve *create_fcurve_for_channel(const FCurveDescriptor &fcurve_descriptor)
 {
   FCurve *fcu = BKE_fcurve_create();
-  fcu->rna_path = BLI_strdupn(fcurve_descriptor.rna_path.data(),
-                              fcurve_descriptor.rna_path.size());
+  fcu->rna_path_set(fcurve_descriptor.rna_path);
   fcu->array_index = fcurve_descriptor.array_index;
   fcu->flag = (FCURVE_VISIBLE | FCURVE_SELECTED);
   fcu->auto_smoothing = U.auto_smoothing_new;

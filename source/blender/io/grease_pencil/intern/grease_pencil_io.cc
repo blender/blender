@@ -245,15 +245,15 @@ void GreasePencilExporter::prepare_render_params(Scene &scene, const int frame_n
 
   if (use_camera_view) {
     /* Camera rectangle (in screen space). */
-    rctf camera_rect;
-    ED_view3d_calc_camera_border(&scene,
-                                 context_.depsgraph,
-                                 context_.region,
-                                 context_.v3d,
-                                 context_.rv3d,
-                                 true,
-                                 true,
-                                 &camera_rect);
+    const rctf camera_rect = BKE_camera_view_border(&scene,
+                                                    context_.depsgraph,
+                                                    context_.v3d,
+                                                    context_.rv3d,
+                                                    context_.region->winx,
+                                                    context_.region->winy,
+                                                    true,
+                                                    false,
+                                                    true);
     screen_rect_ = {{camera_rect.xmin, camera_rect.ymin}, {camera_rect.xmax, camera_rect.ymax}};
     camera_persmat_ = persmat_from_camera_object(scene);
 

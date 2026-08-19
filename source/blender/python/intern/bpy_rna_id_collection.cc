@@ -53,7 +53,7 @@ static Main *pyrna_bmain_FromPyObject(PyObject *obj)
   }
   BPy_StructRNA *pyrna = reinterpret_cast<BPy_StructRNA *>(obj);
   PYRNA_STRUCT_CHECK_OBJ(pyrna);
-  if (!(pyrna->ptr && pyrna->ptr->type == RNA_BlendData && pyrna->ptr->data)) {
+  if (!(pyrna->ptr && pyrna->ptr->type == RNA_BlendData && *pyrna->ptr)) {
     PyErr_Format(PyExc_TypeError,
                  "Expected a StructRNA of type BlendData, not %.200s",
                  Py_TYPE(pyrna)->tp_name);
@@ -83,7 +83,7 @@ static int id_code_as_index(const short idcode)
 
 static bool id_check_type(const ID *id, const BLI_bitmap *types_bitmap)
 {
-  return BLI_BITMAP_TEST_BOOL(types_bitmap, id_code_as_index(GS(id->name)));
+  return BLI_BITMAP_TEST_BOOL(types_bitmap, id_code_as_index(id->id_type()));
 }
 
 static int foreach_libblock_id_user_map_callback(LibraryIDLinkCallbackData *cb_data)

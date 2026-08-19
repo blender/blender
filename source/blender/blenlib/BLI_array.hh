@@ -136,7 +136,7 @@ class Array {
       : Array(NoExceptConstructor(), allocator)
   {
     BLI_assert(size >= 0);
-    if (std::is_trivially_copyable_v<T> && value_is_zero(value)) {
+    if (std::is_trivially_copyable_v<T> && value_is_zero_memory(value)) {
       data_ = this->get_buffer_for_size(size, true);
     }
     else {

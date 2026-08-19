@@ -103,7 +103,7 @@ FCurve *alloc_driver_fcurve(const char rna_path[],
 
   /* store path - make copy, and store that */
   if (rna_path) {
-    fcu->rna_path = BLI_strdup(rna_path);
+    fcu->rna_path_set(rna_path);
   }
   fcu->array_index = array_index;
 
@@ -592,20 +592,8 @@ bool ANIM_copy_driver(
 
   /* copy this to the copy/paste buf if it exists */
   if (fcu && fcu->driver) {
-    /* Make copies of some info such as the rna_path, then clear this info from the
-     * F-Curve temporarily so that we don't end up wasting memory storing the path
-     * which won't get used ever.
-     */
-    char *tmp_path = fcu->rna_path;
-    fcu->rna_path = nullptr;
-
-    /* make a copy of the F-Curve with */
     channeldriver_copypaste_buf = BKE_fcurve_copy(fcu);
-
-    /* restore the path */
-    fcu->rna_path = tmp_path;
-
-    /* copied... */
+    channeldriver_copypaste_buf->rna_path_set("");
     return true;
   }
 
@@ -866,7 +854,7 @@ static const EnumPropertyItem *driver_mapping_type_itemf(bContext *C,
 
   ui::context_active_but_prop_get(C, &ptr, &prop, &index);
 
-  if (ptr.owner_id && ptr.data && prop && RNA_property_driver_editable(&ptr, prop)) {
+  if (ptr && ptr.has_owner_id() && prop && RNA_property_driver_editable(&ptr, prop)) {
     const bool is_array = RNA_property_array_check(prop);
 
     while (input->identifier) {
@@ -899,7 +887,7 @@ static bool add_driver_button_poll(bContext *C)
   /* this operator can only run if there's a property button active, and it can be animated */
   ui::context_active_but_prop_get(C, &ptr, &prop, &index);
 
-  if (!(ptr.owner_id && ptr.data && prop)) {
+  if (!(ptr && ptr.has_owner_id() && prop)) {
     return false;
   }
   if (!RNA_property_driver_editable(&ptr, prop)) {
@@ -927,7 +915,7 @@ static wmOperatorStatus add_driver_button_none(bContext *C, wmOperator *op, shor
     index = -1;
   }
 
-  if (ptr.owner_id && ptr.data && prop && RNA_property_driver_editable(&ptr, prop)) {
+  if (ptr && ptr.has_owner_id() && prop && RNA_property_driver_editable(&ptr, prop)) {
     short flags = CREATEDRIVER_WITH_DEFAULT_DVAR;
 
     if (const std::optional<std::string> path = RNA_path_from_ID_to_property(&ptr, prop)) {
@@ -1022,7 +1010,7 @@ static wmOperatorStatus add_driver_button_invoke(bContext *C,
 
   ui::context_active_but_prop_get(C, &ptr, &prop, &index);
 
-  if (ptr.owner_id && ptr.data && prop && RNA_property_driver_editable(&ptr, prop)) {
+  if (ptr && ptr.has_owner_id() && prop && RNA_property_driver_editable(&ptr, prop)) {
     /* 1) Create a new "empty" driver for this property */
     short flags = CREATEDRIVER_WITH_DEFAULT_DVAR;
     bool changed = false;
@@ -1081,7 +1069,7 @@ static wmOperatorStatus remove_driver_button_exec(bContext *C, wmOperator *op)
     index = -1;
   }
 
-  if (ptr.owner_id && ptr.data && prop) {
+  if (ptr && ptr.has_owner_id() && prop) {
     if (const std::optional<std::string> path = RNA_path_from_ID_to_property(&ptr, prop)) {
       changed = ANIM_remove_driver(ptr.owner_id, path->c_str(), index);
     }
@@ -1127,7 +1115,7 @@ static wmOperatorStatus edit_driver_button_exec(bContext *C, wmOperator *op)
 
   ui::context_active_but_prop_get(C, &ptr, &prop, &index);
 
-  if (ptr.owner_id && ptr.data && prop) {
+  if (ptr && ptr.has_owner_id() && prop) {
     ui::popover_panel_invoke(C, "GRAPH_PT_drivers_popover", true, op->reports);
   }
 
@@ -1161,7 +1149,7 @@ static wmOperatorStatus copy_driver_button_exec(bContext *C, wmOperator *op)
 
   ui::context_active_but_prop_get(C, &ptr, &prop, &index);
 
-  if (ptr.owner_id && ptr.data && prop && RNA_property_driver_editable(&ptr, prop)) {
+  if (ptr && ptr.has_owner_id() && prop && RNA_property_driver_editable(&ptr, prop)) {
     if (const std::optional<std::string> path = RNA_path_from_ID_to_property(&ptr, prop)) {
       /* only copy the driver for the button that this was involved for */
       changed = ANIM_copy_driver(op->reports, ptr.owner_id, path->c_str(), index, 0);
@@ -1200,7 +1188,7 @@ static wmOperatorStatus paste_driver_button_exec(bContext *C, wmOperator *op)
 
   ui::context_active_but_prop_get(C, &ptr, &prop, &index);
 
-  if (ptr.owner_id && ptr.data && prop && RNA_property_driver_editable(&ptr, prop)) {
+  if (ptr && ptr.has_owner_id() && prop && RNA_property_driver_editable(&ptr, prop)) {
     if (const std::optional<std::string> path = RNA_path_from_ID_to_property(&ptr, prop)) {
       /* only copy the driver for the button that this was involved for */
       changed = ANIM_paste_driver(op->reports, ptr.owner_id, path->c_str(), index, 0);

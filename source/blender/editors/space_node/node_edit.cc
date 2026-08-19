@@ -293,7 +293,7 @@ void ED_node_set_active(
           /* Sync to active texpaint slot, otherwise we can end up painting on a different slot
            * than we are looking at. */
           if (ma.texpaintslot) {
-            if (node->id != nullptr && GS(node->id->name) == ID_IM) {
+            if (node->id != nullptr && node->id->id_type() == ID_IM) {
               Image *image = id_cast<Image *>(node->id);
               for (int i = 0; i < ma.tot_slots; i++) {
                 if (ma.texpaintslot[i].ima == image) {
@@ -315,7 +315,7 @@ void ED_node_set_active(
       /* Sync to Image Editor under the following conditions:
        * - current image is not pinned
        * - current image is not a Render Result or ViewerNode (want to keep looking at these) */
-      if (node->id != nullptr && GS(node->id->name) == ID_IM) {
+      if (node->id != nullptr && node->id->id_type() == ID_IM) {
         Image *image = id_cast<Image *>(node->id);
         ED_space_image_sync(bmain, image, true);
       }
@@ -1172,9 +1172,17 @@ wmOperatorStatus node_render_changed_exec(bContext *C, wmOperator * /*op*/)
    * All the nodes are using same render result, so there is no need to do
    * anything smart about check how exactly scene is used. */
   bNode *node = nullptr;
-  for (bNode *node_iter : sce->compositing_node_group->all_nodes()) {
-    if (node_iter->id == id_cast<ID *>(sce)) {
-      node = node_iter;
+  for (SceneCompositorEffect &effect : sce->compositor_effects) {
+    if (!effect.node_group || ID_MISSING(effect.node_group)) {
+      continue;
+    }
+    for (bNode *node_iter : effect.node_group->all_nodes()) {
+      if (node_iter->id == id_cast<ID *>(sce)) {
+        node = node_iter;
+        break;
+      }
+    }
+    if (node) {
       break;
     }
   }
@@ -1364,7 +1372,7 @@ static wmOperatorStatus node_activate_viewer_exec(bContext *C, wmOperator * /*op
   bNodeTree *ntree = nullptr;
   bNode *node = nullptr;
 
-  if (ptr.data) {
+  if (ptr) {
     node = static_cast<bNode *>(ptr.data);
     ntree = reinterpret_cast<bNodeTree *>(ptr.owner_id);
   }
@@ -1496,7 +1504,7 @@ static wmOperatorStatus node_toggle_viewer_exec(bContext *C, wmOperator * /*op*/
   bNodeTree *ntree = nullptr;
   wmOperatorStatus ret = OPERATOR_FINISHED;
 
-  if (ptr.data) {
+  if (ptr) {
     node = static_cast<bNode *>(ptr.data);
     ntree = reinterpret_cast<bNodeTree *>(ptr.owner_id);
   }
@@ -1863,7 +1871,7 @@ static wmOperatorStatus node_shader_script_update_exec(bContext *C, wmOperator *
 
   bNodeTree *ntree_base = nullptr;
   bNode *node = nullptr;
-  if (nodeptr.data) {
+  if (nodeptr) {
     ntree_base = id_cast<bNodeTree *>(nodeptr.owner_id);
     node = static_cast<bNode *>(nodeptr.data);
   }
@@ -2034,7 +2042,7 @@ static wmOperatorStatus node_cryptomatte_add_socket_exec(bContext *C, wmOperator
   bNodeTree *ntree = nullptr;
   bNode *node = nullptr;
 
-  if (ptr.data) {
+  if (ptr) {
     node = static_cast<bNode *>(ptr.data);
     ntree = id_cast<bNodeTree *>(ptr.owner_id);
   }
@@ -2083,7 +2091,7 @@ static wmOperatorStatus node_cryptomatte_remove_socket_exec(bContext *C, wmOpera
   bNodeTree *ntree = nullptr;
   bNode *node = nullptr;
 
-  if (ptr.data) {
+  if (ptr) {
     node = static_cast<bNode *>(ptr.data);
     ntree = id_cast<bNodeTree *>(ptr.owner_id);
   }

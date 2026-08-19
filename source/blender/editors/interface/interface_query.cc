@@ -145,7 +145,7 @@ bool button_is_popover_once_compat(const Button *but)
 
 bool button_has_array_value(const Button *but)
 {
-  return (but->rnapoin.data && but->rnaprop && RNA_property_array_check(but->rnaprop));
+  return (but->rnapoin && but->rnaprop && RNA_property_array_check(but->rnaprop));
 }
 
 static wmOperatorType *g_ot_tool_set_by_id = nullptr;

@@ -143,7 +143,7 @@ function(cycles_external_libraries_append libraries)
     list(APPEND ${libraries} extern_hipew)
   endif()
 
-  if(WITH_CYCLES_DEVICE_ONEAPI AND WITH_CYCLES_EMBREE  AND EMBREE_SYCL_SUPPORT)
+  if(WITH_CYCLES_DEVICE_ONEAPI AND WITH_EMBREE  AND EMBREE_SYCL_SUPPORT)
     list(APPEND ${libraries} ${SYCL_LIBRARIES})
   endif()
 

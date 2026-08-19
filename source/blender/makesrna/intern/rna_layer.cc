@@ -97,7 +97,7 @@ static void rna_LayerObjects_active_object_set(PointerRNA *ptr,
 {
   const Scene *scene = id_cast<Scene *>(ptr->owner_id);
   ViewLayer *view_layer = static_cast<ViewLayer *>(ptr->data);
-  if (value.data) {
+  if (value) {
     Object *ob = static_cast<Object *>(value.data);
     /* FIXME Using G_MAIN is very weak here, and may cause random issues when handling data not in
      * the G_MAIN, though in practice this is _probably_ not a very likely issue for now. */
@@ -213,7 +213,7 @@ static PointerRNA rna_ViewLayer_depsgraph_get(PointerRNA *ptr)
     Depsgraph *depsgraph = BKE_scene_get_depsgraph(scene, view_layer);
     return RNA_pointer_create_with_parent(*ptr, RNA_Depsgraph, depsgraph);
   }
-  return PointerRNA_NULL;
+  return {};
 }
 
 static void rna_ViewLayer_remove_aov(ViewLayer *view_layer, ReportList *reports, ViewLayerAOV *aov)

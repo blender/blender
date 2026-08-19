@@ -36,7 +36,6 @@ class CompositorInputData {
   const Main &main;
   const Scene &scene;
   const RenderData &render_data;
-  const bNodeTree &node_tree;
   std::string view_name;
   compositor::RenderContext *render_context;
   compositor::NodeGroupOutputTypes needed_outputs;

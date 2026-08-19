@@ -78,6 +78,12 @@ struct DrawEngine {
 
   virtual StringRefNull name_get() = 0;
 
+  /** True if the render engine takes the render border into account. */
+  virtual bool uses_render_border() const
+  {
+    return false;
+  }
+
   /* Functions called for viewport. */
 
   /** Init engine. Run first and for every redraw. */
@@ -448,7 +454,7 @@ struct DRWContext {
   /** True if current viewport is drawn during transforming operator. */
   bool is_transforming() const;
   /** True if viewport compositor is enabled when drawing with this context. */
-  bool is_viewport_compositor_enabled() const;
+  bool is_viewport_compositor_used() const;
 };
 
 /** \} */

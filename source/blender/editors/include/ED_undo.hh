@@ -10,6 +10,9 @@
 
 #include "BLI_sys_types.hh"
 #include "BLI_vector.hh"
+
+#include <optional>
+
 struct CLG_LogRef;
 namespace blender {
 
@@ -27,6 +30,7 @@ struct bContext;
 struct wmOperator;
 struct wmOperatorType;
 struct wmWindowManager;
+enum class UndoEncodeHints : int;
 
 /* ed_undo.cc */
 
@@ -36,9 +40,11 @@ struct wmWindowManager;
 bool ED_undo_is_state_valid(bContext *C);
 void ED_undo_group_begin(bContext *C);
 void ED_undo_group_end(bContext *C);
-void ED_undo_push(bContext *C, const char *str);
+void ED_undo_push(bContext *C, const char *str, UndoEncodeHints hints = UndoEncodeHints(0));
 void ED_undo_push_op(bContext *C, wmOperator *op);
-void ED_undo_grouped_push(bContext *C, const char *str);
+void ED_undo_grouped_push(bContext *C,
+                          const char *str,
+                          UndoEncodeHints hints = UndoEncodeHints(0));
 void ED_undo_grouped_push_op(bContext *C, wmOperator *op);
 void ED_undo_pop_op(bContext *C, wmOperator *op);
 void ED_undo_pop(bContext *C);
@@ -75,17 +81,20 @@ bool ED_undo_is_memfile_compatible(const bContext *C);
 /* Unfortunate workaround for limits mixing undo systems. */
 
 /**
- * When a property of ID changes, return false.
+ * When a property of an ID changes, return the hints to use for the undo push,
+ * or no value when the change shouldn't push an undo step.
  *
  * This is to avoid changes to a property making undo pushes
  * which are ignored by the undo-system.
  * For example, changing a brush property isn't stored by sculpt-mode undo steps.
+ * Where the undo system can co-exist with global undo, the change is redirected into a
+ * `memfile` step instead of being skipped, see: #UndoEncodeHints::PreMemFileChanges.
  * This workaround is needed until the limitation is removed, see: #61948.
  */
-bool ED_undo_is_legacy_compatible_for_property(bContext *C,
-                                               ID *id,
-                                               const PointerRNA &ptr,
-                                               const PropertyRNA &prop);
+std::optional<UndoEncodeHints> ED_undo_is_legacy_compatible_for_property(bContext *C,
+                                                                         ID *id,
+                                                                         const PointerRNA &ptr,
+                                                                         const PropertyRNA &prop);
 
 /**
  * This function addresses the problem of restoring undo steps when multiple windows are used.

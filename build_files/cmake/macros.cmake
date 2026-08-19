@@ -1353,7 +1353,12 @@ function(find_python_module_file
   endif()
 
   path_strip_trailing_slash(_python_root "${PYTHON_LIBPATH}")
-  set(_python_base "${_python_root}/python${PYTHON_VERSION}")
+  if(WIN32)
+    # MS-Windows has no `python${PYTHON_VERSION}` directory, `site-packages` is directly in `lib`.
+    set(_python_base "${_python_root}")
+  else()
+    set(_python_base "${_python_root}/python${PYTHON_VERSION}")
+  endif()
   # This always moves up one level (even if there is a trailing slash).
   get_filename_component(_python_root "${_python_root}" DIRECTORY)
   path_ensure_trailing_slash(_python_root "${_python_root}")

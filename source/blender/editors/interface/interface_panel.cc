@@ -30,6 +30,7 @@
 #include "DNA_userdef_types.h"
 
 #include "BKE_context.hh"
+#include "BKE_recents.hh"
 #include "BKE_screen.hh"
 
 #include "RNA_access.hh"
@@ -565,7 +566,7 @@ static bool panel_custom_pin_to_last_get(const Panel *panel)
 {
   if (panel->type->pin_to_last_property[0] != '\0') {
     PointerRNA *ptr = panel_custom_data_get(panel);
-    if (ptr != nullptr && !RNA_pointer_is_null(ptr)) {
+    if (ptr != nullptr && *ptr) {
       return RNA_boolean_get(ptr, panel->type->pin_to_last_property);
     }
   }
@@ -577,7 +578,7 @@ static void panel_custom_pin_to_last_set(const bContext *C, const Panel *panel, 
 {
   if (panel->type->pin_to_last_property[0] != '\0') {
     PointerRNA *ptr = panel_custom_data_get(panel);
-    if (ptr != nullptr && !RNA_pointer_is_null(ptr)) {
+    if (ptr != nullptr && *ptr) {
       PropertyRNA *prop = RNA_struct_find_property(ptr, panel->type->pin_to_last_property);
       RNA_boolean_set(ptr, panel->type->pin_to_last_property, value);
       RNA_property_update(const_cast<bContext *>(C), ptr, prop);
@@ -593,7 +594,7 @@ static bool panel_custom_data_active_get(const Panel *panel)
 
   if (panel->type->active_property[0] != '\0') {
     PointerRNA *ptr = panel_custom_data_get(panel);
-    if (ptr != nullptr && !RNA_pointer_is_null(ptr)) {
+    if (ptr != nullptr && *ptr) {
       return RNA_boolean_get(ptr, panel->type->active_property);
     }
   }
@@ -610,7 +611,7 @@ static void panel_custom_data_active_set(Panel *panel)
   if (panel->type->active_property[0] != '\0') {
     PointerRNA *ptr = panel_custom_data_get(panel);
     BLI_assert(RNA_struct_find_property(ptr, panel->type->active_property) != nullptr);
-    if (ptr != nullptr && !RNA_pointer_is_null(ptr)) {
+    if (ptr != nullptr && *ptr) {
       RNA_boolean_set(ptr, panel->type->active_property, true);
     }
   }
@@ -740,6 +741,18 @@ Panel *panel_begin(
       if (&panel_next != panel && panel_next.sortorder >= panel->sortorder) {
         panel_next.sortorder++;
       }
+    }
+  }
+
+  if (newpanel && region->regiontype == RGN_TYPE_TOOLS &&
+      STRPREFIX(panel->panelname, "FILEBROWSER_PT_"))
+  {
+    const std::string panel_name_str = panel->panelname;
+    const int order = recents::Section("panel.sortorder").get<int>(panel_name_str);
+    if (order >= 0) {
+      panel->sortorder = order;
+      SET_FLAG_FROM_TEST(
+          panel->flag, !recents::Section("panel.open").get<int>(panel_name_str), PNL_CLOSED);
     }
   }
 
@@ -2665,9 +2678,8 @@ int handler_panel_region(bContext *C,
     }
     else if ((event->type == RIGHTMOUSE) && panel_categories_tab_is_mouse_over(region, event)) {
       BLI_assert(retval == WM_UI_HANDLER_CONTINUE);
-      retval = WM_UI_HANDLER_BREAK;
       WM_tooltip_clear(C, CTX_wm_window(C));
-      popup_context_menu_for_panel(C, region, nullptr);
+      retval = popup_context_menu_for_panel(C, region, nullptr);
     }
   }
 
@@ -2715,14 +2727,6 @@ int handler_panel_region(bContext *C,
       continue;
     }
 
-    if (has_panel_header && event->type == RIGHTMOUSE) {
-      if (ELEM(mouse_state, PANEL_MOUSE_INSIDE_HEADER, PANEL_MOUSE_INSIDE_CONTENT)) {
-        retval = WM_UI_HANDLER_BREAK;
-        popup_context_menu_for_panel(C, region, block.panel);
-        break;
-      }
-    }
-
     if ((has_panel_header && mouse_state == PANEL_MOUSE_INSIDE_HEADER)) {
       /* All mouse clicks inside panel headers should return in break. */
       if (ELEM(event->type, EVT_RETKEY, EVT_PADENTER, LEFTMOUSE)) {
@@ -2731,8 +2735,7 @@ int handler_panel_region(bContext *C,
             C, &block, mx, event->type, event->modifier & KM_CTRL, event->modifier & KM_SHIFT);
       }
       else if (event->type == RIGHTMOUSE) {
-        retval = WM_UI_HANDLER_BREAK;
-        popup_context_menu_for_panel(C, region, block.panel);
+        retval = popup_context_menu_for_panel(C, region, block.panel);
       }
       break;
     }
@@ -2928,6 +2931,17 @@ static void panel_activate_state(const bContext *C, Panel *panel, const HandlePa
     if (data->animtimer) {
       WM_event_timer_remove(CTX_wm_manager(C), win, data->animtimer);
       data->animtimer = nullptr;
+    }
+
+    /* Save File Browser panel order and open/close state. */
+    if (CTX_wm_area(C)->spacetype == SPACE_FILE && region->regiontype == RGN_TYPE_TOOLS) {
+      for (Panel &pnl : region->panels) {
+        if (STRPREFIX(pnl.panelname, "FILEBROWSER_PT_")) {
+          const std::string pnl_name_str = pnl.panelname;
+          recents::Section("panel.sortorder").set(pnl_name_str, pnl.sortorder);
+          recents::Section("panel.open").set(pnl_name_str, !(pnl.flag & PNL_CLOSED));
+        }
+      }
     }
 
     MEM_delete(data);

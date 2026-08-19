@@ -51,7 +51,7 @@ SymmetricBlurWeights::SymmetricBlurWeights(Context &context,
    * filter size is always odd and there is a center weight. */
   const float2 scale = math::safe_divide(float2(1.0f), radius);
   const int2 size = int2(math::ceil(radius)) + int2(1);
-  weights_cpu.allocate_texture(size, false, ResultStorageType::CPU);
+  weights_cpu.allocate_texture(size, false, ResultStorageType::CPUImage);
 
   float sum = 0.0f;
 

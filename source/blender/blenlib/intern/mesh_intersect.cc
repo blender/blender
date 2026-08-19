@@ -1710,6 +1710,7 @@ static void do_cdt(CDT_data &cd)
     }
   }
   cdt_in.epsilon = 0; /* TODO: needs attention for non-exact T. */
+  cdt_in.needed_ids = CDT_ORIG_VERTS | CDT_ORIG_EDGES | CDT_ORIG_FACES;
   cd.cdt_out = delaunay_2d_calc(cdt_in, CDT_INSIDE);
   constexpr int make_edge_map_threshold = 15;
   if (cd.cdt_out.edge.size() >= make_edge_map_threshold) {
@@ -2024,6 +2025,7 @@ static Array<Face *> exact_triangulate_poly(Face *f, IMeshArena *arena)
   cdt_in.vert = in_verts;
   cdt_in.face_offsets = face_offsets.as_span();
   cdt_in.face_vert_indices = face_vert_indices;
+  cdt_in.needed_ids = CDT_ORIG_VERTS | CDT_ORIG_EDGES | CDT_ORIG_FACES;
 
   CDT_result<mpq_class> cdt_out = delaunay_2d_calc(cdt_in, CDT_INSIDE);
   int n_tris = cdt_out.face.size();

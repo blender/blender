@@ -309,7 +309,7 @@ static DupliObject *make_dupli(const DupliContext *ctx,
   /* Meta-balls never draw in duplis, they are instead merged into one by the basis
    * meta-ball outside of the group. this does mean that if that meta-ball is not in the
    * scene, they will not show up at all, limitation that should be solved once. */
-  if (object_data && GS(object_data->name) == ID_MB) {
+  if (object_data && object_data->id_type() == ID_MB) {
     dob->no_draw = true;
   }
 
@@ -1984,7 +1984,7 @@ static bool find_geonode_attribute_rgba(const DupliObject *dupli,
 /** Lookup an arbitrary Custom or RNA property and convert it to RGBA if possible. */
 static bool find_property_rgba(PointerRNA *id_ptr, const char *name, float r_data[4])
 {
-  if (id_ptr->data == nullptr) {
+  if (!*id_ptr) {
     return false;
   }
 

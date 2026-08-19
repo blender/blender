@@ -435,7 +435,7 @@ SingleKeyingResult insert_keyframe_direct(PointerRNA &ptr,
                                           const eBezTriple_KeyframeType keytype,
                                           const eInsertKeyFlags flag)
 {
-  if ((ptr.owner_id == nullptr) && (ptr.data == nullptr)) {
+  if (!ptr) {
     BLI_assert_unreachable();
     return SingleKeyingResult::UNKNOWN_FAILURE;
   }
@@ -604,7 +604,7 @@ int clear_keyframe(Main *bmain, ReportList *reports, ID *id, const RNAPath &rna_
       if (rna_path.index.has_value() && rna_path.index.value() != fcurve.array_index) {
         return;
       }
-      if (rna_path.path != fcurve.rna_path) {
+      if (rna_path.path != fcurve.rna_path()) {
         return;
       }
       fcurves.append(&fcurve);

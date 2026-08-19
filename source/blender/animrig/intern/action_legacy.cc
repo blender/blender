@@ -142,11 +142,12 @@ bool action_fcurves_remove(bAction &action,
   bool any_removed = false;
   for (int64_t fcurve_index = 0; fcurve_index < bag->fcurve_array_num; fcurve_index++) {
     FCurve *fcurve = bag->fcurve(fcurve_index);
-    if (!fcurve->rna_path) {
+    const StringRefNull rna_path = fcurve->rna_path();
+    if (rna_path.is_empty()) {
       continue;
     }
 
-    if (STRPREFIX(fcurve->rna_path, rna_path_prefix.c_str())) {
+    if (rna_path.startswith(rna_path_prefix)) {
       bag->fcurve_remove_by_index(fcurve_index);
       fcurve_index--;
       any_removed = true;

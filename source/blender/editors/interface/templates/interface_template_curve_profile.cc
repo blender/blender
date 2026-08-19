@@ -543,7 +543,7 @@ void template_curve_profile(Layout *layout, PointerRNA *ptr, const StringRefNull
   }
 
   PointerRNA cptr = RNA_property_pointer_get(ptr, prop);
-  if (!cptr.data || !RNA_struct_is_a(cptr.type, RNA_CurveProfile)) {
+  if (!cptr || !RNA_struct_is_a(cptr.type, RNA_CurveProfile)) {
     return;
   }
 

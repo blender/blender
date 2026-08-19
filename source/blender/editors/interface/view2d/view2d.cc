@@ -1907,14 +1907,23 @@ float view2d_scale_get_y(const View2D *v2d)
 {
   return BLI_rcti_size_y(&v2d->mask) / BLI_rctf_size_y(&v2d->cur);
 }
-void view2d_scale_get_inverse(const View2D *v2d, float *r_x, float *r_y)
+
+void view2d_pixel_size_get(const View2D *v2d, float *r_x, float *r_y)
 {
   if (r_x) {
-    *r_x = BLI_rctf_size_x(&v2d->cur) / BLI_rcti_size_x(&v2d->mask);
+    *r_x = view2d_pixel_size_get_x(v2d);
   }
   if (r_y) {
-    *r_y = BLI_rctf_size_y(&v2d->cur) / BLI_rcti_size_y(&v2d->mask);
+    *r_y = view2d_pixel_size_get_y(v2d);
   }
+}
+float view2d_pixel_size_get_x(const View2D *v2d)
+{
+  return BLI_rctf_size_x(&v2d->cur) / (BLI_rcti_size_x(&v2d->mask) + 1);
+}
+float view2d_pixel_size_get_y(const View2D *v2d)
+{
+  return BLI_rctf_size_y(&v2d->cur) / (BLI_rcti_size_y(&v2d->mask) + 1);
 }
 
 void view2d_center_get(const View2D *v2d, float *r_x, float *r_y)

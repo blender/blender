@@ -151,7 +151,7 @@ RNANodeIdentifier RNANodeQuery::construct_node_identifier(const PointerRNA *ptr,
                                                           RNAPointerSource source)
 {
   RNANodeIdentifier node_identifier;
-  if (ptr->type == nullptr) {
+  if (!ptr->has_type()) {
     return node_identifier;
   }
   /* Set default values for returns. */

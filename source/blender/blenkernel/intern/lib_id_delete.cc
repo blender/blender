@@ -135,7 +135,7 @@ static int id_free(Main *bmain, void *idv, int flag, const bool use_flag_from_id
   BLI_assert((flag & LIB_ID_FREE_NO_MAIN) != 0 || (flag & LIB_ID_FREE_NOT_ALLOCATED) == 0);
   BLI_assert((flag & LIB_ID_FREE_NO_MAIN) != 0 || (flag & LIB_ID_FREE_NO_USER_REFCOUNT) == 0);
 
-  const short type = GS(id->name);
+  const short type = id->id_type();
 
   if (bmain && (flag & LIB_ID_FREE_NO_DEG_TAG) == 0) {
     BLI_assert(bmain->is_locked_for_linking == false);
@@ -204,7 +204,7 @@ void BKE_id_free_ex(Main *bmain, void *idv, const int flag_orig, const bool use_
     BKE_layer_collection_resync_forbid(*bmain);
   }
 
-  const ID_Type id_type = GS(static_cast<ID *>(idv)->name);
+  const ID_Type id_type = static_cast<ID *>(idv)->id_type();
 
   int flag_final = id_free(bmain, idv, flag_orig, use_flag_from_idtag);
 
@@ -240,12 +240,12 @@ void BKE_id_free_us(Main *bmain, void *idv) /* test users */
    *     Otherwise, there is no real way to get rid of an object anymore -
    *     better handling of this is TODO.
    */
-  if ((GS(id->name) == ID_OB) && (id->us == 1) && !ID_IS_LINKED(id)) {
+  if ((id->id_type() == ID_OB) && (id->us == 1) && !ID_IS_LINKED(id)) {
     id_us_clear_real(id);
   }
 
   if (id->us == 0) {
-    const bool is_lib = GS(id->name) == ID_LI;
+    const bool is_lib = id->id_type() == ID_LI;
 
     BKE_libblock_unlink(bmain, id, false);
 
@@ -375,7 +375,7 @@ static size_t id_delete(Main *bmain, Set<ID *> &ids_to_delete, const BKEIDDelete
      * remapping code, depending on order in which these are handled). */
     id->us = ID_FAKE_USERS(id);
 
-    if (!has_deleted_library && GS(id->name) == ID_LI) {
+    if (!has_deleted_library && id->id_type() == ID_LI) {
       has_deleted_library = true;
     }
 

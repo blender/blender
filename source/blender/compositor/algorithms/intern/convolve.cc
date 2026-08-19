@@ -247,7 +247,7 @@ void convolve(Context &context,
   });
 
   Result output_cpu = context.create_result(input.type());
-  output_cpu.allocate_texture(input.domain(), true, ResultStorageType::CPU);
+  output_cpu.allocate_texture(input.domain(), true, ResultStorageType::CPUImage);
 
   /* Copy the result to the output. */
   threading::memory_bandwidth_bound_task(input.size_in_bytes(), [&]() {

@@ -243,6 +243,5 @@ ListBaseT<ImageFrameRange> ED_image_filesel_detect_sequences(StringRefNull blend
                                                              bool detect_udim);
 
 bool ED_image_tools_paint_poll(bContext *C);
-void ED_paint_cursor_start(Paint *paint, bool (*poll)(bContext *C));
 
 }  // namespace blender

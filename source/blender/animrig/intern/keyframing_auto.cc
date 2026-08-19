@@ -328,7 +328,7 @@ bool autokeyframe_property(bContext *C,
 
       const std::optional<std::string> group = (fcu && fcu->grp) ? std::optional(fcu->grp->name) :
                                                                    std::nullopt;
-      const std::string path = fcu ? fcu->rna_path :
+      const std::string path = fcu ? std::string(fcu->rna_path()) :
                                      RNA_path_from_ID_to_property(ptr, prop).value_or("");
       /* NOTE: `rnaindex == -1` is a magic number, meaning either "operate on
        * all elements" or "not an array property". */

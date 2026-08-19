@@ -83,7 +83,7 @@ static PointerRNA rna_Palette_active_color_get(PointerRNA *ptr)
     return RNA_pointer_create_with_parent(*ptr, RNA_PaletteColor, color);
   }
 
-  return PointerRNA_NULL;
+  return {};
 }
 
 static void rna_Palette_active_color_set(PointerRNA *ptr,

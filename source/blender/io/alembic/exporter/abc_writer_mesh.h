@@ -64,7 +64,6 @@ class ABCGenericMeshWriter : public ABCAbstractWriter {
   template<typename Schema> void write_face_sets(Object *object, Mesh *mesh, Schema &schema);
 
   void write_arb_geo_params(Mesh *mesh);
-  bool get_velocities(Mesh *mesh, std::vector<Imath::V3f> &vels);
   void get_geo_groups(Object *object,
                       Mesh *mesh,
                       std::map<std::string, std::vector<int32_t>> &geo_groups);

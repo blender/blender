@@ -357,6 +357,26 @@ class GHOST_IWindow {
   virtual uint16_t getDPIHint() = 0;
 
   /**
+   * True when the window's frame-buffer has an alpha channel the compositor blends against the
+   * desktop. Only requested for client-side-decorations (see `WITH_GHOST_CSD`) and only true when
+   * the driver supports it; callers must handle this returning false.
+   */
+  virtual bool hasAlpha() const
+  {
+    return false;
+  }
+
+  /**
+   * Returns which of the window's edges the compositor has tiled, as a bit-mask of
+   * #GHOST_TWindowTiledFlag. Zero when the window is free floating, or on backends that
+   * don't report tiling.
+   */
+  virtual GHOST_TWindowTiledFlag getTiledEdges() const
+  {
+    return GHOST_kWindowTiledNone;
+  }
+
+  /**
    * Returns high dynamic range color information about this window.
    * \return HDR info.
    * */

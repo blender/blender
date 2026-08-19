@@ -59,6 +59,7 @@ class MTLBackend : public GPUBackend {
   Context *context_alloc(GHOST_IWindow *ghost_window, GHOST_IContext *ghost_context) override;
   Batch *batch_alloc() override;
   Fence *fence_alloc() override;
+  WorkInFlight *work_in_flight_alloc(unsigned int max_in_flight) override;
   FrameBuffer *framebuffer_alloc(const char *name) override;
   IndexBuf *indexbuf_alloc() override;
   PixelBuffer *pixelbuf_alloc(size_t size) override;

@@ -14,9 +14,9 @@
 #include "DNA_vec_types.h"
 #include "DNA_view3d_types.h"
 
+#include "BKE_camera.h"
 #include "BKE_compositor.hh"
 #include "BKE_node.hh"
-#include "BKE_node_runtime.hh"
 
 #include "DEG_depsgraph_query.hh"
 
@@ -30,7 +30,7 @@
 #include "COM_node_group_operation.hh"
 #include "COM_realize_on_domain_operation.hh"
 #include "COM_result.hh"
-#include "COM_scheduler.hh"
+#include "COM_scene_compositor_effects_operation.hh"
 #include "COM_utilities.hh"
 
 #include "GPU_context.hh"
@@ -62,8 +62,7 @@ class Context : public compositor::Context {
         main_(main),
         scene_(scene),
         info_message_(info_message),
-        active_compute_context_hash_(bke::compositor::compute_active_compute_context_hash(
-            *scene, *scene->compositing_node_group))
+        active_compute_context_hash_(bke::compositor::compute_active_compute_context_hash(*scene))
   {
     this->set_info_message("");
   }
@@ -79,6 +78,11 @@ class Context : public compositor::Context {
   }
 
   bool use_gpu() const override
+  {
+    return true;
+  }
+
+  bool is_viewport() const override
   {
     return true;
   }
@@ -101,16 +105,15 @@ class Context : public compositor::Context {
       return compositor::Domain(int2(draw_ctx->viewport_size_get()));
     }
 
-    rctf camera_border;
-    ED_view3d_calc_camera_border(draw_ctx->scene,
-                                 draw_ctx->depsgraph,
-                                 draw_ctx->region,
-                                 draw_ctx->v3d,
-                                 draw_ctx->rv3d,
-                                 false,
-                                 true,
-                                 &camera_border);
-
+    const rctf camera_border = BKE_camera_view_border(draw_ctx->scene,
+                                                      draw_ctx->depsgraph,
+                                                      draw_ctx->v3d,
+                                                      draw_ctx->rv3d,
+                                                      draw_ctx->region->winx,
+                                                      draw_ctx->region->winy,
+                                                      false,
+                                                      false,
+                                                      true);
     const Bounds<int2> camera_region = Bounds<int2>(
         int2(int(camera_border.xmin), int(camera_border.ymin)),
         int2(int(camera_border.xmax), int(camera_border.ymax)));
@@ -137,16 +140,15 @@ class Context : public compositor::Context {
       return render_region;
     }
 
-    rctf camera_border;
-    ED_view3d_calc_camera_border(draw_ctx->scene,
-                                 draw_ctx->depsgraph,
-                                 draw_ctx->region,
-                                 draw_ctx->v3d,
-                                 draw_ctx->rv3d,
-                                 false,
-                                 true,
-                                 &camera_border);
-
+    const rctf camera_border = BKE_camera_view_border(draw_ctx->scene,
+                                                      draw_ctx->depsgraph,
+                                                      draw_ctx->v3d,
+                                                      draw_ctx->rv3d,
+                                                      draw_ctx->region->winx,
+                                                      draw_ctx->region->winy,
+                                                      false,
+                                                      false,
+                                                      true);
     const Bounds<int2> camera_region = Bounds<int2>(
         int2(int(camera_border.xmin), int(camera_border.ymin)),
         int2(int(camera_border.xmax), int(camera_border.ymax)));
@@ -335,72 +337,33 @@ class Context : public compositor::Context {
 
   void evaluate()
   {
-    using namespace compositor;
-    const NodeGroupOutputTypes needed_outputs = this->needed_outputs();
-    const bNodeTree &node_group = *DRW_context_get()->scene->compositing_node_group;
-    const bke::DataBlockComputeContext base_compute_context(nullptr, this->get_scene().id);
-    NodeGroupOperation node_group_operation(
-        *this, node_group, needed_outputs, base_compute_context);
+    const compositor::NodeGroupOutputTypes needed_outputs = this->needed_outputs();
+    compositor::SceneCompositorEffectsOperation operation =
+        compositor::SceneCompositorEffectsOperation(*this, needed_outputs);
 
-    /* If the node group has no viewer node in the active context or the base context, and the
-     * context requires a viewer output, we use the group output as a viewer. */
-    const bool has_viewer =
-        has_viewer_node(node_group, base_compute_context, base_compute_context.hash()) ||
-        has_viewer_node(node_group, base_compute_context, this->get_active_compute_context_hash());
-    const bool needs_viewer_output = flag_is_set(needed_outputs, NodeGroupOutputTypes::ViewerNode);
-    const bool use_group_output_as_viewer = (!has_viewer && needs_viewer_output);
+    const int active_view_layer_index = BLI_findstringindex(
+        &scene_->view_layers, DRW_context_get()->view_layer->name, offsetof(ViewLayer, name));
+    compositor::Result combined_pass = this->get_pass(
+        scene_, active_view_layer_index, RE_PASSNAME_COMBINED);
+    operation.map_input_to_result(&combined_pass);
+    operation.evaluate();
 
-    const bool is_group_output_needed = use_group_output_as_viewer;
-
-    /* Set the reference count for the outputs, only the first color output is actually needed,
-     * while the rest are ignored. */
-    node_group.ensure_interface_cache();
-    for (const bNodeTreeInterfaceSocket *output_socket : node_group.interface_outputs()) {
-      const bool is_first_output = output_socket == node_group.interface_outputs().first();
-      Result &output_result = node_group_operation.get_result(output_socket->identifier);
-      const bool is_color = output_result.type() == ResultType::Color;
-      const bool is_needed = is_group_output_needed && is_first_output && is_color;
-      output_result.set_reference_count(is_needed ? 1 : 0);
+    if (!operation.has_output()) {
+      operation.free_results();
+      return;
     }
 
-    /* Map the inputs to the operation. */
-    Vector<std::unique_ptr<Result>> inputs;
-    for (const bNodeTreeInterfaceSocket *input_socket : node_group.interface_inputs()) {
-      Result *input_result = new Result(
-          this->create_result(ResultType::Color, ResultPrecision::Half));
-      if (input_socket == node_group.interface_inputs()[0]) {
-        /* First socket is the viewport combined pass. */
-        const int active_view_layer_index = BLI_findstringindex(
-            &scene_->view_layers, DRW_context_get()->view_layer->name, offsetof(ViewLayer, name));
-        Result combined_pass = this->get_pass(
-            scene_, active_view_layer_index, RE_PASSNAME_COMBINED);
-        input_result->share_data(combined_pass);
-        combined_pass.release();
-      }
-      else {
-        /* The rest of the sockets are not supported. */
-        input_result->allocate_invalid();
-      }
+    compositor::Result &output_result = operation.get_result();
 
-      node_group_operation.map_input_to_result(input_socket->identifier, input_result);
-      inputs.append(std::unique_ptr<Result>(input_result));
+    /* If the operation does not have a viewer output but one is needed, write the output as a
+     * viewer. */
+    const bool needs_viewer_output = flag_is_set(needed_outputs,
+                                                 compositor::NodeGroupOutputTypes::ViewerNode);
+    if (!operation.has_viewer_output() && needs_viewer_output) {
+      this->write_viewer(output_result);
     }
 
-    node_group_operation.evaluate();
-
-    /* Write the outputs of the operation. */
-    for (const bNodeTreeInterfaceSocket *output_socket : node_group.interface_outputs()) {
-      Result &output_result = node_group_operation.get_result(output_socket->identifier);
-      if (!output_result.should_compute()) {
-        continue;
-      }
-
-      if (use_group_output_as_viewer) {
-        this->write_viewer(output_result);
-      }
-
-      output_result.release();
-    }
+    output_result.release();
   }
 };
 

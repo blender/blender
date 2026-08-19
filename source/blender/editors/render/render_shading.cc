@@ -2806,7 +2806,7 @@ static int paste_material_nodetree_ids_relink_or_clear(LibraryIDLinkCallbackData
     if (cb_data->cb_flag & IDWALK_CB_USER) {
       id_us_min(*id_p);
     }
-    ListBaseT<ID> *lb = which_libbase(bmain, GS((*id_p)->name));
+    ListBaseT<ID> *lb = which_libbase(bmain, (*id_p)->id_type());
     ID *id_local = static_cast<ID *>(
         BLI_findstring(lb, (*id_p)->name + 2, offsetof(ID, name) + 2));
     *id_p = id_local;
@@ -3001,7 +3001,7 @@ static void copy_mtex_copybuf(ID *id)
 {
   MTex **mtex = nullptr;
 
-  switch (GS(id->name)) {
+  switch (id->id_type()) {
     case ID_PA:
       mtex = &(
           (id_cast<ParticleSettings *>(id))->mtex[int((id_cast<ParticleSettings *>(id))->texact)]);
@@ -3031,7 +3031,7 @@ static void paste_mtex_copybuf(ID *id)
     return;
   }
 
-  switch (GS(id->name)) {
+  switch (id->id_type()) {
     case ID_PA:
       mtex = &(
           (id_cast<ParticleSettings *>(id))->mtex[int((id_cast<ParticleSettings *>(id))->texact)]);

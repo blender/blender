@@ -10,6 +10,7 @@
 #include <cstdlib>
 #include <cstring>
 
+#include "BKE_compositor.hh"
 #include "MEM_guardedalloc.h"
 
 #include "BLI_listbase.hh"
@@ -21,6 +22,7 @@
 #include "DNA_object_types.h"
 
 #include "BKE_camera.h"
+#include "BKE_compositor.hh"
 #include "BKE_global.hh"
 #include "BKE_node.hh"
 #include "BKE_report.hh"
@@ -866,7 +868,11 @@ static bool possibly_using_gpu_compositor(const Render *re)
   /* Note a secondary Render instance from a Render Layers node has a null pipeline scene,
    * but no compositing is performed for it so we can return false. */
   const Scene *scene = re->pipeline_scene_eval;
-  return scene && scene->compositing_node_group && (scene->r.scemode & R_DOCOMP);
+  if (!scene) {
+    return false;
+  }
+
+  return bke::compositor::is_enabled(*scene, bke::compositor::ExecutionMode::Render);
 }
 
 static void engine_render_view_layer(Render *re,
@@ -1447,23 +1453,45 @@ void RE_engine_gpu_context_unlock(RenderEngine *engine)
   }
 }
 
-void RE_engine_view_pause(RenderEngine *engine, const bContext *context)
+void RE_engine_view_pause_set(RenderEngine *engine, const bool pause)
 {
-  if (engine->type->view_pause) {
-    engine->type->view_pause(engine, context);
-    engine->auto_paused = true;
-  }
+  SET_FLAG_FROM_TEST(engine->flag, pause, RE_ENGINE_VIEW_PAUSED);
 }
 
-void RE_engine_view_resume(RenderEngine *engine, const bContext *context)
+bool RE_engine_view_pause_get(const RenderEngine *engine)
 {
-  if (!engine->auto_paused) {
-    return;
+  return (engine->flag & RE_ENGINE_VIEW_PAUSED) != 0;
+}
+
+void RE_engine_view_auto_pause_set(RenderEngine *engine, const bool pause)
+{
+  SET_FLAG_FROM_TEST(engine->flag, pause, RE_ENGINE_VIEW_PAUSED_AUTO);
+}
+
+bool RE_engine_view_pause_notify(RenderEngine *engine, const bContext *context)
+{
+  const bool is_paused = (engine->flag & (RE_ENGINE_VIEW_PAUSED | RE_ENGINE_VIEW_PAUSED_AUTO)) !=
+                         0;
+  const bool was_paused = (engine->flag & RE_ENGINE_VIEW_PAUSED_NOTIFIED) != 0;
+
+  if (is_paused == was_paused) {
+    return false;
   }
-  if (engine->type->view_resume) {
-    engine->type->view_resume(engine, context);
+
+  SET_FLAG_FROM_TEST(engine->flag, is_paused, RE_ENGINE_VIEW_PAUSED_NOTIFIED);
+
+  if (is_paused) {
+    if (engine->type->view_pause) {
+      engine->type->view_pause(engine, context);
+    }
   }
-  engine->auto_paused = false;
+  else {
+    if (engine->type->view_resume) {
+      engine->type->view_resume(engine, context);
+    }
+  }
+
+  return true;
 }
 
 /** \} */

@@ -417,7 +417,7 @@ static bool edit_shaderfx_invoke_properties(bContext *C,
   }
 
   PointerRNA ctx_ptr = CTX_data_pointer_get_type(C, "shaderfx", RNA_ShaderFx);
-  if (ctx_ptr.data != nullptr) {
+  if (ctx_ptr) {
     ShaderFxData *fx = static_cast<ShaderFxData *>(ctx_ptr.data);
     RNA_string_set(op->ptr, "shaderfx", fx->name);
     return true;
@@ -433,7 +433,7 @@ static bool edit_shaderfx_invoke_properties(bContext *C,
   /* Check the custom data of panels under the mouse for an effect. */
   PointerRNA *panel_ptr = ui::region_panel_custom_data_under_cursor(C, event);
 
-  if (panel_ptr == nullptr || RNA_pointer_is_null(panel_ptr)) {
+  if (panel_ptr == nullptr || !*panel_ptr) {
     /* The operators using this function can typically be called from UIs that aren't related to
      * the ShaderFx UI at all. So include #OPERATOR_PASS_THROUGH to not block events from reaching
      * other operators/handlers. */

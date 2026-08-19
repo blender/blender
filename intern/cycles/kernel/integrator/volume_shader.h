@@ -434,7 +434,7 @@ ccl_device_inline void volume_shader_motion_blur(KernelGlobals kg,
 
 /* Volume Evaluation */
 
-template<const bool shadow, const uint node_feature_mask, typename ConstIntegratorGenericState>
+template<const bool shadow, const uint64_t node_feature_mask, typename ConstIntegratorGenericState>
 ccl_device_inline bool volume_shader_eval_entry(KernelGlobals kg,
                                                 ConstIntegratorGenericState state,
                                                 ccl_private ShaderData *ccl_restrict sd,

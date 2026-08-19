@@ -33,7 +33,7 @@ static void gesture_begin(bContext &C, wmOperator &op, gesture::GestureData &ges
 {
   const Scene &scene = *CTX_data_scene(&C);
   Depsgraph *depsgraph = CTX_data_depsgraph_pointer(&C);
-  BKE_sculpt_update_object_for_edit(depsgraph, gesture_data.vc.obact, false);
+  BKE_sculptsession_update_for_edit(depsgraph, gesture_data.vc.obact, false);
   undo::push_begin(scene, *gesture_data.vc.obact, &op);
 }
 

@@ -206,6 +206,11 @@ class Instance : public DrawEngine {
     return "External";
   }
 
+  bool uses_render_border() const final
+  {
+    return true;
+  }
+
   void init() final
   {
     draw_ctx = DRW_context_get();
@@ -251,6 +256,11 @@ class Instance : public DrawEngine {
 
       rv3d->view_render = RE_NewViewRender(engine_type);
       render_engine = RE_view_engine_get(rv3d->view_render);
+
+      if (ScrArea *area = CTX_wm_area(draw_ctx->evil_C)) {
+        ED_area_tag_redraw_regiontype(area, RGN_TYPE_HEADER);
+      }
+
       engine_type->view_update(render_engine, draw_ctx->evil_C, draw_ctx->depsgraph);
     }
     else {

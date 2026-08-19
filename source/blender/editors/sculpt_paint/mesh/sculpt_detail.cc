@@ -221,7 +221,7 @@ static bool sample_detail_voxel(bContext *C, ViewContext *vc, const int mval[2])
   if (!cursor_geometry_info_update(C, mval_fl, false)) {
     return false;
   }
-  BKE_sculpt_update_object_for_edit(depsgraph, &ob, false);
+  BKE_sculptsession_update_for_edit(depsgraph, &ob, false);
 
   /* Average the edge length of the connected edges to the active vertex. */
   const int active_vert = std::get<int>(ss.active_vert());

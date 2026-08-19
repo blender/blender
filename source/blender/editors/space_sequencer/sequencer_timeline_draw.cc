@@ -125,8 +125,8 @@ static TimelineDrawContext timeline_draw_context_get(const bContext *C, SeqQuads
   ctx.viewport = WM_draw_region_get_viewport(ctx.region);
   ctx.framebuffer_overlay = GPU_viewport_framebuffer_overlay_get(ctx.viewport);
 
-  ctx.pixely = BLI_rctf_size_y(&ctx.v2d->cur) / (BLI_rcti_size_y(&ctx.v2d->mask) + 1);
-  ctx.pixelx = BLI_rctf_size_x(&ctx.v2d->cur) / (BLI_rcti_size_x(&ctx.v2d->mask) + 1);
+  ctx.pixelx = ui::view2d_pixel_size_get_x(ctx.v2d);
+  ctx.pixely = ui::view2d_pixel_size_get_y(ctx.v2d);
 
   ctx.retiming_selection = seq::retiming_selection_get(ctx.ed);
 
@@ -974,7 +974,7 @@ static void draw_strip_icons(const TimelineDrawContext &ctx,
       if (missing_media) {
         rect.xmax = min_ff(strip.right_handle - strip.handle_width,
                            rect.xmin + icon_size_x + icon_spacing);
-        draw_icon_centered(ctx, rect, ICON_STATUS_WARNING_FILLED, col);
+        draw_icon_centered(ctx, rect, ICON_STATUS_ERROR_FILLED, col);
         rect.xmin = rect.xmax;
       }
       if (is_connected) {
@@ -1002,7 +1002,7 @@ static void draw_strip_icons(const TimelineDrawContext &ctx,
         draw_icon_centered(ctx, rect, ICON_LIBRARY_DATA_BROKEN, col);
       }
       if (missing_media) {
-        draw_icon_centered(ctx, rect, ICON_STATUS_ERROR, col);
+        draw_icon_centered(ctx, rect, ICON_STATUS_ERROR_FILLED, col);
       }
     }
   }
@@ -1328,7 +1328,7 @@ static void draw_strips_background(const TimelineDrawContext &ctx,
     /* Darker color band for thumbnail strips. */
     if (show_overlay && seq::strip_can_have_thumbnail(scene, strip.strip) && show_thumbnails) {
       /* The more negative the offset, darker the color. */
-      const int color_offset = -20;
+      const int color_offset = -15;
       uchar col_in[3] = {col[0], col[1], col[2]};
       uchar col_out[3];
 
@@ -1338,7 +1338,7 @@ static void draw_strips_background(const TimelineDrawContext &ctx,
       col[1] = col_out[1];
       col[2] = col_out[2];
 
-      data.flags |= GPU_SEQ_FLAG_COLOR_BAND;
+      data.flags |= GPU_SEQ_FLAG_THUMBNAILS_BACKGROUND;
       data.col_color_band = color_pack(col);
     }
 

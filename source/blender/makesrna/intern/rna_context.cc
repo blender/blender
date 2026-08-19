@@ -124,7 +124,7 @@ static PointerRNA rna_Context_region_data_get(PointerRNA *ptr)
     return newptr;
   }
 
-  return PointerRNA_NULL;
+  return {};
 }
 
 static PointerRNA rna_Context_region_popup_get(PointerRNA *ptr)

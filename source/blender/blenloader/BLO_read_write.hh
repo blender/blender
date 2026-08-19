@@ -299,6 +299,11 @@ struct BLO_Write_IDBuffer {
 /* Misc. */
 
 /**
+ * \note Should not be strictly needed outside of handling external Multires .btx files.
+ */
+StringRefNull BLO_write_filepath(const BlendWriter *writer);
+
+/**
  * Check if the data can be written more efficiently by making use of implicit-sharing. If yes, the
  * user count of the sharing-info is increased making the data immutable. The provided callback
  * should serialize the potentially shared data. It is only called when necessary.

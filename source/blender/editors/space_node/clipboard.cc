@@ -211,7 +211,7 @@ static wmOperatorStatus node_clipboard_copy_exec(bContext *C, wmOperator *op)
     auto partial_write_dependencies_filter_cb = [](LibraryIDLinkCallbackData *cb_deps_data,
                                                    PartialWriteContext::IDAddOptions /*options*/) {
       ID *id_deps_src = *cb_deps_data->id_pointer;
-      const ID_Type id_type = GS((id_deps_src)->name);
+      const ID_Type id_type = id_deps_src->id_type();
       if (id_type == ID_SCE) {
         /* Note: Scenes referenced in the Render Layers node are cleared. At this stage, we
          * don't know if the target blender instance will have a scene with identical name, so

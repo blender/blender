@@ -1520,7 +1520,7 @@ static void maskrasterize_layer_init_cdt(MaskRasterHandle *mr_handle,
     cdt_in.face_offsets = cdt_face_offsets.as_span();
     cdt_in.face_vert_indices = cdt_face_vert_indices.as_span();
     cdt_in.epsilon = 1e-8;
-    cdt_in.need_ids = has_feather;
+    cdt_in.needed_ids = has_feather ? CDT_ORIG_VERTS : CDT_NO_ORIG_IDS;
 
     CDT_output_type cdt_type = (masklay->flag & MASK_LAYERFLAG_FILL_DISCRETE) ?
                                    CDT_INSIDE :

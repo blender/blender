@@ -43,6 +43,7 @@ void view3d_operatortypes();
 /* `view3d_edit.cc` */
 
 void VIEW3D_OT_zoom_camera_1_to_1(wmOperatorType *ot);
+void VIEW3D_OT_view_roll_set(wmOperatorType *ot);
 void VIEW3D_OT_view_lock_clear(wmOperatorType *ot);
 void VIEW3D_OT_view_lock_to_active(wmOperatorType *ot);
 void VIEW3D_OT_view_center_camera(wmOperatorType *ot);

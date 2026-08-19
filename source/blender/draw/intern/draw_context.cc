@@ -27,6 +27,8 @@
 
 #include "BLT_translation.hh"
 
+#include "BKE_camera.h"
+#include "BKE_compositor.hh"
 #include "BKE_context.hh"
 #include "BKE_curve.hh"
 #include "BKE_curves.h"
@@ -66,6 +68,7 @@
 
 #include "GPU_capabilities.hh"
 #include "GPU_framebuffer.hh"
+#include "GPU_immediate.hh"
 #include "GPU_matrix.hh"
 #include "GPU_platform.hh"
 #include "GPU_shader_shared.hh"
@@ -669,8 +672,8 @@ namespace draw {
 static bool supports_handle_ranges(DupliObject *dupli, Object *parent, const DRWContext &draw_ctx)
 {
   int ob_type = dupli->ob_data ? BKE_object_obdata_to_type(dupli->ob_data) : OB_EMPTY;
-  if (!ELEM(ob_type, OB_MESH, OB_CURVES_LEGACY, OB_SURF, OB_FONT, OB_POINTCLOUD, OB_GREASE_PENCIL))
-  {
+  if (!ELEM(ob_type, OB_MESH, OB_CURVES_LEGACY, OB_SURF, OB_FONT, OB_POINTCLOUD)) {
+    /* TODO: Add Grease Pencil support. */
     return false;
   }
 
@@ -698,11 +701,6 @@ static bool supports_handle_ranges(DupliObject *dupli, Object *parent, const DRW
     }
     /* Smoke drawing doesn't support handle ranges. */
     return !BKE_modifiers_findby_type(ob, eModifierType_Fluid);
-  }
-
-  if (ob_type == OB_GREASE_PENCIL) {
-    GreasePencil *grease_pencil = reinterpret_cast<GreasePencil *>(dupli->ob_data);
-    return grease_pencil->flag & GREASE_PENCIL_STROKE_ORDER_3D;
   }
 
   return true;
@@ -1102,11 +1100,127 @@ void DRWContext::engines_init_and_sync(iter_callback_t iter_callback)
   last_sync_time_ = float(BLI_time_now_seconds() - start_time);
 }
 
+/**
+ * The render border is relative to the camera frame, which is rotated on screen when the camera
+ * view is rolled. Engines can only render an axis aligned region, so they render the expanded
+ * bounds of the rotated border. This masks out the pixels outside the border.
+ */
+static void drw_render_border_mask(const DRWContext &ctx)
+{
+  const View3D *v3d = ctx.v3d;
+  const RegionView3D *rv3d = ctx.rv3d;
+
+  /* Check if we need to do any render border masking. */
+  if (v3d == nullptr || rv3d == nullptr || rv3d->persp != RV3D_CAMOB || rv3d->camroll == 0.0f) {
+    return;
+  }
+
+  bool uses_render_border = false;
+  ctx.view_data_active->foreach_enabled_engine(
+      [&](DrawEngine &instance) { uses_render_border |= instance.uses_render_border(); });
+  if (!uses_render_border) {
+    return;
+  }
+
+  rctf border, unrolled_border;
+  if (!BKE_camera_view_render_border(ctx.scene,
+                                     ctx.depsgraph,
+                                     v3d,
+                                     rv3d,
+                                     int(ctx.size.x),
+                                     int(ctx.size.y),
+                                     &border,
+                                     &unrolled_border))
+  {
+    return;
+  }
+
+  /* Compute corners of the render border. */
+  const float2 pivot = ctx.size * 0.5f;
+  const float2x2 roll = math::from_rotation<float2x2>(math::AngleRadian(rv3d->camroll));
+  const float2 corner[4] = {
+      pivot + roll * (float2(unrolled_border.xmin, unrolled_border.ymin) - pivot),
+      pivot + roll * (float2(unrolled_border.xmax, unrolled_border.ymin) - pivot),
+      pivot + roll * (float2(unrolled_border.xmax, unrolled_border.ymax) - pivot),
+      pivot + roll * (float2(unrolled_border.xmin, unrolled_border.ymax) - pivot),
+  };
+
+  GPU_debug_group_begin("RenderBorderMask");
+
+  gpu::FrameBuffer *previous_fb = GPU_framebuffer_active_get();
+
+  DefaultFramebufferList *dfbl = ctx.viewport_framebuffer_list_get();
+  GPU_framebuffer_viewport_reset(dfbl->default_fb);
+  GPU_framebuffer_bind(dfbl->default_fb);
+
+  GPU_matrix_push_projection();
+  GPU_matrix_push();
+  GPU_matrix_identity_set();
+  GPU_matrix_ortho_set(0.0f, ctx.size.x, 0.0f, ctx.size.y, -1.0f, 1.0f);
+
+  /* Replace the RGBA and depth pixels without blending. */
+  GPU_blend(GPU_BLEND_NONE);
+  GPU_depth_test(GPU_DEPTH_ALWAYS);
+  GPU_depth_mask(true);
+  GPU_color_mask(true, true, true, true);
+
+  /* Scissor set to the expanded render border bounds. */
+  rcti scissor;
+  const rcti viewport_rect = {0, int(ctx.size.x), 0, int(ctx.size.y)};
+  BLI_rcti_rctf_copy_floor(&scissor, &border);
+  BLI_rcti_isect(&scissor, &viewport_rect, &scissor);
+  GPU_scissor_test(true);
+  GPU_scissor(scissor.xmin, scissor.ymin, BLI_rcti_size_x(&scissor), BLI_rcti_size_y(&scissor));
+
+  GPU_apply_state();
+
+  uint pos = GPU_vertformat_attr_add(immVertexFormat(), "pos", gpu::VertAttrType::SFLOAT_32_32_32);
+  immBindBuiltinProgram(GPU_SHADER_3D_UNIFORM_COLOR);
+  immUniformColor4f(0.0f, 0.0f, 0.0f, 0.0f);
+
+  /* Draw 4 quads to mask out the area outside the rotated border. */
+  const float extend = 2.0f * (ctx.size.x + ctx.size.y);
+  /* View space forward is -Z, and we have set the far plane at unit length. */
+  const float far_z = -1.0f;
+
+  immBegin(GPU_PRIM_TRIS, 6 * 4);
+  for (const int i : IndexRange(4)) {
+    const float2 v0 = corner[i];
+    const float2 v1 = corner[(i + 1) % 4];
+    const float2 tangent = math::normalize(v1 - v0);
+    const float2 normal = float2(tangent.y, -tangent.x);
+    const float2 quad[4] = {
+        v0 - tangent * extend,
+        v1 + tangent * extend,
+        v1 + tangent * extend + normal * extend,
+        v0 - tangent * extend + normal * extend,
+    };
+    for (const int j : {0, 1, 2, 0, 2, 3}) {
+      immVertex3f(pos, quad[j].x, quad[j].y, far_z);
+    }
+  }
+  immEnd();
+
+  immUnbindProgram();
+
+  GPU_scissor_test(false);
+
+  GPU_matrix_pop();
+  GPU_matrix_pop_projection();
+
+  draw::command::StateSet::set();
+  GPU_framebuffer_bind(previous_fb);
+
+  GPU_debug_group_end();
+}
+
 void DRWContext::engines_draw_scene()
 {
   double start_time = BLI_time_now_seconds();
   /* Start Drawing */
   draw::command::StateSet::set();
+
+  bool render_border_masked = false;
 
   view_data_active->foreach_enabled_engine([&](DrawEngine &instance) {
 #ifdef __APPLE__
@@ -1115,10 +1229,21 @@ void DRWContext::engines_draw_scene()
       GPU_flush();
     }
 #endif
+
+    if (&instance == view_data_active->overlay.instance && this->mode == DRWContext::VIEWPORT) {
+      /* Mask the render result before the overlay engine. */
+      drw_render_border_mask(*this);
+      render_border_masked = true;
+    }
+
     GPU_debug_group_begin(instance.name_get().c_str());
     instance.draw(*DRW_manager_get());
     GPU_debug_group_end();
   });
+
+  if (!render_border_masked && this->mode == DRWContext::VIEWPORT) {
+    drw_render_border_mask(*this);
+  }
 
   /* Reset state after drawing */
   draw::command::StateSet::set();
@@ -1224,7 +1349,7 @@ void DRWContext::enable_engines(bool gpencil_engine_needed, RenderEngineType *re
       view_data.grease_pencil.set_used(gpencil_engine_needed);
     }
 
-    view_data.compositor.set_used(is_viewport_compositor_enabled());
+    view_data.compositor.set_used(is_viewport_compositor_used());
 
     view_data.overlay.set_used(true);
 
@@ -1736,7 +1861,7 @@ static bool depsgraph_contains_visible_grease_pencil_geometry(Depsgraph *depsgra
     if (found) {
       return;
     }
-    if (GS(id_eval->name) == ID_OB) {
+    if (id_eval->id_type() == ID_OB) {
       const Object *ob = reinterpret_cast<const Object *>(id_eval);
       const bool is_self_visible = BKE_object_visibility(ob, DAG_EVAL_RENDER) & OB_VISIBLE_SELF;
       const bool contains_grease_pencil_geometry =
@@ -2249,35 +2374,14 @@ bool DRWContext::is_transforming() const
   return (G.moving & (G_TRANSFORM_OBJ | G_TRANSFORM_EDIT)) != 0;
 }
 
-bool DRWContext::is_viewport_compositor_enabled() const
+bool DRWContext::is_viewport_compositor_used() const
 {
-  if (!this->v3d) {
+  if (!this->v3d || !this->rv3d) {
     return false;
   }
 
-  if (this->v3d->shading.use_compositor == V3D_SHADING_USE_COMPOSITOR_DISABLED) {
-    return false;
-  }
-
-  if (!(this->v3d->shading.type >= OB_MATERIAL)) {
-    return false;
-  }
-
-  if (!this->scene->compositing_node_group) {
-    return false;
-  }
-
-  if (!this->rv3d) {
-    return false;
-  }
-
-  if (this->v3d->shading.use_compositor == V3D_SHADING_USE_COMPOSITOR_CAMERA &&
-      this->rv3d->persp != RV3D_CAMOB)
-  {
-    return false;
-  }
-
-  return true;
+  return bke::compositor::is_viewport_compositor_enabled(*this->v3d, *this->rv3d) &&
+         bke::compositor::is_enabled(*this->scene, bke::compositor::ExecutionMode::Preview);
 }
 
 /** \} */

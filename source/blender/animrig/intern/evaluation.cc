@@ -94,7 +94,7 @@ void evaluate_and_apply_action(PointerRNA &animated_id_ptr,
 /* Copy of the same-named function in anim_sys.cc, with the check on action groups removed. */
 static bool is_fcurve_evaluatable(const FCurve *fcu)
 {
-  if (fcu->rna_path == nullptr) {
+  if (fcu->rna_path().is_empty()) {
     return false;
   }
 
@@ -130,7 +130,7 @@ static void animsys_construct_orig_pointer_rna(const PointerRNA *ptr, PointerRNA
 
 /* Copy of the same-named function in anim_sys.cc. */
 static void animsys_write_orig_anim_rna(PointerRNA *ptr,
-                                        const char *rna_path,
+                                        const ParsedRNAPathRef rna_path,
                                         const int array_index,
                                         const float value)
 {
@@ -171,7 +171,7 @@ static EvaluationResult evaluate_keyframe_data(PointerRNA &animated_id_ptr,
        * and store the result for later. */
       PathResolvedRNA &anim_rna = resolved_rna[i];
       if (!BKE_animsys_rna_path_resolve(
-              &animated_id_ptr, fcu->rna_path, fcu->array_index, &anim_rna))
+              &animated_id_ptr, fcu->rna_path_parsed(), fcu->array_index, &anim_rna))
       {
         continue;
       }
@@ -188,10 +188,11 @@ static EvaluationResult evaluate_keyframe_data(PointerRNA &animated_id_ptr,
     if (!valid[i]) {
       continue;
     }
-    FCurve *fcu = fcurves[i];
-    PathResolvedRNA &anim_rna = resolved_rna[i];
     /* This part is not threadsafe. */
-    evaluation_result.store(fcu->rna_path, fcu->array_index, results[i], anim_rna);
+    evaluation_result.store(fcurves[i]->rna_path_parsed(),
+                            fcurves[i]->array_index,
+                            results[i],
+                            std::move(resolved_rna[i]));
   }
 
   return evaluation_result;
@@ -213,7 +214,7 @@ void apply_evaluation_result(const EvaluationResult &evaluation_result,
       /* Convert the StringRef to a `const char *`, as the rest of the RNA path handling code in
        * BKE still uses `char *` instead of `StringRef`. */
       animsys_write_orig_anim_rna(
-          &animated_id_ptr, prop_ident.rna_path.c_str(), prop_ident.array_index, animated_value);
+          &animated_id_ptr, prop_ident.rna_path, prop_ident.array_index, animated_value);
     }
   }
 }

@@ -14,15 +14,14 @@
 #include "BKE_animsys.hh"
 
 #include "RNA_access.hh"
+#include "RNA_path.hh"
 #include "RNA_types.hh"
 
 #include "intern/depsgraph.hh"
 
 namespace blender::deg {
 
-AnimationValueBackup::AnimationValueBackup(const std::string &rna_path,
-                                           int array_index,
-                                           float value)
+AnimationValueBackup::AnimationValueBackup(ParsedRNAPath<> rna_path, int array_index, float value)
     : rna_path(rna_path), array_index(array_index), value(value)
 {
 }
@@ -47,7 +46,8 @@ void AnimationBackup::init_from_id(ID *id)
 
   PointerRNA id_pointer_rna = RNA_id_pointer_create(id);
   BKE_fcurves_id_cb(id, [&](ID *cb_id, FCurve *fcurve) {
-    if (fcurve->rna_path == nullptr || fcurve->rna_path[0] == '\0') {
+    const ParsedRNAPathRef rna_path = fcurve->rna_path_parsed();
+    if (rna_path.is_empty()) {
       return;
     }
     if (id != cb_id) {
@@ -57,7 +57,7 @@ void AnimationBackup::init_from_id(ID *id)
     /* Resolve path to the property. */
     PathResolvedRNA resolved_rna;
     if (!BKE_animsys_rna_path_resolve(
-            &id_pointer_rna, fcurve->rna_path, fcurve->array_index, &resolved_rna))
+            &id_pointer_rna, rna_path, fcurve->array_index, &resolved_rna))
     {
       return;
     }
@@ -68,7 +68,7 @@ void AnimationBackup::init_from_id(ID *id)
       return;
     }
 
-    this->values_backup.append({fcurve->rna_path, fcurve->array_index, value});
+    this->values_backup.append({rna_path, fcurve->array_index, value});
   });
 }
 
@@ -83,10 +83,8 @@ void AnimationBackup::restore_to_id(ID *id)
      * NOTE: Do it again (after storing), since the sub-data pointers might be
      * changed after copy-on-evaluation. */
     PathResolvedRNA resolved_rna;
-    if (!BKE_animsys_rna_path_resolve(&id_pointer_rna,
-                                      value_backup.rna_path.c_str(),
-                                      value_backup.array_index,
-                                      &resolved_rna))
+    if (!BKE_animsys_rna_path_resolve(
+            &id_pointer_rna, value_backup.rna_path, value_backup.array_index, &resolved_rna))
     {
       return;
     }

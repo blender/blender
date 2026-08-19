@@ -1495,8 +1495,6 @@ static void add_uv_island(const MeshData &mesh_data,
                           int16_t island_index)
 {
   PRF_scope(ProfileCategory::Editor);
-  const float resolution_x = float(tile.mask_resolution.x);
-  const float resolution_y = float(tile.mask_resolution.y);
   for (const int tri_i : tris) {
     const int3 &tri = mesh_data.corner_tris[tri_i];
 
@@ -1504,26 +1502,15 @@ static void add_uv_island(const MeshData &mesh_data,
     const float2 uv0 = mesh_data.uv_map[tri[0]];
     const float2 uv1 = mesh_data.uv_map[tri[1]];
     const float2 uv2 = mesh_data.uv_map[tri[2]];
-    const float2 resolution = {resolution_x, resolution_y};
-    const float2 p0 = (uv0 - tile.udim_offset) * resolution;
-    const float2 p1 = (uv1 - tile.udim_offset) * resolution;
-    const float2 p2 = (uv2 - tile.udim_offset) * resolution;
+    const float2 p0 = (uv0 - tile.udim_offset);
+    const float2 p1 = (uv1 - tile.udim_offset);
+    const float2 p2 = (uv2 - tile.udim_offset);
 
-    /* Compute bounds within tile. */
-    const float2 pmin = math::min(math::min(p0, p1), p2);
-    const float2 pmax = math::max(math::max(p0, p1), p2);
-    const int xmin = max_ii(int(floorf(pmin.x)), 0);
-    const int xmax = min_ii(int(ceilf(pmax.x)), tile.mask_resolution.x - 1);
-    const int ymin = max_ii(int(floorf(pmin.y)), 0);
-    const int ymax = min_ii(int(ceilf(pmax.y)), tile.mask_resolution.y - 1);
-    if (xmin > xmax || ymin > ymax) {
-      continue;
-    }
-
-    /* Rasterize. */
-    const TriRasterizer rasterizer(p0, p1, p2);
-    for (int y = ymin; y <= ymax; y++) {
-      for (int x = xmin; x <= xmax; x++) {
+    /* Rasterize within the bounds in the tile. */
+    const TriRasterizer rasterizer(p0, p1, p2, int2(tile.mask_resolution));
+    const Bounds<int2> bounds = rasterizer.bounds;
+    for (int y = bounds.min.y; y < bounds.max.y; y++) {
+      for (int x = bounds.min.x; x < bounds.max.x; x++) {
         if (rasterizer.inside(x, y)) {
           tile.mask[int64_t(tile.mask_resolution.x) * y + x] = island_index;
         }

@@ -138,6 +138,24 @@ TEST_F(CurvesGeometryTest, InvalidResolution)
   }
 }
 
+TEST_F(CurvesGeometryTest, AlignedHandleWithCoincidentVectorHandle)
+{
+  const std::array<int8_t, 3> types_left = {
+      BEZIER_HANDLE_FREE, BEZIER_HANDLE_VECTOR, BEZIER_HANDLE_FREE};
+  const std::array<int8_t, 3> types_right = {
+      BEZIER_HANDLE_FREE, BEZIER_HANDLE_ALIGN, BEZIER_HANDLE_FREE};
+  const std::array<float3, 3> positions = {
+      float3(0.0f, 0.0f, 0.0f), float3(0.0f, 0.0f, 0.0f), float3(1.0f, 0.0f, 0.0f)};
+  std::array<float3, 3> handles_left = positions;
+  std::array<float3, 3> handles_right = positions;
+  handles_right[1] = float3(0.0f, 1.0f, 0.0f);
+
+  curves::bezier::calculate_auto_handles(
+      false, types_left, types_right, positions, handles_left, handles_right);
+
+  EXPECT_V3_NEAR(handles_right[1], float3(0.0f, 1.0f, 0.0f), EPSILON_FLT32);
+}
+
 TEST_F(CurvesGeometryTest, CatmullRomEvaluation)
 {
   CurvesGeometry curves(4, 1);

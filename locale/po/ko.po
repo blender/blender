@@ -1,18 +1,18 @@
 
 msgid ""
 msgstr ""
-"Project-Id-Version: Blender 5.3.0 Alpha (b'bf67fb078da0')\n"
+"Project-Id-Version: Blender 5.3.0 Alpha (b'af4852ed4560')\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-07-27 09:52+0000\n"
-"PO-Revision-Date: 2026-03-27 12:12+0000\n"
-"Last-Translator: kim nahyeong <weiing0123@ajou.ac.kr>\n"
+"POT-Creation-Date: 2026-08-10 07:54+0000\n"
+"PO-Revision-Date: 2026-08-06 16:12+0000\n"
+"Last-Translator: Benjamin Anshin <benanshin@gmail.com>\n"
 "Language-Team: Korean <https://translate.blender.org/projects/blender-ui/ui/ko/>\n"
 "Language: ko\n"
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8bit\n"
 "Plural-Forms: nplurals=1; plural=0;\n"
-"X-Generator: Weblate 5.16.2"
+"X-Generator: Weblate 2026.6.1"
 
 
 msgid "Shader AOV"
@@ -1504,6 +1504,14 @@ msgid "Display Mode"
 msgstr "표시 모드"
 
 
+msgid "Stroke is in 3D space"
+msgstr "스트로크가 3D 공간에 있습니다"
+
+
+msgid "Stroke is in 2D image/UV space"
+msgstr "스트로크가 2D 이미지/UV 공간에 있습니다"
+
+
 msgid "Stroke Points"
 msgstr "스트로크 포인트"
 
@@ -1925,7 +1933,7 @@ msgstr "연결"
 
 
 msgid "Import the assets as linked data-block"
-msgstr "자산을 연결된 데이터 블록으로 가져오기"
+msgstr "어셋을 연결된 데이터 블록으로 가져오기"
 
 
 msgid "Append"
@@ -1993,6 +2001,10 @@ msgid "The type of the data-block, if the asset represents one ('NONE' otherwise
 msgstr "어셋이 특정 데이터 블록을 나타내는 경우, 그 데이터 블록의 유형 (그렇지 않으면 'NONE')"
 
 
+msgid "Is Online"
+msgstr "온라인"
+
+
 msgid "The local data-block this asset represents; only valid if that is a data-block in this file"
 msgstr "이 ㅓ셋이 나타내는 로컬 데이터 블록으로, 해당 데이터 블록이 이 파일 내부에 있을 경우에만 유효"
 
@@ -2003,6 +2015,10 @@ msgstr "어셋 메타데이터"
 
 msgid "Additional information about the asset"
 msgstr "어셋에 대한 추가적인 정보"
+
+
+msgid "The asset library containing this asset"
+msgstr "이 자산을 포함하는 어셋 라이브러리"
 
 
 msgid "Asset Shelf"
@@ -2559,6 +2575,10 @@ msgstr "페이스"
 
 msgid "Face Corner"
 msgstr "페이스 코너"
+
+
+msgid "Mesh face corner"
+msgstr "메시 페이스 코너"
 
 
 msgid "Spline"
@@ -3452,10 +3472,6 @@ msgid "Point cloud data-blocks"
 msgstr "포인트 클라우드 데이터 블록"
 
 
-msgid "Project"
-msgstr "투사"
-
-
 msgid "Scene data-blocks"
 msgstr "씬 데이터-블럭"
 
@@ -4091,6 +4107,10 @@ msgstr "BlendImportContext 데이터 내에서 blenderfile 라이브러리를 �
 
 msgid "Dirty"
 msgstr "더티"
+
+
+msgid "The project's name"
+msgstr "프로젝트 이름"
 
 
 msgid "Blender RNA"
@@ -5692,6 +5712,10 @@ msgstr "커브 강도"
 
 msgid "Curve used for the strength"
 msgstr "강도를 위해 사용되는 커브"
+
+
+msgid "Type of curves"
+msgstr "커브 종류"
 
 
 msgctxt "Operator"
@@ -7627,6 +7651,14 @@ msgstr "ACEScct"
 
 msgid "ACES color correction space with toe, using AP1 primaries."
 msgstr "AP1 원색을 사용하는 ACES 색 보정용 색 공간으로, 하이라이트 감쇄(toe)가 적용되어 있습니다"
+
+
+msgid "ADX10"
+msgstr "ADX10"
+
+
+msgid "ADX16"
+msgstr "ADX16"
 
 
 msgid "AgX Base sRGB"
@@ -9973,6 +10005,10 @@ msgstr "가까운 표면 포인트"
 
 msgid "Shrink the location to the nearest target surface"
 msgstr "가까운 타깃 표면에 위치를 수축"
+
+
+msgid "Project"
+msgstr "투사"
 
 
 msgid "Shrink the location to the nearest target surface along a given axis"
@@ -18407,7 +18443,7 @@ msgstr "편집 가능"
 
 
 msgid "This data-block is editable in the user interface. Linked data-blocks are not editable, except if they were loaded as editable assets."
-msgstr "이 데이터 블록은 사용자 인터페이스에서 편집할 수 있습니다. 링크된 데이터 블록은 편집 가능한 자산으로 로드된 경우를 제외하고는 편집할 수 없음"
+msgstr "이 데이터 블록은 사용자 인터페이스에서 편집할 수 있습니다. 링크된 데이터 블록은 편집 가능한 어셋으로 로드된 경우를 제외하고는 편집할 수 없음"
 
 
 msgid "Embedded Data"
@@ -27643,6 +27679,10 @@ msgid "Active Movie Clip that can be used by motion tracking constraints or as a
 msgstr "모션 트래킹 제약 조건 또는 카메라의 배경 이미지로 사용할 수 있는 활성 무비 클립"
 
 
+msgid "Allow Preroll"
+msgstr "프리롤 허가"
+
+
 msgid "Data-block used for annotations in the 3D view"
 msgstr "3D 뷰에서 주석에 사용되는 데이터 블록"
 
@@ -27885,6 +27925,10 @@ msgstr "프레임 선택을 잠금"
 
 msgid "Don't allow frame to be selected with mouse outside of frame range"
 msgstr "프레임 범위의 외부 마우스와 함께 선택되는 프레임을 허용하지 않음"
+
+
+msgid "Infinite"
+msgstr "무한"
 
 
 msgid "Restore Frame"
@@ -29572,6 +29616,10 @@ msgstr "활성 어셋이 포함된 Blender 파일의 전체 경로"
 
 msgid "Filter by extension name, author & category"
 msgstr "확장명, 작성자 및 카테고리별로 필터링"
+
+
+msgid "Show Available Extensions"
+msgstr "이용 가능한 학장 프로그램 표시"
 
 
 msgid "Show Installed Extensions"
@@ -34625,104 +34673,48 @@ msgid "Editor menu containing buttons"
 msgstr "버튼이 포함된 에디터 메뉴"
 
 
-msgid "Creative"
-msgstr "크리에이티브"
-
-
-msgid "Bone Collections"
-msgstr "뼈대 컬렉션"
-
-
 msgid "Names"
 msgstr "이름"
-
-
-msgid "Show/Hide"
-msgstr "표시/숨기기"
-
-
-msgid "Apply"
-msgstr "적용"
-
-
-msgid "Toggle Bone Options"
-msgstr "뼈대 옵션을 토글"
-
-
-msgid "Enable Bone Options"
-msgstr "뼈대 옵션을 사용"
-
-
-msgid "Disable Bone Options"
-msgstr "뼈대 옵션을 사용 중지"
-
-
-msgid "Mesh Select Mode"
-msgstr "메시 선택 모드"
-
-
-msgid "Face Data"
-msgstr "페이스 데이터"
-
-
-msgid "Select by Face Strength"
-msgstr "페이스 강도로 선택"
-
-
-msgid "Set Face Strength"
-msgstr "페이스 강도를 설정"
-
-
-msgid "Clean Up"
-msgstr "정리"
-
-
-msgid "Merge"
-msgstr "병합"
-
-
-msgid "Special Characters"
-msgstr "특수 문자"
-
-
-msgid "Kerning"
-msgstr "자간"
-
-
-msgid "Math"
-msgstr "수학"
-
-
-msgid "Metaball"
-msgstr "메타볼"
-
-
-msgid "Utilities"
-msgstr "유틸리티"
 
 
 msgid "Bone Roll"
 msgstr "뼈대 롤"
 
 
-msgid "Read"
-msgstr "읽기"
+msgid "Show/Hide"
+msgstr "표시/숨기기"
 
 
-msgid "Sample"
-msgstr "샘플"
+msgid "Clean Up"
+msgstr "정리"
 
 
-msgid "Write"
-msgstr "쓰기"
+msgid "Adjust"
+msgstr "조정"
 
 
-msgid "Primitives"
-msgstr "프리미티브"
+msgid "Keying"
+msgstr "키잉"
+
+
+msgid "Tracking"
+msgstr "트래킹"
+
+
+msgid "Utilities"
+msgstr "유틸리티"
+
+
+msgid "Math"
+msgstr "수학"
 
 
 msgid "Pivot Point"
 msgstr "피벗 포인트"
+
+
+msgid "Creative"
+msgstr "크리에이티브"
 
 
 msgid "Snap"
@@ -34749,28 +34741,8 @@ msgid "Vertex Group Locks"
 msgstr "버텍스 그룹 잠금"
 
 
-msgid "Gizmo"
-msgstr "기즈모"
-
-
-msgid "Instances"
-msgstr "인스턴스"
-
-
-msgid "Render Preview"
-msgstr "렌더링 미리보기"
-
-
-msgid "Import"
-msgstr "가져오기"
-
-
 msgid "Mirror"
 msgstr "미러"
-
-
-msgid "Deprecated"
-msgstr "사용 중단"
 
 
 msgid "UV Mapping"
@@ -34791,10 +34763,6 @@ msgstr "네비게이션"
 
 msgid "Align View"
 msgstr "뷰를 정렬"
-
-
-msgid "UV"
-msgstr "UV"
 
 
 msgid "Align View to Active"
@@ -34829,6 +34797,26 @@ msgid "Assign Material"
 msgstr "머티리얼을 할당"
 
 
+msgid "Read"
+msgstr "읽기"
+
+
+msgid "Sample"
+msgstr "샘플"
+
+
+msgid "Write"
+msgstr "쓰기"
+
+
+msgid "Primitives"
+msgstr "프리미티브"
+
+
+msgid "Metaball"
+msgstr "메타볼"
+
+
 msgid "Light"
 msgstr "라이트"
 
@@ -34841,24 +34829,36 @@ msgid "Add Image"
 msgstr "이미지를 추가"
 
 
+msgid "Gizmo"
+msgstr "기즈모"
+
+
 msgid "Relations"
 msgstr "관계"
+
+
+msgid "Instances"
+msgstr "인스턴스"
+
+
+msgid "Render Preview"
+msgstr "렌더링 미리보기"
 
 
 msgid "Rigid Body"
 msgstr "리지드 바디"
 
 
+msgid "Apply"
+msgstr "적용"
+
+
+msgid "Import"
+msgstr "가져오기"
+
+
 msgid "Track"
 msgstr "트랙"
-
-
-msgid "Linked"
-msgstr "연결됨"
-
-
-msgid "Layout"
-msgstr "레이아웃"
 
 
 msgid "Quick Effects"
@@ -34867,6 +34867,10 @@ msgstr "빠른 이펙트"
 
 msgid "Asset"
 msgstr "에셋"
+
+
+msgid "Deprecated"
+msgstr "사용 중단"
 
 
 msgid "Make Single User"
@@ -34885,24 +34889,16 @@ msgid "Hooks"
 msgstr "후크"
 
 
-msgid "Adjust"
-msgstr "조정"
+msgid "UV"
+msgstr "UV"
 
 
 msgid "Trim/Add"
 msgstr "트림/추가"
 
 
-msgid "Keying"
-msgstr "키잉"
-
-
 msgid "Sculpt Set Pivot"
 msgstr "스컬프트 설정 피벗"
-
-
-msgid "Tracking"
-msgstr "트래킹"
 
 
 msgid "Face Sets Init"
@@ -34923,6 +34919,58 @@ msgstr "사이에서"
 
 msgid "Propagate"
 msgstr "전파"
+
+
+msgid "Bone Collections"
+msgstr "뼈대 컬렉션"
+
+
+msgid "Toggle Bone Options"
+msgstr "뼈대 옵션을 토글"
+
+
+msgid "Enable Bone Options"
+msgstr "뼈대 옵션을 사용"
+
+
+msgid "Disable Bone Options"
+msgstr "뼈대 옵션을 사용 중지"
+
+
+msgid "Mesh Select Mode"
+msgstr "메시 선택 모드"
+
+
+msgid "Face Data"
+msgstr "페이스 데이터"
+
+
+msgid "Select by Face Strength"
+msgstr "페이스 강도로 선택"
+
+
+msgid "Set Face Strength"
+msgstr "페이스 강도를 설정"
+
+
+msgid "Merge"
+msgstr "병합"
+
+
+msgid "Linked"
+msgstr "연결됨"
+
+
+msgid "Special Characters"
+msgstr "특수 문자"
+
+
+msgid "Layout"
+msgstr "레이아웃"
+
+
+msgid "Kerning"
+msgstr "자간"
 
 
 msgid "Keyframe Insert Pie"
@@ -51450,6 +51498,10 @@ msgid "Collection of main items"
 msgstr "주요 항목 컬렉션"
 
 
+msgid "Scalar"
+msgstr "스칼라"
+
+
 msgid "Collection of repeat items"
 msgstr "반복 항목 컬렉션"
 
@@ -55517,15 +55569,6 @@ msgstr "생성됨"
 
 
 msgctxt "Operator"
-msgid "Make Markers Local"
-msgstr "마커 로컬을 만들기"
-
-
-msgid "Move selected scene markers to the active Action as local 'pose' markers"
-msgstr "로컬 '포즈' 마커로 활성 액션에 선택된 씬 마커를 이동"
-
-
-msgctxt "Operator"
 msgid "Mirror Keys"
 msgstr "미러 키"
 
@@ -57774,10 +57817,6 @@ msgstr "스컬프트/페인트 브러시 크기를 스케일"
 
 msgid "Change brush size by a scalar"
 msgstr "스칼라로 브러시 크기를 변경"
-
-
-msgid "Scalar"
-msgstr "스칼라"
 
 
 msgid "Factor to scale brush size by"
@@ -73361,15 +73400,6 @@ msgid "Select all objects which block light from this emitter"
 msgstr "이 이미터에서 빛을 차단하는 모든 오브젝트를 선택함"
 
 
-msgctxt "Operator"
-msgid "Link Receivers to Emitter"
-msgstr "이미터에 수신기 연결"
-
-
-msgid "Light link selected receivers to the active emitter object"
-msgstr "라이트는 선택한 리시버를 활성 이미터 오브젝트에 연결함"
-
-
 msgid "State of the light linking"
 msgstr "조명 연결 상태"
 
@@ -77298,10 +77328,6 @@ msgstr "모든 버텍스의 가시성 반전"
 msgctxt "Operator"
 msgid "Weight from Bones"
 msgstr "뼈대에서 웨이트"
-
-
-msgid "Set the weights of the groups matching the attached armature's selected bones, using the distance between the vertices and the bones"
-msgstr "연결된 암마튜어의 선택한 뼈대과 일치하는 그룹의 웨이트를 설정, 버텍스와 뼈대 사이의 거리를 사용"
 
 
 msgid "Method to use for assigning weights"
@@ -90075,10 +90101,6 @@ msgid "Panel containing UI elements"
 msgstr "UI 요소가 포함된 패널"
 
 
-msgid "glTF Variants"
-msgstr "glTF 변형"
-
-
 msgid "glTF Material Variants"
 msgstr "glTF 머티리얼 배리언트"
 
@@ -90209,6 +90231,10 @@ msgstr "VR"
 
 msgid "VR Info"
 msgstr "VR 정보"
+
+
+msgid "glTF Variants"
+msgstr "glTF 변형"
 
 
 msgid "Import Settings"
@@ -95323,10 +95349,6 @@ msgid "Danish - Dansk"
 msgstr "덴마크어 - Dansk"
 
 
-msgid "Locale code: da. Translation progress: 3%"
-msgstr "로캘 코드: da. 번역 진행률: 3%"
-
-
 msgid "Dutch - Nederlands"
 msgstr "네덜란드어 - Nederlands"
 
@@ -95353,10 +95375,6 @@ msgstr "로캘 코드: eo. 번역 진행률: 0%"
 
 msgid "Finnish - Suomi"
 msgstr "핀란드어 - Suomi"
-
-
-msgid "Locale code: fi_FI. Translation progress: 11%"
-msgstr "로캘 코드: fi_FI. 번역 진행률: 11%"
 
 
 msgid "French - Français"
@@ -97112,10 +97130,6 @@ msgstr "베이크하는 페스의 유형"
 
 msgid "Filter Glossy"
 msgstr "광택을 필터"
-
-
-msgid "Adaptively blur glossy shaders after blurry bounces, to reduce noise at the cost of accuracy"
-msgstr "흐릿한 바운스 후에 광택 셰이더를 적절하게 블러 처리하고, 정확도를 비용으로 노이즈를 감소 시킵니다"
 
 
 msgid "Camera Cull Margin"
@@ -124147,6 +124161,14 @@ msgid "Duplicate Marker to Scene"
 msgstr "마커를 씬에 복제"
 
 
+msgid "Only Active Keying Set"
+msgstr "활성 키잉 세트만"
+
+
+msgid "Jump Unit"
+msgstr "점프 유닛"
+
+
 msgid "Limit to Frame Range"
 msgstr "프레임 범위 제한"
 
@@ -124165,14 +124187,6 @@ msgstr "활성 에디터"
 
 msgid "Properties and Sidebars"
 msgstr "특성 및 사이드바"
-
-
-msgid "Only Active Keying Set"
-msgstr "활성 키잉 세트만"
-
-
-msgid "Jump Unit"
-msgstr "점프 유닛"
 
 
 msgid "Layered Recording"
@@ -127143,14 +127157,6 @@ msgstr "선택한 키에 붙여넣기"
 msgctxt "Operator"
 msgid "Paste and Bake"
 msgstr "붙여넣기 및 베이킹"
-
-
-msgid "Keying set is active, which may"
-msgstr "키잉 세트가 활성화되어 있음"
-
-
-msgid "reduce the effect of the above options"
-msgstr "위 옵션의 효과를 줄함"
 
 
 msgid "Using Active Scene Camera"
@@ -138323,10 +138329,6 @@ msgid "Cannot fly when the view offset is locked"
 msgstr "뷰 오프셋이 잠겨있을 때 비행 할 수 없습니다"
 
 
-msgid "Cannot fly an object with constraints"
-msgstr "제약 있는 오브젝트는 비행 할 수 없습니다"
-
-
 msgid "Cannot dolly when the view offset is locked"
 msgstr "뷰 오프셋이 잠길 때 돌리를 사용할 수 없습니다"
 
@@ -138349,10 +138351,6 @@ msgstr "Z축 보정"
 
 msgid "Cannot navigate when the view offset is locked"
 msgstr "뷰 오프셋이 잠겨 있을 때 탐색할 수 없습니다"
-
-
-msgid "Cannot navigate an object with constraints"
-msgstr "제약이 있는 오브젝트를 탐색 할 수 없습니다"
 
 
 msgid "Depth too large"

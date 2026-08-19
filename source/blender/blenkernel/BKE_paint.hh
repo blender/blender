@@ -184,9 +184,6 @@ Paint *BKE_paint_get_active(const Main &bmain, Scene *sce, ViewLayer *view_layer
 Paint *BKE_paint_get_active_from_context(const bContext *C);
 PaintMode BKE_paintmode_get_active_from_context(const bContext *C);
 PaintMode BKE_paintmode_get_from_tool(const bToolRef *tref);
-bool BKE_paint_use_unified_size(const Paint *paint);
-bool BKE_paint_use_unified_strength(const Paint *paint);
-bool BKE_paint_use_unified_color(const Paint *paint);
 
 /* Paint brush retrieval and assignment. */
 
@@ -316,7 +313,8 @@ bool paint_calculate_rake_rotation(Paint &paint,
                                    const Brush &brush,
                                    const float mouse_pos[2],
                                    PaintMode paint_mode,
-                                   bool stroke_has_started);
+                                   bool in_stroke,
+                                   bool is_first_dab);
 void paint_update_brush_rake_rotation(Paint &paint, const Brush &brush, float rotation);
 
 void BKE_paint_stroke_get_average(const Paint *paint, const Object *ob, float stroke[3]);
@@ -574,17 +572,23 @@ void BKE_sculptsession_free_pbvh(Object &object);
 void BKE_sculptsession_bm_to_me(Object *ob);
 
 /**
+ * \warning Expects a fully evaluated depsgraph.
+ */
+void BKE_sculptsession_update_for_edit(Depsgraph *depsgraph, Object *ob_orig, bool is_paint_tool);
+void BKE_sculptsession_update_before_eval(Object *ob_eval);
+void BKE_sculptsession_update_after_eval(Depsgraph *depsgraph, Object *ob_eval);
+
+/**
+ * Test if bke::pbvh::Tree can be used directly for drawing, which is faster than
+ * drawing the mesh and all updates that come with it.
+ */
+bool BKE_sculptsession_use_pbvh_draw(const Object *ob, const RegionView3D *rv3d);
+
+/**
  * Create new color layer on object if it doesn't have one and if experimental feature set has
  * sculpt vertex color enabled. Returns truth if new layer has been added, false otherwise.
  */
 void BKE_sculpt_color_layer_create_if_needed(Object *object);
-
-/**
- * \warning Expects a fully evaluated depsgraph.
- */
-void BKE_sculpt_update_object_for_edit(Depsgraph *depsgraph, Object *ob_orig, bool is_paint_tool);
-void BKE_sculpt_update_object_before_eval(Object *ob_eval);
-void BKE_sculpt_update_object_after_eval(Depsgraph *depsgraph, Object *ob_eval);
 
 /**
  * Sculpt mode handles multi-res differently from regular meshes, but only if
@@ -600,21 +604,14 @@ int BKE_sculpt_get_grid_num_faces(const Object &object);
  * then the scene depsgraph will be evaluated to update the runtime
  * subdivision data.
  *
- * \note always call *before* #BKE_sculpt_update_object_for_edit.
+ * \note always call *before* #BKE_sculptsession_update_for_edit.
  */
 void BKE_sculpt_mask_layers_ensure(Depsgraph *depsgraph,
                                    Main *bmain,
                                    Object *ob,
                                    MultiresModifierData *mmd);
-void BKE_sculpt_toolsettings_data_ensure(Main *bmain, Scene *scene);
 
 void BKE_sculpt_sync_face_visibility_to_grids(const Mesh &mesh, SubdivCCG &subdiv_ccg);
-
-/**
- * Test if bke::pbvh::Tree can be used directly for drawing, which is faster than
- * drawing the mesh and all updates that come with it.
- */
-bool BKE_sculptsession_use_pbvh_draw(const Object *ob, const RegionView3D *rv3d);
 
 namespace bke::object {
 

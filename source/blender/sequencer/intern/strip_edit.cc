@@ -152,11 +152,9 @@ void edit_flag_for_removal(Scene *scene, Strip *strip)
   VectorSet<Strip *> strips_to_delete;
   strips_to_delete.add_new(strip);
 
-  /* Delete effects that use `strip` as an input (either directly or through another effect).
-   * Effect inputs are always in the same seqbase as the effect. */
-  iterator_set_expand(ed, strips_to_delete, query_strip_direct_effect_chain);
-  /* Delete meta strip contents. */
-  iterator_set_expand(ed, strips_to_delete, query_strip_recursive);
+  /* Delete effects that use `strip` as an input (either directly or through another effect), and
+   * the contents of any meta strip. Effect inputs are always in the same seqbase as the effect. */
+  expand_strips(ed, strips_to_delete, StripRelation::Effects | StripRelation::MetaContents);
 
   for (Strip *strip_to_mark : strips_to_delete) {
     strip_to_mark->runtime->flag |= StripRuntimeFlag::MarkForDelete;
@@ -242,7 +240,7 @@ bool edit_move_strip_to_meta(Scene *scene,
 
   VectorSet<Strip *> strips;
   strips.add(src_strip);
-  iterator_set_expand(ed, strips, query_strip_effect_chain);
+  expand_strips(ed, strips, StripRelation::EffectChain);
 
   for (Strip *strip : strips) {
     /* Move to meta. */
@@ -277,7 +275,7 @@ static void seq_split_set_right_hold_offset(Main *bmain,
   }
 
   /* Needed only to set `strip->len`. */
-  add_reload_new_file(bmain, scene, strip, false);
+  add_update_content_length(bmain, scene, strip);
   strip->right_handle_set(scene, timeline_frame);
 }
 
@@ -305,7 +303,7 @@ static void seq_split_set_left_hold_offset(Main *bmain,
   }
 
   /* Needed only to set `strip->len`. */
-  add_reload_new_file(bmain, scene, strip, false);
+  add_update_content_length(bmain, scene, strip);
   strip->left_handle_set(scene, timeline_frame);
 }
 
@@ -416,10 +414,9 @@ Strip *edit_strip_split(Main *bmain,
   /* Whole strip effect chain must be duplicated in order to preserve relationships. */
   VectorSet<Strip *> strips;
   strips.add(strip);
-  iterator_set_expand(seq::editing_get(scene),
-                      strips,
-                      ignore_connections ? query_strip_effect_chain :
-                                           query_strip_connected_and_effect_chain);
+  const StripRelation include = ignore_connections ? StripRelation::EffectChain :
+                                                     StripRelation::ConnectedEffectChain;
+  expand_strips(editing_get(scene), strips, include);
 
   if (!seq_edit_split_operation_permitted_check(scene, strips, timeline_frame, r_error)) {
     return nullptr;
@@ -502,12 +499,12 @@ bool edit_remove_gaps(Scene *scene,
 
   if (remove_all_gaps) {
     while (gap_info.gap_exists) {
-      transform_offset_after_frame(scene, seqbase, -gap_info.gap_length, gap_info.gap_start_frame);
+      transform_strips_after_frame(scene, seqbase, gap_info.gap_start_frame, -gap_info.gap_length);
       seq_time_gap_info_get(scene, seqbase, initial_frame, &gap_info);
     }
   }
   else {
-    transform_offset_after_frame(scene, seqbase, -gap_info.gap_length, gap_info.gap_start_frame);
+    transform_strips_after_frame(scene, seqbase, gap_info.gap_start_frame, -gap_info.gap_length);
   }
   return true;
 }

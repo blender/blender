@@ -1,10 +1,10 @@
 
 msgid ""
 msgstr ""
-"Project-Id-Version: Blender 5.3.0 Alpha (b'bf67fb078da0')\n"
+"Project-Id-Version: Blender 5.3.0 Alpha (b'af4852ed4560')\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-07-27 09:52+0000\n"
-"PO-Revision-Date: 2026-07-29 08:00+0000\n"
+"POT-Creation-Date: 2026-08-10 07:54+0000\n"
+"PO-Revision-Date: 2026-08-06 06:40+0000\n"
 "Last-Translator: Alexandr Fatih <radix83@rambler.ru>\n"
 "Language-Team: Russian <https://translate.blender.org/projects/blender-ui/ui/ru/>\n"
 "Language: ru\n"
@@ -3424,10 +3424,6 @@ msgid "All Data-Blocks"
 msgstr "Все блоки данных"
 
 
-msgid "Read-only list of all IDs listed in Blender data-base"
-msgstr "Список всех идентификаторов, перечисленных в базе данных Blender'а, доступен только для чтения"
-
-
 msgid "Annotation"
 msgstr "Аннотация"
 
@@ -3590,10 +3586,6 @@ msgstr "Датаблоки частиц"
 
 msgid "Point cloud data-blocks"
 msgstr "Датаблоки облак точек"
-
-
-msgid "Project"
-msgstr "Проецировать"
 
 
 msgid "The currently active Blender project, if any"
@@ -7663,6 +7655,10 @@ msgid "Importer configured for the collection"
 msgstr "Импортёр, настроенный для работы с коллекцией"
 
 
+msgid "The file path used for importing"
+msgstr "Путь к файлу, используемый для импорта"
+
+
 msgid "Import Properties"
 msgstr "Свойства импорта"
 
@@ -10594,6 +10590,10 @@ msgstr "Ближайшая точка поверхности"
 
 msgid "Shrink the location to the nearest target surface"
 msgstr "Смещение положения к ближайшей целевой поверхности"
+
+
+msgid "Project"
+msgstr "Проецировать"
 
 
 msgid "Shrink the location to the nearest target surface along a given axis"
@@ -30753,14 +30753,6 @@ msgid "Maintained by community developers"
 msgstr "Расширения, сопровождаемые разработчиками из сообщества"
 
 
-msgid "Testing"
-msgstr "Тестирование"
-
-
-msgid "Newly contributed scripts (excluded from release builds)"
-msgstr "Новые скрипты от сообщества (отсутствуют в релизных сборках)"
-
-
 msgid "Addon Tags"
 msgstr "Теги аддона"
 
@@ -36005,104 +35997,48 @@ msgid "Editor menu containing buttons"
 msgstr "Меню редактора, содержащее кнопки"
 
 
-msgid "Creative"
-msgstr "Художественные"
-
-
-msgid "Bone Collections"
-msgstr "Коллекции костей"
-
-
 msgid "Names"
 msgstr "Имена"
-
-
-msgid "Show/Hide"
-msgstr "Показать/скрыть"
-
-
-msgid "Apply"
-msgstr "Применить"
-
-
-msgid "Toggle Bone Options"
-msgstr "Переключить опции костей"
-
-
-msgid "Enable Bone Options"
-msgstr "Включить параметры костей"
-
-
-msgid "Disable Bone Options"
-msgstr "Отключить параметры костей"
-
-
-msgid "Mesh Select Mode"
-msgstr "Режим выделения меша"
-
-
-msgid "Face Data"
-msgstr "Данные граней"
-
-
-msgid "Select by Face Strength"
-msgstr "Выделить по твёрдости грани"
-
-
-msgid "Set Face Strength"
-msgstr "Установить твёрдость грани"
-
-
-msgid "Clean Up"
-msgstr "Привести в порядок"
-
-
-msgid "Merge"
-msgstr "Объединить"
-
-
-msgid "Special Characters"
-msgstr "Специальные символы"
-
-
-msgid "Kerning"
-msgstr "Кернинг"
-
-
-msgid "Math"
-msgstr "Математика"
-
-
-msgid "Metaball"
-msgstr "Метасфера"
-
-
-msgid "Utilities"
-msgstr "Утилиты"
 
 
 msgid "Bone Roll"
 msgstr "Крен кости"
 
 
-msgid "Read"
-msgstr "Прочитать"
+msgid "Show/Hide"
+msgstr "Показать/скрыть"
 
 
-msgid "Sample"
-msgstr "Сэмплировать"
+msgid "Clean Up"
+msgstr "Привести в порядок"
 
 
-msgid "Write"
-msgstr "Записать"
+msgid "Adjust"
+msgstr "Коррекция"
 
 
-msgid "Primitives"
-msgstr "Примитивы"
+msgid "Keying"
+msgstr "Кеинг"
+
+
+msgid "Tracking"
+msgstr "Трекинг"
+
+
+msgid "Utilities"
+msgstr "Утилиты"
+
+
+msgid "Math"
+msgstr "Математика"
 
 
 msgid "Pivot Point"
 msgstr "Центр трансформации"
+
+
+msgid "Creative"
+msgstr "Художественные"
 
 
 msgid "Snap"
@@ -36129,28 +36065,8 @@ msgid "Vertex Group Locks"
 msgstr "Блокировки групп вершин"
 
 
-msgid "Gizmo"
-msgstr "Гизмо"
-
-
-msgid "Instances"
-msgstr "Экземпляры"
-
-
-msgid "Render Preview"
-msgstr "Превью рендера"
-
-
-msgid "Import"
-msgstr "Импортировать"
-
-
 msgid "Mirror"
 msgstr "Зеркало"
-
-
-msgid "Deprecated"
-msgstr "Устаревшие"
 
 
 msgid "UV Mapping"
@@ -36171,10 +36087,6 @@ msgstr "Навигация"
 
 msgid "Align View"
 msgstr "Выровнять вид"
-
-
-msgid "UV"
-msgstr "UV"
 
 
 msgid "Align View to Active"
@@ -36209,6 +36121,26 @@ msgid "Assign Material"
 msgstr "Назначить материал"
 
 
+msgid "Read"
+msgstr "Прочитать"
+
+
+msgid "Sample"
+msgstr "Сэмплировать"
+
+
+msgid "Write"
+msgstr "Записать"
+
+
+msgid "Primitives"
+msgstr "Примитивы"
+
+
+msgid "Metaball"
+msgstr "Метасфера"
+
+
 msgid "Light"
 msgstr "Свет"
 
@@ -36221,24 +36153,36 @@ msgid "Add Image"
 msgstr "Добавить изображение"
 
 
+msgid "Gizmo"
+msgstr "Гизмо"
+
+
 msgid "Relations"
 msgstr "Отношения"
+
+
+msgid "Instances"
+msgstr "Экземпляры"
+
+
+msgid "Render Preview"
+msgstr "Превью рендера"
 
 
 msgid "Rigid Body"
 msgstr "Твёрдое тело"
 
 
+msgid "Apply"
+msgstr "Применить"
+
+
+msgid "Import"
+msgstr "Импортировать"
+
+
 msgid "Track"
 msgstr "Отслеживание"
-
-
-msgid "Linked"
-msgstr "Связанные"
-
-
-msgid "Layout"
-msgstr "Разметка"
 
 
 msgid "Quick Effects"
@@ -36247,6 +36191,10 @@ msgstr "Быстрые эффекты"
 
 msgid "Asset"
 msgstr "Ассет"
+
+
+msgid "Deprecated"
+msgstr "Устаревшие"
 
 
 msgid "Make Single User"
@@ -36265,28 +36213,16 @@ msgid "Hooks"
 msgstr "Крюки"
 
 
-msgid "Adjust"
-msgstr "Коррекция"
+msgid "UV"
+msgstr "UV"
 
 
 msgid "Trim/Add"
 msgstr "Обрезать/Добавить"
 
 
-msgid "Add Primitive"
-msgstr "Добавить примитив"
-
-
-msgid "Keying"
-msgstr "Кеинг"
-
-
 msgid "Sculpt Set Pivot"
 msgstr "Установить центр трансформации скульптинга"
-
-
-msgid "Tracking"
-msgstr "Трекинг"
 
 
 msgid "Face Sets Init"
@@ -36307,6 +36243,58 @@ msgstr "Промежуточные"
 
 msgid "Propagate"
 msgstr "Распространение"
+
+
+msgid "Bone Collections"
+msgstr "Коллекции костей"
+
+
+msgid "Toggle Bone Options"
+msgstr "Переключить опции костей"
+
+
+msgid "Enable Bone Options"
+msgstr "Включить параметры костей"
+
+
+msgid "Disable Bone Options"
+msgstr "Отключить параметры костей"
+
+
+msgid "Mesh Select Mode"
+msgstr "Режим выделения меша"
+
+
+msgid "Face Data"
+msgstr "Данные граней"
+
+
+msgid "Select by Face Strength"
+msgstr "Выделить по твёрдости грани"
+
+
+msgid "Set Face Strength"
+msgstr "Установить твёрдость грани"
+
+
+msgid "Merge"
+msgstr "Объединить"
+
+
+msgid "Linked"
+msgstr "Связанные"
+
+
+msgid "Special Characters"
+msgstr "Специальные символы"
+
+
+msgid "Layout"
+msgstr "Разметка"
+
+
+msgid "Kerning"
+msgstr "Кернинг"
 
 
 msgid "Keyframe Insert Pie"
@@ -48910,6 +48898,14 @@ msgid "Iteration index that is used by inspection features like the viewer node 
 msgstr "Индекс итерации, который используется функциями проверки, такими как нода предпросмотра или проверка сокетов"
 
 
+msgid "Geometry Materials"
+msgstr "Материалы геометрии"
+
+
+msgid "Get a list of the materials used by a geometry component"
+msgstr "Получить список материалов, используемых компонентом геометрии"
+
+
 msgid "Geometry to Instance"
 msgstr "Геометрию в экземпляр"
 
@@ -49207,7 +49203,7 @@ msgstr "Сгенерировать облако точек из активных
 
 
 msgid "Grid Topology Boolean"
-msgstr "Логические операции с топологией сетки"
+msgstr "Логические операции с топологией сеток"
 
 
 msgid "Combine the topology of multiple grids"
@@ -50001,6 +49997,14 @@ msgstr "Рассчитать близость к рёбрам цели"
 
 msgid "Calculate the proximity to the target's faces"
 msgstr "Рассчитать близость к граням цели"
+
+
+msgid "Rasterize Points"
+msgstr "Растеризовать точки"
+
+
+msgid "Create volume grids from points with a weighted sum"
+msgstr "Создать сетки объёма из точек с использованием взвешенной суммы"
 
 
 msgid "Raycast"
@@ -51935,7 +51939,7 @@ msgstr "arctan(A)"
 
 msgctxt "NodeTree"
 msgid "Arctan2"
-msgstr "Арктан2"
+msgstr "Арктангенс2"
 
 
 msgid "The signed angle arctan(A / B)"
@@ -53572,6 +53576,26 @@ msgid "Collection of main items"
 msgstr "Коллекция основных элементов"
 
 
+msgid "Rasterize Points Item"
+msgstr "Элемент растеризации точек"
+
+
+msgid "Scalar"
+msgstr "Скаляр"
+
+
+msgid "Rasterize a scalar attribute"
+msgstr "Растеризовать скалярный атрибут"
+
+
+msgid "Rasterize a vector attribute"
+msgstr "Растеризовать векторный атрибут"
+
+
+msgid "Collection of grid items"
+msgstr "Коллекция элементов сетки"
+
+
 msgid "Collection of repeat items"
 msgstr "Коллекция повторяющихся элементов"
 
@@ -54106,6 +54130,14 @@ msgstr "Активный индекс"
 
 msgid "Items in the node interface"
 msgstr "Элементы в интерфейсе ноды"
+
+
+msgid "Root Panel"
+msgstr "Корневая панель"
+
+
+msgid "Root panel containing all items not directly parented to another panel"
+msgstr "Корневая панель, содержащая все элементы, не привязанные напрямую к другим панелям"
 
 
 msgid "Node Tree Interface Item"
@@ -58051,12 +58083,12 @@ msgstr "Сгенерировать"
 
 
 msgctxt "Operator"
-msgid "Make Markers Local"
-msgstr "Сделать маркеры локальными"
+msgid "Convert to Pose Markers"
+msgstr "Преобразовать в маркеры позы"
 
 
-msgid "Move selected scene markers to the active Action as local 'pose' markers"
-msgstr "Переместить выделенные маркеры сцены к активному действию как локальные маркеры позы"
+msgid "Move selected scene markers to the active action as pose markers"
+msgstr "Переместить выделенные маркеры сцены к активному действию в качестве маркеров позы"
 
 
 msgctxt "Operator"
@@ -60536,10 +60568,6 @@ msgstr "Масштабировать размер кисти для скульп
 
 msgid "Change brush size by a scalar"
 msgstr "Изменить размер кисти по заданному коэффициенту"
-
-
-msgid "Scalar"
-msgstr "Скаляр"
 
 
 msgid "Factor to scale brush size by"
@@ -76985,12 +77013,12 @@ msgstr "Выделить все объекты, которые блокирую�
 
 
 msgctxt "Operator"
-msgid "Link Receivers to Emitter"
+msgid "Link Receiver Objects to Emitter"
 msgstr "Связать приёмники с излучателем"
 
 
-msgid "Light link selected receivers to the active emitter object"
-msgstr "Привязка света выделенных приёмников с активным объектом-излучателем"
+msgid "Light link selected objects to the active emitter object"
+msgstr "Привязать выделенные объекты к активному излучателю света"
 
 
 msgid "State of the light linking"
@@ -81043,8 +81071,8 @@ msgid "Weight from Bones"
 msgstr "Вес из костей"
 
 
-msgid "Set the weights of the groups matching the attached armature's selected bones, using the distance between the vertices and the bones"
-msgstr "Установить веса группам, соответствующим выделенным костям привязанной арматуры на основе расстояния между вершинами и костями"
+msgid "Set the weights of the groups matching the attached armature's bones that have \"Deform\" option enabled, using the distance between the vertices and the bones"
+msgstr "Установить веса группам, соответствующим костям привязанной арматуры с включённой \"Деформацией (deform)\", на основе расстояния между вершинами и костями"
 
 
 msgid "Method to use for assigning weights"
@@ -94715,10 +94743,6 @@ msgid "Panel containing UI elements"
 msgstr "Панель содержит элементы интерфейса"
 
 
-msgid "glTF Variants"
-msgstr "Варианты glTF"
-
-
 msgid "glTF Material Variants"
 msgstr "Варианты материалов glTF"
 
@@ -94849,6 +94873,10 @@ msgstr "VR"
 
 msgid "VR Info"
 msgstr "Информация о VR"
+
+
+msgid "glTF Variants"
+msgstr "Варианты glTF"
 
 
 msgid "Import Settings"
@@ -100228,16 +100256,16 @@ msgid "Catalan - Català"
 msgstr "Каталонский - Català"
 
 
-msgid "Locale code: ca_AD. Translation progress: 99%"
-msgstr "Код локали: ca_AD. Прогресс перевода: 99%"
+msgid "Locale code: ca_AD. Translation progress: 100%"
+msgstr "Код локали: ca_AD. Прогресс перевода: 100%"
 
 
 msgid "Chinese (Simplified) - 简体中文"
 msgstr "Китайский (упрощённый) - 简体中文"
 
 
-msgid "Locale code: zh_HANS. Translation progress: 99%"
-msgstr "Код локали: zh_HANS. Прогресс перевода: 99%"
+msgid "Locale code: zh_HANS. Translation progress: 100%"
+msgstr "Код локали: zh_HANS. Прогресс перевода: 100%"
 
 
 msgid "Chinese (Traditional) - 繁體中文"
@@ -100268,8 +100296,8 @@ msgid "Danish - Dansk"
 msgstr "Датский - Dansk"
 
 
-msgid "Locale code: da. Translation progress: 3%"
-msgstr "Код локали: da. Прогресс перевода: 3%"
+msgid "Locale code: da. Translation progress: 2%"
+msgstr "Код локали: da. Прогресс перевода: 2%"
 
 
 msgid "Dutch - Nederlands"
@@ -100284,8 +100312,8 @@ msgid "English (UK)"
 msgstr "Английский (Великобритания) - English (UK)"
 
 
-msgid "Locale code: en_GB. Translation progress: 95%"
-msgstr "Код локали: en_GB. Прогресс перевода: 95%"
+msgid "Locale code: en_GB. Translation progress: 94%"
+msgstr "Код локали: en_GB. Прогресс перевода: 94%"
 
 
 msgid "English (US)"
@@ -100308,24 +100336,20 @@ msgid "Finnish - Suomi"
 msgstr "Финский - Suomi"
 
 
-msgid "Locale code: fi_FI. Translation progress: 11%"
-msgstr "Код локали: fi_FI. Прогресс перевода: 11%"
+msgid "Locale code: fi_FI. Translation progress: 10%"
+msgstr "Код локали: fi_FI. Прогресс перевода: 10%"
 
 
 msgid "French - Français"
 msgstr "Французский - Français"
 
 
-msgid "Locale code: fr_FR. Translation progress: 99%"
-msgstr "Код локали: fr_FR. Прогресс перевода: 99%"
-
-
 msgid "Georgian - ქართული"
 msgstr "Грузинский - ქართული"
 
 
-msgid "Locale code: ka. Translation progress: 99%"
-msgstr "Код локали: ka. Прогресс перевода: 99%"
+msgid "Locale code: ka. Translation progress: 100%"
+msgstr "Код локали: ka. Прогресс перевода: 100%"
 
 
 msgid "German - Deutsch"
@@ -100372,8 +100396,8 @@ msgid "Indonesian - Bahasa indonesia"
 msgstr "Индонезийский - Bahasa Indonesia"
 
 
-msgid "Locale code: id_ID. Translation progress: 21%"
-msgstr "Код локали: id_ID. Прогресс перевода: 21%"
+msgid "Locale code: id_ID. Translation progress: 20%"
+msgstr "Код локали: id_ID. Прогресс перевода: 20%"
 
 
 msgid "Italian - Italiano"
@@ -100444,8 +100468,8 @@ msgid "Polish - Polski"
 msgstr "Польский - Polski"
 
 
-msgid "Locale code: pl_PL. Translation progress: 99%"
-msgstr "Код локали: pl_PL. Прогресс перевода: 99%"
+msgid "Locale code: pl_PL. Translation progress: 100%"
+msgstr "Код локали: pl_PL. Прогресс перевода: 100%"
 
 
 msgid "Portuguese (Brazil) - Português brasileiro"
@@ -100460,10 +100484,6 @@ msgid "Portuguese (Portugal) - Português europeu"
 msgstr "Португальский (Португалия) - Português europeu"
 
 
-msgid "Locale code: pt_PT. Translation progress: 80%"
-msgstr "Код локали: pt_PT. Прогресс перевода: 80%"
-
-
 msgid "Romanian - Român"
 msgstr "Румынский - Român"
 
@@ -100476,8 +100496,8 @@ msgid "Russian - Русский"
 msgstr "Русский - Русский"
 
 
-msgid "Locale code: ru_RU. Translation progress: 99%"
-msgstr "Код локали: ru_RU. Прогресс перевода: 99%"
+msgid "Locale code: ru_RU. Translation progress: 100%"
+msgstr "Код локали: ru_RU. Прогресс перевода: 100%"
 
 
 msgid "Serbian (Cyrillic) - Српски"
@@ -100500,24 +100520,24 @@ msgid "Slovak - Slovenčina"
 msgstr "Словацкий - Slovenčina"
 
 
-msgid "Locale code: sk_SK. Translation progress: 99%"
-msgstr "Код локали: sk_SK. Прогресс перевода: 99%"
+msgid "Locale code: sk_SK. Translation progress: 100%"
+msgstr "Код локали: sk_SK. Прогресс перевода: 100%"
 
 
 msgid "Slovenian - Slovenščina"
 msgstr "Словенский - Slovenščina"
 
 
-msgid "Locale code: sl. Translation progress: 51%"
-msgstr "Код локали: sl. Прогресс перевода: 51%"
+msgid "Locale code: sl. Translation progress: 52%"
+msgstr "Код локали: sl. Прогресс перевода: 52%"
 
 
 msgid "Spanish - Español"
 msgstr "Испанский - Español"
 
 
-msgid "Locale code: es. Translation progress: 99%"
-msgstr "Код локали: es. Прогресс перевода: 99%"
+msgid "Locale code: es. Translation progress: 100%"
+msgstr "Код локали: es. Прогресс перевода: 100%"
 
 
 msgid "Swahili - Kiswahili"
@@ -100556,8 +100576,8 @@ msgid "Turkish - Türkçe"
 msgstr "Турецкий - Türkçe"
 
 
-msgid "Locale code: tr_TR. Translation progress: 75%"
-msgstr "Код локали: tr_TR. Прогресс перевода: 75%"
+msgid "Locale code: tr_TR. Translation progress: 74%"
+msgstr "Код локали: tr_TR. Прогресс перевода: 74%"
 
 
 msgid "Ukrainian - Українська"
@@ -100578,10 +100598,6 @@ msgstr "Код локали: ur. Прогресс перевода: 82%"
 
 msgid "Vietnamese - Tiếng Việt"
 msgstr "Вьетнамский - Tiếng Việt"
-
-
-msgid "Locale code: vi_VN. Translation progress: 96%"
-msgstr "Код локали: vi_VN. Прогресс перевода: 96%"
 
 
 msgid "Reference Sphere Size"
@@ -101290,6 +101306,10 @@ msgstr "Свойство — это путь, который поддержив�
 
 msgid "Variable Expression Support"
 msgstr "Поддержка выражений с переменными"
+
+
+msgid "Property is a path which supports the \"{variable_name}\" variable expression syntax, which substitutes the value of the referenced variable in place of the expression"
+msgstr "Свойство – это путь, который поддерживает синтаксис выражения переменной \"{variable_name}\", который подставляет значение указанной переменной вместо самого выражения"
 
 
 msgid "Read Only"
@@ -102221,10 +102241,6 @@ msgstr "Тип запекаемого прохода"
 
 msgid "Filter Glossy"
 msgstr "Фильтр глянца"
-
-
-msgid "Adaptively blur glossy shaders after blurry bounces, to reduce noise at the cost of accuracy"
-msgstr "Адаптивно размывать шейдеры глянца после размытых отскоков, чтобы уменьшить зашумлённость за счёт точности"
 
 
 msgid "Camera Cull Margin"
@@ -109121,7 +109137,7 @@ msgstr "Отметить ключевые кадры, в которых ключ
 
 
 msgid "Show Handles and Interpolation"
-msgstr "Показать маркеры и интерполяцию"
+msgstr "Показать ручки и интерполяцию"
 
 
 msgid "Display keyframe handle types and non-Bézier interpolation modes"
@@ -125195,6 +125211,10 @@ msgid "Note: this combined rig is deprecated."
 msgstr "Примечание: этот комбинированный риг устарел."
 
 
+msgid "This operator is deprecated. Use anim.rotation_mode_convert instead"
+msgstr "Данный оператор устарел. Вместо него используйте anim.rotation_mode_convert"
+
+
 msgid "Warning: Some features may change after generation"
 msgstr "Внимание: некоторые функции могут быть изменены после генерации"
 
@@ -127217,7 +127237,7 @@ msgstr "Множитель оболочки"
 
 
 msgid "Radius Head"
-msgstr "Радиус головы"
+msgstr "Радиус - Начало"
 
 
 msgid "Cannot figure out which object this bone belongs to."
@@ -131352,6 +131372,22 @@ msgid "Duplicate Marker to Scene"
 msgstr "Дублировать маркеры в сцену"
 
 
+msgid "New Keyframes"
+msgstr "Новые ключевые кадры"
+
+
+msgid "Cycle Aware"
+msgstr "С учётом цикла"
+
+
+msgid "Only Active Keying Set"
+msgstr "Только активный набор ключей"
+
+
+msgid "Jump Unit"
+msgstr "Единица перехода"
+
+
 msgid "Limit to Frame Range"
 msgstr "Ограничить до диапазона кадров"
 
@@ -131370,22 +131406,6 @@ msgstr "Активный редактор"
 
 msgid "Properties and Sidebars"
 msgstr "Свойства и боковые панели"
-
-
-msgid "New Keyframes"
-msgstr "Новые ключевые кадры"
-
-
-msgid "Only Active Keying Set"
-msgstr "Только активный набор ключей"
-
-
-msgid "Jump Unit"
-msgstr "Единица перехода"
-
-
-msgid "Scrubbing Region"
-msgstr "Область перемотки"
 
 
 msgid "Layered Recording"
@@ -131602,11 +131622,6 @@ msgstr "Массовое переименование…"
 msgctxt "Operator"
 msgid "Preferences..."
 msgstr "Настройки…"
-
-
-msgctxt "Operator"
-msgid "Project Setup..."
-msgstr "Настройка проекта..."
 
 
 msgctxt "Operator"
@@ -134518,14 +134533,6 @@ msgid "Paste and Bake"
 msgstr "Вставить и запечь"
 
 
-msgid "Keying set is active, which may"
-msgstr "Набор ключей является активным, что может"
-
-
-msgid "reduce the effect of the above options"
-msgstr "снизить эффективность вышеуказанных опций"
-
-
 msgid "Using Active Scene Camera"
 msgstr "Использование активной камеры сцены"
 
@@ -136488,6 +136495,10 @@ msgid "Found IDs flagged as copy/paste clipboard data while writing a regular bl
 msgstr "При сохранении blend-файла были обнаружены идентификаторы с флагом данных буфера обмена. Этот флаг у идентификаторов был снят"
 
 
+msgid "Checking validity of current .blend file *AFTER* save to disk"
+msgstr "Проверка корректности текущего .blend-файла *ПОСЛЕ* сохранения на диск"
+
+
 msgid "Failed to write blendfile"
 msgstr "Не удалось сохранить blend-файл"
 
@@ -136596,6 +136607,10 @@ msgstr "Выделите чётное количество петель для �
 
 msgid "Selected loops must have equal edge counts"
 msgstr "Выделенные петли должны иметь равное число рёбер"
+
+
+msgid "Selection requires at least 3 non-collinear vertices"
+msgstr "Для выделения требуется не менее 3 не лежащих на одной прямой вершин"
 
 
 msgid "Could not connect vertices"
@@ -137021,6 +137036,14 @@ msgstr "Не удалось объединить ни одну анимацию.
 
 msgid "Invalid old/new Action pair ('%s' / '%s')"
 msgstr "Недопустимая пара старого/нового действия (\"%s\" / \"%s\")"
+
+
+msgid "Multiple users of an action and not all were selected: %s"
+msgstr "У данного действия несколько пользователей, но выбраны не все: %s"
+
+
+msgid "Skipped animated data-blocks because they cannot be edited: %d"
+msgstr "Пропущено анимированных блоков данных (недоступны для редактирования): %d"
 
 
 msgid "Expected an animation area to be active"
@@ -137491,6 +137514,10 @@ msgstr "Очистить траектории движения всех кост
 
 msgid "Cannot pose libdata"
 msgstr "Позы неприменимы к библиотечным данным"
+
+
+msgid "pose.rotation_mode_set is deprecated. Use anim.rotation_mode_convert instead"
+msgstr "Оператор pose.rotation_mode_set устарел. Вместо него используйте anim.rotation_mode_convert"
 
 
 msgid "Show Original Pose"
@@ -138878,6 +138905,10 @@ msgid "Space"
 msgstr "Пробел"
 
 
+msgid "Empty list"
+msgstr "Список пуст"
+
+
 msgid "Animate property"
 msgstr "Анимировать свойство"
 
@@ -140228,6 +140259,10 @@ msgid "Selected edges/faces required"
 msgstr "Необходимо выделить рёбра/грани"
 
 
+msgid "No edge loops found containing 2 or more edges"
+msgstr "Не найдено петель рёбер, содержащих 2 или более рёбер"
+
+
 msgid "Not a valid selection for extrude"
 msgstr "Нет допустимого выделения для экструдирования"
 
@@ -140318,10 +140353,6 @@ msgstr "Для оператора необходимо наличие отдел
 
 msgid "No edges selected"
 msgstr "Нет выделенных рёбер"
-
-
-msgid "No edge loops found containing 2 or more edges"
-msgstr "Не найдено петель рёбер, содержащих 2 или более рёбер"
 
 
 msgid "Cannot rip faces"
@@ -147207,8 +147238,8 @@ msgid "Cannot fly when the view offset is locked"
 msgstr "Облёт невозможен при заблокированном смещении вида"
 
 
-msgid "Cannot fly an object with constraints"
-msgstr "Режим полёта невозможен для объекта с ограничителями"
+msgid "Cannot fly an object with effective constraints"
+msgstr "Облёт объекта с действующими ограничителями невозможен"
 
 
 msgid "Cannot dolly when the view offset is locked"
@@ -147235,8 +147266,8 @@ msgid "Cannot navigate when the view offset is locked"
 msgstr "Навигация не работает при заблокированном смещении вида"
 
 
-msgid "Cannot navigate an object with constraints"
-msgstr "Навигация не работает для объектов с ограничителями"
+msgid "Cannot navigate an object with effective constraints"
+msgstr "Нельзя использовать навигацию для объекта с действующими ограничителями"
 
 
 msgid "Depth too large"
@@ -156025,6 +156056,54 @@ msgid "Whether the sampling was successful. It can fail when the sampled group i
 msgstr "Был ли сэмплинг успешным. Он может не сработать, если выбранная группа пуста"
 
 
+msgid "Could not generate grid for \"{}\""
+msgstr "Не удалось сгенерировать сетку для \"{}\""
+
+
+msgid "Use uniform voxel scale with no translation or rotation"
+msgstr "Использовать равномерное масштабирование вокселей без смещения и вращения"
+
+
+msgid "Define grid transform with a matrix"
+msgstr "Определить трансформацию сетки с помощью матрицы"
+
+
+msgid "Assign points to the closest voxel"
+msgstr "Назначить точки ближайшему вокселю"
+
+
+msgid "Linear falloff over the voxel range"
+msgstr "Линейный спад в пределах диапазона вокселей"
+
+
+msgid "Quadratic B-Spline"
+msgstr "Квадратичный B-сплайн"
+
+
+msgid "Quadratic b-spline kernel over 1.5 voxels"
+msgstr "Ядро квадратичного B-сплайна в пределах 1.5 вокселя"
+
+
+msgid "Cube b-spline kernel over 2 voxels"
+msgstr "Ядро кубического B-сплайна в пределах 2 вокселей"
+
+
+msgid "Grid Transform Mode"
+msgstr "Режим трансформации сетки"
+
+
+msgid "Kernel Type"
+msgstr "Тип ядра"
+
+
+msgid "Method of defining the grid transform"
+msgstr "Метод задания трансформации сетки"
+
+
+msgid "Kernel function for computing weights at each voxel"
+msgstr "Функция ядра для вычисления весов в каждом вокселе"
+
+
 msgid "The target mesh must have faces"
 msgstr "Целевой меш должен иметь грани"
 
@@ -163101,7 +163180,7 @@ msgstr "Объект-поверхность для прикрепления"
 
 
 msgid "Surface Source"
-msgstr "Поверхность-источник"
+msgstr "Источник поверхности"
 
 
 msgid "Select the input source for the surface geometry."
@@ -163477,7 +163556,7 @@ msgstr "Начало закручивания"
 
 
 msgid "Factor End"
-msgstr "Коэффициент конца"
+msgstr "Коэффициент - Конец"
 
 
 msgid "Factor for the radius at the curl end"
@@ -163769,11 +163848,11 @@ msgstr "Равномерно распределяет существующие �
 
 
 msgid "Feature Awareness"
-msgstr "Осведомленность об особенностях"
+msgstr "Учитывать особенности"
 
 
 msgid "Use simple feature awareness to keep feature definition"
-msgstr "Использовать простое знание особенностей, чтобы сохранить определение функции"
+msgstr "Использовать простой алгоритм учёта особенностей кривой для сохранения её выраженной формы и изгибов"
 
 
 msgid "Restore Curve Segment Length"

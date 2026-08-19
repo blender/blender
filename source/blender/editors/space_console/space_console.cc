@@ -6,6 +6,7 @@
  * \ingroup spconsole
  */
 
+#include <algorithm>
 #include <cstdio>
 #include <cstring>
 
@@ -220,19 +221,18 @@ static void console_dropboxes()
 /* ************* end drop *********** */
 
 #ifdef WITH_INPUT_IME
-static std::optional<rcti> console_main_region_cursor_ime(wmWindow * /*win*/,
-                                                          const ScrArea *area,
-                                                          const ARegion *region)
+static std::optional<ARegionIMECursorState> console_main_region_cursor_ime(
+    wmWindow * /*win*/, const ScrArea *area, const ARegion *region, ARegionIMECursor *r_cursor)
 {
-  /* Defer during View2D navigation (pan, zoom, scroll). */
+  /* The position is pending during View2D navigation (pan, zoom, scroll). */
   if (region->v2d.flag & V2D_IS_NAVIGATING) {
-    return std::nullopt;
+    return ARegionIMECursorState::PositionPending;
   }
   SpaceConsole *sc = static_cast<SpaceConsole *>(area->spacedata.first);
   /* Font metrics are cached during draw; zero means the region hasn't been drawn yet. */
   const int line_height = sc->runtime->line_height_px;
   if (line_height == 0) {
-    return std::nullopt;
+    return ARegionIMECursorState::PositionPending;
   }
   const ConsoleLine *cl = static_cast<const ConsoleLine *>(sc->history.last);
   if (cl == nullptr) {
@@ -246,9 +246,17 @@ static std::optional<rcti> console_main_region_cursor_ime(wmWindow * /*win*/,
   /* Convert to pixel space, X is pinned by #V2D_LOCKOFS_X. */
   const int2 xy = {xy_region->x, xy_region->y - int(region->v2d.cur.ymin)};
 
-  /* Extend the caret position upward by the line height; the caller clamps to the region
-   * bounds (the cursor may be scrolled out of view). */
-  return rcti{xy.x, xy.x, xy.y, xy.y + line_height};
+  /* Extend up by the line height.
+   * The caller clamps to the region since the cursor may be scrolled out of view. */
+  r_cursor->rect = {
+      .xmin = xy.x,
+      .xmax = xy.x,
+      .ymin = xy.y,
+      .ymax = xy.y + line_height,
+  };
+  /* The console draws text smaller than the line height, see #textview_font_begin. */
+  r_cursor->font_size = int(0.8f * float(line_height));
+  return ARegionIMECursorState::PositionSet;
 }
 
 #endif

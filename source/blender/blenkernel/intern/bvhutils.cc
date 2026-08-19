@@ -527,7 +527,8 @@ static std::unique_ptr<BVHTree, BVHTreeDeleter> create_tree_from_tris(
     const OffsetIndices<int> faces,
     const Span<int> corner_verts,
     const Span<int3> corner_tris,
-    const IndexMask &faces_mask)
+    const IndexMask &faces_mask,
+    const bool map_global_indices)
 {
   if (faces_mask.size() == faces.size()) {
     /* Avoid accessing face offsets if the selection is full. */
@@ -542,13 +543,16 @@ static std::unique_ptr<BVHTree, BVHTreeDeleter> create_tree_from_tris(
   if (!tree) {
     return {};
   }
+  int i = 0;
   faces_mask.foreach_index([&](const int face) {
     for (const int tri : mesh::face_triangles_range(faces, face)) {
       float co[3][3];
       copy_v3_v3(co[0], positions[corner_verts[corner_tris[tri][0]]]);
       copy_v3_v3(co[1], positions[corner_verts[corner_tris[tri][1]]]);
       copy_v3_v3(co[2], positions[corner_verts[corner_tris[tri][2]]]);
-      BLI_bvhtree_insert(tree.get(), tri, co[0], 3);
+      const int index = map_global_indices ? tri : i;
+      BLI_bvhtree_insert(tree.get(), index, co[0], 3);
+      i++;
     }
   });
   BLI_bvhtree_balance(tree.get());
@@ -559,10 +563,12 @@ BVHTreeFromMesh bvhtree_from_mesh_corner_tris_ex(const Span<float3> vert_positio
                                                  const OffsetIndices<int> faces,
                                                  const Span<int> corner_verts,
                                                  const Span<int3> corner_tris,
-                                                 const IndexMask &faces_mask)
+                                                 const IndexMask &faces_mask,
+                                                 const bool map_global_indices)
 {
   return create_tris_tree_data(
-      create_tree_from_tris(vert_positions, faces, corner_verts, corner_tris, faces_mask),
+      create_tree_from_tris(
+          vert_positions, faces, corner_verts, corner_tris, faces_mask, map_global_indices),
       vert_positions,
       corner_verts,
       corner_tris);
@@ -745,7 +751,8 @@ bke::BVHTreeFromMesh Mesh::bvh_corner_tris_no_hidden() const
         IndexMaskMemory memory;
         const IndexMask visible_faces = IndexMask::from_bools_inverse(
             faces.index_range(), VArraySpan(hide_poly), memory);
-        data = create_tree_from_tris(positions, faces, corner_verts, corner_tris, visible_faces);
+        data = create_tree_from_tris(
+            positions, faces, corner_verts, corner_tris, visible_faces, true);
       });
   return create_tris_tree_data(this->runtime->bvh_cache_corner_tris_no_hidden.data().get(),
                                positions,
@@ -764,6 +771,14 @@ bke::BVHTreeFromMesh Mesh::bvh_corner_tris() const
   });
   return create_tris_tree_data(
       this->runtime->bvh_cache_corner_tris.data().get(), positions, corner_verts, corner_tris);
+}
+
+const bke::bvh::Tree &Mesh::bvh_tris() const
+{
+  using namespace blender::bke::bvh;
+  this->runtime->bvh_embree_cache.ensure(
+      [&](bke::bvh::Tree &data) { data = bke::bvh::Tree::from_single_mesh(*this); });
+  return this->runtime->bvh_embree_cache.data();
 }
 
 namespace bke {

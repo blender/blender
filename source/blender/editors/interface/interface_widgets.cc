@@ -29,6 +29,7 @@
 #include "BLI_utildefines.hh"
 
 #include "BKE_context.hh"
+#include "BKE_path_templates.hh"
 
 #include "RNA_access.hh"
 
@@ -1420,7 +1421,14 @@ static void widget_draw_icon(
     else {
       xs = (rect->xmin + rect->xmax - height) / 2.0f;
     }
-    ys = (rect->ymin + rect->ymax - height) / 2.0f;
+
+    /* Align icon to the top. */
+    if (button_label_is_multiline(but)) {
+      ys = rect->ymax - height - 2.0f * ofs;
+    }
+    else {
+      ys = (rect->ymin + rect->ymax - height) / 2.0f;
+    }
 
     /* force positions to integers, for zoom levels near 1. draws icons crisp. */
     if (aspect > 0.95f && aspect < 1.05f) {
@@ -1508,6 +1516,106 @@ static void text_clip_give_next_off(Button *but, const char *str, const char *st
 }
 
 /**
+ * Shorten the next template variable expression.
+ *
+ * This searches for the next template variable expression starting at
+ * `byte_position` in the passed string.
+ *
+ * If a variable expression is found, it is substituted with a short/collapsed
+ * version, and the byte position just after that new short expression is
+ * returned, which can be used as the starting position to search for a
+ * subsequent variable expression.
+ *
+ * If no variable expression is found or a syntactically invalid expression is
+ * encountered, -1 is returned.
+ */
+static size_t text_shorten_next_template_var(char *str, size_t byte_position)
+{
+  const std::optional<bke::path_templates::ExpressionInfo> info =
+      bke::path_templates::next_template_variable_expression(str, byte_position);
+  if (!info.has_value()) {
+    return -1;
+  }
+
+  const StringRef short_expression{BKE_TEMPLATE_EXPRESSION_ABBREVIATION};
+
+  /* Since we don't have control over the length of `str`, for now we just don't
+   * substitute if it would grow the length of the string. This is a bit hacky,
+   * and it means that 1 and 2-byte template expressions won't get substituted.
+   *
+   * In the future we can get a bit more involved and grow the string as needed,
+   * and perhaps also verify that the substitution actually reduces the display
+   * length of the string. */
+  if (short_expression.size() > info->byte_range.size()) {
+    return info->byte_range.one_after_last();
+  }
+
+  std::memcpy(str + info->byte_range.first(), short_expression.data(), short_expression.size());
+  std::memmove(str + info->byte_range.first() + short_expression.size(),
+               str + info->byte_range.one_after_last(),
+               strlen(str) + 1 - info->byte_range.one_after_last());
+
+  return info->byte_range.first() + short_expression.size();
+}
+
+/**
+ * Shift the given split offset (if needed) to avoid splitting certain string patterns.
+ *
+ * If no shift is needed, then this simply returns the split offset as-is.
+ *
+ * \param str: the string being split.
+ *
+ * \param split_offset: the proposed split position, as a byte offset from the start of the string.
+ *
+ * \param shift_left: if true, will shift the split position left, otherwise will shift it right.
+ *
+ * \returns The (possibly) shifted split offset.
+ */
+static size_t avoid_non_split_patterns(StringRef str,
+                                       const size_t split_offset,
+                                       const bool shift_left)
+{
+  /* String patterns to avoid splitting when clipping text: they are either left
+   * as-is or removed completely, never partially removed. */
+  const StringRef no_split_strings[] = {
+      BKE_TEMPLATE_EXPRESSION_ABBREVIATION,
+  };
+
+  for (const StringRef unit : no_split_strings) {
+    /* Algorithm summary:
+     * - We scan backwards to find the first character of the unsplittable pattern.
+     * - If found, we scan forward to verify if there's a full match.
+     * - If there's a full match, we move the split offset to be on one side or the other of the
+     *   unsplittable pattern.
+     *
+     * Note that we limit the scan range so that if a match is found, we know that it straddles the
+     * split offset.
+     */
+    const int range_min = std::max(0, int(split_offset - unit.size() + 1));
+    const int range_max = std::max(0, int(split_offset - 1));
+    int match = -1;
+    for (int i = range_max; i >= range_min; i--) {
+      if (str.drop_prefix(i).startswith(unit)) {
+        match = i;
+      }
+    }
+
+    if (match == -1) {
+      continue;
+    }
+
+    size_t new_offset = match;
+    if (!shift_left) {
+      new_offset += unit.size();
+    }
+
+    return new_offset;
+  }
+
+  return split_offset;
+}
+
+/**
  * Helper.
  * This func assumes things like kerning handling have already been handled!
  * Return the length of modified (right-clipped + ellipsis) string.
@@ -1526,12 +1634,14 @@ static void text_clip_right_ex(const uiFontStyle *fstyle,
   /* How many BYTES (not characters) of this UTF8 string can fit, along with appended ellipsis. */
   int l_end = BLF_width_to_strlen(
       fstyle->uifont_id, str, max_len, okwidth - sep_strwidth, nullptr);
+  l_end = avoid_non_split_patterns(str, l_end, true);
+
   if (l_end > 0) {
-    l_end = StringRef(str, l_end).trim_right().end() - str;
+    StringRef trimmed_str = StringRef(str, l_end).trim_right();
     /* At least one character, so clip and add the ellipsis. */
-    memcpy(str + l_end, sep, sep_len + 1); /* +1 for trailing '\0'. */
+    memcpy(str + trimmed_str.size(), sep, sep_len + 1); /* +1 for trailing '\0'. */
     if (r_final_len) {
-      *r_final_len = size_t(l_end) + sep_len;
+      *r_final_len = trimmed_str.size() + sep_len;
     }
   }
   else {
@@ -1550,7 +1660,8 @@ float text_clip_middle_ex(const uiFontStyle *fstyle,
                           const float minwidth,
                           const size_t max_len,
                           const char rpart_sep,
-                          const bool clip_right_if_tight)
+                          const bool clip_right_if_tight,
+                          const bool shorten_template_variables)
 {
   BLI_assert(str[0]);
 
@@ -1558,6 +1669,18 @@ float text_clip_middle_ex(const uiFontStyle *fstyle,
   fontstyle_set(fstyle);
 
   float strwidth = BLF_width(fstyle->uifont_id, str, max_len);
+
+  /* Shorten template variables. */
+  if (shorten_template_variables) {
+    size_t byte_position = 0;
+    while ((okwidth > 0.0f) && (strwidth > okwidth)) {
+      byte_position = text_shorten_next_template_var(str, byte_position);
+      strwidth = BLF_width(fstyle->uifont_id, str, max_len);
+      if (byte_position == -1) {
+        break;
+      }
+    }
+  }
 
   if ((okwidth > 0.0f) && (strwidth > okwidth)) {
     const char sep[] = BLI_STR_UTF8_HORIZONTAL_ELLIPSIS;
@@ -1573,6 +1696,7 @@ float text_clip_middle_ex(const uiFontStyle *fstyle,
       rpart = strrchr(str, rpart_sep);
 
       if (rpart) {
+        rpart = str + avoid_non_split_patterns(str, size_t(rpart - str), false);
         rpart_len = strlen(rpart);
         rpart_width = BLF_width(fstyle->uifont_id, rpart, rpart_len);
         okwidth -= rpart_width;
@@ -1598,6 +1722,7 @@ float text_clip_middle_ex(const uiFontStyle *fstyle,
     }
 
     size_t l_end = BLF_width_to_strlen(fstyle->uifont_id, str, max_len, parts_strwidth, nullptr);
+    l_end = avoid_non_split_patterns(str, l_end, true);
     if (clip_right_if_tight &&
         (l_end < 10 || min_ff(parts_strwidth, strwidth - okwidth) < minwidth))
     {
@@ -1608,15 +1733,14 @@ float text_clip_middle_ex(const uiFontStyle *fstyle,
           fstyle, str, max_len, okwidth, sep, sep_len, sep_strwidth, &final_lpart_len);
     }
     else {
-      l_end = StringRef(str, l_end).trim_right().end() - str;
-
+      l_end = StringRef(str, l_end).trim_right().size();
       size_t r_offset, r_len;
       r_offset = BLF_width_to_rstrlen(fstyle->uifont_id, str, max_len, parts_strwidth, nullptr);
+      r_offset = avoid_non_split_patterns(str, r_offset, false);
       const StringRef r_trimmed = StringRef(str + r_offset).trim_left();
-      r_offset = r_trimmed.data() - str;
-      r_len = r_trimmed.size() + 1; /* +1 for the trailing '\0'. */
+      r_len = r_trimmed.size();
 
-      if (l_end + sep_len + r_len + rpart_len > max_len) {
+      if (l_end + sep_len + r_len + 1 + rpart_len > max_len) {
         /* Corner case, the str already takes all available mem,
          * and the ellipsis chars would actually add more chars.
          * Better to just trim one or two letters to the right in this case...
@@ -1627,10 +1751,11 @@ float text_clip_middle_ex(const uiFontStyle *fstyle,
             fstyle, str, max_len, okwidth, sep, sep_len, sep_strwidth, &final_lpart_len);
       }
       else {
-        memmove(str + l_end + sep_len, str + r_offset, r_len);
+        memmove(str + l_end + sep_len, r_trimmed.begin(), r_len);
         memcpy(str + l_end, sep, sep_len);
-        /* -1 to remove trailing '\0'! */
-        final_lpart_len = size_t(l_end + sep_len + r_len - 1);
+        final_lpart_len = size_t(l_end + sep_len + r_len);
+        /* Set string null terminator. */
+        str[final_lpart_len] = '\0';
 
 /* Seems like this was only needed because of an error in #BLF_width_to_rstrlen(), not because of
  * integer imprecision. See PR #135239. */
@@ -1689,11 +1814,22 @@ static void text_clip_middle(const uiFontStyle *fstyle, Button *but, const rcti 
   const float okwidth = float(max_ii(BLI_rcti_size_x(rect) - border, 0));
   const float minwidth = UI_ICON_SIZE / but->block->aspect * 2.0f;
 
+  const bool clip_right_if_tight = true;
+  const bool shorten_template_variables = but->rnaprop && (RNA_property_flag(but->rnaprop) &
+                                                           PROP_PATH_SUPPORTS_TEMPLATES) != 0;
+
   but->ofs = 0;
   char new_drawstr[UI_MAX_DRAW_STR];
   STRNCPY(new_drawstr, but->drawstr.c_str());
   const size_t max_len = sizeof(new_drawstr);
-  but->strwidth = text_clip_middle_ex(fstyle, new_drawstr, okwidth, minwidth, max_len, '\0');
+  but->strwidth = text_clip_middle_ex(fstyle,
+                                      new_drawstr,
+                                      okwidth,
+                                      minwidth,
+                                      max_len,
+                                      '\0',
+                                      clip_right_if_tight,
+                                      shorten_template_variables);
   but->drawstr = new_drawstr;
 }
 
@@ -2290,7 +2426,7 @@ static void widget_draw_textbox(const uiFontStyle *fstyle,
 #ifdef WITH_INPUT_IME
     /* IME cursor following. */
     if (ime_reposition_window) {
-      button_ime_reposition(but, ime_win_x, ime_win_y, false);
+      button_ime_reposition(but, ime_win_x, ime_win_y);
     }
 #endif
   }
@@ -2577,7 +2713,7 @@ static void widget_draw_text(const uiFontStyle *fstyle,
 #ifdef WITH_INPUT_IME
     /* IME cursor following. */
     if (ime_reposition_window) {
-      button_ime_reposition(but, ime_win_x, ime_win_y, false);
+      button_ime_reposition(but, ime_win_x, ime_win_y);
     }
     if (ime_data && !ime_data->composite.empty()) {
       /* Composite underline. */
@@ -2767,7 +2903,7 @@ static void widget_draw_multiline_text(const uiFontStyle *fstyle,
                         total_lines;
 
   const float line_height = ui::fontstyle_height_max(UI_FSTYLE_WIDGET) / but->block->aspect;
-  const float padding = (std::max(UI_UNIT_Y - line_height, 0.0f) / 2.0f) / but->block->aspect;
+  const float padding = (std::max(UI_UNIT_Y / but->block->aspect - line_height, 0.0f) / 2.0f);
 
   FontStyleDrawParams params{};
   params.align = multiline_label->text_align;
@@ -4813,6 +4949,11 @@ static void widget_icon_has_anim(Button *but,
   else if (but->type == ButtonType::Menu) {
     /* Draw menu buttons still with down arrow. */
     widget_menubut_embossn(but, wcol, rect, state, roundboxalign);
+  }
+  else if (but->type == ButtonType::Text && static_cast<ButtonText *>(but)->use_label_style) {
+    if (state->but_flag & UI_HOVER && !(state->but_flag & UI_SELECT)) {
+      theme::get_color_3ubv(TH_TEXT_HI, wcol->text);
+    }
   }
 }
 

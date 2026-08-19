@@ -148,6 +148,15 @@ static void zbuf_add_to_span(ZSpan *zspan, const float v1[2], const float v2[2])
 /* Functions                                                 */
 /*-----------------------------------------------------------*/
 
+/* NOTE(@ideasman42): workaround for pixel aligned UVs which are common and can screw
+ * up our intersection tests where a pixel gets in between 2 faces or the middle of a
+ * quad, camera aligned quads also have this problem but they are less common. Add a
+ * small offset to the UVs, fixes bug #18685. */
+constexpr float ZSPAN_X_EPSILON = 0.001f;
+constexpr float ZSPAN_Y_EPSILON = 0.002f;
+constexpr float ZSPAN_X_OFFSET = 0.5f + ZSPAN_X_EPSILON;
+constexpr float ZSPAN_Y_OFFSET = 0.5f + ZSPAN_Y_EPSILON;
+
 void zspan_rasterize_triangle(ZSpan *zspan,
                               void *handle,
                               const float *v1_in,
@@ -163,21 +172,9 @@ void zspan_rasterize_triangle(ZSpan *zspan,
   /* init */
   zbuf_init_span(zspan);
 
-  /* NOTE(@ideasman42): workaround for pixel aligned UVs which are common and can screw
-   * up our intersection tests where a pixel gets in between 2 faces or the middle of a
-   * quad, camera aligned quads also have this problem but they are less common. Add a
-   * small offset to the UVs, fixes bug #18685.
-   * This effectively shifts sampling point from top left corner to the texel center. */
-  float v1[2], v2[2], v3[2];
-
-  v1[0] = v1_in[0] - (0.5f + 0.001f);
-  v1[1] = v1_in[1] - (0.5f + 0.002f);
-
-  v2[0] = v2_in[0] - (0.5f + 0.001f);
-  v2[1] = v2_in[1] - (0.5f + 0.002f);
-
-  v3[0] = v3_in[0] - (0.5f + 0.001f);
-  v3[1] = v3_in[1] - (0.5f + 0.002f);
+  const float v1[2] = {v1_in[0] - ZSPAN_X_OFFSET, v1_in[1] - ZSPAN_Y_OFFSET};
+  const float v2[2] = {v2_in[0] - ZSPAN_X_OFFSET, v2_in[1] - ZSPAN_Y_OFFSET};
+  const float v3[2] = {v3_in[0] - ZSPAN_X_OFFSET, v3_in[1] - ZSPAN_Y_OFFSET};
 
   /* set spans */
   zbuf_add_to_span(zspan, v1, v2);
@@ -256,17 +253,20 @@ void zspan_rasterize_triangle(ZSpan *zspan,
 
 static void zspan_rasterize_conservative_line(ZSpan *zspan,
                                               void *handle,
-                                              const float *v1,
-                                              const float *v2,
+                                              const float *v1_in,
+                                              const float *v2_in,
                                               const float *uv1,
                                               const float *uv2,
                                               void (*func)(void *, int, int, float, float))
 {
+  const float v1[2] = {v1_in[0] - ZSPAN_X_OFFSET, v1_in[1] - ZSPAN_Y_OFFSET};
+  const float v2[2] = {v2_in[0] - ZSPAN_X_OFFSET, v2_in[1] - ZSPAN_Y_OFFSET};
+
   const float miny = std::min(v1[1], v2[1]);
   const float maxy = std::max(v1[1], v2[1]);
 
-  int y0 = ceil(miny) - 1;
-  int y1 = floor(maxy);
+  int y0 = floor(miny + 0.5f);
+  int y1 = floor(maxy + 0.5f);
 
   /* Clip and cull the line. */
   y0 = std::max(y0, 0);
@@ -294,16 +294,16 @@ static void zspan_rasterize_conservative_line(ZSpan *zspan,
 
   for (; y0 <= y1; y0++) {
     /* Compute line x range inside current scanline, interpolating between endpoints. */
-    const float ta = (clamp_f(y0, miny, maxy) - miny) * inv_dy;
-    const float tb = (maxy - clamp_f(y0 + 1, miny, maxy)) * inv_dy;
+    const float ta = (clamp_f(y0 - 0.5f, miny, maxy) - miny) * inv_dy;
+    const float tb = (maxy - clamp_f(y0 + 0.5f, miny, maxy)) * inv_dy;
     const float xa = math::interpolate(x_miny, x_maxy, ta);
     const float xb = math::interpolate(x_miny, x_maxy, 1.0f - tb);
 
     const float minx = std::min(xa, xb);
     const float maxx = std::max(xa, xb);
 
-    int x0 = ceil(minx) - 1;
-    int x1 = floor(maxx);
+    int x0 = floor(minx + 0.5f);
+    int x1 = floor(maxx + 0.5f);
 
     /* Clip and cull scanline. */
     x0 = std::max(x0, 0);
@@ -316,7 +316,7 @@ static void zspan_rasterize_conservative_line(ZSpan *zspan,
     }
 
     for (; x0 <= x1; x0++) {
-      float w = (x0 - v1[0] + 0.5f + 0.001f) * dir[0] + (y0 - v1[1] + 0.5f + 0.002f) * dir[1];
+      float w = (x0 - v1[0]) * dir[0] + (y0 - v1[1]) * dir[1];
       w = clamp_f(w, 0, 1);
 
       float u = (1 - w) * uv1[0] + w * uv2[0];

@@ -87,7 +87,7 @@ void BKE_fcurve_free(FCurve *fcu)
   MEM_SAFE_DELETE(fcu->fpt);
 
   /* Free RNA-path, as this were allocated when getting the path string. */
-  MEM_SAFE_DELETE(fcu->rna_path);
+  MEM_SAFE_DELETE(fcu->rna_path_ptr);
 
   /* Free extra data - i.e. modifiers, and driver. */
   fcurve_free_driver(fcu);
@@ -142,7 +142,7 @@ FCurve *BKE_fcurve_copy(const FCurve *fcu)
   fcu_d->fpt = MEM_dupalloc(fcu_d->fpt);
 
   /* Copy rna-path. */
-  fcu_d->rna_path = MEM_dupalloc(fcu_d->rna_path);
+  fcu_d->rna_path_ptr = MEM_dupalloc(fcu_d->rna_path_ptr);
 
   /* Copy driver. */
   fcu_d->driver = fcurve_copy_driver(fcu_d->driver);
@@ -171,10 +171,32 @@ void BKE_fcurves_copy(ListBaseT<FCurve> *dst, ListBaseT<FCurve> *src)
   }
 }
 
-void BKE_fcurve_rnapath_set(FCurve &fcu, StringRef rna_path)
+void FCurve::rna_path_set(const StringRef path)
 {
-  MEM_SAFE_DELETE(fcu.rna_path);
-  fcu.rna_path = BLI_strdupn(rna_path.data(), rna_path.size());
+  MEM_SAFE_DELETE(this->rna_path_ptr);
+  this->rna_path_ptr = BLI_strdupn(path.data(), path.size());
+  this->runtime->parsed_rna_path = ParsedRNAPath<>::from_string(
+      StringRefNull(this->rna_path_ptr, path.size()));
+}
+
+void FCurve::rna_path_set_move(char *path)
+{
+  MEM_SAFE_DELETE(this->rna_path_ptr);
+  this->rna_path_ptr = path;
+  this->runtime->parsed_rna_path = ParsedRNAPath<>::from_string(path);
+}
+
+StringRefNull FCurve::rna_path() const
+{
+  return this->rna_path_ptr ? StringRefNull(this->rna_path_ptr) : StringRefNull("");
+}
+
+ParsedRNAPathRef FCurve::rna_path_parsed() const
+{
+  if (!this->runtime->parsed_rna_path) {
+    return {};
+  }
+  return *this->runtime->parsed_rna_path;
 }
 
 void BKE_fmodifier_name_set(FModifier *fcm, const char *name)
@@ -276,8 +298,8 @@ FCurve *BKE_fcurve_find(ListBaseT<FCurve> *list, const char rna_path[], const in
   for (FCurve &fcu : *list) {
     /* Check indices first, much cheaper than a string comparison. */
     /* Simple string-compare (this assumes that they have the same root...) */
-    if (fcu.array_index == array_index && fcu.rna_path && fcu.rna_path[0] == rna_path[0] &&
-        STREQ(fcu.rna_path, rna_path)) [[unlikely]]
+    if (fcu.array_index == array_index && fcu.rna_path_ptr && fcu.rna_path_ptr[0] == rna_path[0] &&
+        STREQ(fcu.rna_path_ptr, rna_path)) [[unlikely]]
     {
       return &fcu;
     }
@@ -302,7 +324,7 @@ FCurve *BKE_fcurve_iter_step(FCurve *fcu_iter, const char rna_path[])
   /* Check paths of curves, then array indices... */
   for (FCurve *fcu = fcu_iter; fcu; fcu = fcu->next) {
     /* Simple string-compare (this assumes that they have the same root...) */
-    if (fcu->rna_path && STREQ(fcu->rna_path, rna_path)) {
+    if (fcu->rna_path_ptr && STREQ(fcu->rna_path_ptr, rna_path)) {
       return fcu;
     }
   }
@@ -1858,7 +1880,10 @@ void BKE_fcurve_merge_duplicate_keys(FCurve *fcu, const int sel_flag, const bool
   if (retained_keys.is_empty()) {
     /* This may happen if none of the points were selected... */
     if (G.debug & G_DEBUG) {
-      printf("%s: nothing to do for FCurve %p (rna_path = '%s')\n", __func__, fcu, fcu->rna_path);
+      printf("%s: nothing to do for FCurve %p (rna_path = '%s')\n",
+             __func__,
+             fcu,
+             fcu->rna_path().c_str());
     }
     return;
   }
@@ -2559,7 +2584,7 @@ void BKE_fmodifiers_blend_read_data(BlendDataReader *reader,
       BLO_reportf_wrap(BLO_read_data_reports(reader),
                        RPT_WARNING,
                        RPT_("F-Curve modifier lost on '%s[%d]' because it has an unknown type"),
-                       curve->rna_path,
+                       curve->rna_path().c_str(),
                        curve->array_index);
       fcm.data = nullptr;
     }
@@ -2595,8 +2620,8 @@ void BKE_fcurve_blend_write_data(BlendWriter *writer, FCurve *fcu)
     writer->write_struct_array(fcu->totvert, fcu->fpt);
   }
 
-  if (fcu->rna_path) {
-    writer->write_string(fcu->rna_path);
+  if (fcu->rna_path_ptr) {
+    writer->write_string(fcu->rna_path_ptr);
   }
 
   /* driver data */
@@ -2644,7 +2669,10 @@ void BKE_fcurve_blend_read_data(BlendDataReader *reader, FCurve *fcu)
   }
 
   /* rna path */
-  BLO_read_string(reader, &fcu->rna_path);
+  BLO_read_string(reader, &fcu->rna_path_ptr);
+  if (fcu->rna_path_ptr) {
+    fcu->runtime->parsed_rna_path = ParsedRNAPath<>::from_string(fcu->rna_path_ptr);
+  }
 
   /* group */
   BLO_read_struct(reader, bActionGroup, &fcu->grp);

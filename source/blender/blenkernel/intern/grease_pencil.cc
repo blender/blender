@@ -590,7 +590,7 @@ static void update_triangle_and_offsets_cache(const Span<float3> positions,
             input.vert = verts;
             input.face_offsets = fill_points_by_curve;
             input.face_vert_indices = face_vert_indices;
-            input.need_ids = true;
+            input.needed_ids = CDT_ORIG_VERTS | CDT_ONLY_ONE_ORIG;
 
             meshintersect::CDT_result<double> result = delaunay_2d_calc(input,
                                                                         CDT_INSIDE_WITH_HOLES);

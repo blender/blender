@@ -9,7 +9,7 @@
 
 #include "GEO_curve_constraints.hh"
 
-#include "BKE_bvhutils.hh"
+#include "BKE_bvh.hh"
 
 /**
  * The code below uses a prefix naming convention to indicate the coordinate space:
@@ -76,7 +76,7 @@ void solve_length_and_collision_constraints(const OffsetIndices<int> points_by_c
 {
   solve_length_constraints(points_by_curve, curve_selection, segment_lengths_cu, positions_cu);
 
-  bke::BVHTreeFromMesh surface_bvh = surface.bvh_corner_tris();
+  const bke::bvh::Tree &surface_bvh = surface.bvh_tris();
 
   const int max_collisions = 5;
 
@@ -112,21 +112,16 @@ void solve_length_and_collision_constraints(const OffsetIndices<int> points_by_c
               float max_ray_length_su;
               const float3 ray_direction_su = math::normalize_and_get_length(pos_diff_su,
                                                                              max_ray_length_su);
-              BVHTreeRayHit hit;
-              hit.index = -1;
-              hit.dist = max_ray_length_su + surface_collision_distance;
-              BLI_bvhtree_ray_cast(surface_bvh.tree,
-                                   start_pos_su,
-                                   ray_direction_su,
-                                   surface_collision_distance,
-                                   &hit,
-                                   surface_bvh.raycast_callback,
-                                   &surface_bvh);
-              if (hit.index == -1) {
+
+              const bke::bvh::Ray ray(
+                  start_pos_su, ray_direction_su, max_ray_length_su + surface_collision_distance);
+
+              const std::optional<bke::bvh::RayHit> hit = surface_bvh.ray_intersect(ray);
+              if (!hit) {
                 break;
               }
-              const float3 hit_pos_su = hit.co;
-              const float3 hit_normal_su = hit.no;
+              const float3 hit_pos_su = ray.origin + ray.direction * hit->distance;
+              const float3 hit_normal_su = math::normalize(hit->normal);
               if (math::dot(hit_normal_su, ray_direction_su) > 0.0f) {
                 /* Moving from the inside to the outside is ok. */
                 break;

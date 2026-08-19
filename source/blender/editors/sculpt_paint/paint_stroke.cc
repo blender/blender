@@ -368,7 +368,7 @@ bool PaintStroke::update(bContext *C,
   else {
     /* curve strokes do their own rake calculation */
     if (brush.stroke_method != BRUSH_STROKE_CURVE) {
-      if (!paint_calculate_rake_rotation(*paint, brush, mouse_init, mode, rake_started_)) {
+      if (!paint_calculate_rake_rotation(*paint, brush, mouse_init, mode, true, !rake_started_)) {
         /* Not enough motion to define an angle. */
         if (!rake_started_) {
           is_dry_run = true;
@@ -1109,26 +1109,6 @@ bool paint_supports_dynamic_tex_coords(const Brush &br, const PaintMode mode)
   return true;
 }
 
-#define PAINT_STROKE_MODAL_CANCEL 1
-
-wmKeyMap *paint_stroke_modal_keymap(wmKeyConfig *keyconf)
-{
-  static const EnumPropertyItem modal_items[] = {
-      {PAINT_STROKE_MODAL_CANCEL, "CANCEL", 0, "Cancel", "Cancel and undo a stroke in progress"},
-      {0}};
-
-  static const char *name = "Paint Stroke Modal";
-
-  wmKeyMap *keymap = WM_modalkeymap_find(keyconf, name);
-
-  /* This function is called for each space-type, only needs to add map once. */
-  if (!keymap) {
-    keymap = WM_modalkeymap_ensure(keyconf, name, modal_items);
-  }
-
-  return keymap;
-}
-
 void PaintStroke::add_sample(const int input_samples,
                              const float x,
                              const float y,
@@ -1573,7 +1553,7 @@ wmOperatorStatus PaintStroke::modal(bContext *C, wmOperator *op, const wmEvent *
       {
         copy_v2_v2(paint_runtime.last_rake, this->last_mouse_position);
       }
-      paint_calculate_rake_rotation(*paint, *br, mouse, mode, true);
+      paint_calculate_rake_rotation(*paint, *br, mouse, mode, true, true);
     }
   }
   else if (first_modal ||

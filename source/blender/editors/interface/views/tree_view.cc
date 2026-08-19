@@ -689,6 +689,8 @@ void AbstractTreeViewItem::add_collapse_chevron(Block &block) const
   Button *but = uiDefIconBut(
       &block, ButtonType::ButToggle, icon, 0, 0, UI_TREEVIEW_INDENT, UI_UNIT_Y, nullptr, 0, 0, "");
   button_func_set(but, collapse_chevron_click_fn, nullptr, nullptr);
+  /* To make drag toggle work. */
+  button_func_pushed_state_set(but, [this](const Button &) { return this->is_collapsed(); });
   button_flag_disable(but, BUT_UNDO);
 }
 

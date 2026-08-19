@@ -4,6 +4,7 @@
 
 #include <algorithm>
 
+#include "BKE_bvh.hh"
 #include "sculpt_intern.hh"
 
 #include "BLI_math_geom_c.hh"
@@ -197,7 +198,7 @@ std::optional<CurvesBrush3D> sample_curves_3d_brush(const Depsgraph &depsgraph,
     const float4x4 world_to_surface_mat = math::invert(surface_to_world_mat);
 
     Mesh *surface_eval = BKE_object_get_evaluated_mesh(surface_object_eval);
-    bke::BVHTreeFromMesh surface_bvh = surface_eval->bvh_corner_tris();
+    const bke::bvh::Tree &surface_bvh = surface_eval->bvh_tris();
 
     const float3 center_ray_start_su = math::transform_point(world_to_surface_mat,
                                                              center_ray_start_wo);
@@ -205,18 +206,9 @@ std::optional<CurvesBrush3D> sample_curves_3d_brush(const Depsgraph &depsgraph,
     const float3 center_ray_direction_su = math::normalize(center_ray_end_su -
                                                            center_ray_start_su);
 
-    BVHTreeRayHit center_ray_hit;
-    center_ray_hit.dist = FLT_MAX;
-    center_ray_hit.index = -1;
-    BLI_bvhtree_ray_cast(surface_bvh.tree,
-                         center_ray_start_su,
-                         center_ray_direction_su,
-                         0.0f,
-                         &center_ray_hit,
-                         surface_bvh.raycast_callback,
-                         &surface_bvh);
-    if (center_ray_hit.index >= 0) {
-      const float3 hit_position_su = center_ray_hit.co;
+    const bke::bvh::Ray center_ray(center_ray_start_su, center_ray_direction_su);
+    if (const std::optional<bke::bvh::RayHit> hit = surface_bvh.ray_intersect(center_ray)) {
+      const float3 hit_position_su = hit->position(center_ray);
       if (math::distance(center_ray_start_su, center_ray_end_su) >
           math::distance(center_ray_start_su, hit_position_su))
       {
@@ -275,7 +267,7 @@ std::optional<CurvesBrush3D> sample_curves_surface_3d_brush(
     const ARegion &region,
     const View3D &v3d,
     const CurvesSurfaceTransforms &transforms,
-    const bke::BVHTreeFromMesh &surface_bvh,
+    const bke::bvh::Tree &surface_bvh,
     const float2 &brush_pos_re,
     const float brush_radius_re)
 {
@@ -287,19 +279,11 @@ std::optional<CurvesBrush3D> sample_curves_surface_3d_brush(
   const float3 brush_ray_end_su = math::transform_point(transforms.world_to_surface,
                                                         brush_ray_end_wo);
 
-  const float3 brush_ray_direction_su = math::normalize(brush_ray_end_su - brush_ray_start_su);
+  const float3 brush_ray_direction_su = brush_ray_end_su - brush_ray_start_su;
 
-  BVHTreeRayHit ray_hit;
-  ray_hit.dist = FLT_MAX;
-  ray_hit.index = -1;
-  BLI_bvhtree_ray_cast(surface_bvh.tree,
-                       brush_ray_start_su,
-                       brush_ray_direction_su,
-                       0.0f,
-                       &ray_hit,
-                       surface_bvh.raycast_callback,
-                       const_cast<void *>(static_cast<const void *>(&surface_bvh)));
-  if (ray_hit.index == -1) {
+  const bke::bvh::Ray brush_ray(brush_ray_start_su, brush_ray_direction_su);
+  const std::optional<bke::bvh::RayHit> ray_hit = surface_bvh.ray_intersect(brush_ray);
+  if (!ray_hit) {
     return std::nullopt;
   }
 
@@ -316,7 +300,7 @@ std::optional<CurvesBrush3D> sample_curves_surface_3d_brush(
   const float3 brush_radius_ray_end_cu = math::transform_point(transforms.world_to_curves,
                                                                brush_radius_ray_end_wo);
 
-  const float3 brush_pos_su = ray_hit.co;
+  const float3 brush_pos_su = ray_hit->position(brush_ray);
   const float3 brush_pos_cu = math::transform_point(transforms.surface_to_curves, brush_pos_su);
   const float brush_radius_cu = dist_to_line_v3(
       brush_pos_cu, brush_radius_ray_start_cu, brush_radius_ray_end_cu);

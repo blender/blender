@@ -19,6 +19,7 @@
 
 #ifdef WITH_GMP
 namespace blender::meshintersect::tests {
+namespace {
 
 constexpr bool DO_OBJ = false;
 
@@ -957,5 +958,6 @@ TEST(boolean_polymesh, CubePlane)
   }
 }
 
+}  // namespace
 }  // namespace blender::meshintersect::tests
 #endif

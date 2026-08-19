@@ -235,7 +235,7 @@ class SVMCompiler {
     vector<bool> nodes_done_flag;
 
     /* Node features that can be compiled. */
-    uint node_feature_mask;
+    uint64_t node_feature_mask;
   };
 
   ShaderNodeType node_type(const ShaderNode *shader_node,

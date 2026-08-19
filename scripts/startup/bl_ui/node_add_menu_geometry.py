@@ -458,6 +458,8 @@ class NODE_MT_gn_material_base(node_add_menu.NodeMenu):
 
     def draw(self, _context):
         layout = self.layout
+        self.node_operator(layout, "GeometryNodeGeometryMaterials")
+        layout.separator()
         self.node_operator(layout, "GeometryNodeReplaceMaterial")
         layout.separator()
         self.node_operator(layout, "GeometryNodeInputMaterialIndex")
@@ -934,6 +936,7 @@ class NODE_MT_gn_utilities_vector_base(node_add_menu.NodeMenu):
         layout = self.layout
 
         self.node_operator(layout, "ShaderNodeCombineXYZ")
+        self.node_operator(layout, "FunctionNodeGetVectorComponent")
         props = self.node_operator(layout, "ShaderNodeMapRange")
         ops = props.settings.add()
         ops.name = "data_type"

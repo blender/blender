@@ -496,7 +496,7 @@ static PointerRNA rna_KeyMap_item_find_match(
   if (kmi_base) {
     return RNA_pointer_create_discrete(id, RNA_KeyMapItem, kmi_base);
   }
-  return PointerRNA_NULL;
+  return {};
 }
 
 static PointerRNA rna_KeyMap_item_find_from_operator(ID *id,
@@ -668,7 +668,7 @@ static PointerRNA rna_PopMenuBegin(bContext *C,
                                    const int icon)
 {
   if (!rna_popup_context_ok_or_report(C, reports)) {
-    return PointerRNA_NULL;
+    return {};
   }
 
   void *data = static_cast<void *>(ui::popup_menu_begin(C, title, icon));
@@ -688,7 +688,7 @@ static PointerRNA rna_PopoverBegin(bContext *C,
                                    const bool from_active_button)
 {
   if (!rna_popup_context_ok_or_report(C, reports)) {
-    return PointerRNA_NULL;
+    return {};
   }
 
   void *data = static_cast<void *>(
@@ -707,7 +707,7 @@ static PointerRNA rna_PieMenuBegin(
     bContext *C, ReportList *reports, const char *title, const int icon, PointerRNA *event)
 {
   if (!rna_popup_context_ok_or_report(C, reports)) {
-    return PointerRNA_NULL;
+    return {};
   }
 
   void *data = (void *)ui::pie_menu_begin(
@@ -742,7 +742,7 @@ static PointerRNA rna_WindoManager_operator_properties_last(const char *idname)
     WM_operator_last_properties_ensure(ot, &ptr);
     return ptr;
   }
-  return PointerRNA_NULL;
+  return {};
 }
 
 static wmEvent *rna_Window_event_add_simulate(wmWindow *win,

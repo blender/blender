@@ -269,9 +269,8 @@ static void anim_change_prop_name(FCurve *fcu,
                                   const char *new_prop_name)
 {
   const char *old_path = BLI_sprintfN("%s.%s", prefix, old_prop_name);
-  if (STREQ(fcu->rna_path, old_path)) {
-    MEM_delete(fcu->rna_path);
-    fcu->rna_path = BLI_sprintfN("%s.%s", prefix, new_prop_name);
+  if (fcu->rna_path() == old_path) {
+    fcu->rna_path_set_move(BLI_sprintfN("%s.%s", prefix, new_prop_name));
   }
   MEM_delete(const_cast<char *>(old_path));
 }
@@ -310,7 +309,7 @@ static void do_version_hue_sat_node(bNodeTree *ntree, bNode *node)
     BLI_str_escape(node_name_esc, node->name, sizeof(node_name_esc));
     const char *prefix = BLI_sprintfN("nodes[\"%s\"]", node_name_esc);
     for (FCurve &fcu : adt->action->curves) {
-      if (STRPREFIX(fcu.rna_path, prefix)) {
+      if (fcu.rna_path().startswith(prefix)) {
         anim_change_prop_name(&fcu, prefix, "color_hue", "inputs[1].default_value");
         anim_change_prop_name(&fcu, prefix, "color_saturation", "inputs[2].default_value");
         anim_change_prop_name(&fcu, prefix, "color_value", "inputs[3].default_value");
@@ -409,33 +408,29 @@ static void do_versions_compositor_render_passes(bNodeTree *ntree)
   }
 }
 
-static char *replace_bbone_easing_rnapath(char *old_path)
+/**
+ * \return a newly allocated replacement path, or nullptr if `old_path` doesn't need replacing.
+ */
+static char *replace_bbone_easing_rnapath(const char *old_path)
 {
-  char *new_path = nullptr;
-
   /* NOTE: This will break paths for any bones/custom-properties
    * which happen be named after the bbone property id's
    */
   if (strstr(old_path, "bbone_in")) {
-    new_path = BLI_string_replaceN(old_path, "bbone_in", "bbone_easein");
+    return BLI_string_replaceN(old_path, "bbone_in", "bbone_easein");
   }
-  else if (strstr(old_path, "bbone_out")) {
-    new_path = BLI_string_replaceN(old_path, "bbone_out", "bbone_easeout");
-  }
-
-  if (new_path) {
-    MEM_delete(old_path);
-    return new_path;
+  if (strstr(old_path, "bbone_out")) {
+    return BLI_string_replaceN(old_path, "bbone_out", "bbone_easeout");
   }
 
-  return old_path;
+  return nullptr;
 }
 
 static void do_version_bbone_easing_fcurve_fix(ID * /*id*/, FCurve *fcu)
 {
   /* F-Curve's path (for bbone_in/out) */
-  if (fcu->rna_path) {
-    fcu->rna_path = replace_bbone_easing_rnapath(fcu->rna_path);
+  if (char *new_path = replace_bbone_easing_rnapath(fcu->rna_path().c_str())) {
+    fcu->rna_path_set_move(new_path);
   }
 
   /* Driver -> Driver Vars (for bbone_in/out) */
@@ -443,7 +438,10 @@ static void do_version_bbone_easing_fcurve_fix(ID * /*id*/, FCurve *fcu)
     for (DriverVar &dvar : fcu->driver->variables) {
       DRIVER_TARGETS_LOOPER_BEGIN (&dvar) {
         if (dtar->rna_path) {
-          dtar->rna_path = replace_bbone_easing_rnapath(dtar->rna_path);
+          if (char *new_path = replace_bbone_easing_rnapath(dtar->rna_path)) {
+            MEM_delete(dtar->rna_path);
+            dtar->rna_path = new_path;
+          }
         }
       }
       DRIVER_TARGETS_LOOPER_END;
@@ -1581,12 +1579,13 @@ void blo_do_versions_270(FileData *fd, Library * /*lib*/, Main *bmain)
       }
     }
 
-    if (!DNA_struct_member_exists(fd->filesdna, "Brush", "float", "falloff_angle")) {
+    if (!DNA_struct_member_exists(fd->filesdna, "Brush", "float", "falloff_angle_legacy")) {
       for (Brush &br : bmain->brushes) {
-        br.falloff_angle = DEG2RADF(80);
+        br.falloff_angle_legacy = DEG2RADF(80);
         /* These flags are used for new features. They are not related to `falloff_angle`. */
         br.flag &= ~(BRUSH_INVERT_TO_SCRAPE_FILL | BRUSH_ORIGINAL_PLANE |
-                     BRUSH_GRAB_ACTIVE_VERTEX | BRUSH_SCENE_SPACING | BRUSH_FRONTFACE_FALLOFF);
+                     BRUSH_GRAB_ACTIVE_VERTEX | BRUSH_SCENE_SPACING |
+                     BRUSH_FRONTFACE_FALLOFF_DEPRECATED);
       }
 
       for (Scene &scene : bmain->scenes) {

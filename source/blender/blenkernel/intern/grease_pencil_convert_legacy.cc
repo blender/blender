@@ -235,10 +235,7 @@ class AnimDataConvertor {
   /* Basic common check to decide whether a legacy fcurve should be processed or not. */
   bool legacy_fcurves_is_valid_for_root_path(FCurve &fcurve, StringRefNull legacy_root_path) const
   {
-    if (!fcurve.rna_path) {
-      return false;
-    }
-    StringRefNull rna_path = fcurve.rna_path;
+    const StringRefNull rna_path = fcurve.rna_path();
     if (!rna_path.startswith(legacy_root_path)) {
       return false;
     }
@@ -402,7 +399,7 @@ class AnimDataConvertor {
       return false;
     }
 
-    if (GS(id_src.name) != GS(id_dst.name)) {
+    if (id_src.id_type() != id_dst.id_type()) {
       return true;
     }
 
@@ -419,7 +416,7 @@ class AnimDataConvertor {
         has_animation = true;
         return false;
       }
-      StringRefNull rna_path = fcurve.rna_path;
+      const StringRefNull rna_path = fcurve.rna_path();
       for (const AnimDataFCurveConvertor &fcurve_convertor : this->fcurve_convertors) {
         const std::string rna_path_src = fmt::format(
             "{}{}", this->root_path_src, fcurve_convertor.relative_rna_path_src);
@@ -451,8 +448,7 @@ class AnimDataConvertor {
                                  bAction *owner_action,
                                  FCurve &fcurve,
                                  const std::string &rna_path_dst) {
-      MEM_delete(fcurve.rna_path);
-      fcurve.rna_path = BLI_strdupn(rna_path_dst.c_str(), rna_path_dst.size());
+      fcurve.rna_path_set(rna_path_dst);
       if (fcurve_convertor && fcurve_convertor->convert_cb) {
         fcurve_convertor->convert_cb(fcurve);
       }
@@ -480,7 +476,7 @@ class AnimDataConvertor {
         if (!legacy_fcurves_is_valid_for_root_path(fcurve, this->root_path_src)) {
           return false;
         }
-        StringRefNull rna_path = fcurve.rna_path;
+        const StringRefNull rna_path = fcurve.rna_path();
         const std::string rna_path_dst = fmt::format(
             "{}{}", this->root_path_dst, rna_path.substr(int64_t(this->root_path_src.size())));
         fcurve_convert_cb(nullptr, owner_action, fcurve, rna_path_dst);
@@ -497,7 +493,7 @@ class AnimDataConvertor {
       if (!animation_fcurve_is_valid(owner_action, fcurve)) {
         return false;
       }
-      StringRefNull rna_path = fcurve.rna_path;
+      const StringRefNull rna_path = fcurve.rna_path();
       for (const AnimDataFCurveConvertor &fcurve_convertor : this->fcurve_convertors) {
         const std::string rna_path_src = fmt::format(
             "{}{}", this->root_path_src, fcurve_convertor.relative_rna_path_src);
@@ -3142,7 +3138,7 @@ void legacy_main(Main &bmain,
         [&conversion_data](BlendfileLinkAppendContext *lapp_context,
                            BlendfileLinkAppendContextItem *item) -> bool {
           ID *item_new_id = BKE_blendfile_link_append_context_item_newid_get(lapp_context, item);
-          if (!item_new_id || GS(item_new_id->name) != ID_GD_LEGACY) {
+          if (!item_new_id || item_new_id->id_type() != ID_GD_LEGACY) {
             return true;
           }
           GreasePencil **item_grease_pencil =

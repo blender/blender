@@ -282,8 +282,8 @@ static void node_socket_add_replace(const bContext *C,
             bke::node_add_link(*ntree, *link->fromnode, *link->fromsock, *node_from, sock_from);
             bke::node_remove_link(ntree, *link);
           }
-
-          node_socket_copy_default_value(&sock_from, &sock_prev);
+          bke::socket_value_copy_content(
+              sock_from.type, sock_from.default_value, sock_prev.default_value, true);
         }
       }
     }
@@ -835,7 +835,8 @@ static void ui_node_draw_node(
       {
         if (!layout_decl->is_default) {
           PointerRNA nodeptr = RNA_pointer_create_discrete(&ntree.id, RNA_Node, &node);
-          layout_decl->draw(layout, &C, &nodeptr);
+          ui::Layout &column = layout.column(false);
+          layout_decl->draw(column, &C, &nodeptr);
         }
       }
     }

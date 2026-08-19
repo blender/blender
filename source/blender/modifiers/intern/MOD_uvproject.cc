@@ -306,7 +306,7 @@ static void panel_draw(const bContext * /*C*/, Panel *panel)
   bool has_camera = false;
   RNA_BEGIN (ptr, projector_ptr, "projectors") {
     PointerRNA ob_projector = RNA_pointer_get(&projector_ptr, "object");
-    if (!RNA_pointer_is_null(&ob_projector) && RNA_enum_get(&ob_projector, "type") == OB_CAMERA) {
+    if (ob_projector && RNA_enum_get(&ob_projector, "type") == OB_CAMERA) {
       has_camera = true;
       break;
     }

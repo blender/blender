@@ -28,6 +28,7 @@
 #include "BLI_multi_value_map.hh"
 #include "BLI_ordered_edge.hh"
 #include "BLI_polyfill_2d.hh"
+#include "BLI_resource_scope.hh"
 #include "BLI_string.hh"
 #include "BLI_string_utf8.hh"
 #include "BLI_task.hh"
@@ -522,7 +523,7 @@ static void convert_mfaces_to_mpolys(ID *id,
   if (id) {
     /* ensure external data is transferred */
     /* TODO(sergey): Use multiresModifier_ensure_external_read(). */
-    CustomData_external_read(fdata_legacy, id, CD_MASK_MDISPS, totface_i);
+    CustomData_external_read(fdata_legacy, "", id, CD_MASK_MDISPS, totface_i);
   }
 
   Map<OrderedEdge, int> eh;
@@ -2489,6 +2490,169 @@ void mesh_freestyle_marks_to_generic(Mesh &mesh)
       sharing_info->remove_user_and_delete_if_last();
     }
   }
+}
+
+void mesh_skin_to_generic(Mesh &mesh)
+{
+  if (mesh.attributes().contains("skin_modifier_radius")) {
+    return;
+  }
+  const void *data = nullptr;
+  for (const int i : IndexRange(mesh.vert_data.totlayer)) {
+    const CustomDataLayer &layer = mesh.vert_data.layers[i];
+    if (layer.type == CD_MVERT_SKIN) {
+      data = layer.data;
+      break;
+    }
+  }
+  if (data == nullptr) {
+    return;
+  }
+  const Span src(static_cast<const MVertSkin *>(data), mesh.verts_num);
+
+  float2 *radius_data = MEM_new_array_uninitialized<float2>(mesh.verts_num, __func__);
+  bool *root_data = MEM_new_array_uninitialized<bool>(mesh.verts_num, __func__);
+  bool *loose_data = MEM_new_array_uninitialized<bool>(mesh.verts_num, __func__);
+  threading::parallel_for(src.index_range(), 4096, [&](const IndexRange range) {
+    for (const int i : range) {
+      radius_data[i] = float2(src[i].radius[0], src[i].radius[1]);
+      root_data[i] = (src[i].flag & MVERT_SKIN_ROOT) != 0;
+      loose_data[i] = (src[i].flag & MVERT_SKIN_LOOSE) != 0;
+    }
+  });
+
+  CustomData_free_layers(&mesh.vert_data, CD_MVERT_SKIN);
+
+  AttributeStorage &storage = mesh.attribute_storage.wrap();
+  auto add_array = [&](const StringRef name, const AttrType type, void *array_data) {
+    Attribute::ArrayData array{};
+    array.data = array_data;
+    array.size = mesh.verts_num;
+    array.sharing_info = ImplicitSharingPtr<>(implicit_sharing::info_for_mem_free(array_data));
+    storage.add(name, AttrDomain::Point, type, std::move(array));
+  };
+  add_array("skin_modifier_radius", AttrType::Float2, radius_data);
+  add_array("skin_modifier_root", AttrType::Bool, root_data);
+  add_array("skin_modifier_loose", AttrType::Bool, loose_data);
+}
+
+void mesh_skin_to_legacy(AttributeStorage::BlendWriteData &attr_write_data,
+                         CustomData &vert_data,
+                         Vector<CustomDataLayer, 16> &vert_layers,
+                         const int verts_num)
+{
+  const AttributeArray *radius_array = nullptr;
+  const AttributeArray *root_array = nullptr;
+  const AttributeArray *loose_array = nullptr;
+  const AttributeSingle *radius_single = nullptr;
+  const AttributeSingle *root_single = nullptr;
+  const AttributeSingle *loose_single = nullptr;
+  Set<StringRef> attrs_to_remove;
+  for (const int i : attr_write_data.attributes.index_range()) {
+    const blender::Attribute &dna_attr = attr_write_data.attributes[i];
+    if (dna_attr.domain != int8_t(AttrDomain::Point)) {
+      continue;
+    }
+    if (dna_attr.data_type == int8_t(AttrType::Float2) &&
+        STREQ(dna_attr.name, "skin_modifier_radius"))
+    {
+      if (dna_attr.storage_type == int8_t(AttrStorageType::Array)) {
+        radius_array = static_cast<const AttributeArray *>(dna_attr.data);
+      }
+      else if (dna_attr.storage_type == int8_t(AttrStorageType::Single)) {
+        radius_single = static_cast<const AttributeSingle *>(dna_attr.data);
+      }
+      attrs_to_remove.add("skin_modifier_radius");
+    }
+    else if (dna_attr.data_type == int8_t(AttrType::Bool) &&
+             STREQ(dna_attr.name, "skin_modifier_root"))
+    {
+      if (dna_attr.storage_type == int8_t(AttrStorageType::Array)) {
+        root_array = static_cast<const AttributeArray *>(dna_attr.data);
+      }
+      else if (dna_attr.storage_type == int8_t(AttrStorageType::Single)) {
+        root_single = static_cast<const AttributeSingle *>(dna_attr.data);
+      }
+      attrs_to_remove.add("skin_modifier_root");
+    }
+    else if (dna_attr.data_type == int8_t(AttrType::Bool) &&
+             STREQ(dna_attr.name, "skin_modifier_loose"))
+    {
+      if (dna_attr.storage_type == int8_t(AttrStorageType::Array)) {
+        loose_array = static_cast<const AttributeArray *>(dna_attr.data);
+      }
+      else if (dna_attr.storage_type == int8_t(AttrStorageType::Single)) {
+        loose_single = static_cast<const AttributeSingle *>(dna_attr.data);
+      }
+      attrs_to_remove.add("skin_modifier_loose");
+    }
+  }
+  if (radius_array == nullptr) {
+    return;
+  }
+
+  const VArray<float2> radius = [&]() {
+    if (radius_single) {
+      return VArray<float2>::from_single(*static_cast<const float2 *>(radius_single->data),
+                                         verts_num);
+    }
+    return VArray<float2>::from_span(
+        Span(static_cast<const float2 *>(radius_array->data), verts_num));
+  }();
+  const VArray<bool> root = [&]() {
+    if (root_single) {
+      return VArray<bool>::from_single(*static_cast<const bool *>(root_single->data), verts_num);
+    }
+    if (root_array) {
+      return VArray<bool>::from_span(Span(static_cast<const bool *>(root_array->data), verts_num));
+    }
+    return VArray<bool>::from_single(false, verts_num);
+  }();
+  const VArray<bool> loose = [&]() {
+    if (loose_single) {
+      return VArray<bool>::from_single(*static_cast<const bool *>(loose_single->data), verts_num);
+    }
+    if (loose_array) {
+      return VArray<bool>::from_span(
+          Span(static_cast<const bool *>(loose_array->data), verts_num));
+    }
+    return VArray<bool>::from_single(false, verts_num);
+  }();
+
+  MutableSpan legacy_data = attr_write_data.scope.allocator().construct_array<MVertSkin>(
+      verts_num);
+  threading::parallel_for(IndexRange(verts_num), 4096, [&](const IndexRange range) {
+    for (const int i : range) {
+      legacy_data[i].radius[0] = radius[i][0];
+      legacy_data[i].radius[1] = radius[i][1];
+      legacy_data[i].radius[2] = 0.0f;
+      legacy_data[i].flag = eMVertSkinFlag(0);
+      if (root[i]) {
+        legacy_data[i].flag |= MVERT_SKIN_ROOT;
+      }
+      if (loose[i]) {
+        legacy_data[i].flag |= MVERT_SKIN_LOOSE;
+      }
+    }
+  });
+
+  CustomDataLayer layer{};
+  layer.type = CD_MVERT_SKIN;
+  layer.data = legacy_data.data();
+  vert_layers.append(layer);
+  std::ranges::stable_sort(vert_layers, [](const CustomDataLayer &a, const CustomDataLayer &b) {
+    return a.type < b.type;
+  });
+  vert_data.totlayer = vert_layers.size();
+  vert_data.maxlayer = vert_data.totlayer;
+  if (!vert_data.layers) {
+    /* #CustomData_blend_write_prepare cleared this because there were no other layers to write.
+     * We just need a unique address as a signal to write layers like that function does. */
+    vert_data.layers = reinterpret_cast<CustomDataLayer *>(&vert_data.layers);
+  }
+
+  attr_write_data.attributes.remove_if(
+      [&](const blender::Attribute &attr) { return attrs_to_remove.contains_as(attr.name); });
 }
 
 void mesh_custom_normals_to_generic(Mesh &mesh)

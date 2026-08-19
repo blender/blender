@@ -323,9 +323,14 @@ def primitive_tool_add():
 
     yield e.ctrl.tab().s()                                                # Sculpt via pie menu.
 
-    yield from ui.call_menu(e, "Sculpt -> Add Primitive -> Add Cube")     # Select add cube tool
-
+    # The tool is not callable from the F3 menu, as it only sets the active tool instead of activating the
+    # gizmo, work around this by using the toolbar to activate it instead.
     area = ui.get_window_area_by_type(window, 'VIEW_3D')
+    position = (area.x + int(area.width * 0.05), area.y + area.height // 2)
+    e.cursor_position_set(*position, move=True)                           # Move mouse over the toolbar
+    yield e.shift.space()
+    yield e.five()                                                        # Add Cube
+
     position = (area.x + area.width // 2, area.y + area.height // 2)
     yield e.cursor_position_set(*position, move=True)                     # Move mouse to center
 

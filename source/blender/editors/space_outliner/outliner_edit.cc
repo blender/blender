@@ -1525,9 +1525,15 @@ void outliner_set_coordinates(const ARegion *region, SpaceOutliner *space_outlin
 {
   int starty = int(region->v2d.tot.ymax) - UI_UNIT_Y;
 
+  tree_iterator::all(space_outliner->runtime->tree, [&](TreeElement *te) {
+    /* Set coordinates to zero for all elements. This is done to reset coordinates of collapsed
+     * elements. */
+    te->xs = 0;
+    te->ys = 0;
+  });
+
   tree_iterator::all_open(*space_outliner, [&](TreeElement *te) {
     /* store coord and continue, we need coordinates for elements outside view too */
-    te->xs = 0;
     te->ys = float(starty);
     starty -= UI_UNIT_Y;
   });
@@ -1636,13 +1642,17 @@ void outliner_scroll_to_active(SpaceOutliner *space_outliner, ARegion *region, s
   }
 
   TreeElement *scroll_to_te = active_te;
-  TreeElement *iter = active_te->parent;
-  while (iter && !TSELEM_OPEN(iter->store_elem, space_outliner)) {
-    scroll_to_te = iter;
-    iter = iter->parent;
+  if ((space_outliner->flag & SO_EXPAND_ON_FOCUS) == 0) {
+    TreeElement *iter = active_te->parent;
+    while (iter) {
+      if (!TSELEM_OPEN(iter->store_elem, space_outliner)) {
+        scroll_to_te = iter;
+      }
+      iter = iter->parent;
+    }
   }
 
-  if (!BLI_rctf_isect_y(&v2d->cur, scroll_to_te->ys)) {
+  if (!(scroll_to_te->ys && BLI_rctf_isect_y(&v2d->cur, scroll_to_te->ys))) {
     outliner_show_active(space_outliner, region, scroll_to_te, TREESTORE(scroll_to_te)->id);
     const int size_y = BLI_rcti_size_y(&v2d->mask) + 1;
     const int ytop = (scroll_to_te->ys + (size_y / 2));
@@ -2111,7 +2121,7 @@ static void do_outliner_drivers_editop(SpaceOutliner *space_outliner,
     eKSP_Grouping groupmode = KSP_GROUP_KSNAME;
 
     TreeElementRNACommon *te_rna = tree_element_cast<TreeElementRNACommon>(te);
-    PointerRNA ptr = te_rna ? te_rna->get_pointer_rna() : PointerRNA_NULL;
+    PointerRNA ptr = te_rna ? te_rna->get_pointer_rna() : PointerRNA();
     PropertyRNA *prop = te_rna ? te_rna->get_property_rna() : nullptr;
 
     /* check if RNA-property described by this selected element is an animatable prop */

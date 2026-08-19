@@ -1,9 +1,9 @@
 
 msgid ""
 msgstr ""
-"Project-Id-Version: Blender 5.3.0 Alpha (b'bf67fb078da0')\n"
+"Project-Id-Version: Blender 5.3.0 Alpha (b'af4852ed4560')\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-07-27 09:52+0000\n"
+"POT-Creation-Date: 2026-08-10 07:54+0000\n"
 "PO-Revision-Date: 2026-03-17 14:12+0000\n"
 "Last-Translator: Daniel Nylander <blender@danielnylander.se>\n"
 "Language-Team: Swedish <https://translate.blender.org/projects/blender-ui/ui/sv/>\n"
@@ -3448,10 +3448,6 @@ msgstr "Partikel-datablock"
 
 msgid "Point cloud data-blocks"
 msgstr "Punktmolnsdatablock"
-
-
-msgid "Project"
-msgstr "Projekt"
 
 
 msgid "Scene data-blocks"
@@ -10009,6 +10005,10 @@ msgstr "Närmaste ytpunkt"
 
 msgid "Shrink the location to the nearest target surface"
 msgstr "Minska platsen till närmaste målyta"
+
+
+msgid "Project"
+msgstr "Projekt"
 
 
 msgid "Shrink the location to the nearest target surface along a given axis"
@@ -34894,104 +34894,48 @@ msgid "Editor menu containing buttons"
 msgstr "Redigeringsmeny med knappar"
 
 
-msgid "Creative"
-msgstr "Kreativ"
-
-
-msgid "Bone Collections"
-msgstr "Benskörningar"
-
-
 msgid "Names"
 msgstr "Namn"
-
-
-msgid "Show/Hide"
-msgstr "Visa/Dölj"
-
-
-msgid "Apply"
-msgstr "Ansök"
-
-
-msgid "Toggle Bone Options"
-msgstr "Växla mellan benalternativ"
-
-
-msgid "Enable Bone Options"
-msgstr "Aktivera benalternativ"
-
-
-msgid "Disable Bone Options"
-msgstr "Inaktivera benalternativ"
-
-
-msgid "Mesh Select Mode"
-msgstr "Välj nätläge"
-
-
-msgid "Face Data"
-msgstr "Ansiktsdata"
-
-
-msgid "Select by Face Strength"
-msgstr "Välj efter ansiktsstyrka"
-
-
-msgid "Set Face Strength"
-msgstr "Ställ in ansiktsstyrka"
-
-
-msgid "Clean Up"
-msgstr "Rensa upp"
-
-
-msgid "Merge"
-msgstr "Sammanfoga"
-
-
-msgid "Special Characters"
-msgstr "Specialtecken"
-
-
-msgid "Kerning"
-msgstr "Kerning"
-
-
-msgid "Math"
-msgstr "Matematik"
-
-
-msgid "Metaball"
-msgstr "Metaball"
-
-
-msgid "Utilities"
-msgstr "Allmännyttiga tjänster"
 
 
 msgid "Bone Roll"
 msgstr "Benrulle"
 
 
-msgid "Read"
-msgstr "Läs"
+msgid "Show/Hide"
+msgstr "Visa/Dölj"
 
 
-msgid "Sample"
-msgstr "Exempel"
+msgid "Clean Up"
+msgstr "Rensa upp"
 
 
-msgid "Write"
-msgstr "Skriv"
+msgid "Adjust"
+msgstr "Justera"
 
 
-msgid "Primitives"
-msgstr "Primitiva"
+msgid "Keying"
+msgstr "Nyckel"
+
+
+msgid "Tracking"
+msgstr "Spårning"
+
+
+msgid "Utilities"
+msgstr "Allmännyttiga tjänster"
+
+
+msgid "Math"
+msgstr "Matematik"
 
 
 msgid "Pivot Point"
 msgstr "Pivotpunkt"
+
+
+msgid "Creative"
+msgstr "Kreativ"
 
 
 msgid "Snap"
@@ -35018,28 +34962,8 @@ msgid "Vertex Group Locks"
 msgstr "Vertex Group Lås"
 
 
-msgid "Gizmo"
-msgstr "Gizmo"
-
-
-msgid "Instances"
-msgstr "Instanser"
-
-
-msgid "Render Preview"
-msgstr "Förhandsgranska rendering"
-
-
-msgid "Import"
-msgstr "Importera"
-
-
 msgid "Mirror"
 msgstr "Spegel"
-
-
-msgid "Deprecated"
-msgstr "Föråldrad"
 
 
 msgid "UV Mapping"
@@ -35060,10 +34984,6 @@ msgstr "Navigering"
 
 msgid "Align View"
 msgstr "Justera vy"
-
-
-msgid "UV"
-msgstr "UV"
 
 
 msgid "Align View to Active"
@@ -35098,6 +35018,26 @@ msgid "Assign Material"
 msgstr "Tilldela material"
 
 
+msgid "Read"
+msgstr "Läs"
+
+
+msgid "Sample"
+msgstr "Exempel"
+
+
+msgid "Write"
+msgstr "Skriv"
+
+
+msgid "Primitives"
+msgstr "Primitiva"
+
+
+msgid "Metaball"
+msgstr "Metaball"
+
+
 msgid "Light"
 msgstr "Ljus"
 
@@ -35110,24 +35050,36 @@ msgid "Add Image"
 msgstr "Lägg till bild"
 
 
+msgid "Gizmo"
+msgstr "Gizmo"
+
+
 msgid "Relations"
 msgstr "Relationer"
+
+
+msgid "Instances"
+msgstr "Instanser"
+
+
+msgid "Render Preview"
+msgstr "Förhandsgranska rendering"
 
 
 msgid "Rigid Body"
 msgstr "Stel kropp"
 
 
+msgid "Apply"
+msgstr "Ansök"
+
+
+msgid "Import"
+msgstr "Importera"
+
+
 msgid "Track"
 msgstr "Spår"
-
-
-msgid "Linked"
-msgstr "Länkad"
-
-
-msgid "Layout"
-msgstr "Layout"
 
 
 msgid "Quick Effects"
@@ -35136,6 +35088,10 @@ msgstr "Snabba effekter"
 
 msgid "Asset"
 msgstr "Tillgång"
+
+
+msgid "Deprecated"
+msgstr "Föråldrad"
 
 
 msgid "Make Single User"
@@ -35154,24 +35110,16 @@ msgid "Hooks"
 msgstr "Krokar"
 
 
-msgid "Adjust"
-msgstr "Justera"
+msgid "UV"
+msgstr "UV"
 
 
 msgid "Trim/Add"
 msgstr "Trimma/Lägg till"
 
 
-msgid "Keying"
-msgstr "Nyckel"
-
-
 msgid "Sculpt Set Pivot"
 msgstr "Skulptera Set Pivot"
-
-
-msgid "Tracking"
-msgstr "Spårning"
 
 
 msgid "Face Sets Init"
@@ -35192,6 +35140,58 @@ msgstr "Mellanliggande"
 
 msgid "Propagate"
 msgstr "Föröka"
+
+
+msgid "Bone Collections"
+msgstr "Benskörningar"
+
+
+msgid "Toggle Bone Options"
+msgstr "Växla mellan benalternativ"
+
+
+msgid "Enable Bone Options"
+msgstr "Aktivera benalternativ"
+
+
+msgid "Disable Bone Options"
+msgstr "Inaktivera benalternativ"
+
+
+msgid "Mesh Select Mode"
+msgstr "Välj nätläge"
+
+
+msgid "Face Data"
+msgstr "Ansiktsdata"
+
+
+msgid "Select by Face Strength"
+msgstr "Välj efter ansiktsstyrka"
+
+
+msgid "Set Face Strength"
+msgstr "Ställ in ansiktsstyrka"
+
+
+msgid "Merge"
+msgstr "Sammanfoga"
+
+
+msgid "Linked"
+msgstr "Länkad"
+
+
+msgid "Special Characters"
+msgstr "Specialtecken"
+
+
+msgid "Layout"
+msgstr "Layout"
+
+
+msgid "Kerning"
+msgstr "Kerning"
 
 
 msgid "Keyframe Insert Pie"
@@ -51979,6 +51979,10 @@ msgid "Collection of main items"
 msgstr "Samling av huvudartiklar"
 
 
+msgid "Scalar"
+msgstr "Skalär"
+
+
 msgid "Collection of repeat items"
 msgstr "Insamling av återkommande artiklar"
 
@@ -56239,15 +56243,6 @@ msgstr "Genererad"
 
 
 msgctxt "Operator"
-msgid "Make Markers Local"
-msgstr "Gör markörer lokala"
-
-
-msgid "Move selected scene markers to the active Action as local 'pose' markers"
-msgstr "Flytta valda scenmarkörer till den aktiva åtgärden som lokala \"posemarkörer\""
-
-
-msgctxt "Operator"
 msgid "Mirror Keys"
 msgstr "Spegelnycklar"
 
@@ -58545,10 +58540,6 @@ msgstr "Skala Skulptur/Penselstorlek"
 
 msgid "Change brush size by a scalar"
 msgstr "Ändra penselstorlek med en skalär"
-
-
-msgid "Scalar"
-msgstr "Skalär"
 
 
 msgid "Factor to scale brush size by"
@@ -74567,15 +74558,6 @@ msgid "Select all objects which block light from this emitter"
 msgstr "Välj alla objekt som blockerar ljus från denna sändare"
 
 
-msgctxt "Operator"
-msgid "Link Receivers to Emitter"
-msgstr "Länka mottagare till sändare"
-
-
-msgid "Light link selected receivers to the active emitter object"
-msgstr "Ljuslänk väljer mottagare till det aktiva sändarobjektet"
-
-
 msgid "State of the light linking"
 msgstr "Ljusförbindelsens tillstånd"
 
@@ -78545,10 +78527,6 @@ msgstr "Invertera synligheten för alla hörn"
 msgctxt "Operator"
 msgid "Weight from Bones"
 msgstr "Vikt från ben"
-
-
-msgid "Set the weights of the groups matching the attached armature's selected bones, using the distance between the vertices and the bones"
-msgstr "Ställ in vikterna för grupperna som matchar de valda benen i den bifogade armeringen, med hjälp av avståndet mellan hörnpunkterna och benen."
 
 
 msgid "Method to use for assigning weights"
@@ -91675,10 +91653,6 @@ msgid "Panel containing UI elements"
 msgstr "Panel som innehåller UI-element"
 
 
-msgid "glTF Variants"
-msgstr "glTF-varianter"
-
-
 msgid "glTF Material Variants"
 msgstr "glTF-materialvarianter"
 
@@ -91809,6 +91783,10 @@ msgstr "VR"
 
 msgid "VR Info"
 msgstr "VR-information"
+
+
+msgid "glTF Variants"
+msgstr "glTF-varianter"
 
 
 msgid "Import Settings"
@@ -96970,10 +96948,6 @@ msgid "Danish - Dansk"
 msgstr "Danska - Dansk"
 
 
-msgid "Locale code: da. Translation progress: 3%"
-msgstr "Lokalkod: da. Översättningsförlopp: 3 %"
-
-
 msgid "Dutch - Nederlands"
 msgstr "Nederländska - Nederlands"
 
@@ -97000,10 +96974,6 @@ msgstr "Lokalkod: eo. Översättningsförlopp: 0%"
 
 msgid "Finnish - Suomi"
 msgstr "Finska - Suomi"
-
-
-msgid "Locale code: fi_FI. Translation progress: 11%"
-msgstr "Lokalkod: fi_FI. Översättningsförlopp: 11 %"
 
 
 msgid "French - Français"
@@ -97048,10 +97018,6 @@ msgstr "Ungerska - Magyar"
 
 msgid "Indonesian - Bahasa indonesia"
 msgstr "Indonesiska - Bahasa indonesia"
-
-
-msgid "Locale code: id_ID. Translation progress: 21%"
-msgstr "Lokalkod: id_ID. Översättningsförlopp: 21 %"
 
 
 msgid "Italian - Italiano"
@@ -98785,10 +98751,6 @@ msgstr "Typ av pass för bakning"
 
 msgid "Filter Glossy"
 msgstr "Filter Glansig"
-
-
-msgid "Adaptively blur glossy shaders after blurry bounces, to reduce noise at the cost of accuracy"
-msgstr "Anpassa suddiga glansiga shaderar efter suddiga studsar för att minska bruset på bekostnad av noggrannheten."
 
 
 msgid "Camera Cull Margin"
@@ -126633,6 +126595,14 @@ msgid "Duplicate Marker to Scene"
 msgstr "Duplicera markör till scen"
 
 
+msgid "Only Active Keying Set"
+msgstr "Endast aktivt nyckelset"
+
+
+msgid "Jump Unit"
+msgstr "Hoppningsenhet"
+
+
 msgid "Limit to Frame Range"
 msgstr "Begränsa till bildintervall"
 
@@ -126651,14 +126621,6 @@ msgstr "Aktiv redigerare"
 
 msgid "Properties and Sidebars"
 msgstr "Egenskaper och sidofält"
-
-
-msgid "Only Active Keying Set"
-msgstr "Endast aktivt nyckelset"
-
-
-msgid "Jump Unit"
-msgstr "Hoppningsenhet"
 
 
 msgid "Layered Recording"
@@ -129705,14 +129667,6 @@ msgstr "Klistra in till valda tangenter"
 msgctxt "Operator"
 msgid "Paste and Bake"
 msgstr "Klistra in och baka"
-
-
-msgid "Keying set is active, which may"
-msgstr "Nyckelsatsen är aktiv, vilket kan"
-
-
-msgid "reduce the effect of the above options"
-msgstr "minska effekten av ovanstående alternativ"
 
 
 msgid "Using Active Scene Camera"
@@ -141339,10 +141293,6 @@ msgid "Cannot fly when the view offset is locked"
 msgstr "Kan inte flyga när vyförskjutningen är låst"
 
 
-msgid "Cannot fly an object with constraints"
-msgstr "Det går inte att flyga ett objekt med begränsningar"
-
-
 msgid "Cannot dolly when the view offset is locked"
 msgstr "Kan inte flytta kameran när bildförskjutningen är låst"
 
@@ -141365,10 +141315,6 @@ msgstr "Z-axelkorrigering"
 
 msgid "Cannot navigate when the view offset is locked"
 msgstr "Det går inte att navigera när vyförskjutningen är låst."
-
-
-msgid "Cannot navigate an object with constraints"
-msgstr "Kan inte navigera ett objekt med begränsningar"
 
 
 msgid "Depth too large"

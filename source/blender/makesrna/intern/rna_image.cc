@@ -729,7 +729,7 @@ static PointerRNA rna_Image_packed_file_get(PointerRNA *ptr)
     ImagePackedFile *imapf = static_cast<ImagePackedFile *>(ima->packedfiles.first);
     return RNA_pointer_create_with_parent(*ptr, RNA_PackedFile, imapf->packedfile);
   }
-  return PointerRNA_NULL;
+  return {};
 }
 
 static void rna_RenderSlot_clear(ID *id, RenderSlot *slot, ImageUser *iuser)

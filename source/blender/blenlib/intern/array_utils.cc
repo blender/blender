@@ -6,9 +6,13 @@
  * \ingroup bli
  */
 
+#include <algorithm>
+#include <cmath>
 #include <functional>
 
+#include "BLI_array.hh"
 #include "BLI_array_utils.hh"
+#include "BLI_enumerable_thread_specific.hh"
 #include "BLI_threads.hh"
 
 #include "PRF_profile.hh"
@@ -92,20 +96,91 @@ void copy_group_to_group(const OffsetIndices<int> src_offsets,
       exec_mode::grain_size(512));
 }
 
+static void count_indices_serial(const Span<int> indices, MutableSpan<int> counts)
+{
+  for (const int i : indices) {
+    counts[i]++;
+  }
+}
+
+static void count_indices_atomics(const Span<int> indices, MutableSpan<int> counts)
+{
+  threading::parallel_for(indices.index_range(), 4096, [&](const IndexRange range) {
+    for (const int i : indices.slice(range)) {
+      atomic_add_and_fetch_int32(&counts[i], 1);
+    }
+  });
+}
+
+static void count_indices_thread_local(const Span<int> indices,
+                                       MutableSpan<int> counts,
+                                       const int64_t max_threads)
+{
+  /* Count into thread local buffers, parallelized with chunks of indices. The
+   * number of threads is limited to avoid using more memory and memory bandwidth
+   * than helpful. */
+  const int64_t groups_num = counts.size();
+  threading::EnumerableThreadSpecific<Array<int>> counts_by_thread(
+      [&]() { return Array<int>(groups_num, 0); });
+  threading::max_threads_task(max_threads, [&]() {
+    threading::parallel_for(indices.index_range(), 4096, [&](const IndexRange range) {
+      Array<int> &local_counts = counts_by_thread.local();
+      for (const int i : indices.slice(range)) {
+        local_counts[i]++;
+      }
+    });
+  });
+
+  /* Sum counts for all threads. */
+  threading::parallel_for(IndexRange(groups_num), 4096, [&](const IndexRange range) {
+    for (const Array<int> &local_counts : counts_by_thread) {
+      for (const int64_t i : range) {
+        counts[i] += local_counts[i];
+      }
+    }
+  });
+}
+
 void count_indices(const Span<int> indices, MutableSpan<int> counts)
 {
   PRF_scope_with_name("array_utils::count_indices", ProfileCategory::Default);
-  if (indices.size() < 8192 || BLI_system_thread_count() < 4) {
-    for (const int i : indices) {
-      counts[i]++;
+
+  const int64_t indices_num = indices.size();
+  const int64_t groups_num = std::max<int64_t>(counts.size(), 1);
+
+  /* Thread local is fastest when the number of groups is small enough that the
+   * counters can stay in the per core caches. */
+  constexpr int64_t max_thread_local_groups = 1 << 18;
+  if (groups_num <= max_thread_local_groups) {
+    /* More threads add memory overhead, limit by groups per index so it's worth
+     * using dedicated memory for every thread. */
+    constexpr int64_t min_groups_per_index = 10;
+    const int64_t max_threads = std::clamp<int64_t>(
+        std::sqrt(min_groups_per_index * indices_num / groups_num), 1, BLI_system_thread_count());
+
+    /* Heuristic for when there are enough indices for thread local to work.
+     * Fixed minimum, enough indices per thread and not too much group overhead. */
+    constexpr int64_t min_parallel_indices = 1 << 16;
+    const int64_t min_thread_local_indices = min_parallel_indices + indices_num / max_threads +
+                                             max_threads * groups_num / min_groups_per_index;
+
+    if (indices_num < min_thread_local_indices) {
+      count_indices_serial(indices, counts);
+    }
+    else {
+      count_indices_thread_local(indices, counts, max_threads);
     }
   }
   else {
-    threading::parallel_for(indices.index_range(), 4096, [&](const IndexRange range) {
-      for (const int i : indices.slice(range)) {
-        atomic_add_and_fetch_int32(&counts[i], 1);
-      }
-    });
+    /* Atomics are faster than serial when there are enough indices to justify the overhead
+     * and we hopefully don't get too much contention. */
+    constexpr int64_t min_atomic_indices = 1 << 19;
+    if (indices_num < min_atomic_indices) {
+      count_indices_serial(indices, counts);
+    }
+    else {
+      count_indices_atomics(indices, counts);
+    }
   }
 }
 

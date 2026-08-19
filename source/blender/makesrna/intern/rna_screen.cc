@@ -309,7 +309,7 @@ static PointerRNA rna_Region_data_get(PointerRNA *ptr)
       }
     }
   }
-  return PointerRNA_NULL;
+  return {};
 }
 
 static int rna_region_has_panel_categories(const ARegion *region)

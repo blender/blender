@@ -316,7 +316,7 @@ endif()
 add_library(bf_deps_optional_embree INTERFACE)
 add_library(bf::dependencies::optional::embree ALIAS bf_deps_optional_embree)
 
-if(WITH_CYCLES_EMBREE)
+if(WITH_EMBREE)
   target_include_directories(bf_deps_optional_embree SYSTEM INTERFACE ${EMBREE_INCLUDE_DIRS})
   target_link_libraries(bf_deps_optional_embree INTERFACE ${EMBREE_LIBRARIES})
 endif()

@@ -15,6 +15,8 @@
 #include "DNA_curve_types.h"
 #include "DNA_listBase.h"
 
+#include "RNA_path.hh"
+
 namespace blender {
 
 struct ChannelDriver;
@@ -41,6 +43,9 @@ namespace bke {
 struct FCurveRuntime {
   /** Value stored from last time curve was evaluated (not threadsafe, debug display only!). */
   float curval = 0;
+
+  /** Cached parsed RNA path, computed eagerly when the string path is changed. */
+  std::optional<ParsedRNAPath<>> parsed_rna_path;
 };
 
 }  // namespace bke
@@ -243,11 +248,6 @@ void BKE_fcurves_free(ListBaseT<FCurve> *list);
  * Duplicate a list of F-Curves.
  */
 void BKE_fcurves_copy(ListBaseT<FCurve> *dst, ListBaseT<FCurve> *src);
-
-/**
- * Set the RNA path of a F-Curve.
- */
-void BKE_fcurve_rnapath_set(FCurve &fcu, StringRef rna_path);
 
 /* Set fcurve modifier name and ensure uniqueness.
  * Pass new name string when it's been edited otherwise pass empty string. */

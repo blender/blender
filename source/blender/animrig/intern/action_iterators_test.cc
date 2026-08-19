@@ -73,7 +73,7 @@ TEST_F(ActionIteratorsTest, iterate_all_fcurves_of_slot)
 
   ASSERT_EQ(cube_fcurves.size(), 3);
   for (const FCurve *fcurve : cube_fcurves) {
-    ASSERT_STREQ(fcurve->rna_path, "location");
+    ASSERT_EQ(fcurve->rna_path(), "location");
   }
 
   /* Get only FCurves with index 0 which should be 1. */
@@ -85,7 +85,7 @@ TEST_F(ActionIteratorsTest, iterate_all_fcurves_of_slot)
   });
 
   ASSERT_EQ(monkey_fcurves.size(), 1);
-  ASSERT_STREQ(monkey_fcurves[0]->rna_path, "rotation");
+  ASSERT_EQ(monkey_fcurves[0]->rna_path(), "rotation");
 
   /* Slots handles are just numbers. Passing in a slot handle that doesn't exist should return
    * nothing. */

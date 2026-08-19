@@ -19,6 +19,7 @@ namespace blender {
 
 struct Base;
 struct Object;
+struct ViewLayerRuntime;
 
 using ObjectBasesMap = Map<const Object *, Base *>;
 
@@ -301,9 +302,12 @@ struct ViewLayer {
   ListBaseT<ViewLayerLightgroup> lightgroups = {nullptr, nullptr};
   ViewLayerLightgroup *active_lightgroup = nullptr;
 
-  /* Runtime data */
-  struct Base **object_bases_array = nullptr;
-  ObjectBasesMap *object_bases_hash = nullptr;
+  ViewLayerRuntime *runtime = nullptr;
+
+#ifdef __cplusplus
+  /** This is the same as #object_bases but cached as an array for faster index-based access. */
+  Span<Base *> object_bases_array() const;
+#endif
 };
 
 }  // namespace blender

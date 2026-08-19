@@ -145,7 +145,10 @@ static void add_object_relation(const ModifierUpdateDepsgraphContext *ctx,
     return;
   }
   if (info.geometry) {
-    if (object.type == OB_EMPTY && object.instance_collection != nullptr) {
+    const bool is_just_collection_instance = object.type == OB_EMPTY &&
+                                             object.instance_collection != nullptr &&
+                                             object.modifiers.is_empty();
+    if (is_just_collection_instance) {
       add_collection_relation(ctx, *object.instance_collection);
     }
     else if (DEG_object_has_geometry_component(&object)) {

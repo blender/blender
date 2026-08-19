@@ -68,6 +68,17 @@ struct [[host_shared]] NodeLinkData {
   float _pad1;
 };
 
+/* Destination tile size handled by one workgroup of the mipmap compute shader. */
+#define MIPMAP_UPDATE_TILE_SIZE 8
+
+/* Chunk size for partial mipmap updates. */
+#define MIPMAP_UPDATE_CHUNK_SIZE 256
+
+/* Coordinate of a mipmap chunk for partial mipmap updates. */
+struct [[host_shared]] MipmapChunkCoord {
+  int2 coord;
+};
+
 /* Data common to all links. */
 struct [[host_shared]] NodeLinkUniformData {
   float4 colors[6];
@@ -121,6 +132,7 @@ enum [[host_shared]] GPUSeqFlags : uint32_t {
   GPU_SEQ_FLAG_SELECTED_RH = (1u << 12u),
   GPU_SEQ_FLAG_OVERLAP = (1u << 15u),
   GPU_SEQ_FLAG_CLAMPED = (1u << 16u),
+  GPU_SEQ_FLAG_THUMBNAILS_BACKGROUND = (1u << 17u),
 
   GPU_SEQ_FLAG_ANY_HANDLE = GPU_SEQ_FLAG_SELECTED_LH | GPU_SEQ_FLAG_SELECTED_RH
 };

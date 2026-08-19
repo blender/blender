@@ -9,6 +9,7 @@
 #include <cmath>
 #include <cstring>
 #include <fmt/format.h>
+#include <optional>
 
 #include "MEM_guardedalloc.h"
 
@@ -3860,6 +3861,26 @@ void ED_areas_do_frame_follow(bContext *C, bool center_view)
   }
 }
 
+/** Wrap a frame value within the playback range using modulo arithmetic.
+ *
+ * If the frame is already within the range, it is returned unchanged. Otherwise,
+ * the frame wraps around (e.g., going past the end jumps to the start).
+ */
+static int wrap_frame_in_range(const int frame, const ScenePlaybackRange &range)
+{
+  if (range.contains(frame)) {
+    return frame;
+  }
+
+  const int range_size = range.end_frame - range.start_frame + 1;
+  const int frames_since_start = frame - range.start_frame;
+  int offset = frames_since_start % range_size;
+  if (offset < 0) {
+    offset += range_size;
+  }
+  return range.start_frame + offset;
+}
+
 /* function to be called outside UI context, or for redo */
 static wmOperatorStatus frame_offset_exec(bContext *C, wmOperator *op)
 {
@@ -3877,7 +3898,15 @@ static wmOperatorStatus frame_offset_exec(bContext *C, wmOperator *op)
     delta += 1;
   }
   scene->r.cfra += delta;
-  FRAMENUMBER_MIN_CLAMP(scene->r.cfra);
+
+  const bool wrap_timeline_navigation = scene->r.flag & SCER_WRAP_TIMELINE_NAVIGATION;
+  if (wrap_timeline_navigation) {
+    const ScenePlaybackRange playback_range = BKE_scene_get_playback_range(scene);
+    scene->r.cfra = wrap_frame_in_range(scene->r.cfra, playback_range);
+  }
+  else {
+    FRAMENUMBER_MIN_CLAMP(scene->r.cfra);
+  }
   scene->r.subframe = 0.0f;
 
   ED_areas_do_frame_follow(C, false);
@@ -4024,7 +4053,14 @@ static wmOperatorStatus frame_jump_delta_exec(bContext *C, wmOperator *op)
     scene->r.subframe -= subframe_offset;
   }
 
-  FRAMENUMBER_MIN_CLAMP(scene->r.cfra);
+  const bool wrap_timeline_navigation = scene->r.flag & SCER_WRAP_TIMELINE_NAVIGATION;
+  if (wrap_timeline_navigation) {
+    const ScenePlaybackRange playback_range = BKE_scene_get_playback_range(scene);
+    scene->r.cfra = wrap_frame_in_range(scene->r.cfra, playback_range);
+  }
+  else {
+    FRAMENUMBER_MIN_CLAMP(scene->r.cfra);
+  }
 
   ED_areas_do_frame_follow(C, true);
   ed::vse::sync_active_scene_and_time_with_scene_strip(*C);
@@ -4132,6 +4168,20 @@ static void keylist_fallback_for_keyframe_jump(bContext &C, Scene *scene, AnimKe
   }
 }
 
+template<typename KeyColumnIterator>
+static bool scene_to_first_key_column_in_range(Scene *scene,
+                                               const ScenePlaybackRange playback_range,
+                                               KeyColumnIterator key_columns)
+{
+  for (const ActKeyColumn &ak_wrap : key_columns) {
+    if (playback_range.contains(ak_wrap.cfra)) {
+      BKE_scene_frame_set(scene, ak_wrap.cfra);
+      return true;
+    }
+  }
+  return false;
+}
+
 /* function to be called outside UI context, or for redo */
 static wmOperatorStatus keyframe_jump_exec(bContext *C, wmOperator *op)
 {
@@ -4166,12 +4216,28 @@ static wmOperatorStatus keyframe_jump_exec(bContext *C, wmOperator *op)
   ED_keylist_prepare_for_direct_access(keylist);
 
   const float cfra = BKE_scene_frame_get(scene);
-  /* find matching keyframe in the right direction */
+
+  const bool wrap_timeline_navigation = scene->r.flag & SCER_WRAP_TIMELINE_NAVIGATION;
+  const ScenePlaybackRange playback_range = BKE_scene_get_playback_range(scene);
+
+  /* Find matching keyframe in the right direction. */
   const ActKeyColumn *ak;
 
   if (next) {
     ak = ED_keylist_find_next(keylist, cfra);
     while ((ak != nullptr) && (done == false)) {
+      if (wrap_timeline_navigation) {
+        /* Ignore keyframes before playback_range. */
+        if (ak->cfra < playback_range.start_frame) {
+          ak = ak->next;
+          continue;
+        }
+        /* No more keyframes within playback_range. */
+        if (ak->cfra > playback_range.end_frame) {
+          break;
+        }
+      }
+
       if (cfra < ak->cfra) {
         BKE_scene_frame_set(scene, ak->cfra);
         done = true;
@@ -4180,11 +4246,29 @@ static wmOperatorStatus keyframe_jump_exec(bContext *C, wmOperator *op)
         ak = ak->next;
       }
     }
+
+    /* Wrap around to the beginning of the frame range. */
+    if (!done && wrap_timeline_navigation) {
+      done = scene_to_first_key_column_in_range(
+          scene, playback_range, *ED_keylist_listbase(keylist));
+    }
   }
 
   else {
     ak = ED_keylist_find_prev(keylist, cfra);
     while ((ak != nullptr) && (done == false)) {
+      if (wrap_timeline_navigation) {
+        /* Ignore keyframes after playback_range. */
+        if (ak->cfra > playback_range.end_frame) {
+          ak = ak->prev;
+          continue;
+        }
+        /* No more keyframes within playback_range. */
+        if (ak->cfra < playback_range.start_frame) {
+          break;
+        }
+      }
+
       if (cfra > ak->cfra) {
         BKE_scene_frame_set(scene, ak->cfra);
         done = true;
@@ -4192,6 +4276,12 @@ static wmOperatorStatus keyframe_jump_exec(bContext *C, wmOperator *op)
       else {
         ak = ak->prev;
       }
+    }
+
+    /* Wrap around to the end of the frame range. */
+    if (!done && wrap_timeline_navigation) {
+      done = scene_to_first_key_column_in_range(
+          scene, playback_range, ED_keylist_listbase(keylist)->items_reversed());
     }
   }
 
@@ -4242,6 +4332,18 @@ static void SCREEN_OT_keyframe_jump(wmOperatorType *ot)
 /** \name Jump to Marker Operator
  * \{ */
 
+template<typename MarkerIterator>
+static std::optional<int> get_first_marker_in_range(const ScenePlaybackRange playback_range,
+                                                    MarkerIterator markers)
+{
+  for (const TimeMarker &marker : markers) {
+    if (playback_range.contains(marker.frame)) {
+      return marker.frame;
+    }
+  }
+  return std::nullopt;
+}
+
 /* function to be called outside UI context, or for redo */
 static wmOperatorStatus marker_jump_exec(bContext *C, wmOperator *op)
 {
@@ -4250,12 +4352,21 @@ static wmOperatorStatus marker_jump_exec(bContext *C, wmOperator *op)
   if (!scene) {
     return OPERATOR_CANCELLED;
   }
+
+  const bool wrap_timeline_navigation = scene->r.flag & SCER_WRAP_TIMELINE_NAVIGATION;
+  const ScenePlaybackRange playback_range = BKE_scene_get_playback_range(scene);
+
   int closest = scene->r.cfra;
   const bool next = RNA_boolean_get(op->ptr, "next");
   bool found = false;
 
-  /* find matching marker in the right direction */
+  /* Find matching marker in the right direction. */
   for (TimeMarker &marker : scene->markers) {
+    /* Ignore markers outside of playback_range. */
+    if (wrap_timeline_navigation && !playback_range.contains(marker.frame)) {
+      continue;
+    }
+
     if (next) {
       if ((marker.frame > scene->r.cfra) && (!found || closest > marker.frame)) {
         closest = marker.frame;
@@ -4265,6 +4376,26 @@ static wmOperatorStatus marker_jump_exec(bContext *C, wmOperator *op)
     else {
       if ((marker.frame < scene->r.cfra) && (!found || closest < marker.frame)) {
         closest = marker.frame;
+        found = true;
+      }
+    }
+  }
+
+  /* Wrap around playback range and try to look for markers again. */
+  if (!found && wrap_timeline_navigation) {
+    if (next) {
+      if (const std::optional<int> frame = get_first_marker_in_range(playback_range,
+                                                                     scene->markers))
+      {
+        closest = *frame;
+        found = true;
+      }
+    }
+    else {
+      if (const std::optional<int> frame = get_first_marker_in_range(
+              playback_range, scene->markers.items_reversed()))
+      {
+        closest = *frame;
         found = true;
       }
     }
@@ -6824,6 +6955,14 @@ static wmOperatorStatus start_playback(bContext *C, int sync, int mode)
     return OPERATOR_CANCELLED;
   }
 
+  /* The anim timer MUST be created before the 'jump to the start frame' code below executes. The
+   * anim timer data structure also contains the 'started from' frame, which gets restored on
+   * cancelling the playback, and that should be the actual current frame, not the one that's set
+   * below. */
+  ViewLayer *view_layer = is_sequencer ? BKE_view_layer_default_render(scene) :
+                                         CTX_data_view_layer(C);
+  ED_screen_animation_timer(C, scene, view_layer, screen->redraws_flag, sync, mode);
+
   /* The SCE_LOOP_MODE_STOP_END_FRAME loop mode is special: playback should stop at the end frame,
    * but when playback starts, in this mode, already at the end frame, it should actually start
    * playback from the start frame. This way, you can repeatedly play back the scene, each time
@@ -6836,11 +6975,10 @@ static wmOperatorStatus start_playback(bContext *C, int sync, int mode)
       const int start_frame = is_playing_forward ? scene->playback_start() : scene->playback_end();
       scene->r.cfra = start_frame;
       scene->r.subframe = 0.0f;
+      DEG_id_tag_update(&scene->id, ID_RECALC_FRAME_CHANGE);
     }
   }
 
-  ViewLayer *view_layer = is_sequencer ? BKE_view_layer_default_render(scene) :
-                                         CTX_data_view_layer(C);
   Depsgraph *depsgraph = is_sequencer ? BKE_scene_ensure_depsgraph(bmain, scene, view_layer) :
                                         CTX_data_ensure_evaluated_depsgraph(C);
   if (is_sequencer) {
@@ -6855,7 +6993,6 @@ static wmOperatorStatus start_playback(bContext *C, int sync, int mode)
     BKE_sound_play_scene(scene_eval);
   }
 
-  ED_screen_animation_timer(C, scene, view_layer, screen->redraws_flag, sync, mode);
   ED_scene_fps_average_clear(scene);
 
   if (screen->animtimer) {
@@ -7477,9 +7614,52 @@ float ED_region_blend_alpha(ARegion *region)
     }
 
     CLAMP(alpha, 0.0f, 1.0f);
-    return alpha;
+    /* Quadratic ease-out: 1 - (1 - alpha)^2 == alpha * (2 - alpha). */
+    const float alpha_easing = alpha * (2.0f - alpha);
+    return alpha_easing;
   }
   return 1.0f;
+}
+
+void ED_region_blend_rect(ARegion *region, rcti *r_rect)
+{
+  *r_rect = region->winrct;
+  const float alpha = ED_region_blend_alpha(region);
+  if (alpha >= 1.0f) {
+    return;
+  }
+  const float ofs_x = BLI_rcti_size_x(r_rect) * (1.0f - alpha);
+  const float ofs_y = BLI_rcti_size_y(r_rect) * (1.0f - alpha);
+  switch (RGN_ALIGN_ENUM_FROM_MASK(region->alignment)) {
+    case RGN_ALIGN_RIGHT:
+      r_rect->xmin += ofs_x;
+      break;
+    case RGN_ALIGN_LEFT:
+      r_rect->xmax -= ofs_x;
+      break;
+    case RGN_ALIGN_TOP:
+      r_rect->ymin += ofs_y;
+      break;
+    case RGN_ALIGN_BOTTOM:
+      r_rect->ymax -= ofs_y;
+      break;
+    default:
+      break;
+  }
+}
+
+/**
+ * Region-blend animations don't re-run area layout on every tick, so the cached
+ * #ARegion::runtime::visible_rect of every region in the area needs to be invalidated on each
+ * tick, the same way normal area resizing does, otherwise it stays stale for the whole
+ * animation and anything positioned from #ED_region_visible_rect (navigate gizmos, lookdev
+ * preview, etc.) won't look correct.
+ */
+static void region_blend_invalidate_visible_rect(ScrArea *area)
+{
+  for (ARegion &region_iter : area->regionbase) {
+    region_iter.runtime->visible_rect = rcti{};
+  }
 }
 
 /* assumes region has running region-blend timer */
@@ -7544,6 +7724,11 @@ void ED_region_visibility_change_update_animated(bContext *C, ScrArea *area, ARe
   /* new timer */
   region->runtime->regiontimer = WM_event_timer_add(wm, win, TIMERREGION, TIMESTEP);
   region->runtime->regiontimer->customdata = rgi;
+
+  /* Ensure the first redraw already reflects the animation's starting alpha,
+   * rather than one stale frame at the pre-animation state. */
+  region_blend_invalidate_visible_rect(area);
+  ED_area_tag_redraw(area);
 }
 
 /* timer runs in win->handlers, so it cannot use context to find area/region */
@@ -7558,11 +7743,9 @@ static wmOperatorStatus region_blend_invoke(bContext *C, wmOperator * /*op*/, co
 
   RegionAlphaInfo *rgi = static_cast<RegionAlphaInfo *>(timer->customdata);
 
+  region_blend_invalidate_visible_rect(rgi->area);
   /* always send redraws */
-  ED_region_tag_redraw(rgi->region);
-  if (rgi->child_region) {
-    ED_region_tag_redraw(rgi->child_region);
-  }
+  ED_area_tag_redraw(rgi->area);
 
   /* end timer? */
   if (rgi->region->runtime->regiontimer->time_duration > double(TIMEOUT)) {

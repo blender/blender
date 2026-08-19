@@ -83,7 +83,7 @@ static int datadropper_init(bContext *C, wmOperator *op)
 
   Button *but = context_active_but_prop_get(C, &ddr->ptr, &ddr->prop, &index_dummy);
 
-  if ((ddr->ptr.data == nullptr) || (ddr->prop == nullptr) ||
+  if (!ddr->ptr || (ddr->prop == nullptr) ||
       (RNA_property_editable(&ddr->ptr, ddr->prop) == false) ||
       (RNA_property_type(ddr->prop) != PROP_POINTER))
   {

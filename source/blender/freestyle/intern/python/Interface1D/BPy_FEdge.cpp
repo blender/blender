@@ -61,7 +61,7 @@ static int FEdge_init(BPy_FEdge *self, PyObject *args, PyObject *kwds)
                                   kwds,
                                   "|"  /* Optional arguments. */
                                   "O!" /* `brother` */
-                                  ":FEdge",
+                                  ":__init__",
                                   (char **)kwlist_1,
                                   &FEdge_Type,
                                   &obj1))
@@ -78,7 +78,7 @@ static int FEdge_init(BPy_FEdge *self, PyObject *args, PyObject *kwds)
                                        kwds,
                                        "O!" /* `first_vertex` */
                                        "O!" /* `second_vertex` */
-                                       ":FEdge",
+                                       ":__init__",
                                        (char **)kwlist_2,
                                        &SVertex_Type,
                                        &obj1,

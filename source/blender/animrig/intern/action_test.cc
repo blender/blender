@@ -2115,13 +2115,6 @@ class ActionFCurveMoveTest : public bke::BlenderGTestBase {
   {
     BKE_main_free(bmain);
   }
-
-  static FCurve *fcurve_create(const StringRefNull rna_path, const int array_index)
-  {
-    FCurve *fcurve = BKE_fcurve_create();
-    fcurve->rna_path = BLI_strdupn(rna_path.c_str(), array_index);
-    return fcurve;
-  };
 };
 
 TEST_F(ActionFCurveMoveTest, test_fcurve_move_layered)
@@ -2152,10 +2145,10 @@ TEST_F(ActionFCurveMoveTest, test_fcurve_move_layered)
 
   action_fcurve_move(action_dst, slot_dst.handle, action_src, fcurve_to_move);
 
-  EXPECT_EQ(nullptr, cbag_src.fcurve_find({fcurve_to_move.rna_path, fcurve_to_move.array_index}))
+  EXPECT_EQ(nullptr, cbag_src.fcurve_find({fcurve_to_move.rna_path(), fcurve_to_move.array_index}))
       << "F-Curve should no longer exist in source Action";
   EXPECT_EQ(&fcurve_to_move,
-            cbag_dst.fcurve_find({fcurve_to_move.rna_path, fcurve_to_move.array_index}))
+            cbag_dst.fcurve_find({fcurve_to_move.rna_path(), fcurve_to_move.array_index}))
       << "F-Curve should exist in destination Action";
 
   EXPECT_EQ(1, cbag_src.fcurves().size()) << "Source Action should still have the other F-Curve";

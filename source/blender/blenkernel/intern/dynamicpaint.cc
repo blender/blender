@@ -3446,71 +3446,6 @@ void dynamicPaint_outputSurfaceImage(DynamicPaintSurface *surface,
 
 /***************************** Ray / Nearest Point Utils ******************************/
 
-/* A modified callback to bvh tree ray-cast.
- * The tree must have been built using bvhtree_from_mesh_corner_tri.
- * userdata must be a BVHMeshCallbackUserdata built from the same mesh as the tree.
- *
- * To optimize brush detection speed this doesn't calculate hit coordinates or normal.
- */
-static void mesh_tris_spherecast_dp(void *userdata,
-                                    int index,
-                                    const BVHTreeRay *ray,
-                                    BVHTreeRayHit *hit)
-{
-  const bke::BVHTreeFromMesh *data = static_cast<bke::BVHTreeFromMesh *>(userdata);
-  const Span<float3> positions = data->vert_positions;
-  const int3 *corner_tris = data->corner_tris.data();
-  const int *corner_verts = data->corner_verts.data();
-
-  const float *t0, *t1, *t2;
-  float dist;
-
-  t0 = positions[corner_verts[corner_tris[index][0]]];
-  t1 = positions[corner_verts[corner_tris[index][1]]];
-  t2 = positions[corner_verts[corner_tris[index][2]]];
-
-  dist = bke::bvhtree_ray_tri_intersection(ray, hit->dist, t0, t1, t2);
-
-  if (dist >= 0 && dist < hit->dist) {
-    hit->index = index;
-    hit->dist = dist;
-    hit->no[0] = 0.0f;
-  }
-}
-
-/* A modified callback to bvh tree nearest point.
- * The tree must have been built using bvhtree_from_mesh_corner_tri.
- * userdata must be a BVHMeshCallbackUserdata built from the same mesh as the tree.
- *
- * To optimize brush detection speed this doesn't calculate hit normal.
- */
-static void mesh_tris_nearest_point_dp(void *userdata,
-                                       int index,
-                                       const float co[3],
-                                       BVHTreeNearest *nearest)
-{
-  const bke::BVHTreeFromMesh *data = static_cast<bke::BVHTreeFromMesh *>(userdata);
-  const Span<float3> positions = data->vert_positions;
-  const int3 *corner_tris = data->corner_tris.data();
-  const int *corner_verts = data->corner_verts.data();
-  float nearest_tmp[3], dist_sq;
-
-  const float *t0, *t1, *t2;
-  t0 = positions[corner_verts[corner_tris[index][0]]];
-  t1 = positions[corner_verts[corner_tris[index][1]]];
-  t2 = positions[corner_verts[corner_tris[index][2]]];
-
-  closest_on_tri_to_point_v3(nearest_tmp, co, t0, t1, t2);
-  dist_sq = len_squared_v3v3(co, nearest_tmp);
-
-  if (dist_sq < nearest->dist_sq) {
-    nearest->index = index;
-    nearest->dist_sq = dist_sq;
-    copy_v3_v3(nearest->co, nearest_tmp);
-    nearest->no[0] = 0.0f;
-  }
-}
-
 /***************************** Brush Painting Calls ******************************/
 
 /**
@@ -3991,7 +3926,7 @@ static void dynamic_paint_paint_mesh_cell_point_cb_ex(void *__restrict userdata,
   const float *avg_brushNor = data->avg_brushNor;
   const Vec3f *brushVelocity = data->brushVelocity;
 
-  bke::BVHTreeFromMesh *treeData = static_cast<bke::BVHTreeFromMesh *>(data->treeData);
+  const auto &treeData = *static_cast<bke::bvh::Tree *>(data->treeData);
 
   const int index = grid->t_index[grid->s_pos[c_index] + id];
   const int samples = bData->s_num[index];
@@ -4011,11 +3946,9 @@ static void dynamic_paint_paint_mesh_cell_point_cb_ex(void *__restrict userdata,
 
   /* Super-sampling */
   for (ss = 0; ss < samples; ss++) {
-    float ray_start[3], ray_dir[3];
+    float3 ray_start, ray_dir;
     float sample_factor = 0.0f;
     float sampleStrength = 0.0f;
-    BVHTreeRayHit hit;
-    BVHTreeNearest nearest;
     short hit_found = 0;
 
     /* volume sample */
@@ -4045,45 +3978,25 @@ static void dynamic_paint_paint_mesh_cell_point_cb_ex(void *__restrict userdata,
     /* a simple hack to minimize chance of ray leaks at identical ray <-> edge locations */
     add_v3_fl(ray_start, 0.001f);
 
-    hit.index = -1;
-    hit.dist = BVH_RAYCAST_DIST_MAX;
-    nearest.index = -1;
-    nearest.dist_sq = brush_radius * brush_radius; /* find_nearest uses squared distance */
-
     /* Check volume collision */
     if (ELEM(brush->collision, MOD_DPAINT_COL_VOLUME, MOD_DPAINT_COL_VOLDIST)) {
-      BLI_bvhtree_ray_cast(
-          treeData->tree, ray_start, ray_dir, 0.0f, &hit, mesh_tris_spherecast_dp, treeData);
-      if (hit.index != -1) {
+      const bke::bvh::Ray ray(ray_start, ray_dir);
+      if (const std::optional<bke::bvh::RayHit> hit = treeData.ray_intersect(ray)) {
         /* We hit a triangle, now check if collision point normal is facing the point */
-
-        /* For optimization sake, hit point normal isn't calculated in ray cast loop */
-        const int vtri[3] = {
-            corner_verts[corner_tris[hit.index][0]],
-            corner_verts[corner_tris[hit.index][1]],
-            corner_verts[corner_tris[hit.index][2]],
-        };
-        float dot;
-
-        normal_tri_v3(hit.no, positions[vtri[0]], positions[vtri[1]], positions[vtri[2]]);
-        dot = dot_v3v3(ray_dir, hit.no);
+        float dot = dot_v3v3(ray_dir, math::normalize(hit->normal));
 
         /* If ray and hit face normal are facing same direction
          * hit point is inside a closed mesh. */
         if (dot >= 0.0f) {
-          const float dist = hit.dist;
-          const int f_index = hit.index;
+          const float dist = hit->distance;
+          const int f_index = hit->index;
 
           /* Also cast a ray in opposite direction to make sure
            * point is at least surrounded by two brush faces */
           negate_v3(ray_dir);
-          hit.index = -1;
-          hit.dist = BVH_RAYCAST_DIST_MAX;
-
-          BLI_bvhtree_ray_cast(
-              treeData->tree, ray_start, ray_dir, 0.0f, &hit, mesh_tris_spherecast_dp, treeData);
-
-          if (hit.index != -1) {
+          const bke::bvh::Ray other_ray(ray_start, ray_dir);
+          if (const std::optional<bke::bvh::RayHit> hit_other = treeData.ray_intersect(other_ray))
+          {
             /* Add factor on super-sample filter. */
             volume_factor = 1.0f;
             hit_found = HIT_VOLUME;
@@ -4091,7 +4004,7 @@ static void dynamic_paint_paint_mesh_cell_point_cb_ex(void *__restrict userdata,
             /* Mark hit info */
 
             /* Calculate final hit coordinates */
-            madd_v3_v3v3fl(hitCoord, ray_start, ray_dir, hit.dist);
+            madd_v3_v3v3fl(hitCoord, ray_start, ray_dir, hit_other->distance);
 
             depth += dist * sample_factor;
             hitTri = f_index;
@@ -4115,12 +4028,12 @@ static void dynamic_paint_paint_mesh_cell_point_cb_ex(void *__restrict userdata,
 
       /* If pure distance proximity, find the nearest point on the mesh */
       if (!(brush->flags & MOD_DPAINT_PROX_PROJECT)) {
-        BLI_bvhtree_find_nearest(
-            treeData->tree, ray_start, &nearest, mesh_tris_nearest_point_dp, treeData);
-        if (nearest.index != -1) {
-          proxDist = sqrtf(nearest.dist_sq);
-          copy_v3_v3(hitCo, nearest.co);
-          tri = nearest.index;
+        if (const std::optional<bke::bvh::ClosestPointResult> nearest = treeData.closest_point(
+                ray_start, brush_radius))
+        {
+          proxDist = math::distance(nearest->position, ray_start);
+          copy_v3_v3(hitCo, nearest->position);
+          tri = nearest->index;
         }
       }
       else { /* else cast a ray in defined projection direction */
@@ -4136,19 +4049,16 @@ static void dynamic_paint_paint_mesh_cell_point_cb_ex(void *__restrict userdata,
         else { /* MOD_DPAINT_RAY_ZPLUS */
           proj_ray[2] = 1.0f;
         }
-        hit.index = -1;
-        hit.dist = brush_radius;
 
         /* Do a face normal directional ray-cast, and use that distance. */
-        BLI_bvhtree_ray_cast(
-            treeData->tree, ray_start, proj_ray, 0.0f, &hit, mesh_tris_spherecast_dp, treeData);
-        if (hit.index != -1) {
-          proxDist = hit.dist;
+        const bke::bvh::Ray ray(ray_start, proj_ray, brush_radius);
+        if (const std::optional<bke::bvh::RayHit> hit = treeData.ray_intersect(ray)) {
+          proxDist = hit->distance;
 
           /* Calculate final hit coordinates */
-          madd_v3_v3v3fl(hitCo, ray_start, proj_ray, hit.dist);
+          madd_v3_v3v3fl(hitCo, ray_start, proj_ray, hit->distance);
 
-          tri = hit.index;
+          tri = hit->index;
         }
       }
 
@@ -4375,8 +4285,9 @@ static bool dynamicPaint_paintMesh(Depsgraph *depsgraph,
     /* check bounding box collision */
     if (grid && meshBrush_boundsIntersect(&grid->grid_bounds, &mesh_bb, brush, brush_radius)) {
       /* Build a bvh tree from transformed vertices */
-      bke::BVHTreeFromMesh treeData = mesh->bvh_corner_tris();
-      if (treeData.tree != nullptr) {
+      if (mesh->faces_num != 0) {
+        const bke::bvh::Tree &tree = mesh->bvh_tris();
+
         int c_index;
         int total_cells = grid->dim[0] * grid->dim[1] * grid->dim[2];
 
@@ -4404,7 +4315,7 @@ static bool dynamicPaint_paintMesh(Depsgraph *depsgraph,
           data.brush_radius = brush_radius;
           data.avg_brushNor = avg_brushNor;
           data.brushVelocity = brushVelocity;
-          data.treeData = &treeData;
+          data.treeData = &const_cast<bke::bvh::Tree &>(tree);
 
           TaskParallelSettings settings;
           BLI_parallel_range_settings_defaults(&settings);

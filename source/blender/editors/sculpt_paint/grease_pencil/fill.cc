@@ -1502,7 +1502,7 @@ static meshintersect::CDT_input<double> get_input_from_drawings(
   r_cdt_edges = Array<int2>(drawing_edge_offsets.total_size());
 
   meshintersect::CDT_input<double> input;
-  input.need_ids = true;
+  input.needed_ids = CDT_ORIG_EDGES;
   input.vert = r_cdt_verts;
   input.edge = r_cdt_edges;
 

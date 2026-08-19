@@ -3,6 +3,7 @@
  * SPDX-License-Identifier: GPL-2.0-or-later */
 
 #include <algorithm>
+#include <type_traits>
 
 #include "BLI_index_range.hh"
 #include "BLI_map.hh"
@@ -16,6 +17,7 @@
 
 #include "BKE_node.hh"
 #include "BKE_node_runtime.hh"
+#include "BKE_type_conversions.hh"
 
 #include "NOD_geo_index_switch.hh"
 #include "NOD_geo_menu_switch.hh"
@@ -89,7 +91,6 @@ static void add_output_nodes(NodeGroupOperation &node_group_operation,
   const NodeGroupOutputTypes needed_output_types = node_group_operation.needed_output_types();
   node_group.ensure_topology_cache();
 
-  bool viewer_exists_in_descendant_node_group = false;
   /* Add group nodes that contain File Output and Viewer nodes. */
   for (const bNode *group_node : node_group.group_nodes()) {
     if (group_node->is_muted() || !group_node->id) {
@@ -107,7 +108,6 @@ static void add_output_nodes(NodeGroupOperation &node_group_operation,
                         node_group_operation.context().get_active_compute_context_hash()))
     {
       node_stack.push(group_node);
-      viewer_exists_in_descendant_node_group = true;
       continue;
     }
 
@@ -134,21 +134,10 @@ static void add_output_nodes(NodeGroupOperation &node_group_operation,
     }
   }
 
-  /* Identify if the node group is the base context or the active context. */
-  const bke::DataBlockComputeContext base_compute_context(
-      nullptr, node_group_operation.context().get_scene().id);
-  const bool is_base_node_group = node_group_operation.compute_context().hash() ==
-                                  base_compute_context.hash();
-  const bool is_active_node_group =
-      node_group_operation.compute_context().hash() ==
-      node_group_operation.context().get_active_compute_context_hash();
-
-  /* Add Viewer node. Only add the node if the node group is active or is a base node group and no
-   * viewer node exists in descendants node groups. */
-  const bool consider_base_viewer = !viewer_exists_in_descendant_node_group;
-  const bool should_add_base_viewer = is_base_node_group && consider_base_viewer;
-  const bool should_add_viewer = is_active_node_group || should_add_base_viewer;
-  if (flag_is_set(needed_output_types, NodeGroupOutputTypes::ViewerNode) && should_add_viewer) {
+  /* Add Viewer node if this is the active context. */
+  const bool is_active_context = node_group_operation.compute_context().hash() ==
+                                 node_group_operation.context().get_active_compute_context_hash();
+  if (flag_is_set(needed_output_types, NodeGroupOutputTypes::ViewerNode) && is_active_context) {
     for (const bNode *node : node_group.nodes_by_type("CompositorNodeViewer"_ustr)) {
       if (node->flag & NODE_DO_OUTPUT && !node->is_muted()) {
         node_stack.push(node);
@@ -176,8 +165,8 @@ static void add_output_nodes(NodeGroupOperation &node_group_operation,
 
 /* Returns the value of input of the node with the given identifier in the given node group
  * operation. If the value can not be determined statically, a nullopt is returned. The value is
- * only known statically if the input is not connected or directly connected to a group input node
- * with the same socket type. */
+ * only known statically if the input is not connected, directly connected to a group input node
+ * with the same socket type, or connected to an Is Viewport node. */
 template<typename T, typename SocketT>
 static std::optional<T> get_input_socket_value(const bNode &node,
                                                const UString &identifier,
@@ -189,7 +178,29 @@ static std::optional<T> get_input_socket_value(const bNode &node,
   }
 
   const bNodeSocket *linked_output = input.logically_linked_sockets()[0];
-  if (!linked_output->owner_node().is_group_input()) {
+  const bNode &linked_node = linked_output->owner_node();
+
+  if (linked_node.is_type("GeometryNodeIsViewport"_ustr)) {
+    /* Is Viewport node's value can be determined statically.
+     * Convert according to the same implicit conversion table used at runtime. */
+    const bool is_viewport = node_group_operation.context().is_viewport();
+    if constexpr (std::is_same_v<T, bool>) {
+      return is_viewport;
+    }
+    else {
+      const CPPType &from_type = CPPType::get<bool>();
+      const CPPType &to_type = CPPType::get<T>();
+      const bke::DataTypeConversions &conversions = bke::get_implicit_type_conversions();
+      if (!conversions.is_convertible(from_type, to_type)) {
+        return std::nullopt;
+      }
+      T converted_value;
+      conversions.convert_to_uninitialized(from_type, to_type, &is_viewport, &converted_value);
+      return converted_value;
+    }
+  }
+
+  if (!linked_node.is_group_input()) {
     return std::nullopt;
   }
 

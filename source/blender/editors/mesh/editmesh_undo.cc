@@ -1265,9 +1265,6 @@ static void mesh_undosys_step_decode(
 
     em->needs_flush_to_id = 1;
     DEG_id_tag_update(&mesh->id, ID_RECALC_GEOMETRY);
-    /* The object update tag is necessary to cause modifiers to reevaluate after vertex group
-     * changes. */
-    DEG_id_tag_update(&obedit->id, ID_RECALC_GEOMETRY);
   }
 
   /* The first element is always active */
@@ -1337,7 +1334,7 @@ void ED_mesh_undosys_type(UndoType *ut)
 
   ut->step_foreach_ID_ref = mesh_undosys_foreach_ID_ref;
 
-  ut->flags = UNDOTYPE_FLAG_NEED_CONTEXT_FOR_ENCODE;
+  ut->flags = UNDOTYPE_FLAG_NEED_CONTEXT_FOR_ENCODE | UNDOTYPE_FLAG_ENCODE_PRE_MEMFILE_SUPPORTED;
 
   ut->step_size = sizeof(MeshUndoStep);
 }

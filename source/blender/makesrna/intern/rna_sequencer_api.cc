@@ -408,7 +408,7 @@ static Strip *rna_Strips_new_sound(ID *id,
   Strip *strip = seq::add_sound_strip(bmain, scene, seqbase, &load_data);
 
   if (strip == nullptr) {
-    BKE_report(reports, RPT_ERROR, "Strips.new_sound: unable to open sound file");
+    BKE_report(reports, RPT_ERROR, "Unable to open sound file");
     return nullptr;
   }
 
@@ -504,28 +504,27 @@ static Strip *rna_Strips_new_effect(ID *id,
   switch (min_inputs) {
     case 0:
       if (length <= 0 && !compositor_with_inputs) {
-        BKE_report(reports, RPT_ERROR, "Strips.new_effect: invalid length");
+        BKE_report(reports, RPT_ERROR, "Invalid length");
         return nullptr;
       }
       break;
     case 1:
       if (input1 == nullptr) {
-        BKE_report(reports, RPT_ERROR, "Strips.new_effect: effect takes 1 input strip");
+        BKE_report(reports, RPT_ERROR, "Effect takes 1 input strip");
         return nullptr;
       }
       break;
     case 2:
       if (input1 == nullptr || input2 == nullptr) {
-        BKE_report(reports, RPT_ERROR, "Strips.new_effect: effect takes 2 input strips");
+        BKE_report(reports, RPT_ERROR, "Effect takes 2 input strips");
         return nullptr;
       }
       break;
     default:
-      BKE_reportf(
-          reports,
-          RPT_ERROR,
-          "Strips.new_effect: effect expects more than 2 inputs (%d, should never happen!)",
-          min_inputs);
+      BKE_reportf(reports,
+                  RPT_ERROR,
+                  "Effect expects more than 2 inputs (%d, should never happen!)",
+                  min_inputs);
       return nullptr;
   }
   seq::LoadData load_data;
@@ -636,7 +635,7 @@ static void rna_StripElements_pop(ID *id, Strip *strip, ReportList *reports, int
   StripElem *new_se, *se;
 
   if (strip->content_length() == 1) {
-    BKE_report(reports, RPT_ERROR, "StripElements.pop: cannot pop the last element");
+    BKE_report(reports, RPT_ERROR, "Cannot pop the last element");
     return;
   }
 
@@ -646,7 +645,7 @@ static void rna_StripElements_pop(ID *id, Strip *strip, ReportList *reports, int
   }
 
   if (strip->content_length() <= index || index < 0) {
-    BKE_report(reports, RPT_ERROR, "StripElements.pop: index out of range");
+    BKE_report(reports, RPT_ERROR, "Index out of range");
     return;
   }
 

@@ -50,6 +50,11 @@ RenderContext *Context::render_context() const
   return nullptr;
 }
 
+bool Context::is_viewport() const
+{
+  return false;
+}
+
 nodes::eval_log::NodesEvalLog *Context::nodes_evaluation_log() const
 {
   return nullptr;

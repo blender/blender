@@ -85,14 +85,15 @@ struct BVHTree {
   float epsilon;       /* Epsilon is used for inflation of the K-DOP. */
   int leaf_num;        /* Leafs. */
   int branch_num;
+  int nodes_num_alloc;          /* Allocated length of #nodes & #nodearray. */
   axis_t start_axis, stop_axis; /* bvhtree_kdop_axes array indices according to axis */
   axis_t axis;                  /* KDOP type (6 => OBB, 7 => AABB, ...) */
   char tree_type;               /* type of tree (4 => quad-tree). */
 };
 
 /* optimization, ensure we stay small */
-BLI_STATIC_ASSERT((sizeof(void *) == 8 && sizeof(BVHTree) <= 48) ||
-                      (sizeof(void *) == 4 && sizeof(BVHTree) <= 32),
+BLI_STATIC_ASSERT((sizeof(void *) == 8 && sizeof(BVHTree) <= 56) ||
+                      (sizeof(void *) == 4 && sizeof(BVHTree) <= 36),
                   "over sized")
 
 /* avoid duplicating vars in BVHOverlapData_Thread */
@@ -489,11 +490,16 @@ static void bvhtree_info(BVHTree *tree)
          tree->leaf_num);
   printf("Memory per node = %ubytes\n",
          uint(sizeof(BVHNode) + sizeof(BVHNode *) * tree->tree_type + sizeof(float) * tree->axis));
-  printf("BV memory = %ubytes\n", uint(MEM_allocN_len(tree->nodebv)));
+  const size_t nodebv_len = sizeof(float) * size_t(tree->axis) * size_t(tree->nodes_num_alloc);
+  const size_t nodes_len = sizeof(BVHNode *) * size_t(tree->nodes_num_alloc);
+  const size_t nodearray_len = sizeof(BVHNode) * size_t(tree->nodes_num_alloc);
+  const size_t nodechild_len = sizeof(BVHNode *) * size_t(tree->tree_type) *
+                               size_t(tree->nodes_num_alloc);
+
+  printf("BV memory = %ubytes\n", uint(nodebv_len));
 
   printf("Total memory = %ubytes\n",
-         uint(sizeof(BVHTree) + MEM_allocN_len(tree->nodes) + MEM_allocN_len(tree->nodearray) +
-              MEM_allocN_len(tree->nodechild) + MEM_allocN_len(tree->nodebv)));
+         uint(sizeof(BVHTree) + nodes_len + nodearray_len + nodechild_len + nodebv_len));
 
   bvhtree_print_tree(tree, tree->nodes[tree->leaf_num], 0);
 }
@@ -857,8 +863,6 @@ static void non_recursive_bvh_div_nodes(const BVHTree *tree,
 
 BVHTree *BLI_bvhtree_new(int maxsize, float epsilon, char tree_type, char axis)
 {
-  int numnodes, i;
-
   BLI_assert(tree_type >= 2 && tree_type <= MAX_TREETYPE);
 
   BVHTree *tree = MEM_new_zeroed<BVHTree>(__func__);
@@ -902,7 +906,8 @@ BVHTree *BLI_bvhtree_new(int maxsize, float epsilon, char tree_type, char axis)
     }
 
     /* Allocate arrays */
-    numnodes = maxsize + implicit_needed_branches(tree_type, maxsize) + tree_type;
+    tree->nodes_num_alloc = maxsize + implicit_needed_branches(tree_type, maxsize) + tree_type;
+    const int numnodes = tree->nodes_num_alloc;
 
     tree->nodes = MEM_new_array_zeroed<BVHNode *>(size_t(numnodes), "BVHNodes");
     tree->nodebv = MEM_new_array_zeroed<float>(axis * size_t(numnodes), "BVHNodeBV");
@@ -915,7 +920,7 @@ BVHTree *BLI_bvhtree_new(int maxsize, float epsilon, char tree_type, char axis)
     }
 
     /* link the dynamic bv and child links */
-    for (i = 0; i < numnodes; i++) {
+    for (int i = 0; i < numnodes; i++) {
       tree->nodearray[i].bv = &tree->nodebv[i * axis];
       tree->nodearray[i].children = &tree->nodechild[i * tree_type];
     }
@@ -986,7 +991,7 @@ void BLI_bvhtree_insert(BVHTree *tree, int index, const float co[3], int numpoin
 
   /* insert should only possible as long as tree->branch_num is 0 */
   BLI_assert(tree->branch_num <= 0);
-  BLI_assert(size_t(tree->leaf_num) < MEM_allocN_len(tree->nodes) / sizeof(*(tree->nodes)));
+  BLI_assert(tree->leaf_num < tree->nodes_num_alloc);
 
   node = tree->nodes[tree->leaf_num] = &(tree->nodearray[tree->leaf_num]);
   tree->leaf_num++;

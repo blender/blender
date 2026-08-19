@@ -343,7 +343,7 @@ void drawSnapping(TransInfo *t)
     GPU_blend(GPU_BLEND_ALPHA);
     uint pos = GPU_vertformat_attr_add(immVertexFormat(), "pos", gpu::VertAttrType::SFLOAT_32_32);
     immBindBuiltinProgram(GPU_SHADER_3D_UNIFORM_COLOR);
-    float pixelx = BLI_rctf_size_x(&region->v2d.cur) / BLI_rcti_size_x(&region->v2d.mask);
+    float pixelx = ui::view2d_pixel_size_get_x(&region->v2d);
 
     const float target_x = t->tsnap.snap_target[0];
     const float target_y = t->tsnap.snap_target[1];

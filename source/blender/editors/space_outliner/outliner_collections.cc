@@ -107,7 +107,7 @@ TreeTraversalAction outliner_collect_selected_collections(TreeElement *te, void 
     return TRAVERSE_CONTINUE;
   }
 
-  if ((tselem->type != TSE_SOME_ID) || (tselem->id && GS(tselem->id->name) != ID_GR)) {
+  if ((tselem->type != TSE_SOME_ID) || (tselem->id && tselem->id->id_type() != ID_GR)) {
     return TRAVERSE_SKIP_CHILDS;
   }
 
@@ -138,7 +138,7 @@ TreeTraversalAction outliner_collect_selected_objects(TreeElement *te, void *cus
     return TRAVERSE_CONTINUE;
   }
 
-  if ((tselem->type != TSE_SOME_ID) || (tselem->id == nullptr) || (GS(tselem->id->name) != ID_OB))
+  if ((tselem->type != TSE_SOME_ID) || (tselem->id == nullptr) || (tselem->id->id_type() != ID_OB))
   {
     return TRAVERSE_SKIP_CHILDS;
   }
@@ -270,7 +270,7 @@ static wmOperatorStatus collection_new_exec(bContext *C, wmOperator *op)
 
   outliner_build_tree(bmain, workspace, scene, view_layer, space_outliner, region);
   bool is_textbut_set = false;
-  tree_iterator::all_open(*space_outliner, [&](TreeElement *te) {
+  tree_iterator::all(space_outliner->runtime->tree, [&](TreeElement *te) {
     TreeStoreElem *tselem = TREESTORE(te);
     if (Collection *collection = outliner_collection_from_tree_element(te)) {
       if ((new_collection == collection) && !is_textbut_set) {
@@ -845,6 +845,7 @@ static wmOperatorStatus collection_instance_exec(bContext *C, wmOperator * /*op*
     Object *ob = object::add_type(
         C, OB_EMPTY, collection->id.name + 2, scene->cursor.location, nullptr, false, 0);
     ob->instance_collection = collection;
+    ob->empty_drawsize = U.collection_instance_empty_size;
     ob->transflag |= OB_DUPLICOLLECTION;
     id_us_plus(&collection->id);
   }
@@ -1504,7 +1505,7 @@ static TreeTraversalAction outliner_hide_collect_data_to_edit(TreeElement *te, v
       /* Skip - showing warning/error message might be misleading
        * when deleting multiple collections, so just do nothing. */
     }
-    else if (tselem->flag & TSE_SELECTED) {
+    else if (!data->hide_unselected && tselem->flag & TSE_SELECTED) {
       /* Delete, duplicate and link don't edit children,
        * those will come along with the parents. */
       data->collections_to_edit.add(lc);

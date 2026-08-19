@@ -24,7 +24,7 @@ namespace blender {
  * Generate a client-side-decorations (CSD).
  * \{ */
 
-int WM_window_csd_fracitonal_scale_apply(int value, const int fractional_scale[2])
+int WM_window_csd_fractional_scale_apply(int value, const int fractional_scale[2])
 {
   return (value * fractional_scale[1]) / fractional_scale[0];
 }
@@ -37,7 +37,7 @@ int WM_window_csd_layout_callback(const int window_size[2],
 {
   constexpr int csd_title_height = 25;
 
-  const int title = WM_window_csd_fracitonal_scale_apply(csd_title_height, fractional_scale);
+  const int title = WM_window_csd_fractional_scale_apply(csd_title_height, fractional_scale);
 
   /* The caller is expected not to run the callback for full screen windows. */
   BLI_assert(window_state != GHOST_kWindowStateFullScreen);

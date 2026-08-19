@@ -1,9 +1,9 @@
 
 msgid ""
 msgstr ""
-"Project-Id-Version: Blender 5.3.0 Alpha (b'bf67fb078da0')\n"
+"Project-Id-Version: Blender 5.3.0 Alpha (b'af4852ed4560')\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-07-27 09:52+0000\n"
+"POT-Creation-Date: 2026-08-10 07:54+0000\n"
 "PO-Revision-Date: 2026-02-24 05:12+0000\n"
 "Last-Translator: தமிழ்நேரம் <anishprabu.t@gmail.com>\n"
 "Language-Team: Tamil <https://translate.blender.org/projects/blender-ui/ui/ta/>\n"
@@ -3450,10 +3450,6 @@ msgstr "துகள் தரவு-தொகுதிகள்"
 
 msgid "Point cloud data-blocks"
 msgstr "புள்ளி முகில் தரவு-தொகுதிகள்"
-
-
-msgid "Project"
-msgstr "திட்டம்"
 
 
 msgid "Scene data-blocks"
@@ -10011,6 +10007,10 @@ msgstr "அருகிலுள்ள மேற்பரப்பு புள�
 
 msgid "Shrink the location to the nearest target surface"
 msgstr "இருப்பிடத்தை அருகிலுள்ள இலக்கு மேற்பரப்பில் சுருக்கவும்"
+
+
+msgid "Project"
+msgstr "திட்டம்"
 
 
 msgid "Shrink the location to the nearest target surface along a given axis"
@@ -34896,104 +34896,48 @@ msgid "Editor menu containing buttons"
 msgstr "பொத்தான்களைக் கொண்ட திருத்தி பட்டியல்"
 
 
-msgid "Creative"
-msgstr "படைப்பாற்றல்"
-
-
-msgid "Bone Collections"
-msgstr "எலும்பு வசூல்"
-
-
 msgid "Names"
 msgstr "பெயர்கள்"
-
-
-msgid "Show/Hide"
-msgstr "காட்டு/மறைக்க"
-
-
-msgid "Apply"
-msgstr "இடு"
-
-
-msgid "Toggle Bone Options"
-msgstr "எலும்பு விருப்பங்களை மாற்றவும்"
-
-
-msgid "Enable Bone Options"
-msgstr "எலும்பு விருப்பங்களை இயக்கவும்"
-
-
-msgid "Disable Bone Options"
-msgstr "எலும்பு விருப்பங்களை முடக்கு"
-
-
-msgid "Mesh Select Mode"
-msgstr "கண்ணி தேர்ந்தெடுக்கப்பட்ட பயன்முறையைத் தேர்ந்தெடுக்கவும்"
-
-
-msgid "Face Data"
-msgstr "முகத்தை முகம்"
-
-
-msgid "Select by Face Strength"
-msgstr "முக வலிமையால் தேர்ந்தெடுக்கவும்"
-
-
-msgid "Set Face Strength"
-msgstr "முக வலிமையை அமைக்கவும்"
-
-
-msgid "Clean Up"
-msgstr "தூய்மை செய்"
-
-
-msgid "Merge"
-msgstr "ஒன்றிணைக்கவும்"
-
-
-msgid "Special Characters"
-msgstr "சிறப்பு எழுத்துக்கள்"
-
-
-msgid "Kerning"
-msgstr "கெர்னிங்"
-
-
-msgid "Math"
-msgstr "கணிதம்"
-
-
-msgid "Metaball"
-msgstr "வளர்சிதை மாற்ற"
-
-
-msgid "Utilities"
-msgstr "பயன்பாடுகள்"
 
 
 msgid "Bone Roll"
 msgstr "எலும்பு ரோல்"
 
 
-msgid "Read"
-msgstr "படி"
+msgid "Show/Hide"
+msgstr "காட்டு/மறைக்க"
 
 
-msgid "Sample"
-msgstr "மாதிரி"
+msgid "Clean Up"
+msgstr "தூய்மை செய்"
 
 
-msgid "Write"
-msgstr "எழுதுங்கள்"
+msgid "Adjust"
+msgstr "சரிசெய்யவும்"
 
 
-msgid "Primitives"
-msgstr "ப்ரைமிடிவ்ச்"
+msgid "Keying"
+msgstr "கீயிங்"
+
+
+msgid "Tracking"
+msgstr "கண்காணிப்பு"
+
+
+msgid "Utilities"
+msgstr "பயன்பாடுகள்"
+
+
+msgid "Math"
+msgstr "கணிதம்"
 
 
 msgid "Pivot Point"
 msgstr "பிவோட் புள்ளி"
+
+
+msgid "Creative"
+msgstr "படைப்பாற்றல்"
 
 
 msgid "Snap"
@@ -35020,28 +34964,8 @@ msgid "Vertex Group Locks"
 msgstr "வெர்டெக்ச் குழு பூட்டுகள்"
 
 
-msgid "Gizmo"
-msgstr "கிச்மோ"
-
-
-msgid "Instances"
-msgstr "நிகழ்வுகள்"
-
-
-msgid "Render Preview"
-msgstr "வழங்குதல் முன்னோட்டம்"
-
-
-msgid "Import"
-msgstr "இறக்குமதி"
-
-
 msgid "Mirror"
 msgstr "கண்ணாடி"
-
-
-msgid "Deprecated"
-msgstr "மதிப்பிடப்பட்டது"
 
 
 msgid "UV Mapping"
@@ -35062,10 +34986,6 @@ msgstr "வழிசெலுத்தல்"
 
 msgid "Align View"
 msgstr "பார்வையை சீரமைக்கவும்"
-
-
-msgid "UV"
-msgstr "புறஊதா"
 
 
 msgid "Align View to Active"
@@ -35100,6 +35020,26 @@ msgid "Assign Material"
 msgstr "மூலப்பொருள் ஒதுக்க"
 
 
+msgid "Read"
+msgstr "படி"
+
+
+msgid "Sample"
+msgstr "மாதிரி"
+
+
+msgid "Write"
+msgstr "எழுதுங்கள்"
+
+
+msgid "Primitives"
+msgstr "ப்ரைமிடிவ்ச்"
+
+
+msgid "Metaball"
+msgstr "வளர்சிதை மாற்ற"
+
+
 msgid "Light"
 msgstr "ஒளி"
 
@@ -35112,24 +35052,36 @@ msgid "Add Image"
 msgstr "படத்தைச் சேர்க்கவும்"
 
 
+msgid "Gizmo"
+msgstr "கிச்மோ"
+
+
 msgid "Relations"
 msgstr "உறவுகள்"
+
+
+msgid "Instances"
+msgstr "நிகழ்வுகள்"
+
+
+msgid "Render Preview"
+msgstr "வழங்குதல் முன்னோட்டம்"
 
 
 msgid "Rigid Body"
 msgstr "கடினமான உடல்"
 
 
+msgid "Apply"
+msgstr "இடு"
+
+
+msgid "Import"
+msgstr "இறக்குமதி"
+
+
 msgid "Track"
 msgstr "டிராக்"
-
-
-msgid "Linked"
-msgstr "இணைக்கப்பட்ட"
-
-
-msgid "Layout"
-msgstr "தளவமைப்பு"
 
 
 msgid "Quick Effects"
@@ -35138,6 +35090,10 @@ msgstr "விரைவான விளைவுகள்"
 
 msgid "Asset"
 msgstr "சொத்து"
+
+
+msgid "Deprecated"
+msgstr "மதிப்பிடப்பட்டது"
 
 
 msgid "Make Single User"
@@ -35156,24 +35112,16 @@ msgid "Hooks"
 msgstr "கொக்கிகள்"
 
 
-msgid "Adjust"
-msgstr "சரிசெய்யவும்"
+msgid "UV"
+msgstr "புறஊதா"
 
 
 msgid "Trim/Add"
 msgstr "டிரிம்/சேர்"
 
 
-msgid "Keying"
-msgstr "கீயிங்"
-
-
 msgid "Sculpt Set Pivot"
 msgstr "சிற்பம் செட் பிவோட்"
-
-
-msgid "Tracking"
-msgstr "கண்காணிப்பு"
 
 
 msgid "Face Sets Init"
@@ -35194,6 +35142,58 @@ msgstr "இன்-பெட்வீன்ச்"
 
 msgid "Propagate"
 msgstr "பிரச்சாரம்"
+
+
+msgid "Bone Collections"
+msgstr "எலும்பு வசூல்"
+
+
+msgid "Toggle Bone Options"
+msgstr "எலும்பு விருப்பங்களை மாற்றவும்"
+
+
+msgid "Enable Bone Options"
+msgstr "எலும்பு விருப்பங்களை இயக்கவும்"
+
+
+msgid "Disable Bone Options"
+msgstr "எலும்பு விருப்பங்களை முடக்கு"
+
+
+msgid "Mesh Select Mode"
+msgstr "கண்ணி தேர்ந்தெடுக்கப்பட்ட பயன்முறையைத் தேர்ந்தெடுக்கவும்"
+
+
+msgid "Face Data"
+msgstr "முகத்தை முகம்"
+
+
+msgid "Select by Face Strength"
+msgstr "முக வலிமையால் தேர்ந்தெடுக்கவும்"
+
+
+msgid "Set Face Strength"
+msgstr "முக வலிமையை அமைக்கவும்"
+
+
+msgid "Merge"
+msgstr "ஒன்றிணைக்கவும்"
+
+
+msgid "Linked"
+msgstr "இணைக்கப்பட்ட"
+
+
+msgid "Special Characters"
+msgstr "சிறப்பு எழுத்துக்கள்"
+
+
+msgid "Layout"
+msgstr "தளவமைப்பு"
+
+
+msgid "Kerning"
+msgstr "கெர்னிங்"
 
 
 msgid "Keyframe Insert Pie"
@@ -52003,6 +52003,10 @@ msgid "Collection of main items"
 msgstr "முக்கிய பொருட்களின் சேகரிப்பு"
 
 
+msgid "Scalar"
+msgstr "ச்காலார்"
+
+
 msgid "Collection of repeat items"
 msgstr "மறுநிகழ்வு உருப்படிகளின் சேகரிப்பு"
 
@@ -56289,15 +56293,6 @@ msgstr "உருவாக்கப்பட்டது"
 
 
 msgctxt "Operator"
-msgid "Make Markers Local"
-msgstr "குறிப்பான்களை உள்ளக ஆக்குங்கள்"
-
-
-msgid "Move selected scene markers to the active Action as local 'pose' markers"
-msgstr "தேர்ந்தெடுக்கப்பட்ட காட்சி குறிப்பான்களை உள்ளக 'போச்' குறிப்பான்களாக செயலில் உள்ள செயலுக்கு நகர்த்தவும்"
-
-
-msgctxt "Operator"
 msgid "Mirror Keys"
 msgstr "கண்ணாடி விசைகள்"
 
@@ -58599,10 +58594,6 @@ msgstr "சிற்பம்/வண்ணப்பூச்சு தூரி�
 
 msgid "Change brush size by a scalar"
 msgstr "தூரிகை அளவை அளவிடுதல் மூலம் மாற்றவும்"
-
-
-msgid "Scalar"
-msgstr "ச்காலார்"
 
 
 msgid "Factor to scale brush size by"
@@ -74630,15 +74621,6 @@ msgid "Select all objects which block light from this emitter"
 msgstr "இந்த உமிழ்ப்பாளரிடமிருந்து ஒளியைத் தடுக்கும் அனைத்து பொருட்களையும் தேர்ந்தெடுக்கவும்"
 
 
-msgctxt "Operator"
-msgid "Link Receivers to Emitter"
-msgstr "உமிழ்ப்பாளர்களுடன் பெறுநர்களை இணைக்கவும்"
-
-
-msgid "Light link selected receivers to the active emitter object"
-msgstr "செயலில் உள்ள உமிழ்ப்பான் பொருளுக்கு ஒளி இணைப்பு தேர்ந்தெடுக்கப்பட்ட பெறுநர்கள்"
-
-
 msgid "State of the light linking"
 msgstr "ஒளியின் நிலை"
 
@@ -78608,10 +78590,6 @@ msgstr "அனைத்து செங்குத்துகளின் த�
 msgctxt "Operator"
 msgid "Weight from Bones"
 msgstr "எலும்புகளிலிருந்து எடை"
-
-
-msgid "Set the weights of the groups matching the attached armature's selected bones, using the distance between the vertices and the bones"
-msgstr "இணைக்கப்பட்ட ஆர்மேச்சரின் தேர்ந்தெடுக்கப்பட்ட எலும்புகளுடன் பொருந்தக்கூடிய குழுக்களின் எடையை அமைக்கவும், செங்குத்துகளுக்கும் எலும்புகளுக்கும் இடையிலான தூரத்தைப் பயன்படுத்துதல்"
 
 
 msgid "Method to use for assigning weights"
@@ -91737,10 +91715,6 @@ msgid "Panel containing UI elements"
 msgstr "இடைமுகம் கூறுகளைக் கொண்ட குழு"
 
 
-msgid "glTF Variants"
-msgstr "gltf வகைகள்"
-
-
 msgid "glTF Material Variants"
 msgstr "GLTF பொருள் மாறுபாடுகள்"
 
@@ -91871,6 +91845,10 @@ msgstr "வி.ஆர்"
 
 msgid "VR Info"
 msgstr "வி.ஆர் செய்தி"
+
+
+msgid "glTF Variants"
+msgstr "gltf வகைகள்"
 
 
 msgid "Import Settings"
@@ -97041,10 +97019,6 @@ msgid "Danish - Dansk"
 msgstr "டேனிச் - டேனிச்"
 
 
-msgid "Locale code: da. Translation progress: 3%"
-msgstr "மொழி குறியீடு: da. மொழிபெயர்ப்பு முன்னேற்றம்: 3%"
-
-
 msgid "Dutch - Nederlands"
 msgstr "டச்சு - நெடர்லேண்ட்ச்"
 
@@ -97071,10 +97045,6 @@ msgstr "உள்ளக குறியீடு: eo. மொழிபெயர�
 
 msgid "Finnish - Suomi"
 msgstr "ஃபின்னிச் - பின்லாந்து"
-
-
-msgid "Locale code: fi_FI. Translation progress: 11%"
-msgstr "மொழி குறியீடு: fi_FI. மொழிபெயர்ப்பு முன்னேற்றம்: 11%"
 
 
 msgid "French - Français"
@@ -97119,10 +97089,6 @@ msgstr "- அங்கேரியன்"
 
 msgid "Indonesian - Bahasa indonesia"
 msgstr "இந்தோனேசிய - இந்தோனேசிய"
-
-
-msgid "Locale code: id_ID. Translation progress: 21%"
-msgstr "மொழி குறியீடு: id_ID. மொழிபெயர்ப்பு முன்னேற்றம்: 21%"
 
 
 msgid "Italian - Italiano"
@@ -98858,10 +98824,6 @@ msgstr "சுட பாச் வகை"
 
 msgid "Filter Glossy"
 msgstr "பளபளப்பான வடிகட்டி"
-
-
-msgid "Adaptively blur glossy shaders after blurry bounces, to reduce noise at the cost of accuracy"
-msgstr "துல்லியமான செலவில் சத்தத்தைக் குறைக்க, மங்கலான பவுன்ச் செய்தபின் பளபளப்பான சேடர்களை மாற்றியமைக்கவும்"
 
 
 msgid "Camera Cull Margin"
@@ -126698,6 +126660,14 @@ msgid "Duplicate Marker to Scene"
 msgstr "காட்சிக்கு நகல் மார்க்கர்"
 
 
+msgid "Only Active Keying Set"
+msgstr "ஆக்டிவ் கீயிங் செட் மட்டும்"
+
+
+msgid "Jump Unit"
+msgstr "சம்ப் யூனிட்"
+
+
 msgid "Limit to Frame Range"
 msgstr "பிரேம் வரம்பிற்கான வரம்பு"
 
@@ -126716,14 +126686,6 @@ msgstr "ஆக்டிவ் திருத்தி"
 
 msgid "Properties and Sidebars"
 msgstr "பண்புகள் மற்றும் பக்கப்பட்டிகள்"
-
-
-msgid "Only Active Keying Set"
-msgstr "ஆக்டிவ் கீயிங் செட் மட்டும்"
-
-
-msgid "Jump Unit"
-msgstr "சம்ப் யூனிட்"
 
 
 msgid "Layered Recording"
@@ -126768,22 +126730,6 @@ msgstr "குறுக்குவெட்டுகள்"
 
 msgid "Snap Increment"
 msgstr "ச்னாப் அதிகரிப்பு"
-
-
-msgid ""
-"Measure distance and angles\n"
-" • {:s} anywhere for new measurement\n"
-" • Drag ruler segment to measure an angle\n"
-" • {:s} to remove the active ruler\n"
-" • Ctrl while dragging to snap\n"
-" • Shift while dragging to measure surface thickness"
-msgstr ""
-"தூரம் மற்றும் கோணங்களை அளவிடவும்\n"
-" {{:s} புதிய அளவீட்டுக்கு எங்கும்\n"
-" ஒரு கோணத்தை அளவிட ஆட்சியாளர் பிரிவை இழுக்கவும்\n"
-" • {:s} செயலில் உள்ள ஆட்சியாளரை அகற்ற\n"
-" • சி.டி.ஆர்.எல்\n"
-" The மேற்பரப்பு தடிமன் அளவிட இழுக்கும் போது மாற்றவும்"
 
 
 msgid "Annotation:"
@@ -129780,14 +129726,6 @@ msgstr "தேர்ந்தெடுக்கப்பட்ட விசை�
 msgctxt "Operator"
 msgid "Paste and Bake"
 msgstr "ஒட்டவும் சுட்டுக்கொள்ளவும்"
-
-
-msgid "Keying set is active, which may"
-msgstr "கீயிங் செட் செயலில் உள்ளது, இது இருக்கலாம்"
-
-
-msgid "reduce the effect of the above options"
-msgstr "மேலே உள்ள விருப்பங்களின் விளைவைக் குறைக்கவும்"
 
 
 msgid "Using Active Scene Camera"
@@ -141349,10 +141287,6 @@ msgid "Cannot fly when the view offset is locked"
 msgstr "பார்வை ஆஃப்செட் பூட்டப்படும்போது பறக்க முடியாது"
 
 
-msgid "Cannot fly an object with constraints"
-msgstr "கட்டுப்பாடுகளுடன் ஒரு பொருளை பறக்க முடியாது"
-
-
 msgid "Cannot dolly when the view offset is locked"
 msgstr "பார்வை ஆஃப்செட் பூட்டப்படும்போது டோலி முடியாது"
 
@@ -141375,10 +141309,6 @@ msgstr "சட் அச்சு திருத்தம்"
 
 msgid "Cannot navigate when the view offset is locked"
 msgstr "பார்வை ஆஃப்செட் பூட்டப்படும்போது செல்ல முடியாது"
-
-
-msgid "Cannot navigate an object with constraints"
-msgstr "கட்டுப்பாடுகளுடன் ஒரு பொருளை வழிநடத்த முடியாது"
 
 
 msgid "Depth too large"

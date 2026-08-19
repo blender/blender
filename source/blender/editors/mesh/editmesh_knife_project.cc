@@ -9,9 +9,10 @@
 #include "DNA_curve_types.h"
 #include "DNA_object_types.h"
 
-#include "BLI_linklist.hh"
+#include "BLI_array.hh"
 #include "BLI_listbase.hh"
-#include "BLI_math_vector_c.hh"
+#include "BLI_math_vector_types.hh"
+#include "BLI_vector.hh"
 
 #include "BKE_context.hh"
 #include "BKE_curve.hh"
@@ -28,8 +29,6 @@
 #include "RNA_access.hh"
 #include "RNA_define.hh"
 
-#include "MEM_guardedalloc.h"
-
 #include "WM_types.hh"
 
 #include "ED_mesh.hh"
@@ -40,7 +39,9 @@
 
 namespace blender {
 
-static LinkNode *knifeproject_poly_from_object(const bContext *C, Object *ob, LinkNode *polys)
+static void knifeproject_poly_from_object(const bContext *C,
+                                          Object *ob,
+                                          Vector<Array<float2>> &polys)
 {
   Depsgraph *depsgraph = CTX_data_ensure_evaluated_depsgraph(C);
   ARegion *region = CTX_wm_region(C);
@@ -76,16 +77,16 @@ static LinkNode *knifeproject_poly_from_object(const bContext *C, Object *ob, Li
           int a;
           BPoint *bp;
           bool is_cyclic = (nu.flagu & CU_NURB_CYCLIC) != 0;
-          float (*mval)[2] = MEM_new_array_uninitialized<float[2]>(nu.pntsu + is_cyclic, __func__);
+          Array<float2> mval(nu.pntsu + is_cyclic);
 
           for (bp = nu.bp, a = 0; a < nu.pntsu; a++, bp++) {
-            copy_v2_v2(mval[a], ED_view3d_project_float_v2_m4(region, bp->vec, projmat));
+            mval[a] = ED_view3d_project_float_v2_m4(region, bp->vec, projmat);
           }
           if (is_cyclic) {
-            copy_v2_v2(mval[a], mval[0]);
+            mval[a] = mval[0];
           }
 
-          BLI_linklist_prepend(&polys, mval);
+          polys.append(std::move(mval));
         }
       }
     }
@@ -96,8 +97,6 @@ static LinkNode *knifeproject_poly_from_object(const bContext *C, Object *ob, Li
       BKE_id_free(nullptr, id_cast<ID *>(const_cast<Mesh *>(mesh_eval)));
     }
   }
-
-  return polys;
 }
 
 static wmOperatorStatus knifeproject_exec(bContext *C, wmOperator *op)
@@ -105,17 +104,17 @@ static wmOperatorStatus knifeproject_exec(bContext *C, wmOperator *op)
   Scene *scene = CTX_data_scene(C);
   const bool cut_through = RNA_boolean_get(op->ptr, "cut_through");
 
-  LinkNode *polys = nullptr;
+  Vector<Array<float2>> polys;
 
   CTX_DATA_BEGIN (C, Object *, ob, selected_objects) {
     if (BKE_object_is_in_editmode(ob)) {
       continue;
     }
-    polys = knifeproject_poly_from_object(C, ob, polys);
+    knifeproject_poly_from_object(C, ob, polys);
   }
   CTX_DATA_END;
 
-  if (polys == nullptr) {
+  if (polys.is_empty()) {
     BKE_report(op->reports,
                RPT_ERROR,
                "No other selected objects have wire or boundary edges to use for projection");
@@ -142,8 +141,6 @@ static wmOperatorStatus knifeproject_exec(bContext *C, wmOperator *op)
 
     BM_mesh_select_mode_flush(em->bm);
   }
-
-  BLI_linklist_freeN(polys);
 
   return OPERATOR_FINISHED;
 }

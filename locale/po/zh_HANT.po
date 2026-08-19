@@ -1,11 +1,11 @@
 
 msgid ""
 msgstr ""
-"Project-Id-Version: Blender 5.3.0 Alpha (b'bf67fb078da0')\n"
+"Project-Id-Version: Blender 5.3.0 Alpha (b'af4852ed4560')\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-07-27 09:52+0000\n"
-"PO-Revision-Date: 2026-07-27 19:38+0000\n"
-"Last-Translator: 游博凱 <augustus85918@gmail.com>\n"
+"POT-Creation-Date: 2026-08-10 07:54+0000\n"
+"PO-Revision-Date: 2026-07-31 17:12+0000\n"
+"Last-Translator: Ye Gui <ziweidao@foxmail.com>\n"
 "Language-Team: Chinese (Traditional Han script) <https://translate.blender.org/projects/blender-ui/ui/zh_Hant/>\n"
 "Language: zh_HANT\n"
 "MIME-Version: 1.0\n"
@@ -3413,10 +3413,6 @@ msgstr "粒子數據組塊"
 
 msgid "Point cloud data-blocks"
 msgstr "點雲數據組塊"
-
-
-msgid "Project"
-msgstr "投影"
 
 
 msgid "Scene data-blocks"
@@ -8591,6 +8587,10 @@ msgstr "最近的表面點"
 
 msgid "Shrink the location to the nearest target surface"
 msgstr "將位置收縮至最近的目標表面"
+
+
+msgid "Project"
+msgstr "投影"
 
 
 msgid "Shrink the location to the nearest target surface along a given axis"
@@ -26372,100 +26372,48 @@ msgid "Material slot name"
 msgstr "材質槽名稱"
 
 
-msgid "Creative"
-msgstr "創意"
-
-
-msgid "Bone Collections"
-msgstr "骨骼集盒"
-
-
 msgid "Names"
 msgstr "名稱"
-
-
-msgid "Show/Hide"
-msgstr "顯示/隱藏"
-
-
-msgid "Apply"
-msgstr "套用"
-
-
-msgid "Toggle Bone Options"
-msgstr "開關骨骼選項"
-
-
-msgid "Enable Bone Options"
-msgstr "啟用骨骼設定"
-
-
-msgid "Disable Bone Options"
-msgstr "停用骨骼設定"
-
-
-msgid "Mesh Select Mode"
-msgstr "網格選取模式"
-
-
-msgid "Face Data"
-msgstr "面資料"
-
-
-msgid "Set Face Strength"
-msgstr "設定面強度"
-
-
-msgid "Clean Up"
-msgstr "清理"
-
-
-msgid "Merge"
-msgstr "合併"
-
-
-msgid "Special Characters"
-msgstr "特殊字元"
-
-
-msgid "Kerning"
-msgstr "字間微調"
-
-
-msgid "Math"
-msgstr "數學公式"
-
-
-msgid "Metaball"
-msgstr "變幻球"
-
-
-msgid "Utilities"
-msgstr "效用"
 
 
 msgid "Bone Roll"
 msgstr "骨骼滾動"
 
 
-msgid "Read"
-msgstr "讀取"
+msgid "Show/Hide"
+msgstr "顯示/隱藏"
 
 
-msgid "Sample"
-msgstr "取樣"
+msgid "Clean Up"
+msgstr "清理"
 
 
-msgid "Write"
-msgstr "寫入"
+msgid "Adjust"
+msgstr "調整"
 
 
-msgid "Primitives"
-msgstr "原形"
+msgid "Keying"
+msgstr "鍵處理"
+
+
+msgid "Tracking"
+msgstr "跟蹤"
+
+
+msgid "Utilities"
+msgstr "效用"
+
+
+msgid "Math"
+msgstr "數學公式"
 
 
 msgid "Pivot Point"
 msgstr "樞紐點"
+
+
+msgid "Creative"
+msgstr "創意"
 
 
 msgid "Snap"
@@ -26492,28 +26440,8 @@ msgid "Vertex Group Locks"
 msgstr "頂點群組鎖定"
 
 
-msgid "Gizmo"
-msgstr "操縱器"
-
-
-msgid "Instances"
-msgstr "實例化"
-
-
-msgid "Render Preview"
-msgstr "算繪預覽"
-
-
-msgid "Import"
-msgstr "匯入"
-
-
 msgid "Mirror"
 msgstr "鏡像"
-
-
-msgid "Deprecated"
-msgstr "已棄用"
 
 
 msgid "UV Mapping"
@@ -26534,10 +26462,6 @@ msgstr "導覽"
 
 msgid "Align View"
 msgstr "對齊檢視"
-
-
-msgid "UV"
-msgstr "UV"
 
 
 msgid "Align View to Active"
@@ -26572,6 +26496,26 @@ msgid "Assign Material"
 msgstr "指派材質"
 
 
+msgid "Read"
+msgstr "讀取"
+
+
+msgid "Sample"
+msgstr "取樣"
+
+
+msgid "Write"
+msgstr "寫入"
+
+
+msgid "Primitives"
+msgstr "原形"
+
+
+msgid "Metaball"
+msgstr "變幻球"
+
+
 msgid "Light"
 msgstr "燈光"
 
@@ -26584,24 +26528,36 @@ msgid "Add Image"
 msgstr "新增影像"
 
 
+msgid "Gizmo"
+msgstr "操縱器"
+
+
 msgid "Relations"
 msgstr "關係"
+
+
+msgid "Instances"
+msgstr "實例化"
+
+
+msgid "Render Preview"
+msgstr "算繪預覽"
 
 
 msgid "Rigid Body"
 msgstr "剛體"
 
 
+msgid "Apply"
+msgstr "套用"
+
+
+msgid "Import"
+msgstr "匯入"
+
+
 msgid "Track"
 msgstr "追蹤"
-
-
-msgid "Linked"
-msgstr "已連結"
-
-
-msgid "Layout"
-msgstr "配置"
 
 
 msgid "Quick Effects"
@@ -26610,6 +26566,10 @@ msgstr "快速效果"
 
 msgid "Asset"
 msgstr "素材"
+
+
+msgid "Deprecated"
+msgstr "已棄用"
 
 
 msgid "Make Single User"
@@ -26628,24 +26588,16 @@ msgid "Hooks"
 msgstr "鉤"
 
 
-msgid "Adjust"
-msgstr "調整"
+msgid "UV"
+msgstr "UV"
 
 
 msgid "Trim/Add"
 msgstr "修剪/增加"
 
 
-msgid "Keying"
-msgstr "鍵處理"
-
-
 msgid "Sculpt Set Pivot"
 msgstr "雕刻設定樞紐"
-
-
-msgid "Tracking"
-msgstr "跟蹤"
 
 
 msgid "Face Sets Init"
@@ -26666,6 +26618,54 @@ msgstr "內部之間"
 
 msgid "Propagate"
 msgstr "增生"
+
+
+msgid "Bone Collections"
+msgstr "骨骼集盒"
+
+
+msgid "Toggle Bone Options"
+msgstr "開關骨骼選項"
+
+
+msgid "Enable Bone Options"
+msgstr "啟用骨骼設定"
+
+
+msgid "Disable Bone Options"
+msgstr "停用骨骼設定"
+
+
+msgid "Mesh Select Mode"
+msgstr "網格選取模式"
+
+
+msgid "Face Data"
+msgstr "面資料"
+
+
+msgid "Set Face Strength"
+msgstr "設定面強度"
+
+
+msgid "Merge"
+msgstr "合併"
+
+
+msgid "Linked"
+msgstr "已連結"
+
+
+msgid "Special Characters"
+msgstr "特殊字元"
+
+
+msgid "Layout"
+msgstr "配置"
+
+
+msgid "Kerning"
+msgstr "字間微調"
 
 
 msgid "Keyframe Insert Pie"
@@ -36416,6 +36416,10 @@ msgid "Main Items"
 msgstr "主要項目"
 
 
+msgid "Scalar"
+msgstr "純量"
+
+
 msgid "Viewer Item"
 msgstr "檢視器項目"
 
@@ -38998,15 +39002,6 @@ msgstr "生成的"
 
 
 msgctxt "Operator"
-msgid "Make Markers Local"
-msgstr "讓標記變為區域性"
-
-
-msgid "Move selected scene markers to the active Action as local 'pose' markers"
-msgstr "將所選場景標記移動到作用中動作，作為區域「姿勢」標記"
-
-
-msgctxt "Operator"
 msgid "Mirror Keys"
 msgstr "鏡像鍵"
 
@@ -40585,10 +40580,6 @@ msgstr "縮放雕塑/繪圖筆刷大小"
 
 msgid "Change brush size by a scalar"
 msgstr "依純量變更筆刷大小"
-
-
-msgid "Scalar"
-msgstr "純量"
 
 
 msgid "Factor to scale brush size by"
@@ -52997,10 +52988,6 @@ msgid "Weight from Bones"
 msgstr "權重來自骨骼"
 
 
-msgid "Set the weights of the groups matching the attached armature's selected bones, using the distance between the vertices and the bones"
-msgstr "設定符合連接的骨架其所選骨骼的群組權重，用的是頂點與骨骼之間的距離"
-
-
 msgid "Method to use for assigning weights"
 msgstr "指派權重所使用的方法"
 
@@ -61203,10 +61190,6 @@ msgid "Palette Splines"
 msgstr "調色盤雲型線"
 
 
-msgid "glTF Variants"
-msgstr "glTF 變體"
-
-
 msgid "glTF Material Variants"
 msgstr "glTF 材質變體"
 
@@ -61321,6 +61304,10 @@ msgstr "VR"
 
 msgid "VR Info"
 msgstr "VR 資訊"
+
+
+msgid "glTF Variants"
+msgstr "glTF 變體"
 
 
 msgid "Import Settings"
@@ -66489,10 +66476,6 @@ msgstr "烘焙的通遞類型"
 
 msgid "Filter Glossy"
 msgstr "過濾光澤"
-
-
-msgid "Adaptively blur glossy shaders after blurry bounces, to reduce noise at the cost of accuracy"
-msgstr "適應性地讓光澤著色器在模糊反彈之後變得模糊，可犧牲精確度以換取噪訊的降低"
 
 
 msgid "Camera Cull Margin"
@@ -78539,6 +78522,10 @@ msgid "Repository: {:s}"
 msgstr "儲存庫： {:s}"
 
 
+msgid "Size: {:s}"
+msgstr "大小：{:s}"
+
+
 msgid "Age: {:s}"
 msgstr "Age: {:s}"
 
@@ -83881,6 +83868,10 @@ msgid "Duplicate Marker to Scene"
 msgstr "製作標記複本至場景"
 
 
+msgid "Jump Unit"
+msgstr "跳躍單位"
+
+
 msgid "Limit to Frame Range"
 msgstr "限制於影格區間"
 
@@ -83899,10 +83890,6 @@ msgstr "作用中編輯器"
 
 msgid "Properties and Sidebars"
 msgstr "屬性與側邊欄"
-
-
-msgid "Jump Unit"
-msgstr "跳躍單位"
 
 
 msgid "Layered Recording"

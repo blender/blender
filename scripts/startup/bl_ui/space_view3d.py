@@ -98,7 +98,7 @@ class VIEW3D_HT_tool_header(Header):
             if tool_mode == 'PAINT_TEXTURE':
                 layout.popover("VIEW3D_PT_tools_mask_texture")
             layout.popover("VIEW3D_PT_tools_brush_stroke")
-            layout.popover("VIEW3D_PT_tools_brush_falloff")
+            layout.popover("VIEW3D_PT_tools_brush_shape")
             layout.popover("VIEW3D_PT_tools_brush_display")
 
         # NOTE: general mode options should be added to `draw_mode_settings`.
@@ -287,7 +287,7 @@ class _draw_tool_settings_context_mode:
             layout.prop(brush, "blend", text="", expand=False)
 
         size = "size"
-        size_owner = ups if ups.use_unified_size else brush
+        size_owner = ups if brush.use_unified_size else brush
         if size_owner.use_locked_size == 'SCENE':
             size = "unprojected_size"
 
@@ -421,7 +421,7 @@ class _draw_tool_settings_context_mode:
         ups = paint.unified_paint_settings
 
         size = "size"
-        size_owner = ups if ups.use_unified_size else brush
+        size_owner = ups if brush.use_unified_size else brush
         if size_owner.use_locked_size == 'SCENE':
             size = "unprojected_size"
 
@@ -453,8 +453,6 @@ class _draw_tool_settings_context_mode:
         # direction
         if brush.gpencil_sculpt_brush_type in {'THICKNESS', 'STRENGTH', 'PINCH', 'TWIST'}:
             layout.row().prop(brush, "direction", expand=True, text="")
-
-        # Brush falloff
         layout.popover("VIEW3D_PT_tools_brush_falloff")
 
         return True
@@ -492,7 +490,7 @@ class _draw_tool_settings_context_mode:
         if brush.gpencil_vertex_brush_type not in {'BLUR', 'AVERAGE', 'SMEAR'}:
             layout.separator(factor=0.4)
             ups = paint.unified_paint_settings
-            prop_owner = ups if ups.use_unified_color else brush
+            prop_owner = ups if brush.use_unified_color else brush
             layout.prop_with_popover(prop_owner, "color", text="", panel="TOPBAR_PT_grease_pencil_vertex_color")
 
         brush_basic_grease_pencil_vertex_settings(layout, context, brush, compact=True)
@@ -1126,6 +1124,16 @@ class VIEW3D_HT_header(Header):
         # sub.enabled = shading.type != 'RENDERED'
         sub.popover(panel="VIEW3D_PT_shading", text="")
 
+        # Pause the rendered viewport, for render engines that support it.
+        if shading.type == 'RENDERED':
+            rv3d = view.region_3d
+            if rv3d.support_pause_render:
+                layout.prop(
+                    rv3d, "pause_render",
+                    icon='PLAY' if rv3d.pause_render else 'PAUSE',
+                    text="",
+                )
+
     @staticmethod
     def _mesh_paint_automasking_icon(paint):
         automask_enabled = (
@@ -1608,6 +1616,7 @@ class VIEW3D_MT_view_navigation(Menu):
 
         layout.operator("view3d.view_roll", text="Roll Left").type = 'LEFT'
         layout.operator("view3d.view_roll", text="Roll Right").type = 'RIGHT'
+        layout.operator("view3d.view_roll_set", text="Reset Roll")
 
         layout.separator()
 
@@ -3773,10 +3782,6 @@ class VIEW3D_MT_sculpt(Menu):
 
         layout.separator()
 
-        layout.menu("VIEW3D_MT_add_object", text="Add Primitive")
-
-        layout.separator()
-
         sculpt_filters_types = [
             ('SMOOTH', iface_("Smooth", i18n_contexts.operator_default)),
             ('SURFACE_SMOOTH', iface_("Surface Smooth")),
@@ -3896,33 +3901,6 @@ class VIEW3D_MT_sculpt_trim(Menu):
 
         props = layout.operator("sculpt.trim_polyline_gesture", text="Polyline Add")
         props.trim_mode = 'JOIN'
-
-
-class VIEW3D_MT_add_object(Menu):
-    bl_label = "Add Primitive"
-
-    def draw(self, _context):
-        layout = self.layout
-
-        props = layout.operator("wm.tool_set_by_id", text="Add Cube")
-        props.name = "builtin.primitive_cube_add"
-        props.space_type = 'VIEW_3D'
-
-        props = layout.operator("wm.tool_set_by_id", text="Add Cylinder")
-        props.name = "builtin.primitive_cylinder_add"
-        props.space_type = 'VIEW_3D'
-
-        props = layout.operator("wm.tool_set_by_id", text="Add Cone")
-        props.name = "builtin.primitive_cone_add"
-        props.space_type = 'VIEW_3D'
-
-        props = layout.operator("wm.tool_set_by_id", text="Add UV Sphere")
-        props.name = "builtin.primitive_uv_sphere_add"
-        props.space_type = 'VIEW_3D'
-
-        props = layout.operator("wm.tool_set_by_id", text="Add Ico Sphere")
-        props.name = "builtin.primitive_ico_sphere_add"
-        props.space_type = 'VIEW_3D'
 
 
 class VIEW3D_MT_sculpt_curves(Menu):
@@ -8679,16 +8657,16 @@ class VIEW3D_PT_greasepencil_sculpt_context_menu(Panel):
         layout = self.layout
 
         ups = paint.unified_paint_settings
-        size_owner = ups if ups.use_unified_size else brush
-        strength_owner = ups if ups.use_unified_strength else brush
+        size_owner = ups if brush.use_unified_size else brush
+        strength_owner = ups if brush.use_unified_strength else brush
         row = layout.row(align=True)
         row.prop(size_owner, "size", text="")
         row.prop(brush, "use_pressure_size", text="", icon='STYLUS_PRESSURE')
-        row.prop(ups, "use_unified_size", text="", icon='BRUSHES_ALL')
+        row.prop(brush, "use_unified_size", text="", icon='BRUSHES_ALL')
         row = layout.row(align=True)
         row.prop(strength_owner, "strength", text="")
         row.prop(brush, "use_pressure_strength", text="", icon='STYLUS_PRESSURE')
-        row.prop(ups, "use_unified_strength", text="", icon='BRUSHES_ALL')
+        row.prop(brush, "use_unified_strength", text="", icon='BRUSHES_ALL')
 
         layer = context.object.data.layers.active
 
@@ -8719,7 +8697,7 @@ class VIEW3D_PT_greasepencil_vertex_paint_context_menu(Panel):
         if brush.gpencil_vertex_brush_type in {'DRAW', 'REPLACE'}:
             split = layout.split(factor=0.1)
             ups = settings.unified_paint_settings
-            prop_owner = ups if ups.use_unified_color else brush
+            prop_owner = ups if brush.use_unified_color else brush
             split.prop(prop_owner, "color", text="")
             split.template_color_picker(prop_owner, "color", value_slider=True)
 
@@ -8734,11 +8712,11 @@ class VIEW3D_PT_greasepencil_vertex_paint_context_menu(Panel):
 
         if brush.gpencil_vertex_brush_type in {'DRAW', 'BLUR', 'SMEAR'}:
             ups = settings.unified_paint_settings
-            strength_owner = ups if ups.use_unified_strength else brush
+            strength_owner = ups if brush.use_unified_strength else brush
             row = layout.row(align=True)
             row.prop(strength_owner, "strength", text="")
             row.prop(brush, "use_pressure_strength", text="", icon='STYLUS_PRESSURE')
-            row.prop(ups, "use_unified_strength", text="", icon='BRUSHES_ALL')
+            row.prop(brush, "use_unified_strength", text="", icon='BRUSHES_ALL')
 
         layer = context.object.data.layers.active
 
@@ -8964,7 +8942,7 @@ class VIEW3D_PT_sculpt_context_menu(Panel):
 
         ups = paint.unified_paint_settings
         size = "size"
-        size_owner = ups if ups.use_unified_size else brush
+        size_owner = ups if brush.use_unified_size else brush
         if size_owner.use_locked_size == 'SCENE':
             size = "unprojected_size"
 
@@ -9048,7 +9026,7 @@ class TOPBAR_PT_grease_pencil_vertex_color(Panel):
 
         ups = paint.unified_paint_settings
         brush = paint.brush
-        prop_owner = ups if use_unified_paint and ups.use_unified_color else brush
+        prop_owner = ups if use_unified_paint and brush.use_unified_color else brush
 
         col = layout.column()
         col.template_color_picker(prop_owner, "color", value_slider=True)
@@ -9334,7 +9312,6 @@ classes = (
     VIEW3D_MT_sculpt_transform,
     VIEW3D_MT_sculpt_showhide,
     VIEW3D_MT_sculpt_trim,
-    VIEW3D_MT_add_object,
     VIEW3D_MT_mask,
     VIEW3D_MT_face_sets,
     VIEW3D_MT_face_sets_init,

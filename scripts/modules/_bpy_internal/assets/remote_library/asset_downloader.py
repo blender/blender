@@ -35,6 +35,7 @@ _preview_downloaders: dict[str, AssetDownloader] = {}
 
 def download_asset_file(
         asset_library_url: str,
+        asset_library_auth_token: str,
         asset_library_local_path: Path,
         asset_url: str,
         asset_hash: str,
@@ -44,6 +45,8 @@ def download_asset_file(
     :param asset_library_url: Root URL of the remote asset library. Used as an
         identifier of this library (to create a downloader per library), as well
         as for resolving relative URLs.
+
+    :param asset_library_auth_token: Optional authentication token for bearer authentication.
 
     :param asset_library_local_path: Root path of the local asset cache. Used to
         resolve relative `save_to` paths, but also to find the HTTP metadata
@@ -68,6 +71,7 @@ def download_asset_file(
     except KeyError:
         downloader = AssetDownloader(
             asset_library_url,
+            asset_library_auth_token,
             asset_library_local_path,
             reporter=AssetReporter(asset_library_url=asset_library_url),
             on_queue_empty_callback=on_asset_download_queue_empty,
@@ -93,6 +97,7 @@ def download_asset_file(
 
 def download_preview(
         asset_library_url: str,
+        asset_library_auth_token: str,
         asset_library_local_path: Path,
         preview_url: str,
         preview_hash: str,
@@ -102,6 +107,8 @@ def download_preview(
     :param asset_library_url: Root URL of the remote asset library. Used as an
         identifier of this library (to create a downloader per library), as well
         as for resolving relative URLs.
+
+    :param asset_library_auth_token: Authentication tokens optionally required by some servers.
 
     :param asset_library_local_path: Root path of the local asset cache. Used to
         resolve relative `save_to` paths, but also to find the HTTP metadata
@@ -137,6 +144,7 @@ def download_preview(
     except KeyError:
         downloader = AssetDownloader(
             asset_library_url,
+            asset_library_auth_token,
             asset_library_local_path,
             reporter=PreviewReporter(),
             on_queue_empty_callback=None,
@@ -261,6 +269,7 @@ class AssetDownloader:
     def __init__(
         self,
         remote_url: str,
+        auth_token: str,
         local_path: Path | str,
         *,
         reporter: http_dl.DownloadReporter,
@@ -271,6 +280,8 @@ class AssetDownloader:
         """Create a downloader for assets of a specific asset library.
 
         :param remote_url: Base URL of the remote asset library server.
+
+        :param auth_token: Optional (may be empty) authentication token.
 
         :param local_path: The directory to download the index files to.
 
@@ -289,14 +300,16 @@ class AssetDownloader:
         # Work around a limitation of Blender, see bug report #139720 for details.
         self.on_timer_event = self.on_timer_event  # type: ignore[method-assign]
 
+        http_headers = {'X-Blender': "{:d}.{:d}".format(*bpy.app.version)}
+        if auth_token:
+            http_headers['Authorization'] = "Bearer {:s}".format(auth_token)
+
         self._downloader_options = http_dl.DownloaderOptions(
             metadata_provider=http_dl.MetadataProviderFilesystem(
                 cache_location=self._locator.http_metadata_cache_location,
             ),
             timeout=300,
-            http_headers={
-                'X-Blender': "{:d}.{:d}".format(*bpy.app.version),
-            },
+            http_headers=http_headers,
             num_parallel_downloads=num_parallel_downloads,
         )
 

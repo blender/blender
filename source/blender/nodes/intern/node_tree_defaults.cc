@@ -102,26 +102,6 @@ void node_tree_shader_default(const bContext *C, Main *bmain, ID *id)
   }
 }
 
-void node_tree_composit_default(const bContext *C, Scene *sce)
-{
-  Main *bmain = CTX_data_main(C);
-
-  /* but lets check it anyway */
-  if (sce->compositing_node_group) {
-    if (G.debug & G_DEBUG) {
-      printf("error in composite initialize\n");
-    }
-    return;
-  }
-
-  sce->compositing_node_group = bke::node_tree_add_tree(
-      bmain, DATA_("Compositor Nodes"), ntreeType_Composite->idname.ref());
-
-  node_tree_composit_default_init(C, sce->compositing_node_group);
-
-  BKE_ntree_update_after_single_tree_change(*bmain, *sce->compositing_node_group);
-}
-
 void node_tree_composit_default_init(const bContext *C, bNodeTree *ntree)
 {
   BLI_assert(ntree != nullptr && ntree->type == NTREE_COMPOSIT);

@@ -399,7 +399,7 @@ static PointerRNA rna_XrActionMapItem_op_properties_get(PointerRNA *ptr)
 #  else
   UNUSED_VARS(ptr);
 #  endif
-  return PointerRNA_NULL;
+  return {};
 }
 
 static bool rna_XrActionMapItem_bimanual_get(PointerRNA *ptr)
@@ -1035,7 +1035,7 @@ static PointerRNA rna_XrSessionState_viewfinder_get(PointerRNA *ptr)
   return RNA_pointer_create_discrete(ptr->owner_id, RNA_XrViewfinderState, viewfinder);
 #  else
   UNUSED_VARS(ptr);
-  return PointerRNA_NULL;
+  return {};
 #  endif
 }
 

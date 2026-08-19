@@ -56,7 +56,7 @@ Vector<Vector<int>> fixup_invalid_face(Span<float3> vert_positions, Span<int> fa
   input.face_offsets = face_offsets.as_span();
   input.face_vert_indices = face_vert_indices;
   input.epsilon = 1.0e-6f;
-  input.need_ids = true;
+  input.needed_ids = CDT_ORIG_VERTS | CDT_ONLY_ONE_ORIG;
   CDT_result<double> res = delaunay_2d_calc(input, CDT_CONSTRAINTS_VALID_BMESH_WITH_HOLES);
 
   /* Emit new face information from CDT result. */

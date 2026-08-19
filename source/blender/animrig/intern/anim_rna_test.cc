@@ -18,26 +18,37 @@ class AnimRnaTest : public bke::BlenderGTestBase {};
 
 TEST_F(AnimRnaTest, is_rotation_path)
 {
-  EXPECT_TRUE(is_rotation_path("rotation_euler"));
-  EXPECT_TRUE(is_rotation_path("pose.bones[\"test\"].rotation_euler"));
+  EXPECT_TRUE(is_rotation_path(*ParsedRNAPath<>::from_string("rotation_euler")));
+  EXPECT_TRUE(
+      is_rotation_path(*ParsedRNAPath<>::from_string("pose.bones[\"test\"].rotation_euler")));
 
-  EXPECT_FALSE(is_rotation_path("xrotation_euler"));
-  EXPECT_FALSE(is_rotation_path("rotation_euler2"));
-  EXPECT_FALSE(is_rotation_path("[\"rotation_euler\"]"));
-  EXPECT_FALSE(is_rotation_path("pose.bones[\"test\"][\"rotation_euler\"]"));
+  EXPECT_FALSE(is_rotation_path(*ParsedRNAPath<>::from_string("xrotation_euler")));
+  EXPECT_FALSE(is_rotation_path(*ParsedRNAPath<>::from_string("rotation_euler2")));
+  EXPECT_FALSE(is_rotation_path(*ParsedRNAPath<>::from_string("[\"rotation_euler\"]")));
+  EXPECT_FALSE(
+      is_rotation_path(*ParsedRNAPath<>::from_string("pose.bones[\"test\"][\"rotation_euler\"]")));
 }
 
 TEST_F(AnimRnaTest, rotation_mode_from_path)
 {
-  EXPECT_EQ(ROT_MODE_QUAT, get_rotation_mode_from_path("rotation_quaternion").value());
-  EXPECT_EQ(ROT_MODE_EUL, get_rotation_mode_from_path("rotation_euler").value());
+  EXPECT_EQ(
+      ROT_MODE_QUAT,
+      get_rotation_mode_from_path(*ParsedRNAPath<>::from_string("rotation_quaternion")).value());
   EXPECT_EQ(ROT_MODE_EUL,
-            get_rotation_mode_from_path("pose.bones[\"test\"].rotation_euler").value());
-  EXPECT_EQ(ROT_MODE_AXISANGLE, get_rotation_mode_from_path("rotation_axis_angle").value());
+            get_rotation_mode_from_path(*ParsedRNAPath<>::from_string("rotation_euler")).value());
+  EXPECT_EQ(ROT_MODE_EUL,
+            get_rotation_mode_from_path(
+                *ParsedRNAPath<>::from_string("pose.bones[\"test\"].rotation_euler"))
+                .value());
+  EXPECT_EQ(
+      ROT_MODE_AXISANGLE,
+      get_rotation_mode_from_path(*ParsedRNAPath<>::from_string("rotation_axis_angle")).value());
 
-  EXPECT_EQ(std::nullopt, get_rotation_mode_from_path("scale"));
-  EXPECT_EQ(std::nullopt, get_rotation_mode_from_path("xrotation_euler"));
-  EXPECT_EQ(std::nullopt, get_rotation_mode_from_path("rotation_euler2"));
+  EXPECT_EQ(std::nullopt, get_rotation_mode_from_path(*ParsedRNAPath<>::from_string("scale")));
+  EXPECT_EQ(std::nullopt,
+            get_rotation_mode_from_path(*ParsedRNAPath<>::from_string("xrotation_euler")));
+  EXPECT_EQ(std::nullopt,
+            get_rotation_mode_from_path(*ParsedRNAPath<>::from_string("rotation_euler2")));
 }
 
 }  // namespace blender::animrig::tests

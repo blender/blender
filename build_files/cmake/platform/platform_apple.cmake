@@ -297,7 +297,7 @@ add_bundled_libraries(osl/lib)
 # OSL dependency
 add_bundled_libraries(openjph/lib)
 
-if(WITH_CYCLES AND WITH_CYCLES_EMBREE)
+if(WITH_EMBREE)
   find_package(Embree 4.0.0 REQUIRED)
 endif()
 add_bundled_libraries(embree/lib)
@@ -391,18 +391,16 @@ set(CMAKE_FIND_FRAMEWORK FIRST)
 
 set(EXETYPE MACOSX_BUNDLE)
 
-set(CMAKE_C_FLAGS_DEBUG "-g")
-set(CMAKE_CXX_FLAGS_DEBUG "-g")
-if(CMAKE_OSX_ARCHITECTURES MATCHES "x86_64" OR CMAKE_OSX_ARCHITECTURES MATCHES "i386")
-  set(CMAKE_CXX_FLAGS_RELEASE "-O2 -mdynamic-no-pic -msse -msse2 -msse3 -mssse3")
-  set(CMAKE_C_FLAGS_RELEASE "-O2 -mdynamic-no-pic  -msse -msse2 -msse3 -mssse3")
+string(APPEND CMAKE_C_FLAGS_RELEASE " -mdynamic-no-pic")
+string(APPEND CMAKE_CXX_FLAGS_RELEASE " -mdynamic-no-pic")
+
+if(CMAKE_OSX_ARCHITECTURES MATCHES "x86_64")
+  string(APPEND CMAKE_CXX_FLAGS_RELEASE " -msse -msse2 -msse3 -mssse3")
+  string(APPEND CMAKE_C_FLAGS_RELEASE " -msse -msse2 -msse3 -mssse3")
   if(NOT CMAKE_C_COMPILER_ID MATCHES "Clang")
     string(APPEND CMAKE_C_FLAGS_RELEASE " -ftree-vectorize  -fvariable-expansion-in-unroller")
     string(APPEND CMAKE_CXX_FLAGS_RELEASE " -ftree-vectorize  -fvariable-expansion-in-unroller")
   endif()
-else()
-  set(CMAKE_C_FLAGS_RELEASE "-O2 -mdynamic-no-pic")
-  set(CMAKE_CXX_FLAGS_RELEASE "-O2 -mdynamic-no-pic")
 endif()
 
 # Clang has too low template depth of 128 for libmv.

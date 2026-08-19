@@ -13,8 +13,6 @@
 
 #include "MEM_guardedalloc.h"
 
-#include "atomic_ops.h"
-
 #include "BLI_array.hh"
 #include "BLI_bitmap.hh"
 #include "BLI_function_ref.hh"
@@ -270,24 +268,6 @@ static Array<int> create_reverse_offsets(const Span<int> indices, const int item
   return offsets;
 }
 
-/* A version of #reverse_indices_in_groups that stores face indices instead of corner indices. */
-static void reverse_group_indices_in_groups(const OffsetIndices<int> groups,
-                                            const Span<int> group_to_elem,
-                                            const OffsetIndices<int> offsets,
-                                            MutableSpan<int> results)
-{
-  Array<int> counts(offsets.size(), 0);
-  threading::parallel_for(groups.index_range(), 1024, [&](const IndexRange range) {
-    for (const int64_t face : range) {
-      for (const int elem : group_to_elem.slice(groups[face])) {
-        const int index_in_group = atomic_fetch_and_add_int32(&counts[elem], 1);
-        results[offsets[elem][index_in_group]] = int(face);
-      }
-    }
-  });
-  offset_indices::sort_groups(offsets, results);
-}
-
 Array<int> build_corner_to_face_map(const OffsetIndices<int> faces)
 {
   Array<int> map(faces.total_size());
@@ -300,21 +280,14 @@ GroupedSpan<int> build_vert_to_edge_map(const Span<int2> edges,
                                         Array<int> &r_offsets,
                                         Array<int> &r_indices)
 {
-  r_offsets = create_reverse_offsets(edges.cast<int>(), verts_num);
+  const Span<int> edge_verts = edges.cast<int>();
+  r_offsets = create_reverse_offsets(edge_verts, verts_num);
   const OffsetIndices<int> offsets(r_offsets);
   r_indices.reinitialize(offsets.total_size());
 
-  /* Version of #reverse_indices_in_groups that accounts for storing two indices for each edge. */
-  Array<int> counts(offsets.size(), 0);
-  threading::parallel_for(edges.index_range(), 1024, [&](const IndexRange range) {
-    for (const int64_t edge : range) {
-      for (const int vert : {edges[edge][0], edges[edge][1]}) {
-        const int index_in_group = atomic_fetch_and_add_int32(&counts[vert], 1);
-        r_indices[offsets[vert][index_in_group]] = int(edge);
-      }
-    }
-  });
-  offset_indices::sort_groups(offsets, r_indices);
+  /* Group edges by vertex. Each edge stores two vertices consecutively, so the edge index for a
+   * position in #edge_verts is that position divided by two. */
+  offset_indices::reverse_indices_in_groups(edge_verts, offsets, r_indices, 2);
   return {offsets, r_indices};
 }
 
@@ -323,7 +296,7 @@ void build_vert_to_face_indices(const OffsetIndices<int> faces,
                                 const OffsetIndices<int> offsets,
                                 MutableSpan<int> face_indices)
 {
-  reverse_group_indices_in_groups(faces, corner_verts, offsets, face_indices);
+  offset_indices::reverse_indices_in_groups(corner_verts, offsets, face_indices, faces);
 }
 
 GroupedSpan<int> build_vert_to_face_map(const OffsetIndices<int> faces,
@@ -370,7 +343,8 @@ GroupedSpan<int> build_edge_to_face_map(const OffsetIndices<int> faces,
 {
   r_offsets = create_reverse_offsets(corner_edges, edges_num);
   r_indices.reinitialize(r_offsets.last());
-  reverse_group_indices_in_groups(faces, corner_edges, OffsetIndices<int>(r_offsets), r_indices);
+  offset_indices::reverse_indices_in_groups(
+      corner_edges, OffsetIndices<int>(r_offsets), r_indices, faces);
   return {OffsetIndices<int>(r_offsets), r_indices};
 }
 

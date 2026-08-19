@@ -655,7 +655,14 @@ void MTLStateManager::image_bind(Texture *tex_, int unit)
   MTLContext *ctx = MTLContext::get();
   if (unit >= 0) {
     ctx->texture_bind(mtl_tex, unit, true);
-    image_formats[unit] = TextureWriteFormat(tex_->format_get());
+    /* An sRGB texture bound as a storage image is written as UNORM: the hardware does the sRGB
+     * encode/decode. TextureWriteFormat has no sRGB entry, use UNORM instead to avoid adding
+     * a bunch of complexity elsewhere. */
+    TextureFormat format = tex_->format_get();
+    if (format == TextureFormat::SRGBA_8_8_8_8) {
+      format = TextureFormat::UNORM_8_8_8_8;
+    }
+    image_formats[unit] = TextureWriteFormat(format);
   }
 }
 

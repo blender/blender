@@ -6,3 +6,7 @@ Upstream version: 2007-05-26
 Local modifications:
 * Fix T33192
   Bad encoding of utf-8 on windows systems.
+* Regenerate the combining character table from Unicode 17.0.0 data,
+  running the "uniset" command noted in the table's comment.
+  Uniset: https://www.cl.cam.ac.uk/~mgk25/download/uniset.tar.gz
+  UnicodeData.txt: https://www.unicode.org/Public/17.0.0/ucd/UnicodeData.txt

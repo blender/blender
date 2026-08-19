@@ -82,7 +82,7 @@ Result MorphologicalDistanceFeatherWeights::compute_weights(Context &context, in
    * compute half of it and no doubling happens. We add 1 to make sure the filter size is always
    * odd and there is a center weight. */
   const int size = radius + 1;
-  weights_cpu.allocate_texture(Domain(int2(size, 1)), false, ResultStorageType::CPU);
+  weights_cpu.allocate_texture(Domain(int2(size, 1)), false, ResultStorageType::CPUImage);
 
   float sum = 0.0f;
 
@@ -145,7 +145,7 @@ Result MorphologicalDistanceFeatherWeights::compute_distance_falloffs(Context &c
    * symmetric, we only compute half of them and no doubling happens. We add 1 to make sure the
    * falloffs size is always odd and there is a center falloff. */
   const int size = radius + 1;
-  falloffs_cpu.allocate_texture(Domain(int2(size, 1)), false, ResultStorageType::CPU);
+  falloffs_cpu.allocate_texture(Domain(int2(size, 1)), false, ResultStorageType::CPUImage);
 
   /* Compute the distance falloffs in the positive direction only, because the falloffs are
    * symmetric. */

@@ -266,7 +266,7 @@ bool graphop_active_editable_fcurve_ctx_poll(bContext *C)
 {
   PointerRNA ptr = CTX_data_pointer_get_type(C, "active_editable_fcurve", RNA_FCurve);
 
-  return ptr.data != nullptr;
+  return ptr;
 }
 
 bool graphop_selected_fcurve_poll(bContext *C)

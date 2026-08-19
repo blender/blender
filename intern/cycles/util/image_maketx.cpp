@@ -12,8 +12,6 @@
 #include <iostream>
 #include <memory>
 
-#include <fmt/format.h>
-
 #include <OpenImageIO/Imath.h>
 #include <OpenImageIO/color.h>
 #include <OpenImageIO/filesystem.h>
@@ -45,13 +43,13 @@ static std::string datestring(time_t t)
 {
   struct tm mytm;
   OIIO::Sysutil::get_local_time(&t, &mytm);
-  return fmt::format("{:4d}:{:02d}:{:02d} {:02d}:{:02d}:{:02d}",
-                     mytm.tm_year + 1900,
-                     mytm.tm_mon + 1,
-                     mytm.tm_mday,
-                     mytm.tm_hour,
-                     mytm.tm_min,
-                     mytm.tm_sec);
+  return string_printf("%04d:%02d:%02d %02d:%02d:%02d",
+                       mytm.tm_year + 1900,
+                       mytm.tm_mon + 1,
+                       mytm.tm_mday,
+                       mytm.tm_hour,
+                       mytm.tm_min,
+                       mytm.tm_sec);
 }
 
 template<class SRCTYPE>
@@ -128,7 +126,12 @@ static bool resize_block_(OIIO::ImageBuf &dst,
   int x0 = roi.xbegin, x1 = roi.xend, y0 = roi.ybegin, y1 = roi.yend;
 
   const ImageSpec &dstspec(dst.spec());
+#if OIIO_VERSION_MAJOR > 3 || (OIIO_VERSION_MAJOR == 3 && OIIO_VERSION_MINOR >= 0)
   OIIO::span<float> pel = OIIO::OIIO_ALLOCA_SPAN(float, dstspec.nchannels);
+#else
+  std::vector<float> pel_buf(dstspec.nchannels);
+  OIIO::span<float> pel(pel_buf.data(), dstspec.nchannels);
+#endif
   float xoffset = (float)dstspec.x;
   float yoffset = (float)dstspec.y;
   float xscale = 1.0f / (float)dstspec.width;
@@ -186,10 +189,10 @@ static bool resize_block_2pass(OIIO::ImageBuf &dst, const OIIO::ImageBuf &src, O
    * any NDC -> pixel math, and just directly traverse pixels. */
   const SRCTYPE *s = (const SRCTYPE *)src.localpixels();
   SRCTYPE *d = (SRCTYPE *)dst.localpixels();
-  assert(s && d);                                      /* Assume contig bufs */
-  d += roi.ybegin * dst.spec().width * nchannels;      /* Top of dst OIIO::ROI */
-  const size_t ystride = src.spec().width * nchannels; /* Scanline offset */
-  s += 2 * roi.ybegin * ystride;                       /* Top of src OIIO::ROI */
+  assert(s && d);                                          /* Assume contig bufs */
+  d += int64_t(roi.ybegin) * dst.spec().width * nchannels; /* Top of dst OIIO::ROI */
+  const size_t ystride = src.spec().width * nchannels;     /* Scanline offset */
+  s += 2 * roi.ybegin * ystride;                           /* Top of src OIIO::ROI */
 
   /* Run through destination rows, doing the two-pass bilerp filter. */
   const size_t dw = roi.width(), dh = roi.height(); /* Loop invariants */
@@ -244,8 +247,17 @@ static bool resize_block(OIIO::ImageBuf &dst,
 static void fix_latl_edges(OIIO::ImageBuf &buf)
 {
   int n = buf.nchannels();
+
+#if OIIO_VERSION_MAJOR > 3 || (OIIO_VERSION_MAJOR == 3 && OIIO_VERSION_MINOR >= 0)
   OIIO::span<float> left = OIIO::OIIO_ALLOCA_SPAN(float, n);
   OIIO::span<float> right = OIIO::OIIO_ALLOCA_SPAN(float, n);
+#else
+  std::vector<float> left_buf(n);
+  std::vector<float> right_buf(n);
+
+  OIIO::span<float> left(left_buf.data(), n);
+  OIIO::span<float> right(right_buf.data(), n);
+#endif
 
   /* Make the whole first and last row be solid, since they are exactly on the pole. */
   float wscale = 1.0f / (buf.spec().width);
@@ -256,7 +268,11 @@ static void fix_latl_edges(OIIO::ImageBuf &buf)
       left[c] = 0.0f;
     }
     for (int x = buf.xbegin(); x < buf.xend(); ++x) {
+#if OIIO_VERSION_MAJOR > 3 || (OIIO_VERSION_MAJOR == 3 && OIIO_VERSION_MINOR >= 0)
       buf.getpixel(x, y, right);
+#else
+      buf.getpixel(x, y, right.data());
+#endif
       for (int c = 0; c < n; ++c) {
         left[c] += right[c];
       }
@@ -271,8 +287,13 @@ static void fix_latl_edges(OIIO::ImageBuf &buf)
 
   /* Make the left and right match, since they are both right on the prime meridian. */
   for (int y = buf.ybegin(); y < buf.yend(); ++y) {
+#if OIIO_VERSION_MAJOR > 3 || (OIIO_VERSION_MAJOR == 3 && OIIO_VERSION_MINOR >= 0)
     buf.getpixel(buf.xbegin(), y, left);
     buf.getpixel(buf.xend() - 1, y, right);
+#else
+    buf.getpixel(buf.xbegin(), y, left.data());
+    buf.getpixel(buf.xend() - 1, y, right.data());
+#endif
     for (int c = 0; c < n; ++c) {
       left[c] = 0.5f * left[c] + 0.5f * right[c];
     }
@@ -528,7 +549,7 @@ static void write_stats_tx(OIIO::ImageBuf &buf, const bool use_openexr)
       buf.specmod().attribute("oiio:ConstantColor", colstr);
     }
     else {
-      desc += fmt::format("{}oiio:ConstantColor={}", desc.length() ? " " : "", colstr);
+      desc += string_printf("%soiio:ConstantColor=%s", desc.length() ? " " : "", colstr.c_str());
     }
     LOG_DEBUG << "  ConstantColor: " << colstr;
   }
@@ -539,7 +560,7 @@ static void write_stats_tx(OIIO::ImageBuf &buf, const bool use_openexr)
     buf.specmod().attribute("oiio:AverageColor", avgstr);
   }
   else {
-    desc += fmt::format("{}oiio:AverageColor={}", desc.length() ? " " : "", avgstr);
+    desc += string_printf("%soiio:AverageColor=%s", desc.length() ? " " : "", avgstr.c_str());
   }
   LOG_DEBUG << "  AverageColor: " << avgstr;
 
@@ -557,7 +578,7 @@ static void clamp_half_tx(OIIO::ImageBuf &buf, const TypeDesc out_format)
 
   assert(buf.spec().format == TypeFloat);
 
-  const int64_t num_values = buf.spec().width * buf.spec().height * buf.spec().nchannels;
+  const int64_t num_values = int64_t(buf.spec().width) * buf.spec().height * buf.spec().nchannels;
   float *pixels = static_cast<float *>(buf.localpixels());
   for (int64_t i = 0; i < num_values; i++) {
     pixels[i] = clamp(pixels[i], -HALF_MAX, HALF_MAX);
@@ -569,7 +590,7 @@ static void convert_srgb_tx(OIIO::ImageBuf &buf, const bool from_srgb)
   assert(buf.spec().format == TypeFloat);
   assert(buf.spec().nchannels == 1 || buf.spec().nchannels == 4);
 
-  const int64_t num_pixels = buf.spec().width * buf.spec().height;
+  const int64_t num_pixels = int64_t(buf.spec().width) * buf.spec().height;
 
   if (buf.spec().nchannels == 1) {
     float *pixels = static_cast<float *>(buf.localpixels());

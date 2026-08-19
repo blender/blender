@@ -16,12 +16,14 @@
 #include "NOD_fn_format_string.hh"
 #include "NOD_geometry_nodes_lazy_function.hh"
 #include "NOD_socket_items_blend.hh"
+#include "NOD_socket_items_name_util.hh"
 #include "NOD_socket_items_ops.hh"
 #include "NOD_socket_items_ui.hh"
 
 #include "BKE_path_templates.hh"
 
 #include "node_function_util.hh"
+#include "node_shader_util.hh"
 
 namespace blender {
 
@@ -140,16 +142,18 @@ static std::optional<StringRef> find_format_specifier(const StringRef format)
   return std::nullopt;
 }
 
+/** Returns the index of the next unescaped '{', the string size, or -1 on error.*/
 static int64_t find_next_format_start_or_end(const StringRef format,
                                              const int64_t start,
-                                             std::string &r_out)
+                                             std::string &r_out,
+                                             std::optional<std::string> &r_error)
 {
   int64_t i = start;
   while (i < format.size()) {
     const char c = format[i];
     switch (c) {
-      case '{':
-      case '}': {
+      case '{': {
+        /* '{{' is an escaped '{'. */
         if (i + 1 < format.size()) {
           const char next_c = format[i + 1];
           if (next_c == c) {
@@ -158,7 +162,21 @@ static int64_t find_next_format_start_or_end(const StringRef format,
             continue;
           }
         }
+        /* Not escaped, so this is the start of the next format group. */
         return i;
+      }
+      case '}': {
+        /* '}}' is an escaped '}'. */
+        if (i + 1 < format.size()) {
+          const char next_c = format[i + 1];
+          if (next_c == c) {
+            i += 2;
+            r_out += c;
+            continue;
+          }
+        }
+        r_error = fmt::format("{}: \"{}\"", TIP_("Unescaped '}' in format string"), format);
+        return -1;
       }
       default: {
         r_out += c;
@@ -635,7 +653,11 @@ static bool format_strings(const StringRef format,
     /* Find the string until the next format starts or the string ends. */
     std::string copy_str;
     const int64_t next_format_start_or_end = find_next_format_start_or_end(
-        format, current_index, copy_str);
+        format, current_index, copy_str, r_error);
+    if (next_format_start_or_end < 0) {
+      BLI_assert(r_error);
+      return false;
+    }
 
     /* Append the non-formatted string to the outputs. */
     if (!copy_str.empty()) {
@@ -787,7 +809,7 @@ static void node_register()
 {
   static bke::bNodeType ntype;
 
-  fn_cmp_node_type_base(&ntype, "FunctionNodeFormatString"_ustr);
+  common_node_type_base(&ntype, "FunctionNodeFormatString"_ustr);
   ntype.ui_name = "Format String";
   ntype.ui_description =
       "Insert values into a string using a Python and path template compatible formatting syntax";
@@ -819,64 +841,6 @@ void FormatStringItemsAccessor::blend_write_item(BlendWriter *writer, const Item
 void FormatStringItemsAccessor::blend_read_data_item(BlendDataReader *reader, ItemT &item)
 {
   BLO_read_string(reader, &item.name);
-}
-
-std::string FormatStringItemsAccessor::custom_initial_name(const bNode &node, StringRef src_name)
-{
-  /* The goal is to find a single-letter name that is not used already. Ideally, it starts with the
-   * same letter as the given name. */
-
-  const auto &storage = *static_cast<NodeFunctionFormatString *>(node.storage);
-  char initial = 'a';
-  if (!src_name.is_empty()) {
-    const char first_c = src_name[0];
-    if (first_c >= 'a' && first_c <= 'z') {
-      initial = first_c;
-    }
-    else if (first_c >= 'A' && first_c <= 'Z') {
-      initial = first_c - 'A' + 'a';
-    }
-  }
-  for (const int i : IndexRange('z' - 'a' + 1)) {
-    char c = initial + i;
-    if (c > 'z') {
-      /* Start at 'a' again. */
-      c = c - 'z' + 'a' - 1;
-    }
-    const std::string potential_name = std::string(1, c);
-    const bool name_exists = std::any_of(
-        storage.items,
-        storage.items + storage.items_num,
-        [&](const NodeFunctionFormatStringItem &item) { return item.name == potential_name; });
-    if (!name_exists) {
-      return potential_name;
-    }
-  }
-  return src_name;
-}
-
-std::string FormatStringItemsAccessor::validate_name(const StringRef name)
-{
-  /* The name has to start with a letter or underscore. The remaining letters may additionally be
-   * digits. */
-  std::string result;
-  if (name.is_empty()) {
-    return result;
-  }
-  const char first_char = name[0];
-  if (!std::isalpha(first_char) && first_char != '_') {
-    result += '_';
-  }
-  for (const char c : name) {
-    if (std::isalnum(c) || c == '_') {
-      result += c;
-    }
-    if (ELEM(c, '-', '.', ' ', '\t')) {
-      result += '_';
-    }
-  }
-
-  return result;
 }
 
 }  // namespace nodes

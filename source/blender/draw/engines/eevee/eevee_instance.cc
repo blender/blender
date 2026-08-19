@@ -10,12 +10,14 @@
 
 #include "CLG_log.h"
 
+#include "BKE_camera.h"
 #include "BKE_global.hh"
 #include "BKE_object.hh"
 #include "BKE_scene.hh"
 
 #include "BLI_rect.hh"
 #include "BLI_time.hh"
+#include "BLI_timecode.hh"
 
 #include "BLT_translation.hh"
 
@@ -28,6 +30,7 @@
 #include "ED_view3d.hh"
 #include "GPU_context.hh"
 #include "GPU_pass.hh"
+#include "GPU_work_in_flight.hh"
 #include "IMB_imbuf_types.hh"
 
 #include "RE_pipeline.h"
@@ -84,38 +87,34 @@ void Instance::init()
       camera = v3d->camera;
     }
 
-    if (camera) {
-      if (scene->r.mode & R_BORDER) {
-        if (draw_ctx->is_viewport_image_render() || draw_ctx->is_viewport_xr()) {
+    if (draw_ctx->is_viewport_image_render() || draw_ctx->is_viewport_xr()) {
+      if (camera) {
+        if (scene->r.mode & R_BORDER) {
           rect.xmin = scene->r.border.xmin * size[0];
           rect.ymin = scene->r.border.ymin * size[1];
           rect.xmax = scene->r.border.xmax * size[0];
           rect.ymax = scene->r.border.ymax * size[1];
         }
-        else {
-          rctf viewborder;
-          /* TODO(fclem) Might be better to get it from DRW. */
-          ED_view3d_calc_camera_border(
-              scene, depsgraph, region, v3d, rv3d, false, true, &viewborder);
-          float viewborder_sizex = BLI_rctf_size_x(&viewborder);
-          float viewborder_sizey = BLI_rctf_size_y(&viewborder);
-          rect.xmin = floorf(viewborder.xmin + (scene->r.border.xmin * viewborder_sizex));
-          rect.ymin = floorf(viewborder.ymin + (scene->r.border.ymin * viewborder_sizey));
-          rect.xmax = floorf(viewborder.xmin + (scene->r.border.xmax * viewborder_sizex));
-          rect.ymax = floorf(viewborder.ymin + (scene->r.border.ymax * viewborder_sizey));
-          /* Clamp it to the viewport area. */
-          rect.xmin = max(rect.xmin, 0);
-          rect.ymin = max(rect.ymin, 0);
-          rect.xmax = min(rect.xmax, size.x);
-          rect.ymax = min(rect.ymax, size.y);
-        }
+      }
+      else if (v3d->flag2 & V3D_RENDER_BORDER) {
+        rect.xmin = v3d->render_border.xmin * size[0];
+        rect.ymin = v3d->render_border.ymin * size[1];
+        rect.xmax = v3d->render_border.xmax * size[0];
+        rect.ymax = v3d->render_border.ymax * size[1];
       }
     }
-    else if (v3d->flag2 & V3D_RENDER_BORDER) {
-      rect.xmin = v3d->render_border.xmin * size[0];
-      rect.ymin = v3d->render_border.ymin * size[1];
-      rect.xmax = v3d->render_border.xmax * size[0];
-      rect.ymax = v3d->render_border.ymax * size[1];
+    else {
+      rctf border;
+      if (rv3d && BKE_camera_view_render_border(
+                      scene, depsgraph, v3d, rv3d, size[0], size[1], &border, nullptr))
+      {
+        BLI_rcti_rctf_copy_floor(&rect, &border);
+        /* Clamp it to the viewport area. */
+        rect.xmin = max(rect.xmin, 0);
+        rect.ymin = max(rect.ymin, 0);
+        rect.xmax = min(rect.xmax, size.x);
+        rect.ymax = min(rect.ymax, size.y);
+      }
     }
 
     if (draw_ctx->is_viewport_image_render() || draw_ctx->is_viewport_xr()) {
@@ -170,8 +169,7 @@ void Instance::init(const int2 &output_res,
     if (depsgraph_last_update_ != DEG_get_update_count(depsgraph)) {
       sampling.reset();
     }
-    if (assign_if_different(is_viewport_compositor_enabled,
-                            draw_ctx->is_viewport_compositor_enabled()))
+    if (assign_if_different(is_viewport_compositor_used, draw_ctx->is_viewport_compositor_used()))
     {
       sampling.reset();
     }
@@ -209,10 +207,16 @@ void Instance::init(const int2 &output_res,
   if (is_viewport() && v3d && rv3d && rv3d->persp == RV3D_CAMOB && v3d->camera &&
       !draw_ctx->is_viewport_image_render() && !draw_ctx->is_viewport_xr())
   {
-    rctf camera_border;
     /* Anchor reference spheres to camera border. */
-    ED_view3d_calc_camera_border(
-        scene, depsgraph, draw_ctx->region, v3d, rv3d, false, false, &camera_border);
+    const rctf camera_border = BKE_camera_view_border(scene,
+                                                      depsgraph,
+                                                      v3d,
+                                                      rv3d,
+                                                      draw_ctx->region->winx,
+                                                      draw_ctx->region->winy,
+                                                      false,
+                                                      false,
+                                                      false);
     BLI_rcti_rctf_copy(&lookdev_rect, &camera_border);
   }
 
@@ -277,6 +281,11 @@ void Instance::init(const int2 &output_res,
   needed_shaders = shader_request | DEFAULT_MATERIALS;
 
   skip_render_ = !is_loaded(needed_shaders) || !film.is_valid_render_extent();
+
+  if (!samples_in_flight) {
+    /** Allow up to 3 samples in flight on the GPU. */
+    samples_in_flight = gpu::WorkInFlight::create(3);
+  }
 }
 
 void Instance::init_light_bake(Depsgraph *depsgraph, draw::Manager *manager)
@@ -676,7 +685,9 @@ void Instance::render_frame(RenderEngine *engine, RenderLayer *render_layer, con
   DebugScope debug_scope(debug_scope_render_frame, "EEVEE.render_frame");
 
   /* TODO: Break on RE_engine_test_break(engine) */
+  double start_time = BLI_time_now_seconds();
   while (!sampling.finished()) {
+    samples_in_flight->begin_work();
     this->render_sample();
 
     if ((sampling.sample_index() == 1) || ((sampling.sample_index() % 25) == 0) ||
@@ -688,14 +699,9 @@ void Instance::render_frame(RenderEngine *engine, RenderLayer *render_layer, con
       RE_engine_update_stats(engine, nullptr, re_info.c_str());
     }
 
-    /* Metal: Perform render step between samples to allow flushing of freed GPUBackend resources.
-     * Vulkan: Perform render step between samples to avoid allocation of a high amount of command
-     * buffer memory that can eventually result in out-of-memory errors or a TDR when submitted as
-     * one large command buffer. */
-    if (ELEM(GPU_backend_get_type(), GPU_BACKEND_METAL, GPU_BACKEND_VULKAN)) {
-      GPU_flush();
-    }
+    samples_in_flight->end_work();
     GPU_render_step();
+    sampling.update_time();
 
 #if 0
     /* TODO(fclem) print progression. */
@@ -717,6 +723,13 @@ void Instance::render_frame(RenderEngine *engine, RenderLayer *render_layer, con
   this->film.cryptomatte_sort();
 
   this->render_read_result(render_layer, view_name);
+
+  if (!is_viewport()) {
+    double time_elapsed = BLI_time_now_seconds() - start_time;
+    std::string message = fmt::format(
+        "Rendered {} samples in {:.6f} seconds", sampling.sample_index(), time_elapsed);
+    CLOG_INFO(&Instance::log, "%s", message.c_str());
+  }
 
   if (!info_.empty()) {
     RE_engine_set_error_message(
@@ -748,7 +761,7 @@ void Instance::draw_viewport()
   render_sample();
   velocity.step_swap();
 
-  if (is_viewport_compositor_enabled) {
+  if (is_viewport_compositor_used) {
     this->film.write_viewport_compositor_passes();
   }
 
@@ -791,11 +804,14 @@ void Instance::draw_viewport_image_render()
 
   do {
     /* Render at least once to blit the finished image. */
+    samples_in_flight->begin_work();
     this->render_sample();
+    samples_in_flight->end_work();
+    sampling.update_time();
   } while (!sampling.finished_viewport());
   velocity.step_swap();
 
-  if (is_viewport_compositor_enabled) {
+  if (is_viewport_compositor_used) {
     this->film.write_viewport_compositor_passes();
   }
 }

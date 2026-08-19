@@ -501,12 +501,14 @@ class TestPropCollectionAndPointer(unittest.TestCase):
         id_type.test_pointer_ID = PointerProperty(type=bpy.types.ID)
         id_type.test_pointer_ID_poll = PointerProperty(type=bpy.types.ID, poll=lambda s, v: v.id_type == 'OBJECT')
         id_type.test_collection = CollectionProperty(type=TestPropertyGroup)
+        id_type.test_collection_move = CollectionProperty(type=TestPropertyGroup)
 
     def tearDown(self):
         del id_type.test_pointer
         del id_type.test_pointer_ID
         del id_type.test_pointer_ID_poll
         del id_type.test_collection
+        del id_type.test_collection_move
 
         bpy.utils.unregister_class(TestPropertyGroup)
 
@@ -577,6 +579,45 @@ class TestPropCollectionAndPointer(unittest.TestCase):
         # Removing the second item re-allocates the third one, so no equality anymore.
         self.assertNotEqual(id_inst.test_collection[1], test_item_3)
         self.assertEqual(id_inst.test_collection[1].test_prop, 24)
+
+    def test_access_collection_move(self):
+        self.assertEqual(len(id_inst.test_collection_move), 0)
+
+        # Out of range in no-init empty collection.
+        with self.assertRaises(IndexError) as context:
+            id_inst.test_collection_move.move(0, 0)
+        self.assertEqual(str(context.exception), "bpy_prop_collection.move: index out of range")
+
+        # Out of range in init empty collection.
+        id_inst.test_collection_move.add()
+        id_inst.test_collection_move.clear()
+        with self.assertRaises(IndexError) as context:
+            id_inst.test_collection_move.move(0, 0)
+        self.assertEqual(str(context.exception), "bpy_prop_collection.move: index out of range")
+
+        # Fill.
+        for i in range(4):
+            id_inst.test_collection_move.add().test_prop = i
+
+        # Out of range.
+        with self.assertRaises(IndexError) as context:
+            id_inst.test_collection_move.move(0, 4)
+        self.assertEqual(str(context.exception), "bpy_prop_collection.move: index out of range")
+
+        # Negative index.
+        with self.assertRaises(IndexError) as context:
+            id_inst.test_collection_move.move(-1, 0)
+        self.assertEqual(str(context.exception), "bpy_prop_collection.move: index out of range")
+
+        # Regular move case.
+        id_inst.test_collection_move.move(0, 3)
+        self.assertEqual([i.test_prop for i in id_inst.test_collection_move], [1, 2, 3, 0])
+
+        # Single element move.
+        id_inst.test_collection_move.clear()
+        test_item = id_inst.test_collection_move.add()
+        id_inst.test_collection_move.move(0, 0)
+        self.assertEqual(id_inst.test_collection_move[0], test_item)
 
     # TODO: Add expected failure cases (e.g. assigning propertygroup to a Pointer property, etc.).
 

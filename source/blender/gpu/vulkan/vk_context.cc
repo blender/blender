@@ -499,6 +499,7 @@ void VKContext::swap_buffer_draw_handler(const GHOST_VulkanSwapChainData &swap_c
   synchronization.vk_image = swap_chain_data.image;
   synchronization.vk_image_layout = VK_IMAGE_LAYOUT_PRESENT_SRC_KHR;
   synchronization.vk_image_aspect = VK_IMAGE_ASPECT_COLOR_BIT;
+  synchronization.vk_access_flags = VK_ACCESS_NONE;
   render_graph.add_node(synchronization);
   GPU_debug_group_end();
 

@@ -32,6 +32,7 @@ set(SRC
   nodes/node_fn_find_in_string.cc
   nodes/node_fn_float_to_int.cc
   nodes/node_fn_format_string.cc
+  nodes/node_fn_get_vector_component.cc
   nodes/node_fn_hash_value.cc
   nodes/node_fn_input_bool.cc
   nodes/node_fn_input_color.cc

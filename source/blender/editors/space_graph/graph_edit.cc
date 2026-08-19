@@ -215,7 +215,7 @@ static void insert_graph_keys(bAnimContext *ac, eGraphKeys_InsertKey_Types mode)
         CombinedKeyingResult result = insert_keyframes(ac->bmain,
                                                        &id_rna_pointer,
                                                        channel_group,
-                                                       {{fcu->rna_path, {}, fcu->array_index}},
+                                                       {{fcu->rna_path(), {}, fcu->array_index}},
                                                        std::nullopt,
                                                        anim_eval_context,
                                                        eBezTriple_KeyframeType(ts->keyframe_type),
@@ -1829,7 +1829,7 @@ static ListBaseT<tEulerFilter> euler_filter_group_channels(
      * - Only rotation curves.
      * - For pose-channel curves, make sure we're only using the euler curves.
      */
-    if (strstr(fcu->rna_path, "rotation_euler") == nullptr) {
+    if (strstr(fcu->rna_path().c_str(), "rotation_euler") == nullptr) {
       continue;
     }
     if (ELEM(fcu->array_index, 0, 1, 2) == 0) {
@@ -1837,7 +1837,7 @@ static ListBaseT<tEulerFilter> euler_filter_group_channels(
                   RPT_WARNING,
                   "Euler Rotation F-Curve has invalid index (ID='%s', Path='%s', Index=%d)",
                   (ale.id) ? ale.id->name : RPT_("<No ID>"),
-                  fcu->rna_path,
+                  fcu->rna_path().c_str(),
                   fcu->array_index);
       continue;
     }
@@ -1850,7 +1850,7 @@ static ListBaseT<tEulerFilter> euler_filter_group_channels(
      * so if the paths or the ID's don't match up, then a curve needs to be added
      * to a new group.
      */
-    if ((euf) && (euf->id == ale.id) && STREQ(euf->rna_path, fcu->rna_path)) {
+    if ((euf) && (euf->id == ale.id) && STREQ(euf->rna_path, fcu->rna_path().c_str())) {
       /* This should be fine to add to the existing group then. */
       euf->fcurves[fcu->array_index] = fcu;
       continue;
@@ -1863,7 +1863,7 @@ static ListBaseT<tEulerFilter> euler_filter_group_channels(
 
     euf->id = ale.id;
     /* This should be safe, since we're only using it for a short time. */
-    euf->rna_path = fcu->rna_path;
+    euf->rna_path = fcu->rna_path().c_str();
     euf->fcurves[fcu->array_index] = fcu;
   }
 
@@ -3393,7 +3393,7 @@ static wmOperatorStatus graph_driver_delete_invalid_exec(bContext *C, wmOperator
       continue;
     }
 
-    ok |= ANIM_remove_driver(ale.id, fcu->rna_path, fcu->array_index);
+    ok |= ANIM_remove_driver(ale.id, fcu->rna_path().c_str(), fcu->array_index);
     if (!ok) {
       break;
     }

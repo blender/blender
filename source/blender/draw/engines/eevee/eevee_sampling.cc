@@ -13,7 +13,9 @@
 #include "BKE_colortools.hh"
 #include "BKE_scene.hh"
 
+#include "BLI_rand.hh"
 #include "BLI_rand_c.hh"
+#include "BLI_time.hh"
 
 #include "BLI_math_base.hh"
 #include "BLI_math_base_safe.hh"
@@ -35,6 +37,7 @@ void Sampling::init(const Scene *scene)
                                                                    scene->eevee.taa_render_samples;
 
   sample_count_ = inst_.is_viewport() ? scene->eevee.taa_samples : render_sample_count;
+  time_limit_ = scene->eevee.time_limit;
 
   if (inst_.is_image_render) {
     sample_count_ = math::max(uint64_t(1), sample_count_);
@@ -80,7 +83,7 @@ void Sampling::init(const Scene *scene)
   /* Only multiply after to have full the full DoF web pattern for each time steps. */
   sample_count_ *= motion_blur_steps_;
 
-  auto clamp_value_load = [](float value) { return (value > 0.0) ? value : 1e20; };
+  auto clamp_value_load = [](float value) { return (value > 0.0) ? value : unclamped_max; };
 
   clamp_data_.sun_threshold = clamp_value_load(inst_.world.sun_threshold());
   clamp_data_.surface_direct = clamp_value_load(scene->eevee.clamp_surface_direct);
@@ -108,6 +111,10 @@ void Sampling::init(const Scene *scene)
       printf("%s: scene.custom_pixel_jitter_sample length is not 0 or 2.\n", __func__);
     }
   }
+
+  if (!inst_.is_viewport()) {
+    start_render_time_ = BLI_time_now_seconds();
+  }
 }
 
 void Sampling::init(const Object &probe_object)
@@ -118,12 +125,14 @@ void Sampling::init(const Object &probe_object)
 
   sample_count_ = max_ii(1, lightprobe.grid_bake_samples);
   sample_ = 0;
+  start_render_time_ = BLI_time_now_seconds();
 }
 
 void Sampling::end_sync()
 {
   if (reset_) {
     viewport_sample_ = 0;
+    start_render_time_ = BLI_time_now_seconds();
   }
 
   if (inst_.is_viewport()) {
@@ -149,6 +158,23 @@ void Sampling::end_sync()
       }
     }
   }
+}
+
+void Sampling::update_time()
+{
+  if (time_limit_ > 0.0f) {
+    current_time_ = BLI_time_now_seconds();
+  }
+}
+
+bool Sampling::check_time_limit_reached() const
+{
+  if (time_limit_ > 0.0f && sample_ > 0 && viewport_sample_ > 0) {
+    if (current_time_ - start_render_time_ >= time_limit_) {
+      return true;
+    }
+  }
+  return false;
 }
 
 void Sampling::step()
@@ -260,6 +286,16 @@ void Sampling::step()
     data_.dimensions[SAMPLING_GBUFFER_U] = r[0];
     data_.dimensions[SAMPLING_GBUFFER_V] = r[1];
     data_.dimensions[SAMPLING_GBUFFER_W] = r[2];
+  }
+  {
+    /* Separate sequence for film accumulation buffer quantization dithering (see #129533).
+     * Only `SAMPLING_FILM_U` is used, but the array must stay a multiple of 4, so pad the
+     * remaining slots with the same value. */
+    double x, offset = 0;
+    BLI_halton_1d(19, offset, sample_ + 1, &x);
+    for (int i = 0; i < 4; i++) {
+      data_.dimensions[SAMPLING_FILM_U + i] = float(x);
+    }
   }
 
   for (int i : IndexRange(SAMPLING_DIMENSION_COUNT)) {

@@ -162,7 +162,7 @@ struct CurvesGeometry {
   int vertex_group_active_index = 0;
 
   /** Set to -1 when none is active. */
-  int attributes_active_index = 0;
+  int attributes_active_index = -1;
 
   /**
    * Runtime data for curves, stored as a pointer to allow defining this as a C++ class.

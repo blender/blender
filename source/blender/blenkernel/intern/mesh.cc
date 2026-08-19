@@ -171,6 +171,7 @@ static void mesh_copy_data(Main *bmain,
   mesh_dst->runtime->bvh_cache_loose_edges = mesh_src->runtime->bvh_cache_loose_edges;
   mesh_dst->runtime->bvh_cache_loose_edges_no_hidden =
       mesh_src->runtime->bvh_cache_loose_edges_no_hidden;
+  mesh_dst->runtime->bvh_embree_cache = mesh_src->runtime->bvh_embree_cache;
   mesh_dst->runtime->max_material_index = mesh_src->runtime->max_material_index;
   if (mesh_src->runtime->bake_materials) {
     mesh_dst->runtime->bake_materials = std::make_unique<bke::bake::BakeMaterialsList>(
@@ -373,6 +374,9 @@ static void mesh_blend_write(BlendWriter *writer, ID *id, const void *id_address
     CustomData_blend_write_prepare(mesh->edge_data, edge_layers);
     CustomData_blend_write_prepare(mesh->face_data, face_layers);
     CustomData_blend_write_prepare(mesh->corner_data, loop_layers);
+    if (!is_undo) {
+      mesh_skin_to_legacy(attribute_data, mesh->vert_data, vert_layers, mesh->verts_num);
+    }
     if (attribute_data.attributes.is_empty()) {
       mesh->attribute_storage.dna_attributes = nullptr;
       mesh->attribute_storage.dna_attributes_num = 0;
@@ -535,33 +539,44 @@ bool BKE_mesh_attribute_required(const StringRef name)
 
 void BKE_mesh_ensure_skin_customdata(Mesh *mesh)
 {
+  using namespace bke;
   BMesh *bm = mesh->runtime->edit_mesh ? mesh->runtime->edit_mesh->bm : nullptr;
-  MVertSkin *vs;
 
   if (bm) {
-    if (!CustomData_has_layer(&bm->vdata, CD_MVERT_SKIN)) {
+    if (!CustomData_has_layer_named(&bm->vdata, CD_PROP_FLOAT2, "skin_modifier_radius")) {
+      BM_data_layer_add_named(bm, &bm->vdata, CD_PROP_FLOAT2, "skin_modifier_radius");
+      const int offset = CustomData_get_offset_named(
+          &bm->vdata, CD_PROP_FLOAT2, "skin_modifier_radius");
       BMVert *v;
       BMIter iter;
-
-      BM_data_layer_add(bm, &bm->vdata, CD_MVERT_SKIN);
-
-      /* Mark an arbitrary vertex as root */
       BM_ITER_MESH (v, &iter, bm, BM_VERTS_OF_MESH) {
-        vs = static_cast<MVertSkin *>(
-            CustomData_bmesh_get(&bm->vdata, v->head.data, CD_MVERT_SKIN));
-        vs->flag |= MVERT_SKIN_ROOT;
+        *static_cast<float2 *>(BM_ELEM_CD_GET_VOID_P(v, offset)) = float2(0.25f);
+      }
+    }
+    if (!CustomData_has_layer_named(&bm->vdata, CD_PROP_BOOL, "skin_modifier_root")) {
+      BM_data_layer_add_named(bm, &bm->vdata, CD_PROP_BOOL, "skin_modifier_root");
+      const int offset = CustomData_get_offset_named(
+          &bm->vdata, CD_PROP_BOOL, "skin_modifier_root");
+      /* Mark an arbitrary vertex as root */
+      BMVert *v;
+      BMIter iter;
+      BM_ITER_MESH (v, &iter, bm, BM_VERTS_OF_MESH) {
+        BM_ELEM_CD_SET_BOOL(v, offset, true);
         break;
       }
     }
   }
   else {
-    if (!CustomData_has_layer(&mesh->vert_data, CD_MVERT_SKIN)) {
-      vs = static_cast<MVertSkin *>(
-          CustomData_add_layer(&mesh->vert_data, CD_MVERT_SKIN, CD_SET_DEFAULT, mesh->verts_num));
-
+    MutableAttributeAccessor attributes = mesh->attributes_for_write();
+    attributes.add<float2>(
+        "skin_modifier_radius", AttrDomain::Point, AttributeInitValue(float2(0.25f)));
+    if (attributes.add<bool>("skin_modifier_root", AttrDomain::Point, AttributeInitDefaultValue()))
+    {
       /* Mark an arbitrary vertex as root */
-      if (vs) {
-        vs->flag |= MVERT_SKIN_ROOT;
+      if (mesh->verts_num > 0) {
+        AttributeWriter<bool> root = attributes.lookup_for_write<bool>("skin_modifier_root");
+        root.varray.set(0, true);
+        root.finish();
       }
     }
   }

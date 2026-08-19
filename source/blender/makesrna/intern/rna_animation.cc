@@ -205,7 +205,7 @@ static PointerRNA rna_AnimData_action_get(PointerRNA *ptr)
   ID &animated_id = *ptr->owner_id;
   animrig::Action *action = animrig::get_action(animated_id);
   if (!action) {
-    return PointerRNA_NULL;
+    return {};
   };
   return RNA_id_pointer_create(&action->id);
 }
@@ -330,13 +330,13 @@ PointerRNA rna_generic_action_slot_get(bAction *dna_action,
   using namespace animrig;
 
   if (!dna_action || slot_handle == Slot::unassigned) {
-    return PointerRNA_NULL;
+    return {};
   }
 
   Action &action = dna_action->wrap();
   Slot *slot = action.slot_for_handle(slot_handle);
   if (!slot) {
-    return PointerRNA_NULL;
+    return {};
   }
   return RNA_pointer_create_discrete(&action.id, RNA_ActionSlot, slot);
 }

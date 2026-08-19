@@ -552,8 +552,9 @@ class I18nMessages:
                 elif fix:
                     tmp[real_key] = msg
             done_keys.add(key)
-            # Onlyc check for mismatches in formatting tokens if the translation is not empty
-            if not msgstr or msg.is_fuzzy:
+            # Only check for mismatches in formatting tokens if the translation is not empty, is not fuzzy,
+            # and is not explicitly skipped for formatting checks.
+            if not msgstr or msg.is_fuzzy or msgid in self.settings.MSGID_FORMATTING_VALIDATION_SKIP:
                 continue
             msgid_tokens = _format_tokens(msgid)
             msgstr_tokens = _format_tokens(msgstr)

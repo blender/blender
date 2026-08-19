@@ -1,9 +1,9 @@
 
 msgid ""
 msgstr ""
-"Project-Id-Version: Blender 5.3.0 Alpha (b'bf67fb078da0')\n"
+"Project-Id-Version: Blender 5.3.0 Alpha (b'af4852ed4560')\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-07-27 09:52+0000\n"
+"POT-Creation-Date: 2026-08-10 07:54+0000\n"
 "PO-Revision-Date: 2025-07-23 15:31+0000\n"
 "Last-Translator: VertexSelection <amacsizk2021@gmail.com>\n"
 "Language-Team: Turkish <https://translate.blender.org/projects/blender-ui/ui/tr/>\n"
@@ -3073,10 +3073,6 @@ msgstr "Parçacık veri blokları"
 
 msgid "Point cloud data-blocks"
 msgstr "Nokta bulutu veri blokları"
-
-
-msgid "Project"
-msgstr "Proje"
 
 
 msgid "Scene data-blocks"
@@ -8133,6 +8129,10 @@ msgstr "En Yakın Yüzey Noktası"
 
 msgid "Shrink the location to the nearest target surface"
 msgstr "Konumu en yakın hedef yüzeye küçültün"
+
+
+msgid "Project"
+msgstr "Proje"
 
 
 msgid "Shrink the location to the nearest target vertex"
@@ -28739,96 +28739,40 @@ msgid "Editor menu containing buttons"
 msgstr "Düğmeler içeren düzenleyici menüsü"
 
 
-msgid "Bone Collections"
-msgstr "Kemik Koleksiyonları"
-
-
 msgid "Names"
 msgstr "Adlar"
-
-
-msgid "Show/Hide"
-msgstr "Göster/Gizle"
-
-
-msgid "Apply"
-msgstr "Uygula"
-
-
-msgid "Toggle Bone Options"
-msgstr "Kemik Seçeneklerini Değiştir"
-
-
-msgid "Enable Bone Options"
-msgstr "Kemik Seçeneklerini Etkinleştir"
-
-
-msgid "Disable Bone Options"
-msgstr "Kemik Seçeneklerini Devre Dışı Bırak"
-
-
-msgid "Mesh Select Mode"
-msgstr "Örgü Seçim Kipi"
-
-
-msgid "Face Data"
-msgstr "Yüz Verileri"
-
-
-msgid "Select by Face Strength"
-msgstr "Yüz Gücüne Göre Seç"
-
-
-msgid "Set Face Strength"
-msgstr "Yüz Gücünü Ayarla"
-
-
-msgid "Clean Up"
-msgstr "Temizle"
-
-
-msgid "Merge"
-msgstr "Birleştir"
-
-
-msgid "Special Characters"
-msgstr "Özel Karakterler"
-
-
-msgid "Kerning"
-msgstr "Harf aralığı"
-
-
-msgid "Math"
-msgstr "Matematik"
-
-
-msgid "Metaball"
-msgstr "Metabol"
-
-
-msgid "Utilities"
-msgstr "Kamu hizmetleri"
 
 
 msgid "Bone Roll"
 msgstr "Kemik Rulosu"
 
 
-msgid "Read"
-msgstr "Okumak"
+msgid "Show/Hide"
+msgstr "Göster/Gizle"
 
 
-msgid "Sample"
-msgstr "Örnek"
+msgid "Clean Up"
+msgstr "Temizle"
 
 
-msgid "Write"
-msgstr "Yazmak"
+msgid "Adjust"
+msgstr "Ayarlamak"
 
 
-msgid "Primitives"
-msgstr "İlkel"
+msgid "Keying"
+msgstr "Anahtarlama"
+
+
+msgid "Tracking"
+msgstr "Takip"
+
+
+msgid "Utilities"
+msgstr "Kamu hizmetleri"
+
+
+msgid "Math"
+msgstr "Matematik"
 
 
 msgid "Pivot Point"
@@ -28859,20 +28803,8 @@ msgid "Vertex Group Locks"
 msgstr "Vertex Grup Kilitleri"
 
 
-msgid "Instances"
-msgstr "Örnekler"
-
-
-msgid "Import"
-msgstr "İçe Aktar"
-
-
 msgid "Mirror"
 msgstr "Yansıtma"
-
-
-msgid "Deprecated"
-msgstr "Kullanım dışı bırakıldı"
 
 
 msgid "UV Mapping"
@@ -28893,10 +28825,6 @@ msgstr "Navigasyon"
 
 msgid "Align View"
 msgstr "Görünümü hizala"
-
-
-msgid "UV"
-msgstr "UV"
 
 
 msgid "Align View to Active"
@@ -28931,6 +28859,26 @@ msgid "Assign Material"
 msgstr "Malzeme Atamak"
 
 
+msgid "Read"
+msgstr "Okumak"
+
+
+msgid "Sample"
+msgstr "Örnek"
+
+
+msgid "Write"
+msgstr "Yazmak"
+
+
+msgid "Primitives"
+msgstr "İlkel"
+
+
+msgid "Metaball"
+msgstr "Metabol"
+
+
 msgid "Light"
 msgstr "Işık"
 
@@ -28947,20 +28895,24 @@ msgid "Relations"
 msgstr "İlişkiler"
 
 
+msgid "Instances"
+msgstr "Örnekler"
+
+
 msgid "Rigid Body"
 msgstr "Sert Gövde"
 
 
+msgid "Apply"
+msgstr "Uygula"
+
+
+msgid "Import"
+msgstr "İçe Aktar"
+
+
 msgid "Track"
 msgstr "İzlemek"
-
-
-msgid "Linked"
-msgstr "Bağlantılı"
-
-
-msgid "Layout"
-msgstr "Yerleşim"
 
 
 msgid "Quick Effects"
@@ -28969,6 +28921,10 @@ msgstr "Hızlı Etkiler"
 
 msgid "Asset"
 msgstr "Varlık"
+
+
+msgid "Deprecated"
+msgstr "Kullanım dışı bırakıldı"
 
 
 msgid "Make Single User"
@@ -28987,24 +28943,16 @@ msgid "Hooks"
 msgstr "Kancalar"
 
 
-msgid "Adjust"
-msgstr "Ayarlamak"
+msgid "UV"
+msgstr "UV"
 
 
 msgid "Trim/Add"
 msgstr "Kırp/Ekle"
 
 
-msgid "Keying"
-msgstr "Anahtarlama"
-
-
 msgid "Sculpt Set Pivot"
 msgstr "Heykel Seti Pivot"
-
-
-msgid "Tracking"
-msgstr "Takip"
 
 
 msgid "Face Sets Init"
@@ -29025,6 +28973,58 @@ msgstr "Arada Kalanlar"
 
 msgid "Propagate"
 msgstr "Yaymak"
+
+
+msgid "Bone Collections"
+msgstr "Kemik Koleksiyonları"
+
+
+msgid "Toggle Bone Options"
+msgstr "Kemik Seçeneklerini Değiştir"
+
+
+msgid "Enable Bone Options"
+msgstr "Kemik Seçeneklerini Etkinleştir"
+
+
+msgid "Disable Bone Options"
+msgstr "Kemik Seçeneklerini Devre Dışı Bırak"
+
+
+msgid "Mesh Select Mode"
+msgstr "Örgü Seçim Kipi"
+
+
+msgid "Face Data"
+msgstr "Yüz Verileri"
+
+
+msgid "Select by Face Strength"
+msgstr "Yüz Gücüne Göre Seç"
+
+
+msgid "Set Face Strength"
+msgstr "Yüz Gücünü Ayarla"
+
+
+msgid "Merge"
+msgstr "Birleştir"
+
+
+msgid "Linked"
+msgstr "Bağlantılı"
+
+
+msgid "Special Characters"
+msgstr "Özel Karakterler"
+
+
+msgid "Layout"
+msgstr "Yerleşim"
+
+
+msgid "Kerning"
+msgstr "Harf aralığı"
 
 
 msgid "Keyframe Insert Pie"
@@ -42420,6 +42420,10 @@ msgid "Generation Items"
 msgstr "Nesil Öğeleri"
 
 
+msgid "Scalar"
+msgstr "Skaler"
+
+
 msgid "Collection of repeat items"
 msgstr "Yinelenen ögeler koleksiyonu"
 
@@ -45887,15 +45891,6 @@ msgstr "Oluşturuldu"
 
 
 msgctxt "Operator"
-msgid "Make Markers Local"
-msgstr "İşaretleyicileri Yerel Yapın"
-
-
-msgid "Move selected scene markers to the active Action as local 'pose' markers"
-msgstr "Seçili sahne işaretleyicilerini yerel 'poz' işaretleyicileri olarak etkin Eyleme taşıyın"
-
-
-msgctxt "Operator"
 msgid "Mirror Keys"
 msgstr "Ayna Anahtarları"
 
@@ -47835,10 +47830,6 @@ msgstr "Ölçek Heykel/Boya Fırçası Boyutu"
 
 msgid "Change brush size by a scalar"
 msgstr "Fırça boyutunu bir skaler ile değiştir"
-
-
-msgid "Scalar"
-msgstr "Skaler"
 
 
 msgid "Factor to scale brush size by"
@@ -61142,15 +61133,6 @@ msgstr "Işık Bağlantı Engelleyicileri Seçin"
 
 msgid "Select all objects which block light from this emitter"
 msgstr "Bu yayıcıdan gelen ışığı engelleyen tüm nesneleri seçin"
-
-
-msgctxt "Operator"
-msgid "Link Receivers to Emitter"
-msgstr "Alıcıları Vericiye Bağlayın"
-
-
-msgid "Light link selected receivers to the active emitter object"
-msgstr "Işık bağlantısı seçili alıcıları aktif yayıcı nesneye bağlar"
 
 
 msgid "State of the light linking"
@@ -75411,10 +75393,6 @@ msgid "Panel containing UI elements"
 msgstr "UI öğelerini içeren panel"
 
 
-msgid "glTF Variants"
-msgstr "glTF Çeşitleri"
-
-
 msgid "glTF Material Variants"
 msgstr "glTF Malzeme Varyantları"
 
@@ -75529,6 +75507,10 @@ msgstr "Sanal Gerçeklik"
 
 msgid "VR Info"
 msgstr "VR Bilgisi"
+
+
+msgid "glTF Variants"
+msgstr "glTF Çeşitleri"
 
 
 msgid "Chain Scaling"
@@ -103608,6 +103590,10 @@ msgid "Duplicate Marker to Scene"
 msgstr "Sahneye İşaretçiyi Kopyala"
 
 
+msgid "Only Active Keying Set"
+msgstr "Yalnızca Etkin Anahtarlama Ayarı"
+
+
 msgid "Limit to Frame Range"
 msgstr "Çerçeve Aralığını Sınırla"
 
@@ -103626,10 +103612,6 @@ msgstr "Aktif Editör"
 
 msgid "Properties and Sidebars"
 msgstr "Özellikler ve Kenar Çubukları"
-
-
-msgid "Only Active Keying Set"
-msgstr "Yalnızca Etkin Anahtarlama Ayarı"
 
 
 msgid "Layered Recording"
@@ -114039,20 +114021,12 @@ msgid "Cannot fly when the view offset is locked"
 msgstr "Görünüm ofseti kilitliyken uçulamaz"
 
 
-msgid "Cannot fly an object with constraints"
-msgstr "Kısıtlamaları olan bir nesneyi uçuramazsınız"
-
-
 msgid "Cannot dolly when the view offset is locked"
 msgstr "Görünüm ofseti kilitliyken kaydırma yapılamaz"
 
 
 msgid "Cannot navigate when the view offset is locked"
 msgstr "Görünüm ofseti kilitliyken gezinilemez"
-
-
-msgid "Cannot navigate an object with constraints"
-msgstr "Kısıtlamaları olan bir nesnede gezinilemez"
 
 
 msgid "Depth too large"

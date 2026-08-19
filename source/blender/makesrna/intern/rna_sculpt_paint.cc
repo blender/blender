@@ -155,7 +155,7 @@ static PointerRNA rna_ParticleEdit_brush_get(PointerRNA *ptr)
 
 static PointerRNA rna_ParticleBrush_curve_get(PointerRNA * /*ptr*/)
 {
-  return PointerRNA_NULL;
+  return {};
 }
 
 static void rna_ParticleEdit_redo(bContext *C, PointerRNA * /*ptr*/)
@@ -279,7 +279,7 @@ static PointerRNA rna_Paint_brush_get(PointerRNA *ptr)
   Paint *paint = static_cast<Paint *>(ptr->data);
   Brush *brush = BKE_paint_brush(paint);
   if (!brush) {
-    return PointerRNA_NULL;
+    return {};
   }
   return RNA_id_pointer_create(&brush->id);
 }
@@ -503,6 +503,16 @@ static std::optional<std::string> rna_MeshAutomaskingSettings_path(const Pointer
               reinterpret_cast<Paint *>(tool_settings->sculpt)) == ptr->data)
       {
         return "tool_settings.sculpt.mesh_automasking_settings";
+      }
+      if (rna_MeshAutomaskingSettings_address_get(
+              reinterpret_cast<Paint *>(tool_settings->vpaint)) == ptr->data)
+      {
+        return "tool_settings.vertex_paint.mesh_automasking_settings";
+      }
+      if (rna_MeshAutomaskingSettings_address_get(
+              reinterpret_cast<Paint *>(tool_settings->wpaint)) == ptr->data)
+      {
+        return "tool_settings.weight_paint.mesh_automasking_settings";
       }
       return std::nullopt;
     }
@@ -854,38 +864,43 @@ static void rna_def_unified_paint_settings(BlenderRNA *brna)
 
   /* high-level flags to enable or disable unified paint settings */
   prop = RNA_def_property(srna, "use_unified_size", PROP_BOOLEAN, PROP_NONE);
-  RNA_def_property_boolean_sdna(prop, nullptr, "flag", UNIFIED_PAINT_SIZE);
+  RNA_def_property_boolean_sdna(prop, nullptr, "flag", UNIFIED_PAINT_SIZE_DEPRECATED);
   RNA_def_property_ui_text(
       prop, "Use Unified Size", "Instead of per-brush size, the size is shared across brushes");
   RNA_def_property_update(prop, NC_SCENE | ND_TOOLSETTINGS, nullptr);
+  RNA_def_property_deprecated(prop, "Replaced by per-brush unified settings", 503, 600);
 
   prop = RNA_def_property(srna, "use_unified_strength", PROP_BOOLEAN, PROP_NONE);
-  RNA_def_property_boolean_sdna(prop, nullptr, "flag", UNIFIED_PAINT_ALPHA);
+  RNA_def_property_boolean_sdna(prop, nullptr, "flag", UNIFIED_PAINT_ALPHA_DEPRECATED);
   RNA_def_property_ui_text(prop,
                            "Use Unified Strength",
                            "Instead of per-brush strength, the strength is shared across brushes");
   RNA_def_property_update(prop, NC_SCENE | ND_TOOLSETTINGS, nullptr);
+  RNA_def_property_deprecated(prop, "Replaced by per-brush unified settings", 503, 600);
 
   prop = RNA_def_property(srna, "use_unified_weight", PROP_BOOLEAN, PROP_NONE);
-  RNA_def_property_boolean_sdna(prop, nullptr, "flag", UNIFIED_PAINT_WEIGHT);
+  RNA_def_property_boolean_sdna(prop, nullptr, "flag", UNIFIED_PAINT_WEIGHT_DEPRECATED);
   RNA_def_property_ui_text(prop,
                            "Use Unified Weight",
                            "Instead of per-brush weight, the weight is shared across brushes");
   RNA_def_property_update(prop, NC_SCENE | ND_TOOLSETTINGS, nullptr);
+  RNA_def_property_deprecated(prop, "Replaced by per-brush unified settings", 503, 600);
 
   prop = RNA_def_property(srna, "use_unified_color", PROP_BOOLEAN, PROP_NONE);
-  RNA_def_property_boolean_sdna(prop, nullptr, "flag", UNIFIED_PAINT_COLOR);
+  RNA_def_property_boolean_sdna(prop, nullptr, "flag", UNIFIED_PAINT_COLOR_DEPRECATED);
   RNA_def_property_ui_text(
       prop, "Use Unified Color", "Instead of per-brush color, the color is shared across brushes");
   RNA_def_property_update(prop, NC_SCENE | ND_TOOLSETTINGS, nullptr);
+  RNA_def_property_deprecated(prop, "Replaced by per-brush unified settings", 503, 600);
 
   prop = RNA_def_property(srna, "use_unified_input_samples", PROP_BOOLEAN, PROP_NONE);
-  RNA_def_property_boolean_sdna(prop, nullptr, "flag", UNIFIED_PAINT_INPUT_SAMPLES);
+  RNA_def_property_boolean_sdna(prop, nullptr, "flag", UNIFIED_PAINT_INPUT_SAMPLES_DEPRECATED);
   RNA_def_property_ui_text(
       prop,
       "Use Unified Input Samples",
       "Instead of per-brush input samples, the value is shared across brushes");
   RNA_def_property_update(prop, NC_SCENE | ND_TOOLSETTINGS, nullptr);
+  RNA_def_property_deprecated(prop, "Replaced by per-brush unified settings", 503, 600);
 
   /* unified paint settings that override the equivalent settings
    * from the active brush */

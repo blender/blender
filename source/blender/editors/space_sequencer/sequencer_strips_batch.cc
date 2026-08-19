@@ -73,9 +73,7 @@ StripsDrawBatch::~StripsDrawBatch()
 {
   flush_batch();
 
-  GPU_uniformbuf_unbind(ubo_strips_);
   GPU_uniformbuf_free(ubo_strips_);
-  GPU_uniformbuf_unbind(ubo_context_);
   GPU_uniformbuf_free(ubo_context_);
 }
 

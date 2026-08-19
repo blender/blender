@@ -11,9 +11,7 @@
 #include "BLI_array.hh"
 #include "BLI_function_ref.hh"
 #include "BLI_map.hh"
-#include "BLI_math_base_c.hh"
 #include "BLI_math_matrix_types.hh"
-#include "BLI_math_vector.hh"
 #include "BLI_rect.hh"
 #include "BLI_vector.hh"
 
@@ -183,66 +181,6 @@ struct CopyPixelGroup {
   int num_deltas;
 };
 
-/** Pixel copy command to mix 2 source pixels and write to a destination pixel. */
-struct CopyPixelCommand {
-  /** Pixel coordinate to write to. */
-  int2 destination;
-  /** Pixel coordinate to read first source from. */
-  int2 source_1;
-  /** Pixel coordinate to read second source from. */
-  int2 source_2;
-  /** Factor to mix between first and second source. */
-  float mix_factor;
-
-  CopyPixelCommand() = default;
-  CopyPixelCommand(const CopyPixelGroup &group)
-      : destination(group.start_destination),
-        source_1(group.start_source_1),
-        source_2(),
-        mix_factor(0.0f)
-  {
-  }
-
-  template<typename T>
-  void mix_source_and_write_destination(image::ImageBufferAccessor<T> &tile_buffer) const
-  {
-    float4 source_color_1 = tile_buffer.read_pixel(source_1);
-    float4 source_color_2 = tile_buffer.read_pixel(source_2);
-    float4 destination_color = source_color_1 * (1.0f - mix_factor) + source_color_2 * mix_factor;
-    tile_buffer.write_pixel(destination, destination_color);
-  }
-
-  void apply(const DeltaCopyPixelCommand &item)
-  {
-    destination.x += 1;
-    source_1 += int2(item.delta_source_1);
-    source_2 = source_1 + int2(item.delta_source_2);
-    mix_factor = float(item.mix_factor) / 255.0f;
-  }
-
-  DeltaCopyPixelCommand encode_delta(const CopyPixelCommand &next_command) const
-  {
-    return DeltaCopyPixelCommand(char2(next_command.source_1 - source_1),
-                                 char2(next_command.source_2 - next_command.source_1),
-                                 uint8_t(next_command.mix_factor * 255));
-  }
-
-  bool can_be_extended(const CopyPixelCommand &command) const
-  {
-    /* Can only extend sequential pixels. */
-    if (destination.x != command.destination.x - 1 || destination.y != command.destination.y) {
-      return false;
-    }
-
-    /* Can only extend when the delta between with the previous source fits in a single byte. */
-    int2 delta_source_1 = source_1 - command.source_1;
-    if (max_ii(UNPACK2(math::abs(delta_source_1))) > 127) {
-      return false;
-    }
-    return true;
-  }
-};
-
 struct CopyPixelTile {
   image::TileNumber tile_number;
   Vector<CopyPixelGroup> groups;
@@ -261,45 +199,9 @@ struct CopyPixelTile {
 
   void build_seam_tile_map(const int2 resolution);
 
-  void copy_pixels(ImBuf &tile_buffer, IndexRange group_range) const
-  {
-    if (tile_buffer.float_data()) {
-      image::ImageBufferAccessor<float4> accessor(tile_buffer);
-      copy_pixels<float4>(accessor, group_range);
-    }
-    else {
-      image::ImageBufferAccessor<int> accessor(tile_buffer);
-      copy_pixels<int>(accessor, group_range);
-    }
-  }
+  void copy_pixels(ImBuf &tile_buffer, IndexRange group_range) const;
 
-  void print_compression_rate()
-  {
-    int decoded_size = command_deltas.size() * sizeof(CopyPixelCommand);
-    int encoded_size = groups.size() * sizeof(CopyPixelGroup) +
-                       command_deltas.size() * sizeof(DeltaCopyPixelCommand);
-    printf("Tile %d compression rate: %d->%d = %d%%\n",
-           tile_number,
-           decoded_size,
-           encoded_size,
-           int(100.0 * float(encoded_size) / float(decoded_size)));
-  }
-
- private:
-  template<typename T>
-  void copy_pixels(image::ImageBufferAccessor<T> &image_buffer, IndexRange group_range) const
-  {
-    for (const int64_t group_index : group_range) {
-      const CopyPixelGroup &group = groups[group_index];
-      CopyPixelCommand copy_command(group);
-      for (const DeltaCopyPixelCommand &item : Span<const DeltaCopyPixelCommand>(
-               &command_deltas[group.start_delta_index], group.num_deltas))
-      {
-        copy_command.apply(item);
-        copy_command.mix_source_and_write_destination<T>(image_buffer);
-      }
-    }
-  }
+  void print_compression_rate() const;
 };
 
 struct CopyPixelTiles {

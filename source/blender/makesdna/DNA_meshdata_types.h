@@ -24,6 +24,8 @@ enum eMSelect_Type : int {
   ME_FSEL = 2,
 };
 
+#ifdef DNA_DEPRECATED_ALLOW
+
 enum eMVertSkinFlag : int {
   /**
    * Marks a vertex as the edge-graph root, used for calculating rotations for all connected
@@ -38,6 +40,8 @@ enum eMVertSkinFlag : int {
   MVERT_SKIN_LOOSE = 2,
 };
 ENUM_OPERATORS(eMVertSkinFlag)
+
+#endif
 
 /** #MFace.edcode */
 enum eMFace_EdgeCode : char {
@@ -183,6 +187,8 @@ struct MDeformVert {
   int flag;
 };
 
+#ifdef DNA_DEPRECATED_ALLOW
+
 struct MVertSkin {
   /**
    * Radii of the skin, define how big the generated frames are.
@@ -192,6 +198,8 @@ struct MVertSkin {
 
   eMVertSkinFlag flag;
 };
+
+#endif
 
 /** \} */
 

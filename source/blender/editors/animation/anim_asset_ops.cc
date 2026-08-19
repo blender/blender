@@ -136,7 +136,7 @@ static blender::animrig::Action &extract_pose(Main &bmain, const Span<Object *> 
       const slot_handle_t pose_object_slot = pose_object->adt->slot_handle;
       foreach_fcurve_in_action_slot(
           pose_object_action, pose_object_slot, [&](const FCurve &fcurve) {
-            RNAPath existing_path = {fcurve.rna_path, std::nullopt, fcurve.array_index};
+            RNAPath existing_path = {fcurve.rna_path(), std::nullopt, fcurve.array_index};
             existing_paths.add(existing_path);
           });
     }
@@ -650,7 +650,7 @@ static void update_pose_action_from_scene(Main *bmain,
 
   Set<RNAPath> existing_paths;
   foreach_fcurve_in_action_slot(pose_action, slot.handle, [&](const FCurve &fcurve) {
-    existing_paths.add({fcurve.rna_path, std::nullopt, fcurve.array_index});
+    existing_paths.add({fcurve.rna_path(), std::nullopt, fcurve.array_index});
   });
 
   switch (mode) {
@@ -702,7 +702,7 @@ static void update_pose_action_from_scene(Main *bmain,
       Map<RNAPath, FCurve *> fcurve_map;
       foreach_fcurve_in_action_slot(
           pose_action, pose_action.slot_array[0]->handle, [&](FCurve &fcurve) {
-            fcurve_map.add({fcurve.rna_path, std::nullopt, fcurve.array_index}, &fcurve);
+            fcurve_map.add({fcurve.rna_path(), std::nullopt, fcurve.array_index}, &fcurve);
           });
       for (const PathValue &path_value : path_values) {
         if (existing_paths.contains(path_value.rna_path)) {

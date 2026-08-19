@@ -176,6 +176,8 @@ class AssetLibrary {
    */
   virtual std::optional<StringRefNull> remote_url() const;
 
+  virtual std::optional<StringRefNull> auth_token() const;
+
   AssetCatalogService &catalog_service() const;
 
   /**

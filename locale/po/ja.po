@@ -1,9 +1,9 @@
 
 msgid ""
 msgstr ""
-"Project-Id-Version: Blender 5.3.0 Alpha (b'bf67fb078da0')\n"
+"Project-Id-Version: Blender 5.3.0 Alpha (b'af4852ed4560')\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-07-27 09:52+0000\n"
+"POT-Creation-Date: 2026-08-10 07:54+0000\n"
 "PO-Revision-Date: 2026-07-06 03:50+0000\n"
 "Last-Translator: Satoshi Yamasaki <yamyam@yo.rim.or.jp>\n"
 "Language-Team: Japanese <https://translate.blender.org/projects/blender-ui/ui/ja/>\n"
@@ -3445,10 +3445,6 @@ msgid "All Data-Blocks"
 msgstr "全データブロック"
 
 
-msgid "Read-only list of all IDs listed in Blender data-base"
-msgstr "Blender データベースにリストアップされた全 ID のリスト (読み込み専用)"
-
-
 msgid "Annotation"
 msgstr "アノテーション"
 
@@ -3611,10 +3607,6 @@ msgstr "パーティクルデータブロック"
 
 msgid "Point cloud data-blocks"
 msgstr "ポイントクラウドデータブロック"
-
-
-msgid "Project"
-msgstr "プロジェクト"
 
 
 msgid "Scene data-blocks"
@@ -10718,6 +10710,10 @@ msgstr "最近接表面の点"
 
 msgid "Shrink the location to the nearest target surface"
 msgstr "最も近いターゲット表面へ位置をシュリンクします"
+
+
+msgid "Project"
+msgstr "プロジェクト"
 
 
 msgid "Shrink the location to the nearest target surface along a given axis"
@@ -36311,104 +36307,48 @@ msgid "Editor menu containing buttons"
 msgstr "ボタンを含むエディターメニュー"
 
 
-msgid "Creative"
-msgstr "クリエイティブ"
-
-
-msgid "Bone Collections"
-msgstr "ボーンコレクション"
-
-
 msgid "Names"
 msgstr "名前"
-
-
-msgid "Show/Hide"
-msgstr "表示/隠す"
-
-
-msgid "Apply"
-msgstr "適用"
-
-
-msgid "Toggle Bone Options"
-msgstr "ボーンオプションを切り替え"
-
-
-msgid "Enable Bone Options"
-msgstr "ボーンオプションを有効化"
-
-
-msgid "Disable Bone Options"
-msgstr "ボーンオプションを無効化"
-
-
-msgid "Mesh Select Mode"
-msgstr "メッシュ選択モード"
-
-
-msgid "Face Data"
-msgstr "面データ"
-
-
-msgid "Select by Face Strength"
-msgstr "面の強さで選択"
-
-
-msgid "Set Face Strength"
-msgstr "面の強さを設定"
-
-
-msgid "Clean Up"
-msgstr "クリーンアップ"
-
-
-msgid "Merge"
-msgstr "マージ"
-
-
-msgid "Special Characters"
-msgstr "特殊文字"
-
-
-msgid "Kerning"
-msgstr "カーニング"
-
-
-msgid "Math"
-msgstr "数式"
-
-
-msgid "Metaball"
-msgstr "メタボール"
-
-
-msgid "Utilities"
-msgstr "ユーティリティ"
 
 
 msgid "Bone Roll"
 msgstr "ボーンロール"
 
 
-msgid "Read"
-msgstr "読込"
+msgid "Show/Hide"
+msgstr "表示/隠す"
 
 
-msgid "Sample"
-msgstr "サンプル"
+msgid "Clean Up"
+msgstr "クリーンアップ"
 
 
-msgid "Write"
-msgstr "書込"
+msgid "Adjust"
+msgstr "調整"
 
 
-msgid "Primitives"
-msgstr "プリミティブ"
+msgid "Keying"
+msgstr "キーイング"
+
+
+msgid "Tracking"
+msgstr "トラッキング"
+
+
+msgid "Utilities"
+msgstr "ユーティリティ"
+
+
+msgid "Math"
+msgstr "数式"
 
 
 msgid "Pivot Point"
 msgstr "ピボットポイント"
+
+
+msgid "Creative"
+msgstr "クリエイティブ"
 
 
 msgid "Snap"
@@ -36435,28 +36375,8 @@ msgid "Vertex Group Locks"
 msgstr "頂点グループのロック"
 
 
-msgid "Gizmo"
-msgstr "ギズモ"
-
-
-msgid "Instances"
-msgstr "インスタンス"
-
-
-msgid "Render Preview"
-msgstr "レンダープレビュー"
-
-
-msgid "Import"
-msgstr "インポート"
-
-
 msgid "Mirror"
 msgstr "ミラー"
-
-
-msgid "Deprecated"
-msgstr "廃止予定"
 
 
 msgid "UV Mapping"
@@ -36477,10 +36397,6 @@ msgstr "視点の操作"
 
 msgid "Align View"
 msgstr "視点を揃える"
-
-
-msgid "UV"
-msgstr "UV"
 
 
 msgid "Align View to Active"
@@ -36515,6 +36431,26 @@ msgid "Assign Material"
 msgstr "マテリアルを割り当て"
 
 
+msgid "Read"
+msgstr "読込"
+
+
+msgid "Sample"
+msgstr "サンプル"
+
+
+msgid "Write"
+msgstr "書込"
+
+
+msgid "Primitives"
+msgstr "プリミティブ"
+
+
+msgid "Metaball"
+msgstr "メタボール"
+
+
 msgid "Light"
 msgstr "ライト"
 
@@ -36527,24 +36463,36 @@ msgid "Add Image"
 msgstr "画像を追加"
 
 
+msgid "Gizmo"
+msgstr "ギズモ"
+
+
 msgid "Relations"
 msgstr "関係"
+
+
+msgid "Instances"
+msgstr "インスタンス"
+
+
+msgid "Render Preview"
+msgstr "レンダープレビュー"
 
 
 msgid "Rigid Body"
 msgstr "リジッドボディ"
 
 
+msgid "Apply"
+msgstr "適用"
+
+
+msgid "Import"
+msgstr "インポート"
+
+
 msgid "Track"
 msgstr "トラック"
-
-
-msgid "Linked"
-msgstr "リンク"
-
-
-msgid "Layout"
-msgstr "レイアウト"
 
 
 msgid "Quick Effects"
@@ -36553,6 +36501,10 @@ msgstr "クイックエフェクト"
 
 msgid "Asset"
 msgstr "アセット"
+
+
+msgid "Deprecated"
+msgstr "廃止予定"
 
 
 msgid "Make Single User"
@@ -36571,28 +36523,16 @@ msgid "Hooks"
 msgstr "フック"
 
 
-msgid "Adjust"
-msgstr "調整"
+msgid "UV"
+msgstr "UV"
 
 
 msgid "Trim/Add"
 msgstr "トリム/追加"
 
 
-msgid "Add Primitive"
-msgstr "プリミティブを追加"
-
-
-msgid "Keying"
-msgstr "キーイング"
-
-
 msgid "Sculpt Set Pivot"
 msgstr "スカルプトピボット設定"
-
-
-msgid "Tracking"
-msgstr "トラッキング"
 
 
 msgid "Face Sets Init"
@@ -36613,6 +36553,58 @@ msgstr "中間ポーズ"
 
 msgid "Propagate"
 msgstr "伝播"
+
+
+msgid "Bone Collections"
+msgstr "ボーンコレクション"
+
+
+msgid "Toggle Bone Options"
+msgstr "ボーンオプションを切り替え"
+
+
+msgid "Enable Bone Options"
+msgstr "ボーンオプションを有効化"
+
+
+msgid "Disable Bone Options"
+msgstr "ボーンオプションを無効化"
+
+
+msgid "Mesh Select Mode"
+msgstr "メッシュ選択モード"
+
+
+msgid "Face Data"
+msgstr "面データ"
+
+
+msgid "Select by Face Strength"
+msgstr "面の強さで選択"
+
+
+msgid "Set Face Strength"
+msgstr "面の強さを設定"
+
+
+msgid "Merge"
+msgstr "マージ"
+
+
+msgid "Linked"
+msgstr "リンク"
+
+
+msgid "Special Characters"
+msgstr "特殊文字"
+
+
+msgid "Layout"
+msgstr "レイアウト"
+
+
+msgid "Kerning"
+msgstr "カーニング"
 
 
 msgid "Keyframe Insert Pie"
@@ -53994,6 +53986,10 @@ msgid "Collection of main items"
 msgstr "メニューアイテムの集合"
 
 
+msgid "Scalar"
+msgstr "スカラー"
+
+
 msgid "Collection of repeat items"
 msgstr "リピートアイテムの集合"
 
@@ -58477,15 +58473,6 @@ msgstr "生成"
 
 
 msgctxt "Operator"
-msgid "Make Markers Local"
-msgstr "マーカーをローカルに"
-
-
-msgid "Move selected scene markers to the active Action as local 'pose' markers"
-msgstr "ローカル'pose'マーカーとして，選択したシーンマーカーをアクティブなアクションに移動します"
-
-
-msgctxt "Operator"
 msgid "Mirror Keys"
 msgstr "キーをミラー反転"
 
@@ -60934,10 +60921,6 @@ msgstr "スカルプト/ペイントブラシのサイズを変更"
 
 msgid "Change brush size by a scalar"
 msgstr "スカラーによってブラシのサイズを変更"
-
-
-msgid "Scalar"
-msgstr "スカラー"
 
 
 msgid "Factor to scale brush size by"
@@ -77537,15 +77520,6 @@ msgid "Select all objects which block light from this emitter"
 msgstr "このエミッターの光をブロックするオブジェクトをすべて選択します"
 
 
-msgctxt "Operator"
-msgid "Link Receivers to Emitter"
-msgstr "エミッターにレシーバーをリンク"
-
-
-msgid "Light link selected receivers to the active emitter object"
-msgstr "選択中のレシーバーをアクティブエミッターオブジェクトにライトリンキングします"
-
-
 msgid "State of the light linking"
 msgstr "ライトリンキングの状態"
 
@@ -81587,10 +81561,6 @@ msgstr "全頂点の可視性を反転します"
 msgctxt "Operator"
 msgid "Weight from Bones"
 msgstr "ボーンからウェイト設定"
-
-
-msgid "Set the weights of the groups matching the attached armature's selected bones, using the distance between the vertices and the bones"
-msgstr "頂点とボーンとの距離によって，アーマチュアの選択中のボーンと適合するグループのウェイトを設定します"
 
 
 msgid "Method to use for assigning weights"
@@ -95303,10 +95273,6 @@ msgid "Panel containing UI elements"
 msgstr "UIの要素を含むパネル"
 
 
-msgid "glTF Variants"
-msgstr "glTFバリアント"
-
-
 msgid "glTF Material Variants"
 msgstr "glTFマテリアルバリアント"
 
@@ -95437,6 +95403,10 @@ msgstr "VR"
 
 msgid "VR Info"
 msgstr "VR情報"
+
+
+msgid "glTF Variants"
+msgstr "glTFバリアント"
 
 
 msgid "Import Settings"
@@ -100931,10 +100901,6 @@ msgid "Danish - Dansk"
 msgstr "デンマーク語 - Dansk"
 
 
-msgid "Locale code: da. Translation progress: 3%"
-msgstr "ロケールコード：da．翻訳の進行状況: 3％"
-
-
 msgid "Dutch - Nederlands"
 msgstr "オランダ語 - Nederlands"
 
@@ -100945,10 +100911,6 @@ msgstr "ロケールコード：nl_NL．翻訳の進行状況: 7％"
 
 msgid "English (UK)"
 msgstr "英語（UK）"
-
-
-msgid "Locale code: en_GB. Translation progress: 95%"
-msgstr "ロケールコード：en_GB．翻訳の進行状況: 95％"
 
 
 msgid "English (US)"
@@ -100969,10 +100931,6 @@ msgstr "ロケールコード：eo．翻訳の進行状況: 0％"
 
 msgid "Finnish - Suomi"
 msgstr "フィンランド語 - Suomi"
-
-
-msgid "Locale code: fi_FI. Translation progress: 11%"
-msgstr "ロケールコード：fi_FI．翻訳の進行状況: 11％"
 
 
 msgid "French - Français"
@@ -101025,10 +100983,6 @@ msgstr "ロケールコード：hu_HU．翻訳の進行状況: 10％"
 
 msgid "Indonesian - Bahasa indonesia"
 msgstr "インドネシア語 - Bahasa indonesia"
-
-
-msgid "Locale code: id_ID. Translation progress: 21%"
-msgstr "ロケールコード：id_ID．翻訳の進行状況: 21％"
 
 
 msgid "Italian - Italiano"
@@ -101161,10 +101115,6 @@ msgstr "ロケールコード：th_TH．翻訳の進行状況: 5％"
 
 msgid "Turkish - Türkçe"
 msgstr "トルコ語 - Türkçe"
-
-
-msgid "Locale code: tr_TR. Translation progress: 75%"
-msgstr "ロケールコード：tr_TR．翻訳の進行状況: 75％"
 
 
 msgid "Ukrainian - Українська"
@@ -102873,10 +102823,6 @@ msgstr "ベイクするパスの種類"
 
 msgid "Filter Glossy"
 msgstr "光沢フィルター"
-
-
-msgid "Adaptively blur glossy shaders after blurry bounces, to reduce noise at the cost of accuracy"
-msgstr "ブラーのバウンス後に順応ブラー光沢シェーダを使用します．精度を犠牲にしてノイズを減らします"
 
 
 msgid "Camera Cull Margin"
@@ -131956,6 +131902,14 @@ msgid "Duplicate Marker to Scene"
 msgstr "マーカーを他のシーンに複製"
 
 
+msgid "Only Active Keying Set"
+msgstr "アクティブキーイングセットのみ"
+
+
+msgid "Jump Unit"
+msgstr "ジャンプ単位"
+
+
 msgid "Limit to Frame Range"
 msgstr "フレーム範囲に限定"
 
@@ -131974,18 +131928,6 @@ msgstr "アクティブエディター"
 
 msgid "Properties and Sidebars"
 msgstr "プロパティとサイドバー"
-
-
-msgid "Only Active Keying Set"
-msgstr "アクティブキーイングセットのみ"
-
-
-msgid "Jump Unit"
-msgstr "ジャンプ単位"
-
-
-msgid "Scrubbing Region"
-msgstr "スクラブ領域"
 
 
 msgid "Layered Recording"
@@ -135092,14 +135034,6 @@ msgstr "選択中のキーに貼り付け"
 msgctxt "Operator"
 msgid "Paste and Bake"
 msgstr "貼り付けとベイク"
-
-
-msgid "Keying set is active, which may"
-msgstr "キーイングセットがアクティブなため"
-
-
-msgid "reduce the effect of the above options"
-msgstr "上記オプションの効果が低下します"
 
 
 msgid "Using Active Scene Camera"
@@ -140766,6 +140700,10 @@ msgid "Selected edges/faces required"
 msgstr "選択された辺/面が必要です"
 
 
+msgid "No edge loops found containing 2 or more edges"
+msgstr "二つ以上の辺のある辺ループがありません"
+
+
 msgid "Not a valid selection for extrude"
 msgstr "延長する有効な選択がありません"
 
@@ -140852,10 +140790,6 @@ msgstr "経路を選択するには適合する要素を二つ選択してくだ
 
 msgid "No edges selected"
 msgstr "辺が選択されていません"
-
-
-msgid "No edge loops found containing 2 or more edges"
-msgstr "二つ以上の辺のある辺ループがありません"
 
 
 msgid "Cannot rip faces"
@@ -147675,10 +147609,6 @@ msgid "Cannot fly when the view offset is locked"
 msgstr "ビューオフセットがロック中はフライできません"
 
 
-msgid "Cannot fly an object with constraints"
-msgstr "コンストレイントのあるオブジェクトはフライできません"
-
-
 msgid "Cannot dolly when the view offset is locked"
 msgstr "ビューオフセットがロック中はドリーできません"
 
@@ -147701,10 +147631,6 @@ msgstr "Z軸補正"
 
 msgid "Cannot navigate when the view offset is locked"
 msgstr "ビューオフセットがロック中はナビゲートできません"
-
-
-msgid "Cannot navigate an object with constraints"
-msgstr "コンストレイントのあるオブジェクトはナビゲートできません"
 
 
 msgid "Depth too large"

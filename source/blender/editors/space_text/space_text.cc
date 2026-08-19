@@ -116,33 +116,45 @@ static SpaceLink *text_duplicate(SpaceLink *sl)
 }
 
 #ifdef WITH_INPUT_IME
-static std::optional<rcti> text_main_region_cursor_ime(wmWindow * /*win*/,
-                                                       const ScrArea *area,
-                                                       const ARegion *region)
+static std::optional<ARegionIMECursorState> text_main_region_cursor_ime(wmWindow * /*win*/,
+                                                                        const ScrArea *area,
+                                                                        const ARegion *region,
+                                                                        ARegionIMECursor *r_cursor)
 {
   SpaceText *st = static_cast<SpaceText *>(area->spacedata.first);
-  /* Defer while the scroll-bar is being dragged. */
+  /* Pending while scrolling, since the position is valid again once it ends.
+   * This must *not* cancel the composition. */
   if (st->flags & ST_SCROLL_SELECT) {
+    return ARegionIMECursorState::PositionPending;
+  }
+
+  /* Font metrics are cached during draw; zero means the region hasn't been drawn yet. */
+  if (st->runtime->line_height_px == 0) {
+    return ARegionIMECursorState::PositionPending;
+  }
+
+  const std::optional<int2> cursor_xy = space_text_cursor_region_xy_get(st, region);
+  if (!cursor_xy) {
     return std::nullopt;
   }
-  if (!st->text) {
-    return std::nullopt;
-  }
-  int offl, offc;
-  space_text_wrap_offset(st, region, st->text->sell, st->text->selc, &offl, &offc);
-  const int line_height = TXT_LINE_HEIGHT(st);
-  const int vsell = txt_get_span(static_cast<TextLine *>(st->text->lines.first), st->text->sell) -
-                    st->top + offl;
-  const int vselc = space_text_get_char_pos(st, st->text->sell->line, st->text->selc) - st->left +
-                    offc;
-  const int x = TXT_BODY_LEFT(st) + (vselc * st->runtime->char_width_px);
-  const int y = region->winy - vsell * line_height;
-  rcti rect;
-  rect.xmin = x;
-  rect.xmax = x + st->runtime->char_width_px;
-  rect.ymin = y - line_height;
-  rect.ymax = y;
-  return rect;
+  const int x = (*cursor_xy)[0];
+  const int y = (*cursor_xy)[1];
+
+  /* Report the glyph extent, not the line cell: the preview sits its baseline a descender
+   * above `ymin` (see #region_overlay_draw) while the editor draws text one line height
+   * below the cell top, both use the same font & size so the descender matches. */
+  const int line_height = st->runtime->line_height_px;
+  const int baseline_y = y - line_height;
+  const int ymin = baseline_y + st->runtime->descender_px;
+
+  r_cursor->rect = {
+      .xmin = x,
+      .xmax = x,
+      .ymin = ymin,
+      .ymax = ymin + line_height,
+  };
+  r_cursor->font_size = line_height;
+  return ARegionIMECursorState::PositionSet;
 }
 
 #endif

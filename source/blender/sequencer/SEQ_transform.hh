@@ -56,25 +56,20 @@ bool transform_seqbase_shuffle_time(Span<Strip *> strips_to_shuffle,
 
 void transform_handle_overlap(Scene *scene,
                               ListBaseT<Strip> *seqbasep,
-                              Span<Strip *> transformed_strips,
+                              Span<Strip *> source_strips,
                               Span<Strip *> time_dependent_strips,
                               bool use_sync_markers);
 void transform_handle_overlap(Scene *scene,
                               ListBaseT<Strip> *seqbasep,
-                              Span<Strip *> transformed_strips,
+                              Span<Strip *> source_strips,
                               bool use_sync_markers);
 /**
- * Move strips and markers (if not locked) that start after timeline_frame by delta frames
- *
- * \param scene: Scene in which strips are located
- * \param seqbase: List in which strips are located
- * \param delta: offset in frames to be applied
- * \param timeline_frame: frame on timeline from where strips are moved
+ * Move strips and markers (if not locked) that start after \a timeline_frame by \a delta frames.
  */
-void transform_offset_after_frame(Scene *scene,
+void transform_strips_after_frame(Scene *scene,
                                   ListBaseT<Strip> *seqbase,
-                                  int delta,
-                                  int timeline_frame);
+                                  int timeline_frame,
+                                  int delta);
 
 /**
  * Check if `strip` can be moved.
@@ -120,9 +115,9 @@ float3x3 image_transform_matrix_get(const Scene *scene, const Strip *strip);
  * For the fully-processed quad, see #image_transform_quad_get.
  * For the bounding box of the quad, see #image_transform_bounding_box_from_strips_get.
  *
- * \return float2 with (width, height) in view-space pixels
+ * \return int2 with (width, height) in view-space pixels
  */
-float2 image_transform_box_size_get(const Scene *scene, const Strip *strip);
+int2 image_transform_box_size_get(const Scene *scene, const Strip *strip);
 
 /**
  * Get 4 corner points of strip image. Corner vectors are in viewport space.

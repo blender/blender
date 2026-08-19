@@ -1,9 +1,9 @@
 
 msgid ""
 msgstr ""
-"Project-Id-Version: Blender 5.3.0 Alpha (b'bf67fb078da0')\n"
+"Project-Id-Version: Blender 5.3.0 Alpha (b'af4852ed4560')\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-07-27 09:52+0000\n"
+"POT-Creation-Date: 2026-08-10 07:54+0000\n"
 "PO-Revision-Date: 2025-07-23 15:12+0000\n"
 "Last-Translator: Anonymous <noreply@weblate.org>\n"
 "Language-Team: Urdu <https://translate.blender.org/projects/blender-ui/ui/ur/>\n"
@@ -3133,10 +3133,6 @@ msgstr "ﺲﮐﻼ﻿ﺑ ﺎﭩﯾﮈ ﻞﮑﯿﭨﺭﺎﭘ"
 
 msgid "Point cloud data-blocks"
 msgstr "ﺲﮐﻼ﻿ﺑ ﺎﭩﯾﮈ ﮈﺅﻼ﻿ﮐ ﭧﻨﺋﺍﻮﭘ"
-
-
-msgid "Project"
-msgstr "ﭧﮑﯿﺟﻭﺮﭘ"
 
 
 msgid "Scene data-blocks"
@@ -9043,6 +9039,10 @@ msgstr "ﮧﻄﻘﻧ ﯽﺤﻄﺳ ﻦﯾﺮﺗ ﺐﯾﺮﻗ"
 
 msgid "Shrink the location to the nearest target surface"
 msgstr "ﮟﯾﮍﮑﺳ ﺮﭘ ﺢﻄﺳ ﯽﮐ ﻑﺪﮨ ﻦﯾﺮﺗ ﺐﯾﺮﻗ ﻮﮐ ﻡﺎﻘﻣ"
+
+
+msgid "Project"
+msgstr "ﭧﮑﯿﺟﻭﺮﭘ"
 
 
 msgid "Shrink the location to the nearest target surface along a given axis"
@@ -32327,96 +32327,40 @@ msgid "Editor menu containing buttons"
 msgstr "ﻮﻨﯿﻣ ﺮﭩﯾﮉﯾﺍ ﻞﻤﺘﺸﻣ ﺮﭘ ﮞﻮﻨﭩﺑ"
 
 
-msgid "Bone Collections"
-msgstr "ﮧﻋﻮﻤﺠﻣ ﺎﮐ ﮞﻮﯾﮉﮨ"
-
-
 msgid "Names"
 msgstr "ﻡﺎﻧ"
-
-
-msgid "Show/Hide"
-msgstr "ﮟﯿﺋﺎﭙﮭﭼ/ﮟﯿﺋﺎﮭﮐﺩ"
-
-
-msgid "Apply"
-msgstr "ﮟﯿﺋﺎﮕﻟ"
-
-
-msgid "Toggle Bone Options"
-msgstr "ﮟﯾﺮﮐ ﻞﮔﻮﭨ ﻮﮐ ﺕﺍﺭﺎﯿﺘﺧﺍ ﮯﮐ ﯼﮉﮨ"
-
-
-msgid "Enable Bone Options"
-msgstr "ﮟﯾﺮﮐ ﻝﺎﻌﻓ ﻮﮐ ﺕﺍﺭﺎﯿﺘﺧﺍ ﮯﮐ ﯼﮉﮨ"
-
-
-msgid "Disable Bone Options"
-msgstr "ﮟﯾﺮﮐ ﻝﺎﻌﻓ ﺮﯿﻏ ﻮﮐ ﺕﺍﺭﺎﯿﺘﺧﺍ ﮯﮐ ﯼﮉﮨ"
-
-
-msgid "Mesh Select Mode"
-msgstr "ﮈﻮﻣ ﭧﮑﯿﻠﺳ ﺶﯿﻣ"
-
-
-msgid "Face Data"
-msgstr "ﺎﭩﯾﮈ ﺎﮐ ﮮﺮﮩﭼ"
-
-
-msgid "Select by Face Strength"
-msgstr "ﮟﯾﺮﮐ ﺐﺨﺘﻨﻣ ﮯﺳ ﻅﺎﺤﻟ ﮯﮐ ﺖﻗﺎﻃ ﯽﮐ ﮮﺮﮩﭼ"
-
-
-msgid "Set Face Strength"
-msgstr "ﮟﯾﺮﮐ ﻦﯿﻌﺗ ﺎﮐ ﺖﻗﺎﻃ ﯽﮐ ﮮﺮﮩﭼ"
-
-
-msgid "Clean Up"
-msgstr "ﯽﺋﺎﻔﺻ"
-
-
-msgid "Merge"
-msgstr "ﺎﻧﺮﮐ ﻢﺿ"
-
-
-msgid "Special Characters"
-msgstr "ﺭﺍﺩﺮﮐ ﯽﺻﻮﺼﺧ"
-
-
-msgid "Kerning"
-msgstr "ﮓﻨﻧﺮﮐ"
-
-
-msgid "Math"
-msgstr "ﯽﺿﺎﯾﺭ"
-
-
-msgid "Metaball"
-msgstr "ﻝﺎﺑ ﺎﭩﯿﻣ"
-
-
-msgid "Utilities"
-msgstr "ﺖﯾﺩﺎﻓﺍ"
 
 
 msgid "Bone Roll"
 msgstr "ﻝﻭﺭ ﻥﻮﺑ"
 
 
-msgid "Read"
-msgstr "ﮟﯿﮬﮍﭘ"
+msgid "Show/Hide"
+msgstr "ﮟﯿﺋﺎﭙﮭﭼ/ﮟﯿﺋﺎﮭﮐﺩ"
 
 
-msgid "Sample"
-msgstr "ﮧﻧﻮﻤﻧ"
+msgid "Clean Up"
+msgstr "ﯽﺋﺎﻔﺻ"
 
 
-msgid "Write"
-msgstr "ﮟﯿﮭﮑﻟ"
+msgid "Adjust"
+msgstr "ﮟﯾﺮﮐ ﭧﺴﺟﮉﯾﺍ"
 
 
-msgid "Primitives"
-msgstr "ﻢﯾﺪﻗ"
+msgid "Keying"
+msgstr "ﮓﻨﯿﻠﮐ"
+
+
+msgid "Tracking"
+msgstr "ﮓﻨﮑﯾﺮﭨ"
+
+
+msgid "Utilities"
+msgstr "ﺖﯾﺩﺎﻓﺍ"
+
+
+msgid "Math"
+msgstr "ﯽﺿﺎﯾﺭ"
 
 
 msgid "Pivot Point"
@@ -32447,24 +32391,8 @@ msgid "Vertex Group Locks"
 msgstr "ﮎﻻ﻿ ﮦﻭﺮﮔ ﺲﮑﯿﭨﺭﻭ"
 
 
-msgid "Gizmo"
-msgstr "ﻮﻣﺰﯿﮔ"
-
-
-msgid "Instances"
-msgstr "ﮟﯿﻟﺎﺜﻣ"
-
-
-msgid "Import"
-msgstr "ﮟﯾﺮﮐ ﺪﻣﺁﺭﺩ"
-
-
 msgid "Mirror"
 msgstr "ﮧﻨﯿﺋﺁ"
-
-
-msgid "Deprecated"
-msgstr "ﮦﺩﻮﺳﺮﻓ"
 
 
 msgid "UV Mapping"
@@ -32485,10 +32413,6 @@ msgstr "ﻦﺸﯿﮕﯾﻮﯿﻧ"
 
 msgid "Align View"
 msgstr "ﮟﯿﮭﮑﯾﺩ ﮟﯿﻣ ﮪﺪﯿﺳ"
-
-
-msgid "UV"
-msgstr "ﯼﻭﻮﯾ"
 
 
 msgid "Align View to Active"
@@ -32523,6 +32447,26 @@ msgid "Assign Material"
 msgstr "ﮟﯾﺮﮐ ﺾﯾﻮﻔﺗ ﺩﺍﻮﻣ"
 
 
+msgid "Read"
+msgstr "ﮟﯿﮬﮍﭘ"
+
+
+msgid "Sample"
+msgstr "ﮧﻧﻮﻤﻧ"
+
+
+msgid "Write"
+msgstr "ﮟﯿﮭﮑﻟ"
+
+
+msgid "Primitives"
+msgstr "ﻢﯾﺪﻗ"
+
+
+msgid "Metaball"
+msgstr "ﻝﺎﺑ ﺎﭩﯿﻣ"
+
+
 msgid "Light"
 msgstr "ﯽﻨﺷﻭﺭ"
 
@@ -32535,24 +32479,32 @@ msgid "Add Image"
 msgstr "ﮟﯾﺮﮐ ﻞﻣﺎﺷ ﺮﯾﻮﺼﺗ"
 
 
+msgid "Gizmo"
+msgstr "ﻮﻣﺰﯿﮔ"
+
+
 msgid "Relations"
 msgstr "ﮯﺘﺷﺭ"
+
+
+msgid "Instances"
+msgstr "ﮟﯿﻟﺎﺜﻣ"
 
 
 msgid "Rigid Body"
 msgstr "ﻢﺴﺟ ﺖﺨﺳ"
 
 
+msgid "Apply"
+msgstr "ﮟﯿﺋﺎﮕﻟ"
+
+
+msgid "Import"
+msgstr "ﮟﯾﺮﮐ ﺪﻣﺁﺭﺩ"
+
+
 msgid "Track"
 msgstr "ﮏﯾﺮﭨ"
-
-
-msgid "Linked"
-msgstr "ﮏﻠﺴﻨﻣ"
-
-
-msgid "Layout"
-msgstr "ﭦﺅﺁ ﮯﻟ"
 
 
 msgid "Quick Effects"
@@ -32561,6 +32513,10 @@ msgstr "ﺕﺍﺮﺛﺍ ﯼﺭﻮﻓ"
 
 msgid "Asset"
 msgstr "ﮧﺛﺎﺛﺍ"
+
+
+msgid "Deprecated"
+msgstr "ﮦﺩﻮﺳﺮﻓ"
 
 
 msgid "Make Single User"
@@ -32579,24 +32535,16 @@ msgid "Hooks"
 msgstr "ﮯﭩﻧﺎﮐ"
 
 
-msgid "Adjust"
-msgstr "ﮟﯾﺮﮐ ﭧﺴﺟﮉﯾﺍ"
+msgid "UV"
+msgstr "ﯼﻭﻮﯾ"
 
 
 msgid "Trim/Add"
 msgstr "ﮟﯾﺮﮐ ﻞﻣﺎﺷ/ﻡﺮﭨ"
 
 
-msgid "Keying"
-msgstr "ﮓﻨﯿﻠﮐ"
-
-
 msgid "Sculpt Set Pivot"
 msgstr "ﭦﻮﯿﭘ ﭧﯿﺳ ﮧﻤﺴﺠﻣ"
-
-
-msgid "Tracking"
-msgstr "ﮓﻨﮑﯾﺮﭨ"
 
 
 msgid "Face Sets Init"
@@ -32617,6 +32565,58 @@ msgstr "ﮟﯿﻣ ﻥﺎﯿﻣﺭﺩ"
 
 msgid "Propagate"
 msgstr "ﺎﻧﺮﮐ ﻎﯿﻠﺒﺗ"
+
+
+msgid "Bone Collections"
+msgstr "ﮧﻋﻮﻤﺠﻣ ﺎﮐ ﮞﻮﯾﮉﮨ"
+
+
+msgid "Toggle Bone Options"
+msgstr "ﮟﯾﺮﮐ ﻞﮔﻮﭨ ﻮﮐ ﺕﺍﺭﺎﯿﺘﺧﺍ ﮯﮐ ﯼﮉﮨ"
+
+
+msgid "Enable Bone Options"
+msgstr "ﮟﯾﺮﮐ ﻝﺎﻌﻓ ﻮﮐ ﺕﺍﺭﺎﯿﺘﺧﺍ ﮯﮐ ﯼﮉﮨ"
+
+
+msgid "Disable Bone Options"
+msgstr "ﮟﯾﺮﮐ ﻝﺎﻌﻓ ﺮﯿﻏ ﻮﮐ ﺕﺍﺭﺎﯿﺘﺧﺍ ﮯﮐ ﯼﮉﮨ"
+
+
+msgid "Mesh Select Mode"
+msgstr "ﮈﻮﻣ ﭧﮑﯿﻠﺳ ﺶﯿﻣ"
+
+
+msgid "Face Data"
+msgstr "ﺎﭩﯾﮈ ﺎﮐ ﮮﺮﮩﭼ"
+
+
+msgid "Select by Face Strength"
+msgstr "ﮟﯾﺮﮐ ﺐﺨﺘﻨﻣ ﮯﺳ ﻅﺎﺤﻟ ﮯﮐ ﺖﻗﺎﻃ ﯽﮐ ﮮﺮﮩﭼ"
+
+
+msgid "Set Face Strength"
+msgstr "ﮟﯾﺮﮐ ﻦﯿﻌﺗ ﺎﮐ ﺖﻗﺎﻃ ﯽﮐ ﮮﺮﮩﭼ"
+
+
+msgid "Merge"
+msgstr "ﺎﻧﺮﮐ ﻢﺿ"
+
+
+msgid "Linked"
+msgstr "ﮏﻠﺴﻨﻣ"
+
+
+msgid "Special Characters"
+msgstr "ﺭﺍﺩﺮﮐ ﯽﺻﻮﺼﺧ"
+
+
+msgid "Layout"
+msgstr "ﭦﺅﺁ ﮯﻟ"
+
+
+msgid "Kerning"
+msgstr "ﮓﻨﻧﺮﮐ"
 
 
 msgid "Keyframe Insert Pie"
@@ -47595,6 +47595,10 @@ msgid "Collection of capture attribute items"
 msgstr "ءﺎﯿﺷﺍ ﺏﺎﺴﺘﻧﺍ ﺮﭽﭙﯿﮐ of ﮧﻋﻮﻤﺠﻣ"
 
 
+msgid "Scalar"
+msgstr "ﺮﻠﯿﮑﺳﺍ"
+
+
 msgid "Collection of repeat items"
 msgstr "ﮧﻋﻮﻤﺠﻣ ﺎﮐ ءﺎﯿﺷﺍ ﯽﻟﺍﻭ ﮯﻧﺎﺟ ﯽﺋﺍﺮﮨﺩ"
 
@@ -51368,15 +51372,6 @@ msgstr "ﺎﯿﮐ ﺍﺪﯿﭘ"
 
 
 msgctxt "Operator"
-msgid "Make Markers Local"
-msgstr "ﮟﯿﺋﺎﻨﺑ ﯽﻣﺎﻘﻣ ﻮﮐ ﮞﻭﺮﮐﺭﺎﻣ"
-
-
-msgid "Move selected scene markers to the active Action as local 'pose' markers"
-msgstr "ﮟﯾﺮﮐ ﻞﻘﺘﻨﻣ ﮟﯿﻣ ﻡﺍﺪﻗﺍ ﻝﺎﻌﻓ ﺭﻮﻄﺑ ﮯﮐ ﺮﮐﺭﺎﻣ 'ﺯﻮﭘ' ﯽﻣﺎﻘﻣ ﻮﮐ ﺮﮐﺭﺎﻣ ﻦﯿﺳ ﺐﺨﺘﻨﻣ"
-
-
-msgctxt "Operator"
 msgid "Mirror Keys"
 msgstr "ﮞﺎﯿﺑﺎﭼ ﯽﮐ ﮧﻨﯿﺋﺁ"
 
@@ -53524,10 +53519,6 @@ msgstr "ﺰﺋﺎﺳ ﺎﮐ ﺵﺮﺑ ﭧﻨﯿﭘ/ﭧﭙﻠﮑﺳﺍ ﮧﻧﺎ�
 
 msgid "Change brush size by a scalar"
 msgstr "ﮟﯾﺮﮐ ﻞﯾﺪﺒﺗ ﺰﺋﺎﺳ ﺎﮐ ﺵﺮﺑ ﮧﻌﯾﺭﺫ ﮯﮐ ﺮﻠﯿﮑﺳﺍ"
-
-
-msgid "Scalar"
-msgstr "ﺮﻠﯿﮑﺳﺍ"
 
 
 msgid "Factor to scale brush size by"
@@ -67863,15 +67854,6 @@ msgid "Select all objects which block light from this emitter"
 msgstr "ﮟﯿﮨ ﯽﺘﮐﻭﺭ ﻮﮐ ﯽﻨﺷﻭﺭ ﮯﺳ ﺮﭩﯿﻤﯾﺍ ﺱﺍ ﻮﺟ ﮟﯾﺮﮐ ﺐﺨﺘﻨﻣ ﻮﮐ ءﺎﯿﺷﺍ ﻡﺎﻤﺗ ﻥﺍ"
 
 
-msgctxt "Operator"
-msgid "Link Receivers to Emitter"
-msgstr "ﮟﯾﺮﮐ ﮏﻨﻟ ﮯﺳ ﺮﭩﯿﻤﯾﺍ ﻮﮐ ﻥﺎﮔﺪﻨﻨﮐ ﻝﻮﺻﻭ"
-
-
-msgid "Light link selected receivers to the active emitter object"
-msgstr "ﺎﯿﮐ ﺐﺨﺘﻨﻣ ﮯﺳ ﮯﺷ ﺮﭩﯿﻤﯾﺍ ﻝﺎﻌﻓ ﻮﮐ ﺯﺭﻮﯿﺴﯾﺭ ﮯﻧ ﮏﻨﻟ ﭧﺋﻻ﻿"
-
-
 msgid "State of the light linking"
 msgstr "ﺖﻟﺎﺣ ﯽﮐ ﮯﻧﮌﻮﺟ ﻮﮐ ﯽﻨﺷﻭﺭ"
 
@@ -71666,10 +71648,6 @@ msgstr "ﯼﺩﻮﻤﻋ ﻡﺎﻤﺗ of ﺖﯿﺋﺮﻣ the ﺎﭩﻟﺍ"
 msgctxt "Operator"
 msgid "Weight from Bones"
 msgstr "ﻥﺯﻭ ﮯﺳ ﮞﻮﯾﮉﮨ"
-
-
-msgid "Set the weights of the groups matching the attached armature's selected bones, using the distance between the vertices and the bones"
-msgstr "ﮟﯾﺮﮐ ﺭﺮﻘﻣ ﻥﺯﻭ ﺎﮐ ﮞﻮﮨﻭﺮﮔ ﮯﻟﺍﻭ ﮯﻨﻠﻣ ﮯﺳ ﮞﻮﯾﮉﮨ ﺐﺨﺘﻨﻣ ﯽﮐ ﺮﭽﻣﺭﺁ ﮏﻠﺴﻨﻣ ،ﮯﺋﻮﮨ ﮯﺗﺮﮐ ﻝﺎﻤﻌﺘﺳﺍ ﺎﮐ ﮯﻠﺻﺎﻓ ﻥﺎﯿﻣﺭﺩ ﮯﮐ ﮞﻮﯾﮉﮨ ﺭﻭﺍ ﮞﻮﯿﭨﻮﭼ"
 
 
 msgid "Method to use for assigning weights"
@@ -89082,10 +89060,6 @@ msgstr "ﻢﺴﻗ ﯽﮐ ﺱﺎﭘ ﮯﯿﻟ ﮯﮐ ﮯﻧﺎﮑﭘ"
 
 msgid "Filter Glossy"
 msgstr "ﮟﯾﺮﮐ ﺮﭩﻠﻓ ﺭﺍﺪﮑﻤﭼ"
-
-
-msgid "Adaptively blur glossy shaders after blurry bounces, to reduce noise at the cost of accuracy"
-msgstr "ﮟﯾﺮﮐ ﻻ﻿ﺪﻨﮬﺩ ﮯﺳ ﺖﻘﻓﺍﻮﻣ ﻮﮐ ﺯﺭﮉﯿﺷ ﺭﺍﺪﮑﻤﭼ ﺪﻌﺑ ﮯﮐ ﻦﭘ ﻻ﻿ﺪﻨﮬﺩ ،ﮯﯿﻟ ﮯﮐ ﮯﻧﺮﮐ ﻢﮐ ﻮﮐ ﺭﻮﺷ ﺮﭘ ﺖﻤﯿﻗ ﯽﮐ ﯽﮕﺘﺳﺭﺩ"
 
 
 msgid "Camera Cull Margin"
@@ -106735,7 +106709,7 @@ msgstr "Checking for ﺲﭩﯾﮉﭘﺍ ﻊﯿﺳﻮﺗ"
 
 
 msgid "Repository \"{:s}\": {:s}{:s}"
-msgstr "‬{:s}‬\": ‪{:s}‬‪{:s}‪\" ﮦﺮﯿﺧﺫ"
+msgstr "‬\"{:s}\"‬: ‪{:s}‬‪{:s}‪ ﮦﺮﯿﺧﺫ"
 
 
 msgid "No repositories available"
@@ -106872,7 +106846,7 @@ msgstr "ﮟﯾﺮﮐ ﻝﺎﻌﻓ ﻮﮐ ﯽﺋﺎﺳﺭ ﻦﺋﻻ﻿ ﻥﺁ ﮟ
 
 
 msgid "Add-on \"{:s}\" is already installed!"
-msgstr "!ﮯﮨ ﻝﺎﭩﺴﻧﺍ ﮯﺳ ﮯﻠﮩﭘ \"{:s}‬‪\" ﻥﺁ ﮉﯾﺍ"
+msgstr "!ﮯﮨ ﻝﺎﭩﺴﻧﺍ ﮯﺳ ﮯﻠﮩﭘ \"{:s}\"‬‪ ﻥﺁ ﮉﯾﺍ"
 
 
 msgid "Blender was launched in offline mode, which cannot be changed at runtime"
@@ -106908,7 +106882,7 @@ msgstr "ﯽﺌﮔ ﯽﮐ ﮟﯿﮩﻧ ﺖﺣﺎﺿﻭ ﯽﮐ ﮯﺘﺳﺍﺭ ﯽ
 
 
 msgid "Theme \"{:s}\" is already installed!"
-msgstr "!ﮯﮨ ﻝﺎﭩﺴﻧﺍ ﯽﮨ ﮯﻠﮩﭘ \"{:s}‬‪\" ﻢﯿﮭﺗ"
+msgstr "!ﮯﮨ ﻝﺎﭩﺴﻧﺍ ﯽﮨ ﮯﻠﮩﭘ \"{:s}\"‬‪ ﻢﯿﮭﺗ"
 
 
 msgid "Name: {:s}"
@@ -107176,7 +107150,7 @@ msgstr "...ﮯﮨ ﺎﮨﺭ ﻮﮨ ﮈﻮﻟ ﻥﺅﺍﮈ"
 
 
 msgid "Downloading \"{:s}\""
-msgstr "\"{:s}‬‪\" ﮯﮨ ﺎﮨﺭ ﻮﮨ ﮈﻮﻟ ﻥﺅﺍﮈ"
+msgstr "‬\"{:s}\"‪ ﮯﮨ ﺎﮨﺭ ﻮﮨ ﮈﻮﻟ ﻥﺅﺍﮈ"
 
 
 msgid "OSL support disabled in this build"
@@ -107192,7 +107166,7 @@ msgstr "ﯽﺌﮔ ﻮﮨ ﻞﻤﮑﻣ ﮓﻧﺰﺋﺍﻮﻨﯾﮈ"
 
 
 msgid "Frame '%s' not found, animation must be complete"
-msgstr "ﮯﯿﮨﺎﭼ ﺎﻧﻮﮨ ﻞﻤﮑﻣ ﺕﺎﯿﮐﺮﺣ  ،ﻼ﻿ﻣ ﮟﯿﮩﻧ '%s‬‪' ﻢﯾﺮﻓ"
+msgstr "ﮯﯿﮨﺎﭼ ﺎﻧﻮﮨ ﻞﻤﮑﻣ ﺕﺎﯿﮐﺮﺣ  ،ﻼ﻿ﻣ ﮟﯿﮩﻧ '%s'‬‪ ﻢﯾﺮﻓ"
 
 
 msgid "OSL shader compilation succeeded"
@@ -107497,11 +107471,11 @@ msgstr "‪%s‬ ﺎﺘﮑﺳ ﺎﺟ ﺎﯿﮐ ﮟﯿﮩﻧ ﭦﺭﻮﭙﺴﮑ�
 
 
 msgid "Mesh '%s' has polygons with more than 4 vertices, cannot compute/export tangent space for it"
-msgstr "ﮯﺘﮑﺳ ﺮﮐ ﮟﯿﮩﻧ ﺪﻣﺁﺮﺑ/ﯽﺘﻨﮔ ﯽﮐ ﮧﮕﺟ ﯽﮐ ﭧﻨﺠﻨﯿﭨ ﮯﯿﻟ ﮯﮐ ﺱﺍ ،ﮟﯿﮨ ﻢﺴﺠﻣ ﮯﻟﺍﻭ ﯼﺩﻮﻤﻋ ﮦﺩﺎﯾﺯ ﮯﺳ 4 ﮟﯿﻣ '%s‬‪' ﺶﯿﻣ"
+msgstr "ﮯﺘﮑﺳ ﺮﮐ ﮟﯿﮩﻧ ﺪﻣﺁﺮﺑ/ﯽﺘﻨﮔ ﯽﮐ ﮧﮕﺟ ﯽﮐ ﭧﻨﺠﻨﯿﭨ ﮯﯿﻟ ﮯﮐ ﺱﺍ ،ﮟﯿﮨ ﻢﺴﺠﻣ ﮯﻟﺍﻭ ﯼﺩﻮﻤﻋ ﮦﺩﺎﯾﺯ ﮯﺳ 4 ﮟﯿﻣ '%s'‬‪ ﺶﯿﻣ"
 
 
 msgid "Collection '%s' was not found"
-msgstr "ﻼ﻿ﻣ ﮟﯿﮩﻧ '%s‬‪' ﮧﻋﻮﻤﺠﻣ"
+msgstr "ﻼ﻿ﻣ ﮟﯿﮩﻧ '%s'‬‪ ﮧﻋﻮﻤﺠﻣ"
 
 
 msgid "%s in %s could not be set out of Edit Mode, so cannot be exported"
@@ -108101,15 +108075,15 @@ msgstr "ﮯﮨ ﺐﺋﺎﻏ init__.py__ ﺎﯾ ،ﮯﮨ ﮟﯿﮩﻧ ﮓﯾﺮ�
 
 
 msgid "The feature set archive base directory name is not a valid identifier: '{:s}'"
-msgstr "'{:s}‬‪' :ﮯﮨ ﮟﯿﮩﻧ ﮦﺪﻨﻨﮐ ﺖﺧﺎﻨﺷ ﺖﺳﺭﺩ ﻡﺎﻧ ﺎﮐ ﯼﺮﭩﮐﺮﺋﺍﮈ ﺲﯿﺑ ﻮﯿﺋﺎﮐﺭﺁ ﭧﯿﺳ ﺮﭽﯿﻓ"
+msgstr "‬'{:s}'‪ :ﮯﮨ ﮟﯿﮩﻧ ﮦﺪﻨﻨﮐ ﺖﺧﺎﻨﺷ ﺖﺳﺭﺩ ﻡﺎﻧ ﺎﮐ ﯼﺮﭩﮐﺮﺋﺍﮈ ﺲﯿﺑ ﻮﯿﺋﺎﮐﺭﺁ ﭧﯿﺳ ﺮﭽﯿﻓ"
 
 
 msgid "The name '{:s}' is not allowed for feature sets"
-msgstr "ﮯﮨ ﮟﯿﮩﻧ ﺕﺯﺎﺟﺍ ﯽﮐ ﻡﺎﻧ '{:s}‬‪' ﮯﯿﻟ ﮯﮐ ﭧﯿﺳ ﺮﭽﯿﻓ"
+msgstr "ﮯﮨ ﮟﯿﮩﻧ ﺕﺯﺎﺟﺍ ﯽﮐ ﻡﺎﻧ '{:s}'‬‪ ﮯﯿﻟ ﮯﮐ ﭧﯿﺳ ﺮﭽﯿﻓ"
 
 
 msgid "Feature set directory already exists: '{:s}'"
-msgstr "'{:s}‬‪' :ﮯﮨ ﺩﻮﺟﻮﻣ ﮯﺳ ﮯﻠﮩﭘ ﯼﺮﭩﮐﺮﺋﺍﮈ ﭧﯿﺳ ﺮﭽﯿﻓ"
+msgstr "‬'{:s}'‪ :ﮯﮨ ﺩﻮﺟﻮﻣ ﮯﺳ ﮯﻠﮩﭘ ﯼﺮﭩﮐﺮﺋﺍﮈ ﭧﯿﺳ ﺮﭽﯿﻓ"
 
 
 msgid "Status:"
@@ -108515,7 +108489,7 @@ msgstr ":ﺕﺍﺭﺎﯿﺘﺧﺍ"
 
 
 msgid "Incorrect armature for type '{:s}'"
-msgstr "ﺮﭽﻣﺭﺁ ﻂﻠﻏ ﮯﯿﻟ ﮯﮐ '{:s}‬‪' ﻢﺴﻗ"
+msgstr "ﺮﭽﻣﺭﺁ ﻂﻠﻏ ﮯﯿﻟ ﮯﮐ '{:s}'‬‪ ﻢﺴﻗ"
 
 
 msgid "Generation has thrown an exception: "
@@ -108523,11 +108497,11 @@ msgstr " :ﮯﮨ ﺎﯾﺩ ءﺎﻨﺜﺘﺳﺍ ﮏﯾﺍ ﮯﻧ ﻦﺸﯾﺮﻨ
 
 
 msgid "Successfully generated: \"{:s}\""
-msgstr "\"{:s}‬‪\" :ﺎﯿﮔ ﺎﯿﮐ ﺭﺎﯿﺗ ﮫﺗﺎﺳ ﮯﮐ ﯽﺑﺎﯿﻣﺎﮐ"
+msgstr "‬\"{:s}\"‪ :ﺎﯿﮔ ﺎﯿﮐ ﺭﺎﯿﺗ ﮫﺗﺎﺳ ﮯﮐ ﯽﺑﺎﯿﻣﺎﮐ"
 
 
 msgid "ERROR: type \"{:s}\" does not exist!"
-msgstr "!ﮯﮨ ﮟﯿﮩﻧ ﺩﻮﺟﻮﻣ \"{:s}‬‪\" ﻢﺴﻗ :ﯽﺑﺍﺮﺧ"
+msgstr "!ﮯﮨ ﮟﯿﮩﻧ ﺩﻮﺟﻮﻣ \"{:s}\"‬‪ ﻢﺴﻗ :ﯽﺑﺍﺮﺧ"
 
 
 msgctxt "Operator"
@@ -108544,7 +108518,7 @@ msgstr "‬{:s}‪ ﮧﮐ ﺎﺴﯿﺟ ﮯﮨ uid ‪{:d}‬ ﯽﮨﻭ ﮟﯿﻣ
 
 
 msgid "Bone {:s} has a broken reference to {:s} collection '{:s}'"
-msgstr "ﮯﮨ ﮧﻟﺍﻮﺣ ﺍﻮﮨ ﺎﭨﻮﭨ ﺎﮐ '{:s}‬‪' ﮧﻋﻮﻤﺠﻣ {:s}‬‪ ﮟﯿﻣ {:s}‬‪ ﯼﮉﮨ"
+msgstr "ﮯﮨ ﮧﻟﺍﻮﺣ ﺍﻮﮨ ﺎﭨﻮﭨ ﺎﮐ '{:s}'‬‪ ﮧﻋﻮﻤﺠﻣ {:s}‬‪ ﮟﯿﻣ {:s}‬‪ ﯼﮉﮨ"
 
 
 msgid "WARNING: preferences are lost when add-on is disabled, be sure to use \"Save Persistent\" if you want to keep your settings!"
@@ -108571,7 +108545,7 @@ msgstr "!ﺎﯿﮔ ﺎﯾﺩ ﮟﯿﮩﻧ ﮧﻧﻮﻤﻧ ﻥﺁ ﮉﯾﺍ ﯽ�
 
 
 msgid "Add-on '{}' not found!"
-msgstr "!ﻼ﻿ﻣ ﮟﯿﮩﻧ '{}‬‪' ﻥﺁ ﮉﯾﺍ"
+msgstr "!ﻼ﻿ﻣ ﮟﯿﮩﻧ '{}'‬‪ ﻥﺁ ﮉﯾﺍ"
 
 
 msgid "Info written to %s text datablock!"
@@ -108946,11 +108920,11 @@ msgstr "ﮟﯿﻟﻮﮭﺑ ﮧﻧ ﺎﻧﺮﮐ ﻅﻮﻔﺤﻣ ﻮﮐ ﻞﺋﺎ�
 
 
 msgid "Previews generation process failed for file '{:s}'!"
-msgstr "!ﺎﯿﮔ ﻮﮨ ﻡﺎﮐﺎﻧ ﻞﻤﻋ ﺎﮐ ﮯﻧﺮﮐ ﺭﺎﯿﺗ ﮦﺭﺎﻈﻧ ﺶﯿﭘ ﮯﯿﻟ ﮯﮐ '{:s}‬‪' ﻞﺋﺎﻓ"
+msgstr "!ﺎﯿﮔ ﻮﮨ ﻡﺎﮐﺎﻧ ﻞﻤﻋ ﺎﮐ ﮯﻧﺮﮐ ﺭﺎﯿﺗ ﮦﺭﺎﻈﻧ ﺶﯿﭘ ﮯﯿﻟ ﮯﮐ '{:s}'‬‪ ﻞﺋﺎﻓ"
 
 
 msgid "Previews clear process failed for file '{:s}'!"
-msgstr "!ﺎﯿﮔﻮﮨ ﻡﺎﮐﺎﻧ ﻞﻤﻋ ﻑﺎﺻ ﮦﺭﺎﻈﻧ ﺶﯿﭘ ﮯﯿﻟ ﮯﮐ '{:s}‬‪' ﻞﺋﺎﻓ"
+msgstr "!ﺎﯿﮔﻮﮨ ﻡﺎﮐﺎﻧ ﻞﻤﻋ ﻑﺎﺻ ﮦﺭﺎﻈﻧ ﺶﯿﭘ ﮯﯿﻟ ﮯﮐ '{:s}'‬‪ ﻞﺋﺎﻓ"
 
 
 msgid "No active camera in the scene"
@@ -108986,7 +108960,7 @@ msgstr "ﯽﮑﺳ ﻦﺑ ﮟﯿﮩﻧ ﺮﯾﻮﺼﺗ ﯽﺌﻧ"
 
 
 msgid "Could not find image '{:s}'"
-msgstr "ﯽﮑﺳ ﻞﻣ ﮟﯿﮩﻧ '{:s}‬‪' ﺮﯾﻮﺼﺗ"
+msgstr "ﯽﮑﺳ ﻞﻣ ﮟﯿﮩﻧ '{:s}'‬‪ ﺮﯾﻮﺼﺗ"
 
 
 msgid "Context incorrect, image not found"
@@ -109054,7 +109028,7 @@ msgstr "ﮯﮨ ﮟﯿﮩﻧ ﺪﯿﻠﮐ ﻞﮑﺷ ﯽﺋﻮﮐ ﯽﮐ ﮯﺷ �
 
 
 msgid "Object: {:s}, Mesh: '{:s}' has no UVs"
-msgstr "ﮯﮨ ﮟﯿﮩﻧ UVs ﯽﺋﻮﮐ ﮟﯿﻣ '{:s}‬‪' :ﺶﯿﻣ ،{:s}‬‪ :ﭧﮑﯿﺠﺑﺁ"
+msgstr "ﮯﮨ ﮟﯿﮩﻧ UVs ﯽﺋﻮﮐ ﮟﯿﻣ '{:s}'‬‪ :ﺶﯿﻣ ،{:s}‬‪ :ﭧﮑﯿﺠﺑﺁ"
 
 
 msgid "Active camera is not in this scene"
@@ -109074,7 +109048,7 @@ msgstr "{r!} :ﮟﯿﮩﻧ ﺎﭩﯾﮈ ﺕﺎﯿﮐﺮﺣ  ﯽﺋﻮﮐ ﮯﯿ�
 
 
 msgid "Object: {:s}, Mesh: '{:s}' has {:d} loops (for {:d} faces), expected {:d}"
-msgstr "‬{:d}‪ ﻊﻗﻮﺘﻣ ،(ﮯﯿﻟ ﮯﮐ ﮞﻭﺮﮩﭼ {:d}‬‪) ﮟﯿﮨ ﺲﭘﻮﻟ {:d}‬‪ ﮟﯿﻣ '{:s}‬‪' :ﺶﯿﻣ ،{:s}‬‪ :ﭧﮑﯿﺠﺑﺁ"
+msgstr "‬{:d}‪ ﻊﻗﻮﺘﻣ ،(ﮯﯿﻟ ﮯﮐ ﮞﻭﺮﮩﭼ {:d}‬‪) ﮟﯿﮨ ﺲﭘﻮﻟ {:d}‬‪ ﮟﯿﻣ '{:s}'‬‪ :ﺶﯿﻣ ،{:s}‬‪ :ﭧﮑﯿﺠﺑﺁ"
 
 
 msgid "Object {!r} already has {!r} F-Curve(s). Remove these before trying again"
@@ -109082,7 +109056,7 @@ msgstr "ﮟﯾﺩ ﺎﭩﮨ ﻮﮐ ﻥﺍ ﮯﻠﮩﭘ ﮯﺳ ﮯﻧﺮﮐ ﺶ�
 
 
 msgid "Could not add a new UV map to object '{:s}' (Mesh '{:s}')"
-msgstr "('{:s}‬‪' ﺶﯿﻣ) ﺎﮑﺳ ﺎﺟ ﺎﯿﮐ ﮟﯿﮩﻧ ﻞﻣﺎﺷ ﮧﺸﻘﻧ UV ﺎﯿﻧ ﮟﯿﻣ '{:s}‬‪' ﭧﮑﯿﺠﺑﺁ"
+msgstr "('{:s}'‬‪ ﺶﯿﻣ) ﺎﮑﺳ ﺎﺟ ﺎﯿﮐ ﮟﯿﮩﻧ ﻞﻣﺎﺷ ﮧﺸﻘﻧ UV ﺎﯿﻧ ﮟﯿﻣ '{:s}'‬‪ ﭧﮑﯿﺠﺑﺁ"
 
 
 msgid "No objects with bound-box selected"
@@ -109339,7 +109313,7 @@ msgstr "ﺎﮭﺗ ﺎﯿﮔ ﺎﯿﮐ ﮟﯿﮩﻧ ﭧﯿﺳ ﮧﺘﺳﺍﺭ ﺎ
 
 
 msgid "File '{:s}' not found"
-msgstr "ﯽﻠﻣ ﮟﯿﮩﻧ '{:s}‬‪' ﻞﺋﺎﻓ"
+msgstr "ﯽﻠﻣ ﮟﯿﮩﻧ '{:s}'‬‪ ﻞﺋﺎﻓ"
 
 
 msgid "Direct execution not supported"
@@ -109628,7 +109602,7 @@ msgstr "‬{:s}‪ :ﭻﻧﺍﺮﺑ"
 
 
 msgid "Type \"{:s}\" cannot be found"
-msgstr "ﯽﺘﮑﺳ ﻞﻣ ﮟﯿﮩﻧ \"{:s}‬‪\" ﻢﺴﻗ"
+msgstr "ﯽﺘﮑﺳ ﻞﻣ ﮟﯿﮩﻧ \"{:s}\"‬‪ ﻢﺴﻗ"
 
 
 msgid "Material(s)"
@@ -113481,6 +113455,10 @@ msgid "Duplicate Marker to Scene"
 msgstr "ﮟﯾﺮﮐ ﻞﻘﻧ ﻮﮐ ﺮﮐﺭﺎﻣ ﮟﯿﻣ ﺮﻈﻨﻣ"
 
 
+msgid "Only Active Keying Set"
+msgstr "ﭧﯿﺳ ﮓﻨﯿﮐ ﻝﺎﻌﻓ ﻑﺮﺻ"
+
+
 msgid "Limit to Frame Range"
 msgstr "ﺩﻭﺪﺤﻣ ﮏﺗ ﺞﻨﯾﺭ ﻢﯾﺮﻓ"
 
@@ -113499,10 +113477,6 @@ msgstr "ﺮﭩﯾﮉﯾﺍ ﻝﺎﻌﻓ"
 
 msgid "Properties and Sidebars"
 msgstr "ﺯﺭﺎﺑﮉﺋﺎﺳ ﺭﻭﺍ ﺰﯿﭨﺮﭘﺍﺮﭘ"
-
-
-msgid "Only Active Keying Set"
-msgstr "ﭧﯿﺳ ﮓﻨﯿﮐ ﻝﺎﻌﻓ ﻑﺮﺻ"
 
 
 msgid "Layered Recording"
@@ -116502,7 +116476,7 @@ msgstr "(%s‬‪ = ﮧﺘﺳﺍﺭ ،ID = ‪%s‬) ﮯﮨ ﻂﻠﻏ ﮯﯿﻟ 
 
 
 msgid "Skipping path in keying set, as it has no ID (KS = '%s', path = '%s[%d]')"
-msgstr "('[%s‬[‪%d‬‪' = ﮧﺘﺳﺍﺭ ،'KS = '‪%s‬) ﮯﮨ ﮟﯿﮩﻧ ID ﯽﺋﻮﮐ ﮟﯿﻣ ﺱﺍ ﮧﮑﻧﻮﯿﮐ ،ﺎﻧﮌﻮﮭﭼ ﮧﺘﺳﺍﺭ ﮟﯿﻣ ﭧﯿﺳ ﮓﻨﯿﮐ"
+msgstr "('[%s‬[‪%d‬‪' = ﮧﺘﺳﺍﺭ ،KS = ‪'%s'‬) ﮯﮨ ﮟﯿﮩﻧ ID ﯽﺋﻮﮐ ﮟﯿﻣ ﺱﺍ ﮧﮑﻧﻮﯿﮐ ،ﺎﻧﮌﻮﮭﭼ ﮧﺘﺳﺍﺭ ﮟﯿﻣ ﭧﯿﺳ ﮓﻨﯿﮐ"
 
 
 msgid "<No ID pointer>"
@@ -116570,7 +116544,7 @@ msgstr "ﻡﺎﮐﺎﻧ ﮟﯿﻣ ﮯﻧﺮﮐ ﻑﺬﺣ ﻮﮐ ﻞﺋﺎﻓ ﯼ
 
 
 msgid "Saved \"%s\""
-msgstr "\"%s‬‪\" ﺎﯿﮔ ﺎﯿﮐ ﻅﻮﻔﺤﻣ"
+msgstr "‬\"%s\"‪ ﺎﯿﮔ ﺎﯿﮐ ﻅﻮﻔﺤﻣ"
 
 
 msgid "Attribute name cannot be empty"
@@ -116598,7 +116572,7 @@ msgstr "۔ﮟﯿﮨ ﮯﺘﮑﺳ ﻝﻮﮭﮐ ﻮﮐ ﮏﯿﺑ ﯽﮨ ﺮﭘ ﮯ
 
 
 msgid "LIB: %s: '%s' missing from '%s', parent '%s'"
-msgstr "LIB: ‪%s‬: '‪%s‬' '‪%s‬' ﻦﯾﺪﻟﺍﻭ ،ﮯﮨ ﺐﺋﺎﻏ ﮯﺳ '‪%s‬'"
+msgstr "LIB: ‪%s‬: ‪'%s'‬ ‪'%s'‬ ﻦﯾﺪﻟﺍﻭ ،ﮯﮨ ﺐﺋﺎﻏ ﮯﺳ ‪'%s'‬"
 
 
 msgid "This file is managed by the asset system, you cannot overwrite it (using \"Save As\" is possible)"
@@ -116650,7 +116624,7 @@ msgstr "ﮟﯿﮨ ﮯﺘﮨﺎﭼ ﺎﻧﺮﮐ ﻅﻮﻔﺤﻣ ﮦﺭﺎﺑﻭ�
 
 
 msgid "Lib Reload: Replacing all references to old data-block '%s' by reloaded one failed, old one (%d remaining users) had to be kept and was renamed to '%s'"
-msgstr "Lib ﮎﻼ﻿ﺑ ﺎﭩﯾﮈ ﮯﻧﺍﺮﭘ :ﮟﯾﺮﮐ ﮈﻮﻟ ﮦﺭﺎﺑﻭﺩ '‪%s‬' ﮯﻟﺍﻭ ﮯﻧﺍﺮﭘ ،ﺎﯿﮔﻮﮨ ﻡﺎﮐﺎﻧ ﺎﻧﺮﮐ ﻞﯾﺪﺒﺗ ﮯﮐﺮﮐ ﮈﻮﻟ ﮦﺭﺎﺑﻭﺩ ﻮﮐ ﮞﻮﻟﺍﻮﺣ ﻡﺎﻤﺗ ﮯﮐ (‪%d‬ ﮯﮐﺮﮐ ﻞﯾﺪﺒﺗ ﻡﺎﻧ ﺎﮐ ﺱﺍ ﺭﻭﺍ ﺍﮍﭘ ﺎﻨﮭﮐﺭ ﻮﮐ (ﻦﯿﻓﺭﺎﺻ ﯽﻗﺎﺑ '‪%s‬' ﺎﯿﮔ ﺎﯾﺩﺮﮐ"
+msgstr "Lib ﮎﻼ﻿ﺑ ﺎﭩﯾﮈ ﮯﻧﺍﺮﭘ :ﮟﯾﺮﮐ ﮈﻮﻟ ﮦﺭﺎﺑﻭﺩ ‪'%s'‬ ﮯﻟﺍﻭ ﮯﻧﺍﺮﭘ ،ﺎﯿﮔﻮﮨ ﻡﺎﮐﺎﻧ ﺎﻧﺮﮐ ﻞﯾﺪﺒﺗ ﮯﮐﺮﮐ ﮈﻮﻟ ﮦﺭﺎﺑﻭﺩ ﻮﮐ ﮞﻮﻟﺍﻮﺣ ﻡﺎﻤﺗ ﮯﮐ (‪%d‬ ﮯﮐﺮﮐ ﻞﯾﺪﺒﺗ ﻡﺎﻧ ﺎﮐ ﺱﺍ ﺭﻭﺍ ﺍﮍﭘ ﺎﻨﮭﮐﺭ ﻮﮐ (ﻦﯿﻓﺭﺎﺻ ﯽﻗﺎﺑ ‪'%s'‬ ﺎﯿﮔ ﺎﯾﺩﺮﮐ"
 
 
 msgid "Total files %d | Changed %d | Failed %d"
@@ -116662,23 +116636,23 @@ msgstr "ﮟﯿﮨ ﮟﯿﮩﻧ ﺐﺋﺎﻏ ﮟﯿﻠﺋﺎﻓ ﯽﺋﻮﮐ"
 
 
 msgid "Could not open the directory '%s'"
-msgstr "ﺎﮑﺳ ﺎﺟ ﻻ﻿ﻮﮭﮐ ﮟﯿﮩﻧ ﻮﮐ '%s‬‪' ﯼﺮﭩﮑﯾﺮﺋﺍﮈ"
+msgstr "ﺎﮑﺳ ﺎﺟ ﻻ﻿ﻮﮭﮐ ﮟﯿﮩﻧ ﻮﮐ '%s'‬‪ ﯼﺮﭩﮑﯾﺮﺋﺍﮈ"
 
 
 msgid "Could not find '%s' in '%s'"
-msgstr "'‪%s‬' ﻮﮐ '‪%s‬' ﺎﮑﺳ ﻞﻣ ﮟﯿﮩﻧ ﮟﯿﻣ"
+msgstr "‪'%s'‬ ﻮﮐ ‪'%s'‬ ﺎﮑﺳ ﻞﻣ ﮟﯿﮩﻧ ﮟﯿﻣ"
 
 
 msgid "Path '%s' cannot be made absolute"
-msgstr "ﺎﺘﮑﺳ ﺎﺟ ﺎﯾﺎﻨﺑ ﮟﯿﮩﻧ ﻖﻠﻄﻣ ﻮﮐ '%s‬‪' ﮫﺗﺎﭘ"
+msgstr "ﺎﺘﮑﺳ ﺎﺟ ﺎﯾﺎﻨﺑ ﮟﯿﮩﻧ ﻖﻠﻄﻣ ﻮﮐ '%s'‬‪ ﮫﺗﺎﭘ"
 
 
 msgid "Path '%s' cannot be made relative for %s '%s'"
-msgstr "ﺎﺘﮑﺳ ﺎﺟ ﺎﯾﺎﻨﺑ ﮟﯿﮩﻧ ﺭﺍﺩ ﮧﺘﺷﺭ ﮯﯿﻟ ﮯﮐ '%s‬ '‪%s‬‪ ﻮﮐ '%s‬‪' ﮧﺘﺳﺍﺭ"
+msgstr "ﺎﺘﮑﺳ ﺎﺟ ﺎﯾﺎﻨﺑ ﮟﯿﮩﻧ ﺭﺍﺩ ﮧﺘﺷﺭ ﮯﯿﻟ ﮯﮐ %s‬ ‪'%s'‬‪ ﻮﮐ '%s'‬‪ ﮧﺘﺳﺍﺭ"
 
 
 msgid "Path '%s' cannot be made absolute for %s '%s'"
-msgstr "ﺎﺘﮑﺳ ﺎﺟ ﺎﯾﺎﻨﺑ ﮟﯿﮩﻧ ﻖﻠﻄﻣ ﮯﯿﻟ ﮯﮐ '%s‬ '‪%s‬‪ ﻮﮐ '%s‬‪' ﮧﺘﺳﺍﺭ"
+msgstr "ﺎﺘﮑﺳ ﺎﺟ ﺎﯾﺎﻨﺑ ﮟﯿﮩﻧ ﻖﻠﻄﻣ ﮯﯿﻟ ﮯﮐ %s‬ ‪'%s'‬‪ ﻮﮐ '%s'‬‪ ﮧﺘﺳﺍﺭ"
 
 
 msgid "brushes"
@@ -116912,7 +116886,7 @@ msgstr "ﮈﻮﻧ ﮫﺘﻨﯿﻟ ﻦﺋﻼ﻿ﭙﺳ"
 
 
 msgid "\"{}\" attribute from geometry"
-msgstr "ﯼﺮﭩﯿﻣﻮﯿﺟ ﮯﺳ ﻒﺻﻭ \"{}‬‪\""
+msgstr "ﯼﺮﭩﯿﻣﻮﯿﺟ ﮯﺳ ﻒﺻﻭ \"{}\"‬‪"
 
 
 msgid "ID / Index"
@@ -116960,7 +116934,7 @@ msgstr "‬%s‪ :ﯽﮑﺳ ﺎﺟ ﯽﮭﮑﻟ ﮟﯿﮩﻧ ﺮﯾﻮﺼﺗ"
 
 
 msgid "When saving a tiled image, the path '%s' must contain a valid UDIM marker"
-msgstr "ﮯﯿﮨﺎﭼ ﺎﻧﻮﮨ ﺮﮐﺭﺎﻣ UDIM ﺖﺳﺭﺩ ﮏﯾﺍ ﮟﯿﻣ '%s‬‪' ﮧﺘﺳﺍﺭ ،ﺖﻗﻭ ﮯﺗﺮﮐ ﻅﻮﻔﺤﻣ ﻮﮐ ﺮﯾﻮﺼﺗ ﮦﺪﺷ ﻞﺋﺎﭨ"
+msgstr "ﮯﯿﮨﺎﭼ ﺎﻧﻮﮨ ﺮﮐﺭﺎﻣ UDIM ﺖﺳﺭﺩ ﮏﯾﺍ ﮟﯿﻣ '%s'‬‪ ﮧﺘﺳﺍﺭ ،ﺖﻗﻭ ﮯﺗﺮﮐ ﻅﻮﻔﺤﻣ ﻮﮐ ﺮﯾﻮﺼﺗ ﮦﺪﺷ ﻞﺋﺎﭨ"
 
 
 msgid "Error writing render result, %s (see console)"
@@ -116968,7 +116942,7 @@ msgstr "(ﮟﯿﮭﮑﯾﺩ ﻝﻮﺴﻨﮐ) %s‬‪ ،ﯽﺑﺍﺮﺧ ﮟﯿ�
 
 
 msgid "Render error (%s) cannot save: '%s'"
-msgstr "'%s‬‪' :ﯽﺘﮑﺳ ﻮﮨ ﮟﯿﮩﻧ ﻅﻮﻔﺤﻣ (%s‬‪) ﯽﺑﺍﺮﺧ ﯽﮐ ﺭﮉﻨﯾﺭ"
+msgstr "‬'%s'‪ :ﯽﺘﮑﺳ ﻮﮨ ﮟﯿﮩﻧ ﻅﻮﻔﺤﻣ (%s‬‪) ﯽﺑﺍﺮﺧ ﯽﮐ ﺭﮉﻨﯾﺭ"
 
 
 msgid "Basis"
@@ -117009,15 +116983,15 @@ msgstr "ﮟﯿﮭﺗ ﯽﺌﮔ ﯽﮐ ﮯﻌﯾﺭﺫ ﮯﮐ ﻑﺭﺎﺻ ﮞﺎ
 
 
 msgid "Library override templates have been removed: removing all override data from the data-block '%s'"
-msgstr "ﺎﻧﺎﭩﮨ ﻮﮐ ﺎﭩﯾﮈ ﮉﺋﺍﺭ ﺭﻭﻭﺍ ﻡﺎﻤﺗ ﮯﺳ '%s‬‪' ﮎﻼ﻿ﺑ ﺎﭩﯾﮈ :ﮯﮨ ﺎﯿﮔ ﺎﯾﺩ ﺎﭩﮨ ﻮﮐ ﺲﭩﯿﻠﭙﻤﯿﭨ ﮉﺋﺍﺭ ﺭﻭﻭﺍ ﯼﺮﯾﺮﺒﺋﻻ﻿"
+msgstr "ﺎﻧﺎﭩﮨ ﻮﮐ ﺎﭩﯾﮈ ﮉﺋﺍﺭ ﺭﻭﻭﺍ ﻡﺎﻤﺗ ﮯﺳ '%s'‬‪ ﮎﻼ﻿ﺑ ﺎﭩﯾﮈ :ﮯﮨ ﺎﯿﮔ ﺎﯾﺩ ﺎﭩﮨ ﻮﮐ ﺲﭩﯿﻠﭙﻤﯿﭨ ﮉﺋﺍﺭ ﺭﻭﻭﺍ ﯼﺮﯾﺮﺒﺋﻻ﻿"
 
 
 msgid "Data corruption: data-block '%s' is using itself as library override reference, removing all override data"
-msgstr "ﺎﭩﯾﮈ ﮉﺋﺍﺭ ﺭﻭﻭﺍ removing all ,ﮯﮨ ﺎﮨﺭ ﺮﮐ ﻝﺎﻤﻌﺘﺳﺍ ﺮﭘ ﺭﻮﻃ ﮯﮐ ﮧﻟﺍﻮﺣ ﮉﺋﺍﺭ ﺭﻭﻭﺍ ﯼﺮﯾﺮﺒﺋﻻ﻿ ﻮﮐ ﺩﻮﺧ '%s‬‪' ﮎﻼ﻿ﺑ ﺎﭩﯾﮈ :ﭧﭘﺮﮐ ﺎﭩﯾﮈ"
+msgstr "ﺎﭩﯾﮈ ﮉﺋﺍﺭ ﺭﻭﻭﺍ removing all ,ﮯﮨ ﺎﮨﺭ ﺮﮐ ﻝﺎﻤﻌﺘﺳﺍ ﺮﭘ ﺭﻮﻃ ﮯﮐ ﮧﻟﺍﻮﺣ ﮉﺋﺍﺭ ﺭﻭﻭﺍ ﯼﺮﯾﺮﺒﺋﻻ﻿ ﻮﮐ ﺩﻮﺧ '%s'‬‪ ﮎﻼ﻿ﺑ ﺎﭩﯾﮈ :ﭧﭘﺮﮐ ﺎﭩﯾﮈ"
 
 
 msgid "Data corruption: data-block '%s' is using another local data-block ('%s') as library override reference, removing all override data"
-msgstr "ﺎﭩﯾﮈ ﮉﺋﺍﺭ ﺭﻭﻭﺍ removing all ,ﮯﮨ ﺎﮨﺭ ﺮﮐ ﻝﺎﻤﻌﺘﺳﺍ ﺮﭘ ﺭﻮﻃ ﮯﮐ ﮧﻟﺍﻮﺣ ﮉﺋﺍﺭ ﺭﻭﻭﺍ ﯼﺮﯾﺮﺒﺋﻻ﻿ ﻮﮐ ('%s‬‪') ﮎﻼ﻿ﺑ ﺎﭩﯾﮈ ﯽﻣﺎﻘﻣ ﺭﻭﺍ ﮏﯾﺍ '%s‬‪' ﮎﻼ﻿ﺑ ﺎﭩﯾﮈ :ﭧﭘﺮﮐ ﺎﭩﯾﮈ"
+msgstr "ﺎﭩﯾﮈ ﮉﺋﺍﺭ ﺭﻭﻭﺍ removing all ,ﮯﮨ ﺎﮨﺭ ﺮﮐ ﻝﺎﻤﻌﺘﺳﺍ ﺮﭘ ﺭﻮﻃ ﮯﮐ ﮧﻟﺍﻮﺣ ﮉﺋﺍﺭ ﺭﻭﻭﺍ ﯼﺮﯾﺮﺒﺋﻻ﻿ ﻮﮐ ('%s'‬‪) ﮎﻼ﻿ﺑ ﺎﭩﯾﮈ ﯽﻣﺎﻘﻣ ﺭﻭﺍ ﮏﯾﺍ '%s'‬‪ ﮎﻼ﻿ﺑ ﺎﭩﯾﮈ :ﭧﭘﺮﮐ ﺎﭩﯾﮈ"
 
 
 msgid "libraries"
@@ -117037,7 +117011,7 @@ msgstr "‪%s‬ ﮓﻨﮑﻨﻟ ﻭﮉﯿﺷ ﮯﯿﻟ ﮯﮐ"
 
 
 msgid "Cannot unlink unsupported '%s' from light linking collection '%s'"
-msgstr "ﺎﺘﮑﺳ ﺎﺟ ﺎﯿﮐ ﮟﯿﮩﻧ ﻢﺘﺧ ﮏﻨﻟ ﺎﮐ '%s‬‪' ﮧﺘﻓﺎﯾ ﻥﻭﺎﻌﺗ ﺮﯿﻏ ﮯﺳ '%s‬‪' ﮧﻋﻮﻤﺠﻣ ﮯﻟﺍﻭ ﮯﻧﺮﮐ ﮏﻨﻟ ﭧﺋﻻ﻿"
+msgstr "ﺎﺘﮑﺳ ﺎﺟ ﺎﯿﮐ ﮟﯿﮩﻧ ﻢﺘﺧ ﮏﻨﻟ ﺎﮐ '%s'‬‪ ﮧﺘﻓﺎﯾ ﻥﻭﺎﻌﺗ ﺮﯿﻏ ﮯﺳ '%s'‬‪ ﮧﻋﻮﻤﺠﻣ ﮯﻟﺍﻭ ﮯﻧﺮﮐ ﮏﻨﻟ ﭧﺋﻻ﻿"
 
 
 msgid "lightprobes"
@@ -117157,19 +117131,19 @@ msgstr "ﮟﯿﮨ ﯽﺌﮔ ﯽﮐ ﮟﯿﮩﻧ ﮏﯿﭘ ﮟﯿﻠﺋﺎﻓ ﯽ
 
 
 msgid "Unable to pack file, source path '%s' not found"
-msgstr "ﻼ﻿ﻣ ﮟﯿﮩﻧ '%s‬‪' ﮧﺘﺳﺍﺭ ﺱﺭﻮﺳ ،ﺮﺻﺎﻗ ﮯﺳ ﮯﻧﺮﮐ ﮏﯿﭘ ﻞﺋﺎﻓ"
+msgstr "ﻼ﻿ﻣ ﮟﯿﮩﻧ '%s'‬‪ ﮧﺘﺳﺍﺭ ﺱﺭﻮﺳ ،ﺮﺻﺎﻗ ﮯﺳ ﮯﻧﺮﮐ ﮏﯿﭘ ﻞﺋﺎﻓ"
 
 
 msgid "Unable to access the size of, source path '%s'"
-msgstr "ﺮﺻﺎﻗ ﮯﺳ ﮯﻧﺮﮐ ﻞﺻﺎﺣ ﯽﺋﺎﺳﺭ ﮏﺗ ﺰﺋﺎﺳ ﮯﮐ '%s‬‪' ﮧﺘﺳﺍﺭ ﺱﺭﻮﺳ"
+msgstr "ﺮﺻﺎﻗ ﮯﺳ ﮯﻧﺮﮐ ﻞﺻﺎﺣ ﯽﺋﺎﺳﺭ ﮏﺗ ﺰﺋﺎﺳ ﮯﮐ '%s'‬‪ ﮧﺘﺳﺍﺭ ﺱﺭﻮﺳ"
 
 
 msgid "Unable to pack files over 2gb, source path '%s'"
-msgstr "'%s‬‪' ﮧﺘﺳﺍﺭ ﺱﺭﻮﺳ ،ﺮﺻﺎﻗ ﮯﺳ ﮯﻧﺮﮐ ﮏﯿﭘ ﮟﯿﻠﺋﺎﻓ ﮦﺩﺎﯾﺯ ﮯﺳ ﯽﺑ ﯽﺟ 2"
+msgstr "‬'%s'‪ ﮧﺘﺳﺍﺭ ﺱﺭﻮﺳ ،ﺮﺻﺎﻗ ﮯﺳ ﮯﻧﺮﮐ ﮏﯿﭘ ﮟﯿﻠﺋﺎﻓ ﮦﺩﺎﯾﺯ ﮯﺳ ﯽﺑ ﯽﺟ 2"
 
 
 msgid "Image '%s' skipped, packing movies or image sequences not supported"
-msgstr "ﮟﯿﮨ ﮟﯿﮩﻧ ﮧﺘﻓﺎﯾ ﻥﻭﺎﻌﺗ ﮯﻠﺴﻠﺳ ﯼﺮﯾﻮﺼﺗ ﺎﯾ ﮓﻨﮑﯿﭘ ﯽﮐ ﮞﻮﻤﻠﻓ ،ﺎﯿﮔ ﺎﯾﺩ ﮌﻮﮭﭼ ﻮﮐ '%s‬‪' ﺮﯾﻮﺼﺗ"
+msgstr "ﮟﯿﮨ ﮟﯿﮩﻧ ﮧﺘﻓﺎﯾ ﻥﻭﺎﻌﺗ ﮯﻠﺴﻠﺳ ﯼﺮﯾﻮﺼﺗ ﺎﯾ ﮓﻨﮑﯿﭘ ﯽﮐ ﮞﻮﻤﻠﻓ ،ﺎﯿﮔ ﺎﯾﺩ ﮌﻮﮭﭼ ﻮﮐ '%s'‬‪ ﺮﯾﻮﺼﺗ"
 
 
 msgid "Packed %d file(s)"
@@ -117177,11 +117151,11 @@ msgstr "(ﺯ)ﻞﺋﺎﻓ %d‬‪ ﮦﺪﺷ ﮏﯿﭘ"
 
 
 msgid "Error creating file '%s'"
-msgstr "ﯽﺑﺍﺮﺧ ﮟﯿﻣ ﮯﻧﺎﻨﺑ '%s‬‪' ﻞﺋﺎﻓ"
+msgstr "ﯽﺑﺍﺮﺧ ﮟﯿﻣ ﮯﻧﺎﻨﺑ '%s'‬‪ ﻞﺋﺎﻓ"
 
 
 msgid "Error writing file '%s'"
-msgstr "ﯽﺑﺍﺮﺧ ﮟﯿﻣ ﮯﻨﮭﮑﻟ '%s‬‪' ﻞﺋﺎﻓ"
+msgstr "ﯽﺑﺍﺮﺧ ﮟﯿﻣ ﮯﻨﮭﮑﻟ '%s'‬‪ ﻞﺋﺎﻓ"
 
 
 msgid "Saved packed file to: %s"
@@ -117189,11 +117163,11 @@ msgstr "‬%s‪ :ﺎﯿﮔ ﺎﯿﮐ ﻅﻮﻔﺤﻣ ﮟﯿﻣ ﺱﺍ ﻮﮐ �
 
 
 msgid "Error restoring temp file (check files '%s' '%s')"
-msgstr "(ﮟﯾﺮﮐ ﮏﯿﭼ '%s‬' '‪%s‬‪' ﺰﻠﺋﺎﻓ) ﯽﺑﺍﺮﺧ ﮟﯿﻣ ﮯﻧﺮﮐ ﻝﺎﺤﺑ ﻮﮐ ﻞﺋﺎﻓ ﯽﺿﺭﺎﻋ"
+msgstr "(ﮟﯾﺮﮐ ﮏﯿﭼ '%s'‬ ‪'%s'‬‪ ﺰﻠﺋﺎﻓ) ﯽﺑﺍﺮﺧ ﮟﯿﻣ ﮯﻧﺮﮐ ﻝﺎﺤﺑ ﻮﮐ ﻞﺋﺎﻓ ﯽﺿﺭﺎﻋ"
 
 
 msgid "Error deleting '%s' (ignored)"
-msgstr "'‪%s‬' ﺯﺍﺪﻧﺍ ﺮﻈﻧ) ﯽﺑﺍﺮﺧ ﮟﯿﻣ ﮯﻧﺮﮐ ﻑﺬﺣ ﻮﮐ)"
+msgstr "‪'%s'‬ ﺯﺍﺪﻧﺍ ﺮﻈﻧ) ﯽﺑﺍﺮﺧ ﮟﯿﻣ ﮯﻧﺮﮐ ﻑﺬﺣ ﻮﮐ)"
 
 
 msgid "Use existing file (instead of packed): %s"
@@ -117201,11 +117175,11 @@ msgstr "‬%s‪ :(ﮉﮑﯿﭘ ﮯﺋﺎﺠﺑ) ﮟﯾﺮﮐ ﻝﺎﻤﻌﺘﺳ
 
 
 msgid "Cannot pack absolute file: '%s'"
-msgstr "'%s‬‪' :ﺎﺘﮑﺳ ﺎﺟ ﺎﯿﮐ ﮟﯿﮩﻧ ﮏﯿﭘ ﻮﮐ ﻞﺋﺎﻓ ﻖﻠﻄﻣ"
+msgstr "‬'%s'‪ :ﺎﺘﮑﺳ ﺎﺟ ﺎﯿﮐ ﮟﯿﮩﻧ ﮏﯿﭘ ﻮﮐ ﻞﺋﺎﻓ ﻖﻠﻄﻣ"
 
 
 msgid "Cannot unpack individual Library file, '%s'"
-msgstr "'%s‬‪' ،ﺎﺘﮑﺳ ﮟﯿﮩﻧ ﻝﻮﮭﮐ ﻮﮐ ﻞﺋﺎﻓ ﯼﺮﯾﺮﺒﺋﻻ﻿ ﯼﺩﺍﺮﻔﻧﺍ"
+msgstr "‬'%s'‪ ،ﺎﺘﮑﺳ ﮟﯿﮩﻧ ﻝﻮﮭﮐ ﻮﮐ ﻞﺋﺎﻓ ﯼﺮﯾﺮﺒﺋﻻ﻿ ﯼﺩﺍﺮﻔﻧﺍ"
 
 
 msgid "palettes"
@@ -117301,7 +117275,7 @@ msgstr "ﺎﯿﮔ ﺎﯿﮐ ﺐﺗﺮﻣ ﺮﯿﻐﺑ ﮯﮐ ﻦﺠﻧﺍ ﺲﮐ
 
 
 msgid "LIB: object lost from scene: '%s'"
-msgstr "LIB: ﺰﯿﭼ ﮦﺪﺷ ﻢﮔ ﮯﺳﻮﯾﻭ: '‪%s‬'"
+msgstr "LIB: ﺰﯿﭼ ﮦﺪﺷ ﻢﮔ ﮯﺳﻮﯾﻭ: ‪'%s'‬"
 
 
 msgid "RenderView"
@@ -117726,27 +117700,27 @@ msgstr "ﺮﺻﺎﻗ ﮯﺳ ﮯﻨﻟﻮﮭﮐ"
 
 
 msgid "Library '%s', '%s' had multiple instances, save and reload!"
-msgstr "!ﮟﯾﺮﮐ ﮈﻮﻟ ﮦﺭﺎﺑﻭﺩ ﺭﻭﺍ ﮟﯾﺮﮐ ﻅﻮﻔﺤﻣ ،ﮟﯿﮭﺗ ﮟﯿﻟﺎﺜﻣ ﺩﺪﻌﺘﻣ ﮟﯿﻣ '%s‬'، '‪%s‬‪' ﯼﺮﯾﺮﺒﺋﻻ﻿"
+msgstr "!ﮟﯾﺮﮐ ﮈﻮﻟ ﮦﺭﺎﺑﻭﺩ ﺭﻭﺍ ﮟﯾﺮﮐ ﻅﻮﻔﺤﻣ ،ﮟﯿﮭﺗ ﮟﯿﻟﺎﺜﻣ ﺩﺪﻌﺘﻣ ﮟﯿﻣ '%s'‬، ‪'%s'‬‪ ﯼﺮﯾﺮﺒﺋﻻ﻿"
 
 
 msgid "LIB: Data refers to main .blend file: '%s' from %s"
-msgstr "LIB: ﻦﯿﻣ ﺩﺍﺮﻣ ﮯﺳ ﺎﭩﯾﮈ .blend ﮯﮨ ﻞﺋﺎﻓ: '‪%s‬' ﮯﺳ ‪%s‬"
+msgstr "LIB: ﻦﯿﻣ ﺩﺍﺮﻣ ﮯﺳ ﺎﭩﯾﮈ .blend ﮯﮨ ﻞﺋﺎﻓ: ‪'%s'‬ ﮯﺳ ‪%s‬"
 
 
 msgid "LIB: %s: '%s' is directly linked from '%s' (parent '%s'), but is a non-linkable data type"
-msgstr "LIB: ‪%s‬: '‪%s‬' ﺖﺳﺍﺭ ﮦﺍﺮﺑ '‪%s‬' (ﻦﯾﺪﻟﺍﻭ '‪%s‬') ﮯﮨ ﻢﺴﻗ ﯽﮐ ﺎﭩﯾﮈ ﮏﻠﺴﻨﻣ ﺮﯿﻏ ﮏﯾﺍ ﻦﮑﯿﻟ ،ﮯﮨ ﮏﻠﺴﻨﻣ ﮯﺳ"
+msgstr "LIB: ‪%s‬: ‪'%s'‬ ﺖﺳﺍﺭ ﮦﺍﺮﺑ ‪'%s'‬ (ﻦﯾﺪﻟﺍﻭ ‪'%s'‬) ﮯﮨ ﻢﺴﻗ ﯽﮐ ﺎﭩﯾﮈ ﮏﻠﺴﻨﻣ ﺮﯿﻏ ﮏﯾﺍ ﻦﮑﯿﻟ ،ﮯﮨ ﮏﻠﺴﻨﻣ ﮯﺳ"
 
 
 msgid "Read packed library: '%s', parent '%s'"
-msgstr "'%s‬‪' ﻦﯾﺪﻟﺍﻭ ،'%s‬‪' :ﮟﯿﮬﮍﭘ ﯼﺮﯾﺮﺒﺋﻻ﻿ ﮉﮑﯿﭘ"
+msgstr "‬'%s'‪ ﻦﯾﺪﻟﺍﻭ ،'%s'‬‪ :ﮟﯿﮬﮍﭘ ﯼﺮﯾﺮﺒﺋﻻ﻿ ﮉﮑﯿﭘ"
 
 
 msgid "Read library: '%s', '%s', parent '%s'"
-msgstr "'%s‬‪' ﻦﯾﺪﻟﺍﻭ ،'%s‬'، '‪%s‬‪' :ﮟﯿﮬﮍﭘ ﯼﺮﯾﺮﺒﺋﻻ﻿"
+msgstr "‬'%s'‪ ﻦﯾﺪﻟﺍﻭ ،'%s'‬، ‪'%s'‬‪ :ﮟﯿﮬﮍﭘ ﯼﺮﯾﺮﺒﺋﻻ﻿"
 
 
 msgid "Cannot find lib '%s'"
-msgstr "lib '‪%s‬' ﺎﺘﮑﺳ ﻞﻣ ﮟﯿﮩﻧ"
+msgstr "lib ‪'%s'‬ ﺎﺘﮑﺳ ﻞﻣ ﮟﯿﮩﻧ"
 
 
 msgid "Unable to open blend <memory>"
@@ -117762,15 +117736,15 @@ msgstr "ﮟﯿﻟﻮﮭﮐ ﮫﺗﺎﺳ ﮯﮐ ﺪﻌﺑ ﺎﯾ %s‬‪ ﺭﮉ�
 
 
 msgid "Failed to read blend file '%s': %s"
-msgstr "‬%s‪ :ﻡﺎﮐﺎﻧ ﮟﯿﻣ ﮯﻨﮬﮍﭘ '%s‬‪' ﻞﺋﺎﻓ ﮉﻨﯿﻠﺑ"
+msgstr "‬%s‪ :ﻡﺎﮐﺎﻧ ﮟﯿﻣ ﮯﻨﮬﮍﭘ '%s'‬‪ ﻞﺋﺎﻓ ﮉﻨﯿﻠﺑ"
 
 
 msgid "Unrecognized file format '%s'"
-msgstr "'%s‬‪' ﭧﯿﻣﺭﺎﻓ ﻞﺋﺎﻓ ﮦﺪﺷ ﻢﯿﻠﺴﺗ ﺮﯿﻏ"
+msgstr "‬'%s'‪ ﭧﯿﻣﺭﺎﻓ ﻞﺋﺎﻓ ﮦﺪﺷ ﻢﯿﻠﺴﺗ ﺮﯿﻏ"
 
 
 msgid "Unable to open '%s': %s"
-msgstr "'‪%s‬' ﺮﺻﺎﻗ ﮯﺳ ﮯﻨﻟﻮﮭﮐ: ‪%s‬"
+msgstr "‪'%s'‬ ﺮﺻﺎﻗ ﮯﺳ ﮯﻨﻟﻮﮭﮐ: ‪%s‬"
 
 
 msgid "GP_Palette"
@@ -117778,7 +117752,7 @@ msgstr "GP_Palette"
 
 
 msgid "Non-Empty object '%s' cannot duplicate collection '%s' anymore in Blender 2.80 and later, removed instancing"
-msgstr "ﻝﺎﺜﻣ ﺎﯿﮔ ﺎﯾﺩ ﺎﭩﮨ ،ﺎﺘﮑﺳ ﺎﻨﺑ ﮟﯿﮩﻧ ﻞﻘﻧ ﯽﮐ '%s‬‪' ﮯﻋﻮﻤﺠﻣ ﮯﮐ ﺪﻌﺑ ﮯﮐ ﺱﺍ ﺭﻭﺍ 2.80 ﺭﮉﻨﯿﻠﺑ '%s‬‪' ﮯﺷ ﯽﻟﺎﺧ ﺮﯿﻏ"
+msgstr "ﻝﺎﺜﻣ ﺎﯿﮔ ﺎﯾﺩ ﺎﭩﮨ ،ﺎﺘﮑﺳ ﺎﻨﺑ ﮟﯿﮩﻧ ﻞﻘﻧ ﯽﮐ '%s'‬‪ ﮯﻋﻮﻤﺠﻣ ﮯﮐ ﺪﻌﺑ ﮯﮐ ﺱﺍ ﺭﻭﺍ 2.80 ﺭﮉﻨﯿﻠﺑ '%s'‬‪ ﮯﺷ ﯽﻟﺎﺧ ﺮﯿﻏ"
 
 
 msgid "Hidden %d"
@@ -117929,7 +117903,7 @@ msgid ""
 "Not enough available video memory to bake \"{}\" ({} / {} MBytes).\n"
 "Try reducing surfel resolution or capture distance to lower the size of the allocation."
 msgstr ""
-"\"‪{}‬\" (‪{}‬ / ‪{}‬ MBytes) ۔ﮯﮨ ﮟﯿﮩﻧ ﯼﺭﻮﻤﯿﻣ ﻮﯾﮉﯾﻭ ﺏﺎﯿﺘﺳﺩ ﯽﻓﺎﮐ ﮯﯿﻟ ﮯﮐ ﮯﻧﺮﮐ ﮏﯿﺑ ﻮﮐ\n"
+"‪\"{}\"‬ (‪{}‬ / ‪{}‬ MBytes) ۔ﮯﮨ ﮟﯿﮩﻧ ﯼﺭﻮﻤﯿﻣ ﻮﯾﮉﯾﻭ ﺏﺎﯿﺘﺳﺩ ﯽﻓﺎﮐ ﮯﯿﻟ ﮯﮐ ﮯﻧﺮﮐ ﮏﯿﺑ ﻮﮐ\n"
 "۔ﮟﯾﺮﮐ ﺮﭽﭙﯿﮐ ﮧﻠﺻﺎﻓ ﮯﯿﻟ ﮯﮐ ﮯﻧﺮﮐ ﻢﮐ ﺰﺋﺎﺳ ﺎﮐ ﺺﺘﺨﻣ ﺎﯾ ﮟﯾﺮﮐ ﺶﺷﻮﮐ ﯽﮐ ﮯﻧﺮﮐ ﻢﮐ ﻮﮐ ﻦﺷﻮﻟﻭﺰﯾﺭ ﻞﯿﻓﺮﺳ"
 
 
@@ -118196,7 +118170,7 @@ msgstr "(%s‬‪ = ﮧﺘﺳﺍﺭ ،ID = ‪%s‬) ﮯﮨ ﻂﻠﻏ ﮯﯿﻟ 
 
 
 msgid "Keying set '%s' - successfully added %d keyframes"
-msgstr "ﮯﺌﮔ ﮯﯾﺩ ﺮﮐ ﻞﻣﺎﺷ ﺰﻤﯾﺮﻓ ﯽﮐ %d‬‪ ﮫﺗﺎﺳ ﮯﮐ ﯽﺑﺎﯿﻣﺎﮐ - '%s‬‪' ﭧﯿﺳ ﮓﻨﯿﮐ"
+msgstr "ﮯﺌﮔ ﮯﯾﺩ ﺮﮐ ﻞﻣﺎﺷ ﺰﻤﯾﺮﻓ ﯽﮐ %d‬‪ ﮫﺗﺎﺳ ﮯﮐ ﯽﺑﺎﯿﻣﺎﮐ - '%s'‬‪ ﭧﯿﺳ ﮓﻨﯿﮐ"
 
 
 msgid "Unsupported context mode"
@@ -118212,7 +118186,7 @@ msgstr "(ID = ‪%s‬) ﮯﮨ ﯽﺗﺮﮐ ﮟﯿﮩﻧ ﭦﺭﻮﭙﺳ ﻮﮐ 
 
 
 msgid "Not deleting keyframe for locked F-Curve '%s', object '%s'"
-msgstr "ﮯﮨ ﺎﮨﺭ ﺎﺟ ﺎﯿﮐ ﮟﯿﮩﻧ ﻑﺬﺣ ﻮﮐ ﻢﯾﺮﻓ ﯼﺪﯿﻠﮐ ﮯﯿﻟ ﮯﮐ '%s‬‪' ﮯﺷ ،'%s‬‪'  ﻢﺧ-ﻒﯾﻼ﻿ﻔﻘﻣ"
+msgstr "ﮯﮨ ﺎﮨﺭ ﺎﺟ ﺎﯿﮐ ﮟﯿﮩﻧ ﻑﺬﺣ ﻮﮐ ﻢﯾﺮﻓ ﯼﺪﯿﻠﮐ ﮯﯿﻟ ﮯﮐ '%s'‬‪ ﮯﺷ ،'%s'‬‪  ﻢﺧ-ﻒﯾﻼ﻿ﻔﻘﻣ"
 
 
 msgid "%d object(s) successfully had %d keyframes removed"
@@ -118228,11 +118202,11 @@ msgstr "‪%s‬ ﺎﺘﮑﺳ ﺎﺟ ﺎﯿﮐ ﮟﯿﮩﻧ ﮎﺮﺤﺘﻣ ﻮ�
 
 
 msgid "Not deleting keyframe for locked F-Curve for NLA Strip influence on %s - %s '%s'"
-msgstr "‪%s‬ - ‪%s‬ '‪%s‬' ﺮﭘ NLA ﮯﮨ ﺎﮨﺭ ﺎﺟ ﺎﯿﮐ ﮟﯿﮩﻧ ﻑﺬﺣ ﻮﮐ ﻢﯾﺮﻓ ﯼﺪﯿﻠﮐ ﮯﯿﻟ ﮯﮐ  ﻢﺧ-ﻒﯾﺍﺪﻨﺑ ﮯﯿﻟ ﮯﮐ ﺥﻮﺳﺭ ﻭ ﺮﺛﺍ ﮯﮐ ﯽﭩﭘ"
+msgstr "‪%s‬ - ‪%s‬ ‪'%s'‬ ﺮﭘ NLA ﮯﮨ ﺎﮨﺭ ﺎﺟ ﺎﯿﮐ ﮟﯿﮩﻧ ﻑﺬﺣ ﻮﮐ ﻢﯾﺮﻓ ﯼﺪﯿﻠﮐ ﮯﯿﻟ ﮯﮐ  ﻢﺧ-ﻒﯾﺍﺪﻨﺑ ﮯﯿﻟ ﮯﮐ ﺥﻮﺳﺭ ﻭ ﺮﺛﺍ ﮯﮐ ﯽﭩﭘ"
 
 
 msgid "Keying set '%s' not found"
-msgstr "ﻼ﻿ﻣ ﮟﯿﮩﻧ '%s‬‪' ﭧﯿﺳ ﯼﺪﯿﻠﮐ"
+msgstr "ﻼ﻿ﻣ ﮟﯿﮩﻧ '%s'‬‪ ﭧﯿﺳ ﯼﺪﯿﻠﮐ"
 
 
 msgid "No active Keying Set to remove"
@@ -118272,7 +118246,7 @@ msgstr "ﺎﯿﮔ ﺎﯾﺩ ﺎﭩﮨ ﻮﮐ ﯽﭨﺮﭘﺍﺮﭘ ﮯﺳ ﭧﯿ
 
 
 msgid "Property added to Keying Set: '%s'"
-msgstr "'%s‬‪' :ﯽﺌﮔ ﯽﮐ ﻞﻣﺎﺷ ﯽﭨﺮﭘﺍﺮﭘ ﮟﯿﻣ ﭧﯿﺳ ﮓﻨﯿﮐ"
+msgstr "‬'%s'‪ :ﯽﺌﮔ ﯽﮐ ﻞﻣﺎﺷ ﯽﭨﺮﭘﺍﺮﭘ ﮟﯿﻣ ﭧﯿﺳ ﮓﻨﯿﮐ"
 
 
 msgid "Delete selected bones?"
@@ -118308,11 +118282,11 @@ msgstr "‬%d‪ :ﮯﺌﮔ ﮯﯿﮐ ﺐﺨﺘﻨﻣ ﺲﭩﻨﺋﺍﻮﭘ ﮦ�
 
 
 msgid "Aligned bone '%s' to parent"
-msgstr "ﺎﯿﮔ ﺎﯿﮐ ﮏﻠﺴﻨﻣ ﮫﺗﺎﺳ ﮯﮐ ﻦﯾﺪﻟﺍﻭ ﻮﮐ '%s‬‪' ﯼﮉﮨ"
+msgstr "ﺎﯿﮔ ﺎﯿﮐ ﮏﻠﺴﻨﻣ ﮫﺗﺎﺳ ﮯﮐ ﻦﯾﺪﻟﺍﻭ ﻮﮐ '%s'‬‪ ﯼﮉﮨ"
 
 
 msgid "%d bones aligned to bone '%s'"
-msgstr "‪%d‬ ﯼﮉﮨ ﮞﺎﯾﮉﮨ '‪%s‬' ﮟﯿﮨ ﮏﻠﺴﻨﻣ ﮯﺳ"
+msgstr "‪%d‬ ﯼﮉﮨ ﮞﺎﯾﮉﮨ ‪'%s'‬ ﮟﯿﮨ ﮏﻠﺴﻨﻣ ﮯﺳ"
 
 
 msgid "Active object is not a selected armature"
@@ -118536,7 +118510,7 @@ msgstr "ﺎﺘﮑﺳ ﺎﺟ ﺎﯿﮐ ﮟﯿﮩﻧ ﻅﻮﻔﺤﻣ ،ﮯﮨ ﺎ�
 
 
 msgid "Data-block '%s' is now an asset"
-msgstr "ﮯﮨ ﮧﺛﺎﺛﺍ ﮏﯾﺍ ﺏﺍ '%s‬‪' ﮎﻼ﻿ﺑ ﺎﭩﯾﮈ"
+msgstr "ﮯﮨ ﮧﺛﺎﺛﺍ ﮏﯾﺍ ﺏﺍ '%s'‬‪ ﮎﻼ﻿ﺑ ﺎﭩﯾﮈ"
 
 
 msgid "%i data-blocks are now assets"
@@ -118544,7 +118518,7 @@ msgstr "‪%i‬ ﮟﯿﮨ ﮯﺛﺎﺛﺍ ﺏﺍ ﺲﮐﻼ﻿ﺑ ﺎﭩﯾﮈ"
 
 
 msgid "Data-block '%s' is not an asset anymore"
-msgstr "ﮯﮨ ﮟﯿﮩﻧ ﮧﺛﺎﺛﺍ ﯽﺋﻮﮐ ﺏﺍ '%s‬‪' ﮎﻼ﻿ﺑ ﺎﭩﯾﮈ"
+msgstr "ﮯﮨ ﮟﯿﮩﻧ ﮧﺛﺎﺛﺍ ﯽﺋﻮﮐ ﺏﺍ '%s'‬‪ ﮎﻼ﻿ﺑ ﺎﭩﯾﮈ"
 
 
 msgid "%i data-blocks are not assets anymore"
@@ -118785,7 +118759,7 @@ msgstr "ﻕﺎﺒﺳ ﻭ ﻕﺎﯿﺳ ﻂﻠﻏ ﮯﯿﻟ ﮯﮐ ﮯﻧﺮﮐ �
 
 
 msgid "Failed to open file '%s'"
-msgstr "ﻡﺎﮐﺎﻧ ﮟﯿﻣ ﮯﻨﻟﻮﮭﮐ '%s‬‪' ﻞﺋﺎﻓ"
+msgstr "ﻡﺎﮐﺎﻧ ﮟﯿﻣ ﮯﻨﻟﻮﮭﮐ '%s'‬‪ ﻞﺋﺎﻓ"
 
 
 msgid "File too long %s"
@@ -118925,7 +118899,7 @@ msgstr "ﮟﯾﺮﮐ ﻞﻘﺘﻨﻣ ﮟﯿﻣ ﺕﺮﭘ ﯽﺌﻧ"
 
 
 msgid "Material '%s' could not be found"
-msgstr "ﺎﮑﺳ ﻞﻣ ﮟﯿﮩﻧ '%s‬‪' ﺩﺍﻮﻣ"
+msgstr "ﺎﮑﺳ ﻞﻣ ﮟﯿﮩﻧ '%s'‬‪ ﺩﺍﻮﻣ"
 
 
 msgid "Nothing selected"
@@ -118949,7 +118923,7 @@ msgstr "ﮯﮨ ﮟﯿﮩﻧ ﺕﺮﭘ ﻞﺴﻨﭘ ﯽﺋﺎﻨﮑﭼ ﻝﺎﻌ�
 
 
 msgid "There is no layer '%s'"
-msgstr "ﮯﮨ ﮟﯿﮩﻧ '%s‬‪' ﺕﺮﭘ ﯽﺋﻮﮐ"
+msgstr "ﮯﮨ ﮟﯿﮩﻧ '%s'‬‪ ﺕﺮﭘ ﯽﺋﻮﮐ"
 
 
 msgid "'%s' Layer is locked"
@@ -119005,7 +118979,7 @@ msgstr "۔ﮯﮨ ﻞﻔﻘﻣ ﭖﻭﺮﮔ ﺲﮑﯿﭨﺭﻭ ﻝﺎﻌﻓ"
 
 
 msgid "Could not resolve path '%s'"
-msgstr "ﺎﮑﺳ ﺎﺟ ﺎﯿﮐ ﮟﯿﮩﻧ ﻞﺣ ﻮﮐ '%s‬‪' ﮧﺘﺳﺍﺭ"
+msgstr "ﺎﮑﺳ ﺎﺟ ﺎﯿﮐ ﮟﯿﮩﻧ ﻞﺣ ﻮﮐ '%s'‬‪ ﮧﺘﺳﺍﺭ"
 
 
 msgid "Failed to set value"
@@ -119013,7 +118987,7 @@ msgstr "ﻡﺎﮐﺎﻧ ﮟﯿﻣ ﮯﻧﺮﮐ ﭧﯿﺳ ﺭﺪﻗ"
 
 
 msgid "Property from path '%s' is not a float"
-msgstr "ﮯﮨ ﮟﯿﮩﻧ ﭦﻮﻠﻓ ﯽﭨﺮﭘﺍﺮﭘ ﮯﺳ '%s‬‪' ﮫﺗﺎﭘ"
+msgstr "ﮯﮨ ﮟﯿﮩﻧ ﭦﻮﻠﻓ ﯽﭨﺮﭘﺍﺮﭘ ﮯﺳ '%s'‬‪ ﮫﺗﺎﭘ"
 
 
 msgid "Current: "
@@ -120074,7 +120048,7 @@ msgstr "PDF ﺮﺻﺎﻗ ﮯﺳ ﮯﻧﺮﮐ ﺪﻣﺁﺮﺑ"
 
 
 msgid "Unable to import '%s'"
-msgstr "'‪%s‬' ﺮﺻﺎﻗ ﮯﺳ ﮯﻧﺮﮐ ﺪﻣﺁﺭﺩ"
+msgstr "‪'%s'‬ ﺮﺻﺎﻗ ﮯﺳ ﮯﻧﺮﮐ ﺪﻣﺁﺭﺩ"
 
 
 msgid "Curves as NURBS"
@@ -120668,15 +120642,15 @@ msgstr "ﮟﯿﮨ ﮯﺗﻮﮨ ﺭﻮﺤﻣ ﮉﻠﯿﮑﺳ ﺮﻔﺻ ﮦﺩﺎ�
 
 
 msgid "Cannot delete indirectly linked object '%s'"
-msgstr "ﺎﺘﮑﺳ ﺎﺟ ﺎﯿﮐ ﮟﯿﮩﻧ ﻑﺬﺣ ﻮﮐ '%s‬‪' ﮯﺷ ﮏﻠﺴﻨﻣ ﺮﭘ ﺭﻮﻃ ﮧﻄﺳﺍﻮﻟﺎﺑ"
+msgstr "ﺎﺘﮑﺳ ﺎﺟ ﺎﯿﮐ ﮟﯿﮩﻧ ﻑﺬﺣ ﻮﮐ '%s'‬‪ ﮯﺷ ﮏﻠﺴﻨﻣ ﺮﭘ ﺭﻮﻃ ﮧﻄﺳﺍﻮﻟﺎﺑ"
 
 
 msgid "Cannot delete object '%s' as it is used by override collections"
-msgstr "ﮯﮨ ﺎﺗﻮﮨ ﻝﺎﻤﻌﺘﺳﺍ ﮯﻌﯾﺭﺫ ﮯﮐ ﺰﻨﺸﮑﯿﻠﮐ ﮉﺋﺍﺭ ﺭﻭﻭﺍ ﮧﯾ ﮧﮑﻧﻮﯿﮐ ﺎﺘﮑﺳ ﺎﺟ ﺎﯿﮐ ﮟﯿﮩﻧ ﻑﺬﺣ ﻮﮐ '%s‬‪' ﺰﯿﭼ"
+msgstr "ﮯﮨ ﺎﺗﻮﮨ ﻝﺎﻤﻌﺘﺳﺍ ﮯﻌﯾﺭﺫ ﮯﮐ ﺰﻨﺸﮑﯿﻠﮐ ﮉﺋﺍﺭ ﺭﻭﻭﺍ ﮧﯾ ﮧﮑﻧﻮﯿﮐ ﺎﺘﮑﺳ ﺎﺟ ﺎﯿﮐ ﮟﯿﮩﻧ ﻑﺬﺣ ﻮﮐ '%s'‬‪ ﺰﯿﭼ"
 
 
 msgid "Cannot delete object '%s' from scene '%s', indirectly used objects need at least one user"
-msgstr "ﮯﮨ ﺕﺭﻭﺮﺿ ﯽﮐ ﻑﺭﺎﺻ ﮏﯾﺍ ﻢﮐ ﺯﺍ ﻢﮐ ﻮﮐ ءﺎﯿﺷﺍ ﮦﺪﺷ ﻝﺎﻤﻌﺘﺳﺍ ﺮﭘ ﺭﻮﻃ ﮧﻄﺳﺍﻮﻟﺎﺑ ،ﺎﺘﮑﺳ ﺎﺟ ﺎﯿﮐ ﮟﯿﮩﻧ ﻑﺬﺣ ﻮﮐ '%s‬‪' ﮯﺷ ﮯﺳ '%s‬‪' ﺮﻈﻨﻣ"
+msgstr "ﮯﮨ ﺕﺭﻭﺮﺿ ﯽﮐ ﻑﺭﺎﺻ ﮏﯾﺍ ﻢﮐ ﺯﺍ ﻢﮐ ﻮﮐ ءﺎﯿﺷﺍ ﮦﺪﺷ ﻝﺎﻤﻌﺘﺳﺍ ﺮﭘ ﺭﻮﻃ ﮧﻄﺳﺍﻮﻟﺎﺑ ،ﺎﺘﮑﺳ ﺎﺟ ﺎﯿﮐ ﮟﯿﮩﻧ ﻑﺬﺣ ﻮﮐ '%s'‬‪ ﮯﺷ ﮯﺳ '%s'‬‪ ﺮﻈﻨﻣ"
 
 
 msgid "Deleted %u object(s)"
@@ -120684,15 +120658,15 @@ msgstr "ﭧﮑﯿﺠﺑﺁ %u‬‪ ﮦﺪﺷ ﻑﺬﺣ"
 
 
 msgid "Object '%s' has no evaluated mesh or curves data"
-msgstr "ﮯﮨ ﮟﯿﮩﻧ ﺎﭩﯾﮈ  ﻢﺧ  ﺎﯾ ﻝﺎﺟ ﮦﺪﺷ ﮦﺯﺍﺪﻧﺍ ﯽﺋﻮﮐ ﮟﯿﻣ '%s‬‪' ﺰﯿﭼ"
+msgstr "ﮯﮨ ﮟﯿﮩﻧ ﺎﭩﯾﮈ  ﻢﺧ  ﺎﯾ ﻝﺎﺟ ﮦﺪﺷ ﮦﺯﺍﺪﻧﺍ ﯽﺋﻮﮐ ﮟﯿﻣ '%s'‬‪ ﺰﯿﭼ"
 
 
 msgid "Object '%s' has no evaluated curves data"
-msgstr "ﮯﮨ ﮟﯿﮩﻧ ﺎﭩﯾﮈ  ﻢﺧ  ﮦﺪﺷ ﮦﺯﺍﺪﻧﺍ ﯽﺋﻮﮐ ﮟﯿﻣ '%s‬‪' ﺰﯿﭼ"
+msgstr "ﮯﮨ ﮟﯿﮩﻧ ﺎﭩﯾﮈ  ﻢﺧ  ﮦﺪﺷ ﮦﺯﺍﺪﻧﺍ ﯽﺋﻮﮐ ﮟﯿﻣ '%s'‬‪ ﺰﯿﭼ"
 
 
 msgid "Cannot edit object '%s' as it is used by override collections"
-msgstr "ﮯﮨ ﺎﺗﺎﺟ ﺎﯿﮐ ﻝﺎﻤﻌﺘﺳﺍ ﮯﻌﯾﺭﺫ ﮯﮐ ﺰﻨﺸﮑﯿﻠﮐ ﮉﺋﺍﺭ ﺭﻭﻭﺍ ﮯﺳﺍ ﮧﮑﻧﻮﯿﮐ ﯽﺘﮑﺳ ﺎﺟ ﯽﮐ ﮟﯿﮩﻧ ﺮﺋﺎﻔﯾﮈﻮﻣ ﮟﯿﻣ '%s‬‪' ﺰﯿﭼ"
+msgstr "ﮯﮨ ﺎﺗﺎﺟ ﺎﯿﮐ ﻝﺎﻤﻌﺘﺳﺍ ﮯﻌﯾﺭﺫ ﮯﮐ ﺰﻨﺸﮑﯿﻠﮐ ﮉﺋﺍﺭ ﺭﻭﻭﺍ ﮯﺳﺍ ﮧﮑﻧﻮﯿﮐ ﯽﺘﮑﺳ ﺎﺟ ﯽﮐ ﮟﯿﮩﻧ ﺮﺋﺎﻔﯾﮈﻮﻣ ﮟﯿﻣ '%s'‬‪ ﺰﯿﭼ"
 
 
 msgid "No active mesh object"
@@ -120880,19 +120854,19 @@ msgstr "ﮯﮨ ﮟﯿﮩﻧ ﮍﺟ ﯽﮐ ﯼﺪﻨﺑ ﮧﺟﺭﺩ ﮉﺋﺍﺭ
 
 
 msgid "File handler '%s' not found"
-msgstr "ﻼ﻿ﻣ ﮟﯿﮩﻧ '%s‬‪' ﺮﻟﮉﻨﯿﮨ ﻞﺋﺎﻓ"
+msgstr "ﻼ﻿ﻣ ﮟﯿﮩﻧ '%s'‬‪ ﺮﻟﮉﻨﯿﮨ ﻞﺋﺎﻓ"
 
 
 msgid "File handler operator '%s' not found"
-msgstr "ﻼ﻿ﻣ ﮟﯿﮩﻧ '%s‬‪' ﺮﭩﯾﺮﭘﺁ ﺮﻟﮉﻨﯿﮨ ﻞﺋﺎﻓ"
+msgstr "ﻼ﻿ﻣ ﮟﯿﮩﻧ '%s'‬‪ ﺮﭩﯾﺮﭘﺁ ﺮﻟﮉﻨﯿﮨ ﻞﺋﺎﻓ"
 
 
 msgid "File path '%s' is not a valid file"
-msgstr "ﮯﮨ ﮟﯿﮩﻧ ﻞﺋﺎﻓ ﺖﺳﺭﺩ ﮏﯾﺍ '%s‬‪'ﮧﺘﺳﺍﺮﻠﺋﺎﻓ"
+msgstr "ﮯﮨ ﮟﯿﮩﻧ ﻞﺋﺎﻓ ﺖﺳﺭﺩ ﮏﯾﺍ '%s'‬‪ﮧﺘﺳﺍﺮﻠﺋﺎﻓ"
 
 
 msgid "Exported '%s'"
-msgstr "'%s‬‪' ﺎﯿﮔ ﺎﯿﮐ ﺪﻣﺁﺮﺑ"
+msgstr "‬'%s'‪ ﺎﯿﮔ ﺎﯿﮐ ﺪﻣﺁﺮﺑ"
 
 
 msgid "Exported %d files from %d collections"
@@ -120992,11 +120966,11 @@ msgstr "ﮯﺘﯾﺩ ﺮﮐ ﮟﯿﮩﻧ ﺪﻤﺠﻨﻣ ﺮﯿﻏ ﮯﺳﺍ ﭖ
 
 
 msgid "Skipping object '%s', linked or override data '%s' cannot be modified"
-msgstr "ﺎﺘﮑﺳ ﺎﺟ ﺎﯿﮐ ﮟﯿﮩﻧ ﻞﯾﺪﺒﺗ ﻮﮐ '%s‬‪' ﺎﭩﯾﮈ ﮉﺋﺍﺭ ﺭﻭﻭﺍ ﺎﯾ ﮏﻠﺴﻨﻣ ،ﺎﻧﮌﻮﮭﭼ ﻮﮐ '%s‬‪' ﺰﯿﭼ"
+msgstr "ﺎﺘﮑﺳ ﺎﺟ ﺎﯿﮐ ﮟﯿﮩﻧ ﻞﯾﺪﺒﺗ ﻮﮐ '%s'‬‪ ﺎﭩﯾﮈ ﮉﺋﺍﺭ ﺭﻭﻭﺍ ﺎﯾ ﮏﻠﺴﻨﻣ ،ﺎﻧﮌﻮﮭﭼ ﻮﮐ '%s'‬‪ ﺰﯿﭼ"
 
 
 msgid "Skipping object '%s', data '%s' has already been processed with a previous object"
-msgstr "ﮯﮨ ﯽﮑﭼ ﻮﮨ ﯽﺋﺍﻭﺭﺭﺎﮐ ﮫﺗﺎﺳ ﮯﮐ ﮯﺷ ﯽﻠﮭﭽﭘ ﮏﯾﺍ ﯽﮨ ﮯﻠﮩﭘ ﺮﭘ '%s‬‪' ﺎﭩﯾﮈ ،ﺎﻧﮌﻮﮭﭼ ﻮﮐ '%s‬‪' ﺰﯿﭼ"
+msgstr "ﮯﮨ ﯽﮑﭼ ﻮﮨ ﯽﺋﺍﻭﺭﺭﺎﮐ ﮫﺗﺎﺳ ﮯﮐ ﮯﺷ ﯽﻠﮭﭽﭘ ﮏﯾﺍ ﯽﮨ ﮯﻠﮩﭘ ﺮﭘ '%s'‬‪ ﺎﭩﯾﮈ ،ﺎﻧﮌﻮﮭﭼ ﻮﮐ '%s'‬‪ ﺰﯿﭼ"
 
 
 msgid "Calculate Object Motion Paths"
@@ -121076,11 +121050,11 @@ msgstr "ﮟﯿﮨ ﮟﯿﮩﻧ ﻦﯾﻭﺪﺗ ﻞﺑﺎﻗ ءﺎﯿﺷﺍ ﯽ�
 
 
 msgid "Current mode of source object '%s' is not compatible with target liboverride object '%s'"
-msgstr "ﺎﺘﮭﮐﺭ ﮟﯿﮩﻧ ﺖﻘﺑﺎﻄﻣ ﮫﺗﺎﺳ ﮯﮐ '%s‬‪' ﭧﮑﯿﺠﺑﺁ liboverride ﭧﮔﺭﺎﭨ ﮈﻮﻣ ﮦﺩﻮﺟﻮﻣ ﺎﮐ '%s‬‪' ﭧﮑﯿﺠﺑﺁ ﺱﺭﻮﺳ"
+msgstr "ﺎﺘﮭﮐﺭ ﮟﯿﮩﻧ ﺖﻘﺑﺎﻄﻣ ﮫﺗﺎﺳ ﮯﮐ '%s'‬‪ ﭧﮑﯿﺠﺑﺁ liboverride ﭧﮔﺭﺎﭨ ﮈﻮﻣ ﮦﺩﻮﺟﻮﻣ ﺎﮐ '%s'‬‪ ﭧﮑﯿﺠﺑﺁ ﺱﺭﻮﺳ"
 
 
 msgid "Current mode of source object '%s' is not compatible with target object '%s'"
-msgstr "ﺎﺘﮭﮐﺭ ﮟﯿﮩﻧ ﺖﻘﺑﺎﻄﻣ ﮫﺗﺎﺳ ﮯﮐ '%s‬‪' ﭧﮑﯿﺠﺑﺁ ﻑﺪﮨ ﮈﻮﻣ ﮦﺩﻮﺟﻮﻣ ﺎﮐ '%s‬‪' ﭧﮑﯿﺠﺑﺁ ﺱﺭﻮﺳ"
+msgstr "ﺎﺘﮭﮐﺭ ﮟﯿﮩﻧ ﺖﻘﺑﺎﻄﻣ ﮫﺗﺎﺳ ﮯﮐ '%s'‬‪ ﭧﮑﯿﺠﺑﺁ ﻑﺪﮨ ﮈﻮﻣ ﮦﺩﻮﺟﻮﻣ ﺎﮐ '%s'‬‪ ﭧﮑﯿﺠﺑﺁ ﺱﺭﻮﺳ"
 
 
 msgid "Apply Modifier"
@@ -121188,23 +121162,23 @@ msgstr "ﮯﮨ ﻝﺎﻌﻓ ﺮﯿﻏ ﮦﺪﻨﻨﮐ ﻢﯿﻣﺮﺗ"
 
 
 msgid "Modifiers cannot be added to object '%s'"
-msgstr "ﺎﺘﮑﺳ ﺎﺟ ﺎﯿﮐ ﮟﯿﮩﻧ ﻞﻣﺎﺷ ﮟﯿﻣ '%s‬‪' ﮯﺷ ﻮﮐ ﮞﻮﻟﺍﻭ ﮯﻧﺮﮐ ﻢﯿﻣﺮﺗ"
+msgstr "ﺎﺘﮑﺳ ﺎﺟ ﺎﯿﮐ ﮟﯿﮩﻧ ﻞﻣﺎﺷ ﮟﯿﻣ '%s'‬‪ ﮯﺷ ﻮﮐ ﮞﻮﻟﺍﻭ ﮯﻧﺮﮐ ﻢﯿﻣﺮﺗ"
 
 
 msgid "Modifier '%s' not in object '%s'"
-msgstr "ﮯﮨ ﮟﯿﮩﻧ ﮟﯿﻣ '%s‬‪' ﮯﺷ '%s‬‪' ﮦﺪﻨﻨﮐ ﻢﯿﻣﺮﺗ"
+msgstr "ﮯﮨ ﮟﯿﮩﻧ ﮟﯿﻣ '%s'‬‪ ﮯﺷ '%s'‬‪ ﮦﺪﻨﻨﮐ ﻢﯿﻣﺮﺗ"
 
 
 msgid "Object '%s' does not support %s modifiers"
-msgstr "ﮯﮨ ﺎﺗﺮﮐ ﮟﯿﮩﻧ ﭦﺭﻮﭙﺳ ﻮﮐ ﮞﻮﻟﺍﻭ ﮯﻧﺮﮐ ﺮﺋﺎﻔﯾﮈﻮﻣ %s‬' ‪%s‬‪' ﺰﯿﭼ"
+msgstr "ﮯﮨ ﺎﺗﺮﮐ ﮟﯿﮩﻧ ﭦﺭﻮﭙﺳ ﻮﮐ ﮞﻮﻟﺍﻭ ﮯﻧﺮﮐ ﺮﺋﺎﻔﯾﮈﻮﻣ '%s'‬ ‪%s‬‪ ﺰﯿﭼ"
 
 
 msgid "Modifier can only be added once to object '%s'"
-msgstr "ﮯﮨ ﺎﺘﮑﺳ ﺎﺟ ﺎﯿﮐ ﻞﻣﺎﺷ ﮟﯿﻣ '%s‬‪' ﺽﺍﺮﺘﻋﺍ ﺭﺎﺑ ﮏﯾﺍ ﻑﺮﺻ ﻮﮐ ﺮﺋﺎﻔﯾﮈﻮﻣ"
+msgstr "ﮯﮨ ﺎﺘﮑﺳ ﺎﺟ ﺎﯿﮐ ﻞﻣﺎﺷ ﮟﯿﻣ '%s'‬‪ ﺽﺍﺮﺘﻋﺍ ﺭﺎﺑ ﮏﯾﺍ ﻑﺮﺻ ﻮﮐ ﺮﺋﺎﻔﯾﮈﻮﻣ"
 
 
 msgid "Copying modifier '%s' to object '%s' failed"
-msgstr "ﺎﯿﮔ ﻮﮨ ﻡﺎﮐﺎﻧ ﺎﻧﺮﮐ ﯽﭘﺎﮐ ﮟﯿﻣ '%s‬‪' ﮯﺷ ﻮﮐ '%s‬‪' ﺮﺋﺎﻔﯾﮈﻮﻣ"
+msgstr "ﺎﯿﮔ ﻮﮨ ﻡﺎﮐﺎﻧ ﺎﻧﺮﮐ ﯽﭘﺎﮐ ﮟﯿﻣ '%s'‬‪ ﮯﺷ ﻮﮐ '%s'‬‪ ﺮﺋﺎﻔﯾﮈﻮﻣ"
 
 
 msgid "Removed modifier: %s"
@@ -121216,11 +121190,11 @@ msgstr "‬%s‪ :ﺮﺋﺎﻔﯾﮈﻮﻣ ﮉﯿﺋﻼ﻿ﭘﺍ"
 
 
 msgid "Modifier '%s' was not copied to any objects"
-msgstr "ﺎﮭﺗ ﺎﯿﮔ ﺎﯿﮐ ﮟﯿﮩﻧ ﯽﭘﺎﮐ ﮟﯿﻣ ﮯﺷ ﯽﮭﺑ ﯽﺴﮐ ﻮﮐ '%s‬‪' ﮦﺪﻨﻨﮐ ﻢﯿﻣﺮﺗ"
+msgstr "ﺎﮭﺗ ﺎﯿﮔ ﺎﯿﮐ ﮟﯿﮩﻧ ﯽﭘﺎﮐ ﮟﯿﻣ ﮯﺷ ﯽﮭﺑ ﯽﺴﮐ ﻮﮐ '%s'‬‪ ﮦﺪﻨﻨﮐ ﻢﯿﻣﺮﺗ"
 
 
 msgid "Mesh '%s' has no skin vertex data"
-msgstr "ﮯﮨ ﮟﯿﮩﻧ ﺎﭩﯾﮈ ﯽﺋﻮﮐ ﺎﮐ ﯽﭨﻮﭼ ﯽﮐ ﺪﻠﺟ ﮟﯿﻣ '%s‬‪' ﺶﯿﻣ"
+msgstr "ﮯﮨ ﮟﯿﮩﻧ ﺎﭩﯾﮈ ﯽﺋﻮﮐ ﺎﮐ ﯽﭨﻮﭼ ﯽﮐ ﺪﻠﺟ ﮟﯿﻣ '%s'‬‪ ﺶﯿﻣ"
 
 
 msgid "Cannot edit modifiers coming from linked data in a library override"
@@ -121308,7 +121282,7 @@ msgstr "({}‬‪ ﭦﻼ﻿ﺳ) ﮟﯾﺩ ﺍﺮﮔ ﺮﭘ {}‬‪ ﻮﮐ {}‬
 
 
 msgid "Add modifier with node group \"{}\" on object \"{}\""
-msgstr "ﮟﯾﺮﮐ ﻞﻣﺎﺷ ﮦﺪﻨﻨﮐ ﻢﯿﻣﺮﺗ ﮫﺗﺎﺳ ﮯﮐ \"{}‬‪\"ﮦﻭﺮﮔ ﮈﻮﻧ ﺮﭘ ﮯﺷ \"{}‬‪\""
+msgstr "ﮟﯾﺮﮐ ﻞﻣﺎﺷ ﮦﺪﻨﻨﮐ ﻢﯿﻣﺮﺗ ﮫﺗﺎﺳ ﮯﮐ \"{}\"‬‪ﮦﻭﺮﮔ ﮈﻮﻧ ﺮﭘ ﮯﺷ \"{}\"‬‪"
 
 
 msgid "Select either 1 or 3 vertices to parent to"
@@ -121376,11 +121350,11 @@ msgstr "ﻕﺎﺒﺳ ﻭ ﻕﺎﯿﺳ ﻂﻠﻏ ﮯﯿﻟ ﮯﮐ ﮯﻧﻼ﻿ﭼ
 
 
 msgid "Collection '%s' (instantiated by the active object) is not overridable"
-msgstr "ﮯﮨ ﮟﯿﮩﻧ ﻞﺒﯾﺍ ﮉﯿﺋﺍﺭ ﺭﻭﻭﺍ (ﺮﭘ ﺭﻮﻃ ﯼﺭﻮﻓ ﮯﻌﯾﺭﺫ ﮯﮐ ﮯﺷ ﻝﺎﻌﻓ) '%s‬‪' ﮧﻋﻮﻤﺠﻣ"
+msgstr "ﮯﮨ ﮟﯿﮩﻧ ﻞﺒﯾﺍ ﮉﯿﺋﺍﺭ ﺭﻭﻭﺍ (ﺮﭘ ﺭﻮﻃ ﯼﺭﻮﻓ ﮯﻌﯾﺭﺫ ﮯﮐ ﮯﺷ ﻝﺎﻌﻓ) '%s'‬‪ ﮧﻋﻮﻤﺠﻣ"
 
 
 msgid "Could not find an overridable root hierarchy for object '%s'"
-msgstr "ﯽﮑﺳ ﻞﻣ ﮟﯿﮩﻧ ﯼﺪﻨﺑ ﮧﺟﺭﺩ ﺎﮐ ﮍﺟ ﻞﺒﯾﺍ ﮉﯿﺋﺍﺭ ﺭﻭﻭﺍ ﮯﯿﻟ ﮯﮐ '%s‬‪' ﺰﯿﭼ"
+msgstr "ﯽﮑﺳ ﻞﻣ ﮟﯿﮩﻧ ﯼﺪﻨﺑ ﮧﺟﺭﺩ ﺎﮐ ﮍﺟ ﻞﺒﯾﺍ ﮉﯿﺋﺍﺭ ﺭﻭﻭﺍ ﮯﯿﻟ ﮯﮐ '%s'‬‪ ﺰﯿﭼ"
 
 
 msgid "Too many potential root collections (%d) for the override hierarchy, please use the Outliner instead"
@@ -121460,11 +121434,11 @@ msgstr "ﺎﺘﮑﺳ ﺎﺟ ﺎﯿﮐ ﮟﯿﮩﻧ ﻞﻘﺘﻨﻣ ﮯﮔﺁ ﮯ
 
 
 msgid "Effect cannot be added to object '%s'"
-msgstr "ﺎﺘﮑﺳ ﺎﺟ ﺎﯿﮐ ﮟﯿﮩﻧ ﻞﻣﺎﺷ ﺮﺛﺍ ﮟﯿﻣ '%s‬‪' ﺰﯿﭼ"
+msgstr "ﺎﺘﮑﺳ ﺎﺟ ﺎﯿﮐ ﮟﯿﮩﻧ ﻞﻣﺎﺷ ﺮﺛﺍ ﮟﯿﻣ '%s'‬‪ ﺰﯿﭼ"
 
 
 msgid "Effect '%s' not in object '%s'"
-msgstr "ﮯﮨ ﮟﯿﮩﻧ ﮟﯿﻣ '%s‬‪' ﮯﺷ '%s‬‪' ﺮﺛﺍ"
+msgstr "ﮯﮨ ﮟﯿﮩﻧ ﮟﯿﻣ '%s'‬‪ ﮯﺷ '%s'‬‪ ﺮﺛﺍ"
 
 
 msgid "Removed effect: %s"
@@ -121664,7 +121638,7 @@ msgstr "ﮯﮨ ﻞﻔﻘﻣ ﮦﻭﺮﮔ ﮯﻧﻮﮐ ﻝﺎﻌﻓ"
 
 
 msgid "Volume \"%s\" failed to load: %s"
-msgstr "ﻡﺎﮐﺎﻧ ﮟﯿﻣ ﮯﻧﺮﮐ ﮈﻮﻟ '%s‬: '‪%s‬‪\" ﻢﺠﺣ"
+msgstr "ﻡﺎﮐﺎﻧ ﮟﯿﻣ ﮯﻧﺮﮐ ﮈﻮﻟ %s‬: ‪'%s'‬‪\" ﻢﺠﺣ"
 
 
 msgid "Volume \"%s\" contains points, only voxel grids are supported"
@@ -121700,15 +121674,15 @@ msgstr "ﻦﯿﻣﻭﮈ ﻂﻠﻏ :ﻡﺎﮐﺎﻧ ﯼﺮﻓ ﮏﯿﺑ"
 
 
 msgid "Fluid: Empty cache path, reset to default '%s'"
-msgstr "ﭧﯿﺳ ﯼﺭ ﺮﭘ '%s‬‪' ﭧﻟﺎﻔﯾﮈ ،ﮫﺗﺎﭘ ﺶﯿﮐ ﯽﻟﺎﺧ :ﻝﺎﯿﺳ"
+msgstr "ﭧﯿﺳ ﯼﺭ ﺮﭘ '%s'‬‪ ﭧﻟﺎﻔﯾﮈ ،ﮫﺗﺎﭘ ﺶﯿﮐ ﯽﻟﺎﺧ :ﻝﺎﯿﺳ"
 
 
 msgid "Fluid: Could not create cache directory '%s', reset to default '%s'"
-msgstr "ﮟﯾﺮﮐ ﭧﯿﺳ ﯼﺭ ﺮﭘ '%s‬‪' ﭧﻟﺎﻔﯾﮈ ،ﯽﮑﺳ ﻦﺑ ﮟﯿﮩﻧ '%s‬‪' ﯼﺮﭩﮐﺮﺋﺍﮈ ﮯﺸﯿﮐ :ﻝﺎﯿﺳ"
+msgstr "ﮟﯾﺮﮐ ﭧﯿﺳ ﯼﺭ ﺮﭘ '%s'‬‪ ﭧﻟﺎﻔﯾﮈ ،ﯽﮑﺳ ﻦﺑ ﮟﯿﮩﻧ '%s'‬‪ ﯼﺮﭩﮐﺮﺋﺍﮈ ﮯﺸﯿﮐ :ﻝﺎﯿﺳ"
 
 
 msgid "Fluid: Could not use default cache directory '%s', please define a valid cache path manually"
-msgstr "ﮟﯾﺮﮐ ﺖﺣﺎﺿﻭ ﯽﮐ ﮧﺘﺳﺍﺭ ﺶﯿﮐ ﺖﺳﺭﺩ ﮏﯾﺍ ﺮﭘ ﺭﻮﻃ ﯽﺘﺳﺩ ﻡﺮﮐ ﮦﺍﺮﺑ ،ﯽﮑﺳ ﻮﮨ ﮟﯿﮩﻧ ﻝﺎﻤﻌﺘﺳﺍ '%s‬‪' ﯼﺮﭩﮐﺮﺋﺍﮈ ﺶﯿﮐ ﭧﻟﺎﻔﯾﮈ :ﮉﺋﻮﻠﻓ"
+msgstr "ﮟﯾﺮﮐ ﺖﺣﺎﺿﻭ ﯽﮐ ﮧﺘﺳﺍﺭ ﺶﯿﮐ ﺖﺳﺭﺩ ﮏﯾﺍ ﺮﭘ ﺭﻮﻃ ﯽﺘﺳﺩ ﻡﺮﮐ ﮦﺍﺮﺑ ،ﯽﮑﺳ ﻮﮨ ﮟﯿﮩﻧ ﻝﺎﻤﻌﺘﺳﺍ '%s'‬‪ ﯼﺮﭩﮐﺮﺋﺍﮈ ﺶﯿﮐ ﭧﻟﺎﻔﯾﮈ :ﮉﺋﻮﻠﻓ"
 
 
 msgid "Library override data-blocks only support Disk Cache storage"
@@ -121728,7 +121702,7 @@ msgstr "ﮟﯿﮩﻧ ﺎﯿﻧﺩ ﯽﻧﺎﻤﺴﺟ ﺖﺨﺳ ﯽﺋﻮﮐ ﮯ�
 
 
 msgid "Object '%s' already has a Rigid Body Constraint"
-msgstr "ﮯﮨ ﭦﻭﺎﮐﺭ ﯽﻧﺎﻤﺴﺟ ﺖﺨﺳ ﮏﯾﺍ ﯽﮨ ﮯﺳ ﮯﻠﮩﭘ ﮟﯿﻣ '%s‬‪' ﺰﯿﭼ"
+msgstr "ﮯﮨ ﭦﻭﺎﮐﺭ ﯽﻧﺎﻤﺴﺟ ﺖﺨﺳ ﮏﯾﺍ ﯽﮨ ﮯﺳ ﮯﻠﮩﭘ ﮟﯿﻣ '%s'‬‪ ﺰﯿﭼ"
 
 
 msgid "Acrylic"
@@ -122064,7 +122038,7 @@ msgstr "!ﻡﺎﮐﺎﻧ ﮟﯿﻣ ﮯﻨﻟﻮﮭﮐ ﻭﮉﻧﻭ"
 
 
 msgid "View layer '%s' could not be removed from scene '%s'"
-msgstr "ﺎﮑﺳ ﺎﺟ ﮟﯿﮩﻧ ﺎﯾﺎﭩﮨ ﮯﺳ '%s‬‪'ﻮﯾﻭ ﻮﮐ '%s‬‪' ﺕﺮﭘ ﺮﻈﻨﻣ"
+msgstr "ﺎﮑﺳ ﺎﺟ ﮟﯿﮩﻧ ﺎﯾﺎﭩﮨ ﮯﺳ '%s'‬‪ﻮﯾﻭ ﻮﮐ '%s'‬‪ ﺕﺮﭘ ﺮﻈﻨﻣ"
 
 
 msgid "Join Areas"
@@ -122281,7 +122255,7 @@ msgstr "ﮯﮨ ﺮﺻﺎﻗ ﮯﺳ ﮯﻧﺮﮐ ﻮﻟﺎﭼ ﻮﮐ ﮧﺛﺎﺛ
 
 
 msgid "File not found '%s'"
-msgstr "ﯽﻠﻣ ﮟﯿﮩﻧ '%s‬‪' ﻞﺋﺎﻓ"
+msgstr "ﯽﻠﻣ ﮟﯿﮩﻧ '%s'‬‪ ﻞﺋﺎﻓ"
 
 
 msgid "Asset library is not editable"
@@ -122600,7 +122574,7 @@ msgstr "ﻢﯾﺮﻓ ﯽﮐ ﻝﺎﻌﻓ"
 
 
 msgid "Action '%s' will not be saved, create Fake User or Stash in NLA Stack to retain"
-msgstr "ﮟﯿﺋﺎﻨﺑ ﺶﯿﭩﺳﺍ ﺎﯾ ﻑﺭﺎﺻ ﯽﻠﻌﺟ ﮟﯿﻣ ﮏﯿﭩﺳﺍ NLA ﮯﯿﻟ ﮯﮐ ﮯﻨﮭﮐﺭ ﺭﺍﺮﻗﺮﺑ ،ﺎﮔ ﮯﺋﺎﺟ ﺎﯿﮐ ﮟﯿﮩﻧ ﻅﻮﻔﺤﻣ ﻮﮐ '%s‬‪' ﻡﺍﺪﻗﺍ"
+msgstr "ﮟﯿﺋﺎﻨﺑ ﺶﯿﭩﺳﺍ ﺎﯾ ﻑﺭﺎﺻ ﯽﻠﻌﺟ ﮟﯿﻣ ﮏﯿﭩﺳﺍ NLA ﮯﯿﻟ ﮯﮐ ﮯﻨﮭﮐﺭ ﺭﺍﺮﻗﺮﺑ ،ﺎﮔ ﮯﺋﺎﺟ ﺎﯿﮐ ﮟﯿﮩﻧ ﻅﻮﻔﺤﻣ ﻮﮐ '%s'‬‪ ﻡﺍﺪﻗﺍ"
 
 
 msgid "Delete selected keyframes?"
@@ -122812,7 +122786,7 @@ msgstr "ﯽﺌﮔ ﯽﮐ ﮟﯿﮩﻧ ﺐﺨﺘﻨﻣ ﻞﺋﺎﻓ ﯽﺋﻮﮐ 
 
 
 msgid "Cannot read '%s': %s"
-msgstr "'‪%s‬' ﺎﺘﮑﺳ ﮪﮍﭘ ﮟﯿﮩﻧ: ‪%s‬"
+msgstr "‪'%s'‬ ﺎﺘﮑﺳ ﮪﮍﭘ ﮟﯿﮩﻧ: ‪%s‬"
 
 
 msgid "Delete selected tracks?"
@@ -123004,7 +122978,7 @@ msgstr "‪%s‬ ﯽﻣﺎﮐﺎﻧ ﮟﯿﻣ ﮯﻧﺮﮐ ﻦﺸﯾﺮﭘﺁ �
 
 
 msgid "'%s' given path is OS-invalid, creating '%s' path instead"
-msgstr "‪%s‬' ﮧﺘﺳﺍﺭ ﺍﻮﮨ ﺎﯾﺩ OS-ﮯﺋﺎﺠﺑ ﯽﮐ ﺱﺍ ،ﮯﮨ ﻂﻠﻏ '‪%s‬' ﮯﮨ ﺎﮨﺭ ﺎﻨﺑ ﮧﺘﺳﺍﺭ"
+msgstr "‪%s‬' ﮧﺘﺳﺍﺭ ﺍﻮﮨ ﺎﯾﺩ OS-ﮯﺋﺎﺠﺑ ﯽﮐ ﺱﺍ ،ﮯﮨ ﻂﻠﻏ ‪'%s'‬ ﮯﮨ ﺎﮨﺭ ﺎﻨﺑ ﮧﺘﺳﺍﺭ"
 
 
 msgid "Could not create new folder: %s"
@@ -123309,15 +123283,15 @@ msgstr "ﮟﯿﮩﻧ sﺮﺋﺎﻔﯾﮈﻮﻣ-ﻒﯾﺍ ﯽﺋﻮﮐ ﮯﯿﻟ 
 
 
 msgid "Euler Rotation F-Curve has invalid index (ID='%s', Path='%s', Index=%d)"
-msgstr "Euler ﮯﮨ ﺖﺳﺮﮩﻓ ﻂﻠﻏ ﮟﯿﻣ  ﻢﺧ-ﻒﯾﺍ ﺵﺩﺮﮔ (ID='‪%s‬', Path='‪%s‬', Index=‪%d‬)"
+msgstr "Euler ﮯﮨ ﺖﺳﺮﮩﻓ ﻂﻠﻏ ﮟﯿﻣ  ﻢﺧ-ﻒﯾﺍ ﺵﺩﺮﮔ (ID=‪'%s'‬, Path=‪'%s'‬, Index=‪%d‬)"
 
 
 msgid "Missing %s%s%s component(s) of euler rotation for ID='%s' and RNA-Path='%s'"
-msgstr "ID='‪%s‬' ﺭﻭﺍ RNA-Path='‪%s‬' ﮯﮐ ﻦﺸﯿﭨﻭﺭ ﺮﻟﻮﯾ ﮯﯿﻟ ﮯﮐ ‪%s‬‪%s‬‪%s‬ ﺰﺟ(s) ﮟﯿﮨ ﺐﺋﺎﻏ"
+msgstr "ID=‪'%s'‬ ﺭﻭﺍ RNA-Path=‪'%s'‬ ﮯﮐ ﻦﺸﯿﭨﻭﺭ ﺮﻟﻮﯾ ﮯﯿﻟ ﮯﮐ ‪%s‬‪%s‬‪%s‬ ﺰﺟ(s) ﮟﯿﮨ ﺐﺋﺎﻏ"
 
 
 msgid "XYZ rotations not equally keyed for ID='%s' and RNA-Path='%s'"
-msgstr "XYZ ﮟﯿﺷﺩﺮﮔ ID='‪%s‬' ﺭﻭﺍ RNA-Path='‪%s‬' ﮟﯿﮨ ﮟﯿﮩﻧ ﯼﺪﯿﻠﮐ ﺮﭘ ﺭﻮﻃ ﮞﺎﺴﮑﯾ ﮯﯿﻟ ﮯﮐ"
+msgstr "XYZ ﮟﯿﺷﺩﺮﮔ ID=‪'%s'‬ ﺭﻭﺍ RNA-Path=‪'%s'‬ ﮟﯿﮨ ﮟﯿﮩﻧ ﯼﺪﯿﻠﮐ ﺮﭘ ﺭﻮﻃ ﮞﺎﺴﮑﯾ ﮯﯿﻟ ﮯﮐ"
 
 
 msgid "%d of %d rotation channels were filtered (see the Info window for details)"
@@ -123641,7 +123615,7 @@ msgstr "ﯽﮔ ﮟﯿﮑﺳ ﻮﮨ ﮟﯿﮩﻧ ﭧﻓ ﺮﭘ ﮞﻮﮩﮕﺟ �
 
 
 msgid "Could not add action '%s' as it cannot be used relative to ID-blocks of type '%s'"
-msgstr "ﺎﺘﮑﺳ ﺎﺟ ﺎﯿﮐ ﮟﯿﮩﻧ ﻝﺎﻤﻌﺘﺳﺍ ﺖﺒﺴﻧ ﮯﮐ ﺲﮐﻼ﻿ﺑ ID ﮯﮐ ﻢﺴﻗ '%s‬‪' ﮯﺳﺍ ﮧﮑﻧﻮﯿﮐ ﺎﮑﺳ ﺎﺟ ﺎﯿﮐ ﮟﯿﮩﻧ ﻞﻣﺎﺷ ﻮﮐ '%s‬‪' ﻡﺍﺪﻗﺍ"
+msgstr "ﺎﺘﮑﺳ ﺎﺟ ﺎﯿﮐ ﮟﯿﮩﻧ ﻝﺎﻤﻌﺘﺳﺍ ﺖﺒﺴﻧ ﮯﮐ ﺲﮐﻼ﻿ﺑ ID ﮯﮐ ﻢﺴﻗ '%s'‬‪ ﮯﺳﺍ ﮧﮑﻧﻮﯿﮐ ﺎﮑﺳ ﺎﺟ ﺎﯿﮐ ﮟﯿﮩﻧ ﻞﻣﺎﺷ ﻮﮐ '%s'‬‪ ﻡﺍﺪﻗﺍ"
 
 
 msgid "Too many clusters of strips selected in NLA Track (%s): needs exactly 2 to be selected"
@@ -123653,7 +123627,7 @@ msgstr "NLA ﮏﯾﺮﭨ (‪%s‬) ﮯﮨ ﺕﺭﻭﺮﺿ ﯽﮐ 2 ﻞﮑﻟﺎ
 
 
 msgid "Cannot swap '%s' and '%s' as one or both will not be able to fit in their new places"
-msgstr "‪%s‬' ﺭﻭﺍ '‪%s‬' ﮯﮔ ﮟﯿﮑﺳ ﻮﮨ ﮟﯿﮩﻧ ﭧﻓ ﺮﭘ ﮞﻮﮩﮕﺟ ﯽﺌﻧ ﯽﻨﭘﺍ ﮞﻮﻧﻭﺩ ﺎﯾ ﮏﯾﺍ ﮧﮑﻧﻮﯿﮐ ﺎﺘﮑﺳ ﺎﺟ ﺎﯿﮐ ﮟﯿﮩﻧ ﻞﯾﺪﺒﺗ ﻮﮐ"
+msgstr "‪%s‬' ﺭﻭﺍ ‪'%s'‬ ﮯﮔ ﮟﯿﮑﺳ ﻮﮨ ﮟﯿﮩﻧ ﭧﻓ ﺮﭘ ﮞﻮﮩﮕﺟ ﯽﺌﻧ ﯽﻨﭘﺍ ﮞﻮﻧﻭﺩ ﺎﯾ ﮏﯾﺍ ﮧﮑﻧﻮﯿﮐ ﺎﺘﮑﺳ ﺎﺟ ﺎﯿﮐ ﮟﯿﮩﻧ ﻞﯾﺪﺒﺗ ﻮﮐ"
 
 
 msgid "Modifier could not be added to (%s : %s) (see console for details)"
@@ -123789,7 +123763,7 @@ msgstr "ﺎﮑﺳ ﺎﺟ ﺎﯿﮐ ﮟﯿﮩﻧ ﻞﻣﺎﺷ ﺩﺍﻮﻣ"
 
 
 msgid "Cannot add node group '%s' to '%s'"
-msgstr "ﺎﺘﮑﺳ ﺎﺟ ﺎﯿﮐ ﮟﯿﮩﻧ ﻞﻣﺎﺷ ﮟﯿﻣ '%s‬‪' ﻮﮐ '%s‬‪'ﮦﻭﺮﮔ ﮈﻮﻧ"
+msgstr "ﺎﺘﮑﺳ ﺎﺟ ﺎﯿﮐ ﮟﯿﮩﻧ ﻞﻣﺎﺷ ﮟﯿﻣ '%s'‬‪ ﻮﮐ '%s'‬‪ﮦﻭﺮﮔ ﮈﻮﻧ"
 
 
 msgid "Node tree type %s undefined"
@@ -123845,19 +123819,19 @@ msgstr "ﺎﺘﮑﺳ ﺎﺟ ﺎﯿﮐ ﮟﯿﮩﻧ ﮓﻟﺍ ﻮﮐ ﺱﮈﻮﻧ
 
 
 msgid "Cannot add node '%s' in a group"
-msgstr "ﺎﺘﮑﺳ ﺎﺟ ﺎﯿﮐ ﮟﯿﮩﻧ ﻞﻣﺎﺷ ﻮﮐ '%s‬‪' ﮈﻮﻧ ﮟﯿﻤﮨﻭﺮﮔ"
+msgstr "ﺎﺘﮑﺳ ﺎﺟ ﺎﯿﮐ ﮟﯿﮩﻧ ﻞﻣﺎﺷ ﻮﮐ '%s'‬‪ ﮈﻮﻧ ﮟﯿﻤﮨﻭﺮﮔ"
 
 
 msgid "Cannot add zone input node '%s' to a group without its paired output '%s'"
-msgstr "ﺎﺘﮑﺳ ﺎﺟ ﺎﯿﮐ ﮟﯿﮩﻧ ﻞﻣﺎﺷ ﺮﯿﻐﺑ ﮯﮐ '%s‬‪' ﭧﭘ ﭦﺅﺁ ﺍﮌﻮﺟ ﮟﯿﻤﮨﻭﺮﮔ ﻮﮐ '%s‬‪' ﮈﻮﻧ ﭧﭘ ﻥﺍ ﻥﻭﺯ"
+msgstr "ﺎﺘﮑﺳ ﺎﺟ ﺎﯿﮐ ﮟﯿﮩﻧ ﻞﻣﺎﺷ ﺮﯿﻐﺑ ﮯﮐ '%s'‬‪ ﭧﭘ ﭦﺅﺁ ﺍﮌﻮﺟ ﮟﯿﻤﮨﻭﺮﮔ ﻮﮐ '%s'‬‪ ﮈﻮﻧ ﭧﭘ ﻥﺍ ﻥﻭﺯ"
 
 
 msgid "Cannot add zone output node '%s' to a group without its paired input '%s'"
-msgstr "ﺎﺘﮑﺳ ﺎﺟ ﺎﯿﮐ ﮟﯿﮩﻧ ﻞﻣﺎﺷ ﺮﯿﻐﺑ ﮯﮐ '%s‬‪' ﭧﭘ ﻥﺍ ﺍﮌﻮﺟ ﮟﯿﻤﮨﻭﺮﮔ ﻮﮐ '%s‬‪' ﮈﻮﻧ ﭧﭘ ﭦﺅﺁ ﻥﻭﺯ"
+msgstr "ﺎﺘﮑﺳ ﺎﺟ ﺎﯿﮐ ﮟﯿﮩﻧ ﻞﻣﺎﺷ ﺮﯿﻐﺑ ﮯﮐ '%s'‬‪ ﭧﭘ ﻥﺍ ﺍﮌﻮﺟ ﮟﯿﻤﮨﻭﺮﮔ ﻮﮐ '%s'‬‪ ﮈﻮﻧ ﭧﭘ ﭦﺅﺁ ﻥﻭﺯ"
 
 
 msgid "Cannot insert group '%s' in '%s'"
-msgstr "ﺎﺘﮑﺳ ﺎﺟ ﺎﯿﮐ ﮟﯿﮩﻧ ﻞﺧﺍﺩ ﮟﯿﻣ '%s‬‪' ﻮﮐ '%s‬‪'ﮦﻭﺮﮔ"
+msgstr "ﺎﺘﮑﺳ ﺎﺟ ﺎﯿﮐ ﮟﯿﮩﻧ ﻞﺧﺍﺩ ﮟﯿﻣ '%s'‬‪ ﻮﮐ '%s'‬‪ﮦﻭﺮﮔ"
 
 
 msgid "There is no parent group node in this context"
@@ -123929,7 +123903,7 @@ msgstr "ﺎﺘﮑﺳ ﺎﺟ ﺎﯿﮐ ﮟﯿﮩﻧ ﻞﻣﺎﺷ ﮧﻋﻮﻤﺠ�
 
 
 msgid "Cannot delete collection '%s', it is either a linked one used by other linked scenes/collections, or a library override one"
-msgstr "ﮏﯾﺍ ﮉﯿﺋﺍﺭ ﺭﻭﻭﺍ ﯼﺮﯾﺮﺒﺋﻻ﻿ ﺎﯾ ،ﮟﯿﮨ ﮯﺗﺮﮐ ﻝﺎﻤﻌﺘﺳﺍ ﮯﻋﻮﻤﺠﻣ/ﺮﻇﺎﻨﻣ ﮦﺩﺮﮐ ﮏﻨﻟ ﮮﺮﺳﻭﺩ ﮯﺴﺟ ﮯﮨ ﮦﺪﺷ ﮏﻨﻟ ﮏﯾﺍ ﻮﺗ ﺎﯾ ﮧﯾ ،ﺎﺘﮑﺳ ﺎﺟ ﺎﯿﮐ ﮟﯿﮩﻧ ﻑﺬﺣ ﻮﮐ '%s‬‪' ﮧﻋﻮﻤﺠﻣ"
+msgstr "ﮏﯾﺍ ﮉﯿﺋﺍﺭ ﺭﻭﻭﺍ ﯼﺮﯾﺮﺒﺋﻻ﻿ ﺎﯾ ،ﮟﯿﮨ ﮯﺗﺮﮐ ﻝﺎﻤﻌﺘﺳﺍ ﮯﻋﻮﻤﺠﻣ/ﺮﻇﺎﻨﻣ ﮦﺩﺮﮐ ﮏﻨﻟ ﮮﺮﺳﻭﺩ ﮯﺴﺟ ﮯﮨ ﮦﺪﺷ ﮏﻨﻟ ﮏﯾﺍ ﻮﺗ ﺎﯾ ﮧﯾ ،ﺎﺘﮑﺳ ﺎﺟ ﺎﯿﮐ ﮟﯿﮩﻧ ﻑﺬﺣ ﻮﮐ '%s'‬‪ ﮧﻋﻮﻤﺠﻣ"
 
 
 msgid "Reorder"
@@ -124153,7 +124127,7 @@ msgstr ""
 
 
 msgid "Library path '%s' is now valid, please reload the library"
-msgstr "ﮟﯾﺮﮐ ﮈﻮﻟ ﮦﺭﺎﺑﻭﺩ ﻮﮐ ﯼﺮﯾﺮﺒﺋﻻ﻿ ﻡﺮﮐ ﮦﺍﺮﺑ ،ﮯﮨ ﺖﺳﺭﺩ ﺏﺍ '%s‬‪' ﮧﺘﺳﺍﺭ ﺎﮐ ﯼﺮﯾﺮﺒﺋﻻ﻿"
+msgstr "ﮟﯾﺮﮐ ﮈﻮﻟ ﮦﺭﺎﺑﻭﺩ ﻮﮐ ﯼﺮﯾﺮﺒﺋﻻ﻿ ﻡﺮﮐ ﮦﺍﺮﺑ ،ﮯﮨ ﺖﺳﺭﺩ ﺏﺍ '%s'‬‪ ﮧﺘﺳﺍﺭ ﺎﮐ ﯼﺮﯾﺮﺒﺋﻻ﻿"
 
 
 msgid "Remap Data ID"
@@ -124205,31 +124179,31 @@ msgstr "ﮯﮨ ﮟﯿﮩﻧ ﮎﻼ﻿ﺑ ﺎﭩﯾﮈ ﻢﯿﺘﯾ ﯽﺋﻮﮐ 
 
 
 msgid "Cannot delete library override id '%s', it is part of an override hierarchy"
-msgstr "ﮯﮨ ﮧﺼﺣ ﺎﮐ ﯼﺪﻨﺑ ﮧﺟﺭﺩ ﮉﺋﺍﺭ ﺭﻭﻭﺍ ﮧﯾ ،ﺎﺘﮑﺳ ﺎﺟ ﺎﯿﮐ ﮟﯿﮩﻧ ﻑﺬﺣ ﻮﮐ '%s‬‪' ﯼﮈ ﯽﺋﺁ ﮉﺋﺍﺭ ﺭﻭﻭﺍ ﯼﺮﯾﺮﺒﺋﻻ﻿"
+msgstr "ﮯﮨ ﮧﺼﺣ ﺎﮐ ﯼﺪﻨﺑ ﮧﺟﺭﺩ ﮉﺋﺍﺭ ﺭﻭﻭﺍ ﮧﯾ ،ﺎﺘﮑﺳ ﺎﺟ ﺎﯿﮐ ﮟﯿﮩﻧ ﻑﺬﺣ ﻮﮐ '%s'‬‪ ﯼﮈ ﯽﺋﺁ ﮉﺋﺍﺭ ﺭﻭﻭﺍ ﯼﺮﯾﺮﺒﺋﻻ﻿"
 
 
 msgid "Cannot delete indirectly linked library '%s'"
-msgstr "ﺎﺘﮑﺳ ﺎﺟ ﺎﯿﮐ ﮟﯿﮩﻧ ﻑﺬﺣ ﻮﮐ '%s‬‪' ﯼﺮﯾﺮﺒﺋﻻ﻿ ﮏﻠﺴﻨﻣ ﺮﭘ ﺭﻮﻃ ﮧﻄﺳﺍﻮﻟﺎﺑ"
+msgstr "ﺎﺘﮑﺳ ﺎﺟ ﺎﯿﮐ ﮟﯿﮩﻧ ﻑﺬﺣ ﻮﮐ '%s'‬‪ ﯼﺮﯾﺮﺒﺋﻻ﻿ ﮏﻠﺴﻨﻣ ﺮﭘ ﺭﻮﻃ ﮧﻄﺳﺍﻮﻟﺎﺑ"
 
 
 msgid "Cannot delete indirectly linked id '%s'"
-msgstr "ﺎﺘﮑﺳ ﺎﺟ ﺎﯿﮐ ﮟﯿﮩﻧ ﻑﺬﺣ ﻮﮐ '%s‬‪' ﯼﮈ ﯽﺋﺁ ﮏﻠﺴﻨﻣ ﺮﭘ ﺭﻮﻃ ﮧﻄﺳﺍﻮﻟﺎﺑ"
+msgstr "ﺎﺘﮑﺳ ﺎﺟ ﺎﯿﮐ ﮟﯿﮩﻧ ﻑﺬﺣ ﻮﮐ '%s'‬‪ ﯼﮈ ﯽﺋﺁ ﮏﻠﺴﻨﻣ ﺮﭘ ﺭﻮﻃ ﮧﻄﺳﺍﻮﻟﺎﺑ"
 
 
 msgid "Cannot delete id '%s', indirectly used data-blocks need at least one user"
-msgstr "ﮯﮨ ﺕﺭﻭﺮﺿ ﯽﮐ ﻑﺭﺎﺻ ﮏﯾﺍ ﻢﮐ ﺯﺍ ﻢﮐ ﻮﮐ ﺲﮐﻼ﻿ﺑ ﺎﭩﯾﮈ ﮦﺪﺷ ﻝﺎﻤﻌﺘﺳﺍ ﺮﭘ ﺭﻮﻃ ﮧﻄﺳﺍﻮﻟﺎﺑ ،ﺎﺘﮑﺳ ﺎﺟ ﺎﯿﮐ ﮟﯿﮩﻧ ﻑﺬﺣ ﻮﮐ '%s‬‪' ﯼﮈ ﯽﺋﺁ"
+msgstr "ﮯﮨ ﺕﺭﻭﺮﺿ ﯽﮐ ﻑﺭﺎﺻ ﮏﯾﺍ ﻢﮐ ﺯﺍ ﻢﮐ ﻮﮐ ﺲﮐﻼ﻿ﺑ ﺎﭩﯾﮈ ﮦﺪﺷ ﻝﺎﻤﻌﺘﺳﺍ ﺮﭘ ﺭﻮﻃ ﮧﻄﺳﺍﻮﻟﺎﺑ ،ﺎﺘﮑﺳ ﺎﺟ ﺎﯿﮐ ﮟﯿﮩﻧ ﻑﺬﺣ ﻮﮐ '%s'‬‪ ﯼﮈ ﯽﺋﺁ"
 
 
 msgid "Cannot delete currently visible workspace id '%s'"
-msgstr "ﺎﺘﮑﺳ ﺎﺟ ﺎﯿﮐ ﮟﯿﮩﻧ ﻑﺬﺣ ﻮﮐ '%s‬‪' ﯼﮈ ﯽﺋﺁ ﺲﯿﭙﺳﺍ ﮎﺭﻭ ﯽﻟﺍﻭ ﮯﻧﺁ ﺮﻈﻧ ﻝﺎﺤﻟﺍ ﯽﻓ"
+msgstr "ﺎﺘﮑﺳ ﺎﺟ ﺎﯿﮐ ﮟﯿﮩﻧ ﻑﺬﺣ ﻮﮐ '%s'‬‪ ﯼﮈ ﯽﺋﺁ ﺲﯿﭙﺳﺍ ﮎﺭﻭ ﯽﻟﺍﻭ ﮯﻧﺁ ﺮﻈﻧ ﻝﺎﺤﻟﺍ ﯽﻓ"
 
 
 msgid "Invalid old/new ID pair ('%s' / '%s')"
-msgstr "('%s‬' / '‪%s‬‪') ﯼﮌﻮﺟ ID ﯽﺌﻧ/ﯽﻧﺍﺮﭘ ﻂﻠﻏ"
+msgstr "('%s'‬ / ‪'%s'‬‪) ﯼﮌﻮﺟ ID ﯽﺌﻧ/ﯽﻧﺍﺮﭘ ﻂﻠﻏ"
 
 
 msgid "Old ID '%s' is linked from a library, indirect usages of this data-block will not be remapped"
-msgstr "ﺎﮔ ﮯﺋﺎﺟ ﺎﯾﺎﻨﺑ ﮟﯿﮩﻧ ﮦﺭﺎﺑﻭﺩ ﻮﮐ ﻝﺎﻤﻌﺘﺳﺍ ﮧﻄﺳﺍﻮﻟﺎﺑ ﮯﮐ ﮎﻼ﻿ﺑ ﺎﭩﯾﮈ ﺱﺍ ،ﮯﮨ ﮏﻠﺴﻨﻣ ﮯﺳ ﯼﺮﯾﺮﺒﺋﻻ﻿ ﮏﯾﺍ 'ID '‪%s‬ ﯽﻧﺍﺮﭘ"
+msgstr "ﺎﮔ ﮯﺋﺎﺟ ﺎﯾﺎﻨﺑ ﮟﯿﮩﻧ ﮦﺭﺎﺑﻭﺩ ﻮﮐ ﻝﺎﻤﻌﺘﺳﺍ ﮧﻄﺳﺍﻮﻟﺎﺑ ﮯﮐ ﮎﻼ﻿ﺑ ﺎﭩﯾﮈ ﺱﺍ ،ﮯﮨ ﮏﻠﺴﻨﻣ ﮯﺳ ﯼﺮﯾﺮﺒﺋﻻ﻿ ﮏﯾﺍ ID ‪'%s'‬ ﯽﻧﺍﺮﭘ"
 
 
 msgid "Copied %d selected data-block(s)"
@@ -124241,7 +124215,7 @@ msgstr "‪%d‬ ﺎﯿﮔ ﺎﯾﺩ ﺮﮐ ﭧﺴﯿﭘ ﮎﻼ﻿ﺑ ﺎﭩﯾ�
 
 
 msgid "Cannot relocate indirectly linked library '%s'"
-msgstr "ﺎﺘﮑﺳ ﺎﺟ ﺎﯿﮐ ﮟﯿﮩﻧ ﻞﻘﺘﻨﻣ ﻮﮐ '%s‬‪' ﯼﺮﯾﺮﺒﺋﻻ﻿ ﮏﻠﺴﻨﻣ ﺮﭘ ﺭﻮﻃ ﮧﻄﺳﺍﻮﻟﺎﺑ"
+msgstr "ﺎﺘﮑﺳ ﺎﺟ ﺎﯿﮐ ﮟﯿﮩﻧ ﻞﻘﺘﻨﻣ ﻮﮐ '%s'‬‪ ﯼﺮﯾﺮﺒﺋﻻ﻿ ﮏﻠﺴﻨﻣ ﺮﭘ ﺭﻮﻃ ﮧﻄﺳﺍﻮﻟﺎﺑ"
 
 
 msgid "Deleted %d data-block(s)"
@@ -124257,51 +124231,51 @@ msgstr "ﺍﻮﮨ ﮟﯿﮩﻧ ﺪﻣﺁﺭﺪﻠﻤﻋ ﮏﺗ ﯽﮭﺑﺍ"
 
 
 msgid "Cannot unlink action '%s'. It's not clear which object or object-data it should be unlinked from, there's no object or object-data as parent in the Outliner tree"
-msgstr "ﮯﮨ ﮟﯿﮩﻧ ﺎﭩﯾﮈ ﮯﺷ ﺎﯾ ﮯﺷ ﯽﺋﻮﮐ ﻦﯾﺪﻟﺍﻭ ﺭﻮﻄﺑ ﮟﯿﻣ ﯼﺮﭨ ﺮﻨﺋﻻ﻿ ﭦﺅﺁ ،ﮯﯿﮨﺎﭼ ﺎﻧﺮﮐ ﮏﻨﻟ ﮯﺳ ﺎﭩﯾﮈ ﮯﺷ ﺎﯾ ﮯﺷ ﺲﮐ ﮯﺳﺍ ﮧﮐ ﮯﮨ ﮟﯿﮩﻧ ﺢﺿﺍﻭ ﮧﯾ ﺎﺘﮑﺳ ﺎﺟ ﺎﯿﮐ ﮟﯿﮩﻧ ﻢﺘﺧ ﮏﻨﻟ ﺎﮐ '%s‬‪' ﯽﺋﺍﻭﺭﺭﺎﮐ"
+msgstr "ﮯﮨ ﮟﯿﮩﻧ ﺎﭩﯾﮈ ﮯﺷ ﺎﯾ ﮯﺷ ﯽﺋﻮﮐ ﻦﯾﺪﻟﺍﻭ ﺭﻮﻄﺑ ﮟﯿﻣ ﯼﺮﭨ ﺮﻨﺋﻻ﻿ ﭦﺅﺁ ،ﮯﯿﮨﺎﭼ ﺎﻧﺮﮐ ﮏﻨﻟ ﮯﺳ ﺎﭩﯾﮈ ﮯﺷ ﺎﯾ ﮯﺷ ﺲﮐ ﮯﺳﺍ ﮧﮐ ﮯﮨ ﮟﯿﮩﻧ ﺢﺿﺍﻭ ﮧﯾ ﺎﺘﮑﺳ ﺎﺟ ﺎﯿﮐ ﮟﯿﮩﻧ ﻢﺘﺧ ﮏﻨﻟ ﺎﮐ '%s'‬‪ ﯽﺋﺍﻭﺭﺭﺎﮐ"
 
 
 msgid "Cannot unlink material '%s'. It's not clear which object or object-data it should be unlinked from, there's no object or object-data as parent in the Outliner tree"
-msgstr "ﮯﮨ ﮟﯿﮩﻧ ﺎﭩﯾﮈ ﮯﺷ ﺎﯾ ﮯﺷ ﯽﺋﻮﮐ ﻦﯾﺪﻟﺍﻭ ﺭﻮﻄﺑ ﮟﯿﻣ ﯼﺮﭨ ﺮﻨﺋﻻ﻿ ﭦﺅﺁ ،ﮯﯿﮨﺎﭼ ﺎﻧﺮﮐ ﮏﻨﻟ ﮯﺳ ﺎﭩﯾﮈ ﮯﺷ ﺎﯾ ﮯﺷ ﺲﮐ ﮯﺳﺍ ﮧﮐ ﮯﮨ ﮟﯿﮩﻧ ﺢﺿﺍﻭ ﮧﯾ ﺎﺘﮑﺳ ﺎﺟ ﺎﯿﮐ ﮟﯿﮩﻧ ﻢﺘﺧ ﮏﻨﻟ ﺎﮐ '%s‬‪' ﺩﺍﻮﻣ"
+msgstr "ﮯﮨ ﮟﯿﮩﻧ ﺎﭩﯾﮈ ﮯﺷ ﺎﯾ ﮯﺷ ﯽﺋﻮﮐ ﻦﯾﺪﻟﺍﻭ ﺭﻮﻄﺑ ﮟﯿﻣ ﯼﺮﭨ ﺮﻨﺋﻻ﻿ ﭦﺅﺁ ،ﮯﯿﮨﺎﭼ ﺎﻧﺮﮐ ﮏﻨﻟ ﮯﺳ ﺎﭩﯾﮈ ﮯﺷ ﺎﯾ ﮯﺷ ﺲﮐ ﮯﺳﺍ ﮧﮐ ﮯﮨ ﮟﯿﮩﻧ ﺢﺿﺍﻭ ﮧﯾ ﺎﺘﮑﺳ ﺎﺟ ﺎﯿﮐ ﮟﯿﮩﻧ ﻢﺘﺧ ﮏﻨﻟ ﺎﮐ '%s'‬‪ ﺩﺍﻮﻣ"
 
 
 msgid "Cannot unlink the material '%s' from linked object data"
-msgstr "ﺎﺘﮑﺳ ﺎﺟ ﺎﯿﮐ ﮟﯿﮩﻧ ﻢﺘﺧ ﮏﻨﻟ ﺎﮐ '%s‬‪' ﺩﺍﻮﻣ ﮯﺳ ﺎﭩﯾﮈ ﭧﮑﯿﺠﺑﺁ ﮏﻠﺴﻨﻣ"
+msgstr "ﺎﺘﮑﺳ ﺎﺟ ﺎﯿﮐ ﮟﯿﮩﻧ ﻢﺘﺧ ﮏﻨﻟ ﺎﮐ '%s'‬‪ ﺩﺍﻮﻣ ﮯﺳ ﺎﭩﯾﮈ ﭧﮑﯿﺠﺑﺁ ﮏﻠﺴﻨﻣ"
 
 
 msgid "Cannot unlink collection '%s'. It's not clear which scene, collection or instance empties it should be unlinked from, there's no scene, collection or instance empties as parent in the Outliner tree"
-msgstr "ﮯﮨ ﮟﯿﮩﻧ ﯽﻟﺎﺧ ﻝﺎﺜﻣ ﺎﯾ ﮧﻋﻮﻤﺠﻣ ،ﺮﻈﻨﻣ ﯽﺋﻮﮐ ﺮﭘ ﺭﻮﻃ ﮯﮐ ﻦﯾﺪﻟﺍﻭ ﮟﯿﻣ ﯼﺮﭨ ﺮﻨﺋﻻ﻿ ﭦﺅﺁ ،ﮯﺌﮨﺎﭼ ﺎﻧﺎﺟ ﺎﯿﮐ ﮟﯿﮩﻧ ﮏﻨﻟ ﮯﺳﺍ ﮯﺳ ﺲﺟ ﮯﮨ ﯽﻟﺎﺧ ﻝﺎﺜﻣ ﺎﯾ ﮧﻋﻮﻤﺠﻣ ،ﺮﻈﻨﻣ ﺎﺳ ﻥﻮﮐ ﮧﮐ ﮯﮨ ﮟﯿﮩﻧ ﺢﺿﺍﻭ ﮧﯾ ﺎﺘﮑﺳ ﺎﺟ ﺎﯿﮐ ﮟﯿﮩﻧ ﻢﺘﺧ ﮏﻨﻟ ﺎﮐ '%s‬‪' ﮧﻋﻮﻤﺠﻣ"
+msgstr "ﮯﮨ ﮟﯿﮩﻧ ﯽﻟﺎﺧ ﻝﺎﺜﻣ ﺎﯾ ﮧﻋﻮﻤﺠﻣ ،ﺮﻈﻨﻣ ﯽﺋﻮﮐ ﺮﭘ ﺭﻮﻃ ﮯﮐ ﻦﯾﺪﻟﺍﻭ ﮟﯿﻣ ﯼﺮﭨ ﺮﻨﺋﻻ﻿ ﭦﺅﺁ ،ﮯﺌﮨﺎﭼ ﺎﻧﺎﺟ ﺎﯿﮐ ﮟﯿﮩﻧ ﮏﻨﻟ ﮯﺳﺍ ﮯﺳ ﺲﺟ ﮯﮨ ﯽﻟﺎﺧ ﻝﺎﺜﻣ ﺎﯾ ﮧﻋﻮﻤﺠﻣ ،ﺮﻈﻨﻣ ﺎﺳ ﻥﻮﮐ ﮧﮐ ﮯﮨ ﮟﯿﮩﻧ ﺢﺿﺍﻭ ﮧﯾ ﺎﺘﮑﺳ ﺎﺟ ﺎﯿﮐ ﮟﯿﮩﻧ ﻢﺘﺧ ﮏﻨﻟ ﺎﮐ '%s'‬‪ ﮧﻋﻮﻤﺠﻣ"
 
 
 msgid "Cannot unlink collection '%s' parented to another linked collection '%s'"
-msgstr "ﺎﺘﮑﺳ ﺎﺟ ﺎﯿﮐ ﮟﯿﮩﻧ ﮏﻠﺴﻨﻣ ﺮﯿﻏ ﮯﺳ '%s‬‪' ﮧﻋﻮﻤﺠﻣ ﮦﺩﺮﮐ ﮏﻨﻟ ﮮﺮﺳﻭﺩ ﻮﮐ '%s‬‪' ﮧﻋﻮﻤﺠﻣ"
+msgstr "ﺎﺘﮑﺳ ﺎﺟ ﺎﯿﮐ ﮟﯿﮩﻧ ﮏﻠﺴﻨﻣ ﺮﯿﻏ ﮯﺳ '%s'‬‪ ﮧﻋﻮﻤﺠﻣ ﮦﺩﺮﮐ ﮏﻨﻟ ﮮﺮﺳﻭﺩ ﻮﮐ '%s'‬‪ ﮧﻋﻮﻤﺠﻣ"
 
 
 msgid "Cannot unlink object '%s' parented to another linked object '%s'"
-msgstr "ﺎﺘﮑﺳ ﺎﺟ ﺎﯿﮐ ﮟﯿﮩﻧ ﮏﻠﺴﻨﻣ ﺮﯿﻏ ﮯﺳ '%s‬‪' ﮯﺷ ﮦﺪﺷ ﮏﻨﻟ ﮮﺮﺳﻭﺩ ﯽﺴﮐ ﻮﮐ '%s‬‪' ﺰﯿﭼ"
+msgstr "ﺎﺘﮑﺳ ﺎﺟ ﺎﯿﮐ ﮟﯿﮩﻧ ﮏﻠﺴﻨﻣ ﺮﯿﻏ ﮯﺳ '%s'‬‪ ﮯﺷ ﮦﺪﺷ ﮏﻨﻟ ﮮﺮﺳﻭﺩ ﯽﺴﮐ ﻮﮐ '%s'‬‪ ﺰﯿﭼ"
 
 
 msgid "Cannot unlink object '%s' from linked collection or scene '%s'"
-msgstr "ﺎﺘﮑﺳ ﺎﺟ ﺎﯿﮐ ﮟﯿﮩﻧ ﻢﺘﺧ ﮏﻨﻟ ﺎﮐ '%s‬‪' ﮯﺷ ﮯﺳ '%s‬‪'ﻮﯾﻭ ﺎﯾ ﮧﻋﻮﻤﺠﻣ ﮏﻠﺴﻨﻣ"
+msgstr "ﺎﺘﮑﺳ ﺎﺟ ﺎﯿﮐ ﮟﯿﮩﻧ ﻢﺘﺧ ﮏﻨﻟ ﺎﮐ '%s'‬‪ ﮯﺷ ﮯﺳ '%s'‬‪ﻮﯾﻭ ﺎﯾ ﮧﻋﻮﻤﺠﻣ ﮏﻠﺴﻨﻣ"
 
 
 msgid "Cannot unlink world '%s'. It's not clear which scene it should be unlinked from, there's no scene as parent in the Outliner tree"
-msgstr "ﮯﮨ ﮟﯿﮩﻧﻮﯾﻭ ﯽﺋﻮﮐ ﺮﭘ ﺭﻮﻃ ﮯﮐ ﻦﯾﺪﻟﺍﻭ ﮟﯿﻣ ﯼﺮﭨ ﺮﻨﺋﻻ﻿ ﭦﺅﺁ ،ﮯﯿﮨﺎﭼ ﺎﻧﺮﮐ ﮏﻠﺴﻨﻣ ﮯﺳﻮﯾﻭ ﺲﮐ ﮯﺳﺍ ﮧﮐ ﮯﮨ ﮟﯿﮩﻧ ﺢﺿﺍﻭ ﮧﯾ ﺎﺘﮑﺳ ﺎﺟ ﺎﯿﮐ ﮟﯿﮩﻧ ﮏﻨﻟ ﻥﺍ ﻮﮐ '%s‬‪' ﮯﮐ ﺎﯿﻧﺩ"
+msgstr "ﮯﮨ ﮟﯿﮩﻧﻮﯾﻭ ﯽﺋﻮﮐ ﺮﭘ ﺭﻮﻃ ﮯﮐ ﻦﯾﺪﻟﺍﻭ ﮟﯿﻣ ﯼﺮﭨ ﺮﻨﺋﻻ﻿ ﭦﺅﺁ ،ﮯﯿﮨﺎﭼ ﺎﻧﺮﮐ ﮏﻠﺴﻨﻣ ﮯﺳﻮﯾﻭ ﺲﮐ ﮯﺳﺍ ﮧﮐ ﮯﮨ ﮟﯿﮩﻧ ﺢﺿﺍﻭ ﮧﯾ ﺎﺘﮑﺳ ﺎﺟ ﺎﯿﮐ ﮟﯿﮩﻧ ﮏﻨﻟ ﻥﺍ ﻮﮐ '%s'‬‪ ﮯﮐ ﺎﯿﻧﺩ"
 
 
 msgid "Could not create library override from data-block '%s', as it is not overridable"
-msgstr "ﮯﮨ ﮟﯿﮩﻧ ﮉﺋﺍﺭ ﺭﻭﻭﺍ ﮧﯾ ﮧﮑﻧﻮﯿﮐ ،ﯽﮑﺳ ﻦﺑ ﮟﯿﮩﻧ ﮉﯿﺋﺍﺭ ﺭﻭﻭﺍ ﯼﺮﯾﺮﺒﺋﻻ﻿ ﮯﺳ '%s‬‪' ﮎﻼ﻿ﺑ ﺎﭩﯾﮈ"
+msgstr "ﮯﮨ ﮟﯿﮩﻧ ﮉﺋﺍﺭ ﺭﻭﻭﺍ ﮧﯾ ﮧﮑﻧﻮﯿﮐ ،ﯽﮑﺳ ﻦﺑ ﮟﯿﮩﻧ ﮉﯿﺋﺍﺭ ﺭﻭﻭﺍ ﯼﺮﯾﺮﺒﺋﻻ﻿ ﮯﺳ '%s'‬‪ ﮎﻼ﻿ﺑ ﺎﭩﯾﮈ"
 
 
 msgid "Invalid anchor ('%s') found, needed to create library override from data-block '%s'"
-msgstr "ﮯﮨ ﺭﺎﮐﺭﺩ ﮯﯿﻟ ﮯﮐ ﮯﻧﺎﻨﺑ ﮉﺋﺍﺭ ﺭﻭﻭﺍ ﯼﺮﯾﺮﺒﺋﻻ﻿ ﮯﺳ '%s‬‪' ﮎﻼ﻿ﺑ ﺎﭩﯾﮈ ،ﻼ﻿ﻣ ('%s‬‪') ﺮﮑﻨﯾﺍ ﻂﻠﻏ"
+msgstr "ﮯﮨ ﺭﺎﮐﺭﺩ ﮯﯿﻟ ﮯﮐ ﮯﻧﺎﻨﺑ ﮉﺋﺍﺭ ﺭﻭﻭﺍ ﯼﺮﯾﺮﺒﺋﻻ﻿ ﮯﺳ '%s'‬‪ ﮎﻼ﻿ﺑ ﺎﭩﯾﮈ ،ﻼ﻿ﻣ ('%s'‬‪) ﺮﮑﻨﯾﺍ ﻂﻠﻏ"
 
 
 msgid "Could not create library override from data-block '%s', one of its parents is not overridable ('%s')"
-msgstr "('%s‬‪') ﮯﮨ ﮟﯿﮩﻧ ﮉﺋﺍﺭ ﺭﻭﻭﺍ ﮏﯾﺍ ﮯﺳ ﮟﯿﻣ ﻦﯾﺪﻟﺍﻭ ﮯﮐ ﺱﺍ ،ﯽﮑﺳ ﻦﺑ ﮟﯿﮩﻧ ﮉﯿﺋﺍﺭ ﺭﻭﻭﺍ ﯼﺮﯾﺮﺒﺋﻻ﻿ ﮯﺳ '%s‬‪' ﮎﻼ﻿ﺑ ﺎﭩﯾﮈ"
+msgstr "('%s'‬‪) ﮯﮨ ﮟﯿﮩﻧ ﮉﺋﺍﺭ ﺭﻭﻭﺍ ﮏﯾﺍ ﮯﺳ ﮟﯿﻣ ﻦﯾﺪﻟﺍﻭ ﮯﮐ ﺱﺍ ،ﯽﮑﺳ ﻦﺑ ﮟﯿﮩﻧ ﮉﯿﺋﺍﺭ ﺭﻭﻭﺍ ﯼﺮﯾﺮﺒﺋﻻ﻿ ﮯﺳ '%s'‬‪ ﮎﻼ﻿ﺑ ﺎﭩﯾﮈ"
 
 
 msgid "Invalid hierarchy root ('%s') found, needed to create library override from data-block '%s'"
-msgstr "ﮯﮨ ﺭﺎﮐﺭﺩ ﮯﯿﻟ ﮯﮐ ﮯﻧﺎﻨﺑ ﮉﯿﺋﺍﺭ ﺭﻭﻭﺍ ﯼﺮﯾﺮﺒﺋﻻ﻿ ﮯﺳ '%s‬‪' ﮎﻼ﻿ﺑ ﺎﭩﯾﮈ ،ﯽﻠﻣ ('%s‬‪') ﮍﺟ ﯽﮐ ﯼﺪﻨﺑ ﮧﺟﺭﺩ ﻂﻠﻏ"
+msgstr "ﮯﮨ ﺭﺎﮐﺭﺩ ﮯﯿﻟ ﮯﮐ ﮯﻧﺎﻨﺑ ﮉﯿﺋﺍﺭ ﺭﻭﻭﺍ ﯼﺮﯾﺮﺒﺋﻻ﻿ ﮯﺳ '%s'‬‪ ﮎﻼ﻿ﺑ ﺎﭩﯾﮈ ،ﯽﻠﻣ ('%s'‬‪) ﮍﺟ ﯽﮐ ﯼﺪﻨﺑ ﮧﺟﺭﺩ ﻂﻠﻏ"
 
 
 msgid "Could not create library override from one or more of the selected data-blocks"
@@ -124309,11 +124283,11 @@ msgstr "ﯽﮑﺳ ﻦﺑ ﮟﯿﮩﻧ ﮉﯿﺋﺍﺭ ﺭﻭﻭﺍ ﯼﺮﯾﺮ�
 
 
 msgid "Cannot clear embedded library override '%s', only overrides of real data-blocks can be directly cleared"
-msgstr "ﮯﮨ ﺎﺘﮑﺳ ﺎﺟ ﺎﯿﮐ ﻑﺎﺻ ﺖﺳﺍﺭ ﮦﺍﺮﺑ ﯽﮨ ﻮﮐ ﺲﮐﻼ﻿ﺑ ﺎﭩﯾﮈ ﯽﻠﺻﺍ ﻑﺮﺻ ،ﺎﺘﮑﺳ ﺎﺟ ﺎﯿﮐ ﮟﯿﮩﻧ ﻑﺎﺻ ﻮﮐ '%s‬‪' ﮉﺋﺍﺭ ﺭﻭﻭﺍ ﯼﺮﯾﺮﺒﺋﻻ﻿ ﮈﮉﯿﺒﻤﯾﺍ"
+msgstr "ﮯﮨ ﺎﺘﮑﺳ ﺎﺟ ﺎﯿﮐ ﻑﺎﺻ ﺖﺳﺍﺭ ﮦﺍﺮﺑ ﯽﮨ ﻮﮐ ﺲﮐﻼ﻿ﺑ ﺎﭩﯾﮈ ﯽﻠﺻﺍ ﻑﺮﺻ ،ﺎﺘﮑﺳ ﺎﺟ ﺎﯿﮐ ﮟﯿﮩﻧ ﻑﺎﺻ ﻮﮐ '%s'‬‪ ﮉﺋﺍﺭ ﺭﻭﻭﺍ ﯼﺮﯾﺮﺒﺋﻻ﻿ ﮈﮉﯿﺒﻤﯾﺍ"
 
 
 msgid "Cannot clear linked library override '%s', only local overrides can be directly cleared"
-msgstr "ﮯﮨ ﺎﺘﮑﺳ ﺎﺟ ﺎﯿﮐ ﻑﺎﺻ ﺖﺳﺍﺭ ﮦﺍﺮﺑ ﻮﮐ ﺯﮉﯿﺋﺍﺭ ﺭﻭﻭﺍ ﯽﻣﺎﻘﻣ ﻑﺮﺻ ،ﺎﺘﮑﺳ ﺎﺟ ﺎﯿﮐ ﮟﯿﮩﻧ ﻑﺎﺻ ﻮﮐ '%s‬‪' ﮉﯿﺋﺍﺭ ﺭﻭﻭﺍ ﯼﺮﯾﺮﺒﺋﻻ﻿ ﮦﺪﺷ ﮏﻨﻟ"
+msgstr "ﮯﮨ ﺎﺘﮑﺳ ﺎﺟ ﺎﯿﮐ ﻑﺎﺻ ﺖﺳﺍﺭ ﮦﺍﺮﺑ ﻮﮐ ﺯﮉﯿﺋﺍﺭ ﺭﻭﻭﺍ ﯽﻣﺎﻘﻣ ﻑﺮﺻ ،ﺎﺘﮑﺳ ﺎﺟ ﺎﯿﮐ ﮟﯿﮩﻧ ﻑﺎﺻ ﻮﮐ '%s'‬‪ ﮉﯿﺋﺍﺭ ﺭﻭﻭﺍ ﯼﺮﯾﺮﺒﺋﻻ﻿ ﮦﺪﺷ ﮏﻨﻟ"
 
 
 msgid "No Library Overrides"
@@ -124397,7 +124371,7 @@ msgstr "ﻼ﻿ﻣ ﮟﯿﮩﻧ ﮏﺳﺎﻣ"
 
 
 msgid "File '%s' could not be loaded"
-msgstr "ﯽﮑﺳ ﻮﮨ ﮟﯿﮩﻧ ﮈﻮﻟ '%s‬‪' ﻞﺋﺎﻓ"
+msgstr "ﯽﮑﺳ ﻮﮨ ﮟﯿﮩﻧ ﮈﻮﻟ '%s'‬‪ ﻞﺋﺎﻓ"
 
 
 msgid "Could not create the copy paste file!"
@@ -124617,7 +124591,7 @@ msgstr "ﮯﮨ ﮟﯿﮩﻧ ﺮﯾﺮﺤﺗ ﻞﺑﺎﻗ %s‬‪ ﮧﺘﺳﺍ�
 
 
 msgid "Unable to save '%s': %s"
-msgstr "'‪%s‬' ﺮﺻﺎﻗ ﮯﺳ ﮯﻧﺮﮐ ﻅﻮﻔﺤﻣ ﻮﮐ: ‪%s‬"
+msgstr "‪'%s'‬ ﺮﺻﺎﻗ ﮯﺳ ﮯﻧﺮﮐ ﻅﻮﻔﺤﻣ ﻮﮐ: ‪%s‬"
 
 
 msgid "Saved text \"%s\""
@@ -124625,7 +124599,7 @@ msgstr "‬%s‪ ﮦﺩﺮﮐ ﻅﻮﻔﺤﻣ"
 
 
 msgid "Unable to stat '%s': %s"
-msgstr "'‪%s‬' ﺮﺻﺎﻗ ﮯﺳ ﮯﻧﺮﮐ ﻥﺎﯿﺑ: ‪%s‬"
+msgstr "‪'%s'‬ ﺮﺻﺎﻗ ﮯﺳ ﮯﻧﺮﮐ ﻥﺎﯿﺑ: ‪%s‬"
 
 
 msgid "Text not found: %s"
@@ -124633,15 +124607,15 @@ msgstr "‬%s‪ :ﻼ﻿ﻣ ﮟﯿﮩﻧ ﻦﺘﻣ"
 
 
 msgid "See '%s' in the external editor"
-msgstr "ﮟﯿﮭﮑﯾﺩ '%s‬‪' ﮟﯿﻣ ﺮﭩﯾﮉﯾﺍ ﯽﻧﻭﺮﯿﺑ"
+msgstr "ﮟﯿﮭﮑﯾﺩ '%s'‬‪ ﮟﯿﻣ ﺮﭩﯾﮉﯾﺍ ﯽﻧﻭﺮﯿﺑ"
 
 
 msgid "File '%s' cannot be opened"
-msgstr "ﺎﺘﮑﺳ ﺎﺟ ﻻ﻿ﻮﮭﮐ ﮟﯿﮩﻧ ﻮﮐ '%s‬‪' ﻞﺋﺎﻓ"
+msgstr "ﺎﺘﮑﺳ ﺎﺟ ﻻ﻿ﻮﮭﮐ ﮟﯿﮩﻧ ﻮﮐ '%s'‬‪ ﻞﺋﺎﻓ"
 
 
 msgid "See '%s' in the text editor"
-msgstr "ﮟﯿﮭﮑﯾﺩ '%s‬‪' ﮟﯿﻣ ﺮﭩﯾﮉﯾﺍ ﭧﺴﮑﯿﭨ"
+msgstr "ﮟﯿﮭﮑﯾﺩ '%s'‬‪ ﮟﯿﻣ ﺮﭩﯾﮉﯾﺍ ﭧﺴﮑﯿﭨ"
 
 
 msgid "Clear Recent Files List..."
@@ -124705,7 +124679,7 @@ msgstr "ﮯﮨ ﮈﺮﭩﺴﺟﺭ ﺮﯿﻏ ﻦﺸﯾﺍ ﯽﺳﻮﺴﯾﺍ ﻞ�
 
 
 msgid "Added %s \"%s\""
-msgstr "\"%s‬ \"‪%s‬‪ ﺎﯿﮔ ﺎﯿﮐ ﻞﻣﺎﺷ"
+msgstr "‬%s‬ ‪\"%s\"‪ ﺎﯿﮔ ﺎﯿﮐ ﻞﻣﺎﺷ"
 
 
 msgid "Unable to remove directory: %s"
@@ -124713,7 +124687,7 @@ msgstr "‬%s‪ :ﺮﺻﺎﻗ ﮯﺳ ﮯﻧﺎﭩﮨ ﻮﮐ ﯼﺮﭩﮑﯾﺮ�
 
 
 msgid "Extension operator not found \"%s\""
-msgstr "ﻼ﻿ﻣ ﮟﯿﮩﻧ \"%s‬‪\" ﺮﭩﯾﺮﭘﺁ ﻦﺸﻨﯿﭩﺴﮑﯾﺍ"
+msgstr "ﻼ﻿ﻣ ﮟﯿﮩﻧ \"%s\"‬‪ ﺮﭩﯾﺮﭘﺁ ﻦﺸﻨﯿﭩﺴﮑﯾﺍ"
 
 
 msgid "There is no asset library to remove"
@@ -125020,20 +124994,12 @@ msgid "Cannot fly when the view offset is locked"
 msgstr "ﺎﺘﮑﺳ ﮟﯿﮩﻧ ﮌﺍ ﻮﺗ ﻮﮨ ﻞﻔﻘﻣ ﭧﯿﺴﻓﺁ ﻮﯾﻭ ﺐﺟ"
 
 
-msgid "Cannot fly an object with constraints"
-msgstr "ﺎﺘﮑﺳ ﮟﯿﮩﻧ ﮌﺍ ﻮﮐ ﮯﺷ ﯽﺴﮐ ﮫﺗﺎﺳ ﮯﮐ ﮞﻮﭨﻭﺎﮐﺭ"
-
-
 msgid "Cannot dolly when the view offset is locked"
 msgstr "ﺎﺘﮑﺳ ﻮﮨ ﮟﯿﮩﻧ ﯽﻟﻭﮈ ﻮﺗ ﻮﮨ ﻞﻔﻘﻣ ﭧﯿﺴﻓﺁ ﻮﯾﻭ ﺐﺟ"
 
 
 msgid "Cannot navigate when the view offset is locked"
 msgstr "ﺎﺘﮑﺳ ﺎﺟ ﺎﯿﮐ ﮟﯿﮩﻧ ﭧﯿﮕﯾﻮﯿﻧ ﺮﭘ ﮯﻧﻮﮨ ﻞﻔﻘﻣ ﭧﯿﺴﻓﺁ ﻮﯾﻭ"
-
-
-msgid "Cannot navigate an object with constraints"
-msgstr "ﺎﺘﮑﺳ ﺎﺟ ﺎﯿﮐ ﮟﯿﮩﻧ ﭧﯿﮕﯾﻮﯿﻧ ﻮﮐ ﮯﺷ ﯽﺴﮐ ﮫﺗﺎﺳ ﮯﮐ ﮞﻮﭨﻭﺎﮐﺭ"
 
 
 msgid "Depth too large"
@@ -125752,11 +125718,11 @@ msgstr "SVG ﺎﮔ ﻮﮨ ﺎًﺒﯾﺮﻘﺗ ﮓﻧﺭ ﺎﮐ ﻞﺴﻨﭘ ﺲ
 
 
 msgid "PLY Export: Unable to find collection '%s'"
-msgstr "PLY ﮧﻋﻮﻤﺠﻣ :ﺪﻣﺁﺮﺑ '‪%s‬' ﺮﺻﺎﻗ ﮯﺳ ﮯﻧﺮﮐ ﺵﻼ﻿ﺗ"
+msgstr "PLY ﮧﻋﻮﻤﺠﻣ :ﺪﻣﺁﺮﺑ ‪'%s'‬ ﺮﺻﺎﻗ ﮯﺳ ﮯﻧﺮﮐ ﺵﻼ﻿ﺗ"
 
 
 msgid "PLY Export: Cannot open file '%s'"
-msgstr "PLY ﻞﺋﺎﻓ :ﭦﺭﻮﭙﺴﮑﯾﺍ '‪%s‬' ﯽﺘﮑﺳ ﻝﻮﮭﮐ ﮟﯿﮩﻧ"
+msgstr "PLY ﻞﺋﺎﻓ :ﭦﺭﻮﭙﺴﮑﯾﺍ ‪'%s'‬ ﯽﺘﮑﺳ ﻝﻮﮭﮐ ﮟﯿﮩﻧ"
 
 
 msgid "PLY Importer: failed importing, unknown error"
@@ -125772,23 +125738,23 @@ msgstr "PLY ﮦﺪﻨﻨﮐ ﺪﻣﺁﺭﺩ: ‪%s‬: ‪%s‬"
 
 
 msgid "STL Export: Cannot open file '%s'"
-msgstr "STL ﻞﺋﺎﻓ :ﭦﺭﻮﭙﺴﮑﯾﺍ '‪%s‬' ﺎﺘﮑﺳ ﺎﺟ ﻻ﻿ﻮﮭﮐ ﮟﯿﮩﻧ ﻮﮐ"
+msgstr "STL ﻞﺋﺎﻓ :ﭦﺭﻮﭙﺴﮑﯾﺍ ‪'%s'‬ ﺎﺘﮑﺳ ﺎﺟ ﻻ﻿ﻮﮭﮐ ﮟﯿﮩﻧ ﻮﮐ"
 
 
 msgid "STL Export: Unable to find collection '%s'"
-msgstr "STL ﮧﻋﻮﻤﺠﻣ :ﺪﻣﺁﺮﺑ '‪%s‬' ﺮﺻﺎﻗ ﮯﺳ ﮯﻧﺮﮐ ﺵﻼ﻿ﺗ"
+msgstr "STL ﮧﻋﻮﻤﺠﻣ :ﺪﻣﺁﺮﺑ ‪'%s'‬ ﺮﺻﺎﻗ ﮯﺳ ﮯﻧﺮﮐ ﺵﻼ﻿ﺗ"
 
 
 msgid "STL Import: Cannot open file '%s'"
-msgstr "STL ﻞﺋﺎﻓ :ﺪﻣﺁﺭﺩ '‪%s‬' ﺎﺘﮑﺳ ﺎﺟ ﻻ﻿ﻮﮭﮐ ﮟﯿﮩﻧ ﻮﮐ"
+msgstr "STL ﻞﺋﺎﻓ :ﺪﻣﺁﺭﺩ ‪'%s'‬ ﺎﺘﮑﺳ ﺎﺟ ﻻ﻿ﻮﮭﮐ ﮟﯿﮩﻧ ﻮﮐ"
 
 
 msgid "STL Import: Failed to read file '%s'"
-msgstr "STL ﻞﺋﺎﻓ :ﺪﻣﺁﺭﺩ '‪%s‬' ﻡﺎﮐﺎﻧ ﮟﯿﻣ ﮯﻨﮬﮍﭘ"
+msgstr "STL ﻞﺋﺎﻓ :ﺪﻣﺁﺭﺩ ‪'%s'‬ ﻡﺎﮐﺎﻧ ﮟﯿﻣ ﮯﻨﮬﮍﭘ"
 
 
 msgid "STL Import: Failed to import mesh from file '%s'"
-msgstr "STL ﻞﺋﺎﻓ :ﺪﻣﺁﺭﺩ '‪%s‬' ﻡﺎﮐﺎﻧ ﮟﯿﻣ ﮯﻧﺮﮐ ﺪﻣﺁﺭﺩ ﺶﯿﻣ ﮯﺳ"
+msgstr "STL ﻞﺋﺎﻓ :ﺪﻣﺁﺭﺩ ‪'%s'‬ ﻡﺎﮐﺎﻧ ﮟﯿﻣ ﮯﻧﺮﮐ ﺪﻣﺁﺭﺩ ﺶﯿﻣ ﮯﺳ"
 
 
 msgid "%s: Couldn't determine package-relative file name from path %s"
@@ -125852,7 +125818,7 @@ msgstr "USD ﭦﺭﻮﭙﺴﮑﯾﺍ: ‪%s‬ ﺐﺳﺎﻨﻣ ﮯﯿﻟ ﮯﮐ 
 
 
 msgid "USD Export: Unable to find collection '%s'"
-msgstr "USD ﮧﻋﻮﻤﺠﻣ :ﺪﻣﺁﺮﺑ '‪%s‬' ﺮﺻﺎﻗ ﮯﺳ ﮯﻧﺮﮐ ﺵﻼ﻿ﺗ"
+msgstr "USD ﮧﻋﻮﻤﺠﻣ :ﺪﻣﺁﺮﺑ ‪'%s'‬ ﺮﺻﺎﻗ ﮯﺳ ﮯﻧﺮﮐ ﺵﻼ﻿ﺗ"
 
 
 msgid "Could not open USD archive for reading, see console for detail"
@@ -125864,15 +125830,15 @@ msgstr "USD ﺪﻣﺁﺭﺩ: ‪%s‬ ﺮﺻﺎﻗ ﮯﺳ ﮯﻨﻟﻮﮭﮐ ﺞ
 
 
 msgid "An exception occurred invoking USD hook '%s'. Please see the console for details"
-msgstr "USD ﮏﮨ '‪%s‬' ﮟﯿﮭﮑﯾﺩ ﻝﻮﺴﻨﮐ ﻡﺮﮐ ﮦﺍﺮﺑ ﮯﯿﻟ ﮯﮐ ﺕﻼ﻿ﯿﺼﻔﺗ ﺎﯾﺁ ﺶﯿﭘ ءﺎﻨﺜﺘﺳﺍ ﮏﯾﺍ ﮯﺋﻮﮨ ﮯﺗﺮﮐ ﺖﺳﺍﻮﺧﺭﺩ ﯽﮐ"
+msgstr "USD ﮏﮨ ‪'%s'‬ ﮟﯿﮭﮑﯾﺩ ﻝﻮﺴﻨﮐ ﻡﺮﮐ ﮦﺍﺮﺑ ﮯﯿﻟ ﮯﮐ ﺕﻼ﻿ﯿﺼﻔﺗ ﺎﯾﺁ ﺶﯿﭘ ءﺎﻨﺜﺘﺳﺍ ﮏﯾﺍ ﮯﺋﻮﮨ ﮯﺗﺮﮐ ﺖﺳﺍﻮﺧﺭﺩ ﯽﮐ"
 
 
 msgid "An exception occurred invoking USD hook '%s'"
-msgstr "USD ﮏﮨ '‪%s‬' ﺎﯾﺁ ﺶﯿﭘ ءﺎﻨﺜﺘﺳﺍ ﮏﯾﺍ ﮯﺋﻮﮨ ﮯﺗﺮﮐ ﺖﺳﺍﻮﺧﺭﺩ ﯽﮐ"
+msgstr "USD ﮏﮨ ‪'%s'‬ ﺎﯾﺁ ﺶﯿﭘ ءﺎﻨﺜﺘﺳﺍ ﮏﯾﺍ ﮯﺋﻮﮨ ﮯﺗﺮﮐ ﺖﺳﺍﻮﺧﺭﺩ ﯽﮐ"
 
 
 msgid "Primvar '%s' (interpolation %s, type %s) cannot be converted to Blender"
-msgstr "ﺎﺘﮑﺳ ﺎﺟ ﺎﯿﮐ ﮟﯿﮩﻧ ﻞﯾﺪﺒﺗ ﮟﯿﻣ ﺭﮉﻨﯿﻠﺑ ﻮﮐ (%s‬‪ ﭗﺋﺎﭨ ،%s‬‪ ﻦﺸﯿﻟﻮﭘﺮﭩﻧﺍ) '%s‬‪' ﺭﺍﻮﻤﺋﺍﺮﭘ"
+msgstr "ﺎﺘﮑﺳ ﺎﺟ ﺎﯿﮐ ﮟﯿﮩﻧ ﻞﯾﺪﺒﺗ ﮟﯿﻣ ﺭﮉﻨﯿﻠﺑ ﻮﮐ (%s‬‪ ﭗﺋﺎﭨ ،%s‬‪ ﻦﺸﯿﻟﻮﭘﺮﭩﻧﺍ) '%s'‬‪ ﺭﺍﻮﻤﺋﺍﺮﭘ"
 
 
 msgid "%s: Error: Couldn't get input socket %s for node %s"
@@ -125880,11 +125846,11 @@ msgstr "‪%s‬: ﮈﻮﻧ :ﯽﺑﺍﺮﺧ ‪%s‬ ﭧﮐﺎﺳ ﭧﭘ ﻥﺍ
 
 
 msgid "USD Import: UV attribute value '%s' count inconsistent with interpolation type"
-msgstr "USD ﺭﺪﻗ ﺏﺎﺴﺘﻧﺎﯾﻭ ﻮﯾ:ﺪﻣﺁﺭﺩ '‪%s‬' ﯽﺘﮭﮐﺭ ﮟﯿﮩﻧ ﺖﻘﺑﺎﻄﻣ ﮯﺳ ﻢﺴﻗ ﯽﮐ ﻦﺸﯿﻟﻮﭘﺮﭩﻧﺍ ﺭﺎﻤﺷ"
+msgstr "USD ﺭﺪﻗ ﺏﺎﺴﺘﻧﺎﯾﻭ ﻮﯾ:ﺪﻣﺁﺭﺩ ‪'%s'‬ ﯽﺘﮭﮐﺭ ﮟﯿﮩﻧ ﺖﻘﺑﺎﻄﻣ ﮯﺳ ﻢﺴﻗ ﯽﮐ ﻦﺸﯿﻟﻮﭘﺮﭩﻧﺍ ﺭﺎﻤﺷ"
 
 
 msgid "USD Import: couldn't add UV attribute '%s'"
-msgstr "USD ﺏﺎﺴﺘﻧﺎﯾﻭ ﻮﯾ:ﺪﻣﺁﺭﺩ '‪%s‬' ﺎﮑﺳ ﺎﺟ ﺎﯿﮐ ﮟﯿﮩﻧ ﻞﻣﺎﺷ"
+msgstr "USD ﺏﺎﺴﺘﻧﺎﯾﻭ ﻮﯾ:ﺪﻣﺁﺭﺩ ‪'%s'‬ ﺎﮑﺳ ﺎﺟ ﺎﯿﮐ ﮟﯿﮩﻧ ﻞﻣﺎﺷ"
 
 
 msgid "Fixed mesh for prim: %s"
@@ -125984,7 +125950,7 @@ msgstr "ﺎﺘﮑﺳ ﺎﺟ ﺎﯿﮐ ﮟﯿﮩﻧ ﺪﻣﺁﺮﺑ ﻮﮐ  ﮟ�
 
 
 msgid "Attribute '%s' (Blender domain %d, type %d) cannot be converted to USD"
-msgstr "ﺎﺘﮑﺳ ﺎﺟ ﺎﯿﮐ ﮟﯿﮩﻧ ﻞﯾﺪﺒﺗ ﮟﯿﻣ USD ﻮﮐ (%d‬‪ ﭗﺋﺎﭨ ،%d‬‪ ﻦﯿﻣﻭﮈ ﺭﮉﻨﯿﻠﺑ) '%s‬‪' ﺏﺎﺴﺘﻧﺍ"
+msgstr "ﺎﺘﮑﺳ ﺎﺟ ﺎﯿﮐ ﮟﯿﮩﻧ ﻞﯾﺪﺒﺗ ﮟﯿﻣ USD ﻮﮐ (%d‬‪ ﭗﺋﺎﭨ ،%d‬‪ ﻦﯿﻣﻭﮈ ﺭﮉﻨﯿﻠﺑ) '%s'‬‪ ﺏﺎﺴﺘﻧﺍ"
 
 
 msgid "%s: Couldn't create USD shader for UV map"
@@ -126008,7 +125974,7 @@ msgstr "USD ﻮﮐ  ﺖﺧﺎﺳ :ﭦﺭﻮﭙﺴﮑﯾﺍ ‪%s‬ ﮯﺳ ‪%s
 
 
 msgid "Mesh '%s', Attribute '%s' (domain %d, type %d) cannot be converted to USD"
-msgstr "ﺎﺘﮑﺳ ﺎﺟ ﺎﯿﮐ ﮟﯿﮩﻧ ﻞﯾﺪﺒﺗ ﮟﯿﻣ USD ﻮﮐ (%d‬‪ ﻢﺴﻗ ،%d‬‪ ﻦﯿﻣﻭﮈ) '%s‬‪' ﺏﺎﺴﺘﻧﺍ ،'%s‬‪' ﺶﯿﻣ"
+msgstr "ﺎﺘﮑﺳ ﺎﺟ ﺎﯿﮐ ﮟﯿﮩﻧ ﻞﯾﺪﺒﺗ ﮟﯿﻣ USD ﻮﮐ (%d‬‪ ﻢﺴﻗ ،%d‬‪ ﻦﯿﻣﻭﮈ) '%s'‬‪ ﺏﺎﺴﺘﻧﺍ ،'%s'‬‪ ﺶﯿﻣ"
 
 
 msgid "USD export: Simple subdivision not supported, exporting subdivided mesh"
@@ -126028,11 +125994,11 @@ msgstr "OBJ ﯽﺘﮑﺳ ﺎﺟ ﯽﻟﻮﮭﮐ ﮟﯿﮩﻧ ﻞﺋﺎﻓ :ﮟ�
 
 
 msgid "OBJ Export: Cannot create mtl file for '%s'"
-msgstr "OBJ ﭦﺭﻮﭙﺴﮑﯾﺍ: '‪%s‬' ﮯﯿﻟ ﮯﮐ mtl ﯽﺘﮑﺳ ﻦﺑ ﮟﯿﮩﻧ ﻞﺋﺎﻓ"
+msgstr "OBJ ﭦﺭﻮﭙﺴﮑﯾﺍ: ‪'%s'‬ ﮯﯿﻟ ﮯﮐ mtl ﯽﺘﮑﺳ ﻦﺑ ﮟﯿﮩﻧ ﻞﺋﺎﻓ"
 
 
 msgid "OBJ Export: Unable to find collection '%s'"
-msgstr "OBJ ﮟﯾﺮﮐ ﺪﻣﺁﺮﺑ: Unable to ﮧﻋﻮﻤﺠﻣ ﮟﯾﺮﮐ ﺵﻼ﻿ﺗ '‪%s‬'"
+msgstr "OBJ ﮟﯾﺮﮐ ﺪﻣﺁﺮﺑ: Unable to ﮧﻋﻮﻤﺠﻣ ﮟﯾﺮﮐ ﺵﻼ﻿ﺗ ‪'%s'‬"
 
 
 msgid "OBJ Import: Cannot open file '%s'"
@@ -126088,23 +126054,23 @@ msgstr "ﮟﯿﮩﻧ ﺩﺍﻮﻣ ﯽﺋﻮﮐ ﮯﯿﻟ ﮯﮐ ﮯﻧﺎﭩﮨ"
 
 
 msgid "Registering id property class: '%s' is too long, maximum length is %d"
-msgstr "ﮯﮨ %d‬‪ ﯽﺋﺎﺒﻤﻟ ﮦﺩﺎﯾﺯ ﮯﺳ ﮦﺩﺎﯾﺯ ،ﮯﮨ ﯽﺒﻤﻟ ﺖﮩﺑ '%s‬‪' :ﺱﻼ﻿ﮐ ﯽﭨﺮﭘﺍﺮﭘ ﯼﮈ ﯽﺋﺁ ﯼﺮﭩﺴﺟﺭ"
+msgstr "ﮯﮨ %d‬‪ ﯽﺋﺎﺒﻤﻟ ﮦﺩﺎﯾﺯ ﮯﺳ ﮦﺩﺎﯾﺯ ،ﮯﮨ ﯽﺒﻤﻟ ﺖﮩﺑ '%s'‬‪ :ﺱﻼ﻿ﮐ ﯽﭨﺮﭘﺍﺮﭘ ﯼﮈ ﯽﺋﺁ ﯼﺮﭩﺴﺟﺭ"
 
 
 msgid "'%s' is of a type that cannot be an asset"
-msgstr "'‪%s‬' ﺎﺘﮑﺳ ﻮﮨ ﮟﯿﮩﻧ ﮧﺛﺎﺛﺍ ﻮﺟ ﮯﮨ ﺎﮐ ﻢﺴﻗ ﮏﯾﺍ"
+msgstr "‪'%s'‬ ﺎﺘﮑﺳ ﻮﮨ ﮟﯿﮩﻧ ﮧﺛﺎﺛﺍ ﻮﺟ ﮯﮨ ﺎﮐ ﻢﺴﻗ ﮏﯾﺍ"
 
 
 msgid "ID '%s' isn't an override"
-msgstr "ID '‪%s‬' ﮯﮨ ﮟﯿﮩﻧ ﮉﺋﺍﺭ ﺭﻭﻭﺍ"
+msgstr "ID ‪'%s'‬ ﮯﮨ ﮟﯿﮩﻧ ﮉﺋﺍﺭ ﺭﻭﻭﺍ"
 
 
 msgid "ID '%s' is linked, cannot edit its overrides"
-msgstr "ID '‪%s‬' ﺎﺘﮑﺳ ﺮﮐ ﮟﯿﮩﻧ ﺮﺋﺎﻔﯾﮈﻮﻣ ﮟﯿﻣ ﺯﮉﯿﺋﺍﺭ ﺭﻭﻭﺍ ﮯﮐ ﺱﺍ ،ﮯﮨ ﮏﻠﺴﻨﻣ"
+msgstr "ID ‪'%s'‬ ﺎﺘﮑﺳ ﺮﮐ ﮟﯿﮩﻧ ﺮﺋﺎﻔﯾﮈﻮﻣ ﮟﯿﻣ ﺯﮉﯿﺋﺍﺭ ﺭﻭﻭﺍ ﮯﮐ ﺱﺍ ،ﮯﮨ ﮏﻠﺴﻨﻣ"
 
 
 msgid "Data-block '%s' is not a library override, or not part of a library override hierarchy"
-msgstr "ﮯﮨ ﮟﯿﮩﻧ ﮧﺼﺣ ﺎﮐ ﯼﺪﻨﺑ ﮧﺟﺭﺩ ﮉﺋﺍﺭ ﺭﻭﻭﺍ ﯼﺮﯾﺮﺒﺋﻻ﻿ ﺎﯾ ،ﮯﮨ ﮟﯿﮩﻧ ﮉﺋﺍﺭ ﺭﻭﻭﺍ ﯼﺮﯾﺮﺒﺋﻻ﻿ '%s‬‪' ﮎﻼ﻿ﺑ ﺎﭩﯾﮈ"
+msgstr "ﮯﮨ ﮟﯿﮩﻧ ﮧﺼﺣ ﺎﮐ ﯼﺪﻨﺑ ﮧﺟﺭﺩ ﮉﺋﺍﺭ ﺭﻭﻭﺍ ﯼﺮﯾﺮﺒﺋﻻ﻿ ﺎﯾ ،ﮯﮨ ﮟﯿﮩﻧ ﮉﺋﺍﺭ ﺭﻭﻭﺍ ﯼﺮﯾﺮﺒﺋﻻ﻿ '%s'‬‪ ﮎﻼ﻿ﺑ ﺎﭩﯾﮈ"
 
 
 msgid "Only boolean, int, float, and enum properties supported"
@@ -126132,7 +126098,7 @@ msgstr "(%d‬‪ ﻼ﻿ﻣ ،%d‬‪ ﻊﻗﻮﺘﻣ) ﮯﮨ ﮟﯿﮩﻧ ﺖ�
 
 
 msgid "Property named '%s' not found"
-msgstr "'‪%s‬' ﯽﻠﻣ ﮟﯿﮩﻧ ﯽﭨﺮﭘﺍﺮﭘ ﯽﮐ ﻡﺎﻧ"
+msgstr "‪'%s'‬ ﯽﻠﻣ ﮟﯿﮩﻧ ﯽﭨﺮﭘﺍﺮﭘ ﯽﮐ ﻡﺎﻧ"
 
 
 msgid "Array length mismatch (got %d, expected more)"
@@ -126180,7 +126146,7 @@ msgstr "F-Curve ﻼ﻿ﻣ ﮟﯿﮩﻧ"
 
 
 msgid "Timeline marker '%s' not found in action '%s'"
-msgstr "ﻼ﻿ﻣ ﮟﯿﮩﻧ ﮟﯿﻣ '%s‬‪' ﯽﺋﺍﻭﺭﺭﺎﮐ '%s‬‪' ﺮﮐﺭﺎﻣ ﻦﺋﻻ﻿ ﻢﺋﺎﭨ"
+msgstr "ﻼ﻿ﻣ ﮟﯿﮩﻧ ﮟﯿﻣ '%s'‬‪ ﯽﺋﺍﻭﺭﺭﺎﮐ '%s'‬‪ ﺮﮐﺭﺎﻣ ﻦﺋﻻ﻿ ﻢﺋﺎﭨ"
 
 
 msgid "Only armature objects are supported"
@@ -126212,19 +126178,19 @@ msgstr "ﻼ﻿ﻣ ﮟﯿﮩﻧ ﺭﻮﯿﺋﺍﺭﮈ ﮟﯿﻣ ﺎﭩﯾﮈ ﺕ�
 
 
 msgid "%s '%s' is too long, maximum length is %d"
-msgstr "‪%s‬ '‪%s‬' ﯽﺋﺎﺒﻤﻟ ﮦﺩﺎﯾﺯ ﮯﺳ ﮦﺩﺎﯾﺯ ،ﮯﮨ ﺎﺒﻤﻟ ﺖﮩﺑ ‪%d‬ ﮯﮨ"
+msgstr "‪%s‬ ‪'%s'‬ ﯽﺋﺎﺒﻤﻟ ﮦﺩﺎﯾﺯ ﮯﺳ ﮦﺩﺎﯾﺯ ،ﮯﮨ ﺎﺒﻤﻟ ﺖﮩﺑ ‪%d‬ ﮯﮨ"
 
 
 msgid "%s '%s', bl_idname '%s' has been registered before, unregistering previous"
-msgstr "‪%s‬ '‪%s‬'، bl_idname '‪%s‬' ﻢﺘﺧ ﻦﺸﯾﺮﭩﺴﺟﺭ ﯽﻠﮭﭽﭘ ،ﮯﮨ ﮈﺮﭩﺴﺟﺭ ﮯﻠﮩﭘ"
+msgstr "‪%s‬ ‪'%s'‬، bl_idname ‪'%s'‬ ﻢﺘﺧ ﻦﺸﯾﺮﭩﺴﺟﺭ ﯽﻠﮭﭽﭘ ،ﮯﮨ ﮈﺮﭩﺴﺟﺭ ﮯﻠﮩﭘ"
 
 
 msgid "%s '%s', bl_idname '%s' %s"
-msgstr "‪%s‬ '‪%s‬'، bl_idname '‪%s‬' ‪%s‬"
+msgstr "‪%s‬ ‪'%s'‬، bl_idname ‪'%s'‬ ‪%s‬"
 
 
 msgid "NlaTrack '%s' cannot be removed"
-msgstr "NlaTrack '‪%s‬' ﺎﺘﮑﺳ ﺎﺟ ﮟﯿﮩﻧ ﺎﯾﺎﭩﮨ ﻮﮐ"
+msgstr "NlaTrack ‪'%s'‬ ﺎﺘﮑﺳ ﺎﺟ ﮟﯿﮩﻧ ﺎﯾﺎﭩﮨ ﻮﮐ"
 
 
 msgid "Driver '%s[%d]' already exists"
@@ -126256,23 +126222,23 @@ msgstr "ﺎﺘﮑﺳ ﺎﻨﺑ ﮟﯿﮩﻧ ﺩﻻ﻿ﻭﺍ ﯽﻨﭘﺍ ﻮﮐ 
 
 
 msgid "Armature '%s' not in edit mode, cannot add an editbone"
-msgstr "ﺎﺘﮑﺳ ﺮﮐ ﮟﯿﮩﻧ ﻞﻣﺎﺷ ﻥﻮﺑ ﭦﮉﯾﺍ ،ﮯﮨ ﮟﯿﮩﻧ ﮟﯿﻣ ﮈﻮﻣ ﭦﮉﯾﺍ '%s‬‪' ﺮﭽﻣﺭﺁ"
+msgstr "ﺎﺘﮑﺳ ﺮﮐ ﮟﯿﮩﻧ ﻞﻣﺎﺷ ﻥﻮﺑ ﭦﮉﯾﺍ ،ﮯﮨ ﮟﯿﮩﻧ ﮟﯿﻣ ﮈﻮﻣ ﭦﮉﯾﺍ '%s'‬‪ ﺮﭽﻣﺭﺁ"
 
 
 msgid "Armature '%s' not in edit mode, cannot remove an editbone"
-msgstr "ﺎﺘﮑﺳ ﺎﭩﮨ ﮟﯿﮩﻧ ﻮﮐ ﻥﻮﺑ ﭦﮉﯾﺍ ،ﮯﮨ ﮟﯿﮩﻧ ﮟﯿﻣ ﮈﻮﻣ ﭦﮉﯾﺍ '%s‬‪' ﺮﭽﻣﺭﺁ"
+msgstr "ﺎﺘﮑﺳ ﺎﭩﮨ ﮟﯿﮩﻧ ﻮﮐ ﻥﻮﺑ ﭦﮉﯾﺍ ،ﮯﮨ ﮟﯿﮩﻧ ﮟﯿﻣ ﮈﻮﻣ ﭦﮉﯾﺍ '%s'‬‪ ﺮﭽﻣﺭﺁ"
 
 
 msgid "Armature '%s' does not contain bone '%s'"
-msgstr "ﯽﺗﻮﮨ ﮟﯿﮩﻧ '%s‬‪' ﯼﮉﮨ ﮟﯿﻣ '%s‬‪' ﺮﭽﻣﺭﺁ"
+msgstr "ﯽﺗﻮﮨ ﮟﯿﮩﻧ '%s'‬‪ ﯼﮉﮨ ﮟﯿﻣ '%s'‬‪ ﺮﭽﻣﺭﺁ"
 
 
 msgid "Bone collection '%s' not found in Armature '%s'"
-msgstr "ﻼ﻿ﻣ ﮟﯿﮩﻧ ﮟﯿﻣ '%s‬‪' ﺮﭽﻣﺭﺁ '%s‬‪' ﮧﻋﻮﻤﺠﻣ ﺎﮐ ﮞﻮﯾﮉﮨ"
+msgstr "ﻼ﻿ﻣ ﮟﯿﮩﻧ ﮟﯿﻣ '%s'‬‪ ﺮﭽﻣﺭﺁ '%s'‬‪ ﮧﻋﻮﻤﺠﻣ ﺎﮐ ﮞﻮﯾﮉﮨ"
 
 
 msgid "Cannot move collection from index '%d' to '%d'"
-msgstr "ﺎﺘﮑﺳ ﺎﺟ ﺎﯿﮐ ﮟﯿﮩﻧ ﻞﻘﺘﻨﻣ ﮟﯿﻣ '%d‬‪' ﮯﺳ '%d‬‪' ﺲﮑﯾﮉﻧﺍ ﻮﮐ ﮧﻋﻮﻤﺠﻣ"
+msgstr "ﺎﺘﮑﺳ ﺎﺟ ﺎﯿﮐ ﮟﯿﮩﻧ ﻞﻘﺘﻨﻣ ﮟﯿﻣ '%d'‬‪ ﮯﺳ '%d'‬‪ ﺲﮑﯾﮉﻧﺍ ﻮﮐ ﮧﻋﻮﻤﺠﻣ"
 
 
 msgid "`Collection.bones` is not available in armature edit mode"
@@ -126288,11 +126254,11 @@ msgstr "‪%s‬ ﮟﯾﺮﮐ ﺱﺎﭘ ﻥﻮﺑ ﭧﯾﮉﯾﺍ ﺎﯾ ،ﻥ�
 
 
 msgid "Tag '%s' already present for given asset"
-msgstr "ﮯﮨ ﺩﻮﺟﻮﻣ ﮯﺳ ﮯﻠﮩﭘ ﮯﯿﻟ ﮯﮐ ﮯﺛﺎﺛﺍ ﮯﺌﮔ ﮯﯾﺩ '%s‬‪' ﮓﯿﭨ"
+msgstr "ﮯﮨ ﺩﻮﺟﻮﻣ ﮯﺳ ﮯﻠﮩﭘ ﮯﯿﻟ ﮯﮐ ﮯﺛﺎﺛﺍ ﮯﺌﮔ ﮯﯾﺩ '%s'‬‪ ﮓﯿﭨ"
 
 
 msgid "Tag '%s' not found in given asset"
-msgstr "ﻼ﻿ﻣ ﮟﯿﮩﻧ ﮟﯿﻣ ﮯﺛﺎﺛﺍ ﮯﺌﮔ ﮯﯾﺩ '%s‬‪' ﮓﯿﭨ"
+msgstr "ﻼ﻿ﻣ ﮟﯿﮩﻧ ﮟﯿﻣ ﮯﺛﺎﺛﺍ ﮯﺌﮔ ﮯﯾﺩ '%s'‬‪ ﮓﯿﭨ"
 
 
 msgid "Cannot modify name of required geometry attribute"
@@ -126304,11 +126270,11 @@ msgstr "ﻕﻭﺮﻋ/ﮧﻄﻘﻧ ﯽﻓ ﺏﺎﺴﺘﻧﺍ"
 
 
 msgid "Layer '%s' not found in object '%s'"
-msgstr "ﯽﻠﻣ ﮟﯿﮩﻧ ﮟﯿﻣ '%s‬‪' ﮯﺷ '%s‬‪' ﺕﺮﭘ"
+msgstr "ﯽﻠﻣ ﮟﯿﮩﻧ ﮟﯿﻣ '%s'‬‪ ﮯﺷ '%s'‬‪ ﺕﺮﭘ"
 
 
 msgid "Cannot add a layer to CacheFile '%s'"
-msgstr "CacheFile '‪%s‬' ﯽﺘﮑﺳ ﺎﺟ ﯽﮐ ﮟﯿﮩﻧ ﻞﻣﺎﺷ ﺕﺮﭘ ﮏﯾﺍ ﮟﯿﻣ"
+msgstr "CacheFile ‪'%s'‬ ﯽﺘﮑﺳ ﺎﺟ ﯽﮐ ﮟﯿﮩﻧ ﻞﻣﺎﺷ ﺕﺮﭘ ﮏﯾﺍ ﮟﯿﻣ"
 
 
 msgid "Background image cannot be removed"
@@ -126316,23 +126282,23 @@ msgstr "ﺎﺘﮑﺳ ﺎﺟ ﮟﯿﮩﻧ ﺎﯾﺎﭩﮨ ﻮﮐ ﺮﯾﻮﺼﺗ 
 
 
 msgid "Collection '%s' is not an original ID"
-msgstr "ﮯﮨ ﮟﯿﮩﻧ ID ﻞﺻﺍ '%s‬‪' ﮧﻋﻮﻤﺠﻣ"
+msgstr "ﮯﮨ ﮟﯿﮩﻧ ID ﻞﺻﺍ '%s'‬‪ ﮧﻋﻮﻤﺠﻣ"
 
 
 msgid "Object '%s' already in collection '%s'"
-msgstr "ﮯﮨ ﮟﯿﻣ '%s‬‪' ﮧﻋﻮﻤﺠﻣ ﯽﮨ ﮯﺳ ﮯﻠﮩﭘ '%s‬‪' ﺰﯿﭼ"
+msgstr "ﮯﮨ ﮟﯿﻣ '%s'‬‪ ﮧﻋﻮﻤﺠﻣ ﯽﮨ ﮯﺳ ﮯﻠﮩﭘ '%s'‬‪ ﺰﯿﭼ"
 
 
 msgid "Object '%s' not in collection '%s'"
-msgstr "ﮯﮨ ﮟﯿﮩﻧ ﮟﯿﻣ '%s‬‪' ﮧﻋﻮﻤﺠﻣ '%s‬‪' ﺰﯿﭼ"
+msgstr "ﮯﮨ ﮟﯿﮩﻧ ﮟﯿﻣ '%s'‬‪ ﮧﻋﻮﻤﺠﻣ '%s'‬‪ ﺰﯿﭼ"
 
 
 msgid "Collection '%s' already in collection '%s'"
-msgstr "ﮯﮨ ﮟﯿﻣ '%s‬‪' ﮧﻋﻮﻤﺠﻣ ﯽﮨ ﮯﺳ ﮯﻠﮩﭘ '%s‬‪' ﮧﻋﻮﻤﺠﻣ"
+msgstr "ﮯﮨ ﮟﯿﻣ '%s'‬‪ ﮧﻋﻮﻤﺠﻣ ﯽﮨ ﮯﺳ ﮯﻠﮩﭘ '%s'‬‪ ﮧﻋﻮﻤﺠﻣ"
 
 
 msgid "Collection '%s' not in collection '%s'"
-msgstr "ﮯﮨ ﮟﯿﮩﻧ ﮟﯿﻣ '%s‬‪' ﮧﻋﻮﻤﺠﻣ '%s‬‪' ﮧﻋﻮﻤﺠﻣ"
+msgstr "ﮯﮨ ﮟﯿﮩﻧ ﮟﯿﻣ '%s'‬‪ ﮧﻋﻮﻤﺠﻣ '%s'‬‪ ﮧﻋﻮﻤﺠﻣ"
 
 
 msgid "Element not found in element collection or last element"
@@ -126378,7 +126344,7 @@ msgstr "ﮯﮨ ﺎﺘﮑﺳ ﺎﺟ ﺎﯿﮐ ﻞﻣﺎﺷ ﻮﮐ Bézier splines
 
 
 msgid "Curve '%s' does not contain spline given"
-msgstr "ﮯﮨ ﮟﯿﮩﻧ ﻞﻣﺎﺷ ﻦﺋﻼ﻿ﭙﺳ ﯽﺌﮔ ﯼﺩ ﮟﯿﻣ '%s‬‪' ﻢﺧ"
+msgstr "ﮯﮨ ﮟﯿﮩﻧ ﻞﻣﺎﺷ ﻦﺋﻼ﻿ﭙﺳ ﯽﺌﮔ ﯼﺩ ﮟﯿﻣ '%s'‬‪ ﻢﺧ"
 
 
 msgid "Unable to remove path point"
@@ -126418,7 +126384,7 @@ msgstr "ﮯﮨ ﮟﯿﮩﻧ ﮟﯿﻣ ﺮﺋﺎﻔﯾﮈﻮﻣ-ﻒﯾﺍ ﮯﻓ�
 
 
 msgid "F-Curve modifier '%s' not found in F-Curve"
-msgstr "ﻼ﻿ﻣ ﮟﯿﮩﻧ ﮟﯿﻣ  ﻢﺧ-ﻒﯾﺍ'%s‬‪' ﺮﺋﺎﻔﯾﮈﻮﻣ ﻢﺧ-ﻒﯾﺍ"
+msgstr "ﻼ﻿ﻣ ﮟﯿﮩﻧ ﮟﯿﻣ  ﻢﺧ-ﻒﯾﺍ'%s'‬‪ ﺮﺋﺎﻔﯾﮈﻮﻣ ﻢﺧ-ﻒﯾﺍ"
 
 
 msgid "Already a control point at frame %.6f"
@@ -126602,31 +126568,31 @@ msgstr "ﮯﮨ ﮟﯿﮩﻧ ﮏﯿﭘ ﺮﯾﻮﺼﺗ"
 
 
 msgid "Could not save packed file to disk as '%s'"
-msgstr "ﺎﮑﺳ ﺎﺟ ﺎﯿﮐ ﮟﯿﮩﻧ ﻅﻮﻔﺤﻣ ﮟﯿﻣ ﮏﺳﮈ ﺭﻮﻄﺑ ﮯﮐ '%s‬‪' ﻮﮐ ﻞﺋﺎﻓ ﮉﮑﯿﭘ"
+msgstr "ﺎﮑﺳ ﺎﺟ ﺎﯿﮐ ﮟﯿﮩﻧ ﻅﻮﻔﺤﻣ ﮟﯿﻣ ﮏﺳﮈ ﺭﻮﻄﺑ ﮯﮐ '%s'‬‪ ﻮﮐ ﻞﺋﺎﻓ ﮉﮑﯿﭘ"
 
 
 msgid "Image '%s' could not be saved to '%s'"
-msgstr "ﺎﮑﺳ ﺎﺟ ﺎﯿﮐ ﮟﯿﮩﻧ ﻅﻮﻔﺤﻣ ﮟﯿﻣ '%s‬‪' ﻮﮐ '%s‬‪' ﺮﯾﻮﺼﺗ"
+msgstr "ﺎﮑﺳ ﺎﺟ ﺎﯿﮐ ﮟﯿﮩﻧ ﻅﻮﻔﺤﻣ ﮟﯿﻣ '%s'‬‪ ﻮﮐ '%s'‬‪ ﺮﯾﻮﺼﺗ"
 
 
 msgid "Image '%s' does not have any image data"
-msgstr "ﮯﮨ ﮟﯿﮩﻧ ﺎﭩﯾﮈ ﯼﺮﯾﻮﺼﺗ ﯽﺋﻮﮐ ﮟﯿﻣ '%s‬‪' ﺮﯾﻮﺼﺗ"
+msgstr "ﮯﮨ ﮟﯿﮩﻧ ﺎﭩﯾﮈ ﯼﺮﯾﻮﺼﺗ ﯽﺋﻮﮐ ﮟﯿﻣ '%s'‬‪ ﺮﯾﻮﺼﺗ"
 
 
 msgid "Image '%s' failed to load image buffer"
-msgstr "ﺮﻔﺑ ﺮﯾﻮﺼﺗ ﻡﺎﮐﺎﻧ ﮟﯿﻣ ﮯﻧﺮﮐ ﮈﻮﻟ ، '%s‬‪' ﺮﯾﻮﺼﺗ"
+msgstr "ﺮﻔﺑ ﺮﯾﻮﺼﺗ ﻡﺎﮐﺎﻧ ﮟﯿﻣ ﮯﻧﺮﮐ ﮈﻮﻟ ، '%s'‬‪ ﺮﯾﻮﺼﺗ"
 
 
 msgid "Failed to load image texture '%s'"
-msgstr "ﻡﺎﮐﺎﻧ ﮟﯿﻣ ﮯﻧﺮﮐ ﮈﻮﻟ '%s‬‪' ﺖﺧﺎﺳ ﯽﮐ ﺮﯾﻮﺼﺗ"
+msgstr "ﻡﺎﮐﺎﻧ ﮟﯿﻣ ﮯﻧﺮﮐ ﮈﻮﻟ '%s'‬‪ ﺖﺧﺎﺳ ﯽﮐ ﺮﯾﻮﺼﺗ"
 
 
 msgid "ViewLayer '%s' does not contain object '%s'"
-msgstr "ﮯﮨ ﮟﯿﮩﻧ '%s‬‪' ﮯﺷ ﮟﯿﻣ '%s‬‪'  ﺕﺮﭘ  ﻮﯾﻭ"
+msgstr "ﮯﮨ ﮟﯿﮩﻧ '%s'‬‪ ﮯﺷ ﮟﯿﻣ '%s'‬‪  ﺕﺮﭘ  ﻮﯾﻭ"
 
 
 msgid "AOV not found in view-layer '%s'"
-msgstr "ﻼ﻿ﻣ ﮟﯿﮩﻧ ﮟﯿﻣ '%s‬‪'  ﺕﺮﭘ  ﻮﯾﻭ ﻕﺁﺍ"
+msgstr "ﻼ﻿ﻣ ﮟﯿﮩﻧ ﮟﯿﻣ '%s'‬‪  ﺕﺮﭘ  ﻮﯾﻭ ﻕﺁﺍ"
 
 
 msgid "Failed to add the color modifier"
@@ -126646,19 +126612,19 @@ msgstr "ﻡﺎﮐﺎﻧ ﮟﯿﻣ ﮯﻧﺮﮐ ﻞﻣﺎﺷ ﺮﺋﺎﻔﯾﮈ�
 
 
 msgid "Color modifier '%s' could not be removed"
-msgstr "ﺎﮑﺳ ﺎﺟ ﮟﯿﮩﻧ ﺎﯾﺎﭩﮨ ﻮﮐ '%s‬‪' ﺮﺋﺎﻔﯾﮈﻮﻣ ﺮﻠﮐ"
+msgstr "ﺎﮑﺳ ﺎﺟ ﮟﯿﮩﻧ ﺎﯾﺎﭩﮨ ﻮﮐ '%s'‬‪ ﺮﺋﺎﻔﯾﮈﻮﻣ ﺮﻠﮐ"
 
 
 msgid "Alpha modifier '%s' could not be removed"
-msgstr "ﺎﮑﺳ ﺎﺟ ﮟﯿﮩﻧ ﺎﯾﺎﭩﮨ ﻮﮐ '%s‬‪' ﺮﺋﺎﻔﯾﮈﻮﻣ ﺎﻔﻟﺍ"
+msgstr "ﺎﮑﺳ ﺎﺟ ﮟﯿﮩﻧ ﺎﯾﺎﭩﮨ ﻮﮐ '%s'‬‪ ﺮﺋﺎﻔﯾﮈﻮﻣ ﺎﻔﻟﺍ"
 
 
 msgid "Thickness modifier '%s' could not be removed"
-msgstr "ﺎﮑﺳ ﺎﺟ ﮟﯿﮩﻧ ﺎﯾﺎﭩﮨ '%s‬‪' ﻻ﻿ﺍﻭ ﮯﻧﺮﮐ ﺮﺋﺎﻔﯾﮈﻮﻣ ﮟﯿﻣ ﯽﺋﺎﭨﻮﻣ"
+msgstr "ﺎﮑﺳ ﺎﺟ ﮟﯿﮩﻧ ﺎﯾﺎﭩﮨ '%s'‬‪ ﻻ﻿ﺍﻭ ﮯﻧﺮﮐ ﺮﺋﺎﻔﯾﮈﻮﻣ ﮟﯿﻣ ﯽﺋﺎﭨﻮﻣ"
 
 
 msgid "Geometry modifier '%s' could not be removed"
-msgstr "ﺎﮑﺳ ﺎﺟ ﮟﯿﮩﻧ ﺎﯾﺎﭩﮨ ﻮﮐ '%s‬‪' ﺮﺋﺎﻔﯾﮈﻮﻣ ﯼﺮﭩﯿﻣﻮﯿﺟ"
+msgstr "ﺎﮑﺳ ﺎﺟ ﮟﯿﮩﻧ ﺎﯾﺎﭩﮨ ﻮﮐ '%s'‬‪ ﺮﺋﺎﻔﯾﮈﻮﻣ ﯼﺮﭩﯿﻣﻮﯿﺟ"
 
 
 msgid "unsupported font format"
@@ -126682,19 +126648,19 @@ msgstr "ﮯﮨ ﮟﯿﮩﻧ ﺎﭩﯾﮈ ﯼﺮﭩﯿﻣﻮﯿﺟ ﮟﯿﻣ ﭧ�
 
 
 msgid "%s '%s' is outside of main database and cannot be removed from it"
-msgstr "‪%s‬ '‪%s‬' ﺎﺘﮑﺳ ﺎﺟ ﮟﯿﮩﻧ ﺎﯾﺎﭩﮨ ﮯﺳ ﺱﺍ ﮯﺳﺍ ﺭﻭﺍ ﮯﮨ ﺮﮨﺎﺑ ﮯﺳ ﺲﯿﺑ ﺎﭩﯾﮈ ﻦﯿﻣ"
+msgstr "‪%s‬ ‪'%s'‬ ﺎﺘﮑﺳ ﺎﺟ ﮟﯿﮩﻧ ﺎﯾﺎﭩﮨ ﮯﺳ ﺱﺍ ﮯﺳﺍ ﺭﻭﺍ ﮯﮨ ﺮﮨﺎﺑ ﮯﺳ ﺲﯿﺑ ﺎﭩﯾﮈ ﻦﯿﻣ"
 
 
 msgid "%s '%s' must have zero users to be removed, found %d (try with do_unlink=True parameter)"
-msgstr "‪%s‬ '‪%s‬' ﮯﮨ ﯼﺭﻭﺮﺿ ﺎﻧﻮﮨ ﺎﮐ ﻦﯿﻓﺭﺎﺻ ﺮﻔﺻ ﮯﯿﻟ ﮯﮐ ﮯﻧﺎﭩﮨ ﻮﮐ، ‪%d‬ ﻼ﻿ﻣ (do_unlink=True ﮟﯾﺮﮐ ﺶﺷﻮﮐ ﮫﺗﺎﺳ ﮯﮐ ﺮﭩﯿﻣﺍﺮﯿﭘ)"
+msgstr "‪%s‬ ‪'%s'‬ ﮯﮨ ﯼﺭﻭﺮﺿ ﺎﻧﻮﮨ ﺎﮐ ﻦﯿﻓﺭﺎﺻ ﺮﻔﺻ ﮯﯿﻟ ﮯﮐ ﮯﻧﺎﭩﮨ ﻮﮐ، ‪%d‬ ﻼ﻿ﻣ (do_unlink=True ﮟﯾﺮﮐ ﺶﺷﻮﮐ ﮫﺗﺎﺳ ﮯﮐ ﺮﭩﯿﻣﺍﺮﯿﭘ)"
 
 
 msgid "Scene '%s' is the last local one, cannot be removed"
-msgstr "ﺎﺘﮑﺳ ﺎﺟ ﮟﯿﮩﻧ ﺎﯾﺎﭩﮨ ،ﮯﮨ ﯽﻣﺎﻘﻣ ﯼﺮﺧﺁ '%s‬‪' ﺮﻈﻨﻣ"
+msgstr "ﺎﺘﮑﺳ ﺎﺟ ﮟﯿﮩﻧ ﺎﯾﺎﭩﮨ ،ﮯﮨ ﯽﻣﺎﻘﻣ ﯼﺮﺧﺁ '%s'‬‪ ﺮﻈﻨﻣ"
 
 
 msgid "ID type '%s' is not valid for an object"
-msgstr "ID ﻢﺴﻗ ﯽﮐ '‪%s‬' ﮯﮨ ﮟﯿﮩﻧ ﺖﺳﺭﺩ ﮯﯿﻟ ﮯﮐ ﮯﺷ ﯽﺴﮐ"
+msgstr "ID ﻢﺴﻗ ﯽﮐ ‪'%s'‬ ﮯﮨ ﮟﯿﮩﻧ ﺖﺳﺭﺩ ﮯﯿﻟ ﮯﮐ ﮯﺷ ﯽﺴﮐ"
 
 
 msgid "Mask layer not found for given spline"
@@ -126706,11 +126672,11 @@ msgstr "ﻼ﻿ﻣ ﮟﯿﮩﻧ ﮟﯿﻣ ﻦﺋﻼ﻿ﭙﺳ ﮯﺌﮔ ﮯﯾﺩ 
 
 
 msgid "Mask layer '%s' not found in mask '%s'"
-msgstr "ﯽﻠﻣ ﮟﯿﮩﻧ ﮟﯿﻣ '%s‬‪' ﮏﺳﺎﻣ '%s‬‪' ﺕﺮﭘ ﮏﺳﺎﻣ"
+msgstr "ﯽﻠﻣ ﮟﯿﮩﻧ ﮟﯿﻣ '%s'‬‪ ﮏﺳﺎﻣ '%s'‬‪ ﺕﺮﭘ ﮏﺳﺎﻣ"
 
 
 msgid "Mask layer '%s' does not contain spline given"
-msgstr "ﮯﮨ ﮟﯿﮩﻧ ﻞﻣﺎﺷ ﻦﺋﻼ﻿ﭙﺳ ﯽﺌﮔ ﯼﺩ ﮟﯿﻣ '%s‬‪' ﮧﮩﺗ ﯽﮐ ﮏﺳﺎﻣ"
+msgstr "ﮯﮨ ﮟﯿﮩﻧ ﻞﻣﺎﺷ ﻦﺋﻼ﻿ﭙﺳ ﯽﺌﮔ ﯼﺩ ﮟﯿﻣ '%s'‬‪ ﮧﮩﺗ ﯽﮐ ﮏﺳﺎﻣ"
 
 
 msgid "Mtex not found for this type"
@@ -126726,11 +126692,11 @@ msgstr "ﮯﮨ ﻂﻠﻏ %d‬‪ ﺲﮑﯾﮉﻧﺍ"
 
 
 msgid "UV map '%s' not found"
-msgstr "ﻼ﻿ﻣ ﮟﯿﮩﻧ '%s‬‪' ﮧﺸﻘﻧ  ﯼﻭﻮﯾ"
+msgstr "ﻼ﻿ﻣ ﮟﯿﮩﻧ '%s'‬‪ ﮧﺸﻘﻧ  ﯼﻭﻮﯾ"
 
 
 msgid "Tangent space computation needs a UV Map, \"%s\" not found, aborting"
-msgstr "ﮯﮨ ﺎﮨﺭ ﻮﮨ ﻁﺎﻘﺳﺍ ،ﻼ﻿ﻣ ﮟﯿﮩﻧ \"%s‬‪\" ،ﮯﮨ ﺕﺭﻭﺮﺿ ﯽﮐ ﭗﯿﻣ ﯼﻭﻮﯾ ﮯﯿﻟ ﮯﮐ ﻦﺸﯿﭨﻮﯿﭙﻤﮐ ﻼ﻿ﺧ ﭧﻨﺠﻨﯿﭨ"
+msgstr "ﮯﮨ ﺎﮨﺭ ﻮﮨ ﻁﺎﻘﺳﺍ ،ﻼ﻿ﻣ ﮟﯿﮩﻧ \"%s\"‬‪ ،ﮯﮨ ﺕﺭﻭﺮﺿ ﯽﮐ ﭗﯿﻣ ﯼﻭﻮﯾ ﮯﯿﻟ ﮯﮐ ﻦﺸﯿﭨﻮﯿﭙﻤﮐ ﻼ﻿ﺧ ﭧﻨﺠﻨﯿﭨ"
 
 
 msgid "Number of custom normals is not number of loops (%f / %d)"
@@ -126742,7 +126708,7 @@ msgstr "(%f‬ / ‪%d‬‪) ﮯﮨ ﮟﯿﮩﻧ ﺩﺍﺪﻌﺗ ﯽﮐ ﯼﺩ�
 
 
 msgid "Metaball '%s' does not contain spline given"
-msgstr "ﮯﮨ ﺎﯿﮔ ﺎﯾﺩ ﮟﯿﮩﻧ ﻦﺋﻼ﻿ﭙﺳﺍ ﮟﯿﻣ '%s‬‪' ﻝﺎﺑ ﺎﭩﯿﻣ"
+msgstr "ﮯﮨ ﺎﯿﮔ ﺎﯾﺩ ﮟﯿﮩﻧ ﻦﺋﻼ﻿ﭙﺳﺍ ﮟﯿﻣ '%s'‬‪ ﻝﺎﺑ ﺎﭩﯿﻣ"
 
 
 msgid "Modify"
@@ -126766,11 +126732,11 @@ msgstr "(ﮯﮨ ﮟﯿﮩﻧ ﮧﮕﺟ ﯽﺋﻮﮐ ﮯﯿﻟ ﮯﮐ ﮯﻧﺮ�
 
 
 msgid "NLA strip '%s' not found in track '%s'"
-msgstr "NLA ﯽﭩﭘ '‪%s‬' ﮏﯾﺮﭨ '‪%s‬' ﯽﻠﻣ ﮟﯿﮩﻧ ﮟﯿﻣ"
+msgstr "NLA ﯽﭩﭘ ‪'%s'‬ ﮏﯾﺮﭨ ‪'%s'‬ ﯽﻠﻣ ﮟﯿﮩﻧ ﮟﯿﻣ"
 
 
 msgid "Registering node socket class: '%s' is too long, maximum length is %d"
-msgstr "ﮯﮨ %d‬‪ ﯽﺋﺎﺒﻤﻟ ﮦﺩﺎﯾﺯ ﮯﺳ ﮦﺩﺎﯾﺯ ،ﮯﮨ ﺎﺒﻤﻟ ﺖﮩﺑ '%s‬‪' :ﺝﺍﺭﺪﻧﺍ ﺎﮐ ﺱﻼ﻿ﮐ ﭧﮐﺎﺳ ﮈﻮﻧ"
+msgstr "ﮯﮨ %d‬‪ ﯽﺋﺎﺒﻤﻟ ﮦﺩﺎﯾﺯ ﮯﺳ ﮦﺩﺎﯾﺯ ،ﮯﮨ ﺎﺒﻤﻟ ﺖﮩﺑ '%s'‬‪ :ﺝﺍﺭﺪﻧﺍ ﺎﮐ ﺱﻼ﻿ﮐ ﭧﮐﺎﺳ ﮈﻮﻧ"
 
 
 msgid "Parent is not part of the interface"
@@ -126863,19 +126829,19 @@ msgstr "ﺮﺻﺎﻗ ﮯﺳ ﮯﻧﺎﻨﺑ ﻢﭩﺋﺁ ﮫﺗﺎﺳ ﮯﮐ ﻢ
 
 
 msgid "Registering node tree class: '%s' is too long, maximum length is %d"
-msgstr "ﮯﮨ %d‬‪ ﯽﺋﺎﺒﻤﻟ ﮦﺩﺎﯾﺯ ﮯﺳ ﮦﺩﺎﯾﺯ ،ﮯﮨ ﺎﺒﻤﻟ ﺖﮩﺑ '%s‬‪' :ﺱﻼ﻿ﮐ ﯼﺮﭨ ﮈﻮﻧ ﮓﻧﺮﭩﺴﺟﺭ"
+msgstr "ﮯﮨ %d‬‪ ﯽﺋﺎﺒﻤﻟ ﮦﺩﺎﯾﺯ ﮯﺳ ﮦﺩﺎﯾﺯ ،ﮯﮨ ﺎﺒﻤﻟ ﺖﮩﺑ '%s'‬‪ :ﺱﻼ﻿ﮐ ﯼﺮﭨ ﮈﻮﻧ ﮓﻧﺮﭩﺴﺟﺭ"
 
 
 msgid "Registering node tree class: '%s', bl_idname '%s' has been registered before, unregistering previous"
-msgstr "ﮯﮨ ﺎﮨﺭ ﺮﮐ ﻢﺘﺧ ﻦﺸﯾﺮﭩﺴﺟﺭ ﯽﻠﮭﭽﭘ ،ﮯﮨ ﺎﮑﭼ ﻮﮨ ﺮﭩﺴﺟﺭ ﮯﻠﮩﭘ '%s‬'، bl_idname '‪%s‬‪' :ﺝﺍﺭﺪﻧﺍ ﺎﮐ ﺱﻼ﻿ﮐ ﯼﺮﭨ ﮈﻮﻧ"
+msgstr "ﮯﮨ ﺎﮨﺭ ﺮﮐ ﻢﺘﺧ ﻦﺸﯾﺮﭩﺴﺟﺭ ﯽﻠﮭﭽﭘ ،ﮯﮨ ﺎﮑﭼ ﻮﮨ ﺮﭩﺴﺟﺭ ﮯﻠﮩﭘ '%s'‬، bl_idname ‪'%s'‬‪ :ﺝﺍﺭﺪﻧﺍ ﺎﮐ ﺱﻼ﻿ﮐ ﯼﺮﭨ ﮈﻮﻧ"
 
 
 msgid "Registering node tree class: '%s', bl_idname '%s' could not be unregistered"
-msgstr "ﺎﺘﮑﺳ ﺎﺟ ﺎﯿﮐ ﮟﯿﮩﻧ ﺮﭩﺴﺟﺭ ﺮﯿﻏ ﻮﮐ '%s‬'، bl_idname '‪%s‬‪' :ﺝﺍﺭﺪﻧﺍ ﺎﮐ ﺱﻼ﻿ﮐ ﯼﺮﭨ ﮈﻮﻧ"
+msgstr "ﺎﺘﮑﺳ ﺎﺟ ﺎﯿﮐ ﮟﯿﮩﻧ ﺮﭩﺴﺟﺭ ﺮﯿﻏ ﻮﮐ '%s'‬، bl_idname ‪'%s'‬‪ :ﺝﺍﺭﺪﻧﺍ ﺎﮐ ﺱﻼ﻿ﮐ ﯼﺮﭨ ﮈﻮﻧ"
 
 
 msgid "Node tree '%s' has undefined type %s"
-msgstr "ﮯﮨ %s‬‪ ﻢﺴﻗ ﮧﻨﯿﻌﺘﻣ ﺮﯿﻏ ﮟﯿﻣ '%s‬‪' ﯼﺮﭨ ﮈﻮﻧ"
+msgstr "ﮯﮨ %s‬‪ ﻢﺴﻗ ﮧﻨﯿﻌﺘﻣ ﺮﯿﻏ ﮟﯿﻣ '%s'‬‪ ﯼﺮﭨ ﮈﻮﻧ"
 
 
 msgid "Node type %s undefined"
@@ -126887,35 +126853,35 @@ msgid ""
 "  %s"
 msgstr ""
 "\n"
-"ﺎﺘﮑﺳ ﺎﺟ ﺎﯿﮐ ﮟﯿﮩﻧ ﻞﻣﺎﺷ ﮈﻮﻧ ﺎﮐ ﻢﺴﻗ %s‬‪ ﮟﯿﻣ '%s‬‪' ﯼﺮﭨ ﮈﻮﻧ  ‪%s‬"
+"ﺎﺘﮑﺳ ﺎﺟ ﺎﯿﮐ ﮟﯿﮩﻧ ﻞﻣﺎﺷ ﮈﻮﻧ ﺎﮐ ﻢﺴﻗ %s‬‪ ﮟﯿﻣ '%s'‬‪ ﯼﺮﭨ ﮈﻮﻧ  ‪%s‬"
 
 
 msgid "Cannot add node of type %s to node tree '%s'"
-msgstr "ﺎﺘﮑﺳ ﺎﺟ ﺎﯿﮐ ﮟﯿﮩﻧ ﻞﻣﺎﺷ ﮈﻮﻧ ﺎﮐ ﻢﺴﻗ %s‬‪ ﮟﯿﻣ '%s‬‪' ﯼﺮﭨ ﮈﻮﻧ"
+msgstr "ﺎﺘﮑﺳ ﺎﺟ ﺎﯿﮐ ﮟﯿﮩﻧ ﻞﻣﺎﺷ ﮈﻮﻧ ﺎﮐ ﻢﺴﻗ %s‬‪ ﮟﯿﻣ '%s'‬‪ ﯼﺮﭨ ﮈﻮﻧ"
 
 
 msgid "Unable to locate node '%s' in node tree"
-msgstr "ﺮﺻﺎﻗ ﮯﺳ ﮯﻧﺮﮐ ﺵﻼ﻿ﺗ ﻮﮐ '%s‬‪' ﮈﻮﻧ ﮟﯿﻣ ﯼﺮﭨ ﮈﻮﻧ"
+msgstr "ﺮﺻﺎﻗ ﮯﺳ ﮯﻧﺮﮐ ﺵﻼ﻿ﺗ ﻮﮐ '%s'‬‪ ﮈﻮﻧ ﮟﯿﻣ ﯼﺮﭨ ﮈﻮﻧ"
 
 
 msgid "Registering node class: '%s' is too long, maximum length is %d"
-msgstr "ﮯﮨ %d‬‪ ﯽﺋﺎﺒﻤﻟ ﮦﺩﺎﯾﺯ ﮯﺳ ﮦﺩﺎﯾﺯ ،ﮯﮨ ﯽﺒﻤﻟ ﺖﮩﺑ '%s‬‪' :ﺱﻼ﻿ﮐ ﮈﻮﻧ ﮓﻧﺮﭩﺴﺟﺭ"
+msgstr "ﮯﮨ %d‬‪ ﯽﺋﺎﺒﻤﻟ ﮦﺩﺎﯾﺯ ﮯﺳ ﮦﺩﺎﯾﺯ ،ﮯﮨ ﯽﺒﻤﻟ ﺖﮩﺑ '%s'‬‪ :ﺱﻼ﻿ﮐ ﮈﻮﻧ ﮓﻧﺮﭩﺴﺟﺭ"
 
 
 msgid "Registering node class: '%s', bl_idname '%s' is a builtin node"
-msgstr "ﮯﮨ ﮈﻮﻧ ﻥﺍ ﭧﻠﺑ ﮏﯾﺍ '%s‬'، bl_idname '‪%s‬‪' :ﺝﺍﺭﺪﻧﺍ ﺎﮐ ﺱﻼ﻿ﮐ ﮈﻮﻧ"
+msgstr "ﮯﮨ ﮈﻮﻧ ﻥﺍ ﭧﻠﺑ ﮏﯾﺍ '%s'‬، bl_idname ‪'%s'‬‪ :ﺝﺍﺭﺪﻧﺍ ﺎﮐ ﺱﻼ﻿ﮐ ﮈﻮﻧ"
 
 
 msgid "Registering node class: '%s', bl_idname '%s' has been registered before, unregistering previous"
-msgstr "ﮯﮨ ﺎﮨﺭ ﺮﮐ ﻢﺘﺧ ﻦﺸﯾﺮﭩﺴﺟﺭ ﯽﻠﮭﭽﭘ ،ﮯﮨ ﺎﮑﭼ ﻮﮨ ﺮﭩﺴﺟﺭ ﮯﻠﮩﭘ '%s‬'، bl_idname '‪%s‬‪' :ﺝﺍﺭﺪﻧﺍ ﺎﮐ ﺱﻼ﻿ﮐ ﮈﻮﻧ"
+msgstr "ﮯﮨ ﺎﮨﺭ ﺮﮐ ﻢﺘﺧ ﻦﺸﯾﺮﭩﺴﺟﺭ ﯽﻠﮭﭽﭘ ،ﮯﮨ ﺎﮑﭼ ﻮﮨ ﺮﭩﺴﺟﺭ ﮯﻠﮩﭘ '%s'‬، bl_idname ‪'%s'‬‪ :ﺝﺍﺭﺪﻧﺍ ﺎﮐ ﺱﻼ﻿ﮐ ﮈﻮﻧ"
 
 
 msgid "Registering node class: '%s', bl_idname '%s' could not be unregistered"
-msgstr "ﺎﺘﮑﺳ ﺎﺟ ﺎﯿﮐ ﮟﯿﮩﻧ ﺮﭩﺴﺟﺭ ﺮﯿﻏ ﻮﮐ '%s‬'، bl_idname '‪%s‬‪' :ﺝﺍﺭﺪﻧﺍ ﺎﮐ ﺱﻼ﻿ﮐ ﮈﻮﻧ"
+msgstr "ﺎﺘﮑﺳ ﺎﺟ ﺎﯿﮐ ﮟﯿﮩﻧ ﺮﭩﺴﺟﺭ ﺮﯿﻏ ﻮﮐ '%s'‬، bl_idname ‪'%s'‬‪ :ﺝﺍﺭﺪﻧﺍ ﺎﮐ ﺱﻼ﻿ﮐ ﮈﻮﻧ"
 
 
 msgid "Unable to locate socket '%s' in node"
-msgstr "ﺮﺻﺎﻗ ﮯﺳ ﮯﻧﺮﮐ ﺵﻼ﻿ﺗ ﻮﮐ '%s‬‪' ﭧﮐﺎﺳ ﮟﯿﻣ ﮈﻮﻧ"
+msgstr "ﺮﺻﺎﻗ ﮯﺳ ﮯﻧﺮﮐ ﺵﻼ﻿ﺗ ﻮﮐ '%s'‬‪ ﭧﮐﺎﺳ ﮟﯿﻣ ﮈﻮﻧ"
 
 
 msgid "The output node %s is already paired with %s"
@@ -126923,7 +126889,7 @@ msgstr "ﮯﮨ ﺍﮌﻮﺟ ﮫﺗﺎﺳ ﮯﮐ %s‬‪ ﯽﮨ ﮯﻠﮩﭘ %s�
 
 
 msgid "Unable to locate item '%s' in node"
-msgstr "ﺮﺻﺎﻗ ﮯﺳ ﮯﻧﺮﮐ ﺵﻼ﻿ﺗ ﻮﮐ '%s‬‪' ﻢﭩﺋﺁ ﮟﯿﻣ ﮈﻮﻧ"
+msgstr "ﺮﺻﺎﻗ ﮯﺳ ﮯﻧﺮﮐ ﺵﻼ﻿ﺗ ﻮﮐ '%s'‬‪ ﻢﭩﺋﺁ ﮟﯿﻣ ﮈﻮﻧ"
 
 
 msgid "Can only assign evaluated data to evaluated object, or original data to original object"
@@ -126947,19 +126913,19 @@ msgstr "ﮯﮨ ﮟﯿﮩﻧ ﮟﯿﻣ ﮦﻭﺮﮔ ﺲﮑﯿﭨﺭﻭ"
 
 
 msgid "VertexGroup '%s' not found in object '%s'"
-msgstr "ﻼ﻿ﻣ ﮟﯿﮩﻧ ﮟﯿﻣ '%s‬‪' ﮯﺷ '%s‬‪' ﮦﻭﺮﮔ ﺲﮑﯿﭨﺭﻭ"
+msgstr "ﻼ﻿ﻣ ﮟﯿﮩﻧ ﮟﯿﻣ '%s'‬‪ ﮯﺷ '%s'‬‪ ﮦﻭﺮﮔ ﺲﮑﯿﭨﺭﻭ"
 
 
 msgid "Constraint '%s' not found in object '%s'"
-msgstr "ﯽﻠﻣ ﮟﯿﮩﻧ '%s‬‪' ﭦﻭﺎﮐﺭ ﮟﯿﻣ '%s‬‪' ﺰﯿﭼ"
+msgstr "ﯽﻠﻣ ﮟﯿﮩﻧ '%s'‬‪ ﭦﻭﺎﮐﺭ ﮟﯿﻣ '%s'‬‪ ﺰﯿﭼ"
 
 
 msgid "Could not move constraint from index '%d' to '%d'"
-msgstr "ﺎﮑﺳ ﺎﺟ ﺎﯿﮐ ﮟﯿﮩﻧ ﻞﻘﺘﻨﻣ ﻮﮐ ﭦﻭﺎﮐﺭ ﮟﯿﻣ '%d‬‪' ﮯﺳ '%d‬‪' ﺲﮑﯾﮉﻧﺍ"
+msgstr "ﺎﮑﺳ ﺎﺟ ﺎﯿﮐ ﮟﯿﮩﻧ ﻞﻘﺘﻨﻣ ﻮﮐ ﭦﻭﺎﮐﺭ ﮟﯿﻣ '%d'‬‪ ﮯﺳ '%d'‬‪ ﺲﮑﯾﮉﻧﺍ"
 
 
 msgid "Invalid original modifier index '%d'"
-msgstr "'%d‬‪' ﺖﺳﺮﮩﻓ ﺮﺋﺎﻔﯾﮈﻮﻣ ﻞﺻﺍ ﻂﻠﻏ"
+msgstr "‬'%d'‪ ﺖﺳﺮﮩﻓ ﺮﺋﺎﻔﯾﮈﻮﻣ ﻞﺻﺍ ﻂﻠﻏ"
 
 
 msgid "Modifier \"%s\" is not in the object's modifier list"
@@ -126967,11 +126933,11 @@ msgstr "ﮯﮨ ﮟﯿﮩﻧ ﮟﯿﻣ ﺖﺳﺮﮩﻓ ﯽﮐ ﺮﺋﺎﻔﯾﮈ�
 
 
 msgid "%s is not supported for '%s' objects"
-msgstr "‪%s‬ '‪%s‬' ﮯﮨ ﮟﯿﮩﻧ ﮧﺘﻓﺎﯾ ﻥﻭﺎﻌﺗ ﮯﯿﻟ ﮯﮐ ءﺎﯿﺷﺍ"
+msgstr "‪%s‬ ‪'%s'‬ ﮯﮨ ﮟﯿﮩﻧ ﮧﺘﻓﺎﯾ ﻥﻭﺎﻌﺗ ﮯﯿﻟ ﮯﮐ ءﺎﯿﺷﺍ"
 
 
 msgid "DeformGroup '%s' not in object '%s'"
-msgstr "ﮯﮨ ﮟﯿﮩﻧ ﮟﯿﻣ '%s‬‪' ﮯﺷ '%s‬‪' ﮦﻭﺮﮔ ﻡﺭﺎﻔﯾﮈ"
+msgstr "ﮯﮨ ﮟﯿﮩﻧ ﮟﯿﻣ '%s'‬‪ ﮯﺷ '%s'‬‪ ﮦﻭﺮﮔ ﻡﺭﺎﻔﯾﮈ"
 
 
 msgid "Viewport not in local view"
@@ -127015,31 +126981,31 @@ msgstr "ﮯﮨ ﮟﯿﮩﻧ ﮟﯿﻣ %s‬‪ ﺕﺮﭘ ﻮﯾﻭ %s‬‪ ﺰ�
 
 
 msgid "'from_space' '%s' is invalid when no pose bone is given!"
-msgstr "!ﮯﮨ ﺎﺗﺎﺟ ﺎﯾﺩ ﮟﯿﮩﻧ ﻥﻮﺑ ﺯﺍﺪﻧﺍ ﯽﺋﻮﮐ ﺐﺟ ﮯﮨ ﻂﻠﻏ 'space' '‪%s‬ﻼ﻿ﺧ_ﮯﺳ"
+msgstr "!ﮯﮨ ﺎﺗﺎﺟ ﺎﯾﺩ ﮟﯿﮩﻧ ﻥﻮﺑ ﺯﺍﺪﻧﺍ ﯽﺋﻮﮐ ﺐﺟ ﮯﮨ ﻂﻠﻏ space' ‪'%s'‬ﻼ﻿ﺧ_ﮯﺳ"
 
 
 msgid "'from_space' '%s' is invalid when no custom space is given!"
-msgstr "!ﮯﮨ ﯽﺗﺎﺟ ﯼﺩ ﮟﯿﮩﻧ ﮧﮕﺟ ﺕﺭﻭﺮﺿ ﺐﺴﺣ ﯽﺋﻮﮐ ﺐﺟ ﮯﮨ ﻂﻠﻏ '%s‬‪' 'ﻼ﻿ﺧ_ﮯﺳ'"
+msgstr "!ﮯﮨ ﯽﺗﺎﺟ ﯼﺩ ﮟﯿﮩﻧ ﮧﮕﺟ ﺕﺭﻭﺮﺿ ﺐﺴﺣ ﯽﺋﻮﮐ ﺐﺟ ﮯﮨ ﻂﻠﻏ '%s'‬‪ 'ﻼ﻿ﺧ_ﮯﺳ'"
 
 
 msgid "'to_space' '%s' is invalid when no custom space is given!"
-msgstr "!ﮯﮨ ﯽﺗﺎﺟ ﯼﺩ ﮟﯿﮩﻧ ﮧﮕﺟ ﯽﮐ ﯽﺿﺮﻣ ﯽﻨﭘﺍ ﯽﺋﻮﮐ ﺐﺟ ﮯﮨ ﻂﻠﻏ '%s‬‪' 'ﻼ﻿ﺧ_ﮏﺗ'"
+msgstr "!ﮯﮨ ﯽﺗﺎﺟ ﯼﺩ ﮟﯿﮩﻧ ﮧﮕﺟ ﯽﮐ ﯽﺿﺮﻣ ﯽﻨﭘﺍ ﯽﺋﻮﮐ ﺐﺟ ﮯﮨ ﻂﻠﻏ '%s'‬‪ 'ﻼ﻿ﺧ_ﮏﺗ'"
 
 
 msgid "Object '%s' does not support shapes"
-msgstr "ﮯﮨ ﺎﺗﺮﮐ ﮟﯿﮩﻧ ﭦﺭﻮﭙﺳ ﻮﮐ ﮞﻮﻠﮑﺷ '%s‬‪' ﺰﯿﭼ"
+msgstr "ﮯﮨ ﺎﺗﺮﮐ ﮟﯿﮩﻧ ﭦﺭﻮﭙﺳ ﻮﮐ ﮞﻮﻠﮑﺷ '%s'‬‪ ﺰﯿﭼ"
 
 
 msgid "Object '%s' has no evaluated mesh data"
-msgstr "ﮯﮨ ﮟﯿﮩﻧ ﺎﭩﯾﮈ ﻝﺎﺟ ﮦﺪﺷ ﮦﺯﺍﺪﻧﺍ ﯽﺋﻮﮐ ﮟﯿﻣ '%s‬‪' ﺰﯿﭼ"
+msgstr "ﮯﮨ ﮟﯿﮩﻧ ﺎﭩﯾﮈ ﻝﺎﺟ ﮦﺪﺷ ﮦﺯﺍﺪﻧﺍ ﯽﺋﻮﮐ ﮟﯿﻣ '%s'‬‪ ﺰﯿﭼ"
 
 
 msgid "Object '%s' could not create internal data for finding nearest point"
-msgstr "ﺎﮑﺳ ﺎﻨﺑ ﮟﯿﮩﻧ ﺎﭩﯾﮈ ﯽﻧﻭﺭﺪﻧﺍ ﮯﯿﻟ ﮯﮐ ﮯﻧﺮﮐ ﺵﻼ﻿ﺗ ﮧﻄﻘﻧ ﻦﯾﺮﺗ ﺐﯾﺮﻗ '%s‬‪' ﺰﯿﭼ"
+msgstr "ﺎﮑﺳ ﺎﻨﺑ ﮟﯿﮩﻧ ﺎﭩﯾﮈ ﯽﻧﻭﺭﺪﻧﺍ ﮯﯿﻟ ﮯﮐ ﮯﻧﺮﮐ ﺵﻼ﻿ﺗ ﮧﻄﻘﻧ ﻦﯾﺮﺗ ﺐﯾﺮﻗ '%s'‬‪ ﺰﯿﭼ"
 
 
 msgid "Palette '%s' does not contain color given"
-msgstr "ﮯﮨ ﮟﯿﮩﻧ ﮓﻧﺭ ﺎﯿﮔ ﺎﯾﺩ ﮟﯿﻣ '%s‬‪' ﭧﯿﻠﯿﭘ"
+msgstr "ﮯﮨ ﮟﯿﮩﻧ ﮓﻧﺭ ﺎﯿﮔ ﺎﯾﺩ ﮟﯿﻣ '%s'‬‪ ﭧﯿﻠﯿﭘ"
 
 
 msgid "Invalid target!"
@@ -127055,15 +127021,15 @@ msgstr "ﯽﺘﮑﺳ ﺎﺟ ﯽﮐ ﮟﯿﮩﻧ ﺮﺋﺎﻔﯾﮈﻮﻣ ﮟﯿ�
 
 
 msgid "Constraint '%s' not found in pose bone '%s'"
-msgstr "ﯽﻠﻣ ﮟﯿﮩﻧ '%s‬‪' ﭦﻭﺎﮐﺭ ﮟﯿﻣ '%s‬‪' ﯼﮉﮨ ﺯﻮﭘ"
+msgstr "ﯽﻠﻣ ﮟﯿﮩﻧ '%s'‬‪ ﭦﻭﺎﮐﺭ ﮟﯿﻣ '%s'‬‪ ﯼﮉﮨ ﺯﻮﭘ"
 
 
 msgid "Bone '%s' is not a B-Bone!"
-msgstr "!ﮯﮨ ﮟﯿﮩﻧ ﻥﻮﺑ-ﯽﺑ '%s‬‪' ﯼﮉﮨ"
+msgstr "!ﮯﮨ ﮟﯿﮩﻧ ﻥﻮﺑ-ﯽﺑ '%s'‬‪ ﯼﮉﮨ"
 
 
 msgid "Bone '%s' has out of date B-Bone segment data - depsgraph update required!"
-msgstr "!ﮯﮨ ﺭﺎﮐﺭﺩ ﭧﯾﮈ ﭖﺍ depsgraph - ﮯﮨ ﺎﻧﺍﺮﭘ ﺎﭩﯾﮈ ﺎﮐ ﭧﻨﻤﮕﯿﺳ ﻥﻮﺑ-ﯽﺑ ﮟﯿﻣ '%s‬‪' ﻥﻮﺑ"
+msgstr "!ﮯﮨ ﺭﺎﮐﺭﺩ ﭧﯾﮈ ﭖﺍ depsgraph - ﮯﮨ ﺎﻧﺍﺮﭘ ﺎﭩﯾﮈ ﺎﮐ ﭧﻨﻤﮕﯿﺳ ﻥﻮﺑ-ﯽﺑ ﮟﯿﻣ '%s'‬‪ ﻥﻮﺑ"
 
 
 msgid "A non convex collision shape was passed to the function, use only convex collision shapes"
@@ -127087,27 +127053,27 @@ msgstr "ﺎﮑﺳ ﺎﺟ ﮟﯿﮩﻧ ﺎﯾﺎﭩﮨ ﻮﮐ ﮧﻧﻮﻤﻧ ﺯ
 
 
 msgid "View Layer '%s' not found in scene '%s'"
-msgstr "ﯽﻠﻣ ﮟﯿﮩﻧ '%s‬‪' ﺕﺮﭘ ﮟﯿﻣ '%s‬‪' ﺮﻈﻨﻣ"
+msgstr "ﯽﻠﻣ ﮟﯿﮩﻧ '%s'‬‪ ﺕﺮﭘ ﮟﯿﻣ '%s'‬‪ ﺮﻈﻨﻣ"
 
 
 msgid "Render view '%s' could not be removed from scene '%s'"
-msgstr "ﺎﮑﺳ ﺎﺟ ﮟﯿﮩﻧ ﺎﯾﺎﭩﮨ ﮯﺳ '%s‬‪'ﻮﯾﻭ ﻮﮐ '%s‬‪'ﻮﯾﻭ ﺭﮉﻨﯾﺭ"
+msgstr "ﺎﮑﺳ ﺎﺟ ﮟﯿﮩﻧ ﺎﯾﺎﭩﮨ ﮯﺳ '%s'‬‪ﻮﯾﻭ ﻮﮐ '%s'‬‪ﻮﯾﻭ ﺭﮉﻨﯾﺭ"
 
 
 msgid "Timeline marker '%s' not found in scene '%s'"
-msgstr "ﻼ﻿ﻣ ﮟﯿﮩﻧ ﮟﯿﻣ '%s‬‪'ﻮﯾﻭ '%s‬‪' ﺮﮐﺭﺎﻣ ﻦﺋﻻ﻿ ﻢﺋﺎﭨ"
+msgstr "ﻼ﻿ﻣ ﮟﯿﮩﻧ ﮟﯿﻣ '%s'‬‪ﻮﯾﻭ '%s'‬‪ ﺮﮐﺭﺎﻣ ﻦﺋﻻ﻿ ﻢﺋﺎﭨ"
 
 
 msgid "Line set '%s' could not be removed"
-msgstr "ﺎﮑﺳ ﺎﺟ ﮟﯿﮩﻧ ﺎﯾﺎﭩﮨ ﻮﮐ '%s‬‪' ﭧﯿﺳ ﻦﺋﻻ﻿"
+msgstr "ﺎﮑﺳ ﺎﺟ ﮟﯿﮩﻧ ﺎﯾﺎﭩﮨ ﻮﮐ '%s'‬‪ ﭧﯿﺳ ﻦﺋﻻ﻿"
 
 
 msgid "Style module '%s' could not be removed"
-msgstr "ﺎﮑﺳ ﺎﺟ ﮟﯿﮩﻧ ﺎﯾﺎﭩﮨ ﻮﮐ '%s‬‪' ﮧﻧﻮﻤﻧ ﻞﺋﺎﭩﺳﺍ"
+msgstr "ﺎﮑﺳ ﺎﺟ ﮟﯿﮩﻧ ﺎﯾﺎﭩﮨ ﻮﮐ '%s'‬‪ ﮧﻧﻮﻤﻧ ﻞﺋﺎﭩﺳﺍ"
 
 
 msgid "Could not move layer from index '%d' to '%d'"
-msgstr "Could not ﺲﮑﯾﮉﻧﺍ ﮯﺳ ﮟﯾﺮﮐ ﻞﻘﺘﻨﻣ ﻮﮐ ﺕﺮﭘ '‪%d‬' to '‪%d‬'"
+msgstr "Could not ﺲﮑﯾﮉﻧﺍ ﮯﺳ ﮟﯾﺮﮐ ﻞﻘﺘﻨﻣ ﻮﮐ ﺕﺮﭘ ‪'%d'‬ to ‪'%d'‬"
 
 
 msgid "Only supported for \"TEMPORARY\" type regions (pop-ups)"
@@ -127135,19 +127101,19 @@ msgstr "ﮓﻨﭩﭘﺮﮑﺳ"
 
 
 msgid "'show_locked_time' is not supported for the '%s' editor"
-msgstr "ﮯﮨ ﮟﯿﮩﻧ ﮧﺘﻓﺎﯾ ﻥﻭﺎﻌﺗ ﮯﯿﻟ ﮯﮐ ﺮﭩﯾﮉﯾﺍ '%s‬‪' 'ﺖﻗﻭ_ﻞﻔﻗ_ﮟﯿﺋﺎﮭﮐﺩ"
+msgstr "ﮯﮨ ﮟﯿﮩﻧ ﮧﺘﻓﺎﯾ ﻥﻭﺎﻌﺗ ﮯﯿﻟ ﮯﮐ ﺮﭩﯾﮉﯾﺍ '%s'‬‪ 'ﺖﻗﻭ_ﻞﻔﻗ_ﮟﯿﺋﺎﮭﮐﺩ"
 
 
 msgid "Track '%s' is not found in the tracking object %s"
-msgstr "ﻼ﻿ﻣ ﮟﯿﮩﻧ '%s‬‪' ﮏﯾﺮﭨ ﮟﯿﻣ %s‬‪ ﮯﺷ ﮓﻨﮑﯾﺮﭨ"
+msgstr "ﻼ﻿ﻣ ﮟﯿﮩﻧ '%s'‬‪ ﮏﯾﺮﭨ ﮟﯿﻣ %s‬‪ ﮯﺷ ﮓﻨﮑﯾﺮﭨ"
 
 
 msgid "Plane track '%s' is not found in the tracking object %s"
-msgstr "ﻼ﻿ﻣ ﮟﯿﮩﻧ ﮟﯿﻣ %s‬‪ ﮯﺷ ﮓﻨﮑﯾﺮﭨ '%s‬‪' ﮏﯾﺮﭨ ﺎﮐ ﻦﯿﻠﭘ"
+msgstr "ﻼ﻿ﻣ ﮟﯿﮩﻧ ﮟﯿﻣ %s‬‪ ﮯﺷ ﮓﻨﮑﯾﺮﭨ '%s'‬‪ ﮏﯾﺮﭨ ﺎﮐ ﻦﯿﻠﭘ"
 
 
 msgid "MovieTracking '%s' cannot be removed"
-msgstr "ﺎﺘﮑﺳ ﺎﺟ ﮟﯿﮩﻧ ﺎﯾﺎﭩﮨ ﻮﮐ '%s‬‪' ﮓﻨﮑﯾﺮﭨ ﯼﻭﻮﻣ"
+msgstr "ﺎﺘﮑﺳ ﺎﺟ ﮟﯿﮩﻧ ﺎﯾﺎﭩﮨ ﻮﮐ '%s'‬‪ ﮓﻨﮑﯾﺮﭨ ﯼﻭﻮﻣ"
 
 
 msgid "Registering panel class:"
@@ -127159,27 +127125,27 @@ msgstr "ﻼ﻿ﻣ ﮟﯿﮩﻧ ﮧﻗﻼ﻿ﻋ ﮟﯿﻣ ﻢﺴﻗ ﯽﺋﻼ﻿�
 
 
 msgid "%s '%s' has category '%s'"
-msgstr "‪%s‬ '‪%s‬' ﮦﺮﻣﺯ ﮟﯿﻣ '‪%s‬' ﮯﮨ"
+msgstr "‪%s‬ ‪'%s'‬ ﮦﺮﻣﺯ ﮟﯿﻣ ‪'%s'‬ ﮯﮨ"
 
 
 msgid "%s '%s', bl_idname '%s' could not be unregistered"
-msgstr "‪%s‬ '‪%s‬'، bl_idname '‪%s‬' ﺎﺘﮑﺳ ﺎﺟ ﺎﯿﮐ ﮟﯿﮩﻧ ﺝﺍﺭﺪﻧﺍ ﺎﮐ"
+msgstr "‪%s‬ ‪'%s'‬، bl_idname ‪'%s'‬ ﺎﺘﮑﺳ ﺎﺟ ﺎﯿﮐ ﮟﯿﮩﻧ ﺝﺍﺭﺪﻧﺍ ﺎﮐ"
 
 
 msgid "%s parent '%s' for '%s' not found"
-msgstr "‪%s‬' ﮯﯿﻟ ﮯﮐ ‪%s‬ ﻦﯾﺪﻟﺍﻭ '‪%s‬' ﻼ﻿ﻣ ﮟﯿﮩﻧ"
+msgstr "‪%s‬' ﮯﯿﻟ ﮯﮐ ‪%s‬ ﻦﯾﺪﻟﺍﻭ ‪'%s'‬ ﻼ﻿ﻣ ﮟﯿﮩﻧ"
 
 
 msgid "Registering asset shelf class: '%s' is too long, maximum length is %d"
-msgstr "ﮯﮨ %d‬‪ ﯽﺋﺎﺒﻤﻟ ﮦﺩﺎﯾﺯ ﮯﺳ ﮦﺩﺎﯾﺯ ،ﮯﮨ ﺎﺒﻤﻟ ﺖﮩﺑ '%s‬‪' :ﺝﺍﺭﺪﻧﺍ ﺎﮐ ﺱﻼ﻿ﮐ ﻒﻠﯿﺷ ﮧﺛﺎﺛﺍ"
+msgstr "ﮯﮨ %d‬‪ ﯽﺋﺎﺒﻤﻟ ﮦﺩﺎﯾﺯ ﮯﺳ ﮦﺩﺎﯾﺯ ،ﮯﮨ ﺎﺒﻤﻟ ﺖﮩﺑ '%s'‬‪ :ﺝﺍﺭﺪﻧﺍ ﺎﮐ ﺱﻼ﻿ﮐ ﻒﻠﯿﺷ ﮧﺛﺎﺛﺍ"
 
 
 msgid "Registering asset shelf class: '%s' has been registered before, unregistering previous"
-msgstr "ﮯﮨ ﺎﮨﺭ ﺮﮐ ﻢﺘﺧ ﻦﺸﯾﺮﭩﺴﺟﺭ ﯽﻠﮭﭽﭘ ،ﮯﮨ ﺎﮑﭼ ﻮﮨ ﺮﭩﺴﺟﺭ ﮯﻠﮩﭘ '%s‬‪' :ﺝﺍﺭﺪﻧﺍ ﺎﮐ ﺱﻼ﻿ﮐ ﻒﻠﯿﺷ ﯽﮐ ﮞﻮﺛﺎﺛﺍ"
+msgstr "ﮯﮨ ﺎﮨﺭ ﺮﮐ ﻢﺘﺧ ﻦﺸﯾﺮﭩﺴﺟﺭ ﯽﻠﮭﭽﭘ ،ﮯﮨ ﺎﮑﭼ ﻮﮨ ﺮﭩﺴﺟﺭ ﮯﻠﮩﭘ '%s'‬‪ :ﺝﺍﺭﺪﻧﺍ ﺎﮐ ﺱﻼ﻿ﮐ ﻒﻠﯿﺷ ﯽﮐ ﮞﻮﺛﺎﺛﺍ"
 
 
 msgid "Registering file handler class: '%s' is too long, maximum length is %d"
-msgstr "ﮯﮨ %d‬‪ ﯽﺋﺎﺒﻤﻟ ﮦﺩﺎﯾﺯ ﮯﺳ ﮦﺩﺎﯾﺯ ،ﮯﮨ ﯽﺒﻤﻟ ﺖﮩﺑ '%s‬‪' :ﮯﮨ ﯽﮨﺭ ﻮﮨ ﺮﭩﺴﺟﺭ ﺱﻼ﻿ﮐ ﺮﻟﮉﻨﯿﮨ ﻞﺋﺎﻓ"
+msgstr "ﮯﮨ %d‬‪ ﯽﺋﺎﺒﻤﻟ ﮦﺩﺎﯾﺯ ﮯﺳ ﮦﺩﺎﯾﺯ ،ﮯﮨ ﯽﺒﻤﻟ ﺖﮩﺑ '%s'‬‪ :ﮯﮨ ﯽﮨﺭ ﻮﮨ ﺮﭩﺴﺟﺭ ﺱﻼ﻿ﮐ ﺮﻟﮉﻨﯿﮨ ﻞﺋﺎﻓ"
 
 
 msgid "Layout panels can not be used in this context"
@@ -127487,15 +127453,15 @@ msgstr "ﯽﺌﮔ ﯽﮐ ﺖﯾﺎﻤﺣ ﯽﮐ ﺭﺍﺩﺮﮐ ﮏﯾﺍ ﻑﺮ
 
 
 msgid "Gizmo group type '%s' not found!"
-msgstr "!ﯽﻠﻣ ﮟﯿﮩﻧ '%s‬‪' ﻢﺴﻗ ﯽﮐ ﮦﻭﺮﮔ ﻮﻣﺰﮔ"
+msgstr "!ﯽﻠﻣ ﮟﯿﮩﻧ '%s'‬‪ ﻢﺴﻗ ﯽﮐ ﮦﻭﺮﮔ ﻮﻣﺰﮔ"
 
 
 msgid "Gizmo group '%s' has 'PERSISTENT' option set!"
-msgstr "!ﮯﮨ ﭧﯿﺳ ﺭﺎﯿﺘﺧﺍ 'ﻞﻘﺘﺴﻣ' ﺱﺎﭘ ﮯﮐ '%s‬‪' ﮦﻭﺮﮔ ﻮﻣﺰﮔ"
+msgstr "!ﮯﮨ ﭧﯿﺳ ﺭﺎﯿﺘﺧﺍ 'ﻞﻘﺘﺴﻣ' ﺱﺎﭘ ﮯﮐ '%s'‬‪ ﮦﻭﺮﮔ ﻮﻣﺰﮔ"
 
 
 msgid "KeyMapItem '%s' not found in KeyMap '%s'"
-msgstr "ﻼ﻿ﻣ ﮟﯿﮩﻧ ﮟﯿﻣ '%s‬‪' ﭗﯿﻣ ﯽﮐ '%s‬‪' ﻢﭩﯿﺋﺁ ﭗﯿﻣ ﯽﮐ"
+msgstr "ﻼ﻿ﻣ ﮟﯿﮩﻧ ﮟﯿﻣ '%s'‬‪ ﭗﯿﻣ ﯽﮐ '%s'‬‪ ﻢﭩﯿﺋﺁ ﭗﯿﻣ ﯽﮐ"
 
 
 msgid "Modal key-maps not supported for add-on key-config"
@@ -127503,19 +127469,19 @@ msgstr "ﮟﯿﮨ ﮟﯿﮩﻧ ﮧﺘﻓﺎﯾ ﻥﻭﺎﻌﺗ ﮯﯿﻟ ﮯﮐ 
 
 
 msgid "KeyMap '%s' not found in KeyConfig '%s'"
-msgstr "ﻼ﻿ﻣ ﮟﯿﮩﻧ ﮟﯿﻣ '%s‬‪' ﮓﯿﻔﻧﻮﮐ ﯽﮐ '%s‬‪' ﭗﯿﻣ ﯽﮐ"
+msgstr "ﻼ﻿ﻣ ﮟﯿﮩﻧ ﮟﯿﻣ '%s'‬‪ ﮓﯿﻔﻧﻮﮐ ﯽﮐ '%s'‬‪ ﭗﯿﻣ ﯽﮐ"
 
 
 msgid "KeyConfig '%s' cannot be removed"
-msgstr "ﺎﺘﮑﺳ ﺎﺟ ﮟﯿﮩﻧ ﺎﯾﺎﭩﮨ ﻮﮐ '%s‬‪' ﮓﯿﻔﻧﻮﮐ ﯽﮐ"
+msgstr "ﺎﺘﮑﺳ ﺎﺟ ﮟﯿﮩﻧ ﺎﯾﺎﭩﮨ ﻮﮐ '%s'‬‪ ﮓﯿﻔﻧﻮﮐ ﯽﮐ"
 
 
 msgid "GizmoType '%s' not known"
-msgstr "ﮯﮨ ﮟﯿﮩﻧ ﻡﻮﻠﻌﻣ '%s‬‪' ﭗﺋﺎﭨ ﻮﻣﺰﮔ"
+msgstr "ﮯﮨ ﮟﯿﮩﻧ ﻡﻮﻠﻌﻣ '%s'‬‪ ﭗﺋﺎﭨ ﻮﻣﺰﮔ"
 
 
 msgid "GizmoType '%s' is for a 3D gizmo-group. The 'draw_select' callback is set where only 'test_select' will be used."
-msgstr "GizmoType '‪%s‬' 3 ﮏﯾﺍD gizmo-ﮯﮨ ﮯﯿﻟ ﮯﮐ ﭖﻭﺮﮔ 'draw_select' ﻑﺮﺻ ﮞﺎﮩﺟ ﮯﮨ ﭧﯿﺳ ﮏﯿﺑ ﻝﺎﮐ 'test_select' ﺎﮔ ﮯﺋﺎﺟ ﺎﯿﮐ ﻝﺎﻤﻌﺘﺳﺍ"
+msgstr "GizmoType ‪'%s'‬ 3 ﮏﯾﺍD gizmo-ﮯﮨ ﮯﯿﻟ ﮯﮐ ﭖﻭﺮﮔ 'draw_select' ﻑﺮﺻ ﮞﺎﮩﺟ ﮯﮨ ﭧﯿﺳ ﮏﯿﺑ ﻝﺎﮐ 'test_select' ﺎﮔ ﮯﺋﺎﺟ ﺎﯿﮐ ﻝﺎﻤﻌﺘﺳﺍ"
 
 
 msgid "%s area type does not support gizmos"
@@ -127539,7 +127505,7 @@ msgstr "ﯽﻠﻣ ﮟﯿﮩﻧ '%s‬.‪%s‬‪' ﯽﭨﺮﭘﺍﺮﭘ"
 
 
 msgid "Gizmo target '%s.%s' expects '%s', '%s.%s' is '%s'"
-msgstr "ﮯﮨ '%s‬. ‪%s‬' '‪%s‬‪' ،ﮯﮨ ﻊﻗﻮﺗ ﯽﮐ '%s‬‪' ﻮﮐ '%s‬. ‪%s‬‪' ﻑﺪﮨ ﻮﻣﺰﮔ"
+msgstr "ﮯﮨ %s‬. ‪%s‬' ‪'%s'‬‪' ،ﮯﮨ ﻊﻗﻮﺗ ﯽﮐ '%s'‬‪ ﻮﮐ '%s‬. ‪%s‬‪' ﻑﺪﮨ ﻮﻣﺰﮔ"
 
 
 msgid "Gizmo target property '%s.%s' expects an array of length %d, found %d"
@@ -127555,31 +127521,31 @@ msgstr "ﮯﯿﮨﺎﭼ ﺎﻧﻮﮨ ﻢﮐ ﮯﺳ %d‬ ‪%d‬‪ ﺖﺳﺮ�
 
 
 msgid "%s '%s'"
-msgstr "‪%s‬ '‪%s‬'"
+msgstr "‪%s‬ ‪'%s'‬"
 
 
 msgid "wmOwnerID '%s' not in workspace '%s'"
-msgstr "wmOwnerID '‪%s‬' ﺲﯿﭙﺳﺍ ﮎﺭﻭ '‪%s‬' ﮯﮨ ﮟﯿﮩﻧ ﮟﯿﻣ"
+msgstr "wmOwnerID ‪'%s'‬ ﺲﯿﭙﺳﺍ ﮎﺭﻭ ‪'%s'‬ ﮯﮨ ﮟﯿﮩﻧ ﮟﯿﻣ"
 
 
 msgid "Operator '%s' not found!"
-msgstr "!ﻼ﻿ﻣ ﮟﯿﮩﻧ '%s‬‪' ﺮﭩﯾﺮﭘﺁ"
+msgstr "!ﻼ﻿ﻣ ﮟﯿﮩﻧ '%s'‬‪ ﺮﭩﯾﺮﭘﺁ"
 
 
 msgid "Gizmo group '%s' not found!"
-msgstr "!ﻼ﻿ﻣ ﮟﯿﮩﻧ '%s‬‪' ﮦﻭﺮﮔ ﻮﻣﺰﮔ"
+msgstr "!ﻼ﻿ﻣ ﮟﯿﮩﻧ '%s'‬‪ ﮦﻭﺮﮔ ﻮﻣﺰﮔ"
 
 
 msgid "ActionMapBinding '%s' cannot be removed from '%s'"
-msgstr "ﺎﺘﮑﺳ ﺎﺟ ﺎﯾﺎﭩﮨ ﮟﯿﮩﻧ ﮯﺳ '%s‬‪' ﻮﮐ '%s‬‪' ﮓﻧﮉﻨﺋﺎﺑ ﭗﯿﻣ ﻡﺍﺪﻗﺍ"
+msgstr "ﺎﺘﮑﺳ ﺎﺟ ﺎﯾﺎﭩﮨ ﮟﯿﮩﻧ ﮯﺳ '%s'‬‪ ﻮﮐ '%s'‬‪ ﮓﻧﮉﻨﺋﺎﺑ ﭗﯿﻣ ﻡﺍﺪﻗﺍ"
 
 
 msgid "ActionMapItem '%s' cannot be removed from '%s'"
-msgstr "ﺎﺘﮑﺳ ﺎﺟ ﺎﯾﺎﭩﮨ ﮟﯿﮩﻧ ﮯﺳ '%s‬‪' ﻮﮐ '%s‬‪' ﻢﭩﺋﺁ ﭗﯿﻣ ﺶﮑﯾﺍ"
+msgstr "ﺎﺘﮑﺳ ﺎﺟ ﺎﯾﺎﭩﮨ ﮟﯿﮩﻧ ﮯﺳ '%s'‬‪ ﻮﮐ '%s'‬‪ ﻢﭩﺋﺁ ﭗﯿﻣ ﺶﮑﯾﺍ"
 
 
 msgid "ActionMap '%s' cannot be removed"
-msgstr "ﺎﺘﮑﺳ ﺎﺟ ﮟﯿﮩﻧ ﺎﯾﺎﭩﮨ ﻮﮐ '%s‬‪' ﭗﯿﻣ ﻡﺍﺪﻗﺍ"
+msgstr "ﺎﺘﮑﺳ ﺎﺟ ﮟﯿﮩﻧ ﺎﯾﺎﭩﮨ ﻮﮐ '%s'‬‪ ﭗﯿﻣ ﻡﺍﺪﻗﺍ"
 
 
 msgid "Bind To"
@@ -127759,7 +127725,7 @@ msgstr "ﮯﺌﮔ ﻮﮨ ﻞﯾﺪﺒﺗ ﮟﯿﻣ %d‬‪ ﮯﺳ %d‬‪ ﮮ�
 
 
 msgid "Vertex group '%s' is not valid, or maybe empty"
-msgstr "ﮯﮨ ﯽﻟﺎﺧ ﺪﯾﺎﺷ ﺎﯾ ،ﮯﮨ ﮟﯿﮩﻧ ﺖﺳﺭﺩ '%s‬‪' ﮦﻭﺮﮔ ﺲﮑﯿﭨﺭﻭ"
+msgstr "ﮯﮨ ﯽﻟﺎﺧ ﺪﯾﺎﺷ ﺎﯾ ،ﮯﮨ ﮟﯿﮩﻧ ﺖﺳﺭﺩ '%s'‬‪ ﮦﻭﺮﮔ ﺲﮑﯿﭨﺭﻭ"
 
 
 msgid "The system did not find a solution"
@@ -128294,7 +128260,7 @@ msgstr "Mid ﺢﻄﺳ"
 
 
 msgid "Cannot find '%s' grid"
-msgstr "'‪%s‬' ﺎﺘﮑﺳ ﻞﻣ ﮟﯿﮩﻧ ﮈﺮﮔ"
+msgstr "‪'%s'‬ ﺎﺘﮑﺳ ﻞﻣ ﮟﯿﮩﻧ ﮈﺮﮔ"
 
 
 msgid "Could not generate mesh from grid"
@@ -130679,7 +130645,7 @@ msgstr "ﮯﺌﮔ ﮯﯿﮐ ﮟﯿﮩﻧ ﻝﺎﻤﻌﺘﺳﺍ ﻑﺎﺻﻭﺍ �
 
 
 msgid "Group '{}' ({})"
-msgstr "({}‬' (‪{}‬‪' ﮦﻭﺮﮔ"
+msgstr "('{}'‬ (‪{}‬‪ ﮦﻭﺮﮔ"
 
 
 msgid "Inspection index is out of range"
@@ -131611,7 +131577,7 @@ msgstr "‪%s‬: %.*s"
 
 
 msgid "Text '%s'"
-msgstr "'%s‬‪' ﻦﺘﻣ"
+msgstr "‬'%s'‪ ﻦﺘﻣ"
 
 
 msgid "Could not resolve path (%s)"
@@ -131667,15 +131633,15 @@ msgstr "ﻼ﻿ﻣ ﮟﯿﮩﻧﻮﯾﻭ ﻝﺎﻌﻓ ﯽﺋﻮﮐ ﮟﯿﻣ %s�
 
 
 msgid "%s: no Combined pass found in the render layer '%s'"
-msgstr "‪%s‬: ﺕﺮﭘ ﺭﮉﻨﯾﺭ '‪%s‬' ﻼ﻿ﻣ ﮟﯿﮩﻧ ﺱﺎﭘ ﮧﮐﺮﺘﺸﻣ ﯽﺋﻮﮐ ﮟﯿﻣ"
+msgstr "‪%s‬: ﺕﺮﭘ ﺭﮉﻨﯾﺭ ‪'%s'‬ ﻼ﻿ﻣ ﮟﯿﮩﻧ ﺱﺎﭘ ﮧﮐﺮﺘﺸﻣ ﯽﺋﻮﮐ ﮟﯿﻣ"
 
 
 msgid "%s: incorrect dimensions for partial copy '%s'"
-msgstr "‪%s‬: ﯽﭘﺎﮐ ﯼﻭﺰﺟ '‪%s‬' ﺽﺮﻋ ﻭ ﻝﻮﻃ ﻂﻠﻏ ﮯﯿﻟ ﮯﮐ"
+msgstr "‪%s‬: ﯽﭘﺎﮐ ﯼﻭﺰﺟ ‪'%s'‬ ﺽﺮﻋ ﻭ ﻝﻮﻃ ﻂﻠﻏ ﮯﯿﻟ ﮯﮐ"
 
 
 msgid "%s: failed to load '%s'"
-msgstr "‪%s‬: '‪%s‬' ﻡﺎﮐﺎﻧ ﮟﯿﻣ ﮯﻧﺮﮐ ﮈﻮﻟ"
+msgstr "‪%s‬: ‪'%s'‬ ﻡﺎﮐﺎﻧ ﮟﯿﻣ ﮯﻧﺮﮐ ﮈﻮﻟ"
 
 
 msgid "Reading render result: dimensions don't match, expected %dx%d"
@@ -131796,7 +131762,7 @@ msgstr "ﮟﯾﺮﮐ ﭧﺋﺍﺭ ﺭﻭﻭﺍ ﻮﮐ ﻞﺋﺎﻓ ﭖﺍ ﭦﺭ
 
 
 msgid "Load Factory \"{}\" Preferences."
-msgstr ".ﺕﺎﺤﯿﺟﺮﺗ \"Factory \"‪{}‬ ﮈﻮﻟ"
+msgstr ".ﺕﺎﺤﯿﺟﺮﺗ Factory ‪\"{}\"‬ ﮈﻮﻟ"
 
 
 msgid "Load Factory Blender Preferences"
@@ -131812,7 +131778,7 @@ msgstr "ﮈﻮﻟ"
 
 
 msgid "Load Factory \"{}\" Startup File and Preferences"
-msgstr "ﺕﺎﺤﯿﺟﺮﺗ ﺭﻭﺍ ﻞﺋﺎﻓ ﭖﺍ ﭦﺭﺎﭩﺳﺍ \"{}‬‪\" ﯼﺮﭩﮑﯿﻓ ﮈﻮﻟ"
+msgstr "ﺕﺎﺤﯿﺟﺮﺗ ﺭﻭﺍ ﻞﺋﺎﻓ ﭖﺍ ﭦﺭﺎﭩﺳﺍ \"{}\"‬‪ ﯼﺮﭩﮑﯿﻓ ﮈﻮﻟ"
 
 
 msgid "Load Factory Default Startup File and Preferences"
@@ -131944,7 +131910,7 @@ msgstr "ﺮﺻﺎﻗ ﮯﺳ ﮯﻧﺮﮐ ﺵﻼ﻿ﺗ ﻡﺎﻧ ﺎﮐ ﻞﺋﺎ
 
 
 msgid "Engine '%s' not available for scene '%s' (an add-on may need to be installed or enabled)"
-msgstr "(ﮯﮨ ﯽﺘﮑﺳ ﻮﮨ ﺕﺭﻭﺮﺿ ﯽﮐ ﮯﻧﺮﮐ ﻝﺎﻌﻓ ﺎﯾ ﻝﺎﭩﺴﻧﺍ ﻥﺁ ﮉﯾﺍ ﮏﯾﺍ) ﮯﮨ ﮟﯿﮩﻧ ﺏﺎﯿﺘﺳﺩ ﮯﯿﻟ ﮯﮐ '%s‬‪'ﻮﯾﻭ '%s‬‪' ﻦﺠﻧﺍ"
+msgstr "(ﮯﮨ ﯽﺘﮑﺳ ﻮﮨ ﺕﺭﻭﺮﺿ ﯽﮐ ﮯﻧﺮﮐ ﻝﺎﻌﻓ ﺎﯾ ﻝﺎﭩﺴﻧﺍ ﻥﺁ ﮉﯾﺍ ﮏﯾﺍ) ﮯﮨ ﮟﯿﮩﻧ ﺏﺎﯿﺘﺳﺩ ﮯﯿﻟ ﮯﮐ '%s'‬‪ﻮﯾﻭ '%s'‬‪ ﻦﺠﻧﺍ"
 
 
 msgid "Library \"%s\" needs overrides resync"
@@ -131964,7 +131930,7 @@ msgstr "‪%d‬ ﮦﻭ ﮧﮑﻧﻮﯿﮐ ﺎﯿﮔ ﮟﯿﮩﻧ ﺎﮬﮍﭘ �
 
 
 msgid "Cannot read file \"%s\": %s"
-msgstr "'‪%s‬' ﺎﺘﮑﺳ ﮪﮍﭘ ﮟﯿﮩﻧ: ‪%s‬"
+msgstr "‪'%s'‬ ﺎﺘﮑﺳ ﮪﮍﭘ ﮟﯿﮩﻧ: ‪%s‬"
 
 
 msgid "File format is not supported in file \"%s\""
@@ -131972,7 +131938,7 @@ msgstr "ﮯﮨ ﮟﯿﮩﻧ ﮧﺘﻓﺎﯾ ﻥﻭﺎﻌﺗ ﭧﯿﻣﺭﺎﻓ �
 
 
 msgid "File path \"%s\" invalid"
-msgstr "ﻂﻠﻏ \"%s‬‪\" ﮧﺘﺳﺍﺭ ﺎﮐ ﻞﺋﺎﻓ"
+msgstr "ﻂﻠﻏ \"%s\"‬‪ ﮧﺘﺳﺍﺭ ﺎﮐ ﻞﺋﺎﻓ"
 
 
 msgid "Unknown error loading \"%s\""
@@ -131988,7 +131954,7 @@ msgstr "‬%s‬‪\\‪ ﺎﮑﺳ ﺎﺟ ﮟﯿﮩﻧ ﺎﮬﮍﭘ"
 
 
 msgid "Cannot overwrite used library '%.240s'"
-msgstr "ﺎﺘﮑﺳ ﺎﺟ ﺎﯿﮐ ﮟﯿﮩﻧ ﭧﺋﺍﺭ ﺭﻭﻭﺍ ﻮﮐ '%.240s‬‪' ﯼﺮﯾﺮﺒﺋﻻ﻿ ﮦﺪﺷ ﻝﺎﻤﻌﺘﺳﺍ"
+msgstr "ﺎﺘﮑﺳ ﺎﺟ ﺎﯿﮐ ﮟﯿﮩﻧ ﭧﺋﺍﺭ ﺭﻭﻭﺍ ﻮﮐ '%.240s'‬‪ ﯼﺮﯾﺮﺒﺋﻻ﻿ ﮦﺪﺷ ﻝﺎﻤﻌﺘﺳﺍ"
 
 
 msgid "Cannot save blend file, path \"%s\" is not writable"
@@ -132004,7 +131970,7 @@ msgstr "ﺎﯿﮐ ﮟﯿﮩﻧ ﮦﺭﺎﺷﺍ ﮫﭽﮐ"
 
 
 msgid "'%s': cannot use current file as library"
-msgstr "'‪%s‬': ﺎﺘﮑﺳ ﺮﮐ ﮟﯿﮩﻧ ﻝﺎﻤﻌﺘﺳﺍ ﺮﭘ ﺭﻮﻃ ﮯﮐ ﯼﺮﯾﺮﺒﺋﻻ﻿ ﻮﮐ ﻞﺋﺎﻓ ﮦﺩﻮﺟﻮﻣ"
+msgstr "‪'%s'‬: ﺎﺘﮑﺳ ﺮﮐ ﮟﯿﮩﻧ ﻝﺎﻤﻌﺘﺳﺍ ﺮﭘ ﺭﻮﻃ ﮯﮐ ﯼﺮﯾﺮﺒﺋﻻ﻿ ﻮﮐ ﻞﺋﺎﻓ ﮦﺩﻮﺟﻮﻣ"
 
 
 msgid "'%s': nothing indicated"
@@ -132016,7 +131982,7 @@ msgstr "‪%s‬': ﮯﮨ ﮟﯿﮩﻧ ﯼﺮﯾﺮﺒﺋﻻ﻿"
 
 
 msgid "Scene '%s' is linked, instantiation of objects is disabled"
-msgstr "ﮯﮨ ﻝﺎﻌﻓ ﺮﯿﻏ ﻦﺷﻮﯿﭩﯿﭩﺴﻧﺍ ﯽﮐ ءﺎﯿﺷﺍ ،ﮯﮨ ﮏﻠﺴﻨﻣ '%s‬‪' ﺮﻈﻨﻣ"
+msgstr "ﮯﮨ ﻝﺎﻌﻓ ﺮﯿﻏ ﻦﺷﻮﯿﭩﯿﭩﺴﻧﺍ ﯽﮐ ءﺎﯿﺷﺍ ،ﮯﮨ ﮏﻠﺴﻨﻣ '%s'‬‪ ﺮﻈﻨﻣ"
 
 
 msgid "'%s' is not a valid library filepath"
@@ -132024,15 +131990,15 @@ msgstr "‪%s‬' ﮯﮨ ﮟﯿﮩﻧ ﮧﺘﺳﺍﺭ ﻞﺋﺎﻓ ﯼﺮﯾﺮ�
 
 
 msgid "Trying to reload library '%s' from invalid path '%s'"
-msgstr "ﮯﮨ ﺎﮨﺭ ﺮﮐ ﺶﺷﻮﮐ ﯽﮐ ﮯﻧﺮﮐ ﮈﻮﻟ ﮦﺭﺎﺑﻭﺩ ﮯﺳ '%s‬‪' ﮯﺘﺳﺍﺭ ﻂﻠﻏ ﻮﮐ '%s‬‪' ﯼﺮﯾﺮﺒﺋﻻ﻿"
+msgstr "ﮯﮨ ﺎﮨﺭ ﺮﮐ ﺶﺷﻮﮐ ﯽﮐ ﮯﻧﺮﮐ ﮈﻮﻟ ﮦﺭﺎﺑﻭﺩ ﮯﺳ '%s'‬‪ ﮯﺘﺳﺍﺭ ﻂﻠﻏ ﻮﮐ '%s'‬‪ ﯼﺮﯾﺮﺒﺋﻻ﻿"
 
 
 msgid "Trying to reload or relocate library '%s' to invalid path '%s'"
-msgstr "ﺶﺷﻮﮐ ﯽﮐ ﮯﻧﺮﮐ ﻞﻘﺘﻨﻣ ﺮﭘ '%s‬‪' ﮯﺘﺳﺍﺭ ﻂﻠﻏ ﺎﯾ ﮯﻧﺮﮐ ﮈﻮﻟ ﮦﺭﺎﺑﻭﺩ ﻮﮐ '%s‬‪' ﯼﺮﯾﺮﺒﺋﻻ﻿"
+msgstr "ﺶﺷﻮﮐ ﯽﮐ ﮯﻧﺮﮐ ﻞﻘﺘﻨﻣ ﺮﭘ '%s'‬‪ ﮯﺘﺳﺍﺭ ﻂﻠﻏ ﺎﯾ ﮯﻧﺮﮐ ﮈﻮﻟ ﮦﺭﺎﺑﻭﺩ ﻮﮐ '%s'‬‪ ﯼﺮﯾﺮﺒﺋﻻ﻿"
 
 
 msgid "Cannot relocate library '%s' to current blend file '%s'"
-msgstr "ﺎﺘﮑﺳ ﺎﺟ ﺎﯿﮐ ﮟﯿﮩﻧ ﻞﻘﺘﻨﻣ ﮟﯿﻣ '%s‬‪' ﻞﺋﺎﻓ ﺐﮐﺮﻣ ﮦﺩﻮﺟﻮﻣ ﻮﮐ '%s‬‪' ﯼﺮﯾﺮﺒﺋﻻ﻿"
+msgstr "ﺎﺘﮑﺳ ﺎﺟ ﺎﯿﮐ ﮟﯿﮩﻧ ﻞﻘﺘﻨﻣ ﮟﯿﻣ '%s'‬‪ ﻞﺋﺎﻓ ﺐﮐﺮﻣ ﮦﺩﻮﺟﻮﻣ ﻮﮐ '%s'‬‪ ﯼﺮﯾﺮﺒﺋﻻ﻿"
 
 
 msgid "Win"
@@ -132097,11 +132063,11 @@ msgstr "ﮯﯿﮨﺎﭼ ﺎﻧﻮﮨ ﻞﺴﮑﭘ ﺎﯾ ،ﮧﯾﻭﺍﺯ ،ﺪ
 
 
 msgid "Cannot read %s '%s': %s"
-msgstr "‪%s‬ '‪%s‬' ﺎﺘﮑﺳ ﮪﮍﭘ ﮟﯿﮩﻧ: ‪%s‬"
+msgstr "‪%s‬ ‪'%s'‬ ﺎﺘﮑﺳ ﮪﮍﭘ ﮟﯿﮩﻧ: ‪%s‬"
 
 
 msgid "%s '%s' not found"
-msgstr "‪%s‬ '‪%s‬' ﻼ﻿ﻣ ﮟﯿﮩﻧ"
+msgstr "‪%s‬ ‪'%s'‬ ﻼ﻿ﻣ ﮟﯿﮩﻧ"
 
 
 msgid "%s not found"
@@ -132109,23 +132075,23 @@ msgstr "‪%s‬ ﻼ﻿ﻣ ﮟﯿﮩﻧ"
 
 
 msgid "Operator '%s' does not have register enabled, incorrect invoke function"
-msgstr "ﻦﺸﮑﻨﻓ ﮎﻭﻮﻧﺍ ﻂﻠﻏ ،ﮯﮨ ﮟﯿﮩﻧ ﻝﺎﻌﻓ ﺮﭩﺴﺟﺭ ﺱﺎﭘ ﮯﮐ '%s‬‪' ﺮﭩﯾﺮﭘﺁ"
+msgstr "ﻦﺸﮑﻨﻓ ﮎﻭﻮﻧﺍ ﻂﻠﻏ ،ﮯﮨ ﮟﯿﮩﻧ ﻝﺎﻌﻓ ﺮﭩﺴﺟﺭ ﺱﺎﭘ ﮯﮐ '%s'‬‪ ﺮﭩﯾﺮﭘﺁ"
 
 
 msgid "Operator '%s' does not have undo enabled, incorrect invoke function"
-msgstr "ﻦﺸﮑﻨﻓ ﮎﻭﻮﻧﺍ ﻂﻠﻏ ،ﮯﮨ ﺎﯿﮐ ﮟﯿﮩﻧ ﻝﺎﻌﻓ ﻮﮐ ﻭﮉﻧﺍ ﮯﻧ '%s‬‪' ﺮﭩﯾﺮﭘﺁ"
+msgstr "ﻦﺸﮑﻨﻓ ﮎﻭﻮﻧﺍ ﻂﻠﻏ ،ﮯﮨ ﺎﯿﮐ ﮟﯿﮩﻧ ﻝﺎﻌﻓ ﻮﮐ ﻭﮉﻧﺍ ﮯﻧ '%s'‬‪ ﺮﭩﯾﺮﭘﺁ"
 
 
 msgid "Operator redo '%s' does not have register enabled, incorrect invoke function"
-msgstr "ﻦﺸﮑﻨﻓ ﮎﻭﻮﻧﺍ ﻂﻠﻏ ،ﮯﮨ ﮟﯿﮩﻧ ﻝﺎﻌﻓ ﺮﭩﺴﺟﺭ ﮟﯿﻣ '%s‬‪' ﮟﯾﺮﮐ ﮦﺭﺎﺑﻭﺩ ﺮﭩﯾﺮﭘﺁ"
+msgstr "ﻦﺸﮑﻨﻓ ﮎﻭﻮﻧﺍ ﻂﻠﻏ ،ﮯﮨ ﮟﯿﮩﻧ ﻝﺎﻌﻓ ﺮﭩﺴﺟﺭ ﮟﯿﻣ '%s'‬‪ ﮟﯾﺮﮐ ﮦﺭﺎﺑﻭﺩ ﺮﭩﯾﺮﭘﺁ"
 
 
 msgid "Operator redo '%s': wrong context"
-msgstr "ﻕﺎﺒﺳ ﻭ ﻕﺎﯿﺳ ﻂﻠﻏ :ﮟﯾﺮﮐ ﮦﺭﺎﺑﻭﺩ ﻮﮐ '%s‬‪' ﺮﭩﯾﺮﭘﺁ"
+msgstr "ﻕﺎﺒﺳ ﻭ ﻕﺎﯿﺳ ﻂﻠﻏ :ﮟﯾﺮﮐ ﮦﺭﺎﺑﻭﺩ ﻮﮐ '%s'‬‪ ﺮﭩﯾﺮﭘﺁ"
 
 
 msgid "Property from path '%s' has length %d instead of %d"
-msgstr "ﮯﮨ %d‬‪ ﮯﺋﺎﺠﺑ ﯽﮐ %d‬‪ ﯽﺋﺎﺒﻤﻟ ﯽﮐ ﯽﭨﺮﭘﺍﺮﭘ ﮯﺳ '%s‬‪' ﮫﺗﺎﭘ"
+msgstr "ﮯﮨ %d‬‪ ﮯﺋﺎﺠﺑ ﯽﮐ %d‬‪ ﯽﺋﺎﺒﻤﻟ ﯽﮐ ﯽﭨﺮﭘﺍﺮﭘ ﮯﺳ '%s'‬‪ ﮫﺗﺎﭘ"
 
 
 msgid "%d × %s: %.4f ms, average: %.8f ms"

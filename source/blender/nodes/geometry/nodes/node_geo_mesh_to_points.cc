@@ -86,6 +86,10 @@ static void geometry_set_mesh_to_points(GeometrySet &geometry_set,
   evaluator.add(radius_field);
   evaluator.evaluate();
   const IndexMask selection = evaluator.get_evaluated_selection_as_mask();
+  if (selection.is_empty()) {
+    geometry_set.keep_only({GeometryComponent::Type::Edit});
+    return;
+  }
   const VArray<float3> positions_eval = evaluator.get_evaluated<float3>(0);
   const VArray<float> radii_eval = evaluator.get_evaluated<float>(1);
 

@@ -391,7 +391,7 @@ static void graph_panel_key_properties(const bContext *C, Panel *panel)
 
     /* get property that F-Curve affects, for some unit-conversion magic */
     PointerRNA id_ptr = RNA_id_pointer_create(ale->id);
-    if (RNA_path_resolve_property(&id_ptr, fcu->rna_path, &fcu_prop_ptr, &fcu_prop)) {
+    if (RNA_path_resolve_property(&id_ptr, fcu->rna_path_parsed(), &fcu_prop_ptr, &fcu_prop)) {
       /* determine the unit for this property */
       unit = RNA_SUBTYPE_UNIT(RNA_property_subtype(fcu_prop));
     }

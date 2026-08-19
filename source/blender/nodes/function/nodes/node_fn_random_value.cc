@@ -6,6 +6,7 @@
 #include "BLI_noise.hh"
 
 #include "node_function_util.hh"
+#include "node_shader_util.hh"
 
 #include "NOD_socket_search_link.hh"
 
@@ -50,9 +51,11 @@ static void node_declare(NodeDeclarationBuilder &b)
     }
   }
 
+  const bool is_compositor = b.tree_or_null() && b.tree_or_null()->type == NTREE_COMPOSIT;
   b.add_input<decl::Int>("ID"_ustr)
       .structure_type(StructureType::Dynamic)
-      .default_input_type(NODE_DEFAULT_INPUT_ID_INDEX_FIELD);
+      .default_input_type(is_compositor ? NODE_DEFAULT_INPUT_VALUE :
+                                          NODE_DEFAULT_INPUT_ID_INDEX_FIELD);
   b.add_input<decl::Int>("Seed"_ustr);
 
   if (node != nullptr) {
@@ -197,11 +200,46 @@ static void node_build_multi_function(NodeMultiFunctionBuilder &builder)
   }
 }
 
+static const char *gpu_shader_get_name(const eCustomDataType data_type)
+{
+  switch (data_type) {
+    case CD_PROP_FLOAT3:
+      return "random_value_vector";
+    case CD_PROP_FLOAT:
+      return "random_value_float";
+    case CD_PROP_INT32:
+      return "random_value_int";
+    case CD_PROP_BOOL:
+      return "random_value_bool";
+    default:
+      break;
+  }
+
+  BLI_assert_unreachable();
+  return nullptr;
+}
+
+static int node_gpu_material(GPUMaterial *mat,
+                             bNode *node,
+                             bNodeExecData * /*execdata*/,
+                             GPUNodeStack *in,
+                             GPUNodeStack *out)
+{
+  const NodeRandomValue &storage = node_storage(*node);
+  const char *name = gpu_shader_get_name(eCustomDataType(storage.data_type));
+
+  if (name == nullptr) {
+    return 0;
+  }
+
+  return GPU_stack_link(mat, node, name, in, out);
+}
+
 static void node_register()
 {
   static bke::bNodeType ntype;
 
-  fn_node_type_base(&ntype, "FunctionNodeRandomValue"_ustr, FN_NODE_RANDOM_VALUE);
+  fn_cmp_node_type_base(&ntype, "FunctionNodeRandomValue"_ustr, FN_NODE_RANDOM_VALUE);
   ntype.ui_name = "Random Value";
   ntype.ui_description = "Output a randomized value";
   ntype.enum_name_legacy = "RANDOM_VALUE";
@@ -210,6 +248,7 @@ static void node_register()
   ntype.draw_buttons = node_layout;
   ntype.declare = node_declare;
   ntype.build_multi_function = node_build_multi_function;
+  ntype.gpu_fn = node_gpu_material;
   ntype.gather_link_search_ops = node_gather_link_search_ops;
   bke::node_type_storage(
       ntype, "NodeRandomValue", node_free_standard_storage, node_copy_standard_storage);

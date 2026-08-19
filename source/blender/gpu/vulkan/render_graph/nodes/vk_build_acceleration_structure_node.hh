@@ -24,6 +24,7 @@ struct VKBuildAccelerationStructureData {
 struct VKBuildAccelerationStructureCreateInfo {
   VKBuildAccelerationStructureData node_data;
   Set<VKResourceWithHandle<VkBuffer>> src_buffers;
+  Set<VKResourceWithHandle<VkBuffer>> src_acceleration_structures;
   VKResourceWithHandle<VkBuffer> dst_acceleration_structure;
   VKResourceWithHandle<VkBuffer> scratch_buffer;
 };
@@ -60,6 +61,12 @@ class VKBuildAccelerationStructureNode
       BLI_assert(buffer != VK_NULL_HANDLE);
       ResourceWithStamp src_buffer = resources.get_buffer(buffer);
       links.buffers.append({src_buffer, VK_ACCESS_SHADER_READ_BIT});
+    }
+
+    for (const VKResourceWithHandle<VkBuffer> &buffer : create_info.src_acceleration_structures) {
+      BLI_assert(buffer != VK_NULL_HANDLE);
+      ResourceWithStamp src_buffer = resources.get_buffer(buffer);
+      links.buffers.append({src_buffer, VK_ACCESS_ACCELERATION_STRUCTURE_READ_BIT_KHR});
     }
 
     ResourceWithStamp dst_acceleration_structure = resources.get_buffer_and_increase_stamp(

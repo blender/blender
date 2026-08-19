@@ -326,12 +326,12 @@ static CLG_LogRef LOG_COMPARE_OVERRIDE = {"rna.rna_compare_override"};
 
 static void rna_Struct_identifier_get(PointerRNA *ptr, char *value)
 {
-  strcpy(value, (static_cast<StructRNA *>(ptr->data))->identifier);
+  strcpy(value, (static_cast<StructRNA *>(ptr->data))->identifier.c_str());
 }
 
 static int rna_Struct_identifier_length(PointerRNA *ptr)
 {
-  return strlen((static_cast<StructRNA *>(ptr->data))->identifier);
+  return static_cast<StructRNA *>(ptr->data)->identifier.size();
 }
 
 static void rna_Struct_description_get(PointerRNA *ptr, char *value)
@@ -398,11 +398,12 @@ static bool rna_idproperty_known(CollectionPropertyIterator *iter, void *data)
    * Note that only dynamically-defined RNA properties (the ones actually using IDProperties as
    * storage back-end) should be checked here. If a custom property is named the same as a 'normal'
    * RNA property, they are different data. */
+  const UString idprop_name(idprop->name);
   do {
     for (prop = static_cast<PropertyRNA *>(ptype->cont.properties.first); prop; prop = prop->next)
     {
       if ((prop->flag_internal & PROP_INTERN_BUILTIN) == 0 &&
-          (prop->flag & PROP_IDPROPERTY) != 0 && STREQ(prop->identifier, idprop->name))
+          (prop->flag & PROP_IDPROPERTY) != 0 && prop->identifier == idprop_name)
       {
         return true;
       }
@@ -598,33 +599,13 @@ PointerRNA rna_builtin_properties_get(CollectionPropertyIterator *iter)
 
 bool rna_builtin_properties_lookup_string(PointerRNA *ptr, const char *key, PointerRNA *r_ptr)
 {
-  StructRNA *srna;
-  PropertyRNA *prop;
-
-  srna = ptr->type;
-
-  do {
-    if (srna->cont.prop_lookup_set) {
-      PropertyRNA *const *lookup_prop = srna->cont.prop_lookup_set->lookup_key_ptr_as(key);
-      prop = lookup_prop ? *lookup_prop : nullptr;
-      if (prop) {
-        *r_ptr = {nullptr, RNA_Property, prop};
-        return true;
-      }
-    }
-    else {
-      for (prop = static_cast<PropertyRNA *>(srna->cont.properties.first); prop; prop = prop->next)
-      {
-        if (!(prop->flag_internal & PROP_INTERN_BUILTIN) && STREQ(prop->identifier, key)) {
-          *r_ptr = {nullptr, RNA_Property, prop};
-          return true;
-        }
-      }
-    }
-  } while ((srna = srna->base));
-
-  *r_ptr = {};
-  return false;
+  PropertyRNA *prop = RNA_struct_find_property(ptr, UString(key));
+  if (!prop) {
+    *r_ptr = {};
+    return false;
+  }
+  *r_ptr = {nullptr, RNA_Property, prop};
+  return true;
 }
 
 PointerRNA rna_builtin_type_get(PointerRNA *ptr)
@@ -994,7 +975,7 @@ static void rna_IntProperty_default_array_get(PointerRNA *ptr, int *values)
   PropertyRNA *prop = static_cast<PropertyRNA *>(ptr->data);
   prop = rna_ensure_property(prop);
   if (prop->totarraylength > 0) {
-    PointerRNA null_ptr = PointerRNA_NULL;
+    PointerRNA null_ptr = {};
     RNA_property_int_get_default_array(&null_ptr, prop, values);
   }
 }
@@ -1004,7 +985,7 @@ static void rna_BoolProperty_default_array_get(PointerRNA *ptr, bool *values)
   PropertyRNA *prop = static_cast<PropertyRNA *>(ptr->data);
   prop = rna_ensure_property(prop);
   if (prop->totarraylength > 0) {
-    PointerRNA null_ptr = PointerRNA_NULL;
+    PointerRNA null_ptr = {};
     RNA_property_boolean_get_default_array(&null_ptr, prop, values);
   }
 }
@@ -1014,7 +995,7 @@ static void rna_FloatProperty_default_array_get(PointerRNA *ptr, float *values)
   PropertyRNA *prop = static_cast<PropertyRNA *>(ptr->data);
   prop = rna_ensure_property(prop);
   if (prop->totarraylength > 0) {
-    PointerRNA null_ptr = PointerRNA_NULL;
+    PointerRNA null_ptr = {};
     RNA_property_float_get_default_array(&null_ptr, prop, values);
   }
 }
@@ -1180,7 +1161,7 @@ static void rna_EnumProperty_items_begin_impl(CollectionPropertyIterator *iter,
   RNA_property_enum_items_ex(nullptr,
                              ptr,
                              prop,
-                             STREQ(iter->prop->identifier, "enum_items_static"),
+                             iter->prop->identifier == "enum_items_static"_ustr,
                              &item,
                              &totitem,
                              &free);
@@ -1283,12 +1264,12 @@ static PointerRNA rna_CollectionProperty_fixed_type_get(PointerRNA *ptr)
 
 static void rna_Function_identifier_get(PointerRNA *ptr, char *value)
 {
-  strcpy(value, (static_cast<FunctionRNA *>(ptr->data))->identifier);
+  strcpy(value, (static_cast<FunctionRNA *>(ptr->data))->identifier.c_str());
 }
 
 static int rna_Function_identifier_length(PointerRNA *ptr)
 {
-  return strlen((static_cast<FunctionRNA *>(ptr->data))->identifier);
+  return static_cast<FunctionRNA *>(ptr->data)->identifier.size();
 }
 
 static void rna_Function_description_get(PointerRNA *ptr, char *value)
@@ -1377,7 +1358,7 @@ static bool rna_BlenderRNA_structs_lookup_string(PointerRNA *ptr,
                                                  PointerRNA *r_ptr)
 {
   BlenderRNA *brna = static_cast<BlenderRNA *>(ptr->data);
-  StructRNA *srna = brna->structs_map.lookup_default(key, nullptr);
+  StructRNA *srna = brna->structs_map.lookup_default(UString(key), nullptr);
   if (srna != nullptr) {
     *r_ptr = RNA_pointer_create_discrete(nullptr, RNA_Struct, srna);
     return true;
@@ -1476,9 +1457,9 @@ static void rna_property_override_diff_propptr_validate_diffing(
     BLI_assert(!no_prop_name);
   }
 
-  /* Beware, PointerRNA_NULL has no type and is considered a 'blank page'! */
-  if (ELEM(nullptr, propptr_a->type, propptr_a->data)) {
-    if (ELEM(nullptr, propptr_b, propptr_b->type, propptr_b->data)) {
+  /* Beware, might be null and is considered a 'blank page'! */
+  if (!*propptr_a) {
+    if (propptr_b == nullptr || !*propptr_b) {
       ptrdiff_ctx.is_null = true;
     }
     else {
@@ -1490,7 +1471,7 @@ static void rna_property_override_diff_propptr_validate_diffing(
   }
   else {
     ptrdiff_ctx.is_id = RNA_struct_is_ID(propptr_a->type);
-    ptrdiff_ctx.is_null = (ELEM(nullptr, propptr_b, propptr_b->type, propptr_b->data));
+    ptrdiff_ctx.is_null = (propptr_b == nullptr || !*propptr_b);
     ptrdiff_ctx.is_type_diff = (propptr_b == nullptr || propptr_b->type != propptr_a->type);
     ptrdiff_ctx.is_valid_for_diffing = !((ptrdiff_ctx.is_id && no_ownership) ||
                                          ptrdiff_ctx.is_null || ptrdiff_ctx.is_type_diff);
@@ -1501,10 +1482,9 @@ static void rna_property_override_diff_propptr_validate_diffing(
    * This helps a lot in library override case, especially to detect inserted items in collections.
    */
   if (!no_prop_name && (ptrdiff_ctx.is_valid_for_diffing || do_force_name)) {
-    PropertyRNA *nameprop_a = (propptr_a->type != nullptr) ?
-                                  RNA_struct_name_property(propptr_a->type) :
-                                  nullptr;
-    PropertyRNA *nameprop_b = (propptr_b != nullptr && propptr_b->type != nullptr) ?
+    PropertyRNA *nameprop_a = (propptr_a->has_type()) ? RNA_struct_name_property(propptr_a->type) :
+                                                        nullptr;
+    PropertyRNA *nameprop_b = (propptr_b != nullptr && propptr_b->has_type()) ?
                                   RNA_struct_name_property(propptr_b->type) :
                                   nullptr;
     const bool do_id_pointer = ptrdiff_ctx.use_id_pointer && ptrdiff_ctx.is_id;
@@ -1534,10 +1514,10 @@ static void rna_property_override_diff_propptr_validate_diffing(
     /* NOTE: This will always assign nullptr to these lib-pointers in case `do_id_lib` is false,
      * which ensures that they will not affect the result of `ptrdiff_ctx.is_valid_for_diffing` in
      * the last check below. */
-    ID *rna_itemid_a = (do_id_pointer && propptr_a->data) ? static_cast<ID *>(propptr_a->data) :
-                                                            nullptr;
-    ID *rna_itemid_b = (do_id_pointer && propptr_b->data) ? static_cast<ID *>(propptr_b->data) :
-                                                            nullptr;
+    ID *rna_itemid_a = (do_id_pointer && *propptr_a) ? static_cast<ID *>(propptr_a->data) :
+                                                       nullptr;
+    ID *rna_itemid_b = (do_id_pointer && *propptr_b) ? static_cast<ID *>(propptr_b->data) :
+                                                       nullptr;
     if (do_id_pointer) {
       ptrdiff_ctx.rna_itemid_a = rna_itemid_a;
       ptrdiff_ctx.rna_itemid_b = rna_itemid_b;
@@ -2199,7 +2179,7 @@ void rna_property_override_diff_default(Main *bmain, RNAPropertyOverrideDiffCont
        * pointer.
        * Doing this here avoids having to manually specify `PROPOVERRIDE_NO_PROP_NAME` to things
        * like ShapeKey pointers. */
-      if (STREQ(prop_a->identifier, "rna_type")) {
+      if (prop_a->identifier == "rna_type"_ustr) {
         /* Dummy 'pass' answer, this is a meta-data and must be ignored... */
         return;
       }
@@ -3105,7 +3085,8 @@ bool rna_property_override_apply_default(Main *bmain,
           IDP_CopyPropertyContent(item_idprop_dst, item_idprop_src);
 
           ret_success = RNA_property_collection_move(
-              ptr_dst, prop_dst, item_index_added, item_index_dst);
+                            ptr_dst, prop_dst, item_index_added, item_index_dst) ==
+                        eRNAStatus::Success;
           break;
         }
         default:

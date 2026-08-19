@@ -8,13 +8,19 @@
  * Window client-side-decorations (CSD) drawing.
  */
 
+#include <algorithm>
+
 #include "DNA_vec_types.h"
 #include "DNA_windowmanager_types.h"
 
+#include "BLI_index_range.hh"
+#include "BLI_math_vector_types.hh"
 #include "BLI_rect.hh"
 
 #include "GHOST_IWindow.hh"
 
+#include "GPU_batch.hh"
+#include "GPU_batch_presets.hh"
 #include "GPU_immediate.hh"
 #include "GPU_state.hh"
 #include "GPU_viewport.hh" /* #GLA_PIXEL_OFS */
@@ -61,59 +67,17 @@ void WM_window_csd_draw_titlebar_ex(const int win_size[2],
     return;
   }
 
+  const rcti window_rect = {
+      /*xmin*/ 0,
+      /*xmax*/ win_size[0],
+      /*ymin*/ 0,
+      /*ymax*/ win_size[1],
+  };
+
   if (border_color) {
+    wmWindowViewportTitle_ex(window_rect, 0.0f);
     GPU_clear_color(
         border_color[0] / 255.0f, border_color[1] / 255.0f, border_color[2] / 255.0f, 1.0f);
-
-    /* Window border, if needed. */
-    if (win_state == GHOST_kWindowStateNormal) {
-      const uchar border_outline_color[4] = {
-          uchar(border_color[0] / 2),
-          uchar(border_color[1] / 2),
-          uchar(border_color[2] / 2),
-          255,
-      };
-      const int border_outline_width = std::max<int>(
-          1, WM_window_csd_fracitonal_scale_apply(2, fractional_scale));
-      const rcti window_rect = {
-          /*xmin*/ 0,
-          /*xmax*/ win_size[0],
-          /*ymin*/ 0,
-          /*ymax*/ win_size[1],
-      };
-
-      wmWindowViewportTitle_ex(window_rect, 0);
-
-      const uint shdr_pos = GPU_vertformat_attr_add(
-          immVertexFormat(), "pos", gpu::VertAttrType::SFLOAT_32_32);
-      immBindBuiltinProgram(GPU_SHADER_3D_POLYLINE_UNIFORM_COLOR);
-      immUniformColor4ubv(border_outline_color);
-
-      float viewport[4];
-      GPU_viewport_size_get_f(viewport);
-      immUniform2fv("viewportSize", &viewport[2]);
-
-      immUniform1f("lineWidth", border_outline_width);
-
-      /* Pixel offsets are needed for the lines to display evenly. */
-      immBegin(GPU_PRIM_LINES, 8);
-      /* Left. */
-      immVertex2f(shdr_pos, window_rect.xmin + 1, window_rect.ymin);
-      immVertex2f(shdr_pos, window_rect.xmin + 1, window_rect.ymax);
-      /* Top. */
-      immVertex2f(shdr_pos, window_rect.xmin, window_rect.ymax - 1);
-      immVertex2f(shdr_pos, window_rect.xmax, window_rect.ymax - 1);
-      /* Right. */
-      immVertex2f(shdr_pos, window_rect.xmax, window_rect.ymax);
-      immVertex2f(shdr_pos, window_rect.xmax, window_rect.ymin);
-      /* Bottom. */
-      immVertex2f(shdr_pos, window_rect.xmax, window_rect.ymin);
-      immVertex2f(shdr_pos, window_rect.xmin, window_rect.ymin);
-
-      immEnd();
-
-      immUnbindProgram();
-    }
   }
 
   /* Flip the Y axis. */
@@ -170,7 +134,7 @@ void WM_window_csd_draw_titlebar_ex(const int win_size[2],
       BLF_shadow_offset(font_id, 0, 0);
     }
     BLF_enable(font_id, BLF_BOLD);
-    BLF_size(font_id, WM_window_csd_fracitonal_scale_apply(int(font_size), fractional_scale));
+    BLF_size(font_id, WM_window_csd_fractional_scale_apply(int(font_size), fractional_scale));
 
     const int title_width = BLF_width(font_id, title, title_len);
     const int title_decender = -BLF_descender(font_id);
@@ -247,7 +211,7 @@ void WM_window_csd_draw_titlebar_ex(const int win_size[2],
     }
 
     const float button_color[4] = {1.0f, 1.0f, 1.0f, alpha};
-    const int icon_size = WM_window_csd_fracitonal_scale_apply(ICON_DEFAULT_HEIGHT,
+    const int icon_size = WM_window_csd_fractional_scale_apply(ICON_DEFAULT_HEIGHT,
                                                                fractional_scale);
     for (int i = 0; i < ARRAY_SIZE(button_types); i++) {
       const GHOST_TCSD_Type ty = button_types[i];
@@ -311,6 +275,101 @@ void WM_window_csd_draw_titlebar(const wmWindow *win)
                                  border_color,
                                  text_color,
                                  alpha);
+}
+
+/** \} */
+
+/* -------------------------------------------------------------------- */
+/** \name Window Rounded Corner Drawing
+ *
+ * \{ */
+
+void WM_window_csd_clear_alpha(const wmWindow *win)
+{
+  auto *ghost_window = static_cast<GHOST_IWindow *>(win->runtime->ghostwin);
+  if (!ghost_window->hasAlpha()) {
+    return;
+  }
+
+  const int2 win_size = WM_window_native_pixel_size(win);
+  const rcti window_rect = {
+      .xmin = 0,
+      .xmax = win_size[0],
+      .ymin = 0,
+      .ymax = win_size[1],
+  };
+  /* Clears are scissor tested and the window frame-buffer keeps its scissor between frames. */
+  wmWindowViewportTitle_ex(window_rect, 0.0f);
+  /* Only the alpha matters, every pixel of the color is drawn over by the screen below.
+   * Could be avoided if the blit shader for viewports wrote an alpha of 1 instead. */
+  GPU_clear_color(0.0f, 0.0f, 0.0f, 1.0f);
+}
+
+void WM_window_csd_draw_corner_mask(const wmWindow *win)
+{
+  BLI_assert(WM_window_is_csd(win));
+
+  auto *ghost_window = static_cast<GHOST_IWindow *>(win->runtime->ghostwin);
+  if (!ghost_window->hasAlpha()) {
+    return;
+  }
+
+  const int fractional_scale[2] = {
+      GHOST_CSD_DPI_FRACTIONAL_BASE,
+      ghost_window->getDPIHint(),
+  };
+  const int radius = (win->windowstate == GHOST_kWindowStateNormal) ?
+                         WM_window_csd_fractional_scale_apply(WM_WINDOW_CSD_CORNER_RADIUS,
+                                                              fractional_scale) :
+                         0;
+
+  if (radius <= 0) {
+    return;
+  }
+
+  const std::array<int, 4> corner_tiled_edges{
+      GHOST_kWindowTiledRight | GHOST_kWindowTiledTop,
+      GHOST_kWindowTiledLeft | GHOST_kWindowTiledTop,
+      GHOST_kWindowTiledLeft | GHOST_kWindowTiledBottom,
+      GHOST_kWindowTiledRight | GHOST_kWindowTiledBottom,
+  };
+  const GHOST_TWindowTiledFlag tiled_edges = ghost_window->getTiledEdges();
+  std::array<float, 4> radii;
+  for (const int corner : IndexRange(4)) {
+    radii[corner] = (tiled_edges & corner_tiled_edges[corner]) ? 0.0f : float(radius);
+  }
+  if (std::ranges::all_of(radii, [](const float value) { return value == 0.0f; })) {
+    return;
+  }
+
+  const int2 win_size = WM_window_native_pixel_size(win);
+  const rcti window_rect = {
+      .xmin = 0,
+      .xmax = win_size[0],
+      .ymin = 0,
+      .ymax = win_size[1],
+  };
+  wmWindowViewportTitle_ex(window_rect, 0.0f);
+
+  const rctf rect = {
+      .xmin = 0.0f,
+      .xmax = float(win_size[0]),
+      .ymin = 0.0f,
+      .ymax = float(win_size[1]),
+  };
+  /* Only the alpha is used, the blend mode scales the window down by one minus it. */
+  const float color[4] = {0.0f, 0.0f, 0.0f, 1.0f};
+
+  GPU_blend(GPU_BLEND_OVERLAY_MASK_FROM_ALPHA);
+
+  gpu::Batch *batch = GPU_batch_preset_quad();
+  GPU_batch_program_set_builtin(batch, GPU_SHADER_2D_ROUNDED_CORNER_MASK);
+  GPU_batch_uniform_4fv(batch, "rect", (const float *)&rect);
+  GPU_batch_uniform_4fv(batch, "color", color);
+  GPU_batch_uniform_4fv(batch, "radii", radii.data());
+  GPU_batch_draw_instance_range(batch, 0, 4);
+
+  GPU_blend(GPU_BLEND_NONE);
 }
 
 /** \} */

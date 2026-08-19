@@ -23,11 +23,8 @@
 
 #include "DNA_object_types.h"
 #include "DNA_scene_types.h"
-#include "DNA_screen_types.h"
-#include "DNA_space_types.h"
 #include "DNA_userdef_types.h"
 #include "DNA_view3d_types.h"
-#include "DNA_windowmanager_types.h"
 
 #include "BKE_callbacks.hh"
 #include "BKE_colortools.hh"
@@ -230,6 +227,9 @@ static wmOperatorStatus screen_render_exec(bContext *C, wmOperator *op)
     return OPERATOR_CANCELLED;
   }
 
+  /* Flush sculpt and editmode changes. */
+  ED_editors_flush_edits(mainp);
+
   re = RE_NewSceneRender(scene);
 
   G.is_break = false;
@@ -242,6 +242,8 @@ static wmOperatorStatus screen_render_exec(bContext *C, wmOperator *op)
   BKE_image_backup_render(scene, ima, true);
 
   RE_SetReports(re, op->reports);
+
+  ED_render_view3d_auto_pause(mainp, true);
 
   if (is_animation) {
     RE_RenderAnim(re,
@@ -265,6 +267,8 @@ static wmOperatorStatus screen_render_exec(bContext *C, wmOperator *op)
   }
 
   RE_SetReports(re, nullptr);
+
+  ED_render_view3d_auto_pause(mainp, false);
 
   const bool cancelled = G.is_break;
 
@@ -685,7 +689,7 @@ static void render_endjob(void *rjv)
   }
 
   /* Resume viewport render engines now that the final render is complete. */
-  ED_render_view3d_pause_resume(G_MAIN, false);
+  ED_render_view3d_auto_pause(G_MAIN, false);
 }
 
 /* called by render, check job 'stop' value or the global */
@@ -887,7 +891,7 @@ static wmOperatorStatus screen_render_invoke(bContext *C, wmOperator *op, const 
   /* handle UI stuff */
   WM_cursor_wait(true);
 
-  /* flush sculpt and editmode changes */
+  /* Flush sculpt and editmode changes. */
   ED_editors_flush_edits(bmain);
 
   /* store spare
@@ -998,7 +1002,7 @@ static wmOperatorStatus screen_render_invoke(bContext *C, wmOperator *op, const 
   op->customdata = scene;
 
   /* Pause viewport render engines for the duration of the final render. */
-  ED_render_view3d_pause_resume(bmain, true);
+  ED_render_view3d_auto_pause(bmain, true);
 
   WM_jobs_start(CTX_wm_manager(C), wm_job);
 

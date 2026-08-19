@@ -28,7 +28,7 @@ TEST_F(VKRenderGraphTestPresent, transfer_and_present)
   EXPECT_EQ(1, log.size());
   EXPECT_EQ(
       "pipeline_barrier(src_stage_mask=VK_PIPELINE_STAGE_TOP_OF_PIPE_BIT, "
-      "dst_stage_mask=VK_PIPELINE_STAGE_TOP_OF_PIPE_BIT" +
+      "dst_stage_mask=VK_PIPELINE_STAGE_ALL_COMMANDS_BIT" +
           endl() +
           " - image_barrier(src_access_mask=, dst_access_mask=, "
           "old_layout=VK_IMAGE_LAYOUT_UNDEFINED, "
@@ -78,7 +78,7 @@ TEST_F(VKRenderGraphTestPresent, clear_and_present)
             log[1]);
   EXPECT_EQ(
       "pipeline_barrier(src_stage_mask=VK_PIPELINE_STAGE_TRANSFER_BIT, "
-      "dst_stage_mask=VK_PIPELINE_STAGE_TOP_OF_PIPE_BIT" +
+      "dst_stage_mask=VK_PIPELINE_STAGE_ALL_COMMANDS_BIT" +
           endl() +
           " - image_barrier(src_access_mask=VK_ACCESS_TRANSFER_WRITE_BIT, "
           "dst_access_mask=, "

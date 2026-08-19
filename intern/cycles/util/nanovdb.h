@@ -10,9 +10,17 @@
 #  include <openvdb/openvdb.h>
 
 #  define NANOVDB_USE_OPENVDB
-#  define NANOVDB_USE_TBB
 
-#  include <nanovdb/NanoVDB.h>  // manages and streams the raw memory buffer of a NanoVDB grid.
+/* The NanoVDB main header focuses on only defining the most crucial components (e.g., data
+ * structures and accessors). It manages and streams the raw memory buffer of a NanoVDB grid.
+ * It is therefore safe to include it to make version checks and to make decisions like
+ * enabling TBB. At least for now. */
+#  include <nanovdb/NanoVDB.h>
+
+#  if NANOVDB_MAJOR_VERSION_NUMBER > 32 || \
+      (NANOVDB_MAJOR_VERSION_NUMBER == 32 && NANOVDB_MINOR_VERSION_NUMBER >= 9)
+#    define NANOVDB_USE_TBB
+#  endif
 
 #  if NANOVDB_MAJOR_VERSION_NUMBER > 32 || \
       (NANOVDB_MAJOR_VERSION_NUMBER == 32 && NANOVDB_MINOR_VERSION_NUMBER >= 7)
