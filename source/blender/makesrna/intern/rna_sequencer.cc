@@ -476,12 +476,7 @@ static int rna_Strip_elements_length(PointerRNA *ptr)
 {
   Strip *strip = static_cast<Strip *>(ptr->data);
 
-  /* Hack? copied from `sequencer.cc`, #reload_sequence_new_file(). */
-  size_t olen = MEM_allocN_len(strip->data->stripdata) / sizeof(StripElem);
-
-  /* The problem with `strip->data->len` and `strip->len` is that it's discounted from the offset
-   * (hard cut trim). */
-  return int(olen);
+  return strip->data->stripdata_num;
 }
 
 static void rna_Strip_elements_begin(CollectionPropertyIterator *iter, PointerRNA *ptr)

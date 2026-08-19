@@ -313,6 +313,11 @@ struct StripData {
    * NULL for all other strip-types.
    */
   StripElem *stripdata = nullptr;
+  /* The size of the `stripdata` array. */
+  int stripdata_num = 0;
+
+  char _pad[4] = {};
+
   char dirpath[/*FILE_MAXDIR*/ 768] = "";
   StripProxy *proxy = nullptr;
   StripCrop *crop = nullptr;
