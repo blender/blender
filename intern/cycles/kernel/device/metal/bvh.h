@@ -247,39 +247,10 @@ ccl_device_intersect bool scene_intersect(KernelGlobals kg,
   else if (kernel_data.bvh.have_points &&
            intersection.type == metal::raytracing::intersection_type::bounding_box)
   {
-    const int object = intersection.instance_id;
-    const uint prim = intersection.primitive_id + intersection.user_instance_id;
-    const int prim_type = kernel_data_fetch(objects, object).primitive_type;
-
-    if (!(kernel_data_fetch(object_flag, object) & SD_OBJECT_TRANSFORM_APPLIED)) {
-      float3 idir;
-#  if defined(__METALRT_MOTION__)
-      bvh_instance_motion_push(nullptr, object, ray, &r.origin, &r.direction, &idir);
-#  else
-      bvh_instance_push(nullptr, object, ray, &r.origin, &r.direction, &idir);
-#  endif
-    }
-
-    if (prim_type & PRIMITIVE_POINT) {
-      if (!point_intersect(nullptr,
-                           isect,
-                           r.origin,
-                           r.direction,
-                           ray->tmin,
-                           ray->tmax,
-                           object,
-                           prim,
-                           ray->time,
-                           prim_type))
-      {
-        /* Shouldn't get here */
-        kernel_assert(!"Intersection mismatch");
-        isect->t = ray->tmax;
-        isect->type = PRIMITIVE_NONE;
-        return false;
-      }
-      return true;
-    }
+    isect->prim = intersection.primitive_id + intersection.user_instance_id;
+    isect->type = kernel_data_fetch(objects, intersection.instance_id).primitive_type;
+    isect->u = 0.0f;
+    isect->v = 0.0f;
   }
 #endif /* __POINTCLOUD__ */
 
