@@ -17,6 +17,9 @@ class SummaryTree;
 namespace ed::action {
 
 Span<ed::animfilter::DataChannel> current_data_channels();
+/**
+ * Return the buffered data or build up the tree if required.
+ */
 ed::animfilter::SummaryTree get_summary_tree(const bContext &C);
 
 }  // namespace ed::action
