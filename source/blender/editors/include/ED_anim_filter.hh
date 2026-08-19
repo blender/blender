@@ -257,34 +257,9 @@ void collect_animation_channels(const bContext &C,
                                 const CollectionFilters &collection_filters,
                                 Vector<DataChannel *> &r_channels);
 
-/**
- * Data structure that holds all summary channels and the root of the tree.
- * This owns the memory.
- */
-class SummaryTree {
-  Vector<SummaryChannel *> summaries_;
-
- public:
-  SummaryTree() = default;
-  ~SummaryTree()
-  {
-    for (SummaryChannel *summary : summaries_) {
-      MEM_delete(summary);
-    }
-  }
-
-  SummaryChannel &allocate_summary(StringRef label, const WeakRNAPointer *ptr);
-  SummaryChannel *root() const;
-
-  int channel_count() const
-  {
-    /* Starts at 1 since we are only counting the children. */
-    int count = 1;
-    for (SummaryChannel *summary : summaries_) {
-      count += summary->children().size();
-    }
-    return count;
-  }
+struct ChannelTree {
+  SummaryChannel *root;
+  int channel_count;
 };
 
 /**
@@ -295,11 +270,12 @@ class SummaryTree {
  * \param use_minimal_grouping: If true, group creation is skipped if it would move all chilren to
  * a subgroup.
  *
- * \returns: all summary channels that were created. The root is always index 0.
+ * \returns: all summary channels that were created. The root is always index 0. They are heap
+ * allocated and the caller takes ownership of the data.
  */
-SummaryTree group_channels(MutableSpan<DataChannel *> channels,
-                           Span<ChannelTagType> tag_order,
-                           bool use_minimal_grouping);
+Vector<SummaryChannel *> group_channels(MutableSpan<DataChannel *> channels,
+                                        Span<ChannelTagType> tag_order,
+                                        bool use_minimal_grouping);
 
 /**
  * Draw the whole tree starting at the root.

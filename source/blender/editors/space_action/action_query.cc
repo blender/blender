@@ -11,20 +11,54 @@
 
 namespace blender {
 
-void SpaceAction_Runtime::clear_channel_cache()
+void SpaceAction_Runtime::clear_summary_cache()
 {
-  for (ed::animfilter::DataChannel *channel : channels) {
+  for (ed::animfilter::SummaryChannel *channel : summary_channels) {
     MEM_delete(channel);
   }
+  summary_channels.clear();
+}
+
+void SpaceAction_Runtime::clear_data_cache()
+{
+  for (ed::animfilter::DataChannel *channel : data_channels) {
+    MEM_delete(channel);
+  }
+  data_channels.clear();
 }
 
 namespace ed::action {
 
-Span<ed::animfilter::DataChannel> current_data_channels() {
-    return {};
+static MutableSpan<ed::animfilter::DataChannel *> get_or_create_data_channels(const bContext &C,
+                                                                              SpaceAction &saction)
+{
+  using namespace ed::animfilter;
+
+  /* TODO add extra flag to track if collection ran. An empty list is one of the possible resulting
+   * states. */
+  if (saction.runtime->data_channels.is_empty()) {
+    /* TODO collect pins here? */
+    collect_animation_channels(C, {}, saction.runtime->data_channels);
+  }
+
+  return saction.runtime->data_channels;
 }
 
-static MutableSpan<ed::animfilter::DataChannel *> get_or_collect_data_channels(const bContext &C)
+static MutableSpan<ed::animfilter::SummaryChannel *> get_or_create_summary_channels(
+    MutableSpan<ed::animfilter::DataChannel *> channels, SpaceAction &saction)
+{
+  using namespace ed::animfilter;
+
+  /* TODO same as above. add extra flag to track dirty state. */
+  if (saction.runtime->summary_channels.is_empty()) {
+    /* TODO don't hardcode tag_order. */
+    saction.runtime->summary_channels = group_channels(
+        channels, {ChannelTagType::ID, ChannelTagType::ACTION}, false);
+  }
+  return saction.runtime->summary_channels;
+}
+
+ed::animfilter::ChannelTree get_summary_tree(const bContext &C)
 {
   using namespace ed::animfilter;
 
@@ -34,25 +68,10 @@ static MutableSpan<ed::animfilter::DataChannel *> get_or_collect_data_channels(c
     return {};
   }
 
-  /* TODO add extra flag to track if collection ran. An empty list is one of the possible states.
-   */
-  if (saction->runtime->channels.is_empty()) {
-    /* TODO collect pins here? */
-    collect_animation_channels(C, {}, saction->runtime->channels);
-  }
+  MutableSpan<DataChannel *> channels = get_or_create_data_channels(C, *saction);
+  MutableSpan<SummaryChannel *> summaries = get_or_create_summary_channels(channels, *saction);
 
-  return saction->runtime->channels;
-}
-
-ed::animfilter::SummaryTree get_summary_tree(const bContext &C)
-{
-  using namespace ed::animfilter;
-
-  MutableSpan<DataChannel *> channels = get_or_collect_data_channels(C);
-  /* TODO don't hardcode tag_order. */
-  SummaryTree summaries = group_channels(
-      channels, {ChannelTagType::ID, ChannelTagType::ACTION}, false);
-  return summaries;
+  return {summaries[0], int(channels.size() + summaries.size())};
 }
 
 }  // namespace ed::action

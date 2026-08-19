@@ -4132,43 +4132,21 @@ size_t ANIM_animdata_filter(bAnimContext *ac,
 
 namespace ed::animfilter {
 
-SummaryChannel &SummaryTree::allocate_summary(const StringRef label, const WeakRNAPointer *ptr)
+Vector<SummaryChannel *> group_channels(MutableSpan<DataChannel *> channels,
+                                        Span<ChannelTagType> tag_order,
+                                        const bool use_minimal_grouping)
 {
-  /* We have to heap allocate to get stable pointers to each summary channel. Those pointers are
-   * stored in SummaryChannel::children_ to define the tree structure.  */
-  SummaryChannel *new_summary;
-  if (ptr) {
-    new_summary = MEM_new<SummaryChannel>(__func__, label, *ptr);
-  }
-  else {
-    new_summary = MEM_new<SummaryChannel>(__func__, label);
-  }
-  summaries_.append(new_summary);
-  return *new_summary;
-}
-
-SummaryChannel *SummaryTree::root() const
-{
-  if (summaries_.size() == 0) {
-    return nullptr;
-  }
-  return summaries_[0];
-}
-
-SummaryTree group_channels(MutableSpan<DataChannel *> channels,
-                           Span<ChannelTagType> tag_order,
-                           const bool use_minimal_grouping)
-{
-  SummaryTree tree;
-  SummaryChannel &root = tree.allocate_summary("Summary", nullptr);
+  SummaryChannel *root = MEM_new<SummaryChannel>(__func__, "Summary");
+  Vector<SummaryChannel *> summary_channels;
+  summary_channels.append(root);
 
   for (DataChannel *channel : channels) {
-    root.add_child(*channel);
+    root->add_child(*channel);
   }
 
   /* Store the indices of all summary channels that can potentially be broken down with child
    * summaries. */
-  Vector<SummaryChannel *> potentially_splittable_summaries = {&root};
+  Vector<SummaryChannel *> potentially_splittable_summaries = {root};
   for (const ChannelTagType tag_type : tag_order) {
     Vector<SummaryChannel *> completely_split;
     Vector<SummaryChannel *> new_summaries;
@@ -4205,13 +4183,15 @@ SummaryTree group_channels(MutableSpan<DataChannel *> channels,
       }
 
       for (const auto &[tag, tag_channels] : potential_tags.items()) {
-        SummaryChannel &new_summary = tree.allocate_summary(tag.label(), &tag.source_data());
+        SummaryChannel *new_summary = MEM_new<SummaryChannel>(
+            __func__, tag.label(), tag.source_data());
+        summary_channels.append(new_summary);
         for (DataChannel *child : tag_channels) {
           summary->remove_child(*child);
-          new_summary.add_child(*child);
+          new_summary->add_child(*child);
         }
-        summary->add_child(new_summary);
-        new_summaries.append(&new_summary);
+        summary->add_child(*new_summary);
+        new_summaries.append(new_summary);
       }
     }
 
@@ -4223,7 +4203,7 @@ SummaryTree group_channels(MutableSpan<DataChannel *> channels,
     }
   }
 
-  return tree;
+  return summary_channels;
 }
 
 }  // namespace ed::animfilter

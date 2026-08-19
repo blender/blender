@@ -354,14 +354,14 @@ static void action_channel_region_draw(const bContext *C, ARegion *region)
   View2D *v2d = &region->v2d;
 
   if (USER_EXPERIMENTAL_TEST(&U, use_new_animfilter)) {
-    ed::animfilter::SummaryTree summaries = ed::action::get_summary_tree(*C);
+    ed::animfilter::ChannelTree summaries = ed::action::get_summary_tree(*C);
     /* The View2D's height needs to be set before calling view2d_view_ortho because the latter
      * uses the View2D's `cur` rect which might be modified when setting the height. */
     ListBaseT<TimeMarker> *markers = ANIM_marker_list_from_context(*C);
     const bool has_markers = markers != nullptr && !markers->is_empty();
-    set_v2d_height(v2d, summaries.channel_count(), has_markers);
+    set_v2d_height(v2d, summaries.channel_count, has_markers);
     ui::view2d_view_ortho(v2d);
-    ed::animfilter::draw_channel_tree(*C, *summaries.root(), *v2d);
+    ed::animfilter::draw_channel_tree(*C, *summaries.root, *v2d);
     ui::view2d_view_restore(C);
   }
   else {

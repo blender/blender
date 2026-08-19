@@ -11,7 +11,8 @@ struct bContext;
 namespace ed::animfilter {
 class DataChannel;
 class AnimationChannel;
-class SummaryTree;
+class ChannelTree;
+class SummaryChannel;
 }  // namespace ed::animfilter
 
 /** #SpaceAction_Runtime.flag */
@@ -23,25 +24,30 @@ ENUM_OPERATORS(eSAction_Runtime_Flag);
 
 struct SpaceAction_Runtime {
   /* Array of currently buffered channels. The channels are heap allocated and owned by this
-   * structure.*/
-  Vector<ed::animfilter::DataChannel *> channels;
+   * structure.
+   * TODO can this be turned into a vector of data instead of pointers to data?
+   */
+  Vector<ed::animfilter::DataChannel *> data_channels;
+  Vector<ed::animfilter::SummaryChannel *> summary_channels;
   eSAction_Runtime_Flag flag = {};
 
   ~SpaceAction_Runtime()
   {
-    clear_channel_cache();
+    clear_summary_cache();
+    clear_data_cache();
   }
 
-  void clear_channel_cache();
+  /* Frees the memory and clears the list. */
+  void clear_data_cache();
+  void clear_summary_cache();
 };
 
 namespace ed::action {
 
-Span<ed::animfilter::DataChannel> current_data_channels();
 /**
  * Return the buffered data or build up the tree if required.
  */
-ed::animfilter::SummaryTree get_summary_tree(const bContext &C);
+ed::animfilter::ChannelTree get_summary_tree(const bContext &C);
 
 }  // namespace ed::action
 
