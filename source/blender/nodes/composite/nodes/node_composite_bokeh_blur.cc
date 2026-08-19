@@ -264,7 +264,7 @@ class BokehBlurOperation : public NodeOperation {
        * transform the texel into the normalized range [0, 1] needed to sample the weights sampler.
        * Finally, invert the textures coordinates by subtracting from 1 to maintain the shape of
        * the weights as mentioned in the function description. */
-      return float4(weights.sample_bilinear_extended<Color>(
+      return float4(weights.sample_bilinear_extended<Color, true>(
           1.0f - ((float2(texel) + float2(radius + 0.5f)) / (radius * 2.0f + 1.0f))));
     };
 
