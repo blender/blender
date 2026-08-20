@@ -276,6 +276,9 @@ Vector<SummaryChannel *> group_channels(MutableSpan<DataChannel *> channels,
                                         Span<ChannelTagType> tag_order,
                                         bool use_minimal_grouping);
 
+/**
+ * Draws the channel tree using a Tree View in a Layout.
+ */
 void draw_channel_tree(const bContext &C, SummaryChannel &root, Panel &panel);
 /**
  * Draw the whole tree starting at the root.

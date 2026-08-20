@@ -18,16 +18,33 @@
 #include "ED_anim_filter.hh"
 namespace blender {
 
-struct ChannelTreeView : public ui::AbstractTreeView {
-  void build_tree() override
-  {
-    add_tree_item<ui::BasicTreeViewItem>("test");
-  }
-};
-
 }  // namespace blender
 
 namespace blender::ed::animfilter {
+class ChannelTreeView : public ui::AbstractTreeView {
+
+  SummaryChannel &root_;
+
+  void add_channel_children(ui::BasicTreeViewItem &parent, Span<AnimationChannel *> channels)
+  {
+    for (AnimationChannel *channel : channels) {
+      ui::BasicTreeViewItem &item = parent.add_tree_item<ui::BasicTreeViewItem>(channel->label());
+      if (channel->type() == DNAChannelType::SUMMARY) {
+        SummaryChannel *summary = static_cast<SummaryChannel *>(channel);
+        add_channel_children(item, summary->children());
+      }
+    }
+  }
+
+ public:
+  ChannelTreeView(SummaryChannel &root) : root_(root) {}
+
+  void build_tree() override
+  {
+    ui::BasicTreeViewItem &root_item = add_tree_item<ui::BasicTreeViewItem>(root_.label());
+    add_channel_children(root_item, root_.children());
+  }
+};
 
 constexpr const float indent_per_level = 8;
 
@@ -89,27 +106,21 @@ static float draw_channel_tree_recurse(const bContext &C,
   return row_top;
 }
 
-static void draw_channel_tree_view(const bContext &C, Panel &panel)
+void draw_channel_tree(const bContext &C, SummaryChannel &root, Panel &panel)
 {
-  /* While using a tree view would be neat, I can't get this to show up in any way. Also I imagine
-   * the syncing of channel scrolling with dope sheet scrolling will be a pain. */
+  /* I imagine the syncing of channel scrolling with dope sheet scrolling will be a pain. */
   ui::Layout *layout = panel.layout;
   ui::block_layout_set_current(layout->block(), layout);
   ui::AbstractTreeView *tree = ui::block_add_view(
-      *layout->block(), "channel_tree", std::make_unique<ChannelTreeView>());
+      *layout->block(), "channel_tree", std::make_unique<ChannelTreeView>(root));
   ui::TreeViewBuilder::build_tree_view(C, *tree, *layout, false);
-}
-
-void draw_channel_tree(const bContext &C, SummaryChannel &root, Panel &panel)
-{
-  draw_channel_tree_view(C, panel);
 }
 
 void draw_channel_tree(const bContext &C, SummaryChannel &root, View2D &v2d)
 {
   const float channel_step = ANIM_UI_get_channel_step();
   const float first_channel = ANIM_UI_get_first_channel_top(&v2d);
-  // draw_channel_tree_recurse(C, root, 0, first_channel, channel_step);
+  draw_channel_tree_recurse(C, root, 0, first_channel, channel_step);
 }
 
 }  // namespace blender::ed::animfilter

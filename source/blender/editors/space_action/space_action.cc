@@ -356,6 +356,8 @@ static void action_channel_region_draw(const bContext *C, ARegion *region)
   View2D *v2d = &region->v2d;
 
   if (USER_EXPERIMENTAL_TEST(&U, use_new_animfilter)) {
+    /* TODO hard fork since I am still not sure which way works best. See
+     * `action_channel_panel_draw` for the code run here. */
     const bool use_layout_drawing = true;
     if (use_layout_drawing) {
       ED_region_panels(C, region);
