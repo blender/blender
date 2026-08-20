@@ -14,8 +14,6 @@
 #include "DNA_ID_enums.h"
 #include "DNA_action_types.h"
 
-#include "RNA_path.hh"
-
 namespace blender {
 
 struct bContext;
@@ -23,6 +21,7 @@ struct FCurve;
 struct GreasePencil;
 struct GreasePencilLayer;
 struct PointerRNA;
+struct Panel;
 
 /**
  * Stores data that can resolve to any PointerRNA.
@@ -277,6 +276,7 @@ Vector<SummaryChannel *> group_channels(MutableSpan<DataChannel *> channels,
                                         Span<ChannelTagType> tag_order,
                                         bool use_minimal_grouping);
 
+void draw_channel_tree(const bContext &C, SummaryChannel &root, Panel &panel);
 /**
  * Draw the whole tree starting at the root.
  * TODO maybe the drawing code should not be in this header?
