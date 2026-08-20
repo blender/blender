@@ -184,10 +184,6 @@ class SummaryChannel : public AnimationChannel {
   Span<AnimationChannel *> children() const;
   void add_child(AnimationChannel &child);
   void remove_child(AnimationChannel &child);
-  bool is_expanded()
-  {
-    return this->flags_ & SUMMARY_EXPANDED;
-  }
 
  protected:
   void gather_channeldata() override;

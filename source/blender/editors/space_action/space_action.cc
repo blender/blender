@@ -218,9 +218,7 @@ static void action_main_region_draw(const bContext *C, ARegion *region)
   /* draw entirely, view changes should be handled here */
   SpaceAction *saction = CTX_wm_space_action(C);
   Scene *scene = CTX_data_scene(C);
-  bAnimContext ac;
   View2D *v2d = &region->v2d;
-  short marker_flag = 0;
 
   const int min_height = UI_ANIM_MINY;
 
@@ -232,78 +230,110 @@ static void action_main_region_draw(const bContext *C, ARegion *region)
     region->v2d.scroll &= ~V2D_SCROLL_BOTTOM;
   }
 
-  ListBaseT<bAnimListElem> anim_data = {nullptr, nullptr};
-  const bool has_anim_context = ANIM_animdata_get_context(C, &ac);
-  if (has_anim_context) {
-    /* Build list of channels to draw. */
-    const eAnimFilter_Flags filter = (ANIMFILTER_DATA_VISIBLE | ANIMFILTER_LIST_VISIBLE |
-                                      ANIMFILTER_LIST_CHANNELS);
-    const size_t items = ANIM_animdata_filter(
-        &ac, &anim_data, filter, ac.data, eAnimCont_Types(ac.datatype));
-    /* The View2D's height needs to be set before calling view2d_view_ortho because the latter
-     * uses the View2D's `cur` rect which might be modified when setting the height. */
-    set_v2d_height(v2d, items, !ac.markers->is_empty());
-  }
-
-  ui::view2d_view_ortho(v2d);
-
-  /* clear and setup matrix */
+  /* Clear with solid color. */
   ui::theme::frame_buffer_clear(TH_BACK);
 
-  ui::view2d_view_ortho(v2d);
+  if (USER_EXPERIMENTAL_TEST(&U, use_new_animfilter)) {
+    ed::animfilter::ChannelTree summaries = ed::action::get_summary_tree(*C);
+    ListBaseT<TimeMarker> *markers = ANIM_marker_list_from_context(*C);
+    set_v2d_height(v2d, summaries.channel_count, !markers->is_empty());
+    ui::view2d_view_ortho(v2d);
 
-  /* time grid */
-  if (region->winy > min_height) {
-    ui::view2d_draw_lines_x_frames(v2d, scene, saction->flag & SACTION_DRAWTIME, false, true);
+    if (region->winy > min_height) {
+      /* Time grid. */
+      ui::view2d_draw_lines_x_frames(v2d, scene, saction->flag & SACTION_DRAWTIME, false, true);
+    }
+    ED_region_draw_cb_draw(C, region, REGION_DRAW_PRE_VIEW);
+
+    if (region->winy > min_height) {
+      /* Dark region marking scene start and end frame. */
+      ANIM_draw_framerange(scene, v2d);
+    }
+
+    /* TODO draw markers. */
+    ANIM_draw_previewrange(scene, v2d, 0);
+    ANIM_draw_scene_strip_range(C, v2d);
+
+    ED_region_draw_cb_draw(C, region, REGION_DRAW_POST_VIEW);
+
+    ui::view2d_view_restore(C);
+
+    WM_gizmomap_draw(region->runtime->gizmo_map, C, WM_GIZMOMAP_DRAWSTEP_2D);
+
+    const int fps = round_db_to_int(scene->frames_per_second());
+    ED_time_scrub_draw(region, scene, saction->flag & SACTION_DRAWTIME, true, fps);
   }
+  else {
+    ListBaseT<bAnimListElem> anim_data = {nullptr, nullptr};
+    bAnimContext ac;
+    const bool has_anim_context = ANIM_animdata_get_context(C, &ac);
+    if (has_anim_context) {
+      /* Build list of channels to draw. */
+      const eAnimFilter_Flags filter = (ANIMFILTER_DATA_VISIBLE | ANIMFILTER_LIST_VISIBLE |
+                                        ANIMFILTER_LIST_CHANNELS);
+      const size_t items = ANIM_animdata_filter(
+          &ac, &anim_data, filter, ac.data, eAnimCont_Types(ac.datatype));
+      /* The View2D's height needs to be set before calling view2d_view_ortho because the latter
+       * uses the View2D's `cur` rect which might be modified when setting the height. */
+      set_v2d_height(v2d, items, !ac.markers->is_empty());
+    }
+    ui::view2d_view_ortho(v2d);
 
-  ED_region_draw_cb_draw(C, region, REGION_DRAW_PRE_VIEW);
+    /* time grid */
+    if (region->winy > min_height) {
+      ui::view2d_draw_lines_x_frames(v2d, scene, saction->flag & SACTION_DRAWTIME, false, true);
+    }
 
-  /* start and end frame */
-  if (region->winy > min_height) {
-    ANIM_draw_framerange(scene, v2d);
+    ED_region_draw_cb_draw(C, region, REGION_DRAW_PRE_VIEW);
+
+    /* start and end frame */
+    if (region->winy > min_height) {
+      ANIM_draw_framerange(scene, v2d);
+    }
+
+    /* Draw the manually set intended playback frame range highlight in the Action editor. */
+    if (ac.active_action) {
+      AnimData *adt = BKE_animdata_from_id(ac.active_action_user);
+      ANIM_draw_action_framerange(adt, ac.active_action, v2d, -FLT_MAX, FLT_MAX);
+    }
+
+    /* data */
+    if (has_anim_context) {
+      draw_channel_strips(&ac, saction, region, &anim_data);
+    }
+
+    /* markers */
+    ui::view2d_view_orthoSpecial(region, v2d, true);
+
+    const short marker_flag = ((ac.markers && (ac.markers != &ac.scene->markers)) ?
+                                   DRAW_MARKERS_LOCAL :
+                                   0) |
+                              DRAW_MARKERS_MARGIN;
+
+    if (ED_markers_region_visible(CTX_wm_area(C), region)) {
+      ED_markers_draw(C, marker_flag);
+    }
+
+    /* preview range */
+    ui::view2d_view_ortho(v2d);
+    ANIM_draw_previewrange(scene, v2d, 0);
+
+    ANIM_draw_scene_strip_range(C, v2d);
+
+    /* callback */
+    ui::view2d_view_ortho(v2d);
+    ED_region_draw_cb_draw(C, region, REGION_DRAW_POST_VIEW);
+
+    /* reset view matrix */
+    ui::view2d_view_restore(C);
+
+    /* gizmos */
+    WM_gizmomap_draw(region->runtime->gizmo_map, C, WM_GIZMOMAP_DRAWSTEP_2D);
+
+    /* scrubbing region */
+    const int fps = round_db_to_int(scene->frames_per_second());
+    ED_time_scrub_draw(region, scene, saction->flag & SACTION_DRAWTIME, true, fps);
   }
-
-  /* Draw the manually set intended playback frame range highlight in the Action editor. */
-  if (ac.active_action) {
-    AnimData *adt = BKE_animdata_from_id(ac.active_action_user);
-    ANIM_draw_action_framerange(adt, ac.active_action, v2d, -FLT_MAX, FLT_MAX);
-  }
-
-  /* data */
-  if (has_anim_context) {
-    draw_channel_strips(&ac, saction, region, &anim_data);
-  }
-
-  /* markers */
-  ui::view2d_view_orthoSpecial(region, v2d, true);
-
-  marker_flag = ((ac.markers && (ac.markers != &ac.scene->markers)) ? DRAW_MARKERS_LOCAL : 0) |
-                DRAW_MARKERS_MARGIN;
-
-  if (ED_markers_region_visible(CTX_wm_area(C), region)) {
-    ED_markers_draw(C, marker_flag);
-  }
-
-  /* preview range */
-  ui::view2d_view_ortho(v2d);
-  ANIM_draw_previewrange(scene, v2d, 0);
-
-  ANIM_draw_scene_strip_range(C, v2d);
-
-  /* callback */
-  ui::view2d_view_ortho(v2d);
-  ED_region_draw_cb_draw(C, region, REGION_DRAW_POST_VIEW);
-
-  /* reset view matrix */
-  ui::view2d_view_restore(C);
-
-  /* gizmos */
-  WM_gizmomap_draw(region->runtime->gizmo_map, C, WM_GIZMOMAP_DRAWSTEP_2D);
-
-  /* scrubbing region */
-  const int fps = round_db_to_int(scene->frames_per_second());
-  ED_time_scrub_draw(region, scene, saction->flag & SACTION_DRAWTIME, true, fps);
 }
 
 static void action_main_region_draw_overlay(const bContext *C, ARegion *region)

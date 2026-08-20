@@ -1136,7 +1136,6 @@ enum class DNAChannelType : int8_t {
 
 enum AnimationChannelFlags : int8_t {
   ANIM_CHANNEL_DIRTY = 1 << 0,
-  SUMMARY_EXPANDED = 1 << 1,
 };
 ENUM_OPERATORS(AnimationChannelFlags);
 
@@ -1150,7 +1149,7 @@ struct DNAAnimationChannel {
   void *source_ = nullptr;
   char *label_;
   DNAChannelType type_;
-  AnimationChannelFlags flags_ = ANIM_CHANNEL_DIRTY | SUMMARY_EXPANDED;
+  AnimationChannelFlags flags_ = ANIM_CHANNEL_DIRTY;
   char _pad[6];
 };
 

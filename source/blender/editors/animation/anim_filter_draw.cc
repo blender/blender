@@ -80,12 +80,9 @@ static void draw_channel(const bContext &C,
       UI_FSTYLE_WIDGET, level * indent_per_level, row_top, anim_channel.label().data(), col);
 
   if (anim_channel.type() == DNAChannelType::SUMMARY) {
-    SummaryChannel &summary = reinterpret_cast<SummaryChannel &>(anim_channel);
-    if (!summary.is_expanded()) {
-      printf("expanded %d\n ", summary.is_expanded());
-    }
+    // SummaryChannel &summary = reinterpret_cast<SummaryChannel &>(anim_channel);
     /* For some reason this can't be clicked. */
-    ui::uiDefIconButBit(block,
+    /* ui::uiDefIconButBit(block,
                         ui::ButtonType::IconToggle,
                         SUMMARY_EXPANDED,
                         ICON_RIGHTARROW,
@@ -96,7 +93,7 @@ static void draw_channel(const bContext &C,
                         anim_channel.flags_ptr(),
                         0,
                         0,
-                        TIP_("todo tooltip"));
+                        TIP_("todo tooltip")); */
 
     // ui::button_funcN_set(btn, );
     // ui::uiDefIconButO()
@@ -129,9 +126,9 @@ void draw_channel_tree(const bContext &C, SummaryChannel &root, Panel &panel)
   /* I imagine the syncing of channel scrolling with dope sheet scrolling will be a pain. */
   ui::Layout *layout = panel.layout;
   ui::block_layout_set_current(layout->block(), layout);
-  ui::AbstractTreeView *tree = ui::block_add_view(
+  ui::AbstractTreeView *tree_view = ui::block_add_view(
       *layout->block(), "channel_tree", std::make_unique<ChannelTreeView>(root));
-  ui::TreeViewBuilder::build_tree_view(C, *tree, *layout, false);
+  ui::TreeViewBuilder::build_tree_view(C, *tree_view, *layout, /*add_box=*/false);
 }
 
 void draw_channel_tree(const bContext &C, SummaryChannel &root, View2D &v2d)
