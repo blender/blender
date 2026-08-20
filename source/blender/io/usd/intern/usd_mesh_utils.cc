@@ -5,7 +5,6 @@
 #include "usd_mesh_utils.hh"
 #include "usd_attribute_utils.hh"
 #include "usd_colorspace_utils.hh"
-#include "usd_hash_types.hh"
 
 #include "BKE_attribute.hh"
 

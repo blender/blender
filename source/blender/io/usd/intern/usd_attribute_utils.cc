@@ -4,7 +4,6 @@
 
 #include "usd_attribute_utils.hh"
 #include "usd_colorspace_utils.hh"
-#include "usd_hash_types.hh"
 
 #include "BLI_map.hh"
 #include "BLI_offset_indices.hh"

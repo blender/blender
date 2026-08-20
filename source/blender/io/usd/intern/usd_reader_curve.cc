@@ -7,7 +7,6 @@
 #include "usd_reader_curve.hh"
 #include "usd.hh"
 #include "usd_attribute_utils.hh"
-#include "usd_hash_types.hh"
 
 #include "BKE_attribute.hh"
 #include "BKE_curves.hh"
