@@ -122,7 +122,16 @@ SummaryChannel::SummaryChannel(const StringRef label, const WeakRNAPointer &ptr)
 
 void SummaryChannel::gather_channeldata()
 {
+  Set<float> points;
   for (AnimationChannel *child : this->children_) {
+    for (const float datapoint : child->datapoints()) {
+      points.add(datapoint);
+    }
+  }
+  this->datapoints_.clear();
+  this->datapoints_.reserve(points.size());
+  for (const float p : points) {
+    this->datapoints_.append(p);
   }
 }
 
