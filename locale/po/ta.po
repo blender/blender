@@ -120323,10 +120323,6 @@ msgid "No free inputs for node {}"
 msgstr "முனைக்கு இலவச உள்ளீடுகள் இல்லை {}"
 
 
-msgid "Selected nodes are not of the same type as {}"
-msgstr "தேர்ந்தெடுக்கப்பட்ட முனைகள் {to அதே வகையைச் சேர்ந்தவை அல்ல"
-
-
 msgid "Successfully copied attributes from {} to {}"
 msgstr "பண்புகளை {} முதல் {} வரை வெற்றிகரமாக நகலெடுத்தது"
 
@@ -120710,16 +120706,8 @@ msgstr ""
 " {:s} இல் ஒன்றாக இருக்க வேண்டும்."
 
 
-msgid "Active node should not be of type {:s}."
-msgstr "செயலில் உள்ள முனை {: S fy வகையாக இருக்கக்கூடாது."
-
-
 msgid "At least {:d} nodes must be selected."
 msgstr "குறைந்தது {:d} முனைகள் தேர்ந்தெடுக்கப்பட வேண்டும்."
-
-
-msgid "Active node should be of type {:s}."
-msgstr "செயலில் உள்ள முனை {: S fy வகையாக இருக்க வேண்டும்."
 
 
 msgctxt "Operator"
@@ -120987,10 +120975,6 @@ msgstr "நகலெடுக்கப்பட்டது {:s} அளவுர
 
 msgid "Copied the value to {:d} bones"
 msgstr "மதிப்பை {:d} எலும்புகளுக்கு நகலெடுத்தார்"
-
-
-msgid "Cannot find class {:s} in {:s}"
-msgstr "{:s} இல் வகுப்பைக் கண்டுபிடிக்க முடியவில்லை"
 
 
 msgid "Bone {:s} selected on both sides, mirroring would be ambiguous, aborting. Only select the left or right side, not both"
@@ -121364,10 +121348,6 @@ msgstr "பட்டியல் உள்ளீடுகளைச் சேர�
 
 msgid "Collection {:s} has the same uid {:d} as {:s}"
 msgstr "சேகரிப்பு {:s} அதே uid {:d} அச் {:s}"
-
-
-msgid "Bone {:s} has a broken reference to {:s} collection '{:s}'"
-msgstr "எலும்புகள்} {:s} சேகரிப்புகள்} 'க்கு உடைந்த குறிப்பு உள்ளது"
 
 
 msgid "WARNING: preferences are lost when add-on is disabled, be sure to use \"Save Persistent\" if you want to keep your settings!"
@@ -132156,10 +132136,6 @@ msgid "Error: Reached max shadow updates."
 msgstr "பிழை: அதிகபட்ச நிழல் புதுப்பிப்புகளை அடைந்தது."
 
 
-msgid "Warning: Volume rendering data could not be allocated. Now using a resolution of 1:{} instead of 1:{}."
-msgstr "எச்சரிக்கை: தொகுதி வழங்குதல் தரவை ஒதுக்க முடியவில்லை. இப்போது 1: {the க்கு பதிலாக 1: {} என்ற தீர்மானத்தைப் பயன்படுத்துகிறது."
-
-
 msgid "Error: Curves object contains too many points. Reduce curve resolution or curve count to fix this issue."
 msgstr "பிழை: வளைவுப் பொருளில் பல புள்ளிகள் உள்ளன. இந்தச் சிக்கலைச் சரிசெய்ய வளைவுத் தீர்மானம் அல்லது வளைவு எண்ணிக்கையைக் குறைக்கவும்."
 
@@ -133987,18 +133963,6 @@ msgid "Online Python Reference"
 msgstr "நிகழ்நிலை பைதான் குறிப்பு"
 
 
-msgid "Drop {} on slot {} (replacing {}) of {}"
-msgstr "} of இன் ச்லாட் {} ({} ஐ மாற்றுதல்) இல் {} ஐ விடுங்கள்"
-
-
-msgid "Drop {} on slot {} (active slot) of {}"
-msgstr "} of இன் ச்லாட் {} (செயலில் ச்லாட்) இல் {} ஐ விடுங்கள்"
-
-
-msgid "Drop {} on slot {} of {}"
-msgstr "} of இன் ச்லாட்} on இல்}} ஐ விடுங்கள்"
-
-
 msgid "Autocomplete"
 msgstr "தன்னியக்க வேறுபாடு"
 
@@ -134570,16 +134534,8 @@ msgid "Reset Profile"
 msgstr "சுயவிவரத்தை மீட்டமைக்கவும்"
 
 
-msgid "Move {} {} into {}"
-msgstr "{} {The} {to க்கு நகர்த்தவும்"
-
-
 msgid "Move {} {} above {}"
 msgstr "{} மேலே {} {} நகர்த்தவும்"
-
-
-msgid "Move {} {} below {}"
-msgstr "கீழே {} {}}} ஐ நகர்த்தவும்"
 
 
 msgid "Layer is locked or not visible"
@@ -134959,14 +134915,6 @@ msgid "Add to linking collection"
 msgstr "இணைக்க சேகரிப்பைச் சேர்க்கவும்"
 
 
-msgid "Add to linking collection before {}"
-msgstr "{before க்கு முன் சேகரிப்பை இணைப்பதில் சேர்க்கவும்"
-
-
-msgid "Add to linking collection after {}"
-msgstr "{fol க்குப் பிறகு சேகரிப்பை இணைக்கச் சேர்க்கவும்"
-
-
 msgctxt "Operator"
 msgid "Add to linking collection"
 msgstr "இணைக்கும் சேகரிப்பில் சேர்க்கவும்"
@@ -135287,10 +135235,6 @@ msgstr "காட்சி நோக்கம்"
 
 msgid "Particles and Instancing"
 msgstr "துகள்கள் மற்றும் நிறுவுதல்"
-
-
-msgid "Import {} files"
-msgstr "}} கோப்புகளை இறக்குமதி செய்யுங்கள்"
 
 
 msgid "No weights/vertex groups on object(s)"
@@ -137816,10 +137760,6 @@ msgid "Blender Info Log"
 msgstr "கலப்பான் செய்தி பதிவு"
 
 
-msgid "Show {} preferences"
-msgstr "}} விருப்பங்களைக் காட்டு"
-
-
 msgid "Link {}"
 msgstr "இணைப்பு {}"
 
@@ -138749,20 +138689,12 @@ msgid "Delete Catalog"
 msgstr "பட்டியலை நீக்கு"
 
 
-msgid "Move catalog {} into {}"
-msgstr "அட்டவணை {} {to க்கு நகர்த்தவும்"
-
-
 msgid "Move assets to catalog"
 msgstr "சொத்துக்களை பட்டியலிட நகர்த்தவும்"
 
 
 msgid "Move asset to catalog"
 msgstr "பட்டியலுக்கு சொத்தை நகர்த்தவும்"
-
-
-msgid "Move catalog {} to the top level of the tree"
-msgstr "அட்டவணை {the மரத்தின் மேல் நிலைக்கு நகர்த்தவும்"
 
 
 msgid "Move assets out of any catalog"
@@ -147430,10 +147362,6 @@ msgid "There are no inputs."
 msgstr "உள்ளீடுகள் எதுவும் இல்லை."
 
 
-msgid "Input with index {} does not exist. Currently, the maximum possible index is {}. Did you mean to use {{:{}}}?"
-msgstr "குறியீட்டு} bith உடன் உள்ளீடு இல்லை. தற்போது, அதிகபட்ச சாத்தியமான குறியீடு {}. {{: {}} Bease பயன்படுத்த வேண்டுமா?"
-
-
 msgid "Input does not exist: \"{}\""
 msgstr "உள்ளீடு இல்லை: \"{}\""
 
@@ -148492,10 +148420,6 @@ msgstr "மதிப்பீடு செய்யப்பட்ட மேற�
 
 msgid "Curves are not attached to any UV map"
 msgstr "எந்த புறஊதா வரைபடத்திலும் வளைவுகள் இணைக்கப்படவில்லை"
-
-
-msgid "Invalid surface UVs on {} curves"
-msgstr "}} வளைவுகளில் தவறான மேற்பரப்பு uv கள்"
 
 
 msgid "Curves to deform"
@@ -150474,10 +150398,6 @@ msgstr "ஒவ்வொரு குழு நிகழ்வின் குழ
 
 msgid "Anonymous attributes cannot be created here"
 msgstr "அநாமதேய பண்புகளை இங்கு உருவாக்க முடியாது"
-
-
-msgid "Failed to write to attribute \"{}\" with domain \"{}\" and type \"{}\""
-msgstr "\"{}\" டொமைன் \"{}\" உடன் \"{}\" என்ற பண்புக்கு எழுதத் தவறிவிட்டது மற்றும் \"{}\""
 
 
 msgid "Geometry to store a new attribute with the given name on"

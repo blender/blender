@@ -100884,10 +100884,6 @@ msgid "Variable Expression Support"
 msgstr "Поддержка выражений с переменными"
 
 
-msgid "Property is a path which supports the \"{variable_name}\" variable expression syntax, which substitutes the value of the referenced variable in place of the expression"
-msgstr "Свойство — это путь, который поддерживает синтаксис выражения переменной \"{имя_переменной}\", который подставляет значение указанной переменной вместо самого выражения"
-
-
 msgid "Read Only"
 msgstr "Только для чтения"
 

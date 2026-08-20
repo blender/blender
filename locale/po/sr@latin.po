@@ -24406,10 +24406,6 @@ msgid "No active bone"
 msgstr "Bez aktivne kosti"
 
 
-msgid "Editmode lattice is not supported yet"
-msgstr "Format nije podržan u datoteci: \"%s\"."
-
-
 msgid "Vertex group is locked"
 msgstr "Grupa temena je zaključana"
 

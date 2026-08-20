@@ -100884,10 +100884,6 @@ msgid "Variable Expression Support"
 msgstr "Podporovať výrazy premenných"
 
 
-msgid "Property is a path which supports the \"{variable_name}\" variable expression syntax, which substitutes the value of the referenced variable in place of the expression"
-msgstr "Vlastnosť je cesta, ktorá podporuje syntax výrazu premennej „{názov_premennej}“, ktorá nahrádza hodnotu odkazovanej premennej namiesto výrazu"
-
-
 msgid "Read Only"
 msgstr "Len na čítanie"
 
@@ -125569,10 +125565,6 @@ msgid "No animation data to convert on object: {!r}"
 msgstr "Žiadne údaje animácie pre konvertovanie na objekt: {!r}"
 
 
-msgid "Object: {:s}, Mesh: '{:s}' has {:d} loops (for {:d} faces), expected {:d}"
-msgstr "Objekt: {:s}, povrchová sieť: '{:s}' má %d slučky (pre {:d} plôšky), očakáva sa {:d}"
-
-
 msgid "Modifiers cannot be added to object: {:s}"
 msgstr "Modifikátory nemožno pridať k objektu {:s}"
 
@@ -136963,10 +136955,6 @@ msgstr "nemožno prečítať názov aktíva, pole 'name' nie je nastavené"
 
 msgid "could not read type of asset '%s': 'id_type' field is not a valid type (%s)"
 msgstr "nemožno prečítať typ aktíva '%s': pole 'id_type' nie je platný typ (%s)"
-
-
-msgid "could not read type of asset '{:s}', 'type' field not set"
-msgstr "nemožno prečítať typ aktíva ‚{::s}‘ – pole 'type' nie je nastavené"
 
 
 msgid "asset '{:s}' has no files"

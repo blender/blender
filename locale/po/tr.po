@@ -98381,10 +98381,6 @@ msgid "Successfully copied attributes from {} to {}"
 msgstr "Öznitelikler {}'den {}'ye başarıyla kopyalandı"
 
 
-msgid "Ignored {} (not of the same type as {})"
-msgstr "{} (aynı türde değil) göz ardı edildi"
-
-
 msgid "Node {} deleted"
 msgstr "Düğüm {} silindi"
 

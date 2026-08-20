@@ -124454,10 +124454,6 @@ msgid "Default Frame: {:.0f}"
 msgstr "Fotograma predeterminat: {:.0f}"
 
 
-msgid "Default Frame: {:.02f} (Should be a whole number!)"
-msgstr "Fotograma per defecte: {:.0f} (ha de ser un nombre enter!)"
-
-
 msgid "Bone not found: {:s}"
 msgstr "No s'ha trobat l'os: {:s}"
 
@@ -125567,10 +125563,6 @@ msgstr "S'omet '{:s}', el nombre de vèrtexs difereix"
 
 msgid "No animation data to convert on object: {!r}"
 msgstr "No hi ha dades d'animació per convertir a l'objecte: {!r}"
-
-
-msgid "Object: {:s}, Mesh: '{:s}' has {:d} loops (for {:d} faces), expected {:d}"
-msgstr "Objecte: {:s}, Malla: '{:s}' té %d bucles (per a {:d} cares), se n'esperava {:d}"
 
 
 msgid "Modifiers cannot be added to object: {:s}"
@@ -153442,14 +153434,6 @@ msgstr "Corbes no adherides a una superfície"
 
 msgid "Surface has no mesh"
 msgstr "La superfície no té malla"
-
-
-msgid "Evaluated surface missing UV map: \"{}\""
-msgstr "Mapa UV que falta a la superfície avaluada: \"%s\""
-
-
-msgid "Original surface missing UV map: \"{}\""
-msgstr "Mapa UV que falta a la superfície original: \"%s\""
 
 
 msgid "Evaluated surface missing attribute: \"rest_position\""

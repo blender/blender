@@ -120706,10 +120706,6 @@ msgid "Removed {:d} of {:d} bone collections"
 msgstr "Removed {:d} of {:d} bone collections"
 
 
-msgid "Modified the animation of {:d} armatures"
-msgstr "Modified the animation of armatures"
-
-
 msgid "Nothing to bake"
 msgstr "Nothing to bake"
 

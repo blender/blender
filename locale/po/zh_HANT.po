@@ -78747,10 +78747,6 @@ msgid "Repository: {:s}"
 msgstr "儲存庫： {:s}"
 
 
-msgid "Size: {:s}"
-msgstr "大小：%s"
-
-
 msgid "Age: {:s}"
 msgstr "Age: {:s}"
 

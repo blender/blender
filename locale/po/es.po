@@ -100884,10 +100884,6 @@ msgid "Variable Expression Support"
 msgstr "Soporte de expresiones variables"
 
 
-msgid "Property is a path which supports the \"{variable_name}\" variable expression syntax, which substitutes the value of the referenced variable in place of the expression"
-msgstr "La propiedad es una ruta que soporta la sintaxis de expresión variable \"{nombre_de_variable}\", que sustituye el valor de la variable referenciada, tomando el lugar de la expresión"
-
-
 msgid "Read Only"
 msgstr "Sólo lectura"
 

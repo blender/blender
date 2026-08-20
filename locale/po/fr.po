@@ -136996,10 +136996,6 @@ msgid "Error reading asset listing file entry, skipping. Reason: found a file ({
 msgstr "Erreur à la lecture de l’entrée de fichier de la liste d’assets, ignoré. Raison : un fichier ({:s}) sans champ « hash » a été trouvé"
 
 
-msgid "Error reading asset listing file entry, skipping. Reason: found a file ({:s}) without 'size_in_bytes' field"
-msgstr "Erreur à la lecture de l’entrée de fichier de la liste d’assets, ignoré. Raison : un fichier ({:s}) sans champ « size_in_bytes » a été trouvé ({:s})"
-
-
 msgid "no assets listed"
 msgstr "Aucun asset listé"
 

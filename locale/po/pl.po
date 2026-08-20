@@ -122881,10 +122881,6 @@ msgid "Internal error, unknown state!{:s}"
 msgstr "Błąd wewnętrzny, nieznany stan!{:s}"
 
 
-msgid "Checking for Extension Updates{:s}"
-msgstr "Sprawdzanie dostępności aktualizacji rozszerzeń"
-
-
 msgid "All Extensions Up-to-date{:s}"
 msgstr "Wszystkie rozszerzenia są aktualne{:s}"
 

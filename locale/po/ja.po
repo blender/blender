@@ -70278,10 +70278,6 @@ msgid "Open image"
 msgstr "画像を開きます"
 
 
-msgid "Allow the path to contain substitution tokens"
-msgstr "代理トークン（%user% など）を含むパスを利用可能にします"
-
-
 msgid "Detect Sequences"
 msgstr "連番画像を探知"
 
@@ -125962,12 +125958,6 @@ msgid "At least one node must be selected."
 msgstr "最低一つのノードを選択してください."
 
 
-msgid "{:d} nodes are selected, but this operator can only work on {:d}."
-msgstr ""
-"{:s} 個のノードが選択中ですが，このオペレーターは\n"
-"{:s} 個以下でのみ動作します."
-
-
 msgid ""
 "Current node tree type not supported.\n"
 "Should be one of {:s}."
@@ -125978,10 +125968,6 @@ msgstr ""
 
 msgid "Active node should not be of type {:s}."
 msgstr "アクティブノードを「{:s}」タイプにしないでください."
-
-
-msgid "At least {:d} nodes must be selected."
-msgstr "最低 {:s} 個のノードを選択してください."
 
 
 msgid "Active node should be of type {:s}."
@@ -126630,10 +126616,6 @@ msgid "Use the plus button to add list entries"
 msgstr "「＋」ボタンでリストにエントリを追加します"
 
 
-msgid "Collection {:s} has the same uid {:d} as {:s}"
-msgstr "コレクション「{:s}」は「{:s}」と同じUID（{:d}）です"
-
-
 msgid "Bone {:s} has a broken reference to {:s} collection '{:s}'"
 msgstr "ボーン「{:s}」の「{:s}」(コレクション「{:s}」)への参照が壊れています"
 
@@ -127191,10 +127173,6 @@ msgstr "{:d} 個の画像平面が追加されました"
 
 msgid "{:d} image(s) converted to mesh plane(s)"
 msgstr "{:d} 個の画像がメッシュ平面に変換されました"
-
-
-msgid "Cannot generate materials for unknown {:s} render engine"
-msgstr "未知のレンダーエンジン「{%s}」用のマテリアルは作成できません"
 
 
 msgid "Generating Cycles/EEVEE compatible material, but won't be visible with {:s} engine"
@@ -140134,14 +140112,6 @@ msgid "Choose {} data-block to be assigned to this user"
 msgstr "このユーザーに割り当てる「{}」データブロックを選択します"
 
 
-msgid ""
-"Source library: {}\n"
-"{}"
-msgstr ""
-"ソースライブラリ: {}\n"
-"%s"
-
-
 msgctxt "Operator"
 msgid "Click"
 msgstr "クリック"
@@ -150089,10 +150059,6 @@ msgid "Collection '%s' not in collection '%s'"
 msgstr "コレクション「%s」はコレクション「%s」にありません"
 
 
-msgid "File handler not found"
-msgstr "ファイルハンドラー「%s」がありません"
-
-
 msgid "Could not move collection exporter from index '%d' to '%d'"
 msgstr "インデックス「%d」から「%d」にコレクションエクスポーターを移動できません"
 
@@ -154164,10 +154130,6 @@ msgstr "数字で始まる入力名にはできません：{}"
 
 msgid "There are no inputs."
 msgstr "入力がありません."
-
-
-msgid "Input with index {} does not exist. Currently, the maximum possible index is {}. Did you mean to use {{:{}}}?"
-msgstr "インデックス {} の入力がありません．現在，可能な最小インデックスは [] です．{{:{}}} を使用するつもりでしたか？"
 
 
 msgid "Input does not exist: \"{}\""

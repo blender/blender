@@ -83781,10 +83781,6 @@ msgid "UI Layout"
 msgstr "UI ﭦﺅﺁ ﮯﻟ"
 
 
-msgid "Color Sets"
-msgstr "Sets ﮓﻧﺭ) ({}‬، ‪{}‬، ‪{}‬‪ ،"
-
-
 msgid "Effects"
 msgstr "ﺕﺍﺮﺛﺍ"
 
@@ -124144,10 +124140,6 @@ msgid "Accessed named attributes:"
 msgstr ":ﺕﺎﯿﺻﻮﺼﺧ ﯽﮐ ﻡﺎﻧ ﮦﺪﺷ ﯽﺋﺎﺳﺭ"
 
 
-msgid "  • \"{}\": "
-msgstr "   "
-
-
 msgid "read"
 msgstr "ﮟﯿﮬﮍﭘ"
 
@@ -130890,10 +130882,6 @@ msgid "All geometry groups as separate instances"
 msgstr "ﺮﭘ ﺭﻮﻃ ﮯﮐ ﻝﺎﺜﻣ ﮓﻟﺍ ﻮﮐ ﺲﭘﻭﺮﮔ ﯼﺮﭩﯿﻣﻮﯿﺟ ﻡﺎﻤﺗ"
 
 
-msgid "The group ID of each group instance"
-msgstr "The ﯼﮈ ﯽﺋﺁ ﮦﻭﺮﮔ of each ﮦﻭﺮﮔ '‪{}‬' (‪{}‬) ﻝﺎﺜﻣ"
-
-
 msgid "Failed to write to attribute \"{}\" with domain \"{}\" and type \"{}\""
 msgstr "‬{}‬‪\\‪ ﻡﺎﮐﺎﻧ ﮟﯿﻣ ﮯﻧﺮﮐ ﭗﺋﺎﭨ ﺭﻭﺍ {}‬‪ ﮫﺗﺎﺳ ﮯﮐ ﻦﯿﻣﻭﮈ {}‬‪ ﺏﺎﺴﺘﻧﺍ"
 
@@ -131028,10 +131016,6 @@ msgstr "ﮟﯾﺮﮐ ﻡﺎﻈﺘﻧﺍ"
 
 msgid "No named attributes used"
 msgstr "ﮯﺌﮔ ﮯﯿﮐ ﮟﯿﮩﻧ ﻝﺎﻤﻌﺘﺳﺍ ﻑﺎﺻﻭﺍ ﺩﺰﻣﺎﻧ ﯽﺋﻮﮐ"
-
-
-msgid "\"{}\" from {}"
-msgstr "ﮯﺳ ﻮﭩﮑﯾﺍ"
 
 
 msgid "Group '{}' ({})"
@@ -131387,10 +131371,6 @@ msgstr "(ﮯﮨ ﺎﺗﺮﮐ ﺮﺛﺎﺘﻣ ﯽﮭﺑ ﻮﮐ ﮯﻧﺮﮔ ﮯ�
 
 msgid "Adds a colored tint to the coat layer by modeling absorption in the layer. Saturation increases at shallower angles, as the light travels farther through the medium (depending on the Coat IOR)"
 msgstr "(ﮯﮨ ﺮﺼﺤﻨﻣ ﺮﭘ IOR ﭦﻮﮐ) ﮯﮨ ﯽﺗﺎﺟ ﺭﻭﺩ ﮦﺩﺎﯾﺯ ﮯﺳ ﮯﺟﺭﺩ ﮯﻧﺎﯿﻣﺭﺩ ﯽﻨﺷﻭﺭ ﮧﮑﻧﻮﯿﮐ ،ﮯﮨ ﯽﺗﺎﺟ ﮪﮍﺑ ﯽﺘﭘﺮﺘﻨﺳ ﺮﭘ ﮞﻮﯾﻭﺍﺯ ﮯﮑﻠﮨ ﮯﮨ ﺎﺗﺮﮐ ﻞﻣﺎﺷ ﭧﻨﭨ ﻦﯿﮕﻧﺭ ﮟﯿﻣ ﮧﮩﺗ ﯽﮐ ﭦﻮﮐ ﮯﮐﺮﮐ ﯼﺯﺎﺳ ﮧﻧﻮﻤﻧ ﻮﮐ ﺏﺬﺟ ﮟﯿﻣ ﺕﺮﭘ"
-
-
-msgid "Color of light emission from the surface"
-msgstr "ﺢﻄﺳ the ﮯﺳ ﺝﺍﺮﺧﺍ ﯽﻨﺷﻭﺭ of ﮓﻧﺭ) ({}‬، ‪{}‬، ‪{}‬‪ ،"
 
 
 msgid "Strength of the emitted light. A value of 1.0 ensures that the object in the image has the exact same color as the Emission Color"

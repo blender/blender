@@ -121100,10 +121100,6 @@ msgid "Ignored {}"
 msgstr "Bỏ qua {}"
 
 
-msgid "Could not write image: {}"
-msgstr "Không ghi được hình ảnh: %s"
-
-
 msgid "One of the nodes has no outputs"
 msgstr "Một trong các nút không có đầu ra"
 
@@ -126424,14 +126420,6 @@ msgstr "Tiêu Hao (Thay Đổi Cho Phép)"
 
 msgid "Driver: {:s} ({:s})"
 msgstr "Ngày: {:s} {:s}"
-
-
-msgid "Variables: {:d}"
-msgstr "Biến Số"
-
-
-msgid "Expression: {:s}"
-msgstr "Biểu thức: {}"
 
 
 msgctxt "Operator"
@@ -133321,14 +133309,6 @@ msgid "Delete keyframes from selected objects?"
 msgstr "Xóa khung hình chính khỏi các đối tượng đã chọn nhé?"
 
 
-msgid "No keyframes removed from {} strip(s)"
-msgstr "Không có khung khóa nào được/bị xóa khỏi %d đối tượng"
-
-
-msgid "{} strip(s) successfully had {} keyframes removed"
-msgstr "%d đối tượng đã có %d khung khóa được xóa đi thành công"
-
-
 msgid "No RNA pointer available to retrieve values for this F-curve"
 msgstr "Không có con trỏ RNA nào để truy xuất các giá trị cho Đường Cong-F này hết"
 
@@ -135121,10 +135101,6 @@ msgid "Shortcut: {}"
 msgstr "Đường Cắt Ngắn: {}"
 
 
-msgid "Python: {}"
-msgstr "Python: %s"
-
-
 msgid "Internal error!"
 msgstr "Lỗi lầm nội bộ xảy ra!"
 
@@ -135495,14 +135471,6 @@ msgstr "Đặt Mặt Cắt Đường Cong Tóc"
 msgctxt "Operator"
 msgid "Reset Profile"
 msgstr "Hoàn Lại Mặt Cắt"
-
-
-msgid "Move {} {} into {}"
-msgstr "Di chuyển {} vào {}"
-
-
-msgid "Move {} {} above {}"
-msgstr "Di chuyển {} lên trên {}"
 
 
 msgid "Move {} {} below {}"
@@ -135981,10 +135949,6 @@ msgstr "Hôm Nay"
 
 msgid "Yesterday"
 msgstr "Hôm Qua"
-
-
-msgid "Modified: {}"
-msgstr "Đã sửa đổi: {}{}{}"
 
 
 msgid "Size: {}"
@@ -136947,10 +136911,6 @@ msgstr "Không có đối tượng khung lưới nào đang hoạt động cả"
 
 msgid "This operation is not supported in edit mode"
 msgstr "Thao tác này không được hỗ trợ ở chế độ biên soạn"
-
-
-msgid "Cannot edit object used by override collections"
-msgstr "Không thể biên soạn đối tượng '%s' vì nó đang được sử dụng bởi các bộ sưu tập vượt quyền"
 
 
 msgid "Baking of multires data only works with an active mesh object"
@@ -138832,14 +138792,6 @@ msgstr "Liên kết {}"
 
 msgid "Pack {}"
 msgstr "Gói {}"
-
-
-msgid "Append {}"
-msgstr "Bổ Sung"
-
-
-msgid "Append (Reuse) {}"
-msgstr "Bổ Sung (Tái Dụng Dữ Liệu)"
 
 
 msgid "Set {} as active"
@@ -144761,10 +144713,6 @@ msgid "Collection '%s' not in collection '%s'"
 msgstr "Bộ sưu tập '%s' không nằm trong bộ sưu tập '%s'"
 
 
-msgid "File handler not found"
-msgstr "Không tìm thấy trình xử lý tập tin '%s' nào cả"
-
-
 msgid "Could not move collection exporter from index '%d' to '%d'"
 msgstr "Không thể di chuyển bộ sưu tập từ chỉ số '%d' sang '%d' được"
 
@@ -148624,10 +148572,6 @@ msgstr "Định dạng chứa ký tự \"{}\" chưa được hỗ trợ: \"{}\""
 
 msgid "Invalid format: \"{}\""
 msgstr "Định dạng không hợp lệ: \"{}\""
-
-
-msgid "Type \"{}\" cannot be formatted"
-msgstr "Không tìm thấy kiểu dữ liệu \"{:s}\""
 
 
 msgid "Only integer inputs can be used as dynamic width: \"{}\""
@@ -153758,10 +153702,6 @@ msgstr "lưu dưới dạng một tập tin mới, thông thường, mà thôi."
 
 msgid "Displays, views or color spaces in this file were missing and have been changed."
 msgstr "Các hiển thị, góc nhìn hoặc không gian màu trong tập tin này đã bị mất mát, và đã thay đổi."
-
-
-msgid "Saving it with this OpenColorIO configuration may cause loss of data."
-msgstr "Việc lưu nó bằng Blender này (%s) có thể gây ra mất mát dữ liệu đấy nhé."
 
 
 msgid "Cannot overwrite asset system files. Save as new file"

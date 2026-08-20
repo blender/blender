@@ -118080,10 +118080,6 @@ msgid "No valid node(s) in selection"
 msgstr "선택 항목에 유효한 노드가 없음"
 
 
-msgid "Successfully reset {}"
-msgstr "PH_0__ 재설정에 성공함"
-
-
 msgid "Ignored {}"
 msgstr "무시됨 {}"
 
@@ -118273,18 +118269,6 @@ msgstr "뷰어 이미지를 찾을 수 없음"
 
 msgid "At least one node must be selected."
 msgstr "노드를 하나 이상 선택해야 함"
-
-
-msgid "{:d} nodes are selected, but this operator can only work on {:d}."
-msgstr "{d} 노드가 선택되었지만 이 오퍼레이터는 {:d}에서만 작동할 수 있음"
-
-
-msgid ""
-"Current node tree type not supported.\n"
-"Should be one of {:s}."
-msgstr ""
-"현재 노드 트리 유형이 지원되지 않습니다.\n"
-"s} 중 하나여야 함"
 
 
 msgid "Active node should not be of type {:s}."
@@ -118552,22 +118536,6 @@ msgstr "미러 유형 및 매개변수"
 
 msgid "No suitable selected bones to copy to"
 msgstr "복사할 적절한 선택된 뼈가 없음"
-
-
-msgid "Mirrored parameters of {:d} bones"
-msgstr "d} 뼈의 미러링된 파라미터"
-
-
-msgid "Copied {:s} parameters to {:d} bones"
-msgstr "s} 매개 변수를 {:d} 뼈에 복사함"
-
-
-msgid "Copied the value to {:d} bones"
-msgstr "d} 뼈에 값을 복사함"
-
-
-msgid "Cannot find class {:s} in {:s}"
-msgstr "s}에서 {:s} 클래스를 찾을 수 없음"
 
 
 msgid "Bone {:s} selected on both sides, mirroring would be ambiguous, aborting. Only select the left or right side, not both"
@@ -118939,10 +118907,6 @@ msgid "Use the plus button to add list entries"
 msgstr "더하기 버튼을 사용하여 목록 항목을 추가함"
 
 
-msgid "Collection {:s} has the same uid {:d} as {:s}"
-msgstr "컬렉션 {:s}에 {:s}와 동일한 UID {:d}가 있음"
-
-
 msgid "Bone {:s} has a broken reference to {:s} collection '{:s}'"
 msgstr "뼈대 {:s}에 {:s} 컬렉션 '{:s}'에 대한 참조가 끊어졌음"
 
@@ -119196,10 +119160,6 @@ msgstr "토러스"
 
 msgid "Removed {:d} empty and/or fake-user only Actions"
 msgstr "비어 있거나 가짜 사용자 전용 {:d} 작업 제거"
-
-
-msgid "Removed {:d} of {:d} bone collections"
-msgstr "뼈대 컬렉션 {:d}개 제거"
 
 
 msgid "Nothing to bake"
@@ -119606,10 +119566,6 @@ msgid "No animation data to convert on object: {!r}"
 msgstr "오브젝트에서 변환할 애니메이션 데이터가 없습니다: {!r}"
 
 
-msgid "Object: {:s}, Mesh: '{:s}' has {:d} loops (for {:d} faces), expected {:d}"
-msgstr "오브젝트: {s}, 메시지: '{:s}'에 {:d} 루프({:d}면에 대해), 예상 {:d}개 있음"
-
-
 msgid "Modifiers cannot be added to object: {:s}"
 msgstr "객체에는 수정자를 추가할 수 없습니다: {:s}"
 
@@ -119766,10 +119722,6 @@ msgid "The selected strips don't overlap"
 msgstr "선택한 스트립이 겹치지 없음"
 
 
-msgid "Added fade animation to {:d} {:s}"
-msgstr "d} {:s}에 페이드 애니메이션을 추가함"
-
-
 msgid "Select 2 sound strips"
 msgstr "사운드 스트립 2개 선택"
 
@@ -119920,10 +119872,6 @@ msgstr "쿼터니언 로테이션이나 회전"
 
 msgid "See OperatorList.txt text block"
 msgstr "OperatorList.txt 텍스트 블록 참조"
-
-
-msgid "Renamed {:d} of {:d} {:s}"
-msgstr "d} {:d} {:s}의 {:d}로 이름 변경"
 
 
 msgctxt "Operator"
@@ -121391,10 +121339,6 @@ msgid "Custom ({:.4g} fps)"
 msgstr "사용자 지정({:.4g} fps)"
 
 
-msgid "{:.4g} fps"
-msgstr "{:.4G} fps"
-
-
 msgid "Inch"
 msgstr "인치"
 
@@ -121701,10 +121645,6 @@ msgstr "모두 연결 끊기"
 
 msgid "Iterations: {:d} .. {:d} (avg. {:d})"
 msgstr "반복: {:d} ... {:d}(평균 {:d})"
-
-
-msgid "Error: {:.5f} .. {:.5f} (avg. {:.5f})"
-msgstr "오차: {:.5F} ... {:.5F} (평균 {:.5F})"
 
 
 msgid "Spacing: {:g}"
@@ -122395,10 +122335,6 @@ msgstr "포장 해제"
 
 msgid "Source Channel"
 msgstr "소스 채널"
-
-
-msgid "Original frame range: {:d}-{:d} ({:d})"
-msgstr "원래 프레임 범위: {:D}-{:D} ({:D})"
 
 
 msgid "Cut To"
@@ -124605,18 +124541,6 @@ msgstr "스타일 시작"
 
 msgid "Gizmos:"
 msgstr "기즈모:"
-
-
-msgid ""
-"{:s}\n"
-" • {:s} toggles snap while dragging\n"
-" • {:s} toggles dragging from the center\n"
-" • {:s} toggles fixed aspect"
-msgstr ""
-"{:s}\n"
-" • {:s} 끌기 중 스냅을 전환합니다.\n"
-" • 가운데에서 끌기를 전환합니다.\n"
-" • s} 고정된 화면 전환"
 
 
 msgid "Miter Outer"
@@ -127742,10 +127666,6 @@ msgid "There were {:d} keying failures for unknown reasons."
 msgstr "알 수 없는 이유로 {:d} 키잉에 실패함"
 
 
-msgid "Could not create {:d} F-Curve(s). This can happen when only inserting to available F-Curves."
-msgstr "d}를 만들 수 없습니다. F-커브를 만들 수 없습니다. 사용 가능한 F-커브에만 삽입할 때 이 문제가 발생할 수 있음"
-
-
 msgid "{:d} F-Curve(s) are not keyframeable. They might be locked or sampled."
 msgstr "{:d} F-커브는 키프레임화할 수 없습니다. 잠겨 있거나 샘플링되었을 수 있음"
 
@@ -127756,10 +127676,6 @@ msgstr "'인서트만 필요' 설정으로 인해 {:d} 키프레임이 삽입되
 
 msgid "Due to the NLA stack setup, {:d} keyframe(s) have not been inserted."
 msgstr "NLA 스택 설정으로 인해 {:d} 키프레임이 삽입되지 않았음"
-
-
-msgid "Inserting keys on {:d} data-block(s) has been skipped because they are not editable."
-msgstr "d} 데이터 블록은 편집할 수 없으므로 키를 삽입하지 못함"
 
 
 msgid "Inserting keys on {:d} data-block(s) has been skipped because they cannot be animated."
@@ -131236,18 +131152,6 @@ msgid "Online Python Reference"
 msgstr "온라인 Python 참조"
 
 
-msgid "Drop {} on slot {} (replacing {}) of {}"
-msgstr "PH_3__의 슬롯 {}({} 대체)에 {}를 놓음"
-
-
-msgid "Drop {} on slot {} (active slot) of {}"
-msgstr "PH_2__의 {} 슬롯(활성 슬롯)에 {}를 놓음"
-
-
-msgid "Drop {} on slot {} of {}"
-msgstr "PH_2__의 {} 슬롯에 {}를 놓음"
-
-
 msgid "Autocomplete"
 msgstr "자동 완성"
 
@@ -131505,18 +131409,6 @@ msgstr "드래그"
 
 msgid "Asset shelf popover panel type not found"
 msgstr "어셋 쉘프 팝오버 패널 유형을 찾을 수 없음"
-
-
-msgid "Move {} into {}"
-msgstr "PH_0__을 {}로 이동함"
-
-
-msgid "Move {} above {}"
-msgstr "PH_0__를 {} 위로 이동함"
-
-
-msgid "Move {} below {}"
-msgstr "PH_0__을 {} 아래로 이동함"
 
 
 msgctxt "Operator"
@@ -131791,14 +131683,6 @@ msgstr "프로필 초기화"
 
 msgid "Move {} {} into {}"
 msgstr "{} {}을 {}로 이동함"
-
-
-msgid "Move {} {} above {}"
-msgstr "PH_0__ {}을 {} 위로 이동함"
-
-
-msgid "Move {} {} below {}"
-msgstr "PH_0__ {}을 {} 아래로 이동함"
 
 
 msgid "Layer is locked or not visible"
@@ -132172,14 +132056,6 @@ msgstr "새로운"
 
 msgid "Add to linking collection"
 msgstr "연결 컬렉션에 추가"
-
-
-msgid "Add to linking collection before {}"
-msgstr "PH_0__ 앞에 컬렉션 연결에 추가하기"
-
-
-msgid "Add to linking collection after {}"
-msgstr "PH_0__ 뒤에 컬렉션 연결에 추가하기"
 
 
 msgctxt "Operator"
@@ -133922,14 +133798,6 @@ msgid "Make Single"
 msgstr "단일 만들기"
 
 
-msgid "Drop {} on {} (slot {}, replacing {})"
-msgstr "PH_0__를 {}에 놓음(슬롯 {}, {}로 대체)"
-
-
-msgid "Drop {} on {} (slot {})"
-msgstr "PH_0__를 {}(슬롯 {})에 놓음"
-
-
 msgid "Add modifier with node group \"{}\" on object \"{}\""
 msgstr "오브젝트 \"{}\"에 노드 그룹 \"{}\"를 가진 모디파이어를 추가함"
 
@@ -134966,10 +134834,6 @@ msgid "Blender Info Log"
 msgstr "Blender 정보 로그"
 
 
-msgid "Show {} preferences"
-msgstr "PH_0__ 기본 설정 표시"
-
-
 msgid "Link {}"
 msgstr "링크 {}"
 
@@ -134984,10 +134848,6 @@ msgstr "{} 추가"
 
 msgid "Append (Reuse) {}"
 msgstr "추가(재사용) {}"
-
-
-msgid "Set {} as active"
-msgstr "PH_0__를 활성으로 설정"
 
 
 msgctxt "Screen"
@@ -138309,14 +138169,6 @@ msgid "bytes"
 msgstr "바이트"
 
 
-msgid ""
-"Byte Color (sRGB encoded):\n"
-"{}  {}  {}  {}"
-msgstr ""
-"바이트 색상(sRGB 인코딩):\n"
-"PH_0__ {} {} {}"
-
-
 msgid "Data Set"
 msgstr "데이터 세트"
 
@@ -140335,10 +140187,6 @@ msgstr "슬롯은 None일 수 없음"
 
 msgid "F-Curve data path empty, invalid argument"
 msgstr "F-커브 데이터 경로 비어있음, 잘못된 인수"
-
-
-msgid "Could not remove the F-Curve Group from the collection because it does not exist in the collection"
-msgstr "컬렉션에 존재하지 않기 때문에 F-Curve 그룹을 제거할 수 없음 '%s'"
 
 
 msgid "Cannot return channelbag when slot is None"
@@ -145092,10 +144940,6 @@ msgid "Output the input spline's evaluated points, based on the resolution attri
 msgstr "입력된 스플라인의 평가된 점을 출력합니다. NURBS 및 베지어 스플라인의 경우 해상도 속성에 따라 결정됩니다. 폴리 스플라인은 변경되지 않습니다."
 
 
-msgid "Sample the specified number of points along each spline"
-msgstr "지정된 각 스플라인을 따라 샘플 포인트 %d개 선택함"
-
-
 msgid "Calculate the number of samples by splitting each spline into segments with the specified length"
 msgstr "지정된 길이로 각 스플라인을 세그먼트로 분할하여 샘플 수 계산함"
 
@@ -145246,22 +145090,6 @@ msgstr "커브의 포인트"
 
 msgid "Curve Point Count"
 msgstr "곡선 점 개수 조절함"
-
-
-msgid "Start (Factor)"
-msgstr "시작 팩터(%s)"
-
-
-msgid "End (Factor)"
-msgstr "끝 팩터(%s)"
-
-
-msgid "Start (Length)"
-msgstr "시작 길이(%d)"
-
-
-msgid "End (Length)"
-msgstr "끝 길이(%d)"
 
 
 msgid "Curves to shorten"
@@ -145519,10 +145347,6 @@ msgstr "주요 기하 도형"
 
 msgid "Generated Geometry"
 msgstr "생성된 지오메트리함"
-
-
-msgid "For Each Element {} Main"
-msgstr "각 요소에 대해 메인함"
 
 
 msgid "For Each Element {} Generated"
@@ -145840,10 +145664,6 @@ msgstr "비활성화됨, 블렌더가 STL 입출력 없이 컴파일됨"
 
 msgid "Path to a STL file"
 msgstr "STL 파일 경로"
-
-
-msgid "Cannot open file: {}"
-msgstr "파일을 열 수 없음: %s"
 
 
 msgid "File contains invalid UTF-8 characters"
@@ -148968,10 +148788,6 @@ msgid "window_managers"
 msgstr "윈도우 매니저함"
 
 
-msgid "Dragging {} files"
-msgstr "파일을 드래그함"
-
-
 msgid "Region could not be drawn!"
 msgstr "지역을 그릴 수 없음!"
 
@@ -149056,10 +148872,6 @@ msgid "Any unsaved changes will be lost."
 msgstr "모든 저장되지 않은 변경 사항은 손실됨입니다."
 
 
-msgid "Warning: There are unsaved external image(s)."
-msgstr "경고: 저장되지 않은 외부 이미지(%s)가 있습니다."
-
-
 msgid "Revert to the Saved File"
 msgstr "저장된 파일로 되돌림"
 
@@ -149126,10 +148938,6 @@ msgstr "이 파일은 새로운 버전의 블렌더(%s)로 저장되었음."
 
 msgid "Saving it with this Blender (%s) may cause loss of data."
 msgstr "저장할 때 이 블렌더(%s)로 인해 데이터 손실이 발생할 수 있음"
-
-
-msgid "This file is managed by the Blender asset system. It can only be"
-msgstr "이 파일은 블렌더 자산 시스템으로 관리됨임. 오직 %{asset}로만 가져올 수 있음."
 
 
 msgid "saved as a new, regular file."
@@ -151354,10 +151162,6 @@ msgstr "결과 메시에 면 법선 대신 부드러운 버텍스 법선을 사�
 
 msgid "Generate UV attribute data on the curve geometry"
 msgstr "곡선 기하에 UV 속성 데이터 생성함"
-
-
-msgid "UV Map Name"
-msgstr "%s 이름"
 
 
 msgid "Name of the UV map attribute to generate"

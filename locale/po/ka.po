@@ -127691,10 +127691,6 @@ msgid "Iterations: {:d} .. {:d} (avg. {:d})"
 msgstr "იტერაციები: {:d} .. {:d} (საშ. {:d})"
 
 
-msgid "Error: {:.5f} .. {:.5f} (avg. {:.5f})"
-msgstr "შეცდომა: {:.5f .. {.5f} (საშ. {:.5f})"
-
-
 msgid "Spacing: {:g}"
 msgstr "დაშორება: {:g}"
 
