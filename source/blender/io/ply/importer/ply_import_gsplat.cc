@@ -83,7 +83,7 @@ PointCloud *convert_gsplat_ply_to_point_cloud(const PlyData &data,
 
   point_cloud->positions_for_write().copy_from(data.vertices);
 
-  /* Color attributes in the PLY (r, g, b stored as a DC component of SH), and opacity.
+  /* Radiance base attributes in the PLY (r, g, b stored as a DC component of SH), and opacity.
    * Despite the name it seems to be alpha (at least according to the conversion in SPZ. */
   const Span<float> ply_f_dc_0_attr = get_custom_attribute(data, "f_dc_0");
   const Span<float> ply_f_dc_1_attr = get_custom_attribute(data, "f_dc_1");
@@ -107,19 +107,19 @@ PointCloud *convert_gsplat_ply_to_point_cloud(const PlyData &data,
   const int sh_degree = degree_for_dim(num_sh_dimensions);
 
   gsplat::GsplatMutableAttributeAccessor accessor(*point_cloud, sh_degree);
-  MutableSpan<ColorGeometry4f> color = accessor.colors_for_write();
+  MutableSpan<float4> radiance_base = accessor.radiance_base_for_write();
   MutableSpan<float3> scale = accessor.scales_for_write();
   MutableSpan<math::Quaternion> rotation = accessor.rotations_for_write();
   Span<MutableSpan<float3>> sh_attrs = accessor.sh_for_write();
 
   for (int i = 0; i < data.vertices.size(); i++) {
-    color[i] = ColorGeometry4f(
+    radiance_base[i] = float4(
         ply_f_dc_0_attr[i], ply_f_dc_1_attr[i], ply_f_dc_2_attr[i], ply_opacity_attr[i]);
     scale[i] = float3(ply_scale_0_attr[i], ply_scale_1_attr[i], ply_scale_2_attr[i]);
     rotation[i] = math::Quaternion(
         ply_rot_0_attr[i], ply_rot_1_attr[i], ply_rot_2_attr[i], ply_rot_3_attr[i]);
 
-    color[i].a = gsplat::OriginalActivationFunctions::decode_opacity(color[i].a);
+    radiance_base[i].w = gsplat::OriginalActivationFunctions::decode_opacity(radiance_base[i].w);
     scale[i] = gsplat::OriginalActivationFunctions::decode_scale(scale[i]);
 
     for (int dimension = 0; dimension < num_sh_dimensions; dimension++) {

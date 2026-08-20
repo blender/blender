@@ -278,7 +278,7 @@ PointCloud *read_spz_ngsp_file(FILE *file, ReportList *reports)
       ok = false;
     }
     else {
-      ok = read_alphas(reader, accessor.colors_for_write());
+      ok = read_alphas(reader, accessor.radiance_base_for_write());
       if (!ok) {
         BKE_report(reports, RPT_ERROR, "SPZ Read: Error reading alphas");
       }
@@ -291,7 +291,7 @@ PointCloud *read_spz_ngsp_file(FILE *file, ReportList *reports)
       ok = false;
     }
     else {
-      ok = read_colors(reader, accessor.colors_for_write());
+      ok = read_colors(reader, accessor.radiance_base_for_write());
       if (!ok) {
         BKE_report(reports, RPT_ERROR, "SPZ Read: Error reading colors");
       }

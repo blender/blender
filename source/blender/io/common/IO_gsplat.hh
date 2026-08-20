@@ -4,7 +4,6 @@
 
 #pragma once
 
-#include "BLI_color_types.hh"
 #include "BLI_math_base.hh"
 #include "BLI_math_rotation.hh"
 #include "BLI_math_vector_types.hh"
@@ -24,7 +23,7 @@ class GsplatMutableAttributeAccessor {
   bke::MutableAttributeAccessor attributes_;
 
   bke::SpanAttributeWriter<float3> scales_attr_;
-  bke::SpanAttributeWriter<ColorGeometry4f> colors_attr_;
+  bke::SpanAttributeWriter<float4> radiance_base_attr_;
   bke::SpanAttributeWriter<math::Quaternion> rotations_attr_;
   Vector<bke::SpanAttributeWriter<float3>> sh_attrs_;
   Vector<MutableSpan<float3>> sh_spans_for_write_;
@@ -33,7 +32,7 @@ class GsplatMutableAttributeAccessor {
   GsplatMutableAttributeAccessor(PointCloud &point_cloud, int sh_degrees);
 
   MutableSpan<float3> positions_for_write();
-  MutableSpan<ColorGeometry4f> colors_for_write();
+  MutableSpan<float4> radiance_base_for_write();
   MutableSpan<float3> scales_for_write();
   MutableSpan<math::Quaternion> rotations_for_write();
   Span<MutableSpan<float3>> sh_for_write();

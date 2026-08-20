@@ -69,21 +69,21 @@ bool read_positions(ReaderType &reader,
 }
 
 template<class ReaderType>
-bool read_alphas(ReaderType &reader, const MutableSpan<ColorGeometry4f> colors)
+bool read_alphas(ReaderType &reader, const MutableSpan<float4> radiance_base)
 {
-  for (ColorGeometry4f &color : colors) {
+  for (float4 &base : radiance_base) {
     uint8_t alpha;
     if (!reader.read(alpha)) {
       return false;
     }
-    color.a = internal::inv_sigmoid(float(alpha) / 255.0f);
-    color.a = gsplat::OriginalActivationFunctions::decode_opacity(color.a);
+    base.w = internal::inv_sigmoid(float(alpha) / 255.0f);
+    base.w = gsplat::OriginalActivationFunctions::decode_opacity(base.w);
   }
   return true;
 }
 
 template<class ReaderType>
-bool read_colors(ReaderType &reader, const MutableSpan<ColorGeometry4f> colors)
+bool read_colors(ReaderType &reader, const MutableSpan<float4> radiance_base)
 {
   /* From SPZ:
    *   Scale factor for DC color components. To convert to RGB, we should multiply by 0.282, but it
@@ -92,14 +92,14 @@ bool read_colors(ReaderType &reader, const MutableSpan<ColorGeometry4f> colors)
   constexpr float COLOR_SCALE = 0.15f;
   const float INV_COLOR_SCALE = 1.0f / COLOR_SCALE;
 
-  for (ColorGeometry4f &color : colors) {
+  for (float4 &base : radiance_base) {
     std::array<uint8_t, 3> color_buffer;
     if (!reader.read_buffer(color_buffer)) {
       return false;
     }
-    color.r = ((color_buffer[0] / 255.0f) - 0.5f) * INV_COLOR_SCALE;
-    color.g = ((color_buffer[1] / 255.0f) - 0.5f) * INV_COLOR_SCALE;
-    color.b = ((color_buffer[2] / 255.0f) - 0.5f) * INV_COLOR_SCALE;
+    base.x = ((color_buffer[0] / 255.0f) - 0.5f) * INV_COLOR_SCALE;
+    base.y = ((color_buffer[1] / 255.0f) - 0.5f) * INV_COLOR_SCALE;
+    base.z = ((color_buffer[2] / 255.0f) - 0.5f) * INV_COLOR_SCALE;
   }
 
   return true;

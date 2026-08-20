@@ -166,8 +166,8 @@ PointCloud *read_spz_gzip_compressed_file(FILE *file, ReportList *reports)
   gsplat::GsplatMutableAttributeAccessor accessor(*point_cloud, header.sh_degree);
 
   if (!read_positions(reader, header.fractional_bits, accessor.positions_for_write()) ||
-      !read_alphas(reader, accessor.colors_for_write()) ||
-      !read_colors(reader, accessor.colors_for_write()) ||
+      !read_alphas(reader, accessor.radiance_base_for_write()) ||
+      !read_colors(reader, accessor.radiance_base_for_write()) ||
       !read_scales(reader, accessor.scales_for_write()) ||
       !read_rotations(reader, header.version, accessor.rotations_for_write()) ||
       !read_sh(reader, accessor.sh_for_write()))
