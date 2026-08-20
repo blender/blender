@@ -57,6 +57,13 @@ void relations_invalidate_cache(Scene *scene, Strip *strip);
  * images of the strip.
  */
 void relations_invalidate_cache_raw(Scene *scene, Strip *strip);
+
+/** Mark the current frame as potentially cached with a temporary animated property value. */
+void relations_tag_temporary_animation_frame(Scene *scene);
+
+/** Invalidate the marked frame after animation evaluation discards the temporary value. */
+void relations_invalidate_temporary_animation_frame(Scene *scene);
+
 void relations_invalidate_scene_strips(const Main *bmain, const Scene *scene_target);
 
 /**

@@ -17,6 +17,8 @@
 #include "DNA_sequence_types.h"
 #include "DNA_session_uid_types.h"
 
+#include <optional>
+
 namespace blender {
 
 struct BlendDataReader;
@@ -116,6 +118,10 @@ struct EditingRuntime {
   PreviewCache *preview_cache = nullptr;
   PrefetchJob *prefetch_job = nullptr;
   CompositorCache *compositor_cache = nullptr;
+
+  /* Frame index that was rendered with a temporary, unkeyed value
+   * of an animated property. */
+  std::optional<float> temporary_animation_frame;
 
   /** Used for rendering a different frame using sequencer_draw_get_transform_preview from the box
    * blade tool. */
