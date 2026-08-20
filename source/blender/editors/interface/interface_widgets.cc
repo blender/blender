@@ -2121,7 +2121,8 @@ static void widget_draw_text_ime_underline(const uiFontStyle *fstyle,
                                            const Button *but,
                                            const rcti *rect,
                                            const wmIMEData *ime_data,
-                                           const char *drawstr)
+                                           const char *drawstr,
+                                           const int align_x_ofs)
 {
   int ofs_x, width;
   int rect_x = BLI_rcti_size_x(rect);
@@ -2140,7 +2141,7 @@ static void widget_draw_text_ime_underline(const uiFontStyle *fstyle,
         fstyle->uifont_id, drawstr + but->ofs, ime_data->composite.size() + but->pos - but->ofs);
 
     rgba_uchar_to_float(fcol, wcol->text);
-    draw_text_underline(rect->xmin + ofs_x,
+    draw_text_underline(rect->xmin + ofs_x + align_x_ofs,
                         rect->ymin + 6 * U.pixelsize,
                         min_ii(width, rect_x - 2) - ofs_x,
                         1,
@@ -2160,7 +2161,7 @@ static void widget_draw_text_ime_underline(const uiFontStyle *fstyle,
 
       width = BLF_width(fstyle->uifont_id, drawstr + but->ofs, sel_end + sel_start - but->ofs);
 
-      draw_text_underline(rect->xmin + ofs_x,
+      draw_text_underline(rect->xmin + ofs_x + align_x_ofs,
                           rect->ymin + 6 * U.pixelsize,
                           min_ii(width, rect_x - 2) - ofs_x,
                           2,
@@ -2717,7 +2718,7 @@ static void widget_draw_text(const uiFontStyle *fstyle,
     }
     if (ime_data && !ime_data->composite.empty()) {
       /* Composite underline. */
-      widget_draw_text_ime_underline(fstyle, wcol, but, rect, ime_data, drawstr);
+      widget_draw_text_ime_underline(fstyle, wcol, but, rect, ime_data, drawstr, align_x_ofs);
     }
 #endif
   }
