@@ -2156,12 +2156,14 @@ static Material *default_material_holdout = nullptr;
 static Material *default_material_surface = nullptr;
 static Material *default_material_volume = nullptr;
 static Material *default_material_gpencil = nullptr;
+static Material *default_material_gsplat = nullptr;
 
 static Material **default_materials[] = {&default_material_empty,
                                          &default_material_holdout,
                                          &default_material_surface,
                                          &default_material_volume,
                                          &default_material_gpencil,
+                                         &default_material_gsplat,
                                          nullptr};
 
 static Material *material_default_create(Material **ma_p, const char *name)
@@ -2247,6 +2249,43 @@ static void material_default_holdout_init(Material **ma_p)
   bke::node_set_active(*ntree, *output);
 }
 
+static void material_default_gsplat_init(Material **ma_p)
+{
+  Material *ma = material_default_create(ma_p, "Default Surface");
+  bNodeTree *ntree = ma->nodetree;
+
+  bNode *attribute = bke::node_add_static_node(nullptr, *ntree, SH_NODE_ATTRIBUTE);
+  NodeShaderAttribute *storage = static_cast<NodeShaderAttribute *>(attribute->storage);
+  STRNCPY(storage->name, "radiance");
+
+  bNode *emission = bke::node_add_static_node(nullptr, *ntree, SH_NODE_EMISSION);
+  bNodeSocket *color = bke::node_find_socket(*emission, SOCK_IN, "Color"_ustr);
+  copy_v3_v3((static_cast<bNodeSocketValueRGBA *>(color->default_value))->value, &ma->r);
+
+  bNode *output = bke::node_add_static_node(nullptr, *ntree, SH_NODE_OUTPUT_MATERIAL);
+
+  bke::node_add_link(*ntree,
+                     *attribute,
+                     *bke::node_find_socket(*attribute, SOCK_OUT, "Color"_ustr),
+                     *emission,
+                     *color);
+
+  bke::node_add_link(*ntree,
+                     *emission,
+                     *bke::node_find_socket(*emission, SOCK_OUT, "Emission"_ustr),
+                     *output,
+                     *bke::node_find_socket(*output, SOCK_IN, "Surface"_ustr));
+
+  attribute->location[0] = -300.0f;
+  attribute->location[1] = 100.0f;
+  emission->location[0] = -50.0f;
+  emission->location[1] = 100.0f;
+  output->location[0] = 200.0f;
+  output->location[1] = 100.0f;
+
+  bke::node_set_active(*ntree, *output);
+}
+
 Material *BKE_material_default_empty()
 {
   return default_material_empty;
@@ -2270,6 +2309,11 @@ Material *BKE_material_default_volume()
 Material *BKE_material_default_gpencil()
 {
   return default_material_gpencil;
+}
+
+Material *BKE_material_default_gsplat()
+{
+  return default_material_gsplat;
 }
 
 void BKE_material_defaults_free_gpu()
@@ -2297,6 +2341,7 @@ void BKE_materials_init()
   material_default_volume_init(&default_material_volume);
   material_default_holdout_init(&default_material_holdout);
   material_default_gpencil_init(&default_material_gpencil);
+  material_default_gsplat_init(&default_material_gsplat);
 }
 
 void BKE_materials_exit()
