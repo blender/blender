@@ -7,8 +7,17 @@
 set(XR_OPENXR_SDK_EXTRA_ARGS
   -DBUILD_FORCE_GENERATION=OFF
   -DBUILD_LOADER=ON
-  -DDYNAMIC_LOADER=OFF
 )
+
+if(WIN32)
+  list(APPEND XR_OPENXR_SDK_EXTRA_ARGS
+    -DDYNAMIC_LOADER=OFF
+  )
+else()
+  list(APPEND XR_OPENXR_SDK_EXTRA_ARGS
+    -DDYNAMIC_LOADER=ON
+  )
+endif()
 
 if(UNIX AND NOT APPLE)
   list(APPEND XR_OPENXR_SDK_EXTRA_ARGS
@@ -58,5 +67,5 @@ if(WIN32)
   endif()
 else()
   harvest(external_xr_openxr_sdk xr_openxr_sdk/include/openxr xr_openxr_sdk/include/openxr "*.h")
-  harvest(external_xr_openxr_sdk xr_openxr_sdk/lib xr_openxr_sdk/lib "*.a")
+  harvest_rpath_lib(external_xr_openxr_sdk xr_openxr_sdk/lib xr_openxr_sdk/lib "*${SHAREDLIBEXT}*")
 endif()
