@@ -757,11 +757,6 @@ struct VKGraphicsPipelineCreateInfoBuilder {
         uint32_t(vk_pipeline_color_blend_attachment_states.size()),
         vk_pipeline_color_blend_attachment_states.data(),
         {1.0f, 1.0f, 1.0f, 1.0f}};
-    /* Logic ops. */
-    if (fragment_output_info.state.logic_op_xor && extensions.logic_ops) {
-      vk_pipeline_color_blend_state_create_info.logicOpEnable = VK_TRUE;
-      vk_pipeline_color_blend_state_create_info.logicOp = VK_LOGIC_OP_XOR;
-    }
   }
 };
 }  // namespace blender::gpu
