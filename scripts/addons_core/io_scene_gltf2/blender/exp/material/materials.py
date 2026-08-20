@@ -121,7 +121,7 @@ def gather_material(bmat, export_settings):
     mat_unlit, uvmap_info, vc_info, udim_info = __export_unlit(bmat, export_settings)
     if mat_unlit is not None:
         # Make sure to expose bmat.material (the original material), so users can retrieve additional proporties
-	    # (These properties are not available on the inline material)
+        # (These properties are not available on the inline material)
         export_user_extensions('gather_material_hook', export_settings, mat_unlit, bmat.material)
         return mat_unlit, {"uv_info": uvmap_info, "vc_info": vc_info, "udim_info": udim_info}
 
@@ -211,7 +211,7 @@ def gather_material(bmat, export_settings):
         material.pbr_metallic_roughness = gltf2_pbr_metallic_roughness.get_default_pbr_for_emissive_node()
 
     # Make sure to expose bmat.material (the original material), so users can retrieve additional proporties
-	# (These properties are not available on the inline material)
+        # (These properties are not available on the inline material)
     export_user_extensions('gather_material_hook', export_settings, material, bmat.material)
 
     # Now we have exported the material itself, we need to store some additional data
