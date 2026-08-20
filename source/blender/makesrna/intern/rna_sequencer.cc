@@ -227,6 +227,7 @@ static void rna_Strip_invalidate_raw_update(Main * /*bmain*/, Scene * /*scene*/,
     Strip *strip = static_cast<Strip *>(ptr->data);
 
     seq::relations_invalidate_cache_raw(scene, strip);
+    seq::relations_tag_temporary_animation_frame(scene);
   }
 }
 
@@ -241,6 +242,7 @@ static void rna_Strip_invalidate_preprocessed_update(Main * /*bmain*/,
     Strip *strip = static_cast<Strip *>(ptr->data);
 
     seq::relations_invalidate_cache(scene, strip);
+    seq::relations_tag_temporary_animation_frame(scene);
   }
 }
 
@@ -941,6 +943,7 @@ static void rna_StripTransform_update(Main * /*bmain*/, Scene * /*scene*/, Point
   Strip *strip = strip_get_by_transform(ed, static_cast<StripTransform *>(ptr->data));
 
   seq::relations_invalidate_cache(scene, strip);
+  seq::relations_tag_temporary_animation_frame(scene);
 }
 
 static bool crop_strip_cmp_fn(Strip *strip, void *arg_pt)
@@ -988,6 +991,7 @@ static void rna_StripCrop_update(Main * /*bmain*/, Scene * /*scene*/, PointerRNA
   Strip *strip = strip_get_by_crop(ed, static_cast<StripCrop *>(ptr->data));
 
   seq::relations_invalidate_cache(scene, strip);
+  seq::relations_tag_temporary_animation_frame(scene);
 }
 
 static void rna_Strip_text_font_set(PointerRNA *ptr,
@@ -1495,6 +1499,7 @@ static void rna_StripColorBalance_update(Main * /*bmain*/, Scene * /*scene*/, Po
   Strip *strip = strip_get_by_colorbalance(ed, static_cast<StripColorBalance *>(ptr->data), &smd);
 
   seq::relations_invalidate_cache(scene, strip);
+  seq::relations_tag_temporary_animation_frame(scene);
 }
 
 static void rna_SequenceEditor_overlay_lock_set(PointerRNA *ptr, bool value)
@@ -1726,6 +1731,7 @@ static void rna_StripModifier_update(Main *bmain, Scene * /*scene*/, PointerRNA 
   }
   else {
     seq::relations_invalidate_cache(scene, strip);
+    seq::relations_tag_temporary_animation_frame(scene);
   }
 }
 
