@@ -223,12 +223,6 @@ static void rna_def_pointcloud(BlenderRNA *brna)
   RNA_def_property_ui_text(prop, "Render As", "How points of the point cloud are rendered");
   RNA_def_property_update(prop, 0, "rna_PointCloud_update_data");
 
-  /* Spherical harmonics order. */
-  prop = RNA_def_property(srna, "spherical_harmonics_degree", PROP_INT, PROP_NONE);
-  RNA_def_property_ui_text(prop, "Spherical Harmonics Degree", "Degree of spherical harmonics");
-  RNA_def_property_range(prop, 0, 4);
-  RNA_def_property_update(prop, 0, "rna_PointCloud_update_data");
-
   /* common */
   rna_def_animdata_common(srna);
 }

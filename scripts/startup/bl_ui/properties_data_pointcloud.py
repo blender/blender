@@ -132,10 +132,6 @@ class DATA_PT_pointcloud_render(DataButtonsPanel, Panel):
 
         layout.prop(pointcloud, "render_as")
 
-        row = layout.row()
-        row.active = (pointcloud.render_as == 'SPLATS')
-        row.prop(pointcloud, "spherical_harmonics_degree")
-
 
 class DATA_PT_pointcloud_attributes(DataButtonsPanel, Panel):
     bl_label = "Attributes"

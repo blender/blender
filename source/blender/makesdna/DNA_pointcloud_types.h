@@ -75,11 +75,7 @@ struct PointCloud {
 
   ePointCloud_RenderAs render_as = PT_RENDER_AS_POINTS;
 
-  /* When the PointCloud is rendered as splats: the degree of spherical harmonics. */
-  /* TODO(sergey): Comment about attribute names. */
-  short spherical_harmonics_degree = 0;
-
-  short _pad3 = {};
+  short _pad3[2] = {};
 
 #ifdef __cplusplus
   Span<float3> positions() const;

@@ -245,7 +245,6 @@ void BKE_pointcloud_nomain_to_pointcloud(PointCloud *pointcloud_src, PointCloud 
   pointcloud_dst->attribute_storage.wrap() = std::move(pointcloud_src->attribute_storage.wrap());
 
   pointcloud_dst->render_as = pointcloud_src->render_as;
-  pointcloud_dst->spherical_harmonics_degree = pointcloud_src->spherical_harmonics_degree;
 
   pointcloud_dst->runtime->bounds_cache = pointcloud_src->runtime->bounds_cache;
   pointcloud_dst->runtime->bounds_with_radius_cache =
@@ -325,7 +324,6 @@ void pointcloud_copy_parameters(const PointCloud &src, PointCloud &dst)
 {
   dst.flag = src.flag;
   dst.render_as = src.render_as;
-  dst.spherical_harmonics_degree = src.spherical_harmonics_degree;
   MEM_SAFE_DELETE(dst.mat);
   dst.mat = MEM_new_array_uninitialized<Material *>(src.totcol, __func__);
   dst.totcol = src.totcol;

@@ -346,7 +346,6 @@ PointCloud *read_spz_ngsp_file(FILE *file, ReportList *reports)
   accessor.finish();
 
   point_cloud->render_as = PT_RENDER_AS_SPLATS;
-  point_cloud->spherical_harmonics_degree = header.sh_degree;
 
   if (!ok) {
     BKE_id_free(nullptr, &point_cloud->id);
