@@ -66,7 +66,7 @@ static void redraw(ARegion *region)
   ED_region_tag_redraw(region);
 }
 
-static void redraw_and_rebuild(ScrArea *area, ARegion *region)
+static void rebuild_and_redraw(ScrArea *area, ARegion *region)
 {
   /* TODO don't call this on *every* redraw. */
   SpaceAction *saction = static_cast<SpaceAction *>(area->spacedata.first);
@@ -489,13 +489,13 @@ static void action_channel_region_listener(const wmRegionListenerParams *params)
   /* context changes */
   switch (wmn->category) {
     case NC_ANIMATION:
-      redraw_and_rebuild(params->area, region);
+      rebuild_and_redraw(params->area, region);
       break;
     case NC_SCENE:
       switch (wmn->data) {
         case ND_OB_ACTIVE:
         case ND_FRAME:
-          redraw_and_rebuild(params->area, region);
+          rebuild_and_redraw(params->area, region);
           break;
       }
       break;
@@ -504,28 +504,28 @@ static void action_channel_region_listener(const wmRegionListenerParams *params)
         case ND_BONE_ACTIVE:
         case ND_BONE_SELECT:
         case ND_KEYS:
-          redraw_and_rebuild(params->area, region);
+          rebuild_and_redraw(params->area, region);
           break;
         case ND_MODIFIER:
           if (wmn->action == NA_RENAME) {
-            redraw_and_rebuild(params->area, region);
+            rebuild_and_redraw(params->area, region);
           }
           break;
       }
       break;
     case NC_GPENCIL:
       if (ELEM(wmn->action, NA_RENAME, NA_SELECTED, NA_EDITED)) {
-        redraw_and_rebuild(params->area, region);
+        rebuild_and_redraw(params->area, region);
       }
       break;
     case NC_ID:
       if (wmn->action == NA_RENAME) {
-        redraw_and_rebuild(params->area, region);
+        rebuild_and_redraw(params->area, region);
       }
       break;
     default:
       if (wmn->data == ND_KEYS) {
-        redraw_and_rebuild(params->area, region);
+        rebuild_and_redraw(params->area, region);
       }
       break;
   }
@@ -576,7 +576,7 @@ static void action_main_region_listener(const wmRegionListenerParams *params)
   /* context changes */
   switch (wmn->category) {
     case NC_ANIMATION:
-      redraw_and_rebuild(params->area, region);
+      rebuild_and_redraw(params->area, region);
       break;
     case NC_SCENE:
       switch (wmn->data) {
@@ -585,7 +585,7 @@ static void action_main_region_listener(const wmRegionListenerParams *params)
         case ND_FRAME:
         case ND_FRAME_RANGE:
         case ND_MARKERS:
-          redraw_and_rebuild(params->area, region);
+          rebuild_and_redraw(params->area, region);
           break;
       }
       break;
@@ -598,30 +598,30 @@ static void action_main_region_listener(const wmRegionListenerParams *params)
         case ND_BONE_SELECT:
         case ND_BONE_COLLECTION:
         case ND_KEYS:
-          redraw_and_rebuild(params->area, region);
+          rebuild_and_redraw(params->area, region);
           break;
       }
       break;
     case NC_NODE:
       switch (wmn->action) {
         case NA_EDITED:
-          redraw_and_rebuild(params->area, region);
+          rebuild_and_redraw(params->area, region);
           break;
       }
       break;
     case NC_ID:
       if (wmn->action == NA_RENAME) {
-        redraw_and_rebuild(params->area, region);
+        rebuild_and_redraw(params->area, region);
       }
       break;
     case NC_SCREEN:
       if (ELEM(wmn->data, ND_LAYER)) {
-        redraw_and_rebuild(params->area, region);
+        rebuild_and_redraw(params->area, region);
       }
       break;
     default:
       if (wmn->data == ND_KEYS) {
-        redraw_and_rebuild(params->area, region);
+        rebuild_and_redraw(params->area, region);
       }
       break;
   }
@@ -819,13 +819,13 @@ static void action_header_region_listener(const wmRegionListenerParams *params)
     case NC_SCENE:
       switch (wmn->data) {
         case ND_OB_ACTIVE:
-          redraw_and_rebuild(params->area, region);
+          rebuild_and_redraw(params->area, region);
           break;
       }
       break;
     case NC_ID:
       if (wmn->action == NA_RENAME) {
-        redraw_and_rebuild(params->area, region);
+        rebuild_and_redraw(params->area, region);
       }
       break;
     case NC_ANIMATION:
@@ -834,12 +834,12 @@ static void action_header_region_listener(const wmRegionListenerParams *params)
           /* NOTE: for now, this should usually just mean that the filters changed
            *       It may be better if we had a dedicated flag for that though
            */
-          redraw_and_rebuild(params->area, region);
+          rebuild_and_redraw(params->area, region);
           break;
 
         case ND_KEYFRAME: /* new keyframed added -> active action may have changed */
           // saction->flag |= SACTION_TEMP_NEEDCHANSYNC;
-          redraw_and_rebuild(params->area, region);
+          rebuild_and_redraw(params->area, region);
           break;
       }
       break;
@@ -855,13 +855,13 @@ static void action_footer_region_listener(const wmRegionListenerParams *params)
   switch (wmn->category) {
     case NC_SCREEN:
       if (wmn->data == ND_ANIMPLAY) {
-        redraw_and_rebuild(params->area, region);
+        rebuild_and_redraw(params->area, region);
       }
       break;
     case NC_SCENE:
       switch (wmn->data) {
         case ND_FRAME:
-          redraw_and_rebuild(params->area, region);
+          rebuild_and_redraw(params->area, region);
           break;
       }
       break;
@@ -900,14 +900,14 @@ static void action_region_listener(const wmRegionListenerParams *params)
   /* context changes */
   switch (wmn->category) {
     case NC_ANIMATION:
-      redraw_and_rebuild(params->area, region);
+      rebuild_and_redraw(params->area, region);
       break;
     case NC_SCENE:
       switch (wmn->data) {
         case ND_OB_ACTIVE:
         case ND_FRAME:
         case ND_MARKERS:
-          redraw_and_rebuild(params->area, region);
+          rebuild_and_redraw(params->area, region);
           break;
       }
       break;
@@ -916,13 +916,13 @@ static void action_region_listener(const wmRegionListenerParams *params)
         case ND_BONE_ACTIVE:
         case ND_BONE_SELECT:
         case ND_KEYS:
-          redraw_and_rebuild(params->area, region);
+          rebuild_and_redraw(params->area, region);
           break;
       }
       break;
     default:
       if (wmn->data == ND_KEYS) {
-        redraw_and_rebuild(params->area, region);
+        rebuild_and_redraw(params->area, region);
       }
       break;
   }

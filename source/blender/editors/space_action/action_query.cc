@@ -29,6 +29,16 @@ void SpaceAction_Runtime::clear_data_cache()
 
 namespace ed::action {
 
+static ed::animfilter::CollectionFilters get_filters(SpaceAction &saction)
+{
+  using namespace ed::animfilter;
+  CollectionFilters filters;
+  if (saction.ads.filterflag & ADS_FILTER_ONLYSEL) {
+    filters.only_selected = true;
+  }
+  return filters;
+}
+
 static MutableSpan<ed::animfilter::DataChannel *> get_or_create_data_channels(const bContext &C,
                                                                               SpaceAction &saction)
 {
@@ -38,7 +48,7 @@ static MutableSpan<ed::animfilter::DataChannel *> get_or_create_data_channels(co
    * states. */
   if (saction.runtime->data_channels.is_empty()) {
     /* TODO collect pins here? */
-    collect_animation_channels(C, {}, saction.runtime->data_channels);
+    collect_animation_channels(C, get_filters(saction), saction.runtime->data_channels);
   }
 
   return saction.runtime->data_channels;
