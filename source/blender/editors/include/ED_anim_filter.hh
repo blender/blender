@@ -8,6 +8,8 @@
 
 #include <iostream>
 
+#include "float.h"
+
 #include "BLI_set.hh"
 #include "BLI_vector.hh"
 
@@ -133,12 +135,38 @@ class ChannelTagStack {
   };
 };
 
+/* A point in time with various properties. */
+struct KeyPoint {
+  float frame = FLT_MAX;
+
+  int64_t hash() const
+  {
+    return get_default_hash(frame);
+  }
+
+  bool operator<(const KeyPoint &other) const
+  {
+    return this->frame < other.frame;
+  }
+
+  bool operator==(const KeyPoint &other) const
+  {
+    /* Equality is given if the keys are on the same frame. */
+    return this->frame == other.frame;
+  }
+
+  void merge(const KeyPoint &other)
+  {
+    BLI_assert(other == *this);
+  }
+};
+
 class AnimationChannel : public DNAAnimationChannel {
  protected:
   /* For source data lookups during runtime where the data may be removed at any moment. */
   WeakRNAPointer weak_source_;
   /* Datapoints is not declared in the dna struct since it can just be calculated at runtime. */
-  Vector<float> datapoints_;
+  Vector<KeyPoint> datapoints_;
 
  public:
   AnimationChannel(DNAChannelType type, StringRef label);
@@ -164,7 +192,7 @@ class AnimationChannel : public DNAAnimationChannel {
   {
     return &this->flags_;
   }
-  Span<float> datapoints();
+  Span<KeyPoint> datapoints();
 
  protected:
   virtual void gather_channeldata() = 0;

@@ -2,6 +2,8 @@
  *
  * SPDX-License-Identifier: GPL-2.0-or-later */
 
+#include "float.h"
+
 #include "BLI_string.hh"
 
 #include "DNA_anim_types.h"
@@ -100,7 +102,7 @@ AnimationChannel::~AnimationChannel()
   MEM_delete(label_);
 }
 
-Span<float> AnimationChannel::datapoints()
+Span<KeyPoint> AnimationChannel::datapoints()
 {
   if (this->flags_ & ANIM_CHANNEL_DIRTY) {
     this->gather_channeldata();
@@ -122,16 +124,60 @@ SummaryChannel::SummaryChannel(const StringRef label, const WeakRNAPointer &ptr)
 
 void SummaryChannel::gather_channeldata()
 {
-  Set<float> points;
-  for (AnimationChannel *child : this->children_) {
-    for (const float datapoint : child->datapoints()) {
-      points.add(datapoint);
-    }
-  }
   this->datapoints_.clear();
-  this->datapoints_.reserve(points.size());
-  for (const float p : points) {
-    this->datapoints_.append(p);
+
+  /* Combine the datapoints of all children by iterating them front to back. Assumes that the data
+   * is sorted. */
+  Array<int> channel_keypoint_indices(this->children_.size());
+  Array<Span<KeyPoint>> channel_keypoints(this->children_.size());
+  for (const int channel_index : this->children_.index_range()) {
+    channel_keypoints[channel_index] = this->children_[channel_index]->datapoints();
+    channel_keypoint_indices[channel_index] = 0;
+  }
+
+  Span<AnimationChannel *> channels = this->children();
+  /* Used to track if any child channel can be iterated further. */
+  bool has_data = true;
+
+  while (has_data) {
+    has_data = false;
+    float next_motion_frame = -FLT_MAX;
+    /* Store the index of the child channels for which we need to step to the next KeyPoint. */
+    Vector<int> channels_to_advance;
+    eBezTriple_Interpolation combined_interpolation;
+    KeyPoint next_keypoint = {FLT_MAX};
+
+    for (const int channel_index : channel_keypoint_indices.index_range()) {
+      Span<KeyPoint> child_keypoints = channel_keypoints[channel_index];
+      const int keypoint_index = channel_keypoint_indices[channel_index];
+      if (keypoint_index >= child_keypoints.size()) {
+        continue;
+      }
+
+      has_data = true;
+      const KeyPoint &child_keypoint = child_keypoints[keypoint_index];
+      if (child_keypoint.frame > next_keypoint.frame) {
+        continue;
+      }
+
+      if (child_keypoint.frame < next_keypoint.frame) {
+        next_keypoint.frame = child_keypoint.frame;
+        channels_to_advance.clear();
+        channels_to_advance.append(channel_index);
+      }
+      else {
+        BLI_assert(child_keypoint.frame == next_keypoint.frame);
+        channels_to_advance.append(channel_index);
+      }
+    }
+
+    for (const int channel_index : channels_to_advance) {
+      channel_keypoint_indices[channel_index]++;
+    }
+
+    if (has_data) {
+      this->datapoints_.append(std::move(next_keypoint));
+    }
   }
 }
 
@@ -226,7 +272,8 @@ void DataChannel::gather_channeldata()
       }
       this->datapoints_.resize(fcurve->totvert);
       for (int i = 0; i < fcurve->totvert; i++) {
-        this->datapoints_[i] = fcurve->bezt[i].vec[1][0];
+        KeyPoint p = {fcurve->bezt[i].vec[1][0]};
+        this->datapoints_[i] = p;
       }
       break;
     }
@@ -238,7 +285,8 @@ void DataChannel::gather_channeldata()
       }
       bke::greasepencil::Layer &layer = gp_layer->wrap();
       for (int frame : layer.frames().keys()) {
-        this->datapoints_.append(float(frame));
+        KeyPoint p = {float(frame)};
+        this->datapoints_.append(p);
       }
       break;
     }

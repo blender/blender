@@ -147,7 +147,7 @@ void draw_channel_tree(const bContext &C, SummaryChannel &root, View2D &v2d)
 
 static void draw_channel_keys(AnimationChannel &channel, const float row_top, View2D &v2d)
 {
-  Span<float> datapoints = channel.datapoints();
+  Span<KeyPoint> datapoints = channel.datapoints();
   if (datapoints.is_empty()) {
     return;
   }
@@ -170,8 +170,8 @@ static void draw_channel_keys(AnimationChannel &channel, const float row_top, Vi
   immUniform2f("ViewportSize", BLI_rcti_size_x(&v2d.mask) + 1, BLI_rcti_size_y(&v2d.mask) + 1);
   immBegin(GPU_PRIM_POINTS, datapoints.size());
 
-  for (const float x : datapoints) {
-    draw_keyframe_shape(x,
+  for (const KeyPoint &point : datapoints) {
+    draw_keyframe_shape(point.frame,
                         row_top,
                         U.widget_unit * 0.5f,
                         /* sel= */ false,
@@ -179,7 +179,7 @@ static void draw_channel_keys(AnimationChannel &channel, const float row_top, Vi
                         KEYFRAME_SHAPE_BOTH,
                         1.0,
                         &sh_bindings,
-                        KEYFRAME_HANDLE_AUTO,
+                        KEYFRAME_HANDLE_AUTO_CLAMP,
                         KEYFRAME_EXTREME_NONE);
   }
 
@@ -210,7 +210,7 @@ static float draw_dopesheet_keys_recurse(const bContext &C,
 
 void draw_dopesheet_keys(const bContext &C, SummaryChannel &root, View2D &v2d)
 {
-  /* TODO get step from tree view */
+  /* TODO get step from tree view. Also get expanded collapsed state from tree??*/
   const float channel_step = ANIM_UI_get_channel_step();
   const float first_channel = ANIM_UI_get_first_channel_top(&v2d);
   draw_dopesheet_keys_recurse(C, root, v2d, first_channel, channel_step);
