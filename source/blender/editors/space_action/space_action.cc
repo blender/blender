@@ -265,7 +265,7 @@ static void action_main_region_draw(const bContext *C, ARegion *region)
       ANIM_draw_framerange(scene, v2d);
     }
 
-    ed::animfilter::draw_dopesheet_keys(*C, *summaries.root, *v2d);
+    ed::animfilter::draw_dopesheet_key_area(*C, *summaries.root, *v2d);
 
     /* TODO draw markers. */
     ANIM_draw_previewrange(scene, v2d, 0);

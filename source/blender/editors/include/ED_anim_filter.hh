@@ -315,7 +315,7 @@ void draw_channel_tree(const bContext &C, SummaryChannel &root, Panel &panel);
  */
 void draw_channel_tree(const bContext &C, SummaryChannel &root, View2D &v2d);
 
-void draw_dopesheet_keys(const bContext &C, SummaryChannel &root, View2D &v2d);
+void draw_dopesheet_key_area(const bContext &C, SummaryChannel &root, View2D &v2d);
 
 }  // namespace ed::animfilter
 }  // namespace blender

@@ -145,7 +145,7 @@ void draw_channel_tree(const bContext &C, SummaryChannel &root, View2D &v2d)
   draw_channel_tree_recurse(C, root, 0, first_channel, channel_step);
 }
 
-static void draw_channel_keys(AnimationChannel &channel, const float row_top, View2D &v2d)
+static void draw_channel_keys(AnimationChannel &channel, const float y, View2D &v2d)
 {
   Span<KeyPoint> datapoints = channel.datapoints();
   if (datapoints.is_empty()) {
@@ -172,7 +172,7 @@ static void draw_channel_keys(AnimationChannel &channel, const float row_top, Vi
 
   for (const KeyPoint &point : datapoints) {
     draw_keyframe_shape(point.frame,
-                        row_top,
+                        y,
                         U.widget_unit * 0.5f,
                         point.is_selected,
                         BEZT_KEYTYPE_KEYFRAME,
@@ -190,30 +190,67 @@ static void draw_channel_keys(AnimationChannel &channel, const float row_top, Vi
   GPU_blend(GPU_BLEND_NONE);
 }
 
-static float draw_dopesheet_keys_recurse(const bContext &C,
-                                         AnimationChannel &channel,
-                                         View2D &v2d,
-                                         float row_top,
-                                         const float channel_step)
+static float draw_keys_recurse(const bContext &C,
+                               AnimationChannel &channel,
+                               View2D &v2d,
+                               float row_top,
+                               const float channel_step)
 {
-  draw_channel_keys(channel, row_top, v2d);
+  draw_channel_keys(channel, row_top - channel_step / 2.0, v2d);
   row_top -= channel_step;
 
   if (channel.type() == DNAChannelType::SUMMARY) {
+    /* TODO ignore if channel is collapsed. */
     SummaryChannel *summary = static_cast<SummaryChannel *>(&channel);
     for (AnimationChannel *child : summary->children()) {
-      row_top = draw_dopesheet_keys_recurse(C, *child, v2d, row_top, channel_step);
+      row_top = draw_keys_recurse(C, *child, v2d, row_top, channel_step);
     }
   }
   return row_top;
 }
 
-void draw_dopesheet_keys(const bContext &C, SummaryChannel &root, View2D &v2d)
+static float draw_key_area_background_recurse(const bContext &C,
+                                              AnimationChannel &channel,
+                                              View2D &v2d,
+                                              float row_top,
+                                              const float channel_step,
+                                              const uint pos)
+{
+  const float skip = ANIM_UI_get_channel_skip();
+  /* TODO get correct color. */
+  immUniformThemeColor(TH_CHANNEL);
+  immRectf(pos,
+           v2d.cur.xmin,
+           row_top - skip / 2.0f,
+           v2d.cur.xmax + 0,
+           row_top - channel_step + skip / 2.0);
+
+  row_top -= channel_step;
+  if (channel.type() == DNAChannelType::SUMMARY) {
+    /* TODO ignore if channel is collapsed. */
+    SummaryChannel *summary = static_cast<SummaryChannel *>(&channel);
+    for (AnimationChannel *child : summary->children()) {
+      row_top = draw_key_area_background_recurse(C, *child, v2d, row_top, channel_step, pos);
+    }
+  }
+  return row_top;
+}
+
+void draw_dopesheet_key_area(const bContext &C, SummaryChannel &root, View2D &v2d)
 {
   /* TODO get step from tree view. Also get expanded collapsed state from tree??*/
   const float channel_step = ANIM_UI_get_channel_step();
   const float first_channel = ANIM_UI_get_first_channel_top(&v2d);
-  draw_dopesheet_keys_recurse(C, root, v2d, first_channel, channel_step);
+
+  GPUVertFormat *format = immVertexFormat();
+  const uint pos = GPU_vertformat_attr_add(format, "pos", gpu::VertAttrType::SFLOAT_32_32);
+  immBindBuiltinProgram(GPU_SHADER_3D_UNIFORM_COLOR);
+  GPU_blend(GPU_BLEND_ALPHA);
+  draw_key_area_background_recurse(C, root, v2d, first_channel, channel_step, pos);
+  immUnbindProgram();
+  GPU_blend(GPU_BLEND_NONE);
+
+  draw_keys_recurse(C, root, v2d, first_channel, channel_step);
 }
 
 }  // namespace blender::ed::animfilter
