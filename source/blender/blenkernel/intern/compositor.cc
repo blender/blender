@@ -658,6 +658,12 @@ void add_depsgraph_relations(Scene &scene,
                                   DEG_OB_COMP_PARAMETERS,
                                   "Camera Parameters -> Compositor");
         }
+        if (object->type == OB_ARMATURE && info.pose) {
+          DEG_add_object_relation(compositor_output_depsgraph_node,
+                                  object,
+                                  DEG_OB_COMP_EVAL_POSE,
+                                  "Armature Pose -> Compositor");
+        }
         break;
       }
       case ID_IM:

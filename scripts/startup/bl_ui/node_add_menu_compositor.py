@@ -65,6 +65,7 @@ class NODE_MT_compositor_node_input_scene_base(node_add_menu.NodeMenu):
     def draw(self, context):
         layout = self.layout
         self.node_operator(layout, "GeometryNodeInputActiveCamera")
+        self.node_operator(layout, "GeometryNodeBoneInfo")
         self.node_operator(layout, "GeometryNodeCameraInfo")
         self.node_operator(layout, "GeometryNodeIsViewport")
         self.node_operator(layout, "GeometryNodeObjectInfo")
