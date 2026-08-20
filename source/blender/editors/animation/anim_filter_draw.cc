@@ -2,11 +2,16 @@
  *
  * SPDX-License-Identifier: GPL-2.0-or-later */
 
+#include "BLI_rect.hh"
+
 #include "BKE_context.hh"
 
 #include "BLT_translation.hh"
 
 #include "DNA_userdef_types.h"
+
+#include "GPU_immediate.hh"
+#include "GPU_state.hh"
 
 #include "UI_interface_c.hh"
 #include "UI_interface_icons.hh"
@@ -16,6 +21,8 @@
 
 #include "ED_anim_api.hh"
 #include "ED_anim_filter.hh"
+#include "ED_keyframes_draw.hh"
+
 namespace blender {
 
 }  // namespace blender
@@ -136,6 +143,77 @@ void draw_channel_tree(const bContext &C, SummaryChannel &root, View2D &v2d)
   const float channel_step = ANIM_UI_get_channel_step();
   const float first_channel = ANIM_UI_get_first_channel_top(&v2d);
   draw_channel_tree_recurse(C, root, 0, first_channel, channel_step);
+}
+
+static void draw_channel_keys(AnimationChannel &channel, const float row_top, View2D &v2d)
+{
+  Span<float> datapoints = channel.datapoints();
+  if (datapoints.is_empty()) {
+    return;
+  }
+  GPU_blend(GPU_BLEND_ALPHA);
+
+  GPUVertFormat *format = immVertexFormat();
+  KeyframeShaderBindings sh_bindings;
+
+  sh_bindings.pos_id = GPU_vertformat_attr_add(format, "pos", gpu::VertAttrType::SFLOAT_32_32);
+  sh_bindings.size_id = GPU_vertformat_attr_add(format, "size", gpu::VertAttrType::SFLOAT_32);
+  sh_bindings.color_id = GPU_vertformat_attr_add(
+      format, "color", gpu::VertAttrType::UNORM_8_8_8_8);
+  sh_bindings.outline_color_id = GPU_vertformat_attr_add(
+      format, "outlineColor", gpu::VertAttrType::UNORM_8_8_8_8);
+  sh_bindings.flags_id = GPU_vertformat_attr_add(format, "flags", gpu::VertAttrType::UINT_32);
+
+  GPU_program_point_size(true);
+  immBindBuiltinProgram(GPU_SHADER_KEYFRAME_SHAPE);
+  immUniform1f("outline_scale", 1.0f);
+  immUniform2f("ViewportSize", BLI_rcti_size_x(&v2d.mask) + 1, BLI_rcti_size_y(&v2d.mask) + 1);
+  immBegin(GPU_PRIM_POINTS, datapoints.size());
+
+  for (const float x : datapoints) {
+    draw_keyframe_shape(x,
+                        row_top,
+                        U.widget_unit * 0.5f,
+                        /* sel= */ false,
+                        BEZT_KEYTYPE_KEYFRAME,
+                        KEYFRAME_SHAPE_BOTH,
+                        1.0,
+                        &sh_bindings,
+                        KEYFRAME_HANDLE_AUTO,
+                        KEYFRAME_EXTREME_NONE);
+  }
+
+  immEnd();
+  GPU_program_point_size(false);
+  immUnbindProgram();
+
+  GPU_blend(GPU_BLEND_NONE);
+}
+
+static float draw_dopesheet_keys_recurse(const bContext &C,
+                                         AnimationChannel &channel,
+                                         View2D &v2d,
+                                         float row_top,
+                                         const float channel_step)
+{
+  draw_channel_keys(channel, row_top, v2d);
+  row_top -= channel_step;
+
+  if (channel.type() == DNAChannelType::SUMMARY) {
+    SummaryChannel *summary = static_cast<SummaryChannel *>(&channel);
+    for (AnimationChannel *child : summary->children()) {
+      row_top = draw_dopesheet_keys_recurse(C, *child, v2d, row_top, channel_step);
+    }
+  }
+  return row_top;
+}
+
+void draw_dopesheet_keys(const bContext &C, SummaryChannel &root, View2D &v2d)
+{
+  /* TODO get step from tree view */
+  const float channel_step = ANIM_UI_get_channel_step();
+  const float first_channel = ANIM_UI_get_first_channel_top(&v2d);
+  draw_dopesheet_keys_recurse(C, root, v2d, first_channel, channel_step);
 }
 
 }  // namespace blender::ed::animfilter

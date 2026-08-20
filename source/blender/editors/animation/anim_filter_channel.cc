@@ -149,13 +149,15 @@ void SummaryChannel::remove_child(AnimationChannel &child)
 }
 
 DataChannel::DataChannel(animrig::Action &containing_action, FCurve &fcurve)
-    : AnimationChannel(DNAChannelType::DATA, fcurve.rna_path())
+    : AnimationChannel(DNAChannelType::DATA, fcurve.rna_path()),
+      source_type_(DataChannelType::FCURVE)
 {
   this->weak_source_ = RNA_pointer_create_discrete(&containing_action.id, RNA_FCurve, &fcurve);
 }
 
 DataChannel::DataChannel(GreasePencil &containing_gp, GreasePencilLayer &gp_layer)
-    : AnimationChannel(DNAChannelType::DATA, "todo gp layer name")
+    : AnimationChannel(DNAChannelType::DATA, "todo gp layer name"),
+      source_type_(DataChannelType::GREASE_PENCIL)
 {
   this->weak_source_ = RNA_pointer_create_discrete(
       &containing_gp.id, RNA_GreasePencilLayer, &gp_layer);

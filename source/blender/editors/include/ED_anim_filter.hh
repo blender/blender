@@ -203,7 +203,7 @@ class DataChannel : public AnimationChannel {
    * into a switch statement which is why I (christoph) ended up keeping this. */
   DataChannelType source_type_;
   Set<ChannelTag> tags_;
-  DataChannelFlags flags_;
+  DataChannelFlags flags_ = DataChannelFlags(0);
 
  public:
   DataChannel(animrig::Action &containing_action, FCurve &fcurve);
@@ -253,6 +253,8 @@ void collect_animation_channels(const bContext &C,
                                 Vector<DataChannel *> &r_channels);
 
 struct ChannelTree {
+  /* TODO make this a reference, at least the summary channel should be created, even if there are
+   * no children. */
   SummaryChannel *root;
   int channel_count;
 };
@@ -277,10 +279,13 @@ Vector<SummaryChannel *> group_channels(MutableSpan<DataChannel *> channels,
  */
 void draw_channel_tree(const bContext &C, SummaryChannel &root, Panel &panel);
 /**
- * Draw the whole tree starting at the root.
+ * Draw the whole tree starting at the root using the legacy UI code.
  * TODO maybe the drawing code should not be in this header?
+ * TODO remove this if tree view ends up working.
  */
 void draw_channel_tree(const bContext &C, SummaryChannel &root, View2D &v2d);
+
+void draw_dopesheet_keys(const bContext &C, SummaryChannel &root, View2D &v2d);
 
 }  // namespace ed::animfilter
 }  // namespace blender
