@@ -334,11 +334,16 @@ option(WITH_HARU "Enable features relying on Libharu (Grease Pencil PDF export)"
 option(WITH_GHOST_DEBUG "Enable debugging output for the GHOST library" OFF)
 mark_as_advanced(WITH_GHOST_DEBUG)
 
-option(WITH_GHOST_SDL "\
+if(ANDROID)
+  # Currently SDL is the only supported GHOST backend for Android, unconditionally enable.
+  set(WITH_GHOST_SDL ON)
+else()
+  option(WITH_GHOST_SDL "\
 Enable building Blender against SDL for windowing rather than the native APIs"
-  OFF
-)
-mark_as_advanced(WITH_GHOST_SDL)
+    OFF
+  )
+  mark_as_advanced(WITH_GHOST_SDL)
+endif()
 
 if(UNIX AND NOT (APPLE OR HAIKU OR ANDROID))
   option(WITH_GHOST_X11 "Enable building Blender against X11 for windowing" ON)
