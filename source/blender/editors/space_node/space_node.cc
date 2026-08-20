@@ -1092,16 +1092,21 @@ static bool node_import_file_drop_poll(bContext *C, wmDrag *drag, const wmEvent 
   if (!snode->edittree) {
     return false;
   }
-  if (snode->edittree->type != NTREE_GEOMETRY) {
+  if (!ELEM(snode->edittree->type, NTREE_GEOMETRY, NTREE_COMPOSIT)) {
     return false;
   }
   if (drag->type != WM_DRAG_PATH) {
     return false;
   }
+  const bool is_geometry_tree = snode->edittree->type == NTREE_GEOMETRY;
   const Span<std::string> paths = WM_drag_get_paths(drag);
   for (const StringRef path : paths) {
-    if (path.endswith(".csv") || path.endswith(".obj") || path.endswith(".ply") ||
-        path.endswith(".stl") || path.endswith(".txt") || path.endswith(".vdb"))
+    if (path.endswith(".txt")) {
+      return true;
+    }
+    if (is_geometry_tree &&
+        (path.endswith(".csv") || path.endswith(".obj") || path.endswith(".ply") ||
+         path.endswith(".stl") || path.endswith(".vdb")))
     {
       return true;
     }
