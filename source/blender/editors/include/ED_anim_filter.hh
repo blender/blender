@@ -138,6 +138,7 @@ class ChannelTagStack {
 /* A point in time with various properties. */
 struct KeyPoint {
   float frame = FLT_MAX;
+  bool is_selected = false;
 
   int64_t hash() const
   {
@@ -158,6 +159,7 @@ struct KeyPoint {
   void merge(const KeyPoint &other)
   {
     BLI_assert(other == *this);
+    is_selected |= other.is_selected;
   }
 };
 

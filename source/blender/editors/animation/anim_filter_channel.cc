@@ -135,16 +135,13 @@ void SummaryChannel::gather_channeldata()
     channel_keypoint_indices[channel_index] = 0;
   }
 
-  Span<AnimationChannel *> channels = this->children();
   /* Used to track if any child channel can be iterated further. */
   bool has_data = true;
 
   while (has_data) {
     has_data = false;
-    float next_motion_frame = -FLT_MAX;
     /* Store the index of the child channels for which we need to step to the next KeyPoint. */
     Vector<int> channels_to_advance;
-    eBezTriple_Interpolation combined_interpolation;
     KeyPoint next_keypoint = {FLT_MAX};
 
     for (const int channel_index : channel_keypoint_indices.index_range()) {
@@ -161,12 +158,13 @@ void SummaryChannel::gather_channeldata()
       }
 
       if (child_keypoint.frame < next_keypoint.frame) {
-        next_keypoint.frame = child_keypoint.frame;
+        next_keypoint = child_keypoint;
         channels_to_advance.clear();
         channels_to_advance.append(channel_index);
       }
       else {
         BLI_assert(child_keypoint.frame == next_keypoint.frame);
+        next_keypoint.merge(child_keypoint);
         channels_to_advance.append(channel_index);
       }
     }
@@ -272,7 +270,9 @@ void DataChannel::gather_channeldata()
       }
       this->datapoints_.resize(fcurve->totvert);
       for (int i = 0; i < fcurve->totvert; i++) {
-        KeyPoint p = {fcurve->bezt[i].vec[1][0]};
+        BezTriple &key = fcurve->bezt[i];
+        KeyPoint p = {key.vec[1][0]};
+        p.is_selected = BEZT_ISSEL_ANY(&key);
         this->datapoints_[i] = p;
       }
       break;

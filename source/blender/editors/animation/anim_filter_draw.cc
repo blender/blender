@@ -174,7 +174,7 @@ static void draw_channel_keys(AnimationChannel &channel, const float row_top, Vi
     draw_keyframe_shape(point.frame,
                         row_top,
                         U.widget_unit * 0.5f,
-                        /* sel= */ false,
+                        point.is_selected,
                         BEZT_KEYTYPE_KEYFRAME,
                         KEYFRAME_SHAPE_BOTH,
                         1.0,
