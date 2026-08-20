@@ -21,28 +21,46 @@ namespace blender {
 }  // namespace blender
 
 namespace blender::ed::animfilter {
+
+class ChannelItem : public ui::AbstractTreeViewItem {
+  AnimationChannel &channel_;
+
+ public:
+  ChannelItem(AnimationChannel &channel) : channel_(channel) {}
+
+  void build_row(ui::Layout &layout) override
+  {
+    layout.label(channel_.label(), ICON_NONE);
+  }
+};
+
 class ChannelTreeView : public ui::AbstractTreeView {
 
   SummaryChannel &root_;
 
-  void add_channel_children(ui::BasicTreeViewItem &parent, Span<AnimationChannel *> channels)
+  void add_channel_children(ChannelItem &parent, Span<AnimationChannel *> channels)
   {
     for (AnimationChannel *channel : channels) {
-      ui::BasicTreeViewItem &item = parent.add_tree_item<ui::BasicTreeViewItem>(channel->label());
+      ChannelItem &item = parent.add_tree_item<ChannelItem>(*channel);
       if (channel->type() == DNAChannelType::SUMMARY) {
         SummaryChannel *summary = static_cast<SummaryChannel *>(channel);
         add_channel_children(item, summary->children());
       }
+      item.uncollapse_by_default();
     }
   }
 
  public:
-  ChannelTreeView(SummaryChannel &root) : root_(root) {}
+  ChannelTreeView(SummaryChannel &root) : root_(root)
+  {
+    /* TODO disable scroll bar. */
+  }
 
   void build_tree() override
   {
-    ui::BasicTreeViewItem &root_item = add_tree_item<ui::BasicTreeViewItem>(root_.label());
+    ChannelItem &root_item = add_tree_item<ChannelItem>(root_);
     add_channel_children(root_item, root_.children());
+    root_item.uncollapse_by_default();
   }
 };
 
