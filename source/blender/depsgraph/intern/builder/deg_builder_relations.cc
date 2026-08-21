@@ -987,9 +987,7 @@ void DepsgraphRelationBuilder::build_object_modifiers(Object *object)
 
 void DepsgraphRelationBuilder::build_object_data(Object *object)
 {
-  if (object->type == OB_EMPTY &&
-      (!BLI_listbase_is_empty(&object->modifiers) || object->instance_collection))
-  {
+  if (object->type == OB_EMPTY && !BLI_listbase_is_empty(&object->modifiers)) {
     build_object_data_empty(object);
     return;
   }
