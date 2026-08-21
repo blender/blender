@@ -283,7 +283,7 @@ std::string ED_mesh_color_add(Mesh *mesh,
   if (const BMEditMesh *em = mesh->runtime->edit_mesh.get()) {
     BM_data_layer_add_named(em->bm, &em->bm->ldata, CD_PROP_BYTE_COLOR, new_name);
     if (do_init) {
-      const BMDataLayerLookup active_attr = BM_data_layer_lookup(*em->bm, name);
+      const BMDataLayerLookup active_attr = BM_data_layer_lookup(*em->bm, active_name);
       if (active_attr.type == bke::AttrType::ColorByte &&
           active_attr.domain == bke::AttrDomain::Corner)
       {
