@@ -90,7 +90,7 @@ if(DEFINED LIBDIR)
   # NOTE: Make sure "proper" compiled zlib comes first
   set(CMAKE_PREFIX_PATH ${LIBDIR}/zlib ${LIB_SUBDIRS})
 
-  include(platform_old_libs_update)
+  include("${CMAKE_CURRENT_LIST_DIR}/platform_old_libs_update.cmake")
 
   set(WITH_STATIC_LIBS ON)
   set(OPENEXR_ROOT_DIR ${LIBDIR}/openexr)
