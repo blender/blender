@@ -22,7 +22,8 @@ void main()
   float4 color = texture_load(input_tx, texel);
 
   /* An opaque pixel, not part of the inpainting region. */
-  if (color.a == 1.0f) {
+  constexpr float alpha_threshold = 1.0f - 1e-3f;
+  if (color.a >= alpha_threshold) {
     imageStore(filled_region_img, texel, color);
     imageStore(smoothing_radius_img, texel, float4(0.0f));
     imageStore(distance_to_boundary_img, texel, float4(0.0f));
