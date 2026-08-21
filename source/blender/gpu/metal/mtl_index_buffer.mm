@@ -258,6 +258,13 @@ void MTLIndexBuf::copy_sub(IndexBuf &source_buf,
   if (dst_buf.storageMode == MTLStorageModeManaged) {
     [enc synchronizeResource:dst_buf];
   }
+
+  /* Invalidate patched/optimized buffers. */
+  this->free_optimized_buffer();
+
+  /* Flag buffer as incompatible with optimized/patched buffers as contents
+   * have partial modifications. */
+  this->flag_can_optimize(false);
 }
 
 void MTLIndexBuf::flag_can_optimize(bool can_optimize)
