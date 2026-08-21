@@ -241,15 +241,12 @@ class Context : public compositor::Context {
     }
 
     /* Only cache if any of the effects are time dependent. */
-    for (const SceneCompositorEffect &effect : input_data_.scene.compositor_effects) {
-      if (!bke::compositor::is_effect_enabled(effect, bke::compositor::ExecutionMode::Preview)) {
-        continue;
-      }
-
-      const bNodeTree *original_node_tree = DEG_get_original(effect.node_group);
-      if (original_node_tree->runtime->eval_dependencies->time_dependent) {
-        return true;
-      }
+    const Scene &original_scene = *DEG_get_original(&input_data_.scene);
+    if (DEG_scene_component_depends_on_time(*original_scene.runtime->compositor.preview_depsgraph,
+                                            original_scene,
+                                            DEG_SCENE_COMP_COMPOSITOR))
+    {
+      return true;
     }
 
     return false;
