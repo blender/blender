@@ -1050,6 +1050,10 @@ bool popup_context_menu_for_button(bContext *C, Button *but, const wmEvent *even
     if (asset && asset->is_online_only()) {
       layout.op("ASSET_OT_assets_download", {}, ICON_DOWNLOAD);
     }
+    if (asset && asset->get_metadata().webpage) {
+      PointerRNA op_ptr = layout.op("WM_OT_url_open", "Visit Webpage", ICON_URL);
+      RNA_string_set(&op_ptr, "url", asset->get_metadata().webpage);
+    }
   }
 
   {

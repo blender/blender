@@ -244,6 +244,8 @@ def _get_asset_meta(asset_data: bpy.types.AssetData) -> api_models.AssetMetadata
         meta.description = asset_data.description
     if asset_data.license:
         meta.license = asset_data.license
+    if asset_data.webpage:
+        meta.webpage = asset_data.webpage
     if asset_data.copyright:
         meta.copyright = asset_data.copyright
     if asset_data.use_preferred_import_method:

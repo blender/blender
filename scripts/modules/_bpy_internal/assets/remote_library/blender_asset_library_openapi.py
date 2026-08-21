@@ -269,6 +269,7 @@ class AssetMetadataV1:
     author: str | None = None
     description: str | None = None
     license: str | None = None
+    webpage: str | None = None
     copyright: str | None = None
     properties: CustomPropertiesV1 | None = None
 
