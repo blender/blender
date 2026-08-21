@@ -1115,8 +1115,8 @@ static SeqResult do_text_effect(const RenderData *context,
   TextVars *data = static_cast<TextVars *>(strip->effectdata);
 
   /* Guard against parallel accesses to the fonts map. */
-  std::lock_guard font_map_lock(g_font_map.mutex);
   std::lock_guard text_runtime_lock(text_runtime_mutex);
+  std::lock_guard font_map_lock(g_font_map.mutex);
 
   text_effect_update_runtime(context, *data, {out.image->x, out.image->y});
   const int font = data->runtime->font;
