@@ -162,7 +162,7 @@ void node_bsdf_principled(float4 base_color,
 
     if (!all(equal(coat_tint.rgb, float3(1.0f)))) {
       /* Tint lower layers. */
-      const float3 tint = slab_transmittance_at_angle(coat_tint.rgb, NV, coat_ior);
+      const float3 tint = slab_transmittance_at_angle(coat_tint.rgb, coat_NV, coat_ior);
       coat_tint.rgb = mix(float3(1.0f), tint, saturate(coat_weight));
     }
   }
