@@ -1096,7 +1096,7 @@ class PREFERENCES_OT_studiolight_install(Operator):
     )
     filter_glob: StringProperty(
         default="*.png;*.jpg;*.hdr;*.exr",
-        options={'HIDDEN'},
+        options={'HIDDEN', 'SKIP_SAVE'},
     )
     type: EnumProperty(
         name="Type",
