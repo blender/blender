@@ -4,6 +4,9 @@
 
 #include "BLI_string_ref.hh"
 
+#include "BKE_node.hh"
+#include "BKE_node_socket_value.hh"
+
 #include "COM_bundle_item.hh"
 #include "COM_context.hh"
 #include "COM_result.hh"
@@ -18,14 +21,24 @@ BundleItem::BundleItem(Context &context, Result &result)
 
 nodes::BundleItemValue BundleItem::new_bundle_item_value(Context &context, Result &result)
 {
+  /* Nested bundles are a special case and are stored in BundleItemSocketValue as opposed to
+   * BundleItemInternalValue. This is because the internal bundle API uses that and the compositor
+   * can't control it. */
+  if (result.type() == ResultType::Bundle) {
+    const bke::bNodeSocketType *socket_type = bke::node_socket_type_find_static(SOCK_BUNDLE);
+    return nodes::BundleItemValue{nodes::BundleItemSocketValue{
+        socket_type, bke::SocketValueVariant::From(result.get_single_value<nodes::BundlePtr>())}};
+  }
+
   return nodes::BundleItemValue{nodes::BundleItemInternalValue{
       ImplicitSharingPtr<const BundleItem>(new BundleItem(context, result))}};
 }
 
 Result BundleItem::get_result(Context &context, const nodes::BundleItemValue &item_value)
 {
-  /* Handle a special case where nested bundles might be stored in BundleItemSocketValue as
-   * opposed to BundleItemInternalValue. */
+  /* Nested bundles are a special case and are stored in BundleItemSocketValue as opposed to
+   * BundleItemInternalValue. This is because the internal bundle API uses that and the compositor
+   * can't control it. */
   std::optional<nodes::BundlePtr> child_bundle = item_value.as<nodes::BundlePtr>();
   if (child_bundle.has_value()) {
     Result result = context.create_result(ResultType::Bundle);
