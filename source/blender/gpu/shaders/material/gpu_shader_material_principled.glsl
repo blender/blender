@@ -51,7 +51,7 @@ void node_bsdf_principled(float4 base_color,
                           float alpha,
                           float thin_wall,
                           float3 N,
-                          float weight,
+                          float float_weight,
                           float diffuse_roughness,
                           float subsurface_weight,
                           float3 subsurface_radius,
@@ -114,11 +114,12 @@ void node_bsdf_principled(float4 base_color,
   CN = normalize_fallback(CN, g_data.N);
   float3 V = coordinate_incoming(g_data.P);
   float NV = dot(N, V);
+  float3 weight = float3(float_weight);
 
   /* Transparency component. */
   if (true) {
     ClosureTransparency transparency_data;
-    transparency_data.transmittance = float3((1.0f - alpha) * weight);
+    transparency_data.transmittance = (1.0f - alpha) * weight;
     transparency_data.holdout = 0.0f;
     closure_eval(transparency_data);
 
@@ -126,7 +127,7 @@ void node_bsdf_principled(float4 base_color,
   }
 
   /* First layer: Sheen */
-  float3 sheen_data_color = float3(0.0f);
+  float3 diffuse_color = float3(0.0f);
   if (sheen_weight > 0.0f) {
     float sheen_NV = NV;
 #ifdef MAT_CLEARCOAT
@@ -137,10 +138,11 @@ void node_bsdf_principled(float4 base_color,
 #endif
     sheen_NV = saturate(sheen_NV);
 
-    /* TODO: Maybe sheen_weight should be specular. */
     float3 sheen_color = sheen_weight * sheen_tint.rgb *
                          principled_sheen(sheen_NV, sheen_roughness);
-    sheen_data_color = weight * sheen_color;
+    /* Consider sheen as diffuse until we have proper sheen BSDF. */
+    /* TODO: Maybe sheen_weight should be specular. */
+    diffuse_color = weight * sheen_color;
     /* Attenuate lower layers */
     weight *= max((1.0f - math_reduce_max(sheen_color)), 0.0f);
   }
@@ -154,7 +156,7 @@ void node_bsdf_principled(float4 base_color,
     ClosureReflection coat_data;
     coat_data.N = CN;
     coat_data.roughness = coat_roughness;
-    coat_data.color = float3(weight * coat_weight * reflectance);
+    coat_data.color = weight * coat_weight * reflectance;
     closure_eval(coat_data);
 
     /* Attenuate lower layers */
@@ -165,12 +167,9 @@ void node_bsdf_principled(float4 base_color,
       const float3 tint = slab_transmittance_at_angle(coat_tint.rgb, coat_NV, coat_ior);
       coat_tint.rgb = mix(float3(1.0f), tint, saturate(coat_weight));
     }
+
+    weight *= coat_tint.rgb;
   }
-  else {
-    coat_tint.rgb = float3(1.0f);
-  }
-#else
-  coat_tint.rgb = float3(1.0f);
 #endif
 
   /* Emission component.
@@ -178,7 +177,7 @@ void node_bsdf_principled(float4 base_color,
    */
   if (true) {
     ClosureEmission emission_data;
-    emission_data.emission = coat_tint.rgb * emission.rgb * (emission_strength * weight);
+    emission_data.emission = emission.rgb * emission_strength * weight;
     closure_eval(emission_data);
   }
 
@@ -214,7 +213,7 @@ void node_bsdf_principled(float4 base_color,
 
       /* Transmission. */
       ClosureThinRefraction refraction_data;
-      refraction_data.color = transmittance * coat_tint.rgb * (weight * transmission_weight);
+      refraction_data.color = transmittance * weight * transmission_weight;
       refraction_data.N = N;
       refraction_data.roughness = thin_glass_transmission_roughness(roughness, ior);
       closure_eval(refraction_data);
@@ -234,7 +233,7 @@ void node_bsdf_principled(float4 base_color,
       refraction_data.N = N;
       refraction_data.roughness = roughness;
       refraction_data.ior = ior;
-      refraction_data.color = transmittance * coat_tint.rgb * (weight * transmission_weight);
+      refraction_data.color = transmittance * weight * transmission_weight;
       closure_eval(refraction_data);
     }
 
@@ -267,27 +266,25 @@ void node_bsdf_principled(float4 base_color,
     ClosureReflection reflection_data;
     reflection_data.N = N;
     reflection_data.roughness = roughness;
-    reflection_data.color = (reflection_color + weight * reflectance) * coat_tint.rgb;
+    reflection_data.color = reflection_color + weight * reflectance;
     closure_eval(reflection_data);
 
     /* Attenuate lower layers */
     weight *= max((1.0f - math_reduce_max(reflectance)), 0.0f);
   }
 
-  float diffuse_weight = 0.0f;
-
   /* Subsurface component */
   if (subsurface_weight > 0.0f) {
     if (thin_wall != 0.0f) {
       /* Backward scattering is approximated by diffuse. */
-      diffuse_weight = subsurface_weight * weight *
+      diffuse_color += base_color.rgb * weight * subsurface_weight *
                        saturate(0.5f * (1.0f - subsurface_anisotropy));
 
-      float tw_weight = subsurface_weight * weight *
-                        saturate(0.5f * (1.0f + subsurface_anisotropy));
+      const float transmit_weight = subsurface_weight *
+                                    saturate(0.5f * (1.0f + subsurface_anisotropy));
       /* Forward scattering is approximated by translucent. */
       ClosureTranslucent translucent_data;
-      translucent_data.color = base_color.rgb * coat_tint.rgb * tw_weight;
+      translucent_data.color = base_color.rgb * transmit_weight * weight;
       translucent_data.N = N;
       closure_eval(translucent_data);
     }
@@ -300,7 +297,7 @@ void node_bsdf_principled(float4 base_color,
                                 float3(0.0f));
       /* Subsurface Scattering materials behave unpredictably with values greater than 1.0 in
        * Cycles. So it's clamped there and we clamp here for consistency with Cycles. */
-      sss_data.color = (subsurface_weight * weight) * clamped_base_color.rgb * coat_tint.rgb;
+      sss_data.color = subsurface_weight * weight * clamped_base_color.rgb;
       closure_eval(sss_data);
     }
 #endif
@@ -314,9 +311,8 @@ void node_bsdf_principled(float4 base_color,
   if (true) {
     ClosureDiffuse diffuse_data;
     diffuse_data.N = N;
-    diffuse_data.color = (diffuse_weight + weight) * base_color.rgb * coat_tint.rgb;
-    /* Add energy of the sheen layer until we have proper sheen BSDF. */
-    diffuse_data.color += sheen_data_color;
+    diffuse_data.color = diffuse_color + weight * base_color.rgb;
+
     closure_eval(diffuse_data);
   }
 #endif
