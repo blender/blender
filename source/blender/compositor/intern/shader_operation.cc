@@ -45,10 +45,9 @@
 namespace blender::compositor {
 
 ShaderOperation::ShaderOperation(Context &context,
-                                 PixelCompileUnit &compile_unit,
-                                 const Schedule &schedule,
+                                 CompileState &compile_state,
                                  const ComputeContext &compute_context)
-    : PixelOperation(context, compile_unit, schedule, compute_context, false)
+    : PixelOperation(context, compile_state, compute_context, false)
 {
   material_ = GPU_material_from_callbacks(
       GPU_MAT_COMPOSITOR, &construct_material, &generate_code, this);
@@ -124,7 +123,7 @@ void ShaderOperation::construct_material(void *thunk, GPUMaterial *material)
 {
   ShaderOperation *operation = static_cast<ShaderOperation *>(thunk);
   operation->material_ = material;
-  for (const bNode *node : operation->compile_unit_) {
+  for (const bNode *node : operation->compile_state_.get_pixel_compile_unit()) {
     operation->shader_nodes_.add_new(node, std::make_unique<ShaderNode>(*node));
 
     operation->link_node_inputs(*node);
@@ -145,7 +144,7 @@ void ShaderOperation::link_node_inputs(const bNode &node)
       continue;
     }
 
-    if (schedule_.unneeded_inputs.contains(input)) {
+    if (compile_state_.get_schedule().unneeded_inputs.contains(input)) {
       this->link_node_input_unavailable(*input);
       continue;
     }
@@ -165,7 +164,7 @@ void ShaderOperation::link_node_inputs(const bNode &node)
 
     /* If the source node is part of the shader operation, then the link is internal to the GPU
      * material graph and is linked appropriately. */
-    if (compile_unit_.contains(&output->owner_node())) {
+    if (compile_state_.get_pixel_compile_unit().contains(&output->owner_node())) {
       this->link_node_input_internal(*input, *output);
     }
     else {
@@ -405,12 +404,80 @@ void ShaderOperation::link_node_input_internal(const bNodeSocket &input_socket,
   input_stack.link = output_stack.link;
 }
 
+/* Creates a constant or a uniform link that references the single value of the given result. A
+ * float storage array is provided by the caller to write values referenced by the link. */
+static GPUNodeLink *get_result_single_value_link(const Result &result, float float_storage[16])
+{
+  /* Use a constant for types that rarely change like booleans and menus, and use a uniform for
+   * socket types that might change a lot to avoid excessive shader recompilation. */
+  switch (result.type()) {
+    case ResultType::Float:
+      return GPU_uniform(&result.get_single_value<float>());
+    case ResultType::Float2:
+      return GPU_uniform(result.get_single_value<float2>());
+    case ResultType::Float3:
+      return GPU_uniform(result.get_single_value<float3>());
+    case ResultType::Float4:
+      return GPU_uniform(result.get_single_value<float4>());
+    case ResultType::Color:
+      return GPU_uniform(result.get_single_value<Color>());
+    case ResultType::Int:
+      float_storage[0] = float(result.get_single_value<int32_t>());
+      return GPU_uniform(float_storage);
+    case ResultType::Int2:
+      copy_v2_v2(float_storage, float2(result.get_single_value<int2>()));
+      return GPU_uniform(float_storage);
+    case ResultType::Int3:
+      copy_v3_v3(float_storage, float3(result.get_single_value<int3>()));
+      return GPU_uniform(float_storage);
+    case ResultType::Int4:
+      copy_v4_v4(float_storage, float4(result.get_single_value<int4>()));
+      return GPU_uniform(float_storage);
+    case ResultType::Bool:
+      float_storage[0] = float(result.get_single_value<bool>());
+      return GPU_uniform(float_storage);
+    case ResultType::Float4x4:
+      return GPU_uniform(result.get_single_value<float4x4>().base_ptr());
+    case ResultType::Menu:
+      float_storage[0] = float(result.get_single_value<nodes::MenuValue>().value);
+      return GPU_uniform(float_storage);
+    case ResultType::Quaternion:
+      return GPU_uniform(result.get_single_value<math::Quaternion>());
+    case ResultType::String:
+    case ResultType::Object:
+    case ResultType::Image:
+    case ResultType::Font:
+    case ResultType::Scene:
+    case ResultType::Text:
+    case ResultType::Mask:
+      /* Single only types do not support GPU code path. */
+      BLI_assert(Result::is_single_value_only_type(result.type()));
+      BLI_assert_unreachable();
+      break;
+  }
+
+  BLI_assert_unreachable();
+  return nullptr;
+}
+
 void ShaderOperation::link_node_input_external(const bNodeSocket &input_socket,
                                                const bNodeSocket &output_socket)
 {
-
   ShaderNode &node = *shader_nodes_.lookup(&input_socket.owner_node());
   GPUNodeStack &stack = node.get_input(input_socket.identifier);
+
+  /* The output is a single value, so create an internal constant link instead of declaring an
+   * input for it, it follows that the result needs to be released since it will no longer be
+   * referenced by the operation. */
+  Result &result = compile_state_.get_result_from_output_socket(output_socket);
+  if (result.is_single_value()) {
+    float float_storage[16];
+    GPUNodeLink *link = get_result_single_value_link(result, float_storage);
+    const char *function_name = get_set_function_name(result.type());
+    GPU_link(material_, function_name, link, &stack.link);
+    result.release();
+    return;
+  }
 
   if (!output_to_material_attribute_map_.contains(&output_socket)) {
     /* No input was declared for that output yet, so declare it. */
@@ -493,9 +560,9 @@ void ShaderOperation::populate_results_for_node(const bNode &node)
      * of the execution schedule, then an output result needs to be populated for it. */
     const bool is_operation_output = is_output_linked_to_input_conditioned(
         *output, [&](const bNodeSocket &input) {
-          return schedule_.nodes.contains(&input.owner_node()) &&
-                 !schedule_.unneeded_inputs.contains(&input) &&
-                 !compile_unit_.contains(&input.owner_node());
+          return compile_state_.get_schedule().nodes.contains(&input.owner_node()) &&
+                 !compile_state_.get_schedule().unneeded_inputs.contains(&input) &&
+                 !compile_state_.get_pixel_compile_unit().contains(&input.owner_node());
         });
 
     /* If the output is used as the node preview, then an output result needs to be populated for

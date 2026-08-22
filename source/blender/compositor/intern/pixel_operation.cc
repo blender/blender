@@ -27,13 +27,11 @@
 namespace blender::compositor {
 
 PixelOperation::PixelOperation(Context &context,
-                               PixelCompileUnit &compile_unit,
-                               const Schedule &schedule,
+                               CompileState &compile_state,
                                const ComputeContext &compute_context,
                                const bool is_single_value)
     : Operation(context),
-      compile_unit_(compile_unit),
-      schedule_(schedule),
+      compile_state_(compile_state),
       compute_context_(compute_context),
       is_single_value_(is_single_value)
 {
@@ -80,7 +78,7 @@ void PixelOperation::log_data()
   /* All inputs and outputs of pixel operations operate in the same domain, so the operation domain
    * should be logged for all. The exception is inputs that are single values, in which case, their
    * value is simply logged. */
-  for (const bNode *node : compile_unit_) {
+  for (const bNode *node : compile_state_.get_pixel_compile_unit()) {
     /* Log output values. */
     for (const bNodeSocket *output_socket : node->output_sockets()) {
       if (!is_socket_available(output_socket)) {
@@ -101,6 +99,10 @@ void PixelOperation::log_data()
     /* Log input values. */
     for (const bNodeSocket *input_socket : node->input_sockets()) {
       if (!is_socket_available(input_socket)) {
+        continue;
+      }
+
+      if (compile_state_.get_schedule().unneeded_inputs.contains(input_socket)) {
         continue;
       }
 
@@ -131,14 +133,13 @@ void PixelOperation::log_data()
       /* The input is linked to a node that is inside the pixel operation, so skip it since it will
        * inherit its value from an output that was logged above. */
       const bNodeSocket &linked_output = *input_socket->logically_linked_sockets()[0];
-      if (compile_unit_.contains(&linked_output.owner_node())) {
+      if (compile_state_.get_pixel_compile_unit().contains(&linked_output.owner_node())) {
         continue;
       }
 
       /* Otherwise, it is linked to a node that is outside of the compile unit. If it is a single
        * value, log that single value, if not, we log the operation domain. */
-      const std::string &input_identifier = outputs_to_declared_inputs_map_.lookup(&linked_output);
-      const Result &input = this->get_input(input_identifier);
+      const Result &input = compile_state_.get_result_from_output_socket(linked_output);
       if (input.is_single_value()) {
         tree_logger.log_value(*node, *input_socket, input.single_value());
         continue;
@@ -195,7 +196,7 @@ void PixelOperation::compute_results_reference_counts(const Schedule &schedule)
            * directly. */
           return schedule.nodes.contains(&input.owner_node()) &&
                  !schedule.unneeded_inputs.contains(&input) &&
-                 !compile_unit_.contains(&input.owner_node());
+                 !compile_state_.get_pixel_compile_unit().contains(&input.owner_node());
         });
 
     if (preview_outputs_.contains(item.key)) {

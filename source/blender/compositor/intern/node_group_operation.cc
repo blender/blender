@@ -214,18 +214,15 @@ static PixelOperation *create_pixel_operation(Context &context,
                                               CompileState &compile_state,
                                               const ComputeContext &compute_context)
 {
-  const Schedule &schedule = compile_state.get_schedule();
-  PixelCompileUnit &compile_unit = compile_state.get_pixel_compile_unit();
-
   /* Use multi-function procedure to execute the pixel compile unit for CPU contexts or if the
    * compile unit is single value and would thus be more efficient to execute on the CPU. */
   const bool is_single_value = compile_state.is_pixel_compile_unit_single_value();
   if (!context.use_gpu() || is_single_value) {
     return new MultiFunctionProcedureOperation(
-        context, compile_unit, schedule, is_single_value, compute_context);
+        context, compile_state, is_single_value, compute_context);
   }
 
-  return new ShaderOperation(context, compile_unit, schedule, compute_context);
+  return new ShaderOperation(context, compile_state, compute_context);
 }
 
 void NodeGroupOperation::evaluate_pixel_compile_unit(CompileState &compile_state)
