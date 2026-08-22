@@ -234,7 +234,8 @@ void SourceProcessor::lower_entry_points(Parser &parser)
                        "(aka `float (&)[]`).");
         }
         replace_word(srt_var, "gl_ClipDistance");
-        create_info_decl += "BUILTINS(BuiltinBits::CLIP_DISTANCES)\n";
+        string res_condition_lambda = parse_condition(attributes);
+        create_info_decl += ".builtins(BuiltinBits::CLIP_DISTANCES" + res_condition_lambda + ")\n";
       }
       else if (srt_attr == "layer" && is_entry_point) {
         if (is_compute_func) {
@@ -252,7 +253,8 @@ void SourceProcessor::lower_entry_points(Parser &parser)
                        "(aka `const int &`).");
         }
         replace_word(srt_var, "gl_Layer");
-        create_info_decl += "BUILTINS(BuiltinBits::LAYER)\n";
+        string res_condition_lambda = parse_condition(attributes);
+        create_info_decl += ".builtins(BuiltinBits::LAYER" + res_condition_lambda + ")\n";
       }
       else if (srt_attr == "viewport_index" && is_entry_point) {
         if (is_compute_func) {
@@ -271,7 +273,8 @@ void SourceProcessor::lower_entry_points(Parser &parser)
                        "(aka `const int &`).");
         }
         replace_word(srt_var, "gpu_ViewportIndex");
-        create_info_decl += "BUILTINS(BuiltinBits::VIEWPORT_INDEX)\n";
+        string res_condition_lambda = parse_condition(attributes);
+        create_info_decl += ".builtins(BuiltinBits::VIEWPORT_INDEX" + res_condition_lambda + ")\n";
       }
       else if (srt_attr == "position" && is_entry_point) {
         if (!is_vertex_func) {
@@ -428,11 +431,14 @@ void SourceProcessor::lower_entry_points(Parser &parser)
         }
         else if (is_vertex_func) {
           replace_word_and_accessor(srt_var, srt_type + "_");
-          create_info_decl += "VERTEX_OUT(" + srt_type + "_t)\n";
+          string res_condition_lambda = parse_condition(attributes);
+          create_info_decl += ".vertex_out(" + srt_type + "_t" + res_condition_lambda + ")\n";
         }
         else if (is_fragment_func) {
           replace_word_and_accessor(srt_var, srt_type + "_");
-          create_info_decl += "ADDITIONAL_INFO(" + srt_type + ")\n";
+          string res_condition_lambda = parse_condition(attributes);
+          create_info_decl += ".additional_info_with_condition(\"" + srt_type + "\"" +
+                              res_condition_lambda + ")\n";
         }
       }
       else if (srt_attr == "resource_table") {
@@ -441,13 +447,8 @@ void SourceProcessor::lower_entry_points(Parser &parser)
           parser.insert_after(fn_body.front().str_index_start(),
                               " " + srt_type + " " + srt_var + "{};");
           string res_condition_lambda = parse_condition(attributes);
-          if (res_condition_lambda.empty()) {
-            create_info_decl += "ADDITIONAL_INFO(" + srt_type + ")\n";
-          }
-          else {
-            create_info_decl += ".additional_info_with_condition(\"" + srt_type + "\"" +
-                                res_condition_lambda + ")\n";
-          }
+          create_info_decl += ".additional_info_with_condition(\"" + srt_type + "\"" +
+                              res_condition_lambda + ")\n";
         }
       }
       else if (srt_attr == "frag_depth") {

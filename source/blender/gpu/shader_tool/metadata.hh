@@ -202,6 +202,9 @@ struct ParsedVertInput {
 
   std::string slot;
 
+  /** Optional condition to enable this resource. */
+  std::string res_condition;
+
   std::string serialize() const;
 };
 

@@ -321,7 +321,7 @@ void VKShaderInterface::init(const shader::ShaderCreateInfo &info)
 
   id = next_id_++;
 
-  shader_builtins_ = info.builtins_;
+  shader_builtins_ = info.builtins_combined();
 
   compute_resource_counts(ctx);
   populate_shader_inputs(ctx);

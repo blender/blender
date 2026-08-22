@@ -536,7 +536,7 @@ struct ns_VertInTfloat {
 
 
 GPU_SHADER_CREATE_INFO(ns_VertInTfloat)
-VERTEX_IN(0, float, pos)
+.vertex_in(0, Type::float_t, "pos")
 GPU_SHADER_CREATE_END()
 
 
@@ -553,14 +553,14 @@ GPU_SHADER_INTERFACE_END()
 
 
 GPU_SHADER_CREATE_INFO(ns_vertex_function_infos_)
-ADDITIONAL_INFO(Resources)
+.additional_info_with_condition("Resources")
 ADDITIONAL_INFO(ns_VertInTfloat)
-VERTEX_OUT(ns_VertOut_t)
+.vertex_out(ns_VertOut_t, [](blender::Span<CompilationConstant> constants) { int cond = ShaderCreateInfo::find_constant(constants, "cond"); return cond;})
 BUILTINS(BuiltinBits::INSTANCE_ID)
 BUILTINS(BuiltinBits::POINT_SIZE)
-BUILTINS(BuiltinBits::LAYER)
-BUILTINS(BuiltinBits::VIEWPORT_INDEX)
-BUILTINS(BuiltinBits::CLIP_DISTANCES)
+.builtins(BuiltinBits::LAYER)
+.builtins(BuiltinBits::VIEWPORT_INDEX)
+.builtins(BuiltinBits::CLIP_DISTANCES)
 GPU_SHADER_CREATE_END()
 
 GPU_SHADER_CREATE_INFO(ns_fragment_function_infos_)
@@ -569,14 +569,14 @@ BUILTINS(BuiltinBits::STENCIL_REF)
 BUILTINS(BuiltinBits::POINT_COORD)
 BUILTINS(BuiltinBits::FRONT_FACING)
 BUILTINS(BuiltinBits::FRAG_COORD)
-ADDITIONAL_INFO(Resources)
-ADDITIONAL_INFO(ns_FragOut)
-BUILTINS(BuiltinBits::LAYER)
-BUILTINS(BuiltinBits::VIEWPORT_INDEX)
+.additional_info_with_condition("Resources")
+.additional_info_with_condition("ns_FragOut")
+.builtins(BuiltinBits::LAYER)
+.builtins(BuiltinBits::VIEWPORT_INDEX)
 GPU_SHADER_CREATE_END()
 
 GPU_SHADER_CREATE_INFO(ns_compute_function_infos_)
-ADDITIONAL_INFO(Resources)
+.additional_info_with_condition("Resources")
 BUILTINS(BuiltinBits::GLOBAL_INVOCATION_ID)
 BUILTINS(BuiltinBits::LOCAL_INVOCATION_ID)
 BUILTINS(BuiltinBits::LOCAL_INVOCATION_INDEX)
