@@ -735,6 +735,7 @@ template void update_mipmaps<SFLOAT_32_32_32_32, Shared<float4>, float4>(
 
 }  // namespace builtin::mipmaps
 
+#ifndef GLSL_CPP_STUBS
 PipelineCompute gpu_shader_2D_update_mipmaps_unorm_8(
     builtin::mipmaps::update_mipmaps<UNORM_8, builtin::mipmaps::SharedUnorm, float>,
     builtin::mipmaps::Resources<UNORM_8, builtin::mipmaps::SharedUnorm, float>{
@@ -791,3 +792,4 @@ PipelineCompute gpu_shader_2D_update_mipmaps_srgba_8_8_8_8_layered(
     builtin::mipmaps::update_mipmaps<UNORM_8_8_8_8, builtin::mipmaps::SharedSRGB, float4>,
     builtin::mipmaps::Resources<UNORM_8_8_8_8, builtin::mipmaps::SharedSRGB, float4>{
         .is_srgb_texture = true, .is_layered = true});
+#endif

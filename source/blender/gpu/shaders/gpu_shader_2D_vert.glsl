@@ -2,9 +2,9 @@
  *
  * SPDX-License-Identifier: GPL-2.0-or-later */
 
-#include "infos/gpu_shader_2D_checker_infos.hh"
+#include "infos/gpu_shader_2D_image_overlays_stereo_merge_infos.hh"
 
-VERTEX_SHADER_CREATE_INFO(gpu_shader_2D_checker)
+VERTEX_SHADER_CREATE_INFO(gpu_shader_2D_image_overlays_stereo_merge)
 
 void main()
 {

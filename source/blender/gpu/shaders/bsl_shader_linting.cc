@@ -9,5 +9,7 @@
 #include "gpu_shader_2D_nodelink.bsl.hh"       /* IWYU pragma: export */
 #include "gpu_shader_2D_update_mipmaps.bsl.hh" /* IWYU pragma: export */
 #include "gpu_shader_2D_widget_base.bsl.hh"    /* IWYU pragma: export */
+#include "gpu_shader_colorspace.bsl.hh"        /* IWYU pragma: export */
+#include "gpu_shader_simple.bsl.hh"            /* IWYU pragma: export */
 
 void main() {}
