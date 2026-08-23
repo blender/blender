@@ -7,7 +7,7 @@ bl_info = {
     # This is now displayed as the maintainer, so show the foundation.
     # "author": "Julien Duroure, Scurest, Norbert Nopper, Urs Hanselmann, Moritz Becher, Benjamin Schmithüsen, Jim Eckerlein", # Original Authors
     'author': "Blender Foundation, Khronos Group",
-    "version": (5, 3, 20),
+    "version": (5, 3, 21),
     'blender': (5, 3, 0),
     'location': 'File > Import-Export',
     'description': 'Import-Export as glTF 2.0',
@@ -1144,6 +1144,8 @@ class ExportGLTF2_Base(ConvertGLTF2_Base):
         export_settings['exported_texture_nodes'] = []
         export_settings['additional_texture_export'] = []
         export_settings['additional_texture_export_current_idx'] = {}
+        export_settings['material_identifiers'] = {}
+        export_settings['mesh_identifiers'] = {}
 
         export_settings['timestamp'] = datetime.datetime.now()
         export_settings['gltf_export_id'] = self.gltf_export_id
