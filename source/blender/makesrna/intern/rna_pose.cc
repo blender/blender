@@ -806,6 +806,7 @@ static void rna_def_pose_channel_constraints(BlenderRNA *brna, PropertyRNA *cpro
                         FUNC_USE_MAIN | FUNC_USE_SELF_ID); /* ID and Main needed for refresh */
   /* return type */
   parm = RNA_def_pointer(func, "constraint", "Constraint", "", "New constraint");
+  RNA_def_parameter_flags(parm, PROP_NEVER_NULL, ParameterFlag(0));
   RNA_def_function_return(func, parm);
   /* constraint to add */
   parm = RNA_def_enum(
@@ -843,6 +844,7 @@ static void rna_def_pose_channel_constraints(BlenderRNA *brna, PropertyRNA *cpro
   RNA_def_parameter_clear_flags(parm, PROP_THICK_WRAP, ParameterFlag(0));
   /* return type */
   parm = RNA_def_pointer(func, "new_constraint", "Constraint", "", "New constraint");
+  RNA_def_parameter_flags(parm, PROP_NEVER_NULL, ParameterFlag(0));
   RNA_def_function_return(func, parm);
 }
 

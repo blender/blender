@@ -1179,6 +1179,7 @@ static void rna_api_nlatrack_strips(BlenderRNA *brna, PropertyRNA *cprop)
   RNA_def_parameter_flags(parm, PROP_NEVER_NULL, PARM_REQUIRED);
   /* return type */
   parm = RNA_def_pointer(func, "strip", "NlaStrip", "", "New NLA Strip");
+  RNA_def_parameter_flags(parm, PROP_NEVER_NULL, ParameterFlag(0));
   RNA_def_function_return(func, parm);
 
   func = RNA_def_function(srna, "remove", "rna_NlaStrip_remove");

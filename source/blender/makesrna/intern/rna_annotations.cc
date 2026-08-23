@@ -402,6 +402,7 @@ static void rna_def_annotation_strokes_api(BlenderRNA *brna, PropertyRNA *cprop)
   func = RNA_def_function(srna, "new", "rna_annotation_stroke_new");
   RNA_def_function_ui_description(func, "Add a new annotation stroke");
   parm = RNA_def_pointer(func, "stroke", "AnnotationStroke", "", "The newly created stroke");
+  RNA_def_parameter_flags(parm, PROP_NEVER_NULL, ParameterFlag(0));
   RNA_def_function_return(func, parm);
 
   func = RNA_def_function(srna, "remove", "rna_annotation_stroke_remove");
@@ -563,6 +564,7 @@ static void rna_def_annotation_frames_api(BlenderRNA *brna, PropertyRNA *cprop)
   RNA_def_parameter_flags(parm, PropertyFlag(0), PARM_REQUIRED);
   RNA_def_boolean(func, "active", false, "Active", "");
   parm = RNA_def_pointer(func, "frame", "AnnotationFrame", "", "The newly created frame");
+  RNA_def_parameter_flags(parm, PROP_NEVER_NULL, ParameterFlag(0));
   RNA_def_function_return(func, parm);
 
   func = RNA_def_function(srna, "remove", "rna_annotation_frame_remove");
@@ -577,6 +579,7 @@ static void rna_def_annotation_frames_api(BlenderRNA *brna, PropertyRNA *cprop)
   parm = RNA_def_pointer(func, "source", "AnnotationFrame", "Source", "The source frame");
   RNA_def_parameter_flags(parm, PROP_NEVER_NULL, PARM_REQUIRED);
   parm = RNA_def_pointer(func, "copy", "AnnotationFrame", "", "The newly copied frame");
+  RNA_def_parameter_flags(parm, PROP_NEVER_NULL, ParameterFlag(0));
   RNA_def_function_return(func, parm);
 }
 
@@ -740,6 +743,7 @@ static void rna_def_annotation_layers_api(BlenderRNA *brna, PropertyRNA *cprop)
   RNA_def_boolean(
       func, "set_active", true, "Set Active", "Set the newly created layer to the active layer");
   parm = RNA_def_pointer(func, "layer", "AnnotationLayer", "", "The newly created layer");
+  RNA_def_parameter_flags(parm, PROP_NEVER_NULL, ParameterFlag(0));
   RNA_def_function_return(func, parm);
 
   func = RNA_def_function(srna, "remove", "rna_annotation_layer_remove");
