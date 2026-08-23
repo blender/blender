@@ -2753,7 +2753,7 @@ static void rna_def_loop_colors(BlenderRNA *brna, PropertyRNA *cprop)
                   "",
                   "Whether new layer's data should be initialized by copying current active one");
   parm = RNA_def_pointer(func, "layer", "MeshLoopColorLayer", "", "The newly created layer");
-  RNA_def_parameter_flags(parm, PropertyFlag(0), PARM_RNAPTR);
+  RNA_def_parameter_flags(parm, PROP_NEVER_NULL, PARM_RNAPTR);
   RNA_def_function_return(func, parm);
 
   func = RNA_def_function(srna, "remove", "rna_Mesh_vertex_color_remove");
