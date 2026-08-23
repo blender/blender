@@ -498,15 +498,32 @@ if(WITH_PYTHON)
   unset(FREESTYLE_EXCLUDE_CONDITIONAL)
 
   # The glTF add-on's draco & meshopt bridge libraries, loaded at run-time by `io_scene_gltf2`.
-  # Portable Linux builds place them in `lib` beside their bundled dependencies (found via each
-  # target's `$ORIGIN` RPATH); otherwise beside the add-on where `library.py` looks for them.
-  if(UNIX AND NOT APPLE AND WITH_INSTALL_PORTABLE)
+  # Install beside their bundled dependencies, found via each target's RPATH (UNIX)
+  # or the `blender.shared` side-by-side assembly (WIN32).
+  # Non-portable installs (UNIX system installs) place them beside the add-on.
+  if(WITH_INSTALL_PORTABLE)
     set(GLTF_BRIDGE_INSTALL_DIR "${TARGETDIR_LIB}")
   else()
     set(GLTF_BRIDGE_INSTALL_DIR "${TARGETDIR_VER_LIBS}/scripts/addons_core/io_scene_gltf2")
   endif()
 
+  # Unlike `install(TARGETS)`, `install(PROGRAMS)` copies the file without rewriting its RPATH,
+  # so these must be linked with the install RPATH, see `BUILD_WITH_INSTALL_RPATH` below.
+  if(PLATFORM_BUNDLED_LIBRARIES)
+    if(APPLE)
+      set(GLTF_BRIDGE_RPATH "@loader_path")
+    elseif(UNIX)
+      set(GLTF_BRIDGE_RPATH "$ORIGIN")
+    endif()
+  endif()
+
   if(WITH_DRACO)
+    if(GLTF_BRIDGE_RPATH)
+      set_target_properties(bf_intern_draco_bridge PROPERTIES
+        BUILD_WITH_INSTALL_RPATH TRUE
+        INSTALL_RPATH "${GLTF_BRIDGE_RPATH}"
+      )
+    endif()
     install(
       PROGRAMS $<TARGET_FILE:bf_intern_draco_bridge>
       DESTINATION ${GLTF_BRIDGE_INSTALL_DIR}
@@ -514,6 +531,12 @@ if(WITH_PYTHON)
   endif()
 
   if(WITH_MESHOPTIMIZER)
+    if(GLTF_BRIDGE_RPATH)
+      set_target_properties(bf_intern_meshopt_bridge PROPERTIES
+        BUILD_WITH_INSTALL_RPATH TRUE
+        INSTALL_RPATH "${GLTF_BRIDGE_RPATH}"
+      )
+    endif()
     install(
       PROGRAMS $<TARGET_FILE:bf_intern_meshopt_bridge>
       DESTINATION ${GLTF_BRIDGE_INSTALL_DIR}
@@ -521,6 +544,7 @@ if(WITH_PYTHON)
   endif()
 
   unset(GLTF_BRIDGE_INSTALL_DIR)
+  unset(GLTF_BRIDGE_RPATH)
 
 endif()
 
