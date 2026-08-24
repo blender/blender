@@ -3311,8 +3311,7 @@ static PointerRNA rna_SceneCompositorEffectProperties_get(PointerRNA *effect_ptr
   if (!effect->node_group) {
     return {};
   }
-  return RNA_pointer_create_discrete(
-      effect_ptr->owner_id, RNA_SceneCompositorEffectProperties, effect);
+  return RNA_pointer_create_with_parent(*effect_ptr, RNA_SceneCompositorEffectProperties, effect);
 }
 
 }  // namespace blender
