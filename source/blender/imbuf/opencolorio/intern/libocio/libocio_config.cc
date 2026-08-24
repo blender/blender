@@ -345,7 +345,8 @@ const ColorSpace *LibOCIOConfig::get_color_space_by_interop_id(StringRefNull int
     }
   }
 
-  return nullptr;
+  /* Fall back to name and alias lookup. */
+  return get_color_space(interop_id);
 }
 
 /** \} */
