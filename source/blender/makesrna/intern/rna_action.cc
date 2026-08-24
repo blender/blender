@@ -1943,7 +1943,7 @@ static void rna_def_keyframestrip_channelbags(BlenderRNA *brna, PropertyRNA *cpr
                          "ActionSlot",
                          "Action Slot",
                          "The slot that should be animated by this channelbag");
-  RNA_def_parameter_flags(parm, PropertyFlag(0), PARM_REQUIRED);
+  RNA_def_parameter_flags(parm, PROP_NEVER_NULL, PARM_REQUIRED);
 
   /* Return value. */
   parm = RNA_def_pointer(func, "channelbag", "ActionChannelbag", "", "Newly created channelbag");
@@ -2122,7 +2122,7 @@ static void rna_def_channelbag_fcurves(BlenderRNA *brna, PropertyRNA *cprop)
       func, "Copy an F-Curve into the channelbag. The original F-Curve is unchanged");
   RNA_def_function_flag(func, FUNC_USE_SELF_ID | FUNC_USE_REPORTS);
   parm = RNA_def_pointer(func, "source", "FCurve", "Source F-Curve", "The F-Curve to copy");
-  RNA_def_parameter_flags(parm, PropertyFlag(0), PARM_REQUIRED);
+  RNA_def_parameter_flags(parm, PROP_NEVER_NULL, PARM_REQUIRED);
   parm = RNA_def_string(func,
                         "data_path",
                         nullptr,
