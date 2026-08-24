@@ -1,9 +1,9 @@
 
 msgid ""
 msgstr ""
-"Project-Id-Version: Blender 5.3.0 Alpha (b'af4852ed4560')\n"
+"Project-Id-Version: Blender 5.3.0 Alpha (b'09417042a1fa')\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-08-10 07:54+0000\n"
+"POT-Creation-Date: 2026-08-24 07:38+0000\n"
 "PO-Revision-Date: 2025-11-14 10:59+0000\n"
 "Last-Translator: Isaac Gicheha <shwaky3@gmail.com>\n"
 "Language-Team: Swahili <https://translate.blender.org/projects/blender-ui/ui/sw/>\n"
@@ -6175,10 +6175,6 @@ msgid "Color management specific to display device"
 msgstr "Udhibiti wa rangi maalum wa kuonyesha kifaa"
 
 
-msgid "Display"
-msgstr "Onyesho"
-
-
 msgid "Input color space settings"
 msgstr "Mipangilio ya nafasi ya rangi"
 
@@ -6191,10 +6187,6 @@ msgid "Treat image as non-color data without color management, like normal or di
 msgstr "Chukua picha kama data isiyo ya rangi bila udhibiti wa rangi, kama ramani za kawaida au za kuhamishwa"
 
 
-msgid "Input Color Space"
-msgstr "Nafasi ya Rangi ya Ingizo"
-
-
 msgid "Color space in the image file, to convert to and from when saving and loading the image"
 msgstr "Nafasi ya rangi katika faili ya picha, kubadilisha na kutoka wakati wa kuhifadhi na kupakia picha"
 
@@ -6203,28 +6195,12 @@ msgid "Linear AP0 with ACES white point"
 msgstr "Linear AP0 yenye nukta nyeupe ya ACES"
 
 
-msgid "AgX Log"
-msgstr "Kumbukumbu ya AgX"
-
-
-msgid "Display P3"
-msgstr "Onyesho la P3"
-
-
 msgid "Apple's Display P3 with sRGB compound (piece-wise) encoding transfer function, common on Mac devices"
 msgstr "Apple's Display P3 yenye kiwanja cha sRGB (kipande-busara) kazi ya uhamishaji ya usimbaji, inayojulikana kwenye vifaa vya Mac"
 
 
-msgid "Filmic Log"
-msgstr "Rekodi ya Filamu"
-
-
 msgid "Log based filmic shaper with 16.5 stops of latitude, and 25 stops of dynamic range"
 msgstr "Kiunda cha uundaji wa filamu chenye logi chenye vituo 16.5 vya latitudo, na vituo 25 vya masafa yanayobadilika"
-
-
-msgid "Filmic sRGB"
-msgstr "Filamu sRGB"
 
 
 msgid "1931 CIE XYZ with adapted illuminant D65 white point"
@@ -6241,10 +6217,6 @@ msgstr "Linear DCI-P3 yenye nukta nyeupe ya D65"
 
 msgid "Linear E-Gamut with illuminant D65 white point"
 msgstr "Line E-Gamut yenye nukta nyeupe ya D65"
-
-
-msgid "Non-Color"
-msgstr "Isiyo na Rangi"
 
 
 msgid "Generic data that is not color, will not apply any color transform (e.g. normal maps)"
@@ -6287,10 +6259,6 @@ msgid "Exposure"
 msgstr "Mfiduo"
 
 
-msgid "Look"
-msgstr "Angalia"
-
-
 msgid "Additional transform applied before view transform for artistic needs"
 msgstr "Mabadiliko ya ziada yanatumika kabla ya mabadiliko ya mwonekano kwa mahitaji ya kisanii"
 
@@ -6305,10 +6273,6 @@ msgstr "Tumia Curve"
 
 msgid "Use RGB curved for pre-display transformation"
 msgstr "Tumia RGB iliyopinda kwa mabadiliko ya onyesho la awali"
-
-
-msgid "View"
-msgstr "Tazama"
 
 
 msgid "View used when converting image to a display space"
@@ -8939,6 +8903,10 @@ msgstr "Tanji kwa uso"
 
 msgid "Draw in the surface plane"
 msgstr "Chora kwenye bapa ya uso"
+
+
+msgid "View"
+msgstr "Tazama"
 
 
 msgid "Draw in a plane aligned to the viewport"
@@ -17086,6 +17054,22 @@ msgid "Automatically adjust strength to give consistent results for different sp
 msgstr "Rekebisha nguvu kiotomatiki ili kutoa matokeo thabiti kwa nafasi tofauti"
 
 
+msgid "Use Unified Color"
+msgstr "Tumia Rangi Iliyounganishwa"
+
+
+msgid "Use Unified Input Samples"
+msgstr "Tumia Sampuli Zilizounganishwa za Kuingiza Data"
+
+
+msgid "Use Unified Strength"
+msgstr "Tumia Nguvu Iliyounganishwa"
+
+
+msgid "Use Unified Weight"
+msgstr "Tumia Uzito Uliounganishwa"
+
+
 msgid "Use Pressure for Wet Mix"
 msgstr "Tumia Shinikizo kwa Mchanganyiko Wet"
 
@@ -22108,6 +22092,10 @@ msgstr "Onyesha data ya ziada ya chembe kama rangi"
 
 msgid "How particles are displayed in viewport"
 msgstr "Jinsi chembe zinavyoonyeshwa kwenye kituo cha kutazama"
+
+
+msgid "Display"
+msgstr "Onyesho"
 
 
 msgid "Percentage of particles to display in 3D view"
@@ -28226,52 +28214,8 @@ msgid "Editor menu containing buttons"
 msgstr "Menyu ya mhariri iliyo na vitufe"
 
 
-msgid "Show/Hide"
-msgstr "Onyesha/Ficha"
-
-
-msgid "Clean Up"
-msgstr "Safisha"
-
-
-msgid "Adjust"
-msgstr "Rekebisha"
-
-
-msgid "Keying"
-msgstr "Kuweka"
-
-
-msgid "Tracking"
-msgstr "Kufuatilia"
-
-
-msgid "Utilities"
-msgstr "Huduma"
-
-
-msgid "Math"
-msgstr "Hisabati"
-
-
-msgid "Pivot Point"
-msgstr "Egemeo"
-
-
 msgid "Snap"
 msgstr "Picha"
-
-
-msgid "Mirror"
-msgstr "Kioo"
-
-
-msgid "Navigation"
-msgstr "Urambazaji"
-
-
-msgid "Select Linked"
-msgstr "Chagua Imeunganishwa"
 
 
 msgid "Read"
@@ -28290,6 +28234,38 @@ msgid "Primitives"
 msgstr "Watu wa kwanza"
 
 
+msgid "Instances"
+msgstr "Matukio"
+
+
+msgid "Import"
+msgstr "Ingiza"
+
+
+msgid "Mirror"
+msgstr "Kioo"
+
+
+msgid "Utilities"
+msgstr "Huduma"
+
+
+msgid "Navigation"
+msgstr "Urambazaji"
+
+
+msgid "Deprecated"
+msgstr "Imeacha kutumika"
+
+
+msgid "Math"
+msgstr "Hisabati"
+
+
+msgid "Select Linked"
+msgstr "Chagua Imeunganishwa"
+
+
 msgid "Metaball"
 msgstr "Mpira wa miguu"
 
@@ -28302,24 +28278,40 @@ msgid "Light Probe"
 msgstr "Uchunguzi wa Mwanga"
 
 
-msgid "Instances"
-msgstr "Matukio"
-
-
 msgid "Apply"
 msgstr "Tumia"
 
 
-msgid "Import"
-msgstr "Ingiza"
+msgid "Show/Hide"
+msgstr "Onyesha/Ficha"
+
+
+msgid "Linked"
+msgstr "Imeunganishwa"
+
+
+msgid "Clean Up"
+msgstr "Safisha"
+
+
+msgid "Layout"
+msgstr "Mpangilio"
 
 
 msgid "Asset"
 msgstr "Mali"
 
 
-msgid "Deprecated"
-msgstr "Imeacha kutumika"
+msgid "Adjust"
+msgstr "Rekebisha"
+
+
+msgid "Keying"
+msgstr "Kuweka"
+
+
+msgid "Tracking"
+msgstr "Kufuatilia"
 
 
 msgid "Bone Collections"
@@ -28330,12 +28322,8 @@ msgid "Merge"
 msgstr "Unganisha"
 
 
-msgid "Linked"
-msgstr "Imeunganishwa"
-
-
-msgid "Layout"
-msgstr "Mpangilio"
+msgid "Pivot Point"
+msgstr "Egemeo"
 
 
 msgid "Keyframe Insert Pie"
@@ -36998,16 +36986,8 @@ msgid "Convert Colorspace"
 msgstr "Badilisha Nafasi ya Rangi"
 
 
-msgid "From"
-msgstr "Kutoka"
-
-
 msgid "Color space of the input image"
 msgstr "Nafasi ya rangi ya picha ya ingizo"
-
-
-msgid "To"
-msgstr "Kwa"
 
 
 msgid "Color space of the output image"
@@ -77391,10 +77371,6 @@ msgid "Pause Preview"
 msgstr "Sitisha Hakiki"
 
 
-msgid "Pause all viewport preview renders"
-msgstr "Sitisha maonyesho yote ya onyesho la kukagua lango la kutazama"
-
-
 msgid "Viewport Samples"
 msgstr "Sampuli za Mtazamo"
 
@@ -79815,6 +79791,10 @@ msgid "How much the spring has to be stretched/compressed in order to change its
 msgstr "Ni kiasi gani chemchemi inabidi inyooshwe/kubanwa ili kubadilisha urefu wake wa kupumzika"
 
 
+msgid "Use effect during render"
+msgstr "Tumia athari wakati wa kutoa"
+
+
 msgid "Light Direction"
 msgstr "Mwelekeo mwepesi"
 
@@ -80568,10 +80548,6 @@ msgstr "Weka upanuzi wa athari katika kiolesura cha mtumiaji"
 
 msgid "Display effect in Edit mode"
 msgstr "Onyesha athari katika modi ya Hariri"
-
-
-msgid "Use effect during render"
-msgstr "Tumia athari wakati wa kutoa"
 
 
 msgid "Display effect in viewport"
@@ -87342,32 +87318,16 @@ msgid "Overrides for some of the active brush's settings"
 msgstr "Hubatilisha baadhi ya mipangilio ya burashi inayotumika"
 
 
-msgid "Use Unified Color"
-msgstr "Tumia Rangi Iliyounganishwa"
-
-
 msgid "Instead of per-brush color, the color is shared across brushes"
 msgstr "Badala ya rangi kwa kila brashi, rangi inashirikiwa kwenye brashi"
-
-
-msgid "Use Unified Input Samples"
-msgstr "Tumia Sampuli Zilizounganishwa za Kuingiza Data"
 
 
 msgid "Instead of per-brush input samples, the value is shared across brushes"
 msgstr "Badala ya sampuli za ingizo kwa kila brashi, thamani inashirikiwa kwenye brashi"
 
 
-msgid "Use Unified Strength"
-msgstr "Tumia Nguvu Iliyounganishwa"
-
-
 msgid "Instead of per-brush strength, the strength is shared across brushes"
 msgstr "Badala ya nguvu kwa kila brashi, nguvu inashirikiwa kwenye brashi"
-
-
-msgid "Use Unified Weight"
-msgstr "Tumia Uzito Uliounganishwa"
 
 
 msgid "Instead of per-brush weight, the weight is shared across brushes"
@@ -91275,16 +91235,6 @@ msgstr "Zana ya Kuhariri Picha: Uv, Mkoa wa Rip (rudi nyuma)"
 
 
 msgctxt "WindowManager"
-msgid "UV Sculpt"
-msgstr "Mchongaji wa UV"
-
-
-msgctxt "WindowManager"
-msgid "Image View"
-msgstr "Mtazamo wa Picha"
-
-
-msgctxt "WindowManager"
 msgid "Image Editor Tool: Sample"
 msgstr "Zana ya Kuhariri Picha: Mfano"
 
@@ -91307,6 +91257,11 @@ msgstr "Muhtasari"
 msgctxt "WindowManager"
 msgid "Node Editor"
 msgstr "Mhariri wa Node"
+
+
+msgctxt "WindowManager"
+msgid "Snap Invert"
+msgstr "Geuza Snap"
 
 
 msgctxt "WindowManager"
@@ -91537,11 +91492,6 @@ msgstr "Weka Msingi wa Snap"
 msgctxt "WindowManager"
 msgid "Set Snap Base (Off)"
 msgstr "Weka Snap Base (Zima)"
-
-
-msgctxt "WindowManager"
-msgid "Snap Invert"
-msgstr "Geuza Snap"
 
 
 msgctxt "WindowManager"
@@ -93093,6 +93043,11 @@ msgstr "Mask ya Mkusanyiko"
 
 
 msgctxt "Operator"
+msgid "Search..."
+msgstr "Tafuta..."
+
+
+msgctxt "Operator"
 msgid "Add Object Constraint"
 msgstr "Ongeza Kizuizi cha Kitu"
 
@@ -93511,11 +93466,6 @@ msgstr "Kizingiti cha Ushawishi"
 
 msgid "Update on Edit"
 msgstr "Sasisha kwenye Hariri"
-
-
-msgctxt "Operator"
-msgid "Search..."
-msgstr "Tafuta..."
 
 
 msgid "Distance Reference"
@@ -101020,6 +100970,10 @@ msgid "Manual Scale"
 msgstr "Kiwango cha Mwongozo"
 
 
+msgid "Look"
+msgstr "Angalia"
+
+
 msgid "Sort By:"
 msgstr "Panga Kulingana na:"
 
@@ -103512,14 +103466,6 @@ msgstr "Faili za MultiLayer Zilizopakia haziwezi kupakwa rangi"
 
 msgid "Image requires 4 color channels to paint"
 msgstr "Picha inahitaji njia 4 za rangi ili kupaka rangi"
-
-
-msgid "Image requires 4 color channels to paint: %s"
-msgstr "Picha inahitaji njia 4 za rangi ili kupaka rangi: %s"
-
-
-msgid "Packed MultiLayer files cannot be painted: %s"
-msgstr "Faili za Layer MultiPacked haziwezi kupakwa rangi: %s"
 
 
 msgid " UVs,"
@@ -107478,10 +107424,6 @@ msgstr "Kitu '%s' hakitumii maumbo"
 
 msgid "Object '%s' has no evaluated mesh data"
 msgstr "Kitu '%s' hakina data ya wavu iliyotathminiwa"
-
-
-msgid "Object '%s' could not create internal data for finding nearest point"
-msgstr "Kitu '%s' hakikuweza kuunda data ya ndani ya kutafuta sehemu iliyo karibu zaidi"
 
 
 msgid "Palette '%s' does not contain color given"
@@ -111497,12 +111439,12 @@ msgid "Import-Export"
 msgstr "Leta-Hamisha"
 
 
-msgid "Utility"
-msgstr "Huduma"
-
-
 msgid "Generation"
 msgstr "Kizazi"
+
+
+msgid "Utility"
+msgstr "Huduma"
 
 
 msgid "Curve Info"

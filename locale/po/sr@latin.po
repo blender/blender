@@ -1,9 +1,9 @@
 
 msgid ""
 msgstr ""
-"Project-Id-Version: Blender 5.3.0 Alpha (b'af4852ed4560')\n"
+"Project-Id-Version: Blender 5.3.0 Alpha (b'09417042a1fa')\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-08-10 07:54+0000\n"
+"POT-Creation-Date: 2026-08-24 07:38+0000\n"
 "PO-Revision-Date: 2025-07-23 14:56+0000\n"
 "Last-Translator: Anonymous <noreply@weblate.org>\n"
 "Language-Team: Serbian (Latin script) <https://translate.blender.org/projects/blender-ui/ui/sr_Latn/>\n"
@@ -1962,14 +1962,6 @@ msgid "Kill collided particles"
 msgstr "Ubi čestice pri sudaru"
 
 
-msgid "Display"
-msgstr "Prikaz"
-
-
-msgid "Input Color Space"
-msgstr "Prostor boja ulaza"
-
-
 msgid "Curve"
 msgstr "Kriva"
 
@@ -1982,16 +1974,8 @@ msgid "Gamma"
 msgstr "Gama"
 
 
-msgid "Look"
-msgstr "Izgled"
-
-
 msgid "Use Curves"
 msgstr "Koristi krive"
-
-
-msgid "View"
-msgstr "Pogled"
 
 
 msgid "Temperature"
@@ -2990,6 +2974,10 @@ msgstr "Metoda"
 
 msgid "Plane"
 msgstr "Ploča"
+
+
+msgid "View"
+msgstr "Pogled"
 
 
 msgid "Radius"
@@ -5159,6 +5147,14 @@ msgid "Use Texture Overlay"
 msgstr "Koristi dodatnu providnost"
 
 
+msgid "Use Unified Strength"
+msgstr "Jedinstvena jačina"
+
+
+msgid "Use Unified Weight"
+msgstr "Koristi jedinstvenu težinu"
+
+
 msgid "Forward"
 msgstr "Napred"
 
@@ -6673,6 +6669,10 @@ msgstr "Vlaženje"
 
 msgid "Amount of damping"
 msgstr "Vrednost vlaženja"
+
+
+msgid "Display"
+msgstr "Prikaz"
 
 
 msgid "Percentage of particles to display in 3D view"
@@ -8498,32 +8498,12 @@ msgid "Material slot name"
 msgstr "Naziv slota materijala"
 
 
-msgid "Names"
-msgstr "Imena"
-
-
-msgid "Bone Roll"
-msgstr "Rolna kostiju"
-
-
-msgid "Show/Hide"
-msgstr "Prikaži/sakrij"
-
-
-msgid "Keying"
-msgstr "Zbirka tastera"
-
-
-msgid "Tracking"
-msgstr "Praćenje"
-
-
-msgid "Math"
-msgstr "Matematika"
-
-
 msgid "Snap"
 msgstr "Lepljenje"
+
+
+msgid "Import"
+msgstr "Uvoz"
 
 
 msgid "Mirror"
@@ -8544,6 +8524,14 @@ msgstr "Navigacija"
 
 msgid "Align View"
 msgstr "Poravnaj pogled"
+
+
+msgid "Math"
+msgstr "Matematika"
+
+
+msgid "UV"
+msgstr "UV"
 
 
 msgid "Select Linked"
@@ -8570,10 +8558,6 @@ msgid "Apply"
 msgstr "Primeni"
 
 
-msgid "Import"
-msgstr "Uvoz"
-
-
 msgid "Track"
 msgstr "Staza"
 
@@ -8582,12 +8566,24 @@ msgid "Quick Effects"
 msgstr "Brzi efekti"
 
 
+msgid "Show/Hide"
+msgstr "Prikaži/sakrij"
+
+
+msgid "Linked"
+msgstr "Povezano"
+
+
 msgid "Hooks"
 msgstr "Udice"
 
 
-msgid "UV"
-msgstr "UV"
+msgid "Keying"
+msgstr "Zbirka tastera"
+
+
+msgid "Tracking"
+msgstr "Praćenje"
 
 
 msgid "Clear Transform"
@@ -8600,6 +8596,10 @@ msgstr "U međuvremenu"
 
 msgid "Propagate"
 msgstr "Prenesi"
+
+
+msgid "Names"
+msgstr "Imena"
 
 
 msgid "Toggle Bone Options"
@@ -8622,12 +8622,12 @@ msgid "Merge"
 msgstr "Sjedini"
 
 
-msgid "Linked"
-msgstr "Povezano"
-
-
 msgid "Special Characters"
 msgstr "Specijalni znaci"
+
+
+msgid "Bone Roll"
+msgstr "Rolna kostiju"
 
 
 msgid "Basic"
@@ -10560,10 +10560,6 @@ msgstr "YCbCr (ITU 601)"
 
 msgid "ITU 709"
 msgstr "YCbCr (ITU 709)"
-
-
-msgid "To"
-msgstr "Ka"
 
 
 msgid "Corner Pin"
@@ -22106,14 +22102,6 @@ msgid "Sort items by their name"
 msgstr "Sortiraj stavke po njihovim imenima"
 
 
-msgid "Use Unified Strength"
-msgstr "Jedinstvena jačina"
-
-
-msgid "Use Unified Weight"
-msgstr "Koristi jedinstvenu težinu"
-
-
 msgid "Unit Scale"
 msgstr "Razmera"
 
@@ -22434,11 +22422,6 @@ msgstr "Slika"
 msgctxt "WindowManager"
 msgid "UV Editor"
 msgstr "UV Uređivač"
-
-
-msgctxt "WindowManager"
-msgid "UV Sculpt"
-msgstr "UV Vajanje"
 
 
 msgctxt "WindowManager"
@@ -24036,6 +24019,10 @@ msgstr "U redu"
 
 msgid "Menu \"%s\" not found"
 msgstr "Nije pronađen meni \"%s\""
+
+
+msgid "Look"
+msgstr "Izgled"
 
 
 msgid "Pos"

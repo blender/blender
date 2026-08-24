@@ -1,9 +1,9 @@
 
 msgid ""
 msgstr ""
-"Project-Id-Version: Blender 5.3.0 Alpha (b'af4852ed4560')\n"
+"Project-Id-Version: Blender 5.3.0 Alpha (b'09417042a1fa')\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-08-10 07:54+0000\n"
+"POT-Creation-Date: 2026-08-24 07:38+0000\n"
 "PO-Revision-Date: 2026-04-22 14:12+0000\n"
 "Last-Translator: Karlo Pavicic <soulcreature@hotmail.com>\n"
 "Language-Team: Croatian <https://translate.blender.org/projects/blender-ui/ui/hr/>\n"
@@ -442,10 +442,6 @@ msgid "Curve"
 msgstr "Krivulja"
 
 
-msgid "View"
-msgstr "Pogled"
-
-
 msgid "Output"
 msgstr "Ispis"
 
@@ -468,6 +464,10 @@ msgstr "Kursor"
 
 msgid "Plane"
 msgstr "Ploha"
+
+
+msgid "View"
+msgstr "Pogled"
 
 
 msgid "Render"
@@ -744,10 +744,6 @@ msgid "Delete"
 msgstr "Obriši"
 
 
-msgid "Clean Up"
-msgstr "Počisti"
-
-
 msgid "Navigation"
 msgstr "Navigacija"
 
@@ -758,6 +754,10 @@ msgstr "Svjetlo"
 
 msgid "Relations"
 msgstr "Odnosi"
+
+
+msgid "Clean Up"
+msgstr "Počisti"
 
 
 msgid "Merge"
@@ -1633,13 +1633,13 @@ msgstr "Scena/e"
 
 
 msgctxt "Operator"
-msgid "Add Bone Constraint"
-msgstr "Dodavanje ograničenja kosti"
+msgid "Search..."
+msgstr "Pretraživanje..."
 
 
 msgctxt "Operator"
-msgid "Search..."
-msgstr "Pretraživanje..."
+msgid "Add Bone Constraint"
+msgstr "Dodavanje ograničenja kosti"
 
 
 msgid "Display Cursor"

@@ -1,7 +1,7 @@
 
 msgid ""
 msgstr ""
-"Project-Id-Version: Blender 5.3.0 Alpha (b'af4852ed4560')\n"
+"Project-Id-Version: Blender 5.3.0 Alpha (b'09417042a1fa')\n"
 "Report-Msgid-Bugs-To: \n"
 "PO-Revision-Date: 2025-07-23 15:29+0000\n"
 "Last-Translator: Anonymous <noreply@weblate.org>\n"
@@ -119,10 +119,6 @@ msgid "Curve"
 msgstr "Архәара"
 
 
-msgid "View"
-msgstr "Аԥшра"
-
-
 msgid "Armature"
 msgstr "Абаҩ"
 
@@ -141,6 +137,10 @@ msgstr "Ахырхага"
 
 msgid "Plane"
 msgstr "Аҟьаҟьа"
+
+
+msgid "View"
+msgstr "Аԥшра"
 
 
 msgid "Render"
@@ -270,16 +270,16 @@ msgid "Difference"
 msgstr "Аиԥшымра"
 
 
-msgid "Keying"
-msgstr " Аиҭаганҵа"
-
-
 msgid "Metaball"
 msgstr "Метампыл"
 
 
 msgid "Light"
 msgstr "Алашара"
+
+
+msgid "Keying"
+msgstr " Аиҭаганҵа"
 
 
 msgid "Marker"
