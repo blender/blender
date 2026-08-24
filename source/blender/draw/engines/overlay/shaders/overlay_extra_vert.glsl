@@ -14,16 +14,16 @@ VERTEX_SHADER_CREATE_INFO(overlay_extra_spot_cone)
 
 void main()
 {
-  select_id_set(in_select_buf[gl_InstanceID]);
+  select_id_set(in_select_buf[gpu_InstanceIndex]);
 
   /* Loading the matrix first before doing the manipulation fixes an issue
    * with the Metal compiler on older Intel macs (see #130867). */
-  float4x4 inst_obmat = data_buf[gl_InstanceID].object_to_world;
+  float4x4 inst_obmat = data_buf[gpu_InstanceIndex].object_to_world;
   float4x4 input_mat = inst_obmat;
 
   /* Extract data packed inside the unused float4x4 members. */
   float4 inst_data = float4(input_mat[0][3], input_mat[1][3], input_mat[2][3], input_mat[3][3]);
-  float4 color = data_buf[gl_InstanceID].color_;
+  float4 color = data_buf[gpu_InstanceIndex].color_;
   float inst_color_data = color.a;
   float4x4 obmat = input_mat;
   obmat[0][3] = obmat[1][3] = obmat[2][3] = 0.0f;

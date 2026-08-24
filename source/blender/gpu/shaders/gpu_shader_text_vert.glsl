@@ -8,7 +8,7 @@ VERTEX_SHADER_CREATE_INFO(gpu_shader_text)
 
 void main()
 {
-  int glyph_index = gl_InstanceID;
+  int glyph_index = gpu_InstanceIndex;
 
   color_flat = glyphs[glyph_index].glyph_color;
   glyph_offset = glyphs[glyph_index].offset;

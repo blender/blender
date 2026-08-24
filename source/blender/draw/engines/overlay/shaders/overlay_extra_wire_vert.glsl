@@ -22,7 +22,7 @@ void main()
 #ifdef OBJECT_WIRE
   select_id_set(drw_custom_id());
 #else
-  select_id_set(in_select_buf[gl_InstanceID]);
+  select_id_set(in_select_buf[gpu_InstanceIndex]);
 #endif
 
   float3 world_pos = drw_point_object_to_world(pos);

@@ -8,7 +8,7 @@ VERTEX_SHADER_CREATE_INFO(gpu_shader_sequencer_strips)
 
 void main()
 {
-  int id = gl_InstanceID;
+  int id = gpu_InstanceIndex;
   strip_id = uint(id);
   int vid = gl_VertexID;
   SeqStripDrawData strip = strip_data[id];

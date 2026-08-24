@@ -53,7 +53,7 @@ struct NodeLinkSRT {
 };
 
 [[vertex]] void vert([[vertex_id]] const int gl_VertexID,
-                     [[instance_id]] const int gl_InstanceID,
+                     [[instance_index]] const int gpu_InstanceIndex,
                      [[resource_table]] const NodeLinkSRT &srt,
                      [[in]] const NodeLinkVertIn &v_in,
                      [[position]] float4 &gl_Position,
@@ -62,7 +62,7 @@ struct NodeLinkSRT {
   constexpr float start_gradient_threshold = 0.35f;
   constexpr float end_gradient_threshold = 0.65f;
 
-  const NodeLinkData link = srt.link_data_buf[gl_InstanceID];
+  const NodeLinkData link = srt.link_data_buf[gpu_InstanceIndex];
 
   const float2 P0 = link.bezier_P0;
   const float2 P1 = link.bezier_P1;
