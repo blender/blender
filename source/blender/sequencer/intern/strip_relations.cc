@@ -318,6 +318,18 @@ void relations_free_imbuf(Scene *scene, ListBaseT<Strip> *seqbase, bool for_rend
   }
 }
 
+void relations_refresh_all(Scene *scene)
+{
+  Editing *ed = editing_get(scene);
+  if (ed == nullptr) {
+    return;
+  }
+
+  relations_free_imbuf(scene, &ed->seqbase, false);
+  media_presence_free(scene);
+  cache_cleanup(scene, CacheCleanup::All);
+}
+
 static Strip *sequencer_check_scene_recursion(Scene *scene, ListBaseT<Strip> *seqbase)
 {
   for (Strip &strip : *seqbase) {

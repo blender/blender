@@ -1639,11 +1639,8 @@ static bool sequencer_refresh_all_poll(bContext *C)
 static wmOperatorStatus sequencer_refresh_all_exec(bContext *C, wmOperator * /*op*/)
 {
   Scene *scene = CTX_data_sequencer_scene(C);
-  Editing *ed = seq::editing_get(scene);
 
-  seq::relations_free_imbuf(scene, &ed->seqbase, false);
-  seq::media_presence_free(scene);
-  seq::cache_cleanup(scene, seq::CacheCleanup::All);
+  seq::relations_refresh_all(scene);
 
   WM_event_add_notifier(C, NC_SCENE | ND_SEQUENCER, scene);
 
