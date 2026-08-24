@@ -474,8 +474,23 @@ static bool collection_importer_remove_poll(bContext *C)
 static bool collection_importer_import_poll(bContext *C)
 {
   const Collection *collection = CTX_data_collection(C);
-  return collection != nullptr && collection->importer != nullptr &&
-         !(ID_IS_LINKED(&collection->id) || ID_IS_OVERRIDE_LIBRARY(&collection->id));
+  if (!collection || !collection->importer || ID_IS_LINKED(&collection->id) ||
+      ID_IS_OVERRIDE_LIBRARY(&collection->id))
+  {
+    return false;
+  }
+
+  const IDProperty *import_properties = collection->importer->import_properties;
+  const std::optional<StringRefNull> filepath = import_properties ?
+                                                    IDP_group_lookup_string(*import_properties,
+                                                                            "filepath") :
+                                                    std::nullopt;
+  if (!filepath.has_value() || filepath->is_empty()) {
+    CTX_wm_operator_poll_msg_set(C, "Filepath needs to be set first");
+    return false;
+  }
+
+  return true;
 }
 
 static wmOperatorStatus collection_importer_add_exec(bContext *C, wmOperator *op)
