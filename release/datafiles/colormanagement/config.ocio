@@ -139,6 +139,8 @@ display_colorspaces:
       sRGB IEC 61966-2-1 compound (piece-wise) encoding
     isdata: false
     interop_id: srgb_rec709_display
+    interchange:
+      icc_profile_name: srgb_rec709_display.icc
     from_display_reference: !<GroupTransform>
       children:
         - !<ColorSpaceTransform> {src: cie_xyz_d65_interchange, dst: Linear Rec.709}
