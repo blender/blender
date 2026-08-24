@@ -191,7 +191,7 @@ struct Node {
   }
 
   std::string_view str() const;
-  /* Same as str buf with trailing whitespaces. */
+  /* Same as str buf with trailing white-spaces. */
   std::string_view str_full() const;
 
   /* Print AST dump to the standard output. */

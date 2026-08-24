@@ -474,7 +474,7 @@ static ColorPaint4f vpaint_get_current_col(VPaint &vp, bool secondary)
   return ColorPaint4f(brush_color.x, brush_color.y, brush_color.z, 1.0f);
 }
 
-/* wpaint has 'wpaint_blend' */
+/* Weight-paint has `wpaint_blend`. */
 template<typename Color, typename Traits>
 static Color vpaint_blend(const VPaint &vp,
                           Color color_curr,

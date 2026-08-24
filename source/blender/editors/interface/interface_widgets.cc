@@ -2953,7 +2953,7 @@ static void widget_draw_multiline_text(const uiFontStyle *fstyle,
           fstyle->uifont_id, line.begin(), line.size(), okwidth, &strwidth);
       str = str.substr(0, drawstr_len);
     }
-    /* Trim trailing whitespace. */
+    /* Trim trailing white-space. */
     str = StringRef(str).trim_right();
 
     StringRef ellipsis = BLI_STR_UTF8_HORIZONTAL_ELLIPSIS;

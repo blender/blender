@@ -1319,7 +1319,7 @@ class ShaderNodesInliner {
       return;
     }
 
-    /* If the index is not a constant value, we immitate the index switch node using a chain of
+    /* If the index is not a constant value, we imitate the index switch node using a chain of
      * mix nodes. This allows renderers using the Index Switch node with rendering backends which
      * don't support it natively. */
     const std::optional<eNodeSocketDatatype> internal_mix_type =

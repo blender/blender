@@ -83,9 +83,9 @@ enum class ResultPrecision : uint8_t {
 
 /* The type of storage used to hold the result data. */
 enum class ResultStorageType : uint8_t {
-  /* Stored as a single value in an std::varient of all types. */
+  /* Stored as a single value in an #std::varient of all types. */
   SingleValue,
-  /* Stored as an image in a gpu::Texture on the GPU. */
+  /* Stored as an image in a #gpu::Texture on the GPU. */
   GPUImage,
   /* Stored as an image in a buffer on the CPU. */
   CPUImage,

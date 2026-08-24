@@ -13757,7 +13757,7 @@ std::optional<int2> try_activate_rna_button(bContext *C,
     WM_cursor_warp(win, BLI_rctf_cent_x(&button_view_rect), BLI_rctf_cent_y(&button_view_rect));
   }
 
-  /* Disable textsearch interactive mode. */
+  /* Disable text-search interactive mode. */
   button->changed = false;
 
   if (button->flag & (BUT_DISABLED | UI_HIDDEN)) {
@@ -13788,7 +13788,7 @@ std::optional<int2> try_activate_rna_button(bContext *C,
     event.xy[0] = BLI_rctf_cent_x(&button_view_rect);
     event.xy[1] = BLI_rctf_cent_y(&button_view_rect);
     /* Use `ui_do_button` for #BUTTON_STATE_NUM_EDITING with a dummy event, some buttons do some
-     * aditional configurations on left click to start editing. */
+     * additional configurations on left click to start editing. */
     do_button(C, button->block, button, &event);
   }
 

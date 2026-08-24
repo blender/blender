@@ -468,7 +468,7 @@ void SymbolTable::register_builtins(LocalScope node)
   root->classes.emplace(string("uint32_t"), root->classes["uint"]);
 
   /* Swizzle Generation */
-  /* We do this in a separate loop because a swizzle on a float2 (like .xxxx)
+  /* We do this in a separate loop because a swizzle on a float2 (like `.xxxx`).
    * might require float4 to already be registered in root->classes. */
   for (const auto &[name, base, comp, __, ___] : vectors) {
     SymbolClass *type = root->classes[name];

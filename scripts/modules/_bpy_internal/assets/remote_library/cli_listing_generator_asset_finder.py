@@ -50,7 +50,7 @@ class FileVersionInfo:
 
 
 # Match numbers after `@b`, but do not allow leading zeroes. This prevents having different markers (and thus different
-# filenames) for the same version. Case-sensitive filesystems can still have two files (lower & upper case `b`) so this
+# filenames) for the same version. Case-sensitive file-systems can still have two files (lower & upper case `b`) so this
 # still has to be taken into account.
 _filename_re = re.compile('(.*?)@b(0|[1-9][0-9]*)_(0|[1-9][0-9]*)', flags=re.IGNORECASE)
 

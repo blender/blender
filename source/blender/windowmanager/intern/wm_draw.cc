@@ -839,7 +839,7 @@ static void wm_draw_region_blit(ARegion *region, int view)
    * viewports are transparent where nothing was rendered, leading to un-wanted transparency.
    *
    * Everything else drawn into the window blends with #GPU_BLEND_ALPHA which leaves an opaque
-   * desination opaque, so masking here is enough to keep the window opaque for the whole frame,
+   * destination opaque, so masking here is enough to keep the window opaque for the whole frame,
    * see #WM_window_csd_draw_corner_mask. */
   GPU_color_mask(true, true, true, false);
 

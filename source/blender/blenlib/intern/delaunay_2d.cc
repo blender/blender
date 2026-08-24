@@ -2303,7 +2303,7 @@ template<typename T> void add_edge_constraints(CDT_state<T> *cdt_state, const CD
  *
  * NOTE: if the input face is not CCW oriented, we would be labeling the outside, not the inside.
  * There will be another surrounding set of faces and those are the ones whose original faces
- * should be propgated, not the hole face ids. So we'll skip the flood fill for CW faces.
+ * should be propagated, not the hole face ids. So we'll skip the flood fill for CW faces.
  * If the boundary has self crossings then it is a mixture of CCW and CW; by using the signed
  * area we find the "dominant" direction and hopefully that's what the user intended.
  * (In current usage throughout Blender, the only code that cares about original face id

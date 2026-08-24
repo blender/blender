@@ -1109,7 +1109,7 @@ void RNA_api_object(StructRNA *srna)
   RNA_def_function_ui_description(
       func, "Find armature influencing this object as a parent or via a modifier");
   parm = RNA_def_pointer(
-      func, "ob_arm", "Object", "", "Armature object influencing this object or nullptr");
+      func, "ob_arm", "Object", "", "Armature object influencing this object or None");
   RNA_def_function_return(func, parm);
 
   /* Shape key */

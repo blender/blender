@@ -614,7 +614,7 @@ void SourceProcessor::cleanup_whitespace(ParserT &parser, bool do_leading)
   const string &str = parser.str();
 
   if (do_leading) {
-    /* Cleanup leading whitespaces at the start of the file.
+    /* Cleanup leading white-spaces at the start of the file.
      * Only to be done if there is a line directive at the top of the file. */
     size_t first_char = str.find_first_not_of(" \n");
     if (first_char != 0 && first_char != string::npos) {

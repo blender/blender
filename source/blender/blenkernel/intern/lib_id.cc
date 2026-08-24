@@ -1523,7 +1523,7 @@ void *BKE_libblock_alloc_in_lib(Main *bmain,
      * indirectly linked.
      *
      * Note: Using the library parent here to decide if the type of linking is somewhat weak, but
-     * there is no other info at this level. In any case, this status is reset/revalidated on file
+     * there is no other info at this level. In any case, this status is reset/re-validated on file
      * save and read, and caller code is free to reset this value to its liking using
      * `id_lib_extern`/`id_lib_indirect`. */
     if (ID_IS_LINKED(id)) {

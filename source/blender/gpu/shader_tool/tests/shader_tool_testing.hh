@@ -25,7 +25,7 @@ static inline Result process_test_string(
 
   auto [result, metadata, error] = processor.convert();
 
-  /* Strip first line directiv. */
+  /* Strip first line directive. */
   size_t newline = result.find('\n') + 1;
   size_t len = std::string::npos;
   if (language == shader::Language::BSL) {
@@ -35,7 +35,7 @@ static inline Result process_test_string(
   }
   result = result.substr(newline, len);
   if (language == shader::Language::BSL && len > 2) {
-    /* Avoid updating test for trailing whitespace. */
+    /* Avoid updating test for trailing white-space. */
     if (result[len - 1] == '\n' && result[len - 2] == '\n') {
       result = result.substr(0, len - 1);
     }

@@ -56,7 +56,7 @@ struct SymbolMap : unordered_map<string, pair<SourceLocation, SymbolT *>> {
 
 /**
  * Container for symbol visible inside a namespace scope.
- * - Scope can be anonymous (automatic identifier identifier).
+ * - Scope can be anonymous (automatic identifier).
  * - Symbols can be referenced by multiple scopes (e.g. `enum`, `using`).
  */
 struct SymbolScope : Symbol {

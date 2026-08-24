@@ -287,7 +287,7 @@ struct BSLParser {
   void struct_decl_or_var_decl(bool is_member = false)
   {
     {
-      /* C++ explicit member type. Needed for legacy codestyle. */
+      /* C++ explicit member type. Needed for legacy code-style. */
       auto state = save_state();
       if (var_decl(is_member)) {
         return;
