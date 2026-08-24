@@ -301,8 +301,6 @@ void node_bsdf_principled(float4 base_color,
       /* Subsurface Scattering materials behave unpredictably with values greater than 1.0 in
        * Cycles. So it's clamped there and we clamp here for consistency with Cycles. */
       sss_data.color = (subsurface_weight * weight) * clamped_base_color.rgb * coat_tint.rgb;
-      /* Add energy of the sheen layer until we have proper sheen BSDF. */
-      sss_data.color += sheen_data_color;
       closure_eval(sss_data);
     }
 #endif
