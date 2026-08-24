@@ -1058,6 +1058,7 @@ static void bake_targets_populate_pixels_color_attributes(BakeTargets *targets,
     pixel->dv_dy = 0.0f;
     pixel->uv[0] = 0.0f;
     pixel->uv[1] = 0.0f;
+    pixel->is_margin = false;
   }
 
   /* Populate through adjacent triangles, first triangle wins. */
@@ -1337,7 +1338,8 @@ static void bake_targets_populate_pixels(const BakeAPIRender *bkr,
     bake_targets_populate_pixels_color_attributes(targets, ob, mesh_eval, pixel_array);
   }
   else {
-    RE_bake_pixels_populate(mesh_eval, pixel_array, targets->pixels_num, targets, bkr->uv_layer);
+    RE_bake_pixels_populate(
+        mesh_eval, pixel_array, targets->pixels_num, targets, bkr->uv_layer, bkr->margin);
   }
 }
 
