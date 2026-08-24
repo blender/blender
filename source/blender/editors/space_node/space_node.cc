@@ -337,6 +337,19 @@ std::optional<nodes::FoundNestedNodeID> find_nested_node_id_in_root(
   return found;
 }
 
+Object *get_space_editor_object(const bContext *C)
+{
+  SpaceNode *snode = CTX_wm_space_node(C);
+
+  if (snode && snode->from) {
+    if (snode->from->id_type() == ID_OB) {
+      return id_cast<Object *>(snode->from);
+    }
+  }
+
+  return static_cast<Object *>(CTX_data_pointer_get(C, "object").data);
+}
+
 std::optional<ObjectAndModifier> get_geometry_nodes_modifier_for_node_editor(
     const SpaceNode &snode)
 {
