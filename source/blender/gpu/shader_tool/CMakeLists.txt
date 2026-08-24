@@ -5,6 +5,14 @@
 
 # -----------------------------------------------------------------------------
 # Build `shader_tool` executable.
+
+set(INC
+  .
+
+  bsl
+  lexit
+)
+
 set(SRC
   ast.cc
   attribute.cc
@@ -12,7 +20,6 @@ set(SRC
   flow_control.cc
   function.cc
   grammar.cc
-  grammar_bsl.cc
   intermediate.cc
   metadata.cc
   namespace.cc
@@ -34,6 +41,28 @@ set(SRC
   token_stream.hh
   utils.hh
 
+  bsl/codegen.cc
+  bsl/constructor.cc
+  bsl/grammar.cc
+  bsl/operator.cc
+  bsl/resource.cc
+  bsl/symbol.cc
+  bsl/symbol_class.cc
+  bsl/symbol_function.cc
+  bsl/symbol_scope.cc
+  bsl/symbol_table.cc
+  bsl/symbol_template.cc
+  bsl/symbol_variable.cc
+  bsl/type_checker.cc
+
+  bsl/diagnostic.hh
+  bsl/type_checker.hh
+  bsl/symbol_class.hh
+  bsl/symbol_function.hh
+  bsl/symbol_scope.hh
+  bsl/symbol_template.hh
+  bsl/symbol_variable.hh
+
   lexit/lexit.cc
 
   lexit/identifier.hh
@@ -44,11 +73,14 @@ set(SRC
   lexit/vector.hh
 )
 
+
 if(WITH_GPU_SHADER_ASSERT)
   add_definitions(-DWITH_GPU_SHADER_ASSERT)
 endif()
 
 add_executable(shader_tool shader_tool.cc ${SRC})
+blender_target_include_dirs(shader_tool ${INC})
+
 optimize_debug_target(shader_tool)
 
 if(WITH_GTESTS)
@@ -56,6 +88,7 @@ if(WITH_GTESTS)
     tests/expression_test.cc
     tests/flow_control_test.cc
     tests/function_test.cc
+    tests/grammar_test.cc
     tests/metadata_test.cc
     tests/namespace_test.cc
     tests/parser_test.cc
@@ -66,14 +99,10 @@ if(WITH_GTESTS)
     tests/templates_test.cc
   )
 
-  set(TEST_INC
-    .
-  )
-
   blender_add_test_suite_executable(
     shader_tool
     "${TEST_SRC}"
-    "${TEST_INC}"
+    "${INC}"
     ""
     ""
     "${SRC}"

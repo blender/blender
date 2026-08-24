@@ -49,13 +49,13 @@ TEST(shader_tool, ExpressionParser)
   EXPECT_EQ(test_expression("3&1"), 1);
   EXPECT_EQ(test_expression("1^3"), 2);
   /* Not supported yet. */
-  // EXPECT_EQ(test_expression("1 << 3"), 8);
-  // EXPECT_EQ(test_expression("8 >> 2"), 2);
+  EXPECT_EQ(test_expression("1 << 3"), 8);
+  EXPECT_EQ(test_expression("8 >> 2"), 2);
 
   /* --- Bitwise vs arithmetic precedence --- */
   /* Not supported yet. */
-  // EXPECT_EQ(test_expression("1 + 2 << 2"), 12); /* (1+2)<<2 */
-  // EXPECT_EQ(test_expression("1 << 2 + 1"), 8);  /* 1<<(2+1) */
+  EXPECT_EQ(test_expression("1 + 2 << 2"), 12); /* (1+2)<<2 */
+  EXPECT_EQ(test_expression("1 << 2 + 1"), 8);  /* 1<<(2+1) */
 
   /* --- Comparison operators --- */
   EXPECT_EQ(test_expression("1 < 2"), 1);

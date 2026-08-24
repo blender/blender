@@ -248,7 +248,7 @@ struct PipelineCompute {
  * with the compatibility defines.
  */
 enum TextureWriteFormat : uint32_t {
-  SNORM_8,
+  SNORM_8 = 0,
   SNORM_8_8,
   SNORM_8_8_8_8,
 

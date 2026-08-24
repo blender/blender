@@ -5,48 +5,9 @@
 #include "testing/testing.h"
 
 #include "expression.hh"
-#include "processor.hh"
+#include "shader_tool_testing.hh"
 
 namespace blender::gpu::tests {
-
-static std::string process_test_string(std::string str,
-                                       std::string &first_error,
-                                       shader::metadata::Source *r_metadata = nullptr,
-                                       shader::Language language = shader::Language::BLENDER_GLSL)
-{
-  using namespace shader;
-  SourceProcessor processor(str, "test.bsl", language);
-
-  auto [result, metadata, error] = processor.convert();
-
-  if (error) {
-    first_error = error.value().message;
-  }
-
-  if (r_metadata != nullptr) {
-    *r_metadata = metadata;
-  }
-
-  /* Strip first line directive as they are platform dependent. */
-  size_t newline = result.find('\n');
-  return result.substr(newline + 1);
-}
-
-static std::string process_test_local(std::string str,
-                                      std::string &first_error,
-                                      shader::metadata::Source *r_metadata = nullptr,
-                                      shader::Language language = shader::Language::BLENDER_GLSL)
-{
-  std::string prefix = "void wrapper_func() {";
-  std::string suffix = "\n}";
-  std::string result = process_test_string(
-      prefix + str + suffix, first_error, r_metadata, language);
-  result = result.substr(prefix.size(), result.size() - suffix.size() - prefix.size());
-  if (result.starts_with("\n#line 4")) {
-    result = "\n" + result.substr(std::string("\n#line 4").size());
-  }
-  return result;
-}
 
 TEST(shader_tool, Array)
 {
@@ -70,8 +31,7 @@ float b[2] = ARRAY_T(float) ARRAY_V(
  );
 float d[2] = ARRAY_T(float) ARRAY_V( a[0], a(0, 1) );
 )";
-    string error;
-    string output = process_test_string(input, error);
+    auto [output, _, error] = process_test_string(input);
     EXPECT_EQ(expect, output);
     EXPECT_EQ(error, "");
   }
@@ -79,24 +39,21 @@ float d[2] = ARRAY_T(float) ARRAY_V( a[0], a(0, 1) );
     string input = R"(
 float c[] = {};
 )";
-    string error;
-    string output = process_test_string(input, error);
+    auto [output, _, error] = process_test_string(input);
     EXPECT_EQ(error, "Array size must be greater than zero.");
   }
   {
     string input = R"(
 float c[0] = {};
 )";
-    string error;
-    string output = process_test_string(input, error);
+    auto [output, _, error] = process_test_string(input);
     EXPECT_EQ(error, "Array size must be greater than zero.");
   }
   {
     string input = R"(
 float2 c[2] = {{0, 1}, {0, 1}};
 )";
-    string error;
-    string output = process_test_string(input, error);
+    auto [output, _, error] = process_test_string(input);
     EXPECT_EQ(error, "Nested initializer list is not supported.");
   }
 }
@@ -120,8 +77,7 @@ struct A {
                  A A_ctor_() {A r;r.a=0;r.b=0;return r;}
 #line 5
 )";
-    string error;
-    string output = process_test_string(input, error);
+    auto [output, _, error] = process_test_string(input);
     EXPECT_EQ(expect, output);
     EXPECT_EQ(error, "");
   }
@@ -152,9 +108,7 @@ TEST(shader_tool, Include)
   UNUSED_VARS(source, g_functions, g_formats);
 }
 )";
-    string error;
-    shader::metadata::Source metadata;
-    string output = process_test_string(input, error, &metadata);
+    auto [output, metadata, error] = process_test_string(input);
     EXPECT_EQ(expect, metadata.serialize("test"));
     EXPECT_EQ(error, "");
   }
@@ -240,8 +194,7 @@ void _c_set_(_ref(T ,this_), float4 value) {
 }
 #line 39
 )";
-    string error;
-    string output = process_test_string(input, error);
+    auto [output, _, error] = process_test_string(input);
     EXPECT_EQ(output, expect);
     EXPECT_EQ(error, "");
   }
@@ -327,8 +280,7 @@ void _b_set_(_ref(T ,this_), uint4 value) {
 }
 #line 32
 )";
-    string error;
-    string output = process_test_string(input, error);
+    auto [output, _, error] = process_test_string(input);
     EXPECT_EQ(output, expect);
     EXPECT_EQ(error, "");
   }
@@ -411,8 +363,7 @@ void _a_set_(_ref(T ,this_), A value) {
 }
 #line 28
 )";
-    string error;
-    string output = process_test_string(input, error);
+    auto [output, _, error] = process_test_string(input);
     EXPECT_EQ(output, expect);
     EXPECT_EQ(error, "");
   }
@@ -474,8 +425,7 @@ void _a_set_(_ref(T ,this_), float4x4 value) {
 }
 #line 23
 )";
-    string error;
-    string output = process_test_string(input, error);
+    auto [output, _, error] = process_test_string(input);
     EXPECT_EQ(output, expect);
     EXPECT_EQ(error, "");
   }
@@ -487,8 +437,7 @@ struct [[host_shared]] T {
   };
 };
 )";
-    string error;
-    process_test_string(input, error);
+    auto [output, _, error] = process_test_string(input);
     EXPECT_EQ(error,
               "All union members must have their type wrapped using the union_t<T> template.");
   }
@@ -511,8 +460,7 @@ for (int i = 2; i < 4; i++) [[unroll]] { content += i; })";
                                        { content += 3; }
 #line 2
                                                        })";
-    string error;
-    string output = process_test_local(input, error);
+    auto [output, _, error] = process_test_local(input);
     EXPECT_EQ(output, expect);
     EXPECT_EQ(error, "");
   }
@@ -531,8 +479,7 @@ for (int i = 2; i < 4; i++, y++) [[unroll]] { content += i; })";
                        i++, y++;
 #line 2
                                                             })";
-    string error;
-    string output = process_test_local(input, error);
+    auto [output, _, error] = process_test_local(input);
     EXPECT_EQ(output, expect);
     EXPECT_EQ(error, "");
   }
@@ -555,8 +502,7 @@ for (int i = 2; i < 4 && i < y; i++, y++) [[unroll]] { cont += i; })";
                                 i++, y++;
 #line 2
                                                                   })";
-    string error;
-    string output = process_test_local(input, error);
+    auto [output, _, error] = process_test_local(input);
     EXPECT_EQ(output, expect);
     EXPECT_EQ(error, "");
   }
@@ -576,8 +522,7 @@ for (; i < j;) [[unroll_n(2)]] { content += i; })";
                                { content += i; }
 #line 2
                                                })";
-    string error;
-    string output = process_test_local(input, error);
+    auto [output, _, error] = process_test_local(input);
     EXPECT_EQ(output, expect);
     EXPECT_EQ(error, "");
   }
@@ -619,21 +564,18 @@ for (; i < j;) [[unroll_n(2)]] { for (; j < k;) [[unroll_n(2)]] {} })";
                                                                  } }
 #line 2
                                                                    })";
-    string error;
-    string output = process_test_local(input, error);
+    auto [output, _, error] = process_test_local(input);
     EXPECT_EQ(output, expect);
     EXPECT_EQ(error, "");
   }
   {
     string input = R"(for (; i < j;) [[unroll_n(2)]] { break; })";
-    string error;
-    string output = process_test_local(input, error);
+    auto [output, _, error] = process_test_local(input);
     EXPECT_EQ(error, "Unrolled loop cannot contain \"break\" statement.");
   }
   {
     string input = R"(for (; i < j;) [[unroll_n(2)]] { continue; })";
-    string error;
-    string output = process_test_local(input, error);
+    auto [output, _, error] = process_test_local(input);
     EXPECT_EQ(error, "Unrolled loop cannot contain \"continue\" statement.");
   }
   {
@@ -652,15 +594,13 @@ for (; i < j;) [[unroll_n(2)]] { for (; j < k;) {break;continue;} })";
                                { for (; j < k;) {break;continue;} }
 #line 2
                                                                   })";
-    string error;
-    string output = process_test_local(input, error);
+    auto [output, _, error] = process_test_local(input);
     EXPECT_EQ(output, expect);
     EXPECT_EQ(error, "");
   }
   {
     string input = R"(for (int i = 3; i > 2; i++) [[unroll]] {})";
-    string error;
-    string output = process_test_local(input, error);
+    auto [output, _, error] = process_test_local(input);
     EXPECT_EQ(error, "Unsupported condition in unrolled loop.");
   }
 }
@@ -681,8 +621,7 @@ template void func<A>();
 void funcTA() { A_fn(); }
 #line 5
 )";
-    string error;
-    string output = process_test_string(input, error);
+    auto [output, _, error] = process_test_string(input);
     EXPECT_EQ(output, expect);
     EXPECT_EQ(error, "");
   }
@@ -713,8 +652,7 @@ void f(float a)
   foo(a);
 }
 )";
-    string error;
-    string output = process_test_string(input, error);
+    auto [output, _, error] = process_test_string(input);
     EXPECT_EQ(output, expect);
     EXPECT_EQ(error, "");
   }
@@ -733,8 +671,7 @@ void funcTfloatT1(float a) {
 }
 #line 7
 )";
-    string error;
-    string output = process_test_string(input, error);
+    auto [output, _, error] = process_test_string(input);
     EXPECT_EQ(output, expect);
     EXPECT_EQ(error, "");
   }
@@ -747,8 +684,7 @@ template E func<0x1, 2, -1>();
 E funcT0x1T2T_1() { return E(0x1 + 2 + -1); }
 #line 4
 )";
-    string error;
-    string output = process_test_string(input, error);
+    auto [output, _, error] = process_test_string(input);
     EXPECT_EQ(output, expect);
     EXPECT_EQ(error, "");
   }
@@ -761,8 +697,7 @@ template E func<v, 2>();
 E funcTvT2() { return E(v + 2); }
 #line 4
 )";
-    string error;
-    string output = process_test_string(input, error);
+    auto [output, _, error] = process_test_string(input);
     EXPECT_EQ(output, expect);
     EXPECT_EQ(error, "");
   }
@@ -773,8 +708,7 @@ template<> void func<T, Q>(T a) {a}
     string expect = R"(
            void funcTTTQ(T a) {a}
 )";
-    string error;
-    string output = process_test_string(input, error);
+    auto [output, _, error] = process_test_string(input);
     EXPECT_EQ(output, expect);
     EXPECT_EQ(error, "");
   }
@@ -782,16 +716,14 @@ template<> void func<T, Q>(T a) {a}
     string input = R"(
 template<typename T, int i = 0> void func(T a) {a;}
 )";
-    string error;
-    string output = process_test_string(input, error);
+    auto [output, _, error] = process_test_string(input);
     EXPECT_EQ(error, "Default arguments are not supported inside template declaration");
   }
   {
     string input = R"(
 template void func(float a);
 )";
-    string error;
-    string output = process_test_string(input, error);
+    auto [output, _, error] = process_test_string(input);
     EXPECT_EQ(error,
               "Template instantiation and specialization require explicit template arguments");
   }
@@ -799,8 +731,7 @@ template void func(float a);
     string input = R"(
 template A<f> fn(A<f> a);
 )";
-    string error;
-    string output = process_test_string(input, error);
+    auto [output, _, error] = process_test_string(input);
     EXPECT_EQ(error,
               "Template instantiation and specialization require explicit template arguments");
   }
@@ -808,8 +739,7 @@ template A<f> fn(A<f> a);
     string input = R"(
 template<> A fn(A a) {}
 )";
-    string error;
-    string output = process_test_string(input, error);
+    auto [output, _, error] = process_test_string(input);
     EXPECT_EQ(error,
               "Template instantiation and specialization require explicit template arguments");
   }
@@ -817,40 +747,35 @@ template<> A fn(A a) {}
     string input = R"(
 template<> A<f> fn(A<f> a) {}
 )";
-    string error;
-    string output = process_test_string(input, error);
+    auto [output, _, error] = process_test_string(input);
     EXPECT_EQ(error,
               "Template instantiation and specialization require explicit template arguments");
   }
   {
     string input = R"(func<float, 1>(a);)";
     string expect = R"(funcTfloatT1(a);)";
-    string error;
-    string output = process_test_local(input, error);
+    auto [output, _, error] = process_test_local(input);
     EXPECT_EQ(output, expect);
     EXPECT_EQ(error, "");
   }
   {
     string input = R"(a.template func<float, 1>(a);)";
     string expect = R"(_funcTfloatT1(a, a);)";
-    string error;
-    string output = process_test_local(input, error);
+    auto [output, _, error] = process_test_local(input);
     EXPECT_EQ(output, expect);
     EXPECT_EQ(error, "");
   }
   {
     string input = R"(this->template func<float, 1>(a);)";
     string expect = R"(_funcTfloatT1(this_, a);)";
-    string error;
-    string output = process_test_local(input, error);
+    auto [output, _, error] = process_test_local(input);
     EXPECT_EQ(output, expect);
     EXPECT_EQ(error, "");
   }
   {
     string input = R"(A<B<1, 2>, C<1, D<T, -1>>> a;)";
     string expect = R"(ATBT1T2TCT1TDTTT_1 a;)";
-    string error;
-    string output = process_test_local(input, error);
+    auto [output, _, error] = process_test_local(input);
     EXPECT_EQ(output, expect);
     EXPECT_EQ(error, "");
   }
@@ -893,8 +818,7 @@ ATfloat _method(const ATfloat this_, float b);
   }
 #line 11
 )";
-    string error;
-    string output = process_test_string(input, error);
+    auto [output, _, error] = process_test_string(input);
     EXPECT_EQ(output, expect);
     EXPECT_EQ(error, "");
   }
@@ -911,8 +835,7 @@ struct ATfloat {                                                              fl
                        ATfloat ATfloat_ctor_() {ATfloat r;r.a=0.0f;return r;}
 #line 5
 )";
-    string error;
-    string output = process_test_string(input, error);
+    auto [output, _, error] = process_test_string(input);
     EXPECT_EQ(output, expect);
     EXPECT_EQ(error, "");
   }
@@ -930,8 +853,7 @@ template<> struct A<float>{
                                  ATfloat ATfloat_ctor_() {ATfloat r;r.a=0.0f;return r;}
 #line 5
 )";
-    string error;
-    string output = process_test_string(input, error);
+    auto [output, _, error] = process_test_string(input);
     EXPECT_EQ(output, expect);
     EXPECT_EQ(error, "");
   }
@@ -942,8 +864,7 @@ void func(A<float> a) {}
     string expect = R"(
 void func(ATfloat a) {}
 )";
-    string error;
-    string output = process_test_string(input, error);
+    auto [output, _, error] = process_test_string(input);
     EXPECT_EQ(output, expect);
     EXPECT_EQ(error, "");
   }
@@ -1009,8 +930,7 @@ void N_fn(N_ATint a)
 
 
 )";
-    string error;
-    string output = process_test_string(input, error);
+    auto [output, _, error] = process_test_string(input);
     EXPECT_EQ(output, expect);
     EXPECT_EQ(error, "");
   }
@@ -1024,51 +944,44 @@ TEST(shader_tool, Reference)
   {
     string input = R"(void func() { auto &a = b; a.a = 0; c = a(a); a_c_a = a; })";
     string expect = R"(void func() {              b.a = 0; c = a(b); a_c_a = b; })";
-    string error;
-    string output = process_test_string(input, error);
+    auto [output, _, error] = process_test_string(input);
     EXPECT_EQ(output, expect);
     EXPECT_EQ(error, "");
   }
   {
     string input = R"(void func() { const int &a = b; a.a = 0; c = a(a); })";
     string expect = R"(void func() {                   b.a = 0; c = a(b); })";
-    string error;
-    string output = process_test_string(input, error);
+    auto [output, _, error] = process_test_string(input);
     EXPECT_EQ(output, expect);
     EXPECT_EQ(error, "");
   }
   {
     string input = R"(void func() { const int i = 0; auto &a = b[i]; a.a = 0; })";
     string expect = R"(void func() { const int i = 0;                 b[i].a = 0; })";
-    string error;
-    string output = process_test_string(input, error);
+    auto [output, _, error] = process_test_string(input);
     EXPECT_EQ(output, expect);
     EXPECT_EQ(error, "");
   }
   {
     string input = R"(void func() { auto &a = b(0); })";
-    string error;
-    string output = process_test_string(input, error);
+    auto [output, _, error] = process_test_string(input);
     EXPECT_EQ(error, "Reference definitions cannot contain function calls.");
   }
   {
     string input = R"(void func() { int i = 0; auto &a = b[i++]; })";
-    string error;
-    string output = process_test_string(input, error);
+    auto [output, _, error] = process_test_string(input);
     EXPECT_EQ(error, "Reference definitions cannot have side effects.");
   }
   {
     string input = R"(void func() { auto &a = b[0 + 1]; })";
-    string error;
-    string output = process_test_string(input, error);
+    auto [output, _, error] = process_test_string(input);
     EXPECT_EQ(error,
               "Array subscript inside reference declaration must be a single variable or a "
               "constant, not an expression.");
   }
   {
     string input = R"(void func() { auto &a = b[c]; })";
-    string error;
-    string output = process_test_string(input, error);
+    auto [output, _, error] = process_test_string(input);
     EXPECT_EQ(error,
               "Cannot locate array subscript variable declaration. "
               "If it is a global variable, assign it to a temporary const variable for "
@@ -1076,14 +989,12 @@ TEST(shader_tool, Reference)
   }
   {
     string input = R"(void func() { int c = 0; auto &a = b[c]; })";
-    string error;
-    string output = process_test_string(input, error);
+    auto [output, _, error] = process_test_string(input);
     EXPECT_EQ(error, "Array subscript variable must be declared as const qualified.");
   }
   {
     string input = R"(auto &a = b;)";
-    string error;
-    string output = process_test_string(input, error);
+    auto [output, _, error] = process_test_string(input);
     EXPECT_EQ(error, "Unexpected token \"&\": Expecting declaration");
   }
 }
@@ -1116,8 +1027,7 @@ int b = 0;
 int a = 0;
 #endif
 )";
-    string error;
-    string output = process_test_string(input, error);
+    auto [output, _, error] = process_test_string(input);
     EXPECT_EQ(output, expect);
     EXPECT_EQ(error, "");
   }
@@ -1148,8 +1058,7 @@ int func(int a)
 }
 #line 6
 )";
-    string error;
-    string output = process_test_string(input, error);
+    auto [output, _, error] = process_test_string(input);
     EXPECT_EQ(output, expect);
     EXPECT_EQ(error, "");
   }
@@ -1179,8 +1088,7 @@ int func()
 }
 #line 6
 )";
-    string error;
-    string output = process_test_string(input, error);
+    auto [output, _, error] = process_test_string(input);
     EXPECT_EQ(output, expect);
     EXPECT_EQ(error, "");
   }
@@ -1202,8 +1110,7 @@ int2 func()
 }
 #line 5
 )";
-    string error;
-    string output = process_test_string(input, error);
+    auto [output, _, error] = process_test_string(input);
     EXPECT_EQ(output, expect);
     EXPECT_EQ(error, "");
   }
@@ -1225,8 +1132,7 @@ void func()
 }
 #line 5
 )";
-    string error;
-    string output = process_test_string(input, error);
+    auto [output, _, error] = process_test_string(input);
     EXPECT_EQ(output, expect);
     EXPECT_EQ(error, "");
   }
@@ -1244,7 +1150,7 @@ struct SRT {
 };
 )";
     string expect = R"(
-#define access_SRT_a() T_new_()
+#define access_SRT_a() T_ctor_()
 #ifdef CREATE_INFO_RES_PASS_SRT
 CREATE_INFO_RES_PASS_SRT
 #endif
@@ -1279,8 +1185,7 @@ SRT SRT_new_();
 }
 #line 5
 )";
-    string error;
-    string output = process_test_string(input, error);
+    auto [output, _, error] = process_test_string(input);
     EXPECT_EQ(output, expect);
     EXPECT_EQ(error, "");
   }
@@ -1290,8 +1195,7 @@ struct SRT {
   [[resource_table]] T a;
 };
 )";
-    string error;
-    string output = process_test_string(input, error);
+    auto [output, _, error] = process_test_string(input);
     EXPECT_EQ(error,
               "Members declared with the [[resource_table]] attribute must wrap their type "
               "with the srt_t<T> template.");
@@ -1302,8 +1206,7 @@ struct SRT {
   srt_t<T> a;
 };
 )";
-    string error;
-    string output = process_test_string(input, error);
+    auto [output, _, error] = process_test_string(input);
     EXPECT_EQ(error,
               "The srt_t<T> template is only to be used with members declared with the "
               "[[resource_table]] attribute.");
@@ -1314,8 +1217,7 @@ struct SRT {
   [[resource_table]] srt_t<T> a[4];
 };
 )";
-    string error;
-    string output = process_test_string(input, error);
+    auto [output, _, error] = process_test_string(input);
     EXPECT_EQ(error, "[[resource_table]] members cannot be arrays.");
   }
 }
@@ -1336,7 +1238,7 @@ struct SRT {
 };
 )";
     string expect = R"(
-#define access_SRT_a() T_new_()
+#define access_SRT_a() T_ctor_()
 #ifdef CREATE_INFO_RES_PASS_SRT
 CREATE_INFO_RES_PASS_SRT
 #endif
@@ -1379,8 +1281,7 @@ SRT SRT_new_();
 }
 #line 9
 )";
-    string error;
-    string output = process_test_string(input, error);
+    auto [output, _, error] = process_test_string(input);
     EXPECT_EQ(output, expect);
     EXPECT_EQ(error, "");
   }
@@ -1561,8 +1462,7 @@ void func(Resources  srt)
 #endif
 #line 44
 )";
-    string error;
-    string output = process_test_string(input, error);
+    auto [output, _, error] = process_test_string(input);
     EXPECT_EQ(output, expect);
     EXPECT_EQ(error, "");
   }
@@ -1577,8 +1477,7 @@ void func([[resource_table]] Resources &srt)
   }
 }
 )";
-    string error;
-    string output = process_test_string(input, error);
+    auto [output, _, error] = process_test_string(input);
     EXPECT_EQ(error, "Expecting next if statement to also be a static branch.");
   }
   {
@@ -1590,8 +1489,7 @@ void func([[resource_table]] Resources &srt)
   }
 }
 )";
-    string error;
-    string output = process_test_string(input, error);
+    auto [output, _, error] = process_test_string(input);
     EXPECT_EQ(error,
               "Expecting compilation or specialization constant. Make sure SRT arguments "
               "have the [[resource_table]] attribute.");
@@ -1605,8 +1503,7 @@ void func([[resource_table]] Resources &srt)
   }
 }
 )";
-    string error;
-    string output = process_test_string(input, error);
+    auto [output, _, error] = process_test_string(input);
     EXPECT_EQ(error, "Expecting single condition.");
   }
 }
@@ -1629,8 +1526,7 @@ void fn2()
 }
 }
 )";
-    string error;
-    string output = process_test_string(input, error);
+    auto [output, _, error] = process_test_string(input);
     EXPECT_EQ(error, "Call to function is ambiguous. Specify namespace to remove ambiguity.");
   }
   {
@@ -1654,8 +1550,7 @@ int A_func2(int a)
 }
 
 )";
-    string error;
-    string output = process_test_string(input, error);
+    auto [output, _, error] = process_test_string(input);
     EXPECT_EQ(output, expect);
     EXPECT_EQ(error, "");
   }
@@ -1696,8 +1591,7 @@ int A_func2(int a)
 }
 
 )";
-    string error;
-    string output = process_test_string(input, error);
+    auto [output, _, error] = process_test_string(input);
     EXPECT_EQ(output, expect);
     EXPECT_EQ(error, "");
   }
@@ -1726,8 +1620,7 @@ int A_B_func2(int a)
 }
 
 )";
-    string error;
-    string output = process_test_string(input, error);
+    auto [output, _, error] = process_test_string(input);
     EXPECT_EQ(output, expect);
     EXPECT_EQ(error, "");
   }
@@ -1750,8 +1643,7 @@ void A_B_b() { A_a(); }
 void A_f() { A_B_b(); }
 
 )";
-    string error;
-    string output = process_test_string(input, error);
+    auto [output, _, error] = process_test_string(input);
     EXPECT_EQ(output, expect);
     EXPECT_EQ(error, "");
   }
@@ -1776,8 +1668,7 @@ int A_func(int a)
 }
 
 )";
-    string error;
-    string output = process_test_string(input, error);
+    auto [output, _, error] = process_test_string(input);
     EXPECT_EQ(output, expect);
     EXPECT_EQ(error, "");
   }
@@ -1804,8 +1695,7 @@ int func(int a)
   A_S d;
 }
 )";
-    string error;
-    string output = process_test_string(input, error);
+    auto [output, _, error] = process_test_string(input);
     EXPECT_EQ(output, expect);
     EXPECT_EQ(error, "");
   }
@@ -1837,8 +1727,7 @@ void A_B_test() {
 }
 
 )";
-    string error;
-    string output = process_test_string(input, error);
+    auto [output, _, error] = process_test_string(input);
     EXPECT_EQ(output, expect);
     EXPECT_EQ(error, "");
   }
@@ -1846,8 +1735,7 @@ void A_B_test() {
     string input = R"(
 using B = A::T;
 )";
-    string error;
-    string output = process_test_string(input, error);
+    auto [output, _, error] = process_test_string(input);
     EXPECT_EQ(error, "The `using` keyword is not allowed in global scope.");
   }
   {
@@ -1856,8 +1744,7 @@ namespace A {
 using namespace B;
 }
 )";
-    string error;
-    string output = process_test_string(input, error);
+    auto [output, _, error] = process_test_string(input);
     EXPECT_EQ(error,
               "Unsupported `using namespace`. "
               "Add individual `using` directives for each needed symbol.");
@@ -1868,8 +1755,7 @@ namespace A {
 using B::func;
 }
 )";
-    string error;
-    string output = process_test_string(input, error);
+    auto [output, _, error] = process_test_string(input);
     EXPECT_EQ(error,
               "The `using` keyword is only allowed in namespace scope to make visible symbols "
               "from the same namespace declared in another scope, potentially from another "
@@ -1881,8 +1767,7 @@ namespace A {
 using C = B::func;
 }
 )";
-    string error;
-    string output = process_test_string(input, error);
+    auto [output, _, error] = process_test_string(input);
     EXPECT_EQ(error,
               "The `using` keyword is only allowed in namespace scope to make visible symbols "
               "from the same namespace declared in another scope, potentially from another "
@@ -1912,8 +1797,7 @@ float NS_read(float a)
 float NS_write(float a){ return a; }
 
 )";
-    string error;
-    string output = process_test_string(input, error);
+    auto [output, _, error] = process_test_string(input);
     EXPECT_EQ(output, expect);
     EXPECT_EQ(error, "");
   }
@@ -1955,8 +1839,7 @@ NS_S _other_method(_ref(NS_S ,this_), int s);
   }
 #line 13
 )";
-    string error;
-    string output = process_test_string(input, error);
+    auto [output, _, error] = process_test_string(input);
     EXPECT_EQ(output, expect);
     EXPECT_EQ(error, "");
   }
@@ -1973,8 +1856,7 @@ template<> Type a<Type>() {}
            Type NS_aTType() {}
 
 )";
-    string error;
-    string output = process_test_string(input, error);
+    auto [output, _, error] = process_test_string(input);
     EXPECT_EQ(output, expect);
     EXPECT_EQ(error, "");
   }
@@ -2018,8 +1900,7 @@ int _R(_ref(NS_B ,this_));
 NS_B NS_fn() { return NS_B_C(); }
 
 )";
-    string error;
-    string output = process_test_string(input, error);
+    auto [output, _, error] = process_test_string(input);
     EXPECT_EQ(output, expect);
     EXPECT_EQ(error, "");
   }
@@ -2033,8 +1914,7 @@ TEST(shader_tool, Swizzle)
   {
     string input = R"(a.xyzw().aaa().xxx().grba().yzww; aaaa();)";
     string expect = R"(a.xyzw  .aaa  .xxx  .grba  .yzww; aaaa();)";
-    string error;
-    string output = process_test_local(input, error);
+    auto [output, _, error] = process_test_local(input);
     EXPECT_EQ(output, expect);
     EXPECT_EQ(error, "");
   }
@@ -2048,8 +1928,7 @@ TEST(shader_tool, BinaryLiterals)
   {
     string input = R"(0b1 0b10u 0b10001000100010001000100010001000)";
     string expect = R"(1 2u 2290649224)";
-    string error;
-    string output = process_test_local(input, error);
+    auto [output, _, error] = process_test_local(input);
     EXPECT_EQ(output, expect);
     EXPECT_EQ(error, "");
   }
@@ -2079,8 +1958,7 @@ enum_class enum_class_ctor_() { return enum_class(0); }
 
 
 )";
-    string error;
-    string output = process_test_string(input, error);
+    auto [output, _, error] = process_test_string(input);
     EXPECT_EQ(output, expect);
     EXPECT_EQ(error, "");
   }
@@ -2107,8 +1985,7 @@ E E_ctor_() { return E(0); }
 #line 2
 
 )";
-    string error;
-    string output = process_test_string(input, error);
+    auto [output, _, error] = process_test_string(input);
     EXPECT_EQ(output, expect);
     EXPECT_EQ(error, "");
   }
@@ -2131,8 +2008,7 @@ enum_class enum_class_ctor_() { return enum_class(0); }
 
 
 )";
-    string error;
-    string output = process_test_string(input, error);
+    auto [output, _, error] = process_test_string(input);
     EXPECT_EQ(output, expect);
     EXPECT_EQ(error, "");
   }
@@ -2142,8 +2018,7 @@ enum class enum_class {
   VALUE = 0,
 };
 )";
-    string error;
-    string output = process_test_string(input, error);
+    auto [output, _, error] = process_test_string(input);
     EXPECT_EQ(error, "enum declaration must explicitly use an underlying type");
   }
 }
@@ -2157,8 +2032,7 @@ TEST(shader_tool, MatrixConstructors)
   {
     string input = R"(mat3(a); mat3 a; my_mat4x4(a); mat2x2(a); mat3x2(a);)";
     string expect = R"(__mat3x3(a); mat3 a; my_mat4x4(a); __mat2x2(a); mat3x2(a);)";
-    string error;
-    string output = process_test_string(input, error, nullptr, Language::GLSL);
+    auto [output, _, error] = process_test_string(input, Language::GLSL);
     EXPECT_EQ(output, expect);
     EXPECT_EQ(error, "");
   }
@@ -2187,8 +2061,7 @@ void my_func() {
 #line 4
 }
 )";
-    string error;
-    string output = process_test_string(input, error);
+    auto [output, _, error] = process_test_string(input);
     EXPECT_EQ(output, expect);
     EXPECT_EQ(error, "");
   }
@@ -2216,8 +2089,7 @@ uint my_func() {
 #line 6
 }
 )";
-    string error;
-    string output = process_test_string(input, error);
+    auto [output, _, error] = process_test_string(input);
     EXPECT_EQ(output, expect);
     EXPECT_EQ(error, "");
   }
@@ -2246,8 +2118,7 @@ uint my_func() {
   return i;
 }
 )";
-    string error;
-    string output = process_test_string(input, error);
+    auto [output, _, error] = process_test_string(input);
     EXPECT_EQ(output, expect);
     EXPECT_EQ(error, "");
   }
@@ -2283,8 +2154,7 @@ uint my_func() {
   return i;
 }
 )";
-    string error;
-    string output = process_test_string(input, error);
+    auto [output, _, error] = process_test_string(input);
     EXPECT_EQ(output, expect);
     EXPECT_EQ(error, "");
   }
@@ -2309,8 +2179,7 @@ template<> uint my_func<uint>(uint i) {
 #line 4
 }
 )";
-    string error;
-    string output = process_test_string(input, error);
+    auto [output, _, error] = process_test_string(input);
     EXPECT_EQ(output, expect);
     EXPECT_EQ(error, "");
   }
@@ -2349,8 +2218,7 @@ void U_fn();
          void U_fn() {}
 #line 7
 )";
-    string error;
-    string output = process_test_string(input, error);
+    auto [output, _, error] = process_test_string(input);
     EXPECT_EQ(output, expect);
     EXPECT_EQ(error, "");
   }
@@ -2418,8 +2286,7 @@ void fn(S u, _ref(S ,v))
   S _u5= v;int k=_u5.i;float l=_u5.b;
 }
 )";
-    string error;
-    string output = process_test_string(input, error);
+    auto [output, _, error] = process_test_string(input);
     EXPECT_EQ(output, expect);
     EXPECT_EQ(error, "");
   }
@@ -2528,8 +2395,7 @@ void main()
   _o(l).t[0];
 }
 )";
-    string error;
-    string output = process_test_string(input, error);
+    auto [output, _, error] = process_test_string(input);
     EXPECT_EQ(output, expect);
     EXPECT_EQ(error, "");
   }
@@ -2564,8 +2430,7 @@ float A_fn3();
          float A_fn3() { int a; return a; }
 #line 9
 )";
-    string error;
-    string output = process_test_string(input, error);
+    auto [output, _, error] = process_test_string(input);
     EXPECT_EQ(output, expect);
     EXPECT_EQ(error, "");
   }
@@ -2576,8 +2441,7 @@ struct A {
   float fn1(int a) { return a; }
 };
 )";
-    string error;
-    string output = process_test_string(input, error);
+    auto [output, _, error] = process_test_string(input);
     EXPECT_EQ(error, "Class member shadowing.");
   }
   {
@@ -2587,8 +2451,7 @@ struct A {
   float fn1() { int a; return a; }
 };
 )";
-    string error;
-    string output = process_test_string(input, error);
+    auto [output, _, error] = process_test_string(input);
     EXPECT_EQ(error, "Class member shadowing.");
   }
   {
@@ -2601,8 +2464,7 @@ class S {
 )";
     string expect = R"(
 )";
-    string error;
-    string output = process_test_string(input, error);
+    auto [output, _, error] = process_test_string(input);
     EXPECT_EQ(error, "Method name matching swizzles accessor are forbidden.");
   }
 }
@@ -2629,8 +2491,7 @@ float fn(SRT  srt) {
 #endif
 #line 5
 )";
-    string error;
-    string output = process_test_string(input, error);
+    auto [output, _, error] = process_test_string(input);
     EXPECT_EQ(output, expect);
     EXPECT_EQ(error, "");
   }
@@ -2640,8 +2501,7 @@ float fn([[resource_table]] SRT srt) {
   return srt.member;
 }
 )";
-    string error;
-    string output = process_test_string(input, error);
+    auto [output, _, error] = process_test_string(input);
     EXPECT_EQ(error, "Shader Resource Table arguments must be references.");
   }
   {
@@ -2663,8 +2523,7 @@ float fn(SRT  srt) {
 #endif
 #line 6
 )";
-    string error;
-    string output = process_test_string(input, error);
+    auto [output, _, error] = process_test_string(input);
     EXPECT_EQ(output, expect);
     EXPECT_EQ(error, "");
   }
@@ -2902,9 +2761,7 @@ BUILTINS(BuiltinBits::NUM_WORK_GROUP)
 GPU_SHADER_CREATE_END()
 
 )";
-    string error;
-    shader::metadata::Source metadata;
-    string output = process_test_string(input, error, &metadata);
+    auto [output, metadata, error] = process_test_string(input);
     string infos = metadata.serialize_infos();
 
     EXPECT_EQ(output, expect);
@@ -2966,9 +2823,7 @@ DO_STATIC_COMPILATION()
 GPU_SHADER_CREATE_END()
 
 )";
-    string error;
-    shader::metadata::Source metadata;
-    string output = process_test_string(input, error, &metadata);
+    auto [output, metadata, error] = process_test_string(input);
     string infos = metadata.serialize_infos();
 
     EXPECT_EQ(output, expect);
@@ -3027,8 +2882,7 @@ void fn() {
   T t10=_ctor(T) 1, _ctor(T) 0, 2 _rotc() .x _rotc() ;
 }
 )";
-    string error;
-    string output = process_test_string(input, error);
+    auto [output, _, error] = process_test_string(input);
     EXPECT_EQ(output, expect);
     EXPECT_EQ(error, "");
   }
@@ -3038,9 +2892,7 @@ void fn() {
   T t9={1, T{.a=1, .b=2}.a};
 }
 )";
-    string error;
-    shader::metadata::Source metadata;
-    string output = process_test_string(input, error);
+    auto [output, metadata, error] = process_test_string(input);
     EXPECT_EQ(error, "Designated initializers are only supported in assignments");
   }
   {
@@ -3049,9 +2901,7 @@ void fn() {
   T t10={1, float4{0}};
 }
 )";
-    string error;
-    shader::metadata::Source metadata;
-    string output = process_test_string(input, error);
+    auto [output, metadata, error] = process_test_string(input);
     EXPECT_EQ(
         error,
         "Aggregate is error prone for built-in vector and matrix types, use constructors instead");
@@ -3062,9 +2912,7 @@ void fn() {
   T t11={.a=1, .b=T{.a=1, .b=2}.a};
 }
 )";
-    string error;
-    shader::metadata::Source metadata;
-    string output = process_test_string(input, error);
+    auto [output, metadata, error] = process_test_string(input);
     EXPECT_EQ(error, "Nested initializer lists are not supported");
   }
   {
@@ -3073,9 +2921,7 @@ void fn() {
   T t12={.a=1, .b=float4{0}};
 }
 )";
-    string error;
-    shader::metadata::Source metadata;
-    string output = process_test_string(input, error);
+    auto [output, metadata, error] = process_test_string(input);
     EXPECT_EQ(
         error,
         "Aggregate is error prone for built-in vector and matrix types, use constructors instead");

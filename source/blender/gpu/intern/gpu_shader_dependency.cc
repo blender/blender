@@ -556,7 +556,7 @@ void gpu_shader_dependency_init()
 #ifdef WITH_OPENSUBDIV
   osd_patch_basis = openSubdiv_getGLSLPatchBasisSource();
   osd_patch_basis = shader::SourceProcessor(
-                        osd_patch_basis, "osd_patch_basis.glsl", gpu::shader::Language::GLSL)
+                        osd_patch_basis, "osd_patch_basis.glsl", gpu::shader::Language::GLSL, {})
                         .remove_comments();
   auto source_ptr_opt = g_sources->pop_try("osd_patch_basis.glsl");
   if (source_ptr_opt) {
