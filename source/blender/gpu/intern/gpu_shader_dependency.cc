@@ -386,6 +386,7 @@ struct GPUSource {
   }
 
   void source_get(Vector<StringRefNull> &result,
+                  Vector<StringRefNull> &included,
                   const shader::GeneratedSourceList &generated_sources,
                   const GPUSourceDictionary &dict,
                   const GPUSource &from) const
@@ -408,11 +409,23 @@ struct GPUSource {
     CLG_log_raw(LOG.type, style.c_str()); \
   }
 
+    const shader::GeneratedSource *gen_src = nullptr;
+    if (flag_is_set(this->builtins, shader::BuiltinBits::RUNTIME_GENERATED)) {
+      /* Linear lookup since we won't have more than a few per shaders.
+       * Also avoid the complexity of a Map in info creation. */
+      for (const shader::GeneratedSource &generated_src : generated_sources) {
+        if (generated_src.filename == this->filename) {
+          gen_src = &generated_src;
+          break;
+        }
+      }
+    }
+
     /* Check if this file was already included. */
-    for (const StringRefNull &source_content : result) {
+    for (const StringRefNull &source_content : included) {
       /* Yes, compare pointer instead of string for speed.
        * Each source is guaranteed to be unique and non-moving during the building process. */
-      if (source_content.c_str() == this->source.c_str()) {
+      if (source_content.c_str() == (gen_src ? gen_src->content.c_str() : this->source.c_str())) {
         /* Already included. */
         CLOG_FILE_INCLUDE(from, *this);
         return;
@@ -420,45 +433,44 @@ struct GPUSource {
     }
 
     if (!flag_is_set(this->builtins, shader::BuiltinBits::RUNTIME_GENERATED)) {
+      included.append(this->source);
       for (const auto &dependency : this->dependencies) {
         /* WATCH: Recursive. */
-        dependency->source_get(result, generated_sources, dict, *this);
+        dependency->source_get(result, included, generated_sources, dict, *this);
       }
       CLOG_FILE_INCLUDE(from, *this);
       result.append(this->source);
       return;
     }
 
-    /* Linear lookup since we won't have more than a few per shaders.
-     * Also avoid the complexity of a Map in info creation. */
-    for (const shader::GeneratedSource &generated_src : generated_sources) {
-      if (generated_src.filename == this->filename) {
-        /* Include dependencies before the generated file. */
-        for (const auto &dependency_name : generated_src.dependencies) {
-          BLI_assert_msg(dependency_name != this->filename, "Recursive include");
+    if (gen_src) {
+      included.append(gen_src->content);
+      /* Include dependencies before the generated file. */
+      for (const auto &dependency_name : gen_src->dependencies) {
+        BLI_assert_msg(dependency_name != this->filename, "Recursive include");
 
-          GPUSource *dependency_source = dict.lookup_default(dependency_name, nullptr);
-          if (dependency_source == nullptr) {
-            /* Will certainly fail compilation. But avoid crashing the application. */
-            std::cerr << "Generated dependency not found : " + dependency_name << std::endl;
-            return;
-          }
-          /* WATCH: Recursive. */
-          dependency_source->source_get(result, generated_sources, dict, *this);
+        GPUSource *dependency_source = dict.lookup_default(dependency_name, nullptr);
+        if (dependency_source == nullptr) {
+          /* Will certainly fail compilation. But avoid crashing the application. */
+          std::cerr << "Generated dependency not found : " + dependency_name << std::endl;
+          return;
         }
-        CLOG_FILE_INCLUDE(from, *this);
-        result.append(generated_src.content);
-        return;
+        /* WATCH: Recursive. */
+        dependency_source->source_get(result, included, generated_sources, dict, *this);
       }
+      CLOG_FILE_INCLUDE(from, *this);
+      result.append(gen_src->content);
+      return;
     }
 
     std::cerr << "warn: Generated source not provided. Using fallback for : " << this->filename
               << std::endl;
+    included.append(this->source);
     /* Dependencies for generated sources are not folded on startup.
      * This allows for different set of dependencies at runtime. */
     for (const auto &dependency : this->dependencies) {
       /* WATCH: Recursive. */
-      dependency->source_get(result, generated_sources, dict, *this);
+      dependency->source_get(result, included, generated_sources, dict, *this);
     }
     CLOG_FILE_INCLUDE(from, *this);
     result.append(this->source);
@@ -469,7 +481,9 @@ struct GPUSource {
              const shader::GeneratedSourceList &generated_sources,
              const GPUSourceDictionary &dict) const
   {
-    source_get(result, generated_sources, dict, *this);
+    /* List of visited files. Avoid infinite or double includes. */
+    Vector<StringRefNull> included;
+    source_get(result, included, generated_sources, dict, *this);
   }
 
   shader::BuiltinBits builtins_get() const
