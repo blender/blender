@@ -535,16 +535,10 @@ set(GLSL_SRC
   shaders/infos/gpu_index_load_infos.hh
   shaders/infos/gpu_interface_infos.hh
   shaders/infos/gpu_shader_2D_area_borders_infos.hh
-  shaders/infos/gpu_shader_2D_image_desaturate_color_infos.hh
-  shaders/infos/gpu_shader_2D_image_infos.hh
   shaders/infos/gpu_shader_2D_image_overlays_merge_infos.hh
-  shaders/infos/gpu_shader_2D_image_overlays_stereo_merge_infos.hh
-  shaders/infos/gpu_shader_2D_image_rect_color_infos.hh
-  shaders/infos/gpu_shader_2D_image_shuffle_color_infos.hh
   shaders/infos/gpu_shader_2D_node_socket_infos.hh
   shaders/infos/gpu_shader_2D_rounded_corner_mask_infos.hh
   shaders/infos/gpu_shader_2D_widget_infos.hh
-  shaders/infos/gpu_shader_3D_image_infos.hh
   shaders/infos/gpu_shader_3D_polyline_infos.hh
   shaders/infos/gpu_shader_fullscreen_infos.hh
   shaders/infos/gpu_shader_gpencil_stroke_infos.hh
@@ -556,7 +550,6 @@ set(GLSL_SRC
   shaders/infos/gpu_shader_text_infos.hh
   shaders/infos/gpu_srgb_to_framebuffer_space_infos.hh
 
-  shaders/gpu_shader_2D_vert.glsl
   shaders/gpu_shader_2D_area_borders_vert.glsl
   shaders/gpu_shader_2D_area_borders_frag.glsl
   shaders/gpu_shader_2D_rounded_corner_mask_vert.glsl
@@ -568,17 +561,9 @@ set(GLSL_SRC
   shaders/gpu_shader_2D_node_socket_vert.glsl
   shaders/gpu_shader_2D_nodelink.bsl.hh
   shaders/gpu_shader_2D_image_vert.glsl
-  shaders/gpu_shader_2D_image_rect_vert.glsl
   shaders/gpu_shader_icon_multi_vert.glsl
   shaders/gpu_shader_icon_frag.glsl
   shaders/gpu_shader_icon_vert.glsl
-  shaders/gpu_shader_image_frag.glsl
-  shaders/gpu_shader_image_desaturate_frag.glsl
-  shaders/gpu_shader_image_overlays_merge_frag.glsl
-  shaders/gpu_shader_image_overlays_stereo_merge_frag.glsl
-  shaders/gpu_shader_image_shuffle_color_frag.glsl
-  shaders/gpu_shader_image_color_frag.glsl
-  shaders/gpu_shader_3D_image_vert.glsl
   shaders/gpu_shader_3D_polyline_frag.glsl
   shaders/gpu_shader_3D_polyline_vert.glsl
   shaders/gpu_shader_2D_update_mipmaps.bsl.hh
@@ -603,6 +588,7 @@ set(GLSL_SRC
   shaders/gpu_shader_python_typedef_lib.glsl
   shaders/gpu_shader_python_vert.glsl
 
+  shaders/gpu_shader_image.bsl.hh
   shaders/gpu_shader_simple.bsl.hh
   shaders/gpu_shader_colorspace.bsl.hh
 
