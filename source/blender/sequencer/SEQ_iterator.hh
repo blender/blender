@@ -11,6 +11,7 @@
 #include "BLI_function_ref.hh"
 #include "BLI_vector_set.hh"
 #include "DNA_listBase.h"
+#include "DNA_sequence_types.h"
 
 namespace blender {
 
@@ -51,6 +52,16 @@ void iterator_set_expand(ListBaseT<Strip> *seqbase,
                          VectorSet<Strip *> &strips,
                          void strip_query_func(Strip *strip_reference,
                                                ListBaseT<Strip> *seqbase,
+                                               VectorSet<Strip *> &strips));
+
+/**
+ * Same as above, but for query functions that need the whole #Editing context, rather than a
+ * single `seqbase`.
+ */
+void iterator_set_expand(Editing *ed,
+                         VectorSet<Strip *> &strips,
+                         void strip_query_func(Strip *strip_reference,
+                                               Editing *ed,
                                                VectorSet<Strip *> &strips));
 /**
  * Query strips from seqbase. strip_reference is used by query function as filter condition.
@@ -104,6 +115,18 @@ VectorSet<Strip *> query_all_strips_recursive(const ListBaseT<Strip> *seqbase);
 VectorSet<Strip *> query_strips_recursive_at_frame(const Scene *scene,
                                                    const ListBaseT<Strip> *seqbase,
                                                    int timeline_frame);
+
+/**
+ * Recursively queries all meta strip contents.
+ */
+void query_strip_recursive(Strip *strip, Editing *ed, VectorSet<Strip *> &r_strips);
+/**
+ * Query the effect strips attached to a given reference \a strip, and recursively the effects
+ * attached to those effects. The result is placed in the return parameter \a r_strips.
+ * Unlike #query_strip_effect_chain this only recursively includes the effects attached to the
+ * reference \a strip, but doesn't include the inputs of the recursively included effects.
+ */
+void query_strip_direct_effect_chain(Strip *strip, Editing *ed, VectorSet<Strip *> &r_strips);
 
 /**
  * Recursively query the entire chain of effect strips directly or indirectly

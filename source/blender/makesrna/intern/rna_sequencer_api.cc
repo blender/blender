@@ -591,7 +591,7 @@ static void rna_Strips_remove(
     return;
   }
 
-  seq::edit_flag_for_removal(scene, seqbase, strip);
+  seq::edit_flag_for_removal(scene, strip);
   seq::edit_remove_flagged_strips(scene, seqbase);
   strip_ptr->invalidate();
 

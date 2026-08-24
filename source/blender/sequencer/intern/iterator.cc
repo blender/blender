@@ -19,6 +19,8 @@
 #include "SEQ_relations.hh"
 #include "SEQ_render.hh"
 
+#include "sequencer.hh"
+
 namespace blender::seq {
 
 static bool strip_for_each_recursive(ListBaseT<Strip> *seqbase,
@@ -88,6 +90,23 @@ void iterator_set_expand(ListBaseT<Strip> *seqbase,
 
   for (Strip *strip : strips) {
     query_matches.add_multiple(query_by_reference(strip, seqbase, strip_query_func));
+  }
+
+  /* Merge all expanded results in provided VectorSet. */
+  strips.add_multiple(query_matches);
+}
+
+void iterator_set_expand(Editing *ed,
+                         VectorSet<Strip *> &strips,
+                         void strip_query_func(Strip *strip,
+                                               Editing *ed,
+                                               VectorSet<Strip *> &strips))
+{
+  /* Collect expanded results for each strip in provided VectorSet. */
+  VectorSet<Strip *> query_matches;
+
+  for (Strip *strip : strips) {
+    strip_query_func(strip, ed, query_matches);
   }
 
   /* Merge all expanded results in provided VectorSet. */
@@ -259,6 +278,31 @@ VectorSet<Strip *> query_unselected_strips(ListBaseT<Strip> *seqbase)
     strips.add(&strip);
   }
   return strips;
+}
+
+void query_strip_recursive(Strip *strip, Editing *ed, VectorSet<Strip *> &r_strips)
+{
+  r_strips.add(strip);
+
+  if (strip->type == STRIP_TYPE_META) {
+    for (Strip &meta_child : strip->seqbase) {
+      query_strip_recursive(&meta_child, ed, r_strips);
+    }
+  }
+}
+
+void query_strip_direct_effect_chain(Strip *strip, Editing *ed, VectorSet<Strip *> &r_strips)
+{
+  if (r_strips.contains(strip)) {
+    return; /* Strip is already in set, so all effects connected to it are as well. */
+  }
+  r_strips.add(strip);
+
+  /* Find all effect strips connected to #strip. */
+  Span<Strip *> effects = SEQ_lookup_effects_by_strip(ed, strip);
+  for (Strip *effect_strip : effects) {
+    query_strip_direct_effect_chain(effect_strip, ed, r_strips);
+  }
 }
 
 void query_strip_effect_chain(Strip *strip,

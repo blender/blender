@@ -1872,7 +1872,7 @@ static void rna_Strip_separate(ID *id, Strip *strip_meta, Main *bmain)
     seq::edit_move_strip_to_seqbase(scene, &strip_meta->seqbase, &strip, seqbase);
   }
 
-  seq::edit_flag_for_removal(scene, seqbase, strip_meta);
+  seq::edit_flag_for_removal(scene, strip_meta);
   seq::edit_remove_flagged_strips(scene, seqbase);
 
   /* Update depsgraph. */
