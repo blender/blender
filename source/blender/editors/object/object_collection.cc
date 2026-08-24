@@ -455,7 +455,14 @@ void COLLECTION_OT_create(wmOperatorType *ot)
 static bool collection_importer_add_poll(bContext *C)
 {
   const Collection *collection = CTX_data_collection(C);
-  return BKE_collection_is_content_editable(collection) && BKE_collection_is_empty(collection);
+  if (!BKE_collection_is_content_editable(collection)) {
+    return false;
+  }
+  if (!BKE_collection_is_empty(collection)) {
+    CTX_wm_operator_poll_msg_set(C, "Collection needs to be empty");
+    return false;
+  }
+  return true;
 }
 
 static bool collection_importer_remove_poll(bContext *C)
