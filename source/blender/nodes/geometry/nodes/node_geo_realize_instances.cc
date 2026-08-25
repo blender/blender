@@ -40,6 +40,9 @@ static void node_declare(NodeDeclarationBuilder &b)
       .min(0)
       .evaluated_geometry_field()
       .description("Number of levels of nested instances to realize for each top-level instance");
+  b.add_input<decl::Bool>("Preserve Normals"_ustr)
+      .default_value(false)
+      .description("Preserve the apparent face orientation of mirrored mesh instances");
 }
 
 static void node_layout_ex(ui::Layout &layout, bContext * /*C*/, PointerRNA *ptr)
@@ -95,6 +98,7 @@ static void node_geo_exec(GeoNodeExecParams params)
   options.keep_original_ids = false;
   options.realize_instance_attributes = true;
   options.realize_to_point_domain = realize_to_point_domain;
+  options.preserve_normals = params.extract_input<bool>("Preserve Normals"_ustr);
   const NodeAttributeFilter attribute_filter = params.get_attribute_filter("Geometry"_ustr);
   options.attribute_filter = attribute_filter;
   geometry::RealizeInstancesResult realize_result = geometry::realize_instances(

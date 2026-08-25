@@ -118,6 +118,7 @@ static bool exr_has_alpha(MultiPartInputFile &file);
 static bool exr_has_channels(MultiPartInputFile &file);
 static bool imb_exr_is_multi(MultiPartInputFile &file);
 static const ColorSpace *imb_exr_part_colorspace(const Header &header);
+static const Header &imb_exr_colorspace_header(const MultiPartInputFile &file);
 
 /* XYZ with Illuminant E */
 static Imf::Chromaticities CHROMATICITIES_XYZ_E{
@@ -415,6 +416,15 @@ static float compression_half_max(const int compression, const int quality)
   }
 
   return HALF_MAX;
+}
+
+static int openexr_compression_for_data_colorspace(const int compression)
+{
+  /* Still write data passes lossless when using lossy compression. */
+  if (ELEM(compression, R_IMF_EXR_CODEC_DWAA, R_IMF_EXR_CODEC_DWAB)) {
+    return R_IMF_EXR_CODEC_ZIP;
+  }
+  return compression;
 }
 
 static void openexr_header_compression(Header *header, int compression, int quality)
@@ -986,7 +996,7 @@ void IMB_exr_write_pass(ExrWriteHandle *handle,
     echan.ystride = ystride;
     /* This is used for writing, the data should not be modified. ????????? */
     echan.rect = const_cast<float *>(rect + channel);
-    echan.use_half_float = use_half_float;
+    echan.use_half_float = use_half_float && !IMB_colormanagement_space_is_data(echan.colorspace);
   }
 
   CLOG_DEBUG(&LOG, "Added pass %s %s", layerpassname.c_str(), channelnames.c_str());
@@ -1088,6 +1098,11 @@ bool IMB_exr_write_end(ExrWriteHandle *handle,
           }
           part_header.insert("type", StringAttribute(SCANLINEIMAGE));
           openexr_header_metadata_colorspace(&part_header, echan.colorspace);
+
+          if (echan.colorspace && IMB_colormanagement_space_is_data(echan.colorspace)) {
+            openexr_header_compression(
+                &part_header, openexr_compression_for_data_colorspace(compress), quality);
+          }
         }
 
         part_headers.append(std::move(part_header));
@@ -1520,7 +1535,7 @@ static bool imb_exr_multi_read_single_pass(ExrReadHandle *handle, ImBuf *ibuf)
       combined = &info;
       break;
     }
-    if (rgb == nullptr && (info.chan_id == "RGBA" || info.chan_id == "RGB")) {
+    if (rgb == nullptr && ELEM(info.chan_id, "RGBA", "RGB")) {
       rgb = &info;
     }
   }
@@ -1763,7 +1778,7 @@ static bool exr_has_xyz_channels(ExrReadHandle *exr_handle)
 static Vector<ExrChannel> exr_channels_in_multi_part_file(const MultiPartInputFile &file)
 {
   Vector<ExrChannel> channels;
-  const ColorSpace *global_colorspace = imb_exr_part_colorspace(file.header(0));
+  const ColorSpace *global_colorspace = imb_exr_part_colorspace(imb_exr_colorspace_header(file));
 
   /* Get channels from each part. */
   for (int p = 0; p < file.parts(); p++) {
@@ -2076,9 +2091,9 @@ static const char *exr_unknown_channel_name(MultiPartInputFile &file)
   return header.channels().begin().name();
 }
 
-static bool exr_is_half_float(MultiPartInputFile &file)
+static bool exr_is_half_float(const Header &header)
 {
-  const ChannelList &channels = file.header(0).channels();
+  const ChannelList &channels = header.channels();
   for (ChannelList::ConstIterator i = channels.begin(); i != channels.end(); ++i) {
     const Channel &channel = i.channel();
     if (channel.type != HALF) {
@@ -2214,6 +2229,26 @@ static const ColorSpace *imb_exr_part_colorspace(const Header &header)
   ImFileColorSpace colorspace;
   imb_exr_set_known_colorspace(header, colorspace);
   return IMB_colormanagement_space_get_named(colorspace.metadata_colorspace);
+}
+
+static const Header &imb_exr_colorspace_header(const MultiPartInputFile &file)
+{
+  /* For multi-part files, find the first header with a non-data colorspace,
+   * and use that as the colorspace for all color passes.
+   *
+   * The color interop forum recommendation say the colorInteropID of later
+   * parts should not be different than the first part, except if it's missing
+   * or set to data. This fits for Blender image datablocks, which also have
+   * one colorspace but individual passes may be marked as data. */
+  for (int p = 0; p < file.parts(); p++) {
+    const ColorSpace *colorspace = imb_exr_part_colorspace(file.header(p));
+    if (colorspace && !IMB_colormanagement_space_is_data(colorspace)) {
+      return file.header(p);
+    }
+  }
+
+  /* No representative colorspace found, fall back to the first header. */
+  return file.header(0);
 }
 
 static bool exr_get_ppm(MultiPartInputFile &file, double ppm[2])
@@ -2365,15 +2400,16 @@ ImBuf *imb_load_openexr(const uchar *mem,
 
     {
       const bool is_alpha = exr_has_alpha(*file);
+      const Header &colorspace_header = imb_exr_colorspace_header(*file);
 
       ibuf = IMB_allocImBuf(width, height, ImBufFlags::Zero);
       ibuf->color_mode = is_alpha ? ImColorMode::RGBA : ImColorMode::RGB;
-      ibuf->foptions.flag |= exr_is_half_float(*file) ? OPENEXR_HALF : 0;
-      ibuf->foptions.flag |= openexr_header_get_compression(file_header);
+      ibuf->foptions.flag |= exr_is_half_float(colorspace_header) ? OPENEXR_HALF : 0;
+      ibuf->foptions.flag |= openexr_header_get_compression(colorspace_header);
 
       imb_exr_set_ibuf_display_window(*file, ibuf);
 
-      imb_exr_set_known_colorspace(file_header, r_colorspace);
+      imb_exr_set_known_colorspace(colorspace_header, r_colorspace);
 
       ibuf->ftype = IMB_FTYPE_OPENEXR;
 

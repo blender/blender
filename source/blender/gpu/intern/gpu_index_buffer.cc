@@ -542,6 +542,12 @@ void GPU_indexbuf_update_sub(IndexBuf *elem, uint start, uint len, const void *d
   elem->update_sub(start, len, data);
 }
 
+void GPU_indexbuf_copy_sub(
+    IndexBuf *dst, IndexBuf *src, uint source_first_index, uint dest_first_index, uint index_len)
+{
+  dst->copy_sub(*src, source_first_index, dest_first_index, index_len);
+}
+
 /** \} */
 
 }  // namespace blender

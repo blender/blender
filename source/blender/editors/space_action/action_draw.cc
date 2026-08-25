@@ -840,10 +840,11 @@ static void timeline_cache_draw_geometry_nodes(const Span<CacheRange> cache_rang
 }
 
 /* Draw the interactive compositor playback cache markers. */
-static void timeline_cache_draw_compositor(const Vector<IndexRange> cached_frame_ranges,
-                                           const float y_offset,
-                                           const float line_height,
-                                           const uint pos_id)
+static void timeline_cache_draw_compositor(
+    const Vector<bke::compositor::Cache::FrameRange> cached_frame_ranges,
+    const float y_offset,
+    const float line_height,
+    const uint pos_id)
 {
 
   GPU_matrix_push();
@@ -853,11 +854,11 @@ static void timeline_cache_draw_compositor(const Vector<IndexRange> cached_frame
   ColorTheme4f color;
   ui::theme::get_color_4fv(TH_SIMULATED_FRAMES, color);
 
-  for (const IndexRange &range : cached_frame_ranges) {
+  for (const bke::compositor::Cache::FrameRange &range : cached_frame_ranges) {
     immUniform4fv("color1", color);
     immUniform4fv("color2", color);
     immBeginAtMost(GPU_PRIM_TRIS, 6);
-    immRectf_fast(pos_id, range.start(), 0.0f, range.last() + 1.0f, 1.0f);
+    immRectf_fast(pos_id, range.start, 0.0f, range.end + 1.0f, 1.0f);
     immEnd();
   }
   GPU_matrix_pop();
@@ -884,7 +885,7 @@ void timeline_draw_cache(const SpaceAction *saction, const Object *ob, const Sce
 
   float y_offset = 0.0f;
   if (saction->cache_display & TIME_CACHE_COMPOSITOR) {
-    const Vector<IndexRange> cached_frame_ranges =
+    const Vector<bke::compositor::Cache::FrameRange> cached_frame_ranges =
         scene->runtime->compositor.cache.compute_frame_ranges();
     if (!cached_frame_ranges.is_empty()) {
       timeline_cache_draw_compositor(cached_frame_ranges, y_offset, cache_draw_height, pos_id);

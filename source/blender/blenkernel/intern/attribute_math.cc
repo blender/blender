@@ -385,7 +385,7 @@ void shift_left(GMutableSpan data, int src_begin, int src_end, int dst_begin)
 
 template<typename T> void shift_right(MutableSpan<T> data, int src_begin, int src_end, int dst_end)
 {
-  if (src_end == dst_end || src_begin == src_end) {
+  if (ELEM(src_end, dst_end, src_begin)) {
     return;
   }
   std::move_backward(data.data() + src_begin, data.data() + src_end, data.data() + dst_end);

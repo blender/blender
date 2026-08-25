@@ -91,9 +91,6 @@ struct Cache {
   /* Face set ID that is going to be used when creating a new face set. */
   int next_face_set;
 
-  /* Face set ID of the Face set selected for editing. */
-  int update_face_set;
-
   /* Mouse position since the last time the origin was moved. Used for reference when moving the
    * initial position of Expand. */
   float2 original_mouse_move;
@@ -112,7 +109,6 @@ struct Cache {
   const Brush *brush;
   const Paint *paint;
   Scene *scene;
-  // struct MTex *mtex;
 
   /* Controls how much texture distortion will be applied to the current falloff */
   float texture_distortion_strength;
@@ -154,9 +150,6 @@ struct Cache {
   /* When set to true, Expand will reposition the sculpt pivot to the boundary of the expand result
    * after finishing the operation. */
   bool reposition_pivot;
-
-  /* If nothing is masked set mask of every vertex to 0. */
-  bool auto_mask;
 
   /* Color target data type related data. */
   float fill_color[4];

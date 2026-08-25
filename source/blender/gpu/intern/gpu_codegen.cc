@@ -253,6 +253,9 @@ void GPUCodegen::generate_resources()
   GPUCodegenCreateInfo &info = *create_info;
 
   std::stringstream ss;
+  /* Improve error logging. */
+  ss << "#line 1 \"" __FILE__ "\"\n";
+  ss << "#line " STRINGIFY(__LINE__) "\n";
 
   /* Textures. */
   int slot = 0;

@@ -28,6 +28,8 @@ enum class Language {
   /* Same as GLSL but enable partial C++ feature support like template, references,
    * include system, etc ... */
   BLENDER_GLSL,
+  /* Output Intermediate Language. */
+  IL,
 };
 
 }

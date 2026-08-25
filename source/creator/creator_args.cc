@@ -1792,15 +1792,15 @@ static int arg_handle_gpu_device_set(int argc, const char **argv, void * /*data*
 
     char *end = nullptr;
     errno = 0;
-    const unsigned long vendor_id = strtoul(spec, &end, 16);
+    const ulong vendor_id = strtoul(spec, &end, 16);
     const bool vendor_ok = (errno == 0) && (end == p1) && (end != spec) &&
                            (vendor_id <= std::numeric_limits<uint32_t>::max());
     errno = 0;
-    const unsigned long device_id = strtoul(p1 + 1, &end, 16);
+    const ulong device_id = strtoul(p1 + 1, &end, 16);
     const bool device_ok = (errno == 0) && (end == p2) && (end != p1 + 1) &&
                            (device_id <= std::numeric_limits<uint32_t>::max());
     errno = 0;
-    const unsigned long index = strtoul(p2 + 1, &end, 16);
+    const ulong index = strtoul(p2 + 1, &end, 16);
     const bool index_ok = (errno == 0) && (*end == '\0') && (end != p2 + 1) && (index <= INT_MAX);
 
     if (!vendor_ok || !device_ok || !index_ok) {

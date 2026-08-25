@@ -989,7 +989,7 @@ def _download_queued_items(
     in_flight_downloads = RequestDescriptionCounter()
 
     # Cancellations of currently-downloading downloads, that still have to be processed by their downloader thread.
-    # These requests can be safely requeued (for the same or another worker), but of course the running one will be
+    # These requests can be safely re-queued (for the same or another worker), but of course the running one will be
     # cancelled and the new request will start from scratch.
     in_flight_cancellations = RequestDescriptionCounter()
 

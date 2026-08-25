@@ -1,9 +1,9 @@
 
 msgid ""
 msgstr ""
-"Project-Id-Version: Blender 5.3.0 Alpha (b'af4852ed4560')\n"
+"Project-Id-Version: Blender 5.3.0 Alpha (b'09417042a1fa')\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-08-10 07:54+0000\n"
+"POT-Creation-Date: 2026-08-24 07:38+0000\n"
 "PO-Revision-Date: 2025-12-04 22:18+0000\n"
 "Last-Translator: Jackson Zheng <business.jackson.zheng@gmail.com>\n"
 "Language-Team: Hindi <https://translate.blender.org/projects/blender-ui/ui/hi/>\n"
@@ -847,20 +847,12 @@ msgid "Quality"
 msgstr "गुणवत्ता"
 
 
-msgid "Display"
-msgstr "प्रदर्शित करें"
-
-
 msgid "Curve"
 msgstr "वक्र"
 
 
 msgid "Gamma"
 msgstr "गामा"
-
-
-msgid "View"
-msgstr "दृश्य"
 
 
 msgid "RGB"
@@ -1046,6 +1038,10 @@ msgstr "विभक्त करें"
 
 msgid "Plane"
 msgstr "समतल"
+
+
+msgid "View"
+msgstr "दृश्य"
 
 
 msgid "Radius"
@@ -2153,6 +2149,10 @@ msgid "Damp"
 msgstr "आद्र"
 
 
+msgid "Display"
+msgstr "प्रदर्शित करें"
+
+
 msgid "Steps"
 msgstr "कदम"
 
@@ -2586,32 +2586,24 @@ msgid "Placement"
 msgstr "नियोजन"
 
 
-msgid "Names"
-msgstr "नाम"
+msgid "Snap"
+msgstr "स्नैप"
 
 
-msgid "Bone Roll"
-msgstr "हड्डी पंजी"
+msgid "Import"
+msgstr "आयात करें"
 
 
-msgid "Show/Hide"
-msgstr "छुपाएँ / दिखाएँ"
-
-
-msgid "Keying"
-msgstr "कुंजीयन"
+msgid "Mirror"
+msgstr "दर्पण"
 
 
 msgid "Math"
 msgstr "गणित"
 
 
-msgid "Snap"
-msgstr "स्नैप"
-
-
-msgid "Mirror"
-msgstr "दर्पण"
+msgid "UV"
+msgstr "यूवी"
 
 
 msgid "Light"
@@ -2626,16 +2618,16 @@ msgid "Apply"
 msgstr "लागू करें"
 
 
-msgid "Import"
-msgstr "आयात करें"
-
-
 msgid "Track"
 msgstr "ट्रैक"
 
 
 msgid "Quick Effects"
 msgstr "त्वरित प्रभाव"
+
+
+msgid "Show/Hide"
+msgstr "छुपाएँ / दिखाएँ"
 
 
 msgid "Make Single User"
@@ -2646,8 +2638,12 @@ msgid "Hooks"
 msgstr "खूँटी"
 
 
-msgid "UV"
-msgstr "यूवी"
+msgid "Keying"
+msgstr "कुंजीयन"
+
+
+msgid "Names"
+msgstr "नाम"
 
 
 msgid "Toggle Bone Options"
@@ -2660,6 +2656,10 @@ msgstr "हड्डी विकल्प को सक्षम करें"
 
 msgid "Merge"
 msgstr "विलय करें"
+
+
+msgid "Bone Roll"
+msgstr "हड्डी पंजी"
 
 
 msgid "Basic"
@@ -3033,10 +3033,6 @@ msgstr "प्रारम्भ"
 
 msgid "NLA Track is locked"
 msgstr "अरैखिक अनुप्राणन ट्रैक अवरोधित है"
-
-
-msgid "To"
-msgstr "करने के लिए"
 
 
 msgid "Keying Screen"

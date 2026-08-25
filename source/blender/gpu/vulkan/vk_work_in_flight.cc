@@ -12,7 +12,7 @@
 
 namespace blender::gpu {
 
-VKWorkInFlight::VKWorkInFlight(unsigned int max_in_flight)
+VKWorkInFlight::VKWorkInFlight(uint max_in_flight)
 {
   async_timeline_values_.resize(max_in_flight);
   async_timeline_values_.fill(0);

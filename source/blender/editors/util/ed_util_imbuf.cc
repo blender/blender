@@ -423,13 +423,14 @@ void ED_imbuf_sample_draw(const bContext *C, ARegion *region, void *arg_info)
                                      float(event->xy[1] - region->winrct.ymin)},
                               float(info->sample_size / 2.0f) * sima->zoom);
 
-      GPU_logic_op_xor_set(true);
+      /* Use invert blend mode for highly visible border */
+      GPU_blend(GPU_BLEND_INVERT);
 
       GPU_line_width(1.0f);
       imm_draw_box_wire_2d(
           pos, sample_rect_fl.xmin, sample_rect_fl.ymin, sample_rect_fl.xmax, sample_rect_fl.ymax);
 
-      GPU_logic_op_xor_set(false);
+      GPU_blend(GPU_BLEND_NONE);
 
       immUnbindProgram();
     }

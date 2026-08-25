@@ -3522,6 +3522,16 @@ bool WM_window_IME_region_refresh(wmWindow *win,
     return false;
   }
 
+  /* A temporary popup is modal, it takes precedence over the region below it,
+   * otherwise any redraw while the popup is open re-enables the IME, see #ED_region_do_draw.
+   * Tool-tips match too, harmless as an existing session isn't ended. */
+  const bScreen *screen = WM_window_get_active_screen(win);
+  if (!screen->regionbase.is_empty() &&
+      (BKE_screen_find_region_type(screen, RGN_TYPE_TEMPORARY) != nullptr))
+  {
+    return false;
+  }
+
   /* NOTE: ending mid-composition cancels it, so the draw-time refresh opts out via
    * `keep_composing`. Other callers keep end + begin so that the composition doesn't follow
    * the mouse into another editor.

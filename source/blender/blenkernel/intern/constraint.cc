@@ -2921,6 +2921,7 @@ static bool actcon_get_tarmat(Depsgraph *depsgraph,
   else if (cob->type == CONSTRAINT_OBTYPE_BONE) {
     Object workob;
     bPose pose = {{nullptr}};
+    pose.runtime = MEM_new<bke::bPoseRuntime>(__func__);
     bPoseChannel *pchan, *tchan;
 
     /* make a copy of the bone of interest in the temp pose before evaluating action,

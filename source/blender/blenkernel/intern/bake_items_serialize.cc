@@ -801,7 +801,7 @@ static void load_texspace(const DictionaryValue *io_mesh, Mesh *mesh)
       if (value->type() != io::serialize::eValueType::Double) {
         return false;
       }
-      r_texspace_property[i++] = static_cast<float>(value->as_double_value()->value());
+      r_texspace_property[i++] = float(value->as_double_value()->value());
     }
     return true;
   };

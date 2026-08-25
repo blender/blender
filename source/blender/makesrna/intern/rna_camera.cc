@@ -487,6 +487,7 @@ static void rna_def_camera_background_images(BlenderRNA *brna, PropertyRNA *cpro
   RNA_def_function_ui_description(func, "Add new background image");
   parm = RNA_def_pointer(
       func, "image", "CameraBackgroundImage", "", "Image displayed as viewport background");
+  RNA_def_parameter_flags(parm, PROP_NEVER_NULL, ParameterFlag(0));
   RNA_def_function_return(func, parm);
 
   func = RNA_def_function(srna, "remove", "rna_Camera_background_images_remove");

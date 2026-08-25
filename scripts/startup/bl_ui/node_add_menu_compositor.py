@@ -22,6 +22,7 @@ class NODE_MT_compositor_node_input_base(node_add_menu.NodeMenu):
         self.node_operator(layout, "CompositorNodeImage")
         self.node_operator(layout, "CompositorNodeImageInfo")
         self.node_operator(layout, "CompositorNodeImageCoordinates")
+        self.node_operator(layout, "GeometryNodeImportText")
         self.node_operator(layout, "CompositorNodeMask")
         self.node_operator(layout, "CompositorNodeMovieClip")
         if context.space_data.node_tree_sub_type == 'SEQUENCER':
@@ -64,6 +65,7 @@ class NODE_MT_compositor_node_input_scene_base(node_add_menu.NodeMenu):
     def draw(self, context):
         layout = self.layout
         self.node_operator(layout, "GeometryNodeInputActiveCamera")
+        self.node_operator(layout, "GeometryNodeBoneInfo")
         self.node_operator(layout, "GeometryNodeCameraInfo")
         self.node_operator(layout, "GeometryNodeIsViewport")
         self.node_operator(layout, "GeometryNodeObjectInfo")

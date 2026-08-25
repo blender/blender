@@ -542,7 +542,7 @@ static void SCENE_OT_add_compositor_effect_node_group_asset(wmOperatorType *ot)
 }
 
 /* --------------------------------------------------------------------
- * Root Asset Catalogues Menu.
+ * Root Asset Catalogs Menu.
  */
 
 static ed::asset::AssetItemTree &get_static_item_tree()
@@ -633,7 +633,7 @@ static MenuType SCENE_MT_add_compositor_effect_root_catalogs()
 }
 
 /* --------------------------------------------------------------------
- * Catalogue Assets Menu.
+ * Catalog Assets Menu.
  */
 
 static void catalog_assets_draw(const bContext *C, Menu *menu)

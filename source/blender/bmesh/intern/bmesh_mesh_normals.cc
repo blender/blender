@@ -30,6 +30,7 @@
 #include "BKE_global.hh"
 #include "BKE_mesh.hh"
 
+#include "bmesh_iterators_parallel.hh"
 #include "intern/bmesh_private.hh"
 
 namespace blender {

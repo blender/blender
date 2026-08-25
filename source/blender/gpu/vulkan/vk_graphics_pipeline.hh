@@ -84,7 +84,7 @@ struct VKGraphicsPipelineCreateInfoBuilder {
     build_depth_stencil_state(graphics_info.shaders);
 
     build_color_blend_attachment_states(graphics_info.fragment_out);
-    build_color_blend_state(graphics_info.fragment_out, extensions);
+    build_color_blend_state();
     build_dynamic_rendering(graphics_info.fragment_out);
   }
 
@@ -136,7 +136,6 @@ struct VKGraphicsPipelineCreateInfoBuilder {
    * build.
    */
   void build_fragment_output_lib(const VKGraphicsInfo::FragmentOut &fragment_output_info,
-                                 const VKExtensions &extensions,
                                  VkPipeline vk_pipeline_base)
   {
     build_graphics_pipeline_library(
@@ -144,7 +143,7 @@ struct VKGraphicsPipelineCreateInfoBuilder {
     build_graphics_pipeline_fragment_output_lib(vk_pipeline_base);
     build_multisample_state();
     build_color_blend_attachment_states(fragment_output_info);
-    build_color_blend_state(fragment_output_info, extensions);
+    build_color_blend_state();
     build_dynamic_rendering(fragment_output_info);
   }
 
@@ -745,8 +744,7 @@ struct VKGraphicsPipelineCreateInfoBuilder {
         attachment_state, fragment_output_info.color_attachment_formats.size());
   }
 
-  void build_color_blend_state(const VKGraphicsInfo::FragmentOut &fragment_output_info,
-                               const VKExtensions &extensions)
+  void build_color_blend_state()
   {
     vk_pipeline_color_blend_state_create_info = {
         VK_STRUCTURE_TYPE_PIPELINE_COLOR_BLEND_STATE_CREATE_INFO,
@@ -757,11 +755,6 @@ struct VKGraphicsPipelineCreateInfoBuilder {
         uint32_t(vk_pipeline_color_blend_attachment_states.size()),
         vk_pipeline_color_blend_attachment_states.data(),
         {1.0f, 1.0f, 1.0f, 1.0f}};
-    /* Logic ops. */
-    if (fragment_output_info.state.logic_op_xor && extensions.logic_ops) {
-      vk_pipeline_color_blend_state_create_info.logicOpEnable = VK_TRUE;
-      vk_pipeline_color_blend_state_create_info.logicOp = VK_LOGIC_OP_XOR;
-    }
   }
 };
 }  // namespace blender::gpu

@@ -226,7 +226,8 @@ static Vector<MeshToBMeshLayerInfo> mesh_to_bm_copy_info_calc(const Mesh &mesh,
     MeshToBMeshLayerInfo info{};
     info.type = type;
     info.bmesh_offset = bm_layer.offset;
-    if (const bke::Attribute *attr = storage.lookup(layer_name)) {
+    const bke::Attribute *attr = storage.lookup(layer_name);
+    if (attr && attr->domain() == domain) {
       switch (attr->storage_type()) {
         case bke::AttrStorageType::Array: {
           const auto &array_data = std::get<bke::Attribute::ArrayData>(attr->data());

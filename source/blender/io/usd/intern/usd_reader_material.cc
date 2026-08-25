@@ -5,7 +5,6 @@
 #include "usd_reader_material.hh"
 #include "usd_asset_utils.hh"
 #include "usd_colorspace_utils.hh"
-#include "usd_hash_types.hh"
 #include "usd_reader_utils.hh"
 
 #include "BKE_image.hh"

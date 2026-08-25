@@ -1663,6 +1663,7 @@ static void rna_def_action_slots(BlenderRNA *brna, PropertyRNA *cprop)
   RNA_def_parameter_flags(parm, PropertyFlag(0), PARM_REQUIRED);
 
   parm = RNA_def_pointer(func, "slot", "ActionSlot", "", "Newly created action slot");
+  RNA_def_parameter_flags(parm, PROP_NEVER_NULL, ParameterFlag(0));
   RNA_def_function_return(func, parm);
 
   /* Animation.slots.remove(layer) */
@@ -1701,6 +1702,7 @@ static void rna_def_action_layers(BlenderRNA *brna, PropertyRNA *cprop)
                         "Name of the layer, will be made unique within the Action");
   RNA_def_parameter_flags(parm, PropertyFlag(0), PARM_REQUIRED);
   parm = RNA_def_pointer(func, "layer", "ActionLayer", "", "Newly created animation layer");
+  RNA_def_parameter_flags(parm, PROP_NEVER_NULL, ParameterFlag(0));
   RNA_def_function_return(func, parm);
 
   /* Animation.layers.remove(layer) */
@@ -1821,6 +1823,7 @@ static void rna_def_action_slot(BlenderRNA *brna)
   RNA_def_function_flag(func, FUNC_USE_SELF_ID);
   RNA_def_property_struct_type(parm, "ActionSlot");
   RNA_def_property_ui_text(parm, "Duplicated Slot", "The slot created by duplicating this one");
+  RNA_def_property_flag(parm, PROP_NEVER_NULL);
   RNA_def_function_return(func, parm);
 }
 
@@ -1850,6 +1853,7 @@ static void rna_def_ActionLayer_strips(BlenderRNA *brna, PropertyRNA *cprop)
                       "The type of strip to create");
   /* Return value. */
   parm = RNA_def_pointer(func, "strip", "ActionStrip", "", "Newly created animation strip");
+  RNA_def_parameter_flags(parm, PROP_NEVER_NULL, ParameterFlag(0));
   RNA_def_function_return(func, parm);
 
   /* Layer.strips.remove(strip) */
@@ -1939,10 +1943,11 @@ static void rna_def_keyframestrip_channelbags(BlenderRNA *brna, PropertyRNA *cpr
                          "ActionSlot",
                          "Action Slot",
                          "The slot that should be animated by this channelbag");
-  RNA_def_parameter_flags(parm, PropertyFlag(0), PARM_REQUIRED);
+  RNA_def_parameter_flags(parm, PROP_NEVER_NULL, PARM_REQUIRED);
 
   /* Return value. */
   parm = RNA_def_pointer(func, "channelbag", "ActionChannelbag", "", "Newly created channelbag");
+  RNA_def_parameter_flags(parm, PROP_NEVER_NULL, ParameterFlag(0));
   RNA_def_function_return(func, parm);
 
   /* Strip.channelbags.remove(strip) */
@@ -2109,6 +2114,7 @@ static void rna_def_channelbag_fcurves(BlenderRNA *brna, PropertyRNA *cprop)
       "Group Name",
       "Name of the Group for this F-Curve, will be created if it does not exist yet");
   parm = RNA_def_pointer(func, "fcurve", "FCurve", "", "Newly created F-Curve");
+  RNA_def_parameter_flags(parm, PROP_NEVER_NULL, ParameterFlag(0));
   RNA_def_function_return(func, parm);
 
   func = RNA_def_function(srna, "new_from_fcurve", "rna_Channelbag_fcurve_new_from_fcurve");
@@ -2116,7 +2122,7 @@ static void rna_def_channelbag_fcurves(BlenderRNA *brna, PropertyRNA *cprop)
       func, "Copy an F-Curve into the channelbag. The original F-Curve is unchanged");
   RNA_def_function_flag(func, FUNC_USE_SELF_ID | FUNC_USE_REPORTS);
   parm = RNA_def_pointer(func, "source", "FCurve", "Source F-Curve", "The F-Curve to copy");
-  RNA_def_parameter_flags(parm, PropertyFlag(0), PARM_REQUIRED);
+  RNA_def_parameter_flags(parm, PROP_NEVER_NULL, PARM_REQUIRED);
   parm = RNA_def_string(func,
                         "data_path",
                         nullptr,
@@ -2125,6 +2131,7 @@ static void rna_def_channelbag_fcurves(BlenderRNA *brna, PropertyRNA *cprop)
                         "F-Curve data path to use. If not provided, this will use the same data "
                         "path as the given F-Curve");
   parm = RNA_def_pointer(func, "fcurve", "FCurve", "", "Newly created F-Curve");
+  RNA_def_parameter_flags(parm, PROP_NEVER_NULL, ParameterFlag(0));
   RNA_def_function_return(func, parm);
 
   /* Channelbag.fcurves.ensure(...) */
@@ -2143,6 +2150,7 @@ static void rna_def_channelbag_fcurves(BlenderRNA *brna, PropertyRNA *cprop)
                         "Name of the Group for this F-Curve, will be created if it does not exist "
                         "yet. This parameter is ignored if the F-Curve already exists");
   parm = RNA_def_pointer(func, "fcurve", "FCurve", "", "Found or newly created F-Curve");
+  RNA_def_parameter_flags(parm, PROP_NEVER_NULL, ParameterFlag(0));
   RNA_def_function_return(func, parm);
 
   /* Channelbag.fcurves.find(...) */
@@ -2191,6 +2199,7 @@ static void rna_def_channelbag_groups(BlenderRNA *brna, PropertyRNA *cprop)
   parm = RNA_def_string(func, "name", "Group", 0, "", "New name for the action group");
   RNA_def_parameter_flags(parm, PropertyFlag(0), PARM_REQUIRED);
   parm = RNA_def_pointer(func, "action_group", "ActionGroup", "", "Newly created action group");
+  RNA_def_parameter_flags(parm, PROP_NEVER_NULL, ParameterFlag(0));
   RNA_def_function_return(func, parm);
 
   func = RNA_def_function(srna, "remove", "rna_Channelbag_group_remove");
@@ -2353,6 +2362,7 @@ static void rna_def_action_pose_markers(BlenderRNA *brna, PropertyRNA *cprop)
       func, "name", "Marker", 0, nullptr, "New name for the marker (not unique)");
   RNA_def_parameter_flags(parm, PropertyFlag(0), PARM_REQUIRED);
   parm = RNA_def_pointer(func, "marker", "TimelineMarker", "", "Newly created marker");
+  RNA_def_parameter_flags(parm, PROP_NEVER_NULL, ParameterFlag(0));
   RNA_def_function_return(func, parm);
 
   func = RNA_def_function(srna, "remove", "rna_Action_pose_markers_remove");
@@ -2562,6 +2572,7 @@ static void rna_def_action(BlenderRNA *brna)
                  "Name of the group for this F-Curve, if any. If the F-Curve already exists, this "
                  "parameter is ignored");
   parm = RNA_def_pointer(func, "fcurve", "FCurve", "", "The found or created F-Curve");
+  RNA_def_parameter_flags(parm, PROP_NEVER_NULL, ParameterFlag(0));
   RNA_def_function_return(func, parm);
 
   /* API calls */

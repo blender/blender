@@ -14,7 +14,7 @@ namespace blender::gpu {
 
 using namespace blender::gpu;
 
-WorkInFlightPtr WorkInFlight::create(unsigned int max_in_flight)
+WorkInFlightPtr WorkInFlight::create(uint max_in_flight)
 {
   return WorkInFlightPtr(GPUBackend::get()->work_in_flight_alloc(max_in_flight));
 }

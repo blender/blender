@@ -1202,24 +1202,6 @@ void blo_do_versions_290(FileData *fd, Library * /*lib*/, Main *bmain)
     }
   }
 
-  if (!MAIN_VERSION_FILE_ATLEAST(bmain, 291, 4) && MAIN_VERSION_FILE_ATLEAST(bmain, 291, 1)) {
-    /* Due to a48d78ce07f4f, CustomData.totlayer and CustomData.maxlayer has been written
-     * incorrectly. Fortunately, the size of the layers array has been written to the .blend file
-     * as well, so we can reconstruct totlayer and maxlayer from that. */
-    for (Mesh &mesh : bmain->meshes) {
-      mesh.vert_data.totlayer = mesh.vert_data.maxlayer = MEM_allocN_len(mesh.vert_data.layers) /
-                                                          sizeof(CustomDataLayer);
-      mesh.edge_data.totlayer = mesh.edge_data.maxlayer = MEM_allocN_len(mesh.edge_data.layers) /
-                                                          sizeof(CustomDataLayer);
-      /* We can be sure that mesh->fdata is empty for files written by 2.90. */
-      mesh.corner_data.totlayer = mesh.corner_data.maxlayer = MEM_allocN_len(
-                                                                  mesh.corner_data.layers) /
-                                                              sizeof(CustomDataLayer);
-      mesh.face_data.totlayer = mesh.face_data.maxlayer = MEM_allocN_len(mesh.face_data.layers) /
-                                                          sizeof(CustomDataLayer);
-    }
-  }
-
   if (!MAIN_VERSION_FILE_ATLEAST(bmain, 291, 5)) {
     /* Fix fcurves to allow for new bezier handles behavior (#75881 and D8752). */
     for (bAction &act : bmain->actions) {

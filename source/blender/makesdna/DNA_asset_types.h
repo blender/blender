@@ -128,6 +128,9 @@ struct AssetMetaData {
   /** Optional license of this asset for display in the UI. Dynamic length. */
   char *license = nullptr;
 
+  /** Optional webpage of this asset for display in UI. Dynamic length. */
+  char *webpage = nullptr;
+
   /** User defined tags for this asset. The asset manager uses these for filtering, but how they
    * function exactly (e.g. how they are registered to provide a list of searchable available tags)
    * is up to the asset-engine. */

@@ -35,7 +35,7 @@ static void sh_node_tex_white_noise_declare(NodeDeclarationBuilder &b)
   b.add_input<decl::Float>("W"_ustr)
       .min(-10000.0f)
       .max(10000.0f)
-      .available(dimensions == 1 || dimensions == 4)
+      .available(ELEM(dimensions, 1, 4))
       .make_available([](bNode &node) {
         /* Default to 1 instead of 4, because it is faster. */
         node.custom1 = 1;

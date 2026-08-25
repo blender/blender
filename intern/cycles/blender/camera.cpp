@@ -101,9 +101,9 @@ class BlenderCamera {
   int render_width = 0;
   int render_height = 0;
 
-  BoundBox2D border = BoundBox2D();
-  BoundBox2D viewport_camera_border = BoundBox2D();
-  BoundBox2D pano_viewplane = BoundBox2D();
+  BoundBox2D border = BoundBox2D::full;
+  BoundBox2D viewport_camera_border = BoundBox2D::full;
+  BoundBox2D pano_viewplane = BoundBox2D::full;
   float pano_aspectratio = 0.0f;
 
   Transform matrix = transform_identity();

@@ -283,7 +283,7 @@ void GLTexturePool::log_usage_data() const
   int64_t total_texture_count = acquired_.size() + pool_.size();
   CLOG_TRACE(&LOG,
              "GLTexturePool uses %ld textures (%ld consecutively)",
-             static_cast<long>(total_texture_count),
-             static_cast<long>(current_usage_data_.usage_count_max));
+             long(total_texture_count),
+             long(current_usage_data_.usage_count_max));
 }
 }  // namespace blender::gpu

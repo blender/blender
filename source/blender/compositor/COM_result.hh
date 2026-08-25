@@ -83,9 +83,9 @@ enum class ResultPrecision : uint8_t {
 
 /* The type of storage used to hold the result data. */
 enum class ResultStorageType : uint8_t {
-  /* Stored as a single value in an std::varient of all types. */
+  /* Stored as a single value in an #std::varient of all types. */
   SingleValue,
-  /* Stored as an image in a gpu::Texture on the GPU. */
+  /* Stored as an image in a #gpu::Texture on the GPU. */
   GPUImage,
   /* Stored as an image in a buffer on the CPU. */
   CPUImage,
@@ -683,6 +683,8 @@ BLI_INLINE_METHOD T Result::sample(const float2 &coordinates,
   const int2 size = domain_.data_size;
   const float2 texel_coordinates = coordinates * float2(size);
 
+  const math::InterpWrapMode wrap_mode_x = map_extension_mode_to_wrap_mode(extension_mode_x);
+  const math::InterpWrapMode wrap_mode_y = map_extension_mode_to_wrap_mode(extension_mode_y);
   if constexpr (is_same_any_v<T, float, float2, float3, float4, Color, math::Quaternion>) {
     T pixel_value;
     const float *buffer = static_cast<const float *>(this->cpu_data().data());
@@ -694,8 +696,6 @@ BLI_INLINE_METHOD T Result::sample(const float2 &coordinates,
       output = pixel_value;
     }
 
-    const math::InterpWrapMode wrap_mode_x = map_extension_mode_to_wrap_mode(extension_mode_x);
-    const math::InterpWrapMode wrap_mode_y = map_extension_mode_to_wrap_mode(extension_mode_y);
     switch (interpolation) {
       case Interpolation::Nearest:
         math::interpolate_nearest_wrapmode_fl(buffer,
@@ -754,7 +754,13 @@ BLI_INLINE_METHOD T Result::sample(const float2 &coordinates,
     return pixel_value;
   }
   else {
-    return this->load_pixel<T>(int2(texel_coordinates), extension_mode_x, extension_mode_y);
+    const int wrapped_x = wrap_coord(texel_coordinates.x, size.x, wrap_mode_x);
+    const int wrapped_y = wrap_coord(texel_coordinates.y, size.y, wrap_mode_y);
+    /* The wrap_coord function returns -1 if a zero should be returned. */
+    if (wrapped_x < 0 || wrapped_y < 0) {
+      return T{};
+    }
+    return this->load_pixel<T>(int2(wrapped_x, wrapped_y));
   }
 }
 

@@ -162,7 +162,7 @@ void SourceProcessor::lower_entry_points(Parser &parser)
     }
 
     auto process_argument = [&](Token type, Token var, Scope attributes) {
-      const bool is_const = type.prev() == Const;
+      const bool is_const = type.prev() == TokenType::Const;
       string srt_type(type.str());
       string srt_var(var.str());
       string srt_attr(attributes[1].str());
@@ -538,4 +538,5 @@ void SourceProcessor::lower_entry_points_signature(Parser &parser)
 
   parser.apply_mutations();
 }
+
 }  // namespace blender::gpu::shader

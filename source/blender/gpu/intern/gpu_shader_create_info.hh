@@ -476,6 +476,7 @@ enum class BuiltinBits {
   FRONT_FACING = (1 << 4),
   GLOBAL_INVOCATION_ID = (1 << 5),
   INSTANCE_ID = (1 << 6),
+  INSTANCE_INDEX = INSTANCE_ID, /* Map to the same value. */
   /**
    * Allow setting the target layer when the output is a layered frame-buffer.
    * \note Emulated through geometry shader on older hardware.

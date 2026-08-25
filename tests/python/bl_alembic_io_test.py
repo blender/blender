@@ -672,6 +672,40 @@ class AlembicAnimatedCameraImportTests(AbstractAlembicTest):
                 msg=f"Frame {frame}: {camera_object.name} interocular_distance values do not match")
 
 
+class AlembicAnimatedSchemaImportTests(AbstractAlembicTest):
+    def do_import_test(self, abc_file_name, first_frame, last_frame, object_name):
+        res = bpy.ops.wm.alembic_import(
+            filepath=str(self.testdir / abc_file_name),
+            as_background_job=False)
+        self.assertEqual({'FINISHED'}, res)
+
+        # The data stored in the attribute is random, so we check that the object
+        # has a modifier (which should only be added if the data is animated) and
+        # the frame range for the scene is detected properly.
+
+        scene = bpy.context.scene
+        self.assertEqual(scene.frame_start, first_frame)
+        self.assertEqual(scene.frame_end, last_frame)
+
+        ob = bpy.data.objects[object_name]
+        self.assertEqual(len(ob.modifiers), 1)
+
+        modifier = ob.modifiers[0]
+        self.assertEqual(modifier.type, 'MESH_SEQUENCE_CACHE')
+
+    def test_animated_point_width(self):
+        self.do_import_test("point-width-animated.abc", 12, 144, "PointCloud")
+
+    def test_animated_point_velocity(self):
+        self.do_import_test("point-velocity-animated.abc", 13, 169, "PointCloud")
+
+    def test_animated_curve_width(self):
+        self.do_import_test("curve-width-animated.abc", 12, 144, "Curves")
+
+    def test_animated_curve_velocity(self):
+        self.do_import_test("curve-velocity-animated.abc", 13, 169, "Curves")
+
+
 class AlembicImportComparisonTests(unittest.TestCase):
     @classmethod
     def setUpClass(cls):

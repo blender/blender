@@ -119,7 +119,6 @@ set(SRC
   intern/usd_blend_shape_utils.hh
   intern/usd_colorspace_utils.hh
   intern/usd_exporter_context.hh
-  intern/usd_hash_types.hh
   intern/usd_hierarchy_iterator.hh
   intern/usd_hook.hh
   intern/usd_instancing_utils.hh

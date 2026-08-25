@@ -15,6 +15,7 @@
 namespace blender::gpu::shader {
 using namespace std;
 using namespace shader::parser;
+using namespace shader::parser::ast;
 using namespace metadata;
 
 void SourceProcessor::lower_unions(Parser &parser)
@@ -413,6 +414,11 @@ void SourceProcessor::lower_unions(Parser &parser)
     });
   });
 
+  lower_union_setters(parser);
+}
+
+void SourceProcessor::lower_union_setters(Parser &parser)
+{
   /* Replace assignment pattern.
    * Example: `a.b() = c;` >  `a.b_set_(c);`
    * This pattern is currently only allowed for `union_t`. */
@@ -455,6 +461,39 @@ void SourceProcessor::lower_union_accessor_templates(Parser &parser)
           });
     });
   });
+  parser.apply_mutations();
+}
+
+/**
+ * For safety reason, union members need to be declared with the union_t template.
+ * This avoid raw member access which we cannot emulate. Instead this forces the use of the `()`
+ * operator for accessing the members of the enum.
+ *
+ * Need to run before lower_unions.
+ */
+void SourceProcessor::lower_union_accessor_templates_ast(Parser &parser)
+{
+  for (ClassDecl decl : parser.root().descendants_of_type<ClassDecl>()) {
+    if (decl.is_union()) {
+      for (VarDecl var : decl.body().children_of_type<VarDecl>()) {
+        IdType type = var.type();
+        Id name = type.identifier().name();
+
+        if (type.identifier().name().str() != "union_t") {
+          continue;
+        }
+
+        /* Remove the template but not the wrapped type. */
+        parser.erase(name);
+        TemplateParamList param = type.identifier().template_params();
+        if (param.is_valid()) {
+          parser.erase(param.front());
+          parser.erase(param.back());
+        }
+      }
+    }
+  }
+
   parser.apply_mutations();
 }
 

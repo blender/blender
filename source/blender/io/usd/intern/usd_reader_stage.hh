@@ -8,7 +8,6 @@
 #include "BLI_vector.hh"
 
 #include "usd.hh"
-#include "usd_hash_types.hh"
 #include "usd_reader_domelight.hh"
 #include "usd_reader_prim.hh"
 

@@ -1244,13 +1244,13 @@ static Array<int3> get_all_triangle_adjacency(const int num_edges,
         const int edge = tri_edges[tri_index][j];
 
         const int index_0 = edge_to_tris[edge].first;
-        if (index_0 != tri_index && index_0 != NULL_INDEX) {
+        if (!ELEM(index_0, tri_index, NULL_INDEX)) {
           tri_adjacency[tri_index][j] = index_0;
           continue;
         }
 
         const int index_1 = edge_to_tris[edge].second;
-        if (index_1 != tri_index && index_1 != NULL_INDEX) {
+        if (!ELEM(index_1, tri_index, NULL_INDEX)) {
           tri_adjacency[tri_index][j] = index_1;
           continue;
         }

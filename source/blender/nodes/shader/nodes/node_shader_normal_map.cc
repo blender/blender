@@ -12,6 +12,8 @@
 
 #include "DEG_depsgraph_query.hh"
 
+#include "ED_node.hh"
+
 #include "RNA_access.hh"
 
 #include "UI_interface_layout.hh"
@@ -43,8 +45,7 @@ static void node_shader_buts_normal_map(ui::Layout &layout, bContext *C, Pointer
   if (RNA_enum_get(ptr, "space") == SHD_SPACE_TANGENT) {
     layout.prop(ptr, "base", ui::ITEM_R_SPLIT_EMPTY_NAME, "", ICON_NONE);
 
-    PointerRNA obptr = CTX_data_pointer_get(C, "active_object");
-    Object *object = static_cast<Object *>(obptr.data);
+    Object *object = ed::space_node::get_space_editor_object(C);
 
     if (object && object->type == OB_MESH) {
       Depsgraph *depsgraph = CTX_data_depsgraph_pointer(C);

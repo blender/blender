@@ -27,6 +27,8 @@
 /* Suppress unhelpful shader compiler warnings. */
 #pragma clang diagnostic ignored "-Wunused-variable"
 #pragma clang diagnostic ignored "-Wcomment"
+/* Don't let these go unnoticed as they are errors in GLSL. */
+#pragma clang diagnostic error "-Wreturn-type"
 
 /* Wrapper needs to be last. */
 #include "gpu_shader_msl_wrapper.msl"
@@ -111,7 +113,7 @@ float4 texelFetchExtend(sampler2DDepth samp, int2 texel, int lvl)
 
 /* For assert support. */
 #if defined(GPU_VERTEX_SHADER)
-#  define GPU_THREAD uint3(gl_VertexID, gl_InstanceID, 0)
+#  define GPU_THREAD uint3(gl_VertexID, gpu_InstanceIndex, 0)
 #elif defined(GPU_FRAGMENT_SHADER)
 #  define GPU_THREAD uint3(gl_FragCoord.x, gl_FragCoord.y, 0)
 #elif defined(GPU_COMPUTE_SHADER)
@@ -127,3 +129,5 @@ float4 texelFetchExtend(sampler2DDepth samp, int2 texel, int lvl)
 #define gpu_dfdx(x) dFdx(x)
 #define gpu_dfdy(x) dFdy(x)
 #define gpu_fwidth(x) fwidth(x)
+
+#define static constant static

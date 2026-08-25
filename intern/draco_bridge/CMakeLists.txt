@@ -21,6 +21,7 @@ add_library(bf_intern_draco_bridge SHARED "${SRC}")
 blender_link_libraries(bf_intern_draco_bridge "${LIB}")
 blender_source_group(bf_intern_draco_bridge "${SRC}")
 
+# Installed by `source/creator/CMakeLists.txt`, which also sets the RPATH.
 # Keep in sync with `intern/meshoptimizer_bridge/CMakeLists.txt`.
 if(APPLE)
   # On macOS, prevent the draco library (already present in the application bundle) from being wrongly copied into the
@@ -29,11 +30,5 @@ if(APPLE)
   set_target_properties(bf_intern_draco_bridge PROPERTIES
     XCODE_ATTRIBUTE_SKIP_INSTALL "YES"
     XCODE_ATTRIBUTE_INSTALL_PATH ""
-  )
-elseif(UNIX AND PLATFORM_BUNDLED_LIBRARIES AND WITH_INSTALL_PORTABLE)
-  # Portable builds install this in `lib` beside its bundled dependencies, found via `$ORIGIN`.
-  set_target_properties(bf_intern_draco_bridge PROPERTIES
-    BUILD_WITH_INSTALL_RPATH TRUE
-    INSTALL_RPATH "$ORIGIN"
   )
 endif()

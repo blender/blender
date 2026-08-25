@@ -355,7 +355,7 @@ if(NOT EXISTS "${LIBDIR}/.git")
   )
 endif()
 
-include(platform_old_libs_update)
+include("${CMAKE_CURRENT_LIST_DIR}/platform_old_libs_update.cmake")
 
 # Only supported in the VS IDE & Clang Tidy needs to be on.
 if(CMAKE_GENERATOR MATCHES "^Visual Studio.+" AND WITH_CLANG_TIDY)

@@ -916,7 +916,7 @@ static void armature_bone_from_name_insert_recursive(GHash *bone_hash, ListBaseT
 /**
  * Create a (name -> bone) map.
  *
- * \note typically #bPose.chanhash us used via #BKE_pose_channel_find_name
+ * \note typically #bPose.runtime->chanhash us used via #BKE_pose_channel_find_name
  * this is for the cases we can't use pose channels.
  */
 static GHash *armature_bone_from_name_map(bArmature *arm)
@@ -3018,6 +3018,7 @@ void BKE_pose_rebuild(Main *bmain, Object *ob, bArmature *arm, const bool do_id_
   if (ob->pose == nullptr) {
     /* create new pose */
     ob->pose = MEM_new<bPose>("new pose");
+    ob->pose->runtime = MEM_new<bke::bPoseRuntime>(__func__);
 
     /* set default settings for animviz */
     bke::animviz::settings_init(&ob->pose->avs);

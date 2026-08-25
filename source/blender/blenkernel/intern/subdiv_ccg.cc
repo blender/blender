@@ -797,6 +797,17 @@ static void subdiv_ccg_average_corners(SubdivCCG &subdiv_ccg,
       exec_mode::grain_size(1024));
 }
 
+static void subdiv_ccg_average_inner_faces(SubdivCCG &subdiv_ccg,
+                                           const CCGKey &key,
+                                           const IndexMask &face_mask)
+{
+  face_mask.foreach_index(
+      [&](const int face_index) {
+        subdiv_ccg_average_inner_face_grids(subdiv_ccg, key, subdiv_ccg.faces[face_index]);
+      },
+      exec_mode::grain_size(512));
+}
+
 #endif
 
 void BKE_subdiv_ccg_average_grids(SubdivCCG &subdiv_ccg)
@@ -805,7 +816,7 @@ void BKE_subdiv_ccg_average_grids(SubdivCCG &subdiv_ccg)
   const CCGKey key = BKE_subdiv_ccg_key_top_level(subdiv_ccg);
   /* Average inner boundaries of grids (within one face), across faces
    * from different face-corners. */
-  BKE_subdiv_ccg_average_stitch_faces(subdiv_ccg, subdiv_ccg.faces.index_range());
+  subdiv_ccg_average_inner_faces(subdiv_ccg, key, subdiv_ccg.faces.index_range());
   subdiv_ccg_average_boundaries(subdiv_ccg, key, subdiv_ccg.adjacent_edges.index_range());
   subdiv_ccg_average_corners(subdiv_ccg, key, subdiv_ccg.adjacent_verts.index_range());
 #else
@@ -838,6 +849,13 @@ void subdiv_ccg_average_faces_boundaries_and_corners(SubdivCCG &subdiv_ccg,
                                                      const CCGKey &key,
                                                      const IndexMask &face_mask)
 {
+  if (face_mask.size() == subdiv_ccg.faces.size()) {
+    /* Avoid mask building for complete masks. */
+    subdiv_ccg_average_boundaries(subdiv_ccg, key, subdiv_ccg.adjacent_edges.index_range());
+    subdiv_ccg_average_corners(subdiv_ccg, key, subdiv_ccg.adjacent_verts.index_range());
+    return;
+  }
+
   Set<int> adjacent_vert_set;
   Set<int> adjacent_edge_set;
   subdiv_ccg_affected_face_adjacency(subdiv_ccg, face_mask, adjacent_vert_set, adjacent_edge_set);
@@ -862,15 +880,8 @@ void BKE_subdiv_ccg_average_stitch_faces(SubdivCCG &subdiv_ccg, const IndexMask 
 {
 #ifdef WITH_OPENSUBDIV
   const CCGKey key = BKE_subdiv_ccg_key_top_level(subdiv_ccg);
-  face_mask.foreach_index(
-      [&](const int face_index) {
-        subdiv_ccg_average_inner_face_grids(subdiv_ccg, key, subdiv_ccg.faces[face_index]);
-      },
-      exec_mode::grain_size(512));
-  /* TODO(sergey): Only average elements which are adjacent to modified
-   * faces. */
-  subdiv_ccg_average_boundaries(subdiv_ccg, key, subdiv_ccg.adjacent_edges.index_range());
-  subdiv_ccg_average_corners(subdiv_ccg, key, subdiv_ccg.adjacent_verts.index_range());
+  subdiv_ccg_average_inner_faces(subdiv_ccg, key, face_mask);
+  subdiv_ccg_average_faces_boundaries_and_corners(subdiv_ccg, key, face_mask);
 #else
   UNUSED_VARS(subdiv_ccg, face_mask);
 #endif

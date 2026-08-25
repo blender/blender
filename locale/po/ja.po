@@ -1,10 +1,10 @@
 
 msgid ""
 msgstr ""
-"Project-Id-Version: Blender 5.3.0 Alpha (b'af4852ed4560')\n"
+"Project-Id-Version: Blender 5.3.0 Alpha (b'09417042a1fa')\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-08-10 07:54+0000\n"
-"PO-Revision-Date: 2026-07-06 03:50+0000\n"
+"POT-Creation-Date: 2026-08-24 07:38+0000\n"
+"PO-Revision-Date: 2026-08-20 18:09+0000\n"
 "Last-Translator: Satoshi Yamasaki <yamyam@yo.rim.or.jp>\n"
 "Language-Team: Japanese <https://translate.blender.org/projects/blender-ui/ui/ja/>\n"
 "Language: ja\n"
@@ -3997,34 +3997,18 @@ msgid "A color space, view or display was not found, which likely means the Open
 msgstr "色空間やビュー・表示空間が見つかりません．この blend ファイル生成に使用された OpenColorIO コンフィグが欠けているようです"
 
 
-msgid "Working Space"
-msgstr "ワーキング空間"
-
-
 msgid "Color space used for all scene linear colors in this file, and for compositing, shader and geometry nodes processing"
 msgstr ""
 "このファイル内の全シーンのリニアカラーと，コンポジティング，\n"
 "シェーダー，ジオメトリノードの処理に使用されている色空間"
 
 
-msgid "Linear Rec.709"
-msgstr "リニア Rec.709"
-
-
 msgid "Linear BT.709 with illuminant D65 white point"
 msgstr "リニア BT.709（D65 光源のホワイトポイント）"
 
 
-msgid "Linear Rec.2020"
-msgstr "リニア Rec.2020"
-
-
 msgid "Linear BT.2020 with illuminant D65 white point"
 msgstr "リニア Rec.2020（D65 光源のホワイトポイント）"
-
-
-msgid "ACEScg"
-msgstr "ACEScg"
 
 
 msgid "Linear AP1 with ACES white point"
@@ -7881,10 +7865,6 @@ msgid "Color management specific to display device"
 msgstr "表示デバイス特有の色管理"
 
 
-msgid "Display"
-msgstr "表示"
-
-
 msgid "Display name. For viewing, this is the display device that will be emulated by limiting the gamut and HDR colors. For image and video output, this is the display space used for writing."
 msgstr ""
 "表示の名前．\n"
@@ -7929,456 +7909,228 @@ msgstr ""
 "カラーマネージメントのない非カラーデータとして処理します"
 
 
-msgid "Input Color Space"
-msgstr "入力色空間"
-
-
 msgid "Color space in the image file, to convert to and from when saving and loading the image"
 msgstr "保存・読み込み時に変換先・変換元となる，画像ファイルの色空間"
-
-
-msgid "ACES 1.3 sRGB"
-msgstr "ACES 1.3 sRGB"
 
 
 msgid "ACES 1.3 view transform for sRGB. May be used to convert backplates or matte paintings to the working space."
 msgstr "sRGB 用 ACES 1.3ビュー変換．背景プレートやマットペインティングをワーキング空間に変換するのに使用されるでしょう."
 
 
-msgid "ACES 2.0 sRGB"
-msgstr "ACES 2.0 sRGB"
-
-
 msgid "ACES 2.0 view transform for sRGB. May be used to convert backplates or matte paintings to the working space."
 msgstr "sRGB 用 ACES 2.0ビュー変換．背景プレートやマットペインティングをワーキング空間に変換するのに使用されるでしょう."
-
-
-msgid "ACES2065-1"
-msgstr "ACES2065-1"
 
 
 msgid "Linear AP0 with ACES white point"
 msgstr "リニア AP0（ACES ホワイトポイント）"
 
 
-msgid "ACEScc"
-msgstr "ACEScc"
-
-
 msgid "ACES color correction space, using AP1 primaries."
 msgstr "AP1 プライマリを使用した，ACES 色補正空間."
-
-
-msgid "ACEScct"
-msgstr "ACEScct"
 
 
 msgid "ACES color correction space with toe, using AP1 primaries."
 msgstr "AP1 プライマリを使用した, toe 付き ACES 色補正空間."
 
 
-msgid "ADX10"
-msgstr "ADX10"
-
-
 msgid "Film scan input space using ADX10 encoding."
 msgstr "ADX10 エンコーディングを使用したフィルムスキャン入力空間."
-
-
-msgid "ADX16"
-msgstr "ADX16"
 
 
 msgid "Film scan input space using ADX16 encoding."
 msgstr "ADX16 エンコーディングを使用したフィルムスキャン入力空間."
 
 
-msgid "ARRI LogC3 (EI800)"
-msgstr "ARRI LogC3 (EI800)"
-
-
 msgid "ARRI camera input space using LogC3 (EI800) transfer function and ARRI Wide Gamut primaries."
 msgstr "LogC3 (EI800) 伝達関数と ARRI 広色域プライマリを使用した ARRI カメラ入力空間."
-
-
-msgid "ARRI LogC4"
-msgstr "ARRI LogC4"
 
 
 msgid "ARRI camera input space using LogC4 transfer function and ARRI Wide Gamut 4 primaries."
 msgstr "LogC4 伝達関数と ARRI 広色域 4 プライマリを使用した ARRI カメラ入力空間."
 
 
-msgid "AgX Base sRGB"
-msgstr "AgXベース sRGB"
-
-
 msgid "AgX view transform for sRGB. May be used to convert backplates or matte paintings to the working space."
 msgstr "sRGB 用 Agx ビュー変換．背景プレートやマットペインティングをワーキング空間に変換するのに使用されるでしょう."
-
-
-msgid "AgX Log"
-msgstr "AgX Log"
 
 
 msgid "Log Encoding with Chroma inset and rotation of primaries, and with 25 Stops of Dynamic Range"
 msgstr "ダイナミックレンジが25ストップの，輝度の挿入と三原色の回転のある Log エンコーディング."
 
 
-msgid "Apple Log"
-msgstr "Apple Log"
-
-
 msgid "Apple camera input space using Apple Log transfer function and Rec.2020 primaries."
 msgstr "Appe Log 伝達関数と Rec.2020 プライマリを使用した Apple カメラ入力空間."
-
-
-msgid "Apple Log 2"
-msgstr "Apple Log 2"
 
 
 msgid "Apple camera input space using Apple Log transfer function and Apple Wide Gamut primaries."
 msgstr "Appe Log 伝達関数と Apple 広色域プライマリを使用した Apple カメラ入力空間."
 
 
-msgid "BMDFilm WideGamut Gen5"
-msgstr "BMDFilm WideGamut Gen5"
-
-
 msgid "Blackmagic camera input space using BMDFilm Gen5 transfer function and Blackmagic Wide Gamut Gen5 primaries."
 msgstr "BMDFilm Gen5 伝達関数と Blackmagic 広色域 Gen5 プライマリを使用した Blackmagic カメラ入力空間."
-
-
-msgid "CanonLog2 CinemaGamut D55"
-msgstr "CanonLog2 CinemaGamut D55"
 
 
 msgid "Canon camera input space using Canon-Log2 transfer function and Cinema Gamut primaries."
 msgstr "Canon-Log2 伝達関数と Cinema 色域プライマリを使用した Canon カメラ入力空間."
 
 
-msgid "CanonLog3 CinemaGamut D55"
-msgstr "CanonLog3 CinemaGamut D55"
-
-
 msgid "Canon camera input space using Canon-Log3 transfer function and Cinema Gamut primaries."
 msgstr "Canon-Log3 伝達関数と Cinema Gamut プライマリを使用した Canon カメラ入力空間."
-
-
-msgid "D-Log D-Gamut"
-msgstr "D-Log D-Gamut"
 
 
 msgid "DJI camera input space using D-Log transfer function and D-Gamut primaries."
 msgstr "D-Log 伝達関数と D-Gamut プライマリを使用した DJI カメラ入力空間."
 
 
-msgid "DaVinci Intermediate WideGamut"
-msgstr "DaVinci Intermediate 広色域"
-
-
 msgid "Blackmagic camera input space using DaVinci Intermediate transfer function and DaVinci Wide Gamut primaries."
 msgstr "DaVinci Intermediate 伝達関数と DaVinci 広色域プライマリを使用した Blackmagic カメラ入力空間."
-
-
-msgid "Display P3"
-msgstr "Display P3"
 
 
 msgid "Apple's Display P3 with sRGB compound (piece-wise) encoding transfer function, common on Mac devices"
 msgstr "Mac デバイスで一般的な，Apples の Display P3 と sRGB の複合（区分的）エンコーディング伝達関数."
 
 
-msgid "Filmic Log"
-msgstr "Filmic Log"
-
-
 msgid "Log based filmic shaper with 16.5 stops of latitude, and 25 stops of dynamic range"
 msgstr "露出寛容度が16.5，ダイナミックレンジが25ストップの，対数ベースの映画状の補正."
-
-
-msgid "Filmic sRGB"
-msgstr "Filmic sRGB"
 
 
 msgid "Filmic view transform for sRGB. May be used to convert backplates or matte paintings to the working space."
 msgstr "sRGB 用 Filmic ビュー変換．背景プレートやマットペインティングをワーキング空間に変換するのに使用されるでしょう."
 
 
-msgid "Gamma 1.8 Encoded Rec.709"
-msgstr "ガンマ1.8エンコード Rec.709"
-
-
 msgid "1.8 gamma-encoded Rec.709 with illuminant D65 white point. For use with scene-referred textures."
 msgstr "シーン参照のテクスチャで使用する，ガンマ1.8エンコードの Rec.709 (D65 光源ホワイトポイント)."
-
-
-msgid "Gamma 2.2 Encoded AP1"
-msgstr "ガンマ2.2エンコード AP1"
 
 
 msgid "2.2 gamma-encoded AP1 with ACES white point. For use with scene-referred textures."
 msgstr "シーン参照のテクスチャで使用する，ガンマ2.2エンコードの AP1 (ACES ホワイトポイント)."
 
 
-msgid "Gamma 2.2 Encoded AdobeRGB"
-msgstr "ガンマ2.2エンコード AdobeRGB"
-
-
 msgid "2.2 gamma-encoded Adobe RGB (1998) with illuminant D65 white point. For use with scene-referred textures."
 msgstr "シーン参照のテクスチャで使用する，ガンマ2.2エンコードの Adobe RGB (1998) (D65 光源ホワイトポイント)."
-
-
-msgid "Gamma 2.2 Encoded Rec.709"
-msgstr "ガンマ2.2エンコード Rec.709"
 
 
 msgid "2.2 gamma-encoded Rec.709 with illuminant D65 white point. For use with scene-referred textures."
 msgstr "シーン参照のテクスチャで使用する，ガンマ2.2エンコードの Rec.709 (D65 光源ホワイトポイント)."
 
 
-msgid "Gamma 2.4 Encoded Rec.709"
-msgstr "ガンマ2.4エンコード Rec.709"
-
-
 msgid "2.4 gamma-encoded Rec.709 with illuminant D65 white point. For use with scene-referred textures."
 msgstr "シーン参照のテクスチャで使用する，ガンマ2.4エンコードの Rec.709 (D65 光源ホワイトポイント)."
-
-
-msgid "Khronos PBR Neutral sRGB"
-msgstr "Khronos PBRニュートラルsRGB"
 
 
 msgid "Khronos PBR Neutral view transform for sRGB. May be used to convert backplates or matte paintings to the working space."
 msgstr "sRGB 用 Khronos PBR ニュートラルビュー変換．背景プレートやマットペインティングをワーキング空間に変換するのに使用されるでしょう."
 
 
-msgid "Linear ARRI Wide Gamut 3"
-msgstr "リニア ARRI 広色域 3"
-
-
 msgid "ARRI camera input space using linear ARRI Wide Gamut primaries."
 msgstr "リニア ARRI 広色域プライマリを使用する ARRI カメラ入力空間."
-
-
-msgid "Linear ARRI Wide Gamut 4"
-msgstr "リニア ARRI 広色域 4"
 
 
 msgid "ARRI camera input space using linear ARRI Wide Gamut 4 primaries."
 msgstr "リニア ARRI 広色域４プライマリを使用する ARRI カメラ入力空間."
 
 
-msgid "Linear Adobe RGB"
-msgstr "リニア Adobe RGB"
-
-
 msgid "Linear Adobe RGB (1998) with illuminant D65 white point. For use with scene-referred textures."
 msgstr "シーン参照のテクスチャで使用する，D65 光源のホワイトポイントのリニア Adobe RGB (1998)."
-
-
-msgid "Linear Apple Wide Gamut"
-msgstr "Linear Apple 広色域"
 
 
 msgid "Apple camera input space using linear Apple Wide Gamut primaries."
 msgstr "Apple 広色域プライマリを使用する Apple カメラ入力空間"
 
 
-msgid "Linear BMD WideGamut Gen5"
-msgstr "リニア BMD 広色域 Gen5"
-
-
 msgid "Blackmagic camera input space using linear Blackmagic Wide Gamut Gen5 primaries."
 msgstr "リニア Blackmagic 広色域 Gen5 プライマリを使用する Blackmagic カメラ入力空間."
-
-
-msgid "Linear CIE-XYZ D65"
-msgstr "リニアCIE-XYZ D65"
 
 
 msgid "1931 CIE XYZ with adapted illuminant D65 white point"
 msgstr "D65 光源のホワイトポイントに適合した CIE 1931 XYZ"
 
 
-msgid "Linear CIE-XYZ E"
-msgstr "リニアCIE-XYZ E"
-
-
 msgid "1931 CIE XYZ standard with assumed illuminant E white point"
 msgstr "光源 E のホワイトポイントと仮定した CIE 1931 XYZ 標準"
-
-
-msgid "Linear CinemaGamut D55"
-msgstr "リニアCinemaGamut D55"
 
 
 msgid "Canon camera input space using linear Cinema Gamut primaries."
 msgstr "リニア Cinema 色域プライマリを使用した Canon カメラ入力空間."
 
 
-msgid "Linear D-Gamut"
-msgstr "リニアD-Gamut"
-
-
 msgid "DJI camera input space using linear D-Gamut primaries."
 msgstr "リニア D-Gamut プライマリを使用した DJI カメラ入力空間."
-
-
-msgid "Linear DCI-P3 D65"
-msgstr "リニアDCI-P3 D65"
 
 
 msgid "Linear DCI-P3 with illuminant D65 white point"
 msgstr "リニアDCI-P3（D65 光源のホワイトポイント）"
 
 
-msgid "Linear DaVinci WideGamut"
-msgstr "リニアDaVinci広色域"
-
-
 msgid "Blackmagic camera input space using linear DaVinci Wide Gamut primaries."
 msgstr "リニア DaVinci 広色域プライマリを使用した Blackmagic カメラ入力空間."
-
-
-msgid "Linear FilmLight E-Gamut"
-msgstr "リニアFilmLight E-Gamut"
 
 
 msgid "Linear E-Gamut with illuminant D65 white point"
 msgstr "リニア E-Gamut（D65 光源のホワイトポイント）"
 
 
-msgid "Linear REDWideGamutRGB"
-msgstr "リニアREDWideGamutRGB"
-
-
 msgid "RED camera input space using linear REDWideGamutRGB primaries."
 msgstr "リニア REDWideGamutRGB プライマリを使用した RED カメラ入力."
-
-
-msgid "Linear S-Gamut3"
-msgstr "リニアS-Gamut3"
 
 
 msgid "Sony camera input space using linear S-Gamut3 primaries."
 msgstr "リニアS-Gamut3プライマリを使用した Sony カメラ入力空間."
 
 
-msgid "Linear S-Gamut3.Cine"
-msgstr "リニアS-Gamut3.Cine"
-
-
 msgid "Sony camera input space using linear S-Gamut3.Cine primaries."
 msgstr "リニア S-Gamut3.Cine プライマリを使用した Sony カメラ入力空間."
-
-
-msgid "Linear V-Gamut"
-msgstr "リニアV-Gamut"
 
 
 msgid "Panasonic camera input space using linear V-Gamut primaries."
 msgstr "リニア V-Gamut プライマリを使用した Panasonic カメラ入力空間."
 
 
-msgid "Linear Venice S-Gamut3"
-msgstr "リニアVenice S-Gamut3"
-
-
 msgid "Sony camera input space using linear Venice S-Gamut3 primaries."
 msgstr "リニア Venice S-Gamut3 プライマリを使用した Sony カメラ入力空間."
-
-
-msgid "Linear Venice S-Gamut3.Cine"
-msgstr "リニアVenice S-Gamut3.Cine"
 
 
 msgid "Sony camera input space using linear Venice S-Gamut3.Cine primaries."
 msgstr "リニア Venice S-Gamut3.Cine プライマリを使用した Sony カメラ入力空間."
 
 
-msgid "Log3G10 REDWideGamutRGB"
-msgstr "Log3G10 REDWideGamutRGB"
-
-
 msgid "RED camera input space using REDLog3G10 transfer function and REDWideGamutRGB primaries."
 msgstr "REDLog3G10 伝達関数と REDWideGamutRGB プライマリを使用した RED カメラ入力空間."
-
-
-msgid "Non-Color"
-msgstr "非カラー"
 
 
 msgid "Generic data that is not color, will not apply any color transform (e.g. normal maps)"
 msgstr "色以外の汎用データ．色変換が適用されません（例：ノーマルマップなど）"
 
 
-msgid "Rec.1886"
-msgstr "Rec.1886"
-
-
 msgid "BT.1886 2.4 Exponent EOTF Display, commonly used for TVs"
 msgstr "TV で一般的に使用されている BT.1886，指数2.4の伝達関数表示"
-
-
-msgid "Rec.2020"
-msgstr "Rec.2020"
 
 
 msgid "BT.2020 2.4 Exponent EOTF Display"
 msgstr "BT.2020，指数2.4の伝達関数表示"
 
 
-msgid "Rec.2100-HLG"
-msgstr "Rec.2100-HLG"
-
-
 msgid "Rec.2100-HLG 1000 nits peak display with reference white at 100 nits"
 msgstr "リファレンスのホワイトが100 nt，ピーク表示が1000 nt の Rec.2100-HLG"
-
-
-msgid "Rec.2100-PQ"
-msgstr "Rec.2100-PQ"
 
 
 msgid "Rec.2100-PQ 10000 nits peak display with reference white at 100 nits"
 msgstr "リファレンスのホワイトが100 nt，ピーク表示が10000 nt の Rec.2100-PQ"
 
 
-msgid "S-Log3 S-Gamut3"
-msgstr "S-Log3 S-Gamut3"
-
-
 msgid "Sony camera input space using S-Log3 transfer function and S-Gamut3 primaries."
 msgstr "S-Log3 伝達関数と S-Gamut3 プライマリを使用した Sony カメラ入力空間."
-
-
-msgid "S-Log3 S-Gamut3.Cine"
-msgstr "S-Log3 S-Gamut3.Cine"
 
 
 msgid "Sony camera input space using S-Log3 transfer function and S-Gamut3.Cine primaries."
 msgstr "S-Log3 伝達関数と S-Gamut3.Cine プライマリを使用した Sony カメラ入力空間."
 
 
-msgid "S-Log3 Venice S-Gamut3"
-msgstr "S-Log3 Venice S-Gamut3"
-
-
 msgid "Sony camera input space using S-Log3 transfer function and Venice S-Gamut3 primaries."
 msgstr "S-Log3 伝達関数と Venice S-Gamut3 プライマリを使用した Sony カメラ入力空間."
 
 
-msgid "S-Log3 Venice S-Gamut3.Cine"
-msgstr "S-Log3 Venice S-Gamut3.Cine"
-
-
 msgid "Sony camera input space using S-Log3 transfer function and Venice S-Gamut3.Cine primaries."
 msgstr "S-Log3 伝達関数と Venice S-Gamut3.Cine プライマリを使用した Sony カメラ入力空間."
-
-
-msgid "V-Log V-Gamut"
-msgstr "V-Log V-Gamut"
 
 
 msgid "Panasonic camera input space using V-Log transfer function and V-Gamut primaries."
@@ -8445,10 +8197,6 @@ msgid "The display and view transform supports high dynamic range colors"
 msgstr "ハイダイナミックレンジカラーに対応している表示とビュー変換"
 
 
-msgid "Look"
-msgstr "ルック"
-
-
 msgid "Additional transform applied before view transform for artistic needs"
 msgstr "アーティスティック用途の，ビュー変換前に適用される追加の変換"
 
@@ -8482,10 +8230,6 @@ msgstr "ホワイトバランスを使用"
 
 msgid "Perform chromatic adaption from a different white point"
 msgstr "別の白色点で色順応を実行します"
-
-
-msgid "View"
-msgstr "ビュー"
 
 
 msgid "View used when converting image to a display space"
@@ -11587,6 +11331,10 @@ msgstr "表面のタンジェント"
 
 msgid "Draw in the surface plane"
 msgstr "表面の平面にドローします"
+
+
+msgid "View"
+msgstr "ビュー"
 
 
 msgid "Draw in a plane aligned to the viewport"
@@ -19418,12 +19166,8 @@ msgid "A"
 msgstr "A"
 
 
-msgid "Show Line"
-msgstr "行を表示"
-
-
 msgid "Display lines rather than filled shapes"
-msgstr "塗りつぶした形状ではなく線を表示"
+msgstr "塗りつぶした形状ではなく線を表示します"
 
 
 msgid "Base type for data-blocks, defining a unique name, linking from other libraries and garbage collection"
@@ -20298,7 +20042,7 @@ msgstr "スムーズ"
 
 msgctxt "Curve"
 msgid "Smoother"
-msgstr "スムーズ"
+msgstr "強スムーズ"
 
 
 msgctxt "Curve"
@@ -21898,6 +21642,26 @@ msgstr "間隔毎の強さを調整"
 
 msgid "Automatically adjust strength to give consistent results for different spacings"
 msgstr "自動的に強さを調整し，違う間隔でも同じ結果にします"
+
+
+msgid "Use Unified Color"
+msgstr "共通のカラーを使用"
+
+
+msgid "Use Unified Input Samples"
+msgstr "共通の入力サンプル数を使用"
+
+
+msgid "Use Unified Size"
+msgstr "共通のサイズを使用"
+
+
+msgid "Use Unified Strength"
+msgstr "共通の強度を使用"
+
+
+msgid "Use Unified Weight"
+msgstr "共通のウェイトを使用"
 
 
 msgid "Use this brush in Grease Pencil vertex color mode"
@@ -28121,6 +27885,10 @@ msgid "Axis"
 msgstr "座標軸"
 
 
+msgid "Display"
+msgstr "表示"
+
+
 msgid "Percentage of particles to display in 3D view"
 msgstr "3Dビューポートで表示するパーティクルのパーセンテージ"
 
@@ -29156,10 +28924,6 @@ msgstr "シーンのレンダリングに使用するアクティブカメラ"
 
 msgid "Scene root collection that owns all the objects and other collections instantiated in the scene"
 msgstr "シーン内の全オブジェクトと，他のコレクションのインスタンスを有する，シーンのルートコレクション"
-
-
-msgid "Compositor Nodes"
-msgstr "コンポジターノード"
 
 
 msgid "3D Cursor"
@@ -36307,50 +36071,6 @@ msgid "Editor menu containing buttons"
 msgstr "ボタンを含むエディターメニュー"
 
 
-msgid "Names"
-msgstr "名前"
-
-
-msgid "Bone Roll"
-msgstr "ボーンロール"
-
-
-msgid "Show/Hide"
-msgstr "表示/隠す"
-
-
-msgid "Clean Up"
-msgstr "クリーンアップ"
-
-
-msgid "Adjust"
-msgstr "調整"
-
-
-msgid "Keying"
-msgstr "キーイング"
-
-
-msgid "Tracking"
-msgstr "トラッキング"
-
-
-msgid "Utilities"
-msgstr "ユーティリティ"
-
-
-msgid "Math"
-msgstr "数式"
-
-
-msgid "Pivot Point"
-msgstr "ピボットポイント"
-
-
-msgid "Creative"
-msgstr "クリエイティブ"
-
-
 msgid "Snap"
 msgstr "スナップ"
 
@@ -36359,20 +36079,52 @@ msgid "Proportional Editing Falloff"
 msgstr "プロポーショナル編集の減衰タイプ"
 
 
+msgid "Read"
+msgstr "読込"
+
+
 msgid "Mask Edit"
 msgstr "マスク編集"
+
+
+msgid "Sample"
+msgstr "サンプル"
 
 
 msgid "Automasking"
 msgstr "自動マスク"
 
 
+msgid "Write"
+msgstr "書込"
+
+
 msgid "Face Sets Edit"
 msgstr "面セット編集"
 
 
+msgid "Primitives"
+msgstr "プリミティブ"
+
+
 msgid "Vertex Group Locks"
 msgstr "頂点グループのロック"
+
+
+msgid "Gizmo"
+msgstr "ギズモ"
+
+
+msgid "Instances"
+msgstr "インスタンス"
+
+
+msgid "Import"
+msgstr "インポート"
+
+
+msgid "Render Preview"
+msgstr "レンダープレビュー"
 
 
 msgid "Mirror"
@@ -36391,8 +36143,16 @@ msgid "Viewpoint"
 msgstr "視点"
 
 
+msgid "Utilities"
+msgstr "ユーティリティ"
+
+
 msgid "Navigation"
 msgstr "視点の操作"
+
+
+msgid "Deprecated"
+msgstr "廃止予定"
 
 
 msgid "Align View"
@@ -36409,6 +36169,14 @@ msgstr "ビュー領域設定"
 
 msgid "Select More/Less"
 msgstr "選択の拡大縮小"
+
+
+msgid "Math"
+msgstr "数式"
+
+
+msgid "UV"
+msgstr "UV"
 
 
 msgid "Select Similar"
@@ -36431,22 +36199,6 @@ msgid "Assign Material"
 msgstr "マテリアルを割り当て"
 
 
-msgid "Read"
-msgstr "読込"
-
-
-msgid "Sample"
-msgstr "サンプル"
-
-
-msgid "Write"
-msgstr "書込"
-
-
-msgid "Primitives"
-msgstr "プリミティブ"
-
-
 msgid "Metaball"
 msgstr "メタボール"
 
@@ -36463,20 +36215,8 @@ msgid "Add Image"
 msgstr "画像を追加"
 
 
-msgid "Gizmo"
-msgstr "ギズモ"
-
-
 msgid "Relations"
 msgstr "関係"
-
-
-msgid "Instances"
-msgstr "インスタンス"
-
-
-msgid "Render Preview"
-msgstr "レンダープレビュー"
 
 
 msgid "Rigid Body"
@@ -36487,10 +36227,6 @@ msgid "Apply"
 msgstr "適用"
 
 
-msgid "Import"
-msgstr "インポート"
-
-
 msgid "Track"
 msgstr "トラック"
 
@@ -36499,12 +36235,24 @@ msgid "Quick Effects"
 msgstr "クイックエフェクト"
 
 
+msgid "Show/Hide"
+msgstr "表示/隠す"
+
+
+msgid "Linked"
+msgstr "リンク"
+
+
+msgid "Clean Up"
+msgstr "クリーンアップ"
+
+
+msgid "Layout"
+msgstr "レイアウト"
+
+
 msgid "Asset"
 msgstr "アセット"
-
-
-msgid "Deprecated"
-msgstr "廃止予定"
 
 
 msgid "Make Single User"
@@ -36523,12 +36271,12 @@ msgid "Hooks"
 msgstr "フック"
 
 
-msgid "UV"
-msgstr "UV"
-
-
 msgid "Trim/Add"
 msgstr "トリム/追加"
+
+
+msgid "Adjust"
+msgstr "調整"
 
 
 msgid "Sculpt Set Pivot"
@@ -36541,6 +36289,14 @@ msgstr "面セットを初期化"
 
 msgid "Random Mask"
 msgstr "ランダムマスク"
+
+
+msgid "Keying"
+msgstr "キーイング"
+
+
+msgid "Tracking"
+msgstr "トラッキング"
 
 
 msgid "Clear Transform"
@@ -36557,6 +36313,14 @@ msgstr "伝播"
 
 msgid "Bone Collections"
 msgstr "ボーンコレクション"
+
+
+msgid "Names"
+msgstr "名前"
+
+
+msgid "Creative"
+msgstr "クリエイティブ"
 
 
 msgid "Toggle Bone Options"
@@ -36591,20 +36355,20 @@ msgid "Merge"
 msgstr "マージ"
 
 
-msgid "Linked"
-msgstr "リンク"
-
-
 msgid "Special Characters"
 msgstr "特殊文字"
 
 
-msgid "Layout"
-msgstr "レイアウト"
-
-
 msgid "Kerning"
 msgstr "カーニング"
+
+
+msgid "Bone Roll"
+msgstr "ボーンロール"
+
+
+msgid "Pivot Point"
+msgstr "ピボットポイント"
 
 
 msgid "Keyframe Insert Pie"
@@ -46815,16 +46579,8 @@ msgid "Convert between color spaces"
 msgstr "色空間を変換します"
 
 
-msgid "From"
-msgstr "元"
-
-
 msgid "Color space of the input image"
 msgstr "入力画像の色空間"
-
-
-msgid "To"
-msgstr "先"
 
 
 msgid "Color space of the output image"
@@ -75671,10 +75427,6 @@ msgid "Toggle muting of selected nodes"
 msgstr "選択中のノードのミュートを切り替えます"
 
 
-msgid "Create a new compositing node group and initialize it with default nodes"
-msgstr "新規コンポジティングノードグループを作成し，デフォルトノードで初期化します"
-
-
 msgctxt "Operator"
 msgid "New Compositor Sequencer Node Group"
 msgstr "新規コンポジターシーケンサーノードグループ"
@@ -82887,6 +82639,10 @@ msgstr ""
 "アセットライブラリを追加します"
 
 
+msgid "Requires Access Token"
+msgstr "アクセストークンが必要"
+
+
 msgctxt "Operator"
 msgid "Remove Asset Library"
 msgstr "アセットライブラリを削除"
@@ -82981,10 +82737,6 @@ msgstr "ローカルリポジトリを追加"
 
 msgid "Add a repository managed manually without referencing an external repository"
 msgstr "外部リポジトリへの参照なしで，手動で管理するリポジトリを追加します"
-
-
-msgid "Requires Access Token"
-msgstr "アクセストークンが必要"
 
 
 msgid "Repository requires an access token"
@@ -92597,6 +92349,12 @@ msgid "Export file in ASCII format, export as binary otherwise"
 msgstr "ASCII フォーマットでファイルをエクスポートします．無効時はバイナリでエクスポートします"
 
 
+msgid "Export objects as they appear in the viewport (Multiresolution modifiers in Sculpt Mode will not be evaluated)"
+msgstr ""
+"オブジェクトをビューポートの表示でエクスポートします (スカルプト\n"
+"モードのマルチレゾリューションモディファイアーは評価されません)"
+
+
 msgid "Export Vertex Attributes"
 msgstr "頂点属性をエクスポート"
 
@@ -93424,12 +93182,6 @@ msgstr "STLをエクスポート"
 
 msgid "Save the scene to an STL file"
 msgstr "STL ファイルへシーンを保存します"
-
-
-msgid "Export objects as they appear in the viewport (Multiresolution modifiers in Sculpt Mode will not be evaluated)"
-msgstr ""
-"オブジェクトをビューポートの表示でエクスポートします (スカルプト\n"
-"モードのマルチレゾリューションモディファイアーは評価されません)"
 
 
 msgid "Batch Export"
@@ -95273,18 +95025,6 @@ msgid "Panel containing UI elements"
 msgstr "UIの要素を含むパネル"
 
 
-msgid "glTF Material Variants"
-msgstr "glTFマテリアルバリアント"
-
-
-msgid "glTF"
-msgstr "glTF"
-
-
-msgid "glTF Animations"
-msgstr "glTFアニメーション"
-
-
 msgid "Active Tool"
 msgstr "アクティブツール"
 
@@ -95407,6 +95147,18 @@ msgstr "VR情報"
 
 msgid "glTF Variants"
 msgstr "glTFバリアント"
+
+
+msgid "glTF Material Variants"
+msgstr "glTFマテリアルバリアント"
+
+
+msgid "glTF"
+msgstr "glTF"
+
+
+msgid "glTF Animations"
+msgstr "glTFアニメーション"
 
 
 msgid "Import Settings"
@@ -96234,6 +95986,10 @@ msgid "White Balance Presets"
 msgstr "ホワイトバランスプリセット"
 
 
+msgid "Working Space"
+msgstr "ワーキング空間"
+
+
 msgid "Denoising"
 msgstr "デノイズ"
 
@@ -96383,10 +96139,6 @@ msgstr "検索と置換"
 
 msgid "Auto Keying"
 msgstr "自動キー挿入"
-
-
-msgid "Time Jump"
-msgstr "タイムジャンプ"
 
 
 msgid "Keyframing"
@@ -97071,10 +96823,6 @@ msgstr "選択ペイント"
 
 msgid "Clone from Paint Slot"
 msgstr "ペイントスロットからクローン"
-
-
-msgid "Front-Face Falloff"
-msgstr "向きの減衰"
 
 
 msgid "Normal Falloff"
@@ -100869,6 +100617,10 @@ msgid "Catalan - Català"
 msgstr "カタロニア語 - Català"
 
 
+msgid "Locale code: ca_AD. Translation progress: 100%"
+msgstr "ロケールコード：ca_AD．翻訳の進行状況: 100％"
+
+
 msgid "Chinese (Simplified) - 简体中文"
 msgstr "簡体字中国語 - 简体中文"
 
@@ -100939,6 +100691,10 @@ msgstr "フランス語 - Français"
 
 msgid "Georgian - ქართული"
 msgstr "ジョージア語 - ქართული"
+
+
+msgid "Locale code: ka. Translation progress: 100%"
+msgstr "ロケールコード：ka．翻訳の進行状況: 100％"
 
 
 msgid "German - Deutsch"
@@ -101041,6 +100797,10 @@ msgid "Polish - Polski"
 msgstr "ポーランド語 - Polski"
 
 
+msgid "Locale code: pl_PL. Translation progress: 100%"
+msgstr "ロケールコード：pl_PL．翻訳の進行状況: 100％"
+
+
 msgid "Portuguese (Brazil) - Português brasileiro"
 msgstr "ポルトガル（ブラジル）語 - Português brasileiro"
 
@@ -101065,6 +100825,10 @@ msgid "Russian - Русский"
 msgstr "ロシア語 - Русский"
 
 
+msgid "Locale code: ru_RU. Translation progress: 100%"
+msgstr "ロケールコード：ru_RU．翻訳の進行状況: 100％"
+
+
 msgid "Serbian (Cyrillic) - Српски"
 msgstr "セルビア語（キリル文字）- Српски"
 
@@ -101085,12 +100849,20 @@ msgid "Slovak - Slovenčina"
 msgstr "スロバキア語 - Slovenčina"
 
 
+msgid "Locale code: sk_SK. Translation progress: 100%"
+msgstr "ロケールコード：sk_SK．翻訳の進行状況: 100％"
+
+
 msgid "Slovenian - Slovenščina"
 msgstr "スロべニア語 - Slovenščina"
 
 
 msgid "Spanish - Español"
 msgstr "スペイン語 - Español"
+
+
+msgid "Locale code: es. Translation progress: 100%"
+msgstr "ロケールコード：es．翻訳の進行状況: 100％"
 
 
 msgid "Swahili - Kiswahili"
@@ -103404,10 +103176,6 @@ msgstr "ビューポートでのオブジェクト毎の適応サブディビジ
 
 msgid "Pause Preview"
 msgstr "プレビューを中断"
-
-
-msgid "Pause all viewport preview renders"
-msgstr "すべてのビューのプレビューレンダリングを中断"
 
 
 msgid "Viewport Samples"
@@ -107409,6 +107177,14 @@ msgid "How much the spring has to be stretched/compressed in order to change its
 msgstr "スプリングの静止長を変更するのに必要な伸縮の割合"
 
 
+msgid "Use effect during render"
+msgstr "レンダリング中にエフェクトを使用します"
+
+
+msgid "Node group that controls what this effect does"
+msgstr "このエフェクトの動作をコントロールするノードグループ"
+
+
 msgid "Light Direction"
 msgstr "ライトの方向"
 
@@ -108664,10 +108440,6 @@ msgstr "UI 内にエフェクトのオプションを展開します"
 
 msgid "Display effect in Edit mode"
 msgstr "編集モード中にエフェクトを表示します"
-
-
-msgid "Use effect during render"
-msgstr "レンダリング中にエフェクトを使用します"
 
 
 msgid "Display effect in viewport"
@@ -112927,10 +112699,6 @@ msgstr "エフェクトストリップの色"
 
 msgid "Compositor Strip"
 msgstr "コンポジターストリップ"
-
-
-msgid "Node group that controls what this effect does"
-msgstr "このエフェクトの動作をコントロールするノードグループ"
 
 
 msgid "Crossfade Strip"
@@ -117578,40 +117346,20 @@ msgid "Diameter of the brush"
 msgstr "ブラシの直径"
 
 
-msgid "Use Unified Color"
-msgstr "共通のカラーを使用"
-
-
 msgid "Instead of per-brush color, the color is shared across brushes"
 msgstr "ブラシ毎の色ではなく，ブラシ間共通の色を使用します"
-
-
-msgid "Use Unified Input Samples"
-msgstr "共通の入力サンプル数を使用"
 
 
 msgid "Instead of per-brush input samples, the value is shared across brushes"
 msgstr "ブラシ毎の入力サンプル数の代わりに，ブラシ間共通の値を使用します"
 
 
-msgid "Use Unified Size"
-msgstr "共通のサイズを使用"
-
-
 msgid "Instead of per-brush size, the size is shared across brushes"
 msgstr "ブラシ毎のサイズではなく，ブラシ間共通のサイズを使用します"
 
 
-msgid "Use Unified Strength"
-msgstr "共通の強度を使用"
-
-
 msgid "Instead of per-brush strength, the strength is shared across brushes"
 msgstr "ブラシ毎の強さではなく，ブラシ間共通の強さを使用します"
-
-
-msgid "Use Unified Weight"
-msgstr "共通のウェイトを使用"
 
 
 msgid "Instead of per-brush weight, the weight is shared across brushes"
@@ -122863,16 +122611,6 @@ msgstr "画像エディターツール：UV，ピンチ（予備）"
 
 
 msgctxt "WindowManager"
-msgid "UV Sculpt"
-msgstr "UVスカルプト"
-
-
-msgctxt "WindowManager"
-msgid "Image View"
-msgstr "画像ビュー"
-
-
-msgctxt "WindowManager"
 msgid "Image Editor Tool: Sample"
 msgstr "画像エディターツール：スポイト"
 
@@ -122923,6 +122661,16 @@ msgstr "ノードツール：ボックス選択（予備）"
 
 
 msgctxt "WindowManager"
+msgid "Node Tool: Select Circle"
+msgstr "ノードツール：サークル選択"
+
+
+msgctxt "WindowManager"
+msgid "Node Tool: Select Circle (fallback)"
+msgstr "ノードツール：サークル選択（予備）"
+
+
+msgctxt "WindowManager"
 msgid "Node Tool: Select Lasso"
 msgstr "ノードツール：投げ縄選択"
 
@@ -122933,13 +122681,8 @@ msgstr "ノードツール：投げ縄選択（予備）"
 
 
 msgctxt "WindowManager"
-msgid "Node Tool: Select Circle"
-msgstr "ノードツール：サークル選択"
-
-
-msgctxt "WindowManager"
-msgid "Node Tool: Select Circle (fallback)"
-msgstr "ノードツール：サークル選択（予備）"
+msgid "Snap Invert"
+msgstr "スナップ反転"
 
 
 msgctxt "WindowManager"
@@ -123355,11 +123098,6 @@ msgstr "スナップベースを設定"
 msgctxt "WindowManager"
 msgid "Set Snap Base (Off)"
 msgstr "スナップベースを設定(OFF)"
-
-
-msgctxt "WindowManager"
-msgid "Snap Invert"
-msgstr "スナップ反転"
 
 
 msgctxt "WindowManager"
@@ -127540,6 +127278,10 @@ msgid "Determinant"
 msgstr "行列式"
 
 
+msgid "Typed Bundle"
+msgstr "タイプ付バンドル"
+
+
 msgid "CSV (.csv)"
 msgstr "CSV (.csv)"
 
@@ -127566,10 +127308,6 @@ msgstr "OpenVDB (.vdb)"
 
 msgid "For Each Element"
 msgstr "要素繰り返し"
-
-
-msgid "Typed Bundle"
-msgstr "タイプ付バンドル"
 
 
 msgid "Calculation Range"
@@ -127633,6 +127371,11 @@ msgstr "前"
 
 msgid "Collection Mask"
 msgstr "コレクションマスク"
+
+
+msgctxt "Operator"
+msgid "Search..."
+msgstr "検索…"
 
 
 msgctxt "Operator"
@@ -128203,11 +127946,6 @@ msgstr "強さのしきい値"
 
 msgid "Update on Edit"
 msgstr "編集時に更新"
-
-
-msgctxt "Operator"
-msgid "Search..."
-msgstr "検索…"
 
 
 msgid "Curve to Tube"
@@ -139084,6 +138822,10 @@ msgid "Shift Left Mouse"
 msgstr "[Shift]＋左クリック"
 
 
+msgid "Compact Tabs"
+msgstr "コンパクトタブ"
+
+
 msgid "Add to a user defined context menu (stored in the user preferences)"
 msgstr ""
 "ユーザー定義のコンテクストメニューに追加します\n"
@@ -139610,6 +139352,10 @@ msgstr "ボーンコレクションを削除"
 
 msgid "Manual Scale"
 msgstr "手動スケール"
+
+
+msgid "Look"
+msgstr "ルック"
 
 
 msgid "Sort By:"
@@ -140392,6 +140138,10 @@ msgstr "全アセットのダウンロードをキャンセル"
 
 msgid "Canceling..."
 msgstr "キャンセル中..."
+
+
+msgid "Warnings"
+msgstr "警告"
 
 
 msgid "Split/Dock"
@@ -143206,6 +142956,10 @@ msgid "Failed to open window!"
 msgstr "ウィンドウを開くのに失敗しました！"
 
 
+msgid "Asset is not a compositor node group"
+msgstr "アセットがコンポジターノードグループではありません"
+
+
 msgid "Active scene changed to '%s'"
 msgstr "アクティブシーンを「%s」に変更しました"
 
@@ -143709,14 +143463,6 @@ msgstr "パックされたマルチレイヤーファイルはペイントでき
 
 msgid "Image requires 4 color channels to paint"
 msgstr "画像のペイントには4つのカラーチャンネルが必要です"
-
-
-msgid "Image requires 4 color channels to paint: %s"
-msgstr "画像のペイントには4つのカラーチャンネルが必要です: %s"
-
-
-msgid "Packed MultiLayer files cannot be painted: %s"
-msgstr "パックされたマルチレイヤーファイルはペイントできません: %s"
 
 
 msgid "Add Paint Slot"
@@ -145390,6 +145136,10 @@ msgid "Link operation index out of range"
 msgstr "リンク操作のインデックスが範囲外です"
 
 
+msgid "Compositor Nodes"
+msgstr "コンポジターノード"
+
+
 msgid "Sequencer Compositor Nodes"
 msgstr "シーケンサーコンポジターノード"
 
@@ -145504,11 +145254,11 @@ msgstr "ノードツリーの最新の評価の実行時間．フレームとグ
 
 
 msgid " Named Attribute"
-msgstr "名前付き属性"
+msgstr " 個の名前付き属性"
 
 
 msgid " Named Attributes"
-msgstr "名前付き属性"
+msgstr " 個の名前付き属性"
 
 
 msgctxt "Operator"
@@ -146786,10 +146536,6 @@ msgid ""
 msgstr ""
 "カタログに未割り当てのシーンアセット．\n"
 "カタログはアセットブラウザー内で割り当て可能です"
-
-
-msgid "Asset is not a compositor node group"
-msgstr "アセットがコンポジターノードグループではありません"
 
 
 msgid "Could not create the copy paste file!"
@@ -150371,10 +150117,6 @@ msgid "Object '%s' has no evaluated mesh data"
 msgstr "オブジェクト「%s」に評価済メッシュデータがありません"
 
 
-msgid "Object '%s' could not create internal data for finding nearest point"
-msgstr "オブジェクト「%s」は最近点を見つけるための内部データを作成できません"
-
-
 msgid "Palette '%s' does not contain color given"
 msgstr "パレット「%s」に対象の色がありません"
 
@@ -150495,36 +150237,12 @@ msgid "Modifier \"%s\" is not in the strip's modifier list"
 msgstr "モディファイアー「%s」がストリップのモディファイアーリストにありません"
 
 
-msgid "Strips.new_sound: unable to open sound file"
-msgstr "Strips.new_sound: 音声ファイルが開けません"
-
-
 msgid "Blender compiled without Audaspace support"
 msgstr "Audaspace対応なしでコンパイルされたBlenderです"
 
 
-msgid "Strips.new_effect: invalid length"
-msgstr "Strips.new_effect: 無効な長さです"
-
-
-msgid "Strips.new_effect: effect takes 1 input strip"
-msgstr "Strips.new_effect: １つの入力シーケンスをとるエフェクトです"
-
-
-msgid "Strips.new_effect: effect takes 2 input strips"
-msgstr "Strips.new_effect: ２つの入力シーケンスをとるエフェクトです"
-
-
 msgid "StripElements.pop: cannot pop the last element"
 msgstr "StripElements.pop: 最後の要素はpopできません"
-
-
-msgid "StripElements.pop: index out of range"
-msgstr "StripElements.pop: インデックス外です"
-
-
-msgid "Strips.new_effect: effect expects more than 2 inputs (%d, should never happen!)"
-msgstr "Strips.new_effect: エフェクトには３つ以上の入力が必要です（%d 個ではできません！）"
 
 
 msgid "Strip '%s' not in scene '%s'"
@@ -150557,10 +150275,6 @@ msgstr "アクティブオブジェクトのアクティブモディファイア
 
 msgid "Edit any geometry node group for use as an operator"
 msgstr "オペレーターとして使用する任意のジオメトリノードグループを編集します"
-
-
-msgid "Edit compositing node group for the current scene"
-msgstr "現在のシーンのコンポジティングノードグループを編集します"
 
 
 msgid "Edit compositing node group for Sequencer strip modifiers"
@@ -156103,7 +155817,7 @@ msgstr "基本的な20面体の細分化数"
 
 
 msgid "End Location"
-msgstr "最後の位置"
+msgstr "終了位置"
 
 
 msgid "Start Location"
@@ -157561,10 +157275,6 @@ msgid "The first node group output must have the Color type"
 msgstr "最初のノードグループ出力をカラータイプにする必要があります"
 
 
-msgid "Warnings"
-msgstr "警告"
-
-
 msgid "Bake Path"
 msgstr "ベイクパス"
 
@@ -157633,10 +157343,6 @@ msgid "To %s"
 msgstr "→ %s"
 
 
-msgid "No Output"
-msgstr "出力なし"
-
-
 msgid "Wrong Output Type"
 msgstr "間違った出力タイプ"
 
@@ -157647,10 +157353,6 @@ msgstr "無視された出力があります"
 
 msgid "Unused Output"
 msgstr "未使用の出力"
-
-
-msgid "Node group must have a Color output socket"
-msgstr "ノードグループにカラー出力ソケットが必要です"
 
 
 msgid "Node group's first output must be a color output"
@@ -158039,7 +157741,7 @@ msgstr "異方性の方向の回転．1.0で完全な円になります"
 
 
 msgid "Thin Wall"
-msgstr "薄い壁"
+msgstr "薄壁"
 
 
 msgid "Diffuse Roughness"
@@ -160763,112 +160465,8 @@ msgid "network"
 msgstr "ネットワーク"
 
 
-msgid "ACES 1.3"
-msgstr "ACES 1.3"
-
-
-msgid "ACES 2.0"
-msgstr "ACES 2.0"
-
-
-msgid "Khronos PBR Neutral"
-msgstr "Khronos PBRニュートラル"
-
-
-msgid "AgX"
-msgstr "AgX"
-
-
-msgid "Filmic"
-msgstr "Filmic"
-
-
-msgid "False Color"
-msgstr "偽カラー"
-
-
-msgid "ACES 1.3 - HDR 1000 nits"
-msgstr "ACES 1.3 - HDR 1000 nit"
-
-
-msgid "ACES 1.3 - HDR 2000 nits"
-msgstr "ACES 1.3 - HDR 2000 nit"
-
-
-msgid "ACES 1.3 - HDR 4000 nits"
-msgstr "ACES 1.3 - HDR 4000 nit"
-
-
-msgid "ACES 1.3 - SDR"
-msgstr "ACES 1.3 - SDR"
-
-
-msgid "ACES 2.0 - HDR 500 nits"
-msgstr "ACES 2.0 - HDR 500 nit"
-
-
-msgid "ACES 2.0 - HDR 1000 nits"
-msgstr "ACES 2.0 - HDR 1000 nit"
-
-
-msgid "ACES 2.0 - HDR 2000 nits"
-msgstr "ACES 2.0 - HDR 2000 nit"
-
-
-msgid "ACES 2.0 - HDR 4000 nits"
-msgstr "ACES 2.0 - HDR 4000 nit"
-
-
-msgid "ACES 2.0 - SDR"
-msgstr "ACES 2.0 - SDR"
-
-
-msgid "AgX - HDR 1000 nits"
-msgstr "AgX - HDR 1000 nit"
-
-
-msgid "AgX - SDR"
-msgstr "AgX - SDR"
-
-
-msgid "Very High Contrast"
-msgstr "非常に高コントラスト"
-
-
-msgid "High Contrast"
-msgstr "高コントラスト"
-
-
-msgid "Medium High Contrast"
-msgstr "中から高コントラスト"
-
-
-msgid "Medium Contrast"
-msgstr "中コントラスト"
-
-
-msgid "Medium Low Contrast"
-msgstr "低から中コントラスト"
-
-
-msgid "Low Contrast"
-msgstr "低コントラスト"
-
-
-msgid "Very Low Contrast"
-msgstr "非常に低コントラスト"
-
-
-msgid "Punchy"
-msgstr "パンチ"
-
-
 msgid "A darkening punchy look"
 msgstr "暗く強烈なルック"
-
-
-msgid "Greyscale"
-msgstr "グレースケール"
 
 
 msgid "A Black and White Look"
@@ -160887,10 +160485,6 @@ msgid "A Medium High Contrast Look"
 msgstr "中から高コントラストルック"
 
 
-msgid "Base Contrast"
-msgstr "ベースコントラスト"
-
-
 msgid "A Base Contrast Look"
 msgstr "ベースのコントラストルック"
 
@@ -160905,10 +160499,6 @@ msgstr "低コントラストルック"
 
 msgid "A Very Low Contrast Look"
 msgstr "非常に低コントラストルック"
-
-
-msgid "Reference Gamut Compression"
-msgstr "参照色域を圧縮"
 
 
 msgid "Compress scene-referred values from common cameras into the ACEScg gamut"
@@ -160971,10 +160561,6 @@ msgstr ""
 "シーン参照のテクスチャで使用."
 
 
-msgid "Utility"
-msgstr "ユーティリティ"
-
-
 msgid ""
 "2.2 gamma-encoded Rec.709 with illuminant D65 white point.\n"
 "For use with scene-referred textures."
@@ -160989,10 +160575,6 @@ msgid ""
 msgstr ""
 "D65 光源のホワイトポイントの2.4ガンマエンコード Rec.709.\n"
 "シーン参照のテクスチャで使用."
-
-
-msgid "sRGB Encoded P3-D65"
-msgstr "sRGBエンコードP3-D65"
 
 
 msgid ""
@@ -161011,10 +160593,6 @@ msgstr ""
 "シーン参照のテクスチャで使用."
 
 
-msgid "sRGB Encoded AP1"
-msgstr "sRGBエンコードAP1"
-
-
 msgid ""
 "sRGB-encoded AP1 with ACES white point.\n"
 "For use with scene-referred textures."
@@ -161029,14 +160607,6 @@ msgid ""
 msgstr ""
 "ACES ホワイトポイントの2.2ガンマエンコード AP1.\n"
 "シーン参照のテクスチャで使用."
-
-
-msgid "blender:pq_rec2020_display_203nits"
-msgstr "blender:pq_rec2020_display_203nits"
-
-
-msgid "blender:hlg_rec2020_display_203nits"
-msgstr "blender:hlg_rec2020_display_203nits"
 
 
 msgid "Add & Subtract"
@@ -161073,6 +160643,10 @@ msgstr "メッシュウェイトペイント"
 
 msgid "Pixel Art"
 msgstr "ピクセルアート"
+
+
+msgid "Utility"
+msgstr "ユーティリティ"
 
 
 msgid "3D to Screen Space"

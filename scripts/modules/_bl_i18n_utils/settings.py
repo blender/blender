@@ -343,7 +343,7 @@ PYGETTEXT_KEYWORDS = (() +
 # autopep8: on
 
 # The few rare message strings that use a 'format-like' syntax outside of formatting context.
-# Ensure that they are skipped when checkking for valid formatting tokens and order in the translated strings.
+# Ensure that they are skipped when checking for valid formatting tokens and order in the translated strings.
 MSGID_FORMATTING_VALIDATION_SKIP = {
     "Property is a path which supports the \"{variable_name}\" variable expression syntax, "
     "which substitutes the value of the referenced variable in place of the expression",

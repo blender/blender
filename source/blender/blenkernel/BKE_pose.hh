@@ -4,7 +4,10 @@
 
 #pragma once
 
+#include "BLI_array.hh"
 #include "BLI_assert.hh"
+#include "BLI_map.hh"
+#include "BLI_string_ref.hh"
 
 #include <concepts>
 #include <type_traits>
@@ -22,6 +25,25 @@ struct bPoseChannel;
 }  // namespace blender
 
 namespace blender::bke {
+
+/** Non-serialized runtime data for #bPose, always valid for code handling a #bPose. */
+struct bPoseRuntime {
+  /**
+   * Hash-table for quicker string lookups, keyed by #bPoseChannel::name. Empty until
+   * #BKE_pose_channels_hash_ensure is called; code should fall back to a linear search of
+   * #bPose::chanbase when this is empty.
+   */
+  Map<StringRef, bPoseChannel *> chanhash;
+
+  /**
+   * Flat array of pose channels. It references pointers from #bPose::chanbase.
+   * Used for quick pose channel lookup from an index.
+   */
+  Array<bPoseChannel *> chan_array;
+
+  /** Temporary IK data, depends on the IK solver. Not saved in file. */
+  void *ikdata = nullptr;
+};
 
 /**
  * Pairing of a pose channel with its corresponding armature bone.

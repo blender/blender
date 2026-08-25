@@ -2011,6 +2011,7 @@ static void rna_def_armature_edit_bones(BlenderRNA *brna, PropertyRNA *cprop)
   RNA_def_parameter_flags(parm, PropertyFlag(0), PARM_REQUIRED);
   /* return type */
   parm = RNA_def_pointer(func, "bone", "EditBone", "", "Newly created edit bone");
+  RNA_def_parameter_flags(parm, PROP_NEVER_NULL, ParameterFlag(0));
   RNA_def_function_return(func, parm);
 
   /* remove target */
@@ -2109,6 +2110,7 @@ static void rna_def_armature_collections(BlenderRNA *brna, PropertyRNA *cprop)
   /* Return value. */
   parm = RNA_def_pointer(
       func, "bonecollection", "BoneCollection", "", "Newly created bone collection");
+  RNA_def_parameter_flags(parm, PROP_NEVER_NULL, ParameterFlag(0));
   RNA_def_function_return(func, parm);
 
   /* Armature.collections.remove(...) */

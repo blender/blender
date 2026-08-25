@@ -291,6 +291,14 @@ ccl_device_forceinline void film_write_denoising_features_background(
     film_overwrite_pass_float(buffer + kernel_data.film.pass_denoising_depth, FLT_MAX);
   }
 
+  if (kernel_data.film.pass_denoising_backward_motion != PASS_UNUSED) {
+    const float4 speed = camera_motion_vector_direction(
+        kg, INTEGRATOR_STATE(state, ray, P), INTEGRATOR_STATE(state, ray, D));
+    const float3 backward_motion = make_float3(speed.x, speed.y, 0.0f);
+    film_overwrite_pass_float3(buffer + kernel_data.film.pass_denoising_backward_motion,
+                               backward_motion);
+  }
+
   /* 'pass_denoising_albedo' is written by 'film_write_emission_or_background_pass' */
 }
 #endif /* __DENOISING_FEATURES__ */

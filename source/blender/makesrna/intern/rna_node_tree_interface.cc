@@ -1574,6 +1574,7 @@ static void rna_def_node_tree_interface_items_api(StructRNA *srna)
       func, "parent", "NodeTreeInterfacePanel", "Parent", "Panel to add the socket in");
   /* return value */
   parm = RNA_def_pointer(func, "item", "NodeTreeInterfaceSocket", "Socket", "New socket");
+  RNA_def_parameter_flags(parm, PROP_NEVER_NULL, ParameterFlag(0));
   RNA_def_function_return(func, parm);
 
   func = RNA_def_function(srna, "new_panel", "rna_NodeTreeInterfaceItems_new_panel");
@@ -1586,6 +1587,7 @@ static void rna_def_node_tree_interface_items_api(StructRNA *srna)
   RNA_def_parameter_flags(parm, PropertyFlag(0), PARM_REQUIRED);
   /* return value */
   parm = RNA_def_pointer(func, "item", "NodeTreeInterfacePanel", "Panel", "New panel");
+  RNA_def_parameter_flags(parm, PROP_NEVER_NULL, ParameterFlag(0));
   RNA_def_function_return(func, parm);
 
   func = RNA_def_function(srna, "copy", "rna_NodeTreeInterfaceItems_copy");
@@ -1596,6 +1598,7 @@ static void rna_def_node_tree_interface_items_api(StructRNA *srna)
   /* return value */
   parm = RNA_def_pointer(
       func, "item_copy", "NodeTreeInterfaceItem", "Item Copy", "Copy of the item");
+  RNA_def_parameter_flags(parm, PROP_NEVER_NULL, ParameterFlag(0));
   RNA_def_function_return(func, parm);
 
   func = RNA_def_function(srna, "remove", "rna_NodeTreeInterfaceItems_remove");

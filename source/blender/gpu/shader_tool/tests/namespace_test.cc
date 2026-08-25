@@ -25,8 +25,7 @@ void fn2()
 }
 }
 )";
-    string error;
-    string output = process_test_string(input, error);
+    auto [output, _, error] = process_test_string(input);
     EXPECT_EQ(error, "Call to function is ambiguous. Specify namespace to remove ambiguity.");
   }
   {
@@ -50,8 +49,7 @@ int A_func2(int a)
 }
 
 )";
-    string error;
-    string output = process_test_string(input, error);
+    auto [output, _, error] = process_test_string(input);
     EXPECT_EQ(output, expect);
     EXPECT_EQ(error, "");
   }
@@ -92,8 +90,7 @@ int A_func2(int a)
 }
 
 )";
-    string error;
-    string output = process_test_string(input, error);
+    auto [output, _, error] = process_test_string(input);
     EXPECT_EQ(output, expect);
     EXPECT_EQ(error, "");
   }
@@ -122,8 +119,7 @@ int A_B_func2(int a)
 }
 
 )";
-    string error;
-    string output = process_test_string(input, error);
+    auto [output, _, error] = process_test_string(input);
     EXPECT_EQ(output, expect);
     EXPECT_EQ(error, "");
   }
@@ -146,8 +142,7 @@ void A_B_b() { A_a(); }
 void A_f() { A_B_b(); }
 
 )";
-    string error;
-    string output = process_test_string(input, error);
+    auto [output, _, error] = process_test_string(input);
     EXPECT_EQ(output, expect);
     EXPECT_EQ(error, "");
   }
@@ -172,8 +167,7 @@ int A_func(int a)
 }
 
 )";
-    string error;
-    string output = process_test_string(input, error);
+    auto [output, _, error] = process_test_string(input);
     EXPECT_EQ(output, expect);
     EXPECT_EQ(error, "");
   }
@@ -200,8 +194,7 @@ int func(int a)
   A_S d;
 }
 )";
-    string error;
-    string output = process_test_string(input, error);
+    auto [output, _, error] = process_test_string(input);
     EXPECT_EQ(output, expect);
     EXPECT_EQ(error, "");
   }
@@ -233,8 +226,7 @@ void A_B_test() {
 }
 
 )";
-    string error;
-    string output = process_test_string(input, error);
+    auto [output, _, error] = process_test_string(input);
     EXPECT_EQ(output, expect);
     EXPECT_EQ(error, "");
   }
@@ -242,8 +234,7 @@ void A_B_test() {
     string input = R"(
 using B = A::T;
 )";
-    string error;
-    string output = process_test_string(input, error);
+    auto [output, _, error] = process_test_string(input);
     EXPECT_EQ(error, "The `using` keyword is not allowed in global scope.");
   }
   {
@@ -252,8 +243,7 @@ namespace A {
 using namespace B;
 }
 )";
-    string error;
-    string output = process_test_string(input, error);
+    auto [output, _, error] = process_test_string(input);
     EXPECT_EQ(error,
               "Unsupported `using namespace`. "
               "Add individual `using` directives for each needed symbol.");
@@ -264,8 +254,7 @@ namespace A {
 using B::func;
 }
 )";
-    string error;
-    string output = process_test_string(input, error);
+    auto [output, _, error] = process_test_string(input);
     EXPECT_EQ(error,
               "The `using` keyword is only allowed in namespace scope to make visible symbols "
               "from the same namespace declared in another scope, potentially from another "
@@ -277,8 +266,7 @@ namespace A {
 using C = B::func;
 }
 )";
-    string error;
-    string output = process_test_string(input, error);
+    auto [output, _, error] = process_test_string(input);
     EXPECT_EQ(error,
               "The `using` keyword is only allowed in namespace scope to make visible symbols "
               "from the same namespace declared in another scope, potentially from another "
@@ -299,17 +287,16 @@ float write(float a){ return a; }
 )";
 
     string expect = R"(
-#line 3
+
 float NS_read(float a)
 {
   return a;
 }
-#line 8
+
 float NS_write(float a){ return a; }
 
 )";
-    string error;
-    string output = process_test_string(input, error);
+    auto [output, _, error] = process_test_string(input);
     EXPECT_EQ(output, expect);
     EXPECT_EQ(error, "");
   }
@@ -334,7 +321,8 @@ struct S {
 struct NS_S {
 #line 11
 int _pad;};
-#line 14
+
+
 #ifndef GPU_METAL
 NS_S NS_S_ctor_();
 NS_S NS_S_static_method(NS_S s);
@@ -349,10 +337,10 @@ NS_S _other_method(_ref(NS_S ,this_), int s);
     _some_method(this_);
     return NS_S(0);
   }
-#line 13
+
+
 )";
-    string error;
-    string output = process_test_string(input, error);
+    auto [output, _, error] = process_test_string(input);
     EXPECT_EQ(output, expect);
     EXPECT_EQ(error, "");
   }
@@ -369,8 +357,7 @@ template<> Type a<Type>() {}
            Type NS_aTType() {}
 
 )";
-    string error;
-    string output = process_test_string(input, error);
+    auto [output, _, error] = process_test_string(input);
     EXPECT_EQ(output, expect);
     EXPECT_EQ(error, "");
   }
@@ -405,18 +392,39 @@ int _R(_ref(NS_B ,this_));
 #endif
 #line 3
                     NS_B NS_B_ctor_() {NS_B r;r.i=0;return r;}
-#line 5
+
          int NS_B_D() { return _R(NS_B_C()); }
          int NS_B_E() { return _R(NS_B_C()); }
          NS_B NS_B_C() { return NS_B(0); }
   int _R(_ref(NS_B ,this_)) { return _R(this_); }
-#line 10
+
 NS_B NS_fn() { return NS_B_C(); }
 
 )";
-    string error;
-    string output = process_test_string(input, error);
+    auto [output, _, error] = process_test_string(input);
     EXPECT_EQ(output, expect);
+    EXPECT_EQ(error, "");
+  }
+}
+
+TEST(shader_tool, Using)
+{
+  {
+    string input = R"(
+struct T {};
+
+namespace A { struct T {}; }
+
+namespace B {
+
+void b(T f) {}
+
+using T = A::T;
+
+void c(T f) {}
+}
+)";
+    auto [output, _, error] = process_test_string(input, Language::BSL);
     EXPECT_EQ(error, "");
   }
 }

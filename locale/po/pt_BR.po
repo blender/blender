@@ -1,9 +1,9 @@
 
 msgid ""
 msgstr ""
-"Project-Id-Version: Blender 5.3.0 Alpha (b'af4852ed4560')\n"
+"Project-Id-Version: Blender 5.3.0 Alpha (b'09417042a1fa')\n"
 "Report-Msgid-Bugs-To: Leandro Paganelli <leandrobp@fastmail.com>\n"
-"POT-Creation-Date: 2026-08-10 07:54+0000\n"
+"POT-Creation-Date: 2026-08-24 07:38+0000\n"
 "PO-Revision-Date: 2026-04-13 10:12+0000\n"
 "Last-Translator: Gilberto Rodrigues <gilbertorodrigues@outlook.com>\n"
 "Language-Team: Portuguese (Brazil) <https://translate.blender.org/projects/blender-ui/ui/pt_BR/>\n"
@@ -4953,24 +4953,12 @@ msgid "Color management specific to display device"
 msgstr "Gerenciamento de cores específica para o dispositivo de exibição."
 
 
-msgid "Display"
-msgstr "Mostrar"
-
-
 msgid "Input color space settings"
 msgstr "Configurações de espaço de cor de entrada."
 
 
 msgid "Is Data"
 msgstr "Possui dados"
-
-
-msgid "Input Color Space"
-msgstr "Espaço de cor de entrada"
-
-
-msgid "Non-Color"
-msgstr "Não-Cor"
 
 
 msgid "Do not perform any color transform on load, treat colors as in scene linear space already"
@@ -5001,10 +4989,6 @@ msgid "Gamma"
 msgstr "Gama"
 
 
-msgid "Look"
-msgstr "Aparência"
-
-
 msgid "Do not modify image in an artistic manner"
 msgstr "Não modifica a imagem de maneira artística."
 
@@ -5015,10 +4999,6 @@ msgstr "Usar curvas"
 
 msgid "Use RGB curved for pre-display transformation"
 msgstr "Permite usar curvas RGB para transformações da pré-amostragem."
-
-
-msgid "View"
-msgstr "Visualizar"
 
 
 msgid "View used when converting image to a display space"
@@ -7185,6 +7165,10 @@ msgstr "Plano"
 
 msgid "Plane for projected stroke"
 msgstr "O plano para a projeção dos traços."
+
+
+msgid "View"
+msgstr "Visualizar"
 
 
 msgid "Detect Corners"
@@ -12211,6 +12195,18 @@ msgid "Automatically adjust strength to give consistent results for different sp
 msgstr "Ajusta automaticamente a força para fornecer resultados consistentes para espaçamentos diferentes."
 
 
+msgid "Use Unified Color"
+msgstr "Utilizar uma cor unificada"
+
+
+msgid "Use Unified Strength"
+msgstr "Usar forças unificadas"
+
+
+msgid "Use Unified Weight"
+msgstr "Usar peso unificado"
+
+
 msgid "Vertex weight when brush is applied"
 msgstr "Peso dos vértices quando o pincel é aplicado."
 
@@ -15431,6 +15427,10 @@ msgstr "Amortecimento"
 
 msgid "Amount of damping"
 msgstr "A quantidade de amortecimento."
+
+
+msgid "Display"
+msgstr "Mostrar"
 
 
 msgid "Percentage of particles to display in 3D view"
@@ -21152,44 +21152,20 @@ msgid "Material slot name"
 msgstr "Nome do compartimento do material."
 
 
-msgid "Names"
-msgstr "Nomes"
-
-
-msgid "Bone Roll"
-msgstr "Rolagem dos ossos"
-
-
-msgid "Show/Hide"
-msgstr "Mostrar ou ocultar"
-
-
-msgid "Clean Up"
-msgstr "Limpeza"
-
-
-msgid "Keying"
-msgstr "Inserção de chaves"
-
-
-msgid "Tracking"
-msgstr "Rastreamento"
-
-
-msgid "Math"
-msgstr "Matemática"
-
-
-msgid "Pivot Point"
-msgstr "Pontos de pivô"
-
-
 msgid "Snap"
 msgstr "Atrair"
 
 
 msgid "Proportional Editing Falloff"
 msgstr "Tipo de decaimento para edição proporcional"
+
+
+msgid "Instances"
+msgstr "Instâncias"
+
+
+msgid "Import"
+msgstr "Importar"
 
 
 msgid "Mirror"
@@ -21228,6 +21204,14 @@ msgid "Select More/Less"
 msgstr "Selecionar mais ou menos"
 
 
+msgid "Math"
+msgstr "Matemática"
+
+
+msgid "UV"
+msgstr "UV"
+
+
 msgid "Select Similar"
 msgstr "Selecionar por similaridades"
 
@@ -21264,10 +21248,6 @@ msgid "Relations"
 msgstr "Relações"
 
 
-msgid "Instances"
-msgstr "Instâncias"
-
-
 msgid "Rigid Body"
 msgstr "Corpo rígido"
 
@@ -21276,16 +21256,28 @@ msgid "Apply"
 msgstr "Aplicar"
 
 
-msgid "Import"
-msgstr "Importar"
-
-
 msgid "Track"
 msgstr "Rastrear"
 
 
 msgid "Quick Effects"
 msgstr "Efeitos instantâneos"
+
+
+msgid "Show/Hide"
+msgstr "Mostrar ou ocultar"
+
+
+msgid "Linked"
+msgstr "Vinculando"
+
+
+msgid "Clean Up"
+msgstr "Limpeza"
+
+
+msgid "Layout"
+msgstr "Organizar"
 
 
 msgid "Make Single User"
@@ -21300,12 +21292,16 @@ msgid "Hooks"
 msgstr "Ganchos"
 
 
-msgid "UV"
-msgstr "UV"
-
-
 msgid "Random Mask"
 msgstr "Máscara Aleatória"
+
+
+msgid "Keying"
+msgstr "Inserção de chaves"
+
+
+msgid "Tracking"
+msgstr "Rastreamento"
 
 
 msgid "Clear Transform"
@@ -21318,6 +21314,10 @@ msgstr "Entre as continuidades"
 
 msgid "Propagate"
 msgstr "Propagar"
+
+
+msgid "Names"
+msgstr "Nomes"
 
 
 msgid "Toggle Bone Options"
@@ -21344,16 +21344,16 @@ msgid "Merge"
 msgstr "Fundir"
 
 
-msgid "Linked"
-msgstr "Vinculando"
-
-
 msgid "Special Characters"
 msgstr "Caracteres especiais"
 
 
-msgid "Layout"
-msgstr "Organizar"
+msgid "Bone Roll"
+msgstr "Rolagem dos ossos"
+
+
+msgid "Pivot Point"
+msgstr "Pontos de pivô"
 
 
 msgid "Basic"
@@ -26780,10 +26780,6 @@ msgstr "ITU 601"
 
 msgid "ITU 709"
 msgstr "ITU 709"
-
-
-msgid "To"
-msgstr "Para"
 
 
 msgid "Corner Pin"
@@ -51508,10 +51504,6 @@ msgid "Pause Preview"
 msgstr "Pausar previsão"
 
 
-msgid "Pause all viewport preview renders"
-msgstr "Pausa todas as previsões de renderização na janela de exibição."
-
-
 msgid "Number of samples to render in the viewport, unlimited if 0"
 msgstr "Número de amostras para renderizar dentro da janela de exibição, ilimitado caso seja zero."
 
@@ -57845,24 +57837,12 @@ msgid "Overrides for some of the active brush's settings"
 msgstr "Sobrepõe algumas definições nas configurações de pincel ativas."
 
 
-msgid "Use Unified Color"
-msgstr "Utilizar uma cor unificada"
-
-
 msgid "Instead of per-brush color, the color is shared across brushes"
 msgstr "Ao invés de usar cores por pincel, a cor é compartilhada entre todos os pincéis."
 
 
-msgid "Use Unified Strength"
-msgstr "Usar forças unificadas"
-
-
 msgid "Instead of per-brush strength, the strength is shared across brushes"
 msgstr "Ao invés de força por pincel, a força é compartilhada entre os pincéis."
-
-
-msgid "Use Unified Weight"
-msgstr "Usar peso unificado"
 
 
 msgid "Instead of per-brush weight, the weight is shared across brushes"
@@ -58601,16 +58581,6 @@ msgstr "Imagem"
 msgctxt "WindowManager"
 msgid "UV Editor"
 msgstr "Editor de UVs"
-
-
-msgctxt "WindowManager"
-msgid "UV Sculpt"
-msgstr "Escultura de UVs"
-
-
-msgctxt "WindowManager"
-msgid "Image View"
-msgstr "Ver Imagem"
 
 
 msgctxt "WindowManager"
@@ -63156,6 +63126,10 @@ msgid "Drag"
 msgstr "Arrasto"
 
 
+msgid "Look"
+msgstr "Aparência"
+
+
 msgid "Pos"
 msgstr "Posição"
 
@@ -64601,14 +64575,6 @@ msgstr "Arquivos de multi-camadas empacotados não podem ser pintados."
 
 msgid "Image requires 4 color channels to paint"
 msgstr "Imagem requer 4 canais de cor para pintura."
-
-
-msgid "Image requires 4 color channels to paint: %s"
-msgstr "Imagem requer 4 canais de cor para pintura: %s"
-
-
-msgid "Packed MultiLayer files cannot be painted: %s"
-msgstr "Arquivos de multi-camadas empacotados não podem ser pintados: %s"
 
 
 msgid " UVs,"
@@ -66487,10 +66453,6 @@ msgstr "'para espaço' '%s' é inválido quando nenhum espaço personalizado é 
 
 msgid "Object '%s' does not support shapes"
 msgstr "Objeto '%s' não suporta formatos."
-
-
-msgid "Object '%s' could not create internal data for finding nearest point"
-msgstr "Objeto '%s' não pode criar dados internos para encontrar o ponto mais próximo."
 
 
 msgid "Palette '%s' does not contain color given"

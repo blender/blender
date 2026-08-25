@@ -20,11 +20,12 @@ using namespace std;
 
 namespace Freestyle {
 
-using BezierCurve = Vector2 *;
+using BezierCurvePoints2D = Vector2 *;
 
 /* Forward declarations */
-static double *Reparameterize(Vector2 *d, int first, int last, double *u, BezierCurve bezCurve);
-static double NewtonRaphsonRootFind(BezierCurve Q, Vector2 P, double u);
+static double *Reparameterize(
+    Vector2 *d, int first, int last, double *u, BezierCurvePoints2D bezCurve);
+static double NewtonRaphsonRootFind(BezierCurvePoints2D Q, Vector2 P, double u);
 static Vector2 BezierII(int degree, Vector2 *V, double t);
 static double B0(double u);
 static double B1(double u);
@@ -32,9 +33,9 @@ static double B2(double u);
 static double B3(double u);
 static Vector2 ComputeLeftTangent(Vector2 *d, int end);
 static double ComputeMaxError(
-    Vector2 *d, int first, int last, BezierCurve bezCurve, double *u, int *splitPoint);
+    Vector2 *d, int first, int last, BezierCurvePoints2D bezCurve, double *u, int *splitPoint);
 static double *ChordLengthParameterize(Vector2 *d, int first, int last);
-static BezierCurve GenerateBezier(
+static BezierCurvePoints2D GenerateBezier(
     Vector2 *d, int first, int last, double *uPrime, Vector2 tHat1, Vector2 tHat2);
 static Vector2 V2AddII(Vector2 a, Vector2 b);
 static Vector2 V2ScaleIII(Vector2 v, double s);
@@ -110,7 +111,7 @@ static Vector2 *V2Negate(Vector2 *v)
  *   double  *uPrime;      Parameter values for region
  *   Vector2 tHat1, tHat2; Unit tangents at endpoints
  */
-static BezierCurve GenerateBezier(
+static BezierCurvePoints2D GenerateBezier(
     Vector2 *d, int first, int last, double *uPrime, Vector2 tHat1, Vector2 tHat2)
 {
   int i;
@@ -123,8 +124,8 @@ static BezierCurve GenerateBezier(
   double det_X_C1;
   double alpha_l; /* Alpha values, left and right */
   double alpha_r;
-  Vector2 tmp;          /* Utility variable */
-  BezierCurve bezCurve; /* RETURN bezier curve control points. */
+  Vector2 tmp;                  /* Utility variable */
+  BezierCurvePoints2D bezCurve; /* RETURN bezier curve control points. */
 
   bezCurve = (Vector2 *)malloc(4 * sizeof(Vector2));
   nPts = last - first + 1;
@@ -203,7 +204,8 @@ static BezierCurve GenerateBezier(
  *    double      *u;           Current parameter values
  *    BezierCurve bezCurve;     Current fitted curve
  */
-static double *Reparameterize(Vector2 *d, int first, int last, double *u, BezierCurve bezCurve)
+static double *Reparameterize(
+    Vector2 *d, int first, int last, double *u, BezierCurvePoints2D bezCurve)
 {
   int nPts = last - first + 1;
   int i;
@@ -223,7 +225,7 @@ static double *Reparameterize(Vector2 *d, int first, int last, double *u, Bezier
  *    Vector2     P;  Digitized point
  *    double      u;  Parameter value for "P"
  */
-static double NewtonRaphsonRootFind(BezierCurve Q, Vector2 P, double u)
+static double NewtonRaphsonRootFind(BezierCurvePoints2D Q, Vector2 P, double u)
 {
   double numerator, denominator;
   Vector2 Q1[3], Q2[2];    /* Q' and Q'' */
@@ -404,7 +406,7 @@ static double *ChordLengthParameterize(Vector2 *d, int first, int last)
  *    int         *splitPoint;  Point of maximum error
  */
 static double ComputeMaxError(
-    Vector2 *d, int first, int last, BezierCurve bezCurve, double *u, int *splitPoint)
+    Vector2 *d, int first, int last, BezierCurvePoints2D bezCurve, double *u, int *splitPoint)
 {
   int i;
   double maxDist; /* Maximum error */
@@ -495,15 +497,15 @@ void FitCurveWrapper::FitCurve(Vector2 *d, int nPts, double error)
 void FitCurveWrapper::FitCubic(
     Vector2 *d, int first, int last, Vector2 tHat1, Vector2 tHat2, double error)
 {
-  BezierCurve bezCurve;  /* Control points of fitted Bezier curve */
-  double *u;             /* Parameter values for point */
-  double *uPrime;        /* Improved parameter values */
-  double maxError;       /* Maximum fitting error */
-  int splitPoint;        /* Point to split point set at */
-  int nPts;              /* Number of points in subset */
-  double iterationError; /* Error below which you try iterating */
-  int maxIterations = 4; /* Max times to try iterating */
-  Vector2 tHatCenter;    /* Unit tangent vector at splitPoint */
+  BezierCurvePoints2D bezCurve; /* Control points of fitted Bezier curve */
+  double *u;                    /* Parameter values for point */
+  double *uPrime;               /* Improved parameter values */
+  double maxError;              /* Maximum fitting error */
+  int splitPoint;               /* Point to split point set at */
+  int nPts;                     /* Number of points in subset */
+  double iterationError;        /* Error below which you try iterating */
+  int maxIterations = 4;        /* Max times to try iterating */
+  Vector2 tHatCenter;           /* Unit tangent vector at splitPoint */
   int i;
 
   iterationError = error * error;

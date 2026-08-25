@@ -33,9 +33,7 @@ TEST(shader_tool, Include)
   UNUSED_VARS(source, g_functions, g_formats);
 }
 )";
-    string error;
-    shader::metadata::Source metadata;
-    string output = process_test_string(input, error, &metadata);
+    auto [output, metadata, error] = process_test_string(input);
     EXPECT_EQ(expect, metadata.serialize("test"));
     EXPECT_EQ(error, "");
   }

@@ -754,6 +754,7 @@ static void rna_def_collection_exporters(BlenderRNA *brna, PropertyRNA *cprop)
   RNA_def_parameter_flags(parm, PROP_ENUM_NO_CONTEXT, PARM_REQUIRED);
   RNA_def_string(func, "name", nullptr, 0, "Name", "Name of the new export handler");
   parm = RNA_def_pointer(func, "exporter", "CollectionExport", "", "Newly created export handler");
+  RNA_def_parameter_flags(parm, PROP_NEVER_NULL, ParameterFlag(0));
   RNA_def_function_return(func, parm);
 
   func = RNA_def_function(srna, "remove", "rna_CollectionExport_remove");

@@ -1098,6 +1098,7 @@ void RNA_api_object(StructRNA *srna)
                   "Apply the deform modifiers on the control points of the curve. This is only "
                   "supported for curve objects.");
   parm = RNA_def_pointer(func, "curve", "Curve", "", "Curve created from object");
+  RNA_def_parameter_flags(parm, PROP_NEVER_NULL, ParameterFlag(0));
   RNA_def_function_return(func, parm);
 
   func = RNA_def_function(srna, "to_curve_clear", "rna_Object_to_curve_clear");
@@ -1108,7 +1109,7 @@ void RNA_api_object(StructRNA *srna)
   RNA_def_function_ui_description(
       func, "Find armature influencing this object as a parent or via a modifier");
   parm = RNA_def_pointer(
-      func, "ob_arm", "Object", "", "Armature object influencing this object or nullptr");
+      func, "ob_arm", "Object", "", "Armature object influencing this object or None");
   RNA_def_function_return(func, parm);
 
   /* Shape key */
@@ -1118,7 +1119,7 @@ void RNA_api_object(StructRNA *srna)
   RNA_def_string(func, "name", "Key", 0, "", "Unique name for the new key-block"); /* optional */
   RNA_def_boolean(func, "from_mix", true, "", "Create new shape from existing mix of shapes");
   parm = RNA_def_pointer(func, "key", "ShapeKey", "", "New shape key-block");
-  RNA_def_parameter_flags(parm, PropertyFlag(0), PARM_RNAPTR);
+  RNA_def_parameter_flags(parm, PROP_NEVER_NULL, PARM_RNAPTR);
   RNA_def_function_return(func, parm);
 
   func = RNA_def_function(srna, "shape_key_remove", "rna_Object_shape_key_remove");

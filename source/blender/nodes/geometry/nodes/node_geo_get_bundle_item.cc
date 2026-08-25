@@ -214,7 +214,7 @@ class GetBundleItemOperation : public NodeOperation {
     }
 
     if (bundle_output.should_compute()) {
-      if (this->get_input("Remove").get_single_value<bool>()) {
+      if (this->get_input("Remove").get_single_value_default<bool>()) {
         bundle.ensure_mutable_inplace().remove_path(split_path.value());
       }
       bundle_output.allocate_single_value();

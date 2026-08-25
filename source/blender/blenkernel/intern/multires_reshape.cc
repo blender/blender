@@ -21,6 +21,22 @@
 
 namespace blender {
 
+/**
+ * Store the original grids, which #multires_reshape_smooth_object_grids_with_details needs to
+ * propagate existing details to the higher levels.
+ *
+ * Storing them duplicates the entire #CD_MDISPS layer, so skip it when the smoothing is going to
+ * be skipped as well, which is the case when displacement is assigned at the top level.
+ */
+static void multiresModifier_reshape_store_original_grids_for_smoothing(
+    MultiresReshapeContext *reshape_context)
+{
+  if (reshape_context->top.level == reshape_context->reshape.level) {
+    return;
+  }
+  multires_reshape_store_original_grids(reshape_context);
+}
+
 /* -------------------------------------------------------------------- */
 /** \name Reshape from object
  * \{ */
@@ -34,7 +50,7 @@ static bool multiresModifier_reshapeFromVertcos(Depsgraph *depsgraph,
   if (!multires_reshape_context_create_from_object(&reshape_context, depsgraph, object, mmd)) {
     return false;
   }
-  multires_reshape_store_original_grids(&reshape_context);
+  multiresModifier_reshape_store_original_grids_for_smoothing(&reshape_context);
   multires_reshape_ensure_grids(id_cast<Mesh *>(object->data), reshape_context.top.level);
   if (!multires_reshape_assign_final_coords_from_vertcos(&reshape_context, positions)) {
     multires_reshape_context_free(&reshape_context);
@@ -121,7 +137,7 @@ bool multiresModifier_reshapeFromCCG(const int tot_level, Mesh *coarse_mesh, Sub
 
   multires_ensure_external_read(coarse_mesh, reshape_context.top.level);
 
-  multires_reshape_store_original_grids(&reshape_context);
+  multiresModifier_reshape_store_original_grids_for_smoothing(&reshape_context);
   multires_reshape_ensure_grids(coarse_mesh, reshape_context.top.level);
   if (!multires_reshape_assign_final_coords_from_ccg(&reshape_context, subdiv_ccg)) {
     multires_reshape_context_free(&reshape_context);

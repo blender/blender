@@ -38,6 +38,7 @@ set(SRC
   AS_asset_catalog.hh
   AS_asset_catalog_path.hh
   AS_asset_catalog_tree.hh
+  AS_asset_file_status.hh
   AS_asset_library.hh
   AS_asset_representation.hh
   AS_disk_file_hash_service.hh

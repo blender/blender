@@ -1646,7 +1646,7 @@ static void id_override_library_delete_hierarchy_process(bContext *C,
 }
 
 static void id_fake_user_set_fn(bContext * /*C*/,
-                                ReportList * /*reports*/,
+                                ReportList *reports,
                                 Scene * /*scene*/,
                                 TreeElement * /*te*/,
                                 TreeStoreElem * /*tsep*/,
@@ -1654,17 +1654,30 @@ static void id_fake_user_set_fn(bContext * /*C*/,
 {
   ID *id = tselem->id;
 
+  if (ID_IS_LINKED(id)) {
+    BKE_report(reports,
+               RPT_INFO,
+               "Cannot set fake user on a linked datablock, consider referencing it through a "
+               "Custom Property");
+    return;
+  }
+
   id_fake_user_set(id);
 }
 
 static void id_fake_user_clear_fn(bContext * /*C*/,
-                                  ReportList * /*reports*/,
+                                  ReportList *reports,
                                   Scene * /*scene*/,
                                   TreeElement * /*te*/,
                                   TreeStoreElem * /*tsep*/,
                                   TreeStoreElem *tselem)
 {
   ID *id = tselem->id;
+
+  if (ID_IS_LINKED(id)) {
+    BKE_report(reports, RPT_INFO, "Cannot clear fake user on a linked datablock");
+    return;
+  }
 
   id_fake_user_clear(id);
 }
@@ -3342,7 +3355,6 @@ static wmOperatorStatus outliner_id_operation_exec(bContext *C, wmOperator *op)
     case OUTLINER_IDOP_FAKE_CLEAR: {
       /* clear fake user */
       outliner_do_libdata_operation(C, op->reports, scene, space_outliner, id_fake_user_clear_fn);
-
       WM_event_add_notifier(C, NC_ID | NA_EDITED, nullptr);
       ED_undo_push(C, "Clear Fake User");
       break;

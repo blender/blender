@@ -104,6 +104,11 @@ std::optional<nodes::FoundNestedNodeID> find_nested_node_id_in_root(const SpaceN
 std::optional<nodes::FoundNestedNodeID> find_nested_node_id_in_root(
     const bNodeTree &root_tree, const ComputeContext *compute_context, const int node_id);
 
+/**
+ * Finds the context object for the node editor, taking pinning into account.
+ */
+Object *get_space_editor_object(const bContext *C);
+
 struct ObjectAndModifier {
   const Object *object = nullptr;
   const NodesModifierData *nmd = nullptr;

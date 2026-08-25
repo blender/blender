@@ -8,13 +8,13 @@
 
 #include "MEM_guardedalloc.h"
 
+#include "BLI_linear_allocator.hh"
 #include "BLI_math_color_c.hh"
 #include "BLI_math_geom_c.hh"
 #include "BLI_math_matrix.hh"
 #include "BLI_math_matrix_c.hh"
 #include "BLI_math_rotation_c.hh"
 #include "BLI_math_vector_c.hh"
-#include "BLI_memiter.hh"
 #include "BLI_rect.hh"
 #include "BLI_string.hh"
 
@@ -59,23 +59,21 @@ struct ViewCachedString {
   short sco[2];
   short xoffs, yoffs;
   short flag;
-  int str_len;
   bool shadow;
   bool align_center;
 
-  /* str is allocated past the end */
-  char str[0];
+  StringRef str;
 };
 
 struct DRWTextStore {
-  BLI_memiter *cache_strings;
+  Vector<ViewCachedString> cache_strings;
+  /** Backing storage for owned copies referenced by #ViewCachedString::str. */
+  LinearAllocator<> string_allocator;
 };
 
 DRWTextStore *DRW_text_cache_create()
 {
-  DRWTextStore *dt = MEM_new_zeroed<DRWTextStore>(__func__);
-  dt->cache_strings = BLI_memiter_create(1 << 14); /* 16kb */
-  return dt;
+  return MEM_new<DRWTextStore>(__func__);
 }
 
 void DRW_text_cache_destroy(DRWTextStore *dt)
@@ -83,7 +81,6 @@ void DRW_text_cache_destroy(DRWTextStore *dt)
   if (dt == nullptr) {
     return;
   }
-  BLI_memiter_destroy(dt->cache_strings);
   MEM_delete(dt);
 }
 
@@ -98,42 +95,29 @@ void DRW_text_cache_add(DRWTextStore *dt,
                         const bool shadow,
                         const bool align_center)
 {
-  int alloc_len;
-  ViewCachedString *vos;
+  ViewCachedString vos;
 
   if (flag & DRW_TEXT_CACHE_STRING_PTR) {
     BLI_assert(str_len == strlen(str));
-    alloc_len = sizeof(void *);
+    vos.str = StringRef(str);
   }
   else {
-    alloc_len = str_len + 1;
+    vos.str = dt->string_allocator.copy_string(StringRef(str, str_len));
   }
 
-  vos = static_cast<ViewCachedString *>(
-      BLI_memiter_alloc(dt->cache_strings, sizeof(ViewCachedString) + alloc_len));
+  copy_v3_v3(vos.vec, co);
+  copy_v4_v4_uchar(vos.col.ub, col);
+  vos.xoffs = xoffs;
+  vos.yoffs = yoffs;
+  vos.flag = flag;
+  vos.shadow = shadow;
+  vos.align_center = align_center;
 
-  copy_v3_v3(vos->vec, co);
-  copy_v4_v4_uchar(vos->col.ub, col);
-  vos->xoffs = xoffs;
-  vos->yoffs = yoffs;
-  vos->flag = flag;
-  vos->str_len = str_len;
-  vos->shadow = shadow;
-  vos->align_center = align_center;
-
-  /* allocate past the end */
-  if (flag & DRW_TEXT_CACHE_STRING_PTR) {
-    memcpy(vos->str, &str, alloc_len);
-  }
-  else {
-    memcpy(vos->str, str, alloc_len);
-  }
+  dt->cache_strings.append(vos);
 }
 
-static void drw_text_cache_draw_ex(const DRWTextStore *dt, const ARegion *region)
+static void drw_text_cache_draw_ex(DRWTextStore *dt, const ARegion *region)
 {
-  ViewCachedString *vos;
-  BLI_memiter_handle it;
   int col_pack_prev = 0;
 
   float original_proj[4][4];
@@ -150,32 +134,25 @@ static void drw_text_cache_draw_ex(const DRWTextStore *dt, const ARegion *region
   float outline_light_color[4] = {1, 1, 1, 0.8f};
   bool outline_is_dark = true;
 
-  BLI_memiter_iter_init(dt->cache_strings, &it);
-  while ((vos = static_cast<ViewCachedString *>(BLI_memiter_iter_step(&it)))) {
-    if (vos->sco[0] != IS_CLIPPED) {
-      if (col_pack_prev != vos->col.pack) {
-        BLF_color4ubv(font_id, vos->col.ub);
-        const uchar lightness = srgb_to_grayscale_byte(vos->col.ub);
+  for (ViewCachedString &vos : dt->cache_strings) {
+    if (vos.sco[0] != IS_CLIPPED) {
+      if (col_pack_prev != vos.col.pack) {
+        BLF_color4ubv(font_id, vos.col.ub);
+        const uchar lightness = srgb_to_grayscale_byte(vos.col.ub);
         outline_is_dark = lightness > 96;
-        col_pack_prev = vos->col.pack;
+        col_pack_prev = vos.col.pack;
       }
 
-      if (vos->align_center) {
+      if (vos.align_center) {
         /* Measure the size of the string, then offset to align to the vertex. */
         float width, height;
-        BLF_width_and_height(font_id,
-                             (vos->flag & DRW_TEXT_CACHE_STRING_PTR) ?
-                                 *(reinterpret_cast<const char **>(vos->str)) :
-                                 vos->str,
-                             vos->str_len,
-                             &width,
-                             &height);
-        vos->xoffs -= short(width / 2.0f);
-        vos->yoffs -= short(height / 2.0f);
+        BLF_width_and_height(font_id, vos.str.data(), size_t(vos.str.size()), &width, &height);
+        vos.xoffs -= short(width / 2.0f);
+        vos.yoffs -= short(height / 2.0f);
       }
 
       const int font_id = BLF_default();
-      if (vos->shadow) {
+      if (vos.shadow) {
         BLF_enable(font_id, BLF_SHADOW);
         BLF_shadow(font_id,
                    FontShadowType::Outline,
@@ -185,13 +162,11 @@ static void drw_text_cache_draw_ex(const DRWTextStore *dt, const ARegion *region
       else {
         BLF_disable(font_id, BLF_SHADOW);
       }
-      BLF_draw_default(float(vos->sco[0] + vos->xoffs),
-                       float(vos->sco[1] + vos->yoffs),
+      BLF_draw_default(float(vos.sco[0] + vos.xoffs),
+                       float(vos.sco[1] + vos.yoffs),
                        2.0f,
-                       (vos->flag & DRW_TEXT_CACHE_STRING_PTR) ?
-                           *(reinterpret_cast<const char **>(vos->str)) :
-                           vos->str,
-                       vos->str_len);
+                       vos.str.data(),
+                       size_t(vos.str.size()));
     }
   }
 
@@ -199,29 +174,26 @@ static void drw_text_cache_draw_ex(const DRWTextStore *dt, const ARegion *region
   GPU_matrix_projection_set(original_proj);
 }
 
-void DRW_text_cache_draw(const DRWTextStore *dt, const ARegion *region, const View3D *v3d)
+void DRW_text_cache_draw(DRWTextStore *dt, const ARegion *region, const View3D *v3d)
 {
-  ViewCachedString *vos;
   if (v3d) {
     RegionView3D *rv3d = static_cast<RegionView3D *>(region->regiondata);
     int tot = 0;
     /* project first and test */
-    BLI_memiter_handle it;
-    BLI_memiter_iter_init(dt->cache_strings, &it);
-    while ((vos = static_cast<ViewCachedString *>(BLI_memiter_iter_step(&it)))) {
+    for (ViewCachedString &vos : dt->cache_strings) {
       if (ED_view3d_project_short_ex(
               region,
-              (vos->flag & DRW_TEXT_CACHE_GLOBALSPACE) ? rv3d->persmat : rv3d->persmatob,
-              (vos->flag & DRW_TEXT_CACHE_LOCALCLIP) != 0,
-              vos->vec,
-              vos->sco,
+              (vos.flag & DRW_TEXT_CACHE_GLOBALSPACE) ? rv3d->persmat : rv3d->persmatob,
+              (vos.flag & DRW_TEXT_CACHE_LOCALCLIP) != 0,
+              vos.vec,
+              vos.sco,
               V3D_PROJ_TEST_CLIP_BB | V3D_PROJ_TEST_CLIP_WIN | V3D_PROJ_TEST_CLIP_NEAR) ==
           V3D_PROJ_RET_OK)
       {
         tot++;
       }
       else {
-        vos->sco[0] = IS_CLIPPED;
+        vos.sco[0] = IS_CLIPPED;
       }
     }
 
@@ -241,20 +213,18 @@ void DRW_text_cache_draw(const DRWTextStore *dt, const ARegion *region, const Vi
   }
   else {
     /* project first */
-    BLI_memiter_handle it;
-    BLI_memiter_iter_init(dt->cache_strings, &it);
     const View2D *v2d = &region->v2d;
     float viewmat[4][4];
     rctf region_space = {0.0f, float(region->winx), 0.0f, float(region->winy)};
     BLI_rctf_transform_calc_m4_pivot_min(&v2d->cur, &region_space, viewmat);
 
-    while ((vos = static_cast<ViewCachedString *>(BLI_memiter_iter_step(&it)))) {
+    for (ViewCachedString &vos : dt->cache_strings) {
       float p[3];
-      copy_v3_v3(p, vos->vec);
+      copy_v3_v3(p, vos.vec);
       mul_m4_v3(viewmat, p);
 
-      vos->sco[0] = p[0];
-      vos->sco[1] = p[1];
+      vos.sco[0] = p[0];
+      vos.sco[1] = p[1];
     }
 
     drw_text_cache_draw_ex(dt, region);

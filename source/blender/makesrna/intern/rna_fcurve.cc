@@ -1455,6 +1455,7 @@ static void rna_def_fmodifier_envelope_control_points(BlenderRNA *brna, Property
   RNA_def_parameter_flags(parm, PropertyFlag(0), PARM_REQUIRED);
   parm = RNA_def_pointer(
       func, "point", "FModifierEnvelopeControlPoint", "", "Newly created control-point");
+  RNA_def_parameter_flags(parm, PROP_NEVER_NULL, ParameterFlag(0));
   RNA_def_function_return(func, parm);
 
   func = RNA_def_function(srna, "remove", "rna_FModifierEnvelope_points_remove");
@@ -2187,6 +2188,7 @@ static void rna_def_channeldriver_variables(BlenderRNA *brna, PropertyRNA *cprop
   RNA_def_function_ui_description(func, "Add a new variable for the driver");
   /* return type */
   parm = RNA_def_pointer(func, "var", "DriverVariable", "", "Newly created Driver Variable");
+  RNA_def_parameter_flags(parm, PROP_NEVER_NULL, ParameterFlag(0));
   RNA_def_function_return(func, parm);
 
   /* remove variable */

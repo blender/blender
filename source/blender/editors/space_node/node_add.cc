@@ -1239,28 +1239,29 @@ static wmOperatorStatus node_add_import_node_exec(bContext *C, wmOperator *op)
   Main *bmain = CTX_data_main(C);
   SpaceNode *snode = CTX_wm_space_node(C);
   bNodeTree *ntree = snode->edittree;
+  const bool is_geometry_tree = ntree->type == NTREE_GEOMETRY;
 
   const Vector<std::string> paths = ed::io::paths_from_operator_properties(op->ptr);
 
   Vector<bNode *> new_nodes;
   for (const StringRefNull path : paths) {
     bNode *node = nullptr;
-    if (path.endswith(".csv")) {
+    if (is_geometry_tree && path.endswith(".csv")) {
       node = add_node(*C, "GeometryNodeImportCSV"_ustr, snode->runtime->cursor);
     }
-    else if (path.endswith(".obj")) {
+    else if (is_geometry_tree && path.endswith(".obj")) {
       node = add_node(*C, "GeometryNodeImportOBJ"_ustr, snode->runtime->cursor);
     }
-    else if (path.endswith(".ply")) {
+    else if (is_geometry_tree && path.endswith(".ply")) {
       node = add_node(*C, "GeometryNodeImportPLY"_ustr, snode->runtime->cursor);
     }
-    else if (path.endswith(".stl")) {
+    else if (is_geometry_tree && path.endswith(".stl")) {
       node = add_node(*C, "GeometryNodeImportSTL"_ustr, snode->runtime->cursor);
     }
     else if (path.endswith(".txt")) {
       node = add_node(*C, "GeometryNodeImportText"_ustr, snode->runtime->cursor);
     }
-    else if (path.endswith(".vdb")) {
+    else if (is_geometry_tree && path.endswith(".vdb")) {
       node = add_node(*C, "GeometryNodeImportVDB"_ustr, snode->runtime->cursor);
     }
 
@@ -1319,7 +1320,8 @@ static wmOperatorStatus node_add_import_node_invoke(bContext *C,
 static bool node_add_import_node_poll(bContext *C)
 {
   const SpaceNode *snode = CTX_wm_space_node(C);
-  return ED_operator_node_editable(C) && snode->nodetree->type == NTREE_GEOMETRY;
+  return ED_operator_node_editable(C) &&
+         ELEM(snode->nodetree->type, NTREE_GEOMETRY, NTREE_COMPOSIT);
 }
 
 void NODE_OT_add_import_node(wmOperatorType *ot)

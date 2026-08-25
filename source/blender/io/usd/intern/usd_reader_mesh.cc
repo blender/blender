@@ -8,7 +8,6 @@
 #include "usd_reader_mesh.hh"
 #include "usd.hh"
 #include "usd_attribute_utils.hh"
-#include "usd_hash_types.hh"
 #include "usd_mesh_utils.hh"
 #include "usd_reader_material.hh"
 #include "usd_skel_convert.hh"

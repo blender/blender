@@ -9,7 +9,7 @@ VERTEX_SHADER_CREATE_INFO(gpu_shader_2D_rounded_corner_mask)
 void main()
 {
   /* One quad per corner, counter-clockwise from the top right. */
-  int corner_id = gl_InstanceID;
+  int corner_id = gpu_InstanceIndex;
   float radius = radii[corner_id];
 
   float2 corner_sign = float2((corner_id == 0 || corner_id == 3) ? 1.0f : -1.0f,

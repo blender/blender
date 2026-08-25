@@ -6,7 +6,6 @@
 
 #include "usd.hh"
 #include "usd_api_modifier.hh"
-#include "usd_hash_types.hh"
 #include "usd_reader_geom.hh"
 
 namespace blender {

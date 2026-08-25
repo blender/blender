@@ -35,6 +35,8 @@ namespace io::alembic {
 class AbcObjectReader;
 struct AbcReaderConstructorArgs;
 
+static inline const std::string ABC_CURVE_RESOLUTION_U_PROPNAME = "blender:resolution";
+
 std::string get_valid_abc_name(const char *name);
 
 /* Convert from float to Alembic matrix representations. Does NOT convert from Z-up to Y-up. */

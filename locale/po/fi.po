@@ -1,9 +1,9 @@
 
 msgid ""
 msgstr ""
-"Project-Id-Version: Blender 5.3.0 Alpha (b'af4852ed4560')\n"
+"Project-Id-Version: Blender 5.3.0 Alpha (b'09417042a1fa')\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-08-10 07:54+0000\n"
+"POT-Creation-Date: 2026-08-24 07:38+0000\n"
 "PO-Revision-Date: 2026-04-06 09:16+0000\n"
 "Last-Translator: Leevi Oksanen <laavi.oksanen@gmail.com>\n"
 "Language-Team: Finnish <https://translate.blender.org/projects/blender-ui/ui/fi/>\n"
@@ -3573,10 +3573,6 @@ msgid "Is Data"
 msgstr "On data"
 
 
-msgid "Non-Color"
-msgstr "Väritön"
-
-
 msgid "Color space that the sequencer operates in"
 msgstr "Väriavaruus, jossa sekvensseri toimii"
 
@@ -3595,10 +3591,6 @@ msgstr "Gamma"
 
 msgid "Use Curves"
 msgstr "Käytä käyriä"
-
-
-msgid "View"
-msgstr "Näkymä"
 
 
 msgid "Brightness"
@@ -4340,6 +4332,10 @@ msgstr "Pinta"
 
 msgid "Plane"
 msgstr "Taso"
+
+
+msgid "View"
+msgstr "Näkymä"
 
 
 msgid "Detect Corners"
@@ -7124,28 +7120,40 @@ msgid "ID Type"
 msgstr "ID-tyyppi"
 
 
-msgid "Names"
-msgstr "Nimet"
+msgid "Read"
+msgstr "Lue"
 
 
-msgid "Show/Hide"
-msgstr "Näytä/Piilota"
+msgid "Write"
+msgstr "Kirjoita"
 
 
-msgid "Utilities"
-msgstr "Työkalut"
+msgid "Instances"
+msgstr "Instanssit"
 
 
-msgid "Math"
-msgstr "Matematiikka"
+msgid "Import"
+msgstr "Tuo"
 
 
 msgid "UV Mapping"
 msgstr "UV-kartoittaminen"
 
 
+msgid "Utilities"
+msgstr "Työkalut"
+
+
 msgid "Select More/Less"
 msgstr "Valitse enemmän/vähemmän"
+
+
+msgid "Math"
+msgstr "Matematiikka"
+
+
+msgid "UV"
+msgstr "UV"
 
 
 msgid "Select Similar"
@@ -7158,14 +7166,6 @@ msgstr "Valitse kaikki piirteen mukaan"
 
 msgid "Select Loops"
 msgstr "Valitse silmukat"
-
-
-msgid "Read"
-msgstr "Lue"
-
-
-msgid "Write"
-msgstr "Kirjoita"
 
 
 msgid "Metaball"
@@ -7184,36 +7184,32 @@ msgid "Add Image"
 msgstr "Lisää kuva"
 
 
-msgid "Instances"
-msgstr "Instanssit"
-
-
-msgid "Import"
-msgstr "Tuo"
-
-
 msgid "Track"
 msgstr "Raide"
+
+
+msgid "Show/Hide"
+msgstr "Näytä/Piilota"
+
+
+msgid "Linked"
+msgstr "Linkitetyt"
 
 
 msgid "Hooks"
 msgstr "Koukut"
 
 
-msgid "UV"
-msgstr "UV"
-
-
 msgid "Random Mask"
 msgstr "Satunnainen maski"
 
 
+msgid "Names"
+msgstr "Nimet"
+
+
 msgid "Mesh Select Mode"
 msgstr "Muodon valintatila"
-
-
-msgid "Linked"
-msgstr "Linkitetyt"
 
 
 msgid "Basic"
@@ -12398,6 +12394,11 @@ msgid "Before"
 msgstr "Ennen"
 
 
+msgctxt "Operator"
+msgid "Search..."
+msgstr "Etsi..."
+
+
 msgctxt "Constraint"
 msgid "Mix"
 msgstr "Sekoita"
@@ -12474,11 +12475,6 @@ msgstr "Ei lisättäviä tasoja"
 msgctxt "Operator"
 msgid "Flip"
 msgstr "Käännä"
-
-
-msgctxt "Operator"
-msgid "Search..."
-msgstr "Etsi..."
 
 
 msgid "Detail"
@@ -17183,10 +17179,6 @@ msgid "network"
 msgstr "verkko"
 
 
-msgid "Utility"
-msgstr "Työkalu"
-
-
 msgid "Add & Subtract"
 msgstr "Lisää & Vähennä"
 
@@ -17205,6 +17197,10 @@ msgstr "Muodon kärkimaalaaminen"
 
 msgid "Mesh Weight Paint"
 msgstr "Muodon painomaalaaminen"
+
+
+msgid "Utility"
+msgstr "Työkalu"
 
 
 msgid "Surface Normal"

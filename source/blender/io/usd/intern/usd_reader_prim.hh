@@ -8,7 +8,6 @@
 #pragma once
 
 #include "usd.hh"
-#include "usd_hash_types.hh"
 
 #include "BLI_map.hh"
 #include "BLI_math_matrix_types.hh"

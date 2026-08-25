@@ -5,7 +5,6 @@
 #include "usd_instancing_utils.hh"
 
 #include "usd.hh"
-#include "usd_hash_types.hh"
 #include "usd_utils.hh"
 
 #include "BLI_map.hh"

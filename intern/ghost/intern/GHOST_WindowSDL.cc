@@ -8,7 +8,12 @@
 
 #include "GHOST_WindowSDL.hh"
 
-#include "GHOST_ContextSDL.hh"
+#ifdef WITH_OPENGL_BACKEND
+#  include "GHOST_ContextSDL.hh"
+#endif
+#ifdef WITH_VULKAN_BACKEND
+#  include "GHOST_ContextVK.hh"
+#endif
 
 #include <cassert>
 
@@ -21,17 +26,34 @@ GHOST_WindowSDL::GHOST_WindowSDL(GHOST_SystemSDL *system,
                                  GHOST_TWindowState state,
                                  GHOST_TDrawingContextType type,
                                  const GHOST_ContextParams &context_params,
+                                 const GHOST_GPUDevice &preferred_device,
                                  const bool exclusive,
                                  const GHOST_IWindow * /*parent_window*/)
     : GHOST_Window(width, height, state, context_params, exclusive),
       system_(system),
       valid_setup_(false),
       invalid_window_(false),
-      sdl_custom_cursor_(nullptr)
+      sdl_custom_cursor_(nullptr),
+      preferred_device_(preferred_device)
 {
+  SDL_WindowFlags window_flags = SDL_WINDOW_RESIZABLE;
+  switch (type) {
+#ifdef WITH_OPENGL_BACKEND
+    case GHOST_kDrawingContextTypeOpenGL:
+      window_flags |= SDL_WINDOW_OPENGL;
+      break;
+#endif
+#ifdef WITH_VULKAN_BACKEND
+    case GHOST_kDrawingContextTypeVulkan:
+      window_flags |= SDL_WINDOW_VULKAN;
+      break;
+#endif
+    default:
+      break;
+  }
 
   /* creating the window _must_ come after setting attributes */
-  sdl_win_ = SDL_CreateWindow(title, width, height, SDL_WINDOW_RESIZABLE | SDL_WINDOW_OPENGL);
+  sdl_win_ = SDL_CreateWindow(title, width, height, window_flags);
   if (sdl_win_) {
     SDL_SetWindowPosition(sdl_win_, left, top);
   }
@@ -81,6 +103,18 @@ GHOST_Context *GHOST_WindowSDL::newDrawingContext(GHOST_TDrawingContextType type
         }
         delete context;
       }
+      return nullptr;
+    }
+#endif
+
+#ifdef WITH_VULKAN_BACKEND
+    case GHOST_kDrawingContextTypeVulkan: {
+      GHOST_Context *context = new GHOST_ContextVK(
+          want_context_params_, sdl_win_, 1, 2, preferred_device_, &hdr_info_);
+      if (context->initializeDrawingContext()) {
+        return context;
+      }
+      delete context;
       return nullptr;
     }
 #endif

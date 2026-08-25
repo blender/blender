@@ -55,8 +55,9 @@ LibOCIOColorSpace::LibOCIOColorSpace(const int index,
       else if (alias == "rec1886_rec709_display") {
         interop_id_ = "g24_rec709_display";
       }
-      else if (alias == "g24_rec2020_display") {
-        interop_id_ = "blender:g24_rec2020_display";
+      /* Legacy interop ID from before this was a standard. */
+      else if (alias == "blender:g24_rec2020_display") {
+        interop_id_ = "g24_rec2020_display";
       }
       else if (alias == "rec2100_pq_display") {
         interop_id_ = "pq_rec2020_display";
@@ -100,10 +101,11 @@ LibOCIOColorSpace::LibOCIOColorSpace(const int index,
   }
 
   /* Special case that we can not handle as an alias, because it's a role too. */
-  if (interop_id_.is_empty()) {
+  if (interop_id_.is_empty() || interop_id_ == "data") {
     const char *data_name = ocio_config->getRoleColorSpace(OCIO_NAMESPACE::ROLE_DATA);
     if (data_name && STREQ(ocio_color_space->getName(), data_name)) {
       interop_id_ = "data";
+      is_primary_interop_id_ = true;
     }
   }
 

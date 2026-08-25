@@ -582,9 +582,8 @@ VkPipeline VKPipelineMap<VKGraphicsInfo::FragmentOut>::create(
     StringRefNull name)
 {
   VKDevice &device = VKBackend::get().device;
-  const VKExtensions &extensions = device.extensions_get();
   VKGraphicsPipelineCreateInfoBuilder builder;
-  builder.build_fragment_output_lib(fragment_output_info, extensions, vk_pipeline_base);
+  builder.build_fragment_output_lib(fragment_output_info, vk_pipeline_base);
 
   /* Build pipeline. */
   VkPipeline pipeline = VK_NULL_HANDLE;

@@ -14,7 +14,8 @@
 #include "testing/testing.h"
 
 namespace blender::ed::sculpt_paint::tests {
-class MeshTests : public bke::BlenderGTestBase {
+
+class SculptBoundaryTests : public bke::BlenderGTestBase {
  public:
   Mesh *mesh = nullptr;
 
@@ -26,7 +27,7 @@ class MeshTests : public bke::BlenderGTestBase {
   }
 };
 
-TEST_F(MeshTests, create_boundary_info__cube)
+TEST_F(SculptBoundaryTests, create_boundary_info__cube)
 {
   mesh = geometry::create_cuboid_mesh(float3(1.0, 1.0, 1.0), 2, 2, 2);
 
@@ -43,7 +44,7 @@ TEST_F(MeshTests, create_boundary_info__cube)
   ASSERT_EQ(boundary_info_cache.edges.size(), 0);
 }
 
-TEST_F(MeshTests, create_boundary_info__grid)
+TEST_F(SculptBoundaryTests, create_boundary_info__grid)
 {
   mesh = geometry::create_grid_mesh(3, 3, 1.0, 1.0, {});
 
@@ -62,7 +63,7 @@ TEST_F(MeshTests, create_boundary_info__grid)
   ASSERT_NE(boundary_info_cache.edges.size(), mesh->edges().size());
 }
 
-TEST_F(MeshTests, create_boundary_info__1D_strip)
+TEST_F(SculptBoundaryTests, create_boundary_info__1D_strip)
 {
   mesh = geometry::create_grid_mesh(3, 2, 1.0, 1.0, {});
 

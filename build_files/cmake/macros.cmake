@@ -96,7 +96,10 @@ function(file_suffix
   get_filename_component(_file_name_PATH ${file_name} PATH)
   get_filename_component(_file_name_NAME_WE ${file_name} NAME_WE)
   get_filename_component(_file_name_EXT ${file_name} EXT)
-  set(${file_name_new} "${_file_name_PATH}/${_file_name_NAME_WE}${file_suffix}${_file_name_EXT}" PARENT_SCOPE)
+  set(${file_name_new}
+    "${_file_name_PATH}/${_file_name_NAME_WE}${file_suffix}${_file_name_EXT}"
+    PARENT_SCOPE
+  )
 endfunction()
 
 # useful for adding debug suffix to library lists:
@@ -1166,7 +1169,9 @@ function(glsl_to_c
   add_custom_command(
     OUTPUT  ${_file_tmp} ${_file_meta} ${_file_info} ${_file_dep}
     DEPFILE ${_file_dep}
-    COMMAND "$<TARGET_FILE:shader_tool>" ${_file_from} ${_file_tmp} ${_file_meta} ${_file_info} ${_file_dep} ${_inc_list}
+    COMMAND
+      "$<TARGET_FILE:shader_tool>"
+      ${_file_from} ${_file_tmp} ${_file_meta} ${_file_info} ${_file_dep} ${_inc_list}
     DEPENDS ${_file_from} shader_tool)
 
   add_custom_command(

@@ -674,7 +674,7 @@ float4 transform_to_quat(const Transform &tfm);
 void transform_motion_decompose(DecomposedTransform *decomp,
                                 const Transform *motion,
                                 const size_t size);
-Transform transform_from_viewplane(BoundBox2D &viewplane);
+Transform transform_from_viewplane(const BoundBox2D &viewplane);
 
 #endif
 

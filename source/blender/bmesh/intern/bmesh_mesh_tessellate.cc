@@ -20,6 +20,7 @@
 #include "BLI_task_c.hh"
 
 #include "bmesh.hh"
+#include "bmesh_iterators_parallel.hh"
 
 namespace blender {
 

@@ -30,6 +30,9 @@ namespace seq {
 struct SeqRenderState {
   Set<Scene *> scenes_in_progress;
   Set<Strip *> strips_in_progress;
+
+  /* Is the top-level render request for the scene's currently evaluated frame. */
+  bool is_current_frame = false;
 };
 
 /* Strip corner coordinates in screen pixel space. Note that they might not be

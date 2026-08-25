@@ -1641,7 +1641,11 @@ static bke::bNodeSocketType *make_socket_type_string(PropertySubType subtype)
                           0,
                           socket.name,
                           socket.description);
-    RNA_def_property_subtype(prop, PropertySubType(data->subtype));
+    PropertySubType subtype = PropertySubType(data->subtype);
+    RNA_def_property_subtype(prop, subtype);
+    if (subtype == PROP_FILEPATH) {
+      RNA_def_property_flag(prop, PROP_PATH_SUPPORTS_BLEND_RELATIVE);
+    }
     set_common_sequencer_update_function(prop);
     make_common_type_prop(srna,
                           socket,

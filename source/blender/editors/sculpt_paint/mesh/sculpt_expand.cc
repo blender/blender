@@ -2811,7 +2811,6 @@ static void cache_initial_config_set(bContext *C, wmOperator *op, Cache &expand_
   expand_cache.normal_falloff_blur_steps = RNA_int_get(op->ptr, "normal_falloff_smooth");
   expand_cache.invert = RNA_boolean_get(op->ptr, "invert");
   expand_cache.preserve = RNA_boolean_get(op->ptr, "use_mask_preserve");
-  expand_cache.auto_mask = RNA_boolean_get(op->ptr, "use_auto_mask");
   expand_cache.falloff_gradient = RNA_boolean_get(op->ptr, "use_falloff_gradient");
   expand_cache.target = TargetType(RNA_enum_get(op->ptr, "target"));
   expand_cache.modify_active_face_set = RNA_boolean_get(op->ptr, "use_modify_active");

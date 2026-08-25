@@ -2100,6 +2100,17 @@ static void recalcData_mesh(TransInfo *t)
   FOREACH_TRANS_DATA_CONTAINER (t, tc) {
     DEG_id_tag_update(tc->obedit->data, ID_RECALC_GEOMETRY);
 
+    /* Transformation is not affine when the mirror modifier's clipping boundary is hit so
+     * normal calculation does not have to be skipped. */
+    if (tc->has_mirror_clipping) {
+      if (partial_state.for_looptris == PARTIAL_TYPE_GROUP) {
+        partial_state.for_looptris = PARTIAL_TYPE_ALL;
+      }
+      if (partial_state.for_normals == PARTIAL_TYPE_GROUP) {
+        partial_state.for_normals = PARTIAL_TYPE_ALL;
+      }
+    }
+
     mesh_partial_update(t, tc, &partial_state);
   }
 }

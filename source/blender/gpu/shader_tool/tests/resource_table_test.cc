@@ -29,8 +29,7 @@ void my_func() {
 #line 4
 }
 )";
-    string error;
-    string output = process_test_string(input, error);
+    auto [output, _, error] = process_test_string(input);
     EXPECT_EQ(output, expect);
     EXPECT_EQ(error, "");
   }
@@ -55,11 +54,10 @@ uint my_func() {
 #line 3
   return uint(0);
 #endif
-#line 6
+
 }
 )";
-    string error;
-    string output = process_test_string(input, error);
+    auto [output, _, error] = process_test_string(input);
     EXPECT_EQ(output, expect);
     EXPECT_EQ(error, "");
   }
@@ -88,8 +86,7 @@ uint my_func() {
   return i;
 }
 )";
-    string error;
-    string output = process_test_string(input, error);
+    auto [output, _, error] = process_test_string(input);
     EXPECT_EQ(output, expect);
     EXPECT_EQ(error, "");
   }
@@ -125,8 +122,7 @@ uint my_func() {
   return i;
 }
 )";
-    string error;
-    string output = process_test_string(input, error);
+    auto [output, _, error] = process_test_string(input);
     EXPECT_EQ(output, expect);
     EXPECT_EQ(error, "");
   }
@@ -151,8 +147,7 @@ template<> uint my_func<uint>(uint i) {
 #line 4
 }
 )";
-    string error;
-    string output = process_test_string(input, error);
+    auto [output, _, error] = process_test_string(input);
     EXPECT_EQ(output, expect);
     EXPECT_EQ(error, "");
   }
@@ -177,8 +172,7 @@ float fn(SRT  srt) {
 #endif
 #line 5
 )";
-    string error;
-    string output = process_test_string(input, error);
+    auto [output, _, error] = process_test_string(input);
     EXPECT_EQ(output, expect);
     EXPECT_EQ(error, "");
   }
@@ -188,8 +182,7 @@ float fn([[resource_table]] SRT srt) {
   return srt.member;
 }
 )";
-    string error;
-    string output = process_test_string(input, error);
+    auto [output, _, error] = process_test_string(input);
     EXPECT_EQ(error, "Shader Resource Table arguments must be references.");
   }
   {
@@ -211,8 +204,7 @@ float fn(SRT  srt) {
 #endif
 #line 6
 )";
-    string error;
-    string output = process_test_string(input, error);
+    auto [output, _, error] = process_test_string(input);
     EXPECT_EQ(output, expect);
     EXPECT_EQ(error, "");
   }
@@ -231,7 +223,7 @@ struct SRT {
 };
 )";
     string expect = R"(
-#define access_SRT_a() T_new_()
+#define access_SRT_a() T_ctor_()
 #ifdef CREATE_INFO_RES_PASS_SRT
 CREATE_INFO_RES_PASS_SRT
 #endif
@@ -257,7 +249,8 @@ SRT SRT_new_();
 #endif
 #line 2
                    SRT SRT_ctor_() {SRT r;r.a=T_ctor_();return r;}
-#line 5
+
+
 
 #if defined(CREATE_INFO_SRT)
 #line 5
@@ -272,10 +265,9 @@ SRT SRT_new_();
   return result;
 #line 7
 }
-#line 9
+
 )";
-    string error;
-    string output = process_test_string(input, error);
+    auto [output, _, error] = process_test_string(input);
     EXPECT_EQ(output, expect);
     EXPECT_EQ(error, "");
   }
@@ -290,7 +282,7 @@ struct SRT {
 };
 )";
     string expect = R"(
-#define access_SRT_a() T_new_()
+#define access_SRT_a() T_ctor_()
 #ifdef CREATE_INFO_RES_PASS_SRT
 CREATE_INFO_RES_PASS_SRT
 #endif
@@ -315,7 +307,8 @@ SRT SRT_new_();
 #endif
 #line 2
                    SRT SRT_ctor_() {SRT r;r.a=T_ctor_();return r;}
-#line 5
+
+
        SRT SRT_new_()
 {
   SRT result;
@@ -323,10 +316,9 @@ SRT SRT_new_();
   return result;
 #line 3
 }
-#line 5
+
 )";
-    string error;
-    string output = process_test_string(input, error);
+    auto [output, _, error] = process_test_string(input);
     EXPECT_EQ(output, expect);
     EXPECT_EQ(error, "");
   }
@@ -336,8 +328,7 @@ struct SRT {
   [[resource_table]] T a;
 };
 )";
-    string error;
-    string output = process_test_string(input, error);
+    auto [output, _, error] = process_test_string(input);
     EXPECT_EQ(error,
               "Members declared with the [[resource_table]] attribute must wrap their type "
               "with the srt_t<T> template.");
@@ -348,8 +339,7 @@ struct SRT {
   srt_t<T> a;
 };
 )";
-    string error;
-    string output = process_test_string(input, error);
+    auto [output, _, error] = process_test_string(input);
     EXPECT_EQ(error,
               "The srt_t<T> template is only to be used with members declared with the "
               "[[resource_table]] attribute.");
@@ -360,8 +350,7 @@ struct SRT {
   [[resource_table]] srt_t<T> a[4];
 };
 )";
-    string error;
-    string output = process_test_string(input, error);
+    auto [output, _, error] = process_test_string(input);
     EXPECT_EQ(error, "[[resource_table]] members cannot be arrays.");
   }
 }
@@ -443,7 +432,8 @@ template struct VertIn<float>;
 }
 )";
     string expect = R"(
-#line 4
+
+
 struct ns_VertOut {
              float3 local_pos;
 };
@@ -595,9 +585,7 @@ BUILTINS(BuiltinBits::NUM_WORK_GROUP)
 GPU_SHADER_CREATE_END()
 
 )";
-    string error;
-    shader::metadata::Source metadata;
-    string output = process_test_string(input, error, &metadata);
+    auto [output, metadata, error] = process_test_string(input);
     string infos = metadata.serialize_infos();
 
     EXPECT_EQ(output, expect);
@@ -659,119 +647,12 @@ DO_STATIC_COMPILATION()
 GPU_SHADER_CREATE_END()
 
 )";
-    string error;
-    shader::metadata::Source metadata;
-    string output = process_test_string(input, error, &metadata);
+    auto [output, metadata, error] = process_test_string(input);
     string infos = metadata.serialize_infos();
 
     EXPECT_EQ(output, expect);
     EXPECT_EQ(infos, expect_infos);
     EXPECT_EQ(error, "");
-  }
-}
-
-TEST(shader_tool, InitializerList)
-{
-  using namespace std;
-  using namespace shader::parser;
-
-  {
-    string input = R"(
-T fn1() { return T{1, 2}; }
-T fn2() { return T{1, 2, }; }
-T fn3() { return T{.a=1, .b=2}; }
-T fn4() { return T{.a=1, .b=2, }; }
-T fn5() { return {1, 2}; }
-T fn6() { return {1, 2, }; }
-T fn7() { return {.a=1, .b=2}; }
-T fn8() { return {.a=1, .b=2, }; }
-void fn() {
-  T t1=T{1, 2};
-  T t2=T{1, 2, };
-  T t3=T{.a=1, .b=2};
-  T t4=T{.a=1, .b=2, };
-  T t5={1, 2};
-  T t6={1, 2, };
-  T t7={.a=1, .b=2};
-  T t8={.a=1, .b=2, };
-  T t9=T{.a=1, .b=T{0, 2}.x};
-  T t10=T{1, T{0, 2}.x};
-}
-)";
-    string expect = R"(
-T fn1() { return _ctor(T) 1, 2 _rotc() ; }
-T fn2() { return _ctor(T) 1, 2   _rotc() ; }
-T fn3() { {T _tmp ;    _tmp.a=1;  _tmp.b=2;   return _tmp;}; }
-T fn4() { {T _tmp ;    _tmp.a=1;  _tmp.b=2  ;   return _tmp;}; }
-T fn5() { return _ctor(T) 1, 2 _rotc() ; }
-T fn6() { return _ctor(T) 1, 2   _rotc() ; }
-T fn7() { {T _tmp ;    _tmp.a=1;  _tmp.b=2;   return _tmp;}; }
-T fn8() { {T _tmp ;    _tmp.a=1;  _tmp.b=2  ;   return _tmp;}; }
-void fn() {
-  T t1=_ctor(T) 1, 2 _rotc() ;
-  T t2=_ctor(T) 1, 2   _rotc() ;
-  T t3;   t3.a=1;  t3.b=2;
-  T t4;   t4.a=1;  t4.b=2  ;
-  T t5=_ctor(T) 1, 2 _rotc() ;
-  T t6=_ctor(T) 1, 2   _rotc() ;
-  T t7;   t7.a=1;  t7.b=2;
-  T t8;   t8.a=1;  t8.b=2  ;
-  T t9;   t9.a=1;  t9.b=_ctor(T) 0, 2 _rotc() .x;
-  T t10=_ctor(T) 1, _ctor(T) 0, 2 _rotc() .x _rotc() ;
-}
-)";
-    string error;
-    string output = process_test_string(input, error);
-    EXPECT_EQ(output, expect);
-    EXPECT_EQ(error, "");
-  }
-  {
-    string input = R"(
-void fn() {
-  T t9={1, T{.a=1, .b=2}.a};
-}
-)";
-    string error;
-    shader::metadata::Source metadata;
-    string output = process_test_string(input, error);
-    EXPECT_EQ(error, "Designated initializers are only supported in assignments");
-  }
-  {
-    string input = R"(
-void fn() {
-  T t10={1, float4{0}};
-}
-)";
-    string error;
-    shader::metadata::Source metadata;
-    string output = process_test_string(input, error);
-    EXPECT_EQ(
-        error,
-        "Aggregate is error prone for built-in vector and matrix types, use constructors instead");
-  }
-  {
-    string input = R"(
-void fn() {
-  T t11={.a=1, .b=T{.a=1, .b=2}.a};
-}
-)";
-    string error;
-    shader::metadata::Source metadata;
-    string output = process_test_string(input, error);
-    EXPECT_EQ(error, "Nested initializer lists are not supported");
-  }
-  {
-    string input = R"(
-void fn() {
-  T t12={.a=1, .b=float4{0}};
-}
-)";
-    string error;
-    shader::metadata::Source metadata;
-    string output = process_test_string(input, error);
-    EXPECT_EQ(
-        error,
-        "Aggregate is error prone for built-in vector and matrix types, use constructors instead");
   }
 }
 

@@ -752,7 +752,7 @@ Panel *panel_begin(
     if (order >= 0) {
       panel->sortorder = order;
       SET_FLAG_FROM_TEST(
-          panel->flag, !recents::Section("panel.open").get<int>(panel_name_str), PNL_CLOSED);
+          panel->flag, !recents::Section("panel.open").get<bool>(panel_name_str), PNL_CLOSED);
     }
   }
 

@@ -41,7 +41,7 @@ struct KeyframeCopyBuffer {
    * for). This is to make it possible to copy from different Actions (like is
    * possible on the dope sheet) and still distinguish between their slots.
    */
-  animrig::StripKeyframeData keyframe_data;
+  blender::animrig::StripKeyframeData keyframe_data;
 
   /**
    * Slot identifier used for slotless keyframes.
@@ -57,8 +57,8 @@ struct KeyframeCopyBuffer {
    * Having this distinctly different from DNA_DEFAULT_ACTION_LAST_SLOT_HANDLE
    * makes it easier to spot bugs.
    */
-  static constexpr animrig::slot_handle_t DEFAULT_LAST_USED_SLOT_HANDLE = 0x1acca;
-  animrig::slot_handle_t last_used_slot_handle = DEFAULT_LAST_USED_SLOT_HANDLE;
+  static constexpr blender::animrig::slot_handle_t DEFAULT_LAST_USED_SLOT_HANDLE = 0x1acca;
+  blender::animrig::slot_handle_t last_used_slot_handle = DEFAULT_LAST_USED_SLOT_HANDLE;
 
   /**
    * Mapping from slot handles to their identifiers.
@@ -68,7 +68,7 @@ struct KeyframeCopyBuffer {
    * the copied data into an Action, but that would allow for multi-layer,
    * multi-strip data which is overkill for the functionality needed here.
    */
-  Map<animrig::slot_handle_t, std::string> slot_identifiers;
+  Map<blender::animrig::slot_handle_t, std::string> slot_identifiers;
 
   /**
    * Mapping from slot handles to the ID that they were copied from.
@@ -82,7 +82,7 @@ struct KeyframeCopyBuffer {
    * the copied-from ID has been deleted. For now I am trying to keep
    * things feature-par with the original code this is replacing.
    */
-  Map<animrig::slot_handle_t, ID *> slot_animated_ids;
+  Map<blender::animrig::slot_handle_t, ID *> slot_animated_ids;
 
   /**
    * Pointers to F-Curves in this->keyframe_data that animate bones.
@@ -107,7 +107,7 @@ struct KeyframeCopyBuffer {
   bool is_bone(const FCurve &fcurve) const;
   int num_slots() const;
 
-  animrig::Channelbag *channelbag_for_slot(StringRef slot_identifier);
+  blender::animrig::Channelbag *channelbag_for_slot(StringRef slot_identifier);
 
   /**
    * Print the contents of the copy buffer to stdout.
@@ -131,7 +131,7 @@ std::optional<std::string> flip_names(StringRefNull rna_path);
 bool pastebuf_match_path_full(Main *bmain,
                               const FCurve &fcurve_to_match,
                               const FCurve &fcurve_in_copy_buffer,
-                              animrig::slot_handle_t slot_handle_in_copy_buffer,
+                              blender::animrig::slot_handle_t slot_handle_in_copy_buffer,
                               bool from_single,
                               bool to_single,
                               bool flip);
@@ -143,7 +143,7 @@ bool pastebuf_match_path_full(Main *bmain,
 bool pastebuf_match_path_property(Main *bmain,
                                   const FCurve &fcurve_to_match,
                                   const FCurve &fcurve_in_copy_buffer,
-                                  animrig::slot_handle_t slot_handle_in_copy_buffer,
+                                  blender::animrig::slot_handle_t slot_handle_in_copy_buffer,
                                   bool from_single,
                                   bool to_single,
                                   bool flip);
@@ -154,7 +154,7 @@ bool pastebuf_match_path_property(Main *bmain,
 bool pastebuf_match_index_only(Main *bmain,
                                const FCurve &fcurve_to_match,
                                const FCurve &fcurve_in_copy_buffer,
-                               animrig::slot_handle_t slot_handle_in_copy_buffer,
+                               blender::animrig::slot_handle_t slot_handle_in_copy_buffer,
                                bool from_single,
                                bool to_single,
                                bool flip);

@@ -1,9 +1,9 @@
 
 msgid ""
 msgstr ""
-"Project-Id-Version: Blender 5.3.0 Alpha (b'af4852ed4560')\n"
+"Project-Id-Version: Blender 5.3.0 Alpha (b'09417042a1fa')\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-08-10 07:54+0000\n"
+"POT-Creation-Date: 2026-08-24 07:38+0000\n"
 "PO-Revision-Date: 2025-07-23 15:20+0000\n"
 "Last-Translator: Anonymous <noreply@weblate.org>\n"
 "Language-Team: Kyrgyz <https://translate.blender.org/projects/blender-ui/ui/ky/>\n"
@@ -438,10 +438,6 @@ msgid "Use Curves"
 msgstr "Ийрилерди колдонуу"
 
 
-msgid "View"
-msgstr "Көрүнүш"
-
-
 msgid "RGB"
 msgstr "RGB"
 
@@ -537,6 +533,10 @@ msgstr "Метод"
 
 msgid "Plane"
 msgstr "Тегиздик"
+
+
+msgid "View"
+msgstr "Көрүнүш"
 
 
 msgid "Render"
@@ -1298,24 +1298,24 @@ msgid "Mask Layers"
 msgstr "Маска каттары"
 
 
-msgid "Tracking"
-msgstr "Трекинг"
+msgid "Import"
+msgstr "Импорттоо"
 
 
 msgid "Mirror"
 msgstr "Чагылтуу"
 
 
+msgid "UV"
+msgstr "UV"
+
+
 msgid "Apply"
 msgstr "Колдонуу"
 
 
-msgid "Import"
-msgstr "Импорттоо"
-
-
-msgid "UV"
-msgstr "UV"
+msgid "Tracking"
+msgstr "Трекинг"
 
 
 msgctxt "MovieClip"
@@ -1523,10 +1523,6 @@ msgstr "ITU 601"
 
 msgid "ITU 709"
 msgstr "ITU 709"
-
-
-msgid "To"
-msgstr "Кимге"
 
 
 msgid "Render Layers"

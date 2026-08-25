@@ -1123,6 +1123,7 @@ void transform_convert_clip_mirror_modifier_apply(TransDataContainer *tc)
 {
   Object *ob = tc->obedit;
   ModifierData *md = static_cast<ModifierData *>(ob->modifiers.first);
+  tc->has_mirror_clipping = false;
 
   for (; md; md = md->next) {
     if ((md->type == eModifierType_Mirror) && (md->mode & eModifierMode_Realtime)) {
@@ -1192,6 +1193,7 @@ void transform_convert_clip_mirror_modifier_apply(TransDataContainer *tc)
             mul_m4_v3(imtx, loc);
           }
           copy_v3_v3(td->loc, loc);
+          tc->has_mirror_clipping = true;
         }
       }
     }

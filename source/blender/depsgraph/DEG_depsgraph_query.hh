@@ -428,6 +428,15 @@ void DEG_foreach_dependent_ID_component(const Depsgraph *depsgraph,
 
 void DEG_foreach_ID(const Depsgraph *depsgraph, DEGForeachIDCallback callback);
 
+/**
+ * Checks if the given component type of the given scene depends on time. The given scene is
+ * expected to be an original ID. A component is expected to exist for the given component type,
+ * otherwise, the function will assert.
+ */
+bool DEG_scene_component_depends_on_time(const Depsgraph &depsgraph,
+                                         const Scene &scene,
+                                         const eDepsSceneComponentType component_type);
+
 /** \} */
 
 /* -------------------------------------------------------------------- */

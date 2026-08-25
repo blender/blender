@@ -1082,6 +1082,17 @@ class PREFERENCES_OT_studiolight_install(Operator):
     bl_idname = "preferences.studiolight_install"
     bl_label = "Install Light"
 
+    def update_type(self, context):
+        filter_glob = "*.sl" if self.type == 'STUDIO' else "*.png;*.jpg;*.hdr;*.exr"
+        if filter_glob == self.filter_glob:
+            return
+
+        self.filter_glob = filter_glob
+
+        space_data = context.space_data
+        if space_data is not None and space_data.type == 'FILE_BROWSER':
+            space_data.params.filter_glob = filter_glob
+
     files: CollectionProperty(
         name="File Path",
         type=OperatorFileListElement,
@@ -1096,7 +1107,7 @@ class PREFERENCES_OT_studiolight_install(Operator):
     )
     filter_glob: StringProperty(
         default="*.png;*.jpg;*.hdr;*.exr",
-        options={'HIDDEN'},
+        options={'HIDDEN', 'SKIP_SAVE'},
     )
     type: EnumProperty(
         name="Type",
@@ -1105,6 +1116,7 @@ class PREFERENCES_OT_studiolight_install(Operator):
             ('WORLD', "World", "Install custom HDRIs"),
             ('STUDIO', "Studio", "Install custom Studio Lights"),
         ),
+        update=update_type,
     )
 
     def execute(self, context):
@@ -1118,9 +1130,24 @@ class PREFERENCES_OT_studiolight_install(Operator):
             self.report({'ERROR'}, "Failed to create Studio Light path")
             return {'CANCELLED'}
 
+        installed = 0
+
         for e in self.files:
-            shutil.copy(os.path.join(self.directory, e.name), path_studiolights)
+            filepath = os.path.join(self.directory, e.name)
+
+            try:
+                shutil.copy(filepath, path_studiolights)
+            except Exception as ex:
+                msg = rpt_("Unable to copy {!r}: {:s}").format(e.name, str(ex))
+                print(msg)
+                self.report({'WARNING'}, msg)
+                continue
+
             prefs.studio_lights.load(os.path.join(path_studiolights, e.name), self.type)
+            installed += 1
+
+        if installed == 0:
+            return {'CANCELLED'}
 
         # print message
         msg = rpt_("StudioLight Installed {!r} into {!r}").format(

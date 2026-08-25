@@ -1979,17 +1979,6 @@ bool BLI_array_store_is_valid(BArrayStore *bs)
 #endif
   }
 
-  {
-    BLI_mempool_iter iter;
-    BChunk *chunk;
-    BLI_mempool_iternew(bs->memory.chunk, &iter);
-    while ((chunk = static_cast<BChunk *>(BLI_mempool_iterstep(&iter)))) {
-      if (!(MEM_allocN_len(chunk->data) >= chunk->data_len)) {
-        return false;
-      }
-    }
-  }
-
   /* Check User Count & Lost References
    * ---------------------------------- */
   {

@@ -10,7 +10,12 @@
 #include <cstring>
 #include <stdexcept>
 
-#include "GHOST_ContextSDL.hh"
+#ifdef WITH_OPENGL_BACKEND
+#  include "GHOST_ContextSDL.hh"
+#endif
+#ifdef WITH_VULKAN_BACKEND
+#  include "GHOST_ContextVK.hh"
+#endif
 #include "GHOST_SystemSDL.hh"
 #include "GHOST_WindowSDL.hh"
 
@@ -63,6 +68,7 @@ GHOST_IWindow *GHOST_SystemSDL::createWindow(const char *title,
                                state,
                                gpu_settings.context_type,
                                context_params,
+                               gpu_settings.preferred_device,
                                exclusive,
                                parent_window);
 
@@ -155,6 +161,18 @@ GHOST_IContext *GHOST_SystemSDL::createOffscreenContext(GHOST_GPUSettings gpu_se
         }
         delete context;
       }
+      return nullptr;
+    }
+#endif
+
+#ifdef WITH_VULKAN_BACKEND
+    case GHOST_kDrawingContextTypeVulkan: {
+      GHOST_Context *context = new GHOST_ContextVK(
+          context_params_offscreen, nullptr, 1, 2, gpu_settings.preferred_device);
+      if (context->initializeDrawingContext()) {
+        return context;
+      }
+      delete context;
       return nullptr;
     }
 #endif

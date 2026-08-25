@@ -485,6 +485,13 @@ void ShaderOperation::link_node_input_external(const bNodeSocket &input_socket,
    * referenced by the operation. */
   Result &result = compile_state_.get_result_from_output_socket(output_socket);
   if (result.is_single_value()) {
+    /* Single only types do not support GPU code path. */
+    if (Result::is_single_value_only_type(result.type())) {
+      this->link_node_input_unavailable(input_socket);
+      result.release();
+      return;
+    }
+
     GPUNodeLink *link = get_result_single_value_link(result);
     const char *function_name = get_set_function_name(result.type());
     GPU_link(material_, function_name, link, &stack.link);

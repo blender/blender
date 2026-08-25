@@ -8,7 +8,9 @@
 
 #include "multires_reshape.hh"
 
-#include <cstring>
+#include <algorithm>
+
+#include "BLI_task.hh"
 
 #include "BKE_ccg.hh"
 #include "BKE_subdiv_ccg.hh"
@@ -26,53 +28,60 @@ bool multires_reshape_assign_final_coords_from_ccg(const MultiresReshapeContext 
   const Span<float3> positions = subdiv_ccg->positions;
   const Span<float> masks = subdiv_ccg->masks;
 
-  int num_grids = subdiv_ccg->grids_num;
-  for (int grid_index = 0; grid_index < num_grids; ++grid_index) {
-    for (int y = 0; y < reshape_grid_size; ++y) {
-      const float v = float(y) * reshape_grid_size_1_inv;
-      for (int x = 0; x < reshape_grid_size; ++x) {
-        const float u = float(x) * reshape_grid_size_1_inv;
-        const int vert = bke::ccg::grid_xy_to_vert(reshape_level_key, grid_index, x, y);
+  /* NOTE: The sculpt mode might have SubdivCCG's data out of sync from what is stored in
+   * the original object. This happens in the following scenario:
+   *
+   *  - User enters sculpt mode of the default cube object.
+   *  - Sculpt mode creates new `layer`
+   *  - User does some strokes.
+   *  - User used undo until sculpt mode is exited.
+   *
+   * In an ideal world the sculpt mode will take care of keeping CustomData and CCG layers in
+   * sync by doing proper pushes to a local sculpt undo stack.
+   *
+   * Since the proper solution needs time to be implemented, consider the target object
+   * the source of truth of which data layers are to be updated during reshape. This means,
+   * for example, that if the undo system says object does not have paint mask layer, it is
+   * not to be updated.
+   *
+   * This is fragile logic, and is only working correctly because the code path is only
+   * used by sculpt changes. In other use cases the code might not catch inconsistency and
+   * silently make the wrong decision. */
+  /* NOTE: There is a known bug in Undo code that results in first Sculpt step
+   * after a Memfile one to never be undone (see #83806). This might be the root cause of
+   * this inconsistency. */
 
-        GridCoord grid_coord;
-        grid_coord.grid_index = grid_index;
-        grid_coord.u = u;
-        grid_coord.v = v;
+  /* Each grid writes to its own displacement and mask grid, so there are no write conflicts.
+   * Balance the amount of work per task, since the work per grid depends on the grid size. */
+  const int grain_size = std::max(1, 2048 / (reshape_grid_size * reshape_grid_size));
 
-        ReshapeGridElement grid_element = multires_reshape_grid_element_for_grid_coord(
-            reshape_context, &grid_coord);
+  threading::parallel_for(
+      IndexRange(subdiv_ccg->grids_num), grain_size, [&](const IndexRange range) {
+        for (const int grid_index : range) {
+          for (int y = 0; y < reshape_grid_size; ++y) {
+            const float v = float(y) * reshape_grid_size_1_inv;
+            for (int x = 0; x < reshape_grid_size; ++x) {
+              const float u = float(x) * reshape_grid_size_1_inv;
+              const int vert = bke::ccg::grid_xy_to_vert(reshape_level_key, grid_index, x, y);
 
-        BLI_assert(grid_element.displacement != nullptr);
-        *grid_element.displacement = positions[vert];
+              GridCoord grid_coord;
+              grid_coord.grid_index = grid_index;
+              grid_coord.u = u;
+              grid_coord.v = v;
 
-        /* NOTE: The sculpt mode might have SubdivCCG's data out of sync from what is stored in
-         * the original object. This happens in the following scenario:
-         *
-         *  - User enters sculpt mode of the default cube object.
-         *  - Sculpt mode creates new `layer`
-         *  - User does some strokes.
-         *  - User used undo until sculpt mode is exited.
-         *
-         * In an ideal world the sculpt mode will take care of keeping CustomData and CCG layers in
-         * sync by doing proper pushes to a local sculpt undo stack.
-         *
-         * Since the proper solution needs time to be implemented, consider the target object
-         * the source of truth of which data layers are to be updated during reshape. This means,
-         * for example, that if the undo system says object does not have paint mask layer, it is
-         * not to be updated.
-         *
-         * This is fragile logic, and is only working correctly because the code path is only
-         * used by sculpt changes. In other use cases the code might not catch inconsistency and
-         * silently make the wrong decision. */
-        /* NOTE: There is a known bug in Undo code that results in first Sculpt step
-         * after a Memfile one to never be undone (see #83806). This might be the root cause of
-         * this inconsistency. */
-        if (!subdiv_ccg->masks.is_empty() && grid_element.mask != nullptr) {
-          *grid_element.mask = masks[vert];
+              ReshapeGridElement grid_element = multires_reshape_grid_element_for_grid_coord(
+                  reshape_context, &grid_coord);
+
+              BLI_assert(grid_element.displacement != nullptr);
+              *grid_element.displacement = positions[vert];
+
+              if (!masks.is_empty() && grid_element.mask != nullptr) {
+                *grid_element.mask = masks[vert];
+              }
+            }
+          }
         }
-      }
-    }
-  }
+      });
 
   return true;
 }

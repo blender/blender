@@ -114,6 +114,23 @@ class IndexBuf {
 
   virtual void update_sub(uint start, uint len, const void *data) = 0;
 
+  /**
+   * \brief Copy part of source index buffer into this index buffer.
+   *
+   * \note: index type of both buffers must be identical.
+   * \note: asserts when the copy range exceeds the bounds of either buffer.
+   * \note: both index buffers must be uploaded with #GPU_indexbuf_use before calling.
+   *
+   * \param source_buf: source index buffer to copy data from.
+   * \param source_first_index: starting index to start copying the data from.
+   * \param dest_first_index: starting index to copy the data to.
+   * \param index_len: the number of indices to copy.
+   */
+  virtual void copy_sub(IndexBuf &source_buf,
+                        uint source_first_index,
+                        uint dest_first_index,
+                        uint index_len) = 0;
+
  private:
   inline void squeeze_indices_short(uint min_idx,
                                     uint max_idx,
@@ -244,6 +261,18 @@ void GPU_indexbuf_use(gpu::IndexBuf *elem);
  * the original indices when the index buffer was built, i.e., if the data was compressed to use
  * shorts instead of ints, shorts should passed here. */
 void GPU_indexbuf_update_sub(gpu::IndexBuf *elem, uint start, uint len, const void *data);
+
+/**
+ * \brief Copy index data from part of a source index buffer into this index buffer.
+ *
+ * \note: index type of both buffers must be identical.
+ * \note: both index buffers must be uploaded with #GPU_indexbuf_use before calling.
+ */
+void GPU_indexbuf_copy_sub(gpu::IndexBuf *dst,
+                           gpu::IndexBuf *src,
+                           uint source_first_index,
+                           uint dest_first_index,
+                           uint index_len);
 
 /* Create a sub-range of an existing index-buffer. */
 gpu::IndexBuf *GPU_indexbuf_create_subrange(gpu::IndexBuf *elem_src, uint start, uint length);

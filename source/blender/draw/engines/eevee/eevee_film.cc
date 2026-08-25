@@ -316,6 +316,9 @@ void Film::init(const int2 &extent, const rcti *output_rect)
     viewport_compositor_enabled_passes_ = get_viewport_compositor_enabled_passes(
         passes_used_by_viewport_compositor, inst_.view_layer);
   }
+  else {
+    viewport_compositor_enabled_passes_ = eViewLayerEEVEEPassType(0);
+  }
 
   enabled_categories_ = PassCategory(0);
   init_aovs(passes_used_by_viewport_compositor);

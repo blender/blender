@@ -1528,6 +1528,7 @@ static void rna_api_animdata_nla_tracks(BlenderRNA *brna, PropertyRNA *cprop)
   RNA_def_pointer(func, "prev", "NlaTrack", "", "NLA Track to add the new one after");
   /* return type */
   parm = RNA_def_pointer(func, "track", "NlaTrack", "", "New NLA Track");
+  RNA_def_parameter_flags(parm, PROP_NEVER_NULL, ParameterFlag(0));
   RNA_def_function_return(func, parm);
 
   func = RNA_def_function(srna, "remove", "rna_NlaTrack_remove");
@@ -1572,6 +1573,7 @@ static void rna_api_animdata_drivers(BlenderRNA *brna, PropertyRNA *cprop)
   RNA_def_int(func, "index", 0, 0, INT_MAX, "Index", "Array index", 0, INT_MAX);
   /* return type */
   parm = RNA_def_pointer(func, "driver", "FCurve", "", "Newly Driver F-Curve");
+  RNA_def_parameter_flags(parm, PROP_NEVER_NULL, ParameterFlag(0));
   RNA_def_function_return(func, parm);
 
   /* AnimData.drivers.remove(...) */

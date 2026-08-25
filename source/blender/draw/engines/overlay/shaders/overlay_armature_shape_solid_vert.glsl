@@ -13,10 +13,10 @@ VERTEX_SHADER_CREATE_INFO(overlay_armature_shape_solid)
 
 void main()
 {
-  select_id_set(in_select_buf[gl_InstanceID]);
+  select_id_set(in_select_buf[gpu_InstanceIndex]);
 
   float4 bone_color, state_color;
-  float4x4 inst_obmat = data_buf[gl_InstanceID];
+  float4x4 inst_obmat = data_buf[gpu_InstanceIndex];
   float4x4 model_mat = extract_matrix_packed_data(inst_obmat, state_color, bone_color);
 
   /* This is slow and run per vertex, but it's still faster than

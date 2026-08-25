@@ -457,7 +457,7 @@ static void special_aftertrans_update__mask(bContext *C, TransInfo *t)
   if (animrig::is_autokey_on(t->scene)) {
     Scene *scene = t->scene;
 
-    if (ED_mask_layer_shape_auto_key_select(mask, scene->r.cfra)) {
+    if (ED_mask_layer_shape_auto_key_select(C, mask, scene->r.cfra)) {
       WM_event_add_notifier(C, NC_MASK | ND_DATA, &mask->id);
       DEG_id_tag_update(&mask->id, 0);
     }

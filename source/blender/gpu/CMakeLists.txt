@@ -8,6 +8,7 @@ set(INC
   intern
   metal
   opengl
+  shader_tool
   vulkan
   ../makesrna
 
@@ -107,8 +108,8 @@ set(SRC
   intern/gpu_vertex_format.cc
   intern/gpu_vertex_format_normals.cc
   intern/gpu_viewport.cc
-  intern/gpu_worker.cc
   intern/gpu_work_in_flight.cc
+  intern/gpu_worker.cc
 
   shader_tool/ast.cc
   shader_tool/attribute.cc
@@ -116,7 +117,6 @@ set(SRC
   shader_tool/flow_control.cc
   shader_tool/function.cc
   shader_tool/grammar.cc
-  shader_tool/grammar_bsl.cc
   shader_tool/intermediate.cc
   shader_tool/metadata.cc
   shader_tool/namespace.cc
@@ -128,6 +128,20 @@ set(SRC
   shader_tool/union.cc
 
   shader_tool/lexit/lexit.cc
+
+  shader_tool/bsl/codegen.cc
+  shader_tool/bsl/constructor.cc
+  shader_tool/bsl/grammar.cc
+  shader_tool/bsl/operator.cc
+  shader_tool/bsl/resource.cc
+  shader_tool/bsl/symbol.cc
+  shader_tool/bsl/symbol_class.cc
+  shader_tool/bsl/symbol_function.cc
+  shader_tool/bsl/symbol_scope.cc
+  shader_tool/bsl/symbol_table.cc
+  shader_tool/bsl/symbol_template.cc
+  shader_tool/bsl/symbol_variable.cc
+  shader_tool/bsl/type_checker.cc
 
   GPU_attribute_convert.hh
   GPU_batch.hh
@@ -203,6 +217,17 @@ set(SRC
   dummy/dummy_context.hh
   dummy/dummy_framebuffer.hh
   dummy/dummy_vertex_buffer.hh
+
+  shaders/gpu_shader_compat.hh
+  shaders/gpu_shader_compat_cxx.hh
+  shaders/gpu_shader_cxx_attribute.hh
+  shaders/gpu_shader_cxx_builtin.hh
+  shaders/gpu_shader_cxx_global.hh
+  shaders/gpu_shader_cxx_image.hh
+  shaders/gpu_shader_cxx_matrix.hh
+  shaders/gpu_shader_cxx_sampler.hh
+  shaders/gpu_shader_cxx_string.hh
+  shaders/gpu_shader_cxx_vector.hh
 )
 
 set(OPENGL_SRC

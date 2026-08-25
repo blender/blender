@@ -1192,7 +1192,7 @@ bool ShadowModule::shadow_update_finished(int loop_count)
   }
 
   if (loop_count == 1) {
-    /* Do not reedback for only 1 loop iter. It's cheaper to just resubmit. */
+    /* Do not read-back for only 1 loop iter. It's cheaper to just resubmit. */
     return false;
   }
 

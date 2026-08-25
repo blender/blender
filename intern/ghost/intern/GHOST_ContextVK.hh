@@ -14,7 +14,10 @@
 
 #include "GHOST_Context.hh"
 
-#ifdef _WIN32
+#if defined(WITH_GHOST_SDL)
+/* Required to be first as other platforms defines would take precedent otherwise. */
+struct SDL_Window; /* Avoid pulling in the full SDL3 headers. */
+#elif defined(_WIN32)
 #  include "GHOST_SystemWin32.hh"
 #elif defined(__APPLE__)
 #  include "GHOST_SystemCocoa.hh"
@@ -110,7 +113,10 @@ class GHOST_ContextVK : public GHOST_Context {
    * Constructor.
    */
   GHOST_ContextVK(const GHOST_ContextParams &context_params,
-#ifdef _WIN32
+#if defined(WITH_GHOST_SDL)
+                  /* SDL */
+                  SDL_Window *sdl_window,
+#elif defined(_WIN32)
                   HWND hwnd,
 #elif defined(__APPLE__)
                   /* FIXME CAMetalLayer but have issue with linking. */
@@ -241,7 +247,10 @@ class GHOST_ContextVK : public GHOST_Context {
   static bool is_device_extension_enabled(blender::StringRefNull extension_name);
 
  private:
-#ifdef _WIN32
+#if defined(WITH_GHOST_SDL)
+  /* SDL */
+  SDL_Window *sdl_window_;
+#elif defined(_WIN32)
   HWND hwnd_;
 #elif defined(__APPLE__)
   /* Is CAMetalLayer* */
@@ -287,7 +296,7 @@ class GHOST_ContextVK : public GHOST_Context {
   std::vector<VkFence> fence_pile_;
   std::map<VkSwapchainKHR, std::vector<VkFence>> present_fences_;
 
-  const char *getPlatformSpecificSurfaceExtension() const;
+  std::vector<const char *> getPlatformSpecificSurfaceExtensions() const;
   GHOST_TSuccess recreateSwapchain(bool use_hdr_swapchain);
   GHOST_TSuccess initializeFrameData();
   GHOST_TSuccess destroySwapchain();

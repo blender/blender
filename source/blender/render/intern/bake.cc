@@ -134,7 +134,9 @@ void RE_bake_mask_fill(const BakePixel pixel_array[], const size_t pixels_num, c
 
   /* only extend to pixels outside the mask area */
   for (i = 0; i < pixels_num; i++) {
-    if (pixel_array[i].primitive_id != -1) {
+    const BakePixel *px = &pixel_array[i];
+
+    if (px->primitive_id != -1 && !px->is_margin) {
       mask[i] = FILTER_MASK_USED;
     }
   }
@@ -374,6 +376,7 @@ static bool cast_ray_highpoly(const bke::bvh::Tree **treeData,
     pixel_high->primitive_id = primitive_id_high;
     pixel_high->object_id = hit_mesh;
     pixel_high->seed = pixel_id;
+    pixel_high->is_margin = pixel_low->is_margin;
 
     /* ray direction in high poly object space */
     float co_high[3], dir_high[3];
@@ -428,6 +431,7 @@ static bool cast_ray_highpoly(const bke::bvh::Tree **treeData,
     pixel_array[pixel_id].primitive_id = -1;
     pixel_array[pixel_id].object_id = -1;
     pixel_array[pixel_id].seed = 0;
+    pixel_array[pixel_id].is_margin = false;
   }
 
   return hit_mesh != -1;
@@ -598,6 +602,7 @@ bool RE_bake_pixels_populate_from_objects(Mesh *me_low,
 
       if (primitive_id == -1) {
         pixel_array_to[i].primitive_id = -1;
+        pixel_array_to[i].is_margin = false;
         continue;
       }
 
@@ -693,11 +698,77 @@ static void bake_differentials(BakeDataZSpan *bd,
   }
 }
 
+static void bake_pixels_add_denoise_margin(BakePixel pixel_array[],
+                                           const BakeTargets *targets,
+                                           int margin)
+{
+  /* Bake neighboring pixels with the same primitive, so denoising gets a reasonable
+   * pixel value rather than a sharp transition that causes artifacts. */
+  for (int image_id = 0; image_id < targets->images_num; image_id++) {
+    BakeImage *image = &targets->images[image_id];
+
+    const int width = image->width;
+    const int height = image->height;
+    const size_t pixels_num = size_t(width) * size_t(height);
+    const size_t image_offset = image->offset;
+
+    BakePixel *bk_pixels = pixel_array + image_offset;
+
+    Array<char> mask(pixels_num, 0);
+    RE_bake_mask_fill(bk_pixels, pixels_num, mask.data());
+
+    for (int r = 0; r < margin; r++) {
+      for (int y = 0; y < height; y++) {
+        for (int x = 0; x < width; x++) {
+          const size_t px_index = size_t(x) + size_t(y) * width;
+          size_t copy_index;
+
+          if (mask[px_index] != FILTER_MASK_NULL) {
+            continue;
+          }
+
+          if (y != 0 && mask[px_index - width] == FILTER_MASK_USED) {
+            copy_index = px_index - width;
+          }
+          else if (y != height - 1 && mask[px_index + width] == FILTER_MASK_USED) {
+            copy_index = px_index + width;
+          }
+          else if (x != 0 && mask[px_index - 1] == FILTER_MASK_USED) {
+            copy_index = px_index - 1;
+          }
+          else if (x != width - 1 && mask[px_index + 1] == FILTER_MASK_USED) {
+            copy_index = px_index + 1;
+          }
+          else {
+            continue;
+          }
+
+          mask[px_index] = FILTER_MASK_MARGIN;
+          bk_pixels[px_index] = bk_pixels[copy_index];
+          bk_pixels[px_index].seed = px_index + image_offset;
+          bk_pixels[px_index].is_margin = true;
+        }
+      }
+
+      for (int y = 0; y < height; y++) {
+        for (int x = 0; x < width; x++) {
+          const size_t px_index = size_t(x) + size_t(y) * width;
+
+          if (mask[px_index] == FILTER_MASK_MARGIN) {
+            mask[px_index] = FILTER_MASK_USED;
+          }
+        }
+      }
+    }
+  }
+}
+
 void RE_bake_pixels_populate(Mesh *mesh,
                              BakePixel pixel_array[],
                              const size_t pixels_num,
                              const BakeTargets *targets,
-                             const StringRef uv_layer)
+                             const StringRef uv_layer,
+                             int margin)
 {
   const bke::AttributeAccessor attributes = mesh->attributes();
   VArraySpan<float2> uv_map;
@@ -721,6 +792,7 @@ void RE_bake_pixels_populate(Mesh *mesh,
   for (int i = 0; i < pixels_num; i++) {
     pixel_array[i].primitive_id = -1;
     pixel_array[i].object_id = 0;
+    pixel_array[i].is_margin = false;
   }
 
   for (int i = 0; i < targets->images_num; i++) {
@@ -792,6 +864,12 @@ void RE_bake_pixels_populate(Mesh *mesh,
 
   for (int i = 0; i < targets->images_num; i++) {
     zbuf_free_span(&bd.zspan[i]);
+  }
+
+  if (margin > 0) {
+    /* 4 pixels should be enough for denoiser to distinguish rendered
+     * pixels from the background. */
+    bake_pixels_add_denoise_margin(pixel_array, targets, std::min(margin, 4));
   }
 
   MEM_delete(corner_tris);

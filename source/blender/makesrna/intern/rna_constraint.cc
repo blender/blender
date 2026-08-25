@@ -1187,6 +1187,7 @@ static void rna_def_constraint_armature_deform_targets(BlenderRNA *brna, Propert
   RNA_def_function_flag(func, FUNC_USE_SELF_ID | FUNC_USE_MAIN);
   RNA_def_function_ui_description(func, "Add a new target to the constraint");
   parm = RNA_def_pointer(func, "target", "ConstraintTargetBone", "", "New target bone");
+  RNA_def_parameter_flags(parm, PROP_NEVER_NULL, ParameterFlag(0));
   RNA_def_function_return(func, parm);
 
   func = RNA_def_function(srna, "remove", "rna_ArmatureConstraint_target_remove");

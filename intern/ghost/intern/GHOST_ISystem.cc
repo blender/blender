@@ -43,7 +43,6 @@ bool GHOST_ISystem::use_window_frame_ = true;
 
 GHOST_TSuccess GHOST_ISystem::createSystem(bool verbose, [[maybe_unused]] bool background)
 {
-
   /* When GHOST fails to start, report the back-ends that were attempted.
    * A Verbose argument could be supported in printing isn't always desired. */
   struct GHOST_BackendInfo {

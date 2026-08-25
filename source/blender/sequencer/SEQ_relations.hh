@@ -37,6 +37,11 @@ bool relations_render_loop_check(Strip *strip_main, Strip *strip);
 void relations_free_imbuf(Scene *scene, ListBaseT<Strip> *seqbase, bool for_render);
 
 /**
+ * Free all cached sequencer data of \a scene, including media presence and all caches.
+ */
+void relations_refresh_all(Scene *scene);
+
+/**
  * Invalidates various caches related to a given strip:
  * - Final cached frames over the length of the strip,
  * - Intra-frame caches of the current frame,
@@ -53,6 +58,13 @@ void relations_invalidate_cache(Scene *scene, Strip *strip);
  * images of the strip.
  */
 void relations_invalidate_cache_raw(Scene *scene, Strip *strip);
+
+/** Mark the current frame as potentially cached with a temporary animated property value. */
+void relations_tag_temporary_animation_frame(Scene *scene);
+
+/** Invalidate the marked frame after animation evaluation discards the temporary value. */
+void relations_invalidate_temporary_animation_frame(Scene *scene);
+
 void relations_invalidate_scene_strips(const Main *bmain, const Scene *scene_target);
 
 /**

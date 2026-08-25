@@ -2129,8 +2129,13 @@ static void mouse_mesh_loop_edge(BMEditMesh *em,
         em, BMW_EDGEBOUNDARY, eed, select, BMW_FLAG_TEST_HIDDEN, BMW_DELIMIT_NONE, nullptr);
   }
   else if (non_manifold) {
-    walker_select(
-        em, BMW_EDGELOOP_NONMANIFOLD, eed, select, BMW_FLAG_TEST_HIDDEN, delimit, nullptr);
+    walker_select(em,
+                  BMW_EDGELOOP_NONMANIFOLD,
+                  eed,
+                  select,
+                  BMW_FLAG_TEST_HIDDEN,
+                  BMW_DELIMIT_NONE,
+                  nullptr);
   }
   else if (full_loop) {
     walker_select(em, BMW_EDGELOOP, eed, select, BMW_FLAG_TEST_HIDDEN, BMW_DELIMIT_NONE, nullptr);

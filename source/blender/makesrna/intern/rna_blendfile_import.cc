@@ -250,9 +250,9 @@ static void rna_def_blendfile_import_library(BlenderRNA *brna)
   srna = RNA_def_struct(brna, "BlendImportContextLibrary", nullptr);
   RNA_def_struct_ui_text(
       srna,
-      "Blendfile Import Context Library",
-      "Library (blendfile) reference in a BlendImportContext data. Currently only "
-      "exposed as read-only data for the pre/post blendimport handlers");
+      "BlendFile Import Context Library",
+      "Library (blend-file) reference in a BlendImportContext data. Currently only "
+      "exposed as read-only data for the pre/post blend-import handlers");
 
   RNA_define_verify_sdna(false); /* not in sdna */
 

@@ -348,6 +348,38 @@ static void rna_AssetMetaData_license_set(PointerRNA *ptr, const char *value)
   }
 }
 
+static void rna_AssetMetaData_webpage_get(PointerRNA *ptr, char *value)
+{
+  AssetMetaData *asset_data = static_cast<AssetMetaData *>(ptr->data);
+
+  if (asset_data->webpage) {
+    strcpy(value, asset_data->webpage);
+  }
+  else {
+    value[0] = '\0';
+  }
+}
+
+static int rna_AssetMetaData_webpage_length(PointerRNA *ptr)
+{
+  AssetMetaData *asset_data = static_cast<AssetMetaData *>(ptr->data);
+  return asset_data->webpage ? strlen(asset_data->webpage) : 0;
+}
+
+static void rna_AssetMetaData_webpage_set(PointerRNA *ptr, const char *value)
+{
+  AssetMetaData *asset_data = static_cast<AssetMetaData *>(ptr->data);
+
+  MEM_delete(asset_data->webpage);
+
+  if (value[0]) {
+    asset_data->webpage = BLI_strdup(value);
+  }
+  else {
+    asset_data->webpage = nullptr;
+  }
+}
+
 static void rna_AssetMetaData_active_tag_range(
     PointerRNA *ptr, int *min, int *max, int *softmin, int *softmax)
 {
@@ -687,6 +719,17 @@ static void rna_def_asset_data(BlenderRNA *brna)
                            "The type of license this asset is distributed under. An empty license "
                            "name does not necessarily indicate that this is free of licensing "
                            "terms. Contact the author if any clarification is needed.");
+
+  prop = RNA_def_property(srna, "webpage", PROP_STRING, PROP_NONE);
+  RNA_def_property_editable_func(prop, "rna_AssetMetaData_editable");
+  RNA_def_property_string_funcs(prop,
+                                "rna_AssetMetaData_webpage_get",
+                                "rna_AssetMetaData_webpage_length",
+                                "rna_AssetMetaData_webpage_set");
+  RNA_def_property_ui_text(prop,
+                           "Webpage",
+                           "Webpage"
+                           "Web-address to a page with more information about this asset");
 
   prop = RNA_def_property(srna, "tags", PROP_COLLECTION, PROP_NONE);
   RNA_def_property_struct_type(prop, "AssetTag");

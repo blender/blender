@@ -19,7 +19,8 @@
 #include "testing/testing.h"
 
 namespace blender::ed::sculpt_paint::tests {
-class MeshTests : public bke::BlenderGTestBase {
+
+class MeshBrushCommonTests : public bke::BlenderGTestBase {
  public:
   Mesh *mesh;
 
@@ -31,7 +32,7 @@ class MeshTests : public bke::BlenderGTestBase {
   }
 };
 
-TEST_F(MeshTests, calc_vert_neighbors_interior__cube)
+TEST_F(MeshBrushCommonTests, calc_vert_neighbors_interior__cube)
 {
   mesh = geometry::create_cuboid_mesh(float3(1.0, 1.0, 1.0), 2, 2, 2);
 
@@ -71,7 +72,7 @@ TEST_F(MeshTests, calc_vert_neighbors_interior__cube)
   }
 }
 
-TEST_F(MeshTests, calc_vert_neighbors_interior__1D_strip)
+TEST_F(MeshBrushCommonTests, calc_vert_neighbors_interior__1D_strip)
 {
   mesh = geometry::create_grid_mesh(3, 2, 1.0, 1.0, {});
 

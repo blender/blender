@@ -97,21 +97,23 @@ float3 get_outline_point(float2 pos,
 
 void main()
 {
-  select_id_set(in_select_buf[gl_InstanceID]);
+  select_id_set(in_select_buf[gpu_InstanceIndex]);
 
-  float dst_head = distance(data_buf[gl_InstanceID].head_sphere.xyz, drw_view().viewinv[3].xyz);
-  float dst_tail = distance(data_buf[gl_InstanceID].tail_sphere.xyz, drw_view().viewinv[3].xyz);
-  // float dst_head = -dot(data_buf[gl_InstanceID].head_sphere.xyz, drw_view().viewmat[2].xyz);
-  // float dst_tail = -dot(data_buf[gl_InstanceID].tail_sphere.xyz, drw_view().viewmat[2].xyz);
+  float dst_head = distance(data_buf[gpu_InstanceIndex].head_sphere.xyz,
+                            drw_view().viewinv[3].xyz);
+  float dst_tail = distance(data_buf[gpu_InstanceIndex].tail_sphere.xyz,
+                            drw_view().viewinv[3].xyz);
+  // float dst_head = -dot(data_buf[gpu_InstanceIndex].head_sphere.xyz, drw_view().viewmat[2].xyz);
+  // float dst_tail = -dot(data_buf[gpu_InstanceIndex].tail_sphere.xyz, drw_view().viewmat[2].xyz);
 
   float4 sph_near, sph_far;
   if ((dst_head > dst_tail) && (drw_view().winmat[3][3] == 0.0f)) {
-    sph_near = data_buf[gl_InstanceID].tail_sphere;
-    sph_far = data_buf[gl_InstanceID].head_sphere;
+    sph_near = data_buf[gpu_InstanceIndex].tail_sphere;
+    sph_far = data_buf[gpu_InstanceIndex].head_sphere;
   }
   else {
-    sph_near = data_buf[gl_InstanceID].head_sphere;
-    sph_far = data_buf[gl_InstanceID].tail_sphere;
+    sph_near = data_buf[gpu_InstanceIndex].head_sphere;
+    sph_far = data_buf[gpu_InstanceIndex].tail_sphere;
   }
 
   float3 bone_vec = (sph_far.xyz - sph_near.xyz) + 1e-8f;
@@ -152,5 +154,5 @@ void main()
 
   edge_start = edge_pos = proj(gl_Position);
 
-  final_color = float4(data_buf[gl_InstanceID].bone_color_and_wire_width.rgb, 1.0f);
+  final_color = float4(data_buf[gpu_InstanceIndex].bone_color_and_wire_width.rgb, 1.0f);
 }

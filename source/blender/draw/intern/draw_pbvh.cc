@@ -36,6 +36,8 @@
 #include "DRW_pbvh.hh"
 #include "DRW_render.hh"
 
+#include "PRF_profile.hh"
+
 #include "attribute_convert.hh"
 #include "bmesh.hh"
 
@@ -347,6 +349,7 @@ void extract_data_vert_mesh(const OffsetIndices<int> faces,
                             const Span<int> face_indices,
                             gpu::VertBuf &vbo)
 {
+  PRF_scope(ProfileCategory::Draw);
   using Converter = AttributeConverter<T>;
   using VBOType = typename Converter::VBOType;
   VBOType *data = vbo.data<VBOType>().data();
@@ -364,6 +367,7 @@ void extract_data_face_mesh(const OffsetIndices<int> faces,
                             const Span<int> face_indices,
                             gpu::VertBuf &vbo)
 {
+  PRF_scope(ProfileCategory::Draw);
   using Converter = AttributeConverter<T>;
   using VBOType = typename Converter::VBOType;
 
@@ -381,6 +385,7 @@ void extract_data_corner_mesh(const OffsetIndices<int> faces,
                               const Span<int> face_indices,
                               gpu::VertBuf &vbo)
 {
+  PRF_scope(ProfileCategory::Draw);
   using Converter = AttributeConverter<T>;
   using VBOType = typename Converter::VBOType;
 
@@ -411,6 +416,7 @@ template<typename T> const T &bmesh_cd_face_get(const BMFace &face, const int of
 template<typename T>
 void extract_data_vert_bmesh(const Set<BMFace *, 0> &faces, const int cd_offset, gpu::VertBuf &vbo)
 {
+  PRF_scope(ProfileCategory::Draw);
   using Converter = AttributeConverter<T>;
   using VBOType = typename Converter::VBOType;
   VBOType *data = vbo.data<VBOType>().data();
@@ -432,6 +438,7 @@ void extract_data_vert_bmesh(const Set<BMFace *, 0> &faces, const int cd_offset,
 template<typename T>
 void extract_data_face_bmesh(const Set<BMFace *, 0> &faces, const int cd_offset, gpu::VertBuf &vbo)
 {
+  PRF_scope(ProfileCategory::Draw);
   using Converter = AttributeConverter<T>;
   using VBOType = typename Converter::VBOType;
   VBOType *data = vbo.data<VBOType>().data();
@@ -450,6 +457,7 @@ void extract_data_corner_bmesh(const Set<BMFace *, 0> &faces,
                                const int cd_offset,
                                gpu::VertBuf &vbo)
 {
+  PRF_scope(ProfileCategory::Draw);
   using Converter = AttributeConverter<T>;
   using VBOType = typename Converter::VBOType;
   VBOType *data = vbo.data<VBOType>().data();
@@ -486,6 +494,7 @@ DrawCacheImpl::~DrawCacheImpl()
 
 void DrawCacheImpl::free_nodes_with_changed_topology(const bke::pbvh::Tree &pbvh)
 {
+  PRF_scope(ProfileCategory::Draw);
   /* NOTE: Theoretically we shouldn't need to free batches with a changed triangle count, but
    * currently it's the simplest way to reallocate all the GPU data while keeping everything in a
    * consistent state. */
@@ -523,6 +532,7 @@ BLI_NOINLINE static void ensure_vbos_allocated_mesh(const Object &object,
                                                     const IndexMask &node_mask,
                                                     const MutableSpan<gpu::VertBufPtr> vbos)
 {
+  PRF_scope(ProfileCategory::Draw);
   const bke::pbvh::Tree &pbvh = *bke::object::pbvh_get(object);
   const Span<bke::pbvh::MeshNode> nodes = pbvh.nodes<bke::pbvh::MeshNode>();
   node_mask.foreach_index(
@@ -541,6 +551,7 @@ BLI_NOINLINE static void ensure_vbos_allocated_grids(const Object &object,
                                                      const IndexMask &node_mask,
                                                      const MutableSpan<gpu::VertBufPtr> vbos)
 {
+  PRF_scope(ProfileCategory::Draw);
   const bke::pbvh::Tree &pbvh = *bke::object::pbvh_get(object);
   const Span<bke::pbvh::GridsNode> nodes = pbvh.nodes<bke::pbvh::GridsNode>();
   const SubdivCCG &subdiv_ccg = *object.runtime->sculpt_session->subdiv_ccg;
@@ -562,6 +573,7 @@ BLI_NOINLINE static void ensure_vbos_allocated_bmesh(const Object &object,
                                                      const IndexMask &node_mask,
                                                      const MutableSpan<gpu::VertBufPtr> vbos)
 {
+  PRF_scope(ProfileCategory::Draw);
   const bke::pbvh::Tree &pbvh = *bke::object::pbvh_get(object);
   const Span<bke::pbvh::BMeshNode> nodes = pbvh.nodes<bke::pbvh::BMeshNode>();
   node_mask.foreach_index(
@@ -581,6 +593,7 @@ static void update_positions_mesh(const Object &object,
                                   const IndexMask &node_mask,
                                   MutableSpan<gpu::VertBufPtr> vbos)
 {
+  PRF_scope(ProfileCategory::Draw);
   const bke::pbvh::Tree &pbvh = *bke::object::pbvh_get(object);
   const Span<bke::pbvh::MeshNode> nodes = pbvh.nodes<bke::pbvh::MeshNode>();
   const Mesh &mesh = DRW_object_get_data_for_drawing<Mesh>(object);
@@ -600,6 +613,7 @@ static void update_normals_mesh(const Object &object,
                                 const IndexMask &node_mask,
                                 MutableSpan<gpu::VertBufPtr> vbos)
 {
+  PRF_scope(ProfileCategory::Draw);
   const bke::pbvh::Tree &pbvh = *bke::object::pbvh_get(object);
   const Span<bke::pbvh::MeshNode> nodes = pbvh.nodes<bke::pbvh::MeshNode>();
   const Mesh &mesh = DRW_object_get_data_for_drawing<Mesh>(object);
@@ -636,6 +650,7 @@ BLI_NOINLINE static void update_masks_mesh(const Object &object,
                                            const IndexMask &node_mask,
                                            MutableSpan<gpu::VertBufPtr> vbos)
 {
+  PRF_scope(ProfileCategory::Draw);
   const bke::pbvh::Tree &pbvh = *bke::object::pbvh_get(object);
   const Span<bke::pbvh::MeshNode> nodes = pbvh.nodes<bke::pbvh::MeshNode>();
   const Mesh &mesh = DRW_object_get_data_for_drawing<Mesh>(object);
@@ -668,6 +683,7 @@ BLI_NOINLINE static void update_face_sets_mesh(const Object &object,
                                                const IndexMask &node_mask,
                                                MutableSpan<gpu::VertBufPtr> vbos)
 {
+  PRF_scope(ProfileCategory::Draw);
   const bke::pbvh::Tree &pbvh = *bke::object::pbvh_get(object);
   const Span<bke::pbvh::MeshNode> nodes = pbvh.nodes<bke::pbvh::MeshNode>();
   const Mesh &mesh = DRW_object_get_data_for_drawing<Mesh>(object);
@@ -712,6 +728,7 @@ BLI_NOINLINE static void update_generic_attribute_mesh(const Object &object,
                                                        const StringRef name,
                                                        MutableSpan<gpu::VertBufPtr> vbos)
 {
+  PRF_scope(ProfileCategory::Draw);
   const bke::pbvh::Tree &pbvh = *bke::object::pbvh_get(object);
   const Span<bke::pbvh::MeshNode> nodes = pbvh.nodes<bke::pbvh::MeshNode>();
   const Mesh &mesh = DRW_object_get_data_for_drawing<Mesh>(object);
@@ -754,6 +771,7 @@ BLI_NOINLINE static void fill_positions_grids(const Object &object,
                                               const IndexMask &node_mask,
                                               const MutableSpan<gpu::VertBufPtr> vbos)
 {
+  PRF_scope(ProfileCategory::Draw);
   const bke::pbvh::Tree &pbvh = *bke::object::pbvh_get(object);
   const Span<bke::pbvh::GridsNode> nodes = pbvh.nodes<bke::pbvh::GridsNode>();
   const SubdivCCG &subdiv_ccg = *object.runtime->sculpt_session->subdiv_ccg;
@@ -798,6 +816,7 @@ BLI_NOINLINE static void fill_normals_grids(const Object &object,
                                             const IndexMask &node_mask,
                                             const MutableSpan<gpu::VertBufPtr> vbos)
 {
+  PRF_scope(ProfileCategory::Draw);
   const bke::pbvh::Tree &pbvh = *bke::object::pbvh_get(object);
   const Span<bke::pbvh::GridsNode> nodes = pbvh.nodes<bke::pbvh::GridsNode>();
   const SubdivCCG &subdiv_ccg = *object.runtime->sculpt_session->subdiv_ccg;
@@ -862,6 +881,7 @@ BLI_NOINLINE static void fill_masks_grids(const Object &object,
                                           const IndexMask &node_mask,
                                           const MutableSpan<gpu::VertBufPtr> vbos)
 {
+  PRF_scope(ProfileCategory::Draw);
   const bke::pbvh::Tree &pbvh = *bke::object::pbvh_get(object);
   const Span<bke::pbvh::GridsNode> nodes = pbvh.nodes<bke::pbvh::GridsNode>();
   const SubdivCCG &subdiv_ccg = *object.runtime->sculpt_session->subdiv_ccg;
@@ -912,6 +932,7 @@ BLI_NOINLINE static void fill_face_sets_grids(const Object &object,
                                               const IndexMask &node_mask,
                                               const MutableSpan<gpu::VertBufPtr> vbos)
 {
+  PRF_scope(ProfileCategory::Draw);
   const bke::pbvh::Tree &pbvh = *bke::object::pbvh_get(object);
   const Span<bke::pbvh::GridsNode> nodes = pbvh.nodes<bke::pbvh::GridsNode>();
   const SubdivCCG &subdiv_ccg = *object.runtime->sculpt_session->subdiv_ccg;
@@ -1171,6 +1192,7 @@ BLI_NOINLINE static void fill_uvs_grids(const Object &object,
                                         const StringRef name,
                                         const MutableSpan<gpu::VertBufPtr> vbos)
 {
+  PRF_scope(ProfileCategory::Draw);
   const bke::pbvh::Tree &pbvh = *bke::object::pbvh_get(object);
   const Span<bke::pbvh::GridsNode> nodes = pbvh.nodes<bke::pbvh::GridsNode>();
   const SubdivCCG &subdiv_ccg = *object.runtime->sculpt_session->subdiv_ccg;
@@ -1207,6 +1229,7 @@ BLI_NOINLINE static void update_generic_attribute_grids(const Object &object,
                                                         const StringRef name,
                                                         const MutableSpan<gpu::VertBufPtr> vbos)
 {
+  PRF_scope(ProfileCategory::Draw);
   const bke::AttributeAccessor attributes = orig_mesh_data.attributes;
   const bke::GAttributeReader attr = attributes.lookup(name);
   if (attr.domain == bke::AttrDomain::Edge) {
@@ -1244,6 +1267,7 @@ BLI_NOINLINE static void update_positions_bmesh(const Object &object,
                                                 const IndexMask &node_mask,
                                                 const MutableSpan<gpu::VertBufPtr> vbos)
 {
+  PRF_scope(ProfileCategory::Draw);
   const bke::pbvh::Tree &pbvh = *bke::object::pbvh_get(object);
   const Span<bke::pbvh::BMeshNode> nodes = pbvh.nodes<bke::pbvh::BMeshNode>();
   ensure_vbos_allocated_bmesh(object, position_format(), node_mask, vbos);
@@ -1272,6 +1296,7 @@ BLI_NOINLINE static void update_normals_bmesh(const Object &object,
                                               const IndexMask &node_mask,
                                               const MutableSpan<gpu::VertBufPtr> vbos)
 {
+  PRF_scope(ProfileCategory::Draw);
   const bke::pbvh::Tree &pbvh = *bke::object::pbvh_get(object);
   const Span<bke::pbvh::BMeshNode> nodes = pbvh.nodes<bke::pbvh::BMeshNode>();
   ensure_vbos_allocated_bmesh(object, normal_format(), node_mask, vbos);
@@ -1306,6 +1331,7 @@ BLI_NOINLINE static void update_masks_bmesh(const Object &object,
                                             const IndexMask &node_mask,
                                             const MutableSpan<gpu::VertBufPtr> vbos)
 {
+  PRF_scope(ProfileCategory::Draw);
   const bke::pbvh::Tree &pbvh = *bke::object::pbvh_get(object);
   const Span<bke::pbvh::BMeshNode> nodes = pbvh.nodes<bke::pbvh::BMeshNode>();
   const BMesh &bm = *object.runtime->sculpt_session->bm;
@@ -1343,6 +1369,7 @@ BLI_NOINLINE static void update_face_sets_bmesh(const Object &object,
                                                 const IndexMask &node_mask,
                                                 const MutableSpan<gpu::VertBufPtr> vbos)
 {
+  PRF_scope(ProfileCategory::Draw);
   const bke::pbvh::Tree &pbvh = *bke::object::pbvh_get(object);
   const Span<bke::pbvh::BMeshNode> nodes = pbvh.nodes<bke::pbvh::BMeshNode>();
   const BMesh &bm = *object.runtime->sculpt_session->bm;
@@ -1383,6 +1410,7 @@ BLI_NOINLINE static void update_generic_attribute_bmesh(const Object &object,
                                                         const StringRef name,
                                                         const MutableSpan<gpu::VertBufPtr> vbos)
 {
+  PRF_scope(ProfileCategory::Draw);
   const bke::pbvh::Tree &pbvh = *bke::object::pbvh_get(object);
   const Span<bke::pbvh::BMeshNode> nodes = pbvh.nodes<bke::pbvh::BMeshNode>();
   const BMesh &bm = *object.runtime->sculpt_session->bm;
@@ -1754,6 +1782,7 @@ static Array<int> calc_material_indices(const Object &object, const OrigMeshData
 
 static BitVector<> calc_use_flat_layout(const Object &object, const OrigMeshData &orig_mesh_data)
 {
+  PRF_scope(ProfileCategory::Draw);
   const bke::pbvh::Tree &pbvh = *bke::object::pbvh_get(object);
   switch (pbvh.type()) {
     case bke::pbvh::Type::Mesh:
@@ -1982,6 +2011,7 @@ Span<gpu::IndexBufPtr> DrawCacheImpl::ensure_lines_indices(const Object &object,
 BitSpan DrawCacheImpl::ensure_use_flat_layout(const Object &object,
                                               const OrigMeshData &orig_mesh_data)
 {
+  PRF_scope(ProfileCategory::Draw);
   const bke::pbvh::Tree &pbvh = *bke::object::pbvh_get(object);
   if (use_flat_layout_.size() != pbvh.nodes_num()) {
     use_flat_layout_ = calc_use_flat_layout(object, orig_mesh_data);
@@ -1992,6 +2022,7 @@ BitSpan DrawCacheImpl::ensure_use_flat_layout(const Object &object,
 BLI_NOINLINE static void flush_vbo_data(const Span<gpu::VertBufPtr> vbos,
                                         const IndexMask &node_mask)
 {
+  PRF_scope(ProfileCategory::Draw);
   node_mask.foreach_index([&](const int i) { GPU_vertbuf_use(vbos[i].get()); });
 }
 
@@ -2000,6 +2031,7 @@ Span<gpu::VertBufPtr> DrawCacheImpl::ensure_attribute_data(const Object &object,
                                                            const AttributeRequest &attr,
                                                            const IndexMask &node_mask)
 {
+  PRF_scope(ProfileCategory::Draw);
   const bke::pbvh::Tree &pbvh = *bke::object::pbvh_get(object);
   AttributeData &data = attribute_vbos_.lookup_or_add_default(attr);
   Vector<gpu::VertBufPtr> &vbos = data.vbos;
@@ -2104,6 +2136,7 @@ Span<gpu::IndexBufPtr> DrawCacheImpl::ensure_tri_indices(const Object &object,
                                                          const IndexMask &node_mask,
                                                          const bool coarse)
 {
+  PRF_scope(ProfileCategory::Draw);
   const bke::pbvh::Tree &pbvh = *bke::object::pbvh_get(object);
   switch (pbvh.type()) {
     case bke::pbvh::Type::Mesh: {
@@ -2173,6 +2206,7 @@ Span<gpu::Batch *> DrawCacheImpl::ensure_tris_batches(const Object &object,
                                                       const ViewportRequest &request,
                                                       const IndexMask &nodes_to_update)
 {
+  PRF_scope(ProfileCategory::Draw);
   const Object &object_orig = *DEG_get_original(&object);
   const OrigMeshData orig_mesh_data{*id_cast<const Mesh *>(object_orig.data)};
   const bke::pbvh::Tree &pbvh = *bke::object::pbvh_get(object);
@@ -2219,6 +2253,7 @@ Span<gpu::Batch *> DrawCacheImpl::ensure_lines_batches(const Object &object,
                                                        const ViewportRequest &request,
                                                        const IndexMask &nodes_to_update)
 {
+  PRF_scope(ProfileCategory::Draw);
   const Object &object_orig = *DEG_get_original(&object);
   const OrigMeshData orig_mesh_data(*id_cast<const Mesh *>(object_orig.data));
   const bke::pbvh::Tree &pbvh = *bke::object::pbvh_get(object);

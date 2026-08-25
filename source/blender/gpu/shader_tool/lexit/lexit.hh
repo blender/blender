@@ -192,8 +192,11 @@ struct TokenBuffer {
 
   /**
    * \brief Merge complex literals such as floats, strings and comments.
+   *
+   * \param bsl_template_angle_bracket_lexing If true, will parse angle bracket without a
+   *                                          whitespace before or after as a template bracket.
    */
-  void merge_complex_literals();
+  void merge_complex_literals(bool bsl_template_angle_bracket_lexing = false);
 
   /**
    * \brief Assign keyword types and atoms for a small set of identifier.

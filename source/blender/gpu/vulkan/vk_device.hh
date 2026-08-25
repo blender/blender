@@ -67,11 +67,6 @@ struct VKExtensions {
   bool maintenance4 = false;
 
   /**
-   * Does the device support logic ops.
-   */
-  bool logic_ops = false;
-
-  /**
    * Does the device support VK_EXT_memory_priority
    */
   bool memory_priority = false;

@@ -437,7 +437,7 @@ static bool strip_renders_scene_strip(const Scene *scene,
                                       int frame,
                                       SeqRenderState state);
 
-/* Find whether any strip shown in `seqbase` renders a camera-input scene strip. */
+/* Find whether any strip shown in `seqbase` renders a camera-input or recursive scene strip. */
 static bool seqbase_renders_scene_strip(const Scene *scene,
                                         ListBaseT<SeqTimelineChannel> *channels,
                                         ListBaseT<Strip> *seqbase,
@@ -452,7 +452,8 @@ static bool seqbase_renders_scene_strip(const Scene *scene,
   return false;
 }
 
-/* Find whether rendering `strip` directly or indirectly renders a camera-input scene strip. */
+/* Find whether rendering `strip` directly or indirectly renders a camera-input or recursive scene
+ * strip. */
 static bool strip_renders_scene_strip(const Scene *scene,
                                       ListBaseT<SeqTimelineChannel> *channels,
                                       ListBaseT<Strip> *seqbase,
@@ -534,8 +535,6 @@ static bool strip_renders_scene_strip(const Scene *scene,
   return false;
 }
 
-/* Prefetch must avoid rendering scene strips because they are not supported yet
- * and this will lead to crashes.  */
 static bool seq_prefetch_must_skip_frame(PrefetchJob *pfjob)
 {
   const Scene *scene = pfjob->scene_eval;
@@ -544,9 +543,18 @@ static bool seq_prefetch_must_skip_frame(PrefetchJob *pfjob)
   ListBaseT<SeqTimelineChannel> *channels = channels_displayed_get(ed);
   int timeline_frame = seq_prefetch_cfra(pfjob);
 
+  /* Do not render the current frame from the prefetch: a user might be interactively
+   * editing some animated property, and the scene copy inside prefetch would not get
+   * that temporary edited value. */
+  if (timeline_frame == pfjob->scene->r.cfra) {
+    return true;
+  }
+
   /* Pass in state to check for infinite recursion of "sequencer-type" scene strips. */
   SeqRenderState state = {};
 
+  /* Camera-input scene strips are not supported, nor are recursive sequencer-input scene
+   * strips. */
   return seqbase_renders_scene_strip(scene, channels, seqbase, timeline_frame, state);
 }
 

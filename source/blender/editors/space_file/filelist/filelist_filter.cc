@@ -324,6 +324,10 @@ void filelist_filter(FileList *filelist)
     return;
   }
 
+  if (filelist->flags & FL_NEED_RESET_GLOB) {
+    filelist_reset_glob(filelist);
+  }
+
   filelist->filter_data.flags &= ~FLF_HIDE_LIB_DIR;
   if (filelist->max_recursion) {
     /* Never show lib ID 'categories' directories when we are in 'flat' mode, unless
@@ -379,7 +383,6 @@ void filelist_setfilter_options(FileList *filelist,
                                 const bool filter_assets_only,
                                 const bool filter_assets_hide_online,
                                 const bool filter_assets_hide_offline,
-                                const char *filter_glob,
                                 const char *filter_search)
 {
   bool update = false;
@@ -419,10 +422,6 @@ void filelist_setfilter_options(FileList *filelist,
   const uint64_t new_filter_id = (filter & FILE_TYPE_BLENDERLIB) ? filter_id : FILTER_ID_ALL;
   if (filelist->filter_data.filter_id != new_filter_id) {
     filelist->filter_data.filter_id = new_filter_id;
-    update = true;
-  }
-  if (!STREQ(filelist->filter_data.filter_glob, filter_glob)) {
-    STRNCPY_UTF8(filelist->filter_data.filter_glob, filter_glob);
     update = true;
   }
   if (BLI_strcmp_ignore_pad(filelist->filter_data.filter_search, filter_search, '*') != 0) {

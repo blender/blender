@@ -222,7 +222,7 @@ float4 texelFetchExtend(sampler2D samp, int2 texel, int lvl)
 
 /* For assert support. */
 #if defined(GPU_VERTEX_SHADER)
-#  define GPU_THREAD uint3(gl_VertexID, gl_InstanceID, 0)
+#  define GPU_THREAD uint3(gl_VertexID, gpu_InstanceIndex, 0)
 #elif defined(GPU_FRAGMENT_SHADER)
 #  define GPU_THREAD uint3(gl_FragCoord.x, gl_FragCoord.y, 0)
 #elif defined(GPU_COMPUTE_SHADER)

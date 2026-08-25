@@ -74,7 +74,8 @@ namespace blender {
 /**
  * If there is no other specialization of #DefaultHash for a given type, look for a hash function
  * on the type itself. Implementing a `hash()` method on a type is often significantly easier than
- * specializing #DefaultHash.
+ * specializing #DefaultHash. As a fallback, it also tries to use the #hash_value function which
+ * some libraries implement for their types.
  *
  * To support heterogeneous lookup, a type can also implement a static `hash_as(const OtherType &)`
  * function.
@@ -88,10 +89,29 @@ template<typename T> struct DefaultHash {
       /* For enums use the value as hash directly. */
       return uint64_t(value);
     }
-    else {
-      /* Try to call the `hash()` function on the value. */
-      /* If this results in a compiler error, no hash function for the type has been found. */
+    else if constexpr (requires {
+                         {
+                           value.hash()
+                         } -> std::convertible_to<uint64_t>;
+                       })
+    {
+      /* When the type has a hash method directly. */
       return value.hash();
+    }
+    else if constexpr (requires(const T &v) {
+                         {
+                           hash_value(v)
+                         } -> std::convertible_to<uint64_t>;
+                       })
+    {
+      /* When the type has an overload of the #hash_value which is standard popularized by boost.
+       * https://www.boost.org/doc/libs/latest/libs/container_hash/doc/html/hash.html
+       * This works e.g. for the pxr::SdfPath type. */
+      return hash_value(value);
+    }
+    else {
+      /* No hash function for the type has been found. */
+      BLI_assert_unreachable_static_t(T);
     }
   }
 

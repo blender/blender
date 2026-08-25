@@ -71,7 +71,7 @@ ADDITIONAL_INFO(draw_view)
 ADDITIONAL_INFO(draw_modelmat)
 ADDITIONAL_INFO(draw_globals)
 STORAGE_BUF(0, read, float3, tile_pos_buf[])
-DEFINE_VALUE("tile_pos", "tile_pos_buf[gl_InstanceID]")
+DEFINE_VALUE("tile_pos", "tile_pos_buf[gpu_InstanceIndex]")
 BUILTINS(BuiltinBits::INSTANCE_ID)
 DEFINE_VALUE("tile_scale", "float3(1.0f)");
 GPU_SHADER_CREATE_END()

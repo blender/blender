@@ -29,10 +29,12 @@
 
 namespace blender::ui {
 
+namespace {
 struct CurveRuntimeProperties {
   CurveProfilePoint *last_pt = nullptr;
   float2 last_pos;
 };
+}  // namespace
 
 static Block *curve_profile_presets_fn(bContext *C, ARegion *region, void *cb_v)
 {

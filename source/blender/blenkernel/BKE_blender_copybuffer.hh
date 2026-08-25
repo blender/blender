@@ -26,7 +26,7 @@ struct bContext;
  *
  * Typically used for complex copy/pasting, using a temporary Main instead of the global one.
  *
- * \param reference_bmain: Reference main data-base to use for relative path and colorspace
+ * \param reference_bmain: Reference main data-base to use for relative path and color-space
  * conversions.
  * \param libname: Full path to the .blend file used as copy/paste buffer.
  * \param id_types_mask: Only directly link IDs of those types from the given .blend file buffer.

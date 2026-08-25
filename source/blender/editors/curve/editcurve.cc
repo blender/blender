@@ -596,7 +596,7 @@ static void calc_keyHandles(ListBaseT<Nurb> *nurb, float *key)
   for (Nurb &nu : *nurb) {
     if (nu.bezt) {
       if (nu.pntsu < 2) {
-        /* Single point, no need to calculat handles, proceed to th next Nurb. */
+        /* Single point, no need to calculate handles, proceed to th next Nurb. */
         fp += nu.pntsu * KEYELEM_FLOAT_LEN_BEZTRIPLE;
         continue;
       }

@@ -116,8 +116,6 @@ struct ParsedResource {
 
   std::string res_type;
   /** For images, storage, uniforms and samplers. */
-  std::string res_frequency = "PASS";
-  /** For images, storage, uniforms and samplers. */
   std::string res_slot;
   /** For images & storage. */
   std::string res_qualifier;
@@ -127,6 +125,8 @@ struct ParsedResource {
   std::string res_format;
   /** Optional condition to enable this resource. */
   std::string res_condition;
+  /** For images, storage, uniforms and samplers. */
+  std::string res_frequency = "PASS";
 
   std::string serialize() const;
 };
