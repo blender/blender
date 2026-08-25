@@ -182,14 +182,14 @@ display_colorspaces:
 
   - !<ColorSpace>
     name: Rec.2020
-    aliases: [g24_rec2020_display, BT.2020, BT.2020 2.4, BT.2020 I-D65, Rec.1886 / Rec.2020 Video - Display, rec1886_rec2020_display, rec1886_rec2020_video_display, Rec.1886 Rec.2020 - Display, "Rec1886: 2.4 Gamma - Rec.2020"]
+    aliases: [g24_rec2020_display, blender:g24_rec2020_display, BT.2020, BT.2020 2.4, BT.2020 I-D65, Rec.1886 / Rec.2020 Video - Display, rec1886_rec2020_display, rec1886_rec2020_video_display, Rec.1886 Rec.2020 - Display, "Rec1886: 2.4 Gamma - Rec.2020"]
     family: Display
     equalitygroup:
     bitdepth: 32f
     description: |
       BT.2020 2.4 Exponent EOTF Display
     isdata: false
-    interop_id: g24_rec2020_display
+    interop_id: blender:g24_rec2020_display
     interchange:
       icc_profile_name: g24_rec2020_display.icc
     from_display_reference: !<GroupTransform>
@@ -1137,7 +1137,7 @@ colorspaces:
 
   - !<ColorSpace>
     name: Gamma 2.4 Encoded Rec.709
-    aliases: [ocio:g24_rec709_scene, g24_rec709, Gamma 2.4 Rec.709 - Texture, Utility - Rec.709 - Display, rec709_display]
+    aliases: [g24_rec709_scene, ocio:g24_rec709_scene, g24_rec709, Gamma 2.4 Rec.709 - Texture, Utility - Rec.709 - Display, rec709_display]
     family: Utility
     equalitygroup:
     bitdepth: 32f
@@ -1145,7 +1145,7 @@ colorspaces:
       2.4 gamma-encoded Rec.709 with illuminant D65 white point.
       For use with scene-referred textures.
     isdata: false
-    interop_id: ocio:g24_rec709_scene
+    interop_id: g24_rec709_scene
     from_scene_reference: !<GroupTransform>
       children:
         - !<MatrixTransform> {matrix: [2.52168618674388, -1.13413098823972, -0.387555198504164, 0, -0.276479914229922, 1.37271908766826, -0.096239173438334, 0, -0.0153780649660342, -0.152975335867399, 1.16835340083343, 0, 0, 0, 0, 1]}
