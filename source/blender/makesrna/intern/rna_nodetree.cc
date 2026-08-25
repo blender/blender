@@ -3368,7 +3368,7 @@ static const EnumPropertyItem *rna_Node_image_layer_itemf(bContext * /*C*/,
 
   const auto &item_from_render_layer = [&](const RenderLayer &rl,
                                            const int index) -> EnumPropertyItem {
-    EnumPropertyItem tmp;
+    EnumPropertyItem tmp = {0};
     tmp.identifier = rl.name;
     /* Little trick: using space char instead empty string
      * makes the item selectable in the drop-down. */
@@ -3498,7 +3498,7 @@ static const EnumPropertyItem *rna_Node_view_layer_itemf(bContext * /*C*/,
 
   const auto &item_from_view_layer = [&](const ViewLayer &vl,
                                          const int index) -> EnumPropertyItem {
-    EnumPropertyItem tmp;
+    EnumPropertyItem tmp = {0};
     tmp.identifier = vl.name;
     /* Little trick: using space char instead empty string
      * makes the item selectable in the drop-down. */
