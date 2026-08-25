@@ -60,7 +60,13 @@ void SymbolVariable::set_offset(bool is_union, int &offset)
   else {
     this->offset = pad(offset, this->type->align);
     offset = this->offset;
-    offset += this->type->size;
+    if (this->array_elements != -1) {
+      offset += this->type->size * this->array_elements;
+    }
+    else {
+      /* TODO(fclem): Maybe assert here. There is no reason to allow non-static array size. */
+      offset += this->type->size;
+    }
   }
 }
 
