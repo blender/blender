@@ -66,10 +66,17 @@ Cache::~Cache()
   this->clear_frames();
 }
 
-const ImBuf *Cache::get_frame(const int frame_number, const int view_identifier)
+ImBuf *Cache::get_frame(const int frame_number, const int view_identifier)
 {
   std::scoped_lock lock{frames_mutex_};
-  return this->frames_.lookup_try(FrameKey(frame_number, view_identifier)).value_or(nullptr);
+  const FrameKey key = FrameKey(frame_number, view_identifier);
+  ImBuf *cached_frame = this->frames_.lookup_try(key).value_or(nullptr);
+  if (!cached_frame) {
+    return nullptr;
+  }
+
+  IMB_refImBuf(cached_frame);
+  return cached_frame;
 }
 
 void Cache::add_frame(const int frame_number, const int view_identifier, ImBuf *image_buffer)
