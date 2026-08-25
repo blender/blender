@@ -580,13 +580,13 @@ struct CodegenContext : NodeErrorHandler {
           skip_node(node);
           break;
         case NodeType::ForLoop:
-          for_loop(node, *symbol.scopes[to_string(local_scope_id++)]);
+          for_loop(node, *symbol.child_scope(local_scope_id++));
           break;
         case NodeType::WhileLoop:
-          while_loop(node, *symbol.scopes[to_string(local_scope_id++)]);
+          while_loop(node, *symbol.child_scope(local_scope_id++));
           break;
         case NodeType::DoWhileLoop:
-          do_while_loop(node, *symbol.scopes[to_string(local_scope_id++)]);
+          do_while_loop(node, *symbol.child_scope(local_scope_id++));
           break;
         case NodeType::SwitchStmt:
           switch_statement(node, symbol, local_scope_id);
@@ -613,7 +613,7 @@ struct CodegenContext : NodeErrorHandler {
           local_statement(node, symbol);
           break;
         case NodeType::LocalScope:
-          local_scope(LocalScope(node), *symbol.scopes[to_string(local_scope_id++)]);
+          local_scope(LocalScope(node), *symbol.child_scope(local_scope_id++));
           break;
         case NodeType::PipelineDecl:
           pipeline_decl(node, symbol);
@@ -814,12 +814,7 @@ struct CodegenContext : NodeErrorHandler {
             builder.curr = val.back().next();
           }
           match_if(Colon);
-          if (LocalScope body = switch_case.body(); body.front() == '{') {
-            local_scope(switch_case.body(), *scope.scopes[to_string(local_scope_id++)]);
-          }
-          else {
-            local_scope(switch_case.body(), *scope.scopes[to_string(local_scope_id++)]);
-          }
+          local_scope(switch_case.body(), *scope.child_scope(local_scope_id++));
           break;
         }
         case NodeType::Condition:
