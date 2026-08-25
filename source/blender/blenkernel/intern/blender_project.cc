@@ -9,6 +9,8 @@
 #include <mutex>
 #include <shared_mutex>
 
+#include "BKE_preferences.h"
+#include "BLI_listbase.hh"
 #include "RNA_types.hh"
 
 #include "BKE_blender_project.hh"
@@ -19,6 +21,9 @@
 #include "BLI_string.hh"
 #include "BLI_string_ref.hh"
 #include "BLI_string_utils.hh"
+
+#include "DNA_asset_types.h"
+#include "DNA_userdef_types.h"
 
 namespace blender {
 
@@ -406,14 +411,18 @@ bool BKE_blender_project_init(blender::StringRef name, blender::StringRef root_p
 
 void BKE_blender_project_clear()
 {
-  /* At the moment this function is quite anemic, and doesn't really justify
-   * being a separate function. However, as future milestones like
-   * project-specific addons and asset libraries are added, this will collect in
-   * one place the code for ensuring those things are properly unloaded when the
-   * active project is cleared. */
-
   bke::with_blender_project_write_lock([&] {
     std::optional<bke::BlenderProject> &project = get_project();
+
+    for (auto &user_library : U.asset_libraries.items_mutable()) {
+      if ((user_library.flag & ASSET_LIBRARY_PROJECT_DEFINED)) {
+        /* Usually we also poke some UI code when removing asset libraries.
+         * However this should be fine as the UI should be refreshed when
+         * we are in the process of clearing out the project data.
+         */
+        BKE_preferences_asset_library_remove(&U, &user_library);
+      }
+    }
 
     project = std::nullopt;
   });

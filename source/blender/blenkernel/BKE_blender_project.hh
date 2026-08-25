@@ -150,6 +150,8 @@ class BlenderProject {
  public:
   Vector<std::unique_ptr<ProjectVariable>> variables;
   int active_variable_index = 0;
+  /* The index of the selected project asset library in the UI. */
+  int active_asset_library_index;
 
   /**
    * Whether the project has unsaved changes.

@@ -5,7 +5,9 @@
 #include "AS_asset_catalog.hh"
 #include "AS_asset_library.hh"
 
+#include "BKE_global.hh"
 #include "BKE_gtest_base.hh"
+#include "BKE_main.hh"
 
 #include "asset_library_service.hh"
 
@@ -14,10 +16,22 @@
 namespace blender::asset_system::tests {
 
 class AssetLibraryTest : public bke::BlenderGTestBase {
- public:
+ protected:
+  Main *bmain;
+  void SetUp() override
+  {
+    /* G_MAIN is needed for variable expansion in asset library paths.
+     * IE {project_root}, {blend_name}, {blend_dir} etc.
+     */
+    bmain = BKE_main_new();
+    G_MAIN = bmain;
+  }
+
   void TearDown() override
   {
     asset_system::AssetLibraryService::destroy();
+    BKE_main_free(bmain);
+    G_MAIN = nullptr;
   }
 };
 

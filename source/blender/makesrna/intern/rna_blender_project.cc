@@ -6,6 +6,10 @@
  * \ingroup RNA
  */
 
+#include "DNA_userdef_types.h"
+
+#include "ED_userpref.hh"
+
 #include "RNA_access.hh"
 #include "RNA_define.hh"
 #include "RNA_enum_types.hh"
@@ -17,6 +21,7 @@
 
 #include "BLI_string_ref.hh"
 #include "BLI_string_utils.hh"
+#include "BLI_uuid.hh"
 
 #include "BLT_translation.hh"
 
@@ -468,6 +473,120 @@ static void rna_BlenderProject_is_dirty_set(PointerRNA *ptr, bool value)
   });
 }
 
+static bool skip_assetlist_item(CollectionPropertyIterator * /*iter*/, void *data)
+{
+  bUserAssetLibrary *asset_library = static_cast<bUserAssetLibrary *>(data);
+  return !(asset_library->flag & ASSET_LIBRARY_PROJECT_DEFINED);
+}
+
+static void rna_BlenderProject_asset_library_list_begin(CollectionPropertyIterator *iter,
+                                                        PointerRNA *ptr)
+{
+  rna_iterator_listbase_begin(iter, ptr, &U.asset_libraries, skip_assetlist_item);
+}
+
+static int rna_BlenderProject_active_asset_library_get(PointerRNA *ptr)
+{
+  int active_index;
+  bke::with_blender_project_read_lock([&] {
+    const bke::BlenderProject *project = static_cast<bke::BlenderProject *>(ptr->data);
+    active_index = project->active_asset_library_index;
+  });
+  return active_index;
+}
+
+static void rna_BlenderProject_active_asset_library_set(PointerRNA *ptr, int value)
+{
+  bke::with_blender_project_write_lock([&] {
+    bke::BlenderProject *project = static_cast<bke::BlenderProject *>(ptr->data);
+    project->active_asset_library_index = value;
+  });
+}
+
+static bUserAssetLibrary *rna_BlenderProject_asset_library_new(const bContext *C,
+                                                               const char *name,
+                                                               const char *directory,
+                                                               const char *uuid_str)
+{
+  bUserAssetLibrary *new_library;
+  Main *bmain = CTX_data_main(C);
+
+  BKE_blender_project_write_callback(bmain, [&](bke::BlenderProject *project) {
+    std::optional<UUID> uuid = {};
+    bool invalid_uuid = false;
+    if (uuid_str) {
+      try {
+        uuid = UUID(uuid_str);
+      }
+      catch (const std::runtime_error &e) {
+        invalid_uuid = true;
+      }
+    }
+
+    new_library = ED_userpref_asset_library_new(C,
+                                                name ? name : "",
+                                                directory ? directory : "",
+                                                bUserAssetLibraryAddType::Local,
+                                                true,
+                                                uuid,
+                                                {});
+    if (invalid_uuid) {
+      /* User passed an invalid UUID, disable the library and set the invalid_uuid string so we can
+       * notify the user about this in the UI.
+       */
+      new_library->flag |= ASSET_LIBRARY_DISABLED;
+      new_library->invalid_uuid = BLI_strdup(uuid_str);
+    }
+
+    int project_asset_index = -1;
+    for (bUserAssetLibrary &library : U.asset_libraries) {
+      if (library.flag & ASSET_LIBRARY_PROJECT_DEFINED) {
+        project_asset_index++;
+      }
+      if (&library == new_library) {
+        break;
+      }
+    }
+
+    project->active_asset_library_index = project_asset_index;
+    project->is_dirty = true;
+  });
+  /* Force full redraw of all windows. (No notifier to redraw just the project asset windows yet)
+   */
+  WM_main_add_notifier(NC_WINDOW, nullptr);
+  return new_library;
+}
+
+static void rna_BlenderProject_asset_library_remove(bContext *C,
+                                                    ReportList *reports,
+                                                    PointerRNA *ptr)
+{
+  bUserAssetLibrary *library = static_cast<bUserAssetLibrary *>(ptr->data);
+  Main *bmain = CTX_data_main(C);
+
+  BKE_blender_project_write_callback(bmain, [&](bke::BlenderProject *project) {
+    if (BLI_findindex(&U.asset_libraries, library) == -1) {
+      BKE_report(reports, RPT_ERROR, "Asset Library not found");
+      return;
+    }
+
+    ED_userpref_asset_library_remove(C, library);
+
+    int count_remaining = 0;
+    for (bUserAssetLibrary &library : U.asset_libraries) {
+      if (library.flag & ASSET_LIBRARY_PROJECT_DEFINED) {
+        count_remaining++;
+      }
+    }
+    CLAMP(project->active_asset_library_index, 0, count_remaining - 1);
+
+    ptr->invalidate();
+    project->is_dirty = true;
+  });
+  /* Force full redraw of all windows.(No notifier to redraw just the project asset windows yet) */
+  WM_main_add_notifier(NC_WINDOW, nullptr);
+}
+
 }  // namespace blender
 
 #else
@@ -531,7 +650,7 @@ static void rna_def_project_variable_float(BlenderRNA *brna)
   RNA_def_property_update(prop, 0, "rna_ProjectVariable_update");
 }
 
-void rna_def_project_variable(BlenderRNA *brna)
+static void rna_def_project_variable(BlenderRNA *brna)
 {
   StructRNA *srna;
   PropertyRNA *prop;
@@ -637,13 +756,51 @@ static void rna_def_ProjectVariables(BlenderRNA *brna, PropertyRNA *cprop)
   RNA_def_parameter_flags(parm, PropertyFlag(0), PARM_REQUIRED);
 }
 
+static void rna_def_project_asset_library(BlenderRNA *brna)
+{
+  StructRNA *srna;
+
+  srna = RNA_def_struct(brna, "ProjectAssetLibrary", "UserAssetLibrary");
+  RNA_def_struct_sdna(srna, "bUserAssetLibrary");
+  RNA_def_struct_ui_text(srna,
+                         "Project Asset Library",
+                         "Settings to define a reusable library for Asset Browsers to use");
+}
+
+static void rna_def_project_asset_library_collection(BlenderRNA *brna, PropertyRNA *cprop)
+{
+  StructRNA *srna;
+  FunctionRNA *func;
+  PropertyRNA *parm;
+
+  RNA_def_property_srna(cprop, "ProjectAssetLibraryCollection");
+  srna = RNA_def_struct(brna, "ProjectAssetLibraryCollection", nullptr);
+  RNA_def_struct_ui_text(srna, "Project Asset Libraries", "Collection of project asset libraries");
+
+  func = RNA_def_function(srna, "new", "rna_BlenderProject_asset_library_new");
+  RNA_def_function_flag(func, FUNC_NO_SELF | FUNC_USE_CONTEXT);
+  RNA_def_function_ui_description(func, "Add a new Project Asset Library");
+  RNA_def_string(func, "name", nullptr, sizeof(bUserAssetLibrary::name), "Name", "");
+  RNA_def_string(func, "directory", nullptr, sizeof(bUserAssetLibrary::dirpath), "Directory", "");
+  RNA_def_string(func, "uuid", nullptr, sizeof(bUserAssetLibrary::uuid), "UUID", "");
+  /* return type */
+  parm = RNA_def_pointer(func, "library", "ProjectAssetLibrary", "", "Newly added asset library");
+  RNA_def_function_return(func, parm);
+
+  func = RNA_def_function(srna, "remove", "rna_BlenderProject_asset_library_remove");
+  RNA_def_function_flag(func, FUNC_NO_SELF | FUNC_USE_CONTEXT | FUNC_USE_REPORTS);
+  RNA_def_function_ui_description(func, "Remove a Project Asset Library");
+  parm = RNA_def_pointer(func, "library", "ProjectAssetLibrary", "", "");
+  RNA_def_parameter_flags(parm, PROP_NEVER_NULL, PARM_REQUIRED | PARM_RNAPTR);
+  RNA_def_parameter_clear_flags(parm, PROP_THICK_WRAP, ParameterFlag(0));
+}
+
 static void rna_def_blender_project(BlenderRNA *brna)
 {
   StructRNA *srna = RNA_def_struct(brna, "BlenderProject", nullptr);
   RNA_def_struct_ui_text(srna, "Blender Project", "");
 
   PropertyRNA *prop;
-
   prop = RNA_def_property(srna, "is_dirty", PROP_BOOLEAN, PROP_NONE);
   RNA_def_property_boolean_funcs(
       prop, "rna_BlenderProject_is_dirty_get", "rna_BlenderProject_is_dirty_set");
@@ -687,6 +844,31 @@ static void rna_def_blender_project(BlenderRNA *brna)
                                     nullptr);
   RNA_def_property_ui_text(prop, "Project Variables", "The variables in this project");
   rna_def_ProjectVariables(brna, prop);
+
+  prop = RNA_def_property(srna, "asset_libraries", PROP_COLLECTION, PROP_NONE);
+  RNA_def_property_collection_funcs(prop,
+                                    "rna_BlenderProject_asset_library_list_begin",
+                                    "rna_iterator_listbase_next",
+                                    "rna_iterator_listbase_end",
+                                    "rna_iterator_listbase_get",
+                                    nullptr,
+                                    nullptr,
+                                    nullptr,
+                                    nullptr);
+  RNA_def_property_struct_type(prop, "ProjectAssetLibrary");
+  RNA_def_property_ui_text(prop, "Project Asset Libraries", "");
+
+  rna_def_project_asset_library_collection(brna, prop);
+  rna_def_project_asset_library(brna);
+
+  prop = RNA_def_property(srna, "active_asset_library", PROP_INT, PROP_NONE);
+  RNA_def_property_int_funcs(prop,
+                             "rna_BlenderProject_active_asset_library_get",
+                             "rna_BlenderProject_active_asset_library_set",
+                             nullptr);
+  RNA_def_property_ui_text(prop,
+                           "Active Asset Library",
+                           "Index of the asset library being edited in the Project Setup UI");
 }
 
 void RNA_def_blender_project(BlenderRNA *brna)

@@ -146,11 +146,6 @@ static void PREFERENCES_OT_autoexec_path_remove(wmOperatorType *ot)
 /** \name Add Asset Library Operator
  * \{ */
 
-enum class bUserAssetLibraryAddType {
-  Remote = 0,
-  Local = 1,
-};
-
 static wmOperatorStatus preferences_asset_library_add_exec(bContext *C, wmOperator *op)
 {
   const bUserAssetLibraryAddType library_type = bUserAssetLibraryAddType(
@@ -162,62 +157,29 @@ static wmOperatorStatus preferences_asset_library_add_exec(bContext *C, wmOperat
     RNA_property_string_get(op->ptr, prop, name);
   }
 
-  bUserAssetLibrary *new_library;
-
   switch (library_type) {
     case bUserAssetLibraryAddType::Local: {
       char *dirpath = RNA_string_get_alloc(op->ptr, "directory", nullptr, 0, nullptr);
-
-      BLI_path_slash_rstrip(dirpath);
-      if (!name[0]) {
-        BLI_path_split_file_part(dirpath, name, sizeof(name));
-      }
-      if (!name[0]) {
-        STRNCPY(name, DATA_("Local Asset Library"));
-      }
-
-      new_library = BKE_preferences_asset_library_add(&U, name, dirpath);
-
+      ED_userpref_asset_library_new(C, name, dirpath, library_type, false, {}, {});
       MEM_delete(dirpath);
       break;
     }
     case bUserAssetLibraryAddType::Remote: {
       char *remote_url = RNA_string_get_alloc(op->ptr, "remote_url", nullptr, 0, nullptr);
-      char *auth_token = RNA_string_get_alloc(op->ptr, "auth_token", nullptr, 0, nullptr);
+      char *auth_token_str = RNA_string_get_alloc(op->ptr, "auth_token", nullptr, 0, nullptr);
       const bool use_auth_token = RNA_boolean_get(op->ptr, "use_auth_token");
-
-      if (!name[0]) {
-        BKE_preferences_remote_to_name(remote_url, name);
+      std::optional<char *> auth_token = {};
+      if (use_auth_token) {
+        auth_token = auth_token_str;
       }
-      if (!name[0]) {
-        STRNCPY(name, DATA_("Remote Asset Library"));
-      }
-
-      new_library = BKE_preferences_remote_asset_library_add(
-          &U, name, remote_url, use_auth_token ? auth_token : nullptr);
-
+      ED_userpref_asset_library_new(C, name, remote_url, library_type, false, {}, auth_token);
       MEM_delete(remote_url);
-      MEM_delete(auth_token);
+      MEM_delete(auth_token_str);
       break;
     }
   }
 
-  /* Activate new library in the UI for further setup. */
-  if (const std::optional<int> new_active_idx =
-          userpref_ui_asset_libraries_index_from_user_library(*new_library))
-  {
-    U.active_asset_library = *new_active_idx;
-  }
   U.runtime.is_dirty = true;
-
-  if (new_library->flag & ASSET_LIBRARY_USE_REMOTE_URL) {
-    blender::asset_system::remote_library_request_download(*new_library);
-  }
-
-  /* There's no dedicated notifier for the Preferences. */
-  WM_main_add_notifier(NC_WINDOW, nullptr);
-  ed::asset::list::clear_all_library(C);
-
   return OPERATOR_FINISHED;
 }
 
@@ -410,28 +372,8 @@ static wmOperatorStatus preferences_asset_library_remove_exec(bContext *C, wmOpe
     return OPERATOR_CANCELLED;
   }
 
-  const bool use_remote_libraries = USER_EXPERIMENTAL_TEST(&U, use_remote_asset_libraries);
-  const bool is_remote_library = library->flag & ASSET_LIBRARY_USE_REMOTE_URL;
-
-  if (is_remote_library && !use_remote_libraries) {
-    /* This is a corner case, where the active library is a remote one, but remote libraries are
-     * not shown. This only happens right after disabling the experimental flag, which doesn't
-     * update the active library index, or when somebody set the active index via Python. Just
-     * pretend the deletion happened (because actually deleting hidden things is bad), and let the
-     * code below activate a non-remote (and so visible) library. */
-  }
-  else {
-    BKE_preferences_asset_library_remove(&U, library);
-  }
-
-  /* Update active library index to be in range. */
-  const int count_remaining = userpref_ui_asset_libraries_count();
-  CLAMP(U.active_asset_library, 0, count_remaining - 1);
+  ED_userpref_asset_library_remove(C, library);
   U.runtime.is_dirty = true;
-
-  ed::asset::list::clear_all_library(C);
-  /* Trigger refresh for the Asset Browser. */
-  WM_main_add_notifier(NC_SPACE | ND_SPACE_ASSET_PARAMS, nullptr);
 
   return OPERATOR_FINISHED;
 }

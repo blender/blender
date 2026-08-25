@@ -10,6 +10,7 @@
 
 #include "BKE_appdir.hh"
 #include "BKE_callbacks.hh"
+#include "BKE_global.hh"
 #include "BKE_gtest_base.hh"
 #include "BKE_main.hh"
 
@@ -27,6 +28,7 @@ class AssetLibraryServiceTest : public bke::BlenderGTestBase {
  public:
   CatalogFilePath asset_library_root_;
   CatalogFilePath temp_library_path_;
+  Main *bmain;
 
   void SetUp() override
   {
@@ -34,6 +36,13 @@ class AssetLibraryServiceTest : public bke::BlenderGTestBase {
     if (test_files_dir.empty()) {
       FAIL();
     }
+
+    /* G_MAIN is needed for variable expansion in asset library paths.
+     * IE {project_root}, {blend_name}, {blend_dir} etc.
+     */
+    bmain = BKE_main_new();
+    G_MAIN = bmain;
+
     asset_library_root_ = test_files_dir + SEP_STR + "asset_library";
     temp_library_path_ = "";
   }
@@ -46,6 +55,9 @@ class AssetLibraryServiceTest : public bke::BlenderGTestBase {
       BLI_delete(temp_library_path_.c_str(), true, true);
       temp_library_path_ = "";
     }
+
+    BKE_main_free(bmain);
+    G_MAIN = nullptr;
   }
 
   /* Register a temporary path, which will be removed at the end of the test.

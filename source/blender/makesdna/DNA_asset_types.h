@@ -59,6 +59,7 @@ enum eAssetLibrary_Flag : int {
   ASSET_LIBRARY_DISABLED = (1 << 1),
   ASSET_LIBRARY_USE_REMOTE_URL = (1 << 2),
   ASSET_LIBRARY_USE_AUTH_TOKEN = (1 << 3),
+  ASSET_LIBRARY_PROJECT_DEFINED = (1 << 4),
 };
 
 enum class AssetAccess : int8_t {

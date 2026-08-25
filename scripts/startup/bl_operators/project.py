@@ -51,6 +51,7 @@ PROJECT_DIR = ".blender_project"
 PROJECT_CONFIG = "project.toml"
 
 PROJECT_DEFAULT_NAME = "Untitled Project"
+ASSET_LIBRARY_DEFAULT_NAME = "Untitled Asset Library"
 
 
 # -------------------------------------------------------------
@@ -67,6 +68,15 @@ class VariableType(Enum):
 class VariableSubtype(Enum):
     NONE = 'NONE'
     FILEPATH = 'FILEPATH'
+
+
+@dataclass
+class AssetLibraryDefinition:
+    name: str
+    path: str
+    use_relative_path: bool
+    import_method: str
+    uuid: str | None = None
 
 
 @dataclass
@@ -145,6 +155,7 @@ class ProjectConfig:
     schema_version: int
     name: str
     variables: list[ProjectVariable] | None = None
+    asset_libraries: list[AssetLibraryDefinition] | None = None
 
     @staticmethod
     def new_from_real(project):
@@ -153,10 +164,28 @@ class ProjectConfig:
         if len(project.variables) > 0:
             variables = [ProjectVariable.new_from_real(var) for var in project.variables]
 
+        asset_list = None
+        if len(project.asset_libraries) > 0:
+            asset_list = []
+            for asset_lib in project.asset_libraries:
+                uuid_str = asset_lib.uuid
+                if not uuid_str:
+                    # No uuid string present, the uuid must be invalid
+                    uuid_str = asset_lib.invalid_uuid
+
+                asset_data = AssetLibraryDefinition(
+                    asset_lib.name,
+                    asset_lib.path,
+                    asset_lib.use_relative_path,
+                    asset_lib.import_method,
+                    uuid_str)
+                asset_list.append(asset_data)
+
         return ProjectConfig(
             schema_version=PROJECT_SCHEMA_VERSION,
             name=project.name,
             variables=variables,
+            asset_libraries=asset_list,
         )
 
     def populate_real(self, project):
@@ -164,6 +193,23 @@ class ProjectConfig:
         if self.variables is not None:
             for config_var in self.variables:
                 config_var.add_as_real(bpy.data.project.variables)
+
+        if self.asset_libraries is None:
+            return
+
+        # Populate the project asset libraries (if any)
+        for asset_lib in self.asset_libraries:
+            if asset_lib.uuid:
+                # Use the pre-generated UUID
+                lib = project.asset_libraries.new(name=asset_lib.name, directory=asset_lib.path, uuid=asset_lib.uuid)
+            else:
+                # Generate a new UUID for the asset library
+                lib = project.asset_libraries.new(name=asset_lib.name, directory=asset_lib.path)
+
+            if asset_lib.import_method:
+                lib.import_method = asset_lib.import_method
+            if asset_lib.use_relative_path:
+                lib.use_relative_path = asset_lib.use_relative_path
 
     def __post_init__(self):
         """Validation of invariants that cattrs doesn't check."""
@@ -297,6 +343,7 @@ def save_project(project, report=None):
 
     # Write the config TOML file.
     config_path = root_path.joinpath(PROJECT_DIR, PROJECT_CONFIG)
+
     try:
         with config_path.open(mode='wt') as f:
             f.write(config_toml)
@@ -685,6 +732,89 @@ class PROJECT_OT_MoveVariable(Operator):
         return {'FINISHED'}
 
 
+class PROJECT_OT_AssetLibraryAdd(Operator):
+    """
+    Register a directory to be used by the Asset Browser and other places showing assets,
+    as source of assets within the current project.
+    """
+    bl_idname = "project.asset_library_add"
+    bl_label = "Add Asset Library"
+    bl_options = {'INTERNAL'}
+
+    directory: bpy.props.StringProperty(
+        name="Asset Library Directory",
+        subtype='DIR_PATH',
+        default="",
+    )
+
+    filter_folder: bpy.props.BoolProperty(
+        name="Filter folders",
+        default=True,
+        options={'HIDDEN'},
+    )
+
+    @classmethod
+    def poll(cls, context):
+        return bpy.data.project is not None
+
+    def execute(self, context):
+        if self.directory == "":
+            self.report({'ERROR'}, "Cannot create an assset library with an empty directory path.")
+            return {'CANCELLED'}
+
+        # Create an initial name from the folder name
+        #
+        # If the folder name contains no valid unicode (resulting in an empty
+        # string after processing), we fallback to a default.
+        asset_library_path = os.path.normpath(self.directory)
+        asset_library_name = os.path.basename(asset_library_path).title() \
+            .encode('utf-8', 'surrogateescape') \
+            .decode('utf-8', 'ignore') \
+            or data_(ASSET_LIBRARY_DEFAULT_NAME)
+
+        # Replace base path with {project_root} if it is within the project folder.
+        root_path = bpy.data.project.root_path
+        if asset_library_path.startswith(root_path):
+            asset_library_path = "{project_root}" + asset_library_path[len(root_path):]
+        bpy.data.project.asset_libraries.new(name=asset_library_name, directory=asset_library_path)
+
+        return {'FINISHED'}
+
+    def invoke(self, context, event):
+        context.window_manager.fileselect_add(self)
+        return {'RUNNING_MODAL'}
+
+
+class PROJECT_OT_AssetLibraryRemove(Operator):
+    """
+    Deregister an asset library so that its directory will no longer show up in
+    Asset Browsers and other places showing assets.
+    """
+    bl_idname = "project.asset_library_remove"
+    bl_label = "Remove Project Asset Library"
+    bl_options = {'INTERNAL'}
+
+    index: bpy.props.IntProperty(
+        name="Index",
+        default=0,
+    )
+
+    @classmethod
+    def poll(cls, context):
+        if bpy.data.project is None:
+            return False
+        return len(bpy.data.project.asset_libraries) != 0
+
+    def execute(self, context):
+        if self.index >= len(bpy.data.project.asset_libraries):
+            return {'CANCELLED'}
+
+        library = bpy.data.project.asset_libraries[self.index]
+        bpy.data.project.asset_libraries.remove(library)
+
+        return {'FINISHED'}
+
+
 # -------------------------------------------------------------
 # Handler Callbacks
 #
@@ -762,6 +892,8 @@ classes = (
     PROJECT_OT_AddVariable,
     PROJECT_OT_RemoveVariable,
     PROJECT_OT_MoveVariable,
+    PROJECT_OT_AssetLibraryAdd,
+    PROJECT_OT_AssetLibraryRemove,
 )
 
 

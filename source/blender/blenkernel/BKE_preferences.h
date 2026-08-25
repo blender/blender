@@ -8,8 +8,11 @@
 
 #pragma once
 
+#include <optional>
+
 #include "BLI_compiler_attrs.hh"
 #include "BLI_sys_types.hh"
+#include "BLI_uuid.hh"
 
 namespace blender {
 
@@ -49,6 +52,11 @@ bool exists();
 struct bUserAssetLibrary *BKE_preferences_asset_library_add(struct UserDef *userdef,
                                                             const char *name,
                                                             const char *dirpath) ATTR_NONNULL(1);
+struct bUserAssetLibrary *BKE_preferences_project_asset_library_add(
+    struct UserDef *userdef,
+    const char *name,
+    const char *dirpath,
+    std::optional<UUID> uuid = std::nullopt);
 struct bUserAssetLibrary *BKE_preferences_remote_asset_library_add(struct UserDef *userdef,
                                                                    const char *name,
                                                                    const char *remote_url,
