@@ -38,6 +38,9 @@ target_link_libraries(msgfmt ${LIB})
 # If using an external manifest, copy it to the output directory after building.
 if(WITH_WINDOWS_EXTERNAL_MANIFEST)
   add_custom_command(TARGET msgfmt POST_BUILD
-    COMMAND ${CMAKE_COMMAND} -E copy ${CMAKE_BINARY_DIR}/tests.exe.manifest  $<TARGET_FILE_DIR:msgfmt>/$<TARGET_FILE_NAME:msgfmt>.manifest
+    COMMAND
+      ${CMAKE_COMMAND} -E copy
+      ${CMAKE_BINARY_DIR}/tests.exe.manifest
+      $<TARGET_FILE_DIR:msgfmt>/$<TARGET_FILE_NAME:msgfmt>.manifest
   )
 endif()

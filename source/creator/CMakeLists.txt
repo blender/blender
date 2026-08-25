@@ -938,16 +938,16 @@ if(UNIX AND NOT APPLE)
         install(
           DIRECTORY ${PYTHON_NUMPY_PATH}/numpy
           DESTINATION ${TARGETDIR_VER}/python/${_target_LIB}/python${PYTHON_VERSION}/${_suffix}
-          PATTERN "__pycache__" EXCLUDE           # * any cache *
-          PATTERN "*.pyc" EXCLUDE                 # * any cache *
-          PATTERN "*.pyo" EXCLUDE                 # * any cache *
-          PATTERN "oldnumeric" EXCLUDE            # ./oldnumeric
-          PATTERN "doc" EXCLUDE                   # ./doc
-          PATTERN "tests" EXCLUDE                 # ./tests
-          PATTERN "f2py" EXCLUDE                  # ./f2py - fortran/python interface code, not for blender.
-          PATTERN "include" EXCLUDE               # include dirs all over, we won't use NumPy/CAPI
-          PATTERN "*.h" EXCLUDE                   # some includes are not in include dirs
-          PATTERN "*.a" EXCLUDE                   # ./core/lib/libnpymath.a - for linking, we don't need.
+          PATTERN "__pycache__" EXCLUDE   # * any cache *
+          PATTERN "*.pyc" EXCLUDE         # * any cache *
+          PATTERN "*.pyo" EXCLUDE         # * any cache *
+          PATTERN "oldnumeric" EXCLUDE    # ./oldnumeric
+          PATTERN "doc" EXCLUDE           # ./doc
+          PATTERN "tests" EXCLUDE         # ./tests
+          PATTERN "f2py" EXCLUDE          # ./f2py - fortran/python interface code, not for blender.
+          PATTERN "include" EXCLUDE       # include dirs all over, we won't use NumPy/CAPI
+          PATTERN "*.h" EXCLUDE           # some includes are not in include dirs
+          PATTERN "*.a" EXCLUDE           # ./core/lib/libnpymath.a - for linking, we don't need.
         )
         install(
           DIRECTORY ${PYTHON_NUMPY_PATH}/Cython
@@ -1198,8 +1198,12 @@ elseif(WIN32)
       if(PDBCOPY_EXECUTABLE)
         add_custom_command(
           TARGET blender POST_BUILD
-          COMMAND ${CMAKE_COMMAND} -E rm -f ${CMAKE_CURRENT_BINARY_DIR}/${CMAKE_BUILD_TYPE}/blender_public.pdb
-          COMMAND ${PDBCOPY_EXECUTABLE} $<TARGET_PDB_FILE:blender> ${CMAKE_CURRENT_BINARY_DIR}/${CMAKE_BUILD_TYPE}/blender_public.pdb -p
+          COMMAND
+            ${CMAKE_COMMAND} -E
+            rm -f ${CMAKE_CURRENT_BINARY_DIR}/${CMAKE_BUILD_TYPE}/blender_public.pdb
+          COMMAND
+            ${PDBCOPY_EXECUTABLE} $<TARGET_PDB_FILE:blender>
+            ${CMAKE_CURRENT_BINARY_DIR}/${CMAKE_BUILD_TYPE}/blender_public.pdb -p
           COMMENT "Stripping PDB file..."
         )
       else()
@@ -1884,9 +1888,13 @@ if(WITH_PYTHON_MODULE AND LIBDIR AND NOT WIN32)
       DESTINATION ${TARGETDIR_SITE_PACKAGES}
     )
     if(APPLE)
-      set(_openvdb_filename openvdb.cpython-${PYTHON_VERSION_NO_DOTS}-darwin.so)
+      set(_openvdb_filename
+        openvdb.cpython-${PYTHON_VERSION_NO_DOTS}-darwin.so
+      )
     else()
-      set(_openvdb_filename openvdb.cpython-${PYTHON_VERSION_NO_DOTS}-${CMAKE_SYSTEM_PROCESSOR}-linux-gnu.so)
+      set(_openvdb_filename
+        openvdb.cpython-${PYTHON_VERSION_NO_DOTS}-${CMAKE_SYSTEM_PROCESSOR}-linux-gnu.so
+      )
     endif()
     install(
       FILES ${LIBDIR}/python/lib/python${PYTHON_VERSION}/site-packages/${_openvdb_filename}
