@@ -526,13 +526,15 @@ extern "C" int GHOST_HACK_getFirstFile(char buf[FIRSTFILEBUFLG])
  * Initialization / Finalization.
  */
 
-GHOST_SystemCocoa::GHOST_SystemCocoa()
+GHOST_SystemCocoa::GHOST_SystemCocoa(const bool background)
 {
   modifier_mask_ = 0;
   outside_loop_event_processed_ = false;
   need_delayed_application_become_active_event_processing_ = false;
 
   ignore_window_sized_messages_ = false;
+  background_mode_ = background;
+
   ignore_momentum_scroll_ = false;
   multi_touch_scroll_ = false;
   last_warp_timestamp_ = 0;
@@ -658,6 +660,12 @@ GHOST_TSuccess GHOST_SystemCocoa::init()
        * application without a macOS tab bar, and should explicitly opt-out of this.
        * This is also controlled by the macOS user default #NSWindowTabbingEnabled. */
       NSWindow.allowsAutomaticWindowTabbing = NO;
+
+      if (background_mode_) {
+        /* Do not display the application in the Dock when started in background-mode,
+         * without which the app icon would bounce indefinitely. */
+        [NSApp setActivationPolicy:NSApplicationActivationPolicyProhibited];
+      }
 
       [NSApp finishLaunching];
     }
