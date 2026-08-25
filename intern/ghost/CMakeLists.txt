@@ -454,6 +454,10 @@ elseif(WIN32)
     intern/GHOST_TrackpadWin32.hh
     intern/GHOST_WindowWin32.hh
     intern/GHOST_Wintab.hh
+
+    # Without these files listed, they aren't known to CMake.
+    ../../extern/wintab/include/pktdef.h
+    ../../extern/wintab/include/wintab.h
   )
 
   list(APPEND SRC

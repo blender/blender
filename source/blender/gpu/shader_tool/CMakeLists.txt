@@ -30,10 +30,12 @@ set(SRC
   template.cc
   union.cc
 
+  ast.hh
   enums.hh
   expression.hh
   intermediate.hh
   metadata.hh
+  pratt_parser.hh
   processor.hh
   scope.hh
   time_it.hh
@@ -56,9 +58,12 @@ set(SRC
   bsl/type_checker.cc
 
   bsl/diagnostic.hh
+  bsl/resource.hh
+  bsl/source_location.hh
   bsl/symbol_class.hh
   bsl/symbol_function.hh
   bsl/symbol_scope.hh
+  bsl/symbol_table.hh
   bsl/symbol_template.hh
   bsl/symbol_variable.hh
   bsl/type_checker.hh
