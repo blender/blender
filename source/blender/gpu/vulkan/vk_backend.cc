@@ -377,7 +377,7 @@ void VKBackend::supported_devices_print(FILE *fp)
   size_t w_id = strlen(col_id);
   for (const Row &row : rows) {
     char buf[16];
-    w_index = std::max(w_index, BLI_snprintf_rlen(buf, sizeof(buf), "%d", row.index));
+    w_index = std::max(w_index, SNPRINTF_RLEN(buf, "%d", row.index));
     w_id = std::max(w_id, row.identifier.size());
   }
 
@@ -744,7 +744,7 @@ Fence *VKBackend::fence_alloc()
   return new VKFence();
 }
 
-WorkInFlight *VKBackend::work_in_flight_alloc(unsigned int max_in_flight)
+WorkInFlight *VKBackend::work_in_flight_alloc(uint max_in_flight)
 {
   return new VKWorkInFlight(max_in_flight);
 }

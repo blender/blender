@@ -108,7 +108,7 @@ static void gpu_constant_populate_ubo(void *destination,
     case GPU_VEC4:
     case GPU_MAT4: {
       const Span<float> span = gpu_constant_to_float_span(data, type);
-      memcpy(destination, span.data(), static_cast<size_t>(span.size_in_bytes()));
+      memcpy(destination, span.data(), size_t(span.size_in_bytes()));
       return;
     }
     case GPU_INT:
@@ -116,7 +116,7 @@ static void gpu_constant_populate_ubo(void *destination,
     case GPU_INT3:
     case GPU_INT4: {
       const Span<int> span = gpu_constant_to_int_span(data, type);
-      memcpy(destination, span.data(), static_cast<size_t>(span.size_in_bytes()));
+      memcpy(destination, span.data(), size_t(span.size_in_bytes()));
       return;
     }
     case GPU_BOOL: {

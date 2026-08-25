@@ -1535,7 +1535,7 @@ static bool imb_exr_multi_read_single_pass(ExrReadHandle *handle, ImBuf *ibuf)
       combined = &info;
       break;
     }
-    if (rgb == nullptr && (info.chan_id == "RGBA" || info.chan_id == "RGB")) {
+    if (rgb == nullptr && ELEM(info.chan_id, "RGBA", "RGB")) {
       rgb = &info;
     }
   }

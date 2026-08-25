@@ -1380,7 +1380,7 @@ static void node_region_listener(const wmRegionListenerParams *params)
       ED_region_tag_redraw(region);
       break;
     case NC_OBJECT:
-      if (wmn->data == ND_OB_SHADING || wmn->data == ND_TRANSFORM) {
+      if (ELEM(wmn->data, ND_OB_SHADING, ND_TRANSFORM)) {
         ED_region_tag_redraw(region);
       }
       break;

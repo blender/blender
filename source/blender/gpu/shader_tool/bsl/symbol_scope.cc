@@ -464,7 +464,7 @@ void SymbolScope::print() const
     }
 
     /* Create indentation based on tree depth. */
-    int padding_size = max(0, 55 - static_cast<int>(loc.size()));
+    int padding_size = max(0, 55 - int(loc.size()));
     string padding(padding_size, ' ');
 
     cout << loc << padding;

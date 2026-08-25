@@ -949,9 +949,7 @@ void calc_grids_factors(const Depsgraph &depsgraph,
       }
 
       if (automasking.settings.flags & BRUSH_AUTOMASKING_FACE_SETS) {
-        if (automasking.settings.initial_face_set != face_set_none_id &&
-            grid_face_set != automasking.settings.initial_face_set)
-        {
+        if (!ELEM(automasking.settings.initial_face_set, face_set_none_id, grid_face_set)) {
           factors[node_vert] = 0.0f;
           continue;
         }

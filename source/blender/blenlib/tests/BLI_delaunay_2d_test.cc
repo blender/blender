@@ -1939,7 +1939,7 @@ template<typename T> void nonzero_winding_self_intersect_test()
    * mapped from one of the four input vertices. */
   int v_int = -1;
   for (int i = 0; i < int(out_evenodd.vert.size()); i++) {
-    if (i != verts[0] && i != verts[1] && i != verts[2] && i != verts[3]) {
+    if (!ELEM(i, verts[0], verts[1], verts[2], verts[3])) {
       v_int = i;
       break;
     }

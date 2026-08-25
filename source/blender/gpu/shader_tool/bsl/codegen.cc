@@ -1333,7 +1333,7 @@ struct CodegenContext : NodeErrorHandler {
     size_t n = index + 1;
     while (n > 0) {
       n--; /* Map 0-25 to 'a'-'z'. */
-      name += static_cast<char>('a' + (n % 26));
+      name += char('a' + (n % 26));
       n /= 26;
     }
     return name;
