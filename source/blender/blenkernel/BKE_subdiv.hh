@@ -8,6 +8,9 @@
 
 #pragma once
 
+#include "BKE_attribute_math.hh"
+#include "BKE_mesh.hh"
+
 #include "BLI_array.hh"
 #include "BLI_compiler_compat.hh"
 #include "BLI_math_vector_types.hh"
@@ -360,6 +363,66 @@ BLI_INLINE void rotate_grid_to_quad(
 /** Convert Blender edge crease value to OpenSubdiv sharpness. */
 BLI_INLINE float crease_to_sharpness(float crease);
 BLI_INLINE float sharpness_to_crease(float sharpness);
+
+BLI_INLINE float4 quad_weights_from_uv(float u, float v);
+
+/**
+ * Calculate the subdivided quad PTEX face interpolated attribute data.
+ *
+ * \return An array of four elements, in the order of: 1) specified corner, 2) interpolated value
+ * at midpoint of edge connecting to next corner, 3) interpolated value at midpoint of polygon,
+ * 4) interpolated value at midpoint of edge connecting to previous corner.
+ *
+ * \note This logic closely matches the behavior of #subdiv_mesh_ensure_loop_interpolation in
+ * `subdiv_mesh.cc` to determine the PTex attributes.
+ */
+template<typename T>
+std::array<T, 4> interpolate_vert_data_for_subdivided_irregular_face(Span<int> corner_verts,
+                                                                     IndexRange face,
+                                                                     int corner,
+                                                                     Span<T> src)
+{
+  std::array<T, 4> values;
+  values[0] = src[corner_verts[corner]];
+
+  /* Calculate attribute value at midpoint of connecting edge. */
+  const int next = mesh::face_corner_next(face, corner);
+  values[1] = attribute_math::mix2(0.5f, src[corner_verts[corner]], src[corner_verts[next]]);
+
+  /* Calculate attribute value at center of polygon. */
+  values[2] = attribute_math::mix_indices(src, corner_verts.slice(face));
+
+  /* Calculate attribute value at midpoint of connecting edge. */
+  const int prev = mesh::face_corner_prev(face, corner);
+  values[3] = attribute_math::mix2(0.5f, src[corner_verts[corner]], src[corner_verts[prev]]);
+  return values;
+}
+
+template<typename T>
+std::array<T, 4> interpolate_corner_data_for_subdivided_irregular_face(IndexRange face,
+                                                                       int corner,
+                                                                       Span<T> src)
+{
+  std::array<T, 4> values;
+  values[0] = src[corner];
+
+  /* Calculate attribute value at midpoint of connecting edge. */
+  const int next = mesh::face_corner_next(face, corner);
+  values[1] = attribute_math::mix2(0.5f, src[corner], src[next]);
+
+  Array<int, 32> indices(face.size());
+  for (int i = 0; i < face.size(); i++) {
+    indices[i] = face.first() + i;
+  }
+
+  /* Calculate attribute value at center of polygon. */
+  values[2] = attribute_math::mix_indices(src, indices);
+
+  /* Calculate attribute value at midpoint of connecting edge. */
+  const int prev = mesh::face_corner_prev(face, corner);
+  values[3] = attribute_math::mix2(0.5f, src[corner], src[prev]);
+  return values;
+}
 
 /** \} */
 

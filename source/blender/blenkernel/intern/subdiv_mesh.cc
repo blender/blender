@@ -915,11 +915,6 @@ static void subdiv_vert_data_copy(const SubdivMeshContext *ctx,
   }
 }
 
-static float4 quad_weights_from_uv(const float u, const float v)
-{
-  return {(1.0f - u) * (1.0f - v), u * (1.0f - v), u * v, (1.0f - u) * v};
-}
-
 static void subdiv_vert_data_interpolate(const SubdivMeshContext *ctx,
                                          const int subdiv_vert_index,
                                          VerticesForInterpolation *vert_interpolation,
