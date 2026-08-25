@@ -145,6 +145,7 @@ Environment Variables
    * PYTHON:                Use this for the Python command (used for checking tools).
    * NPROCS:                Number of processes to use building (auto-detect when omitted).
    * AUTOPEP8:              Command used for Python code-formatting (used for the format target).
+   * ANDROID_NDK_ROOT:		NDK root directory for Android builds, auto-detected if not provided.
 
 Documentation Targets
    Not associated with building Blender.
@@ -195,48 +196,36 @@ BLENDER_DIR:=$(shell pwd -P)
 BUILD_TYPE:=Release
 BLENDER_IS_PYTHON_MODULE:=
 
-# Android cross-compilation
+# Android cross-compilation.
 ifneq "$(findstring android, $(MAKECMDGOALS))" ""
-	ifndef ANDROID_NDK_ROOT
-#$(error The ANDROID_NDK_ROOT environment variable is required for Android builds)
-		ANDROID_NDK_ROOT:=$(lastword $(sort $(wildcard $(HOME)/Library/Android/sdk/ndk/*)))
-	endif
-
- 	ifndef ANDROID_ABI
- 		# The only ABI we directly support (64-bit ARM CPUs).
- 		ANDROID_ABI:=arm64-v8a
- 	endif
-
- 	ifndef ANDROID_MINSDKVERSION
- 		# Set to API level 29, minimum set to Android 10. See https://apilevels.com.
- 		# Used to be 23 (min Android 6.0), bumped to 28 to support C11 aligned_alloc required by OpenJPH.
- 		# It might be possible to lower it back down by patching OpenJPH.
- 		# Used to be 28 (min Android 9.0), bumped to 29 to support timespec_get for BLI's uuid.cc.
- 		# It should be possible to lower it back down by adding an ifdef switch in uuid.cc
- 		ANDROID_MINSDKVERSION = 29
- 	endif
-
- 	# Path to host deps build directory, needed to execute native tools during cross-compilation.
-	HOST_DEPS_BUILD_DIR:=$(shell dirname "$(BLENDER_DIR)")/build_$(HOST_OS_NCASE)/deps_$(HOST_CPU)
-
 	TARGET_OS:=Android
 	TARGET_OS_NCASE:=android
 	TARGET_CPU:=arm64
 
-	CMAKE_CROSSCOMPILE_CONFIG_ARGS:=-DCMAKE_TOOLCHAIN_FILE=$(ANDROID_NDK_ROOT)/build/cmake/android.toolchain.cmake \
-									-DANDROID_ABI=$(ANDROID_ABI) \
-									-DANDROID_PLATFORM=android-${ANDROID_MINSDKVERSION} \
-									-DANDROID_STL=c++_shared \
-									-DHOST_DEPS_BUILD_DIR=$(HOST_DEPS_BUILD_DIR)
+	ANDROID_TOOLCHAIN_FILE:=$(BLENDER_DIR)/build_files/cmake/platform/platform_android_toolchain.cmake
+
+	CMAKE_CROSSCOMPILE_CONFIG_ARGS:=-DCMAKE_TOOLCHAIN_FILE=$(ANDROID_TOOLCHAIN_FILE)
+
+	ifdef ANDROID_NDK_ROOT
+		CMAKE_CROSSCOMPILE_CONFIG_ARGS:=$(CMAKE_CROSSCOMPILE_CONFIG_ARGS) \
+										-DANDROID_NDK_ROOT=$(ANDROID_NDK_ROOT)
+	endif
 endif
 
 # Use our OS and CPU architecture naming conventions.
+ifeq ($(HOST_CPU),x86_64)
+	HOST_CPU:=x64
+endif
 ifeq ($(TARGET_CPU),x86_64)
 	TARGET_CPU:=x64
+endif
+ifeq ($(HOST_CPU),aarch64)
+	HOST_CPU:=arm64
 endif
 ifeq ($(TARGET_CPU),aarch64)
 	TARGET_CPU:=arm64
 endif
+
 ifeq ($(TARGET_OS_NCASE),darwin)
 	OS_LIBDIR:=macos
 else
@@ -490,13 +479,19 @@ ifneq "$(filter clean, $(MAKECMDGOALS))" ""
 	DEPS_TARGET = clean
 endif
 
+# Path to host deps build directory, needed to execute native tools during cross-compilation.
+HOST_DEPS_BUILD_DIR:=$(shell dirname "$(BLENDER_DIR)")/build_$(HOST_OS_NCASE)/deps_$(HOST_CPU)
+
+CMAKE_DEPS_CROSSCOMPILE_CONFIG_ARGS:=$(CMAKE_CROSSCOMPILE_CONFIG_ARGS) \
+									 -DHOST_DEPS_BUILD_DIR=$(HOST_DEPS_BUILD_DIR)
+
 # Set the SOURCE_DATE_EPOCH to make builds reproducible (locks timestamps to the specified date).
 deps: export SOURCE_DATE_EPOCH = 1745584760
 deps: .FORCE
 	@echo
 	@echo Configuring dependencies in \"$(DEPS_BUILD_DIR)\", install to \"$(DEPS_INSTALL_DIR)\"
 
-	@cmake $(CMAKE_CROSSCOMPILE_CONFIG_ARGS) \
+	@cmake $(CMAKE_DEPS_CROSSCOMPILE_CONFIG_ARGS) \
 	       -S"$(DEPS_SOURCE_DIR)" \
 	       -B"$(DEPS_BUILD_DIR)" \
 	       -DHARVEST_TARGET=$(DEPS_INSTALL_DIR)
@@ -513,6 +508,7 @@ deps: .FORCE
 # Cross-compilation targets
 
 android: .FORCE
+	@echo "Building for Android from host $(HOST_OS)."
 
 
 # -----------------------------------------------------------------------------
