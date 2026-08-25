@@ -29,6 +29,9 @@ static void node_init(bNodeTree * /*ntree*/, bNode *node)
 
 static void node_init_api(const bContext *C, PointerRNA * /*node_pointer*/)
 {
+  if (!C) {
+    return;
+  }
   BKE_image_ensure_viewer(CTX_data_main(C), IMA_TYPE_COMPOSITE, "Viewer Node");
 }
 
