@@ -1874,7 +1874,7 @@ void WeightPaintStroke::update_step(wmOperator * /*op*/, PointerRNA *itemptr)
    * also needed for "Frame Selected" on last stroke. */
   float loc_world[3];
   mul_v3_m4v3(loc_world, ob->object_to_world().ptr(), ss.cache->location);
-  vwpaint::last_stroke_update(loc_world, wp.paint);
+  bke::paint::stroke_track_location(*this->paint, loc_world);
 
   BKE_mesh_batch_cache_dirty_tag(&mesh, BKE_MESH_BATCH_DIRTY_ALL);
 

@@ -202,9 +202,7 @@ void cache_init(bContext *C,
 
     mul_m4_v3(ob.object_to_world().ptr(), co);
 
-    add_v3_v3(paint_runtime->average_stroke_accum, co);
-    paint_runtime->average_stroke_counter++;
-    paint_runtime->last_stroke_valid = true;
+    bke::paint::stroke_track_location(sd.paint, co);
   }
   else {
     /* Use last normal. */

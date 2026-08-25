@@ -52,5 +52,4 @@ void update_cache_variants(
     Depsgraph &depsgraph, ViewContext &vc, VPaint &vp, Object &ob, Base &base, PointerRNA *ptr);
 /** Initialize the stroke cache invariants from operator properties. */
 void update_cache_invariants(VPaint &vp, SculptSession &ss, wmOperator *op, const float mval[2]);
-void last_stroke_update(const float location[3], Paint &paint);
 }  // namespace blender::ed::sculpt_paint::vwpaint

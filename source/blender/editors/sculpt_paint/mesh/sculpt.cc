@@ -3793,11 +3793,7 @@ static void do_brush_action(const Depsgraph &depsgraph,
   /* Update average stroke position. */
   const float3 world_location = math::project_point(ob.object_to_world(), ss.cache->location);
 
-  bke::PaintRuntime &paint_runtime = *sd.paint.runtime;
-  add_v3_v3(paint_runtime.average_stroke_accum, world_location);
-  paint_runtime.average_stroke_counter++;
-  /* Update last stroke position. */
-  paint_runtime.last_stroke_valid = true;
+  bke::paint::stroke_track_location(sd.paint, world_location);
 }
 
 void cache_calc_brushdata_symm(StrokeCache &cache,

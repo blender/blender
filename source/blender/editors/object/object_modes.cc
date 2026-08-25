@@ -450,9 +450,7 @@ static void object_transfer_mode_reposition_view_pivot(ARegion *region,
     return;
   }
   bke::PaintRuntime *paint_runtime = paint->runtime;
-  copy_v3_v3(paint_runtime->average_stroke_accum, global_loc);
-  paint_runtime->average_stroke_counter = 1;
-  paint_runtime->last_stroke_valid = true;
+  bke::paint::stroke_set_location(*paint, float3(global_loc));
 }
 
 constexpr float mode_transfer_flash_length = 0.55f;

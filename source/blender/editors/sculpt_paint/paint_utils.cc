@@ -112,9 +112,7 @@ void paint_init_pivot(Object *ob, Scene *scene, Paint *paint)
 
   mul_m4_v3(ob->object_to_world().ptr(), location);
 
-  paint_runtime.last_stroke_valid = true;
-  paint_runtime.average_stroke_counter = 1;
-  copy_v3_v3(paint_runtime.average_stroke_accum, location);
+  bke::paint::stroke_set_location(*paint, location);
 }
 
 float paint_calc_object_space_radius(const ViewContext &vc,

@@ -361,7 +361,7 @@ std::optional<Bounds<float3>> view3d_calc_minmax_selected(Depsgraph *depsgraph,
       mode = PaintMode::Texture3D;
     }
     Paint *paint = BKE_paint_get_active_from_paintmode(scene, mode);
-    BKE_paint_stroke_get_average(paint, ob_eval, min);
+    min = bke::paint::stroke_get_average(paint, ob_eval);
     copy_v3_v3(max, min);
     changed = true;
     *r_do_zoom = false;
