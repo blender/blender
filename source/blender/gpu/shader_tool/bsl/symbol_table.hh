@@ -32,7 +32,7 @@ struct SymbolScope;
 
 struct SymbolTable {
 
-  static constexpr string err_symbol = "ERROR_SYMBOL";
+  static constexpr const char *err_symbol = "ERROR_SYMBOL";
 
   template<typename T> struct Allocator {
    private:
@@ -111,7 +111,7 @@ struct SymbolTable {
 
   unordered_map<int, string> image_formats;
 
-  static constexpr string subscript_operator_id = "arr_op_";
+  static constexpr const char *subscript_operator_id = "arr_op_";
 
   template<typename SymbolT> SymbolT *alloc(SymbolT &&sym);
 

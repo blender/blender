@@ -44,7 +44,7 @@ struct SymbolFunction : SymbolScope {
 
   /* Identifier of the temporary return variable.
    * The real identifier is then specialized per instantiation. */
-  static constexpr string inline_fn_ret_id = "_r";
+  static constexpr const char *inline_fn_ret_id = "_r";
 
   enum Type { STATIC, MEMBER, GLOBAL } fn_type;
   enum class EntryPointType { FRAG, VERT, COMP, NONE } entry_point_type;
