@@ -1540,6 +1540,22 @@ void BKE_mask_parent_init(MaskParent *parent)
 /* *** animation/shape-key implementation ***
  * BKE_mask_layer_shape_XXX */
 
+bool BKE_mask_layer_is_animated(MaskLayer &mask_layer)
+{
+  /* At least two spline shapes are needed for an animation. */
+  return !mask_layer.splines_shapes.is_empty() && !mask_layer.splines_shapes.is_single();
+}
+
+bool BKE_mask_is_animated(Mask &mask)
+{
+  for (MaskLayer &mask_layer : mask.masklayers) {
+    if (BKE_mask_layer_is_animated(mask_layer)) {
+      return true;
+    }
+  }
+  return false;
+}
+
 int BKE_mask_layer_shape_totvert(MaskLayer *masklay)
 {
   int tot = 0;

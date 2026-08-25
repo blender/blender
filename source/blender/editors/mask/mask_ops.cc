@@ -916,7 +916,7 @@ static wmOperatorStatus slide_point_modal(bContext *C, wmOperator *op, const wmE
         /* Don't key sliding feather UW's. */
         if ((data->action == SLIDE_ACTION_FEATHER && data->uw) == false) {
           if (animrig::is_autokey_on(scene)) {
-            ED_mask_layer_shape_auto_key(data->mask_layer, scene->r.cfra);
+            ED_mask_layer_shape_auto_key(C, data->mask_layer, scene->r.cfra);
           }
         }
 
@@ -1333,7 +1333,7 @@ static wmOperatorStatus slide_spline_curvature_modal(bContext *C,
       if (event->type == slide_data->event_invoke_type && event->val == KM_RELEASE) {
         /* Don't key sliding feather UW's. */
         if (animrig::is_autokey_on(scene)) {
-          ED_mask_layer_shape_auto_key(slide_data->mask_layer, scene->r.cfra);
+          ED_mask_layer_shape_auto_key(C, slide_data->mask_layer, scene->r.cfra);
         }
 
         WM_event_add_notifier(C, NC_MASK | NA_EDITED, slide_data->mask);
@@ -1620,7 +1620,7 @@ static wmOperatorStatus mask_switch_direction_exec(bContext *C, wmOperator * /*o
 
     if (changed_layer) {
       if (animrig::is_autokey_on(scene)) {
-        ED_mask_layer_shape_auto_key(&mask_layer, scene->r.cfra);
+        ED_mask_layer_shape_auto_key(C, &mask_layer, scene->r.cfra);
       }
     }
   }
@@ -1682,7 +1682,7 @@ static wmOperatorStatus mask_normals_make_consistent_exec(bContext *C, wmOperato
 
     if (changed_layer) {
       if (animrig::is_autokey_on(scene)) {
-        ED_mask_layer_shape_auto_key(&mask_layer, scene->r.cfra);
+        ED_mask_layer_shape_auto_key(C, &mask_layer, scene->r.cfra);
       }
     }
   }
