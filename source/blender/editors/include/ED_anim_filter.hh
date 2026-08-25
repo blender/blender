@@ -174,7 +174,7 @@ class AnimationChannel : public DNAAnimationChannel {
   AnimationChannel(DNAChannelType type, StringRef label);
   AnimationChannel(const AnimationChannel &other);
   AnimationChannel(AnimationChannel &&other);
-  ~AnimationChannel();
+  virtual ~AnimationChannel();
 
   int64_t hash() const
   {
@@ -202,12 +202,14 @@ class AnimationChannel : public DNAAnimationChannel {
 
 /* This is the class responsible for generating the tree structure. Each channel only tracks its
  * children, which allows us to generate multiple summary trees for the same data channels. */
-class SummaryChannel : public AnimationChannel {
+class SummaryChannel final : public AnimationChannel {
   Vector<AnimationChannel *> children_;
 
  public:
   SummaryChannel(StringRef label);
   SummaryChannel(StringRef label, const WeakRNAPointer &ptr);
+  ~SummaryChannel() final = default;
+
   /**
    * The pointer will always be valid.
    */
@@ -228,7 +230,7 @@ enum class DataChannelType {
   GREASE_PENCIL,
 };
 
-class DataChannel : public AnimationChannel {
+class DataChannel final : public AnimationChannel {
   /* While this could read the AnimationChannel::source_ for its type, the RNA types can't be put
    * into a switch statement which is why I (christoph) ended up keeping this. */
   DataChannelType source_type_;
@@ -238,6 +240,8 @@ class DataChannel : public AnimationChannel {
  public:
   DataChannel(animrig::Action &containing_action, FCurve &fcurve);
   DataChannel(GreasePencil &containing_gp, GreasePencilLayer &gp_layer);
+  ~DataChannel() final = default;
+
   bool operator==(const DataChannel &other) const
   {
     /* TODO compare data instead of pointers. */
@@ -282,7 +286,8 @@ void collect_animation_channels(const bContext &C,
                                 const CollectionFilters &collection_filters,
                                 Vector<DataChannel *> &r_channels);
 
-struct ChannelTree {
+class ChannelTree {
+ public:
   /* TODO make this a reference, at least the summary channel should be created, even if there are
    * no children. */
   SummaryChannel *root;

@@ -4707,7 +4707,7 @@ static void ANIM_OT_channels_click(wmOperatorType *ot)
   RNA_def_property_flag(prop, PROP_SKIP_SAVE);
 }
 
-static wmOperatorStatus channel_pin_exec(bContext *C, wmOperator *op)
+static wmOperatorStatus channel_pin_exec(bContext * /*C*/, wmOperator * /*op*/)
 {
   if (!USER_EXPERIMENTAL_TEST(&U, use_new_animfilter)) {
     return OPERATOR_CANCELLED;
@@ -4717,7 +4717,7 @@ static wmOperatorStatus channel_pin_exec(bContext *C, wmOperator *op)
   return OPERATOR_FINISHED;
 }
 
-static bool channel_pin_poll(bContext *C)
+static bool channel_pin_poll(bContext * /*C*/)
 {
   return USER_EXPERIMENTAL_TEST(&U, use_new_animfilter);
 }
