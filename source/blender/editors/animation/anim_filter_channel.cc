@@ -73,33 +73,30 @@ ChannelTag::ChannelTag(const ChannelTagType type,
 {
 }
 
-AnimationChannel::AnimationChannel(const DNAChannelType type, const StringRef label)
+AnimationChannel::AnimationChannel(const AnimationChannelType type, const StringRef label)
+    : type_(type), label_(label)
 {
-  type_ = type;
-  label_ = BLI_strdup(label.data());
 }
 
 AnimationChannel::AnimationChannel(const AnimationChannel &other)
+    : type_(other.type_),
+      /* Mark as dirty so that data points don't have to be copied. */
+      flags_(other.flags_ | ANIM_CHANNEL_DIRTY),
+      label_(other.label_),
+      weak_source_(other.weak_source_)
 {
-  /* TODO copy all properties? */
-  type_ = other.type_;
-  label_ = BLI_strdup(other.label_);
-  weak_source_ = other.weak_source_;
-}
-AnimationChannel::AnimationChannel(AnimationChannel &&other)
-{
-  type_ = other.type_;
-  /* TODO is there a way to only do this for label_? */
-  label_ = other.label_;
-  other.label_ = nullptr;
-  weak_source_ = std::move(other.weak_source_);
 }
 
-AnimationChannel::~AnimationChannel()
+AnimationChannel::AnimationChannel(AnimationChannel &&other)
+    : type_(other.type_),
+      flags_(other.flags_),
+      label_(std::move(other.label_)),
+      weak_source_(std::move(other.weak_source_)),
+      datapoints_(std::move(other.datapoints_))
 {
-  /* TODO should this be handled differently? Currently this is only freed via the C++ route but
-   * the property is on the C base class. */
-  MEM_delete(label_);
+  /* Reset the non-std::move'd fields. */
+  other.type_ = AnimationChannelType::UNKNOWN;
+  other.flags_ = ANIM_CHANNEL_DIRTY;
 }
 
 Span<KeyPoint> AnimationChannel::datapoints()
@@ -112,12 +109,12 @@ Span<KeyPoint> AnimationChannel::datapoints()
 }
 
 SummaryChannel::SummaryChannel(const StringRef label)
-    : AnimationChannel(DNAChannelType::SUMMARY, label)
+    : AnimationChannel(AnimationChannelType::SUMMARY, label)
 {
 }
 
 SummaryChannel::SummaryChannel(const StringRef label, const WeakRNAPointer &ptr)
-    : AnimationChannel(DNAChannelType::SUMMARY, label)
+    : AnimationChannel(AnimationChannelType::SUMMARY, label)
 {
   this->weak_source_ = ptr;
 }
@@ -202,14 +199,14 @@ void SummaryChannel::remove_child(AnimationChannel &child)
 }
 
 DataChannel::DataChannel(animrig::Action &containing_action, FCurve &fcurve)
-    : AnimationChannel(DNAChannelType::DATA, fcurve.rna_path()),
+    : AnimationChannel(AnimationChannelType::DATA, fcurve.rna_path()),
       source_type_(DataChannelType::FCURVE)
 {
   this->weak_source_ = RNA_pointer_create_discrete(&containing_action.id, RNA_FCurve, &fcurve);
 }
 
 DataChannel::DataChannel(GreasePencil &containing_gp, GreasePencilLayer &gp_layer)
-    : AnimationChannel(DNAChannelType::DATA, "todo gp layer name"),
+    : AnimationChannel(AnimationChannelType::DATA, "todo gp layer name"),
       source_type_(DataChannelType::GREASE_PENCIL)
 {
   this->weak_source_ = RNA_pointer_create_discrete(

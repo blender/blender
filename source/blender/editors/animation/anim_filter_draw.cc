@@ -49,7 +49,7 @@ class ChannelTreeView : public ui::AbstractTreeView {
   {
     for (AnimationChannel *channel : channels) {
       ChannelItem &item = parent.add_tree_item<ChannelItem>(*channel);
-      if (channel->type() == DNAChannelType::SUMMARY) {
+      if (channel->type() == AnimationChannelType::SUMMARY) {
         SummaryChannel *summary = static_cast<SummaryChannel *>(channel);
         add_channel_children(item, summary->children());
       }
@@ -86,7 +86,7 @@ static void draw_channel(const bContext &C,
   ui::fontstyle_draw_simple(
       UI_FSTYLE_WIDGET, level * indent_per_level, row_top, anim_channel.label().data(), col);
 
-  if (anim_channel.type() == DNAChannelType::SUMMARY) {
+  if (anim_channel.type() == AnimationChannelType::SUMMARY) {
     // SummaryChannel &summary = reinterpret_cast<SummaryChannel &>(anim_channel);
     /* For some reason this can't be clicked. */
     /* ui::uiDefIconButBit(block,
@@ -119,7 +119,7 @@ static float draw_channel_tree_recurse(const bContext &C,
   draw_channel(C, anim_channel, level, row_top);
   row_top -= channel_step;
 
-  if (anim_channel.type() == DNAChannelType::SUMMARY) {
+  if (anim_channel.type() == AnimationChannelType::SUMMARY) {
     SummaryChannel &summary = reinterpret_cast<SummaryChannel &>(anim_channel);
     for (AnimationChannel *child : summary.children()) {
       row_top = draw_channel_tree_recurse(C, *child, level + 1, row_top, channel_step);
@@ -199,7 +199,7 @@ static float draw_keys_recurse(const bContext &C,
   draw_channel_keys(channel, row_top - channel_step / 2.0, v2d);
   row_top -= channel_step;
 
-  if (channel.type() == DNAChannelType::SUMMARY) {
+  if (channel.type() == AnimationChannelType::SUMMARY) {
     /* TODO ignore if channel is collapsed. */
     SummaryChannel *summary = static_cast<SummaryChannel *>(&channel);
     for (AnimationChannel *child : summary->children()) {
@@ -226,7 +226,7 @@ static float draw_key_area_background_recurse(const bContext &C,
            row_top - channel_step + skip / 2.0);
 
   row_top -= channel_step;
-  if (channel.type() == DNAChannelType::SUMMARY) {
+  if (channel.type() == AnimationChannelType::SUMMARY) {
     /* TODO ignore if channel is collapsed. */
     SummaryChannel *summary = static_cast<SummaryChannel *>(&channel);
     for (AnimationChannel *child : summary->children()) {

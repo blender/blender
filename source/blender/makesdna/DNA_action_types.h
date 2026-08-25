@@ -1127,7 +1127,8 @@ struct bAction {
 
 /* Ugly prefixes due to lack of namespaces */
 
-enum class DNAChannelType : int8_t {
+enum class AnimationChannelType : int8_t {
+  UNKNOWN = 0,
   DATA,
   SUMMARY,
 };
@@ -1141,12 +1142,12 @@ ENUM_OPERATORS(AnimationChannelFlags);
  * UI element for animation data. Only used for serializing. During runtime
  * blender::ed::animfilter::AnimationChannel should be used instead.
  */
-struct DNAAnimationChannel {
+struct AnimationChannelPin {
   /* We can write the actual pointer to disk because we can guarantee it won't become dangly
    * between write and read. That assumes that it is valid at the time of writing. */
   void *source_ = nullptr;
   char *label_;
-  DNAChannelType type_;
+  AnimationChannelType type_;
   AnimationChannelFlags flags_ = ANIM_CHANNEL_DIRTY;
   char _pad[6];
 };
@@ -1156,7 +1157,7 @@ struct bDopeSheet {
   /** Currently ID_SCE (for Dope-sheet), and ID_SC (for Grease Pencil). */
   ID *source = nullptr;
   /* Array of pinned channels */
-  struct DNAAnimationChannel *pins = nullptr;
+  struct AnimationChannelPin *pins = nullptr;
   int pins_len = 0;
   char _pad[4];
 

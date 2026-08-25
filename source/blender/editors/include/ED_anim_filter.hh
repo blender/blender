@@ -8,6 +8,7 @@
 
 #include <iostream>
 
+#include "BKE_main.hh"
 #include "float.h"
 
 #include "BLI_set.hh"
@@ -35,17 +36,18 @@ struct WeakRNAPointer {
   /* Only used as fallback in case the session_uid has changed which happens on file load. Has to
    * be a copy of the name so we don't access memory of the original struct. */
   std::string id_name;
-  /* `path` can be empty when pointing at IDs
+  /* `path` can be empty when pointing at IDs.
    * Could this use ParsedRNAPath? So far there seems to be no API to actually use
    * this anywhere. */
-  std::string path = "";
+  std::string path;
 
   /* Default constructor to initialize as null pointer. */
   WeakRNAPointer() = default;
   WeakRNAPointer(const PointerRNA &ptr);
+
   bool operator==(const WeakRNAPointer &other) const
   {
-    /* Not comparing  */
+    /* Not comparing id_name. */
     return this->type == other.type && this->session_uid == other.session_uid &&
            this->path == other.path;
   }
@@ -163,18 +165,25 @@ struct KeyPoint {
   }
 };
 
-class AnimationChannel : public DNAAnimationChannel {
+class AnimationChannel {
  protected:
+  AnimationChannelType type_ = AnimationChannelType::UNKNOWN;
+  AnimationChannelFlags flags_ = ANIM_CHANNEL_DIRTY;
+  std::string label_;
+
   /* For source data lookups during runtime where the data may be removed at any moment. */
   WeakRNAPointer weak_source_;
-  /* Datapoints is not declared in the dna struct since it can just be calculated at runtime. */
   Vector<KeyPoint> datapoints_;
 
  public:
-  AnimationChannel(DNAChannelType type, StringRef label);
+  AnimationChannel(AnimationChannelType type, StringRef label);
   AnimationChannel(const AnimationChannel &other);
   AnimationChannel(AnimationChannel &&other);
-  virtual ~AnimationChannel();
+  virtual ~AnimationChannel() = default;
+
+  /* Remove assignment operators. If we need them, they need to be implemented properly. */
+  AnimationChannel &operator=(const AnimationChannel &) = delete;
+  AnimationChannel &operator=(AnimationChannel &&) = delete;
 
   int64_t hash() const
   {
@@ -182,7 +191,7 @@ class AnimationChannel : public DNAAnimationChannel {
     return get_default_hash(this->type_, this->weak_source_);
   }
 
-  DNAChannelType type() const
+  AnimationChannelType type() const
   {
     return this->type_;
   }
@@ -269,7 +278,7 @@ struct CollectionFilters {
 
   /* Limit the returned data to only channels of the given type.
    * If empty, all channel types are returned. */
-  Set<DNAChannelType> channel_type_whitelist;
+  Set<AnimationChannelType> channel_type_whitelist;
   /* Any id types put here will be ignored in the channel collection process. */
   Set<ID_Type> id_type_blacklist;
 };
