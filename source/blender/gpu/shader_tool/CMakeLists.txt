@@ -56,12 +56,12 @@ set(SRC
   bsl/type_checker.cc
 
   bsl/diagnostic.hh
-  bsl/type_checker.hh
   bsl/symbol_class.hh
   bsl/symbol_function.hh
   bsl/symbol_scope.hh
   bsl/symbol_template.hh
   bsl/symbol_variable.hh
+  bsl/type_checker.hh
 
   lexit/lexit.cc
 
