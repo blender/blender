@@ -81,6 +81,7 @@ static int g_fallback_font_id = -1;
 
 void fontmap_clear()
 {
+  std::lock_guard lock(g_font_map.mutex);
   for (const auto &item : g_font_map.path_to_file_font_id.items()) {
     BLF_unload_id(item.value);
   }
@@ -90,7 +91,7 @@ void fontmap_clear()
   }
   g_font_map.name_to_mem_font_id.clear();
 
-  if (g_fallback_font_id) {
+  if (g_fallback_font_id >= 0) {
     BLF_unload_id(g_fallback_font_id);
     g_fallback_font_id = -1;
   }
@@ -824,6 +825,9 @@ int text_effect_font_get(TextVars &text)
   if (font < 0) {
     /* Try to fallback to the default Blender monospaced font. */
     std::lock_guard lock(g_font_map.mutex);
+    if (g_fallback_font_id >= 0 && !BLF_is_loaded_id(g_fallback_font_id)) {
+      g_fallback_font_id = -1;
+    }
     if (g_fallback_font_id < 0) {
       g_fallback_font_id = BLF_load_mono_default(true);
     }
