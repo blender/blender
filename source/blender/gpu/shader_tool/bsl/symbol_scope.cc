@@ -6,9 +6,9 @@
  * \ingroup shader_tool
  */
 
+#include "symbol_scope.hh"
 #include "symbol_class.hh"
 #include "symbol_function.hh"
-#include "symbol_scope.hh"
 #include "symbol_table.hh"
 
 namespace bsl {
