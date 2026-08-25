@@ -69,6 +69,7 @@ static std::optional<PointCloud *> separate_pointcloud_selection(
   }
 
   PointCloud *pointcloud = BKE_pointcloud_new_nomain(selection.size());
+  pointcloud->render_as = src_pointcloud.render_as;
   bke::gather_attributes(src_pointcloud.attributes(),
                          AttrDomain::Point,
                          AttrDomain::Point,
