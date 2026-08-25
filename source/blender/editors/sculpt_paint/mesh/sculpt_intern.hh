@@ -335,8 +335,6 @@ struct StrokeCache {
   ePaintSymmetryFlags mirror_symmetry_pass = ePaintSymmetryFlags(0);
   float3 view_normal = float3(0);
   float3 view_normal_symm = float3(0);
-  float3 view_origin = float3(0);
-  float3 view_origin_symm = float3(0);
 
   /**
    * The primary direction of influence for a brush stroke.
