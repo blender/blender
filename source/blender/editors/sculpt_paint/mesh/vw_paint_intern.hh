@@ -46,7 +46,6 @@ bool mode_toggle_poll_test(bContext *C);
 void smooth_brush_toggle_off(Paint *paint, StrokeCache *cache);
 void smooth_brush_toggle_on(Main *bmain, Paint *paint, StrokeToggleSettings &toggle_settings);
 
-void create_stroke_cache();
 /** Initialize the stroke cache variants from operator properties. */
 void update_cache_variants(
     Depsgraph &depsgraph, ViewContext &vc, VPaint &vp, Object &ob, Base &base, PointerRNA *ptr);
