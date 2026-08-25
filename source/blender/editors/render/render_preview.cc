@@ -155,6 +155,9 @@ struct IconPreview {
   /* May be nullptr, is used for rendering IDs that require some other object for it to be applied
    * on before the ID can be represented as an image, for example when rendering an Action. */
   Object *active_object;
+
+  /* Set by the job when it was stopped before finishing, e.g. by undo. */
+  bool cancelled;
 };
 
 /** \} */
@@ -1639,6 +1642,8 @@ static void icon_preview_startjob_all_sizes(void *customdata, wmJobWorkerStatus 
     }
     other_id_types_preview_render(prv, ip, icon_size, pr_method, worker_status);
   }
+
+  ip->cancelled = worker_status->stop;
 }
 
 static void icon_preview_endjob(void *customdata, const PreviewImageRenderEndStatus status)
@@ -1654,13 +1659,19 @@ static void icon_preview_endjob(void *customdata, const PreviewImageRenderEndSta
       }
     }
 
+    if (status == PRV_RENDER_STATUS_CANCELLED) {
+      ip->bmain->need_preview_render_restart = true;
+    }
+
     ip->owner = nullptr;
   }
 }
 
 static void icon_preview_endjob(void *customdata)
 {
-  icon_preview_endjob(customdata, PRV_RENDER_STATUS_FINISHED);
+  const IconPreview *ip = static_cast<IconPreview *>(customdata);
+  icon_preview_endjob(customdata,
+                      ip->cancelled ? PRV_RENDER_STATUS_CANCELLED : PRV_RENDER_STATUS_FINISHED);
 }
 
 /**
