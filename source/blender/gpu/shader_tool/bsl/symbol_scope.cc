@@ -6,9 +6,9 @@
  * \ingroup shader_tool
  */
 
-#include "symbol_scope.hh"
 #include "symbol_class.hh"
 #include "symbol_function.hh"
+#include "symbol_scope.hh"
 #include "symbol_table.hh"
 
 namespace bsl {
@@ -445,6 +445,14 @@ vector<SymbolVariable *> SymbolScope::non_static_variables_in_declaration_order(
   });
 
   return members;
+}
+
+SymbolScope *SymbolScope::child_scope(int n)
+{
+  if (auto it = scopes.find(to_string(n)); it != scopes.end()) {
+    return it->second;
+  }
+  return nullptr;
 }
 
 void SymbolScope::print() const

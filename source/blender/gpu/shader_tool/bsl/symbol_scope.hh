@@ -164,6 +164,9 @@ struct SymbolScope : Symbol {
 
   vector<SymbolVariable *> non_static_variables_in_declaration_order() const;
 
+  /* Return the N'th anonymous child scope or nullptr if not existing. */
+  SymbolScope *child_scope(int n);
+
  private:
   template<typename T>
   T *lookup_generic(const SymbolTable &table,

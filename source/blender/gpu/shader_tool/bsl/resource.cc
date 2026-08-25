@@ -135,10 +135,12 @@ Result<ParsedAttribute> resource_type_from_attributes(AttrList list)
         }
       }
       else {
-        if (param_count != expected_param_count) {
+        /* Negative value denote a range of parameter count. */
+        int max_param_count = abs(expected_param_count);
+        if (param_count < 1 || param_count > max_param_count) {
           result.err = AstNodeException(params,
                                         Diag::ExpectedRangeParametersForAttribute,
-                                        to_string(expected_param_count),
+                                        to_string(max_param_count),
                                         attr_str);
           continue;
         }
