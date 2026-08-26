@@ -172,6 +172,7 @@ static void ed_undo_step_pre(bContext *C,
 
   /* undo during jobs are running can easily lead to freeing data using by jobs,
    * or they can just lead to freezing job in some other cases */
+  ED_preview_kill_jobs_for_undo(wm, bmain);
   WM_jobs_kill_all(wm);
 
   if (G.debug & G_DEBUG_IO) {

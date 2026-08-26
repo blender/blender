@@ -184,7 +184,7 @@ static void memfile_undosys_step_decode(
   ED_editors_exit(bmain, false);
   /* Ensure there's no preview job running. Unfinished previews will be scheduled for regeneration
    * via #PRV_TAG_RESTART_RENDERING in BKE_previewimg_blend_read. */
-  ED_preview_kill_jobs(CTX_wm_manager(C), bmain);
+  ED_preview_kill_jobs_for_undo(CTX_wm_manager(C), bmain);
   const bool need_preview_render_restart = bmain->need_preview_render_restart;
 
   MemFileUndoStep *us = reinterpret_cast<MemFileUndoStep *>(us_p);
