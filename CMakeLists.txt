@@ -189,7 +189,7 @@ Build \"BlendThumb.dll\" helper for Windows explorer integration to support extr
 thumbnails from `.blend` files."
     ON
   )
-elseif(UNIX AND NOT APPLE)
+elseif(UNIX AND NOT (APPLE OR ANDROID))
   option(WITH_BLENDER_THUMBNAILER "\
 Build stand-alone \"blender-thumbnailer\" command-line thumbnail extraction utility, \
 intended for use by file-managers to extract PNG images from `.blend` files."
@@ -201,6 +201,8 @@ Build \"blender-thumbnailer.appex\" extension for Finder/ QuickLook thumbnail \
 support for blend files."
     ON
   )
+else()
+  set(WITH_BLENDER_THUMBNAILER OFF)
 endif()
 
 option(WITH_INTERNATIONAL "Enable I18N (International fonts and text)" ON)
