@@ -1,0 +1,55 @@
+// Packages Blender for Android.
+//
+// NOTE: This project only assembles and signs the APK. Actual build artifacts
+//       are built as part of regular CMake Blender CMake builds and then staged
+//       into this base skeleton project via the `gradle_stage` target.
+//
+// See build_files/cmake/platform/platform_android_gradle.cmake for details.
+
+plugins {
+    id 'com.android.application'
+}
+
+android {
+    namespace = 'org.blender.blender'
+    compileSdkVersion = 36
+
+    defaultConfig {
+        applicationId = 'org.blender.blender'
+
+        // Passed by the `gradle_assemble` CMake target defined in platform_android_gradle.cmake.
+        // TODO: Could also be baked in the gradle.properties file instead of being passed on invocation.
+        versionCode = project.property('blenderVersionCode').toInteger()
+        versionName = project.property('blenderVersionName').toString()
+
+        // minSdk corresponds to the CMake ANDROID_PLATOFRM, defined in platform_android_toolchain.cmake
+        // targetSdk sets the application runtime behavior, set to the latest Android version we have
+        // tested against.
+        minSdkVersion = project.property('blenderMinSdk').toInteger()
+        targetSdkVersion = 36
+
+        ndk {
+            abiFilters 'arm64-v8a'
+        }
+    }
+
+    packaging
+        jniLibs {
+            // Store the shared library compressed and extract them at install time, equivalent to the
+            // legacy `extractNativeLibs` option. Results in an ~2x .apk size reduction.
+            useLegacyPackaging = true
+        }
+    }
+
+    androidResources {
+        // Do not ignore any asset files, the default pattern is too greedy (such as dropping files with
+        // trailing underscore which we use). Filtering is done separately by the staging script.
+        ignoreAssetsPattern = ''
+    }
+
+    buildTypes {
+        release {
+            signingConfig = signingConfigs.debug
+        }
+    }
+}
