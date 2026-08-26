@@ -16,9 +16,7 @@ set(INC_GLSL
 
 set(SRC_GLSL_VERT
   gpu_shader_2D_area_borders_vert.glsl
-  gpu_shader_2D_node_socket_vert.glsl
   gpu_shader_3D_polyline_vert.glsl
-  gpu_shader_2D_widget_shadow_vert.glsl
   gpu_shader_display_fallback_vert.glsl
   gpu_shader_gpencil_stroke_vert.glsl
   gpu_shader_icon_multi_vert.glsl
@@ -31,8 +29,6 @@ set(SRC_GLSL_VERT
 
 set(SRC_GLSL_FRAG
   gpu_shader_2D_area_borders_frag.glsl
-  gpu_shader_2D_node_socket_frag.glsl
-  gpu_shader_2D_widget_shadow_frag.glsl
   gpu_shader_3D_polyline_frag.glsl
   gpu_shader_display_fallback_frag.glsl
   gpu_shader_gpencil_stroke_frag.glsl

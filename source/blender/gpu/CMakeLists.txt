@@ -536,9 +536,7 @@ set(GLSL_SRC
   shaders/infos/gpu_interface_infos.hh
   shaders/infos/gpu_shader_2D_area_borders_infos.hh
   shaders/infos/gpu_shader_2D_image_overlays_merge_infos.hh
-  shaders/infos/gpu_shader_2D_node_socket_infos.hh
   shaders/infos/gpu_shader_2D_rounded_corner_mask_infos.hh
-  shaders/infos/gpu_shader_2D_widget_infos.hh
   shaders/infos/gpu_shader_3D_polyline_infos.hh
   shaders/infos/gpu_shader_fullscreen_infos.hh
   shaders/infos/gpu_shader_gpencil_stroke_infos.hh
@@ -555,10 +553,8 @@ set(GLSL_SRC
   shaders/gpu_shader_2D_rounded_corner_mask_vert.glsl
   shaders/gpu_shader_2D_rounded_corner_mask_frag.glsl
   shaders/gpu_shader_2D_widget_base.bsl.hh
-  shaders/gpu_shader_2D_widget_shadow_vert.glsl
-  shaders/gpu_shader_2D_widget_shadow_frag.glsl
-  shaders/gpu_shader_2D_node_socket_frag.glsl
-  shaders/gpu_shader_2D_node_socket_vert.glsl
+  shaders/gpu_shader_2D_widget_shadow.bsl.hh
+  shaders/gpu_shader_2D_node_socket.bsl.hh
   shaders/gpu_shader_2D_nodelink.bsl.hh
   shaders/gpu_shader_2D_image_vert.glsl
   shaders/gpu_shader_icon_multi_vert.glsl
