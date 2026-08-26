@@ -576,9 +576,9 @@ else()
   set(WITH_INPUT_NDOF OFF)
 endif()
 
-# On Windows and for the Blender application on macOS, portable install
+# On Windows, Android and for the Blender application on macOS, portable install
 # is the only supported installation type, so there is no option.
-if(UNIX AND (NOT APPLE OR WITH_PYTHON_MODULE))
+if(UNIX AND (NOT (APPLE OR ANDROID) OR WITH_PYTHON_MODULE))
   option(WITH_INSTALL_PORTABLE "\
 Install redistributable runtime, otherwise install into CMAKE_INSTALL_PREFIX"
     ON
