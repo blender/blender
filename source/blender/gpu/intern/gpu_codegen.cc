@@ -294,7 +294,14 @@ void GPUCodegen::generate_resources()
         ss << input->type << " crypto_hash;\n";
       }
       else {
-        ss << input->type << " u" << input->id << (input->is_duplicate ? "b" : "") << ";\n";
+        /* MSL does not pad bool to 4 bytes; use bool32_t so UBO layout matches correctly. */
+        if (input->type == GPU_BOOL) {
+          ss << "bool32_t";
+        }
+        else {
+          ss << input->type;
+        }
+        ss << " u" << input->id << (input->is_duplicate ? "b" : "") << ";\n";
       }
     }
     ss << "};\n";

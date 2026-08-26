@@ -23,6 +23,7 @@
 #include "GPU_capabilities.hh"
 #include "GPU_context.hh"
 #include "GPU_material.hh"
+#include "GPU_shader_shared_utils.hh"
 
 #include "GPU_uniform_buffer.hh"
 #include "gpu_context_private.hh"
@@ -121,7 +122,7 @@ static void gpu_constant_populate_ubo(void *destination,
     }
     case GPU_BOOL: {
       /* Pad bool to 4 bytes in UBO. */
-      const int32_t value = gpu_constant_to_bool(data) ? 1 : 0;
+      const bool32_t value = gpu_constant_to_bool(data) ? 1 : 0;
       memcpy(destination, &value, sizeof(value));
       return;
     }
