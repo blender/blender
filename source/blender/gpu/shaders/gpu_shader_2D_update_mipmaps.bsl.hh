@@ -94,18 +94,16 @@ struct SharedUnorm {
    * When generating 2 levels, the results the first level are cached here; this is the input tile
    * needed to generate the 8x8 tile of the second level.
    */
-  [[shared]] uint intermediate_level[MAX_SHARED_SAMPLES][MAX_SHARED_SAMPLES];
+  [[shared]] float intermediate_level[MAX_SHARED_SAMPLES][MAX_SHARED_SAMPLES];
 
   void store_sample(int2 dst_coord, float color)
   {
-    uint encoded = uint(clamp(color, 0.0f, 1.0f) * UINT_MAX);
-    intermediate_level[dst_coord.y][dst_coord.x] = encoded;
+    intermediate_level[dst_coord.y][dst_coord.x] = color;
   }
 
   float load_sample(int2 src_coord)
   {
-    uint encoded = intermediate_level[src_coord.y][src_coord.x];
-    return float(encoded) / UINT_MAX;
+    return intermediate_level[src_coord.y][src_coord.x];
   }
 };
 
