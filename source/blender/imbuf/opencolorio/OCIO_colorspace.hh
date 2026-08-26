@@ -72,4 +72,14 @@ class ColorSpace {
   const virtual CPUProcessor *get_from_scene_linear_cpu_processor() const = 0;
 };
 
+/**
+ * Drop the namespace from an interop ID, so e.g. `blender:g24_rec2020_display` becomes
+ * `g24_rec2020_display`.
+ */
+inline StringRef interop_id_drop_namespace(const StringRef interop_id)
+{
+  const int64_t colon = interop_id.find(':');
+  return (colon == StringRef::not_found) ? interop_id : interop_id.drop_prefix(colon + 1);
+}
+
 }  // namespace blender::ocio
