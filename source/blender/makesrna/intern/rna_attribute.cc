@@ -139,7 +139,8 @@ const EnumPropertyItem rna_enum_attr_storage_type_items[] = {
     {0, nullptr, 0, nullptr, nullptr},
 };
 
-static EnumPropertyItem domain_item_auto{int(AttrDomain::Auto), "AUTO", 0, "Auto", ""};
+static EnumPropertyItem domain_item_auto{
+    int(bke::AttrDomainSelection::Auto), "AUTO", 0, "Auto", ""};
 static EnumPropertyItem domain_item_point{
     int(AttrDomain::Point), "POINT", ICON_VERTEXSEL, "Point", "Vertex or point"};
 static EnumPropertyItem domain_item_edge{
