@@ -664,7 +664,13 @@ static std::string wm_window_title_text(
     }
   }
 
-  win_title.append(fmt::format(" - Blender {}", BKE_blender_version_string()));
+  /* If a project is active, display its name. */
+  bke::BlenderProject *project = BKE_blender_project_get(G_MAIN);
+  if (project) {
+    win_title.append(fmt::format(" - {}", project->get_name()));
+  }
+
+  win_title.append(fmt::format(" — Blender {}", BKE_blender_version_string()));
 
   return win_title;
 }
