@@ -449,7 +449,6 @@ static void object_transfer_mode_reposition_view_pivot(ARegion *region,
   if (!ED_view3d_autodist_simple(region, mval, global_loc, 0, nullptr)) {
     return;
   }
-  bke::PaintRuntime *paint_runtime = paint->runtime;
   bke::paint::stroke_set_location(*paint, float3(global_loc));
 }
 

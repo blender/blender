@@ -164,7 +164,6 @@ void cache_init(bContext *C,
   }
 
   const UnifiedPaintSettings *ups = &sd.paint.unified_paint_settings;
-  bke::PaintRuntime *paint_runtime = sd.paint.runtime;
 
   float3 co;
 
