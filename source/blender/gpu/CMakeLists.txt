@@ -540,7 +540,6 @@ set(GLSL_SRC
   shaders/infos/gpu_shader_3D_polyline_infos.hh
   shaders/infos/gpu_shader_fullscreen_infos.hh
   shaders/infos/gpu_shader_gpencil_stroke_infos.hh
-  shaders/infos/gpu_shader_index_infos.hh
   shaders/infos/gpu_shader_keyframe_shape_infos.hh
   shaders/infos/gpu_shader_print_infos.hh
   shaders/infos/gpu_shader_sequencer_infos.hh
@@ -758,9 +757,7 @@ set(GLSL_SRC
   shaders/gpu_shader_cfg_world_clip_lib.glsl
   shaders/gpu_shader_colorspace_lib.glsl
 
-  shaders/gpu_shader_index_2d_array_points.glsl
-  shaders/gpu_shader_index_2d_array_lines.glsl
-  shaders/gpu_shader_index_2d_array_tris.glsl
+  shaders/gpu_shader_index_gen.bsl.hh
 
   shaders/gpu_shader_compat_glsl.glsl
 
