@@ -1,5 +1,8 @@
 // Top-level build file, only pins the Android Gradle Plugin.
 
+// NOTE: The vendored libsdl/app SDLActivity files should be synced with the upstream
+//       SDL android-project (in the SDL repo root) on SDL version upgrades.
+
 buildscript {
     repositories {
         mavenCentral()
