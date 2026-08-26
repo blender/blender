@@ -3756,6 +3756,25 @@ struct NodeIndexSwitch {
 #endif
 };
 
+struct CombineListItem {
+  int identifier = 0;
+};
+
+struct NodeCombineList {
+  DNA_DEFINE_CXX_METHODS(NodeCombineList)
+
+  CombineListItem *items = nullptr;
+  int items_num = 0;
+  int next_identifier = 0;
+  eNodeSocketDatatype data_type = {};
+
+  char _pad[6] = {};
+#ifdef __cplusplus
+  Span<CombineListItem> items_span() const;
+  MutableSpan<CombineListItem> items_span();
+#endif
+};
+
 struct GeometryNodeFieldToGridItem {
   eNodeSocketDatatype data_type = {};
   char _pad[2] = {};
