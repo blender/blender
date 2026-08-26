@@ -1084,7 +1084,7 @@ Vector<char> IMB_colormanagement_space_to_icc_profile(const ColorSpace *colorspa
   }
 
   char icc_filename[FILE_MAX];
-  STRNCPY(icc_filename, (interop_id + ".icc").c_str());
+  STRNCPY(icc_filename, (ocio::interop_id_drop_namespace(interop_id) + ".icc").c_str());
   BLI_path_make_safe_filename(icc_filename);
 
   char icc_filepath[FILE_MAX];
