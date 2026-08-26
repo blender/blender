@@ -183,10 +183,12 @@ void ShaderCreateInfo::finalize(const bool recursive)
     validate_vertex_attributes(&info);
 
     /* Insert with duplicate check. */
-    push_constants_.extend_non_duplicates(info.push_constants_);
     defines_.extend_non_duplicates(info.defines_);
     typedef_sources_.extend_non_duplicates(info.typedef_sources_);
 
+    for (const auto &res : info.push_constants_) {
+      extend_predicate(push_constants_, res, additional_info.conditions);
+    }
     for (const auto &res : info.pass_resources_) {
       extend_predicate(pass_resources_, res, additional_info.conditions);
     }
@@ -279,6 +281,15 @@ void ShaderCreateInfo::finalize(const bool recursive)
 
 void ShaderCreateInfo::extend_predicate(Vector<Resource, 0> &resource_vector,
                                         ShaderCreateInfo::Resource res_copy,
+                                        Span<ConditionFn> additional_conditions) const
+{
+  res_copy.conditions.extend(additional_conditions);
+  /** IMPORTANT: We keep duplicates until we evaluate the conditions. */
+  resource_vector.append(res_copy);
+};
+
+void ShaderCreateInfo::extend_predicate(Vector<ShaderCreateInfo::PushConst, 0> &resource_vector,
+                                        ShaderCreateInfo::PushConst res_copy,
                                         Span<ConditionFn> additional_conditions) const
 {
   res_copy.conditions.extend(additional_conditions);

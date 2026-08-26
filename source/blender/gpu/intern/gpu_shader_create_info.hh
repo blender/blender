@@ -1671,6 +1671,9 @@ struct ShaderCreateInfo {
   void extend_predicate(Vector<Resource, 0> &resource_vector,
                         ShaderCreateInfo::Resource res_copy,
                         Span<ConditionFn> additional_conditions) const;
+  void extend_predicate(Vector<PushConst, 0> &resource_vector,
+                        ShaderCreateInfo::PushConst res_copy,
+                        Span<ConditionFn> additional_conditions) const;
   void assert_no_overlap(const ShaderCreateInfo &info,
                          const bool test,
                          const StringRefNull error) const;
