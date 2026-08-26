@@ -540,7 +540,6 @@ set(GLSL_SRC
   shaders/infos/gpu_shader_3D_polyline_infos.hh
   shaders/infos/gpu_shader_fullscreen_infos.hh
   shaders/infos/gpu_shader_gpencil_stroke_infos.hh
-  shaders/infos/gpu_shader_icon_infos.hh
   shaders/infos/gpu_shader_index_infos.hh
   shaders/infos/gpu_shader_keyframe_shape_infos.hh
   shaders/infos/gpu_shader_print_infos.hh
@@ -557,9 +556,7 @@ set(GLSL_SRC
   shaders/gpu_shader_2D_node_socket.bsl.hh
   shaders/gpu_shader_2D_nodelink.bsl.hh
   shaders/gpu_shader_2D_image_vert.glsl
-  shaders/gpu_shader_icon_multi_vert.glsl
-  shaders/gpu_shader_icon_frag.glsl
-  shaders/gpu_shader_icon_vert.glsl
+  shaders/gpu_shader_icon.bsl.hh
   shaders/gpu_shader_3D_polyline_frag.glsl
   shaders/gpu_shader_3D_polyline_vert.glsl
   shaders/gpu_shader_2D_update_mipmaps.bsl.hh

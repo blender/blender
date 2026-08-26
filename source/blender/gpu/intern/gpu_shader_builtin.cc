@@ -48,8 +48,6 @@ static const char *builtin_shader_create_info_name(GPUBuiltinShader shader)
       return "gpu_shader_2D_checker";
     case GPU_SHADER_2D_DIAG_STRIPES:
       return "gpu_shader_2D_diag_stripes";
-    case GPU_SHADER_ICON:
-      return "gpu_shader_icon";
     case GPU_SHADER_2D_IMAGE_OVERLAYS_MERGE:
       return "gpu_shader_2D_image_overlays_merge";
     case GPU_SHADER_2D_IMAGE_OVERLAYS_STEREO_MERGE:
@@ -61,7 +59,7 @@ static const char *builtin_shader_create_info_name(GPUBuiltinShader shader)
     case GPU_SHADER_2D_IMAGE_RECT_COLOR:
       return "gpu_shader_2D_image_rect_color";
     case GPU_SHADER_ICON_MULTI:
-      return "gpu_shader_icon_multi";
+      return "gpu_shader_icon";
     case GPU_SHADER_3D_UNIFORM_COLOR:
       return "gpu_shader_3D_uniform_color";
     case GPU_SHADER_3D_FLAT_COLOR:

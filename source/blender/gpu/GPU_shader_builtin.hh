@@ -32,14 +32,12 @@ enum GPUBuiltinShader {
   GPU_SHADER_KEYFRAME_SHAPE,
   /** Draw solid mesh with a single distant light using a clamped simple dot product. */
   GPU_SHADER_SIMPLE_LIGHTING,
-  /** Draw an icon, leaving a semi-transparent rectangle on top of the icon. */
-  GPU_SHADER_ICON,
   /** Draw a texture with a uniform color multiplied. */
   GPU_SHADER_2D_IMAGE_RECT_COLOR,
   /** Draw a texture with a desaturation factor. */
   GPU_SHADER_2D_IMAGE_DESATURATE_COLOR,
   /** Draw a group of texture rectangle with an associated color multiplied. */
-  GPU_SHADER_ICON_MULTI,
+  GPU_SHADER_ICON_MULTI, /* TODO(fclem): Rename to GPU_SHADER_ICON. */
   /** Draw a two color checker based on screen position (not UV coordinates). */
   GPU_SHADER_2D_CHECKER,
   /** Draw diagonal stripes with two alternating colors. */
