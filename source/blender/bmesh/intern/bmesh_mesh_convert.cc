@@ -1981,8 +1981,6 @@ void BM_mesh_bm_to_me_compact(BMesh &bm,
   /* Must be an empty mesh. */
   BLI_assert(mesh.verts_num == 0);
 
-  BLI_assert(mesh.attributes_active_index == -1);
-
   /* Just in case, clear the derived geometry caches from the input mesh. */
   BKE_mesh_runtime_clear_geometry(&mesh);
 
