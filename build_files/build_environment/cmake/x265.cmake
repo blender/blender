@@ -31,7 +31,7 @@ elseif(ANDROID)
   set(X265_COMMON_ARGS "")
   # Patch to fix Android cross-compilation issues:
   # - x265 custom commands invoke ${CMAKE_CXX_COMPILER} directly, which omits the cross-compilation target option and
-  #   thus builds for the host architecture. Patch to explicitely fetch it and pass it as a --target flag.
+  #   thus builds for the host architecture. Patch to explicitely fetch the target arch and pass it as a --target flag.
   # - Android libc (Bionic) ships pthread internally and thus doesn't need a separate -lpthread link argument. Patch to
   #   remove it and avoid link error.
   # - x265 pkg-config generator treats all libraries in CMAKE_CXX_IMPLICIT_LINK_LIBRARIES are either either absolute

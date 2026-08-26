@@ -10,7 +10,7 @@
 
 # Buildling for Android is only supported on macOS and Linux.
 if(NOT (CMAKE_HOST_SYSTEM_NAME STREQUAL "Darwin" OR CMAKE_HOST_SYSTEM_NAME STREQUAL "Linux"))
-  message(FATAL_ERROR "Building for Android isn't supported on host ${CMAKE_HOST_SYSTEM_NAME}")
+  message(FATAL_ERROR "Building for Android isn't supported on host ${CMAKE_HOST_SYSTEM_NAME}.")
 endif()
 
 # May be set explicitly by setting ANDROID_NDK_ROOT. Otherwise we try to infer the most
