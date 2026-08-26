@@ -788,13 +788,15 @@ if(UNIX AND NOT APPLE)
       )
     endif()
 
-    install(
-      FILES
-        ${CMAKE_SOURCE_DIR}/release/freedesktop/blender.desktop
-        ${CMAKE_SOURCE_DIR}/release/freedesktop/icons/scalable/apps/blender.svg
-        ${CMAKE_SOURCE_DIR}/release/freedesktop/icons/symbolic/apps/blender-symbolic.svg
-      DESTINATION "."
-    )
+    if(NOT ANDROID)
+      install(
+        FILES
+          ${CMAKE_SOURCE_DIR}/release/freedesktop/blender.desktop
+          ${CMAKE_SOURCE_DIR}/release/freedesktop/icons/scalable/apps/blender.svg
+          ${CMAKE_SOURCE_DIR}/release/freedesktop/icons/symbolic/apps/blender-symbolic.svg
+        DESTINATION "."
+      )
+    endif()
 
     if(WITH_BLENDER_THUMBNAILER)
       install(
