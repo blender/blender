@@ -352,7 +352,6 @@ set(GLSL_SRC
 
   engines/workbench/shaders/infos/workbench_depth_infos.hh
   engines/workbench/shaders/infos/workbench_effect_antialiasing_infos.hh
-  # engines/workbench/shaders/infos/workbench_effect_dof_info.hh  # Excluded (shared).
   engines/workbench/shaders/infos/workbench_effect_dof_infos.hh
   engines/workbench/shaders/infos/workbench_effect_outline_infos.hh
   engines/workbench/shaders/infos/workbench_prepass_infos.hh
