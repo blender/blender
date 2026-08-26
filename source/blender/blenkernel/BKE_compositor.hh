@@ -76,6 +76,7 @@ struct Cache {
   /* Clears the frames cache. */
   void clear_frames();
 
+  /* Stores an inclusive range of frames. */
   struct FrameRange {
     int start;
     int end;
