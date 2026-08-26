@@ -33,7 +33,7 @@ android {
         }
     }
 
-    packaging
+    packaging {
         jniLibs {
             // Store the shared library compressed and extract them at install time, equivalent to the
             // legacy `extractNativeLibs` option. Results in an ~2x .apk size reduction.
