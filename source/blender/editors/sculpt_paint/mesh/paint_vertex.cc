@@ -279,16 +279,14 @@ void update_cache_variants(
   StrokeCache *cache = ss.cache;
   Brush &brush = *BKE_paint_brush(&vp.paint);
 
-  /* This effects the actual brush radius, so things farther away
-   * are compared with a larger radius and vice versa. */
-  if (cache->first_time) {
-    RNA_float_get_array(ptr, "location", cache->location);
-  }
+  /* TODO: When anchored strokes get supported, this needs to match the implementation in
+   * #stroke_cache_update */
+  RNA_float_get_array(ptr, "location", cache->location);
 
   RNA_float_get_array(ptr, "mouse", cache->mouse);
   RNA_float_get_array(ptr, "mouse_event", cache->mouse_event);
 
-  if (cache->first_time) {
+  if (stroke_is_first_brush_step_of_symmetry_pass(*cache)) {
     cursor_geometry_info_update(
         depsgraph, vp.paint, nullptr, vc, &base, cache->mouse_event, false);
   }
@@ -303,7 +301,7 @@ void update_cache_variants(
   }
 
   /* Truly temporary data that isn't stored in properties */
-  if (cache->first_time) {
+  if (stroke_is_first_brush_step_of_symmetry_pass(*cache)) {
     cache->initial_radius = paint_calc_object_space_radius(
         *cache->vc, cache->location, BKE_brush_radius_get(&vp.paint, &brush));
     BKE_brush_unprojected_size_set(&vp.paint, &brush, cache->initial_radius * 2.0f);
@@ -1793,6 +1791,7 @@ void VertexPaintStroke::update_step(wmOperator * /*op*/, PointerRNA *itemptr)
   ed::sculpt_paint::do_symmetrical_brush_actions(
       *this->depsgraph, *this->scene, vertex_paint_->paint, ob, vpaint_do_paint, &vpd);
 
+  ss.cache->first_time = false;
   copy_v3_v3(cache.last_location, cache.location);
 
   BKE_mesh_batch_cache_dirty_tag(id_cast<Mesh *>(ob.data), BKE_MESH_BATCH_DIRTY_ALL);

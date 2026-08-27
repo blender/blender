@@ -1856,6 +1856,7 @@ void WeightPaintStroke::update_step(wmOperator * /*op*/, PointerRNA *itemptr)
         *this->depsgraph, *this->scene, wp.paint, *ob, wpaint_do_paint, wpd);
   }
 
+  ss.cache->first_time = false;
   copy_v3_v3(cache.last_location, cache.location);
 
   /* Calculate pivot for rotation around selection if needed.
