@@ -136,7 +136,7 @@ static void rna_Main_ID_remove(Main *bmain,
         (reinterpret_cast<LightProbe *>(ob->data))->type == LIGHTPROBE_TYPE_VOLUME)
     {
       wmWindowManager *wm = static_cast<wmWindowManager *>(bmain->wm.first);
-      if (wm && WM_jobs_test(wm, nullptr, WM_JOB_TYPE_LIGHT_BAKE)) {
+      if (wm && WM_jobs_has_running(wm, nullptr, WM_JOB_TYPE_LIGHT_BAKE)) {
         BKE_reportf(reports,
                     RPT_ERROR,
                     "Cannot remove volume light probes while light probe baking is running");

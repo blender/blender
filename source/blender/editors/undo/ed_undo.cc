@@ -906,7 +906,7 @@ bool ED_undo_operator_repeat(bContext *C, wmOperator *op)
          * (which copy their data), won't stop redo, see #29579.
          *
          * NOTE: WM_operator_check_ui_enabled() jobs test _must_ stay in sync with this. */
-        (WM_jobs_test(wm, scene, WM_JOB_TYPE_ANY) == 0))
+        !WM_jobs_has_running(wm, scene, WM_JOB_TYPE_ANY, WM_JOB_BACKGROUND))
     {
       if (G.debug & G_DEBUG) {
         printf("redo_cb: operator redo %s\n", op->type->name);

@@ -306,7 +306,7 @@ wmJob *EEVEE_lightbake_job_create(wmWindowManager *wm,
                                   int frame)
 {
   /* Do not bake if there is a render going on. */
-  if (WM_jobs_test(wm, scene, WM_JOB_TYPE_RENDER)) {
+  if (WM_jobs_has_running(wm, scene, WM_JOB_TYPE_RENDER)) {
     return nullptr;
   }
 

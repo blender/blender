@@ -378,7 +378,7 @@ void ThumbGenerationJob::ensure_job(const bContext *C, ThumbnailCache *cache)
                               win,
                               scene,
                               "Generating strip thumbnails...",
-                              eWM_JobFlag(0),
+                              WM_JOB_BACKGROUND,
                               WM_JOB_TYPE_SEQ_DRAW_THUMBNAIL);
   if (!WM_jobs_is_running(wm_job)) {
     ThumbGenerationJob *tj = MEM_new<ThumbGenerationJob>("ThumbGenerationJob", scene, cache);

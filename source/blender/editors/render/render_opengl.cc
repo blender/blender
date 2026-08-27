@@ -728,7 +728,7 @@ static bool screen_opengl_render_init(bContext *C, wmOperator *op)
   }
 
   /* only one render job at a time */
-  if (WM_jobs_test(wm, scene, WM_JOB_TYPE_RENDER)) {
+  if (WM_jobs_has_running(wm, scene, WM_JOB_TYPE_RENDER)) {
     return false;
   }
 
@@ -1284,7 +1284,7 @@ static wmOperatorStatus screen_opengl_render_modal(bContext *C,
   }
 
   /* no running blender, remove handler and pass through */
-  if (0 == WM_jobs_test(CTX_wm_manager(C), oglrender->scene, WM_JOB_TYPE_RENDER)) {
+  if (!WM_jobs_has_running(CTX_wm_manager(C), oglrender->scene, WM_JOB_TYPE_RENDER)) {
     screen_opengl_render_end(oglrender);
     MEM_delete(oglrender);
     return OPERATOR_FINISHED | OPERATOR_PASS_THROUGH;

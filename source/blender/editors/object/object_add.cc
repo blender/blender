@@ -2595,7 +2595,7 @@ static wmOperatorStatus object_delete_exec(bContext *C, wmOperator *op)
   }
   CTX_DATA_END;
 
-  if (has_volume_lightprobe && WM_jobs_test(wm, scene, WM_JOB_TYPE_LIGHT_BAKE)) {
+  if (has_volume_lightprobe && WM_jobs_has_running(wm, scene, WM_JOB_TYPE_LIGHT_BAKE)) {
     WM_jobs_stop_type(wm, scene, WM_JOB_TYPE_LIGHT_BAKE);
     BKE_report(op->reports,
                RPT_WARNING,

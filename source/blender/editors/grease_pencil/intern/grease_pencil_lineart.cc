@@ -443,7 +443,7 @@ static wmOperatorStatus lineart_bake_strokes_common_modal(bContext *C,
   Scene *scene = static_cast<Scene *>(op->customdata);
 
   /* no running blender, remove handler and pass through. */
-  if (WM_jobs_test(CTX_wm_manager(C), scene, WM_JOB_TYPE_LINEART) == 0) {
+  if (!WM_jobs_has_running(CTX_wm_manager(C), scene, WM_JOB_TYPE_LINEART)) {
     return OPERATOR_FINISHED | OPERATOR_PASS_THROUGH;
   }
 

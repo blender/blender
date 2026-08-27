@@ -597,7 +597,7 @@ static wmOperatorStatus fluid_bake_invoke(bContext *C, wmOperator *op, const wmE
 static wmOperatorStatus fluid_bake_modal(bContext *C, wmOperator * /*op*/, const wmEvent *event)
 {
   /* No running blender, remove handler and pass through. */
-  if (0 == WM_jobs_test(CTX_wm_manager(C), CTX_data_scene(C), WM_JOB_TYPE_OBJECT_SIM_FLUID)) {
+  if (!WM_jobs_has_running(CTX_wm_manager(C), CTX_data_scene(C), WM_JOB_TYPE_OBJECT_SIM_FLUID)) {
     return OPERATOR_FINISHED | OPERATOR_PASS_THROUGH;
   }
 
@@ -655,7 +655,7 @@ static wmOperatorStatus fluid_free_invoke(bContext *C, wmOperator *op, const wmE
 static wmOperatorStatus fluid_free_modal(bContext *C, wmOperator * /*op*/, const wmEvent *event)
 {
   /* No running blender, remove handler and pass through. */
-  if (0 == WM_jobs_test(CTX_wm_manager(C), CTX_data_scene(C), WM_JOB_TYPE_OBJECT_SIM_FLUID)) {
+  if (!WM_jobs_has_running(CTX_wm_manager(C), CTX_data_scene(C), WM_JOB_TYPE_OBJECT_SIM_FLUID)) {
     return OPERATOR_FINISHED | OPERATOR_PASS_THROUGH;
   }
 

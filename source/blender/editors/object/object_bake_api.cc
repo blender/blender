@@ -148,7 +148,7 @@ static void bake_progress_update(void *bjv, float progress)
 static wmOperatorStatus bake_modal(bContext *C, wmOperator * /*op*/, const wmEvent *event)
 {
   /* no running blender, remove handler and pass through */
-  if (0 == WM_jobs_test(CTX_wm_manager(C), CTX_data_scene(C), WM_JOB_TYPE_OBJECT_BAKE)) {
+  if (!WM_jobs_has_running(CTX_wm_manager(C), CTX_data_scene(C), WM_JOB_TYPE_OBJECT_BAKE)) {
     return OPERATOR_FINISHED | OPERATOR_PASS_THROUGH;
   }
 
@@ -2175,7 +2175,7 @@ static wmOperatorStatus bake_invoke(bContext *C, wmOperator *op, const wmEvent *
   bake_set_props(op, scene);
 
   /* only one render job at a time */
-  if (WM_jobs_test(CTX_wm_manager(C), scene, WM_JOB_TYPE_OBJECT_BAKE)) {
+  if (WM_jobs_has_running(CTX_wm_manager(C), scene, WM_JOB_TYPE_OBJECT_BAKE)) {
     return OPERATOR_CANCELLED;
   }
 
