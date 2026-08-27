@@ -270,6 +270,7 @@ void update_cache_invariants(VPaint &vp, SculptSession &ss, wmOperator *op, cons
   }
 }
 
+/** \see #stroke_cache_update for a similar implementation for Sculpt Mode */
 void update_cache_variants(
     Depsgraph &depsgraph, ViewContext &vc, VPaint &vp, Object &ob, Base &base, PointerRNA *ptr)
 {
@@ -284,8 +285,8 @@ void update_cache_variants(
     RNA_float_get_array(ptr, "location", cache->location);
   }
 
-  RNA_float_get_array(ptr, "mouse_event", cache->mouse_event);
   RNA_float_get_array(ptr, "mouse", cache->mouse);
+  RNA_float_get_array(ptr, "mouse_event", cache->mouse_event);
 
   if (cache->first_time) {
     cursor_geometry_info_update(

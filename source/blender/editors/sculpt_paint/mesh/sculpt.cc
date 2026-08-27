@@ -5758,6 +5758,7 @@ bool SculptPaintStroke::test_start(wmOperator *op, const float2 mouse)
   return false;
 }
 
+/** \see vwpaint::update_cache_variants */
 static void stroke_cache_update(
     ViewContext &vc, const Depsgraph &depsgraph, Paint &paint, Object &object, PointerRNA *ptr)
 {
@@ -5779,9 +5780,7 @@ static void stroke_cache_update(
   RNA_float_get_array(ptr, "mouse", cache.mouse);
   RNA_float_get_array(ptr, "mouse_event", cache.mouse_event);
 
-  if (brush.sculpt_brush_type == SCULPT_BRUSH_TYPE_SCENE_PROJECT) {
-    init_scene_project_brush_targets(depsgraph, *vc.view_layer, *vc.v3d, object, cache);
-  }
+  /* We don't do a raycast here for sculpt mode unlike vertex and weight paint */
 
   /* XXX: Use pressure value from first brush step for brushes which don't support strokes (grab,
    * thumb). They depends on initial state and brush coord/pressure/etc.
@@ -5802,6 +5801,10 @@ static void stroke_cache_update(
     }
   }
 
+  if (brush.sculpt_brush_type == SCULPT_BRUSH_TYPE_SCENE_PROJECT) {
+    init_scene_project_brush_targets(depsgraph, *vc.view_layer, *vc.v3d, object, cache);
+  }
+
   /* Clay stabilized pressure. */
   if (brush.sculpt_brush_type == SCULPT_BRUSH_TYPE_CLAY_THUMB) {
     if (stroke_is_first_brush_step_of_symmetry_pass(*ss.cache)) {
@@ -5820,6 +5823,8 @@ static void stroke_cache_update(
     }
   }
 
+  /* Note: This call needs to happen after the clay thumb specific code due to the interaction with
+   * the stabilizer */
   if (BKE_brush_use_size_pressure(&brush) && paint_supports_dynamic_size(brush, PaintMode::Sculpt))
   {
     cache.radius = brush_dynamic_size_get(brush, cache, cache.initial_radius);
@@ -5831,9 +5836,9 @@ static void stroke_cache_update(
     cache.dyntopo_pixel_radius = paint_runtime.initial_pixel_radius;
   }
 
-  cache_paint_invariants_update(cache, brush);
-
   cache.radius_squared = cache.radius * cache.radius;
+
+  cache_paint_invariants_update(cache, brush);
 
   if (brush.stroke_method == BRUSH_STROKE_ANCHORED) {
     /* True location has been calculated as part of the stroke system already here. */
