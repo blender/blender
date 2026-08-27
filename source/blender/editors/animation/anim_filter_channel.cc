@@ -102,7 +102,7 @@ void SummaryChannel::gather_channeldata()
     has_data = false;
     /* Store the index of the child channels for which we need to step to the next KeyPoint. */
     Vector<int> channels_to_advance;
-    KeyPoint next_keypoint = {FLT_MAX};
+    KeyPoint next_keypoint;
 
     for (const int channel_index : channel_keypoint_indices.index_range()) {
       Span<KeyPoint> child_keypoints = channel_keypoints[channel_index];
@@ -161,16 +161,19 @@ void SummaryChannel::remove_child(AnimationChannel &child)
   this->children_.remove(index);
 }
 
-DataChannel::DataChannel(animrig::Action &containing_action, FCurve &fcurve)
-    : AnimationChannel(AnimationChannelType::DATA, fcurve.rna_path()),
-      source_type_(DataChannelType::FCURVE)
+DataChannel::DataChannel(const StringRef label, const DataChannelType source_type)
+    : AnimationChannel(AnimationChannelType::DATA, label), source_type_(source_type)
+{
+}
+
+FCurveChannel::FCurveChannel(animrig::Action &containing_action, FCurve &fcurve)
+    : DataChannel(fcurve.rna_path(), DataChannelType::FCURVE)
 {
   this->source_ = RNA_pointer_create_discrete(&containing_action.id, RNA_FCurve, &fcurve);
 }
 
-DataChannel::DataChannel(GreasePencil &containing_gp, GreasePencilLayer &gp_layer)
-    : AnimationChannel(AnimationChannelType::DATA, "todo gp layer name"),
-      source_type_(DataChannelType::GREASE_PENCIL)
+GreasePencilChannel::GreasePencilChannel(GreasePencil &containing_gp, GreasePencilLayer &gp_layer)
+    : DataChannel(gp_layer.wrap().name(), DataChannelType::GREASE_PENCIL)
 {
   this->source_ = RNA_pointer_create_discrete(&containing_gp.id, RNA_GreasePencilLayer, &gp_layer);
 }
@@ -203,37 +206,37 @@ template<> GreasePencilLayer *DataChannel::get_source<GreasePencilLayer *>() con
   return static_cast<GreasePencilLayer *>(this->source_.data);
 }
 
-void DataChannel::gather_channeldata()
+void FCurveChannel::gather_channeldata()
 {
-  switch (this->source_type_) {
-    case DataChannelType::FCURVE: {
-      const FCurve *fcurve = this->get_source<FCurve *>();
-      if (!fcurve || !fcurve->bezt) {
-        /* Sampled FCurves cannot be edited and don't show up in the dopesheet. */
-        return;
-      }
-      this->datapoints_.resize(fcurve->totvert);
-      for (int i = 0; i < fcurve->totvert; i++) {
-        BezTriple &key = fcurve->bezt[i];
-        KeyPoint p = {key.vec[1][0]};
-        p.is_selected = BEZT_ISSEL_ANY(&key);
-        this->datapoints_[i] = p;
-      }
-      break;
-    }
+  BLI_assert(this->source_type_ == DataChannelType::FCURVE);
+  const FCurve *fcurve = this->get_source<FCurve *>();
+  if (!fcurve || !fcurve->bezt) {
+    /* Sampled FCurves cannot be edited and don't show up in the dopesheet. */
+    return;
+  }
 
-    case DataChannelType::GREASE_PENCIL: {
-      GreasePencilLayer *gp_layer = this->get_source<GreasePencilLayer *>();
-      if (!gp_layer) {
-        return;
-      }
-      bke::greasepencil::Layer &layer = gp_layer->wrap();
-      for (int frame : layer.frames().keys()) {
-        KeyPoint p = {float(frame)};
-        this->datapoints_.append(p);
-      }
-      break;
-    }
+  this->datapoints_.resize(fcurve->totvert);
+  for (int i = 0; i < fcurve->totvert; i++) {
+    BezTriple &key = fcurve->bezt[i];
+    KeyPoint p(key.vec[1][0]);
+    p.is_selected = BEZT_ISSEL_ANY(&key);
+    this->datapoints_[i] = p;
+  }
+}
+
+void GreasePencilChannel::gather_channeldata()
+{
+  BLI_assert(this->source_type_ == DataChannelType::GREASE_PENCIL);
+
+  GreasePencilLayer *gp_layer = this->get_source<GreasePencilLayer *>();
+  if (!gp_layer) {
+    return;
+  }
+
+  bke::greasepencil::Layer &layer = gp_layer->wrap();
+  for (int frame : layer.frames().keys()) {
+    KeyPoint p((float(frame)));
+    this->datapoints_.append(p);
   }
 }
 

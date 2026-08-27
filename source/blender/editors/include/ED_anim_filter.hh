@@ -7,6 +7,7 @@
  */
 
 #include <iostream>
+#include <limits>
 
 #include "BLI_set.hh"
 #include "BLI_vector.hh"
@@ -100,8 +101,13 @@ class ChannelTagStack {
 
 /* A point in time with various properties. */
 struct KeyPoint {
-  float frame = FLT_MAX;
+  float frame = std::numeric_limits<float>::infinity();
   bool is_selected = false;
+
+  /** Construct default KeyPoint at infinity. */
+  constexpr KeyPoint() = default;
+  /** Construct a KeyPoint at a specific frame. */
+  explicit constexpr KeyPoint(const float frame) : frame(frame) {}
 
   int64_t hash() const
   {
@@ -200,7 +206,8 @@ enum class DataChannelType {
 
 std::ostream &operator<<(std::ostream &stream, DataChannelType type);
 
-class DataChannel final : public AnimationChannel {
+class DataChannel : public AnimationChannel {
+ protected:
   /* While this could read the AnimationChannel::source_ for its type, the RNA types can't be put
    * into a switch statement which is why I (christoph) ended up keeping this. */
   DataChannelType source_type_;
@@ -208,9 +215,8 @@ class DataChannel final : public AnimationChannel {
   DataChannelFlags flags_ = DataChannelFlags(0);
 
  public:
-  DataChannel(animrig::Action &containing_action, FCurve &fcurve);
-  DataChannel(GreasePencil &containing_gp, GreasePencilLayer &gp_layer);
-  ~DataChannel() final = default;
+  DataChannel(StringRef label, DataChannelType source_type);
+  ~DataChannel() override = default;
 
   bool operator==(const DataChannel &other) const
   {
@@ -234,6 +240,19 @@ class DataChannel final : public AnimationChannel {
   void set_tags(const ChannelTagStack &tags);
   ChannelTag *get_tag(ChannelTagType tag_type);
   template<typename T> T get_source() const;
+};
+
+class FCurveChannel : public DataChannel {
+ public:
+  FCurveChannel(animrig::Action &containing_action, FCurve &fcurve);
+
+ protected:
+  void gather_channeldata() override;
+};
+
+class GreasePencilChannel : public DataChannel {
+ public:
+  GreasePencilChannel(GreasePencil &containing_gp, GreasePencilLayer &gp_layer);
 
  protected:
   void gather_channeldata() override;

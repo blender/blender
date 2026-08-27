@@ -37,7 +37,7 @@ static void channels_for_channelbag(animrig::Action &containing_action,
       tags.push({ChannelTagType::FCURVE_GROUP, fcu->grp->name, group_pointer});
     }
 
-    DataChannel *channel = MEM_new<DataChannel>(__func__, containing_action, *fcu);
+    DataChannel *channel = MEM_new<FCurveChannel>(__func__, containing_action, *fcu);
     channel->set_tags(tags);
     r_channels.append(channel);
 
