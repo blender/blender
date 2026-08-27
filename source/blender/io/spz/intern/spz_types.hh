@@ -16,12 +16,4 @@ namespace blender::io::spz {
  * It is bytes N, G, S, P in the file order. */
 constexpr uint32_t SPZ_HEADER_MAGIC = 0x5053474e;
 
-/* Part of the file header that is common for all format versions.
- * It is read from the file first to see which format version reader to use. */
-struct CommonFileHeader {
-  uint32_t magic;
-  uint32_t version;
-};
-static_assert(sizeof(CommonFileHeader) == 2 * sizeof(uint32_t));
-
 }  // namespace blender::io::spz
