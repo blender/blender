@@ -1718,6 +1718,8 @@ if(WITH_UI_TESTS)
     test_search_in_editors.test_dopesheet_search
     test_search_in_editors.test_graph_editor_search
     test_search_in_editors.test_file_browser_search
+    test_operator_poll.test_operator_search_poll_gating
+    test_operator_poll.test_operator_poll_sweep
     test_sculpt.asset_shelf_brush_selection
     test_sculpt.face_set_expand
     test_sculpt.face_set_gestures

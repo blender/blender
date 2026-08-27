@@ -236,6 +236,7 @@ static void outliner_select_sync_to_pose_bone(TreeElement *te,
                                               Set<bPoseChannel *> &selected_pbones)
 {
   Object *ob = id_cast<Object *>(tselem->id);
+  BKE_pose_ensure_bone_indices(*ob);
   bArmature *arm = id_cast<bArmature *>(ob->data);
   bPoseChannel *pchan = static_cast<bPoseChannel *>(te->directdata);
 

@@ -14,6 +14,7 @@
 namespace blender {
 
 struct ARegion;
+struct Main;
 struct CfraElem;
 struct Depsgraph;
 struct KeyframeEditData;
@@ -192,11 +193,11 @@ void ED_mask_select_frame(MaskLayer *mask_layer, int selx, short select_mode);
 /**
  * Delete selected frames.
  */
-bool ED_masklayer_frames_delete(MaskLayer *mask_layer);
+bool ED_masklayer_frames_delete(Main *main, MaskLayer *mask_layer);
 /**
  * Duplicate selected frames from given mask-layer.
  */
-bool ED_masklayer_frames_duplicate(MaskLayer *mask_layer);
+bool ED_masklayer_frames_duplicate(Main *main, MaskLayer *mask_layer);
 
 /**
  * Snap selected frames to ...

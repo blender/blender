@@ -96,6 +96,7 @@ template<typename... Args> std::string format(const std::string &fmt, Args &&...
 enum class Diag {
   CompilerErrorADLOnTypesNotAllowed,
   CompilerErrorMemberFuncNoClass,
+  CompilerErrorChildScopeNotFound,
 
   AnonymousUnionNotSupportedAtNamespaceScope,
 
@@ -300,6 +301,8 @@ static inline std::string_view diagnostic_message_get(Diag diag)
       return "Cannot use ADL on types";
     case Diag::CompilerErrorMemberFuncNoClass:
       return "Compiler error: member function has no class";
+    case Diag::CompilerErrorChildScopeNotFound:
+      return "Compiler error: non-existing child scope";
     case Diag::ConstexprDivisionByZero:
       return "Division by zero during constexpr evaluation";
     case Diag::ConstexprGlobalNonStatic:

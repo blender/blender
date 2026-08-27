@@ -901,18 +901,18 @@ struct WeightPaintStroke final : public PaintStroke {
     base_ = CTX_data_active_base(C);
   }
 
-  bool get_location(float out[3], const float mouse[2], bool force_original) override;
-  bool test_start(wmOperator *op, const float mouse[2]) override;
+  std::optional<float3> get_location(float2 mouse, bool force_original) override;
+  bool test_start(wmOperator *op, float2 mouse) override;
   void redraw(bool final) override;
   bool test_cancel() override;
   void update_step(wmOperator *op, PointerRNA *itemptr) override;
   void done(bool is_cancel, bool stroke_started) override;
 };
 
-bool WeightPaintStroke::get_location(float out[3], const float mouse[2], bool force_original)
+std::optional<float3> WeightPaintStroke::get_location(const float2 mouse, bool force_original)
 {
   return stroke_get_location_bvh(
-      *this->depsgraph, this->vc, *this->paint, this->brush, out, mouse, force_original);
+      *this->depsgraph, this->vc, *this->paint, this->brush, mouse, force_original);
 }
 
 static void init_session_data(const VPaint &wpaint, Object &ob, WPaintData &wpd)
@@ -932,7 +932,7 @@ static void init_session_data(const VPaint &wpaint, Object &ob, WPaintData &wpd)
   }
 }
 
-bool WeightPaintStroke::test_start(wmOperator *op, const float mouse[2])
+bool WeightPaintStroke::test_start(wmOperator *op, const float2 mouse)
 {
   Scene &scene = *this->scene;
   ToolSettings &ts = *scene.toolsettings;
@@ -1874,7 +1874,7 @@ void WeightPaintStroke::update_step(wmOperator * /*op*/, PointerRNA *itemptr)
    * also needed for "Frame Selected" on last stroke. */
   float loc_world[3];
   mul_v3_m4v3(loc_world, ob->object_to_world().ptr(), ss.cache->location);
-  vwpaint::last_stroke_update(loc_world, wp.paint);
+  bke::paint::stroke_track_location(*this->paint, loc_world);
 
   BKE_mesh_batch_cache_dirty_tag(&mesh, BKE_MESH_BATCH_DIRTY_ALL);
 

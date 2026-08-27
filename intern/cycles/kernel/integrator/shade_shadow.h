@@ -13,6 +13,12 @@
 
 CCL_NAMESPACE_BEGIN
 
+enum TransparentShadowEvalResult {
+  TRANSPARENT_SHADOW_EVAL_CONTINUE = 0,
+  TRANSPARENT_SHADOW_EVAL_OPAQUE = 1,
+  TRANSPARENT_SHADOW_EVAL_CACHE_MISS = 2,
+};
+
 #ifdef __KERNEL_GPU__
 /* Assume we can pack num hits into 12 bits, so that we can also store resume hits
  * and skip volume in the 16 bit num_hits. */
@@ -78,7 +84,7 @@ ccl_device_inline bool shadow_intersections_has_remaining(const uint packed_num_
 }
 
 #ifdef __TRANSPARENT_SHADOWS__
-ccl_device_inline ShaderEvalResult integrate_transparent_surface_shadow(
+ccl_device_inline TransparentShadowEvalResult integrate_transparent_surface_shadow(
     KernelGlobals kg, IntegratorShadowState state, const int num_hits, const int hit)
 {
   PROFILING_INIT(kg, PROFILING_SHADE_SHADOW_SURFACE);
@@ -108,13 +114,13 @@ ccl_device_inline ShaderEvalResult integrate_transparent_surface_shadow(
       /* Store resume state at current hit. */
       INTEGRATOR_STATE_WRITE(state, shadow_path, packed_num_hits) = shadow_num_hits_pack(
           num_hits, hit, true);
-      return SHADER_EVAL_CACHE_MISS;
+      return TRANSPARENT_SHADOW_EVAL_CACHE_MISS;
     }
   }
   else {
     INTEGRATOR_STATE_WRITE(state, shadow_path, volume_bounds_bounce) += 1;
     if (INTEGRATOR_STATE(state, shadow_path, volume_bounds_bounce) > VOLUME_BOUNDS_MAX) {
-      return SHADER_EVAL_EMPTY;
+      return TRANSPARENT_SHADOW_EVAL_OPAQUE;
     }
   }
 
@@ -125,7 +131,7 @@ ccl_device_inline ShaderEvalResult integrate_transparent_surface_shadow(
 
   /* Disable transparent shadows for ray portals */
   if (shadow_sd->runtime_flag & SR_RAY_PORTAL) {
-    return SHADER_EVAL_EMPTY;
+    return TRANSPARENT_SHADOW_EVAL_OPAQUE;
   }
 
   /* Compute transparency from closures. */
@@ -133,18 +139,18 @@ ccl_device_inline ShaderEvalResult integrate_transparent_surface_shadow(
   const Spectrum throughput = INTEGRATOR_STATE(state, shadow_path, throughput) * transparency;
 
   if (is_zero(throughput)) {
-    return SHADER_EVAL_EMPTY;
+    return TRANSPARENT_SHADOW_EVAL_OPAQUE;
   }
 
   INTEGRATOR_STATE_WRITE(state, shadow_path, throughput) = throughput;
   INTEGRATOR_STATE_WRITE(state, shadow_path, transparent_bounce) += 1;
   INTEGRATOR_STATE_WRITE(state, shadow_path, rng_offset) += PRNG_BOUNCE_NUM;
 
-  return SHADER_EVAL_OK;
+  return TRANSPARENT_SHADOW_EVAL_CONTINUE;
 }
 
 #  ifdef __VOLUME__
-ccl_device_inline ShaderEvalResult
+ccl_device_inline TransparentShadowEvalResult
 integrate_transparent_volume_shadow(KernelGlobals kg,
                                     IntegratorShadowState state,
                                     const int num_hits,
@@ -182,23 +188,22 @@ integrate_transparent_volume_shadow(KernelGlobals kg,
   }
 
   if (is_zero(*throughput)) {
-    return SHADER_EVAL_EMPTY;
+    return TRANSPARENT_SHADOW_EVAL_OPAQUE;
   }
 
   if (shadow_sd->runtime_flag & SR_CACHE_MISS) {
     /* Store resume state at current hit. */
     INTEGRATOR_STATE_WRITE(state, shadow_path, packed_num_hits) = shadow_num_hits_pack(
         num_hits, hit, false);
-    return SHADER_EVAL_CACHE_MISS;
+    return TRANSPARENT_SHADOW_EVAL_CACHE_MISS;
   }
 
-  return SHADER_EVAL_OK;
+  return TRANSPARENT_SHADOW_EVAL_CONTINUE;
 }
 #  endif
 
-ccl_device_inline ShaderEvalResult integrate_transparent_shadow(KernelGlobals kg,
-                                                                IntegratorShadowState state,
-                                                                const uint packed_num_hits)
+ccl_device_inline TransparentShadowEvalResult integrate_transparent_shadow(
+    KernelGlobals kg, IntegratorShadowState state, const uint packed_num_hits)
 {
   /* Accumulate shadow for transparent surfaces. */
   const uint num_hits = shadow_num_hits_get(packed_num_hits);
@@ -220,9 +225,9 @@ ccl_device_inline ShaderEvalResult integrate_transparent_shadow(KernelGlobals kg
 #  ifdef __VOLUME__
       if (!integrator_state_shadow_volume_stack_is_empty(kg, state)) {
         Spectrum throughput = INTEGRATOR_STATE(state, shadow_path, throughput);
-        const ShaderEvalResult result = integrate_transparent_volume_shadow(
+        const TransparentShadowEvalResult result = integrate_transparent_volume_shadow(
             kg, state, num_hits, hit, num_recorded_hits, &throughput);
-        if (result != SHADER_EVAL_OK) {
+        if (result != TRANSPARENT_SHADOW_EVAL_CONTINUE) {
           return result;
         }
 
@@ -233,9 +238,9 @@ ccl_device_inline ShaderEvalResult integrate_transparent_shadow(KernelGlobals kg
 
     /* Surface shaders. */
     if (hit < num_recorded_hits) {
-      const ShaderEvalResult result = integrate_transparent_surface_shadow(
+      const TransparentShadowEvalResult result = integrate_transparent_surface_shadow(
           kg, state, num_hits, hit);
-      if (result != SHADER_EVAL_OK) {
+      if (result != TRANSPARENT_SHADOW_EVAL_CONTINUE) {
         return result;
       }
     }
@@ -251,7 +256,7 @@ ccl_device_inline ShaderEvalResult integrate_transparent_shadow(KernelGlobals kg
     INTEGRATOR_STATE_WRITE(state, shadow_ray, tmin) = intersection_t_offset(last_hit_t);
   }
 
-  return SHADER_EVAL_OK;
+  return TRANSPARENT_SHADOW_EVAL_CONTINUE;
 }
 #endif /* __TRANSPARENT_SHADOWS__ */
 
@@ -264,17 +269,18 @@ ccl_device void integrator_shade_shadow(KernelGlobals kg,
 
 #ifdef __TRANSPARENT_SHADOWS__
   /* Evaluate transparent shadows. */
-  const ShaderEvalResult result = integrate_transparent_shadow(kg, state, packed_num_hits);
-  if (result == SHADER_EVAL_CACHE_MISS) {
+  const TransparentShadowEvalResult result = integrate_transparent_shadow(
+      kg, state, packed_num_hits);
+  if (result == TRANSPARENT_SHADOW_EVAL_CACHE_MISS) {
     integrator_shadow_path_cache_miss(state, DEVICE_KERNEL_INTEGRATOR_SHADE_SHADOW);
     return;
   }
-  if (result == SHADER_EVAL_EMPTY) {
+  if (result == TRANSPARENT_SHADOW_EVAL_OPAQUE) {
     integrator_shadow_path_terminate(state, DEVICE_KERNEL_INTEGRATOR_SHADE_SHADOW);
     return;
   }
 
-  kernel_assert(result == SHADER_EVAL_OK);
+  kernel_assert(result == TRANSPARENT_SHADOW_EVAL_CONTINUE);
 #endif
 
   if (shadow_intersections_has_remaining(packed_num_hits)) {

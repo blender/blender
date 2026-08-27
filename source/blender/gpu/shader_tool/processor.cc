@@ -469,31 +469,31 @@ void SourceProcessor::scan_external_symbols(SourceManager &sources,
     }
 
     if (file.empty()) {
-      cout << "Error: Included file not found " << dep << endl;
-      exit(1);
+      report_error(0, 0, "", "Error: Included file not found " + dep);
+      throw ParserException();
     }
-    else if (ranges::find(visited_files, file) == visited_files.end()) {
+
+    if (ranges::find(visited_files, file) == visited_files.end()) {
       visited_files.emplace_back(file);
 
       ifstream input_file(file);
       if (!input_file) {
-        cerr << "Error: Could not open file " << file << endl;
-        exit(1);
+        report_error(0, 0, "", "Error: Could not open file " + file);
+        throw ParserException();
       }
-      else {
-        stringstream buffer;
-        buffer << input_file.rdbuf();
 
-        Language language = language_from_filename(file);
-        SourceProcessor processor(buffer.str(), file, language, file_list_);
-        /* Recursive. */
-        processor.parse_include_and_symbols(sources, symbols, visited_files);
+      stringstream buffer;
+      buffer << input_file.rdbuf();
 
-        /* If an error occur, cancel everything and let the error bubble up. */
-        if (processor.error_handler.err) {
-          this->error_handler.err = processor.error_handler.err;
-          throw ParserException();
-        }
+      Language language = language_from_filename(file);
+      SourceProcessor processor(buffer.str(), file, language, file_list_);
+      /* Recursive. */
+      processor.parse_include_and_symbols(sources, symbols, visited_files);
+
+      /* If an error occur, cancel everything and let the error bubble up. */
+      if (processor.error_handler.err) {
+        this->error_handler.err = processor.error_handler.err;
+        throw ParserException();
       }
     }
   }

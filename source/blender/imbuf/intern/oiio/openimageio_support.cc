@@ -537,11 +537,15 @@ ImageSpec imb_create_write_spec(const WriteContext &ctx, int file_channels, Type
                                      ctx.ibuf->float_buffer.colorspace :
                                      ctx.ibuf->byte_buffer.colorspace;
   if (colorspace) {
-    Vector<char> icc_profile = IMB_colormanagement_space_to_icc_profile(colorspace);
-    if (!icc_profile.is_empty()) {
-      file_spec.attribute("ICCProfile",
-                          OIIO::TypeDesc(OIIO::TypeDesc::UINT8, icc_profile.size()),
-                          icc_profile.data());
+    /* Our ICC profiles are only valid for RGB channels, using them for grayscale
+     * is considered invalid by some software. */
+    if (file_channels >= 3) {
+      Vector<char> icc_profile = IMB_colormanagement_space_to_icc_profile(colorspace);
+      if (!icc_profile.is_empty()) {
+        file_spec.attribute("ICCProfile",
+                            OIIO::TypeDesc(OIIO::TypeDesc::UINT8, icc_profile.size()),
+                            icc_profile.data());
+      }
     }
 
     /* PNG only supports RGB matrix. For AVIF and HEIF we want to use a YUV matrix

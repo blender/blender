@@ -650,7 +650,7 @@ class Context : public compositor::Context {
     const Scene *original_scene = DEG_get_original(&this->get_scene());
     const int view_identifier = BKE_scene_multiview_view_id_get(&input_data_.render_data,
                                                                 input_data_.view_name.c_str());
-    const ImBuf *cached_buffer = original_scene->runtime->compositor.cache.get_frame(
+    ImBuf *cached_buffer = original_scene->runtime->compositor.cache.get_frame(
         this->get_frame_number(), view_identifier);
     if (!cached_buffer) {
       return false;
@@ -702,6 +702,8 @@ class Context : public compositor::Context {
     else {
       image->flag |= IMA_VIEW_AS_RENDER;
     }
+
+    IMB_freeImBuf(cached_buffer);
 
     IMB_partial_update_mark_full(image_buffer);
     BKE_image_release_ibuf(image, image_buffer, lock);

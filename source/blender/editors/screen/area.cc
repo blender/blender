@@ -226,7 +226,10 @@ static void draw_azone_arrow(float x1, float y1, float x2, float y2, AZEdge edge
 
   GPU_blend(GPU_BLEND_ALPHA);
   immBindBuiltinProgram(GPU_SHADER_3D_UNIFORM_COLOR);
-  immUniformColor4f(0.8f, 0.8f, 0.8f, 0.4f);
+  float color[4];
+  ui::theme::get_color_4fv(TH_TEXT, color);
+  color[3] = 0.6f;
+  immUniformColor4fv(color);
 
   immBegin(GPU_PRIM_TRI_FAN, 6);
   for (int i = 0; i < 6; i++) {
@@ -265,7 +268,10 @@ static void region_draw_azone_tab_arrow(ScrArea *area, ARegion *region, AZone *a
 
   /* Workaround for different color spaces between normal areas and the ones using GPUViewports. */
   float alpha = WM_region_use_viewport(area, region) ? 0.6f : 0.4f;
-  const float color[4] = {0.05f, 0.05f, 0.05f, alpha};
+  float color[4];
+  ui::theme::get_color_4fv(TH_HEADER, color);
+  color[3] = std::max(color[3], alpha);
+
   rctf rect{};
   /* Hit size is a bit larger than visible background. */
   rect.xmin = float(az->x1) + U.pixelsize;

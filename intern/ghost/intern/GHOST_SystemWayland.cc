@@ -95,9 +95,7 @@
 
 #include <pthread.h> /* For setting the thread priority. */
 
-#ifdef HAVE_POLL
-#  include <poll.h>
-#endif
+#include <poll.h>
 
 /* Logging, use `ghost.wl.*` prefix. */
 #include "CLG_log.h"
@@ -150,8 +148,6 @@ static bool xkb_compose_state_feed_and_get_utf8(
 
 #ifdef USE_EVENT_BACKGROUND_THREAD
 static void gwl_display_event_thread_destroy(GWL_Display *display);
-
-static void ghost_wl_display_lock_without_input(wl_display *wl_display, std::mutex *server_mutex);
 
 /** Default size for pending event vector. */
 constexpr size_t events_pending_default_size = 4096 / sizeof(void *);
@@ -1658,11 +1654,16 @@ struct GWL_Display {
    */
   pthread_t events_pthread = 0;
   /**
-   * Use to exit the event reading loop.
+   * Used to make the loop exit, otherwise if a flag on the loop condition were simply used,
+   * when the stop happens while `poll` is blocking the thread would never quit since there
+   * are no WAYLAND messages coming anymore.
    *
    * Not set when `background == true`.
+   *
+   * - 0: The read end, waited on by #events_pthread.
+   * - 1: The write end, closing it ends that threads loop.
    */
-  bool events_pthread_is_active = false;
+  int events_pipe[2] = {-1, -1};
 
   /**
    * Events added from the event reading thread.
@@ -1705,10 +1706,10 @@ struct GWL_Display {
 static void gwl_display_destroy(GWL_Display *display)
 {
 #ifdef USE_EVENT_BACKGROUND_THREAD
+  /* End the event thread first, everything below frees memory it accesses. */
   if (!display->background) {
     if (display->events_pthread) {
-      ghost_wl_display_lock_without_input(display->wl.display, display->system->server_mutex);
-      display->events_pthread_is_active = false;
+      gwl_display_event_thread_destroy(display);
     }
   }
 #endif
@@ -1734,15 +1735,6 @@ static void gwl_display_destroy(GWL_Display *display)
     }
   }
 #endif
-
-#ifdef USE_EVENT_BACKGROUND_THREAD
-  if (!display->background) {
-    if (display->events_pthread) {
-      gwl_display_event_thread_destroy(display);
-      display->system->server_mutex->unlock();
-    }
-  }
-#endif /* USE_EVENT_BACKGROUND_THREAD */
 
   /* Important to remove after the seats which may have key repeat timers active. */
   if (display->key_repeat_timer_manager) {
@@ -2580,7 +2572,11 @@ enum {
   GWL_IOR_NO_RETRY = 1 << 2,
 };
 
-static int file_descriptor_is_io_ready(int fd, const int flags, const int timeout_ms)
+/**
+ * \param fd_stop: When not -1, wait on this descriptor too, setting `r_stop` when it's ready.
+ */
+static int file_descriptor_is_io_ready_ex(
+    const int fd, const int fd_stop, const int flags, const int timeout_ms, bool *r_stop)
 {
   int result;
 
@@ -2588,48 +2584,32 @@ static int file_descriptor_is_io_ready(int fd, const int flags, const int timeou
 
   /* NOTE: We don't bother to account for elapsed time if we get #EINTR. */
   do {
-#ifdef HAVE_POLL
-    pollfd info;
+    pollfd info[2];
 
-    info.fd = fd;
-    info.events = 0;
+    info[0].fd = fd;
+    info[0].events = 0;
     if (flags & GWL_IOR_READ) {
-      info.events |= POLLIN | POLLPRI;
+      info[0].events |= POLLIN | POLLPRI;
     }
     if (flags & GWL_IOR_WRITE) {
-      info.events |= POLLOUT;
+      info[0].events |= POLLOUT;
     }
-    result = poll(&info, 1, timeout_ms);
-#else
-    fd_set rfdset, *rfdp = nullptr;
-    fd_set wfdset, *wfdp = nullptr;
-    struct timeval tv, *tvp = nullptr;
+    /* A negative descriptor is ignored with `revents` zeroed, so -1 needs no special case.
+     * #POLLHUP is reported without asking for it, which is what closing the write end gives. */
+    info[1] = {fd_stop, POLLIN, 0};
 
-    /* If this assert triggers we'll corrupt memory here */
-    GHOST_ASSERT(fd >= 0 && fd < FD_SETSIZE, "X");
-
-    if (flags & GWL_IOR_READ) {
-      FD_ZERO(&rfdset);
-      FD_SET(fd, &rfdset);
-      rfdp = &rfdset;
+    result = poll(info, 2, timeout_ms);
+    if ((result > 0) && (info[1].revents != 0)) {
+      *r_stop = true;
     }
-    if (flags & GWL_IOR_WRITE) {
-      FD_ZERO(&wfdset);
-      FD_SET(fd, &wfdset);
-      wfdp = &wfdset;
-    }
-
-    if (timeout_ms >= 0) {
-      tv.tv_sec = timeout_ms / 1000;
-      tv.tv_usec = (timeout_ms % 1000) * 1000;
-      tvp = &tv;
-    }
-
-    result = select(fd + 1, rfdp, wfdp, nullptr, tvp);
-#endif /* !HAVE_POLL */
   } while (result < 0 && errno == EINTR && !(flags & GWL_IOR_NO_RETRY));
 
   return result;
+}
+
+static int file_descriptor_is_io_ready(const int fd, const int flags, const int timeout_ms)
+{
+  return file_descriptor_is_io_ready_ex(fd, -1, flags, timeout_ms, nullptr);
 }
 
 static int ghost_wl_display_event_pump(wl_display *wl_display)
@@ -2748,30 +2728,23 @@ static bool ghost_wl_surface_commit_and_wait_for_apply(GHOST_SystemWayland *syst
 
 #ifdef USE_EVENT_BACKGROUND_THREAD
 
-static void ghost_wl_display_lock_without_input(wl_display *wl_display, std::mutex *server_mutex)
-{
-  const int fd = wl_display_get_fd(wl_display);
-  int state;
-  do {
-    state = file_descriptor_is_io_ready(fd, GWL_IOR_READ | GWL_IOR_NO_RETRY, 0);
-    /* Re-check `state` with a lock held, needed to avoid holding the lock. */
-    if (state == 0) {
-      server_mutex->lock();
-      state = file_descriptor_is_io_ready(fd, GWL_IOR_READ | GWL_IOR_NO_RETRY, 0);
-      if (state == 0) {
-        break;
-      }
-    }
-  } while (state == 0);
-}
-
+/**
+ * Handle events from the display, waiting when there are none.
+ *
+ * \param fd_stop: See #file_descriptor_is_io_ready_ex.
+ * \return -1 when `fd_stop` signaled or the connection failed, ending the callers loop.
+ */
 static int ghost_wl_display_event_pump_from_thread(wl_display *wl_display,
                                                    const int fd,
+                                                   const int fd_stop,
                                                    std::mutex *server_mutex)
 {
+  GHOST_ASSERT(fd_stop != -1, "Expected to be set");
+
   /* Based on SDL's `Wayland_PumpEvents`. */
   server_mutex->lock();
   int err = 0;
+  bool stop = false;
   if (wl_display_prepare_read(wl_display) == 0) {
     bool wait_on_fd = false;
     /* Use #GWL_IOR_NO_RETRY to ensure #SIGINT will break us out of our wait. */
@@ -2787,17 +2760,20 @@ static int ghost_wl_display_event_pump_from_thread(wl_display *wl_display,
     server_mutex->unlock();
 
     if (wait_on_fd) {
-      /* Important this runs after unlocking. */
-      file_descriptor_is_io_ready(fd, GWL_IOR_READ | GWL_IOR_NO_RETRY, INT32_MAX);
+      /* Important this runs after unlocking,
+       * the read was canceled above so nothing is left prepared while waiting. */
+      file_descriptor_is_io_ready_ex(
+          fd, fd_stop, GWL_IOR_READ | GWL_IOR_NO_RETRY, INT32_MAX, &stop);
     }
   }
   else {
     server_mutex->unlock();
 
     /* Wait for input (unlocked, so as not to block other threads). */
-    int state = file_descriptor_is_io_ready(fd, GWL_IOR_READ | GWL_IOR_NO_RETRY, INT32_MAX);
+    int state = file_descriptor_is_io_ready_ex(
+        fd, fd_stop, GWL_IOR_READ | GWL_IOR_NO_RETRY, INT32_MAX, &stop);
     /* Re-check `state` with a lock held, needed to avoid holding the lock. */
-    if (state > 0) {
+    if (!stop && state > 0) {
       server_mutex->lock();
       state = file_descriptor_is_io_ready(fd, GWL_IOR_READ | GWL_IOR_NO_RETRY, 0);
       if (state > 0) {
@@ -2807,7 +2783,7 @@ static int ghost_wl_display_event_pump_from_thread(wl_display *wl_display,
     }
   }
 
-  return err;
+  return stop ? -1 : err;
 }
 #endif /* USE_EVENT_BACKGROUND_THREAD */
 
@@ -8929,43 +8905,67 @@ static void *gwl_display_event_thread_fn(void *display_voidp)
 {
   GWL_Display *display = static_cast<GWL_Display *>(display_voidp);
   GHOST_ASSERT(!display->background, "Foreground only");
-  const int fd = wl_display_get_fd(display->wl.display);
-  while (display->events_pthread_is_active) {
-    /* Wait for an event, this thread is dedicated to event handling. */
-    if (ghost_wl_display_event_pump_from_thread(
-            display->wl.display, fd, display->system->server_mutex) == -1)
-    {
-      break;
-    }
-  }
 
-  /* Wait until the main thread cancels this thread, otherwise this thread may exit
-   * before cancel is called, causing a crash on exit. */
-  while (true) {
-    pause();
+  /* Read once, the main thread joins before freeing these. */
+  wl_display *wl_display = display->wl.display;
+  std::mutex *server_mutex = display->system->server_mutex;
+  const int fd = wl_display_get_fd(wl_display);
+  const int fd_stop = display->events_pipe[0];
+
+  /* Wait for events, this thread is dedicated to event handling.
+   * Ends via `fd_stop`, see #gwl_display_event_thread_destroy. */
+  while (ghost_wl_display_event_pump_from_thread(wl_display, fd, fd_stop, server_mutex) != -1) {
+    /* Pass. */
   }
 
   return nullptr;
 }
 
 /* Event reading thread. */
-static void gwl_display_event_thread_create(GWL_Display *display)
+static bool gwl_display_event_thread_create(GWL_Display *display)
 {
   GHOST_ASSERT(!display->background, "Foreground only");
   GHOST_ASSERT(display->events_pthread == 0, "Only call once");
+
+  /* Fatal, the thread can't be ended without a way to wake it. Only expected on descriptor
+   * exhaustion, where start-up is doomed anyway.
+   *
+   * `O_CLOEXEC` is not optional, a sub-process inheriting the write end would keep it
+   * open, so closing it here wouldn't end the thread & the join would never return. */
+  if (pipe2(display->events_pipe, O_CLOEXEC) != 0) {
+    display->events_pipe[0] = display->events_pipe[1] = -1;
+    return false;
+  }
+
   display->events_pending.reserve(events_pending_default_size);
-  display->events_pthread_is_active = true;
-  pthread_create(&display->events_pthread, nullptr, gwl_display_event_thread_fn, display);
+  if (pthread_create(&display->events_pthread, nullptr, gwl_display_event_thread_fn, display) != 0)
+  {
+    close(display->events_pipe[0]);
+    close(display->events_pipe[1]);
+    display->events_pipe[0] = display->events_pipe[1] = -1;
+    display->events_pthread = 0;
+    return false;
+  }
   /* Application logic should take priority, this only ensures events don't accumulate when busy
    * which typically takes a while (5+ seconds of frantic mouse motion for example). */
   pthread_set_min_priority(display->events_pthread);
-  pthread_detach(display->events_pthread);
+  return true;
 }
 
 static void gwl_display_event_thread_destroy(GWL_Display *display)
 {
   GHOST_ASSERT(!display->background, "Foreground only");
-  pthread_cancel(display->events_pthread);
+
+  /* Close the write end, the read end then reports end-of-file.
+   * Closing the read end wouldn't do, that doesn't wake the threads `poll`. */
+  close(display->events_pipe[1]);
+  display->events_pipe[1] = -1;
+
+  pthread_join(display->events_pthread, nullptr);
+  display->events_pthread = 0;
+
+  close(display->events_pipe[0]);
+  display->events_pipe[0] = -1;
 }
 
 #endif /* USE_EVENT_BACKGROUND_THREAD */
@@ -9077,10 +9077,11 @@ GHOST_SystemWayland::GHOST_SystemWayland(const bool background)
   /* There is no need for an event handling thread in background mode
    * because there no polling for user input. */
   if (background) {
-    GHOST_ASSERT(display_->events_pthread_is_active == false, "Expected to be false");
+    GHOST_ASSERT(display_->events_pthread == 0, "Expected to be unset");
   }
-  else {
-    gwl_display_event_thread_create(display_);
+  else if (!gwl_display_event_thread_create(display_)) {
+    display_destroy_and_free_all();
+    throw std::runtime_error("unable to create the event thread!");
   }
 #endif
   /* Could be null in background mode, however there are enough

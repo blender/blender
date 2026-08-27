@@ -10,6 +10,7 @@
 
 #include "BLI_enum_flags.hh"
 #include "BLI_math_constants.hh"
+#include "BLI_uuid.hh"
 
 #include "DNA_ID.h"
 #include "DNA_anim_enums.h"
@@ -656,6 +657,11 @@ struct bUserAssetLibrary {
    * (#ASSET_LIBRARY_USE_REMOTE_URL), this is the download cache directory, where already
    * downloaded assets will be placed. */
   char dirpath[/*FILE_MAX*/ 1024] = "";
+  /** The "resolved" dirpath. This is the version of dirpath that has had variable expansion done
+   * on it and has normalized the path string and converted the directory separatior to use the OS
+   * native version. This should always be used when looking for the actual asset library on disk.
+   */
+  char resolved_dirpath[/*FILE_MAX*/ 1024] = "";
   /** Only for remote asset libraries (#ASSET_LIBRARY_USE_REMOTE_URL is set). Update using
    * #BKE_preferences_remote_asset_library_url_set() only. */
   char remote_url[/*FILE_MAX*/ 1024];
@@ -664,6 +670,15 @@ struct bUserAssetLibrary {
    * Only use when #ASSET_LIBRARY_USE_AUTH_TOKEN is set. Update using
    * #BKE_preferences_remote_asset_library_auth_token_set() only. */
   char *auth_token = nullptr;
+  /** The UUID of the asset library. This is used to make deduplication possible when using the
+   * same asset library from different computers. */
+  bUUID uuid;
+  /** If the asset has an invalid UUID, it will be stored here.
+   * The asset will be disabled and we will notify the user that the asset has an invalid UUID.
+   * We store the invalid UUID string so that we don't introduce any data loss when saving the
+   * UUIDs to files. (If it is invalid it is up to the end user to fix it.
+   */
+  char *invalid_uuid = nullptr;
 
   short import_method = ASSET_IMPORT_PACK;  /* eAssetImportMethod */
   short flag = ASSET_LIBRARY_RELATIVE_PATH; /* eAssetLibrary_Flag */

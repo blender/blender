@@ -77,8 +77,8 @@ ccl_device_forceinline void film_write_denoising_features_surface(KernelGlobals 
       continue;
     }
 
-    const Spectrum closure_albedo = bsdf_albedo(kg, sd, sc, true, true);
-    const float closure_weight = average(closure_albedo);
+    const Spectrum albedo = closure_albedo(kg, sd, sc, true, true);
+    const float closure_weight = average(albedo);
 
     /* All closures contribute to the normal feature, but only diffuse-like ones to the albedo. */
     /* If far-field hair, use fiber tangent as feature instead of normal. */
@@ -95,14 +95,14 @@ ccl_device_forceinline void film_write_denoising_features_surface(KernelGlobals 
                                      smoothstep(0.0f, 0.15f, roughness);
 
     if (use_albedo_roughness_weighting) {
-      diffuse_albedo += closure_albedo * diffuse_weight;
-      specular_albedo += closure_albedo * (1.0f - diffuse_weight);
+      diffuse_albedo += albedo * diffuse_weight;
+      specular_albedo += albedo * (1.0f - diffuse_weight);
     }
     else if (CLOSURE_IS_BSDF_DIFFUSE(sc->type) || CLOSURE_IS_BSSRDF(sc->type)) {
-      diffuse_albedo += closure_albedo;
+      diffuse_albedo += albedo;
     }
     else if (CLOSURE_IS_BSDF_GLOSSY(sc->type) || CLOSURE_IS_GLASS(sc->type)) {
-      specular_albedo += closure_albedo;
+      specular_albedo += albedo;
     }
     /* Apply sqrtf again to convert GGX alpha to perceptual roughness. */
     specular_roughness += sqrtf(roughness) * closure_weight;

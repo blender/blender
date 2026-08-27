@@ -50,11 +50,7 @@ static void ensure_valid_pivot(const Object &ob, Paint &paint)
     const float3 center = math::midpoint(bounds.min, bounds.max);
     const float3 location = math::transform_point(ob.object_to_world(), center);
 
-    copy_v3_v3(paint_runtime.average_stroke_accum, location);
-    paint_runtime.average_stroke_counter = 1;
-
-    /* Update last stroke position. */
-    paint_runtime.last_stroke_valid = true;
+    bke::paint::stroke_set_location(paint, location);
   }
 }
 

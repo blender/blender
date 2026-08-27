@@ -482,6 +482,14 @@ void SourceProcessor::lower_resource_table(Parser &parser)
       if (type == "attribute") {
         vert_in.slot = attribute[2].str();
       }
+      else if (type == "condition") {
+        attribute[1].scope().foreach_token(Word, [&](const Token tok) {
+          vert_in.res_condition += "int " + string(tok.str()) + " = ";
+          vert_in.res_condition += "ShaderCreateInfo::find_constant(constants, \"" +
+                                   string(tok.str()) + "\"); ";
+        });
+        vert_in.res_condition += "return " + string(attribute[1].scope().str()) + ";";
+      }
       else {
         report_error(attribute[0], "Invalid attribute in vertex input interface");
       }

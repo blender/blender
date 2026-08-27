@@ -123,4 +123,9 @@ BLI_INLINE float sharpness_to_crease(float sharpness)
   return sqrt(sharpness * 0.1f);
 }
 
+BLI_INLINE float4 quad_weights_from_uv(float u, float v)
+{
+  return {(1.0f - u) * (1.0f - v), u * (1.0f - v), u * v, (1.0f - u) * v};
+}
+
 }  // namespace blender::bke::subdiv

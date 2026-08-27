@@ -90,7 +90,7 @@ void template_running_jobs(Layout *layout, bContext *C)
 
   /* another scene can be rendering too, for example via compositor */
   for (Scene &scene : bmain->scenes) {
-    if (WM_jobs_test(wm, &scene, WM_JOB_TYPE_ANY)) {
+    if (WM_jobs_progress_test(wm, &scene, WM_JOB_TYPE_ANY)) {
       cancel_fn = set_global_break;
       icon = ICON_NONE;
       owner = &scene;
@@ -99,43 +99,43 @@ void template_running_jobs(Layout *layout, bContext *C)
       continue;
     }
 
-    if (WM_jobs_test(wm, &scene, WM_JOB_TYPE_SEQ_BUILD_PROXY)) {
+    if (WM_jobs_progress_test(wm, &scene, WM_JOB_TYPE_SEQ_BUILD_PROXY)) {
       cancel_fn = cancel_all_scene_jobs;
       icon = ICON_SEQUENCE;
       owner = &scene;
       break;
     }
-    if (WM_jobs_test(wm, &scene, WM_JOB_TYPE_SEQ_BUILD_PREVIEW)) {
+    if (WM_jobs_progress_test(wm, &scene, WM_JOB_TYPE_SEQ_BUILD_PREVIEW)) {
       cancel_fn = cancel_all_scene_jobs;
       icon = ICON_SEQUENCE;
       break;
     }
-    if (WM_jobs_test(wm, &scene, WM_JOB_TYPE_SEQ_DRAW_THUMBNAIL)) {
+    if (WM_jobs_progress_test(wm, &scene, WM_JOB_TYPE_SEQ_DRAW_THUMBNAIL)) {
       cancel_fn = cancel_all_scene_jobs;
       icon = ICON_SEQUENCE;
       break;
     }
-    if (WM_jobs_test(wm, &scene, WM_JOB_TYPE_CLIP_BUILD_PROXY)) {
+    if (WM_jobs_progress_test(wm, &scene, WM_JOB_TYPE_CLIP_BUILD_PROXY)) {
       cancel_fn = cancel_all_scene_jobs;
       icon = ICON_TRACKER;
       break;
     }
-    if (WM_jobs_test(wm, &scene, WM_JOB_TYPE_CLIP_PREFETCH)) {
+    if (WM_jobs_progress_test(wm, &scene, WM_JOB_TYPE_CLIP_PREFETCH)) {
       cancel_fn = cancel_all_scene_jobs;
       icon = ICON_TRACKER;
       break;
     }
-    if (WM_jobs_test(wm, &scene, WM_JOB_TYPE_CLIP_TRACK_MARKERS)) {
+    if (WM_jobs_progress_test(wm, &scene, WM_JOB_TYPE_CLIP_TRACK_MARKERS)) {
       cancel_fn = cancel_all_scene_jobs;
       icon = ICON_TRACKER;
       break;
     }
-    if (WM_jobs_test(wm, &scene, WM_JOB_TYPE_CLIP_SOLVE_CAMERA)) {
+    if (WM_jobs_progress_test(wm, &scene, WM_JOB_TYPE_CLIP_SOLVE_CAMERA)) {
       cancel_fn = cancel_all_scene_jobs;
       icon = ICON_TRACKER;
       break;
     }
-    if (WM_jobs_test(wm, &scene, WM_JOB_TYPE_RENDER)) {
+    if (WM_jobs_progress_test(wm, &scene, WM_JOB_TYPE_RENDER)) {
       cancel_fn = set_global_break;
       icon = ICON_SCENE;
       if (U.render_display_type != USER_RENDER_DISPLAY_NONE) {
@@ -144,13 +144,13 @@ void template_running_jobs(Layout *layout, bContext *C)
       }
       break;
     }
-    if (WM_jobs_test(wm, &scene, WM_JOB_TYPE_COMPOSITE)) {
+    if (WM_jobs_progress_test(wm, &scene, WM_JOB_TYPE_COMPOSITE)) {
       cancel_fn = cancel_all_scene_jobs;
       icon = ICON_RENDERLAYERS;
       break;
     }
-    if (WM_jobs_test(wm, &scene, WM_JOB_TYPE_OBJECT_BAKE_TEXTURE) ||
-        WM_jobs_test(wm, &scene, WM_JOB_TYPE_OBJECT_BAKE))
+    if (WM_jobs_progress_test(wm, &scene, WM_JOB_TYPE_OBJECT_BAKE_TEXTURE) ||
+        WM_jobs_progress_test(wm, &scene, WM_JOB_TYPE_OBJECT_BAKE))
     {
       /* Skip bake jobs in compositor to avoid compo header displaying progress bar
        * which is not being updated (bake jobs only need to update NC_IMAGE context). */
@@ -161,27 +161,27 @@ void template_running_jobs(Layout *layout, bContext *C)
       }
       continue;
     }
-    if (WM_jobs_test(wm, &scene, WM_JOB_TYPE_DPAINT_BAKE)) {
+    if (WM_jobs_progress_test(wm, &scene, WM_JOB_TYPE_DPAINT_BAKE)) {
       cancel_fn = set_global_break;
       icon = ICON_MOD_DYNAMICPAINT;
       break;
     }
-    if (WM_jobs_test(wm, &scene, WM_JOB_TYPE_POINTCACHE)) {
+    if (WM_jobs_progress_test(wm, &scene, WM_JOB_TYPE_POINTCACHE)) {
       cancel_fn = set_global_break;
       icon = ICON_PHYSICS;
       break;
     }
-    if (WM_jobs_test(wm, &scene, WM_JOB_TYPE_OBJECT_SIM_FLUID)) {
+    if (WM_jobs_progress_test(wm, &scene, WM_JOB_TYPE_OBJECT_SIM_FLUID)) {
       cancel_fn = set_global_break;
       icon = ICON_MOD_FLUIDSIM;
       break;
     }
-    if (WM_jobs_test(wm, &scene, WM_JOB_TYPE_OBJECT_SIM_OCEAN)) {
+    if (WM_jobs_progress_test(wm, &scene, WM_JOB_TYPE_OBJECT_SIM_OCEAN)) {
       cancel_fn = set_global_break;
       icon = ICON_MOD_OCEAN;
       break;
     }
-    if (WM_jobs_test(wm, &scene, WM_JOB_TYPE_SOUND_MIXDOWN)) {
+    if (WM_jobs_progress_test(wm, &scene, WM_JOB_TYPE_SOUND_MIXDOWN)) {
       cancel_fn = set_global_break;
       icon = ICON_FILE_SOUND;
       break;
@@ -196,7 +196,7 @@ void template_running_jobs(Layout *layout, bContext *C)
         }
         const SpaceFile *sfile = static_cast<SpaceFile *>(area.spacedata.first);
 
-        if (WM_jobs_test(wm, sfile->files, WM_JOB_TYPE_FILESEL_READDIR)) {
+        if (WM_jobs_progress_test(wm, sfile->files, WM_JOB_TYPE_FILESEL_READDIR)) {
           icon = ICON_FILEBROWSER;
           owner = sfile->files;
           cancel_fn = [sfile](bContext &C) {
@@ -205,7 +205,7 @@ void template_running_jobs(Layout *layout, bContext *C)
           break;
         }
 
-        if (WM_jobs_test(wm, sfile->files, WM_JOB_TYPE_ASSET_LIBRARY_LOAD)) {
+        if (WM_jobs_progress_test(wm, sfile->files, WM_JOB_TYPE_ASSET_LIBRARY_LOAD)) {
           const bool needs_cancelling_online_assets =
               sfile->asset_params && asset_system::is_or_contains_remote_libraries(
                                          sfile->asset_params->asset_library_ref);
@@ -228,7 +228,7 @@ void template_running_jobs(Layout *layout, bContext *C)
 
   /* Blend file wide jobs. */
   if (owner == nullptr) {
-    if (WM_jobs_test(wm, bmain, WM_JOB_TYPE_GENERATE_TEXTURE_CACHE)) {
+    if (WM_jobs_progress_test(wm, bmain, WM_JOB_TYPE_GENERATE_TEXTURE_CACHE)) {
       owner = bmain;
       cancel_fn = set_global_break;
       icon = ICON_TEXTURE;

@@ -89,8 +89,8 @@ Result<StringPair> SymbolTable::mangle_identifier(const SymbolFunctionTemplate &
       result.str_debug += ", " + arg_cls[i]->identifier;
     }
     else {
-      result.str += "T" + err_symbol;
-      result.str_debug += ", " + err_symbol;
+      result.str += "T" + string(err_symbol);
+      result.str_debug += ", " + string(err_symbol);
     }
   }
   return {result, {}};

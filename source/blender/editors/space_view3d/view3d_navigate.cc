@@ -837,7 +837,7 @@ bool view3d_orbit_calc_center(bContext *C, float r_dyn_ofs[3])
       /* with weight-paint + pose-mode, fall through to using calculateTransformCenter */
       ((ob_act->mode & OB_MODE_WEIGHT_PAINT) && BKE_object_pose_armature_get(ob_act)) == 0)
   {
-    BKE_paint_stroke_get_average(paint, ob_act_eval, ofs);
+    ofs = bke::paint::stroke_get_average(paint, ob_act_eval);
     is_set = true;
   }
   else if (ob_act && ELEM(ob_act->mode,
@@ -847,7 +847,7 @@ bool view3d_orbit_calc_center(bContext *C, float r_dyn_ofs[3])
                           OB_MODE_VERTEX_GREASE_PENCIL,
                           OB_MODE_WEIGHT_GREASE_PENCIL))
   {
-    BKE_paint_stroke_get_average(paint, ob_act_eval, ofs);
+    ofs = bke::paint::stroke_get_average(paint, ob_act_eval);
     is_set = true;
   }
   else if (ob_act && (ob_act->mode & OB_MODE_EDIT) && (ob_act->type == OB_FONT)) {

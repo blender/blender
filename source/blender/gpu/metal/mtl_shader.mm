@@ -170,7 +170,7 @@ const shader::ShaderCreateInfo &MTLShader::patch_create_info(
     if (patched_info_ == nullptr) {
       patched_info_ = std::make_unique<PatchedShaderCreateInfo>(original_info);
     }
-    patched_info_->info.builtins_ |= BuiltinBits::USE_SAMPLER_ARG_BUFFER;
+    patched_info_->info.builtins(BuiltinBits::USE_SAMPLER_ARG_BUFFER);
   }
 
   return patched_info_ != nullptr ? patched_info_->info : original_info;
@@ -256,17 +256,17 @@ id<MTLLibrary> MTLShader::create_shader_library(const shader::ShaderCreateInfo &
     ss << "#define MTL_WORKGROUP_SIZE_Y " << info.compute_layout_.local_size_y << "\n";
     ss << "#define MTL_WORKGROUP_SIZE_Z " << info.compute_layout_.local_size_z << "\n";
     ss << "#define GPU_PROVOKING_VERTEX_LAST\n";
-    if (flag_is_set(info.builtins_, BuiltinBits::USE_SAMPLER_ARG_BUFFER)) {
+    if (flag_is_set(info.builtins_combined(), BuiltinBits::USE_SAMPLER_ARG_BUFFER)) {
       ss << "#define MTL_USE_SAMPLER_ARGUMENT_BUFFER\n";
     }
 
-    if (flag_is_set(info.builtins_, BuiltinBits::TEXTURE_ATOMIC) &&
+    if (flag_is_set(info.builtins_combined(), BuiltinBits::TEXTURE_ATOMIC) &&
         MTLBackend::get_capabilities().supports_texture_atomics)
     {
       ss << "#define MTL_SUPPORTS_TEXTURE_ATOMICS 1\n";
     }
 
-    if (flag_is_set(info.builtins_, BuiltinBits::RAY_QUERY)) {
+    if (flag_is_set(info.builtins_combined(), BuiltinBits::RAY_QUERY)) {
       ss << "#define MTL_USE_RAY_QUERY\n";
     }
 
@@ -302,7 +302,7 @@ id<MTLLibrary> MTLShader::create_shader_library(const shader::ShaderCreateInfo &
   }
 
   /* Ray-query shaders need the Metal raytracing header prepended to the final source. */
-  if (flag_is_set(info.builtins_, BuiltinBits::RAY_QUERY)) {
+  if (flag_is_set(info.builtins_combined(), BuiltinBits::RAY_QUERY)) {
     processed_source = "#include <metal_raytracing>\nusing namespace metal::raytracing;\n" +
                        processed_source;
   }
@@ -310,8 +310,8 @@ id<MTLLibrary> MTLShader::create_shader_library(const shader::ShaderCreateInfo &
   {
     ::MTLCompileOptions *options = get_compile_options(
         !info.subpass_inputs_.is_empty(),
-        bool(info.builtins_ & BuiltinBits::TEXTURE_ATOMIC),
-        flag_is_set(info.builtins_, BuiltinBits::RAY_QUERY));
+        flag_is_set(info.builtins_combined(), BuiltinBits::TEXTURE_ATOMIC),
+        flag_is_set(info.builtins_combined(), BuiltinBits::RAY_QUERY));
 
     NSError *error = nullptr;
     id<MTLLibrary> library = [context_->device

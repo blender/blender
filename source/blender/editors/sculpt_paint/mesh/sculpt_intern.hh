@@ -335,8 +335,6 @@ struct StrokeCache {
   ePaintSymmetryFlags mirror_symmetry_pass = ePaintSymmetryFlags(0);
   float3 view_normal = float3(0);
   float3 view_normal_symm = float3(0);
-  float3 view_origin = float3(0);
-  float3 view_origin_symm = float3(0);
 
   /**
    * The primary direction of influence for a brush stroke.
@@ -535,21 +533,19 @@ void tag_update_overlays(bContext *C);
  *
  * TODO: This should be updated to return std::optional<float3>
  */
-bool stroke_get_location_bvh(bContext *C, float out[3], const float mval[2], bool force_original);
-bool stroke_get_location_bvh(Depsgraph &depsgraph,
-                             ViewContext &vc,
-                             const Sculpt &sd,
-                             const Brush *brush,
-                             float out[3],
-                             const float mval[2],
-                             bool force_original);
-bool stroke_get_location_bvh(Depsgraph &depsgraph,
-                             ViewContext &vc,
-                             const Paint &paint,
-                             const Brush *brush,
-                             float out[3],
-                             const float mval[2],
-                             bool force_original);
+std::optional<float3> stroke_get_location_bvh(bContext *C, float2 mval, bool force_original);
+std::optional<float3> stroke_get_location_bvh(Depsgraph &depsgraph,
+                                              ViewContext &vc,
+                                              const Sculpt &sd,
+                                              const Brush *brush,
+                                              const float mval[2],
+                                              bool force_original);
+std::optional<float3> stroke_get_location_bvh(Depsgraph &depsgraph,
+                                              ViewContext &vc,
+                                              const Paint &paint,
+                                              const Brush *brush,
+                                              float2 mval,
+                                              bool force_original);
 
 struct ActiveElementInfo {
   ActiveVert vert = {};

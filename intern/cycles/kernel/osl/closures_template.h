@@ -173,11 +173,6 @@ OSL_CLOSURE_STRUCT_BEGIN(AshikhminVelvet, ashikhmin_velvet)
   OSL_CLOSURE_STRUCT_MEMBER(AshikhminVelvet, FLOAT, float, sigma, nullptr)
 OSL_CLOSURE_STRUCT_END(AshikhminVelvet, ashikhmin_velvet)
 
-OSL_CLOSURE_STRUCT_BEGIN(Sheen, sheen)
-  OSL_CLOSURE_STRUCT_MEMBER(Sheen, VECTOR, packed_float3, N, nullptr)
-  OSL_CLOSURE_STRUCT_MEMBER(Sheen, FLOAT, float, roughness, nullptr)
-OSL_CLOSURE_STRUCT_END(Sheen, sheen)
-
 OSL_CLOSURE_STRUCT_BEGIN(SheenBSDF, sheen_bsdf)
   OSL_CLOSURE_STRUCT_MEMBER(SheenBSDF, VECTOR, packed_float3, N, nullptr)
   OSL_CLOSURE_STRUCT_MEMBER(SheenBSDF, VECTOR, packed_float3, albedo, nullptr)
@@ -305,6 +300,13 @@ OSL_CLOSURE_STRUCT_BEGIN(AnisotropicVDF, anisotropic_vdf)
   OSL_CLOSURE_STRUCT_MEMBER(AnisotropicVDF, COLOR, packed_float3, extinction, nullptr)
   OSL_CLOSURE_STRUCT_MEMBER(AnisotropicVDF, FLOAT, float, anisotropy, nullptr)
 OSL_CLOSURE_STRUCT_END(AnisotropicVDF, anisotropic_vdf)
+
+OSL_CLOSURE_STRUCT_BEGIN(CoatBSDF, coat_bsdf)
+  OSL_CLOSURE_STRUCT_MEMBER(CoatBSDF, COLOR, packed_float3, color, nullptr)
+  OSL_CLOSURE_STRUCT_MEMBER(CoatBSDF, FLOAT, float, ior, nullptr)
+  OSL_CLOSURE_STRUCT_MEMBER(CoatBSDF, FLOAT, float, roughness, nullptr)
+  OSL_CLOSURE_STRUCT_MEMBER(CoatBSDF, VECTOR, packed_float3, N, nullptr)
+OSL_CLOSURE_STRUCT_END(CoatBSDF, coat_bsdf)
 
 #undef OSL_CLOSURE_STRUCT_BEGIN
 #undef OSL_CLOSURE_STRUCT_END

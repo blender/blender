@@ -334,7 +334,8 @@ bool PaintStroke::update(bContext *C,
       halfway[1] = dy * 0.5f + initial_mouse_[1];
 
       if (mode != PaintMode::Texture2D) {
-        if (this->get_location(r_location, halfway, original_)) {
+        if (std::optional<float3> location = this->get_location(halfway, original_)) {
+          copy_v3_v3(r_location, *location);
           hit = true;
           location_sampled = true;
           location_success = true;
@@ -401,7 +402,8 @@ bool PaintStroke::update(bContext *C,
 
   if (!location_sampled) {
     if (mode != PaintMode::Texture2D) {
-      if (this->get_location(r_location, mouse, original_)) {
+      if (std::optional<float3> location = this->get_location(mouse, original_)) {
+        copy_v3_v3(r_location, *location);
         location_success = true;
         *r_location_is_set = true;
       }
@@ -511,11 +513,10 @@ void PaintStroke::add_step(bContext *C, wmOperator *op, const float2 mval, float
 
   if (paint_stroke_use_scene_spacing(brush, mode)) {
     BLI_assert(mode != PaintMode::Texture2D);
-    float3 world_space_position;
-
-    if (this->get_location(world_space_position, this->last_mouse_position, original_)) {
+    if (std::optional<float3> location = this->get_location(this->last_mouse_position, original_))
+    {
       last_world_space_position_ = math::transform_point(this->vc.obact->object_to_world(),
-                                                         world_space_position);
+                                                         *location);
     }
     else {
       last_world_space_position_ += last_scene_spacing_delta_;
@@ -772,10 +773,9 @@ int PaintStroke::space_stroke(bContext *C,
   const bool use_scene_spacing = paint_stroke_use_scene_spacing(brush, mode);
   if (use_scene_spacing) {
     BLI_assert(mode != PaintMode::Texture2D);
-    float3 world_space_position;
-    const bool hit = this->get_location(world_space_position, final_mouse, original_);
-    world_space_position = math::transform_point(this->vc.obact->object_to_world(),
-                                                 world_space_position);
+    const std::optional<float3> hit = this->get_location(final_mouse, original_);
+    float3 world_space_position = math::transform_point(this->vc.obact->object_to_world(),
+                                                        hit.value_or(float3(0.0f)));
     if (hit && stroke_over_mesh_) {
       world_space_position_delta = world_space_position - last_world_space_position_;
       length = math::length(world_space_position_delta);
@@ -784,7 +784,7 @@ int PaintStroke::space_stroke(bContext *C,
     else {
       length = 0.0f;
       world_space_position_delta = {0.0f, 0.0f, 0.0f};
-      stroke_over_mesh_ = hit;
+      stroke_over_mesh_ = hit.has_value();
       if (stroke_over_mesh_) {
         last_world_space_position_ = world_space_position;
       }
@@ -1175,15 +1175,14 @@ void PaintStroke::lines_spacing(bContext *C,
 
   if (use_scene_spacing) {
     BLI_assert(mode != PaintMode::Texture2D);
-    const bool hit_old = this->get_location(world_space_position_old, old_pos, original_);
+    const std::optional<float3> hit_old = this->get_location(old_pos, original_);
 
-    float3 world_space_position_new;
-    const bool hit_new = this->get_location(world_space_position_new, new_pos, original_);
+    const std::optional<float3> hit_new = this->get_location(new_pos, original_);
 
     world_space_position_old = math::transform_point(this->vc.obact->object_to_world(),
-                                                     world_space_position_old);
-    world_space_position_new = math::transform_point(this->vc.obact->object_to_world(),
-                                                     world_space_position_new);
+                                                     hit_old.value_or(float3(0.0f)));
+    float3 world_space_position_new = math::transform_point(this->vc.obact->object_to_world(),
+                                                            hit_new.value_or(float3(0.0f)));
     if (hit_old && hit_new && stroke_over_mesh_) {
       world_space_position_delta = world_space_position_new - world_space_position_old;
       length = math::length(world_space_position_delta);
@@ -1192,7 +1191,7 @@ void PaintStroke::lines_spacing(bContext *C,
     else {
       length = 0.0f;
       world_space_position_delta = {0.0f, 0.0f, 0.0f};
-      stroke_over_mesh_ = hit_new;
+      stroke_over_mesh_ = hit_new.has_value();
       if (stroke_over_mesh_) {
         last_world_space_position_ = world_space_position_old;
       }
@@ -1321,9 +1320,9 @@ bool PaintStroke::curve_end(bContext *C, wmOperator *op)
 
         if (paint_stroke_use_scene_spacing(br, mode)) {
           BLI_assert(mode != PaintMode::Texture2D);
-          stroke_over_mesh_ = this->get_location(
-              last_world_space_position_, data + 2 * j, original_);
-          mul_m4_v3(this->vc.obact->object_to_world().ptr(), last_world_space_position_);
+          std::optional<float3> hit_position = this->get_location(data + 2 * j, original_);
+          stroke_over_mesh_ = hit_position.has_value();
+          mul_m4_v3(this->vc.obact->object_to_world().ptr(), hit_position.value_or(float3(0.0f)));
         }
 
         stroke_started_ = this->test_start(op, this->last_mouse_position);
@@ -1458,10 +1457,10 @@ wmOperatorStatus PaintStroke::modal(bContext *C, wmOperator *op, const wmEvent *
     this->last_mouse_position = sample_average.mouse;
     if (paint_stroke_use_scene_spacing(*br, mode)) {
       BLI_assert(mode != PaintMode::Texture2D);
-      stroke_over_mesh_ = this->get_location(
-          last_world_space_position_, sample_average.mouse, original_);
+      std::optional<float3> hit_position = this->get_location(sample_average.mouse, original_);
+      stroke_over_mesh_ = hit_position.has_value();
       last_world_space_position_ = math::transform_point(this->vc.obact->object_to_world(),
-                                                         last_world_space_position_);
+                                                         hit_position.value_or(float3(0.0f)));
     }
     stroke_started_ = this->test_start(op, sample_average.mouse);
 
@@ -1652,9 +1651,8 @@ wmOperatorStatus PaintStroke::exec(bContext *C, wmOperator *op)
     RNA_float_set_array(&itemptr, "mouse", mouse_out);
 
     if (override_location) {
-      float3 location;
-      if (this->get_location(location, mouse_out, false)) {
-        RNA_float_set_array(&itemptr, "location", location);
+      if (std::optional<float3> location = this->get_location(mouse_out, false)) {
+        RNA_float_set_array(&itemptr, "location", *location);
         this->update_step(op, &itemptr);
       }
     }

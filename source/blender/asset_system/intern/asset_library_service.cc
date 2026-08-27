@@ -115,7 +115,7 @@ AssetLibrary *AssetLibraryService::get_asset_library(
         return this->get_preferences_remote_asset_library(*custom_library);
       }
 
-      std::string root_path = custom_library->dirpath;
+      std::string root_path = custom_library->resolved_dirpath;
       if (root_path.empty()) {
         return nullptr;
       }
@@ -184,14 +184,13 @@ AssetLibrary *AssetLibraryService::get_asset_library_on_disk(
     const bool load_catalogs,
     bUserAssetLibrary *preferences_library)
 {
-  const std::string normalized_root_path = utils::normalize_directory_path(root_path);
-
   /* Lock for the entire "lookup and if not found -> create and insert" scope, so no two threads do
    * this in parallel and interfere with each other. */
   std::scoped_lock lock{on_disk_libraries_mutex_};
 
-  if (OnDiskAssetLibrary *lib = this->lookup_on_disk_library(library_type, normalized_root_path)) {
-    CLOG_DEBUG(&LOG, "get \"%s\" (cached)", normalized_root_path.c_str());
+  const std::string resolved_root_path = utils::resolve_directory_path(root_path);
+  if (OnDiskAssetLibrary *lib = this->lookup_on_disk_library(library_type, resolved_root_path)) {
+    CLOG_DEBUG(&LOG, "get \"%s\" (cached)", resolved_root_path.c_str());
     if (load_catalogs) {
       lib->load_or_reload_catalogs();
     }
@@ -207,7 +206,7 @@ AssetLibrary *AssetLibraryService::get_asset_library_on_disk(
       else {
         /* Only used by unit tests. */
         lib_uptr = std::make_unique<OnDiskAssetLibrary>(
-            library_type, name, normalized_root_path, /*is_read_only=*/false);
+            library_type, name, resolved_root_path, /*is_read_only=*/false);
       }
       break;
     case ASSET_LIBRARY_ESSENTIALS:
@@ -215,18 +214,18 @@ AssetLibrary *AssetLibraryService::get_asset_library_on_disk(
       break;
     case ASSET_LIBRARY_LOCAL:
       lib_uptr = std::make_unique<OnDiskAssetLibrary>(
-          library_type, name, normalized_root_path, /*is_read_only=*/false);
+          library_type, name, resolved_root_path, /*is_read_only=*/false);
       break;
     default:
       lib_uptr = std::make_unique<OnDiskAssetLibrary>(
-          library_type, name, normalized_root_path, /*is_read_only=*/true);
+          library_type, name, resolved_root_path, /*is_read_only=*/true);
       break;
   }
 
   /* Get underlying pointer before moving. */
   AssetLibrary *lib = lib_uptr.get();
-  on_disk_libraries_.add_new({library_type, normalized_root_path}, std::move(lib_uptr));
-  CLOG_DEBUG(&LOG, "get \"%s\" (loaded)", normalized_root_path.c_str());
+  on_disk_libraries_.add_new({library_type, resolved_root_path}, std::move(lib_uptr));
+  CLOG_DEBUG(&LOG, "get \"%s\" (loaded)", resolved_root_path.c_str());
 
   if (load_catalogs) {
     lib->load_or_reload_catalogs();
@@ -244,8 +243,11 @@ AssetLibrary *AssetLibraryService::get_asset_library_on_disk_custom(StringRef na
 AssetLibrary *AssetLibraryService::get_asset_library_on_disk_custom_preferences(
     bUserAssetLibrary *custom_library)
 {
-  return this->get_asset_library_on_disk(
-      ASSET_LIBRARY_CUSTOM, custom_library->name, custom_library->dirpath, true, custom_library);
+  return this->get_asset_library_on_disk(ASSET_LIBRARY_CUSTOM,
+                                         custom_library->name,
+                                         custom_library->resolved_dirpath,
+                                         true,
+                                         custom_library);
 }
 
 AssetLibrary *AssetLibraryService::get_asset_library_on_disk_builtin(eAssetLibraryType type,
@@ -390,11 +392,11 @@ OnDiskAssetLibrary *AssetLibraryService::lookup_on_disk_library(eAssetLibraryTyp
   BLI_assert_msg(!root_path.is_empty(),
                  "top level directory must be given for on-disk asset library");
 
-  std::string normalized_root_path = utils::normalize_directory_path(root_path);
+  std::string resolved_root_path = utils::resolve_directory_path(root_path);
 
   std::scoped_lock lock{on_disk_libraries_mutex_};
   std::unique_ptr<OnDiskAssetLibrary> *lib_uptr_ptr = on_disk_libraries_.lookup_ptr(
-      {library_type, normalized_root_path});
+      {library_type, resolved_root_path});
   return lib_uptr_ptr ? lib_uptr_ptr->get() : nullptr;
 }
 
@@ -430,7 +432,7 @@ std::string AssetLibraryService::resolve_asset_weak_reference_to_library_path(
       bUserAssetLibrary *custom_lib = find_custom_preferences_asset_library_from_asset_weak_ref(
           asset_reference);
       if (custom_lib) {
-        library_dirpath = custom_lib->dirpath;
+        library_dirpath = custom_lib->resolved_dirpath;
         break;
       }
 
@@ -456,7 +458,7 @@ std::string AssetLibraryService::resolve_asset_weak_reference_to_library_path(
       return "";
   }
 
-  std::string normalized_library_dirpath = utils::normalize_path(library_dirpath);
+  std::string normalized_library_dirpath = utils::resolve_path(library_dirpath);
   return normalized_library_dirpath;
 }
 
@@ -511,10 +513,10 @@ std::string AssetLibraryService::normalize_asset_weak_reference_relative_asset_i
   const int64_t group_name_sep_pos = relative_asset_identifier.find_first_of(SEP_STR ALTSEP_STR,
                                                                              blend_path_len);
 
-  return utils::normalize_path(relative_asset_identifier,
-                               (group_name_sep_pos == StringRef::not_found) ?
-                                   StringRef::not_found :
-                                   group_name_sep_pos + 1);
+  return utils::resolve_path(relative_asset_identifier,
+                             (group_name_sep_pos == StringRef::not_found) ?
+                                 StringRef::not_found :
+                                 group_name_sep_pos + 1);
 }
 
 std::string AssetLibraryService::resolve_asset_weak_reference_to_full_path(
@@ -534,7 +536,7 @@ std::string AssetLibraryService::resolve_asset_weak_reference_to_full_path(
     return "";
   }
 
-  std::string normalized_full_path = utils::normalize_path(library_dirpath + SEP_STR) +
+  std::string normalized_full_path = utils::resolve_path(library_dirpath + SEP_STR) +
                                      normalize_asset_weak_reference_relative_asset_identifier(
                                          asset_reference);
 
@@ -623,11 +625,11 @@ std::string AssetLibraryService::root_path_from_library_ref(
 
   bUserAssetLibrary *custom_library = find_custom_asset_library_from_library_ref(
       library_reference);
-  if (!custom_library || !custom_library->dirpath[0]) {
+  if (!custom_library || !custom_library->resolved_dirpath[0]) {
     return "";
   }
 
-  return custom_library->dirpath;
+  return custom_library->resolved_dirpath;
 }
 
 void AssetLibraryService::allocate_service_instance()

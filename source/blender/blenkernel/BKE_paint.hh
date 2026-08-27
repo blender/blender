@@ -317,7 +317,12 @@ bool paint_calculate_rake_rotation(Paint &paint,
                                    bool is_first_dab);
 void paint_update_brush_rake_rotation(Paint &paint, const Brush &brush, float rotation);
 
-void BKE_paint_stroke_get_average(const Paint *paint, const Object *ob, float stroke[3]);
+namespace bke::paint {
+float3 stroke_get_average(const Paint *paint, const Object *ob);
+void paint_stroke_reset_location(Paint &paint);
+void stroke_track_location(Paint &paint, float3 location);
+void stroke_set_location(Paint &paint, float3 location);
+}  // namespace bke::paint
 
 float3 BKE_paint_randomize_color(const BrushColorJitterSettings &color_jitter,
                                  const float3 &initial_hsv_jitter,

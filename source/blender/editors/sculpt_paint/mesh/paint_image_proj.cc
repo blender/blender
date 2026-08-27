@@ -5960,7 +5960,6 @@ static bool project_paint_op(void *state, const float lastpos[2], const float po
       const int3 &tri = ps->corner_tris_eval[tri_index];
       const int vert_tri[3] = {PS_CORNER_TRI_AS_VERT_INDEX_3(ps, tri)};
       float world[3];
-      bke::PaintRuntime *paint_runtime = ps->paint->runtime;
 
       interp_v3_v3v3v3(world,
                        ps->vert_positions_eval[vert_tri[0]],
@@ -5968,10 +5967,8 @@ static bool project_paint_op(void *state, const float lastpos[2], const float po
                        ps->vert_positions_eval[vert_tri[2]],
                        w);
 
-      paint_runtime->average_stroke_counter++;
       mul_m4_v3(ps->obmat, world);
-      add_v3_v3(paint_runtime->average_stroke_accum, world);
-      paint_runtime->last_stroke_valid = true;
+      bke::paint::stroke_track_location(*ps->paint, world);
     }
   }
 
@@ -6343,7 +6340,7 @@ void paint_proj_redraw(const bContext *C, void *ps_handle_p, bool final)
   }
 }
 
-void paint_proj_stroke_done(void *ps_handle_p)
+void paint_proj_stroke_done(void *ps_handle_p, wmPaintCursor *cursor)
 {
   ProjStrokeHandle *ps_handle = static_cast<ProjStrokeHandle *>(ps_handle_p);
 
@@ -6368,6 +6365,9 @@ void paint_proj_stroke_done(void *ps_handle_p)
   }
 
   MEM_delete(ps_handle);
+  if (cursor) {
+    WM_paint_cursor_end(cursor);
+  }
 }
 /* use project paint to re-apply an image */
 static wmOperatorStatus texture_paint_camera_project_exec(bContext *C, wmOperator *op)

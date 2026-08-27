@@ -262,7 +262,7 @@ TEST_F(AssetRepresentationTest, weak_reference__resolve_to_full_path__custom_lib
 
   AssetWeakReference weak_ref = asset.make_weak_reference();
 
-  std::string expected_path = utils::normalize_path(asset_library_root_ + "/" + "path/") +
+  std::string expected_path = utils::resolve_path(asset_library_root_ + "/" + "path/") +
                               "to/an/asset";
   std::string resolved_path = service->resolve_asset_weak_reference_to_full_path(weak_ref);
 
@@ -279,7 +279,7 @@ TEST_F(AssetRepresentationTest,
 
   AssetWeakReference weak_ref = asset.make_weak_reference();
 
-  std::string expected_path = utils::normalize_path(asset_library_root_ + "\\" + "path\\") +
+  std::string expected_path = utils::resolve_path(asset_library_root_ + "\\" + "path\\") +
                               "to\\an\\asset";
   std::string resolved_path = service->resolve_asset_weak_reference_to_full_path(weak_ref);
 
@@ -295,7 +295,7 @@ TEST_F(AssetRepresentationTest, weak_reference__resolve_to_exploded_path__curren
 
   AssetWeakReference weak_ref = asset.make_weak_reference();
 
-  std::string expected_full_path = utils::normalize_path("path/to/an/asset", 5);
+  std::string expected_full_path = utils::resolve_path("path/to/an/asset", 5);
   std::optional<AssetLibraryService::ExplodedPath> resolved_path =
       service->resolve_asset_weak_reference_to_exploded_path(weak_ref);
 
@@ -316,8 +316,8 @@ TEST_F(AssetRepresentationTest, weak_reference__resolve_to_exploded_path__custom
 
   AssetWeakReference weak_ref = asset.make_weak_reference();
 
-  std::string expected_full_path = utils::normalize_path(asset_library_root_ +
-                                                         "/some.blend/Material/") +
+  std::string expected_full_path = utils::resolve_path(asset_library_root_ +
+                                                       "/some.blend/Material/") +
                                    "asset/name";
   std::optional<AssetLibraryService::ExplodedPath> resolved_path =
       service->resolve_asset_weak_reference_to_exploded_path(weak_ref);
@@ -342,8 +342,8 @@ TEST_F(AssetRepresentationTest,
 
   AssetWeakReference weak_ref = asset.make_weak_reference();
 
-  std::string expected_full_path = utils::normalize_path(asset_library_root_ +
-                                                         "\\some.blend\\Material\\") +
+  std::string expected_full_path = utils::resolve_path(asset_library_root_ +
+                                                       "\\some.blend\\Material\\") +
                                    "asset/name";
   std::optional<AssetLibraryService::ExplodedPath> resolved_path =
       service->resolve_asset_weak_reference_to_exploded_path(weak_ref);

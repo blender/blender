@@ -345,7 +345,6 @@ static void draw_import_controls(bContext *C, Layout &layout, const std::string 
     Layout &row = layout.row(false);
     row.emboss_set(EmbossType::None);
     row.popover(C, "WM_PT_operator_presets", "", ICON_PRESET);
-    row.op("COLLECTION_OT_importer_import", "", ICON_IMPORT);
   }
 }
 
@@ -363,7 +362,22 @@ static void draw_import_properties(bContext *C,
    * This property is a wrapper to access that property, see the `CollectionExport::filepath`
    * code comments for details. */
   PropertyRNA *prop = RNA_struct_find_property(&importer_ptr, "filepath");
-  col.prop(&importer_ptr, prop, RNA_NO_INDEX, 0, UI_ITEM_NONE, std::nullopt, ICON_NONE, "");
+
+  /* Style filepath field as alert when empty, it's required for importing. */
+  char filepath[FILE_MAX];
+  RNA_string_get(&importer_ptr, "filepath", filepath);
+  if (!filepath[0]) {
+    col.red_alert_set(true);
+  }
+
+  col.prop(&importer_ptr,
+           prop,
+           RNA_NO_INDEX,
+           0,
+           UI_ITEM_NONE,
+           "",
+           ICON_NONE,
+           IFACE_("Select a file..."));
 
   template_operator_property_buts_draw_single(
       C, op, layout, BUT_LABEL_ALIGN_NONE, TEMPLATE_OP_PROPS_HIDE_PRESETS);
@@ -378,14 +392,17 @@ void template_collection_importer(Layout *layout, bContext *C)
   Collection *collection = CTX_data_collection(C);
   CollectionImport *data = collection->importer;
 
-  Layout &row = layout->row(false);
-  Layout &col = row.column(false);
+  Layout &col = layout->column(false);
   if (data == nullptr) {
-    col.menu("COLLECTION_MT_importer_add", "Add Importer", ICON_ADD);
+    col.menu("COLLECTION_MT_importer_add", "Add", ICON_ADD);
     return;
   }
 
-  col.op("COLLECTION_OT_importer_remove", std::nullopt, ICON_REMOVE);
+  Layout &row = layout->row(true);
+  row.op("COLLECTION_OT_importer_import", "Import", ICON_IMPORT);
+  row.op("COLLECTION_OT_importer_remove", "", ICON_X);
+
+  layout->separator();
 
   /* Draw the importer. */
   PointerRNA importer_ptr = RNA_pointer_create_discrete(

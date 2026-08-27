@@ -23,6 +23,8 @@
 
 #include "BLO_read_write.hh"
 
+#include "project_intern.hh"
+
 namespace blender {
 
 static SpaceLink *project_create(const ScrArea * /*area*/, const Scene * /*scene*/)
@@ -197,6 +199,7 @@ void ED_spacetype_project()
   art->draw = project_main_region_draw;
   art->listener = project_main_region_listener;
   art->keymapflag = ED_KEYMAP_UI;
+  project_asset_panel_register(*art);
 
   BLI_addhead(&st->regiontypes, art);
 

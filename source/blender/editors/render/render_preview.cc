@@ -155,7 +155,12 @@ struct IconPreview {
   /* May be nullptr, is used for rendering IDs that require some other object for it to be applied
    * on before the ID can be represented as an image, for example when rendering an Action. */
   Object *active_object;
+
+  /* Sizes the job was stopped before it finished rendering. */
+  bool cancelled[NUM_ICON_SIZES];
 };
+
+static bool preview_kill_jobs_for_undo = false;
 
 /** \} */
 
@@ -767,7 +772,7 @@ void ED_preview_draw(
      * if no render result was found and no preview render job is running,
      * or if the job is running and the size of preview changed */
     if ((sbuts != nullptr && sbuts->preview) || (ui_preview->tag & UI_PREVIEW_TAG_DIRTY) ||
-        (!ok && !WM_jobs_test(wm, owner, WM_JOB_TYPE_RENDER_PREVIEW)) ||
+        (!ok && !WM_jobs_has_running(wm, owner, WM_JOB_TYPE_RENDER_PREVIEW)) ||
         (sp && (abs(sp->sizex - newx) >= 2 || abs(sp->sizey - newy) > 2)))
     {
       if (sbuts != nullptr) {
@@ -1576,7 +1581,8 @@ static void icon_preview_startjob_all_sizes(void *customdata, wmJobWorkerStatus 
                                                PR_ICON_RENDER;
 
     if (worker_status->stop) {
-      break;
+      ip->cancelled[icon_size] = true;
+      continue;
     }
 
     /* Non-thread-protected reading is not an issue here, because we are only trying
@@ -1611,6 +1617,7 @@ static void icon_preview_startjob_all_sizes(void *customdata, wmJobWorkerStatus 
 
     BLI_assert(BKE_previewimg_is_rendering(prv, i));
 
+    bool rendered = false;
     if (ip->id != nullptr) {
       switch (GS(ip->id->name)) {
         case ID_OB:
@@ -1618,30 +1625,39 @@ static void icon_preview_startjob_all_sizes(void *customdata, wmJobWorkerStatus 
             /* Much simpler than the ShaderPreview mess used for other ID types. */
             object_preview_render(prv, ip, icon_size);
           }
-          continue;
+          rendered = true;
+          break;
         case ID_GR:
           BLI_assert(BKE_collection_contains_geometry_recursive(
               reinterpret_cast<const Collection *>(ip->id)));
           /* A collection instance empty was created, so this can just reuse the object preview
            * rendering. */
           object_preview_render(prv, ip, icon_size);
-          continue;
+          rendered = true;
+          break;
         case ID_AC:
           action_preview_render(prv, ip, icon_size);
-          continue;
+          rendered = true;
+          break;
         case ID_SCE:
           scene_preview_render(prv, ip, icon_size, worker_status->reports);
-          continue;
+          rendered = true;
+          break;
         default:
-          /* Fall through to the same code as the `ip->id == nullptr` case. */
+          /* Use the same code as the `ip->id == nullptr` case. */
           break;
       }
     }
-    other_id_types_preview_render(prv, ip, icon_size, pr_method, worker_status);
+    if (!rendered) {
+      other_id_types_preview_render(prv, ip, icon_size, pr_method, worker_status);
+    }
+    if (worker_status->stop) {
+      ip->cancelled[icon_size] = true;
+    }
   }
 }
 
-static void icon_preview_endjob(void *customdata, const PreviewImageRenderEndStatus status)
+static void icon_preview_endjob(void *customdata)
 {
   IconPreview *ip = static_cast<IconPreview *>(customdata);
 
@@ -1650,17 +1666,24 @@ static void icon_preview_endjob(void *customdata, const PreviewImageRenderEndSta
 
     for (int i = 0; i < NUM_ICON_SIZES; i++) {
       if (ip->render_size[i]) {
-        BKE_previewimg_render_end(prv_img, eIconSizes(i), status);
+        /* Undo restarts previews that did not finish rendering, per size. For other
+         * cancellations (e.g. starting an F12 render) there is not yet any mechanism
+         * to restart them. These remain marked as finished. */
+        const bool cancel = ip->cancelled[i] && preview_kill_jobs_for_undo;
+
+        BKE_previewimg_render_end(prv_img,
+                                  eIconSizes(i),
+                                  cancel ? PRV_RENDER_STATUS_CANCELLED :
+                                           PRV_RENDER_STATUS_FINISHED);
+
+        if (cancel) {
+          ip->bmain->need_preview_render_restart = true;
+        }
       }
     }
 
     ip->owner = nullptr;
   }
-}
-
-static void icon_preview_endjob(void *customdata)
-{
-  icon_preview_endjob(customdata, PRV_RENDER_STATUS_FINISHED);
 }
 
 /**
@@ -1788,7 +1811,7 @@ Set<std::string> &PreviewLoadJob::known_downloaded_previews()
 PreviewLoadJob &PreviewLoadJob::ensure_job(wmWindowManager *wm, wmWindow *win)
 {
   wmJob *wm_job = WM_jobs_get(
-      wm, win, nullptr, "Loading previews...", eWM_JobFlag{}, WM_JOB_TYPE_LOAD_PREVIEW);
+      wm, win, nullptr, "Loading previews...", WM_JOB_BACKGROUND, WM_JOB_TYPE_LOAD_PREVIEW);
 
   if (!WM_jobs_is_running(wm_job)) {
     PreviewLoadJob *job_data = MEM_new<PreviewLoadJob>("PreviewLoadJobData");
@@ -2130,9 +2153,12 @@ void PreviewLoadJob::free_fn(void *customdata)
 
 static void icon_preview_free(void *customdata)
 {
-  icon_preview_endjob(customdata, PRV_RENDER_STATUS_CANCELLED);
-
   IconPreview *ip = static_cast<IconPreview *>(customdata);
+
+  for (int i = 0; i < NUM_ICON_SIZES; i++) {
+    ip->cancelled[i] = true;
+  }
+  icon_preview_endjob(customdata);
 
   if (ip->id_copy) {
     preview_id_copy_free(ip->id_copy);
@@ -2246,7 +2272,7 @@ void ED_preview_icon_render(
   wmJobWorkerStatus worker_status = {};
   icon_preview_startjob_all_sizes(&ip, &worker_status);
 
-  icon_preview_endjob(&ip, PRV_RENDER_STATUS_FINISHED);
+  icon_preview_endjob(&ip);
 
   if (ip.id_copy != nullptr) {
     preview_id_copy_free(ip.id_copy);
@@ -2282,7 +2308,7 @@ void ED_preview_icon_job(
                               CTX_wm_window(C),
                               prv_img,
                               "Generating icon preview...",
-                              WM_JOB_EXCL_RENDER,
+                              WM_JOB_EXCL_RENDER | WM_JOB_BACKGROUND,
                               WM_JOB_TYPE_RENDER_PREVIEW);
 
   ip = MEM_new_zeroed<IconPreview>("icon preview");
@@ -2360,7 +2386,7 @@ void ED_preview_shader_job(const bContext *C,
                        CTX_wm_window(C),
                        owner,
                        "Generating shader preview...",
-                       WM_JOB_EXCL_RENDER,
+                       WM_JOB_EXCL_RENDER | WM_JOB_BACKGROUND,
                        WM_JOB_TYPE_RENDER_PREVIEW);
   sp = MEM_new_zeroed<ShaderPreview>("shader preview");
 
@@ -2415,6 +2441,13 @@ void ED_preview_kill_jobs(wmWindowManager *wm, Main * /*bmain*/)
      * avoid invalid memory access. */
     WM_jobs_kill_type(wm, nullptr, WM_JOB_TYPE_RENDER_PREVIEW);
   }
+}
+
+void ED_preview_kill_jobs_for_undo(wmWindowManager *wm, Main *bmain)
+{
+  preview_kill_jobs_for_undo = true;
+  ED_preview_kill_jobs(wm, bmain);
+  preview_kill_jobs_for_undo = false;
 }
 
 void ED_preview_kill_jobs_for_id(wmWindowManager *wm, const ID *id)

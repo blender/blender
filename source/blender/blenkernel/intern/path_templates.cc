@@ -12,6 +12,7 @@
 
 #include "BKE_blender_project.hh"
 #include "BKE_context.hh"
+#include "BKE_idprop.hh"
 #include "BKE_library.hh"
 #include "BKE_main.hh"
 #include "BKE_path_templates.hh"
@@ -281,6 +282,28 @@ void BKE_add_template_variables_general(bke::path_templates::VariableMap &variab
   if (project) {
     variables.add_string("project_name", project->get_name());
     variables.add_filepath("project_root", project->get_root_path());
+
+    for (const std::unique_ptr<bke::ProjectVariable> &var : project->variables) {
+      switch (var->type_get()) {
+        case bke::ProjectVariableType::STRING: {
+          if (var->string_subtype_get() == bke::ProjectVariableStringSubtype::FILEPATH) {
+            variables.add_filepath(var->name_get(), var->value_string_get());
+          }
+          else {
+            variables.add_string(var->name_get(), var->value_string_get());
+          }
+          break;
+        }
+
+        case bke::ProjectVariableType::INT:
+          variables.add_integer(var->name_get(), var->value_int_get());
+          break;
+
+        case bke::ProjectVariableType::FLOAT:
+          variables.add_float(var->name_get(), var->value_float_get());
+          break;
+      }
+    }
   }
 
   /* Global blend filepath (a.k.a. path to the blend file that's currently

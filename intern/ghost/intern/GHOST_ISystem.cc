@@ -159,7 +159,7 @@ GHOST_TSuccess GHOST_ISystem::createSystem(bool verbose, [[maybe_unused]] bool b
 #elif defined(__APPLE__)
     backends_attempted.push_back({"COCOA"});
     CLOG_INFO(&LOG, "Create Cocoa system");
-    system_ = new GHOST_SystemCocoa();
+    system_ = new GHOST_SystemCocoa(background);
 #endif
 
     if (system_) {

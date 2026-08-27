@@ -48,8 +48,6 @@ static const char *builtin_shader_create_info_name(GPUBuiltinShader shader)
       return "gpu_shader_2D_checker";
     case GPU_SHADER_2D_DIAG_STRIPES:
       return "gpu_shader_2D_diag_stripes";
-    case GPU_SHADER_ICON:
-      return "gpu_shader_icon";
     case GPU_SHADER_2D_IMAGE_OVERLAYS_MERGE:
       return "gpu_shader_2D_image_overlays_merge";
     case GPU_SHADER_2D_IMAGE_OVERLAYS_STEREO_MERGE:
@@ -61,15 +59,13 @@ static const char *builtin_shader_create_info_name(GPUBuiltinShader shader)
     case GPU_SHADER_2D_IMAGE_RECT_COLOR:
       return "gpu_shader_2D_image_rect_color";
     case GPU_SHADER_ICON_MULTI:
-      return "gpu_shader_icon_multi";
+      return "gpu_shader_icon";
     case GPU_SHADER_3D_UNIFORM_COLOR:
       return "gpu_shader_3D_uniform_color";
     case GPU_SHADER_3D_FLAT_COLOR:
       return "gpu_shader_3D_flat_color";
     case GPU_SHADER_3D_SMOOTH_COLOR:
       return "gpu_shader_3D_smooth_color";
-    case GPU_SHADER_3D_DEPTH_ONLY:
-      return "gpu_shader_3D_depth_only";
     case GPU_SHADER_3D_CLIPPED_UNIFORM_COLOR:
       return "gpu_shader_3D_clipped_uniform_color";
     case GPU_SHADER_3D_POLYLINE_UNIFORM_COLOR:
@@ -82,12 +78,11 @@ static const char *builtin_shader_create_info_name(GPUBuiltinShader shader)
       return "gpu_shader_3D_polyline_smooth_color";
     case GPU_SHADER_3D_LINE_DASHED_UNIFORM_COLOR:
       return "gpu_shader_3D_line_dashed_uniform_color";
-    case GPU_SHADER_2D_POINT_UNIFORM_SIZE_UNIFORM_COLOR_AA:
-      return "gpu_shader_2D_point_uniform_size_uniform_color_aa";
     case GPU_SHADER_2D_POINT_UNIFORM_SIZE_UNIFORM_COLOR_OUTLINE_AA:
-      return "gpu_shader_2D_point_uniform_size_uniform_color_outline_aa";
+      return "gpu_shader_3D_point_uniform_size_uniform_color_outline_aa";
     case GPU_SHADER_3D_POINT_VARYING_SIZE_VARYING_COLOR:
       return "gpu_shader_3D_point_varying_size_varying_color";
+    case GPU_SHADER_2D_POINT_UNIFORM_SIZE_UNIFORM_COLOR_AA:
     case GPU_SHADER_3D_POINT_UNIFORM_SIZE_UNIFORM_COLOR_AA:
       return "gpu_shader_3D_point_uniform_size_uniform_color_aa";
     case GPU_SHADER_3D_POINT_FLAT_COLOR:
@@ -172,8 +167,6 @@ static const char *builtin_shader_create_info_name_clipped(GPUBuiltinShader shad
       return "gpu_shader_3D_flat_color_clipped";
     case GPU_SHADER_3D_SMOOTH_COLOR:
       return "gpu_shader_3D_smooth_color_clipped";
-    case GPU_SHADER_3D_DEPTH_ONLY:
-      return "gpu_shader_3D_depth_only_clipped";
     case GPU_SHADER_3D_LINE_DASHED_UNIFORM_COLOR:
       return "gpu_shader_3D_line_dashed_uniform_color_clipped";
     case GPU_SHADER_3D_POINT_UNIFORM_SIZE_UNIFORM_COLOR_AA:

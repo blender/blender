@@ -704,11 +704,6 @@ static SlotAllocator add_pipeline_create_info(gpu::shader::ShaderCreateInfo &inf
   info.compilation_constant(
       gpu::shader::Type::bool_t, "use_clip_plane", pipeline_type == MAT_PIPE_PREPASS_PLANAR);
 
-  /* WORKAROUND: BSL do not support disabling builtins from compilation constant.
-   * In the common case, we need to no use viewport index to avoid geometry shader injection on
-   * some platform. */
-  info.builtins(BuiltinBits::NO_VIEWPORT_INDEX);
-
   StringRefNull pipeline_info_name;
   StringRefNull additional_info_name;
   /* Pipeline Info. */
@@ -785,8 +780,6 @@ static SlotAllocator add_pipeline_create_info(gpu::shader::ShaderCreateInfo &inf
           info.define("DRW_VIEW_LEN", STRINGIFY(SHADOW_VIEW_MAX));
           info.define("MAT_SHADOW");
           info.define("closure_to_rgba", "closure_to_rgba_shadow");
-          /* WORKAROUND: Enable viewport index for shadows. */
-          info.builtins_ &= ~BuiltinBits::NO_VIEWPORT_INDEX;
           /* Until every vertex shader are ported, we need to bridge the gap here by defining the
            * pipeline. */
           info.fragment_source("eevee_surf_shadow.bsl.hh");
@@ -1245,7 +1238,7 @@ void ShaderModule::material_create_info_amend(GPUMaterial *gpumat, GPUCodegenOut
 
   if (!do_vertex_attrib_load && !info.vertex_out_interfaces_.is_empty()) {
     /* Codegen outputs only one interface. */
-    const StageInterfaceInfo &iface = *info.vertex_out_interfaces_.first();
+    const StageInterfaceInfo &iface = *info.vertex_out_interfaces_.first().iface;
     /* Globals the attrib_load() can write to when it is in the fragment shader. */
     global_vars << "struct " << iface.name << " {\n";
     for (const auto &inout : iface.inouts) {

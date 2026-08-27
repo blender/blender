@@ -795,7 +795,7 @@ static void ensure_nodetree_previews(const bContext &C,
                               CTX_wm_window(&C),
                               CTX_wm_space_node(&C),
                               "Generating shader previews...",
-                              WM_JOB_EXCL_RENDER,
+                              WM_JOB_EXCL_RENDER | WM_JOB_BACKGROUND,
                               WM_JOB_TYPE_RENDER_PREVIEW);
   ShaderNodesPreviewJob *job_data = MEM_new<ShaderNodesPreviewJob>(__func__);
 

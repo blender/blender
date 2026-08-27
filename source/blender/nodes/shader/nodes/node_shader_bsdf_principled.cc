@@ -421,24 +421,27 @@ static int node_shader_gpu_bsdf_principled(GPUMaterial *mat,
     flag |= GPU_MATFLAG_TRANSLUCENT;
   }
 
-  const bool refraction_might_be_tinted = use_refract && in[SOCK_BASE_COLOR_ID].might_be_tinted();
+  /* Coat tints lower layers. */
+  const bool coat_might_be_tinted = use_coat && in[SOCK_COAT_TINT_ID].might_be_tinted();
 
-  if (might_have_tinted_specular(
-          in[SOCK_BASE_COLOR_ID], in[SOCK_METALLIC_ID], in[SOCK_SPECULAR_TINT_ID]) ||
-      /* Multiscatter GGX can tint the reflection lobe. See `bsdf_lut`. */
-      (refraction_might_be_tinted && node->custom1 == SHD_GLOSSY_MULTI_GGX))
-  {
+  const bool refraction_might_be_tinted = use_refract &&
+                                          (in[SOCK_BASE_COLOR_ID].might_be_tinted() ||
+                                           coat_might_be_tinted);
+
+  bool specular_might_be_tinted = might_have_tinted_specular(
+      in[SOCK_BASE_COLOR_ID], in[SOCK_METALLIC_ID], in[SOCK_SPECULAR_TINT_ID]);
+  specular_might_be_tinted |= coat_might_be_tinted;
+  /* Multiscatter GGX can tint the reflection lobe. See `bsdf_lut`. */
+  specular_might_be_tinted |= (refraction_might_be_tinted &&
+                               node->custom1 == SHD_GLOSSY_MULTI_GGX);
+
+  if (specular_might_be_tinted) {
+    /* Specular reflection. */
     flag |= GPU_MATFLAG_REFLECTION_MAYBE_COLORED;
   }
   if (refraction_might_be_tinted) {
+    /* Specular refraction. */
     flag |= GPU_MATFLAG_REFRACTION_MAYBE_COLORED;
-  }
-  if (use_coat && in[SOCK_COAT_TINT_ID].might_be_tinted()) {
-    /* Coat tints lower layers. */
-    flag |= GPU_MATFLAG_REFLECTION_MAYBE_COLORED;
-    if (use_refract) {
-      flag |= GPU_MATFLAG_REFRACTION_MAYBE_COLORED;
-    }
   }
 
   GPU_material_flag_set(mat, flag);

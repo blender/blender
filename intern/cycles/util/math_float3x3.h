@@ -27,6 +27,24 @@ ccl_device_inline float3x3 operator*(const float3x3 m, const float a)
 
 ccl_device_inline float3x3 operator*(const float3x3 a, const float3x3 b)
 {
+#if defined(__KERNEL_SSE__)
+  auto multiply_row = [](const float3 &a_row, const float3x3 &b) -> float3 {
+    const float4 ax = shuffle<0, 0, 0, 0>(float4(a_row));
+    const float4 ay = shuffle<1, 1, 1, 1>(float4(a_row));
+    const float4 az = shuffle<2, 2, 2, 2>(float4(a_row));
+
+    float4 acc = ax * float4(b.x);
+    acc = madd(ay, float4(b.y), acc);
+    acc = madd(az, float4(b.z), acc);
+    return float3(acc);
+  };
+
+  float3x3 result;
+  result.x = multiply_row(a.x, b);
+  result.y = multiply_row(a.y, b);
+  result.z = multiply_row(a.z, b);
+  return result;
+#else
   const float3 c_x = make_float3(b.x.x, b.y.x, b.z.x);
   const float3 c_y = make_float3(b.x.y, b.y.y, b.z.y);
   const float3 c_z = make_float3(b.x.z, b.y.z, b.z.z);
@@ -36,6 +54,7 @@ ccl_device_inline float3x3 operator*(const float3x3 a, const float3x3 b)
   r.y = make_float3(dot(a.y, c_x), dot(a.y, c_y), dot(a.y, c_z));
   r.z = make_float3(dot(a.z, c_x), dot(a.z, c_y), dot(a.z, c_z));
   return r;
+#endif
 }
 
 /* Multiply 3x3 matrix by a 3-component column-vector.

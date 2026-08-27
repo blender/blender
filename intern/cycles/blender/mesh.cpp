@@ -90,6 +90,21 @@ static void attr_create_motion_corner_normals(const blender::Mesh &b_mesh,
   }
 }
 
+static bool attr_need_motion_vertex_normals(const blender::Mesh &b_mesh)
+{
+  const blender::bke::GAttributeReader custom_normal = b_mesh.attributes().lookup("custom_normal");
+  return custom_normal && custom_normal.varray.type().is<blender::float3>() &&
+         custom_normal.domain == blender::bke::AttrDomain::Point;
+}
+
+static void attr_create_motion_vertex_normals(const blender::Mesh &b_mesh, packed_normal *N)
+{
+  const blender::Span<blender::float3> vert_normals = b_mesh.vert_normals();
+  for (const int i : vert_normals.index_range()) {
+    N[i] = packed_normal(make_float3(vert_normals[i][0], vert_normals[i][1], vert_normals[i][2]));
+  }
+}
+
 static void attr_create_motion_from_velocity(Mesh *mesh,
                                              const blender::Mesh &b_mesh,
                                              const blender::Span<blender::float3> b_attr,
@@ -114,6 +129,13 @@ static void attr_create_motion_from_velocity(Mesh *mesh,
     attr_cN->add_motion(mesh);
   }
 
+  Attribute *attr_N = attr_need_motion_vertex_normals(b_mesh) ?
+                          attributes.find(ATTR_STD_VERTEX_NORMAL) :
+                          nullptr;
+  if (attr_N) {
+    attr_N->add_motion(mesh);
+  }
+
   /* Only export previous and next frame, we don't have any in between data. */
   const float motion_times[2] = {-1.0f, 1.0f};
   for (int step = 1; step <= 2; step++) {
@@ -129,6 +151,9 @@ static void attr_create_motion_from_velocity(Mesh *mesh,
           reinterpret_cast<const blender::float3 *>(mP), numverts);
       attr_create_motion_corner_normals(
           b_mesh, motion_positions, attr_cN->data_for_write<packed_normal>(step));
+    }
+    if (attr_N) {
+      attr_create_motion_vertex_normals(b_mesh, attr_N->data_for_write<packed_normal>(step));
     }
   }
 }

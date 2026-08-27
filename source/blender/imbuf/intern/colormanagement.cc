@@ -1084,7 +1084,7 @@ Vector<char> IMB_colormanagement_space_to_icc_profile(const ColorSpace *colorspa
   }
 
   char icc_filename[FILE_MAX];
-  STRNCPY(icc_filename, (interop_id + ".icc").c_str());
+  STRNCPY(icc_filename, (ocio::interop_id_drop_namespace(interop_id) + ".icc").c_str());
   BLI_path_make_safe_filename(icc_filename);
 
   char icc_filepath[FILE_MAX];
@@ -1188,7 +1188,7 @@ bool IMB_colormanagement_space_to_cicp(const ColorSpace *colorspace,
     cicp[3] = CICP_RANGE_FULL;
     return true;
   }
-  if (ELEM(interop_id, "g24_rec2020_display", "g24_rec2020_scene")) {
+  if (ELEM(interop_id, "blender:g24_rec2020_display", "g24_rec2020_scene")) {
     /* There is no gamma 2.4 TRC, but BT.709 is close. */
     cicp[0] = CICP_PRI_REC2020;
     cicp[1] = CICP_TRC_BT709;
@@ -1277,7 +1277,7 @@ const ColorSpace *IMB_colormanagement_space_from_cicp(const int cicp[4],
     interop_id = "g22_rec709_display";
   }
   else if (cicp[0] == CICP_PRI_REC2020 && cicp[1] == CICP_TRC_BT709) {
-    interop_id = "g24_rec2020_display";
+    interop_id = "blender:g24_rec2020_display";
   }
   else if (cicp[0] == CICP_PRI_REC709 && cicp[1] == CICP_TRC_BT709) {
     if (output == ColorManagedFileOutput::Video) {

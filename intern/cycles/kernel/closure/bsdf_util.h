@@ -440,7 +440,7 @@ ccl_device_inline Spectrum bsdf_principled_hair_sigma_from_concentration(const f
 ccl_device_inline Spectrum closure_layering_weight(const Spectrum layer_albedo,
                                                    const Spectrum weight)
 {
-  return weight * saturatef(1.0f - reduce_max(safe_divide_color(layer_albedo, weight)));
+  return clamp(weight - layer_albedo, zero_spectrum(), weight);
 }
 
 /* ******** Thin-film iridescence implementation ********

@@ -65,8 +65,9 @@ struct Cache {
   /* Clear all caches. */
   ~Cache();
 
-  /* Get the frame cache corresponding to the given frame number and view. */
-  const ImBuf *get_frame(int frame_number, int view_identifier);
+  /* Get the frame cache corresponding to the given frame number and view. The returned image
+   * buffer should be freed by the caller. Returns a nullptr if no cached frame exists. */
+  ImBuf *get_frame(int frame_number, int view_identifier);
 
   /* Add a new frame cache entry. If the new entry would surpass the memory cache limit, frames
    * will be evicted to make room. */
@@ -75,6 +76,7 @@ struct Cache {
   /* Clears the frames cache. */
   void clear_frames();
 
+  /* Stores an inclusive range of frames. */
   struct FrameRange {
     int start;
     int end;

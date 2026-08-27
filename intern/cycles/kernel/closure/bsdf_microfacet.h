@@ -9,6 +9,7 @@
 
 #include "kernel/closure/bsdf_transparent.h"
 #include "kernel/closure/bsdf_util.h"
+#include "kernel/constants.h"
 #include "kernel/sample/mapping.h"
 #include "kernel/util/lookup_table.h"
 
@@ -122,6 +123,38 @@ struct MicrofacetBsdf {
 };
 
 static_assert(sizeof(ShaderClosure) >= sizeof(MicrofacetBsdf), "MicrofacetBsdf is too large!");
+
+struct Coat {
+  PackedSpectrum tint;
+  float ior;
+  packed_float3 N;
+  float roughness;
+  Spectrum weight;
+};
+
+/* -------------------------------------------------------------------- */
+/** \name GGX LUT Index Mapping Functions
+ *
+ * This section contains functions to map from GGX alphas, IOR, and mu to the indicies of
+ * 2D and 3D LUTs (e.g., for multis-scatter GGX energy compensation or scattering albedos).
+ * \{ */
+
+ccl_device_forceinline float alpha_to_roughness_index(const float alpha_x, const float alpha_y)
+{
+  return sqrtf(sqrtf(alpha_x * alpha_y));
+}
+
+ccl_device_forceinline float ior_to_z_index(const float ior)
+{
+  return sqrtf(fabsf((ior - 1.0f) / (ior + 1.0f)));
+}
+
+ccl_device_forceinline float mu_to_y_index(const float mu)
+{
+  return safe_sqrtf(mu);
+}
+
+/** \} */
 
 ccl_device_inline void adjust_thin_film_ior_at_backface(ccl_private float &film_ior,
                                                         const float inv_bulk_ior)
@@ -504,15 +537,17 @@ ccl_device_inline void microfacet_ggx_preserve_energy(KernelGlobals kg,
                                                       const Spectrum Fss)
 {
   const float mu = dot(wi, bsdf->N);
-  const float rough = sqrtf(sqrtf(bsdf->alpha_x * bsdf->alpha_y));
+  const float y = mu_to_y_index(mu);
+  const float rough = alpha_to_roughness_index(bsdf->alpha_x, bsdf->alpha_y);
 
   float E;
   float E_avg;
   if (bsdf->type == CLOSURE_BSDF_MICROFACET_GGX_ID ||
       bsdf->type == CLOSURE_BSDF_THIN_GLASS_TRANSMISSION_ID)
   {
-    E = lookup_table_read_2D(kg, rough, mu, kernel_data.tables.ggx_E, 32, 32);
-    E_avg = lookup_table_read(kg, rough, kernel_data.tables.ggx_Eavg, 32);
+    E = lookup_table_read_2D(
+        kg, rough, y, kernel_data.tables.ggx_E, GGX_E_RES_ROUGH, GGX_E_RES_MU);
+    E_avg = lookup_table_read(kg, rough, kernel_data.tables.ggx_Eavg, GGX_E_RES_ROUGH);
   }
   else if (bsdf->type == CLOSURE_BSDF_MICROFACET_GGX_GLASS_ID) {
     int ofs = kernel_data.tables.ggx_glass_E;
@@ -523,10 +558,11 @@ ccl_device_inline void microfacet_ggx_preserve_energy(KernelGlobals kg,
       ofs = kernel_data.tables.ggx_glass_inv_E;
       avg_ofs = kernel_data.tables.ggx_glass_inv_Eavg;
     }
-    /* TODO: Bias mu towards more precision for low values. */
-    const float z = sqrtf(fabsf((ior - 1.0f) / (ior + 1.0f)));
-    E = lookup_table_read_3D(kg, rough, mu, z, ofs, 16, 16, 16);
-    E_avg = lookup_table_read_2D(kg, rough, z, avg_ofs, 16, 16);
+    const float z = ior_to_z_index(ior);
+    E = lookup_table_read_3D(
+        kg, rough, y, z, ofs, GGX_GLASS_E_RES_ROUGH, GGX_GLASS_E_RES_MU, GGX_GLASS_E_RES_IOR);
+    E_avg = lookup_table_read_2D(
+        kg, rough, z, avg_ofs, GGX_GLASS_E_RES_ROUGH, GGX_GLASS_E_RES_IOR);
   }
   else {
     kernel_assert(false);
@@ -585,17 +621,31 @@ ccl_device Spectrum bsdf_microfacet_estimate_albedo(KernelGlobals kg,
        * reflection approximation from the microfacet_fresnel call above in that case. */
     }
     else {
-      const float rough = sqrtf(sqrtf(bsdf->alpha_x * bsdf->alpha_y));
+      const float rough = alpha_to_roughness_index(bsdf->alpha_x, bsdf->alpha_y);
       float s;
       if (fresnel->exponent < 0.0f) {
-        const float z = sqrtf(fabsf((bsdf->ior - 1.0f) / (bsdf->ior + 1.0f)));
-        s = lookup_table_read_3D(
-            kg, rough, cos_NI, z, kernel_data.tables.ggx_gen_schlick_ior_s, 16, 16, 16);
+        const float z = ior_to_z_index(bsdf->ior);
+        const float y = mu_to_y_index(cos_NI);
+        s = lookup_table_read_3D(kg,
+                                 rough,
+                                 y,
+                                 z,
+                                 kernel_data.tables.ggx_gen_schlick_ior_s,
+                                 GGX_GEN_SCHLICK_IOR_S_RES_ROUGH,
+                                 GGX_GEN_SCHLICK_IOR_S_RES_MU,
+                                 GGX_GEN_SCHLICK_IOR_S_RES_IOR);
       }
       else {
         const float z = 1.0f / (0.2f * fresnel->exponent + 1.0f);
-        s = lookup_table_read_3D(
-            kg, rough, cos_NI, z, kernel_data.tables.ggx_gen_schlick_s, 16, 16, 16);
+        const float y = mu_to_y_index(cos_NI);
+        s = lookup_table_read_3D(kg,
+                                 rough,
+                                 y,
+                                 z,
+                                 kernel_data.tables.ggx_gen_schlick_s,
+                                 GGX_GEN_SCHLICK_S_RES_ROUGH,
+                                 GGX_GEN_SCHLICK_S_RES_MU,
+                                 GGX_GEN_SCHLICK_S_RES_IOR);
       }
       coeff *= fresnel->tint * mix(fresnel->f0, fresnel->f90, s);
       return coeff.sum();
@@ -609,9 +659,16 @@ ccl_device Spectrum bsdf_microfacet_estimate_albedo(KernelGlobals kg,
        * reflection approximation from the microfacet_fresnel call above in that case. */
     }
     else {
-      const float rough = sqrtf(sqrtf(bsdf->alpha_x * bsdf->alpha_y));
-      const float s = lookup_table_read_3D(
-          kg, rough, cos_NI, 0.5f, kernel_data.tables.ggx_gen_schlick_s, 16, 16, 16);
+      const float rough = alpha_to_roughness_index(bsdf->alpha_x, bsdf->alpha_y);
+      const float y = mu_to_y_index(cos_NI);
+      const float s = lookup_table_read_3D(kg,
+                                           rough,
+                                           y,
+                                           0.5f,
+                                           kernel_data.tables.ggx_gen_schlick_s,
+                                           GGX_GEN_SCHLICK_S_RES_ROUGH,
+                                           GGX_GEN_SCHLICK_S_RES_MU,
+                                           GGX_GEN_SCHLICK_S_RES_IOR);
       /* TODO: Precompute B factor term and account for it here. */
       const Spectrum reflectance = mix(fresnel->f0, one_spectrum(), s) * float(eval_reflection);
       return reflectance;
@@ -623,10 +680,17 @@ ccl_device Spectrum bsdf_microfacet_estimate_albedo(KernelGlobals kg,
   {
     /* We can re-use the ggx_gen_schlick_ior_s table here, since it's already precomputed for our
      * exponent<0 corner case where we use the real dielectric Fresnel. */
-    const float rough = sqrtf(sqrtf(bsdf->alpha_x * bsdf->alpha_y));
-    const float z = sqrtf(fabsf((bsdf->ior - 1.0f) / (bsdf->ior + 1.0f)));
-    const float s = lookup_table_read_3D(
-        kg, rough, cos_NI, z, kernel_data.tables.ggx_gen_schlick_ior_s, 16, 16, 16);
+    const float rough = alpha_to_roughness_index(bsdf->alpha_x, bsdf->alpha_y);
+    const float z = ior_to_z_index(bsdf->ior);
+    const float y = mu_to_y_index(cos_NI);
+    const float s = lookup_table_read_3D(kg,
+                                         rough,
+                                         y,
+                                         z,
+                                         kernel_data.tables.ggx_gen_schlick_ior_s,
+                                         GGX_GEN_SCHLICK_IOR_S_RES_ROUGH,
+                                         GGX_GEN_SCHLICK_IOR_S_RES_MU,
+                                         GGX_GEN_SCHLICK_IOR_S_RES_IOR);
 
 #if defined(__KERNEL_HIP__)
     /* Temporary workaround for a HIP compiler bug under Windows in combination with AMD 6800 XT
@@ -1472,5 +1536,67 @@ ccl_device FresnelCoeff bsdf_thin_glass_setup(KernelGlobals kg,
 }
 
 /** \} */
+
+/* Given the transmittance through a slab at normal incidence, compute the transmittance at a
+ * certain incident angle, based on Beer-Lambert law. */
+ccl_device_inline Spectrum slab_color_at_angle(const float3 color,
+                                               const float cos_theta_i,
+                                               const float ior)
+{
+  const float optical_depth = ior * inversesqrtf(sqr(ior) - (1.0f - sqr(cos_theta_i)));
+  return power(color, optical_depth);
+}
+
+/* Set up coat BSDF, and return the coat albedo for layering. */
+ccl_device Spectrum bsdf_coat_setup(KernelGlobals kg,
+                                    ccl_private ShaderData *sd,
+                                    const PathRayVisibility ray_visibility,
+                                    ccl_private Coat &coat)
+
+{
+#ifdef __CAUSTICS_TRICKS__
+  const bool reflective_caustics = (kernel_data.integrator.caustics_reflective ||
+                                    (ray_visibility & PATH_RAY_VISIBILITY_DIFFUSE) == 0);
+#else
+  const bool reflective_caustics = true;
+#endif
+
+  coat.N = maybe_ensure_valid_specular_reflection(sd, coat.N);
+
+  if (!isequal(coat.tint, one_spectrum())) {
+    /* Compute the color at viewing angle, based on the given tint at normal incidence.
+     * OpenPBR Surface Specification v1.1.1, Section 3.4.2.
+     * NOTE(OpenPBR): Eq. (77) requires the cosines of both the incoming and the outgoing
+     * directions, but we only have access to the incoming direction. We therefore assume that the
+     * refracted cosine of both directions are the same. The same approaximation is done in Adobe's
+     * implementation. */
+    const float cosNI = dot(sd->wi, coat.N);
+    coat.tint = slab_color_at_angle(coat.tint, cosNI, coat.ior);
+  }
+
+  Spectrum albedo = zero_spectrum();
+  if (reflective_caustics) {
+    MicrofacetBsdf coat_bsdf;
+    ccl_private MicrofacetBsdf *bsdf = bsdf_alloc_maybe_emission(sd, &coat_bsdf, coat.weight);
+    if (bsdf) {
+      bsdf->N = coat.N;
+      bsdf->T = zero_float3();
+      bsdf->ior = coat.ior;
+      bsdf->alpha_x = bsdf->alpha_y = sqr(coat.roughness);
+
+      const int runtime_flag = bsdf_microfacet_ggx_setup(bsdf);
+      if (bsdf != &coat_bsdf) {
+        /* Add flag only if the closure is actually allocated in `sd->closure`. */
+        sd->runtime_flag |= runtime_flag;
+      }
+      bsdf_microfacet_setup_fresnel_dielectric(kg, bsdf, sd->wi);
+
+      albedo = bsdf_microfacet_estimate_albedo(kg, sd->wi, bsdf, true, false);
+    }
+  }
+
+  /* Attenuate lower layers. */
+  return (1.0f - coat.tint * (1.0f - albedo)) * coat.weight;
+}
 
 CCL_NAMESPACE_END

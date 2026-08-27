@@ -579,7 +579,6 @@ static void COLLECTION_OT_importer_remove(wmOperatorType *ot)
 {
   /* identifiers */
   ot->name = "Remove Importer";
-  ot->description = "Remove Importer";
   ot->idname = "COLLECTION_OT_importer_remove";
 
   /* api callbacks */

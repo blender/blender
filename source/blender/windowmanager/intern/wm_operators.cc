@@ -1288,7 +1288,8 @@ bool WM_operator_check_ui_enabled(const bContext *C, const char *idname)
   wmWindowManager *wm = CTX_wm_manager(C);
   Scene *scene = CTX_data_scene(C);
 
-  return !((ED_undo_is_valid(C, idname) == false) || WM_jobs_test(wm, scene, WM_JOB_TYPE_ANY));
+  return !((ED_undo_is_valid(C, idname) == false) ||
+           WM_jobs_has_running(wm, scene, WM_JOB_TYPE_ANY, WM_JOB_BACKGROUND));
 }
 
 wmOperator *WM_operator_last_redo(const bContext *C)

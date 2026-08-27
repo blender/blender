@@ -55,9 +55,8 @@ LibOCIOColorSpace::LibOCIOColorSpace(const int index,
       else if (alias == "rec1886_rec709_display") {
         interop_id_ = "g24_rec709_display";
       }
-      /* Legacy interop ID from before this was a standard. */
-      else if (alias == "blender:g24_rec2020_display") {
-        interop_id_ = "g24_rec2020_display";
+      else if (alias == "g24_rec2020_display") {
+        interop_id_ = "blender:g24_rec2020_display";
       }
       else if (alias == "rec2100_pq_display") {
         interop_id_ = "pq_rec2020_display";

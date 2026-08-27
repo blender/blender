@@ -701,7 +701,7 @@ ccl_device_inline Spectrum bsdf_albedo(KernelGlobals kg,
                                        const bool reflection,
                                        const bool transmission)
 {
-  Spectrum albedo = sc->weight;
+  Spectrum albedo = one_spectrum();
   /* Some closures include additional components such as Fresnel terms that cause their albedo to
    * be below 1. The point of this function is to return a best-effort estimation of their albedo,
    * meaning the amount of reflected/refracted light that would be expected when illuminated by a
@@ -713,21 +713,41 @@ ccl_device_inline Spectrum bsdf_albedo(KernelGlobals kg,
    * extra overhead though. */
 #if defined(__SVM__) || defined(__OSL__)
   if (CLOSURE_IS_BSDF_MICROFACET(sc->type)) {
-    albedo *= bsdf_microfacet_estimate_albedo(
+    albedo = bsdf_microfacet_estimate_albedo(
         kg, sd->wi, (const ccl_private MicrofacetBsdf *)sc, reflection, transmission);
   }
 #  ifdef __PRINCIPLED_HAIR__
   else if (sc->type == CLOSURE_BSDF_HAIR_CHIANG_ID) {
     /* TODO(lukas): Principled Hair could also be split into a glossy and a transmission component,
      * similar to Glass BSDFs. */
-    albedo *= bsdf_hair_chiang_albedo(sd, sc);
+    albedo = bsdf_hair_chiang_albedo(sd, sc);
   }
   else if (sc->type == CLOSURE_BSDF_HAIR_HUANG_ID) {
-    albedo *= bsdf_hair_huang_albedo(sd, sc);
+    albedo = bsdf_hair_huang_albedo(sd, sc);
   }
 #  endif
 #endif
   return albedo;
+}
+
+ccl_device_inline Spectrum closure_albedo(KernelGlobals kg,
+                                          const ccl_private ShaderData *sd,
+                                          const ccl_private ShaderClosure *sc,
+                                          const bool reflection,
+                                          const bool transmission)
+{
+  return sc->weight * bsdf_albedo(kg, sd, sc, reflection, transmission);
+}
+
+/* Compute albedo used for layering this BSDF on top of another. The albedo is usually the
+ * reflection albedo. */
+ccl_device_inline Spectrum closure_layer_albedo(KernelGlobals kg,
+                                                const ccl_private ShaderData *sd,
+                                                const ccl_private ShaderClosure *sc)
+{
+  /* Use `reduce_max()` to keep compatibility, need to check OSL and OpenPBR spec if we should
+   * remove tint for some closures. */
+  return sc->weight * reduce_max(bsdf_albedo(kg, sd, sc, true, false));
 }
 
 CCL_NAMESPACE_END

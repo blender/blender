@@ -449,7 +449,7 @@ static bool file_browse_poll_property(const bContext * /*C*/,
 void BUTTONS_OT_file_browse(wmOperatorType *ot)
 {
   /* Identifiers. */
-  ot->name = "Accept";
+  ot->name = "Select File";
   ot->description =
       "Open a file browser, hold Shift to open the file, Alt to browse containing directory";
   ot->idname = "BUTTONS_OT_file_browse";
@@ -481,7 +481,7 @@ void BUTTONS_OT_file_browse(wmOperatorType *ot)
 void BUTTONS_OT_directory_browse(wmOperatorType *ot)
 {
   /* identifiers */
-  ot->name = "Accept";
+  ot->name = "Select Directory";
   ot->description =
       "Open a directory browser, hold Shift to open the file, Alt to browse containing directory";
   ot->idname = "BUTTONS_OT_directory_browse";

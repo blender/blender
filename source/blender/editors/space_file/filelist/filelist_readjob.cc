@@ -274,7 +274,7 @@ void filelist_readjob_stop(FileList *filelist, wmWindowManager *wm)
 
 int filelist_readjob_running(FileList *filelist, wmWindowManager *wm)
 {
-  return WM_jobs_test(wm, filelist, filelist_jobtype_get(filelist));
+  return WM_jobs_has_running(wm, filelist, filelist_jobtype_get(filelist));
 }
 
 }  // namespace blender

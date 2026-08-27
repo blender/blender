@@ -510,8 +510,6 @@ enum class BuiltinBits {
   /* Selective enablement of ray queries. */
   RAY_QUERY = (1 << 21),
 
-  /* WORKAROUND: Used to disable viewport index programmatically. */
-  NO_VIEWPORT_INDEX = (1 << 22),
   /* Disable our own GPU shader preprocessor optimizer in case we can't ensure the
    * input is within spec. */
   NO_PREPROCESSOR = (1 << 23),
@@ -771,6 +769,17 @@ struct GeneratedSource {
 
 using GeneratedSourceList = Vector<shader::GeneratedSource, 0>;
 
+#  define TEST_EQUAL(a, b, _member) \
+    if (!((a)._member == (b)._member)) { \
+      return false; \
+    }
+
+#  define TEST_VECTOR_EQUAL(a, b, _vector) \
+    TEST_EQUAL(a, b, _vector.size()); \
+    for (auto i : _vector.index_range()) { \
+      TEST_EQUAL(a, b, _vector[i]); \
+    }
+
 /**
  * \brief Describe inputs & outputs, stage interfaces, resources and sources of a shader.
  *        If all data is correctly provided, this is all that is needed to create and compile
@@ -780,39 +789,6 @@ using GeneratedSourceList = Vector<shader::GeneratedSource, 0>;
  *            #ShaderCreateInfo are not freed until it is consumed or deleted.
  */
 struct ShaderCreateInfo {
-  /** Shader name for debugging. */
-  std::string name_;
-  /** True if the shader is static and can be pre-compiled at compile time. */
-  bool do_static_compilation_ = false;
-  /** True if the shader is not part of gpu_shader_create_info_list. */
-  bool is_generated_ = true;
-  /** If true, all additionally linked create info will be merged into this one. */
-  bool finalized_ = false;
-  /** If true, force depth and stencil tests to always happen before fragment shader invocation. */
-  bool early_fragment_test_ = false;
-  /** Allow optimization when fragment shader writes to `gl_FragDepth`. */
-  DepthWrite depth_write_ = DepthWrite::UNCHANGED;
-  /** GPU Backend compatibility flag. Temporary requirement until Metal enablement is fully
-   * complete. */
-  bool metal_backend_only_ = false;
-  /**
-   * Maximum length of all the resource names including each null terminator.
-   * Only for names used by #gpu::ShaderInterface.
-   */
-  size_t interface_names_size_ = 0;
-  /** Manually set builtins. */
-  BuiltinBits builtins_ = BuiltinBits::NONE;
-  /** Manually set generated code. */
-  std::string vertex_source_generated;
-  std::string fragment_source_generated;
-  std::string compute_source_generated;
-  std::string geometry_source_generated;
-  std::string typedef_source_generated;
-  /** Manually set generated dependencies file names. */
-  Vector<StringRefNull, 0> dependencies_generated;
-
-  GeneratedSourceList generated_sources;
-
   using ConditionFn = std::function<bool(Span<CompilationConstant>)>;
   struct Conditions : Vector<ConditionFn, 0> {
 
@@ -836,21 +812,64 @@ struct ShaderCreateInfo {
     }
   };
 
-#  define TEST_EQUAL(a, b, _member) \
-    if (!((a)._member == (b)._member)) { \
-      return false; \
-    }
+  /** Shader name for debugging. */
+  std::string name_;
+  /** True if the shader is static and can be pre-compiled at compile time. */
+  bool do_static_compilation_ = false;
+  /** True if the shader is not part of gpu_shader_create_info_list. */
+  bool is_generated_ = true;
+  /** If true, all additionally linked create info will be merged into this one. */
+  bool finalized_ = false;
+  /** If true, force depth and stencil tests to always happen before fragment shader invocation. */
+  bool early_fragment_test_ = false;
+  /** Allow optimization when fragment shader writes to `gl_FragDepth`. */
+  DepthWrite depth_write_ = DepthWrite::UNCHANGED;
+  /** GPU Backend compatibility flag. Temporary requirement until Metal enablement is fully
+   * complete. */
+  bool metal_backend_only_ = false;
+  /**
+   * Maximum length of all the resource names including each null terminator.
+   * Only for names used by #gpu::ShaderInterface.
+   */
+  size_t interface_names_size_ = 0;
+  /** Manually set builtins. */
+  struct BuiltinBit {
+    BuiltinBits bit = BuiltinBits::NONE;
+    Conditions conditions;
 
-#  define TEST_VECTOR_EQUAL(a, b, _vector) \
-    TEST_EQUAL(a, b, _vector.size()); \
-    for (auto i : _vector.index_range()) { \
-      TEST_EQUAL(a, b, _vector[i]); \
+    bool operator==(const BuiltinBit &b) const
+    {
+      TEST_EQUAL(*this, b, bit);
+      return true;
     }
+  };
+  Vector<BuiltinBit, 0> builtins_;
+
+  BuiltinBits builtins_combined() const
+  {
+    BuiltinBits bits = BuiltinBits::NONE;
+    for (const BuiltinBit &value : builtins_) {
+      bits = BuiltinBits(bits | value.bit);
+    }
+    return bits;
+  }
+
+  /** Manually set generated code. */
+  std::string vertex_source_generated;
+  std::string fragment_source_generated;
+  std::string compute_source_generated;
+  std::string geometry_source_generated;
+  std::string typedef_source_generated;
+  /** Manually set generated dependencies file names. */
+  Vector<StringRefNull, 0> dependencies_generated;
+
+  GeneratedSourceList generated_sources;
 
   struct VertIn {
     int index;
     Type type;
     ResourceString name;
+    Conditions conditions;
 
     bool operator==(const VertIn &b) const
     {
@@ -902,6 +921,7 @@ struct ShaderCreateInfo {
     StringRefNull name;
     /* NOTE: Currently only supported by Metal. */
     int raster_order_group;
+    Conditions conditions;
 
     bool operator==(const FragOut &b) const
     {
@@ -922,6 +942,7 @@ struct ShaderCreateInfo {
     StringRefNull name;
     /* NOTE: Currently only supported by Metal. */
     int raster_order_group;
+    Conditions conditions;
 
     bool operator==(const SubpassIn &b) const
     {
@@ -1078,13 +1099,30 @@ struct ShaderCreateInfo {
     return all_resources;
   }
 
-  Vector<StageInterfaceInfo *, 0> vertex_out_interfaces_;
-  Vector<StageInterfaceInfo *, 0> geometry_out_interfaces_;
+  struct StageInterfaceInfoHandle {
+    StageInterfaceInfo *iface;
+    Conditions conditions;
+
+    operator StageInterfaceInfo *() const
+    {
+      return iface;
+    }
+
+    bool operator==(const StageInterfaceInfoHandle &b) const
+    {
+      TEST_EQUAL(*this, b, iface);
+      return true;
+    }
+  };
+
+  Vector<StageInterfaceInfoHandle, 0> vertex_out_interfaces_;
+  Vector<StageInterfaceInfoHandle, 0> geometry_out_interfaces_;
 
   struct PushConst {
     Type type;
     ResourceString name;
     int array_size;
+    Conditions conditions;
 
     int array_size_safe() const
     {
@@ -1156,16 +1194,17 @@ struct ShaderCreateInfo {
   /** \name Shaders in/outs (fixed function pipeline config)
    * \{ */
 
-  Self &vertex_in(int slot, Type type, StringRefNull name)
+  Self &vertex_in(int slot, Type type, StringRefNull name, ConditionFn cond = nullptr)
   {
-    vertex_inputs_.append({slot, type, name});
+    vertex_inputs_.append({slot, type, name, cond ? Conditions(cond) : Conditions()});
     interface_names_size_ += name.size() + 1;
     return *static_cast<Self *>(this);
   }
 
-  Self &vertex_out(StageInterfaceInfo &interface)
+  Self &vertex_out(StageInterfaceInfo &interface, ConditionFn cond = nullptr)
   {
-    vertex_out_interfaces_.append(&interface);
+    vertex_out_interfaces_.append(
+        StageInterfaceInfoHandle{&interface, cond ? Conditions(cond) : Conditions()});
     return *static_cast<Self *>(this);
   }
 
@@ -1205,9 +1244,9 @@ struct ShaderCreateInfo {
    * appended in the geometry shader IF AND ONLY IF the vertex_out interface instance name matches
    * the geometry_out interface instance name.
    */
-  Self &geometry_out(StageInterfaceInfo &interface)
+  Self &geometry_out(StageInterfaceInfo &interface, ConditionFn cond = nullptr)
   {
-    geometry_out_interfaces_.append(&interface);
+    geometry_out_interfaces_.append_as(&interface, cond ? Conditions(cond) : Conditions());
     return *static_cast<Self *>(this);
   }
 
@@ -1215,9 +1254,11 @@ struct ShaderCreateInfo {
                      Type type,
                      StringRefNull name,
                      DualBlend blend = DualBlend::NONE,
-                     int raster_order_group = -1)
+                     int raster_order_group = -1,
+                     ConditionFn cond = nullptr)
   {
-    fragment_outputs_.append({slot, type, blend, name, raster_order_group});
+    fragment_outputs_.append(
+        {slot, type, blend, name, raster_order_group, cond ? Conditions(cond) : Conditions()});
     return *static_cast<Self *>(this);
   }
 
@@ -1394,7 +1435,7 @@ struct ShaderCreateInfo {
     res.acceleration_structure.name = name;
     resources_get_(freq).append(res);
     interface_names_size_ += name.size() + 1;
-    builtins_ |= BuiltinBits::RAY_QUERY;
+    builtins(BuiltinBits::RAY_QUERY);
     return *(Self *)this;
   }
 
@@ -1485,14 +1526,17 @@ struct ShaderCreateInfo {
    * 128bytes.
    * \{ */
 
-  Self &push_constant(Type type, StringRefNull name, int array_size = 0)
+  Self &push_constant(Type type,
+                      StringRefNull name,
+                      int array_size = 0,
+                      ConditionFn cond = nullptr)
   {
     /* We don't have support for UINT push constants yet, use INT instead. */
     BLI_assert(type != Type::uint_t);
     BLI_assert_msg(name.find("[") == -1,
                    "Array syntax is forbidden for push constants."
                    "Use the array_size parameter instead.");
-    push_constants_.append({type, name, array_size});
+    push_constants_.append_as(type, name, array_size, cond ? Conditions(cond) : Conditions());
     interface_names_size_ += name.size() + 1;
     return *static_cast<Self *>(this);
   }
@@ -1521,9 +1565,9 @@ struct ShaderCreateInfo {
     return *static_cast<Self *>(this);
   }
 
-  Self &builtins(BuiltinBits builtin)
+  Self &builtins(BuiltinBits builtin, ConditionFn cond = nullptr)
   {
-    builtins_ |= builtin;
+    builtins_.append_as(builtin, cond ? Conditions(cond) : Conditions());
     return *static_cast<Self *>(this);
   }
 
@@ -1561,9 +1605,9 @@ struct ShaderCreateInfo {
     return *static_cast<Self *>(this);
   }
 
-  Self &additional_info_with_condition(StringRefNull info_name, ConditionFn cond)
+  Self &additional_info_with_condition(StringRefNull info_name, ConditionFn cond = nullptr)
   {
-    additional_infos_.append({info_name, {cond}});
+    additional_infos_.append_as(info_name, cond ? Conditions(cond) : Conditions());
     return *static_cast<Self *>(this);
   }
 
@@ -1627,6 +1671,9 @@ struct ShaderCreateInfo {
   void extend_predicate(Vector<Resource, 0> &resource_vector,
                         ShaderCreateInfo::Resource res_copy,
                         Span<ConditionFn> additional_conditions) const;
+  void extend_predicate(Vector<PushConst, 0> &resource_vector,
+                        ShaderCreateInfo::PushConst res_copy,
+                        Span<ConditionFn> additional_conditions) const;
   void assert_no_overlap(const ShaderCreateInfo &info,
                          const bool test,
                          const StringRefNull error) const;
@@ -1654,7 +1701,7 @@ struct ShaderCreateInfo {
    * code. So we do not compare name and some other internal stuff. */
   bool operator==(const ShaderCreateInfo &b) const
   {
-    TEST_EQUAL(*this, b, builtins_);
+    TEST_VECTOR_EQUAL(*this, b, builtins_);
     TEST_EQUAL(*this, b, vertex_source_generated);
     TEST_EQUAL(*this, b, fragment_source_generated);
     TEST_EQUAL(*this, b, compute_source_generated);

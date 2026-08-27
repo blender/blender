@@ -392,6 +392,8 @@ if(DEFINED LIBDIR)
     ${SYCL_ROOT_DIR}/lib/libur_*.so.*
   )
   list(FILTER _sycl_runtime_libraries EXCLUDE REGEX "\\.py$")
+  # Only bundle the v2 Level Zero adapter, not the legacy libur_adapter_level_zero.so (#159584).
+  list(FILTER _sycl_runtime_libraries EXCLUDE REGEX "ur_adapter_level_zero\\.so")
   list(APPEND PLATFORM_BUNDLED_LIBRARIES ${_sycl_runtime_libraries})
   unset(_sycl_runtime_libraries)
 endif()

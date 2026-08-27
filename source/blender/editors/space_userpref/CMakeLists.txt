@@ -4,6 +4,7 @@
 
 set(INC
   ../include
+  ../asset
   ../../makesrna
 
   # RNA_prototypes.hh

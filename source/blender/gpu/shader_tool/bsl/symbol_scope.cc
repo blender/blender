@@ -447,6 +447,14 @@ vector<SymbolVariable *> SymbolScope::non_static_variables_in_declaration_order(
   return members;
 }
 
+SymbolScope *SymbolScope::child_scope(int n)
+{
+  if (auto it = scopes.find(to_string(n)); it != scopes.end()) {
+    return it->second;
+  }
+  return nullptr;
+}
+
 void SymbolScope::print() const
 {
   enum class SymbolType { Variable, FunctionTemplate, ClassTemplate, Function, Class, Scope };

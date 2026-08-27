@@ -6,6 +6,8 @@
  * \ingroup bke
  */
 
+#include "BKE_attribute_math.hh"
+#include "BKE_mesh.hh"
 #include "BKE_subdiv.hh"
 
 #include "DNA_mesh_types.h"

@@ -618,7 +618,7 @@ static void start_audio_video_job(bContext *C, wmDrag *drag, bool only_audio)
                               nullptr,
                               nullptr,
                               "Loading previews...",
-                              eWM_JobFlag(0),
+                              WM_JOB_BACKGROUND,
                               WM_JOB_TYPE_SEQ_DRAG_DROP_PREVIEW);
 
   DropJobData *job_data = MEM_new_uninitialized<DropJobData>("SeqDragDropPreviewData");

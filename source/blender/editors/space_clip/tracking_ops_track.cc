@@ -296,7 +296,7 @@ static wmOperatorStatus track_markers(bContext *C, wmOperator *op, bool use_job)
   bool sequence = RNA_boolean_get(op->ptr, "sequence");
   int framenr = ED_space_clip_get_clip_frame_number(sc);
 
-  if (WM_jobs_test(CTX_wm_manager(C), CTX_data_scene(C), WM_JOB_TYPE_ANY)) {
+  if (WM_jobs_has_running(CTX_wm_manager(C), CTX_data_scene(C), WM_JOB_TYPE_CLIP_TRACK_MARKERS)) {
     /* Only one tracking is allowed at a time. */
     return OPERATOR_CANCELLED;
   }
@@ -372,7 +372,7 @@ static wmOperatorStatus track_markers_invoke(bContext *C,
 static wmOperatorStatus track_markers_modal(bContext *C, wmOperator * /*op*/, const wmEvent *event)
 {
   /* No running tracking, remove handler and pass through. */
-  if (0 == WM_jobs_test(CTX_wm_manager(C), CTX_data_scene(C), WM_JOB_TYPE_ANY)) {
+  if (!WM_jobs_has_running(CTX_wm_manager(C), CTX_data_scene(C), WM_JOB_TYPE_CLIP_TRACK_MARKERS)) {
     return OPERATOR_FINISHED | OPERATOR_PASS_THROUGH;
   }
 
