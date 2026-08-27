@@ -54,6 +54,12 @@ static MutableSpan<ed::animfilter::DataChannel *> get_or_create_data_channels(co
   return saction.runtime->data_channels;
 }
 
+/**
+ * Construct the summary channels, and return them all.
+ *
+ * The first in the span is the root channel. Other summary channels are there too, even though
+ * they are also available in `root.children` or any of their children.
+ */
 static MutableSpan<ed::animfilter::SummaryChannel *> get_or_create_summary_channels(
     MutableSpan<ed::animfilter::DataChannel *> channels, SpaceAction &saction)
 {
