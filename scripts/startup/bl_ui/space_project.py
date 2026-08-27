@@ -259,7 +259,6 @@ class PROJECT_PT_variables(Panel):
         project = bpy.data.project
 
         layout = self.layout
-        layout.use_property_split = True
 
         row = layout.row()
         row.template_list(
@@ -271,7 +270,9 @@ class PROJECT_PT_variables(Panel):
             active_dataptr=project,
             active_propname="active_variable_index",
         )
+
         col = row.column(align=True)
+        col.use_property_split = True
         col.menu("PROJECT_MT_add_variable", text="", icon='ADD')
         col.operator("project.remove_variable", text="", icon='REMOVE')
         col.separator()
