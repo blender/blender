@@ -14,6 +14,7 @@
 #include <utility>
 
 #include "BLI_array.hh"
+#include "BLI_fileops.hh"
 #include "BLI_math_base.hh"
 
 #include "BKE_lib_id.hh"
@@ -73,7 +74,7 @@ class BufferedStreamReader {
 
   bool initialize()
   {
-    return fseek(file_, stream_info_.compressed_offset, SEEK_SET) != -1;
+    return BLI_fseek(file_, int64_t(stream_info_.compressed_offset), SEEK_SET) != -1;
   }
 
   std::optional<Span<uint8_t>> read()
@@ -180,7 +181,7 @@ static bool read_toc(FILE *file, const NgspFileHeader &header, Array<StreamInfo>
     return true;
   }
 
-  if (fseek(file, header.toc_byte_offset, SEEK_SET) == -1) {
+  if (BLI_fseek(file, header.toc_byte_offset, SEEK_SET) == -1) {
     return false;
   }
 
