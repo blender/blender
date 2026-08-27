@@ -62,7 +62,7 @@ void WM_OT_spz_import(wmOperatorType *ot)
   PropertyRNA *prop;
 
   ot->name = "Import SPZ";
-  ot->description = "Import an SPZ file as a point cloud object";
+  ot->description = "Import an SPZ file as a gaussian splat point cloud object";
   ot->idname = "WM_OT_spz_import";
 
   ot->invoke = ed::io::filesel_drop_import_invoke;

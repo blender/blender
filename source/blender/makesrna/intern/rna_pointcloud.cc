@@ -167,8 +167,12 @@ static void rna_def_point(BlenderRNA *brna)
 static void rna_def_pointcloud(BlenderRNA *brna)
 {
   static const EnumPropertyItem render_as_items[] = {
-      {PT_RENDER_AS_POINTS, "POINTS", 0, "Points", ""},
-      {PT_RENDER_AS_SPLATS, "SPLATS", 0, "Splats", ""},
+      {PT_RENDER_AS_POINTS, "POINTS", 0, "Points", "Render the point cloud object as points"},
+      {PT_RENDER_AS_SPLATS,
+       "GAUSSIAN_SPLATS",
+       0,
+       "Gaussian Splats",
+       "Render the point cloud object using the Gaussian Splats technique"},
       {0, nullptr, 0, nullptr, nullptr},
   };
 
