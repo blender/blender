@@ -109,12 +109,13 @@ class StreamedGzipReader {
 
       const int ret = inflate(&stream_, Z_NO_FLUSH);
       BLI_assert(ret != Z_STREAM_ERROR);
-      switch (ret) {
-        case Z_NEED_DICT:
-        case Z_DATA_ERROR:
-        case Z_MEM_ERROR:
-          // TODO(sergey): Report error?
-          return false;
+      if (ret == Z_STREAM_END) {
+        BLI_assert(stream_.avail_out == 0);
+        break;
+      }
+      if (ret != Z_OK) {
+        /* TODO(sergey): Report error. */
+        return false;
       }
     } while (stream_.avail_out != 0);
 
