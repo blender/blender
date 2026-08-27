@@ -39,7 +39,7 @@ void node_tree_shader_default(const bContext *C, Main *bmain, ID *id)
     if (ob && ob->type == OB_VOLUME) {
       ma_default = BKE_material_default_volume();
     }
-    else if (ob && ob->type == OB_POINTCLOUD &&
+    else if (ob && ob->type == OB_POINTCLOUD && ob->data &&
              id_cast<const PointCloud *>(ob->data)->render_as == PT_RENDER_AS_SPLATS)
     {
       ma_default = BKE_material_default_gsplat();
