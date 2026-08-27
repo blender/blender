@@ -215,6 +215,9 @@ void BKE_preferences_asset_library_read_data(BlendDataReader *reader, bUserAsset
   if (library->auth_token) {
     BLO_read_string(reader, &library->auth_token);
   }
+  if (library->invalid_uuid) {
+    BLO_read_string(reader, &library->invalid_uuid);
+  }
   /* Ensure that the resolved path dir is up to date. */
   STRNCPY(library->resolved_dirpath, AS_asset_library_resolve_path(library->dirpath).c_str());
 }
@@ -224,6 +227,9 @@ void BKE_preferences_asset_library_write_data(BlendWriter *writer,
 {
   if (library->auth_token) {
     writer->write_string(library->auth_token);
+  }
+  if (library->invalid_uuid) {
+    writer->write_string(library->invalid_uuid);
   }
 }
 
