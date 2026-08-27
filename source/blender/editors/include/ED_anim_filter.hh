@@ -204,7 +204,9 @@ enum class DataChannelType {
   GREASE_PENCIL,
 };
 
+/* Stream operators for debug printing to std::cout. */
 std::ostream &operator<<(std::ostream &stream, DataChannelType type);
+std::ostream &operator<<(std::ostream &stream, AnimationChannelType type);
 
 class DataChannel : public AnimationChannel {
  protected:

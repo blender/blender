@@ -29,6 +29,22 @@ std::ostream &operator<<(std::ostream &stream, const DataChannelType type)
   return stream;
 }
 
+std::ostream &operator<<(std::ostream &stream, const AnimationChannelType type)
+{
+  switch (type) {
+    case AnimationChannelType::UNKNOWN:
+      stream << "UNKNOWN";
+      break;
+    case AnimationChannelType::DATA:
+      stream << "DATA";
+      break;
+    case AnimationChannelType::SUMMARY:
+      stream << "SUMMARY";
+      break;
+  }
+  return stream;
+}
+
 ChannelTag::ChannelTag(const ChannelTagType type,
                        const StringRef label,
                        const PointerRNA &source_data)
