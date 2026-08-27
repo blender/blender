@@ -25,6 +25,7 @@
 #include "CLG_log.h"
 
 #include "IO_gsplat.hh"
+#include "IO_validate.hh"
 
 #include "spz_read_common.hh"
 #include "spz_types.hh"
@@ -161,6 +162,11 @@ PointCloud *read_spz_gzip_compressed_file(FILE *file, ReportList *reports)
   CLOG_DEBUG(&LOG, "SPZ header sh_degree: %d", int(header.sh_degree));
   CLOG_DEBUG(&LOG, "SPZ header fractional_bits: %d", int(header.fractional_bits));
   CLOG_DEBUG(&LOG, "SPZ header flags: %d", header.flags);
+
+  if (!validate::size_fits_in_int(header.num_points)) {
+    BKE_report(reports, RPT_ERROR, "SPZ Read: Too many points");
+    return nullptr;
+  }
 
   PointCloud *point_cloud = BKE_pointcloud_new_nomain(header.num_points);
   gsplat::GsplatMutableAttributeAccessor accessor(*point_cloud, header.sh_degree);

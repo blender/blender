@@ -21,6 +21,7 @@
 #include "BKE_report.hh"
 
 #include "IO_gsplat.hh"
+#include "IO_validate.hh"
 
 #include "CLG_log.h"
 
@@ -247,6 +248,11 @@ PointCloud *read_spz_ngsp_file(FILE *file, ReportList *reports)
   /* There is expected to be 6 streams: positions, alphas, colors, scales, rotations, sh. */
   if (stream_infos.size() < 6) {
     BKE_report(reports, RPT_ERROR, "SPZ Read: Unexpected number of Zstd streams");
+    return nullptr;
+  }
+
+  if (!validate::size_fits_in_int(header.num_points)) {
+    BKE_report(reports, RPT_ERROR, "SPZ Read: Too many points");
     return nullptr;
   }
 
