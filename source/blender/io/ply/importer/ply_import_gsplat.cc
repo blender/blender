@@ -72,6 +72,24 @@ static int degree_for_dim(const int dimension)
   return 4;
 }
 
+constexpr int dim_for_degree(const int degree)
+{
+  switch (degree) {
+    case 0:
+      return 0;
+    case 1:
+      return 3;
+    case 2:
+      return 8;
+    case 3:
+      return 15;
+    case 4:
+      return 24;
+    default:
+      return 0;
+  }
+}
+
 PointCloud *convert_gsplat_ply_to_point_cloud(const PlyData &data,
                                               const PLYImportParams & /*params*/)
 {
@@ -103,8 +121,8 @@ PointCloud *convert_gsplat_ply_to_point_cloud(const PlyData &data,
 
   /* f_rest_<i> */
   const Vector<Span<float>> f_rest = get_rest_custom_attributes(data);
-  const int num_sh_dimensions = static_cast<int>(f_rest.size() / 3);
-  const int sh_degree = degree_for_dim(num_sh_dimensions);
+  const int sh_degree = (f_rest.size() % 3 == 0) ? degree_for_dim(f_rest.size() / 3) : 0;
+  const int num_sh_dimensions = dim_for_degree(sh_degree);
 
   gsplat::GsplatMutableAttributeAccessor accessor(*point_cloud, sh_degree);
   MutableSpan<float4> radiance_base = accessor.radiance_base_for_write();
