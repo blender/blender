@@ -218,11 +218,11 @@ static bool actedit_get_context(bAnimContext *ac, SpaceAction *saction)
       ac->data = &saction->ads;
       return true;
 
-    case SACTCONT_CACHEFILE: /* Cache File */ /* XXX review how this mode is handled... */
+    case SACTCONT_CACHEFILE: /* Cache File */
       /* update scene-pointer (no need to check for pinning yet, as not implemented) */
       saction->ads.source = reinterpret_cast<ID *>(ac->scene);
 
-      ac->datatype = ANIMCONT_CHANNEL;
+      ac->datatype = ANIMCONT_CACHEFILE;
       ac->data = &saction->ads;
       return true;
 
@@ -2826,6 +2826,14 @@ static void animfilter_modifier_idpoin_cb(void *afm_ptr,
         afm->items += animdata_filter_ds_nodetree(
             afm->ac, &afm->tmp_data, owner_id, node_tree, afm->filter_mode);
       }
+      break;
+    }
+    case ID_CF: {
+      CacheFile *cache_file = id_cast<CacheFile *>(id);
+      BLI_assert(afm->ac->ads == afm->ads);
+      afm->items += animdata_filter_ds_cachefile(
+          afm->ac, &afm->tmp_data, cache_file, afm->filter_mode);
+      break;
     }
 
     /* TODO: images? */
@@ -4032,6 +4040,14 @@ size_t ANIM_animdata_filter(bAnimContext *ac,
     case ANIMCONT_MASK: {
       if (animdata_filter_dopesheet_summary(ac, anim_data, filter_mode, &items)) {
         items = animdata_filter_mask(ac, anim_data, data, filter_mode);
+      }
+      break;
+    }
+    case ANIMCONT_CACHEFILE: {
+      if (animdata_filter_dopesheet_summary(ac, anim_data, filter_mode, &items)) {
+        for (CacheFile &cache_file : ac->bmain->cachefiles) {
+          items += animdata_filter_ds_cachefile(ac, anim_data, &cache_file, filter_mode);
+        }
       }
       break;
     }

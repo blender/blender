@@ -115,6 +115,8 @@ enum eAnimCont_Types {
   ANIMCONT_MASK = 9,
   /** "timeline" editor (#bDopeSheet). */
   ANIMCONT_TIMELINE = 10,
+  /** Cache file (#bDopeSheet). */
+  ANIMCONT_CACHEFILE = 11,
 };
 
 /**
