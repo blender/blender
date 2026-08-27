@@ -1789,18 +1789,10 @@ void VertexPaintStroke::update_step(wmOperator * /*op*/, PointerRNA *itemptr)
 
   vwpaint::update_cache_variants(*this->depsgraph, vc, *vertex_paint_, ob, *base_, itemptr);
 
-  float mat[4][4];
-
-  mul_m4_m4m4(mat, vc.rv3d->persmat, ob.object_to_world().ptr());
-
-  swap_m4m4(vc.rv3d->persmat, mat);
-
   ed::sculpt_paint::do_symmetrical_brush_actions(
       *this->depsgraph, *this->scene, vertex_paint_->paint, ob, vpaint_do_paint, &vpd);
 
   copy_v3_v3(cache.last_location, cache.location);
-
-  swap_m4m4(vc.rv3d->persmat, mat);
 
   BKE_mesh_batch_cache_dirty_tag(id_cast<Mesh *>(ob.data), BKE_MESH_BATCH_DIRTY_ALL);
 

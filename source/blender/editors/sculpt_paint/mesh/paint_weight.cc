@@ -1802,8 +1802,6 @@ void WeightPaintStroke::update_step(wmOperator * /*op*/, PointerRNA *itemptr)
 
   vwpaint::update_cache_variants(*this->depsgraph, *vc, wp, *ob, *this->base_, itemptr);
 
-  float mat[4][4];
-
   const float brush_alpha_value = BKE_brush_alpha_get(&wp.paint, &brush);
 
   if (wpd == nullptr) {
@@ -1814,8 +1812,6 @@ void WeightPaintStroke::update_step(wmOperator * /*op*/, PointerRNA *itemptr)
   }
 
   ob = vc->obact;
-
-  mul_m4_m4m4(mat, vc->rv3d->persmat, ob->object_to_world().ptr());
 
   Mesh &mesh = *id_cast<Mesh *>(ob->data);
 
@@ -1862,8 +1858,6 @@ void WeightPaintStroke::update_step(wmOperator * /*op*/, PointerRNA *itemptr)
 
   copy_v3_v3(cache.last_location, cache.location);
 
-  swap_m4m4(vc->rv3d->persmat, mat);
-
   /* Calculate pivot for rotation around selection if needed.
    * also needed for "Frame Selected" on last stroke. */
   float loc_world[3];
@@ -1874,7 +1868,6 @@ void WeightPaintStroke::update_step(wmOperator * /*op*/, PointerRNA *itemptr)
 
   DEG_id_tag_update(&mesh.id, ID_RECALC_GEOMETRY);
   WM_event_add_notifier(this->evil_C, NC_OBJECT | ND_DRAW, ob);
-  swap_m4m4(wpd->vc.rv3d->persmat, mat);
 
   ED_region_tag_redraw(vc->region);
 }
