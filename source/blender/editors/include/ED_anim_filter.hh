@@ -8,14 +8,13 @@
 
 #include <iostream>
 
-#include "BKE_main.hh"
-#include "float.h"
-
 #include "BLI_set.hh"
 #include "BLI_vector.hh"
 
 #include "DNA_ID_enums.h"
 #include "DNA_action_types.h"
+
+#include "RNA_types.hh"
 
 namespace blender {
 
@@ -25,50 +24,6 @@ struct GreasePencil;
 struct GreasePencilLayer;
 struct PointerRNA;
 struct Panel;
-
-/**
- * Stores data that can resolve to any PointerRNA.
- * Keeping this out of the ed::animfilter namespace because it likely doesn't belong here.
- */
-struct WeakRNAPointer {
-  ID_Type type;
-  uint32_t session_uid;
-  /* Only used as fallback in case the session_uid has changed which happens on file load. Has to
-   * be a copy of the name so we don't access memory of the original struct. */
-  std::string id_name;
-  /* `path` can be empty when pointing at IDs.
-   * Could this use ParsedRNAPath? So far there seems to be no API to actually use
-   * this anywhere. */
-  std::string path;
-
-  /* Default constructor to initialize as null pointer. */
-  WeakRNAPointer() = default;
-  WeakRNAPointer(const PointerRNA &ptr);
-
-  bool operator==(const WeakRNAPointer &other) const
-  {
-    /* Not comparing id_name. */
-    return this->type == other.type && this->session_uid == other.session_uid &&
-           this->path == other.path;
-  }
-
-  int64_t hash() const
-  {
-    return get_default_hash(this->type, this->session_uid, this->id_name, this->path);
-  }
-
-  bool is_nullptr() const
-  {
-    return this->id_name.empty();
-  }
-
-  /**
-   * Return the data this ptr represents. This can be expensive and should only be done sparingly.
-   *
-   * \warning The returned PointerRNA may not have data if the underlying data no longer exists.
-   */
-  PointerRNA dereference(Main &bmain) const;
-};
 
 namespace ed::animfilter {
 
@@ -88,14 +43,16 @@ enum class ChannelTagType {
 class ChannelTag {
   ChannelTagType tag_type_;
   std::string label_;
-  WeakRNAPointer source_data_;
+  PointerRNA source_data_;
 
  public:
   ChannelTag(ChannelTagType type, StringRef label, const PointerRNA &source_data);
   bool operator==(const ChannelTag &other) const
   {
-    return other.tag_type() == this->tag_type_ && other.source_data() == this->source_data_ &&
-           other.label() == this->label_;
+    return other.tag_type_ == this->tag_type_ &&
+           other.source_data_.type == this->source_data_.type &&
+           other.source_data_.owner_id == this->source_data_.owner_id &&
+           other.source_data_.data == this->source_data_.data && other.label_ == this->label_;
   }
 
   ChannelTagType tag_type() const
@@ -106,14 +63,18 @@ class ChannelTag {
   {
     return this->label_;
   }
-  const WeakRNAPointer &source_data() const
+  const PointerRNA &source_data() const
   {
     return this->source_data_;
   }
 
   int64_t hash() const
   {
-    return get_default_hash(this->tag_type_, this->label_, this->source_data_);
+    return get_default_hash(this->tag_type_,
+                            this->label_,
+                            this->source_data_.type,
+                            this->source_data_.owner_id,
+                            this->source_data_.data);
   }
 };
 
@@ -170,9 +131,7 @@ class AnimationChannel {
   AnimationChannelType type_ = AnimationChannelType::UNKNOWN;
   AnimationChannelFlags flags_ = ANIM_CHANNEL_DIRTY;
   std::string label_;
-
-  /* For source data lookups during runtime where the data may be removed at any moment. */
-  WeakRNAPointer weak_source_;
+  PointerRNA source_;
   Vector<KeyPoint> datapoints_;
 
  public:
@@ -185,10 +144,10 @@ class AnimationChannel {
   AnimationChannel &operator=(const AnimationChannel &) = delete;
   AnimationChannel &operator=(AnimationChannel &&) = delete;
 
-  int64_t hash() const
+  virtual int64_t hash() const
   {
-    /* TODO maybe special function for DataChannel to also hash tags? */
-    return get_default_hash(this->type_, this->weak_source_);
+    return get_default_hash(
+        this->type_, this->source_.type, this->source_.owner_id, this->source_.data);
   }
 
   AnimationChannelType type() const
@@ -216,7 +175,7 @@ class SummaryChannel final : public AnimationChannel {
 
  public:
   SummaryChannel(StringRef label);
-  SummaryChannel(StringRef label, const WeakRNAPointer &ptr);
+  SummaryChannel(StringRef label, const PointerRNA &ptr);
   ~SummaryChannel() final = default;
 
   /**
@@ -231,13 +190,15 @@ class SummaryChannel final : public AnimationChannel {
 };
 
 enum DataChannelFlags {
-  DATACHANNEL_FLAG_PINNED,
+  DATACHANNEL_FLAG_PINNED = 1 << 0,
 };
 
 enum class DataChannelType {
   FCURVE,
   GREASE_PENCIL,
 };
+
+std::ostream &operator<<(std::ostream &stream, DataChannelType type);
 
 class DataChannel final : public AnimationChannel {
   /* While this could read the AnimationChannel::source_ for its type, the RNA types can't be put
@@ -255,6 +216,11 @@ class DataChannel final : public AnimationChannel {
   {
     /* TODO compare data instead of pointers. */
     return &other == this;
+  }
+
+  int64_t hash() const override
+  {
+    return get_default_hash(AnimationChannel::hash(), this->source_type_, this->flags_);
   }
 
   DataChannelType source_type() const

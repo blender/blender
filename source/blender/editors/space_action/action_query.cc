@@ -44,12 +44,12 @@ static MutableSpan<ed::animfilter::DataChannel *> get_or_create_data_channels(co
 {
   using namespace ed::animfilter;
 
-  /* TODO add extra flag to track if collection ran. An empty list is one of the possible resulting
-   * states. */
-  if (saction.runtime->data_channels.is_empty()) {
-    /* TODO collect pins here? */
-    collect_animation_channels(C, get_filters(saction), saction.runtime->data_channels);
-  }
+  /* TODO: don't cache at all. But that means changing the function signature, which is a bit too
+   * big of a change right now. */
+  saction.runtime->clear_data_cache();
+
+  /* TODO collect pins here? */
+  collect_animation_channels(C, get_filters(saction), saction.runtime->data_channels);
 
   return saction.runtime->data_channels;
 }
@@ -59,12 +59,14 @@ static MutableSpan<ed::animfilter::SummaryChannel *> get_or_create_summary_chann
 {
   using namespace ed::animfilter;
 
-  /* TODO same as above. add extra flag to track dirty state. */
-  if (saction.runtime->summary_channels.is_empty()) {
-    /* TODO don't hardcode tag_order. */
-    saction.runtime->summary_channels = group_channels(
-        channels, {ChannelTagType::ID, ChannelTagType::ACTION}, false);
-  }
+  /* TODO: don't cache at all. But that means changing the function signature, which is a bit too
+   * big of a change right now. */
+  saction.runtime->clear_summary_cache();
+
+  /* TODO don't hardcode tag_order. */
+  saction.runtime->summary_channels = group_channels(
+      channels, {ChannelTagType::ID, ChannelTagType::ACTION}, false);
+
   return saction.runtime->summary_channels;
 }
 
