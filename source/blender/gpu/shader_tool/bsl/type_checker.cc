@@ -447,11 +447,11 @@ struct ExpressionTypeParser
                   })};
         case LShift:
           return {type, apply_integral(lhs, rhs, [&](auto l, auto r) {
-                    if (r < 0) {
+                    if (int(r) < 0) {
                       error(t, Diag::ConstexprShiftNegative, to_string(r));
                       return decltype(l << r)(0);
                     }
-                    if (r >= 32) {
+                    if (int(r) >= 32) {
                       error(t, Diag::ConstexprShiftTooLarge, to_string(r));
                       return decltype(l << r)(0);
                     }
@@ -459,11 +459,11 @@ struct ExpressionTypeParser
                   })};
         case RShift:
           return {type, apply_integral(lhs, rhs, [&](auto l, auto r) {
-                    if (r < 0) {
+                    if (int(r) < 0) {
                       error(t, Diag::ConstexprShiftNegative, to_string(r));
                       return decltype(l >> r)(0);
                     }
-                    if (r >= 32) {
+                    if (int(r) >= 32) {
                       error(t, Diag::ConstexprShiftTooLarge, to_string(r));
                       return decltype(l >> r)(0);
                     }
