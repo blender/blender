@@ -107,7 +107,7 @@ static void geometry_set_mesh_to_points(GeometrySet &geometry_set,
     pointcloud->attributes_for_write().add<float3>("position", AttrDomain::Point, init);
   }
   else {
-    pointcloud = BKE_pointcloud_new_nomain(selection.size());
+    pointcloud = BKE_pointcloud_new_nomain(selection.size(), PT_RENDER_AS_POINTS);
     array_utils::gather(positions_eval, selection, pointcloud->positions_for_write());
   }
 

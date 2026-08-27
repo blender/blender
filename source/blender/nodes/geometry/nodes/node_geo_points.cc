@@ -71,7 +71,7 @@ static void node_geo_exec(GeoNodeExecParams params)
   Field<float3> position_field = params.extract_input<Field<float3>>("Position"_ustr);
   Field<float> radius_field = params.extract_input<Field<float>>("Radius"_ustr);
 
-  PointCloud *points = BKE_pointcloud_new_nomain(count);
+  PointCloud *points = BKE_pointcloud_new_nomain(count, PT_RENDER_AS_POINTS);
   MutableAttributeAccessor attributes = points->attributes_for_write();
 
   PointsFieldContext context{count};

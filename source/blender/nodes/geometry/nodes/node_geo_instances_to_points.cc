@@ -54,7 +54,7 @@ static void convert_instances_to_points(GeometrySet &geometry_set,
   const VArray<float3> positions = evaluator.get_evaluated<float3>(0);
   const VArray<float> radii = evaluator.get_evaluated<float>(1);
 
-  PointCloud *pointcloud = BKE_pointcloud_new_nomain(selection.size());
+  PointCloud *pointcloud = BKE_pointcloud_new_nomain(selection.size(), PT_RENDER_AS_POINTS);
   geometry_set.replace_pointcloud(pointcloud);
   array_utils::gather(positions, selection, pointcloud->positions_for_write());
 

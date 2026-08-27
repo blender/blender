@@ -54,7 +54,7 @@ PointCloud *pointcloud_new_no_attributes(int totpoint);
 }  // namespace bke
 
 PointCloud *BKE_pointcloud_add(Main *bmain, const char *name);
-PointCloud *BKE_pointcloud_new_nomain(int totpoint);
+PointCloud *BKE_pointcloud_new_nomain(int totpoint, ePointCloud_RenderAs render_as);
 void BKE_pointcloud_nomain_to_pointcloud(PointCloud *pointcloud_src, PointCloud *pointcloud_dst);
 
 bool BKE_pointcloud_attribute_required(const PointCloud *pointcloud, StringRef name);

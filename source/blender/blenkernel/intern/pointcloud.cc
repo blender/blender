@@ -222,7 +222,7 @@ PointCloud *BKE_pointcloud_add(Main *bmain, const char *name)
   return pointcloud;
 }
 
-PointCloud *BKE_pointcloud_new_nomain(const int totpoint)
+PointCloud *BKE_pointcloud_new_nomain(const int totpoint, const ePointCloud_RenderAs render_as)
 {
   PointCloud *pointcloud = static_cast<PointCloud *>(BKE_libblock_alloc(
       nullptr, ID_PT, BKE_idtype_idcode_to_name(ID_PT), LIB_ID_CREATE_LOCALIZE));
@@ -230,6 +230,7 @@ PointCloud *BKE_pointcloud_new_nomain(const int totpoint)
   BKE_libblock_init_empty(&pointcloud->id);
 
   pointcloud->totpoint = totpoint;
+  pointcloud->render_as = render_as;
 
   pointcloud->attributes_for_write().add<float3>(
       "position", bke::AttrDomain::Point, bke::AttributeInitConstruct());
@@ -433,7 +434,7 @@ void BKE_pointcloud_data_update(Depsgraph *depsgraph, Scene *scene, Object *obje
 
   /* If the geometry set did not contain a point cloud, we still create an empty one. */
   if (pointcloud_eval == nullptr) {
-    pointcloud_eval = BKE_pointcloud_new_nomain(0);
+    pointcloud_eval = BKE_pointcloud_new_nomain(0, pointcloud->render_as);
   }
 
   /* Assign evaluated object. */

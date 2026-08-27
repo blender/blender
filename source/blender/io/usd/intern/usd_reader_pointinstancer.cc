@@ -66,7 +66,7 @@ void USDPointInstancerReader::read_geometry(bke::GeometrySet &geometry_set,
   PointCloud *pointcloud = geometry_set.get_pointcloud_for_write();
   if (pointcloud->totpoint != usd_positions.size()) {
     /* Size changed so we must reallocate. */
-    pointcloud = BKE_pointcloud_new_nomain(usd_positions.size());
+    pointcloud = BKE_pointcloud_new_nomain(usd_positions.size(), PT_RENDER_AS_POINTS);
   }
 
   MutableSpan<float3> point_positions = pointcloud->positions_for_write();

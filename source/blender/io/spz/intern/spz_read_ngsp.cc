@@ -257,7 +257,7 @@ PointCloud *read_spz_ngsp_file(FILE *file, ReportList *reports)
     return nullptr;
   }
 
-  PointCloud *point_cloud = BKE_pointcloud_new_nomain(header.num_points);
+  PointCloud *point_cloud = BKE_pointcloud_new_nomain(header.num_points, PT_RENDER_AS_SPLATS);
   gsplat::GsplatMutableAttributeAccessor accessor(*point_cloud, header.sh_degree);
 
   bool ok = true;
@@ -352,14 +352,12 @@ PointCloud *read_spz_ngsp_file(FILE *file, ReportList *reports)
 
   accessor.finish();
 
-  point_cloud->render_as = PT_RENDER_AS_SPLATS;
-
   if (!ok) {
     BKE_id_free(nullptr, &point_cloud->id);
     point_cloud = nullptr;
   }
 
-  // TODO(sergey): Handle extensions?
+  /* TODO(sergey): Handle extensions. */
 
   return point_cloud;
 }

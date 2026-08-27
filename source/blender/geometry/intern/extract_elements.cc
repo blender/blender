@@ -259,7 +259,7 @@ Array<PointCloud *> extract_pointcloud_points(const PointCloud &pointcloud,
 
   mask.foreach_index(
       [&](const int point_i, const int element_i) {
-        PointCloud *element = BKE_pointcloud_new_nomain(1);
+        PointCloud *element = BKE_pointcloud_new_nomain(1, pointcloud.render_as);
         element->totcol = pointcloud.totcol;
         element->mat = MEM_dupalloc(pointcloud.mat);
 

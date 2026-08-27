@@ -1406,12 +1406,12 @@ static void execute_realize_pointcloud_tasks(const RealizeInstancesOptions &opti
   }
 
   /* Allocate new point cloud. */
-  PointCloud *dst_pointcloud = BKE_pointcloud_new_nomain(tot_points);
+  const RealizePointCloudTask &first_task = tasks.first();
+  const PointCloud &first_pointcloud = *first_task.pointcloud_info->pointcloud;
+  PointCloud *dst_pointcloud = BKE_pointcloud_new_nomain(tot_points, first_pointcloud.render_as);
   r_result.geometry.replace_pointcloud(dst_pointcloud);
   bke::MutableAttributeAccessor dst_attributes = dst_pointcloud->attributes_for_write();
 
-  const RealizePointCloudTask &first_task = tasks.first();
-  const PointCloud &first_pointcloud = *first_task.pointcloud_info->pointcloud;
   dst_pointcloud->mat = MEM_dupalloc(first_pointcloud.mat);
   dst_pointcloud->totcol = first_pointcloud.totcol;
 

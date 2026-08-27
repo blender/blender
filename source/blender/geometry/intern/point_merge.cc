@@ -43,7 +43,8 @@ PointCloud *merge_points(const PointCloud &src_points,
   IndexMaskMemory memory;
   const IndexMask unselected = selection.complement(IndexMask(src_points.totpoint), memory);
 
-  PointCloud *dst_pointcloud = BKE_pointcloud_new_nomain(unselected.size() + groups_num);
+  PointCloud *dst_pointcloud = BKE_pointcloud_new_nomain(unselected.size() + groups_num,
+                                                         src_points.render_as);
   bke::MutableAttributeAccessor dst_attributes = dst_pointcloud->attributes_for_write();
 
   src_points.attributes().foreach_attribute([&](const bke::AttributeIter &iter) {

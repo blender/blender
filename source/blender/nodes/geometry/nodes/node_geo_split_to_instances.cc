@@ -175,7 +175,8 @@ static void split_pointcloud_groups(const PointCloudComponent &component,
       const IndexMask &mask = split_groups.group_masks[group_index];
       const int group_id = split_groups.group_ids[group_index];
 
-      PointCloud *group_pointcloud = BKE_pointcloud_new_nomain(mask.size());
+      PointCloud *group_pointcloud = BKE_pointcloud_new_nomain(mask.size(),
+                                                               src_pointcloud.render_as);
 
       const AttributeAccessor src_attributes = src_pointcloud.attributes();
       MutableAttributeAccessor dst_attributes = group_pointcloud->attributes_for_write();

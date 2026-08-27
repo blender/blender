@@ -169,7 +169,7 @@ PointCloud *read_spz_gzip_compressed_file(FILE *file, ReportList *reports)
     return nullptr;
   }
 
-  PointCloud *point_cloud = BKE_pointcloud_new_nomain(header.num_points);
+  PointCloud *point_cloud = BKE_pointcloud_new_nomain(header.num_points, PT_RENDER_AS_SPLATS);
   gsplat::GsplatMutableAttributeAccessor accessor(*point_cloud, header.sh_degree);
 
   if (!read_positions(reader, header.fractional_bits, accessor.positions_for_write()) ||
@@ -187,11 +187,7 @@ PointCloud *read_spz_gzip_compressed_file(FILE *file, ReportList *reports)
     accessor.finish();
   }
 
-  if (point_cloud) {
-    point_cloud->render_as = PT_RENDER_AS_SPLATS;
-  }
-
-  // TODO(sergey): Handle extensions?
+  /* TODO(sergey): Handle extensions. */
 
   return point_cloud;
 }
