@@ -215,6 +215,8 @@ void BKE_preferences_asset_library_read_data(BlendDataReader *reader, bUserAsset
   if (library->auth_token) {
     BLO_read_string(reader, &library->auth_token);
   }
+  /* Ensure that the resolved path dir is up to date. */
+  STRNCPY(library->resolved_dirpath, AS_asset_library_resolve_path(library->dirpath).c_str());
 }
 
 void BKE_preferences_asset_library_write_data(BlendWriter *writer,
@@ -287,6 +289,7 @@ void BKE_preferences_remote_asset_library_url_set(bUserAssetLibrary *library,
           std::string{asset_system::online_essentials_cache_directory_path()} :
           asset_system::remote_library_cache_directory_path_from_url(remote_url);
   STRNCPY(library->dirpath, library_dirpath.c_str());
+  STRNCPY(library->resolved_dirpath, AS_asset_library_resolve_path(library->dirpath).c_str());
 }
 
 void BKE_preferences_remote_asset_library_auth_token_set(bUserAssetLibrary *library,
