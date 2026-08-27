@@ -47,6 +47,7 @@ set(SRC
   curves.cpp
   scene.cpp
   shader.cpp
+  shader.tables
   shader_graph.cpp
   shader_nodes.cpp
   stats.cpp
