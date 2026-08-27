@@ -276,6 +276,9 @@ PointCloud *import_point_cloud(const PLYImportParams &import_params)
   if (!data) {
     return nullptr;
   }
+  if (!is_data_gaussian_splat(*data)) {
+    return nullptr;
+  }
   return convert_gsplat_ply_to_point_cloud(*data, import_params);
 }
 

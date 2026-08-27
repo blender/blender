@@ -29,13 +29,6 @@ static std::optional<Span<float>> find_custom_attribute(const PlyData &data,
   return std::nullopt;
 }
 
-static Span<float> get_custom_attribute(const PlyData &data, const StringRefNull name)
-{
-  std::optional<Span<float>> attr = find_custom_attribute(data, name);
-  BLI_assert(attr.has_value());
-  return *attr;
-}
-
 /* Get f_rest_<i> attributes from the PLY data.
  * The result is indexed by <i>. */
 static Vector<Span<float>> get_rest_custom_attributes(const PlyData &data)
@@ -97,27 +90,44 @@ PointCloud *convert_gsplat_ply_to_point_cloud(const PlyData &data,
     return BKE_pointcloud_new_nomain(0);
   }
 
+  /* Radiance base attributes in the PLY (r, g, b stored as a DC component of SH), and opacity.
+   * Despite the name it seems to be alpha (at least according to the conversion in SPZ. */
+  const std::optional<Span<float>> ply_f_dc_0_attr = find_custom_attribute(data, "f_dc_0");
+  const std::optional<Span<float>> ply_f_dc_1_attr = find_custom_attribute(data, "f_dc_1");
+  const std::optional<Span<float>> ply_f_dc_2_attr = find_custom_attribute(data, "f_dc_2");
+  if (!ply_f_dc_0_attr || !ply_f_dc_1_attr || !ply_f_dc_2_attr) {
+    return nullptr;
+  }
+  Span<float> ply_f_dc[3] = {*ply_f_dc_0_attr, *ply_f_dc_1_attr, *ply_f_dc_2_attr};
+
+  const std::optional<Span<float>> ply_opacity_attr = find_custom_attribute(data, "opacity");
+  if (!ply_opacity_attr) {
+    return nullptr;
+  }
+  Span<float> ply_opacity = *ply_opacity_attr;
+
+  /* Scale. */
+  const std::optional<Span<float>> ply_scale_0_attr = find_custom_attribute(data, "scale_0");
+  const std::optional<Span<float>> ply_scale_1_attr = find_custom_attribute(data, "scale_1");
+  const std::optional<Span<float>> ply_scale_2_attr = find_custom_attribute(data, "scale_2");
+  if (!ply_scale_0_attr || !ply_scale_1_attr || !ply_scale_2_attr) {
+    return nullptr;
+  }
+  const Span<float> ply_scale[3] = {*ply_scale_0_attr, *ply_scale_1_attr, *ply_scale_2_attr};
+
+  /* Rotation (w, x, y, z). */
+  const std::optional<Span<float>> ply_rot_0_attr = find_custom_attribute(data, "rot_0");
+  const std::optional<Span<float>> ply_rot_1_attr = find_custom_attribute(data, "rot_1");
+  const std::optional<Span<float>> ply_rot_2_attr = find_custom_attribute(data, "rot_2");
+  const std::optional<Span<float>> ply_rot_3_attr = find_custom_attribute(data, "rot_3");
+  if (!ply_rot_0_attr || !ply_rot_1_attr || !ply_rot_2_attr || !ply_rot_3_attr) {
+    return nullptr;
+  }
+  Span<float> ply_rot[4] = {*ply_rot_0_attr, *ply_rot_1_attr, *ply_rot_2_attr, *ply_rot_3_attr};
+
   PointCloud *point_cloud = BKE_pointcloud_new_nomain(data.vertices.size());
 
   point_cloud->positions_for_write().copy_from(data.vertices);
-
-  /* Radiance base attributes in the PLY (r, g, b stored as a DC component of SH), and opacity.
-   * Despite the name it seems to be alpha (at least according to the conversion in SPZ. */
-  const Span<float> ply_f_dc_0_attr = get_custom_attribute(data, "f_dc_0");
-  const Span<float> ply_f_dc_1_attr = get_custom_attribute(data, "f_dc_1");
-  const Span<float> ply_f_dc_2_attr = get_custom_attribute(data, "f_dc_2");
-  const Span<float> ply_opacity_attr = get_custom_attribute(data, "opacity");
-
-  /* Scale. */
-  const Span<float> ply_scale_0_attr = get_custom_attribute(data, "scale_0");
-  const Span<float> ply_scale_1_attr = get_custom_attribute(data, "scale_1");
-  const Span<float> ply_scale_2_attr = get_custom_attribute(data, "scale_2");
-
-  /* Rotation (w, x, y, z). */
-  const Span<float> ply_rot_0_attr = get_custom_attribute(data, "rot_0");
-  const Span<float> ply_rot_1_attr = get_custom_attribute(data, "rot_1");
-  const Span<float> ply_rot_2_attr = get_custom_attribute(data, "rot_2");
-  const Span<float> ply_rot_3_attr = get_custom_attribute(data, "rot_3");
 
   /* f_rest_<i> */
   const Vector<Span<float>> f_rest = get_rest_custom_attributes(data);
@@ -131,11 +141,9 @@ PointCloud *convert_gsplat_ply_to_point_cloud(const PlyData &data,
   Span<MutableSpan<float3>> sh_attrs = accessor.sh_for_write();
 
   for (int i = 0; i < data.vertices.size(); i++) {
-    radiance_base[i] = float4(
-        ply_f_dc_0_attr[i], ply_f_dc_1_attr[i], ply_f_dc_2_attr[i], ply_opacity_attr[i]);
-    scale[i] = float3(ply_scale_0_attr[i], ply_scale_1_attr[i], ply_scale_2_attr[i]);
-    rotation[i] = math::Quaternion(
-        ply_rot_0_attr[i], ply_rot_1_attr[i], ply_rot_2_attr[i], ply_rot_3_attr[i]);
+    radiance_base[i] = float4(ply_f_dc[0][i], ply_f_dc[1][i], ply_f_dc[2][i], ply_opacity[i]);
+    scale[i] = float3(ply_scale[0][i], ply_scale[1][i], ply_scale[2][i]);
+    rotation[i] = math::Quaternion(ply_rot[0][i], ply_rot[1][i], ply_rot[2][i], ply_rot[3][i]);
 
     radiance_base[i].w = gsplat::OriginalActivationFunctions::decode_opacity(radiance_base[i].w);
     scale[i] = gsplat::OriginalActivationFunctions::decode_scale(scale[i]);
