@@ -179,7 +179,7 @@ bool read_rotations(ReaderType &reader,
         sum_sq += spz_rotation[i] * spz_rotation[i];
         packed = packed >> 10;
       }
-      spz_rotation[largest_index] = sqrt(1.0f - sum_sq);
+      spz_rotation[largest_index] = sqrt(math::max(1.0f - sum_sq, 0.0f));
       /* Convert to Blender's (w, x, y, z). */
       rotation = math::Quaternion(
           spz_rotation[3], spz_rotation[0], spz_rotation[1], spz_rotation[2]);
