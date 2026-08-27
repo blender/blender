@@ -2251,7 +2251,7 @@ static void material_default_holdout_init(Material **ma_p)
 
 static void material_default_gsplat_init(Material **ma_p)
 {
-  Material *ma = material_default_create(ma_p, "Default Surface");
+  Material *ma = material_default_create(ma_p, "Default Gaussian Splat");
   bNodeTree *ntree = ma->nodetree;
 
   bNode *attribute = bke::node_add_static_node(nullptr, *ntree, SH_NODE_ATTRIBUTE);
