@@ -120,12 +120,25 @@ void VKCommandBuilder::groups_extract_barriers(VKRenderGraph &render_graph,
 #endif
         barrier_list_.append(barrier);
       }
+
+      /* Reset the tracked layout of aliased images to undefined once their memory can be reused.
+       */
+      if (node.type == VKNodeType::SYNCHRONIZATION &&
+          node.synchronization.reset_layout_to_undefined)
+      {
+        for (const VKRenderGraphImage &link : render_graph.linked_images(node_handle)) {
+          VKResourceStateTracker::Resource &resource = render_graph.resources_.get_image_resource(
+              link.resource.handle);
+          resource.barrier_state.image_layout = VK_IMAGE_LAYOUT_UNDEFINED;
+        }
+      }
+
       /* Check for additional barriers when resuming rendering.
        *
        * Between suspending rendering and resuming the state/layout of resources can change and
        * require additional barriers.
        */
-      if (node.type == VKNodeType::BEGIN_RENDERING) {
+      else if (node.type == VKNodeType::BEGIN_RENDERING) {
         /* Begin rendering scope. */
         BLI_assert(!rendering_active);
         rendering_scope = node_handle;

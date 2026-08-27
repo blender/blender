@@ -469,13 +469,15 @@ void VKTexturePool::release_texture(Texture *texture)
   AllocationHandle allocation_handle = allocations_.lookup_key({image_info.allocation});
 
   /* Avoiding WRITE_AFTER_WRITE/READ_AFTER_WRITE hazards (#161990) when reusing the same cached
-   * VkImage. */
+   * VkImage. Reset the tracked layout to undefined so the next alias to use this memory
+   * transitions from VK_IMAGE_LAYOUT_UNDEFINED, as required for memory aliasing. */
   VKContext &context = *VKContext::get();
   render_graph::VKSynchronizationNode::CreateInfo synchronization = {
       .vk_image = texture_handle.texture->vk_image_handle(),
       .vk_image_layout = VK_IMAGE_LAYOUT_GENERAL,
       .vk_image_aspect = to_vk_image_aspect_flag_bits(texture_handle.texture->device_format_get()),
       .vk_access_flags = VK_ACCESS_MEMORY_READ_BIT | VK_ACCESS_MEMORY_WRITE_BIT,
+      .reset_layout_to_undefined = true,
   };
   context.render_graph().add_node(synchronization);
 
