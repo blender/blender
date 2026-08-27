@@ -77,8 +77,17 @@ bool read_alphas(ReaderType &reader, const MutableSpan<float4> radiance_base)
     if (!reader.read(alpha)) {
       return false;
     }
-    base.w = internal::inv_sigmoid(float(alpha) / 255.0f);
-    base.w = gsplat::OriginalActivationFunctions::decode_opacity(base.w);
+    if (false) {
+      /* The naive implementation.
+       * The inv_sigmoid() and decode_opacity() are actually canceling each other.
+       * Code kept for the reference and possible situation when other activation functions are
+       * used in the future. */
+      base.w = internal::inv_sigmoid(float(alpha) / 255.0f);
+      base.w = gsplat::OriginalActivationFunctions::decode_opacity(base.w);
+    }
+    else {
+      base.w = float(alpha) / 255.0f;
+    }
   }
   return true;
 }
