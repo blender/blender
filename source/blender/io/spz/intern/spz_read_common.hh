@@ -57,7 +57,8 @@ bool read_positions(ReaderType &reader,
    *   Positions are represented as (x, y, z) coordinates, each as a 24-bit fixed point signed
    *   integer. The number of fractional bits is determined by the fractionalBits field in the
    *   header. */
-  const float scale = 1.0 / (1 << fractional_bits);
+  BLI_assert(fractional_bits >= 0 && fractional_bits < 24);
+  const float scale = 1.0f / (1 << fractional_bits);
   for (float3 &position : positions) {
     int3 fixed;
     if (!internal::read_single_position_as_fixed(reader, fixed)) {
