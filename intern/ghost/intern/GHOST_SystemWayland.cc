@@ -95,9 +95,7 @@
 
 #include <pthread.h> /* For setting the thread priority. */
 
-#ifdef HAVE_POLL
-#  include <poll.h>
-#endif
+#include <poll.h>
 
 /* Logging, use `ghost.wl.*` prefix. */
 #include "CLG_log.h"
@@ -2588,7 +2586,6 @@ static int file_descriptor_is_io_ready(int fd, const int flags, const int timeou
 
   /* NOTE: We don't bother to account for elapsed time if we get #EINTR. */
   do {
-#ifdef HAVE_POLL
     pollfd info;
 
     info.fd = fd;
@@ -2600,33 +2597,6 @@ static int file_descriptor_is_io_ready(int fd, const int flags, const int timeou
       info.events |= POLLOUT;
     }
     result = poll(&info, 1, timeout_ms);
-#else
-    fd_set rfdset, *rfdp = nullptr;
-    fd_set wfdset, *wfdp = nullptr;
-    struct timeval tv, *tvp = nullptr;
-
-    /* If this assert triggers we'll corrupt memory here */
-    GHOST_ASSERT(fd >= 0 && fd < FD_SETSIZE, "X");
-
-    if (flags & GWL_IOR_READ) {
-      FD_ZERO(&rfdset);
-      FD_SET(fd, &rfdset);
-      rfdp = &rfdset;
-    }
-    if (flags & GWL_IOR_WRITE) {
-      FD_ZERO(&wfdset);
-      FD_SET(fd, &wfdset);
-      wfdp = &wfdset;
-    }
-
-    if (timeout_ms >= 0) {
-      tv.tv_sec = timeout_ms / 1000;
-      tv.tv_usec = (timeout_ms % 1000) * 1000;
-      tvp = &tv;
-    }
-
-    result = select(fd + 1, rfdp, wfdp, nullptr, tvp);
-#endif /* !HAVE_POLL */
   } while (result < 0 && errno == EINTR && !(flags & GWL_IOR_NO_RETRY));
 
   return result;
