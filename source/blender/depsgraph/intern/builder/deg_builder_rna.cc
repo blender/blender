@@ -390,7 +390,7 @@ RNANodeIdentifier RNANodeQuery::construct_node_identifier(const PointerRNA *ptr,
     node_identifier.type = NodeType::GEOMETRY;
     return node_identifier;
   }
-  else if (GS(ptr->owner_id->name) == ID_SCE &&
+  else if (ptr->owner_id && GS(ptr->owner_id->name) == ID_SCE &&
            RNA_struct_search_closest_ancestor_by_type(ptr, RNA_SceneCompositorEffect))
   {
     node_identifier.type = NodeType::COMPOSITOR;
