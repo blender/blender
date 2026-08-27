@@ -524,14 +524,8 @@ static void applyVertSlide(TransInfo *t)
   char str[UI_MAX_DRAW_STR];
   size_t ofs = 0;
   float final;
-  VertSlideParams *slp = static_cast<VertSlideParams *>(t->custom.mode.data);
-  const bool flipped = slp->flipped;
-  const bool use_even = slp->use_even;
   const bool is_clamp = !(t->flag & T_ALT_TRANSFORM);
   const bool is_constrained = !(is_clamp == false || hasNumInput(&t->num));
-  const bool is_precision = t->modifiers & MOD_PRECISION;
-  const bool is_snap = t->modifiers & MOD_SNAP;
-  const bool is_snap_invert = t->modifiers & MOD_SNAP_INVERT;
 
   final = t->values[0] + t->values_modal_offset[0];
 
@@ -567,6 +561,17 @@ static void applyVertSlide(TransInfo *t)
   recalc_data(t);
 
   ED_area_status_text(t->area, str);
+}
+
+static void vert_slide_status(TransInfo *t)
+{
+  VertSlideParams *slp = static_cast<VertSlideParams *>(t->custom.mode.data);
+  const bool flipped = slp->flipped;
+  const bool use_even = slp->use_even;
+  const bool is_clamp = !(t->flag & T_ALT_TRANSFORM);
+  const bool is_precision = t->modifiers & MOD_PRECISION;
+  const bool is_snap = t->modifiers & MOD_SNAP;
+  const bool is_snap_invert = t->modifiers & MOD_SNAP_INVERT;
 
   wmOperator *op = slp->op;
   if (!op) {
@@ -746,6 +751,7 @@ TransModeInfo TransMode_vertslide = {
     /*snap_distance_fn*/ transform_snap_distance_len_squared_fn,
     /*snap_apply_fn*/ vert_slide_snap_apply,
     /*draw_fn*/ drawVertSlide,
+    /*status_fn*/ vert_slide_status,
 };
 
 }  // namespace blender::ed::transform

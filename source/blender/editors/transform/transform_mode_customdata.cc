@@ -153,6 +153,7 @@ TransModeInfo TransMode_edgecrease = {
     /*snap_distance_fn*/ nullptr,
     /*snap_apply_fn*/ nullptr,
     /*draw_fn*/ nullptr,
+    /*status_fn*/ nullptr,
 };
 
 TransModeInfo TransMode_vertcrease = {
@@ -164,6 +165,7 @@ TransModeInfo TransMode_vertcrease = {
     /*snap_distance_fn*/ nullptr,
     /*snap_apply_fn*/ nullptr,
     /*draw_fn*/ nullptr,
+    /*status_fn*/ nullptr,
 };
 
 TransModeInfo TransMode_bevelweight = {
@@ -175,6 +177,7 @@ TransModeInfo TransMode_bevelweight = {
     /*snap_distance_fn*/ nullptr,
     /*snap_apply_fn*/ nullptr,
     /*draw_fn*/ nullptr,
+    /*status_fn*/ nullptr,
 };
 
 }  // namespace blender::ed::transform

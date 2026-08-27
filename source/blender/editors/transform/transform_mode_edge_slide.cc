@@ -777,14 +777,8 @@ static void applyEdgeSlide(TransInfo *t)
   char str[UI_MAX_DRAW_STR];
   size_t ofs = 0;
   float final;
-  EdgeSlideParams *slp = static_cast<EdgeSlideParams *>(t->custom.mode.data);
-  bool flipped = slp->flipped;
-  bool use_even = slp->use_even;
   const bool is_clamp = !(t->flag & T_ALT_TRANSFORM);
   const bool is_constrained = !(is_clamp == false || hasNumInput(&t->num));
-  const bool is_precision = t->modifiers & MOD_PRECISION;
-  const bool is_snap = t->modifiers & MOD_SNAP;
-  const bool is_snap_invert = t->modifiers & MOD_SNAP_INVERT;
 
   final = t->values[0] + t->values_modal_offset[0];
 
@@ -820,30 +814,41 @@ static void applyEdgeSlide(TransInfo *t)
   recalc_data(t);
 
   ED_area_status_text(t->area, str);
+}
 
+static void edge_slide_status(TransInfo *t)
+{
+  EdgeSlideParams *slp = static_cast<EdgeSlideParams *>(t->custom.mode.data);
   wmOperator *op = slp->op;
   if (!op) {
     return;
   }
+  if (!slp->update_status_bar) {
+    return;
+  }
+  slp->update_status_bar = false;
 
-  if (slp->update_status_bar) {
-    slp->update_status_bar = false;
+  const bool flipped = slp->flipped;
+  const bool use_even = slp->use_even;
+  const bool is_clamp = !(t->flag & T_ALT_TRANSFORM);
+  const bool is_precision = t->modifiers & MOD_PRECISION;
+  const bool is_snap = t->modifiers & MOD_SNAP;
+  const bool is_snap_invert = t->modifiers & MOD_SNAP_INVERT;
 
-    WorkspaceStatus status(t->context);
-    status.opmodal(IFACE_("Confirm"), op->type, TFM_MODAL_CONFIRM);
-    status.opmodal(IFACE_("Cancel"), op->type, TFM_MODAL_CANCEL);
-    status.opmodal(IFACE_("Snap"), op->type, TFM_MODAL_SNAP_TOGGLE, is_snap);
-    status.opmodal(IFACE_("Snap Invert"), op->type, TFM_MODAL_SNAP_INV_ON, is_snap_invert);
-    status.opmodal(IFACE_("Set Snap Base"), op->type, TFM_MODAL_EDIT_SNAP_SOURCE_ON);
-    status.opmodal(IFACE_("Move"), op->type, TFM_MODAL_TRANSLATE);
-    status.opmodal(IFACE_("Rotate"), op->type, TFM_MODAL_ROTATE);
-    status.opmodal(IFACE_("Resize"), op->type, TFM_MODAL_RESIZE);
-    status.opmodal(IFACE_("Precision Mode"), op->type, TFM_MODAL_PRECISION, is_precision);
-    status.item_bool(IFACE_("Clamp"), is_clamp, ICON_EVENT_C, ICON_EVENT_ALT);
-    status.item_bool(IFACE_("Even"), use_even, ICON_EVENT_E);
-    if (use_even) {
-      status.item_bool(IFACE_("Flipped"), flipped, ICON_EVENT_F);
-    }
+  WorkspaceStatus status(t->context);
+  status.opmodal(IFACE_("Confirm"), op->type, TFM_MODAL_CONFIRM);
+  status.opmodal(IFACE_("Cancel"), op->type, TFM_MODAL_CANCEL);
+  status.opmodal(IFACE_("Snap"), op->type, TFM_MODAL_SNAP_TOGGLE, is_snap);
+  status.opmodal(IFACE_("Snap Invert"), op->type, TFM_MODAL_SNAP_INV_ON, is_snap_invert);
+  status.opmodal(IFACE_("Set Snap Base"), op->type, TFM_MODAL_EDIT_SNAP_SOURCE_ON);
+  status.opmodal(IFACE_("Move"), op->type, TFM_MODAL_TRANSLATE);
+  status.opmodal(IFACE_("Rotate"), op->type, TFM_MODAL_ROTATE);
+  status.opmodal(IFACE_("Resize"), op->type, TFM_MODAL_RESIZE);
+  status.opmodal(IFACE_("Precision Mode"), op->type, TFM_MODAL_PRECISION, is_precision);
+  status.item_bool(IFACE_("Clamp"), is_clamp, ICON_EVENT_C, ICON_EVENT_ALT);
+  status.item_bool(IFACE_("Even"), use_even, ICON_EVENT_E);
+  if (use_even) {
+    status.item_bool(IFACE_("Flipped"), flipped, ICON_EVENT_F);
   }
 }
 
@@ -1007,6 +1012,7 @@ TransModeInfo TransMode_edgeslide = {
     /*snap_distance_fn*/ transform_snap_distance_len_squared_fn,
     /*snap_apply_fn*/ edge_slide_snap_apply,
     /*draw_fn*/ drawEdgeSlide,
+    /*status_fn*/ edge_slide_status,
 };
 
 }  // namespace blender::ed::transform
