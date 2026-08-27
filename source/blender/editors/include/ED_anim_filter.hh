@@ -9,7 +9,9 @@
 
 #include <iostream>
 #include <limits>
+#include <type_traits>
 
+#include "BLI_linear_allocator.hh"
 #include "BLI_set.hh"
 #include "BLI_vector.hh"
 
@@ -260,6 +262,83 @@ class GreasePencilChannel : public DataChannel {
   void gather_channeldata() override;
 };
 
+/**
+ * Arena Allocator for animation channels.
+ *
+ */
+class ChannelArena {
+ private:
+  LinearAllocator<> allocator_;
+
+ public:
+  Vector<DataChannel *> data_channels;
+  Vector<SummaryChannel *> summary_channels;
+
+  ChannelArena() = default;
+  ChannelArena(const ChannelArena &) = delete;
+  ChannelArena(ChannelArena &&other);
+  ~ChannelArena();
+  ChannelArena &operator=(const ChannelArena &) = delete;
+  ChannelArena &operator=(ChannelArena &&other);
+
+  /**
+   * Allocate a data channel.
+   *
+   * It is returned, and also stored in #data_channels. It is destructed & freed when this
+   * ChannelArena is destructed.
+   */
+  template<typename ChannelType, typename... ConstructorArgs>
+  ChannelType *allocate_data_channel(ConstructorArgs &&...args)
+  {
+    static_assert(std::is_base_of_v<DataChannel, ChannelType>,
+                  "ChannelType must be a subclass of DataChannel");
+
+    /* destruct_ptr<> causes the channel to be destructed when it goes out of scope. That's avoided
+     * here (hence the call to channel.release()) and instead the channels are all destructed when
+     * the ChannelArena itself is destructed. */
+    destruct_ptr<ChannelType> channel = allocator_.construct<ChannelType>(
+        std::forward<ConstructorArgs>(args)...);
+    this->data_channels.append(channel.get());
+    return channel.release();
+  }
+
+  /**
+   * Allocate a summary channel.
+   *
+   * It is returned, and also stored in #summary_channels. It is destructed & freed when this
+   * ChannelArena is destructed.
+   */
+  template<typename... ConstructorArgs>
+  SummaryChannel *allocate_summary_channel(ConstructorArgs &&...args)
+  {
+    /* destruct_ptr<> causes the channel to be destructed when it goes out of scope. That's avoided
+     * here (hence the call to channel.release()) and instead the channels are all destructed when
+     * the ChannelArena itself is destructed. */
+    destruct_ptr<SummaryChannel> channel = allocator_.construct<SummaryChannel>(
+        std::forward<ConstructorArgs>(args)...);
+    this->summary_channels.append(channel.get());
+    return channel.release();
+  }
+
+  /**
+   * Return the total number of channels (data + summary).
+   */
+  int64_t num_channels() const
+  {
+    return this->summary_channels.size() + this->data_channels.size();
+  }
+
+  /**
+   * Return the root summary channel, if there is one.
+   */
+  SummaryChannel *root()
+  {
+    return this->summary_channels.is_empty() ? nullptr : this->summary_channels[0];
+  }
+};
+
+class ChannelArenaMutable : public ChannelArena {};
+
 struct CollectionFilters {
   bool only_selected;
 
@@ -273,37 +352,28 @@ struct CollectionFilters {
 /**
  * Collect all channels of the given Action.
  */
-void collect_action_channels(Vector<DataChannel *> &r_channels);
+void collect_action_channels(ChannelArena &arena);
 
 /**
  * Collect all channels in the given context.
  */
 void collect_animation_channels(const bContext &C,
                                 const CollectionFilters &collection_filters,
-                                Vector<DataChannel *> &r_channels);
-
-class ChannelTree {
- public:
-  /* TODO make this a reference, at least the summary channel should be created, even if there are
-   * no children. */
-  SummaryChannel *root;
-  int channel_count;
-};
+                                ChannelArena &arena);
 
 /**
- * Group the given channels by setting parent child relationships.
+ * Group the arena's data channels by setting parent child relationships.
+ *
+ * The summary channels are stored in `arena.summary_channels`.
  *
  * \param tag_order: determines in which order the groups should be created. Items early in
  * the list are parents to items later in the list.
  * \param use_minimal_grouping: If true, group creation is skipped if it would move all chilren to
  * a subgroup.
- *
- * \returns: all summary channels that were created. The root is always index 0. They are heap
- * allocated and the caller takes ownership of the data.
  */
-Vector<SummaryChannel *> group_channels(MutableSpan<DataChannel *> channels,
-                                        Span<ChannelTagType> tag_order,
-                                        bool use_minimal_grouping);
+void group_channels(ChannelArena &arena,
+                    Span<ChannelTagType> tag_order,
+                    bool use_minimal_grouping);
 
 /**
  * Draws the channel tree using a Tree View in a Layout.

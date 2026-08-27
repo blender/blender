@@ -27,7 +27,7 @@ static bool has_assigned_action(AnimData &anim_data)
 static void channels_for_channelbag(animrig::Action &containing_action,
                                     animrig::Channelbag &channelbag,
                                     ChannelTagStack &tags,
-                                    Vector<DataChannel *> &r_channels)
+                                    ChannelArena &arena)
 {
 
   for (FCurve *fcu : channelbag.fcurves()) {
@@ -37,9 +37,8 @@ static void channels_for_channelbag(animrig::Action &containing_action,
       tags.push({ChannelTagType::FCURVE_GROUP, fcu->grp->name, group_pointer});
     }
 
-    DataChannel *channel = MEM_new<FCurveChannel>(__func__, containing_action, *fcu);
+    FCurveChannel *channel = arena.allocate_data_channel<FCurveChannel>(containing_action, *fcu);
     channel->set_tags(tags);
-    r_channels.append(channel);
 
     if (fcu->grp) {
       tags.pop();
@@ -50,7 +49,7 @@ static void channels_for_channelbag(animrig::Action &containing_action,
 static void channels_for_action_slot(animrig::Action &action,
                                      const animrig::slot_handle_t slot_handle,
                                      ChannelTagStack &tags,
-                                     Vector<DataChannel *> &r_channels)
+                                     ChannelArena &arena)
 {
   using namespace animrig;
   PointerRNA action_ptr = RNA_pointer_create_discrete(&action.id, RNA_Action, &action);
@@ -74,7 +73,7 @@ static void channels_for_action_slot(animrig::Action &action,
       }
       PointerRNA strip_ptr = RNA_pointer_create_discrete(&action.id, RNA_ActionStrip, strip);
       tags.push({ChannelTagType::ACTION_STRIP, "strip_name_placeholder", strip_ptr});
-      channels_for_channelbag(action, *channelbag, tags, r_channels);
+      channels_for_channelbag(action, *channelbag, tags, arena);
       tags.pop();
     }
     tags.pop();
@@ -86,7 +85,7 @@ static void channels_for_action_slot(animrig::Action &action,
 
 static void collect_channels_for_id(ID *animated_id,
                                     const CollectionFilters &collection_filters,
-                                    Vector<DataChannel *> &r_channels)
+                                    ChannelArena &arena)
 {
   if (!animated_id) {
     return;
@@ -105,18 +104,18 @@ static void collect_channels_for_id(ID *animated_id,
   PointerRNA ptr = RNA_pointer_create_discrete(
       animated_id, ID_code_to_RNA_type(animated_id->id_type()), animated_id);
   tags.push({ChannelTagType::ID, animated_id->name, ptr});
-  channels_for_action_slot(adt->action->wrap(), adt->slot_handle, tags, r_channels);
+  channels_for_action_slot(adt->action->wrap(), adt->slot_handle, tags, arena);
   tags.pop();
 }
 
 static void collection_channels_for_object(Object &obj,
                                            const CollectionFilters &collection_filters,
-                                           Vector<DataChannel *> &r_channels)
+                                           ChannelArena &arena)
 {
-  collect_channels_for_id(&obj.id, collection_filters, r_channels);
-  collect_channels_for_id(obj.data, collection_filters, r_channels);
+  collect_channels_for_id(&obj.id, collection_filters, arena);
+  collect_channels_for_id(obj.data, collection_filters, arena);
   for (int i = 0; i < obj.totcol; i++) {
-    collect_channels_for_id(&obj.mat[i]->id, collection_filters, r_channels);
+    collect_channels_for_id(&obj.mat[i]->id, collection_filters, arena);
   }
 }
 
@@ -127,7 +126,7 @@ void collect_action_channels(Vector<DataChannel *> & /* r_channels */)
 
 void collect_animation_channels(const bContext &C,
                                 const CollectionFilters &collection_filters,
-                                Vector<DataChannel *> &r_channels)
+                                ChannelArena &arena)
 {
   Vector<PointerRNA> objects;
   if (collection_filters.only_selected) {
@@ -140,7 +139,7 @@ void collect_animation_channels(const bContext &C,
 
   for (PointerRNA &obj_ptr : objects) {
     Object *obj = static_cast<Object *>(obj_ptr.data);
-    collection_channels_for_object(*obj, collection_filters, r_channels);
+    collection_channels_for_object(*obj, collection_filters, arena);
   }
 }
 

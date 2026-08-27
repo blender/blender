@@ -66,12 +66,8 @@ static void redraw(ARegion *region)
   ED_region_tag_redraw(region);
 }
 
-static void rebuild_and_redraw(ScrArea *area, ARegion *region)
+static void rebuild_and_redraw(ScrArea * /*area*/, ARegion *region)
 {
-  /* TODO don't call this on *every* redraw. */
-  SpaceAction *saction = static_cast<SpaceAction *>(area->spacedata.first);
-  saction->runtime->clear_summary_cache();
-  saction->runtime->clear_data_cache();
   redraw(region);
 }
 
@@ -249,9 +245,9 @@ static void action_main_region_draw(const bContext *C, ARegion *region)
   ui::theme::frame_buffer_clear(TH_BACK);
 
   if (USER_EXPERIMENTAL_TEST(&U, use_new_animfilter)) {
-    ed::animfilter::ChannelTree summaries = ed::action::get_summary_tree(*C);
+    ed::animfilter::ChannelArena channels = ed::action::get_summary_tree(*C);
     ListBaseT<TimeMarker> *markers = ANIM_marker_list_from_context(*C);
-    set_v2d_height(v2d, summaries.channel_count, !markers->is_empty());
+    set_v2d_height(v2d, channels.num_channels(), !markers->is_empty());
     ui::view2d_view_ortho(v2d);
 
     if (region->winy > min_height) {
@@ -265,7 +261,7 @@ static void action_main_region_draw(const bContext *C, ARegion *region)
       ANIM_draw_framerange(scene, v2d);
     }
 
-    ed::animfilter::draw_dopesheet_key_area(*C, *summaries.root, *v2d);
+    ed::animfilter::draw_dopesheet_key_area(*C, *channels.root(), *v2d);
 
     /* TODO draw markers. */
     ANIM_draw_previewrange(scene, v2d, 0);
@@ -410,14 +406,14 @@ static void action_channel_region_draw(const bContext *C, ARegion *region)
       ED_region_panels(C, region);
     }
     else {
-      ed::animfilter::ChannelTree summaries = ed::action::get_summary_tree(*C);
+      ed::animfilter::ChannelArena channels = ed::action::get_summary_tree(*C);
       /* The View2D's height needs to be set before calling view2d_view_ortho because the latter
        * uses the View2D's `cur` rect which might be modified when setting the height. */
       ListBaseT<TimeMarker> *markers = ANIM_marker_list_from_context(*C);
       const bool has_markers = markers != nullptr && !markers->is_empty();
-      set_v2d_height(v2d, summaries.channel_count, has_markers);
+      set_v2d_height(v2d, channels.num_channels(), has_markers);
       ui::view2d_view_ortho(v2d);
-      ed::animfilter::draw_channel_tree(*C, *summaries.root, *v2d);
+      ed::animfilter::draw_channel_tree(*C, *channels.root(), *v2d);
       ui::view2d_view_restore(C);
     }
   }
@@ -456,8 +452,8 @@ static void action_channel_region_draw(const bContext *C, ARegion *region)
 
 static void action_channel_panel_draw(const bContext *C, Panel *panel)
 {
-  ed::animfilter::ChannelTree summaries = ed::action::get_summary_tree(*C);
-  ed::animfilter::draw_channel_tree(*C, *summaries.root, *panel);
+  ed::animfilter::ChannelArena channels = ed::action::get_summary_tree(*C);
+  ed::animfilter::draw_channel_tree(*C, *channels.root(), *panel);
 }
 
 static bool action_channel_panel_poll(const bContext * /* C */, PanelType * /* panel */)

@@ -571,7 +571,8 @@ bool ANIM_animdata_can_have_greasepencil(const eAnimCont_Types type)
   { \
     if ((id)->adt) { \
       if (!(filter_mode & ANIMFILTER_CURVE_VISIBLE) || \
-          !((id)->adt->flag & ADT_CURVES_NOT_VISIBLE)) { \
+          !((id)->adt->flag & ADT_CURVES_NOT_VISIBLE)) \
+      { \
         if (filter_mode & ANIMFILTER_ANIMDATA) { \
           adtOk \
         } \
@@ -1151,7 +1152,7 @@ static bool name_matches_dopesheet_filter(const bDopeSheet *ads, const char *nam
     const size_t str_len = strlen(ads->searchstr);
     const int words_max = BLI_string_max_possible_word_count(str_len);
 
-    int(*words)[2] = static_cast<int(*)[2]>(BLI_array_alloca(words, words_max));
+    int (*words)[2] = static_cast<int (*)[2]>(BLI_array_alloca(words, words_max));
     const int words_len = BLI_string_find_split_words(
         ads->searchstr, str_len, ' ', words, words_max);
     bool found = false;
@@ -4132,15 +4133,46 @@ size_t ANIM_animdata_filter(bAnimContext *ac,
 
 namespace ed::animfilter {
 
-Vector<SummaryChannel *> group_channels(MutableSpan<DataChannel *> channels,
-                                        Span<ChannelTagType> tag_order,
-                                        const bool use_minimal_grouping)
+ChannelArena::~ChannelArena()
 {
-  SummaryChannel *root = MEM_new<SummaryChannel>(__func__, "Summary");
-  Vector<SummaryChannel *> summary_channels;
-  summary_channels.append(root);
+  /* Call all the destructors of the channels. */
+  for (DataChannel *channel : this->data_channels) {
+    channel->~DataChannel();
+  }
+  for (SummaryChannel *channel : this->summary_channels) {
+    channel->~SummaryChannel();
+  }
+}
 
-  for (DataChannel *channel : channels) {
+ChannelArena::ChannelArena(ChannelArena &&other)
+  : allocator_(std::move(other.allocator_)),
+    data_channels(std::move(other.data_channels)),
+    summary_channels(std::move(other.summary_channels))
+{
+}
+
+ChannelArena &ChannelArena::operator=(ChannelArena &&other)
+{
+  /* Destroy existing channels before taking ownership of new ones. */
+  for (DataChannel *channel : this->data_channels) {
+    channel->~DataChannel();
+  }
+  for (SummaryChannel *channel : this->summary_channels) {
+    channel->~SummaryChannel();
+  }
+  this->data_channels = std::move(other.data_channels);
+  this->summary_channels = std::move(other.summary_channels);
+  allocator_.transfer_ownership_from(other.allocator_);
+  return *this;
+}
+
+void group_channels(ChannelArena &arena,
+                    Span<ChannelTagType> tag_order,
+                    const bool use_minimal_grouping)
+{
+  SummaryChannel *root = arena.allocate_summary_channel("Summary");
+
+  for (DataChannel *channel : arena.data_channels) {
     root->add_child(*channel);
   }
 
@@ -4183,9 +4215,8 @@ Vector<SummaryChannel *> group_channels(MutableSpan<DataChannel *> channels,
       }
 
       for (const auto &[tag, tag_channels] : potential_tags.items()) {
-        SummaryChannel *new_summary = MEM_new<SummaryChannel>(
-            __func__, tag.label(), tag.source_data());
-        summary_channels.append(new_summary);
+        SummaryChannel *new_summary = arena.allocate_summary_channel(tag.label(),
+                                                                     tag.source_data());
         for (DataChannel *child : tag_channels) {
           summary->remove_child(*child);
           new_summary->add_child(*child);
@@ -4202,8 +4233,6 @@ Vector<SummaryChannel *> group_channels(MutableSpan<DataChannel *> channels,
       potentially_splittable_summaries.remove_first_occurrence_and_reorder(summary);
     }
   }
-
-  return summary_channels;
 }
 
 }  // namespace ed::animfilter
