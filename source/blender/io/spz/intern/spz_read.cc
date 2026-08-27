@@ -68,6 +68,9 @@ PointCloud *read_spz_file(const StringRefNull filepath, ReportList *reports)
     CLOG_DEBUG(&LOG, "Detected Gzip compressed stream");
     point_cloud = read_spz_gzip_compressed_file(file, reports);
   }
+  else {
+    BKE_reportf(reports, RPT_ERROR, "SPZ Read: Unrecognized file format");
+  }
 
   fclose(file);
 
