@@ -991,9 +991,8 @@ static wmOperatorStatus set_pivot_position_exec(bContext *C, wmOperator *op)
     }
     case PivotPositionMode::CursorSurface: {
       const float2 mval(RNA_float_get(op->ptr, "mouse_x"), RNA_float_get(op->ptr, "mouse_y"));
-      float3 stroke_location;
-      if (stroke_get_location_bvh(C, stroke_location, mval, false)) {
-        ss.pivot_pos = stroke_location;
+      if (std::optional<float3> stroke_location = stroke_get_location_bvh(C, mval, false)) {
+        ss.pivot_pos = *stroke_location;
       }
       break;
     }

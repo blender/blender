@@ -107,8 +107,8 @@ struct ImagePaintStroke final : public PaintStroke {
   {
   }
 
-  bool get_location(float location[3], const float mouse[2], bool force_original) override;
-  bool test_start(wmOperator *op, const float mouse[2]) override;
+  std::optional<float3> get_location(float2 mouse, bool force_original) override;
+  bool test_start(wmOperator *op, float2 mouse) override;
   void update_step(wmOperator *op, PointerRNA *itemptr) override;
   void redraw(bool final) override;
   bool test_cancel() override;
@@ -215,11 +215,10 @@ void ImagePaintStroke::done(const bool is_cancel, const bool /*stroke_started*/)
     ED_image_undo_push_end();
   }
 }
-bool ImagePaintStroke::get_location(float /*location*/[3],
-                                    const float /*mouse*/[2],
-                                    bool /*force_original*/)
+std::optional<float3> ImagePaintStroke::get_location(const float2 /*mouse*/,
+                                                     bool /*force_original*/)
 {
-  return true;
+  return std::nullopt;
 }
 
 bool ImagePaintStroke::test_cancel()
@@ -227,7 +226,7 @@ bool ImagePaintStroke::test_cancel()
   return true;
 }
 
-bool ImagePaintStroke::test_start(wmOperator *op, const float mouse[2])
+bool ImagePaintStroke::test_start(wmOperator *op, const float2 mouse)
 {
   CTX_data_ensure_evaluated_depsgraph(evil_C);
 
@@ -284,8 +283,8 @@ struct TexturePaintStroke final : public PaintStroke {
   {
   }
 
-  bool get_location(float location[3], const float mouse[2], bool force_original) override;
-  bool test_start(wmOperator *op, const float mouse[2]) override;
+  std::optional<float3> get_location(float2 mouse, bool force_original) override;
+  bool test_start(wmOperator *op, float2 mouse) override;
   void update_step(wmOperator *op, PointerRNA *itemptr) override;
   void redraw(bool final) override;
   bool test_cancel() override;
@@ -387,11 +386,12 @@ void TexturePaintStroke::done(const bool is_cancel, const bool /*stroke_started*
     ED_image_undo_push_end();
   }
 }
-bool TexturePaintStroke::get_location(float /*location*/[3],
-                                      const float /*mouse*/[2],
-                                      bool /*force_original*/)
+std::optional<float3> TexturePaintStroke::get_location(const float2 /*mouse*/,
+                                                       bool /*force_original*/)
 {
-  return true;
+  /* TODO: This value is a dummy value and not actually used by the rest of the stroke system,
+   * this could be replaced with std::nullopt, but that requires further refactoring. */
+  return float3(0.0f, 0.0f, 0.0f);
 }
 
 bool TexturePaintStroke::test_cancel()
@@ -399,7 +399,7 @@ bool TexturePaintStroke::test_cancel()
   return true;
 }
 
-bool TexturePaintStroke::test_start(wmOperator *op, const float mouse[2])
+bool TexturePaintStroke::test_start(wmOperator *op, const float2 mouse)
 {
   CTX_data_ensure_evaluated_depsgraph(evil_C);
 

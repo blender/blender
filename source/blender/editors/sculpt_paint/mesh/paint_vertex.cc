@@ -826,18 +826,18 @@ struct VertexPaintStroke final : public PaintStroke {
     base_ = CTX_data_active_base(C);
   }
 
-  bool get_location(float out[3], const float mouse[2], bool force_original) override;
-  bool test_start(wmOperator *op, const float mouse[2]) override;
+  std::optional<float3> get_location(float2 mouse, bool force_original) override;
+  bool test_start(wmOperator *op, float2 mouse) override;
   void redraw(bool final) override;
   bool test_cancel() override;
   void update_step(wmOperator *op, PointerRNA *itemptr) override;
   void done(bool is_cancel, bool stroke_started) override;
 };
 
-bool VertexPaintStroke::get_location(float out[3], const float mouse[2], bool force_original)
+std::optional<float3> VertexPaintStroke::get_location(const float2 mouse, bool force_original)
 {
   return stroke_get_location_bvh(
-      *this->depsgraph, this->vc, *this->paint, this->brush, out, mouse, force_original);
+      *this->depsgraph, this->vc, *this->paint, this->brush, mouse, force_original);
 }
 
 static void init_session_data(Object &ob)
@@ -847,7 +847,7 @@ static void init_session_data(Object &ob)
   UNUSED_VARS_NDEBUG(ob);
 }
 
-bool VertexPaintStroke::test_start(wmOperator *op, const float mouse[2])
+bool VertexPaintStroke::test_start(wmOperator *op, const float2 mouse)
 {
   Scene &scene = *this->scene;
   ToolSettings &ts = *scene.toolsettings;

@@ -4865,15 +4865,14 @@ std::optional<CursorGeometryInfo> cursor_geometry_info_update(Depsgraph &depsgra
  * \param limit_closest_radius: if true then the closest point will be tested against the active
  * brush radius.
  */
-static bool stroke_get_location_bvh_ex(Depsgraph &depsgraph,
-                                       ViewContext &vc,
-                                       const Paint &paint,
-                                       const Sculpt *sd,
-                                       float3 &out,
-                                       const float2 &mval,
-                                       const bool force_original,
-                                       const bool check_closest,
-                                       const bool limit_closest_radius)
+static std::optional<float3> stroke_get_location_bvh_ex(Depsgraph &depsgraph,
+                                                        ViewContext &vc,
+                                                        const Paint &paint,
+                                                        const Sculpt *sd,
+                                                        const float2 &mval,
+                                                        const bool force_original,
+                                                        const bool check_closest,
+                                                        const bool limit_closest_radius)
 {
   Object &ob = *vc.obact;
 
@@ -4896,7 +4895,7 @@ static bool stroke_get_location_bvh_ex(Depsgraph &depsgraph,
 
   bke::pbvh::Tree &pbvh = *bke::object::pbvh_get(ob);
 
-  bool hit = false;
+  std::optional<float3> hit_location;
   {
     RaycastData rd;
     rd.object = &ob;
@@ -4928,13 +4927,12 @@ static bool stroke_get_location_bvh_ex(Depsgraph &depsgraph,
         ray_normal,
         rd.use_original);
     if (rd.hit) {
-      hit = true;
-      out = ray_start + ray_normal * rd.depth;
+      hit_location = ray_start + ray_normal * rd.depth;
     }
   }
 
-  if (hit || !check_closest) {
-    return hit;
+  if (hit_location.has_value() || !check_closest) {
+    return hit_location;
   }
 
   FindNearestToRayData fntrd{};
@@ -4968,70 +4966,61 @@ static bool stroke_get_location_bvh_ex(Depsgraph &depsgraph,
       ray_normal,
       fntrd.use_original);
   if (fntrd.hit && fntrd.dist_sq_to_ray) {
-    hit = true;
-    out = ray_start + ray_normal * fntrd.depth;
+    hit_location = ray_start + ray_normal * fntrd.depth;
   }
 
   float closest_radius_sq = std::numeric_limits<float>::max();
   if (limit_closest_radius) {
     if (brush) {
-      closest_radius_sq = object_space_radius_get(vc, paint, *brush, out);
+      closest_radius_sq = object_space_radius_get(
+          vc, paint, *brush, hit_location.value_or(float3(0.0f)));
       closest_radius_sq *= closest_radius_sq;
     }
   }
 
-  return hit && fntrd.dist_sq_to_ray < closest_radius_sq;
+  if (fntrd.dist_sq_to_ray < closest_radius_sq) {
+    return hit_location;
+  }
+
+  return std::nullopt;
 }
 
-bool stroke_get_location_bvh(Depsgraph &depsgraph,
-                             ViewContext &vc,
-                             const Sculpt &sd,
-                             const Brush *brush,
-                             float out[3],
-                             const float mval[2],
-                             const bool force_original)
+std::optional<float3> stroke_get_location_bvh(Depsgraph &depsgraph,
+                                              ViewContext &vc,
+                                              const Sculpt &sd,
+                                              const Brush *brush,
+                                              const float mval[2],
+                                              const bool force_original)
 {
   const bool check_closest = brush && brush->falloff_shape == PAINT_FALLOFF_SHAPE_TUBE;
 
-  float3 location;
-  const bool result = stroke_get_location_bvh_ex(
-      depsgraph, vc, sd.paint, &sd, location, mval, force_original, check_closest, true);
-  if (result) {
-    copy_v3_v3(out, location);
-  }
-  return result;
+  return stroke_get_location_bvh_ex(
+      depsgraph, vc, sd.paint, &sd, mval, force_original, check_closest, true);
 }
 
-bool stroke_get_location_bvh(Depsgraph &depsgraph,
-                             ViewContext &vc,
-                             const Paint &paint,
-                             const Brush *brush,
-                             float out[3],
-                             const float mval[2],
-                             const bool force_original)
+std::optional<float3> stroke_get_location_bvh(Depsgraph &depsgraph,
+                                              ViewContext &vc,
+                                              const Paint &paint,
+                                              const Brush *brush,
+                                              const float2 mval,
+                                              const bool force_original)
 {
   const bool check_closest = brush && brush->falloff_shape == PAINT_FALLOFF_SHAPE_TUBE;
 
-  float3 location;
-  const bool result = stroke_get_location_bvh_ex(
-      depsgraph, vc, paint, nullptr, location, mval, force_original, check_closest, true);
-  if (result) {
-    copy_v3_v3(out, location);
-  }
-  return result;
+  return stroke_get_location_bvh_ex(
+      depsgraph, vc, paint, nullptr, mval, force_original, check_closest, true);
 }
 
-bool stroke_get_location_bvh(bContext *C,
-                             float out[3],
-                             const float mval[2],
-                             const bool force_original)
+std::optional<float3> stroke_get_location_bvh(bContext *C,
+                                              const float2 mval,
+                                              const bool force_original)
 {
   Depsgraph *depsgraph = CTX_data_depsgraph_pointer(C);
   ViewContext vc = ED_view3d_viewcontext_init(C, depsgraph);
   const Sculpt &sd = *CTX_data_tool_settings(C)->sculpt;
   const Brush *brush = BKE_paint_brush(BKE_paint_get_active_from_context(C));
 
-  return stroke_get_location_bvh(*depsgraph, vc, sd, brush, out, mval, force_original);
+  return stroke_get_location_bvh(*depsgraph, vc, sd, brush, mval, force_original);
 }
 
 struct SculptPaintStroke final : public PaintStroke {
@@ -5054,18 +5043,18 @@ struct SculptPaintStroke final : public PaintStroke {
     wm_ = CTX_wm_manager(C);
   }
 
-  bool get_location(float out[3], const float mouse[2], bool force_original) override;
-  bool test_start(wmOperator *op, const float mouse[2]) override;
+  std::optional<float3> get_location(float2 mouse, bool force_original) override;
+  bool test_start(wmOperator *op, float2 mouse) override;
   void redraw(bool final) override;
   bool test_cancel() override;
   void update_step(wmOperator *op, PointerRNA *itemptr) override;
   void done(bool is_cancel, bool stroke_started) override;
 };
 
-bool SculptPaintStroke::get_location(float out[3], const float mouse[2], bool force_original)
+std::optional<float3> SculptPaintStroke::get_location(const float2 mouse, bool force_original)
 {
   return stroke_get_location_bvh(
-      *this->depsgraph, this->vc, *sculpt_, this->brush, out, mouse, force_original);
+      *this->depsgraph, this->vc, *sculpt_, this->brush, mouse, force_original);
 }
 
 static void brush_init_tex(const Sculpt &sd, SculptSession &ss)
@@ -5585,9 +5574,9 @@ static bool over_mesh(bContext *C, wmOperator * /*op*/, const float mval[2])
 
   const bool check_closest = brush->falloff_shape == PAINT_FALLOFF_SHAPE_TUBE;
 
-  float3 co_dummy;
   return stroke_get_location_bvh_ex(
-      *depsgraph, vc, sd.paint, &sd, co_dummy, mval, false, check_closest, true);
+             *depsgraph, vc, sd.paint, &sd, mval, false, check_closest, true)
+      .has_value();
 }
 
 static bool over_mesh(Depsgraph &depsgraph,
@@ -5599,9 +5588,8 @@ static bool over_mesh(Depsgraph &depsgraph,
 {
   const bool check_closest = brush->falloff_shape == PAINT_FALLOFF_SHAPE_TUBE;
 
-  float3 co_dummy;
-  return stroke_get_location_bvh_ex(
-      depsgraph, vc, sd.paint, &sd, co_dummy, mval, false, check_closest, true);
+  return stroke_get_location_bvh_ex(depsgraph, vc, sd.paint, &sd, mval, false, check_closest, true)
+      .has_value();
 }
 
 static void stroke_undo_begin(const Scene &scene,
@@ -5770,7 +5758,7 @@ static void stroke_cache_init(ViewContext &vc,
   }
 }
 
-bool SculptPaintStroke::test_start(wmOperator *op, const float mouse[2])
+bool SculptPaintStroke::test_start(wmOperator *op, const float2 mouse)
 {
   /* Don't start the stroke until `mouse` goes over the mesh. */
   if (over_mesh(*this->depsgraph, this->vc, *sculpt_, this->brush, op, mouse)) {

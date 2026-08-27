@@ -233,17 +233,16 @@ struct PaintStroke : NonCopyable, NonMovable {
 
   /**
    * Callback function to retrieve the object space coordinates based on screen space coordinates.
-   * \param location: resulting object space coordinates
    * \returns whether a value was actually found & the value in location is usable
    */
-  virtual bool get_location(float location[3], const float mouse[2], bool force_original) = 0;
+  virtual std::optional<float3> get_location(float2 mouse, bool force_original) = 0;
 
   /**
    * Callback function to determine whether a stroke has started, and performing initialization.
    *
    * In many cases, this is a check to whether the stroke is over the active mesh.
    */
-  virtual bool test_start(wmOperator *op, const float mouse[2]) = 0;
+  virtual bool test_start(wmOperator *op, float2 mouse) = 0;
 
   /**
    * Callback function for performing a paint stroke for a new step.
