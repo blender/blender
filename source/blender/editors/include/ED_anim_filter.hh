@@ -5,6 +5,7 @@
 /** \file
  * \ingroup editors
  */
+#pragma once
 
 #include <iostream>
 #include <limits>
@@ -23,7 +24,6 @@ struct bContext;
 struct FCurve;
 struct GreasePencil;
 struct GreasePencilLayer;
-struct PointerRNA;
 struct Panel;
 
 namespace ed::animfilter {
