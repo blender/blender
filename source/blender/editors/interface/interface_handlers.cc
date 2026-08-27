@@ -6439,7 +6439,7 @@ static int do_but_NUM(
           value_step = double(number_but->step_size * UI_PRECISION_FLOAT_SCALE);
         }
 
-        const eSnapType snap = event_to_snap(event);
+        const eSnapType snap = ISMOUSE_BUTTON(event->type) ? event_to_snap(event) : SNAP_OFF;
         value_step = (snap == SNAP_OFF) ? value_step : number_but->step_size;
         if (event->modifier & KM_SHIFT) {
           value_step *= 0.1;
