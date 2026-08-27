@@ -256,55 +256,16 @@ void update_cache_invariants(VPaint &vp, SculptSession &ss, wmOperator *op, cons
 {
   PaintStroke *stroke = static_cast<PaintStroke *>(op->customdata);
   StrokeCache *cache = ss.cache;
-  bke::PaintRuntime &paint_runtime = *vp.paint.runtime;
   ViewContext *vc = &stroke->vc;
-  Object &ob = *stroke->object;
 
-  /* Initial mouse location */
-  if (mval) {
-    copy_v2_v2(cache->initial_mouse, mval);
-  }
-  else {
-    zero_v2(cache->initial_mouse);
-  }
+  stroke_cache_common_init(*vc, vp.paint, *stroke->brush, *stroke->object, mval);
 
-  /* not very nice, but with current events system implementation
-   * we can't handle brush appearance inversion hotkey separately (sergey) */
-  if (cache->toggle_settings.invert) {
-    paint_runtime.draw_inverted = true;
-  }
-  else {
-    paint_runtime.draw_inverted = false;
-  }
-
-  copy_v2_v2(cache->mouse, cache->initial_mouse);
-  const Brush *brush = BKE_paint_brush(&vp.paint);
-  /* Truly temporary data that isn't stored in properties */
-  cache->vc = vc;
-  cache->brush = brush;
-  cache->paint = &vp.paint;
-  cache->first_time = true;
-
-  /* cache projection matrix */
-  cache->projection_mat = ED_view3d_ob_project_mat_get(cache->vc->rv3d, &ob);
-
-  const float3 z_axis(0.0f, 0.0f, 1.0f);
-  ob.runtime->world_to_object = math::invert(ob.object_to_world());
-  cache->view_normal = math::normalize(math::transform_direction(
-      ob.world_to_object() * float4x4(cache->vc->rv3d->viewinv), z_axis));
-
-  cache->view_normal_symm = cache->view_normal;
-
-  cache->initial_normal = ss.cursor_sampled_normal.value_or(ss.cursor_normal);
-  cache->initial_normal_symm = ss.cursor_sampled_normal.value_or(ss.cursor_normal);
-
-  cache->base_brush_strength = BKE_brush_alpha_get(&vp.paint, brush);
+  cache->base_brush_strength = BKE_brush_alpha_get(&vp.paint, stroke->brush);
   cache->bstrength = cache->base_brush_strength;
-  cache->is_last_valid = false;
 
   cache->accum = true;
 
-  if (BKE_brush_color_jitter_get_settings(&vp.paint, brush)) {
+  if (BKE_brush_color_jitter_get_settings(&vp.paint, stroke->brush)) {
     cache->initial_hsv_jitter = seed_hsv_jitter();
   }
 }
@@ -1228,9 +1189,6 @@ static void do_vpaint_brush_smear(const Depsgraph &depsgraph,
 {
   SculptSession &ss = *ob.runtime->sculpt_session;
   StrokeCache &cache = *ss.cache;
-  if (!cache.is_last_valid) {
-    return;
-  }
 
   const Brush &brush = *cache.brush;
   GMutableSpan g_color_curr = vpd.smear.color_curr;
@@ -1833,8 +1791,6 @@ void VertexPaintStroke::update_step(wmOperator * /*op*/, PointerRNA *itemptr)
 
   float mat[4][4];
 
-  ED_view3d_init_mats_rv3d(&ob, vc.rv3d);
-
   mul_m4_m4m4(mat, vc.rv3d->persmat, ob.object_to_world().ptr());
 
   swap_m4m4(vc.rv3d->persmat, mat);
@@ -1843,7 +1799,6 @@ void VertexPaintStroke::update_step(wmOperator * /*op*/, PointerRNA *itemptr)
       *this->depsgraph, *this->scene, vertex_paint_->paint, ob, vpaint_do_paint, &vpd);
 
   copy_v3_v3(cache.last_location, cache.location);
-  cache.is_last_valid = true;
 
   swap_m4m4(vc.rv3d->persmat, mat);
 

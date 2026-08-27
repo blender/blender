@@ -396,5 +396,51 @@ void do_symmetrical_brush_actions_with_tiling_and_feathering(const Depsgraph &de
 }
 
 /** \} */
+/* -------------------------------------------------------------------- */
+/** \name StrokeCache Helpers
+ * \{ */
+
+void stroke_cache_common_init(
+    ViewContext &vc, const Paint &paint, const Brush &brush, Object &object, const float2 mval)
+{
+  bke::PaintRuntime *paint_runtime = paint.runtime;
+  SculptSession &ss = *object.runtime->sculpt_session;
+  StrokeCache *cache = ss.cache;
+
+  cache->initial_mouse = mval;
+  cache->mouse = cache->initial_mouse;
+  cache->mouse_event = cache->initial_mouse;
+
+  /* Not very nice, but with current events system implementation
+   * we can't handle brush appearance inversion hotkey separately (sergey). */
+  if (cache->toggle_settings.invert) {
+    paint_runtime->draw_inverted = true;
+  }
+  else {
+    paint_runtime->draw_inverted = false;
+  }
+
+  /* Truly temporary data that isn't stored in properties. */
+  cache->vc = &vc;
+  cache->brush = &brush;
+  cache->paint = &paint;
+  cache->first_time = true;
+
+  ED_view3d_init_mats_rv3d(&object, cache->vc->rv3d);
+  /* Cache projection matrix. */
+  cache->projection_mat = ED_view3d_ob_project_mat_get(cache->vc->rv3d, &object);
+
+  const float3 z_axis(0.0f, 0.0f, 1.0f);
+  object.runtime->world_to_object = math::invert(object.object_to_world());
+  cache->view_normal = math::normalize(math::transform_direction(
+      object.world_to_object() * float4x4(cache->vc->rv3d->viewinv), z_axis));
+
+  cache->initial_location_symm = ss.cursor_location;
+  cache->initial_location = ss.cursor_location;
+  cache->initial_normal_symm = ss.cursor_sampled_normal.value_or(ss.cursor_normal);
+  cache->initial_normal = ss.cursor_sampled_normal.value_or(ss.cursor_normal);
+}
+
+/** \} */
 
 }  // namespace blender::ed::sculpt_paint

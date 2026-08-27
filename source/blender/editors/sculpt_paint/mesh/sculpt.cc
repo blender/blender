@@ -5643,9 +5643,10 @@ static void stroke_cache_init(ViewContext &vc,
                               Object &ob,
                               const float mval[2])
 {
-  bke::PaintRuntime *paint_runtime = sd.paint.runtime;
   SculptSession &ss = *ob.runtime->sculpt_session;
   StrokeCache *cache = ss.cache;
+
+  stroke_cache_common_init(vc, sd.paint, brush, ob, mval);
 
   /* Set scaling adjustment. */
   float max_scale = 0.0f;
@@ -5662,42 +5663,7 @@ static void stroke_cache_init(ViewContext &vc,
 
   sculpt_init_mirror_clipping(ob, ss);
 
-  /* Initial mouse location. */
-  cache->initial_mouse = mval ? float2(mval) : float2(0.0f);
-
-  cache->initial_location_symm = ss.cursor_location;
-  cache->initial_location = ss.cursor_location;
-
-  cache->initial_normal_symm = ss.cursor_sampled_normal.value_or(ss.cursor_normal);
-  cache->initial_normal = ss.cursor_sampled_normal.value_or(ss.cursor_normal);
-
-  /* Not very nice, but with current events system implementation
-   * we can't handle brush appearance inversion hotkey separately (sergey). */
-  if (cache->toggle_settings.invert) {
-    paint_runtime->draw_inverted = true;
-  }
-  else {
-    paint_runtime->draw_inverted = false;
-  }
-
-  cache->mouse = cache->initial_mouse;
-  cache->mouse_event = cache->initial_mouse;
-  copy_v2_v2(paint_runtime->tex_mouse, cache->initial_mouse);
-
   cache->initial_direction_flipped = brush_flip(brush, *cache) < 0.0f;
-
-  /* Truly temporary data that isn't stored in properties. */
-  cache->vc = &vc;
-  cache->brush = &brush;
-  cache->paint = &sd.paint;
-
-  /* Cache projection matrix. */
-  cache->projection_mat = ED_view3d_ob_project_mat_get(cache->vc->rv3d, &ob);
-
-  const float3 z_axis(0.0f, 0.0f, 1.0f);
-  ob.runtime->world_to_object = math::invert(ob.object_to_world());
-  cache->view_normal = math::normalize(math::transform_direction(
-      ob.world_to_object() * float4x4(cache->vc->rv3d->viewinv), z_axis));
 
   cache->supports_gravity = bke::brush::supports_gravity(brush) && sd.gravity_factor > 0.0f;
   /* Get gravity vector in world space. */
@@ -5749,7 +5715,6 @@ static void stroke_cache_init(ViewContext &vc,
   if (BKE_brush_color_jitter_get_settings(&sd.paint, &brush)) {
     cache->initial_hsv_jitter = seed_hsv_jitter();
   }
-  cache->first_time = true;
   cache->plane_brush.first_time = true;
 
   if (brush.sculpt_brush_type == SCULPT_BRUSH_TYPE_ROTATE) {
@@ -5775,8 +5740,6 @@ bool SculptPaintStroke::test_start(wmOperator *op, const float2 mouse)
         v3d->shading.color_type = V3D_SHADING_VERTEX_COLOR;
       }
     }
-
-    ED_view3d_init_mats_rv3d(&ob, this->vc.rv3d);
 
     stroke_cache_init(
         this->vc, *sculpt_, this->paint_mode_settings_, *this->brush, *this->object, mouse);

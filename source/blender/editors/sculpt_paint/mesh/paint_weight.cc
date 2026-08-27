@@ -1276,9 +1276,6 @@ static void do_wpaint_brush_smear(const Depsgraph &depsgraph,
   MutableSpan<bke::pbvh::MeshNode> nodes = bke::object::pbvh_get(ob)->nodes<bke::pbvh::MeshNode>();
   const GroupedSpan<int> vert_to_face = mesh.vert_to_face_map();
   const StrokeCache &cache = *ss.cache;
-  if (!cache.is_last_valid) {
-    return;
-  }
 
   float brush_size_pressure, brush_alpha_value, brush_alpha_pressure;
   vwpaint::get_brush_alpha_data(
@@ -1818,8 +1815,6 @@ void WeightPaintStroke::update_step(wmOperator * /*op*/, PointerRNA *itemptr)
 
   ob = vc->obact;
 
-  ED_view3d_init_mats_rv3d(ob, vc->rv3d);
-
   mul_m4_m4m4(mat, vc->rv3d->persmat, ob->object_to_world().ptr());
 
   Mesh &mesh = *id_cast<Mesh *>(ob->data);
@@ -1866,7 +1861,6 @@ void WeightPaintStroke::update_step(wmOperator * /*op*/, PointerRNA *itemptr)
   }
 
   copy_v3_v3(cache.last_location, cache.location);
-  cache.is_last_valid = true;
 
   swap_m4m4(vc->rv3d->persmat, mat);
 
