@@ -227,7 +227,7 @@ bUserAssetLibrary *ED_userpref_asset_library_new(const bContext *C,
       }
       else {
         new_library = BKE_preferences_remote_asset_library_add(
-            &U, name, dirpath, auth_token.value_or(nullptr));
+            &U, final_name, dirpath, auth_token.value_or(nullptr));
       }
       break;
     }
