@@ -1184,6 +1184,11 @@ static void do_vpaint_brush_smear(const Depsgraph &depsgraph,
   SculptSession &ss = *ob.runtime->sculpt_session;
   StrokeCache &cache = *ss.cache;
 
+  if (stroke_is_first_brush_step_of_symmetry_pass(cache)) {
+    /* We need a directional component to calculate the effect of this brush */
+    return;
+  }
+
   const Brush &brush = *cache.brush;
   GMutableSpan g_color_curr = vpd.smear.color_curr;
   GMutableSpan g_color_prev_smear = vpd.smear.color_prev;

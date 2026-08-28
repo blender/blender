@@ -1277,6 +1277,11 @@ static void do_wpaint_brush_smear(const Depsgraph &depsgraph,
   const GroupedSpan<int> vert_to_face = mesh.vert_to_face_map();
   const StrokeCache &cache = *ss.cache;
 
+  if (stroke_is_first_brush_step_of_symmetry_pass(cache)) {
+    /* We need a directional component to calculate the effect of this brush */
+    return;
+  }
+
   float brush_size_pressure, brush_alpha_value, brush_alpha_pressure;
   vwpaint::get_brush_alpha_data(
       ss, vp.paint, brush, &brush_size_pressure, &brush_alpha_value, &brush_alpha_pressure);
