@@ -32,7 +32,7 @@ def get_arguments(filepath, output_filepath, backend):
     execution_device = "CPU"
     if backend != "CPU":
         execution_device = "GPU"
-        arguments.extend(["--gpu-backend", backend])
+        arguments.extend(["--gpu-backend", backend, "--debug-gpu-backend-no-fallback"])
 
     arguments.extend([
         filepath,

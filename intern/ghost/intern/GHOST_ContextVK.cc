@@ -50,6 +50,7 @@
 #include <cassert>
 #include <cinttypes>
 #include <cstdio>
+#include <cstdlib>
 #include <cstring>
 #include <iostream>
 #include <mutex>
@@ -356,6 +357,21 @@ struct GHOST_InstanceVK {
 
   GHOST_InstanceVK()
   {
+    /* volk is initialized in vk_instance_create_for_platform_checks during Vulkan backend support
+     * detection when not skipped via "--debug-gpu-backend-no-fallback". So only initialize it here
+     * as needed. */
+    if (volk::vkGetInstanceProcAddr == nullptr) {
+      VkResult vk_result = volkInitialize();
+      if (vk_result != VK_SUCCESS) {
+        CLOG_ERROR(
+            &LOG,
+            "Error initializing Vulkan loader: VkResult=%d, most likely cannot find the Vulkan "
+            "Loader provided by GPU driver/OS.",
+            vk_result);
+        /* Not recoverable when using "--debug-gpu-backend-no-fallback". */
+        exit(EXIT_FAILURE);
+      }
+    }
     init_extensions();
   }
 
