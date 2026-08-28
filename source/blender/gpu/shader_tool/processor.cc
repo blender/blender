@@ -1427,7 +1427,7 @@ void SourceProcessor::guarded_scope_mutation(Parser &parser,
         /**/
         type == "float3x2" || type == "float3x3" || type == "float3x4" ||
         /**/
-        type == "float4x2" || type == "float4x3" || type == "float4x4")
+        type == "float4x2" || type == "float4x3" || type == "float4x4" || type == "bool")
     {
       is_trivial = true;
     }
