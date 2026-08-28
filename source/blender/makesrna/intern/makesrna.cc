@@ -171,8 +171,8 @@ static int replace_if_different(const char *tmpfile, const char *dep_files[])
 
   char orgfile[4096];
 
-  STRNCPY(orgfile, tmpfile);
-  orgfile[strlen(orgfile) - strlen(TMP_EXT)] = '\0'; /* Strip `.tmp`. */
+  const size_t orgfile_len = STRNCPY_RLEN(orgfile, tmpfile);
+  orgfile[orgfile_len - strlen(TMP_EXT)] = '\0'; /* Strip `.tmp`. */
 
   fp_org = fopen(orgfile, "rb");
 

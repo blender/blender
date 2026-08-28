@@ -1226,9 +1226,8 @@ static int rna_Strip_filepath_length(PointerRNA *ptr)
   Strip *strip = static_cast<Strip *>(ptr->data);
   char filepath[FILE_MAX];
 
-  BLI_path_join(
+  return BLI_path_join(
       filepath, sizeof(filepath), strip->data->dirpath, strip->data->stripdata->filename);
-  return strlen(filepath);
 }
 
 static void rna_Strip_proxy_filepath_set(PointerRNA *ptr, const char *value)
@@ -1256,8 +1255,7 @@ static int rna_Strip_proxy_filepath_length(PointerRNA *ptr)
   StripProxy *proxy = static_cast<StripProxy *>(ptr->data);
   char filepath[FILE_MAX];
 
-  BLI_path_join(filepath, sizeof(filepath), proxy->dirpath, proxy->filename);
-  return strlen(filepath);
+  return BLI_path_join(filepath, sizeof(filepath), proxy->dirpath, proxy->filename);
 }
 
 static void rna_Strip_audio_update(Main * /*bmain*/, Scene * /*scene*/, PointerRNA *ptr)

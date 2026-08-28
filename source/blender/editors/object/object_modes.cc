@@ -228,8 +228,9 @@ bool mode_set_ex(bContext *C, eObjectMode mode, bool use_undo, ReportList *repor
     if (ob->data && !ID_IS_EDITABLE(ob->data)) {
       const ID &obdata_id = *ob->data;
       char obdata_idtype_name_lower[MAX_ID_NAME];
-      STRNCPY(obdata_idtype_name_lower, BKE_idtype_idcode_to_name(GS(obdata_id.name)));
-      BLI_str_tolower_ascii(obdata_idtype_name_lower, strlen(obdata_idtype_name_lower));
+      const size_t obdata_idtype_name_lower_len = STRNCPY_RLEN(
+          obdata_idtype_name_lower, BKE_idtype_idcode_to_name(GS(obdata_id.name)));
+      BLI_str_tolower_ascii(obdata_idtype_name_lower, obdata_idtype_name_lower_len);
 
       if (ID_IS_PACKED(ob->data)) {
         BKE_reportf(reports,

@@ -436,8 +436,8 @@ static void userpref_main_region_layout(const bContext *C, ARegion *region)
     }
     const char *id = items[i].identifier;
     BLI_assert(strlen(id) < sizeof(id_lower));
-    STRNCPY_UTF8(id_lower, id);
-    BLI_str_tolower_ascii(id_lower, strlen(id_lower));
+    const size_t id_lower_len = STRNCPY_UTF8_RLEN(id_lower, id);
+    BLI_str_tolower_ascii(id_lower, id_lower_len);
   }
 
   ED_region_panels_layout_ex(C,
