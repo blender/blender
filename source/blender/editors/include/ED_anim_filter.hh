@@ -349,8 +349,6 @@ class ChannelArena {
   }
 };
 
-class ChannelArenaMutable : public ChannelArena {};
-
 struct CollectionFilters {
   bool only_selected;
 
