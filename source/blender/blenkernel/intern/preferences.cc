@@ -252,14 +252,14 @@ bUserAssetLibrary *BKE_preferences_remote_asset_library_add(UserDef *userdef,
 /**
  * Appends a slash to \a str if there isn't one there already. Will do nothing if \a str is empty.
  *
- * \param max_len: The maximum length \a str is allowed to have, including 0-terminator.
+ * \param str_maxncpy: The maximum length \a str is allowed to have, including 0-terminator.
  */
-static void url_ensure_trailing_slash(char *str, const size_t max_len)
+static void url_ensure_trailing_slash(char *str, const size_t str_maxncpy)
 {
-  const size_t len = BLI_strnlen(str, max_len);
+  const size_t len = BLI_strnlen(str, str_maxncpy);
   BLI_assert_msg(str[len] == '\0', "String should be null-terminated");
 
-  if (len > 0 && str[len - 1] != '/' && len + 1 < max_len) {
+  if (len > 0 && str[len - 1] != '/' && len + 1 < str_maxncpy) {
     str[len] = '/';
     str[len + 1] = '\0';
   }

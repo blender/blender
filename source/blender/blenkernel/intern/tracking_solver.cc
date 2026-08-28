@@ -296,7 +296,7 @@ static int reconstruct_count_tracks_on_both_keyframes(MovieTrackingObject *track
 bool BKE_tracking_reconstruction_check(MovieTracking *tracking,
                                        MovieTrackingObject *tracking_object,
                                        char *error_msg,
-                                       int error_size)
+                                       int error_msg_maxncpy)
 {
   if (tracking->settings.motion_flag & TRACKING_MOTION_MODAL) {
     /* TODO: check for number of tracks? */
@@ -308,7 +308,7 @@ bool BKE_tracking_reconstruction_check(MovieTracking *tracking,
       BLI_strncpy_utf8(
           error_msg,
           N_("At least 8 common tracks on both keyframes are needed for reconstruction"),
-          error_size);
+          error_msg_maxncpy);
 
       return false;
     }
@@ -316,7 +316,7 @@ bool BKE_tracking_reconstruction_check(MovieTracking *tracking,
 
 #ifndef WITH_LIBMV
   BLI_strncpy_utf8(
-      error_msg, N_("Blender is compiled without motion tracking library"), error_size);
+      error_msg, N_("Blender is compiled without motion tracking library"), error_msg_maxncpy);
   return false;
 #endif
 

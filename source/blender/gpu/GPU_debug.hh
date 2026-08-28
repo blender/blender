@@ -76,7 +76,7 @@ void GPU_debug_group_end();
  * Return a formatted string showing the current group hierarchy in this format:
  * "Group1 > Group 2 > Group3 > ... > GroupN : "
  */
-void GPU_debug_get_groups_names(int name_buf_len, char *r_name_buf);
+void GPU_debug_get_groups_names(int name_buf_maxncpy, char *r_name_buf);
 std::string GPU_debug_get_groups_names(IndexRange levels = IndexRange(0, 9999));
 /**
  * Return true if inside a debug group with the same name.

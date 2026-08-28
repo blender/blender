@@ -745,7 +745,7 @@ float text_clip_middle_ex(const uiFontStyle *fstyle,
                           char *str,
                           float okwidth,
                           float minwidth,
-                          size_t max_len,
+                          size_t str_maxncpy,
                           char rpart_sep,
                           bool clip_right_if_tight = true,
                           bool shorten_template_variables = false);

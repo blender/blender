@@ -190,7 +190,7 @@ static void ruler_item_remove(bContext *C, wmGizmoGroup *gzgroup, RulerItem *rul
 }
 
 static void ruler_item_as_string(
-    RulerItem *ruler_item, const UnitSettings &unit, char *numstr, size_t numstr_size, int prec)
+    RulerItem *ruler_item, const UnitSettings &unit, char *numstr, size_t numstr_maxncpy, int prec)
 {
   if (ruler_item->flag & RULERITEM_USE_ANGLE) {
     const float ruler_angle = angle_v3v3v3(
@@ -198,22 +198,22 @@ static void ruler_item_as_string(
 
     if (unit.system == USER_UNIT_NONE) {
       BLI_snprintf_utf8(
-          numstr, numstr_size, "%.*f" BLI_STR_UTF8_DEGREE_SIGN, prec, RAD2DEGF(ruler_angle));
+          numstr, numstr_maxncpy, "%.*f" BLI_STR_UTF8_DEGREE_SIGN, prec, RAD2DEGF(ruler_angle));
     }
     else {
       BKE_unit_value_as_string(
-          numstr, numstr_size, double(ruler_angle), prec, B_UNIT_ROTATION, unit, false, true);
+          numstr, numstr_maxncpy, double(ruler_angle), prec, B_UNIT_ROTATION, unit, false, true);
     }
   }
   else {
     const float ruler_len = len_v3v3(ruler_item->co[0], ruler_item->co[2]);
 
     if (unit.system == USER_UNIT_NONE) {
-      BLI_snprintf_utf8(numstr, numstr_size, "%.*f", prec, ruler_len);
+      BLI_snprintf_utf8(numstr, numstr_maxncpy, "%.*f", prec, ruler_len);
     }
     else {
       BKE_unit_value_as_string_scaled(
-          numstr, numstr_size, ruler_len, prec, B_UNIT_LENGTH, unit, false, true);
+          numstr, numstr_maxncpy, ruler_len, prec, B_UNIT_LENGTH, unit, false, true);
     }
   }
 }

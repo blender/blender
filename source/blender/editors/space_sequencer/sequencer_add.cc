@@ -1670,15 +1670,15 @@ void SEQUENCER_OT_sound_strip_add(wmOperatorType *ot)
  * \{ */
 
 void frame_filename_set(char *dst,
-                        size_t dst_len,
+                        size_t dst_maxncpy,
                         const char *filename_stripped,
                         const int frame,
                         const int numdigits,
                         const char *ext)
 {
-  BLI_strncpy(dst, filename_stripped, dst_len);
-  BLI_path_frame(dst, dst_len, frame, numdigits);
-  BLI_path_extension_ensure(dst, dst_len, ext);
+  BLI_strncpy(dst, filename_stripped, dst_maxncpy);
+  BLI_path_frame(dst, dst_maxncpy, frame, numdigits);
+  BLI_path_extension_ensure(dst, dst_maxncpy, ext);
 }
 
 static void sequencer_add_image_strip_load_files(wmOperator *op,
