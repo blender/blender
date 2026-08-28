@@ -251,10 +251,6 @@ class PROJECT_PT_variables(Panel):
     bl_region_type = 'WINDOW'
     bl_category = "Variables"
 
-    @classmethod
-    def poll(cls, context):
-        return bpy.data.project is not None
-
     def draw(self, context):
         project = bpy.data.project
 
