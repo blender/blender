@@ -1790,7 +1790,7 @@ float text_clip_middle_ex(const uiFontStyle *fstyle,
    * can be longer by that amount and still fit visibly in the required space. */
   BLI_assert((strwidth <= (okwidth + 2)) || (okwidth <= 0.0f) ||
              /* TODO: proper handling of non UTF8 strings. */
-             (BLI_str_utf8_invalid_byte(str, max_len) != -1));
+             (BLI_str_utf8_invalid_byte(str, strlen(str)) != -1));
   UNUSED_VARS_NDEBUG(okwidth);
 
   return strwidth;
