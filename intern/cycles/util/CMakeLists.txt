@@ -91,6 +91,7 @@ set(SRC_HEADERS
   math_int8.h
   math_dual.h
   math_float3x3.h
+  math_quaternion.h
   md5.h
   murmurhash.h
   nanovdb.h
@@ -143,6 +144,7 @@ set(SRC_HEADERS
   types_ushort4.h
   types_dual.h
   types_float3x3.h
+  types_quaternion.h
   unique_ptr.h
   unique_ptr_vector.h
   vector.h

@@ -212,6 +212,12 @@ template<> struct device_type_traits<uint64_t> {
   static_assert(sizeof(uint64_t) == num_elements * datatype_size(data_type));
 };
 
+template<> struct device_type_traits<Quaternion> {
+  static const DataType data_type = TYPE_FLOAT;
+  static const size_t num_elements = 4;
+  static_assert(sizeof(Quaternion) == num_elements * datatype_size(data_type));
+};
+
 /* Device Memory
  *
  * Base class for all device memory. This should not be allocated directly,

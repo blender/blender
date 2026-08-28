@@ -144,6 +144,32 @@ svm_node_attr_surface_eval(KernelGlobals kg,
     }
   }
 
+  if (desc.type == NODE_ATTR_QUATERNION) {
+    /* Conversion from quaternion to RGB is not well defined.
+     * Follow the same logic as what it was when quaternions were stored as float4. */
+    if constexpr (is_dual_v<Float3Type>) {
+      const dual<Quaternion> q = primitive_surface_attribute<dual<Quaternion>>(kg, sd, desc);
+      if (type == NODE_ATTR_OUTPUT_FLOAT) {
+        return make_float3(average(make_float3(q)));
+      }
+      if (type == NODE_ATTR_OUTPUT_FLOAT_ALPHA) {
+        return make_float3(dual<float>(q.val.w, q.dx.w, q.dy.w));
+      }
+      return make_float3(q);
+    }
+    else {
+      const Quaternion q = primitive_surface_attribute<Quaternion>(kg, sd, desc);
+      const float4 f = make_float4(q);
+      if (type == NODE_ATTR_OUTPUT_FLOAT) {
+        return make_float3(average(make_float3(f)));
+      }
+      if (type == NODE_ATTR_OUTPUT_FLOAT_ALPHA) {
+        return make_float3(f.w);
+      }
+      return make_float3(f);
+    }
+  }
+
   Float3Type f = primitive_surface_attribute<Float3Type>(kg, sd, desc);
   if (type == NODE_ATTR_OUTPUT_FLOAT) {
     return make_float3(average(f));
