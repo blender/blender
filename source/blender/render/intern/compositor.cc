@@ -514,13 +514,12 @@ class Context : public compositor::Context {
       return this->get_invalid_pass();
     }
 
-    compositor::Result pass_data = compositor::Result(
-        *this, this->get_pass_data_type(render_pass), compositor::ResultPrecision::Full);
-
+    compositor::Result pass_data = this->create_result(this->get_pass_data_type(render_pass));
     if (this->use_gpu()) {
       gpu::Texture *pass_texture = RE_pass_ensure_gpu_texture_cache(render, render_pass);
       /* Don't assume render will keep pass data stored, add our own reference. */
       GPU_texture_ref(pass_texture);
+      pass_data.set_precision(compositor::Result::precision(GPU_texture_format(pass_texture)));
       pass_data.share_data(pass_texture);
       cached_gpu_passes_.append(pass_texture);
     }
@@ -533,8 +532,7 @@ class Context : public compositor::Context {
       cached_cpu_passes_.append(render_pass->ibuf);
     }
 
-    compositor::Result pass = compositor::Result(
-        *this, this->get_pass_type(render_pass), compositor::ResultPrecision::Full);
+    compositor::Result pass = this->create_result(this->get_pass_type(render_pass));
     if (pass.type() != pass_data.type()) {
       compositor::ConversionOperation conversion_operation(*this, pass_data.type(), pass.type());
       conversion_operation.map_input_to_result(&pass_data);
