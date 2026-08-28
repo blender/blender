@@ -12,6 +12,7 @@
 #include "BKE_paint_types.hh"
 #include "BKE_scene.hh"
 
+#include "BLI_math_geom_c.hh"
 #include "BLI_math_matrix.hh"
 #include "BLI_math_rotation_c.hh"
 
@@ -439,6 +440,39 @@ void stroke_cache_common_init(
   cache->initial_location = ss.cursor_location;
   cache->initial_normal_symm = ss.cursor_sampled_normal.value_or(ss.cursor_normal);
   cache->initial_normal = ss.cursor_sampled_normal.value_or(ss.cursor_normal);
+}
+
+/** \} */
+/* -------------------------------------------------------------------- */
+/** \name BVH Query Helper
+ * \{ */
+
+IndexMask gather_brush_nodes(const Object &ob, const Brush &brush, IndexMaskMemory &memory)
+{
+  SculptSession &ss = *ob.runtime->sculpt_session;
+  const bke::pbvh::Tree &pbvh = *bke::object::pbvh_get(ob);
+
+  /* Build a list of all nodes that are potentially within the brush's area of influence */
+  switch (brush.falloff_shape) {
+    case PAINT_FALLOFF_SHAPE_SPHERE:
+      return bke::pbvh::search_nodes(pbvh, memory, [&](const bke::pbvh::Node &node) {
+        if (node_fully_masked_or_hidden(node)) {
+          return false;
+        }
+        return node_in_sphere(node, ss.cache->location_symm, ss.cache->radius_squared, true);
+      });
+    case PAINT_FALLOFF_SHAPE_TUBE:
+      const DistRayAABB_Precalc ray_dist_precalc = dist_squared_ray_to_aabb_v3_precalc(
+          ss.cache->location_symm, ss.cache->view_normal_symm);
+      return bke::pbvh::search_nodes(pbvh, memory, [&](const bke::pbvh::Node &node) {
+        if (node_fully_masked_or_hidden(node)) {
+          return false;
+        }
+        return node_in_cylinder(ray_dist_precalc, node, ss.cache->radius_squared, true);
+      });
+  }
+  BLI_assert_unreachable();
+  return {};
 }
 
 /** \} */

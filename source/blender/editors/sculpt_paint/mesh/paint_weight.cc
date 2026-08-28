@@ -1776,7 +1776,8 @@ static void wpaint_do_paint(const Depsgraph &depsgraph,
   VPaint &wp = *scene.toolsettings->wpaint;
   Mesh &mesh = *id_cast<Mesh *>(ob.data);
   IndexMaskMemory memory;
-  const IndexMask node_mask = vwpaint::pbvh_gather_generic(depsgraph, ob, wp, brush, memory);
+  const IndexMask node_mask = gather_brush_nodes(ob, brush, memory);
+  vwpaint::update_sculpt_normal(depsgraph, ob, wp, brush, node_mask);
 
   if (auto_mask::is_enabled(wp.paint, ob, &brush)) {
     auto_mask::Cache &cache = auto_mask::stroke_cache_ensure(depsgraph, wp.paint, &brush, ob);

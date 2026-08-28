@@ -173,36 +173,31 @@ void init_stroke(const wmOperator &op, Main &main, Paint &paint, Depsgraph &deps
   }
 }
 
-IndexMask pbvh_gather_generic(const Depsgraph &depsgraph,
-                              const Object &ob,
-                              const VPaint &wp,
-                              const Brush &brush,
-                              IndexMaskMemory &memory)
+void update_sculpt_normal(const Depsgraph &depsgraph,
+                          const Object &ob,
+                          const VPaint &vp,
+                          const Brush &brush,
+                          const IndexMask node_mask)
 {
   SculptSession &ss = *ob.runtime->sculpt_session;
-  const bke::pbvh::Tree &pbvh = *bke::object::pbvh_get(ob);
-  const bool use_normal = vwpaint::use_normal(wp);
-  IndexMask nodes;
 
-  /* Build a list of all nodes that are potentially within the brush's area of influence */
+  const bool use_normal = vwpaint::use_normal(vp);
+
+  if (!use_normal) {
+    ss.cache->sculpt_normal_symm = float3(0);
+    return;
+  }
+
   if (brush.falloff_shape == PAINT_FALLOFF_SHAPE_SPHERE) {
-    nodes = bke::pbvh::search_nodes(pbvh, memory, [&](const bke::pbvh::Node &node) {
-      return node_in_sphere(node, ss.cache->location_symm, ss.cache->radius_squared, true);
-    });
-
+    /* TODO: This is inefficient for symmetry */
     ss.cache->sculpt_normal_symm =
-        use_normal ? calc_area_normal(depsgraph, brush, ob, nodes).value_or(float3(0)) : float3(0);
+        calc_area_normal(depsgraph, brush, ob, node_mask).value_or(float3(0));
+    return;
   }
-  else {
-    const DistRayAABB_Precalc ray_dist_precalc = dist_squared_ray_to_aabb_v3_precalc(
-        ss.cache->location_symm, ss.cache->view_normal_symm);
-    nodes = bke::pbvh::search_nodes(pbvh, memory, [&](const bke::pbvh::Node &node) {
-      return node_in_cylinder(ray_dist_precalc, node, ss.cache->radius_squared, true);
-    });
 
-    ss.cache->sculpt_normal_symm = use_normal ? ss.cache->view_normal_symm : float3(0);
-  }
-  return nodes;
+  /* TODO: This should be removed after the normal is fixed */
+  BLI_assert(brush.falloff_shape == PAINT_FALLOFF_SHAPE_TUBE);
+  ss.cache->sculpt_normal_symm = ss.cache->view_normal_symm;
 }
 
 bool mode_toggle_poll_test(bContext *C)
@@ -1750,7 +1745,8 @@ static void vpaint_do_paint(const Depsgraph &depsgraph,
   const VPaint &vp = *scene.toolsettings->vpaint;
   Mesh &mesh = *id_cast<Mesh *>(ob.data);
   IndexMaskMemory memory;
-  const IndexMask node_mask = vwpaint::pbvh_gather_generic(depsgraph, ob, vp, brush, memory);
+  const IndexMask node_mask = gather_brush_nodes(ob, brush, memory);
+  vwpaint::update_sculpt_normal(depsgraph, ob, vp, brush, node_mask);
 
   if (auto_mask::is_enabled(vp.paint, ob, &brush)) {
     auto_mask::Cache &cache = auto_mask::stroke_cache_ensure(depsgraph, vp.paint, &brush, ob);

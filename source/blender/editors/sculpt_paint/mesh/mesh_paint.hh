@@ -10,6 +10,7 @@
 #pragma once
 
 #include "BLI_function_ref.hh"
+#include "BLI_index_mask.hh"
 #include "BLI_math_vector_types.hh"
 
 #include "DEG_depsgraph.hh"
@@ -67,5 +68,12 @@ void do_symmetrical_brush_actions_with_tiling_and_feathering(const Depsgraph &de
  */
 void stroke_cache_common_init(
     ViewContext &vc, const Paint &paint, const Brush &brush, Object &object, float2 mval);
+
+/**
+ * Query the BVH based on the current brush being used.
+ *
+ * TODO: Merge this implementation with #pbvh_gather_generic
+ */
+IndexMask gather_brush_nodes(const Object &ob, const Brush &brush, IndexMaskMemory &memory);
 
 }  // namespace blender::ed::sculpt_paint
