@@ -3244,7 +3244,7 @@ static void rna_def_brush(BlenderRNA *brna)
       prop, "Dash Length", "Length of a dash cycle measured in stroke samples");
   RNA_def_property_update(prop, 0, "rna_Brush_update");
 
-  prop = RNA_def_property(srna, "plane_offset", PROP_FLOAT, PROP_DISTANCE);
+  prop = RNA_def_property(srna, "plane_offset", PROP_FLOAT, PROP_NONE);
   RNA_def_property_float_sdna(prop, nullptr, "plane_offset");
   RNA_def_property_float_default(prop, 0);
   RNA_def_property_range(prop, -2.0f, 2.0f);
@@ -3255,7 +3255,7 @@ static void rna_def_brush(BlenderRNA *brna)
       "Adjust plane on which the brush acts towards or away from the object surface");
   RNA_def_property_update(prop, 0, "rna_Brush_update");
 
-  prop = RNA_def_property(srna, "plane_trim", PROP_FLOAT, PROP_DISTANCE);
+  prop = RNA_def_property(srna, "plane_trim", PROP_FLOAT, PROP_NONE);
   RNA_def_property_float_sdna(prop, nullptr, "plane_trim");
   RNA_def_property_range(prop, 0, 1.0f);
   RNA_def_property_ui_text(
