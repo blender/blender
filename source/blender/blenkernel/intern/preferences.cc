@@ -286,7 +286,7 @@ void BKE_preferences_remote_asset_library_url_set(bUserAssetLibrary *library,
            * requests, and only downloads file to one of the directories. */
           std::string{asset_system::online_essentials_cache_directory_path()} :
           asset_system::remote_library_cache_directory_path_from_url(remote_url);
-  STRNCPY_UTF8(library->dirpath, library_dirpath.c_str());
+  STRNCPY(library->dirpath, library_dirpath.c_str());
 }
 
 void BKE_preferences_remote_asset_library_auth_token_set(bUserAssetLibrary *library,
