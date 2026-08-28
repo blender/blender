@@ -272,7 +272,6 @@ class PROJECT_PT_variables(Panel):
         )
 
         col = row.column(align=True)
-        col.use_property_split = True
         col.menu("PROJECT_MT_add_variable", text="", icon='ADD')
         col.operator("project.remove_variable", text="", icon='REMOVE')
         col.separator()
@@ -280,6 +279,7 @@ class PROJECT_PT_variables(Panel):
         col.operator("project.move_variable", text="", icon='TRIA_DOWN').direction = 'DOWN'
 
         col = layout.column()
+        col.use_property_split = True
         col.alignment = 'LEFT'
         col.separator(factor=1)
 
