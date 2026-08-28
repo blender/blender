@@ -447,7 +447,10 @@ void stroke_cache_common_init(
 /** \name BVH Query Helper
  * \{ */
 
-IndexMask gather_brush_nodes(const Object &ob, const Brush &brush, IndexMaskMemory &memory)
+IndexMask gather_brush_nodes(const Object &ob,
+                             const Brush &brush,
+                             IndexMaskMemory &memory,
+                             FunctionRef<bool(const bke::pbvh::Node &)> node_ignore_fn)
 {
   SculptSession &ss = *ob.runtime->sculpt_session;
   const bke::pbvh::Tree &pbvh = *bke::object::pbvh_get(ob);
@@ -456,7 +459,7 @@ IndexMask gather_brush_nodes(const Object &ob, const Brush &brush, IndexMaskMemo
   switch (brush.falloff_shape) {
     case PAINT_FALLOFF_SHAPE_SPHERE:
       return bke::pbvh::search_nodes(pbvh, memory, [&](const bke::pbvh::Node &node) {
-        if (node_fully_masked_or_hidden(node)) {
+        if (node_ignore_fn(node)) {
           return false;
         }
         return node_in_sphere(node, ss.cache->location_symm, ss.cache->radius_squared, true);
@@ -465,7 +468,7 @@ IndexMask gather_brush_nodes(const Object &ob, const Brush &brush, IndexMaskMemo
       const DistRayAABB_Precalc ray_dist_precalc = dist_squared_ray_to_aabb_v3_precalc(
           ss.cache->location_symm, ss.cache->view_normal_symm);
       return bke::pbvh::search_nodes(pbvh, memory, [&](const bke::pbvh::Node &node) {
-        if (node_fully_masked_or_hidden(node)) {
+        if (node_ignore_fn(node)) {
           return false;
         }
         return node_in_cylinder(ray_dist_precalc, node, ss.cache->radius_squared, true);

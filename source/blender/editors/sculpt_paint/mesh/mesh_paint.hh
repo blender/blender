@@ -9,6 +9,8 @@
 
 #pragma once
 
+#include "BKE_paint_bvh.hh"
+
 #include "BLI_function_ref.hh"
 #include "BLI_index_mask.hh"
 #include "BLI_math_vector_types.hh"
@@ -74,6 +76,9 @@ void stroke_cache_common_init(
  *
  * TODO: Merge this implementation with #pbvh_gather_generic
  */
-IndexMask gather_brush_nodes(const Object &ob, const Brush &brush, IndexMaskMemory &memory);
+IndexMask gather_brush_nodes(const Object &ob,
+                             const Brush &brush,
+                             IndexMaskMemory &memory,
+                             FunctionRef<bool(const bke::pbvh::Node &)> node_ignore_fn);
 
 }  // namespace blender::ed::sculpt_paint

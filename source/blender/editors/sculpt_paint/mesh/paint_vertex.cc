@@ -1750,7 +1750,8 @@ static void vpaint_do_paint(const Depsgraph &depsgraph,
   const VPaint &vp = *scene.toolsettings->vpaint;
   Mesh &mesh = *id_cast<Mesh *>(ob.data);
   IndexMaskMemory memory;
-  const IndexMask node_mask = gather_brush_nodes(ob, brush, memory);
+  const IndexMask node_mask = gather_brush_nodes(
+      ob, brush, memory, BKE_pbvh_node_fully_hidden_get);
   vwpaint::update_sculpt_normal(depsgraph, ob, vp, brush, node_mask);
 
   if (auto_mask::is_enabled(vp.paint, ob, &brush)) {
