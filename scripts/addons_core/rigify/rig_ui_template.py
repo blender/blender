@@ -297,11 +297,13 @@ def match_pole_target(view_layer, ik_first, ik_last, pole, match_bone_matrix, le
 ##########
 
 def parse_bone_names(names_string):
+    # If names_string is a string representation of a list of strings,
+    # eg `"['Bone1', 'Bone2']"`, return it as an actual list of strings.
     if names_string[0] == '[' and names_string[-1] == ']':
-        return eval(names_string)
+        import ast
+        return ast.literal_eval(names_string)
     else:
         return names_string
-
 ''']
 
 # noinspection SpellCheckingInspection
@@ -574,10 +576,10 @@ UTILITIES_FUNC_OLD_POLE = ['''
 def rotPoleToggle(rig, limb_type, controls, ik_ctrl, fk_ctrl, parent, pole):
 
     rig_id = rig.data['rig_id']
-    leg_fk2ik = eval('bpy.ops.pose.rigify_leg_fk2ik_' + rig_id)
-    arm_fk2ik = eval('bpy.ops.pose.rigify_arm_fk2ik_' + rig_id)
-    leg_ik2fk = eval('bpy.ops.pose.rigify_leg_ik2fk_' + rig_id)
-    arm_ik2fk = eval('bpy.ops.pose.rigify_arm_ik2fk_' + rig_id)
+    leg_fk2ik = getattr(bpy.ops.pose, 'rigify_leg_fk2ik_' + rig_id)
+    arm_fk2ik = getattr(bpy.ops.pose, 'rigify_arm_fk2ik_' + rig_id)
+    leg_ik2fk = getattr(bpy.ops.pose, 'rigify_leg_ik2fk_' + rig_id)
+    arm_ik2fk = getattr(bpy.ops.pose, 'rigify_arm_ik2fk_' + rig_id)
 
     controls = parse_bone_names(controls)
     ik_ctrl = parse_bone_names(ik_ctrl)
