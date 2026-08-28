@@ -177,6 +177,35 @@ void SummaryChannel::remove_child(AnimationChannel &child)
   this->children_.remove(index);
 }
 
+bool SummaryChannel::is_selected() const
+{
+  if (!this->source_.has_data()) {
+    return false;
+  }
+
+  /* TODO: do we need sub-types for the various source types, or is this enough? */
+  /* TODO: sigh, if only C++ supported switch statements here. */
+  if (this->source_.type == RNA_Action) {
+    animrig::Action *action = this->source_.data_as<animrig::Action>();
+    return flag_is_set(action->flag, ACT_SELECTED);
+  }
+
+  return false;
+}
+
+void SummaryChannel::set_selected(const bool is_selected)
+{
+  if (!this->source_.has_data()) {
+    return;
+  }
+
+  if (this->source_.type == RNA_Action) {
+    animrig::Action *action = this->source_.data_as<animrig::Action>();
+    flag_update(action->flag, ACT_SELECTED, is_selected);
+    return;
+  }
+}
+
 DataChannel::DataChannel(const StringRef label, const DataChannelType source_type)
     : AnimationChannel(AnimationChannelType::DATA, label), source_type_(source_type)
 {
@@ -210,13 +239,13 @@ ChannelTag *DataChannel::get_tag(ChannelTagType tag_type)
   return nullptr;
 }
 
-template<> FCurve *DataChannel::get_source<FCurve *>() const
+template<> FCurve *DataChannel::get_source<FCurve>() const
 {
   BLI_assert(this->source_type_ == DataChannelType::FCURVE);
   return static_cast<FCurve *>(this->source_.data);
 }
 
-template<> GreasePencilLayer *DataChannel::get_source<GreasePencilLayer *>() const
+template<> GreasePencilLayer *DataChannel::get_source<GreasePencilLayer>() const
 {
   BLI_assert(this->source_type_ == DataChannelType::GREASE_PENCIL);
   return static_cast<GreasePencilLayer *>(this->source_.data);
@@ -225,7 +254,7 @@ template<> GreasePencilLayer *DataChannel::get_source<GreasePencilLayer *>() con
 void FCurveChannel::gather_channeldata()
 {
   BLI_assert(this->source_type_ == DataChannelType::FCURVE);
-  const FCurve *fcurve = this->get_source<FCurve *>();
+  const FCurve *fcurve = this->get_source<FCurve>();
   if (!fcurve || !fcurve->bezt) {
     /* Sampled FCurves cannot be edited and don't show up in the dopesheet. */
     return;
@@ -240,11 +269,23 @@ void FCurveChannel::gather_channeldata()
   }
 }
 
+bool FCurveChannel::is_selected() const
+{
+  const FCurve *fcu = this->get_source<FCurve>();
+  return flag_is_set(fcu->flag, FCURVE_SELECTED);
+}
+
+void FCurveChannel::set_selected(const bool is_selected)
+{
+  FCurve *fcu = this->get_source<FCurve>();
+  flag_update(fcu->flag, FCURVE_SELECTED, is_selected);
+}
+
 void GreasePencilChannel::gather_channeldata()
 {
   BLI_assert(this->source_type_ == DataChannelType::GREASE_PENCIL);
 
-  GreasePencilLayer *gp_layer = this->get_source<GreasePencilLayer *>();
+  GreasePencilLayer *gp_layer = this->get_source<GreasePencilLayer>();
   if (!gp_layer) {
     return;
   }
@@ -254,6 +295,17 @@ void GreasePencilChannel::gather_channeldata()
     KeyPoint p((float(frame)));
     this->datapoints_.append(p);
   }
+}
+
+bool GreasePencilChannel::is_selected() const
+{
+  /* TODO: add selection support. */
+  return false;
+}
+
+void GreasePencilChannel::set_selected(const bool /*is_selected*/)
+{
+  /* TODO: add selection support. */
 }
 
 }  // namespace blender::ed::animfilter

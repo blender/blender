@@ -172,6 +172,9 @@ class AnimationChannel {
   }
   Span<KeyPoint> datapoints();
 
+  virtual bool is_selected() const = 0;
+  virtual void set_selected(bool is_selected) = 0;
+
  protected:
   virtual void gather_channeldata() = 0;
 };
@@ -192,6 +195,9 @@ class SummaryChannel final : public AnimationChannel {
   Span<AnimationChannel *> children() const;
   void add_child(AnimationChannel &child);
   void remove_child(AnimationChannel &child);
+
+  bool is_selected() const override;
+  void set_selected(bool is_selected) override;
 
  protected:
   void gather_channeldata() override;
@@ -243,12 +249,15 @@ class DataChannel : public AnimationChannel {
    */
   void set_tags(const ChannelTagStack &tags);
   ChannelTag *get_tag(ChannelTagType tag_type);
-  template<typename T> T get_source() const;
+  template<typename T> T *get_source() const;
 };
 
 class FCurveChannel : public DataChannel {
  public:
   FCurveChannel(animrig::Action &containing_action, FCurve &fcurve);
+
+  bool is_selected() const override;
+  void set_selected(bool is_selected) override;
 
  protected:
   void gather_channeldata() override;
@@ -257,6 +266,9 @@ class FCurveChannel : public DataChannel {
 class GreasePencilChannel : public DataChannel {
  public:
   GreasePencilChannel(GreasePencil &containing_gp, GreasePencilLayer &gp_layer);
+
+  bool is_selected() const override;
+  void set_selected(bool is_selected) override;
 
  protected:
   void gather_channeldata() override;

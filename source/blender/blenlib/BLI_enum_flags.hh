@@ -75,4 +75,14 @@ template<typename T> struct BitwiseNotEnumValue {
                                                                    _enum_type flag_to_test) \
   { \
     return (uint64_t(flags) & uint64_t(flag_to_test)) != 0; \
+  } \
+  [[maybe_unused]] inline void flag_update( \
+      _enum_type &flags, _enum_type flag_to_set, bool new_flag_value) \
+  { \
+    if ((new_flag_value)) { \
+      (flags) |= (flag_to_set); \
+    } \
+    else { \
+      (flags) &= ~(flag_to_set); \
+    } \
   }
