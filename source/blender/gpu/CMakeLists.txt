@@ -532,9 +532,7 @@ endif()
 set(GLSL_SRC
   GPU_shader_shared.hh
 
-  shaders/infos/gpu_clip_planes_infos.hh
   shaders/infos/gpu_index_load_infos.hh
-  shaders/infos/gpu_interface_infos.hh
 
   shaders/infos/gpu_shader_fullscreen_infos.hh
   shaders/infos/gpu_shader_print_infos.hh
