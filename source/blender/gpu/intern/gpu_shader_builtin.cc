@@ -106,7 +106,7 @@ static const char *builtin_shader_create_info_name(GPUBuiltinShader shader)
     case GPU_SHADER_2D_NODELINK:
       return "gpu_shader_2D_nodelink";
     case GPU_SHADER_GPENCIL_STROKE:
-      return "gpu_shader_gpencil_stroke";
+      return "gpu_shader_annotation";
     case GPU_SHADER_SEQUENCER_STRIPS:
       return "gpu_shader_sequencer_strips";
     case GPU_SHADER_SEQUENCER_THUMBS:

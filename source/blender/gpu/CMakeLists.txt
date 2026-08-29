@@ -537,7 +537,6 @@ set(GLSL_SRC
   shaders/infos/gpu_shader_2D_image_overlays_merge_infos.hh
 
   shaders/infos/gpu_shader_fullscreen_infos.hh
-  shaders/infos/gpu_shader_gpencil_stroke_infos.hh
   shaders/infos/gpu_shader_print_infos.hh
   shaders/infos/gpu_shader_sequencer_infos.hh
   shaders/infos/gpu_srgb_to_framebuffer_space_infos.hh
@@ -740,8 +739,7 @@ set(GLSL_SRC
   shaders/material/gpu_shader_material_voronoi.glsl
   shaders/material/gpu_shader_material_wireframe.glsl
 
-  shaders/gpu_shader_gpencil_stroke_vert.glsl
-  shaders/gpu_shader_gpencil_stroke_frag.glsl
+  shaders/gpu_shader_annotation.bsl.hh
 
   shaders/gpu_shader_display_fallback_vert.glsl
   shaders/gpu_shader_display_fallback_frag.glsl

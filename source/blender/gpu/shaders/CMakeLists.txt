@@ -16,14 +16,12 @@ set(INC_GLSL
 
 set(SRC_GLSL_VERT
   gpu_shader_display_fallback_vert.glsl
-  gpu_shader_gpencil_stroke_vert.glsl
   gpu_shader_sequencer_strips_vert.glsl
   gpu_shader_sequencer_thumbs_vert.glsl
 )
 
 set(SRC_GLSL_FRAG
   gpu_shader_display_fallback_frag.glsl
-  gpu_shader_gpencil_stroke_frag.glsl
   gpu_shader_sequencer_scope_frag.glsl
   gpu_shader_sequencer_strips_frag.glsl
   gpu_shader_sequencer_thumbs_frag.glsl
