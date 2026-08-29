@@ -12,6 +12,7 @@ set(INC_GLSL
 
   common
   infos
+  compat
 )
 
 set(SRC_BSL

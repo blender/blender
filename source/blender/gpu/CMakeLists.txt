@@ -36,6 +36,7 @@ set(INC
 
   # For shader includes
   shaders/common
+  shaders/compat
   shaders
 
   ../../../intern/ghost
@@ -218,16 +219,16 @@ set(SRC
   dummy/dummy_framebuffer.hh
   dummy/dummy_vertex_buffer.hh
 
-  shaders/gpu_shader_compat.hh
-  shaders/gpu_shader_compat_cxx.hh
-  shaders/gpu_shader_cxx_attribute.hh
-  shaders/gpu_shader_cxx_builtin.hh
-  shaders/gpu_shader_cxx_global.hh
-  shaders/gpu_shader_cxx_image.hh
-  shaders/gpu_shader_cxx_matrix.hh
-  shaders/gpu_shader_cxx_sampler.hh
-  shaders/gpu_shader_cxx_string.hh
-  shaders/gpu_shader_cxx_vector.hh
+  shaders/compat/gpu_shader_compat.hh
+  shaders/compat/gpu_shader_compat_cxx.hh
+  shaders/compat/gpu_shader_cxx_attribute.hh
+  shaders/compat/gpu_shader_cxx_builtin.hh
+  shaders/compat/gpu_shader_cxx_global.hh
+  shaders/compat/gpu_shader_cxx_image.hh
+  shaders/compat/gpu_shader_cxx_matrix.hh
+  shaders/compat/gpu_shader_cxx_sampler.hh
+  shaders/compat/gpu_shader_cxx_string.hh
+  shaders/compat/gpu_shader_cxx_vector.hh
 )
 
 set(OPENGL_SRC
@@ -739,9 +740,8 @@ set(GLSL_SRC
 
   shaders/gpu_shader_index_gen.bsl.hh
 
-  shaders/gpu_shader_compat_glsl.glsl
-
-  shaders/gpu_shader_glsl_extension.glsl
+  shaders/compat/gpu_shader_compat_glsl.glsl
+  shaders/compat/gpu_shader_glsl_extension.glsl
 
   GPU_shader_shared_utils.hh
 )
@@ -779,20 +779,20 @@ set(MTL_BACKEND_GLSL_SRC
   metal/kernels/gpu_shader_fullscreen_blit_vert.glsl
   metal/kernels/gpu_shader_fullscreen_blit_frag.glsl
 
-  shaders/gpu_shader_msl_atomic.msl
-  shaders/gpu_shader_msl_attribute.msl
-  shaders/gpu_shader_msl_builtin.msl
-  shaders/gpu_shader_msl_image.msl
-  shaders/gpu_shader_msl_matrix_legacy.msl
-  shaders/gpu_shader_msl_matrix.msl
-  shaders/gpu_shader_msl_ray_query.msl
-  shaders/gpu_shader_msl_sampler.msl
-  shaders/gpu_shader_msl_string.msl
-  shaders/gpu_shader_msl_types.msl
-  shaders/gpu_shader_msl_types_legacy.msl
-  shaders/gpu_shader_msl_defines.msl
-  shaders/gpu_shader_msl_wrapper.msl
-  shaders/gpu_shader_compat_msl.msl
+  shaders/compat/gpu_shader_msl_atomic.msl
+  shaders/compat/gpu_shader_msl_attribute.msl
+  shaders/compat/gpu_shader_msl_builtin.msl
+  shaders/compat/gpu_shader_msl_image.msl
+  shaders/compat/gpu_shader_msl_matrix_legacy.msl
+  shaders/compat/gpu_shader_msl_matrix.msl
+  shaders/compat/gpu_shader_msl_ray_query.msl
+  shaders/compat/gpu_shader_msl_sampler.msl
+  shaders/compat/gpu_shader_msl_string.msl
+  shaders/compat/gpu_shader_msl_types.msl
+  shaders/compat/gpu_shader_msl_types_legacy.msl
+  shaders/compat/gpu_shader_msl_defines.msl
+  shaders/compat/gpu_shader_msl_wrapper.msl
+  shaders/compat/gpu_shader_compat_msl.msl
 )
 
 set(MSL_SRC
@@ -833,6 +833,7 @@ set(GLSL_INC
   intern
   shaders
   shaders/common
+  shaders/compat
   shaders/infos
   shaders/material
 
