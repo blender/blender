@@ -14,6 +14,7 @@
 #include "gpu_shader_icon.bsl.hh"              /* IWYU pragma: export */
 #include "gpu_shader_image.bsl.hh"             /* IWYU pragma: export */
 #include "gpu_shader_index_gen.bsl.hh"         /* IWYU pragma: export */
+#include "gpu_shader_polyline.bsl.hh"          /* IWYU pragma: export */
 #include "gpu_shader_simple.bsl.hh"            /* IWYU pragma: export */
 
 void main() {}

@@ -69,13 +69,13 @@ static const char *builtin_shader_create_info_name(GPUBuiltinShader shader)
     case GPU_SHADER_3D_CLIPPED_UNIFORM_COLOR:
       return "gpu_shader_3D_clipped_uniform_color";
     case GPU_SHADER_3D_POLYLINE_UNIFORM_COLOR:
-      return "gpu_shader_3D_polyline_uniform_color";
+      return "gpu_shader_polyline_uniform_color";
     case GPU_SHADER_3D_POLYLINE_CLIPPED_UNIFORM_COLOR:
-      return "gpu_shader_3D_polyline_uniform_color_clipped";
+      return "gpu_shader_polyline_uniform_color_clipped";
     case GPU_SHADER_3D_POLYLINE_FLAT_COLOR:
-      return "gpu_shader_3D_polyline_flat_color";
+      return "gpu_shader_polyline_flat_color";
     case GPU_SHADER_3D_POLYLINE_SMOOTH_COLOR:
-      return "gpu_shader_3D_polyline_smooth_color";
+      return "gpu_shader_polyline_smooth_color";
     case GPU_SHADER_3D_LINE_DASHED_UNIFORM_COLOR:
       return "gpu_shader_3D_line_dashed_uniform_color";
     case GPU_SHADER_2D_POINT_UNIFORM_SIZE_UNIFORM_COLOR_OUTLINE_AA:
@@ -172,7 +172,7 @@ static const char *builtin_shader_create_info_name_clipped(GPUBuiltinShader shad
     case GPU_SHADER_3D_POINT_UNIFORM_SIZE_UNIFORM_COLOR_AA:
       return "gpu_shader_3D_point_uniform_size_uniform_color_aa_clipped";
     case GPU_SHADER_3D_POLYLINE_UNIFORM_COLOR:
-      return "gpu_shader_3D_polyline_uniform_color_clipped";
+      return "gpu_shader_polyline_uniform_color_clipped";
     default:
       BLI_assert_msg(false, "Clipped shader configuration not available.");
       return "";
