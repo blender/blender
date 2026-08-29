@@ -538,7 +538,6 @@ set(GLSL_SRC
 
   shaders/infos/gpu_shader_fullscreen_infos.hh
   shaders/infos/gpu_shader_gpencil_stroke_infos.hh
-  shaders/infos/gpu_shader_keyframe_shape_infos.hh
   shaders/infos/gpu_shader_print_infos.hh
   shaders/infos/gpu_shader_sequencer_infos.hh
   shaders/infos/gpu_shader_text_infos.hh
@@ -557,8 +556,7 @@ set(GLSL_SRC
 
   shaders/gpu_shader_text_vert.glsl
   shaders/gpu_shader_text_frag.glsl
-  shaders/gpu_shader_keyframe_shape_vert.glsl
-  shaders/gpu_shader_keyframe_shape_frag.glsl
+  shaders/gpu_shader_keyframe_shape.bsl.hh
 
   shaders/gpu_shader_sequencer_scope_comp.glsl
   shaders/gpu_shader_sequencer_scope_frag.glsl
