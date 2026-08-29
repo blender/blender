@@ -8,7 +8,7 @@
 #include "gpu_shader_common_color_utils.glsl"
 #include "gpu_shader_fullscreen_lib.glsl"
 
-namespace sequencer {
+namespace sequencer::scope {
 
 /* Match eSpaceSeq_RegionType */
 enum RegionType : int {
@@ -267,8 +267,8 @@ struct FragOut {
   }
 }
 
-}  // namespace sequencer
+}  // namespace sequencer::scope
 
-PipelineCompute gpu_shader_sequencer_scope_raster(sequencer::raster_comp);
-PipelineGraphic gpu_shader_sequencer_scope_resolve(sequencer::resolve_vert,
-                                                   sequencer::resolve_frag);
+PipelineCompute gpu_shader_sequencer_scope_raster(sequencer::scope::raster_comp);
+PipelineGraphic gpu_shader_sequencer_scope_resolve(sequencer::scope::resolve_vert,
+                                                   sequencer::scope::resolve_frag);

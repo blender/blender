@@ -537,7 +537,6 @@ set(GLSL_SRC
 
   shaders/infos/gpu_shader_fullscreen_infos.hh
   shaders/infos/gpu_shader_print_infos.hh
-  shaders/infos/gpu_shader_sequencer_infos.hh
   shaders/infos/gpu_srgb_to_framebuffer_space_infos.hh
 
   shaders/gpu_shader_area_borders.bsl.hh
@@ -546,7 +545,6 @@ set(GLSL_SRC
   shaders/gpu_shader_2D_widget_shadow.bsl.hh
   shaders/gpu_shader_2D_node_socket.bsl.hh
   shaders/gpu_shader_2D_nodelink.bsl.hh
-  shaders/gpu_shader_2D_image_vert.glsl
   shaders/gpu_shader_icon.bsl.hh
   shaders/gpu_shader_polyline.bsl.hh
   shaders/gpu_shader_2D_update_mipmaps.bsl.hh
@@ -555,11 +553,8 @@ set(GLSL_SRC
   shaders/gpu_shader_keyframe_shape.bsl.hh
 
   shaders/gpu_shader_sequencer_scope.bsl.hh
-  shaders/gpu_shader_sequencer_strips_vert.glsl
-  shaders/gpu_shader_sequencer_strips_frag.glsl
-  shaders/gpu_shader_sequencer_thumbs_vert.glsl
-  shaders/gpu_shader_sequencer_thumbs_frag.glsl
-  shaders/gpu_shader_sequencer_zebra_frag.glsl
+  shaders/gpu_shader_sequencer_widget.bsl.hh
+  shaders/gpu_shader_sequencer_zebra.bsl.hh
 
   shaders/gpu_shader_codegen_lib.glsl
 
@@ -614,7 +609,6 @@ set(GLSL_SRC
   shaders/common/gpu_shader_print_lib.glsl
   shaders/common/gpu_shader_ray_utils_lib.glsl
   shaders/common/gpu_shader_ray_lib.glsl
-  shaders/common/gpu_shader_sequencer_lib.glsl
   shaders/common/gpu_shader_shared_exponent_lib.glsl
   shaders/common/gpu_shader_smaa_lib.glsl
   shaders/common/gpu_shader_test_lib.bsl.hh
