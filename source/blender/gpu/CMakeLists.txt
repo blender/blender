@@ -534,7 +534,6 @@ set(GLSL_SRC
   shaders/infos/gpu_clip_planes_infos.hh
   shaders/infos/gpu_index_load_infos.hh
   shaders/infos/gpu_interface_infos.hh
-  shaders/infos/gpu_shader_2D_image_overlays_merge_infos.hh
 
   shaders/infos/gpu_shader_fullscreen_infos.hh
   shaders/infos/gpu_shader_print_infos.hh
@@ -741,8 +740,7 @@ set(GLSL_SRC
 
   shaders/gpu_shader_annotation.bsl.hh
 
-  shaders/gpu_shader_display_fallback_vert.glsl
-  shaders/gpu_shader_display_fallback_frag.glsl
+  shaders/gpu_shader_display_fallback.bsl.hh
 
   shaders/gpu_shader_colorspace_lib.glsl
 
