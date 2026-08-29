@@ -720,7 +720,7 @@ class SEQUENCER_MT_add(Menu):
 
         layout.operator_context = 'INVOKE_REGION_WIN'
         layout.operator("sequencer.effect_strip_add", text="Color", icon='COLOR').type = 'COLOR'
-        layout.operator("sequencer.effect_strip_add", text="Text", icon='FONT_DATA').type = 'TEXT'
+        layout.operator("sequencer.text_strip_add", text="Text", icon='FONT_DATA')
 
         layout.separator()
         total, nonsound = selected_strips_count(context)

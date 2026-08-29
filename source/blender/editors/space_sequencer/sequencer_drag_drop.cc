@@ -10,6 +10,7 @@
 
 #include "DNA_scene_types.h"
 #include "DNA_sound_types.h"
+#include "DNA_text_types.h"
 
 #include "BLI_listbase.hh"
 #include "BLI_math_base_c.hh"
@@ -25,6 +26,7 @@
 #include "BKE_main.hh"
 #include "BKE_mask.hh"
 #include "BKE_movieclip.hh"
+#include "BKE_text.h"
 
 #include "SEQ_add.hh"
 #include "SEQ_channels.hh"
@@ -187,6 +189,26 @@ static bool mask_drop_poll(bContext *C, wmDrag *drag, const wmEvent *event)
 {
   if (WM_drag_is_ID_type(drag, ID_MSK)) {
     return generic_poll_operations(C, event, TH_SEQ_MASK);
+  }
+
+  return false;
+}
+
+static bool is_text(wmDrag *drag)
+{
+  if (drag->type == WM_DRAG_PATH) {
+    return WM_drag_get_paths(drag).size() == 1 &&
+           BLI_path_extension_check(WM_drag_get_single_path(drag), ".txt");
+  }
+  return WM_drag_is_ID_type(drag, ID_TXT);
+}
+
+static bool text_drop_poll(bContext *C, wmDrag *drag, const wmEvent *event)
+{
+  if (is_text(drag) && (drag->type != WM_DRAG_PATH ||
+                        test_single_file_handler_poll(C, drag, "SEQUENCER_FH_text_strip")))
+  {
+    return generic_poll_operations(C, event, TH_SEQ_TEXT);
   }
 
   return false;
@@ -364,6 +386,12 @@ static void sequencer_drop_copy(bContext *C, wmDrag *drag, wmDropBox *drop)
     else if (id_type == ID_MSK) {
       Main *bmain = CTX_data_main(C);
       RNA_enum_set(drop->ptr, "mask", BLI_findindex(&bmain->masks, id));
+    }
+    else if (id_type == ID_TXT) {
+      size_t buf_len;
+      char *buf = txt_to_buf(id_cast<Text *>(id), &buf_len);
+      RNA_string_set(drop->ptr, "text", buf);
+      MEM_delete(buf);
     }
     else if (id_type == ID_SO) {
       bSound *sound = id_cast<bSound *>(id);
@@ -778,6 +806,20 @@ static void mask_drop_on_enter(wmDropBox *drop, wmDrag *drag)
   coords->only_audio = false;
 }
 
+static void text_drop_on_enter(wmDropBox *drop, wmDrag * /*drag*/)
+{
+  if (generic_drop_draw_handling(drop)) {
+    return;
+  }
+
+  SeqDropCoords *coords = static_cast<SeqDropCoords *>(drop->draw_data);
+  coords->strip_length = seq::default_strip_length(coords->fps);
+  coords->num_channels = 1;
+  coords->num_audio = 0;
+  coords->playback_rate = 0.0f;
+  coords->only_audio = false;
+}
+
 static void sequencer_drop_on_exit(wmDropBox *drop, wmDrag * /*drag*/)
 {
   SeqDropCoords *coords = static_cast<SeqDropCoords *>(drop->draw_data);
@@ -846,6 +888,13 @@ static void sequencer_dropboxes_add_to_lb(ListBaseT<wmDropBox> *lb)
   drop->on_exit = sequencer_drop_on_exit;
 
   drop = WM_dropbox_add(
+      lb, "SEQUENCER_OT_text_strip_add", text_drop_poll, sequencer_drop_copy, nullptr, nullptr);
+  drop->draw_droptip = nop_draw_droptip_fn;
+  drop->draw_in_view = draw_strip_in_view;
+  drop->on_enter = text_drop_on_enter;
+  drop->on_exit = sequencer_drop_on_exit;
+
+  drop = WM_dropbox_add(
       lb, "SEQUENCER_OT_sound_strip_add", sound_drop_poll, sequencer_drop_copy, nullptr, nullptr);
   drop->draw_droptip = nop_draw_droptip_fn;
   drop->draw_in_view = draw_strip_in_view;
@@ -898,6 +947,11 @@ static bool mask_drop_preview_poll(bContext * /*C*/, wmDrag *drag, const wmEvent
   return WM_drag_is_ID_type(drag, ID_MSK);
 }
 
+static bool text_drop_preview_poll(bContext * /*C*/, wmDrag *drag, const wmEvent * /*event*/)
+{
+  return is_text(drag);
+}
+
 static bool sound_drop_preview_poll(bContext * /*C*/, wmDrag *drag, const wmEvent * /*event*/)
 {
   if (drag->type == WM_DRAG_PATH) {
@@ -943,6 +997,13 @@ static void sequencer_preview_dropboxes_add_to_lb(ListBaseT<wmDropBox> *lb)
   WM_dropbox_add(lb,
                  "SEQUENCER_OT_mask_strip_add",
                  mask_drop_preview_poll,
+                 sequencer_drop_copy,
+                 nullptr,
+                 nullptr);
+
+  WM_dropbox_add(lb,
+                 "SEQUENCER_OT_text_strip_add",
+                 text_drop_preview_poll,
                  sequencer_drop_copy,
                  nullptr,
                  nullptr);

@@ -16,10 +16,12 @@
 #include "DNA_sound_types.h"
 #include "MEM_guardedalloc.h"
 
+#include "BLI_fileops.hh"
 #include "BLI_listbase.hh"
 #include "BLI_math_base_c.hh"
 #include "BLI_path_utils.hh"
 #include "BLI_string.hh"
+#include "BLI_string_ref.hh"
 #include "BLI_string_utf8.hh"
 #include "BLI_utildefines.hh"
 
@@ -1950,6 +1952,161 @@ void SEQUENCER_OT_image_strip_add(wmOperatorType *ot)
 /** \} */
 
 /* -------------------------------------------------------------------- */
+/** \name Add Text Strip
+ * \{ */
+
+static Strip *sequencer_add_text_strip(bContext *C,
+                                       wmOperator *op,
+                                       seq::LoadData *load_data,
+                                       const StringRef text)
+{
+  Scene *scene = CTX_data_sequencer_scene(C);
+  Editing *ed = seq::editing_ensure(scene);
+
+  load_data->effect.type = STRIP_TYPE_TEXT;
+  Strip *strip = seq::add_effect_strip(scene, ed->current_strips(), load_data);
+  seq_load_apply_generic_options(C, op, strip);
+
+  TextVars *textvars = static_cast<TextVars *>(strip->effectdata);
+  if (!text.is_empty()) {
+    /* Make sure to delete default text ("Text") before overriding it. */
+    MEM_SAFE_DELETE(textvars->text_ptr);
+    textvars->text_ptr = BLI_strdupn(text.data(), text.size());
+    textvars->text_len_bytes = text.size();
+    textvars->cursor_offset = BLI_strlen_utf8(textvars->text_ptr);
+  }
+  textvars->runtime = MEM_new<seq::TextVarsRuntime>(__func__);
+  seq::text_effect_update_runtime(nullptr, *textvars, int2(scene->r.xsch, scene->r.ysch));
+
+  return strip;
+}
+
+static Strip *sequencer_add_text_strip_from_file(bContext *C,
+                                                 wmOperator *op,
+                                                 seq::LoadData *load_data)
+{
+  size_t buf_len;
+  char *buf = BLI_file_read_text_as_mem(load_data->path, 1, &buf_len);
+  if (buf == nullptr) {
+    BKE_reportf(op->reports, RPT_ERROR, "File '%s' could not be loaded", load_data->path);
+    return nullptr;
+  }
+  buf[buf_len] = '\0';
+
+  Strip *strip = sequencer_add_text_strip(C, op, load_data, StringRef(buf, buf_len));
+  MEM_delete(buf);
+
+  return strip;
+}
+
+static wmOperatorStatus sequencer_add_text_strip_exec(bContext *C, wmOperator *op)
+{
+  if ((op->flag & OP_IS_INVOKE) && !WM_operator_poll_or_report_error(C, op->type, op->reports)) {
+    return OPERATOR_CANCELLED;
+  }
+
+  Scene *scene = CTX_data_sequencer_scene(C);
+
+  seq::LoadData load_data;
+  if (!sequencer_add_generic_exec(C, op, &load_data, scene, 1)) {
+    return OPERATOR_CANCELLED;
+  }
+
+  if (RNA_collection_is_empty(op->ptr, "files")) {
+    sequencer_add_text_strip(C, op, &load_data, RNA_string_get(op->ptr, "text"));
+  }
+  else {
+    char directory[FILE_MAX];
+    RNA_string_get(op->ptr, "directory", directory);
+
+    RNA_BEGIN (op->ptr, itemptr, "files") {
+      char filename[FILE_MAX];
+      RNA_string_get(&itemptr, "name", filename);
+      BLI_path_join(load_data.path, sizeof(load_data.path), directory, filename);
+      STRNCPY(load_data.name, filename);
+
+      const Strip *strip = sequencer_add_text_strip_from_file(C, op, &load_data);
+      if (strip != nullptr) {
+        load_data.start_frame += strip->right_handle(scene) - strip->left_handle();
+      }
+    }
+    RNA_END;
+  }
+
+  DEG_id_tag_update(&scene->id, ID_RECALC_SEQUENCER_STRIPS);
+  sequencer_select_do_updates(C, scene);
+  move_strips(C, op);
+
+  sequencer_add_free(C, op);
+
+  return OPERATOR_FINISHED;
+}
+
+static wmOperatorStatus sequencer_add_text_strip_invoke(bContext *C,
+                                                        wmOperator *op,
+                                                        const wmEvent *event)
+{
+  sequencer_add_init(C, op);
+
+  const wmEvent *drop_event = is_drag_and_drop(op, event) ? event : nullptr;
+  sequencer_generic_invoke_xy__internal(
+      C, op, SEQPROP_LENGTH | SEQPROP_NOPATHS, STRIP_TYPE_TEXT, drop_event);
+
+  return sequencer_add_text_strip_exec(C, op);
+}
+
+static bool sequencer_add_text_strip_poll_property(const bContext * /*C*/,
+                                                   wmOperator *op,
+                                                   const PropertyRNA *prop)
+{
+  const char *prop_id = RNA_property_identifier(prop);
+
+  if (STR_ELEM(prop_id, "filepath", "directory", "filename", "relative_path")) {
+    return !RNA_collection_is_empty(op->ptr, "files");
+  }
+  if (STREQ(prop_id, "text")) {
+    return RNA_collection_is_empty(op->ptr, "files");
+  }
+
+  return true;
+}
+
+void SEQUENCER_OT_text_strip_add(wmOperatorType *ot)
+{
+  PropertyRNA *prop;
+
+  /* Identifiers. */
+  ot->name = "Add Text Strip";
+  ot->idname = "SEQUENCER_OT_text_strip_add";
+  ot->description = "Add a text strip to the sequencer";
+
+  /* API callbacks. */
+  ot->invoke = sequencer_add_text_strip_invoke;
+  ot->exec = sequencer_add_text_strip_exec;
+  ot->poll = ED_operator_sequencer_active_editable;
+  ot->poll_property = sequencer_add_text_strip_poll_property;
+  ot->cancel = sequencer_add_free;
+
+  /* Flags. */
+  ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO;
+
+  WM_operator_properties_filesel(ot,
+                                 FILE_TYPE_FOLDER | FILE_TYPE_TEXT,
+                                 FILE_SPECIAL,
+                                 FILE_OPENFILE,
+                                 WM_FILESEL_FILEPATH | WM_FILESEL_RELPATH | WM_FILESEL_FILES |
+                                     WM_FILESEL_DIRECTORY,
+                                 FILE_DEFAULTDISPLAY,
+                                 FILE_SORT_DEFAULT);
+  sequencer_generic_props__internal(ot, SEQPROP_STARTFRAME | SEQPROP_LENGTH | SEQPROP_MOVE);
+  prop = RNA_def_string(
+      ot->srna, "text", nullptr, 0, "Text", "Initialize the strip with this text");
+  RNA_def_property_flag(prop, PROP_SKIP_SAVE);
+}
+
+/** \} */
+
+/* -------------------------------------------------------------------- */
 /** \name Add Effect Strip
  * \{ */
 
@@ -2049,16 +2206,22 @@ static wmOperatorStatus sequencer_add_effect_strip_invoke(bContext *C,
     return OPERATOR_CANCELLED;
   }
 
+  sequencer_add_init(C, op);
+
   int prop_flag = SEQPROP_LENGTH;
   /* When invoking an effect strip which uses inputs, skip guessing of the channel. */
   StripType type = StripType(RNA_enum_get(op->ptr, "type"));
   if (is_op_for_effect_with_inputs(CTX_data_sequencer_scene(C), type)) {
     prop_flag |= SEQPROP_NOCHAN;
   }
+  if (is_drag_and_drop(op, event)) {
+    prop_flag |= SEQPROP_NOPATHS;
+  }
 
   sequencer_generic_invoke_xy__internal(C, op, prop_flag, type, event);
-
-  return sequencer_add_effect_strip_exec(C, op);
+  const wmOperatorStatus retval = sequencer_add_effect_strip_exec(C, op);
+  sequencer_add_free(C, op);
+  return retval;
 }
 
 static bool sequencer_add_effect_strip_poll_property(const bContext *C,
