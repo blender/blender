@@ -33,10 +33,10 @@ set(INC
   vulkan/shaders
   shaders/infos
 
-
   # For shader includes
   shaders/common
   shaders/compat
+  shaders/python
   shaders
 
   ../../../intern/ghost
@@ -559,10 +559,11 @@ set(GLSL_SRC
 
   shaders/gpu_shader_codegen_lib.glsl
 
-  shaders/gpu_shader_python_comp.glsl
-  shaders/gpu_shader_python_frag.glsl
-  shaders/gpu_shader_python_typedef_lib.glsl
-  shaders/gpu_shader_python_vert.glsl
+  shaders/python/gpu_shader_python_colorspace_lib.glsl
+  shaders/python/gpu_shader_python_comp.glsl
+  shaders/python/gpu_shader_python_frag.glsl
+  shaders/python/gpu_shader_python_typedef_lib.glsl
+  shaders/python/gpu_shader_python_vert.glsl
 
   shaders/gpu_shader_image.bsl.hh
   shaders/gpu_shader_simple.bsl.hh
@@ -736,8 +737,6 @@ set(GLSL_SRC
 
   shaders/gpu_shader_display_fallback.bsl.hh
 
-  shaders/gpu_shader_colorspace_lib.glsl
-
   shaders/gpu_shader_index_gen.bsl.hh
 
   shaders/compat/gpu_shader_compat_glsl.glsl
@@ -836,6 +835,7 @@ set(GLSL_INC
   shaders/compat
   shaders/infos
   shaders/material
+  shaders/python
 
   vulkan/shaders
 )

@@ -4,7 +4,7 @@
 
 /**
  * File replaced by the content passed through the python API to
- * `GPUShaderCreateInfo.fragment_source(source)`
+ * `GPUShaderCreateInfo.compute_source(source)`
  *
  * Note that the includes should match this file.
  */
@@ -14,7 +14,7 @@
 #pragma runtime_generated
 
 /* This is a mandatory include for python shader to allow correct color management. */
-#include "gpu_shader_colorspace_lib.glsl"  // IWYU pragma: export
+#include "gpu_shader_python_colorspace_lib.glsl"  // IWYU pragma: export
 
 /* Expose user defined type before resource macros. */
 #include "gpu_shader_python_typedef_lib.glsl"  // IWYU pragma: export
