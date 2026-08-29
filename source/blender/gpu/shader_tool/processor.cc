@@ -44,7 +44,7 @@ SourceProcessor::Result SourceProcessor::convert_glsl()
     str = parser.result_get();
     str = threadgroup_variables_parse_and_remove(str);
   }
-  catch (ParserException &e) {
+  catch (ParserException & /*e*/) {
     /* Output the current source state for inspection. */
     return {parser.result_get(), metadata_, error_handler.err};
   }
@@ -85,7 +85,7 @@ SourceProcessor::Result SourceProcessor::convert_msl()
     lower_preprocessor(parser);
     str = parser.result_get();
   }
-  catch (ParserException &e) {
+  catch (ParserException & /*e*/) {
     /* Output the current source state for inspection. */
     return {parser.result_get(), metadata_, error_handler.err};
   }
@@ -337,7 +337,7 @@ SourceProcessor::Result SourceProcessor::convert_bsl()
 
     str = parser.result_get();
   }
-  catch (ParserException &e) {
+  catch (ParserException & /*e*/) {
     /* Output the current source state for inspection. */
     return {parser.result_get(), metadata_, error_handler.err};
   }
@@ -551,7 +551,7 @@ metadata::Source SourceProcessor::parse_include_and_symbols(SourceManager &sourc
 
     symbols.parse(parser.root(), error_handler);
   }
-  catch (ParserException &e) {
+  catch (ParserException & /*e*/) {
     /* Expect that the parsing will generate error when the file itself is compiled. */
     return {};
   }
