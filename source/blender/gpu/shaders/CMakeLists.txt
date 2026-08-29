@@ -19,7 +19,6 @@ set(SRC_GLSL_VERT
   gpu_shader_gpencil_stroke_vert.glsl
   gpu_shader_sequencer_strips_vert.glsl
   gpu_shader_sequencer_thumbs_vert.glsl
-  gpu_shader_text_vert.glsl
 )
 
 set(SRC_GLSL_FRAG
@@ -29,7 +28,6 @@ set(SRC_GLSL_FRAG
   gpu_shader_sequencer_strips_frag.glsl
   gpu_shader_sequencer_thumbs_frag.glsl
   gpu_shader_sequencer_zebra_frag.glsl
-  gpu_shader_text_frag.glsl
 )
 
 set(SRC_GLSL_COMP

@@ -540,7 +540,6 @@ set(GLSL_SRC
   shaders/infos/gpu_shader_gpencil_stroke_infos.hh
   shaders/infos/gpu_shader_print_infos.hh
   shaders/infos/gpu_shader_sequencer_infos.hh
-  shaders/infos/gpu_shader_text_infos.hh
   shaders/infos/gpu_srgb_to_framebuffer_space_infos.hh
 
   shaders/gpu_shader_area_borders.bsl.hh
@@ -554,8 +553,7 @@ set(GLSL_SRC
   shaders/gpu_shader_polyline.bsl.hh
   shaders/gpu_shader_2D_update_mipmaps.bsl.hh
 
-  shaders/gpu_shader_text_vert.glsl
-  shaders/gpu_shader_text_frag.glsl
+  shaders/gpu_shader_text.bsl.hh
   shaders/gpu_shader_keyframe_shape.bsl.hh
 
   shaders/gpu_shader_sequencer_scope_comp.glsl
