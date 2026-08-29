@@ -155,7 +155,11 @@ PointCloud *convert_gsplat_ply_to_point_cloud(const PlyData &data,
     }
   }
 
-  /* TODO(sergey): Handle conversion denoted in the params. */
+  /* TODO(sergey): Handle coordinate system conversion denoted in the params. */
+  /* For "regular" import (via UI, using File -> Import or by dropping PLY file onto the viewport)
+   * this is handled via object matrix in `importer_main()`. However, some code paths might use
+   * this code directly: for example, geometry nodes. Currently geometry nodes do not provide axis
+   * control for import nodes, so handling coordinate system conversion here is not required. */
 
   accessor.finish();
 

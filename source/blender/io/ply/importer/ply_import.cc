@@ -373,6 +373,9 @@ void importer_main(Main *bmain,
       IO_AXIS_Y, IO_AXIS_Z, import_params.forward_axis, import_params.up_axis, obmat3x3);
   copy_m4_m3(obmat4x4, obmat3x3);
   rescale_m4(obmat4x4, scale_vec);
+  /* Note that this applies rot/scale on the object level, it does not affect the geometry.
+   * Meaning, it works correctly for both meshes and gaussian splats without anything else needed
+   * to transform the spherical harmonics. */
   BKE_object_apply_mat4(obj, obmat4x4, true, false);
 
   DEG_id_tag_update(&lc->collection->id, ID_RECALC_SYNC_TO_EVAL);
