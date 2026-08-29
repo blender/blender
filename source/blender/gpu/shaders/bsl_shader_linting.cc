@@ -18,6 +18,7 @@
 #include "gpu_shader_index_gen.bsl.hh"         /* IWYU pragma: export */
 #include "gpu_shader_keyframe_shape.bsl.hh"    /* IWYU pragma: export */
 #include "gpu_shader_polyline.bsl.hh"          /* IWYU pragma: export */
+#include "gpu_shader_sequencer_scope.bsl.hh"   /* IWYU pragma: export */
 #include "gpu_shader_simple.bsl.hh"            /* IWYU pragma: export */
 #include "gpu_shader_text.bsl.hh"              /* IWYU pragma: export */
 

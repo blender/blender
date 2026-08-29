@@ -554,8 +554,7 @@ set(GLSL_SRC
   shaders/gpu_shader_text.bsl.hh
   shaders/gpu_shader_keyframe_shape.bsl.hh
 
-  shaders/gpu_shader_sequencer_scope_comp.glsl
-  shaders/gpu_shader_sequencer_scope_frag.glsl
+  shaders/gpu_shader_sequencer_scope.bsl.hh
   shaders/gpu_shader_sequencer_strips_vert.glsl
   shaders/gpu_shader_sequencer_strips_frag.glsl
   shaders/gpu_shader_sequencer_thumbs_vert.glsl

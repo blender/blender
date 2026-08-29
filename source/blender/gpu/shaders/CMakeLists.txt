@@ -20,14 +20,9 @@ set(SRC_GLSL_VERT
 )
 
 set(SRC_GLSL_FRAG
-  gpu_shader_sequencer_scope_frag.glsl
   gpu_shader_sequencer_strips_frag.glsl
   gpu_shader_sequencer_thumbs_frag.glsl
   gpu_shader_sequencer_zebra_frag.glsl
-)
-
-set(SRC_GLSL_COMP
-  gpu_shader_sequencer_scope_comp.glsl
 )
 
 set(SRC_VULKAN_GLSL_COMP
@@ -51,7 +46,6 @@ set(SRC_GLSL_LIB
 if(WITH_GPU_SHADER_CPP_COMPILATION)
   compile_sources_as_cpp(gpu_cpp_shaders_vert "${SRC_GLSL_VERT}" "GPU_VERTEX_SHADER")
   compile_sources_as_cpp(gpu_cpp_shaders_frag "${SRC_GLSL_FRAG}" "GPU_FRAGMENT_SHADER")
-  compile_sources_as_cpp(gpu_cpp_shaders_comp "${SRC_GLSL_COMP}" "GPU_COMPUTE_SHADER")
   compile_sources_as_cpp(gpu_cpp_shaders_bsl  "${SRC_BSL}" "")
   # Only enable to make sure they compile on their own.
   # Otherwise it creates a warning about `pragma once`.
