@@ -83,8 +83,33 @@ constexpr int dim_for_degree(const int degree)
   }
 }
 
+static bool is_builtin_gsplat_attribute(StringRefNull name)
+{
+  if (name == "f_dc_0" || name == "f_dc_1" || name == "f_dc_2") {
+    return true;
+  }
+
+  if (name == "opacity") {
+    return true;
+  }
+
+  if (name == "scale_0" || name == "scale_1" || name == "scale_2") {
+    return true;
+  }
+
+  if (name == "rot_0" || name == "rot_1" || name == "rot_2" || name == "rot_3") {
+    return true;
+  }
+
+  if (name.startswith("f_rest_")) {
+    return true;
+  }
+
+  return false;
+}
+
 PointCloud *convert_gsplat_ply_to_point_cloud(const PlyData &data,
-                                              const PLYImportParams & /*params*/)
+                                              const PLYImportParams &params)
 {
   if (!validate::size_fits_in_int(data.vertices.size())) {
     return BKE_pointcloud_new_nomain(0, PT_RENDER_AS_SPLATS);
@@ -163,7 +188,17 @@ PointCloud *convert_gsplat_ply_to_point_cloud(const PlyData &data,
 
   accessor.finish();
 
-  /* TODO(sergey): Handle params.import_attributes. */
+  if (params.import_attributes) {
+    bke::MutableAttributeAccessor attributes = point_cloud->attributes_for_write();
+    for (const PlyCustomAttribute &attr : data.vertex_custom_attr) {
+      if (is_builtin_gsplat_attribute(attr.name)) {
+        continue;
+      }
+      attributes.add<float>(attr.name,
+                            bke::AttrDomain::Point,
+                            bke::AttributeInitVArray(VArray<float>::from_span(attr.data)));
+    }
+  }
 
   return point_cloud;
 }
