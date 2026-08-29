@@ -20,6 +20,8 @@
 #include "BLI_string_utf8.hh"
 #include "BLI_string_utils.hh"
 
+#include "BLT_translation.hh"
+
 #include "BKE_context.hh"
 #include "BKE_file_handler.hh"
 #include "BKE_image.hh"
@@ -34,6 +36,7 @@
 #include "SEQ_sequencer.hh"
 #include "SEQ_transform.hh"
 
+#include "UI_interface_c.hh"
 #include "UI_resources.hh"
 #include "UI_view2d.hh"
 
@@ -43,6 +46,7 @@
 #include "ED_screen.hh"
 #include "ED_transform.hh"
 
+#include "IMB_colormanagement.hh"
 #include "IMB_imbuf_types.hh"
 
 #include "MOV_read.hh"
@@ -214,6 +218,15 @@ static bool text_drop_poll(bContext *C, wmDrag *drag, const wmEvent *event)
   return false;
 }
 
+static bool color_drop_poll(bContext *C, wmDrag *drag, const wmEvent *event)
+{
+  if (drag->type == WM_DRAG_COLOR) {
+    return generic_poll_operations(C, event, TH_SEQ_COLOR);
+  }
+
+  return false;
+}
+
 static bool is_sound(wmDrag *drag)
 {
   if (drag->type == WM_DRAG_PATH) {
@@ -361,6 +374,18 @@ static void sequencer_drop_copy(bContext *C, wmDrag *drag, wmDropBox *drop)
     }
   }
 
+  if (drag->type == WM_DRAG_COLOR) {
+    const ui::DragColorHandle *drag_info = static_cast<ui::DragColorHandle *>(drag->poin);
+    float4 color = drag_info->color;
+    if (!drag_info->gamma_corrected) {
+      IMB_colormanagement_scene_linear_to_srgb_v3(color, color);
+    }
+
+    RNA_enum_set(drop->ptr, "type", STRIP_TYPE_COLOR);
+    RNA_float_set_array(drop->ptr, "color", color);
+    return;
+  }
+
   ID *id = WM_drag_get_local_ID_or_import_from_asset(C, drag, 0);
   /* ID dropped. */
   if (id != nullptr) {
@@ -426,6 +451,11 @@ static void sequencer_drop_copy(bContext *C, wmDrag *drag, wmDropBox *drop)
 /** Return whether or not a filepath could be resolved, fallback to the ID name. */
 static bool get_drag_path(const bContext *C, wmDrag *drag, char r_path[FILE_MAX])
 {
+  if (drag->type == WM_DRAG_COLOR) {
+    BLI_strncpy(r_path, IFACE_("Color"), FILE_MAX);
+    return false;
+  }
+
   ID *id = WM_drag_get_local_ID_or_import_from_asset(C, drag, 0);
   /* ID dropped. */
   if (id != nullptr) {
@@ -820,6 +850,20 @@ static void text_drop_on_enter(wmDropBox *drop, wmDrag * /*drag*/)
   coords->only_audio = false;
 }
 
+static void color_drop_on_enter(wmDropBox *drop, wmDrag * /*drag*/)
+{
+  if (generic_drop_draw_handling(drop)) {
+    return;
+  }
+
+  SeqDropCoords *coords = static_cast<SeqDropCoords *>(drop->draw_data);
+  coords->strip_length = seq::default_strip_length(coords->fps);
+  coords->num_channels = 1;
+  coords->num_audio = 0;
+  coords->playback_rate = 0.0f;
+  coords->only_audio = false;
+}
+
 static void sequencer_drop_on_exit(wmDropBox *drop, wmDrag * /*drag*/)
 {
   SeqDropCoords *coords = static_cast<SeqDropCoords *>(drop->draw_data);
@@ -895,6 +939,13 @@ static void sequencer_dropboxes_add_to_lb(ListBaseT<wmDropBox> *lb)
   drop->on_exit = sequencer_drop_on_exit;
 
   drop = WM_dropbox_add(
+      lb, "SEQUENCER_OT_effect_strip_add", color_drop_poll, sequencer_drop_copy, nullptr, nullptr);
+  drop->draw_droptip = nop_draw_droptip_fn;
+  drop->draw_in_view = draw_strip_in_view;
+  drop->on_enter = color_drop_on_enter;
+  drop->on_exit = sequencer_drop_on_exit;
+
+  drop = WM_dropbox_add(
       lb, "SEQUENCER_OT_sound_strip_add", sound_drop_poll, sequencer_drop_copy, nullptr, nullptr);
   drop->draw_droptip = nop_draw_droptip_fn;
   drop->draw_in_view = draw_strip_in_view;
@@ -952,6 +1003,11 @@ static bool text_drop_preview_poll(bContext * /*C*/, wmDrag *drag, const wmEvent
   return is_text(drag);
 }
 
+static bool color_drop_preview_poll(bContext * /*C*/, wmDrag *drag, const wmEvent * /*event*/)
+{
+  return drag->type == WM_DRAG_COLOR;
+}
+
 static bool sound_drop_preview_poll(bContext * /*C*/, wmDrag *drag, const wmEvent * /*event*/)
 {
   if (drag->type == WM_DRAG_PATH) {
@@ -1004,6 +1060,13 @@ static void sequencer_preview_dropboxes_add_to_lb(ListBaseT<wmDropBox> *lb)
   WM_dropbox_add(lb,
                  "SEQUENCER_OT_text_strip_add",
                  text_drop_preview_poll,
+                 sequencer_drop_copy,
+                 nullptr,
+                 nullptr);
+
+  WM_dropbox_add(lb,
+                 "SEQUENCER_OT_effect_strip_add",
+                 color_drop_preview_poll,
                  sequencer_drop_copy,
                  nullptr,
                  nullptr);

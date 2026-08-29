@@ -2350,6 +2350,7 @@ void SEQUENCER_OT_effect_strip_add(wmOperatorType *ot)
                              0.0f,
                              1.0f);
   RNA_def_property_subtype(prop, PROP_COLOR_GAMMA);
+  RNA_def_property_flag(prop, PROP_SKIP_SAVE);
 }
 
 /** \} */
