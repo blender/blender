@@ -542,13 +542,13 @@ set(GLSL_SRC
 
   shaders/gpu_shader_area_borders.bsl.hh
 
-  shaders/gpu_shader_2D_widget_base.bsl.hh
-  shaders/gpu_shader_2D_widget_shadow.bsl.hh
-  shaders/gpu_shader_2D_node_socket.bsl.hh
-  shaders/gpu_shader_2D_nodelink.bsl.hh
+  shaders/gpu_shader_widget_base.bsl.hh
+  shaders/gpu_shader_widget_shadow.bsl.hh
+  shaders/gpu_shader_node_socket.bsl.hh
+  shaders/gpu_shader_nodelink.bsl.hh
   shaders/gpu_shader_icon.bsl.hh
   shaders/gpu_shader_polyline.bsl.hh
-  shaders/gpu_shader_2D_update_mipmaps.bsl.hh
+  shaders/gpu_shader_update_mipmaps.bsl.hh
 
   shaders/gpu_shader_text.bsl.hh
   shaders/gpu_shader_keyframe_shape.bsl.hh
