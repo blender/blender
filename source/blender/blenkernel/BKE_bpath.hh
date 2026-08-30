@@ -26,6 +26,7 @@ struct ID;
 struct Main;
 struct ReportList;
 
+/* -------------------------------------------------------------------- */
 /** \name Core `foreach_path` API.
  * \{ */
 
@@ -165,6 +166,7 @@ void BKE_bpath_foreach_path_main(BPathForeachPathData *bpath_data);
 
 /** \} */
 
+/* -------------------------------------------------------------------- */
 /** \name Helpers to handle common cases from `IDTypeInfo`'s `foreach_path` functions.
  * \{ */
 
@@ -226,6 +228,7 @@ bool BKE_bpath_foreach_path_allocated_process(BPathForeachPathData *bpath_data, 
 
 /** \} */
 
+/* -------------------------------------------------------------------- */
 /** \name High level features.
  * \{ */
 

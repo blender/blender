@@ -347,6 +347,7 @@ typedef GHashIterState GSetIterState;
 
 /** \} */
 
+/* -------------------------------------------------------------------- */
 /** \name GSet Public API
  *
  * Use ghash API to give 'set' functionality
