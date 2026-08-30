@@ -129,12 +129,7 @@ static void trans_obchild_in_obmode_update_all(TransInfo *t)
 
 /* -------------------------------------------------------------------- */
 /** \name Object Transform Creation
- *
- * Instead of transforming the selection, move the 2D/3D cursor.
- *
  * \{ */
-
-/* *********************** Object Transform data ******************* */
 
 /**
  * Transcribe given object into TransData for Transforming.
@@ -778,7 +773,7 @@ static bool motionpath_need_update_object(Scene *scene, Object *ob)
 /** \} */
 
 /* -------------------------------------------------------------------- */
-/** \name Recalc Data object
+/** \name Recalc Data Object
  * \{ */
 
 /* Given the transform mode `tmode` return a Vector of RNA paths that were possibly modified during

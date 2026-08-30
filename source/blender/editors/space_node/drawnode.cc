@@ -76,7 +76,9 @@ namespace ed::space_node {
 /* Default flags for Layout::prop(). Name is kept short since this is used a lot in this file. */
 #define DEFAULT_FLAGS ui::ITEM_R_SPLIT_EMPTY_NAME
 
-/* ****************** SOCKET BUTTON DRAW FUNCTIONS ***************** */
+/* -------------------------------------------------------------------- */
+/** \name Socket Button Draw Callbacks
+ * \{ */
 
 static void node_socket_button_label(bContext * /*C*/,
                                      ui::Layout *layout,
@@ -87,7 +89,11 @@ static void node_socket_button_label(bContext * /*C*/,
   layout->label(text, ICON_NONE);
 }
 
-/* ****************** BUTTON CALLBACKS FOR ALL TREES ***************** */
+/** \} */
+
+/* -------------------------------------------------------------------- */
+/** \name Button Callbacks for All Trees
+ * \{ */
 
 static void node_buts_mix_rgb(ui::Layout &layout, bContext * /*C*/, PointerRNA *ptr)
 {
@@ -195,6 +201,12 @@ static void node_buts_combsep_color(ui::Layout &layout, bContext * /*C*/, Pointe
   layout.prop(ptr, "mode", DEFAULT_FLAGS, "", ICON_NONE);
 }
 
+/** \} */
+
+/* -------------------------------------------------------------------- */
+/** \name Node Resize Direction
+ * \{ */
+
 NodeResizeDirection node_get_resize_direction(const SpaceNode &snode,
                                               const bNode *node,
                                               const int x,
@@ -253,7 +265,11 @@ NodeResizeDirection node_get_resize_direction(const SpaceNode &snode,
   return dir;
 }
 
-/* ****************** BUTTON CALLBACKS FOR COMMON NODES ***************** */
+/** \} */
+
+/* -------------------------------------------------------------------- */
+/** \name Button Callbacks for Common Nodes
+ * \{ */
 
 static void node_draw_buttons_group(ui::Layout &layout, bContext *C, PointerRNA *ptr)
 {
@@ -279,7 +295,11 @@ static void node_common_set_butfunc(bke::bNodeType *ntype)
   }
 }
 
-/* ****************** BUTTON CALLBACKS FOR SHADER NODES ***************** */
+/** \} */
+
+/* -------------------------------------------------------------------- */
+/** \name Button Callbacks for Shader Nodes
+ * \{ */
 
 static void node_buts_image_user(ui::Layout &layout,
                                  bContext *C,
@@ -481,7 +501,11 @@ static void node_shader_set_butfunc(bke::bNodeType *ntype)
   }
 }
 
-/* ****************** BUTTON CALLBACKS FOR COMPOSITE NODES ***************** */
+/** \} */
+
+/* -------------------------------------------------------------------- */
+/** \name Button Callbacks for Composite Nodes
+ * \{ */
 
 static void node_buts_image_views(ui::Layout &layout,
                                   bContext * /*C*/,
@@ -649,7 +673,11 @@ static void node_composit_set_butfunc(bke::bNodeType *ntype)
   }
 }
 
-/* ****************** BUTTON CALLBACKS FOR TEXTURE NODES ***************** */
+/** \} */
+
+/* -------------------------------------------------------------------- */
+/** \name Button Callbacks for Texture Nodes
+ * \{ */
 
 static void node_texture_buts_bricks(ui::Layout &layout, bContext * /*C*/, PointerRNA *ptr)
 {
@@ -858,6 +886,8 @@ static void node_texture_set_butfunc(bke::bNodeType *ntype)
   }
 }
 
+/** \} */
+
 /* -------------------------------------------------------------------- */
 /** \name Init Draw Callbacks For All Tree Types
  *
@@ -940,6 +970,10 @@ static void node_socket_undefined_interface_draw(ID * /*id*/,
 
 }  // namespace ed::space_node
 
+/* -------------------------------------------------------------------- */
+/** \name Init Draw Callbacks
+ * \{ */
+
 void ED_node_init_butfuncs()
 {
   using namespace blender::ed::space_node;
@@ -979,7 +1013,13 @@ void ED_init_custom_node_socket_type(bke::bNodeSocketType *stype)
   stype->draw = ed::space_node::node_socket_button_label;
 }
 
+/** \} */
+
 namespace ed::space_node {
+
+/* -------------------------------------------------------------------- */
+/** \name Standard Socket Colors
+ * \{ */
 
 static const float virtual_node_socket_color[4] = {0.2, 0.2, 0.2, 1.0};
 
@@ -1051,6 +1091,12 @@ static const SocketColorFn std_node_socket_color_funcs[] = {
     std_node_socket_color_fn<SOCK_MASK>,       std_node_socket_color_fn<SOCK_SOUND>,
     std_node_socket_color_fn<SOCK_INT_VECTOR>,
 };
+
+/** \} */
+
+/* -------------------------------------------------------------------- */
+/** \name Standard Socket Drawing
+ * \{ */
 
 static bool socket_needs_attribute_search(bNode &node, bNodeSocket &socket)
 {
@@ -1624,7 +1670,13 @@ static void node_socket_virtual_draw_color_simple(const bke::bNodeSocketType * /
   copy_v4_v4(r_color, virtual_node_socket_color);
 }
 
+/** \} */
+
 }  // namespace ed::space_node
+
+/* -------------------------------------------------------------------- */
+/** \name Socket Type Init
+ * \{ */
 
 void ED_init_standard_node_socket_type(bke::bNodeSocketType *stype)
 {
@@ -1660,9 +1712,13 @@ void ED_node_type_draw_color(const char *idname, float *r_color)
   copy_v4_v4(r_color, std_node_socket_colors[typeinfo->type]);
 }
 
+/** \} */
+
 namespace ed::space_node {
 
-/* ************** Generic drawing ************** */
+/* -------------------------------------------------------------------- */
+/** \name Generic Drawing
+ * \{ */
 
 void draw_nodespace_back_pix(const bContext &C,
                              ARegion &region,
@@ -1819,6 +1875,8 @@ void node_link_bezier_points_evaluated(const bNodeLink &link,
                                 NODE_LINK_RESOL,
                                 sizeof(float2));
 }
+
+/** \} */
 
 /* -------------------------------------------------------------------- */
 /** \name Node Socket Drawing

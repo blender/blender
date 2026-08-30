@@ -1347,9 +1347,6 @@ const float *brush_frontface_normal_from_falloff_shape(const SculptSession &ss, 
   return ss.cache->view_normal_symm;
 }
 
-/* ===== Sculpting =====
- */
-
 /** \} */
 
 /* -------------------------------------------------------------------- */

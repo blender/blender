@@ -57,7 +57,9 @@ namespace blender {
  * - Joshua Leung, Dec 2008
  */
 
-/* **************************************************** */
+/* -------------------------------------------------------------------- */
+/** \name Duplicate Keys
+ * \{ */
 
 bool duplicate_fcurve_keys(FCurve *fcu)
 {
@@ -93,6 +95,8 @@ bool duplicate_fcurve_keys(FCurve *fcu)
   }
   return changed;
 }
+
+/** \} */
 
 /* -------------------------------------------------------------------- */
 /** \name Various Tools

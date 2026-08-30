@@ -2,6 +2,10 @@
  *
  * SPDX-License-Identifier: GPL-2.0-or-later */
 
+/** \file
+ * \ingroup edsculpt
+ */
+
 /* Paint a color made from hash of node pointer. */
 // #define DEBUG_PIXEL_NODES
 
@@ -690,7 +694,6 @@ static void do_paint_pixels(const Depsgraph &depsgraph,
 }
 
 /* -------------------------------------------------------------------- */
-
 /** \name Fix non-manifold edge bleeding.
  * \{ */
 

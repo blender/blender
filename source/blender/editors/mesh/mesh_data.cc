@@ -46,6 +46,10 @@
 
 namespace blender {
 
+/* -------------------------------------------------------------------- */
+/** \name UV Layer API
+ * \{ */
+
 static void mesh_uv_reset_array(float **fuv, const int len)
 {
   if (len == 3) {
@@ -265,6 +269,12 @@ void ED_mesh_uv_ensure(Mesh *mesh, const char *name)
   }
 }
 
+/** \} */
+
+/* -------------------------------------------------------------------- */
+/** \name Color Layer API
+ * \{ */
+
 std::string ED_mesh_color_add(Mesh *mesh,
                               const char *name,
                               const bool active_set,
@@ -345,7 +355,11 @@ bool ED_mesh_color_ensure(Mesh *mesh, const char *name)
   return true;
 }
 
-/*********************** UV texture operators ************************/
+/** \} */
+
+/* -------------------------------------------------------------------- */
+/** \name UV Map Operators
+ * \{ */
 
 static bool uv_maps_poll(bContext *C)
 {
@@ -443,6 +457,12 @@ void MESH_OT_uv_texture_remove(wmOperatorType *ot)
 
   ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO;
 }
+
+/** \} */
+
+/* -------------------------------------------------------------------- */
+/** \name Custom Data Layer Operators
+ * \{ */
 
 static bool mesh_customdata_mask_clear_poll(bContext *C)
 {
@@ -741,6 +761,12 @@ void MESH_OT_customdata_custom_splitnormals_clear(wmOperatorType *ot)
   ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO;
 }
 
+/** \} */
+
+/* -------------------------------------------------------------------- */
+/** \name Add Geometry
+ * \{ */
+
 static void mesh_add_verts(Mesh *mesh, int len)
 {
   if (len == 0) {
@@ -850,10 +876,6 @@ static void mesh_add_faces(Mesh *mesh, int len)
   select_poly.span.take_back(len).fill(true);
   select_poly.finish();
 }
-
-/* -------------------------------------------------------------------- */
-/** \name Add Geometry
- * \{ */
 
 void ED_mesh_verts_add(Mesh *mesh, ReportList *reports, int count)
 {
@@ -1007,6 +1029,10 @@ void ED_mesh_geometry_clear(Mesh *mesh)
 
 /** \} */
 
+/* -------------------------------------------------------------------- */
+/** \name Miscellaneous Public API
+ * \{ */
+
 void ED_mesh_report_mirror_ex(ReportList &reports, int totmirr, int totfail, char selectmode)
 {
   const char *elem_type;
@@ -1092,5 +1118,7 @@ void ED_mesh_split_faces(Mesh *mesh)
 
   geometry::split_edges(*mesh, split_mask, {});
 }
+
+/** \} */
 
 }  // namespace blender

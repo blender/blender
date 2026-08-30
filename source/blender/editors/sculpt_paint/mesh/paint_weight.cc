@@ -1768,6 +1768,7 @@ void PAINT_OT_weight_paint_toggle(wmOperatorType *ot)
 
 /** \} */
 
+/* -------------------------------------------------------------------- */
 /** \name Weight Paint Operator
  * \{ */
 
