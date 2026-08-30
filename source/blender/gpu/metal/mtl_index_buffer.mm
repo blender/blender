@@ -275,6 +275,7 @@ void MTLIndexBuf::flag_can_optimize(bool can_optimize)
 
 /** \} */
 
+/* -------------------------------------------------------------------- */
 /** \name Index buffer optimization and topology emulation
  *
  * Index buffer optimization and emulation. Optimize index buffers by
