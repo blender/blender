@@ -219,6 +219,13 @@ static void blender_camera_from_object(BlenderCamera *bcam,
                                        blender::Main &b_data,
                                        bool skip_panorama = false)
 {
+  bcam->motion_steps = object_motion_steps(b_ob, b_ob);
+
+  if (!b_ob.data) {
+    /* A blender local camera can be an Empty even. */
+    return;
+  }
+
   blender::ID &b_ob_data = *static_cast<blender::ID *>(b_ob.data);
 
   if (GS(b_ob_data.name) == blender::ID_CA) {
@@ -361,8 +368,6 @@ static void blender_camera_from_object(BlenderCamera *bcam,
       bcam->lens = lens;
     }
   }
-
-  bcam->motion_steps = object_motion_steps(b_ob, b_ob);
 }
 
 static Transform blender_camera_matrix(const Transform &tfm,
