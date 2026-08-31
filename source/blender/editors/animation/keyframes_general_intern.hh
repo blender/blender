@@ -138,7 +138,24 @@ bool pastebuf_match_path_full(Main *bmain,
 
 /**
  * Medium strict paste buffer matching method: match the property name (so not the entire RNA path)
- * and the array index.
+ * and the array index, but only if the RNA path has the same number of components. For example,
+ * `a.b.c` and `d.e.c` match, but `a.c` does not.
+ */
+bool pastebuf_match_path_property_and_component_length(
+    Main *bmain,
+    const FCurve &fcurve_to_match,
+    const FCurve &fcurve_in_copy_buffer,
+    animrig::slot_handle_t slot_handle_in_copy_buffer,
+    bool from_single,
+    bool to_single,
+    bool flip);
+
+/**
+ * Medium strict paste buffer matching method: match the property name (so not the entire RNA path)
+ * and the array index. This ignores the number of components, so `c` and `a.b.c` will match.
+ *
+ * For RNA paths that end in a lookup index (like `locations[0]`), the property name preceeding the
+ * index needs to match too.
  */
 bool pastebuf_match_path_property(Main *bmain,
                                   const FCurve &fcurve_to_match,
