@@ -5711,11 +5711,11 @@ bool SculptPaintStroke::test_start(wmOperator *op, const float2 mouse)
   /* Don't start the stroke until `mouse` goes over the mesh. */
   if (over_mesh(*this->depsgraph, this->vc, *sculpt_, this->brush, op, mouse)) {
     Object &ob = *this->object;
-    Brush *brush = this->brush;
+    Brush &brush = *this->brush;
 
     /* NOTE: This should be removed when paint mode is available. Paint mode can force based on the
      * canvas it is painting on. (ref. use_sculpt_texture_paint). */
-    if (brush && brush_type_is_paint(brush->sculpt_brush_type) &&
+    if (brush_type_is_paint(brush.sculpt_brush_type) &&
         !SCULPT_use_image_paint_brush(*paint_mode_settings_, ob))
     {
       View3D *v3d = this->vc.v3d;
@@ -5726,10 +5726,10 @@ bool SculptPaintStroke::test_start(wmOperator *op, const float2 mouse)
 
     stroke_cache_init(
         this->vc, *sculpt_, this->paint_mode_settings_, *this->brush, *this->object, mouse);
-    if (brush && brush_type_is_paint(brush->sculpt_brush_type)) {
-      BKE_curvemapping_init(brush->curve_rand_hue);
-      BKE_curvemapping_init(brush->curve_rand_saturation);
-      BKE_curvemapping_init(brush->curve_rand_value);
+    if (brush_type_is_paint(brush.sculpt_brush_type)) {
+      BKE_curvemapping_init(brush.curve_rand_hue);
+      BKE_curvemapping_init(brush.curve_rand_saturation);
+      BKE_curvemapping_init(brush.curve_rand_value);
     }
 
     cursor_geometry_info_update(*this->depsgraph, *paint, sculpt_, this->vc, base_, mouse, false);
