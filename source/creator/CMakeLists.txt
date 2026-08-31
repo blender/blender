@@ -334,6 +334,17 @@ if(WITH_PYTHON_MODULE)
     )
   endif()
 
+elseif(ANDROID)
+  list(APPEND SRC
+    creator_android.cc
+  )
+  list(APPEND LIB
+    bf::dependencies::optional::sdl
+  )
+
+  # Creates `libblender.so`, loaded by SDLActivity from the APK, which then calls
+  # the Android specific SDL main entry point in creator_android.cc.
+  add_library(blender SHARED ${SRC})
 else()
   add_executable(blender ${EXETYPE} ${SRC})
   if(WITH_CPU_CHECK)

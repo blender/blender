@@ -122,3 +122,7 @@ extern char build_system[];
 }
 
 }  // namespace blender
+
+#ifdef __ANDROID__
+int creator_main(int argc, const char **argv);
+#endif

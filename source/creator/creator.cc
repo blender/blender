@@ -327,14 +327,21 @@ extern "C" int GHOST_HACK_getFirstFile(char buf[]);
  * - run #WM_main() event loop,
  *   or exit immediately when running in background-mode.
  */
-int main(int argc,
-#ifdef USE_WIN32_UNICODE_ARGS
-         const char ** /*argv_c*/
+#ifdef __ANDROID__
+/* On Android, the creator entry point is defined in creator_android.cc, handled by SDL_main
+ * and called by the Android BlenderActivity (subclass of SDLActivity). */
+int creator_main(int argc, const char **argv)
+{
 #else
+int main(int argc,
+#  ifdef USE_WIN32_UNICODE_ARGS
+         const char ** /*argv_c*/
+#  else
          const char **argv
-#endif
+#  endif
 )
 {
+#endif
   using namespace blender;
 
   bContext *C;
