@@ -79,7 +79,7 @@ VectorSet<Strip *> selected_strips_from_context(bContext *C);
 StripSelection pick_strip_and_handle(const struct Scene *scene,
                                      const View2D *v2d,
                                      float mouse_co[2]);
-bool can_select_handle(const Scene *scene, const Strip *strip, const View2D *v2d);
+bool can_select_handle(const Scene *scene, const Strip *strip);
 bool handle_is_selected(const Strip *strip, eStripHandle handle);
 
 bool is_scene_time_sync_needed(const bContext &C);

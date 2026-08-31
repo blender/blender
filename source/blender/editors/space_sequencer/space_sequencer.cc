@@ -738,7 +738,7 @@ static void sequencer_main_cursor(wmWindow *win, ScrArea *area, ARegion *region)
     return;
   }
 
-  if (!can_select_handle(scene, selection.strip1, v2d)) {
+  if (!can_select_handle(scene, selection.strip1)) {
     WM_cursor_set(win, wmcursor);
     return;
   }
