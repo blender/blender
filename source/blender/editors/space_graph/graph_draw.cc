@@ -77,10 +77,8 @@ static IndexRange get_bounding_bezt_index_range(const FCurve *fcu,
 /** \} */
 
 /* -------------------------------------------------------------------- */
-/** \name FCurve Modifier Drawing
+/** \name F-Curve Modifier Drawing
  * \{ */
-
-/* Envelope -------------- */
 
 /* TODO: draw a shaded poly showing the region of influence too!!! */
 /**
@@ -157,10 +155,8 @@ static void draw_fcurve_modifier_controls_envelope(FModifier *fcm,
 /** \} */
 
 /* -------------------------------------------------------------------- */
-/** \name FCurve Modifier Drawing
+/** \name F-Curve Points
  * \{ */
-
-/* Points ---------------- */
 
 /* helper func - set color to draw F-Curve data with */
 static void set_fcurve_vertex_color(FCurve *fcu, bool sel)
@@ -416,7 +412,11 @@ static void draw_fcurve_vertices(ARegion *region,
   GPU_blend(GPU_BLEND_NONE);
 }
 
-/* Handles ---------------- */
+/** \} */
+
+/* -------------------------------------------------------------------- */
+/** \name F-Curve Handles
+ * \{ */
 
 static bool draw_fcurve_handles_check(const SpaceGraph *sipo, const FCurve *fcu)
 {
@@ -535,7 +535,11 @@ static void draw_fcurve_handles(SpaceGraph *sipo, ARegion *region, const FCurve 
   }
 }
 
-/* Samples ---------------- */
+/** \} */
+
+/* -------------------------------------------------------------------- */
+/** \name F-Curve Samples
+ * \{ */
 
 /* helper func - draw keyframe vertices only for an F-Curve */
 static void draw_fcurve_samples(ARegion *region, const FCurve *fcu, const float unit_scale)
@@ -579,7 +583,11 @@ static void draw_fcurve_samples(ARegion *region, const FCurve *fcu, const float 
   }
 }
 
-/* Curve ---------------- */
+/** \} */
+
+/* -------------------------------------------------------------------- */
+/** \name F-Curve Drawing
+ * \{ */
 
 /* Helper func - just draw the F-Curve by sampling the visible region
  * (for drawing curves with modifiers). */
@@ -1303,7 +1311,11 @@ static void draw_fcurve(bAnimContext *ac, SpaceGraph *sipo, ARegion *region, bAn
   ANIM_nla_mapping_apply_if_needed_fcurve(ale, static_cast<FCurve *>(ale->key_data), true, false);
 }
 
-/* Debugging -------------------------------- */
+/** \} */
+
+/* -------------------------------------------------------------------- */
+/** \name Driver Debugging
+ * \{ */
 
 /* Draw indicators which show the value calculated from the driver,
  * and how this is mapped to the value that comes out of it. This
@@ -1422,7 +1434,11 @@ static void graph_draw_driver_debug(bAnimContext *ac, ID *id, FCurve *fcu)
   immUnbindProgram();
 }
 
-/* Public Curve-Drawing API  ---------------- */
+/** \} */
+
+/* -------------------------------------------------------------------- */
+/** \name Public Curve-Drawing API
+ * \{ */
 
 void graph_draw_ghost_curves(bAnimContext *ac, SpaceGraph *sipo, ARegion *region)
 {

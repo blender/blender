@@ -1,10 +1,10 @@
 
 msgid ""
 msgstr ""
-"Project-Id-Version: Blender 5.3.0 Alpha (b'09417042a1fa')\n"
+"Project-Id-Version: Blender 5.3.0 Alpha (b'32296898e057')\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-08-24 07:38+0000\n"
-"PO-Revision-Date: 2026-08-21 13:55+0000\n"
+"POT-Creation-Date: 2026-08-31 07:41+0000\n"
+"PO-Revision-Date: 2026-08-30 14:10+0000\n"
 "Last-Translator: Alexandr Fatih <radix83@rambler.ru>\n"
 "Language-Team: Russian <https://translate.blender.org/projects/blender-ui/ui/ru/>\n"
 "Language: ru\n"
@@ -2044,6 +2044,14 @@ msgid "When \"Follow Asset or Preferences\" is selected for the import method in
 msgstr "Когда для метода импорта в браузере ассетов выбран вариант \"Как у ассета или в настройках (follow asset or preferences)\", использоваться будет предпочтительный метод импорта, заданный для этого ассета"
 
 
+msgid "Webpage"
+msgstr "Веб-страница"
+
+
+msgid "WebpageWeb-address to a page with more information about this asset"
+msgstr "Веб-адрес страницы с дополнительной информацией об этом ассете"
+
+
 msgid "Asset Representation"
 msgstr "Представление ассета"
 
@@ -3989,16 +3997,36 @@ msgid "A color space, view or display was not found, which likely means the Open
 msgstr "Цветовое пространство вида или отображения не найдено, что, вероятно, означает отсутствие конфигурации OpenColorIO, используемой для создания этого blend-файла"
 
 
+msgctxt "Color Management"
+msgid "Working Space"
+msgstr "Рабочее пространство"
+
+
 msgid "Color space used for all scene linear colors in this file, and for compositing, shader and geometry nodes processing"
 msgstr "Цветовое пространство, используемое для всех линейных цветов сцены в этом файле, а также для компо́зитинга, обработки шейдеров и геометрических нод"
+
+
+msgctxt "Color Management"
+msgid "Linear Rec.709"
+msgstr "Линейный Rec.709"
 
 
 msgid "Linear BT.709 with illuminant D65 white point"
 msgstr "Линейный BT.709 с точкой белого, соответствующей источнику света D65"
 
 
+msgctxt "Color Management"
+msgid "Linear Rec.2020"
+msgstr "Линейный Rec.2020"
+
+
 msgid "Linear BT.2020 with illuminant D65 white point"
 msgstr "Линейный BT.2020 с точкой белого, соответствующей источнику света D65"
+
+
+msgctxt "Color Management"
+msgid "ACEScg"
+msgstr "ACEScg"
 
 
 msgid "Linear AP1 with ACES white point"
@@ -4210,16 +4238,12 @@ msgid "Collection of source libraries, i.e. blendfile paths"
 msgstr "Коллекция исходных библиотек, в том числе путей к файлам blend"
 
 
-msgid "Blendfile Import Context Library"
-msgstr "Контекстная библиотека импорта файла .blend"
-
-
-msgid "Library (blendfile) reference in a BlendImportContext data. Currently only exposed as read-only data for the pre/post blendimport handlers"
-msgstr "Ссылка на библиотеку (blend-файл) в данных контекста импорта. В настоящее время доступны только для чтения для обработчиков до/после импорта файлов .blend"
-
-
 msgid "Blender Project"
 msgstr "Проект Blender'а"
+
+
+msgid "Active Asset Library"
+msgstr "Активная библиотека ассетов"
 
 
 msgid "Dirty"
@@ -6521,7 +6545,7 @@ msgstr "Рисование влияет только на штрихи, не н�
 
 
 msgid "Fill"
-msgstr "Заполнить"
+msgstr "Заполнение"
 
 
 msgid "Painting affects only fills, not strokes"
@@ -6638,7 +6662,7 @@ msgstr "Пространство, используемое для отображ
 
 
 msgid "Clip User"
-msgstr "Пользователь дорожки"
+msgstr "Пользователь фрагмента"
 
 
 msgid "Parameters defining which frame of the movie clip is displayed"
@@ -6761,7 +6785,7 @@ msgstr "Видеофрагмент"
 
 
 msgid "Camera Clip"
-msgstr "Дорожка камеры"
+msgstr "Видеофрагмент камеры"
 
 
 msgid "Use movie clip from active scene camera"
@@ -7832,8 +7856,18 @@ msgid "Color management specific to display device"
 msgstr "Управление цветом для устройств вывода"
 
 
+msgctxt "Color Management"
+msgid "Display"
+msgstr "Отображение"
+
+
 msgid "Display name. For viewing, this is the display device that will be emulated by limiting the gamut and HDR colors. For image and video output, this is the display space used for writing."
 msgstr "Имя устройства отображения. Для просмотра - это дисплей, который будет эмулироваться с ограничением цветового охвата и цветов HDR. Для вывода изображений и видео - это пространство отображения, используемое для записи."
+
+
+msgctxt "Color Management"
+msgid "None"
+msgstr "Нет"
 
 
 msgid "Display Emulation"
@@ -7864,228 +7898,513 @@ msgid "Treat image as non-color data without color management, like normal or di
 msgstr "Использовать «сырые» значения каналов изображения без применения цветового профиля; применяется, например, для карт нормалей или высот"
 
 
+msgctxt "Color Management"
+msgid "Input Color Space"
+msgstr "Входное цветовое пространство"
+
+
 msgid "Color space in the image file, to convert to and from when saving and loading the image"
 msgstr "Цветовое пространство изображения, из которого и в которое его нужно конвертировать при сохранении и загрузке"
+
+
+msgctxt "Color Management"
+msgid "ACES 1.3 sRGB"
+msgstr "ACES 1.3 sRGB"
 
 
 msgid "ACES 1.3 view transform for sRGB. May be used to convert backplates or matte paintings to the working space."
 msgstr "Преобразование вида ACES 1.3 для sRGB. Может использоваться для преобразования фоновых изображений или дорисо́вок в рабочее пространство."
 
 
+msgctxt "Color Management"
+msgid "ACES 2.0 sRGB"
+msgstr "ACES 2.0 sRGB"
+
+
 msgid "ACES 2.0 view transform for sRGB. May be used to convert backplates or matte paintings to the working space."
 msgstr "Преобразование вида ACES 2.0 для sRGB. Может использоваться для преобразования фоновых изображений или дорисо́вок в рабочее пространство."
+
+
+msgctxt "Color Management"
+msgid "ACES2065-1"
+msgstr "ACES2065-1"
 
 
 msgid "Linear AP0 with ACES white point"
 msgstr "Линейный AP0 с точкой белого ACES"
 
 
+msgctxt "Color Management"
+msgid "ACEScc"
+msgstr "ACEScc"
+
+
 msgid "ACES color correction space, using AP1 primaries."
 msgstr "Пространство цветокоррекции ACES с использованием основных цветов AP1."
+
+
+msgctxt "Color Management"
+msgid "ACEScct"
+msgstr "ACEScct"
 
 
 msgid "ACES color correction space with toe, using AP1 primaries."
 msgstr "Пространство цветокоррекции ACES с изгибом в своей нижней части кривой, с использованием основных цветов AP1."
 
 
+msgctxt "Color Management"
+msgid "ADX10"
+msgstr "ADX10"
+
+
 msgid "Film scan input space using ADX10 encoding."
 msgstr "Входное пространство отсканированной плёнки, использующее кодирование ADX10."
+
+
+msgctxt "Color Management"
+msgid "ADX16"
+msgstr "ADX16"
 
 
 msgid "Film scan input space using ADX16 encoding."
 msgstr "Входное пространство отсканированной плёнки, использующее кодирование ADX16."
 
 
+msgctxt "Color Management"
+msgid "ARRI LogC3 (EI800)"
+msgstr "ARRI LogC3 (EI800)"
+
+
 msgid "ARRI camera input space using LogC3 (EI800) transfer function and ARRI Wide Gamut primaries."
 msgstr "Входное пространство камеры ARRI, использующее функцию передачи LogC3 (EI800) и основные цвета ARRI Wide Gamut."
+
+
+msgctxt "Color Management"
+msgid "ARRI LogC4"
+msgstr "ARRI LogC4"
 
 
 msgid "ARRI camera input space using LogC4 transfer function and ARRI Wide Gamut 4 primaries."
 msgstr "Входное пространство камеры ARRI, использующее функцию передачи LogC4 и основные цвета ARRI Wide Gamut 4."
 
 
+msgctxt "Color Management"
+msgid "AgX Base sRGB"
+msgstr "AgX Base sRGB"
+
+
 msgid "AgX view transform for sRGB. May be used to convert backplates or matte paintings to the working space."
 msgstr "Преобразование вида AgX для sRGB. Может использоваться для преобразования фоновых изображений или дорисо́вок в рабочее пространство."
+
+
+msgctxt "Color Management"
+msgid "AgX Log"
+msgstr "AgX Log"
 
 
 msgid "Log Encoding with Chroma inset and rotation of primaries, and with 25 Stops of Dynamic Range"
 msgstr "Log-энкодинг со вставкой цветности, вращением основных цветов, и динамическим диапазоном в 25 ступеней"
 
 
+msgctxt "Color Management"
+msgid "Apple Log"
+msgstr "Apple Log"
+
+
 msgid "Apple camera input space using Apple Log transfer function and Rec.2020 primaries."
 msgstr "Входное пространство камеры Apple, использующее функцию передачи Apple Log и основные цвета Rec.2020."
+
+
+msgctxt "Color Management"
+msgid "Apple Log 2"
+msgstr "Apple Log 2"
 
 
 msgid "Apple camera input space using Apple Log transfer function and Apple Wide Gamut primaries."
 msgstr "Входное пространство камеры Apple, использующее функцию передачи Apple Log и основные цвета Apple Wide Gamut."
 
 
+msgctxt "Color Management"
+msgid "BMDFilm WideGamut Gen5"
+msgstr "BMDFilm WideGamut Gen5"
+
+
 msgid "Blackmagic camera input space using BMDFilm Gen5 transfer function and Blackmagic Wide Gamut Gen5 primaries."
 msgstr "Входное пространство камеры Blackmagic, использующее функцию передачи BMDFilm Gen5 и основные цвета Blackmagic Wide Gamut Gen5."
+
+
+msgctxt "Color Management"
+msgid "CanonLog2 CinemaGamut D55"
+msgstr "CanonLog2 CinemaGamut D55"
 
 
 msgid "Canon camera input space using Canon-Log2 transfer function and Cinema Gamut primaries."
 msgstr "Входное пространство камеры Canon, использующее функцию передачи Canon-Log2 и основные цвета Cinema Gamut."
 
 
+msgctxt "Color Management"
+msgid "CanonLog3 CinemaGamut D55"
+msgstr "CanonLog3 CinemaGamut D55"
+
+
 msgid "Canon camera input space using Canon-Log3 transfer function and Cinema Gamut primaries."
 msgstr "Входное пространство камеры Canon, использующее функцию передачи Canon-Log3 и основные цвета D-Gamut."
+
+
+msgctxt "Color Management"
+msgid "D-Log D-Gamut"
+msgstr "D-Log D-Gamut"
 
 
 msgid "DJI camera input space using D-Log transfer function and D-Gamut primaries."
 msgstr "Входное пространство камеры DJI, использующее функцию передачи D-Log и основные цвета D-Gamut."
 
 
+msgctxt "Color Management"
+msgid "DaVinci Intermediate WideGamut"
+msgstr "DaVinci Intermediate WideGamut"
+
+
 msgid "Blackmagic camera input space using DaVinci Intermediate transfer function and DaVinci Wide Gamut primaries."
 msgstr "Входное пространство камеры Blackmagic, использующее промежуточную функцию передачи DaVinci и основные цвета DaVinci Wide Gamut."
+
+
+msgctxt "Color Management"
+msgid "Display P3"
+msgstr "Display P3"
 
 
 msgid "Apple's Display P3 with sRGB compound (piece-wise) encoding transfer function, common on Mac devices"
 msgstr "Дисплей Apple P3 с функцией составного (поэлементного) кодирования sRGB, распространённого на устройствах Mac"
 
 
+msgctxt "Color Management"
+msgid "Filmic Log"
+msgstr "Filmic Log"
+
+
 msgid "Log based filmic shaper with 16.5 stops of latitude, and 25 stops of dynamic range"
 msgstr "Формирователь кинофильмов на основе логарифма с широтой 16,5 ступеней и динамическим диапазоном 25 ступеней"
+
+
+msgctxt "Color Management"
+msgid "Filmic sRGB"
+msgstr "Filmic sRGB"
 
 
 msgid "Filmic view transform for sRGB. May be used to convert backplates or matte paintings to the working space."
 msgstr "Преобразование вида Filmic для sRGB. Может использоваться для преобразования фоновых изображений или дорисо́вок в рабочее пространство."
 
 
+msgctxt "Color Management"
+msgid "Gamma 1.8 Encoded Rec.709"
+msgstr "Rec.709 с гамма-кодированием 1.8"
+
+
 msgid "1.8 gamma-encoded Rec.709 with illuminant D65 white point. For use with scene-referred textures."
 msgstr "Rec.709 с гамма-кодированием 1.8 и точкой белого, соответствующей источнику света D65. Для использования с текстурами, привязанными к сцене."
+
+
+msgctxt "Color Management"
+msgid "Gamma 2.2 Encoded AP1"
+msgstr "AP1 с гамма-кодированием 2.2"
 
 
 msgid "2.2 gamma-encoded AP1 with ACES white point. For use with scene-referred textures."
 msgstr "AP1 с гамма-кодированием 2.2 и точкой белого, соответствующей источнику света ACES. Для использования с текстурами, привязанными к сцене."
 
 
+msgctxt "Color Management"
+msgid "Gamma 2.2 Encoded AdobeRGB"
+msgstr "AdobeRGB с гамма-кодированием 2.2"
+
+
 msgid "2.2 gamma-encoded Adobe RGB (1998) with illuminant D65 white point. For use with scene-referred textures."
 msgstr "Adobe RGB (1998) с гамма-кодированием 2.2 и точкой белого, соответствующей источнику света D65. Для использования с текстурами, привязанными к сцене."
+
+
+msgctxt "Color Management"
+msgid "Gamma 2.2 Encoded Rec.709"
+msgstr "Rec.709 с гамма-кодированием 2.2"
 
 
 msgid "2.2 gamma-encoded Rec.709 with illuminant D65 white point. For use with scene-referred textures."
 msgstr "Rec.709 с гамма-кодированием 2.2 и точкой белого, соответствующей источнику света D65. Для использования с текстурами, привязанными к сцене."
 
 
+msgctxt "Color Management"
+msgid "Gamma 2.4 Encoded Rec.709"
+msgstr "Rec.709 с гамма-кодированием 2.4"
+
+
 msgid "2.4 gamma-encoded Rec.709 with illuminant D65 white point. For use with scene-referred textures."
 msgstr "Rec.709 с гамма-кодированием 2.4 и точкой белого, соответствующей источнику света D65. Для использования с текстурами, привязанными к сцене."
+
+
+msgctxt "Color Management"
+msgid "Khronos PBR Neutral sRGB"
+msgstr "Khronos PBR Neutral sRGB"
 
 
 msgid "Khronos PBR Neutral view transform for sRGB. May be used to convert backplates or matte paintings to the working space."
 msgstr "Преобразование вида Khronos PBR Neutral для sRGB. Может использоваться для преобразования фоновых изображений или дорисо́вок в рабочее пространство."
 
 
+msgctxt "Color Management"
+msgid "Linear ARRI Wide Gamut 3"
+msgstr "Линейный ARRI Wide Gamut 3"
+
+
 msgid "ARRI camera input space using linear ARRI Wide Gamut primaries."
 msgstr "Входное пространство камеры ARRI, использующее линейные основные цвета ARRI Wide Gamut."
+
+
+msgctxt "Color Management"
+msgid "Linear ARRI Wide Gamut 4"
+msgstr "Линейный ARRI Wide Gamut 4"
 
 
 msgid "ARRI camera input space using linear ARRI Wide Gamut 4 primaries."
 msgstr "Входное пространство камеры ARRI, использующее линейные основные цвета ARRI Wide Gamut 4."
 
 
+msgctxt "Color Management"
+msgid "Linear Adobe RGB"
+msgstr "Линейный Adobe RGB"
+
+
 msgid "Linear Adobe RGB (1998) with illuminant D65 white point. For use with scene-referred textures."
 msgstr "Линейный Adobe RGB (1998) с точкой белого, соответствующей источнику света D65. Для использования с текстурами, привязанными к сцене."
+
+
+msgctxt "Color Management"
+msgid "Linear Apple Wide Gamut"
+msgstr "Линейный Apple Wide Gamut"
 
 
 msgid "Apple camera input space using linear Apple Wide Gamut primaries."
 msgstr "Входное пространство камеры Apple, использующее линейные основные цвета Apple Wide Gamut."
 
 
+msgctxt "Color Management"
+msgid "Linear BMD WideGamut Gen5"
+msgstr "Линейный BMD WideGamut Gen5"
+
+
 msgid "Blackmagic camera input space using linear Blackmagic Wide Gamut Gen5 primaries."
 msgstr "Входное пространство камеры Blackmagic, использующее линейные основные цвета Blackmagic Wide Gamut Gen5."
+
+
+msgctxt "Color Management"
+msgid "Linear CIE-XYZ D65"
+msgstr "Линейный CIE-XYZ D65"
 
 
 msgid "1931 CIE XYZ with adapted illuminant D65 white point"
 msgstr "1931 CIE XYZ с адаптированной точкой белого, соответствующей источнику света D65"
 
 
+msgctxt "Color Management"
+msgid "Linear CIE-XYZ E"
+msgstr "Линейный CIE-XYZ E"
+
+
 msgid "1931 CIE XYZ standard with assumed illuminant E white point"
 msgstr "Стандарт CIE XYZ 1931 года с предполагаемой точкой белого источника света E"
+
+
+msgctxt "Color Management"
+msgid "Linear CinemaGamut D55"
+msgstr "Линейный CinemaGamut D55"
 
 
 msgid "Canon camera input space using linear Cinema Gamut primaries."
 msgstr "Входное пространство камеры Canon, использующее линейные основные цвета Cinema Gamut."
 
 
+msgctxt "Color Management"
+msgid "Linear D-Gamut"
+msgstr "Линейный D-Gamut"
+
+
 msgid "DJI camera input space using linear D-Gamut primaries."
 msgstr "Входное пространство камеры DJI, использующее линейные основные цвета D-Gamut."
+
+
+msgctxt "Color Management"
+msgid "Linear DCI-P3 D65"
+msgstr "Линейный DCI-P3 D65"
 
 
 msgid "Linear DCI-P3 with illuminant D65 white point"
 msgstr "Линейный DCI-P3 с точкой белого, соответствующей источнику света D65"
 
 
+msgctxt "Color Management"
+msgid "Linear DaVinci WideGamut"
+msgstr "Линейный DaVinci WideGamut"
+
+
 msgid "Blackmagic camera input space using linear DaVinci Wide Gamut primaries."
 msgstr "Входное пространство камеры Blackmagic, использующее линейные основные цвета DaVinci Wide Gamut."
+
+
+msgctxt "Color Management"
+msgid "Linear FilmLight E-Gamut"
+msgstr "Линейный FilmLight E-Gamut"
 
 
 msgid "Linear E-Gamut with illuminant D65 white point"
 msgstr "Линейный E-Gamut с точкой белого, соответствующей источнику света D65"
 
 
+msgctxt "Color Management"
+msgid "Linear REDWideGamutRGB"
+msgstr "Линейный REDWideGamutRGB"
+
+
 msgid "RED camera input space using linear REDWideGamutRGB primaries."
 msgstr "Входное пространство камеры RED, использующее линейные основные цвета REDWideGamutRGB."
+
+
+msgctxt "Color Management"
+msgid "Linear S-Gamut3"
+msgstr "Линейный S-Gamut3"
 
 
 msgid "Sony camera input space using linear S-Gamut3 primaries."
 msgstr "Входное пространство камеры Sony, использующее линейные основные цвета S-Gamut3."
 
 
+msgctxt "Color Management"
+msgid "Linear S-Gamut3.Cine"
+msgstr "Линейный S-Gamut3.Cine"
+
+
 msgid "Sony camera input space using linear S-Gamut3.Cine primaries."
 msgstr "Входное пространство камеры Sony, использующее линейные основные цвета S-Gamut3.Cine."
+
+
+msgctxt "Color Management"
+msgid "Linear V-Gamut"
+msgstr "Линейный V-Gamut"
 
 
 msgid "Panasonic camera input space using linear V-Gamut primaries."
 msgstr "Входное пространство камеры Panasonic, использующее линейные основные цвета V-Gamut."
 
 
+msgctxt "Color Management"
+msgid "Linear Venice S-Gamut3"
+msgstr "Линейный Venice S-Gamut3"
+
+
 msgid "Sony camera input space using linear Venice S-Gamut3 primaries."
 msgstr "Входное пространство камеры Sony, использующее линейные основные цвета Venice S-Gamut3."
+
+
+msgctxt "Color Management"
+msgid "Linear Venice S-Gamut3.Cine"
+msgstr "Линейный Venice S-Gamut3.Cine"
 
 
 msgid "Sony camera input space using linear Venice S-Gamut3.Cine primaries."
 msgstr "Входное пространство камеры Sony, использующее линейные основные цвета Venice S-Gamut3.Cine."
 
 
+msgctxt "Color Management"
+msgid "Log3G10 REDWideGamutRGB"
+msgstr "Log3G10 REDWideGamutRGB"
+
+
 msgid "RED camera input space using REDLog3G10 transfer function and REDWideGamutRGB primaries."
 msgstr "Входное пространство камеры RED, использующее функцию передачи REDLog3G10 и основные цвета REDWideGamutRGB."
+
+
+msgctxt "Color Management"
+msgid "Non-Color"
+msgstr "Нецветовое"
 
 
 msgid "Generic data that is not color, will not apply any color transform (e.g. normal maps)"
 msgstr "Общие данные, не являющиеся цветом, не будут применять никаких преобразований цвета (например, карты нормалей)"
 
 
+msgctxt "Color Management"
+msgid "Rec.1886"
+msgstr "Rec.1886"
+
+
 msgid "BT.1886 2.4 Exponent EOTF Display, commonly used for TVs"
 msgstr "BT.1886 со степенной функцией 2.4 EOTF дисплей, часто используется для телевизоров"
+
+
+msgctxt "Color Management"
+msgid "Rec.2020"
+msgstr "Rec.2020"
 
 
 msgid "BT.2020 2.4 Exponent EOTF Display"
 msgstr "BT.2020 со степенной функцией 2.4 EOTF дисплей"
 
 
+msgctxt "Color Management"
+msgid "Rec.2100-HLG"
+msgstr "Rec.2100-HLG"
+
+
 msgid "Rec.2100-HLG 1000 nits peak display with reference white at 100 nits"
 msgstr "Пиковое отображение яркости Rec.2100-HLG составляет 1000 нит при эталонном уровне белого в 100 нит"
+
+
+msgctxt "Color Management"
+msgid "Rec.2100-PQ"
+msgstr "Rec.2100-PQ"
 
 
 msgid "Rec.2100-PQ 10000 nits peak display with reference white at 100 nits"
 msgstr "Пиковое отображение яркости Rec.2100-PQ составляет 10000 нит при эталонном уровне белого в 100 нит"
 
 
+msgctxt "Color Management"
+msgid "S-Log3 S-Gamut3"
+msgstr "S-Log3 S-Gamut3"
+
+
 msgid "Sony camera input space using S-Log3 transfer function and S-Gamut3 primaries."
 msgstr "Входное пространство камеры Sony, использующее функцию передачи S-Log3 и основные цвета S-Gamut3."
+
+
+msgctxt "Color Management"
+msgid "S-Log3 S-Gamut3.Cine"
+msgstr "S-Log3 S-Gamut3.Cine"
 
 
 msgid "Sony camera input space using S-Log3 transfer function and S-Gamut3.Cine primaries."
 msgstr "Входное пространство камеры Sony, использующее функцию передачи S-Log3 и основные цвета S-Gamut3.Cine."
 
 
+msgctxt "Color Management"
+msgid "S-Log3 Venice S-Gamut3"
+msgstr "S-Log3 Venice S-Gamut3"
+
+
 msgid "Sony camera input space using S-Log3 transfer function and Venice S-Gamut3 primaries."
 msgstr "Входное пространство камеры Sony, использующее функцию передачи S-Log3 и основные цвета Venice S-Gamut3."
 
 
+msgctxt "Color Management"
+msgid "S-Log3 Venice S-Gamut3.Cine"
+msgstr "S-Log3 Venice S-Gamut3.Cine"
+
+
 msgid "Sony camera input space using S-Log3 transfer function and Venice S-Gamut3.Cine primaries."
 msgstr "Входное пространство камеры Sony, использующее функцию передачи S-Log3 и основные цвета Venice S-Gamut3.Cine."
+
+
+msgctxt "Color Management"
+msgid "V-Log V-Gamut"
+msgstr "V-Log V-Gamut"
 
 
 msgid "Panasonic camera input space using V-Log transfer function and V-Gamut primaries."
@@ -8110,6 +8429,11 @@ msgstr "Рабочее цветовое пространство текущег�
 
 msgid "Do not perform any color transform on load, treat colors as in scene linear space already"
 msgstr "Не выполнять цветовое преобразование при загрузке, считать, что цвета уже в линейном пространстве сцены"
+
+
+msgctxt "Color Management"
+msgid "Color Space"
+msgstr "Цветовое пространство"
 
 
 msgid "Color space that the sequencer operates in"
@@ -8152,6 +8476,11 @@ msgid "The display and view transform supports high dynamic range colors"
 msgstr "Преобразование отображения и представления поддерживают цвета с расширенным динамическим диапазоном"
 
 
+msgctxt "Color Management"
+msgid "Look"
+msgstr "Вид"
+
+
 msgid "Additional transform applied before view transform for artistic needs"
 msgstr "Дополнительное преобразование, применяемое перед видовым преобразованием"
 
@@ -8182,6 +8511,11 @@ msgstr "Использовать баланс белого"
 
 msgid "Perform chromatic adaption from a different white point"
 msgstr "Выполнять хроматическую адаптацию из другой белой точки"
+
+
+msgctxt "Color Management"
+msgid "View"
+msgstr "Вид"
 
 
 msgid "View used when converting image to a display space"
@@ -8463,6 +8797,14 @@ msgstr "Элементы градиентной карты"
 
 msgid "Collection of Color Ramp Elements"
 msgstr "Коллекция элементов градиентной карты"
+
+
+msgid "Identifier"
+msgstr "Идентификатор"
+
+
+msgid "Consistent identifier used for the item"
+msgstr "Последовательный идентификатор, используемый для элемента"
 
 
 msgid "Console Input"
@@ -13166,10 +13508,6 @@ msgstr "Определение выбора в свойстве RNA перечи
 
 msgid "Description of the item's purpose"
 msgstr "Описание предназначения элемента"
-
-
-msgid "Identifier"
-msgstr "Идентификатор"
 
 
 msgid "Unique name used in the code and scripting"
@@ -18147,7 +18485,7 @@ msgstr "Отображать все во время взаимодействия
 
 
 msgid "Exclude Modal"
-msgstr "Исключить модальные"
+msgstr "Исключить модально"
 
 
 msgid "Show all except this group while interacting"
@@ -21510,23 +21848,43 @@ msgstr "Автоматическая регулировка интенсивно
 
 
 msgid "Use Unified Color"
-msgstr "Общий цвет"
+msgstr "Использовать единый цвет"
+
+
+msgid "Use shared color for this brush"
+msgstr "Использовать общий цвет для этой кисти"
 
 
 msgid "Use Unified Input Samples"
-msgstr "Использовать единые вводные сэмплы"
+msgstr "Использовать единые входные сэмплы"
+
+
+msgid "Use shared input samples for this brush"
+msgstr "Использовать общие отсчёты ввода для этой кисти"
 
 
 msgid "Use Unified Size"
 msgstr "Использовать единый размер"
 
 
+msgid "Use shared size for this brush"
+msgstr "Использовать общий размер для этой кисти"
+
+
 msgid "Use Unified Strength"
 msgstr "Использовать единую интенсивность"
 
 
+msgid "Use shared strength for this brush"
+msgstr "Использовать общее значение интенсивности для этой кисти"
+
+
 msgid "Use Unified Weight"
-msgstr "Использовать общий вес"
+msgstr "Использовать единый вес"
+
+
+msgid "Use shared weight for this brush"
+msgstr "Использовать общее значение веса для этой кисти"
 
 
 msgid "Use this brush in Grease Pencil vertex color mode"
@@ -26187,6 +26545,14 @@ msgid "Node tree consisting of linked nodes used for compositing"
 msgstr "Древо нод со связанными нодами, используемое для компо́зитинга"
 
 
+msgid "Scene Effect"
+msgstr "Эффект сцены"
+
+
+msgid "The node group can be used as a scene compositor effect"
+msgstr "Группа нод может быть использована в качестве эффекта композитора сцены"
+
+
 msgid "Strip Modifier"
 msgstr "Модификатор дорожки"
 
@@ -28667,6 +29033,18 @@ msgid "Scene root collection that owns all the objects and other collections ins
 msgstr "Корневая коллекция сцены, которой принадлежат как все объекты, так и другие коллекции, экземпляры которых были созданы в сцене"
 
 
+msgid "Returns and sets the node group of the active scene compositor effect. Creates a new effect if none exists"
+msgstr "Возвращает и задаёт группу нод эффекта композитора активной сцены. Создаёт новый эффект, если его ещё нет"
+
+
+msgid "Compositor Effects"
+msgstr "Эффекты компо́зитора"
+
+
+msgid "Compositor effects for this scene"
+msgstr "Эффекты композитора для этой сцены"
+
+
 msgid "3D Cursor"
 msgstr "3D-Курсор"
 
@@ -29001,7 +29379,7 @@ msgstr "Звук в перемотке"
 
 
 msgid "Play audio from Sequence Editor while scrubbing"
-msgstr "Воспроизводить звук в видеоредакторе во время перемещения кадра мышкой"
+msgstr "Воспроизводить звук из видеосеквенсора при перемотке"
 
 
 msgid "Custom Simulation Range"
@@ -29103,6 +29481,14 @@ msgstr "Мир"
 
 msgid "World used for rendering the scene"
 msgstr "Окружающая среда, используемая при рендеринге сцены"
+
+
+msgid "Wrap Timeline"
+msgstr "Зациклить шкалу времени"
+
+
+msgid "Wrap the playhead around the playback range when navigating the timeline"
+msgstr "Зацикливать перемещение курсора воспроизведения по шкале времени в границах диапазона воспроизведения"
 
 
 msgid "Screen data-block, defining the layout of areas in a window"
@@ -31760,10 +32146,6 @@ msgstr "Зациклить изображения в видео"
 
 msgid "Index Switch Item"
 msgstr "Элемент переключения индексов"
-
-
-msgid "Consistent identifier used for the item"
-msgstr "Последовательный идентификатор, используемый для элемента"
 
 
 msgid "2D Integer Vector Attribute Value"
@@ -35834,12 +36216,12 @@ msgid "Import"
 msgstr "Импортировать"
 
 
-msgid "Render Preview"
-msgstr "Превью рендера"
-
-
 msgid "Mirror"
 msgstr "Зеркало"
+
+
+msgid "Render Preview"
+msgstr "Превью рендера"
 
 
 msgid "UV Mapping"
@@ -35850,20 +36232,20 @@ msgid "Local View"
 msgstr "Локальный вид"
 
 
-msgid "Viewpoint"
-msgstr "Точка обзора"
-
-
 msgid "Utilities"
 msgstr "Утилиты"
 
 
-msgid "Navigation"
-msgstr "Навигация"
+msgid "Viewpoint"
+msgstr "Точка обзора"
 
 
 msgid "Deprecated"
 msgstr "Устаревшие"
+
+
+msgid "Navigation"
+msgstr "Навигация"
 
 
 msgid "Align View"
@@ -36066,6 +36448,10 @@ msgid "Merge"
 msgstr "Объединить"
 
 
+msgid "Pivot Point"
+msgstr "Центр трансформации"
+
+
 msgid "Special Characters"
 msgstr "Специальные символы"
 
@@ -36076,10 +36462,6 @@ msgstr "Кернинг"
 
 msgid "Bone Roll"
 msgstr "Крен кости"
-
-
-msgid "Pivot Point"
-msgstr "Центр трансформации"
 
 
 msgid "Keyframe Insert Pie"
@@ -36423,10 +36805,6 @@ msgid "Shadow Linking Specials"
 msgstr "Инструменты теневой привязки"
 
 
-msgid "ID Data"
-msgstr "ID-Данные"
-
-
 msgid "Particle Specials"
 msgstr "Функции частиц"
 
@@ -36457,6 +36835,10 @@ msgstr "Инструменты набора линий"
 
 msgid "Pixel Density Presets"
 msgstr "Пресеты плотности пикселей"
+
+
+msgid "Add Effect"
+msgstr "Добавить эффект"
 
 
 msgid "Effect Strip"
@@ -45686,7 +46068,7 @@ msgstr "Мета"
 
 
 msgid "NLA Strip acts as a container for adjacent strips"
-msgstr "НЛА-Дорожка, выступающий в роли контейнера для прилегающих дорожек"
+msgstr "НЛА-Дорожка, выступающая в роли контейнера для соседних дорожек"
 
 
 msgctxt "Action"
@@ -46207,8 +46589,18 @@ msgid "Convert between color spaces"
 msgstr "Конвертировать между цветовыми пространствами"
 
 
+msgctxt "Color Management"
+msgid "From"
+msgstr "Из"
+
+
 msgid "Color space of the input image"
 msgstr "Цветовое пространство входного изображения"
+
+
+msgctxt "Color Management"
+msgid "To"
+msgstr "В"
 
 
 msgid "Color space of the output image"
@@ -47372,6 +47764,14 @@ msgid "Insert values into a string using a Python and path template compatible f
 msgstr "Вставить значения в строку, используя синтаксис форматирования, совместимый с Python и шаблоном пути"
 
 
+msgid "Get Vector Component"
+msgstr "Получить компонент вектора"
+
+
+msgid "Get the X, Y or Z component of a vector by index"
+msgstr "Получить компонент X, Y или Z вектора по индексу"
+
+
 msgid "Hash Value"
 msgstr "Хеш значения"
 
@@ -47908,7 +48308,7 @@ msgstr "Размер домена"
 
 
 msgid "Retrieve the number of elements in a geometry for each attribute domain"
-msgstr "Извлечь количество элементов в геометрии для каждого домена атрибутов"
+msgstr "Получить количество элементов в геометрии для каждого домена атрибутов"
 
 
 msgid "Component"
@@ -48044,7 +48444,7 @@ msgstr "Объединить элементы в группы по ID на ос�
 
 
 msgid "Retrieve a collection's object and collection children, in a name-based order"
-msgstr "Извлечь объекты коллекции и дочерние элементы коллекции, упорядоченные по имени"
+msgstr "Получить объекты коллекции и дочерние элементы коллекции, упорядоченные по имени"
 
 
 msgid "Collection Info"
@@ -48552,7 +48952,7 @@ msgstr "Вычислить по индексу"
 
 
 msgid "Retrieve data of other elements in the context's geometry"
-msgstr "Извлечь данные других элементов в контекстной геометрии"
+msgstr "Получить данные других элементов в контекстной геометрии"
 
 
 msgid "Domain the field is evaluated in"
@@ -49985,7 +50385,7 @@ msgstr "Извлечение значений сетки объёма в опр�
 
 
 msgid "Retrieve values from specific geometry elements"
-msgstr "Извлечь значения из определённых элементов геометрии"
+msgstr "Получить значения из определённых элементов геометрии"
 
 
 msgid "Clamp the indices to the size of the attribute domain instead of outputting a default value for invalid indices"
@@ -50766,7 +51166,7 @@ msgstr "Получить элемент связки"
 
 
 msgid "Retrieve a bundle item by path."
-msgstr "Извлечь элемент связки используя путь."
+msgstr "Получить элемент связки используя путь."
 
 
 msgid "Get Nested Bundle Paths"
@@ -56518,6 +56918,11 @@ msgid "Install Theme..."
 msgstr "Установить тему…"
 
 
+msgctxt "Operator"
+msgid "Add Asset Library"
+msgstr "Добавить библиотеку ассетов"
+
+
 msgid "Create a new project"
 msgstr "Создать новый проект"
 
@@ -56694,6 +57099,11 @@ msgstr "Перенос анимации FK на IK"
 msgctxt "Operator"
 msgid "Transfer IK anim to FK"
 msgstr "Перенос анимации IK на FK"
+
+
+msgctxt "Operator"
+msgid "Add Scene Compositor Effect Menu"
+msgstr "Меню добавления эффекта композитора сцены"
 
 
 msgid "Add the data paths to the Freestyle Edge Mark property of selected edges to the active keying set"
@@ -60421,8 +60831,8 @@ msgstr "Показать редактор свойств для context_menu"
 
 
 msgctxt "Operator"
-msgid "Accept"
-msgstr "Принять"
+msgid "Select Directory"
+msgstr "Выбрать папку"
 
 
 msgid "Open a directory browser, hold Shift to open the file, Alt to browse containing directory"
@@ -61616,10 +62026,6 @@ msgstr "Вызов операции импорта"
 
 
 msgctxt "Operator"
-msgid "Remove Importer"
-msgstr "Удалить импортёр"
-
-
 msgid "Remove Importer"
 msgstr "Удалить импортёр"
 
@@ -65249,11 +65655,6 @@ msgstr "Переключить выделение всех файлов"
 
 msgid "Select or deselect all files"
 msgstr "Установить или снять выделение со всех файлов"
-
-
-msgctxt "Operator"
-msgid "Select Directory"
-msgstr "Выбрать папку"
 
 
 msgid "Select a bookmarked directory"
@@ -74493,6 +74894,10 @@ msgid "The 2D view location for the center of the new nodes, or unchanged if not
 msgstr "Местоположение центра новых нод в 2D-виде или неизменно, если не задано"
 
 
+msgid "Index to remove"
+msgstr "Индекс для удаления"
+
+
 msgid "Connect active node to the active output node of the node tree"
 msgstr "Подключить активную ноду к активной выходной ноде дерева нод"
 
@@ -74623,6 +75028,14 @@ msgid "Duplicate the currently assigned compositing node group."
 msgstr "Дублировать текущую назначенную группу нод компо́зитинга."
 
 
+msgid "Duplicate Compositor Effect Node Group"
+msgstr "Дублировать группу нод эффекта композитора"
+
+
+msgid "Duplicate the active scene compositor effect node group and assign the new node group to the effect"
+msgstr "Дублировать группу нод эффекта композитора активной сцены и назначить новую группу этому эффекту"
+
+
 msgid "Duplicate selected nodes and move them"
 msgstr "Дублировать выделенные ноды и переместить их"
 
@@ -74737,10 +75150,6 @@ msgstr "Свернуть"
 
 msgid "Toggle collapsing of selected nodes"
 msgstr "Свернуть/развернуть выделенные ноды"
-
-
-msgid "Index to remove"
-msgstr "Индекс для удаления"
 
 
 msgctxt "Operator"
@@ -74958,6 +75367,10 @@ msgstr "Включить/выключить ноду"
 
 msgid "Toggle muting of selected nodes"
 msgstr "Включить/выключить (заглушить) выделенные ноды"
+
+
+msgid "Create a new compositing node group and initialize it with default nodes. Deprecated and will be removed in 6.0"
+msgstr "Создать новую группу нод компо́зитинга и инициализировать её с нодами по умолчанию. Устарело и будет удалено в версии 6.0"
 
 
 msgctxt "Operator"
@@ -77355,7 +77768,7 @@ msgstr "Переместить активный модификатор в инд
 
 
 msgid "Change the modifier's index in the stack so it evaluates after the set number of others"
-msgstr "Изменить индекс модификатора в стеке, чтобы он оценивал после набора числа других"
+msgstr "Изменить индекс модификатора в стеке, чтобы он оценивал после заданного количества других модификаторов"
 
 
 msgid "The index to move the modifier to"
@@ -82119,11 +82532,6 @@ msgid "Remove existing template with the same ID"
 msgstr "Удалить существующие темплейты с одинаковым ID"
 
 
-msgctxt "Operator"
-msgid "Add Asset Library"
-msgstr "Добавить библиотеку ассетов"
-
-
 msgid "Add a directory to be used by the Asset Browser as source of assets"
 msgstr "Добавить папку, которая будет использоваться браузером ассетов в качестве источника ассетов"
 
@@ -82886,6 +83294,24 @@ msgstr "Перенос анимации IK на кости FK"
 
 
 msgctxt "Operator"
+msgid "Add Scene Compositor Effect"
+msgstr "Добавить эффект композитора сцены"
+
+
+msgid "Add a scene compositor effect to the scene"
+msgstr "Добавить эффект композитора сцены в сцену"
+
+
+msgctxt "Operator"
+msgid "Add Scene Compositor Effect Node Group Asset"
+msgstr "Добавить ассет группы нод эффекта композитора сцены"
+
+
+msgid "Add a scene compositor effect to the scene with a node group asset"
+msgstr "Добавить в сцену эффект композитора сцены с использованием ассета группы нод"
+
+
+msgctxt "Operator"
 msgid "Delete Scene"
 msgstr "Удалить сцену"
 
@@ -82901,6 +83327,24 @@ msgstr "Перетащить сцену"
 
 msgid "Import scene and set it as the active one in the window"
 msgstr "Импортировать сцену и установить её в окне в качестве активной сцены"
+
+
+msgctxt "Operator"
+msgid "Duplicate Scene Compositor Effect"
+msgstr "Дублировать эффект композитора сцены"
+
+
+msgid "Duplicate the active or the given scene compositor effect"
+msgstr "Дублировать активный либо заданный эффект композитора сцены"
+
+
+msgid "Name of the effect to duplicate. If empty duplicate the active effect"
+msgstr "Название эффекта, который следует дублировать . Если не задано, – дублировать активный эффект"
+
+
+msgctxt "Operator"
+msgid "Duplicate Compositor Effect Node Group"
+msgstr "Дублировать группу нод эффекта композитора"
 
 
 msgctxt "Operator"
@@ -83087,6 +83531,19 @@ msgstr "Добавить модификатор толщины штрихов в
 
 
 msgctxt "Operator"
+msgid "Move Active Scene Compositor Effect to Index"
+msgstr "Переместить активный эффект композитора сцены по индексу"
+
+
+msgid "Change the scene compositor effect's index in the stack so it evaluates after the set number of others"
+msgstr "Изменить индекс эффекта композитора сцены в стеке, чтобы он вычислялся после заданного количества других эффектов"
+
+
+msgid "Name of the effect to edit"
+msgstr "Название эффекта для редактирования"
+
+
+msgctxt "Operator"
 msgid "New Scene"
 msgstr "Создать сцену"
 
@@ -83136,6 +83593,15 @@ msgid "Make a full copy of the current scene"
 msgstr "Создать полную копию текущей сцены"
 
 
+msgctxt "Operator"
+msgid "New Scene Compositor Effect Node Group"
+msgstr "Новая группа нод эффекта композитора сцены"
+
+
+msgid "Create a new compositor node group and assign it to the active scene compositor effect"
+msgstr "Создать новую группу нод композитора и назначить её текущему эффекту композитора активной сцены"
+
+
 msgid "Add new scene by type in the sequence editor and assign to active strip"
 msgstr "Добавить новую сцену по типу в редакторе секвенций и назначить её активной дорожке"
 
@@ -83162,6 +83628,19 @@ msgstr "Добавить новую сцену, которая будет исп
 
 
 msgctxt "Operator"
+msgid "Remove Scene Compositor Effect"
+msgstr "Удалить эффект композитора сцены"
+
+
+msgid "Remove a scene compositor effect from the scene"
+msgstr "Удалить эффект композитора сцены из сцены"
+
+
+msgid "Name of the effect to remove"
+msgstr "Название удаляемого эффекта"
+
+
+msgctxt "Operator"
 msgid "Add Render View"
 msgstr "Добавить вид рендера"
 
@@ -83177,6 +83656,19 @@ msgstr "Удалить вид рендера"
 
 msgid "Remove the selected render view"
 msgstr "Удалить выбранный вид рендера"
+
+
+msgctxt "Operator"
+msgid "Set Active Scene Compositor Effect"
+msgstr "Установить активный эффект композитора сцены"
+
+
+msgid "Set the given scene compositor effect as the active one"
+msgstr "Сделать указанный эффект композитора сцены активным"
+
+
+msgid "Name of the strip effect to edit"
+msgstr "Название изменяемого эффекта дорожки"
 
 
 msgctxt "Operator"
@@ -83524,6 +84016,10 @@ msgstr "Открыть настройки проекта..."
 
 msgid "Create and manage projects"
 msgstr "Создание и управление проектами"
+
+
+msgid "Active Section"
+msgstr "Активный раздел"
 
 
 msgctxt "Operator"
@@ -90729,6 +91225,15 @@ msgid "Roll the view around to the right"
 msgstr "Накренить вид вправо"
 
 
+msgctxt "Operator"
+msgid "Set View Roll"
+msgstr "Установить крен вида"
+
+
+msgid "Set the view roll angle"
+msgstr "Установить угол крена вида"
+
+
 msgid "Move the view to the selection center"
 msgstr "Переместить область просмотра к центру выделенных объектов"
 
@@ -92045,7 +92550,7 @@ msgstr "Удалить превью блоков данных"
 
 
 msgid "Clear data-block previews (only for some types like objects, materials, textures, etc.)"
-msgstr "Удалить превью блоков данных (только для некоторых типов таких как объекты, материалы, текстуры и т. д.)"
+msgstr "Удалить превью блоков данных (только для некоторых типов, таких как объекты, материалы, текстуры и т. д.)"
 
 
 msgid "Data-Block Type"
@@ -95664,6 +96169,10 @@ msgid "Playback"
 msgstr "Воспроизведение"
 
 
+msgid "Playback Options"
+msgstr "Параметры воспроизведения"
+
+
 msgid "Playhead"
 msgstr "Курсор воспроизведения"
 
@@ -97634,10 +98143,6 @@ msgid "Global preferences"
 msgstr "Глобальные настройки"
 
 
-msgid "Active Section"
-msgstr "Активный раздел"
-
-
 msgid "Application Template"
 msgstr "Шаблон приложения"
 
@@ -97783,7 +98288,7 @@ msgstr "Добавить/заменить"
 
 
 msgid "Clamp Strips by Default"
-msgstr "Ограничить дорожки по умолчанию"
+msgstr "Ограничивать дорожки по умолчанию"
 
 
 msgid "When slipping or adjusting handles, clamp movement to the underlying content bounds by default to avoid producing extra hold frames or silence"
@@ -98389,10 +98894,6 @@ msgstr "Онлайн-доступ"
 
 msgid "The user has been shown the \"Online Access\" prompt and made a choice"
 msgstr "Пользователю была показана подсказка \"Онлайн-доступ (online access)\" и он сделал выбор"
-
-
-msgid "Active Asset Library"
-msgstr "Активная библиотека ассетов"
 
 
 msgid "Index of the asset library being edited in the Preferences UI"
@@ -100045,24 +100546,12 @@ msgid "Catalan - Català"
 msgstr "Каталонский - Català"
 
 
-msgid "Locale code: ca_AD. Translation progress: 100%"
-msgstr "Код локали: ca_AD. Прогресс перевода: 100%"
-
-
 msgid "Chinese (Simplified) - 简体中文"
 msgstr "Китайский (упрощённый) - 简体中文"
 
 
-msgid "Locale code: zh_HANS. Translation progress: 100%"
-msgstr "Код локали: zh_HANS. Прогресс перевода: 100%"
-
-
 msgid "Chinese (Traditional) - 繁體中文"
 msgstr "Китайский (традиционный) - 繁體中文"
-
-
-msgid "Locale code: zh_HANT. Translation progress: 60%"
-msgstr "Код локали: zh_HANT. Прогресс перевода: 60%"
 
 
 msgid "Croatian - Hrvatski"
@@ -100133,16 +100622,8 @@ msgid "French - Français"
 msgstr "Французский - Français"
 
 
-msgid "Locale code: fr_FR. Translation progress: 100%"
-msgstr "Код локали: fr_FR. Прогресс перевода: 100%"
-
-
 msgid "Georgian - ქართული"
 msgstr "Грузинский - ქართული"
-
-
-msgid "Locale code: ka. Translation progress: 100%"
-msgstr "Код локали: ka. Прогресс перевода: 100%"
 
 
 msgid "German - Deutsch"
@@ -100205,16 +100686,8 @@ msgid "Japanese - 日本語"
 msgstr "Японский - 日本語"
 
 
-msgid "Locale code: ja_JP. Translation progress: 99%"
-msgstr "Код локали: ja_JP. Прогресс перевода: 99%"
-
-
 msgid "Korean - 한국어"
 msgstr "Корейский - 한국어"
-
-
-msgid "Locale code: ko_KR. Translation progress: 93%"
-msgstr "Код локали: ko_KR. Прогресс перевода: 93%"
 
 
 msgid "Kyrgyz - Кыргыз тили"
@@ -100261,10 +100734,6 @@ msgid "Polish - Polski"
 msgstr "Польский - Polski"
 
 
-msgid "Locale code: pl_PL. Translation progress: 100%"
-msgstr "Код локали: pl_PL. Прогресс перевода: 100%"
-
-
 msgid "Portuguese (Brazil) - Português brasileiro"
 msgstr "Португальский (Бразилия) - Português Brasileiro"
 
@@ -100289,10 +100758,6 @@ msgid "Russian - Русский"
 msgstr "Русский - Русский"
 
 
-msgid "Locale code: ru_RU. Translation progress: 100%"
-msgstr "Код локали: ru_RU. Прогресс перевода: 100%"
-
-
 msgid "Serbian (Cyrillic) - Српски"
 msgstr "Сербский (кириллица) - Српски"
 
@@ -100313,10 +100778,6 @@ msgid "Slovak - Slovenčina"
 msgstr "Словацкий - Slovenčina"
 
 
-msgid "Locale code: sk_SK. Translation progress: 100%"
-msgstr "Код локали: sk_SK. Прогресс перевода: 100%"
-
-
 msgid "Slovenian - Slovenščina"
 msgstr "Словенский - Slovenščina"
 
@@ -100329,32 +100790,16 @@ msgid "Spanish - Español"
 msgstr "Испанский - Español"
 
 
-msgid "Locale code: es. Translation progress: 100%"
-msgstr "Код локали: es. Прогресс перевода: 100%"
-
-
 msgid "Swahili - Kiswahili"
 msgstr "Суахили - Kiswahili"
-
-
-msgid "Locale code: sw. Translation progress: 69%"
-msgstr "Код локали: sw. Прогресс перевода: 69%"
 
 
 msgid "Swedish - Svenska"
 msgstr "Шведский - Svenska"
 
 
-msgid "Locale code: sv_SE. Translation progress: 95%"
-msgstr "Код локали: sv_SE. Прогресс перевода: 95%"
-
-
 msgid "Tamil - தமிழ்"
 msgstr "Тамильский - தமிழ்"
-
-
-msgid "Locale code: ta. Translation progress: 95%"
-msgstr "Код локали: ta. Прогресс перевода: 95%"
 
 
 msgid "Thai - ภาษาไทย"
@@ -100383,10 +100828,6 @@ msgstr "Код локали: uk_UA. Прогресс перевода: 54%"
 
 msgid "Urdu - وُدرُا"
 msgstr "Урду - وُدرُا"
-
-
-msgid "Locale code: ur. Translation progress: 82%"
-msgstr "Код локали: ur. Прогресс перевода: 82%"
 
 
 msgid "Vietnamese - Tiếng Việt"
@@ -100983,6 +101424,10 @@ msgstr "Значение строки"
 
 msgid "RNA wrapped string"
 msgstr "RNA-оболочка строки"
+
+
+msgid "Subtype"
+msgstr "Подтип"
 
 
 msgid "Property Definition"
@@ -102586,6 +103031,10 @@ msgstr "Множитель для размера адаптивного подр
 
 msgid "Pause Preview"
 msgstr "Остановить предпросмотр"
+
+
+msgid "Deprecated, this has no effect anymore. Use RegionView3D.pause_render instead"
+msgstr "Устарело, больше не работает. Вместо этого используйте RegionView3D.pause_render"
 
 
 msgid "Viewport Samples"
@@ -104572,6 +105021,14 @@ msgid "Lock view rotation of side views to Top/Front/Right"
 msgstr "Блокировка поворота вида сбоку вверх/вперёд/направо"
 
 
+msgid "Pause Render"
+msgstr "Приостановить рендеринг"
+
+
+msgid "Pause the rendered viewport"
+msgstr "Приостановить рендеринг во вьюпорте"
+
+
 msgid "Perspective Matrix"
 msgstr "Матрица перспективы"
 
@@ -104586,6 +105043,14 @@ msgstr "Синхронизировать зум/пан"
 
 msgid "Sync view position between side views"
 msgstr "Синхронизировать положение вида между видами с разных сторон"
+
+
+msgid "Support Pause Render"
+msgstr "Поддержка приостановки рендеринга"
+
+
+msgid "The render engine currently rendering this viewport can be paused and resumed"
+msgstr "Движок рендеринга, обрабатывающий этот вьюпорт, может быть приостановлен и возобновлён"
 
 
 msgid "Clip Contents"
@@ -106513,12 +106978,60 @@ msgid "How much the spring has to be stretched/compressed in order to change its
 msgstr "Насколько должна быть растянута/сжата пружина, чтобы изменить её длину покоя"
 
 
+msgid "Scene Compositor Effect"
+msgstr "Эффект композитора сцены"
+
+
+msgid "Compositor effect for scene"
+msgstr "Эффект композитора для сцены"
+
+
+msgid "Use effect during preview"
+msgstr "Использовать эффект во время предпросмотра"
+
+
 msgid "Use effect during render"
 msgstr "Использовать эффект во время рендера"
 
 
+msgid "This effect is active"
+msgstr "Этот эффект активен"
+
+
 msgid "Node group that controls what this effect does"
 msgstr "Группа нод, которая управляет тем, что делает данный эффект"
+
+
+msgid "Show effect expanded"
+msgstr "Показывать эффект развёрнутым"
+
+
+msgid "Show Node Group Selector"
+msgstr "Показать селектор группы нод"
+
+
+msgid "Scene Compositor Effect Properties"
+msgstr "Свойства эффекта композитора сцены"
+
+
+msgid "Scene Compositor Effect Empty Properties"
+msgstr "Пустые свойства эффекта компо́зитора сцены"
+
+
+msgid "Scene Compositor Effects"
+msgstr "Эффекты компо́зитора сцены"
+
+
+msgid "Collection of scene compositor effects"
+msgstr "Коллекция эффектов композитора сцены"
+
+
+msgid "Active Effect"
+msgstr "Активный эффект"
+
+
+msgid "The active strip effect in the list"
+msgstr "Активный эффект дорожки в списке"
 
 
 msgid "Light Direction"
@@ -107389,11 +107902,11 @@ msgstr "Отображать закэшированные исходные из�
 
 
 msgid "Sequencer Compositor Effect Properties"
-msgstr "Свойства эффекта компо́зитинга видеосеквенсора"
+msgstr "Свойства эффекта компо́зитора видеосеквенсора"
 
 
 msgid "Sequencer Compositor Effect Empty Properties"
-msgstr "Пустые свойства эффекта компо́зитинга видеосеквенсора"
+msgstr "Пустые свойства эффекта компо́зитора видеосеквенсора"
 
 
 msgid "Sequencer Compositor Modifier Properties"
@@ -109683,6 +110196,14 @@ msgid "Display data that is unused and/or will be lost when the file is reloaded
 msgstr "Показать датаблоки, которые не используются и/или будут потеряны при переоткрытии файла"
 
 
+msgid "Expand on Focus"
+msgstr "Раскрывать при фокусе"
+
+
+msgid "Uncollapse the active item and scroll it into view when it changes outside the Outliner"
+msgstr "Разворачивать активный элемент и прокручивать к нему список при выделении объекта вне аутлайнера"
+
+
 msgctxt "ID"
 msgid "Filter by Type"
 msgstr "Фильтровать по типу"
@@ -110102,6 +110623,15 @@ msgid "Strip Modifier Properties"
 msgstr "Свойства модификатора дорожки"
 
 
+msgctxt "ID"
+msgid "Compositor & Effects"
+msgstr "Компо́зитор и эффекты"
+
+
+msgid "Procedural scene post-processing"
+msgstr "Процедурная постобработка сцены"
+
+
 msgid "Outliner Sync"
 msgstr "Синхронизация с аутлайнером"
 
@@ -110120,6 +110650,10 @@ msgstr "Никогда не менять вкладки при нажатии н
 
 msgid "Change tabs only when this editor shares a border with an outliner"
 msgstr "Изменять вкладки только тогда, когда этот редактор имеет общую границу с аутлайнером"
+
+
+msgid "Compositor & Effects"
+msgstr "Компо́зитор и эффекты"
 
 
 msgid "Strip Modifiers"
@@ -116796,6 +117330,10 @@ msgid "Synchronize the asset library with a remote URL"
 msgstr "Синхронизировать библиотеку ассетов с удалённым URL-адресом"
 
 
+msgid "UUID"
+msgstr "UUID"
+
+
 msgid "Extension Repository"
 msgstr "Репозиторий расширений"
 
@@ -119974,6 +120512,11 @@ msgstr "Интерфейс пользователя"
 
 
 msgctxt "WindowManager"
+msgid "Toolbar Popup"
+msgstr "Всплывающая панель инструментов"
+
+
+msgctxt "WindowManager"
 msgid "3D View"
 msgstr "3D-Вид"
 
@@ -120071,46 +120614,6 @@ msgstr "Инструмент 3D-вида: Трансформировать"
 msgctxt "WindowManager"
 msgid "3D View Tool: Transform (fallback)"
 msgstr "Инструмент 3D-вида: Трансформировать (доп. вариант)"
-
-
-msgctxt "WindowManager"
-msgid "Generic Tool: Annotate"
-msgstr "Общий инструмент: Аннотации"
-
-
-msgctxt "WindowManager"
-msgid "Generic Tool: Annotate (fallback)"
-msgstr "Общий инструмент: Аннотации (доп. вариант)"
-
-
-msgctxt "WindowManager"
-msgid "Generic Tool: Annotate Line"
-msgstr "Общий инструмент: Линия аннотации"
-
-
-msgctxt "WindowManager"
-msgid "Generic Tool: Annotate Line (fallback)"
-msgstr "Общий инструмент: Линия аннотации (доп. вариант)"
-
-
-msgctxt "WindowManager"
-msgid "Generic Tool: Annotate Polygon"
-msgstr "Общий инструмент: Многоугольник аннотации"
-
-
-msgctxt "WindowManager"
-msgid "Generic Tool: Annotate Polygon (fallback)"
-msgstr "Общий инструмент: Многоугольник аннотации (доп. вариант)"
-
-
-msgctxt "WindowManager"
-msgid "Generic Tool: Annotate Eraser"
-msgstr "Общий инструмент: Ластик аннотаций"
-
-
-msgctxt "WindowManager"
-msgid "Generic Tool: Annotate Eraser (fallback)"
-msgstr "Общий инструмент: Ластик аннотаций (доп. вариант)"
 
 
 msgctxt "WindowManager"
@@ -120476,6 +120979,26 @@ msgstr "Инструмент 3D-вида: Редактировать криву�
 msgctxt "WindowManager"
 msgid "Curves"
 msgstr "Кривые"
+
+
+msgctxt "WindowManager"
+msgid "3D View Tool: Edit Curves, Draw"
+msgstr "Инструмент 3D-вида: Редактировать кривые, Рисовать"
+
+
+msgctxt "WindowManager"
+msgid "3D View Tool: Edit Curves, Draw (fallback)"
+msgstr "Инструмент 3D-вида: Редактировать кривые, Рисовать (доп. вариант)"
+
+
+msgctxt "WindowManager"
+msgid "3D View Tool: Edit Curves, Pen"
+msgstr "Инструмент 3D-вида: Редактировать кривые, Карандаш"
+
+
+msgctxt "WindowManager"
+msgid "3D View Tool: Edit Curves, Pen (fallback)"
+msgstr "Инструмент 3D-вида: Редактировать кривые, Карандаш (доп. вариант)"
 
 
 msgctxt "WindowManager"
@@ -121892,7 +122415,7 @@ msgstr "Инструмент редактора изображений: UV, пе
 
 msgctxt "WindowManager"
 msgid "Image Editor Tool: Uv, Move (fallback)"
-msgstr "Инструмент редактора изображений: UV, перемещение (запасной вариант)"
+msgstr "Инструмент редактора изображений: UV, переместить (запасной вариант)"
 
 
 msgctxt "WindowManager"
@@ -122023,6 +122546,66 @@ msgstr "Нодовый инструмент: Выделить обводкой"
 msgctxt "WindowManager"
 msgid "Node Tool: Select Lasso (fallback)"
 msgstr "Нодовый инструмент: Выделить обводкой (запасной вариант)"
+
+
+msgctxt "WindowManager"
+msgid "Node Tool: Links Cut"
+msgstr "Нодовый инструмент: Обрезка связей"
+
+
+msgctxt "WindowManager"
+msgid "Node Tool: Links Cut (fallback)"
+msgstr "Нодовый инструмент: Обрезка связей (доп. вариант)"
+
+
+msgctxt "WindowManager"
+msgid "Node Tool: Mute Links"
+msgstr "Нодовый инструмент: Выключить связи"
+
+
+msgctxt "WindowManager"
+msgid "Node Tool: Mute Links (fallback)"
+msgstr "Нодовый инструмент: Выключить связи (доп. вариант)"
+
+
+msgctxt "WindowManager"
+msgid "Node Tool: Add Reroute"
+msgstr "Нодовый инструмент: Добавить перенаправление"
+
+
+msgctxt "WindowManager"
+msgid "Node Tool: Add Reroute (fallback)"
+msgstr "Нодовый инструмент: Добавить перенаправление (доп. вариант)"
+
+
+msgctxt "WindowManager"
+msgid "Node Link Modal Map"
+msgstr "Модальная карта связи ноды"
+
+
+msgctxt "WindowManager"
+msgid "Drag Node-link"
+msgstr "Перетащить связь ноды"
+
+
+msgctxt "WindowManager"
+msgid "Confirm Link"
+msgstr "Подтвердить связь"
+
+
+msgctxt "WindowManager"
+msgid "Swap Links"
+msgstr "Поменять связи"
+
+
+msgctxt "WindowManager"
+msgid "Node Resize Modal Map"
+msgstr "Модальная карта изменения размера ноды"
+
+
+msgctxt "WindowManager"
+msgid "Resize Node"
+msgstr "Изменить размер ноды"
 
 
 msgctxt "WindowManager"
@@ -122157,7 +122740,7 @@ msgstr "Инструмент превью: Перемещение"
 
 msgctxt "WindowManager"
 msgid "Preview Tool: Move (fallback)"
-msgstr "Инструмент превью: Перемещение (резервный вариант)"
+msgstr "Инструмент превью: Переместить (резервный вариант)"
 
 
 msgctxt "WindowManager"
@@ -122191,6 +122774,31 @@ msgstr "Инструмент превью: Сэмплировать (резер�
 
 
 msgctxt "WindowManager"
+msgid "Sequencer Channels"
+msgstr "Каналы секвенсора"
+
+
+msgctxt "WindowManager"
+msgid "Slip Modal"
+msgstr "Сдвинуть модально"
+
+
+msgctxt "WindowManager"
+msgid "Precision Enable"
+msgstr "Точность - Вкл."
+
+
+msgctxt "WindowManager"
+msgid "Precision Disable"
+msgstr "Точность - Выкл."
+
+
+msgctxt "WindowManager"
+msgid "Clamp Toggle"
+msgstr "Переключатель ограничения"
+
+
+msgctxt "WindowManager"
 msgid "File Browser"
 msgstr "Браузер файлов"
 
@@ -122213,6 +122821,16 @@ msgstr "Информация"
 msgctxt "WindowManager"
 msgid "Property Editor"
 msgstr "Редактор свойств"
+
+
+msgctxt "WindowManager"
+msgid "Preferences"
+msgstr "Настройки"
+
+
+msgctxt "WindowManager"
+msgid "Preferences_nav"
+msgstr "Настройки: навигация"
 
 
 msgctxt "WindowManager"
@@ -122251,8 +122869,103 @@ msgstr "Редактор экспозиционного листа видеоф�
 
 
 msgctxt "WindowManager"
+msgid "Clip Time Scrub"
+msgstr "Прокрутка времени фрагмента"
+
+
+msgctxt "WindowManager"
 msgid "Grease Pencil Draw Mode"
 msgstr "Режим рисования Grease Pencil"
+
+
+msgctxt "WindowManager"
+msgid "3D View Tool: Paint Grease Pencil, Box"
+msgstr "Инструмент 3D-вида: Рисование Grease Pencil, Прямоугольник"
+
+
+msgctxt "WindowManager"
+msgid "3D View Tool: Paint Grease Pencil, Box (fallback)"
+msgstr "Инструмент 3D-вида: Рисование Grease Pencil, Прямоугольник (доп. вариант)"
+
+
+msgctxt "WindowManager"
+msgid "3D View Tool: Paint Grease Pencil, Circle"
+msgstr "Инструмент 3D-вида: Рисование Grease Pencil, Окружность"
+
+
+msgctxt "WindowManager"
+msgid "3D View Tool: Paint Grease Pencil, Circle (fallback)"
+msgstr "Инструмент 3D-вида: Рисование Grease Pencil, Окружность (доп. вариант)"
+
+
+msgctxt "WindowManager"
+msgid "3D View Tool: Paint Grease Pencil, Line"
+msgstr "Инструмент 3D-вида: Рисование Grease Pencil, Прямая"
+
+
+msgctxt "WindowManager"
+msgid "3D View Tool: Paint Grease Pencil, Line (fallback)"
+msgstr "Инструмент 3D-вида: Рисование Grease Pencil, Прямая (доп. вариант)"
+
+
+msgctxt "WindowManager"
+msgid "3D View Tool: Paint Grease Pencil, Polyline"
+msgstr "Инструмент 3D-вида: Рисование Grease Pencil, Полилиния"
+
+
+msgctxt "WindowManager"
+msgid "3D View Tool: Paint Grease Pencil, Polyline (fallback)"
+msgstr "Инструмент 3D-вида: Рисование Grease Pencil, Полилиния (доп. вариант)"
+
+
+msgctxt "WindowManager"
+msgid "3D View Tool: Paint Grease Pencil, Arc"
+msgstr "Инструмент 3D-вида: Рисование Grease Pencil, Дуга"
+
+
+msgctxt "WindowManager"
+msgid "3D View Tool: Paint Grease Pencil, Arc (fallback)"
+msgstr "Инструмент 3D-вида: Рисование Grease Pencil, Дуга (доп. вариант)"
+
+
+msgctxt "WindowManager"
+msgid "3D View Tool: Paint Grease Pencil, Curve"
+msgstr "Инструмент 3D-вида: Рисование Grease Pencil, Кривая"
+
+
+msgctxt "WindowManager"
+msgid "3D View Tool: Paint Grease Pencil, Curve (fallback)"
+msgstr "Инструмент 3D-вида: Рисование Grease Pencil, Кривая (доп. вариант)"
+
+
+msgctxt "WindowManager"
+msgid "3D View Tool: Paint Grease Pencil, Trim"
+msgstr "Инструмент 3D-вида: Рисование Grease Pencil, Обрезать"
+
+
+msgctxt "WindowManager"
+msgid "3D View Tool: Paint Grease Pencil, Trim (fallback)"
+msgstr "Инструмент 3D-вида: Рисование Grease Pencil, Обрезать (доп. вариант)"
+
+
+msgctxt "WindowManager"
+msgid "3D View Tool: Paint Grease Pencil, Eyedropper"
+msgstr "Инструмент 3D-вида: Рисование Grease Pencil, Пипетка"
+
+
+msgctxt "WindowManager"
+msgid "3D View Tool: Paint Grease Pencil, Eyedropper (fallback)"
+msgstr "Инструмент 3D-вида: Рисование Grease Pencil, Пипетка (доп. вариант)"
+
+
+msgctxt "WindowManager"
+msgid "3D View Tool: Paint Grease Pencil, Interpolate"
+msgstr "Инструмент 3D-вида: Рисование Grease Pencil, Интерполировать"
+
+
+msgctxt "WindowManager"
+msgid "3D View Tool: Paint Grease Pencil, Interpolate (fallback)"
+msgstr "Инструмент 3D-вида: Рисование Grease Pencil, Интерполировать (доп. вариант)"
 
 
 msgctxt "WindowManager"
@@ -122263,6 +122976,46 @@ msgstr "Штрих кисти Grease Pencil"
 msgctxt "WindowManager"
 msgid "Grease Pencil Edit Mode"
 msgstr "Режим редактирования Grease Pencil"
+
+
+msgctxt "WindowManager"
+msgid "3D View Tool: Edit Grease Pencil, Pen"
+msgstr "Инструмент 3D-вида: Редактировать Grease Pencil, Карандаш"
+
+
+msgctxt "WindowManager"
+msgid "3D View Tool: Edit Grease Pencil, Pen (fallback)"
+msgstr "Инструмент 3D-вида: Редактировать Grease Pencil, Карандаш (доп. вариант)"
+
+
+msgctxt "WindowManager"
+msgid "3D View Tool: Bend"
+msgstr "Инструмент 3D-вида: Изогнуть"
+
+
+msgctxt "WindowManager"
+msgid "3D View Tool: Bend (fallback)"
+msgstr "Инструмент 3D-вида: Изогнуть (доп. вариант)"
+
+
+msgctxt "WindowManager"
+msgid "3D View Tool: Edit Grease Pencil, Interpolate"
+msgstr "Инструмент 3D-вида: Редактировать Grease Pencil, Интерполировать"
+
+
+msgctxt "WindowManager"
+msgid "3D View Tool: Edit Grease Pencil, Interpolate (fallback)"
+msgstr "Инструмент 3D-вида: Редактировать Grease Pencil, Интерполировать (доп. вариант)"
+
+
+msgctxt "WindowManager"
+msgid "3D View Tool: Edit Grease Pencil, Gradient"
+msgstr "Инструмент 3D-вида: Редактировать Grease Pencil, Градиент"
+
+
+msgctxt "WindowManager"
+msgid "3D View Tool: Edit Grease Pencil, Gradient (fallback)"
+msgstr "Инструмент 3D-вида: Редактировать Grease Pencil, Градиент (доп. вариант)"
 
 
 msgctxt "WindowManager"
@@ -122281,6 +123034,11 @@ msgstr "Рисование точками Grease Pencil"
 
 
 msgctxt "WindowManager"
+msgid "Grease Pencil Selection"
+msgstr "Выделение Grease Pencil"
+
+
+msgctxt "WindowManager"
 msgid "Grease Pencil Fill Tool"
 msgstr "Инструмент заливки Grease Pencil"
 
@@ -122288,6 +123046,76 @@ msgstr "Инструмент заливки Grease Pencil"
 msgctxt "WindowManager"
 msgid "Mask Editing"
 msgstr "Редактирование масок"
+
+
+msgctxt "WindowManager"
+msgid "Image Editor Tool: Mask, Tweak"
+msgstr "Инструмент редактора изображений: маска, подстройка"
+
+
+msgctxt "WindowManager"
+msgid "Image Editor Tool: Mask, Tweak (fallback)"
+msgstr "Инструмент редактора изображений: маска, подстройка (запасной вариант)"
+
+
+msgctxt "WindowManager"
+msgid "Image Editor Tool: Mask, Select Box"
+msgstr "Инструмент редактора изображений: маска, выделить рамкой"
+
+
+msgctxt "WindowManager"
+msgid "Image Editor Tool: Mask, Select Box (fallback)"
+msgstr "Инструмент редактора изображений: маска, выделить рамкой (запасной вариант)"
+
+
+msgctxt "WindowManager"
+msgid "Image Editor Tool: Mask, Select Circle"
+msgstr "Инструмент редактора изображений: маска, выделить окружностью"
+
+
+msgctxt "WindowManager"
+msgid "Image Editor Tool: Mask, Select Circle (fallback)"
+msgstr "Инструмент редактора изображений: маска, выделить окружностью (запасной вариант)"
+
+
+msgctxt "WindowManager"
+msgid "Image Editor Tool: Mask, Select Lasso"
+msgstr "Инструмент редактора изображений: маска, выделить обводкой"
+
+
+msgctxt "WindowManager"
+msgid "Image Editor Tool: Mask, Select Lasso (fallback)"
+msgstr "Инструмент редактора изображений: маска, выделить обводкой (запасной вариант)"
+
+
+msgctxt "WindowManager"
+msgid "Image Editor Tool: Mask, Move"
+msgstr "Инструмент редактора изображений: маска, переместить"
+
+
+msgctxt "WindowManager"
+msgid "Image Editor Tool: Mask, Move (fallback)"
+msgstr "Инструмент редактора изображений: маска, переместить (запасной вариант)"
+
+
+msgctxt "WindowManager"
+msgid "Image Editor Tool: Mask, Rotate"
+msgstr "Инструмент редактора изображений: маска, повернуть"
+
+
+msgctxt "WindowManager"
+msgid "Image Editor Tool: Mask, Rotate (fallback)"
+msgstr "Инструмент редактора изображений: маска, повернуть (запасной вариант)"
+
+
+msgctxt "WindowManager"
+msgid "Image Editor Tool: Mask, Scale"
+msgstr "Инструмент редактора изображений: маска, масштабирование"
+
+
+msgctxt "WindowManager"
+msgid "Image Editor Tool: Mask, Scale (fallback)"
+msgstr "Инструмент редактора изображений: маска, масштабирование (запасной вариант)"
 
 
 msgctxt "WindowManager"
@@ -122308,6 +123136,11 @@ msgstr "Анимация"
 msgctxt "WindowManager"
 msgid "Animation Channels"
 msgstr "Каналы анимации"
+
+
+msgctxt "WindowManager"
+msgid "Time Scrub"
+msgstr "Прокрутка во времени"
 
 
 msgctxt "WindowManager"
@@ -122383,6 +123216,16 @@ msgstr "Выход"
 msgctxt "WindowManager"
 msgid "Gesture Box"
 msgstr "Жест рамки"
+
+
+msgctxt "WindowManager"
+msgid "Gesture Lasso"
+msgstr "Жест обводки"
+
+
+msgctxt "WindowManager"
+msgid "Gesture Polyline"
+msgstr "Жест полилинии"
 
 
 msgctxt "WindowManager"
@@ -122566,6 +123409,21 @@ msgstr "Ограничить дорожки"
 
 
 msgctxt "WindowManager"
+msgid "Transform Axis Target Modal Map"
+msgstr "Модальная карта целевой оси трансформации"
+
+
+msgctxt "WindowManager"
+msgid "Translate On"
+msgstr "Перемещение - Вкл."
+
+
+msgctxt "WindowManager"
+msgid "Translate Off"
+msgstr "Перемещение - Выкл."
+
+
+msgctxt "WindowManager"
 msgid "Eyedropper Modal Map"
 msgstr "Модальная карта пипетки"
 
@@ -122631,6 +123489,21 @@ msgstr "Слить расширения"
 
 
 msgctxt "WindowManager"
+msgid "Interpolate Tool Modal Map"
+msgstr "Модальная карта инструмента интерполирования"
+
+
+msgctxt "WindowManager"
+msgid "Increase"
+msgstr "Увеличить"
+
+
+msgctxt "WindowManager"
+msgid "Decrease"
+msgstr "Уменьшить"
+
+
+msgctxt "WindowManager"
 msgid "Generic Gizmo"
 msgstr "Универсальный гизмо"
 
@@ -122678,6 +123551,26 @@ msgstr "Включить привязку"
 msgctxt "WindowManager"
 msgid "Disable Snap"
 msgstr "Отключить привязку"
+
+
+msgctxt "WindowManager"
+msgid "Generic Tool: Annotate"
+msgstr "Общий инструмент: Аннотации"
+
+
+msgctxt "WindowManager"
+msgid "Generic Tool: Annotate Line"
+msgstr "Общий инструмент: Линия аннотации"
+
+
+msgctxt "WindowManager"
+msgid "Generic Tool: Annotate Polygon"
+msgstr "Общий инструмент: Многоугольник аннотации"
+
+
+msgctxt "WindowManager"
+msgid "Generic Tool: Annotate Eraser"
+msgstr "Общий инструмент: Ластик аннотаций"
 
 
 msgid "All Repositories"
@@ -126074,8 +126967,8 @@ msgid "Cannot save project because there is no project to save."
 msgstr "Невозможно сохранить проект: нет активного проекта."
 
 
-msgid "Invalid project: project name is empty."
-msgstr "Недопустимый проект: имя проекта не задано."
+msgid "Project configuration is newer than this version of Blender supports"
+msgstr "Конфигурация проекта новее возможностей этой версии Blender'а"
 
 
 msgid "Cannot create a project with an empty directory path."
@@ -126244,6 +127137,10 @@ msgstr "Удалить аддон: {!r}?"
 
 msgid "Path: {!r}"
 msgstr "Путь: {!r}"
+
+
+msgid "Unable to copy {!r}: {:s}"
+msgstr "Невозможно скопировать {!r}: {:s}"
 
 
 msgid "Active face must be a quad"
@@ -126828,6 +127725,11 @@ msgstr "До кадра"
 
 msgid "Collection Mask"
 msgstr "Маска для коллекции"
+
+
+msgctxt "Operator"
+msgid "Effect"
+msgstr "Эффект"
 
 
 msgctxt "Operator"
@@ -129620,12 +130522,13 @@ msgid "Asset Catalog:"
 msgstr "Каталог ассетов:"
 
 
-msgid "UUID"
-msgstr "UUID"
-
-
 msgid "Simple Name"
 msgstr "Простое имя"
+
+
+msgctxt "Operator"
+msgid "Visit Webpage"
+msgstr "Перейти на веб-страницу"
 
 
 msgctxt "Operator"
@@ -131163,6 +132066,10 @@ msgid "Only Active Keying Set"
 msgstr "Только активный набор ключей"
 
 
+msgid "Wrap Timeline Navigation"
+msgstr "Зациклить навигацию по шкале"
+
+
 msgid "Jump Unit"
 msgstr "Единица перехода"
 
@@ -132118,6 +133025,11 @@ msgstr "Камера"
 msgctxt "Operator"
 msgid "Orbit Opposite"
 msgstr "Противоположный облёт"
+
+
+msgctxt "Operator"
+msgid "Reset Roll"
+msgstr "Сбросить крен"
 
 
 msgctxt "Operator"
@@ -134946,6 +135858,11 @@ msgid "collections"
 msgstr "коллекции"
 
 
+msgctxt "Scene"
+msgid "Compositor Effect"
+msgstr "Эффект компо́зитора"
+
+
 msgid "Const"
 msgstr "Ограничение"
 
@@ -137758,6 +138675,10 @@ msgstr "Библиотека ассетов: основные"
 
 msgid "Download Size: {}"
 msgstr "Размер для скачивания: {}"
+
+
+msgid "Include Online Essentials"
+msgstr "Включить основные онлайн-ресурсы"
 
 
 msgid "No point was selected"
@@ -142593,8 +143514,44 @@ msgid "Failed to open window!"
 msgstr "Невозможно создать новое окно!"
 
 
+msgid ""
+"Effect node group assets not assigned to a catalog.\n"
+"Catalogs can be assigned in the Asset Browser"
+msgstr ""
+"Ассеты группы нод эффектов не назначены каталогам.\n"
+"Каталоги могут быть назначены в браузере ассетов"
+
+
+msgid "No effect to duplicate"
+msgstr "Нет эффекта для дублирования"
+
+
+msgid "Index is out of range"
+msgstr "Индекс вне диапазона"
+
+
+msgid "No active effect to duplicate"
+msgstr "Нет активного эффекта для дублирования"
+
+
+msgid "No node group to duplicate"
+msgstr "Нет группы нод для дублирования"
+
+
+msgid "Missing node group for asset"
+msgstr "Не найдена группа нод для ассета"
+
+
 msgid "Asset is not a compositor node group"
 msgstr "Ассет не является нодовой группой компо́зитора"
+
+
+msgid "No effect '%s' in scene"
+msgstr "В сцене нет эффекта \"%s\""
+
+
+msgid "No active effect in scene"
+msgstr "В сцене нет активного эффекта"
 
 
 msgid "Active scene changed to '%s'"
@@ -144776,10 +145733,6 @@ msgid "Menu Undefined"
 msgstr "Меню не определено"
 
 
-msgid "Subtype"
-msgstr "Подтип"
-
-
 msgid "Link operation index out of range"
 msgstr "Индекс операции связи за пределами допустимого диапазона"
 
@@ -145605,6 +146558,10 @@ msgid "Library path '%s' is now valid, please reload the library"
 msgstr "Путь к библиотеке \"%s\" теперь правильный, пожалуйста, перезагрузите библиотеку"
 
 
+msgid "Cannot edit fake user on a linked datablock, consider referencing it through a Custom Property"
+msgstr "Невозможно изменить фиктивного пользователя у связанного блока данных, рассмотрите вариант со ссылкой на него через пользовательское свойство"
+
+
 msgid "Cannot edit library or non-editable override data"
 msgstr "Невозможно редактировать данные из библиотеки или нередактируемые данные переопределения"
 
@@ -145759,6 +146716,14 @@ msgstr "Выделить иерархию объектов"
 msgctxt "Operator"
 msgid "Rename Object"
 msgstr "Переименовать объект"
+
+
+msgid "Cannot set fake user on a linked datablock, consider referencing it through a Custom Property"
+msgstr "Невозможно установить фиктивного пользователя для связанного блока данных, рассмотрите вариант со ссылкой на него через пользовательское свойство"
+
+
+msgid "Cannot clear fake user on a linked datablock"
+msgstr "Невозможно удалить фиктивного пользователя у связанного блока данных"
 
 
 msgid "Not yet implemented"
@@ -146068,6 +147033,10 @@ msgid "Strip None"
 msgstr "Без дорожки"
 
 
+msgid "Built-In"
+msgstr "Встроенные"
+
+
 msgid "Cannot reload with running modal operators"
 msgstr "Перезагрузка невозможна при запущенных модальных операторах"
 
@@ -146137,7 +147106,7 @@ msgstr "Добавить в секвенсор дорожку эффектов �
 
 
 msgid "Add a compositor based effect strip for zero, one, or two selected inputs"
-msgstr "Добавить дорожку эффектов, созданную на основе нод компо́зитинга для ни одного, одного или двух выделенных входов"
+msgstr "Добавить дорожку эффектов, созданную на основе нод компо́зитора для ни одного, одного или двух выделенных входов"
 
 
 msgid "No available channel for the current frame."
@@ -146254,6 +147223,18 @@ msgstr "Дубликатов %s"
 
 msgid "MetaStrip"
 msgstr "МетаДорожка"
+
+
+msgid "Cannot apply effect to more than 2 strips with video content"
+msgstr "Нельзя применить эффект более чем к 2 дорожкам с видеоданными"
+
+
+msgid "Exactly 2 selected strips with video content are needed"
+msgstr "Необходимо выделить ровно 2 дорожки с видеоданными"
+
+
+msgid "Exactly one selected strip with video content is needed"
+msgstr "Необходимо выделить ровно 1 дорожку с видеоданными"
 
 
 msgid "Cannot reassign inputs: strip has no inputs"
@@ -146588,12 +147569,12 @@ msgid "Undo History"
 msgstr "История действий"
 
 
-msgid "Built-In"
-msgstr "Встроенные"
+msgid "Local Asset Library"
+msgstr "Локальная библиотека ассетов"
 
 
-msgid "Include Online Essentials"
-msgstr "Включить основные онлайн-ресурсы"
+msgid "Remote Asset Library"
+msgstr "Удалённая библиотека ассетов"
 
 
 msgid "Add Asset Library"
@@ -146622,14 +147603,6 @@ msgstr "Удалить репозиторий и файлы"
 
 msgid "Remove Repository"
 msgstr "Удалить репозиторий"
-
-
-msgid "Local Asset Library"
-msgstr "Локальная библиотека ассетов"
-
-
-msgid "Remote Asset Library"
-msgstr "Удалённая библиотека ассетов"
 
 
 msgid "Unable to remove files for \"System\" repositories"
@@ -148852,6 +149825,10 @@ msgid "Attribute is required and cannot be removed"
 msgstr "Атрибут является обязательным и не может быть удалён"
 
 
+msgid "Asset Library not found"
+msgstr "Библиотека ассетов не найдена"
+
+
 msgid "Smooth the surface"
 msgstr "Сгладить поверхность"
 
@@ -149536,6 +150513,18 @@ msgid "Unable to copy item"
 msgstr "Невозможно скопировать элемент"
 
 
+msgid "Root panel can not be copied."
+msgstr "Копирование корневой панели невозможно."
+
+
+msgid "Root panel can not be removed."
+msgstr "Удаление корневой панели невозможно."
+
+
+msgid "Root panel can not be moved."
+msgstr "Перемещение корневой панели невозможно."
+
+
 msgid "Areas outside of the image are filled with zero"
 msgstr "Области за пределами изображения ничем не заполняются"
 
@@ -149889,6 +150878,10 @@ msgid "Style module could not be removed"
 msgstr "Стилевой модуль невозможно удалить"
 
 
+msgid "Effect was not found in the stack"
+msgstr "Эффект не найден в стеке"
+
+
 msgid "View Layer '%s' not found in scene '%s'"
 msgstr "Слой визуализации \"%s\" не найден в сцене \"%s\""
 
@@ -149941,12 +150934,36 @@ msgid "Modifier \"%s\" is not in the strip's modifier list"
 msgstr "Модификатор \"%s\" отсутствует в списке модификаторов дорожки"
 
 
+msgid "Unable to open sound file"
+msgstr "Не удалось открыть звуковой файл"
+
+
 msgid "Blender compiled without Audaspace support"
 msgstr "Blender скомпилирован без поддержки Audaspace"
 
 
+msgid "Invalid length"
+msgstr "Недопустимая длина"
+
+
+msgid "Effect takes 1 input strip"
+msgstr "Для эффекта требуется 1 входная дорожка"
+
+
+msgid "Effect takes 2 input strips"
+msgstr "Для эффекта требуются 2 входные дорожки"
+
+
+msgid "Cannot pop the last element"
+msgstr "Не удалось удалить последний элемент"
+
+
 msgid "StripElements.pop: cannot pop the last element"
-msgstr "StripElements.pop: невозможно извлечь последний элемент"
+msgstr "StripElements.pop: не удалось удалить последний элемент"
+
+
+msgid "Effect expects more than 2 inputs (%d, should never happen!)"
+msgstr "Эффект ожидает более 2 входов (%d, что никогда не должно происходить!)"
 
 
 msgid "Strip '%s' not in scene '%s'"
@@ -149979,6 +150996,10 @@ msgstr "Редактировать группу нод из активного �
 
 msgid "Edit any geometry node group for use as an operator"
 msgstr "Редактировать любую группу геометрических нод для использования в качестве оператора"
+
+
+msgid "Edit compositor node group for the active scene compositor effect"
+msgstr "Редактировать группу нод компо́зитинга для эффекта композитора активной сцены"
 
 
 msgid "Edit compositing node group for Sequencer strip modifiers"
@@ -150083,10 +151104,6 @@ msgstr "Программа была запущена с опцией автон�
 
 msgid "Script directory not found"
 msgstr "Папка скрипта не найдена"
-
-
-msgid "Asset Library not found"
-msgstr "Библиотека ассетов не найдена"
 
 
 msgid "Extension repository not found"
@@ -152872,6 +153889,10 @@ msgid "Format Items"
 msgstr "Элементы формата"
 
 
+msgid "Unescaped '}' in format string"
+msgstr "Неэкранированная скобка '}' в строке формата"
+
+
 msgid "Empty identifier cannot be used when explicit identifier was used before. For example, \"{} {x}\" is ok but \"{x} {}\" is not."
 msgstr "Пустой идентификатор не может быть использован, если ранее был использован явный идентификатор. Например, \"{} {x}\" допустимо, а \"{x} {}\" — нет."
 
@@ -153340,6 +154361,10 @@ msgstr "При вычислении границ для кривых, облак
 
 msgid "A cube mesh enclosing the input geometry"
 msgstr "Кубический меш, охватывающая входную геометрию"
+
+
+msgid "Object is not a camera"
+msgstr "Объект не является камерой"
 
 
 msgid "Projection Matrix"
@@ -155920,6 +156945,10 @@ msgid "Realize All"
 msgstr "Реализовать все"
 
 
+msgid "Preserve Normals"
+msgstr "Сохранять нормали"
+
+
 msgid "Geometry whose instances are (partially) realized"
 msgstr "Геометрия, экземпляры которой будут (частично) реализованы"
 
@@ -155934,6 +156963,10 @@ msgstr "Реализовать все уровни вложенных экзем
 
 msgid "Number of levels of nested instances to realize for each top-level instance"
 msgstr "Количество уровней вложенных экземпляров, которые необходимо реализовать для каждого экземпляра верхнего уровня"
+
+
+msgid "Preserve the apparent face orientation of mirrored mesh instances"
+msgstr "Сохранять видимую ориентацию граней у зеркально отражённых экземпляров меша"
 
 
 msgid "Cannot remove built-in attributes: {}"
@@ -157070,6 +158103,10 @@ msgid "Switch must be a constant value for this data type"
 msgstr "Для этого типа данных значение переключателя должно быть постоянным"
 
 
+msgid "Node requires constant input values"
+msgstr "Ноде требуются постоянные входные значения"
+
+
 msgid " (Deprecated)"
 msgstr " (Устарело)"
 
@@ -157394,6 +158431,14 @@ msgid "Transmission Weight"
 msgstr "Вес пропускания"
 
 
+msgid "Transmission Dispersion Scale"
+msgstr "Масштаб дисперсии"
+
+
+msgid "Transmission Dispersion Abbe Number"
+msgstr "Число Аббе дисперсии"
+
+
 msgid "Coat Weight"
 msgstr "Вес верхнего слоя"
 
@@ -157508,6 +158553,14 @@ msgstr "Управляет направлением касательной дл�
 
 msgid "Blend between transmission and other base layer components"
 msgstr "Смесь между трансмиссией и другими компонентами базового слоя"
+
+
+msgid "Linearly scales the amount of dispersion"
+msgstr "Линейное масштабирование величины дисперсии"
+
+
+msgid "Abbe number of the base dielectric medium. Smaller number gives stronger dispersion"
+msgstr "Число Аббе базовой диэлектрической среды. Меньшие значения усиливают дисперсию"
 
 
 msgid "Controls the intensity of the coat layer, both the reflection and the tinting. Typically should be zero or one for physically-based materials"
@@ -160035,6 +161088,106 @@ msgid "network"
 msgstr "сеть"
 
 
+msgctxt "Color Management"
+msgid "sRGB"
+msgstr "sRGB"
+
+
+msgctxt "Color Management"
+msgid "Standard"
+msgstr "Стандартный"
+
+
+msgctxt "Color Management"
+msgid "ACES 1.3"
+msgstr "ACES 1.3"
+
+
+msgctxt "Color Management"
+msgid "ACES 2.0"
+msgstr "ACES 2.0"
+
+
+msgctxt "Color Management"
+msgid "Khronos PBR Neutral"
+msgstr "Khronos PBR Neutral"
+
+
+msgctxt "Color Management"
+msgid "AgX"
+msgstr "AgX"
+
+
+msgctxt "Color Management"
+msgid "Filmic"
+msgstr "Filmic"
+
+
+msgctxt "Color Management"
+msgid "False Color"
+msgstr "Ложный цвет"
+
+
+msgctxt "Color Management"
+msgid "Raw"
+msgstr "Исходное"
+
+
+msgctxt "Color Management"
+msgid "ACES 1.3 - HDR 1000 nits"
+msgstr "ACES 1.3 - HDR 1000 нит"
+
+
+msgctxt "Color Management"
+msgid "ACES 1.3 - HDR 2000 nits"
+msgstr "ACES 1.3 - HDR 2000 нит"
+
+
+msgctxt "Color Management"
+msgid "ACES 1.3 - HDR 4000 nits"
+msgstr "ACES 1.3 - HDR 4000 нит"
+
+
+msgctxt "Color Management"
+msgid "ACES 1.3 - SDR"
+msgstr "ACES 1.3 - SDR"
+
+
+msgctxt "Color Management"
+msgid "ACES 2.0 - HDR 500 nits"
+msgstr "ACES 2.0 - HDR 500 нит"
+
+
+msgctxt "Color Management"
+msgid "ACES 2.0 - HDR 1000 nits"
+msgstr "ACES 2.0 - HDR 1000 нит"
+
+
+msgctxt "Color Management"
+msgid "ACES 2.0 - HDR 2000 nits"
+msgstr "ACES 2.0 - HDR 2000 нит"
+
+
+msgctxt "Color Management"
+msgid "ACES 2.0 - HDR 4000 nits"
+msgstr "ACES 2.0 - HDR 4000 нит"
+
+
+msgctxt "Color Management"
+msgid "ACES 2.0 - SDR"
+msgstr "ACES 2.0 - SDR"
+
+
+msgctxt "Color Management"
+msgid "AgX - HDR 1000 nits"
+msgstr "AgX - HDR 1000 нит"
+
+
+msgctxt "Color Management"
+msgid "AgX - SDR"
+msgstr "AgX - SDR"
+
+
 msgid "Apply only the display's standard transform without additional mappings"
 msgstr "Применить только стандартное преобразование отображения без дополнительных цветовых сопоставлений"
 
@@ -160043,20 +161196,45 @@ msgid "sRGB display space with Filmic view transform"
 msgstr "Пространство отображения sRGB с видовым преобразованием Filmic"
 
 
+msgctxt "Color Management"
+msgid "AgX Base Rec.2020"
+msgstr "AgX Base Rec.2020"
+
+
 msgid "AgX Base Image Encoding for display with Gamma 2.4 and Rec.2020 gamut"
 msgstr "Базовая кодировка изображения AgX для отображения с гаммой 2.4 и цветовым охватом Rec.2020"
+
+
+msgctxt "Color Management"
+msgid "AgX Base Rec.1886"
+msgstr "AgX Base Rec.1886"
 
 
 msgid "AgX Base Image Encoding for sRGB and Rec.1886 Display"
 msgstr "Базовая кодировка изображения AgX для отображения sRGB и Rec.1886"
 
 
+msgctxt "Color Management"
+msgid "AgX Base Display P3"
+msgstr "AgX Base Display P3"
+
+
 msgid "AgX Base Image Encoding for Display P3 Display"
 msgstr "Базовая кодировка изображения AgX для отображения Display P3"
 
 
+msgctxt "Color Management"
+msgid "AgX Rec.2100-HLG - HDR 1000 nits (P3 D65)"
+msgstr "AgX Rec.2100-HLG - HDR 1000 нит (P3 D65)"
+
+
 msgid "AgX 1000 nits peak Image Encoding for BT.2100-HLG P3 limited Display. Reference white is 100nits"
 msgstr "Кодирование изображения AgX с пиковой яркостью 1000 нит для отображения с цветовым охватом P3 (BT.2100-HLG). Эталонный уровень белого равен 100 нит"
+
+
+msgctxt "Color Management"
+msgid "AgX False Color Rec.709"
+msgstr "Ложный цвет AgX Rec.709"
 
 
 msgid "A heat-map-like image formed from AgX Base for sRGB and Rec.1886 displays"
@@ -160067,52 +161245,152 @@ msgid "Khronos PBR Neutral Image Encoding for sRGB Display"
 msgstr "Кодирование изображения Khronos PBR Neutral для отображения sRGB"
 
 
+msgctxt "Color Management"
+msgid "ACES 1.3 Display P3"
+msgstr "ACES 1.3 Display P3"
+
+
 msgid "ACES 1.1 Output Transform for SDR D65 video, with P3 gamut"
 msgstr "Преобразование вывода ACES 1.1 для SDR-видео с точкой белого D65 и цветовым охватом P3"
+
+
+msgctxt "Color Management"
+msgid "ACES 1.3 Rec.1886"
+msgstr "ACES 1.3 Rec.1886"
 
 
 msgid "ACES 1.0 Output Transform for SDR D65 video, with Rec.709 gamut"
 msgstr "Преобразование вывода ACES 1.0 для SDR-видео с точкой белого D65 и цветовым охватом Rec.709"
 
 
+msgctxt "Color Management"
+msgid "ACES 1.1 Rec.2100-PQ - HDR 1000 nits"
+msgstr "ACES 1.1 Rec.2100-PQ - HDR 1000 нит"
+
+
 msgid "ACES 1.1 Output Transform for 1000 nit HDR D65 video, with Rec.2020 gamut"
 msgstr "Преобразование вывода ACES 1.1 для HDR-видео 1000 нит с точкой белого D65 и цветовым охватом Rec.2020"
+
+
+msgctxt "Color Management"
+msgid "ACES 1.1 Rec.2100-PQ - HDR 2000 nits"
+msgstr "ACES 1.1 Rec.2100-PQ - HDR 2000 нит"
 
 
 msgid "ACES 1.1 Output Transform for 2000 nit HDR D65 video, with Rec.2020 gamut"
 msgstr "Преобразование вывода ACES 1.1 для HDR-видео 2000 нит с точкой белого D65 и цветовым охватом Rec.2020"
 
 
+msgctxt "Color Management"
+msgid "ACES 1.1 Rec.2100-PQ - HDR 4000 nits"
+msgstr "ACES 1.1 Rec.2100-PQ - HDR 4000 нит"
+
+
 msgid "ACES 1.1 Output Transform for 4000 nit HDR D65 video, with Rec.2020 gamut"
 msgstr "Преобразование вывода ACES 1.1 для HDR-видео 4000 нит с точкой белого D65 и цветовым охватом Rec.2020"
+
+
+msgctxt "Color Management"
+msgid "ACES 2.0 Display P3"
+msgstr "ACES 2.0 Display P3"
 
 
 msgid "ACES 2 Output Transform for Apple Display P3"
 msgstr "Преобразование вывода ACES 2 для отображения Apple Display P3"
 
 
+msgctxt "Color Management"
+msgid "ACES 2.0 Rec.1886"
+msgstr "ACES 2.0 Rec.1886"
+
+
 msgid "ACES 2 Output Transform for 100 nit SDR, with Rec709 gamut"
 msgstr "Преобразование вывода ACES 2 для SDR с яркостью 100 нит, с цветовым охватом Rec.709"
+
+
+msgctxt "Color Management"
+msgid "ACES 2.0 Rec.2100-PQ - HDR 500 nits"
+msgstr "ACES 2.0 Rec.2100-PQ - HDR 500 нит"
 
 
 msgid "ACES 2 Output Transform for 500 nit HDR, with Rec.2020 gamut"
 msgstr "Преобразование вывода ACES 2 для HDR с яркостью 500 нит, с цветовым охватом Rec.2020"
 
 
+msgctxt "Color Management"
+msgid "ACES 2.0 Rec.2100-PQ - HDR 1000 nits"
+msgstr "ACES 2.0 Rec.2100-PQ - HDR 1000 нит"
+
+
 msgid "ACES 2 Output Transform for 1000 nit HDR, with Rec.2020 gamut"
 msgstr "Преобразование вывода ACES 2 для HDR с яркостью 1000 нит, с цветовым охватом Rec.2020"
+
+
+msgctxt "Color Management"
+msgid "ACES 2.0 Rec.2100-PQ - HDR 2000 nits"
+msgstr "ACES 2.0 Rec.2100-PQ - HDR 2000 нит"
 
 
 msgid "ACES 2 Output Transform for 2000 nit HDR, with Rec.2020 gamut"
 msgstr "Преобразование вывода ACES 2 для HDR с яркостью 2000 нит, с цветовым охватом Rec.2020"
 
 
+msgctxt "Color Management"
+msgid "ACES 2.0 Rec.2100-PQ - HDR 4000 nits"
+msgstr "ACES 2.0 Rec.2100-PQ - HDR 4000 нит"
+
+
 msgid "ACES 2 Output Transform for 4000 nit HDR, with Rec.2020 gamut"
 msgstr "Преобразование вывода ACES 2 для HDR с яркостью 4000 нит, с цветовым охватом Rec.2020"
 
 
+msgctxt "Color Management"
+msgid "Very High Contrast"
+msgstr "Очень высокий контраст"
+
+
+msgctxt "Color Management"
+msgid "High Contrast"
+msgstr "Высокий контраст"
+
+
+msgctxt "Color Management"
+msgid "Medium High Contrast"
+msgstr "Средне-высокий контраст"
+
+
+msgctxt "Color Management"
+msgid "Medium Contrast"
+msgstr "Средний контраст"
+
+
+msgctxt "Color Management"
+msgid "Medium Low Contrast"
+msgstr "Средне-низкий контраст"
+
+
+msgctxt "Color Management"
+msgid "Low Contrast"
+msgstr "Низкий контраст"
+
+
+msgctxt "Color Management"
+msgid "Very Low Contrast"
+msgstr "Очень низкий контраст"
+
+
+msgctxt "Color Management"
+msgid "Punchy"
+msgstr "Насыщенный"
+
+
 msgid "A darkening punchy look"
 msgstr "Затемнение с эффектом насыщенности цветов"
+
+
+msgctxt "Color Management"
+msgid "Greyscale"
+msgstr "Оттенки серого"
 
 
 msgid "A Black and White Look"
@@ -160131,6 +161409,11 @@ msgid "A Medium High Contrast Look"
 msgstr "Средне-высокая контрастность"
 
 
+msgctxt "Color Management"
+msgid "Base Contrast"
+msgstr "Базовый контраст"
+
+
 msgid "A Base Contrast Look"
 msgstr "Базовая контрастность"
 
@@ -160147,8 +161430,18 @@ msgid "A Very Low Contrast Look"
 msgstr "Очень низкая контрастность"
 
 
+msgctxt "Color Management"
+msgid "Reference Gamut Compression"
+msgstr "Эталонное сжатие цветового охвата"
+
+
 msgid "Compress scene-referred values from common cameras into the ACEScg gamut"
 msgstr "Сжатие значений, указанных в сцене, с обычных камер до цветового охвата ACEScg"
+
+
+msgctxt "Color Management"
+msgid "Linear"
+msgstr "Линейный"
 
 
 msgid ""
@@ -160157,6 +161450,11 @@ msgid ""
 msgstr ""
 "Преобразование вида Filmic для sRGB.\n"
 "Может использоваться для преобразования фоновых изображений или дорисо́вок в рабочее пространство."
+
+
+msgctxt "Color Management"
+msgid "View Inverse"
+msgstr "Инверсия вида"
 
 
 msgid ""
@@ -160199,12 +161497,72 @@ msgstr ""
 "Для использования с текстурами, привязанными к сцене."
 
 
+msgctxt "Color Management"
+msgid "Input"
+msgstr "Ввод"
+
+
+msgctxt "Color Management"
+msgid "Apple"
+msgstr "Apple"
+
+
+msgctxt "Color Management"
+msgid "ARRI"
+msgstr "ARRI"
+
+
+msgctxt "Color Management"
+msgid "BlackmagicDesign"
+msgstr "BlackmagicDesign"
+
+
+msgctxt "Color Management"
+msgid "Canon"
+msgstr "Canon"
+
+
+msgctxt "Color Management"
+msgid "DJI"
+msgstr "DJI"
+
+
+msgctxt "Color Management"
+msgid "Panasonic"
+msgstr "Panasonic"
+
+
+msgctxt "Color Management"
+msgid "RED"
+msgstr "RED"
+
+
+msgctxt "Color Management"
+msgid "Sony"
+msgstr "Sony"
+
+
+msgctxt "Color Management"
+msgid "Film"
+msgstr "Плёнка"
+
+
+msgctxt "Color Management"
+msgid "Log"
+msgstr "Log"
+
+
 msgid ""
 "1.8 gamma-encoded Rec.709 with illuminant D65 white point.\n"
 "For use with scene-referred textures."
 msgstr ""
 "Rec.709 с гамма-кодированием 1.8 и точкой белого, соответствующей источнику света D65.\n"
 "Для использования с текстурами, привязанными к сцене."
+
+
+msgctxt "Color Management"
+msgid "Utility"
+msgstr "Утилита"
 
 
 msgid ""
@@ -160223,6 +161581,11 @@ msgstr ""
 "Для использования с текстурами, привязанными к сцене."
 
 
+msgctxt "Color Management"
+msgid "sRGB Encoded P3-D65"
+msgstr "P3-D65 с sRGB-кодированием"
+
+
 msgid ""
 "sRGB-encoded P3-D65 with illuminant D65 white point.\n"
 "For use with scene-referred textures."
@@ -160239,6 +161602,11 @@ msgstr ""
 "Для использования с текстурами, привязанными к сцене."
 
 
+msgctxt "Color Management"
+msgid "sRGB Encoded AP1"
+msgstr "AP1 с sRGB-кодированием"
+
+
 msgid ""
 "sRGB-encoded AP1 with ACES white point.\n"
 "For use with scene-referred textures."
@@ -160253,6 +161621,16 @@ msgid ""
 msgstr ""
 "AP1 с гамма-кодированием 2.2 и точкой белого, соответствующей источнику света ACES.\n"
 "Для использования с текстурами, привязанными к сцене."
+
+
+msgctxt "Color Management"
+msgid "blender:pq_rec2020_display_203nits"
+msgstr "blender:pq_rec2020_display_203nits"
+
+
+msgctxt "Color Management"
+msgid "blender:hlg_rec2020_display_203nits"
+msgstr "blender:hlg_rec2020_display_203nits"
 
 
 msgid "Add & Subtract"

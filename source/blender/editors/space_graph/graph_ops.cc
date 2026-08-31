@@ -38,9 +38,6 @@
 
 namespace blender {
 
-/* ************************** view-based operators **********************************/
-/* XXX should these really be here? */
-
 /* -------------------------------------------------------------------- */
 /** \name Set Cursor
  *
@@ -48,6 +45,8 @@ namespace blender {
  * 1) Current Frame Indicator (as per #ANIM_OT_change_frame)
  * 2) Value Indicator (stored per Graph Editor instance)
  * \{ */
+
+/* XXX should these really be here? */
 
 static bool graphview_cursor_poll(bContext *C)
 {

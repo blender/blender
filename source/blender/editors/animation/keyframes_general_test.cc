@@ -591,16 +591,26 @@ TEST_F(keyframes_paste, pastebuf_match_path_property)
         flip))
         << "same bone, other property";
 
-    EXPECT_FALSE(pastebuf_match_path_property(bmain,
-                                              *fcurve,
-                                              *fake_armob_fcurve("rotation_euler", 0, false),
-                                              unassigned,
-                                              from_single,
-                                              to_single,
-                                              flip))
+    EXPECT_FALSE(
+        pastebuf_match_path_property_and_component_length(bmain,
+                                                          *fcurve,
+                                                          *fake_armob_fcurve("location", 0, false),
+                                                          unassigned,
+                                                          from_single,
+                                                          to_single,
+                                                          flip))
         << "other struct, same property name";
 
-    EXPECT_FALSE(pastebuf_match_path_property(
+    EXPECT_TRUE(pastebuf_match_path_property(bmain,
+                                             *fcurve,
+                                             *fake_armob_fcurve("location", 0, false),
+                                             unassigned,
+                                             from_single,
+                                             to_single,
+                                             flip))
+        << "other struct, same property name";
+
+    EXPECT_TRUE(pastebuf_match_path_property(
         bmain,
         *fcurve,
         *fake_armob_fcurve("pose.bones[\"missing\"].location", 0, true),
@@ -673,16 +683,26 @@ TEST_F(keyframes_paste, pastebuf_match_path_property)
         flip))
         << "same bone, other property";
 
-    EXPECT_FALSE(pastebuf_match_path_property(bmain,
-                                              *fcurve,
-                                              *fake_armob_fcurve("rotation_euler", 0, false),
-                                              unassigned,
-                                              from_single,
-                                              to_single,
-                                              flip))
+    EXPECT_FALSE(
+        pastebuf_match_path_property_and_component_length(bmain,
+                                                          *fcurve,
+                                                          *fake_armob_fcurve("location", 0, false),
+                                                          unassigned,
+                                                          from_single,
+                                                          to_single,
+                                                          flip))
         << "other struct, same property name";
 
-    EXPECT_FALSE(pastebuf_match_path_property(
+    EXPECT_TRUE(pastebuf_match_path_property(bmain,
+                                             *fcurve,
+                                             *fake_armob_fcurve("location", 0, false),
+                                             unassigned,
+                                             from_single,
+                                             to_single,
+                                             flip))
+        << "other struct, same property name";
+
+    EXPECT_TRUE(pastebuf_match_path_property(
         bmain,
         *fcurve,
         *fake_armob_fcurve("pose.bones[\"missing\"].location", 0, true),
@@ -696,9 +716,9 @@ TEST_F(keyframes_paste, pastebuf_match_path_property)
      * correct / desired behavior. */
     FCurvePtr fcurve_with_long_rna_path = fake_fcurve(
         "pose.bones[\"hand.L\"].weirdly_long_location", 0);
-    EXPECT_TRUE(pastebuf_match_path_property(
+    EXPECT_FALSE(pastebuf_match_path_property(
         bmain,
-        *fcurve,
+        *fcurve_with_long_rna_path,
         *fake_armob_fcurve("pose.bones[\"hand.L\"].location", 0, true),
         unassigned,
         from_single,
@@ -712,7 +732,7 @@ TEST_F(keyframes_paste, pastebuf_match_path_property)
     FCurvePtr fcurve = fake_fcurve("pose.bones[\"hand.L\"].location", 0);
     Object *object_not_in_main = BKE_object_add_only_object(nullptr, OB_EMPTY, "non-main");
 
-    EXPECT_FALSE(pastebuf_match_path_property(
+    EXPECT_TRUE(pastebuf_match_path_property(
         bmain,
         *fcurve,
         *fake_fcurve_in_buffer(

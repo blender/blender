@@ -176,12 +176,12 @@ static void nodestack_get_vec(float *in, short type_in, bNodeStack *ns)
 
 void node_gpu_stack_from_data(GPUNodeStack *gs, bNodeSocket *socket, bNodeStack *ns)
 {
-  memset(gs, 0, sizeof(*gs));
+  *gs = GPUNodeStack{};
 
   if (ns == nullptr) {
     /* node_get_stack() will generate nullptr bNodeStack pointers
      * for unknown/unsupported types of sockets. */
-    zero_v4(gs->vec);
+    gs->value = std::monostate{};
     gs->link = nullptr;
     gs->type = GPU_NONE;
     gs->hasinput = false;
@@ -189,43 +189,51 @@ void node_gpu_stack_from_data(GPUNodeStack *gs, bNodeSocket *socket, bNodeStack 
     gs->sockettype = socket->type;
   }
   else {
-    nodestack_get_vec(gs->vec, socket->type, ns);
     gs->link = static_cast<GPUNodeLink *>(ns->data);
 
-    if (socket->type == SOCK_FLOAT) {
-      gs->type = GPU_FLOAT;
-    }
-    else if (socket->type == SOCK_INT) {
-      gs->type = GPU_FLOAT; /* HACK: Support as float. */
-    }
-    else if (socket->type == SOCK_BOOLEAN) {
-      gs->type = GPU_FLOAT; /* HACK: Support as float. */
-    }
-    else if (socket->type == SOCK_VECTOR) {
-      switch (socket->default_value_typed<bNodeSocketValueVector>()->dimensions) {
-        case 2:
-          gs->type = GPU_VEC2;
-          break;
-        case 3:
-        default:
-          gs->type = GPU_VEC3;
-          break;
-        case 4:
-          gs->type = GPU_VEC4;
-          break;
-      }
-    }
-    else if (socket->type == SOCK_RGBA) {
-      gs->type = GPU_VEC4;
-    }
-    else if (socket->type == SOCK_SHADER) {
-      gs->type = GPU_CLOSURE;
-    }
-    else if (socket->type == SOCK_ROTATION) {
-      gs->type = GPU_VEC4;
-    }
-    else {
-      gs->type = GPU_NONE;
+    /* The value is retrieved as float4, then stored using the type of the socket. */
+    float4 vec(0.0f);
+    nodestack_get_vec(vec, socket->type, ns);
+
+    switch (socket->type) {
+      case SOCK_FLOAT:
+      case SOCK_INT:     /* HACK: Support as float. */
+      case SOCK_BOOLEAN: /* HACK: Support as float. */
+        gs->type = GPU_FLOAT;
+        gs->value = vec.x;
+        break;
+      case SOCK_VECTOR:
+        switch (socket->default_value_typed<bNodeSocketValueVector>()->dimensions) {
+          case 2:
+            gs->type = GPU_VEC2;
+            gs->value = float2(vec);
+            break;
+          case 3:
+            gs->type = GPU_VEC3;
+            gs->value = float3(vec);
+            break;
+          case 4:
+            gs->type = GPU_VEC4;
+            gs->value = vec;
+            break;
+          default:
+            BLI_assert_unreachable();
+            break;
+        }
+        break;
+      case SOCK_RGBA:
+      case SOCK_ROTATION:
+        gs->type = GPU_VEC4;
+        gs->value = vec;
+        break;
+      case SOCK_SHADER:
+        gs->type = GPU_CLOSURE;
+        gs->value = std::monostate{};
+        break;
+      default:
+        gs->type = GPU_NONE;
+        gs->value = std::monostate{};
+        break;
     }
 
     gs->hasinput = ns->hasinput && ns->data;
@@ -240,7 +248,24 @@ void node_gpu_stack_from_data(GPUNodeStack *gs, bNodeSocket *socket, bNodeStack 
 
 void node_data_from_gpu_stack(bNodeStack *ns, GPUNodeStack *gs)
 {
-  copy_v4_v4(ns->vec, gs->vec);
+  float4 vec(0.0f);
+  switch (gs->type) {
+    case GPU_FLOAT:
+      vec.x = std::get<float>(gs->value);
+      break;
+    case GPU_VEC2:
+      vec = float4(std::get<float2>(gs->value), 0.0f, 0.0f);
+      break;
+    case GPU_VEC3:
+      vec = float4(std::get<float3>(gs->value), 0.0f);
+      break;
+    case GPU_VEC4:
+      vec = std::get<float4>(gs->value);
+      break;
+    default:
+      break;
+  }
+  copy_v4_v4(ns->vec, vec);
   ns->data = gs->link;
   ns->sockettype = gs->sockettype;
 }

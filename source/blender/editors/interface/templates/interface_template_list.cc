@@ -1034,7 +1034,6 @@ void template_uilist(Layout *layout,
 }
 
 /* -------------------------------------------------------------------- */
-
 /** \name List-types Registration
  * \{ */
 

@@ -1,9 +1,9 @@
 
 msgid ""
 msgstr ""
-"Project-Id-Version: Blender 5.3.0 Alpha (b'09417042a1fa')\n"
+"Project-Id-Version: Blender 5.3.0 Alpha (b'32296898e057')\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-08-24 07:38+0000\n"
+"POT-Creation-Date: 2026-08-31 07:41+0000\n"
 "PO-Revision-Date: 2025-07-23 14:53+0000\n"
 "Last-Translator: Anonymous <noreply@weblate.org>\n"
 "Language-Team: Arabic <https://translate.blender.org/projects/blender-ui/ui/ar/>\n"
@@ -3199,6 +3199,10 @@ msgid "Set position of selected color stop"
 msgstr "ﺭﺎﺘﺨﻤﻟﺍ ﻥﻮﻠﻟﺍ ﺮﺷﺆﻣ ﻊﻗﻮﻣ ﻊﺿ"
 
 
+msgid "Identifier"
+msgstr "ﻑﺮﻌﻤﻟﺍ"
+
+
 msgid "Console Input"
 msgstr "ﺮﻣﺍﻭﻷ﻿ﺍ ﺔﺣﻮﻟ ﻞﺧﺪﻣ"
 
@@ -6227,10 +6231,6 @@ msgstr "ﺍ.ﻥ.ﺮﻟﺍ ﺹﺍﻮﺧ ﺩﺍﺪﻋ ﻲﻓ ﺭﺎﻴﺧ ﻒﻳ�
 
 msgid "Description of the item's purpose"
 msgstr "ﺮﺼﻨﻌﻟﺍ ﺽﺮﻏ ﻒﻳﺮﻌﺗ"
-
-
-msgid "Identifier"
-msgstr "ﻑﺮﻌﻤﻟﺍ"
 
 
 msgid "Unique name used in the code and scripting"
@@ -20700,6 +20700,11 @@ msgid "Reset Transform"
 msgstr "ﻝﻮّﺤﺘﻟﺍ ﻂﺒﺿ ﺪﻋﺍ"
 
 
+msgctxt "Operator"
+msgid "Select Directory"
+msgstr "ﺭﺎﺴﻤﻟﺍ ﺮﺘﺧﺍ"
+
+
 msgid "Directory of the file"
 msgstr "ﻒﻠﻤﻟﺍ ﺪﻠّﺠﻣ"
 
@@ -21915,11 +21920,6 @@ msgstr "ﺕﺎﻔﻠﻤﻟﺍ ﻞﻛ ﺮﺘﺨﺗ ﻻ﻿/ﺮﺘﺧﺍ"
 
 msgid "Select or deselect all files"
 msgstr "ﺕﺎﻔﻠﻤﻟﺍ ﻞﻛ ﺮﺘﺨﺗ ﻻ﻿ ﻭﺍ ﺮﺘﺧﺍ"
-
-
-msgctxt "Operator"
-msgid "Select Directory"
-msgstr "ﺭﺎﺴﻤﻟﺍ ﺮﺘﺧﺍ"
 
 
 msgid "Walk Direction"
@@ -25910,6 +25910,10 @@ msgid "New Screen"
 msgstr "ﺓﺪﻳﺪﺟ ﺔﺷﺎﺷ"
 
 
+msgid "Active Section"
+msgstr "ﻝﺎﻌّﻔﻟﺍ ﻊﻄﻘﻤﻟﺍ"
+
+
 msgctxt "Operator"
 msgid "Redo Last"
 msgstr "ﺮﻴﺧﻻ﻿ﺍ ﺪﻋﺃ"
@@ -28946,10 +28950,6 @@ msgstr "ﻼ﻿ﻌﻔﻣ ﺪﻳﺪﻤﺘﻟﺍ ﻥﺎﻛ ﺍﺫﺇ IK ﺪﻴﻗ �
 
 msgid "Apply channel rotation as IK constraint"
 msgstr "IK ﺪﻴﻗ ﻞﻜﺷ ﻰﻠﻋ ﻥﺍﺭﻭﺪﻟﺍ ﺓﺎﻨﻗ ﻖﻴﺒﻄﺗ"
-
-
-msgid "Active Section"
-msgstr "ﻝﺎﻌّﻔﻟﺍ ﻊﻄﻘﻤﻟﺍ"
 
 
 msgid "Edit Methods"

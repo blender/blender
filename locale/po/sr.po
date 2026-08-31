@@ -1,9 +1,9 @@
 
 msgid ""
 msgstr ""
-"Project-Id-Version: Blender 5.3.0 Alpha (b'09417042a1fa')\n"
+"Project-Id-Version: Blender 5.3.0 Alpha (b'32296898e057')\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-08-24 07:38+0000\n"
+"POT-Creation-Date: 2026-08-31 07:41+0000\n"
 "PO-Revision-Date: 2025-07-23 15:10+0000\n"
 "Last-Translator: Anonymous <noreply@weblate.org>\n"
 "Language-Team: Serbian <https://translate.blender.org/projects/blender-ui/ui/sr/>\n"
@@ -2074,6 +2074,10 @@ msgid "Position"
 msgstr "Позиција"
 
 
+msgid "Identifier"
+msgstr "Идентификатор"
+
+
 msgid "Console Input"
 msgstr "Конзолни унос"
 
@@ -3778,10 +3782,6 @@ msgstr "Јачина утицаја ветра"
 
 msgid "Description of the item's purpose"
 msgstr "Опис сврхе ставке"
-
-
-msgid "Identifier"
-msgstr "Идентификатор"
 
 
 msgid "Unique name used in the code and scripting"
@@ -12255,8 +12255,8 @@ msgstr "Поништи тренсформације"
 
 
 msgctxt "Operator"
-msgid "Accept"
-msgstr "Прихвати"
+msgid "Select Directory"
+msgstr "Изабери директоријум"
 
 
 msgid "Select the file relative to the blend file"
@@ -13565,11 +13565,6 @@ msgstr "Изабери све датотеке"
 
 msgid "Select or deselect all files"
 msgstr "Бира или поништава избор свих датотека"
-
-
-msgctxt "Operator"
-msgid "Select Directory"
-msgstr "Изабери директоријум"
 
 
 msgid "Previous"
@@ -17228,6 +17223,10 @@ msgid "Add a new screen"
 msgstr "Додаје нови Сензор"
 
 
+msgid "Active Section"
+msgstr "Активни одељак"
+
+
 msgctxt "Operator"
 msgid "Region Alpha"
 msgstr "Провидност иконица"
@@ -19718,10 +19717,6 @@ msgstr "IK Y граница"
 
 msgid "IK Z Limit"
 msgstr "IK Z граница"
-
-
-msgid "Active Section"
-msgstr "Активни одељак"
 
 
 msgid "Edit Methods"

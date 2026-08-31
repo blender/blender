@@ -1,9 +1,9 @@
 
 msgid ""
 msgstr ""
-"Project-Id-Version: Blender 5.3.0 Alpha (b'09417042a1fa')\n"
+"Project-Id-Version: Blender 5.3.0 Alpha (b'32296898e057')\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-08-24 07:38+0000\n"
+"POT-Creation-Date: 2026-08-31 07:41+0000\n"
 "PO-Revision-Date: 2025-12-01 09:17+0000\n"
 "Last-Translator: Matt Mitacek <mattmitacek@gmail.com>\n"
 "Language-Team: Czech <https://translate.blender.org/projects/blender-ui/ui/cs/>\n"
@@ -4476,6 +4476,10 @@ msgid "Collection of Color Ramp Elements"
 msgstr "Kolekce prvků rampy barev"
 
 
+msgid "Identifier"
+msgstr "Identifikátor"
+
+
 msgid "Console Input"
 msgstr "Vstup konzoly"
 
@@ -6664,10 +6668,6 @@ msgstr "Hmotnost efektoru víru"
 
 msgid "Wind"
 msgstr "Vítr"
-
-
-msgid "Identifier"
-msgstr "Identifikátor"
 
 
 msgid "Value of the item"
@@ -13947,16 +13947,16 @@ msgid "Merge"
 msgstr "Sloučit"
 
 
+msgid "Pivot Point"
+msgstr "Bod pro pivot"
+
+
 msgid "Special Characters"
 msgstr "Speciální Znaky"
 
 
 msgid "Bone Roll"
 msgstr "Kost"
-
-
-msgid "Pivot Point"
-msgstr "Bod pro pivot"
 
 
 msgid "Basic"
@@ -19624,8 +19624,8 @@ msgstr "Kontextová Nabídka"
 
 
 msgctxt "Operator"
-msgid "Accept"
-msgstr "Přijmout"
+msgid "Select Directory"
+msgstr "Vybrat adresář"
 
 
 msgid "Directory of the file"
@@ -21397,11 +21397,6 @@ msgstr "Vybrat/odebrat všechny soubory"
 
 msgid "Select or deselect all files"
 msgstr "Vybrat/odebrat všechny soubory"
-
-
-msgctxt "Operator"
-msgid "Select Directory"
-msgstr "Vybrat adresář"
 
 
 msgid "Select a bookmarked directory"
@@ -27278,6 +27273,10 @@ msgid "Add a new screen"
 msgstr "Přidá novou obrazovku"
 
 
+msgid "Active Section"
+msgstr "Aktivní kosti"
+
+
 msgctxt "Operator"
 msgid "Redo Last"
 msgstr "Poslední znovu"
@@ -31906,10 +31905,6 @@ msgstr "Limity"
 
 msgid "Limit movement around the Z axis"
 msgstr "Limituje rotaci po Z ose"
-
-
-msgid "Active Section"
-msgstr "Aktivní kosti"
 
 
 msgid "Edit Methods"

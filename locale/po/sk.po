@@ -1,10 +1,10 @@
 
 msgid ""
 msgstr ""
-"Project-Id-Version: Blender 5.3.0 Alpha (b'09417042a1fa')\n"
+"Project-Id-Version: Blender 5.3.0 Alpha (b'32296898e057')\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-08-24 07:38+0000\n"
-"PO-Revision-Date: 2026-08-11 06:11+0000\n"
+"POT-Creation-Date: 2026-08-31 07:41+0000\n"
+"PO-Revision-Date: 2026-08-26 05:50+0000\n"
 "Last-Translator: Jozef Matta <jozef.m923@gmail.com>\n"
 "Language-Team: Slovak <https://translate.blender.org/projects/blender-ui/ui/sk/>\n"
 "Language: sk\n"
@@ -2044,6 +2044,14 @@ msgid "When \"Follow Asset or Preferences\" is selected for the import method in
 msgstr "Ak je v prehliadači zdrojov ako metóda importu zvolená možnosť „Použiť nastavenia zdroja alebo predvoľby“, použite preferovanú metódu importu tohto zdroja"
 
 
+msgid "Webpage"
+msgstr "Web stránka"
+
+
+msgid "WebpageWeb-address to a page with more information about this asset"
+msgstr "Webová stránka – webová adresa stránky s ďalšími informáciami o tomto aktíve"
+
+
 msgid "Asset Representation"
 msgstr "Zastúpenie aktív"
 
@@ -3989,16 +3997,36 @@ msgid "A color space, view or display was not found, which likely means the Open
 msgstr "Nebol nájdený farebný priestor, pohľad alebo zobrazenie, čo pravdepodobne znamená, že chýba konfigurácia OpenColorIO použitá na vytvorenie tohto blend súboru"
 
 
+msgctxt "Color Management"
+msgid "Working Space"
+msgstr "Pracovný priestor"
+
+
 msgid "Color space used for all scene linear colors in this file, and for compositing, shader and geometry nodes processing"
 msgstr "Farebný priestor používaný pre všetky lineárne farby scény v tomto súbore a pre kompozíciu, spracovanie tieňovačov a geometrických uzlov"
+
+
+msgctxt "Color Management"
+msgid "Linear Rec.709"
+msgstr "Lineárny Rec.709"
 
 
 msgid "Linear BT.709 with illuminant D65 white point"
 msgstr "Lineárny BT.709 s bielym bodom D65"
 
 
+msgctxt "Color Management"
+msgid "Linear Rec.2020"
+msgstr "Lineárny Rec.2020"
+
+
 msgid "Linear BT.2020 with illuminant D65 white point"
 msgstr "Lineárny BT.2020 s bielym bodom D65"
+
+
+msgctxt "Color Management"
+msgid "ACEScg"
+msgstr "ACEScg"
 
 
 msgid "Linear AP1 with ACES white point"
@@ -4210,16 +4238,12 @@ msgid "Collection of source libraries, i.e. blendfile paths"
 msgstr "Kolekcia zdrojových knižníc, t. j. cesty k blend-súborom"
 
 
-msgid "Blendfile Import Context Library"
-msgstr "Importovať kontextovú knižnicu blend-súboru"
-
-
-msgid "Library (blendfile) reference in a BlendImportContext data. Currently only exposed as read-only data for the pre/post blendimport handlers"
-msgstr "Odkaz na knižnicu (blend-súboru) v údajoch BlendImportContext. V súčasnosti vystavené len ako údaje len na čítanie pre obslužné programy pred/po blendimporte"
-
-
 msgid "Blender Project"
 msgstr "Projekt Blenderu"
+
+
+msgid "Active Asset Library"
+msgstr "Aktívna knižnica aktív"
 
 
 msgid "Dirty"
@@ -7832,8 +7856,18 @@ msgid "Color management specific to display device"
 msgstr "Správa farieb určená pre zobrazovacie zariadenie"
 
 
+msgctxt "Color Management"
+msgid "Display"
+msgstr "Zobrazenie"
+
+
 msgid "Display name. For viewing, this is the display device that will be emulated by limiting the gamut and HDR colors. For image and video output, this is the display space used for writing."
 msgstr "Zobraziť názov. Pre prezeranie ide o displej, ktorý bude emulovaný obmedzením farebného gamutu (oblasti farieb) a HDR farieb. Pre výstup obrazu a videa ide o zobrazovací priestor používaný na zapisovanie."
+
+
+msgctxt "Color Management"
+msgid "None"
+msgstr "Nie je"
 
 
 msgid "Display Emulation"
@@ -7864,228 +7898,513 @@ msgid "Treat image as non-color data without color management, like normal or di
 msgstr "Zaobchádza s obrázkom ako s nefarebnými údajmi bez správy farieb, ako sú napríklad mapovanie normál alebo posunov"
 
 
+msgctxt "Color Management"
+msgid "Input Color Space"
+msgstr "Vstupný farebný priestor"
+
+
 msgid "Color space in the image file, to convert to and from when saving and loading the image"
 msgstr "Farebný priestor v súbore obrázka na konvertovanie do a z pri ukladaní a načítavaní obrázka"
+
+
+msgctxt "Color Management"
+msgid "ACES 1.3 sRGB"
+msgstr "ACES 1.3 sRGB"
 
 
 msgid "ACES 1.3 view transform for sRGB. May be used to convert backplates or matte paintings to the working space."
 msgstr "Transformácia pohľadu ACES 1.3 pre sRGB. Môže sa použiť na konverziu pozadí alebo matovaných malieb do pracovného priestoru."
 
 
+msgctxt "Color Management"
+msgid "ACES 2.0 sRGB"
+msgstr "ACES 2.0 sRGB"
+
+
 msgid "ACES 2.0 view transform for sRGB. May be used to convert backplates or matte paintings to the working space."
 msgstr "Transformácia pohľadu ACES 2.0 pre sRGB. Môže sa použiť na konverziu pozadí alebo matovaných malieb do pracovného priestoru."
+
+
+msgctxt "Color Management"
+msgid "ACES2065-1"
+msgstr "ACES2065-1"
 
 
 msgid "Linear AP0 with ACES white point"
 msgstr "Lineárny AP0 s bielym bodom ACES"
 
 
+msgctxt "Color Management"
+msgid "ACEScc"
+msgstr "ACEScc"
+
+
 msgid "ACES color correction space, using AP1 primaries."
 msgstr "Farebný korekčný priestor ACES s použitím primárnych farieb AP1."
+
+
+msgctxt "Color Management"
+msgid "ACEScct"
+msgstr "ACEScct"
 
 
 msgid "ACES color correction space with toe, using AP1 primaries."
 msgstr "Farebný korekčný priestor ACES s pätkou, používajúci primárne farby AP1."
 
 
+msgctxt "Color Management"
+msgid "ADX10"
+msgstr "ADX10"
+
+
 msgid "Film scan input space using ADX10 encoding."
 msgstr "Vstupný priestor pre skenovanie filmu s použitím kódovania ADX10."
+
+
+msgctxt "Color Management"
+msgid "ADX16"
+msgstr "ADX16"
 
 
 msgid "Film scan input space using ADX16 encoding."
 msgstr "Vstupný priestor pre skenovanie filmu s použitím kódovania ADX16."
 
 
+msgctxt "Color Management"
+msgid "ARRI LogC3 (EI800)"
+msgstr "ARRI LogC3 (EI800)"
+
+
 msgid "ARRI camera input space using LogC3 (EI800) transfer function and ARRI Wide Gamut primaries."
 msgstr "Vstupný priestor kamery ARRI s použitím prenosovej funkcie LogC3 (EI800) a primárnych farieb ARRI Wide Gamut."
+
+
+msgctxt "Color Management"
+msgid "ARRI LogC4"
+msgstr "ARRI LogC4"
 
 
 msgid "ARRI camera input space using LogC4 transfer function and ARRI Wide Gamut 4 primaries."
 msgstr "Vstupný priestor kamery ARRI s použitím prenosovej funkcie LogC4 a primárnych farieb ARRI Wide Gamut."
 
 
+msgctxt "Color Management"
+msgid "AgX Base sRGB"
+msgstr "Základné AgX sRGB"
+
+
 msgid "AgX view transform for sRGB. May be used to convert backplates or matte paintings to the working space."
 msgstr "Transformácia pohľadu AgX pre sRGB. Môže sa použiť na konverziu pozadia alebo matovaných kresieb do pracovného priestoru."
+
+
+msgctxt "Color Management"
+msgid "AgX Log"
+msgstr "AgX Log"
 
 
 msgid "Log Encoding with Chroma inset and rotation of primaries, and with 25 Stops of Dynamic Range"
 msgstr "Záznam kódovania s farebnosťou a rotáciou primárnych prvkov a s 25-stupňovým dynamickým rozsahom"
 
 
+msgctxt "Color Management"
+msgid "Apple Log"
+msgstr "Apple Log"
+
+
 msgid "Apple camera input space using Apple Log transfer function and Rec.2020 primaries."
 msgstr "Vstupný priestor kamery Apple s využitím prenosovej funkcie Apple Log a primárnych farieb Rec.2020."
+
+
+msgctxt "Color Management"
+msgid "Apple Log 2"
+msgstr "Apple Log 2"
 
 
 msgid "Apple camera input space using Apple Log transfer function and Apple Wide Gamut primaries."
 msgstr "Vstupný priestor kamery Apple s využitím prenosovej funkcie Apple Log a primárnych farieb Apple Wide Gamut."
 
 
+msgctxt "Color Management"
+msgid "BMDFilm WideGamut Gen5"
+msgstr "BMDFilm WideGamut Gen5"
+
+
 msgid "Blackmagic camera input space using BMDFilm Gen5 transfer function and Blackmagic Wide Gamut Gen5 primaries."
 msgstr "Vstupný priestor kamery Blackmagic s využitím prenosovej funkcie BMDFilm Gen5 a primárnych farieb Blackmagic Wide Gamut Gen5."
+
+
+msgctxt "Color Management"
+msgid "CanonLog2 CinemaGamut D55"
+msgstr "CanonLog2 CinemaGamut D55"
 
 
 msgid "Canon camera input space using Canon-Log2 transfer function and Cinema Gamut primaries."
 msgstr "Záznamový priestor kamery Canon s využitím prenosovej funkcie Canon-Log2 a primárnych farieb Cinema Gamut."
 
 
+msgctxt "Color Management"
+msgid "CanonLog3 CinemaGamut D55"
+msgstr "CanonLog3 CinemaGamut D55"
+
+
 msgid "Canon camera input space using Canon-Log3 transfer function and Cinema Gamut primaries."
 msgstr "Záznamový priestor kamery Canon s využitím prenosovej funkcie Canon-Log3 a primárnych farieb Cinema Gamut."
+
+
+msgctxt "Color Management"
+msgid "D-Log D-Gamut"
+msgstr "D-Log D-Gamut"
 
 
 msgid "DJI camera input space using D-Log transfer function and D-Gamut primaries."
 msgstr "Rozsah kamery DJI s využitím prenosovej funkcie D-Log a primárnych farieb D-Gamut."
 
 
+msgctxt "Color Management"
+msgid "DaVinci Intermediate WideGamut"
+msgstr "DaVinci Intermediate WideGamut"
+
+
 msgid "Blackmagic camera input space using DaVinci Intermediate transfer function and DaVinci Wide Gamut primaries."
 msgstr "Vstupný priestor kamery Blackmagic s využitím prenosovej funkcie DaVinci Intermediate a primárnych farieb DaVinci Wide Gamut."
+
+
+msgctxt "Color Management"
+msgid "Display P3"
+msgstr "Display P3"
 
 
 msgid "Apple's Display P3 with sRGB compound (piece-wise) encoding transfer function, common on Mac devices"
 msgstr "Displej P3 od spoločnosti Apple s funkciou prenosu zloženého (kusového) kódovania sRGB, ktorá je bežná v zariadeniach Mac"
 
 
+msgctxt "Color Management"
+msgid "Filmic Log"
+msgstr "Filmový záznam"
+
+
 msgid "Log based filmic shaper with 16.5 stops of latitude, and 25 stops of dynamic range"
 msgstr "Záznam založený filmovým tvorcom s 16,5 uzávierkou pásma a 25 uzávierkou dynamického rozsahu"
+
+
+msgctxt "Color Management"
+msgid "Filmic sRGB"
+msgstr "Filmový sRGB"
 
 
 msgid "Filmic view transform for sRGB. May be used to convert backplates or matte paintings to the working space."
 msgstr "Transformácia pohľadu Filmic pre sRGB. Môže sa použiť na konverziu pozadia alebo matovaných kresieb do pracovného priestoru."
 
 
+msgctxt "Color Management"
+msgid "Gamma 1.8 Encoded Rec.709"
+msgstr "Gamma 1,8 kódované podľa Rec. 709"
+
+
 msgid "1.8 gamma-encoded Rec.709 with illuminant D65 white point. For use with scene-referred textures."
 msgstr "Gama 1,8 kódované Rec.709 a bielym bodom D65. Určené na použitie s textúrami viazanými na scénu."
+
+
+msgctxt "Color Management"
+msgid "Gamma 2.2 Encoded AP1"
+msgstr "Gamma 2.2 kódované AP1"
 
 
 msgid "2.2 gamma-encoded AP1 with ACES white point. For use with scene-referred textures."
 msgstr "Gama 2,2 kódované AP1 s bielym bodom ACES. Určené na použitie s textúrami orientovanými na scénu."
 
 
+msgctxt "Color Management"
+msgid "Gamma 2.2 Encoded AdobeRGB"
+msgstr "Gamma 2.2 kódované AdobeRGB"
+
+
 msgid "2.2 gamma-encoded Adobe RGB (1998) with illuminant D65 white point. For use with scene-referred textures."
 msgstr "Gama 2,2 kódované Adobe RGB (1998) s bielym bodom osvetlenia D65. Určené na použitie s textúrami viazanými na scénu."
+
+
+msgctxt "Color Management"
+msgid "Gamma 2.2 Encoded Rec.709"
+msgstr "Gamma 2,2 kódované Rec.709"
 
 
 msgid "2.2 gamma-encoded Rec.709 with illuminant D65 white point. For use with scene-referred textures."
 msgstr "Gama 2,2 kódované Rec.709 a bielym bodom D65. Určené na použitie s textúrami viazanými na scénu."
 
 
+msgctxt "Color Management"
+msgid "Gamma 2.4 Encoded Rec.709"
+msgstr "Gamma 2,4 kódované Rec.709"
+
+
 msgid "2.4 gamma-encoded Rec.709 with illuminant D65 white point. For use with scene-referred textures."
 msgstr "Gama 2,4 kódované Rec.709 a bielym bodom D65. Určené na použitie s textúrami viazanými na scénu."
+
+
+msgctxt "Color Management"
+msgid "Khronos PBR Neutral sRGB"
+msgstr "Khronos PBR Neutral sRGB"
 
 
 msgid "Khronos PBR Neutral view transform for sRGB. May be used to convert backplates or matte paintings to the working space."
 msgstr "Neutrálna transformácia pohľadu Khronos PBR pre sRGB. Môže sa použiť na konverziu pozadí alebo matovaných kresieb do pracovného priestoru."
 
 
+msgctxt "Color Management"
+msgid "Linear ARRI Wide Gamut 3"
+msgstr "Lineárny ARRI Wide Gamut 3"
+
+
 msgid "ARRI camera input space using linear ARRI Wide Gamut primaries."
 msgstr "Vstupný priestor kamery ARRI s využitím lineárnych primárnych farieb ARRI Wide Gamut."
+
+
+msgctxt "Color Management"
+msgid "Linear ARRI Wide Gamut 4"
+msgstr "Lineárny ARRI Wide Gamut 4"
 
 
 msgid "ARRI camera input space using linear ARRI Wide Gamut 4 primaries."
 msgstr "Vstupný priestor kamery ARRI s využitím lineárnych primárnych farieb ARRI Wide Gamut 4."
 
 
+msgctxt "Color Management"
+msgid "Linear Adobe RGB"
+msgstr "Lineárne Adobe RGB"
+
+
 msgid "Linear Adobe RGB (1998) with illuminant D65 white point. For use with scene-referred textures."
 msgstr "Lineárne Adobe RGB (1998) s bielym bodom podľa svetelného zdroja D65. Určené na použitie s textúrami viazanými na scénu."
+
+
+msgctxt "Color Management"
+msgid "Linear Apple Wide Gamut"
+msgstr "Lineárny Apple Wide Gamut"
 
 
 msgid "Apple camera input space using linear Apple Wide Gamut primaries."
 msgstr "Vstupný priestor kamery Apple s využitím lineárnych primárnych farieb Apple Wide Gamut."
 
 
+msgctxt "Color Management"
+msgid "Linear BMD WideGamut Gen5"
+msgstr "Lineárny BMD WideGamut Gen5"
+
+
 msgid "Blackmagic camera input space using linear Blackmagic Wide Gamut Gen5 primaries."
 msgstr "Vstupný priestor kamery Blackmagic využívajúci lineárne primárne farby Blackmagic Wide Gamut Gen5."
+
+
+msgctxt "Color Management"
+msgid "Linear CIE-XYZ D65"
+msgstr "Lineárny CIE-XYZ D65"
 
 
 msgid "1931 CIE XYZ with adapted illuminant D65 white point"
 msgstr "1931 CIE XYZ s upraveným bielym bodom D65"
 
 
+msgctxt "Color Management"
+msgid "Linear CIE-XYZ E"
+msgstr "Lineárny CIE-XYZ E"
+
+
 msgid "1931 CIE XYZ standard with assumed illuminant E white point"
 msgstr "1931 CIE XYZ štandard s predpokladaným bielym bodom E"
+
+
+msgctxt "Color Management"
+msgid "Linear CinemaGamut D55"
+msgstr "Lineárny CinemaGamut D55"
 
 
 msgid "Canon camera input space using linear Cinema Gamut primaries."
 msgstr "Vstupný priestor kamery Canon využívajúci lineárne primárne farby Cinema Gamut."
 
 
+msgctxt "Color Management"
+msgid "Linear D-Gamut"
+msgstr "Lineárny D-Gamut"
+
+
 msgid "DJI camera input space using linear D-Gamut primaries."
 msgstr "Vstupný priestor kamery DJI využívajúci lineárne primárne farby D-Gamut."
+
+
+msgctxt "Color Management"
+msgid "Linear DCI-P3 D65"
+msgstr "Lineárny DCI-P3 D65"
 
 
 msgid "Linear DCI-P3 with illuminant D65 white point"
 msgstr "Lineárny DCI-P3 s bielym bodom D65"
 
 
+msgctxt "Color Management"
+msgid "Linear DaVinci WideGamut"
+msgstr "Lineárny DaVinci WideGamut"
+
+
 msgid "Blackmagic camera input space using linear DaVinci Wide Gamut primaries."
 msgstr "Vstupný priestor kamery Blackmagic s použitím lineárnych primárnych farieb DaVinci Wide Gamut."
+
+
+msgctxt "Color Management"
+msgid "Linear FilmLight E-Gamut"
+msgstr "Lineárny FilmLight E-Gamut"
 
 
 msgid "Linear E-Gamut with illuminant D65 white point"
 msgstr "Lineárny E-Gamut s bielym bodom D65"
 
 
+msgctxt "Color Management"
+msgid "Linear REDWideGamutRGB"
+msgstr "Lineárny REDWideGamutRGB"
+
+
 msgid "RED camera input space using linear REDWideGamutRGB primaries."
 msgstr "Vstupný priestor kamery RED s použitím lineárnych primárnych farieb REDWideGamutRGB."
+
+
+msgctxt "Color Management"
+msgid "Linear S-Gamut3"
+msgstr "Lineárny S-Gamut3"
 
 
 msgid "Sony camera input space using linear S-Gamut3 primaries."
 msgstr "Vstupný priestor kamery Sony využívajúci lineárne primárne farby S-Gamut3."
 
 
+msgctxt "Color Management"
+msgid "Linear S-Gamut3.Cine"
+msgstr "Lineárny S-Gamut3.Cine"
+
+
 msgid "Sony camera input space using linear S-Gamut3.Cine primaries."
 msgstr "Vstupný priestor kamery Sony využívajúci lineárne primárne farby S-Gamut3.Cine."
+
+
+msgctxt "Color Management"
+msgid "Linear V-Gamut"
+msgstr "Lineárny V-Gamut"
 
 
 msgid "Panasonic camera input space using linear V-Gamut primaries."
 msgstr "Vstupný priestor kamery Panasonic využívajúci lineárne primárne farby V-Gamut."
 
 
+msgctxt "Color Management"
+msgid "Linear Venice S-Gamut3"
+msgstr "Lineárny Venice S-Gamut3"
+
+
 msgid "Sony camera input space using linear Venice S-Gamut3 primaries."
 msgstr "Vstupný priestor kamery Sony využívajúci lineárne primárne farby Venice S-Gamut3."
+
+
+msgctxt "Color Management"
+msgid "Linear Venice S-Gamut3.Cine"
+msgstr "Lineárny Venice S-Gamut3.Cine"
 
 
 msgid "Sony camera input space using linear Venice S-Gamut3.Cine primaries."
 msgstr "Vstupný priestor kamery Sony využívajúci lineárne primárne farby Venice S-Gamut3.Cine."
 
 
+msgctxt "Color Management"
+msgid "Log3G10 REDWideGamutRGB"
+msgstr "Log3G10 REDWideGamutRGB"
+
+
 msgid "RED camera input space using REDLog3G10 transfer function and REDWideGamutRGB primaries."
 msgstr "Vstupný priestor kamery RED s využitím prenosovej funkcie REDLog3G10 a primárnych farieb REDWideGamutRGB."
+
+
+msgctxt "Color Management"
+msgid "Non-Color"
+msgstr "Bezfarebné"
 
 
 msgid "Generic data that is not color, will not apply any color transform (e.g. normal maps)"
 msgstr "Všeobecné údaje, ktoré nie sú farebné, nepoužijú žiadnu transformáciu farieb (napr. normálové mapy)"
 
 
+msgctxt "Color Management"
+msgid "Rec.1886"
+msgstr "Rec.1886"
+
+
 msgid "BT.1886 2.4 Exponent EOTF Display, commonly used for TVs"
 msgstr "BT.1886 2.4 Exponent EOTF zobrazenie, bežne používané pre televízory"
+
+
+msgctxt "Color Management"
+msgid "Rec.2020"
+msgstr "Rec.2020"
 
 
 msgid "BT.2020 2.4 Exponent EOTF Display"
 msgstr "BT.2020 2.4 zobrazenie exponentu EOTF"
 
 
+msgctxt "Color Management"
+msgid "Rec.2100-HLG"
+msgstr "Rec.2100-HLG"
+
+
 msgid "Rec.2100-HLG 1000 nits peak display with reference white at 100 nits"
 msgstr "Rec.2100-HLG 1000 nitov špičkové zobrazenie s referenčnou bielou pri 100 nitoch"
+
+
+msgctxt "Color Management"
+msgid "Rec.2100-PQ"
+msgstr "Rec.2100-PQ"
 
 
 msgid "Rec.2100-PQ 10000 nits peak display with reference white at 100 nits"
 msgstr "Rec.2100-PQ 10000 nitov špičkové zobrazenie s referenčnou bielou pri 100 nitoch"
 
 
+msgctxt "Color Management"
+msgid "S-Log3 S-Gamut3"
+msgstr "S-Log3 S-Gamut3"
+
+
 msgid "Sony camera input space using S-Log3 transfer function and S-Gamut3 primaries."
 msgstr "Záznamový priestor kamery Sony s využitím prenosovej funkcie S-Log3 a primárnych farieb S-Gamut3."
+
+
+msgctxt "Color Management"
+msgid "S-Log3 S-Gamut3.Cine"
+msgstr "S-Log3 S-Gamut3.Cine"
 
 
 msgid "Sony camera input space using S-Log3 transfer function and S-Gamut3.Cine primaries."
 msgstr "Záznamový priestor kamery Sony s využitím prenosovej funkcie S-Log3 a primárnych farieb S-Gamut3.Cine."
 
 
+msgctxt "Color Management"
+msgid "S-Log3 Venice S-Gamut3"
+msgstr "S-Log3 Venice S-Gamut3"
+
+
 msgid "Sony camera input space using S-Log3 transfer function and Venice S-Gamut3 primaries."
 msgstr "Záznamový priestor kamery Sony s využitím prenosovej funkcie S-Log3 a primárnych farieb Venice S-Gamut3."
 
 
+msgctxt "Color Management"
+msgid "S-Log3 Venice S-Gamut3.Cine"
+msgstr "S-Log3 Venice S-Gamut3.Cine"
+
+
 msgid "Sony camera input space using S-Log3 transfer function and Venice S-Gamut3.Cine primaries."
 msgstr "Záznamový priestor kamery Sony s využitím prenosovej funkcie S-Log3 a primárnych farieb Venice S-Gamut3.Cine."
+
+
+msgctxt "Color Management"
+msgid "V-Log V-Gamut"
+msgstr "V-Log V-Gamut"
 
 
 msgid "Panasonic camera input space using V-Log transfer function and V-Gamut primaries."
@@ -8110,6 +8429,11 @@ msgstr "Pracovný farebný priestor aktuálneho súboru"
 
 msgid "Do not perform any color transform on load, treat colors as in scene linear space already"
 msgstr "Nevykonáva žiadne farebné transformácie pri načítaní, farby sú už ošetrené ako lineárny priestor scény"
+
+
+msgctxt "Color Management"
+msgid "Color Space"
+msgstr "Farebný priestor"
 
 
 msgid "Color space that the sequencer operates in"
@@ -8152,6 +8476,11 @@ msgid "The display and view transform supports high dynamic range colors"
 msgstr "Displej a transformácia zobrazenia podporujú farby s vysokým dynamickým rozsahom"
 
 
+msgctxt "Color Management"
+msgid "Look"
+msgstr "Vzhľad"
+
+
 msgid "Additional transform applied before view transform for artistic needs"
 msgstr "Prídavná transformácia použitá pred zobrazením transformácie pre umelecké potreby"
 
@@ -8182,6 +8511,11 @@ msgstr "Použiť vyváženie bielej"
 
 msgid "Perform chromatic adaption from a different white point"
 msgstr "Vykoná chromatickú adaptáciu z iného bieleho bodu"
+
+
+msgctxt "Color Management"
+msgid "View"
+msgstr "Pohľad"
 
 
 msgid "View used when converting image to a display space"
@@ -8463,6 +8797,14 @@ msgstr "Prvky farebného spádu"
 
 msgid "Collection of Color Ramp Elements"
 msgstr "Kolekcia prvkov farebného spádu"
+
+
+msgid "Identifier"
+msgstr "Identifikátor"
+
+
+msgid "Consistent identifier used for the item"
+msgstr "Zjednocujúci identifikátor používaný pre položku"
 
 
 msgid "Console Input"
@@ -13166,10 +13508,6 @@ msgstr "Definícia voľby vo výpočte vlastnosti RNA"
 
 msgid "Description of the item's purpose"
 msgstr "Popis účelu položky"
-
-
-msgid "Identifier"
-msgstr "Identifikátor"
 
 
 msgid "Unique name used in the code and scripting"
@@ -21513,20 +21851,40 @@ msgid "Use Unified Color"
 msgstr "Použiť jednotnú farbu"
 
 
+msgid "Use shared color for this brush"
+msgstr "Pre tento štetec použije zdieľanú farbu"
+
+
 msgid "Use Unified Input Samples"
 msgstr "Použiť jednotné vstupné snímky"
+
+
+msgid "Use shared input samples for this brush"
+msgstr "Pre tento štetec použije zdieľané vstupy snímok"
 
 
 msgid "Use Unified Size"
 msgstr "Použiť jednotnú veľkosť"
 
 
+msgid "Use shared size for this brush"
+msgstr "Pre tento štetec použije zdieľanú veľkosť"
+
+
 msgid "Use Unified Strength"
 msgstr "Použiť jednotnú silu"
 
 
+msgid "Use shared strength for this brush"
+msgstr "Pre tento štetec použije zdieľanú silu"
+
+
 msgid "Use Unified Weight"
 msgstr "Použiť jednotnú váhu"
+
+
+msgid "Use shared weight for this brush"
+msgstr "Pre tento štetec použije zdieľanú váhu"
 
 
 msgid "Use this brush in Grease Pencil vertex color mode"
@@ -26187,6 +26545,14 @@ msgid "Node tree consisting of linked nodes used for compositing"
 msgstr "Strom uzlov pozostávajúci z prepojených uzlov používaných na kompozíciu"
 
 
+msgid "Scene Effect"
+msgstr "Efekt scény"
+
+
+msgid "The node group can be used as a scene compositor effect"
+msgstr "Skupinu uzlov je možné použiť ako efekt na zlučovanie scén"
+
+
 msgid "Strip Modifier"
 msgstr "Pás Modifikátor"
 
@@ -28667,6 +29033,18 @@ msgid "Scene root collection that owns all the objects and other collections ins
 msgstr "Koreňová kolekcia scény, ktorá vlastní všetky objekty a iné kolekcie v vytvorenou inštanciou na scéne"
 
 
+msgid "Returns and sets the node group of the active scene compositor effect. Creates a new effect if none exists"
+msgstr "Vráti a nastaví skupinu uzlov aktívneho efektu kompozítora scény. Ak žiadny efekt neexistuje, vytvorí nový"
+
+
+msgid "Compositor Effects"
+msgstr "Efekty kompozítora"
+
+
+msgid "Compositor effects for this scene"
+msgstr "Efekty kompozítora pre túto scénu"
+
+
 msgid "3D Cursor"
 msgstr "3D kurzor"
 
@@ -29103,6 +29481,14 @@ msgstr "Svet"
 
 msgid "World used for rendering the scene"
 msgstr "Svet používaný pre prekreslenie scény"
+
+
+msgid "Wrap Timeline"
+msgstr "Navinutie časovej osi"
+
+
+msgid "Wrap the playhead around the playback range when navigating the timeline"
+msgstr "Pri navigácii na časovej osi navinie prehrávaciu hlavu tak, aby zahŕňala celý rozsah prehrávania"
 
 
 msgid "Screen data-block, defining the layout of areas in a window"
@@ -31760,10 +32146,6 @@ msgstr "Cyklicky prechádza obrázky vo filme"
 
 msgid "Index Switch Item"
 msgstr "Prepínač indexu položiek"
-
-
-msgid "Consistent identifier used for the item"
-msgstr "Zjednocujúci identifikátor používaný pre položku"
 
 
 msgid "2D Integer Vector Attribute Value"
@@ -35834,12 +36216,12 @@ msgid "Import"
 msgstr "Import"
 
 
-msgid "Render Preview"
-msgstr "Náhľad prekreslenia"
-
-
 msgid "Mirror"
 msgstr "Zrkadlo"
+
+
+msgid "Render Preview"
+msgstr "Náhľad prekreslenia"
 
 
 msgid "UV Mapping"
@@ -35850,20 +36232,20 @@ msgid "Local View"
 msgstr "Lokálny pohľad"
 
 
-msgid "Viewpoint"
-msgstr "Smer záberu"
-
-
 msgid "Utilities"
 msgstr "Obslužné programy"
 
 
-msgid "Navigation"
-msgstr "Navigácia"
+msgid "Viewpoint"
+msgstr "Smer záberu"
 
 
 msgid "Deprecated"
 msgstr "Zastarané"
+
+
+msgid "Navigation"
+msgstr "Navigácia"
 
 
 msgid "Align View"
@@ -36066,6 +36448,10 @@ msgid "Merge"
 msgstr "Zlúčiť"
 
 
+msgid "Pivot Point"
+msgstr "Otočný bod"
+
+
 msgid "Special Characters"
 msgstr "Špeciálne znaky"
 
@@ -36076,10 +36462,6 @@ msgstr "Zhustenie znakov"
 
 msgid "Bone Roll"
 msgstr "Kývanie kosti"
-
-
-msgid "Pivot Point"
-msgstr "Otočný bod"
 
 
 msgid "Keyframe Insert Pie"
@@ -36423,10 +36805,6 @@ msgid "Shadow Linking Specials"
 msgstr "Špeciálne prepojenie tieňov"
 
 
-msgid "ID Data"
-msgstr "ID údaje"
-
-
 msgid "Particle Specials"
 msgstr "Špeciality častíc"
 
@@ -36457,6 +36835,10 @@ msgstr "Špeciality sústavy čiar"
 
 msgid "Pixel Density Presets"
 msgstr "Predvoľby hustoty pixelov"
+
+
+msgid "Add Effect"
+msgstr "Pridať efekt"
 
 
 msgid "Effect Strip"
@@ -46207,8 +46589,18 @@ msgid "Convert between color spaces"
 msgstr "Konvertovať medzi farebnými priestormi"
 
 
+msgctxt "Color Management"
+msgid "From"
+msgstr "Od"
+
+
 msgid "Color space of the input image"
 msgstr "Farebný priestor vstupného obrázka"
+
+
+msgctxt "Color Management"
+msgid "To"
+msgstr "Do"
 
 
 msgid "Color space of the output image"
@@ -47370,6 +47762,14 @@ msgstr "Formát reťazca"
 
 msgid "Insert values into a string using a Python and path template compatible formatting syntax"
 msgstr "Vloženie hodnôt do reťazca pomocou formátovacej syntaxe kompatibilnej so šablónou Python a cestou"
+
+
+msgid "Get Vector Component"
+msgstr "Získať vektorový komponent"
+
+
+msgid "Get the X, Y or Z component of a vector by index"
+msgstr "Získa komponenty X, Y alebo Z vektora podľa indexu"
 
 
 msgid "Hash Value"
@@ -56518,6 +56918,11 @@ msgid "Install Theme..."
 msgstr "Nainštalovať tému..."
 
 
+msgctxt "Operator"
+msgid "Add Asset Library"
+msgstr "Pridať knižnicu aktív"
+
+
 msgid "Create a new project"
 msgstr "Vytvorí nový projekt"
 
@@ -56694,6 +57099,11 @@ msgstr "Prenos animácie FK do IK"
 msgctxt "Operator"
 msgid "Transfer IK anim to FK"
 msgstr "Prenos animácie IK do FK"
+
+
+msgctxt "Operator"
+msgid "Add Scene Compositor Effect Menu"
+msgstr "Pridá ponuku efektov kompozítora scény"
 
 
 msgid "Add the data paths to the Freestyle Edge Mark property of selected edges to the active keying set"
@@ -60421,8 +60831,8 @@ msgstr "Zobrazí vlastnosti editora kontextovej ponuky"
 
 
 msgctxt "Operator"
-msgid "Accept"
-msgstr "Akceptovať"
+msgid "Select Directory"
+msgstr "Vyberte si nadradený priečinok"
 
 
 msgid "Open a directory browser, hold Shift to open the file, Alt to browse containing directory"
@@ -61618,10 +62028,6 @@ msgstr "Spustí operáciu importu"
 msgctxt "Operator"
 msgid "Remove Importer"
 msgstr "Odstrániť importér"
-
-
-msgid "Remove Importer"
-msgstr "Odstrániť imortér"
 
 
 msgctxt "Operator"
@@ -65249,11 +65655,6 @@ msgstr "Zrušiť výber (vybrať) všetky súbory"
 
 msgid "Select or deselect all files"
 msgstr "Zruší výber alebo vyberie všetky súbory"
-
-
-msgctxt "Operator"
-msgid "Select Directory"
-msgstr "Vyberte si nadradený priečinok"
 
 
 msgid "Select a bookmarked directory"
@@ -74493,6 +74894,10 @@ msgid "The 2D view location for the center of the new nodes, or unchanged if not
 msgstr "Umiestni 2D zobrazenie pre stred nových uzlov alebo nezmenené, ak nie je nastavené"
 
 
+msgid "Index to remove"
+msgstr "Index na odstránenie"
+
+
 msgid "Connect active node to the active output node of the node tree"
 msgstr "Pripojí aktívny uzol k aktívnemu výstupnému uzlu stromu uzlov"
 
@@ -74623,6 +75028,14 @@ msgid "Duplicate the currently assigned compositing node group."
 msgstr "Vytvára kópie aktuálne priradenej skupiny uzlov kompozície."
 
 
+msgid "Duplicate Compositor Effect Node Group"
+msgstr "Vytvorí kópiu skupiny uzlov efektov kompozítora"
+
+
+msgid "Duplicate the active scene compositor effect node group and assign the new node group to the effect"
+msgstr "Vytvorí kópiu skupiny uzlov efektu kompozítora aktívnej scény a priradí novú skupinu uzlov k efektu"
+
+
 msgid "Duplicate selected nodes and move them"
 msgstr "Vytvorí kópie vybraných uzlov a premiestni ich"
 
@@ -74737,10 +75150,6 @@ msgstr "Zvinúť"
 
 msgid "Toggle collapsing of selected nodes"
 msgstr "Prepne zbalenia vybraných uzlov"
-
-
-msgid "Index to remove"
-msgstr "Index na odstránenie"
 
 
 msgctxt "Operator"
@@ -74958,6 +75367,10 @@ msgstr "Prepnúť útlm uzla"
 
 msgid "Toggle muting of selected nodes"
 msgstr "Prepne stlmenie vybraných uzlov"
+
+
+msgid "Create a new compositing node group and initialize it with default nodes. Deprecated and will be removed in 6.0"
+msgstr "Vytvorí novú skupinu uzlov kompozítora a inicializuje ju pomocou predvolených uzlov. Táto funkcia je zastaraná a v verzii 6.0 bude odstránená"
 
 
 msgctxt "Operator"
@@ -82119,11 +82532,6 @@ msgid "Remove existing template with the same ID"
 msgstr "Odstrániť existujúcu šablónu s rovnakým ID (identifikátorom)"
 
 
-msgctxt "Operator"
-msgid "Add Asset Library"
-msgstr "Pridať knižnicu aktív"
-
-
 msgid "Add a directory to be used by the Asset Browser as source of assets"
 msgstr "Pridá priečinok, ktorý bude prehliadač aktív používať ako zdroj aktív"
 
@@ -82886,6 +83294,24 @@ msgstr "Prenos animácie IK do kostí FK"
 
 
 msgctxt "Operator"
+msgid "Add Scene Compositor Effect"
+msgstr "Pridať efekt kompozítora scény"
+
+
+msgid "Add a scene compositor effect to the scene"
+msgstr "Pridá na scénu efekt kompozítora scény"
+
+
+msgctxt "Operator"
+msgid "Add Scene Compositor Effect Node Group Asset"
+msgstr "Pridá skupinu aktív uzla efektu kompozítora"
+
+
+msgid "Add a scene compositor effect to the scene with a node group asset"
+msgstr "Pridá na scénu efekt kompozítora scény pomocou aktíva skupiny uzlov"
+
+
+msgctxt "Operator"
 msgid "Delete Scene"
 msgstr "Odstrániť scénu"
 
@@ -82901,6 +83327,24 @@ msgstr "Pustiť scénu"
 
 msgid "Import scene and set it as the active one in the window"
 msgstr "Importuje scénu a nastaví ju ako aktívnu v okne"
+
+
+msgctxt "Operator"
+msgid "Duplicate Scene Compositor Effect"
+msgstr "Vytvoriť kópiu efektu kompozítora scény"
+
+
+msgid "Duplicate the active or the given scene compositor effect"
+msgstr "Vytvorí kópiu aktíva alebo daného efektu kompozítora scény"
+
+
+msgid "Name of the effect to duplicate. If empty duplicate the active effect"
+msgstr "Názov efektu na vytvorenie kópie. Ak je pole prázdne, vytvorí sa kópia aktuálneho efektu"
+
+
+msgctxt "Operator"
+msgid "Duplicate Compositor Effect Node Group"
+msgstr "Vytvorí kópiu skupiny uzlov efektov kompozítora"
 
 
 msgctxt "Operator"
@@ -83087,6 +83531,19 @@ msgstr "Pridá modifikátor hrúbky čiary k štýlu čiary priradeného k aktí
 
 
 msgctxt "Operator"
+msgid "Move Active Scene Compositor Effect to Index"
+msgstr "Presunie efekt aktívneho kompozítora scény do indexu"
+
+
+msgid "Change the scene compositor effect's index in the stack so it evaluates after the set number of others"
+msgstr "Zmení poradie efektu kompozítora scény v zozname tak, aby sa vykonal až po stanovenom počte iných efektov"
+
+
+msgid "Name of the effect to edit"
+msgstr "Názov efektu na úpravu"
+
+
+msgctxt "Operator"
 msgid "New Scene"
 msgstr "Nová scéna"
 
@@ -83136,6 +83593,15 @@ msgid "Make a full copy of the current scene"
 msgstr "Vytvorí úplnú kópiu aktuálnej scény"
 
 
+msgctxt "Operator"
+msgid "New Scene Compositor Effect Node Group"
+msgstr "Nová skupina uzlov efektu kompozítora scény"
+
+
+msgid "Create a new compositor node group and assign it to the active scene compositor effect"
+msgstr "Vytvorí novú skupinu uzlov kompozítora a priradí ju k aktívnemu efektu kompozítora scény"
+
+
 msgid "Add new scene by type in the sequence editor and assign to active strip"
 msgstr "Pridá novú scény podľa typu v editore sekvencií a priradenie k aktívnemu pásu"
 
@@ -83162,6 +83628,19 @@ msgstr "Pridá novú scénu, ktorú bude používať radič sekvencie"
 
 
 msgctxt "Operator"
+msgid "Remove Scene Compositor Effect"
+msgstr "Odstrániť efekt kompozítora scény"
+
+
+msgid "Remove a scene compositor effect from the scene"
+msgstr "Odstráni efekt kompozítora zo scény"
+
+
+msgid "Name of the effect to remove"
+msgstr "Názov efektu na odstránenie"
+
+
+msgctxt "Operator"
 msgid "Add Render View"
 msgstr "Pridať zobrazenie prekreslenia"
 
@@ -83177,6 +83656,19 @@ msgstr "Odstrániť zobrazenie prekreslenia"
 
 msgid "Remove the selected render view"
 msgstr "Odstráni vybrané zobrazenie prekreslenia"
+
+
+msgctxt "Operator"
+msgid "Set Active Scene Compositor Effect"
+msgstr "Nastaviť efekt aktívneho kompozítora scény"
+
+
+msgid "Set the given scene compositor effect as the active one"
+msgstr "Nastaví daný efekt kompozítora scény ako aktívny"
+
+
+msgid "Name of the strip effect to edit"
+msgstr "Názov efektu pásu na úpravu"
 
 
 msgctxt "Operator"
@@ -83524,6 +84016,10 @@ msgstr "Otvoriť nastavenia projektu..."
 
 msgid "Create and manage projects"
 msgstr "Vytvorenie a správa projektov"
+
+
+msgid "Active Section"
+msgstr "Sekcia aktívnych"
 
 
 msgctxt "Operator"
@@ -90729,6 +91225,15 @@ msgid "Roll the view around to the right"
 msgstr "Otáča okolo zobrazenia doprava"
 
 
+msgctxt "Operator"
+msgid "Set View Roll"
+msgstr "Nastaviť posuv zoznamu"
+
+
+msgid "Set the view roll angle"
+msgstr "Nastavte uhol posuvu pohľadu"
+
+
 msgid "Move the view to the selection center"
 msgstr "Presunie zobrazenie na stred výberu"
 
@@ -95664,6 +96169,10 @@ msgid "Playback"
 msgstr "Nahrávka"
 
 
+msgid "Playback Options"
+msgstr "Možnosti prehrávania"
+
+
 msgid "Playhead"
 msgstr "Prehrávacia hlava"
 
@@ -97634,10 +98143,6 @@ msgid "Global preferences"
 msgstr "Globálne predvoľby"
 
 
-msgid "Active Section"
-msgstr "Sekcia aktívnych"
-
-
 msgid "Application Template"
 msgstr "Šablóna aplikácie"
 
@@ -98389,10 +98894,6 @@ msgstr "Online prístup"
 
 msgid "The user has been shown the \"Online Access\" prompt and made a choice"
 msgstr "Užívateľovi sa zobrazí výzva \" Prístup online\" a vykoná výber"
-
-
-msgid "Active Asset Library"
-msgstr "Aktívna knižnica aktív"
 
 
 msgid "Index of the asset library being edited in the Preferences UI"
@@ -100045,24 +100546,12 @@ msgid "Catalan - Català"
 msgstr "Katalánsky - Català"
 
 
-msgid "Locale code: ca_AD. Translation progress: 100%"
-msgstr "Kód lokalizácie: ca_AD. Pokrok prekladu: 100%"
-
-
 msgid "Chinese (Simplified) - 简体中文"
 msgstr "Čínsky (zjednodušená) - 简体中文"
 
 
-msgid "Locale code: zh_HANS. Translation progress: 100%"
-msgstr "Kód lokalizácie: zh_HANS. Pokrok prekladu: 100%"
-
-
 msgid "Chinese (Traditional) - 繁體中文"
 msgstr "Čínsky (tradičná) - 繁體中文"
-
-
-msgid "Locale code: zh_HANT. Translation progress: 60%"
-msgstr "Kód lokalizácie: zh_HANT. Pokrok prekladu: 60%"
 
 
 msgid "Croatian - Hrvatski"
@@ -100133,16 +100622,8 @@ msgid "French - Français"
 msgstr "Francúzky - Français"
 
 
-msgid "Locale code: fr_FR. Translation progress: 100%"
-msgstr "Kód lokalizácie: fr_FR. Pokrok prekladu: 100%"
-
-
 msgid "Georgian - ქართული"
 msgstr "Gruzínsky - ქართული"
-
-
-msgid "Locale code: ka. Translation progress: 100%"
-msgstr "Kód lokalizácie: ka. Pokrok prekladu: 100%"
 
 
 msgid "German - Deutsch"
@@ -100205,16 +100686,8 @@ msgid "Japanese - 日本語"
 msgstr "Japonsky - 日本語"
 
 
-msgid "Locale code: ja_JP. Translation progress: 99%"
-msgstr "Kód lokalizácie: ja_JP. Pokrok prekladu: 99%"
-
-
 msgid "Korean - 한국어"
 msgstr "Kórejský - 한국어"
-
-
-msgid "Locale code: ko_KR. Translation progress: 93%"
-msgstr "Kód lokalizácie: ko_KR. Pokrok prekladu: 93%"
 
 
 msgid "Kyrgyz - Кыргыз тили"
@@ -100261,10 +100734,6 @@ msgid "Polish - Polski"
 msgstr "Poľsky - Polski"
 
 
-msgid "Locale code: pl_PL. Translation progress: 100%"
-msgstr "Kód lokalizácie: pl_PL. Pokrok prekladu: 100%"
-
-
 msgid "Portuguese (Brazil) - Português brasileiro"
 msgstr "Portugalsky (Brazília) - Português brasileiro"
 
@@ -100289,10 +100758,6 @@ msgid "Russian - Русский"
 msgstr "Rusky - Русский"
 
 
-msgid "Locale code: ru_RU. Translation progress: 100%"
-msgstr "Kód lokalizácie: ru_RU. Pokrok prekladu: 100%"
-
-
 msgid "Serbian (Cyrillic) - Српски"
 msgstr "Srbsky (Cyrillic) - Српски"
 
@@ -100313,10 +100778,6 @@ msgid "Slovak - Slovenčina"
 msgstr "Slovensky - slovenčina"
 
 
-msgid "Locale code: sk_SK. Translation progress: 100%"
-msgstr "Kód lokalizácie: sk_SK. Pokrok prekladu: 100%"
-
-
 msgid "Slovenian - Slovenščina"
 msgstr "Slovinsky - Slovenščina"
 
@@ -100329,32 +100790,16 @@ msgid "Spanish - Español"
 msgstr "Španielsky - Español"
 
 
-msgid "Locale code: es. Translation progress: 100%"
-msgstr "Kód lokalizácie: es. Pokrok prekladu: 100%"
-
-
 msgid "Swahili - Kiswahili"
 msgstr "Swahilsky - Kiswahili"
-
-
-msgid "Locale code: sw. Translation progress: 69%"
-msgstr "Kód lokalizácie: sw. Pokrok prekladu: 69%"
 
 
 msgid "Swedish - Svenska"
 msgstr "Švédsky - Svenska"
 
 
-msgid "Locale code: sv_SE. Translation progress: 95%"
-msgstr "Kód lokalizácie: sv_SE. Pokrok prekladu: 95%"
-
-
 msgid "Tamil - தமிழ்"
 msgstr "Tamilsky - தமிழ்"
-
-
-msgid "Locale code: ta. Translation progress: 95%"
-msgstr "Kód lokalizácie: ta. Pokrok prekladu: 95%"
 
 
 msgid "Thai - ภาษาไทย"
@@ -100383,10 +100828,6 @@ msgstr "Kód lokalizácie: uk_UA. Pokrok prekladu: 54%"
 
 msgid "Urdu - وُدرُا"
 msgstr "Urdsky - وُدرُا"
-
-
-msgid "Locale code: ur. Translation progress: 82%"
-msgstr "Kód lokalizácie: ur. Pokrok prekladu: 82%"
 
 
 msgid "Vietnamese - Tiếng Việt"
@@ -100983,6 +101424,10 @@ msgstr "Hodnota reťazca"
 
 msgid "RNA wrapped string"
 msgstr "RNA zabalené reťazcom"
+
+
+msgid "Subtype"
+msgstr "Podtyp"
 
 
 msgid "Property Definition"
@@ -102586,6 +103031,10 @@ msgstr "Násobič pre veľkosť adaptívneho rozdelenia na objekt v zábere"
 
 msgid "Pause Preview"
 msgstr "Pozastaviť náhľad"
+
+
+msgid "Deprecated, this has no effect anymore. Use RegionView3D.pause_render instead"
+msgstr "Toto je zastarané, už to nemá žiadny účinok. Namiesto toho použite RegionView3D.pause_render"
 
 
 msgid "Viewport Samples"
@@ -104572,6 +105021,14 @@ msgid "Lock view rotation of side views to Top/Front/Right"
 msgstr "Uzamknutie rotácie pohľadu v bočných pohľadoch Hore/Vpredu/Vpravo"
 
 
+msgid "Pause Render"
+msgstr "Pozastaviť prekresľovanie"
+
+
+msgid "Pause the rendered viewport"
+msgstr "Pozastaví prekresľovanie záberu"
+
+
 msgid "Perspective Matrix"
 msgstr "Matrica prespektívy"
 
@@ -104586,6 +105043,14 @@ msgstr "Synchronizácia Priblíženia/Posúvania"
 
 msgid "Sync view position between side views"
 msgstr "Synchronizácia pozície pohľadu medzi bočnými pohľadmi"
+
+
+msgid "Support Pause Render"
+msgstr "Podpora pozastavenia prekresľovania"
+
+
+msgid "The render engine currently rendering this viewport can be paused and resumed"
+msgstr "Mechanizmus prekreslenia, ktorý momentálne prekresľuje tento záber, je možné pozastaviť a opäť spustiť"
 
 
 msgid "Clip Contents"
@@ -106513,12 +106978,60 @@ msgid "How much the spring has to be stretched/compressed in order to change its
 msgstr "Určuje, o koľko musí byť pružina roztiahnutá/stlačená, aby sa zmenila jej pokojová dĺžka"
 
 
+msgid "Scene Compositor Effect"
+msgstr "Efekt kompozítora scény"
+
+
+msgid "Compositor effect for scene"
+msgstr "Efekt kompozítora pre scénu"
+
+
+msgid "Use effect during preview"
+msgstr "Použiť efekt počas náhľadu"
+
+
 msgid "Use effect during render"
 msgstr "Použiť efekt počas prekresľovania"
 
 
+msgid "This effect is active"
+msgstr "Táto efekt je aktívny"
+
+
 msgid "Node group that controls what this effect does"
 msgstr "Skupina uzlov určujúca, ako tento efekt funguje"
+
+
+msgid "Show effect expanded"
+msgstr "Zobraziť rozšírený efekt"
+
+
+msgid "Show Node Group Selector"
+msgstr "Zobraziť volič skupiny uzlov"
+
+
+msgid "Scene Compositor Effect Properties"
+msgstr "Vlastnosti efektu kompozítora scény"
+
+
+msgid "Scene Compositor Effect Empty Properties"
+msgstr "Prázdne vlastnosti efektu kompozítora scény"
+
+
+msgid "Scene Compositor Effects"
+msgstr "Efekty kompozítora scény"
+
+
+msgid "Collection of scene compositor effects"
+msgstr "Kolekcia efektov pre kompozítor scény"
+
+
+msgid "Active Effect"
+msgstr "Aktívny efekt"
+
+
+msgid "The active strip effect in the list"
+msgstr "Efekt aktívneho pásu v zozname"
 
 
 msgid "Light Direction"
@@ -109683,6 +110196,14 @@ msgid "Display data that is unused and/or will be lost when the file is reloaded
 msgstr "Zobrazí údaje, ktoré sa nepoužívajú a/alebo sa stratia pri opätovnom načítaní súboru"
 
 
+msgid "Expand on Focus"
+msgstr "Rozvinúť pre zameranie"
+
+
+msgid "Uncollapse the active item and scroll it into view when it changes outside the Outliner"
+msgstr "Rozvinie aktívnu položku a posunie ju do pohľadu, keď sa jej stav zmení mimo Líniového prehľadu"
+
+
 msgctxt "ID"
 msgid "Filter by Type"
 msgstr "Filtrovať podľa typu"
@@ -110102,6 +110623,15 @@ msgid "Strip Modifier Properties"
 msgstr "Vlastnosti modifikátora pásov"
 
 
+msgctxt "ID"
+msgid "Compositor & Effects"
+msgstr "Kompozítor a efekty"
+
+
+msgid "Procedural scene post-processing"
+msgstr "Následné spracovanie procedurálnych scén"
+
+
 msgid "Outliner Sync"
 msgstr "Synchronizácia Líniového prehľadu"
 
@@ -110120,6 +110650,10 @@ msgstr "Nikdy zmení kartu po kliknutí na ikonu údajov v Líniovom prehľade"
 
 msgid "Change tabs only when this editor shares a border with an outliner"
 msgstr "Meniť karty môžete iba ak tento editor zdieľa okraje s Líniovým prehľadom"
+
+
+msgid "Compositor & Effects"
+msgstr "Kompozítor a efekty"
 
 
 msgid "Strip Modifiers"
@@ -116796,6 +117330,10 @@ msgid "Synchronize the asset library with a remote URL"
 msgstr "Synchronizuje knižnicu aktív so vzdialenou URL"
 
 
+msgid "UUID"
+msgstr "UUID"
+
+
 msgid "Extension Repository"
 msgstr "Úložisko rozšírení"
 
@@ -119974,6 +120512,11 @@ msgstr "Užívateľské rozhranie"
 
 
 msgctxt "WindowManager"
+msgid "Toolbar Popup"
+msgstr "Vyskakovacia lišta nástrojov"
+
+
+msgctxt "WindowManager"
 msgid "3D View"
 msgstr "3D zobrazenie"
 
@@ -120071,46 +120614,6 @@ msgstr "Nástroj 3D záberu: Transformovať"
 msgctxt "WindowManager"
 msgid "3D View Tool: Transform (fallback)"
 msgstr "Nástroj 3D záberu: Transformovať (spätná väzba)"
-
-
-msgctxt "WindowManager"
-msgid "Generic Tool: Annotate"
-msgstr "Všeobecný nástroj: Poznámka"
-
-
-msgctxt "WindowManager"
-msgid "Generic Tool: Annotate (fallback)"
-msgstr "Všeobecný nástroj: Poznámka (záložný variant)"
-
-
-msgctxt "WindowManager"
-msgid "Generic Tool: Annotate Line"
-msgstr "Všeobecný nástroj: Čiara poznámky"
-
-
-msgctxt "WindowManager"
-msgid "Generic Tool: Annotate Line (fallback)"
-msgstr "Všeobecný nástroj: Čiara poznámky (záložný variant)"
-
-
-msgctxt "WindowManager"
-msgid "Generic Tool: Annotate Polygon"
-msgstr "Všeobecný nástroj: Polygón poznámky"
-
-
-msgctxt "WindowManager"
-msgid "Generic Tool: Annotate Polygon (fallback)"
-msgstr "Všeobecný nástroj: Polygón poznámky (záložný variant)"
-
-
-msgctxt "WindowManager"
-msgid "Generic Tool: Annotate Eraser"
-msgstr "Všeobecný nástroj: Zmazať poznámku"
-
-
-msgctxt "WindowManager"
-msgid "Generic Tool: Annotate Eraser (fallback)"
-msgstr "Všeobecný nástroj: Zmazať poznámku (záložný variant)"
 
 
 msgctxt "WindowManager"
@@ -120476,6 +120979,26 @@ msgstr "Nástroj 3D záberu: Upraviť krivku, Náhodne (spätná väzba)"
 msgctxt "WindowManager"
 msgid "Curves"
 msgstr "Krivky"
+
+
+msgctxt "WindowManager"
+msgid "3D View Tool: Edit Curves, Draw"
+msgstr "Nástroj 3D záberu: Úprava kriviek, kreslenie"
+
+
+msgctxt "WindowManager"
+msgid "3D View Tool: Edit Curves, Draw (fallback)"
+msgstr "Nástroj 3D záberu: Úprava kriviek, kreslenie (spätná väzba)"
+
+
+msgctxt "WindowManager"
+msgid "3D View Tool: Edit Curves, Pen"
+msgstr "Nástroj 3D záberu: Úprava kriviek, Pero"
+
+
+msgctxt "WindowManager"
+msgid "3D View Tool: Edit Curves, Pen (fallback)"
+msgstr "Nástroj 3D záberu: Úprava kriviek, Pero (spätná väzba)"
 
 
 msgctxt "WindowManager"
@@ -122026,6 +122549,66 @@ msgstr "Nástroj uzla: Vybrať lasom (spätná väzba)"
 
 
 msgctxt "WindowManager"
+msgid "Node Tool: Links Cut"
+msgstr "Nástroj uzla: Odstránenie prepojení"
+
+
+msgctxt "WindowManager"
+msgid "Node Tool: Links Cut (fallback)"
+msgstr "Nástroj uzla: Odstránenie prepojení (spätná väzba)"
+
+
+msgctxt "WindowManager"
+msgid "Node Tool: Mute Links"
+msgstr "Nástroj uzla: Stlmiť prepojenia"
+
+
+msgctxt "WindowManager"
+msgid "Node Tool: Mute Links (fallback)"
+msgstr "Nástroj uzla: Stlmiť prepojenia (spätná väzba)"
+
+
+msgctxt "WindowManager"
+msgid "Node Tool: Add Reroute"
+msgstr "Nástroj uzla: Pridať presmerovanie"
+
+
+msgctxt "WindowManager"
+msgid "Node Tool: Add Reroute (fallback)"
+msgstr "Nástroj uzla: Pridať presmerovanie (spätná väzba)"
+
+
+msgctxt "WindowManager"
+msgid "Node Link Modal Map"
+msgstr "Modálna mapa uzlov a prepojení"
+
+
+msgctxt "WindowManager"
+msgid "Drag Node-link"
+msgstr "Presunúť prepojenie uzlov"
+
+
+msgctxt "WindowManager"
+msgid "Confirm Link"
+msgstr "Potvrdiť prepojenie"
+
+
+msgctxt "WindowManager"
+msgid "Swap Links"
+msgstr "Zameniť prepojenia"
+
+
+msgctxt "WindowManager"
+msgid "Node Resize Modal Map"
+msgstr "Zmena veľkosti okna modálnej mapy"
+
+
+msgctxt "WindowManager"
+msgid "Resize Node"
+msgstr "Zmeniť veľkosť uzla"
+
+
+msgctxt "WindowManager"
 msgid "Snap Invert"
 msgstr "Invertovať prichytenie"
 
@@ -122191,6 +122774,31 @@ msgstr "Nástroj náhľadu: Snímka (spätná väzba)"
 
 
 msgctxt "WindowManager"
+msgid "Sequencer Channels"
+msgstr "Kanály radiča sekvencií"
+
+
+msgctxt "WindowManager"
+msgid "Slip Modal"
+msgstr "Modálne prekĺznutie"
+
+
+msgctxt "WindowManager"
+msgid "Precision Enable"
+msgstr "Povoliť presnosť"
+
+
+msgctxt "WindowManager"
+msgid "Precision Disable"
+msgstr "Zakázať presnosť"
+
+
+msgctxt "WindowManager"
+msgid "Clamp Toggle"
+msgstr "Svorka zarážky"
+
+
+msgctxt "WindowManager"
 msgid "File Browser"
 msgstr "Prehliadač súborov"
 
@@ -122213,6 +122821,16 @@ msgstr "Informácie"
 msgctxt "WindowManager"
 msgid "Property Editor"
 msgstr "Editor vlastností"
+
+
+msgctxt "WindowManager"
+msgid "Preferences"
+msgstr "Predvoľby"
+
+
+msgctxt "WindowManager"
+msgid "Preferences_nav"
+msgstr "Preferences_nav"
 
 
 msgctxt "WindowManager"
@@ -122251,8 +122869,103 @@ msgstr "Editor expozičného hárku klipu"
 
 
 msgctxt "WindowManager"
+msgid "Clip Time Scrub"
+msgstr "Časový strih snímania"
+
+
+msgctxt "WindowManager"
 msgid "Grease Pencil Draw Mode"
 msgstr "Režim kreslenia Grease Pencil"
+
+
+msgctxt "WindowManager"
+msgid "3D View Tool: Paint Grease Pencil, Box"
+msgstr "Nástroj 3D záberu: Maľovať Grease Pencil, pole"
+
+
+msgctxt "WindowManager"
+msgid "3D View Tool: Paint Grease Pencil, Box (fallback)"
+msgstr "Nástroj 3D záberu: Maľovať Grease Pencil, pole (spätná väzba)"
+
+
+msgctxt "WindowManager"
+msgid "3D View Tool: Paint Grease Pencil, Circle"
+msgstr "Nástroj 3D záber: Maľovať Grease Pencil, Kruh"
+
+
+msgctxt "WindowManager"
+msgid "3D View Tool: Paint Grease Pencil, Circle (fallback)"
+msgstr "Nástroj 3D záber: Maľovať Grease Pencil, Kruh (spätná väzba)"
+
+
+msgctxt "WindowManager"
+msgid "3D View Tool: Paint Grease Pencil, Line"
+msgstr "Nástroj 3D záber: Maľovať Grease Pencil, Čiara"
+
+
+msgctxt "WindowManager"
+msgid "3D View Tool: Paint Grease Pencil, Line (fallback)"
+msgstr "Nástroj 3D záber: Maľovať Grease Pencil, Čiara (spätná väzba)"
+
+
+msgctxt "WindowManager"
+msgid "3D View Tool: Paint Grease Pencil, Polyline"
+msgstr "Nástroj 3D záberu: Maľovať Grease Pencil, viacnásobná čiara"
+
+
+msgctxt "WindowManager"
+msgid "3D View Tool: Paint Grease Pencil, Polyline (fallback)"
+msgstr "Nástroj 3D záberu: Maľovať Grease Pencil, viacnásobná čiara (spätná väzba)"
+
+
+msgctxt "WindowManager"
+msgid "3D View Tool: Paint Grease Pencil, Arc"
+msgstr "Nástroj 3D záveru: Maľovať Grease Pencil, oblúk"
+
+
+msgctxt "WindowManager"
+msgid "3D View Tool: Paint Grease Pencil, Arc (fallback)"
+msgstr "Nástroj 3D záveru: Maľovať Grease Pencil, oblúk (spätná väzba)"
+
+
+msgctxt "WindowManager"
+msgid "3D View Tool: Paint Grease Pencil, Curve"
+msgstr "Nástroj 3D záveru: Maľovať Grease Pencil, krivka"
+
+
+msgctxt "WindowManager"
+msgid "3D View Tool: Paint Grease Pencil, Curve (fallback)"
+msgstr "Nástroj 3D záveru: Maľovať Grease Pencil, krivka (spätná väzba)"
+
+
+msgctxt "WindowManager"
+msgid "3D View Tool: Paint Grease Pencil, Trim"
+msgstr "Nástroj 3D záveru: Maľovať Grease Pencil, orezať"
+
+
+msgctxt "WindowManager"
+msgid "3D View Tool: Paint Grease Pencil, Trim (fallback)"
+msgstr "Nástroj 3D záveru: Maľovať Grease Pencil, orezať (spätná väzba)"
+
+
+msgctxt "WindowManager"
+msgid "3D View Tool: Paint Grease Pencil, Eyedropper"
+msgstr "Nástroj 3D záveru: Maľovať Grease Pencil, kvapkadlo"
+
+
+msgctxt "WindowManager"
+msgid "3D View Tool: Paint Grease Pencil, Eyedropper (fallback)"
+msgstr "Nástroj 3D záveru: Maľovať Grease Pencil, kvapkadlo (spätná väzba)"
+
+
+msgctxt "WindowManager"
+msgid "3D View Tool: Paint Grease Pencil, Interpolate"
+msgstr "Nástroj 3D záveru: Maľovať Grease Pencil, interpolácia"
+
+
+msgctxt "WindowManager"
+msgid "3D View Tool: Paint Grease Pencil, Interpolate (fallback)"
+msgstr "Nástroj 3D záveru: Maľovať Grease Pencil, interpolácia (spätná väzba)"
 
 
 msgctxt "WindowManager"
@@ -122263,6 +122976,46 @@ msgstr "Ťah štetcom Grease Pencil"
 msgctxt "WindowManager"
 msgid "Grease Pencil Edit Mode"
 msgstr "Režim editácie Grease Pencil"
+
+
+msgctxt "WindowManager"
+msgid "3D View Tool: Edit Grease Pencil, Pen"
+msgstr "Nástroj 3D záveru: Maľovať Grease Pencil, pero"
+
+
+msgctxt "WindowManager"
+msgid "3D View Tool: Edit Grease Pencil, Pen (fallback)"
+msgstr "Nástroj 3D záveru: Maľovať Grease Pencil, pero (spätná väzba)"
+
+
+msgctxt "WindowManager"
+msgid "3D View Tool: Bend"
+msgstr "Nástroj 3D záberu: Ohyb"
+
+
+msgctxt "WindowManager"
+msgid "3D View Tool: Bend (fallback)"
+msgstr "Nástroj 3D záberu: Ohyb (spätná väzba)"
+
+
+msgctxt "WindowManager"
+msgid "3D View Tool: Edit Grease Pencil, Interpolate"
+msgstr "Nástroj 3D záberu: Úprava Grease Pencil, Interpolácia"
+
+
+msgctxt "WindowManager"
+msgid "3D View Tool: Edit Grease Pencil, Interpolate (fallback)"
+msgstr "Nástroj 3D záberu: Úprava Grease Pencil, Interpolácia (spätná väzba)"
+
+
+msgctxt "WindowManager"
+msgid "3D View Tool: Edit Grease Pencil, Gradient"
+msgstr "Nástroj 3D záberu: Úprava Grease Pencil, stupňovitosť"
+
+
+msgctxt "WindowManager"
+msgid "3D View Tool: Edit Grease Pencil, Gradient (fallback)"
+msgstr "Nástroj 3D záberu: Úprava Grease Pencil, stupňovitosť (spätná väzba)"
 
 
 msgctxt "WindowManager"
@@ -122281,6 +123034,11 @@ msgstr "Maľovanie vrcholov Grease Pencil"
 
 
 msgctxt "WindowManager"
+msgid "Grease Pencil Selection"
+msgstr "Výber Grease Pencil"
+
+
+msgctxt "WindowManager"
 msgid "Grease Pencil Fill Tool"
 msgstr "Nástroj Vyplniť Grease Pencil"
 
@@ -122288,6 +123046,76 @@ msgstr "Nástroj Vyplniť Grease Pencil"
 msgctxt "WindowManager"
 msgid "Mask Editing"
 msgstr "Úprava masky"
+
+
+msgctxt "WindowManager"
+msgid "Image Editor Tool: Mask, Tweak"
+msgstr "Nástroj na úpravu obrázkov: Maska, Potiahnuť"
+
+
+msgctxt "WindowManager"
+msgid "Image Editor Tool: Mask, Tweak (fallback)"
+msgstr "Nástroj na úpravu obrázkov: Maska, Potiahnuť (spätná väzba)"
+
+
+msgctxt "WindowManager"
+msgid "Image Editor Tool: Mask, Select Box"
+msgstr "Nástroj na úpravu obrázkov: Maska, Vybrať poľom"
+
+
+msgctxt "WindowManager"
+msgid "Image Editor Tool: Mask, Select Box (fallback)"
+msgstr "Nástroj na úpravu obrázkov: Maska, Vybrať poľom (spätná väzba)"
+
+
+msgctxt "WindowManager"
+msgid "Image Editor Tool: Mask, Select Circle"
+msgstr "Nástroj na úpravu obrázkov: Maska, Vybrať kruhom"
+
+
+msgctxt "WindowManager"
+msgid "Image Editor Tool: Mask, Select Circle (fallback)"
+msgstr "Nástroj na úpravu obrázkov: Maska, Vybrať kruhom (spätná väzba)"
+
+
+msgctxt "WindowManager"
+msgid "Image Editor Tool: Mask, Select Lasso"
+msgstr "Nástroj na úpravu obrázkov: Maska, Vybrať lasom"
+
+
+msgctxt "WindowManager"
+msgid "Image Editor Tool: Mask, Select Lasso (fallback)"
+msgstr "Nástroj na úpravu obrázkov: Maska, Vybrať lasom (spätná väzba)"
+
+
+msgctxt "WindowManager"
+msgid "Image Editor Tool: Mask, Move"
+msgstr "Nástroj na úpravu obrázkov: Maska, presun"
+
+
+msgctxt "WindowManager"
+msgid "Image Editor Tool: Mask, Move (fallback)"
+msgstr "Nástroj na úpravu obrázkov: Maska, presun (záložný variant)"
+
+
+msgctxt "WindowManager"
+msgid "Image Editor Tool: Mask, Rotate"
+msgstr "Nástroj na úpravu obrázkov: Maska, rotácia"
+
+
+msgctxt "WindowManager"
+msgid "Image Editor Tool: Mask, Rotate (fallback)"
+msgstr "Nástroj na úpravu obrázkov: Maska, rotácia (spätná väzba)"
+
+
+msgctxt "WindowManager"
+msgid "Image Editor Tool: Mask, Scale"
+msgstr "Nástroj na úpravu obrázkov: Maska, mierka"
+
+
+msgctxt "WindowManager"
+msgid "Image Editor Tool: Mask, Scale (fallback)"
+msgstr "Nástroj na úpravu obrázkov: Maska, mierka (spätná väzba)"
 
 
 msgctxt "WindowManager"
@@ -122308,6 +123136,11 @@ msgstr "Animácia"
 msgctxt "WindowManager"
 msgid "Animation Channels"
 msgstr "Kanály animácie"
+
+
+msgctxt "WindowManager"
+msgid "Time Scrub"
+msgstr "Časové snímanie"
 
 
 msgctxt "WindowManager"
@@ -122383,6 +123216,16 @@ msgstr "Von"
 msgctxt "WindowManager"
 msgid "Gesture Box"
 msgstr "Pole výrazu"
+
+
+msgctxt "WindowManager"
+msgid "Gesture Lasso"
+msgstr "Výraz lasa"
+
+
+msgctxt "WindowManager"
+msgid "Gesture Polyline"
+msgstr "Výraz polygónovej čiary"
 
 
 msgctxt "WindowManager"
@@ -122566,6 +123409,21 @@ msgstr "Pripnúť pásy"
 
 
 msgctxt "WindowManager"
+msgid "Transform Axis Target Modal Map"
+msgstr "Transformovať cieľovú os modálnej mapy"
+
+
+msgctxt "WindowManager"
+msgid "Translate On"
+msgstr "Zapnúť preloženie"
+
+
+msgctxt "WindowManager"
+msgid "Translate Off"
+msgstr "Vypnúť preloženie"
+
+
+msgctxt "WindowManager"
 msgid "Eyedropper Modal Map"
 msgstr "Typická mapa kvapkadla"
 
@@ -122631,6 +123489,21 @@ msgstr "Kolízia rozšírení"
 
 
 msgctxt "WindowManager"
+msgid "Interpolate Tool Modal Map"
+msgstr "Modálna mapa nástroja interpolácie"
+
+
+msgctxt "WindowManager"
+msgid "Increase"
+msgstr "Vzostupne"
+
+
+msgctxt "WindowManager"
+msgid "Decrease"
+msgstr "Zostupne"
+
+
+msgctxt "WindowManager"
 msgid "Generic Gizmo"
 msgstr "Všeobecný manipulačný prvok"
 
@@ -122678,6 +123551,26 @@ msgstr "Povoliť prichytenie"
 msgctxt "WindowManager"
 msgid "Disable Snap"
 msgstr "Zakázať prichytenie"
+
+
+msgctxt "WindowManager"
+msgid "Generic Tool: Annotate"
+msgstr "Všeobecný nástroj: Poznámka"
+
+
+msgctxt "WindowManager"
+msgid "Generic Tool: Annotate Line"
+msgstr "Všeobecný nástroj: Čiara poznámky"
+
+
+msgctxt "WindowManager"
+msgid "Generic Tool: Annotate Polygon"
+msgstr "Všeobecný nástroj: Polygón poznámky"
+
+
+msgctxt "WindowManager"
+msgid "Generic Tool: Annotate Eraser"
+msgstr "Všeobecný nástroj: Zmazať poznámku"
 
 
 msgid "All Repositories"
@@ -126074,8 +126967,8 @@ msgid "Cannot save project because there is no project to save."
 msgstr "Nemožno uložiť projekt, pretože neexistuje žiadny projekt na uloženie."
 
 
-msgid "Invalid project: project name is empty."
-msgstr "Neplatný projekt: názov projektu je prázdny."
+msgid "Project configuration is newer than this version of Blender supports"
+msgstr "Konfigurácia projektu je novšia, než akú táto verzia Blenderu podporuje"
 
 
 msgid "Cannot create a project with an empty directory path."
@@ -126244,6 +127137,10 @@ msgstr "Odstrániť doplnok: {!r}?"
 
 msgid "Path: {!r}"
 msgstr "Cesta: {!r}"
+
+
+msgid "Unable to copy {!r}: {:s}"
+msgstr "Kopírovanie {!r} sa nepodarilo: {:s}"
 
 
 msgid "Active face must be a quad"
@@ -126828,6 +127725,11 @@ msgstr "Pred"
 
 msgid "Collection Mask"
 msgstr "Maska kolekcie"
+
+
+msgctxt "Operator"
+msgid "Effect"
+msgstr "Efekt"
 
 
 msgctxt "Operator"
@@ -129620,12 +130522,13 @@ msgid "Asset Catalog:"
 msgstr "Katalóg aktív:"
 
 
-msgid "UUID"
-msgstr "UUID"
-
-
 msgid "Simple Name"
 msgstr "Jednoduchý názov"
+
+
+msgctxt "Operator"
+msgid "Visit Webpage"
+msgstr "Navštíviť web stránku"
 
 
 msgctxt "Operator"
@@ -131163,6 +132066,10 @@ msgid "Only Active Keying Set"
 msgstr "Len aktívna sústava kľúčovania"
 
 
+msgid "Wrap Timeline Navigation"
+msgstr "Navigácia v časovej osi s ohraničením"
+
+
 msgid "Jump Unit"
 msgstr "Jednotka skoku"
 
@@ -132118,6 +133025,11 @@ msgstr "Kamera"
 msgctxt "Operator"
 msgid "Orbit Opposite"
 msgstr "Obiehať oproti"
+
+
+msgctxt "Operator"
+msgid "Reset Roll"
+msgstr "Resetovať posun"
 
 
 msgctxt "Operator"
@@ -134946,6 +135858,11 @@ msgid "collections"
 msgstr "kolekcie"
 
 
+msgctxt "Scene"
+msgid "Compositor Effect"
+msgstr "Efekt kompozítora"
+
+
 msgid "Const"
 msgstr "Konšt"
 
@@ -137758,6 +138675,10 @@ msgstr "Knižnica aktív: Základy"
 
 msgid "Download Size: {}"
 msgstr "Veľkosť stiahnutia: {}"
+
+
+msgid "Include Online Essentials"
+msgstr "Zahrnúť online Essentials (základné)"
 
 
 msgid "No point was selected"
@@ -142593,8 +143514,44 @@ msgid "Failed to open window!"
 msgstr "Nepodarilo sa otvoriť okno!"
 
 
+msgid ""
+"Effect node group assets not assigned to a catalog.\n"
+"Catalogs can be assigned in the Asset Browser"
+msgstr ""
+"Aktíva skupiny efektových uzlov, ktoré nie sú priradené ku katalógu.\n"
+"Katalógy je možné priradiť v prehliadači aktív"
+
+
+msgid "No effect to duplicate"
+msgstr "Žiadny efekt na vytvorenie kópie"
+
+
+msgid "Index is out of range"
+msgstr "Index je mimo rozsah"
+
+
+msgid "No active effect to duplicate"
+msgstr "Žiadny aktívny efekt na vytvorenie kópie"
+
+
+msgid "No node group to duplicate"
+msgstr "Žiadna skupina uzlov na vytvorenie kópie"
+
+
+msgid "Missing node group for asset"
+msgstr "Chýbajúca skupina uzlov pre aktívum"
+
+
 msgid "Asset is not a compositor node group"
 msgstr "Aktívum nie je skupina uzlov kompozítora"
+
+
+msgid "No effect '%s' in scene"
+msgstr "Na scéne sa nevyskytuje efekt '%s'"
+
+
+msgid "No active effect in scene"
+msgstr "Žiadny aktívny efekt na scéne"
 
 
 msgid "Active scene changed to '%s'"
@@ -144776,10 +145733,6 @@ msgid "Menu Undefined"
 msgstr "Nedefinovaná ponuka"
 
 
-msgid "Subtype"
-msgstr "Podtyp"
-
-
 msgid "Link operation index out of range"
 msgstr "Index operácie odkazu mimo rozsah"
 
@@ -145605,6 +146558,10 @@ msgid "Library path '%s' is now valid, please reload the library"
 msgstr "Cesta knižnice '%s' je teraz platná. Obnovte knižnicu"
 
 
+msgid "Cannot edit fake user on a linked datablock, consider referencing it through a Custom Property"
+msgstr "Nemožno upravovať falošného užívateľa na prepojenom bloku údajov, zvážte odkazovanie naň prostredníctvom užívateľskej vlastnosti"
+
+
 msgid "Cannot edit library or non-editable override data"
 msgstr "Nemožno upravovať údaje knižnice alebo neupraviteľné údaje prepisu"
 
@@ -145759,6 +146716,14 @@ msgstr "Vybrať hierarchiu objektov"
 msgctxt "Operator"
 msgid "Rename Object"
 msgstr "Premenovať objekt"
+
+
+msgid "Cannot set fake user on a linked datablock, consider referencing it through a Custom Property"
+msgstr "Nemožno nastaviť falošného užívateľa na prepojenom bloku údajov, zvážte odkazovanie naň prostredníctvom užívateľskej vlastnosti"
+
+
+msgid "Cannot clear fake user on a linked datablock"
+msgstr "Nemožno odstrániť falošného užívateľa v prepojenom bloku údajov"
 
 
 msgid "Not yet implemented"
@@ -146068,6 +147033,10 @@ msgid "Strip None"
 msgstr "Žiadny pás"
 
 
+msgid "Built-In"
+msgstr "Vstavané"
+
+
 msgid "Cannot reload with running modal operators"
 msgstr "Nemožno znova načítať použitím modálnych operátorov"
 
@@ -146254,6 +147223,18 @@ msgstr "Duplicitné %s"
 
 msgid "MetaStrip"
 msgstr "Pás meta prvku"
+
+
+msgid "Cannot apply effect to more than 2 strips with video content"
+msgstr "Nemožno použiť efekt na viac ako 2 pásy s video obsahom"
+
+
+msgid "Exactly 2 selected strips with video content are needed"
+msgstr "Potrebné sú presne 2 vybrané pásy s video obsahom"
+
+
+msgid "Exactly one selected strip with video content is needed"
+msgstr "Potrebný je presne jeden vybraný pás s video obsahom"
 
 
 msgid "Cannot reassign inputs: strip has no inputs"
@@ -146588,12 +147569,12 @@ msgid "Undo History"
 msgstr "Späť v histórii"
 
 
-msgid "Built-In"
-msgstr "Vstavané"
+msgid "Local Asset Library"
+msgstr "Lokálna knižnica aktív"
 
 
-msgid "Include Online Essentials"
-msgstr "Zahrnúť online Essentials (základné)"
+msgid "Remote Asset Library"
+msgstr "Vzdialená knižnica aktív"
 
 
 msgid "Add Asset Library"
@@ -146622,14 +147603,6 @@ msgstr "Odstrániť úložisko a súbory"
 
 msgid "Remove Repository"
 msgstr "Odstrániť úložisko"
-
-
-msgid "Local Asset Library"
-msgstr "Lokálna knižnica aktív"
-
-
-msgid "Remote Asset Library"
-msgstr "Vzdialená knižnica aktív"
 
 
 msgid "Unable to remove files for \"System\" repositories"
@@ -148852,6 +149825,10 @@ msgid "Attribute is required and cannot be removed"
 msgstr "Atribút je povinný a nemožno ho odstrániť"
 
 
+msgid "Asset Library not found"
+msgstr "Knižnica aktív nebola nájdená"
+
+
 msgid "Smooth the surface"
 msgstr "Vyhladiť povrch"
 
@@ -149536,6 +150513,18 @@ msgid "Unable to copy item"
 msgstr "Nemožno skopírovať položku"
 
 
+msgid "Root panel can not be copied."
+msgstr "Koreňový panel nemožno skopírovať."
+
+
+msgid "Root panel can not be removed."
+msgstr "Koreňový panel nemožno vybrať."
+
+
+msgid "Root panel can not be moved."
+msgstr "Koreňový panel nemožno presúvať."
+
+
 msgid "Areas outside of the image are filled with zero"
 msgstr "Oblasti mimo obrazu sú vyplnené nulou"
 
@@ -149889,6 +150878,10 @@ msgid "Style module could not be removed"
 msgstr "Modul štýlu nemôže byť odstránený"
 
 
+msgid "Effect was not found in the stack"
+msgstr "Efekt sa v zásobníku nenašiel"
+
+
 msgid "View Layer '%s' not found in scene '%s'"
 msgstr "Vrstva zobrazenia '%s' sa v scéne '%s' nenašla"
 
@@ -149941,12 +150934,36 @@ msgid "Modifier \"%s\" is not in the strip's modifier list"
 msgstr "Modifikátor \"%s\" nie je v zozname modifikátorov pásu"
 
 
+msgid "Unable to open sound file"
+msgstr "Zvukový súbor sa nedá otvoriť"
+
+
 msgid "Blender compiled without Audaspace support"
 msgstr "Blender skompilovaný bez podpory Zvukového priestoru (Audaspace)"
 
 
+msgid "Invalid length"
+msgstr "Neplatná dĺžka"
+
+
+msgid "Effect takes 1 input strip"
+msgstr "V zozname neboli nájdené žiadne efekty"
+
+
+msgid "Effect takes 2 input strips"
+msgstr "Efekt vyžaduje 2 vstupné pásy"
+
+
+msgid "Cannot pop the last element"
+msgstr "Posledný prvok nemožno vyňať"
+
+
 msgid "StripElements.pop: cannot pop the last element"
 msgstr "StripElements.pop: nemožno vypustiť posledný prvok"
+
+
+msgid "Effect expects more than 2 inputs (%d, should never happen!)"
+msgstr "Funkcia očakáva viac ako 2 vstupy (%d, to by sa nikdy nemalo stať!)"
 
 
 msgid "Strip '%s' not in scene '%s'"
@@ -149979,6 +150996,10 @@ msgstr "Upraví skupiny uzlov z aktívneho modifikátora aktívneho objektu"
 
 msgid "Edit any geometry node group for use as an operator"
 msgstr "Upraví ľubovoľnú skupinu uzlov geometrie na použitie ako operátor"
+
+
+msgid "Edit compositor node group for the active scene compositor effect"
+msgstr "Upraviť skupinu uzlov kompozítora pre efekt kompozítora aktívnej scény"
 
 
 msgid "Edit compositing node group for Sequencer strip modifiers"
@@ -150083,10 +151104,6 @@ msgstr "Spustené s „--offline-mode“, nemožno zmeniť"
 
 msgid "Script directory not found"
 msgstr "Priečinok skriptov sa nenašiel"
-
-
-msgid "Asset Library not found"
-msgstr "Knižnica aktív nebola nájdená"
 
 
 msgid "Extension repository not found"
@@ -152872,6 +153889,10 @@ msgid "Format Items"
 msgstr "Formát položiek"
 
 
+msgid "Unescaped '}' in format string"
+msgstr "Neodvratná '}' vo formátovacom reťazci"
+
+
 msgid "Empty identifier cannot be used when explicit identifier was used before. For example, \"{} {x}\" is ok but \"{x} {}\" is not."
 msgstr "Prázdny identifikátor nemožno použiť, ak bol predtým použitý explicitný identifikátor. Napríklad \"{} {x}\" je v poriadku, ale \"{x} {}\" nie je."
 
@@ -153340,6 +154361,10 @@ msgstr "Pre krivky, mračno bodov a Grease Pencil zohľadňuje pri výpočte hra
 
 msgid "A cube mesh enclosing the input geometry"
 msgstr "Povrchová sieť kocky obklopujúca vstupnú geometriu"
+
+
+msgid "Object is not a camera"
+msgstr "Objekt nie je kamera"
 
 
 msgid "Projection Matrix"
@@ -155920,6 +156945,10 @@ msgid "Realize All"
 msgstr "Realizovať všetko"
 
 
+msgid "Preserve Normals"
+msgstr "Zachovať normály"
+
+
 msgid "Geometry whose instances are (partially) realized"
 msgstr "Geometria, ktorej inštancie sú (čiastočne) realizované"
 
@@ -155934,6 +156963,10 @@ msgstr "Realizovať všetky úrovne vnorených inštancií pre inštancie najvy�
 
 msgid "Number of levels of nested instances to realize for each top-level instance"
 msgstr "Počet úrovní vnorených inštancií, ktoré sa majú realizovať pre každú inštanciu najvyššej úrovne"
+
+
+msgid "Preserve the apparent face orientation of mirrored mesh instances"
+msgstr "Zachová zdanlivú orientáciu plôšok zrkadlených inštancií sietí"
 
 
 msgid "Cannot remove built-in attributes: {}"
@@ -157070,6 +158103,10 @@ msgid "Switch must be a constant value for this data type"
 msgstr "Pre tento typ údajov musí mať prepínač konštantnú hodnotu"
 
 
+msgid "Node requires constant input values"
+msgstr "Uzol vyžaduje konštantné vstupné hodnoty"
+
+
 msgid " (Deprecated)"
 msgstr " (zastarané)"
 
@@ -157394,6 +158431,14 @@ msgid "Transmission Weight"
 msgstr "Prenosová váha"
 
 
+msgid "Transmission Dispersion Scale"
+msgstr "Mierka rozptýlenia prenosu"
+
+
+msgid "Transmission Dispersion Abbe Number"
+msgstr "Abbeho číslo rozptýlenia prenosu"
+
+
 msgid "Coat Weight"
 msgstr "Vplyv povlaku"
 
@@ -157508,6 +158553,14 @@ msgstr "Riadi smer dotyčnice pre anizotropiu"
 
 msgid "Blend between transmission and other base layer components"
 msgstr "Prelínanie prenosovej a iných zložiek základnej vrstvy"
+
+
+msgid "Linearly scales the amount of dispersion"
+msgstr "Lineárne mení mieru rozptylu"
+
+
+msgid "Abbe number of the base dielectric medium. Smaller number gives stronger dispersion"
+msgstr "Abbeho číslo základného dielektrického média. Čím je číslo menšie, tým je rozptyl silnejší"
 
 
 msgid "Controls the intensity of the coat layer, both the reflection and the tinting. Typically should be zero or one for physically-based materials"
@@ -160035,6 +161088,106 @@ msgid "network"
 msgstr "sieť"
 
 
+msgctxt "Color Management"
+msgid "sRGB"
+msgstr "sRGB"
+
+
+msgctxt "Color Management"
+msgid "Standard"
+msgstr "Štandardná"
+
+
+msgctxt "Color Management"
+msgid "ACES 1.3"
+msgstr "ACES 1.3"
+
+
+msgctxt "Color Management"
+msgid "ACES 2.0"
+msgstr "ACES 2.0"
+
+
+msgctxt "Color Management"
+msgid "Khronos PBR Neutral"
+msgstr "Khronos PBR Neutral"
+
+
+msgctxt "Color Management"
+msgid "AgX"
+msgstr "AgX"
+
+
+msgctxt "Color Management"
+msgid "Filmic"
+msgstr "Filmová"
+
+
+msgctxt "Color Management"
+msgid "False Color"
+msgstr "Falošná farba"
+
+
+msgctxt "Color Management"
+msgid "Raw"
+msgstr "Nespracované"
+
+
+msgctxt "Color Management"
+msgid "ACES 1.3 - HDR 1000 nits"
+msgstr "ACES 1.3 - HDR 1000 nitov"
+
+
+msgctxt "Color Management"
+msgid "ACES 1.3 - HDR 2000 nits"
+msgstr "ACES 1.3 - HDR 2000 nitov"
+
+
+msgctxt "Color Management"
+msgid "ACES 1.3 - HDR 4000 nits"
+msgstr "ACES 1.3 - HDR 4000 nitov"
+
+
+msgctxt "Color Management"
+msgid "ACES 1.3 - SDR"
+msgstr "ACES 1.3 - SDR"
+
+
+msgctxt "Color Management"
+msgid "ACES 2.0 - HDR 500 nits"
+msgstr "ACES 2.0 - HDR 500 nitov"
+
+
+msgctxt "Color Management"
+msgid "ACES 2.0 - HDR 1000 nits"
+msgstr "ACES 2.0 - HDR 1000 nitov"
+
+
+msgctxt "Color Management"
+msgid "ACES 2.0 - HDR 2000 nits"
+msgstr "ACES 2.0 - HDR 2000 nitov"
+
+
+msgctxt "Color Management"
+msgid "ACES 2.0 - HDR 4000 nits"
+msgstr "ACES 2.0 - HDR 4000 nitov"
+
+
+msgctxt "Color Management"
+msgid "ACES 2.0 - SDR"
+msgstr "ACES 2.0 - SDR"
+
+
+msgctxt "Color Management"
+msgid "AgX - HDR 1000 nits"
+msgstr "AgX - HDR 1000 nitov"
+
+
+msgctxt "Color Management"
+msgid "AgX - SDR"
+msgstr "AgX - SDR"
+
+
 msgid "Apply only the display's standard transform without additional mappings"
 msgstr "Použije iba štandardnú transformáciu displeja bez ďalších priradení"
 
@@ -160043,20 +161196,45 @@ msgid "sRGB display space with Filmic view transform"
 msgstr "Zobrazovací priestor sRGB s transformáciou zobrazenia Filmový"
 
 
+msgctxt "Color Management"
+msgid "AgX Base Rec.2020"
+msgstr "AgX Base Rec.2020"
+
+
 msgid "AgX Base Image Encoding for display with Gamma 2.4 and Rec.2020 gamut"
 msgstr "Kódovanie základného obrazu AgX pre zobrazenie s hodnotou gama 2,4 a farebným priestorom Rec.2020"
+
+
+msgctxt "Color Management"
+msgid "AgX Base Rec.1886"
+msgstr "AgX Base Rec.1886"
 
 
 msgid "AgX Base Image Encoding for sRGB and Rec.1886 Display"
 msgstr "Základné kódovanie obrazu AgX pre sRGB a displej Rec.1886"
 
 
+msgctxt "Color Management"
+msgid "AgX Base Display P3"
+msgstr "AgX Base Display P3"
+
+
 msgid "AgX Base Image Encoding for Display P3 Display"
 msgstr "Základné kódovanie obrazu AgX pre displej P3"
 
 
+msgctxt "Color Management"
+msgid "AgX Rec.2100-HLG - HDR 1000 nits (P3 D65)"
+msgstr "AgX Rec.2100-HLG - HDR 1000 nitov (P3 D65)"
+
+
 msgid "AgX 1000 nits peak Image Encoding for BT.2100-HLG P3 limited Display. Reference white is 100nits"
 msgstr "AgX s maximálnou jasnosťou 1000 nitov a kódovaním obrazu pre displeje s podporou BT.2100-HLG P3. Referenčná biela má jas 100 nitov"
+
+
+msgctxt "Color Management"
+msgid "AgX False Color Rec.709"
+msgstr "Falošné farby AgX Rec.709"
 
 
 msgid "A heat-map-like image formed from AgX Base for sRGB and Rec.1886 displays"
@@ -160067,52 +161245,152 @@ msgid "Khronos PBR Neutral Image Encoding for sRGB Display"
 msgstr "Kódovanie obrazu Khronos PBR Neutral pre zobrazenie sRGB"
 
 
+msgctxt "Color Management"
+msgid "ACES 1.3 Display P3"
+msgstr "ACES 1.3 Display P3"
+
+
 msgid "ACES 1.1 Output Transform for SDR D65 video, with P3 gamut"
 msgstr "ACES 1.1 – výstupná transformácia pre video SDR D65 s farebným priestorom P3"
+
+
+msgctxt "Color Management"
+msgid "ACES 1.3 Rec.1886"
+msgstr "ACES 1.3 Rec.1886"
 
 
 msgid "ACES 1.0 Output Transform for SDR D65 video, with Rec.709 gamut"
 msgstr "ACES 1.0 Výstupný transformátor pre video SDR D65, s gamutom Rec.709"
 
 
+msgctxt "Color Management"
+msgid "ACES 1.1 Rec.2100-PQ - HDR 1000 nits"
+msgstr "ACES 1.1 Rec.2100-PQ - HDR 1000 nitov"
+
+
 msgid "ACES 1.1 Output Transform for 1000 nit HDR D65 video, with Rec.2020 gamut"
 msgstr "ACES 1.1 – výstupná transformácia pre HDR video s jasom 1000 nitov a farebným štandardom D65, s gamutom Rec.2020"
+
+
+msgctxt "Color Management"
+msgid "ACES 1.1 Rec.2100-PQ - HDR 2000 nits"
+msgstr "ACES 1.1 Rec.2100-PQ - HDR 2000 nitov"
 
 
 msgid "ACES 1.1 Output Transform for 2000 nit HDR D65 video, with Rec.2020 gamut"
 msgstr "ACES 1.1 – výstupná transformácia pre HDR video s jasom 2000 nitov a farebným štandardom D65, s gamutom Rec.2020"
 
 
+msgctxt "Color Management"
+msgid "ACES 1.1 Rec.2100-PQ - HDR 4000 nits"
+msgstr "ACES 1.1 Rec.2100-PQ - HDR 4000 nitov"
+
+
 msgid "ACES 1.1 Output Transform for 4000 nit HDR D65 video, with Rec.2020 gamut"
 msgstr "ACES 1.1 – výstupná transformácia pre HDR video s jasom 4000 nitov a farebným štandardom D65, s gamutom Rec.2020"
+
+
+msgctxt "Color Management"
+msgid "ACES 2.0 Display P3"
+msgstr "ACES 2.0 Display P3"
 
 
 msgid "ACES 2 Output Transform for Apple Display P3"
 msgstr "ACES 2 Výstupný transformátor pre Apple Display P3"
 
 
+msgctxt "Color Management"
+msgid "ACES 2.0 Rec.1886"
+msgstr "ACES 2.0 Rec.1886"
+
+
 msgid "ACES 2 Output Transform for 100 nit SDR, with Rec709 gamut"
 msgstr "Výstupný transformátor ACES 2 pre 100 nitový SDR Rec709"
+
+
+msgctxt "Color Management"
+msgid "ACES 2.0 Rec.2100-PQ - HDR 500 nits"
+msgstr "ACES 2.0 Rec.2100-PQ - HDR 500 nitov"
 
 
 msgid "ACES 2 Output Transform for 500 nit HDR, with Rec.2020 gamut"
 msgstr "Výstupný transformátor ACES 2 pre HDR s jasom 500 nitov a farebným priestorom Rec.2020"
 
 
+msgctxt "Color Management"
+msgid "ACES 2.0 Rec.2100-PQ - HDR 1000 nits"
+msgstr "ACES 2.0 Rec.2100-PQ - HDR 1000 nitov"
+
+
 msgid "ACES 2 Output Transform for 1000 nit HDR, with Rec.2020 gamut"
 msgstr "Výstupný transformátor ACES 2 pre HDR s jasom 1000 nitov a farebným priestorom Rec.2020"
+
+
+msgctxt "Color Management"
+msgid "ACES 2.0 Rec.2100-PQ - HDR 2000 nits"
+msgstr "ACES 2.0 Rec.2100-PQ - HDR 2000 nitov"
 
 
 msgid "ACES 2 Output Transform for 2000 nit HDR, with Rec.2020 gamut"
 msgstr "Výstupný transformátor ACES 2 pre HDR s jasom 2000 nitov a farebným priestorom Rec.2020"
 
 
+msgctxt "Color Management"
+msgid "ACES 2.0 Rec.2100-PQ - HDR 4000 nits"
+msgstr "ACES 2.0 Rec.2100-PQ - HDR 4000 nitov"
+
+
 msgid "ACES 2 Output Transform for 4000 nit HDR, with Rec.2020 gamut"
 msgstr "Výstupný transformátor ACES 2 pre HDR s jasom 4000 nitov a farebným priestorom Rec.2020"
 
 
+msgctxt "Color Management"
+msgid "Very High Contrast"
+msgstr "Veľmi vysoký kontrast"
+
+
+msgctxt "Color Management"
+msgid "High Contrast"
+msgstr "Vysoký kontrast"
+
+
+msgctxt "Color Management"
+msgid "Medium High Contrast"
+msgstr "Stredne vysoký kontrast"
+
+
+msgctxt "Color Management"
+msgid "Medium Contrast"
+msgstr "Stredný kontrast"
+
+
+msgctxt "Color Management"
+msgid "Medium Low Contrast"
+msgstr "Stredný malý kontrast"
+
+
+msgctxt "Color Management"
+msgid "Low Contrast"
+msgstr "Malý kontrast"
+
+
+msgctxt "Color Management"
+msgid "Very Low Contrast"
+msgstr "Veľmi malý kontrast"
+
+
+msgctxt "Color Management"
+msgid "Punchy"
+msgstr "Výrazný"
+
+
 msgid "A darkening punchy look"
 msgstr "Tmavý výrazný vzhľad"
+
+
+msgctxt "Color Management"
+msgid "Greyscale"
+msgstr "Stupne sivej"
 
 
 msgid "A Black and White Look"
@@ -160131,6 +161409,11 @@ msgid "A Medium High Contrast Look"
 msgstr "Stredne vysoký kontrastný vzhľad"
 
 
+msgctxt "Color Management"
+msgid "Base Contrast"
+msgstr "Základný kontrast"
+
+
 msgid "A Base Contrast Look"
 msgstr "Základný kontrastný vzhľad"
 
@@ -160147,8 +161430,18 @@ msgid "A Very Low Contrast Look"
 msgstr "Veľmi nízky kontrastný vzhľad"
 
 
+msgctxt "Color Management"
+msgid "Reference Gamut Compression"
+msgstr "Referenčná kompresia gamutu"
+
+
 msgid "Compress scene-referred values from common cameras into the ACEScg gamut"
 msgstr "Komprimuje hodnoty odkazujúce na scénu zo bežných kamier do gamutu ACEScg"
+
+
+msgctxt "Color Management"
+msgid "Linear"
+msgstr "Lineárna"
 
 
 msgid ""
@@ -160157,6 +161450,11 @@ msgid ""
 msgstr ""
 "Transformácia pohľadu Filmic pre sRGB.\n"
 "Môže sa použiť na konverziu pozadia alebo matovaných kresieb do pracovného priestoru."
+
+
+msgctxt "Color Management"
+msgid "View Inverse"
+msgstr "Zobraziť inverzne"
 
 
 msgid ""
@@ -160199,12 +161497,72 @@ msgstr ""
 "Určené na použitie s textúrami viazanými na scénu."
 
 
+msgctxt "Color Management"
+msgid "Input"
+msgstr "Vstup"
+
+
+msgctxt "Color Management"
+msgid "Apple"
+msgstr "Apple"
+
+
+msgctxt "Color Management"
+msgid "ARRI"
+msgstr "ARRI"
+
+
+msgctxt "Color Management"
+msgid "BlackmagicDesign"
+msgstr "BlackmagicDesign"
+
+
+msgctxt "Color Management"
+msgid "Canon"
+msgstr "Canon"
+
+
+msgctxt "Color Management"
+msgid "DJI"
+msgstr "DJI"
+
+
+msgctxt "Color Management"
+msgid "Panasonic"
+msgstr "Panasonic"
+
+
+msgctxt "Color Management"
+msgid "RED"
+msgstr "RED"
+
+
+msgctxt "Color Management"
+msgid "Sony"
+msgstr "Sony"
+
+
+msgctxt "Color Management"
+msgid "Film"
+msgstr "Film"
+
+
+msgctxt "Color Management"
+msgid "Log"
+msgstr "Záznam"
+
+
 msgid ""
 "1.8 gamma-encoded Rec.709 with illuminant D65 white point.\n"
 "For use with scene-referred textures."
 msgstr ""
 "Gama 1,8 kódované Rec.709 a bielym bodom D65.\n"
 "Určené na použitie s textúrami viazanými na scénu."
+
+
+msgctxt "Color Management"
+msgid "Utility"
+msgstr "Obslužný program"
 
 
 msgid ""
@@ -160223,6 +161581,11 @@ msgstr ""
 "Určené na použitie s textúrami viazanými na scénu."
 
 
+msgctxt "Color Management"
+msgid "sRGB Encoded P3-D65"
+msgstr "sRGB kódované P3-D65"
+
+
 msgid ""
 "sRGB-encoded P3-D65 with illuminant D65 white point.\n"
 "For use with scene-referred textures."
@@ -160239,6 +161602,11 @@ msgstr ""
 "Určené na použitie s textúrami viazanými na scénu."
 
 
+msgctxt "Color Management"
+msgid "sRGB Encoded AP1"
+msgstr "sRGB kódované AP1"
+
+
 msgid ""
 "sRGB-encoded AP1 with ACES white point.\n"
 "For use with scene-referred textures."
@@ -160253,6 +161621,16 @@ msgid ""
 msgstr ""
 "2.2 gama kódované AP1 s bielym bodom ACES.\n"
 "Určené na použitie s textúrami orientovanými na scénu."
+
+
+msgctxt "Color Management"
+msgid "blender:pq_rec2020_display_203nits"
+msgstr "blender:pq_rec2020_display_203nits"
+
+
+msgctxt "Color Management"
+msgid "blender:hlg_rec2020_display_203nits"
+msgstr "blender:hlg_rec2020_display_203nits"
 
 
 msgid "Add & Subtract"

@@ -60,7 +60,7 @@ struct SafetyRect;
 struct HandleButtonData;
 struct Layout;
 struct UndoStack_Text;
-/* ****************** general defines ************** */
+/* General defines. */
 
 #define RNA_ENUM_VALUE -2
 

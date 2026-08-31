@@ -477,6 +477,7 @@ static void rna_NodeSocket_hide_set(PointerRNA *ptr, bool value)
 
   if (value) {
     sock->flag |= SOCK_HIDDEN;
+    sock->flag &= ~SOCK_SELECT;
   }
   else {
     sock->flag &= ~SOCK_HIDDEN;

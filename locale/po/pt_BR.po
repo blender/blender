@@ -1,9 +1,9 @@
 
 msgid ""
 msgstr ""
-"Project-Id-Version: Blender 5.3.0 Alpha (b'09417042a1fa')\n"
+"Project-Id-Version: Blender 5.3.0 Alpha (b'32296898e057')\n"
 "Report-Msgid-Bugs-To: Leandro Paganelli <leandrobp@fastmail.com>\n"
-"POT-Creation-Date: 2026-08-24 07:38+0000\n"
+"POT-Creation-Date: 2026-08-31 07:41+0000\n"
 "PO-Revision-Date: 2026-04-13 10:12+0000\n"
 "Last-Translator: Gilberto Rodrigues <gilbertorodrigues@outlook.com>\n"
 "Language-Team: Portuguese (Brazil) <https://translate.blender.org/projects/blender-ui/ui/pt_BR/>\n"
@@ -5177,6 +5177,10 @@ msgid "Collection of Color Ramp Elements"
 msgstr "Coleção de elementos de gradientes de cores"
 
 
+msgid "Identifier"
+msgstr "Identificador"
+
+
 msgid "Console Input"
 msgstr "Entrada de console"
 
@@ -8553,10 +8557,6 @@ msgstr "Permite a definição de uma escolha dentro de uma propriedade RNA enume
 
 msgid "Description of the item's purpose"
 msgstr "Descrição da finalidade do item."
-
-
-msgid "Identifier"
-msgstr "Identificador"
 
 
 msgid "Unique name used in the code and scripting"
@@ -21344,16 +21344,16 @@ msgid "Merge"
 msgstr "Fundir"
 
 
+msgid "Pivot Point"
+msgstr "Pontos de pivô"
+
+
 msgid "Special Characters"
 msgstr "Caracteres especiais"
 
 
 msgid "Bone Roll"
 msgstr "Rolagem dos ossos"
-
-
-msgid "Pivot Point"
-msgstr "Pontos de pivô"
 
 
 msgid "Basic"
@@ -28959,6 +28959,11 @@ msgid "Install Theme..."
 msgstr "Instalar tema..."
 
 
+msgctxt "Operator"
+msgid "Add Asset Library"
+msgstr "Adicionar Biblioteca de Recursos"
+
+
 msgid "Add an Integrator Preset"
 msgstr "Adiciona uma predefinição de integrador."
 
@@ -31171,8 +31176,8 @@ msgstr "Menu de Contexto"
 
 
 msgctxt "Operator"
-msgid "Accept"
-msgstr "Aceitar"
+msgid "Select Directory"
+msgstr "Selecionar diretório"
 
 
 msgid "Directory of the file"
@@ -33750,11 +33755,6 @@ msgstr "(De)selecionar todos os arquivos"
 
 msgid "Select or deselect all files"
 msgstr "Seleciona ou de-seleciona todos os arquivos."
-
-
-msgctxt "Operator"
-msgid "Select Directory"
-msgstr "Selecionar diretório"
 
 
 msgid "Select a bookmarked directory"
@@ -42511,11 +42511,6 @@ msgstr "Remove os modelos existentes com o mesmo identificador."
 
 
 msgctxt "Operator"
-msgid "Add Asset Library"
-msgstr "Adicionar Biblioteca de Recursos"
-
-
-msgctxt "Operator"
 msgid "Remove Asset Library"
 msgstr "Remover Biblioteca de Recursos"
 
@@ -43347,6 +43342,10 @@ msgstr "Nova tela"
 
 msgid "Add a new screen"
 msgstr "Adiciona uma nova tela, copiando a partir do padrão de tela ativo."
+
+
+msgid "Active Section"
+msgstr "Seção ativa"
 
 
 msgctxt "Operator"
@@ -49717,10 +49716,6 @@ msgstr "Coleção de restrições para poses de ossos."
 
 msgid "Active PoseChannel constraint"
 msgstr "Restrição ativa do canal de poses."
-
-
-msgid "Active Section"
-msgstr "Seção ativa"
 
 
 msgid "Application Template"

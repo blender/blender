@@ -12,6 +12,7 @@
 #include <cstdlib>
 #include <cstring>
 #include <iostream>
+#include <variant>
 
 #include "MEM_guardedalloc.h"
 
@@ -57,7 +58,9 @@ namespace blender {
  * - Joshua Leung, Dec 2008
  */
 
-/* **************************************************** */
+/* -------------------------------------------------------------------- */
+/** \name Duplicate Keys
+ * \{ */
 
 bool duplicate_fcurve_keys(FCurve *fcu)
 {
@@ -93,6 +96,8 @@ bool duplicate_fcurve_keys(FCurve *fcu)
   }
   return changed;
 }
+
+/** \} */
 
 /* -------------------------------------------------------------------- */
 /** \name Various Tools
@@ -1811,10 +1816,32 @@ bool pastebuf_match_path_full(Main * /*bmain*/,
   return to_single || fcurve_in_copy_buffer.rna_path() == fcurve_to_match.rna_path();
 }
 
-bool pastebuf_match_path_property(Main *bmain,
+bool pastebuf_match_path_property_and_component_length(
+    Main *bmain,
+    const FCurve &fcurve_to_match,
+    const FCurve &fcurve_in_copy_buffer,
+    const animrig::slot_handle_t slot_handle_in_copy_buffer,
+    const bool from_single,
+    const bool to_single,
+    const bool flip)
+{
+  if (fcurve_to_match.rna_path_parsed().size() != fcurve_in_copy_buffer.rna_path_parsed().size()) {
+    return false;
+  }
+
+  return pastebuf_match_path_property(bmain,
+                                      fcurve_to_match,
+                                      fcurve_in_copy_buffer,
+                                      slot_handle_in_copy_buffer,
+                                      from_single,
+                                      to_single,
+                                      flip);
+}
+
+bool pastebuf_match_path_property(Main * /*bmain*/,
                                   const FCurve &fcurve_to_match,
                                   const FCurve &fcurve_in_copy_buffer,
-                                  animrig::slot_handle_t slot_handle_in_copy_buffer,
+                                  animrig::slot_handle_t /*slot_handle_in_copy_buffer*/,
                                   const bool from_single,
                                   const bool /*to_single*/,
                                   const bool /*flip*/)
@@ -1832,45 +1859,37 @@ bool pastebuf_match_path_property(Main *bmain,
     return false;
   }
 
-  /* find the property of the fcurve and compare against the end of the tAnimCopybufItem
-   * more involved since it needs to do path lookups.
-   * This is not 100% reliable since the user could be editing the curves on a path that won't
-   * resolve, or a bone could be renamed after copying for eg. but in normal copy & paste
-   * this should work out ok.
+  /* See if the property name matches. There is at least one item in the RNA path because of the
+   * above check. */
+  const ParsedRNAPathRef rnapath_to_match = fcurve_to_match.rna_path_parsed();
+  const ParsedRNAPathRef rnapath_in_copy_buffer = fcurve_in_copy_buffer.rna_path_parsed();
+  const rna_path::Item last_item_to_match = rnapath_to_match.last();
+  const rna_path::Item last_item_in_copy_buffer = rnapath_in_copy_buffer.last();
+
+  /* Both last items have to be of the same type, or there is no match. */
+  if (last_item_to_match.index() != last_item_in_copy_buffer.index()) {
+    return false;
+  }
+
+  /* If this is a member (like '.rotation_euler') or lookup key (like '["customprop"]') they have
+   * to match. If they are LookupIndex, they also have to be preceeded by the same member to match.
    */
-  const std::optional<ID *> optional_id = keyframe_copy_buffer->slot_animated_ids.lookup_try(
-      slot_handle_in_copy_buffer);
-  if (!optional_id) {
-    printf(
-        "paste_animedit_keys: no idea which ID was animated by \"%s\" in slot \"%s\", so cannot "
-        "match by property name\n",
-        fcurve_in_copy_buffer.rna_path().c_str(),
-        keyframe_copy_buffer->slot_identifiers.lookup(slot_handle_in_copy_buffer).c_str());
+  if (last_item_to_match != last_item_in_copy_buffer) {
     return false;
   }
-  ID *animated_id = optional_id.value();
-  if (BLI_findindex(which_libbase(bmain, animated_id->id_type()), animated_id) == -1) {
-    /* The ID could have been removed after copying the keys. This function
-     * needs it to resolve the property & get the name. */
-    printf("paste_animedit_keys: error ID has been removed!\n");
+  if (!std::holds_alternative<rna_path::LookupIndex>(last_item_to_match)) {
+    /* For non-indexes this is enough. */
+    return true;
+  }
+
+  if (rnapath_to_match.size() < 2 || rnapath_in_copy_buffer.size() < 2) {
+    /* RNA paths of just an array index are not valid, so don't see this as a match. */
     return false;
   }
 
-  PointerRNA rptr;
-  PropertyRNA *prop;
-  PointerRNA id_ptr = RNA_id_pointer_create(animated_id);
-
-  if (!RNA_path_resolve_property(&id_ptr, fcurve_in_copy_buffer.rna_path().c_str(), &rptr, &prop))
-  {
-    printf("paste_animedit_keys: failed to resolve path id:%s, '%s'!\n",
-           animated_id->name,
-           fcurve_in_copy_buffer.rna_path().c_str());
-    return false;
-  }
-
-  const char *identifier = RNA_property_identifier(prop);
-  /* NOTE: paths which end with `"]` will fail with this test - Animated ID Props. */
-  return fcurve_to_match.rna_path().endswith(identifier);
+  const rna_path::Item preceeding_item_to_match = rnapath_to_match.last(1);
+  const rna_path::Item preceeding_item_in_copy_buffer = rnapath_in_copy_buffer.last(1);
+  return preceeding_item_to_match == preceeding_item_in_copy_buffer;
 }
 
 bool pastebuf_match_index_only(Main * /*bmain*/,
@@ -2177,8 +2196,10 @@ eKeyPasteError paste_animedit_keys(bAnimContext *ac,
   /* Try to find "matching" channels to paste keyframes into with increasingly
    * loose matching heuristics. The process finishes when at least one F-Curve
    * has been pasted into. */
-  Vector<pastebuf_match_func> matchers = {
-      pastebuf_match_path_full, pastebuf_match_path_property, pastebuf_match_index_only};
+  Vector<pastebuf_match_func> matchers = {pastebuf_match_path_full,
+                                          pastebuf_match_path_property_and_component_length,
+                                          pastebuf_match_path_property,
+                                          pastebuf_match_index_only};
 
   for (const pastebuf_match_func matcher : matchers) {
     bool found_match = false;

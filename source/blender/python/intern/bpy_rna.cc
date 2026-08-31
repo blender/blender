@@ -7039,13 +7039,13 @@ static void pyrna_func_error_prefix(BPy_FunctionRNA *self,
                                     PropertyRNA *parm,
                                     const int parm_index,
                                     char *error,
-                                    const size_t error_size)
+                                    const size_t error_maxncpy)
 {
   PointerRNA *self_ptr = &self->ptr.value();
   FunctionRNA *self_func = self->func;
   if (parm_index == -1) {
     BLI_snprintf_utf8(error,
-                      error_size,
+                      error_maxncpy,
                       "%.200s.%.200s(): error with keyword argument \"%.200s\" - ",
                       RNA_struct_identifier(self_ptr->type),
                       RNA_function_identifier(self_func),
@@ -7053,7 +7053,7 @@ static void pyrna_func_error_prefix(BPy_FunctionRNA *self,
   }
   else {
     BLI_snprintf_utf8(error,
-                      error_size,
+                      error_maxncpy,
                       "%.200s.%.200s(): error with argument %d, \"%.200s\" - ",
                       RNA_struct_identifier(self_ptr->type),
                       RNA_function_identifier(self_func),

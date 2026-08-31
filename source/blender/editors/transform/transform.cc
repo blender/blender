@@ -85,7 +85,9 @@ bool transdata_check_local_islands(TransInfo *t, short around)
 
 /** \} */
 
-/* ************************** SPACE DEPENDENT CODE **************************** */
+/* -------------------------------------------------------------------- */
+/** \name Space Dependent Utilities
+ * \{ */
 
 void setTransformViewMatrices(TransInfo *t)
 {
@@ -633,7 +635,11 @@ static void viewRedrawPost(bContext *C, TransInfo *t)
   }
 }
 
-/* ************************************************* */
+/** \} */
+
+/* -------------------------------------------------------------------- */
+/** \name Modal Keymap
+ * \{ */
 
 static bool transform_modal_item_poll(const wmOperator *op, int value)
 {
@@ -953,6 +959,12 @@ wmKeyMap *transform_modal_keymap(wmKeyConfig *keyconf)
 
   return keymap;
 }
+
+/** \} */
+
+/* -------------------------------------------------------------------- */
+/** \name Event Handling
+ * \{ */
 
 static bool transform_event_modal_constraint(TransInfo *t, short modal_type)
 {
@@ -1527,6 +1539,12 @@ wmOperatorStatus transformEvent(TransInfo *t, wmOperator *op, const wmEvent *eve
   return OPERATOR_PASS_THROUGH;
 }
 
+/** \} */
+
+/* -------------------------------------------------------------------- */
+/** \name Transform Center
+ * \{ */
+
 bool calculateTransformCenter(bContext *C, int centerMode, float cent3d[3], float cent2d[2])
 {
   TransInfo *t = MEM_new_zeroed<TransInfo>("TransInfo data");
@@ -1577,6 +1595,12 @@ bool calculateTransformCenter(bContext *C, int centerMode, float cent3d[3], floa
 
   return success;
 }
+
+/** \} */
+
+/* -------------------------------------------------------------------- */
+/** \name Overlay Drawing
+ * \{ */
 
 static bool transinfo_show_overlay(TransInfo *t, ARegion *region)
 {
@@ -1754,6 +1778,12 @@ static void drawTransformPixel(const bContext * /*C*/, ARegion *region, void *ar
     }
   }
 }
+
+/** \} */
+
+/* -------------------------------------------------------------------- */
+/** \name Init / Apply / End
+ * \{ */
 
 void saveTransform(bContext *C, TransInfo *t, wmOperator *op)
 {
@@ -2309,6 +2339,12 @@ wmOperatorStatus transformEnd(bContext *C, TransInfo *t)
   return exit_code;
 }
 
+/** \} */
+
+/* -------------------------------------------------------------------- */
+/** \name Public Utilities
+ * \{ */
+
 bool checkUseAxisMatrix(TransInfo *t)
 {
   /* Currently only checks for editmode. */
@@ -2348,5 +2384,7 @@ void view_vector_calc(const TransInfo *t, const float focus[3], float r_vec[3])
   }
   normalize_v3(r_vec);
 }
+
+/** \} */
 
 }  // namespace blender::ed::transform

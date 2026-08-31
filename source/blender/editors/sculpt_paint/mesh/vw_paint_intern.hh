@@ -35,11 +35,11 @@ void init_stroke(
     const wmOperator &op, Main &bmain, Paint &paint, Depsgraph &depsgraph, Object &ob);
 StrokeToggleSettings create_toggle_settings(const wmOperator &op, Main &bmain, Paint &paint);
 
-IndexMask pbvh_gather_generic(const Depsgraph &depsgraph,
-                              const Object &ob,
-                              const VPaint &wp,
-                              const Brush &brush,
-                              IndexMaskMemory &memory);
+void update_sculpt_normal(const Depsgraph &depsgraph,
+                          const Object &ob,
+                          const VPaint &vp,
+                          const Brush &brush,
+                          IndexMask node_mask);
 
 bool mode_toggle_poll_test(bContext *C);
 

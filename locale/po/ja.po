@@ -1,9 +1,9 @@
 
 msgid ""
 msgstr ""
-"Project-Id-Version: Blender 5.3.0 Alpha (b'09417042a1fa')\n"
+"Project-Id-Version: Blender 5.3.0 Alpha (b'32296898e057')\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-08-24 07:38+0000\n"
+"POT-Creation-Date: 2026-08-31 07:41+0000\n"
 "PO-Revision-Date: 2026-08-20 18:09+0000\n"
 "Last-Translator: Satoshi Yamasaki <yamyam@yo.rim.or.jp>\n"
 "Language-Team: Japanese <https://translate.blender.org/projects/blender-ui/ui/ja/>\n"
@@ -4225,12 +4225,8 @@ msgid "Collection of source libraries, i.e. blendfile paths"
 msgstr "ソースライブラリの集合，つまり blend ファイルのパス"
 
 
-msgid "Blendfile Import Context Library"
-msgstr "Blendファイルインポートコンテクストライブラリ"
-
-
-msgid "Library (blendfile) reference in a BlendImportContext data. Currently only exposed as read-only data for the pre/post blendimport handlers"
-msgstr "BlendImportContext データ内のライブラリ（blend ファイル）参照．現在 pre/post blendimport ハンドラ用の読み込み専用データとして公開されています"
+msgid "Active Asset Library"
+msgstr "アクティブアセットライブラリ"
 
 
 msgid "Dirty"
@@ -8511,6 +8507,14 @@ msgstr "カラーランプ要素"
 
 msgid "Collection of Color Ramp Elements"
 msgstr "カラーランプ要素の集合"
+
+
+msgid "Identifier"
+msgstr "識別子"
+
+
+msgid "Consistent identifier used for the item"
+msgstr "アイテムに一貫して使用する識別子"
 
 
 msgid "Console Input"
@@ -13289,10 +13293,6 @@ msgstr "RNAの列挙（Enum）プロパティ内の選択の定義"
 
 msgid "Description of the item's purpose"
 msgstr "アイテムの目的の説明"
-
-
-msgid "Identifier"
-msgstr "識別子"
 
 
 msgid "Unique name used in the code and scripting"
@@ -32043,10 +32043,6 @@ msgid "Index Switch Item"
 msgstr "インデックススイッチアイテム"
 
 
-msgid "Consistent identifier used for the item"
-msgstr "アイテムに一貫して使用する識別子"
-
-
 msgid "2D Integer Vector Attribute Value"
 msgstr "2D整数ベクトル属性値"
 
@@ -36123,12 +36119,12 @@ msgid "Import"
 msgstr "インポート"
 
 
-msgid "Render Preview"
-msgstr "レンダープレビュー"
-
-
 msgid "Mirror"
 msgstr "ミラー"
+
+
+msgid "Render Preview"
+msgstr "レンダープレビュー"
 
 
 msgid "UV Mapping"
@@ -36139,20 +36135,20 @@ msgid "Local View"
 msgstr "ローカルビュー"
 
 
-msgid "Viewpoint"
-msgstr "視点"
-
-
 msgid "Utilities"
 msgstr "ユーティリティ"
 
 
-msgid "Navigation"
-msgstr "視点の操作"
+msgid "Viewpoint"
+msgstr "視点"
 
 
 msgid "Deprecated"
 msgstr "廃止予定"
+
+
+msgid "Navigation"
+msgstr "視点の操作"
 
 
 msgid "Align View"
@@ -36355,6 +36351,10 @@ msgid "Merge"
 msgstr "マージ"
 
 
+msgid "Pivot Point"
+msgstr "ピボットポイント"
+
+
 msgid "Special Characters"
 msgstr "特殊文字"
 
@@ -36365,10 +36365,6 @@ msgstr "カーニング"
 
 msgid "Bone Roll"
 msgstr "ボーンロール"
-
-
-msgid "Pivot Point"
-msgstr "ピボットポイント"
 
 
 msgid "Keyframe Insert Pie"
@@ -36710,10 +36706,6 @@ msgstr "物理演算"
 
 msgid "Shadow Linking Specials"
 msgstr "シャドウリンキングスペシャル"
-
-
-msgid "ID Data"
-msgstr "IDデータ"
 
 
 msgid "Particle Specials"
@@ -56904,6 +56896,11 @@ msgid "Install Theme..."
 msgstr "テーマをインストール..."
 
 
+msgctxt "Operator"
+msgid "Add Asset Library"
+msgstr "アセットライブラリを追加"
+
+
 msgid "Add or remove a white balance preset"
 msgstr "ホワイトバランスプリセットを追加・削除します"
 
@@ -60753,8 +60750,8 @@ msgstr "プロパティエディターのコンテクストメニューを表示
 
 
 msgctxt "Operator"
-msgid "Accept"
-msgstr "フォルダーを開く"
+msgid "Select Directory"
+msgstr "ディレクトリを選択"
 
 
 msgid "Open a directory browser, hold Shift to open the file, Alt to browse containing directory"
@@ -61954,10 +61951,6 @@ msgstr "インポーターを追加します"
 msgctxt "Operator"
 msgid "Remove Importer"
 msgstr "インポーターを削除"
-
-
-msgid "Remove Importer"
-msgstr "インポーターを削除します"
 
 
 msgctxt "Operator"
@@ -65686,11 +65679,6 @@ msgstr "全ファイルを選択(解除)"
 
 msgid "Select or deselect all files"
 msgstr "全てのファイルを選択/選択解除します"
-
-
-msgctxt "Operator"
-msgid "Select Directory"
-msgstr "ディレクトリを選択"
 
 
 msgid "Select a bookmarked directory"
@@ -74960,6 +74948,10 @@ msgid "The 2D view location for the center of the new nodes, or unchanged if not
 msgstr "2Dビューの位置を新規ノードの中心にします（未設定時は変更なし）"
 
 
+msgid "Index to remove"
+msgstr "削除するインデックス"
+
+
 msgid "Connect active node to the active output node of the node tree"
 msgstr "アクティブノードをノードツリーのアクティブ出力ノードにつなぎます"
 
@@ -75204,10 +75196,6 @@ msgstr "折り畳み"
 
 msgid "Toggle collapsing of selected nodes"
 msgstr "選択中のノードの折り畳み状態を切り替えます"
-
-
-msgid "Index to remove"
-msgstr "削除するインデックス"
 
 
 msgctxt "Operator"
@@ -82598,11 +82586,6 @@ msgid "Remove existing template with the same ID"
 msgstr "同じIDを持つ既存のテンプレートを削除します"
 
 
-msgctxt "Operator"
-msgid "Add Asset Library"
-msgstr "アセットライブラリを追加"
-
-
 msgid "Add a directory to be used by the Asset Browser as source of assets"
 msgstr "アセットブラウザーがアセットのソースとして使用するディレクトリを追加します"
 
@@ -83988,6 +83971,10 @@ msgstr "新規スクリーンの追加"
 
 msgid "Add a new screen"
 msgstr "新規スクリーン追加"
+
+
+msgid "Active Section"
+msgstr "アクティブセクション"
 
 
 msgctxt "Operator"
@@ -98133,10 +98120,6 @@ msgid "Global preferences"
 msgstr "全体的な設定"
 
 
-msgid "Active Section"
-msgstr "アクティブセクション"
-
-
 msgid "Application Template"
 msgstr "アプリケーションテンプレート"
 
@@ -98910,10 +98893,6 @@ msgstr "オンラインアクセス"
 
 msgid "The user has been shown the \"Online Access\" prompt and made a choice"
 msgstr "ユーザーに「オンラインアクセス」プロンプトを表示し，選択できるようにします"
-
-
-msgid "Active Asset Library"
-msgstr "アクティブアセットライブラリ"
 
 
 msgid "Index of the asset library being edited in the Preferences UI"
@@ -100617,20 +100596,12 @@ msgid "Catalan - Català"
 msgstr "カタロニア語 - Català"
 
 
-msgid "Locale code: ca_AD. Translation progress: 100%"
-msgstr "ロケールコード：ca_AD．翻訳の進行状況: 100％"
-
-
 msgid "Chinese (Simplified) - 简体中文"
 msgstr "簡体字中国語 - 简体中文"
 
 
 msgid "Chinese (Traditional) - 繁體中文"
 msgstr "繁体字中国語 - 繁體中文"
-
-
-msgid "Locale code: zh_HANT. Translation progress: 60%"
-msgstr "ロケールコード：zh_HANT．翻訳の進行状況: 60％"
 
 
 msgid "Croatian - Hrvatski"
@@ -100691,10 +100662,6 @@ msgstr "フランス語 - Français"
 
 msgid "Georgian - ქართული"
 msgstr "ジョージア語 - ქართული"
-
-
-msgid "Locale code: ka. Translation progress: 100%"
-msgstr "ロケールコード：ka．翻訳の進行状況: 100％"
 
 
 msgid "German - Deutsch"
@@ -100797,10 +100764,6 @@ msgid "Polish - Polski"
 msgstr "ポーランド語 - Polski"
 
 
-msgid "Locale code: pl_PL. Translation progress: 100%"
-msgstr "ロケールコード：pl_PL．翻訳の進行状況: 100％"
-
-
 msgid "Portuguese (Brazil) - Português brasileiro"
 msgstr "ポルトガル（ブラジル）語 - Português brasileiro"
 
@@ -100825,10 +100788,6 @@ msgid "Russian - Русский"
 msgstr "ロシア語 - Русский"
 
 
-msgid "Locale code: ru_RU. Translation progress: 100%"
-msgstr "ロケールコード：ru_RU．翻訳の進行状況: 100％"
-
-
 msgid "Serbian (Cyrillic) - Српски"
 msgstr "セルビア語（キリル文字）- Српски"
 
@@ -100849,20 +100808,12 @@ msgid "Slovak - Slovenčina"
 msgstr "スロバキア語 - Slovenčina"
 
 
-msgid "Locale code: sk_SK. Translation progress: 100%"
-msgstr "ロケールコード：sk_SK．翻訳の進行状況: 100％"
-
-
 msgid "Slovenian - Slovenščina"
 msgstr "スロべニア語 - Slovenščina"
 
 
 msgid "Spanish - Español"
 msgstr "スペイン語 - Español"
-
-
-msgid "Locale code: es. Translation progress: 100%"
-msgstr "ロケールコード：es．翻訳の進行状況: 100％"
 
 
 msgid "Swahili - Kiswahili"
@@ -101502,6 +101453,10 @@ msgstr "文字列値"
 
 msgid "RNA wrapped string"
 msgstr "RNA でラップした文字列値"
+
+
+msgid "Subtype"
+msgstr "サブタイプ"
 
 
 msgid "Property Definition"
@@ -117474,6 +117429,10 @@ msgid "Synchronize the asset library with a remote URL"
 msgstr "リモート URL でアセットライブラリを同期します"
 
 
+msgid "UUID"
+msgstr "UUID"
+
+
 msgid "Extension Repository"
 msgstr "エクステンションリポジトリ"
 
@@ -120729,46 +120688,6 @@ msgstr "3Dビューツール：トランスフォーム（予備）"
 
 
 msgctxt "WindowManager"
-msgid "Generic Tool: Annotate"
-msgstr "汎用ツール：アノテート"
-
-
-msgctxt "WindowManager"
-msgid "Generic Tool: Annotate (fallback)"
-msgstr "汎用ツール：アノテート（予備）"
-
-
-msgctxt "WindowManager"
-msgid "Generic Tool: Annotate Line"
-msgstr "汎用ツール：アノテートライン"
-
-
-msgctxt "WindowManager"
-msgid "Generic Tool: Annotate Line (fallback)"
-msgstr "汎用ツール：アノテートライン（予備）"
-
-
-msgctxt "WindowManager"
-msgid "Generic Tool: Annotate Polygon"
-msgstr "汎用ツール：アノテートポリゴン"
-
-
-msgctxt "WindowManager"
-msgid "Generic Tool: Annotate Polygon (fallback)"
-msgstr "汎用ツール：アノテートポリゴン（予備）"
-
-
-msgctxt "WindowManager"
-msgid "Generic Tool: Annotate Eraser"
-msgstr "汎用ツール：アノテート消しゴム"
-
-
-msgctxt "WindowManager"
-msgid "Generic Tool: Annotate Eraser (fallback)"
-msgstr "汎用ツール：アノテート消しゴム（予備）"
-
-
-msgctxt "WindowManager"
 msgid "3D View Tool: Measure"
 msgstr "3Dビューツール：メジャー"
 
@@ -123333,6 +123252,26 @@ msgstr "スナップ有効"
 msgctxt "WindowManager"
 msgid "Disable Snap"
 msgstr "スナップ無効"
+
+
+msgctxt "WindowManager"
+msgid "Generic Tool: Annotate"
+msgstr "汎用ツール：アノテート"
+
+
+msgctxt "WindowManager"
+msgid "Generic Tool: Annotate Line"
+msgstr "汎用ツール：アノテートライン"
+
+
+msgctxt "WindowManager"
+msgid "Generic Tool: Annotate Polygon"
+msgstr "汎用ツール：アノテートポリゴン"
+
+
+msgctxt "WindowManager"
+msgid "Generic Tool: Annotate Eraser"
+msgstr "汎用ツール：アノテート消しゴム"
 
 
 msgid "All Repositories"
@@ -130161,10 +130100,6 @@ msgstr "アクティブアセットがありません"
 
 msgid "Asset Catalog:"
 msgstr "アセットカタログ:"
-
-
-msgid "UUID"
-msgstr "UUID"
 
 
 msgid "Simple Name"
@@ -138163,6 +138098,10 @@ msgid "Download Size: {}"
 msgstr "ダウンロードサイズ：{}"
 
 
+msgid "Include Online Essentials"
+msgstr "オンラインエッセンシャルを含む"
+
+
 msgid "No point was selected"
 msgstr "ポイントが未選択です"
 
@@ -145128,10 +145067,6 @@ msgid "Menu Undefined"
 msgstr "メニュー未定義"
 
 
-msgid "Subtype"
-msgstr "サブタイプ"
-
-
 msgid "Link operation index out of range"
 msgstr "リンク操作のインデックスが範囲外です"
 
@@ -146404,6 +146339,10 @@ msgid "Strip None"
 msgstr "ストリップなし"
 
 
+msgid "Built-In"
+msgstr "ビルトイン"
+
+
 msgid "Cannot reload with running modal operators"
 msgstr "実行中のモーダルオペレーターがあると再読み込みできません"
 
@@ -146910,12 +146849,12 @@ msgid "Undo History"
 msgstr "操作履歴"
 
 
-msgid "Built-In"
-msgstr "ビルトイン"
+msgid "Local Asset Library"
+msgstr "ローカルアセットライブラリ"
 
 
-msgid "Include Online Essentials"
-msgstr "オンラインエッセンシャルを含む"
+msgid "Remote Asset Library"
+msgstr "リモートアセットライブラリ"
 
 
 msgid "Add Asset Library"
@@ -146944,14 +146883,6 @@ msgstr "リポジトリとファイルを削除します"
 
 msgid "Remove Repository"
 msgstr "リポジトリを削除"
-
-
-msgid "Local Asset Library"
-msgstr "ローカルアセットライブラリ"
-
-
-msgid "Remote Asset Library"
-msgstr "リモートアセットライブラリ"
 
 
 msgid "Unable to remove files for \"System\" repositories"
@@ -149149,6 +149080,10 @@ msgid "Attribute is required and cannot be removed"
 msgstr "必要な属性なので削除できません"
 
 
+msgid "Asset Library not found"
+msgstr "アセットライブラリがありません"
+
+
 msgid "Smooth the surface"
 msgstr "表面を滑らかにします"
 
@@ -150374,10 +150309,6 @@ msgstr "\"--offline-mode\" で起動されており，変更できません"
 
 msgid "Script directory not found"
 msgstr "スクリプトディレクトリがありません"
-
-
-msgid "Asset Library not found"
-msgstr "アセットライブラリがありません"
 
 
 msgid "Extension repository not found"

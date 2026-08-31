@@ -163,8 +163,9 @@ inline void flush_handle_component_node(IDNode *id_node,
 inline OperationNode *flush_schedule_children(OperationNode *op_node, FlushQueue *queue)
 {
   if (op_node->flag & DEPSOP_FLAG_USER_MODIFIED) {
-    IDNode *id_node = op_node->owner->owner;
-    id_node->is_user_modified = true;
+    ComponentNode *component_node = op_node->owner;
+    component_node->is_user_modified = true;
+    component_node->owner->is_user_modified = true;
   }
 
   OperationNode *result = nullptr;

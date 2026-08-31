@@ -1,11 +1,11 @@
 
 msgid ""
 msgstr ""
-"Project-Id-Version: Blender 5.3.0 Alpha (b'09417042a1fa')\n"
+"Project-Id-Version: Blender 5.3.0 Alpha (b'32296898e057')\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-08-24 07:38+0000\n"
-"PO-Revision-Date: 2026-08-11 22:16+0000\n"
-"Last-Translator: Raimund Klink <raimund.klink97@yahoo.de>\n"
+"POT-Creation-Date: 2026-08-31 07:41+0000\n"
+"PO-Revision-Date: 2026-08-25 20:13+0000\n"
+"Last-Translator: \"Mattis V.\" <mattis@users.noreply.translate.blender.org>\n"
 "Language-Team: German <https://translate.blender.org/projects/blender-ui/ui/de/>\n"
 "Language: de\n"
 "MIME-Version: 1.0\n"
@@ -3208,10 +3208,6 @@ msgstr "Blendfile Import Kontext Bibliotheken"
 
 msgid "Collection of source libraries, i.e. blendfile paths"
 msgstr "Sammlung von Quellbibliotheken, d.h. Blenddateien-Pfade"
-
-
-msgid "Blendfile Import Context Library"
-msgstr "Blenddatei Import Kontext Bibliothek"
 
 
 msgid "Dirty"
@@ -11110,7 +11106,7 @@ msgstr "Durchschnitt"
 
 
 msgid "Subframes"
-msgstr "Unterrahmen"
+msgstr "Teilbild"
 
 
 msgid "Is Planar"
@@ -19373,7 +19369,7 @@ msgstr "Mehr/weniger anzeigen"
 
 
 msgid "Math"
-msgstr "Mathematisch"
+msgstr "Mathe"
 
 
 msgid "UV"
@@ -19516,16 +19512,16 @@ msgid "Merge"
 msgstr "Zusammenführen"
 
 
+msgid "Pivot Point"
+msgstr "Drehpunkt"
+
+
 msgid "Special Characters"
 msgstr "Sonderzeichen"
 
 
 msgid "Kerning"
 msgstr "Kerning"
-
-
-msgid "Pivot Point"
-msgstr "Drehpunkt"
 
 
 msgid "Assets"
@@ -20262,7 +20258,7 @@ msgstr "Punkt Strich"
 
 
 msgid "Dynamic Paint"
-msgstr "Dynamisch Malen"
+msgstr "Dynamische Farbe"
 
 
 msgid "Explode"
@@ -20846,7 +20842,7 @@ msgstr "Texturkoordinaten Objekt"
 
 
 msgid "Dynamic Paint Modifier"
-msgstr "Dynamisch Malen Modifikator"
+msgstr "Dynamische Farbe Modifikator"
 
 
 msgid "EdgeSplit Modifier"
@@ -24880,6 +24876,10 @@ msgid "Vector Curves"
 msgstr "Vektorkurve"
 
 
+msgid "Vector Math"
+msgstr "Vektormathe"
+
+
 msgid "A cross B"
 msgstr "A geschnitten B"
 
@@ -25742,6 +25742,11 @@ msgstr "Studiolicht deinstallieren"
 msgctxt "Operator"
 msgid "Install Theme..."
 msgstr "Thema installieren..."
+
+
+msgctxt "Operator"
+msgid "Add Asset Library"
+msgstr "Hinzufügen der Asset-Bibliothek"
 
 
 msgid "Add an Integrator Preset"
@@ -27203,8 +27208,8 @@ msgstr "Kontextmenü"
 
 
 msgctxt "Operator"
-msgid "Accept"
-msgstr "Akzeptieren"
+msgid "Select Directory"
+msgstr "Verzeichnis auswählen"
 
 
 msgid "Open a directory browser, hold Shift to open the file, Alt to browse containing directory"
@@ -28635,7 +28640,7 @@ msgstr "Ausgabedateipfad"
 
 msgctxt "Operator"
 msgid "Dynamic Paint Bake"
-msgstr "Dynamisch-Malen backen"
+msgstr "Dynamische Farbe backen"
 
 
 msgctxt "Operator"
@@ -29222,11 +29227,6 @@ msgid "Select or deselect all files"
 msgstr "Alle Dateien aus-/abwählen"
 
 
-msgctxt "Operator"
-msgid "Select Directory"
-msgstr "Verzeichnis auswählen"
-
-
 msgid "Walk Direction"
 msgstr "Laufrichtung"
 
@@ -29286,7 +29286,7 @@ msgstr "Gesamte Flüssigkeitssimulation backen"
 
 msgctxt "Operator"
 msgid "Bake Data"
-msgstr "Backdaten"
+msgstr "Daten backen"
 
 
 msgid "Bake Fluid Data"
@@ -29315,7 +29315,7 @@ msgstr "Partikel backen"
 
 msgctxt "Operator"
 msgid "Free All"
-msgstr "Alles frei"
+msgstr "Alles freigeben"
 
 
 msgctxt "Operator"
@@ -35307,11 +35307,6 @@ msgstr "Entfernen vorhandener Vorlage mit derselben ID"
 
 
 msgctxt "Operator"
-msgid "Add Asset Library"
-msgstr "Hinzufügen der Asset-Bibliothek"
-
-
-msgctxt "Operator"
 msgid "Remove Asset Library"
 msgstr "Asset Library entfernen"
 
@@ -35898,6 +35893,10 @@ msgstr "Neuer Bildschirm"
 
 msgid "Add a new screen"
 msgstr "Neues Layout hinzufügen"
+
+
+msgid "Active Section"
+msgstr "Aktive Auswahl"
 
 
 msgctxt "Operator"
@@ -40331,7 +40330,7 @@ msgstr "Aktionskarten"
 
 
 msgid "Passepartout"
-msgstr "Hauptschlüssel"
+msgstr "Passepartout"
 
 
 msgid "VR Session"
@@ -41024,10 +41023,6 @@ msgstr "IK Rotationskontrolle"
 
 msgid "Global preferences"
 msgstr "GlobaleEinstellungen"
-
-
-msgid "Active Section"
-msgstr "Aktive Auswahl"
 
 
 msgid "Apps"
@@ -43468,7 +43463,7 @@ msgstr "Existierende Dateien beim Rendern überschreiben"
 
 
 msgid "Persistent Data"
-msgstr "Elternteil setzen"
+msgstr "Bleibende Daten"
 
 
 msgid "Placeholders"
@@ -44973,7 +44968,7 @@ msgstr "Gewebe-Punkt-Puffer der aktiven Objekte anzeigen"
 
 
 msgid "Show the active object's Dynamic Paint cache"
-msgstr "'Dynamisch Malen' Cache der aktiven Objekte anzeigen"
+msgstr "Cache der dynamischen Farbe des aktiven Objekts anzeigen"
 
 
 msgid "Show the active object's particle point cache"
@@ -47204,6 +47199,10 @@ msgid "Bone Solid"
 msgstr "Solider Knochen"
 
 
+msgid "Camera Passepartout"
+msgstr "Kamera-Passepartout"
+
+
 msgid "Camera Path"
 msgstr "Kamerapfad"
 
@@ -47685,6 +47684,10 @@ msgid "Display units in pairs (e.g. 1m 0cm)"
 msgstr "Einheiten in Paaren darstellen, z.B. 1m 0cm"
 
 
+msgid "UUID"
+msgstr "UUID"
+
+
 msgid "Group of vertices, used for armature deform and other purposes"
 msgstr "Gruppe von Knoten, benützt zur Skelettdeformation und für andere Zwecke"
 
@@ -47787,6 +47790,10 @@ msgstr "Z Achsenlinie anzeigen"
 
 msgid "Show Bones"
 msgstr "Knochen anzeigen"
+
+
+msgid "Show camera passepartout"
+msgstr "Kamera-Passepartout anzeigen"
 
 
 msgid "Show 3D Cursor"
@@ -48441,46 +48448,6 @@ msgstr "3D Ansichtswerkzeug: Transformieren (Plan B)"
 
 
 msgctxt "WindowManager"
-msgid "Generic Tool: Annotate"
-msgstr "Allgemeines Werkzeug: Kommentar"
-
-
-msgctxt "WindowManager"
-msgid "Generic Tool: Annotate (fallback)"
-msgstr "Allgemeines Werkzeug: Kommentar (Plan B)"
-
-
-msgctxt "WindowManager"
-msgid "Generic Tool: Annotate Line"
-msgstr "Allgemeines Werkzeug: Linienkommentar"
-
-
-msgctxt "WindowManager"
-msgid "Generic Tool: Annotate Line (fallback)"
-msgstr "Allgemeines Werkzeug: Linienkommentar (Plan B)"
-
-
-msgctxt "WindowManager"
-msgid "Generic Tool: Annotate Polygon"
-msgstr "Allgemeines Werkzeug: Polygonkommentar"
-
-
-msgctxt "WindowManager"
-msgid "Generic Tool: Annotate Polygon (fallback)"
-msgstr "Allgemeines Werkzeug: Polygonkommentar (Plan B)"
-
-
-msgctxt "WindowManager"
-msgid "Generic Tool: Annotate Eraser"
-msgstr "Allgemeines Werkzeug: Radiergummikommentar"
-
-
-msgctxt "WindowManager"
-msgid "Generic Tool: Annotate Eraser (fallback)"
-msgstr "Allgemeines Werkzeug: Radiergummikommentar (Plan B)"
-
-
-msgctxt "WindowManager"
 msgid "3D View Tool: Measure"
 msgstr "3D Ansichtswerkzeug: Messen"
 
@@ -48878,6 +48845,26 @@ msgstr "Y Ebene"
 msgctxt "WindowManager"
 msgid "Z Plane"
 msgstr "Z Ebene"
+
+
+msgctxt "WindowManager"
+msgid "Generic Tool: Annotate"
+msgstr "Allgemeines Werkzeug: Kommentar"
+
+
+msgctxt "WindowManager"
+msgid "Generic Tool: Annotate Line"
+msgstr "Allgemeines Werkzeug: Linienkommentar"
+
+
+msgctxt "WindowManager"
+msgid "Generic Tool: Annotate Polygon"
+msgstr "Allgemeines Werkzeug: Polygonkommentar"
+
+
+msgctxt "WindowManager"
+msgid "Generic Tool: Annotate Eraser"
+msgstr "Allgemeines Werkzeug: Radiergummikommentar"
 
 
 msgctxt "Operator"
@@ -51248,10 +51235,6 @@ msgstr "Neuer Ordner"
 
 msgid "Asset Catalog:"
 msgstr "Asset Katalog:"
-
-
-msgid "UUID"
-msgstr "UUID"
 
 
 msgid "Simple Name"
@@ -55690,7 +55673,7 @@ msgstr "Keine Einzelbilder zum Backen"
 
 
 msgid "Bake failed: no Dynamic Paint modifier found"
-msgstr "Backen fehlgeschlagen: kein Dynamisch Malen-Modifikator gefunden"
+msgstr "Backen fehlgeschlagen: kein Dynamische Farbe-Modifikator gefunden"
 
 
 msgid "Bake failed: invalid canvas"

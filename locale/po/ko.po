@@ -1,11 +1,11 @@
 
 msgid ""
 msgstr ""
-"Project-Id-Version: Blender 5.3.0 Alpha (b'09417042a1fa')\n"
+"Project-Id-Version: Blender 5.3.0 Alpha (b'32296898e057')\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-08-24 07:38+0000\n"
-"PO-Revision-Date: 2026-08-24 07:39+0000\n"
-"Last-Translator: Benjamin Anshin <benanshin@gmail.com>\n"
+"POT-Creation-Date: 2026-08-31 07:41+0000\n"
+"PO-Revision-Date: 2026-08-29 13:33+0000\n"
+"Last-Translator: Yegoun Lee <yegoeun.lee@gmail.com>\n"
 "Language-Team: Korean <https://translate.blender.org/projects/blender-ui/ui/ko/>\n"
 "Language: ko\n"
 "MIME-Version: 1.0\n"
@@ -64,7 +64,7 @@ msgstr "애니메이션 채널 가방"
 
 
 msgid "Collection of animation channels, typically associated with an action slot"
-msgstr "하나의 액션 슬롯와 연관된 애니메이션 채널 컬렉션"
+msgstr "하나의 액션 슬롯과 연관된 애니메이션 채널 컬렉션"
 
 
 msgid "F-Curves"
@@ -244,7 +244,7 @@ msgstr "음소거"
 
 
 msgid "Action group is muted"
-msgstr "액션 그룹이 비활성되었습니다."
+msgstr "액션 그룹이 비활성화되었습니다."
 
 
 msgid "Select"
@@ -1929,7 +1929,7 @@ msgstr "저작권"
 
 
 msgid "Copyright notice for this asset. An empty copyright notice does not necessarily indicate that this is copyright-free. Contact the author if any clarification is needed."
-msgstr "이 어셋의 저작권 고지입니다. 저작권 고지가 비어 있다고 해서 저작권이 없는 것은 아닙니다. 필요할 경우 작성자에게 문의하십시오"
+msgstr "이 어셋의 저작권 고지입니다. 저작권 고지란이 비어 있다고 해서 반드시 저작권이 없음을 의미하는 것은 아닙니다. 명확한 확인이 필요한 경우 원작자에게 문의하세요."
 
 
 msgid "Description"
@@ -1945,7 +1945,7 @@ msgstr "라이선스"
 
 
 msgid "The type of license this asset is distributed under. An empty license name does not necessarily indicate that this is free of licensing terms. Contact the author if any clarification is needed."
-msgstr "이 어셋이 배포되는 라이선스 유형입니다. 라이선스 이름이 비어 있다고 해서 사용 제한이 없다는 뜻은 아닙니다. 필요할 경우 작성자에게 문의하십시오"
+msgstr "이 어셋이 배포되는 라이선스의 종류입니다. 라이선스 이름이 비어 있다고 해서 반드시 라이선스 조건이 없음을 의미하는 것은 아닙니다. 명확한 확인이 필요한 경우 원작자에게 문의하세요."
 
 
 msgid "Default Import Method"
@@ -1973,7 +1973,7 @@ msgstr "추가(데이터 재사용)"
 
 
 msgid "Import the assets as copied data-block while avoiding multiple copies of nested, typically heavy data. For example the textures of a material asset, or the mesh of an object asset, don't have to be copied every time this asset is imported. The instances of the asset share the data instead."
-msgstr "에셋을 복사된 데이터 블록으로 가져오면 일반적으로 무거운 중첩된 데이터의 여러 복사본을 피할 수 있습니다. 예를 들어 머티리얼 어셋의 텍스처나 오브젝트 어셋의 메시는 이 어셋을 임포트할 때마다 복사할 필요가 없습니다. 대신 어셋의 인스턴스가 데이터를 공유함"
+msgstr "복사된 데이터 블록 형태로 어셋을 가져오되, 용량이 큰 하위 데이터가 중복 복사되지 않도록 합니다. 예를 들어 머티리얼 어셋의 텍스처나 오브젝트 어셋의 메쉬는 어셋을 가져올 때마다 매번 복사할 필요가 없습니다. 대신 가져온 어셋의 인스턴스들이 해당 데이터를 서로 공유하게 됩니다."
 
 
 msgid "Pack"
@@ -4130,16 +4130,12 @@ msgid "Collection of source libraries, i.e. blendfile paths"
 msgstr "소스 라이브러리(blendfile 경로) 컬렉션"
 
 
-msgid "Blendfile Import Context Library"
-msgstr "Blendfile 가져오기 컨텍스트 라이브러리"
-
-
-msgid "Library (blendfile) reference in a BlendImportContext data. Currently only exposed as read-only data for the pre/post blendimport handlers"
-msgstr "BlendImportContext 데이터 내에서 blenderfile 라이브러리를 나타내는 참조. 현재는 blendimport 사전/사후 핸들러에서 읽기 전용으로만 제공됨"
-
-
 msgid "Blender Project"
 msgstr "Blender 프로젝트"
+
+
+msgid "Active Asset Library"
+msgstr "활성 어셋 라이브러리"
 
 
 msgid "Dirty"
@@ -8130,6 +8126,14 @@ msgstr "색상 램프 요소"
 
 msgid "Collection of Color Ramp Elements"
 msgstr "색상 램프 요소의 컬렉션"
+
+
+msgid "Identifier"
+msgstr "식별자"
+
+
+msgid "Consistent identifier used for the item"
+msgstr "항목에 사용되는 일관된 식별자"
 
 
 msgid "Console Input"
@@ -12825,10 +12829,6 @@ msgstr "RNA 열거 속성에서 선택의 정의"
 
 msgid "Description of the item's purpose"
 msgstr "항목의 목적에 대한 설명"
-
-
-msgid "Identifier"
-msgstr "식별자"
 
 
 msgid "Unique name used in the code and scripting"
@@ -30935,10 +30935,6 @@ msgid "Index Switch Item"
 msgstr "인덱스 전환 항목"
 
 
-msgid "Consistent identifier used for the item"
-msgstr "항목에 사용되는 일관된 식별자"
-
-
 msgid "2D Integer Vector Attribute Value"
 msgstr "2D 정수 벡터 속성 값"
 
@@ -34918,12 +34914,12 @@ msgid "Import"
 msgstr "가져오기"
 
 
-msgid "Render Preview"
-msgstr "렌더링 미리보기"
-
-
 msgid "Mirror"
 msgstr "미러"
+
+
+msgid "Render Preview"
+msgstr "렌더링 미리보기"
 
 
 msgid "UV Mapping"
@@ -34934,20 +34930,20 @@ msgid "Local View"
 msgstr "로컬 뷰"
 
 
-msgid "Viewpoint"
-msgstr "뷰포트"
-
-
 msgid "Utilities"
 msgstr "유틸리티"
 
 
-msgid "Navigation"
-msgstr "네비게이션"
+msgid "Viewpoint"
+msgstr "뷰포트"
 
 
 msgid "Deprecated"
 msgstr "사용 중단"
+
+
+msgid "Navigation"
+msgstr "네비게이션"
 
 
 msgid "Align View"
@@ -35150,6 +35146,10 @@ msgid "Merge"
 msgstr "병합"
 
 
+msgid "Pivot Point"
+msgstr "피벗 포인트"
+
+
 msgid "Special Characters"
 msgstr "특수 문자"
 
@@ -35160,10 +35160,6 @@ msgstr "자간"
 
 msgid "Bone Roll"
 msgstr "뼈대 롤"
-
-
-msgid "Pivot Point"
-msgstr "피벗 포인트"
 
 
 msgid "Keyframe Insert Pie"
@@ -35497,10 +35493,6 @@ msgstr "피직스"
 
 msgid "Shadow Linking Specials"
 msgstr "쉐도우 링크 스페셜"
-
-
-msgid "ID Data"
-msgstr "ID 데이터"
 
 
 msgid "Particle Specials"
@@ -54540,6 +54532,11 @@ msgid "Install Theme..."
 msgstr "테마를 설치..."
 
 
+msgctxt "Operator"
+msgid "Add Asset Library"
+msgstr "어셋 라이브러리 추가"
+
+
 msgid "Add or remove a white balance preset"
 msgstr "화이트 밸런스 프리셋 추가 또는 제거"
 
@@ -58102,8 +58099,8 @@ msgstr "표시 속성 에디터 context_menu"
 
 
 msgctxt "Operator"
-msgid "Accept"
-msgstr "수락"
+msgid "Select Directory"
+msgstr "디렉토리를 선택"
 
 
 msgid "Open a directory browser, hold Shift to open the file, Alt to browse containing directory"
@@ -62810,11 +62807,6 @@ msgstr "모든 파일을 선택(취소)"
 
 msgid "Select or deselect all files"
 msgstr "모든 파일을 선택 또는 해제"
-
-
-msgctxt "Operator"
-msgid "Select Directory"
-msgstr "디렉토리를 선택"
 
 
 msgid "Select a bookmarked directory"
@@ -78790,11 +78782,6 @@ msgid "Remove existing template with the same ID"
 msgstr "동일한 ID를 가진 기존 템플릿을 제거"
 
 
-msgctxt "Operator"
-msgid "Add Asset Library"
-msgstr "어셋 라이브러리 추가"
-
-
 msgid "Add a directory to be used by the Asset Browser as source of assets"
 msgstr "어셋 브라우저에서 에셋의 소스로 사용할 디렉토리를 추가함"
 
@@ -80093,6 +80080,10 @@ msgstr "새로운 화면"
 
 msgid "Add a new screen"
 msgstr "새로운 화면을 추가"
+
+
+msgid "Active Section"
+msgstr "활성 섹션"
 
 
 msgctxt "Operator"
@@ -93379,10 +93370,6 @@ msgid "Global preferences"
 msgstr "전체 환경 설정"
 
 
-msgid "Active Section"
-msgstr "활성 섹션"
-
-
 msgid "Application Template"
 msgstr "어플리케이션 템플릿"
 
@@ -94074,10 +94061,6 @@ msgstr "온라인 액세스"
 
 msgid "The user has been shown the \"Online Access\" prompt and made a choice"
 msgstr "사용자에게 \"온라인 액세스\" 프롬프트가 표시되고 선택 사항이 표시함"
-
-
-msgid "Active Asset Library"
-msgstr "활성 어셋 라이브러리"
 
 
 msgid "Index of the asset library being edited in the Preferences UI"
@@ -96328,6 +96311,10 @@ msgstr "문자열 값"
 
 msgid "RNA wrapped string"
 msgstr "RNA 래핑 문자열"
+
+
+msgid "Subtype"
+msgstr "하위 유형"
 
 
 msgid "Property Definition"
@@ -111179,6 +111166,10 @@ msgid "Use Remote"
 msgstr "원격 사용"
 
 
+msgid "UUID"
+msgstr "UUID"
+
+
 msgid "Extension Repository"
 msgstr "확장 리포지토리"
 
@@ -114158,46 +114149,6 @@ msgstr "3D 뷰 도구: 트랜스폼 (폴백)"
 
 
 msgctxt "WindowManager"
-msgid "Generic Tool: Annotate"
-msgstr "일반 도구: 주석"
-
-
-msgctxt "WindowManager"
-msgid "Generic Tool: Annotate (fallback)"
-msgstr "일반 도구: 주석 달기(폴백)"
-
-
-msgctxt "WindowManager"
-msgid "Generic Tool: Annotate Line"
-msgstr "일반 도구: 주석 라인"
-
-
-msgctxt "WindowManager"
-msgid "Generic Tool: Annotate Line (fallback)"
-msgstr "일반 도구: 선 주석 달기(폴백)"
-
-
-msgctxt "WindowManager"
-msgid "Generic Tool: Annotate Polygon"
-msgstr "일반 도구: 주석 폴리곤"
-
-
-msgctxt "WindowManager"
-msgid "Generic Tool: Annotate Polygon (fallback)"
-msgstr "일반 도구: 다각형 주석 달기(폴백)"
-
-
-msgctxt "WindowManager"
-msgid "Generic Tool: Annotate Eraser"
-msgstr "일반 도구: 주석 지우게"
-
-
-msgctxt "WindowManager"
-msgid "Generic Tool: Annotate Eraser (fallback)"
-msgstr "일반 도구: 주석 달기 지우개(폴백)"
-
-
-msgctxt "WindowManager"
 msgid "3D View Tool: Measure"
 msgstr "3D보기 도구: 치수"
 
@@ -116663,6 +116614,26 @@ msgid "Disable Snap"
 msgstr "스냅 비활성화"
 
 
+msgctxt "WindowManager"
+msgid "Generic Tool: Annotate"
+msgstr "일반 도구: 주석"
+
+
+msgctxt "WindowManager"
+msgid "Generic Tool: Annotate Line"
+msgstr "일반 도구: 주석 라인"
+
+
+msgctxt "WindowManager"
+msgid "Generic Tool: Annotate Polygon"
+msgstr "일반 도구: 주석 폴리곤"
+
+
+msgctxt "WindowManager"
+msgid "Generic Tool: Annotate Eraser"
+msgstr "일반 도구: 주석 지우게"
+
+
 msgid "Checking for Extension Updates"
 msgstr "확장 업데이트 확인"
 
@@ -117217,27 +117188,27 @@ msgstr "외부 .osl 파일 옆에 있는 {:s}에 .oso 파일을 쓰지 못함"
 
 
 msgid "Classic"
-msgstr "클래식함"
+msgstr "클래식"
+
+
+msgid "Blue-Noise"
+msgstr "블루 노이즈"
 
 
 msgid "Use Intel OpenImageDenoise AI denoiser"
-msgstr "인텔 오픈이미지디노이즈 AI 디노이저 사용"
+msgstr "Intel OpenImageDenoise AI 디노이저 사용"
 
 
 msgid "Use the OptiX AI denoiser with GPU acceleration, only available on NVIDIA GPUs when configured in the system tab in the user preferences"
-msgstr "사용자 환경설정의 시스템 탭에서 구성한 경우 NVIDIA GPU에서만 사용할 수 있는 GPU 가속 옵틱스 AI 노이즈 제거기를 사용함"
+msgstr "GPU 가속 기반의 OptiX AI 디노이저 사용하기. 이 옵션은 사용자 환경설정 내 '시스템' 탭 설정을 거쳐야 하며, NVIDIA 그래픽 카드에서만 지원됩니다"
 
 
 msgid "Use GPU accelerated denoising if supported, for the best performance. Prefer OpenImageDenoise over OptiX"
-msgstr "최상의 성능을 위해 지원되는 경우 GPU 가속 노이즈 제거를 사용합니다. OptiX보다 OpenImageDenoise 선호"
-
-
-msgid "Blender was compiled without a viewport denoiser"
-msgstr "뷰포트 디노이저 없이 Blender가 컴파일되었음"
+msgstr "최상의 성능을 위해 지원 시 GPU 가속 디노이징을 사용합니다. OptiX보다 OpenImageDenoise 사용을 권장합니다"
 
 
 msgid "Do not use compute device"
-msgstr "컴퓨팅 장치 사용 금지"
+msgstr "컴퓨트 디바이스 사용 안 함"
 
 
 msgid " (Unoptimized Performance)"
@@ -122982,10 +122953,6 @@ msgid "Asset Catalog:"
 msgstr "어셋 카탈로그:"
 
 
-msgid "UUID"
-msgstr "UUID"
-
-
 msgid "Simple Name"
 msgstr "간단한 이름"
 
@@ -124159,6 +124126,10 @@ msgstr "스트레칭에서 필로"
 msgctxt "Operator"
 msgid "Clear Fade"
 msgstr "페이드를 제거"
+
+
+msgid "No active strip"
+msgstr "활성 스트립이 없습니다"
 
 
 msgid "Current Cache Size"
@@ -136516,10 +136487,6 @@ msgid "Menu Undefined"
 msgstr "메뉴 정의되지 않음"
 
 
-msgid "Subtype"
-msgstr "하위 유형"
-
-
 msgid "Compositor Nodes"
 msgstr "컴포저 노드"
 
@@ -137960,6 +137927,10 @@ msgstr "선택(연결된 핸들)"
 msgctxt "Operator"
 msgid "Select (Side of Frame)"
 msgstr "선택(프레임 측면)"
+
+
+msgid "No active strip in context"
+msgstr "컨텍스트 내 활성 스트립이 없습니다"
 
 
 msgid "Rows:"
@@ -140202,6 +140173,10 @@ msgid "Attribute is required and cannot be removed"
 msgstr "속성은 필수이며 제거할 수 없음"
 
 
+msgid "Asset Library not found"
+msgstr "자산 라이브러리를 찾을 수 없음"
+
+
 msgid "Smooth the surface"
 msgstr "표면을 스무스하게 함"
 
@@ -141352,10 +141327,6 @@ msgstr "오프라인 모드로 \"--offline-mode\"로 실행되어 변경 불가�
 
 msgid "Script directory not found"
 msgstr "스크립트 디렉토리를 찾을 수 없음"
-
-
-msgid "Asset Library not found"
-msgstr "자산 라이브러리를 찾을 수 없음"
 
 
 msgid "Extension repository not found"
@@ -150031,6 +150002,46 @@ msgstr "마이크로폰"
 
 msgid "network"
 msgstr "네트워크"
+
+
+msgctxt "Color Management"
+msgid "Very High Contrast"
+msgstr "매우 높은 대비"
+
+
+msgctxt "Color Management"
+msgid "High Contrast"
+msgstr "높은 대비"
+
+
+msgctxt "Color Management"
+msgid "Medium High Contrast"
+msgstr "약간 높은 대비"
+
+
+msgctxt "Color Management"
+msgid "Medium Contrast"
+msgstr "중간 대비"
+
+
+msgctxt "Color Management"
+msgid "Medium Low Contrast"
+msgstr "약간 낮은 대비"
+
+
+msgctxt "Color Management"
+msgid "Low Contrast"
+msgstr "낮은 대비"
+
+
+msgctxt "Color Management"
+msgid "Very Low Contrast"
+msgstr "매우 낮은 대비"
+
+
+msgctxt "Color Management"
+msgid "Punchy"
+msgstr "Punchy"
 
 
 msgid "A darkening punchy look"

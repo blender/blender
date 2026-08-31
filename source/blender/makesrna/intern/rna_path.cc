@@ -1150,7 +1150,7 @@ static void rna_path_array_multi_string_from_flat_index(const PointerRNA *ptr,
                                                         int index_dim,
                                                         int index,
                                                         char *index_str,
-                                                        int index_str_len)
+                                                        int index_str_maxncpy)
 {
   int dimsize[RNA_MAX_ARRAY_LENGTH];
   int totdims = RNA_property_array_dimension(ptr, prop, dimsize);
@@ -1158,9 +1158,9 @@ static void rna_path_array_multi_string_from_flat_index(const PointerRNA *ptr,
 
   rna_path_array_multi_from_flat_index(dimsize, totdims, index_dim, index, index_multi);
 
-  for (int i = 0, offset = 0; (i < index_dim) && (offset < index_str_len); i++) {
+  for (int i = 0, offset = 0; (i < index_dim) && (offset < index_str_maxncpy); i++) {
     offset += BLI_snprintf_rlen(
-        &index_str[offset], index_str_len - offset, "[%d]", index_multi[i]);
+        &index_str[offset], index_str_maxncpy - offset, "[%d]", index_multi[i]);
   }
 }
 

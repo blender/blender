@@ -6643,9 +6643,9 @@ void PAINT_OT_image_from_view(wmOperatorType *ot)
       ot->srna, "filepath", nullptr, FILE_MAX, "File Path", "Name of the file");
 }
 
-/*********************************************
- * Data generation for projective texturing  *
- * *******************************************/
+/* -------------------------------------------------------------------- */
+/** \name Data Generation for Projective Texturing
+ * \{ */
 
 void ED_paint_data_warning(
     ReportList *reports, bool has_uvs, bool has_mat, bool has_tex, bool has_stencil)
@@ -6760,7 +6760,12 @@ bool ED_paint_proj_mesh_data_check(Scene &scene,
   return has_uvs && has_mat && has_tex && has_stencil;
 }
 
-/* Add layer operator */
+/** \} */
+
+/* -------------------------------------------------------------------- */
+/** \name Add Texture Paint Slot Operator
+ * \{ */
+
 enum {
   LAYER_BASE_COLOR,
   LAYER_SPECULAR,
@@ -7272,6 +7277,12 @@ void PAINT_OT_add_texture_paint_slot(wmOperatorType *ot)
                "Type of data stored in attribute");
 }
 
+/** \} */
+
+/* -------------------------------------------------------------------- */
+/** \name Add Simple UVs Operator
+ * \{ */
+
 static wmOperatorStatus add_simple_uvs_exec(bContext *C, wmOperator * /*op*/)
 {
   /* no checks here, poll function does them for us */
@@ -7313,5 +7324,7 @@ void PAINT_OT_add_simple_uvs(wmOperatorType *ot)
   /* flags */
   ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO;
 }
+
+/** \} */
 
 }  // namespace blender

@@ -402,12 +402,12 @@ int rna_ViewLayer_active_lightgroup_index_get(PointerRNA *ptr);
 void rna_ViewLayer_active_lightgroup_index_set(PointerRNA *ptr, int value);
 /**
  * Set `r_rna_path` with the base view-layer path.
- * `rna_path_buffer_size` should be at least `sizeof(ViewLayer.name) * 3`.
+ * `r_rna_path_maxncpy` should be at least `sizeof(ViewLayer.name) * 3`.
  * \return actual length of the generated RNA path.
  */
 size_t rna_ViewLayer_path_buffer_get(const ViewLayer *view_layer,
                                      char *r_rna_path,
-                                     const size_t rna_path_buffer_size);
+                                     const size_t r_rna_path_maxncpy);
 
 /* named internal so as not to conflict with obj.update() rna func */
 void rna_Object_internal_update_data(Main *bmain, Scene *scene, PointerRNA *ptr);

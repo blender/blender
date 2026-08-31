@@ -1,9 +1,9 @@
 
 msgid ""
 msgstr ""
-"Project-Id-Version: Blender 5.3.0 Alpha (b'09417042a1fa')\n"
+"Project-Id-Version: Blender 5.3.0 Alpha (b'32296898e057')\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-08-24 07:38+0000\n"
+"POT-Creation-Date: 2026-08-31 07:41+0000\n"
 "PO-Revision-Date: 2025-07-23 15:12+0000\n"
 "Last-Translator: Anonymous <noreply@weblate.org>\n"
 "Language-Team: Urdu <https://translate.blender.org/projects/blender-ui/ui/ur/>\n"
@@ -3522,6 +3522,10 @@ msgstr "ACES ﯼﺮﯿﮑﻟ ﮫﺗﺎﺳ ﮯﮐ ﭧﻨﺋﺍﻮﭘ ﺪﯿﻔﺳ
 msgctxt "ID"
 msgid "ID Type"
 msgstr "ID ﻢﺴﻗ ﯽﮐ"
+
+
+msgid "Active Asset Library"
+msgstr "ﯼﺮﯾﺮﺒﺋﻻ﻿ ﮧﺛﺎﺛﺍ ﻝﺎﻌﻓ"
 
 
 msgid "Dirty"
@@ -7177,6 +7181,14 @@ msgstr "ﺮﺻﺎﻨﻋ ﭗﻤﯾﺭ ﻦﯿﮕﻧﺭ"
 
 msgid "Collection of Color Ramp Elements"
 msgstr "ﮧﻋﻮﻤﺠﻣ ﺎﮐ ﺮﺻﺎﻨﻋ ﭗﻤﯾﺭ ﻦﯿﮕﻧﺭ"
+
+
+msgid "Identifier"
+msgstr "ﮦﺪﻨﻨﮐ ﺖﺧﺎﻨﺷ"
+
+
+msgid "Consistent identifier used for the item"
+msgstr "ﮯﮨ ﺎﺗﺎﺟ ﺎﯿﮐ ﻝﺎﻤﻌﺘﺳﺍ ﮦﺪﻨﻨﮐ ﺖﺧﺎﻨﺷ ﻞﻘﺘﺴﻣ ﮯﯿﻟ ﮯﮐ ﻢﭩﺋﺁ"
 
 
 msgid "Console Input"
@@ -11725,10 +11737,6 @@ msgstr "ﻒﯾﺮﻌﺗ ﯽﮐ ﺏﺎﺨﺘﻧﺍ ﮟﯿﻣ ﯽﭨﺮﭘﺍﺮ�
 
 msgid "Description of the item's purpose"
 msgstr "ﻞﯿﺼﻔﺗ ﯽﮐ ﺪﺼﻘﻣ ﮯﮐ ﻢﭩﺋﺁ"
-
-
-msgid "Identifier"
-msgstr "ﮦﺪﻨﻨﮐ ﺖﺧﺎﻨﺷ"
 
 
 msgid "Unique name used in the code and scripting"
@@ -28463,10 +28471,6 @@ msgid "Index Switch Item"
 msgstr "ﻢﭩﺋﺁ ﮟﯾﺮﮐ ﭻﺋﻮﺳ ﺲﮑﯾﮉﻧﺍ"
 
 
-msgid "Consistent identifier used for the item"
-msgstr "ﮯﮨ ﺎﺗﺎﺟ ﺎﯿﮐ ﻝﺎﻤﻌﺘﺳﺍ ﮦﺪﻨﻨﮐ ﺖﺧﺎﻨﺷ ﻞﻘﺘﺴﻣ ﮯﯿﻟ ﮯﮐ ﻢﭩﺋﺁ"
-
-
 msgid "2D Integer Vector Attribute Value"
 msgstr "2D ﺭﺪﻗ ﯽﮐ ﺏﺎﺴﺘﻧﺍ ﺮﭩﮑﯾﻭ ﺮﺠﯿﭩﻧﺍ"
 
@@ -32331,20 +32335,20 @@ msgid "Local View"
 msgstr "ﺮﻈﻨﻣ ﯽﻣﺎﻘﻣ"
 
 
-msgid "Viewpoint"
-msgstr "ﺮﻈﻧ ﮧﻄﻘﻧ"
-
-
 msgid "Utilities"
 msgstr "ﺖﯾﺩﺎﻓﺍ"
 
 
-msgid "Navigation"
-msgstr "ﻦﺸﯿﮕﯾﻮﯿﻧ"
+msgid "Viewpoint"
+msgstr "ﺮﻈﻧ ﮧﻄﻘﻧ"
 
 
 msgid "Deprecated"
 msgstr "ﮦﺩﻮﺳﺮﻓ"
+
+
+msgid "Navigation"
+msgstr "ﻦﺸﯿﮕﯾﻮﯿﻧ"
 
 
 msgid "Align View"
@@ -32543,6 +32547,10 @@ msgid "Merge"
 msgstr "ﺎﻧﺮﮐ ﻢﺿ"
 
 
+msgid "Pivot Point"
+msgstr "ﭧﻨﺋﺍﻮﭘ ﭦﻮﯿﭘ"
+
+
 msgid "Special Characters"
 msgstr "ﺭﺍﺩﺮﮐ ﯽﺻﻮﺼﺧ"
 
@@ -32553,10 +32561,6 @@ msgstr "ﮓﻨﻧﺮﮐ"
 
 msgid "Bone Roll"
 msgstr "ﻝﻭﺭ ﻥﻮﺑ"
-
-
-msgid "Pivot Point"
-msgstr "ﭧﻨﺋﺍﻮﭘ ﭦﻮﯿﭘ"
 
 
 msgid "Keyframe Insert Pie"
@@ -50107,6 +50111,11 @@ msgid "Install Theme..."
 msgstr "...ﮟﯾﺮﮐ ﻝﺎﭩﺴﻧﺍ ﻢﯿﮭﺗ"
 
 
+msgctxt "Operator"
+msgid "Add Asset Library"
+msgstr "ﮟﯾﺮﮐ ﻞﻣﺎﺷ ﯼﺮﯾﺮﺒﺋﻻ﻿ ﮧﺛﺎﺛﺍ"
+
+
 msgid "Add or remove a white balance preset"
 msgstr "ﮟﯾﺩ ﺎﭩﮨ ﺎﯾ ﮟﯾﺮﮐ ﻞﻣﺎﺷ ﭧﯿﺳ ﺶﯿﭘ ﺲﻨﻠﯿﺑ ﺪﯿﻔﺳ"
 
@@ -53527,8 +53536,8 @@ msgstr "ﻮﻨﯿﻣ_ﻕﺎﺒﺳ ﻭ ﻕﺎﯿﺳ ﺮﭩﯾﮉﯾﺍ ﺰﯿﭨ�
 
 
 msgctxt "Operator"
-msgid "Accept"
-msgstr "ﮟﯾﺮﮐ ﻝﻮﺒﻗ"
+msgid "Select Directory"
+msgstr "ﮟﯾﺮﮐ ﺐﺨﺘﻨﻣ ﯼﺮﭩﮐﺮﺋﺍﮈ"
 
 
 msgid "Open a directory browser, hold Shift to open the file, Alt to browse containing directory"
@@ -57906,11 +57915,6 @@ msgstr "ﮟﯾﺮﮐ ﺐﺨﺘﻨﻣ ﻮﮐ ﮞﻮﻠﺋﺎﻓ ﻡﺎﻤﺗ (ﯼ
 
 msgid "Select or deselect all files"
 msgstr "ﮟﯾﺮﮐ ﺐﺨﺘﻨﻣ ﺮﯿﻏ ﺎﯾ ﺐﺨﺘﻨﻣ ﻮﮐ ﮞﻮﻠﺋﺎﻓ ﻡﺎﻤﺗ"
-
-
-msgctxt "Operator"
-msgid "Select Directory"
-msgstr "ﮟﯾﺮﮐ ﺐﺨﺘﻨﻣ ﯼﺮﭩﮐﺮﺋﺍﮈ"
 
 
 msgid "Select a bookmarked directory"
@@ -72721,11 +72725,6 @@ msgid "Remove existing template with the same ID"
 msgstr "ﮟﯾﺩ ﺎﭩﮨ ﻮﮐ ﭧﯿﻠﭙﻤﯿﭨ ﮦﺩﻮﺟﻮﻣ ﮫﺗﺎﺳ ﮯﮐ ID ﯽﮨ ﮏﯾﺍ"
 
 
-msgctxt "Operator"
-msgid "Add Asset Library"
-msgstr "ﮟﯾﺮﮐ ﻞﻣﺎﺷ ﯼﺮﯾﺮﺒﺋﻻ﻿ ﮧﺛﺎﺛﺍ"
-
-
 msgid "Add a directory to be used by the Asset Browser as source of assets"
 msgstr "ﮟﯾﺮﮐ ﻞﻣﺎﺷ ﯼﺮﭩﮑﯾﺮﺋﺍﮈ ﮏﯾﺍ ﮯﯿﻟ ﮯﮐ ﮯﻧﺮﮐ ﻝﺎﻤﻌﺘﺳﺍ ﮯﻌﯾﺭﺫ ﮯﮐ ﺭﺯﺅﺍﺮﺑ ﮧﺛﺎﺛﺍ ﺮﭘ ﺭﻮﻃ ﮯﮐ ﺬﺧﺎﻣ ﮯﮐ ﮞﻮﺛﺎﺛﺍ"
 
@@ -73954,6 +73953,10 @@ msgstr "ﻦﯾﺮﮑﺳﺍ ﯽﺌﻧ"
 
 msgid "Add a new screen"
 msgstr "ﮟﯾﺮﮐ ﻞﻣﺎﺷ ﻦﯾﺮﮑﺳﺍ ﯽﺌﻧ ﮏﯾﺍ"
+
+
+msgid "Active Section"
+msgstr "ﻦﺸﮑﯿﺳ ﻝﺎﻌﻓ"
 
 
 msgctxt "Operator"
@@ -85852,10 +85855,6 @@ msgid "Global preferences"
 msgstr "ﺕﺎﺤﯿﺟﺮﺗ ﯽﻤﻟﺎﻋ"
 
 
-msgid "Active Section"
-msgstr "ﻦﺸﮑﯿﺳ ﻝﺎﻌﻓ"
-
-
 msgid "Application Template"
 msgstr "ﮧﭽﻧﺎﺳ ﺎﮐ ﺖﺳﺍﻮﺧﺭﺩ"
 
@@ -86519,10 +86518,6 @@ msgstr "ﺰﯾﺮﭨﺯﻮﭙﯾﺭ ﻦﺸﻨﯿﭩﺴﮑﯾﺍ"
 
 msgid "Online Access"
 msgstr "ﯽﺋﺎﺳﺭ ﻦﺋﻻ﻿ ﻥﺁ"
-
-
-msgid "Active Asset Library"
-msgstr "ﯼﺮﯾﺮﺒﺋﻻ﻿ ﮧﺛﺎﺛﺍ ﻝﺎﻌﻓ"
 
 
 msgid "Index of the asset library being edited in the Preferences UI"
@@ -88306,6 +88301,10 @@ msgstr "ﻮﯿﻠﯾﻭ ﮓﻧﺮﭩﺳ"
 
 msgid "RNA wrapped string"
 msgstr "RNA ﮓﻧﺮﭩﺳﺍ ﯽﺋﻮﮨ ﯽﭩﭙﻟ"
+
+
+msgid "Subtype"
+msgstr "ﻢﺴﻗ ﯽﻠﯾﺫ"
 
 
 msgid "Property Definition"
@@ -101709,6 +101708,10 @@ msgid "Use Remote"
 msgstr "ﮟﯾﺮﮐ ﻝﺎﻤﻌﺘﺳﺍ ﭦﻮﻤﯾﺭ"
 
 
+msgid "UUID"
+msgstr "UUID"
+
+
 msgid "Extension Repository"
 msgstr "ﯼﺮﭨﺯﻮﭙﯾﺭ ﻦﺸﻨﯿﭩﺴﮑﯾﺍ"
 
@@ -104385,46 +104388,6 @@ msgstr "3D ﮏﯿﺑ ﻝﺎﻓ) ﻡﺭﺎﻔﺴﻧﺍﺮﭨ :ﻝﻮﭨ ﻮﯾﻭ
 
 
 msgctxt "WindowManager"
-msgid "Generic Tool: Annotate"
-msgstr "ﺢﯾﺮﺸﺗ :ﻝﻮﭨ ﻡﺎﻋ"
-
-
-msgctxt "WindowManager"
-msgid "Generic Tool: Annotate (fallback)"
-msgstr "(ﮏﯿﺑ ﻝﺎﻓ) ﺢﯾﺮﺸﺗ :ﻝﻮﭨ ﻡﺎﻋ"
-
-
-msgctxt "WindowManager"
-msgid "Generic Tool: Annotate Line"
-msgstr "ﻦﺋﻻ﻿ ﭧﯿﭨﻮﻨﯾﺍ :ﻝﻮﭨ ﻡﺎﻋ"
-
-
-msgctxt "WindowManager"
-msgid "Generic Tool: Annotate Line (fallback)"
-msgstr "(ﮏﯿﺑ ﻝﺎﻓ) ﻦﺋﻻ﻿ ﭧﯿﭨﻮﻨﯾﺍ :ﻝﻮﭨ ﻡﺎﻋ"
-
-
-msgctxt "WindowManager"
-msgid "Generic Tool: Annotate Polygon"
-msgstr "ﻥﻮﮕﯿﻟﻮﭘ ﭧﯿﭨﻮﻨﯾﺍ :ﻝﻮﭨ ﻡﺎﻋ"
-
-
-msgctxt "WindowManager"
-msgid "Generic Tool: Annotate Polygon (fallback)"
-msgstr "(ﮏﯿﺑ ﻝﺎﻓ) ﻥﻮﮕﯿﻟﻮﭘ ﭧﯿﭨﻮﻨﯾﺍ :ﻝﻮﭨ ﻡﺎﻋ"
-
-
-msgctxt "WindowManager"
-msgid "Generic Tool: Annotate Eraser"
-msgstr "ﺭﺰﯾﺮﯾﺍ ﭧﯿﭨﻮﻨﯾﺍ :ﻝﻮﭨ ﻡﺎﻋ"
-
-
-msgctxt "WindowManager"
-msgid "Generic Tool: Annotate Eraser (fallback)"
-msgstr "(ﮏﯿﺑ ﻝﺎﻓ) ﯽﻓﺎﺻ ﺢﯾﺮﺸﺗ :ﻝﻮﭨ ﻡﺎﻋ"
-
-
-msgctxt "WindowManager"
 msgid "3D View Tool: Measure"
 msgstr "3D ﮟﯾﺮﮐ ﺶﺋﺎﻤﯿﭘ :ﻝﻮﭨ ﻮﯾﻭ"
 
@@ -106600,6 +106563,26 @@ msgstr "۔ﮟﯿﭩﯿﺴﮭﮔ ﻮﮐ ﺰﻨﺸﻨﯿﭩﺴﮑﯾﺍ"
 msgctxt "WindowManager"
 msgid "Collide Extensions"
 msgstr "ﺰﻨﺸﻨﯿﭩﺴﮑﯾﺍ ﻡﺩﺎﺼﺗ"
+
+
+msgctxt "WindowManager"
+msgid "Generic Tool: Annotate"
+msgstr "ﺢﯾﺮﺸﺗ :ﻝﻮﭨ ﻡﺎﻋ"
+
+
+msgctxt "WindowManager"
+msgid "Generic Tool: Annotate Line"
+msgstr "ﻦﺋﻻ﻿ ﭧﯿﭨﻮﻨﯾﺍ :ﻝﻮﭨ ﻡﺎﻋ"
+
+
+msgctxt "WindowManager"
+msgid "Generic Tool: Annotate Polygon"
+msgstr "ﻥﻮﮕﯿﻟﻮﭘ ﭧﯿﭨﻮﻨﯾﺍ :ﻝﻮﭨ ﻡﺎﻋ"
+
+
+msgctxt "WindowManager"
+msgid "Generic Tool: Annotate Eraser"
+msgstr "ﺭﺰﯾﺮﯾﺍ ﭧﯿﭨﻮﻨﯾﺍ :ﻝﻮﭨ ﻡﺎﻋ"
 
 
 msgid "Checking for Extension Updates"
@@ -112132,10 +112115,6 @@ msgstr "ﮟﯿﮩﻧ ﮧﺛﺎﺛﺍ ﻝﺎﻌﻓ ﯽﺋﻮﮐ"
 
 msgid "Asset Catalog:"
 msgstr ":ﺖﺳﺮﮩﻓ ﯽﮐ ﮞﻮﺛﺎﺛﺍ"
-
-
-msgid "UUID"
-msgstr "UUID"
 
 
 msgid "Simple Name"
@@ -123620,10 +123599,6 @@ msgid "Menu Undefined"
 msgstr "ﮧﻨﯿﻌﺘﻣ ﺮﯿﻏ ﻮﻨﯿﻣ"
 
 
-msgid "Subtype"
-msgstr "ﻢﺴﻗ ﯽﻠﯾﺫ"
-
-
 msgid "Could not determine type of group node"
 msgstr "ﺎﮑﺳ ﺎﺟ ﺎﯿﮐ ﮟﯿﮩﻧ ﻦﯿﻌﺗ ﺎﮐ ﻢﺴﻗ ﯽﮐ ﮈﻮﻧ ﮦﻭﺮﮔ"
 
@@ -126163,6 +126138,10 @@ msgid "Attribute per point/vertex"
 msgstr "ﻕﻭﺮﻋ/ﮧﻄﻘﻧ ﯽﻓ ﺏﺎﺴﺘﻧﺍ"
 
 
+msgid "Asset Library not found"
+msgstr "ﯽﻠﻣ ﮟﯿﮩﻧ ﯼﺮﯾﺮﺒﺋﻻ﻿ ﮧﺛﺎﺛﺍ"
+
+
 msgid "Layer '%s' not found in object '%s'"
 msgstr "ﯽﻠﻣ ﮟﯿﮩﻧ ﮟﯿﻣ '%s'‬‪ ﮯﺷ '%s'‬‪ ﺕﺮﭘ"
 
@@ -127048,10 +127027,6 @@ msgstr "template_popup_confirm ﮯﮨ ﺎﺗﻮﮨ ﻝﺎﻤﻌﺘﺳﺍ ﺮﮨ�
 
 msgid "Script directory not found"
 msgstr "ﯽﻠﻣ ﮟﯿﮩﻧ ﯼﺮﭩﮐﺮﺋﺍﮈ ﭧﭘﺮﮑﺳﺍ"
-
-
-msgid "Asset Library not found"
-msgstr "ﯽﻠﻣ ﮟﯿﮩﻧ ﯼﺮﯾﺮﺒﺋﻻ﻿ ﮧﺛﺎﺛﺍ"
 
 
 msgid "Extension repository not found"

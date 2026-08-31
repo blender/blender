@@ -448,6 +448,7 @@ static void rna_UvSculpt_curve_preset_set(PointerRNA *ptr, int value)
   scene->toolsettings->uvsculpt.curve_distance_falloff_preset = int8_t(value);
 }
 
+/* -------------------------------------------------------------------- */
 /** \name Paint mode settings
  * \{ */
 

@@ -154,7 +154,7 @@ const VKVertexAttributeObject &VKBatch::get_vertex_attribute_object(VKContext &c
   }
   VKDevice &device = VKBackend::get().device;
   const VKShaderInterface &interface = unwrap(context.shader)->interface_get();
-  return vao_cache_.get_or_create(context, *this, interface.id, device.vertex_input_descriptions);
+  return vao_cache_.get_or_create(context, *this, interface.uid, device.vertex_input_descriptions);
 }
 
 }  // namespace blender::gpu

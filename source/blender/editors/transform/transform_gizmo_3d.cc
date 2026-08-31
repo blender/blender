@@ -68,6 +68,10 @@
 
 namespace blender::ed::transform {
 
+/* -------------------------------------------------------------------- */
+/** \name Transform Gizmo Group Defines
+ * \{ */
+
 static wmGizmoGroupType *g_GGT_xform_gizmo = nullptr;
 static wmGizmoGroupType *g_GGT_xform_gizmo_context = nullptr;
 
@@ -165,6 +169,8 @@ struct GizmoGroup {
 
   wmGizmo *gizmos[MAN_AXIS_LAST];
 };
+
+/** \} */
 
 /* -------------------------------------------------------------------- */
 /** \name Utilities
@@ -431,7 +437,11 @@ static void gizmo_get_axis_constraint(const int axis_idx, bool r_axis[3])
   }
 }
 
-/* **************** Preparation Stuff **************** */
+/** \} */
+
+/* -------------------------------------------------------------------- */
+/** \name Transform Bounds Calculation
+ * \{ */
 
 static void reset_tw_center(TransformBounds *tbounds)
 {
@@ -1077,6 +1087,12 @@ int calc_gizmo_stats(const bContext *C,
   return totsel;
 }
 
+/** \} */
+
+/* -------------------------------------------------------------------- */
+/** \name Gizmo Placement
+ * \{ */
+
 static void gizmo_get_idot(const RegionView3D *rv3d, float r_idot[3])
 {
   float view_vec[3], axis_vec[3];
@@ -1202,6 +1218,12 @@ static void gizmo_line_range(const int twtype, const short axis_type, float *r_s
   }
 }
 
+/** \} */
+
+/* -------------------------------------------------------------------- */
+/** \name Message Bus Subscription
+ * \{ */
+
 void gizmo_xform_message_subscribe(wmGizmoGroup *gzgroup,
                                    wmMsgBus *mbus,
                                    Scene *scene,
@@ -1318,6 +1340,12 @@ void gizmo_xform_message_subscribe(wmGizmoGroup *gzgroup,
   WM_msg_subscribe_rna_anon_prop(mbus, EditBone, lock, &msg_sub_value_gz_tag_refresh);
 }
 
+/** \} */
+
+/* -------------------------------------------------------------------- */
+/** \name Transform Gizmo
+ * \{ */
+
 static void gizmo_3d_dial_matrixbasis_calc(const ARegion *region,
                                            const float axis[3],
                                            const float center_global[3],
@@ -1343,12 +1371,6 @@ static void gizmo_3d_dial_matrixbasis_calc(const ARegion *region,
   r_mat_basis[2][3] = 0.0f;
   r_mat_basis[3][3] = 1.0f;
 }
-
-/** \} */
-
-/* -------------------------------------------------------------------- */
-/** \name Transform Gizmo
- * \{ */
 
 /** Scale of the two-axis planes. */
 #define MAN_AXIS_SCALE_PLANE_SCALE 0.7f
@@ -2337,6 +2359,10 @@ void VIEW3D_GGT_xform_gizmo_context(wmGizmoGroupType *gzgt)
 
 /** \} */
 
+/* -------------------------------------------------------------------- */
+/** \name Gizmo Model from Constraint & Mode
+ * \{ */
+
 static wmGizmoGroup *gizmogroup_xform_find(TransInfo *t)
 {
   wmGizmoMap *gizmo_map = t->region->runtime->gizmo_map;
@@ -2497,10 +2523,18 @@ void transform_gizmo_3d_model_from_constraint_and_mode_restore(TransInfo *t)
   MAN_ITER_AXES_END;
 }
 
+/** \} */
+
+/* -------------------------------------------------------------------- */
+/** \name Pivot Position
+ * \{ */
+
 bool calc_pivot_pos(const bContext *C, const short pivot_type, float r_pivot_pos[3])
 {
   Scene *scene = CTX_data_scene(C);
   return gizmo_3d_calc_pos(C, scene, nullptr, pivot_type, r_pivot_pos);
 }
+
+/** \} */
 
 }  // namespace blender::ed::transform

@@ -1,9 +1,9 @@
 
 msgid ""
 msgstr ""
-"Project-Id-Version: Blender 5.3.0 Alpha (b'09417042a1fa')\n"
+"Project-Id-Version: Blender 5.3.0 Alpha (b'32296898e057')\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-08-24 07:38+0000\n"
+"POT-Creation-Date: 2026-08-31 07:41+0000\n"
 "PO-Revision-Date: 2026-07-22 11:12+0000\n"
 "Last-Translator: Gamfid <gamfid@users.noreply.translate.blender.org>\n"
 "Language-Team: Ukrainian <https://translate.blender.org/projects/blender-ui/ui/uk/>\n"
@@ -5616,6 +5616,10 @@ msgid "Collection of Color Ramp Elements"
 msgstr "Колекція елементів колірних градієнтів"
 
 
+msgid "Identifier"
+msgstr "Ідентифікатор"
+
+
 msgid "Console Input"
 msgstr "Консольний ввід"
 
@@ -9744,10 +9748,6 @@ msgstr "Визначення вибору у властивості RNA зліч
 
 msgid "Description of the item's purpose"
 msgstr "Опис призначення елемента"
-
-
-msgid "Identifier"
-msgstr "Ідентифікатор"
 
 
 msgid "Unique name used in the code and scripting"
@@ -26408,12 +26408,12 @@ msgid "Local View"
 msgstr "Огляд Локально"
 
 
-msgid "Viewpoint"
-msgstr "Точка зору"
-
-
 msgid "Utilities"
 msgstr "Утиліти"
+
+
+msgid "Viewpoint"
+msgstr "Точка зору"
 
 
 msgid "Navigation"
@@ -26600,6 +26600,10 @@ msgid "Merge"
 msgstr "Об'єднання"
 
 
+msgid "Pivot Point"
+msgstr "Точка Опертя"
+
+
 msgid "Special Characters"
 msgstr "Спеціальні символи"
 
@@ -26610,10 +26614,6 @@ msgstr "Кернінг"
 
 msgid "Bone Roll"
 msgstr "Прокручення Кістки"
-
-
-msgid "Pivot Point"
-msgstr "Точка Опертя"
 
 
 msgid "Basic"
@@ -37025,6 +37025,11 @@ msgid "Install Theme..."
 msgstr "Інсталювати Тему..."
 
 
+msgctxt "Operator"
+msgid "Add Asset Library"
+msgstr "Додати Бібліотеку Активів"
+
+
 msgid "Add an Integrator Preset"
 msgstr "Додати передустановку інтегратора"
 
@@ -39517,8 +39522,8 @@ msgstr "Показати контекстне меню редактора вла
 
 
 msgctxt "Operator"
-msgid "Accept"
-msgstr "Прийняти"
+msgid "Select Directory"
+msgstr "Вибрати теку"
 
 
 msgid "Open a directory browser, hold Shift to open the file, Alt to browse containing directory"
@@ -42581,11 +42586,6 @@ msgstr "(Не) вибрати всі файли"
 
 msgid "Select or deselect all files"
 msgstr "Вибрати або скасувати вибір всіх файлів"
-
-
-msgctxt "Operator"
-msgid "Select Directory"
-msgstr "Вибрати теку"
 
 
 msgid "Select a bookmarked directory"
@@ -53424,11 +53424,6 @@ msgid "Remove existing template with the same ID"
 msgstr "Вилучити наявний шаблон з таким самим ID"
 
 
-msgctxt "Operator"
-msgid "Add Asset Library"
-msgstr "Додати Бібліотеку Активів"
-
-
 msgid "Identifier (not necessarily unique) for the asset library"
 msgstr "Ідентифікатор (не обов'язково унікальний) для бібліотеки активів"
 
@@ -54407,6 +54402,10 @@ msgstr "Новий Екран"
 
 msgid "Add a new screen"
 msgstr "Додати новий екран"
+
+
+msgid "Active Section"
+msgstr "Активний розділ"
 
 
 msgctxt "Operator"
@@ -62996,10 +62995,6 @@ msgid "Global preferences"
 msgstr "Глобальні уподобання"
 
 
-msgid "Active Section"
-msgstr "Активний розділ"
-
-
 msgid "Application Template"
 msgstr "Шаблони застосунка"
 
@@ -64770,6 +64765,10 @@ msgstr "Діапазон кольорів вагомості"
 
 msgid "Color range used for weight visualization in weight painting mode"
 msgstr "Колірна гама для візуалізації вагомості у режимі малювання вагомостей"
+
+
+msgid "Subtype"
+msgstr "Підтип"
 
 
 msgid "ID Property Group"
@@ -75484,26 +75483,6 @@ msgstr "Засіб 3D Огляду: Трансформа"
 
 
 msgctxt "WindowManager"
-msgid "Generic Tool: Annotate"
-msgstr "Узагальнений Засіб: Анотування"
-
-
-msgctxt "WindowManager"
-msgid "Generic Tool: Annotate Line"
-msgstr "Узагальнений Засіб: Лінія Анотування"
-
-
-msgctxt "WindowManager"
-msgid "Generic Tool: Annotate Polygon"
-msgstr "Узагальнений Засіб: Багатобічник Анотування"
-
-
-msgctxt "WindowManager"
-msgid "Generic Tool: Annotate Eraser"
-msgstr "Узагальнений Засіб: Стирач Анотування"
-
-
-msgctxt "WindowManager"
 msgid "3D View Tool: Measure"
 msgstr "Засіб 3D Огляду: Міряння"
 
@@ -75876,6 +75855,26 @@ msgstr "Модальна Розкладка Піпетки"
 msgctxt "WindowManager"
 msgid "Eyedropper ColorRamp PointSampling Map"
 msgstr "Розкладка Відбору Точок Градієнта Кольорів Піпетки"
+
+
+msgctxt "WindowManager"
+msgid "Generic Tool: Annotate"
+msgstr "Узагальнений Засіб: Анотування"
+
+
+msgctxt "WindowManager"
+msgid "Generic Tool: Annotate Line"
+msgstr "Узагальнений Засіб: Лінія Анотування"
+
+
+msgctxt "WindowManager"
+msgid "Generic Tool: Annotate Polygon"
+msgstr "Узагальнений Засіб: Багатобічник Анотування"
+
+
+msgctxt "WindowManager"
+msgid "Generic Tool: Annotate Eraser"
+msgstr "Узагальнений Засіб: Стирач Анотування"
 
 
 msgid "Multiple add-ons with the same name found!"
@@ -85762,10 +85761,6 @@ msgstr "Спочатку виберіть наявну доріжку НЛА а�
 
 msgid "No data to paste"
 msgstr "Нема даних для вставлення"
-
-
-msgid "Subtype"
-msgstr "Підтип"
 
 
 msgid "Cannot add a collection to a linked/override collection/scene"

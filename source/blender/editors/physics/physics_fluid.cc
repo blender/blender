@@ -132,7 +132,7 @@ static inline bool fluid_is_free_guiding(FluidJob *job)
 }
 
 static bool fluid_job_init(
-    bContext *C, FluidJob *job, wmOperator *op, char *error_msg, int error_size)
+    bContext *C, FluidJob *job, wmOperator *op, char *error_msg, int error_msg_maxncpy)
 {
   FluidModifierData *fmd = nullptr;
   FluidDomainSettings *fds;
@@ -140,12 +140,12 @@ static bool fluid_job_init(
 
   fmd = reinterpret_cast<FluidModifierData *>(BKE_modifiers_findby_type(ob, eModifierType_Fluid));
   if (!fmd) {
-    BLI_strncpy_utf8(error_msg, N_("No Fluid modifier found"), error_size);
+    BLI_strncpy_utf8(error_msg, N_("No Fluid modifier found"), error_msg_maxncpy);
     return false;
   }
   fds = fmd->domain;
   if (!fds) {
-    BLI_strncpy_utf8(error_msg, N_("Invalid domain"), error_size);
+    BLI_strncpy_utf8(error_msg, N_("Invalid domain"), error_msg_maxncpy);
     return false;
   }
   if (fds->cache_flag & (FLUID_DOMAIN_BAKING_DATA | FLUID_DOMAIN_BAKING_NOISE |

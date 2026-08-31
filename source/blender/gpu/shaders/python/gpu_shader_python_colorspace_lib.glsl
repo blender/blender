@@ -3,7 +3,8 @@
  * SPDX-License-Identifier: GPL-2.0-or-later */
 
 /**
-
+ * Color space related utility to be used in python shaders (pygpu).
+ * Be aware that this is public API.
  */
 
 #pragma once

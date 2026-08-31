@@ -121,12 +121,12 @@ static void rna_LayerObjects_active_object_set(PointerRNA *ptr,
 
 size_t rna_ViewLayer_path_buffer_get(const ViewLayer *view_layer,
                                      char *r_rna_path,
-                                     const size_t rna_path_buffer_size)
+                                     const size_t r_rna_path_maxncpy)
 {
   char name_esc[sizeof(view_layer->name) * 2];
   BLI_str_escape(name_esc, view_layer->name, sizeof(name_esc));
 
-  return BLI_snprintf_rlen(r_rna_path, rna_path_buffer_size, "view_layers[\"%s\"]", name_esc);
+  return BLI_snprintf_rlen(r_rna_path, r_rna_path_maxncpy, "view_layers[\"%s\"]", name_esc);
 }
 
 static std::optional<std::string> rna_ViewLayer_path(const PointerRNA *ptr)

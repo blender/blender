@@ -777,6 +777,7 @@ static void print_help(bArgs *ba, bool all)
   BLI_args_print_arg_doc(ba, "--debug-gpu-shader-no-preprocessor");
   BLI_args_print_arg_doc(ba, "--debug-gpu-shader-no-dce");
   BLI_args_print_arg_doc(ba, "--debug-gpu-no-texture-pool");
+  BLI_args_print_arg_doc(ba, "--debug-gpu-backend-no-fallback");
   if (defs.with_renderdoc) {
     BLI_args_print_arg_doc(ba, "--debug-gpu-renderdoc");
   }
@@ -1449,6 +1450,10 @@ static const char arg_handle_debug_mode_generic_set_doc_gpu_force_vulkan_local_r
 static const char arg_handle_debug_mode_generic_set_doc_gpu_device_no_fallback[] =
     "\n\t"
     "Fail instead of falling back when '--gpu-device' does not match a usable Vulkan device.";
+static const char arg_handle_debug_mode_generic_set_doc_gpu_backend_no_fallback[] =
+    "\n\t"
+    "Fail instead of falling back to another GPU backend when the selected one is not supported. "
+    "Skips the GPU backend support check.";
 
 static int arg_handle_debug_mode_generic_set(int /*argc*/, const char ** /*argv*/, void *data)
 {
@@ -3116,6 +3121,11 @@ void main_args_setup(bContext *C, bArgs *ba, bool all)
                "--gpu-device-no-fallback",
                CB_EX(arg_handle_debug_mode_generic_set, gpu_device_no_fallback),
                reinterpret_cast<void *>(G_DEBUG_GPU_DEVICE_NO_FALLBACK));
+  BLI_args_add(ba,
+               nullptr,
+               "--debug-gpu-backend-no-fallback",
+               CB_EX(arg_handle_debug_mode_generic_set, gpu_backend_no_fallback),
+               reinterpret_cast<void *>(G_DEBUG_GPU_BACKEND_NO_FALLBACK));
   BLI_args_add(ba, nullptr, "--gpu-vsync", CB(arg_handle_gpu_vsync_set), nullptr);
   if (defs.with_opengl_backend) {
     BLI_args_add(ba,

@@ -2875,7 +2875,7 @@ static wmOperatorStatus sequencer_separate_images_exec(bContext *C, wmOperator *
          * since we only copy the name here. */
         se_new = static_cast<StripElem *>(
             MEM_realloc_uninitialized(data_new->stripdata, sizeof(*se_new)));
-        STRNCPY_UTF8(se_new->filename, se->filename);
+        STRNCPY(se_new->filename, se->filename);
         data_new->stripdata = se_new;
         data_new->stripdata_num = 1;
 

@@ -33,6 +33,7 @@ leak:d_growable_string_callback_adapter
 leak:libusd*
 leak:*openvdb::v11_0*
 leak:*tbb::internal*
+leak:*tbb::detail::r1*
 leak:*libOpenColorIO*
 leak:*libOpenEXR*
 leak:pa_xmalloc

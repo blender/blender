@@ -117,7 +117,9 @@ static bool but_is_unit_radians(const Button *but)
   return but_is_unit_radians_ex(unit, unit_type);
 }
 
-/* ************* window matrix ************** */
+/* -------------------------------------------------------------------- */
+/** \name Window Matrix
+ * \{ */
 
 void block_to_region_fl(const ARegion *region, const Block *block, float *x, float *y)
 {
@@ -396,7 +398,11 @@ void region_winrct_get_no_margin(const ARegion *region, rcti *r_rect)
   }
 }
 
-/* ******************* block calc ************************* */
+/** \} */
+
+/* -------------------------------------------------------------------- */
+/** \name Block Calculation
+ * \{ */
 
 void block_translate(Block *block, float x, float y)
 {
@@ -690,6 +696,12 @@ void block_bounds_set_explicit(Block *block, int minx, int miny, int maxx, int m
   block->bounds_type = BLOCK_BOUNDS_NONE;
 }
 
+/** \} */
+
+/* -------------------------------------------------------------------- */
+/** \name Button Float Precision
+ * \{ */
+
 static float but_get_float_precision(Button *but)
 {
   if (but->type == ButtonType::Num) {
@@ -760,7 +772,11 @@ static int but_calc_float_precision(Button *but, double value)
   return calc_float_precision(prec, value);
 }
 
-/* ************** BLOCK ENDING FUNCTION ************* */
+/** \} */
+
+/* -------------------------------------------------------------------- */
+/** \name Button Matching from Old Block
+ * \{ */
 
 bool button_rna_equals(const Button *a, const Button *b)
 {
@@ -1180,6 +1196,12 @@ static bool but_update_from_old_block(Block *block,
   return found_active;
 }
 
+/** \} */
+
+/* -------------------------------------------------------------------- */
+/** \name Button Activation & Execution
+ * \{ */
+
 bool button_active_only_ex(
     const bContext *C, ARegion *region, Block *block, Button *but, const bool remove_on_failure)
 {
@@ -1282,6 +1304,12 @@ static bool but_is_rna_undo(const Button *but)
   return ID_CHECK_UNDO(but->rnapoin.owner_id) &&
          RNA_property_undo_check(but->rnaprop, but->rnapoin.type);
 }
+
+/** \} */
+
+/* -------------------------------------------------------------------- */
+/** \name Menu Key Accelerators
+ * \{ */
 
 /* assigns automatic keybindings to menu items for fast access
  * (underline key in menu) */
@@ -1396,6 +1424,8 @@ void button_add_shortcut(Button *but, const char *shortcut_str, const bool do_st
   but->flag |= BUT_HAS_SEP_CHAR;
   button_update(but);
 }
+
+/** \} */
 
 /* -------------------------------------------------------------------- */
 /** \name Find Key Shortcut for Button
@@ -1707,6 +1737,10 @@ static std::string but_pie_direction_string(const Button *but)
 
 /** \} */
 
+/* -------------------------------------------------------------------- */
+/** \name Menu Block Shortcuts
+ * \{ */
+
 static void menu_block_set_keymaps(const bContext *C, Block *block)
 {
   BLI_assert(block->flag & (BLOCK_LOOP | BLOCK_SHOW_SHORTCUT_ALWAYS));
@@ -1755,6 +1789,12 @@ static void menu_block_set_keymaps(const bContext *C, Block *block)
   }
 }
 
+/** \} */
+
+/* -------------------------------------------------------------------- */
+/** \name Button Library Override Flag
+ * \{ */
+
 void button_override_flag(Main *bmain, Button *but)
 {
   const eRNAOverrideStatus override_status = RNA_property_override_library_status(
@@ -1767,6 +1807,8 @@ void button_override_flag(Main *bmain, Button *but)
     but->flag &= ~BUT_OVERRIDDEN;
   }
 }
+
+/** \} */
 
 /* -------------------------------------------------------------------- */
 /** \name Button Extra Operator Icons
@@ -1987,6 +2029,10 @@ static void but_predefined_extra_operator_icons_add(Button *but)
 }
 
 /** \} */
+
+/* -------------------------------------------------------------------- */
+/** \name Block Ending
+ * \{ */
 
 void block_update_from_old(const bContext *C, Block *block)
 {
@@ -2218,7 +2264,11 @@ void block_end(const bContext *C, Block *block)
                nullptr);
 }
 
-/* ************** BLOCK DRAWING FUNCTION ************* */
+/** \} */
+
+/* -------------------------------------------------------------------- */
+/** \name Block Drawing
+ * \{ */
 
 void fontscale(float *points, float aspect)
 {
@@ -2362,6 +2412,12 @@ void block_draw(const bContext *C, Block *block)
   GPU_matrix_pop();
 }
 
+/** \} */
+
+/* -------------------------------------------------------------------- */
+/** \name Message Bus Subscription
+ * \{ */
+
 static void block_message_subscribe(ARegion *region, wmMsgBus *mbus, Block *block)
 {
   Button *but_prev = nullptr;
@@ -2393,7 +2449,11 @@ void region_message_subscribe(ARegion *region, wmMsgBus *mbus)
   }
 }
 
-/* ************* EVENTS ************* */
+/** \} */
+
+/* -------------------------------------------------------------------- */
+/** \name Button Pushed State
+ * \{ */
 
 int button_is_pushed_ex(Button *but, double *value)
 {
@@ -2510,7 +2570,11 @@ static void but_update_select_flag(Button *but, double *value)
   }
 }
 
-/* ************************************************ */
+/** \} */
+
+/* -------------------------------------------------------------------- */
+/** \name Block Lock
+ * \{ */
 
 void block_lock_set(Block *block, bool val, const char *lockstr)
 {
@@ -2526,9 +2590,14 @@ void block_lock_clear(Block *block)
   block->lockstr = nullptr;
 }
 
-/* *********************** data get/set ***********************
- * this either works with the pointed to data, or can work with
- * an edit override pointer while dragging for example */
+/** \} */
+
+/* -------------------------------------------------------------------- */
+/** \name Data Get/Set
+ *
+ * This either works with the pointed to data, or can work with
+ * an edit override pointer while dragging for example.
+ * \{ */
 
 void button_v3_get(Button *but, float vec[3])
 {
@@ -3714,7 +3783,11 @@ void button_range_set_soft(Button *but)
   }
 }
 
-/* ******************* Free ******************* */
+/** \} */
+
+/* -------------------------------------------------------------------- */
+/** \name Button & Block Free
+ * \{ */
 
 /**
  * Free data specific to a certain button type.
@@ -3848,6 +3921,12 @@ void block_free(const bContext *C, Block *block)
   MEM_delete(block);
 }
 
+/** \} */
+
+/* -------------------------------------------------------------------- */
+/** \name Block List
+ * \{ */
+
 void block_listen(const Block *block, const wmRegionListenerParams *listener_params)
 {
   /* Note that #Block.active shouldn't be checked here, since notifier listening happens before
@@ -3918,6 +3997,12 @@ void blocklist_free_inactive(const bContext *C, ARegion *region)
     }
   }
 }
+
+/** \} */
+
+/* -------------------------------------------------------------------- */
+/** \name Block Begin
+ * \{ */
 
 void block_region_set(Block *block, ARegion *region)
 {
@@ -4032,6 +4117,12 @@ void block_set_search_only(Block *block, bool search_only)
 {
   SET_FLAG_FROM_TEST(block->flag, search_only, BLOCK_SEARCH_ONLY);
 }
+
+/** \} */
+
+/* -------------------------------------------------------------------- */
+/** \name Button Update
+ * \{ */
 
 static void but_build_drawstr_float(Button *but, double value)
 {
@@ -4307,6 +4398,12 @@ void block_cm_to_display_space_v3(Block *block, float pixel[3])
 
   IMB_colormanagement_scene_linear_to_display_v3(pixel, display);
 }
+
+/** \} */
+
+/* -------------------------------------------------------------------- */
+/** \name Button Definition
+ * \{ */
 
 /**
  * Factory function: Allocate button and set #Button.type.
@@ -5144,6 +5241,12 @@ static Button *def_but_operator_ptr(Block *block,
   return but;
 }
 
+/** \} */
+
+/* -------------------------------------------------------------------- */
+/** \name Button Definition Wrappers
+ * \{ */
+
 Button *uiDefBut(Block *block,
                  ButtonTypeWithPointerType but_and_ptr_type,
                  const StringRef str,
@@ -5205,7 +5308,12 @@ void button_retval_set(Button *but, int retval)
   but->retval = retval;
 }
 
-/* Auto-complete helper functions. */
+/** \} */
+
+/* -------------------------------------------------------------------- */
+/** \name Auto-Complete
+ * \{ */
+
 struct AutoComplete {
   size_t maxncpy;
   int matches;
@@ -5283,6 +5391,12 @@ int autocomplete_end(AutoComplete *autocpl, char *autoname)
   return match;
 }
 
+/** \} */
+
+/* -------------------------------------------------------------------- */
+/** \name Preview Tiles
+ * \{ */
+
 #define PREVIEW_TILE_PAD (0.225f * UI_UNIT_X)
 
 int preview_tile_size_x(const int size_px)
@@ -5307,6 +5421,12 @@ int preview_tile_size_y_no_label(const int size_px)
 }
 
 #undef PREVIEW_TILE_PAD
+
+/** \} */
+
+/* -------------------------------------------------------------------- */
+/** \name RNA & Operator Button Wrappers
+ * \{ */
 
 static void but_update_and_icon_set(Button *but, int icon)
 {
@@ -5612,9 +5732,11 @@ void button_operator_set_never_call(Button *but)
   but->operator_never_call = true;
 }
 
-/* END Button containing both string label and icon */
+/** \} */
 
-/* cruft to make Block and Button private */
+/* -------------------------------------------------------------------- */
+/** \name Block & Button Flags
+ * \{ */
 
 int blocklist_min_y_get(ListBaseT<Block> *lb)
 {
@@ -5768,6 +5890,12 @@ PointerRNA *button_operator_ptr_ensure(Button *but)
 
   return but->opptr;
 }
+
+/** \} */
+
+/* -------------------------------------------------------------------- */
+/** \name Button Context & Callbacks
+ * \{ */
 
 void button_context_ptr_set(Block *block, Button *but, const StringRef name, const PointerRNA *ptr)
 {
@@ -5985,6 +6113,12 @@ void button_func_pushed_state_set(Button *but, std::function<bool(const Button &
   button_update(but);
 }
 
+/** \} */
+
+/* -------------------------------------------------------------------- */
+/** \name Menu & Block Buttons
+ * \{ */
+
 Button *uiDefBlockBut(Block *block,
                       BlockCreateFunc func,
                       void *arg,
@@ -6108,6 +6242,12 @@ Button *uiDefIconBlockBut(Block *block,
 
   return but;
 }
+
+/** \} */
+
+/* -------------------------------------------------------------------- */
+/** \name Search Buttons
+ * \{ */
 
 Button *uiDefSearchBut(Block *block,
                        void *arg,
@@ -6334,6 +6474,12 @@ Button *uiDefSearchButO_ptr(Block *block,
   return but;
 }
 
+/** \} */
+
+/* -------------------------------------------------------------------- */
+/** \name Button Property Setters
+ * \{ */
+
 void button_hint_drawstr_set(Button *but, const char *string)
 {
   button_add_shortcut(but, string, false);
@@ -6463,6 +6609,12 @@ void button_func_hold_set(Button *but, ButtonHandleHoldFunc func, void *argN)
   but->hold_func = func;
   but->hold_argN = argN;
 }
+
+/** \} */
+
+/* -------------------------------------------------------------------- */
+/** \name Button String Access
+ * \{ */
 
 std::optional<EnumPropertyItem> button_rna_enum_item_get(bContext &C, Button &but)
 {
@@ -6689,7 +6841,11 @@ std::string button_extra_icon_string_get_operator_keymap(const bContext &C,
   return but_extra_icon_event_operator_string(&C, &extra_icon).value_or("");
 }
 
-/* Program Init/Exit */
+/** \} */
+
+/* -------------------------------------------------------------------- */
+/** \name Init / Exit
+ * \{ */
 
 void init()
 {
@@ -6732,6 +6888,12 @@ void interface_tag_script_reload()
   interface_tag_script_reload_queries();
 }
 
+/** \} */
+
+/* -------------------------------------------------------------------- */
+/** \name Button Utilities
+ * \{ */
+
 int button_text_padding(const Button *button)
 {
   return round_fl_to_int((UI_TEXT_MARGIN_X * U.widget_unit) / button->block->aspect);
@@ -6768,5 +6930,7 @@ std::string button_get_link(const Button *button, bContext *C)
   return "";
 #endif
 }
+
+/** \} */
 
 }  // namespace blender::ui

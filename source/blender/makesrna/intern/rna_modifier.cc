@@ -6686,7 +6686,7 @@ static void rna_def_modifier_remesh(BlenderRNA *brna)
                            "values preserve finer details.");
   RNA_def_property_update(prop, 0, "rna_Modifier_update");
 
-  prop = RNA_def_property(srna, "adaptivity", PROP_FLOAT, PROP_DISTANCE);
+  prop = RNA_def_property(srna, "adaptivity", PROP_FLOAT, PROP_NONE);
   RNA_def_property_float_sdna(prop, nullptr, "adaptivity");
   RNA_def_property_ui_range(prop, 0, 1, 0.1, 3);
   RNA_def_property_ui_text(

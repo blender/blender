@@ -13,6 +13,7 @@
 #include "BKE_material.hh"
 #include "BKE_node.hh"
 #include "BKE_node_legacy_types.hh"
+#include "BKE_node_tree_update.hh"
 #include "BKE_scene.hh"
 
 #include "eevee_instance.hh"
@@ -47,6 +48,7 @@ MaterialModule::MaterialModule(Instance &inst) : inst_(inst)
                        *bke::node_find_socket(*output, SOCK_IN, "Surface"_ustr));
 
     bke::node_set_active(*ntree, *output);
+    BKE_ntree_update_without_main(*ntree);
   }
   {
     metallic_mat = BKE_id_new_nomain<blender::Material>("EEVEE default metal");
@@ -68,6 +70,7 @@ MaterialModule::MaterialModule(Instance &inst) : inst_(inst)
                        *bke::node_find_socket(*output, SOCK_IN, "Surface"_ustr));
 
     bke::node_set_active(*ntree, *output);
+    BKE_ntree_update_without_main(*ntree);
   }
   {
     default_surface = reinterpret_cast<blender::Material *>(BKE_id_copy_ex(
@@ -94,6 +97,7 @@ MaterialModule::MaterialModule(Instance &inst) : inst_(inst)
                        *bke::node_find_socket(*output, SOCK_IN, "Surface"_ustr));
 
     bke::node_set_active(*ntree, *output);
+    BKE_ntree_update_without_main(*ntree);
   }
 }
 

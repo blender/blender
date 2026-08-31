@@ -1,9 +1,9 @@
 
 msgid ""
 msgstr ""
-"Project-Id-Version: Blender 5.3.0 Alpha (b'09417042a1fa')\n"
+"Project-Id-Version: Blender 5.3.0 Alpha (b'32296898e057')\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-08-24 07:38+0000\n"
+"POT-Creation-Date: 2026-08-31 07:41+0000\n"
 "PO-Revision-Date: 2026-07-31 17:12+0000\n"
 "Last-Translator: Ye Gui <ziweidao@foxmail.com>\n"
 "Language-Team: Chinese (Traditional Han script) <https://translate.blender.org/projects/blender-ui/ui/zh_Hant/>\n"
@@ -3868,6 +3868,10 @@ msgid "Source Library"
 msgstr "來源庫"
 
 
+msgid "Active Asset Library"
+msgstr "作用中素材庫"
+
+
 msgid "Dirty"
 msgstr "髒亂"
 
@@ -6953,6 +6957,10 @@ msgstr "設定所選色彩止點的位置"
 
 msgid "Color Ramp Elements"
 msgstr "色彩漸變元素"
+
+
+msgid "Identifier"
+msgstr "識別碼"
 
 
 msgid "Console Input"
@@ -10713,10 +10721,6 @@ msgstr "RNA 枚舉屬性中一個選擇的定義"
 
 msgid "Description of the item's purpose"
 msgstr "項目用途的描述"
-
-
-msgid "Identifier"
-msgstr "識別碼"
 
 
 msgid "Unique name used in the code and scripting"
@@ -26340,12 +26344,12 @@ msgid "Import"
 msgstr "匯入"
 
 
-msgid "Render Preview"
-msgstr "算繪預覽"
-
-
 msgid "Mirror"
 msgstr "鏡像"
+
+
+msgid "Render Preview"
+msgstr "算繪預覽"
 
 
 msgid "UV Mapping"
@@ -26356,20 +26360,20 @@ msgid "Local View"
 msgstr "區域檢視"
 
 
-msgid "Viewpoint"
-msgstr "視點"
-
-
 msgid "Utilities"
 msgstr "效用"
 
 
-msgid "Navigation"
-msgstr "導覽"
+msgid "Viewpoint"
+msgstr "視點"
 
 
 msgid "Deprecated"
 msgstr "已棄用"
+
+
+msgid "Navigation"
+msgstr "導覽"
 
 
 msgid "Align View"
@@ -26568,6 +26572,10 @@ msgid "Merge"
 msgstr "合併"
 
 
+msgid "Pivot Point"
+msgstr "樞紐點"
+
+
 msgid "Special Characters"
 msgstr "特殊字元"
 
@@ -26578,10 +26586,6 @@ msgstr "字間微調"
 
 msgid "Bone Roll"
 msgstr "骨骼滾動"
-
-
-msgid "Pivot Point"
-msgstr "樞紐點"
 
 
 msgid "Keyframe Insert Pie"
@@ -26859,10 +26863,6 @@ msgstr "生成"
 
 msgid "Physics"
 msgstr "物理"
-
-
-msgid "ID Data"
-msgstr "ID 資料"
 
 
 msgid "Particle Specials"
@@ -38094,6 +38094,11 @@ msgid "Install Theme..."
 msgstr "安裝主題..."
 
 
+msgctxt "Operator"
+msgid "Add Asset Library"
+msgstr "加入素材庫"
+
+
 msgid "Add or remove a white balance preset"
 msgstr "新增或移除白平衡預設集"
 
@@ -40552,8 +40557,8 @@ msgstr "情境選單"
 
 
 msgctxt "Operator"
-msgid "Accept"
-msgstr "接受"
+msgid "Select Directory"
+msgstr "選取目錄"
 
 
 msgid "Directory of the file"
@@ -43563,11 +43568,6 @@ msgstr "(取消)選取所有檔案"
 
 msgid "Select or deselect all files"
 msgstr "選取或取消選取全部檔案"
-
-
-msgctxt "Operator"
-msgid "Select Directory"
-msgstr "選取目錄"
 
 
 msgid "Select a bookmarked directory"
@@ -53744,11 +53744,6 @@ msgstr "移除具有相同 ID 的既有範本"
 
 
 msgctxt "Operator"
-msgid "Add Asset Library"
-msgstr "加入素材庫"
-
-
-msgctxt "Operator"
 msgid "Remove Asset Library"
 msgstr "移除素材庫"
 
@@ -54771,6 +54766,10 @@ msgstr "新增畫面"
 
 msgid "Add a new screen"
 msgstr "新增一個新螢幕"
+
+
+msgid "Active Section"
+msgstr "作用中區段"
 
 
 msgctxt "Operator"
@@ -63847,10 +63846,6 @@ msgid "Global preferences"
 msgstr "全域偏好設定"
 
 
-msgid "Active Section"
-msgstr "作用中區段"
-
-
 msgid "Application Template"
 msgstr "應用程式範本"
 
@@ -64233,10 +64228,6 @@ msgstr "擴充套件軟體庫"
 
 msgid "Online Access"
 msgstr "線上存取"
-
-
-msgid "Active Asset Library"
-msgstr "作用中素材庫"
 
 
 msgid "Animation Player"
@@ -65837,6 +65828,10 @@ msgstr "字串值"
 
 msgid "RNA wrapped string"
 msgstr "RNA 包裝字串"
+
+
+msgid "Subtype"
+msgstr "子類型"
 
 
 msgid "Property Definition"
@@ -75379,6 +75374,10 @@ msgid "Use Remote"
 msgstr "使用遠端"
 
 
+msgid "UUID"
+msgstr "UUID"
+
+
 msgid "Extension Repository"
 msgstr "擴充套件軟體庫"
 
@@ -77082,46 +77081,6 @@ msgstr "3D 檢視工具：變換（備用）"
 
 
 msgctxt "WindowManager"
-msgid "Generic Tool: Annotate"
-msgstr "通用工具：註記"
-
-
-msgctxt "WindowManager"
-msgid "Generic Tool: Annotate (fallback)"
-msgstr "通用工具：註記（備用）"
-
-
-msgctxt "WindowManager"
-msgid "Generic Tool: Annotate Line"
-msgstr "通用工具：註記線"
-
-
-msgctxt "WindowManager"
-msgid "Generic Tool: Annotate Line (fallback)"
-msgstr "通用工具：註記線（備用）"
-
-
-msgctxt "WindowManager"
-msgid "Generic Tool: Annotate Polygon"
-msgstr "通用工具：註記多邊形"
-
-
-msgctxt "WindowManager"
-msgid "Generic Tool: Annotate Polygon (fallback)"
-msgstr "通用工具：註記多邊形（備用）"
-
-
-msgctxt "WindowManager"
-msgid "Generic Tool: Annotate Eraser"
-msgstr "通用工具：註記橡皮擦"
-
-
-msgctxt "WindowManager"
-msgid "Generic Tool: Annotate Eraser (fallback)"
-msgstr "通用工具：註記橡皮擦（備用）"
-
-
-msgctxt "WindowManager"
 msgid "3D View Tool: Measure"
 msgstr "3D 檢視工具：測量"
 
@@ -78305,6 +78264,26 @@ msgstr "啟用吸附"
 msgctxt "WindowManager"
 msgid "Disable Snap"
 msgstr "停用吸附"
+
+
+msgctxt "WindowManager"
+msgid "Generic Tool: Annotate"
+msgstr "通用工具：註記"
+
+
+msgctxt "WindowManager"
+msgid "Generic Tool: Annotate Line"
+msgstr "通用工具：註記線"
+
+
+msgctxt "WindowManager"
+msgid "Generic Tool: Annotate Polygon"
+msgstr "通用工具：註記多邊形"
+
+
+msgctxt "WindowManager"
+msgid "Generic Tool: Annotate Eraser"
+msgstr "通用工具：註記橡皮擦"
 
 
 msgid "Checking for Extension Updates"
@@ -82587,10 +82566,6 @@ msgstr "無作用中素材"
 
 msgid "Asset Catalog:"
 msgstr "素材編目："
-
-
-msgid "UUID"
-msgstr "UUID"
 
 
 msgid "Simple Name"
@@ -91274,10 +91249,6 @@ msgid "Menu Undefined"
 msgstr "選單未定義"
 
 
-msgid "Subtype"
-msgstr "子類型"
-
-
 msgid "Compositor Nodes"
 msgstr "合成器節點"
 
@@ -93040,6 +93011,10 @@ msgid "Armature '%s' does not contain bone '%s'"
 msgstr "骨架「%s」不包含骨骼「%s」"
 
 
+msgid "Asset Library not found"
+msgstr "找不到素材庫"
+
+
 msgid "Smooth the surface"
 msgstr "平滑表面"
 
@@ -93552,10 +93527,6 @@ msgstr "素材架類別註冊：'%s' 已註冊過，將把先前的解除註冊"
 
 msgid "Registering file handler class: '%s' is too long, maximum length is %d"
 msgstr "檔案處理器類別註冊：'%s' 太長了，最大長度為 %d"
-
-
-msgid "Asset Library not found"
-msgstr "找不到素材庫"
 
 
 msgid "Extension repository not found"

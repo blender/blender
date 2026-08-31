@@ -152,6 +152,9 @@ struct ComponentNode : public Node {
    *
    * NOTE: Is only reliable after `deg_graph_flush_visibility()`. */
   bool affects_visible_id;
+
+  /* Accumulated flag from operations. Is initialized and used during updates flush. */
+  bool is_user_modified;
 };
 
 /* ---------------------------------------- */

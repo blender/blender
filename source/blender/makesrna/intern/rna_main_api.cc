@@ -108,8 +108,8 @@ namespace blender {
 
 static void rna_idname_validate(const char *name, char *r_name)
 {
-  BLI_strncpy(r_name, name, MAX_ID_NAME - 2);
-  BLI_str_utf8_invalid_strip(r_name, strlen(r_name));
+  const size_t r_name_len = BLI_strncpy_rlen(r_name, name, MAX_ID_NAME - 2);
+  BLI_str_utf8_invalid_strip(r_name, r_name_len);
 }
 
 static void rna_Main_ID_remove(Main *bmain,

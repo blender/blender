@@ -9,5 +9,5 @@ void node_function_project_point(const float3 point,
                                  const float4x4 transform,
                                  float3 &projected_point)
 {
-  projected_point = project_point(transform, point);
+  projected_point = project_point_safe(transform, point);
 }

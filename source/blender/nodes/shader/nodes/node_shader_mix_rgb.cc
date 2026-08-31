@@ -94,7 +94,7 @@ static int gpu_shader_mix_rgb(GPUMaterial *mat,
 
   const float min = 0.0f;
   const float max = 1.0f;
-  const GPUNodeLink *factor_link = in[0].link ? in[0].link : GPU_uniform(in[0].vec);
+  const GPUNodeLink *factor_link = in[0].link ? in[0].link : GPU_uniform(in[0]);
   GPU_link(mat, "clamp_value", factor_link, GPU_constant(&min), GPU_constant(&max), &in[0].link);
 
   int ret = GPU_stack_link(mat, node, name, in, out);

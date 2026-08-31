@@ -4,12 +4,7 @@
 
 #pragma once
 
-#include "gpu_shader_compat.hh"
-
-#include "GPU_shader_shared.hh"
-#include "gpu_interface_infos.hh"
-#include "gpu_shader_colorspace_lib.glsl"
-#include "gpu_shader_create_info.hh"
+#include "gpu_shader_colorspace.bsl.hh"
 
 /* TODO(fclem): Share with C code. */
 #define MAX_PARAM 12
@@ -317,7 +312,8 @@ struct FragOut {
   [[frag_color(0)]] float4 color;
 };
 
-[[fragment]] void frag([[in]] const VertOut &v_out,
+[[fragment]] void frag([[resource_table]] const ColorSpace &colorspace,
+                       [[in]] const VertOut &v_out,
                        [[out]] FragOut &frag_out,
                        [[frag_coord]] const float4 frag_co,
                        [[resource_table]] Resources &srt)
@@ -397,7 +393,7 @@ struct FragOut {
     frag_out.color.rgb /= frag_out.color.a;
   }
 
-  frag_out.color = blender_srgb_to_framebuffer_space(frag_out.color);
+  frag_out.color = colorspace.rec709_srgb_to_output_space(frag_out.color);
 }
 
 }  // namespace builtin::widget

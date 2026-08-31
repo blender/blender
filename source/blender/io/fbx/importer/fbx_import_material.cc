@@ -308,6 +308,7 @@ static const FbxStdTextureToSocket fbx_std_to_socket[] = {
     {UFBX_MATERIAL_FBX_TRANSPARENCY_FACTOR, "Alpha"},
     {UFBX_MATERIAL_FBX_TRANSPARENCY_COLOR, "Alpha"},
     {UFBX_MATERIAL_FBX_BUMP, "Normal"},
+    {UFBX_MATERIAL_FBX_REFLECTION_FACTOR, "Metallic"},
 };
 
 static void add_image_texture(Main *bmain,

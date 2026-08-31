@@ -9,6 +9,7 @@ set(INC_GLSL
   ../../intern
 
   ../../shaders/common
+  ../../shaders/compat
   ../../shaders
 )
 

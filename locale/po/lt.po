@@ -1,9 +1,9 @@
 
 msgid ""
 msgstr ""
-"Project-Id-Version: Blender 5.3.0 Alpha (b'09417042a1fa')\n"
+"Project-Id-Version: Blender 5.3.0 Alpha (b'32296898e057')\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-08-24 07:38+0000\n"
+"POT-Creation-Date: 2026-08-31 07:41+0000\n"
 "PO-Revision-Date: 2025-07-23 15:18+0000\n"
 "Last-Translator: Aras Pranckevičius <aras@nesnausk.org>\n"
 "Language-Team: Lithuanian <https://translate.blender.org/projects/blender-ui/ui/lt/>\n"
@@ -1431,6 +1431,10 @@ msgid "Elements"
 msgstr "Elementai"
 
 
+msgid "Identifier"
+msgstr "Identifikatorius"
+
+
 msgctxt "Text"
 msgid "Line"
 msgstr "Linija"
@@ -1682,10 +1686,6 @@ msgstr "Sūkurys"
 
 msgid "Wind"
 msgstr "Vėjas"
-
-
-msgid "Identifier"
-msgstr "Identifikatorius"
 
 
 msgid "Group"

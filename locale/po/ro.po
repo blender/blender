@@ -1,9 +1,9 @@
 
 msgid ""
 msgstr ""
-"Project-Id-Version: Blender 5.3.0 Alpha (b'09417042a1fa')\n"
+"Project-Id-Version: Blender 5.3.0 Alpha (b'32296898e057')\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-08-24 07:38+0000\n"
+"POT-Creation-Date: 2026-08-31 07:41+0000\n"
 "PO-Revision-Date: 2026-06-29 10:51+0000\n"
 "Last-Translator: Dominic Iastrebschi <domjotebit@gmail.com>\n"
 "Language-Team: Romanian <https://translate.blender.org/projects/blender-ui/ui/ro/>\n"
@@ -2778,11 +2778,6 @@ msgstr "Mod Obiect"
 
 
 msgctxt "WindowManager"
-msgid "Generic Tool: Annotate"
-msgstr "Unealtă Generică: Adnotare"
-
-
-msgctxt "WindowManager"
 msgid "Grease Pencil"
 msgstr "Creion de Grăsime"
 
@@ -2815,6 +2810,11 @@ msgstr "Animație"
 msgctxt "WindowManager"
 msgid "In"
 msgstr "Intrare"
+
+
+msgctxt "WindowManager"
+msgid "Generic Tool: Annotate"
+msgstr "Unealtă Generică: Adnotare"
 
 
 msgid "Description:"

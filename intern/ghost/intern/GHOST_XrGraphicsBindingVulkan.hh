@@ -18,6 +18,9 @@
 /* Silence compilation warning on non-windows x64 systems. */
 #  define VMA_EXTERNAL_MEMORY_WIN32 0
 #endif
+#ifdef _WIN32
+#  include <vulkan/vulkan_win32.h>
+#endif
 #include "vk_mem_alloc.h"
 
 #include "GHOST_ContextVK.hh"

@@ -146,8 +146,8 @@ static bool register_blender_prog_id(const char *prog_id,
                            &dwd);
 
   if (lresult == ERROR_SUCCESS) {
-    SNPRINTF(buffer, "\"%s\" \"%%1\"", executable);
-    lresult = RegSetValueEx(hkey_progid, nullptr, 0, REG_SZ, (BYTE *)buffer, strlen(buffer) + 1);
+    const size_t buffer_len = SNPRINTF_RLEN(buffer, "\"%s\" \"%%1\"", executable);
+    lresult = RegSetValueEx(hkey_progid, nullptr, 0, REG_SZ, (BYTE *)buffer, buffer_len + 1);
     RegCloseKey(hkey_progid);
   }
   if (lresult != ERROR_SUCCESS) {
@@ -167,8 +167,8 @@ static bool register_blender_prog_id(const char *prog_id,
                            &dwd);
 
   if (lresult == ERROR_SUCCESS) {
-    SNPRINTF(buffer, "\"%s\", 1", executable);
-    lresult = RegSetValueEx(hkey_progid, nullptr, 0, REG_SZ, (BYTE *)buffer, strlen(buffer) + 1);
+    const size_t buffer_len = SNPRINTF_RLEN(buffer, "\"%s\", 1", executable);
+    lresult = RegSetValueEx(hkey_progid, nullptr, 0, REG_SZ, (BYTE *)buffer, buffer_len + 1);
     RegCloseKey(hkey_progid);
   }
   if (lresult != ERROR_SUCCESS) {

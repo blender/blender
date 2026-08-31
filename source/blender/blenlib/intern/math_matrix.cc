@@ -504,6 +504,8 @@ template float3 transform_direction(const float3x3 &mat, const float3 &direction
 template float3 transform_direction(const float4x4 &mat, const float3 &direction);
 template float3 project_point(const float4x4 &mat, const float3 &point);
 template float2 project_point(const float3x3 &mat, const float2 &point);
+template float3 project_point_safe(const float4x4 &mat, const float3 &point);
+template float2 project_point_safe(const float3x3 &mat, const float2 &point);
 
 namespace projection {
 

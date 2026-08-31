@@ -4,6 +4,10 @@
 
 #pragma once
 
+#include <optional>
+
+#include "BLI_math_vector_types.hh"
+
 #include "COM_context.hh"
 #include "COM_domain.hh"
 #include "COM_input_descriptor.hh"
@@ -47,11 +51,16 @@ class RealizeOnDomainOperation : public SimpleOperation {
 
  private:
   /* Get the name of the realization shader of the appropriate type. */
-  const char *get_realization_shader_name();
+  const char *get_realization_shader_name(const float3x3 &transformation);
 
   /* Computes the translation that the input should be translated by to fix the artifacts related
    * to interpolation. See the implementation for more information. */
   float2 compute_corrective_translation();
+
+  /* Computes the Jacobian of the given output texel to input sampler transformation. If no area
+   * sampling is needed, possibly because it is just a rotation/translation, nullopt is returned to
+   * indicate simple point sampling should be used. */
+  std::optional<float2x2> compute_jacobian(const float3x3 &transformation);
 
   void realize_on_domain_gpu(const float3x3 &transformation);
   void realize_on_domain_cpu(const float3x3 &transformation);

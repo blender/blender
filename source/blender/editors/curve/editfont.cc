@@ -2438,7 +2438,11 @@ void FONT_OT_case_toggle(wmOperatorType *ot)
   ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO;
 }
 
-/* **************** Open Font ************** */
+/** \} */
+
+/* -------------------------------------------------------------------- */
+/** \name Open Font
+ * \{ */
 
 static void font_ui_template_init(bContext *C, wmOperator *op)
 {
@@ -2560,7 +2564,7 @@ void FONT_OT_open(wmOperatorType *ot)
 /** \} */
 
 /* -------------------------------------------------------------------- */
-/** \name Delete Operator
+/** \name Unlink Font Operator
  * \{ */
 
 static wmOperatorStatus font_unlink_exec(bContext *C, wmOperator *op)
@@ -2595,6 +2599,11 @@ void FONT_OT_unlink(wmOperatorType *ot)
   /* API callbacks. */
   ot->exec = font_unlink_exec;
 }
+/** \} */
+
+/* -------------------------------------------------------------------- */
+/** \name Select Pick
+ * \{ */
 
 bool ED_curve_editfont_select_pick(
     bContext *C,

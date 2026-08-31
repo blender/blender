@@ -1,9 +1,9 @@
 
 msgid ""
 msgstr ""
-"Project-Id-Version: Blender 5.3.0 Alpha (b'09417042a1fa')\n"
+"Project-Id-Version: Blender 5.3.0 Alpha (b'32296898e057')\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-08-24 07:38+0000\n"
+"POT-Creation-Date: 2026-08-31 07:41+0000\n"
 "PO-Revision-Date: 2025-07-23 15:31+0000\n"
 "Last-Translator: VertexSelection <amacsizk2021@gmail.com>\n"
 "Language-Team: Turkish <https://translate.blender.org/projects/blender-ui/ui/tr/>\n"
@@ -3531,8 +3531,8 @@ msgid "Collection of source libraries, i.e. blendfile paths"
 msgstr "Kaynak kitaplıkların koleksiyonu, i.n. blend dosya yolları"
 
 
-msgid "Blendfile Import Context Library"
-msgstr "Blendfile İçe Aktarma Bağlam Kütüphanesi"
+msgid "Active Asset Library"
+msgstr "Aktif Varlık Kütüphanesi"
 
 
 msgid "Dirty"
@@ -7033,6 +7033,14 @@ msgid "Collection of Color Ramp Elements"
 msgstr "Renk Rampası Elemanları Koleksiyonu"
 
 
+msgid "Identifier"
+msgstr "Tanımlayıcı"
+
+
+msgid "Consistent identifier used for the item"
+msgstr "Öğe için kullanılan tutarlı tanımlayıcı"
+
+
 msgid "Input line for the interactive console"
 msgstr "Etkileşimli konsol için giriş satırı"
 
@@ -10159,10 +10167,6 @@ msgstr "Bir RNA enum özelliğindeki bir seçimin tanımı"
 
 msgid "Description of the item's purpose"
 msgstr "Öğenin amacının açıklaması"
-
-
-msgid "Identifier"
-msgstr "Tanımlayıcı"
 
 
 msgid "Unique name used in the code and scripting"
@@ -25135,10 +25139,6 @@ msgid "Index Switch Item"
 msgstr "Dizin Anahtar Öğesi"
 
 
-msgid "Consistent identifier used for the item"
-msgstr "Öğe için kullanılan tutarlı tanımlayıcı"
-
-
 msgid "2D Integer Vector Attribute Value"
 msgstr "2B Tamsayı Vektör Öznitelik Değeri"
 
@@ -28763,20 +28763,20 @@ msgid "Local View"
 msgstr "Yerel Görünüm"
 
 
-msgid "Viewpoint"
-msgstr "Bakış açısı"
-
-
 msgid "Utilities"
 msgstr "Kamu hizmetleri"
 
 
-msgid "Navigation"
-msgstr "Navigasyon"
+msgid "Viewpoint"
+msgstr "Bakış açısı"
 
 
 msgid "Deprecated"
 msgstr "Kullanım dışı bırakıldı"
+
+
+msgid "Navigation"
+msgstr "Navigasyon"
 
 
 msgid "Align View"
@@ -28975,6 +28975,10 @@ msgid "Merge"
 msgstr "Birleştir"
 
 
+msgid "Pivot Point"
+msgstr "Pivot Noktası"
+
+
 msgid "Special Characters"
 msgstr "Özel Karakterler"
 
@@ -28985,10 +28989,6 @@ msgstr "Harf aralığı"
 
 msgid "Bone Roll"
 msgstr "Kemik Rulosu"
-
-
-msgid "Pivot Point"
-msgstr "Pivot Noktası"
 
 
 msgid "Keyframe Insert Pie"
@@ -44719,6 +44719,11 @@ msgid "Install Theme..."
 msgstr "Tema Kur..."
 
 
+msgctxt "Operator"
+msgid "Add Asset Library"
+msgstr "Varlık Kütüphanesi Ekle"
+
+
 msgid "Add or remove a white balance preset"
 msgstr "Beyaz dengesi ön ayarını ekleyin veya kaldırın"
 
@@ -47858,8 +47863,8 @@ msgstr "Görüntü özellikleri düzenleyicisi context_menu"
 
 
 msgctxt "Operator"
-msgid "Accept"
-msgstr "Kabul etmek"
+msgid "Select Directory"
+msgstr "Dizin Seçin"
 
 
 msgid "Open a directory browser, hold Shift to open the file, Alt to browse containing directory"
@@ -51880,11 +51885,6 @@ msgstr "Tüm Dosyaları (Seçimi Kaldır)"
 
 msgid "Select or deselect all files"
 msgstr "Tüm dosyaları seç veya seçimi kaldır"
-
-
-msgctxt "Operator"
-msgid "Select Directory"
-msgstr "Dizin Seçin"
 
 
 msgid "Select a bookmarked directory"
@@ -65707,11 +65707,6 @@ msgid "Remove existing template with the same ID"
 msgstr "Aynı kimliğe sahip mevcut şablonu kaldırın"
 
 
-msgctxt "Operator"
-msgid "Add Asset Library"
-msgstr "Varlık Kütüphanesi Ekle"
-
-
 msgid "Identifier (not necessarily unique) for the asset library"
 msgstr "Varlık kütüphanesi için tanımlayıcı (mutlaka benzersiz olması gerekmez)"
 
@@ -66876,6 +66871,10 @@ msgstr "Yeni Ekran"
 
 msgid "Add a new screen"
 msgstr "Yeni bir ekran ekle"
+
+
+msgid "Active Section"
+msgstr "Aktif Bölüm"
 
 
 msgctxt "Operator"
@@ -78086,10 +78085,6 @@ msgid "Global preferences"
 msgstr "Küresel tercihler"
 
 
-msgid "Active Section"
-msgstr "Aktif Bölüm"
-
-
 msgid "Application Template"
 msgstr "Uygulama Şablonu"
 
@@ -78661,10 +78656,6 @@ msgstr "Uzantı Depoları"
 
 msgid "Online Access"
 msgstr "Çevrimiçi Erişim"
-
-
-msgid "Active Asset Library"
-msgstr "Aktif Varlık Kütüphanesi"
 
 
 msgid "Index of the asset library being edited in the Preferences UI"
@@ -80241,6 +80232,10 @@ msgstr "Dize Değeri"
 
 msgid "RNA wrapped string"
 msgstr "RNA sarılı dize"
+
+
+msgid "Subtype"
+msgstr "Alt tip"
 
 
 msgid "Property Definition"
@@ -92532,6 +92527,10 @@ msgid "Use Remote"
 msgstr "Uzaktan Kullan"
 
 
+msgid "UUID"
+msgstr "UUID"
+
+
 msgid "Extension Repository"
 msgstr "Uzantı Deposu"
 
@@ -95008,46 +95007,6 @@ msgstr "3B Görünüm Aracı: Dönüştür (yedek)"
 
 
 msgctxt "WindowManager"
-msgid "Generic Tool: Annotate"
-msgstr "Genel Araç: Açıklama"
-
-
-msgctxt "WindowManager"
-msgid "Generic Tool: Annotate (fallback)"
-msgstr "Genel Araç: Açıklama (yedek)"
-
-
-msgctxt "WindowManager"
-msgid "Generic Tool: Annotate Line"
-msgstr "Genel Araç: Satırı Açıklama"
-
-
-msgctxt "WindowManager"
-msgid "Generic Tool: Annotate Line (fallback)"
-msgstr "Genel Araç: Satırı Açıklama (yedek)"
-
-
-msgctxt "WindowManager"
-msgid "Generic Tool: Annotate Polygon"
-msgstr "Genel Araç: Poligonu Açıklama"
-
-
-msgctxt "WindowManager"
-msgid "Generic Tool: Annotate Polygon (fallback)"
-msgstr "Genel Araç: Poligonu Açıklama (yedek)"
-
-
-msgctxt "WindowManager"
-msgid "Generic Tool: Annotate Eraser"
-msgstr "Genel Araç: Açıklama Silgisi"
-
-
-msgctxt "WindowManager"
-msgid "Generic Tool: Annotate Eraser (fallback)"
-msgstr "Genel Araç: Açıklama Silgisi (yedek)"
-
-
-msgctxt "WindowManager"
 msgid "3D View Tool: Measure"
 msgstr "3D Görünüm Aracı: Ölçüm"
 
@@ -97178,6 +97137,26 @@ msgstr "Sürükle Uzantıları"
 msgctxt "WindowManager"
 msgid "Collide Extensions"
 msgstr "Çarpışma Uzantıları"
+
+
+msgctxt "WindowManager"
+msgid "Generic Tool: Annotate"
+msgstr "Genel Araç: Açıklama"
+
+
+msgctxt "WindowManager"
+msgid "Generic Tool: Annotate Line"
+msgstr "Genel Araç: Satırı Açıklama"
+
+
+msgctxt "WindowManager"
+msgid "Generic Tool: Annotate Polygon"
+msgstr "Genel Araç: Poligonu Açıklama"
+
+
+msgctxt "WindowManager"
+msgid "Generic Tool: Annotate Eraser"
+msgstr "Genel Araç: Açıklama Silgisi"
 
 
 msgid "Checking for Extension Updates"
@@ -102325,10 +102304,6 @@ msgstr "Aktif varlık yok"
 
 msgid "Asset Catalog:"
 msgstr "Varlık Kataloğu:"
-
-
-msgid "UUID"
-msgstr "UUID"
 
 
 msgid "Simple Name"
@@ -112883,10 +112858,6 @@ msgid "Menu Undefined"
 msgstr "Menü Tanımsız"
 
 
-msgid "Subtype"
-msgstr "Alt tip"
-
-
 msgid "Could not determine type of group node"
 msgstr "Grup düğümünün türü belirlenemedi"
 
@@ -115106,6 +115077,10 @@ msgid "Attribute per point/vertex"
 msgstr "Nokta/tepe başına öznitelik"
 
 
+msgid "Asset Library not found"
+msgstr "Varlık Kütüphanesi bulunamadı"
+
+
 msgid "Layer '%s' not found in object '%s'"
 msgstr "'%s' katmanı '%s' nesnesinde bulunamadı"
 
@@ -115927,10 +115902,6 @@ msgstr "template_popup_confirm bir açılır pencerenin dışında kullanıldı"
 
 msgid "Script directory not found"
 msgstr "Komut dizini bulunamadı"
-
-
-msgid "Asset Library not found"
-msgstr "Varlık Kütüphanesi bulunamadı"
 
 
 msgid "Extension repository not found"

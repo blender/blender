@@ -438,15 +438,41 @@ struct ExpressionTypeParser
                     return l / r;
                   })};
         case Modulo:
-          return {type, apply_integral(lhs, rhs, [](auto l, auto r) { return l % r; })};
+          return {type, apply_integral(lhs, rhs, [&](auto l, auto r) {
+                    if (r == 0) {
+                      error(t, Diag::ConstexprDivisionByZero, to_string(r));
+                      return decltype(l % r)(0);
+                    }
+                    return l % r;
+                  })};
+        case LShift:
+          return {type, apply_integral(lhs, rhs, [&](auto l, auto r) {
+                    if (int(r) < 0) {
+                      error(t, Diag::ConstexprShiftNegative, to_string(r));
+                      return decltype(l << r)(0);
+                    }
+                    if (int(r) >= 32) {
+                      error(t, Diag::ConstexprShiftTooLarge, to_string(r));
+                      return decltype(l << r)(0);
+                    }
+                    return l << r;
+                  })};
+        case RShift:
+          return {type, apply_integral(lhs, rhs, [&](auto l, auto r) {
+                    if (int(r) < 0) {
+                      error(t, Diag::ConstexprShiftNegative, to_string(r));
+                      return decltype(l >> r)(0);
+                    }
+                    if (int(r) >= 32) {
+                      error(t, Diag::ConstexprShiftTooLarge, to_string(r));
+                      return decltype(l >> r)(0);
+                    }
+                    return l >> r;
+                  })};
         case Plus:
           return {type, apply_arithmetic(lhs, rhs, [](auto l, auto r) { return l + r; })};
         case Minus:
           return {type, apply_arithmetic(lhs, rhs, [](auto l, auto r) { return l - r; })};
-        case LShift:
-          return {type, apply_integral(lhs, rhs, [](auto l, auto r) { return l << r; })};
-        case RShift:
-          return {type, apply_integral(lhs, rhs, [](auto l, auto r) { return l >> r; })};
         case LThan:
           return {type, apply_arithmetic(lhs, rhs, [](auto l, auto r) { return l < r; })};
         case LEqual:

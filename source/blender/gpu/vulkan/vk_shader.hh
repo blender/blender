@@ -133,6 +133,11 @@ class VKShader : public Shader {
     return vk_descriptor_set_layout_;
   }
 
+  bool use_ray_query_get() const
+  {
+    return use_ray_query_;
+  }
+
  private:
   void build_shader_module(MutableSpan<StringRefNull> sources,
                            shaderc_shader_kind stage,

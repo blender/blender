@@ -1,9 +1,9 @@
 
 msgid ""
 msgstr ""
-"Project-Id-Version: Blender 5.3.0 Alpha (b'09417042a1fa')\n"
+"Project-Id-Version: Blender 5.3.0 Alpha (b'32296898e057')\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-08-24 07:38+0000\n"
+"POT-Creation-Date: 2026-08-31 07:41+0000\n"
 "PO-Revision-Date: 2026-08-18 22:05+0000\n"
 "Last-Translator: Lars Englund <lars@tebaka.se>\n"
 "Language-Team: Swedish <https://translate.blender.org/projects/blender-ui/ui/sv/>\n"
@@ -4089,12 +4089,8 @@ msgid "Collection of source libraries, i.e. blendfile paths"
 msgstr "Samling av källbibliotek, dvs. blendfile-sökvägar"
 
 
-msgid "Blendfile Import Context Library"
-msgstr "Blendfile Importera kontextbibliotek"
-
-
-msgid "Library (blendfile) reference in a BlendImportContext data. Currently only exposed as read-only data for the pre/post blendimport handlers"
-msgstr "Bibliotek (blendfile) referens i BlendImportContext-data. För närvarande endast tillgänglig som skrivskyddad data för pre/post blendimport-hanterare."
+msgid "Active Asset Library"
+msgstr "Aktiv tillgångsbibliotek"
 
 
 msgid "Dirty"
@@ -8067,6 +8063,14 @@ msgstr "Färgramp-element"
 
 msgid "Collection of Color Ramp Elements"
 msgstr "Samling av färgramp-element"
+
+
+msgid "Identifier"
+msgstr "Identifierare"
+
+
+msgid "Consistent identifier used for the item"
+msgstr "Enhetlig identifierare som används för artikeln"
 
 
 msgid "Console Input"
@@ -12764,10 +12768,6 @@ msgstr "Definition av ett val i en RNA-enum-egenskap"
 
 msgid "Description of the item's purpose"
 msgstr "Beskrivning av artikelns syfte"
-
-
-msgid "Identifier"
-msgstr "Identifierare"
 
 
 msgid "Unique name used in the code and scripting"
@@ -30912,10 +30912,6 @@ msgid "Index Switch Item"
 msgstr "Indexväxlarobjekt"
 
 
-msgid "Consistent identifier used for the item"
-msgstr "Enhetlig identifierare som används för artikeln"
-
-
 msgid "2D Integer Vector Attribute Value"
 msgstr "2D heltal vektorattributvärde"
 
@@ -34912,12 +34908,12 @@ msgid "Import"
 msgstr "Importera"
 
 
-msgid "Render Preview"
-msgstr "Förhandsgranska rendering"
-
-
 msgid "Mirror"
 msgstr "Spegel"
+
+
+msgid "Render Preview"
+msgstr "Förhandsgranska rendering"
 
 
 msgid "UV Mapping"
@@ -34928,20 +34924,20 @@ msgid "Local View"
 msgstr "Lokal vy"
 
 
-msgid "Viewpoint"
-msgstr "Synpunkt"
-
-
 msgid "Utilities"
 msgstr "Allmännyttiga tjänster"
 
 
-msgid "Navigation"
-msgstr "Navigering"
+msgid "Viewpoint"
+msgstr "Synpunkt"
 
 
 msgid "Deprecated"
 msgstr "Föråldrad"
+
+
+msgid "Navigation"
+msgstr "Navigering"
 
 
 msgid "Align View"
@@ -35144,6 +35140,10 @@ msgid "Merge"
 msgstr "Sammanfoga"
 
 
+msgid "Pivot Point"
+msgstr "Pivotpunkt"
+
+
 msgid "Special Characters"
 msgstr "Specialtecken"
 
@@ -35154,10 +35154,6 @@ msgstr "Kerning"
 
 msgid "Bone Roll"
 msgstr "Benrulle"
-
-
-msgid "Pivot Point"
-msgstr "Pivotpunkt"
 
 
 msgid "Keyframe Insert Pie"
@@ -35499,10 +35495,6 @@ msgstr "Fysik"
 
 msgid "Shadow Linking Specials"
 msgstr "Specialerbjudanden för skugglänkar"
-
-
-msgid "ID Data"
-msgstr "ID-uppgifter"
 
 
 msgid "Particle Specials"
@@ -54970,6 +54962,11 @@ msgid "Install Theme..."
 msgstr "Installera tema..."
 
 
+msgctxt "Operator"
+msgid "Add Asset Library"
+msgstr "Lägg till tillgångsbibliotek"
+
+
 msgid "Add or remove a white balance preset"
 msgstr "Lägg till eller ta bort en förinställd vitbalans"
 
@@ -58594,8 +58591,8 @@ msgstr "Visningsegenskaper redigerare context_menu"
 
 
 msgctxt "Operator"
-msgid "Accept"
-msgstr "Acceptera"
+msgid "Select Directory"
+msgstr "Välj katalog"
 
 
 msgid "Open a directory browser, hold Shift to open the file, Alt to browse containing directory"
@@ -63356,11 +63353,6 @@ msgstr "(Av)markera alla filer"
 
 msgid "Select or deselect all files"
 msgstr "Välj eller avmarkera alla filer"
-
-
-msgctxt "Operator"
-msgid "Select Directory"
-msgstr "Välj katalog"
 
 
 msgid "Select a bookmarked directory"
@@ -79774,11 +79766,6 @@ msgid "Remove existing template with the same ID"
 msgstr "Ta bort befintlig mall med samma ID"
 
 
-msgctxt "Operator"
-msgid "Add Asset Library"
-msgstr "Lägg till tillgångsbibliotek"
-
-
 msgid "Add a directory to be used by the Asset Browser as source of assets"
 msgstr "Lägg till en katalog som ska användas av Asset Browser som källa för tillgångar"
 
@@ -81065,6 +81052,10 @@ msgstr "Ny skärm"
 
 msgid "Add a new screen"
 msgstr "Lägg till en ny skärm"
+
+
+msgid "Active Section"
+msgstr "Aktiv sektion"
 
 
 msgctxt "Operator"
@@ -94676,10 +94667,6 @@ msgid "Global preferences"
 msgstr "Globala preferenser"
 
 
-msgid "Active Section"
-msgstr "Aktiv sektion"
-
-
 msgid "Application Template"
 msgstr "Ansökningsmall"
 
@@ -95391,10 +95378,6 @@ msgstr "Online-åtkomst"
 
 msgid "The user has been shown the \"Online Access\" prompt and made a choice"
 msgstr "Användaren har fått se meddelandet \"Online Access\" och gjort ett val."
-
-
-msgid "Active Asset Library"
-msgstr "Aktiv tillgångsbibliotek"
 
 
 msgid "Index of the asset library being edited in the Preferences UI"
@@ -97682,6 +97665,10 @@ msgstr "Strängvärde"
 
 msgid "RNA wrapped string"
 msgstr "RNA-omsluten sträng"
+
+
+msgid "Subtype"
+msgstr "Subtyp"
 
 
 msgid "Property Definition"
@@ -112907,6 +112894,10 @@ msgid "Use Remote"
 msgstr "Använd fjärrkontroll"
 
 
+msgid "UUID"
+msgstr "UUID"
+
+
 msgid "Extension Repository"
 msgstr "Utvidgningsarkiv"
 
@@ -115902,46 +115893,6 @@ msgstr "3D-visningsverktyg: Transformera (fallback)"
 
 
 msgctxt "WindowManager"
-msgid "Generic Tool: Annotate"
-msgstr "Generiskt verktyg: Kommentera"
-
-
-msgctxt "WindowManager"
-msgid "Generic Tool: Annotate (fallback)"
-msgstr "Generiskt verktyg: Kommentera (fallback)"
-
-
-msgctxt "WindowManager"
-msgid "Generic Tool: Annotate Line"
-msgstr "Generiskt verktyg: Kommentera linje"
-
-
-msgctxt "WindowManager"
-msgid "Generic Tool: Annotate Line (fallback)"
-msgstr "Generiskt verktyg: Kommentera linje (fallback)"
-
-
-msgctxt "WindowManager"
-msgid "Generic Tool: Annotate Polygon"
-msgstr "Generiskt verktyg: Kommentera polygon"
-
-
-msgctxt "WindowManager"
-msgid "Generic Tool: Annotate Polygon (fallback)"
-msgstr "Generiskt verktyg: Kommentera polygon (fallback)"
-
-
-msgctxt "WindowManager"
-msgid "Generic Tool: Annotate Eraser"
-msgstr "Generiskt verktyg: Anteckningsraderare"
-
-
-msgctxt "WindowManager"
-msgid "Generic Tool: Annotate Eraser (fallback)"
-msgstr "Generiskt verktyg: Anteckningsraderare (reserv)"
-
-
-msgctxt "WindowManager"
 msgid "3D View Tool: Measure"
 msgstr "3D-visningsverktyg: Mäta"
 
@@ -118420,6 +118371,26 @@ msgstr "Aktivera Snap"
 msgctxt "WindowManager"
 msgid "Disable Snap"
 msgstr "Inaktivera Snap"
+
+
+msgctxt "WindowManager"
+msgid "Generic Tool: Annotate"
+msgstr "Generiskt verktyg: Kommentera"
+
+
+msgctxt "WindowManager"
+msgid "Generic Tool: Annotate Line"
+msgstr "Generiskt verktyg: Kommentera linje"
+
+
+msgctxt "WindowManager"
+msgid "Generic Tool: Annotate Polygon"
+msgstr "Generiskt verktyg: Kommentera polygon"
+
+
+msgctxt "WindowManager"
+msgid "Generic Tool: Annotate Eraser"
+msgstr "Generiskt verktyg: Anteckningsraderare"
 
 
 msgid "All Repositories"
@@ -125081,10 +125052,6 @@ msgstr "Inga aktiva tillgångar"
 
 msgid "Asset Catalog:"
 msgstr "Tillgångskatalog:"
-
-
-msgid "UUID"
-msgstr "UUID"
 
 
 msgid "Simple Name"
@@ -139203,10 +139170,6 @@ msgid "Menu Undefined"
 msgstr "Meny odefinierad"
 
 
-msgid "Subtype"
-msgstr "Subtyp"
-
-
 msgid "Link operation index out of range"
 msgstr "Länkoperationsindex utanför intervallet"
 
@@ -142983,6 +142946,10 @@ msgid "Attribute is required and cannot be removed"
 msgstr "Attributet är obligatoriskt och kan inte tas bort."
 
 
+msgid "Asset Library not found"
+msgstr "Asset Library hittades inte"
+
+
 msgid "Smooth the surface"
 msgstr "Jämna ut ytan"
 
@@ -144159,10 +144126,6 @@ msgstr "Startad med \"--offline-mode\", kan inte ändras"
 
 msgid "Script directory not found"
 msgstr "Skriptkatalogen hittades inte"
-
-
-msgid "Asset Library not found"
-msgstr "Asset Library hittades inte"
 
 
 msgid "Extension repository not found"

@@ -59,6 +59,18 @@ float2 project_point(float3x3 mat, float2 point)
   /* Absolute value to not flip the frustum upside down behind the camera. */
   return tmp.xy / abs(tmp.z);
 }
+
+/**
+ * Safely project a point using a matrix (location & rotation & scale & perspective divide).
+ */
+float2 project_point_safe(float3x3 mat, float2 point)
+{
+  float3 tmp = mat * float3(point, 1.0f);
+  /* Absolute value to not flip the frustum upside down behind the camera. */
+  float divisor = abs(tmp.z);
+  return (divisor != 0.0f) ? (tmp.xy / divisor) : float2(0.0f);
+}
+
 /**
  * Project a point using a matrix (location & rotation & scale & perspective divide).
  */
@@ -67,6 +79,17 @@ float3 project_point(float4x4 mat, float3 point)
   float4 tmp = mat * float4(point, 1.0f);
   /* Absolute value to not flip the frustum upside down behind the camera. */
   return tmp.xyz / abs(tmp.w);
+}
+
+/**
+ * Safely project a point using a matrix (location & rotation & scale & perspective divide).
+ */
+float3 project_point_safe(float4x4 mat, float3 point)
+{
+  float4 tmp = mat * float4(point, 1.0f);
+  /* Absolute value to not flip the frustum upside down behind the camera. */
+  float divisor = abs(tmp.w);
+  return (divisor != 0.0f) ? (tmp.xyz / divisor) : float3(0.0f);
 }
 
 /** \} */

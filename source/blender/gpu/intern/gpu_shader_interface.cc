@@ -18,9 +18,11 @@
 
 namespace blender::gpu {
 
-/* TODO(fclem): add unique ID for debugging. */
+std::atomic<ShaderInterface::Key> ShaderInterface::next_uid_{1};
+
 ShaderInterface::ShaderInterface()
 {
+  uid = next_uid_++;
   image_formats_.fill(TextureWriteFormat::Invalid);
 }
 
