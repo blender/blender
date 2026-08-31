@@ -10,6 +10,7 @@
 #include "BKE_grease_pencil.hh"
 #include "BKE_lib_id.hh"
 
+#include "ED_anim_api.hh"
 #include "ED_anim_filter.hh"
 
 #include "ANIM_action.hh"
@@ -212,7 +213,11 @@ DataChannel::DataChannel(const StringRef label, const DataChannelType source_typ
 }
 
 FCurveChannel::FCurveChannel(animrig::Action &containing_action, FCurve &fcurve)
-    : DataChannel(fcurve.rna_path(), DataChannelType::FCURVE)
+    : DataChannel(
+          /* Store the RNA path as the default label, so that if the animated ID cannot be found,
+             there is at least something recognisable to show. */
+          fcurve.rna_path(),
+          DataChannelType::FCURVE)
 {
   this->source_ = RNA_pointer_create_discrete(&containing_action.id, RNA_FCurve, &fcurve);
 }
@@ -228,17 +233,6 @@ void DataChannel::set_tags(const ChannelTagStack &tags)
   this->tags_ = tags.as_set();
 }
 
-ChannelTag *DataChannel::get_tag(ChannelTagType tag_type)
-{
-  /* TODO store in map so we don't have to search here. */
-  for (const ChannelTag &tag : this->tags_) {
-    if (tag.tag_type() == tag_type) {
-      return const_cast<ChannelTag *>(&tag);
-    }
-  }
-  return nullptr;
-}
-
 template<> FCurve *DataChannel::get_source<FCurve>() const
 {
   BLI_assert(this->source_type_ == DataChannelType::FCURVE);
@@ -250,6 +244,24 @@ template<> GreasePencilLayer *DataChannel::get_source<GreasePencilLayer>() const
   BLI_assert(this->source_type_ == DataChannelType::GREASE_PENCIL);
   return static_cast<GreasePencilLayer *>(this->source_.data);
 }
+
+const ChannelTag *DataChannel::get_tag(const ChannelTagType tag_type) const
+{
+  /* TODO store in map so we don't have to search here. */
+  for (const ChannelTag &tag : this->tags_) {
+    if (tag.tag_type() == tag_type) {
+      return &tag;
+    }
+  }
+  return nullptr;
+}
+
+ChannelTag *DataChannel::get_tag(const ChannelTagType tag_type)
+{
+  return const_cast<ChannelTag *>(const_cast<const DataChannel *>(this)->get_tag(tag_type));
+}
+
+/* ===== F-Curve Channel ===== */
 
 void FCurveChannel::gather_channeldata()
 {
@@ -280,6 +292,34 @@ void FCurveChannel::set_selected(const bool is_selected)
   FCurve *fcu = this->get_source<FCurve>();
   flag_update(fcu->flag, FCURVE_SELECTED, is_selected);
 }
+
+StringRef FCurveChannel::label() const
+{
+  const ID *animated_id = this->find_animated_id_from_tags();
+  if (!animated_id) {
+    // TODO: getname_anim_fcurve_for_slot() can come to the rescue here.
+    return this->label_;
+  }
+
+  char local_label[1024];
+  if (getname_anim_fcurve(local_label, const_cast<ID *>(animated_id), this->get_source<FCurve>()))
+  {
+    this->label_ = local_label;
+  }
+
+  return this->label_;
+}
+
+const ID *FCurveChannel::find_animated_id_from_tags() const
+{
+  const ChannelTag *id_tag = this->get_tag(ChannelTagType::ID);
+  if (!id_tag) {
+    return nullptr;
+  }
+  return id_tag->source_data().data_as<ID>();
+}
+
+/* ===== GreasePencil Channel ===== */
 
 void GreasePencilChannel::gather_channeldata()
 {

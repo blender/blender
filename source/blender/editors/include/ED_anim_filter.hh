@@ -138,7 +138,9 @@ class AnimationChannel {
  protected:
   AnimationChannelType type_ = AnimationChannelType::UNKNOWN;
   AnimationChannelFlags flags_ = ANIM_CHANNEL_DIRTY;
-  std::string label_;
+  /* Mutable so that a call to label() can store its result. Labels should NOT be used as
+   * identifier/key for AnimationChannel instances. */
+  mutable std::string label_;
   PointerRNA source_;
   Vector<KeyPoint> datapoints_;
 
@@ -162,7 +164,7 @@ class AnimationChannel {
   {
     return this->type_;
   }
-  StringRef label() const
+  virtual StringRef label() const
   {
     return this->label_;
   }
@@ -253,6 +255,7 @@ class DataChannel : public AnimationChannel {
    * Makes a local copy of the tag elements.
    */
   void set_tags(const ChannelTagStack &tags);
+  const ChannelTag *get_tag(ChannelTagType tag_type) const;
   ChannelTag *get_tag(ChannelTagType tag_type);
   template<typename T> T *get_source() const;
 };
@@ -264,8 +267,12 @@ class FCurveChannel : public DataChannel {
   bool is_selected() const override;
   void set_selected(bool is_selected) override;
 
+  /** Construct a label for the F-Curve, depending on its tags. */
+  StringRef label() const override;
+
  protected:
   void gather_channeldata() override;
+  const ID *find_animated_id_from_tags() const;
 };
 
 class GreasePencilChannel : public DataChannel {
@@ -310,9 +317,9 @@ class ChannelArena {
     static_assert(std::is_base_of_v<DataChannel, ChannelType>,
                   "ChannelType must be a subclass of DataChannel");
 
-    /* destruct_ptr<> causes the channel to be destructed when it goes out of scope. That's avoided
-     * here (hence the call to channel.release()) and instead the channels are all destructed when
-     * the ChannelArena itself is destructed. */
+    /* destruct_ptr<> causes the channel to be destructed when it goes out of scope. That's
+     * avoided here (hence the call to channel.release()) and instead the channels are all
+     * destructed when the ChannelArena itself is destructed. */
     destruct_ptr<ChannelType> channel = allocator_.construct<ChannelType>(
         std::forward<ConstructorArgs>(args)...);
     this->data_channels.append(channel.get());
@@ -328,9 +335,9 @@ class ChannelArena {
   template<typename... ConstructorArgs>
   SummaryChannel *allocate_summary_channel(ConstructorArgs &&...args)
   {
-    /* destruct_ptr<> causes the channel to be destructed when it goes out of scope. That's avoided
-     * here (hence the call to channel.release()) and instead the channels are all destructed when
-     * the ChannelArena itself is destructed. */
+    /* destruct_ptr<> causes the channel to be destructed when it goes out of scope. That's
+     * avoided here (hence the call to channel.release()) and instead the channels are all
+     * destructed when the ChannelArena itself is destructed. */
     destruct_ptr<SummaryChannel> channel = allocator_.construct<SummaryChannel>(
         std::forward<ConstructorArgs>(args)...);
     this->summary_channels.append(channel.get());
