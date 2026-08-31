@@ -20,4 +20,4 @@
 	branch = main
 [submodule "lib/android_arm64"]
 	path = lib/android_arm64
-	url = git@git.blender.org:Brainzman/lib-android_arm64.git
+	url = git@git.blender.org:blender/lib-android_arm64.git
