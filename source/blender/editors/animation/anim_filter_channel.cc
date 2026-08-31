@@ -188,7 +188,7 @@ static bool animation_channel_compare_function(const AnimationChannel *channel_a
     return channel_a->sorting_priority() > channel_b->sorting_priority();
   }
 
-  return channel_a->label() < channel_b->label();
+  return false;
 }
 
 void SummaryChannel::sort_children()

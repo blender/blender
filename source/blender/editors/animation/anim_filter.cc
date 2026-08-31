@@ -4233,6 +4233,10 @@ void group_channels(ChannelArena &arena,
       potentially_splittable_summaries.remove_first_occurrence_and_reorder(summary);
     }
   }
+
+  for (SummaryChannel *channel : arena.summary_channels) {
+    channel->sort_children();
+  }
 }
 
 }  // namespace ed::animfilter
