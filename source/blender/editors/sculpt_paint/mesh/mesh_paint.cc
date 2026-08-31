@@ -308,7 +308,7 @@ static void do_tiled(const Depsgraph &depsgraph,
 
   /* First do the "un-tiled" position to initialize the stroke for this location. */
   cache->tile_pass = 0;
-  action_fn(depsgraph, scene, brush, object, nullptr);
+  action_fn(depsgraph, scene, brush, object, paint_mode_data);
 
   /* Now do it for all the tiles. */
   copy_v3_v3_int(cur, start);
