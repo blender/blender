@@ -1,9 +1,9 @@
 
 msgid ""
 msgstr ""
-"Project-Id-Version: Blender 5.3.0 Alpha (b'09417042a1fa')\n"
+"Project-Id-Version: Blender 5.3.0 Alpha (b'32296898e057')\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-08-24 07:38+0000\n"
+"POT-Creation-Date: 2026-08-31 07:41+0000\n"
 "PO-Revision-Date: 2025-11-14 10:59+0000\n"
 "Last-Translator: Isaac Gicheha <shwaky3@gmail.com>\n"
 "Language-Team: Swahili <https://translate.blender.org/projects/blender-ui/ui/sw/>\n"
@@ -3232,6 +3232,10 @@ msgid "ID Type"
 msgstr "Aina ya Kitambulisho"
 
 
+msgid "Active Asset Library"
+msgstr "Maktaba ya Mali Inayotumika"
+
+
 msgid "Dirty"
 msgstr "Mchafu"
 
@@ -6437,6 +6441,14 @@ msgstr "Vipengele vya Njia ya Rangi"
 
 msgid "Collection of Color Ramp Elements"
 msgstr "Mkusanyiko wa Vipengele vya Njia ya Rangi"
+
+
+msgid "Identifier"
+msgstr "Kitambulisho"
+
+
+msgid "Consistent identifier used for the item"
+msgstr "Kitambulisho thabiti kinachotumika kwa kipengee"
 
 
 msgid "Console Input"
@@ -10766,10 +10778,6 @@ msgstr "Ufafanuzi wa chaguo katika mali ya RNA enum"
 
 msgid "Description of the item's purpose"
 msgstr "Maelezo ya madhumuni ya bidhaa"
-
-
-msgid "Identifier"
-msgstr "Kitambulisho"
 
 
 msgid "Unique name used in the code and scripting"
@@ -25383,10 +25391,6 @@ msgid "Index Switch Item"
 msgstr "Kipengee cha Kubadilisha Fahirisi"
 
 
-msgid "Consistent identifier used for the item"
-msgstr "Kitambulisho thabiti kinachotumika kwa kipengee"
-
-
 msgid "2D Integer Vector Attribute Value"
 msgstr "2D Thamani ya Sifa ya Vekta Nambari"
 
@@ -28250,12 +28254,12 @@ msgid "Utilities"
 msgstr "Huduma"
 
 
-msgid "Navigation"
-msgstr "Urambazaji"
-
-
 msgid "Deprecated"
 msgstr "Imeacha kutumika"
+
+
+msgid "Navigation"
+msgstr "Urambazaji"
 
 
 msgid "Math"
@@ -43149,6 +43153,11 @@ msgid "Install Theme..."
 msgstr "Sakinisha Mandhari..."
 
 
+msgctxt "Operator"
+msgid "Add Asset Library"
+msgstr "Ongeza Maktaba ya Mali"
+
+
 msgid "Add an Integrator Preset"
 msgstr "Ongeza Uwekaji Awali wa Kiunganisha"
 
@@ -46231,8 +46240,8 @@ msgstr "Onyesha menyu ya muktadha wa kihariri cha mali"
 
 
 msgctxt "Operator"
-msgid "Accept"
-msgstr "Kubali"
+msgid "Select Directory"
+msgstr "Chagua Saraka"
 
 
 msgid "Open a directory browser, hold Shift to open the file, Alt to browse containing directory"
@@ -50343,11 +50352,6 @@ msgstr "(De) chagua Faili Zote"
 
 msgid "Select or deselect all files"
 msgstr "Chagua au acha kuchagua faili zote"
-
-
-msgctxt "Operator"
-msgid "Select Directory"
-msgstr "Chagua Saraka"
 
 
 msgid "Select a bookmarked directory"
@@ -63500,11 +63504,6 @@ msgid "Remove existing template with the same ID"
 msgstr "Ondoa kiolezo kilichopo na kitambulisho sawa"
 
 
-msgctxt "Operator"
-msgid "Add Asset Library"
-msgstr "Ongeza Maktaba ya Mali"
-
-
 msgid "Add a directory to be used by the Asset Browser as source of assets"
 msgstr "Ongeza saraka itakayotumiwa na Kivinjari cha Mali kama chanzo cha mali"
 
@@ -64615,6 +64614,10 @@ msgstr "Skrini Mpya"
 
 msgid "Add a new screen"
 msgstr "Ongeza skrini mpya"
+
+
+msgid "Active Section"
+msgstr "Sehemu Inayotumika"
 
 
 msgctxt "Operator"
@@ -74193,10 +74196,6 @@ msgid "Global preferences"
 msgstr "Mapendeleo ya kimataifa"
 
 
-msgid "Active Section"
-msgstr "Sehemu Inayotumika"
-
-
 msgid "Application Template"
 msgstr "Kiolezo cha Maombi"
 
@@ -74784,10 +74783,6 @@ msgstr "Faharasa ya hazina ya viendelezi inayohaririwa katika UI ya Mapendeleo"
 
 msgid "Extension Repositories"
 msgstr "Hazina za Ugani"
-
-
-msgid "Active Asset Library"
-msgstr "Maktaba ya Mali Inayotumika"
 
 
 msgid "Index of the asset library being edited in the Preferences UI"
@@ -76383,6 +76378,10 @@ msgstr "Thamani ya Mfuatano"
 
 msgid "RNA wrapped string"
 msgstr "Kamba iliyofungwa ya RNA"
+
+
+msgid "Subtype"
+msgstr "Aina ndogo"
 
 
 msgid "Property Definition"
@@ -89832,46 +89831,6 @@ msgstr "3D Tazama Zana: Badilisha (rudi nyuma)"
 
 
 msgctxt "WindowManager"
-msgid "Generic Tool: Annotate"
-msgstr "Zana ya Jenerali: Fafanua"
-
-
-msgctxt "WindowManager"
-msgid "Generic Tool: Annotate (fallback)"
-msgstr "Zana ya Jumla: Fafanua (rudi nyuma)"
-
-
-msgctxt "WindowManager"
-msgid "Generic Tool: Annotate Line"
-msgstr "Zana ya Jenerali: Mstari wa Dokezo"
-
-
-msgctxt "WindowManager"
-msgid "Generic Tool: Annotate Line (fallback)"
-msgstr "Zana ya Jenerali: Mstari wa Maelezo (rudi nyuma)"
-
-
-msgctxt "WindowManager"
-msgid "Generic Tool: Annotate Polygon"
-msgstr "Zana ya Jumla: Pembe mbiu ya Maelezo"
-
-
-msgctxt "WindowManager"
-msgid "Generic Tool: Annotate Polygon (fallback)"
-msgstr "Zana ya Jumla: Pembe ya Ufafanuzi (rudi nyuma)"
-
-
-msgctxt "WindowManager"
-msgid "Generic Tool: Annotate Eraser"
-msgstr "Zana ya Jumla: Kifutio cha Ufafanuzi"
-
-
-msgctxt "WindowManager"
-msgid "Generic Tool: Annotate Eraser (fallback)"
-msgstr "Zana ya Jumla: Kifutio cha Maelezo (rudi nyuma)"
-
-
-msgctxt "WindowManager"
 msgid "3D View Tool: Measure"
 msgstr "3D Tazama Zana: Pima"
 
@@ -91627,6 +91586,26 @@ msgstr "Mfano wa Hoja"
 msgctxt "WindowManager"
 msgid "Mesh Filter Modal Map"
 msgstr "Ramani ya Njia ya Kichujio cha Mesh"
+
+
+msgctxt "WindowManager"
+msgid "Generic Tool: Annotate"
+msgstr "Zana ya Jenerali: Fafanua"
+
+
+msgctxt "WindowManager"
+msgid "Generic Tool: Annotate Line"
+msgstr "Zana ya Jenerali: Mstari wa Dokezo"
+
+
+msgctxt "WindowManager"
+msgid "Generic Tool: Annotate Polygon"
+msgstr "Zana ya Jumla: Pembe mbiu ya Maelezo"
+
+
+msgctxt "WindowManager"
+msgid "Generic Tool: Annotate Eraser"
+msgstr "Zana ya Jumla: Kifutio cha Ufafanuzi"
 
 
 msgid "Multiple add-ons with the same name found!"
@@ -104621,10 +104600,6 @@ msgid "Menu Undefined"
 msgstr "Menyu Haijafafanuliwa"
 
 
-msgid "Subtype"
-msgstr "Aina ndogo"
-
-
 msgid "Could not determine type of group node"
 msgstr "Haikuweza kubainisha aina ya nodi za kikundi"
 
@@ -106720,6 +106695,10 @@ msgid "Attribute per point/vertex"
 msgstr "Sifa kwa kila nukta/vertex"
 
 
+msgid "Asset Library not found"
+msgstr "Maktaba ya Mali haipatikani"
+
+
 msgid "Layer '%s' not found in object '%s'"
 msgstr "Tabaka '%s' halipatikani katika kitu '%s'"
 
@@ -107576,10 +107555,6 @@ msgstr "Paneli za mpangilio haziwezi kutumika katika muktadha huu"
 
 msgid "Script directory not found"
 msgstr "Saraka ya hati haipatikani"
-
-
-msgid "Asset Library not found"
-msgstr "Maktaba ya Mali haipatikani"
 
 
 msgid "Extension repository not found"

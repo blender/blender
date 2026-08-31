@@ -1,9 +1,9 @@
 
 msgid ""
 msgstr ""
-"Project-Id-Version: Blender 5.3.0 Alpha (b'09417042a1fa')\n"
+"Project-Id-Version: Blender 5.3.0 Alpha (b'32296898e057')\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-08-24 07:38+0000\n"
+"POT-Creation-Date: 2026-08-31 07:41+0000\n"
 "PO-Revision-Date: 2025-07-23 15:13+0000\n"
 "Last-Translator: Anonymous <noreply@weblate.org>\n"
 "Language-Team: Basque <https://translate.blender.org/projects/blender-ui/ui/eu/>\n"
@@ -717,6 +717,11 @@ msgstr "(Dokumentatu gabeko operadorea)"
 
 
 msgctxt "Operator"
+msgid "Select Directory"
+msgstr "Direktorioa hautatu"
+
+
+msgctxt "Operator"
 msgid "Set Origin"
 msgstr "Jatorria Ezarri"
 
@@ -1066,11 +1071,6 @@ msgstr "(Ez)hautatu fitxategi guztiak"
 
 msgid "Select or deselect all files"
 msgstr "Hautatu edo ez-hautatu fitxategi guztiak"
-
-
-msgctxt "Operator"
-msgid "Select Directory"
-msgstr "Direktorioa hautatu"
 
 
 msgid "Next"

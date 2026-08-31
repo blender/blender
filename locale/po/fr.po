@@ -1,10 +1,10 @@
 
 msgid ""
 msgstr ""
-"Project-Id-Version: Blender 5.3.0 Alpha (b'09417042a1fa')\n"
+"Project-Id-Version: Blender 5.3.0 Alpha (b'32296898e057')\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-08-24 07:38+0000\n"
-"PO-Revision-Date: 2026-08-15 19:13+0000\n"
+"POT-Creation-Date: 2026-08-31 07:41+0000\n"
+"PO-Revision-Date: 2026-08-30 01:08+0000\n"
 "Last-Translator: Damien Picard <dam.pic@free.fr>\n"
 "Language-Team: French <https://translate.blender.org/projects/blender-ui/ui/fr/>\n"
 "Language: fr\n"
@@ -2044,6 +2044,14 @@ msgid "When \"Follow Asset or Preferences\" is selected for the import method in
 msgstr "Quand « Selon l’asset ou les préférences » est sélectionné comme méthode d’import dans l’explorateur d’assets, utiliser la méthode d’import privilégiée par cet asset"
 
 
+msgid "Webpage"
+msgstr "Page web"
+
+
+msgid "WebpageWeb-address to a page with more information about this asset"
+msgstr "Adresse web d’une page présentant plus d’informations sur cet asset"
+
+
 msgid "Asset Representation"
 msgstr "Représentation d’asset"
 
@@ -3989,16 +3997,36 @@ msgid "A color space, view or display was not found, which likely means the Open
 msgstr "Un espace de couleur, vue ou affichage n’a pas été trouvé, ce qui signifie sans doute que la config OpenColorIO utilisée pour créer ce fichier blend est introuvable"
 
 
+msgctxt "Color Management"
+msgid "Working Space"
+msgstr "Espace de travail"
+
+
 msgid "Color space used for all scene linear colors in this file, and for compositing, shader and geometry nodes processing"
 msgstr "Espace de couleur utilisé pour toutes les couleurs linéaires de scène dans ce fichier, et pour le traitement du compositing des shaders et des Geometry Nodes"
+
+
+msgctxt "Color Management"
+msgid "Linear Rec.709"
+msgstr "Rec. 709 linéaire"
 
 
 msgid "Linear BT.709 with illuminant D65 white point"
 msgstr "BT.709 linéaire avec pour point blanc l’illuminant D65"
 
 
+msgctxt "Color Management"
+msgid "Linear Rec.2020"
+msgstr "Rec. 2020 linéaire"
+
+
 msgid "Linear BT.2020 with illuminant D65 white point"
 msgstr "BT.2020 linéaire avec pour point blanc l’illuminant D65"
+
+
+msgctxt "Color Management"
+msgid "ACEScg"
+msgstr "ACEScg"
 
 
 msgid "Linear AP1 with ACES white point"
@@ -4210,16 +4238,12 @@ msgid "Collection of source libraries, i.e. blendfile paths"
 msgstr "Collection de bibliothèques sources, c’est-à-dire des chemins de fichiers blend"
 
 
-msgid "Blendfile Import Context Library"
-msgstr "Bibliothèque de contexte d’import de fichier blend"
-
-
-msgid "Library (blendfile) reference in a BlendImportContext data. Currently only exposed as read-only data for the pre/post blendimport handlers"
-msgstr "Référence à une bibliothèque (fichier blend) dans une donnée BlendImportContext. Actuellement exposé seulement comme données en lecture seule pour les handlers blendimport pre/post"
-
-
 msgid "Blender Project"
 msgstr "Projet Blender"
+
+
+msgid "Active Asset Library"
+msgstr "Bibliothèque d’assets active"
 
 
 msgid "Dirty"
@@ -7832,8 +7856,18 @@ msgid "Color management specific to display device"
 msgstr "Gestion de couleur spécifique au périphérique d’affichage"
 
 
+msgctxt "Color Management"
+msgid "Display"
+msgstr "Affichage"
+
+
 msgid "Display name. For viewing, this is the display device that will be emulated by limiting the gamut and HDR colors. For image and video output, this is the display space used for writing."
 msgstr "Nom de l’affichage. Pour le visionnage, il s’agit du périphérique d’affichage qui sera émulé en limitant le gamut et les couleurs HDR. Pour les sorties images et vidéos, c’est l’espace d’affichage utilisé à l’écriture."
+
+
+msgctxt "Color Management"
+msgid "None"
+msgstr "Aucun"
 
 
 msgid "Display Emulation"
@@ -7864,228 +7898,513 @@ msgid "Treat image as non-color data without color management, like normal or di
 msgstr "Traiter l’image comme des données non-couleurs, sans gestion colorimétrique, comme les cartes de normales ou de déplacement"
 
 
+msgctxt "Color Management"
+msgid "Input Color Space"
+msgstr "Espace de couleur d’entrée"
+
+
 msgid "Color space in the image file, to convert to and from when saving and loading the image"
 msgstr "Espace de couleur dans le fichier image, à convertir vers/depuis quand l’image est enregistrée ou chargée"
+
+
+msgctxt "Color Management"
+msgid "ACES 1.3 sRGB"
+msgstr "ACES 1.3 sRGB"
 
 
 msgid "ACES 1.3 view transform for sRGB. May be used to convert backplates or matte paintings to the working space."
 msgstr "Transformation de vue ACES 1.3 pour sRGB. Peut être utilisée pour convertir des backplates ou des matte paintings vers l’espace de travail."
 
 
+msgctxt "Color Management"
+msgid "ACES 2.0 sRGB"
+msgstr "ACES 2.0 sRGB"
+
+
 msgid "ACES 2.0 view transform for sRGB. May be used to convert backplates or matte paintings to the working space."
 msgstr "Transformation de vue ACES 2.0 pour sRGB. Peut être utilisée pour convertir des backplates ou des matte paintings vers l’espace de travail."
+
+
+msgctxt "Color Management"
+msgid "ACES2065-1"
+msgstr "ACES2065-1"
 
 
 msgid "Linear AP0 with ACES white point"
 msgstr "AP0 linéaire avec point blanc ACES"
 
 
+msgctxt "Color Management"
+msgid "ACEScc"
+msgstr "ACEScc"
+
+
 msgid "ACES color correction space, using AP1 primaries."
 msgstr "Espace de correction de couleur ACES, utilisant les primaires AP1."
+
+
+msgctxt "Color Management"
+msgid "ACEScct"
+msgstr "ACEScct"
 
 
 msgid "ACES color correction space with toe, using AP1 primaries."
 msgstr "Espace de correction de couleur ACES avec « pied », utilisant les primaires AP1."
 
 
+msgctxt "Color Management"
+msgid "ADX10"
+msgstr "ADX10"
+
+
 msgid "Film scan input space using ADX10 encoding."
 msgstr "Espace d’entrée de scan pellicule utilisant l’encodage ADX10."
+
+
+msgctxt "Color Management"
+msgid "ADX16"
+msgstr "ADX16"
 
 
 msgid "Film scan input space using ADX16 encoding."
 msgstr "Espace d’entrée de scan pellicule utilisant l’encodage ADX16."
 
 
+msgctxt "Color Management"
+msgid "ARRI LogC3 (EI800)"
+msgstr "ARRI LogC3 (EI800)"
+
+
 msgid "ARRI camera input space using LogC3 (EI800) transfer function and ARRI Wide Gamut primaries."
 msgstr "Espace d’entrée de caméra ARRI utilisant la fonction de transfert LogC3 (EI800) et les primaires ARRI Wide Gamut."
+
+
+msgctxt "Color Management"
+msgid "ARRI LogC4"
+msgstr "ARRI LogC4"
 
 
 msgid "ARRI camera input space using LogC4 transfer function and ARRI Wide Gamut 4 primaries."
 msgstr "Espace d’entrée de caméra ARRI utilisant la fonction de transfert LogC4 et les primaires ARRI Wide Gamut 4."
 
 
+msgctxt "Color Management"
+msgid "AgX Base sRGB"
+msgstr "AgX Base sRGB"
+
+
 msgid "AgX view transform for sRGB. May be used to convert backplates or matte paintings to the working space."
 msgstr "Transformation de vue AgX pour sRGB. Peut être utilisée pour convertir des backplates ou des matte paintings vers l’espace de travail."
+
+
+msgctxt "Color Management"
+msgid "AgX Log"
+msgstr "AgX Log"
 
 
 msgid "Log Encoding with Chroma inset and rotation of primaries, and with 25 Stops of Dynamic Range"
 msgstr "Encodage log avec rétrécissement et rotation chroma des couleurs primaires, et 25 stops de gamme dynamique"
 
 
+msgctxt "Color Management"
+msgid "Apple Log"
+msgstr "Apple Log"
+
+
 msgid "Apple camera input space using Apple Log transfer function and Rec.2020 primaries."
 msgstr "Espace d’entrée de caméra Apple utilisant la fonction de transfert Apple Log et les primaires Rec. 2020."
+
+
+msgctxt "Color Management"
+msgid "Apple Log 2"
+msgstr "Apple Log 2"
 
 
 msgid "Apple camera input space using Apple Log transfer function and Apple Wide Gamut primaries."
 msgstr "Espace d’entrée de caméra Apple utilisant la fonction de transfert Apple Log et les primaires Apple Wide Gamut."
 
 
+msgctxt "Color Management"
+msgid "BMDFilm WideGamut Gen5"
+msgstr "BMDFilm WideGamut Gen5"
+
+
 msgid "Blackmagic camera input space using BMDFilm Gen5 transfer function and Blackmagic Wide Gamut Gen5 primaries."
 msgstr "Espace d’entrée de caméra Blackmagic utilisant la fonction de transfert BMDFilm Gen5 et les primaires Blackmagic Wide Gamut Gen5."
+
+
+msgctxt "Color Management"
+msgid "CanonLog2 CinemaGamut D55"
+msgstr "CanonLog2 CinemaGamut D55"
 
 
 msgid "Canon camera input space using Canon-Log2 transfer function and Cinema Gamut primaries."
 msgstr "Espace d’entrée de caméra Canon utilisant la fonction de transfert Canon-Log2 et les primaires Cinema Gamut."
 
 
+msgctxt "Color Management"
+msgid "CanonLog3 CinemaGamut D55"
+msgstr "CanonLog3 CinemaGamut D55"
+
+
 msgid "Canon camera input space using Canon-Log3 transfer function and Cinema Gamut primaries."
 msgstr "Espace d’entrée de caméra Canon utilisant la fonction de transfert Canon-Log3 et les primaires Cinema Gamut."
+
+
+msgctxt "Color Management"
+msgid "D-Log D-Gamut"
+msgstr "D-Log D-Gamut"
 
 
 msgid "DJI camera input space using D-Log transfer function and D-Gamut primaries."
 msgstr "Espace d’entrée de caméra DJI utilisant la fonction de transfert D-Log et les primaires D-Gamut."
 
 
+msgctxt "Color Management"
+msgid "DaVinci Intermediate WideGamut"
+msgstr "DaVinci Intermediate WideGamut"
+
+
 msgid "Blackmagic camera input space using DaVinci Intermediate transfer function and DaVinci Wide Gamut primaries."
 msgstr "Espace d’entrée de caméra Blackmagic utilisant la fonction de transfert DaVinci Intermediate et les primaires DaVinci Wide Gamut."
+
+
+msgctxt "Color Management"
+msgid "Display P3"
+msgstr "Display P3"
 
 
 msgid "Apple's Display P3 with sRGB compound (piece-wise) encoding transfer function, common on Mac devices"
 msgstr "Display P3 d’Apple avec fonction de transfert d’encodage sRGB composée (continue par morceaux), courant sur les appareils Apple"
 
 
+msgctxt "Color Management"
+msgid "Filmic Log"
+msgstr "Filmic Log"
+
+
 msgid "Log based filmic shaper with 16.5 stops of latitude, and 25 stops of dynamic range"
 msgstr "Formante basée sur Filmic avec 16,5 stops de latitude et 25 stops de gamme dynamique"
+
+
+msgctxt "Color Management"
+msgid "Filmic sRGB"
+msgstr "Filmic sRGB"
 
 
 msgid "Filmic view transform for sRGB. May be used to convert backplates or matte paintings to the working space."
 msgstr "Transformation de vue Filmic pour sRGB. Peut être utilisée pour convertir des backplates ou des matte paintings vers l’espace de travail."
 
 
+msgctxt "Color Management"
+msgid "Gamma 1.8 Encoded Rec.709"
+msgstr "Rec. 709 encodé en gamma 1.8"
+
+
 msgid "1.8 gamma-encoded Rec.709 with illuminant D65 white point. For use with scene-referred textures."
 msgstr "Rec. 709 encodé en gamma 1.8 avec point blanc de l’illuminant D65. À utiliser avec des textures en référence scène."
+
+
+msgctxt "Color Management"
+msgid "Gamma 2.2 Encoded AP1"
+msgstr "AP1 encodé en gamma 2.2"
 
 
 msgid "2.2 gamma-encoded AP1 with ACES white point. For use with scene-referred textures."
 msgstr "AP1 encodé en gamma 2.2 avec point blanc ACES. À utiliser avec des textures en référence scène."
 
 
+msgctxt "Color Management"
+msgid "Gamma 2.2 Encoded AdobeRGB"
+msgstr "AdobeRGB encodé en gamma 2.2"
+
+
 msgid "2.2 gamma-encoded Adobe RGB (1998) with illuminant D65 white point. For use with scene-referred textures."
 msgstr "Adobe RGB (1998) encodé en gamma 2.2 avec point blanc de l’illuminant D65. À utiliser avec des textures en référence scène."
+
+
+msgctxt "Color Management"
+msgid "Gamma 2.2 Encoded Rec.709"
+msgstr "Rec. 709 encodé en gamma 2.2"
 
 
 msgid "2.2 gamma-encoded Rec.709 with illuminant D65 white point. For use with scene-referred textures."
 msgstr "Rec. 709 encodé en gamma 2.2 avec point blanc de l’illuminant D65. À utiliser avec des textures en référence scène."
 
 
+msgctxt "Color Management"
+msgid "Gamma 2.4 Encoded Rec.709"
+msgstr "Rec. 709 encodé en gamma 2.4"
+
+
 msgid "2.4 gamma-encoded Rec.709 with illuminant D65 white point. For use with scene-referred textures."
 msgstr "Rec. 709 encodé en gamma 2.4 avec point blanc de l’illuminant D65. À utiliser avec des textures en référence scène."
+
+
+msgctxt "Color Management"
+msgid "Khronos PBR Neutral sRGB"
+msgstr "Khronos PBR Neutral sRGB"
 
 
 msgid "Khronos PBR Neutral view transform for sRGB. May be used to convert backplates or matte paintings to the working space."
 msgstr "Transformation de vue Khronos PBR Neutral pour sRGB. Peut être utilisée pour convertir des backplates ou des matte paintings vers l’espace de travail."
 
 
+msgctxt "Color Management"
+msgid "Linear ARRI Wide Gamut 3"
+msgstr "ARRI Wide Gamut 3 linéaire"
+
+
 msgid "ARRI camera input space using linear ARRI Wide Gamut primaries."
 msgstr "Espace d’entrée de caméra ARRI utilisant les primaires ARRI Wide Gamut linéaires."
+
+
+msgctxt "Color Management"
+msgid "Linear ARRI Wide Gamut 4"
+msgstr "ARRI Wide Gamut 4 linéaire"
 
 
 msgid "ARRI camera input space using linear ARRI Wide Gamut 4 primaries."
 msgstr "Espace d’entrée de caméra ARRI utilisant les primaires ARRI Wide Gamut 4 linéaires."
 
 
+msgctxt "Color Management"
+msgid "Linear Adobe RGB"
+msgstr "Adobe RGB linéaire"
+
+
 msgid "Linear Adobe RGB (1998) with illuminant D65 white point. For use with scene-referred textures."
 msgstr "Adobe RGB (1998) linéaire avec point blanc de l’illuminant D65. À utiliser avec des textures en référence scène."
+
+
+msgctxt "Color Management"
+msgid "Linear Apple Wide Gamut"
+msgstr "Apple Wide Gamut linéaire"
 
 
 msgid "Apple camera input space using linear Apple Wide Gamut primaries."
 msgstr "Espace d’entrée de caméra Apple utilisant les primaires Apple Wide Gamut linéaire."
 
 
+msgctxt "Color Management"
+msgid "Linear BMD WideGamut Gen5"
+msgstr "BMD WideGamut Gen5 linéaire"
+
+
 msgid "Blackmagic camera input space using linear Blackmagic Wide Gamut Gen5 primaries."
 msgstr "Espace d’entrée de caméra Blackmagic utilisant les primaires Blackmagic Wide Gamut Gen5 linéaires."
+
+
+msgctxt "Color Management"
+msgid "Linear CIE-XYZ D65"
+msgstr "CIE-XYZ D65 linéaire"
 
 
 msgid "1931 CIE XYZ with adapted illuminant D65 white point"
 msgstr "CIE XYZ 1931 avec un point blanc adapté de l’illuminant D65"
 
 
+msgctxt "Color Management"
+msgid "Linear CIE-XYZ E"
+msgstr "CIE-XYZ E linéaire"
+
+
 msgid "1931 CIE XYZ standard with assumed illuminant E white point"
 msgstr "Norme CIE XYZ 1931 avec pour point blanc présumé l’illuminant E"
+
+
+msgctxt "Color Management"
+msgid "Linear CinemaGamut D55"
+msgstr "CinemaGamut D55 linéaire"
 
 
 msgid "Canon camera input space using linear Cinema Gamut primaries."
 msgstr "Espace d’entrée de caméra Canon utilisant les primaires Cinema Gamut linéaires."
 
 
+msgctxt "Color Management"
+msgid "Linear D-Gamut"
+msgstr "D-Gamut linéaire"
+
+
 msgid "DJI camera input space using linear D-Gamut primaries."
 msgstr "Espace d’entrée de caméra DJI utilisant les primaires D-Gamut linéaires."
+
+
+msgctxt "Color Management"
+msgid "Linear DCI-P3 D65"
+msgstr "DCI-P3 D65 linéaire"
 
 
 msgid "Linear DCI-P3 with illuminant D65 white point"
 msgstr "DCI-P3 linéaire avec pour point blanc l’illuminant D65"
 
 
+msgctxt "Color Management"
+msgid "Linear DaVinci WideGamut"
+msgstr "DaVinci WideGamut linéaire"
+
+
 msgid "Blackmagic camera input space using linear DaVinci Wide Gamut primaries."
 msgstr "Espace d’entrée de caméra Blackmagic utilisant les primaires DaVinci Wide Gamut linéaires."
+
+
+msgctxt "Color Management"
+msgid "Linear FilmLight E-Gamut"
+msgstr "FilmLight E-Gamut linéaire"
 
 
 msgid "Linear E-Gamut with illuminant D65 white point"
 msgstr "E-Gamut linéaire avec pour point blanc l’illuminant D65"
 
 
+msgctxt "Color Management"
+msgid "Linear REDWideGamutRGB"
+msgstr "REDWideGamutRGB linéaire"
+
+
 msgid "RED camera input space using linear REDWideGamutRGB primaries."
 msgstr "Espace d’entrée de caméra RED utilisant les primaires REDWideGamutRGB linéaires."
+
+
+msgctxt "Color Management"
+msgid "Linear S-Gamut3"
+msgstr "S-Gamut3 linéaire"
 
 
 msgid "Sony camera input space using linear S-Gamut3 primaries."
 msgstr "Espace d’entrée de caméra Sony utilisant les primaires S-Gamut3 linéaires."
 
 
+msgctxt "Color Management"
+msgid "Linear S-Gamut3.Cine"
+msgstr "S-Gamut3.Cine linéaire"
+
+
 msgid "Sony camera input space using linear S-Gamut3.Cine primaries."
 msgstr "Espace d’entrée de caméra Sony utilisant les primaires S-Gamut3.Cine linéaires."
+
+
+msgctxt "Color Management"
+msgid "Linear V-Gamut"
+msgstr "V-Gamut linéaire"
 
 
 msgid "Panasonic camera input space using linear V-Gamut primaries."
 msgstr "Espace d’entrée de caméra Panasonic utilisant les primaires V-Gamut linéaires."
 
 
+msgctxt "Color Management"
+msgid "Linear Venice S-Gamut3"
+msgstr "Venice S-Gamut3 linéaire"
+
+
 msgid "Sony camera input space using linear Venice S-Gamut3 primaries."
 msgstr "Espace d’entrée de caméra Sony utilisant les primaires Venice S-Gamut3 linéaires."
+
+
+msgctxt "Color Management"
+msgid "Linear Venice S-Gamut3.Cine"
+msgstr "Venice S-Gamut3.Cine linéaire"
 
 
 msgid "Sony camera input space using linear Venice S-Gamut3.Cine primaries."
 msgstr "Espace d’entrée de caméra Sony utilisant les primaires Venice S-Gamut3.Cine linéaires."
 
 
+msgctxt "Color Management"
+msgid "Log3G10 REDWideGamutRGB"
+msgstr "Log3G10 REDWideGamutRGB"
+
+
 msgid "RED camera input space using REDLog3G10 transfer function and REDWideGamutRGB primaries."
 msgstr "Espace d’entrée de caméra RED utilisant la fonction de transfert REDLog3G10 et les primaires REDWideGamutRGB."
+
+
+msgctxt "Color Management"
+msgid "Non-Color"
+msgstr "Non-couleur"
 
 
 msgid "Generic data that is not color, will not apply any color transform (e.g. normal maps)"
 msgstr "Données génériques qui ne sont pas de la couleur, aucune transformation de couleur ne sera appliquée (par exemple les cartes de normales)"
 
 
+msgctxt "Color Management"
+msgid "Rec.1886"
+msgstr "Rec. 1886"
+
+
 msgid "BT.1886 2.4 Exponent EOTF Display, commonly used for TVs"
 msgstr "BT.1886 avec FTEO d’affichage à exposant 2,4, couramment utilisé pour les téléviseurs"
+
+
+msgctxt "Color Management"
+msgid "Rec.2020"
+msgstr "Rec. 2020"
 
 
 msgid "BT.2020 2.4 Exponent EOTF Display"
 msgstr "BT.2020 avec FTEO d’affichage à exposant 2,4"
 
 
+msgctxt "Color Management"
+msgid "Rec.2100-HLG"
+msgstr "Rec. 2100-HLG"
+
+
 msgid "Rec.2100-HLG 1000 nits peak display with reference white at 100 nits"
 msgstr "Affichage Rec. 2100-HLG 1000 nits maximum, avec blanc de référence à 100 nits"
+
+
+msgctxt "Color Management"
+msgid "Rec.2100-PQ"
+msgstr "Rec. 2100-PQ"
 
 
 msgid "Rec.2100-PQ 10000 nits peak display with reference white at 100 nits"
 msgstr "Affichage Rec. 2100-PQ 10000 nits maximum, avec blanc de référence à 100 nits"
 
 
+msgctxt "Color Management"
+msgid "S-Log3 S-Gamut3"
+msgstr "S-Log3 S-Gamut3"
+
+
 msgid "Sony camera input space using S-Log3 transfer function and S-Gamut3 primaries."
 msgstr "Espace d’entrée de caméra Sony utilisant la fonction de transfert S-Log3 et les primaires S-Gamut3."
+
+
+msgctxt "Color Management"
+msgid "S-Log3 S-Gamut3.Cine"
+msgstr "S-Log3 S-Gamut3.Cine"
 
 
 msgid "Sony camera input space using S-Log3 transfer function and S-Gamut3.Cine primaries."
 msgstr "Espace d’entrée de caméra Sony utilisant la fonction de transfert S-Log3 et les primaires S-Gamut3.Cine."
 
 
+msgctxt "Color Management"
+msgid "S-Log3 Venice S-Gamut3"
+msgstr "S-Log3 Venice S-Gamut3"
+
+
 msgid "Sony camera input space using S-Log3 transfer function and Venice S-Gamut3 primaries."
 msgstr "Espace d’entrée de caméra Sony utilisant la fonction de transfert S-Log3 et les primaires Venice S-Gamut3."
 
 
+msgctxt "Color Management"
+msgid "S-Log3 Venice S-Gamut3.Cine"
+msgstr "S-Log3 Venice S-Gamut3.Cine"
+
+
 msgid "Sony camera input space using S-Log3 transfer function and Venice S-Gamut3.Cine primaries."
 msgstr "Espace d’entrée de caméra Sony utilisant la fonction de transfert S-Log3 et les primaires Venice S-Gamut3.Cine."
+
+
+msgctxt "Color Management"
+msgid "V-Log V-Gamut"
+msgstr "V-Log V-Gamut"
 
 
 msgid "Panasonic camera input space using V-Log transfer function and V-Gamut primaries."
@@ -8110,6 +8429,11 @@ msgstr "Espace de couleur de travail du fichier actuel"
 
 msgid "Do not perform any color transform on load, treat colors as in scene linear space already"
 msgstr "N’effectuer aucune transformation colorimétrique au chargement, traiter les couleurs comme étant déjà dans l’espace linéaire de la scène"
+
+
+msgctxt "Color Management"
+msgid "Color Space"
+msgstr "Espace de couleur"
 
 
 msgid "Color space that the sequencer operates in"
@@ -8152,6 +8476,11 @@ msgid "The display and view transform supports high dynamic range colors"
 msgstr "La transformation d’affichage et de vue prend en charge les couleurs à grande gamme dynamique"
 
 
+msgctxt "Color Management"
+msgid "Look"
+msgstr "Aspect"
+
+
 msgid "Additional transform applied before view transform for artistic needs"
 msgstr "Transformation supplémentaire appliquée avant la transformation de la vue, pour des besoins artistiques"
 
@@ -8182,6 +8511,11 @@ msgstr "Utiliser la balance des blancs"
 
 msgid "Perform chromatic adaption from a different white point"
 msgstr "Effectuer une adaptation chromatique depuis un point blanc différent"
+
+
+msgctxt "Color Management"
+msgid "View"
+msgstr "Vue"
 
 
 msgid "View used when converting image to a display space"
@@ -8463,6 +8797,14 @@ msgstr "Éléments du dégradé de couleur"
 
 msgid "Collection of Color Ramp Elements"
 msgstr "Collection d’éléments de dégradé de couleur"
+
+
+msgid "Identifier"
+msgstr "Identifiant"
+
+
+msgid "Consistent identifier used for the item"
+msgstr "Identifiant constant utilisé pour l’élément"
 
 
 msgid "Console Input"
@@ -13166,10 +13508,6 @@ msgstr "Définition d’un choix dans la propriété RNA énum"
 
 msgid "Description of the item's purpose"
 msgstr "Description de l’usage de l’élément"
-
-
-msgid "Identifier"
-msgstr "Identifiant"
 
 
 msgid "Unique name used in the code and scripting"
@@ -21513,20 +21851,40 @@ msgid "Use Unified Color"
 msgstr "Utiliser la couleur unifiée"
 
 
+msgid "Use shared color for this brush"
+msgstr "Utiliser la couleur unifiée pour cette brosse"
+
+
 msgid "Use Unified Input Samples"
 msgstr "Utiliser les échantillons d’entrée unifiés"
+
+
+msgid "Use shared input samples for this brush"
+msgstr "Utiliser les échantillons d’entrée unifiés pour cette brosse"
 
 
 msgid "Use Unified Size"
 msgstr "Utiliser la taille unifiée"
 
 
+msgid "Use shared size for this brush"
+msgstr "Utiliser la taille unifiée pour cette brosse"
+
+
 msgid "Use Unified Strength"
 msgstr "Utiliser la force unifiée"
 
 
+msgid "Use shared strength for this brush"
+msgstr "Utiliser la force unifiée pour cette brosse"
+
+
 msgid "Use Unified Weight"
 msgstr "Utiliser le poids unifié"
+
+
+msgid "Use shared weight for this brush"
+msgstr "Utiliser le poids unifié pour cette brosse"
 
 
 msgid "Use this brush in Grease Pencil vertex color mode"
@@ -26185,6 +26543,14 @@ msgstr "Arborescence de nœuds de compositing"
 
 msgid "Node tree consisting of linked nodes used for compositing"
 msgstr "Arborescence de nœuds faite de nœuds liés, utilisée pour le compositing"
+
+
+msgid "Scene Effect"
+msgstr "Effet de scène"
+
+
+msgid "The node group can be used as a scene compositor effect"
+msgstr "Le groupe de nœuds peut être utilisé comme effet de compositing de la scène"
 
 
 msgid "Strip Modifier"
@@ -31762,10 +32128,6 @@ msgid "Index Switch Item"
 msgstr "Élément de bascule par indice"
 
 
-msgid "Consistent identifier used for the item"
-msgstr "Identifiant constant utilisé pour l’élément"
-
-
 msgid "2D Integer Vector Attribute Value"
 msgstr "Valeur d’attribut de vecteur 2D d’entiers"
 
@@ -35834,12 +36196,12 @@ msgid "Import"
 msgstr "Importer"
 
 
-msgid "Render Preview"
-msgstr "Rendu de prévisualisation"
-
-
 msgid "Mirror"
 msgstr "Miroir"
+
+
+msgid "Render Preview"
+msgstr "Rendu de prévisualisation"
 
 
 msgid "UV Mapping"
@@ -35850,20 +36212,20 @@ msgid "Local View"
 msgstr "Vue locale"
 
 
-msgid "Viewpoint"
-msgstr "Point de vue"
-
-
 msgid "Utilities"
 msgstr "Utilitaires"
 
 
-msgid "Navigation"
-msgstr "Navigation"
+msgid "Viewpoint"
+msgstr "Point de vue"
 
 
 msgid "Deprecated"
 msgstr "Obsolète"
+
+
+msgid "Navigation"
+msgstr "Navigation"
 
 
 msgid "Align View"
@@ -36066,6 +36428,10 @@ msgid "Merge"
 msgstr "Fusionner"
 
 
+msgid "Pivot Point"
+msgstr "Point de pivot"
+
+
 msgid "Special Characters"
 msgstr "Caractères spéciaux"
 
@@ -36076,10 +36442,6 @@ msgstr "Approche"
 
 msgid "Bone Roll"
 msgstr "Roulis de l’os"
-
-
-msgid "Pivot Point"
-msgstr "Point de pivot"
 
 
 msgid "Keyframe Insert Pie"
@@ -36421,10 +36783,6 @@ msgstr "Physique"
 
 msgid "Shadow Linking Specials"
 msgstr "Opérations de liaison d’ombre"
-
-
-msgid "ID Data"
-msgstr "Données ID"
 
 
 msgid "Particle Specials"
@@ -46209,8 +46567,18 @@ msgid "Convert between color spaces"
 msgstr "Convertir entre espaces de couleur"
 
 
+msgctxt "Color Management"
+msgid "From"
+msgstr "Depuis"
+
+
 msgid "Color space of the input image"
 msgstr "Espace de couleur de l’image d’entrée"
+
+
+msgctxt "Color Management"
+msgid "To"
+msgstr "Vers"
 
 
 msgid "Color space of the output image"
@@ -47372,6 +47740,14 @@ msgstr "Formater texte"
 
 msgid "Insert values into a string using a Python and path template compatible formatting syntax"
 msgstr "Insérer des valeurs dans un texte en utilisant une syntaxe de formatage compatible Python et patrons de chemins"
+
+
+msgid "Get Vector Component"
+msgstr "Obtenir un composant de vecteur"
+
+
+msgid "Get the X, Y or Z component of a vector by index"
+msgstr "Obtenir le composant X, Y ou Z d’un vecteur par son indice"
 
 
 msgid "Hash Value"
@@ -56521,6 +56897,11 @@ msgid "Install Theme..."
 msgstr "Installer un thème…"
 
 
+msgctxt "Operator"
+msgid "Add Asset Library"
+msgstr "Ajouter une bibliothèque d’assets"
+
+
 msgid "Create a new project"
 msgstr "Créer un nouveau projet"
 
@@ -60424,8 +60805,8 @@ msgstr "Afficher le menu contextuel de l’éditeur de propriétés"
 
 
 msgctxt "Operator"
-msgid "Accept"
-msgstr "Accepter"
+msgid "Select Directory"
+msgstr "Sélectionner dossier"
 
 
 msgid "Open a directory browser, hold Shift to open the file, Alt to browse containing directory"
@@ -61619,10 +62000,6 @@ msgstr "Invoquer l’opération d’import"
 
 
 msgctxt "Operator"
-msgid "Remove Importer"
-msgstr "Supprimer l’importeur"
-
-
 msgid "Remove Importer"
 msgstr "Supprimer l’importeur"
 
@@ -65252,11 +65629,6 @@ msgstr "(Dé)sélectionner tous les fichiers"
 
 msgid "Select or deselect all files"
 msgstr "(Dé)sélectionner tous les fichiers"
-
-
-msgctxt "Operator"
-msgid "Select Directory"
-msgstr "Sélectionner dossier"
 
 
 msgid "Select a bookmarked directory"
@@ -74496,6 +74868,10 @@ msgid "The 2D view location for the center of the new nodes, or unchanged if not
 msgstr "La position dans la vue 2D du centre des nouveaux nœuds, ou identique si non-défini"
 
 
+msgid "Index to remove"
+msgstr "Indice à supprimer"
+
+
 msgid "Connect active node to the active output node of the node tree"
 msgstr "Connecter le nœud actif au nœud de sortie actif de l’arborescence de nœuds"
 
@@ -74740,10 +75116,6 @@ msgstr "Collapser"
 
 msgid "Toggle collapsing of selected nodes"
 msgstr "(Dés)activer le collapsage des nœuds sélectionnés"
-
-
-msgid "Index to remove"
-msgstr "Indice à supprimer"
 
 
 msgctxt "Operator"
@@ -82122,11 +82494,6 @@ msgid "Remove existing template with the same ID"
 msgstr "Supprimer les patrons existants ayant le même ID"
 
 
-msgctxt "Operator"
-msgid "Add Asset Library"
-msgstr "Ajouter une bibliothèque d’assets"
-
-
 msgid "Add a directory to be used by the Asset Browser as source of assets"
 msgstr "Ajouter un répertoire à utiliser comme source d’assets par l’explorateur d’assets"
 
@@ -83527,6 +83894,10 @@ msgstr "Ouvrir la configuration de projet…"
 
 msgid "Create and manage projects"
 msgstr "Créer et gérer des projets"
+
+
+msgid "Active Section"
+msgstr "Section active"
 
 
 msgctxt "Operator"
@@ -97637,10 +98008,6 @@ msgid "Global preferences"
 msgstr "Préférences globales"
 
 
-msgid "Active Section"
-msgstr "Section active"
-
-
 msgid "Application Template"
 msgstr "Patron d’application"
 
@@ -98392,10 +98759,6 @@ msgstr "Accès en ligne"
 
 msgid "The user has been shown the \"Online Access\" prompt and made a choice"
 msgstr "L’utilisateur a vu l’invite « Accès en ligne » et fait son choix"
-
-
-msgid "Active Asset Library"
-msgstr "Bibliothèque d’assets active"
 
 
 msgid "Index of the asset library being edited in the Preferences UI"
@@ -100048,24 +100411,12 @@ msgid "Catalan - Català"
 msgstr "Catalan – Català"
 
 
-msgid "Locale code: ca_AD. Translation progress: 100%"
-msgstr "Identificateur de culture : ca_AD. Progrès de la traduction : 100%"
-
-
 msgid "Chinese (Simplified) - 简体中文"
 msgstr "Chinois (Simplifié) – 简体中文"
 
 
-msgid "Locale code: zh_HANS. Translation progress: 100%"
-msgstr "Identificateur de culture : zh_HANT. Progrès de la traduction : 100%"
-
-
 msgid "Chinese (Traditional) - 繁體中文"
 msgstr "Chinois (Traditionnel) – 繁體中文"
-
-
-msgid "Locale code: zh_HANT. Translation progress: 60%"
-msgstr "Identificateur de culture : zh_HANT. Progrès de la traduction : 60%"
 
 
 msgid "Croatian - Hrvatski"
@@ -100136,16 +100487,8 @@ msgid "French - Français"
 msgstr "Français"
 
 
-msgid "Locale code: fr_FR. Translation progress: 100%"
-msgstr "Identificateur de culture : fr_FR. Progrès de la traduction : 100%"
-
-
 msgid "Georgian - ქართული"
 msgstr "Géorgien – ქართული"
-
-
-msgid "Locale code: ka. Translation progress: 100%"
-msgstr "Identificateur de culture : ka. Progrès de la traduction : 100%"
 
 
 msgid "German - Deutsch"
@@ -100208,16 +100551,8 @@ msgid "Japanese - 日本語"
 msgstr "Japonais – 日本語"
 
 
-msgid "Locale code: ja_JP. Translation progress: 99%"
-msgstr "Identificateur de culture : ja_JP. Progrès de la traduction : 99%"
-
-
 msgid "Korean - 한국어"
 msgstr "Coréen – 한국어"
-
-
-msgid "Locale code: ko_KR. Translation progress: 93%"
-msgstr "Identificateur de culture : ko_KR. Progrès de la traduction : 93%"
 
 
 msgid "Kyrgyz - Кыргыз тили"
@@ -100264,10 +100599,6 @@ msgid "Polish - Polski"
 msgstr "Polonais – Polski"
 
 
-msgid "Locale code: pl_PL. Translation progress: 100%"
-msgstr "Identificateur de culture : pl_PL. Progrès de la traduction : 100%"
-
-
 msgid "Portuguese (Brazil) - Português brasileiro"
 msgstr "Portugais (Brésil) – Português brasileiro"
 
@@ -100292,10 +100623,6 @@ msgid "Russian - Русский"
 msgstr "Russe – Русский"
 
 
-msgid "Locale code: ru_RU. Translation progress: 100%"
-msgstr "Identificateur de culture : ru_RU. Progrès de la traduction : 100%"
-
-
 msgid "Serbian (Cyrillic) - Српски"
 msgstr "Serbe (Cyrillique) – Српски"
 
@@ -100316,10 +100643,6 @@ msgid "Slovak - Slovenčina"
 msgstr "Slovaque – Slovenčina"
 
 
-msgid "Locale code: sk_SK. Translation progress: 100%"
-msgstr "Identificateur de culture : sk_SK. Progrès de la traduction : 100%"
-
-
 msgid "Slovenian - Slovenščina"
 msgstr "Slovène – Slovenščina"
 
@@ -100332,32 +100655,16 @@ msgid "Spanish - Español"
 msgstr "Espagnol – Español"
 
 
-msgid "Locale code: es. Translation progress: 100%"
-msgstr "Identificateur de culture : eo. Progrès de la traduction : 100%"
-
-
 msgid "Swahili - Kiswahili"
 msgstr "Swahili – Kiswahili"
-
-
-msgid "Locale code: sw. Translation progress: 69%"
-msgstr "Identificateur de culture : sw. Progrès de la traduction : 69%"
 
 
 msgid "Swedish - Svenska"
 msgstr "Suédois – Svenska"
 
 
-msgid "Locale code: sv_SE. Translation progress: 95%"
-msgstr "Identificateur de culture : sv_SE. Progrès de la traduction : 95%"
-
-
 msgid "Tamil - தமிழ்"
 msgstr "Tamoul – தமிழ்"
-
-
-msgid "Locale code: ta. Translation progress: 95%"
-msgstr "Identificateur de culture : ta. Progrès de la traduction : 95%"
 
 
 msgid "Thai - ภาษาไทย"
@@ -100386,10 +100693,6 @@ msgstr "Identificateur de culture : uk_UA. Progrès de la traduction : 54%"
 
 msgid "Urdu - وُدرُا"
 msgstr "Ourdou – وُدرُا"
-
-
-msgid "Locale code: ur. Translation progress: 82%"
-msgstr "Identificateur de culture : ur. Progrès de la traduction : 82%"
 
 
 msgid "Vietnamese - Tiếng Việt"
@@ -100986,6 +101289,10 @@ msgstr "Valeur de chaîne de caractères"
 
 msgid "RNA wrapped string"
 msgstr "Adaptateur RNA de chaîne de caractères"
+
+
+msgid "Subtype"
+msgstr "Sous-type"
 
 
 msgid "Property Definition"
@@ -116799,6 +117106,10 @@ msgid "Synchronize the asset library with a remote URL"
 msgstr "Synchroniser la bibliothèque d’assets avec une URL distante"
 
 
+msgid "UUID"
+msgstr "UUID"
+
+
 msgid "Extension Repository"
 msgstr "Dépôt d’extensions"
 
@@ -120077,46 +120388,6 @@ msgstr "Outil vue 3D : transformer (secondaire)"
 
 
 msgctxt "WindowManager"
-msgid "Generic Tool: Annotate"
-msgstr "Outil générique : annoter"
-
-
-msgctxt "WindowManager"
-msgid "Generic Tool: Annotate (fallback)"
-msgstr "Outil générique : annoter (secondaire)"
-
-
-msgctxt "WindowManager"
-msgid "Generic Tool: Annotate Line"
-msgstr "Outil générique : ligne d’annotation"
-
-
-msgctxt "WindowManager"
-msgid "Generic Tool: Annotate Line (fallback)"
-msgstr "Outil générique : ligne d’annotation (secondaire)"
-
-
-msgctxt "WindowManager"
-msgid "Generic Tool: Annotate Polygon"
-msgstr "Outil générique : polygone d’annotation"
-
-
-msgctxt "WindowManager"
-msgid "Generic Tool: Annotate Polygon (fallback)"
-msgstr "Outil générique : polygone d’annotation (secondaire)"
-
-
-msgctxt "WindowManager"
-msgid "Generic Tool: Annotate Eraser"
-msgstr "Outil générique : gomme d’annotation"
-
-
-msgctxt "WindowManager"
-msgid "Generic Tool: Annotate Eraser (fallback)"
-msgstr "Outil générique : gomme d’annotation (secondaire)"
-
-
-msgctxt "WindowManager"
 msgid "3D View Tool: Measure"
 msgstr "Outil vue 3D : mesurer"
 
@@ -122681,6 +122952,26 @@ msgstr "Activer l’aimantation"
 msgctxt "WindowManager"
 msgid "Disable Snap"
 msgstr "Désactiver l’aimantation"
+
+
+msgctxt "WindowManager"
+msgid "Generic Tool: Annotate"
+msgstr "Outil générique : annoter"
+
+
+msgctxt "WindowManager"
+msgid "Generic Tool: Annotate Line"
+msgstr "Outil générique : ligne d’annotation"
+
+
+msgctxt "WindowManager"
+msgid "Generic Tool: Annotate Polygon"
+msgstr "Outil générique : polygone d’annotation"
+
+
+msgctxt "WindowManager"
+msgid "Generic Tool: Annotate Eraser"
+msgstr "Outil générique : gomme d’annotation"
 
 
 msgid "All Repositories"
@@ -126075,10 +126366,6 @@ msgstr "Impossible d’exécuter le préréglage : {:s}"
 
 msgid "Cannot save project because there is no project to save."
 msgstr "Impossible d’enregistrer le projet car il n’y a pas de projet à enregistrer."
-
-
-msgid "Invalid project: project name is empty."
-msgstr "Projet invalide : le nom du projet est vide."
 
 
 msgid "Cannot create a project with an empty directory path."
@@ -129621,10 +129908,6 @@ msgstr "Aucun asset actif"
 
 msgid "Asset Catalog:"
 msgstr "Catalogue d’assets :"
-
-
-msgid "UUID"
-msgstr "UUID"
 
 
 msgid "Simple Name"
@@ -137763,6 +138046,10 @@ msgid "Download Size: {}"
 msgstr "Taille du téléchargement : {}"
 
 
+msgid "Include Online Essentials"
+msgstr "Inclure les essentiels en ligne"
+
+
 msgid "No point was selected"
 msgstr "Aucun point n’a été sélectionné"
 
@@ -144779,10 +145066,6 @@ msgid "Menu Undefined"
 msgstr "Menu indéfini"
 
 
-msgid "Subtype"
-msgstr "Sous-type"
-
-
 msgid "Link operation index out of range"
 msgstr "L’indice d’opération de lien est hors de l’intervalle"
 
@@ -146071,6 +146354,10 @@ msgid "Strip None"
 msgstr "Aucune bande"
 
 
+msgid "Built-In"
+msgstr "Intégrée"
+
+
 msgid "Cannot reload with running modal operators"
 msgstr "Impossible de recharger pendant qu’un opérateur modal est en cours d’exécution"
 
@@ -146591,12 +146878,12 @@ msgid "Undo History"
 msgstr "Historique d’annulation"
 
 
-msgid "Built-In"
-msgstr "Intégrée"
+msgid "Local Asset Library"
+msgstr "Bibliothèque d’assets locale"
 
 
-msgid "Include Online Essentials"
-msgstr "Inclure les essentiels en ligne"
+msgid "Remote Asset Library"
+msgstr "Bibliothèque d’assets distante"
 
 
 msgid "Add Asset Library"
@@ -146625,14 +146912,6 @@ msgstr "Supprimer le dépôt et les fichiers"
 
 msgid "Remove Repository"
 msgstr "Supprimer le dépôt"
-
-
-msgid "Local Asset Library"
-msgstr "Bibliothèque d’assets locale"
-
-
-msgid "Remote Asset Library"
-msgstr "Bibliothèque d’assets distante"
 
 
 msgid "Unable to remove files for \"System\" repositories"
@@ -148855,6 +149134,10 @@ msgid "Attribute is required and cannot be removed"
 msgstr "L’attribut est requis et ne peut pas être supprimé"
 
 
+msgid "Asset Library not found"
+msgstr "Bibliothèque d’assets introuvable"
+
+
 msgid "Smooth the surface"
 msgstr "Adoucir la surface"
 
@@ -150086,10 +150369,6 @@ msgstr "Lancé avec \"--offline-mode\", modification impossible"
 
 msgid "Script directory not found"
 msgstr "Dossier de scripts introuvable"
-
-
-msgid "Asset Library not found"
-msgstr "Bibliothèque d’assets introuvable"
 
 
 msgid "Extension repository not found"
@@ -160154,6 +160433,11 @@ msgstr "Un aspect avec très faible contraste"
 
 msgid "Compress scene-referred values from common cameras into the ACEScg gamut"
 msgstr "Compresser les valeurs en référence scène depuis les caméras ordinaires vers le gamut ACEScg"
+
+
+msgctxt "Color Management"
+msgid "Linear"
+msgstr "Linéaire"
 
 
 msgid ""

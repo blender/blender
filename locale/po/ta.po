@@ -1,9 +1,9 @@
 
 msgid ""
 msgstr ""
-"Project-Id-Version: Blender 5.3.0 Alpha (b'09417042a1fa')\n"
+"Project-Id-Version: Blender 5.3.0 Alpha (b'32296898e057')\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-08-24 07:38+0000\n"
+"POT-Creation-Date: 2026-08-31 07:41+0000\n"
 "PO-Revision-Date: 2026-02-24 05:12+0000\n"
 "Last-Translator: தமிழ்நேரம் <anishprabu.t@gmail.com>\n"
 "Language-Team: Tamil <https://translate.blender.org/projects/blender-ui/ui/ta/>\n"
@@ -4061,12 +4061,8 @@ msgid "Collection of source libraries, i.e. blendfile paths"
 msgstr "மூல நூலகங்களின் சேகரிப்பு, அதாவது பிளெண்ட்ஃபைல் பாதைகள்"
 
 
-msgid "Blendfile Import Context Library"
-msgstr "பிளெண்ட்ஃபைல் இறக்குமதி சூழல் நூலகம்"
-
-
-msgid "Library (blendfile) reference in a BlendImportContext data. Currently only exposed as read-only data for the pre/post blendimport handlers"
-msgstr "ஒரு பிளெண்டிம்போர்ட் கான்டெக்ச்ட் தரவில் நூலகம் (பிளெண்ட்ஃபைல்) குறிப்பு. தற்போது முன்/போச்ட் பிளெண்டிம்போர்ட் கையாளுபவர்களுக்கான படிக்க மட்டும் தரவுகளாக மட்டுமே அம்பலப்படுத்தப்பட்டுள்ளது"
+msgid "Active Asset Library"
+msgstr "செயலில் சொத்து நூலகம்"
 
 
 msgid "Dirty"
@@ -8015,6 +8011,14 @@ msgstr "வண்ண வளைவு கூறுகள்"
 
 msgid "Collection of Color Ramp Elements"
 msgstr "வண்ண வளைவு கூறுகளின் தொகுப்பு"
+
+
+msgid "Identifier"
+msgstr "அடையாளங்காட்டி"
+
+
+msgid "Consistent identifier used for the item"
+msgstr "உருப்படிக்கு பயன்படுத்தப்படும் நிலையான அடையாளங்காட்டி"
 
 
 msgid "Console Input"
@@ -12714,10 +12718,6 @@ msgstr "ஒரு ஆர்என்ஏ எனும் சொத்தில்
 
 msgid "Description of the item's purpose"
 msgstr "உருப்படியின் நோக்கம் பற்றிய விளக்கம்"
-
-
-msgid "Identifier"
-msgstr "அடையாளங்காட்டி"
 
 
 msgid "Unique name used in the code and scripting"
@@ -30860,10 +30860,6 @@ msgid "Index Switch Item"
 msgstr "குறியீட்டு சுவிட்ச் உருப்படி"
 
 
-msgid "Consistent identifier used for the item"
-msgstr "உருப்படிக்கு பயன்படுத்தப்படும் நிலையான அடையாளங்காட்டி"
-
-
 msgid "2D Integer Vector Attribute Value"
 msgstr "2 டி முழுஎண் திசையன் பண்புக்கூறு மதிப்பு"
 
@@ -34860,12 +34856,12 @@ msgid "Import"
 msgstr "இறக்குமதி"
 
 
-msgid "Render Preview"
-msgstr "வழங்குதல் முன்னோட்டம்"
-
-
 msgid "Mirror"
 msgstr "கண்ணாடி"
+
+
+msgid "Render Preview"
+msgstr "வழங்குதல் முன்னோட்டம்"
 
 
 msgid "UV Mapping"
@@ -34876,20 +34872,20 @@ msgid "Local View"
 msgstr "உள்ளக பார்வை"
 
 
-msgid "Viewpoint"
-msgstr "பார்வை"
-
-
 msgid "Utilities"
 msgstr "பயன்பாடுகள்"
 
 
-msgid "Navigation"
-msgstr "வழிசெலுத்தல்"
+msgid "Viewpoint"
+msgstr "பார்வை"
 
 
 msgid "Deprecated"
 msgstr "மதிப்பிடப்பட்டது"
+
+
+msgid "Navigation"
+msgstr "வழிசெலுத்தல்"
 
 
 msgid "Align View"
@@ -35092,6 +35088,10 @@ msgid "Merge"
 msgstr "ஒன்றிணைக்கவும்"
 
 
+msgid "Pivot Point"
+msgstr "பிவோட் புள்ளி"
+
+
 msgid "Special Characters"
 msgstr "சிறப்பு எழுத்துக்கள்"
 
@@ -35102,10 +35102,6 @@ msgstr "கெர்னிங்"
 
 msgid "Bone Roll"
 msgstr "எலும்பு ரோல்"
-
-
-msgid "Pivot Point"
-msgstr "பிவோட் புள்ளி"
 
 
 msgid "Keyframe Insert Pie"
@@ -35447,10 +35443,6 @@ msgstr "இயற்பியல்"
 
 msgid "Shadow Linking Specials"
 msgstr "நிழல் இணைக்கும் சிறப்பு"
-
-
-msgid "ID Data"
-msgstr "அடையாளம் தரவு"
 
 
 msgid "Particle Specials"
@@ -54946,6 +54938,11 @@ msgid "Install Theme..."
 msgstr "கருப்பொருள் நிறுவவும் ..."
 
 
+msgctxt "Operator"
+msgid "Add Asset Library"
+msgstr "சொத்து நூலகத்தைச் சேர்க்கவும்"
+
+
 msgid "Add or remove a white balance preset"
 msgstr "வெள்ளை இருப்பு முன்னமைவைச் சேர்க்கவும் அல்லது அகற்றவும்"
 
@@ -58574,8 +58571,8 @@ msgstr "பண்புகள் திருத்தி சூழல்_மெ
 
 
 msgctxt "Operator"
-msgid "Accept"
-msgstr "ஏற்றுக்கொள்"
+msgid "Select Directory"
+msgstr "கோப்பகத்தைத் தேர்ந்தெடு"
 
 
 msgid "Open a directory browser, hold Shift to open the file, Alt to browse containing directory"
@@ -63338,11 +63335,6 @@ msgstr "(டி) எல்லா கோப்புகளையும் தே�
 
 msgid "Select or deselect all files"
 msgstr "எல்லா கோப்புகளையும் தேர்ந்தெடுக்கவும் அல்லது தேர்வுநீக்கவும்"
-
-
-msgctxt "Operator"
-msgid "Select Directory"
-msgstr "கோப்பகத்தைத் தேர்ந்தெடு"
 
 
 msgid "Select a bookmarked directory"
@@ -79763,11 +79755,6 @@ msgid "Remove existing template with the same ID"
 msgstr "அதே ஐடியுடன் இருக்கும் வார்ப்புருவை அகற்றவும்"
 
 
-msgctxt "Operator"
-msgid "Add Asset Library"
-msgstr "சொத்து நூலகத்தைச் சேர்க்கவும்"
-
-
 msgid "Add a directory to be used by the Asset Browser as source of assets"
 msgstr "சொத்துக்களின் மூலமாக சொத்து உலாவி பயன்படுத்த ஒரு கோப்பகத்தைச் சேர்க்கவும்"
 
@@ -81054,6 +81041,10 @@ msgstr "புதிய திரை"
 
 msgid "Add a new screen"
 msgstr "புதிய திரையைச் சேர்க்கவும்"
+
+
+msgid "Active Section"
+msgstr "செயலில் உள்ள பிரிவு"
 
 
 msgctxt "Operator"
@@ -94664,10 +94655,6 @@ msgid "Global preferences"
 msgstr "உலகளாவிய விருப்பத்தேர்வுகள்"
 
 
-msgid "Active Section"
-msgstr "செயலில் உள்ள பிரிவு"
-
-
 msgid "Application Template"
 msgstr "பயன்பாட்டு வார்ப்புரு"
 
@@ -95379,10 +95366,6 @@ msgstr "நிகழ்நிலை அணுகல்"
 
 msgid "The user has been shown the \"Online Access\" prompt and made a choice"
 msgstr "பயனருக்கு \"நிகழ்நிலை அணுகல்\" வரியில் காட்டப்பட்டு ஒரு தேர்வு செய்தது"
-
-
-msgid "Active Asset Library"
-msgstr "செயலில் சொத்து நூலகம்"
 
 
 msgid "Index of the asset library being edited in the Preferences UI"
@@ -97681,6 +97664,10 @@ msgstr "சரம் மதிப்பு"
 
 msgid "RNA wrapped string"
 msgstr "ஆர்என்ஏ மூடப்பட்ட சரம்"
+
+
+msgid "Subtype"
+msgstr "துணை வகை"
 
 
 msgid "Property Definition"
@@ -112898,6 +112885,10 @@ msgid "Use Remote"
 msgstr "தொலைதூரத்தைப் பயன்படுத்துங்கள்"
 
 
+msgid "UUID"
+msgstr "uuid"
+
+
 msgid "Extension Repository"
 msgstr "நீட்டிப்பு களஞ்சியம்"
 
@@ -115911,46 +115902,6 @@ msgstr "3d பார்வை கருவி: உருமாற்றம் (�
 
 
 msgctxt "WindowManager"
-msgid "Generic Tool: Annotate"
-msgstr "பொதுவான கருவி: சிறுகுறிப்பு"
-
-
-msgctxt "WindowManager"
-msgid "Generic Tool: Annotate (fallback)"
-msgstr "பொதுவான கருவி: சிறுகுறிப்பு (குறைவடையும்)"
-
-
-msgctxt "WindowManager"
-msgid "Generic Tool: Annotate Line"
-msgstr "பொதுவான கருவி: சிறுகுறிப்பு வரி"
-
-
-msgctxt "WindowManager"
-msgid "Generic Tool: Annotate Line (fallback)"
-msgstr "பொதுவான கருவி: சிறுகுறிப்பு வரி (குறைவடையும்)"
-
-
-msgctxt "WindowManager"
-msgid "Generic Tool: Annotate Polygon"
-msgstr "பொதுவான கருவி: பலகோணத்தை சிறுகுறிப்பு செய்யுங்கள்"
-
-
-msgctxt "WindowManager"
-msgid "Generic Tool: Annotate Polygon (fallback)"
-msgstr "பொதுவான கருவி: சிறுகுறிப்பு பலகோணத்தை (குறைவடையும்)"
-
-
-msgctxt "WindowManager"
-msgid "Generic Tool: Annotate Eraser"
-msgstr "பொதுவான கருவி: அழிக்கவும் அழிப்பான்"
-
-
-msgctxt "WindowManager"
-msgid "Generic Tool: Annotate Eraser (fallback)"
-msgstr "பொதுவான கருவி: சிறுகுறிப்பு அழிப்பான் (குறைவடையும்)"
-
-
-msgctxt "WindowManager"
 msgid "3D View Tool: Measure"
 msgstr "3d பார்வை கருவி: அளவீடு"
 
@@ -118429,6 +118380,26 @@ msgstr "ச்னாப்பை இயக்கவும்"
 msgctxt "WindowManager"
 msgid "Disable Snap"
 msgstr "ச்னாப்பை முடக்கு"
+
+
+msgctxt "WindowManager"
+msgid "Generic Tool: Annotate"
+msgstr "பொதுவான கருவி: சிறுகுறிப்பு"
+
+
+msgctxt "WindowManager"
+msgid "Generic Tool: Annotate Line"
+msgstr "பொதுவான கருவி: சிறுகுறிப்பு வரி"
+
+
+msgctxt "WindowManager"
+msgid "Generic Tool: Annotate Polygon"
+msgstr "பொதுவான கருவி: பலகோணத்தை சிறுகுறிப்பு செய்யுங்கள்"
+
+
+msgctxt "WindowManager"
+msgid "Generic Tool: Annotate Eraser"
+msgstr "பொதுவான கருவி: அழிக்கவும் அழிப்பான்"
 
 
 msgid "All Repositories"
@@ -125072,10 +125043,6 @@ msgstr "செயலில் சொத்து இல்லை"
 
 msgid "Asset Catalog:"
 msgstr "சொத்து பட்டியல்:"
-
-
-msgid "UUID"
-msgstr "uuid"
 
 
 msgid "Simple Name"
@@ -139097,10 +139064,6 @@ msgid "Menu Undefined"
 msgstr "பட்டியல் வரையறுக்கப்படவில்லை"
 
 
-msgid "Subtype"
-msgstr "துணை வகை"
-
-
 msgid "Link operation index out of range"
 msgstr "இணைப்பு செயல்பாட்டுக் குறியீடு வரம்பிற்கு வெளியே உள்ளது"
 
@@ -142899,6 +142862,10 @@ msgid "Attribute is required and cannot be removed"
 msgstr "பண்புக்கூறு தேவை மற்றும் அகற்ற முடியாது"
 
 
+msgid "Asset Library not found"
+msgstr "சொத்து நூலகம் காணப்படவில்லை"
+
+
 msgid "Smooth the surface"
 msgstr "மேற்பரப்பை மென்மையாக்குங்கள்"
 
@@ -144049,10 +144016,6 @@ msgstr "\"-ஆஃப்லைன்-மோட்\" உடன் தொடங்�
 
 msgid "Script directory not found"
 msgstr "கைஉரை அடைவு காணப்படவில்லை"
-
-
-msgid "Asset Library not found"
-msgstr "சொத்து நூலகம் காணப்படவில்லை"
 
 
 msgid "Extension repository not found"

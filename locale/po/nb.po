@@ -1,9 +1,9 @@
 
 msgid ""
 msgstr ""
-"Project-Id-Version: Blender 5.3.0 Alpha (b'09417042a1fa')\n"
+"Project-Id-Version: Blender 5.3.0 Alpha (b'32296898e057')\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-08-24 07:38+0000\n"
+"POT-Creation-Date: 2026-08-31 07:41+0000\n"
 "PO-Revision-Date: 2026-01-30 13:12+0000\n"
 "Last-Translator: Martin Hansen <martini-141@users.noreply.translate.blender.org>\n"
 "Language-Team: Norwegian Bokmål <https://translate.blender.org/projects/blender-ui/ui/nb_NO/>\n"
@@ -4011,14 +4011,6 @@ msgstr "Blend-fil importsammenheng bibliotek"
 
 msgid "Collection of source libraries, i.e. blendfile paths"
 msgstr "Samling av kildebibliotek, f.eks. blend-fil-stier"
-
-
-msgid "Blendfile Import Context Library"
-msgstr "Blend-fil importsammenheng bibliotek"
-
-
-msgid "Library (blendfile) reference in a BlendImportContext data. Currently only exposed as read-only data for the pre/post blendimport handlers"
-msgstr "Bibliotek (blend-fil) referanse i en blender importsammenheng-data. For øyeblikket kun vist som skrivebeskyttet for før/etter blendimport-behandlere"
 
 
 msgid "Blender RNA"

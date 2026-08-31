@@ -1,9 +1,9 @@
 
 msgid ""
 msgstr ""
-"Project-Id-Version: Blender 5.3.0 Alpha (b'09417042a1fa')\n"
+"Project-Id-Version: Blender 5.3.0 Alpha (b'32296898e057')\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-08-24 07:38+0000\n"
+"POT-Creation-Date: 2026-08-31 07:41+0000\n"
 "PO-Revision-Date: 2026-05-04 00:12+0000\n"
 "Last-Translator: Alessandro Vecchio <alessandrovecchio1907@gmail.com>\n"
 "Language-Team: Italian <https://translate.blender.org/projects/blender-ui/ui/it/>\n"
@@ -6825,6 +6825,10 @@ msgid "Collection of Color Ramp Elements"
 msgstr "Raccolta di Elementi Rampa Colore"
 
 
+msgid "Identifier"
+msgstr "Identificatore"
+
+
 msgid "Console Input"
 msgstr "Immissione Console"
 
@@ -10487,10 +10491,6 @@ msgstr "Definizione della proprietà scelta nell'RNA"
 
 msgid "Description of the item's purpose"
 msgstr "Descrizione dello scopo dell'elemento"
-
-
-msgid "Identifier"
-msgstr "Identificatore"
 
 
 msgid "Unique name used in the code and scripting"
@@ -24538,12 +24538,12 @@ msgid "Local View"
 msgstr "Vista Locale"
 
 
-msgid "Viewpoint"
-msgstr "Punto di vista"
-
-
 msgid "Utilities"
 msgstr "Utilità"
+
+
+msgid "Viewpoint"
+msgstr "Punto di vista"
 
 
 msgid "Navigation"
@@ -24738,6 +24738,10 @@ msgid "Merge"
 msgstr "Unisci"
 
 
+msgid "Pivot Point"
+msgstr "Punto di Perno"
+
+
 msgid "Special Characters"
 msgstr "Caratteri Speciali"
 
@@ -24748,10 +24752,6 @@ msgstr "Crenatura"
 
 msgid "Bone Roll"
 msgstr "Rollio Osso"
-
-
-msgid "Pivot Point"
-msgstr "Punto di Perno"
 
 
 msgid "Keyframe Insert Pie"
@@ -24988,10 +24988,6 @@ msgstr "Genera"
 
 msgid "Physics"
 msgstr "Fisica"
-
-
-msgid "ID Data"
-msgstr "Dati ID"
 
 
 msgid "Particle Specials"
@@ -35392,8 +35388,8 @@ msgstr "Resetta Trasformazione"
 
 
 msgctxt "Operator"
-msgid "Accept"
-msgstr "Accetta"
+msgid "Select Directory"
+msgstr "Seleziona Cartella"
 
 
 msgid "Directory of the file"
@@ -36120,10 +36116,6 @@ msgstr "Esporta"
 
 
 msgctxt "Operator"
-msgid "Remove Importer"
-msgstr "Rimuovi Importatore"
-
-
 msgid "Remove Importer"
 msgstr "Rimuovi Importatore"
 
@@ -37613,11 +37605,6 @@ msgstr "Seleziona/Deseleziona Tutti I File"
 
 msgid "Select or deselect all files"
 msgstr "Seleziona/Deseleziona tutti i file"
-
-
-msgctxt "Operator"
-msgid "Select Directory"
-msgstr "Seleziona Cartella"
 
 
 msgid "Select a bookmarked directory"
@@ -45982,6 +45969,10 @@ msgid "Add a new screen"
 msgstr "Aggiunge un nuova disposizione schermo"
 
 
+msgid "Active Section"
+msgstr "Sezione Attiva"
+
+
 msgctxt "Operator"
 msgid "Redo Last"
 msgstr "Riesegue Ultimo"
@@ -51875,10 +51866,6 @@ msgid "Global preferences"
 msgstr "Preferenze globali"
 
 
-msgid "Active Section"
-msgstr "Sezione Attiva"
-
-
 msgid "Application Template"
 msgstr "Modello Applicazione"
 
@@ -53093,6 +53080,10 @@ msgstr "Campo dei colore utilizzati per la visualizzazione del peso in modalità
 
 msgid "Primitive Float"
 msgstr "Float Primitivo"
+
+
+msgid "Subtype"
+msgstr "Sottotipo"
 
 
 msgid "Animatable"
@@ -66970,10 +66961,6 @@ msgstr "Fotogramma: %d"
 
 msgid "Matte Objects:"
 msgstr "Oggetti Opachi:"
-
-
-msgid "Subtype"
-msgstr "Sottotipo"
 
 
 msgid "Compositing..."

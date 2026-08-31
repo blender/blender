@@ -1,9 +1,9 @@
 
 msgid ""
 msgstr ""
-"Project-Id-Version: Blender 5.3.0 Alpha (b'09417042a1fa')\n"
+"Project-Id-Version: Blender 5.3.0 Alpha (b'32296898e057')\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-08-24 07:38+0000\n"
+"POT-Creation-Date: 2026-08-31 07:41+0000\n"
 "PO-Revision-Date: 2026-02-16 18:12+0000\n"
 "Last-Translator: Deniz Jones <sdfoakes@gmail.com>\n"
 "Language-Team: English (United Kingdom) <https://translate.blender.org/projects/blender-ui/ui/en_GB/>\n"
@@ -4061,12 +4061,8 @@ msgid "Collection of source libraries, i.e. blendfile paths"
 msgstr "Collection of source libraries, i.e. blendfile paths"
 
 
-msgid "Blendfile Import Context Library"
-msgstr "Blendfile Import Context Library"
-
-
-msgid "Library (blendfile) reference in a BlendImportContext data. Currently only exposed as read-only data for the pre/post blendimport handlers"
-msgstr "Library (blendfile) reference in a BlendImportContext data. Currently only exposed as read-only data for the pre/post blendimport handlers"
+msgid "Active Asset Library"
+msgstr "Active Asset Library"
 
 
 msgid "Dirty"
@@ -7973,6 +7969,14 @@ msgstr "Colour Ramp Elements"
 
 msgid "Collection of Color Ramp Elements"
 msgstr "Collection of Colour Ramp Elements"
+
+
+msgid "Identifier"
+msgstr "Identifier"
+
+
+msgid "Consistent identifier used for the item"
+msgstr "Consistent identifier used for the item"
 
 
 msgid "Console Input"
@@ -12672,10 +12676,6 @@ msgstr "Definition of a choice in an RNA enum property"
 
 msgid "Description of the item's purpose"
 msgstr "Description of the item's purpose"
-
-
-msgid "Identifier"
-msgstr "Identifier"
 
 
 msgid "Unique name used in the code and scripting"
@@ -30734,10 +30734,6 @@ msgid "Index Switch Item"
 msgstr "Index Switch Item"
 
 
-msgid "Consistent identifier used for the item"
-msgstr "Consistent identifier used for the item"
-
-
 msgid "2D Integer Vector Attribute Value"
 msgstr "2D Integer Vector Attribute Value"
 
@@ -34734,12 +34730,12 @@ msgid "Import"
 msgstr "Import"
 
 
-msgid "Render Preview"
-msgstr "Render Preview"
-
-
 msgid "Mirror"
 msgstr "Mirror"
+
+
+msgid "Render Preview"
+msgstr "Render Preview"
 
 
 msgid "UV Mapping"
@@ -34750,20 +34746,20 @@ msgid "Local View"
 msgstr "Local View"
 
 
-msgid "Viewpoint"
-msgstr "Viewpoint"
-
-
 msgid "Utilities"
 msgstr "Utilities"
 
 
-msgid "Navigation"
-msgstr "Navigation"
+msgid "Viewpoint"
+msgstr "Viewpoint"
 
 
 msgid "Deprecated"
 msgstr "Deprecated"
+
+
+msgid "Navigation"
+msgstr "Navigation"
 
 
 msgid "Align View"
@@ -34966,6 +34962,10 @@ msgid "Merge"
 msgstr "Merge"
 
 
+msgid "Pivot Point"
+msgstr "Pivot Point"
+
+
 msgid "Special Characters"
 msgstr "Special Characters"
 
@@ -34976,10 +34976,6 @@ msgstr "Kerning"
 
 msgid "Bone Roll"
 msgstr "Bone Roll"
-
-
-msgid "Pivot Point"
-msgstr "Pivot Point"
 
 
 msgid "Keyframe Insert Pie"
@@ -35321,10 +35317,6 @@ msgstr "Physics"
 
 msgid "Shadow Linking Specials"
 msgstr "Shadow Linking Specials"
-
-
-msgid "ID Data"
-msgstr "ID Data"
 
 
 msgid "Particle Specials"
@@ -54557,6 +54549,11 @@ msgid "Install Theme..."
 msgstr "Install Theme..."
 
 
+msgctxt "Operator"
+msgid "Add Asset Library"
+msgstr "Add Asset Library"
+
+
 msgid "Add or remove a white balance preset"
 msgstr "Add or remove a white balance preset"
 
@@ -58168,8 +58165,8 @@ msgstr "Display properties editor context_menu"
 
 
 msgctxt "Operator"
-msgid "Accept"
-msgstr "Accept"
+msgid "Select Directory"
+msgstr "Select Directory"
 
 
 msgid "Open a directory browser, hold Shift to open the file, Alt to browse containing directory"
@@ -62904,11 +62901,6 @@ msgstr "(De)select All Files"
 
 msgid "Select or deselect all files"
 msgstr "Select or deselect all files"
-
-
-msgctxt "Operator"
-msgid "Select Directory"
-msgstr "Select Directory"
 
 
 msgid "Select a bookmarked directory"
@@ -79134,11 +79126,6 @@ msgid "Remove existing template with the same ID"
 msgstr "Remove existing template with the same ID"
 
 
-msgctxt "Operator"
-msgid "Add Asset Library"
-msgstr "Add Asset Library"
-
-
 msgid "Add a directory to be used by the Asset Browser as source of assets"
 msgstr "Add a directory to be used by the Asset Browser as source of assets"
 
@@ -80421,6 +80408,10 @@ msgstr "New Screen"
 
 msgid "Add a new screen"
 msgstr "Add a new screen"
+
+
+msgid "Active Section"
+msgstr "Active Section"
 
 
 msgctxt "Operator"
@@ -93925,10 +93916,6 @@ msgid "Global preferences"
 msgstr "Global preferences"
 
 
-msgid "Active Section"
-msgstr "Active Section"
-
-
 msgid "Application Template"
 msgstr "Application Template"
 
@@ -94640,10 +94627,6 @@ msgstr "Online Access"
 
 msgid "The user has been shown the \"Online Access\" prompt and made a choice"
 msgstr "The user has been shown the \"Online Access\" prompt and made a choice"
-
-
-msgid "Active Asset Library"
-msgstr "Active Asset Library"
 
 
 msgid "Index of the asset library being edited in the Preferences UI"
@@ -96926,6 +96909,10 @@ msgstr "String Value"
 
 msgid "RNA wrapped string"
 msgstr "RNA wrapped string"
+
+
+msgid "Subtype"
+msgstr "Subtype"
 
 
 msgid "Property Definition"
@@ -112061,6 +112048,10 @@ msgid "Use Remote"
 msgstr "Use Remote"
 
 
+msgid "UUID"
+msgstr "UUID"
+
+
 msgid "Extension Repository"
 msgstr "Extension Repository"
 
@@ -115058,46 +115049,6 @@ msgstr "3D View Tool: Transform (fallback)"
 
 
 msgctxt "WindowManager"
-msgid "Generic Tool: Annotate"
-msgstr "Generic Tool: Annotate"
-
-
-msgctxt "WindowManager"
-msgid "Generic Tool: Annotate (fallback)"
-msgstr "Generic Tool: Annotate (fallback)"
-
-
-msgctxt "WindowManager"
-msgid "Generic Tool: Annotate Line"
-msgstr "Generic Tool: Annotate Line"
-
-
-msgctxt "WindowManager"
-msgid "Generic Tool: Annotate Line (fallback)"
-msgstr "Generic Tool: Annotate Line (fallback)"
-
-
-msgctxt "WindowManager"
-msgid "Generic Tool: Annotate Polygon"
-msgstr "Generic Tool: Annotate Polygon"
-
-
-msgctxt "WindowManager"
-msgid "Generic Tool: Annotate Polygon (fallback)"
-msgstr "Generic Tool: Annotate Polygon (fallback)"
-
-
-msgctxt "WindowManager"
-msgid "Generic Tool: Annotate Eraser"
-msgstr "Generic Tool: Annotate Eraser"
-
-
-msgctxt "WindowManager"
-msgid "Generic Tool: Annotate Eraser (fallback)"
-msgstr "Generic Tool: Annotate Eraser (fallback)"
-
-
-msgctxt "WindowManager"
 msgid "3D View Tool: Measure"
 msgstr "3D View Tool: Measure"
 
@@ -117566,6 +117517,26 @@ msgstr "Enable Snap"
 msgctxt "WindowManager"
 msgid "Disable Snap"
 msgstr "Disable Snap"
+
+
+msgctxt "WindowManager"
+msgid "Generic Tool: Annotate"
+msgstr "Generic Tool: Annotate"
+
+
+msgctxt "WindowManager"
+msgid "Generic Tool: Annotate Line"
+msgstr "Generic Tool: Annotate Line"
+
+
+msgctxt "WindowManager"
+msgid "Generic Tool: Annotate Polygon"
+msgstr "Generic Tool: Annotate Polygon"
+
+
+msgctxt "WindowManager"
+msgid "Generic Tool: Annotate Eraser"
+msgstr "Generic Tool: Annotate Eraser"
 
 
 msgid "Checking for Extension Updates"
@@ -124168,10 +124139,6 @@ msgstr "No active asset"
 
 msgid "Asset Catalog:"
 msgstr "Asset Catalog:"
-
-
-msgid "UUID"
-msgstr "UUID"
 
 
 msgid "Simple Name"
@@ -138144,10 +138111,6 @@ msgid "Menu Undefined"
 msgstr "Menu Undefined"
 
 
-msgid "Subtype"
-msgstr "Subtype"
-
-
 msgid "Compositor Nodes"
 msgstr "Compositor Nodes"
 
@@ -141946,6 +141909,10 @@ msgid "Attribute is required and cannot be removed"
 msgstr "Attribute is required and cannot be removed"
 
 
+msgid "Asset Library not found"
+msgstr "Asset Library not found"
+
+
 msgid "Smooth the surface"
 msgstr "Smooth the surface"
 
@@ -143124,10 +143091,6 @@ msgstr "Launched with \"--offline-mode\", cannot be changed"
 
 msgid "Script directory not found"
 msgstr "Script directory not found"
-
-
-msgid "Asset Library not found"
-msgstr "Asset Library not found"
 
 
 msgid "Extension repository not found"

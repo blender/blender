@@ -1,9 +1,9 @@
 
 msgid ""
 msgstr ""
-"Project-Id-Version: Blender 5.3.0 Alpha (b'09417042a1fa')\n"
+"Project-Id-Version: Blender 5.3.0 Alpha (b'32296898e057')\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-08-24 07:38+0000\n"
+"POT-Creation-Date: 2026-08-31 07:41+0000\n"
 "PO-Revision-Date: 2026-07-08 11:12+0000\n"
 "Last-Translator: Timo Hoetmer <timo@timohoetmer.nl>\n"
 "Language-Team: Dutch <https://translate.blender.org/projects/blender-ui/ui/nl/>\n"
@@ -2756,10 +2756,6 @@ msgstr "Blendbestand Importeer Context Bibliotheken"
 
 msgid "Collection of source libraries, i.e. blendfile paths"
 msgstr "Collectie van bron bibliotheken, d.w.z. blendbestand paden"
-
-
-msgid "Blendfile Import Context Library"
-msgstr "Blendbestand Importeer Context Bibliotheek"
 
 
 msgid "Blender RNA"
@@ -6782,8 +6778,8 @@ msgstr "Keer Richting Om"
 
 
 msgctxt "Operator"
-msgid "Accept"
-msgstr "Accepteer"
+msgid "Select Directory"
+msgstr "Selecteer Map"
 
 
 msgctxt "Operator"
@@ -7186,11 +7182,6 @@ msgstr "Hernoem Bestand of Map"
 msgctxt "Operator"
 msgid "(De)select All Files"
 msgstr "(De)selecteer Alle Bestanden"
-
-
-msgctxt "Operator"
-msgid "Select Directory"
-msgstr "Selecteer Map"
 
 
 msgid "Previous Line"

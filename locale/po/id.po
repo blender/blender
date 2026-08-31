@@ -1,9 +1,9 @@
 
 msgid ""
 msgstr ""
-"Project-Id-Version: Blender 5.3.0 Alpha (b'09417042a1fa')\n"
+"Project-Id-Version: Blender 5.3.0 Alpha (b'32296898e057')\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-08-24 07:38+0000\n"
+"POT-Creation-Date: 2026-08-31 07:41+0000\n"
 "PO-Revision-Date: 2026-06-02 05:12+0000\n"
 "Last-Translator: Fadli Birdie Zeinda <justbirdie00@gmail.com>\n"
 "Language-Team: Indonesian <https://translate.blender.org/projects/blender-ui/ui/id/>\n"
@@ -6857,6 +6857,10 @@ msgid "Set position of selected color stop"
 msgstr "Set posisi stop warna yang terseleksi"
 
 
+msgid "Identifier"
+msgstr "Pengenal"
+
+
 msgid "Console Input"
 msgstr "Input Konsol"
 
@@ -9564,10 +9568,6 @@ msgstr "Angin"
 
 msgid "Wind effector weight"
 msgstr "Beban efektor angin"
-
-
-msgid "Identifier"
-msgstr "Pengenal"
 
 
 msgid "Unique name used in the code and scripting"
@@ -19719,8 +19719,8 @@ msgstr "Menu Konteks"
 
 
 msgctxt "Operator"
-msgid "Accept"
-msgstr "Terima"
+msgid "Select Directory"
+msgstr "Seleksi"
 
 
 msgctxt "Operator"
@@ -20477,11 +20477,6 @@ msgstr "Warna Standar"
 msgctxt "Operator"
 msgid "Reset Recent"
 msgstr "Tampilan 3D"
-
-
-msgctxt "Operator"
-msgid "Select Directory"
-msgstr "Seleksi"
 
 
 msgctxt "Operator"
@@ -26311,6 +26306,10 @@ msgid "Translate all labels in menus, buttons and panels (note that this might m
 msgstr "Terjemahkan semua label pada menu, tombol, dan panel (perhatikan bahwa hal ini dapat menyulitkan Anda untuk mengikuti tutorial atau manual)"
 
 
+msgid "Subtype"
+msgstr "Subtipe"
+
+
 msgid "Pointer"
 msgstr "Penunjuk"
 
@@ -27846,6 +27845,10 @@ msgstr "Tampilkan unit berpasangan (e.g 1m 0cm)"
 
 msgid "Settings to define a reusable library for Asset Browsers to use"
 msgstr "Pengaturan mendefinisikan perpusakaan yang dapat didaur ulang untuk Browser Aset digunakan"
+
+
+msgid "UUID"
+msgstr "UUID"
 
 
 msgid "Solid Light"
@@ -29974,10 +29977,6 @@ msgstr "Folder Baru"
 
 msgid "Asset Catalog:"
 msgstr "Katalog Aset:"
-
-
-msgid "UUID"
-msgstr "UUID"
 
 
 msgctxt "Operator"
@@ -32387,10 +32386,6 @@ msgstr "Bingkai: %d"
 
 msgid "Matte Objects:"
 msgstr "Objek Matte:"
-
-
-msgid "Subtype"
-msgstr "Subtipe"
 
 
 msgid "Compositing..."
