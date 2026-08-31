@@ -44,6 +44,7 @@ class MeshBrushTests(unittest.TestCase):
         bpy.context.preferences.experimental.use_sculpt_texture_paint = True
         bpy.ops.ed.undo_push()
         generate_monkey(BackendType.MESH)
+        bpy.ops.sculpt.sculptmode_toggle()
 
         bpy.ops.paint.add_texture_paint_slot(
             type='BASE_COLOR',
