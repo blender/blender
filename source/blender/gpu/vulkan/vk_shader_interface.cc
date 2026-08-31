@@ -13,8 +13,6 @@
 
 namespace blender::gpu {
 
-std::atomic<VKShaderInterface::Key> VKShaderInterface::next_id_{1};
-
 static VKBindType to_bind_type(shader::ShaderCreateInfo::Resource::BindType bind_type)
 {
   switch (bind_type) {
@@ -318,8 +316,6 @@ void VKShaderInterface::populate_resource_bindings(InitContext &ctx)
 void VKShaderInterface::init(const shader::ShaderCreateInfo &info)
 {
   InitContext ctx{info};
-
-  id = next_id_++;
 
   shader_builtins_ = info.builtins_combined();
 
