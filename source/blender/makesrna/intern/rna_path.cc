@@ -285,6 +285,7 @@ template<int64_t N> std::string ParsedRNAPath<N>::to_string() const
 }
 
 template class ParsedRNAPath<4>;
+template class ParsedRNAPath<6>;
 
 /**
  * Generic rna path parser.

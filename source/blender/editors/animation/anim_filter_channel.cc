@@ -5,6 +5,7 @@
 #include "DNA_anim_types.h"
 
 #include "RNA_access.hh"
+#include "RNA_path.hh"
 #include "RNA_prototypes.hh"
 
 #include "BKE_grease_pencil.hh"
@@ -79,6 +80,12 @@ AnimationChannel::AnimationChannel(AnimationChannel &&other)
   /* Reset the non-std::move'd fields. */
   other.type_ = AnimationChannelType::UNKNOWN;
   other.flags_ = ANIM_CHANNEL_DIRTY;
+}
+
+int64_t AnimationChannel::hash() const
+{
+  return get_default_hash(
+      this->type_, this->source_.type, this->source_.owner_id, this->source_.data);
 }
 
 Span<KeyPoint> AnimationChannel::datapoints()
@@ -242,14 +249,15 @@ static std::optional<StringRefNull> last_rna_path_member(const ParsedRNAPathRef 
   return property->identifier.ref();
 }
 
-FCurveChannel::FCurveChannel(animrig::Action &containing_action, FCurve &fcurve)
+FCurveChannel::FCurveChannel(const PointerRNA &fcurve_ptr)
     : DataChannel(
           /* Store the RNA path as the default label, so that if the animated ID cannot be found,
              there is at least something recognisable to show. */
-          fcurve.rna_path(),
+          fcurve_ptr.data_as<FCurve>()->rna_path(),
           DataChannelType::FCURVE)
 {
-  this->source_ = RNA_pointer_create_discrete(&containing_action.id, RNA_FCurve, &fcurve);
+  this->source_ = fcurve_ptr;
+  FCurve &fcurve = *fcurve_ptr.data_as<FCurve>();
   const ParsedRNAPathRef rna_path = fcurve.rna_path_parsed();
   const std::optional<StringRefNull> last_member = last_rna_path_member(rna_path);
   if (!last_member) {
@@ -343,6 +351,7 @@ void FCurveChannel::set_selected(const bool is_selected)
 
 StringRef FCurveChannel::label() const
 {
+  this->hash();
   const ID *animated_id = this->find_animated_id_from_tags();
   if (!animated_id) {
     // TODO: getname_anim_fcurve_for_slot() can come to the rescue here.

@@ -18,6 +18,7 @@
 #include "DNA_ID_enums.h"
 #include "DNA_action_types.h"
 
+#include "RNA_path.hh"
 #include "RNA_types.hh"
 
 namespace blender {
@@ -156,6 +157,9 @@ class AnimationChannel {
    * used. */
   int sorting_priority_ = 0;
 
+  using ParsedSourcePath = blender::ParsedRNAPath<6>;
+  mutable std::optional<ParsedSourcePath> source_rna_path_;
+
  public:
   AnimationChannel(AnimationChannelType type, StringRef label);
   AnimationChannel(const AnimationChannel &other);
@@ -166,11 +170,7 @@ class AnimationChannel {
   AnimationChannel &operator=(const AnimationChannel &) = delete;
   AnimationChannel &operator=(AnimationChannel &&) = delete;
 
-  virtual int64_t hash() const
-  {
-    return get_default_hash(
-        this->type_, this->source_.type, this->source_.owner_id, this->source_.data);
-  }
+  virtual int64_t hash() const;
 
   AnimationChannelType type() const
   {
@@ -283,7 +283,7 @@ class DataChannel : public AnimationChannel {
 
 class FCurveChannel : public DataChannel {
  public:
-  FCurveChannel(animrig::Action &containing_action, FCurve &fcurve);
+  FCurveChannel(const PointerRNA &fcurve_ptr);
 
   bool is_selected() const override;
   void set_selected(bool is_selected) override;

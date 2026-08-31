@@ -24,7 +24,7 @@ static bool has_assigned_action(AnimData &anim_data)
   return anim_data.action != nullptr && anim_data.slot_handle != animrig::Slot::unassigned;
 }
 
-static void channels_for_channelbag(animrig::Action &containing_action,
+static void channels_for_channelbag(const PointerRNA &channelbag_ptr,
                                     animrig::Channelbag &channelbag,
                                     ChannelTagStack &tags,
                                     ChannelArena &arena)
@@ -32,12 +32,13 @@ static void channels_for_channelbag(animrig::Action &containing_action,
 
   for (FCurve *fcu : channelbag.fcurves()) {
     if (fcu->grp) {
-      PointerRNA group_pointer = RNA_pointer_create_discrete(
-          &containing_action.id, RNA_ActionGroup, fcu->grp);
+      PointerRNA group_pointer = RNA_pointer_create_with_parent(
+          channelbag_ptr, RNA_ActionGroup, fcu->grp);
       tags.push({ChannelTagType::FCURVE_GROUP, fcu->grp->name, group_pointer});
     }
 
-    FCurveChannel *channel = arena.allocate_data_channel<FCurveChannel>(containing_action, *fcu);
+    PointerRNA fcurve_ptr = RNA_pointer_create_with_parent(channelbag_ptr, RNA_FCurve, fcu);
+    FCurveChannel *channel = arena.allocate_data_channel<FCurveChannel>(fcurve_ptr);
     channel->set_tags(tags);
 
     if (fcu->grp) {
@@ -56,12 +57,12 @@ static void channels_for_action_slot(animrig::Action &action,
   tags.push({ChannelTagType::ACTION, action.id.name, action_ptr});
 
   Slot *slot = action.slot_for_handle(slot_handle);
-  PointerRNA slot_ptr = RNA_pointer_create_discrete(&action.id, RNA_ActionSlot, slot);
+  PointerRNA slot_ptr = RNA_pointer_create_id_subdata(action.id, RNA_ActionSlot, slot);
   tags.push({ChannelTagType::ACTION_SLOT, slot->identifier, slot_ptr});
 
   for (const int layer_index : action.layers().index_range()) {
     Layer *layer = action.layer(layer_index);
-    PointerRNA layer_ptr = RNA_pointer_create_discrete(&action.id, RNA_ActionLayer, layer);
+    PointerRNA layer_ptr = RNA_pointer_create_id_subdata(action.id, RNA_ActionLayer, layer);
     /* Passing the layer index to guarantee layers are always sorted by their hierarchy. */
     tags.push({ChannelTagType::ACTION_LAYER, layer->name, layer_ptr, layer_index});
     for (Strip *strip : layer->strips()) {
@@ -73,9 +74,13 @@ static void channels_for_action_slot(animrig::Action &action,
       if (!channelbag) {
         continue;
       }
-      PointerRNA strip_ptr = RNA_pointer_create_discrete(&action.id, RNA_ActionStrip, strip);
+      PointerRNA strip_ptr = RNA_pointer_create_with_parent(
+          layer_ptr, RNA_ActionKeyframeStrip, strip);
       tags.push({ChannelTagType::ACTION_STRIP, "strip_name_placeholder", strip_ptr});
-      channels_for_channelbag(action, *channelbag, tags, arena);
+
+      PointerRNA channelbag_ptr = RNA_pointer_create_with_parent(
+          strip_ptr, RNA_ActionChannelbag, strip);
+      channels_for_channelbag(channelbag_ptr, *channelbag, tags, arena);
       tags.pop();
     }
     tags.pop();
@@ -103,9 +108,9 @@ static void collect_channels_for_id(ID *animated_id,
   }
 
   ChannelTagStack tags;
-  PointerRNA ptr = RNA_pointer_create_discrete(
+  PointerRNA animated_id_ptr = RNA_pointer_create_discrete(
       animated_id, ID_code_to_RNA_type(animated_id->id_type()), animated_id);
-  tags.push({ChannelTagType::ID, animated_id->name, ptr});
+  tags.push({ChannelTagType::ID, animated_id->name, animated_id_ptr});
   channels_for_action_slot(adt->action->wrap(), adt->slot_handle, tags, arena);
   tags.pop();
 }
