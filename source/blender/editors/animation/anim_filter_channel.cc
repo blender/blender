@@ -242,15 +242,17 @@ FCurveChannel::FCurveChannel(animrig::Action &containing_action, FCurve &fcurve)
    * the case of a use labelled property `asdlocation`. */
   const StringRefNull rna_path = fcurve.rna_path();
   if (rna_path.endswith("location")) {
-    sorting_priority_ = 30 + fcurve.array_index;
+    sorting_priority_ = 300 - fcurve.array_index;
   }
   else if (animrig::is_rotation_path(fcurve.rna_path_parsed())) {
-    sorting_priority_ = 20 + fcurve.array_index;
+    sorting_priority_ = 200 - fcurve.array_index;
   }
   else if (rna_path.endswith("scale")) {
-    sorting_priority_ = 10 + fcurve.array_index;
+    sorting_priority_ = 100 - fcurve.array_index;
   }
-  /* Else sorting prio is a default of 0. */
+  else {
+    sorting_priority_ = -fcurve.array_index;
+  }
 }
 
 GreasePencilChannel::GreasePencilChannel(GreasePencil &containing_gp, GreasePencilLayer &gp_layer)
