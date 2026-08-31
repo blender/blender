@@ -673,8 +673,8 @@ struct bUserAssetLibrary {
   /** The UUID of the asset library. This is used to make deduplication possible when using the
    * same asset library from different computers. */
   bUUID uuid;
-  /** If the asset has an invalid UUID, it will be stored here.
-   * The asset will be disabled and we will notify the user that the asset has an invalid UUID.
+  /** If the asset library was created with an invalid UUID string, it will be stored here.
+   * The library will be disabled and we will notify the user that it has an invalid UUID.
    * We store the invalid UUID string so that we don't introduce any data loss when saving the
    * UUIDs to files. (If it is invalid it is up to the end user to fix it.
    */
