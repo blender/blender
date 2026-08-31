@@ -152,6 +152,34 @@ TEST_F(IDPropertyTest, SyncGroupValues)
   IDP_FreeProperty(group2);
 }
 
+TEST_F(IDPropertyTest, GroupLookupFloatArray)
+{
+  IDProperty *group = idprop::create_group("test").release();
+  IDP_AddToGroup(group, idprop::create("floats", Span<float>({-0.5f, 0.0f, 0.5f})).release());
+  IDP_AddToGroup(group, idprop::create("doubles", Span<double>({-0.5, 0.0, 0.5})).release());
+  IDP_AddToGroup(group, idprop::create("ints", Span<int32_t>({-1, 0, 1})).release());
+  IDP_AddToGroup(group, idprop::create("scalar", 0.5f).release());
+
+  const std::optional<Span<float>> floats = IDP_group_lookup_float_array(*group, "floats", 3);
+  ASSERT_TRUE(floats.has_value());
+  EXPECT_EQ(*floats, Span<float>({-0.5f, 0.0f, 0.5f}));
+
+  /* A size mismatch is not an error, the caller just does not get a value. */
+  EXPECT_FALSE(IDP_group_lookup_float_array(*group, "floats", 2).has_value());
+
+  /* Arrays of any other element type are rejected rather than reinterpreted. Assigning a float
+   * array through Python stores doubles, so this is reachable from user data. */
+  EXPECT_FALSE(IDP_group_lookup_float_array(*group, "doubles", 3).has_value());
+  EXPECT_FALSE(IDP_group_lookup_float_array(*group, "ints", 3).has_value());
+
+  /* A non-array float of the same name must not be treated as a length-one array. */
+  EXPECT_FALSE(IDP_group_lookup_float_array(*group, "scalar", 1).has_value());
+
+  EXPECT_FALSE(IDP_group_lookup_float_array(*group, "missing", 3).has_value());
+
+  IDP_FreeProperty(group);
+}
+
 TEST_F(IDPropertyTest, ReprGroup)
 {
   auto repr_fn = [](IDProperty *prop) -> std::string {
