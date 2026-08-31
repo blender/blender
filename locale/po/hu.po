@@ -1,9 +1,9 @@
 
 msgid ""
 msgstr ""
-"Project-Id-Version: Blender 5.3.0 Alpha (b'af4852ed4560')\n"
+"Project-Id-Version: Blender 5.3.0 Alpha (b'32296898e057')\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-08-10 07:54+0000\n"
+"POT-Creation-Date: 2026-08-31 07:41+0000\n"
 "PO-Revision-Date: 2026-03-19 19:12+0000\n"
 "Last-Translator: Tamás Máté <royalpython132@gmail.com>\n"
 "Language-Team: Hungarian <https://translate.blender.org/projects/blender-ui/ui/hu/>\n"
@@ -1363,14 +1363,6 @@ msgid "Enabled"
 msgstr "Engedélyezett"
 
 
-msgid "Display"
-msgstr "Kijelző"
-
-
-msgid "Input Color Space"
-msgstr "Bemeneti színtér"
-
-
 msgid "Color space that the sequencer operates in"
 msgstr "Színtér, amiben a szekvencer működik"
 
@@ -1397,10 +1389,6 @@ msgstr "Görbék használata"
 
 msgid "Use RGB curved for pre-display transformation"
 msgstr "RGB görbék használata az előzetes-megjelenítés taranszformációhoz"
-
-
-msgid "View"
-msgstr "Nézet"
 
 
 msgid "Brightness"
@@ -2962,6 +2950,10 @@ msgstr "Felosztás"
 
 msgid "Plane"
 msgstr "Síklap"
+
+
+msgid "View"
+msgstr "Nézet"
 
 
 msgid "Radius"
@@ -5245,6 +5237,10 @@ msgid "Simple"
 msgstr "Egyszerű"
 
 
+msgid "Display"
+msgstr "Kijelző"
+
+
 msgid "Steps"
 msgstr "Lépések"
 
@@ -6606,20 +6602,8 @@ msgid "Use Material Mask"
 msgstr "Anyagmaszk használata"
 
 
-msgid "Show/Hide"
-msgstr "Mutat/Rejt"
-
-
-msgid "Clean Up"
-msgstr "Tisztítás"
-
-
-msgid "Keying"
-msgstr "Kulcsozás"
-
-
-msgid "Tracking"
-msgstr "Követés"
+msgid "Import"
+msgstr "Importálás"
 
 
 msgid "Mirror"
@@ -6636,6 +6620,10 @@ msgstr "Navigáció"
 
 msgid "Align View"
 msgstr "Nézet igazítása"
+
+
+msgid "UV"
+msgstr "UV"
 
 
 msgid "Metaball"
@@ -6658,16 +6646,24 @@ msgid "Apply"
 msgstr "Elfogadás"
 
 
-msgid "Import"
-msgstr "Importálás"
-
-
 msgid "Track"
 msgstr "Nyom"
 
 
-msgid "UV"
-msgstr "UV"
+msgid "Show/Hide"
+msgstr "Mutat/Rejt"
+
+
+msgid "Clean Up"
+msgstr "Tisztítás"
+
+
+msgid "Keying"
+msgstr "Kulcsozás"
+
+
+msgid "Tracking"
+msgstr "Követés"
 
 
 msgid "Merge"
@@ -9224,14 +9220,6 @@ msgid "Color Key"
 msgstr "Szín kulcs"
 
 
-msgid "From"
-msgstr "Ettől"
-
-
-msgid "To"
-msgstr "Eddig"
-
-
 msgid "Use Material layer"
 msgstr "Anyagréteg használata"
 
@@ -9781,11 +9769,6 @@ msgstr "Ismétlés használata"
 msgctxt "Operator"
 msgid "Reset Transform"
 msgstr "Átalakítást alaphelyzetbe"
-
-
-msgctxt "Operator"
-msgid "Accept"
-msgstr "Elfogadás"
 
 
 msgid "Select the file relative to the blend file"

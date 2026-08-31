@@ -50,7 +50,9 @@
 
 namespace blender::ui {
 
-/*************************** RNA Utilities ******************************/
+/* -------------------------------------------------------------------- */
+/** \name RNA Utilities
+ * \{ */
 
 Button *uiDefAutoButR(Block *block,
                       PointerRNA *ptr,
@@ -394,7 +396,11 @@ void button_func_identity_compare_set(Button *but, ButtonIdentityCompareFunc cmp
   but->identity_cmp_func = cmp_fn;
 }
 
-/* *** RNA collection search menu *** */
+/** \} */
+
+/* -------------------------------------------------------------------- */
+/** \name RNA Collection Search Menu
+ * \{ */
 
 struct CollItemSearch {
   void *data;
@@ -617,6 +623,12 @@ void rna_collection_search_update_fn(
   }
 }
 
+/** \} */
+
+/* -------------------------------------------------------------------- */
+/** \name ID & Report Type Icons/Colors
+ * \{ */
+
 int icon_from_id(const ID *id)
 {
   if (id == nullptr) {
@@ -709,7 +721,11 @@ int UI_text_colorid_from_report_type(int type)
   return TH_INFO_WARNING_TEXT;
 }
 
-/********************************** Misc **************************************/
+/** \} */
+
+/* -------------------------------------------------------------------- */
+/** \name Miscellaneous Utilities
+ * \{ */
 
 int calc_float_precision(int prec, double value)
 {
@@ -784,8 +800,11 @@ std::optional<std::string> button_online_manual_id_from_active(const bContext *C
   return std::nullopt;
 }
 
-/* -------------------------------------------------------------------- */
+/** \} */
 
+/* -------------------------------------------------------------------- */
+/** \name Button Ensure In View
+ * \{ */
 static rctf but_rect_to_view(const Button *but, const ARegion *region, const View2D *v2d)
 {
   rctf region_rect;
@@ -865,6 +884,8 @@ void but_ensure_in_view(const bContext *C, ARegion *region, const Button *but)
     ED_region_tag_redraw_no_rebuild(region);
   }
 }
+
+/** \} */
 
 /* -------------------------------------------------------------------- */
 /** \name Button Store

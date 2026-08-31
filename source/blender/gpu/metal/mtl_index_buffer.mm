@@ -209,8 +209,55 @@ void MTLIndexBuf::update_sub(uint32_t start, uint32_t len, const void *data)
   /* Flag buffer as incompatible with optimized/patched buffers as contents
    * have partial modifications. */
   this->flag_can_optimize(false);
+}
 
-  BLI_assert(false);
+void MTLIndexBuf::copy_sub(IndexBuf &source_buf,
+                           uint source_first_index,
+                           uint dest_first_index,
+                           uint index_len)
+{
+  MTLIndexBuf &src = static_cast<MTLIndexBuf &>(source_buf);
+  BLI_assert(!is_subrange_);
+  BLI_assert(!src.is_subrange_);
+  BLI_assert_msg(src.index_type_ == index_type_,
+                 "Index type mismatch between source and destination");
+  BLI_assert_msg(size_t(source_first_index) + index_len <= src.index_len_,
+                 "Copy source range exceeds the source index buffer bounds");
+  BLI_assert_msg(size_t(dest_first_index) + index_len <= index_len_,
+                 "Copy destination range exceeds the destination index buffer bounds");
+
+  if (index_len == 0) {
+    return;
+  }
+
+  BLI_assert(src.ibo_ != nullptr);
+  BLI_assert(ibo_ != nullptr);
+
+  const size_t src_offset = size_t(source_first_index) * to_bytesize(src.index_type_);
+  const size_t dst_offset = size_t(dest_first_index) * to_bytesize(index_type_);
+  const size_t copy_size = size_t(index_len) * to_bytesize(index_type_);
+
+  BLI_assert(src_offset + copy_size <= src.ibo_->get_size());
+  BLI_assert(dst_offset + copy_size <= ibo_->get_size());
+
+  MTLContext *ctx = MTLContext::get();
+  BLI_assert(ctx);
+
+  id<MTLBuffer> src_buf = src.ibo_->get_metal_buffer();
+  id<MTLBuffer> dst_buf = ibo_->get_metal_buffer();
+  BLI_assert(src_buf != nil);
+  BLI_assert(dst_buf != nil);
+
+  id<MTLBlitCommandEncoder> enc = ctx->main_command_buffer.ensure_begin_blit_encoder();
+  [enc copyFromBuffer:src_buf
+           sourceOffset:src_offset
+               toBuffer:dst_buf
+      destinationOffset:dst_offset
+                   size:copy_size];
+
+  if (dst_buf.storageMode == MTLStorageModeManaged) {
+    [enc synchronizeResource:dst_buf];
+  }
 }
 
 void MTLIndexBuf::flag_can_optimize(bool can_optimize)
@@ -228,6 +275,7 @@ void MTLIndexBuf::flag_can_optimize(bool can_optimize)
 
 /** \} */
 
+/* -------------------------------------------------------------------- */
 /** \name Index buffer optimization and topology emulation
  *
  * Index buffer optimization and emulation. Optimize index buffers by

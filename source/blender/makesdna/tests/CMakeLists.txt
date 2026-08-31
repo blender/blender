@@ -41,6 +41,8 @@ if(WITH_GTESTS)
   set(TEST_SRC
     makesdna_test.cc
 
+    dna/dna_test.h
+
     ${CMAKE_CURRENT_BINARY_DIR}/test_dna.cc
     ${CMAKE_CURRENT_BINARY_DIR}/test_dna_struct_ids.cc
     ${CMAKE_CURRENT_BINARY_DIR}/test_dna_type_offsets.h

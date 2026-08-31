@@ -13,7 +13,9 @@
 #include "asset_library_service.hh"
 
 #include "BKE_appdir.hh"
+#include "BKE_global.hh"
 #include "BKE_gtest_base.hh"
+#include "BKE_main.hh"
 
 #include "BLI_fileops.hh"
 #include "BLI_path_utils.hh"
@@ -38,9 +40,16 @@ class AssetLibraryTestBase : public bke::BlenderGTestBase {
  protected:
   std::string asset_library_root_;
   std::string temp_library_path_;
+  Main *bmain;
 
   void SetUp() override
   {
+    /* G_MAIN is needed for variable expansion in asset library paths.
+     * IE {project_root}, {blend_name}, {blend_dir} etc.
+     */
+    bmain = BKE_main_new();
+    G_MAIN = bmain;
+
     const std::string test_files_dir = blender::tests::flags_test_asset_dir();
     if (test_files_dir.empty()) {
       FAIL();
@@ -58,6 +67,9 @@ class AssetLibraryTestBase : public bke::BlenderGTestBase {
       BLI_delete(temp_library_path_.c_str(), true, true);
       temp_library_path_ = "";
     }
+
+    BKE_main_free(bmain);
+    G_MAIN = nullptr;
   }
 
   /* Register a temporary path, which will be removed at the end of the test.

@@ -84,6 +84,18 @@ static void calc_tile_rect(
                 r_tile_pos;
 }
 
+static rcti calc_tile_region(const ImBuf &ibuf, const int x_tile, const int y_tile)
+{
+  int2 tile_pos;
+  int2 tile_size;
+  calc_tile_rect(ibuf, x_tile, y_tile, tile_pos, tile_size);
+
+  rcti region;
+  BLI_rcti_init(
+      &region, tile_pos.x, tile_pos.x + tile_size.x, tile_pos.y, tile_pos.y + tile_size.y);
+  return region;
+}
+
 struct PaintTileKey {
   int x_tile, y_tile;
   Image *image;
@@ -308,13 +320,7 @@ static void ptile_restore_runtime_map(PaintTileMap *paint_tile_map)
                     tile_copy_size);
     }
 
-    rcti region;
-    BLI_rcti_init(&region,
-                  tile_pos.x,
-                  tile_pos.x + tile_copy_size.x,
-                  tile_pos.y,
-                  tile_pos.y + tile_copy_size.y);
-    IMB_partial_update_mark_region(ibuf, region);
+    IMB_partial_update_mark_region(ibuf, calc_tile_region(*ibuf, ptile->x_tile, ptile->y_tile));
 
     BKE_image_release_ibuf(image, ibuf, nullptr);
   }
@@ -431,6 +437,11 @@ struct UndoImageBuf {
   std::string ibuf_filepath;
   int ibuf_fileframe = 0;
 
+  /**
+   * Tiles for this state of the image.
+   * \note Unmodified tiles are shared with #UndoImageBuf::post,
+   * so pointer comparison can detect tiles that don't need restoring.
+   */
   UndoImageTile **tiles = nullptr;
 
   /** Can calculate these from dims, just for convenience. */
@@ -487,20 +498,26 @@ static void ubuf_from_image_all_tiles(UndoImageBuf *ubuf, const ImBuf *ibuf)
   BLI_assert(i == ubuf->tiles_len);
 }
 
-/** Ensure we can copy the ubuf into the ibuf. */
-static void ubuf_ensure_compat_ibuf(const UndoImageBuf *ubuf, ImBuf *ibuf)
+/**
+ * Ensure we can copy the ubuf into the ibuf.
+ * \returns true if the pixel buffers were replaced.
+ */
+[[nodiscard]] static bool ubuf_ensure_compat_ibuf(const UndoImageBuf *ubuf, ImBuf *ibuf)
 {
+  bool replaced = false;
+
   /* We could have both float and rect buffers,
    * in this case free the float buffer if it's unused. */
   if ((ibuf->float_data() != nullptr) && (ubuf->image_state.use_float == false)) {
     IMB_free_float_pixels(ibuf);
+    replaced = true;
   }
 
   if (ibuf->x == ubuf->image_dims[0] && ibuf->y == ubuf->image_dims[1] &&
       (ubuf->image_state.use_float ? static_cast<void *>(ibuf->float_data_for_write()) :
                                      static_cast<void *>(ibuf->byte_data_for_write())))
   {
-    return;
+    return replaced;
   }
 
   IMB_free_all_data(ibuf);
@@ -512,6 +529,8 @@ static void ubuf_ensure_compat_ibuf(const UndoImageBuf *ubuf, ImBuf *ibuf)
   else {
     IMB_alloc_byte_pixels(ibuf);
   }
+
+  return true;
 }
 
 static void ubuf_free(UndoImageBuf *ubuf)
@@ -552,7 +571,15 @@ struct UndoImageHandle {
   ListBaseT<UndoImageBuf> buffers;
 };
 
-static void uhandle_restore_list(ListBaseT<UndoImageHandle> *undo_handles, bool use_init)
+/**
+ * Copy the tiles of every #UndoImageBuf back into the image buffers.
+ *
+ * \param use_init: Restore the state before the undo step, instead of the state after it.
+ * \param use_partial: Only restore tiles this undo step changed (for debugging).
+ */
+static void uhandle_restore_list(ListBaseT<UndoImageHandle> *undo_handles,
+                                 const bool use_init,
+                                 const bool use_partial = true)
 {
   for (UndoImageHandle &uh : *undo_handles) {
     /* Tiles only added to second set of tiles. */
@@ -566,21 +593,29 @@ static void uhandle_restore_list(ListBaseT<UndoImageHandle> *undo_handles, bool 
     bool changed = false;
     for (UndoImageBuf &ubuf_iter : uh.buffers) {
       UndoImageBuf *ubuf = use_init ? &ubuf_iter : ubuf_iter.post;
-      ubuf_ensure_compat_ibuf(ubuf, ibuf);
+      const UndoImageBuf *ubuf_other = use_init ? ubuf_iter.post : &ubuf_iter;
+
+      /* Check if we need to restore all because of modified image dimensions or image
+       * buffer, or if we can do a partial restore and update. */
+      const bool ibuf_reallocated = ubuf_ensure_compat_ibuf(ubuf, ibuf);
+      const bool restore_all = ibuf_reallocated || !use_partial || ubuf_other == nullptr ||
+                               ubuf_other->tiles_dims[0] != ubuf->tiles_dims[0] ||
+                               ubuf_other->tiles_dims[1] != ubuf->tiles_dims[1];
 
       int i = 0;
       for (uint y_tile = 0; y_tile < ubuf->tiles_dims[1]; y_tile += 1) {
         for (uint x_tile = 0; x_tile < ubuf->tiles_dims[0]; x_tile += 1) {
-          utile_restore(ubuf->tiles[i], x_tile, y_tile, ibuf);
-          changed = true;
+          if (restore_all || ubuf->tiles[i] != ubuf_other->tiles[i]) {
+            utile_restore(ubuf->tiles[i], x_tile, y_tile, ibuf);
+            IMB_partial_update_mark_region(ibuf, calc_tile_region(*ibuf, x_tile, y_tile));
+            changed = true;
+          }
           i += 1;
         }
       }
     }
 
     if (changed) {
-      /* TODO(@jbakker): only mark areas that are actually updated to improve performance. */
-      IMB_partial_update_mark_full(ibuf);
       IMB_mark_dirty(ibuf);
 
       DEG_id_tag_update(&image->id, 0);
@@ -863,7 +898,7 @@ static bool image_undosys_step_encode(bContext *C, Main * /*bmain*/, UndoStep *u
 
     /* Useful to debug tiles are stored correctly. */
     if (false) {
-      uhandle_restore_list(&us->handles, false);
+      uhandle_restore_list(&us->handles, false, false);
     }
   }
   else {
@@ -879,10 +914,10 @@ static bool image_undosys_step_encode(bContext *C, Main * /*bmain*/, UndoStep *u
   return true;
 }
 
-static void image_undosys_step_decode_undo_impl(ImageUndoStep *us, bool is_final)
+static void image_undosys_step_decode_undo_impl(ImageUndoStep *us)
 {
   BLI_assert(us->step.is_applied == true);
-  uhandle_restore_list(&us->handles, !is_final);
+  uhandle_restore_list(&us->handles, true);
   us->step.is_applied = false;
 }
 
@@ -906,7 +941,7 @@ static void image_undosys_step_decode_undo(ImageUndoStep *us, bool is_final)
   }
   while (us_iter != us || (!is_final && us_iter == us)) {
     BLI_assert(us_iter->step.type == us->step.type); /* Previous loop ensures this. */
-    image_undosys_step_decode_undo_impl(us_iter, is_final);
+    image_undosys_step_decode_undo_impl(us_iter);
     if (us_iter == us) {
       break;
     }

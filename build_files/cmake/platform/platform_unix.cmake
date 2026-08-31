@@ -110,7 +110,7 @@ if(DEFINED LIBDIR)
   # NOTE: Make sure "proper" compiled zlib comes first
   set(CMAKE_PREFIX_PATH ${LIBDIR}/zlib ${LIB_SUBDIRS})
 
-  include(platform_old_libs_update)
+  include("${CMAKE_CURRENT_LIST_DIR}/platform_old_libs_update.cmake")
 
   set(WITH_STATIC_LIBS ON)
   set(OPENEXR_ROOT_DIR ${LIBDIR}/openexr)
@@ -431,6 +431,8 @@ if(DEFINED LIBDIR)
     ${SYCL_ROOT_DIR}/lib/libur_*.so.*
   )
   list(FILTER _sycl_runtime_libraries EXCLUDE REGEX "\\.py$")
+  # Only bundle the v2 Level Zero adapter, not the legacy libur_adapter_level_zero.so (#159584).
+  list(FILTER _sycl_runtime_libraries EXCLUDE REGEX "ur_adapter_level_zero\\.so")
   list(APPEND PLATFORM_BUNDLED_LIBRARIES ${_sycl_runtime_libraries})
   unset(_sycl_runtime_libraries)
 endif()

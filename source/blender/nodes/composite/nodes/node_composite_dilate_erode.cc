@@ -501,9 +501,7 @@ class DilateErodeOperation : public NodeOperation {
       return true;
     }
 
-    if (this->get_type() == CMP_NODE_DILATE_ERODE_DISTANCE_THRESHOLD &&
-        this->get_falloff_size() != 0.0f)
-    {
+    if (this->get_type() == CMP_NODE_DILATE_ERODE_DISTANCE_THRESHOLD) {
       return false;
     }
 
@@ -536,7 +534,7 @@ class DilateErodeOperation : public NodeOperation {
 
   float get_falloff_size()
   {
-    return math::max(0.0f, this->get_input("Falloff Size").get_single_value_default<float>());
+    return math::max(10e-6f, this->get_input("Falloff Size").get_single_value_default<float>());
   }
 
   CMPNodeDilateErodeMethod get_type()

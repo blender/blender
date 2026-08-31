@@ -1682,8 +1682,6 @@ void PE_update_object(Depsgraph *depsgraph, Scene *scene, Object *ob, int usefla
 /** \name Edit Selections
  * \{ */
 
-/*-----selection callbacks-----*/
-
 static void select_key(PEData *data, int point_index, int key_index, bool /*is_inside*/)
 {
   PTCacheEdit *edit = data->edit;

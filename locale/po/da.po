@@ -1,9 +1,9 @@
 
 msgid ""
 msgstr ""
-"Project-Id-Version: Blender 5.3.0 Alpha (b'af4852ed4560')\n"
+"Project-Id-Version: Blender 5.3.0 Alpha (b'32296898e057')\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-08-10 07:54+0000\n"
+"POT-Creation-Date: 2026-08-31 07:41+0000\n"
 "PO-Revision-Date: 2025-07-31 16:24+0000\n"
 "Last-Translator: leif larsen <linuxdk1978@gmail.com>\n"
 "Language-Team: Danish <https://translate.blender.org/projects/blender-ui/ui/da/>\n"
@@ -3276,10 +3276,6 @@ msgid "Damping"
 msgstr "Dæmpning"
 
 
-msgid "Look"
-msgstr "udseende"
-
-
 msgid "Temperature"
 msgstr "Temperatur"
 
@@ -3622,10 +3618,6 @@ msgid "Starting"
 msgstr "Begynde"
 
 
-msgid "To"
-msgstr "Til"
-
-
 msgid "Layer Weight"
 msgstr "Lag vægtning"
 
@@ -3872,6 +3864,10 @@ msgstr "Skarpere"
 
 msgid "True Normal"
 msgstr "Sand normal"
+
+
+msgid "Look"
+msgstr "udseende"
 
 
 msgid "Keyframe not in F-Curve"

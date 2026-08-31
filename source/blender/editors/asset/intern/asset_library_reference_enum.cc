@@ -96,10 +96,48 @@ static void rna_enum_add_custom_libraries(EnumPropertyItem **item,
                                           int *totitem,
                                           const bool include_remote_libraries)
 {
+  bool have_project_libraries = false;
+
   for (const auto [i, user_library] : U.asset_libraries.enumerate()) {
     if (!include_remote_libraries && (user_library.flag & ASSET_LIBRARY_USE_REMOTE_URL)) {
       continue;
     }
+    /* Add the project asset libraries last. */
+    if (user_library.flag & ASSET_LIBRARY_PROJECT_DEFINED) {
+      have_project_libraries = true;
+      continue;
+    }
+
+    if (!custom_library_is_valid(&user_library)) {
+      continue;
+    }
+
+    AssetLibraryReference library_reference;
+    library_reference.type = ASSET_LIBRARY_CUSTOM;
+    library_reference.custom_library_index = i;
+
+    const int enum_value = library_reference_to_enum_value(&library_reference);
+    EnumPropertyItem tmp = {
+        enum_value,
+        user_library.name,
+        ICON_NONE,
+        user_library.name,
+        /* Use library path or URL as description, it's a nice hint for users. */
+        (user_library.flag & ASSET_LIBRARY_USE_REMOTE_URL) ? user_library.remote_url :
+                                                             user_library.resolved_dirpath};
+    RNA_enum_item_add(item, totitem, &tmp);
+  }
+
+  if (!have_project_libraries) {
+    return;
+  }
+  RNA_enum_item_add_separator(item, totitem);
+
+  for (const auto [i, user_library] : U.asset_libraries.enumerate()) {
+    if (!(user_library.flag & ASSET_LIBRARY_PROJECT_DEFINED)) {
+      continue;
+    }
+
     if (!custom_library_is_valid(&user_library)) {
       continue;
     }

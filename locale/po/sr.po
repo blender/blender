@@ -1,9 +1,9 @@
 
 msgid ""
 msgstr ""
-"Project-Id-Version: Blender 5.3.0 Alpha (b'af4852ed4560')\n"
+"Project-Id-Version: Blender 5.3.0 Alpha (b'32296898e057')\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-08-10 07:54+0000\n"
+"POT-Creation-Date: 2026-08-31 07:41+0000\n"
 "PO-Revision-Date: 2025-07-23 15:10+0000\n"
 "Last-Translator: Anonymous <noreply@weblate.org>\n"
 "Language-Team: Serbian <https://translate.blender.org/projects/blender-ui/ui/sr/>\n"
@@ -1962,14 +1962,6 @@ msgid "Kill collided particles"
 msgstr "Уби честице при судару"
 
 
-msgid "Display"
-msgstr "Приказ"
-
-
-msgid "Input Color Space"
-msgstr "Простор боја улаза"
-
-
 msgid "Curve"
 msgstr "Крива"
 
@@ -1982,16 +1974,8 @@ msgid "Gamma"
 msgstr "Гама"
 
 
-msgid "Look"
-msgstr "Изглед"
-
-
 msgid "Use Curves"
 msgstr "Користи криве"
-
-
-msgid "View"
-msgstr "Поглед"
 
 
 msgid "Temperature"
@@ -2088,6 +2072,10 @@ msgstr "Алфа"
 
 msgid "Position"
 msgstr "Позиција"
+
+
+msgid "Identifier"
+msgstr "Идентификатор"
 
 
 msgid "Console Input"
@@ -2992,6 +2980,10 @@ msgid "Plane"
 msgstr "Плоча"
 
 
+msgid "View"
+msgstr "Поглед"
+
+
 msgid "Radius"
 msgstr "Радиус"
 
@@ -3790,10 +3782,6 @@ msgstr "Јачина утицаја ветра"
 
 msgid "Description of the item's purpose"
 msgstr "Опис сврхе ставке"
-
-
-msgid "Identifier"
-msgstr "Идентификатор"
 
 
 msgid "Unique name used in the code and scripting"
@@ -5157,6 +5145,14 @@ msgstr "Снага притиска"
 
 msgid "Use Texture Overlay"
 msgstr "Користи додатну провидност"
+
+
+msgid "Use Unified Strength"
+msgstr "Јединствена јачина"
+
+
+msgid "Use Unified Weight"
+msgstr "Користи јединствену тежину"
 
 
 msgid "Forward"
@@ -6673,6 +6669,10 @@ msgstr "Влажење"
 
 msgid "Amount of damping"
 msgstr "Вредност влажења"
+
+
+msgid "Display"
+msgstr "Приказ"
 
 
 msgid "Percentage of particles to display in 3D view"
@@ -8498,32 +8498,12 @@ msgid "Material slot name"
 msgstr "Назив слота материјала"
 
 
-msgid "Names"
-msgstr "Имена"
-
-
-msgid "Bone Roll"
-msgstr "Ролна костију"
-
-
-msgid "Show/Hide"
-msgstr "Прикажи/сакриј"
-
-
-msgid "Keying"
-msgstr "Збирка тастера"
-
-
-msgid "Tracking"
-msgstr "Праћење"
-
-
-msgid "Math"
-msgstr "Математика"
-
-
 msgid "Snap"
 msgstr "Лепљење"
+
+
+msgid "Import"
+msgstr "Увоз"
 
 
 msgid "Mirror"
@@ -8544,6 +8524,14 @@ msgstr "Навигација"
 
 msgid "Align View"
 msgstr "Поравнај поглед"
+
+
+msgid "Math"
+msgstr "Математика"
+
+
+msgid "UV"
+msgstr "UV"
 
 
 msgid "Select Linked"
@@ -8570,10 +8558,6 @@ msgid "Apply"
 msgstr "Примени"
 
 
-msgid "Import"
-msgstr "Увоз"
-
-
 msgid "Track"
 msgstr "Стаза"
 
@@ -8582,12 +8566,24 @@ msgid "Quick Effects"
 msgstr "Брзи ефекти"
 
 
+msgid "Show/Hide"
+msgstr "Прикажи/сакриј"
+
+
+msgid "Linked"
+msgstr "Повезано"
+
+
 msgid "Hooks"
 msgstr "Удице"
 
 
-msgid "UV"
-msgstr "UV"
+msgid "Keying"
+msgstr "Збирка тастера"
+
+
+msgid "Tracking"
+msgstr "Праћење"
 
 
 msgid "Clear Transform"
@@ -8600,6 +8596,10 @@ msgstr "У међувремену"
 
 msgid "Propagate"
 msgstr "Пренеси"
+
+
+msgid "Names"
+msgstr "Имена"
 
 
 msgid "Toggle Bone Options"
@@ -8622,12 +8622,12 @@ msgid "Merge"
 msgstr "Сједини"
 
 
-msgid "Linked"
-msgstr "Повезано"
-
-
 msgid "Special Characters"
 msgstr "Специјални знаци"
+
+
+msgid "Bone Roll"
+msgstr "Ролна костију"
 
 
 msgid "Basic"
@@ -10562,10 +10562,6 @@ msgid "ITU 709"
 msgstr "YCbCr (ITU 709)"
 
 
-msgid "To"
-msgstr "Ка"
-
-
 msgid "Corner Pin"
 msgstr "Закачи угао"
 
@@ -12259,8 +12255,8 @@ msgstr "Поништи тренсформације"
 
 
 msgctxt "Operator"
-msgid "Accept"
-msgstr "Прихвати"
+msgid "Select Directory"
+msgstr "Изабери директоријум"
 
 
 msgid "Select the file relative to the blend file"
@@ -13569,11 +13565,6 @@ msgstr "Изабери све датотеке"
 
 msgid "Select or deselect all files"
 msgstr "Бира или поништава избор свих датотека"
-
-
-msgctxt "Operator"
-msgid "Select Directory"
-msgstr "Изабери директоријум"
 
 
 msgid "Previous"
@@ -17232,6 +17223,10 @@ msgid "Add a new screen"
 msgstr "Додаје нови Сензор"
 
 
+msgid "Active Section"
+msgstr "Активни одељак"
+
+
 msgctxt "Operator"
 msgid "Region Alpha"
 msgstr "Провидност иконица"
@@ -19724,10 +19719,6 @@ msgid "IK Z Limit"
 msgstr "IK Z граница"
 
 
-msgid "Active Section"
-msgstr "Активни одељак"
-
-
 msgid "Edit Methods"
 msgstr "Методе уређивања"
 
@@ -22106,14 +22097,6 @@ msgid "Sort items by their name"
 msgstr "Сортирај ставке по њиховим именима"
 
 
-msgid "Use Unified Strength"
-msgstr "Јединствена јачина"
-
-
-msgid "Use Unified Weight"
-msgstr "Користи јединствену тежину"
-
-
 msgid "Unit Scale"
 msgstr "Размера"
 
@@ -22434,11 +22417,6 @@ msgstr "Слика"
 msgctxt "WindowManager"
 msgid "UV Editor"
 msgstr "UV Уређивач"
-
-
-msgctxt "WindowManager"
-msgid "UV Sculpt"
-msgstr "UV Вајање"
 
 
 msgctxt "WindowManager"
@@ -24036,6 +24014,10 @@ msgstr "У реду"
 
 msgid "Menu \"%s\" not found"
 msgstr "Није пронађен мени \"%s\""
+
+
+msgid "Look"
+msgstr "Изглед"
 
 
 msgid "Pos"

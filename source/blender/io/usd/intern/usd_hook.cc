@@ -7,7 +7,6 @@
 #include "usd.hh"
 #include "usd_api_hook.hh"
 #include "usd_asset_utils.hh"
-#include "usd_hash_types.hh"
 #include "usd_hierarchy_iterator.hh"
 #include "usd_reader_prim.hh"
 #include "usd_reader_stage.hh"

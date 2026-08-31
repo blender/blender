@@ -280,18 +280,18 @@ void VKDevice::init_dummy_buffer()
   dummy_buffer.update_immediately(static_cast<void *>(data));
 }
 
+uint32_t VKDevice::glsl_patch_version_get(bool use_ray_query) const
+{
+  const bool requires_460 = use_ray_query;
+  return requires_460 ? 460u : 450u;
+}
+
 shader::GeneratedSource VKDevice::extensions_define(StringRefNull stage_define,
                                                     bool use_ray_query) const
 {
   std::stringstream ss;
 
-  const bool requires_460 = use_ray_query;
-  if (requires_460) {
-    ss << "#version 460\n";
-  }
-  else {
-    ss << "#version 450\n";
-  }
+  ss << "#version " << glsl_patch_version_get(use_ray_query) << "\n";
   {
     /* Required extension. */
     ss << "#extension GL_ARB_shader_draw_parameters : enable\n";
@@ -303,7 +303,7 @@ shader::GeneratedSource VKDevice::extensions_define(StringRefNull stage_define,
 
   ss << "#define gl_VertexID gl_VertexIndex\n";
   ss << "#define gpu_InstanceIndex (gl_InstanceIndex)\n";
-  ss << "#define gl_InstanceID (gpu_InstanceIndex - gpu_BaseInstance)\n";
+  ss << "#define gl_InstanceID (gpu_InstanceIndex)\n";
 
   ss << "#extension GL_ARB_shader_viewport_layer_array: enable\n";
   if (GPU_stencil_export_support()) {

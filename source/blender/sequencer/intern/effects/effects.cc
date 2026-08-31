@@ -11,6 +11,7 @@
 #include "BLI_math_filter.hh"
 
 #include "BKE_fcurve.hh"
+#include "BKE_scene.hh"
 
 #include "DNA_scene_types.h"
 #include "DNA_sequence_types.h"
@@ -324,7 +325,10 @@ static float transition_fader_calc(const Scene *scene, const Strip *strip, float
   return fac;
 }
 
-float effect_fader_calc(Scene *scene, Strip *strip, float timeline_frame)
+float effect_fader_calc(Scene *scene,
+                        Strip *strip,
+                        float timeline_frame,
+                        const bool is_current_frame)
 {
   if (strip->flag & SEQ_USE_EFFECT_DEFAULT_FADE) {
     if (effect_is_transition(strip->type)) {
@@ -336,6 +340,15 @@ float effect_fader_calc(Scene *scene, Strip *strip, float timeline_frame)
   const FCurve *fcu = id_data_find_fcurve(
       &scene->id, strip, RNA_Strip, "effect_fader", 0, nullptr);
   if (fcu) {
+    /* At the current frame, a value that differs from the curve is an interactive user edit
+     * that has not been committed to the curve yet. Use it directly so that preview reflects
+     * this edited state. Note that we need to evaluate at the scene time, so that a retimed
+     * meta strip case is covered. */
+    if (is_current_frame &&
+        strip->effect_fader != evaluate_fcurve(fcu, BKE_scene_frame_get(scene)))
+    {
+      return strip->effect_fader;
+    }
     return evaluate_fcurve(fcu, timeline_frame);
   }
   return strip->effect_fader;

@@ -972,6 +972,7 @@ static void rna_def_render_slots(BlenderRNA *brna, PropertyRNA *cprop)
   RNA_def_function_ui_description(func, "Add a render slot to the image");
   parm = RNA_def_string(func, "name", nullptr, 0, "Name", "New name for the render slot");
   parm = RNA_def_pointer(func, "result", "RenderSlot", "", "Newly created render layer");
+  RNA_def_parameter_flags(parm, PROP_NEVER_NULL, ParameterFlag(0));
   RNA_def_function_return(func, parm);
 }
 

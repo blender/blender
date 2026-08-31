@@ -18,7 +18,9 @@
 
 #include "BLI_ghash.hh"
 #include "BLI_listbase_wrapper.hh"
+#include "BLI_map.hh"
 #include "BLI_string.hh"
+#include "BLI_string_ref.hh"
 #include "BLI_string_utf8.hh"
 #include "BLI_string_utils.hh"
 #include "BLI_utildefines.hh"
@@ -231,15 +233,16 @@ void ED_armature_bone_rename(Main *bmain,
       if (ob->pose) {
         bPoseChannel *pchan = BKE_pose_channel_find_name(ob->pose, oldname);
         if (pchan) {
-          GHash *gh = ob->pose->chanhash;
-          if (gh) {
-            BLI_assert(BLI_ghash_haskey(gh, pchan->name));
-            BLI_ghash_remove(gh, pchan->name, nullptr, nullptr);
+          Map<StringRef, bPoseChannel *> &chanhash = ob->pose->runtime->chanhash;
+          const bool has_hash = !chanhash.is_empty();
+          if (has_hash) {
+            BLI_assert(chanhash.contains(pchan->name));
+            chanhash.remove(pchan->name);
           }
           STRNCPY_UTF8(pchan->name, newname);
-          if (gh) {
-            BLI_assert(!BLI_ghash_haskey(gh, pchan->name));
-            BLI_ghash_insert(gh, pchan->name, pchan);
+          if (has_hash) {
+            BLI_assert(!chanhash.contains(pchan->name));
+            chanhash.add_new(pchan->name, pchan);
           }
 
           BKE_animdata_fix_paths(

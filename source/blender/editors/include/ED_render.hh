@@ -132,6 +132,7 @@ void ED_preview_icon_job(
 void ED_preview_restart_work(const bContext *C);
 
 void ED_preview_kill_jobs(wmWindowManager *wm, Main *bmain);
+void ED_preview_kill_jobs_for_undo(wmWindowManager *wm, Main *bmain);
 void ED_preview_kill_jobs_for_id(wmWindowManager *wm, const ID *id);
 
 /**

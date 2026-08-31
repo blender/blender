@@ -7401,6 +7401,17 @@ static wmOperatorStatus project_setup_show_exec(bContext *C, wmOperator *op)
     region_header->flag |= RGN_FLAG_HIDDEN;
     ED_region_visibility_change_update(C, area, region_header);
 
+    /* Set the section if specified. */
+    PropertyRNA *prop = RNA_struct_find_property(op->ptr, "section");
+    if (prop && RNA_property_is_set(op->ptr, prop)) {
+      char section_name[MAX_NAME];
+      RNA_property_string_get(op->ptr, prop, section_name);
+      ARegion *region_props = BKE_area_find_region_type(area, RGN_TYPE_WINDOW);
+      if (region_props) {
+        ui::panel_category_active_set_default(region_props, section_name);
+      }
+    }
+
     return OPERATOR_FINISHED;
   }
   BKE_report(op->reports, RPT_ERROR, "Failed to open window!");
@@ -7409,6 +7420,8 @@ static wmOperatorStatus project_setup_show_exec(bContext *C, wmOperator *op)
 
 static void SCREEN_OT_project_setup_show(wmOperatorType *ot)
 {
+  PropertyRNA *prop;
+
   /* identifiers */
   ot->name = "Open Project Setup...";
   ot->description = "Create and manage projects";
@@ -7417,6 +7430,14 @@ static void SCREEN_OT_project_setup_show(wmOperatorType *ot)
   /* API callbacks. */
   ot->exec = project_setup_show_exec;
   ot->poll = ED_operator_screenactive_nobackground; /* Not in background as this opens a window. */
+
+  prop = RNA_def_string(ot->srna,
+                        "section",
+                        "General",
+                        MAX_NAME,
+                        "Active Section",
+                        "Section to activate in Project Setup");
+  RNA_def_property_flag(prop, PROP_HIDDEN);
 }
 
 /** \} */

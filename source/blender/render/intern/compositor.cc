@@ -241,15 +241,12 @@ class Context : public compositor::Context {
     }
 
     /* Only cache if any of the effects are time dependent. */
-    for (const SceneCompositorEffect &effect : input_data_.scene.compositor_effects) {
-      if (!bke::compositor::is_effect_enabled(effect, bke::compositor::ExecutionMode::Preview)) {
-        continue;
-      }
-
-      const bNodeTree *original_node_tree = DEG_get_original(effect.node_group);
-      if (original_node_tree->runtime->eval_dependencies->time_dependent) {
-        return true;
-      }
+    const Scene &original_scene = *DEG_get_original(&input_data_.scene);
+    if (DEG_scene_component_depends_on_time(*original_scene.runtime->compositor.preview_depsgraph,
+                                            original_scene,
+                                            DEG_SCENE_COMP_COMPOSITOR))
+    {
+      return true;
     }
 
     return false;
@@ -517,13 +514,12 @@ class Context : public compositor::Context {
       return this->get_invalid_pass();
     }
 
-    compositor::Result pass_data = compositor::Result(
-        *this, this->get_pass_data_type(render_pass), compositor::ResultPrecision::Full);
-
+    compositor::Result pass_data = this->create_result(this->get_pass_data_type(render_pass));
     if (this->use_gpu()) {
       gpu::Texture *pass_texture = RE_pass_ensure_gpu_texture_cache(render, render_pass);
       /* Don't assume render will keep pass data stored, add our own reference. */
       GPU_texture_ref(pass_texture);
+      pass_data.set_precision(compositor::Result::precision(GPU_texture_format(pass_texture)));
       pass_data.share_data(pass_texture);
       cached_gpu_passes_.append(pass_texture);
     }
@@ -536,8 +532,7 @@ class Context : public compositor::Context {
       cached_cpu_passes_.append(render_pass->ibuf);
     }
 
-    compositor::Result pass = compositor::Result(
-        *this, this->get_pass_type(render_pass), compositor::ResultPrecision::Full);
+    compositor::Result pass = this->create_result(this->get_pass_type(render_pass));
     if (pass.type() != pass_data.type()) {
       compositor::ConversionOperation conversion_operation(*this, pass_data.type(), pass.type());
       conversion_operation.map_input_to_result(&pass_data);
@@ -653,7 +648,7 @@ class Context : public compositor::Context {
     const Scene *original_scene = DEG_get_original(&this->get_scene());
     const int view_identifier = BKE_scene_multiview_view_id_get(&input_data_.render_data,
                                                                 input_data_.view_name.c_str());
-    const ImBuf *cached_buffer = original_scene->runtime->compositor.cache.get_frame(
+    ImBuf *cached_buffer = original_scene->runtime->compositor.cache.get_frame(
         this->get_frame_number(), view_identifier);
     if (!cached_buffer) {
       return false;
@@ -705,6 +700,8 @@ class Context : public compositor::Context {
     else {
       image->flag |= IMA_VIEW_AS_RENDER;
     }
+
+    IMB_freeImBuf(cached_buffer);
 
     IMB_partial_update_mark_full(image_buffer);
     BKE_image_release_ibuf(image, image_buffer, lock);

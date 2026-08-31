@@ -71,37 +71,33 @@ static void context_zero(MultiresReshapeContext *reshape_context)
   *reshape_context = {};
 }
 
-static void context_init_lookup(MultiresReshapeContext *reshape_context)
+static void context_init_lookup(MultiresReshapeContext *reshape_context,
+                                const bool need_ptex_lookup)
 {
   const OffsetIndices faces = reshape_context->base_faces;
 
-  reshape_context->face_start_grid_index.reinitialize(faces.size());
-  int num_grids = 0;
+  reshape_context->num_grids = faces.total_size();
+  reshape_context->base_corner_to_face = reshape_context->base_mesh->corner_to_face_map();
+  if (!need_ptex_lookup) {
+    return;
+  }
+
   int num_ptex_faces = 0;
   for (const int face_index : faces.index_range()) {
     const int num_corners = faces[face_index].size();
-    reshape_context->face_start_grid_index[face_index] = num_grids;
-    num_grids += num_corners;
     num_ptex_faces += (num_corners == 4) ? 1 : num_corners;
   }
 
-  reshape_context->grid_to_face_index.reinitialize(num_grids);
   reshape_context->ptex_start_grid_index.reinitialize(num_ptex_faces);
-  for (int face_index = 0, grid_index = 0, ptex_index = 0; face_index < faces.size(); ++face_index)
-  {
+  for (int face_index = 0, ptex_index = 0; face_index < faces.size(); ++face_index) {
     const int num_corners = faces[face_index].size();
     const int num_face_ptex_faces = (num_corners == 4) ? 1 : num_corners;
+    const int grid_index = faces[face_index].start();
     for (int i = 0; i < num_face_ptex_faces; ++i) {
       reshape_context->ptex_start_grid_index[ptex_index + i] = grid_index + i;
     }
-    for (int corner = 0; corner < num_corners; ++corner, ++grid_index) {
-      reshape_context->grid_to_face_index[grid_index] = face_index;
-    }
     ptex_index += num_face_ptex_faces;
   }
-
-  /* Store number of grids, which will be used for sanity checks. */
-  reshape_context->num_grids = num_grids;
 }
 
 static void context_init_grid_pointers(MultiresReshapeContext *reshape_context)
@@ -113,14 +109,15 @@ static void context_init_grid_pointers(MultiresReshapeContext *reshape_context)
       &base_mesh->corner_data, CD_GRID_PAINT_MASK, base_mesh->corners_num));
 }
 
-static void context_init_common(MultiresReshapeContext *reshape_context)
+static void context_init_common(MultiresReshapeContext *reshape_context,
+                                const bool need_ptex_lookup = true)
 {
   BLI_assert(reshape_context->subdiv != nullptr);
   BLI_assert(reshape_context->base_mesh != nullptr);
 
   reshape_context->face_ptex_offset = bke::subdiv::face_ptex_offset_get(reshape_context->subdiv);
 
-  context_init_lookup(reshape_context);
+  context_init_lookup(reshape_context, need_ptex_lookup);
   context_init_grid_pointers(reshape_context);
 }
 
@@ -259,7 +256,10 @@ bool multires_reshape_context_create_from_ccg(MultiresReshapeContext *reshape_co
   reshape_context->top.level = top_level;
   reshape_context->top.grid_size = bke::subdiv::grid_size_from_level(reshape_context->top.level);
 
-  context_init_common(reshape_context);
+  /* Mapping ptex coordinates back to grid coordinates is only needed by the detail smoothing pass,
+   * which is skipped when displacement is assigned at the top level. */
+  const bool need_ptex_lookup = reshape_context->top.level != reshape_context->reshape.level;
+  context_init_common(reshape_context, need_ptex_lookup);
 
   return context_verify_or_free(reshape_context);
 }
@@ -365,10 +365,7 @@ int multires_reshape_grid_to_face_index(const MultiresReshapeContext *reshape_co
   BLI_assert(grid_index >= 0);
   BLI_assert(grid_index < reshape_context->num_grids);
 
-  /* TODO(sergey): Optimization: when SubdivCCG is known we can calculate face index using
-   * SubdivCCG::grid_faces and SubdivCCG::faces, saving memory used by grid_to_face_index. */
-
-  return reshape_context->grid_to_face_index[grid_index];
+  return reshape_context->base_corner_to_face[grid_index];
 }
 
 int multires_reshape_grid_to_corner(const MultiresReshapeContext *reshape_context, int grid_index)
@@ -376,11 +373,8 @@ int multires_reshape_grid_to_corner(const MultiresReshapeContext *reshape_contex
   BLI_assert(grid_index >= 0);
   BLI_assert(grid_index < reshape_context->num_grids);
 
-  /* TODO(sergey): Optimization: when SubdivCCG is known we can calculate face index using
-   * SubdivCCG::grid_faces and SubdivCCG::faces, saving memory used by grid_to_face_index. */
-
   const int face_index = multires_reshape_grid_to_face_index(reshape_context, grid_index);
-  return grid_index - reshape_context->face_start_grid_index[face_index];
+  return grid_index - reshape_context->base_faces[face_index].start();
 }
 
 bool multires_reshape_is_quad_face(const MultiresReshapeContext *reshape_context, int face_index)
@@ -429,8 +423,12 @@ GridCoord multires_reshape_ptex_coord_to_grid(const MultiresReshapeContext *resh
 {
   GridCoord grid_coord;
 
+  /* The context must have been created knowing that ptex coordinates need to be mapped back to
+   * grid coordinates. */
+  BLI_assert(!reshape_context->ptex_start_grid_index.is_empty());
+
   const int start_grid_index = reshape_context->ptex_start_grid_index[ptex_coord->ptex_face_index];
-  const int face_index = reshape_context->grid_to_face_index[start_grid_index];
+  const int face_index = reshape_context->base_corner_to_face[start_grid_index];
 
   int corner_delta;
   if (multires_reshape_is_quad_face(reshape_context, face_index)) {
@@ -686,7 +684,7 @@ static void foreach_grid_face_coordinate_task(void *__restrict userdata_v,
   const float grid_size_1_inv = 1.0f / (float(grid_size) - 1.0f);
 
   const int num_corners = faces[face_index].size();
-  int grid_index = reshape_context->face_start_grid_index[face_index];
+  int grid_index = faces[face_index].start();
   for (int corner = 0; corner < num_corners; ++corner, ++grid_index) {
     for (int y = 0; y < grid_size; ++y) {
       const float v = float(y) * grid_size_1_inv;
@@ -786,6 +784,9 @@ static void assign_final_coords_from_mdisps(const MultiresReshapeContext *reshap
 void multires_reshape_assign_final_coords_from_mdisps(
     const MultiresReshapeContext *reshape_context)
 {
+  /* The final coordinates are calculated from the original grids. */
+  BLI_assert(reshape_context->orig.mdisps != nullptr);
+
   foreach_grid_coordinate(
       reshape_context, reshape_context->top.level, assign_final_coords_from_mdisps, nullptr);
 }
@@ -816,6 +817,9 @@ static void assign_final_elements_from_orig_mdisps(const MultiresReshapeContext 
 void multires_reshape_assign_final_elements_from_orig_mdisps(
     const MultiresReshapeContext *reshape_context)
 {
+  /* The final elements are calculated from the original grids. */
+  BLI_assert(reshape_context->orig.mdisps != nullptr);
+
   foreach_grid_coordinate(reshape_context,
                           reshape_context->top.level,
                           assign_final_elements_from_orig_mdisps,

@@ -27,6 +27,11 @@ class VKIndexBuffer : public IndexBuf {
 
   void update_sub(uint start, uint len, const void *data) override;
 
+  void copy_sub(IndexBuf &source_buf,
+                uint source_first_index,
+                uint dest_first_index,
+                uint index_len) override;
+
   VkBuffer vk_handle() const
   {
     return buffer_get().vk_handle();

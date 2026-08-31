@@ -171,8 +171,8 @@ static int replace_if_different(const char *tmpfile, const char *dep_files[])
 
   char orgfile[4096];
 
-  STRNCPY(orgfile, tmpfile);
-  orgfile[strlen(orgfile) - strlen(TMP_EXT)] = '\0'; /* Strip `.tmp`. */
+  const size_t orgfile_len = STRNCPY_RLEN(orgfile, tmpfile);
+  orgfile[orgfile_len - strlen(TMP_EXT)] = '\0'; /* Strip `.tmp`. */
 
   fp_org = fopen(orgfile, "rb");
 
@@ -4091,9 +4091,15 @@ struct RNAProcessItem {
 };
 
 static RNAProcessItem PROCESS_ITEMS[] = {
+    /* This starting block of files define parent types that is used in other RNA files.
+     * Because of this, these can't be put in alphabetical order in the main list below
+     * because the parent types need to be defined before they are used.
+     */
     {"rna_rna.cc", nullptr, RNA_def_rna},
     {"rna_ID.cc", nullptr, RNA_def_ID},
     {"rna_texture.cc", "rna_texture_api.cc", RNA_def_texture},
+    {"rna_userdef.cc", nullptr, RNA_def_userdef},
+
     {"rna_action.cc", "rna_action_api.cc", RNA_def_action},
     {"rna_animation.cc", "rna_animation_api.cc", RNA_def_animation},
     {"rna_animviz.cc", nullptr, RNA_def_animviz},
@@ -4160,7 +4166,6 @@ static RNAProcessItem PROCESS_ITEMS[] = {
 #ifdef WITH_USD
     {"rna_usd.cc", nullptr, RNA_def_usd},
 #endif
-    {"rna_userdef.cc", nullptr, RNA_def_userdef},
     {"rna_vfont.cc", "rna_vfont_api.cc", RNA_def_vfont},
     {"rna_volume.cc", nullptr, RNA_def_volume},
     {"rna_wm.cc", "rna_wm_api.cc", RNA_def_wm},

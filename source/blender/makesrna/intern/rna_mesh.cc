@@ -1901,7 +1901,7 @@ static PointerRNA rna_Mesh_vertex_color_new(Mesh *mesh,
   }
 
   PointerRNA attr_ptr = rna_AttributeGroup_lookup_string(RNA_id_pointer_create(&mesh->id),
-                                                         mesh->active_color_attribute,
+                                                         new_name,
                                                          ATTR_DOMAIN_MASK_CORNER,
                                                          CD_MASK_PROP_BYTE_COLOR);
   attr_ptr.type = RNA_MeshLoopColorLayer;
@@ -2753,7 +2753,7 @@ static void rna_def_loop_colors(BlenderRNA *brna, PropertyRNA *cprop)
                   "",
                   "Whether new layer's data should be initialized by copying current active one");
   parm = RNA_def_pointer(func, "layer", "MeshLoopColorLayer", "", "The newly created layer");
-  RNA_def_parameter_flags(parm, PropertyFlag(0), PARM_RNAPTR);
+  RNA_def_parameter_flags(parm, PROP_NEVER_NULL, PARM_RNAPTR);
   RNA_def_function_return(func, parm);
 
   func = RNA_def_function(srna, "remove", "rna_Mesh_vertex_color_remove");
@@ -3217,7 +3217,7 @@ static void rna_def_mesh(BlenderRNA *brna)
   RNA_def_property_clear_flag(prop, PROP_ANIMATABLE);
   RNA_def_property_flag(prop, PROP_NO_DEG_UPDATE);
 
-  prop = RNA_def_property(srna, "remesh_voxel_adaptivity", PROP_FLOAT, PROP_DISTANCE);
+  prop = RNA_def_property(srna, "remesh_voxel_adaptivity", PROP_FLOAT, PROP_NONE);
   RNA_def_property_float_sdna(prop, nullptr, "remesh_voxel_adaptivity");
   RNA_def_property_range(prop, 0.0f, 1.0f);
   RNA_def_property_ui_range(prop, 0.0f, 1.0f, 0.01, 4);

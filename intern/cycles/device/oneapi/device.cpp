@@ -60,6 +60,10 @@ bool device_oneapi_init()
   if (getenv("UR_L0_USE_COPY_ENGINE_FOR_FILL") == nullptr) {
     _putenv_s("UR_L0_USE_COPY_ENGINE_FOR_FILL", "1");
   }
+  /* As a fix for #163040, the v1 Level Zero adapter is not included. */
+  if (getenv("SYCL_UR_USE_LEVEL_ZERO_V2") == nullptr) {
+    _putenv_s("SYCL_UR_USE_LEVEL_ZERO_V2", "1");
+  }
 #  elif __linux__
   setenv("SYCL_CACHE_PERSISTENT", "1", false);
   setenv("SYCL_CACHE_THRESHOLD", "0", false);
@@ -73,6 +77,8 @@ bool device_oneapi_init()
   setenv("ZES_ENABLE_SYSMAN", "1", false);
   setenv("UR_L0_USE_COPY_ENGINE", "1", false);
   setenv("UR_L0_USE_COPY_ENGINE_FOR_FILL", "1", false);
+  /* As a fix for #159584, the v1 Level Zero adapter is not included. */
+  setenv("SYCL_UR_USE_LEVEL_ZERO_V2", "1", false);
 #  endif
 
   return true;

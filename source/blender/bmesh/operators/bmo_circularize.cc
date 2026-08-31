@@ -188,20 +188,7 @@ static bool bm_vert_chain_orientation_matrix_calc(Span<BMVert *> chain,
   }
 
   normal = math::normalize(normal);
-  float3 guess = float3(1.0f, 0.0f, 0.0f);
-
-  /* If normal is parallel to (1,0,0),the cross product would be zero.
-   * In that case, we switch the guess to the y axis to allow a valid
-   * perpendicular vector to be found. */
-  if (std::abs(math::dot(normal, guess)) > 0.99f) {
-    guess = float3(0.0f, 1.0f, 0.0f);
-  }
-
-  float3 p = math::normalize(math::cross(normal, guess));
-  float3 q = math::cross(normal, p);
-  r_mat.x_axis() = p;
-  r_mat.y_axis() = q;
-  r_mat.z_axis() = normal;
+  r_mat = math::from_up_axis<float3x3>(normal);
   return true;
 }
 

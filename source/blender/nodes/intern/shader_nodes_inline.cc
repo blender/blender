@@ -445,6 +445,11 @@ class ShaderNodesInliner {
     }
   }
 
+  bool should_use_link(const bNodeLink &link) const
+  {
+    return link.is_used() && (link.flag & NODE_LINK_VALID);
+  }
+
   void handle_input_socket(const SocketInContext &socket)
   {
     if (socket->is_multi_input()) {
@@ -454,7 +459,9 @@ class ShaderNodesInliner {
 
     const bNodeLink *used_link = nullptr;
     for (const bNodeLink *link : socket->directly_linked_links()) {
-      if (!link->is_used() || link->fromnode == nullptr || link->fromnode->is_undefined()) {
+      if (!this->should_use_link(*link) || link->fromnode == nullptr ||
+          link->fromnode->is_undefined())
+      {
         continue;
       }
       used_link = link;
@@ -500,7 +507,7 @@ class ShaderNodesInliner {
     bool all_links_ready = true;
     Vector<SocketValue, 0> values;
     for (const bNodeLink *link : socket->directly_linked_links()) {
-      if (!link->is_used()) {
+      if (!this->should_use_link(*link)) {
         continue;
       }
       const ComputeContext *from_context = this->get_link_source_context(*link, socket);
@@ -656,7 +663,7 @@ class ShaderNodesInliner {
         if (src_socket->is_multi_input()) {
           const bNodeLink *src_link = nullptr;
           for (const bNodeLink *link : src_socket->directly_linked_links()) {
-            if (link->is_used()) {
+            if (this->should_use_link(*link)) {
               src_link = link;
               break;
             }
@@ -1319,7 +1326,7 @@ class ShaderNodesInliner {
       return;
     }
 
-    /* If the index is not a constant value, we immitate the index switch node using a chain of
+    /* If the index is not a constant value, we imitate the index switch node using a chain of
      * mix nodes. This allows renderers using the Index Switch node with rendering backends which
      * don't support it natively. */
     const std::optional<eNodeSocketDatatype> internal_mix_type =

@@ -30,7 +30,6 @@ set(SRC
   intern/BLI_linklist_lockfree.cc
   intern/BLI_memarena.cc
   intern/BLI_memblock.cc
-  intern/BLI_memiter.cc
   intern/BLI_mempool.cc
   intern/BLI_mmap.cc
   intern/BLI_subprocess.cc
@@ -216,8 +215,8 @@ set(SRC
   BLI_dial_2d.hh
   BLI_disjoint_set.hh
   BLI_dot_export.hh
-  BLI_dot_export_fwd.hh
   BLI_dot_export_attribute_enums.hh
+  BLI_dot_export_fwd.hh
   BLI_dynamic_stack_buffer.hh
   BLI_dynstr.hh
   BLI_easing.hh
@@ -327,7 +326,6 @@ set(SRC
   BLI_math_vector_unroll.hh
   BLI_memarena.hh
   BLI_memblock.hh
-  BLI_memiter.hh
   BLI_memory_cache.hh
   BLI_memory_cache_file_load.hh
   BLI_memory_counter.hh
@@ -567,7 +565,6 @@ if(WITH_GTESTS)
     tests/BLI_math_time_test.cc
     tests/BLI_math_vector_test.cc
     tests/BLI_math_vector_types_test.cc
-    tests/BLI_memiter_test.cc
     tests/BLI_memory_cache_test.cc
     tests/BLI_memory_counter_test.cc
     tests/BLI_memory_utils_test.cc

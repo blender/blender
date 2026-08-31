@@ -106,6 +106,7 @@ set(GLSL_INC
   ../../gpu
   ../../gpu/shaders
   ../../gpu/shaders/common
+  ../../gpu/shaders/compat
 
   intern
   shaders

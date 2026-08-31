@@ -40,7 +40,7 @@ static metadata::Source scan_external_symbols(const std::vector<std::string> &fi
                                               const std::string &file_name)
 {
   Language language = language_from_filename(file_name);
-  SourceProcessor processor(file_buffer, file_name, language);
+  SourceProcessor processor(file_buffer, file_name, language, file_list);
 
   metadata::Source include_data = processor.parse_include_and_symbols();
 
@@ -181,9 +181,16 @@ int main(int argc, char **argv)
     language = Language::BLENDER_GLSL;
   }
 
+  if (language == Language::BSL) {
+    /* Until the new BSL compiler is fully working, use the legacy one. */
+    if (/* Add ported files here. */ true) {
+      language = Language::BLENDER_GLSL;
+    }
+  }
+
   metadata::Source external_symbols;
   std::vector<std::string> visited_files{input_file_name};
-  if (language == Language::BLENDER_GLSL || language == Language::BSL) {
+  if (language == Language::BLENDER_GLSL) {
     external_symbols = scan_external_symbols(file_list, visited_files, buffer.str(), filename);
   }
 
@@ -203,7 +210,7 @@ int main(int argc, char **argv)
   }
   dep_file << "\n";
 
-  SourceProcessor processor(buffer.str(), input_file_name, language);
+  SourceProcessor processor(buffer.str(), input_file_name, language, file_list);
 
   auto [result, metadata, error] = processor.convert(external_symbols);
 

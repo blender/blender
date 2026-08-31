@@ -118,6 +118,33 @@ void VKIndexBuffer::update_sub(uint start, uint len, const void *data)
   }
 }
 
+void VKIndexBuffer::copy_sub(IndexBuf &source_buf,
+                             uint source_first_index,
+                             uint dest_first_index,
+                             uint index_len)
+{
+  VKIndexBuffer &src = static_cast<VKIndexBuffer &>(source_buf);
+  BLI_assert(!is_subrange_);
+  BLI_assert(!src.is_subrange_);
+  BLI_assert_msg(src.index_type_ == index_type_,
+                 "Index type mismatch between source and destination");
+  BLI_assert_msg(size_t(source_first_index) + index_len <= src.index_len_,
+                 "Copy source range exceeds the source index buffer bounds");
+  BLI_assert_msg(size_t(dest_first_index) + index_len <= index_len_,
+                 "Copy destination range exceeds the destination index buffer bounds");
+  BLI_assert_msg(buffer_.is_allocated(), "GPU_indexbuf_use() not called on this buffer");
+  BLI_assert_msg(src.buffer_.is_allocated(), "GPU_indexbuf_use() not called on the source buffer");
+
+  VKContext &context = *VKContext::get();
+  render_graph::VKCopyBufferNode::CreateInfo copy_buffer = {};
+  copy_buffer.src_buffer = src.buffer_.resource();
+  copy_buffer.dst_buffer = buffer_.resource();
+  copy_buffer.region.srcOffset = source_first_index * to_bytesize(src.index_type_);
+  copy_buffer.region.dstOffset = dest_first_index * to_bytesize(index_type_);
+  copy_buffer.region.size = index_len * to_bytesize(index_type_);
+  context.render_graph().add_node(copy_buffer);
+}
+
 void VKIndexBuffer::strip_restart_indices()
 {
   NOT_YET_IMPLEMENTED

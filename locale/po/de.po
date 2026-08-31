@@ -1,11 +1,11 @@
 
 msgid ""
 msgstr ""
-"Project-Id-Version: Blender 5.3.0 Alpha (b'af4852ed4560')\n"
+"Project-Id-Version: Blender 5.3.0 Alpha (b'32296898e057')\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-08-10 07:54+0000\n"
-"PO-Revision-Date: 2026-08-09 23:12+0000\n"
-"Last-Translator: VANN <vann.universalprodukt@gmail.com>\n"
+"POT-Creation-Date: 2026-08-31 07:41+0000\n"
+"PO-Revision-Date: 2026-08-25 20:13+0000\n"
+"Last-Translator: \"Mattis V.\" <mattis@users.noreply.translate.blender.org>\n"
 "Language-Team: German <https://translate.blender.org/projects/blender-ui/ui/de/>\n"
 "Language: de\n"
 "MIME-Version: 1.0\n"
@@ -1507,6 +1507,14 @@ msgstr "Schilder"
 
 msgid "Custom tags (name tokens) for the asset, used for filtering and general asset management"
 msgstr "Benutzerdefiniertes Schild (Namenskürzel) für das Vermögen, verwendet für das Filtern und das generelle Vermögensmanagement"
+
+
+msgid "Absolute path to the .blend file containing this asset"
+msgstr "Absoluter Pfad zur .blend Datei, die dieses Objekt enthält"
+
+
+msgid "The type of the data-block, if the asset represents one ('NONE' otherwise)"
+msgstr "Der Typ des Datenblocks, wenn das Asset einen solchen darstellt (andernfalls 'NONE')"
 
 
 msgid "True if this asset is accessed via internet, not stored on disk"
@@ -3200,10 +3208,6 @@ msgstr "Blendfile Import Kontext Bibliotheken"
 
 msgid "Collection of source libraries, i.e. blendfile paths"
 msgstr "Sammlung von Quellbibliotheken, d.h. Blenddateien-Pfade"
-
-
-msgid "Blendfile Import Context Library"
-msgstr "Blenddatei Import Kontext Bibliothek"
 
 
 msgid "Dirty"
@@ -5953,10 +5957,6 @@ msgid "Color management specific to display device"
 msgstr "Farbmanagement spezifisch für das Anzeigegerät"
 
 
-msgid "Display"
-msgstr "Anzeige"
-
-
 msgid "Input color space settings"
 msgstr "Einstellungen kopieren"
 
@@ -5969,24 +5969,8 @@ msgid "Treat image as non-color data without color management, like normal or di
 msgstr "Behandelt Bilder ohne Farbmanagement als Nicht-Farbdaten, wie Normal- oder Verschiebungs-Maps"
 
 
-msgid "Input Color Space"
-msgstr "Eingabe-Farbraum"
-
-
 msgid "Color space in the image file, to convert to and from when saving and loading the image"
 msgstr "Farbraum in der Bilddatei, von dem oder in das Bild konvertiert wird, wenn das Bild gespeichert und geladen wird"
-
-
-msgid "AgX Log"
-msgstr "AgX Protokoll"
-
-
-msgid "Apple Log"
-msgstr "Apple-Protokoll"
-
-
-msgid "Apple Log 2"
-msgstr "Apple-Protokoll 2"
 
 
 msgid "Do not perform any color transform on load, treat colors as in scene linear space already"
@@ -6025,10 +6009,6 @@ msgid "The display and view transform supports high dynamic range colors"
 msgstr "Die Anzeige und die Ansichtstransformaton unterstützt Farben mit hohem Dynamikumfang (HDR-Bild)"
 
 
-msgid "Look"
-msgstr "Aussehen"
-
-
 msgid "Additional transform applied before view transform for artistic needs"
 msgstr "Zusätzliche Transformation vor Ansichtstransformation für künstlerische Bedürfnisse angewendet"
 
@@ -6055,10 +6035,6 @@ msgstr "Weißabgleich verwenden"
 
 msgid "Perform chromatic adaption from a different white point"
 msgstr "Eine chromatische Adaption von einem anderen Weißpunkt durchführen"
-
-
-msgid "View"
-msgstr "Ansicht"
 
 
 msgid "View used when converting image to a display space"
@@ -8105,6 +8081,10 @@ msgstr "Radius Minimum"
 
 msgid "Plane"
 msgstr "Fläche"
+
+
+msgid "View"
+msgstr "Ansicht"
 
 
 msgid "Detect Corners"
@@ -11126,7 +11106,7 @@ msgstr "Durchschnitt"
 
 
 msgid "Subframes"
-msgstr "Unterrahmen"
+msgstr "Teilbild"
 
 
 msgid "Is Planar"
@@ -12721,6 +12701,10 @@ msgstr "Zwischenraumdistanz"
 
 msgid "Smooth Stroke"
 msgstr "Weicher Strich"
+
+
+msgid "Use Unified Weight"
+msgstr "Undefinierte Wichtung verwenden"
 
 
 msgid "Wet Mix"
@@ -15282,6 +15266,10 @@ msgstr "Verlauf rückgängig machen"
 
 msgid "Display Color"
 msgstr "Anzeigefarbe"
+
+
+msgid "Display"
+msgstr "Anzeige"
 
 
 msgid "Size of particles on viewport"
@@ -19308,34 +19296,6 @@ msgid "Material slot name"
 msgstr "Materialsteckplatzname"
 
 
-msgid "Names"
-msgstr "Namen"
-
-
-msgid "Show/Hide"
-msgstr "Zeigen/Verbergen"
-
-
-msgid "Clean Up"
-msgstr "Aufräumen"
-
-
-msgid "Keying"
-msgstr "Schlüsselbilder"
-
-
-msgid "Tracking"
-msgstr "Verfolgen"
-
-
-msgid "Math"
-msgstr "Mathematisch"
-
-
-msgid "Pivot Point"
-msgstr "Drehpunkt"
-
-
 msgid "Snap"
 msgstr "Einrasten"
 
@@ -19344,12 +19304,36 @@ msgid "Proportional Editing Falloff"
 msgstr "Proportionaler Bearbeitungsabfall"
 
 
+msgid "Read"
+msgstr "Lesen"
+
+
 msgid "Mask Edit"
 msgstr "Maskenbearbeitung"
 
 
+msgid "Sample"
+msgstr "Beispiel"
+
+
+msgid "Write"
+msgstr "Schreiben"
+
+
+msgid "Primitives"
+msgstr "Grundkörper"
+
+
 msgid "Vertex Group Locks"
 msgstr "Punktgruppen sperren"
+
+
+msgid "Instances"
+msgstr "Instanzen"
+
+
+msgid "Import"
+msgstr "Importieren"
 
 
 msgid "Mirror"
@@ -19384,6 +19368,14 @@ msgid "Select More/Less"
 msgstr "Mehr/weniger anzeigen"
 
 
+msgid "Math"
+msgstr "Mathe"
+
+
+msgid "UV"
+msgstr "UV"
+
+
 msgid "Select Similar"
 msgstr "Ähnliche auswählen"
 
@@ -19402,22 +19394,6 @@ msgstr "Schleifen auswählen"
 
 msgid "Assign Material"
 msgstr "Material zuweisen"
-
-
-msgid "Read"
-msgstr "Lesen"
-
-
-msgid "Sample"
-msgstr "Beispiel"
-
-
-msgid "Write"
-msgstr "Schreiben"
-
-
-msgid "Primitives"
-msgstr "Grundkörper"
 
 
 msgid "Metaball"
@@ -19440,10 +19416,6 @@ msgid "Relations"
 msgstr "Beziehungen"
 
 
-msgid "Instances"
-msgstr "Instanzen"
-
-
 msgid "Rigid Body"
 msgstr "Rigid Body"
 
@@ -19452,16 +19424,28 @@ msgid "Apply"
 msgstr "Anwenden"
 
 
-msgid "Import"
-msgstr "Importieren"
-
-
 msgid "Track"
 msgstr "Spur"
 
 
 msgid "Quick Effects"
 msgstr "Schnelle Effekte"
+
+
+msgid "Show/Hide"
+msgstr "Zeigen/Verbergen"
+
+
+msgid "Linked"
+msgstr "Verknüpft"
+
+
+msgid "Clean Up"
+msgstr "Aufräumen"
+
+
+msgid "Layout"
+msgstr "Layout"
 
 
 msgid "Asset"
@@ -19480,12 +19464,16 @@ msgid "Hooks"
 msgstr "Haken"
 
 
-msgid "UV"
-msgstr "UV"
-
-
 msgid "Random Mask"
 msgstr "Zufällige Maske"
+
+
+msgid "Keying"
+msgstr "Schlüsselbilder"
+
+
+msgid "Tracking"
+msgstr "Verfolgen"
 
 
 msgid "Clear Transform"
@@ -19494,6 +19482,10 @@ msgstr "Transformation löschen"
 
 msgid "In-Betweens"
 msgstr "Dazwischen"
+
+
+msgid "Names"
+msgstr "Namen"
 
 
 msgid "Toggle Bone Options"
@@ -19520,16 +19512,12 @@ msgid "Merge"
 msgstr "Zusammenführen"
 
 
-msgid "Linked"
-msgstr "Verknüpft"
+msgid "Pivot Point"
+msgstr "Drehpunkt"
 
 
 msgid "Special Characters"
 msgstr "Sonderzeichen"
-
-
-msgid "Layout"
-msgstr "Layout"
 
 
 msgid "Kerning"
@@ -20270,7 +20258,7 @@ msgstr "Punkt Strich"
 
 
 msgid "Dynamic Paint"
-msgstr "Dynamisch Malen"
+msgstr "Dynamische Farbe"
 
 
 msgid "Explode"
@@ -20854,7 +20842,7 @@ msgstr "Texturkoordinaten Objekt"
 
 
 msgid "Dynamic Paint Modifier"
-msgstr "Dynamisch Malen Modifikator"
+msgstr "Dynamische Farbe Modifikator"
 
 
 msgid "EdgeSplit Modifier"
@@ -23526,14 +23514,6 @@ msgid "JPEG"
 msgstr "JPEG"
 
 
-msgid "From"
-msgstr "Von"
-
-
-msgid "To"
-msgstr "Nach"
-
-
 msgid "Matte Objects"
 msgstr "Matte Objekte"
 
@@ -24896,6 +24876,10 @@ msgid "Vector Curves"
 msgstr "Vektorkurve"
 
 
+msgid "Vector Math"
+msgstr "Vektormathe"
+
+
 msgid "A cross B"
 msgstr "A geschnitten B"
 
@@ -25758,6 +25742,11 @@ msgstr "Studiolicht deinstallieren"
 msgctxt "Operator"
 msgid "Install Theme..."
 msgstr "Thema installieren..."
+
+
+msgctxt "Operator"
+msgid "Add Asset Library"
+msgstr "Hinzufügen der Asset-Bibliothek"
 
 
 msgid "Add an Integrator Preset"
@@ -27219,8 +27208,8 @@ msgstr "Kontextmenü"
 
 
 msgctxt "Operator"
-msgid "Accept"
-msgstr "Akzeptieren"
+msgid "Select Directory"
+msgstr "Verzeichnis auswählen"
 
 
 msgid "Open a directory browser, hold Shift to open the file, Alt to browse containing directory"
@@ -28651,7 +28640,7 @@ msgstr "Ausgabedateipfad"
 
 msgctxt "Operator"
 msgid "Dynamic Paint Bake"
-msgstr "Dynamisch-Malen backen"
+msgstr "Dynamische Farbe backen"
 
 
 msgctxt "Operator"
@@ -29238,11 +29227,6 @@ msgid "Select or deselect all files"
 msgstr "Alle Dateien aus-/abwählen"
 
 
-msgctxt "Operator"
-msgid "Select Directory"
-msgstr "Verzeichnis auswählen"
-
-
 msgid "Walk Direction"
 msgstr "Laufrichtung"
 
@@ -29302,7 +29286,7 @@ msgstr "Gesamte Flüssigkeitssimulation backen"
 
 msgctxt "Operator"
 msgid "Bake Data"
-msgstr "Backdaten"
+msgstr "Daten backen"
 
 
 msgid "Bake Fluid Data"
@@ -29331,7 +29315,7 @@ msgstr "Partikel backen"
 
 msgctxt "Operator"
 msgid "Free All"
-msgstr "Alles frei"
+msgstr "Alles freigeben"
 
 
 msgctxt "Operator"
@@ -35323,11 +35307,6 @@ msgstr "Entfernen vorhandener Vorlage mit derselben ID"
 
 
 msgctxt "Operator"
-msgid "Add Asset Library"
-msgstr "Hinzufügen der Asset-Bibliothek"
-
-
-msgctxt "Operator"
 msgid "Remove Asset Library"
 msgstr "Asset Library entfernen"
 
@@ -35914,6 +35893,10 @@ msgstr "Neuer Bildschirm"
 
 msgid "Add a new screen"
 msgstr "Neues Layout hinzufügen"
+
+
+msgid "Active Section"
+msgstr "Aktive Auswahl"
 
 
 msgctxt "Operator"
@@ -40347,7 +40330,7 @@ msgstr "Aktionskarten"
 
 
 msgid "Passepartout"
-msgstr "Hauptschlüssel"
+msgstr "Passepartout"
 
 
 msgid "VR Session"
@@ -41040,10 +41023,6 @@ msgstr "IK Rotationskontrolle"
 
 msgid "Global preferences"
 msgstr "GlobaleEinstellungen"
-
-
-msgid "Active Section"
-msgstr "Aktive Auswahl"
 
 
 msgid "Apps"
@@ -42771,10 +42750,6 @@ msgid "Pause Preview"
 msgstr "Vorschau pausieren"
 
 
-msgid "Pause all viewport preview renders"
-msgstr "Pausiert alle Vorschaurenderer im Ansichtsfenster"
-
-
 msgid "Number of samples to render in the viewport, unlimited if 0"
 msgstr "Anzahl zu rendernder Abtastwerte im Ansichtsfenster, 0 ist unbegrenzt"
 
@@ -43488,7 +43463,7 @@ msgstr "Existierende Dateien beim Rendern überschreiben"
 
 
 msgid "Persistent Data"
-msgstr "Elternteil setzen"
+msgstr "Bleibende Daten"
 
 
 msgid "Placeholders"
@@ -44195,6 +44170,10 @@ msgid "Elastic Limit"
 msgstr "Elastische Grenze"
 
 
+msgid "Use effect during render"
+msgstr "Effekte während dem rendern verwenden"
+
+
 msgid "Light Direction"
 msgstr "Beleuchtungsrichtung"
 
@@ -44465,10 +44444,6 @@ msgstr "Effekterweiterung für das Benutzerinterface setzen"
 
 msgid "Display effect in Edit mode"
 msgstr "Effekte im Bearbeitungsmodus anzeigen"
-
-
-msgid "Use effect during render"
-msgstr "Effekte während dem rendern verwenden"
 
 
 msgid "Display effect in viewport"
@@ -44993,7 +44968,7 @@ msgstr "Gewebe-Punkt-Puffer der aktiven Objekte anzeigen"
 
 
 msgid "Show the active object's Dynamic Paint cache"
-msgstr "'Dynamisch Malen' Cache der aktiven Objekte anzeigen"
+msgstr "Cache der dynamischen Farbe des aktiven Objekts anzeigen"
 
 
 msgid "Show the active object's particle point cache"
@@ -47224,6 +47199,10 @@ msgid "Bone Solid"
 msgstr "Solider Knochen"
 
 
+msgid "Camera Passepartout"
+msgstr "Kamera-Passepartout"
+
+
 msgid "Camera Path"
 msgstr "Kamerapfad"
 
@@ -47649,10 +47628,6 @@ msgid "Active UV map index"
 msgstr "Aktiver UV-Kartenindex"
 
 
-msgid "Use Unified Weight"
-msgstr "Undefinierte Wichtung verwenden"
-
-
 msgid "Length Unit"
 msgstr "Längeneinheit"
 
@@ -47707,6 +47682,10 @@ msgstr "Getrennte Einheiten"
 
 msgid "Display units in pairs (e.g. 1m 0cm)"
 msgstr "Einheiten in Paaren darstellen, z.B. 1m 0cm"
+
+
+msgid "UUID"
+msgstr "UUID"
 
 
 msgid "Group of vertices, used for armature deform and other purposes"
@@ -47811,6 +47790,10 @@ msgstr "Z Achsenlinie anzeigen"
 
 msgid "Show Bones"
 msgstr "Knochen anzeigen"
+
+
+msgid "Show camera passepartout"
+msgstr "Kamera-Passepartout anzeigen"
 
 
 msgid "Show 3D Cursor"
@@ -48465,46 +48448,6 @@ msgstr "3D Ansichtswerkzeug: Transformieren (Plan B)"
 
 
 msgctxt "WindowManager"
-msgid "Generic Tool: Annotate"
-msgstr "Allgemeines Werkzeug: Kommentar"
-
-
-msgctxt "WindowManager"
-msgid "Generic Tool: Annotate (fallback)"
-msgstr "Allgemeines Werkzeug: Kommentar (Plan B)"
-
-
-msgctxt "WindowManager"
-msgid "Generic Tool: Annotate Line"
-msgstr "Allgemeines Werkzeug: Linienkommentar"
-
-
-msgctxt "WindowManager"
-msgid "Generic Tool: Annotate Line (fallback)"
-msgstr "Allgemeines Werkzeug: Linienkommentar (Plan B)"
-
-
-msgctxt "WindowManager"
-msgid "Generic Tool: Annotate Polygon"
-msgstr "Allgemeines Werkzeug: Polygonkommentar"
-
-
-msgctxt "WindowManager"
-msgid "Generic Tool: Annotate Polygon (fallback)"
-msgstr "Allgemeines Werkzeug: Polygonkommentar (Plan B)"
-
-
-msgctxt "WindowManager"
-msgid "Generic Tool: Annotate Eraser"
-msgstr "Allgemeines Werkzeug: Radiergummikommentar"
-
-
-msgctxt "WindowManager"
-msgid "Generic Tool: Annotate Eraser (fallback)"
-msgstr "Allgemeines Werkzeug: Radiergummikommentar (Plan B)"
-
-
-msgctxt "WindowManager"
 msgid "3D View Tool: Measure"
 msgstr "3D Ansichtswerkzeug: Messen"
 
@@ -48720,16 +48663,6 @@ msgstr "Bildbearbeitungswerkzeug: Uv, skalieren (Plan B)"
 
 
 msgctxt "WindowManager"
-msgid "UV Sculpt"
-msgstr "UV Skulptur"
-
-
-msgctxt "WindowManager"
-msgid "Image View"
-msgstr "Bildbetrachter"
-
-
-msgctxt "WindowManager"
 msgid "Image Editor Tool: Sample"
 msgstr "Bildbearbeitungswerkzeug: Beispiel"
 
@@ -48912,6 +48845,26 @@ msgstr "Y Ebene"
 msgctxt "WindowManager"
 msgid "Z Plane"
 msgstr "Z Ebene"
+
+
+msgctxt "WindowManager"
+msgid "Generic Tool: Annotate"
+msgstr "Allgemeines Werkzeug: Kommentar"
+
+
+msgctxt "WindowManager"
+msgid "Generic Tool: Annotate Line"
+msgstr "Allgemeines Werkzeug: Linienkommentar"
+
+
+msgctxt "WindowManager"
+msgid "Generic Tool: Annotate Polygon"
+msgstr "Allgemeines Werkzeug: Polygonkommentar"
+
+
+msgctxt "WindowManager"
+msgid "Generic Tool: Annotate Eraser"
+msgstr "Allgemeines Werkzeug: Radiergummikommentar"
 
 
 msgctxt "Operator"
@@ -51282,10 +51235,6 @@ msgstr "Neuer Ordner"
 
 msgid "Asset Catalog:"
 msgstr "Asset Katalog:"
-
-
-msgid "UUID"
-msgstr "UUID"
 
 
 msgid "Simple Name"
@@ -54756,6 +54705,10 @@ msgid "Manual Scale"
 msgstr "Manuelle Skalierung"
 
 
+msgid "Look"
+msgstr "Aussehen"
+
+
 msgid "Sort By:"
 msgstr "Sortiert nach:"
 
@@ -55720,7 +55673,7 @@ msgstr "Keine Einzelbilder zum Backen"
 
 
 msgid "Bake failed: no Dynamic Paint modifier found"
-msgstr "Backen fehlgeschlagen: kein Dynamisch Malen-Modifikator gefunden"
+msgstr "Backen fehlgeschlagen: kein Dynamische Farbe-Modifikator gefunden"
 
 
 msgid "Bake failed: invalid canvas"
@@ -56050,14 +56003,6 @@ msgstr "Gepackte Mehrfachebenen Dateien können nicht gemalt werden"
 
 msgid "Image requires 4 color channels to paint"
 msgstr "Bild benötigt 4 Farbkanäle zum Malen"
-
-
-msgid "Image requires 4 color channels to paint: %s"
-msgstr "Bild benötigt 4 Farbkanäle zum Malen: %s"
-
-
-msgid "Packed MultiLayer files cannot be painted: %s"
-msgstr "Gepackte Mehrfachebenen Dateien können nicht gemalt werden: %s"
 
 
 msgid "Image could not be found"

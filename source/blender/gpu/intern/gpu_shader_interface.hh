@@ -48,8 +48,19 @@ struct ShaderInput {
  */
 class ShaderInterface {
   friend shader::ShaderCreateInfo;
-  /* TODO(fclem): should be protected. */
+
  public:
+  using Key = uint64_t;
+
+  /**
+   * Unique id for identifying this shader interface. It is unique for the whole runtime of
+   * Blender.
+   */
+  Key uid = 0;
+
+  /* TODO(fclem): should be protected. */
+  static std::atomic<Key> next_uid_;
+
   /** Flat array. In this order: Attributes, Ubos, Uniforms, SSBOs, Constants. */
   ShaderInput *inputs_ = nullptr;
   /** Buffer containing all inputs names separated by '\0'. */

@@ -35,6 +35,26 @@ namespace io::alembic {
 
 static CLG_LogRef LOG = {"io.alembic"};
 
+/* Specialization of #has_animations() as defined in abc_reader_object.h. */
+template<> bool has_animations(Alembic::AbcGeom::IPointsSchema &schema, ImportSettings *settings)
+{
+  if (settings->is_sequence || !schema.isConstant()) {
+    return true;
+  }
+
+  IFloatGeomParam widths_param = schema.getWidthsParam();
+  if (widths_param.valid() && !widths_param.isConstant()) {
+    return true;
+  }
+
+  IV3fArrayProperty velocities_prop = schema.getVelocitiesProperty();
+  if (velocities_prop.valid() && !velocities_prop.isConstant()) {
+    return true;
+  }
+
+  return false;
+}
+
 AbcPointsReader::AbcPointsReader(const AbcReaderConstructorArgs &args) : AbcObjectReader(args)
 {
   IPoints ipoints(m_iobject, kWrapExisting);

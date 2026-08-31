@@ -119,6 +119,7 @@ set(SRC
   intern/warning.cc
 
   NOD_bundle_type.hh
+  NOD_bundle_type_fwd.hh
   NOD_caller_ui.hh
   NOD_common.hh
   NOD_composite.hh

@@ -1220,7 +1220,7 @@ void AttributeRequestSet::add(AttributeStandard std)
   for (AttributeRequest &req : requests) {
     if (req.std == std) {
       /* Clear the name so that std is preferred if available, and name
-       * is only used as a last restort in #AttributeSet::find. */
+       * is only used as a last resort in #AttributeSet::find. */
       req.name = ustring();
       return;
     }

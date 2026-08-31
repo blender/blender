@@ -229,7 +229,8 @@ class InpaintOperation : public NodeOperation {
       float4 color = float4(input.load_pixel<Color>(texel));
 
       /* An opaque pixel, not part of the inpainting region. */
-      if (color.w == 1.0f) {
+      constexpr float alpha_threshold = 1.0f - 1e-3f;
+      if (color.w >= alpha_threshold) {
         filled_region.store_pixel(texel, Color(color));
         smoothing_radius_image.store_pixel(texel, 0.0f);
         distance_to_boundary_image.store_pixel(texel, 0.0f);
@@ -317,7 +318,8 @@ class InpaintOperation : public NodeOperation {
       float4 color = float4(input.load_pixel<Color>(texel));
 
       /* An opaque pixel, not part of the inpainting region, write the original color. */
-      if (color.w == 1.0f) {
+      constexpr float alpha_threshold = 1.0f - 1e-3f;
+      if (color.w >= alpha_threshold) {
         output.store_pixel(texel, Color(color));
         return;
       }

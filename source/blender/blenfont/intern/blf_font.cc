@@ -81,7 +81,6 @@ static ft_pix blf_font_height_max_ft_pix(FontBLF *font);
 static ft_pix blf_font_width_max_ft_pix(FontBLF *font);
 
 /* -------------------------------------------------------------------- */
-
 /** \name FreeType Caching
  * \{ */
 

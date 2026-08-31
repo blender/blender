@@ -57,7 +57,6 @@ void filelist_setfilter_options(FileList *filelist,
                                 bool filter_assets_only,
                                 bool filter_assets_hide_online,
                                 bool filter_assets_hide_offline,
-                                const char *filter_glob,
                                 const char *filter_search);
 /**
  * Set the indexer to be used by the filelist.
@@ -227,6 +226,8 @@ void filelist_entry_parent_select_set(FileList *filelist,
                                       FileCheckType check);
 
 void filelist_setrecursion(FileList *filelist, int recursion_level);
+/** Set the extension glob used to tag entries with #FILE_TYPE_OPERATOR. */
+void filelist_setglob(FileList *filelist, const char *filter_glob);
 
 asset_system::AssetLibrary *filelist_asset_library(FileList *filelist);
 

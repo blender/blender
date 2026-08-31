@@ -2481,7 +2481,6 @@ static void lib_link_scenes_check_set(Main *bmain)
 /** \} */
 
 /* -------------------------------------------------------------------- */
-
 /** \name Read ID: Library
  * \{ */
 
@@ -5691,7 +5690,7 @@ static void read_library_linked_id(
     FileData *basefd, FileData *fd, Main *mainvar, ID *id, ID **r_id)
 {
   BHead *bhead = nullptr;
-  BLI_assert_msg(!ID_IS_PACKED(id), "Packed IDs should never take this codepath.");
+  BLI_assert_msg(!ID_IS_PACKED(id), "Packed IDs should never take this code-path.");
   const bool is_valid = BKE_idtype_idcode_is_linkable(id->id_type()) ||
                         ((id->tag & ID_TAG_EXTERN) == 0);
 

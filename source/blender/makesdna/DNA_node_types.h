@@ -3475,7 +3475,7 @@ struct NodeGeometryViewer {
 
   /** #eCustomDataType. */
   int8_t data_type_legacy = 0;
-  /** #AttrDomain. */
+  /** #AttrDomainSelection. */
   int8_t domain = 0;
 
   char _pad[2] = {};
@@ -3753,6 +3753,25 @@ struct NodeIndexSwitch {
 #ifdef __cplusplus
   Span<IndexSwitchItem> items_span() const;
   MutableSpan<IndexSwitchItem> items_span();
+#endif
+};
+
+struct CombineListItem {
+  int identifier = 0;
+};
+
+struct NodeCombineList {
+  DNA_DEFINE_CXX_METHODS(NodeCombineList)
+
+  CombineListItem *items = nullptr;
+  int items_num = 0;
+  int next_identifier = 0;
+  eNodeSocketDatatype data_type = {};
+
+  char _pad[6] = {};
+#ifdef __cplusplus
+  Span<CombineListItem> items_span() const;
+  MutableSpan<CombineListItem> items_span();
 #endif
 };
 

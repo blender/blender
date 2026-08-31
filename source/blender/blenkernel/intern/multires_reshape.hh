@@ -87,15 +87,18 @@ struct MultiresReshapeContext {
   MDisps *mdisps;
   GridPaintMask *grid_paint_masks;
 
-  /* Indexed by face index, gives first grid index of the face. */
-  Array<int> face_start_grid_index;
-
   /* Indexed by grid index, contains face index in the base mesh from which the grid has
    * been created (in other words, index of a face which contains loop corresponding to the grid
-   * index). */
-  Array<int> grid_to_face_index;
+   * index).
+   *
+   * There is exactly one grid per face corner, so this is simply the base mesh's corner to face
+   * map. Similarly, the first grid index of a face is `base_faces[face_index].start()`. */
+  Span<int> base_corner_to_face;
 
   /* Indexed by ptex face index, gives first grid index of the ptex face.
+   *
+   * Only computed when the reshape needs to map ptex coordinates back to grid coordinates, which
+   * is not the case when displacement is assigned at the top level.
    *
    * For non-quad base faces ptex face is created for every face corner, so it's similar to a
    * grid in this case. In this case start grid index will be the only one for this ptex face.

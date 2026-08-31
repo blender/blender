@@ -225,24 +225,27 @@ size_t BLI_snprintf_rlen(char *__restrict dst,
   return n;
 }
 
-char *BLI_sprintfN_with_buffer(
-    char *fixed_buf, size_t fixed_buf_size, size_t *result_len, const char *__restrict format, ...)
+char *BLI_sprintfN_with_buffer(char *fixed_buf,
+                               size_t fixed_buf_maxncpy,
+                               size_t *result_len,
+                               const char *__restrict format,
+                               ...)
 {
   va_list args;
   va_start(args, format);
-  int retval = vsnprintf(fixed_buf, fixed_buf_size, format, args);
+  int retval = vsnprintf(fixed_buf, fixed_buf_maxncpy, format, args);
   va_end(args);
   if (retval < 0) [[unlikely]] {
     /* Return an empty string as there was an error there is no valid output. */
     *result_len = 0;
-    if (fixed_buf_size == 0) [[unlikely]] {
+    if (fixed_buf_maxncpy == 0) [[unlikely]] {
       return MEM_new_array_zeroed<char>(1, __func__);
     }
     *fixed_buf = '\0';
     return fixed_buf;
   }
   *result_len = size_t(retval);
-  if (size_t(retval) < fixed_buf_size) {
+  if (size_t(retval) < fixed_buf_maxncpy) {
     return fixed_buf;
   }
 
@@ -258,26 +261,26 @@ char *BLI_sprintfN_with_buffer(
 }
 
 char *BLI_vsprintfN_with_buffer(char *fixed_buf,
-                                size_t fixed_buf_size,
+                                size_t fixed_buf_maxncpy,
                                 size_t *result_len,
                                 const char *__restrict format,
                                 va_list args)
 {
   va_list args_copy;
   va_copy(args_copy, args);
-  int retval = vsnprintf(fixed_buf, fixed_buf_size, format, args_copy);
+  int retval = vsnprintf(fixed_buf, fixed_buf_maxncpy, format, args_copy);
   va_end(args_copy);
   if (retval < 0) [[unlikely]] {
     /* Return an empty string as there was an error there is no valid output. */
     *result_len = 0;
-    if (fixed_buf_size == 0) [[unlikely]] {
+    if (fixed_buf_maxncpy == 0) [[unlikely]] {
       return MEM_new_array_zeroed<char>(1, __func__);
     }
     *fixed_buf = '\0';
     return fixed_buf;
   }
   *result_len = size_t(retval);
-  if (size_t(retval) < fixed_buf_size) {
+  if (size_t(retval) < fixed_buf_maxncpy) {
     return fixed_buf;
   }
 

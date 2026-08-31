@@ -353,8 +353,11 @@ RNANodeIdentifier RNANodeQuery::construct_node_identifier(const PointerRNA *ptr,
     node_identifier.type = NodeType::GEOMETRY;
     return node_identifier;
   }
-  else if (RNA_struct_is_a(ptr->type, RNA_Strip)) {
-    /* Sequencer strip */
+  else if (RNA_struct_is_a(ptr->type, RNA_Strip) ||
+           RNA_struct_is_a(ptr->type, RNA_StripModifier) ||
+           ELEM(ptr->type, RNA_StripTransform, RNA_StripCrop, RNA_StripColorBalanceData))
+  {
+    /* Sequencer strip or related nested data. */
     node_identifier.type = NodeType::SEQUENCER;
     return node_identifier;
   }
@@ -385,6 +388,13 @@ RNANodeIdentifier RNANodeQuery::construct_node_identifier(const PointerRNA *ptr,
   }
   else if (ELEM(ptr->type, RNA_MeshVertex, RNA_MeshEdge, RNA_MeshLoop, RNA_MeshPolygon)) {
     node_identifier.type = NodeType::GEOMETRY;
+    return node_identifier;
+  }
+  else if (ptr->owner_id && GS(ptr->owner_id->name) == ID_SCE &&
+           RNA_struct_search_closest_ancestor_by_type(ptr, RNA_SceneCompositorEffect))
+  {
+    node_identifier.type = NodeType::COMPOSITOR;
+    node_identifier.operation_code = OperationCode::COMPOSITOR_EVAL;
     return node_identifier;
   }
   if (prop != nullptr) {

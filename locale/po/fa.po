@@ -1,9 +1,9 @@
 
 msgid ""
 msgstr ""
-"Project-Id-Version: Blender 5.3.0 Alpha (b'af4852ed4560')\n"
+"Project-Id-Version: Blender 5.3.0 Alpha (b'32296898e057')\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-08-10 07:54+0000\n"
+"POT-Creation-Date: 2026-08-31 07:41+0000\n"
 "PO-Revision-Date: 2025-11-19 06:24+0000\n"
 "Last-Translator: \"M. Amin Taheri\" <amintaheri2001@gmail.com>\n"
 "Language-Team: Persian <https://translate.blender.org/projects/blender-ui/ui/fa/>\n"
@@ -1665,10 +1665,6 @@ msgid "Gamma"
 msgstr "ﺎﻣﺎﮔ"
 
 
-msgid "View"
-msgstr "ﺶﯾﺎﻤﻧ"
-
-
 msgid "Color mapping settings"
 msgstr "ﯽﮕﻧﺭ ﺖﺷﺎﮕﻧ ﺕﺎﻤﯿﻈﻨﺗ"
 
@@ -2035,6 +2031,10 @@ msgstr "ﺎﻤﻧ ﻥﺎﮑﻣ"
 
 msgid "Plane"
 msgstr "ﻪﺤﻔﺻ"
+
+
+msgid "View"
+msgstr "ﺶﯾﺎﻤﻧ"
 
 
 msgid "Render"
@@ -2608,6 +2608,10 @@ msgid "Paint"
 msgstr "ﮓﻧﺭ"
 
 
+msgid "Use Unified Strength"
+msgstr "ﺪﺤﺘﻣ ﺖﻣﻭﺎﻘﻣ ﺯﺍ ﻩﺩﺎﻔﺘﺳﺍ"
+
+
 msgctxt "Unit"
 msgid "Velocity Unit"
 msgstr "ﺖﻋﺮﺳ ﯼﺎﮑﯾ"
@@ -3090,20 +3094,20 @@ msgid "Mix"
 msgstr "ﻁﻮﻠﺨﻣ"
 
 
-msgid "Tracking"
-msgstr "ﯽﺑﺎﯾﺩﺭ"
+msgid "Import"
+msgstr "ﻥﺩﺮﮐ ﺩﺭﺍﻭ"
+
+
+msgid "Mirror"
+msgstr "ﻪﻨﯾﺁ"
 
 
 msgid "Math"
 msgstr "ﯽﺿﺎﯾﺭ"
 
 
-msgid "Pivot Point"
-msgstr "ﺶﺧﺮﭼ ﻪﻄﻘﻧ"
-
-
-msgid "Mirror"
-msgstr "ﻪﻨﯾﺁ"
+msgid "UV"
+msgstr "UV"
 
 
 msgid "Add Image"
@@ -3118,24 +3122,24 @@ msgid "Apply"
 msgstr "ﻝﺎﻤﻋﺍ"
 
 
-msgid "Import"
-msgstr "ﻥﺩﺮﮐ ﺩﺭﺍﻭ"
-
-
-msgid "Convert"
-msgstr "ﻞﯾﺪﺒﺗ"
-
-
-msgid "UV"
-msgstr "UV"
-
-
 msgid "Linked"
 msgstr "ﻂﺒﺗﺮﻣ"
 
 
 msgid "Layout"
 msgstr "ﺡﺮﻃ"
+
+
+msgid "Convert"
+msgstr "ﻞﯾﺪﺒﺗ"
+
+
+msgid "Tracking"
+msgstr "ﯽﺑﺎﯾﺩﺭ"
+
+
+msgid "Pivot Point"
+msgstr "ﺶﺧﺮﭼ ﻪﻄﻘﻧ"
 
 
 msgid "Key"
@@ -4645,10 +4649,6 @@ msgid "Lock Borders"
 msgstr "ﺯﺮﻣ ﻥﺩﺮﮐ ﻞﻔﻗ"
 
 
-msgid "Use Unified Strength"
-msgstr "ﺪﺤﺘﻣ ﺖﻣﻭﺎﻘﻣ ﺯﺍ ﻩﺩﺎﻔﺘﺳﺍ"
-
-
 msgid "Unit System"
 msgstr "ﺪﺣﺍﻭ ﻢﺘﺴﯿﺳ"
 
@@ -4737,6 +4737,11 @@ msgid "Credits"
 msgstr "ﺕﺍﺭﺎﺒﺘﻋﺍ"
 
 
+msgctxt "Operator"
+msgid "Search..."
+msgstr "...ﻮﺠﺘﺴﺟ"
+
+
 msgid "Extrapolate"
 msgstr "ﻥﺩﺮﮐ ﺱﺎﯿﻗ"
 
@@ -4751,11 +4756,6 @@ msgstr "ﻩﺪﺸﻧ ﺺﺨﺸﻣ"
 
 msgid "Auto Normalize"
 msgstr "ﺭﺎﮐﺩﻮﺧ ﯼﺯﺎﺳ ﯼﺩﺎﻋ"
-
-
-msgctxt "Operator"
-msgid "Search..."
-msgstr "...ﻮﺠﺘﺴﺟ"
 
 
 msgid "Priority"

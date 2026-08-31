@@ -1,9 +1,9 @@
 
 msgid ""
 msgstr ""
-"Project-Id-Version: Blender 5.3.0 Alpha (b'af4852ed4560')\n"
+"Project-Id-Version: Blender 5.3.0 Alpha (b'32296898e057')\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-08-10 07:54+0000\n"
+"POT-Creation-Date: 2026-08-31 07:41+0000\n"
 "PO-Revision-Date: 2025-07-23 15:34+0000\n"
 "Last-Translator: Just Adam <adam.abbas2009@gmail.com>\n"
 "Language-Team: Bulgarian <https://translate.blender.org/projects/blender-ui/ui/bg/>\n"
@@ -664,10 +664,6 @@ msgid "Gamma"
 msgstr "Гама"
 
 
-msgid "View"
-msgstr "Изглед"
-
-
 msgid "RGB"
 msgstr "ЧЗС"
 
@@ -678,6 +674,10 @@ msgstr "По часовника"
 
 msgid "Alpha"
 msgstr "Запълненост"
+
+
+msgid "Identifier"
+msgstr "Идентификатор"
 
 
 msgid "Output"
@@ -718,6 +718,10 @@ msgstr "Разделяне"
 
 msgid "Plane"
 msgstr "Равнина"
+
+
+msgid "View"
+msgstr "Изглед"
 
 
 msgid "Render"
@@ -766,10 +770,6 @@ msgstr "Магнитен"
 
 msgid "Wind"
 msgstr "Вятър"
-
-
-msgid "Identifier"
-msgstr "Идентификатор"
 
 
 msgid "User Defined"
@@ -1148,6 +1148,10 @@ msgid "ID Type"
 msgstr "ID тип"
 
 
+msgid "Import"
+msgstr "Внеси"
+
+
 msgid "UV Mapping"
 msgstr "UV Картиране"
 
@@ -1162,10 +1166,6 @@ msgstr "Твърдо тяло"
 
 msgid "Apply"
 msgstr "Прилагане"
-
-
-msgid "Import"
-msgstr "Внеси"
 
 
 msgid "Make Single User"
@@ -1403,11 +1403,6 @@ msgstr "Филтрирай .blend файловете"
 
 msgid "Filter text files"
 msgstr "Филтрирай текстовите файлове"
-
-
-msgctxt "Operator"
-msgid "Accept"
-msgstr "Приеми"
 
 
 msgid "Directory of the file"

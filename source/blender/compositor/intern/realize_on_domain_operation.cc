@@ -7,7 +7,6 @@
 #include "BLI_math_matrix.hh"
 #include "BLI_math_matrix_types.hh"
 #include "BLI_math_vector_types.hh"
-#include "BLI_utildefines.hh"
 
 #include "GPU_shader.hh"
 #include "GPU_texture.hh"
@@ -100,9 +99,35 @@ float2 RealizeOnDomainOperation::compute_corrective_translation()
                 ((input_size[1] ^ output_size[1]) & 1) ? -0.5f : 0.0f);
 }
 
+std::optional<float2x2> RealizeOnDomainOperation::compute_jacobian(const float3x3 &transformation)
+{
+  /* The Jacobian of a 2D transformation matrix is the matrix itself. */
+  const float2x2 jacobian = float2x2(transformation);
+
+  /* The gradients of the input across the output are the rows of the Jacobian. */
+  const float2 x_gradient = float2(jacobian[0][0], jacobian[1][0]);
+  const float2 y_gradient = float2(jacobian[0][1], jacobian[1][1]);
+
+  /* Compute the size of the input pixels in normalized space. */
+  const float2 pixel_size = math::rcp(float2(this->get_input().domain().data_size));
+
+  /* If both gradients are less than that the input pixel size with a tolerance ratio of 1.1, then
+   * each output pixel does not cover multiple input pixels and we can do simple point sampling,
+   * otherwise, each output pixel covers multiple input pixels and we do area sampling. */
+  constexpr float tolerance_ratio = 1.1f;
+  if (math::length(x_gradient) < pixel_size.x * tolerance_ratio &&
+      math::length(y_gradient) < pixel_size.y * tolerance_ratio)
+  {
+    return std::nullopt;
+  }
+
+  return jacobian;
+}
+
 void RealizeOnDomainOperation::realize_on_domain_gpu(const float3x3 &transformation)
 {
-  gpu::Shader *shader = this->context().get_shader(this->get_realization_shader_name());
+  gpu::Shader *shader = this->context().get_shader(
+      this->get_realization_shader_name(transformation));
   GPU_shader_bind(shader);
 
   GPU_shader_uniform_mat3_as_mat4(shader, "transformation", transformation.ptr());
@@ -142,7 +167,7 @@ void RealizeOnDomainOperation::realize_on_domain_gpu(const float3x3 &transformat
   GPU_shader_unbind();
 }
 
-const char *RealizeOnDomainOperation::get_realization_shader_name()
+const char *RealizeOnDomainOperation::get_realization_shader_name(const float3x3 &transformation)
 {
   const Interpolation interpolation = get_input().get_realization_options().interpolation;
   if (interpolation == Interpolation::Bicubic) {
@@ -199,10 +224,12 @@ const char *RealizeOnDomainOperation::get_realization_shader_name()
         /* Float3 is internally stored in a float4 texture due to GPU module limitations. */
         return "compositor_realize_on_domain_float4";
       case ResultType::Float4:
-      case ResultType::Color:
-        return (interpolation == Interpolation::Anisotropic) ?
+      case ResultType::Color: {
+        const std::optional<float2x2> jacobian = this->compute_jacobian(transformation);
+        return interpolation == Interpolation::Anisotropic && jacobian.has_value() ?
                    "compositor_realize_on_domain_anisotropic_float4" :
                    "compositor_realize_on_domain_float4";
+      }
       case ResultType::Int:
         return "compositor_realize_on_domain_int";
       case ResultType::Int2:
@@ -240,10 +267,12 @@ const char *RealizeOnDomainOperation::get_realization_shader_name()
 }
 
 template<typename T>
-static void realize_on_domain(const Result &input, Result &output, const float3x3 &transformation)
+static void realize_on_domain(const Result &input,
+                              Result &output,
+                              const float3x3 &transformation,
+                              const std::optional<float2x2> &jacobian)
 {
   const RealizationOptions realization_options = input.get_realization_options();
-  const float2x2 jacobian(transformation);
   parallel_for(output.domain().data_size, [&](const int2 texel) {
     const float2 coordinates = math::transform_point(transformation, float2(texel));
     T sample = input.sample<T>(coordinates,
@@ -263,6 +292,8 @@ void RealizeOnDomainOperation::realize_on_domain_cpu(const float3x3 &transformat
   const Domain domain = this->compute_domain();
   output.allocate_texture(domain);
 
+  const std::optional<float2x2> jacobian = this->compute_jacobian(transformation);
+
   input.get_cpp_type()
       .to_static_type<float,
                       float2,
@@ -277,7 +308,7 @@ void RealizeOnDomainOperation::realize_on_domain_cpu(const float3x3 &transformat
                       float4x4,
                       nodes::MenuValue,
                       math::Quaternion>(
-          [&]<typename T>() { realize_on_domain<T>(input, output, transformation); });
+          [&]<typename T>() { realize_on_domain<T>(input, output, transformation, jacobian); });
 }
 
 Domain RealizeOnDomainOperation::compute_domain()

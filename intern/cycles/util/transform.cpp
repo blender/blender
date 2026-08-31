@@ -194,7 +194,7 @@ void transform_motion_decompose(DecomposedTransform *decomp,
   }
 }
 
-Transform transform_from_viewplane(BoundBox2D &viewplane)
+Transform transform_from_viewplane(const BoundBox2D &viewplane)
 {
   return transform_scale(1.0f / (viewplane.right - viewplane.left),
                          1.0f / (viewplane.top - viewplane.bottom),

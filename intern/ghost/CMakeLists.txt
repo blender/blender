@@ -297,11 +297,6 @@ elseif(WITH_GHOST_X11 OR WITH_GHOST_WAYLAND)
       add_definitions(-DHAVE_MEMFD_CREATE)
     endif()
 
-    check_symbol_exists(poll "poll.h" HAVE_POLL)
-    if(HAVE_POLL)
-      add_definitions(-DHAVE_POLL)
-    endif()
-
     list(APPEND SRC
       intern/GHOST_SystemWayland.cc
       intern/GHOST_WindowWayland.cc
@@ -454,6 +449,10 @@ elseif(WIN32)
     intern/GHOST_TrackpadWin32.hh
     intern/GHOST_WindowWin32.hh
     intern/GHOST_Wintab.hh
+
+    # Without these files listed, they aren't known to CMake.
+    ../../extern/wintab/include/pktdef.h
+    ../../extern/wintab/include/wintab.h
   )
 
   list(APPEND SRC

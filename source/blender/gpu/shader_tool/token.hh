@@ -188,3 +188,117 @@ struct Token : lexit::Token {
 };
 
 }  // namespace blender::gpu::shader::parser
+
+namespace lexit {
+
+static inline std::string to_str(TokenType type)
+{
+  switch (type) {
+    case Word:
+      return "Word";
+    case Number:
+      return "Number";
+    case Default:
+      return "default";
+    case TemplateOpen:
+      return "<";
+    case TemplateClose:
+      return ">";
+    case NewLine:
+      return "NewLine";
+    case LogicalAnd:
+      return "&&";
+    case Break:
+      return "break";
+    case Const:
+      return "const";
+    case Constexpr:
+      return "constexpr";
+    case Do:
+      return "do";
+    case Decrement:
+      return "decrement";
+    case NotEqual:
+      return "!=";
+    case Equal:
+      return "==";
+    case LShift:
+      return "<<";
+    case RShift:
+      return ">>";
+    case For:
+      return "for";
+    case While:
+      return "while";
+    case LogicalOr:
+      return "||";
+    case GEqual:
+      return ">=";
+    case Switch:
+      return "switch";
+    case Case:
+      return "case";
+    case If:
+      return "if";
+    case Else:
+      return "else";
+    case Elif:
+      return "elif";
+    case Endif:
+      return "endif";
+    case Ifdef:
+      return "ifdef";
+    case Ifndef:
+      return "ifndef";
+    case Inline:
+      return "inline";
+    case LEqual:
+      return "<=";
+    case Static:
+      return "static";
+    case Enum:
+      return "enum";
+    case Namespace:
+      return "namespace";
+    case Define:
+      return "define";
+    case Union:
+      return "union";
+    case Continue:
+      return "continue";
+    case Line:
+      return "line";
+    case Increment:
+      return "++";
+    case Pragma:
+      return "pragma";
+    case DoubleHash:
+      return "##";
+    case Return:
+      return "return";
+    case Struct:
+      return "struct";
+    case Class:
+      return "class";
+    case Template:
+      return "template";
+    case Typename:
+      return "typename";
+    case This:
+      return "this";
+    case Using:
+      return "using";
+    case Undef:
+      return "undef";
+    case Private:
+      return "private";
+    case Public:
+      return "public";
+    case Invalid:
+      return "EOF";
+    default:
+      return std::string(1, char(type));
+  }
+}
+
+}  // namespace lexit

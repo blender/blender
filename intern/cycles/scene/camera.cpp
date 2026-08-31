@@ -137,19 +137,29 @@ NODE_DEFINE(Camera)
   SOCKET_FLOAT(farclip, "Far Clip", 1e5f);
 
   SOCKET_FLOAT(viewplane.left, "Viewplane Left", 0);
-  SOCKET_FLOAT(viewplane.right, "Viewplane Right", 0);
+  SOCKET_FLOAT(viewplane.right, "Viewplane Right", 1);
   SOCKET_FLOAT(viewplane.bottom, "Viewplane Bottom", 0);
-  SOCKET_FLOAT(viewplane.top, "Viewplane Top", 0);
+  SOCKET_FLOAT(viewplane.top, "Viewplane Top", 1);
+
+  SOCKET_FLOAT(viewplane_pre.left, "Viewplane Pre Left", 0);
+  SOCKET_FLOAT(viewplane_pre.right, "Viewplane Pre Right", 0);
+  SOCKET_FLOAT(viewplane_pre.bottom, "Viewplane Pre Bottom", 0);
+  SOCKET_FLOAT(viewplane_pre.top, "Viewplane Pre Top", 0);
+
+  SOCKET_FLOAT(viewplane_post.left, "Viewplane Post Left", 0);
+  SOCKET_FLOAT(viewplane_post.right, "Viewplane Post Right", 0);
+  SOCKET_FLOAT(viewplane_post.bottom, "Viewplane Post Bottom", 0);
+  SOCKET_FLOAT(viewplane_post.top, "Viewplane Post Top", 0);
 
   SOCKET_FLOAT(border.left, "Border Left", 0);
-  SOCKET_FLOAT(border.right, "Border Right", 0);
+  SOCKET_FLOAT(border.right, "Border Right", 1);
   SOCKET_FLOAT(border.bottom, "Border Bottom", 0);
-  SOCKET_FLOAT(border.top, "Border Top", 0);
+  SOCKET_FLOAT(border.top, "Border Top", 1);
 
   SOCKET_FLOAT(viewport_camera_border.left, "Viewport Border Left", 0);
-  SOCKET_FLOAT(viewport_camera_border.right, "Viewport Border Right", 0);
+  SOCKET_FLOAT(viewport_camera_border.right, "Viewport Border Right", 1);
   SOCKET_FLOAT(viewport_camera_border.bottom, "Viewport Border Bottom", 0);
-  SOCKET_FLOAT(viewport_camera_border.top, "Viewport Border Top", 0);
+  SOCKET_FLOAT(viewport_camera_border.top, "Viewport Border Top", 1);
 
   SOCKET_FLOAT(offscreen_dicing_scale, "Offscreen Dicing Scale", 1.0f);
 
@@ -198,7 +208,7 @@ Camera::~Camera() = default;
 void Camera::compute_auto_viewplane()
 {
   if (camera_type == CAMERA_PANORAMA || camera_type == CAMERA_CUSTOM) {
-    viewplane = BoundBox2D();
+    viewplane = BoundBox2D::full;
   }
   else {
     const float aspect = (float)full_width / (float)full_height;
@@ -371,7 +381,13 @@ void Camera::update(Scene *scene)
       kcam->motion_pass_post = kcam->worldtocamera;
     }
     if (camera_type != CAMERA_PANORAMA && camera_type != CAMERA_CUSTOM) {
-      if (have_motion || fov != fov_pre || fov != fov_post) {
+      const BoundBox2D motion_viewplane_pre = viewplane_pre.is_empty() ? viewplane : viewplane_pre;
+      const BoundBox2D motion_viewplane_post = viewplane_post.is_empty() ? viewplane :
+                                                                           viewplane_post;
+
+      if (have_motion || fov != fov_pre || fov != fov_post || viewplane != motion_viewplane_pre ||
+          viewplane != motion_viewplane_post)
+      {
         /* Note the values for perspective_pre/perspective_post calculated for MOTION_PASS are
          * different to those calculated for MOTION_BLUR below, so the code has not been combined.
          */
@@ -382,8 +398,13 @@ void Camera::update(Scene *scene)
           cameratoscreen_post = projection_perspective(fov_post, nearclip, farclip);
         }
 
-        const ProjectionTransform cameratoraster_pre = screentoraster * cameratoscreen_pre;
-        const ProjectionTransform cameratoraster_post = screentoraster * cameratoscreen_post;
+        const Transform screentoraster_pre = ndctoraster * fulltoborder *
+                                             transform_from_viewplane(motion_viewplane_pre);
+        const Transform screentoraster_post = ndctoraster * fulltoborder *
+                                              transform_from_viewplane(motion_viewplane_post);
+
+        const ProjectionTransform cameratoraster_pre = screentoraster_pre * cameratoscreen_pre;
+        const ProjectionTransform cameratoraster_post = screentoraster_post * cameratoscreen_post;
         if (have_motion) {
           kcam->perspective_pre = cameratoraster_pre * transform_inverse(motion[0]);
           kcam->perspective_post = cameratoraster_post *
@@ -518,6 +539,10 @@ void Camera::update_interactive_motion()
   }
 
   set_fov_pre(fov);
+  set_viewplane_pre_left(viewplane.left);
+  set_viewplane_pre_right(viewplane.right);
+  set_viewplane_pre_bottom(viewplane.bottom);
+  set_viewplane_pre_top(viewplane.top);
 }
 
 void Camera::device_update(Device * /*device*/, DeviceScene *dscene, Scene *scene)

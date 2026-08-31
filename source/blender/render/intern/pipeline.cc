@@ -638,9 +638,9 @@ void RE_FreeUnusedGPUResources()
     /* Don't free scenes being rendered or composited. Note there is no
      * race condition here because we are on the main thread and new jobs can only
      * be started from the main thread. */
-    if (WM_jobs_test(wm, re->owner, WM_JOB_TYPE_RENDER) ||
-        WM_jobs_test(wm, re->owner, WM_JOB_TYPE_COMPOSITE) ||
-        WM_jobs_test(wm, re->owner, WM_JOB_TYPE_OBJECT_BAKE))
+    if (WM_jobs_has_running(wm, re->owner, WM_JOB_TYPE_RENDER) ||
+        WM_jobs_has_running(wm, re->owner, WM_JOB_TYPE_COMPOSITE) ||
+        WM_jobs_has_running(wm, re->owner, WM_JOB_TYPE_OBJECT_BAKE))
     {
       do_free = false;
     }

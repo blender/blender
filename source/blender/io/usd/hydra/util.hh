@@ -11,24 +11,9 @@
 #include <pxr/imaging/hd/retainedDataSource.h>
 #include <pxr/usd/sdf/path.h>
 
-#include "BLI_hash.hh"
 #include "BLI_vector.hh"
 
 namespace blender {
-
-template<> struct DefaultHash<pxr::SdfPath> {
-  uint64_t operator()(const pxr::SdfPath &value) const
-  {
-    return uint64_t(value.GetHash());
-  }
-};
-
-template<> struct DefaultHash<pxr::TfToken> {
-  uint64_t operator()(const pxr::TfToken &value) const
-  {
-    return uint64_t(value.Hash());
-  }
-};
 
 namespace io::hydra {
 

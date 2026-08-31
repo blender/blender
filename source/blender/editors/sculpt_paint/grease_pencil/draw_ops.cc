@@ -86,22 +86,18 @@ struct GreasePencilPaintStroke final : public PaintStroke {
   {
   }
 
-  bool get_location(float location[3], const float mouse[2], bool force_original) override;
-  bool test_start(wmOperator *op, const float mouse[2]) override;
+  std::optional<float3> get_location(float2 mouse, bool force_original) override;
+  bool test_start(wmOperator *op, float2 mouse) override;
   void update_step(wmOperator *op, PointerRNA *stroke_element) override;
   void redraw(bool final) override;
   bool test_cancel() override;
   void done(bool is_cancel, bool stroke_started) override;
 };
 
-bool GreasePencilPaintStroke::get_location(float location[3],
-                                           const float mouse[2],
-                                           bool /*force_original*/)
+std::optional<float3> GreasePencilPaintStroke::get_location(const float2 mouse,
+                                                            bool /*force_original*/)
 {
-  location[0] = mouse[0];
-  location[1] = mouse[1];
-  location[2] = 0;
-  return true;
+  return float3(mouse.x, mouse.y, 0);
 }
 
 static std::unique_ptr<GreasePencilStrokeOperation> get_stroke_operation(bContext &C,
@@ -193,7 +189,7 @@ static std::unique_ptr<GreasePencilStrokeOperation> get_stroke_operation(bContex
   return nullptr;
 }
 
-bool GreasePencilPaintStroke::test_start(wmOperator * /*op*/, const float /*mouse*/[2])
+bool GreasePencilPaintStroke::test_start(wmOperator * /*op*/, const float2 /*mouse*/)
 {
   return true;
 }

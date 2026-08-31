@@ -727,7 +727,7 @@ void resize_curves(bke::CurvesGeometry &curves,
 
 void reorder_curves(bke::CurvesGeometry &curves, const Span<int> old_by_new_indices_map)
 {
-  curves = geometry::reorder_curves_geometry(curves, old_by_new_indices_map, {});
+  curves = blender::geometry::reorder_curves_geometry(curves, old_by_new_indices_map, {});
 }
 
 }  // namespace blender::ed::curves

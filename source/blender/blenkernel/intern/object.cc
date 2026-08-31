@@ -730,14 +730,14 @@ static void create_legacy_geometry_nodes_properties(Object &ob)
         const int type = IDP_int_get(type_prop);
         if (type == int(nodes::GeometryNodesInputType::Layer)) {
           if (const IDProperty *name = IDP_GetPropertyFromGroup(&prop, "layer_name")) {
-            IDProperty *legacy_prop = IDP_CopyProperty(name);
+            IDProperty *legacy_prop = IDP_CopyProperty_ex(name, LIB_ID_CREATE_NO_USER_REFCOUNT);
             STRNCPY(legacy_prop->name, identifier.c_str());
             IDP_AddToGroup(legacy_props, legacy_prop);
           }
         }
         else {
           if (const IDProperty *value = IDP_GetPropertyFromGroup(&prop, "value")) {
-            IDProperty *legacy_prop = IDP_CopyProperty(value);
+            IDProperty *legacy_prop = IDP_CopyProperty_ex(value, LIB_ID_CREATE_NO_USER_REFCOUNT);
             STRNCPY(legacy_prop->name, identifier.c_str());
             IDP_AddToGroup(legacy_props, legacy_prop);
           }
@@ -748,7 +748,8 @@ static void create_legacy_geometry_nodes_properties(Object &ob)
               bke::idprop::create(identifier + "_use_attribute", int(use_attribute)).release());
 
           if (const IDProperty *name = IDP_GetPropertyFromGroup(&prop, "attribute_name")) {
-            IDProperty *legacy_attr_prop = IDP_CopyProperty(name);
+            IDProperty *legacy_attr_prop = IDP_CopyProperty_ex(name,
+                                                               LIB_ID_CREATE_NO_USER_REFCOUNT);
             SNPRINTF(legacy_attr_prop->name, "%s_attribute_name", identifier.c_str());
             IDP_AddToGroup(legacy_props, legacy_attr_prop);
           }
@@ -764,7 +765,7 @@ static void create_legacy_geometry_nodes_properties(Object &ob)
         }
         const StringRefNull identifier = prop.name;
         if (const IDProperty *name = IDP_GetPropertyFromGroup(&prop, "attribute_name")) {
-          IDProperty *legacy_prop = IDP_CopyProperty(name);
+          IDProperty *legacy_prop = IDP_CopyProperty_ex(name, LIB_ID_CREATE_NO_USER_REFCOUNT);
           SNPRINTF(legacy_prop->name, "%s_attribute_name", identifier.c_str());
           IDP_AddToGroup(legacy_props, legacy_prop);
         }

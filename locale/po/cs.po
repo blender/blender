@@ -1,9 +1,9 @@
 
 msgid ""
 msgstr ""
-"Project-Id-Version: Blender 5.3.0 Alpha (b'af4852ed4560')\n"
+"Project-Id-Version: Blender 5.3.0 Alpha (b'32296898e057')\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-08-10 07:54+0000\n"
+"POT-Creation-Date: 2026-08-31 07:41+0000\n"
 "PO-Revision-Date: 2025-12-01 09:17+0000\n"
 "Last-Translator: Matt Mitacek <mattmitacek@gmail.com>\n"
 "Language-Team: Czech <https://translate.blender.org/projects/blender-ui/ui/cs/>\n"
@@ -4280,10 +4280,6 @@ msgid "Color management specific to display device"
 msgstr "Správa barev specifická pro zobrazovací zařízení"
 
 
-msgid "Display"
-msgstr "Zobrazit"
-
-
 msgid "Input color space settings"
 msgstr "Nastavení vstupního barevného prostoru"
 
@@ -4294,10 +4290,6 @@ msgstr "Jsou data"
 
 msgid "Treat image as non-color data without color management, like normal or displacement maps"
 msgstr "Zacházejte s obrazem jako s nebarevnými daty bez správy barev, jako jsou normální mapy nebo mapy posunutí"
-
-
-msgid "Input Color Space"
-msgstr "Vstupní barevný prostor"
 
 
 msgid "Color space that the sequencer operates in"
@@ -4320,10 +4312,6 @@ msgid "Gamma"
 msgstr "Gama"
 
 
-msgid "Look"
-msgstr "Pohled"
-
-
 msgid "Additional transform applied before view transform for artistic needs"
 msgstr "Další transformace použitá před transformací pohledu pro umělecké potřeby"
 
@@ -4338,10 +4326,6 @@ msgstr "Použít křivky"
 
 msgid "Use RGB curved for pre-display transformation"
 msgstr "Použití zakřiveného RGB pro transformaci před zobrazením"
-
-
-msgid "View"
-msgstr "Pohled"
 
 
 msgid "Temperature"
@@ -4490,6 +4474,10 @@ msgstr "Prvky Rampy Barev"
 
 msgid "Collection of Color Ramp Elements"
 msgstr "Kolekce prvků rampy barev"
+
+
+msgid "Identifier"
+msgstr "Identifikátor"
 
 
 msgid "Console Input"
@@ -5878,6 +5866,10 @@ msgid "Plane"
 msgstr "Plocha"
 
 
+msgid "View"
+msgstr "Pohled"
+
+
 msgid "Only First"
 msgstr "Pouze První"
 
@@ -6676,10 +6668,6 @@ msgstr "Hmotnost efektoru víru"
 
 msgid "Wind"
 msgstr "Vítr"
-
-
-msgid "Identifier"
-msgstr "Identifikátor"
 
 
 msgid "Value of the item"
@@ -8834,6 +8822,18 @@ msgid "Smooth Stroke"
 msgstr "Hladký Tah"
 
 
+msgid "Use Unified Color"
+msgstr "Použít sjednocenou barvu"
+
+
+msgid "Use Unified Strength"
+msgstr "Použít Sjednocenou Sílu"
+
+
+msgid "Use Unified Weight"
+msgstr "Použít Sjednocenou Hmotnost"
+
+
 msgid "Vertex weight when brush is applied"
 msgstr "Žádné skupiny vertexů"
 
@@ -10840,6 +10840,10 @@ msgstr "Vlhkost"
 
 msgid "Amount of damping"
 msgstr "Historie vracení"
+
+
+msgid "Display"
+msgstr "Zobrazit"
 
 
 msgid "Percentage of particles to display in 3D view"
@@ -13807,48 +13811,20 @@ msgid "Material slot name"
 msgstr "Název okénka materiálu"
 
 
-msgid "Names"
-msgstr "Názvy"
-
-
-msgid "Bone Roll"
-msgstr "Kost"
-
-
-msgid "Show/Hide"
-msgstr "Zobrazit/skrýt"
-
-
-msgid "Clean Up"
-msgstr "Vyčistit"
-
-
-msgid "Keying"
-msgstr "Klíčovací sestava"
-
-
-msgid "Tracking"
-msgstr "Sledování"
-
-
-msgid "Utilities"
-msgstr "Nástroje"
-
-
-msgid "Math"
-msgstr "Matematika"
-
-
-msgid "Pivot Point"
-msgstr "Bod pro pivot"
-
-
 msgid "Snap"
 msgstr "Přichytit"
 
 
 msgid "Proportional Editing Falloff"
 msgstr "Způsob útlumu"
+
+
+msgid "Instances"
+msgstr "Instance"
+
+
+msgid "Import"
+msgstr "Importovat"
 
 
 msgid "Mirror"
@@ -13863,12 +13839,20 @@ msgid "Local View"
 msgstr "Lokální pohled"
 
 
+msgid "Utilities"
+msgstr "Nástroje"
+
+
 msgid "Navigation"
 msgstr "Navigace"
 
 
 msgid "Align View"
 msgstr "Zarovnat pohled"
+
+
+msgid "Math"
+msgstr "Matematika"
 
 
 msgid "Select Linked"
@@ -13891,20 +13875,12 @@ msgid "Relations"
 msgstr "Vztahy"
 
 
-msgid "Instances"
-msgstr "Instance"
-
-
 msgid "Rigid Body"
 msgstr "Tuhé Těleso"
 
 
 msgid "Apply"
 msgstr "Použít"
-
-
-msgid "Import"
-msgstr "Importovat"
 
 
 msgid "Track"
@@ -13915,6 +13891,22 @@ msgid "Quick Effects"
 msgstr "Rychlé Efekty"
 
 
+msgid "Show/Hide"
+msgstr "Zobrazit/skrýt"
+
+
+msgid "Linked"
+msgstr "Propojené"
+
+
+msgid "Clean Up"
+msgstr "Vyčistit"
+
+
+msgid "Layout"
+msgstr "Rozložení"
+
+
 msgid "Make Single User"
 msgstr "Přivlastnit"
 
@@ -13923,12 +13915,24 @@ msgid "Hooks"
 msgstr "Háky"
 
 
+msgid "Keying"
+msgstr "Klíčovací sestava"
+
+
+msgid "Tracking"
+msgstr "Sledování"
+
+
 msgid "Clear Transform"
 msgstr "Vyčistit transformaci"
 
 
 msgid "Propagate"
 msgstr "Vložit"
+
+
+msgid "Names"
+msgstr "Názvy"
 
 
 msgid "Mesh Select Mode"
@@ -13943,16 +13947,16 @@ msgid "Merge"
 msgstr "Sloučit"
 
 
-msgid "Linked"
-msgstr "Propojené"
+msgid "Pivot Point"
+msgstr "Bod pro pivot"
 
 
 msgid "Special Characters"
 msgstr "Speciální Znaky"
 
 
-msgid "Layout"
-msgstr "Rozložení"
+msgid "Bone Roll"
+msgstr "Kost"
 
 
 msgid "Basic"
@@ -16770,10 +16774,6 @@ msgstr "Sada barev"
 
 msgid "Color Spill"
 msgstr "Sada barev"
-
-
-msgid "To"
-msgstr "K"
 
 
 msgid "Placeholder"
@@ -19624,8 +19624,8 @@ msgstr "Kontextová Nabídka"
 
 
 msgctxt "Operator"
-msgid "Accept"
-msgstr "Přijmout"
+msgid "Select Directory"
+msgstr "Vybrat adresář"
 
 
 msgid "Directory of the file"
@@ -21397,11 +21397,6 @@ msgstr "Vybrat/odebrat všechny soubory"
 
 msgid "Select or deselect all files"
 msgstr "Vybrat/odebrat všechny soubory"
-
-
-msgctxt "Operator"
-msgid "Select Directory"
-msgstr "Vybrat adresář"
 
 
 msgid "Select a bookmarked directory"
@@ -27278,6 +27273,10 @@ msgid "Add a new screen"
 msgstr "Přidá novou obrazovku"
 
 
+msgid "Active Section"
+msgstr "Aktivní kosti"
+
+
 msgctxt "Operator"
 msgid "Redo Last"
 msgstr "Poslední znovu"
@@ -31908,10 +31907,6 @@ msgid "Limit movement around the Z axis"
 msgstr "Limituje rotaci po Z ose"
 
 
-msgid "Active Section"
-msgstr "Aktivní kosti"
-
-
 msgid "Edit Methods"
 msgstr "Editační metody"
 
@@ -36302,18 +36297,6 @@ msgid "Compact Layout"
 msgstr "Vzhled"
 
 
-msgid "Use Unified Color"
-msgstr "Použít sjednocenou barvu"
-
-
-msgid "Use Unified Strength"
-msgstr "Použít Sjednocenou Sílu"
-
-
-msgid "Use Unified Weight"
-msgstr "Použít Sjednocenou Hmotnost"
-
-
 msgid "Length Unit"
 msgstr "Jednotky Délky"
 
@@ -36808,11 +36791,6 @@ msgstr "Obrázek"
 msgctxt "WindowManager"
 msgid "UV Editor"
 msgstr "UV Editor"
-
-
-msgctxt "WindowManager"
-msgid "Image View"
-msgstr "Zobrazení Obrázku"
 
 
 msgctxt "WindowManager"
@@ -40566,6 +40544,10 @@ msgstr "Kliknout"
 msgctxt "Operator"
 msgid "Drag"
 msgstr "Přesun"
+
+
+msgid "Look"
+msgstr "Pohled"
 
 
 msgid "Sort By:"

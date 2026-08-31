@@ -736,7 +736,7 @@ static wmOperatorStatus screen_render_modal(bContext *C, wmOperator *op, const w
   Scene *scene = static_cast<Scene *>(op->customdata);
 
   /* no running blender, remove handler and pass through */
-  if (0 == WM_jobs_test(CTX_wm_manager(C), scene, WM_JOB_TYPE_RENDER)) {
+  if (!WM_jobs_has_running(CTX_wm_manager(C), scene, WM_JOB_TYPE_RENDER)) {
     return OPERATOR_FINISHED | OPERATOR_PASS_THROUGH;
   }
 
@@ -856,7 +856,7 @@ static wmOperatorStatus screen_render_invoke(bContext *C, wmOperator *op, const 
   }
 
   /* only one render job at a time */
-  if (WM_jobs_test(CTX_wm_manager(C), scene, WM_JOB_TYPE_RENDER)) {
+  if (WM_jobs_has_running(CTX_wm_manager(C), scene, WM_JOB_TYPE_RENDER)) {
     return OPERATOR_CANCELLED;
   }
 

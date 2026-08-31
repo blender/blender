@@ -9,8 +9,10 @@
  * https://tizianzeltner.com/projects/Zeltner2022Practical/
  */
 
+#include "kernel/closure/alloc.h"
 #include "kernel/sample/mapping.h"
 
+#include "kernel/constants.h"
 #include "kernel/util/lookup_table.h"
 
 CCL_NAMESPACE_BEGIN
@@ -24,33 +26,61 @@ struct SheenBsdf {
 
 static_assert(sizeof(ShaderClosure) >= sizeof(SheenBsdf), "SheenBsdf is too large!");
 
-ccl_device int bsdf_sheen_setup(KernelGlobals kg,
-                                const ccl_private ShaderData *sd,
-                                ccl_private SheenBsdf *bsdf)
+/* Set up sheen BSDF, and return the closure albedo for layering. */
+ccl_device Spectrum bsdf_sheen_setup(KernelGlobals kg,
+                                     ccl_private ShaderData *sd,
+                                     const Spectrum weight,
+                                     const float3 N,
+                                     const float roughness)
 {
-  bsdf->type = CLOSURE_BSDF_SHEEN_ID;
+  SheenBsdf sheen;
+  ccl_private SheenBsdf *bsdf = bsdf_alloc_maybe_emission(sd, &sheen, weight);
 
-  bsdf->roughness = clamp(bsdf->roughness, 1e-3f, 1.0f);
+  if (!bsdf) {
+    return zero_spectrum();
+  }
+
+  bsdf->type = CLOSURE_BSDF_SHEEN_ID;
+  bsdf->N = N;
+  bsdf->roughness = clamp(roughness, 1e-3f, 1.0f);
   make_orthonormals_safe_tangent(bsdf->N, sd->wi, &bsdf->T, &bsdf->B);
   const float cosNI = dot(bsdf->N, sd->wi);
 
   const int offset = kernel_data.tables.sheen_ltc;
-  bsdf->transformA = lookup_table_read_2D(kg, cosNI, bsdf->roughness, offset, 32, 32);
-  bsdf->transformB = lookup_table_read_2D(kg, cosNI, bsdf->roughness, offset + 32 * 32, 32, 32);
-  const float albedo = lookup_table_read_2D(
-      kg, cosNI, bsdf->roughness, offset + 2 * 32 * 32, 32, 32);
+  bsdf->transformA = lookup_table_read_2D(
+      kg, cosNI, bsdf->roughness, offset, SHEEN_RES_MU, SHEEN_RES_ROUGH);
+  bsdf->transformB = lookup_table_read_2D(kg,
+                                          cosNI,
+                                          bsdf->roughness,
+                                          offset + SHEEN_RES_MU * SHEEN_RES_ROUGH,
+                                          SHEEN_RES_MU,
+                                          SHEEN_RES_ROUGH);
+  const float albedo = lookup_table_read_2D(kg,
+                                            cosNI,
+                                            bsdf->roughness,
+                                            offset + 2 * SHEEN_RES_MU * SHEEN_RES_ROUGH,
+                                            SHEEN_RES_MU,
+                                            SHEEN_RES_ROUGH);
 
   /* If the given roughness and angle result in an invalid LTC, skip the closure. */
   if (fabsf(bsdf->transformA) < 1e-5f || albedo < 1e-5f) {
     bsdf->type = CLOSURE_NONE_ID;
     bsdf->sample_weight = 0.0f;
-    return 0;
+    return zero_spectrum();
   }
 
   bsdf->weight *= albedo;
   bsdf->sample_weight *= albedo;
+  if (bsdf != &sheen) {
+    /* Add flag only if the closure is actually allocated in `sd->closure`. */
+    sd->runtime_flag |= (SR_BSDF | SR_BSDF_HAS_EVAL);
+  }
 
-  return SR_BSDF | SR_BSDF_HAS_EVAL;
+  /* Sheen do not tint the base. */
+  /* NOTE(OpenPBR): spec v1.1.1 mentions the albedo-scaling for sheen is explicitly modified to not
+   * tint the base, but it is unclear how to remove the tint, so we use `reduce_max` to keep
+   * compatibility. */
+  return make_spectrum(reduce_max(bsdf->weight));
 }
 
 ccl_device Spectrum bsdf_sheen_eval(const ccl_private ShaderClosure *sc,

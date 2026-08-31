@@ -39,6 +39,10 @@ class VertBuf;
 class Batch;
 }  // namespace gpu
 
+namespace bke {
+struct bPoseRuntime;
+}  // namespace bke
+
 /* Forward declarations so the actual declarations can happen top-down. */
 struct ActionLayer;
 struct ActionSlot;
@@ -915,13 +919,6 @@ struct bPoseChannel {
 struct bPose {
   /** List of pose channels, PoseBones in RNA. */
   ListBaseT<bPoseChannel> chanbase = {nullptr, nullptr};
-  /** Use a hash-table for quicker string lookups. */
-  struct GHash *chanhash = nullptr;
-
-  /* Flat array of pose channels. It references pointers from
-   * chanbase. Used for quick pose channel lookup from an index.
-   */
-  bPoseChannel **chan_array = nullptr;
 
   ePose_Flags flag = {};
   char _pad[2] = {};
@@ -940,13 +937,14 @@ struct bPose {
   int active_group = 0;
   /** Ik solver to use. */
   ePose_IKSolverType iksolver = {};
-  /** Temporary IK data, depends on the IK solver. Not saved in file. */
-  void *ikdata = nullptr;
   /** IK solver parameter for ItaSC. */
   bItasc *ikparam = nullptr;
 
   /** Settings for visualization of bone animation. */
   bAnimVizSettings avs;
+
+  /** Non-serialized runtime data, always valid for code handling a #bPose. */
+  bke::bPoseRuntime *runtime = nullptr;
 };
 
 /* IK Solvers ------------------------------------ */

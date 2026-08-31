@@ -45,6 +45,7 @@ set(SRC
   nodes/node_geo_collection_children.cc
   nodes/node_geo_collection_info.cc
   nodes/node_geo_combine_bundle.cc
+  nodes/node_geo_combine_list.cc
   nodes/node_geo_common.cc
   nodes/node_geo_convex_hull.cc
   nodes/node_geo_cube_grid_topology.cc
@@ -321,6 +322,7 @@ set(SRC
   include/NOD_geo_foreach_geometry_element.hh
   include/NOD_geo_index_switch.hh
   include/NOD_geo_menu_switch.hh
+  include/NOD_geo_rasterize_points.hh
   include/NOD_geo_repeat.hh
   include/NOD_geo_simulation.hh
   include/NOD_geo_tag_filter.hh

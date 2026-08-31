@@ -177,7 +177,7 @@ class OUTLINER_MT_view_pie(Menu):
 
 
 class OUTLINER_MT_id_data(Menu):
-    bl_label = "ID Data"
+    bl_label = "Data-block"
 
     @classmethod
     def poll(cls, context):

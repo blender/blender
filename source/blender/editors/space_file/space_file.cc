@@ -240,6 +240,7 @@ static void file_refresh(const bContext *C, ScrArea *area)
   filelist_settype(sfile->files, params->type);
   filelist_setdir(sfile->files, params->dir);
   filelist_setrecursion(sfile->files, params->recursion_level);
+  filelist_setglob(sfile->files, params->filter_glob);
   filelist_setsorting(sfile->files, params->sort, params->flag & FILE_SORT_INVERT);
   filelist_setlibrary(
       sfile->files, asset_params ? &asset_params->asset_library_ref : nullptr, [&]() {
@@ -269,7 +270,6 @@ static void file_refresh(const bContext *C, ScrArea *area)
       (params->flag & FILE_ASSETS_ONLY) != 0,
       /*filter_assets_hide_online=*/!show_assets_online,
       /*filter_assets_hide_offline=*/!show_assets_offline,
-      params->filter_glob,
       params->filter_search);
   if (asset_params) {
     filelist_set_asset_include_online(sfile->files, show_assets_online);

@@ -61,6 +61,11 @@ class MTLIndexBuf : public IndexBuf {
   void upload_data() override;
   void update_sub(uint32_t start, uint32_t len, const void *data) override;
 
+  void copy_sub(IndexBuf &source_buf,
+                uint source_first_index,
+                uint dest_first_index,
+                uint index_len) override;
+
   /* #get_index_buffer can conditionally return an optimized index buffer of a
    * differing format, if it is concluded that optimization is preferred
    * for the given inputs.
