@@ -6,6 +6,7 @@
  * \ingroup bke
  */
 
+#include <atomic>
 #include <cfloat>
 
 #include "BLI_array_utils.hh"
@@ -1064,17 +1065,6 @@ static void normals_calc_faces(const Span<float3> positions,
   }
 }
 
-static void calc_boundary_face_normals(const Span<float3> positions,
-                                       const OffsetIndices<int> faces,
-                                       const Span<int> corner_verts,
-                                       const Span<int> face_indices,
-                                       MutableSpan<float3> face_normals)
-{
-  threading::parallel_for(face_indices.index_range(), 512, [&](const IndexRange range) {
-    normals_calc_faces(positions, faces, corner_verts, face_indices.slice(range), face_normals);
-  });
-}
-
 static void calc_node_face_normals(const Span<float3> positions,
                                    const OffsetIndices<int> faces,
                                    const Span<int> corner_verts,
@@ -1107,10 +1097,10 @@ static void normals_calc_verts_simple(const GroupedSpan<int> vert_to_face_map,
   }
 }
 
-static void calc_boundary_vert_normals(const GroupedSpan<int> vert_to_face_map,
-                                       const Span<float3> face_normals,
-                                       const Span<int> verts,
-                                       MutableSpan<float3> vert_normals)
+static void calc_shared_vert_normals(const GroupedSpan<int> vert_to_face_map,
+                                     const Span<float3> face_normals,
+                                     const Span<int> verts,
+                                     MutableSpan<float3> vert_normals)
 {
   threading::parallel_for(verts.index_range(), 1024, [&](const IndexRange range) {
     normals_calc_verts_simple(vert_to_face_map, face_normals, verts.slice(range), vert_normals);
@@ -1130,23 +1120,67 @@ static void calc_node_vert_normals(const GroupedSpan<int> vert_to_face_map,
       exec_mode::grain_size(1));
 }
 
+/**
+ * Gather the vertices of the tagged nodes that are owned by another node. They're deduplicated
+ * because a vertex can be shared by more than two nodes, and to make the parallel writes in
+ * #calc_shared_vert_normals thread-safe.
+ */
+static Vector<int> gather_shared_verts(const Span<MeshNode> nodes,
+                                       const IndexMask &nodes_to_update,
+                                       const int verts_num)
+{
+  PRF_scope_with_name("shared_verts", ProfileCategory::Core);
+  int shared_verts_num = 0;
+  nodes_to_update.foreach_index(
+      [&](const int i) { shared_verts_num += nodes[i].shared_verts().size(); });
+
+  /* Avoid the overhead of a mesh-sized BitVector when the final number of indices is very small.
+   * Though that overhead is quite low, so our threshold to use a BitVector instead is low. */
+  if (int64_t(shared_verts_num) * 1024 < verts_num) {
+    VectorSet<int> verts;
+    verts.reserve(shared_verts_num);
+    nodes_to_update.foreach_index(
+        [&](const int i) { verts.add_multiple(nodes[i].shared_verts()); });
+    return verts.extract_vector();
+  }
+
+  Vector<int> verts;
+  verts.reserve(shared_verts_num);
+  BitVector<> visited(verts_num);
+  nodes_to_update.foreach_index([&](const int i) {
+    for (const int vert : nodes[i].shared_verts()) {
+      MutableBitRef visited_vert = visited[vert];
+      if (!visited_vert) {
+        visited_vert.set();
+        verts.append_unchecked(vert);
+      }
+    }
+  });
+  return verts;
+}
+
 static void update_normals_mesh(Object &object_orig,
                                 Object &object_eval,
                                 const Span<MeshNode> nodes,
                                 const IndexMask &nodes_to_update)
 {
   /* Position changes are tracked on a per-node level, so all the vertex and face normals for every
-   * affected node are recalculated. However, the additional complexity comes from the fact that
-   * changing vertex normals also changes surrounding face normals. Those changed face normals then
-   * change the normals of all connected vertices, which can be in other nodes. So the set of
-   * vertices that need recalculated normals can propagate into unchanged/untagged Tree nodes.
+   * affected node are recalculated.
    *
-   * Currently we have no good way of finding neighboring Tree nodes, so we use the vertex to
-   * face topology map to find the neighboring vertices that need normal recalculation.
+   * Node bounds are built from #MeshNode::all_verts(), and nodes are tagged whenever their bounds
+   * intersect the changed region. Therefore every face touching a moved vertex is inside a tagged
+   * node. Callers that tag nodes without a bounds intersection test must uphold the same
+   * guarantee.
    *
-   * Those boundary face and vertex indices are deduplicated with #VectorSet in order to avoid
-   * duplicate work recalculation for the same vertex, and to make parallel storage for vertices
-   * during recalculation thread-safe. */
+   * A face normal only depends on the positions of its own vertices, so the faces of the tagged
+   * nodes are exactly the faces with changed normals.
+   *
+   * A vertex normal depends on the normals of the surrounding faces though, so every vertex of
+   * those faces changes, including vertices that didn't move themselves. Such a vertex is still
+   * part of the tagged node containing the changed face, but only #MeshNode::verts() is
+   * recalculated for each node, which skips the vertices owned by a different node. That owner may
+   * not be tagged, since it doesn't necessarily contain a face touching a moved vertex. So the
+   * shared vertices of the tagged nodes are gathered and updated separately. */
   Mesh &mesh = *id_cast<Mesh *>(object_orig.data);
   const Span<float3> positions = bke::pbvh::vert_positions_eval_from_eval(object_eval);
   const OffsetIndices faces = mesh.faces();
@@ -1158,15 +1192,7 @@ static void update_normals_mesh(Object &object_orig,
   SharedCache<Vector<float3>> &face_normals_cache = face_normals_cache_eval_for_write(object_orig,
                                                                                       object_eval);
 
-  VectorSet<int> boundary_faces;
-  nodes_to_update.foreach_index([&](const int i) {
-    const MeshNode &node = nodes[i];
-    for (const int vert : node.vert_indices_.as_span().drop_front(node.unique_verts_num_)) {
-      boundary_faces.add_multiple(vert_to_face_map[vert]);
-    }
-  });
-
-  VectorSet<int> boundary_verts;
+  Vector<int> shared_verts;
 
   threading::parallel_invoke(
       [&]() {
@@ -1179,17 +1205,10 @@ static void update_normals_mesh(Object &object_orig,
         else {
           face_normals_cache.update([&](Vector<float3> &r_data) {
             calc_node_face_normals(positions, faces, corner_verts, nodes, nodes_to_update, r_data);
-            calc_boundary_face_normals(positions, faces, corner_verts, boundary_faces, r_data);
           });
         }
       },
-      [&]() {
-        /* Update all normals connected to affected faces, even if not explicitly tagged. */
-        boundary_verts.reserve(boundary_faces.size());
-        for (const int face : boundary_faces) {
-          boundary_verts.add_multiple(corner_verts.slice(faces[face]));
-        }
-      });
+      [&]() { shared_verts = gather_shared_verts(nodes, nodes_to_update, positions.size()); });
   const Span<float3> face_normals = face_normals_cache.data();
 
   if (vert_normals_cache.is_dirty()) {
@@ -1202,7 +1221,10 @@ static void update_normals_mesh(Object &object_orig,
   else {
     vert_normals_cache.update([&](Vector<float3> &r_data) {
       calc_node_vert_normals(vert_to_face_map, face_normals, nodes, nodes_to_update, r_data);
-      calc_boundary_vert_normals(vert_to_face_map, face_normals, boundary_verts, r_data);
+      /* Calculated after the node vertices on purpose: a shared vertex may also be owned by
+       * another tagged node, in which case its normal is calculated twice rather than from two
+       * threads at the same time. */
+      calc_shared_vert_normals(vert_to_face_map, face_normals, shared_verts, r_data);
     });
   }
 }
