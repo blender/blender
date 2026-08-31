@@ -230,6 +230,18 @@ DataChannel::DataChannel(const StringRef label, const DataChannelType source_typ
 {
 }
 
+static std::optional<StringRefNull> last_rna_path_member(const ParsedRNAPathRef path)
+{
+  if (path.is_empty()) {
+    return std::nullopt;
+  }
+  const rna_path::Member *property = std::get_if<rna_path::Member>(&path.last());
+  if (!property) {
+    return std::nullopt;
+  }
+  return property->identifier.ref();
+}
+
 FCurveChannel::FCurveChannel(animrig::Action &containing_action, FCurve &fcurve)
     : DataChannel(
           /* Store the RNA path as the default label, so that if the animated ID cannot be found,
@@ -238,16 +250,19 @@ FCurveChannel::FCurveChannel(animrig::Action &containing_action, FCurve &fcurve)
           DataChannelType::FCURVE)
 {
   this->source_ = RNA_pointer_create_discrete(&containing_action.id, RNA_FCurve, &fcurve);
-  /* TODO do the same checks as in animrig::is_rotation_path because just `endswith` does not catch
-   * the case of a use labelled property `asdlocation`. */
-  const StringRefNull rna_path = fcurve.rna_path();
-  if (rna_path.endswith("location")) {
+  const ParsedRNAPathRef rna_path = fcurve.rna_path_parsed();
+  const std::optional<StringRefNull> last_member = last_rna_path_member(rna_path);
+  if (!last_member) {
+    return;
+  }
+
+  if (last_member.value() == "location") {
     sorting_priority_ = 300 - fcurve.array_index;
   }
-  else if (animrig::is_rotation_path(fcurve.rna_path_parsed())) {
+  else if (animrig::is_rotation_path(rna_path)) {
     sorting_priority_ = 200 - fcurve.array_index;
   }
-  else if (rna_path.endswith("scale")) {
+  else if (last_member.value() == "scale") {
     sorting_priority_ = 100 - fcurve.array_index;
   }
   else {
