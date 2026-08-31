@@ -2566,6 +2566,14 @@ endif()
 
 
 # -----------------------------------------------------------------------------
+# Android Gradle Project Staging
+
+if(ANDROID)
+  include(build_files/cmake/platform/platform_android_gradle.cmake)
+endif()
+
+
+# -----------------------------------------------------------------------------
 # Define 'heavy' sub-modules (for Ninja builder when using pools)
 setup_heavy_lib_pool()
 
