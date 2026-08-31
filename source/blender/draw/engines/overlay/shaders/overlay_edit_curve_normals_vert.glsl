@@ -44,6 +44,10 @@ void main()
   float3 world_pos = drw_point_object_to_world(ls_P);
   gl_Position = drw_point_world_to_homogenous(world_pos);
 
+  /* Convert to screen position [0..sizeVp]. */
+  edge_start = edge_pos = ((gl_Position.xy / gl_Position.w) * 0.5f + 0.5f) *
+                          uniform_buf.size_viewport;
+
   final_color = theme.colors.wire_edit;
 
   view_clipping_distances(world_pos);
