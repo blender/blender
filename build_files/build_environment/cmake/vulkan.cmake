@@ -46,19 +46,31 @@ add_dependencies(
 
 set(SPIRV_HEADERS_EXTRA_ARGS "")
 
+if(ANDROID)
+  set(SPIRV_HEADERS_INSTALL_DIR ${LIBDIR}/spirv_headers)
+else()
+  set(SPIRV_HEADERS_INSTALL_DIR ${LIBDIR}/vulkan_headers)
+endif()
+
 ExternalProject_Add(external_spirv_headers
   URL file://${PACKAGE_DIR}/${SPIRV_HEADERS_FILE}
   URL_HASH ${SPIRV_HEADERS_HASH_TYPE}=${SPIRV_HEADERS_HASH}
   PREFIX ${BUILD_DIR}/spirv_headers
 
   CMAKE_ARGS
-    -DCMAKE_INSTALL_PREFIX=${LIBDIR}/vulkan_headers
+    -DCMAKE_INSTALL_PREFIX=${SPIRV_HEADERS_INSTALL_DIR}
     -Wno-dev
     ${DEFAULT_CMAKE_FLAGS}
     ${SPIRV_HEADERS_EXTRA_ARGS}
 
-  INSTALL_DIR ${LIBDIR}/vulkan_headers
+  INSTALL_DIR ${SPIRV_HEADERS_INSTALL_DIR}
 )
+
+if(ANDROID)
+  # On Android, the system provides its own Vulkan loader. However since PR !162006 the SPIR-V header
+  # are required by regular Blender builds for shader name injection. Harvest them separately in this sense.
+  harvest(external_spirv_headers spirv_headers vulkan "*")
+endif()
 
 set(SPIRV_TOOLS_EXTRA_ARGS
   -DSPIRV-Headers_SOURCE_DIR=${LIBDIR}/vulkan_headers

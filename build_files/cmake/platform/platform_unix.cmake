@@ -168,7 +168,12 @@ endif()
 
 if(WITH_VULKAN_BACKEND)
   if(DEFINED LIBDIR)
-    if(NOT ANDROID)  # Android provides its own Vulkan Loader
+    if(ANDROID)
+      # Android provides its own Vulkan Loader, however we still require SPIR-V headers
+      # for shader name injection (since PR !162006). Manually set Vulkan include dirs
+      # in this sense, only contains SPIR-V headers on Android.
+      set(VULKAN_INCLUDE_DIRS "${LIBDIR}/vulkan/include")
+    else()
       if(NOT EXISTS "${LIBDIR}/vulkan")
         message(FATAL_ERROR "${LIBDIR}/vulkan is missing!")
       endif()
