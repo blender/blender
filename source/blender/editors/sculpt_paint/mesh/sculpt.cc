@@ -5982,8 +5982,6 @@ static wmOperatorStatus sculpt_brush_stroke_invoke(bContext *C,
                                                    wmOperator *op,
                                                    const wmEvent *event)
 {
-  SculptPaintStroke *stroke;
-  int ignore_background_click;
   Object &ob = *CTX_data_active_object(C);
   Scene &scene = *CTX_data_scene(C);
   const View3D *v3d = CTX_wm_view3d(C);
@@ -5999,7 +5997,7 @@ static wmOperatorStatus sculpt_brush_stroke_invoke(bContext *C,
   bool pen_flip;
   WM_event_tablet_data(event, &pen_flip, nullptr);
 
-  stroke = MEM_new<SculptPaintStroke>(__func__, C, op, event);
+  SculptPaintStroke *stroke = MEM_new<SculptPaintStroke>(__func__, C, op, event);
   brush_stroke_init(C, op);
 
   Sculpt &sd = *CTX_data_tool_settings(C)->sculpt;
@@ -6044,7 +6042,7 @@ static wmOperatorStatus sculpt_brush_stroke_invoke(bContext *C,
   op->customdata = stroke;
 
   /* For tablet rotation. */
-  ignore_background_click = RNA_boolean_get(op->ptr, "ignore_background_click");
+  const bool ignore_background_click = RNA_boolean_get(op->ptr, "ignore_background_click");
   const float mval[2] = {float(event->mval[0]), float(event->mval[1])};
   if (ignore_background_click && !over_mesh(C, op, mval)) {
     stroke->cancel(C);
@@ -6056,7 +6054,7 @@ static wmOperatorStatus sculpt_brush_stroke_invoke(bContext *C,
   OPERATOR_RETVAL_CHECK(retval);
 
   if (ELEM(retval, OPERATOR_FINISHED, OPERATOR_CANCELLED)) {
-    SculptPaintStroke *stroke = static_cast<SculptPaintStroke *>(op->customdata);
+    stroke = static_cast<SculptPaintStroke *>(op->customdata);
     if (stroke) {
       if (retval == OPERATOR_FINISHED) {
         stroke->finish(C);
