@@ -8,6 +8,8 @@ global:
    * Use wildcard to avoid linker error on Android where these symbols do not exist. */
   _fini*;
   _init*;
+  /* Android SDL main entry point looked up by SDLActivity nativeRunMain() (which uses dlsym() internally). */
+  SDL_main*;
   /* Needed for Python modules to work. */
   Py*;
   _Py*;
