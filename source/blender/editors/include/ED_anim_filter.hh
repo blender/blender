@@ -166,6 +166,11 @@ class AnimationChannel {
   {
     return this->label_;
   }
+  PointerRNA source() const
+  {
+    return this->source_;
+  }
+
   AnimationChannelFlags *flags_ptr()
   {
     return &this->flags_;

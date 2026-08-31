@@ -30,14 +30,30 @@ namespace blender {
 namespace blender::ed::animfilter {
 
 class ChannelItem : public ui::AbstractTreeViewItem {
-  AnimationChannel &channel_;
+  PointerRNA source_;
+  std::string label_;
+  bool is_selected_;
 
  public:
-  ChannelItem(AnimationChannel &channel) : channel_(channel) {}
+  ChannelItem(AnimationChannel &channel)
+      : source_(channel.source()), label_(channel.label()), is_selected_(channel.is_selected())
+  {
+  }
 
   void build_row(ui::Layout &layout) override
   {
-    layout.label(channel_.label(), ICON_NONE);
+    layout.label(this->label_, this->is_selected_ ? ICON_BOIDS : ICON_NONE);
+  }
+
+ protected:
+  bool matches(const AbstractViewItem &other) const override
+  {
+    const ChannelItem &other_channel_item = dynamic_cast<const ChannelItem &>(other);
+    /* TODO: this matches all AnimationChannels without a source to each other. For now it works,
+     * because the only channel without a source is the top-level summary, and there is only one of
+     * those. */
+    return this->source_.owner_id == other_channel_item.source_.owner_id &&
+           this->source_.data == other_channel_item.source_.data;
   }
 };
 
