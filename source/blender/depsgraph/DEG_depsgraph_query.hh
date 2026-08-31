@@ -68,6 +68,11 @@ bool DEG_id_type_any_updated(const Depsgraph *depsgraph);
 /** Check if given ID was updated due to user input. */
 bool DEG_id_is_user_modified(const Depsgraph *graph, const ID *id);
 
+/** Check if given scene component was updated due to user input. */
+bool DEG_scene_component_is_user_modified(const Depsgraph *graph,
+                                          const Scene *scene,
+                                          eDepsSceneComponentType component_type);
+
 /** Check if given ID type is present in the depsgraph */
 bool DEG_id_type_any_exists(const Depsgraph *depsgraph, short id_type);
 
