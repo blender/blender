@@ -5742,14 +5742,17 @@ bool SculptPaintStroke::test_start(wmOperator *op, const float2 mouse)
 }
 
 /** \see vwpaint::update_cache_variants */
-static void stroke_cache_update(
-    ViewContext &vc, const Depsgraph &depsgraph, Paint &paint, Object &object, PointerRNA *ptr)
+static void stroke_cache_update(ViewContext &vc,
+                                const Depsgraph &depsgraph,
+                                Paint &paint,
+                                Brush &brush,
+                                Object &object,
+                                PointerRNA *ptr)
 {
   PRF_scope(ProfileCategory::Editor);
   bke::PaintRuntime &paint_runtime = *paint.runtime;
   SculptSession &ss = *object.runtime->sculpt_session;
   StrokeCache &cache = *ss.cache;
-  Brush &brush = *BKE_paint_brush(&paint);
 
   if (stroke_is_first_brush_step_of_symmetry_pass(cache) ||
       !((brush.stroke_method == BRUSH_STROKE_ANCHORED) ||
@@ -5856,12 +5859,12 @@ void SculptPaintStroke::update_step(wmOperator * /*op*/, PointerRNA *itemptr)
   Sculpt &sd = *sculpt_;
   Object &ob = *this->object;
   SculptSession &ss = *ob.runtime->sculpt_session;
-  const Brush &brush = *BKE_paint_brush_for_read(&sd.paint);
+  Brush &brush = *this->brush;
   StrokeCache *cache = ss.cache;
   cache->stroke_distance = this->stroke_distance();
 
   stroke_modifiers_check(depsgraph, this->vc.rv3d, sd, ob, &brush);
-  stroke_cache_update(this->vc, depsgraph, sd.paint, ob, itemptr);
+  stroke_cache_update(this->vc, depsgraph, sd.paint, brush, ob, itemptr);
   restore_from_undo_step_if_necessary(depsgraph, sd, ob);
 
   if (dyntopo::stroke_is_dyntopo(ob, brush)) {
