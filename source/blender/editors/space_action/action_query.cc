@@ -36,7 +36,9 @@ ed::animfilter::ChannelArena get_summary_tree(const bContext &C)
   collect_animation_channels(C, get_filters(*saction), arena);
   /* TODO: don't hard-code the hierarchy. */
   group_channels(arena, {ChannelTagType::ID, ChannelTagType::ACTION}, false);
-
+  for (SummaryChannel *channel : arena.summary_channels) {
+    channel->sort_children();
+  }
   return arena;
 }
 

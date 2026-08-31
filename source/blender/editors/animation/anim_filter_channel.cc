@@ -14,6 +14,7 @@
 #include "ED_anim_filter.hh"
 
 #include "ANIM_action.hh"
+#include "ANIM_rna.hh"
 
 namespace blender::ed::animfilter {
 
@@ -48,8 +49,9 @@ std::ostream &operator<<(std::ostream &stream, const AnimationChannelType type)
 
 ChannelTag::ChannelTag(const ChannelTagType type,
                        const StringRef label,
-                       const PointerRNA &source_data)
-    : tag_type_(type), label_(label), source_data_(source_data)
+                       const PointerRNA &source_data,
+                       const int sort_priority)
+    : tag_type_(type), label_(label), source_data_(source_data), priority_(sort_priority)
 {
 }
 
@@ -93,10 +95,11 @@ SummaryChannel::SummaryChannel(const StringRef label)
 {
 }
 
-SummaryChannel::SummaryChannel(const StringRef label, const PointerRNA &ptr)
+SummaryChannel::SummaryChannel(const StringRef label, const PointerRNA &ptr, int sorting_priority)
     : AnimationChannel(AnimationChannelType::SUMMARY, label)
 {
   this->source_ = ptr;
+  sorting_priority_ = sorting_priority;
 }
 
 void SummaryChannel::gather_channeldata()
@@ -178,6 +181,21 @@ void SummaryChannel::remove_child(AnimationChannel &child)
   this->children_.remove(index);
 }
 
+static bool animation_channel_compare_function(const AnimationChannel *channel_a,
+                                               const AnimationChannel *channel_b)
+{
+  if (channel_a->sorting_priority() != channel_b->sorting_priority()) {
+    return channel_a->sorting_priority() > channel_b->sorting_priority();
+  }
+
+  return channel_a->label() < channel_b->label();
+}
+
+void SummaryChannel::sort_children()
+{
+  std::sort(this->children_.begin(), this->children_.end(), animation_channel_compare_function);
+}
+
 bool SummaryChannel::is_selected() const
 {
   if (!this->source_.has_data()) {
@@ -220,6 +238,19 @@ FCurveChannel::FCurveChannel(animrig::Action &containing_action, FCurve &fcurve)
           DataChannelType::FCURVE)
 {
   this->source_ = RNA_pointer_create_discrete(&containing_action.id, RNA_FCurve, &fcurve);
+  /* TODO do the same checks as in animrig::is_rotation_path because just `endswith` does not catch
+   * the case of a use labelled property `asdlocation`. */
+  const StringRefNull rna_path = fcurve.rna_path();
+  if (rna_path.endswith("location")) {
+    sorting_priority_ = 3;
+  }
+  else if (animrig::is_rotation_path(fcurve.rna_path_parsed())) {
+    sorting_priority_ = 2;
+  }
+  else if (rna_path.endswith("scale")) {
+    sorting_priority_ = 1;
+  }
+  /* Else sorting prio is a default of 0. */
 }
 
 GreasePencilChannel::GreasePencilChannel(GreasePencil &containing_gp, GreasePencilLayer &gp_layer)

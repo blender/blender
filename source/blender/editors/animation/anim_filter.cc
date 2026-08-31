@@ -4215,8 +4215,8 @@ void group_channels(ChannelArena &arena,
       }
 
       for (const auto &[tag, tag_channels] : potential_tags.items()) {
-        SummaryChannel *new_summary = arena.allocate_summary_channel(tag.label(),
-                                                                     tag.source_data());
+        SummaryChannel *new_summary = arena.allocate_summary_channel(
+            tag.label(), tag.source_data(), tag.sort_priority());
         for (DataChannel *child : tag_channels) {
           summary->remove_child(*child);
           new_summary->add_child(*child);

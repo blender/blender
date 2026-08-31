@@ -59,9 +59,11 @@ static void channels_for_action_slot(animrig::Action &action,
   PointerRNA slot_ptr = RNA_pointer_create_discrete(&action.id, RNA_ActionSlot, slot);
   tags.push({ChannelTagType::ACTION_SLOT, slot->identifier, slot_ptr});
 
-  for (Layer *layer : action.layers()) {
+  for (const int layer_index : action.layers().index_range()) {
+    Layer *layer = action.layer(layer_index);
     PointerRNA layer_ptr = RNA_pointer_create_discrete(&action.id, RNA_ActionLayer, layer);
-    tags.push({ChannelTagType::ACTION_LAYER, layer->name, layer_ptr});
+    /* Passing the layer index to guarantee layers are always sorted by their hierarchy. */
+    tags.push({ChannelTagType::ACTION_LAYER, layer->name, layer_ptr, layer_index});
     for (Strip *strip : layer->strips()) {
       if (strip->type() != Strip::Type::Keyframe) {
         continue;
@@ -119,7 +121,7 @@ static void collection_channels_for_object(Object &obj,
   }
 }
 
-void collect_action_channels(Vector<DataChannel *> & /* r_channels */)
+void collect_action_channels(ChannelArena & /* arena */)
 {
   /* TODO */
 }

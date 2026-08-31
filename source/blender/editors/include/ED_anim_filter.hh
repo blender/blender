@@ -47,9 +47,14 @@ class ChannelTag {
   ChannelTagType tag_type_;
   std::string label_;
   PointerRNA source_data_;
+  /* See AnimationChannel::sorting_priority_. */
+  int priority_;
 
  public:
-  ChannelTag(ChannelTagType type, StringRef label, const PointerRNA &source_data);
+  ChannelTag(ChannelTagType type,
+             StringRef label,
+             const PointerRNA &source_data,
+             int sort_priority_ = 0);
   bool operator==(const ChannelTag &other) const
   {
     return other.tag_type_ == this->tag_type_ &&
@@ -69,6 +74,10 @@ class ChannelTag {
   const PointerRNA &source_data() const
   {
     return this->source_data_;
+  }
+  int sort_priority() const
+  {
+    return this->priority_;
   }
 
   int64_t hash() const
@@ -143,6 +152,9 @@ class AnimationChannel {
   mutable std::string label_;
   PointerRNA source_;
   Vector<KeyPoint> datapoints_;
+  /* Higher numbers will be sorted before lower numbers. In case the values are equal a fallback is
+   * used. */
+  int sorting_priority_;
 
  public:
   AnimationChannel(AnimationChannelType type, StringRef label);
@@ -179,6 +191,11 @@ class AnimationChannel {
   }
   Span<KeyPoint> datapoints();
 
+  int sorting_priority() const
+  {
+    return this->sorting_priority_;
+  }
+
   virtual bool is_selected() const = 0;
   virtual void set_selected(bool is_selected) = 0;
 
@@ -193,7 +210,7 @@ class SummaryChannel final : public AnimationChannel {
 
  public:
   SummaryChannel(StringRef label);
-  SummaryChannel(StringRef label, const PointerRNA &ptr);
+  SummaryChannel(StringRef label, const PointerRNA &ptr, int sorting_priority);
   ~SummaryChannel() final = default;
 
   /**
@@ -202,6 +219,10 @@ class SummaryChannel final : public AnimationChannel {
   Span<AnimationChannel *> children() const;
   void add_child(AnimationChannel &child);
   void remove_child(AnimationChannel &child);
+  /**
+   * Sort the children of this summary channel.
+   */
+  void sort_children();
 
   bool is_selected() const override;
   void set_selected(bool is_selected) override;
