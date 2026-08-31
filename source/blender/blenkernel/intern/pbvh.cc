@@ -6,8 +6,9 @@
  * \ingroup bke
  */
 
-#include <atomic>
+#include <algorithm>
 #include <cfloat>
+#include <utility>
 
 #include "BLI_array_utils.hh"
 #include "BLI_bit_span_ops.hh"
@@ -733,139 +734,53 @@ static Node *pbvh_iter_next(PBVHIter *iter, Node::Flags leaf_flag)
   return nullptr;
 }
 
-static Node *pbvh_iter_next_occluded(PBVHIter *iter)
-{
-  while (!iter->stack.is_empty()) {
-    StackItem item = iter->stack.pop();
-    Node *node = item.node;
-
-    /* on a mesh with no faces this can happen
-     * can remove this check if we know meshes have at least 1 face */
-    if (node == nullptr) {
-      return nullptr;
-    }
-
-    if (iter->scb && !iter->scb(*node)) {
-      continue; /* don't traverse, outside of search zone */
-    }
-
-    if (node->flag_ & Node::Leaf) {
-      /* immediately hit leaf node */
-      return node;
-    }
-
-    std::visit(
-        [&](auto &nodes) {
-          iter->stack.push({&nodes[node->children_offset_ + 1], false});
-          iter->stack.push({&nodes[node->children_offset_], false});
-        },
-        iter->pbvh->nodes_);
-  }
-
-  return nullptr;
-}
-
-struct NodeTree {
-  Node *data;
-
-  NodeTree *left;
-  NodeTree *right;
-};
-
-static void node_tree_insert(NodeTree *tree, NodeTree *new_node)
-{
-  if (new_node->data->tmin_ < tree->data->tmin_) {
-    if (tree->left) {
-      node_tree_insert(tree->left, new_node);
-    }
-    else {
-      tree->left = new_node;
-    }
-  }
-  else {
-    if (tree->right) {
-      node_tree_insert(tree->right, new_node);
-    }
-    else {
-      tree->right = new_node;
-    }
-  }
-}
-
-static void traverse_tree(NodeTree *tree,
-                          const FunctionRef<void(Node &node, float *tmin)> hit_fn,
-                          float *tmin)
-{
-  if (tree->left) {
-    traverse_tree(tree->left, hit_fn, tmin);
-  }
-
-  hit_fn(*tree->data, tmin);
-
-  if (tree->right) {
-    traverse_tree(tree->right, hit_fn, tmin);
-  }
-}
-
-static void free_tree(NodeTree *tree)
-{
-  if (tree->left) {
-    free_tree(tree->left);
-    tree->left = nullptr;
-  }
-
-  if (tree->right) {
-    free_tree(tree->right);
-    tree->right = nullptr;
-  }
-
-  ::free(tree);
-}
-
-}  // namespace bke::pbvh
-
-float BKE_pbvh_node_get_tmin(const bke::pbvh::Node *node)
-{
-  return node->tmin_;
-}
-
-namespace bke::pbvh {
-
+/** \todo Return distance by value from hit_fn. */
 static void search_callback_occluded(Tree &pbvh,
-                                     const FunctionRef<bool(Node &)> scb,
-                                     const FunctionRef<void(Node &node, float *tmin)> hit_fn)
+                                     const FunctionRef<std::optional<float>(const Node &)> scb,
+                                     const FunctionRef<void(Node &node, float *distance)> hit_fn)
 {
   if (tree_is_empty(pbvh)) {
     return;
   }
-  PBVHIter iter;
-  Node *node;
-  NodeTree *tree = nullptr;
 
-  pbvh_iter_begin(&iter, pbvh, scb);
+  /* Gather leaf nodes intersecting the ray along with the distance from the ray to the bounds. */
+  Vector<std::pair<float, Node *>, 100> hits;
+  Stack<Node *, 100> stack;
+  stack.push(&first_node(pbvh));
+  while (!stack.is_empty()) {
+    Node *node = stack.pop();
 
-  while ((node = pbvh_iter_next_occluded(&iter))) {
-    if (node->flag_ & Node::Leaf) {
-      NodeTree *new_node = static_cast<NodeTree *>(malloc(sizeof(NodeTree)));
-
-      new_node->data = node;
-
-      new_node->left = nullptr;
-      new_node->right = nullptr;
-
-      if (tree) {
-        node_tree_insert(tree, new_node);
-      }
-      else {
-        tree = new_node;
-      }
+    const std::optional node_distance = scb(*node);
+    if (!node_distance) {
+      continue; /* don't traverse, outside of search zone */
     }
+
+    if (node->flag_ & Node::Leaf) {
+      hits.append({*node_distance, node});
+      continue;
+    }
+
+    std::visit(
+        [&](auto &nodes) {
+          stack.push(&nodes[node->children_offset_ + 1]);
+          stack.push(&nodes[node->children_offset_]);
+        },
+        pbvh.nodes_);
   }
 
-  if (tree) {
-    float tmin = FLT_MAX;
-    traverse_tree(tree, hit_fn, &tmin);
-    free_tree(tree);
+  std::ranges::stable_sort(hits,
+                           [](const std::pair<float, Node *> &a,
+                              const std::pair<float, Node *> &b) { return a.first < b.first; });
+
+  /* Visit the nodes nearest to farthest. #hit_fn narrows #distance whenever it finds a closer hit,
+   * so once a node's bounds start further away than the closest hit so far, neither it nor any
+   * later node will contribute. */
+  float distance = FLT_MAX;
+  for (const auto &[node_distance, node] : hits) {
+    if (node_distance >= distance) {
+      break;
+    }
+    hit_fn(*node, &distance);
   }
 }
 
@@ -1781,16 +1696,18 @@ struct RaycastData {
   bool original;
 };
 
-static bool ray_aabb_intersect(Node &node, const RaycastData &rcd)
+static std::optional<float> ray_aabb_intersect(const Node &node, const RaycastData &rcd)
 {
-  if (rcd.original) {
-    return isect_ray_aabb_v3(&rcd.ray, node.bounds_orig_.min, node.bounds_orig_.max, &node.tmin_);
+  const Bounds<float3> &bounds = rcd.original ? node.bounds_orig_ : node.bounds_;
+  float distance;
+  if (!isect_ray_aabb_v3(&rcd.ray, bounds.min, bounds.max, &distance)) {
+    return std::nullopt;
   }
-  return isect_ray_aabb_v3(&rcd.ray, node.bounds_.min, node.bounds_.max, &node.tmin_);
+  return distance;
 }
 
 void raycast(Tree &pbvh,
-             const FunctionRef<void(Node &node, float *tmin)> hit_fn,
+             const FunctionRef<void(Node &node, float *distance)> hit_fn,
              const float3 &ray_start,
              const float3 &ray_normal,
              bool original)
@@ -1802,7 +1719,7 @@ void raycast(Tree &pbvh,
   rcd.original = original;
 
   search_callback_occluded(
-      pbvh, [&](Node &node) { return ray_aabb_intersect(node, rcd); }, hit_fn);
+      pbvh, [&](const Node &node) { return ray_aabb_intersect(node, rcd); }, hit_fn);
 }
 
 bool ray_face_intersection_quad(const float3 &ray_start,
@@ -2250,31 +2167,23 @@ void clip_ray_ortho(
 
 /* -------------------------------------------------------------------- */
 
-static bool nearest_to_ray_aabb_dist_sq(Node *node,
-                                        const DistRayAABB_Precalc &dist_ray_to_aabb_precalc,
-                                        const bool original)
+static std::optional<float> nearest_to_ray_aabb_dist_sq(
+    const Node &node, const DistRayAABB_Precalc &dist_ray_to_aabb_precalc, const bool original)
 {
-  const float *bb_min, *bb_max;
-
-  if (original) {
-    /* BKE_pbvh_node_get_original_BB */
-    bb_min = node->bounds_orig_.min;
-    bb_max = node->bounds_orig_.max;
-  }
-  else {
-    bb_min = node->bounds_.min;
-    bb_max = node->bounds_.max;
-  }
+  const Bounds<float3> &bounds = original ? node.bounds_orig_ : node.bounds_;
 
   float co_dummy[3], depth;
-  node->tmin_ = dist_squared_ray_to_aabb_v3(
-      &dist_ray_to_aabb_precalc, bb_min, bb_max, co_dummy, &depth);
+  const float distance = dist_squared_ray_to_aabb_v3(
+      &dist_ray_to_aabb_precalc, bounds.min, bounds.max, co_dummy, &depth);
   /* Ideally we would skip distances outside the range. */
-  return depth > 0.0f;
+  if (depth <= 0.0f) {
+    return std::nullopt;
+  }
+  return distance;
 }
 
 void find_nearest_to_ray(Tree &pbvh,
-                         const FunctionRef<void(Node &node, float *tmin)> fn,
+                         const FunctionRef<void(Node &node, float *distance)> fn,
                          const float3 &ray_start,
                          const float3 &ray_normal,
                          const bool original)
@@ -2284,7 +2193,9 @@ void find_nearest_to_ray(Tree &pbvh,
 
   search_callback_occluded(
       pbvh,
-      [&](Node &node) { return nearest_to_ray_aabb_dist_sq(&node, ray_dist_precalc, original); },
+      [&](const Node &node) {
+        return nearest_to_ray_aabb_dist_sq(node, ray_dist_precalc, original);
+      },
       fn);
 }
 

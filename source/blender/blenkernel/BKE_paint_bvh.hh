@@ -95,12 +95,6 @@ class Node : NonCopyable {
   Flags flag_ = None;
 
   /**
-   * Used for ray-casting: how close the bounding-box is to the ray point.
-   * \todo Remove and store elsewhere.
-   */
-  float tmin_ = 0.0f;
-
-  /**
    * Used to flash colors of updated node bounding boxes in
    * debug draw mode (when G.debug_value / bpy.app.debug_value is 889).
    * \todo Remove and store elsewhere.
@@ -336,11 +330,13 @@ class Tree {
 void build_pixels(const Depsgraph &depsgraph, Object &object, Image &image, ImageUser &image_user);
 void pixels_free(bke::pbvh::Tree *pbvh);
 
-/* Ray-cast
+/**
+ * Ray-cast
  * the hit callback is called for all leaf nodes intersecting the ray;
  * it's up to the callback to find the primitive within the leaves that is
- * hit first */
-
+ * hit first
+ * \todo Return distance by value from hit_fn.
+ */
 void raycast(Tree &pbvh,
              FunctionRef<void(Node &node, float *tmin)> hit_fn,
              const float3 &ray_start,
@@ -520,8 +516,6 @@ Span<int> node_face_indices_calc_grids(const SubdivCCG &subdiv_ccg,
                                        Vector<int> &faces);
 
 }  // namespace bke::pbvh
-
-float BKE_pbvh_node_get_tmin(const bke::pbvh::Node *node);
 
 const Set<BMVert *, 0> &BKE_pbvh_bmesh_node_unique_verts(bke::pbvh::BMeshNode *node);
 const Set<BMVert *, 0> &BKE_pbvh_bmesh_node_other_verts(bke::pbvh::BMeshNode *node);
