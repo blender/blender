@@ -154,7 +154,7 @@ class AnimationChannel {
   Vector<KeyPoint> datapoints_;
   /* Higher numbers will be sorted before lower numbers. In case the values are equal a fallback is
    * used. */
-  int sorting_priority_;
+  int sorting_priority_ = 0;
 
  public:
   AnimationChannel(AnimationChannelType type, StringRef label);
