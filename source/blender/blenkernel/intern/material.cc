@@ -2288,6 +2288,7 @@ static void material_default_gsplat_init(Material **ma_p)
   output->location[1] = 100.0f;
 
   bke::node_set_active(*ntree, *output);
+  BKE_ntree_update_without_main(*ntree);
 }
 
 Material *BKE_material_default_empty()
