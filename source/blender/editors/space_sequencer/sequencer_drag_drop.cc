@@ -6,6 +6,8 @@
  * \ingroup spseq
  */
 
+#include "AS_asset_representation.hh"
+
 #include "MEM_guardedalloc.h"
 
 #include "DNA_scene_types.h"
@@ -449,14 +451,19 @@ static void sequencer_drop_copy(bContext *C, wmDrag *drag, wmDropBox *drop)
 }
 
 /** Return whether or not a filepath could be resolved, fallback to the ID name. */
-static bool get_drag_path(const bContext *C, wmDrag *drag, char r_path[FILE_MAX])
+static bool get_drag_path(const bContext * /*C*/, wmDrag *drag, char r_path[FILE_MAX])
 {
   if (drag->type == WM_DRAG_COLOR) {
     BLI_strncpy(r_path, IFACE_("Color"), FILE_MAX);
     return false;
   }
 
-  ID *id = WM_drag_get_local_ID_or_import_from_asset(C, drag, 0);
+  if (const wmDragAsset *asset_drag = WM_drag_get_asset_data(drag, 0)) {
+    BLI_strncpy(r_path, asset_drag->asset->get_name().c_str(), FILE_MAX);
+    return false;
+  }
+
+  ID *id = WM_drag_get_local_ID(drag, 0);
   /* ID dropped. */
   if (id != nullptr) {
     const ID_Type id_type = GS(id->name);
