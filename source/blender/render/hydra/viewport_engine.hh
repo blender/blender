@@ -42,6 +42,7 @@ class ViewportEngine : public Engine {
   void render(bContext *context);
 
  protected:
+  const Object *camera_object() const override;
   void notify_status(float progress, const std::string &info, const std::string &status) override;
 };
 

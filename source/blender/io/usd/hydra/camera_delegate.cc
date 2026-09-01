@@ -6,7 +6,7 @@
 
 #include "DNA_ID.h"
 #include "DNA_camera_types.h"
-#include "DNA_scene_types.h"
+#include "DNA_object_types.h"
 
 #include "BKE_idprop.hh"
 
@@ -82,10 +82,11 @@ CameraDelegate::CameraDelegate(pxr::HdRenderIndex *render_index, pxr::SdfPath co
       camera_scene_index_, pxr::SdfPath::AbsoluteRootPath(), /*needsPrefixing=*/false);
 }
 
-void CameraDelegate::sync(const Scene *scene)
+void CameraDelegate::sync(const Object *camera_object)
 {
-  const Camera *camera = (scene && scene->camera) ? id_cast<const Camera *>(scene->camera->data) :
-                                                    nullptr;
+  const Camera *camera = (camera_object && camera_object->type == OB_CAMERA) ?
+                             id_cast<const Camera *>(camera_object->data) :
+                             nullptr;
   id_properties_ds_->set_camera(camera);
   camera_scene_index_->DirtyPrims({{camera_id_, pxr::HdDataSourceLocator::EmptyLocator()}});
 }
