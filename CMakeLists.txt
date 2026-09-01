@@ -345,6 +345,21 @@ if(UNIX AND NOT (APPLE OR HAIKU))
   mark_as_advanced(WITH_GHOST_WAYLAND)
 
   if(WITH_GHOST_WAYLAND)
+    option(WITH_GHOST_DBUS "\
+Enable reading desktop settings over DBUS, such as the light/dark theme preference. \
+Requires the `dbus-1` headers at build time."
+      ON
+    )
+    mark_as_advanced(WITH_GHOST_DBUS)
+  endif()
+
+  option(WITH_GHOST_DBUS_DYNLOAD "\
+Enable runtime dynamic loading of `libdbus` (avoids a link time dependency)"
+    ON
+  )
+  mark_as_advanced(WITH_GHOST_DBUS_DYNLOAD)
+
+  if(WITH_GHOST_WAYLAND)
     option(WITH_GHOST_CSD "Enable client side decorations with Wayland" ON)
     mark_as_advanced(WITH_GHOST_CSD)
 
@@ -1357,6 +1372,9 @@ endif()
 if(UNIX AND NOT (APPLE OR HAIKU))
   set_and_warn_incompatible(WITH_HEADLESS WITH_GHOST_WAYLAND OFF)
   set_and_warn_incompatible(WITH_HEADLESS WITH_GHOST_X11 OFF)
+  # Only the WAYLAND back-end currently reads desktop settings over DBUS.
+  set_and_warn_dependency(WITH_GHOST_WAYLAND WITH_GHOST_DBUS OFF)
+  set_and_warn_incompatible(WITH_HEADLESS WITH_GHOST_DBUS OFF)
 endif()
 set_and_warn_incompatible(WITH_HEADLESS WITH_GHOST_SDL OFF)
 
@@ -2569,6 +2587,10 @@ if(FIRST_RUN)
     endif()
     if(WITH_GHOST_WAYLAND)
       info_cfg_option(WITH_GHOST_WAYLAND_DYNLOAD)
+    endif()
+    info_cfg_option(WITH_GHOST_DBUS)
+    if(WITH_GHOST_DBUS)
+      info_cfg_option(WITH_GHOST_DBUS_DYNLOAD)
     endif()
   endif()
 
