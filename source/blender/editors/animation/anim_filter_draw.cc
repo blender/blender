@@ -143,7 +143,7 @@ void draw_channel_tree(const bContext &C, SummaryChannel &root, View2D & /* v2d 
   /* Just making it explicit that this is the row height we use as a base. */
   tree_view->set_row_height(UI_UNIT_Y);
   tree_view->set_row_scale_y(ANIM_UI_get_channel_scale_factor());
-  tree_view->set_row_padding(0.0f);
+  tree_view->set_row_padding(ANIM_UI_get_channel_skip());
   ui::TreeViewBuilder::build_tree_view(C, *tree_view, layout, /*add_box=*/false);
   ui::block_align_end(block);
   ui::block_end(&C, block);
