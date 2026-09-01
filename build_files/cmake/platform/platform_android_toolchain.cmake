@@ -79,7 +79,7 @@ set(ANDROID_PLATFORM android-29)
 set(ANDROID_STL c++_shared)
 
 # ----------------------------------------------------------------------------
-# Use Legacy Android NDK CMake toolchain file.
+# Use Legacy Android NDK CMake toolchain file
 
 # Despite its name, the legacy Android toolchain is the main supported NDK CMake toolchain,
 # with the "new" toolchain file including behavior regressions.
@@ -88,6 +88,6 @@ set(ANDROID_STL c++_shared)
 set(ANDROID_USE_LEGACY_TOOLCHAIN ON)
 
 # ----------------------------------------------------------------------------
-# Main Android NDK toolchain file include.
+# Main Android NDK toolchain file include
 
 include(${NDK_TOOLCHAIN_FILE})

@@ -91,7 +91,7 @@ unset(_gradle_staging_dir)
 unset(_gradle_executable)
 
 # ----------------------------------------------------------------------------
-# Utility targets for uploading/running the built APK via ADB.
+# Utility targets for uploading/running the built APK via ADB
 
 add_custom_target(android_upload
   COMMAND "${ADB_EXECUTABLE}" install -r "${_apk_output}"

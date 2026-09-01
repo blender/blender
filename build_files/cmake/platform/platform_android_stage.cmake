@@ -95,7 +95,7 @@ message(STATUS "Gradle staging: Native libraries staged")
 
 
 # -----------------------------------------------------------------------------
-# Blender portable version runtime directory, staged as an APK asset.
+# Blender portable version runtime directory, staged as an APK asset
 
 # Copy the portable target version directory tree for it to be extracted by BlenderActivity on app startup.
 file(COPY "${INSTALL_TARGET_DIR}" DESTINATION "${assets_dir}/extract/" ${copy_excludes})
