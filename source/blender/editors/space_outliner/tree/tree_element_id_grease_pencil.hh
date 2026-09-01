@@ -26,6 +26,7 @@ class TreeElementIDGreasePencil final : public TreeElementID {
 
  private:
   void expand_layer_tree() const;
+  void expand_materials() const;
 };
 
 }  // namespace ed::outliner
