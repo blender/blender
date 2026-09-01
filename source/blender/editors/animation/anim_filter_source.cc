@@ -54,7 +54,7 @@ static void channels_for_action_slot(animrig::Action &action,
 {
   using namespace animrig;
   PointerRNA action_ptr = RNA_pointer_create_discrete(&action.id, RNA_Action, &action);
-  tags.push({ChannelTagType::ACTION, action.id.name, action_ptr});
+  tags.push({ChannelTagType::ACTION, action.id.name + 2, action_ptr});
 
   Slot *slot = action.slot_for_handle(slot_handle);
   PointerRNA slot_ptr = RNA_pointer_create_id_subdata(action.id, RNA_ActionSlot, slot);
@@ -110,7 +110,7 @@ static void collect_channels_for_id(ID *animated_id,
   ChannelTagStack tags;
   PointerRNA animated_id_ptr = RNA_pointer_create_discrete(
       animated_id, ID_code_to_RNA_type(animated_id->id_type()), animated_id);
-  tags.push({ChannelTagType::ID, animated_id->name, animated_id_ptr});
+  tags.push({ChannelTagType::ID, animated_id->name + 2, animated_id_ptr});
   channels_for_action_slot(adt->action->wrap(), adt->slot_handle, tags, arena);
   tags.pop();
 }

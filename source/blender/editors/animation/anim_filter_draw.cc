@@ -3,12 +3,18 @@
  * SPDX-License-Identifier: GPL-2.0-or-later */
 
 #include "BLI_rect.hh"
+#include "BLI_string.hh"
 
 #include "BKE_context.hh"
+#include "BKE_library.hh"
 
 #include "BLT_translation.hh"
 
+#include "DNA_ID.h"
 #include "DNA_userdef_types.h"
+
+#include "RNA_access.hh"
+#include "RNA_prototypes.hh"
 
 #include "GPU_immediate.hh"
 #include "GPU_state.hh"
@@ -22,12 +28,23 @@
 #include "ED_anim_api.hh"
 #include "ED_anim_filter.hh"
 #include "ED_keyframes_draw.hh"
+#include "ED_undo.hh"
 
 namespace blender {
 
 }  // namespace blender
 
 namespace blender::ed::animfilter {
+
+/* Returns the char * and max length of the name string. */
+static PropertyRNA *name_prop_from_rna(PointerRNA &ptr)
+{
+  if (!ptr.has_data() || !ID_IS_EDITABLE(ptr.owner_id)) {
+    return nullptr;
+  }
+
+  return RNA_struct_find_property(&ptr, "name");
+}
 
 class ChannelItem : public ui::AbstractTreeViewItem {
   PointerRNA source_;
@@ -54,6 +71,28 @@ class ChannelItem : public ui::AbstractTreeViewItem {
      * those. */
     return this->source_.owner_id == other_channel_item.source_.owner_id &&
            this->source_.data == other_channel_item.source_.data;
+  }
+
+  bool supports_renaming() const override
+  {
+    return name_prop_from_rna(const_cast<PointerRNA &>(this->source_)) != nullptr;
+  }
+
+  StringRef get_rename_string() const override
+  {
+    return this->label_;
+  }
+
+  bool rename(const bContext &C, StringRefNull new_name) override
+  {
+    PropertyRNA *prop = name_prop_from_rna(const_cast<PointerRNA &>(this->source_));
+    RNA_property_string_set(&this->source_, prop, new_name.c_str());
+    RNA_property_update(&const_cast<bContext &>(C), &this->source_, prop);
+
+    ED_undo_push(&const_cast<bContext &>(C), "Rename Animation Channel");
+
+    label_ = new_name;
+    return true;
   }
 };
 
