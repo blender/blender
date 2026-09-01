@@ -227,10 +227,9 @@ PointCloud *BKE_pointcloud_new_nomain(const ePointCloud_Type type, const int tot
   PointCloud *pointcloud = static_cast<PointCloud *>(BKE_libblock_alloc(
       nullptr, ID_PT, BKE_idtype_idcode_to_name(ID_PT), LIB_ID_CREATE_LOCALIZE));
 
-  pointcloud->type = type;
-
   BKE_libblock_init_empty(&pointcloud->id);
 
+  pointcloud->type = type;
   pointcloud->totpoint = totpoint;
 
   pointcloud->attributes_for_write().add<float3>(
