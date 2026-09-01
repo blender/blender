@@ -30,6 +30,13 @@ if(NOT DEFINED ANDROID_NDK_ROOT)
   list(SORT _ndk_dirs COMPARE NATURAL)
   list(POP_BACK _ndk_dirs ANDROID_NDK_ROOT)
 
+  if(NOT EXISTS ${ANDROID_NDK_ROOT})
+    message(FATAL_ERROR
+      "Failed to infer Android NDK root location, tried: ${ANDROID_NDK_ROOT}. "
+      "Ensure you have one installed, or manually set ANDROID_NDK_ROOT to its location."
+    )
+  endif()
+
   unset(_android_sdk_dir)
   unset(_ndk_dirs)
 endif()
@@ -38,8 +45,7 @@ set(NDK_TOOLCHAIN_FILE "${ANDROID_NDK_ROOT}/build/cmake/android.toolchain.cmake"
 
 if(NOT EXISTS ${NDK_TOOLCHAIN_FILE})
   message(FATAL_ERROR
-    "No Android NDK found. Ensure you have one installed, or manually "
-    "set ANDROID_NDK_ROOT to its location."
+    "Could not find Android NDK toolchain file at ${NDK_TOOLCHAIN_FILE}."
   )
 else()
   message(STATUS "Using Android NDK: ${ANDROID_NDK_ROOT}")
