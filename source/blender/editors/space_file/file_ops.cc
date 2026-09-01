@@ -1889,7 +1889,7 @@ static wmOperatorStatus file_external_operation_exec(bContext *C, wmOperator *op
   if (!(fileentry->typeflag & FILE_TYPE_DIR) && (operation == FILE_EXTERNAL_OPERATION_FOLDER_OPEN))
   {
     const char *root = filelist_dir(sfile->files);
-    BLI_strncpy(filepath, root, sizeof(filepath));
+    STRNCPY(filepath, root);
   }
   else {
     filelist_file_get_full_path(sfile->files, fileentry, filepath);

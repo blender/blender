@@ -1324,6 +1324,7 @@ static void rna_def_texture_slots(BlenderRNA *brna,
   RNA_def_function_flag(func,
                         FUNC_USE_SELF_ID | FUNC_NO_SELF | FUNC_USE_CONTEXT | FUNC_USE_REPORTS);
   parm = RNA_def_pointer(func, "mtex", structname, "", "The newly initialized mtex");
+  RNA_def_parameter_flags(parm, PROP_NEVER_NULL, ParameterFlag(0));
   RNA_def_function_return(func, parm);
 
   func = RNA_def_function(srna, "create", "rna_mtex_texture_slots_create");
@@ -1333,6 +1334,7 @@ static void rna_def_texture_slots(BlenderRNA *brna,
       func, "index", 0, 0, INT_MAX, "Index", "Slot index to initialize", 0, INT_MAX);
   RNA_def_parameter_flags(parm, PropertyFlag(0), PARM_REQUIRED);
   parm = RNA_def_pointer(func, "mtex", structname, "", "The newly initialized mtex");
+  RNA_def_parameter_flags(parm, PROP_NEVER_NULL, ParameterFlag(0));
   RNA_def_function_return(func, parm);
 
   func = RNA_def_function(srna, "clear", "rna_mtex_texture_slots_clear");

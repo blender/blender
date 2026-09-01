@@ -1,9 +1,9 @@
 
 msgid ""
 msgstr ""
-"Project-Id-Version: Blender 5.3.0 Alpha (b'af4852ed4560')\n"
+"Project-Id-Version: Blender 5.3.0 Alpha (b'32296898e057')\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-08-10 07:54+0000\n"
+"POT-Creation-Date: 2026-08-31 07:41+0000\n"
 "PO-Revision-Date: 2026-06-02 05:12+0000\n"
 "Last-Translator: Fadli Birdie Zeinda <justbirdie00@gmail.com>\n"
 "Language-Team: Indonesian <https://translate.blender.org/projects/blender-ui/ui/id/>\n"
@@ -3659,10 +3659,6 @@ msgid "Collection of worlds"
 msgstr "Koleksi dunia"
 
 
-msgid "ACEScg"
-msgstr "ACEScg"
-
-
 msgid "Blendfile Import Context"
 msgstr "Konteks Impor Berkasblend"
 
@@ -6653,10 +6649,6 @@ msgid "Color management specific to display device"
 msgstr "Manajemen warna spesifik ke perangkat tampilan"
 
 
-msgid "Display"
-msgstr "Tampilkan"
-
-
 msgid "Input color space settings"
 msgstr "Pengaturan spasi warna masukan"
 
@@ -6669,28 +6661,8 @@ msgid "Treat image as non-color data without color management, like normal or di
 msgstr "Perlakukan gabar sebagai data non-warna tanpa manajemen warna, seperti normal atau peta perpindahan"
 
 
-msgid "Input Color Space"
-msgstr "Memasukkan Ruang Warna"
-
-
 msgid "Color space in the image file, to convert to and from when saving and loading the image"
 msgstr "Ruang warna dalam dokumen gambar, untuk mengubahnya ke dan dari saat menyimpan atau memuat gambar"
-
-
-msgid "ACES2065-1"
-msgstr "ACES2065-1"
-
-
-msgid "Non-Color"
-msgstr "Non-Warna"
-
-
-msgid "Rec.1886"
-msgstr "Rec.1886"
-
-
-msgid "Rec.2020"
-msgstr "Rec.2020"
 
 
 msgid "Do not perform any color transform on load, treat colors as in scene linear space already"
@@ -6721,10 +6693,6 @@ msgid "Gamma"
 msgstr "Gamma"
 
 
-msgid "Look"
-msgstr "Lihat"
-
-
 msgid "Additional transform applied before view transform for artistic needs"
 msgstr "Transfromasi tambahan diterapkan sebelum tampilan transformasi untuk kebutuhan artistik"
 
@@ -6735,10 +6703,6 @@ msgstr "Gunakan Kurva"
 
 msgid "Use RGB curved for pre-display transformation"
 msgstr "Gunakan RGB kurva untuk pra-tampilkan transformasi"
-
-
-msgid "View"
-msgstr "Pandangan"
 
 
 msgid "View used when converting image to a display space"
@@ -6891,6 +6855,10 @@ msgstr "Posisi"
 
 msgid "Set position of selected color stop"
 msgstr "Set posisi stop warna yang terseleksi"
+
+
+msgid "Identifier"
+msgstr "Pengenal"
 
 
 msgid "Console Input"
@@ -8575,6 +8543,10 @@ msgid "Tangent to Surface"
 msgstr "Tangen ke Permukaan"
 
 
+msgid "View"
+msgstr "Pandangan"
+
+
 msgid "Project the strokes only onto selected objects"
 msgstr "Hanya memproyeksikan sapuan ke benda yang terseleksi"
 
@@ -9596,10 +9568,6 @@ msgstr "Angin"
 
 msgid "Wind effector weight"
 msgstr "Beban efektor angin"
-
-
-msgid "Identifier"
-msgstr "Pengenal"
 
 
 msgid "Unique name used in the code and scripting"
@@ -12343,6 +12311,10 @@ msgid "Show texture in viewport"
 msgstr "Tampilkan tekstur di jendela tampilan"
 
 
+msgid "Use Unified Weight"
+msgstr "Partikel"
+
+
 msgid "Use this brush in Grease Pencil vertex color mode"
 msgstr "Gunakan kuas ini di mode warna titik sudut Pensil Grease"
 
@@ -13460,6 +13432,10 @@ msgstr "Jumlah damping"
 
 msgid "Display Color"
 msgstr "Tampilkan Warna"
+
+
+msgid "Display"
+msgstr "Tampilkan"
 
 
 msgid "Steps"
@@ -15700,32 +15676,44 @@ msgid "Use Material Mask"
 msgstr "Gunakan Masker Bahan"
 
 
-msgid "Names"
-msgstr "Nama"
-
-
-msgid "Tracking"
-msgstr "Pelacakan"
-
-
-msgid "Utilities"
-msgstr "Utilitas"
-
-
-msgid "Math"
-msgstr "Matematika"
-
-
 msgid "Snap"
 msgstr "Jepret"
+
+
+msgid "Sample"
+msgstr "Sampel"
+
+
+msgid "Gizmo"
+msgstr "Gizmo"
+
+
+msgid "Instances"
+msgstr "Contoh-contoh"
+
+
+msgid "Import"
+msgstr "Impor"
 
 
 msgid "Mirror"
 msgstr "Cermin"
 
 
+msgid "Utilities"
+msgstr "Utilitas"
+
+
 msgid "Navigation"
 msgstr "Navigasi"
+
+
+msgid "Math"
+msgstr "Matematika"
+
+
+msgid "UV"
+msgstr "UV"
 
 
 msgid "Select Linked"
@@ -15734,10 +15722,6 @@ msgstr "Seleksi yang Terhubung"
 
 msgid "Assign Material"
 msgstr "Tugaskan Bahan"
-
-
-msgid "Sample"
-msgstr "Sampel"
 
 
 msgid "Metaball"
@@ -15756,24 +15740,20 @@ msgid "Add Image"
 msgstr "Tambah Gambar"
 
 
-msgid "Gizmo"
-msgstr "Gizmo"
-
-
-msgid "Instances"
-msgstr "Contoh-contoh"
-
-
 msgid "Apply"
 msgstr "Tetapkan"
 
 
-msgid "Import"
-msgstr "Impor"
-
-
 msgid "Track"
 msgstr "Lacak"
+
+
+msgid "Linked"
+msgstr "Terkoleksi"
+
+
+msgid "Layout"
+msgstr "Tata Letak"
 
 
 msgid "Asset"
@@ -15784,20 +15764,16 @@ msgid "Hooks"
 msgstr "Kait"
 
 
-msgid "UV"
-msgstr "UV"
+msgid "Tracking"
+msgstr "Pelacakan"
+
+
+msgid "Names"
+msgstr "Nama"
 
 
 msgid "Merge"
 msgstr "Menggabungkan"
-
-
-msgid "Linked"
-msgstr "Terkoleksi"
-
-
-msgid "Layout"
-msgstr "Tata Letak"
 
 
 msgid "Animals"
@@ -18020,10 +17996,6 @@ msgid "Color space used for YCbCrA processing"
 msgstr "Ruang warna yang digunakan untuk pemrosesan YCbCrA"
 
 
-msgid "To"
-msgstr "Ke"
-
-
 msgid "Cryptomatte (Legacy)"
 msgstr "Cryptomatte (Warisan)"
 
@@ -19747,8 +19719,8 @@ msgstr "Menu Konteks"
 
 
 msgctxt "Operator"
-msgid "Accept"
-msgstr "Terima"
+msgid "Select Directory"
+msgstr "Seleksi"
 
 
 msgctxt "Operator"
@@ -20505,11 +20477,6 @@ msgstr "Warna Standar"
 msgctxt "Operator"
 msgid "Reset Recent"
 msgstr "Tampilan 3D"
-
-
-msgctxt "Operator"
-msgid "Select Directory"
-msgstr "Seleksi"
 
 
 msgctxt "Operator"
@@ -26339,6 +26306,10 @@ msgid "Translate all labels in menus, buttons and panels (note that this might m
 msgstr "Terjemahkan semua label pada menu, tombol, dan panel (perhatikan bahwa hal ini dapat menyulitkan Anda untuk mengikuti tutorial atau manual)"
 
 
+msgid "Subtype"
+msgstr "Subtipe"
+
+
 msgid "Pointer"
 msgstr "Penunjuk"
 
@@ -26682,6 +26653,10 @@ msgid "SPH Solver"
 msgstr "Kamera"
 
 
+msgid "Use effect during render"
+msgstr "Gunakan efek saat render"
+
+
 msgid "Max Size"
 msgstr "Ukuran Maks"
 
@@ -26812,10 +26787,6 @@ msgstr "Nama efek"
 
 msgid "Set effect expansion in the user interface"
 msgstr "Set ekspansi efek di antarmuka pengguna"
-
-
-msgid "Use effect during render"
-msgstr "Gunakan efek saat render"
 
 
 msgid "Gaussian Blur Effect"
@@ -27832,10 +27803,6 @@ msgid "Diameter of the brush"
 msgstr "Diameter kuas"
 
 
-msgid "Use Unified Weight"
-msgstr "Partikel"
-
-
 msgid "The unit system to use for user interface controls"
 msgstr "Sistem unit digunakan untuk kontrol antarmuka pengguna"
 
@@ -27878,6 +27845,10 @@ msgstr "Tampilkan unit berpasangan (e.g 1m 0cm)"
 
 msgid "Settings to define a reusable library for Asset Browsers to use"
 msgstr "Pengaturan mendefinisikan perpusakaan yang dapat didaur ulang untuk Browser Aset digunakan"
+
+
+msgid "UUID"
+msgstr "UUID"
 
 
 msgid "Solid Light"
@@ -28242,16 +28213,6 @@ msgstr "Gambar"
 msgctxt "WindowManager"
 msgid "UV Editor"
 msgstr "Editor UV"
-
-
-msgctxt "WindowManager"
-msgid "UV Sculpt"
-msgstr "Pahat UV"
-
-
-msgctxt "WindowManager"
-msgid "Image View"
-msgstr "Lihat Gambar"
 
 
 msgctxt "WindowManager"
@@ -28854,6 +28815,11 @@ msgstr "Sebelum"
 
 
 msgctxt "Operator"
+msgid "Search..."
+msgstr "Telusuri..."
+
+
+msgctxt "Operator"
 msgid "Animate Path"
 msgstr "Menganimasi Jalur"
 
@@ -29021,11 +28987,6 @@ msgstr "Balik"
 
 msgid "Update on Edit"
 msgstr "Perbarui di Edit"
-
-
-msgctxt "Operator"
-msgid "Search..."
-msgstr "Telusuri..."
 
 
 msgid "Distance Reference"
@@ -30016,10 +29977,6 @@ msgstr "Folder Baru"
 
 msgid "Asset Catalog:"
 msgstr "Katalog Aset:"
-
-
-msgid "UUID"
-msgstr "UUID"
 
 
 msgctxt "Operator"
@@ -31553,6 +31510,10 @@ msgid "File not found"
 msgstr "Berkas tidak ditemukan"
 
 
+msgid "Look"
+msgstr "Lihat"
+
+
 msgid "Zoom in"
 msgstr "Perbesar"
 
@@ -32425,10 +32386,6 @@ msgstr "Bingkai: %d"
 
 msgid "Matte Objects:"
 msgstr "Objek Matte:"
-
-
-msgid "Subtype"
-msgstr "Subtipe"
 
 
 msgid "Compositing..."

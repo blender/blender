@@ -24,6 +24,7 @@
 #include "BLI_task_c.hh"
 
 #include "bmesh.hh"
+#include "bmesh_iterators_parallel.hh"
 #include "bmesh_query_uv.hh"
 #include "bmesh_structure.hh"
 

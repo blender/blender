@@ -19,6 +19,7 @@
 
 #include "BLT_translation.hh"
 
+#include "GPU_context.hh"
 #include "GPU_shader.hh"
 #include "GPU_state.hh"
 #include "GPU_texture.hh"
@@ -857,13 +858,26 @@ gpu::Texture *Result::bind_as_texture_or_single_value(gpu::Shader *shader,
   const gpu::TextureFormat format = this->get_gpu_texture_format();
   const eGPUTextureUsage usage = GPU_TEXTURE_USAGE_GENERAL;
   gpu::Texture *single_value_texture = nullptr;
-  if (this->type() == ResultType::Float4x4) {
-    single_value_texture = gpu::TexturePool::get().acquire_texture_2d_array(
-        int2(1, 1), 4, 1, format, usage);
+
+  /* Texture pool does not work on Vulkan at the moment. */
+  if (GPU_backend_get_type() == GPU_BACKEND_VULKAN) {
+    if (this->type() == ResultType::Float4x4) {
+      single_value_texture = GPU_texture_create_2d_array(
+          __func__, 1, 1, 4, 1, format, usage, nullptr);
+    }
+    else {
+      single_value_texture = GPU_texture_create_2d(__func__, 1, 1, 1, format, usage, nullptr);
+    }
   }
   else {
-    single_value_texture = gpu::TexturePool::get().acquire_texture_2d(
-        int2(1, 1), 1, format, usage);
+    if (this->type() == ResultType::Float4x4) {
+      single_value_texture = gpu::TexturePool::get().acquire_texture_2d_array(
+          int2(1, 1), 4, 1, format, usage);
+    }
+    else {
+      single_value_texture = gpu::TexturePool::get().acquire_texture_2d(
+          int2(1, 1), 1, format, usage);
+    }
   }
 
   /* Upload the single value to the texture. */
@@ -948,7 +962,14 @@ void Result::unbind_as_texture_or_single_value(gpu::Texture *single_value_textur
 
   BLI_assert(single_value_texture);
   GPU_texture_unbind(single_value_texture);
-  gpu::TexturePool::get().release_texture(single_value_texture);
+
+  /* Texture pool does not work on Vulkan at the moment. */
+  if (GPU_backend_get_type() == GPU_BACKEND_VULKAN) {
+    GPU_texture_free(single_value_texture);
+  }
+  else {
+    gpu::TexturePool::get().release_texture(single_value_texture);
+  }
 }
 
 void Result::unbind_as_image() const

@@ -98,9 +98,9 @@ bool ShaderCreateInfo::is_vulkan_compatible() const
 
 std::string ShaderCreateInfo::buffer_typename(StringRefNull type_name, bool uniform_buffer) const
 {
-  if (bool(this->builtins_ & BuiltinBits::NO_BUFFER_TYPE_LINTING) || type_name.startswith("int") ||
-      type_name.startswith("uint") || type_name.startswith("float") ||
-      type_name.startswith("packed_"))
+  if (flag_is_set(this->builtins_combined(), BuiltinBits::NO_BUFFER_TYPE_LINTING) ||
+      type_name.startswith("int") || type_name.startswith("uint") ||
+      type_name.startswith("float") || type_name.startswith("packed_"))
   {
     return type_name;
   }
@@ -183,10 +183,12 @@ void ShaderCreateInfo::finalize(const bool recursive)
     validate_vertex_attributes(&info);
 
     /* Insert with duplicate check. */
-    push_constants_.extend_non_duplicates(info.push_constants_);
     defines_.extend_non_duplicates(info.defines_);
     typedef_sources_.extend_non_duplicates(info.typedef_sources_);
 
+    for (const auto &res : info.push_constants_) {
+      extend_predicate(push_constants_, res, additional_info.conditions);
+    }
     for (const auto &res : info.pass_resources_) {
       extend_predicate(pass_resources_, res, additional_info.conditions);
     }
@@ -216,7 +218,7 @@ void ShaderCreateInfo::finalize(const bool recursive)
     }
 
     /* Inherit builtin bits from additional info. */
-    builtins_ |= info.builtins_;
+    builtins_.extend(info.builtins_);
 
     /* TODO(fclem): We need to reintroduce this check before compiling.
      * The issue is that the new SRT paradigm allows for conflicting resources if they are not
@@ -269,7 +271,7 @@ void ShaderCreateInfo::finalize(const bool recursive)
     }
   }
 
-  if (!geometry_source_.is_empty() && bool(builtins_ & BuiltinBits::LAYER)) {
+  if (!geometry_source_.is_empty() && flag_is_set(this->builtins_combined(), BuiltinBits::LAYER)) {
     std::cout << name_
               << ": Validation failed. BuiltinBits::LAYER shouldn't be used with geometry shaders."
               << std::endl;
@@ -279,6 +281,15 @@ void ShaderCreateInfo::finalize(const bool recursive)
 
 void ShaderCreateInfo::extend_predicate(Vector<Resource, 0> &resource_vector,
                                         ShaderCreateInfo::Resource res_copy,
+                                        Span<ConditionFn> additional_conditions) const
+{
+  res_copy.conditions.extend(additional_conditions);
+  /** IMPORTANT: We keep duplicates until we evaluate the conditions. */
+  resource_vector.append(res_copy);
+};
+
+void ShaderCreateInfo::extend_predicate(Vector<ShaderCreateInfo::PushConst, 0> &resource_vector,
+                                        ShaderCreateInfo::PushConst res_copy,
                                         Span<ConditionFn> additional_conditions) const
 {
   res_copy.conditions.extend(additional_conditions);
@@ -349,17 +360,17 @@ std::string ShaderCreateInfo::check_error() const
   }
 
   if (!this->geometry_source_.is_empty()) {
-    if (flag_is_set(this->builtins_, BuiltinBits::BARYCENTRIC_COORD)) {
+    if (flag_is_set(this->builtins_combined(), BuiltinBits::BARYCENTRIC_COORD)) {
       error += "Shader " + this->name_ +
                " has geometry stage and uses barycentric coordinates. This is not allowed as "
                "fallback injects a geometry stage.\n";
     }
-    if (flag_is_set(this->builtins_, BuiltinBits::VIEWPORT_INDEX)) {
+    if (flag_is_set(this->builtins_combined(), BuiltinBits::VIEWPORT_INDEX)) {
       error += "Shader " + this->name_ +
                " has geometry stage and uses multi-viewport. This is not allowed as "
                "fallback injects a geometry stage.\n";
     }
-    if (flag_is_set(this->builtins_, BuiltinBits::LAYER)) {
+    if (flag_is_set(this->builtins_combined(), BuiltinBits::LAYER)) {
       error += "Shader " + this->name_ +
                " has geometry stage and uses layer output. This is not allowed as "
                "fallback injects a geometry stage.\n";
@@ -370,7 +381,7 @@ std::string ShaderCreateInfo::check_error() const
     return error;
   }
 
-  if (flag_is_set(this->builtins_,
+  if (flag_is_set(this->builtins_combined(),
                   BuiltinBits::BARYCENTRIC_COORD | BuiltinBits::VIEWPORT_INDEX |
                       BuiltinBits::LAYER))
   {
@@ -720,10 +731,13 @@ void gpu_shader_create_info_init()
   for (ShaderCreateInfo *info : g_create_infos->values()) {
     info->is_generated_ = false;
 
-    info->builtins_ |= gpu_shader_dependency_get_builtins(info->vertex_source_);
-    info->builtins_ |= gpu_shader_dependency_get_builtins(info->fragment_source_);
-    info->builtins_ |= gpu_shader_dependency_get_builtins(info->geometry_source_);
-    info->builtins_ |= gpu_shader_dependency_get_builtins(info->compute_source_);
+    gpu::shader::BuiltinBits builtins = gpu::shader::BuiltinBits::NONE;
+    builtins = builtins | gpu_shader_dependency_get_builtins(info->vertex_source_);
+    builtins = builtins | gpu_shader_dependency_get_builtins(info->fragment_source_);
+    builtins = builtins | gpu_shader_dependency_get_builtins(info->geometry_source_);
+    builtins = builtins | gpu_shader_dependency_get_builtins(info->compute_source_);
+
+    info->builtins(builtins);
 
     if (!info->compute_source_.is_empty()) {
       info->shared_variables_.extend(
@@ -732,7 +746,7 @@ void gpu_shader_create_info_init()
 
 #if GPU_SHADER_PRINTF_ENABLE
     const bool is_material_shader = StringRefNull(info->name_).startswith("eevee_surf_");
-    if (flag_is_set(info->builtins_, BuiltinBits::USE_PRINTF) ||
+    if (flag_is_set(info->builtins_combined(), BuiltinBits::USE_PRINTF) ||
         (gpu_shader_dependency_force_gpu_print_injection() && is_material_shader))
     {
       info->additional_info("gpu_print");
@@ -741,7 +755,7 @@ void gpu_shader_create_info_init()
 
 #ifndef NDEBUG
     /* Automatically amend the create info for ease of use of the debug feature. */
-    if (flag_is_set(info->builtins_, BuiltinBits::USE_DEBUG_DRAW)) {
+    if (flag_is_set(info->builtins_combined(), BuiltinBits::USE_DEBUG_DRAW)) {
       info->additional_info("draw_debug_draw");
     }
 #endif
@@ -796,7 +810,9 @@ bool gpu_shader_create_info_compile_all(const char *name_starts_with_filter)
         skipped++;
         continue;
       }
-      if (bool(info->builtins_ & BuiltinBits::RAY_QUERY) && !GPU_ray_query_support()) {
+      if (flag_is_set(info->builtins_combined(), BuiltinBits::RAY_QUERY) &&
+          !GPU_ray_query_support())
+      {
         skipped++;
         continue;
       }

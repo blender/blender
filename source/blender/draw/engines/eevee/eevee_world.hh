@@ -20,7 +20,6 @@ namespace blender {
 
 struct bNodeTree;
 struct bNodeSocketValueRGBA;
-struct UniformBuffer;
 
 namespace eevee {
 

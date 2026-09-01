@@ -97,7 +97,7 @@ principled_bsdf_emission(KernelGlobals kg,
                          ccl_private float *ccl_restrict stack,
                          const ccl_global SVMNodePrincipledBsdfData &data,
                          const float3 N,
-                         const bool reflective_caustics,
+                         const PathRayVisibility ray_visibility,
                          const uint32_t path_flag,
                          const float mix_weight)
 {
@@ -119,87 +119,30 @@ principled_bsdf_emission(KernelGlobals kg,
   if (sheen_weight > CLOSURE_WEIGHT_CUTOFF) {
     const float3 sheen_tint = max(stack_load(stack, data.sheen_tint), zero_float3());
     const float sheen_roughness = saturatef(stack_load(stack, data.sheen_roughness));
-    SheenBsdf sheen;
-    ccl_private SheenBsdf *bsdf = bsdf_alloc_maybe_emission(
-        sd, &sheen, path_flag, sheen_weight * rgb_to_spectrum(sheen_tint) * weight);
+    const float3 coat_normal = safe_normalize_fallback(
+        stack_load_float3_default(stack, data.coat_normal_offset, N), sd->N);
+    const float3 sheen_N = safe_normalize(mix(N, coat_normal, saturatef(coat_weight)));
 
-    if (bsdf) {
-      const float3 coat_normal = safe_normalize_fallback(
-          stack_load_float3_default(stack, data.coat_normal_offset, N), sd->N);
-      bsdf->N = safe_normalize(mix(N, coat_normal, saturatef(coat_weight)));
-      bsdf->roughness = sheen_roughness;
+    const Spectrum closure_weight = sheen_weight * rgb_to_spectrum(sheen_tint) * weight;
+    const Spectrum albedo = bsdf_sheen_setup(kg, sd, closure_weight, sheen_N, sheen_roughness);
 
-      /* setup bsdf */
-      const int sheen_flag = bsdf_sheen_setup(kg, sd, bsdf);
-
-      if (sheen_flag) {
-        sd->runtime_flag |= sheen_flag;
-
-        /* Attenuate lower layers */
-        const Spectrum albedo = bsdf_albedo(
-            kg, sd, (ccl_private ShaderClosure *)bsdf, true, false);
-        weight = closure_layering_weight(albedo, weight);
-      }
-    }
+    /* Attenuate lower layers */
+    weight = closure_layering_weight(albedo, weight);
   }
 
   /* Second layer: Coat */
   if (coat_weight > CLOSURE_WEIGHT_CUTOFF) {
-    const float coat_roughness = saturatef(stack_load(stack, data.coat_roughness));
-    const float coat_ior = fmaxf(stack_load(stack, data.coat_ior), 1.0f);
-    const float3 coat_tint = max(stack_load(stack, data.coat_tint), zero_float3());
+    Coat coat;
+    coat.tint = rgb_to_spectrum(max(stack_load(stack, data.coat_tint), zero_float3()));
+    coat.ior = fmaxf(stack_load(stack, data.coat_ior), 1.0f);
+    coat.N = safe_normalize_fallback(stack_load_float3_default(stack, data.coat_normal_offset, N),
+                                     sd->N);
+    coat.roughness = saturatef(stack_load(stack, data.coat_roughness));
+    coat.weight = coat_weight * weight;
 
-    const float3 coat_normal = safe_normalize_fallback(
-        stack_load_float3_default(stack, data.coat_normal_offset, N), sd->N);
-    const float3 valid_coat_normal = maybe_ensure_valid_specular_reflection(sd, coat_normal);
-    if (reflective_caustics) {
-      MicrofacetBsdf coat;
-      ccl_private MicrofacetBsdf *bsdf = bsdf_alloc_maybe_emission(
-          sd, &coat, path_flag, coat_weight * weight);
+    const Spectrum albedo = bsdf_coat_setup(kg, sd, ray_visibility, coat);
 
-      if (bsdf) {
-        bsdf->N = valid_coat_normal;
-        bsdf->T = zero_float3();
-        bsdf->ior = coat_ior;
-
-        bsdf->alpha_x = bsdf->alpha_y = sqr(coat_roughness);
-
-        /* setup bsdf */
-        sd->runtime_flag |= bsdf_microfacet_ggx_setup(bsdf);
-        bsdf_microfacet_setup_fresnel_dielectric(kg, bsdf, sd->wi);
-
-        /* Attenuate lower layers */
-        const Spectrum albedo = bsdf_albedo(
-            kg, sd, (ccl_private ShaderClosure *)bsdf, true, false);
-        weight = closure_layering_weight(albedo, weight);
-      }
-    }
-
-    if (!isequal(coat_tint, one_float3())) {
-      /* Tint is normalized to perpendicular incidence.
-       * Therefore, if we define the coat thickness as length 1, the length along the ray is
-       * t = sqrt(1+tan^2(angle(N, I))) = sqrt(1+tan^2(acos(dotNI))) = 1 / dotNI.
-       * From Beer's law, we have T = exp(-sigma_e * t).
-       * Therefore, tint = exp(-sigma_e * 1) (per def.), so -sigma_e = log(tint).
-       * From this, T = exp(log(tint) * t) = exp(log(tint)) ^ t = tint ^ t;
-       *
-       * Note that this is only an approximation - it assumes that the outgoing ray follows the
-       * same angle, and that there aren't multiple internal bounces. In particular, things that
-       * could be improved:
-       * - For transmissive materials, there should not be an outgoing path at all if the path is
-       *   transmitted.
-       * - For rough materials, we could blend towards a view-independent average path length
-       *   (e.g. 2 for diffuse reflection) for the outgoing direction.
-       * However, there's also an argument to be made for keeping parameters independent of each
-       * other for more intuitive control, in particular main roughness not affecting the coat.
-       */
-      const float cosNI = dot(sd->wi, valid_coat_normal);
-      /* Refract incoming direction into coat material.
-       * TIR is no concern here since we're always coming from the outside. */
-      const float cosNT = sqrtf(1.0f - sqr(1.0f / coat_ior) * (1 - sqr(cosNI)));
-      const float optical_depth = 1.0f / cosNT;
-      weight *= mix(one_spectrum(), power(rgb_to_spectrum(coat_tint), optical_depth), coat_weight);
-    }
+    weight = closure_layering_weight(albedo, weight);
   }
 
   /* Emission (attenuated by sheen and coat) */
@@ -254,14 +197,7 @@ ccl_device
     float3 N = stack_load_float3_default(stack, data.normal_offset, sd->N);
     N = safe_normalize_fallback(N, sd->N);
 
-#ifdef __CAUSTICS_TRICKS__
-    const bool reflective_caustics = (kernel_data.integrator.caustics_reflective ||
-                                      (ray_visibility & PATH_RAY_VISIBILITY_DIFFUSE) == 0);
-#else
-    const bool reflective_caustics = true;
-#endif
-
-    principled_bsdf_emission(kg, sd, stack, data, N, reflective_caustics, path_flag, mix_weight);
+    principled_bsdf_emission(kg, sd, stack, data, N, ray_visibility, path_flag, mix_weight);
 
     return offset;
   }
@@ -279,15 +215,8 @@ ccl_device
       float3 N = stack_load_float3_default(stack, data.normal_offset, sd->N);
       N = safe_normalize_fallback(N, sd->N);
 
-#ifdef __CAUSTICS_TRICKS__
-      const bool reflective_caustics = (kernel_data.integrator.caustics_reflective ||
-                                        (ray_visibility & PATH_RAY_VISIBILITY_DIFFUSE) == 0);
-#else
-      const bool reflective_caustics = true;
-#endif
-
       Spectrum weight = principled_bsdf_emission(
-          kg, sd, stack, data, N, reflective_caustics, path_flag, mix_weight);
+          kg, sd, stack, data, N, ray_visibility, path_flag, mix_weight);
 
       const Spectrum base_color = rgb_to_spectrum(
           max(stack_load(stack, data.base_color), zero_float3()));
@@ -318,6 +247,16 @@ ccl_device
           T = rotate_around_axis(T, N, anisotropic_rotation * M_2PI_F);
         }
       }
+
+#ifdef __CAUSTICS_TRICKS__
+      const bool reflective_caustics = (kernel_data.integrator.caustics_reflective ||
+                                        (ray_visibility & PATH_RAY_VISIBILITY_DIFFUSE) == 0);
+      const bool refractive_caustics = (kernel_data.integrator.caustics_refractive ||
+                                        (ray_visibility & PATH_RAY_VISIBILITY_DIFFUSE) == 0);
+#else
+      const bool reflective_caustics = true;
+      const bool refractive_caustics = true;
+#endif
 
       /* Metallic component */
       const float metallic = saturatef(stack_load(stack, data.metallic));
@@ -353,12 +292,6 @@ ccl_device
         weight *= (1.0f - metallic);
       }
 
-#ifdef __CAUSTICS_TRICKS__
-      const bool refractive_caustics = (kernel_data.integrator.caustics_refractive ||
-                                        (ray_visibility & PATH_RAY_VISIBILITY_DIFFUSE) == 0);
-#else
-      const bool refractive_caustics = true;
-#endif
       const bool thin_wall = stack_load(stack, data.thin_wall);
 
       /* Transmission component */
@@ -467,8 +400,7 @@ ccl_device
               kg, bsdf, sd->wi, fresnel, is_multiggx);
 
           /* Attenuate lower layers */
-          const Spectrum albedo = bsdf_albedo(
-              kg, sd, (ccl_private ShaderClosure *)bsdf, true, false);
+          const Spectrum albedo = closure_layer_albedo(kg, sd, (ccl_private ShaderClosure *)bsdf);
           weight = closure_layering_weight(albedo, weight);
         }
       }
@@ -862,15 +794,8 @@ ccl_device
       N = safe_normalize_fallback(N, sd->N);
 
       const Spectrum weight = closure_weight * mix_weight;
-      ccl_private SheenBsdf *bsdf = (ccl_private SheenBsdf *)bsdf_alloc(
-          sd, sizeof(SheenBsdf), weight);
-
-      if (bsdf) {
-        bsdf->N = N;
-        bsdf->roughness = saturatef(stack_load(stack, bsdf_data.param1));
-
-        sd->runtime_flag |= bsdf_sheen_setup(kg, sd, bsdf);
-      }
+      const float roughness = saturatef(stack_load(stack, bsdf_data.param1));
+      bsdf_sheen_setup(kg, sd, weight, N, roughness);
       break;
     }
     case CLOSURE_BSDF_GLOSSY_TOON_ID:

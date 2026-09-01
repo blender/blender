@@ -1243,6 +1243,30 @@ static void write_keymapitem(BlendWriter *writer, const wmKeyMapItem *kmi)
 
 static void write_userdef(BlendWriter *writer, const UserDef *userdef)
 {
+  /* Filter out tempory/non user defined asset libraries. */
+  ListBaseT<bUserAssetLibrary> asset_libraries_filtered = {nullptr, nullptr};
+  ListBaseT<bUserAssetLibrary> asset_libraries_backup = userdef->asset_libraries;
+
+  for (const bUserAssetLibrary &asset_library_ref : userdef->asset_libraries) {
+    if (asset_library_ref.flag & ASSET_LIBRARY_PROJECT_DEFINED) {
+      /* Do not save project defined asset libraries. */
+      continue;
+    }
+
+    bUserAssetLibrary *copied_item = MEM_new<bUserAssetLibrary>(__func__);
+    *copied_item = asset_library_ref;
+    BLI_addtail(&asset_libraries_filtered, copied_item);
+  }
+
+  ListBaseT<bUserAssetLibrary> *asset_libraries = const_cast<ListBaseT<bUserAssetLibrary> *>(
+      &userdef->asset_libraries);
+  /* Remap the first and last pointers of "userdef->asset_libraries".
+   * writestruct will write out the poiters in here so make sure they are the same as our
+   * filtered list.
+   */
+  asset_libraries->first = asset_libraries_filtered.first;
+  asset_libraries->last = asset_libraries_filtered.last;
+
   writestruct(writer->wd, BLO_CODE_USER, UserDef, 1, userdef, nullptr);
 
   for (const bTheme &btheme : userdef->themes) {
@@ -1313,10 +1337,13 @@ static void write_userdef(BlendWriter *writer, const UserDef *userdef)
     writer->write_struct(&script_dir);
   }
 
-  for (const bUserAssetLibrary &asset_library_ref : userdef->asset_libraries) {
+  for (const bUserAssetLibrary &asset_library_ref : asset_libraries_filtered) {
     writer->write_struct(&asset_library_ref);
     BKE_preferences_asset_library_write_data(writer, &asset_library_ref);
   }
+  BLI_freelistN(&asset_libraries_filtered);
+  asset_libraries->first = asset_libraries_backup.first;
+  asset_libraries->last = asset_libraries_backup.last;
 
   for (const bUserExtensionRepo &repo_ref : userdef->extension_repos) {
     writer->write_struct(&repo_ref);

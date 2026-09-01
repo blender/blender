@@ -5060,7 +5060,7 @@ static PyObject *pyrna_struct_meta_idprop_getattro(PyObject *cls, PyObject *attr
     PyErr_Clear(); /* Clear error from tp_getattro. */
     StructRNA *srna = srna_from_self(cls, "StructRNA.__getattr__");
     if (srna) {
-      PropertyRNA *prop = RNA_struct_type_find_property_no_base(srna, PyUnicode_AsUTF8(attr));
+      PropertyRNA *prop = RNA_struct_type_find_property_no_base(srna, UString(PyUnicode_AsUTF8(attr)));
       if (prop) {
         PointerRNA tptr = RNA_pointer_create_discrete(nullptr, RNA_Property, prop);
         ret = pyrna_struct_CreatePyObject(&tptr);
@@ -5085,7 +5085,7 @@ static int pyrna_struct_meta_idprop_setattro(PyObject *cls, PyObject *attr, PyOb
   const char *attr_str = PyUnicode_AsUTF8(attr);
 
   if (srna && !pyrna_write_check() &&
-      (is_deferred_prop || RNA_struct_type_find_property_no_base(srna, attr_str)))
+      (is_deferred_prop || RNA_struct_type_find_property_no_base(srna, UString(attr_str))))
   {
     PyErr_Format(PyExc_AttributeError,
                  "pyrna_struct_meta_idprop_setattro() "
@@ -7039,13 +7039,13 @@ static void pyrna_func_error_prefix(BPy_FunctionRNA *self,
                                     PropertyRNA *parm,
                                     const int parm_index,
                                     char *error,
-                                    const size_t error_size)
+                                    const size_t error_maxncpy)
 {
   PointerRNA *self_ptr = &self->ptr.value();
   FunctionRNA *self_func = self->func;
   if (parm_index == -1) {
     BLI_snprintf_utf8(error,
-                      error_size,
+                      error_maxncpy,
                       "%.200s.%.200s(): error with keyword argument \"%.200s\" - ",
                       RNA_struct_identifier(self_ptr->type),
                       RNA_function_identifier(self_func),
@@ -7053,7 +7053,7 @@ static void pyrna_func_error_prefix(BPy_FunctionRNA *self,
   }
   else {
     BLI_snprintf_utf8(error,
-                      error_size,
+                      error_maxncpy,
                       "%.200s.%.200s(): error with argument %d, \"%.200s\" - ",
                       RNA_struct_identifier(self_ptr->type),
                       RNA_function_identifier(self_func),

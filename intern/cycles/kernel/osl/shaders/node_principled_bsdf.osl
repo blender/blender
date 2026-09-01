@@ -203,24 +203,17 @@ shader node_principled_bsdf(string distribution = "multi_ggx",
 
   if (coat_weight > CLOSURE_WEIGHT_CUTOFF) {
     float coat_ior = max(CoatIOR, 1.0);
-    if (CoatTint != color(1.0)) {
-      float coat_neta = 1.0 / coat_ior;
-      float cosNI = dot(I, CoatNormal);
-      float cosNT = sqrt(1.0 - coat_neta * coat_neta * (1 - cosNI * cosNI));
-      BSDF *= mix(color(1.0), pow(CoatTint, 1.0 / cosNT), clamp(coat_weight, 0.0, 1.0));
-    }
-    float coat_r2 = clamp(CoatRoughness, 0.0, 1.0);
-    coat_r2 = coat_r2 * coat_r2;
-
-    closure color CoatBSDF = dielectric_bsdf(
-        CoatNormal, vector(0.0), color(1.0), color(0.0), coat_r2, coat_r2, coat_ior, "multi_ggx");
+    float coat_alpha = clamp(CoatRoughness, 0.0, 1.0);
+    closure color CoatBSDF = coat_bsdf(CoatTint, coat_ior, coat_alpha, CoatNormal);
     BSDF = layer(coat_weight * CoatBSDF, BSDF);
   }
 
   if (SheenWeight > CLOSURE_WEIGHT_CUTOFF) {
     normal sheen_normal = normalize(mix(Normal, CoatNormal, clamp(coat_weight, 0.0, 1.0)));
-    closure color SheenBSDF = sheen(sheen_normal, clamp(SheenRoughness, 0.0, 1.0));
-    BSDF = layer(sheen_weight * max(SheenTint, color(0.0)) * SheenBSDF, BSDF);
+    color sheen_tint = max(SheenTint, color(0.0));
+    float sheen_roughness = clamp(SheenRoughness, 0.0, 1.0);
+    closure color SheenBSDF = sheen_bsdf(sheen_normal, sheen_tint, sheen_roughness);
+    BSDF = layer(sheen_weight * SheenBSDF, BSDF);
   }
 
   BSDF = mix(transparent(), BSDF, clamp(Alpha, 0.0, 1.0));

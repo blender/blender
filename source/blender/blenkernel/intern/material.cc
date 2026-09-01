@@ -63,6 +63,7 @@
 #include "BKE_node.hh"
 #include "BKE_node_legacy_types.hh"
 #include "BKE_node_runtime.hh"
+#include "BKE_node_tree_update.hh"
 #include "BKE_object.hh"
 #include "BKE_object_types.hh"
 #include "BKE_pointcloud.hh"
@@ -2203,6 +2204,7 @@ static void material_default_surface_init(Material **ma_p)
   output->location[1] = 100.0f;
 
   bke::node_set_active(*ntree, *output);
+  BKE_ntree_update_without_main(*ntree);
 }
 
 static void material_default_volume_init(Material **ma_p)
@@ -2225,6 +2227,7 @@ static void material_default_volume_init(Material **ma_p)
   output->location[1] = 100.0f;
 
   bke::node_set_active(*ntree, *output);
+  BKE_ntree_update_without_main(*ntree);
 }
 
 static void material_default_holdout_init(Material **ma_p)
@@ -2247,6 +2250,7 @@ static void material_default_holdout_init(Material **ma_p)
   output->location[1] = 300.0f;
 
   bke::node_set_active(*ntree, *output);
+  BKE_ntree_update_without_main(*ntree);
 }
 
 static void material_default_gsplat_init(Material **ma_p)

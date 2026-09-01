@@ -68,6 +68,11 @@ bool DEG_id_type_any_updated(const Depsgraph *depsgraph);
 /** Check if given ID was updated due to user input. */
 bool DEG_id_is_user_modified(const Depsgraph *graph, const ID *id);
 
+/** Check if given scene component was updated due to user input. */
+bool DEG_scene_component_is_user_modified(const Depsgraph *graph,
+                                          const Scene *scene,
+                                          eDepsSceneComponentType component_type);
+
 /** Check if given ID type is present in the depsgraph */
 bool DEG_id_type_any_exists(const Depsgraph *depsgraph, short id_type);
 
@@ -427,6 +432,15 @@ void DEG_foreach_dependent_ID_component(const Depsgraph *depsgraph,
                                         DEGForeachIDComponentCallback callback);
 
 void DEG_foreach_ID(const Depsgraph *depsgraph, DEGForeachIDCallback callback);
+
+/**
+ * Checks if the given component type of the given scene depends on time. The given scene is
+ * expected to be an original ID. A component is expected to exist for the given component type,
+ * otherwise, the function will assert.
+ */
+bool DEG_scene_component_depends_on_time(const Depsgraph &depsgraph,
+                                         const Scene &scene,
+                                         const eDepsSceneComponentType component_type);
 
 /** \} */
 

@@ -616,10 +616,12 @@ static StripElem *rna_StripElements_append(ID *id, Strip *strip, const char *fil
   Scene *scene = id_cast<Scene *>(id);
   StripElem *se;
 
-  strip->data->stripdata = se = static_cast<StripElem *>(MEM_realloc_uninitialized(
-      strip->data->stripdata, sizeof(StripElem) * (strip->content_length() + 1)));
-  se += strip->content_length();
+  const int old_len = strip->data->stripdata_num;
+  strip->data->stripdata = se = static_cast<StripElem *>(
+      MEM_realloc_uninitialized(strip->data->stripdata, sizeof(StripElem) * (old_len + 1)));
+  se += old_len;
   STRNCPY(se->filename, filename);
+  strip->data->stripdata_num = old_len + 1;
   strip->content_length_set(strip->content_length() + 1);
 
   strip->flag &= ~SEQ_SINGLE_FRAME_CONTENT;
@@ -634,39 +636,61 @@ static void rna_StripElements_pop(ID *id, Strip *strip, ReportList *reports, int
   Scene *scene = id_cast<Scene *>(id);
   StripElem *new_se, *se;
 
-  if (strip->content_length() == 1) {
+  /* `index` addresses the same full `stripdata` array as #StripElements (see
+   * #rna_Strip_elements_begin), which may include elements hidden by content trim
+   * (#Strip::anim_startofs / #Strip::anim_endofs), not just the visible ones. */
+  const int old_len = strip->data->stripdata_num;
+  if (old_len == 1) {
     BKE_report(reports, RPT_ERROR, "Cannot pop the last element");
     return;
   }
 
   /* python style negative indexing */
   if (index < 0) {
-    index += strip->content_length();
+    index += old_len;
   }
 
-  if (strip->content_length() <= index || index < 0) {
+  if (old_len <= index || index < 0) {
     BKE_report(reports, RPT_ERROR, "Index out of range");
     return;
   }
 
-  new_se = MEM_new_array<StripElem>((strip->content_length() - 1), "StripElements_pop");
-  strip->content_length_set(strip->content_length() - 1);
-
-  if (strip->content_length() == 1) {
-    strip->flag |= SEQ_SINGLE_FRAME_CONTENT;
+  const bool is_visible = index >= strip->anim_startofs &&
+                          index < strip->anim_startofs + strip->content_length();
+  if (is_visible && strip->content_length() == 1) {
+    BKE_report(reports, RPT_ERROR, "StripElements.pop: cannot pop the last element");
+    return;
   }
+
+  /* Remove the popped slot from whichever count currently accounts for it, so the physical
+   * array (`data->stripdata_num`) shrinks by exactly one element. */
+  if (index < strip->anim_startofs) {
+    strip->anim_startofs--;
+  }
+  else if (!is_visible) {
+    strip->anim_endofs--;
+  }
+  else {
+    strip->content_length_set(strip->content_length() - 1);
+    if (strip->content_length() == 1) {
+      strip->flag |= SEQ_SINGLE_FRAME_CONTENT;
+    }
+  }
+
+  new_se = MEM_new_array<StripElem>(old_len - 1, "StripElements_pop");
 
   se = strip->data->stripdata;
   if (index > 0) {
     memcpy(new_se, se, sizeof(StripElem) * index);
   }
 
-  if (index < strip->content_length()) {
-    memcpy(&new_se[index], &se[index + 1], sizeof(StripElem) * (strip->content_length() - index));
+  if (index < old_len - 1) {
+    memcpy(&new_se[index], &se[index + 1], sizeof(StripElem) * (old_len - 1 - index));
   }
 
   MEM_delete(strip->data->stripdata);
   strip->data->stripdata = new_se;
+  strip->data->stripdata_num = old_len - 1;
 
   WM_main_add_notifier(NC_SCENE | ND_SEQUENCER, scene);
 }
@@ -815,6 +839,7 @@ void RNA_api_strip_elements(BlenderRNA *brna, PropertyRNA *cprop)
   RNA_def_parameter_flags(parm, PropertyFlag(0), PARM_REQUIRED);
   /* return type */
   parm = RNA_def_pointer(func, "elem", "StripElement", "", "New StripElement");
+  RNA_def_parameter_flags(parm, PROP_NEVER_NULL, ParameterFlag(0));
   RNA_def_function_return(func, parm);
 
   func = RNA_def_function(srna, "pop", "rna_StripElements_pop");
@@ -933,6 +958,7 @@ void RNA_api_strips(StructRNA *srna, const bool metastrip)
   RNA_def_parameter_flags(parm, PropertyFlag(0), PARM_REQUIRED);
   /* return type */
   parm = RNA_def_pointer(func, "sequence", "Strip", "", "New Strip");
+  RNA_def_parameter_flags(parm, PROP_NEVER_NULL, ParameterFlag(0));
   RNA_def_function_return(func, parm);
 
   func = RNA_def_function(srna, "new_mask", new_mask_func_name);
@@ -964,6 +990,7 @@ void RNA_api_strips(StructRNA *srna, const bool metastrip)
   RNA_def_parameter_flags(parm, PropertyFlag(0), PARM_REQUIRED);
   /* return type */
   parm = RNA_def_pointer(func, "sequence", "Strip", "", "New Strip");
+  RNA_def_parameter_flags(parm, PROP_NEVER_NULL, ParameterFlag(0));
   RNA_def_function_return(func, parm);
 
   func = RNA_def_function(srna, "new_scene", new_scene_func_name);
@@ -995,6 +1022,7 @@ void RNA_api_strips(StructRNA *srna, const bool metastrip)
   RNA_def_parameter_flags(parm, PropertyFlag(0), PARM_REQUIRED);
   /* return type */
   parm = RNA_def_pointer(func, "sequence", "Strip", "", "New Strip");
+  RNA_def_parameter_flags(parm, PROP_NEVER_NULL, ParameterFlag(0));
   RNA_def_function_return(func, parm);
 
   func = RNA_def_function(srna, "new_image", new_image_func_name);
@@ -1032,6 +1060,7 @@ void RNA_api_strips(StructRNA *srna, const bool metastrip)
                       "Mode for fitting the image to the canvas");
   /* return type */
   parm = RNA_def_pointer(func, "sequence", "Strip", "", "New Strip");
+  RNA_def_parameter_flags(parm, PROP_NEVER_NULL, ParameterFlag(0));
   RNA_def_function_return(func, parm);
 
   func = RNA_def_function(srna, "new_movie", new_movie_func_name);
@@ -1071,6 +1100,7 @@ void RNA_api_strips(StructRNA *srna, const bool metastrip)
       func, "stream", 0, 0, SHRT_MAX, "Stream", "Stream index for multi-stream files", 0, 20);
   /* return type */
   parm = RNA_def_pointer(func, "sequence", "Strip", "", "New Strip");
+  RNA_def_parameter_flags(parm, PROP_NEVER_NULL, ParameterFlag(0));
   RNA_def_function_return(func, parm);
 
   func = RNA_def_function(srna, "new_sound", new_sound_func_name);
@@ -1104,6 +1134,7 @@ void RNA_api_strips(StructRNA *srna, const bool metastrip)
       func, "stream", 0, 0, SHRT_MAX, "Stream", "Stream index for multi-stream files", 0, 20);
   /* return type */
   parm = RNA_def_pointer(func, "sequence", "Strip", "", "New Strip");
+  RNA_def_parameter_flags(parm, PROP_NEVER_NULL, ParameterFlag(0));
   RNA_def_function_return(func, parm);
 
   func = RNA_def_function(srna, "new_meta", new_meta_func_name);
@@ -1133,6 +1164,7 @@ void RNA_api_strips(StructRNA *srna, const bool metastrip)
   RNA_def_parameter_flags(parm, PropertyFlag(0), PARM_REQUIRED);
   /* return type */
   parm = RNA_def_pointer(func, "sequence", "Strip", "", "New Strip");
+  RNA_def_parameter_flags(parm, PROP_NEVER_NULL, ParameterFlag(0));
   RNA_def_function_return(func, parm);
 
   func = RNA_def_function(srna, "new_effect", new_effect_func_name);
@@ -1176,6 +1208,7 @@ void RNA_api_strips(StructRNA *srna, const bool metastrip)
   RNA_def_pointer(func, "input2", "Strip", "", "Second input strip for effect");
   /* return type */
   parm = RNA_def_pointer(func, "sequence", "Strip", "", "New Strip");
+  RNA_def_parameter_flags(parm, PROP_NEVER_NULL, ParameterFlag(0));
   RNA_def_function_return(func, parm);
 
   func = RNA_def_function(srna, "remove", remove_func_name);

@@ -38,7 +38,7 @@ static void sh_node_tex_noise_declare(NodeDeclarationBuilder &b)
   b.add_input<decl::Float>("W"_ustr)
       .min(-1000.0f)
       .max(1000.0f)
-      .available(dimensions == 1 || dimensions == 4)
+      .available(ELEM(dimensions, 1, 4))
       .make_available([](bNode &node) {
         /* Default to 1 instead of 4, because it is much faster. */
         node_storage(node).dimensions = 1;
@@ -80,7 +80,7 @@ static void sh_node_tex_noise_declare(NodeDeclarationBuilder &b)
       .min(-1000.0f)
       .max(1000.0f)
       .default_value(0.0f)
-      .available(noise_type != SHD_NOISE_MULTIFRACTAL && noise_type != SHD_NOISE_FBM)
+      .available(!ELEM(noise_type, SHD_NOISE_MULTIFRACTAL, SHD_NOISE_FBM))
       .make_available([](bNode &node) { node_storage(node).type = SHD_NOISE_RIDGED_MULTIFRACTAL; })
       .description(
           "An added offset to each octave, determines the level where the highest octave will "
@@ -89,8 +89,7 @@ static void sh_node_tex_noise_declare(NodeDeclarationBuilder &b)
       .min(0.0f)
       .max(1000.0f)
       .default_value(1.0f)
-      .available(noise_type == SHD_NOISE_HYBRID_MULTIFRACTAL ||
-                 noise_type == SHD_NOISE_RIDGED_MULTIFRACTAL)
+      .available(ELEM(noise_type, SHD_NOISE_HYBRID_MULTIFRACTAL, SHD_NOISE_RIDGED_MULTIFRACTAL))
       .make_available([](bNode &node) { node_storage(node).type = SHD_NOISE_RIDGED_MULTIFRACTAL; })
       .description("An extra multiplier to tune the magnitude of octaves");
   b.add_input<decl::Float>("Distortion"_ustr)

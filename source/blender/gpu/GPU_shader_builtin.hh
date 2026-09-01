@@ -32,22 +32,18 @@ enum GPUBuiltinShader {
   GPU_SHADER_KEYFRAME_SHAPE,
   /** Draw solid mesh with a single distant light using a clamped simple dot product. */
   GPU_SHADER_SIMPLE_LIGHTING,
-  /** Draw an icon, leaving a semi-transparent rectangle on top of the icon. */
-  GPU_SHADER_ICON,
   /** Draw a texture with a uniform color multiplied. */
   GPU_SHADER_2D_IMAGE_RECT_COLOR,
   /** Draw a texture with a desaturation factor. */
   GPU_SHADER_2D_IMAGE_DESATURATE_COLOR,
   /** Draw a group of texture rectangle with an associated color multiplied. */
-  GPU_SHADER_ICON_MULTI,
+  GPU_SHADER_ICON_MULTI, /* TODO(fclem): Rename to GPU_SHADER_ICON. */
   /** Draw a two color checker based on screen position (not UV coordinates). */
   GPU_SHADER_2D_CHECKER,
   /** Draw diagonal stripes with two alternating colors. */
   GPU_SHADER_2D_DIAG_STRIPES,
   /** Draw dashed lines with custom dash length and uniform color. */
   GPU_SHADER_3D_LINE_DASHED_UNIFORM_COLOR,
-  /** Draw triangles / lines / points with only depth output. */
-  GPU_SHADER_3D_DEPTH_ONLY,
   /** Merge viewport overlay texture with the render output. */
   GPU_SHADER_2D_IMAGE_OVERLAYS_MERGE,
   GPU_SHADER_2D_IMAGE_OVERLAYS_STEREO_MERGE,
@@ -76,10 +72,10 @@ enum GPUBuiltinShader {
   /** Draw round points with per vertex size and color. */
   GPU_SHADER_3D_POINT_VARYING_SIZE_VARYING_COLOR,
   /** Draw round points with a uniform size. Disabling blending will disable AA. */
-  GPU_SHADER_2D_POINT_UNIFORM_SIZE_UNIFORM_COLOR_AA,
+  GPU_SHADER_2D_POINT_UNIFORM_SIZE_UNIFORM_COLOR_AA, /* TODO Remove */
   GPU_SHADER_3D_POINT_UNIFORM_SIZE_UNIFORM_COLOR_AA,
   /** Draw round points with a uniform size and an outline. Disabling blending will disable AA. */
-  GPU_SHADER_2D_POINT_UNIFORM_SIZE_UNIFORM_COLOR_OUTLINE_AA,
+  GPU_SHADER_2D_POINT_UNIFORM_SIZE_UNIFORM_COLOR_OUTLINE_AA, /* TODO Rename to 3D. */
 
   /** Draw geometry with uniform color. Has an additional clip plane parameter. */
   GPU_SHADER_3D_CLIPPED_UNIFORM_COLOR,

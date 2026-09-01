@@ -12,6 +12,7 @@
 #include "BKE_paint_types.hh"
 #include "BKE_scene.hh"
 
+#include "BLI_math_geom_c.hh"
 #include "BLI_math_matrix.hh"
 #include "BLI_math_rotation_c.hh"
 
@@ -50,11 +51,7 @@ static void ensure_valid_pivot(const Object &ob, Paint &paint)
     const float3 center = math::midpoint(bounds.min, bounds.max);
     const float3 location = math::transform_point(ob.object_to_world(), center);
 
-    copy_v3_v3(paint_runtime.average_stroke_accum, location);
-    paint_runtime.average_stroke_counter = 1;
-
-    /* Update last stroke position. */
-    paint_runtime.last_stroke_valid = true;
+    bke::paint::stroke_set_location(paint, location);
   }
 }
 
@@ -83,26 +80,23 @@ void mode_enter_generic(
   if (mode_flag == OB_MODE_VERTEX_PAINT) {
     const PaintMode paint_mode = PaintMode::Vertex;
 
-    BKE_paint_ensure(scene.toolsettings, reinterpret_cast<Paint **>(&scene.toolsettings->vpaint));
+    BKE_paint_init(&bmain, &scene, paint_mode);
     paint = BKE_paint_get_active_from_paintmode(&scene, paint_mode);
     ED_paint_cursor_start(paint, vertex_paint_poll);
-    BKE_paint_init(&bmain, &scene, paint_mode);
   }
   else if (mode_flag == OB_MODE_WEIGHT_PAINT) {
     const PaintMode paint_mode = PaintMode::Weight;
 
-    BKE_paint_ensure(scene.toolsettings, reinterpret_cast<Paint **>(&scene.toolsettings->wpaint));
+    BKE_paint_init(&bmain, &scene, paint_mode);
     paint = BKE_paint_get_active_from_paintmode(&scene, paint_mode);
     ED_paint_cursor_start(paint, weight_paint_poll);
-    BKE_paint_init(&bmain, &scene, paint_mode);
   }
   else if (mode_flag == OB_MODE_SCULPT) {
     const PaintMode paint_mode = PaintMode::Sculpt;
 
-    BKE_paint_ensure(scene.toolsettings, reinterpret_cast<Paint **>(&scene.toolsettings->sculpt));
+    BKE_paint_init(&bmain, &scene, paint_mode);
     paint = BKE_paint_get_active_from_paintmode(&scene, paint_mode);
     ED_paint_cursor_start(paint, brush_cursor_poll);
-    BKE_paint_init(&bmain, &scene, paint_mode);
   }
   else {
     BLI_assert(0);
@@ -314,7 +308,7 @@ static void do_tiled(const Depsgraph &depsgraph,
 
   /* First do the "un-tiled" position to initialize the stroke for this location. */
   cache->tile_pass = 0;
-  action_fn(depsgraph, scene, brush, object, nullptr);
+  action_fn(depsgraph, scene, brush, object, paint_mode_data);
 
   /* Now do it for all the tiles. */
   copy_v3_v3_int(cur, start);
@@ -397,6 +391,88 @@ void do_symmetrical_brush_actions_with_tiling_and_feathering(const Depsgraph &de
     do_radial_symmetry_with_tiling(
         depsgraph, scene, paint, brush, object, action_fn, paint_mode_data, symm_pass, 'Z');
   }
+}
+
+/** \} */
+/* -------------------------------------------------------------------- */
+/** \name StrokeCache Helpers
+ * \{ */
+
+void stroke_cache_common_init(
+    ViewContext &vc, const Paint &paint, const Brush &brush, Object &object, const float2 mval)
+{
+  bke::PaintRuntime *paint_runtime = paint.runtime;
+  SculptSession &ss = *object.runtime->sculpt_session;
+  StrokeCache *cache = ss.cache;
+
+  cache->initial_mouse = mval;
+  cache->mouse = cache->initial_mouse;
+  cache->mouse_event = cache->initial_mouse;
+
+  /* Not very nice, but with current events system implementation
+   * we can't handle brush appearance inversion hotkey separately (sergey). */
+  if (cache->toggle_settings.invert) {
+    paint_runtime->draw_inverted = true;
+  }
+  else {
+    paint_runtime->draw_inverted = false;
+  }
+
+  /* Truly temporary data that isn't stored in properties. */
+  cache->vc = &vc;
+  cache->brush = &brush;
+  cache->paint = &paint;
+  cache->first_time = true;
+
+  ED_view3d_init_mats_rv3d(&object, cache->vc->rv3d);
+  /* Cache projection matrix. */
+  cache->projection_mat = ED_view3d_ob_project_mat_get(cache->vc->rv3d, &object);
+
+  const float3 z_axis(0.0f, 0.0f, 1.0f);
+  object.runtime->world_to_object = math::invert(object.object_to_world());
+  cache->view_normal = math::normalize(math::transform_direction(
+      object.world_to_object() * float4x4(cache->vc->rv3d->viewinv), z_axis));
+
+  cache->initial_location_symm = ss.cursor_location;
+  cache->initial_location = ss.cursor_location;
+  cache->initial_normal_symm = ss.cursor_sampled_normal.value_or(ss.cursor_normal);
+  cache->initial_normal = ss.cursor_sampled_normal.value_or(ss.cursor_normal);
+}
+
+/** \} */
+/* -------------------------------------------------------------------- */
+/** \name BVH Query Helper
+ * \{ */
+
+IndexMask gather_brush_nodes(const Object &ob,
+                             const Brush &brush,
+                             IndexMaskMemory &memory,
+                             FunctionRef<bool(const bke::pbvh::Node &)> node_ignore_fn)
+{
+  SculptSession &ss = *ob.runtime->sculpt_session;
+  const bke::pbvh::Tree &pbvh = *bke::object::pbvh_get(ob);
+
+  /* Build a list of all nodes that are potentially within the brush's area of influence */
+  switch (brush.falloff_shape) {
+    case PAINT_FALLOFF_SHAPE_SPHERE:
+      return bke::pbvh::search_nodes(pbvh, memory, [&](const bke::pbvh::Node &node) {
+        if (node_ignore_fn(node)) {
+          return false;
+        }
+        return node_in_sphere(node, ss.cache->location_symm, ss.cache->radius_squared, true);
+      });
+    case PAINT_FALLOFF_SHAPE_TUBE:
+      const DistRayAABB_Precalc ray_dist_precalc = dist_squared_ray_to_aabb_v3_precalc(
+          ss.cache->location_symm, ss.cache->view_normal_symm);
+      return bke::pbvh::search_nodes(pbvh, memory, [&](const bke::pbvh::Node &node) {
+        if (node_ignore_fn(node)) {
+          return false;
+        }
+        return node_in_cylinder(ray_dist_precalc, node, ss.cache->radius_squared, true);
+      });
+  }
+  BLI_assert_unreachable();
+  return {};
 }
 
 /** \} */

@@ -183,7 +183,7 @@ void geometry_main(VertOut geom_in[2],
 
 void main()
 {
-  select_id_set(in_select_buf[gl_InstanceID]);
+  select_id_set(in_select_buf[gpu_InstanceIndex]);
 
 /* Line primitive. */
 #ifdef FROM_LINE_STRIP
@@ -209,7 +209,7 @@ void main()
   uint out_invocation_id = (uint(gl_VertexID) / output_vertex_count_per_invocation) %
                            output_invocation_count;
 
-  float4x4 inst_obmat = data_buf[gl_InstanceID];
+  float4x4 inst_obmat = data_buf[gpu_InstanceIndex];
   float4x4 inst_matrix = inst_obmat;
 
 #ifdef FROM_LINE_STRIP

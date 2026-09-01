@@ -270,7 +270,7 @@ static wmOperatorStatus collection_new_exec(bContext *C, wmOperator *op)
 
   outliner_build_tree(bmain, workspace, scene, view_layer, space_outliner, region);
   bool is_textbut_set = false;
-  tree_iterator::all_open(*space_outliner, [&](TreeElement *te) {
+  tree_iterator::all(space_outliner->runtime->tree, [&](TreeElement *te) {
     TreeStoreElem *tselem = TREESTORE(te);
     if (Collection *collection = outliner_collection_from_tree_element(te)) {
       if ((new_collection == collection) && !is_textbut_set) {

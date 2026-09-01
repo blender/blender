@@ -929,6 +929,12 @@ NodeTreeLogger &NodesEvalLog::get_local_tree_logger(const ComputeContext &comput
           reinterpret_cast<const ID *>(nmd->node_group));
     }
   }
+  else if (const auto *context = dynamic_cast<const bke::SceneCompositorEffectComputeContext *>(
+               &compute_context))
+  {
+    tree_logger.tree_orig_session_uid = get_original_session_uid(
+        reinterpret_cast<const ID *>(context->effect().node_group));
+  }
   else if (const auto *context = dynamic_cast<const bke::OperatorComputeContext *>(
                &compute_context))
   {

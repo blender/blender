@@ -974,6 +974,9 @@ void DEG_ids_clear_recalc(Depsgraph *depsgraph, const bool backup)
      * the recalc flag. */
     id_node->is_user_modified = false;
     id_node->is_cow_explicitly_tagged = false;
+    for (deg::ComponentNode *component_node : id_node->components.values()) {
+      component_node->is_user_modified = false;
+    }
     deg_graph_clear_id_recalc_flags(id_node->id_cow);
     if (deg_graph->is_active) {
       deg_graph_clear_id_recalc_flags(id_node->id_orig);

@@ -184,7 +184,8 @@ static void memfile_undosys_step_decode(
   ED_editors_exit(bmain, false);
   /* Ensure there's no preview job running. Unfinished previews will be scheduled for regeneration
    * via #PRV_TAG_RESTART_RENDERING in BKE_previewimg_blend_read. */
-  ED_preview_kill_jobs(CTX_wm_manager(C), bmain);
+  ED_preview_kill_jobs_for_undo(CTX_wm_manager(C), bmain);
+  const bool need_preview_render_restart = bmain->need_preview_render_restart;
 
   MemFileUndoStep *us = reinterpret_cast<MemFileUndoStep *>(us_p);
   BKE_memfile_undo_decode(us->data, undo_direction, use_old_bmain_data, C);
@@ -205,6 +206,10 @@ static void memfile_undosys_step_decode(
   /* bmain has been freed. */
   bmain = CTX_data_main(C);
   ED_editors_init_for_undo(bmain);
+
+  /* Cancelled preview jobs set this on the old bmain, carry it over to
+   * restart previews that were interrupted. */
+  bmain->need_preview_render_restart |= need_preview_render_restart;
 
   if (use_old_bmain_data) {
     /* Restore previous depsgraphs into current bmain. */

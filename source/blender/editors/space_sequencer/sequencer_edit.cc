@@ -1639,11 +1639,8 @@ static bool sequencer_refresh_all_poll(bContext *C)
 static wmOperatorStatus sequencer_refresh_all_exec(bContext *C, wmOperator * /*op*/)
 {
   Scene *scene = CTX_data_sequencer_scene(C);
-  Editing *ed = seq::editing_get(scene);
 
-  seq::relations_free_imbuf(scene, &ed->seqbase, false);
-  seq::media_presence_free(scene);
-  seq::cache_cleanup(scene, seq::CacheCleanup::All);
+  seq::relations_refresh_all(scene);
 
   WM_event_add_notifier(C, NC_SCENE | ND_SEQUENCER, scene);
 
@@ -2865,6 +2862,10 @@ static wmOperatorStatus sequencer_separate_images_exec(bContext *C, wmOperator *
         strip_new->content_length_set(1);
         strip_new->flag |= SEQ_SINGLE_FRAME_CONTENT;
         strip_new->end_offset_set(1 - step);
+        /* This strip represents a single already-selected image, not a trimmed view into
+         * the original strip's content, so the copied trim offsets no longer apply. */
+        strip_new->anim_startofs = 0;
+        strip_new->anim_endofs = 0;
 
         /* New strip. */
         StripData *data_new = strip_new->data;
@@ -2874,8 +2875,9 @@ static wmOperatorStatus sequencer_separate_images_exec(bContext *C, wmOperator *
          * since we only copy the name here. */
         se_new = static_cast<StripElem *>(
             MEM_realloc_uninitialized(data_new->stripdata, sizeof(*se_new)));
-        STRNCPY_UTF8(se_new->filename, se->filename);
+        STRNCPY(se_new->filename, se->filename);
         data_new->stripdata = se_new;
+        data_new->stripdata_num = 1;
 
         if (step > 1) {
           strip_new->runtime->flag &= ~seq::StripRuntimeFlag::Overlap;
@@ -3708,6 +3710,7 @@ static wmOperatorStatus sequencer_change_path_exec(bContext *C, wmOperator *op)
       MEM_delete(strip->data->stripdata);
     }
     strip->data->stripdata = se = MEM_new_array<StripElem>(len, "stripelem");
+    strip->data->stripdata_num = len;
 
     for (ImageFrameRange &range : ranges) {
       int framenr, numdigits;
@@ -3752,7 +3755,7 @@ static wmOperatorStatus sequencer_change_path_exec(bContext *C, wmOperator *op)
     strip->anim_startofs = strip->anim_endofs = 0;
 
     /* Correct start/end frames so we don't move.
-     * Important not to set strip->len = len; allow the function to handle it. */
+     * Also sets `strip->len` from `strip->data->stripdata_num`. */
     seq::add_reload_new_file(bmain, scene, strip, true);
   }
   else if (strip->type == STRIP_TYPE_SOUND) {

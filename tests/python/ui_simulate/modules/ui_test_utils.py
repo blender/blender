@@ -15,6 +15,7 @@ __all__ = (
     "get_window_size_in_pixels",
     "idle_until",
     "keep_open",
+    "poll_sweep",
     "test_window",
 )
 
@@ -243,3 +244,52 @@ def build_grid(screen, target_count):
         yield
         if len(screen.areas) == prev_count:
             raise Exception(f"Area split did not increase area count (stuck at {prev_count}). ")
+
+
+def poll_sweep(window, area):
+    """
+    Sweep every registered operator's poll() across a set of editor types,
+    reusing a single area (avoids GPU/area-count exhaustion -- see
+    test_open_editor_types()).
+
+    :arg window: window to run the sweep in (used for the temp_override).
+    :arg area: a single area, reused across every editor type.
+    """
+    import bpy
+
+    UNSETTABLE_EDITOR_TYPES = {'EMPTY', 'TOPBAR', 'STATUSBAR'}
+
+    area_types = [
+        item.identifier
+        for item in bpy.types.Area.bl_rna.properties["type"].enum_items
+        if item.identifier not in UNSETTABLE_EDITOR_TYPES
+    ]
+
+    for area_type in area_types:
+        area.type = area_type
+        yield None  # Give Blender a tick to process the editor switch.
+
+        region = next(r for r in area.regions if r.type == 'WINDOW')
+
+        failures = []
+        total = 0
+        with bpy.context.temp_override(window=window, area=area, region=region):
+            for mod_name in dir(bpy.ops):
+                mod = getattr(bpy.ops, mod_name)
+                for op_name in dir(mod):
+                    idname = f"{mod_name}.{op_name}"
+                    op = getattr(mod, op_name)
+                    total += 1
+                    try:
+                        result = op.poll()
+                        # NOTE: BPY currently loses the Python type information when converting
+                        # the poll result, so this cannot detect invalid return types yet.
+                        # Keep the check so it catches them once BPY preserves the type.
+                        if not isinstance(result, bool):
+                            failures.append(
+                                f"{area_type}: {idname} poll returned {result!r} (expected bool)"
+                            )
+                    except Exception as ex:
+                        failures.append(f"{area_type}: {idname} poll raised {ex!r}")
+
+        yield area_type, failures, total

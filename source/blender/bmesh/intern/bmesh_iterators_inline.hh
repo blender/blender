@@ -164,43 +164,4 @@ ATTR_WARN_UNUSED_RESULT ATTR_NONNULL(1) BLI_INLINE
   }
 }
 
-/**
- * \brief Parallel (threaded) iterator,
- * only available for most basic iteration-types (verts/edges/faces of mesh).
- *
- * Uses #BLI_task_parallel_mempool to iterate over all items of underlying matching mempool.
- *
- * \note You have to include BLI_task_c.hh before BMesh includes to be able to use this
- * function!
- */
-
-#ifdef __BLI_TASK_H__
-
-ATTR_NONNULL(1)
-BLI_INLINE void BM_iter_parallel(BMesh *bm,
-                                 const char itype,
-                                 TaskParallelMempoolFunc func,
-                                 void *userdata,
-                                 const TaskParallelSettings *settings)
-{
-  /* inlining optimizes out this switch when called with the defined type */
-  switch (BMIterType(itype)) {
-    case BM_VERTS_OF_MESH:
-      BLI_task_parallel_mempool(bm->vpool, userdata, func, settings);
-      break;
-    case BM_EDGES_OF_MESH:
-      BLI_task_parallel_mempool(bm->epool, userdata, func, settings);
-      break;
-    case BM_FACES_OF_MESH:
-      BLI_task_parallel_mempool(bm->fpool, userdata, func, settings);
-      break;
-    default:
-      /* should never happen */
-      BLI_assert(0);
-      break;
-  }
-}
-
-#endif /* __BLI_TASK_H__ */
-
 }  // namespace blender

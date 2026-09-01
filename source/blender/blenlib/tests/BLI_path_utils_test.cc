@@ -241,6 +241,14 @@ TEST(path_utils, ParentDir_Complex)
   PARENT_DIR("./a", "./");
   PARENT_DIR("../a/", "../");
   PARENT_DIR("../a", "../");
+
+  /* Test unexpanded template variables. */
+  PARENT_DIR("{test_variable}/a", "{test_variable}/");
+  PARENT_DIR("/a/{test_variable}", "/a/");
+  /* While this is not correct in that the template variable could contain a path string,
+   * We just check that the code doesn't error out when it encounters a template variable.
+   */
+  PARENT_DIR("{test_variable}/a/{test_variable}", "{test_variable}/a/");
 }
 
 #undef PARENT_DIR

@@ -249,6 +249,13 @@ void compositor_effect_nodes_update_interface(Main &bmain, Scene &sequencer_scen
     comp->system_properties =
         bke::idprop::create_group("SequencerCompositorEffectProperties").release();
   }
+
+  /* In case the node group is missing, do not update the properties to avoid the values reverting
+   * to their default value if the node group later becomes available. */
+  if (!comp->node_group || ID_MISSING(comp->node_group)) {
+    return;
+  }
+
   PointerRNA properties_ptr = RNA_pointer_create_discrete(
       &sequencer_scene.id, RNA_SequencerCompositorEffectProperties, comp);
   RNA_ensure_and_sync_system_properties(bmain, properties_ptr, *comp->system_properties);

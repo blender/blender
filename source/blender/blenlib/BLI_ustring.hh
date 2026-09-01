@@ -6,36 +6,58 @@
 
 #include <atomic>
 
-#include <OpenImageIO/ustring.h>
-
 #include "BLI_fixed_string.hh"
 #include "BLI_hash.hh"
 #include "BLI_string_ref.hh"
 
 namespace blender {
 
+namespace detail {
+
 /**
- * This is a thin wrapper around OpenImageIO's ustring class. Additionally it also provides
- * conversions to our StringRef types.
+ * Unique storage for a string. Owned by a global table. Comparing pointers to the unique values
+ * in the table is enough to test for equality. Do not access these fields directly.
+ */
+struct UStringEntry {
+  std::string str;
+  uint64_t hash;
+
+  friend bool operator==(const UStringEntry &a, const UStringEntry &b)
+  {
+    return a.str == b.str;
+  }
+
+  friend bool operator==(const UStringEntry &a, const StringRef b)
+  {
+    return a.str == b;
+  }
+};
+
+const blender::detail::UStringEntry &ustring_ensure_entry(StringRef str);
+const blender::detail::UStringEntry &ustring_ensure_entry(const char *str);
+
+}  // namespace detail
+
+/**
+ * This class is inspired by OpenImageIO's ustring class.
  *
  * See the OpenImageIO documentation for more details:
  * https://openimageio.readthedocs.io/en/stable/imageioapi.html#efficient-unique-strings-ustring
  */
 class UString {
+ public:
+  static constexpr blender::detail::UStringEntry EMPTY_ENTRY = {"", hash_string("")};
+
  private:
-  /**
-   * Using a member instead of inheritance because it simplifies avoiding various ambiguities with
-   * operator overloads (especially equality comparison between UString, StringRef, std::string,
-   * std::string_view, OpenImageIO::string_view, etc.).
-   */
-  OpenImageIO::ustring ustr_;
+  const blender::detail::UStringEntry *ptr_ = &EMPTY_ENTRY;
+
+  explicit UString(const blender::detail::UStringEntry *ptr) : ptr_(ptr) {}
 
  public:
   UString() = default;
-  explicit UString(const StringRef str) : ustr_(std::string_view(str)) {}
+  explicit UString(const StringRef str) : ptr_(&blender::detail::ustring_ensure_entry(str)) {}
 
-  /** A constructor that is meant to generate as little code as possible at the call site. */
-  static UString from_ptr_noinline(const char *str);
+  template<FixedString FStr> friend UString operator""_ustr();
 
   /**
    * Access the underlying string as a #StringRefNull.
@@ -44,22 +66,22 @@ class UString {
    */
   StringRefNull ref() const
   {
-    return StringRefNull(ustr_.c_str(), ustr_.length());
+    return StringRefNull(ptr_->str);
   }
 
   const std::string &string() const
   {
-    return ustr_.string();
+    return ptr_->str;
   }
 
   const char *c_str() const
   {
-    return ustr_.c_str();
+    return ptr_->str.c_str();
   }
 
   friend bool operator==(const UString &a, const UString &b)
   {
-    return a.ustr_ == b.ustr_;
+    return a.ptr_ == b.ptr_;
   }
 
   friend bool operator==(const UString &a, const StringRef b)
@@ -69,24 +91,24 @@ class UString {
 
   uint64_t hash() const
   {
-    return ustr_.hash();
+    return ptr_->hash;
   }
 
   int64_t size() const
   {
-    return int64_t(ustr_.size());
+    return ptr_->str.size();
   }
 
   bool is_empty() const
   {
-    return ustr_.empty();
+    return ptr_->str.empty();
   }
 
   char operator[](const int64_t i) const
   {
     /* Accessing null char at end is allowed too. */
     BLI_assert(i >= 0 && i <= this->size());
-    return ustr_[i];
+    return ptr_->str[i];
   }
 };
 
@@ -106,8 +128,24 @@ template<> struct DefaultHash<UString> {
 
   constexpr uint64_t operator()(const StringRef value) const
   {
-    /* This is the hash function used by OpenImageIO::ustring::make_unique internally. */
-    return OpenImageIO::Strutil::strhash64(value.size(), value.data());
+    return get_default_hash(value);
+  }
+};
+
+/**
+ * Like #DefaultHash<UString> above, but for the table entries themselves: uses the cached hash
+ * for an existing entry, and supports hashing a #StringRef directly so the global string table
+ * can be queried without needing to allocate a #blender::detail::UStringEntry first.
+ */
+template<> struct DefaultHash<blender::detail::UStringEntry> {
+  uint64_t operator()(const blender::detail::UStringEntry &value) const
+  {
+    return value.hash;
+  }
+
+  constexpr uint64_t operator()(const StringRef value) const
+  {
+    return get_default_hash(value);
   }
 };
 
@@ -129,19 +167,20 @@ template<FixedString FStr> inline UString operator""_ustr()
    *
    * The goal of the actual implementation is to improve upon performance and binary size compared
    * to the above. This is possible here we have two pieces of information the compiler can't have:
-   *  - Once initialized, the pointer in the #UString is never null. Thus null can be used to
-   *    indicate that it has not been initialized yet. No separate guard variable is needed.
+   *  - The cache is a raw #UStringEntry pointer, so the not-yet-cached check is a plain null
+   *    comparison. It never has to dereference a pointer, unlike e.g. comparing hashes or calling
+   *    #UString::is_empty.
    *  - It is valid to initialize the static variable more than once and the result will still be
    *    the same because the string does not change. So a double checked lock is not needed.
    */
   /* This is initialized to null by default. */
-  static std::atomic<UString> static_ustr;
-  UString ustr = static_ustr.load(std::memory_order_relaxed);
-  if (ustr.c_str() == nullptr) [[unlikely]] {
-    ustr = UString::from_ptr_noinline(FStr.data);
-    static_ustr.store(ustr, std::memory_order_relaxed);
+  static std::atomic<const blender::detail::UStringEntry *> static_entry;
+  const blender::detail::UStringEntry *entry = static_entry.load(std::memory_order_acquire);
+  if (entry == nullptr) [[unlikely]] {
+    entry = &blender::detail::ustring_ensure_entry(FStr.data);
+    static_entry.store(entry, std::memory_order_release);
   }
-  return ustr;
+  return UString(entry);
 }
 
 /**
@@ -149,7 +188,7 @@ template<FixedString FStr> inline UString operator""_ustr()
  */
 inline std::string_view format_as(UString str)
 {
-  return str.string();
+  return std::string_view(str.ref());
 }
 
 }  // namespace blender

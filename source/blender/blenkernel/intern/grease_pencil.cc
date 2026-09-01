@@ -691,18 +691,24 @@ static void update_curve_plane_normal_cache(const Span<float3> positions,
 
         /* Calculate normal using Newell's method. */
         float3 normal(0.0f);
+        const float3 first_point = positions[points.first()];
         float3 prev_point = positions[points.last()];
+        float max_extent_sq = 0.0f;
         for (const int point_i : points) {
           const float3 curr_point = positions[point_i];
           add_newell_cross_v3_v3v3(normal, prev_point, curr_point);
+          max_extent_sq = math::max(max_extent_sq, math::length_squared(curr_point - first_point));
           prev_point = curr_point;
         }
 
         float length;
         normal = math::normalize_and_get_length(normal, length);
         /* Check for degenerate case where the points are on a line (Newell's method can introduce
-         * a small error that accumulates with many points). */
-        if (length < std::numeric_limits<float>::epsilon() * points.size()) {
+         * a small error that accumulates with many points, scaling with the squared extent of the
+         * stroke, hence the `max_extent_sq` factor). */
+        if (length <
+            std::numeric_limits<float>::epsilon() * math::max(points.size() * max_extent_sq, 1.0f))
+        {
           for (const int point_i : points.drop_back(1)) {
             float3 segment_vec = positions[point_i] - positions[point_i + 1];
             if (math::length_squared(segment_vec) != 0.0f) {

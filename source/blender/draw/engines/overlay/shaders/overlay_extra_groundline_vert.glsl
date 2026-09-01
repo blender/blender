@@ -13,12 +13,12 @@ VERTEX_SHADER_CREATE_INFO(overlay_extra_groundline)
 
 void main()
 {
-  select_id_set(in_select_buf[gl_InstanceID]);
+  select_id_set(in_select_buf[gpu_InstanceIndex]);
   final_color = theme.colors.light;
 
   /* Relative to DPI scaling. Have constant screen size. */
   float3 screen_pos = drw_view().viewinv[0].xyz * pos.x + drw_view().viewinv[1].xyz * pos.y;
-  float3 inst_pos = data_buf[gl_InstanceID].xyz;
+  float3 inst_pos = data_buf[gpu_InstanceIndex].xyz;
   float3 p = inst_pos;
   p.z *= (pos.z == 0.0f) ? 0.0f : 1.0f;
   float screen_size = mul_project_m4_v3_zfac(uniform_buf.pixel_fac, p) * theme.sizes.pixel;

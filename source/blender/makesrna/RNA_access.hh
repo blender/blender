@@ -244,7 +244,7 @@ std::optional<AncestorPointerRNA> RNA_struct_search_closest_ancestor_by_type(
  * note this ignores parent classes so should be used with care.
  */
 const ListBaseT<PropertyRNA> *RNA_struct_type_properties(StructRNA *srna);
-PropertyRNA *RNA_struct_type_find_property_no_base(StructRNA *srna, const char *identifier);
+PropertyRNA *RNA_struct_type_find_property_no_base(StructRNA *srna, UString identifier);
 /**
  * \note #RNA_struct_find_property is a higher level alternative to this function
  * which takes a #PointerRNA instead of a #StructRNA.

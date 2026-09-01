@@ -34,7 +34,9 @@ class MeshBrushTests(unittest.TestCase):
         latter as parameterized tests.
         """
         bpy.ops.wm.read_factory_settings(use_empty=True)
+        bpy.ops.ed.undo_push()
         generate_monkey(backend)
+        bpy.ops.sculpt.sculptmode_toggle()
 
     def _activate_brush(self, brush):
         """

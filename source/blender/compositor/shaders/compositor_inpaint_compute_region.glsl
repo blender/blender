@@ -15,7 +15,8 @@ void main()
   float4 color = texture_load(input_tx, texel);
 
   /* An opaque pixel, not part of the inpainting region, write the original color. */
-  if (color.a == 1.0f) {
+  constexpr float alpha_threshold = 1.0f - 1e-3f;
+  if (color.a >= alpha_threshold) {
     imageStore(output_img, texel, color);
     return;
   }

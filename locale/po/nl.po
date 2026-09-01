@@ -1,9 +1,9 @@
 
 msgid ""
 msgstr ""
-"Project-Id-Version: Blender 5.3.0 Alpha (b'af4852ed4560')\n"
+"Project-Id-Version: Blender 5.3.0 Alpha (b'32296898e057')\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-08-10 07:54+0000\n"
+"POT-Creation-Date: 2026-08-31 07:41+0000\n"
 "PO-Revision-Date: 2026-07-08 11:12+0000\n"
 "Last-Translator: Timo Hoetmer <timo@timohoetmer.nl>\n"
 "Language-Team: Dutch <https://translate.blender.org/projects/blender-ui/ui/nl/>\n"
@@ -2617,10 +2617,6 @@ msgid "A color space, view or display was not found, which likely means the Open
 msgstr "Er was geen kleurruimte, beeld of weergave gevonden, wat waarschijnlijk betekent dat de OpenColorIO config gebruikt om dit blend bestand te creëren mist"
 
 
-msgid "ACEScg"
-msgstr "ACEScg"
-
-
 msgid "Only link data, instead of appending it"
 msgstr "Alleen data linken, in plaats van het bij te voegen"
 
@@ -2760,10 +2756,6 @@ msgstr "Blendbestand Importeer Context Bibliotheken"
 
 msgid "Collection of source libraries, i.e. blendfile paths"
 msgstr "Collectie van bron bibliotheken, d.w.z. blendbestand paden"
-
-
-msgid "Blendfile Import Context Library"
-msgstr "Blendbestand Importeer Context Bibliotheek"
 
 
 msgid "Blender RNA"
@@ -3867,10 +3859,6 @@ msgid "Color management specific to display device"
 msgstr "Kleurmanagement specifiek aan dit scherm"
 
 
-msgid "Display"
-msgstr "Weergave"
-
-
 msgid "Display Emulation"
 msgstr "Emulatie Weergeven"
 
@@ -3891,80 +3879,16 @@ msgid "Is Data"
 msgstr "Is Data"
 
 
-msgid "Input Color Space"
-msgstr "Input Kleurruimte"
-
-
-msgid "ACES 1.3 sRGB"
-msgstr "ACES 1.3 sRGB"
-
-
-msgid "ACES 2.0 sRGB"
-msgstr "ACES 2.0 sRGB"
-
-
-msgid "ACES2065-1"
-msgstr "ACES2065-1"
-
-
-msgid "ACEScc"
-msgstr "ACEScc"
-
-
 msgid "ACES color correction space, using AP1 primaries."
 msgstr "ACES kleurcorrectie ruimte, met gebruik van AP1 primaries."
-
-
-msgid "ACEScct"
-msgstr "ACEScct"
-
-
-msgid "AgX Base sRGB"
-msgstr "AgX Base sRGB"
-
-
-msgid "AgX Log"
-msgstr "AgX Log"
-
-
-msgid "Khronos PBR Neutral sRGB"
-msgstr "Khronos PBR Neutral sRGB"
-
-
-msgid "Linear CIE-XYZ D65"
-msgstr "Linear CIE-XYZ D65"
-
-
-msgid "Linear CIE-XYZ E"
-msgstr "Linear CIE-XYZ E"
-
-
-msgid "Linear DCI-P3 D65"
-msgstr "Linear DCI-P3 D65"
-
-
-msgid "Rec.1886"
-msgstr "Rec.1886"
 
 
 msgid "BT.1886 2.4 Exponent EOTF Display, commonly used for TVs"
 msgstr "BT.1886 2.4 Exponent EOTF Scherm, vaak gebruikt voor TVs"
 
 
-msgid "Rec.2020"
-msgstr "Rec.2020"
-
-
 msgid "BT.2020 2.4 Exponent EOTF Display"
 msgstr "BT.2020 2.4 Exponent EOTF Scherm"
-
-
-msgid "Rec.2100-HLG"
-msgstr "Rec.2100-HLG"
-
-
-msgid "Rec.2100-PQ"
-msgstr "Rec.2100-PQ"
 
 
 msgid "Color management settings used for displaying images on the display"
@@ -3991,10 +3915,6 @@ msgid "Is HDR"
 msgstr "Is HDR"
 
 
-msgid "Look"
-msgstr "Kijk"
-
-
 msgid "Additional transform applied before view transform for artistic needs"
 msgstr "Extra transformatie toegepast vóór de weergavetransformatie voor artistieke behoeften"
 
@@ -4017,10 +3937,6 @@ msgstr "Gebruik RGB curved voor pre-weergave transformatie"
 
 msgid "Use White Balance"
 msgstr "Gebruik Witbalans"
-
-
-msgid "View"
-msgstr "Weergave"
 
 
 msgid "Temperature"
@@ -4294,6 +4210,10 @@ msgstr "Splits"
 
 msgid "Plane"
 msgstr "Vlak"
+
+
+msgid "View"
+msgstr "Weergave"
 
 
 msgid "Segments"
@@ -5432,6 +5352,10 @@ msgid "Simple"
 msgstr "Simpel"
 
 
+msgid "Display"
+msgstr "Weergave"
+
+
 msgid "Distribution"
 msgstr "Verdeling"
 
@@ -5836,12 +5760,8 @@ msgid "Dots"
 msgstr "Stippen"
 
 
-msgid "Names"
-msgstr "Namen"
-
-
-msgid "Show/Hide"
-msgstr "Toon/Verberg"
+msgid "Import"
+msgstr "Importeren"
 
 
 msgid "Mirror"
@@ -5880,12 +5800,20 @@ msgid "Rigid Body"
 msgstr "Star Lichaam"
 
 
-msgid "Import"
-msgstr "Importeren"
-
-
 msgid "Quick Effects"
 msgstr "Snelle Effecten"
+
+
+msgid "Show/Hide"
+msgstr "Toon/Verberg"
+
+
+msgid "Linked"
+msgstr "Gekoppeld"
+
+
+msgid "Layout"
+msgstr "Indeling"
 
 
 msgid "Convert"
@@ -5900,12 +5828,8 @@ msgid "Clear Transform"
 msgstr "Maak Transformatie Leeg"
 
 
-msgid "Linked"
-msgstr "Gekoppeld"
-
-
-msgid "Layout"
-msgstr "Indeling"
+msgid "Names"
+msgstr "Namen"
 
 
 msgctxt "MovieClip"
@@ -6854,8 +6778,8 @@ msgstr "Keer Richting Om"
 
 
 msgctxt "Operator"
-msgid "Accept"
-msgstr "Accepteer"
+msgid "Select Directory"
+msgstr "Selecteer Map"
 
 
 msgctxt "Operator"
@@ -7258,11 +7182,6 @@ msgstr "Hernoem Bestand of Map"
 msgctxt "Operator"
 msgid "(De)select All Files"
 msgstr "(De)selecteer Alle Bestanden"
-
-
-msgctxt "Operator"
-msgid "Select Directory"
-msgstr "Selecteer Map"
 
 
 msgid "Previous Line"
@@ -11998,6 +11917,10 @@ msgstr "Kopieer Alles naar Geselecteerd"
 
 msgid "OK"
 msgstr "OK"
+
+
+msgid "Look"
+msgstr "Kijk"
 
 
 msgid "Zoom in"

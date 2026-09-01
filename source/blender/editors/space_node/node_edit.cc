@@ -724,11 +724,13 @@ void node_set_hidden_sockets(bNode *node, int set)
     for (bNodeSocket &sock : node->inputs) {
       if (sock.link == nullptr) {
         sock.flag |= SOCK_HIDDEN;
+        sock.flag &= ~SOCK_SELECT;
       }
     }
     for (bNodeSocket &sock : node->outputs) {
       if ((sock.flag & SOCK_IS_LINKED) == 0) {
         sock.flag |= SOCK_HIDDEN;
+        sock.flag &= ~SOCK_SELECT;
       }
     }
   }

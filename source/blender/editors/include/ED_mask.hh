@@ -14,6 +14,7 @@
 namespace blender {
 
 struct ARegion;
+struct Main;
 struct CfraElem;
 struct Depsgraph;
 struct KeyframeEditData;
@@ -141,9 +142,9 @@ void ED_mask_draw_frames(Mask *mask, ARegion *region, int cfra, int sfra, int ef
 
 /* `mask_shapekey.cc` */
 
-void ED_mask_layer_shape_auto_key(MaskLayer *mask_layer, int frame);
-bool ED_mask_layer_shape_auto_key_all(Mask *mask, int frame);
-bool ED_mask_layer_shape_auto_key_select(Mask *mask, int frame);
+void ED_mask_layer_shape_auto_key(const bContext *C, MaskLayer *mask_layer, int frame);
+bool ED_mask_layer_shape_auto_key_all(const bContext *C, Mask *mask, int frame);
+bool ED_mask_layer_shape_auto_key_select(const bContext *C, Mask *mask, int frame);
 
 /* ----------- Mask AnimEdit API ------------------ */
 
@@ -192,11 +193,11 @@ void ED_mask_select_frame(MaskLayer *mask_layer, int selx, short select_mode);
 /**
  * Delete selected frames.
  */
-bool ED_masklayer_frames_delete(MaskLayer *mask_layer);
+bool ED_masklayer_frames_delete(Main *main, MaskLayer *mask_layer);
 /**
  * Duplicate selected frames from given mask-layer.
  */
-bool ED_masklayer_frames_duplicate(MaskLayer *mask_layer);
+bool ED_masklayer_frames_duplicate(Main *main, MaskLayer *mask_layer);
 
 /**
  * Snap selected frames to ...

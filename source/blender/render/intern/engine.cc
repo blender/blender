@@ -312,7 +312,9 @@ static void render_result_to_bake(RenderEngine *engine, RenderResult *rr)
     float *bake_result = result + bake_offset * channels_num;
 
     for (int tx = 0; tx < w; tx++) {
-      if (bake_pixel->object_id == engine->bake.object_id) {
+      if (bake_pixel->object_id == engine->bake.object_id && bake_pixel->primitive_id != -1 &&
+          !bake_pixel->is_margin)
+      {
         memcpy(bake_result, pass_rect, channels_size);
       }
       pass_rect += channels_num;

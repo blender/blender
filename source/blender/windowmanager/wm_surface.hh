@@ -14,11 +14,11 @@
 
 #include "GHOST_Types.hh"
 
-struct GPUContext;
 class GHOST_IContext;
 
 namespace blender {
 
+struct GPUContext;
 struct bContext;
 struct wmSurface {
   wmSurface *next, *prev;

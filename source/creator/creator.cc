@@ -360,6 +360,11 @@ int main(int argc,
 
   restore_ld_preload();
 
+  /* Use the v2 Level Zero adapter of the SYCL unified runtime. As a fix for #159584, the v1 Level
+   * Zero adapter is not included. While the Cycles oneAPI device sets this as well, we also need
+   * the environment variable for the use of Open Image Denoise in the compositor. */
+  BLI_setenv_if_new("SYCL_UR_USE_LEVEL_ZERO_V2", "1");
+
 #ifdef WIN32
 #  ifdef USE_WIN32_UNICODE_ARGS
   /* Win32 Unicode Arguments. */

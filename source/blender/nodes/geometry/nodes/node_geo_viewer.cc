@@ -308,7 +308,7 @@ static void node_init(bNodeTree * /*tree*/, bNode *node)
 {
   NodeGeometryViewer *data = MEM_new<NodeGeometryViewer>(__func__);
   data->data_type_legacy = CD_PROP_FLOAT;
-  data->domain = int8_t(AttrDomain::Auto);
+  data->domain = int8_t(bke::AttrDomainSelection::Auto);
   node->storage = data;
 }
 
@@ -381,8 +381,8 @@ static void log_viewer_attribute(const bNode &node, eval_log::ViewerNodeLog &r_l
       continue;
     }
     const GField field = value.get<GField>();
-    const AttrDomain domain_or_auto = AttrDomain(storage.domain);
-    if (domain_or_auto == AttrDomain::Instance) {
+    const auto domain_or_auto = bke::AttrDomainSelection(storage.domain);
+    if (domain_or_auto == bke::AttrDomainSelection::Instance) {
       if (geometry.has_instances()) {
         bke::GeometryComponent &component =
             geometry.get_component_for_write<bke::InstancesComponent>();
@@ -402,8 +402,8 @@ static void log_viewer_attribute(const bNode &node, eval_log::ViewerNodeLog &r_l
             continue;
           }
           bke::GeometryComponent &component = geometry.get_component_for_write(type);
-          AttrDomain used_domain = domain_or_auto;
-          if (domain_or_auto == AttrDomain::Auto) {
+          AttrDomain used_domain;
+          if (domain_or_auto == bke::AttrDomainSelection::Auto) {
             if (const std::optional<AttrDomain> domain = bke::try_detect_field_domain(component,
                                                                                       field))
             {
@@ -412,6 +412,9 @@ static void log_viewer_attribute(const bNode &node, eval_log::ViewerNodeLog &r_l
             else {
               used_domain = AttrDomain::Point;
             }
+          }
+          else {
+            used_domain = bke::AttrDomain(domain_or_auto);
           }
           bke::try_capture_field_on_geometry(component, viewer_attribute_name, used_domain, field);
         }

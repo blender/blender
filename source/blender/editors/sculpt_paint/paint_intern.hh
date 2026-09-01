@@ -55,6 +55,7 @@ struct wmKeyConfig;
 struct wmKeyMap;
 struct wmOperator;
 struct wmOperatorType;
+struct wmPaintCursor;
 
 namespace bke::pbvh {
 class Node;
@@ -179,6 +180,7 @@ struct PaintStroke : NonCopyable, NonMovable {
 
  public:
   PaintStroke() = delete;
+  virtual ~PaintStroke() = default;
 
   /**
    * The main modal callback shared by any custom operator that implements a form of painting.
@@ -227,22 +229,20 @@ struct PaintStroke : NonCopyable, NonMovable {
   }
 
  protected:
-  ~PaintStroke() = default;
   PaintStroke(bContext *C, wmOperator *op, const wmEvent *event);
 
   /**
    * Callback function to retrieve the object space coordinates based on screen space coordinates.
-   * \param location: resulting object space coordinates
    * \returns whether a value was actually found & the value in location is usable
    */
-  virtual bool get_location(float location[3], const float mouse[2], bool force_original) = 0;
+  virtual std::optional<float3> get_location(float2 mouse, bool force_original) = 0;
 
   /**
    * Callback function to determine whether a stroke has started, and performing initialization.
    *
    * In many cases, this is a check to whether the stroke is over the active mesh.
    */
-  virtual bool test_start(wmOperator *op, const float mouse[2]) = 0;
+  virtual bool test_start(wmOperator *op, float2 mouse) = 0;
 
   /**
    * Callback function for performing a paint stroke for a new step.
@@ -437,7 +437,7 @@ void imapaint_region_tiles(
 bool get_imapaint_zoom(bContext *C, float *zoomx, float *zoomy);
 void *paint_2d_new_stroke(bContext *, wmOperator *, BrushStrokeMode mode);
 void paint_2d_redraw(const bContext *C, void *ps, bool final);
-void paint_2d_stroke_done(void *ps);
+void paint_2d_stroke_done(void *ps, wmPaintCursor *cursor);
 void paint_2d_stroke(void *ps,
                      const float prev_mval[2],
                      const float mval[2],
@@ -470,7 +470,7 @@ void paint_proj_stroke(const bContext *C,
                        float distance,
                        float size);
 void paint_proj_redraw(const bContext *C, void *ps_handle_p, bool final);
-void paint_proj_stroke_done(void *ps_handle_p);
+void paint_proj_stroke_done(void *ps_handle_p, wmPaintCursor *cursor);
 
 void paint_brush_color_get(const Paint *paint,
                            Brush *br,

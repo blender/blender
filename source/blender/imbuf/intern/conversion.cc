@@ -24,7 +24,6 @@
 namespace blender {
 
 /* -------------------------------------------------------------------- */
-
 /** \name Generic Buffer Conversion
  * \{ */
 

@@ -66,10 +66,17 @@ Cache::~Cache()
   this->clear_frames();
 }
 
-const ImBuf *Cache::get_frame(const int frame_number, const int view_identifier)
+ImBuf *Cache::get_frame(const int frame_number, const int view_identifier)
 {
   std::scoped_lock lock{frames_mutex_};
-  return this->frames_.lookup_try(FrameKey(frame_number, view_identifier)).value_or(nullptr);
+  const FrameKey key = FrameKey(frame_number, view_identifier);
+  ImBuf *cached_frame = this->frames_.lookup_try(key).value_or(nullptr);
+  if (!cached_frame) {
+    return nullptr;
+  }
+
+  IMB_refImBuf(cached_frame);
+  return cached_frame;
 }
 
 void Cache::add_frame(const int frame_number, const int view_identifier, ImBuf *image_buffer)
@@ -96,7 +103,7 @@ void Cache::clear_frames()
   this->frames_.clear();
 }
 
-Vector<IndexRange> Cache::compute_frame_ranges()
+Vector<Cache::FrameRange> Cache::compute_frame_ranges()
 {
   /* Compute a sorted vector of all cached frames. */
   VectorSet<int> frame_numbers_set;
@@ -110,18 +117,17 @@ Vector<IndexRange> Cache::compute_frame_ranges()
   Vector<int> frame_numbers = frame_numbers_set.extract_vector();
   std::ranges::sort(frame_numbers);
 
-  Vector<IndexRange> frame_ranges;
+  Vector<FrameRange> frame_ranges;
   for (const int frame : frame_numbers) {
     /* We start a new range by appending a singleton range of the current frame, either because
      * this is the first range or because the last range will not be contiguous with the current
      * frame. */
-    if (frame_ranges.is_empty() || frame - frame_ranges.last().last() > 1) {
-      frame_ranges.append(IndexRange(frame, 1));
+    if (frame_ranges.is_empty() || frame - frame_ranges.last().end > 1) {
+      frame_ranges.append(FrameRange(frame, frame));
     }
     else {
       /* Otherwise, the frame is contiguous with the last range, so we just grow its size by 1. */
-      frame_ranges.last() = IndexRange(frame_ranges.last().start(),
-                                       frame_ranges.last().size() + 1);
+      frame_ranges.last().end++;
     }
   }
 
@@ -203,7 +209,7 @@ SceneCompositorEffect *get_active_effect(const Scene &scene)
 
 bool is_effect_enabled(const SceneCompositorEffect &effect, const ExecutionMode mode)
 {
-  if (!effect.node_group) {
+  if (!effect.node_group || ID_MISSING(effect.node_group)) {
     return false;
   }
 
@@ -279,25 +285,29 @@ SceneCompositorEffect &duplicate_effect(Scene &scene, SceneCompositorEffect &sou
   return new_effect;
 }
 
-static void free_effect(SceneCompositorEffect &effect)
+static void free_effect(SceneCompositorEffect &effect, const bool decrement_user_count)
 {
-  if (effect.system_properties) {
-    IDP_FreeProperty_ex(effect.system_properties, false);
+  if (decrement_user_count && effect.node_group) {
+    id_us_min(&effect.node_group->id);
   }
+
+  if (effect.system_properties) {
+    IDP_FreeProperty_ex(effect.system_properties, decrement_user_count);
+  }
+
   MEM_delete(&effect);
 }
 
 void remove_effect(Scene &scene, SceneCompositorEffect &effect)
 {
-  if (effect.node_group) {
-    id_us_min(&effect.node_group->id);
-  }
   BLI_remlink(&scene.compositor_effects, &effect);
+
   const bool was_active = flag_is_set(effect.flags, SceneCompositorEffectFlags::IsActive);
   if (was_active && !scene.compositor_effects.is_empty()) {
     set_active_effect(scene, *scene.compositor_effects.begin());
   }
-  free_effect(effect);
+
+  free_effect(effect, true);
 }
 
 void copy_effects(Scene &target_scene, const Scene &source_scene, const int flags)
@@ -315,7 +325,7 @@ void copy_effects(Scene &target_scene, const Scene &source_scene, const int flag
 void free_effects(Scene &scene)
 {
   for (SceneCompositorEffect &effect : scene.compositor_effects.items_mutable()) {
-    free_effect(effect);
+    free_effect(effect, false);
   }
   scene.compositor_effects.clear_no_delete();
 }
@@ -653,6 +663,12 @@ void add_depsgraph_relations(Scene &scene,
                                   object,
                                   DEG_OB_COMP_PARAMETERS,
                                   "Camera Parameters -> Compositor");
+        }
+        if (object->type == OB_ARMATURE && info.pose) {
+          DEG_add_object_relation(compositor_output_depsgraph_node,
+                                  object,
+                                  DEG_OB_COMP_EVAL_POSE,
+                                  "Armature Pose -> Compositor");
         }
         break;
       }

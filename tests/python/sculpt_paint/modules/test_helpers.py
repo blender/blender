@@ -162,12 +162,11 @@ def generate_monkey(backend):
     if backend == BackendType.MESH:
         bpy.ops.object.subdivision_set(level=2, relative=False, ensure_modifier=True)
         bpy.ops.object.modifier_apply(modifier="Subdivision")
-
-    bpy.ops.ed.undo_push()
-    bpy.ops.sculpt.sculptmode_toggle()
-
-    if backend == BackendType.MULTIRES:
-        bpy.ops.object.subdivision_set(level=2, relative=False, ensure_modifier=True)
+    elif backend == BackendType.MULTIRES:
+        object = bpy.context.active_object
+        object.modifiers.new("Multires", 'MULTIRES')
+        bpy.ops.object.multires_subdivide(modifier="Multires")
+        bpy.ops.object.multires_subdivide(modifier="Multires")
 
 
 def generate_stroke(context, start_percent=(0.0, 0.0), end_percent=(1.0, 1.0)):

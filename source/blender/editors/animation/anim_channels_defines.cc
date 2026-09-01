@@ -5520,7 +5520,7 @@ static bool anim_list_el_is_visibility_related_or_self(const bAnimListElem *targ
   }
 
   /* 2. Hierarchy Roots (Summary/Scene) - Always keep structure visible */
-  if (iter->type == ANIMTYPE_SUMMARY || iter->type == ANIMTYPE_SCENE) {
+  if (ELEM(iter->type, ANIMTYPE_SUMMARY, ANIMTYPE_SCENE)) {
     return true;
   }
 

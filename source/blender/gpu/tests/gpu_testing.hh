@@ -11,7 +11,9 @@
 
 #include "GPU_platform.hh"
 
+namespace blender {
 struct GPUContext;
+}
 
 namespace blender::gpu {
 

@@ -467,7 +467,8 @@ struct Scope {
   template<typename Callback> void foreach_declaration(Callback callback) const
   {
     auto attrs = [&](const std::vector<Token> &tokens) {
-      Token first = tokens[0].is_valid() ? tokens[0] : tokens[2];
+      Token first = tokens[0].is_valid() ? tokens[0] :
+                                           (tokens[2].is_valid() ? tokens[2] : tokens[4]);
       Scope attributes = first.prev().prev().scope();
       attributes = (attributes.type() == ScopeType::Attributes) ? attributes : Scope(*parser_);
       return attributes;
@@ -489,42 +490,42 @@ struct Scope {
     Scope invalid(*parser_);
 
     /* TODO(fclem): This is getting out of hand... */
-    foreach_match("c?AA;", [&](const std::vector<Token> toks) {
-      cb(attrs(toks), toks[0], toks[2], invalid, toks[3], invalid, toks.back());
+    foreach_match("m?c?AA;", [&](const std::vector<Token> toks) {
+      cb(attrs(toks), toks[2], toks[4], invalid, toks[5], invalid, toks.back());
     });
-    foreach_match("c?AA[..];", [&](const std::vector<Token> toks) {
-      cb(attrs(toks), toks[0], toks[2], invalid, toks[3], toks[4].scope(), toks.back());
+    foreach_match("m?c?AA[..];", [&](const std::vector<Token> toks) {
+      cb(attrs(toks), toks[2], toks[4], invalid, toks[5], toks[6].scope(), toks.back());
     });
-    foreach_match("c?AA[..][..];", [&](const std::vector<Token> toks) {
-      cb(attrs(toks), toks[0], toks[2], invalid, toks[3], toks[4].scope(), toks.back());
+    foreach_match("m?c?AA[..][..];", [&](const std::vector<Token> toks) {
+      cb(attrs(toks), toks[2], toks[4], invalid, toks[5], toks[6].scope(), toks.back());
     });
-    foreach_match("c?A<..>A;", [&](const std::vector<Token> toks) {
-      cb(attrs(toks), toks[0], toks[2], toks[3].scope(), toks[7], invalid, toks.back());
+    foreach_match("m?c?A<..>A;", [&](const std::vector<Token> toks) {
+      cb(attrs(toks), toks[2], toks[4], toks[5].scope(), toks[9], invalid, toks.back());
     });
-    foreach_match("c?A<..>A[..];", [&](const std::vector<Token> toks) {
-      cb(attrs(toks), toks[0], toks[2], toks[3].scope(), toks[7], toks[8].scope(), toks.back());
+    foreach_match("m?c?A<..>A[..];", [&](const std::vector<Token> toks) {
+      cb(attrs(toks), toks[2], toks[4], toks[5].scope(), toks[9], toks[10].scope(), toks.back());
     });
-    foreach_match("c?A<..>A[..][..];", [&](const std::vector<Token> toks) {
-      cb(attrs(toks), toks[0], toks[2], toks[3].scope(), toks[7], toks[8].scope(), toks.back());
+    foreach_match("m?c?A<..>A[..][..];", [&](const std::vector<Token> toks) {
+      cb(attrs(toks), toks[2], toks[4], toks[5].scope(), toks[9], toks[10].scope(), toks.back());
     });
 
-    foreach_match("c?A&A;", [&](const std::vector<Token> toks) {
-      cb(attrs(toks), toks[0], toks[2], invalid, toks[4], invalid, toks.back());
+    foreach_match("m?c?A&A;", [&](const std::vector<Token> toks) {
+      cb(attrs(toks), toks[2], toks[4], invalid, toks[6], invalid, toks.back());
     });
-    foreach_match("c?A(&A)[..];", [&](const std::vector<Token> toks) {
-      cb(attrs(toks), toks[0], toks[2], invalid, toks[5], toks[7].scope(), toks.back());
+    foreach_match("m?c?A(&A)[..];", [&](const std::vector<Token> toks) {
+      cb(attrs(toks), toks[2], toks[4], invalid, toks[7], toks[9].scope(), toks.back());
     });
-    foreach_match("c?A(&A)[..][..];", [&](const std::vector<Token> toks) {
-      cb(attrs(toks), toks[0], toks[2], invalid, toks[5], toks[7].scope(), toks.back());
+    foreach_match("m?c?A(&A)[..][..];", [&](const std::vector<Token> toks) {
+      cb(attrs(toks), toks[2], toks[4], invalid, toks[7], toks[9].scope(), toks.back());
     });
-    foreach_match("c?A<..>&A;", [&](const std::vector<Token> toks) {
-      cb(attrs(toks), toks[0], toks[2], toks[3].scope(), toks[8], invalid, toks.back());
+    foreach_match("m?c?A<..>&A;", [&](const std::vector<Token> toks) {
+      cb(attrs(toks), toks[2], toks[4], toks[5].scope(), toks[10], invalid, toks.back());
     });
-    foreach_match("c?A<..>(&A)[..];", [&](const std::vector<Token> toks) {
-      cb(attrs(toks), toks[0], toks[2], toks[3].scope(), toks[9], toks[11].scope(), toks.back());
+    foreach_match("m?c?A<..>(&A)[..];", [&](const std::vector<Token> toks) {
+      cb(attrs(toks), toks[2], toks[4], toks[5].scope(), toks[11], toks[13].scope(), toks.back());
     });
-    foreach_match("c?A<..>(&A)[..][..];", [&](const std::vector<Token> toks) {
-      cb(attrs(toks), toks[0], toks[2], toks[3].scope(), toks[9], toks[11].scope(), toks.back());
+    foreach_match("m?c?A<..>(&A)[..][..];", [&](const std::vector<Token> toks) {
+      cb(attrs(toks), toks[2], toks[4], toks[5].scope(), toks[11], toks[13].scope(), toks.back());
     });
   }
 

@@ -153,14 +153,15 @@ static void draw_button_sections_background(const ARegion *region,
 
     rctf bounds_float;
     BLI_rctf_rcti_copy(&bounds_float, &bounds);
-    /* Make space for the separator line. */
-    if (align == ButtonSectionsAlign::Top) {
-      bounds_float.ymax -= UI_BUTTON_SECTION_SEPERATOR_LINE_WITH;
+    if (region->regiontype == RGN_TYPE_ASSET_SHELF_HEADER) {
+      /* Make space for the separator line. */
+      if (align == ButtonSectionsAlign::Top) {
+        bounds_float.ymax -= UI_BUTTON_SECTION_SEPERATOR_LINE_WITH;
+      }
+      else if (align == ButtonSectionsAlign::Bottom) {
+        bounds_float.ymin += UI_BUTTON_SECTION_SEPERATOR_LINE_WITH;
+      }
     }
-    else if (align == ButtonSectionsAlign::Bottom) {
-      bounds_float.ymin += UI_BUTTON_SECTION_SEPERATOR_LINE_WITH;
-    }
-
     draw_roundbox_corner_set(roundbox_corners);
     draw_roundbox_4fv(&bounds_float, true, corner_radius, bg_color);
   }
@@ -172,15 +173,16 @@ static void draw_button_sections_alignment_separator(const ARegion *region,
                                                      const ButtonSectionsAlign align,
                                                      const float corner_radius)
 {
-  const int separator_line_width = UI_BUTTON_SECTION_SEPERATOR_LINE_WITH;
-
+  const int separator_line_width = region->regiontype == RGN_TYPE_ASSET_SHELF_HEADER ?
+                                       UI_BUTTON_SECTION_SEPERATOR_LINE_WITH :
+                                       0;
   float bg_color[4];
   theme::get_color_4fv(colorid, bg_color);
 
   GPU_blend(GPU_BLEND_ALPHA);
 
   /* Separator line. */
-  {
+  if (region->regiontype == RGN_TYPE_ASSET_SHELF_HEADER) {
     GPUVertFormat *format = immVertexFormat();
     const uint pos = GPU_vertformat_attr_add(format, "pos", gpu::VertAttrType::SFLOAT_32_32);
     immBindBuiltinProgram(GPU_SHADER_3D_UNIFORM_COLOR);

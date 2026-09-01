@@ -25,6 +25,10 @@
 #endif
 #include "volk.h"
 
+#ifdef WITH_GHOST_SDL
+#  include <SDL3/SDL_vulkan.h>
+#endif
+
 #include "GHOST_ContextVK.hh"
 #include "GHOST_Types.hh"
 
@@ -46,6 +50,7 @@
 #include <cassert>
 #include <cinttypes>
 #include <cstdio>
+#include <cstdlib>
 #include <cstring>
 #include <iostream>
 #include <mutex>
@@ -352,6 +357,21 @@ struct GHOST_InstanceVK {
 
   GHOST_InstanceVK()
   {
+    /* volk is initialized in vk_instance_create_for_platform_checks during Vulkan backend support
+     * detection when not skipped via "--debug-gpu-backend-no-fallback". So only initialize it here
+     * as needed. */
+    if (volk::vkGetInstanceProcAddr == nullptr) {
+      VkResult vk_result = volkInitialize();
+      if (vk_result != VK_SUCCESS) {
+        CLOG_ERROR(
+            &LOG,
+            "Error initializing Vulkan loader: VkResult=%d, most likely cannot find the Vulkan "
+            "Loader provided by GPU driver/OS.",
+            vk_result);
+        /* Not recoverable when using "--debug-gpu-backend-no-fallback". */
+        exit(EXIT_FAILURE);
+      }
+    }
     init_extensions();
   }
 
@@ -432,11 +452,9 @@ struct GHOST_InstanceVK {
           !device_vk.features.features.geometryShader ||
 #endif
           !device_vk.features.features.multiViewport ||
-          !device_vk.features.features.shaderClipDistance ||
           !device_vk.features.features.fragmentStoresAndAtomics ||
           !device_vk.features.features.imageCubeArray ||
-          !device_vk.features.features.dualSrcBlend || !device_vk.features.features.logicOp ||
-          !device_vk.features.features.imageCubeArray)
+          !device_vk.features.features.dualSrcBlend || !device_vk.features.features.imageCubeArray)
       {
         continue;
       }
@@ -607,9 +625,9 @@ struct GHOST_InstanceVK {
     device_features.vertexPipelineStoresAndAtomics =
         device.features.features.vertexPipelineStoresAndAtomics;
     device_features.multiViewport = VK_TRUE;
-    device_features.shaderClipDistance = VK_TRUE;
+    device_features.shaderClipDistance = device.features.features.shaderClipDistance;
     device_features.fragmentStoresAndAtomics = VK_TRUE;
-    device_features.logicOp = VK_TRUE;
+
     device_features.dualSrcBlend = VK_TRUE;
     device_features.imageCubeArray = VK_TRUE;
     device_features.multiDrawIndirect = device.features.features.multiDrawIndirect;
@@ -860,7 +878,10 @@ bool GHOST_ContextVK::is_device_extension_enabled(blender::StringRefNull extensi
 /** \} */
 
 GHOST_ContextVK::GHOST_ContextVK(const GHOST_ContextParams &context_params,
-#ifdef _WIN32
+#if defined(WITH_GHOST_SDL)
+                                 /* SDL */
+                                 SDL_Window *sdl_window,
+#elif defined(_WIN32)
                                  HWND hwnd,
 #elif defined(__APPLE__)
                                  void *metal_layer,
@@ -879,7 +900,10 @@ GHOST_ContextVK::GHOST_ContextVK(const GHOST_ContextParams &context_params,
                                  const GHOST_GPUDevice &preferred_device,
                                  const GHOST_WindowHDRInfo *hdr_info)
     : GHOST_Context(context_params),
-#ifdef _WIN32
+#if defined(WITH_GHOST_SDL)
+      /* SDL */
+      sdl_window_(sdl_window),
+#elif defined(_WIN32)
       hwnd_(hwnd),
 #elif defined(__APPLE__)
       metal_layer_(metal_layer),
@@ -1693,35 +1717,45 @@ GHOST_TSuccess GHOST_ContextVK::destroySwapchain()
   return GHOST_kSuccess;
 }
 
-const char *GHOST_ContextVK::getPlatformSpecificSurfaceExtension() const
+std::vector<const char *> GHOST_ContextVK::getPlatformSpecificSurfaceExtensions() const
 {
-#ifdef _WIN32
-  return VK_KHR_WIN32_SURFACE_EXTENSION_NAME;
+  std::vector<const char *> extensions;
+#if defined(WITH_GHOST_SDL)
+  /* SDL provides the set of instance extensions its window backend requires. */
+  Uint32 sdl_extension_count = 0;
+  const char *const *sdl_extensions = SDL_Vulkan_GetInstanceExtensions(&sdl_extension_count);
+  for (Uint32 i = 0; i < sdl_extension_count; i++) {
+    extensions.push_back(sdl_extensions[i]);
+  }
+#elif defined(_WIN32)
+  extensions.push_back(VK_KHR_WIN32_SURFACE_EXTENSION_NAME);
 #elif defined(__APPLE__)
-  return VK_EXT_METAL_SURFACE_EXTENSION_NAME;
+  extensions.push_back(VK_EXT_METAL_SURFACE_EXTENSION_NAME);
 #else /* UNIX/Linux */
   switch (platform_) {
 #  ifdef WITH_GHOST_X11
     case GHOST_kVulkanPlatformX11:
-      return VK_KHR_XLIB_SURFACE_EXTENSION_NAME;
+      extensions.push_back(VK_KHR_XLIB_SURFACE_EXTENSION_NAME);
       break;
 #  endif
 #  ifdef WITH_GHOST_WAYLAND
     case GHOST_kVulkanPlatformWayland:
-      return VK_KHR_WAYLAND_SURFACE_EXTENSION_NAME;
+      extensions.push_back(VK_KHR_WAYLAND_SURFACE_EXTENSION_NAME);
       break;
 #  endif
     case GHOST_kVulkanPlatformHeadless:
       break;
   }
 #endif
-  return nullptr;
+  return extensions;
 }
 
 GHOST_TSuccess GHOST_ContextVK::initializeDrawingContext()
 {
   bool use_vk_ext_swapchain_colorspace = false;
-#ifdef _WIN32
+#if defined(WITH_GHOST_SDL)
+  const bool use_window_surface = (sdl_window_ != nullptr);
+#elif defined(_WIN32)
   const bool use_window_surface = (hwnd_ != nullptr);
 #elif defined(__APPLE__)
   const bool use_window_surface = (metal_layer_ != nullptr);
@@ -1774,9 +1808,14 @@ GHOST_TSuccess GHOST_ContextVK::initializeDrawingContext()
 #endif
 
     if (use_window_surface) {
-      const char *native_surface_extension_name = getPlatformSpecificSurfaceExtension();
+      const std::vector<const char *> surface_extensions = getPlatformSpecificSurfaceExtensions();
       instance_vk.extensions.enable(VK_KHR_SURFACE_EXTENSION_NAME);
-      instance_vk.extensions.enable(native_surface_extension_name);
+
+      for (const char *extension : surface_extensions) {
+        if (!instance_vk.extensions.is_enabled(extension)) {
+          instance_vk.extensions.enable(extension);
+        }
+      }
       /* X11 doesn't use the correct swapchain offset, flipping can squash the first frames. */
       const bool use_vk_ext_swapchain_maintenance1 =
 #ifdef WITH_GHOST_X11
@@ -1808,7 +1847,12 @@ GHOST_TSuccess GHOST_ContextVK::initializeDrawingContext()
 
   /* Initialize VkSurface */
   if (use_window_surface) {
-#ifdef _WIN32
+#if defined(WITH_GHOST_SDL)
+    if (!SDL_Vulkan_CreateSurface(sdl_window_, instance_vk.vk_instance, nullptr, &surface_)) {
+      CLOG_ERROR(&LOG, "SDL_Vulkan_CreateSurface failed: %s", SDL_GetError());
+      return GHOST_kFailure;
+    }
+#elif defined(_WIN32)
     VkWin32SurfaceCreateInfoKHR surface_create_info = {};
     surface_create_info.sType = VK_STRUCTURE_TYPE_WIN32_SURFACE_CREATE_INFO_KHR;
     surface_create_info.hinstance = GetModuleHandle(nullptr);

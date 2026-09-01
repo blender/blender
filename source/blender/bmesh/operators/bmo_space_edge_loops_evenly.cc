@@ -303,7 +303,7 @@ void bmo_space_edge_loops_evenly_exec(BMesh *bm, BMOperator *op)
 
     for (const int i : IndexRange(verts_num)) {
       /* The first and last vertices of an open chain are anchor points so they are skipped. */
-      if (!chain.is_closed && (i == 0 || i == verts_num - 1)) {
+      if (!chain.is_closed && ELEM(i, 0, verts_num - 1)) {
         continue;
       }
 

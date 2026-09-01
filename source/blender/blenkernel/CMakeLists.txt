@@ -340,6 +340,7 @@ set(SRC
   BKE_attribute_storage.hh
   BKE_attribute_storage_blend_write.hh
   BKE_autoexec.hh
+  BKE_bake_attribute_field.hh
   BKE_bake_data_block_id.hh
   BKE_bake_data_block_map.hh
   BKE_bake_geometry_nodes_modifier.hh
@@ -567,11 +568,15 @@ set(SRC
   intern/ocean_intern.h
   intern/pbvh_intern.hh
   intern/pbvh_pixels_copy.hh
+  intern/pbvh_pixels_rasterize.hh
   intern/pbvh_uv_islands.hh
   intern/sound_reader_cache.hh
   intern/subdiv_converter.hh
   intern/subdiv_inline.hh
   intern/tracking_private.hh
+
+  # Without these files listed, they aren't known to CMake.
+  ../../../extern/toml11/toml.hpp
 )
 
 set(LIB

@@ -403,16 +403,12 @@ def __gather_mesh(vnode, blender_object, export_settings):
 
 
 def __keep_mesh_info(original, mesh, export_settings):
-    if 'mesh_identifiers' not in export_settings.keys():
-        export_settings['mesh_identifiers'] = {}
     export_settings['mesh_identifiers'][id(mesh)] = {}
     export_settings['mesh_identifiers'][id(mesh)]['blender'] = original
 
 
 def __keep_material_info(materials, originals, export_settings):
     for m in [m for m in materials if m is not None]:
-        if 'material_identifiers' not in export_settings.keys():
-            export_settings['material_identifiers'] = {}
         if originals is True:
             export_settings['material_identifiers'][id(m)] = {}
             export_settings['material_identifiers'][id(m)]['blender'] = m
@@ -449,6 +445,7 @@ def __gather_mesh_from_blender_nonmesh(vnode, blender_object, export_settings):
         needs_to_mesh_clear = True
 
         materials = tuple([ms.material for ms in blender_object.material_slots if ms.material is not None])
+        __keep_material_info(materials, True, export_settings)
         modifiers = None
         blender_object_for_skined_data = None
 

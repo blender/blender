@@ -123,7 +123,10 @@ class GHOST_SystemHeadless : public GHOST_System {
     switch (gpu_settings.context_type) {
 #ifdef WITH_VULKAN_BACKEND
       case GHOST_kDrawingContextTypeVulkan: {
-#  ifdef _WIN32
+#  if defined(WITH_GHOST_SDL)
+        GHOST_Context *context = new GHOST_ContextVK(
+            context_params_offscreen, nullptr, 1, 2, gpu_settings.preferred_device);
+#  elif defined(_WIN32)
         GHOST_Context *context = new GHOST_ContextVK(
             context_params_offscreen, (HWND)0, 1, 2, gpu_settings.preferred_device);
 #  elif defined(__APPLE__)

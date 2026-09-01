@@ -15,8 +15,6 @@ namespace blender {
 
 struct Curves;
 
-#define ABC_CURVE_RESOLUTION_U_PROPNAME "blender:resolution"
-
 namespace io::alembic {
 
 class AbcCurveReader final : public AbcObjectReader {
@@ -38,7 +36,7 @@ class AbcCurveReader final : public AbcObjectReader {
                      const char **r_err_str) override;
 
   void read_curves_sample(Curves *curves_id,
-                          bool use_interpolation,
+                          const AbcReadGeometryParams &read_params,
                           const Alembic::AbcGeom::ICurvesSchema &schema,
                           const Alembic::Abc::ISampleSelector &sample_selector);
 };

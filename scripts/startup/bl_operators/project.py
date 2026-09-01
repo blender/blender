@@ -11,6 +11,8 @@ import os
 import logging
 from dataclasses import dataclass
 
+from enum import Enum
+
 import bpy
 from bpy.types import Operator
 from bpy.app.translations import (
@@ -49,6 +51,7 @@ PROJECT_DIR = ".blender_project"
 PROJECT_CONFIG = "project.toml"
 
 PROJECT_DEFAULT_NAME = "Untitled Project"
+ASSET_LIBRARY_DEFAULT_NAME = "Untitled Asset Library"
 
 
 # -------------------------------------------------------------
@@ -56,27 +59,179 @@ PROJECT_DEFAULT_NAME = "Untitled Project"
 #
 # Types that define the schema for reading/writing project config TOML files.
 
+class VariableType(Enum):
+    INTEGER = 'INTEGER'
+    FLOAT = 'FLOAT'
+    STRING = 'STRING'
+
+
+class VariableSubtype(Enum):
+    NONE = 'NONE'
+    FILEPATH = 'FILEPATH'
+
+
+@dataclass
+class AssetLibraryDefinition:
+    name: str
+    path: str
+    use_relative_path: bool
+    import_method: str
+    uuid: str | None = None
+
+
+@dataclass
+class ProjectVariable:
+    name: str
+    type: VariableType
+    value: int | str | float
+    subtype: VariableSubtype | None = None
+    description: str = ""
+
+    @staticmethod
+    def new_from_real(project_variable):
+        """Create a ProjectVariable config object from an existing real project variable."""
+        subtype = None
+        if project_variable.type == 'STRING':
+            subtype = VariableSubtype(project_variable.subtype)
+
+        return ProjectVariable(
+            name=project_variable.name,
+            type=VariableType(project_variable.type),
+            value=project_variable.value,
+            description=project_variable.description,
+            subtype=subtype,
+        )
+
+    def add_as_real(self, variables):
+        """Adds this as a real variable to the given real project variables list."""
+        variable = variables.new(name=self.name, type=self.type.value)
+        variable.value = self.value
+        if self.subtype is not None and self.type == VariableType.STRING:
+            variable.subtype = self.subtype.value
+        variable.description = self.description
+
+    def __post_init__(self):
+        """Validation of invariants that cattrs doesn't check."""
+        import re
+
+        if self.name == "":
+            raise ValueError("Invalid variable name '{:s}': variable names cannot be empty.")
+
+        if re.match("^[a-zA-Z_][a-zA-Z0-9_]*$", self.name) is None:
+            raise ValueError(
+                "Invalid variable name '{:s}': variable names must not start with a digit, and "
+                "must contain only alphanumeric characters and underscores.")
+
+        # Check that value matches the declared variable type.
+        match (self.type, self.value):
+            case (VariableType.INTEGER, int()):
+                pass
+            case (VariableType.FLOAT, float()):
+                pass
+            case (VariableType.STRING, str()):
+                pass
+            case _:
+                raise ValueError("Actual and declared type of project variable '{:s}' do not match.".format(self.name))
+
+        # Check that value matches the declared variable type.
+        match (self.type, self.subtype):
+            case (VariableType.INTEGER, None):
+                pass
+            case (VariableType.FLOAT, None):
+                pass
+            case (VariableType.STRING, None) | (VariableType.STRING, VariableSubtype.NONE) \
+                    | (VariableType.STRING, VariableSubtype.FILEPATH):
+                pass
+            case _:
+                raise ValueError("Invalid subtype '{:s}' for variable type '{:s}' of variable '{:s}'.".format(
+                    self.type.value,
+                    self.subtype.value,
+                    self.name,
+                ))
+
+
 @dataclass
 class ProjectConfig:
     schema_version: int
     name: str
+    variables: list[ProjectVariable] | None = None
+    asset_libraries: list[AssetLibraryDefinition] | None = None
 
     @staticmethod
-    def new_from_project(project):
+    def new_from_real(project):
         """Create a ProjectConfig object from an existing real project."""
+        variables = None
+        if len(project.variables) > 0:
+            variables = [ProjectVariable.new_from_real(var) for var in project.variables]
+
+        asset_list = None
+        if len(project.asset_libraries) > 0:
+            asset_list = []
+            for asset_lib in project.asset_libraries:
+                uuid_str = asset_lib.uuid
+                if not uuid_str:
+                    # No uuid string present, the uuid must be invalid
+                    uuid_str = asset_lib.invalid_uuid
+
+                asset_data = AssetLibraryDefinition(
+                    asset_lib.name,
+                    asset_lib.path,
+                    asset_lib.use_relative_path,
+                    asset_lib.import_method,
+                    uuid_str)
+                asset_list.append(asset_data)
+
         return ProjectConfig(
             schema_version=PROJECT_SCHEMA_VERSION,
             name=project.name,
+            variables=variables,
+            asset_libraries=asset_list,
         )
 
-    def populate_project(self, project):
+    def populate_real(self, project):
         """Fills in an existing real project's data from this ProjectConfig object."""
+        if self.variables is not None:
+            for config_var in self.variables:
+                config_var.add_as_real(bpy.data.project.variables)
 
-        # Currently we don't do anything, because the project name is handled
-        # separately. But when projects have more than just a name, all of that
-        # other data should be handled here, and be symmetric with
-        # `new_from_project()` above.
-        pass
+        if self.asset_libraries is None:
+            return
+
+        # Populate the project asset libraries (if any)
+        for asset_lib in self.asset_libraries:
+            if asset_lib.uuid:
+                # Use the pre-generated UUID
+                lib = project.asset_libraries.new(name=asset_lib.name, directory=asset_lib.path, uuid=asset_lib.uuid)
+            else:
+                # Generate a new UUID for the asset library
+                lib = project.asset_libraries.new(name=asset_lib.name, directory=asset_lib.path)
+
+            if asset_lib.import_method:
+                lib.import_method = asset_lib.import_method
+            if asset_lib.use_relative_path:
+                lib.use_relative_path = asset_lib.use_relative_path
+
+    def __post_init__(self):
+        """Validation of invariants that cattrs doesn't check."""
+        if self.name == "":
+            raise ValueError("Project name cannot be empty.")
+
+        if self.variables is not None:
+            var_names = set()
+            for var in self.variables:
+                if var.name in var_names:
+                    raise ValueError("Duplicate project variable names are not allowed.")
+                var_names.add(var.name)
+
+
+# -------------------------------------------------------------
+# Helpers for cattrs
+
+def structure_int_float_str(obj: int | float | str, cl: type) -> int | float | str:
+    if isinstance(obj, int) or isinstance(obj, float) or isinstance(obj, str):
+        return obj
+    else:
+        raise ValueError(f"Cannot structure {obj!r} as int | float | str.")
 
 
 # -------------------------------------------------------------
@@ -167,15 +322,31 @@ def save_project(project, report=None):
         raise ProjectSaveException
 
     # Create a project config dict from the current project.
-    converter = cattrs.Converter()
-    config = ProjectConfig.new_from_project(project)
+    converter = cattrs.Converter(omit_if_default=True)
+    config = ProjectConfig.new_from_real(project)
     config_dict = converter.unstructure(config, ProjectConfig)
+
+    # Serialize the config to TOML.
+    #
+    # We set the "max" line length to something short so that TOML items are
+    # always serialized in the expanded format. Without that, e.g. project
+    # variables might *sometimes* be written in the more compact TOML syntax.
+    # Either format is fine, but flip-flopping is annoying for diffs, so we
+    # try to force just one here.
+    max_len_backup = tomli_w._writer.MAX_LINE_LENGTH
+    try:
+        tomli_w._writer.MAX_LINE_LENGTH = 10
+        config_toml = tomli_w.dumps(config_dict)
+    finally:
+        # Restore max line length, for any other users of tomli_w.
+        tomli_w._writer.MAX_LINE_LENGTH = max_len_backup
 
     # Write the config TOML file.
     config_path = root_path.joinpath(PROJECT_DIR, PROJECT_CONFIG)
+
     try:
-        with config_path.open(mode='wb') as f:
-            tomli_w.dump(config_dict, f)
+        with config_path.open(mode='wt') as f:
+            f.write(config_toml)
     except PermissionError:
         if report:
             report({'ERROR'}, rpt_("Cannot write to '{:s}' due to file-system permissions.").format(PROJECT_CONFIG))
@@ -227,7 +398,7 @@ def find_and_load_project_for_blend_path(context, blend_path, report=None):
     # Load project.
     config = read_project_toml_config(root_path, report)
     bpy.data.project_init(config.name, str(root_path))
-    config.populate_project(bpy.data.project)
+    config.populate_real(bpy.data.project)
     bpy.data.project.is_dirty = False
 
 
@@ -295,17 +466,12 @@ def read_project_toml_config(root_path, report=None):
 
     # Validate schema and convert to ProjectConfig class.
     converter = cattrs.Converter()
+    converter.register_structure_hook(int | float | str, structure_int_float_str)
     try:
         project_config = converter.structure(config_dict, ProjectConfig)
-    except cattrs.BaseValidationError as e:
+    except (cattrs.BaseValidationError, ValueError) as e:
         if report:
             report({'ERROR'}, rpt_("Invalid project configuration file: {:s}").format(str(e)))
-        raise ProjectLoadException
-
-    # Other validation not handled by the schema.
-    if project_config.name == "":
-        if report:
-            report({'ERROR'}, "Invalid project: project name is empty.")
         raise ProjectLoadException
 
     return project_config
@@ -480,6 +646,175 @@ class PROJECT_OT_OpenBlendInProject(Operator):
         return {'RUNNING_MODAL'}
 
 
+class PROJECT_OT_AddVariable(Operator):
+    """Add a new variable to the current project"""
+    bl_idname = "project.add_variable"
+    bl_label = "Add Variable"
+
+    variable_type: bpy.props.EnumProperty(
+        default='STRING',
+        items=[
+            ('STRING', "String Variable", ""),
+            ('FILEPATH', "Filepath Variable", ""),
+            ('INTEGER', "Integer Variable", ""),
+            ('FLOAT', "Float Variable", ""),
+        ],
+    )
+
+    @classmethod
+    def poll(cls, context):
+        return bpy.data.project is not None
+
+    def execute(self, context):
+        match self.variable_type:
+            case 'STRING':
+                bpy.data.project.variables.new(name="string_variable", type='STRING')
+            case 'FILEPATH':
+                var = bpy.data.project.variables.new(name="filepath_variable", type='STRING')
+                var.subtype = 'FILEPATH'
+            case 'INTEGER':
+                bpy.data.project.variables.new(name="integer_variable", type='INTEGER')
+            case 'FLOAT':
+                bpy.data.project.variables.new(name="float_variable", type='FLOAT')
+            case _:
+                assert (False)
+
+        return {'FINISHED'}
+
+
+class PROJECT_OT_RemoveVariable(Operator):
+    """Remove the active variable from the current project"""
+    bl_idname = "project.remove_variable"
+    bl_label = "Remove Variable"
+
+    @classmethod
+    def poll(cls, context):
+        project = bpy.data.project
+        if project is None:
+            return False
+        return project.active_variable_index >= 0 and project.active_variable_index < len(project.variables)
+
+    def execute(self, context):
+        project = bpy.data.project
+        var = project.variables[project.active_variable_index]
+        project.variables.remove(var)
+
+        return {'FINISHED'}
+
+
+class PROJECT_OT_MoveVariable(Operator):
+    """Move the active variable up or down in the list of variables"""
+    bl_idname = "project.move_variable"
+    bl_label = "Move Variable"
+
+    direction: bpy.props.EnumProperty(items=[
+        ('UP', "Move Up", ""),
+        ('DOWN', "Move Down", ""),
+    ])
+
+    @classmethod
+    def poll(cls, context):
+        project = bpy.data.project
+        if project is None:
+            return False
+        return project.active_variable_index >= 0 and project.active_variable_index < len(project.variables)
+
+    def execute(self, context):
+        project = bpy.data.project
+
+        index = project.active_variable_index
+        if self.direction == 'UP' and index > 0:
+            project.variables.move(index, index - 1)
+            project.active_variable_index -= 1
+        elif self.direction == 'DOWN' and (index + 1) < len(project.variables):
+            project.variables.move(index, index + 1)
+            project.active_variable_index += 1
+        return {'FINISHED'}
+
+
+class PROJECT_OT_AssetLibraryAdd(Operator):
+    """
+    Register a directory to be used by the Asset Browser and other places showing assets,
+    as source of assets within the current project.
+    """
+    bl_idname = "project.asset_library_add"
+    bl_label = "Add Asset Library"
+    bl_options = {'INTERNAL'}
+
+    directory: bpy.props.StringProperty(
+        name="Asset Library Directory",
+        subtype='DIR_PATH',
+        default="",
+    )
+
+    filter_folder: bpy.props.BoolProperty(
+        name="Filter folders",
+        default=True,
+        options={'HIDDEN'},
+    )
+
+    @classmethod
+    def poll(cls, context):
+        return bpy.data.project is not None
+
+    def execute(self, context):
+        if self.directory == "":
+            self.report({'ERROR'}, "Cannot create an assset library with an empty directory path.")
+            return {'CANCELLED'}
+
+        # Create an initial name from the folder name
+        #
+        # If the folder name contains no valid unicode (resulting in an empty
+        # string after processing), we fallback to a default.
+        asset_library_path = os.path.normpath(self.directory)
+        asset_library_name = os.path.basename(asset_library_path).title() \
+            .encode('utf-8', 'surrogateescape') \
+            .decode('utf-8', 'ignore') \
+            or data_(ASSET_LIBRARY_DEFAULT_NAME)
+
+        # Replace base path with {project_root} if it is within the project folder.
+        root_path = bpy.data.project.root_path
+        if asset_library_path.startswith(root_path):
+            asset_library_path = "{project_root}" + asset_library_path[len(root_path):]
+        bpy.data.project.asset_libraries.new(name=asset_library_name, directory=asset_library_path)
+
+        return {'FINISHED'}
+
+    def invoke(self, context, event):
+        context.window_manager.fileselect_add(self)
+        return {'RUNNING_MODAL'}
+
+
+class PROJECT_OT_AssetLibraryRemove(Operator):
+    """
+    Deregister an asset library so that its directory will no longer show up in
+    Asset Browsers and other places showing assets.
+    """
+    bl_idname = "project.asset_library_remove"
+    bl_label = "Remove Project Asset Library"
+    bl_options = {'INTERNAL'}
+
+    index: bpy.props.IntProperty(
+        name="Index",
+        default=0,
+    )
+
+    @classmethod
+    def poll(cls, context):
+        if bpy.data.project is None:
+            return False
+        return len(bpy.data.project.asset_libraries) != 0
+
+    def execute(self, context):
+        if self.index >= len(bpy.data.project.asset_libraries):
+            return {'CANCELLED'}
+
+        library = bpy.data.project.asset_libraries[self.index]
+        bpy.data.project.asset_libraries.remove(library)
+
+        return {'FINISHED'}
+
+
 # -------------------------------------------------------------
 # Handler Callbacks
 #
@@ -554,6 +889,11 @@ classes = (
     PROJECT_OT_NewProject,
     PROJECT_OT_SaveProject,
     PROJECT_OT_OpenBlendInProject,
+    PROJECT_OT_AddVariable,
+    PROJECT_OT_RemoveVariable,
+    PROJECT_OT_MoveVariable,
+    PROJECT_OT_AssetLibraryAdd,
+    PROJECT_OT_AssetLibraryRemove,
 )
 
 

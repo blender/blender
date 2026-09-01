@@ -1718,6 +1718,8 @@ if(WITH_UI_TESTS)
     test_search_in_editors.test_dopesheet_search
     test_search_in_editors.test_graph_editor_search
     test_search_in_editors.test_file_browser_search
+    test_operator_poll.test_operator_search_poll_gating
+    test_operator_poll.test_operator_poll_sweep
     test_sculpt.asset_shelf_brush_selection
     test_sculpt.face_set_expand
     test_sculpt.face_set_gestures
@@ -1766,6 +1768,14 @@ if(WITH_UI_TESTS)
     test_render.interactive_rendering_eevee
     test_render.animation_rendering_and_player
     test_bpy_types.unregister_referenced_type
+    test_drag_interactions.view3d_object_drag
+    test_drag_interactions.viewport_navigation_drags
+    test_drag_interactions.node_single_drag
+    test_drag_interactions.node_multiple_drag
+    test_drag_interactions.dopesheet_keyframe_drag
+    test_drag_interactions.graph_editor_drag
+    test_drag_interactions.uv_editor_drag
+    test_drag_interactions.image_editor_pan
     test_sequencer.compositor_modifier_mask_with_single_input
     test_menu_search_and_exec.view3d_add
     test_menu_search_and_exec.modifier_add

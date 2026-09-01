@@ -538,17 +538,14 @@ static void pose_slide_apply_quat(tPoseSlideOp *pso, SlideSubject *slide_subject
       /* Compute breakdown based on actual frame range. */
       const float interp_factor = (current_frame - pso->prev_frame) /
                                   float(pso->next_frame - pso->prev_frame);
-      ed::Rotation current = transformable->get_rotation();
       ed::Rotation breakdown = ed::rotation_interpolated(
           rot_prev_frame, rot_next_frame, interp_factor);
 
       if (pso->mode == POSESLIDE_PUSH) {
-        transformable->set_rotation(breakdown);
-        transformable->blend_rotation_to(current, factor, ed::AXIS_MUTABLE_ALL);
+        transformable->blend_rotation_to(breakdown, -factor, ed::AXIS_MUTABLE_ALL);
       }
       else {
         BLI_assert(pso->mode == POSESLIDE_RELAX);
-        transformable->set_rotation(current);
         transformable->blend_rotation_to(breakdown, factor, ed::AXIS_MUTABLE_ALL);
       }
       break;

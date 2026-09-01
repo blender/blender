@@ -24,6 +24,9 @@ std::string ParsedResource::serialize() const
   if (res_type == "legacy_info") {
     ss << "ADDITIONAL_INFO(" << var_name << ")";
   }
+  else if (res_type == "legacy_iface") {
+    ss << "VERTEX_OUT(" << var_type << "_t)";
+  }
   else if (res_type == "resource_table") {
     if (!res_condition.empty()) {
       ss << ".additional_info_with_condition(\"" << var_type << "\"" << res_condition_lambda
@@ -80,7 +83,8 @@ std::string ParsedResource::serialize() const
          << var_array.substr(1, var_array.size() - 2) << ")";
     }
     else {
-      ss << "PUSH_CONSTANT(" << var_type << ", " << var_name << ")";
+      ss << ".push_constant(Type::" << var_type << "_t, \"" << var_name << "\", 0"
+         << res_condition_lambda << ")";
     }
   }
   else if (res_type == "compilation_constant") {
@@ -177,8 +181,17 @@ std::string FragmentInputs::serialize() const
 
 std::string ParsedVertInput::serialize() const
 {
+  std::string res_condition_lambda;
+
+  if (!res_condition.empty()) {
+    res_condition_lambda = ", [](blender::Span<CompilationConstant> constants) { ";
+    res_condition_lambda += res_condition;
+    res_condition_lambda += "}";
+  }
+
   std::stringstream ss;
-  ss << "VERTEX_IN(" << slot << ", " << var_type << ", " << var_name << ")";
+  ss << ".vertex_in(" << slot << ", Type::" << var_type << "_t, \"" << var_name << "\""
+     << res_condition_lambda << ")";
   return ss.str();
 }
 

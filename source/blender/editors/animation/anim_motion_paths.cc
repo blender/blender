@@ -329,7 +329,6 @@ void animviz_calc_motionpaths(Depsgraph *depsgraph,
     /* Build list of all keyframes in active action for object or pchan. */
     mpt.keylist = ED_keylist_create();
 
-    Vector<FCurve *> fcurves;
     if (adt && adt->action) {
       /* Get pointer to animviz settings for each target. */
       bAnimVizSettings *avs = animviz_target_settings_get(mpt);
@@ -343,7 +342,6 @@ void animviz_calc_motionpaths(Depsgraph *depsgraph,
         agrp = cbag ? cbag->channel_group_find(mpt.pchan->name) : nullptr;
 
         if (agrp) {
-          fcurves = listbase_to_vector<FCurve>(agrp->channels);
           action_group_to_keylist(adt, agrp, mpt.keylist, 0, {-FLT_MAX, FLT_MAX});
         }
       }

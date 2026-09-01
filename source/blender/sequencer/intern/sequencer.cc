@@ -39,6 +39,7 @@
 #include "BKE_sound.hh"
 
 #include "DEG_depsgraph.hh"
+#include "DEG_depsgraph_query.hh"
 
 #include "MOV_read.hh"
 
@@ -934,8 +935,7 @@ static bool strip_write_data_cb(Strip *strip, void *userdata)
       writer->write_struct(data->proxy);
     }
     if (strip->type == STRIP_TYPE_IMAGE) {
-      writer->write_struct_array(MEM_allocN_len(data->stripdata) / sizeof(StripElem),
-                                 data->stripdata);
+      writer->write_struct_array(data->stripdata_num, data->stripdata);
     }
     else if (ELEM(strip->type, STRIP_TYPE_MOVIE, STRIP_TYPE_SOUND)) {
       writer->write_struct(data->stripdata);
@@ -1044,25 +1044,29 @@ static bool strip_read_data_cb(Strip *strip, void *user_data)
 
   BLO_read_struct(reader, StripData, &strip->data);
   if (strip->data) {
-    /* `STRIP_TYPE_SOUND_HD` case needs to be kept here, for backward compatibility. */
-    if (ELEM(strip->type,
-             STRIP_TYPE_IMAGE,
-             STRIP_TYPE_MOVIE,
-             STRIP_TYPE_SOUND,
-             STRIP_TYPE_SOUND_HD))
-    {
-      /* FIXME In #STRIP_TYPE_IMAGE case, there is currently no available information about the
-       * length of the stored array of #StripElem.
-       *
-       * This is 'not a problem' because the reading code only checks that the loaded buffer is at
-       * least large enough for the requested data (here a single #StripElem item), and always
-       * assign the whole read memory (without any truncating). But relying on this behavior is
-       * weak and should be addressed. */
-      BLO_read_struct(reader, StripElem, &strip->data->stripdata);
+    switch (strip->type) {
+      case STRIP_TYPE_IMAGE: {
+        /* Avoid using `strip->data->stripdata_num` since it is initialized by versioning code. */
+        const int count = strip->data->stripdata_num == 0 ?
+                              strip->anim_startofs + strip->len + strip->anim_endofs :
+                              strip->data->stripdata_num;
+        if (!BLO_read_array(reader, &strip->data->stripdata, count)) {
+          strip->data->stripdata_num = 0;
+        }
+        break;
+      }
+      case STRIP_TYPE_MOVIE:
+      case STRIP_TYPE_SOUND:
+      case STRIP_TYPE_SOUND_HD: {
+        /* `STRIP_TYPE_SOUND_HD` case needs to be kept here, for backward compatibility. */
+        BLO_read_struct(reader, StripElem, &strip->data->stripdata);
+        break;
+      }
+      default:
+        strip->data->stripdata = nullptr;
+        break;
     }
-    else {
-      strip->data->stripdata = nullptr;
-    }
+
     BLO_read_struct(reader, StripCrop, &strip->data->crop);
     BLO_read_struct(reader, StripTransform, &strip->data->transform);
     BLO_read_struct(reader, StripProxy, &strip->data->proxy);
@@ -1279,6 +1283,10 @@ static bool strip_sound_update_cb(Strip *strip, void *user_data)
 void eval_strips(Depsgraph *depsgraph, Scene *scene, ListBaseT<Strip> *seqbase)
 {
   DEG_debug_print_eval(depsgraph, __func__, scene->id.name, scene);
+
+  /* Note: sequencer caches are stored on the original scene, not the evaluated copy. */
+  relations_invalidate_temporary_animation_frame(DEG_get_original(scene));
+
   BKE_sound_ensure_scene(scene);
 
   foreach_strip(seqbase, strip_sound_update_cb, scene);

@@ -27,6 +27,7 @@ void main()
   /* Avoid undefined behavior after return. */
   final_color = float4(0.0f);
   gl_Position = float4(0.0f);
+  edge_start = edge_pos = float2(0.0f);
 
 #if defined(FACE_NORMAL) || defined(VERT_NORMAL) || defined(LOOP_NORMAL)
   /* Point primitive. */
@@ -138,6 +139,10 @@ void main()
   }
 
   gl_Position = drw_point_world_to_homogenous(world_pos);
+
+  /* Convert to screen position [0..sizeVp]. */
+  edge_start = edge_pos = ((gl_Position.xy / gl_Position.w) * 0.5f + 0.5f) *
+                          uniform_buf.size_viewport;
 
   final_color.a *= (test_occlusion()) ? alpha : 1.0f;
 

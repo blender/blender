@@ -214,8 +214,8 @@ static void filelist_readjob_start_ex(FileList *filelist,
   BKE_reports_init(&flrj->reports, RPT_STORE | RPT_PRINT);
   BKE_report_print_level_set(&flrj->reports, RPT_WARNING);
 
-  filelist->flags &= ~(FL_FORCE_RESET | FL_FORCE_RESET_MAIN_FILES | FL_RELOAD_ASSET_LIBRARY |
-                       FL_IS_READY);
+  filelist->flags &= ~(FL_FORCE_RESET | FL_FORCE_RESET_MAIN_FILES | FL_NEED_RESET_GLOB |
+                       FL_RELOAD_ASSET_LIBRARY | FL_IS_READY);
   filelist->flags |= FL_IS_PENDING;
 
   /* The file list type may not support threading so execute immediately. Same when only rereading
@@ -274,7 +274,7 @@ void filelist_readjob_stop(FileList *filelist, wmWindowManager *wm)
 
 int filelist_readjob_running(FileList *filelist, wmWindowManager *wm)
 {
-  return WM_jobs_test(wm, filelist, filelist_jobtype_get(filelist));
+  return WM_jobs_has_running(wm, filelist, filelist_jobtype_get(filelist));
 }
 
 }  // namespace blender

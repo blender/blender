@@ -744,7 +744,7 @@ static PyObject *bpy_app_is_job_running(PyObject * /*self*/, PyObject *args, PyO
      * to avoid breaking the Python API. */
     return PyBool_FromLong(GPU_is_init() && GPU_shader_compiler_has_pending_work());
   }
-  return PyBool_FromLong(WM_jobs_has_running_type(wm, job_type_enum.value));
+  return PyBool_FromLong(WM_jobs_has_running(wm, nullptr, eWM_JobType(job_type_enum.value)));
 }
 
 char *(*BPY_python_app_help_text_fn)(bool all) = nullptr;

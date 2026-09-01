@@ -1,9 +1,9 @@
 
 msgid ""
 msgstr ""
-"Project-Id-Version: Blender 5.3.0 Alpha (b'af4852ed4560')\n"
+"Project-Id-Version: Blender 5.3.0 Alpha (b'32296898e057')\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-08-10 07:54+0000\n"
+"POT-Creation-Date: 2026-08-31 07:41+0000\n"
 "PO-Revision-Date: 2026-02-24 05:12+0000\n"
 "Last-Translator: தமிழ்நேரம் <anishprabu.t@gmail.com>\n"
 "Language-Team: Tamil <https://translate.blender.org/projects/blender-ui/ui/ta/>\n"
@@ -3840,32 +3840,16 @@ msgid "A color space, view or display was not found, which likely means the Open
 msgstr "ஒரு வண்ண இடம், காட்சி அல்லது காட்சி கிடைக்கவில்லை, அதாவது இந்த கலவை கோப்பை உருவாக்க பயன்படுத்தப்படும் OpenColorIO கட்டமைப்பு காணவில்லை."
 
 
-msgid "Working Space"
-msgstr "வேலை செய்யும் இடம்"
-
-
 msgid "Color space used for all scene linear colors in this file, and for compositing, shader and geometry nodes processing"
 msgstr "இந்தக் கோப்பில் உள்ள அனைத்து காட்சி நேரியல் வண்ணங்களுக்கும், தொகுத்தல், சேடர் மற்றும் வடிவியல் முனைகள் செயலாக்கத்திற்கும் வண்ண இடைவெளி பயன்படுத்தப்படுகிறது."
-
-
-msgid "Linear Rec.709"
-msgstr "நேரியல் rec.709"
 
 
 msgid "Linear BT.709 with illuminant D65 white point"
 msgstr "ஒளிரும் டி 65 வெள்ளை புள்ளியுடன் நேரியல் பி.டி.709"
 
 
-msgid "Linear Rec.2020"
-msgstr "நேரியல் ரெக் .2020"
-
-
 msgid "Linear BT.2020 with illuminant D65 white point"
 msgstr "ஒளிரும் டி 65 வெள்ளை புள்ளியுடன் நேரியல் பி.டி .2020"
-
-
-msgid "ACEScg"
-msgstr "acescg"
 
 
 msgid "Linear AP1 with ACES white point"
@@ -4077,12 +4061,8 @@ msgid "Collection of source libraries, i.e. blendfile paths"
 msgstr "மூல நூலகங்களின் சேகரிப்பு, அதாவது பிளெண்ட்ஃபைல் பாதைகள்"
 
 
-msgid "Blendfile Import Context Library"
-msgstr "பிளெண்ட்ஃபைல் இறக்குமதி சூழல் நூலகம்"
-
-
-msgid "Library (blendfile) reference in a BlendImportContext data. Currently only exposed as read-only data for the pre/post blendimport handlers"
-msgstr "ஒரு பிளெண்டிம்போர்ட் கான்டெக்ச்ட் தரவில் நூலகம் (பிளெண்ட்ஃபைல்) குறிப்பு. தற்போது முன்/போச்ட் பிளெண்டிம்போர்ட் கையாளுபவர்களுக்கான படிக்க மட்டும் தரவுகளாக மட்டுமே அம்பலப்படுத்தப்பட்டுள்ளது"
+msgid "Active Asset Library"
+msgstr "செயலில் சொத்து நூலகம்"
 
 
 msgid "Dirty"
@@ -7572,10 +7552,6 @@ msgid "Color management specific to display device"
 msgstr "சாதனத்தைக் காண்பிக்க வண்ண மேலாண்மை குறிப்பிட்டது"
 
 
-msgid "Display"
-msgstr "காட்சி"
-
-
 msgid "Display name. For viewing, this is the display device that will be emulated by limiting the gamut and HDR colors. For image and video output, this is the display space used for writing."
 msgstr "காட்சி பெயர். பார்ப்பதற்கு, வரம்பு மற்றும் HDR வண்ணங்களைக் கட்டுப்படுத்துவதன் மூலம் பின்பற்றப்படும் காட்சி சாதனம் இதுவாகும். படம் மற்றும் வீடியோ வெளியீட்டிற்கு, இது எழுதுவதற்குப் பயன்படுத்தப்படும் காட்சி இடம்."
 
@@ -7608,148 +7584,64 @@ msgid "Treat image as non-color data without color management, like normal or di
 msgstr "சாதாரண அல்லது இடப்பெயர்ச்சி வரைபடங்கள் போன்ற வண்ண மேலாண்மை இல்லாமல் படத்தை வண்ணமற்ற தரவுகளாக கருதுங்கள்"
 
 
-msgid "Input Color Space"
-msgstr "உள்ளீட்டு வண்ண இடம்"
-
-
 msgid "Color space in the image file, to convert to and from when saving and loading the image"
 msgstr "படக் கோப்பில் வண்ண இடம், படத்தை சேமித்து ஏற்றும்போது மாற்றவும்"
-
-
-msgid "ACES 1.3 sRGB"
-msgstr "ACES 1.3 sRGB"
-
-
-msgid "ACES 2.0 sRGB"
-msgstr "ACES 2.0 sRGB"
-
-
-msgid "ACES2065-1"
-msgstr "aces2065-1"
 
 
 msgid "Linear AP0 with ACES white point"
 msgstr "aces வெள்ளை புள்ளியுடன் நேரியல் ap0"
 
 
-msgid "ACEScc"
-msgstr "ACEScc"
-
-
 msgid "ACES color correction space, using AP1 primaries."
 msgstr "AP1 ப்ரைமரிகளைப் பயன்படுத்தி ACES வண்ணத் திருத்த இடம்."
-
-
-msgid "ACEScct"
-msgstr "THISScc"
 
 
 msgid "ACES color correction space with toe, using AP1 primaries."
 msgstr "AP1 ப்ரைமரிகளைப் பயன்படுத்தி, கால்விரலுடன் ACES வண்ணத் திருத்த இடம்."
 
 
-msgid "AgX Base sRGB"
-msgstr "agx base srgb"
-
-
-msgid "AgX Log"
-msgstr "agx பதிவு"
-
-
 msgid "Log Encoding with Chroma inset and rotation of primaries, and with 25 Stops of Dynamic Range"
 msgstr "குரோமா இன்செட் மற்றும் முதன்மையான சுழற்சியுடன் பதிவு குறியாக்கம், மற்றும் மாறும் வரம்பின் 25 நிறுத்தங்களுடன்"
-
-
-msgid "Display P3"
-msgstr "பி 3 காட்சி"
 
 
 msgid "Apple's Display P3 with sRGB compound (piece-wise) encoding transfer function, common on Mac devices"
 msgstr "எச்ஆர்சிபி கலவை (துண்டு வாரியாக) குறியாக்க பரிமாற்ற செயல்பாட்டுடன் ஆப்பிளின் காட்சி பி3, மேக் சாதனங்களில் பொதுவானது"
 
 
-msgid "Filmic Log"
-msgstr "திரைப்பட பதிவு"
-
-
 msgid "Log based filmic shaper with 16.5 stops of latitude, and 25 stops of dynamic range"
 msgstr "அட்சரேகை 16.5 நிறுத்தங்கள், மற்றும் மாறும் வரம்பின் 25 நிறுத்தங்கள் கொண்ட பதிவு அடிப்படையிலான திரைப்பட சேப்பர்"
-
-
-msgid "Filmic sRGB"
-msgstr "திரைப்பட எச்ஆர்சிபி"
-
-
-msgid "Khronos PBR Neutral sRGB"
-msgstr "க்ரோனோச் எஃப்.பி.ஐ நடுநிலை சி.சி.சி.பி"
-
-
-msgid "Linear CIE-XYZ D65"
-msgstr "நேரியல் cie-xyz d65"
 
 
 msgid "1931 CIE XYZ with adapted illuminant D65 white point"
 msgstr "1931 cie xyz தழுவிய வெளிச்சம் d65 வெள்ளை புள்ளியுடன்"
 
 
-msgid "Linear CIE-XYZ E"
-msgstr "நேரியல் cie-xyz e"
-
-
 msgid "1931 CIE XYZ standard with assumed illuminant E white point"
 msgstr "1931 cie xyz தரநிலை கருதப்பட்ட ஒளிரும் மின் வெள்ளை புள்ளியுடன்"
-
-
-msgid "Linear DCI-P3 D65"
-msgstr "நேரியல் dci-p3 d65"
 
 
 msgid "Linear DCI-P3 with illuminant D65 white point"
 msgstr "ஒளிரும் டி 65 வெள்ளை புள்ளியுடன் நேரியல் டி.சி.ஐ-பி 3"
 
 
-msgid "Linear FilmLight E-Gamut"
-msgstr "நேரியல் திரைப்படஒளி இ-காமட்"
-
-
 msgid "Linear E-Gamut with illuminant D65 white point"
 msgstr "ஒளிரும் டி 65 வெள்ளை புள்ளியுடன் நேரியல் ஈ-காமட்"
-
-
-msgid "Non-Color"
-msgstr "அல்லாத வண்ணம்"
 
 
 msgid "Generic data that is not color, will not apply any color transform (e.g. normal maps)"
 msgstr "வண்ணம் இல்லாத பொதுவான தரவு, எந்த வண்ண உருமாற்றத்தையும் பயன்படுத்தாது (எ.கா. சாதாரண வரைபடங்கள்)"
 
 
-msgid "Rec.1886"
-msgstr "ரெக்.1886"
-
-
 msgid "BT.1886 2.4 Exponent EOTF Display, commonly used for TVs"
 msgstr "bt.1886 2.4 அதிவேக eotf டிச்ப்ளே, பொதுவாக தொலைக்காட்சிகளுக்கு பயன்படுத்தப்படுகிறது"
-
-
-msgid "Rec.2020"
-msgstr "ரெக் .2020"
 
 
 msgid "BT.2020 2.4 Exponent EOTF Display"
 msgstr "bt.2020 2.4 அதிவேக eotf காட்சி"
 
 
-msgid "Rec.2100-HLG"
-msgstr "Rec.2100-Hlg"
-
-
 msgid "Rec.2100-HLG 1000 nits peak display with reference white at 100 nits"
 msgstr "Rec.2100-HLG 1000 NITS உச்ச காட்சி 100 NIT களில் குறிப்பு வெள்ளை நிறத்துடன்"
-
-
-msgid "Rec.2100-PQ"
-msgstr "Rec.2100-PQ"
 
 
 msgid "Rec.2100-PQ 10000 nits peak display with reference white at 100 nits"
@@ -7808,10 +7700,6 @@ msgid "The display and view transform supports high dynamic range colors"
 msgstr "காட்சி மற்றும் காட்சி மாற்றம் உயர் மாறும் வரம்பு வண்ணங்களை ஆதரிக்கிறது"
 
 
-msgid "Look"
-msgstr "பார்"
-
-
 msgid "Additional transform applied before view transform for artistic needs"
 msgstr "கலைத் தேவைகளுக்கான பார்வைக்கு முன் கூடுதல் மாற்றம் பயன்படுத்தப்படுகிறது"
 
@@ -7842,10 +7730,6 @@ msgstr "வெள்ளை சமநிலையைப் பயன்படு�
 
 msgid "Perform chromatic adaption from a different white point"
 msgstr "வேறு வெள்ளை புள்ளியிலிருந்து வண்ணத் தழுவல் செய்யுங்கள்"
-
-
-msgid "View"
-msgstr "பார்வை"
 
 
 msgid "View used when converting image to a display space"
@@ -8127,6 +8011,14 @@ msgstr "வண்ண வளைவு கூறுகள்"
 
 msgid "Collection of Color Ramp Elements"
 msgstr "வண்ண வளைவு கூறுகளின் தொகுப்பு"
+
+
+msgid "Identifier"
+msgstr "அடையாளங்காட்டி"
+
+
+msgid "Consistent identifier used for the item"
+msgstr "உருப்படிக்கு பயன்படுத்தப்படும் நிலையான அடையாளங்காட்டி"
 
 
 msgid "Console Input"
@@ -10884,6 +10776,10 @@ msgid "Draw in the surface plane"
 msgstr "மேற்பரப்பு விமானத்தில் வரையவும்"
 
 
+msgid "View"
+msgstr "பார்வை"
+
+
 msgid "Draw in a plane aligned to the viewport"
 msgstr "காட்சியமைப்புடன் சீரமைக்கப்பட்ட விமானத்தில் வரையவும்"
 
@@ -12822,10 +12718,6 @@ msgstr "ஒரு ஆர்என்ஏ எனும் சொத்தில்
 
 msgid "Description of the item's purpose"
 msgstr "உருப்படியின் நோக்கம் பற்றிய விளக்கம்"
-
-
-msgid "Identifier"
-msgstr "அடையாளங்காட்டி"
 
 
 msgid "Unique name used in the code and scripting"
@@ -20875,6 +20767,26 @@ msgid "Automatically adjust strength to give consistent results for different sp
 msgstr "வெவ்வேறு இடைவெளிகளுக்கு நிலையான முடிவுகளை வழங்க வலிமையை தானாக சரிசெய்யவும்"
 
 
+msgid "Use Unified Color"
+msgstr "ஒருங்கிணைந்த வண்ணத்தைப் பயன்படுத்துங்கள்"
+
+
+msgid "Use Unified Input Samples"
+msgstr "ஒருங்கிணைந்த உள்ளீட்டு மாதிரிகளைப் பயன்படுத்தவும்"
+
+
+msgid "Use Unified Size"
+msgstr "ஒருங்கிணைந்த அளவைப் பயன்படுத்தவும்"
+
+
+msgid "Use Unified Strength"
+msgstr "ஒருங்கிணைந்த வலிமையைப் பயன்படுத்துங்கள்"
+
+
+msgid "Use Unified Weight"
+msgstr "ஒருங்கிணைந்த எடையைப் பயன்படுத்துங்கள்"
+
+
 msgid "Use this brush in Grease Pencil vertex color mode"
 msgstr "இந்த தூரிகையை கிரீச் பென்சில் வெர்டெக்ச் வண்ண பயன்முறையில் பயன்படுத்தவும்"
 
@@ -26922,6 +26834,10 @@ msgid "Axis"
 msgstr "அச்சு"
 
 
+msgid "Display"
+msgstr "காட்சி"
+
+
 msgid "Percentage of particles to display in 3D view"
 msgstr "3d பார்வையில் காண்பிக்க துகள்களின் விழுக்காடு"
 
@@ -27943,10 +27859,6 @@ msgstr "செயலில் உள்ள கேமரா, காட்சி�
 
 msgid "Scene root collection that owns all the objects and other collections instantiated in the scene"
 msgstr "காட்சியில் உடனடிப்படுத்தப்பட்ட அனைத்து பொருள்களையும் பிற தொகுப்புகளையும் வைத்திருக்கும் காட்சி வேர் சேகரிப்பு"
-
-
-msgid "Compositor Nodes"
-msgstr "கலவை முனைகள்"
 
 
 msgid "3D Cursor"
@@ -30946,10 +30858,6 @@ msgstr "படத்தில் படங்களை சுழற்சி ச
 
 msgid "Index Switch Item"
 msgstr "குறியீட்டு சுவிட்ச் உருப்படி"
-
-
-msgid "Consistent identifier used for the item"
-msgstr "உருப்படிக்கு பயன்படுத்தப்படும் நிலையான அடையாளங்காட்டி"
 
 
 msgid "2D Integer Vector Attribute Value"
@@ -34896,50 +34804,6 @@ msgid "Editor menu containing buttons"
 msgstr "பொத்தான்களைக் கொண்ட திருத்தி பட்டியல்"
 
 
-msgid "Names"
-msgstr "பெயர்கள்"
-
-
-msgid "Bone Roll"
-msgstr "எலும்பு ரோல்"
-
-
-msgid "Show/Hide"
-msgstr "காட்டு/மறைக்க"
-
-
-msgid "Clean Up"
-msgstr "தூய்மை செய்"
-
-
-msgid "Adjust"
-msgstr "சரிசெய்யவும்"
-
-
-msgid "Keying"
-msgstr "கீயிங்"
-
-
-msgid "Tracking"
-msgstr "கண்காணிப்பு"
-
-
-msgid "Utilities"
-msgstr "பயன்பாடுகள்"
-
-
-msgid "Math"
-msgstr "கணிதம்"
-
-
-msgid "Pivot Point"
-msgstr "பிவோட் புள்ளி"
-
-
-msgid "Creative"
-msgstr "படைப்பாற்றல்"
-
-
 msgid "Snap"
 msgstr "ச்னாப்"
 
@@ -34948,24 +34812,56 @@ msgid "Proportional Editing Falloff"
 msgstr "விகிதாசார திருத்துதல் வீழ்ச்சி"
 
 
+msgid "Read"
+msgstr "படி"
+
+
 msgid "Mask Edit"
 msgstr "முகமூடி திருத்து"
+
+
+msgid "Sample"
+msgstr "மாதிரி"
 
 
 msgid "Automasking"
 msgstr "ஆட்டோமேச்கிங்"
 
 
+msgid "Write"
+msgstr "எழுதுங்கள்"
+
+
 msgid "Face Sets Edit"
 msgstr "முகம் தொகுப்புகள் திருத்து"
+
+
+msgid "Primitives"
+msgstr "ப்ரைமிடிவ்ச்"
 
 
 msgid "Vertex Group Locks"
 msgstr "வெர்டெக்ச் குழு பூட்டுகள்"
 
 
+msgid "Gizmo"
+msgstr "கிச்மோ"
+
+
+msgid "Instances"
+msgstr "நிகழ்வுகள்"
+
+
+msgid "Import"
+msgstr "இறக்குமதி"
+
+
 msgid "Mirror"
 msgstr "கண்ணாடி"
+
+
+msgid "Render Preview"
+msgstr "வழங்குதல் முன்னோட்டம்"
 
 
 msgid "UV Mapping"
@@ -34976,8 +34872,16 @@ msgid "Local View"
 msgstr "உள்ளக பார்வை"
 
 
+msgid "Utilities"
+msgstr "பயன்பாடுகள்"
+
+
 msgid "Viewpoint"
 msgstr "பார்வை"
+
+
+msgid "Deprecated"
+msgstr "மதிப்பிடப்பட்டது"
 
 
 msgid "Navigation"
@@ -35000,6 +34904,14 @@ msgid "Select More/Less"
 msgstr "மேலும்/குறைவாக தேர்ந்தெடுக்கவும்"
 
 
+msgid "Math"
+msgstr "கணிதம்"
+
+
+msgid "UV"
+msgstr "புறஊதா"
+
+
 msgid "Select Similar"
 msgstr "ஒத்ததைத் தேர்ந்தெடுக்கவும்"
 
@@ -35020,22 +34932,6 @@ msgid "Assign Material"
 msgstr "மூலப்பொருள் ஒதுக்க"
 
 
-msgid "Read"
-msgstr "படி"
-
-
-msgid "Sample"
-msgstr "மாதிரி"
-
-
-msgid "Write"
-msgstr "எழுதுங்கள்"
-
-
-msgid "Primitives"
-msgstr "ப்ரைமிடிவ்ச்"
-
-
 msgid "Metaball"
 msgstr "வளர்சிதை மாற்ற"
 
@@ -35052,20 +34948,8 @@ msgid "Add Image"
 msgstr "படத்தைச் சேர்க்கவும்"
 
 
-msgid "Gizmo"
-msgstr "கிச்மோ"
-
-
 msgid "Relations"
 msgstr "உறவுகள்"
-
-
-msgid "Instances"
-msgstr "நிகழ்வுகள்"
-
-
-msgid "Render Preview"
-msgstr "வழங்குதல் முன்னோட்டம்"
 
 
 msgid "Rigid Body"
@@ -35076,10 +34960,6 @@ msgid "Apply"
 msgstr "இடு"
 
 
-msgid "Import"
-msgstr "இறக்குமதி"
-
-
 msgid "Track"
 msgstr "டிராக்"
 
@@ -35088,12 +34968,24 @@ msgid "Quick Effects"
 msgstr "விரைவான விளைவுகள்"
 
 
+msgid "Show/Hide"
+msgstr "காட்டு/மறைக்க"
+
+
+msgid "Linked"
+msgstr "இணைக்கப்பட்ட"
+
+
+msgid "Clean Up"
+msgstr "தூய்மை செய்"
+
+
+msgid "Layout"
+msgstr "தளவமைப்பு"
+
+
 msgid "Asset"
 msgstr "சொத்து"
-
-
-msgid "Deprecated"
-msgstr "மதிப்பிடப்பட்டது"
 
 
 msgid "Make Single User"
@@ -35112,12 +35004,12 @@ msgid "Hooks"
 msgstr "கொக்கிகள்"
 
 
-msgid "UV"
-msgstr "புறஊதா"
-
-
 msgid "Trim/Add"
 msgstr "டிரிம்/சேர்"
+
+
+msgid "Adjust"
+msgstr "சரிசெய்யவும்"
 
 
 msgid "Sculpt Set Pivot"
@@ -35130,6 +35022,14 @@ msgstr "முகம் தொடங்குகிறது"
 
 msgid "Random Mask"
 msgstr "சீரற்ற முகமூடி"
+
+
+msgid "Keying"
+msgstr "கீயிங்"
+
+
+msgid "Tracking"
+msgstr "கண்காணிப்பு"
 
 
 msgid "Clear Transform"
@@ -35146,6 +35046,14 @@ msgstr "பிரச்சாரம்"
 
 msgid "Bone Collections"
 msgstr "எலும்பு வசூல்"
+
+
+msgid "Names"
+msgstr "பெயர்கள்"
+
+
+msgid "Creative"
+msgstr "படைப்பாற்றல்"
 
 
 msgid "Toggle Bone Options"
@@ -35180,20 +35088,20 @@ msgid "Merge"
 msgstr "ஒன்றிணைக்கவும்"
 
 
-msgid "Linked"
-msgstr "இணைக்கப்பட்ட"
+msgid "Pivot Point"
+msgstr "பிவோட் புள்ளி"
 
 
 msgid "Special Characters"
 msgstr "சிறப்பு எழுத்துக்கள்"
 
 
-msgid "Layout"
-msgstr "தளவமைப்பு"
-
-
 msgid "Kerning"
 msgstr "கெர்னிங்"
+
+
+msgid "Bone Roll"
+msgstr "எலும்பு ரோல்"
 
 
 msgid "Keyframe Insert Pie"
@@ -35535,10 +35443,6 @@ msgstr "இயற்பியல்"
 
 msgid "Shadow Linking Specials"
 msgstr "நிழல் இணைக்கும் சிறப்பு"
-
-
-msgid "ID Data"
-msgstr "அடையாளம் தரவு"
 
 
 msgid "Particle Specials"
@@ -45217,16 +45121,8 @@ msgid "Convert between color spaces"
 msgstr "வண்ண இடைவெளிகளுக்கு இடையில் மாற்றவும்"
 
 
-msgid "From"
-msgstr "இருந்து"
-
-
 msgid "Color space of the input image"
 msgstr "உள்ளீட்டு படத்தின் வண்ண இடம்"
-
-
-msgid "To"
-msgstr "பெறுநர்"
 
 
 msgid "Color space of the output image"
@@ -55042,6 +54938,11 @@ msgid "Install Theme..."
 msgstr "கருப்பொருள் நிறுவவும் ..."
 
 
+msgctxt "Operator"
+msgid "Add Asset Library"
+msgstr "சொத்து நூலகத்தைச் சேர்க்கவும்"
+
+
 msgid "Add or remove a white balance preset"
 msgstr "வெள்ளை இருப்பு முன்னமைவைச் சேர்க்கவும் அல்லது அகற்றவும்"
 
@@ -58670,8 +58571,8 @@ msgstr "பண்புகள் திருத்தி சூழல்_மெ
 
 
 msgctxt "Operator"
-msgid "Accept"
-msgstr "ஏற்றுக்கொள்"
+msgid "Select Directory"
+msgstr "கோப்பகத்தைத் தேர்ந்தெடு"
 
 
 msgid "Open a directory browser, hold Shift to open the file, Alt to browse containing directory"
@@ -63434,11 +63335,6 @@ msgstr "(டி) எல்லா கோப்புகளையும் தே�
 
 msgid "Select or deselect all files"
 msgstr "எல்லா கோப்புகளையும் தேர்ந்தெடுக்கவும் அல்லது தேர்வுநீக்கவும்"
-
-
-msgctxt "Operator"
-msgid "Select Directory"
-msgstr "கோப்பகத்தைத் தேர்ந்தெடு"
 
 
 msgid "Select a bookmarked directory"
@@ -72801,10 +72697,6 @@ msgid "Toggle muting of selected nodes"
 msgstr "தேர்ந்தெடுக்கப்பட்ட முனைகளை மாற்றியமைக்கவும்"
 
 
-msgid "Create a new compositing node group and initialize it with default nodes"
-msgstr "புதிய தொகுக்கும் முனை குழுவை உருவாக்கி இயல்புநிலை முனைகளுடன் துவக்கவும்"
-
-
 msgctxt "Operator"
 msgid "New Compositor Sequencer Node Group"
 msgstr "புதிய கம்போசிட்டர் சீக்வென்சர் நோட் குழு"
@@ -79863,17 +79755,16 @@ msgid "Remove existing template with the same ID"
 msgstr "அதே ஐடியுடன் இருக்கும் வார்ப்புருவை அகற்றவும்"
 
 
-msgctxt "Operator"
-msgid "Add Asset Library"
-msgstr "சொத்து நூலகத்தைச் சேர்க்கவும்"
-
-
 msgid "Add a directory to be used by the Asset Browser as source of assets"
 msgstr "சொத்துக்களின் மூலமாக சொத்து உலாவி பயன்படுத்த ஒரு கோப்பகத்தைச் சேர்க்கவும்"
 
 
 msgid "Identifier (not necessarily unique) for the asset library"
 msgstr "சொத்து நூலகத்திற்கு அடையாளங்காட்டி (அவசியமாக இல்லை)"
+
+
+msgid "Requires Access Token"
+msgstr "அணுகல் கிள்ளாக்கு தேவை"
 
 
 msgctxt "Operator"
@@ -79963,10 +79854,6 @@ msgstr "உள்ளக களஞ்சியத்தைச் சேர்க�
 
 msgid "Add a repository managed manually without referencing an external repository"
 msgstr "வெளிப்புற களஞ்சியத்தைக் குறிப்பிடாமல் கைமுறையாக நிர்வகிக்கப்படும் களஞ்சியத்தைச் சேர்க்கவும்"
-
-
-msgid "Requires Access Token"
-msgstr "அணுகல் கிள்ளாக்கு தேவை"
 
 
 msgid "Repository requires an access token"
@@ -81154,6 +81041,10 @@ msgstr "புதிய திரை"
 
 msgid "Add a new screen"
 msgstr "புதிய திரையைச் சேர்க்கவும்"
+
+
+msgid "Active Section"
+msgstr "செயலில் உள்ள பிரிவு"
 
 
 msgctxt "Operator"
@@ -91715,18 +91606,6 @@ msgid "Panel containing UI elements"
 msgstr "இடைமுகம் கூறுகளைக் கொண்ட குழு"
 
 
-msgid "glTF Material Variants"
-msgstr "GLTF பொருள் மாறுபாடுகள்"
-
-
-msgid "glTF"
-msgstr "gltf"
-
-
-msgid "glTF Animations"
-msgstr "GLTF அனிமேசன்கள்"
-
-
 msgid "Active Tool"
 msgstr "செயலில் உள்ள கருவி"
 
@@ -91849,6 +91728,18 @@ msgstr "வி.ஆர் செய்தி"
 
 msgid "glTF Variants"
 msgstr "gltf வகைகள்"
+
+
+msgid "glTF Material Variants"
+msgstr "GLTF பொருள் மாறுபாடுகள்"
+
+
+msgid "glTF"
+msgstr "gltf"
+
+
+msgid "glTF Animations"
+msgstr "GLTF அனிமேசன்கள்"
 
 
 msgid "Import Settings"
@@ -92668,6 +92559,10 @@ msgid "White Balance Presets"
 msgstr "வெள்ளை இருப்பு முன்னமைவுகள்"
 
 
+msgid "Working Space"
+msgstr "வேலை செய்யும் இடம்"
+
+
 msgid "Denoising"
 msgstr "டெனோயிங்"
 
@@ -92813,10 +92708,6 @@ msgstr "கண்டுபிடித்து மாற்றவும்"
 
 msgid "Auto Keying"
 msgstr "ஆட்டோ கீயிங்"
-
-
-msgid "Time Jump"
-msgstr "நேரம் தாண்டுதல்"
 
 
 msgid "Keyframing"
@@ -93480,10 +93371,6 @@ msgstr "தேர்வு வண்ணப்பூச்சு"
 
 msgid "Clone from Paint Slot"
 msgstr "வண்ணப்பூச்சு ச்லாட்டிலிருந்து நகலி"
-
-
-msgid "Front-Face Falloff"
-msgstr "முன் முகம் வீழ்ச்சி"
 
 
 msgid "Normal Falloff"
@@ -94768,10 +94655,6 @@ msgid "Global preferences"
 msgstr "உலகளாவிய விருப்பத்தேர்வுகள்"
 
 
-msgid "Active Section"
-msgstr "செயலில் உள்ள பிரிவு"
-
-
 msgid "Application Template"
 msgstr "பயன்பாட்டு வார்ப்புரு"
 
@@ -95483,10 +95366,6 @@ msgstr "நிகழ்நிலை அணுகல்"
 
 msgid "The user has been shown the \"Online Access\" prompt and made a choice"
 msgstr "பயனருக்கு \"நிகழ்நிலை அணுகல்\" வரியில் காட்டப்பட்டு ஒரு தேர்வு செய்தது"
-
-
-msgid "Active Asset Library"
-msgstr "செயலில் சொத்து நூலகம்"
 
 
 msgid "Index of the asset library being edited in the Preferences UI"
@@ -97787,6 +97666,10 @@ msgid "RNA wrapped string"
 msgstr "ஆர்என்ஏ மூடப்பட்ட சரம்"
 
 
+msgid "Subtype"
+msgstr "துணை வகை"
+
+
 msgid "Property Definition"
 msgstr "சொத்து வரையறை"
 
@@ -99348,10 +99231,6 @@ msgstr "வியூபோர்ட்டில் ஒவ்வொரு பொ�
 
 msgid "Pause Preview"
 msgstr "இடைநிறுத்தம் முன்னோட்டம்"
-
-
-msgid "Pause all viewport preview renders"
-msgstr "அனைத்து வியூபோர்ட் முன்னோட்ட ரெண்டர்களையும் இடைநிறுத்தவும்"
 
 
 msgid "Viewport Samples"
@@ -103003,6 +102882,10 @@ msgid "How much the spring has to be stretched/compressed in order to change its
 msgstr "அதன் ஓய்வு நீளத்தை மாற்ற வசந்தத்தை எவ்வளவு நீட்ட வேண்டும்/சுருக்க வேண்டும்"
 
 
+msgid "Use effect during render"
+msgstr "ரெண்டரின் போது விளைவைப் பயன்படுத்துங்கள்"
+
+
 msgid "Light Direction"
 msgstr "ஒளி திசை"
 
@@ -104124,10 +104007,6 @@ msgstr "பயனர் இடைமுகத்தில் விளைவு 
 
 msgid "Display effect in Edit mode"
 msgstr "திருத்து பயன்முறையில் விளைவைக் காண்பி"
-
-
-msgid "Use effect during render"
-msgstr "ரெண்டரின் போது விளைவைப் பயன்படுத்துங்கள்"
 
 
 msgid "Display effect in viewport"
@@ -112882,40 +112761,20 @@ msgid "Diameter of the brush"
 msgstr "தூரிகையின் விட்டம்"
 
 
-msgid "Use Unified Color"
-msgstr "ஒருங்கிணைந்த வண்ணத்தைப் பயன்படுத்துங்கள்"
-
-
 msgid "Instead of per-brush color, the color is shared across brushes"
 msgstr "பிரச் நிறத்திற்கு பதிலாக, வண்ணம் தூரிகைகள் முழுவதும் பகிரப்படுகிறது"
-
-
-msgid "Use Unified Input Samples"
-msgstr "ஒருங்கிணைந்த உள்ளீட்டு மாதிரிகளைப் பயன்படுத்தவும்"
 
 
 msgid "Instead of per-brush input samples, the value is shared across brushes"
 msgstr "ஒரு பிரச் உள்ளீட்டு மாதிரிகளுக்கு பதிலாக, மதிப்பு தூரிகைகள் முழுவதும் பகிரப்படுகிறது"
 
 
-msgid "Use Unified Size"
-msgstr "ஒருங்கிணைந்த அளவைப் பயன்படுத்தவும்"
-
-
 msgid "Instead of per-brush size, the size is shared across brushes"
 msgstr "ஒவ்வொரு தூரிகை அளவிற்குப் பதிலாக, அளவு தூரிகைகள் முழுவதும் பகிரப்படுகிறது"
 
 
-msgid "Use Unified Strength"
-msgstr "ஒருங்கிணைந்த வலிமையைப் பயன்படுத்துங்கள்"
-
-
 msgid "Instead of per-brush strength, the strength is shared across brushes"
 msgstr "ஒரு பிரச் வலிமைக்கு பதிலாக, தூரிகைகள் முழுவதும் வலிமை பகிரப்படுகிறது"
-
-
-msgid "Use Unified Weight"
-msgstr "ஒருங்கிணைந்த எடையைப் பயன்படுத்துங்கள்"
 
 
 msgid "Instead of per-brush weight, the weight is shared across brushes"
@@ -113024,6 +112883,10 @@ msgstr "இந்த சொத்து நூலகத்திலிருந�
 
 msgid "Use Remote"
 msgstr "தொலைதூரத்தைப் பயன்படுத்துங்கள்"
+
+
+msgid "UUID"
+msgstr "uuid"
 
 
 msgid "Extension Repository"
@@ -116039,46 +115902,6 @@ msgstr "3d பார்வை கருவி: உருமாற்றம் (�
 
 
 msgctxt "WindowManager"
-msgid "Generic Tool: Annotate"
-msgstr "பொதுவான கருவி: சிறுகுறிப்பு"
-
-
-msgctxt "WindowManager"
-msgid "Generic Tool: Annotate (fallback)"
-msgstr "பொதுவான கருவி: சிறுகுறிப்பு (குறைவடையும்)"
-
-
-msgctxt "WindowManager"
-msgid "Generic Tool: Annotate Line"
-msgstr "பொதுவான கருவி: சிறுகுறிப்பு வரி"
-
-
-msgctxt "WindowManager"
-msgid "Generic Tool: Annotate Line (fallback)"
-msgstr "பொதுவான கருவி: சிறுகுறிப்பு வரி (குறைவடையும்)"
-
-
-msgctxt "WindowManager"
-msgid "Generic Tool: Annotate Polygon"
-msgstr "பொதுவான கருவி: பலகோணத்தை சிறுகுறிப்பு செய்யுங்கள்"
-
-
-msgctxt "WindowManager"
-msgid "Generic Tool: Annotate Polygon (fallback)"
-msgstr "பொதுவான கருவி: சிறுகுறிப்பு பலகோணத்தை (குறைவடையும்)"
-
-
-msgctxt "WindowManager"
-msgid "Generic Tool: Annotate Eraser"
-msgstr "பொதுவான கருவி: அழிக்கவும் அழிப்பான்"
-
-
-msgctxt "WindowManager"
-msgid "Generic Tool: Annotate Eraser (fallback)"
-msgstr "பொதுவான கருவி: சிறுகுறிப்பு அழிப்பான் (குறைவடையும்)"
-
-
-msgctxt "WindowManager"
 msgid "3D View Tool: Measure"
 msgstr "3d பார்வை கருவி: அளவீடு"
 
@@ -117835,16 +117658,6 @@ msgstr "பட ஆசிரியர் கருவி: புற ஊதா, �
 
 
 msgctxt "WindowManager"
-msgid "UV Sculpt"
-msgstr "புறஊதா சிற்பம்"
-
-
-msgctxt "WindowManager"
-msgid "Image View"
-msgstr "படக் காட்சி"
-
-
-msgctxt "WindowManager"
 msgid "Image Editor Tool: Sample"
 msgstr "பட ஆசிரியர் கருவி: மாதிரி"
 
@@ -117895,6 +117708,16 @@ msgstr "முனை கருவி: பெட்டியைத் தேர�
 
 
 msgctxt "WindowManager"
+msgid "Node Tool: Select Circle"
+msgstr "முனை கருவி: வட்டத்தைத் தேர்ந்தெடுக்கவும்"
+
+
+msgctxt "WindowManager"
+msgid "Node Tool: Select Circle (fallback)"
+msgstr "முனை கருவி: வட்டத்தைத் தேர்ந்தெடுக்கவும் (குறைவடையும்)"
+
+
+msgctxt "WindowManager"
 msgid "Node Tool: Select Lasso"
 msgstr "முனை கருவி: லாசோவைத் தேர்ந்தெடுக்கவும்"
 
@@ -117905,13 +117728,8 @@ msgstr "முனை கருவி: லாசோவைத் தேர்ந�
 
 
 msgctxt "WindowManager"
-msgid "Node Tool: Select Circle"
-msgstr "முனை கருவி: வட்டத்தைத் தேர்ந்தெடுக்கவும்"
-
-
-msgctxt "WindowManager"
-msgid "Node Tool: Select Circle (fallback)"
-msgstr "முனை கருவி: வட்டத்தைத் தேர்ந்தெடுக்கவும் (குறைவடையும்)"
+msgid "Snap Invert"
+msgstr "நொறுக்குதல் தலைகீழ்"
 
 
 msgctxt "WindowManager"
@@ -118330,11 +118148,6 @@ msgstr "ச்னாப் தளத்தை அமைக்கவும் (�
 
 
 msgctxt "WindowManager"
-msgid "Snap Invert"
-msgstr "நொறுக்குதல் தலைகீழ்"
-
-
-msgctxt "WindowManager"
 msgid "Snap Invert (Off)"
 msgstr "நொறுக்குதல் தலைகீழ் (ஆஃப்)"
 
@@ -118567,6 +118380,26 @@ msgstr "ச்னாப்பை இயக்கவும்"
 msgctxt "WindowManager"
 msgid "Disable Snap"
 msgstr "ச்னாப்பை முடக்கு"
+
+
+msgctxt "WindowManager"
+msgid "Generic Tool: Annotate"
+msgstr "பொதுவான கருவி: சிறுகுறிப்பு"
+
+
+msgctxt "WindowManager"
+msgid "Generic Tool: Annotate Line"
+msgstr "பொதுவான கருவி: சிறுகுறிப்பு வரி"
+
+
+msgctxt "WindowManager"
+msgid "Generic Tool: Annotate Polygon"
+msgstr "பொதுவான கருவி: பலகோணத்தை சிறுகுறிப்பு செய்யுங்கள்"
+
+
+msgctxt "WindowManager"
+msgid "Generic Tool: Annotate Eraser"
+msgstr "பொதுவான கருவி: அழிக்கவும் அழிப்பான்"
 
 
 msgid "All Repositories"
@@ -122460,6 +122293,11 @@ msgstr "சேகரிப்பு முகமூடி"
 
 
 msgctxt "Operator"
+msgid "Search..."
+msgstr "தேடு..."
+
+
+msgctxt "Operator"
 msgid "Add Object Constraint"
 msgstr "பொருள் தடை சேர்"
 
@@ -123027,11 +122865,6 @@ msgstr "செல்வாக்கு வாசல்"
 
 msgid "Update on Edit"
 msgstr "அப்டேட் ஆன் திருத்து"
-
-
-msgctxt "Operator"
-msgid "Search..."
-msgstr "தேடு..."
 
 
 msgid "Curve to Tube"
@@ -125210,10 +125043,6 @@ msgstr "செயலில் சொத்து இல்லை"
 
 msgid "Asset Catalog:"
 msgstr "சொத்து பட்டியல்:"
-
-
-msgid "UUID"
-msgstr "uuid"
 
 
 msgid "Simple Name"
@@ -133854,6 +133683,10 @@ msgid "Manual Scale"
 msgstr "கையேடு அளவு"
 
 
+msgid "Look"
+msgstr "பார்"
+
+
 msgid "Sort By:"
 msgstr "வழங்கியவர்:"
 
@@ -134596,6 +134429,10 @@ msgstr "அனிமேசன் பிளேபேக்கை நிறுத�
 
 msgid "Canceling..."
 msgstr "ரத்துசெய்தல் ..."
+
+
+msgid "Warnings"
+msgstr "எச்சரிக்கைகள்"
 
 
 msgid "Split/Dock"
@@ -137655,14 +137492,6 @@ msgid "Image requires 4 color channels to paint"
 msgstr "படத்திற்கு வர 4 வண்ண சேனல்கள் தேவை"
 
 
-msgid "Image requires 4 color channels to paint: %s"
-msgstr "படத்திற்கு வண்ணம் தீட்ட 4 வண்ண சேனல்கள் தேவை: %s"
-
-
-msgid "Packed MultiLayer files cannot be painted: %s"
-msgstr "நிரம்பிய மல்டிலேயர் கோப்புகளை வரைய முடியாது: %s"
-
-
 msgid "Add Paint Slot"
 msgstr "வண்ணப்பூச்சு ச்லாட் சேர்க்கவும்"
 
@@ -139235,12 +139064,12 @@ msgid "Menu Undefined"
 msgstr "பட்டியல் வரையறுக்கப்படவில்லை"
 
 
-msgid "Subtype"
-msgstr "துணை வகை"
-
-
 msgid "Link operation index out of range"
 msgstr "இணைப்பு செயல்பாட்டுக் குறியீடு வரம்பிற்கு வெளியே உள்ளது"
+
+
+msgid "Compositor Nodes"
+msgstr "கலவை முனைகள்"
 
 
 msgid "Sequencer Compositor Nodes"
@@ -143033,6 +142862,10 @@ msgid "Attribute is required and cannot be removed"
 msgstr "பண்புக்கூறு தேவை மற்றும் அகற்ற முடியாது"
 
 
+msgid "Asset Library not found"
+msgstr "சொத்து நூலகம் காணப்படவில்லை"
+
+
 msgid "Smooth the surface"
 msgstr "மேற்பரப்பை மென்மையாக்குங்கள்"
 
@@ -143934,10 +143767,6 @@ msgid "Object '%s' has no evaluated mesh data"
 msgstr "பொருள் '%s' மதிப்பீடு செய்யப்பட்ட கண்ணி தரவு இல்லை"
 
 
-msgid "Object '%s' could not create internal data for finding nearest point"
-msgstr "பொருள் '%s' அருகிலுள்ள புள்ளியைக் கண்டுபிடிப்பதற்கான உள் தரவை உருவாக்க முடியவில்லை"
-
-
 msgid "Palette '%s' does not contain color given"
 msgstr "தட்டு '%s' கொடுக்கப்பட்ட வண்ணத்தைக் கொண்டிருக்கவில்லை"
 
@@ -144054,36 +143883,12 @@ msgid "Modifier \"%s\" is not in the strip's modifier list"
 msgstr "\"%s\" மாற்றியமைப்பானது ச்ட்ரிப்பின் மாற்றிப் பட்டியலில் இல்லை"
 
 
-msgid "Strips.new_sound: unable to open sound file"
-msgstr "Grips.new_sound: ஒலி கோப்பைத் திறக்க முடியவில்லை"
-
-
 msgid "Blender compiled without Audaspace support"
 msgstr "ஆடாச்பேச் உதவி இல்லாமல் கலப்பான் தொகுக்கப்பட்டது"
 
 
-msgid "Strips.new_effect: invalid length"
-msgstr "Strips.new_effect: தவறான நீளம்"
-
-
-msgid "Strips.new_effect: effect takes 1 input strip"
-msgstr "ச்ட்ரிப்ச்.நியூ_ஃபெக்ட்: விளைவு 1 உள்ளீட்டு துண்டு எடுக்கும்"
-
-
-msgid "Strips.new_effect: effect takes 2 input strips"
-msgstr "ச்ட்ரிப்ச்.நியூ_ஃபெக்ட்: விளைவு 2 உள்ளீட்டு கீற்றுகளை எடுக்கும்"
-
-
 msgid "StripElements.pop: cannot pop the last element"
 msgstr "Striplements.pop: கடைசி உறுப்பை பாப் செய்ய முடியாது"
-
-
-msgid "StripElements.pop: index out of range"
-msgstr "Striplements.pop: குறியீட்டு வரம்பிற்கு வெளியே"
-
-
-msgid "Strips.new_effect: effect expects more than 2 inputs (%d, should never happen!)"
-msgstr "ச்ட்ரிப்ச்.நியூ_ஃபெக்ட்: விளைவு 2 க்கும் மேற்பட்ட உள்ளீடுகளை எதிர்பார்க்கிறது (%d, ஒருபோதும் நடக்கக்கூடாது!)"
 
 
 msgid "Strip '%s' not in scene '%s'"
@@ -144116,10 +143921,6 @@ msgstr "செயலில் உள்ள பொருளின் செயல
 
 msgid "Edit any geometry node group for use as an operator"
 msgstr "ஆபரேட்டராகப் பயன்படுத்த எந்த வடிவியல் முனைக் குழுவையும் திருத்தவும்"
-
-
-msgid "Edit compositing node group for the current scene"
-msgstr "தற்போதைய காட்சிக்கான தொகுத்தல் முனைக் குழுவைத் திருத்தவும்"
 
 
 msgid "Edit compositing node group for Sequencer strip modifiers"
@@ -144215,10 +144016,6 @@ msgstr "\"-ஆஃப்லைன்-மோட்\" உடன் தொடங்�
 
 msgid "Script directory not found"
 msgstr "கைஉரை அடைவு காணப்படவில்லை"
-
-
-msgid "Asset Library not found"
-msgstr "சொத்து நூலகம் காணப்படவில்லை"
 
 
 msgid "Extension repository not found"
@@ -150228,10 +150025,6 @@ msgid "Mask Input"
 msgstr "முகமூடி உள்ளீடு"
 
 
-msgid "Warnings"
-msgstr "எச்சரிக்கைகள்"
-
-
 msgid "Bake Path"
 msgstr "சுட்டுக்கொள்ளும் பாதை"
 
@@ -150284,10 +150077,6 @@ msgid "Inspection index is out of range"
 msgstr "ஆய்வுக் குறியீடு வரம்பிற்கு வெளியே உள்ளது"
 
 
-msgid "No Output"
-msgstr "வெளியீடு இல்லை"
-
-
 msgid "Wrong Output Type"
 msgstr "தவறான வெளியீட்டு வகை"
 
@@ -150298,10 +150087,6 @@ msgstr "புறக்கணிக்கப்பட்ட வெளியீ�
 
 msgid "Unused Output"
 msgstr "பயன்படுத்தப்படாத வெளியீடு"
-
-
-msgid "Node group must have a Color output socket"
-msgstr "முனை குழுவில் வண்ண வெளியீட்டு சாக்கெட் இருக்க வேண்டும்"
 
 
 msgid "Node group's first output must be a color output"
@@ -153222,112 +153007,8 @@ msgid "network"
 msgstr "பிணையம்"
 
 
-msgid "ACES 1.3"
-msgstr "ACES 1.3"
-
-
-msgid "ACES 2.0"
-msgstr "ACES 2.0"
-
-
-msgid "Khronos PBR Neutral"
-msgstr "க்ரோனோச் FBI நடுநிலை"
-
-
-msgid "AgX"
-msgstr "AgX"
-
-
-msgid "Filmic"
-msgstr "திரைப்படம்"
-
-
-msgid "False Color"
-msgstr "தவறான நிறம்"
-
-
-msgid "ACES 1.3 - HDR 1000 nits"
-msgstr "ACES 1.3 - HDR 1000 nits"
-
-
-msgid "ACES 1.3 - HDR 2000 nits"
-msgstr "ACES 1.3 - HDR 2000 nits"
-
-
-msgid "ACES 1.3 - HDR 4000 nits"
-msgstr "ACES 1.3 - HDR 4000 nits"
-
-
-msgid "ACES 1.3 - SDR"
-msgstr "ACES 1.3 - SDR"
-
-
-msgid "ACES 2.0 - HDR 500 nits"
-msgstr "ACES 2.0 - HDR 500 nits"
-
-
-msgid "ACES 2.0 - HDR 1000 nits"
-msgstr "ACES 2.0 - HDR 1000 nits"
-
-
-msgid "ACES 2.0 - HDR 2000 nits"
-msgstr "ACES 2.0 - HDR 2000 nits"
-
-
-msgid "ACES 2.0 - HDR 4000 nits"
-msgstr "ACES 2.0 - HDR 4000 nits"
-
-
-msgid "ACES 2.0 - SDR"
-msgstr "ACES 2.0 - SDR"
-
-
-msgid "AgX - HDR 1000 nits"
-msgstr "AgX - HDR 1000 nits"
-
-
-msgid "AgX - SDR"
-msgstr "AgX - SDR"
-
-
-msgid "Very High Contrast"
-msgstr "மிக உயர்ந்த மாறுபாடு"
-
-
-msgid "High Contrast"
-msgstr "உயர் மாறுபாடு"
-
-
-msgid "Medium High Contrast"
-msgstr "நடுத்தர உயர் மாறுபாடு"
-
-
-msgid "Medium Contrast"
-msgstr "நடுத்தர மாறுபாடு"
-
-
-msgid "Medium Low Contrast"
-msgstr "நடுத்தர குறைந்த மாறுபாடு"
-
-
-msgid "Low Contrast"
-msgstr "குறைந்த மாறுபாடு"
-
-
-msgid "Very Low Contrast"
-msgstr "மிகக் குறைந்த மாறுபாடு"
-
-
-msgid "Punchy"
-msgstr "பஞ்ச்"
-
-
 msgid "A darkening punchy look"
 msgstr "இருட்டடிப்பு குத்தும் தோற்றம்"
-
-
-msgid "Greyscale"
-msgstr "கிரேச்கேல்"
 
 
 msgid "A Black and White Look"
@@ -153346,10 +153027,6 @@ msgid "A Medium High Contrast Look"
 msgstr "ஒரு மீடியம் ஐ கான்ட்ராச்ட் தோற்றம்"
 
 
-msgid "Base Contrast"
-msgstr "அடிப்படை மாறுபாடு"
-
-
 msgid "A Base Contrast Look"
 msgstr "ஒரு அடிப்படை மாறுபட்ட தோற்றம்"
 
@@ -153366,24 +153043,8 @@ msgid "A Very Low Contrast Look"
 msgstr "மிகக் குறைந்த கான்ட்ராச்ட் தோற்றம்"
 
 
-msgid "Reference Gamut Compression"
-msgstr "குறிப்பு வரம்பு சுருக்கம்"
-
-
 msgid "Compress scene-referred values from common cameras into the ACEScg gamut"
 msgstr "பொதுவான கேமராக்களிலிருந்து காட்சி-குறிப்பிடப்பட்ட மதிப்புகளை ACEScg வரம்பில் சுருக்கவும்"
-
-
-msgid "Utility"
-msgstr "பயன்பாடு"
-
-
-msgid "blender:pq_rec2020_display_203nits"
-msgstr "கலப்பான்:pq_rec2020_display_203nits"
-
-
-msgid "blender:hlg_rec2020_display_203nits"
-msgstr "கலப்பான்:hlg_rec2020_display_203nits"
 
 
 msgid "Add & Subtract"
@@ -153420,6 +153081,10 @@ msgstr "மெச் எடை வண்ணப்பூச்சு"
 
 msgid "Pixel Art"
 msgstr "படப்புள்ளி கலை"
+
+
+msgid "Utility"
+msgstr "பயன்பாடு"
 
 
 msgid "Chromatic Aberration"

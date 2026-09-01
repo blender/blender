@@ -34,6 +34,9 @@ set(SRC
   IO_types.hh
   IO_validate.hh
   intern/dupli_parent_finder.hh
+
+  # Without these files listed, they aren't known to CMake.
+  ../../../../extern/fast_float/fast_float.h
 )
 
 set(LIB

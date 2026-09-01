@@ -15,6 +15,7 @@
 #include "DNA_mesh_types.h"
 #include "DNA_pointcloud_types.h"
 #include "DNA_scene_types.h"
+#include "DNA_sequence_types.h"
 
 #include "BLI_listbase_iterator.hh"
 #include "BLI_string_ref.hh"
@@ -29,6 +30,9 @@
 #include "BKE_node_runtime.hh"
 #include "BKE_paint.hh"
 #include "BKE_paint_types.hh"
+
+#include "SEQ_iterator.hh"
+#include "SEQ_sequencer.hh"
 
 #include "readfile.hh"
 
@@ -369,6 +373,32 @@ void blo_do_versions_503(FileData * /*fd*/, Library * /*lib*/, Main *bmain)
                OB_MODE_WEIGHT_GREASE_PENCIL))
       {
         brush.unified_paint_flags |= BRUSH_USE_UNIFIED_PAINT_SIZE;
+      }
+    }
+  }
+
+  if (!MAIN_VERSION_FILE_ATLEAST(bmain, 503, 17)) {
+    for (Scene &scene : bmain->scenes) {
+      if (Editing *ed = seq::editing_get(&scene)) {
+        seq::foreach_strip(&ed->seqbase, [&](Strip *strip) {
+          switch (strip->type) {
+            case STRIP_TYPE_IMAGE:
+              /* Every image in the sequence has its own #StripElem. Content trimming
+               * (#anim_startofs, #anim_endofs) hides elements at both ends without shrinking the
+               * array, so the full array is always this many elements long. */
+              strip->data->stripdata_num = strip->anim_startofs + strip->len + strip->anim_endofs;
+              break;
+            case STRIP_TYPE_MOVIE:
+            case STRIP_TYPE_SOUND:
+              /* Single #StripElem storing the file path. */
+              strip->data->stripdata_num = strip->data->stripdata ? 1 : 0;
+              break;
+            default:
+              strip->data->stripdata_num = 0;
+              break;
+          }
+          return true;
+        });
       }
     }
   }

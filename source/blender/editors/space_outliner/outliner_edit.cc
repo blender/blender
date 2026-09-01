@@ -1526,12 +1526,16 @@ void outliner_set_coordinates(const ARegion *region, SpaceOutliner *space_outlin
   int starty = int(region->v2d.tot.ymax) - UI_UNIT_Y;
 
   tree_iterator::all(space_outliner->runtime->tree, [&](TreeElement *te) {
-    /* store coord and continue, we need coordinates for elements outside view too */
+    /* Set coordinates to zero for all elements. This is done to reset coordinates of collapsed
+     * elements. */
     te->xs = 0;
-    /* Set coordinates to zero for collapsed elements. */
-    const bool is_open = te->parent && TSELEM_OPEN(te->parent->store_elem, space_outliner);
-    te->ys = is_open ? float(starty) : 0;
-    starty -= is_open ? UI_UNIT_Y : 0;
+    te->ys = 0;
+  });
+
+  tree_iterator::all_open(*space_outliner, [&](TreeElement *te) {
+    /* store coord and continue, we need coordinates for elements outside view too */
+    te->ys = float(starty);
+    starty -= UI_UNIT_Y;
   });
 }
 

@@ -2,6 +2,10 @@
  *
  * SPDX-License-Identifier: GPL-2.0-or-later */
 
+/** \file
+ * \ingroup edscene
+ */
+
 #include "BLI_listbase.hh"
 #include "BLI_string_utf8.hh"
 
@@ -54,9 +58,9 @@
 
 namespace blender {
 
-/* --------------------------------------------------------------------
- * Operator utilities.
- */
+/* -------------------------------------------------------------------- */
+/** \name Operator Utilities
+ * \{ */
 
 /* If the "name" property is not set, fill the name property with the name of the effect with a UI
  * panel below the mouse cursor, unless a specific effect is set with a context pointer. Used in
@@ -99,9 +103,11 @@ static wmOperatorStatus compositor_effect_invoke_properties_with_hover(bContext 
   return OPERATOR_FINISHED;
 }
 
-/* --------------------------------------------------------------------
- * Add Effect Operator.
- */
+/** \} */
+
+/* -------------------------------------------------------------------- */
+/** \name Add Effect Operator
+ * \{ */
 
 static wmOperatorStatus add_compositor_effect_exec(bContext *C, wmOperator * /*op*/)
 {
@@ -124,9 +130,11 @@ static void SCENE_OT_add_compositor_effect(wmOperatorType *ot)
   ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO;
 }
 
-/* --------------------------------------------------------------------
- * Remove Effect Operator.
- */
+/** \} */
+
+/* -------------------------------------------------------------------- */
+/** \name Remove Effect Operator
+ * \{ */
 
 static wmOperatorStatus remove_compositor_effect_exec(bContext *C, wmOperator *op)
 {
@@ -178,9 +186,11 @@ static void SCENE_OT_remove_compositor_effect(wmOperatorType *ot)
   RNA_def_property_flag(prop, PROP_HIDDEN);
 }
 
-/* --------------------------------------------------------------------
- * Duplicate Effect Operator.
- */
+/** \} */
+
+/* -------------------------------------------------------------------- */
+/** \name Duplicate Effect Operator
+ * \{ */
 
 static wmOperatorStatus duplicate_compositor_effect_exec(bContext *C, wmOperator *op)
 {
@@ -245,9 +255,11 @@ static void SCENE_OT_duplicate_compositor_effect(wmOperatorType *ot)
   RNA_def_property_flag(ot->prop, PROP_HIDDEN);
 }
 
-/* --------------------------------------------------------------------
- * Move Effect To Index Operator.
- */
+/** \} */
+
+/* -------------------------------------------------------------------- */
+/** \name Move Effect to Index Operator
+ * \{ */
 
 static wmOperatorStatus move_compositor_effect_to_index_exec(bContext *C, wmOperator *op)
 {
@@ -301,9 +313,11 @@ static void SCENE_OT_move_compositor_effect_to_index(wmOperatorType *ot)
       ot->srna, "index", 0, 0, INT_MAX, "Index", "The index to move the effect to", 0, INT_MAX);
 }
 
-/* --------------------------------------------------------------------
- * Set Active Effect Operator.
- */
+/** \} */
+
+/* -------------------------------------------------------------------- */
+/** \name Set Active Effect Operator
+ * \{ */
 
 static wmOperatorStatus set_active_compositor_effect_exec(bContext *C, wmOperator *op)
 {
@@ -349,9 +363,11 @@ static void SCENE_OT_set_active_compositor_effect(wmOperatorType *ot)
   RNA_def_property_flag(ot->prop, PROP_HIDDEN);
 }
 
-/* --------------------------------------------------------------------
- * New Compositor Effect Node Group Operator.
- */
+/** \} */
+
+/* -------------------------------------------------------------------- */
+/** \name New Compositor Effect Node Group Operator
+ * \{ */
 
 static wmOperatorStatus new_compositor_effect_node_group_exec(bContext *C, wmOperator * /*op*/)
 {
@@ -396,9 +412,11 @@ static void SCENE_OT_new_compositor_effect_node_group(wmOperatorType *ot)
   ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO;
 }
 
-/* --------------------------------------------------------------------
- * Duplicate Compositor Effect Node Group Operator.
- */
+/** \} */
+
+/* -------------------------------------------------------------------- */
+/** \name Duplicate Compositor Effect Node Group Operator
+ * \{ */
 
 static wmOperatorStatus duplicate_compositor_effect_node_group_exec(bContext *C, wmOperator *op)
 {
@@ -445,9 +463,11 @@ static void SCENE_OT_duplicate_compositor_effect_node_group(wmOperatorType *ot)
   ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO;
 }
 
-/* --------------------------------------------------------------------
- * Add Compositor Effect Node Group Asset Operator.
- */
+/** \} */
+
+/* -------------------------------------------------------------------- */
+/** \name Add Compositor Effect Node Group Asset Operator
+ * \{ */
 
 static bNodeTree *get_asset_or_local_node_group(const bContext &C,
                                                 PointerRNA &ptr,
@@ -541,9 +561,11 @@ static void SCENE_OT_add_compositor_effect_node_group_asset(wmOperatorType *ot)
   WM_operator_properties_id_lookup(ot, false);
 }
 
-/* --------------------------------------------------------------------
- * Root Asset Catalogues Menu.
- */
+/** \} */
+
+/* -------------------------------------------------------------------- */
+/** \name Root Asset Catalogs Menu
+ * \{ */
 
 static ed::asset::AssetItemTree &get_static_item_tree()
 {
@@ -632,9 +654,11 @@ static MenuType SCENE_MT_add_compositor_effect_root_catalogs()
   return type;
 }
 
-/* --------------------------------------------------------------------
- * Catalogue Assets Menu.
- */
+/** \} */
+
+/* -------------------------------------------------------------------- */
+/** \name Catalog Assets Menu
+ * \{ */
 
 static void catalog_assets_draw(const bContext *C, Menu *menu)
 {
@@ -688,9 +712,11 @@ static MenuType SCENE_MT_add_compositor_effect_catalog_assets()
   return type;
 }
 
-/* --------------------------------------------------------------------
- * Unassigned Assets Menu.
- */
+/** \} */
+
+/* -------------------------------------------------------------------- */
+/** \name Unassigned Assets Menu
+ * \{ */
 
 static void unassigned_assets_draw(const bContext *C, Menu *menu)
 {
@@ -743,9 +769,11 @@ static MenuType SCENE_MT_add_compositor_effect_unassigned_assets()
   return type;
 }
 
-/* --------------------------------------------------------------------
- * Operator Registration.
- */
+/** \} */
+
+/* -------------------------------------------------------------------- */
+/** \name Operator Registration
+ * \{ */
 
 void ED_operatortypes_scene_compositor()
 {
@@ -759,9 +787,11 @@ void ED_operatortypes_scene_compositor()
   WM_operatortype_append(SCENE_OT_add_compositor_effect_node_group_asset);
 }
 
-/* --------------------------------------------------------------------
- * Menu Registration.
- */
+/** \} */
+
+/* -------------------------------------------------------------------- */
+/** \name Menu Registration
+ * \{ */
 
 void ED_menutypes_scene_compositor()
 {
@@ -769,5 +799,7 @@ void ED_menutypes_scene_compositor()
   WM_menutype_add(MEM_new<MenuType>(__func__, SCENE_MT_add_compositor_effect_catalog_assets()));
   WM_menutype_add(MEM_new<MenuType>(__func__, SCENE_MT_add_compositor_effect_unassigned_assets()));
 }
+
+/** \} */
 
 }  // namespace blender

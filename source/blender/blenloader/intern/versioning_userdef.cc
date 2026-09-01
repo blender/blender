@@ -1785,6 +1785,23 @@ void blo_do_versions_userdef(UserDef *userdef)
     userdef->asset_flag |= USER_ASSETS_USE_ONLINE_ESSENTIALS;
   }
 
+  if (!USER_VERSION_ATLEAST(503, 18)) {
+    const char *remapped_paths[][2] = {
+        {"Camera & Lens Effects", "Compositing/Camera & Lens Effects"},
+        {"Creative", "Compositing/Creative"},
+        {"Utilities", "Compositing/Utilities"},
+        {"Mask", "Compositing/Mask"},
+    };
+    for (const auto &remap : remapped_paths) {
+      if (BKE_preferences_asset_shelf_settings_disable_catalog_path(
+              userdef, "NODE_AST_compositor", remap[0]))
+      {
+        BKE_preferences_asset_shelf_settings_ensure_catalog_path_enabled(
+            userdef, "NODE_AST_compositor", remap[1]);
+      }
+    }
+  }
+
   /* Make Vulkan default on Linux/Windows x64. Keep existing option for Apple and Windows on ARM.*/
 #ifdef __APPLE__
 #elif defined(WIN32) && (defined(_M_ARM64) || defined(__aarch64__))

@@ -77,8 +77,8 @@ ccl_device_forceinline void film_write_denoising_features_surface(KernelGlobals 
       continue;
     }
 
-    const Spectrum closure_albedo = bsdf_albedo(kg, sd, sc, true, true);
-    const float closure_weight = average(closure_albedo);
+    const Spectrum albedo = closure_albedo(kg, sd, sc, true, true);
+    const float closure_weight = average(albedo);
 
     /* All closures contribute to the normal feature, but only diffuse-like ones to the albedo. */
     /* If far-field hair, use fiber tangent as feature instead of normal. */
@@ -95,14 +95,14 @@ ccl_device_forceinline void film_write_denoising_features_surface(KernelGlobals 
                                      smoothstep(0.0f, 0.15f, roughness);
 
     if (use_albedo_roughness_weighting) {
-      diffuse_albedo += closure_albedo * diffuse_weight;
-      specular_albedo += closure_albedo * (1.0f - diffuse_weight);
+      diffuse_albedo += albedo * diffuse_weight;
+      specular_albedo += albedo * (1.0f - diffuse_weight);
     }
     else if (CLOSURE_IS_BSDF_DIFFUSE(sc->type) || CLOSURE_IS_BSSRDF(sc->type)) {
-      diffuse_albedo += closure_albedo;
+      diffuse_albedo += albedo;
     }
     else if (CLOSURE_IS_BSDF_GLOSSY(sc->type) || CLOSURE_IS_GLASS(sc->type)) {
-      specular_albedo += closure_albedo;
+      specular_albedo += albedo;
     }
     /* Apply sqrtf again to convert GGX alpha to perceptual roughness. */
     specular_roughness += sqrtf(roughness) * closure_weight;
@@ -289,6 +289,14 @@ ccl_device_forceinline void film_write_denoising_features_background(
 
   if (kernel_data.film.pass_denoising_depth != PASS_UNUSED) {
     film_overwrite_pass_float(buffer + kernel_data.film.pass_denoising_depth, FLT_MAX);
+  }
+
+  if (kernel_data.film.pass_denoising_backward_motion != PASS_UNUSED) {
+    const float4 speed = camera_motion_vector_direction(
+        kg, INTEGRATOR_STATE(state, ray, P), INTEGRATOR_STATE(state, ray, D));
+    const float3 backward_motion = make_float3(speed.x, speed.y, 0.0f);
+    film_overwrite_pass_float3(buffer + kernel_data.film.pass_denoising_backward_motion,
+                               backward_motion);
   }
 
   /* 'pass_denoising_albedo' is written by 'film_write_emission_or_background_pass' */

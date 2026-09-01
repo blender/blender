@@ -472,9 +472,6 @@ Paint *BKE_paint_get_active(const Main &bmain, Scene *sce, ViewLayer *view_layer
           break;
       }
     }
-
-    /* default to image paint */
-    return &ts->imapaint.paint;
   }
 
   return nullptr;
@@ -489,22 +486,12 @@ Paint *BKE_paint_get_active_from_context(const bContext *C)
   if (sce && view_layer) {
     ToolSettings *ts = sce->toolsettings;
     BKE_view_layer_synced_ensure(*bmain, sce, view_layer);
-    Object *obact = BKE_view_layer_active_object_get(view_layer);
 
     SpaceImage *sima = CTX_wm_space_image(C);
-    if (sima != nullptr) {
-      if (obact && obact->mode == OB_MODE_EDIT) {
-        if (sima->mode == SI_MODE_PAINT) {
-          return &ts->imapaint.paint;
-        }
-      }
-      else {
-        return &ts->imapaint.paint;
-      }
+    if (sima != nullptr && sima->mode == SI_MODE_PAINT) {
+      return &ts->imapaint.paint;
     }
-    else {
-      return BKE_paint_get_active(*bmain, sce, view_layer);
-    }
+    return BKE_paint_get_active(*bmain, sce, view_layer);
   }
 
   return nullptr;
@@ -521,25 +508,15 @@ PaintMode BKE_paintmode_get_active_from_context(const bContext *C)
     Object *obact = BKE_view_layer_active_object_get(view_layer);
 
     SpaceImage *sima = CTX_wm_space_image(C);
-    if (sima != nullptr) {
-      if (obact && obact->mode == OB_MODE_EDIT) {
-        if (sima->mode == SI_MODE_PAINT) {
-          return PaintMode::Texture2D;
-        }
-      }
-      else {
-        return PaintMode::Texture2D;
-      }
+    if (sima != nullptr && sima->mode == SI_MODE_PAINT) {
+      return PaintMode::Texture2D;
     }
-    else if (obact) {
+    if (obact) {
       switch (obact->mode) {
         case OB_MODE_SCULPT:
           return PaintMode::Sculpt;
         case OB_MODE_SCULPT_GREASE_PENCIL:
-          if (obact->type == OB_GREASE_PENCIL) {
-            return PaintMode::SculptGPencil;
-          }
-          return PaintMode::Invalid;
+          return PaintMode::SculptGPencil;
         case OB_MODE_PAINT_GREASE_PENCIL:
           return PaintMode::GPencil;
         case OB_MODE_WEIGHT_GREASE_PENCIL:
@@ -555,12 +532,8 @@ PaintMode BKE_paintmode_get_active_from_context(const bContext *C)
         case OB_MODE_SCULPT_CURVES:
           return PaintMode::SculptCurves;
         default:
-          return PaintMode::Texture2D;
+          break;
       }
-    }
-    else {
-      /* default to image paint */
-      return PaintMode::Texture2D;
     }
   }
 
@@ -1648,17 +1621,32 @@ void BKE_paint_settings_foreach_mode(ToolSettings *ts, FunctionRef<void(Paint *p
   fn(reinterpret_cast<Paint *>(&ts->imapaint));
 }
 
-void BKE_paint_stroke_get_average(const Paint *paint, const Object *ob, float stroke[3])
+namespace bke::paint {
+float3 stroke_get_average(const Paint *paint, const Object *ob)
 {
-  const bke::PaintRuntime &paint_runtime = *paint->runtime;
+  const PaintRuntime &paint_runtime = *paint->runtime;
   if (paint_runtime.last_stroke_valid && paint_runtime.average_stroke_counter > 0) {
     float fac = 1.0f / paint_runtime.average_stroke_counter;
-    mul_v3_v3fl(stroke, paint_runtime.average_stroke_accum, fac);
+    return paint_runtime.average_stroke_accum * fac;
   }
-  else {
-    copy_v3_v3(stroke, ob->object_to_world().location());
-  }
+
+  return ob->object_to_world().location();
 }
+void stroke_track_location(Paint &paint, float3 location)
+{
+  PaintRuntime &paint_runtime = *paint.runtime;
+  paint_runtime.average_stroke_accum += location;
+  paint_runtime.average_stroke_counter++;
+  paint_runtime.last_stroke_valid = true;
+}
+void stroke_set_location(Paint &paint, float3 location)
+{
+  PaintRuntime &paint_runtime = *paint.runtime;
+  paint_runtime.average_stroke_accum = location;
+  paint_runtime.average_stroke_counter = 1;
+  paint_runtime.last_stroke_valid = true;
+}
+}  // namespace bke::paint
 
 float3 BKE_paint_randomize_color(const BrushColorJitterSettings &color_jitter,
                                  const float3 &initial_hsv_jitter,

@@ -172,7 +172,8 @@ static void update_compositor(const DEGEditorUpdateContext *update_context)
     return;
   }
 
-  const bool is_user_modified = DEG_id_is_user_modified(update_context->depsgraph, &scene->id);
+  const bool is_user_modified = DEG_scene_component_is_user_modified(
+      update_context->depsgraph, scene, DEG_SCENE_COMP_COMPOSITOR);
   if (is_user_modified) {
     update_context->scene->runtime->compositor.cache.clear_frames();
   }

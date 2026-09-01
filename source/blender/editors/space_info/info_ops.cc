@@ -14,6 +14,8 @@
 
 #include "MEM_guardedalloc.h"
 
+#include "BLI_listbase_iterator.hh"
+
 #include "BLT_translation.hh"
 
 #include "BKE_bpath.hh"
@@ -26,6 +28,8 @@
 #include "BKE_packedFile.hh"
 #include "BKE_report.hh"
 #include "BKE_screen.hh"
+
+#include "SEQ_relations.hh"
 
 #include "WM_api.hh"
 #include "WM_types.hh"
@@ -534,9 +538,16 @@ static wmOperatorStatus find_missing_files_exec(bContext *C, wmOperator *op)
   const std::string searchpath = RNA_string_get(op->ptr, "directory");
   const bool find_all = RNA_boolean_get(op->ptr, "find_all");
 
-  BKE_bpath_missing_files_find(bmain, searchpath.c_str(), op->reports, find_all);
-  /* Redraw sequencer since media presence cache might have changed. */
-  WM_main_add_notifier(NC_SCENE | ND_SEQUENCER, nullptr);
+  BPathSummary summary;
+  BKE_bpath_missing_files_find(bmain, searchpath.c_str(), op->reports, find_all, &summary);
+
+  if (summary.count_changed > 0) {
+    /* Notify sequencers to clear media presence and image caches. */
+    for (Scene &scene : bmain->scenes) {
+      seq::relations_refresh_all(&scene);
+    }
+    WM_main_add_notifier(NC_SCENE | ND_SEQUENCER, nullptr);
+  }
 
   return OPERATOR_FINISHED;
 }

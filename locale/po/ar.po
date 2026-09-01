@@ -1,9 +1,9 @@
 
 msgid ""
 msgstr ""
-"Project-Id-Version: Blender 5.3.0 Alpha (b'af4852ed4560')\n"
+"Project-Id-Version: Blender 5.3.0 Alpha (b'32296898e057')\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-08-10 07:54+0000\n"
+"POT-Creation-Date: 2026-08-31 07:41+0000\n"
 "PO-Revision-Date: 2025-07-23 14:53+0000\n"
 "Last-Translator: Anonymous <noreply@weblate.org>\n"
 "Language-Team: Arabic <https://translate.blender.org/projects/blender-ui/ui/ar/>\n"
@@ -2999,16 +2999,8 @@ msgid "Color management specific to display device"
 msgstr "ﺽﺮﻌﻟﺍ ﺯﺎﻬﺠﺑ ﺔﺼﺘﺨﻤﻟﺍ ﻥﻮﻠﻟﺍ ﺓﺭﺍﺩﺍ"
 
 
-msgid "Display"
-msgstr "ﺽﺮﻋ"
-
-
 msgid "Input color space settings"
 msgstr "ﻥﻮﻠﻟﺍ ﻂﻴﻄﺨﺗ ﺕﺍﺩﺍﺪﻋﺇ"
-
-
-msgid "Input Color Space"
-msgstr "ﻥﻮﻠﻟﺍ ءﺎﻀﻓ"
 
 
 msgid "Color space that the sequencer operates in"
@@ -3035,10 +3027,6 @@ msgid "Gamma"
 msgstr "ﺓﺭﺎﻧﻻ﻿ﺍ"
 
 
-msgid "Look"
-msgstr "ﺮﻈﻧﺃ"
-
-
 msgid "Do not modify image in an artistic manner"
 msgstr "ﻲﻨﻓ ﺏﻮﻠﺳﺄﺑ ﺓﺭﻮﺼﻟﺍ ﻝﺪﻌﺗ ﻻ﻿"
 
@@ -3049,10 +3037,6 @@ msgstr "ﻰﻨﺤﻨﻤﻟﺍ ﺮﻄﻗ ﻡﺪﺨﺘﺳﺍ"
 
 msgid "Use RGB curved for pre-display transformation"
 msgstr "ﺽﺮﻌﻟﺍ-ﻞﺒﻗ ﻝﻮﺤﺘﻟ ﻲﻨﺤﻨﻣ ﻥﻮﻟ ﻡﺪﺨﺘﺳﺍ"
-
-
-msgid "View"
-msgstr "ﺮﻈﻨﻣ"
 
 
 msgid "View used when converting image to a display space"
@@ -3213,6 +3197,10 @@ msgstr "ﻊﻗﻮﻤﻟﺍ"
 
 msgid "Set position of selected color stop"
 msgstr "ﺭﺎﺘﺨﻤﻟﺍ ﻥﻮﻠﻟﺍ ﺮﺷﺆﻣ ﻊﻗﻮﻣ ﻊﺿ"
+
+
+msgid "Identifier"
+msgstr "ﻑﺮﻌﻤﻟﺍ"
 
 
 msgid "Console Input"
@@ -5013,6 +5001,10 @@ msgid "Plane"
 msgstr "ﺢﻄﺳ"
 
 
+msgid "View"
+msgstr "ﺮﻈﻨﻣ"
+
+
 msgid "Radius"
 msgstr "ﺮﻄﻘﻟﺍ ﻒﺼﻧ"
 
@@ -6239,10 +6231,6 @@ msgstr "ﺍ.ﻥ.ﺮﻟﺍ ﺹﺍﻮﺧ ﺩﺍﺪﻋ ﻲﻓ ﺭﺎﻴﺧ ﻒﻳ�
 
 msgid "Description of the item's purpose"
 msgstr "ﺮﺼﻨﻌﻟﺍ ﺽﺮﻏ ﻒﻳﺮﻌﺗ"
-
-
-msgid "Identifier"
-msgstr "ﻑﺮﻌﻤﻟﺍ"
 
 
 msgid "Unique name used in the code and scripting"
@@ -9093,6 +9081,14 @@ msgid "Automatically adjust strength to give consistent results for different sp
 msgstr "ﺔﻔﻠﺘﺨﻤﻟﺍ ﺕﺍﺪﻋﺎﺒﺘﻠﻟ ﺔﻘﺳﺎﻨﺘﻣ ﺞﺋﺎﺘﻧ ءﺎﻄﻋﻹ﻿ ﺎﻴﺗﺍﺫ ﺓﻮﻘﻟﺍ ﻝﺪّﻋ"
 
 
+msgid "Use Unified Strength"
+msgstr "ﺓﺪﺣﻮﻣ ﺓﻮﻗ ﻡﺪﺨﺘﺳﺍ"
+
+
+msgid "Use Unified Weight"
+msgstr "ﻢﻈﺘﻨﻣ ﻥﺯﻭ ﻡﺪﺨﺘﺳﺍ"
+
+
 msgid "Vertex weight when brush is applied"
 msgstr "ﺓﺎﺷﺮﻔﻟﺍ ﻖﻴﺒﻄﺗ ﺪﻨﻋ ﺔﻄﻘﻨﻟﺍ ﻥﺯﻭ"
 
@@ -11867,6 +11863,10 @@ msgstr "ﺐﻃﺭ"
 
 msgid "Amount of damping"
 msgstr "ﻝﺅﺎﻀﺘﻟﺍ ﺔﻴﻤﻛ"
+
+
+msgid "Display"
+msgstr "ﺽﺮﻋ"
 
 
 msgid "Percentage of particles to display in 3D view"
@@ -15648,32 +15648,16 @@ msgid "Material slot name"
 msgstr "ﺔﻣﺎﺨﻟﺍ ﺔﺤﺘﻓ ﻢﺳﺇ"
 
 
-msgid "Names"
-msgstr "ءﺎﻤﺳﺃ"
-
-
-msgid "Bone Roll"
-msgstr "ﺔﻤﻈﻌﻟﺍ ءﺍﻮﺘﻟﺍ"
-
-
-msgid "Keying"
-msgstr "ﺺﺤﻔﻟﺍ"
-
-
-msgid "Tracking"
-msgstr "ﺔﻘﺣﻼ﻿ﻤﻟﺍ"
-
-
-msgid "Math"
-msgstr "ﺏﺎﺴﺣ"
-
-
 msgid "Snap"
 msgstr "ﻱﺫﺎﺣ"
 
 
 msgid "Proportional Editing Falloff"
 msgstr "ﻲﺒﺴﻨﻟﺍ ﺮﻳﺮﺤﺘﻟﺍ ﻲﺷﻼ﻿ﺗ"
+
+
+msgid "Import"
+msgstr "ﺩﺭﻮﺘﺳﺇ"
 
 
 msgid "Mirror"
@@ -15698,6 +15682,14 @@ msgstr "ﻝﺎﻌّﻔﻠﻟ ﺮﻈﻨﻤﻟﺍ ﻱﺫﺎﺣ"
 
 msgid "Select More/Less"
 msgstr "ﻞﻗﺍ/ﺮﺜﻛﺍ ﺭﺎﻴﺘﺧﺍ"
+
+
+msgid "Math"
+msgstr "ﺏﺎﺴﺣ"
+
+
+msgid "UV"
+msgstr "ﺭﻭﺎﺤﻣ"
 
 
 msgid "Select Similar"
@@ -15732,16 +15724,16 @@ msgid "Apply"
 msgstr "ﻖﺒﻃ"
 
 
-msgid "Import"
-msgstr "ﺩﺭﻮﺘﺳﺇ"
-
-
 msgid "Track"
 msgstr "ﺐﻘّﻌﺗ"
 
 
 msgid "Quick Effects"
 msgstr "ﺔﻌﻳﺮﺳ ﺕﺍﺮﻴﺛﺄﺗ"
+
+
+msgid "Layout"
+msgstr "ﻖﻴﺴﻨﺗ"
 
 
 msgid "Make Single User"
@@ -15752,8 +15744,12 @@ msgid "Hooks"
 msgstr "ﺕﺎﻓﺎﻄﺧ"
 
 
-msgid "UV"
-msgstr "ﺭﻭﺎﺤﻣ"
+msgid "Keying"
+msgstr "ﺺﺤﻔﻟﺍ"
+
+
+msgid "Tracking"
+msgstr "ﺔﻘﺣﻼ﻿ﻤﻟﺍ"
 
 
 msgid "In-Betweens"
@@ -15762,6 +15758,10 @@ msgstr "ﻦﻴﺑ ﺎﻣ"
 
 msgid "Propagate"
 msgstr "ﻢﻤﻋ"
+
+
+msgid "Names"
+msgstr "ءﺎﻤﺳﺃ"
 
 
 msgid "Face Data"
@@ -15776,8 +15776,8 @@ msgid "Special Characters"
 msgstr "ﺔﺻﺎﺧ ﻑﺮﺣﺃ"
 
 
-msgid "Layout"
-msgstr "ﻖﻴﺴﻨﺗ"
+msgid "Bone Roll"
+msgstr "ﺔﻤﻈﻌﻟﺍ ءﺍﻮﺘﻟﺍ"
 
 
 msgctxt "MovieClip"
@@ -18628,10 +18628,6 @@ msgid "Color Spill"
 msgstr "ﻥﻮﻠﻟﺍ ﺐﻜﺳ"
 
 
-msgid "To"
-msgstr "ـﻟ"
-
-
 msgid "Has Layers"
 msgstr "ﺕﺎﻘﺒﻃ ﺎﻬﻳﺪﻟ"
 
@@ -20704,6 +20700,11 @@ msgid "Reset Transform"
 msgstr "ﻝﻮّﺤﺘﻟﺍ ﻂﺒﺿ ﺪﻋﺍ"
 
 
+msgctxt "Operator"
+msgid "Select Directory"
+msgstr "ﺭﺎﺴﻤﻟﺍ ﺮﺘﺧﺍ"
+
+
 msgid "Directory of the file"
 msgstr "ﻒﻠﻤﻟﺍ ﺪﻠّﺠﻣ"
 
@@ -21919,11 +21920,6 @@ msgstr "ﺕﺎﻔﻠﻤﻟﺍ ﻞﻛ ﺮﺘﺨﺗ ﻻ﻿/ﺮﺘﺧﺍ"
 
 msgid "Select or deselect all files"
 msgstr "ﺕﺎﻔﻠﻤﻟﺍ ﻞﻛ ﺮﺘﺨﺗ ﻻ﻿ ﻭﺍ ﺮﺘﺧﺍ"
-
-
-msgctxt "Operator"
-msgid "Select Directory"
-msgstr "ﺭﺎﺴﻤﻟﺍ ﺮﺘﺧﺍ"
 
 
 msgid "Walk Direction"
@@ -25914,6 +25910,10 @@ msgid "New Screen"
 msgstr "ﺓﺪﻳﺪﺟ ﺔﺷﺎﺷ"
 
 
+msgid "Active Section"
+msgstr "ﻝﺎﻌّﻔﻟﺍ ﻊﻄﻘﻤﻟﺍ"
+
+
 msgctxt "Operator"
 msgid "Redo Last"
 msgstr "ﺮﻴﺧﻻ﻿ﺍ ﺪﻋﺃ"
@@ -28950,10 +28950,6 @@ msgstr "ﻼ﻿ﻌﻔﻣ ﺪﻳﺪﻤﺘﻟﺍ ﻥﺎﻛ ﺍﺫﺇ IK ﺪﻴﻗ �
 
 msgid "Apply channel rotation as IK constraint"
 msgstr "IK ﺪﻴﻗ ﻞﻜﺷ ﻰﻠﻋ ﻥﺍﺭﻭﺪﻟﺍ ﺓﺎﻨﻗ ﻖﻴﺒﻄﺗ"
-
-
-msgid "Active Section"
-msgstr "ﻝﺎﻌّﻔﻟﺍ ﻊﻄﻘﻤﻟﺍ"
 
 
 msgid "Edit Methods"
@@ -32711,16 +32707,8 @@ msgid "Instead of per-brush color, the color is shared across brushes"
 msgstr "ﺓﺎﺷﺮﻓ ﻞﻜﻟ ﻥﻮﻟ ﻦﻣ ﻻ﻿ﺪﺑ ,ﺵﺮﻔﻟﺍ ﻞﻛ ﻦﻴﺑ ﻥﻮﻠّﻟﺍ ﺔﻛﺭﺎﺸﻣ ﻢﺘﻳ"
 
 
-msgid "Use Unified Strength"
-msgstr "ﺓﺪﺣﻮﻣ ﺓﻮﻗ ﻡﺪﺨﺘﺳﺍ"
-
-
 msgid "Instead of per-brush strength, the strength is shared across brushes"
 msgstr "ﺵﺮﻔﻟﺍ ﻞﻛ ﻦﻴﺑ ﺔﻛﺮﺘﺸﻣ ﺓﻮﻘﻟﺍ ،ﺓﺎﺷﺮﻓ ﻞﻜﻟ ﺓﻮﻗ ﻝﺪﺑ"
-
-
-msgid "Use Unified Weight"
-msgstr "ﻢﻈﺘﻨﻣ ﻥﺯﻭ ﻡﺪﺨﺘﺳﺍ"
 
 
 msgid "Instead of per-brush weight, the weight is shared across brushes"
@@ -33173,11 +33161,6 @@ msgstr "NLA ﻡﺎﻋ"
 msgctxt "WindowManager"
 msgid "Image"
 msgstr "ﺓﺭﻮﺻ"
-
-
-msgctxt "WindowManager"
-msgid "UV Sculpt"
-msgstr "UV ـﻟﺍ ﺖﺤﻧ"
 
 
 msgctxt "WindowManager"
@@ -35273,6 +35256,10 @@ msgstr "ﻉﻮﻄﺴﻟﺍ"
 
 msgid "OK"
 msgstr "ﺎﻨﺴﺣ"
+
+
+msgid "Look"
+msgstr "ﺮﻈﻧﺃ"
 
 
 msgid "Delete the active position"

@@ -32,10 +32,12 @@ namespace blender::ui {
 
 using blender::Vector;
 
+namespace {
 struct CurveRuntimeProperties {
   CurveMapPoint *last_pt = nullptr;
   float2 last_pos;
 };
+}  // namespace
 
 static bool curvemap_can_zoom_out(CurveMapping *cumap)
 {

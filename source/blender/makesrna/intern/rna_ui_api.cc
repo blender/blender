@@ -1416,6 +1416,7 @@ void RNA_api_ui_layout(StructRNA *srna)
   /* simple layout specifiers */
   func = RNA_def_function(srna, "row", "rna_uiLayoutRowWithHeading");
   parm = RNA_def_pointer(func, "layout", "UILayout", "", "Sub-layout to put items in");
+  RNA_def_parameter_flags(parm, PROP_NEVER_NULL, ParameterFlag(0));
   RNA_def_function_return(func, parm);
   RNA_def_function_ui_description(
       func,
@@ -1426,6 +1427,7 @@ void RNA_api_ui_layout(StructRNA *srna)
 
   func = RNA_def_function(srna, "column", "rna_uiLayoutColumnWithHeading");
   parm = RNA_def_pointer(func, "layout", "UILayout", "", "Sub-layout to put items in");
+  RNA_def_parameter_flags(parm, PROP_NEVER_NULL, ParameterFlag(0));
   RNA_def_function_return(func, parm);
   RNA_def_function_ui_description(
       func,
@@ -1491,6 +1493,7 @@ void RNA_api_ui_layout(StructRNA *srna)
   func = RNA_def_function(srna, "column_flow", "rna_uiLayoutColumnFlow");
   RNA_def_int(func, "columns", 0, 0, INT_MAX, "", "Number of columns, 0 is automatic", 0, INT_MAX);
   parm = RNA_def_pointer(func, "layout", "UILayout", "", "Sub-layout to put items in");
+  RNA_def_parameter_flags(parm, PROP_NEVER_NULL, ParameterFlag(0));
   RNA_def_function_return(func, parm);
   RNA_def_boolean(func, "align", false, "", "Align buttons to each other");
 
@@ -1512,11 +1515,13 @@ void RNA_api_ui_layout(StructRNA *srna)
   RNA_def_boolean(func, "even_rows", false, "", "All rows will have the same height");
   RNA_def_boolean(func, "align", false, "", "Align buttons to each other");
   parm = RNA_def_pointer(func, "layout", "UILayout", "", "Sub-layout to put items in");
+  RNA_def_parameter_flags(parm, PROP_NEVER_NULL, ParameterFlag(0));
   RNA_def_function_return(func, parm);
 
   /* box layout */
   func = RNA_def_function(srna, "box", "rna_uiLayoutBox");
   parm = RNA_def_pointer(func, "layout", "UILayout", "", "Sub-layout to put items in");
+  RNA_def_parameter_flags(parm, PROP_NEVER_NULL, ParameterFlag(0));
   RNA_def_function_return(func, parm);
   RNA_def_function_ui_description(func,
                                   "Sublayout (items placed in this sublayout are placed "
@@ -1525,6 +1530,7 @@ void RNA_api_ui_layout(StructRNA *srna)
   /* split layout */
   func = RNA_def_function(srna, "split", "rna_uiLayoutSplit");
   parm = RNA_def_pointer(func, "layout", "UILayout", "", "Sub-layout to put items in");
+  RNA_def_parameter_flags(parm, PROP_NEVER_NULL, ParameterFlag(0));
   RNA_def_function_return(func, parm);
   RNA_def_float(func,
                 "factor",
@@ -1540,6 +1546,7 @@ void RNA_api_ui_layout(StructRNA *srna)
   /* radial/pie layout */
   func = RNA_def_function(srna, "menu_pie", "rna_uiLayoutMenuPie");
   parm = RNA_def_pointer(func, "layout", "UILayout", "", "Sub-layout to put items in");
+  RNA_def_parameter_flags(parm, PROP_NEVER_NULL, ParameterFlag(0));
   RNA_def_function_return(func, parm);
   RNA_def_function_ui_description(func,
                                   "Sublayout. Items placed in this sublayout are placed "

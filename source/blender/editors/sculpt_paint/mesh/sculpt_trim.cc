@@ -108,17 +108,17 @@ static EnumPropertyItem extrude_modes[] = {
 };
 
 static const EnumPropertyItem solver_items[] = {
-    {int(geometry::boolean::Solver::MeshArr),
+    {int(blender::geometry::boolean::Solver::MeshArr),
      "EXACT",
      0,
      "Exact",
      "Slower solver with the best results for coplanar faces"},
-    {int(geometry::boolean::Solver::Float),
+    {int(blender::geometry::boolean::Solver::Float),
      "FLOAT",
      0,
      "Float",
      "Simple solver with good performance, without support for overlapping geometry"},
-    {int(geometry::boolean::Solver::Manifold),
+    {int(blender::geometry::boolean::Solver::Manifold),
      "MANIFOLD",
      0,
      "Manifold",
@@ -142,7 +142,7 @@ struct TrimOperation {
   float3 initial_normal;
 
   OperationType mode;
-  geometry::boolean::Solver solver_mode;
+  blender::geometry::boolean::Solver solver_mode;
   OrientationType orientation;
   ExtrudeMode extrude_mode;
 };
@@ -576,7 +576,7 @@ static void gesture_begin(bContext &C, wmOperator &op, gesture::GestureData &ges
 
 static void apply_join_operation(Object &object, Mesh &sculpt_mesh, Mesh &trim_mesh)
 {
-  bke::GeometrySet joined = geometry::join_geometries(
+  bke::GeometrySet joined = blender::geometry::join_geometries(
       {bke::GeometrySet::from_mesh(&sculpt_mesh, bke::GeometryOwnershipType::ReadOnly),
        bke::GeometrySet::from_mesh(&trim_mesh, bke::GeometryOwnershipType::ReadOnly)},
       {});
@@ -591,50 +591,51 @@ static void apply_trim(gesture::GestureData &gesture_data)
   Mesh &sculpt_mesh = *id_cast<Mesh *>(object->data);
   Mesh &trim_mesh = *trim_operation->mesh;
 
-  geometry::boolean::Operation boolean_op;
+  blender::geometry::boolean::Operation boolean_op;
   switch (trim_operation->mode) {
     case OperationType::Intersect:
-      boolean_op = geometry::boolean::Operation::Intersect;
+      boolean_op = blender::geometry::boolean::Operation::Intersect;
       break;
     case OperationType::Difference:
-      boolean_op = geometry::boolean::Operation::Difference;
+      boolean_op = blender::geometry::boolean::Operation::Difference;
       break;
     case OperationType::Union:
-      boolean_op = geometry::boolean::Operation::Union;
+      boolean_op = blender::geometry::boolean::Operation::Union;
       break;
     case OperationType::Join:
       apply_join_operation(*object, sculpt_mesh, trim_mesh);
       return;
   }
 
-  geometry::boolean::BooleanOpParameters op_params;
+  blender::geometry::boolean::BooleanOpParameters op_params;
   op_params.boolean_mode = boolean_op;
   op_params.no_self_intersections = true;
   op_params.watertight = false;
   op_params.no_nested_components = true;
-  geometry::boolean::BooleanError error;
-  Mesh *result = geometry::boolean::mesh_boolean({&sculpt_mesh, &trim_mesh},
-                                                 {float4x4::identity(), float4x4::identity()},
-                                                 {Array<short>(), Array<short>()},
-                                                 op_params,
-                                                 trim_operation->solver_mode,
-                                                 nullptr,
-                                                 &error);
-  if (error.type == geometry::boolean::BooleanErrorType::NonManifold) {
+  blender::geometry::boolean::BooleanError error;
+  Mesh *result = blender::geometry::boolean::mesh_boolean(
+      {&sculpt_mesh, &trim_mesh},
+      {float4x4::identity(), float4x4::identity()},
+      {Array<short>(), Array<short>()},
+      op_params,
+      trim_operation->solver_mode,
+      nullptr,
+      &error);
+  if (error.type == blender::geometry::boolean::BooleanErrorType::NonManifold) {
     BKE_report(trim_operation->reports, RPT_ERROR, "Solver requires a manifold mesh");
     return;
   }
-  if (error.type == geometry::boolean::BooleanErrorType::ResultTooBig) {
+  if (error.type == blender::geometry::boolean::BooleanErrorType::ResultTooBig) {
     BKE_report(
         trim_operation->reports, RPT_ERROR, "Boolean result is too big for solver to handle");
     return;
   }
-  if (error.type == geometry::boolean::BooleanErrorType::SolverNotAvailable) {
+  if (error.type == blender::geometry::boolean::BooleanErrorType::SolverNotAvailable) {
     BKE_report(
         trim_operation->reports, RPT_ERROR, "Boolean solver not available (compiled without it)");
     return;
   }
-  if (error.type == geometry::boolean::BooleanErrorType::UnknownError) {
+  if (error.type == blender::geometry::boolean::BooleanErrorType::UnknownError) {
     BKE_report(trim_operation->reports, RPT_ERROR, "Unknown boolean error");
     return;
   }
@@ -690,7 +691,8 @@ static void init_operation(gesture::GestureData &gesture_data, wmOperator &op)
   trim_operation->use_cursor_depth = RNA_boolean_get(op.ptr, "use_cursor_depth");
   trim_operation->orientation = OrientationType(RNA_enum_get(op.ptr, "trim_orientation"));
   trim_operation->extrude_mode = ExtrudeMode(RNA_enum_get(op.ptr, "trim_extrude_mode"));
-  trim_operation->solver_mode = geometry::boolean::Solver(RNA_enum_get(op.ptr, "trim_solver"));
+  trim_operation->solver_mode = blender::geometry::boolean::Solver(
+      RNA_enum_get(op.ptr, "trim_solver"));
 
   /* If the cursor was not over the mesh, force the orientation to view. */
   if (!trim_operation->initial_hit) {
@@ -747,7 +749,7 @@ static void operator_properties(wmOperatorType *ot)
   RNA_def_enum(ot->srna,
                "trim_solver",
                solver_items,
-               int(geometry::boolean::Solver::Manifold),
+               int(blender::geometry::boolean::Solver::Manifold),
                "Solver",
                nullptr);
 }

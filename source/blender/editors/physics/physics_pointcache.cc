@@ -249,7 +249,7 @@ static wmOperatorStatus ptcache_bake_modal(bContext *C, wmOperator *op, const wm
   Scene *scene = static_cast<Scene *>(op->customdata);
 
   /* no running blender, remove handler and pass through */
-  if (0 == WM_jobs_test(CTX_wm_manager(C), scene, WM_JOB_TYPE_POINTCACHE)) {
+  if (!WM_jobs_has_running(CTX_wm_manager(C), scene, WM_JOB_TYPE_POINTCACHE)) {
     return OPERATOR_FINISHED | OPERATOR_PASS_THROUGH;
   }
 

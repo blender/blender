@@ -1093,9 +1093,7 @@ static wmOperatorStatus change_visibility_exec(bContext *C, wmOperator *op)
       float location[3];
       copy_v3_v3(location, ss.active_vert_position(depsgraph, object));
       mul_m4_v3(object.object_to_world().ptr(), location);
-      copy_v3_v3(paint_runtime->average_stroke_accum, location);
-      paint_runtime->average_stroke_counter = 1;
-      paint_runtime->last_stroke_valid = true;
+      bke::paint::stroke_set_location(*paint, location);
     }
   }
 

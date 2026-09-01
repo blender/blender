@@ -835,7 +835,7 @@ static void draw_seq_text_get_source(const Strip *strip, char *r_source, size_t 
 static size_t draw_seq_text_get_overlay_string(const TimelineDrawContext &ctx,
                                                const StripDrawContext &strip_ctx,
                                                char *r_overlay_string,
-                                               size_t overlay_string_len)
+                                               size_t overlay_string_maxncpy)
 {
   const Strip *strip = strip_ctx.strip;
 
@@ -879,7 +879,7 @@ static size_t draw_seq_text_get_overlay_string(const TimelineDrawContext &ctx,
 
   BLI_assert(i <= ARRAY_SIZE(text_array));
 
-  return BLI_string_join_array(r_overlay_string, overlay_string_len, text_array, i);
+  return BLI_string_join_array(r_overlay_string, overlay_string_maxncpy, text_array, i);
 }
 
 static void get_strip_text_color(const StripDrawContext &strip_ctx, uchar r_col[4])
@@ -1487,7 +1487,7 @@ static void strip_data_handle_flags_set(const StripDrawContext &strip,
   const bool selected = strip.strip->flag & SEQ_SELECT;
   /* Handles on left/right side. */
   if (!seq::transform_is_locked(ctx.channels, strip.strip) &&
-      can_select_handle(scene, strip.strip, ctx.v2d))
+      can_select_handle(scene, strip.strip))
   {
     const bool selected_l = selected && handle_is_selected(strip.strip, STRIP_HANDLE_LEFT);
     const bool selected_r = selected && handle_is_selected(strip.strip, STRIP_HANDLE_RIGHT);

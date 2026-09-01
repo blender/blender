@@ -293,7 +293,7 @@ void RNA_api_gizmo(StructRNA *srna)
   /* similar to UILayout.operator */
   parm = RNA_def_pointer(
       func, "properties", "OperatorProperties", "", "Operator properties to fill in");
-  RNA_def_parameter_flags(parm, PropertyFlag(0), PARM_REQUIRED | PARM_RNAPTR);
+  RNA_def_parameter_flags(parm, PROP_NEVER_NULL, PARM_REQUIRED | PARM_RNAPTR);
   RNA_def_function_return(func, parm);
 
   /* Access Properties */

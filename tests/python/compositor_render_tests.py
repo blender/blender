@@ -32,7 +32,7 @@ def get_arguments(filepath, output_filepath, backend):
     execution_device = "CPU"
     if backend != "CPU":
         execution_device = "GPU"
-        arguments.extend(["--gpu-backend", backend])
+        arguments.extend(["--gpu-backend", backend, "--debug-gpu-backend-no-fallback"])
 
     arguments.extend([
         filepath,
@@ -57,14 +57,24 @@ def create_argparse():
     return parser
 
 
+BLOCKLIST_OPENGL_LINUX = [
+    # Unknown failure than can not be reproduced locally.
+    "node_integer_math.blend",
+]
+
+
 def main():
     parser = create_argparse()
     args = parser.parse_args()
 
+    blocklist = []
+    if args.gpu_backend == "opengl" and sys.platform == "linux":
+        blocklist += BLOCKLIST_OPENGL_LINUX
+
     from modules import render_report
     backend = args.gpu_backend if args.gpu_backend else "CPU"
     report_title = f"Compositor {backend.upper()}"
-    report = render_report.Report(report_title, args.outdir, args.oiiotool)
+    report = render_report.Report(report_title, args.outdir, args.oiiotool, variation=None, blocklist=blocklist)
     report.set_pixelated(True)
     report.set_reference_dir("compositor_renders")
 

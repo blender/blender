@@ -1021,7 +1021,7 @@ bool ensure_selection_domain(ToolSettings *ts, Object *object)
         }
       }
       else {
-        BLI_assert(ELEM(meta_data->domain, bke::AttrDomain::Auto, bke::AttrDomain::Curve));
+        BLI_assert(meta_data->domain == bke::AttrDomain::Curve);
 
         const IndexMask selected_curves = ed::curves::retrieve_selected_curves(curves, memory);
         const IndexMask selected_mask = bke::greasepencil::selected_mask_to_fills(
@@ -1198,7 +1198,9 @@ static void GREASE_PENCIL_OT_material_select(wmOperatorType *ot)
   RNA_def_property_flag(ot->prop, PROP_HIDDEN | PROP_SKIP_SAVE);
 }
 
+namespace {
 enum class StrokeType : int8_t { Stroke, Fill };
+}
 
 static wmOperatorStatus grease_pencil_select_by_stroke_type_exec(bContext *C, wmOperator *op)
 {

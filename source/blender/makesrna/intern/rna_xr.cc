@@ -1764,6 +1764,7 @@ static void rna_def_xr_component_paths(BlenderRNA *brna, PropertyRNA *cprop)
   RNA_def_parameter_flags(parm, PropertyFlag(0), PARM_REQUIRED);
   parm = RNA_def_pointer(
       func, "component_path", "XrComponentPath", "Component Path", "Added component path");
+  RNA_def_parameter_flags(parm, PROP_NEVER_NULL, ParameterFlag(0));
   RNA_def_function_return(func, parm);
 
   func = RNA_def_function(srna, "remove", "rna_XrComponentPath_remove");
@@ -1805,6 +1806,7 @@ static void rna_def_xr_actionmap_bindings(BlenderRNA *brna, PropertyRNA *cprop)
   RNA_def_parameter_flags(parm, PropertyFlag(0), PARM_REQUIRED);
   parm = RNA_def_pointer(
       func, "binding", "XrActionMapBinding", "Binding", "Added action map binding");
+  RNA_def_parameter_flags(parm, PROP_NEVER_NULL, ParameterFlag(0));
   RNA_def_function_return(func, parm);
 
   func = RNA_def_function(srna, "new_from_binding", "rna_XrActionMapBinding_new_from_binding");
@@ -1813,6 +1815,7 @@ static void rna_def_xr_actionmap_bindings(BlenderRNA *brna, PropertyRNA *cprop)
   RNA_def_parameter_flags(parm, PROP_NEVER_NULL, PARM_REQUIRED);
   parm = RNA_def_pointer(
       func, "result", "XrActionMapBinding", "Binding", "Added action map binding");
+  RNA_def_parameter_flags(parm, PROP_NEVER_NULL, ParameterFlag(0));
   RNA_def_function_return(func, parm);
 
   func = RNA_def_function(srna, "remove", "rna_XrActionMapBinding_remove");
@@ -1848,6 +1851,7 @@ static void rna_def_xr_user_paths(BlenderRNA *brna, PropertyRNA *cprop)
       func, "path", nullptr, XR_MAX_USER_PATH_LENGTH, "Path", "OpenXR user path");
   RNA_def_parameter_flags(parm, PropertyFlag(0), PARM_REQUIRED);
   parm = RNA_def_pointer(func, "user_path", "XrUserPath", "User Path", "Added user path");
+  RNA_def_parameter_flags(parm, PROP_NEVER_NULL, ParameterFlag(0));
   RNA_def_function_return(func, parm);
 
   func = RNA_def_function(srna, "remove", "rna_XrUserPath_remove");
@@ -1885,12 +1889,14 @@ static void rna_def_xr_actionmap_items(BlenderRNA *brna, PropertyRNA *cprop)
                          "Replace any existing item with the same name");
   RNA_def_parameter_flags(parm, PropertyFlag(0), PARM_REQUIRED);
   parm = RNA_def_pointer(func, "item", "XrActionMapItem", "Item", "Added action map item");
+  RNA_def_parameter_flags(parm, PROP_NEVER_NULL, ParameterFlag(0));
   RNA_def_function_return(func, parm);
 
   func = RNA_def_function(srna, "new_from_item", "rna_XrActionMapItem_new_from_item");
   parm = RNA_def_pointer(func, "item", "XrActionMapItem", "Item", "Item to use as a reference");
   RNA_def_parameter_flags(parm, PROP_NEVER_NULL, PARM_REQUIRED);
   parm = RNA_def_pointer(func, "result", "XrActionMapItem", "Item", "Added action map item");
+  RNA_def_parameter_flags(parm, PROP_NEVER_NULL, ParameterFlag(0));
   RNA_def_function_return(func, parm);
 
   func = RNA_def_function(srna, "remove", "rna_XrActionMapItem_remove");
@@ -1930,6 +1936,7 @@ static void rna_def_xr_actionmaps(BlenderRNA *brna, PropertyRNA *cprop)
                          "Replace any existing actionmap with the same name");
   RNA_def_parameter_flags(parm, PropertyFlag(0), PARM_REQUIRED);
   parm = RNA_def_pointer(func, "actionmap", "XrActionMap", "Action Map", "Added action map");
+  RNA_def_parameter_flags(parm, PROP_NEVER_NULL, ParameterFlag(0));
   RNA_def_function_return(func, parm);
 
   func = RNA_def_function(srna, "new_from_actionmap", "rna_XrActionMap_new_from_actionmap");
@@ -1940,6 +1947,7 @@ static void rna_def_xr_actionmaps(BlenderRNA *brna, PropertyRNA *cprop)
       func, "actionmap", "XrActionMap", "Action Map", "Action map to use as a reference");
   RNA_def_parameter_flags(parm, PROP_NEVER_NULL, PARM_REQUIRED);
   parm = RNA_def_pointer(func, "result", "XrActionMap", "Action Map", "Added action map");
+  RNA_def_parameter_flags(parm, PROP_NEVER_NULL, ParameterFlag(0));
   RNA_def_function_return(func, parm);
 
   func = RNA_def_function(srna, "remove", "rna_XrActionMap_remove");

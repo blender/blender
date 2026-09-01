@@ -1,9 +1,9 @@
 
 msgid ""
 msgstr ""
-"Project-Id-Version: Blender 5.3.0 Alpha (b'af4852ed4560')\n"
+"Project-Id-Version: Blender 5.3.0 Alpha (b'32296898e057')\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-08-10 07:54+0000\n"
+"POT-Creation-Date: 2026-08-31 07:41+0000\n"
 "PO-Revision-Date: 2026-05-04 00:12+0000\n"
 "Last-Translator: Alessandro Vecchio <alessandrovecchio1907@gmail.com>\n"
 "Language-Team: Italian <https://translate.blender.org/projects/blender-ui/ui/it/>\n"
@@ -6570,10 +6570,6 @@ msgid "Kill collided particles"
 msgstr "Uccide le particelle collise"
 
 
-msgid "Display"
-msgstr "Visualizza"
-
-
 msgid "Input color space settings"
 msgstr "Impostazioni spazio colore input"
 
@@ -6582,16 +6578,8 @@ msgid "Is Data"
 msgstr "Sono Dati"
 
 
-msgid "Input Color Space"
-msgstr "Spazio Colore Input"
-
-
 msgid "Color space in the image file, to convert to and from when saving and loading the image"
 msgstr "Spazio di colore nel file immagine, in cui e da cui convertire quando si salva e si carica l'immagine"
-
-
-msgid "Display P3"
-msgstr "Visualizza P3"
 
 
 msgid "Do not perform any color transform on load, treat colors as in scene linear space already"
@@ -6622,10 +6610,6 @@ msgid "Gamma"
 msgstr "Gamma"
 
 
-msgid "Look"
-msgstr "Aspetto"
-
-
 msgid "Additional transform applied before view transform for artistic needs"
 msgstr "Trasformazione aggiuntiva applicata prima della trasformazione della visuale per esigenze artistiche"
 
@@ -6648,10 +6632,6 @@ msgstr "Utilizza Bilanciamento del Bianco"
 
 msgid "Perform chromatic adaption from a different white point"
 msgstr "Effettua l'adattamento cromatico da un diverso punto del bianco"
-
-
-msgid "View"
-msgstr "Vista"
 
 
 msgid "Temperature"
@@ -6843,6 +6823,10 @@ msgstr "Elementi Rampa Colore"
 
 msgid "Collection of Color Ramp Elements"
 msgstr "Raccolta di Elementi Rampa Colore"
+
+
+msgid "Identifier"
+msgstr "Identificatore"
 
 
 msgid "Console Input"
@@ -8972,6 +8956,10 @@ msgid "Tangent to Surface"
 msgstr "Tangente alla Superficie"
 
 
+msgid "View"
+msgstr "Vista"
+
+
 msgid "Draw in a plane aligned to the viewport"
 msgstr "Disegna in un piano allineato al viewport"
 
@@ -10503,10 +10491,6 @@ msgstr "Definizione della proprietà scelta nell'RNA"
 
 msgid "Description of the item's purpose"
 msgstr "Descrizione dello scopo dell'elemento"
-
-
-msgid "Identifier"
-msgstr "Identificatore"
 
 
 msgid "Unique name used in the code and scripting"
@@ -15240,6 +15224,18 @@ msgid "Automatically adjust strength to give consistent results for different sp
 msgstr "Aggiusta automaticamente la forza per dare risultati consistenti per spaziature differenti"
 
 
+msgid "Use Unified Color"
+msgstr "Utilizza Colore Unico"
+
+
+msgid "Use Unified Strength"
+msgstr "Utilizza Unica Forza"
+
+
+msgid "Use Unified Weight"
+msgstr "Utilizza Peso Unico"
+
+
 msgid "Use this brush in Grease Pencil vertex color mode"
 msgstr "Utilizza questo pennello in modalità colorazione vertici di Grease Pencil"
 
@@ -18784,6 +18780,10 @@ msgstr "Croce"
 msgctxt "ParticleSettings"
 msgid "Axis"
 msgstr "Asse"
+
+
+msgid "Display"
+msgstr "Visualizza"
 
 
 msgid "Percentage of particles to display in 3D view"
@@ -24478,46 +24478,6 @@ msgid "Material slot name"
 msgstr "Nome dello slot materiale"
 
 
-msgid "Names"
-msgstr "Nomi"
-
-
-msgid "Bone Roll"
-msgstr "Rollio Osso"
-
-
-msgid "Show/Hide"
-msgstr "Mostra/Nascondi"
-
-
-msgid "Clean Up"
-msgstr "Ripulisci"
-
-
-msgid "Adjust"
-msgstr "Regola"
-
-
-msgid "Keying"
-msgstr "Keying"
-
-
-msgid "Tracking"
-msgstr "Tracciamento"
-
-
-msgid "Utilities"
-msgstr "Utilità"
-
-
-msgid "Math"
-msgstr "Matematica"
-
-
-msgid "Pivot Point"
-msgstr "Punto di Perno"
-
-
 msgid "Snap"
 msgstr "Aggancia"
 
@@ -24526,20 +24486,44 @@ msgid "Proportional Editing Falloff"
 msgstr "Decadimento Modifica Proporzionale"
 
 
+msgid "Read"
+msgstr "Lettura"
+
+
 msgid "Mask Edit"
 msgstr "Modifica Maschera"
+
+
+msgid "Sample"
+msgstr "Campione"
 
 
 msgid "Automasking"
 msgstr "Automascheramento"
 
 
+msgid "Write"
+msgstr "Scrittura"
+
+
 msgid "Face Sets Edit"
 msgstr "Modifica Sets di Facce"
 
 
+msgid "Primitives"
+msgstr "Primitive"
+
+
 msgid "Vertex Group Locks"
 msgstr "Blocchi del Gruppo di Vertici"
+
+
+msgid "Instances"
+msgstr "Istanze"
+
+
+msgid "Import"
+msgstr "Importa"
 
 
 msgid "Mirror"
@@ -24552,6 +24536,10 @@ msgstr "Mappatura UV"
 
 msgid "Local View"
 msgstr "Vista Locale"
+
+
+msgid "Utilities"
+msgstr "Utilità"
 
 
 msgid "Viewpoint"
@@ -24578,6 +24566,14 @@ msgid "Select More/Less"
 msgstr "Seleziona Più/Meno"
 
 
+msgid "Math"
+msgstr "Matematica"
+
+
+msgid "UV"
+msgstr "UV"
+
+
 msgid "Select Similar"
 msgstr "Seleziona Simili"
 
@@ -24596,22 +24592,6 @@ msgstr "Seleziona Anelli"
 
 msgid "Assign Material"
 msgstr "Assegna Materiale"
-
-
-msgid "Read"
-msgstr "Lettura"
-
-
-msgid "Sample"
-msgstr "Campione"
-
-
-msgid "Write"
-msgstr "Scrittura"
-
-
-msgid "Primitives"
-msgstr "Primitive"
 
 
 msgid "Metaball"
@@ -24634,10 +24614,6 @@ msgid "Relations"
 msgstr "Relazioni"
 
 
-msgid "Instances"
-msgstr "Istanze"
-
-
 msgid "Rigid Body"
 msgstr "Corpo Rigido"
 
@@ -24646,16 +24622,28 @@ msgid "Apply"
 msgstr "Applica"
 
 
-msgid "Import"
-msgstr "Importa"
-
-
 msgid "Track"
 msgstr "Traccia"
 
 
 msgid "Quick Effects"
 msgstr "Effetti Veloci"
+
+
+msgid "Show/Hide"
+msgstr "Mostra/Nascondi"
+
+
+msgid "Linked"
+msgstr "Collegato"
+
+
+msgid "Clean Up"
+msgstr "Ripulisci"
+
+
+msgid "Layout"
+msgstr "Layout"
 
 
 msgid "Asset"
@@ -24678,8 +24666,8 @@ msgid "Hooks"
 msgstr "Ganci"
 
 
-msgid "UV"
-msgstr "UV"
+msgid "Adjust"
+msgstr "Regola"
 
 
 msgid "Face Sets Init"
@@ -24688,6 +24676,14 @@ msgstr "Init Sets di Facce"
 
 msgid "Random Mask"
 msgstr "Maschera Casuale"
+
+
+msgid "Keying"
+msgstr "Keying"
+
+
+msgid "Tracking"
+msgstr "Tracciamento"
 
 
 msgid "Clear Transform"
@@ -24704,6 +24700,10 @@ msgstr "Propaga"
 
 msgid "Bone Collections"
 msgstr "Raccolte di Ossa"
+
+
+msgid "Names"
+msgstr "Nomi"
 
 
 msgid "Toggle Bone Options"
@@ -24738,20 +24738,20 @@ msgid "Merge"
 msgstr "Unisci"
 
 
-msgid "Linked"
-msgstr "Collegato"
+msgid "Pivot Point"
+msgstr "Punto di Perno"
 
 
 msgid "Special Characters"
 msgstr "Caratteri Speciali"
 
 
-msgid "Layout"
-msgstr "Layout"
-
-
 msgid "Kerning"
 msgstr "Crenatura"
+
+
+msgid "Bone Roll"
+msgstr "Rollio Osso"
 
 
 msgid "Keyframe Insert Pie"
@@ -24988,10 +24988,6 @@ msgstr "Genera"
 
 msgid "Physics"
 msgstr "Fisica"
-
-
-msgid "ID Data"
-msgstr "Dati ID"
 
 
 msgid "Particle Specials"
@@ -30820,14 +30816,6 @@ msgid "Convert between color spaces"
 msgstr "Converti tra Spazi colore"
 
 
-msgid "From"
-msgstr "Da"
-
-
-msgid "To"
-msgstr "A"
-
-
 msgid "Cryptomatte"
 msgstr "Cryptomatte"
 
@@ -35400,8 +35388,8 @@ msgstr "Resetta Trasformazione"
 
 
 msgctxt "Operator"
-msgid "Accept"
-msgstr "Accetta"
+msgid "Select Directory"
+msgstr "Seleziona Cartella"
 
 
 msgid "Directory of the file"
@@ -36128,10 +36116,6 @@ msgstr "Esporta"
 
 
 msgctxt "Operator"
-msgid "Remove Importer"
-msgstr "Rimuovi Importatore"
-
-
 msgid "Remove Importer"
 msgstr "Rimuovi Importatore"
 
@@ -37621,11 +37605,6 @@ msgstr "Seleziona/Deseleziona Tutti I File"
 
 msgid "Select or deselect all files"
 msgstr "Seleziona/Deseleziona tutti i file"
-
-
-msgctxt "Operator"
-msgid "Select Directory"
-msgstr "Seleziona Cartella"
 
 
 msgid "Select a bookmarked directory"
@@ -45990,6 +45969,10 @@ msgid "Add a new screen"
 msgstr "Aggiunge un nuova disposizione schermo"
 
 
+msgid "Active Section"
+msgstr "Sezione Attiva"
+
+
 msgctxt "Operator"
 msgid "Redo Last"
 msgstr "Riesegue Ultimo"
@@ -50990,10 +50973,6 @@ msgid "Curve"
 msgstr "Curva"
 
 
-msgid "Front-Face Falloff"
-msgstr "Decadimento Facce-Frontali"
-
-
 msgid "Post-Processing"
 msgstr "Post Elaborazione"
 
@@ -51885,10 +51864,6 @@ msgstr "Raccolta di vincoli ossa di posa"
 
 msgid "Global preferences"
 msgstr "Preferenze globali"
-
-
-msgid "Active Section"
-msgstr "Sezione Attiva"
 
 
 msgid "Application Template"
@@ -53107,6 +53082,10 @@ msgid "Primitive Float"
 msgstr "Float Primitivo"
 
 
+msgid "Subtype"
+msgstr "Sottotipo"
+
+
 msgid "Animatable"
 msgstr "Animabile"
 
@@ -53517,10 +53496,6 @@ msgstr "Campioni AA minimi per il campionamento adattivo, per individuare le car
 
 msgid "Pause Preview"
 msgstr "Pautilizza Anteprima"
-
-
-msgid "Pause all viewport preview renders"
-msgstr "Mette in pautilizza tutti i render di anteprima del viewport"
 
 
 msgid "Number of samples to render in the viewport, unlimited if 0"
@@ -54904,6 +54879,10 @@ msgid "Elastic Limit"
 msgstr "Limite Elastico"
 
 
+msgid "Use effect during render"
+msgstr "Utilizza l'effetto durante il rendering"
+
+
 msgid "Light Direction"
 msgstr "Direzione Luce"
 
@@ -55094,10 +55073,6 @@ msgstr "Perno sul cursore 3D"
 
 msgid "Individual Origins"
 msgstr "Origini Individuali"
-
-
-msgid "Use effect during render"
-msgstr "Utilizza l'effetto durante il rendering"
 
 
 msgid "Use as Depth Of Field"
@@ -58727,10 +58702,6 @@ msgid "Object to use as projector transform"
 msgstr "Oggetto da utilizzare come proiettore della trasformazione"
 
 
-msgid "Use Unified Color"
-msgstr "Utilizza Colore Unico"
-
-
 msgid "Instead of per-brush color, the color is shared across brushes"
 msgstr "Invece di utilizzare un colore per ogni pennello, viene utilizzato un colore solo per tutti i pennelli"
 
@@ -58739,16 +58710,8 @@ msgid "Instead of per-brush input samples, the value is shared across brushes"
 msgstr "Invece di campioni di input per pennello, il valore viene condiviso tra i pennelli"
 
 
-msgid "Use Unified Strength"
-msgstr "Utilizza Unica Forza"
-
-
 msgid "Instead of per-brush strength, the strength is shared across brushes"
 msgstr "Invece di utilizzare un'intensità per ogni pennello, viene utilizzata un'intensità unificata per tutti i pennelli"
-
-
-msgid "Use Unified Weight"
-msgstr "Utilizza Peso Unico"
 
 
 msgid "Instead of per-brush weight, the weight is shared across brushes"
@@ -59772,16 +59735,6 @@ msgstr "Editor UV"
 
 
 msgctxt "WindowManager"
-msgid "UV Sculpt"
-msgstr "Scultura UV"
-
-
-msgctxt "WindowManager"
-msgid "Image View"
-msgstr "Vista Immagine"
-
-
-msgctxt "WindowManager"
 msgid "Image Generic"
 msgstr "Immagine Generica"
 
@@ -60606,6 +60559,11 @@ msgstr "Prima"
 
 
 msgctxt "Operator"
+msgid "Search..."
+msgstr "Cerca..."
+
+
+msgctxt "Operator"
 msgid "Add Object Constraint"
 msgstr "Aggiungi Vincoli Oggetto"
 
@@ -60828,11 +60786,6 @@ msgstr "Influenza Soglia"
 
 msgid "Update on Edit"
 msgstr "Aggiorna alla Modifica"
-
-
-msgctxt "Operator"
-msgid "Search..."
-msgstr "Cerca..."
 
 
 msgid "Distance Reference"
@@ -65243,6 +65196,10 @@ msgid "Drag"
 msgstr "Trascina"
 
 
+msgid "Look"
+msgstr "Aspetto"
+
+
 msgid "Sort By:"
 msgstr "Ordina Per:"
 
@@ -67004,10 +66961,6 @@ msgstr "Fotogramma: %d"
 
 msgid "Matte Objects:"
 msgstr "Oggetti Opachi:"
-
-
-msgid "Subtype"
-msgstr "Sottotipo"
 
 
 msgid "Compositing..."

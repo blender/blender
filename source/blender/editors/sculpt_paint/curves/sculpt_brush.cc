@@ -15,6 +15,7 @@
 #include "BKE_context.hh"
 #include "BKE_curves.hh"
 #include "BKE_object.hh"
+#include "BKE_paint.hh"
 #include "BKE_paint_types.hh"
 #include "BKE_report.hh"
 
@@ -337,10 +338,7 @@ Vector<float4x4> get_symmetry_brush_transforms(const eCurvesSymmetryType symmetr
 
 void remember_stroke_position(CurvesSculpt &curves_sculpt, const float3 &brush_position_wo)
 {
-  bke::PaintRuntime &paint_runtime = *curves_sculpt.paint.runtime;
-  copy_v3_v3(paint_runtime.average_stroke_accum, brush_position_wo);
-  paint_runtime.average_stroke_counter = 1;
-  paint_runtime.last_stroke_valid = true;
+  bke::paint::stroke_set_location(curves_sculpt.paint, brush_position_wo);
 }
 
 float transform_brush_radius(const float4x4 &transform,

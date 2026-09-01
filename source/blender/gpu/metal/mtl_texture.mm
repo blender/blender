@@ -110,6 +110,9 @@ gpu::MTLTexture::~MTLTexture()
 /** \} */
 
 /* -------------------------------------------------------------------- */
+/** \name Texture Views
+ * \{ */
+
 void gpu::MTLTexture::bake_mip_swizzle_view()
 {
   if (texture_view_dirty_flags_) {
@@ -234,6 +237,9 @@ void gpu::MTLTexture::bake_mip_swizzle_view()
   }
 }
 
+/** \} */
+
+/* -------------------------------------------------------------------- */
 /** \name Operations
  * \{ */
 
@@ -2497,11 +2503,13 @@ MTLStorageBuf *gpu::MTLTexture::get_storagebuf()
   }
   return storage_buffer_;
 }
+
 /** \} */
 
 /* -------------------------------------------------------------------- */
-/** \name SRGB Handling.
+/** \name SRGB Handling
  * \{ */
+
 bool MTLTexture::is_format_srgb()
 {
   return (format_ == TextureFormat::SRGBA_8_8_8_8);
@@ -2518,6 +2526,7 @@ id<MTLTexture> MTLTexture::get_non_srgb_handle()
 }
 
 /** \} */
+
 /* -------------------------------------------------------------------- */
 /** \name Pixel Buffer
  * \{ */

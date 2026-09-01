@@ -3396,7 +3396,7 @@ static const EnumPropertyItem *rna_FileSelectParams_sort_method_itemf(bContext *
   return items;
 }
 
-static void rna_FileSelectPrams_filter_glob_set(PointerRNA *ptr, const char *value)
+static void rna_FileSelectParams_filter_glob_set(PointerRNA *ptr, const char *value)
 {
   FileSelectParams *params = static_cast<FileSelectParams *>(ptr->data);
 
@@ -8055,7 +8055,7 @@ static void rna_def_fileselect_params(BlenderRNA *brna)
                            "Extension Filter",
                            "UNIX shell-like filename patterns matching, supports wildcards ('*') "
                            "and list of patterns separated by ';'");
-  RNA_def_property_string_funcs(prop, nullptr, nullptr, "rna_FileSelectPrams_filter_glob_set");
+  RNA_def_property_string_funcs(prop, nullptr, nullptr, "rna_FileSelectParams_filter_glob_set");
   RNA_def_property_update(prop, NC_SPACE | ND_SPACE_FILE_LIST, nullptr);
 
   prop = RNA_def_property(srna, "filter_search", PROP_STRING, PROP_NONE);

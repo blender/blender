@@ -239,15 +239,13 @@ static bool sample_detail_voxel(bContext *C, ViewContext *vc, const int mval[2])
 
 static void sculpt_raycast_detail_cb(bke::pbvh::BMeshNode &node,
                                      SculptDetailRaycastData &srd,
-                                     float *tmin)
+                                     float *distance)
 {
-  if (BKE_pbvh_node_get_tmin(&node) < *tmin) {
-    if (bke::pbvh::raycast_node_detail_bmesh(
-            node, srd.ray_start, &srd.isect_precalc, &srd.depth, &srd.edge_length))
-    {
-      srd.hit = true;
-      *tmin = srd.depth;
-    }
+  if (bke::pbvh::raycast_node_detail_bmesh(
+          node, srd.ray_start, &srd.isect_precalc, &srd.depth, &srd.edge_length))
+  {
+    srd.hit = true;
+    *distance = srd.depth;
   }
 }
 
@@ -276,8 +274,8 @@ static void sample_detail_dyntopo(bContext *C, ViewContext *vc, const int mval[2
 
   bke::pbvh::raycast(
       pbvh,
-      [&](bke::pbvh::Node &node, float *tmin) {
-        sculpt_raycast_detail_cb(static_cast<bke::pbvh::BMeshNode &>(node), srd, tmin);
+      [&](bke::pbvh::Node &node, float *distance) {
+        sculpt_raycast_detail_cb(static_cast<bke::pbvh::BMeshNode &>(node), srd, distance);
       },
       ray_start,
       ray_normal,

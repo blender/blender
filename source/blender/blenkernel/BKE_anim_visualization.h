@@ -53,7 +53,7 @@ void free_cache(struct bMotionPath *mpath);
 void free(struct bMotionPath *mpath);
 
 /**
- * Esnures that a motion path exists for the given data and that the settings correctly adhere to
+ * Ensures that a motion path exists for the given data and that the settings correctly adhere to
  * the animviz settings.
  *
  * \param scene: Current scene (for frame ranges, etc.)
