@@ -322,7 +322,7 @@ if(WITH_OPENAL)
 
   if(ANDROID AND OPENAL_FOUND)
     # Android NDK OpenSL ES library required by OpenAL
-    list(APPEND PLATFORM_LINKLIBS -lopensles)
+    list(APPEND PLATFORM_LINKLIBS -lOpenSLES)
   endif()
 endif()
 
