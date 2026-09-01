@@ -12,6 +12,7 @@
 #include "BKE_deform.hh"
 #include "BKE_geometry_set.hh"
 #include "BKE_grease_pencil.hh"
+#include "BKE_library.hh"
 #include "BKE_material.hh"
 #include "BKE_object_deform.h"
 #include "BKE_paint.hh"
@@ -1798,6 +1799,12 @@ static wmOperatorStatus grease_pencil_fill_invoke(bContext *C,
   }
   if (BKE_object_material_get(&ob, ob.actcol) == nullptr) {
     BKE_report(op->reports, RPT_ERROR, "Fill tool needs active material");
+    return OPERATOR_CANCELLED;
+  }
+  if (ed::greasepencil::check_brush_needs_new_material(&ob, &brush) &&
+      (!ID_IS_EDITABLE(&ob.id) || ID_IS_OVERRIDE_LIBRARY(&ob.id)))
+  {
+    BKE_report(op->reports, RPT_ERROR, "Cannot create new material on linked object");
     return OPERATOR_CANCELLED;
   }
   if (!grease_pencil_fill_init(*C, *op)) {
