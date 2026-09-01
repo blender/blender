@@ -110,8 +110,9 @@ class StreamedGzipReader {
       const int ret = inflate(&stream_, Z_NO_FLUSH);
       BLI_assert(ret != Z_STREAM_ERROR);
       if (ret == Z_STREAM_END) {
-        BLI_assert(stream_.avail_out == 0);
-        break;
+        if (stream_.avail_out != 0) {
+          return false;
+        }
       }
       if (ret != Z_OK) {
         /* TODO(sergey): Report error. */
@@ -119,7 +120,8 @@ class StreamedGzipReader {
       }
     } while (stream_.avail_out != 0);
 
-    // TODO(sergey): Investigate whether decompressing more data ahead of time helps performance.
+    /* TODO(sergey): Investigate whether decompressing more data ahead of time helps performance.
+     */
 
     return true;
   }
