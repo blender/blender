@@ -123,7 +123,7 @@ class ChannelTreeView : public ui::AbstractTreeView {
   }
 };
 
-void draw_channel_tree(const bContext &C, SummaryChannel &root, View2D &v2d)
+void draw_channel_tree(const bContext &C, SummaryChannel &root, View2D & /* v2d */)
 {
   ARegion *region = CTX_wm_region(&C);
   ui::Block *block = ui::block_begin(

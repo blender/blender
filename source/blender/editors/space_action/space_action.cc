@@ -443,11 +443,6 @@ static void action_channel_region_draw(const bContext *C, ARegion *region)
   }
 }
 
-static bool action_channel_panel_poll(const bContext * /* C */, PanelType * /* panel */)
-{
-  return true;
-}
-
 /* add handlers, stuff you only do once or on area/region changes */
 static void action_header_region_init(wmWindowManager * /*wm*/, ARegion *region)
 {
