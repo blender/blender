@@ -472,6 +472,9 @@ Paint *BKE_paint_get_active(const Main &bmain, Scene *sce, ViewLayer *view_layer
           break;
       }
     }
+
+    /* default to image paint */
+    return &ts->imapaint.paint;
   }
 
   return nullptr;
@@ -486,12 +489,22 @@ Paint *BKE_paint_get_active_from_context(const bContext *C)
   if (sce && view_layer) {
     ToolSettings *ts = sce->toolsettings;
     BKE_view_layer_synced_ensure(*bmain, sce, view_layer);
+    Object *obact = BKE_view_layer_active_object_get(view_layer);
 
     SpaceImage *sima = CTX_wm_space_image(C);
-    if (sima != nullptr && sima->mode == SI_MODE_PAINT) {
-      return &ts->imapaint.paint;
+    if (sima != nullptr) {
+      if (obact && obact->mode == OB_MODE_EDIT) {
+        if (sima->mode == SI_MODE_PAINT) {
+          return &ts->imapaint.paint;
+        }
+      }
+      else {
+        return &ts->imapaint.paint;
+      }
     }
-    return BKE_paint_get_active(*bmain, sce, view_layer);
+    else {
+      return BKE_paint_get_active(*bmain, sce, view_layer);
+    }
   }
 
   return nullptr;
@@ -508,15 +521,25 @@ PaintMode BKE_paintmode_get_active_from_context(const bContext *C)
     Object *obact = BKE_view_layer_active_object_get(view_layer);
 
     SpaceImage *sima = CTX_wm_space_image(C);
-    if (sima != nullptr && sima->mode == SI_MODE_PAINT) {
-      return PaintMode::Texture2D;
+    if (sima != nullptr) {
+      if (obact && obact->mode == OB_MODE_EDIT) {
+        if (sima->mode == SI_MODE_PAINT) {
+          return PaintMode::Texture2D;
+        }
+      }
+      else {
+        return PaintMode::Texture2D;
+      }
     }
-    if (obact) {
+    else if (obact) {
       switch (obact->mode) {
         case OB_MODE_SCULPT:
           return PaintMode::Sculpt;
         case OB_MODE_SCULPT_GREASE_PENCIL:
-          return PaintMode::SculptGPencil;
+          if (obact->type == OB_GREASE_PENCIL) {
+            return PaintMode::SculptGPencil;
+          }
+          return PaintMode::Invalid;
         case OB_MODE_PAINT_GREASE_PENCIL:
           return PaintMode::GPencil;
         case OB_MODE_WEIGHT_GREASE_PENCIL:
@@ -532,8 +555,12 @@ PaintMode BKE_paintmode_get_active_from_context(const bContext *C)
         case OB_MODE_SCULPT_CURVES:
           return PaintMode::SculptCurves;
         default:
-          break;
+          return PaintMode::Texture2D;
       }
+    }
+    else {
+      /* default to image paint */
+      return PaintMode::Texture2D;
     }
   }
 
