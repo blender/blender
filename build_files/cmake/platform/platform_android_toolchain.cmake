@@ -32,7 +32,7 @@ if(NOT DEFINED ANDROID_NDK_ROOT)
 
   if(NOT EXISTS ${ANDROID_NDK_ROOT})
     message(FATAL_ERROR
-      "Failed to infer Android NDK root location, tried: ${ANDROID_NDK_ROOT}. "
+      "Failed to infer Android NDK root location, tried: ${_android_sdk_dir}/ndk/*. "
       "Ensure you have one installed, or manually set ANDROID_NDK_ROOT to its location."
     )
   endif()
