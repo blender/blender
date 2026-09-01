@@ -18,7 +18,7 @@ endif()
 
 if(NOT DEFINED ANDROID_NDK_ROOT)
   if(DEFINED ENV{ANDROID_HOME})
-    # ANDROID_HOME is commonly set to point to the base SDK root.
+    # ANDROID_HOME is commonly set to point to the base SDK root, used by Android Studio and others.
     set(_android_sdk_dir "$ENV{ANDROID_HOME}")
   elseif(CMAKE_HOST_SYSTEM_NAME STREQUAL "Darwin")
     set(_android_sdk_dir "$ENV{HOME}/Library/Android/sdk")
@@ -38,8 +38,8 @@ set(NDK_TOOLCHAIN_FILE "${ANDROID_NDK_ROOT}/build/cmake/android.toolchain.cmake"
 
 if(NOT EXISTS ${NDK_TOOLCHAIN_FILE})
   message(FATAL_ERROR
-    "No Android NDK found at \"${ANDROID_NDK_ROOT}\", ensure you have one installed, or "
-    "manually set ANDROID_NDK_ROOT to its location."
+    "No Android NDK found. Ensure you have one installed, or manually "
+    "set ANDROID_NDK_ROOT to its location."
   )
 else()
   message(STATUS "Using Android NDK: ${ANDROID_NDK_ROOT}")
