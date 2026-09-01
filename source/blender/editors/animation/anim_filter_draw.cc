@@ -30,10 +30,6 @@
 #include "ED_keyframes_draw.hh"
 #include "ED_undo.hh"
 
-namespace blender {
-
-}  // namespace blender
-
 namespace blender::ed::animfilter {
 
 /* Returns the char * and max length of the name string. */
@@ -190,6 +186,8 @@ void draw_channel_tree(const bContext &C, SummaryChannel &root, Panel &panel)
   ui::block_layout_set_current(layout->block(), layout);
   ui::AbstractTreeView *tree_view = ui::block_add_view(
       *layout->block(), "channel_tree", std::make_unique<ChannelTreeView>(root));
+  tree_view->set_row_scale_y(0.8);
+  tree_view->set_row_padding(0.0f);
   ui::TreeViewBuilder::build_tree_view(C, *tree_view, *layout, /*add_box=*/false);
 }
 

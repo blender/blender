@@ -131,6 +131,14 @@ class AbstractTreeView : public AbstractView, public TreeViewItemContainer {
   /** Scroll offset in items, also see #uiViewState.scroll_offset. Clamped before creating the
    * button layout. */
   std::shared_ptr<int> scroll_value_ = nullptr;
+
+  /* The base height of each row. This value doesn't include padding between items. */
+  int row_height_ = UI_UNIT_Y;
+  /* Factor to modify the height of each item. Does not modify padding. */
+  float height_scale_ = 1.0;
+  /* Defines the padding between items. */
+  int row_padding_ = style_get_dpi()->buttonspacey;
+
   /**
    * The total number of items in the tree during the last redraw.
    */
@@ -182,6 +190,28 @@ class AbstractTreeView : public AbstractView, public TreeViewItemContainer {
    * \note Value should be greater than #MIN_ROWS. This is to prevent resizing below certain
    * height. */
   void set_default_rows(int default_rows);
+
+  /**
+   * Set a specific height to assume for each row. If not called, a default of UI_UNIT_Y will be
+   * used.
+   *
+   * Values should have scaling applied already.
+   */
+  void set_row_scale_y(float scale);
+  /**
+   * Set a specific padding to add between rows. If not called, the DPI scaled uiStyle.buttonspacey
+   * will be used.
+   *
+   * Values should have scaling applied already.
+   */
+  void set_row_padding(int padding);
+  float height_scale() const;
+  /* The height for each row without padding between rows. */
+  int unpadded_item_height() const;
+  /* The height for each row with padding applied. The padding doubles up for 2 consecutive items
+   * (TODO check this is true). */
+  int padded_item_height() const;
+
   TreeViewSortOrder invert_sort_type_get() const;
   /**
    * Scroll the view so the active item is visible.

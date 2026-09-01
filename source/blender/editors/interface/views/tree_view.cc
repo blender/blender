@@ -29,16 +29,6 @@ namespace blender::ui {
 #define UI_TREEVIEW_INDENT short(0.7f * UI_UNIT_X)
 #define MIN_ROWS 4
 
-static int unpadded_item_height()
-{
-  return UI_UNIT_Y;
-}
-static int padded_item_height()
-{
-  const uiStyle *style = style_get_dpi();
-  return unpadded_item_height() + style->buttonspacey;
-}
-
 /* ---------------------------------------------------------------------- */
 
 AbstractTreeViewItem &TreeViewItemContainer::add_tree_item(
@@ -368,6 +358,31 @@ void AbstractTreeView::sort_inverted()
   this->foreach_sort_invert(*invert_sort_type_);
 }
 
+void AbstractTreeView::set_row_scale_y(float scale)
+{
+  height_scale_ = scale;
+}
+
+void AbstractTreeView::set_row_padding(int padding)
+{
+  row_padding_ = padding;
+}
+
+float AbstractTreeView::height_scale() const
+{
+  return height_scale_;
+}
+
+int AbstractTreeView::unpadded_item_height() const
+{
+  return row_height_ * height_scale_;
+}
+
+int AbstractTreeView::padded_item_height() const
+{
+  return unpadded_item_height() + row_padding_;
+}
+
 TreeViewSortOrder AbstractTreeView::invert_sort_type_get() const
 {
   return *invert_sort_type_;
@@ -616,17 +631,18 @@ AbstractTreeViewItem::AbstractTreeViewItem()
 void AbstractTreeViewItem::add_treerow_button(Block &block)
 {
   /* For some reason a width > (UI_UNIT_X * 2) make the layout system use all available width. */
-  view_item_but_ = reinterpret_cast<ButtonViewItem *>(uiDefBut(&block,
-                                                               ButtonType::ViewItem,
-                                                               "",
-                                                               0,
-                                                               0,
-                                                               UI_UNIT_X * 10,
-                                                               padded_item_height(),
-                                                               nullptr,
-                                                               0,
-                                                               0,
-                                                               ""));
+  view_item_but_ = reinterpret_cast<ButtonViewItem *>(
+      uiDefBut(&block,
+               ButtonType::ViewItem,
+               "",
+               0,
+               0,
+               UI_UNIT_X * 10,
+               get_tree_view().padded_item_height(),
+               nullptr,
+               0,
+               0,
+               ""));
 
   view_item_but_->view_item = this;
 }
@@ -686,8 +702,17 @@ void AbstractTreeViewItem::add_collapse_chevron(Block &block) const
   }
 
   const BIFIconID icon = this->is_collapsed() ? ICON_RIGHTARROW : ICON_DOWNARROW_HLT;
-  Button *but = uiDefIconBut(
-      &block, ButtonType::ButToggle, icon, 0, 0, UI_TREEVIEW_INDENT, UI_UNIT_Y, nullptr, 0, 0, "");
+  Button *but = uiDefIconBut(&block,
+                             ButtonType::ButToggle,
+                             icon,
+                             0,
+                             0,
+                             UI_TREEVIEW_INDENT,
+                             this->get_tree_view().unpadded_item_height(),
+                             nullptr,
+                             0,
+                             0,
+                             "");
   button_func_set(but, collapse_chevron_click_fn, nullptr, nullptr);
   /* To make drag toggle work. */
   button_func_pushed_state_set(but, [this](const Button &) { return this->is_collapsed(); });
@@ -1035,7 +1060,7 @@ void TreeViewLayoutBuilder::build_from_tree(AbstractTreeView &tree_view)
 
   if (tree_view.custom_height_) {
 
-    *tree_view.custom_height_ = visible_row_count.value_or(1) * padded_item_height();
+    *tree_view.custom_height_ = visible_row_count.value_or(1) * tree_view.padded_item_height();
     if (!tree_view.scroll_value_) {
       tree_view.scroll_value_ = std::make_unique<int>(0);
     }
@@ -1206,11 +1231,13 @@ void TreeViewLayoutBuilder::build_row(AbstractTreeViewItem &item) const
 
   /* Add little margin to align actual contents vertically. */
   Layout &content_col = overlap.column(true);
-  const int margin_top = (padded_item_height() - unpadded_item_height()) / 2;
+  const AbstractTreeView &tree_view = item.get_tree_view();
+  const int margin_top = (tree_view.padded_item_height() - tree_view.unpadded_item_height()) / 2;
   if (margin_top > 0) {
     uiDefBut(&block_, ButtonType::Label, "", 0, 0, UI_UNIT_X, margin_top, nullptr, 0, 0, "");
   }
   row = &content_col.row(true);
+  row->scale_y_set(tree_view.height_scale());
 
   uiLayoutListItemAddPadding(row);
   item.add_indent(*row);
