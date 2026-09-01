@@ -192,10 +192,7 @@ class AbstractTreeView : public AbstractView, public TreeViewItemContainer {
   void set_default_rows(int default_rows);
 
   /**
-   * Set a specific height to assume for each row. If not called, a default of UI_UNIT_Y will be
-   * used.
-   *
-   * Values should have scaling applied already.
+   * Set a scale factor for the height of each row. This scale will be applied on top of UI scale.
    */
   void set_row_scale_y(float scale);
   /**

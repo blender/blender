@@ -5146,14 +5146,19 @@ float ANIM_UI_get_keyframe_scale_factor()
   return yscale_fac;
 }
 
+float ANIM_UI_get_channel_scale_factor()
+{
+  return 0.8f * ANIM_UI_get_keyframe_scale_factor();
+}
+
 float ANIM_UI_get_channel_height()
 {
-  return 0.8f * ANIM_UI_get_keyframe_scale_factor() * U.widget_unit;
+  return ANIM_UI_get_channel_scale_factor() * UI_UNIT_Y;
 }
 
 float ANIM_UI_get_channel_skip()
 {
-  return 0.1f * U.widget_unit;
+  return 0.1f * UI_UNIT_Y;
 }
 
 float ANIM_UI_get_first_channel_top(View2D *v2d)
