@@ -355,7 +355,8 @@ PointCloud *reorder_points(const PointCloud &src_pointcloud,
                            Span<int> old_by_new_map,
                            const bke::AttributeFilter &attribute_filter)
 {
-  PointCloud *dst_pointcloud = bke::pointcloud_new_no_attributes(src_pointcloud.type, src_pointcloud.totpoint);
+  PointCloud *dst_pointcloud = bke::pointcloud_new_no_attributes(src_pointcloud.type,
+                                                                 src_pointcloud.totpoint);
   copy_and_reorder_points(src_pointcloud, old_by_new_map, attribute_filter, *dst_pointcloud);
   return dst_pointcloud;
 }

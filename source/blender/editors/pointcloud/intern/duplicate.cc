@@ -19,7 +19,8 @@ namespace blender::ed::pointcloud {
 
 static void duplicate_points(PointCloud &pointcloud, const IndexMask &mask)
 {
-  PointCloud *new_pointcloud = BKE_pointcloud_new_nomain(pointcloud.type, pointcloud.totpoint + mask.size());
+  PointCloud *new_pointcloud = BKE_pointcloud_new_nomain(pointcloud.type,
+                                                         pointcloud.totpoint + mask.size());
   bke::MutableAttributeAccessor dst_attributes = new_pointcloud->attributes_for_write();
   pointcloud.attributes().foreach_attribute([&](const bke::AttributeIter &iter) {
     const GVArray src = *iter.get();
