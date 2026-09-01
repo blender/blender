@@ -2523,7 +2523,7 @@ if(CMAKE_CROSSCOMPILING)
   unset(_host_library_paths)
 
   # Override the Python executable for cross-compilation, fetching it from the host pre-compiled library directory.
-  file(GLOB PYTHON_EXECUTABLE "${HOST_LIBDIR}/python/bin/python3.[0-9]*")
+  file(GLOB PYTHON_EXECUTABLE "${HOST_LIBDIR}/python/bin/python3.*")
 endif()
 
 
