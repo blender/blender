@@ -107,6 +107,8 @@ static signed char has_wl_trackpad_physical_direction = -1;
 #include "IMB_imbuf.hh"
 #include "IMB_imbuf_types.hh"
 
+static CLG_LogRef LOG = {"ghost.dbus"};
+
 /* -------------------------------------------------------------------- */
 /** \name Defines for Testing
  * \{ */
@@ -9104,10 +9106,36 @@ GHOST_SystemWayland::GHOST_SystemWayland(const bool background)
   /* Could be null in background mode, however there are enough
    * references to the timer-manager that it's safer to create it. */
   display_->key_repeat_timer_manager = new GHOST_TimerManager();
+
+#ifdef WITH_GHOST_DBUS
+  /* Like the WAYLAND event thread, there's no need for this in background mode. */
+  if (!background) {
+    dbus_watcher_ = std::make_unique<GHOST_SystemDBusUnix>();
+    dbus_watcher_->setting_add(
+        "org.freedesktop.appearance", "color-scheme", [this](const GHOST_DBusValue &value) {
+          const uint32_t *value_uint = std::get_if<uint32_t>(&value);
+          if (!value_uint) {
+            return;
+          }
+          if (dbus_.color_scheme.exchange(*value_uint) == *value_uint) {
+            return;
+          }
+          CLOG_INFO(&LOG, "XDG: color-scheme changed: %u", *value_uint);
+          printf("XDG: color-scheme changed to %u\n", *value_uint);
+        });
+    dbus_watcher_->start();
+  }
+#endif
 }
 
 void GHOST_SystemWayland::display_destroy_and_free_all()
 {
+#ifdef WITH_GHOST_DBUS
+  /* Stop the watcher before freeing `display_`: its callback (which can still run up until
+   * this returns) accesses `display_` indirectly via `pushEvent_maybe_pending`. */
+  dbus_watcher_.reset();
+#endif
+
   gwl_display_destroy(display_);
 
 #ifdef USE_EVENT_BACKGROUND_THREAD
