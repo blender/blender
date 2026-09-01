@@ -223,7 +223,7 @@ static void node_geo_exec(GeoNodeExecParams params)
       }
     }
 
-    PointCloud *pointcloud = BKE_pointcloud_new_nomain(positions.size(), PT_RENDER_AS_POINTS);
+    PointCloud *pointcloud = BKE_pointcloud_new_nomain(PT_TYPE_POINTS, positions.size());
     bke::MutableAttributeAccessor point_attributes = pointcloud->attributes_for_write();
     pointcloud->positions_for_write().copy_from(positions);
     point_attributes.add<float>("radius", bke::AttrDomain::Point, bke::AttributeInitValue(0.05f));

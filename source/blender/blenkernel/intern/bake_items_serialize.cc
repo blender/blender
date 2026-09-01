@@ -581,8 +581,9 @@ static PointCloud *try_load_pointcloud(const DictionaryValue &io_geometry,
   if (!io_attributes) {
     return nullptr;
   }
+  const ePointCloud_Type type = ePointCloud_Type(io_pointcloud->lookup_int("type").value_or(int(PT_TYPE_POINTS)));
   const int points_num = io_pointcloud->lookup_int("num_points").value_or(0);
-  PointCloud *pointcloud = bke::pointcloud_new_no_attributes(points_num);
+  PointCloud *pointcloud = bke::pointcloud_new_no_attributes(type, points_num);
 
   auto cancel = [&]() {
     BKE_id_free(nullptr, pointcloud);
@@ -1220,6 +1221,7 @@ static std::shared_ptr<DictionaryValue> serialize_geometry_set(const GeometrySet
     const PointCloud &pointcloud = *geometry.get_pointcloud();
     auto io_pointcloud = io_geometry->append_dict("pointcloud");
 
+    io_pointcloud->append_int("type", int(pointcloud.type));
     io_pointcloud->append_int("num_points", pointcloud.totpoint);
 
     auto io_materials = serialize_materials(pointcloud.runtime->bake_materials);

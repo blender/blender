@@ -416,7 +416,7 @@ static void node_geo_exec(GeoNodeExecParams params)
   }
 
   const int points_num = position_array.size();
-  PointCloud *pointcloud = bke::pointcloud_new_no_attributes(points_num);
+  PointCloud *pointcloud = bke::pointcloud_new_no_attributes(PT_TYPE_POINTS, points_num);
   MutableAttributeAccessor attributes = pointcloud->attributes_for_write();
 
   auto *position_attr = new ImplicitSharedValue<Array<float3>>(std::move(position_array));

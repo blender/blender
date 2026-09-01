@@ -1032,8 +1032,7 @@ static void duplicate_points_pointcloud(GeometrySet &geometry_set,
   const OffsetIndices<int> duplicates = accumulate_counts_to_offsets(
       selection, counts, offset_data);
 
-  PointCloud *pointcloud = BKE_pointcloud_new_nomain(duplicates.total_size(),
-                                                     src_points.render_as);
+  PointCloud *pointcloud = BKE_pointcloud_new_nomain(src_points.type, duplicates.total_size());
 
   bke::gather_attributes_to_groups(src_points.attributes(),
                                    AttrDomain::Point,

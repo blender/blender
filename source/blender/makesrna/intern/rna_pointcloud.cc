@@ -166,13 +166,18 @@ static void rna_def_point(BlenderRNA *brna)
 
 static void rna_def_pointcloud(BlenderRNA *brna)
 {
-  static const EnumPropertyItem render_as_items[] = {
-      {PT_RENDER_AS_POINTS, "POINTS", 0, "Points", "Render the point cloud object as points"},
-      {PT_RENDER_AS_SPLATS,
-       "GAUSSIAN_SPLATS",
+  static const EnumPropertyItem type_items[] = {
+      {PT_TYPE_POINTS,
+       "POINTS",
        0,
-       "Gaussian Splats",
-       "Render the point cloud object using the Gaussian Splats technique"},
+       "Points",
+       "Simple pointcloud represented by points with position and radius"},
+      {PT_TYPE_GSPLAT,
+       "GAUSSIAN_SPLAT",
+       0,
+       "3D Gaussian Splat",
+       "Pointcloud is a radiance field that is represented and rendered as the 3D Gaussian Splats "
+       "technique"},
       {0, nullptr, 0, nullptr, nullptr},
   };
 
@@ -221,10 +226,10 @@ static void rna_def_pointcloud(BlenderRNA *brna)
 
   rna_def_attributes_common(srna, AttributeOwnerType::PointCloud);
 
-  /* Render As. */
-  prop = RNA_def_property(srna, "render_as", PROP_ENUM, PROP_NONE);
-  RNA_def_property_enum_items(prop, render_as_items);
-  RNA_def_property_ui_text(prop, "Render As", "How points of the point cloud are rendered");
+  /* Type. */
+  prop = RNA_def_property(srna, "type", PROP_ENUM, PROP_NONE);
+  RNA_def_property_enum_items(prop, type_items);
+  RNA_def_property_ui_text(prop, "Type", "Representation type of the pointcloud");
   RNA_def_property_update(prop, 0, "rna_PointCloud_update_data");
 
   /* common */

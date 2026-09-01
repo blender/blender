@@ -216,7 +216,7 @@ static void node_geo_exec(GeoNodeExecParams params)
       break;
   }
 
-  PointCloud *pointcloud = BKE_pointcloud_new_nomain(positions.size(), PT_RENDER_AS_POINTS);
+  PointCloud *pointcloud = BKE_pointcloud_new_nomain(PT_TYPE_POINTS,  positions.size());
   pointcloud->positions_for_write().copy_from(positions);
 
   geometry::debug_randomize_point_order(pointcloud);

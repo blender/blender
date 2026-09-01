@@ -324,7 +324,7 @@ PointCloud *import_csv_as_pointcloud(const CSVImportParams &import_params)
   const OffsetIndices<int> chunk_offsets(chunk_offsets_vec);
   const int points_num = chunk_offsets_vec.last();
 
-  PointCloud *pointcloud = BKE_pointcloud_new_nomain(points_num, PT_RENDER_AS_POINTS);
+  PointCloud *pointcloud = BKE_pointcloud_new_nomain(PT_TYPE_POINTS, points_num);
 
   Array<std::optional<GArray<>>> flattened_attributes;
   threading::memory_bandwidth_bound_task(points_num * 16, [&]() {

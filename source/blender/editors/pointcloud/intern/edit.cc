@@ -18,7 +18,7 @@ PointCloud *copy_selection(const PointCloud &src, const IndexMask &mask)
   if (mask.size() == src.totpoint) {
     return BKE_pointcloud_copy_for_eval(&src);
   }
-  PointCloud *dst = BKE_pointcloud_new_nomain(mask.size(), src.render_as);
+  PointCloud *dst = BKE_pointcloud_new_nomain(src.type, mask.size());
   bke::gather_attributes(src.attributes(),
                          bke::AttrDomain::Point,
                          bke::AttrDomain::Point,

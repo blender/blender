@@ -41,9 +41,9 @@ enum ePointCloud_Flag : int {
 };
 ENUM_OPERATORS(ePointCloud_Flag)
 
-enum ePointCloud_RenderAs : short {
-  PT_RENDER_AS_POINTS = 0,
-  PT_RENDER_AS_SPLATS = 1,
+enum ePointCloud_Type : short {
+  PT_TYPE_POINTS = 0,
+  PT_TYPE_GSPLAT = 1,
 };
 
 struct PointCloud {
@@ -54,6 +54,9 @@ struct PointCloud {
 
   ID id;
   struct AnimData *adt = nullptr; /* animation data (must be immediately after id) */
+
+  ePointCloud_Type type = PT_TYPE_POINTS;
+  short _pad1[3] = {};
 
   ePointCloud_Flag flag = {};
 
@@ -72,10 +75,7 @@ struct PointCloud {
   /* Material */
   struct Material **mat = nullptr;
   short totcol = 0;
-
-  ePointCloud_RenderAs render_as = PT_RENDER_AS_POINTS;
-
-  short _pad3[2] = {};
+  short _pad3[3] = {};
 
 #ifdef __cplusplus
   Span<float3> positions() const;

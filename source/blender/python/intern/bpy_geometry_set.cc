@@ -198,7 +198,7 @@ static PyObject *BPy_GeometrySet_get_instances_pointcloud(BPy_GeometrySet *self)
   }
   if (self->instances_pointcloud == nullptr) {
     const int instances_num = instances->instances_num();
-    PointCloud *pointcloud = BKE_pointcloud_new_nomain(instances_num, PT_RENDER_AS_POINTS);
+    PointCloud *pointcloud = BKE_pointcloud_new_nomain(PT_TYPE_POINTS, instances_num);
     bke::gather_attributes(instances->attributes(),
                            bke::AttrDomain::Instance,
                            bke::AttrDomain::Point,

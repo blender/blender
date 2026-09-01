@@ -108,11 +108,10 @@ static bool is_builtin_gsplat_attribute(StringRefNull name)
   return false;
 }
 
-PointCloud *convert_gsplat_ply_to_point_cloud(const PlyData &data,
-                                              const PLYImportParams &params)
+PointCloud *convert_gsplat_ply_to_point_cloud(const PlyData &data, const PLYImportParams &params)
 {
   if (!validate::size_fits_in_int(data.vertices.size())) {
-    return BKE_pointcloud_new_nomain(0, PT_RENDER_AS_SPLATS);
+    return BKE_pointcloud_new_nomain(PT_TYPE_GSPLAT, 0);
   }
 
   /* Radiance base attributes in the PLY (r, g, b stored as a DC component of SH), and opacity.
@@ -150,7 +149,7 @@ PointCloud *convert_gsplat_ply_to_point_cloud(const PlyData &data,
   }
   Span<float> ply_rot[4] = {*ply_rot_0_attr, *ply_rot_1_attr, *ply_rot_2_attr, *ply_rot_3_attr};
 
-  PointCloud *point_cloud = BKE_pointcloud_new_nomain(data.vertices.size(), PT_RENDER_AS_SPLATS);
+  PointCloud *point_cloud = BKE_pointcloud_new_nomain(PT_TYPE_GSPLAT, data.vertices.size());
 
   point_cloud->positions_for_write().copy_from(data.vertices);
 
