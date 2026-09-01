@@ -1466,6 +1466,7 @@ static void calc_area_normal_and_center_node_mesh(const Object &object,
                                                   SampleLocalData &tls,
                                                   AreaNormalCenterData &anctd)
 {
+  PRF_scope(ProfileCategory::Editor);
   const SculptSession &ss = *object.runtime->sculpt_session;
   const float3 &location = ss.cache ? ss.cache->location_symm : ss.cursor_location;
   const float3 &view_normal = ss.cache ? ss.cache->view_normal_symm : ss.cursor_view_normal;
@@ -1554,6 +1555,7 @@ static void calc_area_normal_and_center_node_grids(const Object &object,
                                                    SampleLocalData &tls,
                                                    AreaNormalCenterData &anctd)
 {
+  PRF_scope(ProfileCategory::Editor);
   const SculptSession &ss = *object.runtime->sculpt_session;
   const float3 &location = ss.cache ? ss.cache->location_symm : ss.cursor_location;
   const float3 &view_normal = ss.cache ? ss.cache->view_normal_symm : ss.cursor_view_normal;
@@ -1664,6 +1666,7 @@ static void calc_area_normal_and_center_node_bmesh(const Object &object,
                                                    SampleLocalData &tls,
                                                    AreaNormalCenterData &anctd)
 {
+  PRF_scope(ProfileCategory::Editor);
   const SculptSession &ss = *object.runtime->sculpt_session;
   const float3 &location = ss.cache ? ss.cache->location_symm : ss.cursor_location;
   const float3 &view_normal = ss.cache ? ss.cache->view_normal_symm : ss.cursor_view_normal;
@@ -1828,6 +1831,7 @@ void calc_area_center(const Depsgraph &depsgraph,
                       const IndexMask &node_mask,
                       float r_area_co[3])
 {
+  PRF_scope(ProfileCategory::Editor);
   const bke::pbvh::Tree &pbvh = *bke::object::pbvh_get(ob);
   const SculptSession &ss = *ob.runtime->sculpt_session;
   int n;
@@ -1929,6 +1933,7 @@ std::optional<float3> calc_area_normal(const Depsgraph &depsgraph,
                                        const Object &ob,
                                        const IndexMask &node_mask)
 {
+  PRF_scope(ProfileCategory::Editor);
   SculptSession &ss = *ob.runtime->sculpt_session;
   const bke::pbvh::Tree &pbvh = *bke::object::pbvh_get(ob);
 
