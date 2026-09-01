@@ -454,7 +454,8 @@ static void special_aftertrans_update__mask(bContext *C, TransInfo *t)
   }
 
   /* TODO: don't key all masks. */
-  if (animrig::is_autokey_on(t->scene)) {
+  const bool canceled = (t->state == TRANS_CANCEL);
+  if (animrig::is_autokey_on(t->scene) && !canceled) {
     Scene *scene = t->scene;
 
     if (ED_mask_layer_shape_auto_key_select(C, mask, scene->r.cfra)) {
