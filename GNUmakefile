@@ -196,14 +196,22 @@ BLENDER_DIR:=$(shell pwd -P)
 BUILD_TYPE:=Release
 BLENDER_IS_PYTHON_MODULE:=
 
+CMAKE_CONFIG_ARGS_OVERRIDES:=
+
 # Android cross-compilation.
 ifneq "$(findstring android, $(MAKECMDGOALS))" ""
 	TARGET_OS:=Android
 	TARGET_OS_NCASE:=android
 	TARGET_CPU:=arm64
 
-	ANDROID_TOOLCHAIN_FILE:=$(BLENDER_DIR)/build_files/cmake/platform/platform_android_toolchain.cmake
+	# The pre-defined CMake config/cache files loaded by this Makefile are loaded *before* the Android toolchain file,
+	# which is only loaded on the first project() call. As such, these files cannot use the `ANDROID` variable.
+	# Provide an alternative `TARGET_ANDROID` variable for these config targets to use.
+	CMAKE_CONFIG_ARGS_OVERRIDES:=$(CMAKE_CONFIG_ARGS_OVERRIDES) \
+								 -DTARGET_ANDROID=ON
 
+	# Use our own Android CMake toolchain file wrapper.
+	ANDROID_TOOLCHAIN_FILE:=$(BLENDER_DIR)/build_files/cmake/platform/platform_android_toolchain.cmake
 	CMAKE_CROSSCOMPILE_CONFIG_ARGS:=-DCMAKE_TOOLCHAIN_FILE=$(ANDROID_TOOLCHAIN_FILE)
 
 	ifdef ANDROID_NDK_ROOT
@@ -350,6 +358,11 @@ endif
 ifneq "$(filter ccache, $(MAKECMDGOALS))" ""
 	CMAKE_CONFIG_ARGS:=-DWITH_COMPILER_CCACHE=YES $(CMAKE_CONFIG_ARGS)
 endif
+
+# Apply CMake config overrides that targets may have set.
+# These arguments are prepended to the computed CONFIG_ARGS, and can thus set variables
+# used by the initial config cache files targets above. (CMake -D/-C arguments order matters).
+CMAKE_CONFIG_ARGS:=$(CMAKE_CONFIG_ARGS_OVERRIDES) $(CMAKE_CONFIG_ARGS)
 
 
 # -----------------------------------------------------------------------------
