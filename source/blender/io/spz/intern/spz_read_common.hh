@@ -10,14 +10,22 @@
 
 #include <cmath>
 
+#include "BLI_array.hh"
 #include "BLI_math_constants.hh"
+#include "BLI_math_quaternion_types.hh"
+#include "BLI_math_vector.hh"
 #include "BLI_math_vector_types.hh"
 #include "BLI_span.hh"
 #include "BLI_unroll.hh"
 
 #include "IO_gsplat.hh"
 
-namespace blender ::io::spz {
+namespace blender::io::spz {
+
+enum HeaderFlag {
+  SPZ_HEADER_ANTIALIASED = 0x01,
+  SPZ_HEADER_HAS_EXTENSIONS = 0x02,
+};
 
 namespace internal {
 
@@ -231,5 +239,9 @@ template<class ReaderType> bool read_sh(ReaderType &reader, const Span<MutableSp
 
   return true;
 }
+
+void convert_axis_to_blender(MutableSpan<float3> positions,
+                             MutableSpan<math::Quaternion> rotations,
+                             Span<MutableSpan<float3>> sh_attrs);
 
 }  // namespace blender::io::spz

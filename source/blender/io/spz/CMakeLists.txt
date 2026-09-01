@@ -23,6 +23,7 @@ set(SRC
   intern/spz_read_gzip.cc
   intern/spz_read_ngsp.cc
   intern/spz_read.hh
+  intern/spz_read_common.cc
   intern/spz_read_common.hh
   intern/spz_types.hh
 )
