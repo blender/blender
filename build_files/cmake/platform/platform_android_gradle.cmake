@@ -43,7 +43,19 @@ set(_gradle_staging_dir "${CMAKE_BINARY_DIR}/gradle")
 set(_install_target_dir "${CMAKE_INSTALL_PREFIX}/${BLENDER_VERSION}")
 
 set(_gradle_executable "${_gradle_staging_dir}/gradlew")
-set(_apk_output "${_gradle_staging_dir}/app/build/outputs/apk/debug/app-debug.apk")
+
+# Assume CMAKE_BUILD_TYPE other than "Debug" as "Release
+if(CMAKE_BUILD_TYPE STREQUAL "Debug")
+  set(_gradle_assemble_target "assembleDebug")
+  set(_gradle_build_type "debug")
+else()
+  set(_gradle_assemble_target "assembleRelease")
+  set(_gradle_build_type "release")
+endif()
+
+set(_apk_output "${_gradle_staging_dir}/app/build/outputs/apk/${_gradle_build_type}/app-${_gradle_build_type}.apk")
+
+unset(_gradle_build_type)
 
 # -----------------------------------------------------------------------------
 # Main Android APK building targets
@@ -69,9 +81,8 @@ add_custom_target(gradle_stage
 )
 add_dependencies(gradle_stage gradle_ensure_install)
 
-# TODO: assembleRelease target
 add_custom_target(gradle_assemble
-  COMMAND "${_gradle_executable}" -p "${_gradle_staging_dir}" assembleDebug
+  COMMAND "${_gradle_executable}" -p "${_gradle_staging_dir}" ${_gradle_assemble_target}
           "-PblenderVersionName=${_apk_version_name}"
           "-PblenderVersionCode=${_apk_version_code}"
           "-PblenderMinSdk=${ANDROID_PLATFORM_LEVEL}"
@@ -86,6 +97,7 @@ unset(_apk_version_code)
 unset(_gradle_source_dir)
 unset(_gradle_staging_dir)
 unset(_gradle_executable)
+unset(_gradle_assemble_target)
 
 # ----------------------------------------------------------------------------
 # Utility targets for uploading/running the built APK via ADB
