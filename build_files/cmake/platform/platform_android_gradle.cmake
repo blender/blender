@@ -25,9 +25,6 @@
 # - `android_kill`:    Force-stop the running Blender application via ADB.
 # - `android_clean`:   Clear all Blender app data, wiping config and forcing re-extraction via ADB.
 
-# ADB executable for utility targets.
-find_program(ADB_EXECUTABLE adb)
-
 # -----------------------------------------------------------------------------
 # APK version and paths
 
@@ -92,6 +89,11 @@ unset(_gradle_executable)
 
 # ----------------------------------------------------------------------------
 # Utility targets for uploading/running the built APK via ADB
+
+find_program(ADB_EXECUTABLE adb)
+if(NOT ADB_EXECUTABLE)
+  message(WARNING "ADB executable not found. android_* APK upload/management targets will not work.")
+endif()
 
 add_custom_target(android_upload
   COMMAND "${ADB_EXECUTABLE}" install -r "${_apk_output}"
