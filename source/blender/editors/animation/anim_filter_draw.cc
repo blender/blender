@@ -56,7 +56,9 @@ class ChannelItem : public ui::AbstractTreeViewItem {
 
   void build_row(ui::Layout &layout) override
   {
+    ui::Block *block = layout.block();
     layout.label(this->label_, this->is_selected_ ? ICON_BOIDS : ICON_NONE);
+    // layout.prop(this->source_, "");
   }
 
  protected:
@@ -126,8 +128,7 @@ class ChannelTreeView : public ui::AbstractTreeView {
 void draw_channel_tree(const bContext &C, SummaryChannel &root, View2D & /* v2d */)
 {
   ARegion *region = CTX_wm_region(&C);
-  ui::Block *block = ui::block_begin(
-      &C, CTX_data_scene(&C), CTX_wm_window(&C), region, "channel_tree", ui::EmbossType::None);
+  ui::Block *block = ui::block_begin(&C, region, __func__, ui::EmbossType::None);
   ui::Layout &layout = ui::block_layout(block,
                                         ui::LayoutDirection::Vertical,
                                         ui::LayoutType::Panel,
@@ -145,6 +146,8 @@ void draw_channel_tree(const bContext &C, SummaryChannel &root, View2D & /* v2d 
   tree_view->set_row_scale_y(ANIM_UI_get_channel_scale_factor());
   tree_view->set_row_padding(ANIM_UI_get_channel_skip());
   ui::TreeViewBuilder::build_tree_view(C, *tree_view, layout, /*add_box=*/false);
+
+  ui::block_layout_resolve(block);
   ui::block_align_end(block);
   ui::block_end(&C, block);
   ui::block_draw(&C, block);
