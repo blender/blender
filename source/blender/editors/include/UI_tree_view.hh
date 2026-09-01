@@ -192,6 +192,10 @@ class AbstractTreeView : public AbstractView, public TreeViewItemContainer {
   void set_default_rows(int default_rows);
 
   /**
+   * Set the base row height. This will be scaled with row_scale_y() to give the final height.
+   */
+  void set_row_height(int height);
+  /**
    * Set a scale factor for the height of each row. This scale will be applied on top of UI scale.
    */
   void set_row_scale_y(float scale);
@@ -202,7 +206,7 @@ class AbstractTreeView : public AbstractView, public TreeViewItemContainer {
    * Values should have scaling applied already.
    */
   void set_row_padding(int padding);
-  float height_scale() const;
+  float row_scale_y() const;
   /* The height for each row without padding between rows. */
   int unpadded_item_height() const;
   /* The height for each row with padding applied. The padding doubles up for 2 consecutive items

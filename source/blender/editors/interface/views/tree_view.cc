@@ -358,6 +358,11 @@ void AbstractTreeView::sort_inverted()
   this->foreach_sort_invert(*invert_sort_type_);
 }
 
+void AbstractTreeView::set_row_height(int height)
+{
+  row_height_ = height;
+}
+
 void AbstractTreeView::set_row_scale_y(float scale)
 {
   height_scale_ = scale;
@@ -368,7 +373,7 @@ void AbstractTreeView::set_row_padding(int padding)
   row_padding_ = padding;
 }
 
-float AbstractTreeView::height_scale() const
+float AbstractTreeView::row_scale_y() const
 {
   return height_scale_;
 }
@@ -1237,7 +1242,7 @@ void TreeViewLayoutBuilder::build_row(AbstractTreeViewItem &item) const
     uiDefBut(&block_, ButtonType::Label, "", 0, 0, UI_UNIT_X, margin_top, nullptr, 0, 0, "");
   }
   row = &content_col.row(true);
-  row->scale_y_set(tree_view.height_scale());
+  row->scale_y_set(tree_view.row_scale_y());
 
   uiLayoutListItemAddPadding(row);
   item.add_indent(*row);

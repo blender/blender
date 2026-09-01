@@ -187,6 +187,8 @@ void draw_channel_tree(const bContext &C, SummaryChannel &root, Panel &panel)
   ui::AbstractTreeView *tree_view = ui::block_add_view(
       *layout->block(), "channel_tree", std::make_unique<ChannelTreeView>(root));
 
+  /* Just making it explicit that this is the row height we use as a base. */
+  tree_view->set_row_height(UI_UNIT_Y);
   tree_view->set_row_scale_y(ANIM_UI_get_channel_scale_factor());
   tree_view->set_row_padding(0.0f);
   ui::TreeViewBuilder::build_tree_view(C, *tree_view, *layout, /*add_box=*/false);
