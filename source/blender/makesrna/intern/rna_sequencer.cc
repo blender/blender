@@ -800,7 +800,7 @@ static int rna_Strip_content_duration_get(PointerRNA *ptr)
 static int strip_default_duration(const Strip *strip, const Scene *scene)
 {
   if (seq::transform_single_image_check(strip)) {
-    return seq::DEFAULT_STRIP_LENGTH;
+    return seq::default_strip_length(scene->frames_per_second());
   }
   return strip->length(scene);
 }
