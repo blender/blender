@@ -399,23 +399,16 @@ static void action_channel_region_draw(const bContext *C, ARegion *region)
   View2D *v2d = &region->v2d;
 
   if (USER_EXPERIMENTAL_TEST(&U, use_new_animfilter)) {
-    /* TODO hard fork since I am still not sure which way works best. See
-     * `action_channel_panel_draw` for the code run here. */
-    const bool use_layout_drawing = true;
-    if (use_layout_drawing) {
-      ED_region_panels(C, region);
-    }
-    else {
-      ed::animfilter::ChannelArena channels = ed::action::get_summary_tree(*C);
-      /* The View2D's height needs to be set before calling view2d_view_ortho because the latter
-       * uses the View2D's `cur` rect which might be modified when setting the height. */
-      ListBaseT<TimeMarker> *markers = ANIM_marker_list_from_context(*C);
-      const bool has_markers = markers != nullptr && !markers->is_empty();
-      set_v2d_height(v2d, channels.num_channels(), has_markers);
-      ui::view2d_view_ortho(v2d);
-      ed::animfilter::draw_channel_tree(*C, *channels.root(), *v2d);
-      ui::view2d_view_restore(C);
-    }
+    ed::animfilter::ChannelArena channels = ed::action::get_summary_tree(*C);
+    /* The View2D's height needs to be set before calling view2d_view_ortho because the latter
+     * uses the View2D's `cur` rect which might be modified when setting the height. */
+    /* TODO respect markers region and make v2d work. */
+    // ListBaseT<TimeMarker> *markers = ANIM_marker_list_from_context(*C);
+    // const bool has_markers = markers != nullptr && !markers->is_empty();
+    // set_v2d_height(v2d, channels.num_channels(), has_markers);
+    // ui::view2d_view_ortho(v2d);
+    ed::animfilter::draw_channel_tree(*C, *channels.root(), *v2d);
+    // ui::view2d_view_restore(C);
   }
   else {
     /* draw entirely, view changes should be handled here */
@@ -448,12 +441,6 @@ static void action_channel_region_draw(const bContext *C, ARegion *region)
     /* no scrollers here */
     ANIM_animdata_freelist(&anim_data);
   }
-}
-
-static void action_channel_panel_draw(const bContext *C, Panel *panel)
-{
-  ed::animfilter::ChannelArena channels = ed::action::get_summary_tree(*C);
-  ed::animfilter::draw_channel_tree(*C, *channels.root(), *panel);
 }
 
 static bool action_channel_panel_poll(const bContext * /* C */, PanelType * /* panel */)
@@ -1042,20 +1029,6 @@ static void action_space_blend_write(BlendWriter *writer, SpaceLink *sl)
   saction->runtime = temp;
 }
 
-static void channels_region_panels_register(ARegionType *art)
-{
-  PanelType *pt;
-
-  pt = MEM_new_zeroed<PanelType>("spacetype action editor channels");
-  STRNCPY_UTF8(pt->idname, "ACTION_PT_channel_region");
-  STRNCPY_UTF8(pt->label, N_("Channels"));
-  STRNCPY_UTF8(pt->translation_context, BLT_I18NCONTEXT_DEFAULT_BPYRNA);
-  pt->flag = PANEL_TYPE_NO_HEADER;
-  pt->poll = action_channel_panel_poll;
-  pt->draw = action_channel_panel_draw;
-  BLI_addtail(&art->paneltypes, pt);
-}
-
 void ED_spacetype_action()
 {
   std::unique_ptr<SpaceType> st = std::make_unique<SpaceType>();
@@ -1129,7 +1102,6 @@ void ED_spacetype_action()
   art->draw = action_channel_region_draw;
   art->listener = action_channel_region_listener;
   art->message_subscribe = saction_channel_region_message_subscribe;
-  channels_region_panels_register(art);
 
   BLI_addhead(&st->regiontypes, art);
 

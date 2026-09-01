@@ -419,13 +419,8 @@ void group_channels(ChannelArena &arena,
                     bool use_minimal_grouping);
 
 /**
- * Draws the channel tree using a Tree View in a Layout.
- */
-void draw_channel_tree(const bContext &C, SummaryChannel &root, Panel &panel);
-/**
  * Draw the whole tree starting at the root using the legacy UI code.
  * TODO maybe the drawing code should not be in this header?
- * TODO remove this if tree view ends up working.
  */
 void draw_channel_tree(const bContext &C, SummaryChannel &root, View2D &v2d);
 
