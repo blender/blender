@@ -112,6 +112,11 @@ struct VKExtensions {
    */
   bool multi_draw_indirect = false;
 
+  /**
+   * Device supports `shaderClipDistance` feature.
+   */
+  bool shader_clip_distance = false;
+
   /** Log enabled features and extensions. */
   void log() const;
 };

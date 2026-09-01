@@ -864,7 +864,11 @@ std::string VKShader::resources_declare(const shader::ShaderCreateInfo &info) co
 std::string VKShader::vertex_interface_declare(const shader::ShaderCreateInfo &info) const
 {
   std::stringstream ss;
+  std::string pre_main;
   std::string post_main;
+
+  const VKExtensions &extensions = VKBackend::get().device.extensions_get();
+  bool uses_clip_distances = flag_is_set(info.builtins_combined(), BuiltinBits::CLIP_DISTANCES);
 
   /* Inputs. */
   for (const ShaderCreateInfo::VertIn &attr : info.vertex_inputs_) {
@@ -875,6 +879,12 @@ std::string VKShader::vertex_interface_declare(const shader::ShaderCreateInfo &i
   int location = 0;
   for (const StageInterfaceInfo *iface : info.vertex_out_interfaces_) {
     print_interface(ss, "out", *iface, location);
+  }
+
+  if (uses_clip_distances && !extensions.shader_clip_distance) {
+    ss << "layout(location=" << location << ") out float vk_ClipDistance[6];\n";
+    pre_main += "#define gl_ClipDistance vk_ClipDistance\n";
+    location += 6;
   }
 
   const bool has_geometry_stage = do_geometry_shader_injection(&info) ||
@@ -907,8 +917,7 @@ std::string VKShader::vertex_interface_declare(const shader::ShaderCreateInfo &i
     post_main += "gl_Position.z = (gl_Position.z + gl_Position.w) * 0.5;\n";
   }
 
-  if (post_main.empty() == false) {
-    std::string pre_main;
+  if (!pre_main.empty() || !post_main.empty()) {
     ss << main_function_wrapper(pre_main, post_main);
   }
   return ss.str();
@@ -966,6 +975,13 @@ std::string VKShader::fragment_interface_declare(const shader::ShaderCreateInfo 
   std::stringstream ss;
   std::string pre_main;
   const VKExtensions &extensions = VKBackend::get().device.extensions_get();
+  bool uses_clip_distances = flag_is_set(info.builtins_combined(), BuiltinBits::CLIP_DISTANCES);
+
+  if (uses_clip_distances && !extensions.shader_clip_distance) {
+    pre_main += "  for (int i = 0; i < 6; i++) {\n";
+    pre_main += "    if (vk_ClipDistance[i] < 0.0) { discard; }\n";
+    pre_main += "  }\n";
+  }
 
   /* Interfaces. */
   const Span<ShaderCreateInfo::StageInterfaceInfoHandle> in_interfaces =
@@ -975,6 +991,11 @@ std::string VKShader::fragment_interface_declare(const shader::ShaderCreateInfo 
   for (const StageInterfaceInfo *iface : in_interfaces) {
     print_interface(ss, "in", *iface, location);
   }
+  if (uses_clip_distances && !extensions.shader_clip_distance) {
+    ss << "layout(location=" << location << ") in float vk_ClipDistance[6];\n";
+    location += 6;
+  }
+
   if (flag_is_set(info.builtins_combined(), BuiltinBits::LAYER)) {
     ss << "#define gpu_Layer gl_Layer\n";
   }
