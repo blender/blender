@@ -89,7 +89,7 @@ struct GreasePencilPaintStroke final : public PaintStroke {
 
   std::optional<float3> get_location(float2 mouse, bool force_original) override;
   bool test_start(wmOperator *op, float2 mouse) override;
-  void update_step(wmOperator *op, PointerRNA *stroke_element) override;
+  void update_step(wmOperator *op, const StrokeStep &stroke_step) override;
   void redraw(bool final) override;
   bool test_cancel() override;
   void done(bool is_cancel, bool stroke_started) override;
@@ -195,14 +195,14 @@ bool GreasePencilPaintStroke::test_start(wmOperator * /*op*/, const float2 /*mou
   return true;
 }
 
-void GreasePencilPaintStroke::update_step(wmOperator *op, PointerRNA *stroke_element)
+void GreasePencilPaintStroke::update_step(wmOperator *op, const StrokeStep &stroke_step)
 {
   GreasePencilStrokeOperation *operation = static_cast<GreasePencilStrokeOperation *>(
       mode_data_.get());
 
   InputSample sample;
-  RNA_float_get_array(stroke_element, "mouse", sample.mouse_position);
-  sample.pressure = RNA_float_get(stroke_element, "pressure");
+  sample.mouse_position = stroke_step.mouse;
+  sample.pressure = stroke_step.pressure;
 
   if (!operation) {
     std::unique_ptr<GreasePencilStrokeOperation> new_operation = get_stroke_operation(

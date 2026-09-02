@@ -108,6 +108,14 @@ struct PaintSample {
  */
 struct PaintStroke : NonCopyable, NonMovable {
  public:
+  struct StrokeStep {
+    float size;
+    float3 location;
+    float2 mouse;
+    float2 mouse_event;
+    float pressure;
+    float2 tilt;
+  };
   /* TODO: Temporary, used to assist removing usage of bContext in PaintStroke callbacks.
    * See #149378 */
   bContext *evil_C = nullptr;
@@ -247,7 +255,7 @@ struct PaintStroke : NonCopyable, NonMovable {
   /**
    * Callback function for performing a paint stroke for a new step.
    */
-  virtual void update_step(wmOperator *op, PointerRNA *itemptr) = 0;
+  virtual void update_step(wmOperator *op, const StrokeStep &stroke_step) = 0;
 
   /**
    * Callback function for performing necessary redraw functions based on the stroke.
