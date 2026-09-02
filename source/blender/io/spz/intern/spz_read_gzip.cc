@@ -113,6 +113,7 @@ class StreamedGzipReader {
         if (stream_.avail_out != 0) {
           return false;
         }
+        break;
       }
       if (ret != Z_OK) {
         /* TODO(sergey): Report error. */
