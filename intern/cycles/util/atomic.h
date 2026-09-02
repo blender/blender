@@ -49,6 +49,9 @@ ccl_device_inline float atomic_compare_and_swap_float(volatile float *dest,
   return result.float_value;
 }
 
+#    define atomic_store_local(p, x) (*(p) = (x))
+#    define atomic_load_local(p) (*(p))
+
 #    define CCL_LOCAL_MEM_FENCE
 #    define ccl_barrier(flags) __syncthreads()
 
