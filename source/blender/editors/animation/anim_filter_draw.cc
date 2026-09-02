@@ -348,6 +348,9 @@ static float draw_key_area_background_recurse(const bContext &C,
 {
   const float skip = ANIM_UI_get_channel_skip();
   uchar4 color = channel_color_from_rna_pointer(channel.source());
+  if (channel.type() == AnimationChannelType::DATA) {
+    blender::ui::theme::get_color_4ubv(TH_CHANNEL, color);
+  }
   immUniformColor4ubv(color);
   immRectf(pos,
            v2d.cur.xmin,
