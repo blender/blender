@@ -274,6 +274,8 @@ static void draw_channel_decorations(AnimationChannel &channel, const float y)
   ui::theme::get_color_4fv(TH_DOPESHEET_IPOCONST, ipo_color_constant);
   ui::theme::get_color_4fv(TH_DOPESHEET_IPOOTHER, ipo_color_other);
   ui::theme::get_color_4fv(TH_KEYTYPE_KEYFRAME, ipo_color_mix);
+  /* Logic copied from `channel_ui_data_init`. */
+  ipo_color_mix[3] *= 0.5;
 
   /* See `channel_ui_data_init` for reference. */
   const int motion_line_height = get_key_height();
