@@ -43,22 +43,74 @@ static PropertyRNA *name_prop_from_rna(PointerRNA &ptr)
   return RNA_struct_find_property(&ptr, "name");
 }
 
+static uchar4 channel_color_from_rna_pointer(const PointerRNA &ptr)
+{
+  uchar4 color(0, 0, 0, 0);
+  /* All those are queried by the legacy system via `get_backdrop_color`. */
+  /*
+  TH_ANIM_ACTIVE = Summary
+  TH_HEADER = Summary collapsed?
+  TH_DOPESHEET_CHANNELOB
+  TH_DOPESHEET_CHANNELSUBOB
+  TH_GROUP
+  TH_GROUP_ACTIVE
+  TH_CHANNEL
+  */
+  if (!ptr) {
+    /* Summary color. Currently the summary is the only channel without a valid pointer. */
+    blender::ui::theme::get_color_4ubv(TH_ANIM_ACTIVE, color);
+  }
+  else if (RNA_struct_is_ID(ptr.type)) {
+    blender::ui::theme::get_color_4ubv(TH_DOPESHEET_CHANNELOB, color);
+  }
+  else if (ptr.type == RNA_ActionSlot || ptr.type == RNA_ActionLayer) {
+    blender::ui::theme::get_color_4ubv(TH_DOPESHEET_CHANNELSUBOB, color);
+  }
+  else if (ptr.type == RNA_PoseBone || ptr.type == RNA_ActionGroup) {
+    blender::ui::theme::get_color_4ubv(TH_GROUP, color);
+  }
+  return color;
+}
+
 class ChannelItem : public ui::AbstractTreeViewItem {
   PointerRNA source_;
   std::string label_;
   bool is_selected_;
+  bool is_datachannel_;
 
  public:
   ChannelItem(AnimationChannel &channel)
-      : source_(channel.source()), label_(channel.label()), is_selected_(channel.is_selected())
+      : source_(channel.source()),
+        label_(channel.label()),
+        is_selected_(channel.is_selected()),
+        is_datachannel_(channel.type() == AnimationChannelType::DATA)
   {
   }
 
   void build_row(ui::Layout &layout) override
   {
-    ui::Block *block = layout.block();
+    /* Only summary channels get a backdrop color. */
+    if (!is_datachannel_) {
+      ui::Block *block = layout.block();
+      this->count_parents();
+      ui::block_emboss_set(block, ui::EmbossType::Emboss);
+      ui::Button *bg = uiDefBut(block,
+                                ui::ButtonType::Roundbox,
+                                "",
+                                0,
+                                0,
+                                UI_UNIT_X,
+                                UI_UNIT_Y,
+                                nullptr,
+                                0.0f,
+                                0.0f,
+                                "");
+      uchar4 color = channel_color_from_rna_pointer(this->source_);
+      color[3] = 255;
+      ui::button_color_set(bg, color);
+    }
+
     layout.label(this->label_, this->is_selected_ ? ICON_BOIDS : ICON_NONE);
-    // layout.prop(this->source_, "");
   }
 
  protected:
@@ -112,10 +164,7 @@ class ChannelTreeView : public ui::AbstractTreeView {
   }
 
  public:
-  ChannelTreeView(SummaryChannel &root) : root_(root)
-  {
-    /* TODO disable scroll bar. */
-  }
+  ChannelTreeView(SummaryChannel &root) : root_(root) {}
 
   void build_tree() override
   {
@@ -133,7 +182,8 @@ void draw_channel_tree(const bContext &C, SummaryChannel &root, View2D & /* v2d 
                                         ui::LayoutDirection::Vertical,
                                         ui::LayoutType::Panel,
                                         0,
-                                        region->winy - UI_TIME_SCRUB_MARGIN_Y,
+                                        region->winy - UI_TIME_SCRUB_MARGIN_Y -
+                                            ANIM_UI_get_channel_skip(),
                                         region->winx,
                                         0,
                                         0,
@@ -225,8 +275,8 @@ static float draw_key_area_background_recurse(const bContext &C,
                                               const uint pos)
 {
   const float skip = ANIM_UI_get_channel_skip();
-  /* TODO get correct color. */
-  immUniformThemeColor(TH_CHANNEL);
+  uchar4 color = channel_color_from_rna_pointer(channel.source());
+  immUniformColor4ubv(color);
   immRectf(pos,
            v2d.cur.xmin,
            row_top - skip / 2.0f,
