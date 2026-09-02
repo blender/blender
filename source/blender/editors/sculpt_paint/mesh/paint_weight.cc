@@ -905,7 +905,7 @@ struct WeightPaintStroke final : public PaintStroke {
   bool test_start(wmOperator *op, float2 mouse) override;
   void redraw(bool final) override;
   bool test_cancel() override;
-  void update_step(wmOperator *op, PointerRNA *itemptr) override;
+  void update_step(wmOperator *op, const StrokeStep &stroke_step) override;
   void done(bool is_cancel, bool stroke_started) override;
 };
 
@@ -1796,7 +1796,7 @@ static void wpaint_do_paint(const Depsgraph &depsgraph,
   wpaint_paint_leaves(depsgraph, ob, wp, wpd, wpd.info, mesh, node_mask);
 }
 
-void WeightPaintStroke::update_step(wmOperator * /*op*/, PointerRNA *itemptr)
+void WeightPaintStroke::update_step(wmOperator * /*op*/, const StrokeStep &stroke_step)
 {
   VPaint &wp = *weight_paint_;
   const ToolSettings &ts = *tool_settings_;
@@ -1808,7 +1808,7 @@ void WeightPaintStroke::update_step(wmOperator * /*op*/, PointerRNA *itemptr)
   SculptSession &ss = *ob->runtime->sculpt_session;
   StrokeCache &cache = *ss.cache;
 
-  vwpaint::update_cache_variants(*this->depsgraph, *vc, wp, *ob, *this->base_, itemptr);
+  vwpaint::update_cache_variants(*this->depsgraph, *vc, wp, *ob, *this->base_, stroke_step);
 
   const float brush_alpha_value = BKE_brush_alpha_get(&wp.paint, &brush);
 

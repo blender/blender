@@ -19,6 +19,7 @@
 #include "DNA_scene_types.h"
 #include "DNA_sequence_types.h"
 #include "DNA_sound_types.h"
+#include "DNA_userdef_types.h"
 
 #include "BLI_math_base.hh"
 #include "BLI_path_utils.hh"
@@ -59,6 +60,11 @@
 #include "utils.hh"
 
 namespace blender::seq {
+
+int default_strip_length(const double scene_fps)
+{
+  return std::max(1, int(std::round(U.sequencer_default_strip_length * scene_fps)));
+}
 
 void add_load_data_init(LoadData *load_data,
                         const char *name,

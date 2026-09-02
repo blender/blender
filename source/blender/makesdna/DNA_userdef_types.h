@@ -1277,7 +1277,10 @@ struct UserDef {
   eUserpref_RenderDisplayType render_display_type = USER_RENDER_DISPLAY_WINDOW;
   eUserpref_TempSpaceDisplayType filebrowser_display_type = USER_TEMP_SPACE_DISPLAY_WINDOW;
   eUserpref_TempSpaceDisplayType preferences_display_type = USER_TEMP_SPACE_DISPLAY_WINDOW;
-  char _pad18[7] = {};
+  char _pad18[3] = {};
+
+  /** Default duration in *seconds* for strips with no inherent duration (color, text, etc). */
+  float sequencer_default_strip_length = 1.0f;
 
   eUserpref_SeqProxySetup sequencer_proxy_setup = USER_SEQ_PROXY_SETUP_AUTOMATIC;
   short _pad1 = {};

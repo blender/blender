@@ -8,6 +8,8 @@
 
 #include "node_geometry_util.hh"
 
+#include <fmt/format.h>
+
 namespace blender::nodes::node_geo_rename_attribute_cc {
 
 enum class RenameMode {

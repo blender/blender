@@ -63,6 +63,7 @@
 namespace blender::ed::vse {
 
 struct SeqDropCoords {
+  double fps = 0.0;
   float start_frame, channel;
   int num_channels;
   int num_audio = 0;
@@ -85,17 +86,24 @@ struct SeqDropCoords {
  */
 static SeqDropCoords g_drop_coords{};
 
-static void generic_poll_operations(const bContext *C, const wmEvent *event, uint8_t type)
+static bool generic_poll_operations(const bContext *C, const wmEvent *event, uint8_t type)
 {
+  const Scene *sequencer_scene = CTX_data_sequencer_scene(C);
+  if (sequencer_scene == nullptr) {
+    return false;
+  }
+
   const Scene *scene = CTX_data_scene(C);
   const ToolSettings *ts = scene->toolsettings;
 
+  g_drop_coords.fps = sequencer_scene->frames_per_second();
   g_drop_coords.type = type;
   /* Ideally we would reuse the transform modal keymap for snapping, but drag and drop doesn't have
    * access to transform engine, so just hard-code the invert key to a sane default. */
   const bool do_invert = event->modifier & KM_CTRL;
   g_drop_coords.use_snapping = do_invert ? (ts->snap_flag_seq & SCE_SNAP) == 0 :
                                            (ts->snap_flag_seq & SCE_SNAP) != 0;
+  return true;
 }
 
 /* While drag-and-drop in the sequencer, the internal drop-box implementation allows to have a drop
@@ -117,14 +125,12 @@ static bool image_drop_poll(bContext *C, wmDrag *drag, const wmEvent *event)
     if (file_type == FILE_TYPE_IMAGE &&
         test_single_file_handler_poll(C, drag, "SEQUENCER_FH_image_strip"))
     {
-      generic_poll_operations(C, event, TH_SEQ_IMAGE);
-      return true;
+      return generic_poll_operations(C, event, TH_SEQ_IMAGE);
     }
   }
 
   if (WM_drag_is_ID_type(drag, ID_IM)) {
-    generic_poll_operations(C, event, TH_SEQ_IMAGE);
-    return true;
+    return generic_poll_operations(C, event, TH_SEQ_IMAGE);
   }
 
   return false;
@@ -146,8 +152,7 @@ static bool movie_drop_poll(bContext *C, wmDrag *drag, const wmEvent *event)
   if (is_movie(drag) && (drag->type != WM_DRAG_PATH ||
                          test_single_file_handler_poll(C, drag, "SEQUENCER_FH_movie_strip")))
   {
-    generic_poll_operations(C, event, TH_SEQ_MOVIE);
-    return true;
+    return generic_poll_operations(C, event, TH_SEQ_MOVIE);
   }
 
   return false;
@@ -156,8 +161,7 @@ static bool movie_drop_poll(bContext *C, wmDrag *drag, const wmEvent *event)
 static bool movieclip_drop_poll(bContext *C, wmDrag *drag, const wmEvent *event)
 {
   if (WM_drag_is_ID_type(drag, ID_MC)) {
-    generic_poll_operations(C, event, TH_SEQ_MOVIECLIP);
-    return true;
+    return generic_poll_operations(C, event, TH_SEQ_MOVIECLIP);
   }
 
   return false;
@@ -173,8 +177,7 @@ static bool scene_drop_poll(bContext *C, wmDrag *drag, const wmEvent *event)
   if (WM_drag_is_ID_type(drag, ID_SCE) &&
       WM_drag_get_local_ID(drag, ID_SCE) != &sequencer_scene->id)
   {
-    generic_poll_operations(C, event, TH_SEQ_SCENE);
-    return true;
+    return generic_poll_operations(C, event, TH_SEQ_SCENE);
   }
 
   return false;
@@ -183,8 +186,7 @@ static bool scene_drop_poll(bContext *C, wmDrag *drag, const wmEvent *event)
 static bool mask_drop_poll(bContext *C, wmDrag *drag, const wmEvent *event)
 {
   if (WM_drag_is_ID_type(drag, ID_MSK)) {
-    generic_poll_operations(C, event, TH_SEQ_MASK);
-    return true;
+    return generic_poll_operations(C, event, TH_SEQ_MASK);
   }
 
   return false;
@@ -209,8 +211,7 @@ static bool sound_drop_poll(bContext *C, wmDrag *drag, const wmEvent *event)
   if (is_sound(drag) && (drag->type != WM_DRAG_PATH ||
                          test_single_file_handler_poll(C, drag, "SEQUENCER_FH_sound_strip")))
   {
-    generic_poll_operations(C, event, TH_SEQ_AUDIO);
-    return true;
+    return generic_poll_operations(C, event, TH_SEQ_AUDIO);
   }
 
   return false;
@@ -724,7 +725,7 @@ static void image_drop_on_enter(wmDropBox *drop, wmDrag * /*drag*/)
   }
 
   SeqDropCoords *coords = static_cast<SeqDropCoords *>(drop->draw_data);
-  coords->strip_length = seq::DEFAULT_STRIP_LENGTH;
+  coords->strip_length = seq::default_strip_length(coords->fps);
   coords->num_channels = 1;
 }
 
@@ -737,7 +738,7 @@ static void movieclip_drop_on_enter(wmDropBox *drop, wmDrag *drag)
   SeqDropCoords *coords = static_cast<SeqDropCoords *>(drop->draw_data);
   ID *id = WM_drag_get_local_ID(drag, ID_MC);
   coords->strip_length = id ? BKE_movieclip_get_duration(id_cast<MovieClip *>(id)) :
-                              seq::DEFAULT_STRIP_LENGTH;
+                              seq::default_strip_length(coords->fps);
   coords->num_channels = 1;
   coords->num_audio = 0;
   coords->playback_rate = 0.0f;
@@ -753,7 +754,8 @@ static void scene_drop_on_enter(wmDropBox *drop, wmDrag *drag)
   SeqDropCoords *coords = static_cast<SeqDropCoords *>(drop->draw_data);
   ID *id = WM_drag_get_local_ID(drag, ID_SCE);
   const Scene *scene = id_cast<Scene *>(id);
-  coords->strip_length = scene ? scene->r.efra - scene->r.sfra + 1 : seq::DEFAULT_STRIP_LENGTH;
+  coords->strip_length = scene ? scene->r.efra - scene->r.sfra + 1 :
+                                 seq::default_strip_length(coords->fps);
   coords->num_channels = 1;
   coords->num_audio = 0;
   coords->playback_rate = 0.0f;
@@ -769,7 +771,7 @@ static void mask_drop_on_enter(wmDropBox *drop, wmDrag *drag)
   SeqDropCoords *coords = static_cast<SeqDropCoords *>(drop->draw_data);
   ID *id = WM_drag_get_local_ID(drag, ID_MSK);
   coords->strip_length = id ? BKE_mask_get_duration(id_cast<Mask *>(id)) :
-                              seq::DEFAULT_STRIP_LENGTH;
+                              seq::default_strip_length(coords->fps);
   coords->num_channels = 1;
   coords->num_audio = 0;
   coords->playback_rate = 0.0f;

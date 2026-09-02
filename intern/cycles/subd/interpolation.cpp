@@ -73,6 +73,21 @@ struct SubdPackedFloat3 {
   }
 };
 
+struct SubdQuaternion {
+  using Type = Quaternion;
+  using AccumType = float4;
+
+  static AccumType read(const Type &value)
+  {
+    return make_float4(value);
+  }
+
+  static Type output(const AccumType &value)
+  {
+    return make_quaternion(value.x, value.y, value.z, value.w);
+  }
+};
+
 #ifdef WITH_OPENSUBDIV
 SubdAttributeInterpolation::SubdAttributeInterpolation(Mesh &mesh,
                                                        OsdMesh &osd_mesh,
@@ -168,6 +183,9 @@ void SubdAttributeInterpolation::setup_attribute(const Attribute &subd_attr, Att
            Attribute::same_storage(subd_attr.type, TypeRGBA))
   {
     setup_attribute_type<SubdFloat<float4>>(subd_attr, mesh_attr);
+  }
+  else if (Attribute::same_storage(subd_attr.type, TypeQuaternion)) {
+    setup_attribute_type<SubdQuaternion>(subd_attr, mesh_attr);
   }
 }
 

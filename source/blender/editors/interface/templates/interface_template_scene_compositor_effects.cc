@@ -8,6 +8,8 @@
  * Template for building the panel layout for the scene compositor effects.
  */
 
+#include <fmt/format.h>
+
 #include "BLI_listbase.hh"
 #include "BLI_string.hh"
 #include "BLI_string_utf8.hh"

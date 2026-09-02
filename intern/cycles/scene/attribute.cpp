@@ -27,7 +27,7 @@ Attribute::Attribute(ustring name,
   /* string and matrix not supported! */
   assert(type == TypeFloat || type == TypeColor || type == TypePoint || type == TypeVector ||
          type == TypeNormal || type == TypeMatrix || type == TypeFloat2 || type == TypeFloat4 ||
-         type == TypeRGBA);
+         type == TypeRGBA || type == TypeQuaternion);
 
   if (element & ATTR_ELEMENT_VOXEL) {
     auto *data = GuardedAllocator<ImageHandle>().allocate(1);
@@ -350,6 +350,10 @@ size_t Attribute::data_sizeof() const
   if (type == TypeRGBA) {
     return sizeof(float4);
   }
+  if (type == TypeQuaternion) {
+    return sizeof(Quaternion);
+  }
+
   return sizeof(packed_float3);
 }
 
@@ -597,6 +601,10 @@ AttrKernelDataType Attribute::kernel_type(const Attribute &attr)
 
   if (attr.type == TypeFloat4 || attr.type == TypeRGBA || attr.type == TypeMatrix) {
     return AttrKernelDataType::FLOAT4;
+  }
+
+  if (attr.type == TypeQuaternion) {
+    return AttrKernelDataType::QUATERNION;
   }
 
   return AttrKernelDataType::FLOAT3;

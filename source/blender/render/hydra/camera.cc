@@ -8,7 +8,6 @@
 
 #include "DNA_camera_types.h"
 #include "DNA_object_types.h"
-#include "DNA_scene_types.h"
 #include "DNA_screen_types.h"
 #include "DNA_view3d_types.h"
 
@@ -101,7 +100,6 @@ pxr::GfCamera gf_camera(const Depsgraph *depsgraph,
                         const pxr::GfVec4f &border)
 {
   const RegionView3D *region_data = static_cast<const RegionView3D *>(region->regiondata);
-  const Scene *scene = DEG_get_evaluated_scene(depsgraph);
 
   CameraParams params;
   BKE_camera_params_init(&params);
@@ -111,8 +109,8 @@ pxr::GfCamera gf_camera(const Depsgraph *depsgraph,
   camera.SetTransform(gf_matrix_from_transform(region_data->viewmat).GetInverse());
 
   /* Ensure viewport is in active camera view mode. */
-  if (region_data->persp == RV3D_CAMOB) {
-    gf_camera_fill_dof_data(scene->camera, &camera);
+  if (region_data->persp == RV3D_CAMOB && v3d->camera) {
+    gf_camera_fill_dof_data(DEG_get_evaluated(depsgraph, v3d->camera), &camera);
   }
 
   return camera;

@@ -2268,6 +2268,10 @@ bool initTransform(bContext *C, TransInfo *t, wmOperator *op, const wmEvent *eve
     }
   }
 
+  if ((t->flag & T_MODAL) && t->mode_info && t->mode_info->status_fn) {
+    t->mode_info->status_fn(t);
+  }
+
   t->context = nullptr;
 
   return true;
@@ -2281,6 +2285,9 @@ void transformApply(bContext *C, TransInfo *t)
     selectConstraint(t);
     if (t->mode_info) {
       t->mode_info->transform_fn(t); /* Calls #recalc_data(). */
+      if ((t->flag & T_MODAL) && t->mode_info->status_fn) {
+        t->mode_info->status_fn(t);
+      }
     }
   }
 

@@ -11,6 +11,7 @@
 #include <gtest/gtest.h>
 
 #include "util/log.h"
+#include "util/transform.h"
 
 #include <iostream>
 
@@ -228,8 +229,47 @@ TEST_F(Float3x3Test, inverted)
   EXPECT_THAT(inverted(matrix) * matrix, IsNearFloat3x3(identity_float3x3(), 1e-5f));
 }
 
-// TODO(sergey): Cover quaternion_to_scaled_rotation
-// TODO(sergey): Cover quaternion_to_rotation
+TEST_F(Float3x3Test, quaternion_to_scaled_rotation)
+{
+  EXPECT_THAT(quaternion_to_scaled_rotation(
+                  make_quaternion(2.0f * cosf(M_PI_F / 4.0f), 0, 0, 2.0f * sinf(M_PI_F / 4.0f))),
+              IsNearFloat3x3(make_float3x3(make_float3(0.0f, -4.0f, 0.0f),
+                                           make_float3(4.0f, 0.0f, 0.0f),
+                                           make_float3(0.0f, 0.0f, 4.0f)),
+                             1e-6f));
+}
+
+TEST_F(Float3x3Test, quaternion_to_rotation)
+{
+  /* >>> from scipy.spatial.transform import Rotation as R
+   * >>> import numpy as np
+   * >>> r = R.from_quat([np.cos(np.pi/4), 0, 0, np.sin(np.pi/4)], scalar_first=True)
+   * >>> r.as_matrix()
+   * array([[ 2.22044605e-16, -1.00000000e+00,  0.00000000e+00],
+   *        [ 1.00000000e+00,  2.22044605e-16,  0.00000000e+00],
+   *        [ 0.00000000e+00,  0.00000000e+00,  1.00000000e+00]]) */
+  EXPECT_THAT(
+      quaternion_to_rotation(make_quaternion(cosf(M_PI_F / 4.0f), 0, 0, sinf(M_PI_F / 4.0f))),
+      IsNearFloat3x3(make_float3x3(make_float3(0.0f, -1.0f, 0.0f),
+                                   make_float3(1.0f, 0.0f, 0.0f),
+                                   make_float3(0.0f, 0.0f, 1.0f)),
+                     1e-6f));
+  EXPECT_THAT(quaternion_to_rotation(
+                  make_quaternion(2.0f * cosf(M_PI_F / 4.0f), 0, 0, 2.0f * sinf(M_PI_F / 4.0f))),
+              IsNearFloat3x3(make_float3x3(make_float3(0.0f, -1.0f, 0.0f),
+                                           make_float3(1.0f, 0.0f, 0.0f),
+                                           make_float3(0.0f, 0.0f, 1.0f)),
+                             1e-6f));
+
+  {
+    Transform tfm = transform_euler(make_float3(0.1f, -0.2f, 0.3f));
+    const float4 q = transform_to_quat(tfm);
+    const float3x3 R = quaternion_to_rotation(make_quaternion(q.w, q.x, q.y, q.z));
+    EXPECT_THAT(R.x, IsNearFloat3(tfm.x, 1e-6f));
+    EXPECT_THAT(R.y, IsNearFloat3(tfm.y, 1e-6f));
+    EXPECT_THAT(R.z, IsNearFloat3(tfm.z, 1e-6f));
+  }
+}
 
 class PackedFloat3x3Test : public Float3x3Test {};
 

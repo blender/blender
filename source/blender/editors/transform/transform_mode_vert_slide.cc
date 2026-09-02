@@ -157,6 +157,7 @@ struct VertSlideParams {
   wmOperator *op;
   bool use_even;
   bool flipped;
+  bool update_status_bar;
   /** Must never be zero length, otherwise should be null. */
   std::optional<float3> dir_3d;
 };
@@ -242,12 +243,17 @@ static void freeVertSlideParams(TransInfo * /*t*/,
 
 static eRedrawFlag handleEventVertSlide(TransInfo *t, const wmEvent *event)
 {
-  if (t->redraw && event->type != MOUSEMOVE) {
+  VertSlideParams *slp = static_cast<VertSlideParams *>(t->custom.mode.data);
+  const bool is_event_handled = t->redraw && (event->type != MOUSEMOVE);
+  if (slp) {
+    slp->update_status_bar |= is_event_handled;
+  }
+
+  if (is_event_handled) {
     /* Event already handled. */
     return TREDRAW_NOTHING;
   }
 
-  VertSlideParams *slp = static_cast<VertSlideParams *>(t->custom.mode.data);
   if (slp) {
     switch (event->type) {
       case EVT_EKEY:
@@ -256,6 +262,7 @@ static eRedrawFlag handleEventVertSlide(TransInfo *t, const wmEvent *event)
           if (slp->flipped) {
             calcVertSlideCustomPoints(t);
           }
+          slp->update_status_bar = true;
           return TREDRAW_HARD;
         }
         break;
@@ -263,6 +270,7 @@ static eRedrawFlag handleEventVertSlide(TransInfo *t, const wmEvent *event)
         if (event->val == KM_PRESS) {
           slp->flipped = !slp->flipped;
           calcVertSlideCustomPoints(t);
+          slp->update_status_bar = true;
           return TREDRAW_HARD;
         }
         break;
@@ -271,6 +279,7 @@ static eRedrawFlag handleEventVertSlide(TransInfo *t, const wmEvent *event)
         if (event->val == KM_PRESS) {
           t->flag ^= T_ALT_TRANSFORM;
           calcVertSlideCustomPoints(t);
+          slp->update_status_bar = true;
           return TREDRAW_HARD;
         }
         break;
@@ -524,14 +533,8 @@ static void applyVertSlide(TransInfo *t)
   char str[UI_MAX_DRAW_STR];
   size_t ofs = 0;
   float final;
-  VertSlideParams *slp = static_cast<VertSlideParams *>(t->custom.mode.data);
-  const bool flipped = slp->flipped;
-  const bool use_even = slp->use_even;
   const bool is_clamp = !(t->flag & T_ALT_TRANSFORM);
   const bool is_constrained = !(is_clamp == false || hasNumInput(&t->num));
-  const bool is_precision = t->modifiers & MOD_PRECISION;
-  const bool is_snap = t->modifiers & MOD_SNAP;
-  const bool is_snap_invert = t->modifiers & MOD_SNAP_INVERT;
 
   final = t->values[0] + t->values_modal_offset[0];
 
@@ -567,15 +570,30 @@ static void applyVertSlide(TransInfo *t)
   recalc_data(t);
 
   ED_area_status_text(t->area, str);
+}
 
+static void vert_slide_status(TransInfo *t)
+{
+  VertSlideParams *slp = static_cast<VertSlideParams *>(t->custom.mode.data);
   wmOperator *op = slp->op;
   if (!op) {
     return;
   }
+  if (!slp->update_status_bar) {
+    return;
+  }
+  slp->update_status_bar = false;
+
+  const bool flipped = slp->flipped;
+  const bool use_even = slp->use_even;
+  const bool is_clamp = !(t->flag & T_ALT_TRANSFORM);
+  const bool is_precision = t->modifiers & MOD_PRECISION;
+  const bool is_snap = t->modifiers & MOD_SNAP;
+  const bool is_snap_invert = t->modifiers & MOD_SNAP_INVERT;
 
   WorkspaceStatus status(t->context);
   status.opmodal(IFACE_("Confirm"), op->type, TFM_MODAL_CONFIRM);
-  status.opmodal(IFACE_("Cancel"), op->type, TFM_MODAL_CONFIRM);
+  status.opmodal(IFACE_("Cancel"), op->type, TFM_MODAL_CANCEL);
   status.opmodal(IFACE_("Snap"), op->type, TFM_MODAL_SNAP_TOGGLE, is_snap);
   status.opmodal(IFACE_("Snap Invert"), op->type, TFM_MODAL_SNAP_INV_ON, is_snap_invert);
   status.opmodal(IFACE_("Set Snap Base"), op->type, TFM_MODAL_EDIT_SNAP_SOURCE_ON);
@@ -636,6 +654,7 @@ static void initVertSlide_ex(
     slp->flipped = flipped;
     slp->perc = 0.0f;
     slp->op = op;
+    slp->update_status_bar = true;
 
     if (!use_clamp) {
       t->flag |= T_ALT_TRANSFORM;
@@ -746,6 +765,7 @@ TransModeInfo TransMode_vertslide = {
     /*snap_distance_fn*/ transform_snap_distance_len_squared_fn,
     /*snap_apply_fn*/ vert_slide_snap_apply,
     /*draw_fn*/ drawVertSlide,
+    /*status_fn*/ vert_slide_status,
 };
 
 }  // namespace blender::ed::transform

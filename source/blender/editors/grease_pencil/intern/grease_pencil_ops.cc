@@ -202,6 +202,21 @@ bool grease_pencil_vertex_painting_poll(bContext *C)
   return true;
 }
 
+bool check_brush_needs_new_material(Object *ob, const Brush *brush)
+{
+  if (!brush) {
+    return false;
+  }
+  if (brush->gpencil_settings && (brush->gpencil_settings->flag & GP_BRUSH_MATERIAL_PINNED)) {
+    Material *ma = (brush->gpencil_settings) ? brush->gpencil_settings->material : nullptr;
+    if (ma && BKE_object_material_index_get(ob, ma) < 0) {
+      /* The material needed for this brush doesn't exist on the object yet. */
+      return true;
+    }
+  }
+  return false;
+}
+
 static void keymap_grease_pencil_selection(wmKeyConfig *keyconf)
 {
   wmKeyMap *keymap = WM_keymap_ensure(

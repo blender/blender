@@ -42,6 +42,7 @@ set(SRC
   util_math_float3_test.cpp
   util_math_float4_test.cpp
   util_math_float3x3_test.cpp
+  util_math_quaternion_test.cpp
   util_rgbe_test.cpp
   util_md5_test.cpp
   util_path_test.cpp

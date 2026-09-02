@@ -1210,6 +1210,7 @@ void PaintOperation::on_stroke_begin(const bContext &C, const InputSample &start
     stroke_random_val_factor_ = rng_.get_float() * 2.0f - 1.0f;
   }
 
+  /* At this point it should be fine to create a new material + slot. */
   Material *material = BKE_grease_pencil_object_material_ensure_from_brush(
       CTX_data_main(&C), object_, brush);
   const int material_index = BKE_object_material_index_get(object_, material);

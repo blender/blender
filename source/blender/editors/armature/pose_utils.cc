@@ -6,6 +6,8 @@
  * \ingroup edarmature
  */
 
+#include <fmt/format.h>
+
 #include "MEM_guardedalloc.h"
 
 #include "BLI_listbase.hh"

@@ -67,7 +67,8 @@ enum NodeAttributeType : uint8_t {
   NODE_ATTR_FLOAT3,
   NODE_ATTR_FLOAT4,
   NODE_ATTR_RGBA,
-  NODE_ATTR_MATRIX
+  NODE_ATTR_MATRIX,
+  NODE_ATTR_QUATERNION,
 };
 
 enum NodeGeometry : uint8_t {

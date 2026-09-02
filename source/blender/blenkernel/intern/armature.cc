@@ -14,6 +14,8 @@
 #include <limits>
 #include <optional>
 
+#include <fmt/format.h>
+
 #include "BLI_alloca.hh"
 #include "BLI_assert.hh"
 #include "BLI_bounds.hh"

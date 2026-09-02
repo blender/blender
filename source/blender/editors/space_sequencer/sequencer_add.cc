@@ -255,11 +255,11 @@ static void sequencer_generic_props__internal(wmOperatorType *ot, int flag)
     RNA_def_int(ot->srna,
                 "length",
                 0,
-                INT_MIN,
+                1,
                 INT_MAX,
                 "Length",
                 "Length of the strip in frames, or the length of each strip if multiple are added",
-                -MAXFRAME,
+                1,
                 MAXFRAME);
   }
 
@@ -491,7 +491,7 @@ static void sequencer_generic_invoke_xy__internal(
   }
 
   if ((flag & SEQPROP_LENGTH) && !RNA_struct_property_is_set(op->ptr, "length")) {
-    RNA_int_set(op->ptr, "length", seq::DEFAULT_STRIP_LENGTH);
+    RNA_int_set(op->ptr, "length", seq::default_strip_length(scene->frames_per_second()));
   }
 
   if (!(flag & SEQPROP_NOPATHS)) {

@@ -134,7 +134,6 @@ void BKE_paint_set_overlay_override(eOverlayFlags flag);
 
 Palette *BKE_palette_add(Main *bmain, const char *name);
 PaletteColor *BKE_palette_color_add(Palette *palette);
-bool BKE_palette_is_empty(const Palette *palette);
 /**
  * Remove color from palette. Must be certain color is inside the palette!
  */
@@ -177,7 +176,6 @@ eObjectMode BKE_paint_object_mode_from_paintmode(PaintMode mode);
 bool BKE_paint_ensure_from_paintmode(Scene *sce, PaintMode mode);
 Paint *BKE_paint_get_active_from_paintmode(Scene *sce, PaintMode mode);
 const EnumPropertyItem *BKE_paint_get_tool_enum_from_paintmode(PaintMode mode);
-uint BKE_paint_get_brush_type_offset_from_paintmode(PaintMode mode);
 std::optional<int> BKE_paint_get_brush_type_from_obmode(const Brush *brush, eObjectMode ob_mode);
 std::optional<int> BKE_paint_get_brush_type_from_paintmode(const Brush *brush, PaintMode mode);
 Paint *BKE_paint_get_active(const Main &bmain, Scene *sce, ViewLayer *view_layer);
@@ -241,16 +239,6 @@ void BKE_paint_brushes_set_default_references(ToolSettings *ts);
  */
 void BKE_paint_brushes_ensure(Main *bmain, Paint *paint);
 void BKE_paint_brushes_validate(Main *bmain, Paint *paint);
-
-/* Secondary eraser brush. */
-
-Brush *BKE_paint_eraser_brush(Paint *paint);
-const Brush *BKE_paint_eraser_brush_for_read(const Paint *paint);
-
-bool BKE_paint_eraser_brush_set(Paint *paint, Brush *brush);
-Brush *BKE_paint_eraser_brush_from_essentials(Main *bmain, PaintMode paint_mode, const char *name);
-bool BKE_paint_eraser_brush_set_default(Main *bmain, Paint *paint);
-bool BKE_paint_eraser_brush_set_essentials(Main *bmain, Paint *paint, const char *name);
 
 /* Paint palette. */
 

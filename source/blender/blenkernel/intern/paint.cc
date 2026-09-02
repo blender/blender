@@ -472,6 +472,9 @@ Paint *BKE_paint_get_active(const Main &bmain, Scene *sce, ViewLayer *view_layer
           break;
       }
     }
+
+    /* default to image paint */
+    return &ts->imapaint.paint;
   }
 
   return nullptr;
@@ -486,12 +489,22 @@ Paint *BKE_paint_get_active_from_context(const bContext *C)
   if (sce && view_layer) {
     ToolSettings *ts = sce->toolsettings;
     BKE_view_layer_synced_ensure(*bmain, sce, view_layer);
+    Object *obact = BKE_view_layer_active_object_get(view_layer);
 
     SpaceImage *sima = CTX_wm_space_image(C);
-    if (sima != nullptr && sima->mode == SI_MODE_PAINT) {
-      return &ts->imapaint.paint;
+    if (sima != nullptr) {
+      if (obact && obact->mode == OB_MODE_EDIT) {
+        if (sima->mode == SI_MODE_PAINT) {
+          return &ts->imapaint.paint;
+        }
+      }
+      else {
+        return &ts->imapaint.paint;
+      }
     }
-    return BKE_paint_get_active(*bmain, sce, view_layer);
+    else {
+      return BKE_paint_get_active(*bmain, sce, view_layer);
+    }
   }
 
   return nullptr;
@@ -508,15 +521,25 @@ PaintMode BKE_paintmode_get_active_from_context(const bContext *C)
     Object *obact = BKE_view_layer_active_object_get(view_layer);
 
     SpaceImage *sima = CTX_wm_space_image(C);
-    if (sima != nullptr && sima->mode == SI_MODE_PAINT) {
-      return PaintMode::Texture2D;
+    if (sima != nullptr) {
+      if (obact && obact->mode == OB_MODE_EDIT) {
+        if (sima->mode == SI_MODE_PAINT) {
+          return PaintMode::Texture2D;
+        }
+      }
+      else {
+        return PaintMode::Texture2D;
+      }
     }
-    if (obact) {
+    else if (obact) {
       switch (obact->mode) {
         case OB_MODE_SCULPT:
           return PaintMode::Sculpt;
         case OB_MODE_SCULPT_GREASE_PENCIL:
-          return PaintMode::SculptGPencil;
+          if (obact->type == OB_GREASE_PENCIL) {
+            return PaintMode::SculptGPencil;
+          }
+          return PaintMode::Invalid;
         case OB_MODE_PAINT_GREASE_PENCIL:
           return PaintMode::GPencil;
         case OB_MODE_WEIGHT_GREASE_PENCIL:
@@ -532,8 +555,12 @@ PaintMode BKE_paintmode_get_active_from_context(const bContext *C)
         case OB_MODE_SCULPT_CURVES:
           return PaintMode::SculptCurves;
         default:
-          break;
+          return PaintMode::Texture2D;
       }
+    }
+    else {
+      /* default to image paint */
+      return PaintMode::Texture2D;
     }
   }
 
@@ -1130,34 +1157,6 @@ static void paint_runtime_init(const ToolSettings *ts, Paint *paint)
   paint->runtime->initialized = true;
 }
 
-uint BKE_paint_get_brush_type_offset_from_paintmode(const PaintMode mode)
-{
-  switch (mode) {
-    case PaintMode::Texture2D:
-    case PaintMode::Texture3D:
-      return offsetof(Brush, image_brush_type);
-    case PaintMode::Sculpt:
-      return offsetof(Brush, sculpt_brush_type);
-    case PaintMode::Vertex:
-      return offsetof(Brush, vertex_brush_type);
-    case PaintMode::Weight:
-      return offsetof(Brush, weight_brush_type);
-    case PaintMode::GPencil:
-      return offsetof(Brush, gpencil_brush_type);
-    case PaintMode::VertexGPencil:
-      return offsetof(Brush, gpencil_vertex_brush_type);
-    case PaintMode::SculptGPencil:
-      return offsetof(Brush, gpencil_sculpt_brush_type);
-    case PaintMode::WeightGPencil:
-      return offsetof(Brush, gpencil_weight_brush_type);
-    case PaintMode::SculptCurves:
-      return offsetof(Brush, curves_sculpt_brush_type);
-    case PaintMode::Invalid:
-      break; /* We don't use these yet. */
-  }
-  return 0;
-}
-
 std::optional<int> BKE_paint_get_brush_type_from_obmode(const Brush *brush,
                                                         const eObjectMode ob_mode)
 {
@@ -1284,11 +1283,6 @@ PaletteColor *BKE_palette_color_add(Palette *palette)
   PaletteColor *color = MEM_new<PaletteColor>(__func__);
   BLI_addtail(&palette->colors, color);
   return color;
-}
-
-bool BKE_palette_is_empty(const Palette *palette)
-{
-  return palette->colors.is_empty();
 }
 
 bool BKE_paint_select_face_test(const Object *ob)

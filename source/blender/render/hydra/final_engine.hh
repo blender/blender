@@ -19,6 +19,7 @@ class FinalEngine : public Engine {
   void set_render_setting(const std::string &key, const pxr::VtValue &val) override;
 
  protected:
+  const Object *camera_object() const override;
   void notify_status(float progress, const std::string &title, const std::string &info) override;
 
  private:

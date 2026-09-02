@@ -109,13 +109,13 @@ struct ImagePaintStroke final : public PaintStroke {
 
   std::optional<float3> get_location(float2 mouse, bool force_original) override;
   bool test_start(wmOperator *op, float2 mouse) override;
-  void update_step(wmOperator *op, PointerRNA *itemptr) override;
+  void update_step(wmOperator *op, const StrokeStep &stroke_step) override;
   void redraw(bool final) override;
   bool test_cancel() override;
   void done(bool is_cancel, bool stroke_started) override;
 };
 
-void ImagePaintStroke::update_step(wmOperator *op, PointerRNA *itemptr)
+void ImagePaintStroke::update_step(wmOperator *op, const StrokeStep &stroke_step)
 {
   Paint *paint = BKE_paint_get_active_from_context(this->evil_C);
   bke::PaintRuntime *paint_runtime = paint->runtime;
@@ -126,16 +126,13 @@ void ImagePaintStroke::update_step(wmOperator *op, PointerRNA *itemptr)
   /* initial brush values. Maybe it should be considered moving these to stroke system */
   float startalpha = BKE_brush_alpha_get(paint, brush);
 
-  float mouse[2];
-  float pressure;
-  float size;
   float distance = this->stroke_distance();
-  int eraser;
+  int eraser = RNA_boolean_get(op->ptr, "pen_flip");
 
-  RNA_float_get_array(itemptr, "mouse", mouse);
-  pressure = RNA_float_get(itemptr, "pressure");
-  eraser = RNA_boolean_get(op->ptr, "pen_flip");
-  size = RNA_float_get(itemptr, "size");
+  float mouse[2];
+  copy_v2_v2(mouse, stroke_step.mouse);
+  float pressure = stroke_step.pressure;
+  float size = stroke_step.size;
 
   /* stroking with fill tool only acts on stroke end */
   if (brush->image_brush_type == IMAGE_PAINT_BRUSH_TYPE_FILL) {
@@ -285,13 +282,13 @@ struct TexturePaintStroke final : public PaintStroke {
 
   std::optional<float3> get_location(float2 mouse, bool force_original) override;
   bool test_start(wmOperator *op, float2 mouse) override;
-  void update_step(wmOperator *op, PointerRNA *itemptr) override;
+  void update_step(wmOperator *op, const StrokeStep &stroke_step) override;
   void redraw(bool final) override;
   bool test_cancel() override;
   void done(bool is_cancel, bool stroke_started) override;
 };
 
-void TexturePaintStroke::update_step(wmOperator *op, PointerRNA *itemptr)
+void TexturePaintStroke::update_step(wmOperator *op, const StrokeStep &stroke_step)
 {
   Paint *paint = BKE_paint_get_active_from_context(this->evil_C);
   bke::PaintRuntime *paint_runtime = paint->runtime;
@@ -302,16 +299,13 @@ void TexturePaintStroke::update_step(wmOperator *op, PointerRNA *itemptr)
   /* initial brush values. Maybe it should be considered moving these to stroke system */
   float startalpha = BKE_brush_alpha_get(paint, brush);
 
-  float mouse[2];
-  float pressure;
-  float size;
   float distance = this->stroke_distance();
-  int eraser;
+  int eraser = RNA_boolean_get(op->ptr, "pen_flip");
 
-  RNA_float_get_array(itemptr, "mouse", mouse);
-  pressure = RNA_float_get(itemptr, "pressure");
-  eraser = RNA_boolean_get(op->ptr, "pen_flip");
-  size = RNA_float_get(itemptr, "size");
+  float mouse[2];
+  copy_v2_v2(mouse, stroke_step.mouse);
+  float pressure = stroke_step.pressure;
+  float size = stroke_step.size;
 
   /* stroking with fill tool only acts on stroke end */
   if (brush->image_brush_type == IMAGE_PAINT_BRUSH_TYPE_FILL) {

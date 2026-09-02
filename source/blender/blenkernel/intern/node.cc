@@ -6,6 +6,8 @@
  * \ingroup bke
  */
 
+#include <fmt/format.h>
+
 #include "CLG_log.h"
 
 #include "MEM_guardedalloc.h"
@@ -2615,12 +2617,8 @@ static void node_init(const bContext *C, bNodeTree *ntree, bNode *node)
     ntype->initfunc(ntree, node);
   }
 
-  if (ntype->initfunc_api) {
+  if (ntype->initfunc_api && C) {
     PointerRNA ptr = RNA_pointer_create_discrete(&ntree->id, RNA_Node, node);
-
-    /* XXX WARNING: context can be nullptr in case nodes are added in do_versions.
-     * Delayed init is not supported for nodes with context-based `initfunc_api` at the moment. */
-    BLI_assert(C != nullptr);
     ntype->initfunc_api(C, &ptr);
   }
 

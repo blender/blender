@@ -6,6 +6,8 @@
  * \ingroup gpu
  */
 
+#include <fmt/ranges.h>
+
 #include "BKE_global.hh"
 
 #include "DNA_userdef_types.h"

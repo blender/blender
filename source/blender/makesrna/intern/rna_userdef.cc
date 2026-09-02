@@ -5960,6 +5960,16 @@ static void rna_def_userdef_edit(BlenderRNA *brna)
       "When slipping or adjusting handles, clamp movement to the underlying content bounds by "
       "default to avoid producing extra hold frames or silence");
 
+  prop = RNA_def_property(srna, "default_strip_length", PROP_FLOAT, PROP_TIME_ABSOLUTE);
+  RNA_def_property_float_sdna(prop, nullptr, "sequencer_default_strip_length");
+  RNA_def_property_range(prop, 0.0f, 36000.0f);
+  RNA_def_property_ui_range(prop, 0.1f, 360.0f, 10.0f, 3);
+  RNA_def_property_ui_text(
+      prop,
+      "Default Strip Length",
+      "Duration of newly added strips that have no inherent length, such as color, text and "
+      "image strips");
+
   /* duplication linking */
   prop = RNA_def_property(srna, "use_duplicate_mesh", PROP_BOOLEAN, PROP_NONE);
   RNA_def_property_boolean_sdna(prop, nullptr, "dupflag", USER_DUP_MESH);

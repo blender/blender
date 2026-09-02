@@ -28,6 +28,14 @@ ccl_device_noinline void svm_node_vertex_color(KernelGlobals kg,
       color = make_float3(vertex_color);
       alpha = vertex_color.w;
     }
+    else if (descriptor.type == NODE_ATTR_QUATERNION) {
+      /* Conversion from quaternion to RGB is not well defined.
+       * Follow the same logic as what it was when quaternions were stored as float4. */
+      const float4 vertex_color = make_float4(
+          primitive_surface_attribute<Quaternion>(kg, sd, descriptor));
+      color = make_float3(vertex_color);
+      alpha = vertex_color.w;
+    }
     else {
       color = primitive_surface_attribute<float3>(kg, sd, descriptor);
       alpha = 1.0f;
@@ -59,6 +67,20 @@ ccl_device_noinline void svm_node_vertex_color_derivative(
   if (is_attribute_found(descriptor)) {
     if (descriptor.type == NODE_ATTR_FLOAT4 || descriptor.type == NODE_ATTR_RGBA) {
       dual4 vertex_color = primitive_surface_attribute<dual4>(kg, sd, descriptor);
+      if (node.bump_offset == NODE_BUMP_OFFSET_DX) {
+        vertex_color.val += vertex_color.dx * node.bump_filter_width;
+      }
+      else if (node.bump_offset == NODE_BUMP_OFFSET_DY) {
+        vertex_color.val += vertex_color.dy * node.bump_filter_width;
+      }
+      color = make_float3(vertex_color.val);
+      alpha = vertex_color.val.w;
+    }
+    else if (descriptor.type == NODE_ATTR_QUATERNION) {
+      /* Conversion from quaternion to RGB is not well defined.
+       * Follow the same logic as what it was when quaternions were stored as float4. */
+      dual<Quaternion> vertex_color = primitive_surface_attribute<dual<Quaternion>>(
+          kg, sd, descriptor);
       if (node.bump_offset == NODE_BUMP_OFFSET_DX) {
         vertex_color.val += vertex_color.dx * node.bump_filter_width;
       }
