@@ -377,6 +377,12 @@ void BLO_update_defaults_workspace(WorkSpace *workspace, const char *app_templat
               reinterpret_cast<SpaceProperties *>(&sl)->visible_tabs &= ~(1
                                                                           << BCONTEXT_COMPOSITOR);
             }
+            else if (sl.spacetype == SPACE_FILE) {
+              SpaceFile *sfile = reinterpret_cast<SpaceFile *>(&sl);
+              if (sfile->params) {
+                sfile->params->filter |= FILE_TYPE_TEXT;
+              }
+            }
           }
         }
       }
