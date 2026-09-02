@@ -6,6 +6,8 @@
  * \ingroup bke
  */
 
+#include <fmt/format.h>
+
 #include "CLG_log.h"
 
 #include "MEM_guardedalloc.h"

@@ -8,6 +8,8 @@
 
 #define DNA_DEPRECATED_ALLOW
 
+#include <fmt/format.h>
+
 #include "NOD_geometry_nodes_srna.hh"
 
 #include "DNA_ID.h"
