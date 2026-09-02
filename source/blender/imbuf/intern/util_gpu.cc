@@ -777,9 +777,7 @@ static void imb_gpu_texture_apply_partial_updates(ImBuf *ibuf, const bool use_pr
 
 gpu::Texture *IMB_acquire_gpu_texture(const char *name,
                                       ImBuf *ibuf,
-                                      bool use_high_bitdepth,
-                                      bool use_premult,
-                                      bool limit_size,
+                                      const GPUTextureCreateFlags texture_create_flags,
                                       bool try_only)
 {
   if (ibuf == nullptr || (ibuf->byte_data() == nullptr && ibuf->float_data() == nullptr &&
@@ -790,7 +788,8 @@ gpu::Texture *IMB_acquire_gpu_texture(const char *name,
 
   std::scoped_lock lock(ibuf->gpu.mutex);
   if (ibuf->gpu.texture != nullptr) {
-    imb_gpu_texture_apply_partial_updates(ibuf, use_premult);
+    imb_gpu_texture_apply_partial_updates(
+        ibuf, flag_is_set(texture_create_flags, GPUTextureCreateFlags::Premultiplied));
     if (ibuf->gpu.texture != nullptr) {
       ibuf->gpu.lastused = BLI_time_now_seconds_i();
       GPU_texture_ref(ibuf->gpu.texture);
@@ -803,17 +802,7 @@ gpu::Texture *IMB_acquire_gpu_texture(const char *name,
 
   const int64_t changeset_id = IMB_partial_update_changeset_id_next();
 
-  GPUTextureCreateFlags create_flags = GPUTextureCreateFlags::EnableMipmaps;
-  if (use_high_bitdepth) {
-    create_flags |= GPUTextureCreateFlags::HighBitDepth;
-  }
-  if (use_premult) {
-    create_flags |= GPUTextureCreateFlags::Premultiplied;
-  }
-  if (limit_size) {
-    create_flags |= GPUTextureCreateFlags::LimitSize;
-  }
-  gpu::Texture *tex = IMB_create_gpu_texture(name, ibuf, create_flags);
+  gpu::Texture *tex = IMB_create_gpu_texture(name, ibuf, texture_create_flags);
   if (tex == nullptr) {
     ibuf->gpu.flag |= IMB_GPU_LOAD_FAILED;
     ibuf->gpu.lastused = BLI_time_now_seconds_i();

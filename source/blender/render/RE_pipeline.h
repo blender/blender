@@ -462,11 +462,6 @@ struct RenderPass *RE_pass_find_by_name(struct RenderLayer *rl,
  */
 void RE_pass_set_buffer_data(struct RenderPass *pass, float *data);
 
-/**
- * Ensure a GPU texture corresponding to the render buffer data exists.
- */
-gpu::Texture *RE_pass_ensure_gpu_texture_cache(struct Render *re, struct RenderPass *rpass);
-
 void RE_GetCameraWindow(struct Render *re, const struct Object *camera, float r_winmat[4][4]);
 /**
  * Must be called after #RE_GetCameraWindow(), does not change `re->winmat`.
