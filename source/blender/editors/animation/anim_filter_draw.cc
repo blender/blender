@@ -219,6 +219,33 @@ static float get_key_height()
   return UI_UNIT_Y * 0.5;
 }
 
+struct DrawSettings {
+  /* Sizes. */
+  /* See `channel_ui_data_init` for reference. */
+  int motion_line_height = get_key_height();
+  int interpolation_line_height = 0.1f * UI_UNIT_Y;
+  /* Colors. */
+  float4 sel;
+  float4 unsel;
+  float4 ipo_linear;
+  float4 ipo_constant;
+  float4 ipo_other;
+  float4 ipo_mix;
+
+  DrawSettings()
+  {
+    ui::theme::get_color_4fv(TH_LONGKEY_SELECT, sel);
+    ui::theme::get_color_4fv(TH_LONGKEY, unsel);
+    ui::theme::get_color_4fv(TH_DOPESHEET_IPOLINE, ipo_linear);
+    ui::theme::get_color_4fv(TH_DOPESHEET_IPOCONST, ipo_constant);
+    ui::theme::get_color_4fv(TH_DOPESHEET_IPOOTHER, ipo_other);
+    ui::theme::get_color_4fv(TH_KEYTYPE_KEYFRAME, ipo_mix);
+
+    /* Logic copied from `channel_ui_data_init`. */
+    ipo_mix[3] *= 0.5;
+  }
+};
+
 static void draw_channel_keys(AnimationChannel &channel, const float y, View2D &v2d)
 {
   Span<KeyPoint> datapoints = channel.datapoints();
@@ -265,32 +292,15 @@ static void draw_channel_keys(AnimationChannel &channel, const float y, View2D &
 }
 
 /* Draw extras that are not keyframes like lines between keys. */
-static void draw_channel_decorations(AnimationChannel &channel, const float y)
+static void draw_channel_decorations(AnimationChannel &channel,
+                                     const float y,
+                                     const DrawSettings &settings)
 {
   Span<KeyPoint> datapoints = channel.datapoints();
   if (datapoints.size() < 2) {
     return;
   }
 
-  float4 color_sel;
-  float4 color_unsel;
-  float4 ipo_color_linear;
-  float4 ipo_color_constant;
-  float4 ipo_color_other;
-  float4 ipo_color_mix;
-
-  ui::theme::get_color_4fv(TH_LONGKEY_SELECT, color_sel);
-  ui::theme::get_color_4fv(TH_LONGKEY, color_unsel);
-  ui::theme::get_color_4fv(TH_DOPESHEET_IPOLINE, ipo_color_linear);
-  ui::theme::get_color_4fv(TH_DOPESHEET_IPOCONST, ipo_color_constant);
-  ui::theme::get_color_4fv(TH_DOPESHEET_IPOOTHER, ipo_color_other);
-  ui::theme::get_color_4fv(TH_KEYTYPE_KEYFRAME, ipo_color_mix);
-  /* Logic copied from `channel_ui_data_init`. */
-  ipo_color_mix[3] *= 0.5;
-
-  /* See `channel_ui_data_init` for reference. */
-  const int motion_line_height = get_key_height();
-  const int interpolation_line_height = 0.1f * UI_UNIT_Y;
   IndexRange indices = datapoints.index_range();
   /* Decorations are always drawn to the next point, so we can ignore the last point. */
   indices = indices.drop_back(1);
@@ -301,29 +311,29 @@ static void draw_channel_decorations(AnimationChannel &channel, const float y)
     box.xmax = datapoints[i + 1].frame;
 
     if (!point.has_motion) {
-      box.ymin = y - motion_line_height / 2;
-      box.ymax = y + motion_line_height / 2;
-      ui::draw_roundbox_4fv(&box, true, 3.0f, point.is_selected ? color_sel : color_unsel);
+      box.ymin = y - settings.motion_line_height / 2;
+      box.ymax = y + settings.motion_line_height / 2;
+      ui::draw_roundbox_4fv(&box, true, 3.0f, point.is_selected ? settings.sel : settings.unsel);
     }
 
     const float *interpolation_color = nullptr;
 
     switch (point.interpolation) {
       case InterpolationSummary::LINEAR:
-        interpolation_color = ipo_color_linear;
+        interpolation_color = settings.ipo_linear;
         break;
       case InterpolationSummary::CONSTANT:
-        interpolation_color = ipo_color_constant;
+        interpolation_color = settings.ipo_constant;
         break;
       case InterpolationSummary::MIXED:
-        interpolation_color = ipo_color_mix;
+        interpolation_color = settings.ipo_mix;
         break;
       default:
         break;
     }
     if (interpolation_color) {
-      box.ymin = y - interpolation_line_height / 2;
-      box.ymax = y + interpolation_line_height / 2;
+      box.ymin = y - settings.interpolation_line_height / 2;
+      box.ymax = y + settings.interpolation_line_height / 2;
       ui::draw_roundbox_4fv(&box, true, 3.0f, interpolation_color);
     }
   }
@@ -333,10 +343,11 @@ static float draw_keys_recurse(const bContext &C,
                                AnimationChannel &channel,
                                View2D &v2d,
                                float row_top,
-                               const float channel_step)
+                               const float channel_step,
+                               const DrawSettings &settings)
 {
   const float channel_y = row_top - channel_step / 2.0;
-  draw_channel_decorations(channel, channel_y);
+  draw_channel_decorations(channel, channel_y, settings);
   draw_channel_keys(channel, channel_y, v2d);
   row_top -= channel_step;
 
@@ -344,7 +355,7 @@ static float draw_keys_recurse(const bContext &C,
     /* TODO ignore if channel is collapsed. */
     SummaryChannel *summary = static_cast<SummaryChannel *>(&channel);
     for (AnimationChannel *child : summary->children()) {
-      row_top = draw_keys_recurse(C, *child, v2d, row_top, channel_step);
+      row_top = draw_keys_recurse(C, *child, v2d, row_top, channel_step, settings);
     }
   }
   return row_top;
@@ -393,8 +404,8 @@ void draw_dopesheet_key_area(const bContext &C, SummaryChannel &root, View2D &v2
   draw_key_area_background_recurse(C, root, v2d, first_channel, channel_step, pos);
   immUnbindProgram();
   GPU_blend(GPU_BLEND_NONE);
-
-  draw_keys_recurse(C, root, v2d, first_channel, channel_step);
+  DrawSettings settings;
+  draw_keys_recurse(C, root, v2d, first_channel, channel_step, settings);
 }
 
 }  // namespace blender::ed::animfilter
