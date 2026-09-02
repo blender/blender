@@ -489,6 +489,39 @@ static NeededBuffers compute_number_of_needed_buffers(Stack<const bNode *> &outp
   return needed_buffers;
 }
 
+/* Find the nodes that the given node depends on. Nodes already scheduled are not included.
+ * Unneeded inputs are marked in the schedule. */
+static Vector<const bNode *> find_dependency_nodes(NodeGroupOperation &node_group_operation,
+                                                   Schedule &schedule,
+                                                   const bNode &node)
+{
+  VectorSet<const bNode *> dependency_nodes;
+  for (const bNodeSocket *input : node.input_sockets()) {
+    if (!is_socket_available(input)) {
+      continue;
+    }
+
+    if (!is_input_needed(node, *input, node_group_operation)) {
+      schedule.unneeded_inputs.add(input);
+      continue;
+    }
+
+    const bNodeSocket *output = get_output_linked_to_input(*input);
+    if (!output) {
+      continue;
+    }
+
+    /* The dependency node was already scheduled, so skip it. */
+    if (schedule.nodes.contains(&output->owner_node())) {
+      continue;
+    }
+
+    dependency_nodes.add(&output->owner_node());
+  }
+
+  return dependency_nodes.extract_vector();
+}
+
 /* There are multiple different possible orders of evaluating a node graph, each of which needs
  * to allocate a number of intermediate buffers to store its intermediate results. It follows
  * that we need to find the evaluation order which uses the least amount of intermediate buffers.
@@ -540,63 +573,19 @@ Schedule compute_schedule(NodeGroupOperation &node_group_operation)
      * because its dependencies weren't scheduled, it will be popped later when needed. */
     const bNode &node = *node_stack.peek();
 
-    /* Compute the nodes directly connected to the node inputs sorted by their needed buffers such
-     * that the node with the lowest number of needed buffers comes first. Note that we actually
-     * want the node with the highest number of needed buffers to be schedule first, but since
-     * those are pushed to the traversal stack, we need to push them in reverse order. */
-    Vector<const bNode *> sorted_dependency_nodes;
-    for (const bNodeSocket *input : node.input_sockets()) {
-      if (!is_socket_available(input)) {
-        continue;
-      }
+    Vector<const bNode *> dependency_nodes = find_dependency_nodes(
+        node_group_operation, schedule, node);
 
-      if (!is_input_needed(node, *input, node_group_operation)) {
-        schedule.unneeded_inputs.add(input);
-        continue;
-      }
-
-      /* Get the output linked to the input. If it is null, that means the input is unlinked and
-       * has no dependency node, so skip it. */
-      const bNodeSocket *output = get_output_linked_to_input(*input);
-      if (!output) {
-        continue;
-      }
-
-      /* The dependency node was added before, so skip it. The number of dependency nodes is very
-       * small, typically less than 3, so a linear search is okay. */
-      if (sorted_dependency_nodes.contains(&output->owner_node())) {
-        continue;
-      }
-
-      /* The dependency node was already schedule, so skip it. */
-      if (schedule.nodes.contains(&output->owner_node())) {
-        continue;
-      }
-
-      /* Sort in ascending order on insertion, the number of dependency nodes is very small,
-       * typically less than 3, so insertion sort is okay. */
-      int insertion_position = 0;
-      for (int i = 0; i < sorted_dependency_nodes.size(); i++) {
-        if (needed_buffers.lookup(&output->owner_node()) >
-            needed_buffers.lookup(sorted_dependency_nodes[i]))
-        {
-          insertion_position++;
-        }
-        else {
-          break;
-        }
-      }
-      sorted_dependency_nodes.insert(insertion_position, &output->owner_node());
-    }
-
-    /* Push the sorted dependency nodes to the node stack in order. */
-    for (const bNode *dependency_node : sorted_dependency_nodes) {
-      node_stack.push(dependency_node);
-    }
+    /* Push the dependency nodes to the node stack such that the node with the highest number of
+     * needed buffers is scheduled first, so we push the nodes in ascending order. */
+    std::ranges::stable_sort(dependency_nodes, [&](const bNode *a, const bNode *b) {
+      return needed_buffers.lookup(a) < needed_buffers.lookup(b);
+    });
+    node_stack.push_multiple(dependency_nodes);
 
     /* If there are no sorted dependency nodes, that means they were all already scheduled or that
      * none exists in the first place, so we can pop and schedule the node now. */
-    if (sorted_dependency_nodes.is_empty()) {
+    if (dependency_nodes.is_empty()) {
       /* The node might have already been scheduled, so we don't use add_new here and simply don't
        * add it if it was already scheduled. */
       schedule.nodes.add(node_stack.pop());
