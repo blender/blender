@@ -35,7 +35,7 @@ struct FresnelCoeff {
   Spectrum reflectance;
   Spectrum transmittance;
 
-  ccl_device_inline_method FresnelCoeff() = default;
+  FresnelCoeff() = default;
 
   ccl_device_inline_method FresnelCoeff(Spectrum r_, Spectrum t_)
       : reflectance(r_), transmittance(t_)
