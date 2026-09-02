@@ -20,7 +20,7 @@ if(BLENDER_PLATFORM_WINDOWS_ARM)
     -DCMAKE_C_COMPILER=${OPENPGL_LLVM_INSTALL_PATH}/bin/clang-cl.exe
     -DCMAKE_C_FLAGS_INIT="--target=arm64-pc-windows-msvc"
     -DCMAKE_CXX_FLAGS_INIT="--target=arm64-pc-windows-msvc"
-    -DCMAKE_SHARED_LINKER_FLAGS=-L"${LIBDIR}/../../VS1564R/Release/llvm/lib"
+    -DCMAKE_SHARED_LINKER_FLAGS=-L"${LIBDIR}/llvm/lib"
   )
 endif()
 
