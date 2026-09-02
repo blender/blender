@@ -2,7 +2,6 @@
 #
 # SPDX-License-Identifier: GPL-2.0-or-later
 
-import bpy
 from bpy.types import Operator
 from bpy_extras.node_utils import connect_sockets
 
@@ -28,7 +27,7 @@ class NODE_OT_swap_links(Operator, NWBase):
         return nw_check(cls, context) and nw_check_selected(cls, context, max=2)
 
     def execute(self, context):
-        nodes, links = get_nodes_links(context)
+        _nodes, links = get_nodes_links(context)
         selected_nodes = context.selected_nodes
         n1 = selected_nodes[0]
 
