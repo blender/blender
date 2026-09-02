@@ -1637,9 +1637,9 @@ wmOperatorStatus PaintStroke::exec(bContext *C, wmOperator *op)
     StrokeStep step;
     RNA_float_get_array(&itemptr, "location", step.location);
     RNA_float_get_array(&itemptr, "mouse_event", step.mouse_event);
+    step.pressure = RNA_float_get(&itemptr, "pressure");
     step.mouse = paint_stroke_jitter_pos(
         this->paint, mode, *this->brush, step.pressure, stroke_mode_, zoom_2d_, mval);
-    step.pressure = RNA_float_get(&itemptr, "pressure");
     step.size = RNA_float_get(&itemptr, "size");
     step.tilt = {RNA_float_get(&itemptr, "x_tilt"), RNA_float_get(&itemptr, "y_tilt")};
     /* TODO: Note, this misses both `time` and `is_start`, but neither of those systems

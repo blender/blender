@@ -109,12 +109,12 @@ struct PaintSample {
 struct PaintStroke : NonCopyable, NonMovable {
  public:
   struct StrokeStep {
-    float size;
-    float3 location;
-    float2 mouse;
-    float2 mouse_event;
-    float pressure;
-    float2 tilt;
+    float size = 0.0f;
+    float3 location = float3(0.0f);
+    float2 mouse = float2(0.0f);
+    float2 mouse_event = float2(0.0f);
+    float pressure = 0.0f;
+    float2 tilt = float2(0.0f);
   };
   /* TODO: Temporary, used to assist removing usage of bContext in PaintStroke callbacks.
    * See #149378 */
