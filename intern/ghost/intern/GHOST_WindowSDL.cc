@@ -678,6 +678,10 @@ GHOST_TSuccess GHOST_WindowSDL::setWindowCursorVisibility(bool visible)
 
 uint16_t GHOST_WindowSDL::getDPIHint()
 {
+#ifdef __ANDROID__
+  return 288;
+#endif
+
   SDL_DisplayID display_id = SDL_GetDisplayForWindow(sdl_win_);
   if (display_id == 0) {
     return 96;
