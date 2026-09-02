@@ -11,7 +11,7 @@ namespace blender {
 
 namespace compositor {
 class RenderContext;
-enum class NodeGroupOutputTypes : uint8_t;
+enum class SideEffectOutputTypes : uint8_t;
 }  // namespace compositor
 
 struct bNodeTree;
@@ -38,7 +38,7 @@ class CompositorInputData {
   const RenderData &render_data;
   std::string view_name;
   compositor::RenderContext *render_context;
-  compositor::NodeGroupOutputTypes needed_outputs;
+  compositor::SideEffectOutputTypes needed_side_effects_outputs;
   /* Identifies if the compositor is executing due to the user making a modification or if it is
    * executing due to playback or rendering. */
   const bool triggered_by_user = false;

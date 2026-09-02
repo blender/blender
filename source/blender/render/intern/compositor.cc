@@ -116,14 +116,14 @@ class Context : public compositor::Context {
            this->get_render_data().compositor_device == SCE_COMPOSITOR_DEVICE_GPU;
   }
 
+  compositor::SideEffectOutputTypes needed_side_effect_output_types() const override
+  {
+    return input_data_.needed_side_effects_outputs;
+  }
+
   const ComputeContextHash &get_active_compute_context_hash() const override
   {
     return active_compute_context_hash_;
-  }
-
-  compositor::NodeGroupOutputTypes needed_outputs() const
-  {
-    return input_data_.needed_outputs;
   }
 
   const RenderData &get_render_data() const override
@@ -720,9 +720,8 @@ class Context : public compositor::Context {
     this->get_scene().runtime->compositor.nodes_evaluation_log =
         std::make_unique<nodes::eval_log::NodesEvalLog>();
 
-    const compositor::NodeGroupOutputTypes needed_outputs = this->needed_outputs();
     compositor::SceneCompositorEffectsOperation operation =
-        compositor::SceneCompositorEffectsOperation(*this, needed_outputs);
+        compositor::SceneCompositorEffectsOperation(*this);
     compositor::Result combined_pass = this->get_pass(&this->get_scene(), 0, RE_PASSNAME_COMBINED);
     operation.map_input_to_result(&combined_pass);
     operation.evaluate();
@@ -736,8 +735,8 @@ class Context : public compositor::Context {
 
     /* If the operation does not have a viewer output but one is needed, write the output as a
      * viewer. */
-    const bool needs_viewer_output = flag_is_set(needed_outputs,
-                                                 compositor::NodeGroupOutputTypes::ViewerNode);
+    const bool needs_viewer_output = flag_is_set(this->needed_side_effect_output_types(),
+                                                 compositor::SideEffectOutputTypes::ViewerNode);
     if (!operation.has_viewer_output() && needs_viewer_output) {
       this->write_viewer(output_result);
     }

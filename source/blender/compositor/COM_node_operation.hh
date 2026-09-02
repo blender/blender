@@ -14,6 +14,10 @@
 #include "COM_operation.hh"
 #include "COM_result.hh"
 
+namespace blender {
+class ComputeContext;
+}  // namespace blender
+
 namespace blender::compositor {
 
 struct Schedule;
@@ -33,8 +37,6 @@ class NodeOperation : public Operation {
   const bNode &node_;
   /* The compute context where this node operation is executing. */
   const ComputeContext *compute_context_ = nullptr;
-  /* False if node previews are not needed and true otherwise. */
-  bool needs_node_previews_ = false;
 
  public:
   /* Populate the output results based on the node outputs and populate the input descriptors based
@@ -54,9 +56,6 @@ class NodeOperation : public Operation {
   /* Setter and getter for compute_context_. */
   void set_compute_context(const ComputeContext &compute_context);
   const ComputeContext &get_compute_context() const;
-
-  /* Setter for needs_node_previews_. */
-  void set_needs_node_previews(const bool needed);
 
  protected:
   /* Add a warning of the given type and message to the node. */

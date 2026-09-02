@@ -9,6 +9,7 @@
 #include "BLI_resource_scope.hh"
 
 #include "BKE_compositor.hh"
+#include "BKE_compute_contexts.hh"
 #include "BKE_idprop.hh"
 #include "BKE_node_runtime.hh"
 
@@ -90,8 +91,7 @@ class CompositorEffectContext : public CompositorContext {
     const bNodeTree &node_group = *DEG_get_evaluated<bNodeTree>(render_data_.depsgraph,
                                                                 node_group_);
     const bke::DataBlockComputeContext compute_context(nullptr, this->get_scene().id);
-    NodeGroupOperation node_group_operation(
-        *this, node_group, this->needed_outputs(), compute_context);
+    NodeGroupOperation node_group_operation(*this, node_group, compute_context);
     set_output_refcount(node_group, node_group_operation);
 
     node_group.ensure_topology_cache();

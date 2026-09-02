@@ -15,6 +15,7 @@
 
 #include "DNA_node_types.h"
 
+#include "BKE_compute_contexts.hh"
 #include "BKE_node.hh"
 #include "BKE_node_runtime.hh"
 #include "BKE_type_conversions.hh"
@@ -88,7 +89,8 @@ static void add_output_nodes(NodeGroupOperation &node_group_operation,
                              Stack<const bNode *> &node_stack)
 {
   const bNodeTree &node_group = node_group_operation.node_group();
-  const NodeGroupOutputTypes needed_output_types = node_group_operation.needed_output_types();
+  const SideEffectOutputTypes needed_side_effect_output_types =
+      node_group_operation.context().needed_side_effect_output_types();
   node_group.ensure_topology_cache();
 
   /* Add group nodes that contain File Output and Viewer nodes. */
@@ -102,7 +104,7 @@ static void add_output_nodes(NodeGroupOperation &node_group_operation,
         &node_group_operation.compute_context(),
         group_node->identifier,
         &group_node->owner_tree());
-    if (flag_is_set(needed_output_types, NodeGroupOutputTypes::ViewerNode) &&
+    if (flag_is_set(needed_side_effect_output_types, SideEffectOutputTypes::ViewerNode) &&
         has_viewer_node(child_tree,
                         node_compute_context,
                         node_group_operation.context().get_active_compute_context_hash()))
@@ -111,7 +113,7 @@ static void add_output_nodes(NodeGroupOperation &node_group_operation,
       continue;
     }
 
-    if (flag_is_set(needed_output_types, NodeGroupOutputTypes::FileOutputNode) &&
+    if (flag_is_set(needed_side_effect_output_types, SideEffectOutputTypes::FileOutputNode) &&
         has_file_output_recursive(child_tree))
     {
       node_stack.push(group_node);
@@ -126,7 +128,7 @@ static void add_output_nodes(NodeGroupOperation &node_group_operation,
   }
 
   /* Add File Output nodes. */
-  if (flag_is_set(needed_output_types, NodeGroupOutputTypes::FileOutputNode)) {
+  if (flag_is_set(needed_side_effect_output_types, SideEffectOutputTypes::FileOutputNode)) {
     for (const bNode *node : node_group.nodes_by_type("CompositorNodeOutputFile"_ustr)) {
       if (!node->is_muted()) {
         node_stack.push(node);
@@ -137,7 +139,9 @@ static void add_output_nodes(NodeGroupOperation &node_group_operation,
   /* Add Viewer node if this is the active context. */
   const bool is_active_context = node_group_operation.compute_context().hash() ==
                                  node_group_operation.context().get_active_compute_context_hash();
-  if (flag_is_set(needed_output_types, NodeGroupOutputTypes::ViewerNode) && is_active_context) {
+  if (flag_is_set(needed_side_effect_output_types, SideEffectOutputTypes::ViewerNode) &&
+      is_active_context)
+  {
     for (const bNode *node : node_group.nodes_by_type("CompositorNodeViewer"_ustr)) {
       if (node->flag & NODE_DO_OUTPUT && !node->is_muted()) {
         node_stack.push(node);

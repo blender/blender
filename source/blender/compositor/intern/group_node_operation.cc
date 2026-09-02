@@ -9,10 +9,10 @@
 
 #include "DNA_node_types.h"
 
+#include "BKE_compute_contexts.hh"
 #include "BKE_node.hh"
 #include "BKE_node_runtime.hh"
 
-#include "COM_group_node_operation.hh"
 #include "COM_node_group_operation.hh"
 #include "COM_node_operation.hh"
 #include "COM_result.hh"
@@ -24,15 +24,8 @@ namespace blender::compositor {
  * mapping its own inputs to the inputs of the node group operation and sharing its results with
  * the results of the node group operation. */
 class GroupNodeOperation : public NodeOperation {
- private:
-  /* The node group outputs needed by the caller. */
-  const NodeGroupOutputTypes needed_outputs_;
-
  public:
-  GroupNodeOperation(Context &context,
-                     const bNode &node,
-                     const NodeGroupOutputTypes needed_outputs)
-      : NodeOperation(context, node), needed_outputs_(needed_outputs)
+  GroupNodeOperation(Context &context, const bNode &node) : NodeOperation(context, node)
   {
     for (const bNodeSocket *input : node.input_sockets()) {
       if (!is_socket_available(input)) {
@@ -59,7 +52,7 @@ class GroupNodeOperation : public NodeOperation {
 
     const bke::GroupNodeComputeContext compute_context(
         &this->get_compute_context(), this->node().identifier, &this->node().owner_tree());
-    NodeGroupOperation operation(this->context(), *node_group, needed_outputs_, compute_context);
+    NodeGroupOperation operation(this->context(), *node_group, compute_context);
 
     this->set_reference_counts(operation);
     Vector<std::unique_ptr<Result>> temporary_inputs = this->map_inputs(operation);
@@ -121,11 +114,9 @@ class GroupNodeOperation : public NodeOperation {
   }
 };
 
-NodeOperation *get_group_node_operation(Context &context,
-                                        const bNode &node,
-                                        const NodeGroupOutputTypes &needed_outputs)
+NodeOperation *get_group_node_operation(Context &context, const bNode &node)
 {
-  return new GroupNodeOperation(context, node, needed_outputs);
+  return new GroupNodeOperation(context, node);
 }
 
 }  // namespace blender::compositor
