@@ -207,6 +207,18 @@ void GHOST_WindowSDL::getClientBounds(GHOST_Rect &bounds) const
   bounds.b_ = y + h;
 }
 
+void GHOST_WindowSDL::getSafeArea(GHOST_Rect &bounds) const
+{
+  SDL_Rect safe_area;
+  if (!SDL_GetWindowSafeArea(sdl_win_, &safe_area)) {
+    GHOST_Window::getSafeArea(bounds);
+    return;
+  }
+
+  bounds.set(
+      safe_area.x, safe_area.y, safe_area.x + safe_area.w, safe_area.y + safe_area.h);
+}
+
 GHOST_TSuccess GHOST_WindowSDL::setClientWidth(uint32_t width)
 {
   int height;

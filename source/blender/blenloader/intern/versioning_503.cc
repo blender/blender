@@ -16,6 +16,7 @@
 #include "DNA_pointcloud_types.h"
 #include "DNA_scene_types.h"
 #include "DNA_sequence_types.h"
+#include "DNA_windowmanager_types.h"
 
 #include "BLI_listbase_iterator.hh"
 #include "BLI_string_ref.hh"
@@ -30,6 +31,7 @@
 #include "BKE_node_runtime.hh"
 #include "BKE_paint.hh"
 #include "BKE_paint_types.hh"
+#include "BKE_screen.hh"
 
 #include "SEQ_iterator.hh"
 #include "SEQ_sequencer.hh"
@@ -399,6 +401,19 @@ void blo_do_versions_503(FileData * /*fd*/, Library * /*lib*/, Main *bmain)
           }
           return true;
         });
+      }
+    }
+  }
+
+  if (!MAIN_VERSION_FILE_ATLEAST(bmain, 503, 18)) {
+    /* Align every existing topbar header region to the bottom to allow for safe area padding. */
+    for (wmWindowManager &wm : bmain->wm) {
+      for (wmWindow &win : wm.windows) {
+        for (ScrArea &area : win.global_areas.areabase) {
+          if (area.spacetype == SPACE_TOPBAR) {
+            BKE_area_find_region_type(&area, RGN_TYPE_HEADER)->alignment = RGN_ALIGN_BOTTOM;
+          }
+        }
       }
     }
   }

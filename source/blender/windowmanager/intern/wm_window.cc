@@ -3186,6 +3186,26 @@ void WM_window_rect_calc(const wmWindow *win, rcti *r_rect)
   const int2 win_size = WM_window_native_pixel_size(win);
   BLI_rcti_init(r_rect, 0, win_size[0], 0, win_size[1]);
 }
+
+void WM_window_safe_area_calc(const wmWindow *win, rcti *r_rect)
+{
+  const int2 win_size = WM_window_native_pixel_size(win);
+  GHOST_IWindow *ghost_window = static_cast<GHOST_IWindow *>(win->runtime->ghostwin);
+  if (ghost_window == nullptr) {
+    BLI_rcti_init(r_rect, 0, win_size.x, 0, win_size.y);
+    return;
+  }
+
+  GHOST_Rect safe_area;
+  ghost_window->getSafeArea(safe_area);
+
+  const float native_pixel_size = ghost_window->getNativePixelSize();
+  r_rect->xmin = int(native_pixel_size * safe_area.l_);
+  r_rect->xmax = int(native_pixel_size * safe_area.r_);
+  r_rect->ymin = win_size.y - int(native_pixel_size * safe_area.b_);
+  r_rect->ymax = win_size.y - int(native_pixel_size * safe_area.t_);
+}
+
 void WM_window_screen_rect_calc(const wmWindow *win, rcti *r_rect)
 {
   rcti window_rect, screen_rect;

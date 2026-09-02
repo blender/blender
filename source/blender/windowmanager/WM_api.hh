@@ -357,6 +357,10 @@ void WM_window_csd_rect_calc(const wmWindow *win, rcti *r_rect);
  */
 void WM_window_rect_calc(const wmWindow *win, rcti *r_rect);
 /**
+ * Get the window area that is safe for content, excluding overlapping system elements.
+ */
+void WM_window_safe_area_calc(const wmWindow *win, rcti *r_rect);
+/**
  * Get boundaries usable by screen-layouts, excluding global areas.
  * \note Depends on #UI_SCALE_FAC. Should that be outdated, call #WM_window_dpi_set_userdef first.
  */

@@ -52,7 +52,7 @@ static SpaceLink *topbar_create(const ScrArea * /*area*/, const Scene * /*scene*
   region = BKE_area_region_new();
   BLI_addtail(&stopbar->regionbase, region);
   region->regiontype = RGN_TYPE_HEADER;
-  region->alignment = RGN_ALIGN_TOP;
+  region->alignment = RGN_ALIGN_BOTTOM;  /* Align the header at the bottom to allow for safe-area padding above it. */
   region = BKE_area_region_new();
   BLI_addtail(&stopbar->regionbase, region);
   region->regiontype = RGN_TYPE_HEADER;
@@ -95,6 +95,12 @@ static void topbar_main_region_init(wmWindowManager *wm, ARegion *region)
   keymap = WM_keymap_ensure(
       wm->runtime->defaultconf, "View2D Buttons List", SPACE_EMPTY, RGN_TYPE_WINDOW);
   WM_event_add_keymap_handler(&region->runtime->handlers, keymap);
+}
+
+static void topbar_main_region_draw(const bContext *C, ARegion *region)
+{
+  /* The main region fills the safe-area padding above the header. */
+  ED_region_clear(C, region, TH_HEADER);
 }
 
 static void topbar_operatortypes() {}
@@ -307,7 +313,7 @@ void ED_spacetype_topbar()
   art->regionid = RGN_TYPE_WINDOW;
   art->init = topbar_main_region_init;
   art->layout = ED_region_header_layout;
-  art->draw = ED_region_header_draw;
+  art->draw = topbar_main_region_draw;
   art->listener = topbar_main_region_listener;
   art->prefsizex = UI_UNIT_X * 5; /* Mainly to avoid glitches */
   art->keymapflag = ED_KEYMAP_UI | ED_KEYMAP_VIEW2D | ED_KEYMAP_HEADER;

@@ -119,6 +119,12 @@ class GHOST_IWindow {
   virtual void getClientBounds(GHOST_Rect &bounds) const = 0;
 
   /**
+   * Returns the area of the client rectangle that is safe content,
+   * excluding overlapping system elements.
+   */
+  virtual void getSafeArea(GHOST_Rect &bounds) const = 0;
+
+  /**
    * Resizes client rectangle width.
    * \param width: The new width of the client area of the window.
    */

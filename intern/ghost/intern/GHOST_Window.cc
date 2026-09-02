@@ -56,6 +56,14 @@ GHOST_Window::~GHOST_Window()
   delete context_;
 }
 
+void GHOST_Window::getSafeArea(GHOST_Rect &bounds) const
+{
+  getClientBounds(bounds);
+  const int32_t width = bounds.getWidth();
+  const int32_t height = bounds.getHeight();
+  bounds.set(0, 0, width, height);
+}
+
 void *GHOST_Window::getOSWindow() const
 {
   return nullptr;

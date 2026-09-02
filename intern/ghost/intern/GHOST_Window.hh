@@ -70,6 +70,9 @@ class GHOST_Window : public GHOST_IWindow {
    */
   ~GHOST_Window() override;
 
+  /** \copydoc #GHOST_IWindow::getSafeArea */
+  void getSafeArea(GHOST_Rect &bounds) const override;
+
   /** \copydoc #GHOST_IWindow::getValid */
   bool getValid() const override
   {
