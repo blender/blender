@@ -15,7 +15,6 @@ endif()
 
 # May be set explicitly by setting ANDROID_NDK_ROOT. Otherwise we try to infer the most
 # recent NDK version installed on the host from default paths.
-
 if(NOT DEFINED ANDROID_NDK_ROOT)
   if(DEFINED ENV{ANDROID_HOME})
     # ANDROID_HOME is commonly set to point to the base SDK root, used by Android Studio and others.
@@ -33,7 +32,8 @@ if(NOT DEFINED ANDROID_NDK_ROOT)
   if(NOT EXISTS ${ANDROID_NDK_ROOT})
     message(FATAL_ERROR
       "Failed to infer Android NDK root location, tried: ${_android_sdk_dir}/ndk/*. "
-      "Ensure you have one installed, or manually set ANDROID_NDK_ROOT to its location."
+      "Ensure you have one installed, or manually set ANDROID_NDK_ROOT to its location. "
+      "To obtain the Android NDK, Android Studio or the Android sdkmanager may be used."
     )
   endif()
 
