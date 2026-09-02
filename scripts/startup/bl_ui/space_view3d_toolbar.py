@@ -30,6 +30,7 @@ from bl_ui.properties_paint_common import (
     brush_settings,
     brush_settings_advanced,
     draw_color_settings,
+    supports_shape_panel,
 )
 from bl_ui.utils import PresetPanel
 
@@ -867,12 +868,26 @@ class VIEW3D_PT_tools_brush_shape(Panel, View3DPaintPanel, ShapePanel):
     bl_options = {'DEFAULT_CLOSED'}
     bl_ui_units_x = 11
 
+    @classmethod
+    def poll(cls, context):
+        if not super().poll(context):
+            return False
+        mode = cls.get_brush_mode(context)
+        return supports_shape_panel(mode)
+
 
 class VIEW3D_PT_tools_brush_falloff(Panel, View3DPaintPanel, FalloffPanel):
     bl_context = ".paint_common"  # dot on purpose (access from topbar)
     bl_parent_id = "VIEW3D_PT_tools_brush_settings"
     bl_label = "Falloff"
     bl_options = {'DEFAULT_CLOSED'}
+
+    @classmethod
+    def poll(cls, context):
+        if not super().poll(context):
+            return False
+        mode = cls.get_brush_mode(context)
+        return not supports_shape_panel(mode)
 
 
 class VIEW3D_PT_tools_brush_falloff_normal(View3DPaintPanel, Panel):
