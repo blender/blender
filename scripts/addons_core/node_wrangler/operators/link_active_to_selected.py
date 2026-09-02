@@ -2,7 +2,6 @@
 #
 # SPDX-License-Identifier: GPL-2.0-or-later
 
-import bpy
 from bpy.types import Operator
 from bpy.props import BoolProperty
 from bpy_extras.node_utils import connect_sockets
@@ -38,7 +37,7 @@ class NODE_OT_link_active_to_selected(Operator, NWBase):
                 and nw_check_selected(cls, context, min=2))
 
     def execute(self, context):
-        nodes, links = get_nodes_links(context)
+        nodes, _links = get_nodes_links(context)
         replace = self.replace
         use_node_name = self.use_node_name
         use_outputs_names = self.use_outputs_names

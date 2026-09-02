@@ -26,7 +26,6 @@ class NODE_OT_detach_outputs(Operator, NWBase):
         return nw_check(cls, context) and nw_check_selected(cls, context)
 
     def execute(self, context):
-        nodes, links = get_nodes_links(context)
         selected = context.selected_nodes
         bpy.ops.node.duplicate_move_keep_inputs()
         new_nodes = context.selected_nodes

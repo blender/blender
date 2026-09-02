@@ -569,6 +569,7 @@ struct [[host_shared]] ObjectAttribute {
    *                        or just 0 if the ObjectRef doesn't contain any instances.
    */
   bool sync(const draw::ObjectRef &ref, const GPUUniformAttr &attr, int instance_index);
+  bool sync(const draw::ObjectRef &ref, const char *name, bool use_dupli, int instance_index);
 #endif
 };
 #pragma pack(pop)

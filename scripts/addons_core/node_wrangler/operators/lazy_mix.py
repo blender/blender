@@ -31,7 +31,7 @@ class NODE_OT_lazy_mix(Operator, NWBase):
 
     def modal(self, context, event):
         context.area.tag_redraw()
-        nodes, links = get_nodes_links(context)
+        nodes, _links = get_nodes_links(context)
         cont = True
 
         node1 = None

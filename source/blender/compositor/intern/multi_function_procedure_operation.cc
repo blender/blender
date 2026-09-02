@@ -6,6 +6,7 @@
 #include <string>
 
 #include "BLI_assert.hh"
+#include "BLI_compute_context.hh"
 #include "BLI_cpp_type.hh"
 #include "BLI_generic_span.hh"
 #include "BLI_index_mask.hh"
@@ -442,9 +443,17 @@ void MultiFunctionProcedureOperation::assign_output_variables(const bNode &node,
                                                               Vector<mf::Variable *> &variables)
 {
   const bool should_log_outputs = this->context().nodes_evaluation_log() && is_single_value_;
-  const bNodeSocket *preview_output = needs_node_previews_ && !is_single_value_ ?
-                                          find_preview_output_socket(node) :
-                                          nullptr;
+
+  /* Only compute previews if they are needed and the node group is active. */
+  const bool node_needs_preview = is_node_preview_needed(node);
+  const bool needs_node_previews = flag_is_set(this->context().needed_side_effect_output_types(),
+                                               SideEffectOutputTypes::NodePreviews);
+  const bool is_active_context = compute_context_.hash() ==
+                                 this->context().get_active_compute_context_hash();
+  const bNodeSocket *preview_output = nullptr;
+  if (node_needs_preview && needs_node_previews && is_active_context && !is_single_value_) {
+    preview_output = find_preview_output_socket(node);
+  }
 
   int available_outputs_index = 0;
   for (const bNodeSocket *output : node.output_sockets()) {

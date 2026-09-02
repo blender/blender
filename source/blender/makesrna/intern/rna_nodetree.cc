@@ -615,6 +615,39 @@ const EnumPropertyItem rna_enum_node_grease_pencil_stroke_type_items[] = {
     {0, nullptr, 0, nullptr, nullptr},
 };
 
+static const EnumPropertyItem rna_enum_shader_attribute_type_items[] = {
+    {SHD_ATTRIBUTE_GEOMETRY,
+     "GEOMETRY",
+     0,
+     "Geometry",
+     "The attribute is associated with the object geometry, and its value "
+     "varies from vertex to vertex, or within the object volume"},
+    {SHD_ATTRIBUTE_OBJECT,
+     "OBJECT",
+     0,
+     "Object",
+     "The attribute is associated with the object or mesh data-block itself, "
+     "and its value is uniform"},
+    {SHD_ATTRIBUTE_INSTANCER,
+     "INSTANCER",
+     0,
+     "Instancer",
+     "The attribute is associated with the instancer particle system or object, "
+     "falling back to the Object mode if the attribute isn't found, or the object "
+     "is not instanced"},
+    {SHD_ATTRIBUTE_VIEW_LAYER,
+     "VIEW_LAYER",
+     0,
+     "View Layer",
+     "The attribute is associated with the View Layer, Scene or World that is being rendered"},
+    {SHD_ATTRIBUTE_LIGHT,
+     "LIGHT",
+     0,
+     "Light",
+     "The attribute is associated with the Light that is being rendered"},
+    {0, nullptr, 0, nullptr, nullptr},
+};
+
 #ifndef RNA_RUNTIME
 
 static const EnumPropertyItem prop_shader_output_target_items[] = {
@@ -707,6 +740,7 @@ static const EnumPropertyItem node_cryptomatte_layer_name_items[] = {
 #  include "RE_texture.h"
 
 #  include "DNA_scene_types.h"
+#  include "DNA_space_types.h"
 #  include "DNA_text_types.h"
 
 #  include "WM_api.hh"
@@ -4516,6 +4550,32 @@ static const EnumPropertyItem *rna_NodeRaycastSampleAttributeItem_data_type_item
   });
 }
 
+static const EnumPropertyItem *rna_NodeShaderAttribute_type_itemf(bContext *C,
+                                                                  PointerRNA * /*ptr*/,
+                                                                  PropertyRNA * /*prop*/,
+                                                                  bool *r_free)
+{
+  if (C == nullptr) {
+    return rna_enum_shader_attribute_type_items;
+  }
+
+  Scene *scene = CTX_data_scene(C);
+  SpaceNode *space_node = CTX_wm_space_node(C);
+
+  if (scene == nullptr || space_node == nullptr) {
+    return rna_enum_shader_attribute_type_items;
+  }
+
+  *r_free = true;
+
+  bool supports_light_attributes = !STREQ(CTX_data_scene(C)->r.engine, RE_engine_id_CYCLES) &&
+                                   CTX_wm_space_node(C)->shaderfrom == SNODE_SHADER_OBJECT;
+  return itemf_function_check(
+      rna_enum_shader_attribute_type_items, [&](const EnumPropertyItem *item) {
+        return supports_light_attributes || item->value != SHD_ATTRIBUTE_LIGHT;
+      });
+}
+
 }  // namespace blender
 
 #else
@@ -4691,6 +4751,12 @@ static const EnumPropertyItem node_principled_distribution_items[] = {
      "Multiscatter GGX",
      "GGX with additional correction to account for multiple scattering, preserve energy and "
      "prevent unexpected darkening at high roughness"},
+    {0, nullptr, 0, nullptr, nullptr},
+};
+
+static const EnumPropertyItem node_light_evaluation_mode_items[] = {
+    {SHD_LIGHT_EVAL_DIFFUSE, "DIFFUSE", 0, "Diffuse", ""},
+    {SHD_LIGHT_EVAL_GLOSSY, "GLOSSY", 0, "Glossy", ""},
     {0, nullptr, 0, nullptr, nullptr},
 };
 
@@ -5383,40 +5449,14 @@ static void def_sh_vector_rotate(BlenderRNA * /*brna*/, StructRNA *srna)
 
 static void def_sh_attribute(BlenderRNA * /*brna*/, StructRNA *srna)
 {
-  static const EnumPropertyItem prop_attribute_type[] = {
-      {SHD_ATTRIBUTE_GEOMETRY,
-       "GEOMETRY",
-       0,
-       "Geometry",
-       "The attribute is associated with the object geometry, and its value "
-       "varies from vertex to vertex, or within the object volume"},
-      {SHD_ATTRIBUTE_OBJECT,
-       "OBJECT",
-       0,
-       "Object",
-       "The attribute is associated with the object or mesh data-block itself, "
-       "and its value is uniform"},
-      {SHD_ATTRIBUTE_INSTANCER,
-       "INSTANCER",
-       0,
-       "Instancer",
-       "The attribute is associated with the instancer particle system or object, "
-       "falling back to the Object mode if the attribute isn't found, or the object "
-       "is not instanced"},
-      {SHD_ATTRIBUTE_VIEW_LAYER,
-       "VIEW_LAYER",
-       0,
-       "View Layer",
-       "The attribute is associated with the View Layer, Scene or World that is being rendered"},
-      {0, nullptr, 0, nullptr, nullptr},
-  };
   PropertyRNA *prop;
 
   RNA_def_struct_sdna_from(srna, "NodeShaderAttribute", "storage");
 
   prop = RNA_def_property(srna, "attribute_type", PROP_ENUM, PROP_NONE);
   RNA_def_property_enum_sdna(prop, nullptr, "type");
-  RNA_def_property_enum_items(prop, prop_attribute_type);
+  RNA_def_property_enum_funcs(prop, nullptr, nullptr, "rna_NodeShaderAttribute_type_itemf");
+  RNA_def_property_enum_items(prop, rna_enum_shader_attribute_type_items);
   RNA_def_property_ui_text(prop, "Attribute Type", "General type of the attribute");
   RNA_def_property_update(prop, NC_NODE | NA_EDITED, "rna_Node_update_relations");
 
@@ -6230,6 +6270,17 @@ static void def_principled(BlenderRNA * /*brna*/, StructRNA *srna)
   RNA_def_property_enum_items(prop, node_subsurface_method_items);
   RNA_def_property_ui_text(
       prop, "Subsurface Method", "Method for rendering subsurface scattering");
+  RNA_def_property_update(prop, NC_NODE | NA_EDITED, "rna_ShaderNode_socket_update");
+}
+
+static void def_light_evaluation(BlenderRNA * /*brna*/, StructRNA *srna)
+{
+  PropertyRNA *prop;
+
+  prop = RNA_def_property(srna, "mode", PROP_ENUM, PROP_NONE);
+  RNA_def_property_enum_sdna(prop, nullptr, "custom1");
+  RNA_def_property_enum_items(prop, node_light_evaluation_mode_items);
+  RNA_def_property_ui_text(prop, "Mode", "Defines parametrization of the light evaluation");
   RNA_def_property_update(prop, NC_NODE | NA_EDITED, "rna_ShaderNode_socket_update");
 }
 
@@ -10704,7 +10755,12 @@ static void rna_def_nodes(BlenderRNA *brna)
   define("ShaderNode", "ShaderNodeHueSaturation");
   define("ShaderNode", "ShaderNodeInvert");
   define("ShaderNode", "ShaderNodeLayerWeight");
+  define("ShaderNode", "ShaderNodeLightAccumulation");
+  define("ShaderNode", "ShaderNodeLightEvaluation", def_light_evaluation);
   define("ShaderNode", "ShaderNodeLightFalloff");
+  define("ShaderNode", "ShaderNodeLightInfo");
+  define("ShaderNode", "ShaderNodeLightIterInternalInput");
+  define("ShaderNode", "ShaderNodeLightIterInternalOutput");
   define("ShaderNode", "ShaderNodeLightPath");
   define("ShaderNode", "ShaderNodeMapping", def_sh_mapping);
   define("ShaderNode", "ShaderNodeMapRange", def_map_range);
@@ -10732,6 +10788,7 @@ static void rna_def_nodes(BlenderRNA *brna)
   define("ShaderNode", "ShaderNodeSeparateColor", def_sh_combsep_color);
   define("ShaderNode", "ShaderNodeSeparateXYZ");
   define("ShaderNode", "ShaderNodeShaderToRGB");
+  define("ShaderNode", "ShaderNodeShadowRaycast");
   define("ShaderNode", "ShaderNodeSqueeze");
   define("ShaderNode", "ShaderNodeSubsurfaceScattering", def_sh_subsurface);
   define("ShaderNode", "ShaderNodeTangent", def_sh_tangent);

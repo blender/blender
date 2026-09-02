@@ -335,6 +335,10 @@ static void update_device_flags_attribute(uint32_t &device_update_flags,
         device_update_flags |= ATTR_QUATERNION_MODIFIED;
         break;
       }
+      case AttrKernelDataType::SPHERICAL_HARMONICS: {
+        device_update_flags |= ATTR_SPHERICAL_HARMONICS_MODIFIED;
+        break;
+      }
       case AttrKernelDataType::NUM: {
         break;
       }
@@ -365,6 +369,9 @@ static void update_attribute_realloc_flags(uint32_t &device_update_flags,
   }
   if (attributes.modified(AttrKernelDataType::QUATERNION)) {
     device_update_flags |= ATTR_QUATERNION_NEEDS_REALLOC;
+  }
+  if (attributes.modified(AttrKernelDataType::SPHERICAL_HARMONICS)) {
+    device_update_flags |= ATTR_SPHERICAL_HARMONICS_NEEDS_REALLOC;
   }
 }
 
@@ -699,6 +706,14 @@ void GeometryManager::device_update_preprocess(Device *device, Scene *scene, Pro
   }
   else if (device_update_flags & ATTR_QUATERNION_MODIFIED) {
     dscene->attributes_quaternion.tag_modified();
+  }
+
+  if (device_update_flags & ATTR_SPHERICAL_HARMONICS_NEEDS_REALLOC) {
+    dscene->attributes_map.tag_realloc();
+    dscene->attributes_spherical_harmonics.tag_realloc();
+  }
+  else if (device_update_flags & ATTR_SPHERICAL_HARMONICS_MODIFIED) {
+    dscene->attributes_spherical_harmonics.tag_modified();
   }
 
   if (device_update_flags & DEVICE_MESH_DATA_MODIFIED) {
@@ -1234,6 +1249,7 @@ void GeometryManager::device_update(Device *device,
   dscene->attributes_uchar4.clear_modified();
   dscene->attributes_normal.clear_modified();
   dscene->attributes_quaternion.clear_modified();
+  dscene->attributes_spherical_harmonics.clear_modified();
 }
 
 void GeometryManager::device_free(Device *device, DeviceScene *dscene, bool force_free)
@@ -1262,6 +1278,7 @@ void GeometryManager::device_free(Device *device, DeviceScene *dscene, bool forc
   dscene->attributes_uchar4.free_if_need_realloc(force_free);
   dscene->attributes_normal.free_if_need_realloc(force_free);
   dscene->attributes_quaternion.free_if_need_realloc(force_free);
+  dscene->attributes_spherical_harmonics.free_if_need_realloc(force_free);
 
   /* Signal for shaders like displacement not to do ray tracing. */
   dscene->data.bvh.bvh_layout = BVH_LAYOUT_NONE;

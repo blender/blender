@@ -36,12 +36,8 @@ namespace blender::compositor {
 
 NodeGroupOperation::NodeGroupOperation(Context &context,
                                        const bNodeTree &node_group,
-                                       const NodeGroupOutputTypes needed_outputs,
                                        const ComputeContext &compute_context)
-    : Operation(context),
-      node_group_(node_group),
-      needed_output_types_(needed_outputs),
-      compute_context_(compute_context)
+    : Operation(context), node_group_(node_group), compute_context_(compute_context)
 {
   node_group.ensure_interface_cache();
   for (const bNodeTreeInterfaceSocket *input : node_group.interface_inputs()) {
@@ -121,20 +117,10 @@ const ComputeContext &NodeGroupOperation::compute_context() const
   return compute_context_;
 }
 
-NodeGroupOutputTypes NodeGroupOperation::needed_output_types() const
-{
-  return needed_output_types_;
-}
-
 void NodeGroupOperation::evaluate_node(const bNode &node, CompileState &compile_state)
 {
   NodeOperation *operation = this->get_node_operation(node);
   operation->set_compute_context(compute_context_);
-
-  /* Only compute previews if they are needed and the node group is currently active. */
-  operation->set_needs_node_previews(
-      bool(needed_output_types_ & NodeGroupOutputTypes::NodePreviews) &&
-      compute_context_.hash() == this->context().get_active_compute_context_hash());
 
   compile_state.map_node_to_node_operation(node, operation);
 
@@ -158,7 +144,7 @@ NodeOperation *NodeGroupOperation::get_node_operation(const bNode &node)
   }
 
   if (node.is_group()) {
-    return get_group_node_operation(this->context(), node, needed_output_types_);
+    return get_group_node_operation(this->context(), node);
   }
 
   if (node.is_group_output()) {
@@ -234,10 +220,11 @@ void NodeGroupOperation::evaluate_pixel_compile_unit(CompileState &compile_state
   PixelCompileUnit &compile_unit = compile_state.get_pixel_compile_unit();
 
   /* Only compute previews if they are needed and the node group is currently active. */
-  const bool are_node_previews_needed = bool(needed_output_types_ &
-                                             NodeGroupOutputTypes::NodePreviews) &&
-                                        compute_context_.hash() ==
-                                            this->context().get_active_compute_context_hash();
+  const bool needs_node_previews = flag_is_set(this->context().needed_side_effect_output_types(),
+                                               SideEffectOutputTypes::NodePreviews);
+  const bool is_active_context = compute_context_.hash() ==
+                                 this->context().get_active_compute_context_hash();
+  const bool are_node_previews_needed = needs_node_previews && is_active_context;
 
   /* Pixel operations might have limitations on the number of outputs or inputs they can have, so
    * we might have to split the compile unit into smaller units to workaround this limitation. In
@@ -264,8 +251,6 @@ void NodeGroupOperation::evaluate_pixel_compile_unit(CompileState &compile_state
 
   PixelOperation *operation = create_pixel_operation(
       this->context(), compile_state, compute_context_);
-
-  operation->set_needs_node_previews(are_node_previews_needed);
 
   for (const bNode *node : compile_unit) {
     compile_state.map_node_to_pixel_operation(*node, operation);

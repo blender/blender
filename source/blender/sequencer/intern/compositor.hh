@@ -66,6 +66,14 @@ class CompositorContext : public compositor::Context {
            this->render_data_.scene->r.compositor_device == SCE_COMPOSITOR_DEVICE_GPU;
   }
 
+  compositor::SideEffectOutputTypes needed_side_effect_output_types() const override
+  {
+    if (!render_data_.render) {
+      return compositor::SideEffectOutputTypes::ViewerNode;
+    }
+    return compositor::SideEffectOutputTypes::None;
+  }
+
   compositor::ResultPrecision get_precision() const override;
 
   float2 get_result_translation() const
@@ -74,14 +82,6 @@ class CompositorContext : public compositor::Context {
   }
 
  protected:
-  compositor::NodeGroupOutputTypes needed_outputs() const
-  {
-    if (!render_data_.render) {
-      return compositor::NodeGroupOutputTypes::ViewerNode;
-    }
-    return compositor::NodeGroupOutputTypes();
-  }
-
   void create_result_from_input(compositor::Result &result, ImBuf &input);
   void write_viewer_impl(const compositor::Result &result, ImBuf &image);
   void write_output(const compositor::Result &result, ImBuf &image);

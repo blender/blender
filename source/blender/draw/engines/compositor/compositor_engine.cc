@@ -87,6 +87,11 @@ class Context : public compositor::Context {
     return true;
   }
 
+  compositor::SideEffectOutputTypes needed_side_effect_output_types() const override
+  {
+    return compositor::SideEffectOutputTypes::ViewerNode;
+  }
+
   const ComputeContextHash &get_active_compute_context_hash() const override
   {
     return active_compute_context_hash_;
@@ -330,16 +335,10 @@ class Context : public compositor::Context {
     message.copy_utf8_truncated(info_message_, GPU_INFO_SIZE);
   }
 
-  compositor::NodeGroupOutputTypes needed_outputs() const
-  {
-    return compositor::NodeGroupOutputTypes::ViewerNode;
-  }
-
   void evaluate()
   {
-    const compositor::NodeGroupOutputTypes needed_outputs = this->needed_outputs();
     compositor::SceneCompositorEffectsOperation operation =
-        compositor::SceneCompositorEffectsOperation(*this, needed_outputs);
+        compositor::SceneCompositorEffectsOperation(*this);
 
     const int active_view_layer_index = BLI_findstringindex(
         &scene_->view_layers, DRW_context_get()->view_layer->name, offsetof(ViewLayer, name));
@@ -353,13 +352,9 @@ class Context : public compositor::Context {
       return;
     }
 
+    /* If the no viewer output exist, write the output as a viewer. */
     compositor::Result &output_result = operation.get_result();
-
-    /* If the operation does not have a viewer output but one is needed, write the output as a
-     * viewer. */
-    const bool needs_viewer_output = flag_is_set(needed_outputs,
-                                                 compositor::NodeGroupOutputTypes::ViewerNode);
-    if (!operation.has_viewer_output() && needs_viewer_output) {
+    if (!operation.has_viewer_output()) {
       this->write_viewer(output_result);
     }
 

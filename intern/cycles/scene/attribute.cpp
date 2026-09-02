@@ -24,10 +24,10 @@ Attribute::Attribute(ustring name,
                      AttributePrimitive prim)
     : name(name), std(ATTR_STD_NONE), type(type), element(element), flags(0), modified(true)
 {
-  /* string and matrix not supported! */
+  /* String is not supported! */
   assert(type == TypeFloat || type == TypeColor || type == TypePoint || type == TypeVector ||
          type == TypeNormal || type == TypeMatrix || type == TypeFloat2 || type == TypeFloat4 ||
-         type == TypeRGBA || type == TypeQuaternion);
+         type == TypeRGBA || type == TypeQuaternion || type == TypePackedSphericalHarmonics);
 
   if (element & ATTR_ELEMENT_VOXEL) {
     auto *data = GuardedAllocator<ImageHandle>().allocate(1);
@@ -353,7 +353,9 @@ size_t Attribute::data_sizeof() const
   if (type == TypeQuaternion) {
     return sizeof(Quaternion);
   }
-
+  if (type == TypePackedSphericalHarmonics) {
+    return sizeof(PackedSphericalHarmonics);
+  }
   return sizeof(packed_float3);
 }
 
@@ -605,6 +607,10 @@ AttrKernelDataType Attribute::kernel_type(const Attribute &attr)
 
   if (attr.type == TypeQuaternion) {
     return AttrKernelDataType::QUATERNION;
+  }
+
+  if (attr.type == TypePackedSphericalHarmonics) {
+    return AttrKernelDataType::SPHERICAL_HARMONICS;
   }
 
   return AttrKernelDataType::FLOAT3;
@@ -1140,12 +1146,12 @@ void AttributeSet::clear_modified()
 void AttributeSet::tag_modified(const Attribute &attr)
 {
   const AttrKernelDataType kernel_type = Attribute::kernel_type(attr);
-  modified_flag |= (1u << kernel_type);
+  modified_flag |= (1u << uint(kernel_type));
 }
 
-bool AttributeSet::modified(AttrKernelDataType kernel_type) const
+bool AttributeSet::modified(const AttrKernelDataType kernel_type) const
 {
-  return (modified_flag & (1u << kernel_type)) != 0;
+  return (modified_flag & (1u << uint(kernel_type))) != 0;
 }
 
 /* AttributeRequest */

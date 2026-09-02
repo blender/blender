@@ -2,7 +2,6 @@
 #
 # SPDX-License-Identifier: GPL-2.0-or-later
 
-import bpy
 from bpy.types import Operator
 from bpy.props import FloatProperty
 
@@ -32,7 +31,7 @@ class NODE_OT_change_factor(Operator, NWBase):
     option: FloatProperty()
 
     def execute(self, context):
-        nodes, links = get_nodes_links(context)
+        nodes, _links = get_nodes_links(context)
         option = self.option
         selected = []  # entry = index
         for si, node in enumerate(nodes):

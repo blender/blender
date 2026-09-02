@@ -147,7 +147,7 @@ class NODE_OT_add_principled_setup(Operator, NWBase, ImportHelper):
                 disp_node = nodes.new(type='ShaderNodeDisplacement')
                 # Align the Displacement node under the active Principled BSDF node
                 disp_node.location = active_node.location + Vector((100, -700))
-                link = connect_sockets(disp_node.inputs[0], disp_texture.outputs[0])
+                connect_sockets(disp_node.inputs[0], disp_texture.outputs[0])
 
                 # TODO Turn on true displacement in the material
                 # Too complicated for now
@@ -156,7 +156,7 @@ class NODE_OT_add_principled_setup(Operator, NWBase, ImportHelper):
                 output_node = [n for n in nodes if n.bl_idname == 'ShaderNodeOutputMaterial']
                 if output_node:
                     if not output_node[0].inputs[2].is_linked:
-                        link = connect_sockets(output_node[0].inputs[2], disp_node.outputs[0])
+                        connect_sockets(output_node[0].inputs[2], disp_node.outputs[0])
 
                 continue
 
@@ -175,8 +175,8 @@ class NODE_OT_add_principled_setup(Operator, NWBase, ImportHelper):
 
                     # Add bump node
                     bump_node = nodes.new(type='ShaderNodeBump')
-                    link = connect_sockets(bump_node.inputs[3], bump_node_texture.outputs[0])
-                    link = connect_sockets(active_node.inputs['Normal'], bump_node.outputs[0])
+                    connect_sockets(bump_node.inputs[3], bump_node_texture.outputs[0])
+                    connect_sockets(active_node.inputs['Normal'], bump_node.outputs[0])
                 continue
 
             # NORMAL NODES
@@ -194,12 +194,12 @@ class NODE_OT_add_principled_setup(Operator, NWBase, ImportHelper):
 
                     # Add normal node
                     normal_node = nodes.new(type='ShaderNodeNormalMap')
-                    link = connect_sockets(normal_node.inputs[1], normal_node_texture.outputs[0])
+                    connect_sockets(normal_node.inputs[1], normal_node_texture.outputs[0])
                     # Connect to bump node if it was created before, otherwise to the BSDF
                     if bump_node is None:
-                        link = connect_sockets(active_node.inputs[sname[0]], normal_node.outputs[0])
+                        connect_sockets(active_node.inputs[sname[0]], normal_node.outputs[0])
                     else:
-                        link = connect_sockets(bump_node.inputs[sname[0]], normal_node.outputs[sname[0]])
+                        connect_sockets(bump_node.inputs[sname[0]], normal_node.outputs[sname[0]])
                 continue
 
             # AMBIENT OCCLUSION TEXTURE
@@ -227,19 +227,19 @@ class NODE_OT_add_principled_setup(Operator, NWBase, ImportHelper):
 
                     if match_rough:
                         # If Roughness nothing to do.
-                        link = connect_sockets(active_node.inputs[sname[0]], texture_node.outputs[0])
+                        connect_sockets(active_node.inputs[sname[0]], texture_node.outputs[0])
 
                     elif match_gloss:
                         # If Gloss Map add invert node
                         invert_node = nodes.new(type='ShaderNodeInvert')
-                        link = connect_sockets(invert_node.inputs[1], texture_node.outputs[0])
+                        connect_sockets(invert_node.inputs[1], texture_node.outputs[0])
 
-                        link = connect_sockets(active_node.inputs[sname[0]], invert_node.outputs[0])
+                        connect_sockets(active_node.inputs[sname[0]], invert_node.outputs[0])
                         roughness_node = texture_node
 
                 else:
                     # This is a simple connection Texture --> Input slot
-                    link = connect_sockets(active_node.inputs[sname[0]], texture_node.outputs[0])
+                    connect_sockets(active_node.inputs[sname[0]], texture_node.outputs[0])
 
                 # Use non-color except for color inputs
                 if sname[0] not in ['Base Color', 'Emission Color'] and texture_node.image:
@@ -292,15 +292,15 @@ class NODE_OT_add_principled_setup(Operator, NWBase, ImportHelper):
                                  sum(n.location.y for n in texture_nodes) / len(texture_nodes)))
             reroute.location = tex_coords + Vector((-50, -120))
             for texture_node in texture_nodes:
-                link = connect_sockets(texture_node.inputs[0], reroute.outputs[0])
-            link = connect_sockets(reroute.inputs[0], mapping.outputs[0])
+                connect_sockets(texture_node.inputs[0], reroute.outputs[0])
+            connect_sockets(reroute.inputs[0], mapping.outputs[0])
         else:
-            link = connect_sockets(texture_nodes[0].inputs[0], mapping.outputs[0])
+            connect_sockets(texture_nodes[0].inputs[0], mapping.outputs[0])
 
         # Connect texture_coordinates to mapping node
         texture_input = nodes.new(type='ShaderNodeTexCoord')
         texture_input.location = mapping.location + Vector((-200, 0))
-        link = connect_sockets(mapping.inputs[0], texture_input.outputs[2])
+        connect_sockets(mapping.inputs[0], texture_input.outputs[2])
 
         # Create frame around tex coords and mapping
         frame = nodes.new(type='NodeFrame')

@@ -2,7 +2,6 @@
 #
 # SPDX-License-Identifier: GPL-2.0-or-later
 
-import bpy
 from bpy.types import Operator
 from bpy.props import IntProperty
 
@@ -36,7 +35,7 @@ class NODE_OT_align_selected(Operator, NWBase):
         return nw_check(cls, context) and nw_check_not_empty(cls, context) and nw_check_selected(cls, context)
 
     def execute(self, context):
-        nodes, links = get_nodes_links(context)
+        nodes, _links = get_nodes_links(context)
         margin = self.margin
 
         selection = []

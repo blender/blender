@@ -6,6 +6,7 @@
 
 #include "infos/eevee_common_infos.hh"
 
+#include "eevee_pipeline.bsl.hh"
 #include "gpu_shader_codegen_lib.glsl"
 #include "gpu_shader_math_vector_reduce_lib.glsl"
 
@@ -16,6 +17,18 @@ float g_holdout;
 packed_float3 g_volume_scattering;
 float g_volume_anisotropy;
 packed_float3 g_volume_absorption;
+
+/* For Light Accumulation. */
+#if (defined(GPU_FRAGMENT_SHADER) && defined(SRT_CONSTANT_use_lighting_nodes)) || \
+    defined(GLSL_CPP_STUBS)
+packed_float3 g_diffuse_light;
+packed_float3 g_diffuse_color;
+packed_float3 g_glossy_light;
+packed_float3 g_glossy_color;
+packed_float3 g_transmission_light;
+packed_float3 g_transmission_color;
+int g_light_accumulation_count;
+#endif
 
 /* The Closure type is never used. Use float as dummy type. */
 #define Closure float
@@ -161,4 +174,19 @@ void closure_weights_reset(float closure_rand)
   g_volume_scattering = float3(0.0f);
   g_volume_absorption = float3(0.0f);
   g_holdout = 0.0f;
+
+#if defined(GPU_FRAGMENT_SHADER) || defined(GLSL_CPP_STUBS)
+  /* clang-format off */ /* Multiline macros would break line count. */
+  [[resource_table]] const eevee::PipelineConstants &pipe = resource_table_get(eevee::PipelineConstants);
+  /* clang-format on */
+  if (pipe.use_lighting_nodes) [[static_branch]] {
+    g_diffuse_light = float3(0.0f);
+    g_diffuse_color = float3(0.0f);
+    g_glossy_light = float3(0.0f);
+    g_glossy_color = float3(0.0f);
+    g_transmission_light = float3(0.0f);
+    g_transmission_color = float3(0.0f);
+    g_light_accumulation_count = 0;
+  }
+#endif
 }
