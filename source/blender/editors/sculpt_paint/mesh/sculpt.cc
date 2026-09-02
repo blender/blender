@@ -5928,7 +5928,6 @@ void SculptPaintStroke::done(bool is_cancel, bool stroke_started)
   }
   bke::PaintRuntime *paint_runtime = sd.paint.runtime;
   Brush *brush = BKE_paint_brush(&sd.paint);
-  paint_runtime->draw_inverted = false;
 
   stroke_modifiers_check(*this->depsgraph, this->vc.rv3d, sd, ob, brush);
 

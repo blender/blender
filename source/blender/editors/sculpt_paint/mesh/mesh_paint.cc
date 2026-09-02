@@ -409,15 +409,6 @@ void stroke_cache_common_init(
   cache->mouse = cache->initial_mouse;
   cache->mouse_event = cache->initial_mouse;
 
-  /* Not very nice, but with current events system implementation
-   * we can't handle brush appearance inversion hotkey separately (sergey). */
-  if (cache->toggle_settings.invert) {
-    paint_runtime->draw_inverted = true;
-  }
-  else {
-    paint_runtime->draw_inverted = false;
-  }
-
   /* Truly temporary data that isn't stored in properties. */
   cache->vc = &vc;
   cache->brush = &brush;
