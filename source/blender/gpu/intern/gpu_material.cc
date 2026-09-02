@@ -27,6 +27,7 @@
 #include "BKE_material.hh"
 #include "BKE_node.hh"
 #include "BKE_node_runtime.hh"
+#include "BKE_node_tree_dot_export.hh"
 
 #include "NOD_shader.h"
 #include "NOD_shader_nodes_inline.hh"
@@ -206,6 +207,13 @@ GPUMaterialFromNodeTreeResult GPU_material_from_nodetree(
   }
 
   gpu_node_graph_free_nodes(&mat->graph);
+
+#if 0
+  /* Dump localtree to a .dot file */
+  std::cout << ">>>>>>>>>>>>>>>>>" << name << std::endl
+            << blender::bke::node_tree_to_dot(*localtree) << std::endl;
+#endif
+
   /* Only free after GPU_pass_shader_get where gpu::UniformBuf read data from the local
    * tree. */
   BKE_id_free(nullptr, &localtree->id);

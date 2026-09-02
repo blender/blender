@@ -287,11 +287,12 @@ struct DeferredLayerBase {
 
   PassMain::Sub *get_gbuffer_subpass(blender::Material *blender_mat, GPUMaterial *gpumat)
   {
-    const bool has_shader_to_rgba = GPU_material_flag_get(gpumat, GPU_MATFLAG_SHADER_TO_RGBA);
+    const bool is_hybrid = GPU_material_flag_get(gpumat, GPU_MATFLAG_SHADER_TO_RGBA) ||
+                           GPU_material_flag_get(gpumat, GPU_MATFLAG_LIGHTING);
     const bool has_raycast = GPU_material_flag_get(gpumat, GPU_MATFLAG_RAYCAST);
     const bool double_sided = !(blender_mat->blend_flag & MA_BL_CULL_BACKFACE);
 
-    return gbuffer_subpasses_[has_shader_to_rgba][has_raycast][double_sided];
+    return gbuffer_subpasses_[is_hybrid][has_raycast][double_sided];
   }
 
   gpu::Texture *radiance_behind_tx_ = nullptr;

@@ -122,16 +122,36 @@ class ClosureZoneType : public bke::bNodeZoneType {
   }
 };
 
+class LightIterInternalZoneType : public bke::bNodeZoneType {
+ public:
+  LightIterInternalZoneType()
+  {
+    this->input_idname = "ShaderNodeLightIterInternalInput"_ustr;
+    this->output_idname = "ShaderNodeLightIterInternalOutput"_ustr;
+    this->input_type = SH_NODE_LIGHT_ITER_INTERNAL_INPUT;
+    this->output_type = SH_NODE_LIGHT_ITER_INTERNAL_OUTPUT;
+    this->theme_id = TH_NODE_ZONE_REPEAT;
+  }
+
+  const int &get_corresponding_output_id(const bNode &input_bnode) const override
+  {
+    BLI_assert(input_bnode.type_legacy == this->input_type);
+    return *reinterpret_cast<const int *>(&input_bnode.custom3);
+  }
+};
+
 static void register_zone_types()
 {
   static SimulationZoneType simulation_zone_type;
   static RepeatZoneType repeat_zone_type;
   static ForeachGeometryElementZoneType foreach_geometry_element_zone_type;
   static ClosureZoneType closure_zone_type;
+  static LightIterInternalZoneType light_iter_internal_zone_type;
   bke::register_node_zone_type(simulation_zone_type);
   bke::register_node_zone_type(repeat_zone_type);
   bke::register_node_zone_type(foreach_geometry_element_zone_type);
   bke::register_node_zone_type(closure_zone_type);
+  bke::register_node_zone_type(light_iter_internal_zone_type);
 }
 
 void register_nodes()

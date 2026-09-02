@@ -306,23 +306,31 @@ class ObjectRef {
     return dupli_object_->random_id * (1.0f / float(0xFFFFFFFF));
   }
 
-  bool find_rgba_attribute(const GPUUniformAttr &attr, int instance_index, float r_value[4]) const
+  bool find_rgba_attribute(const char *name,
+                           bool use_dupli,
+                           int instance_index,
+                           float r_value[4]) const
   {
     if (instance_index != 0) {
       BLI_assert(is_range());
-      if (attr.use_dupli) {
+      if (use_dupli) {
         /* If requesting instance data, check the parent particle system and object. */
         return BKE_object_dupli_find_rgba_attribute(
-            object, (*duplis_)[instance_index], dupli_parent_, attr.name, r_value);
+            object, (*duplis_)[instance_index], dupli_parent_, name, r_value);
       }
     }
 
     /* If requesting instance data, check the parent particle system and object. */
-    if (attr.use_dupli) {
+    if (use_dupli) {
       return BKE_object_dupli_find_rgba_attribute(
-          object, dupli_object_, dupli_parent_, attr.name, r_value);
+          object, dupli_object_, dupli_parent_, name, r_value);
     }
-    return BKE_object_dupli_find_rgba_attribute(object, nullptr, nullptr, attr.name, r_value);
+    return BKE_object_dupli_find_rgba_attribute(object, nullptr, nullptr, name, r_value);
+  }
+
+  bool find_rgba_attribute(const GPUUniformAttr &attr, int instance_index, float r_value[4]) const
+  {
+    return find_rgba_attribute(attr.name, attr.use_dupli, instance_index, r_value);
   }
 
   LightLinking *light_linking() const

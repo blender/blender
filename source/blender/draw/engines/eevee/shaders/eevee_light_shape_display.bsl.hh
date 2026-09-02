@@ -5,6 +5,7 @@
 #pragma once
 
 #include "eevee_light_data.bsl.hh"
+#include "eevee_light_eval.bsl.hh"
 #include "eevee_light_lib.bsl.hh"
 #include "eevee_reverse_z_lib.bsl.hh"
 #include "eevee_volume_lib.bsl.hh"
@@ -24,26 +25,6 @@ struct ShapeDisplayVertOut {
 struct ShapeDisplayFragOut {
   [[frag_color(0)]] float4 out_color;
 };
-
-float shape_display_light_radiance_get(LightData light)
-{
-  if (is_sun_light(light.type)) {
-    float radius = light.sun().shape_radius;
-    return M_1_PI * (1.0f + 1.0f / max(radius * radius, 1e-20f));
-  }
-
-  if (is_area_light(light.type)) {
-    float area = light.area().size.x * light.area().size.y * 4.0f;
-    if (light.type == LIGHT_ELLIPSE) {
-      area *= M_PI * 0.25f;
-    }
-    return 1.0f / max(M_PI * area, 1e-20f);
-  }
-
-  float radius = light.local().local.shape_radius;
-  float area = 4.0f * M_PI * radius * radius;
-  return 1.0f / max(M_PI * area, 1e-20f);
-}
 
 float3 shape_display_light_position_get(const ViewMatrices view, LightData light, float2 quad_pos)
 {
@@ -118,13 +99,13 @@ void shape_display_vert([[resource_table]] const draw::View &views,
   }
 
   LightData light = lrd.light_buf[light_index];
-  if (!light.visible_camera) {
+  if ((light.flags & LIGHT_CAMERA_HIDDEN) != 0u) {
     return;
   }
 
   v_out.light_type = uint(light.type);
   v_out.light_index = light_index;
-  v_out.radiance = light.color * shape_display_light_radiance_get(light);
+  v_out.radiance = light.color * light.shape_power;
 
   const ViewMatrices view = views.get(0);
   if (is_sun_light(light.type)) {

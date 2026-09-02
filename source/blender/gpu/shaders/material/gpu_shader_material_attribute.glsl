@@ -40,6 +40,42 @@ void node_attribute_uniform(float4 attr, const float attr_hash, float4 &out_attr
   out_attr = attr_load_uniform(attr, floatBitsToUint(attr_hash));
 }
 
+[[node]]
+void node_attribute_light_is_sun(const float light_index, float4 &out_attr)
+{
+  out_attr = float4(node_attribute_light_is_sun_impl(int(light_index)));
+}
+
+[[node]]
+void node_attribute_light_is_point(const float light_index, float4 &out_attr)
+{
+  out_attr = float4(node_attribute_light_is_point_impl(int(light_index)));
+}
+
+[[node]]
+void node_attribute_light_is_spot(const float light_index, float4 &out_attr)
+{
+  out_attr = float4(node_attribute_light_is_spot_impl(int(light_index)));
+}
+
+[[node]]
+void node_attribute_light_is_area(const float light_index, float4 &out_attr)
+{
+  out_attr = float4(node_attribute_light_is_area_impl(int(light_index)));
+}
+
+[[node]]
+void node_attribute_light_cutoff_distance(const float light_index, float4 &out_attr)
+{
+  out_attr = float4(node_attribute_light_cutoff_distance_impl(int(light_index)));
+}
+
+[[node]]
+void node_attribute_light(const float light_index, const float attr_hash, float4 &out_attr)
+{
+  out_attr = node_attribute_light_impl(int(light_index), floatBitsToUint(attr_hash));
+}
+
 float4 attr_load_layer(const uint attr_hash)
 {
 #ifdef VLATTR_LIB

@@ -56,7 +56,11 @@ set(SRC
   nodes/node_shader_ies_light.cc
   nodes/node_shader_invert.cc
   nodes/node_shader_layer_weight.cc
+  nodes/node_shader_light_accumulation.cc
+  nodes/node_shader_light_evaluation.cc
   nodes/node_shader_light_falloff.cc
+  nodes/node_shader_light_info.cc
+  nodes/node_shader_light_iter_internal.cc
   nodes/node_shader_light_path.cc
   nodes/node_shader_map_range.cc
   nodes/node_shader_mapping.cc
@@ -82,6 +86,7 @@ set(SRC
   nodes/node_shader_sepcomb_color.cc
   nodes/node_shader_sepcomb_xyz.cc
   nodes/node_shader_shader_to_rgb.cc
+  nodes/node_shader_shadow_raycast.cc
   nodes/node_shader_squeeze.cc
   nodes/node_shader_subsurface_scattering.cc
   nodes/node_shader_tangent.cc
