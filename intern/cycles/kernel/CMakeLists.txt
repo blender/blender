@@ -297,6 +297,7 @@ set(SRC_UTIL_HEADERS
   ../util/math_dual.h
   ../util/math_float3x3.h
   ../util/math_quaternion.h
+  ../util/math_spherical_harmonics.h
   ../util/projection.h
   ../util/projection_inverse.h
   ../util/rect.h
@@ -315,6 +316,7 @@ set(SRC_UTIL_HEADERS
   ../util/types_int8.h
   ../util/types_normal.h
   ../util/types_spectrum.h
+  ../util/types_spherical_harmonics.h
   ../util/types_rgbe.h
   ../util/types_uchar2.h
   ../util/types_uchar3.h

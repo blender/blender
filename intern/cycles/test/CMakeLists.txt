@@ -52,6 +52,7 @@ set(SRC
   util_time_test.cpp
   util_transform_test.cpp
   util_types_base_test.cpp
+  util_types_spherical_harmonics_test.cpp
 )
 
 # Disable AVX tests on macOS. Rosetta has problems running them, and other

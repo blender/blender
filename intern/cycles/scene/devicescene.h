@@ -57,6 +57,7 @@ class DeviceScene {
   device_vector<uchar4> attributes_uchar4;
   device_vector<packed_normal> attributes_normal;
   device_vector<Quaternion> attributes_quaternion;
+  device_vector<PackedSphericalHarmonics> attributes_spherical_harmonics;
 
   /* lights */
   device_vector<KernelLightDistribution> light_distribution;

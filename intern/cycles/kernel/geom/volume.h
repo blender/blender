@@ -101,6 +101,8 @@ ccl_device float4 volume_attribute_float4(KernelGlobals kg,
         return kernel_data_fetch(attributes_float4, desc.offset);
       case NODE_ATTR_QUATERNION:
         return make_float4(kernel_data_fetch(attributes_quaternion, desc.offset));
+      case NODE_ATTR_SPHERICAL_HARMONICS:
+        return make_float4(0.0f, 0.0f, 0.0f, 1.0f);
       case NODE_ATTR_MATRIX:
         return zero_float4();
     }

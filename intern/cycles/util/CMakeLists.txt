@@ -92,6 +92,7 @@ set(SRC_HEADERS
   math_dual.h
   math_float3x3.h
   math_quaternion.h
+  math_spherical_harmonics.h
   md5.h
   murmurhash.h
   nanovdb.h
@@ -134,6 +135,7 @@ set(SRC_HEADERS
   types_int8.h
   types_normal.h
   types_spectrum.h
+  types_spherical_harmonics.h
   types_rgbe.h
   types_uchar2.h
   types_uchar3.h
