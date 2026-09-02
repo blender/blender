@@ -105,6 +105,8 @@ BLOCKLIST_VULKAN = [
 ]
 
 BLOCKLIST_OPENGL = [
+    # Fails on AMD.
+    "aov_consecutive_view_layers.blend",
 ]
 
 BLOCKLIST_INTEL = [
