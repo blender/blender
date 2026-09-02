@@ -189,6 +189,11 @@ class GHOST_ContextVK : public GHOST_Context {
       std::function<void(GHOST_VulkanOpenXRData *)> openxr_release_framebuffer_image_callback)
       override;
 
+#ifdef WITH_GHOST_SDL
+  /** Recreate the SDL presentation surface and swapchain. */
+  GHOST_TSuccess recreateSurface();
+#endif
+
 #ifdef WITH_GHOST_WAYLAND
   /**
    * \brief Check if the active driver supports wayland color management.

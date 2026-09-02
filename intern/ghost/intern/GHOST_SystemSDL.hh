@@ -60,6 +60,12 @@ class GHOST_SystemSDL : public GHOST_System {
   GHOST_TSuccess disposeContext(GHOST_IContext *context) override;
 
  private:
+#ifdef WITH_VULKAN_BACKEND
+  static bool SDLCALL vulkanLifecycleEventWatch(void *userdata, SDL_Event *event);
+
+  Uint32 vulkan_surface_recreation_event_ = 0;
+#endif
+
   GHOST_TSuccess init() override;
 
   GHOST_IWindow *createWindow(const char *title,

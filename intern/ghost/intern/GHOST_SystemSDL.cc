@@ -32,6 +32,15 @@ GHOST_SystemSDL::GHOST_SystemSDL() : GHOST_System()
     throw std::runtime_error(SDL_GetError());
   }
 
+#ifdef WITH_VULKAN_BACKEND
+  vulkan_surface_recreation_event_ = SDL_RegisterEvents(1);
+  if (vulkan_surface_recreation_event_ == 0 ||
+      !SDL_AddEventWatch(vulkanLifecycleEventWatch, this))
+  {
+    throw std::runtime_error(SDL_GetError());
+  }
+#endif
+
   SDL_GL_SetAttribute(SDL_GL_DOUBLEBUFFER, 1);
   SDL_GL_SetAttribute(SDL_GL_RED_SIZE, 8);
   SDL_GL_SetAttribute(SDL_GL_GREEN_SIZE, 8);
@@ -41,8 +50,24 @@ GHOST_SystemSDL::GHOST_SystemSDL() : GHOST_System()
 
 GHOST_SystemSDL::~GHOST_SystemSDL()
 {
+#ifdef WITH_VULKAN_BACKEND
+  SDL_RemoveEventWatch(vulkanLifecycleEventWatch, this);
+#endif
   SDL_Quit();
 }
+
+#ifdef WITH_VULKAN_BACKEND
+bool SDLCALL GHOST_SystemSDL::vulkanLifecycleEventWatch(void *userdata, SDL_Event *event)
+{
+  if (event->type == SDL_EVENT_DID_ENTER_FOREGROUND) {
+    GHOST_SystemSDL *system = static_cast<GHOST_SystemSDL *>(userdata);
+    SDL_Event recreate_surface_event = {};
+    recreate_surface_event.type = system->vulkan_surface_recreation_event_;
+    SDL_PushEvent(&recreate_surface_event);
+  }
+  return true;
+}
+#endif
 
 GHOST_IWindow *GHOST_SystemSDL::createWindow(const char *title,
                                              int32_t left,
@@ -474,6 +499,21 @@ static SDL_Window *SDL_GetWindowFromID_fallback(SDL_WindowID id)
 void GHOST_SystemSDL::processEvent(SDL_Event *sdl_event)
 {
   std::unique_ptr<GHOST_Event> g_event = nullptr;
+
+#ifdef WITH_VULKAN_BACKEND
+  if (sdl_event->type == vulkan_surface_recreation_event_) {
+    for (GHOST_IWindow *iwindow : window_manager_->getWindows()) {
+      if (iwindow->getDrawingContextType() == GHOST_kDrawingContextTypeVulkan) {
+        GHOST_WindowSDL *window = static_cast<GHOST_WindowSDL *>(iwindow);
+        GHOST_ContextVK *context = static_cast<GHOST_ContextVK *>(iwindow->getDrawingContext());
+        if (context->recreateSurface() == GHOST_kSuccess) {
+          window->invalidate();
+        }
+      }
+    }
+    return;
+  }
+#endif
 
   switch (sdl_event->type) {
     case SDL_EVENT_WINDOW_EXPOSED:

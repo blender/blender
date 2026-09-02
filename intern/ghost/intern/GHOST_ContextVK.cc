@@ -1698,11 +1698,12 @@ GHOST_TSuccess GHOST_ContextVK::destroySwapchain()
 {
   GHOST_DeviceVK &device_vk = vulkan_instance.value().device.value();
 
+  device_vk.wait_idle();
   if (swapchain_ != VK_NULL_HANDLE) {
     this->destroySwapchainPresentFences(swapchain_);
     device_vk.functions.vkDestroySwapchainKHR(device_vk.vk_device, swapchain_, nullptr);
+    swapchain_ = VK_NULL_HANDLE;
   }
-  device_vk.wait_idle();
   for (GHOST_SwapchainImage &swapchain_image : swapchain_images_) {
     swapchain_image.destroy(device_vk.vk_device, device_vk.functions);
   }
@@ -1717,6 +1718,36 @@ GHOST_TSuccess GHOST_ContextVK::destroySwapchain()
 
   return GHOST_kSuccess;
 }
+
+#ifdef WITH_GHOST_SDL
+GHOST_TSuccess GHOST_ContextVK::recreateSurface()
+{
+  GHOST_InstanceVK &instance_vk = vulkan_instance.value();
+  GHOST_DeviceVK &device_vk = instance_vk.device.value();
+
+  /* Presentation resources retain the native window used to create the surface. */
+  destroySwapchain();
+
+  if (surface_ != VK_NULL_HANDLE) {
+    volk::vkDestroySurfaceKHR(instance_vk.vk_instance, surface_, nullptr);
+    surface_ = VK_NULL_HANDLE;
+  }
+
+  /* Restore the frame used by recreateSwapchain() after destroySwapchain() cleared the vector. */
+  frame_data_.resize(2);
+  render_frame_ = 0;
+
+  if (!SDL_Vulkan_CreateSurface(sdl_window_, instance_vk.vk_instance, nullptr, &surface_)) {
+    CLOG_ERROR(&LOG, "SDL_Vulkan_CreateSurface failed: %s", SDL_GetError());
+    return GHOST_kFailure;
+  }
+
+  const bool use_hdr_swapchain = hdr_info_ &&
+                                 (hdr_info_->wide_gamut_enabled || hdr_info_->hdr_enabled) &&
+                                 device_vk.use_vk_ext_swapchain_colorspace;
+  return recreateSwapchain(use_hdr_swapchain);
+}
+#endif
 
 std::vector<const char *> GHOST_ContextVK::getPlatformSpecificSurfaceExtensions() const
 {
