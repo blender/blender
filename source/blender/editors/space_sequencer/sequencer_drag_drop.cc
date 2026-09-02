@@ -126,18 +126,25 @@ static bool test_single_file_handler_poll(const bContext *C, wmDrag *drag, Strin
          file_handler == file_handlers[0]->idname;
 }
 
-static bool image_drop_poll(bContext *C, wmDrag *drag, const wmEvent *event)
+static bool is_image(wmDrag *drag)
 {
   if (drag->type == WM_DRAG_PATH) {
     const eFileSel_File_Types file_type = eFileSel_File_Types(WM_drag_get_path_file_type(drag));
-    if (file_type == FILE_TYPE_IMAGE &&
-        test_single_file_handler_poll(C, drag, "SEQUENCER_FH_image_strip"))
-    {
-      return generic_poll_operations(C, event, TH_SEQ_IMAGE);
+    if (file_type == FILE_TYPE_IMAGE) {
+      return true;
     }
   }
-
   if (WM_drag_is_ID_type(drag, ID_IM)) {
+    return true;
+  }
+  return false;
+}
+
+static bool image_drop_poll(bContext *C, wmDrag *drag, const wmEvent *event)
+{
+  if (is_image(drag) && (drag->type != WM_DRAG_PATH ||
+                         test_single_file_handler_poll(C, drag, "SEQUENCER_FH_image_strip")))
+  {
     return generic_poll_operations(C, event, TH_SEQ_IMAGE);
   }
 
@@ -962,26 +969,12 @@ static void sequencer_dropboxes_add_to_lb(ListBaseT<wmDropBox> *lb)
 
 static bool image_drop_preview_poll(bContext * /*C*/, wmDrag *drag, const wmEvent * /*event*/)
 {
-  if (drag->type == WM_DRAG_PATH) {
-    const eFileSel_File_Types file_type = eFileSel_File_Types(WM_drag_get_path_file_type(drag));
-    if (file_type == FILE_TYPE_IMAGE) {
-      return true;
-    }
-  }
-
-  return WM_drag_is_ID_type(drag, ID_IM);
+  return is_image(drag);
 }
 
 static bool movie_drop_preview_poll(bContext * /*C*/, wmDrag *drag, const wmEvent * /*event*/)
 {
-  if (drag->type == WM_DRAG_PATH) {
-    const eFileSel_File_Types file_type = eFileSel_File_Types(WM_drag_get_path_file_type(drag));
-    if (file_type == FILE_TYPE_MOVIE) {
-      return true;
-    }
-  }
-
-  return false;
+  return is_movie(drag);
 }
 
 static bool movieclip_drop_preview_poll(bContext * /*C*/, wmDrag *drag, const wmEvent * /*event*/)
@@ -1017,14 +1010,7 @@ static bool color_drop_preview_poll(bContext * /*C*/, wmDrag *drag, const wmEven
 
 static bool sound_drop_preview_poll(bContext * /*C*/, wmDrag *drag, const wmEvent * /*event*/)
 {
-  if (drag->type == WM_DRAG_PATH) {
-    const eFileSel_File_Types file_type = eFileSel_File_Types(WM_drag_get_path_file_type(drag));
-    if (file_type == FILE_TYPE_SOUND) {
-      return true;
-    }
-  }
-
-  return WM_drag_is_ID_type(drag, ID_SO);
+  return is_sound(drag);
 }
 
 static void sequencer_preview_dropboxes_add_to_lb(ListBaseT<wmDropBox> *lb)
