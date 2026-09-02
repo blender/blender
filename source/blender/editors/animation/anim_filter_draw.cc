@@ -116,7 +116,6 @@ class ChannelItem : public ui::AbstractTreeViewItem {
       /* TODO make this work for GP. ideally we'd have access to the channel here still so we don't
        * need to if/else through RNA types. */
       if (source_.type == RNA_FCurve) {
-        /* TODO those are not selectable for some reason. */
         layout.prop(
             &source_, "use_modifiers", ui::ITEM_R_ICON_ONLY, std::nullopt, ICON_MODIFIER_ON);
         layout.prop(&source_, "mute", ui::ITEM_R_ICON_ONLY, std::nullopt, ICON_CHECKBOX_HLT);
