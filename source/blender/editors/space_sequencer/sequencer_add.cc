@@ -116,9 +116,9 @@ static const EnumPropertyItem rna_enum_image_import_type_items[] = {
 #define SEQPROP_STARTFRAME (1 << 0)
 /* For image and effect strips only. */
 #define SEQPROP_LENGTH (1 << 1)
-/* Skips setting filepath or directory properties to active strip media directory,
- * since they have already been set by the file browser or by drag and drop. */
-#define SEQPROP_NOPATHS (1 << 2)
+/* Sets filepath or directory properties to active strip media directory to seed the file browser.
+ * If used, asserts that this is not a drag and drop operation. */
+#define SEQPROP_PATHS (1 << 2)
 /* Skips guessing channel for effect strips only. */
 #define SEQPROP_NOCHAN (1 << 3)
 #define SEQPROP_FIT_METHOD (1 << 4)
@@ -475,9 +475,12 @@ static void sequencer_generic_invoke_xy__internal(
 {
   Scene *scene = CTX_data_sequencer_scene(C);
 
-  int timeline_frame = scene->r.cfra;
-  if (event && (flag & SEQPROP_NOPATHS)) {
+  const bool is_drop = is_drag_and_drop(op, event);
+  const int current_frame = scene->r.cfra;
+  if (event != nullptr && is_drop) {
     SequencerAddData *sad = static_cast<SequencerAddData *>(op->customdata);
+    BLI_assert_msg(sad != nullptr,
+                   "Drag and drop code must call 'sequencer_add_init' and 'sequencer_add_free'");
     sad->is_drop_event = true;
     sequencer_file_drop_channel_frame_set(C, op, event);
   }
@@ -489,14 +492,15 @@ static void sequencer_generic_invoke_xy__internal(
   }
 
   if (!RNA_struct_property_is_set(op->ptr, "frame_start")) {
-    RNA_int_set(op->ptr, "frame_start", timeline_frame);
+    RNA_int_set(op->ptr, "frame_start", current_frame);
   }
 
   if ((flag & SEQPROP_LENGTH) && !RNA_struct_property_is_set(op->ptr, "length")) {
     RNA_int_set(op->ptr, "length", seq::default_strip_length(scene->frames_per_second()));
   }
 
-  if (!(flag & SEQPROP_NOPATHS)) {
+  if (flag & SEQPROP_PATHS) {
+    BLI_assert(!is_drop);
     sequencer_generic_invoke_path__internal(C, op, "filepath");
     sequencer_generic_invoke_path__internal(C, op, "directory");
   }
@@ -792,8 +796,7 @@ static wmOperatorStatus sequencer_add_scene_strip_invoke(bContext *C,
   }
 
   sequencer_add_init(C, op);
-  sequencer_generic_invoke_xy__internal(
-      C, op, is_drag_and_drop(op, event) ? SEQPROP_NOPATHS : 0, STRIP_TYPE_SCENE, event);
+  sequencer_generic_invoke_xy__internal(C, op, 0, STRIP_TYPE_SCENE, event);
   const wmOperatorStatus retval = sequencer_add_scene_strip_exec(C, op);
   sequencer_add_free(C, op);
   return retval;
@@ -1064,8 +1067,7 @@ static wmOperatorStatus sequencer_add_movieclip_strip_invoke(bContext *C,
   }
 
   sequencer_add_init(C, op);
-  sequencer_generic_invoke_xy__internal(
-      C, op, is_drag_and_drop(op, event) ? SEQPROP_NOPATHS : 0, STRIP_TYPE_MOVIECLIP, event);
+  sequencer_generic_invoke_xy__internal(C, op, 0, STRIP_TYPE_MOVIECLIP, event);
   const wmOperatorStatus retval = sequencer_add_movieclip_strip_exec(C, op);
   sequencer_add_free(C, op);
   return retval;
@@ -1140,8 +1142,7 @@ static wmOperatorStatus sequencer_add_mask_strip_invoke(bContext *C,
   }
 
   sequencer_add_init(C, op);
-  sequencer_generic_invoke_xy__internal(
-      C, op, is_drag_and_drop(op, event) ? SEQPROP_NOPATHS : 0, STRIP_TYPE_MASK, event);
+  sequencer_generic_invoke_xy__internal(C, op, 0, STRIP_TYPE_MASK, event);
   const wmOperatorStatus retval = sequencer_add_mask_strip_exec(C, op);
   sequencer_add_free(C, op);
   return retval;
@@ -1480,7 +1481,7 @@ static wmOperatorStatus sequencer_add_movie_strip_invoke(bContext *C,
   RNA_boolean_set(op->ptr, "adjust_playback_rate", true);
 
   if (is_drag_and_drop(op, event)) {
-    sequencer_generic_invoke_xy__internal(C, op, SEQPROP_NOPATHS, STRIP_TYPE_MOVIE, event);
+    sequencer_generic_invoke_xy__internal(C, op, 0, STRIP_TYPE_MOVIE, event);
 
     const char *error_msg;
     if (!have_free_channels(C, op, 2, &error_msg)) {
@@ -1491,7 +1492,7 @@ static wmOperatorStatus sequencer_add_movie_strip_invoke(bContext *C,
     return sequencer_add_movie_strip_exec(C, op);
   }
 
-  sequencer_generic_invoke_xy__internal(C, op, 0, STRIP_TYPE_MOVIE, event);
+  sequencer_generic_invoke_xy__internal(C, op, SEQPROP_PATHS, STRIP_TYPE_MOVIE, event);
 
   /* Show multiview save options only if scene use multiview. */
   prop = RNA_struct_find_property(op->ptr, "show_multiview");
@@ -1631,7 +1632,7 @@ static wmOperatorStatus sequencer_add_sound_strip_invoke(bContext *C,
   sequencer_add_init(C, op);
 
   if (is_drag_and_drop(op, event)) {
-    sequencer_generic_invoke_xy__internal(C, op, SEQPROP_NOPATHS, STRIP_TYPE_SOUND, event);
+    sequencer_generic_invoke_xy__internal(C, op, 0, STRIP_TYPE_SOUND, event);
 
     const char *error_msg;
     if (!have_free_channels(C, op, 1, &error_msg)) {
@@ -1642,7 +1643,7 @@ static wmOperatorStatus sequencer_add_sound_strip_invoke(bContext *C,
     return sequencer_add_sound_strip_exec(C, op);
   }
 
-  sequencer_generic_invoke_xy__internal(C, op, 0, STRIP_TYPE_SOUND, event);
+  sequencer_generic_invoke_xy__internal(C, op, SEQPROP_PATHS, STRIP_TYPE_SOUND, event);
 
   WM_event_add_fileselect(C, op);
   return OPERATOR_RUNNING_MODAL;
@@ -1874,8 +1875,7 @@ static wmOperatorStatus sequencer_add_image_strip_invoke(bContext *C,
 
   /* Name set already by drag and drop. */
   if (is_drag_and_drop(op, event)) {
-    sequencer_generic_invoke_xy__internal(
-        C, op, SEQPROP_LENGTH | SEQPROP_NOPATHS, STRIP_TYPE_IMAGE, event);
+    sequencer_generic_invoke_xy__internal(C, op, SEQPROP_LENGTH, STRIP_TYPE_IMAGE, event);
 
     const char *error_msg;
     if (!have_free_channels(C, op, 1, &error_msg)) {
@@ -1886,7 +1886,8 @@ static wmOperatorStatus sequencer_add_image_strip_invoke(bContext *C,
     return sequencer_add_image_strip_exec(C, op);
   }
 
-  sequencer_generic_invoke_xy__internal(C, op, SEQPROP_LENGTH, STRIP_TYPE_IMAGE, event);
+  sequencer_generic_invoke_xy__internal(
+      C, op, SEQPROP_LENGTH | SEQPROP_PATHS, STRIP_TYPE_IMAGE, event);
 
   /* Show multiview save options only if the scene uses multiview. */
   prop = RNA_struct_find_property(op->ptr, "show_multiview");
@@ -2048,9 +2049,7 @@ static wmOperatorStatus sequencer_add_text_strip_invoke(bContext *C,
 {
   sequencer_add_init(C, op);
 
-  const wmEvent *drop_event = is_drag_and_drop(op, event) ? event : nullptr;
-  sequencer_generic_invoke_xy__internal(
-      C, op, SEQPROP_LENGTH | SEQPROP_NOPATHS, STRIP_TYPE_TEXT, drop_event);
+  sequencer_generic_invoke_xy__internal(C, op, SEQPROP_LENGTH, STRIP_TYPE_TEXT, event);
 
   return sequencer_add_text_strip_exec(C, op);
 }
@@ -2213,9 +2212,6 @@ static wmOperatorStatus sequencer_add_effect_strip_invoke(bContext *C,
   StripType type = StripType(RNA_enum_get(op->ptr, "type"));
   if (is_op_for_effect_with_inputs(CTX_data_sequencer_scene(C), type)) {
     prop_flag |= SEQPROP_NOCHAN;
-  }
-  if (is_drag_and_drop(op, event)) {
-    prop_flag |= SEQPROP_NOPATHS;
   }
 
   sequencer_generic_invoke_xy__internal(C, op, prop_flag, type, event);
