@@ -98,27 +98,32 @@ static void node_declare(NodeDeclarationBuilder &b)
       .description("Exposure for motion blur as a factor of FPS");
 }
 
-static void node_init(const bContext *C, PointerRNA *ptr)
+static void node_init(bNodeTree * /*node_tree*/, bNode *node)
 {
-  bNode *node = static_cast<bNode *>(ptr->data);
-
   NodePlaneTrackDeformData *data = MEM_new<NodePlaneTrackDeformData>(__func__);
   node->storage = data;
+}
+
+static void node_init_api(const bContext *C, PointerRNA *node_ptr)
+{
+  bNode *node = node_ptr->data_as<bNode>();
+  NodePlaneTrackDeformData &data = node_storage(*node);
 
   const Scene *scene = CTX_data_scene(C);
-  if (scene->clip) {
-    MovieClip *clip = scene->clip;
-    MovieTracking *tracking = &clip->tracking;
+  MovieClip *movie_clip = scene->clip;
+  if (!movie_clip) {
+    return;
+  }
 
-    node->id = &clip->id;
-    id_us_plus(&clip->id);
+  node->id = &movie_clip->id;
+  id_us_plus(&movie_clip->id);
 
-    const MovieTrackingObject *tracking_object = BKE_tracking_object_get_active(tracking);
-    STRNCPY_UTF8(data->tracking_object, tracking_object->name);
+  MovieTracking *tracking = &movie_clip->tracking;
+  const MovieTrackingObject *tracking_object = BKE_tracking_object_get_active(tracking);
+  STRNCPY_UTF8(data.tracking_object, tracking_object->name);
 
-    if (tracking_object->active_plane_track) {
-      STRNCPY_UTF8(data->plane_track_name, tracking_object->active_plane_track->name);
-    }
+  if (tracking_object->active_plane_track) {
+    STRNCPY_UTF8(data.plane_track_name, tracking_object->active_plane_track->name);
   }
 }
 
@@ -458,7 +463,8 @@ static void node_register()
   ntype.enum_name_legacy = "PLANETRACKDEFORM";
   ntype.nclass = NODE_CLASS_DISTORT;
   ntype.declare = node_declare;
-  ntype.initfunc_api = node_init;
+  ntype.initfunc = node_init;
+  ntype.initfunc_api = node_init_api;
   bke::node_type_storage(
       ntype, "NodePlaneTrackDeformData", node_free_standard_storage, node_copy_standard_storage);
   ntype.get_compositor_operation = get_compositor_operation;
