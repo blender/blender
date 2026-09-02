@@ -339,8 +339,8 @@ class NWAttributeMenuBase:
                     objs.append(obj)
         attrs = []
         for obj in objs:
-            if obj.data.attributes:
-                for attr in obj.data.attributes:
+            if obj_attrs := getattr(obj.data, "attributes", None):
+                for attr in obj_attrs:
                     if not attr.is_internal:
                         attrs.append(attr.name)
         attrs = list(set(attrs))  # get a unique list
