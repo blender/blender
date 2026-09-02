@@ -111,10 +111,22 @@ class ChannelTagStack {
   };
 };
 
+/* See eBezTriple_Interpolation. */
+enum class InterpolationSummary {
+  NONE = 0,
+  MIXED = 1,
+  LINEAR = 2,
+  CONSTANT = 3,
+  BEZIER = 4,
+};
+
 /* A point in time with various properties. */
 struct KeyPoint {
   float frame = std::numeric_limits<float>::infinity();
   bool is_selected = false;
+  /* Records if there is motion to the *next* KeyPoint. */
+  bool has_motion = false;
+  InterpolationSummary interpolation = InterpolationSummary::NONE;
 
   /** Construct default KeyPoint at infinity. */
   constexpr KeyPoint() = default;
@@ -137,11 +149,9 @@ struct KeyPoint {
     return this->frame == other.frame;
   }
 
-  void merge(const KeyPoint &other)
-  {
-    BLI_assert(other == *this);
-    is_selected |= other.is_selected;
-  }
+  /** Combine the values of the given point with the values of this point. The points are expected
+   * to be on the same frame. */
+  void merge(const KeyPoint &other);
 };
 
 class AnimationChannel {

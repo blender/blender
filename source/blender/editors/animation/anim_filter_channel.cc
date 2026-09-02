@@ -48,6 +48,41 @@ std::ostream &operator<<(std::ostream &stream, const AnimationChannelType type)
   return stream;
 }
 
+static InterpolationSummary combine_interpolation(const InterpolationSummary a,
+                                                  const InterpolationSummary b)
+{
+  if (a == b) {
+    return a;
+  }
+  if (a == InterpolationSummary::NONE) {
+    return b;
+  }
+  if (b == InterpolationSummary::NONE) {
+    return a;
+  }
+  return InterpolationSummary::MIXED;
+}
+
+void KeyPoint::merge(const KeyPoint &other)
+{
+  has_motion |= other.has_motion;
+  interpolation = combine_interpolation(interpolation, other.interpolation);
+
+  if (other.frame > this->frame) {
+    return;
+  }
+
+  if (other.frame == this->frame) {
+    is_selected |= other.is_selected;
+    return;
+  }
+
+  /* Always use the lowest frame value. */
+  BLI_assert(other.frame < this->frame);
+  frame = other.frame;
+  is_selected = other.is_selected;
+}
+
 ChannelTag::ChannelTag(const ChannelTagType type,
                        const StringRef label,
                        const PointerRNA &source_data,
@@ -127,6 +162,7 @@ void SummaryChannel::gather_channeldata()
 
   while (has_data) {
     has_data = false;
+
     /* Store the index of the child channels for which we need to step to the next KeyPoint. */
     Vector<int> channels_to_advance;
     KeyPoint next_keypoint;
@@ -140,18 +176,17 @@ void SummaryChannel::gather_channeldata()
 
       has_data = true;
       const KeyPoint &child_keypoint = child_keypoints[keypoint_index];
+      next_keypoint.merge(child_keypoint);
       if (child_keypoint.frame > next_keypoint.frame) {
         continue;
       }
 
       if (child_keypoint.frame < next_keypoint.frame) {
-        next_keypoint = child_keypoint;
         channels_to_advance.clear();
         channels_to_advance.append(channel_index);
       }
       else {
         BLI_assert(child_keypoint.frame == next_keypoint.frame);
-        next_keypoint.merge(child_keypoint);
         channels_to_advance.append(channel_index);
       }
     }
@@ -329,11 +364,31 @@ void FCurveChannel::gather_channeldata()
   }
 
   this->datapoints_.resize(fcurve->totvert);
+  float prev_y;
   for (int i = 0; i < fcurve->totvert; i++) {
     BezTriple &key = fcurve->bezt[i];
     KeyPoint p(key.vec[1][0]);
     p.is_selected = BEZT_ISSEL_ANY(&key);
+    switch (key.ipo) {
+      case BEZT_IPO_CONST:
+        p.interpolation = InterpolationSummary::CONSTANT;
+        break;
+      case BEZT_IPO_LIN:
+        p.interpolation = InterpolationSummary::LINEAR;
+        break;
+      case BEZT_IPO_BEZ:
+        p.interpolation = InterpolationSummary::BEZIER;
+        break;
+      default:
+        p.interpolation = InterpolationSummary::MIXED;
+        break;
+    }
     this->datapoints_[i] = p;
+
+    if (i > 0) {
+      this->datapoints_[i - 1].has_motion = prev_y != key.vec[1][1];
+    }
+    prev_y = key.vec[1][1];
   }
 }
 

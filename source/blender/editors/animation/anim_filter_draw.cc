@@ -91,8 +91,8 @@ class ChannelItem : public ui::AbstractTreeViewItem {
   {
     /* Only summary channels get a backdrop color. */
     if (!is_datachannel_) {
+      /* TODO get this to draw below the label filling out the background of the layout. */
       ui::Block *block = layout.block();
-      this->count_parents();
       ui::block_emboss_set(block, ui::EmbossType::Emboss);
       ui::Button *bg = uiDefBut(block,
                                 ui::ButtonType::Roundbox,
@@ -203,6 +203,11 @@ void draw_channel_tree(const bContext &C, SummaryChannel &root, View2D & /* v2d 
   ui::block_draw(&C, block);
 }
 
+static float get_key_height()
+{
+  return UI_UNIT_Y * 0.5;
+}
+
 static void draw_channel_keys(AnimationChannel &channel, const float y, View2D &v2d)
 {
   Span<KeyPoint> datapoints = channel.datapoints();
@@ -227,11 +232,11 @@ static void draw_channel_keys(AnimationChannel &channel, const float y, View2D &
   immUniform1f("outline_scale", 1.0f);
   immUniform2f("ViewportSize", BLI_rcti_size_x(&v2d.mask) + 1, BLI_rcti_size_y(&v2d.mask) + 1);
   immBegin(GPU_PRIM_POINTS, datapoints.size());
-
+  const float key_size = get_key_height();
   for (const KeyPoint &point : datapoints) {
     draw_keyframe_shape(point.frame,
                         y,
-                        U.widget_unit * 0.5f,
+                        key_size,
                         point.is_selected,
                         BEZT_KEYTYPE_KEYFRAME,
                         KEYFRAME_SHAPE_BOTH,
@@ -248,13 +253,78 @@ static void draw_channel_keys(AnimationChannel &channel, const float y, View2D &
   GPU_blend(GPU_BLEND_NONE);
 }
 
+/* Draw extras that are not keyframes like lines between keys. */
+static void draw_channel_decorations(AnimationChannel &channel, const float y)
+{
+  Span<KeyPoint> datapoints = channel.datapoints();
+  if (datapoints.size() < 2) {
+    return;
+  }
+
+  float4 color_sel;
+  float4 color_unsel;
+  float4 ipo_color_linear;
+  float4 ipo_color_constant;
+  float4 ipo_color_other;
+  float4 ipo_color_mix;
+
+  ui::theme::get_color_4fv(TH_LONGKEY_SELECT, color_sel);
+  ui::theme::get_color_4fv(TH_LONGKEY, color_unsel);
+  ui::theme::get_color_4fv(TH_DOPESHEET_IPOLINE, ipo_color_linear);
+  ui::theme::get_color_4fv(TH_DOPESHEET_IPOCONST, ipo_color_constant);
+  ui::theme::get_color_4fv(TH_DOPESHEET_IPOOTHER, ipo_color_other);
+  ui::theme::get_color_4fv(TH_KEYTYPE_KEYFRAME, ipo_color_mix);
+
+  /* See `channel_ui_data_init` for reference. */
+  const int motion_line_height = get_key_height();
+  const int interpolation_line_height = 0.1f * UI_UNIT_Y;
+  IndexRange indices = datapoints.index_range();
+  /* Decorations are always drawn to the next point, so we can ignore the last point. */
+  indices = indices.drop_back(1);
+  for (const int i : indices) {
+    const KeyPoint &point = datapoints[i];
+    rctf box;
+    box.xmin = point.frame;
+    box.xmax = datapoints[i + 1].frame;
+
+    if (!point.has_motion) {
+      box.ymin = y - motion_line_height / 2;
+      box.ymax = y + motion_line_height / 2;
+      ui::draw_roundbox_4fv(&box, true, 3.0f, point.is_selected ? color_sel : color_unsel);
+    }
+
+    const float *interpolation_color = nullptr;
+
+    switch (point.interpolation) {
+      case InterpolationSummary::LINEAR:
+        interpolation_color = ipo_color_linear;
+        break;
+      case InterpolationSummary::CONSTANT:
+        interpolation_color = ipo_color_constant;
+        break;
+      case InterpolationSummary::MIXED:
+        interpolation_color = ipo_color_mix;
+        break;
+      default:
+        break;
+    }
+    if (interpolation_color) {
+      box.ymin = y - interpolation_line_height / 2;
+      box.ymax = y + interpolation_line_height / 2;
+      ui::draw_roundbox_4fv(&box, true, 3.0f, interpolation_color);
+    }
+  }
+}
+
 static float draw_keys_recurse(const bContext &C,
                                AnimationChannel &channel,
                                View2D &v2d,
                                float row_top,
                                const float channel_step)
 {
-  draw_channel_keys(channel, row_top - channel_step / 2.0, v2d);
+  const float channel_y = row_top - channel_step / 2.0;
+  draw_channel_decorations(channel, channel_y);
+  draw_channel_keys(channel, channel_y, v2d);
   row_top -= channel_step;
 
   if (channel.type() == AnimationChannelType::SUMMARY) {
