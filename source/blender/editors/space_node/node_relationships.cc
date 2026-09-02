@@ -2745,15 +2745,14 @@ void node_insert_on_link_flags_clear(bNodeTree &node_tree)
 
 void node_insert_on_link_flags(Main &bmain, SpaceNode &snode, bool is_new_node)
 {
-  bNodeTree &node_tree = *snode.edittree;
-  node_tree.ensure_topology_cache();
-  bNode *node_to_insert = get_selected_node_for_insertion(node_tree);
+  bNodeTree &ntree = *snode.edittree;
+  ntree.ensure_topology_cache();
+  bNode *node_to_insert = get_selected_node_for_insertion(ntree);
   if (!node_to_insert) {
     return;
   }
 
   /* Find link to insert on. */
-  bNodeTree &ntree = *snode.edittree;
   bNodeLink *old_link = nullptr;
   for (bNodeLink &link : ntree.links) {
     if (link.flag & NODE_LINK_INSERT_TARGET) {
@@ -2763,7 +2762,7 @@ void node_insert_on_link_flags(Main &bmain, SpaceNode &snode, bool is_new_node)
       break;
     }
   }
-  node_insert_on_link_flags_clear(node_tree);
+  node_insert_on_link_flags_clear(ntree);
   if (old_link == nullptr) {
     return;
   }
