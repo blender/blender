@@ -418,6 +418,151 @@ class PrimitiveCreator:
             for material_idx in unique_material_idxs:
                 self.prim_indices[material_idx] = loop_indices[loop_material_idxs == material_idx]
 
+    def manage_VC(
+            base_material,
+            material_idx,
+            material_info,
+            data,
+            loop_data,
+            export_settings):
+
+        vc_infos = []
+
+        # There are multiple case to take into account for VC
+        if export_settings['gltf_vertex_color'] == "NONE":
+            # We don't export any Vertex Color
+            return vc_infos, loop_data
+
+        # There is no Vertex Color in node tree
+        if material_info['vc_info']['color_type'] is None and material_info['vc_info']['alpha_type'] is None:
+            # If user wants to force active vertex color, we need to add it
+            if (base_material is not None and export_settings['gltf_vertex_color'] in ["ACTIVE", "NAME"]) or (
+                    base_material is None and export_settings['gltf_active_vertex_color_when_no_material'] is True):
+                # We need to add the active vertex color as COLOR_0
+                vc_color_name = None
+                vc_alpha_name = None
+
+                # Active Vertex Color
+                if (base_material is not None and export_settings['gltf_vertex_color'] == "ACTIVE") or (
+                        base_material is None and export_settings['gltf_active_vertex_color_when_no_material'] is True):
+                    if data.color_attributes.render_color_index != -1:
+                        vc_color_name = data.color_attributes[data.color_attributes.render_color_index].name
+                        vc_alpha_name = data.color_attributes[data.color_attributes.render_color_index].name
+                # Named Vertex Color
+                elif (base_material is not None and export_settings['gltf_vertex_color'] == "NAME"):
+                    vc_color_name = export_settings['gltf_vertex_color_name'] if data.color_attributes.find(
+                        export_settings['gltf_vertex_color_name']) != -1 else None
+                    vc_alpha_name = export_settings['gltf_vertex_color_name'] if data.color_attributes.find(
+                        export_settings['gltf_vertex_color_name']) != -1 else None
+
+                if vc_color_name is not None:
+
+                    vc_key = ""
+                    vc_key += vc_color_name if vc_color_name is not None else ""
+                    vc_key += vc_alpha_name if vc_alpha_name is not None else ""
+
+                    if loop_data.materials_use_vc is not None and loop_data.materials_use_vc != vc_key:
+                        if loop_data.warning_already_displayed is False:
+                            export_settings['log'].warning(
+                                'glTF specification does not allow this case (multiple materials with different Vertex Color)')
+                            loop_data.warning_already_displayed = True
+                        loop_data.materials_use_vc = vc_key
+
+                    elif loop_data.materials_use_vc is None:
+                        loop_data.materials_use_vc = vc_key
+                        # As we are using the active Vertex Color (or named) without checking node
+                        # tree, we need to add alpha
+                        add_alpha = True
+                        vc_infos.append({
+                            'color': vc_color_name,
+                            'alpha': vc_alpha_name,
+                            'add_alpha': add_alpha,
+                            'gltf_name': 'COLOR_' + str(loop_data.vc_infos_index),
+                            'forced': False
+                        })
+                        loop_data.material_idxs_using_vc[material_idx] = 'COLOR_' + str(loop_data.vc_infos_index)
+                        loop_data.vc_infos_index += 1
+                    else:
+                        loop_data.material_idxs_using_vc[material_idx] = 'COLOR_' + str(loop_data.vc_infos_index - 1)
+                        pass  # Using the same Vertex Color
+            elif base_material is not None and export_settings['gltf_vertex_color'] == "MATERIAL":
+                # Check if there is an active Vertex Color in mesh
+                if loop_data.warning_already_displayed_vc_nodetree is False and data.color_attributes.active_color_index != -1:
+                    export_settings['log'].warning(
+                        'The active Vertex Color will not be exported, as it is not used in the node tree of the material')
+                    loop_data.warning_already_displayed_vc_nodetree = True
+
+        # There is only alpha Vertex Color in node tree
+        elif material_info['vc_info']['color_type'] is None and material_info['vc_info']['alpha_type'] is not None:
+            export_settings['log'].warning(
+                'We are not managing this case for now (Vertex Color alpha without color)')
+
+        # There are some Vertex Color in node tree (or there is no material)
+        else:
+            vc_color_name = None
+            vc_alpha_name = None
+
+            if export_settings['gltf_vertex_color'] == "NAME":
+                # Even if we have something in node tree, we need to use the named Vertex Color
+                vc_color_name = export_settings['gltf_vertex_color_name'] if data.color_attributes.find(
+                    export_settings['gltf_vertex_color_name']) != -1 else None
+                vc_alpha_name = export_settings['gltf_vertex_color_name'] if data.color_attributes.find(
+                    export_settings['gltf_vertex_color_name']) != -1 else None
+            elif export_settings['gltf_vertex_color'] == "ACTIVE":
+                # Even if we have something in node tree (or not), we need to use the active Vertex Color
+                # So force the active Vertex Color, whatever we have in node tree
+                if data.color_attributes.render_color_index != -1:
+                    vc_color_name = data.color_attributes[data.color_attributes.render_color_index].name
+                    vc_alpha_name = data.color_attributes[data.color_attributes.render_color_index].name
+            else:
+                if material_info['vc_info']['color_type'] == "name":
+                    vc_color_name = material_info['vc_info']['color']
+                elif material_info['vc_info']['color_type'] == "active":
+                    # Get active (render) Vertex Color
+                    if data.color_attributes.render_color_index != -1:
+                        vc_color_name = data.color_attributes[data.color_attributes.render_color_index].name
+
+                if material_info['vc_info']['alpha_type'] == "name":
+                    vc_alpha_name = material_info['vc_info']['alpha']
+                elif material_info['vc_info']['alpha_type'] == "active":
+                    # Get active (render) Vertex Color
+                    if data.color_attributes.render_color_index != -1:
+                        vc_alpha_name = data.color_attributes[data.color_attributes.render_color_index].name
+
+            if vc_color_name is not None:
+
+                vc_key = ""
+                vc_key += vc_color_name if vc_color_name is not None else ""
+                vc_key += vc_alpha_name if vc_alpha_name is not None else ""
+
+                if loop_data.materials_use_vc is not None and loop_data.materials_use_vc != vc_key:
+                    if loop_data.warning_already_displayed is False:
+                        export_settings['log'].warning(
+                            'glTF specification does not allow this case (multiple materials with different Vertex Color)')
+                        loop_data.warning_already_displayed = True
+                    loop_data.materials_use_vc = vc_key
+
+                elif loop_data.materials_use_vc is None:
+                    loop_data.materials_use_vc = vc_key
+                    add_alpha = vc_alpha_name is not None
+                    if export_settings['gltf_vertex_color'] not in ["NAME", "ACTIVE"]:
+                        add_alpha = add_alpha and material_info['vc_info']['alpha_mode'] != "OPAQUE"
+                    vc_infos.append({
+                        'color': vc_color_name,
+                        'alpha': vc_alpha_name,
+                        'add_alpha': add_alpha,
+                        'gltf_name': 'COLOR_' + str(loop_data.vc_infos_index),
+                        'forced': False
+                    })
+                    loop_data.material_idxs_using_vc[material_idx] = 'COLOR_' + str(loop_data.vc_infos_index)
+                    loop_data.vc_infos_index += 1
+
+                else:
+                    loop_data.material_idxs_using_vc[material_idx] = 'COLOR_' + str(loop_data.vc_infos_index - 1)
+                    pass  # Using the same Vertex Color
+
+        return vc_infos, loop_data
+
     def manage_material_info(self):
         # If user defined UVMap as a custom attribute, we need to add it/them in the dots structure and populate data
         # So we need to get, for each material, what are these custom attribute
@@ -434,6 +579,21 @@ class PrimitiveCreator:
         materials_use_vc = None
         warning_already_displayed = False
         warning_already_displayed_vc_nodetree = False
+
+        class LoopData:
+            def __init__(
+                    self,
+                    vc_infos_index,
+                    materials_use_vc,
+                    warning_already_displayed,
+                    warning_already_displayed_vc_nodetree):
+                self.vc_infos = []
+                self.material_idxs_using_vc = {}
+                self.vc_infos_index = vc_infos_index
+                self.materials_use_vc = materials_use_vc
+                self.warning_already_displayed = warning_already_displayed
+                self.warning_already_displayed_vc_nodetree = warning_already_displayed_vc_nodetree
+
         for material_idx in self.prim_indices.keys():
             base_material, material_info = get_base_material(material_idx, self.materials, self.export_settings)
 
@@ -512,140 +672,21 @@ class PrimitiveCreator:
             if base_material is not None:
                 no_materials = False
 
-            # There are multiple case to take into account for VC
-            if self.export_settings['gltf_vertex_color'] == "NONE":
-                # We don't export any Vertex Color
-                pass
-            else:
-                # There is no Vertex Color in node tree
-                if material_info['vc_info']['color_type'] is None and material_info['vc_info']['alpha_type'] is None:
+            loop_data = LoopData(
+                self.vc_infos_index,
+                materials_use_vc,
+                warning_already_displayed,
+                warning_already_displayed_vc_nodetree
+            )
 
-                    # If user wants to force active vertex color, we need to add it
-                    if (base_material is not None and self.export_settings['gltf_vertex_color'] in ["ACTIVE", "NAME"]) or (
-                            base_material is None and self.export_settings['gltf_active_vertex_color_when_no_material'] is True):
-                        # We need to add the active vertex color as COLOR_0
-                        vc_color_name = None
-                        vc_alpha_name = None
-
-                        # Active Vertex Color
-                        if (base_material is not None and self.export_settings['gltf_vertex_color'] == "ACTIVE") or (
-                                base_material is None and self.export_settings['gltf_active_vertex_color_when_no_material'] is True):
-                            if self.blender_mesh.color_attributes.render_color_index != -1:
-                                vc_color_name = self.blender_mesh.color_attributes[self.blender_mesh.color_attributes.render_color_index].name
-                                vc_alpha_name = self.blender_mesh.color_attributes[self.blender_mesh.color_attributes.render_color_index].name
-                        # Named Vertex Color
-                        elif (base_material is not None and self.export_settings['gltf_vertex_color'] == "NAME"):
-                            vc_color_name = self.export_settings['gltf_vertex_color_name'] if self.blender_mesh.color_attributes.find(
-                                self.export_settings['gltf_vertex_color_name']) != -1 else None
-                            vc_alpha_name = self.export_settings['gltf_vertex_color_name'] if self.blender_mesh.color_attributes.find(
-                                self.export_settings['gltf_vertex_color_name']) != -1 else None
-
-                        if vc_color_name is not None:
-
-                            vc_key = ""
-                            vc_key += vc_color_name if vc_color_name is not None else ""
-                            vc_key += vc_alpha_name if vc_alpha_name is not None else ""
-
-                            if materials_use_vc is not None and materials_use_vc != vc_key:
-                                if warning_already_displayed is False:
-                                    self.export_settings['log'].warning(
-                                        'glTF specification does not allow this case (multiple materials with different Vertex Color)')
-                                    warning_already_displayed = True
-                                materials_use_vc = vc_key
-
-                            elif materials_use_vc is None:
-                                materials_use_vc = vc_key
-                                # As we are using the active Vertex Color (or named) without checking node
-                                # tree, we need to add alpha
-                                add_alpha = True
-                                self.vc_infos.append({
-                                    'color': vc_color_name,
-                                    'alpha': vc_alpha_name,
-                                    'add_alpha': add_alpha,
-                                    'gltf_name': 'COLOR_' + str(self.vc_infos_index),
-                                    'forced': False
-                                })
-                                self.material_idxs_using_vc[material_idx] = 'COLOR_' + str(self.vc_infos_index)
-                                self.vc_infos_index += 1
-                            else:
-                                self.material_idxs_using_vc[material_idx] = 'COLOR_' + str(self.vc_infos_index - 1)
-                                pass  # Using the same Vertex Color
-
-                    elif base_material is not None and self.export_settings['gltf_vertex_color'] == "MATERIAL":
-                        # Check if there is an active Vertex Color in mesh
-                        if warning_already_displayed_vc_nodetree is False and self.blender_mesh.color_attributes.active_color_index != -1:
-                            self.export_settings['log'].warning(
-                                'The active Vertex Color will not be exported, as it is not used in the node tree of the material')
-                            warning_already_displayed_vc_nodetree = True
-
-                # There is only alpha Vertex Color in node tree
-                elif material_info['vc_info']['color_type'] is None and material_info['vc_info']['alpha_type'] is not None:
-                    self.export_settings['log'].warning(
-                        'We are not managing this case for now (Vertex Color alpha without color)')
-
-                # There are some Vertex Color in node tree (or there is no material)
-                else:
-                    vc_color_name = None
-                    vc_alpha_name = None
-
-                    if self.export_settings['gltf_vertex_color'] == "NAME":
-                        # Even if we have something in node tree, we need to use the named Vertex Color
-                        vc_color_name = self.export_settings['gltf_vertex_color_name'] if self.blender_mesh.color_attributes.find(
-                            self.export_settings['gltf_vertex_color_name']) != -1 else None
-                        vc_alpha_name = self.export_settings['gltf_vertex_color_name'] if self.blender_mesh.color_attributes.find(
-                            self.export_settings['gltf_vertex_color_name']) != -1 else None
-                    elif self.export_settings['gltf_vertex_color'] == "ACTIVE":
-                        # Even if we have something in node tree (or not), we need to use the active Vertex Color
-                        # So force the active Vertex Color, whatever we have in node tree
-                        if self.blender_mesh.color_attributes.render_color_index != -1:
-                            vc_color_name = self.blender_mesh.color_attributes[self.blender_mesh.color_attributes.render_color_index].name
-                            vc_alpha_name = self.blender_mesh.color_attributes[self.blender_mesh.color_attributes.render_color_index].name
-                    else:
-                        if material_info['vc_info']['color_type'] == "name":
-                            vc_color_name = material_info['vc_info']['color']
-                        elif material_info['vc_info']['color_type'] == "active":
-                            # Get active (render) Vertex Color
-                            if self.blender_mesh.color_attributes.render_color_index != -1:
-                                vc_color_name = self.blender_mesh.color_attributes[self.blender_mesh.color_attributes.render_color_index].name
-
-                        if material_info['vc_info']['alpha_type'] == "name":
-                            vc_alpha_name = material_info['vc_info']['alpha']
-                        elif material_info['vc_info']['alpha_type'] == "active":
-                            # Get active (render) Vertex Color
-                            if self.blender_mesh.color_attributes.render_color_index != -1:
-                                vc_alpha_name = self.blender_mesh.color_attributes[self.blender_mesh.color_attributes.render_color_index].name
-
-                    if vc_color_name is not None:
-
-                        vc_key = ""
-                        vc_key += vc_color_name if vc_color_name is not None else ""
-                        vc_key += vc_alpha_name if vc_alpha_name is not None else ""
-
-                        if materials_use_vc is not None and materials_use_vc != vc_key:
-                            if warning_already_displayed is False:
-                                self.export_settings['log'].warning(
-                                    'glTF specification does not allow this case (multiple materials with different Vertex Color)')
-                                warning_already_displayed = True
-                            materials_use_vc = vc_key
-
-                        elif materials_use_vc is None:
-                            materials_use_vc = vc_key
-                            add_alpha = vc_alpha_name is not None
-                            if self.export_settings['gltf_vertex_color'] not in ["NAME", "ACTIVE"]:
-                                add_alpha = add_alpha and material_info['vc_info']['alpha_mode'] != "OPAQUE"
-                            self.vc_infos.append({
-                                'color': vc_color_name,
-                                'alpha': vc_alpha_name,
-                                'add_alpha': add_alpha,
-                                'gltf_name': 'COLOR_' + str(self.vc_infos_index),
-                                'forced': False
-                            })
-                            self.material_idxs_using_vc[material_idx] = 'COLOR_' + str(self.vc_infos_index)
-                            self.vc_infos_index += 1
-
-                        else:
-                            self.material_idxs_using_vc[material_idx] = 'COLOR_' + str(self.vc_infos_index - 1)
-                            pass  # Using the same Vertex Color
+            vc_infos, loop_data = PrimitiveCreator.manage_VC(
+                base_material, material_idx, material_info, self.blender_mesh, loop_data, self.export_settings)
+            self.vc_infos.extend(vc_infos)
+            self.material_idxs_using_vc.update(loop_data.material_idxs_using_vc)
+            self.vc_infos_index = loop_data.vc_infos_index
+            materials_use_vc = loop_data.materials_use_vc
+            warning_already_displayed = loop_data.warning_already_displayed
+            warning_already_displayed_vc_nodetree = loop_data.warning_already_displayed_vc_nodetree
 
             ##### UDIM #####
 
