@@ -13,6 +13,7 @@
 #include "BKE_node.hh"
 #include "BKE_node_runtime.hh"
 
+#include "COM_group_node_operation.hh"
 #include "COM_node_group_operation.hh"
 #include "COM_node_operation.hh"
 #include "COM_result.hh"

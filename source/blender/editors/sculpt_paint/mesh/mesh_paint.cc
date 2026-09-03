@@ -401,7 +401,6 @@ void do_symmetrical_brush_actions_with_tiling_and_feathering(const Depsgraph &de
 void stroke_cache_common_init(
     ViewContext &vc, const Paint &paint, const Brush &brush, Object &object, const float2 mval)
 {
-  bke::PaintRuntime *paint_runtime = paint.runtime;
   SculptSession &ss = *object.runtime->sculpt_session;
   StrokeCache *cache = ss.cache;
 

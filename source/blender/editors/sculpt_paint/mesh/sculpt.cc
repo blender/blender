@@ -5926,7 +5926,6 @@ void SculptPaintStroke::done(bool is_cancel, bool stroke_started)
     brush_exit_tex(sd);
     return;
   }
-  bke::PaintRuntime *paint_runtime = sd.paint.runtime;
   Brush *brush = BKE_paint_brush(&sd.paint);
 
   stroke_modifiers_check(*this->depsgraph, this->vc.rv3d, sd, ob, brush);
