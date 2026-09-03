@@ -97,6 +97,12 @@ class TestBlendFileOpenAllTestFiles(TestHelper):
                 (OSError, RuntimeError),
                 "Corrupt .blend file, invalid block struct index"
             ),
+            # invalid_blendfiles/invalid_node_tree_failed_read.blend
+            # A block after a node tree references an out-of-range SDNA struct index.
+            "invalid_node_tree_failed_read.blend": (
+                (OSError, RuntimeError),
+                "Corrupt .blend file, invalid block struct index"
+            ),
         }
 
         assert all(p.endswith("/") for p in self.excluded_dirs)

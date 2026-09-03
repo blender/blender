@@ -4593,7 +4593,7 @@ void node_free_node(bNodeTree *ntree, bNode &node)
     }
   }
 
-  if (node.typeinfo->freefunc) {
+  if (node.typeinfo && node.typeinfo->freefunc) {
     node.typeinfo->freefunc(&node);
   }
 
@@ -4619,7 +4619,7 @@ void node_free_node(bNodeTree *ntree, bNode &node)
   if (node.runtime->declaration) {
     /* Only free if this declaration is not shared with the node type, which can happen if it does
      * not depend on any context. */
-    if (node.runtime->declaration != node.typeinfo->static_declaration) {
+    if (!node.typeinfo || node.runtime->declaration != node.typeinfo->static_declaration) {
       delete node.runtime->declaration;
     }
   }
