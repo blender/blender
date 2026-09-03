@@ -503,9 +503,9 @@ struct KernelTransferBase : public openvdb::points::TransformTransfer,
    * For each point, compute its relative index space position in the destination tree and
    * sum a function of per-point values.
    *
-   * \param ijk Point voxel coordinate.
-   * \param point_index_range Range of points inside the point voxel bounds.
-   * \param target_bounds Coordinate region of the destination tree to add into.
+   * \param ijk: Point voxel coordinate.
+   * \param point_index_range: Range of points inside the point voxel bounds.
+   * \param target_bounds: Coordinate region of the destination tree to add into.
    */
   template<typename ValueFn>
   void add_points_to_voxels(const openvdb::Coord &ijk,

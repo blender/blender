@@ -677,7 +677,7 @@ void BKE_libblock_management_usercounts_clear(Main *bmain, void *idv);
  *
  * This is a no-op when `id` is `nullptr` or not linked.
  *
- * \param enforce_fix if true, unconditionally set the linked data as extern (even if it was
+ * \param enforce_fix: if true, unconditionally set the linked data as extern (even if it was
  * already defined as such, or if it was in a broken state with e.g. no direct/indirect status
  * defined).
  *

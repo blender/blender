@@ -1294,7 +1294,7 @@ Depsgraph *animviz_depsgraph_build(Main *bmain,
 /**
  * Evaluated the given `depsgraph` for all targets.
  *
- * \param modified_frame determines around which the calculation should be run. It will stop
+ * \param modified_frame: Determines around which the calculation should be run. It will stop
  * automatically if it hits an area where the evaluation returns the same result as is already
  * stored in the motion path. This is to minimize the calculations done.
  */

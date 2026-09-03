@@ -91,9 +91,9 @@ struct MappedPointDataGrid {
  * Construct a point data grid from a positions array and optional attributes.
  * The resulting grid is of the \a VOLUME_GRID_POINTS type.
  *
- * \param positions Point positions array.
- * \param attributes Attributes to store in the grid.
- * \param transform Grid transform defining voxel size and offset.
+ * \param positions: Point positions array.
+ * \param attributes: Attributes to store in the grid.
+ * \param transform: Grid transform defining voxel size and offset.
  */
 MappedPointDataGrid points_to_point_data_grid(const Span<float3> positions,
                                               const Span<PointDataGridAttributeInfo> attributes,
@@ -103,10 +103,10 @@ MappedPointDataGrid points_to_point_data_grid(const Span<float3> positions,
  * Construct a point data grid from a positions array and optional attributes.
  * The resulting grid is of the \a VOLUME_GRID_POINTS type.
  *
- * \param positions Point positions array.
- * \param attributes Attributes to store in the grid.
- * \param attribute_filter Optional filter for attributes to be stored.
- * \param transform Grid transform defining voxel size and offset.
+ * \param positions: Point positions array.
+ * \param attributes: Attributes to store in the grid.
+ * \param attribute_filter: Optional filter for attributes to be stored.
+ * \param transform: Grid transform defining voxel size and offset.
  */
 MappedPointDataGrid points_to_point_data_grid(const VArray<float3> positions,
                                               const bke::AttributeAccessor &attributes,
@@ -128,11 +128,11 @@ struct PointRasterizeAttributeInfo {
  * the distance between the voxel and particle and computes a weighting factor, falling to zero
  * within the range of the kernel.
  *
- * \param point_data_grid Point grid with optional attributes.
- * \param kernel_type Weighting kernel function.
- * \param point_attributes List of attributes that should be converted to grids.
- * \param transform Grid transform defining voxel size and offset.
- * \param r_attribute_grids List of output grids, must have the same size as \a point_attributes.
+ * \param point_data_grid: Point grid with optional attributes.
+ * \param kernel_type: Weighting kernel function.
+ * \param point_attributes: List of attributes that should be converted to grids.
+ * \param transform: Grid transform defining voxel size and offset.
+ * \param r_attribute_grids: List of output grids, must have the same size as \a point_attributes.
  */
 void points_rasterize(const MappedPointDataGrid &point_data_grid,
                       const KernelType kernel_type,
