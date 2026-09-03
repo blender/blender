@@ -196,7 +196,6 @@ void BKE_shrinkwrap_remesh_target_project(Mesh *src_me, Mesh *target_me, Object 
 bool BKE_shrinkwrap_project_normal(char options,
                                    const float vert[3],
                                    const float dir[3],
-                                   float ray_radius,
                                    const SpaceTransform *transf,
                                    ShrinkwrapTreeData *tree,
                                    BVHTreeRayHit *hit);

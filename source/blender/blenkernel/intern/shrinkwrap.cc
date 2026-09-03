@@ -349,7 +349,6 @@ static void shrinkwrap_calc_nearest_vertex(ShrinkwrapCalcData *calc)
 bool BKE_shrinkwrap_project_normal(char options,
                                    const float vert[3],
                                    const float dir[3],
-                                   const float ray_radius,
                                    const SpaceTransform *transf,
                                    ShrinkwrapTreeData *tree,
                                    BVHTreeRayHit *hit)
@@ -388,7 +387,7 @@ bool BKE_shrinkwrap_project_normal(char options,
   hit_tmp.index = -1;
 
   BLI_bvhtree_ray_cast(
-      tree->bvh, co, no, ray_radius, &hit_tmp, tree->treeData.raycast_callback, &tree->treeData);
+      tree->bvh, co, no, 0.0f, &hit_tmp, tree->treeData.raycast_callback, &tree->treeData);
 
   if (hit_tmp.index != -1) {
     /* invert the normal first so face culling works on rotated objects */
@@ -465,13 +464,13 @@ static void shrinkwrap_calc_normal_projection_cb_ex(ShrinkwrapCalcData *calc,
   /* Project over positive direction of axis. */
   if (calc->smd->shrinkOpts & MOD_SHRINKWRAP_PROJECT_ALLOW_POS_DIR) {
     if (aux_tree) {
-      if (BKE_shrinkwrap_project_normal(0, tmp_co, tmp_no, 0.0, local2aux, aux_tree, hit)) {
+      if (BKE_shrinkwrap_project_normal(0, tmp_co, tmp_no, local2aux, aux_tree, hit)) {
         is_aux = true;
       }
     }
 
     if (BKE_shrinkwrap_project_normal(
-            calc->smd->shrinkOpts, tmp_co, tmp_no, 0.0, &calc->local2target, tree, hit))
+            calc->smd->shrinkOpts, tmp_co, tmp_no, &calc->local2target, tree, hit))
     {
       is_aux = false;
     }
@@ -491,14 +490,12 @@ static void shrinkwrap_calc_normal_projection_cb_ex(ShrinkwrapCalcData *calc,
     }
 
     if (aux_tree) {
-      if (BKE_shrinkwrap_project_normal(0, tmp_co, inv_no, 0.0, local2aux, aux_tree, hit)) {
+      if (BKE_shrinkwrap_project_normal(0, tmp_co, inv_no, local2aux, aux_tree, hit)) {
         is_aux = true;
       }
     }
 
-    if (BKE_shrinkwrap_project_normal(
-            options, tmp_co, inv_no, 0.0, &calc->local2target, tree, hit))
-    {
+    if (BKE_shrinkwrap_project_normal(options, tmp_co, inv_no, &calc->local2target, tree, hit)) {
       is_aux = false;
     }
   }
