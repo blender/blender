@@ -3382,10 +3382,10 @@ static wmOperatorStatus file_start_filter_exec(bContext *C, wmOperator * /*op*/)
   const FileSelectParams *params = ED_fileselect_get_active_params(sfile);
 
   if (area) {
-    for (ARegion &region : area->regionbase) {
-      if (ui::textbutton_activate_rna(C, &region, params, "filter_search")) {
-        break;
-      }
+    int regiontype = sfile->browse_mode == FILE_BROWSE_MODE_FILES ? RGN_TYPE_UI : RGN_TYPE_HEADER;
+    ARegion *region = BKE_region_find_in_listbase_by_type(&area->regionbase, regiontype);
+    if (region) {
+      ED_region_activate_rna_prop(C, region, params, "filter_search");
     }
   }
 

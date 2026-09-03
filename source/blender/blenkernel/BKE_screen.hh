@@ -7,6 +7,7 @@
  * \ingroup bke
  */
 
+#include <functional>
 #include <memory>
 #include <optional>
 #include <string>
@@ -604,6 +605,9 @@ struct ARegionRuntime {
 
   /** Blend in/out. */
   wmTimer *regiontimer = nullptr;
+
+  /** For calling after building a blocks. */
+  Vector<std::function<void(const bContext &C, ui::Block &Block)>> post_block_layout_fns;
 
   wmDrawBuffer *draw_buffer = nullptr;
 

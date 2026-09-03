@@ -693,6 +693,30 @@ void ED_region_tag_redraw(ARegion *region)
   }
 }
 
+void ED_region_activate_rna_prop(bContext *C,
+                                 ARegion *region,
+                                 const void *data,
+                                 StringRefNull prop_name)
+{
+  /* Try first to open the button, otherwise try after region redraw. */
+  if (!(region->runtime->do_draw & (RGN_DRAW | RGN_DRAWING)) &&
+      ui::textbutton_activate_rna(C, region, data, prop_name.data()))
+  {
+    return;
+  }
+  region->runtime->post_block_layout_fns.append(
+      [data, prop_name = std::string(prop_name), found = false](const bContext &C,
+                                                                ui::Block &block) mutable {
+        ARegion *region = CTX_wm_region(&C);
+        found = found || ui::textbutton_activate_rna(&C, region, data, prop_name.c_str(), block);
+      });
+
+  if (region->flag & RGN_FLAG_HIDDEN) {
+    ED_region_toggle_hidden(C, region);
+  }
+  ED_region_tag_redraw(region);
+}
+
 void ED_region_tag_redraw_cursor(ARegion *region)
 {
   if (region) {
@@ -3324,7 +3348,7 @@ static void ed_panel_draw(const bContext *C,
     }
   }
 
-  block_end(C, block);
+  block_end(C, block, true);
 
   /* Draw child panels. */
   if (open || search_filter_active) {
@@ -3613,6 +3637,7 @@ void ED_region_panels_layout_ex(const bContext *C,
   if (use_categories) {
     region->runtime->category = category;
   }
+  ui::panels_do_after_block_layout_fns(C, region);
 }
 
 void ED_region_draw_overflow_indication(const ScrArea *area,

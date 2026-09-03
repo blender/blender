@@ -2578,12 +2578,9 @@ static wmOperatorStatus uilist_start_filter_invoke(bContext *C,
   BLI_assert(list != nullptr);
 
   if (uilist_unhide_filter_options(list)) {
-    region_redraw_immediately(C, region);
+    ED_region_tag_redraw(region);
   }
-
-  if (!textbutton_activate_rna(C, region, list, "filter_name")) {
-    return OPERATOR_CANCELLED;
-  }
+  ED_region_activate_rna_prop(C, region, list, "filter_name");
 
   return OPERATOR_FINISHED;
 }
