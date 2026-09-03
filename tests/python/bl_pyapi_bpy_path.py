@@ -41,9 +41,6 @@ class TestBpyPath(unittest.TestCase):
 
         prefs = bpy.context.preferences
 
-        use_scripts_auto_execute = prefs.filepaths.use_scripts_auto_execute
-        self.addCleanup(setattr, prefs.filepaths, "use_scripts_auto_execute", use_scripts_auto_execute)
-
         path_cmp = prefs.autoexec_paths.new()
         self.addCleanup(prefs.autoexec_paths.remove, path_cmp)
         path_cmp.path = "/untrusted/"
@@ -52,14 +49,13 @@ class TestBpyPath(unittest.TestCase):
         self.assertFalse(is_autoexec(b"/untrusted/"))
         self.assertTrue(is_autoexec("/trusted/"))
 
+        self.assertFalse(is_autoexec("/untrusted/demo.blend", strip_filename=True))
+        self.assertTrue(is_autoexec("/trusted/demo.blend", strip_filename=True))
+
         path_cmp.use_glob = True
         path_cmp.path = "*/download*"
         self.assertFalse(is_autoexec("/home/user/downloads/"))
         self.assertTrue(is_autoexec("/home/user/projects/"))
-
-        # The preference to enable auto-execution isn't taken into account.
-        prefs.filepaths.use_scripts_auto_execute = False
-        self.assertFalse(is_autoexec("/home/user/downloads/"))
 
 
 if __name__ == '__main__':

@@ -27,24 +27,54 @@ extern const char *imb_ext_audio[];
 PyDoc_STRVAR(
     /* Wrap. */
     bpy_path_is_autoexec_doc,
-    ".. function:: is_autoexec(dirpath)\n"
+    ".. function:: is_autoexec(path, *, canonicalize=False, strip_filename=False)\n"
     "\n"
-    "   Check if blend-files in a directory are trusted to run scripts automatically,\n"
-    "   based on the excluded paths in the preferences.\n"
-    "   The preference to enable automatic script execution isn't taken into account.\n"
+    "   Return false when a directory is excluded from running scripts automatically,\n"
+    "   see :class:`bpy.types.PreferencesFilePaths.autoexec_paths`.\n"
     "\n"
-    "   :param dirpath: The directory to check, expected to end with a path separator.\n"
-    "   :type dirpath: str | bytes\n"
-    "   :return: False when the directory matches an excluded path, otherwise True.\n"
+    "   .. note:: The preference to enable automatic script execution is not checked,\n"
+    "      see :class:`bpy.types.PreferencesFilePaths.use_scripts_auto_execute`.\n"
+    "\n"
+    "   :param path: The directory to check, expected to end with a path separator.\n"
+    "   :type path: str | bytes\n"
+    "   :param canonicalize: Resolve the path first,\n"
+    "      disable when it's known to be resolved.\n"
+    "   :type canonicalize: bool\n"
+    "   :param strip_filename: Use the directory of `path`, otherwise it is a directory already.\n"
+    "   :type strip_filename: bool\n"
+    "   :return: True when blend-files in the directory are trusted to run scripts.\n"
     "   :rtype: bool\n");
-static PyObject *bpy_path_is_autoexec(PyObject * /*self*/, PyObject *value)
+static PyObject *bpy_path_is_autoexec(PyObject * /*self*/, PyObject *args, PyObject *kw)
 {
   PyC_UnicodeAsBytesAndSize_Data path_data = {nullptr};
-  if (!PyC_ParseUnicodeAsBytesAndSize(value, &path_data)) {
+  bool canonicalize = false;
+  bool strip_filename = false;
+
+  static const char *_keywords[] = {"path", "canonicalize", "strip_filename", nullptr};
+  static _PyArg_Parser _parser = {
+      "O&" /* `path` */
+      "|$" /* Optional, keyword only arguments. */
+      "O&" /* `canonicalize` */
+      "O&" /* `strip_filename` */
+      ":is_autoexec",
+      _keywords,
+      nullptr,
+  };
+  if (!_PyArg_ParseTupleAndKeywordsFast(args,
+                                        kw,
+                                        &_parser,
+                                        PyC_ParseUnicodeAsBytesAndSize,
+                                        &path_data,
+                                        PyC_ParseBool,
+                                        &canonicalize,
+                                        PyC_ParseBool,
+                                        &strip_filename))
+  {
     return nullptr;
   }
 
-  const bool is_autoexec = !BKE_autoexec_match_unchecked(path_data.value);
+  const bool is_autoexec = !BKE_autoexec_match_unchecked(
+      path_data.value, canonicalize, strip_filename);
   Py_XDECREF(path_data.value_coerce);
 
   return PyBool_FromLong(is_autoexec);
@@ -52,8 +82,8 @@ static PyObject *bpy_path_is_autoexec(PyObject * /*self*/, PyObject *value)
 
 static PyMethodDef _bpy_path_methods[] = {
     {"is_autoexec",
-     static_cast<PyCFunction>(bpy_path_is_autoexec),
-     METH_O,
+     reinterpret_cast<PyCFunction>(bpy_path_is_autoexec),
+     METH_VARARGS | METH_KEYWORDS,
      bpy_path_is_autoexec_doc},
     {nullptr, nullptr, 0, nullptr},
 };
