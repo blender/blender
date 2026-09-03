@@ -65,3 +65,14 @@ The failed read returned null and was dereferenced (crash).
 
 As above, on a window's `WorkSpaceInstanceHook` sub-block.
 The partially-read window was dereferenced while freeing the invalidated file (crash).
+
+Corrupt File-Blocks
+===================
+
+Saves of a simple scene, or of a file linking a collection from a library, with file-blocks altered.
+
+`invalid_thumbnail_*.blend`
+---------------------------
+
+The `TEST` thumbnail block is too short, has zero width or height, or is larger than the maximum size.
+Extracting the thumbnail with `blender-thumbnailer` overflowed the image size (crash).

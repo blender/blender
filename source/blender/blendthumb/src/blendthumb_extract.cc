@@ -103,16 +103,21 @@ static eThumbStatus blendthumb_extract_from_file_impl(FileReader *file,
     switch (bhead->code) {
       case MAKE_ID('T', 'E', 'S', 'T'): {
         uint8_t shape[8];
-        if (!file_read(file, shape, sizeof(shape))) {
+        if (bhead->len < int64_t(sizeof(shape)) || !file_read(file, shape, sizeof(shape))) {
           return BT_INVALID_THUMB;
         }
         thumb->width = bytes_to_native_i32(&shape[0]);
         thumb->height = bytes_to_native_i32(&shape[4]);
 
-        /* Verify that image dimensions and data size make sense. */
-        size_t data_size = bhead->len - sizeof(shape);
+        /* Verify that image dimensions and data size make sense, to handle
+         * corrupt files. Max size is rather arbitrary, large enough to fit
+         * any thumbnail and small enough it fits on any system. */
+        constexpr int max_size = 4096;
+        const size_t data_size = size_t(bhead->len) - sizeof(shape);
         const uint64_t expected_size = uint64_t(thumb->width) * uint64_t(thumb->height) * 4;
-        if (thumb->width < 0 || thumb->height < 0 || data_size != expected_size) {
+        if (thumb->width <= 0 || thumb->height <= 0 || thumb->width > max_size ||
+            thumb->height > max_size || data_size != expected_size)
+        {
           return BT_INVALID_THUMB;
         }
 
