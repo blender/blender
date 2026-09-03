@@ -231,6 +231,9 @@ class AbstractViewItem {
   /** Cache filtered state here to avoid having to re-query. */
   bool is_filtered_visible_ = true;
 
+  bool use_custom_background_color_ = false;
+  uchar4 background_color_;
+
   /**
    * Typically, only items with children can be collapsed. However, in some cases it's important
    * to draw collapsible items differently from non-collapsible ones, even if they don't have
@@ -389,6 +392,10 @@ class AbstractViewItem {
   void begin_renaming();
   void end_renaming();
   void rename_apply(const bContext &C);
+
+  void set_custom_color(const uchar4 &color);
+  bool is_using_custom_color() const;
+  const uchar4 *get_custom_color() const;
 
   virtual void delete_item(bContext *C);
   virtual void on_filter();

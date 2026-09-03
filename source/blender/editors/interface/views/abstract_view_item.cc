@@ -188,6 +188,22 @@ void AbstractViewItem::rename_apply(const bContext &C)
   end_renaming();
 }
 
+void AbstractViewItem::set_custom_color(const uchar4 &color)
+{
+  this->use_custom_background_color_ = true;
+  this->background_color_ = color;
+}
+
+bool AbstractViewItem::is_using_custom_color() const
+{
+  return this->use_custom_background_color_;
+}
+
+const uchar4 *AbstractViewItem::get_custom_color() const
+{
+  return &this->background_color_;
+}
+
 void AbstractViewItem::end_renaming()
 {
   if (!is_renaming()) {

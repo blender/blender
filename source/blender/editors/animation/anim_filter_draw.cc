@@ -89,27 +89,6 @@ class ChannelItem : public ui::AbstractTreeViewItem {
 
   void build_row(ui::Layout &layout) override
   {
-    /* Only summary channels get a backdrop color. */
-    if (!is_datachannel_) {
-      /* TODO get this to draw below the label filling out the background of the layout. */
-      ui::Block *block = layout.block();
-      ui::block_emboss_set(block, ui::EmbossType::Emboss);
-      ui::Button *bg = uiDefBut(block,
-                                ui::ButtonType::Roundbox,
-                                "",
-                                0,
-                                0,
-                                UI_UNIT_X,
-                                UI_UNIT_Y,
-                                nullptr,
-                                0.0f,
-                                0.0f,
-                                "");
-      uchar4 color = channel_color_from_rna_pointer(this->source_);
-      color[3] = 255;
-      ui::button_color_set(bg, color);
-    }
-
     layout.label(this->label_, this->is_selected_ ? ICON_BOIDS : ICON_NONE);
 
     if (is_datachannel_) {
@@ -167,6 +146,12 @@ class ChannelTreeView : public ui::AbstractTreeView {
     for (AnimationChannel *channel : channels) {
       ChannelItem &item = parent.add_tree_item<ChannelItem>(*channel);
       if (channel->type() == AnimationChannelType::SUMMARY) {
+        uchar4 color = channel_color_from_rna_pointer(channel->source());
+        /* Disable for now to make the tree item backdrop the same as in the main region. */
+        // color[3] = 255;
+        item.set_custom_color(color);
+      }
+      if (channel->type() == AnimationChannelType::SUMMARY) {
         SummaryChannel *summary = static_cast<SummaryChannel *>(channel);
         add_channel_children(item, summary->children());
       }
@@ -180,6 +165,9 @@ class ChannelTreeView : public ui::AbstractTreeView {
   void build_tree() override
   {
     ChannelItem &root_item = add_tree_item<ChannelItem>(root_);
+    uchar4 color = channel_color_from_rna_pointer(root_.source());
+    // color[3] = 255;
+    root_item.set_custom_color(color);
     add_channel_children(root_item, root_.children());
     root_item.uncollapse_by_default();
   }

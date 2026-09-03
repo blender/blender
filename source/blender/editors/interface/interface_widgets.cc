@@ -5105,11 +5105,20 @@ static void widget_list_itembut(Button *but,
 {
   rcti draw_rect = *rect;
   bool is_selected = state->but_flag & UI_SELECT;
+  bool custom_color = false;
 
   if (but->type == ButtonType::ViewItem) {
     ButtonViewItem *item_but = static_cast<ButtonViewItem *>(but);
     AbstractViewItem &view_item = *item_but->view_item;
-
+    /* TODO: this is a bit of a mess. We need to get good hover+selected colors out of custom
+     * colors. Ideally automatically? */
+    if (view_item.is_using_custom_color()) {
+      custom_color = true;
+      copy_v4_v4_uchar(wcol->inner, *view_item.get_custom_color());
+      if (view_item.is_active()) {
+        widget_active_color(wcol);
+      }
+    }
     if (!view_item.is_active() && view_item.is_selected()) {
       copy_v4_v4_uchar(wcol->inner, wcol->inner_sel);
       color_blend_v3_v3(wcol->inner, wcol->outline, 0.5);
@@ -5131,7 +5140,11 @@ static void widget_list_itembut(Button *but,
 
   if (state->but_flag & UI_HOVER) {
     color_blend_v3_v3(wcol->inner, wcol->text, 0.2);
-    wcol->inner[3] = is_selected ? 255 : 20;
+    if (!custom_color) {
+      /* This alpha logic only works because the color is very contrasty with the background. In
+       * the case of a custom color, this could make the color disappear completely. */
+      wcol->inner[3] = is_selected ? 255 : 20;
+    }
   }
 
   widgetbase_draw(&wtb, wcol);
