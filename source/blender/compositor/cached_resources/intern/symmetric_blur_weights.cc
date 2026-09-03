@@ -63,7 +63,7 @@ SymmetricBlurWeights::SymmetricBlurWeights(Context &context,
   /* Then, compute the weights along the positive x axis, making sure to add double the weight to
    * the sum of weights because the filter is symmetric and we only loop over the positive half
    * of the x axis. Skip the center weight already computed by dropping the front index. */
-  for (const int x : IndexRange(size.x).drop_front(1)) {
+  for (const int x : IndexRange(weights_cpu.domain().data_size.x).drop_front(1)) {
     const float weight = math::filter_kernel_value(type, x * scale.x);
     weights_cpu.store_pixel(int2(x, 0), weight);
     sum += weight * 2.0f;
@@ -72,7 +72,7 @@ SymmetricBlurWeights::SymmetricBlurWeights(Context &context,
   /* Then, compute the weights along the positive y axis, making sure to add double the weight to
    * the sum of weights because the filter is symmetric and we only loop over the positive half
    * of the y axis. Skip the center weight already computed by dropping the front index. */
-  for (const int y : IndexRange(size.y).drop_front(1)) {
+  for (const int y : IndexRange(weights_cpu.domain().data_size.y).drop_front(1)) {
     const float weight = math::filter_kernel_value(type, y * scale.y);
     weights_cpu.store_pixel(int2(0, y), weight);
     sum += weight * 2.0f;
@@ -82,8 +82,8 @@ SymmetricBlurWeights::SymmetricBlurWeights(Context &context,
    * the weight to the sum of weights because the filter is symmetric and we only loop over one
    * quadrant of it. Skip the weights along the y and x axis already computed by dropping the
    * front index. */
-  for (const int y : IndexRange(size.y).drop_front(1)) {
-    for (const int x : IndexRange(size.x).drop_front(1)) {
+  for (const int y : IndexRange(weights_cpu.domain().data_size.y).drop_front(1)) {
+    for (const int x : IndexRange(weights_cpu.domain().data_size.x).drop_front(1)) {
       const float weight = math::filter_kernel_value(type, math::length(float2(x, y) * scale));
       weights_cpu.store_pixel(int2(x, y), weight);
       sum += weight * 4.0f;
@@ -91,8 +91,8 @@ SymmetricBlurWeights::SymmetricBlurWeights(Context &context,
   }
 
   /* Finally, normalize the weights. */
-  for (const int y : IndexRange(size.y)) {
-    for (const int x : IndexRange(size.x)) {
+  for (const int y : IndexRange(weights_cpu.domain().data_size.y)) {
+    for (const int x : IndexRange(weights_cpu.domain().data_size.x)) {
       const int2 texel = int2(x, y);
       weights_cpu.store_pixel(texel, weights_cpu.load_pixel<float>(texel) / sum);
     }
