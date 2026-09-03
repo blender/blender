@@ -67,14 +67,23 @@ static pxr::GfCamera gf_camera(const CameraParams &params,
 
   pxr::GfVec2f b_pos(border[0], border[1]), b_size(border[2], border[3]);
   float sensor_size = BKE_camera_sensor_size(params.sensor_fit, params.sensor_x, params.sensor_y);
-  pxr::GfVec2f sensor_scale = (BKE_camera_sensor_fit(params.sensor_fit, res[0], res[1]) ==
-                               CAMERA_SENSOR_FIT_HOR) ?
-                                  pxr::GfVec2f(1.0f, float(res[1]) / res[0]) :
-                                  pxr::GfVec2f(float(res[0]) / res[1], 1.0f);
+
+  const float frame_aspect = params.use_aspect_override ? params.aspect_override :
+                                                          float(res[1]) / float(res[0]);
+  const bool horizontal_fit = BKE_camera_sensor_fit(params.sensor_fit, 1.0f, frame_aspect) ==
+                              CAMERA_SENSOR_FIT_HOR;
+
+  const float2 frame_size = BKE_camera_frame_size(float(res[0]), float(res[1]), frame_aspect);
+  const float frame_fit = horizontal_fit ? float(res[0]) / frame_size.x :
+                                           float(res[1]) / frame_size.y;
+
+  pxr::GfVec2f sensor_scale = (horizontal_fit) ? pxr::GfVec2f(1.0f, float(res[1]) / res[0]) :
+                                                 pxr::GfVec2f(float(res[0]) / res[1], 1.0f);
+
   pxr::GfVec2f aperture = pxr::GfVec2f((params.is_ortho) ? params.ortho_scale : sensor_size);
   aperture = pxr::GfCompMult(aperture, sensor_scale);
   aperture = pxr::GfCompMult(aperture, b_size);
-  aperture *= params.zoom;
+  aperture *= params.zoom * frame_fit;
   if (params.is_ortho) {
     /* Use tenths of a world unit according to USD docs
      * https://graphics.pixar.com/usd/docs/api/class_gf_camera.html */
@@ -83,7 +92,7 @@ static pxr::GfCamera gf_camera(const CameraParams &params,
   camera.SetHorizontalAperture(aperture[0]);
   camera.SetVerticalAperture(aperture[1]);
 
-  pxr::GfVec2f lens_shift = pxr::GfVec2f(params.shiftx, params.shifty);
+  pxr::GfVec2f lens_shift = pxr::GfVec2f(params.shiftx, params.shifty) / frame_fit;
   lens_shift = pxr::GfCompDiv(lens_shift, sensor_scale);
   lens_shift += pxr::GfVec2f(params.offsetx, params.offsety);
   lens_shift += b_pos + b_size * 0.5f - pxr::GfVec2f(0.5f);

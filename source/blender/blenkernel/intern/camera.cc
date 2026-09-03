@@ -25,6 +25,7 @@
 #include "BLI_math_matrix.hh"
 #include "BLI_math_matrix_c.hh"
 #include "BLI_math_vector_c.hh"
+#include "BLI_math_vector_types.hh"
 #include "BLI_rect.hh"
 #include "BLI_string.hh"
 #include "BLI_utildefines.hh"
@@ -345,6 +346,13 @@ int BKE_camera_sensor_fit(int sensor_fit, float sizex, float sizey)
   return sensor_fit;
 }
 
+float2 BKE_camera_frame_size(const float winx, const float winy, const float frame_aspect)
+{
+  const float frame_x = math::min(winx, winy / frame_aspect);
+
+  return float2(frame_x, frame_x * frame_aspect);
+}
+
 /** \} */
 
 /* -------------------------------------------------------------------- */
@@ -426,6 +434,13 @@ void BKE_camera_params_from_view3d(CameraParams *params,
     const Object *ob_camera_eval = DEG_get_evaluated(depsgraph, v3d->camera);
     BKE_camera_params_from_object(params, ob_camera_eval);
 
+    /* Override the aspect, so change in viewport framing is minimized when camera parameters
+     * change. */
+    const Scene *scene = DEG_get_evaluated_scene(depsgraph);
+    params->use_aspect_override = true;
+    params->aspect_override = (float(scene->r.ysch) * scene->r.yasp) /
+                              (float(scene->r.xsch) * scene->r.xasp);
+
     params->zoom = BKE_screen_view3d_zoom_to_fac(rv3d->camzoom);
 
     params->offsetx = 2.0f * rv3d->camdx * params->zoom;
@@ -470,6 +485,11 @@ void BKE_camera_params_compute_viewplane(
 
   params->ycor = aspy / aspx;
 
+  const float winy_cor = params->ycor * float(winy);
+  const float frame_aspect = params->use_aspect_override ? params->aspect_override :
+                                                           winy_cor / float(winx);
+  const float2 frame_size = BKE_camera_frame_size(float(winx), winy_cor, frame_aspect);
+
   if (params->is_ortho) {
     /* orthographic camera */
     /* scale == 1.0 means exact 1 to 1 mapping */
@@ -482,14 +502,9 @@ void BKE_camera_params_compute_viewplane(
   }
 
   /* determine sensor fit */
-  sensor_fit = BKE_camera_sensor_fit(params->sensor_fit, aspx * winx, aspy * winy);
+  sensor_fit = BKE_camera_sensor_fit(params->sensor_fit, 1.0f, frame_aspect);
 
-  if (sensor_fit == CAMERA_SENSOR_FIT_HOR) {
-    viewfac = winx;
-  }
-  else {
-    viewfac = params->ycor * winy;
-  }
+  viewfac = (sensor_fit == CAMERA_SENSOR_FIT_HOR) ? frame_size.x : frame_size.y;
 
   pixsize /= viewfac;
 

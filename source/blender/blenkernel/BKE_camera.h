@@ -4,6 +4,8 @@
 
 #pragma once
 
+#include "BLI_math_vector_types.hh"
+
 #include "DNA_vec_types.h"
 
 namespace blender {
@@ -37,6 +39,12 @@ int BKE_camera_sensor_fit(int sensor_fit, float sizex, float sizey);
 float BKE_camera_sensor_size(int sensor_fit, float sensor_x, float sensor_y);
 
 /**
+ * Size in pixels of the camera frame fitted inside a viewport.
+ * \param frame_aspect: Aspect ratio of the camera frame (y over x).
+ */
+float2 BKE_camera_frame_size(float winx, float winy, float frame_aspect);
+
+/**
  * Camera Parameters:
  *
  * Intermediate struct for storing camera parameters from various sources,
@@ -59,6 +67,18 @@ struct CameraParams {
   float sensor_x = 0.0f;
   float sensor_y = 0.0f;
   int sensor_fit = 0;
+
+  /**
+   * Aspect override: the aspect (y-over-x) of the camera frame, used to resolve the sensor fit
+   * and framing in place of the view rect.
+   *
+   * Only set when the frame is drawn inside the view rect instead of filling it,
+   * e.g. #BKE_camera_params_from_view3d for the camera view.
+   *
+   * \warning Never set this for rendering, it would change the render output.
+   */
+  bool use_aspect_override = false;
+  float aspect_override = 0.0f;
 
   /* clipping */
   float clip_start = 0.1f;
