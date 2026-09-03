@@ -61,15 +61,12 @@ ccl_device_forceinline void spherical_harmonics_fill_zero(
 ccl_device_forceinline uint8_t quantize_spherical_harmonics(const float value)
 {
   const float rescaled = saturatef((value + 1.0f) / 2.0f);
-  return ((rescaled <= 0.0f) ? 0 :
-                               ((rescaled > (1.0f - 0.5f / 255.0f)) ?
-                                    255 :
-                                    (uint8_t)((255.0f * rescaled) + 0.5f)));  // NOLINT
+  return float_to_byte(rescaled);
 }
 
 ccl_device_forceinline float unquantize_spherical_harmonics(const uint8_t value)
 {
-  return float(value) * (1.0f / 255.0f) * 2.0f - 1.0f;
+  return byte_to_float(value) * 2.0f - 1.0f;
 }
 
 /* Set the spherical harmonic coefficient by its flat index. */

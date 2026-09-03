@@ -996,4 +996,18 @@ ccl_device_inline Extrema<T> merge(const ccl_private Extrema<T> &a, const ccl_pr
   return {min(a.min, v), max(a.max, v)};
 }
 
+ccl_device_inline uchar float_to_byte(const float val)
+{
+  /* Use rounding semantic to reduce the average roundtrip error of
+   * byte_to_float(float_to_byte(x)). */
+  return ((val <= 0.0f) ?
+              0 :
+              ((val > (1.0f - 0.5f / 255.0f)) ? 255 : (uchar)((255.0f * val) + 0.5f)));  // NOLINT
+}
+
+ccl_device_inline float byte_to_float(const uchar val)
+{
+  return val * (1.0f / 255.0f);
+}
+
 CCL_NAMESPACE_END
