@@ -47,24 +47,16 @@ class Context : public compositor::Context {
  private:
   const Main *main_;
   const Scene *scene_;
-  /* A pointer to the info message of the compositor engine. This is a char array of size
-   * GPU_INFO_SIZE. The message is cleared prior to updating or evaluating the compositor. */
-  char *info_message_;
   /* The hash of the active compute context. */
   const ComputeContextHash active_compute_context_hash_;
 
  public:
-  Context(compositor::StaticCacheManager &cache_manager,
-          const Main *main,
-          const Scene *scene,
-          char *info_message)
+  Context(compositor::StaticCacheManager &cache_manager, const Main *main, const Scene *scene)
       : compositor::Context(cache_manager),
         main_(main),
         scene_(scene),
-        info_message_(info_message),
         active_compute_context_hash_(bke::compositor::compute_active_compute_context_hash(*scene))
   {
-    this->set_info_message("");
   }
 
   const Main &get_main() const override
@@ -330,11 +322,6 @@ class Context : public compositor::Context {
     return compositor::ResultPrecision::Half;
   }
 
-  void set_info_message(StringRef message) const override
-  {
-    message.copy_utf8_truncated(info_message_, GPU_INFO_SIZE);
-  }
-
   void evaluate()
   {
     compositor::SceneCompositorEffectsOperation operation =
@@ -379,10 +366,8 @@ class Instance : public DrawEngine {
 
   void draw(Manager & /*manager*/) final
   {
-    Context context(cache_manager_,
-                    DEG_get_bmain(DRW_context_get()->depsgraph),
-                    DRW_context_get()->scene,
-                    this->info);
+    Context context(
+        cache_manager_, DEG_get_bmain(DRW_context_get()->depsgraph), DRW_context_get()->scene);
     if (context.get_camera_region().is_empty()) {
       return;
     }
