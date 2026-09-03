@@ -1983,7 +1983,7 @@ id<MTLComputePipelineState> MTLContextComputeUtils::get_buffer_clear_pso()
     if (error || buffer_clear_pso_ == nil) {
       CLOG_ERROR(&LOG,
                  "Failed to prepare compute_buffer_clear MTLComputePipelineState %s",
-                 [[error localizedDescription] UTF8String]);
+                 error ? [[error localizedDescription] UTF8String] : "unknown");
       BLI_assert(false);
       return nil;
     }

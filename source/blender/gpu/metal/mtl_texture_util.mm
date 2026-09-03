@@ -327,7 +327,7 @@ id<MTLComputePipelineState> gpu::MTLTexture::mtl_texture_update_impl(
     if (error || compute_pso == nil) {
       CLOG_ERROR(&LOG,
                  "Failed to prepare texture_update MTLComputePipelineState %s",
-                 [[error localizedDescription] UTF8String]);
+                 error ? [[error localizedDescription] UTF8String] : "unknown");
       BLI_assert(false);
     }
 
@@ -648,7 +648,7 @@ id<MTLComputePipelineState> gpu::MTLTexture::mtl_texture_read_impl(
     if (error || compute_pso == nil) {
       CLOG_ERROR(&LOG,
                  "Failed to prepare texture_read MTLComputePipelineState %s",
-                 [[error localizedDescription] UTF8String]);
+                 error ? [[error localizedDescription] UTF8String] : "unknown");
       BLI_assert(false);
       return nil;
     }
