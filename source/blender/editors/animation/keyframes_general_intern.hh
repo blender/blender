@@ -154,7 +154,7 @@ bool pastebuf_match_path_property_and_component_length(
  * Medium strict paste buffer matching method: match the property name (so not the entire RNA path)
  * and the array index. This ignores the number of components, so `c` and `a.b.c` will match.
  *
- * For RNA paths that end in a lookup index (like `locations[0]`), the property name preceeding the
+ * For RNA paths that end in a lookup index (like `locations[0]`), the property name preceding the
  * index needs to match too.
  */
 bool pastebuf_match_path_property(Main *bmain,

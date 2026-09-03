@@ -77,7 +77,7 @@ struct VisibleLightIterator {
 
   void next_local_word()
   {
-    /* clang-format off */ /* Multiline macros would break line count. */
+    /* clang-format off */ /* Multi-line macros would break line count. */
     [[resource_table]] const eevee::LightRenderData &lrd = resource_table_get(eevee::LightRenderData);
     /* clang-format on */
     const auto &words = lrd.light_tile_buf;
@@ -105,7 +105,7 @@ struct VisibleLightIterator {
  public:
   void init(float2 pixel, float linear_view_z, uint receiver_light_set)
   {
-    /* clang-format off */ /* Multiline macros would break line count. */
+    /* clang-format off */ /* Multi-line macros would break line count. */
     [[resource_table]] const eevee::LightRenderData &lrd = resource_table_get(eevee::LightRenderData);
     /* clang-format on */
     const LightCullingData &culling = lrd.light_cull_buf;
@@ -136,7 +136,7 @@ struct VisibleLightIterator {
 
   bool next()
   {
-    /* clang-format off */ /* Multiline macros would break line count. */
+    /* clang-format off */ /* Mult-iline macros would break line count. */
     [[resource_table]] const eevee::LightRenderData &lrd = resource_table_get(eevee::LightRenderData);
     /* clang-format on */
     const LightCullingData &culling = lrd.light_cull_buf;
@@ -185,7 +185,7 @@ struct VisibleLightIterator {
 
   bool should_skip(float3 P)
   {
-    /* clang-format off */ /* Multiline macros would break line count. */
+    /* clang-format off */ /* Multi-line macros would break line count. */
     [[resource_table]] const eevee::LightRenderData &lrd = resource_table_get(eevee::LightRenderData);
     /* clang-format on */
 

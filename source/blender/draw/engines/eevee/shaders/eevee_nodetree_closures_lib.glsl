@@ -176,7 +176,7 @@ void closure_weights_reset(float closure_rand)
   g_holdout = 0.0f;
 
 #if defined(GPU_FRAGMENT_SHADER) || defined(GLSL_CPP_STUBS)
-  /* clang-format off */ /* Multiline macros would break line count. */
+  /* clang-format off */ /* Multi-line macros would break line count. */
   [[resource_table]] const eevee::PipelineConstants &pipe = resource_table_get(eevee::PipelineConstants);
   /* clang-format on */
   if (pipe.use_lighting_nodes) [[static_branch]] {

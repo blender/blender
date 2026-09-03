@@ -254,7 +254,7 @@ def draw_material_surface_settings(layout, mat, is_eevee=True):
         col.prop(mat, "displacement_method", text="Displacement")
         col = col.column(align=True)
 
-    # NOTE: "max_vertex_displacement" also drives the max offset when using Shadow Raycast with a custom Position.
+    # NOTE: "max_vertex_displacement" also drives the max offset when using Shadow Ray-cast with a custom Position.
     col.enabled = mat.displacement_method != 'BUMP' or is_eevee
 
     # Clarify that this is for displacement if the displacement method setting is not above.

@@ -133,7 +133,7 @@ static bool is_drag_and_drop(const wmOperator *op, const wmEvent *event)
   if (event != nullptr && event->type == EVT_DROP) {
     return true;
   }
-  /* TAKE NOTICE, footgun! Dragging and dropping *multiple* files will not emit `EVT_DROP`,
+  /* WARNING: foot-gun! Dragging and dropping *multiple* files will not emit `EVT_DROP`,
    * so we can't check for that alone. */
   return (RNA_struct_property_is_set(op->ptr, "files") &&
           !RNA_collection_is_empty(op->ptr, "files")) ||

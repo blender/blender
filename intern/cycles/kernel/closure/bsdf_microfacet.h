@@ -136,7 +136,7 @@ struct Coat {
 /** \name GGX LUT Index Mapping Functions
  *
  * This section contains functions to map from GGX alphas, IOR, and mu to the indicies of
- * 2D and 3D LUTs (e.g., for multis-scatter GGX energy compensation or scattering albedos).
+ * 2D and 3D LUTs (e.g., for multi-scatter GGX energy compensation or scattering albedos).
  * \{ */
 
 ccl_device_forceinline float alpha_to_roughness_index(const float alpha_x, const float alpha_y)
@@ -1568,7 +1568,7 @@ ccl_device Spectrum bsdf_coat_setup(KernelGlobals kg,
      * OpenPBR Surface Specification v1.1.1, Section 3.4.2.
      * NOTE(OpenPBR): Eq. (77) requires the cosines of both the incoming and the outgoing
      * directions, but we only have access to the incoming direction. We therefore assume that the
-     * refracted cosine of both directions are the same. The same approaximation is done in Adobe's
+     * refracted cosine of both directions are the same. The same approximation is done in Adobe's
      * implementation. */
     const float cosNI = dot(sd->wi, coat.N);
     coat.tint = slab_color_at_angle(coat.tint, cosNI, coat.ior);

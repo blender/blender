@@ -190,7 +190,7 @@ enum QuadSphereMethod {
   /**
    * An equal angle between vertices.
    *
-   * The Equi-Angular Cubemap (EAC), where the profile on each axis is a perfect circle,
+   * The Equi-Angular Cube-map (EAC), where the profile on each axis is a perfect circle,
    * see: https://en.wikipedia.org/wiki/360_video_projection
    */
   QUADSPHERE_METHOD_EQUI_ANGULAR = 1,

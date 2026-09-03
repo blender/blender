@@ -658,7 +658,7 @@ struct bUserAssetLibrary {
    * downloaded assets will be placed. */
   char dirpath[/*FILE_MAX*/ 1024] = "";
   /** The "resolved" dirpath. This is the version of dirpath that has had variable expansion done
-   * on it and has normalized the path string and converted the directory separatior to use the OS
+   * on it and has normalized the path string and converted the directory separator to use the OS
    * native version. This should always be used when looking for the actual asset library on disk.
    */
   char resolved_dirpath[/*FILE_MAX*/ 1024] = "";

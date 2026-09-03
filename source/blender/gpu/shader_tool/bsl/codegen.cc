@@ -1981,8 +1981,8 @@ struct CodegenContext : NodeErrorHandler {
   void if_statement(Node decl,
                     SymbolScope &parent_scope,
                     int &local_scope_id,
-                    bool preceeded_by_true_if_constexpr = false,
-                    bool preceeded_by_regular_if = false)
+                    bool preceded_by_true_if_constexpr = false,
+                    bool preceded_by_regular_if = false)
   {
     SymbolScope *scope = parent_scope.child_scope(local_scope_id++);
     if (scope == nullptr) {
@@ -2020,7 +2020,7 @@ struct CodegenContext : NodeErrorHandler {
     /* Generate a 'else' statement only if there is a non-constexpr if above in the chain,
      * and if no 'if constexpr' evaluated to true above in the chain,
      * and if not a 'if constexpr' itself. */
-    if (preceeded_by_regular_if && !preceeded_by_true_if_constexpr &&
+    if (preceded_by_regular_if && !preceded_by_true_if_constexpr &&
         (!is_constexpr || constexpr_value == true))
     {
       match_if(Else);
@@ -2031,7 +2031,7 @@ struct CodegenContext : NodeErrorHandler {
 
     /* Generate a if statement only if this is not a 'if constexpr',
      * and if no 'if constexpr' evaluated to true above in the chain. */
-    if (!is_constexpr && !preceeded_by_true_if_constexpr) {
+    if (!is_constexpr && !preceded_by_true_if_constexpr) {
       match_if(If);
       skip_if(Constexpr);
       if (cond.is_valid()) {
@@ -2046,7 +2046,7 @@ struct CodegenContext : NodeErrorHandler {
 
     LocalScope body = decl.child_last(NodeType::LocalScope);
 
-    if (!preceeded_by_true_if_constexpr && (!is_constexpr || constexpr_value == true)) {
+    if (!preceded_by_true_if_constexpr && (!is_constexpr || constexpr_value == true)) {
       local_scope(body, *scope);
     }
 
@@ -2062,8 +2062,8 @@ struct CodegenContext : NodeErrorHandler {
       if_statement(next,
                    parent_scope,
                    local_scope_id,
-                   preceeded_by_true_if_constexpr || (is_constexpr && constexpr_value == true),
-                   preceeded_by_regular_if || !is_constexpr);
+                   preceded_by_true_if_constexpr || (is_constexpr && constexpr_value == true),
+                   preceded_by_regular_if || !is_constexpr);
     }
     else {
       jump_to(next.front());

@@ -1243,7 +1243,7 @@ static void write_keymapitem(BlendWriter *writer, const wmKeyMapItem *kmi)
 
 static void write_userdef(BlendWriter *writer, const UserDef *userdef)
 {
-  /* Filter out tempory/non user defined asset libraries. */
+  /* Filter out temporary/non user defined asset libraries. */
   ListBaseT<bUserAssetLibrary> asset_libraries_filtered = {nullptr, nullptr};
   ListBaseT<bUserAssetLibrary> asset_libraries_backup = userdef->asset_libraries;
 
@@ -1260,8 +1260,8 @@ static void write_userdef(BlendWriter *writer, const UserDef *userdef)
 
   ListBaseT<bUserAssetLibrary> *asset_libraries = const_cast<ListBaseT<bUserAssetLibrary> *>(
       &userdef->asset_libraries);
-  /* Remap the first and last pointers of "userdef->asset_libraries".
-   * writestruct will write out the poiters in here so make sure they are the same as our
+  /* Remap the first and last pointers of `userdef->asset_libraries`.
+   * #writestruct will write out the pointers in here so make sure they are the same as our
    * filtered list.
    */
   asset_libraries->first = asset_libraries_filtered.first;
