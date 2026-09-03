@@ -2949,8 +2949,8 @@ static void remove_in_and_out_node_panel_recursive(bNodeTreeInterfacePanel &pane
 
     bNodeTreeInterfaceSocket *new_output = MEM_new<bNodeTreeInterfaceSocket>(__func__);
     new_output->item.item_type = NodeTreeInterfaceItemType::Socket;
-    new_output->name = BLI_strdup_null(socket->name);
-    new_output->description = BLI_strdup_null(socket->description);
+    new_output->name_ = BLI_strdup_null(socket->name_);
+    new_output->description_ = BLI_strdup_null(socket->description_);
     new_output->socket_type = BLI_strdup_null(socket->socket_type);
     new_output->flag = socket->flag & ~NODE_INTERFACE_SOCKET_INPUT;
     new_output->attribute_domain = socket->attribute_domain;

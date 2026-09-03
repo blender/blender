@@ -488,8 +488,8 @@ static void item_copy(bNodeTreeInterfaceItem &dst,
           reinterpret_cast<const bNodeTreeInterfaceSocket &>(src);
       BLI_assert(src_socket.socket_type != nullptr);
 
-      dst_socket.name = BLI_strdup_null(src_socket.name);
-      dst_socket.description = BLI_strdup_null(src_socket.description);
+      dst_socket.name_ = BLI_strdup_null(src_socket.name_);
+      dst_socket.description_ = BLI_strdup_null(src_socket.description_);
       dst_socket.socket_type = BLI_strdup(src_socket.socket_type);
       dst_socket.default_attribute_name = BLI_strdup_null(src_socket.default_attribute_name);
       dst_socket.identifier = generate_uid ? BLI_sprintfN("Socket_%d", generate_uid()) :
@@ -507,8 +507,8 @@ static void item_copy(bNodeTreeInterfaceItem &dst,
       const bNodeTreeInterfacePanel &src_panel = reinterpret_cast<const bNodeTreeInterfacePanel &>(
           src);
 
-      dst_panel.name = BLI_strdup_null(src_panel.name);
-      dst_panel.description = BLI_strdup_null(src_panel.description);
+      dst_panel.name_ = BLI_strdup_null(src_panel.name_);
+      dst_panel.description_ = BLI_strdup_null(src_panel.description_);
       dst_panel.identifier = generate_uid ? generate_uid() : src_panel.identifier;
 
       panel_init(dst_panel, src_panel.items(), flag, generate_uid);
@@ -527,8 +527,8 @@ static void item_free(bNodeTreeInterfaceItem &item, const bool do_id_user)
         socket_types::socket_data_free(socket, do_id_user);
       }
 
-      MEM_SAFE_DELETE(socket.name);
-      MEM_SAFE_DELETE(socket.description);
+      MEM_SAFE_DELETE(socket.name_);
+      MEM_SAFE_DELETE(socket.description_);
       MEM_SAFE_DELETE(socket.socket_type);
       MEM_SAFE_DELETE(socket.default_attribute_name);
       MEM_SAFE_DELETE(socket.identifier);
@@ -541,8 +541,8 @@ static void item_free(bNodeTreeInterfaceItem &item, const bool do_id_user)
       bNodeTreeInterfacePanel &panel = reinterpret_cast<bNodeTreeInterfacePanel &>(item);
 
       panel.clear(do_id_user);
-      MEM_SAFE_DELETE(panel.name);
-      MEM_SAFE_DELETE(panel.description);
+      MEM_SAFE_DELETE(panel.name_);
+      MEM_SAFE_DELETE(panel.description_);
       break;
     }
   }
@@ -557,9 +557,9 @@ static void item_write_data(BlendWriter *writer, bNodeTreeInterfaceItem &item)
   switch (item.item_type) {
     case NodeTreeInterfaceItemType::Socket: {
       bNodeTreeInterfaceSocket &socket = reinterpret_cast<bNodeTreeInterfaceSocket &>(item);
-      writer->write_string(socket.name);
+      writer->write_string(socket.name_);
       writer->write_string(socket.identifier);
-      writer->write_string(socket.description);
+      writer->write_string(socket.description_);
       writer->write_string(socket.socket_type);
       writer->write_string(socket.default_attribute_name);
       if (socket.properties) {
@@ -571,8 +571,8 @@ static void item_write_data(BlendWriter *writer, bNodeTreeInterfaceItem &item)
     }
     case NodeTreeInterfaceItemType::Panel: {
       bNodeTreeInterfacePanel &panel = reinterpret_cast<bNodeTreeInterfacePanel &>(item);
-      writer->write_string(panel.name);
-      writer->write_string(panel.description);
+      writer->write_string(panel.name_);
+      writer->write_string(panel.description_);
       writer->write_pointer_array(panel.items_num, panel.items_array);
       for (bNodeTreeInterfaceItem *child_item : panel.items()) {
         item_write_struct(writer, *child_item);
@@ -666,8 +666,8 @@ static void item_read_data(BlendDataReader *reader, bNodeTreeInterfaceItem &item
   switch (item.item_type) {
     case NodeTreeInterfaceItemType::Socket: {
       bNodeTreeInterfaceSocket &socket = reinterpret_cast<bNodeTreeInterfaceSocket &>(item);
-      BLO_read_string(reader, &socket.name);
-      BLO_read_string(reader, &socket.description);
+      BLO_read_string(reader, &socket.name_);
+      BLO_read_string(reader, &socket.description_);
       BLO_read_string(reader, &socket.socket_type);
       BLO_read_string(reader, &socket.default_attribute_name);
       BLO_read_string(reader, &socket.identifier);
@@ -687,8 +687,8 @@ static void item_read_data(BlendDataReader *reader, bNodeTreeInterfaceItem &item
     }
     case NodeTreeInterfaceItemType::Panel: {
       bNodeTreeInterfacePanel &panel = reinterpret_cast<bNodeTreeInterfacePanel &>(item);
-      BLO_read_string(reader, &panel.name);
-      BLO_read_string(reader, &panel.description);
+      BLO_read_string(reader, &panel.name_);
+      BLO_read_string(reader, &panel.description_);
       BLO_read_pointer_array_and_validate_size(reader, &panel.items_array, &panel.items_num);
 
       /* Read the direct-data for each interface item if possible. The pointer becomes null if the
@@ -756,6 +756,16 @@ static Span<bNodeTreeInterfaceItem *> item_children(bNodeTreeInterfaceItem &item
 }  // namespace bke::node_interface
 
 using namespace blender::bke::node_interface;
+
+StringRefNull bNodeTreeInterfaceSocket::name() const
+{
+  return this->name_ ? this->name_ : "";
+}
+
+StringRefNull bNodeTreeInterfaceSocket::description() const
+{
+  return this->description_ ? this->description_ : "";
+}
 
 bke::bNodeSocketType *bNodeTreeInterfaceSocket::socket_typeinfo() const
 {
@@ -883,6 +893,16 @@ void bNodeTreeInterfaceSocket::init_from_socket_instance(const bNodeSocket *sock
   this->socket_type = BLI_strdup(socket->idname);
   this->socket_data = socket_types::make_socket_data(socket->idname);
   socket_types::socket_data_copy_ptr(*this, socket->default_value, 0);
+}
+
+StringRefNull bNodeTreeInterfacePanel::name() const
+{
+  return this->name_ ? this->name_ : "";
+}
+
+StringRefNull bNodeTreeInterfacePanel::description() const
+{
+  return this->description_ ? this->description_ : "";
 }
 
 IndexRange bNodeTreeInterfacePanel::items_range() const
@@ -1254,10 +1274,10 @@ static bNodeTreeInterfaceSocket *make_socket(const int uid,
   /* Init common socket properties. */
   new_socket->identifier = BLI_sprintfN("Socket_%d", uid);
   new_socket->item.item_type = NodeTreeInterfaceItemType::Socket;
-  new_socket->name = BLI_strdupn(name.data(), name.size());
-  new_socket->description = description.is_empty() ?
-                                nullptr :
-                                BLI_strdupn(description.data(), description.size());
+  new_socket->name_ = BLI_strdupn(name.data(), name.size());
+  new_socket->description_ = description.is_empty() ?
+                                 nullptr :
+                                 BLI_strdupn(description.data(), description.size());
   new_socket->socket_type = BLI_strdupn(socket_type.data(), socket_type.size());
   new_socket->flag = flag;
 
@@ -1683,10 +1703,10 @@ static bNodeTreeInterfacePanel *make_panel(const int uid,
 
   bNodeTreeInterfacePanel *new_panel = MEM_new<bNodeTreeInterfacePanel>(__func__);
   new_panel->item.item_type = NodeTreeInterfaceItemType::Panel;
-  new_panel->name = BLI_strdupn(name.data(), name.size());
-  new_panel->description = description.is_empty() ?
-                               nullptr :
-                               BLI_strdupn(description.data(), description.size());
+  new_panel->name_ = BLI_strdupn(name.data(), name.size());
+  new_panel->description_ = description.is_empty() ?
+                                nullptr :
+                                BLI_strdupn(description.data(), description.size());
   new_panel->identifier = uid;
   new_panel->flag = flag;
   return new_panel;

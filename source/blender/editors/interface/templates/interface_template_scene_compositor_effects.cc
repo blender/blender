@@ -188,7 +188,7 @@ static void draw_property_for_socket(
     return;
   }
 
-  std::string name = socket.name ? IFACE_(socket.name) : "";
+  std::string name = socket.name();
 
   switch (type) {
     case SOCK_OBJECT: {

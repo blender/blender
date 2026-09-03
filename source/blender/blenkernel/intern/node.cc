@@ -2231,12 +2231,9 @@ static std::unique_ptr<IDProperty, idprop::IDPropertyDeleter> create_socket_meta
   const bNodeSocketType *base_typeinfo = node_socket_type_find(socket.socket_type);
 
   auto socket_prop = idprop::create_group(socket.identifier);
-  IDP_AddToGroup(socket_prop.get(),
-                 idprop::create("name", socket.name ? socket.name : "").release());
+  IDP_AddToGroup(socket_prop.get(), idprop::create("name", socket.name()).release());
   IDP_AddToGroup(socket_prop.get(), idprop::create("type", base_typeinfo->type).release());
-  IDP_AddToGroup(
-      socket_prop.get(),
-      idprop::create("description", socket.description ? socket.description : "").release());
+  IDP_AddToGroup(socket_prop.get(), idprop::create("description", socket.description()).release());
   switch (base_typeinfo->type) {
     case SOCK_FLOAT: {
       const auto &value = node_interface::get_socket_data_as<bNodeSocketValueFloat>(socket);
@@ -2434,7 +2431,7 @@ IDProperty *node_create_asset_meta_data_properties(const bNodeTree &node_tree)
    * `output_sockets` in Blender 6.0 (next breaking release). */
   auto outputs = idprop::create_group("outputs");
   for (const bNodeTreeInterfaceSocket *socket : node_tree.interface_outputs()) {
-    auto *prop = idprop::create(socket->name ? socket->name : "", socket->socket_type).release();
+    auto *prop = idprop::create(socket->name(), socket->socket_type).release();
     if (!IDP_AddToGroup(outputs.get(), prop)) {
       IDP_FreeProperty(prop);
     }
