@@ -8,7 +8,9 @@
 
 #include "fmt/core.h"
 
+#include <algorithm>
 #include <cerrno>
+#include <climits>
 #include <cstdarg> /* for va_start/end. */
 #include <cstddef> /* for offsetof. */
 #include <cstdlib> /* for atoi. */
@@ -792,12 +794,34 @@ static BHead *blo_bhead_read_full(FileData *fd, BHead *thisblock)
 }
 #endif /* USE_BHEAD_READ_ON_DEMAND */
 
+/**
+ * Return a pointer to data with type T in the bhead, with guard against
+ * corrupt files with too short a bhead.
+ */
+template<typename T> static const T *blo_bhead_data_at(const BHead *bhead, const int offset)
+{
+  if (offset < 0 || int64_t(offset) + int64_t(sizeof(T)) > bhead->len) [[unlikely]] {
+    return nullptr;
+  }
+  return reinterpret_cast<const T *>(POINTER_OFFSET(bhead, sizeof(*bhead) + offset));
+}
+
+/** Return a pointer to a string in the bhead, with guard against corrupt files. */
+static const char *blo_bhead_string_at(const BHead *bhead, const int offset, const size_t maxsize)
+{
+  const char *str = blo_bhead_data_at<char>(bhead, offset);
+  if (str == nullptr) [[unlikely]] {
+    return nullptr;
+  }
+  /* Ensure the string is null terminated. */
+  const size_t size = std::min(maxsize, size_t(bhead->len - offset));
+  return std::memchr(str, '\0', size) ? str : nullptr;
+}
+
 const char *blo_bhead_id_name(FileData *fd, const BHead *bhead)
 {
   BLI_assert(blo_bhead_is_id(bhead));
-  const char *id_name = reinterpret_cast<const char *>(
-      POINTER_OFFSET(bhead, sizeof(*bhead) + fd->id_name_offset));
-  if (std::memchr(id_name, '\0', MAX_ID_NAME)) {
+  if (const char *id_name = blo_bhead_string_at(bhead, fd->id_name_offset, MAX_ID_NAME)) {
     return id_name;
   }
 
@@ -809,54 +833,39 @@ const char *blo_bhead_id_name(FileData *fd, const BHead *bhead)
 short blo_bhead_id_flag(const FileData *fd, const BHead *bhead)
 {
   BLI_assert(blo_bhead_is_id(bhead));
-  if (fd->id_flag_offset < 0) {
-    return 0;
-  }
-  return *reinterpret_cast<const short *>(
-      POINTER_OFFSET(bhead, sizeof(*bhead) + fd->id_flag_offset));
+  const short *flag = blo_bhead_data_at<short>(bhead, fd->id_flag_offset);
+  return flag ? *flag : 0;
 }
 
 AssetMetaData *blo_bhead_id_asset_data_address(const FileData *fd, const BHead *bhead)
 {
   BLI_assert(blo_bhead_is_id_valid_type(bhead));
-  return (fd->id_asset_data_offset >= 0) ?
-             *reinterpret_cast<AssetMetaData **>(const_cast<BHead *>(
-                 POINTER_OFFSET(bhead, sizeof(*bhead) + fd->id_asset_data_offset))) :
-             nullptr;
+  AssetMetaData *const *asset_data = blo_bhead_data_at<AssetMetaData *>(bhead,
+                                                                        fd->id_asset_data_offset);
+  return asset_data ? *asset_data : nullptr;
 }
 
 static const IDHash *blo_bhead_id_deep_hash(const FileData *fd, const BHead *bhead)
 {
   BLI_assert(blo_bhead_is_id_valid_type(bhead));
-  if (fd->id_flag_offset < 0 || fd->id_deep_hash_offset < 0) {
-    return nullptr;
-  }
   const short flag = blo_bhead_id_flag(fd, bhead);
   if (!(flag & ID_FLAG_LINKED_AND_PACKED)) {
     return nullptr;
   }
-  return reinterpret_cast<const IDHash *>(
-      POINTER_OFFSET(bhead, sizeof(*bhead) + fd->id_deep_hash_offset));
+  return blo_bhead_data_at<IDHash>(bhead, fd->id_deep_hash_offset);
 }
 
 const char *blo_bhead_library_filepath(const FileData *fd, const BHead *bhead)
 {
   BLI_assert(blo_bhead_is_id(bhead) && (bhead->code & 0xFFFF) == ID_LI);
-  if (fd->library_filepath_offset < 0) {
-    return nullptr;
-  }
-  return reinterpret_cast<const char *>(
-      POINTER_OFFSET(bhead, sizeof(*bhead) + fd->library_filepath_offset));
+  return blo_bhead_string_at(bhead, fd->library_filepath_offset, FILE_MAX);
 }
 
 LibraryFlag blo_bhead_library_flag(const FileData *fd, const BHead *bhead)
 {
   BLI_assert(blo_bhead_is_id(bhead) && (bhead->code & 0xFFFF) == ID_LI);
-  if (fd->library_flag_offset < 0) {
-    return LibraryFlag(0);
-  }
-  return LibraryFlag(*reinterpret_cast<const uint16_t *>(
-      POINTER_OFFSET(bhead, sizeof(*bhead) + fd->library_flag_offset)));
+  const uint16_t *flag = blo_bhead_data_at<uint16_t>(bhead, fd->library_flag_offset);
+  return flag ? LibraryFlag(*flag) : LibraryFlag(0);
 }
 
 static void read_blender_header(FileData *fd)
@@ -901,8 +910,11 @@ static bool read_file_dna(FileData *fd, const char **r_error_message)
       }
       /* We can't use read_global because this needs 'DNA1' to be decoded,
        * however the first 4 chars are _always_ the subversion. */
-      const FileGlobal *fg = reinterpret_cast<const FileGlobal *>(&bhead[1]);
       BLI_STATIC_ASSERT(offsetof(FileGlobal, subvstr) == 0, "Must be first: subvstr")
+      if (bhead->len < int64_t(sizeof(FileGlobal::subvstr))) [[unlikely]] {
+        continue;
+      }
+      const FileGlobal *fg = reinterpret_cast<const FileGlobal *>(&bhead[1]);
       char num[5];
       memcpy(num, fg->subvstr, 4);
       num[4] = 0;
@@ -1871,22 +1883,32 @@ static void *read_struct(
 #endif
     }
 
+    /* The block must be large enough to hold the number of structs it claims, otherwise
+     * reconstruction (which strides the block by the file struct size) reads past its end.
+     * Check any head that is not raw data and not a removed struct.
+     * Written as a division to avoid overflow in `nr * struct_size`. */
+    if (bh->SDNAnr != SDNA_RAW_DATA_STRUCT_INDEX && fd->compflags[bh->SDNAnr] != SDNA_CMP_REMOVED)
+    {
+      const int64_t old_struct_size = DNA_struct_size(fd->filesdna.get(), bh->SDNAnr);
+      if (bh->nr < 1 || bh->nr > INT_MAX ||
+          (old_struct_size != 0 && bh->nr > bh->len / old_struct_size)) [[unlikely]]
+      {
+        fd->flags &= ~FD_FLAGS_FILE_OK;
+        if (fd->bmain) {
+          blo_readfile_invalidate(fd, fd->bmain, "Corrupt .blend file, invalid block count");
+        }
+#ifdef USE_BHEAD_READ_ON_DEMAND
+        if (bh_orig != bh) {
+          MEM_delete(BHEADN_FROM_BHEAD(bh));
+        }
+#endif
+        return nullptr;
+      }
+    }
+
     if (fd->compflags[bh->SDNAnr] != SDNA_CMP_REMOVED) {
       const char *alloc_name = get_alloc_name(fd, bh, blockname, id_type_index);
       if (fd->compflags[bh->SDNAnr] == SDNA_CMP_NOT_EQUAL) {
-        /* The block must be large enough to hold the number of structs it claims, otherwise
-         * reconstruction (which strides the block by the file struct size) reads past its end.
-         * Written as a division to avoid overflow in `nr * struct_size`. */
-        const int64_t old_struct_size = DNA_struct_size(fd->filesdna.get(), bh->SDNAnr);
-        if (bh->nr < 0 || (old_struct_size != 0 && bh->nr > bh->len / old_struct_size))
-            [[unlikely]]
-        {
-          fd->flags &= ~FD_FLAGS_FILE_OK;
-          if (fd->bmain) {
-            blo_readfile_invalidate(fd, fd->bmain, "Corrupt .blend file, invalid block count");
-          }
-          return nullptr;
-        }
 #ifdef USE_BHEAD_READ_ON_DEMAND
         if (BHEADN_FROM_BHEAD(bh)->has_data == false) {
           bh = blo_bhead_read_full(fd, bh);
@@ -4985,6 +5007,7 @@ static Main *blo_find_main_for_library_and_idname(FileData *fd,
            * deep_hash. Otherwise, a previous call to `library_id_is_yet_read()` should have
            * returned this ID, and this code should not be reached. */
           BLI_assert((packed_id->lib->flag & LIBRARY_FLAG_IS_EXTERNAL) ||
+                     !blo_bhead_id_deep_hash(fd, id_bhead) ||
                      packed_id->deep_hash != *blo_bhead_id_deep_hash(fd, id_bhead));
           UNUSED_VARS_NDEBUG(packed_id, id_bhead);
           continue;
@@ -6181,9 +6204,11 @@ static void *blo_verify_data_address(FileData *fd,
      *
      * Note we cast to size_t so integer overflow will fail the check. */
     if (size_t(alloc_len) < expected_size) {
-      blo_readfile_invalidate(fd,
-                              (*fd->bmain->split_mains)[fd->bmain->split_mains->size() - 1],
-                              "Corrupt .blend file, unexpected data size.");
+      if (fd->bmain) {
+        blo_readfile_invalidate(fd,
+                                (*fd->bmain->split_mains)[fd->bmain->split_mains->size() - 1],
+                                "Corrupt .blend file, unexpected data size.");
+      }
       /* Return null to trigger a hard-crash rather than allowing readfile code to further access
        * this invalid block of memory.
        *

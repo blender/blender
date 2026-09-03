@@ -101,6 +101,9 @@ static bool blendhandle_load_id_data_and_validate(FileData *fd,
   r_idflag = blo_bhead_id_flag(fd, bhead);
   if (r_library_data) {
     r_library_data->filepath = blo_bhead_library_filepath(fd, bhead);
+    if (!r_library_data->filepath) {
+      return false;
+    }
     r_library_data->flag = blo_bhead_library_flag(fd, bhead);
   }
   /* Do not list (and therefore allow direct linking of) packed data.
