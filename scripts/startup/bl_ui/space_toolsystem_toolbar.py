@@ -716,6 +716,7 @@ class _defs_view3d_add:
 
             props = tool.operator_properties("mesh.primitive_quad_sphere_add")
             layout.prop(props, "segments")
+            layout.prop(props, "method")
 
             if show_extra:
                 layout.popover("TOPBAR_PT_tool_settings_extra", text="...")
