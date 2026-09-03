@@ -41,9 +41,9 @@ enum ePointCloud_Flag : int {
 };
 ENUM_OPERATORS(ePointCloud_Flag)
 
-enum ePointCloud_Type : short {
-  PT_TYPE_POINTS = 0,
-  PT_TYPE_GSPLAT = 1,
+enum class PointCloudType : short {
+  Points = 0,
+  GSplat = 1,
 };
 
 struct PointCloud {
@@ -55,7 +55,7 @@ struct PointCloud {
   ID id;
   struct AnimData *adt = nullptr; /* animation data (must be immediately after id) */
 
-  ePointCloud_Type type = PT_TYPE_POINTS;
+  PointCloudType type = PointCloudType::Points;
   short _pad1[3] = {};
 
   ePointCloud_Flag flag = {};

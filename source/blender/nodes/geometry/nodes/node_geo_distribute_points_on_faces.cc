@@ -550,7 +550,7 @@ static PointCloud *create_points_random(const Mesh &mesh,
   Vector<int> tri_indices;
   sample_bary_coords(mesh, seed, points_by_tri, positions, bary_coords, tri_indices);
 
-  PointCloud *pointcloud = bke::pointcloud_new_no_attributes(PT_TYPE_POINTS, positions.size());
+  PointCloud *pointcloud = bke::pointcloud_new_no_attributes(PointCloudType::Points, positions.size());
   bke::MutableAttributeAccessor point_attributes = pointcloud->attributes_for_write();
   VectorData<float3, GuardedAllocator> positions_data = positions.release();
   const auto *attr_data = implicit_sharing::info_for_mem_free(positions_data.data);
@@ -607,7 +607,7 @@ static PointCloud *create_points_poisson_disk(const Mesh &mesh,
     return nullptr;
   }
 
-  PointCloud *pointcloud = bke::pointcloud_new_no_attributes(PT_TYPE_POINTS, positions.size());
+  PointCloud *pointcloud = bke::pointcloud_new_no_attributes(PointCloudType::Points, positions.size());
   bke::MutableAttributeAccessor point_attributes = pointcloud->attributes_for_write();
   pointcloud->positions_for_write().copy_from(positions);
   point_attributes.add<float>("radius", bke::AttrDomain::Point, bke::AttributeInitValue(0.05f));

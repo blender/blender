@@ -362,7 +362,7 @@ PointCloud *read_spz_ngsp_file(FILE *file, ReportList *reports)
     return nullptr;
   }
 
-  PointCloud *pointclud = BKE_pointcloud_new_nomain(PT_TYPE_GSPLAT, header.num_points);
+  PointCloud *pointclud = BKE_pointcloud_new_nomain(PointCloudType::GSplat, header.num_points);
   gsplat::GsplatMutableAttributeAccessor accessor(*pointclud, header.sh_degree);
 
   if (!read_spz(file, header, stream_infos, reports, accessor)) {

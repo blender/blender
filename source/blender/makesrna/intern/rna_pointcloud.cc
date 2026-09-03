@@ -167,12 +167,12 @@ static void rna_def_point(BlenderRNA *brna)
 static void rna_def_pointcloud(BlenderRNA *brna)
 {
   static const EnumPropertyItem type_items[] = {
-      {PT_TYPE_POINTS,
+      {int(PointCloudType::Points),
        "POINTS",
        0,
        "Points",
        "Simple point cloud represented by points with position and radius"},
-      {PT_TYPE_GSPLAT,
+      {int(PointCloudType::GSplat),
        "GAUSSIAN_SPLAT",
        0,
        "3D Gaussian Splat",

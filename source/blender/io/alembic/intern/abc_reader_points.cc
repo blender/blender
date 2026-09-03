@@ -266,7 +266,7 @@ void AbcPointsReader::read_geometry(bke::GeometrySet &geometry_set,
   }
 
   if (pointcloud->totpoint != positions->size()) {
-    pointcloud = BKE_pointcloud_new_nomain(PT_TYPE_POINTS, positions->size());
+    pointcloud = BKE_pointcloud_new_nomain(PointCloudType::Points, positions->size());
   }
 
   bke::MutableAttributeAccessor attribute_accessor = pointcloud->attributes_for_write();

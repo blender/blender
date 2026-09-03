@@ -222,7 +222,7 @@ PointCloud *BKE_pointcloud_add(Main *bmain, const char *name)
   return pointcloud;
 }
 
-PointCloud *BKE_pointcloud_new_nomain(const ePointCloud_Type type, const int totpoint)
+PointCloud *BKE_pointcloud_new_nomain(const PointCloudType type, const int totpoint)
 {
   PointCloud *pointcloud = static_cast<PointCloud *>(BKE_libblock_alloc(
       nullptr, ID_PT, BKE_idtype_idcode_to_name(ID_PT), LIB_ID_CREATE_LOCALIZE));
@@ -476,7 +476,7 @@ void BKE_pointcloud_batch_cache_free(PointCloud *pointcloud)
 
 namespace bke {
 
-PointCloud *pointcloud_new_no_attributes(const ePointCloud_Type type, const int totpoint)
+PointCloud *pointcloud_new_no_attributes(const PointCloudType type, const int totpoint)
 {
   PointCloud *pointcloud = BKE_id_new_nomain<PointCloud>(nullptr);
   pointcloud->type = type;

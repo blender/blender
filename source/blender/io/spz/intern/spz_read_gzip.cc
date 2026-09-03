@@ -180,7 +180,7 @@ PointCloud *read_spz_gzip_compressed_file(FILE *file, ReportList *reports)
     return nullptr;
   }
 
-  PointCloud *point_cloud = BKE_pointcloud_new_nomain(PT_TYPE_GSPLAT, header.num_points);
+  PointCloud *point_cloud = BKE_pointcloud_new_nomain(PointCloudType::GSplat, header.num_points);
   gsplat::GsplatMutableAttributeAccessor accessor(*point_cloud, header.sh_degree);
 
   const MutableSpan<float3> positions = accessor.positions_for_write();

@@ -67,7 +67,7 @@ void USDPointsReader::read_geometry(bke::GeometrySet &geometry_set,
 
   if (pointcloud->totpoint != usd_positions.size()) {
     /* Size changed so we must reallocate. */
-    pointcloud = BKE_pointcloud_new_nomain(PT_TYPE_POINTS, usd_positions.size());
+    pointcloud = BKE_pointcloud_new_nomain(PointCloudType::Points, usd_positions.size());
   }
 
   /* Update point positions and radii */
