@@ -410,6 +410,7 @@ void Tree::ray_intersect_all(const Ray &ray, FunctionRef<void(const RayHit &)> f
 
   RTCIntersectArguments args;
   rtcInitIntersectArguments(&args);
+  args.flags = RTCRayQueryFlags(args.flags | RTC_RAY_QUERY_FLAG_INVOKE_ARGUMENT_FILTER);
   args.context = &ctx.rtc_context;
   args.filter = [](const RTCFilterFunctionNArguments *filter_args) {
     AllHitsContext *ctx = reinterpret_cast<AllHitsContext *>(filter_args->context);
