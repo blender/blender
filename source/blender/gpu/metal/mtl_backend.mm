@@ -418,6 +418,12 @@ bool MTLBackend::metal_is_supported()
 
   id<MTLDevice> device = MTLCreateSystemDefaultDevice();
 
+  /* #163272: MTLCreateSystemDefaultDevice() may return nil in sandboxed or non-GUI contexts. */
+  if (device == nil) {
+    CLOG_WARN(&LOG, "Could not initialize Metal: no default Metal device available.");
+    return false;
+  }
+
   /* Debug: Enable low power GPU with Environment Var: METAL_FORCE_INTEL. */
   static const char *forceIntelStr = getenv("METAL_FORCE_INTEL");
   bool forceIntel = forceIntelStr ? (atoi(forceIntelStr) != 0) : false;
