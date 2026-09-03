@@ -82,3 +82,9 @@ Extracting the thumbnail with `blender-thumbnailer` overflowed the image size (c
 
 An object preview's pixel block has struct type `ListBase`.
 Loading the preview from the file browser read it as pixels (buffer overflow).
+
+`invalid_node_tree_failed_read.blend`
+-------------------------------------
+
+A node group is followed by an ID block with an out-of-range SDNA struct index.
+Freeing the node group after the failed read accessed nodes without types (crash).
