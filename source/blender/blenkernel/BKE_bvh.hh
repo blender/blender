@@ -78,9 +78,9 @@ class Tree {
   };
 
  private:
-  /** Embree device and scene. */
-  RTCDeviceTy *rtc_device_ = nullptr;
-  RTCSceneTy *rtc_scene_ = nullptr;
+  /** Embree device and scene. Unused when Embree is not available. */
+  [[maybe_unused]] RTCDeviceTy *rtc_device_ = nullptr;
+  [[maybe_unused]] RTCSceneTy *rtc_scene_ = nullptr;
   /**
    * Map indices from each geometry in the Embree scene to another set of indices. Used e.g. when
    * the tree references a subset of a mesh but must keep track of the original global indices.
