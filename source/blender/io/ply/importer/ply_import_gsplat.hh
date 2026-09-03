@@ -19,7 +19,7 @@ namespace io::ply {
 
 /**
  * Converts the #PlyData data-structure to a point cloud that represents gsplat.
- * \return A new mesh that can be used inside blender.
+ * \return A new pointcloud that can be used inside blender.
  *
  * NOTE: #PlyData must represent gaussian splat (contain all related attributes).
  */
