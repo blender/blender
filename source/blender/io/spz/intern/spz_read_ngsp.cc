@@ -89,7 +89,7 @@ class BufferedStreamReader {
   }
 };
 
-/* Helper class that allows to read a Gzip-compressed file from disk with the minimum amount of
+/* Helper class that allows reading a Gzip-compressed file from disk with the minimum amount of
  * extra memory usage, but allowing to easily access data of specific size. */
 class StreamedZstdReader {
   BufferedStreamReader buffered_reader_;
