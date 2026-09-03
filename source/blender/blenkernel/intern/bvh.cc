@@ -6,6 +6,9 @@
  * \ingroup bke
  */
 
+#include <cmath>
+#include <limits>
+
 #include "BLI_array_utils.hh"
 #include "BLI_index_mask.hh"
 #include "BLI_kdopbvh.hh"
@@ -37,10 +40,12 @@ Tree::Tree() = default;
 
 Tree::Tree(Tree &&other)
 {
+  elem_type_ = other.elem_type_;
 #ifdef WITH_EMBREE
   rtc_device_ = std::exchange(other.rtc_device_, nullptr);
   rtc_scene_ = std::exchange(other.rtc_scene_, nullptr);
   index_map_by_geom_ = std::move(other.index_map_by_geom_);
+  user_data_by_geom_ = std::move(other.user_data_by_geom_);
 #else /* WITH_EMBREE */
   fallback_tree_ = std::move(other.fallback_tree_);
 #endif
@@ -63,6 +68,7 @@ Tree::~Tree()
   rtcReleaseDevice(this->rtc_device_);
   this->rtc_device_ = nullptr;
   index_map_by_geom_.clear_and_shrink();
+  user_data_by_geom_.clear_and_shrink();
 #else /* WITH_EMBREE */
   this->fallback_tree_.reset();
 #endif
@@ -101,6 +107,29 @@ struct BvhBuildContext {
   RTCScene scene;
   RTCBuildQuality build_quality;
 };
+
+/** Create the Embree device and scene used to build every tree. */
+static BvhBuildContext build_context_create()
+{
+  RTCDevice device = rtcNewDevice("verbose=0");
+  rtcSetDeviceErrorFunction(device, rtc_error_func, nullptr);
+  rtcSetDeviceMemoryMonitorFunction(device, rtc_memory_monitor_func, nullptr);
+
+  RTCScene scene = rtcNewScene(device);
+  const RTCSceneFlags scene_flags = RTCSceneFlags(RTC_SCENE_FLAG_ROBUST |
+                                                  RTC_SCENE_FLAG_FILTER_FUNCTION_IN_ARGUMENTS);
+  rtcSetSceneFlags(scene, scene_flags);
+  const RTCBuildQuality build_quality = RTC_BUILD_QUALITY_MEDIUM;
+  rtcSetSceneBuildQuality(scene, build_quality);
+
+  return BvhBuildContext{device, scene, build_quality};
+}
+
+static void build_context_commit(const BvhBuildContext &ctx)
+{
+  rtcSetSceneProgressMonitorFunction(ctx.scene, rtc_progress_func, nullptr);
+  rtcCommitScene(ctx.scene);
+}
 
 static bool all_faces_are_triangles(const Mesh &mesh)
 {
@@ -148,7 +177,7 @@ static void add_mesh_faces(const BvhBuildContext &ctx, const int id, const Mesh 
 }
 
 static void add_mesh_faces(const BvhBuildContext &ctx,
-                           Vector<Array<int, 0>> &index_map_by_geom,
+                           Vector<Array<int, 0>, 1> &index_map_by_geom,
                            const int id,
                            const Mesh &mesh,
                            const IndexMask &face_mask,
@@ -222,20 +251,62 @@ static void add_mesh_faces(const BvhBuildContext &ctx,
   rtcReleaseGeometry(geom_id);
 }
 
+static void points_bounds_func(const RTCBoundsFunctionArguments *args)
+{
+  const auto &data = *static_cast<const Tree::UserGeometryData *>(args->geometryUserPtr);
+  const float3 &position = data.positions[data.element(args->primID)];
+  args->bounds_o->lower_x = position.x;
+  args->bounds_o->lower_y = position.y;
+  args->bounds_o->lower_z = position.z;
+  args->bounds_o->upper_x = position.x;
+  args->bounds_o->upper_y = position.y;
+  args->bounds_o->upper_z = position.z;
+}
+
+static void edges_bounds_func(const RTCBoundsFunctionArguments *args)
+{
+  const auto &data = *static_cast<const Tree::UserGeometryData *>(args->geometryUserPtr);
+  const int2 edge = data.edges[data.element(args->primID)];
+  const float3 min = math::min(data.positions[edge[0]], data.positions[edge[1]]);
+  const float3 max = math::max(data.positions[edge[0]], data.positions[edge[1]]);
+  args->bounds_o->lower_x = min.x;
+  args->bounds_o->lower_y = min.y;
+  args->bounds_o->lower_z = min.z;
+  args->bounds_o->upper_x = max.x;
+  args->bounds_o->upper_y = max.y;
+  args->bounds_o->upper_z = max.z;
+}
+
+/**
+ * Add a geometry with bounds defined by a callback, referencing the geometry data directly.
+ * Embree's point and curve geometry types are not traversed by closest point queries (see
+ * the "supported primitives" in `rtcPointQuery` documentation), so user geometry is needed for
+ * points and edges instead. Because only our own callbacks read the positions, they don't have to
+ * be copied into an Embree vertex buffer.
+ */
+static void add_user_geometry(const BvhBuildContext &ctx,
+                              const int id,
+                              const int elements_num,
+                              const Tree::UserGeometryData &user_data,
+                              const RTCBoundsFunction bounds_func)
+{
+  RTCGeometry geom_id = rtcNewGeometry(ctx.device, RTC_GEOMETRY_TYPE_USER);
+  rtcSetGeometryBuildQuality(geom_id, ctx.build_quality);
+  rtcSetGeometryUserPrimitiveCount(geom_id, uint32_t(elements_num));
+  rtcSetGeometryUserData(geom_id, const_cast<Tree::UserGeometryData *>(&user_data));
+  rtcSetGeometryBoundsFunction(geom_id, bounds_func, nullptr);
+
+  rtcCommitGeometry(geom_id);
+  rtcAttachGeometryByID(ctx.scene, geom_id, id);
+  rtcReleaseGeometry(geom_id);
+}
+
 #else /* WITH_EMBREE */
 
 struct MeshFallbackTree : public Tree::FallbackTree {
   BVHTreeFromMesh bvh_from_mesh;
 
-  MeshFallbackTree(const Mesh &mesh, const IndexMask &mask, const bool map_global_indices)
-  {
-    bvh_from_mesh = bvhtree_from_mesh_corner_tris_ex(mesh.vert_positions(),
-                                                     mesh.faces(),
-                                                     mesh.corner_verts(),
-                                                     mesh.corner_tris(),
-                                                     mask,
-                                                     map_global_indices);
-  }
+  MeshFallbackTree(BVHTreeFromMesh bvh_from_mesh) : bvh_from_mesh(std::move(bvh_from_mesh)) {}
   ~MeshFallbackTree() override = default;
 };
 
@@ -258,26 +329,21 @@ Tree Tree::from_tris(const Mesh &mesh, const IndexMask &face_mask, const bool ma
   }
   Tree tree;
 #ifdef WITH_EMBREE
-  tree.rtc_device_ = rtcNewDevice("verbose=0");
-
-  rtcSetDeviceErrorFunction(tree.rtc_device_, rtc_error_func, nullptr);
-  rtcSetDeviceMemoryMonitorFunction(tree.rtc_device_, rtc_memory_monitor_func, nullptr);
-
-  tree.rtc_scene_ = rtcNewScene(tree.rtc_device_);
-  const RTCSceneFlags scene_flags = RTCSceneFlags(RTC_SCENE_FLAG_ROBUST |
-                                                  RTC_SCENE_FLAG_FILTER_FUNCTION_IN_ARGUMENTS);
-  rtcSetSceneFlags(tree.rtc_scene_, scene_flags);
-  RTCBuildQuality build_quality = RTC_BUILD_QUALITY_MEDIUM;
-  rtcSetSceneBuildQuality(tree.rtc_scene_, build_quality);
-
-  BvhBuildContext ctx{tree.rtc_device_, tree.rtc_scene_, build_quality};
+  const BvhBuildContext ctx = build_context_create();
+  tree.rtc_device_ = ctx.device;
+  tree.rtc_scene_ = ctx.scene;
 
   add_mesh_faces(ctx, tree.index_map_by_geom_, 0, mesh, face_mask, map_global_indices);
 
-  rtcSetSceneProgressMonitorFunction(tree.rtc_scene_, rtc_progress_func, nullptr);
-  rtcCommitScene(tree.rtc_scene_);
+  build_context_commit(ctx);
 #else  /* WITH_EMBREE */
-  tree.fallback_tree_ = std::make_unique<MeshFallbackTree>(mesh, face_mask, map_global_indices);
+  tree.fallback_tree_ = std::make_unique<MeshFallbackTree>(
+      bvhtree_from_mesh_corner_tris_ex(mesh.vert_positions(),
+                                       mesh.faces(),
+                                       mesh.corner_verts(),
+                                       mesh.corner_tris(),
+                                       face_mask,
+                                       map_global_indices));
 #endif /* WITH_EMBREE */
 
   return tree;
@@ -287,27 +353,84 @@ Tree Tree::from_single_mesh(const Mesh &mesh)
 {
   Tree tree;
 #ifdef WITH_EMBREE
-  tree.rtc_device_ = rtcNewDevice("verbose=0");
-
-  rtcSetDeviceErrorFunction(tree.rtc_device_, rtc_error_func, nullptr);
-  rtcSetDeviceMemoryMonitorFunction(tree.rtc_device_, rtc_memory_monitor_func, nullptr);
-
-  tree.rtc_scene_ = rtcNewScene(tree.rtc_device_);
-  const RTCSceneFlags scene_flags = RTCSceneFlags(RTC_SCENE_FLAG_ROBUST |
-                                                  RTC_SCENE_FLAG_FILTER_FUNCTION_IN_ARGUMENTS);
-  rtcSetSceneFlags(tree.rtc_scene_, scene_flags);
-  RTCBuildQuality build_quality = RTC_BUILD_QUALITY_MEDIUM;
-  rtcSetSceneBuildQuality(tree.rtc_scene_, build_quality);
-
-  BvhBuildContext ctx{tree.rtc_device_, tree.rtc_scene_, build_quality};
+  const BvhBuildContext ctx = build_context_create();
+  tree.rtc_device_ = ctx.device;
+  tree.rtc_scene_ = ctx.scene;
 
   add_mesh_faces(ctx, 0, mesh);
   tree.index_map_by_geom_.append({});
 
-  rtcSetSceneProgressMonitorFunction(tree.rtc_scene_, rtc_progress_func, nullptr);
-  rtcCommitScene(tree.rtc_scene_);
+  build_context_commit(ctx);
 #else  /* WITH_EMBREE */
-  tree.fallback_tree_ = std::make_unique<MeshFallbackTree>(mesh, IndexMask(mesh.faces_num), true);
+  tree.fallback_tree_ = std::make_unique<MeshFallbackTree>(
+      bvhtree_from_mesh_corner_tris_ex(mesh.vert_positions(),
+                                       mesh.faces(),
+                                       mesh.corner_verts(),
+                                       mesh.corner_tris(),
+                                       IndexMask(mesh.faces_num),
+                                       true));
+#endif /* WITH_EMBREE */
+
+  return tree;
+}
+
+#ifdef WITH_EMBREE
+
+static Array<int, 0> global_index_map_create(const IndexMask &mask, const int elements_num)
+{
+  Array<int, 0> index_map;
+  if (mask.size() != elements_num) {
+    index_map.reinitialize(mask.size());
+    mask.to_indices<int>(index_map);
+  }
+  return index_map;
+}
+
+#endif /* WITH_EMBREE */
+
+Tree Tree::from_points(const Span<float3> positions, const IndexMask &mask)
+{
+  Tree tree;
+  tree.elem_type_ = ElemType::Points;
+#ifdef WITH_EMBREE
+  const BvhBuildContext ctx = build_context_create();
+  tree.rtc_device_ = ctx.device;
+  tree.rtc_scene_ = ctx.scene;
+
+  tree.index_map_by_geom_.append(global_index_map_create(mask, positions.size()));
+  tree.user_data_by_geom_.append(std::make_unique<UserGeometryData>(
+      UserGeometryData{positions, {}, tree.index_map_by_geom_.last()}));
+
+  add_user_geometry(ctx, 0, mask.size(), *tree.user_data_by_geom_.last(), points_bounds_func);
+
+  build_context_commit(ctx);
+#else  /* WITH_EMBREE */
+  tree.fallback_tree_ = std::make_unique<MeshFallbackTree>(
+      bvhtree_from_mesh_verts_ex(positions, mask));
+#endif /* WITH_EMBREE */
+
+  return tree;
+}
+
+Tree Tree::from_edges(const Span<float3> positions, const Span<int2> edges, const IndexMask &mask)
+{
+  Tree tree;
+  tree.elem_type_ = ElemType::Edges;
+#ifdef WITH_EMBREE
+  const BvhBuildContext ctx = build_context_create();
+  tree.rtc_device_ = ctx.device;
+  tree.rtc_scene_ = ctx.scene;
+
+  tree.index_map_by_geom_.append(global_index_map_create(mask, edges.size()));
+  tree.user_data_by_geom_.append(std::make_unique<UserGeometryData>(
+      UserGeometryData{positions, edges, tree.index_map_by_geom_.last()}));
+
+  add_user_geometry(ctx, 0, mask.size(), *tree.user_data_by_geom_.last(), edges_bounds_func);
+
+  build_context_commit(ctx);
+#else  /* WITH_EMBREE */
+  tree.fallback_tree_ = std::make_unique<MeshFallbackTree>(
+      bvhtree_from_mesh_edges_ex(positions, edges, mask));
 #endif /* WITH_EMBREE */
 
   return tree;
@@ -315,6 +438,7 @@ Tree Tree::from_single_mesh(const Mesh &mesh)
 
 std::optional<RayHit> Tree::ray_intersect(const Ray &ray) const
 {
+  BLI_assert(elem_type_ == ElemType::Tris);
 #ifdef WITH_EMBREE
   RTCRayHit rtc_hit;
   rtc_hit.ray.org_x = ray.origin.x;
@@ -376,6 +500,7 @@ std::optional<RayHit> Tree::ray_intersect(const Ray &ray) const
 
 void Tree::ray_intersect_all(const Ray &ray, FunctionRef<void(const RayHit &)> fn) const
 {
+  BLI_assert(elem_type_ == ElemType::Tris);
 #ifdef WITH_EMBREE
   struct AllHitsContext {
     RTCRayQueryContext rtc_context;
@@ -482,9 +607,31 @@ void Tree::ray_intersect_all(const Ray &ray, FunctionRef<void(const RayHit &)> f
 
 struct ClosestPointUserData {
   RTCScene rtc_scene;
+  Tree::ElemType elem_type;
   ClosestPointResult &result;
+  /**
+   * The squared distance to the closest element found so far. Embree's #RTCPointQuery::radius is
+   * not squared, and converting between the two is lossy, so the exact comparisons in
+   * #closest_point_fn use this value instead (see #radius_for_distance_sq).
+   */
+  float distance_sq;
   bool has_result = false;
 };
+
+/**
+ * Embree stores the search radius un-squared but culls nodes with `radius * radius`, comparing
+ * against the squared distance to the node bounds. Squaring the distance can result with a float
+ * one ULP or two below `distance_sq`, which culls a bit too eagerly. Return the smallest radius
+ * that passes this comparison instead, so that every element at the same distance is processed.
+ */
+static float radius_for_distance_sq(const float distance_sq)
+{
+  float radius = std::sqrt(distance_sq);
+  while (radius * radius < distance_sq) {
+    radius = std::nextafter(radius, std::numeric_limits<float>::infinity());
+  }
+  return radius;
+}
 
 static bool closest_point_fn(RTCPointQueryFunctionArguments *args)
 {
@@ -492,26 +639,47 @@ static bool closest_point_fn(RTCPointQueryFunctionArguments *args)
   const RTCScene scene = user_data.rtc_scene;
   RTCGeometry geom = rtcGetGeometry(scene, args->geomID);
 
-  const float3 *positions = static_cast<const float3 *>(
-      rtcGetGeometryBufferData(geom, RTC_BUFFER_TYPE_VERTEX, 0));
-  const uint3 *indices = static_cast<const uint3 *>(
-      rtcGetGeometryBufferData(geom, RTC_BUFFER_TYPE_INDEX, 0));
-  const uint3 tri = indices[args->primID];
-
   float3 nearest_position;
-  float3 bary_coord;
-  closest_on_tri_to_point_v3(nearest_position,
-                             bary_coord,
-                             &args->query->x,
-                             positions[tri[0]],
-                             positions[tri[1]],
-                             positions[tri[2]]);
+  float3 bary_coord(0.0f);
+  switch (user_data.elem_type) {
+    case Tree::ElemType::Points: {
+      const auto &geom_data = *static_cast<const Tree::UserGeometryData *>(
+          rtcGetGeometryUserData(geom));
+      nearest_position = geom_data.positions[geom_data.element(args->primID)];
+      break;
+    }
+    case Tree::ElemType::Edges: {
+      const auto &geom_data = *static_cast<const Tree::UserGeometryData *>(
+          rtcGetGeometryUserData(geom));
+      const int2 edge = geom_data.edges[geom_data.element(args->primID)];
+      closest_to_line_segment_v3(nearest_position,
+                                 &args->query->x,
+                                 geom_data.positions[edge[0]],
+                                 geom_data.positions[edge[1]]);
+      break;
+    }
+    case Tree::ElemType::Tris: {
+      const float3 *positions = static_cast<const float3 *>(
+          rtcGetGeometryBufferData(geom, RTC_BUFFER_TYPE_VERTEX, 0));
+      const uint3 *indices = static_cast<const uint3 *>(
+          rtcGetGeometryBufferData(geom, RTC_BUFFER_TYPE_INDEX, 0));
+      const uint3 tri = indices[args->primID];
 
-  const float distance = math::distance(float3(&args->query->x), nearest_position);
-  if (distance > args->query->radius) {
+      closest_on_tri_to_point_v3(nearest_position,
+                                 bary_coord,
+                                 &args->query->x,
+                                 positions[tri[0]],
+                                 positions[tri[1]],
+                                 positions[tri[2]]);
+      break;
+    }
+  }
+
+  const float distance_sq = math::distance_squared(float3(&args->query->x), nearest_position);
+  if (distance_sq > user_data.distance_sq) {
     return false;
   }
-  if (distance == args->query->radius) {
+  if (distance_sq == user_data.distance_sq) {
     if (!user_data.has_result) {
       /* The initial search radius is exclusive. */
       return false;
@@ -522,13 +690,12 @@ static bool closest_point_fn(RTCPointQueryFunctionArguments *args)
     if (args->geomID > user_data.result.geomID) {
       return false;
     }
-    if (args->geomID == uint32_t(user_data.result.geomID) &&
-        args->primID >= uint32_t(user_data.result.index))
-    {
+    if (args->geomID == user_data.result.geomID && args->primID >= user_data.result.index) {
       return false;
     }
   }
-  args->query->radius = distance;
+  user_data.distance_sq = distance_sq;
+  args->query->radius = radius_for_distance_sq(distance_sq);
   user_data.result.position = nearest_position;
   user_data.result.bary_coord = bary_coord;
   user_data.result.index = args->primID;
@@ -552,7 +719,7 @@ std::optional<ClosestPointResult> Tree::closest_point(const float3 &point,
   RTCPointQueryContext context{};
   rtcInitPointQueryContext(&context);
   ClosestPointResult result;
-  ClosestPointUserData user_data(this->rtc_scene_, result);
+  ClosestPointUserData user_data(this->rtc_scene_, elem_type_, result, radius * radius);
   if (!rtcPointQuery(this->rtc_scene_, &query, &context, closest_point_fn, &user_data)) {
     return std::nullopt;
   }
@@ -576,8 +743,16 @@ std::optional<ClosestPointResult> Tree::closest_point(const float3 &point,
 
   ClosestPointResult result;
   result.position = float3(nearest.co);
-  result.bary_coord = bke::mesh_surface_sample::compute_bary_coord_in_triangle(
-      data->vert_positions, data->corner_verts, data->corner_tris[nearest.index], result.position);
+  if (elem_type_ == ElemType::Tris) {
+    result.bary_coord = bke::mesh_surface_sample::compute_bary_coord_in_triangle(
+        data->vert_positions,
+        data->corner_verts,
+        data->corner_tris[nearest.index],
+        result.position);
+  }
+  else {
+    result.bary_coord = float3(0.0f);
+  }
   result.index = nearest.index;
   result.geomID = 0;
   return result;

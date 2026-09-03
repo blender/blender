@@ -186,7 +186,6 @@ struct MeshRuntime {
   /** Cache for triangle to original face index map, accessed with #Mesh::corner_tri_faces(). */
   SharedCache<Array<int>> corner_tri_faces_cache;
 
-  SharedCache<std::unique_ptr<BVHTree, BVHTreeDeleter>> bvh_cache_verts;
   SharedCache<std::unique_ptr<BVHTree, BVHTreeDeleter>> bvh_cache_edges;
   SharedCache<std::unique_ptr<BVHTree, BVHTreeDeleter>> bvh_cache_faces;
   SharedCache<std::unique_ptr<BVHTree, BVHTreeDeleter>> bvh_cache_corner_tris;
@@ -196,7 +195,9 @@ struct MeshRuntime {
   SharedCache<std::unique_ptr<BVHTree, BVHTreeDeleter>> bvh_cache_loose_edges;
   SharedCache<std::unique_ptr<BVHTree, BVHTreeDeleter>> bvh_cache_loose_edges_no_hidden;
 
-  SharedCache<bke::bvh::Tree> bvh_embree_cache;
+  SharedCache<bke::bvh::Tree> bvh_embree_tris_cache;
+  SharedCache<bke::bvh::Tree> bvh_embree_verts_cache;
+  SharedCache<bke::bvh::Tree> bvh_embree_edges_cache;
 
   SharedCache<std::optional<int>> max_material_index;
   SharedCache<VectorSet<int>> used_material_indices;

@@ -22,6 +22,7 @@
 #include "BLI_math_geom_c.hh"
 #include "BLI_math_matrix_c.hh"
 #include "BLI_math_solvers.hh"
+#include "BLI_math_vector.hh"
 #include "BLI_math_vector_c.hh"
 #include "BLI_utildefines.hh"
 
@@ -111,9 +112,8 @@ bool BKE_shrinkwrap_init_tree(
   data->sharp_faces = *attributes.lookup<bool>("sharp_face", AttrDomain::Face);
 
   if (shrinkType == MOD_SHRINKWRAP_NEAREST_VERTEX) {
-    data->treeData = mesh->bvh_verts();
-    data->bvh = data->treeData.tree;
-    return data->bvh != nullptr;
+    data->vert_tree = &mesh->bvh_verts();
+    return true;
   }
 
   if (mesh->faces_num <= 0) {
@@ -295,12 +295,11 @@ const ShrinkwrapBoundaryData &boundary_cache_ensure(const Mesh &mesh)
  * for each vertex performs a nearest vertex search on the tree.
  */
 static void shrinkwrap_calc_nearest_vertex_cb_ex(ShrinkwrapCalcData *calc,
-                                                 bke::BVHTreeFromMesh *treeData,
-                                                 const int i,
-                                                 BVHTreeNearest *nearest)
+                                                 const bke::bvh::Tree &tree,
+                                                 const int i)
 {
   float *co = calc->vertexCos[i];
-  float tmp_co[3];
+  float3 tmp_co;
   float weight = BKE_defvert_array_find_weight_safe(
       calc->dvert, i, calc->vgroup, calc->invert_vgroup);
 
@@ -310,38 +309,27 @@ static void shrinkwrap_calc_nearest_vertex_cb_ex(ShrinkwrapCalcData *calc,
 
   /* Convert the vertex to tree coordinates */
   if (calc->vert_positions) {
-    copy_v3_v3(tmp_co, calc->vert_positions[i]);
+    tmp_co = calc->vert_positions[i];
   }
   else {
-    copy_v3_v3(tmp_co, co);
+    tmp_co = float3(co);
   }
   BLI_space_transform_apply(&calc->local2target, tmp_co);
 
-  /* Use local proximity heuristics (to reduce the nearest search)
-   *
-   * If we already had an hit before.. we assume this vertex is going to have a close hit to that
-   * other vertex so we can initiate the "nearest.dist" with the expected value to that last hit.
-   * This will lead in pruning of the search tree. */
-  if (nearest->index != -1) {
-    nearest->dist_sq = len_squared_v3v3(tmp_co, nearest->co);
-  }
-  else {
-    nearest->dist_sq = FLT_MAX;
-  }
-
-  BLI_bvhtree_find_nearest(treeData->tree, tmp_co, nearest, treeData->nearest_callback, treeData);
+  const std::optional<bke::bvh::ClosestPointResult> nearest = tree.closest_point(tmp_co);
 
   /* Found the nearest vertex */
-  if (nearest->index != -1) {
+  if (nearest) {
     /* Adjusting the vertex weight,
      * so that after interpolating it keeps a certain distance from the nearest position */
-    if (nearest->dist_sq > FLT_EPSILON) {
-      const float dist = sqrtf(nearest->dist_sq);
+    const float dist_sq = math::distance_squared(tmp_co, nearest->position);
+    if (dist_sq > FLT_EPSILON) {
+      const float dist = sqrtf(dist_sq);
       weight *= (dist - calc->keepDist) / dist;
     }
 
     /* Convert the coordinates back to mesh coordinates */
-    copy_v3_v3(tmp_co, nearest->co);
+    tmp_co = nearest->position;
     BLI_space_transform_invert(&calc->local2target, tmp_co);
 
     interp_v3_v3v3(co, co, tmp_co, weight); /* linear interpolation */
@@ -350,12 +338,10 @@ static void shrinkwrap_calc_nearest_vertex_cb_ex(ShrinkwrapCalcData *calc,
 
 static void shrinkwrap_calc_nearest_vertex(ShrinkwrapCalcData *calc)
 {
+  const bke::bvh::Tree &tree = *calc->tree->vert_tree;
   threading::parallel_for(IndexRange(calc->numVerts), 512, [&](const IndexRange range) {
-    BVHTreeNearest nearest{};
-    nearest.index = -1;
-    nearest.dist_sq = FLT_MAX;
     for (const int64_t i : range) {
-      shrinkwrap_calc_nearest_vertex_cb_ex(calc, &calc->tree->treeData, int(i), &nearest);
+      shrinkwrap_calc_nearest_vertex_cb_ex(calc, tree, int(i));
     }
   });
 }
@@ -1007,6 +993,17 @@ void BKE_shrinkwrap_find_nearest_surface(ShrinkwrapTreeData *tree,
                                          int type)
 {
   bke::BVHTreeFromMesh *treeData = &tree->treeData;
+
+  if (type == MOD_SHRINKWRAP_NEAREST_VERTEX) {
+    const std::optional<bke::bvh::ClosestPointResult> result = tree->vert_tree->closest_point(
+        co, sqrtf(nearest->dist_sq));
+    if (result) {
+      nearest->index = int(result->index);
+      nearest->dist_sq = math::distance_squared(float3(co), result->position);
+      copy_v3_v3(nearest->co, result->position);
+    }
+    return;
+  }
 
   if (type == MOD_SHRINKWRAP_TARGET_PROJECT) {
 #ifdef TRACE_TARGET_PROJECT

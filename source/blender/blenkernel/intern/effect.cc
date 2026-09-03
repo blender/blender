@@ -27,6 +27,7 @@
 #include "BLI_ghash.hh"
 #include "BLI_listbase.hh"
 #include "BLI_math_base_safe.hh"
+#include "BLI_math_geom_c.hh"
 #include "BLI_math_matrix_c.hh"
 #include "BLI_math_rotation_c.hh"
 #include "BLI_math_vector_c.hh"
@@ -37,6 +38,7 @@
 #include "BLI_utildefines.hh"
 
 #include "BKE_anim_path.h" /* needed for where_on_path */
+#include "BKE_bvh.hh"
 #include "BKE_bvhutils.hh"
 #include "BKE_collection.hh"
 #include "BKE_collision.h"
@@ -646,35 +648,51 @@ bool closest_point_on_surface(SurfaceModifierData *surmd,
                               float surface_nor[3],
                               float surface_vel[3])
 {
-  bke::BVHTreeFromMesh *bvhtree = surmd->runtime.bvhtree;
-  BVHTreeNearest nearest;
-
-  nearest.index = -1;
-  nearest.dist_sq = FLT_MAX;
-
-  BLI_bvhtree_find_nearest(bvhtree->tree, co, &nearest, bvhtree->nearest_callback, bvhtree);
-
-  if (nearest.index != -1) {
-    copy_v3_v3(surface_co, nearest.co);
-
-    if (surface_nor) {
-      copy_v3_v3(surface_nor, nearest.no);
-    }
-
-    if (surface_vel) {
-      const int *corner_verts = bvhtree->corner_verts.data();
-      const int3 &tri = bvhtree->corner_tris[nearest.index];
-
-      copy_v3_v3(surface_vel, surmd->runtime.vert_velocities[corner_verts[tri[0]]]);
-      add_v3_v3(surface_vel, surmd->runtime.vert_velocities[corner_verts[tri[1]]]);
-      add_v3_v3(surface_vel, surmd->runtime.vert_velocities[corner_verts[tri[2]]]);
-
-      mul_v3_fl(surface_vel, (1.0f / 3.0f));
-    }
-    return true;
+  if (surmd == nullptr || surmd->runtime.bvhtree == nullptr) {
+    return false;
+  }
+  const std::optional<bke::bvh::ClosestPointResult> nearest =
+      surmd->runtime.bvhtree->closest_point(float3(co));
+  if (!nearest) {
+    return false;
   }
 
-  return false;
+  copy_v3_v3(surface_co, nearest->position);
+
+  const Mesh &mesh = *surmd->runtime.mesh;
+  const Span<float3> positions = mesh.vert_positions();
+  const float (*velocities)[3] = surmd->runtime.vert_velocities;
+
+  if (mesh.faces_num > 0) {
+    const int3 &tri = mesh.corner_tris()[nearest->index];
+    const Span<int> corner_verts = mesh.corner_verts();
+    const int verts[3] = {corner_verts[tri[0]], corner_verts[tri[1]], corner_verts[tri[2]]};
+
+    if (surface_nor) {
+      normal_tri_v3(surface_nor, positions[verts[0]], positions[verts[1]], positions[verts[2]]);
+    }
+    if (surface_vel) {
+      copy_v3_v3(surface_vel, velocities[verts[0]]);
+      add_v3_v3(surface_vel, velocities[verts[1]]);
+      add_v3_v3(surface_vel, velocities[verts[2]]);
+      mul_v3_fl(surface_vel, (1.0f / 3.0f));
+    }
+  }
+  else {
+    /* The tree contains the mesh edges. Match old behavior which returned the edge direction. */
+    const int2 edge = mesh.edges()[nearest->index];
+
+    if (surface_nor) {
+      sub_v3_v3v3(surface_nor, positions[edge[0]], positions[edge[1]]);
+      normalize_v3(surface_nor);
+    }
+    if (surface_vel) {
+      copy_v3_v3(surface_vel, velocities[edge[0]]);
+      add_v3_v3(surface_vel, velocities[edge[1]]);
+      mul_v3_fl(surface_vel, 0.5f);
+    }
+  }
+  return true;
 }
 bool get_effector_data(EffectorCache *eff,
                        EffectorData *efd,

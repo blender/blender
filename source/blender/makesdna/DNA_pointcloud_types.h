@@ -26,9 +26,11 @@ namespace blender {
 template<typename T> class Span;
 namespace bke {
 class AttributeAccessor;
-struct BVHTreeFromPointCloud;
 class MutableAttributeAccessor;
 struct PointCloudRuntime;
+namespace bvh {
+class Tree;
+}
 }  // namespace bke
 
 namespace draw {
@@ -87,7 +89,8 @@ struct PointCloud {
   /** Get the largest material index used by the point-cloud or `nullopt` if it is empty. */
   std::optional<int> material_index_max() const;
 
-  bke::BVHTreeFromPointCloud bvh_tree() const;
+  /** BVH tree of the points, which can be used for closest point queries. Radii are ignored. */
+  const bke::bvh::Tree &bvh_tree() const;
 
   void count_memory(MemoryCounter &memory) const;
 #endif

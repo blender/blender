@@ -22,6 +22,7 @@
 #include "BLI_math_matrix_c.hh"
 #include "BLI_math_solvers.hh"
 #include "BLI_math_statistics.hh"
+#include "BLI_math_vector.hh"
 #include "BLI_math_vector_c.hh"
 #include "BLI_memarena.hh"
 #include "BLI_polyfill_2d.hh"
@@ -31,6 +32,7 @@
 #include "DNA_modifier_enums.h"
 
 #include "BKE_attribute.hh"
+#include "BKE_bvh.hh"
 #include "BKE_bvhutils.hh"
 #include "BKE_customdata.hh"
 #include "BKE_mesh.hh"
@@ -46,6 +48,21 @@ static CLG_LogRef LOG = {"geom.mesh"};
 /* -------------------------------------------------------------------- */
 /** \name Some Generic Helpers
  * \{ */
+
+static bool mesh_remap_bvh_query_nearest(const bke::bvh::Tree &tree,
+                                         const float3 &co,
+                                         const float max_dist,
+                                         int *r_index,
+                                         float *r_hit_dist)
+{
+  const std::optional<bke::bvh::ClosestPointResult> nearest = tree.closest_point(co, max_dist);
+  if (!nearest) {
+    return false;
+  }
+  *r_index = int(nearest->index);
+  *r_hit_dist = math::distance(co, nearest->position);
+  return true;
+}
 
 static bool mesh_remap_bvhtree_query_nearest(bke::BVHTreeFromMesh *treedata,
                                              BVHTreeNearest *nearest,
@@ -121,26 +138,23 @@ float BKE_mesh_remap_calc_difference_from_mesh(const SpaceTransform *space_trans
                                                const Span<float3> vert_positions_dst,
                                                const Mesh *me_src)
 {
-  BVHTreeNearest nearest = {0};
   float hit_dist;
 
   float result = 0.0f;
   int i;
 
-  bke::BVHTreeFromMesh treedata = me_src->bvh_verts();
-  nearest.index = -1;
+  const bke::bvh::Tree &tree = me_src->bvh_verts();
 
   for (i = 0; i < vert_positions_dst.size(); i++) {
-    float tmp_co[3];
-
-    copy_v3_v3(tmp_co, vert_positions_dst[i]);
+    float3 tmp_co = vert_positions_dst[i];
 
     /* Convert the vertex to tree coordinates, if needed. */
     if (space_transform) {
       BLI_space_transform_apply(space_transform, tmp_co);
     }
 
-    if (mesh_remap_bvhtree_query_nearest(&treedata, &nearest, tmp_co, FLT_MAX, &hit_dist)) {
+    int index;
+    if (mesh_remap_bvh_query_nearest(tree, tmp_co, FLT_MAX, &index, &hit_dist)) {
       result += 1.0f / (hit_dist + 1.0f);
     }
     else {
@@ -467,20 +481,19 @@ void BKE_mesh_remap_calc_verts_from_mesh(const int mode,
     float tmp_co[3], tmp_no[3];
 
     if (mode == MREMAP_MODE_VERT_NEAREST) {
-      treedata = me_src->bvh_verts();
-      nearest.index = -1;
+      const bke::bvh::Tree &tree = me_src->bvh_verts();
 
       for (i = 0; i < vert_positions_dst.size(); i++) {
-        copy_v3_v3(tmp_co, vert_positions_dst[i]);
+        float3 co = vert_positions_dst[i];
 
         /* Convert the vertex to tree coordinates, if needed. */
         if (space_transform) {
-          BLI_space_transform_apply(space_transform, tmp_co);
+          BLI_space_transform_apply(space_transform, co);
         }
 
-        if (mesh_remap_bvhtree_query_nearest(&treedata, &nearest, tmp_co, max_dist_sq, &hit_dist))
-        {
-          mesh_remap_item_define(r_map, i, hit_dist, 0, 1, &nearest.index, &full_weight);
+        int index;
+        if (mesh_remap_bvh_query_nearest(tree, co, max_dist, &index, &hit_dist)) {
+          mesh_remap_item_define(r_map, i, hit_dist, 0, 1, &index, &full_weight);
         }
         else {
           /* No source for this dest vertex! */
@@ -492,26 +505,25 @@ void BKE_mesh_remap_calc_verts_from_mesh(const int mode,
       const Span<int2> edges_src = me_src->edges();
       const Span<float3> positions_src = me_src->vert_positions();
 
-      treedata = me_src->bvh_edges();
-      nearest.index = -1;
+      const bke::bvh::Tree &tree = me_src->bvh_edges();
 
       for (i = 0; i < vert_positions_dst.size(); i++) {
-        copy_v3_v3(tmp_co, vert_positions_dst[i]);
+        float3 co = vert_positions_dst[i];
 
         /* Convert the vertex to tree coordinates, if needed. */
         if (space_transform) {
-          BLI_space_transform_apply(space_transform, tmp_co);
+          BLI_space_transform_apply(space_transform, co);
         }
 
-        if (mesh_remap_bvhtree_query_nearest(&treedata, &nearest, tmp_co, max_dist_sq, &hit_dist))
-        {
-          const int2 &edge = edges_src[nearest.index];
+        int edge_index;
+        if (mesh_remap_bvh_query_nearest(tree, co, max_dist, &edge_index, &hit_dist)) {
+          const int2 &edge = edges_src[edge_index];
           const float *v1cos = positions_src[edge[0]];
           const float *v2cos = positions_src[edge[1]];
 
           if (mode == MREMAP_MODE_VERT_EDGE_NEAREST) {
-            const float dist_v1 = len_squared_v3v3(tmp_co, v1cos);
-            const float dist_v2 = len_squared_v3v3(tmp_co, v2cos);
+            const float dist_v1 = len_squared_v3v3(co, v1cos);
+            const float dist_v2 = len_squared_v3v3(co, v2cos);
             const int index = (dist_v1 > dist_v2) ? edge[1] : edge[0];
             mesh_remap_item_define(r_map, i, hit_dist, 0, 1, &index, &full_weight);
           }
@@ -523,7 +535,7 @@ void BKE_mesh_remap_calc_verts_from_mesh(const int mode,
             indices[1] = edge[1];
 
             /* Weight is inverse of point factor here... */
-            weights[0] = line_point_factor_v3(tmp_co, v2cos, v1cos);
+            weights[0] = line_point_factor_v3(co, v2cos, v1cos);
             CLAMP(weights[0], 0.0f, 1.0f);
             weights[1] = 1.0f - weights[0];
 
@@ -707,8 +719,7 @@ void BKE_mesh_remap_calc_edges_from_mesh(const int mode,
       const GroupedSpan<int> vert_to_edge_src_map = bke::mesh::build_vert_to_edge_map(
           edges_src, num_verts_src, vert_to_edge_src_offsets, vert_to_edge_src_indices);
 
-      treedata = me_src->bvh_verts();
-      nearest.index = -1;
+      const bke::bvh::Tree &tree = me_src->bvh_verts();
 
       for (i = 0; i < edges_dst.size(); i++) {
         const int2 &e_dst = edges_dst[i];
@@ -721,18 +732,17 @@ void BKE_mesh_remap_calc_edges_from_mesh(const int mode,
 
           /* Compute closest verts only once! */
           if (v_dst_to_src_map[vidx_dst].hit_dist == -1.0f) {
-            copy_v3_v3(tmp_co, vert_positions_dst[vidx_dst]);
+            float3 co = vert_positions_dst[vidx_dst];
 
             /* Convert the vertex to tree coordinates, if needed. */
             if (space_transform) {
-              BLI_space_transform_apply(space_transform, tmp_co);
+              BLI_space_transform_apply(space_transform, co);
             }
 
-            if (mesh_remap_bvhtree_query_nearest(
-                    &treedata, &nearest, tmp_co, max_dist_sq, &hit_dist))
-            {
+            int index;
+            if (mesh_remap_bvh_query_nearest(tree, co, max_dist, &index, &hit_dist)) {
               v_dst_to_src_map[vidx_dst].hit_dist = hit_dist;
-              v_dst_to_src_map[vidx_dst].index = nearest.index;
+              v_dst_to_src_map[vidx_dst].index = index;
             }
             else {
               /* No source for this dest vert! */
@@ -810,23 +820,20 @@ void BKE_mesh_remap_calc_edges_from_mesh(const int mode,
       MEM_delete(v_dst_to_src_map);
     }
     else if (mode == MREMAP_MODE_EDGE_NEAREST) {
-      treedata = me_src->bvh_edges();
-      nearest.index = -1;
+      const bke::bvh::Tree &tree = me_src->bvh_edges();
 
       for (i = 0; i < edges_dst.size(); i++) {
-        interp_v3_v3v3(tmp_co,
-                       vert_positions_dst[edges_dst[i][0]],
-                       vert_positions_dst[edges_dst[i][1]],
-                       0.5f);
+        float3 co = math::midpoint(vert_positions_dst[edges_dst[i][0]],
+                                   vert_positions_dst[edges_dst[i][1]]);
 
         /* Convert the vertex to tree coordinates, if needed. */
         if (space_transform) {
-          BLI_space_transform_apply(space_transform, tmp_co);
+          BLI_space_transform_apply(space_transform, co);
         }
 
-        if (mesh_remap_bvhtree_query_nearest(&treedata, &nearest, tmp_co, max_dist_sq, &hit_dist))
-        {
-          mesh_remap_item_define(r_map, i, hit_dist, 0, 1, &nearest.index, &full_weight);
+        int index;
+        if (mesh_remap_bvh_query_nearest(tree, co, max_dist, &index, &hit_dist)) {
+          mesh_remap_item_define(r_map, i, hit_dist, 0, 1, &index, &full_weight);
         }
         else {
           /* No source for this dest edge! */
@@ -897,7 +904,8 @@ void BKE_mesh_remap_calc_edges_from_mesh(const int mode,
       /* Here it's simpler to just allocate for all edges :/ */
       float *weights = MEM_new_array_uninitialized<float>(size_t(numedges_src), __func__);
 
-      treedata = me_src->bvh_edges();
+      /* This mode casts rays against the edges, which #Mesh::bvh_edges() doesn't yet support. */
+      treedata = me_src->bvh_edges_legacy();
 
       const Span<float3> vert_normals_dst = me_dst->vert_normals();
 
@@ -1214,6 +1222,9 @@ void BKE_mesh_remap_calc_loops_from_mesh(const int mode,
   }
   else {
     Array<bke::BVHTreeFromMesh> treedata;
+    /** Trees owned for each island, referenced by #vert_trees. */
+    Array<bke::bvh::Tree> island_vert_trees;
+    Array<const bke::bvh::Tree *> vert_trees;
     BVHTreeNearest nearest = {0};
     BVHTreeRayHit rayhit = {0};
     int num_trees = 0;
@@ -1381,7 +1392,9 @@ void BKE_mesh_remap_calc_loops_from_mesh(const int mode,
 
     /* Build our BVHtrees, either from verts or tessfaces. */
     if (use_from_vert) {
+      vert_trees.reinitialize(num_trees);
       if (use_islands) {
+        island_vert_trees.reinitialize(num_trees);
         BitVector<> verts_active(num_verts_src);
 
         for (tindex = 0; tindex < num_trees; tindex++) {
@@ -1395,13 +1408,14 @@ void BKE_mesh_remap_calc_loops_from_mesh(const int mode,
             }
           }
           IndexMaskMemory memory;
-          treedata[tindex] = bke::bvhtree_from_mesh_verts_ex(
+          island_vert_trees[tindex] = bke::bvh::Tree::from_points(
               positions_src, IndexMask::from_bits(verts_active, memory));
+          vert_trees[tindex] = &island_vert_trees[tindex];
         }
       }
       else {
         BLI_assert(num_trees == 1);
-        treedata[0] = me_src->bvh_verts();
+        vert_trees[0] = &me_src->bvh_verts();
       }
     }
     else { /* We use faces. */
@@ -1473,15 +1487,16 @@ void BKE_mesh_remap_calc_loops_from_mesh(const int mode,
           if (use_from_vert) {
             Span<int> vert_to_refelem_map_src;
 
-            copy_v3_v3(tmp_co, vert_positions_dst[vert_dst]);
-            nearest.index = -1;
+            float3 co = vert_positions_dst[vert_dst];
 
             /* Convert the vertex to tree coordinates, if needed. */
             if (space_transform) {
-              BLI_space_transform_apply(space_transform, tmp_co);
+              BLI_space_transform_apply(space_transform, co);
             }
 
-            if (mesh_remap_bvhtree_query_nearest(tdata, &nearest, tmp_co, max_dist_sq, &hit_dist))
+            int nearest_vert_src;
+            if (mesh_remap_bvh_query_nearest(
+                    *vert_trees[tindex], co, max_dist, &nearest_vert_src, &hit_dist))
             {
               float (*nor_dst)[3];
               Span<float3> nors_src;
@@ -1496,12 +1511,12 @@ void BKE_mesh_remap_calc_loops_from_mesh(const int mode,
                 }
                 nor_dst = &tmp_no;
                 nors_src = loop_normals_src;
-                vert_to_refelem_map_src = vert_to_corner_map_src[nearest.index];
+                vert_to_refelem_map_src = vert_to_corner_map_src[nearest_vert_src];
               }
               else { /* `mode == MREMAP_MODE_LOOP_NEAREST_POLYNOR` */
                 nor_dst = &pnor_dst;
                 nors_src = face_normals_src;
-                vert_to_refelem_map_src = vert_to_face_map_src[nearest.index];
+                vert_to_refelem_map_src = vert_to_face_map_src[nearest_vert_src];
               }
 
               for (const int index_src : vert_to_refelem_map_src) {
@@ -1556,7 +1571,7 @@ void BKE_mesh_remap_calc_loops_from_mesh(const int mode,
                 const IndexRange face_src = faces_src[best_index_src];
                 for (plidx_src = 0; plidx_src < face_src.size(); plidx_src++) {
                   const int vert_src = corner_verts_src[face_src.start() + plidx_src];
-                  if (vert_src == nearest.index) {
+                  if (vert_src == nearest_vert_src) {
                     best_index_src = plidx_src + int(face_src.start());
                     break;
                   }

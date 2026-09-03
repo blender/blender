@@ -23,6 +23,7 @@
 #include "BLI_string_utf8.hh"
 #include "BLI_utildefines.hh"
 
+#include "BKE_bvh.hh"
 #include "BKE_bvhutils.hh"
 #include "BKE_context.hh"
 #include "BKE_customdata.hh"
@@ -705,7 +706,8 @@ static bool remap_hair_emitter(Depsgraph *depsgraph,
   ParticleData *pa, *tpa;
   PTCacheEditPoint *edit_point;
   PTCacheEditKey *ekey;
-  bke::BVHTreeFromMesh bvhtree = {nullptr};
+  bke::BVHTreeFromMesh legacy_faces_bvhtree = {nullptr};
+  const bke::bvh::Tree *edges_tree = nullptr;
   const MFace *mface = nullptr, *mf;
   const int2 *edges = nullptr, *edge;
   Mesh *mesh, *target_mesh;
@@ -761,11 +763,11 @@ static bool remap_hair_emitter(Depsgraph *depsgraph,
 
   if (mesh->totface_legacy != 0) {
     mface = static_cast<const MFace *>(CustomData_get_layer(&mesh->fdata_legacy, CD_MFACE));
-    bvhtree = mesh->bvh_legacy_faces();
+    legacy_faces_bvhtree = mesh->bvh_legacy_faces();
   }
   else if (mesh->edges_num != 0) {
     edges = mesh->edges().data();
-    bvhtree = mesh->bvh_edges();
+    edges_tree = &mesh->bvh_edges();
   }
   else {
     BKE_id_free(nullptr, mesh);
@@ -777,7 +779,6 @@ static bool remap_hair_emitter(Depsgraph *depsgraph,
        i++, tpa++, pa++)
   {
     float from_co[3];
-    BVHTreeNearest nearest;
 
     if (from_global) {
       mul_v3_m4v3(from_co, from_ob_imat, pa->hair[0].co);
@@ -787,12 +788,28 @@ static bool remap_hair_emitter(Depsgraph *depsgraph,
     }
     mul_m4_v3(from_mat, from_co);
 
-    nearest.index = -1;
-    nearest.dist_sq = FLT_MAX;
+    int nearest_index = -1;
+    float3 nearest_co;
+    if (mface) {
+      BVHTreeNearest nearest;
+      nearest.index = -1;
+      nearest.dist_sq = FLT_MAX;
+      BLI_bvhtree_find_nearest(legacy_faces_bvhtree.tree,
+                               from_co,
+                               &nearest,
+                               legacy_faces_bvhtree.nearest_callback,
+                               &legacy_faces_bvhtree);
+      nearest_index = nearest.index;
+      nearest_co = float3(nearest.co);
+    }
+    else if (const std::optional<bke::bvh::ClosestPointResult> nearest = edges_tree->closest_point(
+                 float3(from_co)))
+    {
+      nearest_index = int(nearest->index);
+      nearest_co = nearest->position;
+    }
 
-    BLI_bvhtree_find_nearest(bvhtree.tree, from_co, &nearest, bvhtree.nearest_callback, &bvhtree);
-
-    if (nearest.index == -1) {
+    if (nearest_index == -1) {
       if (G.debug & G_DEBUG) {
         printf("No nearest point found for hair root!");
       }
@@ -802,21 +819,21 @@ static bool remap_hair_emitter(Depsgraph *depsgraph,
     if (mface) {
       float v[4][3];
 
-      mf = &mface[nearest.index];
+      mf = &mface[nearest_index];
 
       copy_v3_v3(v[0], positions[mf->v1]);
       copy_v3_v3(v[1], positions[mf->v2]);
       copy_v3_v3(v[2], positions[mf->v3]);
       if (mf->v4) {
         copy_v3_v3(v[3], positions[mf->v4]);
-        interp_weights_poly_v3(tpa->fuv, v, 4, nearest.co);
+        interp_weights_poly_v3(tpa->fuv, v, 4, nearest_co);
       }
       else {
-        interp_weights_poly_v3(tpa->fuv, v, 3, nearest.co);
+        interp_weights_poly_v3(tpa->fuv, v, 3, nearest_co);
       }
       tpa->foffset = 0.0f;
 
-      tpa->num = nearest.index;
+      tpa->num = nearest_index;
       if (use_dm_final_indices) {
         tpa->num_dmcache = DMCACHE_ISCHILD;
       }
@@ -826,14 +843,14 @@ static bool remap_hair_emitter(Depsgraph *depsgraph,
       }
     }
     else {
-      edge = &edges[nearest.index];
+      edge = &edges[nearest_index];
 
-      tpa->fuv[1] = line_point_factor_v3(nearest.co, positions[edge->x], positions[edge->y]);
+      tpa->fuv[1] = line_point_factor_v3(nearest_co, positions[edge->x], positions[edge->y]);
       tpa->fuv[0] = 1.0f - tpa->fuv[1];
       tpa->fuv[2] = tpa->fuv[3] = 0.0f;
       tpa->foffset = 0.0f;
 
-      tpa->num = nearest.index;
+      tpa->num = nearest_index;
       tpa->num_dmcache = -1;
     }
 
@@ -855,7 +872,7 @@ static bool remap_hair_emitter(Depsgraph *depsgraph,
       mul_m4_m4m4(imat, imat, to_imat);
 
       /* offset in world space */
-      sub_v3_v3v3(offset, nearest.co, from_co);
+      sub_v3_v3v3(offset, nearest_co, from_co);
 
       if (edit_point) {
         for (k = 0, key = pa->hair, tkey = tpa->hair, ekey = edit_point->keys; k < tpa->totkey;

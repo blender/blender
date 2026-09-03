@@ -1232,6 +1232,10 @@ class XpbdSolverStep {
     return ClosestMeshFaceContact{contact_pos, contact_nor, bary_coords, is_inside, tri_i};
   }
 
+  /**
+   * \note This uses the legacy BVH tree because it raycasts against the edge BVH with a ray that
+   * has a radius. bvh::Tree doesn't yet support this.
+   */
   std::optional<ClosestMeshEdgeContact> get_closest_mesh_edge_contact(
       const float3 &sample_pos0,
       const float3 &sample_pos1,
@@ -1434,10 +1438,10 @@ class XpbdSolverStep {
                                                                           const bool deforming)
   {
     if (!deforming || !prev_mesh) {
-      return StaticMeshInfo{&mesh, &mesh.bvh_tris(), mesh.bvh_edges()};
+      return StaticMeshInfo{&mesh, &mesh.bvh_tris(), mesh.bvh_edges_legacy()};
     }
     if (mesh.verts_num != prev_mesh->verts_num) {
-      return StaticMeshInfo{&mesh, &mesh.bvh_tris(), mesh.bvh_edges()};
+      return StaticMeshInfo{&mesh, &mesh.bvh_tris(), mesh.bvh_edges_legacy()};
     }
     const int verts_num = mesh.verts_num;
     DeformingMeshInfo result;
@@ -1479,7 +1483,7 @@ class XpbdSolverStep {
             if (mesh_i > 0) {
               /* The bvh tree is not needed for the first substep. */
               result.substep_corner_tris_bvh_trees[mesh_i - 1] = &substep_mesh->bvh_tris();
-              result.substep_edges_bvh_trees[mesh_i - 1] = substep_mesh->bvh_edges();
+              result.substep_edges_bvh_trees[mesh_i - 1] = substep_mesh->bvh_edges_legacy();
             }
           }
         });

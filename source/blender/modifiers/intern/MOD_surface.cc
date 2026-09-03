@@ -17,7 +17,7 @@
 #include "DNA_object_types.h"
 #include "DNA_screen_types.h"
 
-#include "BKE_bvhutils.hh"
+#include "BKE_bvh.hh"
 #include "BKE_lib_id.hh"
 #include "BKE_mesh.hh"
 
@@ -56,7 +56,8 @@ static void free_data(ModifierData *md)
   SurfaceModifierData *surmd = reinterpret_cast<SurfaceModifierData *>(md);
 
   if (surmd) {
-    MEM_SAFE_DELETE(surmd->runtime.bvhtree);
+    /* The tree is owned by the mesh's cache. */
+    surmd->runtime.bvhtree = nullptr;
 
     if (surmd->runtime.mesh) {
       BKE_id_free(nullptr, surmd->runtime.mesh);
@@ -83,7 +84,7 @@ static void deform_verts(ModifierData *md,
   const int cfra = int(DEG_get_ctime(ctx->depsgraph));
 
   /* Free mesh and BVH cache. */
-  MEM_SAFE_DELETE(surmd->runtime.bvhtree);
+  surmd->runtime.bvhtree = nullptr;
   if (surmd->runtime.mesh) {
     BKE_id_free(nullptr, surmd->runtime.mesh);
     surmd->runtime.mesh = nullptr;
@@ -145,12 +146,10 @@ static void deform_verts(ModifierData *md,
     const bool has_face = surmd->runtime.mesh->faces_num > 0;
     const bool has_edge = surmd->runtime.mesh->edges_num > 0;
     if (has_face) {
-      surmd->runtime.bvhtree = MEM_new<bke::BVHTreeFromMesh>(
-          __func__, surmd->runtime.mesh->bvh_corner_tris());
+      surmd->runtime.bvhtree = &surmd->runtime.mesh->bvh_tris();
     }
     else if (has_edge) {
-      surmd->runtime.bvhtree = MEM_new<bke::BVHTreeFromMesh>(__func__,
-                                                             surmd->runtime.mesh->bvh_edges());
+      surmd->runtime.bvhtree = &surmd->runtime.mesh->bvh_edges();
     }
   }
 }

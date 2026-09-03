@@ -11,6 +11,7 @@
 #include "BLI_ghash.hh"
 #include "BLI_listbase.hh"
 #include "BLI_math_matrix_c.hh"
+#include "BLI_math_vector.hh"
 #include "BLI_math_vector_c.hh"
 #include "BLI_rand_c.hh"
 #include "BLI_task_c.hh"
@@ -25,6 +26,7 @@
 #include "DNA_screen_types.h"
 #include "DNA_texture_types.h"
 
+#include "BKE_bvh.hh"
 #include "BKE_bvhutils.hh"
 #include "BKE_colortools.hh" /* CurveMapping. */
 #include "BKE_customdata.hh"
@@ -66,9 +68,6 @@ namespace blender {
 /** \name Util functions.
  * \{ */
 
-/* Util macro. */
-#define OUT_OF_MEMORY() (void)printf("WeightVGProximity: Out of memory.\n")
-
 struct Vert2GeomData {
   /* Read-only data */
   Span<float3> positions;
@@ -77,68 +76,49 @@ struct Vert2GeomData {
 
   const SpaceTransform *loc2trgt;
 
-  bke::BVHTreeFromMesh *treeData[3];
+  const bke::bvh::Tree *verts_tree;
+  const bke::bvh::Tree *edges_tree;
+  const bke::bvh::Tree *tris_tree;
 
   /* Write data, but not needing locking (two different threads will never write same index). */
-  float *dist[3];
+  float *dist_v;
+  float *dist_e;
+  float *dist_f;
 };
 
 /**
- * Data which is localized to each computed chunk
- * (i.e. thread-safe, and with continuous subset of index range).
+ * Compute the distance to the closest element in the tree, or #FLT_MAX when it is empty.
  */
-struct Vert2GeomDataChunk {
-  /* Read-only data */
-  float last_hit_co[3][3];
-  bool is_init[3];
-};
+static float distance_to_closest_point(const bke::bvh::Tree &tree, const float3 &position)
+{
+  const std::optional<bke::bvh::ClosestPointResult> nearest = tree.closest_point(position);
+  if (!nearest) {
+    return FLT_MAX;
+  }
+  return math::distance(position, nearest->position);
+}
 
 /**
  * Callback used by BLI_task 'for loop' helper.
  */
 static void vert2geom_task_cb_ex(void *__restrict userdata,
                                  const int iter,
-                                 const TaskParallelTLS *__restrict tls)
+                                 const TaskParallelTLS *__restrict /*tls*/)
 {
   Vert2GeomData *data = static_cast<Vert2GeomData *>(userdata);
-  Vert2GeomDataChunk *data_chunk = static_cast<Vert2GeomDataChunk *>(tls->userdata_chunk);
-
-  float tmp_co[3];
-  int i;
 
   /* Convert the vertex to tree coordinates. */
-  copy_v3_v3(tmp_co, data->positions[data->indices ? data->indices[iter] : iter]);
+  float3 tmp_co = data->positions[data->indices ? data->indices[iter] : iter];
   BLI_space_transform_apply(data->loc2trgt, tmp_co);
 
-  for (i = 0; i < ARRAY_SIZE(data->dist); i++) {
-    if (data->dist[i]) {
-      BVHTreeNearest nearest = {0};
-
-      /* Note that we use local proximity heuristics (to reduce the nearest search).
-       *
-       * If we already had an hit before in same chunk of tasks (i.e. previous vertex by index),
-       * we assume this vertex is going to have a close hit to that other vertex,
-       * so we can initiate the "nearest.dist" with the expected value to that last hit.
-       * This will lead in pruning of the search tree.
-       */
-      nearest.dist_sq = data_chunk->is_init[i] ?
-                            len_squared_v3v3(tmp_co, data_chunk->last_hit_co[i]) :
-                            FLT_MAX;
-      nearest.index = -1;
-
-      /* Compute and store result. If invalid (-1 idx), keep FLT_MAX dist. */
-      BLI_bvhtree_find_nearest(data->treeData[i]->tree,
-                               tmp_co,
-                               &nearest,
-                               data->treeData[i]->nearest_callback,
-                               data->treeData[i]);
-      data->dist[i][iter] = sqrtf(nearest.dist_sq);
-
-      if (nearest.index != -1) {
-        copy_v3_v3(data_chunk->last_hit_co[i], nearest.co);
-        data_chunk->is_init[i] = true;
-      }
-    }
+  if (data->dist_v) {
+    data->dist_v[iter] = distance_to_closest_point(*data->verts_tree, tmp_co);
+  }
+  if (data->dist_e) {
+    data->dist_e[iter] = distance_to_closest_point(*data->edges_tree, tmp_co);
+  }
+  if (data->dist_f) {
+    data->dist_f[iter] = distance_to_closest_point(*data->tris_tree, tmp_co);
   }
 }
 
@@ -155,52 +135,30 @@ static void get_vert2geom_distance(int verts_num,
                                    const SpaceTransform *loc2trgt)
 {
   Vert2GeomData data{};
-  Vert2GeomDataChunk data_chunk = {{{0}}};
-
-  bke::BVHTreeFromMesh treeData_v{};
-  bke::BVHTreeFromMesh treeData_e{};
-  bke::BVHTreeFromMesh treeData_f{};
 
   if (dist_v) {
     /* Create a BVH-tree of the given target's verts. */
-    treeData_v = target->bvh_verts();
-    if (treeData_v.tree == nullptr) {
-      OUT_OF_MEMORY();
-      return;
-    }
+    data.verts_tree = &target->bvh_verts();
   }
   if (dist_e) {
     /* Create a BVH-tree of the given target's edges. */
-    treeData_e = target->bvh_edges();
-    if (treeData_e.tree == nullptr) {
-      OUT_OF_MEMORY();
-      return;
-    }
+    data.edges_tree = &target->bvh_edges();
   }
   if (dist_f) {
     /* Create a BVH-tree of the given target's faces. */
-    treeData_f = target->bvh_corner_tris();
-    if (treeData_f.tree == nullptr) {
-      OUT_OF_MEMORY();
-      return;
-    }
+    data.tris_tree = &target->bvh_tris();
   }
 
   data.positions = positions;
   data.indices = indices;
   data.loc2trgt = loc2trgt;
-  data.treeData[0] = &treeData_v;
-  data.treeData[1] = &treeData_e;
-  data.treeData[2] = &treeData_f;
-  data.dist[0] = dist_v;
-  data.dist[1] = dist_e;
-  data.dist[2] = dist_f;
+  data.dist_v = dist_v;
+  data.dist_e = dist_e;
+  data.dist_f = dist_f;
 
   TaskParallelSettings settings;
   BLI_parallel_range_settings_defaults(&settings);
   settings.use_threading = (verts_num > 10000);
-  settings.userdata_chunk = &data_chunk;
-  settings.userdata_chunk_size = sizeof(data_chunk);
   BLI_task_parallel_range(0, verts_num, &data, vert2geom_task_cb_ex, &settings);
 }
 
