@@ -86,7 +86,7 @@ static void node_register()
 {
   static bke::bNodeType ntype;
 
-  geo_node_type_base(&ntype, "GeometryNodeImportSPZ"_ustr, GEO_NODE_IMPORT_SPZ);
+  geo_node_type_base(&ntype, "GeometryNodeImportSPZ"_ustr);
   ntype.ui_name = "Import SPZ";
   ntype.ui_description =
       "Import a point cloud object that is rendered as gaussian splat from an SPZ file";
