@@ -42,13 +42,6 @@ class MTLContext;
 #define MTL_SHADER_DEBUG_EXPORT_SOURCE 0
 #define MTL_SHADER_TRANSLATION_DEBUG_OUTPUT 0
 
-/* Separate print used only during development and debugging. */
-#if MTL_SHADER_TRANSLATION_DEBUG_OUTPUT
-#  define shader_debug_printf printf
-#else
-#  define shader_debug_printf(...) /* Null print. */
-#endif
-
 /* Maximum threshold for specialized shader variant count.
  * This is a catch-all to prevent excessive PSO permutations from being created and also catch
  * parameters which should ideally not be used for specialization. */

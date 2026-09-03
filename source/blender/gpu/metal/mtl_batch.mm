@@ -30,6 +30,8 @@
 
 namespace blender::gpu {
 
+static CLG_LogRef LOG = {"gpu.metal"};
+
 /* -------------------------------------------------------------------- */
 /** \name Creation & Deletion
  * \{ */
@@ -398,9 +400,9 @@ void MTLBatch::prepare_vertex_descriptor_and_bindings(MutableSpan<MTLVertBuf *> 
     pair.vertex_descriptor = desc.vertex_descriptor;
     pair.num_buffers = num_buffers;
     if (!this->vao_cache.insert(pair)) {
-      printf(
-          "[Performance Warning] cache is full (Size: %d), vertex descriptor will not be cached\n",
-          GPU_VAO_STATIC_LEN);
+      CLOG_DEBUG(&LOG,
+                 "Cache is full (Size: %d), vertex descriptor will not be cached",
+                 GPU_VAO_STATIC_LEN);
     }
   }
 
@@ -486,8 +488,9 @@ void MTLBatch::draw_advanced(int v_first, int v_count, int i_first, int i_count)
                       baseInstance:i_first];
       }
       else {
-        printf("[Note] Cannot draw batch -- Emulated Topology mode: %u not yet supported\n",
-               this->prim_type);
+        CLOG_WARN(&LOG,
+                  "Cannot draw batch -- Emulated Topology mode: %u not yet supported",
+                  this->prim_type);
       }
     }
     else {
@@ -554,7 +557,7 @@ void MTLBatch::draw_advanced_indirect(StorageBuf *indirect_buf, intptr_t offset)
   MTLContext *ctx = MTLContext::get();
   id<MTLRenderCommandEncoder> rec = this->bind();
   if (rec == nil) {
-    printf("Failed to open Render Command encoder for DRAW INDIRECT\n");
+    CLOG_ERROR(&LOG, "Failed to open Render Command encoder for DRAW INDIRECT");
 
     /* End of draw. */
     this->unbind(rec);

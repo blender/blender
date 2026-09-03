@@ -31,6 +31,8 @@ constexpr static size_t MEMORY_SIZE_2GB = 2LL * (1024LL * 1024LL * 1024LL);
 
 namespace blender::gpu {
 
+static CLG_LogRef LOG = {"gpu.metal"};
+
 /* -------------------------------------------------------------------- */
 /** \name Memory Management - MTLBufferPool and MTLSafeFreeList implementations
  * \{ */
@@ -370,21 +372,22 @@ void MTLBufferPool::update_memory_pools()
   }
 
 #if MTL_DEBUG_MEMORY_STATISTICS == 1
-  printf("--- Allocation Stats ---\n");
-  printf("  Num buffers processed in pool (this frame): %u\n", num_buffers_added);
+  CLOG_DEBUG(&LOG, "--- Allocation Stats ---");
+  CLOG_DEBUG(&LOG, "  Num buffers processed in pool (this frame): %u", num_buffers_added);
 
   uint framealloc = (uint)per_frame_allocation_count_;
-  printf("  Allocations in frame: %u\n", framealloc);
-  printf("  Total Buffers allocated: %u\n", allocations_list_size_);
-  printf("  Total Memory allocated: %u MB\n", (uint)total_allocation_bytes_ / (1024 * 1024));
+  CLOG_DEBUG(&LOG, "  Allocations in frame: %u", framealloc);
+  CLOG_DEBUG(&LOG, "  Total Buffers allocated: %u", allocations_list_size_);
+  CLOG_DEBUG(
+      &LOG, "  Total Memory allocated: %u MB", (uint)total_allocation_bytes_ / (1024 * 1024));
 
   uint allocs = (uint)(allocations_in_pool_) / 1024 / 2024;
-  printf("  Free memory in pools: %u MB\n", allocs);
+  CLOG_DEBUG(&LOG, "  Free memory in pools: %u MB", allocs);
 
   uint buffs = (uint)buffers_in_pool_;
-  printf("  Buffers in pools: %u\n", buffs);
+  CLOG_DEBUG(&LOG, "  Buffers in pools: %u", buffs);
 
-  printf("  Pools %u:\n", (uint)buffer_pools_.size());
+  CLOG_DEBUG(&LOG, "  Pools %u:", (uint)buffer_pools_.size());
   auto key_iterator = buffer_pools_.keys().begin();
   auto value_iterator = buffer_pools_.values().begin();
   while (key_iterator != buffer_pools_.keys().end()) {
@@ -395,11 +398,12 @@ void MTLBufferPool::update_memory_pools()
       iters++;
     }
 
-    printf("    Buffers in pool (%u)(%llu): %u (%u MB)\n",
-           (uint)*key_iterator,
-           iters,
-           (uint)((*value_iterator)->size()),
-           (uint)mem_in_pool / 1024 / 1024);
+    CLOG_DEBUG(&LOG,
+               "    Buffers in pool (%u)(%llu): %u (%u MB)",
+               (uint)*key_iterator,
+               iters,
+               (uint)((*value_iterator)->size()),
+               (uint)mem_in_pool / 1024 / 1024);
     ++key_iterator;
     ++value_iterator;
   }

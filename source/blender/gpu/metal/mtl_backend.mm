@@ -16,6 +16,7 @@
 #include "mtl_backend.hh"
 #include "mtl_batch.hh"
 #include "mtl_context.hh"
+#include "mtl_debug.hh"
 #include "mtl_framebuffer.hh"
 #include "mtl_immediate.hh"
 #include "mtl_index_buffer.hh"
@@ -37,6 +38,8 @@
 #include <sys/sysctl.h>
 
 namespace blender::gpu {
+
+static CLG_LogRef LOG = {"gpu.metal"};
 
 /* Global per-thread AutoReleasePool. */
 thread_local NSAutoreleasePool *g_autoreleasepool = nil;
@@ -226,7 +229,7 @@ void MTLBackend::platform_init(MTLContext *ctx)
   const char *renderer = "Metal API";
   const char *version = "1.2";
   if (G.debug & G_DEBUG_GPU) {
-    printf("METAL API - DETECTED GPU: %s\n", vendor);
+    CLOG_INFO(&LOG, "METAL API - DETECTED GPU: %s", vendor);
   }
 
   /* macOS is the only supported platform, but check to ensure we are not building with Metal
@@ -260,11 +263,12 @@ void MTLBackend::platform_init(MTLContext *ctx)
     device = GPU_DEVICE_SOFTWARE;
     driver = GPU_DRIVER_SOFTWARE;
   }
-  else if (G.debug & G_DEBUG_GPU) {
-    printf("Warning: Could not find a matching GPU name. Things may not behave as expected.\n");
-    printf("Detected configuration:\n");
-    printf("Vendor: %s\n", vendor);
-    printf("Renderer: %s\n", renderer);
+  else {
+    CLOG_WARN(&LOG,
+              "Could not find a matching GPU name. Things may not behave as expected. Detected "
+              "configuration: Vendor: %s, Renderer: %s",
+              vendor,
+              renderer);
   }
 
   GPUArchitectureType architecture_type = (mtl_device.hasUnifiedMemory &&
@@ -404,11 +408,11 @@ bool MTLBackend::metal_is_supported()
   bool supported_os_version = version.majorVersion >= 11 ||
                               (version.majorVersion == 10 ? version.minorVersion >= 15 : false);
   if (!supported_os_version) {
-    printf(
-        "OS Version too low to run minimum required metal version. Required at least 10.15, got "
-        "%ld.%ld \n",
-        (long)version.majorVersion,
-        (long)version.minorVersion);
+    CLOG_WARN(&LOG,
+              "OS Version too low to run minimum required metal version. Required at least 10.15, "
+              "got %ld.%ld",
+              (long)version.majorVersion,
+              (long)version.minorVersion);
     return false;
   }
 
@@ -438,21 +442,20 @@ bool MTLBackend::metal_is_supported()
   bool result = supports_argument_buffers_tier2 && supports_barycentrics && supported_os_version &&
                 supported_metal_version;
 
-  if (G.debug & G_DEBUG_GPU) {
-    if (!supports_argument_buffers_tier2) {
-      printf("[Metal] Device does not support argument buffers tier 2\n");
-    }
-    if (!supports_barycentrics) {
-      printf("[Metal] Device does not support barycentrics coordinates\n");
-    }
-    if (!supported_metal_version) {
-      printf("[Metal] Device does not support metal 2.2 or higher\n");
-    }
+  if (!supports_argument_buffers_tier2) {
+    CLOG_DEBUG(&LOG, "Device does not support argument buffers tier 2");
+  }
+  if (!supports_barycentrics) {
+    CLOG_DEBUG(&LOG, "Device does not support barycentrics coordinates");
+  }
+  if (!supported_metal_version) {
+    CLOG_DEBUG(&LOG, "Device does not support metal 2.2 or higher");
+  }
 
-    if (result) {
-      printf("Device with name %s supports metal minimum requirements\n",
-             [[device name] UTF8String]);
-    }
+  if (G.debug & G_DEBUG_GPU && result) {
+    CLOG_INFO(&LOG,
+              "Device with name %s supports metal minimum requirements",
+              [[device name] UTF8String]);
   }
 
   return result;

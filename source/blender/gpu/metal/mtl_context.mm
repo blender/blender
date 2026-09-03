@@ -64,6 +64,8 @@ using namespace blender::gpu;
 
 namespace blender::gpu {
 
+static CLG_LogRef LOG = {"gpu.metal"};
+
 /* Global memory manager. */
 std::mutex MTLContext::global_memory_manager_reflock;
 int MTLContext::global_memory_manager_refcount = 0;
@@ -1957,7 +1959,9 @@ id<MTLComputePipelineState> MTLContextComputeUtils::get_buffer_clear_pso()
       if ([[error localizedDescription] rangeOfString:@"Compilation succeeded"].location ==
           NSNotFound)
       {
-        NSLog(@"Compile Error - Metal Shader Library error %@ ", error);
+        CLOG_ERROR(&LOG,
+                   "Compile Error - Metal Shader Library error %s",
+                   [[error localizedDescription] UTF8String]);
         BLI_assert(false);
         return nil;
       }
@@ -1973,7 +1977,9 @@ id<MTLComputePipelineState> MTLContextComputeUtils::get_buffer_clear_pso()
     buffer_clear_pso_ = [ctx->device newComputePipelineStateWithFunction:temp_compute_function
                                                                    error:&error];
     if (error || buffer_clear_pso_ == nil) {
-      NSLog(@"Failed to prepare compute_buffer_clear MTLComputePipelineState %@", error);
+      CLOG_ERROR(&LOG,
+                 "Failed to prepare compute_buffer_clear MTLComputePipelineState %s",
+                 [[error localizedDescription] UTF8String]);
       BLI_assert(false);
       return nil;
     }
@@ -2083,7 +2089,7 @@ void present(MTLRenderPassDescriptor *blit_descriptor,
     [cmdbuf waitUntilCompleted];
     NSError *error = [cmdbuf error];
     if (error != nil) {
-      NSLog(@"%@", error);
+      CLOG_ERROR(&LOG, "Command buffer error: %s", [[error localizedDescription] UTF8String]);
       BLI_assert(false);
     }
   }
