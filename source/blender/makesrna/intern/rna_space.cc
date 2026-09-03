@@ -4775,6 +4775,59 @@ static void rna_def_space_outliner(BlenderRNA *brna)
       "defined/controlled automatically (e.g. to make users of an overridden data-block point to "
       "the override data, not the original linked data)");
   RNA_def_property_update(prop, NC_SPACE | ND_SPACE_OUTLINER, nullptr);
+
+  /* Object data filters. */
+  prop = RNA_def_property(srna, "use_filter_object_data", PROP_BOOLEAN, PROP_NONE);
+  RNA_def_property_boolean_negative_sdna(prop, nullptr, "filter", SO_FILTER_NO_OB_DATA);
+  RNA_def_property_ui_text(prop, "Show Object Data", "Show object data");
+  RNA_def_property_update(prop, NC_SPACE | ND_SPACE_OUTLINER, nullptr);
+
+  prop = RNA_def_property(srna, "use_filter_object_animation", PROP_BOOLEAN, PROP_NONE);
+  RNA_def_property_boolean_negative_sdna(prop, nullptr, "filter", SO_FILTER_NO_OB_ANIMATION);
+  RNA_def_property_ui_text(prop, "Show Animation Data", "Show animation data");
+  RNA_def_property_update(prop, NC_SPACE | ND_SPACE_OUTLINER, nullptr);
+
+  prop = RNA_def_property(srna, "use_filter_object_constraints", PROP_BOOLEAN, PROP_NONE);
+  RNA_def_property_boolean_negative_sdna(prop, nullptr, "filter", SO_FILTER_NO_OB_CONSTRAINTS);
+  RNA_def_property_ui_text(prop, "Show Object Constraints", "Show object constraints");
+  RNA_def_property_update(prop, NC_SPACE | ND_SPACE_OUTLINER, nullptr);
+
+  prop = RNA_def_property(srna, "use_filter_object_shape_keys", PROP_BOOLEAN, PROP_NONE);
+  RNA_def_property_boolean_negative_sdna(prop, nullptr, "filter", SO_FILTER_NO_OB_SHAPE_KEYS);
+  RNA_def_property_ui_text(prop, "Show Object Shape Keys", "Show object shape keys");
+  RNA_def_property_update(prop, NC_SPACE | ND_SPACE_OUTLINER, nullptr);
+
+  prop = RNA_def_property(srna, "use_filter_object_materials", PROP_BOOLEAN, PROP_NONE);
+  RNA_def_property_boolean_negative_sdna(prop, nullptr, "filter", SO_FILTER_NO_OB_MATERIAL);
+  RNA_def_property_ui_text(prop, "Show Object Materials", "Show object materials");
+  RNA_def_property_update(prop, NC_SPACE | ND_SPACE_OUTLINER, nullptr);
+
+  prop = RNA_def_property(srna, "use_filter_object_vertex_groups", PROP_BOOLEAN, PROP_NONE);
+  RNA_def_property_boolean_negative_sdna(prop, nullptr, "filter", SO_FILTER_NO_OB_DEFGROUP);
+  RNA_def_property_ui_text(prop, "Show Object Vertex Groups", "Show object vertex groups");
+  RNA_def_property_update(prop, NC_SPACE | ND_SPACE_OUTLINER, nullptr);
+
+  prop = RNA_def_property(srna, "use_filter_object_modifiers", PROP_BOOLEAN, PROP_NONE);
+  RNA_def_property_boolean_negative_sdna(prop, nullptr, "filter", SO_FILTER_NO_OB_MODIFIERS);
+  RNA_def_property_ui_text(prop, "Show Object Modifiers", "Show object modifiers");
+  RNA_def_property_update(prop, NC_SPACE | ND_SPACE_OUTLINER, nullptr);
+
+  prop = RNA_def_property(srna, "use_filter_bone_collections", PROP_BOOLEAN, PROP_NONE);
+  RNA_def_property_boolean_negative_sdna(
+      prop, nullptr, "filter", SO_FILTER_NO_ARMATURE_BONE_COLLECTION);
+  RNA_def_property_ui_text(prop, "Show Bone Collections", "Show armature bone collections");
+  RNA_def_property_update(prop, NC_SPACE | ND_SPACE_OUTLINER, nullptr);
+
+  prop = RNA_def_property(srna, "use_filter_grease_pencil_effects", PROP_BOOLEAN, PROP_NONE);
+  RNA_def_property_boolean_negative_sdna(
+      prop, nullptr, "filter", SO_FILTER_NO_GREASE_PENCIL_EFFECTS);
+  RNA_def_property_ui_text(prop, "Show Grease Pencil Effects", "Show grease pencil effects");
+  RNA_def_property_update(prop, NC_SPACE | ND_SPACE_OUTLINER, nullptr);
+
+  prop = RNA_def_property(srna, "use_filter_pose_bones", PROP_BOOLEAN, PROP_NONE);
+  RNA_def_property_boolean_negative_sdna(prop, nullptr, "filter", SO_FILTER_NO_POSE_BONES);
+  RNA_def_property_ui_text(prop, "Show Pose Bones", "Show pose bones of armatures");
+  RNA_def_property_update(prop, NC_SPACE | ND_SPACE_OUTLINER, nullptr);
 }
 
 static void rna_def_space_view3d_shading(BlenderRNA *brna)
