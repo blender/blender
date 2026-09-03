@@ -278,6 +278,9 @@ static void draw_current_frame(const Scene *scene,
     region_x = math::clamp(region_x,
                            scrub_region_rect->xmin + dimensions.text_width / 2.0f,
                            scrub_region_rect->xmax - dimensions.text_width / 2.0f);
+
+    dimensions = get_playhead_dimensions(
+        scene, scrub_region_rect, current_frame, display_seconds, region_x);
   }
 
   float fg_color[4];
