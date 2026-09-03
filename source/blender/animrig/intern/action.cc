@@ -1670,6 +1670,16 @@ const Channelbag *StripKeyframeData::channelbag_for_slot(const slot_handle_t slo
   }
   return nullptr;
 }
+int64_t StripKeyframeData::channelbag_index_for_slot(const slot_handle_t slot_handle) const
+{
+  for (const int64_t channelbag_index : this->channelbags().index_range()) {
+    const Channelbag *channels = this->channelbag(channelbag_index);
+    if (channels->slot_handle == slot_handle) {
+      return channelbag_index;
+    }
+  }
+  return -1;
+}
 int64_t StripKeyframeData::find_channelbag_index(const Channelbag &channelbag) const
 {
   for (int64_t index = 0; index < this->channelbag_array_num; index++) {

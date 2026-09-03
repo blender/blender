@@ -155,20 +155,25 @@ struct KeyPoint {
 };
 
 class AnimationChannel {
+ public:
+  using ParsedSourcePath = blender::ParsedRNAPath<6>;
+
  protected:
   AnimationChannelType type_ = AnimationChannelType::UNKNOWN;
   AnimationChannelFlags flags_ = ANIM_CHANNEL_DIRTY;
   /* Mutable so that a call to label() can store its result. Labels should NOT be used as
    * identifier/key for AnimationChannel instances. */
   mutable std::string label_;
+
+  /* The source of this channel. */
   PointerRNA source_;
+  /* The RNA path that identifies the source of this channel, relative to source_.owner_id. */
+  std::optional<ParsedSourcePath> source_rna_path_;
+
   Vector<KeyPoint> datapoints_;
   /* Higher numbers will be sorted before lower numbers. In case the values are equal a fallback is
    * used. */
   int sorting_priority_ = 0;
-
-  using ParsedSourcePath = blender::ParsedRNAPath<6>;
-  mutable std::optional<ParsedSourcePath> source_rna_path_;
 
  public:
   AnimationChannel(AnimationChannelType type, StringRef label);
@@ -220,7 +225,10 @@ class SummaryChannel final : public AnimationChannel {
 
  public:
   SummaryChannel(StringRef label);
-  SummaryChannel(StringRef label, const PointerRNA &ptr, int sorting_priority);
+  SummaryChannel(StringRef label,
+                 const PointerRNA &source_ptr,
+                 std::optional<ParsedSourcePath> source_rna_path,
+                 int sorting_priority);
   ~SummaryChannel() final = default;
 
   /**
@@ -263,7 +271,9 @@ class DataChannel : public AnimationChannel {
   DataChannelFlags flags_ = DataChannelFlags(0);
 
  public:
-  DataChannel(StringRef label, DataChannelType source_type);
+  DataChannel(StringRef label,
+              DataChannelType source_type,
+              const ParsedSourcePath &source_rna_path);
   ~DataChannel() override = default;
 
   bool operator==(const DataChannel &other) const
@@ -293,7 +303,7 @@ class DataChannel : public AnimationChannel {
 
 class FCurveChannel : public DataChannel {
  public:
-  FCurveChannel(const PointerRNA &fcurve_ptr);
+  FCurveChannel(const PointerRNA &fcurve_ptr, ParsedSourcePath source_rna_path);
 
   bool is_selected() const override;
   void set_selected(bool is_selected) override;
@@ -308,7 +318,9 @@ class FCurveChannel : public DataChannel {
 
 class GreasePencilChannel : public DataChannel {
  public:
-  GreasePencilChannel(GreasePencil &containing_gp, GreasePencilLayer &gp_layer);
+  GreasePencilChannel(GreasePencil &containing_gp,
+                      GreasePencilLayer &gp_layer,
+                      ParsedSourcePath source_rna_path);
 
   bool is_selected() const override;
   void set_selected(bool is_selected) override;
@@ -399,7 +411,7 @@ struct CollectionFilters {
    * If empty, all channel types are returned. */
   Set<AnimationChannelType> channel_type_whitelist;
   /* Any id types put here will be ignored in the channel collection process. */
-  Set<ID_Type> id_type_blacklist;
+  Set<ID_Type> id_type_blocklist;
 };
 
 /**

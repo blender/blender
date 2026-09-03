@@ -16,6 +16,7 @@
 
 #include "ANIM_action.hh"
 #include "ANIM_rna.hh"
+#include <ostream>
 
 namespace blender::ed::animfilter {
 
@@ -137,10 +138,14 @@ SummaryChannel::SummaryChannel(const StringRef label)
 {
 }
 
-SummaryChannel::SummaryChannel(const StringRef label, const PointerRNA &ptr, int sorting_priority)
+SummaryChannel::SummaryChannel(const StringRef label,
+                               const PointerRNA &source_ptr,
+                               std::optional<ParsedSourcePath> source_rna_path,
+                               int sorting_priority)
     : AnimationChannel(AnimationChannelType::SUMMARY, label)
 {
-  this->source_ = ptr;
+  this->source_ = source_ptr;
+  this->source_rna_path_ = source_rna_path;
   sorting_priority_ = sorting_priority;
 }
 
@@ -267,9 +272,12 @@ void SummaryChannel::set_selected(const bool is_selected)
   }
 }
 
-DataChannel::DataChannel(const StringRef label, const DataChannelType source_type)
+DataChannel::DataChannel(const StringRef label,
+                         const DataChannelType source_type,
+                         const ParsedSourcePath &source_rna_path)
     : AnimationChannel(AnimationChannelType::DATA, label), source_type_(source_type)
 {
+  source_rna_path_ = source_rna_path;
 }
 
 static std::optional<StringRefNull> last_rna_path_member(const ParsedRNAPathRef path)
@@ -284,14 +292,39 @@ static std::optional<StringRefNull> last_rna_path_member(const ParsedRNAPathRef 
   return property->identifier.ref();
 }
 
-FCurveChannel::FCurveChannel(const PointerRNA &fcurve_ptr)
+FCurveChannel::FCurveChannel(const PointerRNA &fcurve_ptr, const ParsedSourcePath source_rna_path)
     : DataChannel(
           /* Store the RNA path as the default label, so that if the animated ID cannot be found,
              there is at least something recognisable to show. */
           fcurve_ptr.data_as<FCurve>()->rna_path(),
-          DataChannelType::FCURVE)
+          DataChannelType::FCURVE,
+          source_rna_path)
 {
   this->source_ = fcurve_ptr;
+
+/* Ensure that the path constructed for this F-Curve actually matches the RNA path Blender would
+ * generate for it. */
+#ifndef NDEBUG
+  std::optional<std::string> rna_path_given = source_rna_path_->to_string();
+  std::optional<std::string> rna_path_generated = RNA_path_from_ID_to_struct(&fcurve_ptr);
+  if (rna_path_given != rna_path_generated) {
+    std::cerr << "RNA paths do not match:" << std::endl;
+    if (rna_path_given) {
+      std::cerr << "   Given    : " << *rna_path_given << std::endl;
+    }
+    else {
+      std::cerr << "   Given    : no path" << std::endl;
+    }
+    if (rna_path_generated) {
+      std::cerr << "   Generated: " << *rna_path_generated << std::endl;
+    }
+    else {
+      std::cerr << "   Generated: no path" << std::endl;
+    }
+    BLI_assert(source_rna_path_->to_string() == RNA_path_from_ID_to_struct(&fcurve_ptr));
+  }
+#endif
+
   FCurve &fcurve = *fcurve_ptr.data_as<FCurve>();
   const ParsedRNAPathRef rna_path = fcurve.rna_path_parsed();
   const std::optional<StringRefNull> last_member = last_rna_path_member(rna_path);
@@ -311,12 +344,6 @@ FCurveChannel::FCurveChannel(const PointerRNA &fcurve_ptr)
   else {
     sorting_priority_ = -fcurve.array_index;
   }
-}
-
-GreasePencilChannel::GreasePencilChannel(GreasePencil &containing_gp, GreasePencilLayer &gp_layer)
-    : DataChannel(gp_layer.wrap().name(), DataChannelType::GREASE_PENCIL)
-{
-  this->source_ = RNA_pointer_create_discrete(&containing_gp.id, RNA_GreasePencilLayer, &gp_layer);
 }
 
 void DataChannel::set_tags(const ChannelTagStack &tags)
@@ -432,6 +459,14 @@ const ID *FCurveChannel::find_animated_id_from_tags() const
 }
 
 /* ===== GreasePencil Channel ===== */
+
+GreasePencilChannel::GreasePencilChannel(GreasePencil &containing_gp,
+                                         GreasePencilLayer &gp_layer,
+                                         const ParsedSourcePath source_rna_path)
+    : DataChannel(gp_layer.wrap().name(), DataChannelType::GREASE_PENCIL, source_rna_path)
+{
+  this->source_ = RNA_pointer_create_discrete(&containing_gp.id, RNA_GreasePencilLayer, &gp_layer);
+}
 
 void GreasePencilChannel::gather_channeldata()
 {

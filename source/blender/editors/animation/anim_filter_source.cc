@@ -2,12 +2,14 @@
  *
  * SPDX-License-Identifier: GPL-2.0-or-later */
 
+#include "BLI_span.hh"
 #include "DNA_ID.h"
 #include "DNA_anim_types.h"
 #include "DNA_material_types.h"
 #include "DNA_object_types.h"
 
 #include "RNA_access.hh"
+#include "RNA_path.hh"
 #include "RNA_prototypes.hh"
 
 #include "BKE_anim_data.hh"
@@ -27,19 +29,31 @@ static bool has_assigned_action(AnimData &anim_data)
 static void channels_for_channelbag(const PointerRNA &channelbag_ptr,
                                     animrig::Channelbag &channelbag,
                                     ChannelTagStack &tags,
+                                    Vector<rna_path::Item> rna_path_items,
                                     ChannelArena &arena)
 {
 
-  for (FCurve *fcu : channelbag.fcurves()) {
+  for (const int64_t fcurve_index : channelbag.fcurves().index_range()) {
+    FCurve *fcu = channelbag.fcurve(fcurve_index);
+
     if (fcu->grp) {
       PointerRNA group_pointer = RNA_pointer_create_with_parent(
           channelbag_ptr, RNA_ActionGroup, fcu->grp);
       tags.push({ChannelTagType::FCURVE_GROUP, fcu->grp->name, group_pointer});
     }
 
+    /* Append the FCurve to the RNA path. */
+    rna_path_items.append(rna_path::Member{UString("fcurves")});
+    rna_path_items.append(rna_path::LookupIndex{fcurve_index});
+
     PointerRNA fcurve_ptr = RNA_pointer_create_with_parent(channelbag_ptr, RNA_FCurve, fcu);
-    FCurveChannel *channel = arena.allocate_data_channel<FCurveChannel>(fcurve_ptr);
+    FCurveChannel *channel = arena.allocate_data_channel<FCurveChannel>(
+        fcurve_ptr, ParsedRNAPathRef(rna_path_items));
     channel->set_tags(tags);
+
+    /* Pop the FCurve off the RNA path. */
+    rna_path_items.pop_last();
+    rna_path_items.pop_last();
 
     if (fcu->grp) {
       tags.pop();
@@ -53,6 +67,10 @@ static void channels_for_action_slot(animrig::Action &action,
                                      ChannelArena &arena)
 {
   using namespace animrig;
+
+  /* Start building the RNA path from the Action. */
+  Vector<rna_path::Item> rna_path_items;
+
   PointerRNA action_ptr = RNA_pointer_create_discrete(&action.id, RNA_Action, &action);
   tags.push({ChannelTagType::ACTION, action.id.name + 2, action_ptr});
 
@@ -65,25 +83,47 @@ static void channels_for_action_slot(animrig::Action &action,
     PointerRNA layer_ptr = RNA_pointer_create_id_subdata(action.id, RNA_ActionLayer, layer);
     /* Passing the layer index to guarantee layers are always sorted by their hierarchy. */
     tags.push({ChannelTagType::ACTION_LAYER, layer->name, layer_ptr, layer_index});
-    for (Strip *strip : layer->strips()) {
+
+    /* Append the layer to the RNA path. */
+    rna_path_items.append(rna_path::Member{UString("layers")});
+    rna_path_items.append(rna_path::LookupKey{UString(layer->name)});
+
+    for (const int64_t strip_index : layer->strips().index_range()) {
+      Strip *strip = layer->strip(strip_index);
       if (strip->type() != Strip::Type::Keyframe) {
         continue;
       }
       StripKeyframeData &action_strip = strip->data<StripKeyframeData>(action);
-      Channelbag *channelbag = action_strip.channelbag_for_slot(slot_handle);
-      if (!channelbag) {
+      const int64_t channelbag_index = action_strip.channelbag_index_for_slot(slot_handle);
+      if (channelbag_index < 0) {
         continue;
       }
+
+      Channelbag *channelbag = action_strip.channelbag(channelbag_index);
       PointerRNA strip_ptr = RNA_pointer_create_with_parent(
           layer_ptr, RNA_ActionKeyframeStrip, strip);
       tags.push({ChannelTagType::ACTION_STRIP, "strip_name_placeholder", strip_ptr});
 
+      /* Append the strip + channelbag to the RNA path. */
+      rna_path_items.append(rna_path::Member{UString("strips")});
+      rna_path_items.append(rna_path::LookupIndex{strip_index});
+      rna_path_items.append(rna_path::Member{UString("channelbags")});
+      rna_path_items.append(rna_path::LookupIndex{channelbag_index});
+
       PointerRNA channelbag_ptr = RNA_pointer_create_with_parent(
           strip_ptr, RNA_ActionChannelbag, strip);
-      channels_for_channelbag(channelbag_ptr, *channelbag, tags, arena);
+      channels_for_channelbag(channelbag_ptr, *channelbag, tags, rna_path_items, arena);
+
+      /* Pop the layer off the tags & RNA path. */
       tags.pop();
+      rna_path_items.pop_last();
+      rna_path_items.pop_last();
     }
+
+    /* Pop the layer off the tags & RNA path. */
     tags.pop();
+    rna_path_items.pop_last();
+    rna_path_items.pop_last();
   }
 
   tags.pop();
@@ -103,7 +143,7 @@ static void collect_channels_for_id(ID *animated_id,
     return;
   }
 
-  if (collection_filters.id_type_blacklist.contains(animated_id->id_type())) {
+  if (collection_filters.id_type_blocklist.contains(animated_id->id_type())) {
     return;
   }
 

@@ -943,6 +943,12 @@ class StripKeyframeData : public ActionStripKeyframeData {
   Channelbag *channelbag_for_slot(const Slot &slot);
   const Channelbag *channelbag_for_slot(slot_handle_t slot_handle) const;
   Channelbag *channelbag_for_slot(slot_handle_t slot_handle);
+  /**
+   * Find the index of the channelbag for the given slot.
+   *
+   * \return -1 if there is none yet for the given slot.
+   */
+  int64_t channelbag_index_for_slot(slot_handle_t slot_handle) const;
 
   /**
    * Add a channelbag for the given slot.
