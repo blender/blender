@@ -2835,11 +2835,6 @@ bool button_is_compatible(const Button *but_a, const Button *but_b)
   }
 
   if (but_a->rnaprop) {
-    /* skip 'rnapoin.data', 'rnapoin.owner_id'
-     * allow different data to have the same props edited at once */
-    if (but_a->rnapoin.type != but_b->rnapoin.type) {
-      return false;
-    }
     if (RNA_property_type(but_a->rnaprop) != RNA_property_type(but_b->rnaprop)) {
       return false;
     }
