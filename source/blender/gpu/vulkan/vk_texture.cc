@@ -209,6 +209,9 @@ void VKTexture::read_sub(
   TransferRegion full_transfer_region({offset, extent, layers});
   const VkDeviceSize sample_bytesize = to_bytesize(device_format_);
   const VkDeviceSize host_sample_bytesize = to_bytesize(format_, format);
+  /* For a texture view the raw bytes are reinterpretable with the base format but must be read
+   * back as the view (#format_) for them to be numerically correct. */
+  const TextureFormat data_storage_format = is_texture_view() ? format_ : device_format_;
   const uint64_t x_bytesize = sample_bytesize * extent.x;
   const uint64_t xy_bytesize = x_bytesize * extent.y;
   const uint64_t xyz_bytesize = xy_bytesize * extent.z;
@@ -326,7 +329,7 @@ void VKTexture::read_sub(
                            sample_len,
                            format,
                            format_,
-                           device_format_);
+                           data_storage_format);
   }
 }
 
