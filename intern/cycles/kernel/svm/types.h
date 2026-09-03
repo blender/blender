@@ -69,7 +69,7 @@ enum NodeAttributeType : uint8_t {
   NODE_ATTR_RGBA,
   NODE_ATTR_MATRIX,
   NODE_ATTR_QUATERNION,
-  NODE_ATTR_SPHERICAL_HARMONICS,
+  NODE_ATTR_SPHERICAL_HARMONICS_REST,
 };
 
 enum NodeGeometry : uint8_t {

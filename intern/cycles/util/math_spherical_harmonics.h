@@ -142,33 +142,34 @@ ccl_device_forceinline T spherical_harmonics_evaluate_band_L3(const float3 direc
 
 /* Evaluate bands L1, L2, and L3. */
 ccl_device_inline float3 spherical_harmonics_evaluate_rest(
-    const ccl_global PackedSphericalHarmonics &packed_spherical_harmonics, const float3 direction)
+    const ccl_global PackedSphericalHarmonicsRest &packed_spherical_harmonics_rest,
+    const float3 direction)
 {
   float3 result;
 
   result = spherical_harmonics_evaluate_band_L1(
       direction,
-      spherical_harmonics_get<1, -1>(packed_spherical_harmonics),
-      spherical_harmonics_get<1, 0>(packed_spherical_harmonics),
-      spherical_harmonics_get<1, 1>(packed_spherical_harmonics));
+      spherical_harmonics_get<1, -1>(packed_spherical_harmonics_rest),
+      spherical_harmonics_get<1, 0>(packed_spherical_harmonics_rest),
+      spherical_harmonics_get<1, 1>(packed_spherical_harmonics_rest));
 
   result += spherical_harmonics_evaluate_band_L2(
       direction,
-      spherical_harmonics_get<2, -2>(packed_spherical_harmonics),
-      spherical_harmonics_get<2, -1>(packed_spherical_harmonics),
-      spherical_harmonics_get<2, 0>(packed_spherical_harmonics),
-      spherical_harmonics_get<2, 1>(packed_spherical_harmonics),
-      spherical_harmonics_get<2, 2>(packed_spherical_harmonics));
+      spherical_harmonics_get<2, -2>(packed_spherical_harmonics_rest),
+      spherical_harmonics_get<2, -1>(packed_spherical_harmonics_rest),
+      spherical_harmonics_get<2, 0>(packed_spherical_harmonics_rest),
+      spherical_harmonics_get<2, 1>(packed_spherical_harmonics_rest),
+      spherical_harmonics_get<2, 2>(packed_spherical_harmonics_rest));
 
   result += spherical_harmonics_evaluate_band_L3(
       direction,
-      spherical_harmonics_get<3, -3>(packed_spherical_harmonics),
-      spherical_harmonics_get<3, -2>(packed_spherical_harmonics),
-      spherical_harmonics_get<3, -1>(packed_spherical_harmonics),
-      spherical_harmonics_get<3, 0>(packed_spherical_harmonics),
-      spherical_harmonics_get<3, 1>(packed_spherical_harmonics),
-      spherical_harmonics_get<3, 2>(packed_spherical_harmonics),
-      spherical_harmonics_get<3, 3>(packed_spherical_harmonics));
+      spherical_harmonics_get<3, -3>(packed_spherical_harmonics_rest),
+      spherical_harmonics_get<3, -2>(packed_spherical_harmonics_rest),
+      spherical_harmonics_get<3, -1>(packed_spherical_harmonics_rest),
+      spherical_harmonics_get<3, 0>(packed_spherical_harmonics_rest),
+      spherical_harmonics_get<3, 1>(packed_spherical_harmonics_rest),
+      spherical_harmonics_get<3, 2>(packed_spherical_harmonics_rest),
+      spherical_harmonics_get<3, 3>(packed_spherical_harmonics_rest));
 
   return result;
 }

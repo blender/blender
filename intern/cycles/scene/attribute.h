@@ -45,7 +45,7 @@ enum class AttrKernelDataType {
   UCHAR4 = 4,
   NORMAL = 5,
   QUATERNION = 6,
-  SPHERICAL_HARMONICS = 7,
+  SPHERICAL_HARMONICS_REST = 7,
   NUM = 8
 };
 
