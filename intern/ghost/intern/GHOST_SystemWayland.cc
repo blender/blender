@@ -2462,6 +2462,27 @@ static GHOST_TTabletMode tablet_tool_map_type(enum zwp_tablet_tool_v2_type wp_ta
 
 static const int default_cursor_size = 24;
 
+/**
+ * The cursor size from `XCURSOR_SIZE`, unset when it isn't a usable value.
+ * This environment variable is used by enough WAYLAND applications that it
+ * makes sense to check it (see the `Xcursor` man page).
+ */
+static std::optional<int> cursor_size_from_env()
+{
+  const char *env = getenv("XCURSOR_SIZE");
+  if (!env || (*env == '\0')) {
+    return std::nullopt;
+  }
+  char *env_end = nullptr;
+  const long value = strtol(env, &env_end, 10);
+  /* While clamping is not needed on the WAYLAND side,
+   * GHOST's internal logic may get confused by negative values, so ensure it's at least 1. */
+  if ((*env_end != '\0') || (value <= 0)) {
+    return std::nullopt;
+  }
+  return int(value);
+}
+
 static constexpr const char *ghost_wl_mime_text_plain = "text/plain";
 static constexpr const char *ghost_wl_mime_text_utf8 = "text/plain;charset=utf-8";
 static constexpr const char *ghost_wl_mime_text_uri_list = "text/uri-list";
@@ -4578,6 +4599,25 @@ static const wl_buffer_listener cursor_buffer_listener = {
 static CLG_LogRef LOG_WL_CURSOR_SURFACE = {"ghost.wl.handle.cursor_surface"};
 #define LOG (&LOG_WL_CURSOR_SURFACE)
 
+/**
+ * Re-render the custom cursor on the focused surface of `seat_state_pointer`.
+ */
+static void cursor_shape_refresh_for_pointer(const GWL_Seat *seat,
+                                             const GWL_SeatStatePointer *seat_state_pointer)
+{
+  if (!seat->cursor.is_custom) {
+    return;
+  }
+  wl_surface *wl_surface_focus = seat_state_pointer->wl.surface_window;
+  if (!wl_surface_focus) {
+    return;
+  }
+  GHOST_WindowWayland *win = ghost_wl_surface_user_data(wl_surface_focus);
+  if (win) {
+    win->cursor_shape_refresh();
+  }
+}
+
 static bool update_cursor_scale(GWL_Seat *seat,
                                 GWL_Cursor &cursor,
                                 GWL_SeatStatePointer *seat_state_pointer)
@@ -4597,15 +4637,7 @@ static bool update_cursor_scale(GWL_Seat *seat,
 
   if (scale > 0 && cursor.custom_cursor_scale != scale) {
     cursor.custom_cursor_scale = scale;
-    if (cursor.is_custom) {
-      wl_surface *wl_surface_focus = seat_state_pointer->wl.surface_window;
-      if (wl_surface_focus) {
-        GHOST_WindowWayland *win = ghost_wl_surface_user_data(wl_surface_focus);
-        if (win) {
-          win->cursor_shape_refresh();
-        }
-      }
-    }
+    cursor_shape_refresh_for_pointer(seat, seat_state_pointer);
     return true;
   }
   return false;
@@ -7492,22 +7524,7 @@ static void gwl_seat_capability_pointer_enable(GWL_Seat *seat)
 
   gwl_seat_capability_pointer_multitouch_enable(seat);
   {
-    /* Use environment variables, falling back to defaults.
-     * These environment variables are used by enough WAYLAND applications
-     * that it makes sense to check them (see `Xcursor` man page). */
-    const char *env;
-    env = getenv("XCURSOR_SIZE");
-    seat->cursor.theme_size = default_cursor_size;
-
-    if (env && (*env != '\0')) {
-      char *env_end = nullptr;
-      /* While clamping is not needed on the WAYLAND side,
-       * GHOST's internal logic may get confused by negative values, so ensure it's at least 1. */
-      const long value = strtol(env, &env_end, 10);
-      if ((*env_end == '\0') && (value > 0)) {
-        seat->cursor.theme_size = int(value);
-      }
-    }
+    seat->cursor.theme_size = cursor_size_from_env().value_or(default_cursor_size);
 
     /* TODO: detect this from the system.
      * We *could* have weak support based on checking for known themes. */
