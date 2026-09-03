@@ -207,7 +207,7 @@ static void camera_write_cycles_compatibility_data_clear(ID *id,
 
 static void camera_blend_write(BlendWriter *writer, ID *id, const void *id_address)
 {
-  const bool is_undo = BLO_write_is_undo(writer);
+  const bool is_undo = writer->is_undo();
   Camera *cam = id_cast<Camera *>(id);
 
   CameraCyclesCompatibilityData cycles_data;

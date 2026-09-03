@@ -334,7 +334,7 @@ static void mesh_blend_write(BlendWriter *writer, ID *id, const void *id_address
 {
   using namespace blender::bke;
   Mesh *mesh = reinterpret_cast<Mesh *>(id);
-  const bool is_undo = BLO_write_is_undo(writer);
+  const bool is_undo = writer->is_undo();
 
   ResourceScope scope;
   Vector<CustomDataLayer, 16> vert_layers;
@@ -390,7 +390,7 @@ static void mesh_blend_write(BlendWriter *writer, ID *id, const void *id_address
   const bke::MeshRuntime *mesh_runtime = mesh->runtime;
   mesh->runtime = nullptr;
 
-  BLO_write_generated_pointer_tag(writer, mesh->attribute_storage.dna_attributes);
+  writer->generated_pointer_tag(mesh->attribute_storage.dna_attributes);
 
   writer->write_id_struct(id_address, mesh, [](BlendStructWriter &struct_writer) {
     struct_writer.generated_ptr(offsetof(Mesh, attribute_storage.dna_attributes));
@@ -423,8 +423,7 @@ static void mesh_blend_write(BlendWriter *writer, ID *id, const void *id_address
   mesh->attribute_storage.wrap().blend_write(*writer, attribute_data);
 
   if (mesh->face_offset_indices) {
-    BLO_write_shared(
-        writer,
+    writer->write_shared(
         mesh->face_offset_indices,
         sizeof(int) * mesh->faces_num,
         mesh_runtime->face_offsets_sharing_info,

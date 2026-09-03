@@ -1235,8 +1235,7 @@ static void write_node_socket_default_value(BlendWriter *writer, const bNodeSock
 static void write_node_socket(BlendWriter *writer, const bNodeSocket *sock)
 {
   /* Todo(#140111): Forward compatibility support for pixel subtype will be removed in 6.0. */
-  if (!BLO_write_is_undo(writer) && forward_compat::subtype_pixel_to_none().contains(sock->idname))
-  {
+  if (!writer->is_undo() && forward_compat::subtype_pixel_to_none().contains(sock->idname)) {
     forward_compat::pixel_subtype_forward_compat(writer, *sock);
     return;
   }
@@ -1264,7 +1263,7 @@ static void node_blend_write_storage(BlendWriter *writer, bNodeTree *ntree, bNod
      * Not ideal (there is no ideal solution here), but should do for now. */
     NodeGlare *ndg = static_cast<NodeGlare *>(node->storage);
     /* Not in undo case. */
-    if (!BLO_write_is_undo(writer)) {
+    if (!writer->is_undo()) {
       switch (ndg->type) {
         case CMP_NODE_GLARE_STREAKS:
           ndg->angle = ndg->streaks;
@@ -1358,7 +1357,7 @@ void node_tree_blend_write(BlendWriter *writer, bNodeTree *ntree)
 
   /* Restore IDs overridden for forward compatibility. Otherwise their user count becomes wrong. */
   Map<ID **, ID *> ids_to_restore;
-  if (!BLO_write_is_undo(writer)) {
+  if (!writer->is_undo()) {
     forward_compat::update_node_location_legacy(*ntree);
     forward_compat::write_legacy_properties(*ntree, ids_to_restore);
   }
@@ -1384,7 +1383,7 @@ void node_tree_blend_write(BlendWriter *writer, bNodeTree *ntree)
       IDP_BlendWrite(writer, node->system_properties);
     }
 
-    if (!BLO_write_is_undo(writer)) {
+    if (!writer->is_undo()) {
       forward_compat::initialize_legacy_socket_storage(*node);
     }
 
@@ -1428,7 +1427,7 @@ void node_tree_blend_write(BlendWriter *writer, bNodeTree *ntree)
    * data is no longer needed, future allocations might be given the same address by the OS, which
    * will produce a corrupt blend file because multiple data use the same identifier/address in the
    * same ID. */
-  if (!BLO_write_is_undo(writer)) {
+  if (!writer->is_undo()) {
     for (bNode *node : ntree->all_nodes()) {
       forward_compat::free_legacy_socket_storage(*node);
     }

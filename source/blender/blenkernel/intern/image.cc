@@ -371,7 +371,7 @@ static void image_foreach_path(ID *id, BPathForeachPathData *bpath_data)
 static void image_blend_write(BlendWriter *writer, ID *id, const void *id_address)
 {
   Image *ima = id_cast<Image *>(id);
-  const bool is_undo = BLO_write_is_undo(writer);
+  const bool is_undo = writer->is_undo();
 
   /* Clear all data that isn't read to reduce false detection of changed image during memfile undo.
    */

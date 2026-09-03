@@ -79,7 +79,7 @@ class BlendStructWriter {
   /**
    * Tag the pointer at the given offset as "generated". That implies that it may be remapped
    * to a stable pointer. It's expected that the pointer has been tagged with
-   * #BLO_write_generated_pointer_tag before.
+   * #generated_pointer_tag before.
    */
   void generated_ptr(int64_t offset);
 };
@@ -88,6 +88,17 @@ using BlendStructWriterFn = FunctionRef<void(BlendStructWriter &struct_writer)>;
 
 struct BlendWriter {
   WriteData *wd = nullptr;
+
+  /**
+   * Sometimes different data is written depending on whether the file is saved to disk or used for
+   * undo. This function returns true when the current file-writing is done for undo.
+   */
+  bool is_undo() const;
+
+  /**
+   * \note Should not be strictly needed outside of handling external Multires .btx files.
+   */
+  StringRefNull filepath() const;
 
   void write_struct_by_name(const char *struct_name,
                             const void *data,
@@ -153,7 +164,31 @@ struct BlendWriter {
   /** Write a null terminated string. */
   void write_string(const char *data);
 
+  /**
+   * Check if the data can be written more efficiently by making use of implicit-sharing. If yes,
+   * the user count of the sharing-info is increased making the data immutable. The provided
+   * callback should serialize the potentially shared data. It is only called when necessary.
+   *
+   * \param approximate_size_in_bytes: Used to be able to approximate how large the undo step is in
+   * total.
+   * \param write_fn: Use the #BlendWrite to serialize the potentially shared data.
+   */
+  void write_shared(const void *data,
+                    size_t approximate_size_in_bytes,
+                    const ImplicitSharingInfo *sharing_info,
+                    FunctionRef<void()> write_fn);
+
   int struct_id_by_name(const char *struct_name) const;
+
+  /**
+   * Needs to be called for all pointers that _need_ to be 'stabilized' when writing undo steps,
+   * _before_ any of these pointers are actually written (so typically at the very start of a write
+   * function)..
+   *
+   * Typically required for data dynamically generated as part of the write process, see e.g.
+   * AttributeStorage::dna_attributes.
+   */
+  void generated_pointer_tag(const void *data);
 
   template<typename T> void write_struct(const T *data, const BlendStructWriterFn fn = nullptr)
   {
@@ -295,44 +330,6 @@ struct BLO_Write_IDBuffer {
     return static_cast<ID *>(buffer_.buffer());
   };
 };
-
-/* Misc. */
-
-/**
- * \note Should not be strictly needed outside of handling external Multires .btx files.
- */
-StringRefNull BLO_write_filepath(const BlendWriter *writer);
-
-/**
- * Check if the data can be written more efficiently by making use of implicit-sharing. If yes, the
- * user count of the sharing-info is increased making the data immutable. The provided callback
- * should serialize the potentially shared data. It is only called when necessary.
- *
- * \param approximate_size_in_bytes: Used to be able to approximate how large the undo step is in
- * total.
- * \param write_fn: Use the #BlendWrite to serialize the potentially shared data.
- */
-void BLO_write_shared(BlendWriter *writer,
-                      const void *data,
-                      size_t approximate_size_in_bytes,
-                      const ImplicitSharingInfo *sharing_info,
-                      FunctionRef<void()> write_fn);
-
-/**
- * Needs to be called for all pointers that _need_ to be 'stabilized' when writing undo steps,
- * _before_ any of these pointers are actually written (so typically at the very start of a write
- * function)..
- *
- * Typically required for data dynamically generated as part of the write process, see e.g.
- * AttributeStorage::dna_attributes.
- */
-void BLO_write_generated_pointer_tag(BlendWriter *writer, const void *data);
-
-/**
- * Sometimes different data is written depending on whether the file is saved to disk or used for
- * undo. This function returns true when the current file-writing is done for undo.
- */
-bool BLO_write_is_undo(BlendWriter *writer);
 
 /** \} */
 

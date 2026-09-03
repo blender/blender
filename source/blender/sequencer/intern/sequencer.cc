@@ -897,7 +897,7 @@ static bool strip_write_data_cb(Strip *strip, void *userdata)
           break;
         case STRIP_TYPE_TEXT: {
           TextVars *text = static_cast<TextVars *>(strip->effectdata);
-          if (!BLO_write_is_undo(writer)) {
+          if (!writer->is_undo()) {
             /* Copy current text into legacy buffer. */
             STRNCPY_UTF8(text->text_legacy, text->text_ptr);
           }

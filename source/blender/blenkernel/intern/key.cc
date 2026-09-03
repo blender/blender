@@ -118,7 +118,7 @@ static ID **shapekey_owner_pointer_get(ID *id, const bool debug_relationship_ass
 static void shapekey_blend_write(BlendWriter *writer, ID *id, const void *id_address)
 {
   Key *key = id_cast<Key *>(id);
-  const bool is_undo = BLO_write_is_undo(writer);
+  const bool is_undo = writer->is_undo();
 
   /* Write LibData. */
   writer->write_id_struct(id_address, key);

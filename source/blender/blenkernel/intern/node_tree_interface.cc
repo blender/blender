@@ -643,7 +643,7 @@ void item_write_struct(BlendWriter *writer, bNodeTreeInterfaceItem &item)
                          NODE_INTERFACE_SOCKET_SINGLE_VALUE_ONLY_LEGACY);
 
       /* Todo(#140111): Forward compatible writing of Pixel subtype. To be removed in 6.0. */
-      if (!BLO_write_is_undo(writer) && subtype_pixel_to_none().contains(socket.socket_type)) {
+      if (!writer->is_undo() && subtype_pixel_to_none().contains(socket.socket_type)) {
         pixel_subtype_forward_compat(writer, item);
       }
       else {

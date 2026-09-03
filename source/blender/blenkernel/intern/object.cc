@@ -798,7 +798,7 @@ static void object_blend_write(BlendWriter *writer, ID *id, const void *id_addre
 {
   Object *ob = id_cast<Object *>(id);
 
-  const bool is_undo = BLO_write_is_undo(writer);
+  const bool is_undo = writer->is_undo();
 
   /* Clean up, important in undo case to reduce false detection of changed data-blocks. */
   ob->runtime = nullptr;
