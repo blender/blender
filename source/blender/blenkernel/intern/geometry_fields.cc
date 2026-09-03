@@ -258,47 +258,57 @@ const Instances *GeometryFieldContext::instances() const
              nullptr;
 }
 
-GVArray GeometryFieldInput::get_varray_for_context(const fn::FieldContext &context,
-                                                   const IndexMask &mask,
-                                                   ResourceScope & /*scope*/) const
+static std::optional<GeometryFieldContext> try_get_geometry_field_context(
+    const fn::FieldContext &context)
 {
   if (const GeometryFieldContext *geometry_context = dynamic_cast<const GeometryFieldContext *>(
           &context))
   {
-    return this->get_varray_for_context(*geometry_context, mask);
+    return *geometry_context;
   }
   if (const MeshFieldContext *mesh_context = dynamic_cast<const MeshFieldContext *>(&context)) {
-    return this->get_varray_for_context({mesh_context->mesh(), mesh_context->domain()}, mask);
+    return GeometryFieldContext(mesh_context->mesh(), mesh_context->domain());
   }
   if (const CurvesFieldContext *curve_context = dynamic_cast<const CurvesFieldContext *>(&context))
   {
     if (const Curves *curves_id = curve_context->curves_id()) {
-      return this->get_varray_for_context({*curves_id, curve_context->domain()}, mask);
+      return GeometryFieldContext(*curves_id, curve_context->domain());
     }
-    return this->get_varray_for_context({curve_context->curves(), curve_context->domain()}, mask);
+    return GeometryFieldContext(curve_context->curves(), curve_context->domain());
   }
   if (const PointCloudFieldContext *point_context = dynamic_cast<const PointCloudFieldContext *>(
           &context))
   {
-    return this->get_varray_for_context({point_context->pointcloud()}, mask);
+    return GeometryFieldContext(point_context->pointcloud());
   }
   if (const GreasePencilFieldContext *grease_pencil_context =
           dynamic_cast<const GreasePencilFieldContext *>(&context))
   {
-    return this->get_varray_for_context({grease_pencil_context->grease_pencil()}, mask);
+    return GeometryFieldContext(grease_pencil_context->grease_pencil());
   }
   if (const GreasePencilLayerFieldContext *grease_pencil_context =
           dynamic_cast<const GreasePencilLayerFieldContext *>(&context))
   {
-    return this->get_varray_for_context({grease_pencil_context->grease_pencil(),
-                                         grease_pencil_context->domain(),
-                                         grease_pencil_context->layer_index()},
-                                        mask);
+    return GeometryFieldContext(grease_pencil_context->grease_pencil(),
+                                grease_pencil_context->domain(),
+                                grease_pencil_context->layer_index());
   }
   if (const InstancesFieldContext *instances_context = dynamic_cast<const InstancesFieldContext *>(
           &context))
   {
-    return this->get_varray_for_context({instances_context->instances()}, mask);
+    return GeometryFieldContext(instances_context->instances());
+  }
+  return std::nullopt;
+}
+
+GVArray GeometryFieldInput::get_varray_for_context(const fn::FieldContext &context,
+                                                   const IndexMask &mask,
+                                                   ResourceScope & /*scope*/) const
+{
+  if (const std::optional<GeometryFieldContext> geometry_context = try_get_geometry_field_context(
+          context))
+  {
+    return this->get_varray_for_context(*geometry_context, mask);
   }
   return {};
 }
