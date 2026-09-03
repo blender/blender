@@ -9121,7 +9121,6 @@ GHOST_SystemWayland::GHOST_SystemWayland(const bool background)
             return;
           }
           CLOG_INFO(&LOG, "XDG: color-scheme changed: %u", *value_uint);
-          printf("XDG: color-scheme changed to %u\n", *value_uint);
         });
     dbus_watcher_->start();
   }
