@@ -25,7 +25,6 @@ set(SRC
   intern/spz_read.hh
   intern/spz_read_common.cc
   intern/spz_read_common.hh
-  intern/spz_types.hh
 )
 
 set(LIB

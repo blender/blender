@@ -28,7 +28,6 @@
 #include "IO_validate.hh"
 
 #include "spz_read_common.hh"
-#include "spz_types.hh"
 
 namespace blender::io::spz {
 

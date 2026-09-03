@@ -27,7 +27,6 @@
 #include "CLG_log.h"
 
 #include "spz_read_common.hh"
-#include "spz_types.hh"
 
 namespace blender::io::spz {
 
