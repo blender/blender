@@ -957,10 +957,8 @@ void popup_menu_but_set(PopupMenu *pup, ARegion *butregion, Button *but);
 
 struct Popover;
 
-wmOperatorStatus popover_panel_invoke(bContext *C,
-                                      const char *idname,
-                                      bool keep_open,
-                                      ReportList *reports);
+wmOperatorStatus popover_panel_invoke(
+    bContext *C, const char *idname, bool keep_open, bool use_numselect, ReportList *reports);
 
 /**
  * Only return handler, and set optional title.

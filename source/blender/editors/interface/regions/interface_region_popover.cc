@@ -69,6 +69,8 @@ struct Popover {
 
   /* Size in pixels (ui scale applied). */
   int ui_size_x;
+  /** Assign accelerator keys to buttons (#BLOCK_NUMSELECT). */
+  bool use_numselect;
 
 #ifdef USE_UI_POPOVER_ONCE
   bool is_once;
@@ -128,6 +130,10 @@ static Block *block_func_POPOVER(bContext *C, PopupBlockHandle *handle, void *ar
 
   /* Setup and resolve UI layout for block. */
   Block *block = pup->block;
+
+  if (pup->use_numselect) {
+    block_flag_enable(block, BLOCK_NUMSELECT);
+  }
 
   /* in some cases we create the block before the region,
    * so we set it delayed here if necessary */
@@ -312,10 +318,8 @@ PopupBlockHandle *popover_panel_create(bContext *C,
 /** \name Standard Popover Panels
  * \{ */
 
-wmOperatorStatus popover_panel_invoke(bContext *C,
-                                      const char *idname,
-                                      bool keep_open,
-                                      ReportList *reports)
+wmOperatorStatus popover_panel_invoke(
+    bContext *C, const char *idname, bool keep_open, bool use_numselect, ReportList *reports)
 {
   Layout *layout;
   PanelType *pt = WM_paneltype_find(idname, true);
@@ -333,9 +337,11 @@ wmOperatorStatus popover_panel_invoke(bContext *C,
   if (keep_open) {
     PopupBlockHandle *handle = popover_panel_create(C, nullptr, nullptr, item_paneltype_func, pt);
     Popover *pup = static_cast<Popover *>(handle->popup_create_vars.arg);
+    pup->use_numselect = use_numselect;
     block = pup->block;
 
-    /* Refresh so the block is recreated with the region visible.
+    /* Refresh so the block is recreated with the region visible
+     * (this also applies `use_numselect`).
      *
      * Without this, `block_begin` sets #BLOCK_LOOP before the region is shown,
      * causing `template_popup_confirm` to skip attaching its close callback
@@ -345,6 +351,7 @@ wmOperatorStatus popover_panel_invoke(bContext *C,
   }
   else {
     Popover *pup = popover_begin(C, U.widget_unit * pt->ui_units_x, false);
+    pup->use_numselect = use_numselect;
     layout = popover_layout(pup);
     ui::UI_paneltype_draw(C, pt, layout);
     ui::popover_end(C, pup, nullptr);
