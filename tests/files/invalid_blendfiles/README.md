@@ -88,3 +88,23 @@ Loading the preview from the file browser read it as pixels (buffer overflow).
 
 A node group is followed by an ID block with an out-of-range SDNA struct index.
 Freeing the node group after the failed read accessed nodes without types (crash).
+
+`invalid_glob_short.blend`
+--------------------------
+
+The `GLOB` block is truncated to 2 bytes, shorter than its sub-version string (buffer overflow).
+
+`invalid_id_short.blend`
+------------------------
+
+An object block's data is 8 bytes, too short for the ID name and flag (buffer overflow).
+
+`invalid_id_small.blend`
+------------------------
+
+An object block's data is truncated to `sizeof(ID)` (buffer overflow).
+
+`invalid_struct_count_zero.blend`
+---------------------------------
+
+An object block has a zero struct count, with SDNA modified to require reconstruction (buffer overflow).
