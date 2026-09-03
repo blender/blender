@@ -29,7 +29,8 @@ enum HeaderFlag {
 
 namespace internal {
 
-template<class ReaderType> bool read_single_position_as_fixed(ReaderType &reader, int3 &fixed)
+template<class ReaderType>
+[[nodiscard]] inline bool read_single_position_as_fixed(ReaderType &reader, int3 &fixed)
 {
   using PackedFloat = std::array<uint8_t, 3>;
   using PackedFloat3 = std::array<PackedFloat, 3>;
@@ -56,9 +57,9 @@ inline float inv_sigmoid(const float x)
 }  // namespace internal
 
 template<class ReaderType>
-bool read_positions(ReaderType &reader,
-                    const int fractional_bits,
-                    const MutableSpan<float3> positions)
+[[nodiscard]] inline bool read_positions(ReaderType &reader,
+                                         const int fractional_bits,
+                                         const MutableSpan<float3> positions)
 {
   /* From documentation:
    *
@@ -78,7 +79,7 @@ bool read_positions(ReaderType &reader,
 }
 
 template<class ReaderType>
-bool read_alphas(ReaderType &reader, const MutableSpan<float4> radiance_base)
+[[nodiscard]] inline bool read_alphas(ReaderType &reader, const MutableSpan<float4> radiance_base)
 {
   for (float4 &base : radiance_base) {
     uint8_t alpha;
@@ -101,7 +102,7 @@ bool read_alphas(ReaderType &reader, const MutableSpan<float4> radiance_base)
 }
 
 template<class ReaderType>
-bool read_colors(ReaderType &reader, const MutableSpan<float4> radiance_base)
+[[nodiscard]] inline bool read_colors(ReaderType &reader, const MutableSpan<float4> radiance_base)
 {
   /* From SPZ:
    *   Scale factor for DC color components. To convert to RGB, we should multiply by 0.282, but it
@@ -123,7 +124,8 @@ bool read_colors(ReaderType &reader, const MutableSpan<float4> radiance_base)
   return true;
 }
 
-template<class ReaderType> bool read_scales(ReaderType &reader, const MutableSpan<float3> scales)
+template<class ReaderType>
+[[nodiscard]] inline bool read_scales(ReaderType &reader, const MutableSpan<float3> scales)
 {
   /* From documentation:
    *
@@ -141,9 +143,9 @@ template<class ReaderType> bool read_scales(ReaderType &reader, const MutableSpa
 }
 
 template<class ReaderType>
-bool read_rotations(ReaderType &reader,
-                    const int version,
-                    const MutableSpan<math::Quaternion> rotations)
+[[nodiscard]] inline bool read_rotations(ReaderType &reader,
+                                         const int version,
+                                         const MutableSpan<math::Quaternion> rotations)
 {
   if (version == 2) {
     /* From documentation:
@@ -207,7 +209,8 @@ bool read_rotations(ReaderType &reader,
   return false;
 }
 
-template<class ReaderType> bool read_sh(ReaderType &reader, const Span<MutableSpan<float3>> sh)
+template<class ReaderType>
+[[nodiscard]] inline bool read_sh(ReaderType &reader, const Span<MutableSpan<float3>> sh)
 {
   /* From documentation:
    *
