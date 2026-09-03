@@ -40,7 +40,7 @@ template<typename ExtraInfo> struct AnyTypeInfo {
  * Used when #T is stored directly in the inline buffer of the #Any.
  */
 template<typename ExtraInfo, typename T>
-inline constexpr AnyTypeInfo<ExtraInfo> info_for_inline = {
+inline AnyTypeInfo<ExtraInfo> info_for_inline = {
     is_trivially_copy_constructible_extended_v<T> ?
         nullptr :
         +[](void *dst, const void *src) { new (dst) T(*static_cast<const T *>(src)); },
@@ -59,7 +59,7 @@ inline constexpr AnyTypeInfo<ExtraInfo> info_for_inline = {
  */
 template<typename T> using Ptr = std::unique_ptr<T>;
 template<typename ExtraInfo, typename T>
-inline constexpr AnyTypeInfo<ExtraInfo> info_for_unique_ptr = {
+inline AnyTypeInfo<ExtraInfo> info_for_unique_ptr = {
     [](void *dst, const void *src) {
       new (dst) Ptr<T>(new T(**static_cast<const Ptr<T> *>(src)));
     },

@@ -341,4 +341,10 @@ GListPtr GList::from_garray(GArray<> array)
       sharable_data->data.type(), std::move(array_data), sharable_data->data.size());
 }
 
+GListPtr GList::from_single(const GPointer value, const int64_t size)
+{
+  const CPPType &type = *value.type();
+  return GListPtr{MEM_new<GList>(__func__, type, SingleData::ForValue(value), size)};
+}
+
 }  // namespace blender::nodes

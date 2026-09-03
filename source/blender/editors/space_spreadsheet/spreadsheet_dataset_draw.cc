@@ -781,7 +781,7 @@ class GeometryDataSetTreeView : public ui::AbstractTreeView {
     if (!value.is_single()) {
       return;
     }
-    const GPointer single_value = value.get_single_ptr();
+    const GPointer single_value = value.get();
     if (single_value.is_type<nodes::BundlePtr>()) {
       const nodes::BundlePtr &bundle_ptr = *single_value.get<nodes::BundlePtr>();
       if (bundle_ptr) {
@@ -1348,7 +1348,7 @@ class ViewerDataTreeView : public ui::AbstractTreeView {
     if (!value.is_single()) {
       return;
     }
-    const GPointer single_value = value.get_single_ptr();
+    const GPointer single_value = value.get();
     if (single_value.is_type<nodes::BundlePtr>()) {
       const nodes::BundlePtr &bundle_ptr = *single_value.get<nodes::BundlePtr>();
       if (bundle_ptr) {

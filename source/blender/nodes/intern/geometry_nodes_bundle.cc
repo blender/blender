@@ -129,7 +129,7 @@ static BundleItemValue create_nested_bundle_item()
   static const bke::bNodeSocketType *bundle_socket_type = bke::node_socket_type_find_static(
       SOCK_BUNDLE);
   return {
-      BundleItemSocketValue{bundle_socket_type, bke::SocketValueVariant::From(Bundle::create())}};
+      BundleItemSocketValue{bundle_socket_type, bke::SocketValueVariant::from(Bundle::create())}};
 }
 
 void Bundle::add_path_override(const Span<BundleKey> path, const BundleItemValue &value)
@@ -529,15 +529,11 @@ std::optional<bke::SocketValueVariant> BundleItemValue::as_socket_value(
   if (!socket_value) {
     return std::nullopt;
   }
-  if (socket_value->type->type == dst_socket_type.type) {
-    return socket_value->value;
+  bke::SocketValueVariant copy = socket_value->value;
+  if (!copy.try_convert(*dst_socket_type.base_cpp_type)) {
+    return std::nullopt;
   }
-  if (std::optional<bke::SocketValueVariant> converted_value = implicitly_convert_socket_value(
-          *socket_value->type, socket_value->value, dst_socket_type))
-  {
-    return converted_value;
-  }
-  return std::nullopt;
+  return copy;
 }
 
 }  // namespace blender::nodes

@@ -3227,7 +3227,7 @@ class XpbdSolverStep {
           collider_map_path,
           BundleItemSocketValue{
               bke::node_socket_type_find_static(SOCK_STRING),
-              bke::SocketValueVariant::From(GList::from_container(std::move(collider_paths)))});
+              bke::SocketValueVariant::from(GList::from_container(std::move(collider_paths)))});
     }
   }
 

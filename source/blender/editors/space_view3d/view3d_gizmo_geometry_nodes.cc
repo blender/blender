@@ -285,7 +285,7 @@ class LinearGizmo : public NodeGizmos {
           self.edit_data_.current_value = new_gizmo_value;
           const float offset = new_gizmo_value * self.edit_data_.factor_from_transform;
           self.apply_change("Value"_ustr, [&](bke::SocketValueVariant &value_variant) {
-            value_variant.set(value_variant.get<float>() + offset);
+            value_variant.ensure_type<float>() += offset;
           });
         };
     fn_params.value_get_fn =
@@ -406,7 +406,7 @@ class DialGizmo : public NodeGizmos {
             offset = -offset;
           }
           self.apply_change("Value"_ustr, [&](bke::SocketValueVariant &value_variant) {
-            value_variant.set(value_variant.get<float>() + offset);
+            value_variant.ensure_type<float>() += offset;
           });
         };
     params.value_get_fn = [](const wmGizmo * /*gz*/, wmGizmoProperty *gz_prop, void *value_ptr) {
@@ -617,7 +617,7 @@ class TransformGizmos : public NodeGizmos {
         float3 translation{};
         translation[axis_i] = new_gizmo_value;
         self.apply_change("Value"_ustr, [&](bke::SocketValueVariant &value_variant) {
-          float4x4 value = value_variant.get<float4x4>();
+          float4x4 &value = value_variant.ensure_type<float4x4>();
           const float3x3 orientation = float3x3(value);
           float3 offset{};
           if (self.transform_orientation_ == V3D_ORIENT_GLOBAL) {
@@ -629,7 +629,6 @@ class TransformGizmos : public NodeGizmos {
             offset = math::transform_direction(orientation, translation) * factor;
           }
           value.location() += offset;
-          value_variant.set(value);
         });
       };
       params.value_get_fn = [](const wmGizmo *gz, wmGizmoProperty *gz_prop, void *value_ptr) {
@@ -668,7 +667,7 @@ class TransformGizmos : public NodeGizmos {
         const float new_gizmo_value = *static_cast<const float *>(value_ptr);
         self.edit_data_.current_rotation[axis_i] = new_gizmo_value;
         self.apply_change("Value"_ustr, [&](bke::SocketValueVariant &value_variant) {
-          float4x4 value = value_variant.get<float4x4>();
+          float4x4 &value = value_variant.ensure_type<float4x4>();
           float3 local_rotation_axis;
           if (self.transform_orientation_ == V3D_ORIENT_GLOBAL) {
             local_rotation_axis = math::normalize(math::transform_direction(
@@ -681,7 +680,6 @@ class TransformGizmos : public NodeGizmos {
           rotation_matrix = math::from_rotation<float3x3>(
               math::AxisAngle(local_rotation_axis, -new_gizmo_value));
           value.view<3, 3>() = rotation_matrix * value.view<3, 3>();
-          value_variant.set(value);
         });
       };
       params.value_get_fn = [](const wmGizmo *gz, wmGizmoProperty *gz_prop, void *value_ptr) {
@@ -722,7 +720,7 @@ class TransformGizmos : public NodeGizmos {
         float3 scale{1.0f, 1.0f, 1.0f};
         scale[axis_i] += new_gizmo_value;
         self.apply_change("Value"_ustr, [&](bke::SocketValueVariant &value_variant) {
-          float4x4 value = value_variant.get<float4x4>();
+          float4x4 &value = value_variant.ensure_type<float4x4>();
           float3 local_scale_axis;
           if (self.transform_orientation_ == V3D_ORIENT_GLOBAL) {
             local_scale_axis = math::normalize(math::transform_direction(
@@ -747,7 +745,6 @@ class TransformGizmos : public NodeGizmos {
               value[i] = float4(col * (math::length(float3(scaled[i])) / len), 0.0f);
             }
           }
-          value_variant.set(value);
         });
       };
       params.value_get_fn = [](const wmGizmo *gz, wmGizmoProperty *gz_prop, void *value_ptr) {

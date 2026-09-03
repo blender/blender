@@ -1,16 +1,14 @@
-/* SPDX-FileCopyrightText: 2023 Blender Authors
+/* SPDX-FileCopyrightText: 2026 Blender Authors
  *
  * SPDX-License-Identifier: GPL-2.0-or-later */
 
-/** \file
- * \ingroup bke
- */
-
 #pragma once
 
-#include "DNA_node_types.h"
+#include <type_traits>
+#include <utility>
 
 #include "BLI_any.hh"
+#include "BLI_cpp_type.hh"
 #include "BLI_generic_pointer.hh"
 #include "BLI_memory_counter_fwd.hh"
 
@@ -18,9 +16,56 @@
 
 namespace blender::bke {
 
+class SocketValueVariant;
+
+namespace detail {
+
+struct SocketValueVariantTypeInfo;
+using SocketValueVariantAny = Any<SocketValueVariantTypeInfo, 32, 16>;
+
+struct SocketValueVariantTypeInfo {
+  const CPPType &type;
+  bool (*convert_to)(const CPPType &dst_type, SocketValueVariantAny &value);
+  bool (*is_interpretable_as)(const CPPType &dst_type, const SocketValueVariantAny &value);
+
+  template<typename T> static SocketValueVariantTypeInfo get()
+  {
+    return SocketValueVariantTypeInfo{
+        .type = *CPPType::get_pre_register<T>(),
+        .convert_to = try_convert_fn<T>,
+        .is_interpretable_as = is_interpretable_as_fn<T>,
+    };
+  }
+
+  template<typename T>
+  static bool try_convert_fn(const CPPType &dst_type, SocketValueVariantAny &value);
+
+  template<typename T>
+  static bool is_interpretable_as_fn(const CPPType &dst_type, const SocketValueVariantAny &value);
+};
+
+template<typename T>
+concept has_generic_type = requires { typename T::generic_type; };
+template<typename T> struct storage_type {
+  using type = T;
+};
+template<has_generic_type T> struct storage_type<T> {
+  using type = typename T::generic_type;
+};
+
+inline const CPPType &to_storage_type(const CPPType &type)
+{
+  if (type.generic_type) {
+    return *type.generic_type;
+  }
+  return type;  // NOLINT
+}
+
+};  // namespace detail
+
 /**
- * #SocketValueVariant is used by geometry nodes in the lazy-function evaluator to pass data
- * between nodes. Specifically, it is the container type for the following socket types: bool,
+ * #SocketValueVariant is used to pass data between nodes, e.g. by geometry nodes in the lazy
+ * function evaluator. Specifically, it is the container type for the following socket types: bool,
  * float, integer, vector, rotation, color and string.
  *
  * The data passed through e.g. an integer socket can be a single value, a field or a grid (and in
@@ -31,98 +76,67 @@ namespace blender::bke {
  * has to include all the headers required to process the other storage types. This is achieved by
  * using the #Any type and by providing templated accessors that are implemented outside of a
  * header.
+ *
+ * This container is also able to do implicit conversions between the different types, with the
+ * #ensure_type() methods.
  */
 class SocketValueVariant {
  private:
-  /**
-   * This allows faster lookup of the correct type in the #Any below. For example, when retrieving
-   * the value of an integer socket, we'd usually have to check whether the #Any contains a single
-   * `int` or a field. Doing that check by comparing an enum is cheaper.
-   *
-   * Also, to figure out if we currently store a single value we'd otherwise have to check whether
-   * they #Any stored an integer or float or boolean etc.
-   */
-  enum class Kind {
-    /**
-     * Used to indicate that there is no value currently. This is used by the default constructor.
-     */
-    None,
-    /**
-     * Indicates that there is a single value like `int`, `float` or `std::string` stored.
-     */
-    Single,
-    /**
-     * Indicates that there is a `GField` stored.
-     */
-    Field,
-    /**
-     * Indicates that there is a `GVolumeGrid` stored.
-     */
-    Grid,
-    /** Indicates that there is a `GListPtr` stored. */
-    List,
-  };
+  using Info = detail::SocketValueVariantTypeInfo;
 
-  struct AnyExtraData {
-    /**
-     * High level category of the stored type.
-     */
-    Kind kind = Kind::None;
-    /**
-     * The socket type that corresponds to the stored value type, e.g. `SOCK_INT` for an `int` or
-     * integer field.
-     */
-    eNodeSocketDatatype socket_type;
-  };
+  detail::SocketValueVariantAny value_;
 
   /**
-   * Contains the actual socket value. For single values this contains the value directly (e.g.
-   * `int` or `float3`). For fields this always contains a #GField and not e.g. #Field<int>. This
-   * simplifies generic code.
-   *
-   * Small types are embedded directly, while larger types are separately allocated.
+   * Some types have a generic and compile-time version. For example, there is #GField and
+   * #Field<T>. Those are expected to have the same memory layout so that references can be cast
+   * between them. The #Any always stores the generic version if it exists.
    */
-  Any<void, 32, 16, AnyExtraData> value_;
+  template<typename T> using to_storage_type = typename detail::storage_type<T>::type;
 
  public:
   /**
    * Create an empty variant. This is not valid for any socket type yet.
    */
   SocketValueVariant() = default;
-  SocketValueVariant(const SocketValueVariant &other) = default;
-  SocketValueVariant(SocketValueVariant &&other) = default;
-  SocketValueVariant &operator=(const SocketValueVariant &other) = default;
-  SocketValueVariant &operator=(SocketValueVariant &&other) = default;
-  ~SocketValueVariant() = default;
 
   /**
    * Create a variant based on the given value. This works for primitive types. For more complex
-   * types use #set explicitly. Alternatively, one can use the #From or #ConstructIn utilities.
+   * types, one can use the #from or #construct_in utilities.
    */
   template<typename T>
   explicit SocketValueVariant(T &&value)
       /* Required to avoid overriding the copy/move-constructors. */
-    requires(std::is_trivial_v<std::decay_t<T>> || is_same_any_v<std::decay_t<T>, std::string>)
-  {
-    this->set(std::forward<T>(value));
-  }
+    requires(std::is_trivial_v<std::decay_t<T>> || is_same_any_v<std::decay_t<T>, std::string>);
 
   /** Construct a #SocketValueVariant at the given pointer from the given value. */
-  template<typename T> static SocketValueVariant &ConstructIn(void *ptr, T &&value);
+  template<typename T> static SocketValueVariant &construct_in(void *ptr, T &&value);
 
   /** Create a new #SocketValueVariant from the given value. */
-  template<typename T> static SocketValueVariant From(T &&value);
+  template<typename T> static SocketValueVariant from(T &&value);
+
+  /** Replace the stored value by constructing the given type in the storage. */
+  template<typename T, typename... Args> T &emplace(Args &&...args);
 
   /**
-   * \return True if the stored value is valid for a specific socket type. This is mainly meant to
-   * be used by asserts.
+   * Try to convert the stored value to the given type, returning null if the implicit conversion
+   * does not exist.
    */
-  bool valid_for_socket(eNodeSocketDatatype socket_type) const;
+  template<typename T> T *try_convert();
+  void *try_convert(const CPPType &type);
+
+  /**
+   * Try to convert the stored value to the given type, creating the type's default value if the
+   * conversion does not exist.
+   */
+  template<typename T> T &ensure_type();
+  void *ensure_type(const CPPType &type);
+
+  /** Equivalent to calling #extract<T>() on a copy of this value. */
+  template<typename T> T copy_as() const;
 
   /**
    * Get the stored value as a specific type. For convenience this allows accessing the stored type
-   * as a different type. For example, a stored single `int` can also be accessed as `GField` or
-   * `Field<int>` (but not `float` or `Field<float>`).
+   * as a different type, using implicit conversions as possible.
    *
    * This method may leave the variant empty, in a moved from state or unchanged. Therefore, this
    * should only be called once.
@@ -130,17 +144,16 @@ class SocketValueVariant {
   template<typename T> T extract();
 
   /**
-   * Same as #extract, but always leaves the variant unchanged. So this method can be called
-   * multiple times.
+   * Return a pointer to the stored value if it is of the given type. Otherwise return null.
    */
-  template<typename T> T get() const;
+  template<typename T> const T *get_if() const;
+  template<typename T> T *get_if();
+  const void *get_if(const CPPType &type) const;
+  void *get_if(const CPPType &type);
 
-  /**
-   * Replaces the stored value with a new value of potentially a different type.
-   */
-  template<typename T> void set(T &&value);
-
-  eNodeSocketDatatype socket_type() const;
+  /** Get the stored value as a #GPointer. */
+  GPointer get() const;
+  GMutablePointer get();
 
   /**
    * If true, the stored value cannot be converted to a single value without loss of information.
@@ -167,93 +180,194 @@ class SocketValueVariant {
    */
   bool is_list() const;
 
-  /**
-   * Convert the stored value into a single value. For simple value access, this is not necessary,
-   * because #get does the conversion implicitly. However, it is necessary if one wants to use
-   * #get_single_ptr. Context-dependent fields or grids will just result in a fallback value.
-   *
-   * The caller has to make sure that the stored value is a single value, field or grid.
-   */
-  void convert_to_single();
-
-  /**
-   * Get a pointer to the embedded single value. The caller has to make sure that there actually is
-   * a single value stored, e.g. by calling #convert_to_single.
-   */
-  GPointer get_single_ptr() const;
-  GMutablePointer get_single_ptr();
-
-  /**
-   * Similar to #get_single_ptr, but returns an untyped pointer. This can only be used if the
-   * caller knows for sure which type is contained. In that case, it can be a bit faster though,
-   * because the corresponding #CPPType does not have to be looked up based on the socket type.
-   */
-  const void *get_single_ptr_raw() const;
-
   /** Also see GeomtrySet::ensure_owns_direct_data. */
   void ensure_owns_direct_data();
   bool owns_direct_data() const;
 
   /**
-   * Replace the stored value with the given single value.
-   */
-  void store_single(eNodeSocketDatatype socket_type, const void *value);
-
-  /**
    * Replaces the stored value with a new uninitialized single value for the given socket type. The
    * caller is responsible to construct the value in the returned memory before it is used.
    */
-  void *allocate_single(eNodeSocketDatatype socket_type);
+  void *allocate_single(const CPPType &type);
 
   void count_memory(MemoryCounter &memory) const;
 
-  friend std::ostream &operator<<(std::ostream &stream, const SocketValueVariant &value_variant);
-
  private:
-  /**
-   * This exists so that only one instance of the underlying template has to be instantiated per
-   * type. So only `store_impl<int>` is necessary, but not `store_impl<const int &>`.
-   */
-  template<typename T> void store_impl(T value);
+  template<typename T> T &init_default();
+  void *init_default(const CPPType &type);
 
-  Kind kind() const;
+ public:
+  template<typename T> static T &init_default(detail::SocketValueVariantAny &value);
+  static void *init_default(const CPPType &type, detail::SocketValueVariantAny &value);
+  static void *allocate(const CPPType &type, detail::SocketValueVariantAny &value);
 };
 
-inline eNodeSocketDatatype SocketValueVariant::socket_type() const
+template<typename T>
+inline SocketValueVariant::SocketValueVariant(T &&value)
+  requires(std::is_trivial_v<std::decay_t<T>> || is_same_any_v<std::decay_t<T>, std::string>)
 {
-  return value_.extra.socket_type;
+  this->emplace<std::decay_t<T>>(std::forward<T>(value));
 }
 
 template<typename T>
-inline SocketValueVariant &SocketValueVariant::ConstructIn(void *ptr, T &&value)
+inline SocketValueVariant &SocketValueVariant::construct_in(void *ptr, T &&value)
 {
   SocketValueVariant *value_variant = new (ptr) SocketValueVariant();
-  value_variant->set(std::forward<T>(value));
+  value_variant->emplace<std::decay_t<T>>(std::forward<T>(value));
   return *value_variant;
 }
 
-template<typename T> inline SocketValueVariant SocketValueVariant::From(T &&value)
+template<typename T> inline SocketValueVariant SocketValueVariant::from(T &&value)
 {
   SocketValueVariant value_variant;
-  value_variant.set(std::forward<T>(value));
+  value_variant.emplace<std::decay_t<T>>(std::forward<T>(value));
   return value_variant;
 }
 
-template<typename T> inline void SocketValueVariant::set(T &&value)
+template<typename T, typename... Args> inline T &SocketValueVariant::emplace(Args &&...args)
 {
-  static_assert(!is_same_any_v<std::decay_t<T>, SocketValueVariant, bke::SocketValueVariant *>);
-  this->store_impl<std::decay_t<T>>(std::forward<T>(value));
+  using StorageT = to_storage_type<T>;
+  StorageT &value = value_.emplace<StorageT>(T(std::forward<Args>(args)...));
+  static_assert(sizeof(T) == sizeof(StorageT));
+  return reinterpret_cast<T &>(value);
 }
 
-inline const void *SocketValueVariant::get_single_ptr_raw() const
+template<typename T> T *SocketValueVariant::try_convert()
 {
-  BLI_assert(this->kind() == Kind::Single);
+  using StorageT = to_storage_type<T>;
+  if (!value_.has_value()) {
+    return nullptr;
+  }
+  const Info &info = value_.extra_info();
+  const CPPType &requested_type = CPPType::get<T>();
+  if (info.type == requested_type) {
+    return &reinterpret_cast<T &>(value_.get<StorageT>());
+  }
+  if (info.is_interpretable_as(requested_type, value_)) {
+    return &reinterpret_cast<T &>(value_.get<StorageT>());
+  }
+  if (!info.convert_to(requested_type, value_)) {
+    return nullptr;
+  }
+  BLI_assert(value_.extra_info().is_interpretable_as(requested_type, value_));
+  return &reinterpret_cast<T &>(value_.get<StorageT>());
+}
+
+inline void *SocketValueVariant::try_convert(const CPPType &type)
+{
+  if (!value_.has_value()) {
+    return nullptr;
+  }
+  const Info &info = value_.extra_info();
+  if (info.type == type) {
+    return value_.get();
+  }
+  if (!info.convert_to(type, value_)) {
+    return nullptr;
+  }
   return value_.get();
 }
 
-inline SocketValueVariant::Kind SocketValueVariant::kind() const
+template<typename T> inline T &SocketValueVariant::ensure_type()
 {
-  return value_.extra.kind;
+  if (!this->try_convert<T>()) {
+    return this->init_default<T>();
+  }
+  return *this->get_if<T>();
+}
+
+inline void *SocketValueVariant::ensure_type(const CPPType &type)
+{
+  if (!this->try_convert(type)) {
+    return this->init_default(type);
+  }
+  return value_.get();
+}
+
+template<typename T> T SocketValueVariant::copy_as() const
+{
+  SocketValueVariant copy(*this);
+  return copy.extract<T>();
+}
+
+template<typename T> inline const T *SocketValueVariant::get_if() const
+{
+  if (!value_) {
+    return nullptr;
+  }
+  const Info &info = value_.extra_info();
+  const CPPType &requested_type = CPPType::get<T>();
+  if (info.type == requested_type) {
+    return &value_.get<T>();
+  }
+  if (info.is_interpretable_as(requested_type, value_)) {
+    if constexpr (detail::has_generic_type<T>) {
+      using GenericT = T::generic_type;
+      return reinterpret_cast<const T *>(&value_.get<GenericT>());
+    }
+    else {
+      return &value_.get<T>();
+    }
+  }
+  return nullptr;
+}
+
+template<typename T> inline T *SocketValueVariant::get_if()
+{
+  return const_cast<T *>(std::as_const(*this).get_if<T>());
+}
+
+inline const void *SocketValueVariant::get_if(const CPPType &type) const
+{
+  if (!value_) {
+    return nullptr;
+  }
+  const Info &info = value_.extra_info();
+  if (info.type == type) {
+    return value_.get();
+  }
+  if (info.is_interpretable_as(type, value_)) {
+    return value_.get();
+  }
+  return nullptr;
+}
+
+inline void *SocketValueVariant::get_if(const CPPType &type)
+{
+  return const_cast<void *>(std::as_const(*this).get_if(type));
+}
+
+inline GPointer SocketValueVariant::get() const
+{
+  if (!value_) {
+    return {};
+  }
+  const Info &info = value_.extra_info();
+  return {info.type, value_.get()};
+}
+
+inline GMutablePointer SocketValueVariant::get()
+{
+  if (!value_) {
+    return {};
+  }
+  const Info &info = value_.extra_info();
+  return {info.type, value_.get()};
+}
+
+template<typename T> inline T &SocketValueVariant::init_default()
+{
+  return SocketValueVariant::init_default<T>(value_);
+}
+
+inline void *SocketValueVariant::init_default(const CPPType &type)
+{
+  return SocketValueVariant::init_default(type, value_);
+}
+
+template<typename T> inline T SocketValueVariant::extract()
+{
+  return std::move(this->ensure_type<T>());
 }
 
 }  // namespace blender::bke

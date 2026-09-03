@@ -68,7 +68,7 @@ static std::optional<SocketValueVariant> try_get_named_grid(
   if (remove_grid) {
     BKE_volume_grid_remove(&volume, grid);
   }
-  SocketValueVariant value_variant = SocketValueVariant::From(bke::GVolumeGrid(grid));
+  SocketValueVariant value_variant = SocketValueVariant::from(bke::GVolumeGrid(grid));
   if (current_socket_type != desired_socket_type) {
     std::optional<SocketValueVariant> converted_value = implicitly_convert_socket_value(
         *bke::node_socket_type_find_static(*current_socket_type),

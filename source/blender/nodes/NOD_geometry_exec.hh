@@ -126,7 +126,7 @@ class GeoNodeExecParams {
         GeoNodesMultiInput<ValueT> values;
         values.values.reserve(values_variants.values.size());
         for (const int i : values_variants.values.index_range()) {
-          values.values.append(values_variants.values[i].extract<ValueT>());
+          values.values.append(std::move(values_variants.values[i].ensure_type<ValueT>()));
         }
         return values;
       }
@@ -137,10 +137,10 @@ class GeoNodeExecParams {
         return value_variant;
       }
       else if constexpr (std::is_enum_v<T>) {
-        return T(value_variant.extract<MenuValue>().value);
+        return T(value_variant.ensure_type<MenuValue>().value);
       }
       else {
-        T value = value_variant.extract<T>();
+        T value = std::move(value_variant.ensure_type<T>());
         if constexpr (std::is_same_v<T, GeometrySet>) {
           this->check_input_geometry_set(identifier, value);
         }
@@ -171,21 +171,21 @@ class GeoNodeExecParams {
         auto values_variants = params_.get_input<GeoNodesMultiInput<SocketValueVariant>>(index);
         Vector<ValueT> values(values_variants.values.size());
         for (const int i : values_variants.values.index_range()) {
-          values[i] = values_variants.values[i].extract<ValueT>();
+          values[i] = values_variants.values[i].ensure_type<ValueT>();
         }
         return values;
       }
     }
     else {
-      const SocketValueVariant &value_variant = params_.get_input<SocketValueVariant>(index);
+      SocketValueVariant value_variant = params_.get_input<SocketValueVariant>(index);
       if constexpr (std::is_same_v<T, SocketValueVariant>) {
         return value_variant;
       }
       else if constexpr (std::is_enum_v<T>) {
-        return T(value_variant.get<MenuValue>().value);
+        return T(value_variant.ensure_type<MenuValue>().value);
       }
       else {
-        T value = value_variant.get<T>();
+        T value = value_variant.ensure_type<T>();
         if constexpr (std::is_same_v<T, GeometrySet>) {
           this->check_input_geometry_set(identifier, value);
         }
@@ -221,7 +221,7 @@ class GeoNodeExecParams {
       params_.set_output(index, std::forward<T>(value));
     }
     else {
-      params_.set_output(index, SocketValueVariant::From(std::forward<T>(value)));
+      params_.set_output(index, SocketValueVariant::from(std::forward<T>(value)));
     }
   }
 

@@ -15,6 +15,8 @@
 #include "BLI_compute_context.hh"
 #include "BLI_map.hh"
 
+#include "DNA_node_types.h"
+
 namespace blender::bke::bake {
 
 /**
