@@ -489,6 +489,7 @@ enum eDopeSheet_Flag : int {
   ADS_FLAG_NO_DB_SORT = (1 << 3),
   /** Invert the search filter */
   ADS_FLAG_INVERT_FILTER = (1 << 4),
+  ADS_FLAG_MINIMAL_GROUPING = (1 << 5),
 };
 ENUM_OPERATORS(eDopeSheet_Flag);
 

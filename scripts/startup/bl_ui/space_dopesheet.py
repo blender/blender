@@ -37,6 +37,7 @@ def dopesheet_filter(layout, context):
         row.prop(dopesheet, "show_only_slot_of_active_object", text="")
     row.prop(dopesheet, "show_only_selected", text="")
     row.prop(dopesheet, "show_hidden", text="")
+    row.prop(dopesheet, "use_minimal_grouping", text="")
 
     if is_nla:
         row.prop(dopesheet, "show_missing_nla", text="")

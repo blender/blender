@@ -43,7 +43,7 @@ ed::animfilter::ChannelArena get_summary_tree(const bContext &C)
                      ChannelTagType::FCURVE_GROUP,
                      ChannelTagType::BONE,
                  },
-                 false);
+                 saction->ads.flag & ADS_FLAG_MINIMAL_GROUPING);
 
   return arena;
 }
