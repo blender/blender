@@ -873,7 +873,12 @@ void BlenderSession::draw(blender::bScreen &b_screen, blender::SpaceImage &space
 
     Scene *scene = session->scene.get();
 
-    const thread_scoped_lock lock(scene->mutex);
+    /* Only try to lock, so the user interface stays responsive while
+     * the session thread holds the mutex. */
+    const thread_scoped_lock lock(scene->mutex, std::try_to_lock);
+    if (!lock) {
+      return;
+    }
 
     const Pass *pass = Pass::find(scene->passes, b_display_pass->name);
     if (!pass) {

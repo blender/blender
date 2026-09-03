@@ -318,7 +318,11 @@ static PyObject *draw_func(PyObject * /*self*/, PyObject *args)
   blender::SpaceImage *b_space_image = static_cast<blender::SpaceImage *>(
       pylong_as_voidptr_typesafe(py_space_image));
 
+  /* Release GIL, this is required because draw() can indirectly cause
+   * a Python render_stats handler to be run, which can deadlock otheriwse. */
+  Py_BEGIN_ALLOW_THREADS;
   session->draw(blender::id_cast<blender::bScreen &>(*b_screen), *b_space_image);
+  Py_END_ALLOW_THREADS;
 
   Py_RETURN_NONE;
 }
@@ -395,7 +399,9 @@ static PyObject *view_draw_func(PyObject * /*self*/, PyObject *args)
     int viewport[4];
     blender::GPU_viewport_size_get_i(viewport);
 
+    Py_BEGIN_ALLOW_THREADS;
     session->view_draw(viewport[2], viewport[3]);
+    Py_END_ALLOW_THREADS;
   }
 
   Py_RETURN_NONE;
