@@ -2,6 +2,10 @@
  *
  * SPDX-License-Identifier: GPL-2.0-or-later */
 
+/** \file
+ * \ingroup edanimation
+ */
+
 #include "BLI_listbase.hh"
 
 #include "BKE_asset.hh"

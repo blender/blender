@@ -2,6 +2,10 @@
  *
  * SPDX-License-Identifier: GPL-2.0-or-later */
 
+/** \file
+ * \ingroup edscr
+ */
+
 #include "BLI_listbase.hh"
 
 #include "BKE_context.hh"

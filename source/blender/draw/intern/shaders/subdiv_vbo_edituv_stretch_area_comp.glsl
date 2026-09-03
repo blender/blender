@@ -2,6 +2,10 @@
  *
  * SPDX-License-Identifier: GPL-2.0-or-later */
 
+/** \file
+ * \ingroup draw
+ */
+
 #include "subdiv_lib.glsl"
 
 COMPUTE_SHADER_CREATE_INFO(subdiv_edituv_stretch_area)

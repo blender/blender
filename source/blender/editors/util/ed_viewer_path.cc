@@ -2,6 +2,10 @@
  *
  * SPDX-License-Identifier: GPL-2.0-or-later */
 
+/** \file
+ * \ingroup edutil
+ */
+
 #include "ED_viewer_path.hh"
 #include "ED_node.hh"
 #include "ED_screen.hh"

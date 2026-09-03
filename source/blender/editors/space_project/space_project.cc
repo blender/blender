@@ -2,6 +2,10 @@
  *
  * SPDX-License-Identifier: GPL-2.0-or-later */
 
+/** \file
+ * \ingroup spuserpref
+ */
+
 #include "BLI_listbase.hh"
 #include "BLI_string.hh"
 

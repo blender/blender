@@ -2,6 +2,10 @@
  *
  * SPDX-License-Identifier: GPL-2.0-or-later */
 
+/** \file
+ * \ingroup bke
+ */
+
 #include "BKE_collection.hh"
 #include "BKE_geometry_set_instances.hh"
 #include "BKE_instances.hh"

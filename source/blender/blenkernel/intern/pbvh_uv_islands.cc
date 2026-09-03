@@ -2,6 +2,10 @@
  *
  * SPDX-License-Identifier: GPL-2.0-or-later */
 
+/** \file
+ * \ingroup bke
+ */
+
 #include "BLI_atomic_disjoint_set.hh"
 #include "BLI_bit_span_ops.hh"
 #include "BLI_bit_vector.hh"

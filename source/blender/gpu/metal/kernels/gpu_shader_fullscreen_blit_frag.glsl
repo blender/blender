@@ -2,6 +2,10 @@
  *
  * SPDX-License-Identifier: GPL-2.0-or-later */
 
+/** \file
+ * \ingroup gpu
+ */
+
 void main()
 {
   float4 tex_color = textureLod(imageTexture, screen_uv, mip);

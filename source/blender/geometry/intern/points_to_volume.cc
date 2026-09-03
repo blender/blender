@@ -2,6 +2,10 @@
  *
  * SPDX-License-Identifier: GPL-2.0-or-later */
 
+/** \file
+ * \ingroup geo
+ */
+
 #include "BLI_color.hh"
 #include "BLI_math_base.hh"
 #include "BLI_math_rotation.hh"

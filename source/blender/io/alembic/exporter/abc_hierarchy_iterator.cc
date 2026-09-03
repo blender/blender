@@ -2,6 +2,10 @@
  *
  * SPDX-License-Identifier: GPL-2.0-or-later */
 
+/** \file
+ * \ingroup balembic
+ */
+
 #include "abc_hierarchy_iterator.h"
 #include "abc_writer_abstract.h"
 #include "abc_writer_camera.h"

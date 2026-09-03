@@ -2,6 +2,10 @@
  *
  * SPDX-License-Identifier: GPL-2.0-or-later */
 
+/** \file
+ * \ingroup fn
+ */
+
 #include "BLI_array_utils.hh"
 #include "BLI_map.hh"
 #include "BLI_multi_value_map.hh"

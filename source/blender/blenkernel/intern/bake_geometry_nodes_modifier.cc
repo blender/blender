@@ -2,6 +2,10 @@
  *
  * SPDX-License-Identifier: GPL-2.0-or-later */
 
+/** \file
+ * \ingroup bke
+ */
+
 #include <sstream>
 
 #include "BKE_bake_geometry_nodes_modifier.hh"

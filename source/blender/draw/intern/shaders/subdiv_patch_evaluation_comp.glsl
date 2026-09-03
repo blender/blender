@@ -2,6 +2,10 @@
  *
  * SPDX-License-Identifier: GPL-2.0-or-later */
 
+/** \file
+ * \ingroup draw
+ */
+
 #include "subdiv_patch_eval_infos.hh"
 
 COMPUTE_SHADER_CREATE_INFO(subdiv_patch_evaluation_fdots_normals)

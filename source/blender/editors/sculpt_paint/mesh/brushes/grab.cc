@@ -2,6 +2,10 @@
  *
  * SPDX-License-Identifier: GPL-2.0-or-later */
 
+/** \file
+ * \ingroup edsculpt
+ */
+
 #include <queue>
 
 #include "editors/sculpt_paint/mesh/brushes/brushes.hh"

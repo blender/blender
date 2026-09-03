@@ -2,6 +2,10 @@
  *
  * SPDX-License-Identifier: GPL-2.0-or-later */
 
+/** \file
+ * \ingroup nodes
+ */
+
 #include "BLI_memory_counter.hh"
 
 #include "NOD_geometry_nodes_bundle.hh"

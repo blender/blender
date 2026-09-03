@@ -2,6 +2,10 @@
  *
  * SPDX-License-Identifier: GPL-2.0-or-later */
 
+/** \file
+ * \ingroup nodes
+ */
+
 #include "NOD_bundle_type.hh"
 #include "NOD_geometry_nodes_physics_bundles.hh"
 #include "NOD_socket_declarations.hh"

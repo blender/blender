@@ -1,6 +1,11 @@
 /* SPDX-FileCopyrightText: 2020 Blender Authors
  *
  * SPDX-License-Identifier: GPL-2.0-or-later */
+
+/** \file
+ * \ingroup balembic
+ */
+
 #pragma once
 
 #include "IO_abstract_hierarchy_iterator.h"

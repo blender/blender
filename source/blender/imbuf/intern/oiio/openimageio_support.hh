@@ -2,6 +2,10 @@
  *
  * SPDX-License-Identifier: GPL-2.0-or-later */
 
+/** \file
+ * \ingroup openimageio
+ */
+
 #pragma once
 
 /* Include our own math header first to avoid warnings about M_PI

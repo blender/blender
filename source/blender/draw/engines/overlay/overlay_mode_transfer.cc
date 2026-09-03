@@ -2,6 +2,10 @@
  *
  * SPDX-License-Identifier: GPL-2.0-or-later */
 
+/** \file
+ * \ingroup overlay
+ */
+
 #include "overlay_mode_transfer.hh"
 
 #include "BLI_math_color_c.hh"

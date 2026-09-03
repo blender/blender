@@ -2,6 +2,10 @@
  *
  * SPDX-License-Identifier: GPL-2.0-or-later */
 
+/** \file
+ * \ingroup gpu
+ */
+
 #include "GPU_ray_tracing.hh"
 #include "GPU_capabilities.hh"
 

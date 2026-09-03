@@ -2,6 +2,10 @@
  *
  * SPDX-License-Identifier: GPL-2.0-or-later */
 
+/** \file
+ * \ingroup gpu
+ */
+
 void main()
 {
   float4 rect = float4(offset.x, offset.y, offset.x + extent.x, offset.y + extent.y);

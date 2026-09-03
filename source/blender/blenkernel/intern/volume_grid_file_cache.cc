@@ -2,6 +2,10 @@
  *
  * SPDX-License-Identifier: GPL-2.0-or-later */
 
+/** \file
+ * \ingroup bke
+ */
+
 #ifdef WITH_OPENVDB
 
 #  include "BKE_volume_grid_file_cache.hh"

@@ -2,6 +2,10 @@
  *
  * SPDX-License-Identifier: GPL-2.0-or-later */
 
+/** \file
+ * \ingroup edcurves
+ */
+
 #include "BKE_attribute.hh"
 #include "BKE_curves_utils.hh"
 

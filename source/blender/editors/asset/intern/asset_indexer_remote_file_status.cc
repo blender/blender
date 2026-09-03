@@ -2,6 +2,10 @@
  *
  * SPDX-License-Identifier: GPL-2.0-or-later */
 
+/** \file
+ * \ingroup edasset
+ */
+
 #include "BLI_fileops.hh"
 #include "BLI_path_utils.hh"
 #include "BLI_string.hh"

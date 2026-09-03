@@ -2,6 +2,10 @@
  *
  * SPDX-License-Identifier: GPL-2.0-or-later */
 
+/** \file
+ * \ingroup gpu
+ */
+
 /* Add Types as needed (Also need to be added to mtl_shader.h). */
 #define GPU_SHADER_ATTR_TYPE_FLOAT 0
 #define GPU_SHADER_ATTR_TYPE_INT 1

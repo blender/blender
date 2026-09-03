@@ -2,6 +2,10 @@
  *
  * SPDX-License-Identifier: GPL-2.0-or-later */
 
+/** \file
+ * \ingroup openimageio
+ */
+
 #include "openimageio_support.hh"
 #include <OpenImageIO/image_span.h>
 #include <OpenImageIO/imagebuf.h>

@@ -2,7 +2,9 @@
  *
  * SPDX-License-Identifier: GPL-2.0-or-later */
 
-/**
+/** \file
+ * \ingroup draw
+ *
  * File that contains the output of `openSubdiv_getGLSLPatchBasisSource`.
  * The structures here are copy of the latest version only to satisfy building without OSL enabled.
  */
