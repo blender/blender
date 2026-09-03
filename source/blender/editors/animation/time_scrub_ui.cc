@@ -88,8 +88,8 @@ struct PlayheadDimensions {
   float outline_width;
 
   float tip_top;
+  float tip_bottom;
   float tip_half_width;
-  float tip_height;
 
   rctf stalk_rect;
   rctf box_rect;
@@ -106,7 +106,9 @@ static PlayheadDimensions get_playhead_dimensions(const Scene *scene,
   char frame_str[max_frame_string_len];
   get_current_time_str(scene, display_seconds, current_frame, frame_str, max_frame_string_len);
 
-  dimensions.outline_width = UI_SCALE_FAC;
+  /* Forcing the outline width to always be a full pixel solves alignment issues between
+   * the tip, the box and the stalk. */
+  dimensions.outline_width = std::max(1.0f, round(UI_SCALE_FAC));
   dimensions.text_width = ui::fontstyle_string_width(UI_FSTYLE_WIDGET, frame_str);
   const float text_padding = 4.0f * UI_SCALE_FAC;
   const float box_min_width = 24.0f * UI_SCALE_FAC;
@@ -133,9 +135,9 @@ static PlayheadDimensions get_playhead_dimensions(const Scene *scene,
   dimensions.box_rect.ymax = ceil(scrub_region_rect->ymax - box_margin + dimensions.outline_width);
 
   /* Connecting shape between box and stalk. */
-  dimensions.tip_top = ceil(scrub_region_rect->ymin + box_margin);
+  dimensions.tip_top = dimensions.box_rect.ymin + dimensions.outline_width;
+  dimensions.tip_bottom = dimensions.stalk_rect.ymax - dimensions.outline_width;
   dimensions.tip_half_width = 6.0f * UI_SCALE_FAC;
-  dimensions.tip_height = 6.0f * UI_SCALE_FAC;
 
   return dimensions;
 }
@@ -154,17 +156,12 @@ static void draw_playhead_stalk(const float region_x,
   immBindBuiltinProgram(GPU_SHADER_3D_UNIFORM_COLOR);
   GPU_polygon_smooth(true);
   immUniformColor4fv(bg_color);
-  immBegin(GPU_PRIM_TRIS, 3);
-  const float diag_offset = 0.4f * UI_SCALE_FAC;
-  immVertex2f(pos,
-              floor(region_x - dimensions.tip_half_width - outline_width - diag_offset),
-              dimensions.outline_width);
-  immVertex2f(pos,
-              floor(region_x + dimensions.tip_half_width + outline_width + 1.0f + diag_offset),
-              dimensions.outline_width);
-  immVertex2f(pos,
-              region_x + 0.5f,
-              dimensions.outline_width - dimensions.tip_height - diag_offset - outline_width);
+  immBegin(GPU_PRIM_TRI_STRIP, 4);
+  immVertex2f(pos, region_x - dimensions.tip_half_width - outline_width, dimensions.tip_top);
+  immVertex2f(pos, region_x + dimensions.tip_half_width + outline_width, dimensions.tip_top);
+  immVertex2f(pos, dimensions.stalk_rect.xmin, dimensions.tip_bottom);
+  immVertex2f(pos, dimensions.stalk_rect.xmax, dimensions.tip_bottom);
+
   immEnd();
   immUnbindProgram();
   GPU_polygon_smooth(false);
@@ -201,7 +198,7 @@ static void draw_playhead_box(const float region_x,
       fstyle, region_x - (dimensions.text_width / 2.0f), y, frame_str, text_color);
 }
 
-/* Draws the little triangle at the bottom of the playhead. */
+/* Draws the little tip at the bottom of the playhead. */
 static void draw_playhead_tip(const float region_x,
                               const PlayheadDimensions &dimensions,
                               const float fg_color[4])
@@ -212,11 +209,12 @@ static void draw_playhead_tip(const float region_x,
   immBindBuiltinProgram(GPU_SHADER_3D_UNIFORM_COLOR);
   GPU_polygon_smooth(true);
   GPU_blend(GPU_BLEND_ALPHA);
-  immBegin(GPU_PRIM_TRIS, 3);
+  immBegin(GPU_PRIM_TRI_STRIP, 4);
   immUniformColor4fv(fg_color);
   immVertex2f(pos, region_x - dimensions.tip_half_width, dimensions.tip_top);
-  immVertex2f(pos, region_x + dimensions.tip_half_width + 1, dimensions.tip_top);
-  immVertex2f(pos, region_x + 0.5f, dimensions.tip_top - dimensions.tip_height);
+  immVertex2f(pos, region_x + dimensions.tip_half_width, dimensions.tip_top);
+  immVertex2f(pos, dimensions.stalk_rect.xmin + dimensions.outline_width, dimensions.tip_bottom);
+  immVertex2f(pos, dimensions.stalk_rect.xmax - dimensions.outline_width, dimensions.tip_bottom);
   immEnd();
   immUnbindProgram();
   GPU_polygon_smooth(false);
@@ -285,11 +283,16 @@ static void draw_current_frame(const Scene *scene,
 
   float fg_color[4];
   ui::theme::get_color_4fv(TH_CFRAME, fg_color);
+  /* Forcing alpha to 1 for the playhead box itself. Only the stalk should have transparency. */
+  fg_color[3] = 1.0;
+
+  float stalk_color[4];
+  ui::theme::get_color_4fv(TH_CFRAME, stalk_color);
   float bg_color[4];
   ui::theme::get_color_shade_4fv(TH_BACK, -20, bg_color);
 
   if (display_stalk) {
-    draw_playhead_stalk(region_x, dimensions, fg_color, bg_color);
+    draw_playhead_stalk(region_x, dimensions, stalk_color, bg_color);
   }
 
   draw_playhead_box(region_x, frame_str, scrub_region_rect, dimensions, fg_color, bg_color);
