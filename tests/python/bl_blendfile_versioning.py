@@ -103,6 +103,30 @@ class TestBlendFileOpenAllTestFiles(TestHelper):
                 (OSError, RuntimeError),
                 "Corrupt .blend file, invalid block struct index"
             ),
+            # invalid_blendfiles/invalid_glob_short.blend
+            # The global block is shorter than its sub-version string.
+            "invalid_glob_short.blend": (
+                (OSError, RuntimeError),
+                "is corrupt, unable to read"
+            ),
+            # invalid_blendfiles/invalid_id_short.blend
+            # An ID block is too short for the ID name.
+            "invalid_id_short.blend": (
+                (OSError, RuntimeError),
+                "Corrupt .blend file, invalid block count"
+            ),
+            # invalid_blendfiles/invalid_id_small.blend
+            # An ID block is smaller than its struct.
+            "invalid_id_small.blend": (
+                (OSError, RuntimeError),
+                "Corrupt .blend file, invalid block count"
+            ),
+            # invalid_blendfiles/invalid_struct_count_zero.blend
+            # A block has zero struct count.
+            "invalid_struct_count_zero.blend": (
+                (OSError, RuntimeError),
+                "Corrupt .blend file, invalid block count"
+            ),
         }
 
         assert all(p.endswith("/") for p in self.excluded_dirs)
