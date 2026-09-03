@@ -1281,6 +1281,7 @@ void ED_spacetype_clip()
   /* regions: properties */
   art = MEM_new_zeroed<ARegionType>("spacetype clip region properties");
   art->regionid = RGN_TYPE_UI;
+  art->flag = ARegionTypeFlag::UsePanelCategoriesSearch;
   art->prefsizex = UI_SIDEBAR_PANEL_WIDTH;
   art->keymapflag = ED_KEYMAP_FRAMES | ED_KEYMAP_UI;
   art->poll = clip_properties_region_poll;

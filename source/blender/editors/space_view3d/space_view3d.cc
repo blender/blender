@@ -9,6 +9,7 @@
 /* Allow using deprecated functionality for .blend file I/O. */
 #define DNA_DEPRECATED_ALLOW
 
+#include <array>
 #include <cstring>
 
 #include "DNA_collection_types.h"
@@ -1197,13 +1198,11 @@ static void view3d_buttons_region_init(wmWindowManager *wm, ARegion *region)
   WM_event_add_keymap_handler(&region->runtime->handlers, keymap);
 }
 
-void ED_view3d_buttons_region_layout_ex(const bContext *C,
-                                        ARegion *region,
-                                        const char *category_override)
+std::array<const char *, 4> ED_view3d_buttons_contexts(const bContext *C)
 {
   const enum eContextObjectMode mode = CTX_data_mode_enum(C);
 
-  const char *contexts_base[4] = {nullptr};
+  std::array<const char *, 4> contexts_base = {nullptr};
   contexts_base[0] = CTX_data_mode_string(C);
 
   const char **contexts = &contexts_base[1];
@@ -1311,6 +1310,15 @@ void ED_view3d_buttons_region_layout_ex(const bContext *C,
       break;
   }
 
+  return contexts_base;
+}
+
+void ED_view3d_buttons_region_layout_ex(const bContext *C,
+                                        ARegion *region,
+                                        const char *category_override)
+{
+  std::array<const char *, 4> contexts = ED_view3d_buttons_contexts(C);
+
   ListBaseT<PanelType> *paneltypes = &region->runtime->type->paneltypes;
 
   /* Allow drawing 3D view toolbar from non 3D view space type. */
@@ -1320,8 +1328,12 @@ void ED_view3d_buttons_region_layout_ex(const bContext *C,
     paneltypes = &art->paneltypes;
   }
 
-  ED_region_panels_layout_ex(
-      C, region, paneltypes, wm::OpCallContext::InvokeRegionWin, contexts_base, category_override);
+  ED_region_panels_layout_ex(C,
+                             region,
+                             paneltypes,
+                             wm::OpCallContext::InvokeRegionWin,
+                             contexts.data(),
+                             category_override);
 }
 
 static void view3d_buttons_region_layout(const bContext *C, ARegion *region)
@@ -1699,6 +1711,7 @@ void ED_spacetype_view3d()
   /* regions: list-view/buttons */
   art = MEM_new_zeroed<ARegionType>("spacetype view3d buttons region");
   art->regionid = RGN_TYPE_UI;
+  art->flag = ARegionTypeFlag::UsePanelCategoriesSearch;
   art->prefsizex = UI_SIDEBAR_PANEL_WIDTH;
   art->keymapflag = ED_KEYMAP_UI | ED_KEYMAP_FRAMES;
   art->listener = view3d_buttons_region_listener;

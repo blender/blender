@@ -414,6 +414,41 @@ static void rna_Region_tag_refresh_ui(ARegion *region, ReportList *reports)
   ED_region_tag_refresh_ui(region);
 }
 
+static void rna_Region_search_filter_get(PointerRNA *ptr, char *value)
+{
+  ARegion *region = static_cast<ARegion *>(ptr->data);
+  strcpy(value, region->runtime->search_filter.c_str());
+}
+
+static int rna_Region_search_filter_length(PointerRNA *ptr)
+{
+  ARegion *region = static_cast<ARegion *>(ptr->data);
+  return region->runtime->search_filter.size();
+}
+
+static void rna_Region_search_filter_set(PointerRNA *ptr, const char *value)
+{
+  ARegion *region = static_cast<ARegion *>(ptr->data);
+  region->runtime->search_filter = value ? value : "";
+}
+
+static int rna_Region_search_filter_editable(const PointerRNA *ptr, const char **r_info)
+{
+  ARegion *region = static_cast<ARegion *>(ptr->data);
+
+  if (!BKE_region_panel_categories_search_filter_visible(region)) {
+    *r_info = N_("Only for side-panels");
+    return 0;
+  }
+  return PROP_EDITABLE;
+}
+
+static void rna_Region_search_filter_update(Main * /*bmain*/, Scene * /*scene*/, PointerRNA *ptr)
+{
+  ARegion *region = static_cast<ARegion *>(ptr->data);
+  ED_region_search_filter_update(nullptr, region);
+}
+
 }  // namespace blender
 
 #else
@@ -698,6 +733,18 @@ static void rna_def_region(BlenderRNA *brna)
       "The current active panel category, may be Null if the region does not "
       "support this feature (NOTE: these categories are generated at runtime, so list may be "
       "empty at initialization, before any drawing took place)");
+
+  prop = RNA_def_property(srna, "search_filter", PROP_STRING, PROP_NONE);
+  /* The search filter is stored in the region's runtime as #std::string, so use the getter /
+   * setter here. */
+  RNA_def_property_string_funcs(prop,
+                                "rna_Region_search_filter_get",
+                                "rna_Region_search_filter_length",
+                                "rna_Region_search_filter_set");
+  RNA_def_property_editable_func(prop, "rna_Region_search_filter_editable");
+  RNA_def_property_ui_text(prop, "Display Filter", "Live search filtering string");
+  RNA_def_property_flag(prop, PROP_TEXTEDIT_UPDATE);
+  RNA_def_property_update(prop, 0, "rna_Region_search_filter_update");
 
   rna_def_region_api(srna);
 }

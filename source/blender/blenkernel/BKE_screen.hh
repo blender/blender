@@ -16,6 +16,7 @@
 #include "BLI_enum_flags.hh"
 #include "BLI_map.hh"
 #include "BLI_math_vector_types.hh"
+#include "BLI_set.hh"
 #include "BLI_string_ref.hh"
 #include "BLI_vector.hh"
 
@@ -231,12 +232,16 @@ enum class ARegionTypeFlag {
    * region.
    */
   UsePanelCategoryTabs = (1 << 1),
-
   /**
    * When using panel categories, this hides the sidebar tab where there is only one category
    * active.
    */
   HideSinglePanelCategories = (1 << 2),
+  /**
+   * Use panel categories region search, adds a button on top of the region which allows
+   * searching.
+   */
+  UsePanelCategoriesSearch = (1 << 3),
 };
 ENUM_OPERATORS(ARegionTypeFlag)
 
@@ -631,6 +636,9 @@ struct ARegionRuntime {
   /** Dummy panel used in popups so they can support layout panels. */
   Panel *popup_block_panel = nullptr;
   ARegionRuntimeFlag flag = {};
+
+  std::string search_filter;
+  Set<std::string> categories_search_match;
 };
 
 }  // namespace bke
@@ -831,6 +839,8 @@ void BKE_spacetypes_free();
 
 bool BKE_regiontype_uses_categories(const ARegionType *region_type);
 bool BKE_regiontype_uses_category_tabs(const ARegionType *region_type);
+bool BKE_regiontype_uses_panel_categories_search(const ARegionType *region_type);
+bool BKE_region_panel_categories_search_filter_visible(const ARegion *region);
 
 /* Space-data. */
 

@@ -527,6 +527,7 @@ void ED_spacetype_text()
   /* Regions: properties. */
   art = MEM_new_zeroed<ARegionType>("spacetype text region");
   art->regionid = RGN_TYPE_UI;
+  art->flag = ARegionTypeFlag::UsePanelCategoriesSearch;
   art->prefsizex = UI_COMPACT_PANEL_WIDTH;
   art->keymapflag = ED_KEYMAP_UI;
 

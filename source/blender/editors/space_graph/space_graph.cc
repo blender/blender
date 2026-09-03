@@ -1055,6 +1055,7 @@ void ED_spacetype_ipo()
   /* regions: UI buttons */
   art = MEM_new_zeroed<ARegionType>("spacetype graphedit region");
   art->regionid = RGN_TYPE_UI;
+  art->flag = ARegionTypeFlag::UsePanelCategoriesSearch;
   art->prefsizex = UI_SIDEBAR_PANEL_WIDTH;
   art->keymapflag = ED_KEYMAP_UI | ED_KEYMAP_FRAMES;
   art->listener = graph_region_listener;

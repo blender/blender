@@ -1058,6 +1058,10 @@ static void wm_draw_area_offscreen(bContext *C, wmWindow *win, ScrArea *area, bo
     region.runtime->do_draw = 0;
 
     region.runtime->post_block_layout_fns.clear();
+
+    /* Clear temporary update flag. */
+    region.flag &= ~RGN_FLAG_SEARCH_FILTER_UPDATE;
+
     CTX_wm_region_set(C, nullptr);
   }
 

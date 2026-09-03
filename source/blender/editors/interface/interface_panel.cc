@@ -1352,8 +1352,14 @@ static void panel_draw_aligned_backdrop(const ARegion *region,
   /* Panel header backdrops for non sub-panels. */
   if (!is_subpanel && has_header) {
     float panel_headercolor[4];
-    theme::get_color_4fv(panel_matches_search_filter(panel) ? TH_MATCH : TH_PANEL_HEADER,
-                         panel_headercolor);
+    if (panel_matches_search_filter(panel)) {
+      /* NOTE: This should be replaced by global theme color. */
+      theme::get_color_type_4fv(TH_MATCH, SPACE_PROPERTIES, panel_headercolor);
+    }
+    else {
+      theme::get_color_4fv(TH_PANEL_HEADER, panel_headercolor);
+    }
+
     draw_roundbox_corner_set(is_open ? CNR_TOP_RIGHT | CNR_TOP_LEFT : CNR_ALL);
 
     /* Change the width a little bit to line up with the sides. */
@@ -1441,8 +1447,6 @@ bool panel_should_show_background(const ARegion *region, const PanelType *panel_
 #define TABS_PADDING_TEXT_FACTOR 6.0f
 
 static constexpr const char *panel_category_tabs_block_name = "panel_category_tabs";
-
-static void panel_region_width_set(ARegion *region, const float aspect, int unscaled_size);
 
 static void expand_panel_region(bContext &C, ARegion *region)
 {
@@ -1659,6 +1663,13 @@ void panel_category_tabs_draw_all(const bContext *C,
         [category = std::string(category_id),
          active = std::string(category_id_active),
          too_narrow](const Button &) -> bool { return category == active && !too_narrow; });
+
+    if (!too_narrow && !region->runtime->search_filter.empty() &&
+        !region->runtime->categories_search_match.contains_as(pc_dyn.idname))
+    {
+      button_flag_enable(button, BUT_INACTIVE);
+    }
+
     if (pc_dyn.next) {
       uiDefBut(block, ButtonType::Sepr, "", 0, 0, w, tab_v_pad, nullptr, 0.0, 0.0, "");
     }
@@ -1694,25 +1705,20 @@ void panel_category_tabs_draw_all(const bContext *C,
 
 /** \} */
 
-static int panel_category_show_active_tab(const bContext &C, ARegion *region, const int mval[2])
+void panel_category_show_tab(const bContext &C, ARegion *region, StringRef category)
 {
-  if (!ED_region_panel_category_gutter_isect_xy(region, mval)) {
-    return WM_UI_HANDLER_CONTINUE;
-  }
-
   BLI_assert(BKE_regiontype_uses_category_tabs(region->runtime->type));
-
   const View2D *v2d = &region->v2d;
   const Block *block = region->runtime->block_name_map.lookup_as(panel_category_tabs_block_name);
   if (!block) {
-    return WM_UI_HANDLER_BREAK;
+    return;
   }
   PointerRNA ptr = RNA_pointer_create_discrete(
       reinterpret_cast<ID *>(CTX_wm_screen(&C)), RNA_Region, region);
   PropertyRNA *prop = RNA_struct_find_property(&ptr, "active_panel_category");
   for (auto [i, pc_dyn] : region->runtime->panels_category.enumerate()) {
-    const bool is_active = STREQ(pc_dyn.idname, region->runtime->category);
-    if (!is_active) {
+    const bool found = category == pc_dyn.idname;
+    if (!found) {
       continue;
     }
     for (Button &button : block->buttons()) {
@@ -1724,8 +1730,19 @@ static int panel_category_show_active_tab(const bContext &C, ARegion *region, co
     break;
   }
   ED_region_tag_redraw(region);
+  return;
+}
+
+static int panel_category_show_active_tab(const bContext &C, ARegion *region, const int mval[2])
+{
+  if (!ED_region_panel_category_gutter_isect_xy(region, mval)) {
+    return WM_UI_HANDLER_CONTINUE;
+  }
+  BLI_assert(BKE_regiontype_uses_category_tabs(region->runtime->type));
+  panel_category_show_tab(C, region, region->runtime->category);
   return WM_UI_HANDLER_BREAK;
 }
+
 /* -------------------------------------------------------------------- */
 /** \name Panel Alignment
  * \{ */
@@ -1873,6 +1890,9 @@ static bool uiAlignPanelStep(ARegion *region, const float factor, const bool dra
 
   /* Y offset. */
   int y = 0;
+  if (BKE_region_panel_categories_search_filter_visible(region)) {
+    y = -UI_PANEL_SEARCH_BLOCK_MARGIN_HEIGHT;
+  }
   for (PanelSort &ps : panel_sort) {
     const bool show_background = panel_should_show_background(region, ps.panel->type);
 
@@ -2609,7 +2629,7 @@ static int handle_panel_category_cycling(const wmEvent *event,
   return WM_UI_HANDLER_CONTINUE;
 }
 
-static void panel_region_width_set(ARegion *region, const float aspect, int unscaled_size)
+void panel_region_width_set(ARegion *region, const float aspect, int unscaled_size)
 {
   const float size_new = unscaled_size / aspect;
   if (region->alignment & RGN_ALIGN_RIGHT) {
@@ -2971,6 +2991,31 @@ void panel_stop_animation(const bContext *C, Panel *panel)
   if (panel->activedata) {
     panel_activate_state(C, panel, PANEL_STATE_EXIT);
   }
+}
+
+bool region_panels_fits_only_categories(const ARegion *region)
+{
+  const float aspect = BLI_rctf_size_y(&region->v2d.cur) /
+                       (BLI_rcti_size_y(&region->v2d.mask) + 1);
+  return BLI_rcti_size_x(&region->winrct) <=
+         int(std::ceil(UI_PANEL_CATEGORY_MIN_WIDTH * UI_SCALE_FAC / aspect));
+}
+
+void region_panels_sort_for_search_filter_visibility_change(bContext *C, const ARegion *region)
+{
+  Vector<PanelSort> panel_sort;
+  for (Panel &panel : region->panels) {
+    if (panel.runtime_flag & PANEL_ACTIVE) {
+      /* These panels should have types since they are currently displayed to the user. */
+      BLI_assert(panel.type != nullptr);
+      panel_sort.append({&panel, 0, 0});
+    }
+  }
+  if (panel_sort.is_empty()) {
+    return;
+  }
+  std::stable_sort(panel_sort.begin(), panel_sort.end(), find_highest_panel);
+  panel_activate_state(C, panel_sort.first().panel, PANEL_STATE_ANIMATION);
 }
 
 /** \} */
