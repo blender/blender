@@ -97,7 +97,7 @@ class StreamedZstdReader {
   ZSTD_inBuffer input_buffer_;
 
  public:
-  explicit StreamedZstdReader(FILE *file, const StreamInfo &stream_info)
+  StreamedZstdReader(FILE *file, const StreamInfo &stream_info)
       : buffered_reader_(file, stream_info)
   {
   }
