@@ -171,12 +171,12 @@ static void rna_def_pointcloud(BlenderRNA *brna)
        "POINTS",
        0,
        "Points",
-       "Simple pointcloud represented by points with position and radius"},
+       "Simple point cloud represented by points with position and radius"},
       {PT_TYPE_GSPLAT,
        "GAUSSIAN_SPLAT",
        0,
        "3D Gaussian Splat",
-       "Pointcloud is a radiance field that is represented and rendered as the 3D Gaussian Splats "
+       "Point cloud is a radiance field that is represented and rendered as the 3D Gaussian Splats "
        "technique"},
       {0, nullptr, 0, nullptr, nullptr},
   };
