@@ -114,7 +114,8 @@ PointCloud *convert_gsplat_ply_to_point_cloud(const PlyData &data, const PLYImpo
   }
   Span<float> ply_rot[4] = {*ply_rot_0_attr, *ply_rot_1_attr, *ply_rot_2_attr, *ply_rot_3_attr};
 
-  PointCloud *point_cloud = BKE_pointcloud_new_nomain(PointCloudType::GSplat, data.vertices.size());
+  PointCloud *point_cloud = BKE_pointcloud_new_nomain(PointCloudType::GSplat,
+                                                      data.vertices.size());
 
   point_cloud->positions_for_write().copy_from(data.vertices);
 
