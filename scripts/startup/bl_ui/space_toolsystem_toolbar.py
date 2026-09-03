@@ -2270,6 +2270,22 @@ class _defs_weight_paint:
 class _defs_grease_pencil_paint:
 
     @ToolDef.from_fn
+    def lasso_select():
+        def draw_settings(_context, layout, tool):
+            props = tool.operator_properties("view3d.select_lasso")
+            row = layout.row()
+            row.use_property_split = False
+            row.prop(props, "mode", text="", expand=True, icon_only=True)
+        return dict(
+            idname="builtin.select_lasso",
+            label="Select Lasso",
+            icon="ops.generic.select_lasso",
+            # widget="VIEW3D_GGT_grease_pencil_edit",
+            keymap="3D View Tool: Select Lasso",
+            draw_settings=draw_settings,
+        )
+
+    @ToolDef.from_fn
     def fill():
         return dict(
             idname="builtin_brush.Fill",
@@ -4110,6 +4126,7 @@ class VIEW3D_PT_tools_active(ToolSelectPanelHelper, Panel):
             *_tools_annotate,
         ],
         'PAINT_GREASE_PENCIL': [
+            _defs_grease_pencil_paint.lasso_select,
             _defs_view3d_generic.cursor,
             None,
             _draw_tool,

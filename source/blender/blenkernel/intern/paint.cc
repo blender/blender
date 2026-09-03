@@ -1305,7 +1305,8 @@ bool BKE_paint_select_grease_pencil_test(const Object *ob)
     return false;
   }
   if (ob->type == OB_GREASE_PENCIL) {
-    return (ob->mode & (OB_MODE_SCULPT_GREASE_PENCIL | OB_MODE_VERTEX_GREASE_PENCIL));
+    return (ob->mode & (OB_MODE_PAINT_GREASE_PENCIL | OB_MODE_SCULPT_GREASE_PENCIL |
+                        OB_MODE_VERTEX_GREASE_PENCIL));
   }
   return false;
 }

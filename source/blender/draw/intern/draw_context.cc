@@ -80,6 +80,7 @@
 #include "UI_view2d.hh"
 
 #include "WM_api.hh"
+#include "WM_toolsystem.hh"
 
 #include "DRW_render.hh"
 #include "draw_cache.hh"
@@ -158,6 +159,10 @@ DRWContext::DRWContext(Mode mode_,
   }
   else {
     this->object_pose = nullptr;
+  }
+
+  if (C != nullptr) {
+    this->active_tool = WM_toolsystem_ref_from_context(C);
   }
 
   /* View layer can be lazily synced. */

@@ -100,6 +100,8 @@ static wmOperatorStatus paintmode_toggle_exec(bContext *C, wmOperator *op)
       BKE_brush_init_gpencil_settings(brush);
     }
     BKE_paint_brushes_validate(bmain, &ts->gp_paint->paint);
+
+    ed::greasepencil::ensure_selection_domain(ts, ob);
   }
 
   GreasePencil *grease_pencil = id_cast<GreasePencil *>(ob->data);
@@ -196,6 +198,8 @@ static wmOperatorStatus sculptmode_toggle_exec(bContext *C, wmOperator *op)
     BKE_paint_ensure(ts, reinterpret_cast<Paint **>(&ts->gp_sculptpaint));
     BKE_paint_brushes_ensure(bmain, &ts->gp_sculptpaint->paint);
     BKE_paint_brushes_validate(bmain, &ts->gp_sculptpaint->paint);
+
+    ed::greasepencil::ensure_selection_domain(ts, ob);
   }
 
   GreasePencil *grease_pencil = id_cast<GreasePencil *>(ob->data);
@@ -289,6 +293,8 @@ static wmOperatorStatus weightmode_toggle_exec(bContext *C, wmOperator *op)
 
     BKE_paint_init(bmain, scene, PaintMode::WeightGPencil);
     BKE_paint_brushes_validate(bmain, weight_paint);
+
+    ed::greasepencil::ensure_selection_domain(ts, ob);
   }
 
   GreasePencil *grease_pencil = id_cast<GreasePencil *>(ob->data);
@@ -386,6 +392,8 @@ static wmOperatorStatus vertexmode_toggle_exec(bContext *C, wmOperator *op)
 
     /* Ensure Palette by default. */
     BKE_gpencil_palette_ensure(bmain, scene);
+
+    ed::greasepencil::ensure_selection_domain(ts, ob);
   }
 
   GreasePencil *grease_pencil = id_cast<GreasePencil *>(ob->data);
