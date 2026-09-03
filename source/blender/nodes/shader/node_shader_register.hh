@@ -2,6 +2,10 @@
  *
  * SPDX-License-Identifier: GPL-2.0-or-later */
 
+/** \file
+ * \ingroup nodes
+ */
+
 #pragma once
 
 namespace blender {
@@ -51,7 +55,12 @@ void register_node_type_sh_holdout();
 void register_node_type_sh_hue_sat();
 void register_node_type_sh_invert();
 void register_node_type_sh_layer_weight();
+void register_node_type_sh_light_accumulation();
+void register_node_type_sh_light_evaluation();
 void register_node_type_sh_light_falloff();
+void register_node_type_sh_light_info();
+void register_node_type_sh_light_iter_internal_input();
+void register_node_type_sh_light_iter_internal_output();
 void register_node_type_sh_light_path();
 void register_node_type_sh_map_range();
 void register_node_type_sh_mapping();
@@ -78,6 +87,7 @@ void register_node_type_sh_script();
 void register_node_type_sh_sepcolor();
 void register_node_type_sh_sepxyz();
 void register_node_type_sh_shadertorgb();
+void register_node_type_sh_shadow_raycast();
 void register_node_type_sh_squeeze();
 void register_node_type_sh_subsurface_scattering();
 void register_node_type_sh_tangent();

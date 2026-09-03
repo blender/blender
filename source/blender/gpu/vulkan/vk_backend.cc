@@ -162,9 +162,6 @@ static Vector<StringRefNull> missing_capabilities_get(VkPhysicalDevice vk_physic
   if (features.features.multiViewport == VK_FALSE) {
     missing_capabilities.append("multi viewport");
   }
-  if (features.features.shaderClipDistance == VK_FALSE) {
-    missing_capabilities.append("shader clip distance");
-  }
   if (features.features.fragmentStoresAndAtomics == VK_FALSE) {
     missing_capabilities.append("fragment stores and atomics");
   }
@@ -583,6 +580,9 @@ void VKBackend::detect_workarounds(VKDevice &device)
   {
     workarounds.not_aligned_pixel_formats = true;
   }
+
+  extensions.shader_clip_distance = device.physical_device_features_get().shaderClipDistance ==
+                                    VK_TRUE;
 
   /* During testing graphics pipeline library feature it was detected that it would crash on
    * official AMD drivers.

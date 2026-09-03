@@ -540,7 +540,7 @@ void RIGIDBODY_OT_mass_calculate(wmOperatorType *ot)
   ot->description = "Automatically calculate mass values for Rigid Body Objects based on volume";
 
   /* callbacks */
-  ot->invoke = WM_menu_invoke; /* XXX */
+  ot->invoke = WM_enum_search_invoke; /* XXX */
   ot->exec = rigidbody_objects_calc_mass_exec;
   ot->poll = operator_rigidbody_active_poll;
   ot->poll_property = mass_calculate_poll_property;

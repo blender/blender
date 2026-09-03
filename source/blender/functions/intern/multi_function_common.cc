@@ -2,6 +2,10 @@
  *
  * SPDX-License-Identifier: GPL-2.0-or-later */
 
+/** \file
+ * \ingroup fn
+ */
+
 #include "BLI_math_base_safe.hh"
 #include "BLI_math_vector.hh"
 

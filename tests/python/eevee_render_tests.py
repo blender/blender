@@ -105,6 +105,8 @@ BLOCKLIST_VULKAN = [
 ]
 
 BLOCKLIST_OPENGL = [
+    # Fails on AMD.
+    "aov_consecutive_view_layers.blend",
 ]
 
 BLOCKLIST_INTEL = [
@@ -420,6 +422,9 @@ def main():
         # Dithered transparency uses platform dependent noise pattern.
         report.set_fail_percent(0.22)
         report.set_fail_threshold(10.0 / 255.0)
+    elif test_dir_name.startswith('lighting_node'):
+        # Shadow noise pattern is system dependent.
+        report.set_fail_threshold(6.0 / 255.0)
     elif test_dir_name.startswith('instancing'):
         # Small pointcloud has platform dependent raster pattern
         report.set_fail_threshold(8.0 / 255.0)

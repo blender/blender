@@ -759,7 +759,7 @@ class PROJECT_OT_AssetLibraryAdd(Operator):
 
     def execute(self, context):
         if self.directory == "":
-            self.report({'ERROR'}, "Cannot create an assset library with an empty directory path.")
+            self.report({'ERROR'}, "Cannot create an asset library with an empty directory path.")
             return {'CANCELLED'}
 
         # Create an initial name from the folder name

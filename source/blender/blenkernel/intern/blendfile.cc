@@ -1625,6 +1625,15 @@ UserDef *BKE_blendfile_userdef_from_defaults()
         userdef, "NODE_AST_compositor", "Creative");
     BKE_preferences_asset_shelf_settings_ensure_catalog_path_enabled(
         userdef, "NODE_AST_compositor", "Utilities");
+
+    BKE_preferences_asset_shelf_settings_ensure_catalog_path_enabled(
+        userdef, "NODE_AST_compositor", "Compositing/Camera & Lens Effects");
+    BKE_preferences_asset_shelf_settings_ensure_catalog_path_enabled(
+        userdef, "NODE_AST_compositor", "Compositing/Creative");
+    BKE_preferences_asset_shelf_settings_ensure_catalog_path_enabled(
+        userdef, "NODE_AST_compositor", "Compositing/Utilities");
+    /* Note: "Compositing/Mask" is not enabled by default because it only contains online assets,
+     * which are not available because online access is disabled by default.*/
   }
 
   return userdef;

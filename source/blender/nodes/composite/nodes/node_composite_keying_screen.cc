@@ -45,23 +45,28 @@ static void node_declare(NodeDeclarationBuilder &b)
       .structure_type(StructureType::Dynamic);
 }
 
-static void node_init(const bContext *C, PointerRNA *ptr)
+static void node_init(bNodeTree * /*node_tree*/, bNode *node)
 {
-  bNode *node = static_cast<bNode *>(ptr->data);
-
   NodeKeyingScreenData *data = MEM_new<NodeKeyingScreenData>(__func__);
   node->storage = data;
+}
 
+static void node_init_api(const bContext *C, PointerRNA *node_ptr)
+{
   const Scene *scene = CTX_data_scene(C);
-  if (scene->clip) {
-    MovieClip *clip = scene->clip;
-
-    node->id = &clip->id;
-    id_us_plus(&clip->id);
-
-    const MovieTrackingObject *tracking_object = BKE_tracking_object_get_active(&clip->tracking);
-    STRNCPY_UTF8(data->tracking_object, tracking_object->name);
+  MovieClip *movie_clip = scene->clip;
+  if (!movie_clip) {
+    return;
   }
+
+  bNode *node = node_ptr->data_as<bNode>();
+  node->id = &movie_clip->id;
+  id_us_plus(&movie_clip->id);
+
+  const MovieTrackingObject *tracking_object = BKE_tracking_object_get_active(
+      &movie_clip->tracking);
+  NodeKeyingScreenData &data = node_storage(*node);
+  STRNCPY_UTF8(data.tracking_object, tracking_object->name);
 }
 
 static void node_draw_buttons(ui::Layout &layout, bContext *C, PointerRNA *ptr)
@@ -179,7 +184,8 @@ static void node_register()
   ntype.nclass = NODE_CLASS_MATTE;
   ntype.declare = node_declare;
   ntype.draw_buttons = node_draw_buttons;
-  ntype.initfunc_api = node_init;
+  ntype.initfunc = node_init;
+  ntype.initfunc_api = node_init_api;
   bke::node_type_storage(
       ntype, "NodeKeyingScreenData", node_free_standard_storage, node_copy_standard_storage);
   ntype.get_compositor_operation = get_compositor_operation;

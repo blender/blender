@@ -75,7 +75,6 @@ struct PaintRuntime : NonCopyable, NonMovable {
    * if space attenuation is used.
    */
   float overlap_factor = 0.0f;
-  bool draw_inverted = false;
   /** Check is there an ongoing stroke right now. */
   bool stroke_active = false;
 

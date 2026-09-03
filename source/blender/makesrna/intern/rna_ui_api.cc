@@ -1091,11 +1091,12 @@ static void rna_uiLayout_template_node_operator_asset_menu_items(Layout *layout,
 }
 
 static void rna_uiLayout_template_modifier_asset_menu_items(Layout *layout,
+                                                            bContext *C,
                                                             const char *catalog_path,
                                                             const bool skip_essentials)
 {
   ed::object::ui_template_modifier_asset_menu_items(
-      *layout, StringRef(catalog_path), skip_essentials);
+      *C, *layout, StringRef(catalog_path), skip_essentials);
 }
 
 static void rna_uiLayout_template_node_operator_root_items(Layout *layout, bContext *C)
@@ -2477,6 +2478,7 @@ void RNA_api_ui_layout(StructRNA *srna)
   func = RNA_def_function(srna,
                           "template_modifier_asset_menu_items",
                           "rna_uiLayout_template_modifier_asset_menu_items");
+  RNA_def_function_flag(func, FUNC_USE_CONTEXT);
   parm = RNA_def_string(func, "catalog_path", nullptr, 0, "", "");
   parm = RNA_def_boolean(func, "skip_essentials", false, "", "");
 

@@ -47,8 +47,12 @@ void smooth_brush_toggle_off(Paint *paint, StrokeCache *cache);
 void smooth_brush_toggle_on(Main *bmain, Paint *paint, StrokeToggleSettings &toggle_settings);
 
 /** Initialize the stroke cache variants from operator properties. */
-void update_cache_variants(
-    Depsgraph &depsgraph, ViewContext &vc, VPaint &vp, Object &ob, Base &base, PointerRNA *ptr);
+void update_cache_variants(Depsgraph &depsgraph,
+                           ViewContext &vc,
+                           VPaint &vp,
+                           Object &ob,
+                           Base &base,
+                           const PaintStroke::StrokeStep &ptr);
 /** Initialize the stroke cache invariants from operator properties. */
 void update_cache_invariants(VPaint &vp, SculptSession &ss, wmOperator *op, const float mval[2]);
 }  // namespace blender::ed::sculpt_paint::vwpaint

@@ -2,7 +2,6 @@
 #
 # SPDX-License-Identifier: GPL-2.0-or-later
 
-import bpy
 from bpy.types import Operator
 from bpy.props import EnumProperty
 
@@ -46,7 +45,7 @@ class NODE_OT_select_hierarchy(Operator, NWBase):
         return nw_check(cls, context) and nw_check_selected(cls, context)
 
     def execute(self, context):
-        nodes, links = get_nodes_links(context)
+        nodes, _links = get_nodes_links(context)
         option = self.option
         selected = [node for node in nodes if node.select]
         if option == 'PARENT':

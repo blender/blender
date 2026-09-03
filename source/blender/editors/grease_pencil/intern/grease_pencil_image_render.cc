@@ -2,6 +2,10 @@
  *
  * SPDX-License-Identifier: GPL-2.0-or-later */
 
+/** \file
+ * \ingroup edgreasepencil
+ */
+
 #include "BLI_color_types.hh"
 #include "BLI_math_geom_c.hh"
 #include "BLI_math_matrix.hh"

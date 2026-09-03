@@ -659,7 +659,11 @@ set(GLSL_SRC
   shaders/material/gpu_shader_material_invert.glsl
   shaders/material/gpu_shader_material_invert_rotation.glsl
   shaders/material/gpu_shader_material_layer_weight.glsl
+  shaders/material/gpu_shader_material_light_accumulation.glsl
+  shaders/material/gpu_shader_material_light_evaluation.glsl
   shaders/material/gpu_shader_material_light_falloff.glsl
+  shaders/material/gpu_shader_material_light_info.glsl
+  shaders/material/gpu_shader_material_light_iter_internal.glsl
   shaders/material/gpu_shader_material_light_path.glsl
   shaders/material/gpu_shader_material_mapping.glsl
   shaders/material/gpu_shader_material_map_range.glsl
@@ -698,6 +702,7 @@ set(GLSL_SRC
   shaders/material/gpu_shader_material_separate_xyz.glsl
   shaders/material/gpu_shader_material_set.glsl
   shaders/material/gpu_shader_material_shader_to_rgba.glsl
+  shaders/material/gpu_shader_material_shadow_raycast.glsl
   shaders/material/gpu_shader_material_sheen.glsl
   shaders/material/gpu_shader_material_squeeze.glsl
   shaders/material/gpu_shader_material_subsurface_scattering.glsl

@@ -174,6 +174,9 @@ set(INC_SYS
 set(SRC
   ${BLENLIB_SRC}
   ${SRC_DNA_OTHER_INC}
+
+  # Needed by `rna_define.cc` for `UString` identifier storage.
+  ../../blenlib/intern/ustring.cc
 )
 
 set(LIB

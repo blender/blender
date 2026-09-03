@@ -2,6 +2,12 @@
  *
  * SPDX-License-Identifier: GPL-2.0-or-later */
 
+/** \file
+ * \ingroup nodes
+ */
+
+#include <fmt/format.h>
+
 #include "DNA_node_tree_interface_types.h"
 
 #include "NOD_caller_ui.hh"

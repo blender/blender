@@ -1157,34 +1157,6 @@ static void paint_runtime_init(const ToolSettings *ts, Paint *paint)
   paint->runtime->initialized = true;
 }
 
-uint BKE_paint_get_brush_type_offset_from_paintmode(const PaintMode mode)
-{
-  switch (mode) {
-    case PaintMode::Texture2D:
-    case PaintMode::Texture3D:
-      return offsetof(Brush, image_brush_type);
-    case PaintMode::Sculpt:
-      return offsetof(Brush, sculpt_brush_type);
-    case PaintMode::Vertex:
-      return offsetof(Brush, vertex_brush_type);
-    case PaintMode::Weight:
-      return offsetof(Brush, weight_brush_type);
-    case PaintMode::GPencil:
-      return offsetof(Brush, gpencil_brush_type);
-    case PaintMode::VertexGPencil:
-      return offsetof(Brush, gpencil_vertex_brush_type);
-    case PaintMode::SculptGPencil:
-      return offsetof(Brush, gpencil_sculpt_brush_type);
-    case PaintMode::WeightGPencil:
-      return offsetof(Brush, gpencil_weight_brush_type);
-    case PaintMode::SculptCurves:
-      return offsetof(Brush, curves_sculpt_brush_type);
-    case PaintMode::Invalid:
-      break; /* We don't use these yet. */
-  }
-  return 0;
-}
-
 std::optional<int> BKE_paint_get_brush_type_from_obmode(const Brush *brush,
                                                         const eObjectMode ob_mode)
 {
@@ -1311,11 +1283,6 @@ PaletteColor *BKE_palette_color_add(Palette *palette)
   PaletteColor *color = MEM_new<PaletteColor>(__func__);
   BLI_addtail(&palette->colors, color);
   return color;
-}
-
-bool BKE_palette_is_empty(const Palette *palette)
-{
-  return palette->colors.is_empty();
 }
 
 bool BKE_paint_select_face_test(const Object *ob)

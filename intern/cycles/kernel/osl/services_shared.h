@@ -175,6 +175,18 @@ ccl_device_inline void set_data_float4(const dual4 data, bool derivatives, ccl_p
   }
 }
 
+ccl_device_inline void set_data_quaternion(const dual<Quaternion> data,
+                                           bool derivatives,
+                                           ccl_private void *val)
+{
+  ccl_private float *fval = static_cast<ccl_private float *>(val);
+  copy_v4_qt(fval, data.val);
+  if (derivatives) {
+    copy_v4_qt(fval + 4, data.dx);
+    copy_v4_qt(fval + 8, data.dy);
+  }
+}
+
 /* Matrix Utilities */
 
 ccl_device_forceinline void copy_matrix(ccl_private float *res, const Transform &tfm)
@@ -417,6 +429,26 @@ ccl_device_template_spec bool set_attribute(const dual4 v,
 {
   if (is_type_float4(type)) {
     set_data_float4(v, derivatives, val);
+    return true;
+  }
+  if (is_type_float3(type)) {
+    set_data_float3(make_float3(v), derivatives, val);
+    return true;
+  }
+  if (type == TypeFloat) {
+    set_data_float(average(make_float3(v)), derivatives, val);
+    return true;
+  }
+  return false;
+}
+
+ccl_device_template_spec bool set_attribute(const dual<Quaternion> v,
+                                            const TypeDesc type,
+                                            bool derivatives,
+                                            ccl_private void *val)
+{
+  if (is_type_float4(type)) {
+    set_data_quaternion(v, derivatives, val);
     return true;
   }
   if (is_type_float3(type)) {
@@ -917,6 +949,9 @@ ccl_device_inline bool osl_shared_get_object_attribute(KernelGlobals kg,
   }
   if (desc.type == NODE_ATTR_FLOAT4 || desc.type == NODE_ATTR_RGBA) {
     return osl_shared_get_object_attribute_impl<float4>(kg, sd, desc, type, derivatives, val);
+  }
+  if (desc.type == NODE_ATTR_QUATERNION) {
+    return osl_shared_get_object_attribute_impl<Quaternion>(kg, sd, desc, type, derivatives, val);
   }
   if (desc.type == NODE_ATTR_MATRIX) {
     const Transform tfm = primitive_attribute_matrix(kg, desc);

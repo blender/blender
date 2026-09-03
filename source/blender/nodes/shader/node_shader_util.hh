@@ -94,4 +94,9 @@ void get_XYZ_to_RGB_for_gpu(XYZ_to_RGB *data);
  * These sockets are never available and must be ignored to avoid invalid link operations. */
 void search_link_ops_for_shader_bsdf_node(nodes::GatherLinkSearchOpParams &params);
 
+/* Link search callback that ignores the "LightIndex", "ShaderZoneIO", and "Weight" socket in
+ * shader nodes. These sockets are never available and must be ignored to avoid invalid link
+ * operations. */
+void search_link_ops_for_shader_material_lighting_node(nodes::GatherLinkSearchOpParams &params);
+
 }  // namespace blender

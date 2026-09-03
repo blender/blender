@@ -2,6 +2,10 @@
  *
  * SPDX-License-Identifier: GPL-2.0-or-later */
 
+/** \file
+ * \ingroup geo
+ */
+
 #include "BLI_color.hh"
 #include "BLI_math_base.hh"
 #include "BLI_math_rotation.hh"
@@ -345,22 +349,22 @@ namespace kernel_functions {
  * This is equivalent to the offset applied to sampling positions,
  * see geometry::grid_sampling::sample_tree.
  */
-inline int kernel_size(const KernelType kernel_type)
+inline int2 kernel_size(const KernelType kernel_type)
 {
   using namespace geometry::grid_sampling;
 
   switch (kernel_type) {
     case KernelType::NearestPoint:
-      return std::max(NearestPointKernel::samples_left, NearestPointKernel::samples_right);
+      return {NearestPointKernel::samples_left, NearestPointKernel::samples_right};
     case KernelType::Linear:
-      return std::max(LinearKernel::samples_left, LinearKernel::samples_right);
+      return {LinearKernel::samples_left, LinearKernel::samples_right};
     case KernelType::Quadratic:
-      return std::max(QuadraticBSplineKernel::samples_left, QuadraticBSplineKernel::samples_right);
+      return {QuadraticBSplineKernel::samples_left, QuadraticBSplineKernel::samples_right};
     case KernelType::Cubic:
-      return std::max(CubicBSplineKernel::samples_left, CubicBSplineKernel::samples_right);
+      return {CubicBSplineKernel::samples_left, CubicBSplineKernel::samples_right};
   }
   BLI_assert_unreachable();
-  return 0;
+  return {1, 0};
 }
 
 /* Evaluate a kernel weight function in one dimension. */
@@ -437,7 +441,7 @@ struct KernelTransferBase : public openvdb::points::TransformTransfer,
   static const int32_t DIM = TreeType::LeafNodeType::DIM;
 
   KernelType kernel_type_;
-  int kernel_size_;
+  int2 kernel_size_;
 
   /* Point attribute name for input values. */
   StringRef value_attribute_;
@@ -475,7 +479,8 @@ struct KernelTransferBase : public openvdb::points::TransformTransfer,
   /* Search range for point voxels around the target voxel. */
   openvdb::Int32 range(const openvdb::Coord & /*leaf_origin*/, size_t /*leaf_idx*/) const
   {
-    return (kernel_size_ + 1) >> 1;
+    /* Left side includes the target voxel index, subtract 1. */
+    return std::max(kernel_size_[0] - 1, kernel_size_[1]);
   }
 
   AttributeType get_value(const openvdb::Index point_index)
@@ -498,9 +503,9 @@ struct KernelTransferBase : public openvdb::points::TransformTransfer,
    * For each point, compute its relative index space position in the destination tree and
    * sum a function of per-point values.
    *
-   * \param ijk Point voxel coordinate.
-   * \param point_index_range Range of points inside the point voxel bounds.
-   * \param target_bounds Coordinate region of the destination tree to add into.
+   * \param ijk: Point voxel coordinate.
+   * \param point_index_range: Range of points inside the point voxel bounds.
+   * \param target_bounds: Coordinate region of the destination tree to add into.
    */
   template<typename ValueFn>
   void add_points_to_voxels(const openvdb::Coord &ijk,
@@ -508,8 +513,9 @@ struct KernelTransferBase : public openvdb::points::TransformTransfer,
                             const openvdb::CoordBBox &target_bounds,
                             ValueFn value_fn)
   {
-    const int max_offset = ((kernel_size_ + 1) >> 1);
-    openvdb::CoordBBox intersect_box(ijk.offsetBy(-max_offset + 1), ijk.offsetBy(max_offset));
+    /* Left side includes the target voxel index, subtract 1. */
+    openvdb::CoordBBox intersect_box(ijk.offsetBy(-(kernel_size_[0] - 1)),
+                                     ijk.offsetBy(kernel_size_[1]));
     intersect_box.intersect(target_bounds);
     if (intersect_box.empty()) {
       return;
@@ -607,7 +613,8 @@ static typename GridType::Ptr prepare_destination_grid(
     SCOPED_TIMER("      dilateActiveValues");
 #  endif
     /* Dilate to ensure all voxels within range of a particle are active. */
-    const int max_offset = (kernel_functions::kernel_size(kernel_type) + 1) >> 1;
+    const int2 kernel_size = kernel_functions::kernel_size(kernel_type);
+    const int max_offset = std::max(kernel_size[0] - 1, kernel_size[1]);
     openvdb::tools::dilateActiveValues(dst_grid->tree(),
                                        max_offset,
                                        openvdb::tools::NN_FACE_EDGE_VERTEX,

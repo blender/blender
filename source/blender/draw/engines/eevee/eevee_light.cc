@@ -68,9 +68,10 @@ void Light::sync(ShadowModule &shadows,
     shadow_discard_safe(shadows);
   }
 
-  this->color = BKE_light_power(*la) * BKE_light_color(*la);
+  this->color = BKE_light_color(*la);
+  float base_power = BKE_light_power(*la);
   if (la->mode & LA_UNNORMALIZED) {
-    this->color *= BKE_light_area(*la, object_to_world);
+    base_power *= BKE_light_area(*la, object_to_world);
   }
 
   float3 scale;
@@ -92,18 +93,23 @@ void Light::sync(ShadowModule &shadows,
   const bool transmission_visibility = (visibility_flag & OB_HIDE_TRANSMISSION) == 0;
   const bool volume_visibility = (visibility_flag & OB_HIDE_VOLUME_SCATTER) == 0;
 
-  float shape_power = shape_radiance_get();
-  float point_power = point_radiance_get();
-  this->power[LIGHT_DIFFUSE] = la->diff_fac * shape_power * diffuse_visibility;
-  this->power[LIGHT_SPECULAR] = la->spec_fac * shape_power * glossy_visibility;
-  this->power[LIGHT_TRANSMISSION] = la->transmission_fac * shape_power * transmission_visibility;
-  this->power[LIGHT_VOLUME] = la->volume_fac * point_power * volume_visibility;
+  this->shape_power = base_power * shape_radiance_get();
+  this->point_power = base_power * point_radiance_get();
+  this->power_factor[LIGHT_DIFFUSE] = la->diff_fac * diffuse_visibility;
+  this->power_factor[LIGHT_SPECULAR] = la->spec_fac * glossy_visibility;
+  this->power_factor[LIGHT_TRANSMISSION] = la->transmission_fac * transmission_visibility;
+  this->power_factor[LIGHT_VOLUME] = la->volume_fac * volume_visibility;
 
   this->lod_bias = shadows.global_lod_bias();
   this->lod_min = shadow_lod_min_get(la);
   this->filter_radius = la->shadow_filter_radius;
-  this->shadow_jitter = (la->mode & LA_SHADOW_JITTER) != 0;
-  this->visible_camera = (visibility_flag & OB_HIDE_CAMERA) == 0;
+  this->flags = LightFlag(0u);
+  if (la->mode & LA_SHADOW_JITTER) {
+    this->flags = LightFlag(this->flags | LIGHT_USE_SHADOW_JITTER);
+  }
+  if (visibility_flag & OB_HIDE_CAMERA) {
+    this->flags = LightFlag(this->flags | LIGHT_CAMERA_HIDDEN);
+  }
 
   if (la->mode & LA_SHADOW) {
     shadow_ensure(shadows);
@@ -184,7 +190,8 @@ void Light::shape_parameters_set(const blender::Light *la,
     LightLocalData &l_local = this->local();
     const float max_power = reduce_max(BKE_light_color(*la)) *
                             fabsf(BKE_light_power(*la) / 100.0f);
-    const float surface_max_power = max(la->diff_fac, la->spec_fac) * max_power;
+    const float surface_max_power = max(max(la->diff_fac, la->spec_fac), la->transmission_fac) *
+                                    max_power;
     const float volume_max_power = la->volume_fac * max_power;
 
     float influence_radius_surface = attenuation_radius_get(la, threshold, surface_max_power);
@@ -438,6 +445,9 @@ void LightModule::sync_light(const ObjectRef &ob_ref)
 
   Light &light = light_map_.lookup_or_add_default(ObjectKey(ob_ref));
   light.used = true;
+  ResourceHandleRange handle = inst_.manager->unique_handle(ob_ref);
+  inst_.manager->extract_all_object_attributes(handle, ob_ref);
+  light.resource_id = handle.index();
   if (inst_.get_recalc_flags(ob_ref) != 0 || !light.initialized) {
     light.initialized = true;
     light.sync(inst_.shadows,

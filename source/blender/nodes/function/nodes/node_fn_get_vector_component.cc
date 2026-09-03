@@ -14,7 +14,7 @@ namespace blender::nodes::node_fn_get_vector_component_cc {
 static void node_declare(NodeDeclarationBuilder &b)
 {
   b.is_function_node();
-  b.add_input<decl::Vector>("Vector"_ustr).optional_label();
+  b.add_input<decl::Vector>("Vector"_ustr).subtype(PROP_XYZ).optional_label();
   b.add_input<decl::Int>("Index"_ustr).min(0).max(2);
   b.add_output<decl::Float>("Value"_ustr);
 }

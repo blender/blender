@@ -2,6 +2,10 @@
  *
  * SPDX-License-Identifier: GPL-2.0-or-later */
 
+/** \file
+ * \ingroup sequencer
+ */
+
 #pragma once
 
 #include "COM_static_cache_manager.hh"

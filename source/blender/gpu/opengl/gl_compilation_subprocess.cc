@@ -2,6 +2,10 @@
  *
  * SPDX-License-Identifier: GPL-2.0-or-later */
 
+/** \file
+ * \ingroup gpu
+ */
+
 #include "gl_compilation_subprocess.hh"
 
 #if BLI_SUBPROCESS_SUPPORT

@@ -28,6 +28,7 @@ struct CLG_LogRef;
 namespace blender {
 
 struct bContext;
+struct Object;
 struct RenderEngine;
 
 namespace render::hydra {
@@ -68,6 +69,8 @@ class Engine {
   virtual void set_render_setting(const std::string &key, const pxr::VtValue &val);
 
  protected:
+  virtual const Object *camera_object() const = 0;
+
   float renderer_percent_done();
   pxr::HdTaskSharedPtrVector tasks();
   virtual void notify_status(float progress,

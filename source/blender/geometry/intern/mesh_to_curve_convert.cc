@@ -2,6 +2,10 @@
  *
  * SPDX-License-Identifier: GPL-2.0-or-later */
 
+/** \file
+ * \ingroup geo
+ */
+
 #include "BKE_deform.hh"
 #include "BLI_array.hh"
 #include "BLI_array_utils.hh"

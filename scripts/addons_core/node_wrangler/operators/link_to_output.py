@@ -35,7 +35,7 @@ class NODE_OT_link_to_output(Operator):
                 and nw_check_visible_outputs(cls, context))
 
     def execute(self, context):
-        nodes, links = get_nodes_links(context)
+        nodes, _links = get_nodes_links(context)
         active = nodes.active
         output_index = None
         tree_type = context.space_data.tree_type

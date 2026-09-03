@@ -1047,16 +1047,21 @@ const ListBaseT<PropertyRNA> *RNA_struct_type_properties(StructRNA *srna)
   return &srna->cont.properties;
 }
 
-PropertyRNA *RNA_struct_type_find_property_no_base(StructRNA *srna, const char *identifier)
+PropertyRNA *RNA_struct_type_find_property_no_base(StructRNA *srna, const UString identifier)
 {
-  return static_cast<PropertyRNA *>(
-      BLI_findstring_ptr(&srna->cont.properties, identifier, offsetof(PropertyRNA, identifier)));
+  for (PropertyRNA &prop : srna->cont.properties) {
+    if (prop.identifier == identifier) {
+      return &prop;
+    }
+  }
+  return nullptr;
 }
 
 PropertyRNA *RNA_struct_type_find_property(StructRNA *srna, const char *identifier)
 {
+  const UString identifier_ustr(identifier);
   for (; srna; srna = srna->base) {
-    PropertyRNA *prop = RNA_struct_type_find_property_no_base(srna, identifier);
+    PropertyRNA *prop = RNA_struct_type_find_property_no_base(srna, identifier_ustr);
     if (prop != nullptr) {
       return prop;
     }

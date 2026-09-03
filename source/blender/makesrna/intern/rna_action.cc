@@ -474,7 +474,7 @@ static std::optional<std::string> rna_ActionStrip_path(const PointerRNA *ptr)
   {
     /* Get the layer from the RNA ancestors. */
     layer_ptr = {&action.id, layer_ancestor_ptr->type, layer_ancestor_ptr->data};
-    BLI_assert(layer_ptr.has_data());
+    BLI_assert_msg(layer_ptr.has_data(), "PointerRNA ancestors should not be nullptr");
     const animrig::Layer *layer = layer_ptr.data_as<animrig::Layer>();
     strip_index = layer->strips().first_index_try(&strip_to_find);
   }
@@ -610,6 +610,7 @@ std::optional<std::string> rna_Channelbag_path(const PointerRNA *ptr)
      * rna_ActionStrip_path() direct access to the containing ActionLayer. */
     const PointerRNA strip_ptr = {
         &action.id, strip_ancestor_ptr->type, strip_ancestor_ptr->data, ptr->ancestors};
+    BLI_assert_msg(strip_ptr.has_data(), "PointerRNA ancestors should not be nullptr");
 
     const animrig::Strip *strip = strip_ptr.data_as<animrig::Strip>();
     std::optional<std::string> strip_path = rna_ActionStrip_path(&strip_ptr);

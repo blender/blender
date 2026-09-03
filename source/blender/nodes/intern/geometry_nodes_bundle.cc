@@ -2,6 +2,10 @@
  *
  * SPDX-License-Identifier: GPL-2.0-or-later */
 
+/** \file
+ * \ingroup nodes
+ */
+
 #include <fmt/format.h>
 #include <fmt/ranges.h>
 
@@ -38,8 +42,7 @@ bool BundleKey::is_valid_key(const StringRef key)
     return false;
   }
   if (key != key.trim()) {
-    /* Keys must not have leading or trailing white-space. This simplifies potentially using
-    these
+    /* Keys must not have leading or trailing white-space. This simplifies potentially using these
      * keys in expressions later on (or even just have a comma separated list of keys). */
     return false;
   }

@@ -254,6 +254,13 @@ ccl_device_template_spec Transform attribute_data_fetch(KernelGlobals kg,
   return tfm;
 }
 
+ccl_device_template_spec Quaternion attribute_data_fetch(KernelGlobals kg,
+                                                         AttributeElement /*element*/,
+                                                         const int offset)
+{
+  return kernel_data_fetch(attributes_quaternion, offset);
+}
+
 /* Transform matrix attribute on meshes */
 
 ccl_device Transform primitive_attribute_matrix(KernelGlobals kg, const AttributeDescriptor desc)

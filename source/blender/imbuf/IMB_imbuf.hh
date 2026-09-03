@@ -629,9 +629,7 @@ gpu::Texture *IMB_create_gpu_texture(const char *name, ImBuf *ibuf, GPUTextureCr
  * yet. */
 gpu::Texture *IMB_acquire_gpu_texture(const char *name,
                                       ImBuf *ibuf,
-                                      bool use_high_bitdepth,
-                                      bool use_premult,
-                                      bool limit_size,
+                                      GPUTextureCreateFlags texture_create_flags,
                                       bool try_only = false);
 
 gpu::TextureFormat IMB_gpu_get_texture_format(const ImBuf *ibuf,

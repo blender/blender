@@ -153,6 +153,7 @@ void SyncModule::sync_common(const ObjectHandle &ob_handle,
   bool is_alpha_blend = false;
   bool has_transparent_shadows = false;
   bool has_time_dependent_shadows = false;
+  bool has_shadow_offset = false;
   float inflate_bounds = 0.0f;
 
   for (const Material *material : materials) {
@@ -167,13 +168,16 @@ void SyncModule::sync_common(const ObjectHandle &ob_handle,
     const bool has_displacement = GPU_material_has_displacement_output(gpu_material) &&
                                   (bl_material->displacement_method != MA_DISPLACEMENT_BUMP);
     const bool has_time_node = GPU_material_flag_get(gpu_material, GPU_MATFLAG_SCENE_TIME);
+    const bool mat_has_shadow_offset = GPU_material_flag_get(gpu_material,
+                                                             GPU_MATFLAG_SHADOW_OFFSET);
 
     is_alpha_blend |= material->is_alpha_blend_transparent;
     has_transparent_shadows |= material->has_transparent_shadows;
-    has_time_dependent_shadows |= has_time_node &&
-                                  (material->has_transparent_shadows || has_displacement);
+    has_shadow_offset |= mat_has_shadow_offset;
+    has_time_dependent_shadows |= has_time_node && (material->has_transparent_shadows ||
+                                                    has_displacement || mat_has_shadow_offset);
 
-    if (has_displacement) {
+    if (has_displacement || mat_has_shadow_offset) {
       inflate_bounds = math::max(inflate_bounds, bl_material->inflate_bounds);
     }
 
@@ -182,8 +186,11 @@ void SyncModule::sync_common(const ObjectHandle &ob_handle,
 
   inst_.cryptomatte.sync_object(ob_handle);
 
-  inst_.shadows.sync_object(
-      ob_handle, is_alpha_blend, has_transparent_shadows, has_time_dependent_shadows);
+  inst_.shadows.sync_object(ob_handle,
+                            is_alpha_blend,
+                            has_transparent_shadows,
+                            has_time_dependent_shadows,
+                            has_shadow_offset);
 
   if (has_volume) {
     inst_.volume.object_sync(ob_handle);

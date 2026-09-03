@@ -211,9 +211,4 @@ void PixelOperation::compute_results_reference_counts(const Schedule &schedule)
   }
 }
 
-void PixelOperation::set_needs_node_previews(const bool needed)
-{
-  needs_node_previews_ = needed;
-}
-
 }  // namespace blender::compositor

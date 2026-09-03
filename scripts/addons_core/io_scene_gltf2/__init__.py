@@ -530,7 +530,7 @@ class ExportGLTF2_Base(ConvertGLTF2_Base):
              'Viewport',
              'Export minimal materials as defined in Viewport display properties'),
             ('NONE',
-             'No export',
+             'No Export',
              'Do not export materials, and combine mesh primitive groups, losing material slot information')),
         description='Export materials',
         default='EXPORT')

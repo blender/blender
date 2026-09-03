@@ -2,6 +2,8 @@
  *
  * SPDX-License-Identifier: GPL-2.0-or-later */
 
+#include <fmt/format.h>
+
 #include "BKE_bvh.hh"
 #include "BKE_bvhutils.hh"
 #include "BKE_curves.hh"

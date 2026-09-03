@@ -323,6 +323,7 @@ static void node_geo_exec(GeoNodeExecParams params)
   bke::CurvesEditHints *edit_hints = curves_geometry.get_curve_edit_hints_for_write();
   MutableSpan<float3> edit_hint_positions;
   MutableSpan<float3x3> edit_hint_rotations;
+  MutableSpan<float3x3> edit_hint_rotations_for_curves;
   if (edit_hints != nullptr) {
     if (const std::optional<MutableSpan<float3>> positions = edit_hints->positions_for_write()) {
       edit_hint_positions = *positions;
@@ -333,6 +334,11 @@ static void node_geo_exec(GeoNodeExecParams params)
       edit_hints->deform_mats->fill(float3x3::identity());
     }
     edit_hint_rotations = *edit_hints->deform_mats;
+    /* These matrices correspond to original point indices, so they cannot be used when the
+     * evaluated geometry has a different number of points. */
+    if (curves.points_num() == edit_hints->curves_id_orig.geometry.point_num) {
+      edit_hint_rotations_for_curves = edit_hint_rotations;
+    }
   }
 
   if (edit_hint_positions.is_empty()) {
@@ -347,7 +353,7 @@ static void node_geo_exec(GeoNodeExecParams params)
                   rest_positions,
                   transforms.surface_to_curves,
                   curves.positions_for_write(),
-                  edit_hint_rotations,
+                  edit_hint_rotations_for_curves,
                   invalid_uv_count);
   }
   else {

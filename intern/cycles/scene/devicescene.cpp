@@ -38,6 +38,8 @@ DeviceScene::DeviceScene(Device *device)
       attributes_float4(device, "attributes_float4", MEM_GLOBAL),
       attributes_uchar4(device, "attributes_uchar4", MEM_GLOBAL),
       attributes_normal(device, "attributes_normal", MEM_GLOBAL),
+      attributes_quaternion(device, "attributes_quaternion", MEM_GLOBAL),
+      attributes_spherical_harmonics(device, "attributes_spherical_harmonics", MEM_GLOBAL),
       light_distribution(device, "light_distribution", MEM_GLOBAL),
       lights(device, "lights", MEM_GLOBAL),
       light_background_marginal_cdf(device, "light_background_marginal_cdf", MEM_GLOBAL),

@@ -242,6 +242,15 @@ bool BKE_preferences_asset_shelf_settings_is_catalog_path_enabled(const UserDef 
 bool BKE_preferences_asset_shelf_settings_ensure_catalog_path_enabled(UserDef *userdef,
                                                                       const char *shelf_idname,
                                                                       const char *catalog_path);
+/**
+ * Disable a catalog path for an asset shelf identified by \a shelf_idname, by removing it from the
+ * list of enabled catalog paths.
+ * \return true if the catalog was enabled and got disabled. The Preferences should be tagged as
+ * dirty then.
+ */
+bool BKE_preferences_asset_shelf_settings_disable_catalog_path(UserDef *userdef,
+                                                               const char *shelf_idname,
+                                                               const char *catalog_path);
 
 const EnumPropertyItem *BKE_preferences_active_section_itemf(const UserDef *userdef, bool *r_free);
 /** \} */

@@ -2,7 +2,9 @@
  *
  * SPDX-License-Identifier: GPL-2.0-or-later */
 
-/**
+/** \file
+ * \ingroup fn
+ *
  * This file implements the evaluation of a lazy-function graph. It's main objectives are:
  * - Only compute values that are actually used.
  * - Stay single threaded when nodes are executed quickly.

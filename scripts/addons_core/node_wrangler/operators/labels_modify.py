@@ -2,7 +2,6 @@
 #
 # SPDX-License-Identifier: GPL-2.0-or-later
 
-import bpy
 from bpy.types import Operator
 from bpy.props import StringProperty
 
@@ -40,7 +39,7 @@ class NODE_OT_labels_modify(Operator, NWBase):
         return nw_check(cls, context) and nw_check_selected(cls, context)
 
     def execute(self, context) -> set[str]:
-        nodes, links = get_nodes_links(context)
+        nodes, _links = get_nodes_links(context)
         for node in [n for n in nodes if n.select]:
             node.label = self.prepend + node.label.replace(self.replace_from, self.replace_to) + self.append
 

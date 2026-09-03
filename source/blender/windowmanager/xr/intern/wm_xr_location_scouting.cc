@@ -10,6 +10,8 @@
  * Implements XR Location Scouting drawing and feature logic.
  */
 
+#include <fmt/format.h>
+
 #include "BKE_camera.h"
 #include "BKE_context.hh"
 #include "BKE_lib_id.hh"

@@ -371,12 +371,12 @@ class GlareOperation : public NodeOperation {
     GPU_texture_filter_mode(input_image, true);
     input_image.bind_as_texture(shader, "input_tx");
 
-    const int2 highlights_size = this->get_glare_image_size();
+    const Domain highlights_domain = this->get_glare_image_domain();
     Result highlights_result = context().create_result(ResultType::Color);
-    highlights_result.allocate_texture(highlights_size);
+    highlights_result.allocate_texture(highlights_domain);
     highlights_result.bind_as_image(shader, "output_img");
 
-    compute_dispatch_threads_at_least(shader, highlights_size);
+    compute_dispatch_threads_at_least(shader, highlights_domain.data_size);
 
     GPU_shader_unbind();
     input_image.unbind_as_texture();
@@ -393,14 +393,14 @@ class GlareOperation : public NodeOperation {
 
     const Result &input = get_input("Image");
 
-    const int2 highlights_size = this->get_glare_image_size();
+    const Domain highlights_size = this->get_glare_image_domain();
     Result output = context().create_result(ResultType::Color);
     output.allocate_texture(highlights_size);
 
     const CMPNodeGlareQuality quality = this->get_quality();
     const int2 input_size = input.domain().data_size;
 
-    parallel_for(highlights_size, [&](const int2 texel) {
+    parallel_for(highlights_size.data_size, [&](const int2 texel) {
       float4 color = float4(0.0f);
 
       switch (quality) {
@@ -2084,7 +2084,7 @@ class GlareOperation : public NodeOperation {
    * supplied by the user. Also make sure that log2 does not get zero. */
   int compute_bloom_chain_length()
   {
-    const int2 image_size = this->get_glare_image_size();
+    const int2 image_size = this->get_glare_image_domain().data_size;
     const int smaller_dimension = math::reduce_min(image_size);
     const float scaled_dimension = smaller_dimension * this->get_size();
     return int(std::log2(math::max(1.0f, scaled_dimension)));
@@ -2783,10 +2783,15 @@ class GlareOperation : public NodeOperation {
 
   /* As a performance optimization, the operation can compute the glare on a fraction of the input
    * image size, so the input is downsampled then upsampled at the end, and this method returns the
-   * size after downsampling. */
-  int2 get_glare_image_size()
+   * domain after downsampling. */
+  Domain get_glare_image_domain()
   {
-    return math::divide_ceil(this->compute_domain().data_size, int2(this->get_quality_factor()));
+    Domain domain = this->compute_domain();
+    const int2 quality_factor = int2(this->get_quality_factor());
+    domain.data_size = math::divide_ceil(domain.data_size, quality_factor);
+    domain.display_size = math::divide_ceil(domain.display_size, quality_factor);
+    domain.data_offset = math::divide_ceil(domain.data_offset, quality_factor);
+    return domain;
   }
 
   /* The glare node can compute the glare on a fraction of the input image size to improve

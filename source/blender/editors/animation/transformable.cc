@@ -6,6 +6,8 @@
  * \ingroup edanimation
  */
 
+#include <fmt/format.h>
+
 #include "BLI_math_rotation_c.hh"
 #include "BLI_string.hh"
 

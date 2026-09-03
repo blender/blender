@@ -41,6 +41,7 @@ enum DataType {
   TYPE_UINT16,
   TYPE_UINT,
   TYPE_INT,
+  TYPE_INT8,
   TYPE_FLOAT,
   TYPE_HALF,
   TYPE_UINT64,
@@ -61,6 +62,8 @@ static constexpr size_t datatype_size(DataType datatype)
       return sizeof(uint16_t);
     case TYPE_INT:
       return sizeof(int);
+    case TYPE_INT8:
+      return sizeof(int8_t);
     case TYPE_HALF:
       return sizeof(half);
     case TYPE_UINT64:
@@ -210,6 +213,17 @@ template<> struct device_type_traits<uint64_t> {
   static const DataType data_type = TYPE_UINT64;
   static const size_t num_elements = 1;
   static_assert(sizeof(uint64_t) == num_elements * datatype_size(data_type));
+};
+
+template<> struct device_type_traits<Quaternion> {
+  static const DataType data_type = TYPE_FLOAT;
+  static const size_t num_elements = 4;
+  static_assert(sizeof(Quaternion) == num_elements * datatype_size(data_type));
+};
+
+template<> struct device_type_traits<PackedSphericalHarmonics> {
+  static const DataType data_type = TYPE_INT8;
+  static const size_t num_elements = sizeof(PackedSphericalHarmonics);
 };
 
 /* Device Memory
@@ -605,7 +619,7 @@ template<typename T> class device_vector : public device_memory {
  * goes out of scope, which should happen before base memory is freed.
  *
  * NOTE: some devices require offset and size of the sub_ptr to be properly
- * aligned to device->mem_address_alingment(). */
+ * aligned to device->mem_address_alignment(). */
 
 class device_sub_ptr {
  public:

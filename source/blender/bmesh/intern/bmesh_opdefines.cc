@@ -2212,6 +2212,47 @@ static BMOpDefine bmo_create_grid_def = {
     /*type_flag*/ (BMO_OPTYPE_FLAG_NORMALS_CALC | BMO_OPTYPE_FLAG_SELECT_FLUSH),
 };
 
+static BMO_FlagSet bmo_enum_quadsphere_method[] = {
+    {QUADSPHERE_METHOD_EQUI_ANGULAR_EVEN_AREA, "EVEN_AREA"},
+    {QUADSPHERE_METHOD_EQUI_ANGULAR, "EVEN_ANGLE"},
+    {0, nullptr},
+};
+
+/*
+ * Create Quad Sphere.
+ *
+ * Creates a sphere from a subdivided cube, made up entirely of quads.
+ */
+static BMOpDefine bmo_create_quadsphere_def = {
+    /*opname*/ "create_quadsphere",
+    /*slot_types_in*/
+    {
+        /* Number of quads along each edge of the cube the sphere is made from. */
+        {"segments", BMO_OP_SLOT_INT},
+        /* Mapping from the cube onto the sphere. */
+        {"method",
+         BMO_OP_SLOT_INT,
+         to_subtype_union(BMO_OP_SLOT_SUBTYPE_INT_ENUM),
+         bmo_enum_quadsphere_method},
+        /* Radius. */
+        {"radius", BMO_OP_SLOT_FLT},
+        /* Matrix to multiply the new geometry with. */
+        {"matrix", BMO_OP_SLOT_MAT},
+        /* Calculate default UVs. */
+        {"calc_uvs", BMO_OP_SLOT_BOOL},
+        {{'\0'}},
+    },
+    /*slot_types_out*/
+    {
+        /* Output verts. */
+        {"verts.out", BMO_OP_SLOT_ELEMENT_BUF, {BM_VERT}},
+        {{'\0'}},
+    },
+    /*init*/ nullptr,
+    /*exec*/ bmo_create_quadsphere_exec,
+    /*type_flag*/ (BMO_OPTYPE_FLAG_NORMALS_CALC | BMO_OPTYPE_FLAG_SELECT_FLUSH),
+};
+
 /*
  * Create UV Sphere.
  *
@@ -2968,6 +3009,7 @@ const BMOpDefine *bmo_opdefines[] = {
     &bmo_create_grid_def,
     &bmo_create_icosphere_def,
     &bmo_create_monkey_def,
+    &bmo_create_quadsphere_def,
     &bmo_create_uvsphere_def,
     &bmo_create_vert_def,
     &bmo_delete_def,

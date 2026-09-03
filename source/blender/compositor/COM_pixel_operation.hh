@@ -13,6 +13,10 @@
 #include "COM_context.hh"
 #include "COM_operation.hh"
 
+namespace blender {
+class ComputeContext;
+}
+
 namespace blender::compositor {
 
 struct Schedule;
@@ -72,8 +76,6 @@ class PixelOperation : public Operation {
   CompileState &compile_state_;
   /* The compute context where this pixel operation is executing. */
   const ComputeContext &compute_context_;
-  /* False if node previews are not needed and true otherwise. */
-  bool needs_node_previews_ = false;
   /* A map that associates the identifier of each input of the operation with the output socket it
    * is linked to. This is needed to help the compiler establish links between operations. */
   Map<std::string, const bNodeSocket *> inputs_to_linked_outputs_map_;
@@ -151,9 +153,6 @@ class PixelOperation : public Operation {
    *
    * The node execution schedule is given as an input. */
   void compute_results_reference_counts(const Schedule &schedule);
-
-  /* Setter for needs_node_previews_. */
-  void set_needs_node_previews(const bool needed);
 };
 
 }  // namespace blender::compositor

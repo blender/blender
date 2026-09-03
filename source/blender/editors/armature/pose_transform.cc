@@ -1485,8 +1485,9 @@ static wmOperatorStatus pose_clear_user_transforms_exec(bContext *C, wmOperator 
         }
       }
 
-      /* Was copied without constraints. */
+      /* Was copied without constraints so we can't use `BKE_pose_free_data`. */
       dummyPose->chanbase.free_no_destruct();
+      MEM_delete(dummyPose->runtime);
       MEM_delete(dummyPose);
     }
     else {

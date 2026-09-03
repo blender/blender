@@ -2,6 +2,10 @@
  *
  * SPDX-License-Identifier: GPL-2.0-or-later */
 
+/** \file
+ * \ingroup balembic
+ */
+
 #include "abc_archive.h"
 
 #include "BKE_blender_version.h"

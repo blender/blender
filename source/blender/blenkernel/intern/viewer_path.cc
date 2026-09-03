@@ -2,6 +2,10 @@
  *
  * SPDX-License-Identifier: GPL-2.0-or-later */
 
+/** \file
+ * \ingroup bke
+ */
+
 #include "BKE_lib_query.hh"
 #include "BKE_lib_remap.hh"
 #include "BKE_viewer_path.hh"

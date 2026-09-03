@@ -43,7 +43,7 @@ float3 volume_light(LightData light, const bool is_directional, LightVector lv)
       power *= saturate(dot(light.z_axis(), lv.L));
     }
   }
-  return light.color * light.power[LIGHT_VOLUME] * power;
+  return light.color * eevee::light::power_get(light, LIGHT_VOLUME) * power;
 }
 
 #define VOLUMETRIC_SHADOW_MAX_STEP 128.0f
@@ -143,7 +143,7 @@ struct LightEvalCtx {
     [[resource_table]] const draw::View &views = srt.views_;
 
     /* TODO(fclem): Own light list for volume without lights that have 0 volume influence. */
-    if (light.power[LIGHT_VOLUME] == 0.0f) {
+    if (eevee::light::power_get(light, LIGHT_VOLUME) == 0.0f) {
       return float3(0);
     }
 

@@ -19,6 +19,8 @@
 
 #include "node_geometry_util.hh"
 
+#include <fmt/format.h>
+
 namespace blender::nodes::node_geo_boolean_cc {
 
 static void node_declare(NodeDeclarationBuilder &b)

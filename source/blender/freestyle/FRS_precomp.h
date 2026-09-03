@@ -2,7 +2,11 @@
  *
  * SPDX-License-Identifier: GPL-2.0-or-later */
 
-/* Pre-compiled headers, see: D2606. */
+/** \file
+ * \ingroup freestyle
+ *
+ * Pre-compiled headers, see: D2606.
+ */
 
 #include <Python.h>
 

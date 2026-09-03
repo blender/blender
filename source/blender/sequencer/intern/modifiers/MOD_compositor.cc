@@ -18,6 +18,7 @@
 #include "BKE_anim_data.hh"
 #include "BKE_animsys.hh"
 #include "BKE_compositor.hh"
+#include "BKE_compute_contexts.hh"
 #include "BKE_context.hh"
 #include "BKE_idprop.hh"
 #include "BKE_node.hh"
@@ -143,8 +144,7 @@ class CompositorModifierContext : public CompositorContext {
     const bNodeTree &node_group = *DEG_get_evaluated<bNodeTree>(render_data_.depsgraph,
                                                                 modifier_data_->node_group);
     const bke::DataBlockComputeContext compute_context(nullptr, this->get_scene().id);
-    NodeGroupOperation node_group_operation(
-        *this, node_group, this->needed_outputs(), compute_context);
+    NodeGroupOperation node_group_operation(*this, node_group, compute_context);
     set_output_refcount(node_group, node_group_operation);
 
     node_group.ensure_topology_cache();

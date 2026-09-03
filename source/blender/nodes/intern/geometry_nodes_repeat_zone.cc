@@ -2,6 +2,10 @@
  *
  * SPDX-License-Identifier: GPL-2.0-or-later */
 
+/** \file
+ * \ingroup nodes
+ */
+
 #include "NOD_geometry_nodes_lazy_function.hh"
 
 #include "BKE_compute_contexts.hh"

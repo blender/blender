@@ -99,7 +99,6 @@ static void applyShrinkFatten(TransInfo *t)
   float distance;
   fmt::memory_buffer str;
   const UnitSettings &unit = t->scene->unit;
-  ShrinkFattenCustomData *custom_data = static_cast<ShrinkFattenCustomData *>(t->custom.mode.data);
 
   distance = t->values[0] + t->values_modal_offset[0];
 
@@ -152,7 +151,11 @@ static void applyShrinkFatten(TransInfo *t)
   recalc_data(t);
 
   ED_area_status_text(t->area, fmt::to_string(str).c_str());
+}
 
+static void shrink_fatten_status(TransInfo *t)
+{
+  ShrinkFattenCustomData *custom_data = static_cast<ShrinkFattenCustomData *>(t->custom.mode.data);
   if (custom_data->op) {
     WorkspaceStatus status(t->context);
 
@@ -244,6 +247,7 @@ TransModeInfo TransMode_shrinkfatten = {
     /*snap_distance_fn*/ nullptr,
     /*snap_apply_fn*/ nullptr,
     /*draw_fn*/ nullptr,
+    /*status_fn*/ shrink_fatten_status,
 };
 
 }  // namespace blender::ed::transform

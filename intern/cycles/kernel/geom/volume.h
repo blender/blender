@@ -65,6 +65,13 @@ ccl_device_template_spec float4 volume_attribute_value(const float4 value)
   return value;
 }
 
+ccl_device_template_spec Quaternion volume_attribute_value(const float4 value)
+{
+  /* Attribute sampling code uses float4 as an intermediate format, and quaternion in stored as
+   * make_float4(q.w, q.x, q.y, q.z). */
+  return make_quaternion(value.x, value.y, value.z, value.w);
+}
+
 ccl_device float volume_attribute_alpha(const float4 value)
 {
   return value.w;
@@ -92,6 +99,10 @@ ccl_device float4 volume_attribute_float4(KernelGlobals kg,
       case NODE_ATTR_FLOAT4:
       case NODE_ATTR_RGBA:
         return kernel_data_fetch(attributes_float4, desc.offset);
+      case NODE_ATTR_QUATERNION:
+        return make_float4(kernel_data_fetch(attributes_quaternion, desc.offset));
+      case NODE_ATTR_SPHERICAL_HARMONICS:
+        return make_float4(0.0f, 0.0f, 0.0f, 1.0f);
       case NODE_ATTR_MATRIX:
         return zero_float4();
     }

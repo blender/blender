@@ -13,6 +13,7 @@
 #include "util/types_base.h"
 #include "util/types_float3.h"
 #include "util/types_float4.h"
+#include "util/types_quaternion.h"
 
 CCL_NAMESPACE_BEGIN
 

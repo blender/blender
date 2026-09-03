@@ -772,6 +772,19 @@ bool BKE_preferences_asset_shelf_settings_ensure_catalog_path_enabled(UserDef *u
   return true;
 }
 
+bool BKE_preferences_asset_shelf_settings_disable_catalog_path(UserDef *userdef,
+                                                               const char *shelf_idname,
+                                                               const char *catalog_path)
+{
+  bUserAssetShelfSettings *settings = BKE_preferences_asset_shelf_settings_get(userdef,
+                                                                               shelf_idname);
+  if (!settings) {
+    return false;
+  }
+
+  return BKE_asset_catalog_path_list_remove_path(settings->enabled_catalog_paths, catalog_path);
+}
+
 /** \} */
 
 const EnumPropertyItem *BKE_preferences_active_section_itemf(const UserDef *userdef, bool *r_free)

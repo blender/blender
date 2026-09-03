@@ -5,15 +5,12 @@
 #pragma once
 
 #include "COM_context.hh"
-#include "COM_node_group_operation.hh"
 #include "COM_node_operation.hh"
 
 namespace blender::compositor {
 
 /* Returns an instance of a new GroupNodeOperation with the given parameters. See the class for
  * more information.. */
-NodeOperation *get_group_node_operation(Context &context,
-                                        const bNode &node,
-                                        const NodeGroupOutputTypes &needed_outputs);
+NodeOperation *get_group_node_operation(Context &context, const bNode &node);
 
 }  // namespace blender::compositor

@@ -2,6 +2,10 @@
  *
  * SPDX-License-Identifier: GPL-2.0-or-later */
 
+/** \file
+ * \ingroup bli
+ */
+
 #pragma once
 
 /* Always include that so that `BLI_mutex.hh` can be used as replacement to including <mutex>.

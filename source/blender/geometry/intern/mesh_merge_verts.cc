@@ -2,6 +2,10 @@
  *
  * SPDX-License-Identifier: GPL-2.0-or-later */
 
+/** \file
+ * \ingroup geo
+ */
+
 // #define USE_WELD_DEBUG
 // #define USE_WELD_DEBUG_TIME
 

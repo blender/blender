@@ -105,8 +105,8 @@ struct LTCData {
 
     /* Rotate into orthonormal basis around N. */
     /* TODO(not_mark): re-enable, and update tests as this causes precision change. */
-    /* float3x3 T = from_incident_vector(N, V);
-    Minv = Minv * transpose(T); */
+    // float3x3 T = from_incident_vector(N, V);
+    // Minv = Minv * transpose(T);
 
     LTCData ltc_data;
     ltc_data.Minv = Minv;
@@ -124,8 +124,8 @@ struct LTCData {
   {
     /* Rotate into orthonormal basis around N. */
     /* TODO(not_mark): re-enable, and update tests as this causes precision change. */
-    /* float3x3 T = from_incident_vector(N, V);
-    float3x3 Minv = transpose(T); */
+    // float3x3 T = from_incident_vector(N, V);
+    // float3x3 Minv = transpose(T);
     float3x3 Minv = mat3x3_identity();
 
     LTCData ltc_data;

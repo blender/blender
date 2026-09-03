@@ -494,4 +494,11 @@ void search_link_ops_for_shader_bsdf_node(nodes::GatherLinkSearchOpParams &param
   nodes::search_filtered_link_ops_for_basic_node(params, skip_socket_identifiers);
 }
 
+void search_link_ops_for_shader_material_lighting_node(nodes::GatherLinkSearchOpParams &params)
+{
+  static Set<UString> skip_socket_identifiers = {
+      "LightIndex"_ustr, "ShaderZoneIO"_ustr, "Weight"_ustr};
+  nodes::search_filtered_link_ops_for_basic_node(params, skip_socket_identifiers);
+}
+
 }  // namespace blender

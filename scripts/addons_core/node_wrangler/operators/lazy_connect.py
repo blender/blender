@@ -115,7 +115,7 @@ class NODE_OT_lazy_connect(Operator, NWBase):
             self.report({'WARNING'}, "Active editor should be a node editor for the operator to run")
             return {'CANCELLED'}
 
-        nodes, links = get_nodes_links(context)
+        nodes, _links = get_nodes_links(context)
         node = node_at_pos(nodes, context, event)
         if node:
             context.scene.NWBusyDrawing = node.name
@@ -145,7 +145,7 @@ class NODE_OT_lazy_connect_call_inputs_menu(Operator, NWBase):
     from_socket: IntProperty()
 
     def execute(self, context):
-        nodes, links = get_nodes_links(context)
+        nodes, _links = get_nodes_links(context)
 
         context.scene.NWSourceSocket = self.from_socket
 
@@ -169,7 +169,7 @@ class NODE_OT_lazy_connect_make_link(Operator, NWBase):
     to_socket: IntProperty()
 
     def execute(self, context):
-        nodes, links = get_nodes_links(context)
+        nodes, _links = get_nodes_links(context)
 
         n1 = nodes[context.scene.NWLazySource]
         n2 = nodes[context.scene.NWLazyTarget]
@@ -189,7 +189,7 @@ class NODE_MT_lazy_connect_outputs(Menu, NWBaseMenu):
 
     def draw(self, context):
         layout = self.layout
-        nodes, links = get_nodes_links(context)
+        nodes, _links = get_nodes_links(context)
 
         layout.label(text="From Socket", icon='RADIOBUT_OFF')
         layout.separator()
@@ -212,7 +212,7 @@ class NODE_MT_lazy_connect_inputs(Menu, NWBaseMenu):
 
     def draw(self, context):
         layout = self.layout
-        nodes, links = get_nodes_links(context)
+        nodes, _links = get_nodes_links(context)
 
         layout.label(text="To Socket", icon='FORWARD')
         layout.separator()

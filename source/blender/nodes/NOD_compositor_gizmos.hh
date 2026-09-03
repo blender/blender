@@ -103,5 +103,16 @@ void transform_setup(const bContext *C, wmGizmoGroup *gzgroup);
 
 /** \} */
 
+/* -------------------------------------------------------------------- */
+/** \name Translate Gizmo
+ * \{ */
+
+void translate_refresh(const bContext *C, wmGizmoGroup *gzgroup);
+void translate_setup(const bContext *C, wmGizmoGroup *gzgroup);
+bool translate_poll_space_node(const bContext *C, wmGizmoGroupType *gzgt);
+bool translate_poll_space_image(const bContext *C, wmGizmoGroupType *gzgt);
+
+/** \} */
+
 }  // namespace nodes::gizmos
 }  // namespace blender

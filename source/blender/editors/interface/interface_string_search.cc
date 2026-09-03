@@ -2,6 +2,10 @@
  *
  * SPDX-License-Identifier: GPL-2.0-or-later */
 
+/** \file
+ * \ingroup edinterface
+ */
+
 #include "BKE_appdir.hh"
 
 #include "DNA_userdef_types.h"

@@ -2,6 +2,10 @@
  *
  * SPDX-License-Identifier: GPL-2.0-or-later */
 
+/** \file
+ * \ingroup edcurves
+ */
+
 #include "DNA_curve_types.h"
 
 #include "BLI_math_matrix_c.hh"

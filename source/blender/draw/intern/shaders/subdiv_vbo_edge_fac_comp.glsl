@@ -2,7 +2,11 @@
  *
  * SPDX-License-Identifier: GPL-2.0-or-later */
 
-/* Extract edge data for object mode wire frame. */
+/** \file
+ * \ingroup draw
+ *
+ * Extract edge data for object mode wire frame.
+ */
 
 #include "subdiv_lib.glsl"
 

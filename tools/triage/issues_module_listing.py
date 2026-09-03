@@ -73,6 +73,7 @@ def compile_list(severity: str) -> None:
 
     label = f"Severity/{severity}"
     issues_json = gitea_json_issues_search(
+        repo="blender/blender",
         type="issues",
         state="open",
         labels=label,

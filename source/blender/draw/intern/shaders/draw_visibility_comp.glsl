@@ -2,9 +2,12 @@
  *
  * SPDX-License-Identifier: GPL-2.0-or-later */
 
-/**
+/** \file
+ * \ingroup draw
+ *
  * Compute visibility of each resource bounds for a given view.
  */
+
 /* TODO(fclem): This could be augmented by a 2 pass occlusion culling system. */
 
 #include "draw_view_infos.hh"

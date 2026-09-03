@@ -2,6 +2,10 @@
  *
  * SPDX-License-Identifier: GPL-2.0-or-later */
 
+/** \file
+ * \ingroup fn
+ */
+
 #include "FN_multi_function_procedure.hh"
 
 #include "BLI_dot_export.hh"

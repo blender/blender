@@ -130,8 +130,6 @@ ccl_device_inline float3x3 inverted(const float3x3 m)
 
 /* Convert quaternion to a 3x3 scaled rotation matrix.
  *
- * The quaternion is denoted by a 4-element vector (w, i, j, k).
- *
  * The choice of rotation is such that the quaternion [1 0 0 0] goes to an identity matrix and for
  * small a, b, c the quaternion [1 a b c] goes to the matrix
  *
@@ -147,14 +145,13 @@ ccl_device_inline float3x3 inverted(const float3x3 m)
  * matrix such that det(Q) = 1 and Q*Q' = I.
  *
  * Adopted from Ceres-solver. */
-ccl_device_inline float3x3 quaternion_to_scaled_rotation(const float4 q)
+ccl_device_inline float3x3 quaternion_to_scaled_rotation(const Quaternion q)
 {
-  /* Make convenient names for elements of q.
-   * Note: quaternion (w, x, y, z) is stored as float4(w, x, y, z). */
-  const float a = q.x;  // w
-  const float b = q.y;  // x
-  const float c = q.z;  // y
-  const float d = q.w;  // z
+  /* Make convenient names for elements of q. */
+  const float a = q.w;
+  const float b = q.x;
+  const float c = q.y;
+  const float d = q.z;
 
   /* Define common terms. */
   const float aa = a * a;
@@ -179,10 +176,9 @@ ccl_device_inline float3x3 quaternion_to_scaled_rotation(const float4 q)
  * so that R * R' = I (and det(R) = 1).
  *
  * Adopted from Ceres-solver. */
-ccl_device_inline float3x3 quaternion_to_rotation(const float4 q)
+ccl_device_inline float3x3 quaternion_to_rotation(const Quaternion q)
 {
-  /* Note: quaternion (w, x, y, z) is stored as float4(w, x, y, z). */
-  const float normalizer = 1.0f / (q.x * q.x + q.y * q.y + q.z * q.z + q.w * q.w);
+  const float normalizer = 1.0f / (q.w * q.w + q.x * q.x + q.y * q.y + q.z * q.z);
   return quaternion_to_scaled_rotation(q) * normalizer;
 }
 

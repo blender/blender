@@ -897,7 +897,9 @@ std::optional<Span<float>> IDP_group_lookup_float_array(const IDProperty &group,
                                                         int required_size)
 {
   const IDProperty *prop = IDP_GetPropertyFromGroup(&group, name);
-  if (!prop || prop->type != IDP_FLOAT) {
+  /* The subtype has to be checked too: an array of any other element type, such as the doubles
+   * that assigning a float array through Python produces, must not reach #IDP_array_float_get. */
+  if (!prop || prop->type != IDP_ARRAY || prop->subtype != IDP_FLOAT) {
     return std::nullopt;
   }
   if (prop->len != required_size) {

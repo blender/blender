@@ -3,7 +3,7 @@
 # SPDX-License-Identifier: GPL-2.0-or-later
 
 import bpy
-from bpy.props import EnumProperty, BoolProperty, StringProperty
+from bpy.props import EnumProperty, StringProperty
 from bpy.app.translations import (
     pgettext_n as n_,
     pgettext_iface as iface_,

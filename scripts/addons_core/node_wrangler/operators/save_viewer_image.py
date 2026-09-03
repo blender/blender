@@ -2,7 +2,6 @@
 #
 # SPDX-License-Identifier: GPL-2.0-or-later
 
-import bpy
 from bpy.types import Operator
 from bpy.props import StringProperty, EnumProperty
 from bpy_extras.io_utils import ExportHelper

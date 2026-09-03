@@ -2792,16 +2792,22 @@ struct TransformOrientationSlot {
 
 enum class SceneCompositorEffectFlags : uint8_t {
   None = 0,
-  /* The effect is enabled for final render compositing. */
+  /** The effect is enabled for final render compositing. */
   EnableForRender = (1 << 0),
-  /* The effect is enabled for preview compositing, like the interactive compositor or the
-   * viewport compositor. */
+  /**
+   * The effect is enabled for preview compositing, like the interactive compositor or the
+   * viewport compositor.
+   */
   EnableForPreview = (1 << 1),
-  /* The effect is the currently active one in the effects stack. Only one effect can be
-     marked as active in the stack. One effect is guaranteed to be active at all time. */
+  /**
+   * The effect is the currently active one in the effects stack. Only one effect can be
+   * marked as active in the stack. One effect is guaranteed to be active at all time.
+   */
   IsActive = (1 << 2),
-  /* Show the node group selector in the effect, this can be disabled for assets for instance to
-   * make the effect look more like a built-in effect. */
+  /**
+   * Show the node group selector in the effect, this can be disabled for assets for instance to
+   * make the effect look more like a built-in effect.
+   */
   ShowNodeGroupSelector = (1 << 3),
 };
 ENUM_OPERATORS(SceneCompositorEffectFlags);

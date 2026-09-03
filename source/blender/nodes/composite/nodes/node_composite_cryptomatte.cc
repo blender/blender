@@ -593,17 +593,16 @@ static void node_declare(NodeDeclarationBuilder &b)
   b.add_output<decl::Color>("Pick"_ustr).structure_type(StructureType::Dynamic);
 }
 
-static void node_init(bNodeTree * /*ntree*/, bNode *node)
+static void node_init(bNodeTree * /*node_tree*/, bNode *node)
 {
-  NodeCryptomatte *user = MEM_new<NodeCryptomatte>(__func__);
-  node->storage = user;
+  NodeCryptomatte *storage = MEM_new<NodeCryptomatte>(__func__);
+  node->storage = storage;
 }
 
-static void node_init_api(const bContext *C, PointerRNA *ptr)
+static void node_init_api(const bContext *C, PointerRNA *node_ptr)
 {
   Scene *scene = CTX_data_scene(C);
-  bNode *node = static_cast<bNode *>(ptr->data);
-  BLI_assert(node->type_legacy == CMP_NODE_CRYPTOMATTE);
+  bNode *node = node_ptr->data_as<bNode>();
   node->id = &scene->id;
   id_us_plus(node->id);
 }

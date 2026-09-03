@@ -2,6 +2,10 @@
  *
  * SPDX-License-Identifier: GPL-2.0-or-later */
 
+/** \file
+ * \ingroup sequencer
+ */
+
 #include "movie_reader_cache.hh"
 
 #include <atomic>

@@ -548,9 +548,9 @@ static ImageGPUTextures image_get_gpu_texture_tiled(Image *ima,
 
   /* Acquire textures if they exist. */
   result.texture = IMB_acquire_gpu_texture(
-      ima->id.name + 2, atlas_ibuf, false, false, false, true);
+      ima->id.name + 2, atlas_ibuf, GPUTextureCreateFlags::EnableMipmaps, true);
   result.tile_mapping = IMB_acquire_gpu_texture(
-      ima->id.name + 2, mapping_ibuf, false, false, false, true);
+      ima->id.name + 2, mapping_ibuf, GPUTextureCreateFlags::EnableMipmaps, true);
 
   if (try_only || (result.texture != nullptr && result.tile_mapping != nullptr)) {
     IMB_freeImBuf(atlas_ibuf);
@@ -657,10 +657,17 @@ static ImageGPUTextures image_get_gpu_texture_single(Image *ima,
   bool gpu_load_failed = false;
   if (ibuf != nullptr && (!only_full_resolution || image_gpu_texture_fits_full_resolution(ibuf))) {
     /* Acquire a reference to the GPU texture. */
-    const bool use_high_bitdepth = (ima->flag & IMA_HIGH_BITDEPTH);
-    const bool store_premultiplied = BKE_image_has_gpu_texture_premultiplied_alpha(ima, ibuf);
+    GPUTextureCreateFlags texture_create_flags = GPUTextureCreateFlags::EnableMipmaps |
+                                                 GPUTextureCreateFlags::LimitSize;
+    if (ima->flag & IMA_HIGH_BITDEPTH) {
+      texture_create_flags |= GPUTextureCreateFlags::HighBitDepth;
+    }
+    if (BKE_image_has_gpu_texture_premultiplied_alpha(ima, ibuf)) {
+      texture_create_flags |= GPUTextureCreateFlags::Premultiplied;
+    }
+
     gpu::Texture *tex = IMB_acquire_gpu_texture(
-        ima->id.name + 2, ibuf, use_high_bitdepth, store_premultiplied, true, try_only);
+        ima->id.name + 2, ibuf, texture_create_flags, try_only);
     if (tex) {
       GPU_texture_original_size_set(tex, ibuf->x, ibuf->y);
       image_gpu_clear_load_error(ima);
@@ -687,7 +694,8 @@ static ImageGPUTextures image_get_gpu_texture_single(Image *ima,
                                                    ImageLoadError::LoadFailed;
     image_gpu_log_load_error_once(ima, iuser, error);
     ImBuf *error_ibuf = image_gpu_error_imbuf_ensure();
-    result.texture = IMB_acquire_gpu_texture(ima->id.name + 2, error_ibuf, false, false, false);
+    result.texture = IMB_acquire_gpu_texture(
+        ima->id.name + 2, error_ibuf, GPUTextureCreateFlags::EnableMipmaps);
   }
 
   return result;

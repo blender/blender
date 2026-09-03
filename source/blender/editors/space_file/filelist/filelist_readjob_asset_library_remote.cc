@@ -34,7 +34,7 @@ using RemoteLibraryLoadingStatus = asset_system::RemoteLibraryLoadingStatus;
 
 /* TODO handle \a progress. */
 /**
- *\param already_downloaded_assets: Mapping from asset library-relative identifier to its
+ * \param already_downloaded_assets: Mapping from asset library-relative identifier to its
  * AssetRepresentation. This function can update the AssetRepresentation based on the remote asset
  * listing.
  */

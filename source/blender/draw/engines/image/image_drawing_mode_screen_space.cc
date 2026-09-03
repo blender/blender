@@ -2,6 +2,10 @@
  *
  * SPDX-License-Identifier: GPL-2.0-or-later */
 
+/** \file
+ * \ingroup draw_engine
+ */
+
 #include "draw_view_data.hh"
 
 #include "image_drawing_mode_screen_space.hh"

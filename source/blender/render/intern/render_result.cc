@@ -435,48 +435,6 @@ void RE_pass_set_buffer_data(RenderPass *pass, float *data)
   IMB_partial_update_mark_full(ibuf);
 }
 
-gpu::Texture *RE_pass_ensure_gpu_texture_cache(Render *re, RenderPass *rpass)
-{
-  ImBuf *ibuf = rpass->ibuf;
-
-  if (!ibuf) {
-    /* No existing GPU texture, but also no CPU side data to create it from. */
-    return nullptr;
-  }
-
-  if (ibuf->gpu.texture) {
-    /* Return existing GPU texture, regardless whether it also exists on CPU or not. */
-    return ibuf->gpu.texture;
-  }
-
-  if (ibuf->float_data() == nullptr) {
-    /* No CPU side data to create the texture from. */
-    return nullptr;
-  }
-
-  const gpu::TextureFormat format = (rpass->channels == 1) ?
-                                        gpu::TextureFormat::SFLOAT_32 :
-                                    (rpass->channels == 3) ?
-                                        gpu::TextureFormat::SFLOAT_32_32_32 :
-                                        gpu::TextureFormat::SFLOAT_32_32_32_32;
-
-  gpu::Texture *texture = GPU_texture_create_2d("RenderBuffer.gpu_texture",
-                                                rpass->rectx,
-                                                rpass->recty,
-                                                1,
-                                                format,
-                                                GPU_TEXTURE_USAGE_GENERAL,
-                                                nullptr);
-  if (texture) {
-    GPU_texture_update(texture, GPU_DATA_FLOAT, ibuf->float_data());
-    re->result_has_gpu_texture_caches = true;
-  }
-
-  IMB_assign_gpu_texture(ibuf, texture);
-
-  return ibuf->gpu.texture;
-}
-
 void RE_render_result_full_channel_name(char *fullname,
                                         const char *layname,
                                         const char *passname,

@@ -2,7 +2,11 @@
  *
  * SPDX-License-Identifier: GPL-2.0-or-later */
 
-/* Generate triangle indices from subdivision quads. */
+/** \file
+ * \ingroup draw
+ *
+ * Generate triangle indices from subdivision quads.
+ */
 
 #include "subdiv_lib.glsl"
 

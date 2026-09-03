@@ -48,6 +48,14 @@ Quaternion interpolate(Quaternion a, Quaternion b, float t)
   return Quaternion{UNPACK4(quat)};
 }
 
+/* Assumes a and b are unit vectors. */
+float3 spherical_interpolate(float3 a, float3 b, float t)
+{
+  float cosom = dot(a, b);
+  float2 w = interpolate_dot_slerp(t, cosom);
+  return w.x * a + w.y * b;
+}
+
 /** \} */
 
 /* -------------------------------------------------------------------- */

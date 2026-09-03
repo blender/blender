@@ -36,18 +36,21 @@ static void node_declare(NodeDeclarationBuilder &b)
   b.add_output<decl::Float>("Angle"_ustr);
 }
 
-static void node_init(const bContext *C, PointerRNA *ptr)
+static void node_init(bNodeTree * /*node_tree*/, bNode *node)
 {
-  bNode *node = static_cast<bNode *>(ptr->data);
-  node->flag |= NODE_PREVIEW;
-
-  Scene *scene = CTX_data_scene(C);
   MovieClipUser *user = MEM_new<MovieClipUser>(__func__);
-
-  node->id = id_cast<ID *>(scene->clip);
-  id_us_plus(node->id);
   node->storage = user;
   user->framenr = 1;
+
+  node->flag |= NODE_PREVIEW;
+}
+
+static void node_init_api(const bContext *C, PointerRNA *node_ptr)
+{
+  bNode *node = node_ptr->data_as<bNode>();
+  Scene *scene = CTX_data_scene(C);
+  node->id = id_cast<ID *>(scene->clip);
+  id_us_plus(node->id);
 }
 
 static void node_draw_buttons(ui::Layout &layout, bContext *C, PointerRNA *ptr)
@@ -263,7 +266,8 @@ static void node_register()
   ntype.draw_buttons = node_draw_buttons;
   ntype.draw_buttons_ex = node_draw_buttons_extended;
   ntype.get_compositor_operation = get_compositor_operation;
-  ntype.initfunc_api = node_init;
+  ntype.initfunc = node_init;
+  ntype.initfunc_api = node_init_api;
   ntype.flag |= NODE_PREVIEW;
   bke::node_type_storage(
       ntype, "MovieClipUser", node_free_standard_storage, node_copy_standard_storage);

@@ -266,8 +266,12 @@ void update_cache_invariants(VPaint &vp, SculptSession &ss, wmOperator *op, cons
 }
 
 /** \see #stroke_cache_update for a similar implementation for Sculpt Mode */
-void update_cache_variants(
-    Depsgraph &depsgraph, ViewContext &vc, VPaint &vp, Object &ob, Base &base, PointerRNA *ptr)
+void update_cache_variants(Depsgraph &depsgraph,
+                           ViewContext &vc,
+                           VPaint &vp,
+                           Object &ob,
+                           Base &base,
+                           const PaintStroke::StrokeStep &stroke_step)
 {
   const PaintMode paint_mode = vp.paint.runtime->paint_mode;
   SculptSession &ss = *ob.runtime->sculpt_session;
@@ -276,10 +280,9 @@ void update_cache_variants(
 
   /* TODO: When anchored strokes get supported, this needs to match the implementation in
    * #stroke_cache_update */
-  RNA_float_get_array(ptr, "location", cache->location);
-
-  RNA_float_get_array(ptr, "mouse", cache->mouse);
-  RNA_float_get_array(ptr, "mouse_event", cache->mouse_event);
+  cache->location = stroke_step.location;
+  cache->mouse = stroke_step.mouse;
+  cache->mouse_event = stroke_step.mouse_event;
 
   if (stroke_is_first_brush_step_of_symmetry_pass(*cache)) {
     cursor_geometry_info_update(
@@ -292,7 +295,7 @@ void update_cache_variants(
    * It's more an events design issue, which doesn't split coordinate/pressure/angle
    * changing events. We should avoid this after events system re-design */
   if (paint_supports_dynamic_size(brush, paint_mode) || cache->first_time) {
-    cache->pressure = RNA_float_get(ptr, "pressure");
+    cache->pressure = stroke_step.pressure;
   }
 
   /* Truly temporary data that isn't stored in properties */
@@ -785,7 +788,7 @@ struct VertexPaintStroke final : public PaintStroke {
   bool test_start(wmOperator *op, float2 mouse) override;
   void redraw(bool final) override;
   bool test_cancel() override;
-  void update_step(wmOperator *op, PointerRNA *itemptr) override;
+  void update_step(wmOperator *op, const StrokeStep &stroke_step) override;
   void done(bool is_cancel, bool stroke_started) override;
 };
 
@@ -1778,7 +1781,7 @@ static void vpaint_do_paint(const Depsgraph &depsgraph,
   attribute.finish();
 }
 
-void VertexPaintStroke::update_step(wmOperator * /*op*/, PointerRNA *itemptr)
+void VertexPaintStroke::update_step(wmOperator * /*op*/, const StrokeStep &stroke_step)
 {
   VPaintData &vpd = *static_cast<VPaintData *>(mode_data_.get());
   ViewContext &vc = vpd.vc;
@@ -1788,7 +1791,7 @@ void VertexPaintStroke::update_step(wmOperator * /*op*/, PointerRNA *itemptr)
 
   ss.cache->stroke_distance = this->stroke_distance();
 
-  vwpaint::update_cache_variants(*this->depsgraph, vc, *vertex_paint_, ob, *base_, itemptr);
+  vwpaint::update_cache_variants(*this->depsgraph, vc, *vertex_paint_, ob, *base_, stroke_step);
 
   ed::sculpt_paint::do_symmetrical_brush_actions(
       *this->depsgraph, *this->scene, vertex_paint_->paint, ob, vpaint_do_paint, &vpd);

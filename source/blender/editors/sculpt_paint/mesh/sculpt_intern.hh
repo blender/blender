@@ -670,7 +670,7 @@ void fake_neighbors_free(Object &ob);
  * Calculates the local matrix of the brush and its inverse, which are used to transform points
  * from object-space to brush-space and vice versa respectively.
  *
- * \param tip_normal Tip normal is the sculpt normal under spherical falloff, but when under
+ * \param tip_normal: Tip normal is the sculpt normal under spherical falloff, but when under
  * projected falloff, it is the view normal.
  */
 void calc_brush_local_mat(const float rotation,

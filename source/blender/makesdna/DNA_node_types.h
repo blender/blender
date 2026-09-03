@@ -479,6 +479,12 @@ enum eNodeGlossy_Dist : short {
   SHD_GLOSSY_MULTI_GGX = 4,
 };
 
+/* Light evaluation mode. */
+enum eNodeLightEval_Mode : short {
+  SHD_LIGHT_EVAL_DIFFUSE = 0,
+  SHD_LIGHT_EVAL_GLOSSY = 1,
+};
+
 /* sheen distributions */
 #define SHD_SHEEN_ASHIKHMIN 0
 #define SHD_SHEEN_MICROFIBER 1
@@ -502,6 +508,7 @@ enum eNodeShader_AttributeType : short {
   SHD_ATTRIBUTE_OBJECT = 1,
   SHD_ATTRIBUTE_INSTANCER = 2,
   SHD_ATTRIBUTE_VIEW_LAYER = 3,
+  SHD_ATTRIBUTE_LIGHT = 4,
 };
 
 /* toon modes */

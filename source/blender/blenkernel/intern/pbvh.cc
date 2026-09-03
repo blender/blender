@@ -6,7 +6,9 @@
  * \ingroup bke
  */
 
+#include <algorithm>
 #include <cfloat>
+#include <utility>
 
 #include "BLI_array_utils.hh"
 #include "BLI_bit_span_ops.hh"
@@ -732,139 +734,53 @@ static Node *pbvh_iter_next(PBVHIter *iter, Node::Flags leaf_flag)
   return nullptr;
 }
 
-static Node *pbvh_iter_next_occluded(PBVHIter *iter)
-{
-  while (!iter->stack.is_empty()) {
-    StackItem item = iter->stack.pop();
-    Node *node = item.node;
-
-    /* on a mesh with no faces this can happen
-     * can remove this check if we know meshes have at least 1 face */
-    if (node == nullptr) {
-      return nullptr;
-    }
-
-    if (iter->scb && !iter->scb(*node)) {
-      continue; /* don't traverse, outside of search zone */
-    }
-
-    if (node->flag_ & Node::Leaf) {
-      /* immediately hit leaf node */
-      return node;
-    }
-
-    std::visit(
-        [&](auto &nodes) {
-          iter->stack.push({&nodes[node->children_offset_ + 1], false});
-          iter->stack.push({&nodes[node->children_offset_], false});
-        },
-        iter->pbvh->nodes_);
-  }
-
-  return nullptr;
-}
-
-struct NodeTree {
-  Node *data;
-
-  NodeTree *left;
-  NodeTree *right;
-};
-
-static void node_tree_insert(NodeTree *tree, NodeTree *new_node)
-{
-  if (new_node->data->tmin_ < tree->data->tmin_) {
-    if (tree->left) {
-      node_tree_insert(tree->left, new_node);
-    }
-    else {
-      tree->left = new_node;
-    }
-  }
-  else {
-    if (tree->right) {
-      node_tree_insert(tree->right, new_node);
-    }
-    else {
-      tree->right = new_node;
-    }
-  }
-}
-
-static void traverse_tree(NodeTree *tree,
-                          const FunctionRef<void(Node &node, float *tmin)> hit_fn,
-                          float *tmin)
-{
-  if (tree->left) {
-    traverse_tree(tree->left, hit_fn, tmin);
-  }
-
-  hit_fn(*tree->data, tmin);
-
-  if (tree->right) {
-    traverse_tree(tree->right, hit_fn, tmin);
-  }
-}
-
-static void free_tree(NodeTree *tree)
-{
-  if (tree->left) {
-    free_tree(tree->left);
-    tree->left = nullptr;
-  }
-
-  if (tree->right) {
-    free_tree(tree->right);
-    tree->right = nullptr;
-  }
-
-  ::free(tree);
-}
-
-}  // namespace bke::pbvh
-
-float BKE_pbvh_node_get_tmin(const bke::pbvh::Node *node)
-{
-  return node->tmin_;
-}
-
-namespace bke::pbvh {
-
+/** \todo Return distance by value from hit_fn. */
 static void search_callback_occluded(Tree &pbvh,
-                                     const FunctionRef<bool(Node &)> scb,
-                                     const FunctionRef<void(Node &node, float *tmin)> hit_fn)
+                                     const FunctionRef<std::optional<float>(const Node &)> scb,
+                                     const FunctionRef<void(Node &node, float *distance)> hit_fn)
 {
   if (tree_is_empty(pbvh)) {
     return;
   }
-  PBVHIter iter;
-  Node *node;
-  NodeTree *tree = nullptr;
 
-  pbvh_iter_begin(&iter, pbvh, scb);
+  /* Gather leaf nodes intersecting the ray along with the distance from the ray to the bounds. */
+  Vector<std::pair<float, Node *>, 100> hits;
+  Stack<Node *, 100> stack;
+  stack.push(&first_node(pbvh));
+  while (!stack.is_empty()) {
+    Node *node = stack.pop();
 
-  while ((node = pbvh_iter_next_occluded(&iter))) {
-    if (node->flag_ & Node::Leaf) {
-      NodeTree *new_node = static_cast<NodeTree *>(malloc(sizeof(NodeTree)));
-
-      new_node->data = node;
-
-      new_node->left = nullptr;
-      new_node->right = nullptr;
-
-      if (tree) {
-        node_tree_insert(tree, new_node);
-      }
-      else {
-        tree = new_node;
-      }
+    const std::optional node_distance = scb(*node);
+    if (!node_distance) {
+      continue; /* don't traverse, outside of search zone */
     }
+
+    if (node->flag_ & Node::Leaf) {
+      hits.append({*node_distance, node});
+      continue;
+    }
+
+    std::visit(
+        [&](auto &nodes) {
+          stack.push(&nodes[node->children_offset_ + 1]);
+          stack.push(&nodes[node->children_offset_]);
+        },
+        pbvh.nodes_);
   }
 
-  if (tree) {
-    float tmin = FLT_MAX;
-    traverse_tree(tree, hit_fn, &tmin);
-    free_tree(tree);
+  std::ranges::stable_sort(hits,
+                           [](const std::pair<float, Node *> &a,
+                              const std::pair<float, Node *> &b) { return a.first < b.first; });
+
+  /* Visit the nodes nearest to farthest. #hit_fn narrows #distance whenever it finds a closer hit,
+   * so once a node's bounds start further away than the closest hit so far, neither it nor any
+   * later node will contribute. */
+  float distance = FLT_MAX;
+  for (const auto &[node_distance, node] : hits) {
+    if (node_distance >= distance) {
+      break;
+    }
+    hit_fn(*node, &distance);
   }
 }
 
@@ -1064,17 +980,6 @@ static void normals_calc_faces(const Span<float3> positions,
   }
 }
 
-static void calc_boundary_face_normals(const Span<float3> positions,
-                                       const OffsetIndices<int> faces,
-                                       const Span<int> corner_verts,
-                                       const Span<int> face_indices,
-                                       MutableSpan<float3> face_normals)
-{
-  threading::parallel_for(face_indices.index_range(), 512, [&](const IndexRange range) {
-    normals_calc_faces(positions, faces, corner_verts, face_indices.slice(range), face_normals);
-  });
-}
-
 static void calc_node_face_normals(const Span<float3> positions,
                                    const OffsetIndices<int> faces,
                                    const Span<int> corner_verts,
@@ -1107,10 +1012,10 @@ static void normals_calc_verts_simple(const GroupedSpan<int> vert_to_face_map,
   }
 }
 
-static void calc_boundary_vert_normals(const GroupedSpan<int> vert_to_face_map,
-                                       const Span<float3> face_normals,
-                                       const Span<int> verts,
-                                       MutableSpan<float3> vert_normals)
+static void calc_shared_vert_normals(const GroupedSpan<int> vert_to_face_map,
+                                     const Span<float3> face_normals,
+                                     const Span<int> verts,
+                                     MutableSpan<float3> vert_normals)
 {
   threading::parallel_for(verts.index_range(), 1024, [&](const IndexRange range) {
     normals_calc_verts_simple(vert_to_face_map, face_normals, verts.slice(range), vert_normals);
@@ -1130,23 +1035,67 @@ static void calc_node_vert_normals(const GroupedSpan<int> vert_to_face_map,
       exec_mode::grain_size(1));
 }
 
+/**
+ * Gather the vertices of the tagged nodes that are owned by another node. They're deduplicated
+ * because a vertex can be shared by more than two nodes, and to make the parallel writes in
+ * #calc_shared_vert_normals thread-safe.
+ */
+static Vector<int> gather_shared_verts(const Span<MeshNode> nodes,
+                                       const IndexMask &nodes_to_update,
+                                       const int verts_num)
+{
+  PRF_scope_with_name("shared_verts", ProfileCategory::Core);
+  int shared_verts_num = 0;
+  nodes_to_update.foreach_index(
+      [&](const int i) { shared_verts_num += nodes[i].shared_verts().size(); });
+
+  /* Avoid the overhead of a mesh-sized BitVector when the final number of indices is very small.
+   * Though that overhead is quite low, so our threshold to use a BitVector instead is low. */
+  if (int64_t(shared_verts_num) * 1024 < verts_num) {
+    VectorSet<int> verts;
+    verts.reserve(shared_verts_num);
+    nodes_to_update.foreach_index(
+        [&](const int i) { verts.add_multiple(nodes[i].shared_verts()); });
+    return verts.extract_vector();
+  }
+
+  Vector<int> verts;
+  verts.reserve(shared_verts_num);
+  BitVector<> visited(verts_num);
+  nodes_to_update.foreach_index([&](const int i) {
+    for (const int vert : nodes[i].shared_verts()) {
+      MutableBitRef visited_vert = visited[vert];
+      if (!visited_vert) {
+        visited_vert.set();
+        verts.append_unchecked(vert);
+      }
+    }
+  });
+  return verts;
+}
+
 static void update_normals_mesh(Object &object_orig,
                                 Object &object_eval,
                                 const Span<MeshNode> nodes,
                                 const IndexMask &nodes_to_update)
 {
   /* Position changes are tracked on a per-node level, so all the vertex and face normals for every
-   * affected node are recalculated. However, the additional complexity comes from the fact that
-   * changing vertex normals also changes surrounding face normals. Those changed face normals then
-   * change the normals of all connected vertices, which can be in other nodes. So the set of
-   * vertices that need recalculated normals can propagate into unchanged/untagged Tree nodes.
+   * affected node are recalculated.
    *
-   * Currently we have no good way of finding neighboring Tree nodes, so we use the vertex to
-   * face topology map to find the neighboring vertices that need normal recalculation.
+   * Node bounds are built from #MeshNode::all_verts(), and nodes are tagged whenever their bounds
+   * intersect the changed region. Therefore every face touching a moved vertex is inside a tagged
+   * node. Callers that tag nodes without a bounds intersection test must uphold the same
+   * guarantee.
    *
-   * Those boundary face and vertex indices are deduplicated with #VectorSet in order to avoid
-   * duplicate work recalculation for the same vertex, and to make parallel storage for vertices
-   * during recalculation thread-safe. */
+   * A face normal only depends on the positions of its own vertices, so the faces of the tagged
+   * nodes are exactly the faces with changed normals.
+   *
+   * A vertex normal depends on the normals of the surrounding faces though, so every vertex of
+   * those faces changes, including vertices that didn't move themselves. Such a vertex is still
+   * part of the tagged node containing the changed face, but only #MeshNode::verts() is
+   * recalculated for each node, which skips the vertices owned by a different node. That owner may
+   * not be tagged, since it doesn't necessarily contain a face touching a moved vertex. So the
+   * shared vertices of the tagged nodes are gathered and updated separately. */
   Mesh &mesh = *id_cast<Mesh *>(object_orig.data);
   const Span<float3> positions = bke::pbvh::vert_positions_eval_from_eval(object_eval);
   const OffsetIndices faces = mesh.faces();
@@ -1158,15 +1107,7 @@ static void update_normals_mesh(Object &object_orig,
   SharedCache<Vector<float3>> &face_normals_cache = face_normals_cache_eval_for_write(object_orig,
                                                                                       object_eval);
 
-  VectorSet<int> boundary_faces;
-  nodes_to_update.foreach_index([&](const int i) {
-    const MeshNode &node = nodes[i];
-    for (const int vert : node.vert_indices_.as_span().drop_front(node.unique_verts_num_)) {
-      boundary_faces.add_multiple(vert_to_face_map[vert]);
-    }
-  });
-
-  VectorSet<int> boundary_verts;
+  Vector<int> shared_verts;
 
   threading::parallel_invoke(
       [&]() {
@@ -1179,17 +1120,10 @@ static void update_normals_mesh(Object &object_orig,
         else {
           face_normals_cache.update([&](Vector<float3> &r_data) {
             calc_node_face_normals(positions, faces, corner_verts, nodes, nodes_to_update, r_data);
-            calc_boundary_face_normals(positions, faces, corner_verts, boundary_faces, r_data);
           });
         }
       },
-      [&]() {
-        /* Update all normals connected to affected faces, even if not explicitly tagged. */
-        boundary_verts.reserve(boundary_faces.size());
-        for (const int face : boundary_faces) {
-          boundary_verts.add_multiple(corner_verts.slice(faces[face]));
-        }
-      });
+      [&]() { shared_verts = gather_shared_verts(nodes, nodes_to_update, positions.size()); });
   const Span<float3> face_normals = face_normals_cache.data();
 
   if (vert_normals_cache.is_dirty()) {
@@ -1202,7 +1136,10 @@ static void update_normals_mesh(Object &object_orig,
   else {
     vert_normals_cache.update([&](Vector<float3> &r_data) {
       calc_node_vert_normals(vert_to_face_map, face_normals, nodes, nodes_to_update, r_data);
-      calc_boundary_vert_normals(vert_to_face_map, face_normals, boundary_verts, r_data);
+      /* Calculated after the node vertices on purpose: a shared vertex may also be owned by
+       * another tagged node, in which case its normal is calculated twice rather than from two
+       * threads at the same time. */
+      calc_shared_vert_normals(vert_to_face_map, face_normals, shared_verts, r_data);
     });
   }
 }
@@ -1759,16 +1696,18 @@ struct RaycastData {
   bool original;
 };
 
-static bool ray_aabb_intersect(Node &node, const RaycastData &rcd)
+static std::optional<float> ray_aabb_intersect(const Node &node, const RaycastData &rcd)
 {
-  if (rcd.original) {
-    return isect_ray_aabb_v3(&rcd.ray, node.bounds_orig_.min, node.bounds_orig_.max, &node.tmin_);
+  const Bounds<float3> &bounds = rcd.original ? node.bounds_orig_ : node.bounds_;
+  float distance;
+  if (!isect_ray_aabb_v3(&rcd.ray, bounds.min, bounds.max, &distance)) {
+    return std::nullopt;
   }
-  return isect_ray_aabb_v3(&rcd.ray, node.bounds_.min, node.bounds_.max, &node.tmin_);
+  return distance;
 }
 
 void raycast(Tree &pbvh,
-             const FunctionRef<void(Node &node, float *tmin)> hit_fn,
+             const FunctionRef<void(Node &node, float *distance)> hit_fn,
              const float3 &ray_start,
              const float3 &ray_normal,
              bool original)
@@ -1780,7 +1719,7 @@ void raycast(Tree &pbvh,
   rcd.original = original;
 
   search_callback_occluded(
-      pbvh, [&](Node &node) { return ray_aabb_intersect(node, rcd); }, hit_fn);
+      pbvh, [&](const Node &node) { return ray_aabb_intersect(node, rcd); }, hit_fn);
 }
 
 bool ray_face_intersection_quad(const float3 &ray_start,
@@ -2228,31 +2167,23 @@ void clip_ray_ortho(
 
 /* -------------------------------------------------------------------- */
 
-static bool nearest_to_ray_aabb_dist_sq(Node *node,
-                                        const DistRayAABB_Precalc &dist_ray_to_aabb_precalc,
-                                        const bool original)
+static std::optional<float> nearest_to_ray_aabb_dist_sq(
+    const Node &node, const DistRayAABB_Precalc &dist_ray_to_aabb_precalc, const bool original)
 {
-  const float *bb_min, *bb_max;
-
-  if (original) {
-    /* BKE_pbvh_node_get_original_BB */
-    bb_min = node->bounds_orig_.min;
-    bb_max = node->bounds_orig_.max;
-  }
-  else {
-    bb_min = node->bounds_.min;
-    bb_max = node->bounds_.max;
-  }
+  const Bounds<float3> &bounds = original ? node.bounds_orig_ : node.bounds_;
 
   float co_dummy[3], depth;
-  node->tmin_ = dist_squared_ray_to_aabb_v3(
-      &dist_ray_to_aabb_precalc, bb_min, bb_max, co_dummy, &depth);
+  const float distance = dist_squared_ray_to_aabb_v3(
+      &dist_ray_to_aabb_precalc, bounds.min, bounds.max, co_dummy, &depth);
   /* Ideally we would skip distances outside the range. */
-  return depth > 0.0f;
+  if (depth <= 0.0f) {
+    return std::nullopt;
+  }
+  return distance;
 }
 
 void find_nearest_to_ray(Tree &pbvh,
-                         const FunctionRef<void(Node &node, float *tmin)> fn,
+                         const FunctionRef<void(Node &node, float *distance)> fn,
                          const float3 &ray_start,
                          const float3 &ray_normal,
                          const bool original)
@@ -2262,7 +2193,9 @@ void find_nearest_to_ray(Tree &pbvh,
 
   search_callback_occluded(
       pbvh,
-      [&](Node &node) { return nearest_to_ray_aabb_dist_sq(&node, ray_dist_precalc, original); },
+      [&](const Node &node) {
+        return nearest_to_ray_aabb_dist_sq(node, ray_dist_precalc, original);
+      },
       fn);
 }
 

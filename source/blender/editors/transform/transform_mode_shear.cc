@@ -290,7 +290,10 @@ static void apply_shear(TransInfo *t)
   }
 
   ED_area_status_text(t->area, str);
+}
 
+static void shear_status(TransInfo *t)
+{
   ShearCustomData *custom_data = static_cast<ShearCustomData *>(t->custom.mode.data);
   if (custom_data->op && custom_data->update_status_bar) {
     custom_data->update_status_bar = false;
@@ -369,6 +372,7 @@ TransModeInfo TransMode_shear = {
     /*snap_distance_fn*/ nullptr,
     /*snap_apply_fn*/ nullptr,
     /*draw_fn*/ nullptr,
+    /*status_fn*/ shear_status,
 };
 
 }  // namespace blender::ed::transform

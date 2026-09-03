@@ -53,6 +53,8 @@ KERNEL_DATA_ARRAY(packed_float3, attributes_float3)
 KERNEL_DATA_ARRAY(float4, attributes_float4)
 KERNEL_DATA_ARRAY(uchar4, attributes_uchar4)
 KERNEL_DATA_ARRAY(packed_normal, attributes_normal)
+KERNEL_DATA_ARRAY(Quaternion, attributes_quaternion)
+KERNEL_DATA_ARRAY(PackedSphericalHarmonics, attributes_spherical_harmonics)
 
 /* lights */
 KERNEL_DATA_ARRAY(KernelLightDistribution, light_distribution)

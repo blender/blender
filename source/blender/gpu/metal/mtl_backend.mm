@@ -110,10 +110,10 @@ TexturePool *MTLBackend::texturepool_alloc()
 {
   /* #162556: Temporarily disabled MTLTexturePool as metal texture views
    * do not support `update_sub`, while other backends do. */
-  /* if (GCaps.texture_pool_workaround) { */
+  // if (GCaps.texture_pool_workaround) {
   return new TexturePoolImpl();
-  /* }
-  return new MTLTexturePool(); */
+  // }
+  // return new MTLTexturePool(); */
 }
 
 UniformBuf *MTLBackend::uniformbuf_alloc(size_t size, const char *name)

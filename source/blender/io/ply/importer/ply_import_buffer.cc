@@ -2,6 +2,10 @@
  *
  * SPDX-License-Identifier: GPL-2.0-or-later */
 
+/** \file
+ * \ingroup ply
+ */
+
 #include "ply_import_buffer.hh"
 
 #include "BLI_fileops.hh"

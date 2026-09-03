@@ -57,6 +57,9 @@ struct Light : public LightData, NonCopyable {
   ShadowDirectional *directional = nullptr;
   ShadowPunctual *punctual = nullptr;
 
+  /** Used by shadow sync. */
+  uint2 shadow_set_membership = uint2(0);
+
   Light()
   {
     /* Avoid valgrind warning. */
@@ -72,6 +75,7 @@ struct Light : public LightData, NonCopyable {
     this->used = other.used;
     this->directional = other.directional;
     this->punctual = other.punctual;
+    this->shadow_set_membership = other.shadow_set_membership;
     other.directional = nullptr;
     other.punctual = nullptr;
   }

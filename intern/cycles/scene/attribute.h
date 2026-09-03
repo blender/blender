@@ -37,20 +37,22 @@ struct Transform;
  *
  * The values of this enumeration are also used as flags to detect changes in AttributeSet. */
 
-enum AttrKernelDataType {
+enum class AttrKernelDataType {
   FLOAT = 0,
   FLOAT2 = 1,
   FLOAT3 = 2,
   FLOAT4 = 3,
   UCHAR4 = 4,
   NORMAL = 5,
-  NUM = 6
+  QUATERNION = 6,
+  SPHERICAL_HARMONICS = 7,
+  NUM = 8
 };
 
 /* Attribute
  *
  * Arbitrary data layers on meshes.
- * Supported types: Float, Color, Vector, Normal, Point */
+ * Supported types: Float, Color, Vector, Normal, Point, Quaternion, Spherical Harmonics. */
 
 class Attribute {
  public:

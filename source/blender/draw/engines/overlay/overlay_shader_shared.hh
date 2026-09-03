@@ -2,6 +2,10 @@
  *
  * SPDX-License-Identifier: GPL-2.0-or-later */
 
+/** \file
+ * \ingroup overlay
+ */
+
 #pragma once
 
 #include "GPU_shader_shared_utils.hh"
