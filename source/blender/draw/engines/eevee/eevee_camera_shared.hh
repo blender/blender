@@ -22,13 +22,26 @@ enum [[host_shared]] eCameraType : uint32_t {
   CAMERA_PANO_EQUIRECT = 2u,
   CAMERA_PANO_EQUISOLID = 3u,
   CAMERA_PANO_EQUIDISTANT = 4u,
-  CAMERA_PANO_MIRROR = 5u
+  CAMERA_PANO_MIRROR = 5u,
+  CAMERA_PANO_EQUIANGULAR_CUBEMAP_FACE = 6u,
+  CAMERA_PANO_FISHEYE_LENS_POLYNOMIAL = 7u,
+  CAMERA_PANO_CENTRAL_CYLINDRICAL = 8u
 };
 
 static inline bool is_panoramic(eCameraType type)
 {
   return type > CAMERA_ORTHO;
 }
+
+/** Index of panoramic camera's 6 cube map faces. */
+enum [[host_shared]] ePanoramicFace : uint32_t {
+  PANORAMIC_FACE_POS_X = 0u,
+  PANORAMIC_FACE_NEG_X = 1u,
+  PANORAMIC_FACE_POS_Y = 2u,
+  PANORAMIC_FACE_NEG_Y = 3u,
+  PANORAMIC_FACE_POS_Z = 4u,
+  PANORAMIC_FACE_NEG_Z = 5u,
+};
 
 struct [[host_shared]] CameraData {
   /* View Matrices of the camera, not from any view! */
@@ -47,13 +60,19 @@ struct [[host_shared]] CameraData {
   float2 equirect_bias;
   float fisheye_fov;
   float fisheye_lens;
+  float4 fisheye_polynomial_coefficients;
+  float4 central_cylindrical_range;
+  float2 fisheye_sensor;
+  float fisheye_polynomial_bias;
+  float panoramic_view_overscan;
+  /** Enabled cubemap face bitmask for panoramic rendering. */
+  uint panoramic_view_mask;
   /** Clipping distances. */
   float clip_near;
   float clip_far;
   enum eCameraType type;
   /** World space distance between view corners at unit distance from camera. */
   float screen_diagonal_length;
-  float _pad0;
   float _pad1;
   float _pad2;
 
