@@ -145,6 +145,8 @@ static void sima_zoom_set(
   Image *ima = ED_space_image(sima);
   if (ima) {
     ima->runtime->view_zoom = sima->zoom;
+    ima->runtime->view_offset[0] = sima->xof;
+    ima->runtime->view_offset[1] = sima->yof;
   }
 }
 
@@ -341,6 +343,13 @@ static void image_view_all(SpaceImage *sima, ARegion *region, wmOperator *op)
 
   sima->xof = xof;
   sima->yof = yof;
+
+  Image *ima = ED_space_image(sima);
+  if (ima) {
+    ima->runtime->view_zoom = sima->zoom;
+    ima->runtime->view_offset[0] = sima->xof;
+    ima->runtime->view_offset[1] = sima->yof;
+  }
 }
 
 bool space_image_poll(bContext *C)
