@@ -362,18 +362,18 @@ PointCloud *read_spz_ngsp_file(FILE *file, ReportList *reports)
     return nullptr;
   }
 
-  PointCloud *pointclud = BKE_pointcloud_new_nomain(PointCloudType::GSplat, header.num_points);
-  gsplat::GsplatMutableAttributeAccessor accessor(*pointclud, header.sh_degree);
+  PointCloud *pointcloud = BKE_pointcloud_new_nomain(PointCloudType::GSplat, header.num_points);
+  gsplat::GsplatMutableAttributeAccessor accessor(*pointcloud, header.sh_degree);
 
   if (!read_spz(file, header, stream_infos, reports, accessor)) {
     accessor.finish();
-    BKE_id_free(nullptr, &pointclud->id);
+    BKE_id_free(nullptr, &pointcloud->id);
     return nullptr;
   }
 
   accessor.finish();
 
-  return pointclud;
+  return pointcloud;
 }
 
 }  // namespace blender::io::spz
