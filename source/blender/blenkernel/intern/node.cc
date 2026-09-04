@@ -4230,9 +4230,7 @@ void node_unique_name(bNodeTree &ntree, bNode &node)
 
 void node_unique_id(bNodeTree &ntree, bNode &node)
 {
-  /* Use a pointer cast to avoid overflow warnings. */
-  const double time = BLI_time_now_seconds() * 1000000.0;
-  RandomNumberGenerator id_rng{*reinterpret_cast<const uint32_t *>(&time)};
+  RandomNumberGenerator id_rng{ntree.next_node_identifier_seed++};
 
   /* In the unlikely case that the random ID doesn't match, choose a new one until it does. */
   int32_t new_id = id_rng.get_int32();
