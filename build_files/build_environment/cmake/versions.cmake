@@ -341,10 +341,13 @@ Copyright © 1988-1997 Sam Leffler.
 Copyright © 1991-1997 Silicon Graphics, Inc.
 ]=])
 
-set(OSL_VERSION 1.15.3.0)
+# TODO: the URI has been changed to use the github generated releases, change this back to 
+# https://github.com/AcademySoftwareFoundation/OpenShadingLanguage/releases/download/v${OSL_VERSION}/OSL-${OSL_VERSION}.tar.gz
+# once stable release tarballs become available again upstream
+set(OSL_VERSION 1.15.6.0)
 set(OSL_NAME "Open Shading Language")
-set(OSL_URI https://github.com/AcademySoftwareFoundation/OpenShadingLanguage/releases/download/v${OSL_VERSION}/OSL-${OSL_VERSION}.tar.gz)
-set(OSL_HASH 560232b3298e33f3bf45c6f21f20b484f5acc260f6d4035db0f76f22994d679a)
+set(OSL_URI https://github.com/AcademySoftwareFoundation/OpenShadingLanguage/archive/refs/tags/v${OSL_VERSION}.tar.gz)
+set(OSL_HASH 85b71407ad28c464a7ec5c9dcb33ac67f9e98b92495568549d4b9c138c91a579)
 set(OSL_HASH_TYPE SHA256)
 set(OSL_FILE OpenShadingLanguage-${OSL_VERSION}.tar.gz)
 set(OSL_HOMEPAGE https://github.com/AcademySoftwareFoundation/OpenShadingLanguage/)
