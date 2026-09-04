@@ -26,6 +26,7 @@
 #include "BLI_string_utf8.hh"
 #include "BLI_string_utils.hh"
 #include "BLI_sys_types.hh"
+#include "BLI_vector.hh"
 
 #include "BKE_anim_data.hh"
 #include "BKE_animsys.hh"
@@ -3711,6 +3712,7 @@ static void do_version_replace_image_info_node_coordinates(bNodeTree *node_tree)
  */
 static void do_version_vector_sockets_dimensions(bNodeTree *node_tree)
 {
+  Vector<bNodeTreeInterfaceSocket *> sockets_to_remove;
   node_tree->tree_interface.foreach_item([&](bNodeTreeInterfaceItem &item) {
     if (item.item_type != NodeTreeInterfaceItemType::Socket) {
       return true;
@@ -3724,11 +3726,19 @@ static void do_version_vector_sockets_dimensions(bNodeTree *node_tree)
     }
 
     if (base_typeinfo->type == SOCK_VECTOR) {
+      if (interface_socket.socket_data == nullptr) {
+        sockets_to_remove.append(&interface_socket);
+        return true;
+      }
       bke::node_interface::get_socket_data_as<bNodeSocketValueVector>(interface_socket)
           .dimensions = 3;
     }
     return true;
   });
+
+  for (bNodeTreeInterfaceSocket *socket : sockets_to_remove) {
+    node_tree->tree_interface.remove_item(socket->item);
+  }
 
   for (bNode &node : node_tree->nodes) {
     for (bNodeSocket &socket : node.inputs) {
