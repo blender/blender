@@ -594,6 +594,26 @@ static std::optional<std::string> rna_FCurve_path(const PointerRNA *ptr)
 
   animrig::Action &action = reinterpret_cast<bAction *>(ptr->owner_id)->wrap();
 
+  if (std::optional<AncestorPointerRNA> channelbag_ancestor_ptr =
+          RNA_struct_search_closest_ancestor_by_type(ptr, RNA_ActionChannelbag))
+  {
+    /* Pass the FCurve ancestors to the Channelbag pointer as well, to give the
+     * rna_ActionStrip_path() direct access to the containing ActionLayer. */
+    const PointerRNA channelbag_ptr = {
+        &action.id, channelbag_ancestor_ptr->type, channelbag_ancestor_ptr->data, ptr->ancestors};
+    BLI_assert_msg(channelbag_ptr.has_data(), "PointerRNA ancestors should not be nullptr");
+
+    const animrig::Channelbag *channelbag = channelbag_ptr.data_as<animrig::Channelbag>();
+    std::optional<std::string> channelbag_path = rna_Channelbag_path(&channelbag_ptr);
+    BLI_assert_msg(channelbag_path, "ActionChannelbag instances should have an RNA path");
+
+    /* Find the F-Curve index. */
+    const int64_t index = channelbag->fcurves().first_index(fcurve);
+    if (index >= 0) {
+      return fmt::format("{}.fcurves[{}]", *channelbag_path, index);
+    }
+  }
+
   for (animrig::Layer *layer : action.layers()) {
     for (animrig::Strip *strip : layer->strips()) {
       if (strip->type() != animrig::Strip::Type::Keyframe) {
@@ -751,8 +771,8 @@ static void rna_FCurve_update_data_relations(Main *bmain, Scene * /*scene*/, Poi
   DEG_relations_tag_update(bmain);
 }
 
-/* RNA update callback for F-Curves to indicate that there are copy-on-evaluation tagging/flushing
- * needed (e.g. for properties that affect how animation gets evaluated).
+/* RNA update callback for F-Curves to indicate that there are copy-on-evaluation
+ * tagging/flushing needed (e.g. for properties that affect how animation gets evaluated).
  */
 static void rna_FCurve_update_eval(Main *bmain, Scene * /*scene*/, PointerRNA *ptr)
 {
