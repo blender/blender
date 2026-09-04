@@ -118,7 +118,7 @@ void mode_enter_generic(
   init_session(bmain, depsgraph, *paint, ob, mode_flag);
 }
 
-void mode_exit_generic(Object &ob, const eObjectMode mode_flag)
+void mode_exit_generic(Scene &scene, Object &ob, const eObjectMode mode_flag)
 {
   Mesh *mesh = BKE_mesh_from_object(&ob);
   ob.mode &= ~mode_flag;
@@ -140,7 +140,23 @@ void mode_exit_generic(Object &ob, const eObjectMode mode_flag)
 
   BKE_sculptsession_free(&ob);
 
-  paint_cursor_delete_textures();
+  Paint *paint = nullptr;
+  if (mode_flag == OB_MODE_VERTEX_PAINT) {
+    paint = BKE_paint_get_active_from_paintmode(&scene, PaintMode::Vertex);
+  }
+  else if (mode_flag == OB_MODE_WEIGHT_PAINT) {
+    paint = BKE_paint_get_active_from_paintmode(&scene, PaintMode::Weight);
+  }
+  else if (mode_flag == OB_MODE_SCULPT) {
+    paint = BKE_paint_get_active_from_paintmode(&scene, PaintMode::Sculpt);
+  }
+  else {
+    BLI_assert(0);
+  }
+
+  if (paint) {
+    bke::paint::cursor_delete_textures(*paint);
+  }
 
   /* Never leave derived meshes behind. */
   BKE_object_free_derived_caches(&ob);

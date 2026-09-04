@@ -455,7 +455,7 @@ void object_sculpt_mode_exit(Main &bmain, Depsgraph &depsgraph, Scene &scene, Ob
   }
 
   DEG_id_tag_update(&ob.id, ID_RECALC_GEOMETRY);
-  ed::sculpt_paint::mode_exit_generic(ob, OB_MODE_SCULPT);
+  ed::sculpt_paint::mode_exit_generic(scene, ob, OB_MODE_SCULPT);
 }
 
 void object_sculpt_mode_exit(bContext *C, Depsgraph &depsgraph)

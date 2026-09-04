@@ -307,17 +307,13 @@ static void lamp_changed(Main *bmain, Light *la)
 
 static void texture_changed(Main *bmain, Tex *tex)
 {
-  Scene *scene;
-
   /* icons */
   BKE_icon_changed(BKE_icon_id_ensure(&tex->id));
   ED_previews_tag_dirty_by_id(*bmain, tex->id);
 
-  for (scene = bmain->scenes.first(); scene; scene = static_cast<Scene *>(scene->id.next)) {
+  for (Scene &scene : bmain->scenes) {
     /* paint overlays */
-    for (ViewLayer &view_layer : scene->view_layers) {
-      BKE_paint_invalidate_overlay_tex(*bmain, scene, &view_layer, tex);
-    }
+    bke::paint::invalidate_overlay_tex(scene, tex);
   }
 
   for (Brush &brush : bmain->brushes) {

@@ -23,6 +23,8 @@
 #include "BLI_utility_mixins.hh"
 #include "BLI_vector.hh"
 
+#include "BKE_paint_types.hh"
+
 #include "DNA_brush_enums.h"
 #include "DNA_meshdata_types.h"
 #include "DNA_object_enums.h"
@@ -87,20 +89,6 @@ struct bContext;
 struct bToolRef;
 
 /* overlay invalidation */
-enum ePaintOverlayControlFlags {
-  PAINT_OVERLAY_INVALID_TEXTURE_PRIMARY = 1,
-  PAINT_OVERLAY_INVALID_TEXTURE_SECONDARY = (1 << 2),
-  PAINT_OVERLAY_INVALID_CURVE = (1 << 3),
-  PAINT_OVERLAY_OVERRIDE_CURSOR = (1 << 4),
-  PAINT_OVERLAY_OVERRIDE_PRIMARY = (1 << 5),
-  PAINT_OVERLAY_OVERRIDE_SECONDARY = (1 << 6),
-};
-ENUM_OPERATORS(ePaintOverlayControlFlags);
-
-#define PAINT_OVERRIDE_MASK \
-  (PAINT_OVERLAY_OVERRIDE_SECONDARY | PAINT_OVERLAY_OVERRIDE_PRIMARY | \
-   PAINT_OVERLAY_OVERRIDE_CURSOR)
-
 /**
  * Defines 8 areas resulting of splitting the object space by the XYZ axis planes. This is used to
  * flip or mirror transform values depending on where the vertex is and where the transform
@@ -117,18 +105,16 @@ ENUM_OPERATORS(ePaintSymmetryAreas);
 
 #define PAINT_SYMM_AREAS 8
 
-void BKE_paint_invalidate_overlay_tex(const Main &bmain,
-                                      Scene *scene,
-                                      ViewLayer *view_layer,
-                                      const Tex *tex);
-void BKE_paint_invalidate_cursor_overlay(const Main &bmain,
-                                         Scene *scene,
-                                         ViewLayer *view_layer,
-                                         CurveMapping *curve);
-void BKE_paint_invalidate_overlay_all();
-ePaintOverlayControlFlags BKE_paint_get_overlay_flags();
-void BKE_paint_reset_overlay_invalid(ePaintOverlayControlFlags flag);
-void BKE_paint_set_overlay_override(eOverlayFlags flag);
+namespace bke::paint {
+void invalidate_overlay_tex(Scene &scene, const Tex *tex);
+void invalidate_cursor_overlay(Scene &scene, CurveMapping *curve);
+void invalidate_overlay_all(Scene &scene);
+void invalidate_overlay_all(Paint &paint);
+eOverlayControlFlags get_overlay_flags(const Paint &paint);
+void reset_overlay_flag(Paint &paint, eOverlayControlFlags flag);
+void set_overlay_brush_override(Paint &paint, eOverlayFlags flag);
+void cursor_delete_textures(Paint &paint);
+}  // namespace bke::paint
 
 /* Palettes. */
 
@@ -166,7 +152,7 @@ void BKE_paint_copy(const Paint *src, Paint *dst, int flag);
 /**
  * Iterate over all paint settings in a scene.
  */
-void BKE_paint_settings_foreach_mode(ToolSettings *ts, FunctionRef<void(Paint *paint)> fn);
+void BKE_paint_settings_foreach_mode(ToolSettings *ts, FunctionRef<void(Paint &paint)> fn);
 
 void BKE_paint_cavity_curve_preset(Paint *paint, int preset);
 

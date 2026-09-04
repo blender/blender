@@ -1647,16 +1647,16 @@ void ED_object_wpaintmode_enter(bContext *C, Depsgraph &depsgraph)
 /** \name Exit Weight Paint Mode
  * \{ */
 
-void ED_object_wpaintmode_exit_ex(Object &ob)
+void ED_object_wpaintmode_exit_ex(Scene &scene, Object &ob)
 {
-  ed::sculpt_paint::mode_exit_generic(ob, OB_MODE_WEIGHT_PAINT);
+  ed::sculpt_paint::mode_exit_generic(scene, ob, OB_MODE_WEIGHT_PAINT);
   ED_mesh_mirror_spatial_table_end(&ob);
   ED_mesh_mirror_topo_table_end(&ob);
 }
 void ED_object_wpaintmode_exit(bContext *C)
 {
   Object *ob = CTX_data_active_object(C);
-  ED_object_wpaintmode_exit_ex(*ob);
+  ED_object_wpaintmode_exit_ex(*CTX_data_scene(C), *ob);
 }
 /** \} */
 
@@ -1726,7 +1726,7 @@ static wmOperatorStatus wpaint_mode_toggle_exec(bContext *C, wmOperator *op)
   Mesh *mesh = BKE_mesh_from_object(&ob);
 
   if (is_mode_set) {
-    ED_object_wpaintmode_exit_ex(ob);
+    ED_object_wpaintmode_exit_ex(scene, ob);
   }
   else {
     Depsgraph *depsgraph = CTX_data_depsgraph_on_load(C);

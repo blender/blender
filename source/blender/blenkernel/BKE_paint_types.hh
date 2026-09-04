@@ -9,6 +9,9 @@
 #include "BLI_utility_mixins.hh"
 
 namespace blender {
+namespace gpu {
+class Texture;
+}
 
 /** \file
  * \ingroup bke
@@ -41,6 +44,42 @@ enum class PaintMode : int8_t {
 };
 
 namespace bke {
+namespace paint {
+enum class eOverlayControlFlags : uint8_t {
+  InvalidTexturePrimary = 1,
+  InvalidTextureSecondary = (1 << 2),
+  InvalidCurve = (1 << 3),
+  InvalidMask = InvalidTexturePrimary | InvalidTextureSecondary | InvalidCurve,
+  OverrideCursor = (1 << 4),
+  OverridePrimary = (1 << 5),
+  OverrideSecondary = (1 << 6),
+  OverrideMask = OverrideCursor | OverridePrimary | OverrideSecondary,
+};
+ENUM_OPERATORS(eOverlayControlFlags);
+
+struct TexSnapshot {
+  gpu::Texture *overlay_texture = nullptr;
+  int winx = 0;
+  int winy = 0;
+  int old_size = 0;
+  float old_zoom = 0.0f;
+  bool old_col = false;
+
+  TexSnapshot() = default;
+  ~TexSnapshot();
+};
+
+struct CursorSnapshot {
+  gpu::Texture *overlay_texture = nullptr;
+  int size = 0;
+  int zoom = 0;
+  int curve_preset = 0;
+
+  CursorSnapshot() = default;
+  ~CursorSnapshot();
+};
+};  // namespace paint
+
 struct PaintRuntime : NonCopyable, NonMovable {
   bool initialized = false;
   uint16_t ob_mode = 0;
@@ -110,6 +149,12 @@ struct PaintRuntime : NonCopyable, NonMovable {
 
   /** WM Paint cursor. */
   void *paint_cursor = nullptr;
+
+  paint::eOverlayControlFlags overlay_flags = paint::eOverlayControlFlags{};
+
+  std::unique_ptr<paint::TexSnapshot> primary_snap;
+  std::unique_ptr<paint::TexSnapshot> secondary_snap;
+  std::unique_ptr<paint::CursorSnapshot> cursor_snap;
 
   PaintRuntime();
   ~PaintRuntime();

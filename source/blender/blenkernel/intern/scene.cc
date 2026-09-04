@@ -1053,9 +1053,9 @@ static void scene_foreach_working_space_color(ID *id, const IDTypeForeachColorFu
 {
   Scene *scene = id_cast<Scene *>(id);
 
-  BKE_paint_settings_foreach_mode(scene->toolsettings, [&fn](Paint *paint) {
-    fn.single(paint->unified_paint_settings.color);
-    fn.single(paint->unified_paint_settings.secondary_color);
+  BKE_paint_settings_foreach_mode(scene->toolsettings, [&fn](Paint &paint) {
+    fn.single(paint.unified_paint_settings.color);
+    fn.single(paint.unified_paint_settings.secondary_color);
   });
 }
 
