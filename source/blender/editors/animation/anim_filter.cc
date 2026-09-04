@@ -4210,7 +4210,7 @@ void group_channels(ChannelArena &arena,
         }
         data_channel_count++;
         DataChannel *data_channel = reinterpret_cast<DataChannel *>(child);
-        const ChannelTag *tag = data_channel->get_tag(tag_type);
+        const ChannelTag *tag = data_channel->tags().by_type(tag_type);
         if (tag) {
           potential_tags.lookup_or_add_default(*tag).append(data_channel);
         }

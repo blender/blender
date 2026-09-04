@@ -2,6 +2,8 @@
  *
  * SPDX-License-Identifier: GPL-2.0-or-later */
 
+#include <ostream>
+
 #include "DNA_anim_types.h"
 
 #include "RNA_access.hh"
@@ -16,7 +18,6 @@
 
 #include "ANIM_action.hh"
 #include "ANIM_rna.hh"
-#include <ostream>
 
 namespace blender::ed::animfilter {
 
@@ -92,6 +93,8 @@ ChannelTag::ChannelTag(const ChannelTagType type,
 {
 }
 
+/* ===== AnimationChannel ===== */
+
 AnimationChannel::AnimationChannel(const AnimationChannelType type, const StringRef label)
     : type_(type), label_(label)
 {
@@ -132,6 +135,8 @@ Span<KeyPoint> AnimationChannel::datapoints()
   }
   return this->datapoints_;
 }
+
+/* ===== SummaryChannel ===== */
 
 SummaryChannel::SummaryChannel(const StringRef label)
     : AnimationChannel(AnimationChannelType::SUMMARY, label)
@@ -272,6 +277,8 @@ void SummaryChannel::set_selected(const bool is_selected)
   }
 }
 
+/* ===== DataChannel ===== */
+
 DataChannel::DataChannel(const StringRef label,
                          const DataChannelType source_type,
                          const ParsedSourcePath &source_rna_path)
@@ -346,11 +353,6 @@ FCurveChannel::FCurveChannel(const PointerRNA &fcurve_ptr, const ParsedSourcePat
   }
 }
 
-void DataChannel::set_tags(const ChannelTagStack &tags)
-{
-  this->tags_ = tags.as_set();
-}
-
 template<> FCurve *DataChannel::get_source<FCurve>() const
 {
   BLI_assert(this->source_type_ == DataChannelType::FCURVE);
@@ -361,22 +363,6 @@ template<> GreasePencilLayer *DataChannel::get_source<GreasePencilLayer>() const
 {
   BLI_assert(this->source_type_ == DataChannelType::GREASE_PENCIL);
   return static_cast<GreasePencilLayer *>(this->source_.data);
-}
-
-const ChannelTag *DataChannel::get_tag(const ChannelTagType tag_type) const
-{
-  /* TODO store in map so we don't have to search here. */
-  for (const ChannelTag &tag : this->tags_) {
-    if (tag.tag_type() == tag_type) {
-      return &tag;
-    }
-  }
-  return nullptr;
-}
-
-ChannelTag *DataChannel::get_tag(const ChannelTagType tag_type)
-{
-  return const_cast<ChannelTag *>(const_cast<const DataChannel *>(this)->get_tag(tag_type));
 }
 
 /* ===== F-Curve Channel ===== */
@@ -451,7 +437,7 @@ StringRef FCurveChannel::label() const
 
 const ID *FCurveChannel::find_animated_id_from_tags() const
 {
-  const ChannelTag *id_tag = this->get_tag(ChannelTagType::ID);
+  const ChannelTag *id_tag = this->tags().by_type(ChannelTagType::ID);
   if (!id_tag) {
     return nullptr;
   }

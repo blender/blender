@@ -154,6 +154,44 @@ struct KeyPoint {
   void merge(const KeyPoint &other);
 };
 
+class ChannelTagSet {
+ private:
+  Set<ChannelTag> tags_;
+
+ public:
+  /** Make a local copy of the tag elements. */
+  void operator=(const ChannelTagSet &other)
+  {
+    this->tags_ = other.tags_;
+  }
+
+  /** Make a local copy of the tag elements. */
+  void set(const ChannelTagStack &tags)
+  {
+    /* TODO: move the tags.as_set() call to the caller. */
+    this->tags_ = tags.as_set();
+  }
+
+  const Set<ChannelTag> &all() const
+  {
+    return this->tags_;
+  }
+  const ChannelTag *by_type(const ChannelTagType tag_type) const
+  {
+    /* TODO store in map so we don't have to search here. */
+    for (const ChannelTag &tag : this->tags_) {
+      if (tag.tag_type() == tag_type) {
+        return &tag;
+      }
+    }
+    return nullptr;
+  }
+  ChannelTag *by_type(const ChannelTagType tag_type)
+  {
+    return const_cast<ChannelTag *>(const_cast<const ChannelTagSet *>(this)->by_type(tag_type));
+  }
+};
+
 class AnimationChannel {
  public:
   using ParsedSourcePath = blender::ParsedRNAPath<6>;
@@ -174,6 +212,12 @@ class AnimationChannel {
   /* Higher numbers will be sorted before lower numbers. In case the values are equal a fallback is
    * used. */
   int sorting_priority_ = 0;
+
+  /**
+   * The tags of a DataChannel are defined by its source.
+   * The tags of a SummaryChannel are the intersection of its child channels.
+   */
+  ChannelTagSet tags_;
 
  public:
   AnimationChannel(AnimationChannelType type, StringRef label);
@@ -209,6 +253,15 @@ class AnimationChannel {
   int sorting_priority() const
   {
     return this->sorting_priority_;
+  }
+
+  const ChannelTagSet &tags() const
+  {
+    return this->tags_;
+  }
+  ChannelTagSet &tags()
+  {
+    return this->tags_;
   }
 
   virtual bool is_selected() const = 0;
@@ -292,12 +345,6 @@ class DataChannel : public AnimationChannel {
     return this->source_type_;
   }
 
-  /**
-   * Makes a local copy of the tag elements.
-   */
-  void set_tags(const ChannelTagStack &tags);
-  const ChannelTag *get_tag(ChannelTagType tag_type) const;
-  ChannelTag *get_tag(ChannelTagType tag_type);
   template<typename T> T *get_source() const;
 };
 

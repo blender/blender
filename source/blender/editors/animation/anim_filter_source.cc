@@ -49,7 +49,7 @@ static void channels_for_channelbag(const PointerRNA &channelbag_ptr,
     PointerRNA fcurve_ptr = RNA_pointer_create_with_parent(channelbag_ptr, RNA_FCurve, fcu);
     FCurveChannel *channel = arena.allocate_data_channel<FCurveChannel>(
         fcurve_ptr, ParsedRNAPathRef(rna_path_items));
-    channel->set_tags(tags);
+    channel->tags().set(tags);
 
     /* Pop the FCurve off the RNA path. */
     rna_path_items.pop_last();
