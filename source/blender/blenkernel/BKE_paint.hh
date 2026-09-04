@@ -114,7 +114,7 @@ void invalidate_overlay_all(Paint &paint);
 eOverlayControlFlags get_overlay_flags(const Paint &paint);
 void reset_overlay_flag(Paint &paint, eOverlayControlFlags flag);
 void set_overlay_brush_override(Paint &paint, eOverlayFlags flag);
-void cursor_delete_textures(Paint &paint);
+void cursor_reinitialize_textures(Paint &paint);
 }  // namespace bke::paint
 
 /* Palettes. */

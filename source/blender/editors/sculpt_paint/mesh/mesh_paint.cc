@@ -165,7 +165,7 @@ void mode_exit_generic(Scene &scene, Object &ob, const eObjectMode mode_flag)
   }
 
   if (paint) {
-    bke::paint::cursor_delete_textures(*paint);
+    bke::paint::cursor_reinitialize_textures(*paint);
   }
 
   /* Never leave derived meshes behind. */

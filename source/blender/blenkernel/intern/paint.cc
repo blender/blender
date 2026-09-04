@@ -343,11 +343,11 @@ CursorSnapshot::~CursorSnapshot()
   }
 }
 
-void cursor_delete_textures(Paint &paint)
+void cursor_reinitialize_textures(Paint &paint)
 {
-  paint.runtime->primary_snap.reset();
-  paint.runtime->secondary_snap.reset();
-  paint.runtime->cursor_snap.reset();
+  paint.runtime->primary_snap = std::make_unique<TexSnapshot>();
+  paint.runtime->secondary_snap = std::make_unique<TexSnapshot>();
+  paint.runtime->cursor_snap = std::make_unique<CursorSnapshot>();
 
   invalidate_overlay_all(paint);
 }
