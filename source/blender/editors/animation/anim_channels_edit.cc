@@ -253,7 +253,7 @@ void ANIM_set_active_channel(bAnimContext *ac,
   }
 
   /* only clear the 'active' flag for the channels of the same type */
-  for (ale = static_cast<bAnimListElem *>(anim_data.first); ale; ale = ale->next) {
+  for (ale = anim_data.first(); ale; ale = ale->next) {
     /* skip if types don't match */
     if (channel_type != ale->type) {
       continue;
@@ -958,7 +958,7 @@ void ANIM_flush_setting_anim_channels(bAnimContext *ac,
   int matchLevel = 0;
 
   /* sanity check */
-  if (ELEM(nullptr, anim_data, anim_data->first)) {
+  if (ELEM(nullptr, anim_data, anim_data->first())) {
     return;
   }
 
@@ -1173,7 +1173,7 @@ static bool rearrange_island_top(ListBaseT<tReorderChannelIsland> *list,
     BLI_remlink(list, island);
 
     /* make it first element */
-    BLI_insertlinkbefore(list, list->first, island);
+    BLI_insertlinkbefore(list, list->first_, island);
 
     return true;
   }
@@ -1241,7 +1241,7 @@ static bool rearrange_island_bottom(ListBaseT<tReorderChannelIsland> *list,
                                     tReorderChannelIsland *island)
 {
   if (rearrange_island_ok(island)) {
-    tReorderChannelIsland *last = static_cast<tReorderChannelIsland *>(list->last);
+    tReorderChannelIsland *last = list->last();
 
     /* remove island from current position */
     BLI_remlink(list, island);
@@ -1323,7 +1323,7 @@ static void rearrange_animchannel_add_to_islands(ListBaseT<tReorderChannelIsland
                                                  const bool is_hidden)
 {
   /* always try to add to last island if possible */
-  tReorderChannelIsland *island = static_cast<tReorderChannelIsland *>(islands->last);
+  tReorderChannelIsland *island = islands->last();
   bool is_sel = false, is_untouchable = false;
 
   /* get flags - selected and untouchable from the channel */
@@ -1403,7 +1403,7 @@ static void rearrange_animchannel_flatten_islands(ListBaseT<tReorderChannelIslan
   BLI_assert(srcList->is_empty());
 
   /* go through merging islands */
-  for (island = static_cast<tReorderChannelIsland *>(islands->first); island; island = isn) {
+  for (island = islands->first(); island; island = isn) {
     isn = island->next;
 
     /* merge island channels back to main list, then delete the island */
@@ -1468,7 +1468,7 @@ static bool rearrange_animchannel_islands(ListBaseT<T> *list,
   }
 
   /* group channels into islands */
-  for (channel = static_cast<Link *>(list->first); channel; channel = chanNext) {
+  for (channel = list->template first_as<Link>(); channel; channel = chanNext) {
     /* find out whether this channel is present in anim_data_visible or not! */
     const bool is_hidden =
         (BLI_findptr(anim_data_visible, channel, offsetof(bAnimListElem, data)) == nullptr);
@@ -1483,9 +1483,9 @@ static bool rearrange_animchannel_islands(ListBaseT<T> *list,
    *   to the direction we're moving things,
    *   so that we shouldn't need to encounter items we've moved already.
    */
-  if (islands.first != islands.last) {
+  if (islands.first() != islands.last()) {
     tReorderChannelIsland *first = static_cast<tReorderChannelIsland *>(
-        (mode > 0) ? islands.last : islands.first);
+        (mode > 0) ? islands.last() : islands.first());
     tReorderChannelIsland *island, *isn = nullptr;
 
     for (island = first; island; island = isn) {
@@ -1540,17 +1540,15 @@ static void rearrange_nla_tracks(bAnimContext *ac, AnimData *adt, eRearrangeAnim
   ListBaseT<NlaTrack> extracted_nonlocal_nla_tracks = {nullptr, nullptr};
   if (is_liboverride) {
     NlaTrack *nla_track;
-    for (nla_track = static_cast<NlaTrack *>(adt->nla_tracks.first); nla_track != nullptr;
-         nla_track = nla_track->next)
-    {
+    for (nla_track = adt->nla_tracks.first(); nla_track != nullptr; nla_track = nla_track->next) {
       if (!BKE_nlatrack_is_nonlocal_in_liboverride(&ac->obact->id, nla_track)) {
         break;
       }
     }
     if (nla_track != nullptr && nla_track->prev != nullptr) {
-      extracted_nonlocal_nla_tracks.first = adt->nla_tracks.first;
-      extracted_nonlocal_nla_tracks.last = nla_track->prev;
-      adt->nla_tracks.first = nla_track;
+      extracted_nonlocal_nla_tracks.first_ = adt->nla_tracks.first_;
+      extracted_nonlocal_nla_tracks.last_ = nla_track->prev;
+      adt->nla_tracks.first_ = nla_track;
       nla_track->prev->next = nullptr;
       nla_track->prev = nullptr;
     }
@@ -1566,11 +1564,9 @@ static void rearrange_nla_tracks(bAnimContext *ac, AnimData *adt, eRearrangeAnim
   /* Add back non-local NLA tracks at the beginning of the animation data's list. */
   if (!extracted_nonlocal_nla_tracks.is_empty()) {
     BLI_assert(is_liboverride);
-    static_cast<NlaTrack *>(extracted_nonlocal_nla_tracks.last)->next = static_cast<NlaTrack *>(
-        adt->nla_tracks.first);
-    static_cast<NlaTrack *>(adt->nla_tracks.first)->prev = static_cast<NlaTrack *>(
-        extracted_nonlocal_nla_tracks.last);
-    adt->nla_tracks.first = extracted_nonlocal_nla_tracks.first;
+    extracted_nonlocal_nla_tracks.last()->next = adt->nla_tracks.first();
+    adt->nla_tracks.first()->prev = extracted_nonlocal_nla_tracks.last();
+    adt->nla_tracks.first_ = extracted_nonlocal_nla_tracks.first_;
   }
 
   /* free temp data */
@@ -2268,7 +2264,7 @@ static wmOperatorStatus animchannels_rearrange_exec(bContext *C, wmOperator *op)
         default: /* DopeSheet/Graph Editor - Some Actions + NLA Control Curves */
         {
           /* NLA Control Curves */
-          if (adt->nla_tracks.first) {
+          if (adt->nla_tracks.first_) {
             rearrange_nla_control_channels(&ac, adt, mode);
           }
 
@@ -2387,7 +2383,7 @@ static void animchannels_group_channels(bAnimContext *ac,
                                    ANIMFILTER_SEL | ANIMFILTER_FCURVESONLY;
   ANIM_animdata_filter(ac, &anim_data, filter, adt_ref, ANIMCONT_CHANNEL);
 
-  if (anim_data.first == nullptr) {
+  if (anim_data.first_ == nullptr) {
     return;
   }
 
@@ -2823,7 +2819,7 @@ static wmOperatorStatus animchannels_delete_exec(bContext *C, wmOperator * /*op*
         ale.update = ANIM_UPDATE_DEPS;
 
         /* Free Grease Pencil data block when last annotation layer is removed, see: #112683. */
-        if (gpd->flag & GP_DATA_ANNOTATIONS && gpd->layers.first == nullptr) {
+        if (gpd->flag & GP_DATA_ANNOTATIONS && gpd->layers.first_ == nullptr) {
           BKE_gpencil_free_data(gpd, true);
 
           Scene *scene = CTX_data_scene(C);
@@ -3338,20 +3334,20 @@ static wmOperatorStatus animchannels_clean_empty_exec(bContext *C, wmOperator * 
     }
 
     /* 2) No NLA Tracks and/or NLA Strips */
-    if (adt->nla_tracks.first == nullptr) {
+    if (adt->nla_tracks.first_ == nullptr) {
       nla_empty = true;
     }
     else {
       /* empty tracks? */
       for (NlaTrack &nlt : adt->nla_tracks) {
-        if (nlt.strips.first) {
+        if (nlt.strips.first_) {
           /* stop searching, as we found one that actually had stuff we don't want lost
            * NOTE: nla_empty gets reset to false, as a previous track may have been empty
            */
           nla_empty = false;
           break;
         }
-        if (nlt.strips.first == nullptr) {
+        if (nlt.strips.first_ == nullptr) {
           /* this track is empty, but another one may still have stuff in it, so can't break yet */
           nla_empty = true;
         }
@@ -3359,7 +3355,7 @@ static wmOperatorStatus animchannels_clean_empty_exec(bContext *C, wmOperator * 
     }
 
     /* 3) Drivers */
-    drivers_empty = (adt->drivers.first == nullptr);
+    drivers_empty = (adt->drivers.first_ == nullptr);
 
     /* remove AnimData? */
     if (action_empty && nla_empty && drivers_empty) {
@@ -4190,9 +4186,7 @@ static int click_select_channel_group(bAnimContext *ac,
     }
 
     /* only select channels in group and group itself */
-    for (fcu = static_cast<FCurve *>(agrp->channels.first); fcu && fcu->grp == agrp;
-         fcu = fcu->next)
-    {
+    for (fcu = agrp->channels.first(); fcu && fcu->grp == agrp; fcu = fcu->next) {
       fcu->flag |= FCURVE_SELECTED;
     }
     agrp->flag |= AGRP_SELECTED;

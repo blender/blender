@@ -36,7 +36,7 @@ void TreeElementDriverBase::expand(SpaceOutliner & /*space_outliner*/) const
   ID *lastadded = nullptr;
 
   for (FCurve *fcu : ListBaseWrapper<FCurve>(anim_data_.drivers)) {
-    if (fcu->driver && fcu->driver->variables.first) {
+    if (fcu->driver && fcu->driver->variables.first_) {
       ChannelDriver *driver = fcu->driver;
 
       for (DriverVar *dvar : ListBaseWrapper<DriverVar>(driver->variables)) {

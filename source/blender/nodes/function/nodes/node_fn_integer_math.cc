@@ -66,7 +66,7 @@ static void node_update(bNodeTree *ntree, bNode *node)
       node->custom1, NODE_INTEGER_MATH_ABSOLUTE, NODE_INTEGER_MATH_SIGN, NODE_INTEGER_MATH_NEGATE);
   const bool three_input_ops = ELEM(node->custom1, NODE_INTEGER_MATH_MULTIPLY_ADD);
 
-  bNodeSocket *sockA = static_cast<bNodeSocket *>(node->inputs.first);
+  bNodeSocket *sockA = node->inputs.first();
   bNodeSocket *sockB = sockA->next;
   bNodeSocket *sockC = sockB->next;
 

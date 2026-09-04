@@ -831,8 +831,8 @@ static float2 get_frame_range_of_fcurves(Span<const FCurve *> fcurves,
     /* if include_modifiers is enabled, need to consider modifiers too
      * - only really care about the last modifier
      */
-    if ((include_modifiers) && (fcu->modifiers.last)) {
-      FModifier *fcm = static_cast<FModifier *>(fcu->modifiers.last);
+    if ((include_modifiers) && (fcu->modifiers.last())) {
+      FModifier *fcm = fcu->modifiers.last();
 
       /* only use the maximum sensible limits of the modifiers if they are more extreme */
       switch (fcm->type) {

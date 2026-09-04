@@ -331,7 +331,7 @@ static void rna_userdef_update(Main * /*bmain*/, Scene * /*scene*/, PointerRNA *
 static void rna_userdef_update_compact_tabs(Main *bmain, Scene *scene, PointerRNA *ptr)
 {
   rna_userdef_update(bmain, scene, ptr);
-  auto *wm = static_cast<wmWindowManager *>(bmain->wm.first);
+  auto *wm = bmain->wm.first();
   if (!wm) {
     return;
   }
@@ -397,7 +397,7 @@ static void rna_userdef_screen_update(Main * /*bmain*/, Scene * /*scene*/, Point
 static void rna_userdef_screen_update_header_default(Main *bmain, Scene *scene, PointerRNA *ptr)
 {
   if (U.uiflag & USER_HEADER_FROM_PREF) {
-    for (bScreen *screen = static_cast<bScreen *>(bmain->screens.first); screen;
+    for (bScreen *screen = bmain->screens.first(); screen;
          screen = static_cast<bScreen *>(screen->id.next))
     {
       BKE_screen_header_alignment_reset(screen);
@@ -1069,9 +1069,7 @@ static void rna_UserDef_subdivision_update(Main *bmain, Scene *scene, PointerRNA
 {
   Object *ob;
 
-  for (ob = static_cast<Object *>(bmain->objects.first); ob;
-       ob = static_cast<Object *>(ob->id.next))
-  {
+  for (ob = bmain->objects.first(); ob; ob = static_cast<Object *>(ob->id.next)) {
     if (BKE_object_get_last_subsurf_modifier(ob) != nullptr) {
       DEG_id_tag_update(&ob->id, ID_RECALC_GEOMETRY);
     }
@@ -1098,9 +1096,7 @@ static void rna_UserDef_weight_color_update(Main *bmain, Scene *scene, PointerRN
 {
   Object *ob;
 
-  for (ob = static_cast<Object *>(bmain->objects.first); ob;
-       ob = static_cast<Object *>(ob->id.next))
-  {
+  for (ob = bmain->objects.first(); ob; ob = static_cast<Object *>(ob->id.next)) {
     if (ob->mode & OB_MODE_WEIGHT_PAINT) {
       DEG_id_tag_update(&ob->id, ID_RECALC_GEOMETRY);
     }
@@ -1134,7 +1130,7 @@ static bool rna_userdef_is_microsoft_store_install_get(PointerRNA * /*ptr*/)
 
 static void rna_userdef_autosave_update(Main *bmain, Scene *scene, PointerRNA *ptr)
 {
-  wmWindowManager *wm = static_cast<wmWindowManager *>(bmain->wm.first);
+  wmWindowManager *wm = bmain->wm.first();
 
   if (wm) {
     WM_file_autosave_init(wm);

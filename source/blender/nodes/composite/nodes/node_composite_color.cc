@@ -42,7 +42,7 @@ class RGBOperation : public NodeOperation {
     Result &result = get_result("Color");
     result.allocate_single_value();
 
-    const bNodeSocket *socket = static_cast<const bNodeSocket *>(node().outputs.first);
+    const bNodeSocket *socket = node().outputs.first();
     Color color = Color(static_cast<const bNodeSocketValueRGBA *>(socket->default_value)->value);
 
     result.set_single_value(color);

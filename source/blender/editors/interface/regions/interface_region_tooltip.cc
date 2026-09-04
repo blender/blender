@@ -1821,7 +1821,7 @@ static void tooltip_from_image(Image &ima, TooltipData &data)
   }
 
   if (BKE_image_has_anim(&ima)) {
-    MovieReader *anim = static_cast<ImageAnim *>(ima.anims.first)->anim;
+    MovieReader *anim = ima.anims.first()->anim;
     if (anim) {
       int duration = MOV_get_duration_frames(anim);
       tooltip_text_field_add(data,

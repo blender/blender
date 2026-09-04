@@ -940,7 +940,7 @@ static wmOperatorStatus shape_key_make_basis_exec(bContext *C, wmOperator * /*op
 {
   Object *ob = context_object(C);
   Key *key = BKE_key_from_object(ob);
-  KeyBlock *old_basis_key = static_cast<KeyBlock *>(key->block.first);
+  KeyBlock *old_basis_key = key->block.first();
 
   /* Make the new basis by moving the active key to index 0. */
   const int from_index = -1; /* Interpreted as "the active key". */
@@ -958,7 +958,7 @@ static wmOperatorStatus shape_key_make_basis_exec(bContext *C, wmOperator * /*op
    * matter much, as it's treated as special anyway, but keeping it relative to another key makes
    * no sense. For the old basis key (which just became a normal key), it would otherwise still be
    * relative to itself, effectively disabling it. */
-  KeyBlock *new_basis_key = static_cast<KeyBlock *>(key->block.first);
+  KeyBlock *new_basis_key = key->block.first();
   new_basis_key->relative = 0;
   old_basis_key->relative = 0;
 
@@ -1041,7 +1041,7 @@ static wmOperatorStatus shape_key_apply_to_basis_exec(bContext *C, wmOperator *o
   Main *bmain = CTX_data_main(C);
   Object *ob = context_object(C);
   Key *key = BKE_key_from_object(ob);
-  KeyBlock *basis_key = static_cast<KeyBlock *>(key->block.first);
+  KeyBlock *basis_key = key->block.first();
   MutableSpan<float3> basis_data(static_cast<float3 *>(basis_key->data), basis_key->totelem);
   Mesh &mesh = id_cast<Mesh &>(*ob->data);
 

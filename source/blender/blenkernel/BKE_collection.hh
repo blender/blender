@@ -439,8 +439,7 @@ using BKE_scene_collections_Cb = void (*)(Collection *ob, void *data);
     int _object_visibility_flag = (_mode == DAG_EVAL_VIEWPORT) ? OB_HIDE_VIEWPORT : \
                                                                  OB_HIDE_RENDER; \
     [[maybe_unused]] int _base_id = 0; \
-    for (Base *_base = static_cast<Base *>(BKE_collection_object_cache_get(_collection).first); \
-         _base; \
+    for (Base *_base = BKE_collection_object_cache_get(_collection).first(); _base; \
          _base = _base->next, _base_id++) \
     { \
       Object *_object = _base->object; \
@@ -454,8 +453,7 @@ using BKE_scene_collections_Cb = void (*)(Collection *ob, void *data);
   ((void)0)
 
 #define FOREACH_COLLECTION_OBJECT_RECURSIVE_BEGIN(_collection, _object) \
-  for (Base *_base = static_cast<Base *>(BKE_collection_object_cache_get(_collection).first); \
-       _base; \
+  for (Base *_base = BKE_collection_object_cache_get(_collection).first(); _base; \
        _base = _base->next) \
   { \
     Object *_object = _base->object; \
@@ -524,12 +522,12 @@ Set<Object *> *BKE_scene_objects_as_set(Scene *scene, Set<Object *> *objects_set
       _instance_next = (_scene)->master_collection; \
     } \
     else { \
-      _instance_next = static_cast<Collection *>((_bmain)->collections.first); \
+      _instance_next = (_bmain)->collections.first(); \
     } \
 \
     while ((_instance = _instance_next)) { \
       if (is_scene_collection) { \
-        _instance_next = static_cast<Collection *>((_bmain)->collections.first); \
+        _instance_next = (_bmain)->collections.first(); \
         is_scene_collection = false; \
       } \
       else { \

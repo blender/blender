@@ -249,9 +249,7 @@ static void undo_history_draw_menu(const bContext *C, Menu *menu)
 
   /* Reverse the order so the most recent state is first in the menu. */
   int i = undo_step_count_all - 1;
-  for (UndoStep *us = static_cast<UndoStep *>(wm->runtime->undo_stack->steps.last); us;
-       us = us->prev, i--)
-  {
+  for (UndoStep *us = wm->runtime->undo_stack->steps.last(); us; us = us->prev, i--) {
     if (us->skip) {
       continue;
     }

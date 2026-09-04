@@ -952,8 +952,7 @@ static void create_subd_mesh(Scene *scene,
 {
   const blender::Object *b_ob = b_ob_info.real_object;
 
-  const auto &subsurf_mod = *reinterpret_cast<const blender::SubsurfModifierData *>(
-      b_ob->modifiers.last);
+  const auto &subsurf_mod = *b_ob->modifiers.last_as<const blender::SubsurfModifierData>();
 
   const bool use_creases = (subsurf_mod.flags & blender::eSubsurfModifierFlag_UseCrease) != 0;
 

@@ -580,7 +580,7 @@ static void graph_panel_key_properties(const bContext *C, Panel *panel)
     }
   }
   else {
-    if ((fcu->bezt == nullptr) && (fcu->modifiers.first)) {
+    if ((fcu->bezt == nullptr) && (fcu->modifiers.first_)) {
       /* modifiers only - so no keyframes to be active */
       layout.label(RPT_("F-Curve only has F-Modifiers"), ICON_NONE);
       layout.label(RPT_("See Modifiers panel below"), ICON_STATUS_INFO);

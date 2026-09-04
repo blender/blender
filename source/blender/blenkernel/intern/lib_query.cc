@@ -622,7 +622,7 @@ static bool library_ID_is_used(Main *bmain, void *idv, const bool check_linked)
   iter.id = id;
   iter.count_direct = iter.count_indirect = 0;
   while (i-- && !is_defined) {
-    ID *id_curr = static_cast<ID *>(lb_array[i]->first);
+    ID *id_curr = lb_array[i]->first();
 
     if (!id_curr || !BKE_library_id_can_use_idtype(id_curr, id->id_type())) {
       continue;
@@ -668,7 +668,7 @@ void BKE_library_ID_test_usages(Main *bmain,
   iter.id = id;
   iter.count_direct = iter.count_indirect = 0;
   while (i-- && !is_defined) {
-    ID *id_curr = static_cast<ID *>(lb_array[i]->first);
+    ID *id_curr = lb_array[i]->first();
 
     if (!id_curr || !BKE_library_id_can_use_idtype(id_curr, id->id_type())) {
       continue;

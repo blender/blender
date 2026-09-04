@@ -63,7 +63,7 @@ static enum eTextViewContext_LineFlag console_line_data(TextViewContext *tvc,
 void console_scrollback_prompt_begin(SpaceConsole *sc, ConsoleLine *cl_dummy)
 {
   /* fake the edit line being in the scroll buffer */
-  ConsoleLine *cl = static_cast<ConsoleLine *>(sc->history.last);
+  ConsoleLine *cl = sc->history.last();
   int prompt_len = strlen(sc->prompt);
 
   cl_dummy->type = CONSOLE_LINE_INPUT;
@@ -88,7 +88,7 @@ static int console_textview_begin(TextViewContext *tvc)
   tvc->sel_end = sc->sel_end;
 
   /* iterator */
-  tvc->iter = sc->scrollback.last;
+  tvc->iter = sc->scrollback.last();
 
   return (tvc->iter != nullptr);
 }
@@ -180,11 +180,11 @@ static void console_textview_draw_cursor(TextViewContext *tvc, int char_width, i
     /* Cache the font metrics computed during draw, reused for IME cursor positioning. */
     sc->runtime->char_width_px = char_width;
     sc->runtime->line_height_px = tvc->line_height;
-    const ConsoleLine *cl = static_cast<ConsoleLine *>(sc->history.last);
+    const ConsoleLine *cl = sc->history.last();
 
     /* Use the dummy scrollback line built for this draw,
      * see #console_scrollback_prompt_begin. */
-    const ConsoleLine *cl_drawn = static_cast<const ConsoleLine *>(sc->scrollback.last);
+    const ConsoleLine *cl_drawn = sc->scrollback.last();
     const int cursor_byte = int(strlen(sc->prompt)) + cl->cursor;
 
     /* Rebuild the wrap layout #textview_draw just drew this line with. */
@@ -311,7 +311,7 @@ std::optional<blender::int2> console_cursor_region_xy_get(const SpaceConsole *sc
                                                           const ARegion *region,
                                                           const int offset)
 {
-  const ConsoleLine *cl = static_cast<const ConsoleLine *>(sc->history.last);
+  const ConsoleLine *cl = sc->history.last();
   if (cl == nullptr) {
     return std::nullopt;
   }

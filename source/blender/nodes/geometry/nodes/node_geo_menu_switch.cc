@@ -605,7 +605,7 @@ static const bNodeSocket *node_internally_linked_input(const bNodeTree & /*tree*
   if (storage.enum_definition.items_num == 0) {
     return nullptr;
   }
-  if (&output_socket == node.outputs.first) {
+  if (&output_socket == node.outputs.first_) {
     /* Default to the first enum item input. */
     return &node.input_socket(1);
   }

@@ -243,9 +243,7 @@ static void joined_armature_fix_links(
   }
 
   /* let's go through all objects in database */
-  for (ob = static_cast<Object *>(bmain->objects.first); ob;
-       ob = static_cast<Object *>(ob->id.next))
-  {
+  for (ob = bmain->objects.first(); ob; ob = static_cast<Object *>(ob->id.next)) {
     /* do some object-type specific things */
     if (ob->type == OB_ARMATURE) {
       pose = ob->pose;
@@ -438,7 +436,7 @@ wmOperatorStatus ED_armature_join_objects_exec(bContext *C, wmOperator *op)
       mul_m4_m4m4(mat, oimat, ob_iter->object_to_world().ptr());
 
       /* Copy bones and pose-channels from the object to the edit armature. */
-      for (pchan = static_cast<bPoseChannel *>(opose->chanbase.first); pchan; pchan = pchann) {
+      for (pchan = opose->chanbase.first(); pchan; pchan = pchann) {
         pchann = pchan->next;
         curbone = ED_armature_ebone_find_name(curarm->edbo, pchan->name);
 
@@ -580,9 +578,7 @@ static void separated_armature_fix_links(Main *bmain, Object *origArm, Object *n
   npchans = &newArm->pose->chanbase;
 
   /* let's go through all objects in database */
-  for (ob = static_cast<Object *>(bmain->objects.first); ob;
-       ob = static_cast<Object *>(ob->id.next))
-  {
+  for (ob = bmain->objects.first(); ob; ob = static_cast<Object *>(ob->id.next)) {
     /* do some object-type specific things */
     if (ob->type == OB_ARMATURE) {
       for (bPoseChannel &pchan : ob->pose->chanbase) {
@@ -677,7 +673,7 @@ static void separate_armature_bones(Main *bmain, Object *ob, const bool is_selec
   ED_armature_to_edit(arm);
   Set<std::string> freed_bone_names;
   /* go through pose-channels, checking if a bone should be removed */
-  for (pchan = static_cast<bPoseChannel *>(ob->pose->chanbase.first); pchan; pchan = pchann) {
+  for (pchan = ob->pose->chanbase.first(); pchan; pchan = pchann) {
     pchann = pchan->next;
     curbone = ED_armature_ebone_find_name(arm->edbo, pchan->name);
 

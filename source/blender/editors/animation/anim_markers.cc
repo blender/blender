@@ -90,7 +90,7 @@ ListBaseT<TimeMarker> *ED_scene_markers_get_from_area(const Main &bmain,
   /* If the area is the dopesheet, AND it is configured to show scene markers (instead of
    * pose/action markers), directly go for the scene markers. */
   if (area->spacetype == SPACE_ACTION) {
-    const SpaceAction *saction = static_cast<SpaceAction *>(area->spacedata.first);
+    const SpaceAction *saction = area->spacedata.first_as<SpaceAction>();
     if (!(saction->flag & SACTION_POSEMARKERS_SHOW)) {
       return &scene->markers;
     }
@@ -166,7 +166,7 @@ TimeMarker *ED_markers_find_nearest_marker(ListBaseT<TimeMarker> *markers, const
 
   /* Always initialize the first so it's guaranteed to return a marker
    * even if `frame` is NAN or the deltas are not finite. see: #136059. */
-  TimeMarker *marker = static_cast<TimeMarker *>(markers->first);
+  TimeMarker *marker = markers->first();
   TimeMarker *nearest = marker;
   float min_dist = fabsf(float(marker->frame) - frame);
   for (marker = marker->next; marker; marker = marker->next) {
@@ -195,7 +195,7 @@ void ED_markers_get_minmax(ListBaseT<TimeMarker> *markers,
 
   /* sanity check */
   // printf("markers = %p -  %p, %p\n", markers, markers->first, markers->last);
-  if (ELEM(nullptr, markers, markers->first, markers->last)) {
+  if (ELEM(nullptr, markers, markers->first(), markers->last())) {
     *r_first = 0.0f;
     *r_last = 0.0f;
     return;
@@ -236,28 +236,28 @@ static bool operator_markers_region_active(bContext *C)
 
   switch (area->spacetype) {
     case SPACE_ACTION: {
-      SpaceAction *saction = static_cast<SpaceAction *>(area->spacedata.first);
+      SpaceAction *saction = area->spacedata.first_as<SpaceAction>();
       if (saction->flag & SACTION_SHOW_MARKERS) {
         return true;
       }
       break;
     }
     case SPACE_GRAPH: {
-      SpaceGraph *sipo = static_cast<SpaceGraph *>(area->spacedata.first);
+      SpaceGraph *sipo = area->spacedata.first_as<SpaceGraph>();
       if (sipo->mode != SIPO_MODE_DRIVERS && sipo->flag & SIPO_SHOW_MARKERS) {
         return true;
       }
       break;
     }
     case SPACE_NLA: {
-      SpaceNla *snla = static_cast<SpaceNla *>(area->spacedata.first);
+      SpaceNla *snla = area->spacedata.first_as<SpaceNla>();
       if (snla->flag & SNLA_SHOW_MARKERS) {
         return true;
       }
       break;
     }
     case SPACE_SEQ: {
-      SpaceSeq *seq = static_cast<SpaceSeq *>(area->spacedata.first);
+      SpaceSeq *seq = area->spacedata.first_as<SpaceSeq>();
       if (seq->flag & SEQ_SHOW_MARKERS) {
         return true;
       }
@@ -301,7 +301,7 @@ static void add_marker_to_cfra_elem(ListBaseT<CfraElem> *lb,
   }
 
   /* insertion sort - try to find a previous cfra elem */
-  for (ce = static_cast<CfraElem *>(lb->first); ce; ce = ce->next) {
+  for (ce = lb->first(); ce; ce = ce->next) {
     if (ce->cfra == marker->frame) {
       /* do because of double keys */
       if (marker->flag & SELECT) {
@@ -335,7 +335,7 @@ void ED_markers_make_cfra_list(ListBaseT<TimeMarker> *markers,
      * whether this terminated early otherwise. This may lead
      * to crashes if the user didn't clear the memory first.
      */
-    lb->first = lb->last = nullptr;
+    lb->first_ = lb->last_ = nullptr;
   }
   else {
     return;
@@ -395,14 +395,14 @@ bool ED_markers_region_visible(const ScrArea *area, const ARegion *region)
 
   switch (area->spacetype) {
     case SPACE_ACTION: {
-      const SpaceAction *saction = static_cast<SpaceAction *>(area->spacedata.first);
+      const SpaceAction *saction = area->spacedata.first_as<SpaceAction>();
       if ((saction->flag & SACTION_SHOW_MARKERS) == 0) {
         return false;
       }
       break;
     }
     case SPACE_GRAPH: {
-      const SpaceGraph *sgraph = static_cast<SpaceGraph *>(area->spacedata.first);
+      const SpaceGraph *sgraph = area->spacedata.first_as<SpaceGraph>();
       if (sgraph->mode == SIPO_MODE_DRIVERS) {
         return false;
       }
@@ -412,14 +412,14 @@ bool ED_markers_region_visible(const ScrArea *area, const ARegion *region)
       break;
     }
     case SPACE_NLA: {
-      const SpaceNla *snla = static_cast<SpaceNla *>(area->spacedata.first);
+      const SpaceNla *snla = area->spacedata.first_as<SpaceNla>();
       if ((snla->flag & SNLA_SHOW_MARKERS) == 0) {
         return false;
       }
       break;
     }
     case SPACE_SEQ: {
-      const SpaceSeq *seq = static_cast<SpaceSeq *>(area->spacedata.first);
+      const SpaceSeq *seq = area->spacedata.first_as<SpaceSeq>();
       if ((seq->flag & SEQ_SHOW_MARKERS) == 0) {
         return false;
       }
@@ -698,7 +698,7 @@ void ED_markers_draw(const bContext *C, int flag)
   }
 
   /* Now draw the elevated markers */
-  for (TimeMarker *marker = static_cast<TimeMarker *>(sorted_markers.first); marker != nullptr;) {
+  for (TimeMarker *marker = sorted_markers.first(); marker != nullptr;) {
 
     /* Skip this marker if it is elevated or out of the frame range. */
     if ((marker->flag & TIME_MARKER_ELEVATED_TEMP) == 0 ||
@@ -801,7 +801,7 @@ static bool ed_markers_poll_markers_exist(bContext *C)
   }
 
   /* list of markers must exist, as well as some markers in it! */
-  return (markers && markers->first);
+  return (markers && markers->first());
 }
 
 static bool ed_markers_poll_markers_exist_visible(bContext *C)
@@ -957,9 +957,7 @@ static void ed_marker_move_update_header(bContext *C, wmOperator *op)
   int totmark;
   const bool use_time = ed_marker_move_use_time(mm);
 
-  for (totmark = 0, marker = static_cast<TimeMarker *>(mm->markers->first); marker;
-       marker = marker->next)
-  {
+  for (totmark = 0, marker = mm->markers->first(); marker; marker = marker->next) {
     if (marker->flag & SELECT) {
       selmarker = marker;
       totmark++;
@@ -1008,9 +1006,7 @@ static bool ed_marker_move_init(bContext *C, wmOperator *op)
     return false;
   }
 
-  for (totmark = 0, marker = static_cast<TimeMarker *>(markers->first); marker;
-       marker = marker->next)
-  {
+  for (totmark = 0, marker = markers->first(); marker; marker = marker->next) {
     if (marker->flag & SELECT) {
       totmark++;
     }
@@ -1032,7 +1028,7 @@ static bool ed_marker_move_init(bContext *C, wmOperator *op)
   /* No time unit supporting frames currently... */
   mm->num.unit_type[0] = ed_marker_move_use_time(mm) ? B_UNIT_TIME : B_UNIT_NONE;
 
-  for (a = 0, marker = static_cast<TimeMarker *>(markers->first); marker; marker = marker->next) {
+  for (a = 0, marker = markers->first(); marker; marker = marker->next) {
     if (marker->flag & SELECT) {
       mm->oldframe[a] = marker->frame;
       a++;
@@ -1106,9 +1102,7 @@ static void ed_marker_move_apply(bContext *C, wmOperator *op)
   int a, ofs;
 
   ofs = RNA_int_get(op->ptr, "frames");
-  for (a = 0, marker = static_cast<TimeMarker *>(mm->markers->first); marker;
-       marker = marker->next)
-  {
+  for (a = 0, marker = mm->markers->first(); marker; marker = marker->next) {
     if (marker->flag & SELECT) {
       marker->frame = mm->oldframe[a] + ofs;
       a++;
@@ -1464,7 +1458,7 @@ static wmOperatorStatus ed_marker_select(bContext *C,
       if (marker.frame == cfra) {
         if (marker.flag & SELECT) {
           marker_cycle_selected = static_cast<TimeMarker *>(marker.next ? marker.next :
-                                                                          markers->first);
+                                                                          markers->first());
           break;
         }
       }
@@ -1845,7 +1839,7 @@ static wmOperatorStatus ed_marker_delete_exec(bContext *C, wmOperator * /*op*/)
     return OPERATOR_CANCELLED;
   }
 
-  for (marker = static_cast<TimeMarker *>(markers->first); marker; marker = nmarker) {
+  for (marker = markers->first(); marker; marker = nmarker) {
     nmarker = marker->next;
     if (marker->flag & SELECT) {
       if (marker->prop != nullptr) {

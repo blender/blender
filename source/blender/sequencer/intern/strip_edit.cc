@@ -129,7 +129,7 @@ void edit_update_muting(Editing *ed)
 {
   if (ed) {
     /* mute all sounds up to current metastack list */
-    MetaStack *ms = static_cast<MetaStack *>(ed->metastack.last);
+    MetaStack *ms = ed->metastack.last();
 
     if (ms) {
       strip_update_muting_recursive(&ed->channels, &ed->seqbase, ms->parent_strip, true);
@@ -443,8 +443,8 @@ Strip *edit_strip_split(Main *bmain,
   seqbase_duplicate_recursive(
       bmain, scene, scene, &right_strips, &left_strips, StripDuplicate::All, 0);
 
-  Strip *left_strip = static_cast<Strip *>(left_strips.first);
-  Strip *right_strip = static_cast<Strip *>(right_strips.first);
+  Strip *left_strip = left_strips.first();
+  Strip *right_strip = right_strips.first();
   Strip *return_strip = nullptr;
 
   /* Move strips from detached `ListBase`, otherwise they can't be flagged for removal. */

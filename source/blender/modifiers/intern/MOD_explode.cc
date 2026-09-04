@@ -1112,7 +1112,7 @@ static ParticleSystemModifierData *findPrecedingParticlesystem(Object *ob, Modif
   ModifierData *md;
   ParticleSystemModifierData *psmd = nullptr;
 
-  for (md = static_cast<ModifierData *>(ob->modifiers.first); emd != md; md = md->next) {
+  for (md = ob->modifiers.first(); emd != md; md = md->next) {
     if (md->type == eModifierType_ParticleSystem) {
       psmd = reinterpret_cast<ParticleSystemModifierData *>(md);
     }

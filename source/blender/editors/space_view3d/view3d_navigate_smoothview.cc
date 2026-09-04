@@ -47,7 +47,7 @@ static void view3d_smoothview_apply_with_interp(
 
 void ED_view3d_smooth_view_undo_begin(bContext *C, const ScrArea *area)
 {
-  const View3D *v3d = static_cast<const View3D *>(area->spacedata.first);
+  const View3D *v3d = area->spacedata.first_as<View3D>();
   Object *camera = v3d->camera;
   if (!camera) {
     return;
@@ -75,7 +75,7 @@ void ED_view3d_smooth_view_undo_end(bContext *C,
                                     const char *undo_str,
                                     const bool undo_grouped)
 {
-  View3D *v3d = static_cast<View3D *>(area->spacedata.first);
+  View3D *v3d = area->spacedata.first_as<View3D>();
   Object *camera = v3d->camera;
   if (!camera) {
     return;

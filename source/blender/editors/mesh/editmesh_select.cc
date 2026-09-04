@@ -2956,7 +2956,7 @@ static void edbm_strip_selections(BMEditMesh *em)
   BMEditSelection *ese, *nextese;
 
   if (!(em->selectmode & SCE_SELECT_VERTEX)) {
-    ese = static_cast<BMEditSelection *>(em->bm->selected.first);
+    ese = em->bm->selected.first();
     while (ese) {
       nextese = ese->next;
       if (ese->htype == BM_VERT) {
@@ -2966,7 +2966,7 @@ static void edbm_strip_selections(BMEditMesh *em)
     }
   }
   if (!(em->selectmode & SCE_SELECT_EDGE)) {
-    ese = static_cast<BMEditSelection *>(em->bm->selected.first);
+    ese = em->bm->selected.first();
     while (ese) {
       nextese = ese->next;
       if (ese->htype == BM_EDGE) {
@@ -2976,7 +2976,7 @@ static void edbm_strip_selections(BMEditMesh *em)
     }
   }
   if (!(em->selectmode & SCE_SELECT_FACE)) {
-    ese = static_cast<BMEditSelection *>(em->bm->selected.first);
+    ese = em->bm->selected.first();
     while (ese) {
       nextese = ese->next;
       if (ese->htype == BM_FACE) {

@@ -1261,8 +1261,7 @@ void copy_fmodifiers(ListBaseT<FModifier> *dst, const ListBaseT<FModifier> *src)
   dst->clear_no_delete();
   BLI_duplicatelist(dst, src);
 
-  for (fcm = static_cast<FModifier *>(dst->first), srcfcm = static_cast<FModifier *>(src->first);
-       fcm && srcfcm;
+  for (fcm = dst->first(), srcfcm = src->first(); fcm && srcfcm;
        srcfcm = srcfcm->next, fcm = fcm->next)
   {
     const FModifierTypeInfo *fmi = fmodifier_get_typeinfo(fcm);
@@ -1329,7 +1328,7 @@ void free_fmodifiers(ListBaseT<FModifier> *modifiers)
   }
 
   /* free each modifier in order - modifier is unlinked from list and freed */
-  for (fcm = static_cast<FModifier *>(modifiers->first); fcm; fcm = fmn) {
+  for (fcm = modifiers->first(); fcm; fcm = fmn) {
     fmn = fcm->next;
     remove_fmodifier(modifiers, fcm);
   }
@@ -1338,7 +1337,7 @@ void free_fmodifiers(ListBaseT<FModifier> *modifiers)
 FModifier *find_active_fmodifier(ListBaseT<FModifier> *modifiers)
 {
   /* sanity checks */
-  if (ELEM(nullptr, modifiers, modifiers->first)) {
+  if (ELEM(nullptr, modifiers, modifiers->first())) {
     return nullptr;
   }
 
@@ -1356,7 +1355,7 @@ FModifier *find_active_fmodifier(ListBaseT<FModifier> *modifiers)
 void set_active_fmodifier(ListBaseT<FModifier> *modifiers, FModifier *fcm)
 {
   /* sanity checks */
-  if (ELEM(nullptr, modifiers, modifiers->first)) {
+  if (ELEM(nullptr, modifiers, modifiers->first())) {
     return;
   }
 
@@ -1375,11 +1374,11 @@ bool list_has_suitable_fmodifier(const ListBaseT<FModifier> *modifiers, int mtyp
 {
   /* if there are no specific filtering criteria, just skip */
   if ((mtype == 0) && (acttype == 0)) {
-    return (modifiers && modifiers->first);
+    return (modifiers && modifiers->first());
   }
 
   /* sanity checks */
-  if (ELEM(nullptr, modifiers, modifiers->first)) {
+  if (ELEM(nullptr, modifiers, modifiers->first())) {
     return false;
   }
 
@@ -1411,7 +1410,7 @@ bool list_has_suitable_fmodifier(const ListBaseT<FModifier> *modifiers, int mtyp
 uint evaluate_fmodifiers_storage_size_per_modifier(const ListBaseT<FModifier> *modifiers)
 {
   /* Sanity checks. */
-  if (ELEM(nullptr, modifiers, modifiers->first)) {
+  if (ELEM(nullptr, modifiers, modifiers->first())) {
     return 0;
   }
 
@@ -1487,7 +1486,7 @@ float evaluate_time_fmodifiers(FModifiersStackStorage *storage,
                                float evaltime)
 {
   /* sanity checks */
-  if (ELEM(nullptr, modifiers, modifiers->last)) {
+  if (ELEM(nullptr, modifiers, modifiers->last())) {
     return evaltime;
   }
 
@@ -1506,9 +1505,7 @@ float evaluate_time_fmodifiers(FModifiersStackStorage *storage,
    * (such as multiple 'stepped' modifiers in sequence, causing different stepping rates)
    */
   uint fcm_index = storage->modifier_count - 1;
-  for (FModifier *fcm = static_cast<FModifier *>(modifiers->last); fcm;
-       fcm = fcm->prev, fcm_index--)
-  {
+  for (FModifier *fcm = modifiers->last(); fcm; fcm = fcm->prev, fcm_index--) {
     const FModifierTypeInfo *fmi = fmodifier_get_typeinfo(fcm);
 
     if (fmi == nullptr) {
@@ -1549,7 +1546,7 @@ void evaluate_value_fmodifiers(FModifiersStackStorage *storage,
   FModifier *fcm;
 
   /* sanity checks */
-  if (ELEM(nullptr, modifiers, modifiers->first)) {
+  if (ELEM(nullptr, modifiers, modifiers->first())) {
     return;
   }
 
@@ -1559,7 +1556,7 @@ void evaluate_value_fmodifiers(FModifiersStackStorage *storage,
 
   /* evaluate modifiers */
   uint fcm_index = 0;
-  for (fcm = static_cast<FModifier *>(modifiers->first); fcm; fcm = fcm->next, fcm_index++) {
+  for (fcm = modifiers->first(); fcm; fcm = fcm->next, fcm_index++) {
     const FModifierTypeInfo *fmi = fmodifier_get_typeinfo(fcm);
 
     if (fmi == nullptr) {
@@ -1595,7 +1592,7 @@ void fcurve_bake_modifiers(FCurve *fcu, int start, int end)
 
   /* sanity checks */
   /* TODO: make these tests report errors using reports not CLOG's */
-  if (ELEM(nullptr, fcu, fcu->modifiers.first)) {
+  if (ELEM(nullptr, fcu, fcu->modifiers.first())) {
     CLOG_ERROR(&LOG, "No F-Curve with F-Curve Modifiers to Bake");
     return;
   }

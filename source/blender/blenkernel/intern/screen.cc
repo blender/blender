@@ -127,8 +127,8 @@ static void screen_copy_data(Main * /*bmain*/,
   screen_dst->regionbase.clear_no_delete();
 
   {
-    ScrVert *sv_dst = static_cast<ScrVert *>(screen_dst->vertbase.first);
-    ScrVert *sv_src = static_cast<ScrVert *>(screen_src->vertbase.first);
+    ScrVert *sv_dst = screen_dst->vertbase.first();
+    ScrVert *sv_src = screen_src->vertbase.first();
     for (; sv_dst && sv_src; sv_dst = sv_dst->next, sv_src = sv_src->next) {
       sv_src->newv = sv_dst;
     }
@@ -140,8 +140,8 @@ static void screen_copy_data(Main * /*bmain*/,
   }
 
   {
-    ScrArea *area_dst = static_cast<ScrArea *>(screen_dst->areabase.first);
-    ScrArea *area_src = static_cast<ScrArea *>(screen_src->areabase.first);
+    ScrArea *area_dst = screen_dst->areabase.first();
+    ScrArea *area_src = screen_src->areabase.first();
     for (; area_dst && area_src; area_dst = area_dst->next, area_src = area_src->next) {
       area_dst->v1 = area_dst->v1->newv;
       area_dst->v2 = area_dst->v2->newv;
@@ -225,7 +225,7 @@ bool BKE_screen_blend_read_data(BlendDataReader *reader, bScreen *screen)
 {
   bool success = true;
 
-  screen->regionbase.first = screen->regionbase.last = nullptr;
+  screen->regionbase.first_ = screen->regionbase.last_ = nullptr;
   screen->context = nullptr;
   screen->active_region = nullptr;
   screen->animtimer = nullptr; /* saved in rare cases */
@@ -556,7 +556,7 @@ ARegion *BKE_spacedata_find_region_type(const SpaceLink *slink,
                                         const ScrArea *area,
                                         int region_type)
 {
-  const bool is_slink_active = slink == area->spacedata.first;
+  const bool is_slink_active = slink == area->spacedata.first();
   const ListBaseT<ARegion> *regionbase = (is_slink_active) ? &area->regionbase :
                                                              &slink->regionbase;
   ARegion *region = nullptr;
@@ -1089,8 +1089,8 @@ ARegion *BKE_screen_find_region_in_space(const bScreen *screen,
   for (ScrArea &area : screen->areabase) {
     for (SpaceLink &slink : area.spacedata) {
       if (&slink == sl) {
-        ListBaseT<ARegion> *regionbase = (&slink == area.spacedata.first) ? &area.regionbase :
-                                                                            &slink.regionbase;
+        ListBaseT<ARegion> *regionbase = (&slink == area.spacedata.first()) ? &area.regionbase :
+                                                                              &slink.regionbase;
         return BKE_region_find_in_listbase_by_type(regionbase, region_type);
       }
     }
@@ -1628,15 +1628,14 @@ static void direct_link_area(BlendDataReader *reader, ScrArea *area)
 
   /* accident can happen when read/save new file with older version */
   /* 2.50: we now always add spacedata for info */
-  if (area->spacedata.first == nullptr) {
+  if (area->spacedata.first() == nullptr) {
     SpaceInfo *sinfo = MEM_new<SpaceInfo>("spaceinfo");
     area->spacetype = sinfo->spacetype = SPACE_INFO;
     BLI_addtail(&area->spacedata, sinfo);
   }
   /* add local view3d too */
   else if (area->spacetype == SPACE_VIEW3D) {
-    BKE_screen_view3d_do_versions_250(static_cast<View3D *>(area->spacedata.first),
-                                      &area->regionbase);
+    BKE_screen_view3d_do_versions_250(area->spacedata.first_as<View3D>(), &area->regionbase);
   }
 
   for (SpaceLink &sl : area->spacedata) {
@@ -1716,8 +1715,8 @@ void BKE_screen_area_blend_read_after_liblink(BlendLibReader *reader, ID *parent
 {
   for (SpaceLink &sl : area->spacedata) {
     SpaceType *space_type = BKE_spacetype_from_id(sl.spacetype);
-    ListBaseT<ARegion> *regionbase = (&sl == area->spacedata.first) ? &area->regionbase :
-                                                                      &sl.regionbase;
+    ListBaseT<ARegion> *regionbase = (&sl == area->spacedata.first()) ? &area->regionbase :
+                                                                        &sl.regionbase;
 
     /* We cannot restore the region type without a valid space type. So delete all regions to make
      * sure no data is kept around that can't be restored safely (like the type dependent

@@ -506,7 +506,7 @@ TEST_F(ArmatureBoneIndexTest, armature_copy_data)
   EXPECT_EQ(3, copy->runtime->bones.size());
 
   /* Getting the indexed bone should return a copied bone, and not the original. */
-  Bone *copybone_root = static_cast<Bone *>(copy->bonebase.first);
+  Bone *copybone_root = copy->bonebase.first();
   EXPECT_EQ(copybone_root, copy->bone_get_indexed(0));
 
   /* CoW-copy, should reuse the generation counter. */

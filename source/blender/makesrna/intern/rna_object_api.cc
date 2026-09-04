@@ -237,7 +237,7 @@ static Base *rna_Object_local_view_property_helper(bScreen *screen,
   }
 
   if (view_layer == nullptr) {
-    win = ED_screen_window_find(screen, static_cast<wmWindowManager *>(G_MAIN->wm.first));
+    win = ED_screen_window_find(screen, G_MAIN->wm.first());
     view_layer = WM_window_get_active_view_layer(win);
   }
 

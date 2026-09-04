@@ -111,7 +111,7 @@ static void update_deg_with_temporary_ik(Main *bmain, Object *ob)
 
 static bKinematicConstraint *has_targetless_ik(bPoseChannel *pchan)
 {
-  bConstraint *con = static_cast<bConstraint *>(pchan->constraints.first);
+  bConstraint *con = pchan->constraints.first();
 
   for (; con; con = con->next) {
     if (con->type == CONSTRAINT_TYPE_KINEMATIC && (con->flag & CONSTRAINT_OFF) == 0 &&
@@ -276,8 +276,7 @@ static short pose_grab_with_ik(Main *bmain, Object *ob)
     if (BKE_pose_is_bonecoll_visible(arm, &pchan)) {
       if ((pchan.flag & POSE_SELECTED) || (pchan_bone->flag & BONE_TRANSFORM_MIRROR)) {
         /* Rule: no IK for solitary (unconnected) bones. */
-        for (bonec = static_cast<Bone *>(pchan_bone->childbase.first); bonec; bonec = bonec->next)
-        {
+        for (bonec = pchan_bone->childbase.first(); bonec; bonec = bonec->next) {
           if (bonec->flag & BONE_CONNECTED) {
             break;
           }
@@ -571,7 +570,7 @@ static void add_pose_transdata(
   }
 
   /* Store reference to first constraint. */
-  td->con = static_cast<bConstraint *>(pchan->constraints.first);
+  td->con = pchan->constraints.first();
 }
 
 static void free_pose_transdata(TransInfo *t, TransDataContainer *tc, TransCustomData *custom_data)
@@ -1648,7 +1647,7 @@ static void pose_grab_with_ik_clear(Main *bmain, Object *ob)
     pchan.constflag &= ~(PCHAN_HAS_IK | PCHAN_HAS_NO_TARGET);
 
     /* Remove all temporary IK-constraints added. */
-    for (con = static_cast<bConstraint *>(pchan.constraints.first); con; con = next) {
+    for (con = pchan.constraints.first(); con; con = next) {
       next = con->next;
       if (con->type == CONSTRAINT_TYPE_KINEMATIC) {
         data = static_cast<bKinematicConstraint *>(con->data);

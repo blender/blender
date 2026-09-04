@@ -185,7 +185,7 @@ static void graph_bezt_get_transform_selection(const TransInfo *t,
                                                bool *r_key,
                                                bool *r_right_handle)
 {
-  SpaceGraph *sipo = static_cast<SpaceGraph *>(t->area->spacedata.first);
+  SpaceGraph *sipo = t->area->spacedata.first_as<SpaceGraph>();
   bool key = (bezt->f2 & SELECT) != 0;
   bool left = use_handle ? ((bezt->f1 & SELECT) != 0) : key;
   bool right = use_handle ? ((bezt->f3 & SELECT) != 0) : key;
@@ -244,7 +244,7 @@ static float graph_key_shortest_dist(
  */
 static void createTransGraphEditData(bContext *C, TransInfo *t)
 {
-  SpaceGraph *sipo = static_cast<SpaceGraph *>(t->area->spacedata.first);
+  SpaceGraph *sipo = t->area->spacedata.first_as<SpaceGraph>();
   Scene *scene = t->scene;
   ARegion *region = t->region;
   View2D *v2d = &region->v2d;
@@ -905,7 +905,7 @@ static void update_transdata_bezt_pointers(TransDataContainer *tc,
  */
 static void remake_graph_transdata(TransInfo *t, const Span<FCurve *> fcurves)
 {
-  SpaceGraph *sipo = static_cast<SpaceGraph *>(t->area->spacedata.first);
+  SpaceGraph *sipo = t->area->spacedata.first_as<SpaceGraph>();
   const bool use_handle = (sipo->flag & SIPO_NOHANDLES) == 0;
 
   TransDataContainer *tc = TRANS_DATA_CONTAINER_FIRST_SINGLE(t);
@@ -945,7 +945,7 @@ static void remake_graph_transdata(TransInfo *t, const Span<FCurve *> fcurves)
 
 static void recalcData_graphedit(TransInfo *t)
 {
-  SpaceGraph *sipo = static_cast<SpaceGraph *>(t->area->spacedata.first);
+  SpaceGraph *sipo = t->area->spacedata.first_as<SpaceGraph>();
   ViewLayer *view_layer = t->view_layer;
 
   ListBaseT<bAnimListElem> anim_data = {nullptr, nullptr};
@@ -962,7 +962,7 @@ static void recalcData_graphedit(TransInfo *t)
   ac.obact = BKE_view_layer_active_object_get(view_layer);
   ac.area = t->area;
   ac.region = t->region;
-  ac.sl = static_cast<SpaceLink *>((t->area) ? t->area->spacedata.first : nullptr);
+  ac.sl = t->area ? t->area->spacedata.first_as<SpaceLink>() : nullptr;
   ac.spacetype = eSpace_Type((t->area) ? t->area->spacetype : 0);
   ac.regiontype = eRegion_Type((t->region) ? t->region->regiontype : 0);
 
@@ -1019,7 +1019,7 @@ static void recalcData_graphedit(TransInfo *t)
 
 static void special_aftertrans_update__graph(bContext *C, TransInfo *t)
 {
-  SpaceGraph *sipo = static_cast<SpaceGraph *>(t->area->spacedata.first);
+  SpaceGraph *sipo = t->area->spacedata.first_as<SpaceGraph>();
   bAnimContext ac;
   const bool use_handle = (sipo->flag & SIPO_NOHANDLES) == 0;
 

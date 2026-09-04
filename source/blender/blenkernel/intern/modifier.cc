@@ -479,7 +479,7 @@ int BKE_modifiers_get_cage_index(const Scene *scene,
   VirtualModifierData virtual_modifier_data;
   ModifierData *md = (is_virtual) ?
                          BKE_modifiers_get_virtual_modifierlist(ob, &virtual_modifier_data) :
-                         static_cast<ModifierData *>(ob->modifiers.first);
+                         ob->modifiers.first();
 
   if (r_lastPossibleCageIndex) {
     /* ensure the value is initialized */
@@ -620,7 +620,7 @@ CDMaskLink *BKE_modifier_calc_data_masks(const Scene *scene,
 ModifierData *BKE_modifiers_get_virtual_modifierlist(const Object *ob,
                                                      VirtualModifierData *virtual_modifier_data)
 {
-  ModifierData *md = static_cast<ModifierData *>(ob->modifiers.first);
+  ModifierData *md = ob->modifiers.first();
 
   *virtual_modifier_data = virtualModifierCommonData;
 
@@ -873,7 +873,7 @@ void BKE_modifiers_add_at_end_if_possible(Object *ob, ModifierData *new_md)
   const bool check_deform_only = (mti->flags & eModifierTypeFlag_RequiresOriginalData) ||
                                  (mt == eModifierType_Hook);
   if (check_deform_only) {
-    next_md = static_cast<ModifierData *>(ob->modifiers.first);
+    next_md = ob->modifiers.first();
 
     while (next_md && BKE_modifier_get_info(next_md->type)->type == ModifierTypeType::OnlyDeform) {
       if (next_md->next && (next_md->next->flag & eModifierFlag_PinLast) != 0) {
@@ -1339,11 +1339,11 @@ static ModifierData *modifier_replace_with_fluid(BlendDataReader *reader,
   if (new_modifier_data->next != nullptr) {
     new_modifier_data->next->prev = new_modifier_data;
   }
-  if (modifiers->first == old_modifier_data) {
-    modifiers->first = new_modifier_data;
+  if (modifiers->first() == old_modifier_data) {
+    modifiers->first_ = new_modifier_data;
   }
-  if (modifiers->last == old_modifier_data) {
-    modifiers->last = new_modifier_data;
+  if (modifiers->last_ == old_modifier_data) {
+    modifiers->last_ = new_modifier_data;
   }
 
   /* Free old modifier data. */
@@ -1465,7 +1465,7 @@ void BKE_modifier_blend_read_data(BlendDataReader *reader, ListBaseT<ModifierDat
               reader, &(fmd->domain->ptcaches[0]), &(fmd->domain->point_cache[0]), 1);
 
           /* Manta sim uses only one cache from now on, so store pointer convert */
-          if (fmd->domain->ptcaches[1].first || fmd->domain->point_cache[1]) {
+          if (fmd->domain->ptcaches[1].first() || fmd->domain->point_cache[1]) {
             PointCache *cache = fmd->domain->point_cache[1];
             if (BLO_read_struct_no_us_nonnull(reader, PointCache, &cache)) {
               if (cache->flag & PTCACHE_FAKE_SMOKE) {
@@ -1524,7 +1524,7 @@ void BKE_modifier_blend_read_data(BlendDataReader *reader, ListBaseT<ModifierDat
         pmd->canvas->pmd = pmd;
         pmd->canvas->flags &= ~MOD_DPAINT_BAKING; /* just in case */
 
-        if (pmd->canvas->surfaces.first) {
+        if (pmd->canvas->surfaces.first()) {
           BLO_read_struct_list(reader, DynamicPaintSurface, &pmd->canvas->surfaces);
 
           for (DynamicPaintSurface &surface : pmd->canvas->surfaces) {

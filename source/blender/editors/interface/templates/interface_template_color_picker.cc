@@ -272,7 +272,7 @@ void template_palette(Layout *layout, PointerRNA *ptr, const StringRefNull propn
                 UI_UNIT_X,
                 UI_UNIT_Y,
                 std::nullopt);
-  if (palette->colors.first != nullptr) {
+  if (palette->colors.first() != nullptr) {
     but = uiDefIconButO(block,
                         ButtonType::But,
                         "PALETTE_OT_color_move",

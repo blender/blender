@@ -429,7 +429,7 @@ void GPUCodegen::node_serialize(Set<StringRefNull> &used_libraries,
         eval_ss << &input;
         break;
     }
-    GPUOutput *output = static_cast<GPUOutput *>(node->outputs.first);
+    GPUOutput *output = node->outputs.first();
     if ((input.next && !input.next->is_zone_io) || (output && !output->is_zone_io)) {
       eval_ss << ", ";
     }
@@ -579,13 +579,13 @@ void GPUCodegen::set_unique_ids()
   /* Assign the same id to inputs and outputs of start and end zones. */
   for (GPUNode *end : zone_ends.values()) {
 
-    GPUInput *end_input = find_zone_io(static_cast<GPUInput *>(end->inputs.first));
-    GPUOutput *end_output = find_zone_io(static_cast<GPUOutput *>(end->outputs.first));
+    GPUInput *end_input = find_zone_io(end->inputs.first());
+    GPUOutput *end_output = find_zone_io(end->outputs.first());
 
     GPUNode *start = zone_starts.lookup(end->zone_index);
 
-    GPUInput *start_input = find_zone_io(static_cast<GPUInput *>(start->inputs.first));
-    GPUOutput *start_output = find_zone_io(static_cast<GPUOutput *>(start->outputs.first));
+    GPUInput *start_input = find_zone_io(start->inputs.first());
+    GPUOutput *start_output = find_zone_io(start->outputs.first());
 
     for (; start_input; start_input = start_input->next,
                         start_output = start_output->next,

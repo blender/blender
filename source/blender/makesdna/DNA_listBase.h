@@ -34,7 +34,7 @@ struct LinkData {
  * function (from dna_genfile.cc) uses it to compute the #pointer_size.
  */
 struct ListBase {
-  void *first, *last;
+  void *first_, *last_;
 };
 
 #ifdef __cplusplus
@@ -53,13 +53,13 @@ template<typename T> struct ListBaseT : public ListBase {
   /** True when there is no item in the list. */
   bool is_empty() const
   {
-    return this->first == nullptr;
+    return this->first_ == nullptr;
   }
 
   /** True when there is exactly one item in the list. */
   bool is_single() const
   {
-    return this->first != nullptr && this->last == this->first;
+    return this->first_ != nullptr && this->last_ == this->first_;
   }
 
   /**
@@ -67,8 +67,8 @@ template<typename T> struct ListBaseT : public ListBase {
    */
   void clear_no_delete()
   {
-    this->first = nullptr;
-    this->last = nullptr;
+    this->first_ = nullptr;
+    this->last_ = nullptr;
   }
 
   /**
@@ -79,8 +79,8 @@ template<typename T> struct ListBaseT : public ListBase {
     for ([[maybe_unused]] T &item : this->items_mutable()) {
       MEM_delete_void(static_cast<void *>(&item));
     }
-    this->first = nullptr;
-    this->last = nullptr;
+    this->first_ = nullptr;
+    this->last_ = nullptr;
   }
 
   /**
@@ -95,11 +95,45 @@ template<typename T> struct ListBaseT : public ListBase {
     return count;
   }
 
+  /* Some places require getting a mutable first item from a const list. */
+  T *first() const
+  {
+    return static_cast<T *>(this->first_);
+  }
+  T *first()
+  {
+    return static_cast<T *>(this->first_);
+  }
+  T *last() const
+  {
+    return static_cast<T *>(this->last_);
+  }
+  T *last()
+  {
+    return static_cast<T *>(this->last_);
+  }
+  template<typename U> U *first_as() const
+  {
+    return reinterpret_cast<U *>(this->first());
+  }
+  template<typename U> U *first_as()
+  {
+    return reinterpret_cast<U *>(this->first());
+  }
+  template<typename U> U *last_as() const
+  {
+    return reinterpret_cast<U *>(this->last_);
+  }
+  template<typename U> U *last_as()
+  {
+    return reinterpret_cast<U *>(this->last_);
+  }
+
   /* TODO: Add const and non-const iterators. However this will require some refactoring
    * as some places rely on being able to get a mutable list element from a const list. */
   ListBaseTIterator<T> begin() const
   {
-    return ListBaseTIterator<T>{static_cast<T *>(this->first)};
+    return ListBaseTIterator<T>{this->first()};
   }
 
   ListBaseTIterator<T> end() const
@@ -114,35 +148,35 @@ template<typename T> struct ListBaseT : public ListBase {
    * Usage: `for(auto [index, item] : list.enumerate())` */
   ListBaseEnumerateWrapper<T> enumerate()
   {
-    return {this->first};
+    return {this->first_};
   }
 
   ListBaseEnumerateWrapper<const T> enumerate() const
   {
-    return {this->first};
+    return {this->first_};
   }
 
   /** Iterator that supports removing the item we're looping over. */
   ListBaseMutableWrapper<T> items_mutable()
   {
-    return {this->first};
+    return {this->first_};
   }
 
   /** Iterator that runs in reverse order. */
   ListBaseBackwardWrapper<T> items_reversed()
   {
-    return {this->last};
+    return {this->last_};
   }
 
   ListBaseBackwardWrapper<const T> items_reversed() const
   {
-    return {this->last};
+    return {this->last_};
   }
 
   /** Iterator that runs in reverse order and supports removing the item we're looping over. */
   ListBaseMutableBackwardWrapper<T> items_reversed_mutable()
   {
-    return {this->last};
+    return {this->last_};
   }
 
   /* Cast for opaque types and C style subclasses. */

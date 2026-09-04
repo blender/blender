@@ -141,9 +141,7 @@ void render_result_free_gpu_texture_caches(struct RenderResult *rr);
 #define FOREACH_VIEW_LAYER_TO_RENDER_BEGIN(re_, iter_) \
   { \
     ViewLayer *iter_; \
-    for (iter_ = static_cast<ViewLayer *>((re_)->scene->view_layers.first); iter_ != NULL; \
-         iter_ = iter_->next) \
-    { \
+    for (iter_ = (re_)->scene->view_layers.first(); iter_ != NULL; iter_ = iter_->next) { \
       if (!G.background && (re_)->r.scemode & R_SINGLE_LAYER) { \
         if (!STREQ(iter_->name, re->single_view_layer)) { \
           continue; \

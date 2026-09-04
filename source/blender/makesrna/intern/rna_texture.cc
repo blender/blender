@@ -363,7 +363,7 @@ static int rna_TextureSlot_output_node_get(PointerRNA *ptr)
     bNodeTree *ntree = tex->nodetree;
     bNode *node;
     if (ntree) {
-      for (node = static_cast<bNode *>(ntree->nodes.first); node; node = node->next) {
+      for (node = ntree->nodes.first(); node; node = node->next) {
         if (node->type_legacy == TEX_NODE_OUTPUT) {
           if (cur == node->custom1) {
             return cur;
@@ -398,7 +398,7 @@ static const EnumPropertyItem *rna_TextureSlot_output_node_itemf(bContext * /*C*
       tmp.identifier = "NOT_SPECIFIED";
       RNA_enum_item_add(&item, &totitem, &tmp);
 
-      for (node = static_cast<bNode *>(ntree->nodes.first); node; node = node->next) {
+      for (node = ntree->nodes.first(); node; node = node->next) {
         if (node->type_legacy == TEX_NODE_OUTPUT) {
           tmp.value = node->custom1;
           tmp.name = (static_cast<TexNodeOutput *>(node->storage))->name;

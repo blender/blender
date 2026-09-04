@@ -529,7 +529,7 @@ bool ANIM_remove_driver(ID *id, const char rna_path[], int array_index)
 
   /* Step through all drivers, removing all of those with the same RNA path. */
   bool any_driver_removed = false;
-  FCurve *fcu_iter = static_cast<FCurve *>(adt->drivers.first);
+  FCurve *fcu_iter = adt->drivers.first();
   FCurve *fcu;
   while ((fcu = BKE_fcurve_iter_step(fcu_iter, rna_path)) != nullptr) {
     /* Store the next fcurve for looping. */
@@ -661,11 +661,11 @@ static ListBaseT<DriverVar> driver_vars_copybuf = {nullptr, nullptr};
 void ANIM_driver_vars_copybuf_free()
 {
   /* Free the driver variables kept in the buffer */
-  if (driver_vars_copybuf.first) {
+  if (driver_vars_copybuf.first_) {
     DriverVar *dvar, *dvarn;
 
     /* Free variables (and any data they use) */
-    for (dvar = static_cast<DriverVar *>(driver_vars_copybuf.first); dvar; dvar = dvarn) {
+    for (dvar = driver_vars_copybuf.first(); dvar; dvar = dvarn) {
       dvarn = dvar->next;
       driver_free_variable(&driver_vars_copybuf, dvar);
     }
@@ -727,7 +727,7 @@ bool ANIM_driver_vars_paste(ReportList *reports, FCurve *fcu, bool replace)
     DriverVar *dvar, *dvarn;
 
     /* Free all existing vars first - We aren't retaining anything */
-    for (dvar = static_cast<DriverVar *>(driver->variables.first); dvar; dvar = dvarn) {
+    for (dvar = driver->variables.first(); dvar; dvar = dvarn) {
       dvarn = dvar->next;
       driver_free_variable_ex(driver, dvar);
     }
@@ -736,18 +736,18 @@ bool ANIM_driver_vars_paste(ReportList *reports, FCurve *fcu, bool replace)
   }
 
   /* 3) Add new vars */
-  if (driver->variables.last) {
-    DriverVar *last = static_cast<DriverVar *>(driver->variables.last);
-    DriverVar *first = static_cast<DriverVar *>(tmp_list.first);
+  if (driver->variables.last()) {
+    DriverVar *last = driver->variables.last();
+    DriverVar *first = tmp_list.first();
 
     last->next = first;
     first->prev = last;
 
-    driver->variables.last = tmp_list.last;
+    driver->variables.last_ = tmp_list.last();
   }
   else {
-    driver->variables.first = tmp_list.first;
-    driver->variables.last = tmp_list.last;
+    driver->variables.first_ = tmp_list.first_;
+    driver->variables.last_ = tmp_list.last();
   }
 
   /* since driver variables are cached, the expression needs re-compiling too */

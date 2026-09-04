@@ -236,7 +236,7 @@ static std::optional<std::string> rna_ColorRamp_path(const PointerRNA *ptr)
         bNodeTree *ntree = id_cast<bNodeTree *>(id);
         bNode *node;
 
-        for (node = static_cast<bNode *>(ntree->nodes.first); node; node = node->next) {
+        for (node = ntree->nodes.first(); node; node = node->next) {
           if (ELEM(node->type_legacy, SH_NODE_VALTORGB, TEX_NODE_VALTORGB)) {
             if (node->storage == ptr->data) {
               /* all node color ramp properties called 'color_ramp'
@@ -304,7 +304,7 @@ static std::optional<std::string> rna_ColorRampElement_path(const PointerRNA *pt
         bNodeTree *ntree = id_cast<bNodeTree *>(id);
         bNode *node;
 
-        for (node = static_cast<bNode *>(ntree->nodes.first); node; node = node->next) {
+        for (node = ntree->nodes.first(); node; node = node->next) {
           if (ELEM(node->type_legacy, SH_NODE_VALTORGB, TEX_NODE_VALTORGB)) {
             ramp_ptr = RNA_pointer_create_discrete(id, RNA_ColorRamp, node->storage);
             COLRAMP_GETPATH;
@@ -317,7 +317,7 @@ static std::optional<std::string> rna_ColorRampElement_path(const PointerRNA *pt
         LinkData *link;
 
         BKE_linestyle_modifier_list_color_ramps(id_cast<FreestyleLineStyle *>(id), &listbase);
-        for (link = static_cast<LinkData *>(listbase.first); link; link = link->next) {
+        for (link = listbase.first(); link; link = link->next) {
           ramp_ptr = RNA_pointer_create_discrete(id, RNA_ColorRamp, link->data);
           COLRAMP_GETPATH;
         }
@@ -360,7 +360,7 @@ static void rna_ColorRamp_update(Main *bmain, Scene * /*scene*/, PointerRNA *ptr
         bNodeTree *ntree = id_cast<bNodeTree *>(id);
         bNode *node;
 
-        for (node = static_cast<bNode *>(ntree->nodes.first); node; node = node->next) {
+        for (node = ntree->nodes.first(); node; node = node->next) {
           if (ELEM(node->type_legacy, SH_NODE_VALTORGB, TEX_NODE_VALTORGB)) {
             BKE_ntree_update_tag_node_property(ntree, node);
             BKE_main_ensure_invariants(*bmain, ntree->id);
@@ -545,9 +545,7 @@ static void rna_ColorManagedDisplaySettings_display_device_update(Main *bmain,
     WM_main_add_notifier(NC_SCENE | ND_SEQUENCER, nullptr);
 
     /* Color management can be baked into shaders, need to refresh. */
-    for (Material *ma = static_cast<Material *>(bmain->materials.first); ma;
-         ma = static_cast<Material *>(ma->id.next))
-    {
+    for (Material *ma = bmain->materials.first(); ma; ma = static_cast<Material *>(ma->id.next)) {
       DEG_id_tag_update(&ma->id, ID_RECALC_SYNC_TO_EVAL);
     }
   }

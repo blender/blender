@@ -195,7 +195,7 @@ static void bli_builddir(BuildDirCtx *dir_ctx, const char *dirname)
       dir_ctx->files_num = 0;
     }
     else {
-      dirlink *dlink = static_cast<dirlink *>(dirbase.first);
+      dirlink *dlink = dirbase.first();
       direntry *file = &dir_ctx->files[dir_ctx->files_num];
 
       while (dlink) {

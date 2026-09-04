@@ -1087,7 +1087,7 @@ void reset_particle(ParticleSimulationData *sim, ParticleData *pa, float dtime, 
 
     bpa->data.health = part->boids->health;
     bpa->data.mode = eBoidMode_InAir;
-    bpa->data.state_id = (static_cast<BoidState *>(part->boids->states.first))->id;
+    bpa->data.state_id = (part->boids->states.first())->id;
     bpa->data.acc[0] = bpa->data.acc[1] = bpa->data.acc[2] = 0.0f;
   }
 
@@ -1114,7 +1114,7 @@ void reset_particle(ParticleSimulationData *sim, ParticleData *pa, float dtime, 
   pa->dietime = pa->time + pa->lifetime;
 
   if ((sim->psys->pointcache) && (sim->psys->pointcache->flag & PTCACHE_BAKED) &&
-      (sim->psys->pointcache->mem_cache.first))
+      (sim->psys->pointcache->mem_cache.first()))
   {
     float dietime = psys_get_dietime_from_cache(sim->psys->pointcache, p);
     pa->dietime = std::min(pa->dietime, dietime);
@@ -1178,7 +1178,7 @@ ParticleSystem *psys_get_target_system(Object *ob, ParticleTarget *pt)
 void psys_count_keyed_targets(ParticleSimulationData *sim)
 {
   ParticleSystem *psys = sim->psys, *kpsys;
-  ParticleTarget *pt = static_cast<ParticleTarget *>(psys->targets.first);
+  ParticleTarget *pt = psys->targets.first();
   int keys_valid = 1;
   psys->totkeyed = 0;
 
@@ -1234,7 +1234,7 @@ static void set_keyed_keys(ParticleSimulationData *sim)
 
   psys->flag &= ~PSYS_KEYED;
 
-  pt = static_cast<ParticleTarget *>(psys->targets.first);
+  pt = psys->targets.first();
   for (k = 0; k < totkeys; k++) {
     ksim.ob = pt->ob ? pt->ob : sim->ob;
     ksim.psys = static_cast<ParticleSystem *>(
@@ -1271,8 +1271,7 @@ static void set_keyed_keys(ParticleSimulationData *sim)
 
     ksim.psys->flag |= keyed_flag;
 
-    pt = static_cast<ParticleTarget *>(
-        (pt->next && pt->next->flag & PTARGET_VALID) ? pt->next : psys->targets.first);
+    pt = (pt->next && pt->next->flag & PTARGET_VALID) ? pt->next : psys->targets.first();
   }
 
   psys->flag |= PSYS_KEYED;
@@ -2126,9 +2125,7 @@ static void psys_sph_init(ParticleSimulationData *sim,
 
   /* Add other coupled particle systems. */
   sphdata->psys[0] = sim->psys;
-  for (i = 1, pt = static_cast<ParticleTarget *>(sim->psys->targets.first); i < 10;
-       i++, pt = (pt ? pt->next : nullptr))
-  {
+  for (i = 1, pt = sim->psys->targets.first(); i < 10; i++, pt = (pt ? pt->next : nullptr)) {
     sphdata->psys[i] = pt ? psys_get_target_system(sim->ob, pt) : nullptr;
   }
 
@@ -3870,7 +3867,7 @@ static void dynamics_step(ParticleSimulationData *sim, float cfra)
   /* initialize physics type specific stuff */
   switch (part->phystype) {
     case PART_PHYS_BOIDS: {
-      ParticleTarget *pt = static_cast<ParticleTarget *>(psys->targets.first);
+      ParticleTarget *pt = psys->targets.first();
       bbd.sim = sim;
       bbd.part = part;
       bbd.cfra = cfra;
@@ -3891,7 +3888,7 @@ static void dynamics_step(ParticleSimulationData *sim, float cfra)
       break;
     }
     case PART_PHYS_FLUID: {
-      ParticleTarget *pt = static_cast<ParticleTarget *>(psys->targets.first);
+      ParticleTarget *pt = psys->targets.first();
       psys_update_particle_bvhtree(psys, cfra);
 
       /* Updating others systems particle tree for fluid-fluid interaction. */
@@ -5070,9 +5067,7 @@ void BKE_particlesystem_id_loop(ParticleSystem *psys, ParticleSystemIDFunc func,
 
 void BKE_particlesystem_reset_all(Object *object)
 {
-  for (ModifierData *md = static_cast<ModifierData *>(object->modifiers.first); md != nullptr;
-       md = md->next)
-  {
+  for (ModifierData *md = object->modifiers.first(); md != nullptr; md = md->next) {
     if (md->type != eModifierType_ParticleSystem) {
       continue;
     }
@@ -5097,10 +5092,7 @@ void BKE_particle_settings_eval_reset(Depsgraph *depsgraph, ParticleSettings *pa
 void BKE_particle_system_eval_init(Depsgraph *depsgraph, Object *object)
 {
   DEG_debug_print_eval(depsgraph, __func__, object->id.name, object);
-  for (ParticleSystem *psys = static_cast<ParticleSystem *>(object->particlesystem.first);
-       psys != nullptr;
-       psys = psys->next)
-  {
+  for (ParticleSystem *psys = object->particlesystem.first(); psys != nullptr; psys = psys->next) {
     psys->recalc |= (psys->part->id.recalc & ID_RECALC_PSYS_ALL);
   }
 }

@@ -264,7 +264,7 @@ void DepsgraphNodeBuilder::build_rig(Object *object)
           &object->id, NodeType::PARAMETERS, OperationCode::PARAMETERS_EVAL, nullptr, pchan.name);
     }
     /* Build constraints. */
-    if (pchan.constraints.first != nullptr) {
+    if (pchan.constraints.first() != nullptr) {
       build_pose_constraints(object, &pchan, pchan_index);
     }
     /**

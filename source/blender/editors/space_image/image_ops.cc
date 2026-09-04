@@ -234,8 +234,7 @@ static ImageUser image_user_from_context_and_active_tile(const bContext *C, Imag
   if (ima && ima->source == IMA_SRC_TILED) {
     const ImageTile *active = static_cast<ImageTile *>(
         BLI_findlink(&ima->tiles, ima->active_tile_index));
-    iuser.tile = active ? active->tile_number :
-                          (static_cast<ImageTile *>(ima->tiles.first))->tile_number;
+    iuser.tile = active ? active->tile_number : (ima->tiles.first())->tile_number;
   }
 
   return iuser;
@@ -1414,9 +1413,9 @@ static Image *image_open_single(Main *bmain,
   }
 
   if (ima->source == IMA_SRC_FILE) {
-    if (range->udims_detected && range->udim_tiles.first) {
+    if (range->udims_detected && range->udim_tiles.first_) {
       ima->source = IMA_SRC_TILED;
-      ImageTile *first_tile = static_cast<ImageTile *>(ima->tiles.first);
+      ImageTile *first_tile = ima->tiles.first();
       first_tile->tile_number = range->offset;
       for (LinkData &node : range->udim_tiles) {
         BKE_image_add_tile(ima, POINTER_AS_INT(node.data), nullptr);
@@ -1495,7 +1494,7 @@ static wmOperatorStatus image_open_exec(bContext *C, wmOperator *op)
     iuser = iod->iuser;
   }
   else if (area && area->spacetype == SPACE_IMAGE) {
-    SpaceImage *sima = static_cast<SpaceImage *>(area->spacedata.first);
+    SpaceImage *sima = area->spacedata.first_as<SpaceImage>();
     ED_space_image_set(bmain, sima, ima, false);
     iuser = &sima->iuser;
   }
@@ -1829,7 +1828,7 @@ static wmOperatorStatus image_match_len_exec(bContext *C, wmOperator * /*op*/)
     return OPERATOR_CANCELLED;
   }
 
-  MovieReader *anim = (static_cast<ImageAnim *>(ima->anims.first))->anim;
+  MovieReader *anim = (ima->anims.first())->anim;
   if (!anim) {
     return OPERATOR_CANCELLED;
   }
@@ -2494,9 +2493,7 @@ int ED_image_save_all_modified_info(const Main *bmain, ReportList *reports)
 
   int num_saveable_images = 0;
 
-  for (Image *ima = static_cast<Image *>(bmain->images.first); ima;
-       ima = static_cast<Image *>(ima->id.next))
-  {
+  for (Image *ima = bmain->images.first(); ima; ima = static_cast<Image *>(ima->id.next)) {
     bool is_format_writable;
 
     if (image_should_be_saved(ima, &is_format_writable)) {
@@ -2552,9 +2549,7 @@ bool ED_image_save_all_modified(const bContext *C, ReportList *reports)
 
   bool ok = true;
 
-  for (Image *ima = static_cast<Image *>(bmain->images.first); ima;
-       ima = static_cast<Image *>(ima->id.next))
-  {
+  for (Image *ima = bmain->images.first(); ima; ima = static_cast<Image *>(ima->id.next)) {
     bool is_format_writable;
 
     if (image_should_be_saved(ima, &is_format_writable)) {
@@ -2579,9 +2574,7 @@ bool ED_image_save_all_modified(const bContext *C, ReportList *reports)
 
 void ED_image_internal_autosave_flush(const Main *bmain)
 {
-  for (Image *ima = static_cast<Image *>(bmain->images.first); ima;
-       ima = static_cast<Image *>(ima->id.next))
-  {
+  for (Image *ima = bmain->images.first(); ima; ima = static_cast<Image *>(ima->id.next)) {
     bool is_format_writable;
 
     if (image_should_be_saved(ima, &is_format_writable)) {
@@ -3639,9 +3632,7 @@ static wmOperatorStatus image_unpack_invoke(bContext *C, wmOperator *op, const w
               ima->id.name + 2,
               ima->filepath,
               "textures",
-              BKE_image_has_packedfile(ima) ?
-                  (static_cast<ImagePackedFile *>(ima->packedfiles.first))->packedfile :
-                  nullptr);
+              BKE_image_has_packedfile(ima) ? (ima->packedfiles.first())->packedfile : nullptr);
 
   return OPERATOR_FINISHED;
 }
@@ -4378,7 +4369,7 @@ static void tile_fill_init(PointerRNA *ptr, Image *ima, ImageTile *tile)
    * If the specified tile has no ibuf, try acquiring the main tile instead
    * (unless the specified tile already was the first tile). */
   ImBuf *ibuf = BKE_image_acquire_ibuf(ima, &iuser, nullptr);
-  if (ibuf == nullptr && (tile != nullptr) && (tile != ima->tiles.first)) {
+  if (ibuf == nullptr && (tile != nullptr) && (tile != ima->tiles.first_)) {
     ibuf = BKE_image_acquire_ibuf(ima, nullptr, nullptr);
   }
 

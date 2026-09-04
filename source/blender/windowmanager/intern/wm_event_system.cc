@@ -403,7 +403,7 @@ void WM_event_add_notifier(const bContext *C, uint type, void *reference)
 void WM_main_add_notifier(uint type, void *reference)
 {
   Main *bmain = G_MAIN;
-  wmWindowManager *wm = static_cast<wmWindowManager *>(bmain->wm.first);
+  wmWindowManager *wm = bmain->wm.first();
 
   WM_event_add_notifier_ex(wm, nullptr, type, reference);
 }
@@ -411,7 +411,7 @@ void WM_main_add_notifier(uint type, void *reference)
 void WM_main_remove_notifier_reference(const void *reference)
 {
   Main *bmain = G_MAIN;
-  wmWindowManager *wm = static_cast<wmWindowManager *>(bmain->wm.first);
+  wmWindowManager *wm = bmain->wm.first();
 
   if (wm) {
     for (wmNotifier &note : wm->runtime->notifier_queue.items_mutable()) {
@@ -457,7 +457,7 @@ void WM_main_remap_editor_id_reference(const bke::id::IDRemapper &mappings)
 
   mappings.iter([](ID *old_id, ID *new_id) { ed::asset::list::storage_id_remap(old_id, new_id); });
 
-  if (wmWindowManager *wm = static_cast<wmWindowManager *>(bmain->wm.first)) {
+  if (wmWindowManager *wm = bmain->wm.first()) {
     if (wmMsgBus *mbus = wm->runtime->message_bus) {
       mappings.iter([&](ID *old_id, ID *new_id) {
         if (new_id != nullptr) {
@@ -573,7 +573,7 @@ static void wm_event_timers_execute(bContext *C)
   /* Set the first window as context, so that there is some minimal context. This avoids crashes
    * when calling code that assumes that there is always a window in the context (which many
    * operators do). */
-  CTX_wm_window_set(C, static_cast<wmWindow *>(wm->windows.first));
+  CTX_wm_window_set(C, wm->windows.first());
   BLI_timer_execute();
   CTX_wm_window_set(C, nullptr);
 }
@@ -619,10 +619,7 @@ void wm_event_do_notifiers(bContext *C)
     CTX_wm_window_set(C, &win);
 
     BLI_assert(wm->runtime->notifier_current == nullptr);
-    for (const wmNotifier *
-             note = static_cast<const wmNotifier *>(wm->runtime->notifier_queue.first),
-            *note_next = nullptr;
-         note;
+    for (const wmNotifier *note = wm->runtime->notifier_queue.first(), *note_next = nullptr; note;
          note = note_next)
     {
       if (wm_notifier_is_clear(note)) {
@@ -795,7 +792,7 @@ void wm_event_do_notifiers(bContext *C)
           if ((note->category == NC_SPACE) && note->reference) {
             /* Filter out notifiers sent to other spaces. RNA sets the reference to the owning ID
              * though, the screen, so let notifiers through that reference the entire screen. */
-            if (!ELEM(note->reference, area->spacedata.first, screen, scene)) {
+            if (!ELEM(note->reference, area->spacedata.first_, screen, scene)) {
               continue;
             }
           }
@@ -1008,7 +1005,7 @@ void WM_report_banner_show(wmWindowManager *wm, wmWindow *win)
   if (win == nullptr) {
     win = wm->runtime->winactive;
     if (win == nullptr) {
-      win = static_cast<wmWindow *>(wm->windows.first);
+      win = wm->windows.first();
     }
   }
 
@@ -1026,7 +1023,7 @@ void WM_report_banner_show(wmWindowManager *wm, wmWindow *win)
 
 void WM_report_banners_cancel(Main *bmain)
 {
-  wmWindowManager *wm = static_cast<wmWindowManager *>(bmain->wm.first);
+  wmWindowManager *wm = bmain->wm.first();
   BKE_reports_clear(&wm->runtime->reports);
   WM_event_timer_remove(wm, nullptr, wm->runtime->reports.reporttimer);
 }
@@ -1047,7 +1044,7 @@ void WM_reports_from_reports_move(wmWindowManager *wm, ReportList *reports)
   }
 
   if (!wm) {
-    wm = static_cast<wmWindowManager *>(G_MAIN->wm.first);
+    wm = G_MAIN->wm.first();
   }
 
   /* Add reports to the global list, otherwise they are not seen. */
@@ -1104,8 +1101,8 @@ static intptr_t wm_operator_undo_active_id(const wmWindowManager *wm)
 
 static intptr_t wm_operator_register_active_id(const wmWindowManager *wm)
 {
-  if (wm->runtime->operators.last) {
-    return intptr_t(wm->runtime->operators.last);
+  if (wm->runtime->operators.last()) {
+    return intptr_t(wm->runtime->operators.last());
   }
   return -1;
 }
@@ -1162,7 +1159,7 @@ bool WM_operator_poll_context(bContext *C, wmOperatorType *ot, wm::OpCallContext
 
 bool WM_operator_ui_poll(wmOperatorType *ot, PointerRNA *ptr)
 {
-  if (ot->macro.first != nullptr) {
+  if (ot->macro.first() != nullptr) {
     /* For macros, check all have exec() we can call. */
     for (wmOperatorTypeMacro &otmacro : ot->macro) {
       wmOperatorType *otm = WM_operatortype_find(otmacro.idname, false);
@@ -1213,14 +1210,14 @@ static void wm_operator_reports(bContext *C,
                                 const bool caller_owns_reports)
 {
   if (G.background == 0 && caller_owns_reports == false) { /* Popup. */
-    if (op->reports->list.first) {
+    if (op->reports->list.first()) {
       /* FIXME: temp setting window, see other call to #popup_menu_reports for why. */
       wmWindow *win_prev = CTX_wm_window(C);
       ScrArea *area_prev = CTX_wm_area(C);
       ARegion *region_prev = CTX_wm_region(C);
 
       if (win_prev == nullptr) {
-        CTX_wm_window_set(C, static_cast<wmWindow *>(CTX_wm_manager(C)->windows.first));
+        CTX_wm_window_set(C, CTX_wm_manager(C)->windows.first());
       }
 
       ui::popup_menu_reports(C, op->reports);
@@ -1502,7 +1499,7 @@ bool WM_operator_is_repeat(const bContext *C, const wmOperator *op)
   wmOperator *op_prev;
   if (op->prev == nullptr && op->next == nullptr) {
     wmWindowManager *wm = CTX_wm_manager(C);
-    op_prev = static_cast<wmOperator *>(wm->runtime->operators.last);
+    op_prev = wm->runtime->operators.last();
   }
   else {
     op_prev = op->prev;
@@ -1543,7 +1540,7 @@ static wmOperator *wm_operator_create(wmWindowManager *wm,
   }
 
   /* Recursive filling of operator macro list. */
-  if (ot->macro.first) {
+  if (ot->macro.first()) {
     static wmOperator *motherop = nullptr;
     int root = 0;
 
@@ -1555,7 +1552,7 @@ static wmOperator *wm_operator_create(wmWindowManager *wm,
 
     /* If properties exist, it will contain everything needed. */
     if (properties) {
-      wmOperatorTypeMacro *otmacro = static_cast<wmOperatorTypeMacro *>(ot->macro.first);
+      wmOperatorTypeMacro *otmacro = ot->macro.first();
 
       RNA_STRUCT_BEGIN (properties, prop) {
 
@@ -1986,7 +1983,7 @@ wmOperatorStatus WM_operator_name_call_with_properties(bContext *C,
 {
   wmOperatorType *ot = WM_operatortype_find(opstring, false);
   PointerRNA props_ptr = RNA_pointer_create_discrete(
-      &static_cast<wmWindowManager *>(G_MAIN->wm.first)->id, ot->srna, properties);
+      &G_MAIN->wm.first()->id, ot->srna, properties);
   return WM_operator_name_call_ptr(C, ot, context, &props_ptr, event);
 }
 
@@ -2860,7 +2857,7 @@ static void wm_operator_free_for_fileselect(wmOperator *file_operator)
   for (bScreen &screen : G_MAIN->screens) {
     for (ScrArea &area : screen.areabase) {
       if (area.spacetype == SPACE_FILE) {
-        SpaceFile *sfile = static_cast<SpaceFile *>(area.spacedata.first);
+        SpaceFile *sfile = area.spacedata.first_as<SpaceFile>();
         if (sfile->op == file_operator) {
           sfile->op = nullptr;
         }
@@ -2900,7 +2897,7 @@ static eHandlerActionFlag wm_handler_fileselect_do(bContext *C,
       region_header->alignment = RGN_ALIGN_BOTTOM;
 
       /* Settings for file-browser, #sfile is not operator owner but sends events. */
-      SpaceFile *sfile = static_cast<SpaceFile *>(area->spacedata.first);
+      SpaceFile *sfile = area->spacedata.first_as<SpaceFile>();
       sfile->op = handler->op;
 
       ED_fileselect_set_params_from_userdef(sfile);
@@ -2932,7 +2929,7 @@ static eHandlerActionFlag wm_handler_fileselect_do(bContext *C,
         wmWindow *temp_win = nullptr;
         for (wmWindow &win : wm->windows) {
           bScreen *screen = WM_window_get_active_screen(&win);
-          ScrArea *file_area = static_cast<ScrArea *>(screen->areabase.first);
+          ScrArea *file_area = screen->areabase.first();
 
           if ((file_area->spacetype != SPACE_FILE) || !WM_window_is_temp_screen(&win)) {
             continue;
@@ -2945,7 +2942,7 @@ static eHandlerActionFlag wm_handler_fileselect_do(bContext *C,
             continue;
           }
 
-          ED_fileselect_params_to_userdef(static_cast<SpaceFile *>(file_area->spacedata.first));
+          ED_fileselect_params_to_userdef(file_area->spacedata.first_as<SpaceFile>());
 
           if (file_area->spacedata.is_single()) {
             BLI_assert(root_win != &win);
@@ -2977,7 +2974,7 @@ static eHandlerActionFlag wm_handler_fileselect_do(bContext *C,
         }
 
         if (!temp_win && ctx_area->full) {
-          ED_fileselect_params_to_userdef(static_cast<SpaceFile *>(ctx_area->spacedata.first));
+          ED_fileselect_params_to_userdef(ctx_area->spacedata.first_as<SpaceFile>());
           ED_screen_full_prevspace(C, ctx_area);
         }
       }
@@ -3022,7 +3019,7 @@ static eHandlerActionFlag wm_handler_fileselect_do(bContext *C,
           }
         }
 
-        if (handler->op->reports->list.first) {
+        if (handler->op->reports->list.first()) {
 
           /* FIXME(@ideasman42): temp setting window, this is really bad!
            * only have because lib linking errors need to be seen by users :(
@@ -3032,7 +3029,7 @@ static eHandlerActionFlag wm_handler_fileselect_do(bContext *C,
           ARegion *region_prev = CTX_wm_region(C);
 
           if (win_prev == nullptr) {
-            CTX_wm_window_set(C, static_cast<wmWindow *>(CTX_wm_manager(C)->windows.first));
+            CTX_wm_window_set(C, CTX_wm_manager(C)->windows.first());
           }
 
           BKE_report_print_level_set(handler->op->reports, RPT_WARNING);
@@ -3510,9 +3507,8 @@ static eHandlerActionFlag wm_handlers_do_intern(bContext *C,
    * by the event that's called, for eg:
    *
    * Calling a python script which changes the area.type, see #32232. */
-  for (wmEventHandler *handler_base = static_cast<wmEventHandler *>(handlers->first),
-                      *handler_base_next;
-       handler_base && handlers->first;
+  for (wmEventHandler *handler_base = handlers->first(), *handler_base_next;
+       handler_base && handlers->first();
        handler_base = handler_base_next)
   {
     handler_base_next = handler_base->next;
@@ -3941,7 +3937,7 @@ static void wm_paintcursor_test(bContext *C, const wmEvent *event)
 {
   wmWindowManager *wm = CTX_wm_manager(C);
 
-  if (wm->runtime->paintcursors.first) {
+  if (wm->runtime->paintcursors.first()) {
     const bScreen *screen = CTX_wm_screen(C);
     ARegion *region = screen ? screen->active_region : nullptr;
 
@@ -4085,7 +4081,7 @@ static void wm_event_handle_xrevent(wmWindowManager *wm,
   ScrArea *xr_area = CTX_wm_area(xr_context);
   ARegion *xr_region = CTX_wm_region(xr_context);
 
-  BLI_assert(xr_area && xr_area->spacetype == SPACE_VIEW3D && xr_area->spacedata.first);
+  BLI_assert(xr_area && xr_area->spacetype == SPACE_VIEW3D && xr_area->spacedata.first_);
 
   /* For operators using GPU-based selection. */
   BLI_assert(WM_region_use_viewport(xr_area, xr_region));
@@ -4262,7 +4258,7 @@ void wm_event_do_handlers(bContext *C)
     }
 
     wmEvent *event;
-    while ((event = static_cast<wmEvent *>(win.runtime->event_queue.first))) {
+    while ((event = win.runtime->event_queue.first())) {
       /* Do the check at the start of the next iteration, to avoid by-passing it in case the
        * previous iteration has been early-terminated (using `continue;` e.g.). */
       if (wm->runtime->break_events_handling) {
@@ -4564,9 +4560,8 @@ static wmWindow *wm_event_find_fileselect_root_window_from_context(const bContex
 
   /* Fall back to the first window. */
   const wmWindowManager *wm = CTX_wm_manager(C);
-  BLI_assert(!ED_fileselect_handler_area_find_any_with_op(
-      static_cast<const wmWindow *>(wm->windows.first)));
-  return static_cast<wmWindow *>(wm->windows.first);
+  BLI_assert(!ED_fileselect_handler_area_find_any_with_op(wm->windows.first()));
+  return wm->windows.first();
 }
 
 /* Operator is supposed to have a filled "path" property. */
@@ -4835,7 +4830,7 @@ void WM_event_remove_modal_handler(ListBaseT<wmEventHandler> *handlers,
 void WM_event_remove_modal_handler_all(const wmOperator *op, const bool postpone)
 {
   Main *bmain = G_MAIN;
-  wmWindowManager *wm = static_cast<wmWindowManager *>(bmain->wm.first);
+  wmWindowManager *wm = bmain->wm.first();
   for (wmWindow &win : wm->windows) {
     WM_event_remove_modal_handler(&win.runtime->modalhandlers, op, postpone);
   }
@@ -5794,7 +5789,7 @@ static wmWindow *wm_event_cursor_other_windows(wmWindowManager *wm, wmWindow *wi
     return nullptr;
   }
 
-  if (wm->windows.first == wm->windows.last) {
+  if (wm->windows.first() == wm->windows.last()) {
     return nullptr;
   }
 
@@ -5867,7 +5862,7 @@ static void wm_event_prev_click_set(uint64_t event_time_ms,
 
 static wmEvent *wm_event_add_mousemove(wmWindow *win, const wmEvent *event)
 {
-  wmEvent *event_last = static_cast<wmEvent *>(win->runtime->event_queue.last);
+  wmEvent *event_last = win->runtime->event_queue.last();
 
   /* Some painting operators want accurate mouse events, they can
    * handle in between mouse move moves, others can happily ignore
@@ -5922,7 +5917,7 @@ static wmEvent *wm_event_add_trackpad(wmWindow *win, const wmEvent *event, int d
 {
   /* Ignore in between trackpad events for performance, we only need high accuracy
    * for painting with mouse moves, for navigation using the accumulated value is ok. */
-  const wmEvent *event_last = static_cast<wmEvent *>(win->runtime->event_queue.last);
+  const wmEvent *event_last = win->runtime->event_queue.last();
   if (event_last && event_last->type == event->type) {
     deltax += event_last->xy[0] - event_last->prev_xy[0];
     deltay += event_last->xy[1] - event_last->prev_xy[1];
@@ -6044,7 +6039,7 @@ static bool wm_event_is_ignorable_key_press(const wmWindow *win, const wmEvent &
     return false;
   }
 
-  const wmEvent &last_event = *static_cast<const wmEvent *>(win->runtime->event_queue.last);
+  const wmEvent &last_event = *win->runtime->event_queue.last();
 
   return wm_event_is_same_key_press(last_event, event);
 }

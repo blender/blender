@@ -85,7 +85,7 @@ int bone_looper(Object *ob, Bone *bone, void *data, int (*bone_func)(Object *, B
     count += bone_func(ob, bone, data);
 
     /* try to execute bone_func for the first child */
-    count += bone_looper(ob, static_cast<Bone *>(bone->childbase.first), data, bone_func);
+    count += bone_looper(ob, bone->childbase.first(), data, bone_func);
 
     /* try to execute bone_func for the next bone at this
      * depth of the recursion.
@@ -535,7 +535,7 @@ static EditBone *make_boneList_recursive(ListBaseT<EditBone> *edbo,
     BLI_addtail(edbo, eBone);
 
     /* Add children if necessary. */
-    if (curBone.childbase.first) {
+    if (curBone.childbase.first_) {
       eBoneTest = make_boneList_recursive(edbo, &curBone.childbase, eBone, actBone);
       if (eBoneTest) {
         eBoneAct = eBoneTest;
@@ -565,7 +565,7 @@ static EditBone *find_ebone_link(ListBaseT<EditBone> *edbo, Bone *link)
 
 EditBone *make_boneList(ListBaseT<EditBone> *edbo, ListBaseT<Bone> *bones, Bone *actBone)
 {
-  BLI_assert(!edbo->first && !edbo->last);
+  BLI_assert(!edbo->first() && !edbo->last());
 
   EditBone *active = make_boneList_recursive(edbo, bones, nullptr, actBone);
 
@@ -830,9 +830,7 @@ void ED_armature_from_edit(Main *bmain, bArmature *arm)
   BKE_armature_bone_hash_make(arm);
 
   /* so all users of this armature should get rebuilt */
-  for (obt = static_cast<Object *>(bmain->objects.first); obt;
-       obt = static_cast<Object *>(obt->id.next))
-  {
+  for (obt = bmain->objects.first(); obt; obt = static_cast<Object *>(obt->id.next)) {
     if (obt->data == id_cast<const ID *>(arm)) {
       BKE_pose_rebuild(bmain, obt, arm, true);
     }
@@ -845,7 +843,7 @@ void ED_armature_edit_free(bArmature *arm)
 {
   /* Clear the edit-bones list. */
   if (arm->edbo) {
-    if (arm->edbo->first) {
+    if (arm->edbo->first()) {
       for (EditBone &eBone : *arm->edbo) {
         if (eBone.prop) {
           IDP_FreeProperty(eBone.prop);
@@ -881,7 +879,7 @@ void ED_armature_ebone_listbase_free(ListBaseT<EditBone> *lb, const bool do_id_u
 {
   EditBone *ebone, *ebone_next;
 
-  for (ebone = static_cast<EditBone *>(lb->first); ebone; ebone = ebone_next) {
+  for (ebone = lb->first(); ebone; ebone = ebone_next) {
     ebone_next = ebone->next;
 
     if (ebone->prop) {

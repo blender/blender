@@ -145,7 +145,7 @@ void activate_geometry_node(Main &bmain,
                             bNode &node,
                             std::optional<int> item_identifier)
 {
-  wmWindowManager *wm = static_cast<wmWindowManager *>(bmain.wm.first);
+  wmWindowManager *wm = bmain.wm.first();
   if (wm == nullptr) {
     return;
   }
@@ -166,7 +166,7 @@ void activate_geometry_node(Main &bmain,
     WorkSpace *workspace = BKE_workspace_active_get(window.workspace_hook);
     bScreen *screen = BKE_workspace_active_screen_get(window.workspace_hook);
     for (ScrArea &area : screen->areabase) {
-      SpaceLink *sl = static_cast<SpaceLink *>(area.spacedata.first);
+      SpaceLink *sl = area.spacedata.first_as<SpaceLink>();
       if (sl->spacetype == SPACE_SPREADSHEET) {
         SpaceSpreadsheet &sspreadsheet = *reinterpret_cast<SpaceSpreadsheet *>(sl);
         if (!(sspreadsheet.flag & SPREADSHEET_FLAG_PINNED)) {
@@ -210,7 +210,7 @@ Object *parse_object_only(const ViewerPath &viewer_path)
   if (viewer_path.path.count() != 1) {
     return nullptr;
   }
-  const ViewerPathElem *elem = static_cast<ViewerPathElem *>(viewer_path.path.first);
+  const ViewerPathElem *elem = viewer_path.path.first();
   if (elem->type != VIEWER_PATH_ELEM_TYPE_ID) {
     return nullptr;
   }
@@ -417,7 +417,7 @@ UpdateActiveGeometryNodesViewerResult update_active_geometry_nodes_viewer(const 
   if (viewer_path.path.is_empty()) {
     return UpdateActiveGeometryNodesViewerResult::NotActive;
   }
-  const ViewerPathElem *last_elem = static_cast<ViewerPathElem *>(viewer_path.path.last);
+  const ViewerPathElem *last_elem = viewer_path.path.last();
   if (last_elem->type != VIEWER_PATH_ELEM_TYPE_VIEWER_NODE) {
     return UpdateActiveGeometryNodesViewerResult::NotActive;
   }
@@ -425,7 +425,7 @@ UpdateActiveGeometryNodesViewerResult update_active_geometry_nodes_viewer(const 
       reinterpret_cast<const ViewerNodeViewerPathElem *>(last_elem)->node_id;
 
   const Main *bmain = CTX_data_main(&C);
-  const wmWindowManager *wm = static_cast<wmWindowManager *>(bmain->wm.first);
+  const wmWindowManager *wm = bmain->wm.first();
   if (wm == nullptr) {
     return UpdateActiveGeometryNodesViewerResult::NotActive;
   }
@@ -433,12 +433,12 @@ UpdateActiveGeometryNodesViewerResult update_active_geometry_nodes_viewer(const 
     const bScreen *active_screen = BKE_workspace_active_screen_get(window.workspace_hook);
     Vector<const bScreen *> screens = {active_screen};
     if (ELEM(active_screen->state, SCREENMAXIMIZED, SCREENFULL)) {
-      const ScrArea *area = static_cast<ScrArea *>(active_screen->areabase.first);
+      const ScrArea *area = active_screen->areabase.first();
       screens.append(area->full);
     }
     for (const bScreen *screen : screens) {
       for (const ScrArea &area : screen->areabase) {
-        const SpaceLink *sl = static_cast<SpaceLink *>(area.spacedata.first);
+        const SpaceLink *sl = area.spacedata.first_as<SpaceLink>();
         if (sl == nullptr) {
           continue;
         }

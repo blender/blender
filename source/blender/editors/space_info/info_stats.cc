@@ -545,7 +545,7 @@ void ED_info_stats_clear(wmWindowManager *wm, ViewLayer *view_layer)
     const bScreen *screen = WM_window_get_active_screen(&win);
     for (ScrArea &area : screen->areabase) {
       if (area.spacetype == SPACE_VIEW3D) {
-        View3D *v3d = static_cast<View3D *>(area.spacedata.first);
+        View3D *v3d = area.spacedata.first_as<View3D>();
         if (v3d->localvd) {
           ED_view3d_local_stats_free(v3d);
         }
@@ -566,7 +566,7 @@ static bool format_stats(
   SceneStats **stats_p = (v3d_local) ? &v3d_local->runtime.local_stats : &view_layer->stats;
   if (*stats_p == nullptr) {
     /* Don't access dependency graph if interface is marked as locked. */
-    wmWindowManager *wm = static_cast<wmWindowManager *>(bmain->wm.first);
+    wmWindowManager *wm = bmain->wm.first();
     if (wm->runtime->is_interface_locked) {
       return false;
     }

@@ -147,7 +147,7 @@ static VectorSet<bNode *> get_transformed_nodes(bNodeTree &node_tree)
 
 static void createTransNodeData(bContext * /*C*/, TransInfo *t)
 {
-  SpaceNode *snode = static_cast<SpaceNode *>(t->area->spacedata.first);
+  SpaceNode *snode = t->area->spacedata.first_as<SpaceNode>();
   bNodeTree *node_tree = snode->edittree;
   if (!node_tree) {
     return;
@@ -276,7 +276,7 @@ static bool has_selected_parent(const bNode &node)
 static void flushTransNodes(TransInfo *t)
 {
   const float dpi_fac = UI_SCALE_FAC;
-  SpaceNode *snode = static_cast<SpaceNode *>(t->area->spacedata.first);
+  SpaceNode *snode = t->area->spacedata.first_as<SpaceNode>();
 
   TransCustomDataNode *customdata = static_cast<TransCustomDataNode *>(t->custom.type.data);
 
@@ -376,7 +376,7 @@ static void flushTransNodes(TransInfo *t)
 static void special_aftertrans_update__node(bContext *C, TransInfo *t)
 {
   Main *bmain = CTX_data_main(C);
-  SpaceNode *snode = static_cast<SpaceNode *>(t->area->spacedata.first);
+  SpaceNode *snode = t->area->spacedata.first_as<SpaceNode>();
   bNodeTree *ntree = snode->edittree;
   const TransCustomDataNode &customdata = *static_cast<TransCustomDataNode *>(t->custom.type.data);
 

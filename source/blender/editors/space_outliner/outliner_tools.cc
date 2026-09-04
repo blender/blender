@@ -2665,7 +2665,7 @@ static void outliner_batch_delete_object_hierarchy_tag(
 
   /* Even though the object itself may not be deletable, some of its children may still be
    * deletable. */
-  for (Base *base_iter = static_cast<Base *>(BKE_view_layer_object_bases_get(view_layer)->first);
+  for (Base *base_iter = BKE_view_layer_object_bases_get(view_layer)->first();
        base_iter != nullptr;
        base_iter = base_iter->next)
   {

@@ -82,7 +82,7 @@ void BlendfileLoadingBaseTest::SetUpTestCase()
 
   /* Allocate a dummy window manager. The real window manager will try and load Python scripts from
    * the release directory, which it won't be able to find. */
-  ASSERT_EQ(G.main->wm.first, nullptr);
+  ASSERT_EQ(G.main->wm.first_, nullptr);
   wmWindowManager *wm = BKE_id_new<wmWindowManager>(G.main, "WMdummy");
   wm->runtime = MEM_new<bke::WindowManagerRuntime>(__func__);
 }

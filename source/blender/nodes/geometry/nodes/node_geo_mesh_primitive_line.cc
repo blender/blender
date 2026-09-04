@@ -75,7 +75,7 @@ static void node_init(bNodeTree * /*tree*/, bNode *node)
 
 static void node_update(bNodeTree *ntree, bNode *node)
 {
-  bNodeSocket *count_socket = static_cast<bNodeSocket *>(node->inputs.first);
+  bNodeSocket *count_socket = node->inputs.first();
   bNodeSocket *resolution_socket = count_socket->next;
 
   const NodeGeometryMeshLine &storage = node_storage(*node);

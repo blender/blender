@@ -58,7 +58,7 @@ namespace blender::ed::vse {
 
 static void sequencer_scopes_tag_refresh(ScrArea *area, const Scene *scene)
 {
-  SpaceSeq *sseq = static_cast<SpaceSeq *>(area->spacedata.first);
+  SpaceSeq *sseq = area->spacedata.first_as<SpaceSeq>();
   sseq->runtime->scopes.cleanup();
   seq::preview_cache_invalidate(const_cast<Scene *>(scene));
 }
@@ -216,7 +216,7 @@ static void sequencer_init(wmWindowManager * /*wm*/, ScrArea * /*area*/) {}
 static void sequencer_refresh(const bContext *C, ScrArea *area)
 {
   const wmWindow *window = CTX_wm_window(C);
-  SpaceSeq *sseq = static_cast<SpaceSeq *>(area->spacedata.first);
+  SpaceSeq *sseq = area->spacedata.first_as<SpaceSeq>();
   ARegion *region_main = BKE_area_find_region_type(area, RGN_TYPE_WINDOW);
   ARegion *region_preview = BKE_area_find_region_type(area, RGN_TYPE_PREVIEW);
   bool view_changed = false;
@@ -434,7 +434,7 @@ static void sequencer_gizmos()
 
 static bool sequencer_main_region_poll(const RegionPollParams *params)
 {
-  const SpaceSeq *sseq = static_cast<SpaceSeq *>(params->area->spacedata.first);
+  const SpaceSeq *sseq = params->area->spacedata.first_as<SpaceSeq>();
   return ELEM(sseq->view, SEQ_VIEW_SEQUENCE, SEQ_VIEW_SEQUENCE_PREVIEW);
 }
 
@@ -683,7 +683,7 @@ static void sequencer_main_cursor(wmWindow *win, ScrArea *area, ARegion *region)
   const WorkSpace *workspace = WM_window_get_active_workspace(win);
   const Scene *scene = workspace->sequencer_scene;
   const Editing *ed = seq::editing_get(scene);
-  const SpaceSeq *sseq = static_cast<SpaceSeq *>(area->spacedata.first);
+  const SpaceSeq *sseq = area->spacedata.first_as<SpaceSeq>();
   const bToolRef *tref = area->runtime.tool;
 
   int wmcursor = WM_CURSOR_DEFAULT;
@@ -848,7 +848,7 @@ static void sequencer_tools_region_draw(const bContext *C, ARegion *region)
 
 static bool sequencer_preview_region_poll(const RegionPollParams *params)
 {
-  const SpaceSeq *sseq = static_cast<SpaceSeq *>(params->area->spacedata.first);
+  const SpaceSeq *sseq = params->area->spacedata.first_as<SpaceSeq>();
   return ELEM(sseq->view, SEQ_VIEW_PREVIEW, SEQ_VIEW_SEQUENCE_PREVIEW);
 }
 
@@ -1147,7 +1147,7 @@ static void sequencer_foreach_id(SpaceLink *space_link, LibraryForeachIDData *da
 
 static bool sequencer_channel_region_poll(const RegionPollParams *params)
 {
-  const SpaceSeq *sseq = static_cast<SpaceSeq *>(params->area->spacedata.first);
+  const SpaceSeq *sseq = params->area->spacedata.first_as<SpaceSeq>();
   return ELEM(sseq->view, SEQ_VIEW_SEQUENCE);
 }
 
@@ -1202,7 +1202,7 @@ static bool sequencer_scrubbing_region_poll(const RegionPollParams *params)
     return false;
   }
 
-  const SpaceSeq *sseq = static_cast<SpaceSeq *>(params->area->spacedata.first);
+  const SpaceSeq *sseq = params->area->spacedata.first_as<SpaceSeq>();
   return sseq->flag & SEQ_SHOW_SCRUBBING_REGION;
 }
 

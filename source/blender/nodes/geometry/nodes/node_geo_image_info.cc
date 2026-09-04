@@ -61,7 +61,7 @@ static void node_geo_exec(GeoNodeExecParams params)
   int frames = 1;
   float fps = 0.0f;
 
-  if (ImageAnim *ianim = static_cast<ImageAnim *>(image->anims.first)) {
+  if (ImageAnim *ianim = image->anims.first()) {
     MovieReader *anim = ianim->anim;
     if (anim) {
       frames = MOV_get_duration_frames(anim);

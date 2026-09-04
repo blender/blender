@@ -47,8 +47,8 @@ bool BKE_viewer_path_equal(const ViewerPath *a,
                            const ViewerPath *b,
                            const ViewerPathEqualFlag flag)
 {
-  const ViewerPathElem *elem_a = static_cast<const ViewerPathElem *>(a->path.first);
-  const ViewerPathElem *elem_b = static_cast<const ViewerPathElem *>(b->path.first);
+  const ViewerPathElem *elem_a = a->path.first();
+  const ViewerPathElem *elem_b = b->path.first();
 
   while (elem_a != nullptr && elem_b != nullptr) {
     if (!BKE_viewer_path_elem_equal(elem_a, elem_b, flag)) {

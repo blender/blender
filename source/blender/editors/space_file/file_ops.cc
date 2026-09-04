@@ -1772,7 +1772,7 @@ void file_draw_check_ex(bContext *C, ScrArea *area)
   if (area->spacetype != SPACE_FILE) [[unlikely]] {
     return;
   }
-  SpaceFile *sfile = static_cast<SpaceFile *>(area->spacedata.first);
+  SpaceFile *sfile = area->spacedata.first_as<SpaceFile>();
   wmOperator *op = sfile->op;
   if (op) { /* fail on reload */
     if (op->type->check) {

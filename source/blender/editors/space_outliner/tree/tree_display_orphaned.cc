@@ -55,7 +55,7 @@ ListBaseT<TreeElement> TreeDisplayIDOrphans::build_tree(const TreeSourceData &so
     /* Header for this type of data-block. */
     TreeElement *te = nullptr;
     if (!filter_id_type) {
-      ID *id = static_cast<ID *>(lbarray[a]->first);
+      ID *id = lbarray[a]->first();
       te = add_element<TreeElementIDBase>({.lb = &tree, .persistent_ptr = lbarray[a]});
       te->name = outliner_idcode_to_plural(GS(id->name));
     }
@@ -76,7 +76,7 @@ bool TreeDisplayIDOrphans::datablock_has_orphans(ListBaseT<ID> &lb) const
   if (lb.is_empty()) {
     return false;
   }
-  const IDTypeInfo *id_type = BKE_idtype_get_info_from_id(static_cast<ID *>(lb.first));
+  const IDTypeInfo *id_type = BKE_idtype_get_info_from_id(lb.first());
   if (id_type->flags & IDTYPE_FLAGS_NEVER_UNUSED) {
     /* These ID types are never unused. */
     return false;

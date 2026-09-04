@@ -284,7 +284,7 @@ static void headerTranslation(TransInfo *t, const float vec[3], char str[UI_MAX_
   }
   else {
     if (t->spacetype == SPACE_NODE) {
-      SpaceNode *snode = static_cast<SpaceNode *>(t->area->spacedata.first);
+      SpaceNode *snode = t->area->spacedata.first_as<SpaceNode>();
       if (U.uiflag & USER_NODE_AUTO_OFFSET) {
         const char *str_dir = (snode->insert_ofs_dir == SNODE_INSERTOFS_DIR_RIGHT) ?
                                   IFACE_("right") :
@@ -459,7 +459,7 @@ static bool clip_uv_transform_translation(TransInfo *t, float vec[2])
   float base_offset[2] = {0.0f, 0.0f};
 
   /* If tiled image then constrain to correct/closest UDIM tile, else 0-1 UV space. */
-  const SpaceImage *sima = static_cast<const SpaceImage *>(t->area->spacedata.first);
+  const SpaceImage *sima = t->area->spacedata.first_as<SpaceImage>();
   BKE_image_find_nearest_tile_with_offset(sima->image, t->center_global, base_offset);
 
   float min[2], max[2];
@@ -602,7 +602,7 @@ static void initTranslation(TransInfo *t, wmOperator * /*op*/)
   if ((t->spacetype == SPACE_GRAPH) && (t->region != nullptr)) {
     View2D *v2d = &t->region->v2d;
     Scene *scene = t->scene;
-    SpaceGraph *sipo = reinterpret_cast<SpaceGraph *>(t->area->spacedata.first);
+    SpaceGraph *sipo = t->area->spacedata.first_as<SpaceGraph>();
     const bool display_seconds = (sipo->mode == SIPO_MODE_ANIMATION) &&
                                  (sipo->flag & SIPO_DRAWTIME);
     aspect[0] = ui::view2d_grid_resolution_x(v2d, scene, display_seconds);

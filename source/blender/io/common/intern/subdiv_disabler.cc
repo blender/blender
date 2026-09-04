@@ -30,7 +30,7 @@ ModifierData *SubdivModifierDisabler::get_subdiv_modifier(Scene *scene,
    * Returns nullptr if there is not any subdiv modifier to disable.
    */
 
-  ModifierData *md = static_cast<ModifierData *>(ob->modifiers.last);
+  ModifierData *md = ob->modifiers.last();
 
   for (; md; md = md->prev) {
     /* Ignore disabled modifiers. */

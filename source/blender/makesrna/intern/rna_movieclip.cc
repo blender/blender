@@ -81,8 +81,8 @@ static void rna_MovieClipUser_proxy_render_settings_update(Main *bmain,
     ScrArea *area;
     SpaceLink *sl;
 
-    for (area = static_cast<ScrArea *>(screen->areabase.first); area; area = area->next) {
-      for (sl = static_cast<SpaceLink *>(area->spacedata.first); sl; sl = sl->next) {
+    for (area = screen->areabase.first(); area; area = area->next) {
+      for (sl = area->spacedata.first(); sl; sl = sl->next) {
         if (sl->spacetype == SPACE_CLIP) {
           SpaceClip *sc = reinterpret_cast<SpaceClip *>(sl);
 

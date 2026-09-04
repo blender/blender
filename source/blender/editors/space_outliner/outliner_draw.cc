@@ -298,7 +298,7 @@ static void outliner_object_set_flag_recursive_fn(bContext *C,
 
   Object *ob_parent = ob ? ob : base->object;
 
-  for (Object *ob_iter = static_cast<Object *>(bmain->objects.first); ob_iter;
+  for (Object *ob_iter = bmain->objects.first(); ob_iter;
        ob_iter = static_cast<Object *>(ob_iter->id.next))
   {
     if (BKE_object_is_child_recursive(ob_parent, ob_iter)) {
@@ -563,7 +563,7 @@ void outliner_collection_isolate_flag(const Main &bmain,
 
   LayerCollection *top_layer_collection = layer_collection ?
                                               static_cast<LayerCollection *>(
-                                                  view_layer->layer_collections.first) :
+                                                  view_layer->layer_collections.first_) :
                                               nullptr;
   Collection *top_collection = collection ? scene->master_collection : nullptr;
 
@@ -636,7 +636,7 @@ void outliner_collection_isolate_flag(const Main &bmain,
   else {
     CollectionParent *parent;
     Collection *child = collection;
-    while ((parent = static_cast<CollectionParent *>(child->runtime->parents.first))) {
+    while ((parent = child->runtime->parents.first())) {
       if (parent->collection->flag & COLLECTION_IS_MASTER) {
         break;
       }
@@ -3178,7 +3178,7 @@ static void outliner_draw_tree_element(ui::Block *block,
     if (tselem->type == TSE_VIEW_COLLECTION_BASE) {
       /* Scene collection in view layer can't expand/collapse. */
     }
-    else if (te->subtree.first || (te->flag & TE_PRETEND_HAS_CHILDREN)) {
+    else if (te->subtree.first() || (te->flag & TE_PRETEND_HAS_CHILDREN)) {
       /* Open/close icon, only when sub-levels, except for scene. */
       int icon_x = startx;
 
@@ -3267,7 +3267,7 @@ static void outliner_draw_tree_element(ui::Block *block,
 
     /* Closed item, we draw the icons, not when it's a scene, or master-server list though. */
     if (!TSELEM_OPEN(tselem, space_outliner)) {
-      if (te->subtree.first) {
+      if (te->subtree.first()) {
         if ((tselem->type == TSE_SOME_ID) && (te->idcode == ID_SCE)) {
           /* Pass. */
         }

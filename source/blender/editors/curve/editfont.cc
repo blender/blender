@@ -913,7 +913,7 @@ void ED_text_to_object(bContext *C, const Text *text, const bool split_lines)
   float offset[3];
   int linenum = 0;
 
-  if (!text || !text->lines.first) {
+  if (!text || !text->lines.first_) {
     return;
   }
 
@@ -944,8 +944,7 @@ void ED_text_to_object(bContext *C, const Text *text, const bool split_lines)
     offset[1] = 0.0f;
     offset[2] = 0.0f;
 
-    txt_add_object(
-        C, static_cast<const TextLine *>(text->lines.first), text->lines.count(), offset);
+    txt_add_object(C, text->lines.first(), text->lines.count(), offset);
   }
 
   DEG_relations_tag_update(bmain);

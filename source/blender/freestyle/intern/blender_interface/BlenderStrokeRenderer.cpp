@@ -135,7 +135,7 @@ BlenderStrokeRenderer::BlenderStrokeRenderer(blender::Render *re, int render_cou
   BKE_scene_set_background(freestyle_bmain, freestyle_scene);
 
   // Scene layer.
-  ViewLayer *view_layer = (ViewLayer *)freestyle_scene->view_layers.first;
+  ViewLayer *view_layer = (ViewLayer *)freestyle_scene->view_layers.first_;
   view_layer->layflag = SCE_LAY_SOLID;
 
   // Camera

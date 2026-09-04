@@ -37,14 +37,14 @@ void folderlist_popdir(ListBaseT<FolderList> *folderlist, char *dir)
 {
   const char *prev_dir;
   FolderList *folder;
-  folder = static_cast<FolderList *>(folderlist->last);
+  folder = folderlist->last();
 
   if (folder) {
     /* remove the current directory */
     MEM_delete(folder->foldername);
     BLI_freelinkN(folderlist, folder);
 
-    folder = static_cast<FolderList *>(folderlist->last);
+    folder = folderlist->last();
     if (folder) {
       prev_dir = folder->foldername;
       BLI_strncpy(dir, prev_dir, FILE_MAXDIR);
@@ -60,7 +60,7 @@ void folderlist_pushdir(ListBaseT<FolderList> *folderlist, const char *dir)
   }
 
   FolderList *folder, *previous_folder;
-  previous_folder = static_cast<FolderList *>(folderlist->last);
+  previous_folder = folderlist->last();
 
   /* check if already exists */
   if (previous_folder && previous_folder->foldername) {
@@ -81,11 +81,11 @@ const char *folderlist_peeklastdir(ListBaseT<FolderList> *folderlist)
 {
   FolderList *folder;
 
-  if (!folderlist->last) {
+  if (!folderlist->last()) {
     return nullptr;
   }
 
-  folder = static_cast<FolderList *>(folderlist->last);
+  folder = folderlist->last();
   return folder->foldername;
 }
 
@@ -101,7 +101,7 @@ bool folderlist_clear_next(SpaceFile *sfile)
 
   /* if previous_folder, next_folder or refresh_folder operators are executed
    * it doesn't clear folder_next */
-  folder = static_cast<FolderList *>(sfile->folders_prev->last);
+  folder = sfile->folders_prev->last();
   if ((!folder) || (BLI_path_cmp(folder->foldername, params->dir) == 0)) {
     return false;
   }

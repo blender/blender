@@ -191,7 +191,7 @@ static void sound_jack_sync_callback(Main *bmain, int mode, double time)
     return;
   }
 
-  wmWindowManager *wm = static_cast<wmWindowManager *>(bmain->wm.first);
+  wmWindowManager *wm = bmain->wm.first();
 
   for (wmWindow &window : wm->windows) {
     Scene *scene = WM_window_get_active_scene(&window);
@@ -381,7 +381,7 @@ void WM_init(bContext *C, int argc, const char **argv)
   wm_init_scripts_extensions_once(C);
 
   WM_keyconfig_update_postpone_end();
-  WM_keyconfig_update_on_startup(static_cast<wmWindowManager *>(G_MAIN->wm.first));
+  WM_keyconfig_update_on_startup(G_MAIN->wm.first());
 
   wm_homefile_read_post(C, params_file_read_post);
 }
@@ -426,7 +426,7 @@ void WM_init_splash(bContext *C)
   }
 
   wmWindow *prevwin = CTX_wm_window(C);
-  CTX_wm_window_set(C, static_cast<wmWindow *>(wm->windows.first));
+  CTX_wm_window_set(C, wm->windows.first());
   WM_operator_name_call(C, "WM_OT_splash", wm::OpCallContext::InvokeDefault, nullptr, nullptr);
   CTX_wm_window_set(C, prevwin);
 }
@@ -479,7 +479,7 @@ void wm_exit_schedule_delayed(const bContext *C)
   }
   else {
     /* Unlikely but possible, in this case just ensure exit runs as it's not interactive. */
-    wmWindowManager *wm = static_cast<wmWindowManager *>(G_MAIN->wm.first);
+    wmWindowManager *wm = G_MAIN->wm.first();
     for (wmWindow &win : wm->windows) {
       wm_exit_schedule_delayed_for_window(C, win);
     }

@@ -228,7 +228,7 @@ void space_text_wrap_offset(
   text = st->text;
 
   /* Move pointer to first visible line (top). */
-  linep = static_cast<TextLine *>(text->lines.first);
+  linep = text->lines.first();
   i = st->top;
   while (i > 0 && linep) {
     int lines = space_text_get_visible_lines(st, region, linep->line);
@@ -676,7 +676,7 @@ static void space_text_update_drawcache(SpaceText *st, const ARegion *region)
     }
 
     if (drawcache->update) {
-      TextLine *line = static_cast<TextLine *>(st->text->lines.first);
+      TextLine *line = st->text->lines.first();
       int lineno = 0, lines_count;
       int *fp = drawcache->line_height_table, *new_tail, *old_tail;
 
@@ -957,10 +957,8 @@ static void calc_text_rcts(SpaceText *st, ARegion *region, rcti *r_scroll, rcti 
   st->runtime->scroll_px_per_line = (pix_available > 0) ? float(ltexth) / pix_available : 0;
   st->runtime->scroll_px_per_line = std::max(st->runtime->scroll_px_per_line, 0.1f);
 
-  curl_off = space_text_get_span_wrap(
-      st, region, static_cast<TextLine *>(st->text->lines.first), st->text->curl);
-  sell_off = space_text_get_span_wrap(
-      st, region, static_cast<TextLine *>(st->text->lines.first), st->text->sell);
+  curl_off = space_text_get_span_wrap(st, region, st->text->lines.first(), st->text->curl);
+  sell_off = space_text_get_span_wrap(st, region, st->text->lines.first(), st->text->sell);
   lhlstart = std::min(curl_off, sell_off);
   lhlend = std::max(curl_off, sell_off);
 
@@ -1101,8 +1099,7 @@ static void draw_suggestion_list(const SpaceText *st, const TextDrawContext *tdc
   top = texttool_suggest_top();
 
   space_text_wrap_offset(st, region, st->text->curl, st->text->curc, &offl, &offc);
-  vcurl = txt_get_span(static_cast<TextLine *>(st->text->lines.first), st->text->curl) - st->top +
-          offl;
+  vcurl = txt_get_span(st->text->lines.first(), st->text->curl) - st->top + offl;
   vcurc = space_text_get_char_pos(st, st->text->curl->line, st->text->curc) - st->left + offc;
 
   x = TXT_BODY_LEFT(st) + (vcurc * st->runtime->char_width_px);
@@ -1190,7 +1187,7 @@ static void draw_text_decoration(SpaceText *st, ARegion *region)
 
   /* Convert to view space character coordinates to determine if cursor is hidden. */
   space_text_wrap_offset(st, region, text->sell, text->selc, &offl, &offc);
-  vsell = txt_get_span(static_cast<TextLine *>(text->lines.first), text->sell) - st->top + offl;
+  vsell = txt_get_span(text->lines.first(), text->sell) - st->top + offl;
   vselc = space_text_get_char_pos(st, text->sell->line, text->selc) - st->left + offc;
 
   if (vselc < 0) {
@@ -1210,7 +1207,7 @@ static void draw_text_decoration(SpaceText *st, ARegion *region)
   if (text->curl != text->sell || text->curc != text->selc) {
     /* Convert all to view space character coordinates. */
     space_text_wrap_offset(st, region, text->curl, text->curc, &offl, &offc);
-    vcurl = txt_get_span(static_cast<TextLine *>(text->lines.first), text->curl) - st->top + offl;
+    vcurl = txt_get_span(text->lines.first(), text->curl) - st->top + offl;
     vcurc = space_text_get_char_pos(st, text->curl->line, text->curc) - st->left + offc;
 
     vcurc = std::max(vcurc, 0);
@@ -1512,7 +1509,7 @@ static void draw_brackets(const SpaceText *st, const TextDrawContext *tdc, ARegi
   viewc = space_text_get_char_pos(st, startl->line, startc) - st->left + offc;
 
   if (viewc >= 0) {
-    viewl = txt_get_span(static_cast<TextLine *>(text->lines.first), startl) - st->top + offl;
+    viewl = txt_get_span(text->lines.first(), startl) - st->top + offl;
 
     text_font_draw_character(
         tdc, x + viewc * st->runtime->char_width_px, y - viewl * TXT_LINE_HEIGHT(st), ch);
@@ -1526,7 +1523,7 @@ static void draw_brackets(const SpaceText *st, const TextDrawContext *tdc, ARegi
   viewc = space_text_get_char_pos(st, endl->line, endc) - st->left + offc;
 
   if (viewc >= 0) {
-    viewl = txt_get_span(static_cast<TextLine *>(text->lines.first), endl) - st->top + offl;
+    viewl = txt_get_span(text->lines.first(), endl) - st->top + offl;
 
     text_font_draw_character(
         tdc, x + viewc * st->runtime->char_width_px, y - viewl * TXT_LINE_HEIGHT(st), ch);
@@ -1573,7 +1570,7 @@ void draw_text_main(SpaceText *st, ARegion *region)
   space_text_update_drawcache(st, region);
 
   /* Make sure all the positional pointers exist. */
-  if (!text->curl || !text->sell || !text->lines.first || !text->lines.last) {
+  if (!text->curl || !text->sell || !text->lines.first_ || !text->lines.last()) {
     txt_clean_text(text);
   }
 
@@ -1582,7 +1579,7 @@ void draw_text_main(SpaceText *st, ARegion *region)
 
   /* Update syntax formatting if needed. */
   tft = ED_text_format_get(text);
-  tmp = static_cast<TextLine *>(text->lines.first);
+  tmp = text->lines.first();
   lineno = 0;
   for (i = 0; i < st->top && tmp; i++) {
     if (tdc.syntax_highlight && !tmp->format) {
@@ -1728,7 +1725,7 @@ bool ED_text_activate_in_screen(bContext *C, Text *text)
 {
   ScrArea *area = BKE_screen_find_big_area(CTX_wm_screen(C), SPACE_TEXT, 0);
   if (area) {
-    SpaceText *st = static_cast<SpaceText *>(area->spacedata.first);
+    SpaceText *st = area->spacedata.first_as<SpaceText>();
     ARegion *region = BKE_area_find_region_type(area, RGN_TYPE_WINDOW);
     st->text = text;
     if (region) {
@@ -1754,7 +1751,7 @@ void ED_space_text_scroll_to_cursor(SpaceText *st, ARegion *region, const bool c
 
   space_text_update_character_width(st);
 
-  i = txt_get_span(static_cast<TextLine *>(text->lines.first), text->sell);
+  i = txt_get_span(text->lines.first(), text->sell);
   if (st->wordwrap) {
     int offl, offc;
     space_text_wrap_offset(st, region, text->sell, text->selc, &offl, &offc);
@@ -1855,7 +1852,7 @@ std::optional<int2> space_text_cursor_region_xy_get(const SpaceText *st, const A
   if (text == nullptr) {
     return std::nullopt;
   }
-  const int line_index = txt_get_span(static_cast<TextLine *>(text->lines.first), text->sell);
+  const int line_index = txt_get_span(text->lines.first(), text->sell);
   /* NOTE: `ST_SCROLL_SELECT` doesn't need to be checked (offsetting by `scroll_ofs_px` the way
    * #draw_text_decoration does), since the caller treats the position as pending while
    * dragging. */

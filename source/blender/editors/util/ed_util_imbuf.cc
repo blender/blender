@@ -453,7 +453,7 @@ wmOperatorStatus ED_imbuf_sample_invoke(bContext *C, wmOperator *op, const wmEve
   if (area) {
     switch (area->spacetype) {
       case SPACE_IMAGE: {
-        SpaceImage *sima = static_cast<SpaceImage *>(area->spacedata.first);
+        SpaceImage *sima = area->spacedata.first_as<SpaceImage>();
         if (region->regiontype == RGN_TYPE_WINDOW) {
           if (ED_space_image_show_cache_and_mval_over(sima, region, event->mval)) {
             return OPERATOR_PASS_THROUGH;
@@ -531,7 +531,7 @@ bool ED_imbuf_sample_poll(bContext *C)
 
   switch (area->spacetype) {
     case SPACE_IMAGE: {
-      SpaceImage *sima = static_cast<SpaceImage *>(area->spacedata.first);
+      SpaceImage *sima = area->spacedata.first_as<SpaceImage>();
       Object *obedit = CTX_data_edit_object(C);
       if (obedit) {
         /* Disable when UV editing so it doesn't swallow all click events
@@ -546,7 +546,7 @@ bool ED_imbuf_sample_poll(bContext *C)
       return true;
     }
     case SPACE_SEQ: {
-      SpaceSeq *sseq = static_cast<SpaceSeq *>(area->spacedata.first);
+      SpaceSeq *sseq = area->spacedata.first_as<SpaceSeq>();
 
       if (sseq->mainb != SEQ_DRAW_IMG_IMBUF) {
         return false;

@@ -137,7 +137,7 @@ static void tracking_dopesheet_free(MovieTrackingDopesheet *dopesheet)
   MovieTrackingDopesheetChannel *channel;
 
   /* Free channel's segments. */
-  channel = static_cast<MovieTrackingDopesheetChannel *>(dopesheet->channels.first);
+  channel = dopesheet->channels.first();
   while (channel) {
     if (channel->segments) {
       MEM_delete(channel->segments);
@@ -444,8 +444,7 @@ void BKE_tracking_get_projection_matrix(MovieTracking *tracking,
 
 void BKE_tracking_clipboard_free()
 {
-  MovieTrackingTrack *track = static_cast<MovieTrackingTrack *>(tracking_clipboard.tracks.first),
-                     *next_track;
+  MovieTrackingTrack *track = tracking_clipboard.tracks.first(), *next_track;
 
   while (track) {
     next_track = track->next;
@@ -1060,15 +1059,15 @@ static bGPDlayer *track_mask_gpencil_layer_get(const MovieTrackingTrack *track)
     return nullptr;
   }
 
-  layer = static_cast<bGPDlayer *>(track->gpd->layers.first);
+  layer = track->gpd->layers.first();
 
   while (layer) {
     if (layer->flag & GP_LAYER_ACTIVE) {
-      bGPDframe *frame = static_cast<bGPDframe *>(layer->frames.first);
+      bGPDframe *frame = layer->frames.first();
       bool ok = false;
 
       while (frame) {
-        if (frame->strokes.first) {
+        if (frame->strokes.first()) {
           ok = true;
           break;
         }
@@ -1111,7 +1110,7 @@ static void track_mask_gpencil_layer_rasterize(const int frame_width,
                                                const int mask_width,
                                                const int mask_height)
 {
-  const bGPDframe *frame = static_cast<const bGPDframe *>(layer->frames.first);
+  const bGPDframe *frame = layer->frames.first();
   TrackMaskSetPixelData data;
 
   data.mask = mask;
@@ -1119,7 +1118,7 @@ static void track_mask_gpencil_layer_rasterize(const int frame_width,
   data.mask_height = mask_height;
 
   while (frame) {
-    const bGPDstroke *stroke = static_cast<const bGPDstroke *>(frame->strokes.first);
+    const bGPDstroke *stroke = frame->strokes.first();
 
     while (stroke) {
       const bGPDspoint *stroke_points = stroke->points;
@@ -1202,7 +1201,7 @@ void BKE_tracking_track_select(ListBaseT<MovieTrackingTrack> *tracksbase,
     BKE_tracking_track_flag_set(track, area, TRACK_SELECT);
   }
   else {
-    MovieTrackingTrack *cur = static_cast<MovieTrackingTrack *>(tracksbase->first);
+    MovieTrackingTrack *cur = tracksbase->first();
 
     while (cur) {
       if ((cur->flag & TRACK_HIDDEN) == 0) {

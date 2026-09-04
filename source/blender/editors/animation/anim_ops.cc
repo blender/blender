@@ -139,7 +139,7 @@ static bool change_frame_poll(bContext *C)
       }
     }
     if (area->spacetype == SPACE_GRAPH) {
-      const SpaceGraph *sipo = static_cast<const SpaceGraph *>(area->spacedata.first);
+      const SpaceGraph *sipo = area->spacedata.first_as<SpaceGraph>();
       /* Driver Editor's X axis is not time. */
       if (sipo->mode != SIPO_MODE_DRIVERS) {
         return true;
@@ -665,7 +665,7 @@ static bool use_playhead_snapping(bContext *C)
   ScrArea *area = CTX_wm_area(C);
 
   if (area->spacetype == SPACE_GRAPH) {
-    SpaceGraph *graph_editor = static_cast<SpaceGraph *>(area->spacedata.first);
+    SpaceGraph *graph_editor = area->spacedata.first_as<SpaceGraph>();
     /* Snapping is disabled for driver mode. Need to evaluate if it makes sense there and what form
      * it should take. */
     if (graph_editor->mode == SIPO_MODE_DRIVERS) {

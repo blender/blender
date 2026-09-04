@@ -107,9 +107,7 @@ static void execute_functions_if_necessary()
 
 static void remove_tagged_functions()
 {
-  for (TimedFunction *timed_func = static_cast<TimedFunction *>(GlobalTimer.funcs.first);
-       timed_func;)
-  {
+  for (TimedFunction *timed_func = GlobalTimer.funcs.first(); timed_func;) {
     TimedFunction *next = timed_func->next;
     if (timed_func->tag_removal) {
       clear_user_data(timed_func);

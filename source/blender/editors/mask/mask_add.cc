@@ -178,7 +178,7 @@ static void finSelectedSplinePoint(MaskLayer *mask_layer,
                                    MaskSplinePoint **point,
                                    bool check_active)
 {
-  MaskSpline *cur_spline = static_cast<MaskSpline *>(mask_layer->splines.first);
+  MaskSpline *cur_spline = mask_layer->splines.first();
 
   *spline = nullptr;
   *point = nullptr;
@@ -384,7 +384,7 @@ static bool add_vertex_extrude(const bContext *C,
 
   setup_vertex_point(mask, spline, new_point, co, 0.5f, ctime, ref_point, false);
 
-  if (mask_layer->splines_shapes.first) {
+  if (mask_layer->splines_shapes.first_) {
     point_index = ((int(new_point - spline->points) + 0) % spline->tot_point);
     BKE_mask_layer_shape_changed_add(mask_layer,
                                      BKE_mask_layer_shape_spline_to_index(mask_layer, spline) +
@@ -800,7 +800,7 @@ static int create_primitive_from_points(bContext *C,
 
     BKE_mask_point_select_set(new_point, true);
 
-    if (mask_layer->splines_shapes.first) {
+    if (mask_layer->splines_shapes.first_) {
       BKE_mask_layer_shape_changed_add(mask_layer, spline_index + i, true, false);
     }
   }

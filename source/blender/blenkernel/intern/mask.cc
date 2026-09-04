@@ -413,7 +413,7 @@ MaskLayer *BKE_mask_layer_copy(const MaskLayer *masklay)
   }
 
   /* correct animation */
-  if (masklay->splines_shapes.first) {
+  if (masklay->splines_shapes.first()) {
     for (MaskLayerShape &masklay_shape : masklay->splines_shapes) {
       MaskLayerShape *masklay_shape_new = MEM_new<MaskLayerShape>("new mask layer shape");
 
@@ -547,7 +547,7 @@ void BKE_mask_spline_direction_switch(MaskLayer *masklay, MaskSpline *spline)
   }
 
   /* correct animation */
-  if (masklay->splines_shapes.first) {
+  if (masklay->splines_shapes.first()) {
     const int spline_index = BKE_mask_layer_shape_spline_to_index(masklay, spline);
 
     for (MaskLayerShape &masklay_shape : masklay->splines_shapes) {
@@ -1045,7 +1045,7 @@ void BKE_mask_spline_free(MaskSpline *spline)
 
 void BKE_mask_spline_free_list(ListBaseT<MaskSpline> *splines)
 {
-  MaskSpline *spline = static_cast<MaskSpline *>(splines->first);
+  MaskSpline *spline = splines->first();
   while (spline) {
     MaskSpline *next_spline = spline->next;
 
@@ -1120,7 +1120,7 @@ void BKE_mask_layer_free_shapes(MaskLayer *masklay)
   MaskLayerShape *masklay_shape;
 
   /* free animation data */
-  masklay_shape = static_cast<MaskLayerShape *>(masklay->splines_shapes.first);
+  masklay_shape = masklay->splines_shapes.first();
   while (masklay_shape) {
     MaskLayerShape *next_masklay_shape = masklay_shape->next;
 
@@ -1144,7 +1144,7 @@ void BKE_mask_layer_free(MaskLayer *masklay)
 
 void BKE_mask_layer_free_list(ListBaseT<MaskLayer> *masklayers)
 {
-  MaskLayer *masklay = static_cast<MaskLayer *>(masklayers->first);
+  MaskLayer *masklay = masklayers->first();
 
   while (masklay) {
     MaskLayer *masklay_next = masklay->next;
@@ -1694,7 +1694,7 @@ int BKE_mask_layer_shape_find_frame_range(MaskLayer *masklay,
 {
   MaskLayerShape *masklay_shape;
 
-  for (masklay_shape = static_cast<MaskLayerShape *>(masklay->splines_shapes.first); masklay_shape;
+  for (masklay_shape = masklay->splines_shapes.first(); masklay_shape;
        masklay_shape = masklay_shape->next)
   {
     if (frame == masklay_shape->frame) {
@@ -1715,7 +1715,7 @@ int BKE_mask_layer_shape_find_frame_range(MaskLayer *masklay,
     }
   }
 
-  masklay_shape = static_cast<MaskLayerShape *>(masklay->splines_shapes.last);
+  masklay_shape = masklay->splines_shapes.last();
   if (masklay_shape) {
     *r_masklay_shape_a = masklay_shape;
     *r_masklay_shape_b = nullptr;
@@ -1803,8 +1803,7 @@ int BKE_mask_layer_shape_spline_to_index(MaskLayer *masklay, MaskSpline *spline)
 {
   MaskSpline *spline_iter;
   int i_abs = 0;
-  for (spline_iter = static_cast<MaskSpline *>(masklay->splines.first);
-       spline_iter && spline_iter != spline;
+  for (spline_iter = masklay->splines.first(); spline_iter && spline_iter != spline;
        i_abs += spline_iter->tot_point, spline_iter = spline_iter->next)
   {
     /* pass */

@@ -60,10 +60,10 @@ Mask *ED_mask_new(bContext *C, const char *name)
 
   mask = BKE_mask_new(bmain, name);
 
-  if (area && area->spacedata.first) {
+  if (area && area->spacedata.first_) {
     switch (area->spacetype) {
       case SPACE_CLIP: {
-        SpaceClip *sc = static_cast<SpaceClip *>(area->spacedata.first);
+        SpaceClip *sc = area->spacedata.first_as<SpaceClip>();
         ED_space_clip_set_mask(C, sc, mask);
         break;
       }
@@ -72,7 +72,7 @@ Mask *ED_mask_new(bContext *C, const char *name)
         break;
       }
       case SPACE_IMAGE: {
-        SpaceImage *sima = static_cast<SpaceImage *>(area->spacedata.first);
+        SpaceImage *sima = area->spacedata.first_as<SpaceImage>();
         ED_space_image_set_mask(C, sima, mask);
         break;
       }
@@ -324,16 +324,16 @@ static bool spline_under_mouse_get(const bContext *C,
                 (sc->user.render_flag & MCLIP_PROXY_RENDER_UNDISTORT) != 0;
   }
 
-  for (MaskLayer *mask_layer_orig = static_cast<MaskLayer *>(mask_orig->masklayers.first),
-                 *mask_layer_eval = static_cast<MaskLayer *>(mask_eval->masklayers.first);
+  for (MaskLayer *mask_layer_orig = mask_orig->masklayers.first(),
+                 *mask_layer_eval = mask_eval->masklayers.first();
        mask_layer_orig != nullptr;
        mask_layer_orig = mask_layer_orig->next, mask_layer_eval = mask_layer_eval->next)
   {
     if (mask_layer_orig->visibility_flag & (MASK_HIDE_VIEW | MASK_HIDE_SELECT)) {
       continue;
     }
-    for (MaskSpline *spline_orig = static_cast<MaskSpline *>(mask_layer_orig->splines.first),
-                    *spline_eval = static_cast<MaskSpline *>(mask_layer_eval->splines.first);
+    for (MaskSpline *spline_orig = mask_layer_orig->splines.first(),
+                    *spline_eval = mask_layer_eval->splines.first();
          spline_orig != nullptr;
          spline_orig = spline_orig->next, spline_eval = spline_eval->next)
     {
@@ -1469,7 +1469,7 @@ static wmOperatorStatus delete_exec(bContext *C, wmOperator * /*op*/)
       continue;
     }
 
-    spline = static_cast<MaskSpline *>(mask_layer.splines.first);
+    spline = mask_layer.splines.first();
 
     while (spline) {
       const int tot_point_orig = spline->tot_point;
@@ -2221,7 +2221,7 @@ static wmOperatorStatus mask_duplicate_exec(bContext *C, wmOperator * /*op*/)
           }
 
           /* animation requires points added one by one */
-          if (mask_layer.splines_shapes.first) {
+          if (mask_layer.splines_shapes.first_) {
             new_spline->tot_point = 0;
             tot_point_shape_start = BKE_mask_layer_shape_spline_to_index(&mask_layer, new_spline);
           }
@@ -2233,7 +2233,7 @@ static wmOperatorStatus mask_duplicate_exec(bContext *C, wmOperator * /*op*/)
             }
             BKE_mask_point_select_set(new_point, true);
 
-            if (mask_layer.splines_shapes.first) {
+            if (mask_layer.splines_shapes.first_) {
               new_spline->tot_point++;
               BKE_mask_layer_shape_changed_add(
                   &mask_layer, tot_point_shape_start + b, true, false);

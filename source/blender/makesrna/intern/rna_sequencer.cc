@@ -1427,9 +1427,7 @@ static bool colbalance_seq_cmp_fn(Strip *strip, void *arg_pt)
 {
   StripSearchData *data = static_cast<StripSearchData *>(arg_pt);
 
-  for (StripModifierData *smd = static_cast<StripModifierData *>(strip->modifiers.first); smd;
-       smd = smd->next)
-  {
+  for (StripModifierData *smd = strip->modifiers.first(); smd; smd = smd->next) {
     if (smd->type == eSeqModifierType_ColorBalance) {
       ColorBalanceModifierData *cbmd = reinterpret_cast<ColorBalanceModifierData *>(smd);
 

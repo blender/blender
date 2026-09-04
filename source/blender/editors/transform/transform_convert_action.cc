@@ -459,8 +459,8 @@ static TransData *ActionFCurveToTransData(TransData *td,
 
   for (i = 0, bezt = fcu->bezt; i < fcu->totvert; i++, bezt++) {
     /* Only add selected keyframes (for now, proportional edit is not enabled). */
-    if (is_prop_edit || (bezt->f2 & SELECT))
-    { /* Note this MUST match #count_fcurve_keys(), so can't use #BEZT_ISSEL_ANY() macro. */
+    if (is_prop_edit || (bezt->f2 & SELECT)) { /* Note this MUST match #count_fcurve_keys(), so
+                                                  can't use #BEZT_ISSEL_ANY() macro. */
       /* Only add if on the right 'side' of the current frame. */
       if (FrameOnMouseSide(side, bezt->vec[1][0], cfra)) {
         TimeToTransData(td, td2d, bezt, ale, ypos);
@@ -996,7 +996,7 @@ static void invert_snap(eSnapMode &snap_mode)
 static void recalcData_actedit(TransInfo *t)
 {
   ViewLayer *view_layer = t->view_layer;
-  SpaceAction *saction = static_cast<SpaceAction *>(t->area->spacedata.first);
+  SpaceAction *saction = t->area->spacedata.first_as<SpaceAction>();
 
   bAnimContext ac = {nullptr};
   ListBaseT<bAnimListElem> anim_data = {nullptr, nullptr};
@@ -1012,7 +1012,7 @@ static void recalcData_actedit(TransInfo *t)
   ac.obact = BKE_view_layer_active_object_get(view_layer);
   ac.area = t->area;
   ac.region = t->region;
-  ac.sl = static_cast<SpaceLink *>((t->area) ? t->area->spacedata.first : nullptr);
+  ac.sl = t->area ? t->area->spacedata.first_as<SpaceLink>() : nullptr;
   ac.spacetype = eSpace_Type((t->area) ? t->area->spacetype : 0);
   ac.regiontype = eRegion_Type((t->region) ? t->region->regiontype : 0);
 
@@ -1120,8 +1120,7 @@ static void posttrans_mask_clean(Mask *mask)
     BLI_listbase_sort_r(&masklay.splines_shapes, masklay_shape_cmp_frame, &is_double);
 
     if (is_double) {
-      for (masklay_shape = static_cast<MaskLayerShape *>(masklay.splines_shapes.first);
-           masklay_shape;
+      for (masklay_shape = masklay.splines_shapes.first(); masklay_shape;
            masklay_shape = masklay_shape_next)
       {
         masklay_shape_next = masklay_shape->next;
@@ -1132,8 +1131,7 @@ static void posttrans_mask_clean(Mask *mask)
     }
 
 #ifndef NDEBUG
-    for (masklay_shape = static_cast<MaskLayerShape *>(masklay.splines_shapes.first);
-         masklay_shape;
+    for (masklay_shape = masklay.splines_shapes.first(); masklay_shape;
          masklay_shape = masklay_shape->next)
     {
       BLI_assert(!masklay_shape->next || masklay_shape->frame < masklay_shape->next->frame);
@@ -1158,7 +1156,7 @@ static void posttrans_gpd_clean(bGPdata *gpd)
     BKE_gpencil_layer_frames_sort(&gpl, &is_double);
 
     if (is_double) {
-      for (gpf = static_cast<bGPDframe *>(gpl.frames.first); gpf; gpf = gpfn) {
+      for (gpf = gpl.frames.first(); gpf; gpf = gpfn) {
         gpfn = gpf->next;
         if (gpfn && gpf->framenum == gpfn->framenum) {
           BKE_gpencil_layer_frame_delete(&gpl, gpf);
@@ -1167,7 +1165,7 @@ static void posttrans_gpd_clean(bGPdata *gpd)
     }
 
 #ifndef NDEBUG
-    for (gpf = static_cast<bGPDframe *>(gpl.frames.first); gpf; gpf = gpf->next) {
+    for (gpf = gpl.frames.first(); gpf; gpf = gpf->next) {
       BLI_assert(!gpf->next || gpf->framenum < gpf->next->framenum);
     }
 #endif
@@ -1211,7 +1209,7 @@ static void posttrans_action_clean(bAnimContext *ac, bAction *act)
 
 static void special_aftertrans_update__actedit(bContext *C, TransInfo *t)
 {
-  SpaceAction *saction = static_cast<SpaceAction *>(t->area->spacedata.first);
+  SpaceAction *saction = t->area->spacedata.first_as<SpaceAction>();
   bAnimContext ac;
 
   const bool canceled = (t->state == TRANS_CANCEL);

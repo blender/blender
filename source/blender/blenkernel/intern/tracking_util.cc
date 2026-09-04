@@ -146,7 +146,7 @@ void tracks_map_merge(TracksMap *map, MovieTracking *tracking)
   }
 
   /* move all tracks, which aren't operating */
-  track = static_cast<MovieTrackingTrack *>(old_tracks->first);
+  track = old_tracks->first();
   while (track) {
     MovieTrackingTrack *next = track->next;
     BLI_addtail(&new_tracks, track);
@@ -154,7 +154,7 @@ void tracks_map_merge(TracksMap *map, MovieTracking *tracking)
   }
 
   /* now move all tracks which are currently operating and keep their names unique */
-  track = static_cast<MovieTrackingTrack *>(tracks.first);
+  track = tracks.first();
   while (track) {
     MovieTrackingTrack *next = track->next;
 

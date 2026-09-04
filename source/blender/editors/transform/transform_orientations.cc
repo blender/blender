@@ -1249,7 +1249,7 @@ int getTransformOrientation_ex(const Main &bmain,
       else {
         const bool use_handle = v3d ? (v3d->overlay.handle_display != CURVE_HANDLE_NONE) : true;
 
-        for (nu = static_cast<Nurb *>(nurbs->first); nu; nu = nu->next) {
+        for (nu = nurbs->first(); nu; nu = nu->next) {
           /* Only bezier has a normal. */
           if (nu->type == CU_BEZIER) {
             BezTriple *bezt = nu->bezt;

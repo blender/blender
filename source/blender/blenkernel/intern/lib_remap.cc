@@ -374,7 +374,7 @@ static void libblock_remap_data_postprocess_object_update(Main *bmain,
   }
 
   if (old_ob == nullptr) {
-    for (Object *ob = static_cast<Object *>(bmain->objects.first); ob != nullptr;
+    for (Object *ob = bmain->objects.first(); ob != nullptr;
          ob = static_cast<Object *>(ob->id.next))
     {
       if (ob->type == OB_MBALL && BKE_mball_is_basis(ob)) {
@@ -383,7 +383,7 @@ static void libblock_remap_data_postprocess_object_update(Main *bmain,
     }
   }
   else {
-    for (Object *ob = static_cast<Object *>(bmain->objects.first); ob != nullptr;
+    for (Object *ob = bmain->objects.first(); ob != nullptr;
          ob = static_cast<Object *>(ob->id.next))
     {
       if (ob->type == OB_MBALL && BKE_mball_is_basis_for(ob, old_ob)) {
@@ -628,9 +628,7 @@ static void libblock_remap_foreach_idpair(ID *old_id, ID *new_id, Main *bmain, i
     case ID_PT:
     case ID_VO:
       if (new_id) { /* Only affects us in case obdata was relinked (changed). */
-        for (Object *ob = static_cast<Object *>(bmain->objects.first); ob;
-             ob = static_cast<Object *>(ob->id.next))
-        {
+        for (Object *ob = bmain->objects.first(); ob; ob = static_cast<Object *>(ob->id.next)) {
           libblock_remap_data_postprocess_obdata_relink(bmain, ob, new_id);
         }
       }

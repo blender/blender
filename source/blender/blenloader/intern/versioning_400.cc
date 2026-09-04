@@ -1322,8 +1322,8 @@ void blo_do_versions_400(FileData *fd, Library * /*lib*/, Main *bmain)
     for (bScreen &screen : bmain->screens) {
       for (ScrArea &area : screen.areabase) {
         for (SpaceLink &sl : area.spacedata) {
-          ListBaseT<ARegion> *regionbase = (&sl == area.spacedata.first) ? &area.regionbase :
-                                                                           &sl.regionbase;
+          ListBaseT<ARegion> *regionbase = (&sl == area.spacedata.first_) ? &area.regionbase :
+                                                                            &sl.regionbase;
 
           /* Layout based regions used to also disallow resizing, now these are separate flags.
            * Make sure they are set together for old regions. */
@@ -1367,8 +1367,8 @@ void blo_do_versions_400(FileData *fd, Library * /*lib*/, Main *bmain)
               continue;
             }
 
-            ListBaseT<ARegion> *regionbase = (&sl == area.spacedata.first) ? &area.regionbase :
-                                                                             &sl.regionbase;
+            ListBaseT<ARegion> *regionbase = (&sl == area.spacedata.first_) ? &area.regionbase :
+                                                                              &sl.regionbase;
 
             if (ARegion *new_shelf_region = do_versions_add_region_if_not_found(
                     regionbase,
@@ -1570,7 +1570,7 @@ void blo_do_versions_400(FileData *fd, Library * /*lib*/, Main *bmain)
       for (bScreen &screen : bmain->screens) {
         for (ScrArea &area : screen.areabase) {
           for (SpaceLink &sl : area.spacedata) {
-            const ListBaseT<ARegion> *regionbase = (&sl == area.spacedata.first) ?
+            const ListBaseT<ARegion> *regionbase = (&sl == area.spacedata.first_) ?
                                                        &area.regionbase :
                                                        &sl.regionbase;
             for (ARegion &region : *regionbase) {
@@ -1660,8 +1660,9 @@ void blo_do_versions_400(FileData *fd, Library * /*lib*/, Main *bmain)
     for (bScreen &screen : bmain->screens) {
       for (ScrArea &area : screen.areabase) {
         for (SpaceLink &sl : area.spacedata) {
-          const ListBaseT<ARegion> *regionbase = (&sl == area.spacedata.first) ? &area.regionbase :
-                                                                                 &sl.regionbase;
+          const ListBaseT<ARegion> *regionbase = (&sl == area.spacedata.first_) ?
+                                                     &area.regionbase :
+                                                     &sl.regionbase;
           for (ARegion &region : *regionbase) {
             if (region.regiontype != RGN_TYPE_ASSET_SHELF) {
               continue;
@@ -1686,8 +1687,8 @@ void blo_do_versions_400(FileData *fd, Library * /*lib*/, Main *bmain)
     FOREACH_NODETREE_BEGIN (bmain, ntree, id) {
       for (bNode &node : ntree->nodes) {
         if (node.is_reroute()) {
-          static_cast<bNodeSocket *>(node.inputs.first)->flag &= ~SOCK_HIDDEN;
-          static_cast<bNodeSocket *>(node.outputs.first)->flag &= ~SOCK_HIDDEN;
+          node.inputs.first()->flag &= ~SOCK_HIDDEN;
+          node.outputs.first()->flag &= ~SOCK_HIDDEN;
         }
       }
     }

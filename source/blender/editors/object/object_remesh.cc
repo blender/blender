@@ -929,7 +929,7 @@ static void quadriflow_end_job(void *customdata)
   Object *ob = qj->owner;
 
   if (qj->is_nonblocking_job) {
-    WM_locked_interface_set(static_cast<wmWindowManager *>(G_MAIN->wm.first), false);
+    WM_locked_interface_set(G_MAIN->wm.first(), false);
   }
 
   ReportList *reports = qj->worker_status->reports;

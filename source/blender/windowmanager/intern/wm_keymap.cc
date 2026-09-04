@@ -874,7 +874,7 @@ static void wm_keymap_diff_update(ListBaseT<wmKeyMap> *lb,
   wm_keymap_diff(diffmap, defaultmap, km, origmap, addonmap);
 
   /* Add to list if not empty. */
-  if (diffmap->diff_items.first) {
+  if (diffmap->diff_items.first_) {
     BLI_addtail(lb, diffmap);
   }
   else {
@@ -977,7 +977,7 @@ wmKeyMap *WM_modalkeymap_ensure(wmKeyConfig *keyconf,
   km->flag |= KEYMAP_MODAL;
 
   /* Initialize modal items from default configuration. */
-  wmWindowManager *wm = static_cast<wmWindowManager *>(G_MAIN->wm.first);
+  wmWindowManager *wm = G_MAIN->wm.first();
   if (wm->runtime->defaultconf && wm->runtime->defaultconf != keyconf) {
     wmKeyMap *defaultkm = WM_keymap_list_find(
         &wm->runtime->defaultconf->keymaps, km->idname, SPACE_EMPTY, RGN_TYPE_WINDOW);
@@ -1048,7 +1048,7 @@ static const wmKeyMapItem *wm_modalkeymap_find_propvalue_iter(const wmKeyMap *km
                                                               const int propvalue)
 {
   if (km->flag & KEYMAP_MODAL) {
-    kmi = static_cast<const wmKeyMapItem *>(kmi ? kmi->next : km->items.first);
+    kmi = kmi ? kmi->next : km->items.first();
     for (; kmi; kmi = kmi->next) {
       if (kmi->propvalue == propvalue) {
         return kmi;
@@ -1331,7 +1331,7 @@ std::optional<std::string> WM_modalkeymap_operator_items_to_string(wmOperatorTyp
                                                                    const int propvalue,
                                                                    const bool compact)
 {
-  wmWindowManager *wm = static_cast<wmWindowManager *>(G_MAIN->wm.first);
+  wmWindowManager *wm = G_MAIN->wm.first();
   wmKeyMap *keymap = WM_keymap_active(wm, ot->modalkeymap);
   return WM_modalkeymap_items_to_string(keymap, propvalue, compact);
 }
@@ -2235,7 +2235,7 @@ wmKeyMapItem *WM_keymap_item_find_match(wmKeyMap *km_base,
     return nullptr;
   }
 
-  wmWindowManager *wm = static_cast<wmWindowManager *>(G_MAIN->wm.first);
+  wmWindowManager *wm = G_MAIN->wm.first();
   wmKeyConfig *kc_active = WM_keyconfig_active(wm);
 
   /* NOTE: the key-maps could store this, it would simplify checks here. */

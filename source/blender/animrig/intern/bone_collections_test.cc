@@ -540,9 +540,9 @@ TEST_F(ArmatureBoneCollections, bones_assign_unassign)
   EXPECT_EQ(&bone1, static_cast<BoneCollectionMember *>(BLI_findlink(&bcoll->bones, 0))->bone);
   EXPECT_EQ(&bone2, static_cast<BoneCollectionMember *>(BLI_findlink(&bcoll->bones, 1))->bone);
 
-  EXPECT_EQ(bcoll, static_cast<BoneCollectionReference *>(bone1.runtime.collections.first)->bcoll)
+  EXPECT_EQ(bcoll, bone1.runtime.collections.first()->bcoll)
       << "expecting back-reference to collection in bone1 runtime data";
-  EXPECT_EQ(bcoll, static_cast<BoneCollectionReference *>(bone2.runtime.collections.first)->bcoll)
+  EXPECT_EQ(bcoll, bone2.runtime.collections.first()->bcoll)
       << "expecting back-reference to collection in bone2 runtime data";
 
   ANIM_armature_bonecoll_unassign(bcoll, &bone1);

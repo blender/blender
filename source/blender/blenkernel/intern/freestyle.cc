@@ -226,9 +226,7 @@ short BKE_freestyle_lineset_get_active_index(FreestyleConfig *config)
   FreestyleLineSet *lineset;
   short i;
 
-  for (lineset = static_cast<FreestyleLineSet *>(config->linesets.first), i = 0; lineset;
-       lineset = lineset->next, i++)
-  {
+  for (lineset = config->linesets.first(), i = 0; lineset; lineset = lineset->next, i++) {
     if (lineset->flags & FREESTYLE_LINESET_CURRENT) {
       return i;
     }
@@ -241,9 +239,7 @@ void BKE_freestyle_lineset_set_active_index(FreestyleConfig *config, short index
   FreestyleLineSet *lineset;
   short i;
 
-  for (lineset = static_cast<FreestyleLineSet *>(config->linesets.first), i = 0; lineset;
-       lineset = lineset->next, i++)
-  {
+  for (lineset = config->linesets.first(), i = 0; lineset; lineset = lineset->next, i++) {
     if (i == index) {
       lineset->flags |= FREESTYLE_LINESET_CURRENT;
     }

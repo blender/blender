@@ -70,7 +70,7 @@ static TestChunk *testchunk_list_add_copydata(ListBaseT<TestChunk> *lb, const vo
 
 static void testchunk_list_free(ListBaseT<TestChunk> *lb)
 {
-  for (TestChunk *tc = static_cast<TestChunk *>(lb->first), *tb_next; tc; tc = tb_next) {
+  for (TestChunk *tc = lb->first(), *tb_next; tc; tc = tb_next) {
     tb_next = tc->next;
     MEM_delete_void(const_cast<void *>(tc->data));
     MEM_delete(tc);
@@ -250,9 +250,7 @@ static void testbuffer_list_data_randomize(ListBaseT<TestBuffer> *lb, uint rando
 
 static void testbuffer_list_store_populate(BArrayStore *bs, ListBaseT<TestBuffer> *lb)
 {
-  for (TestBuffer *tb = static_cast<TestBuffer *>(lb->first), *tb_prev = nullptr; tb;
-       tb_prev = tb, tb = tb->next)
-  {
+  for (TestBuffer *tb = lb->first(), *tb_prev = nullptr; tb; tb_prev = tb, tb = tb->next) {
     tb->state = BLI_array_store_state_add(
         bs, tb->data, tb->data_len, (tb_prev ? tb_prev->state : nullptr));
   }
@@ -268,7 +266,7 @@ static void testbuffer_list_store_clear(BArrayStore *bs, ListBaseT<TestBuffer> *
 
 static void testbuffer_list_free(ListBaseT<TestBuffer> *lb)
 {
-  for (TestBuffer *tb = static_cast<TestBuffer *>(lb->first), *tb_next; tb; tb = tb_next) {
+  for (TestBuffer *tb = lb->first(), *tb_next; tb; tb = tb_next) {
     tb_next = tb->next;
     MEM_delete_void(const_cast<void *>(tb->data));
     MEM_delete(tb);
@@ -600,11 +598,11 @@ static void testbuffer_list_state_random_data(ListBaseT<TestBuffer> *lb,
   size_t data_len = rand_range_i(rng, data_min_len, data_max_len + stride, stride);
   char *data = MEM_new_array_uninitialized<char>(data_len, __func__);
 
-  if (lb->last == nullptr) {
+  if (lb->last_ == nullptr) {
     BLI_rng_get_char_n(rng, data, data_len);
   }
   else {
-    TestBuffer *tb_last = static_cast<TestBuffer *>(lb->last);
+    TestBuffer *tb_last = static_cast<TestBuffer *>(lb->last_);
     if (tb_last->data_len >= data_len) {
       memcpy(data, tb_last->data, data_len);
     }
@@ -754,7 +752,7 @@ static void random_chunk_mutate_helper(const int chunks_per_buffer,
   TestChunk **chunks_array = MEM_new_array_uninitialized<TestChunk *>(size_t(chunks_per_buffer),
                                                                       __func__);
   {
-    TestChunk *tc = static_cast<TestChunk *>(random_chunks.first);
+    TestChunk *tc = random_chunks.first();
     for (int i = 0; i < chunks_per_buffer; i++, tc = tc->next) {
       chunks_array[i] = tc;
     }

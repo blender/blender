@@ -410,7 +410,7 @@ static void createTransUVs(bContext *C, TransInfo *t)
 
 static void flushTransUVs(TransInfo *t)
 {
-  SpaceImage *sima = static_cast<SpaceImage *>(t->area->spacedata.first);
+  SpaceImage *sima = t->area->spacedata.first_as<SpaceImage>();
   const bool use_pixel_round = ((sima->pixel_round_mode != SI_PIXEL_ROUND_DISABLED) &&
                                 (t->state != TRANS_CANCEL));
 
@@ -460,7 +460,7 @@ static void flushTransUVs(TransInfo *t)
 
 static void recalcData_uv(TransInfo *t)
 {
-  SpaceImage *sima = static_cast<SpaceImage *>(t->area->spacedata.first);
+  SpaceImage *sima = t->area->spacedata.first_as<SpaceImage>();
 
   flushTransUVs(t);
   if (sima->flag & SI_LIVE_UNWRAP) {

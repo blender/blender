@@ -148,7 +148,7 @@ static void node_free_storage(bNode *node)
 
 static bool node_insert_link(bke::NodeInsertLinkParams &params)
 {
-  if (params.C && params.link.tosock == params.node.inputs.first &&
+  if (params.C && params.link.tosock == params.node.inputs.first_ &&
       params.link.fromsock->type == SOCK_CLOSURE)
   {
     const NodeEvaluateClosure &storage = node_storage(params.node);

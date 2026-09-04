@@ -360,7 +360,7 @@ static void fix_single_point_curves_custom_knots(Main *bmain)
    * CU_NURB_CUSTOM was set alongside other flags and knotsu/knotsv was left null,
    * causing a crash when opening these files in newer versions. */
   for (Curve &cu : bmain->curves) {
-    for (Nurb *nu = static_cast<Nurb *>(cu.nurb.first); nu != nullptr; nu = nu->next) {
+    for (Nurb *nu = cu.nurb.first(); nu != nullptr; nu = nu->next) {
       if (nu->knotsu == nullptr && (nu->flagu & CU_NURB_CUSTOM)) {
         nu->flagu &= (CU_NURB_CYCLIC | CU_NURB_BEZIER | CU_NURB_ENDPOINT);
       }
@@ -800,8 +800,8 @@ void blo_do_versions_502(FileData * /*fd*/, Library * /*lib*/, Main *bmain)
           if (sl.spacetype != SPACE_SEQ) {
             continue;
           }
-          ListBaseT<ARegion> *regionbase = (&sl == area.spacedata.first) ? &area.regionbase :
-                                                                           &sl.regionbase;
+          ListBaseT<ARegion> *regionbase = (&sl == area.spacedata.first_) ? &area.regionbase :
+                                                                            &sl.regionbase;
           ARegion *scrubbing_region = do_versions_add_region_if_not_found(
               regionbase, RGN_TYPE_SCRUBBING, "Scrubbing Region", RGN_TYPE_FOOTER);
           if (scrubbing_region) {

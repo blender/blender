@@ -186,7 +186,7 @@ static bool panel_active_animation_changed(ListBaseT<Panel> *lb,
 static bool properties_space_needs_realign(const ScrArea *area, const ARegion *region)
 {
   if (area->spacetype == SPACE_PROPERTIES && region->regiontype == RGN_TYPE_WINDOW) {
-    const SpaceProperties *sbuts = static_cast<SpaceProperties *>(area->spacedata.first);
+    const SpaceProperties *sbuts = area->spacedata.first_as<SpaceProperties>();
 
     if (sbuts->mainbo != sbuts->mainb) {
       return true;
@@ -359,7 +359,7 @@ bool panel_list_matches_data(ARegion *region,
   }
   else {
     data_len = BLI_listbase_count(data);
-    data_link = static_cast<Link *>(data->first);
+    data_link = static_cast<Link *>(data->first_);
   }
 
   int i = 0;
@@ -726,7 +726,7 @@ Panel *panel_begin(
 
   /* If a new panel is added, we insert it right after the panel that was last added.
    * This way new panels are inserted in the right place between versions. */
-  for (panel_last = static_cast<Panel *>(lb->first); panel_last; panel_last = panel_last->next) {
+  for (panel_last = lb->first(); panel_last; panel_last = panel_last->next) {
     if (panel_last->runtime_flag & PANEL_LAST_ADDED) {
       BLI_remlink(lb, panel);
       BLI_insertlinkafter(lb, panel_last, panel);
@@ -1845,7 +1845,7 @@ static void align_sub_panels(Panel *panel)
       pachild.ofsy = ofsy - get_panel_size_y(&pachild);
       ofsy -= get_panel_real_size_y(&pachild);
 
-      if (pachild.children.first) {
+      if (pachild.children.first_) {
         align_sub_panels(&pachild);
       }
     }
@@ -1931,7 +1931,7 @@ static bool uiAlignPanelStep(ARegion *region, const float factor, const bool dra
   /* Set locations for tabbed and sub panels. */
   for (Panel &panel : region->panels) {
     if (panel.runtime_flag & PANEL_ACTIVE) {
-      if (panel.children.first) {
+      if (panel.children.first_) {
         align_sub_panels(&panel);
       }
     }
@@ -2365,7 +2365,7 @@ static void handle_panel_header(const bContext *C,
       else {
         /* If a panel has sub-panels and it's open, toggle the expansion
          * of the sub-panels (based on the expansion of the first sub-panel). */
-        Panel *first_child = static_cast<Panel *>(panel->children.first);
+        Panel *first_child = panel->children.first();
         BLI_assert(first_child != nullptr);
         panel_set_flag_recursive(panel, PNL_CLOSED, !panel_is_closed(first_child));
         panel->flag |= PNL_CLOSED;
@@ -2418,9 +2418,9 @@ static void handle_panel_header(const bContext *C,
 bool panel_category_is_visible(const ARegion *region)
 {
   /* Check for more than one category. */
-  return region->runtime->panels_category.first &&
+  return region->runtime->panels_category.first_ &&
          (!bool(region->runtime->type->flag & ARegionTypeFlag::HideSinglePanelCategories) ||
-          region->runtime->panels_category.first != region->runtime->panels_category.last);
+          region->runtime->panels_category.first_ != region->runtime->panels_category.last());
 }
 
 bool panel_category_tabs_is_visible(const ARegion *region)
@@ -2521,7 +2521,7 @@ const char *panel_category_active_get(ARegion *region, bool set_fallback)
 
   if (set_fallback) {
     PanelCategoryDyn *pc_dyn = static_cast<PanelCategoryDyn *>(
-        region->runtime->panels_category.first);
+        region->runtime->panels_category.first_);
     if (pc_dyn) {
       panel_category_active_set(region, pc_dyn->idname, true);
       return pc_dyn->idname;
@@ -2610,9 +2610,8 @@ static int handle_panel_category_cycling(const wmEvent *event,
           pc_dyn = backwards ? pc_dyn->prev : pc_dyn->next;
           if (!pc_dyn) {
             /* Proper cyclic behavior, back to first/last category (only used for ctrl+tab). */
-            pc_dyn = backwards ?
-                         static_cast<PanelCategoryDyn *>(region->runtime->panels_category.last) :
-                         static_cast<PanelCategoryDyn *>(region->runtime->panels_category.first);
+            pc_dyn = backwards ? region->runtime->panels_category.last() :
+                                 region->runtime->panels_category.first();
           }
         }
 

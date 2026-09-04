@@ -144,8 +144,8 @@ static void keylist_runtime_init_listbase(AnimKeylist *keylist)
     return;
   }
 
-  keylist->runtime.list_wrapper.first = keylist->runtime.key_columns.data();
-  keylist->runtime.list_wrapper.last = &keylist->runtime.key_columns[keylist->column_len - 1];
+  keylist->runtime.list_wrapper.first_ = keylist->runtime.key_columns.data();
+  keylist->runtime.list_wrapper.last_ = &keylist->runtime.key_columns[keylist->column_len - 1];
 }
 
 static void keylist_runtime_init(AnimKeylist *keylist)
@@ -358,8 +358,8 @@ static void keylist_first_last(const AnimKeylist *keylist,
     *last_column = &keylist->runtime.key_columns[keylist->column_len - 1];
   }
   else {
-    *first_column = static_cast<const ActKeyColumn *>(keylist->key_columns.first);
-    *last_column = static_cast<const ActKeyColumn *>(keylist->key_columns.last);
+    *first_column = keylist->key_columns.first();
+    *last_column = keylist->key_columns.last();
   }
 }
 
@@ -739,8 +739,7 @@ static ActKeyColumn *keylist_find_exact_or_neighbor_column(AnimKeylist *keylist,
     return nullptr;
   }
 
-  ActKeyColumn *cursor = keylist->last_accessed_column.value_or(
-      static_cast<ActKeyColumn *>(keylist->key_columns.first));
+  ActKeyColumn *cursor = keylist->last_accessed_column.value_or(keylist->key_columns.first());
   if (!is_cfra_eq(cursor->cfra, cfra)) {
     const bool walking_direction_front_to_back = cursor->cfra <= cfra;
     if (walking_direction_front_to_back) {
@@ -908,7 +907,7 @@ static void add_keyblock_info(ActKeyColumn *col, const ActKeyBlockInfo *block)
 
 static void add_bezt_to_keyblocks_list(AnimKeylist *keylist, BezTriple *bezt, const int bezt_len)
 {
-  ActKeyColumn *col = static_cast<ActKeyColumn *>(keylist->key_columns.first);
+  ActKeyColumn *col = keylist->key_columns.first();
 
   if (bezt && bezt_len >= 2) {
     ActKeyBlockInfo block;

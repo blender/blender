@@ -215,7 +215,7 @@ static compositor::SideEffectOutputTypes get_needed_side_effect_outputs(
   for (wmWindow &window : window_manager->windows) {
     bScreen *screen = WM_window_get_active_screen(&window);
     for (ScrArea &area : screen->areabase) {
-      SpaceLink *space_link = static_cast<SpaceLink *>(area.spacedata.first);
+      SpaceLink *space_link = area.spacedata.first();
       if (!space_link || !ELEM(space_link->spacetype, SPACE_NODE, SPACE_IMAGE)) {
         continue;
       }
@@ -273,7 +273,7 @@ void ED_node_compositor_job(Main *bmain,
     return;
   }
 
-  wmWindowManager *window_manager = static_cast<wmWindowManager *>(bmain->wm.first);
+  wmWindowManager *window_manager = bmain->wm.first();
   const compositor::SideEffectOutputTypes needed_side_effect_outputs =
       get_needed_side_effect_outputs(window_manager);
   if (needed_side_effect_outputs == compositor::SideEffectOutputTypes::None) {
@@ -283,9 +283,8 @@ void ED_node_compositor_job(Main *bmain,
   Image *render_result_image = BKE_image_ensure_viewer(bmain, IMA_TYPE_R_RESULT, "Render Result");
   BKE_image_backup_render(scene, render_result_image, false);
 
-  wmWindow *window = window_manager->runtime->winactive ?
-                         window_manager->runtime->winactive :
-                         static_cast<wmWindow *>(window_manager->windows.first);
+  wmWindow *window = window_manager->runtime->winactive ? window_manager->runtime->winactive :
+                                                          window_manager->windows.first();
   wmJob *job = WM_jobs_get(window_manager,
                            window,
                            scene,

@@ -590,7 +590,7 @@ static ScrArea *find_area_properties(const bContext *C)
   for (ScrArea &area : screen->areabase) {
     if (area.spacetype == SPACE_PROPERTIES) {
       /* Only if unpinned, or if pinned object matches. */
-      SpaceProperties *sbuts = static_cast<SpaceProperties *>(area.spacedata.first);
+      SpaceProperties *sbuts = area.spacedata.first_as<SpaceProperties>();
       ID *pinid = sbuts->pinid;
       if (pinid == nullptr || ((GS(pinid->name) == ID_OB) && id_cast<Object *>(pinid) == ob)) {
         return &area;
@@ -605,7 +605,7 @@ static SpaceProperties *find_space_properties(const bContext *C)
 {
   ScrArea *area = find_area_properties(C);
   if (area != nullptr) {
-    return static_cast<SpaceProperties *>(area->spacedata.first);
+    return area->spacedata.first_as<SpaceProperties>();
   }
 
   return nullptr;
@@ -622,14 +622,14 @@ static void template_texture_show(bContext *C, void *data_p, void *prop_p)
     return;
   }
 
-  SpaceProperties *sbuts = static_cast<SpaceProperties *>(area->spacedata.first);
+  SpaceProperties *sbuts = area->spacedata.first_as<SpaceProperties>();
   ButsContextTexture *ct = (sbuts) ? static_cast<ButsContextTexture *>(sbuts->texuser) : nullptr;
   if (!ct) {
     return;
   }
 
   ButsTextureUser *user;
-  for (user = static_cast<ButsTextureUser *>(ct->users.first); user; user = user->next) {
+  for (user = ct->users.first(); user; user = user->next) {
     if (user->ptr.data == data_p && user->prop == prop_p) {
       break;
     }
@@ -673,7 +673,7 @@ void uiTemplateTextureShow(ui::Layout *layout,
   ButsTextureUser *user;
   bool user_found = false;
   if (ct != nullptr) {
-    for (user = static_cast<ButsTextureUser *>(ct->users.first); user; user = user->next) {
+    for (user = ct->users.first(); user; user = user->next) {
       if (user->ptr.data == ptr->data && user->prop == prop) {
         user_found = true;
         break;

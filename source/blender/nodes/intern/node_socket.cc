@@ -140,7 +140,7 @@ static bNodeSocket *verify_socket_template(bNodeTree *ntree,
 {
   bNodeSocket *sock;
 
-  for (sock = static_cast<bNodeSocket *>(socklist->first); sock; sock = sock->next) {
+  for (sock = socklist->first(); sock; sock = sock->next) {
     if (STREQLEN(sock->name, stemp->name, NODE_MAXSTR)) {
       break;
     }
@@ -174,7 +174,7 @@ static void verify_socket_template_list(bNodeTree *ntree,
 
   /* no inputs anymore? */
   if (stemp_first == nullptr) {
-    for (sock = static_cast<bNodeSocket *>(socklist->first); sock; sock = nextsock) {
+    for (sock = socklist->first(); sock; sock = nextsock) {
       nextsock = sock->next;
       bke::node_remove_socket(*ntree, *node, *sock);
     }
@@ -187,17 +187,17 @@ static void verify_socket_template_list(bNodeTree *ntree,
       stemp++;
     }
     /* leftovers are removed */
-    for (sock = static_cast<bNodeSocket *>(socklist->first); sock; sock = nextsock) {
+    for (sock = socklist->first(); sock; sock = nextsock) {
       nextsock = sock->next;
       bke::node_remove_socket(*ntree, *node, *sock);
     }
 
     /* and we put back the verified sockets */
     stemp = stemp_first;
-    if (socklist->first) {
+    if (socklist->first_) {
       /* Some dynamic sockets left, store the list start
        * so we can add static sockets in front of it. */
-      sock = static_cast<bNodeSocket *>(socklist->first);
+      sock = socklist->first();
       while (stemp->type != -1) {
         /* Put static sockets in front of dynamic. */
         BLI_insertlinkbefore(socklist, sock, stemp->sock);
@@ -433,7 +433,7 @@ static bool hide_new_group_input_sockets(const bNode &node)
 {
   BLI_assert(node.is_group_input());
   /* Check needed to handle newly added group input nodes. */
-  if (const bNodeSocket *extension_socket = static_cast<bNodeSocket *>(node.outputs.last)) {
+  if (const bNodeSocket *extension_socket = node.outputs.last()) {
     return extension_socket->is_user_hidden();
   }
   return false;

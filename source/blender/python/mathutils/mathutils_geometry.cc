@@ -1598,7 +1598,7 @@ static PyObject *M_Geometry_tessellate_polygon(PyObject * /*self*/, PyObject *po
 
     /* The faces are stored in a new DisplayList
      * that's added to the head of the #ListBase. */
-    dl = static_cast<DispList *>(dispbase.first);
+    dl = dispbase.first();
 
     tri_list = PyList_New(dl->parts);
     if (!tri_list) {

@@ -211,7 +211,7 @@ static wmOperatorStatus viewdolly_exec(bContext *C, wmOperator *op)
     normalize_v3(mousevec);
   }
 
-  v3d = static_cast<View3D *>(area->spacedata.first);
+  v3d = area->spacedata.first_as<View3D>();
   rv3d = static_cast<RegionView3D *>(region->regiondata);
 
   const bool use_cursor_init = RNA_boolean_get(op->ptr, "use_cursor_init");

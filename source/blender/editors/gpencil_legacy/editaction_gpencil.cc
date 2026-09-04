@@ -360,7 +360,7 @@ bool ED_gpencil_anim_copybuf_copy(bAnimContext *ac)
 
       /* move over copied frames */
       BLI_movelisttolist(&new_layer->frames, &copied_frames);
-      BLI_assert(copied_frames.first == nullptr);
+      BLI_assert(copied_frames.first_ == nullptr);
 
       /* make a copy of the layer's name - for name-based matching later... */
       STRNCPY_UTF8(new_layer->info, gpl->info);
@@ -389,7 +389,7 @@ bool ED_gpencil_anim_copybuf_paste(bAnimContext *ac, const short offset_mode)
   }
 
   /* Check if single channel in buffer (disregard names if so). */
-  if (gpencil_anim_copybuf.first == gpencil_anim_copybuf.last) {
+  if (gpencil_anim_copybuf.first_ == gpencil_anim_copybuf.last()) {
     no_name = true;
   }
 
@@ -434,7 +434,7 @@ bool ED_gpencil_anim_copybuf_paste(bAnimContext *ac, const short offset_mode)
     bGPDframe *gpf;
 
     /* find suitable layer from buffer to use to paste from */
-    for (gpls = static_cast<bGPDlayer *>(gpencil_anim_copybuf.first); gpls; gpls = gpls->next) {
+    for (gpls = gpencil_anim_copybuf.first(); gpls; gpls = gpls->next) {
       /* check if layer name matches */
       if ((no_name) || STREQ(gpls->info, gpld->info)) {
         break;

@@ -562,10 +562,10 @@ uint gpu_select_pick_end()
   if (ps->use_cache && !ps->is_cached) {
     BLI_addtail(&ps->cache.bufs, ps->gpu.rect_depth);
     ps->gpu.rect_depth = nullptr;
-    rect_depth_final = static_cast<DepthBufCache *>(ps->cache.bufs.last);
+    rect_depth_final = ps->cache.bufs.last();
   }
   else if (ps->is_cached) {
-    rect_depth_final = static_cast<DepthBufCache *>(ps->cache.bufs.last);
+    rect_depth_final = ps->cache.bufs.last();
   }
   else {
     /* Common case, no cache. */

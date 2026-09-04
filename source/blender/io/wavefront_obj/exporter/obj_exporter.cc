@@ -132,7 +132,7 @@ filter_supported_objects(Depsgraph *depsgraph, const OBJExportParams &export_par
         break;
       case OB_CURVES_LEGACY: {
         Curve *curve = id_cast<Curve *>(object->data);
-        Nurb *nurb{static_cast<Nurb *>(curve->nurb.first)};
+        Nurb *nurb{curve->nurb.first()};
         if (!nurb) {
           /* An empty curve. Not yet supported to export these as meshes. */
           if (export_params.export_curves_as_nurbs) {

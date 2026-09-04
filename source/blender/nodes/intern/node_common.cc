@@ -783,7 +783,7 @@ void ntree_update_reroute_nodes(bNodeTree *ntree)
     if (reroute_type == nullptr) {
       const int root_node_index = reroute_nodes[reroute_root_i];
       const bNode &root_reroute = *all_nodes[root_node_index];
-      const bNodeSocket *root_socket = static_cast<const bNodeSocket *>(root_reroute.inputs.first);
+      const bNodeSocket *root_socket = root_reroute.inputs.first();
       reroute_type = root_socket->typeinfo;
     }
 

@@ -224,9 +224,7 @@ void ED_armature_bone_rename(Main *bmain,
   Object *ob;
   /* Find all uses of the bone name in Main. Bones are usually referred to by name which is why we
    * need to fix the string in all possible places.  */
-  for (ob = static_cast<Object *>(bmain->objects.first); ob;
-       ob = static_cast<Object *>(ob->id.next))
-  {
+  for (ob = bmain->objects.first(); ob; ob = static_cast<Object *>(ob->id.next)) {
     /* We have an object using the armature. */
     if (id_cast<const ID *>(arm) == ob->data) {
       /* Rename the pose channel, if it exists */
@@ -254,10 +252,8 @@ void ED_armature_bone_rename(Main *bmain,
 
       Object *cob;
       /* Update any object constraints to use the new bone name */
-      for (cob = static_cast<Object *>(bmain->objects.first); cob;
-           cob = static_cast<Object *>(cob->id.next))
-      {
-        if (cob->constraints.first) {
+      for (cob = bmain->objects.first(); cob; cob = static_cast<Object *>(cob->id.next)) {
+        if (cob->constraints.first_) {
           constraint_bone_name_fix(ob, cob, &cob->constraints, oldname, newname);
         }
         if (cob->pose) {
@@ -376,8 +372,7 @@ void ED_armature_bone_rename(Main *bmain,
   /* correct view locking */
   {
     bScreen *screen;
-    for (screen = static_cast<bScreen *>(bmain->screens.first); screen;
-         screen = static_cast<bScreen *>(screen->id.next))
+    for (screen = bmain->screens.first(); screen; screen = static_cast<bScreen *>(screen->id.next))
     {
       /* add regions */
       for (ScrArea &area : screen->areabase) {

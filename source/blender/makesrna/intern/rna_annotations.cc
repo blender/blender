@@ -240,7 +240,7 @@ static const EnumPropertyItem *rna_annotation_active_layer_itemf(bContext *C,
   }
 
   /* Existing layers */
-  for (gpl = static_cast<bGPDlayer *>(gpd->layers.first), i = 0; gpl; gpl = gpl->next, i++) {
+  for (gpl = gpd->layers.first(), i = 0; gpl; gpl = gpl->next, i++) {
     item_tmp.identifier = gpl->info;
     item_tmp.name = gpl->info;
     item_tmp.value = i;

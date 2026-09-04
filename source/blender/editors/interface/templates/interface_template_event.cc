@@ -24,8 +24,7 @@ static const wmKeyMapItem *keymap_item_from_enum_item(const wmKeyMap *keymap,
     return nullptr;
   }
 
-  for (wmKeyMapItem *kmi = static_cast<wmKeyMapItem *>(keymap->items.first); kmi; kmi = kmi->next)
-  {
+  for (wmKeyMapItem *kmi = keymap->items.first(); kmi; kmi = kmi->next) {
     if (kmi->propvalue == item->value) {
       return kmi;
     }

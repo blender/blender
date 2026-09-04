@@ -39,7 +39,7 @@ namespace blender {
 
 void ED_drivers_editor_init(bContext *C, ScrArea *area)
 {
-  SpaceGraph *sipo = static_cast<SpaceGraph *>(area->spacedata.first);
+  SpaceGraph *sipo = area->spacedata.first_as<SpaceGraph>();
 
   /* Set mode */
   sipo->mode = SIPO_MODE_DRIVERS;
@@ -92,7 +92,7 @@ bAnimListElem *get_active_fcurve_channel(bAnimContext *ac)
    * if they were from linked data.
    */
   if (items) {
-    bAnimListElem *ale = static_cast<bAnimListElem *>(anim_data.first);
+    bAnimListElem *ale = anim_data.first();
 
     /* remove first item from list, then free the rest of the list and return the stored one */
     BLI_remlink(&anim_data, ale);

@@ -782,7 +782,7 @@ static void curve_to_filledpoly(const Curve *cu, ListBaseT<DispList> *dispbase)
     return;
   }
 
-  if (dispbase->first && (static_cast<DispList *>(dispbase->first))->type == DL_SURF) {
+  if (dispbase->first() && (dispbase->first())->type == DL_SURF) {
     bevels_to_filledpoly(cu, dispbase);
   }
   else {
@@ -810,12 +810,11 @@ static float displist_calc_taper(Depsgraph *depsgraph,
     return 1.0;
   }
 
-  DispList *dl = taperobj->runtime->curve_cache ?
-                     static_cast<DispList *>(taperobj->runtime->curve_cache->disp.first) :
-                     nullptr;
+  DispList *dl = taperobj->runtime->curve_cache ? taperobj->runtime->curve_cache->disp.first() :
+                                                  nullptr;
   if (dl == nullptr) {
     BKE_displist_make_curveTypes(depsgraph, scene, taperobj, false);
-    dl = static_cast<DispList *>(taperobj->runtime->curve_cache->disp.first);
+    dl = taperobj->runtime->curve_cache->disp.first();
   }
   if (dl) {
     float minx, dx, *fp;
@@ -1487,8 +1486,8 @@ static bke::GeometrySet evaluate_curve_type_object(Depsgraph *depsgraph,
   else {
     const float widfac = cu->offset - 1.0f;
 
-    const BevList *bl = static_cast<BevList *>(ob->runtime->curve_cache->bev.first);
-    const Nurb *nu = static_cast<Nurb *>(deformed_nurbs->first);
+    const BevList *bl = ob->runtime->curve_cache->bev.first();
+    const Nurb *nu = deformed_nurbs->first();
     for (; bl && nu; bl = bl->next, nu = nu->next) {
       float *data;
 
@@ -1658,7 +1657,7 @@ static bke::GeometrySet evaluate_curve_type_object(Depsgraph *depsgraph,
           displist_surf_indices(dl);
         }
 
-        if (bottom_capbase.first) {
+        if (bottom_capbase.first()) {
           BKE_displist_fill(&bottom_capbase,
                             r_dispbase,
                             bottom_no,
@@ -1667,7 +1666,7 @@ static bke::GeometrySet evaluate_curve_type_object(Depsgraph *depsgraph,
                             CurveFillRuleType(cu->fill_rule));
           BKE_displist_free(&bottom_capbase);
         }
-        if (top_capbase.first) {
+        if (top_capbase.first()) {
           BKE_displist_fill(&top_capbase,
                             r_dispbase,
                             top_no,

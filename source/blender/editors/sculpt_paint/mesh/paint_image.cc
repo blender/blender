@@ -12,6 +12,7 @@
 #include <cstdio>
 #include <cstring>
 
+#include "DNA_space_types.h"
 #include "MEM_guardedalloc.h"
 
 #include "BLI_listbase.hh"
@@ -426,7 +427,7 @@ bool get_imapaint_zoom(bContext *C, float *zoomx, float *zoomy)
 {
   ScrArea *area = CTX_wm_area(C);
   if (area && area->spacetype == SPACE_IMAGE) {
-    SpaceImage *sima = static_cast<SpaceImage *>(area->spacedata.first);
+    SpaceImage *sima = area->spacedata.first_as<SpaceImage>();
     if (sima->mode == SI_MODE_PAINT) {
       ARegion *region = CTX_wm_region(C);
       ED_space_image_get_zoom(sima, region, zoomx, zoomy);
@@ -471,7 +472,7 @@ void ED_space_image_paint_update(Main *bmain, wmWindowManager *wm, Scene *scene)
 
     for (ScrArea &area : screen->areabase) {
       if (area.spacetype == SPACE_IMAGE) {
-        if ((static_cast<SpaceImage *>(area.spacedata.first))->mode == SI_MODE_PAINT) {
+        if ((area.spacedata.first_as<SpaceImage>())->mode == SI_MODE_PAINT) {
           enabled = true;
         }
       }

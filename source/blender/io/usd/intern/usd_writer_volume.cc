@@ -30,7 +30,7 @@ namespace blender::io::usd {
 static bool has_varying_modifiers(const Object *ob)
 {
   /* These modifiers may vary the Volume either over time or by deformation/transformation. */
-  ModifierData *md = static_cast<ModifierData *>(ob->modifiers.first);
+  ModifierData *md = ob->modifiers.first();
   while (md) {
     if (ELEM(md->type,
              eModifierType_Nodes,

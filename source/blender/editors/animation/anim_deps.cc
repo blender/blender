@@ -473,7 +473,7 @@ void ANIM_animdata_freelist(ListBaseT<bAnimListElem> *anim_data)
 {
 #ifndef NDEBUG
   bAnimListElem *ale, *ale_next;
-  for (ale = static_cast<bAnimListElem *>(anim_data->first); ale; ale = ale_next) {
+  for (ale = anim_data->first(); ale; ale = ale_next) {
     ale_next = ale->next;
     BLI_assert(ale->update == 0);
     MEM_delete(ale);

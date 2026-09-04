@@ -887,7 +887,7 @@ static wmOperatorStatus edbm_shortest_path_select_exec(bContext *C, wmOperator *
     }
 
     /* first try to find vertices in edit selection */
-    ese_src = static_cast<BMEditSelection *>(bm->selected.last);
+    ese_src = bm->selected.last();
     if (ese_src && (ese_dst = ese_src->prev) && (ese_src->htype == ese_dst->htype)) {
       ele_src = ese_src->ele;
       ele_dst = ese_dst->ele;

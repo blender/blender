@@ -36,9 +36,7 @@ bool BKE_autoexec_match_unchecked(const char *path)
   const int fnmatch_flags = 0;
 #endif
 
-  for (path_cmp = static_cast<bPathCompare *>(U.autoexec_paths.first); path_cmp;
-       path_cmp = path_cmp->next)
-  {
+  for (path_cmp = U.autoexec_paths.first(); path_cmp; path_cmp = path_cmp->next) {
     if (path_cmp->path[0] == '\0') {
       /* pass */
     }

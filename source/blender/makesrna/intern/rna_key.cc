@@ -504,7 +504,7 @@ static void rna_ShapeKey_NurbInfo_find_index(Key *key,
 
   memset(r_info, 0, sizeof(*r_info));
 
-  for (Nurb *nu = static_cast<Nurb *>(cu->nurb.first); nu && raw_index >= 0; nu = nu->next) {
+  for (Nurb *nu = cu->nurb.first(); nu && raw_index >= 0; nu = nu->next) {
     rna_ShapeKey_NurbInfo_step(r_info, nu, &raw_index, input_elem);
   }
 }
@@ -534,7 +534,7 @@ static void rna_ShapeKey_data_begin_mixed(
   int items_left = point_count;
   NurbInfo info = {nullptr};
 
-  for (Nurb *nu = static_cast<Nurb *>(cu->nurb.first); nu && items_left > 0; nu = nu->next) {
+  for (Nurb *nu = cu->nurb.first(); nu && items_left > 0; nu = nu->next) {
     ShapeKeyCurvePoint *nurb_points = points + info.item_index;
     char *nurb_data = databuf + info.elem_index * key->elemsize;
 
@@ -615,7 +615,7 @@ static PointerRNA rna_ShapeKey_data_get(CollectionPropertyIterator *iter)
   if (GS(key->from->name) == ID_CU_LEGACY) {
     Curve *cu = id_cast<Curve *>(key->from);
 
-    type = rna_ShapeKey_curve_point_type(static_cast<Nurb *>(cu->nurb.first));
+    type = rna_ShapeKey_curve_point_type(cu->nurb.first());
   }
 
   return RNA_pointer_create_with_parent(iter->parent, type, ptr);
@@ -730,9 +730,7 @@ static void rna_Key_update_data(Main *bmain, Scene * /*scene*/, PointerRNA *ptr)
   Key *key = id_cast<Key *>(ptr->owner_id);
   Object *ob;
 
-  for (ob = static_cast<Object *>(bmain->objects.first); ob;
-       ob = static_cast<Object *>(ob->id.next))
-  {
+  for (ob = bmain->objects.first(); ob; ob = static_cast<Object *>(ob->id.next)) {
     if (BKE_key_from_object(ob) == key) {
       DEG_id_tag_update(&ob->id, ID_RECALC_GEOMETRY);
       WM_main_add_notifier(NC_OBJECT | ND_MODIFIER, ob);
@@ -761,7 +759,7 @@ static KeyBlock *rna_ShapeKeyData_find_keyblock(Key *key, const float *point)
 
   /* We'll need to manually search through the key-blocks and check
    * if the point is somewhere in the middle of each block's data. */
-  for (kb = static_cast<KeyBlock *>(key->block.first); kb; kb = kb->next) {
+  for (kb = key->block.first(); kb; kb = kb->next) {
     if (kb->data) {
       float *start = static_cast<float *>(kb->data);
       float *end;

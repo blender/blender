@@ -82,7 +82,7 @@ static void rna_Text_current_line_index_set(PointerRNA *ptr, int value)
   Text *text = static_cast<Text *>(ptr->data);
   TextLine *line = static_cast<TextLine *>(BLI_findlink(&text->lines, value));
   if (line == nullptr) {
-    line = static_cast<TextLine *>(text->lines.last);
+    line = text->lines.last();
   }
   text->curl = line;
   text->curc = 0;
@@ -99,7 +99,7 @@ static void rna_Text_select_end_line_index_set(PointerRNA *ptr, int value)
   Text *text = static_cast<Text *>(ptr->data);
   TextLine *line = static_cast<TextLine *>(BLI_findlink(&text->lines, value));
   if (line == nullptr) {
-    line = static_cast<TextLine *>(text->lines.last);
+    line = text->lines.last();
   }
   text->sell = line;
   text->selc = 0;

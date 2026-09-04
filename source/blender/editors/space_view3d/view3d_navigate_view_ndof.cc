@@ -158,7 +158,7 @@ static void view3d_ndof_pan_zoom(const wmNDOFMotionData &ndof,
 
     /* all callers must check */
     if (has_translate) {
-      BLI_assert(ED_view3d_offset_lock_check((View3D *)area->spacedata.first, rv3d) == false);
+      BLI_assert(ED_view3d_offset_lock_check((View3D *)area->spacedata.first_, rv3d) == false);
     }
   }
 
@@ -229,7 +229,7 @@ static void view3d_ndof_orbit(const wmNDOFMotionData &ndof,
                               const bool apply_dyn_ofs)
 {
 
-  View3D *v3d = static_cast<View3D *>(area->spacedata.first);
+  View3D *v3d = area->spacedata.first_as<View3D>();
   RegionView3D *rv3d = static_cast<RegionView3D *>(region->regiondata);
 
   float view_inv[4];
@@ -610,7 +610,7 @@ static std::optional<float3> ndof_orbit_center_calc_from_zbuf(Depsgraph *depsgra
     return zbuf_center;
   }
 
-  View3D *v3d = static_cast<View3D *>(area->spacedata.first);
+  View3D *v3d = area->spacedata.first_as<View3D>();
   if (view3d_calc_point_in_selected_bounds(depsgraph, view_layer, v3d, zbuf_center, scale_margin))
   {
     return zbuf_center;
