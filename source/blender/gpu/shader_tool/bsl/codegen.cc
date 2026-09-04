@@ -969,6 +969,13 @@ struct CodegenContext : NodeErrorHandler {
             return 0;
           }
 
+#ifdef _MSC_VER
+/* Silence warning about bool operand.
+ * They cannot happen because they are catched by the above check */
+#  pragma warning(push)
+#  pragma warning(disable : 4805)
+#endif
+
           /* Assign with the correct type cast. */
           switch (op.front().type()) {
             case Assign:
@@ -1003,6 +1010,9 @@ struct CodegenContext : NodeErrorHandler {
             default:
               break;
           }
+#ifdef _MSC_VER
+#  pragma warning(pop)
+#endif
         }
       }
     }
