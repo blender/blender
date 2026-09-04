@@ -33,6 +33,8 @@
 
 #include "BIF_glutil.hh"
 
+#include "UI_view2d.hh"
+
 namespace blender {
 
 wmGesture *WM_gesture_new(wmWindow *window, const ARegion *region, const wmEvent *event, int type)
@@ -101,6 +103,7 @@ void WM_gesture_end(wmWindow *win, wmGesture *gesture)
   BLI_remlink(&win->runtime->gesture, gesture);
   MEM_delete_void(gesture->customdata);
   WM_generic_user_data_free(&gesture->user_data);
+  MEM_delete(gesture->edge_pan_data);
   MEM_delete(gesture);
 }
 

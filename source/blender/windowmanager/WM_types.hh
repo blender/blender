@@ -139,6 +139,10 @@ namespace asset_system {
 class AssetRepresentation;
 }
 
+namespace ui {
+struct View2DEdgePanData;
+}
+
 using wmGenericUserDataFreeFn = void (*)(void *data);
 
 struct wmGenericUserData {
@@ -672,6 +676,8 @@ struct wmGesture {
   bool draw_active_side;
   /** Latest mouse position relative to area. Currently only used by lasso drawing code. */
   int2 mval;
+  /** Mouse position the gesture started at in view space. Used by edge panning. */
+  float2 init_mval_view;
 
   /**
    * For modal operators which may be running idle, waiting for an event to activate the gesture.
@@ -706,6 +712,7 @@ struct wmGesture {
 
   /** Free pointer to use for operator allocations (if set, its freed on exit). */
   wmGenericUserData user_data;
+  ui::View2DEdgePanData *edge_pan_data;
 };
 
 /* ************** wmEvent ************************ */

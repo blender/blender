@@ -41,6 +41,11 @@ bool view2d_edge_pan_poll(bContext *C)
 
   View2D *v2d = &region->v2d;
 
+  /* Some spaces (e.g. image) overwrite `v2d` using their own view state; they never initialize. */
+  if ((v2d->flag & V2D_IS_INIT) == 0) {
+    return false;
+  }
+
   /* Check that 2d-view can pan. */
   if ((v2d->keepofs & V2D_LOCKOFS_X) && (v2d->keepofs & V2D_LOCKOFS_Y)) {
     return false;
