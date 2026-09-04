@@ -49,7 +49,9 @@ android {
 
     buildTypes {
         release {
+            // For development: Keep release build debuggable, allowing for package file access (among others).
             signingConfig = signingConfigs.debug
+            debuggable = true
         }
     }
 }
