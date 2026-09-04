@@ -991,9 +991,6 @@ static bool outliner_element_visible_get(const Main &bmain,
     else if ((type == TSE_CONSTRAINT_BASE) && (exclude_filter & SO_FILTER_NO_OB_CONSTRAINTS)) {
       return false;
     }
-    else if ((type == TSE_ANIM_DATA) && (exclude_filter & SO_FILTER_NO_OB_ANIMATION)) {
-      return false;
-    }
     else if ((type == TSE_MODIFIER_BASE) && (exclude_filter & SO_FILTER_NO_OB_MODIFIERS)) {
       return false;
     }
