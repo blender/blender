@@ -128,7 +128,7 @@ struct HybridFragOut {
 void surf_hybrid([[resource_table]] PipelineConstants &pipe,
                  [[resource_table]] SurfaceHybrid &srt,
                  [[resource_table]] gbuffer::PackParameters &gbuf_params,
-                 [[resource_table]] LightEvalIterator &lights,
+                 [[resource_table]] LightEvalIterator & /*lights*/,
                  [[resource_table]] LightprobeRenderData & /*lightprobes*/,
                  [[resource_table]] LightprobePlaneRenderData & /*lightprobe_planes*/,
                  [[resource_table]] CryptomatteOutput &cryptomatte,
