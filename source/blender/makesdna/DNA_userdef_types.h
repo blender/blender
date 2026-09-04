@@ -891,7 +891,7 @@ struct UserDef_Experimental {
    */
   char use_new_curves_tools = 0;
   char use_extended_asset_browser = 0;
-  char use_sculpt_texture_paint = 0;
+  char use_3d_texture_paint = 0;
   char use_shader_node_previews = 0;
   /**
    * As a temporary exception to the above sanitation rules, this flag is always ON. The work to

@@ -253,6 +253,7 @@ DNA_STRUCT_RENAME_MEMBER(UserDef, max_shader_compilation_subprocesses, gpu_shade
 DNA_STRUCT_RENAME_MEMBER(UserDef, ndof_orbit_sensitivity, ndof_rotation_sensitivity)
 DNA_STRUCT_RENAME_MEMBER(UserDef, ndof_sensitivity, ndof_translation_sensitivity)
 DNA_STRUCT_RENAME_MEMBER(UserDef, pythondir, pythondir_legacy)
+DNA_STRUCT_RENAME_MEMBER(UserDef_Experimental, use_sculpt_texture_paint, use_3d_texture_paint)
 DNA_STRUCT_RENAME_MEMBER(UvSculpt, curve_preset, curve_distance_falloff_preset)
 DNA_STRUCT_RENAME_MEMBER(UvSculpt, strength_curve, curve_distance_falloff)
 DNA_STRUCT_RENAME_MEMBER(VFont, name, filepath)

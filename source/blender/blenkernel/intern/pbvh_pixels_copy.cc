@@ -621,7 +621,7 @@ void CopyPixelTile::print_compression_rate() const
 
 void copy_update(bke::pbvh::Tree &pbvh,
                  Image &image,
-                 ImageUser &image_user,
+                 const ImageUser &image_user,
                  const uv_islands::MeshData &mesh_data)
 {
   PRF_scope(ProfileCategory::Editor);

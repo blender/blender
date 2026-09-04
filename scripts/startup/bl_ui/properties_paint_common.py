@@ -602,7 +602,7 @@ class StrokePanel(BrushPanel):
             row = col.row(align=True)
             row.prop(brush, "spacing", text="Spacing")
 
-        if mode == 'SCULPT':
+        if mode == 'SCULPT' or (mode == 'PAINT_TEXTURE' and bpy.context.preferences.experimental.use_3d_texture_paint):
             col.row().prop(brush, "use_scene_spacing", text="Spacing Distance", expand=True)
 
         if mode in {'PAINT_TEXTURE', 'PAINT_2D', 'SCULPT'}:
@@ -757,6 +757,7 @@ class ShapePanel(BrushPanel):
         settings = self.paint_settings_from_active_tool(context)
         mode = self.get_brush_mode(context)
         brush = settings.brush
+        experimental_texture_paint_enabled = bpy.context.preferences.experimental.use_3d_texture_paint
 
         if brush is None:
             return
@@ -787,6 +788,22 @@ class ShapePanel(BrushPanel):
                 layout.prop(brush, "tip_roundness")
                 layout.prop(brush, "tip_scale_x")
                 layout.separator()
+        elif mode == 'PAINT_TEXTURE' and experimental_texture_paint_enabled:
+            # TODO: Update this once the "capabilities" block has been updated
+            row = layout.row(align=True)
+            row.prop(brush, "hardness", slider=True)
+            row.prop(brush, "use_hardness_pressure", text="")
+            if not self.is_popover:
+                UnifiedPaintPanel.prop_custom_pressure(
+                    layout,
+                    context,
+                    row,
+                    brush,
+                    pressure_name="use_hardness_pressure",
+                    curve_visibility_name="show_hardness_curve",
+                    custom_curve_name="curve_hardness",
+                )
+            layout.separator()
 
         layout.use_property_split = False
         col = layout.column(align=True)
@@ -808,6 +825,8 @@ class ShapePanel(BrushPanel):
 
         show_falloff_shape = False
         if mode in {'SCULPT', 'PAINT_VERTEX', 'PAINT_WEIGHT'} and brush.sculpt_brush_type != 'POSE':
+            show_falloff_shape = True
+        if mode == 'PAINT_TEXTURE' and experimental_texture_paint_enabled:
             show_falloff_shape = True
         if not show_falloff_shape and mode == 'SCULPT_CURVES' and context.space_data.type == 'PROPERTIES':
             show_falloff_shape = True
@@ -1231,6 +1250,8 @@ def brush_shared_settings(layout, context, brush, popover=False):
 
     # 3D and 2D Texture Paint #
     if mode in {'PAINT_TEXTURE', 'PAINT_2D'}:
+        if mode == 'PAINT_TEXTURE' and bpy.context.preferences.experimental.use_3d_texture_paint:
+            size_mode = True
         if not popover:
             blend_mode = brush.image_paint_capabilities.has_color
             size = brush.image_paint_capabilities.has_radius
@@ -1751,6 +1772,8 @@ def brush_mask_texture_settings(layout, brush):
 
 def brush_basic_texpaint_settings(layout, context, brush, *, compact=False):
     """Draw Tool Settings header for Vertex Paint and 2D and 3D Texture Paint modes."""
+
+    # TODO: This shared method is incorrect and unnecessary, remove this layer of abstraction
     capabilities = brush.image_paint_capabilities
 
     if capabilities.has_color:

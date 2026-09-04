@@ -102,6 +102,13 @@ void mode_enter_generic(
     paint = BKE_paint_get_active_from_paintmode(&scene, paint_mode);
     ED_paint_cursor_start(paint, brush_cursor_poll);
   }
+  else if (mode_flag == OB_MODE_TEXTURE_PAINT) {
+    const PaintMode paint_mode = PaintMode::Texture3D;
+
+    BKE_paint_init(&bmain, &scene, paint_mode);
+    paint = BKE_paint_get_active_from_paintmode(&scene, paint_mode);
+    ED_paint_cursor_start(paint, ED_image_tools_paint_poll);
+  }
   else {
     BLI_assert(0);
   }

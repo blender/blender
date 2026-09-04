@@ -41,6 +41,7 @@
 #include "BKE_paint_bvh.hh"
 #include "BKE_paint_bvh_pixels.hh"
 
+#include "image_paint_intern.hh"
 #include "mesh_brush_common.hh"
 #include "sculpt_automask.hh"
 #include "sculpt_intern.hh"
@@ -49,14 +50,14 @@
 
 namespace blender {
 
-namespace ed::sculpt_paint::paint::image {
+namespace ed::sculpt_paint::image {
 
 using namespace blender::bke::pbvh::pixels;
 using namespace blender::bke::image;
 
 ImageData::~ImageData()
 {
-  if (!image || !image_user) {
+  if (!image) {
     return;
   }
 
@@ -66,18 +67,18 @@ ImageData::~ImageData()
   }
   image_buffers.clear();
 }
-std::unique_ptr<ImageData> ImageData::init_active_image(Object &ob,
-                                                        PaintModeSettings &paint_mode_settings)
+std::unique_ptr<ImageData> ImageData::init_active_image(Object &ob, ImagePaintSettings &settings)
 {
-  std::unique_ptr<ImageData> image_data = std::make_unique<ImageData>();
-  if (!BKE_paint_canvas_image_get(
-          &paint_mode_settings, &ob, &image_data->image, &image_data->image_user))
-  {
+  std::optional<CanvasImageData> canvas_image_data = BKE_paint_canvas_image_get(settings, ob);
+  if (!canvas_image_data) {
     return nullptr;
   }
 
+  std::unique_ptr<ImageData> image_data = std::make_unique<ImageData>();
+  image_data->image = canvas_image_data->first;
+  image_data->image_user = canvas_image_data->second;
+
   BLI_assert(image_data->image);
-  BLI_assert(image_data->image_user);
 
   return image_data;
 }
@@ -89,7 +90,7 @@ static void fetch_image_buffers(ImageData &image_data,
   PRF_scope(ProfileCategory::Editor);
   for (const UDIMTilePixels &tile : pixel_node.tiles) {
     ImBuf *buffer = image_data.image_buffers.lookup_or_add_cb(tile.tile_number, [&]() {
-      ImageUser tile_user = *image_data.image_user;
+      ImageUser tile_user = image_data.image_user_get();
       tile_user.tile = tile.tile_number;
 
       ImBuf *ibuf = BKE_image_acquire_ibuf(image_data.image, &tile_user, nullptr);
@@ -428,7 +429,7 @@ static void push_undo_tiles(ImageData &image_data,
     if (pushed.load(std::memory_order_acquire)) {
       continue;
     }
-    ImageUser tile_user = *image_data.image_user;
+    ImageUser tile_user = image_data.image_user_get();
     tile_user.tile = tile_number;
     PaintTileMap *undo_tiles = ED_image_paint_tile_map_get();
     ED_image_paint_tile_push(
@@ -741,37 +742,14 @@ static void fix_non_manifold_seam_bleeding(Object &ob,
 
 /** \} */
 
-}  // namespace ed::sculpt_paint::paint::image
-
-using namespace blender::ed::sculpt_paint::paint::image;
-
-bool SCULPT_use_image_paint_brush(PaintModeSettings &settings, Object &ob)
-{
-  if (!USER_EXPERIMENTAL_TEST(&U, use_sculpt_texture_paint)) {
-    return false;
-  }
-  if (ob.type != OB_MESH) {
-    return false;
-  }
-  Image *image;
-  ImageUser *image_user;
-  return BKE_paint_canvas_image_get(&settings, &ob, &image, &image_user);
-}
-
-void SCULPT_do_paint_brush_image(const Depsgraph &depsgraph,
-                                 const Sculpt &sd,
-                                 Object &ob,
-                                 const IndexMask &node_mask)
+void do_3d_image_paint_brush(const Depsgraph &depsgraph,
+                             const Paint &paint,
+                             const Brush &brush,
+                             Object &ob,
+                             ImageData &image_data,
+                             const IndexMask &node_mask)
 {
   PRF_scope(ProfileCategory::Editor);
-  const Brush *brush = BKE_paint_brush_for_read(&sd.paint);
-  ed::sculpt_paint::StrokeCache &cache = *ob.runtime->sculpt_session->cache;
-
-  if (!cache.image_data) {
-    return;
-  }
-
-  ImageData &image_data = *cache.image_data;
 
   bke::pbvh::Tree &pbvh = *bke::object::pbvh_get(ob);
   MutableSpan<bke::pbvh::MeshNode> nodes = pbvh.nodes<bke::pbvh::MeshNode>();
@@ -787,7 +765,7 @@ void SCULPT_do_paint_brush_image(const Depsgraph &depsgraph,
 
   node_mask.foreach_index(
       [&](const int i) {
-        do_paint_pixels(depsgraph, ob, sd.paint, *brush, image_data, nodes[i], pixel_nodes[i]);
+        do_paint_pixels(depsgraph, ob, paint, brush, image_data, nodes[i], pixel_nodes[i]);
       },
       exec_mode::grain_size(1));
 
@@ -798,5 +776,5 @@ void SCULPT_do_paint_brush_image(const Depsgraph &depsgraph,
         nodes[i], pixel_nodes[i], *image_data.image, image_data.image_buffers);
   });
 }
-
+}  // namespace ed::sculpt_paint::image
 }  // namespace blender

@@ -507,6 +507,7 @@ void BKE_object_handle_update_ex(Depsgraph *depsgraph,
                                  Object *ob,
                                  RigidBodyWorld *rbw);
 
+bool BKE_object_use_sculptsession(eObjectMode mode);
 void BKE_object_sculpt_data_create(Object *ob);
 
 bool BKE_object_obdata_texspace_get(Object *ob,

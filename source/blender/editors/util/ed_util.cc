@@ -168,7 +168,7 @@ void ED_editors_init(bContext *C)
     if (mode == OB_MODE_EDIT) {
       object::editmode_enter_ex(bmain, scene, &ob, 0);
     }
-    else if (mode & OB_MODE_ALL_SCULPT) {
+    else if (BKE_object_use_sculptsession(mode)) {
       if (obact == &ob) {
         if (mode == OB_MODE_SCULPT) {
           ed::sculpt_paint::object_sculpt_mode_enter(
@@ -180,6 +180,9 @@ void ED_editors_init(bContext *C)
         else if (mode == OB_MODE_WEIGHT_PAINT) {
           ED_object_wpaintmode_enter_ex(*bmain, *depsgraph, *scene, ob);
         }
+        else if (mode == OB_MODE_TEXTURE_PAINT) {
+          ED_object_texture_paint_mode_enter_ex(*bmain, *scene, *depsgraph, ob);
+        }
         else {
           BLI_assert_unreachable();
         }
@@ -187,7 +190,7 @@ void ED_editors_init(bContext *C)
       else {
         /* Create data for non-active objects which need it for
          * mode-switching but don't yet support multi-editing. */
-        if (mode & OB_MODE_ALL_SCULPT) {
+        if (BKE_object_use_sculptsession(mode)) {
           ob.mode = mode;
           BKE_object_sculpt_data_create(&ob);
         }

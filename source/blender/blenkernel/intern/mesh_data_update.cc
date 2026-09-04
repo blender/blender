@@ -960,7 +960,7 @@ static void mesh_build_data(Depsgraph &depsgraph,
   ob.runtime->last_data_mask = dataMask;
   ob.runtime->last_need_mapping = need_mapping;
 
-  if ((ob.mode & OB_MODE_ALL_SCULPT) && ob.runtime->sculpt_session) {
+  if (BKE_object_use_sculptsession(ob.mode) && ob.runtime->sculpt_session) {
     if (DEG_is_active(&depsgraph)) {
       BKE_sculptsession_update_after_eval(&depsgraph, &ob);
     }

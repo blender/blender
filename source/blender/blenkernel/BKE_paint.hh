@@ -28,6 +28,7 @@
 #include "DNA_brush_enums.h"
 #include "DNA_meshdata_types.h"
 #include "DNA_object_enums.h"
+#include "DNA_scene_types.h"
 
 namespace blender {
 
@@ -465,7 +466,7 @@ struct SculptSession : NonCopyable, NonMovable {
   float4 prev_pivot_rot = float4(1.0f, 0.0f, 0.0f, 0.0f);
   float3 prev_pivot_scale = {};
 
-  eObjectMode mode_type;
+  eObjectMode mode_type = OB_MODE_OBJECT;
 
   /**
    * ID data is older than sculpt-mode data.
@@ -610,17 +611,18 @@ bool BKE_object_sculpt_use_dyntopo(const Object *object);
 
 /* paint_canvas.cc */
 
+using CanvasImageUser = std::variant<ImageUser, ImageUser *>;
+using CanvasImageData = std::pair<Image *, CanvasImageUser>;
+
 /**
  * Create a key that can be used to compare with previous ones to identify changes.
  * The resulting 'string' is owned by the caller.
  */
-std::string BKE_paint_canvas_key_get(PaintModeSettings *settings, Object *ob);
+std::string BKE_paint_canvas_key_get(ImagePaintSettings &settings, Object *ob);
 
-bool BKE_paint_canvas_image_get(PaintModeSettings *settings,
-                                Object *ob,
-                                Image **r_image,
-                                ImageUser **r_image_user);
-std::optional<StringRef> BKE_paint_canvas_uvmap_name_get(const PaintModeSettings *settings,
+std::optional<CanvasImageData> BKE_paint_canvas_image_get(const ImagePaintSettings &settings,
+                                                          Object &object);
+std::optional<StringRef> BKE_paint_canvas_uvmap_name_get(const ImagePaintSettings &settings,
                                                          Object *ob);
 CurveMapping *BKE_sculpt_default_cavity_curve();
 CurveMapping *BKE_paint_default_curve();

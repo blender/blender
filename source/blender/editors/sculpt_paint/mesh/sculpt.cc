@@ -2736,15 +2736,6 @@ IndexMask gather_nodes(const bke::pbvh::Tree &pbvh,
   return {};
 }
 
-static IndexMask pbvh_gather_texpaint(Object &ob,
-                                      const Brush &brush,
-                                      const bool use_original,
-                                      const float radius_scale,
-                                      IndexMaskMemory &memory)
-{
-  return pbvh_gather_generic(ob, brush, use_original, radius_scale, memory);
-}
-
 /* Calculate primary direction of movement for many brushes. */
 static float3 calc_sculpt_normal(const Depsgraph &depsgraph,
                                  const Sculpt &sd,
@@ -2959,35 +2950,6 @@ static void update_brush_local_mat(const Sculpt &sd, Object &ob)
                          cache->brush_local_mat.ptr(),
                          cache->brush_local_mat_inv.ptr());
   }
-}
-
-/** \} */
-
-/* -------------------------------------------------------------------- */
-/** \name Texture painting
- * \{ */
-
-static bool sculpt_needs_pbvh_pixels(const Brush &brush, const Object &ob)
-{
-  if (brush.sculpt_brush_type == SCULPT_BRUSH_TYPE_PAINT &&
-      USER_EXPERIMENTAL_TEST(&U, use_sculpt_texture_paint))
-  {
-    return ob.runtime->sculpt_session->cache->image_data.get();
-  }
-
-  return false;
-}
-
-static void sculpt_pbvh_update_pixels(const Depsgraph &depsgraph, Object &ob)
-{
-  BLI_assert(ob.type == OB_MESH);
-
-  StrokeCache &cache = *ob.runtime->sculpt_session->cache;
-  if (!cache.image_data) {
-    return;
-  }
-
-  bke::pbvh::build_pixels(depsgraph, ob, *cache.image_data->image, *cache.image_data->image_user);
 }
 
 /** \} */
@@ -3532,23 +3494,7 @@ static void do_brush_action(const Depsgraph &depsgraph,
   PRF_scope_set_dynamic_name("%s", sculpt_brush_type_name(brush));
   Sculpt &sd = *scene.toolsettings->sculpt;
   SculptSession &ss = *ob.runtime->sculpt_session;
-  PaintModeSettings &paint_mode_settings = scene.toolsettings->paint_mode;
   IndexMaskMemory memory;
-  IndexMask texnode_mask;
-
-  const bool use_original = brush_type_needs_original(brush.sculpt_brush_type) ? true :
-                                                                                 !ss.cache->accum;
-  const bool use_pixels = sculpt_needs_pbvh_pixels(brush, ob);
-
-  if (sculpt_needs_pbvh_pixels(brush, ob)) {
-    sculpt_pbvh_update_pixels(depsgraph, ob);
-
-    texnode_mask = pbvh_gather_texpaint(ob, brush, use_original, 1.0f, memory);
-
-    if (texnode_mask.is_empty()) {
-      return;
-    }
-  }
 
   const brushes::CursorSampleResult cursor_sample_result = calc_brush_node_mask(
       depsgraph, sd, ob, brush, memory);
@@ -3566,9 +3512,7 @@ static void do_brush_action(const Depsgraph &depsgraph,
     }
   }
 
-  if (!use_pixels) {
-    push_undo_nodes(depsgraph, ob, brush, node_mask);
-  }
+  push_undo_nodes(depsgraph, ob, brush, node_mask);
 
   /* There are issues with the underlying normals cache / mesh data that can cause the data to
    * become out of date.
@@ -3737,7 +3681,7 @@ static void do_brush_action(const Depsgraph &depsgraph,
       brushes::do_displacement_smear_brush(depsgraph, sd, ob, node_mask);
       break;
     case SCULPT_BRUSH_TYPE_PAINT:
-      color::do_paint_brush(depsgraph, paint_mode_settings, sd, ob, node_mask, texnode_mask);
+      color::do_paint_brush(depsgraph, sd, ob, node_mask);
       break;
     case SCULPT_BRUSH_TYPE_SMEAR:
       color::do_smear_brush(depsgraph, sd, ob, node_mask);
@@ -4974,7 +4918,6 @@ struct SculptPaintStroke final : public PaintStroke {
   Main *bmain_;
   Sculpt *sculpt_;
   Base *base_;
-  PaintModeSettings *paint_mode_settings_;
 
   /* Needed to tag other viewports */
   wmWindowManager *wm_;
@@ -4985,7 +4928,6 @@ struct SculptPaintStroke final : public PaintStroke {
 
     ToolSettings *tool_settings = CTX_data_tool_settings(C);
     sculpt_ = tool_settings->sculpt;
-    paint_mode_settings_ = &tool_settings->paint_mode;
     base_ = CTX_data_active_base(C);
     wm_ = CTX_wm_manager(C);
   }
@@ -5064,10 +5006,7 @@ static void brush_stroke_init(bContext *C, const wmOperator *op)
   bke::brush::common_pressure_curves_init(*brush);
   brush_init_tex(sd, ss);
 
-  const bool needs_colors = brush_type_is_paint(brush->sculpt_brush_type) &&
-                            !SCULPT_use_image_paint_brush(tool_settings->paint_mode, ob);
-
-  if (needs_colors) {
+  if (brush_type_is_paint(brush->sculpt_brush_type)) {
     BKE_sculpt_color_layer_create_if_needed(&ob);
   }
 
@@ -5191,15 +5130,6 @@ void flush_update_step(ViewContext &vc, Object &object, const UpdateType update_
     multires_mark_as_modified(vc.depsgraph, &object, MULTIRES_COORDS_MODIFIED);
   }
 
-  if (update_type == UpdateType::Image) {
-    ED_region_tag_redraw(vc.region);
-    if (update_type == UpdateType::Image) {
-      /* Early exit when only need to update the images. We don't want to tag any geometry updates
-       * that would rebuild the bke::pbvh::Tree. */
-      return;
-    }
-  }
-
   DEG_id_tag_update(&object.id, ID_RECALC_SHADING);
 
   const bool use_pbvh_draw = BKE_sculptsession_use_pbvh_draw(&object, vc.rv3d);
@@ -5267,16 +5197,6 @@ void flush_update_done(ViewContext &vc,
         }
       }
     }
-
-    if (update_type == UpdateType::Image) {
-      for (ScrArea &area : screen.areabase) {
-        const SpaceLink &sl = *area.spacedata.first();
-        if (sl.spacetype != SPACE_IMAGE) {
-          continue;
-        }
-        ED_area_tag_redraw_regiontype(&area, RGN_TYPE_WINDOW);
-      }
-    }
   }
 
   bke::pbvh::Tree &pbvh = *bke::object::pbvh_get(ob);
@@ -5286,14 +5206,6 @@ void flush_update_done(ViewContext &vc,
 
     /* Coordinates were modified, so fake neighbors are not longer valid. */
     fake_neighbors_free(ob);
-
-    /* We free the entirety of the pixel data when the positions change as the cached pixel row
-     * positions need to be updated. Less data could be cleared here, but this is done for
-     * simplicity as in the future in a dedicated mode, mode switching would handle this
-     * invalidation. */
-    if (USER_EXPERIMENTAL_TEST(&U, use_sculpt_texture_paint)) {
-      bke::pbvh::pixels_free(&pbvh);
-    }
   }
 
   if (update_type == UpdateType::Position) {
@@ -5540,36 +5452,6 @@ static bool over_mesh(Depsgraph &depsgraph,
       .has_value();
 }
 
-static void stroke_undo_begin(const Scene &scene,
-                              const Brush *brush,
-                              PaintModeSettings &paint_mode_settings,
-                              Object &object,
-                              wmOperator *op)
-{
-  /* Setup the correct undo system. Image painting and sculpting are mutual exclusive.
-   * Color attributes are part of the sculpting undo system. */
-  if (brush && brush->sculpt_brush_type == SCULPT_BRUSH_TYPE_PAINT &&
-      SCULPT_use_image_paint_brush(paint_mode_settings, object))
-  {
-    ED_image_undo_push_begin(op->type->name, PaintMode::Sculpt);
-  }
-  else {
-    undo::push_begin_ex(scene, object, sculpt_brush_type_name(*brush));
-  }
-}
-
-static void stroke_undo_end(PaintModeSettings &paint_mode_settings, Object &object, Brush *brush)
-{
-  if (brush && brush->sculpt_brush_type == SCULPT_BRUSH_TYPE_PAINT &&
-      SCULPT_use_image_paint_brush(paint_mode_settings, object))
-  {
-    ED_image_undo_push_end();
-  }
-  else {
-    undo::push_end(object);
-  }
-}
-
 bool color_supported_check(const Scene &scene, Object &object, ReportList *reports)
 {
   if (const SculptSession &ss = *object.runtime->sculpt_session; ss.bm) {
@@ -5584,12 +5466,8 @@ bool color_supported_check(const Scene &scene, Object &object, ReportList *repor
   return true;
 }
 
-static void stroke_cache_init(ViewContext &vc,
-                              const Sculpt &sd,
-                              PaintModeSettings *paint_mode_settings,
-                              const Brush &brush,
-                              Object &ob,
-                              const float mval[2])
+static void stroke_cache_init(
+    ViewContext &vc, const Sculpt &sd, const Brush &brush, Object &ob, const float mval[2])
 {
   SculptSession &ss = *ob.runtime->sculpt_session;
   StrokeCache *cache = ss.cache;
@@ -5650,16 +5528,6 @@ static void stroke_cache_init(ViewContext &vc,
     }
   }
 
-  /* Original coordinates require the sculpt undo system, which isn't used
-   * for image brushes. It's also not necessary, just disable it. */
-  if (brush.sculpt_brush_type == SCULPT_BRUSH_TYPE_PAINT &&
-      SCULPT_use_image_paint_brush(*paint_mode_settings, ob))
-  {
-    cache->accum = true;
-
-    cache->image_data = paint::image::ImageData::init_active_image(ob, *paint_mode_settings);
-  }
-
   if (BKE_brush_color_jitter_get_settings(&sd.paint, &brush)) {
     cache->initial_hsv_jitter = seed_hsv_jitter();
   }
@@ -5675,22 +5543,18 @@ bool SculptPaintStroke::test_start(wmOperator *op, const float2 mouse)
 {
   /* Don't start the stroke until `mouse` goes over the mesh. */
   if (over_mesh(*this->depsgraph, this->vc, *sculpt_, this->brush, op, mouse)) {
-    Object &ob = *this->object;
     Brush &brush = *this->brush;
 
     /* NOTE: This should be removed when paint mode is available. Paint mode can force based on the
-     * canvas it is painting on. (ref. use_sculpt_texture_paint). */
-    if (brush_type_is_paint(brush.sculpt_brush_type) &&
-        !SCULPT_use_image_paint_brush(*paint_mode_settings_, ob))
-    {
+     * canvas it is painting on. (ref. use_3d_texture_paint). */
+    if (brush_type_is_paint(brush.sculpt_brush_type)) {
       View3D *v3d = this->vc.v3d;
       if (v3d->shading.type == OB_SOLID) {
         v3d->shading.color_type = V3D_SHADING_VERTEX_COLOR;
       }
     }
 
-    stroke_cache_init(
-        this->vc, *sculpt_, this->paint_mode_settings_, *this->brush, *this->object, mouse);
+    stroke_cache_init(this->vc, *sculpt_, *this->brush, *this->object, mouse);
     if (brush_type_is_paint(brush.sculpt_brush_type)) {
       BKE_curvemapping_init(brush.curve_rand_hue);
       BKE_curvemapping_init(brush.curve_rand_saturation);
@@ -5699,7 +5563,7 @@ bool SculptPaintStroke::test_start(wmOperator *op, const float2 mouse)
 
     cursor_geometry_info_update(*this->depsgraph, *paint, sculpt_, this->vc, base_, mouse, false);
 
-    stroke_undo_begin(*this->scene, this->brush, *this->paint_mode_settings_, *this->object, op);
+    undo::push_begin_ex(*this->scene, *this->object, sculpt_brush_type_name(brush));
 
     return true;
   }
@@ -5853,12 +5717,7 @@ void SculptPaintStroke::update_step(wmOperator * /*op*/, const StrokeStep &strok
     flush_update_step(this->vc, *this->object, UpdateType::Mask);
   }
   else if (brush_type_is_paint(brush.sculpt_brush_type)) {
-    if (SCULPT_use_image_paint_brush(*this->paint_mode_settings_, ob)) {
-      flush_update_step(this->vc, *this->object, UpdateType::Image);
-    }
-    else {
-      flush_update_step(this->vc, *this->object, UpdateType::Color);
-    }
+    flush_update_step(this->vc, *this->object, UpdateType::Color);
   }
   else {
     flush_update_step(this->vc, *this->object, UpdateType::Position);
@@ -5907,19 +5766,14 @@ void SculptPaintStroke::done(bool is_cancel, bool stroke_started)
   ss.cache = nullptr;
 
   if (!is_cancel && stroke_started) {
-    stroke_undo_end(*paint_mode_settings_, *this->object, brush);
+    undo::push_end(*this->object);
   }
 
   if (brush->sculpt_brush_type == SCULPT_BRUSH_TYPE_MASK) {
     flush_update_done(this->vc, *wm_, ob, UpdateType::Mask);
   }
   else if (brush->sculpt_brush_type == SCULPT_BRUSH_TYPE_PAINT) {
-    if (SCULPT_use_image_paint_brush(*this->paint_mode_settings_, ob)) {
-      flush_update_done(this->vc, *wm_, ob, UpdateType::Image);
-    }
-    else {
-      flush_update_done(this->vc, *wm_, ob, UpdateType::Color);
-    }
+    flush_update_done(this->vc, *wm_, ob, UpdateType::Color);
   }
   else {
     flush_update_done(this->vc, *wm_, ob, UpdateType::Position);

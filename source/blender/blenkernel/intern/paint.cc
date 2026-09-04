@@ -2362,7 +2362,7 @@ static void sculptsession_update(Depsgraph *depsgraph,
     /* Painting doesn't need crazyspace, use already evaluated mesh coordinates if possible. */
     bool used_me_eval = false;
 
-    if (ob->mode & (OB_MODE_VERTEX_PAINT | OB_MODE_WEIGHT_PAINT)) {
+    if (ob->mode & (OB_MODE_VERTEX_PAINT | OB_MODE_WEIGHT_PAINT | OB_MODE_TEXTURE_PAINT)) {
       const Mesh *me_eval_deform = BKE_object_get_mesh_deform_eval(ob_eval);
       BLI_assert(me_eval_deform != nullptr);
       /* If the fully evaluated mesh has the same topology as the deform-only version, use it.
@@ -2414,18 +2414,16 @@ static void sculptsession_update(Depsgraph *depsgraph,
      *
      * The relevant changes are stored/encoded in the paint canvas key.
      * These include the active uv map, and resolutions. */
-    if (USER_EXPERIMENTAL_TEST(&U, use_sculpt_texture_paint)) {
-      std::string paint_canvas_key = BKE_paint_canvas_key_get(&scene->toolsettings->paint_mode,
-                                                              ob);
+    if (USER_EXPERIMENTAL_TEST(&U, use_3d_texture_paint)) {
+      std::string paint_canvas_key = BKE_paint_canvas_key_get(scene->toolsettings->imapaint, ob);
       if (!ss.last_paint_canvas_key || paint_canvas_key != ss.last_paint_canvas_key) {
         ss.last_paint_canvas_key = paint_canvas_key;
         BKE_pbvh_mark_rebuild_pixels(pbvh);
       }
     }
 
-    /* We could be more precise when we have access to the active tool. */
-    const bool use_paint_slots = (ob->mode & OB_MODE_SCULPT) != 0;
-    if (use_paint_slots) {
+    /* Ensure attributes are correctly updated in the UI. */
+    if (ob->mode & OB_MODE_SCULPT) {
       BKE_texpaint_slots_refresh_object(scene, ob);
     }
   }

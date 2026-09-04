@@ -3048,7 +3048,7 @@ class USERPREF_PT_experimental_prototypes(ExperimentalPanel, Panel):
             context.preferences,
             (
                 ({"property": "use_new_curves_tools"}, ("blender/blender/issues/68981", "#68981")),
-                ({"property": "use_sculpt_texture_paint"}, ("blender/blender/issues/96225", "#96225")),
+                ({"property": "use_3d_texture_paint"}, ("blender/blender/issues/156410", "#156410")),
             ),
         )
 

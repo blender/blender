@@ -242,6 +242,10 @@ float normal_weight_get(const Brush &brush, bool invert);
 /* debugging only */
 void BKE_brush_debug_print_state(Brush *br);
 
+namespace bke::brush {
+bool implements_3d_texture_paint(const Brush &brush);
+}
+
 /* -------------------------------------------------------------------- */
 /** \name Brush Capabilities
  * Common boolean checks used during both brush evaluation and in UI drawing

@@ -110,7 +110,7 @@ set(SRC
   mesh/sculpt_mask_init.cc
   mesh/sculpt_ops.cc
   mesh/sculpt_paint_color.cc
-  mesh/sculpt_paint_image.cc
+  mesh/paint_image_3d.cc
   mesh/sculpt_pose.cc
   mesh/sculpt_project.cc
   mesh/sculpt_smooth.cc
@@ -127,6 +127,7 @@ set(SRC
   grease_pencil/trace_util.hh
   grease_pencil/weight_paint.hh
 
+  mesh/image_paint_intern.hh
   mesh/mesh_brush_common.hh
   mesh/mesh_paint.hh
   mesh/paint_hide.hh

@@ -918,7 +918,7 @@ static void paint_draw_curve_cursor(Brush *brush, ViewContext *vc)
   GPU_matrix_pop();
 }
 
-static bool paint_use_2d_cursor(PaintMode mode)
+static bool paint_use_2d_cursor(PaintMode mode, const Brush &brush)
 {
   switch (mode) {
     case PaintMode::Sculpt:
@@ -926,6 +926,10 @@ static bool paint_use_2d_cursor(PaintMode mode)
     case PaintMode::Weight:
       return false;
     case PaintMode::Texture3D:
+      if (!USER_EXPERIMENTAL_TEST(&U, use_3d_texture_paint)) {
+        return true;
+      }
+      return !bke::brush::implements_3d_texture_paint(brush);
     case PaintMode::Texture2D:
     case PaintMode::VertexGPencil:
     case PaintMode::SculptGPencil:
@@ -985,7 +989,7 @@ static bool paint_cursor_context_init(bContext *C,
   if (pcontext.brush->stroke_method == BRUSH_STROKE_CURVE) {
     pcontext.cursor_type = PaintCursorDrawingType::Curve;
   }
-  else if (paint_use_2d_cursor(pcontext.mode)) {
+  else if (paint_use_2d_cursor(pcontext.mode, *pcontext.brush)) {
     pcontext.cursor_type = PaintCursorDrawingType::Cursor2D;
   }
   else {
@@ -1115,7 +1119,7 @@ static void paint_cursor_draw_3D_view_brush_cursor(PaintCursorContext &pcontext)
                   PaintMode::Texture3D));
   /* These paint tools are not using the SculptSession, so they need to use the default 2D brush
    * cursor in the 3D view. */
-  if (pcontext.mode == PaintMode::Texture3D) {
+  if (!USER_EXPERIMENTAL_TEST(&U, use_3d_texture_paint) && pcontext.mode == PaintMode::Texture3D) {
     paint_draw_legacy_3D_view_brush_cursor(pcontext);
     return;
   }

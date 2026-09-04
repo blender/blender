@@ -255,7 +255,7 @@ static void do_encode_pixels(const uv_islands::MeshData &mesh_data,
                              const uv_islands::UVIslandsMask &uv_masks,
                              const GroupedSpan<BorderTriangle> border_tris,
                              Image &image,
-                             ImageUser &image_user,
+                             const ImageUser &image_user,
                              MeshNode &node,
                              PixelNode &pixel_node)
 {
@@ -304,6 +304,7 @@ static void do_encode_pixels(const uv_islands::MeshData &mesh_data,
     }
   }
 
+  ImageUser tile_user = image_user;
   for (ImageTile &tile : image.tiles) {
     image::ImageTileWrapper image_tile(&tile);
     const int2 tile_offset_i = image_tile.get_tile_offset();
@@ -321,8 +322,8 @@ static void do_encode_pixels(const uv_islands::MeshData &mesh_data,
       continue;
     }
 
-    image_user.tile = image_tile.get_tile_number();
-    ImBuf *image_buffer = BKE_image_acquire_ibuf(&image, &image_user, nullptr);
+    tile_user.tile = image_tile.get_tile_number();
+    ImBuf *image_buffer = BKE_image_acquire_ibuf(&image, &tile_user, nullptr);
     if (image_buffer == nullptr) {
       continue;
     }
@@ -410,7 +411,7 @@ static IndexMask find_nodes_to_update(Tree &pbvh, IndexMaskMemory &memory)
   return nodes_to_update;
 }
 
-static void apply_watertight_check(Tree &pbvh, Image &image, ImageUser &image_user)
+static void apply_watertight_check(Tree &pbvh, Image &image, const ImageUser &image_user)
 {
   ImageUser watertight = image_user;
   for (ImageTile &tile_data : image.tiles) {
@@ -467,7 +468,7 @@ static bool update_pixels(const Depsgraph &depsgraph,
                           const Object &object,
                           Tree &pbvh,
                           Image &image,
-                          ImageUser &image_user)
+                          const ImageUser &image_user)
 {
   IndexMaskMemory memory;
   const IndexMask nodes_to_update = find_nodes_to_update(pbvh, memory);
@@ -626,7 +627,10 @@ void collect_dirty_tiles(PixelNode &node, Vector<image::TileNumber> &r_dirty_til
 
 namespace bke::pbvh {
 
-void build_pixels(const Depsgraph &depsgraph, Object &object, Image &image, ImageUser &image_user)
+void build_pixels(const Depsgraph &depsgraph,
+                  Object &object,
+                  Image &image,
+                  const ImageUser &image_user)
 {
   PRF_scope(ProfileCategory::Editor);
   Tree &pbvh = *object::pbvh_get(object);

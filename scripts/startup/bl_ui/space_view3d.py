@@ -187,6 +187,8 @@ class VIEW3D_HT_tool_header(Header):
                 row.popover(panel="VIEW3D_PT_sculpt_symmetry_for_topbar", text="")
             elif mode_string == 'PAINT_VERTEX':
                 row.popover(panel="VIEW3D_PT_tools_vertexpaint_symmetry_for_topbar", text="")
+            elif mode_string == 'PAINT_TEXTURE' and bpy.context.preferences.experimental.use_3d_texture_paint:
+                row.popover(panel="VIEW3D_PT_tools_imagepaint_symmetry_for_topbar", text="")
         elif mode_string == 'SCULPT_CURVES':
             ob = context.object
             _row, sub = row_for_mirror()
@@ -328,6 +330,7 @@ class _draw_tool_settings_context_mode:
             return False
 
         paint = context.tool_settings.image_paint
+        ups = paint.unified_paint_settings
         brush = paint.brush
 
         BrushAssetShelf.draw_popup_selector(layout, context, brush)
@@ -335,7 +338,44 @@ class _draw_tool_settings_context_mode:
         if brush is None:
             return False
 
-        brush_basic_texpaint_settings(layout, context, brush, compact=True)
+        if context.preferences.experimental.use_3d_texture_paint:
+            size = "size"
+            size_owner = ups if brush.use_unified_size else brush
+            if size_owner.use_locked_size == 'SCENE':
+                size = "unprojected_size"
+
+            capabilities = brush.image_paint_capabilities
+
+            if capabilities.has_color:
+                row = layout.row(align=True)
+                row.ui_units_x = 4
+                UnifiedPaintPanel.prop_unified_color(row, context, brush, "color", text="")
+                UnifiedPaintPanel.prop_unified_color(row, context, brush, "secondary_color", text="")
+                row.separator()
+                layout.prop(brush, "blend", text="", translate=False)
+
+            UnifiedPaintPanel.prop_unified(
+                layout,
+                context,
+                brush,
+                size,
+                pressure_name="use_pressure_size",
+                unified_name="use_unified_size",
+                slider=True,
+                text="Size",
+                header=True,
+            )
+            UnifiedPaintPanel.prop_unified(
+                layout,
+                context,
+                brush,
+                "strength",
+                pressure_name="use_pressure_strength",
+                unified_name="use_unified_strength",
+                header=True,
+            )
+        else:
+            brush_basic_texpaint_settings(layout, context, brush, compact=True)
 
         return True
 
@@ -983,15 +1023,7 @@ class VIEW3D_HT_header(Header):
             row = layout.row()
             row.active = is_paint_tool and color_type == 'VERTEX'
 
-            if context.preferences.experimental.use_sculpt_texture_paint:
-                canvas_source = tool_settings.paint_mode.canvas_source
-                icon = 'GROUP_VCOL' if canvas_source == 'COLOR_ATTRIBUTE' else canvas_source
-                row.popover(panel="VIEW3D_PT_slots_paint_canvas", icon=icon)
-                # TODO: Update this boolean condition so that the Canvas button is only active when
-                # the appropriate color types are selected in Solid mode, I.E. 'TEXTURE'
-                row.active = is_paint_tool
-            else:
-                row.popover(panel="VIEW3D_PT_slots_color_attributes", icon='GROUP_VCOL')
+            row.popover(panel="VIEW3D_PT_slots_color_attributes", icon='GROUP_VCOL')
 
             layout.popover(
                 panel="VIEW3D_PT_sculpt_snapping",

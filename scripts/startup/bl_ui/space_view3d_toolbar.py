@@ -544,7 +544,7 @@ class VIEW3D_PT_slots_paint_canvas(SelectPaintSlotHelper, View3DPanel, Panel):
 
     @classmethod
     def poll(cls, context):
-        if not context.preferences.experimental.use_sculpt_texture_paint:
+        if not context.preferences.experimental.use_3d_texture_paint:
             return False
 
         from bl_ui.space_toolsystem_common import ToolSelectPanelHelper
@@ -898,7 +898,7 @@ class VIEW3D_PT_tools_brush_falloff_normal(View3DPaintPanel, Panel):
 
     @classmethod
     def poll(cls, context):
-        return context.image_paint_object
+        return context.image_paint_object and not bpy.context.preferences.experimental.use_3d_texture_paint
 
     def draw_header(self, context):
         tool_settings = context.tool_settings
@@ -1313,21 +1313,37 @@ class VIEW3D_PT_tools_imagepaint_symmetry(Panel, View3DPaintPanel):
 
     def draw(self, context):
         layout = self.layout
+        layout.use_property_split = True
+        layout.use_property_decorate = False
 
-        split = layout.split()
+        image_paint = context.tool_settings.image_paint
 
-        col = split.column()
-        col.alignment = 'RIGHT'
-        col.label(text="Mirror")
-
-        col = split.column()
-
-        row = col.row(align=True)
         ob = context.object
         mesh = ob.data
+
+        row = layout.row(align=True, heading="Mirror")
         row.prop(mesh, "use_mirror_x", text="X", toggle=True)
         row.prop(mesh, "use_mirror_y", text="Y", toggle=True)
         row.prop(mesh, "use_mirror_z", text="Z", toggle=True)
+
+        if bpy.context.preferences.experimental.use_3d_texture_paint:
+            row = layout.row(align=True, heading="Tiling")
+            row.prop(image_paint, "tile_x", text="X", toggle=True)
+            row.prop(image_paint, "tile_y", text="Y", toggle=True)
+            row.prop(image_paint, "tile_z", text="Z", toggle=True)
+
+            layout.prop(image_paint, "use_symmetry_feather", text="Feather")
+            layout.prop(mesh, "radial_symmetry", text="Radial")
+            layout.prop(image_paint, "tile_offset", text="Tile Offset")
+
+
+class VIEW3D_PT_tools_imagepaint_symmetry_for_topbar(Panel):
+    bl_space_type = 'TOPBAR'
+    bl_region_type = 'HEADER'
+    bl_label = "Symmetry"
+    bl_ui_units_x = 13
+
+    draw = VIEW3D_PT_tools_imagepaint_symmetry.draw
 
 
 class VIEW3D_PT_tools_imagepaint_options(View3DPaintPanel, Panel):
@@ -1349,12 +1365,17 @@ class VIEW3D_PT_tools_imagepaint_options(View3DPaintPanel, Panel):
         tool_settings = context.tool_settings
         ipaint = tool_settings.image_paint
 
-        layout.prop(ipaint, "seam_bleed")
-        layout.prop(ipaint, "dither", slider=True)
-
         col = layout.column()
-        col.prop(ipaint, "use_occlude")
-        col.prop(ipaint, "use_backface_culling", text="Backface Culling")
+        if bpy.context.preferences.experimental.use_3d_texture_paint:
+            # TODO: Enable dither support
+            col.prop(ipaint, "dither", slider=True)
+            col.active = False
+        else:
+            col.prop(ipaint, "seam_bleed")
+            col.prop(ipaint, "dither", slider=True)
+
+            col.prop(ipaint, "use_occlude")
+            col.prop(ipaint, "use_backface_culling", text="Backface Culling")
 
 
 class VIEW3D_PT_tools_imagepaint_options_cavity(Panel):
@@ -2391,6 +2412,7 @@ classes = (
     VIEW3D_PT_tools_imagepaint_options_cavity,
 
     VIEW3D_PT_tools_imagepaint_symmetry,
+    VIEW3D_PT_tools_imagepaint_symmetry_for_topbar,
     VIEW3D_PT_tools_imagepaint_options,
 
     VIEW3D_PT_tools_imagepaint_options_external,
