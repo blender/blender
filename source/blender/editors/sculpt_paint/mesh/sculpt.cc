@@ -4386,55 +4386,15 @@ static void cache_paint_invariants_update(StrokeCache &cache, const Brush &brush
   }
 }
 
-/* Returns true if any of the smoothing modes are active (currently
- * one of smooth brush, autosmooth, mask smooth, or shift-key
- * smooth). */
-static bool sculpt_needs_connectivity_info(const Sculpt &sd,
-                                           const Brush &brush,
-                                           const Object &object)
-{
-  SculptSession &ss = *object.runtime->sculpt_session;
-  const bke::pbvh::Tree *pbvh = bke::object::pbvh_get(object);
-  if (pbvh && auto_mask::is_enabled(sd.paint, object, &brush)) {
-    return true;
-  }
-  return ((ss.cache && ss.cache->toggle_settings.alt_smooth) ||
-          (brush.sculpt_brush_type == SCULPT_BRUSH_TYPE_SMOOTH) || (brush.autosmooth_factor > 0) ||
-          ((brush.sculpt_brush_type == SCULPT_BRUSH_TYPE_MASK) &&
-           (brush.mask_tool == BRUSH_MASK_SMOOTH)) ||
-          (brush.sculpt_brush_type == SCULPT_BRUSH_TYPE_POSE) ||
-          (brush.sculpt_brush_type == SCULPT_BRUSH_TYPE_BOUNDARY) ||
-          (brush.sculpt_brush_type == SCULPT_BRUSH_TYPE_SLIDE_RELAX) ||
-          brush_type_is_paint(brush.sculpt_brush_type) ||
-          (brush.sculpt_brush_type == SCULPT_BRUSH_TYPE_CLOTH) ||
-          (brush.sculpt_brush_type == SCULPT_BRUSH_TYPE_SMEAR) ||
-          (brush.sculpt_brush_type == SCULPT_BRUSH_TYPE_DRAW_FACE_SETS) ||
-          (brush.sculpt_brush_type == SCULPT_BRUSH_TYPE_DISPLACEMENT_SMEAR) ||
-          (brush.sculpt_brush_type == SCULPT_BRUSH_TYPE_PAINT));
-}
-
-void stroke_modifiers_check(
-    Depsgraph &depsgraph, RegionView3D *rv3d, const Sculpt &sd, Object &ob, const Brush *brush)
+void stroke_modifiers_check(Depsgraph &depsgraph, Object &ob, const Brush *brush)
 {
   SculptSession &ss = *ob.runtime->sculpt_session;
 
-  bool need_pmap = brush && sculpt_needs_connectivity_info(sd, *brush, ob);
-  if (ss.shapekey_active || ss.deform_modifiers_active ||
-      (!BKE_sculptsession_use_pbvh_draw(&ob, rv3d) && need_pmap))
-  {
+  if (ss.shapekey_active || ss.deform_modifiers_active) {
     BLI_assert(ss.pbvh->type() == bke::pbvh::Type::Mesh);
     BKE_sculptsession_update_for_edit(
         &depsgraph, &ob, brush_type_is_paint(brush->sculpt_brush_type));
   }
-}
-
-void stroke_modifiers_check(const bContext *C, Object &ob, const Brush *brush)
-{
-  Depsgraph *depsgraph = CTX_data_depsgraph_pointer(C);
-  RegionView3D *rv3d = CTX_wm_region_view3d(C);
-  const Sculpt &sd = *CTX_data_tool_settings(C)->sculpt;
-
-  stroke_modifiers_check(*depsgraph, rv3d, sd, ob, brush);
 }
 
 static void sculpt_raycast_cb(bke::pbvh::Node &node, RaycastData &rd, float *distance)
@@ -4743,7 +4703,7 @@ std::optional<CursorGeometryInfo> cursor_geometry_info_update(Depsgraph &depsgra
   float3 ray_normal;
   float depth = raycast_init(&vc, mval, ray_start, ray_end, ray_normal, original);
   if (sd) {
-    stroke_modifiers_check(depsgraph, vc.rv3d, *sd, ob, &brush);
+    stroke_modifiers_check(depsgraph, ob, &brush);
   }
 
   RaycastData srd{};
@@ -4872,7 +4832,7 @@ static std::optional<float3> stroke_get_location_bvh_ex(Depsgraph &depsgraph,
     /* TODO: This code is shared by Sculpt, Vertex, and Weight paint. Ideally, we wouldn't need
      * to pass in `Sculpt` and `Paint` separately, but until we have further C++ DNA types, this
      * is fine */
-    stroke_modifiers_check(depsgraph, vc.rv3d, *sd, ob, brush);
+    stroke_modifiers_check(depsgraph, ob, brush);
   }
 
   float3 ray_start;
@@ -5868,7 +5828,7 @@ void SculptPaintStroke::update_step(wmOperator * /*op*/, const StrokeStep &strok
   StrokeCache *cache = ss.cache;
   cache->stroke_distance = this->stroke_distance();
 
-  stroke_modifiers_check(depsgraph, this->vc.rv3d, sd, ob, &brush);
+  stroke_modifiers_check(depsgraph, ob, &brush);
   stroke_cache_update(this->vc, depsgraph, sd.paint, brush, ob, stroke_step);
   restore_from_undo_step_if_necessary(depsgraph, sd, ob);
 
@@ -5928,7 +5888,7 @@ void SculptPaintStroke::done(bool is_cancel, bool stroke_started)
   }
   Brush *brush = BKE_paint_brush(&sd.paint);
 
-  stroke_modifiers_check(*this->depsgraph, this->vc.rv3d, sd, ob, brush);
+  stroke_modifiers_check(*this->depsgraph, ob, brush);
 
   /* Alt-Smooth. */
   if (ss.cache->toggle_settings.alt_smooth) {

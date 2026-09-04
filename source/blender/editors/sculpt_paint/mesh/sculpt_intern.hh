@@ -584,9 +584,7 @@ void geometry_preview_lines_update(Depsgraph &depsgraph,
                                    SculptSession &ss,
                                    float radius);
 
-void stroke_modifiers_check(
-    Depsgraph &depsgraph, RegionView3D *rv3d, const Sculpt &sd, Object &ob, const Brush *brush);
-void stroke_modifiers_check(const bContext *C, Object &ob, const Brush *brush);
+void stroke_modifiers_check(Depsgraph &depsgraph, Object &ob, const Brush *brush);
 float raycast_init(ViewContext *vc,
                    const float2 &mval,
                    float3 &ray_start,
