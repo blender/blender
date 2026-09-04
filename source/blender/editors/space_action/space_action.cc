@@ -164,7 +164,7 @@ static void action_free(SpaceLink * /*sl*/)
 /* spacetype; init callback */
 static void action_init(wmWindowManager * /*wm*/, ScrArea *area)
 {
-  SpaceAction *saction = static_cast<SpaceAction *>(area->spacedata.first);
+  SpaceAction *saction = area->spacedata.first_as<SpaceAction>();
   saction->runtime.flag |= SACTION_RUNTIME_FLAG_NEED_CHAN_SYNC;
 }
 
@@ -579,7 +579,7 @@ static void action_listener(const wmSpaceTypeListenerParams *params)
 {
   ScrArea *area = params->area;
   const wmNotifier *wmn = params->notifier;
-  SpaceAction *saction = static_cast<SpaceAction *>(area->spacedata.first);
+  SpaceAction *saction = area->spacedata.first_as<SpaceAction>();
 
   /* context changes */
   switch (wmn->category) {
@@ -786,7 +786,7 @@ static void action_footer_region_listener(const wmRegionListenerParams *params)
 static bool action_region_poll_hide_in_timeline(const RegionPollParams *params)
 {
   BLI_assert(params->area->spacetype == SPACE_ACTION);
-  const SpaceAction *saction = static_cast<const SpaceAction *>(params->area->spacedata.first);
+  const SpaceAction *saction = params->area->spacedata.first_as<SpaceAction>();
   return saction->mode != SACTCONT_TIMELINE;
 }
 
@@ -845,7 +845,7 @@ static void action_region_listener(const wmRegionListenerParams *params)
 
 static void action_refresh(const bContext *C, ScrArea *area)
 {
-  SpaceAction *saction = static_cast<SpaceAction *>(area->spacedata.first);
+  SpaceAction *saction = area->spacedata.first_as<SpaceAction>();
 
   /* Update the state of the animchannels in response to changes from the data they represent
    * NOTE: the temp flag is used to indicate when this needs to be done,
@@ -900,13 +900,13 @@ static void action_foreach_id(SpaceLink *space_link, LibraryForeachIDData *data)
 
 static int action_space_subtype_get(ScrArea *area)
 {
-  SpaceAction *sact = static_cast<SpaceAction *>(area->spacedata.first);
+  SpaceAction *sact = area->spacedata.first_as<SpaceAction>();
   return sact->mode == SACTCONT_TIMELINE ? SACTCONT_TIMELINE : SACTCONT_DOPESHEET;
 }
 
 static void action_space_subtype_set(ScrArea *area, int value)
 {
-  SpaceAction *sact = static_cast<SpaceAction *>(area->spacedata.first);
+  SpaceAction *sact = area->spacedata.first_as<SpaceAction>();
   if (value == SACTCONT_TIMELINE) {
     /* Switching to the timeline. Remember what the current mode of the dope sheet is. */
     if (sact->mode != SACTCONT_TIMELINE) {
@@ -932,7 +932,7 @@ static void action_space_subtype_item_extend(bContext * /*C*/,
 
 static StringRefNull action_space_name_get(const ScrArea *area)
 {
-  SpaceAction *sact = static_cast<SpaceAction *>(area->spacedata.first);
+  SpaceAction *sact = area->spacedata.first_as<SpaceAction>();
   const int index = max_ii(0, RNA_enum_from_value(rna_enum_space_action_mode_items, sact->mode));
   const EnumPropertyItem item = rna_enum_space_action_mode_items[index];
   return item.name;
@@ -940,7 +940,7 @@ static StringRefNull action_space_name_get(const ScrArea *area)
 
 static int action_space_icon_get(const ScrArea *area)
 {
-  SpaceAction *sact = static_cast<SpaceAction *>(area->spacedata.first);
+  SpaceAction *sact = area->spacedata.first_as<SpaceAction>();
   const int index = max_ii(0, RNA_enum_from_value(rna_enum_space_action_mode_items, sact->mode));
   const EnumPropertyItem item = rna_enum_space_action_mode_items[index];
   return item.icon;

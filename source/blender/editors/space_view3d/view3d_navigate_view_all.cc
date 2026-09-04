@@ -196,7 +196,7 @@ std::optional<Bounds<float3>> view3d_calc_minmax_visible(Depsgraph *depsgraph,
   /* NOTE: we could support calculating this without requiring a #View3D or #RegionView3D
    * Currently this isn't needed. */
 
-  const View3D *v3d = static_cast<View3D *>(area->spacedata.first);
+  const View3D *v3d = area->spacedata.first_as<View3D>();
   const RegionView3D *rv3d = static_cast<RegionView3D *>(region->regiondata);
   ViewLayer *view_layer_eval = DEG_get_evaluated_view_layer(depsgraph);
 
@@ -247,7 +247,7 @@ std::optional<Bounds<float3>> view3d_calc_minmax_selected(Depsgraph *depsgraph,
   /* NOTE: we could support calculating this without requiring a #View3D or #RegionView3D
    * Currently this isn't needed. */
 
-  const View3D *v3d = static_cast<View3D *>(area->spacedata.first);
+  const View3D *v3d = area->spacedata.first_as<View3D>();
   const RegionView3D *rv3d = static_cast<RegionView3D *>(region->regiondata);
 
   Scene *scene = DEG_get_input_scene(depsgraph);
@@ -281,8 +281,7 @@ std::optional<Bounds<float3>> view3d_calc_minmax_selected(Depsgraph *depsgraph,
     /* this is weak code this way, we should make a generic
      * active/selection callback interface once... */
     Base *base_eval;
-    for (base_eval = static_cast<Base *>(BKE_view_layer_object_bases_get(view_layer_eval)->first);
-         base_eval;
+    for (base_eval = BKE_view_layer_object_bases_get(view_layer_eval)->first(); base_eval;
          base_eval = base_eval->next)
     {
       if (BASE_SELECTED_EDITABLE(v3d, base_eval)) {

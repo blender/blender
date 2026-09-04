@@ -146,7 +146,7 @@ void *BMW_walk(BMWalker *walker)
 
 void *BMW_current_state(BMWalker *walker)
 {
-  BMwGenericWalker *currentstate = static_cast<BMwGenericWalker *>(walker->states.first);
+  BMwGenericWalker *currentstate = walker->states.first();
   if (currentstate) {
     /* Automatic update of depth. For most walkers that
      * follow the standard "Step" pattern of:

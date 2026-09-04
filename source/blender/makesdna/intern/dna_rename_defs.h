@@ -310,6 +310,8 @@ DNA_STRUCT_RENAME_MEMBER(bNodeTreeInterfaceSocket, name, name_)
 DNA_STRUCT_RENAME_MEMBER(bNodeTreeInterfaceSocket, description, description_)
 DNA_STRUCT_RENAME_MEMBER(bNodeTreeInterfacePanel, name, name_)
 DNA_STRUCT_RENAME_MEMBER(bNodeTreeInterfacePanel, description, description_)
+DNA_STRUCT_RENAME_MEMBER(ListBase, first, first_)
+DNA_STRUCT_RENAME_MEMBER(ListBase, last, last_)
 
 /* NOTE: Keep sorted! */
 

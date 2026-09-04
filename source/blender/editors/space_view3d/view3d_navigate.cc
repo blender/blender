@@ -87,7 +87,7 @@ void ViewOpsData::init_context(bContext *C)
   this->scene = CTX_data_scene(C);
   this->area = CTX_wm_area(C);
   this->region = CTX_wm_region(C);
-  this->v3d = static_cast<View3D *>(this->area->spacedata.first);
+  this->v3d = this->area->spacedata.first_as<View3D>();
   this->rv3d = static_cast<RegionView3D *>(this->region->regiondata);
 }
 

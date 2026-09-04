@@ -120,7 +120,7 @@ static wmOperatorStatus act_markers_make_local_exec(bContext *C, wmOperator * /*
   }
 
   /* migrate markers */
-  for (marker = static_cast<TimeMarker *>(markers->first); marker; marker = markern) {
+  for (marker = markers->first(); marker; marker = markern) {
     markern = marker->next;
 
     /* move if marker is selected */
@@ -182,7 +182,7 @@ static bool get_keyframe_extents(bAnimContext *ac, float *min, float *max, const
   *max = -999999999.0f;
 
   /* check if any channels to set range with */
-  if (anim_data.first) {
+  if (anim_data.first_) {
     /* go through channels, finding max extents */
     for (bAnimListElem &ale : anim_data) {
       if (ale.datatype == ALE_GPFRAME) {
@@ -345,9 +345,7 @@ static bool actkeys_channels_get_selected_extents(bAnimContext *ac, float *r_min
   /* loop through all channels, finding the first one that's selected */
   float ymax = ANIM_UI_get_first_channel_top(&ac->region->v2d);
   const float channel_step = ANIM_UI_get_channel_step();
-  for (ale = static_cast<bAnimListElem *>(anim_data.first); ale;
-       ale = ale->next, ymax -= channel_step)
-  {
+  for (ale = anim_data.first(); ale; ale = ale->next, ymax -= channel_step) {
     const bAnimChannelType *acf = ANIM_channel_get_typeinfo(ale);
 
     /* must be selected... */
@@ -1468,7 +1466,7 @@ static void setexpo_action_keys(bAnimContext *ac, short mode)
         /* remove all the modifiers fitting this description */
         FModifier *fcm, *fcn = nullptr;
 
-        for (fcm = static_cast<FModifier *>(fcu->modifiers.first); fcm; fcm = fcn) {
+        for (fcm = fcu->modifiers.first(); fcm; fcm = fcn) {
           fcn = fcm->next;
 
           if (fcm->type == FMODIFIER_TYPE_CYCLES) {
@@ -1992,8 +1990,8 @@ static void snap_action_keys(bAnimContext *ac, short mode)
 
   ked.scene = ac->scene;
   if (mode == ACTKEYS_SNAP_NEAREST_MARKER) {
-    ked.time_marker_list.first = (ac->markers) ? ac->markers->first : nullptr;
-    ked.time_marker_list.last = (ac->markers) ? ac->markers->last : nullptr;
+    ked.time_marker_list.first_ = (ac->markers) ? ac->markers->first_ : nullptr;
+    ked.time_marker_list.last_ = (ac->markers) ? ac->markers->last() : nullptr;
   }
 
   /* snap keyframes */

@@ -79,7 +79,7 @@ static bool modifiers_disable_subsurf_temporary(Object *ob, const int cageIndex)
 {
   bool changed = false;
 
-  ModifierData *md = static_cast<ModifierData *>(ob->modifiers.first);
+  ModifierData *md = ob->modifiers.first();
   for (int i = 0; md && i <= cageIndex; i++, md = md->next) {
     if (md->type == eModifierType_Subsurf) {
       md->mode ^= eModifierMode_DisableTemporary;

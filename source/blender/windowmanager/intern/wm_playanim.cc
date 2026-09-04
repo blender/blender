@@ -532,7 +532,7 @@ static bool frame_cache_limit_exceeded()
 static void frame_cache_limit_apply(ImBuf *ibuf_keep)
 {
   /* Really basic memory conservation scheme. Keep frames in a FIFO queue. */
-  LinkData *node = static_cast<LinkData *>(g_frame_cache.pics.last);
+  LinkData *node = g_frame_cache.pics.last();
   while (node && frame_cache_limit_exceeded()) {
     PlayAnimPict *pic = static_cast<PlayAnimPict *>(node->data);
     BLI_assert(pic->frame_cache_node == node);
@@ -902,8 +902,7 @@ static void playanim_toscreen(PlayState &ps, const PlayAnimPict *picture, const 
 {
   float frame_indicator_factor = -1.0f;
   if (ps.show_frame_indicator) {
-    const int frame_range = static_cast<const PlayAnimPict *>(ps.picsbase.last)->frame -
-                            static_cast<const PlayAnimPict *>(ps.picsbase.first)->frame;
+    const int frame_range = ps.picsbase.last()->frame - ps.picsbase.first()->frame;
     if (frame_range > 0) {
       frame_indicator_factor = float(double(picture->frame) / double(frame_range));
     }
@@ -960,7 +959,7 @@ static void build_pict_list_from_anim(ListBaseT<PlayAnimPict> &picsbase,
     BLI_addtail(&picsbase, picture);
   }
 
-  const PlayAnimPict *picture = static_cast<const PlayAnimPict *>(picsbase.last);
+  const PlayAnimPict *picture = picsbase.last();
   if (!(picture && picture->anim == anim)) {
     MOV_close(anim);
     CLOG_WARN(&LOG, "no frames added for: '%s'", filepath_first);
@@ -1097,14 +1096,14 @@ static void build_pict_list(ListBaseT<PlayAnimPict> &picsbase,
    * it's important the frame number increases each time. Otherwise playing `*.png`
    * in a directory will expand into many arguments, each calling this function adding
    * a frame that's set to zero. */
-  const PlayAnimPict *picture_last = static_cast<PlayAnimPict *>(picsbase.last);
+  const PlayAnimPict *picture_last = picsbase.last();
   const int frame_offset = picture_last ? (picture_last->frame + 1) : 0;
 
   bool do_image_load = false;
   if (MOV_is_movie_file(filepath_first)) {
     build_pict_list_from_anim(picsbase, ghost_data, display_ctx, filepath_first, frame_offset);
 
-    if (picsbase.last == picture_last) {
+    if (picsbase.last_ == picture_last) {
       /* FFMPEG detected JPEG2000 as a video which would load with zero duration.
        * Resolve this by using images as a fallback when a video file has no frames to display. */
       do_image_load = true;
@@ -1156,7 +1155,7 @@ static void playanim_change_frame(PlayState &ps)
   }
 
   const int2 window_size = playanim_window_size_get(ps.ghost_data.window);
-  const int i_last = static_cast<PlayAnimPict *>(ps.picsbase.last)->frame;
+  const int i_last = ps.picsbase.last()->frame;
   /* Without this the frame-indicator location isn't closest to the cursor. */
   const int correct_rounding = (window_size[0] / (i_last + 1)) / 2;
   const int i = clamp_i(
@@ -1383,7 +1382,7 @@ static bool ghost_event_proc(const GHOST_IEvent *ghost_event, GHOST_TUserDataPtr
             playanim_audio_stop(ps);
 
             if (ps.ghost_data.qual & WS_QUAL_SHIFT) {
-              ps.picture = static_cast<PlayAnimPict *>(ps.picsbase.first);
+              ps.picture = ps.picsbase.first();
               ps.next_frame = 0;
             }
             else {
@@ -1412,7 +1411,7 @@ static bool ghost_event_proc(const GHOST_IEvent *ghost_event, GHOST_TUserDataPtr
             playanim_audio_stop(ps);
 
             if (ps.ghost_data.qual & WS_QUAL_SHIFT) {
-              ps.picture = static_cast<PlayAnimPict *>(ps.picsbase.last);
+              ps.picture = ps.picsbase.last();
               ps.next_frame = 0;
             }
             else {
@@ -2083,7 +2082,7 @@ static std::optional<int> wm_main_playanim_intern(int argc, const char **argv, P
 #ifdef WITH_AUDASPACE
   g_audaspace.source = AUD_Sound(new aud::File(filepath));
   if (!BLI_listbase_is_empty(&ps.picsbase)) {
-    const MovieReader *anim_movie = static_cast<PlayAnimPict *>(ps.picsbase.first)->anim;
+    const MovieReader *anim_movie = ps.picsbase.first()->anim;
     if (anim_movie) {
       g_playanim.fps_movie = MOV_get_fps(anim_movie);
       /* Enforce same fps for movie as sound. */
@@ -2118,10 +2117,10 @@ static std::optional<int> wm_main_playanim_intern(int argc, const char **argv, P
     }
 
     if (ps.direction == 1) {
-      ps.picture = static_cast<PlayAnimPict *>(ps.picsbase.first);
+      ps.picture = ps.picsbase.first();
     }
     else {
-      ps.picture = static_cast<PlayAnimPict *>(ps.picsbase.last);
+      ps.picture = ps.picsbase.last();
     }
 
     if (ps.picture == nullptr) {

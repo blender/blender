@@ -159,7 +159,7 @@ static void node_remove_linked(Main *bmain, bNodeTree *ntree, bNode *rem_node)
   }
 
   /* remove nodes */
-  for (node = static_cast<bNode *>(ntree->nodes.first); node; node = next) {
+  for (node = ntree->nodes.first(); node; node = next) {
     next = node->next;
 
     if (node->flag & NODE_TEST) {
@@ -219,16 +219,14 @@ static void node_socket_add_replace(const bContext *C,
   }
 
   /* find existing node that we can use */
-  for (node_from = static_cast<bNode *>(ntree->nodes.first); node_from;
-       node_from = node_from->next)
-  {
+  for (node_from = ntree->nodes.first(); node_from; node_from = node_from->next) {
     if (node_from->type_legacy == type) {
       break;
     }
   }
 
   if (node_from) {
-    if (node_from->inputs.first || node_from->typeinfo->draw_buttons ||
+    if (node_from->inputs.first() || node_from->typeinfo->draw_buttons ||
         node_from->typeinfo->draw_buttons_ex)
     {
       node_from = nullptr;
@@ -437,7 +435,7 @@ static void ui_node_sock_name(const bNodeTree *ntree,
     bNode *node = sock->link->fromnode;
     const std::string node_name = bke::node_label(*ntree, *node);
 
-    if (node->inputs.is_empty() && node->outputs.first != node->outputs.last) {
+    if (node->inputs.is_empty() && node->outputs.first() != node->outputs.last()) {
       BLI_snprintf_utf8(name,
                         UI_MAX_NAME_STR,
                         "%s | %s",
@@ -897,7 +895,7 @@ static void ui_node_draw_input(ui::Layout &layout,
          * - linked node has inputs
          * - linked node has dedicated button drawing
          * - linked node has dedicated socket drawing */
-        bool can_expand = lnode->inputs.first;
+        bool can_expand = lnode->inputs.first();
         if (lnode->type_legacy != NODE_GROUP) {
           if (lnode->typeinfo->draw_buttons) {
             can_expand = true;

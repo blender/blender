@@ -142,7 +142,7 @@ static void file_free(SpaceLink *sl)
 /* spacetype; init callback, area size changes, screen set, etc */
 static void file_init(wmWindowManager * /*wm*/, ScrArea *area)
 {
-  SpaceFile *sfile = static_cast<SpaceFile *>(area->spacedata.first);
+  SpaceFile *sfile = area->spacedata.first_as<SpaceFile>();
 
   if (sfile->layout) {
     sfile->layout->dirty = true;
@@ -158,7 +158,7 @@ static void file_init(wmWindowManager * /*wm*/, ScrArea *area)
 
 static void file_exit(wmWindowManager *wm, ScrArea *area)
 {
-  SpaceFile *sfile = static_cast<SpaceFile *>(area->spacedata.first);
+  SpaceFile *sfile = area->spacedata.first_as<SpaceFile>();
 
   if (sfile->previews_timer) {
     WM_event_timer_remove_notifier(wm, nullptr, sfile->previews_timer);
@@ -386,7 +386,7 @@ static void file_listener(const wmSpaceTypeListenerParams *listener_params)
 {
   ScrArea *area = listener_params->area;
   const wmNotifier *wmn = listener_params->notifier;
-  SpaceFile *sfile = static_cast<SpaceFile *>(area->spacedata.first);
+  SpaceFile *sfile = area->spacedata.first_as<SpaceFile>();
 
   /* context changes */
   switch (wmn->category) {
@@ -434,7 +434,7 @@ static void file_listener(const wmSpaceTypeListenerParams *listener_params)
             FileSelectParams *params = ED_fileselect_get_active_params(sfile);
             params->rename_id = active_file_id;
             file_params_invoke_rename_postscroll(
-                static_cast<wmWindowManager *>(G_MAIN->wm.first), listener_params->window, sfile);
+                G_MAIN->wm.first(), listener_params->window, sfile);
           }
 
           /* Force list to update sorting (with a full reset for now). */
@@ -522,7 +522,7 @@ static void file_main_region_message_subscribe(const wmRegionMessageSubscribePar
   bScreen *screen = params->screen;
   ScrArea *area = params->area;
   ARegion *region = params->region;
-  SpaceFile *sfile = static_cast<SpaceFile *>(area->spacedata.first);
+  SpaceFile *sfile = area->spacedata.first_as<SpaceFile>();
 
   FileSelectParams *file_params = ED_fileselect_ensure_active_params(sfile);
   /* This is a bit odd that a region owns the subscriber for an area,
@@ -732,20 +732,20 @@ static void file_keymap(wmKeyConfig *keyconf)
 
 static bool file_region_poll(const RegionPollParams *params)
 {
-  const SpaceFile *sfile = static_cast<SpaceFile *>(params->area->spacedata.first);
+  const SpaceFile *sfile = params->area->spacedata.first_as<SpaceFile>();
   /* Always visible except when browsing assets. */
   return sfile->browse_mode != FILE_BROWSE_MODE_ASSETS;
 }
 
 static bool file_tool_props_region_poll(const RegionPollParams *params)
 {
-  const SpaceFile *sfile = static_cast<SpaceFile *>(params->area->spacedata.first);
+  const SpaceFile *sfile = params->area->spacedata.first_as<SpaceFile>();
   return (sfile->browse_mode == FILE_BROWSE_MODE_ASSETS) || (sfile->op != nullptr);
 }
 
 static bool file_execution_region_poll(const RegionPollParams *params)
 {
-  const SpaceFile *sfile = static_cast<SpaceFile *>(params->area->spacedata.first);
+  const SpaceFile *sfile = params->area->spacedata.first_as<SpaceFile>();
   return sfile->op != nullptr;
 }
 
@@ -899,13 +899,13 @@ static void file_dropboxes()
 
 static int file_space_subtype_get(ScrArea *area)
 {
-  SpaceFile *sfile = static_cast<SpaceFile *>(area->spacedata.first);
+  SpaceFile *sfile = area->spacedata.first_as<SpaceFile>();
   return sfile->browse_mode;
 }
 
 static void file_space_subtype_set(ScrArea *area, int value)
 {
-  SpaceFile *sfile = static_cast<SpaceFile *>(area->spacedata.first);
+  SpaceFile *sfile = area->spacedata.first_as<SpaceFile>();
   /* Force re-init. */
   for (ARegion &region : area->regionbase) {
     region.v2d.flag &= ~V2D_IS_INIT;
@@ -920,7 +920,7 @@ static void file_space_subtype_item_extend(bContext * /*C*/, EnumPropertyItem **
 
 static StringRefNull file_space_name_get(const ScrArea *area)
 {
-  SpaceFile *sfile = static_cast<SpaceFile *>(area->spacedata.first);
+  SpaceFile *sfile = area->spacedata.first_as<SpaceFile>();
   const int index = RNA_enum_from_value(rna_enum_space_file_browse_mode_items, sfile->browse_mode);
   const EnumPropertyItem item = rna_enum_space_file_browse_mode_items[index];
   return item.name;
@@ -928,7 +928,7 @@ static StringRefNull file_space_name_get(const ScrArea *area)
 
 static int file_space_icon_get(const ScrArea *area)
 {
-  SpaceFile *sfile = static_cast<SpaceFile *>(area->spacedata.first);
+  SpaceFile *sfile = area->spacedata.first_as<SpaceFile>();
   const int index = RNA_enum_from_value(rna_enum_space_file_browse_mode_items, sfile->browse_mode);
   const EnumPropertyItem item = rna_enum_space_file_browse_mode_items[index];
   return item.icon;

@@ -59,7 +59,7 @@ void ED_transverts_update_obedit(TransVertStore *tvs, Object *obedit)
   else if (ELEM(obedit->type, OB_CURVES_LEGACY, OB_SURF)) {
     Curve *cu = id_cast<Curve *>(obedit->data);
     ListBaseT<Nurb> *nurbs = BKE_curve_editNurbs_get(cu);
-    Nurb *nu = static_cast<Nurb *>(nurbs->first);
+    Nurb *nu = nurbs->first();
 
     /* #ED_transverts_create_from_obedit fills a single contiguous array spanning all nurbs,
      * so advance over every nurb's verts instead of resetting per nurb. */
@@ -414,7 +414,7 @@ void ED_transverts_create_from_obedit(TransVertStore *tvs, const Object *obedit,
     }
     tv = tvs->transverts = MEM_new_array_zeroed<TransVert>(totmalloc, __func__);
 
-    nu = static_cast<Nurb *>(nurbs->first);
+    nu = nurbs->first();
     while (nu) {
       if (nu->type == CU_BEZIER) {
         a = nu->pntsu;
@@ -494,7 +494,7 @@ void ED_transverts_create_from_obedit(TransVertStore *tvs, const Object *obedit,
 
     tv = tvs->transverts = MEM_new_array_zeroed<TransVert>(totmalloc, __func__);
 
-    ml = static_cast<MetaElem *>(mb->editelems->first);
+    ml = mb->editelems->first();
     while (ml) {
       if (ml->flag & SELECT) {
         tv->loc = &ml->x;

@@ -7,6 +7,7 @@
  */
 
 /* Allow using deprecated functionality for .blend file I/O. */
+#include "DNA_space_types.h"
 #define DNA_DEPRECATED_ALLOW
 
 #include <cfloat>
@@ -124,7 +125,7 @@ static void outliner_main_region_listener(const wmRegionListenerParams *params)
   ScrArea *area = params->area;
   ARegion *region = params->region;
   const wmNotifier *wmn = params->notifier;
-  SpaceOutliner *space_outliner = static_cast<SpaceOutliner *>(area->spacedata.first);
+  SpaceOutliner *space_outliner = area->spacedata.first_as<SpaceOutliner>();
 
   /* context changes */
   switch (wmn->category) {
@@ -330,7 +331,7 @@ static void outliner_main_region_message_subscribe(const wmRegionMessageSubscrib
   wmMsgBus *mbus = params->message_bus;
   ScrArea *area = params->area;
   ARegion *region = params->region;
-  SpaceOutliner *space_outliner = static_cast<SpaceOutliner *>(area->spacedata.first);
+  SpaceOutliner *space_outliner = area->spacedata.first_as<SpaceOutliner>();
 
   wmMsgSubscribeValue msg_sub_value_region_tag_redraw{};
   msg_sub_value_region_tag_redraw.owner = region;
@@ -532,7 +533,7 @@ static void outliner_foreach_id(SpaceLink *space_link, LibraryForeachIDData *dat
 static void outliner_deactivate(ScrArea *area)
 {
   /* Remove hover highlights */
-  SpaceOutliner *space_outliner = static_cast<SpaceOutliner *>(area->spacedata.first);
+  SpaceOutliner *space_outliner = area->spacedata.first_as<SpaceOutliner>();
   outliner_flag_set(*space_outliner, TSE_HIGHLIGHTED_ANY, false);
   ED_region_tag_redraw_no_rebuild(BKE_area_find_region_type(area, RGN_TYPE_WINDOW));
 }

@@ -601,7 +601,7 @@ static int rna_Image_frame_duration_get(PointerRNA *ptr)
   }
 
   if (BKE_image_has_anim(ima)) {
-    MovieReader *anim = (static_cast<ImageAnim *>(ima->anims.first))->anim;
+    MovieReader *anim = (ima->anims.first())->anim;
     if (anim) {
       duration = MOV_get_duration_frames(anim);
     }
@@ -726,7 +726,7 @@ static PointerRNA rna_Image_packed_file_get(PointerRNA *ptr)
   Image *ima = id_cast<Image *>(ptr->owner_id);
 
   if (BKE_image_has_packedfile(ima)) {
-    ImagePackedFile *imapf = static_cast<ImagePackedFile *>(ima->packedfiles.first);
+    ImagePackedFile *imapf = ima->packedfiles.first();
     return RNA_pointer_create_with_parent(*ptr, RNA_PackedFile, imapf->packedfile);
   }
   return {};

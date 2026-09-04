@@ -45,7 +45,7 @@ int BKE_anim_path_get_array_size(const CurveCache *curve_cache)
 {
   BLI_assert(curve_cache != nullptr);
 
-  BevList *bl = static_cast<BevList *>(curve_cache->bev.first);
+  BevList *bl = curve_cache->bev.first();
 
   BLI_assert(bl != nullptr && bl->nr > 1);
 
@@ -72,7 +72,7 @@ void BKE_anim_path_calc_data(Object *ob)
   MEM_SAFE_DELETE(ob->runtime->curve_cache->anim_path_accum_length);
 
   /* We only use the first curve. */
-  BevList *bl = static_cast<BevList *>(ob->runtime->curve_cache->bev.first);
+  BevList *bl = ob->runtime->curve_cache->bev.first();
   /* There are no points. */
   if (bl == nullptr) {
     return;
@@ -250,7 +250,7 @@ bool BKE_where_on_path(const Object *ob,
     return false;
   }
   /* We only use the first curve. */
-  BevList *bl = static_cast<BevList *>(ob->runtime->curve_cache->bev.first);
+  BevList *bl = ob->runtime->curve_cache->bev.first();
   if (bl == nullptr || !bl->nr) {
     CLOG_WARN(&LOG, "No bev list data!");
     return false;
@@ -329,7 +329,7 @@ bool BKE_where_on_path(const Object *ob,
   if (!nurbs) {
     nurbs = &cu->nurb;
   }
-  const Nurb *nu = static_cast<const Nurb *>(nurbs->first);
+  const Nurb *nu = nurbs->first();
 
   /* Make sure that first and last frame are included in the vectors here. */
   if (ELEM(nu->type, CU_POLY, CU_BEZIER, CU_NURBS)) {

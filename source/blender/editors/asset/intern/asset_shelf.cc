@@ -239,7 +239,7 @@ static AssetShelf *update_active_shelf(const bContext &C,
           C, ensure_shelf_has_type(*shelf_regiondata.active_shelf), space_type))
   {
     /* Not a strong precondition, but if this is wrong something weird might be going on. */
-    BLI_assert(shelf_regiondata.active_shelf == shelf_regiondata.shelves.first);
+    BLI_assert(shelf_regiondata.active_shelf == shelf_regiondata.shelves.first_);
     return shelf_regiondata.active_shelf;
   }
 
@@ -321,8 +321,7 @@ static bool asset_shelf_space_poll(const bContext *C, const SpaceLink *space_lin
 
 bool regions_poll(const RegionPollParams *params)
 {
-  return asset_shelf_space_poll(params->context,
-                                static_cast<SpaceLink *>(params->area->spacedata.first));
+  return asset_shelf_space_poll(params->context, params->area->spacedata.first());
 }
 
 static void asset_shelf_region_listen(const wmRegionListenerParams *params)
@@ -948,8 +947,8 @@ void type_unlink(const Main &bmain, const AssetShelfType &shelf_type)
   for (bScreen &screen : bmain.screens) {
     for (ScrArea &area : screen.areabase) {
       for (SpaceLink &sl : area.spacedata) {
-        ListBaseT<ARegion> *regionbase = (&sl == area.spacedata.first) ? &area.regionbase :
-                                                                         &sl.regionbase;
+        ListBaseT<ARegion> *regionbase = (&sl == area.spacedata.first_) ? &area.regionbase :
+                                                                          &sl.regionbase;
         for (ARegion &region : *regionbase) {
           if (region.regiontype != RGN_TYPE_ASSET_SHELF) {
             continue;

@@ -1247,7 +1247,7 @@ static void rna_SpaceView3D_camera_update(Main *bmain, Scene *scene, PointerRNA 
 {
   View3D *v3d = static_cast<View3D *>(ptr->data);
   if (v3d->scenelock && scene != nullptr) {
-    wmWindowManager *wm = static_cast<wmWindowManager *>(bmain->wm.first);
+    wmWindowManager *wm = bmain->wm.first();
 
     scene->camera = v3d->camera;
     WM_windows_scene_data_sync(&wm->windows, scene);
@@ -1262,7 +1262,7 @@ static void rna_SpaceView3D_use_local_camera_set(PointerRNA *ptr, bool value)
   v3d->scenelock = !value;
 
   if (!value) {
-    Scene *scene = ED_screen_scene_find(screen, static_cast<wmWindowManager *>(G_MAIN->wm.first));
+    Scene *scene = ED_screen_scene_find(screen, G_MAIN->wm.first());
     /* nullptr if the screen isn't in an active window (happens when setting from Python).
      * This could be moved to the update function, in that case the scene won't relate to the
      * screen so keep it working this way. */
@@ -1276,7 +1276,7 @@ static float rna_View3DOverlay_GridScaleUnit_get(PointerRNA *ptr)
 {
   View3D *v3d = static_cast<View3D *>(ptr->data);
   bScreen *screen = id_cast<bScreen *>(ptr->owner_id);
-  Scene *scene = ED_screen_scene_find(screen, static_cast<wmWindowManager *>(G_MAIN->wm.first));
+  Scene *scene = ED_screen_scene_find(screen, G_MAIN->wm.first());
   if (scene != nullptr) {
     return ED_view3d_grid_scale(scene, v3d, nullptr);
   }
@@ -1292,9 +1292,10 @@ static PointerRNA rna_SpaceView3D_region_3d_get(PointerRNA *ptr)
   ScrArea *area = rna_area_from_space(ptr);
   void *regiondata = nullptr;
   if (area) {
-    ListBaseT<ARegion> *regionbase = (area->spacedata.first == v3d) ? &area->regionbase :
-                                                                      &v3d->regionbase;
-    ARegion *region = static_cast<ARegion *>(regionbase->last); /* always last in list, weak. */
+    ListBaseT<ARegion> *regionbase = (area->spacedata.first_as<View3D>() == v3d) ?
+                                         &area->regionbase :
+                                         &v3d->regionbase;
+    ARegion *region = regionbase->last(); /* always last in list, weak. */
     regiondata = region->regiondata;
   }
 
@@ -1342,7 +1343,8 @@ static void rna_SpaceView3D_region_quadviews_begin(CollectionPropertyIterator *i
   int i = 3;
 
   ARegion *region = static_cast<ARegion *>(
-      ((area && area->spacedata.first == v3d) ? &area->regionbase : &v3d->regionbase)->last);
+      ((area && area->spacedata.first_as<View3D>() == v3d) ? &area->regionbase : &v3d->regionbase)
+          ->last());
   ListBaseT<ARegion> lb = {nullptr, nullptr};
 
   if (region && region->alignment == RGN_ALIGN_QSPLIT) {
@@ -1351,7 +1353,7 @@ static void rna_SpaceView3D_region_quadviews_begin(CollectionPropertyIterator *i
     }
 
     if (i < 0) {
-      lb.first = region;
+      lb.first_ = region;
     }
   }
 
@@ -1580,8 +1582,7 @@ static Scene *rna_3DViewShading_scene(PointerRNA *ptr)
   }
   else {
     bScreen *screen = id_cast<bScreen *>(ptr->owner_id);
-    return WM_windows_scene_get_from_screen(static_cast<wmWindowManager *>(G_MAIN->wm.first),
-                                            screen);
+    return WM_windows_scene_get_from_screen(G_MAIN->wm.first(), screen);
   }
 }
 
@@ -1598,8 +1599,7 @@ static ViewLayer *rna_3DViewShading_view_layer(PointerRNA *ptr)
   }
   else {
     bScreen *screen = id_cast<bScreen *>(ptr->owner_id);
-    return WM_windows_view_layer_get_from_screen(static_cast<wmWindowManager *>(G_MAIN->wm.first),
-                                                 screen);
+    return WM_windows_view_layer_get_from_screen(G_MAIN->wm.first(), screen);
   }
 }
 
@@ -1936,7 +1936,7 @@ static void rna_SpaceView3D_mirror_xr_session_update(Main *main,
                                                      PointerRNA *ptr)
 {
 #  ifdef WITH_XR_OPENXR
-  const wmWindowManager *wm = static_cast<wmWindowManager *>(main->wm.first);
+  const wmWindowManager *wm = main->wm.first();
 
   /* Handle mirror toggling while there is a session already. */
   if (WM_xr_session_exists(&wm->xr)) {
@@ -2019,7 +2019,7 @@ static PointerRNA rna_SpaceImageEditor_uvedit_get(PointerRNA *ptr)
 static void rna_SpaceImageEditor_mode_update(Main *bmain, Scene *scene, PointerRNA *ptr)
 {
   if (scene != nullptr) {
-    ED_space_image_paint_update(bmain, static_cast<wmWindowManager *>(bmain->wm.first), scene);
+    ED_space_image_paint_update(bmain, bmain->wm.first(), scene);
   }
 
   /* The mode defines the tool. */
@@ -2096,7 +2096,7 @@ static bool rna_SpaceImageEditor_show_uvedit_get(PointerRNA *ptr)
   SpaceImage *sima = static_cast<SpaceImage *>(ptr->data);
   bScreen *screen = id_cast<bScreen *>(ptr->owner_id);
   Object *obedit = nullptr;
-  wmWindow *win = ED_screen_window_find(screen, static_cast<wmWindowManager *>(G_MAIN->wm.first));
+  wmWindow *win = ED_screen_window_find(screen, G_MAIN->wm.first());
   if (win != nullptr) {
     Scene *scene = WM_window_get_active_scene(win);
     ViewLayer *view_layer = WM_window_get_active_view_layer(win);
@@ -2113,7 +2113,7 @@ static bool rna_SpaceImageEditor_show_maskedit_get(PointerRNA *ptr)
   SpaceImage *sima = static_cast<SpaceImage *>(ptr->data);
   bScreen *screen = id_cast<bScreen *>(ptr->owner_id);
   Object *obedit = nullptr;
-  wmWindow *win = ED_screen_window_find(screen, static_cast<wmWindowManager *>(G_MAIN->wm.first));
+  wmWindow *win = ED_screen_window_find(screen, G_MAIN->wm.first());
   if (win != nullptr) {
     Scene *scene = WM_window_get_active_scene(win);
     ViewLayer *view_layer = WM_window_get_active_view_layer(win);
@@ -2655,7 +2655,7 @@ static void rna_SpaceDopeSheetEditor_mode_update(bContext *C, PointerRNA *ptr)
   SpaceAction *saction = static_cast<SpaceAction *>(ptr->data);
   ScrArea *area = CTX_wm_area(C);
 
-  if (area && area->spacedata.first == saction) {
+  if (area && area->spacedata.first_as<SpaceAction>() == saction) {
     ARegion *channels_region = BKE_area_find_region_type(area, RGN_TYPE_CHANNELS);
     if (channels_region) {
       channels_region->flag &= ~RGN_FLAG_HIDDEN;

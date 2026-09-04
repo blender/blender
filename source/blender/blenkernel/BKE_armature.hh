@@ -624,9 +624,7 @@ void BKE_pchan_bbone_deform_segment_index(bke::PChanBoneConst pchanbone,
 
 /* context.selected_pose_bones */
 #define FOREACH_PCHAN_SELECTED_IN_OBJECT_BEGIN(_ob, _pchan) \
-  for (bPoseChannel *_pchan = (bPoseChannel *)(_ob)->pose->chanbase.first; _pchan; \
-       _pchan = _pchan->next) \
-  { \
+  for (bPoseChannel *_pchan = (_ob)->pose->chanbase.first(); _pchan; _pchan = _pchan->next) { \
     if (animrig::bone_is_visible(((bArmature *)(_ob)->data), {_pchan, _pchan->bone_get(*_ob)}) && \
         ((_pchan)->flag & POSE_SELECTED)) \
     {
@@ -636,9 +634,7 @@ void BKE_pchan_bbone_deform_segment_index(bke::PChanBoneConst pchanbone,
   ((void)0)
 /* context.visible_pose_bones */
 #define FOREACH_PCHAN_VISIBLE_IN_OBJECT_BEGIN(_ob, _pchan) \
-  for (bPoseChannel *_pchan = (bPoseChannel *)(_ob)->pose->chanbase.first; _pchan; \
-       _pchan = _pchan->next) \
-  { \
+  for (bPoseChannel *_pchan = (_ob)->pose->chanbase.first(); _pchan; _pchan = _pchan->next) { \
     if (animrig::bone_is_visible(((bArmature *)(_ob)->data), {_pchan, pchan->bone_get(*_ob)})) {
 #define FOREACH_PCHAN_VISIBLE_IN_OBJECT_END \
   } \

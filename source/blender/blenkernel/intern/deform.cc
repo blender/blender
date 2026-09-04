@@ -644,7 +644,7 @@ static int *object_defgroup_unlocked_flip_map_ex(const Object *ob,
     map[i] = -1;
   }
 
-  for (dg = static_cast<bDeformGroup *>(defbase->first), i = 0; dg; dg = dg->next, i++) {
+  for (dg = defbase->first(), i = 0; dg; dg = dg->next, i++) {
     if (map[i] == -1) { /* may be calculated previously */
 
       /* in case no valid value is found, use this */
@@ -1310,7 +1310,7 @@ static bool data_transfer_layersmapping_vgroups_multisrc_to_dst(
       }
       else if (use_delete && idx_dst > idx_src) {
         while (idx_dst-- > idx_src) {
-          BKE_object_defgroup_remove(ob_dst, static_cast<bDeformGroup *>(dst_defbase->last));
+          BKE_object_defgroup_remove(ob_dst, dst_defbase->last());
         }
       }
       if (r_map) {
@@ -1340,7 +1340,7 @@ static bool data_transfer_layersmapping_vgroups_multisrc_to_dst(
 
       if (use_delete) {
         /* Remove all unused dst vgroups first, simpler in this case. */
-        for (dg_dst = static_cast<bDeformGroup *>(dst_defbase->first); dg_dst;) {
+        for (dg_dst = dst_defbase->first(); dg_dst;) {
           bDeformGroup *dg_dst_next = dg_dst->next;
 
           if (BKE_id_defgroup_name_index(&mesh_src.id, dg_dst->name) == -1) {
@@ -1350,8 +1350,7 @@ static bool data_transfer_layersmapping_vgroups_multisrc_to_dst(
         }
       }
 
-      for (idx_src = 0, dg_src = static_cast<bDeformGroup *>(src_list->first);
-           idx_src < num_layers_src;
+      for (idx_src = 0, dg_src = src_list->first(); idx_src < num_layers_src;
            idx_src++, dg_src = dg_src->next)
       {
         if (!use_layers_src[idx_src]) {

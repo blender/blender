@@ -386,7 +386,7 @@ static void build_snap_data_preview(const TransInfo *t, TransSeqSnapData *snap_d
   Scene *scene = t->scene;
   short snap_mode = t->tsnap.mode;
   View2D *v2d = &t->region->v2d;
-  SpaceSeq *sseq = static_cast<SpaceSeq *>(t->area->spacedata.first);
+  SpaceSeq *sseq = t->area->spacedata.first_as<SpaceSeq>();
 
   VectorSet<Strip *> strip_sources = query_strip_sources_preview(scene);
   VectorSet<Strip *> strip_targets = query_strip_targets_preview(t);

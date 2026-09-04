@@ -243,7 +243,7 @@ static void curve_bevel_make_from_object(const Curve *cu, ListBaseT<DispList> *d
 
     DispList *dl;
     if (cu->bevobj->runtime->curve_cache) {
-      dl = static_cast<DispList *>(cu->bevobj->runtime->curve_cache->disp.first);
+      dl = cu->bevobj->runtime->curve_cache->disp.first();
     }
     else {
       BLI_assert(cu->bevobj->runtime->curve_cache != nullptr);

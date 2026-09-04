@@ -69,15 +69,11 @@ void WM_msgbus_destroy(wmMsgBus *mbus)
 void WM_msgbus_clear_by_owner(wmMsgBus *mbus, void *owner)
 {
   wmMsgSubscribeKey *msg_key, *msg_key_next;
-  for (msg_key = static_cast<wmMsgSubscribeKey *>(mbus->messages.first); msg_key;
-       msg_key = msg_key_next)
-  {
+  for (msg_key = mbus->messages.first(); msg_key; msg_key = msg_key_next) {
     msg_key_next = msg_key->next;
 
     wmMsgSubscribeValueLink *msg_lnk_next;
-    for (wmMsgSubscribeValueLink *msg_lnk =
-             static_cast<wmMsgSubscribeValueLink *>(msg_key->values.first);
-         msg_lnk;
+    for (wmMsgSubscribeValueLink *msg_lnk = msg_key->values.first(); msg_lnk;
          msg_lnk = msg_lnk_next)
     {
       msg_lnk_next = msg_lnk->next;

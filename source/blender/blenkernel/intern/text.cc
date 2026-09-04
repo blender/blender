@@ -88,9 +88,9 @@ static void text_init_data(ID *id)
 
   BLI_addhead(&text->lines, tmp);
 
-  text->curl = static_cast<TextLine *>(text->lines.first);
+  text->curl = text->lines.first();
   text->curc = 0;
-  text->sell = static_cast<TextLine *>(text->lines.first);
+  text->sell = text->lines.first();
   text->selc = 0;
 }
 
@@ -135,7 +135,7 @@ static void text_copy_data(Main * /*bmain*/,
     BLI_addtail(&text_dst->lines, line_dst);
   }
 
-  text_dst->curl = text_dst->sell = static_cast<TextLine *>(text_dst->lines.first);
+  text_dst->curl = text_dst->sell = text_dst->lines.first();
   text_dst->curc = text_dst->selc = 0;
 }
 
@@ -266,8 +266,7 @@ IDTypeInfo IDType_ID_TXT = {
 
 void BKE_text_free_lines(Text *text)
 {
-  for (TextLine *tmp = static_cast<TextLine *>(text->lines.first), *tmp_next; tmp; tmp = tmp_next)
-  {
+  for (TextLine *tmp = text->lines.first(), *tmp_next; tmp; tmp = tmp_next) {
     tmp_next = tmp->next;
     MEM_delete(tmp->line);
     if (tmp->format) {
@@ -412,7 +411,7 @@ static void text_from_buf(Text *text, const uchar *buffer, const int len)
     // lines_count += 1; /* UNUSED. */
   }
 
-  text->curl = text->sell = static_cast<TextLine *>(text->lines.first);
+  text->curl = text->sell = text->lines.first();
   text->curc = text->selc = 0;
 }
 
@@ -639,21 +638,21 @@ void txt_clean_text(Text *text)
 {
   TextLine **top, **bot;
 
-  if (!text->lines.first) {
-    if (text->lines.last) {
-      text->lines.first = text->lines.last;
+  if (!text->lines.first()) {
+    if (text->lines.last()) {
+      text->lines.first_ = text->lines.last();
     }
     else {
-      text->lines.first = text->lines.last = txt_new_line("");
+      text->lines.first_ = text->lines.last_ = txt_new_line("");
     }
   }
 
-  if (!text->lines.last) {
-    text->lines.last = text->lines.first;
+  if (!text->lines.last()) {
+    text->lines.last_ = text->lines.first();
   }
 
-  top = reinterpret_cast<TextLine **>(&text->lines.first);
-  bot = reinterpret_cast<TextLine **>(&text->lines.last);
+  top = reinterpret_cast<TextLine **>(&text->lines.first_);
+  bot = reinterpret_cast<TextLine **>(&text->lines.last_);
 
   while ((*top)->prev) {
     *top = (*top)->prev;
@@ -667,7 +666,7 @@ void txt_clean_text(Text *text)
       text->curl = text->sell;
     }
     else {
-      text->curl = static_cast<TextLine *>(text->lines.first);
+      text->curl = text->lines.first();
     }
     text->curc = 0;
   }
@@ -1065,7 +1064,7 @@ void txt_move_bof(Text *text, const bool sel)
     return;
   }
 
-  *linep = static_cast<TextLine *>(text->lines.first);
+  *linep = text->lines.first();
   *charp = 0;
 
   if (!sel) {
@@ -1088,7 +1087,7 @@ void txt_move_eof(Text *text, const bool sel)
     return;
   }
 
-  *linep = static_cast<TextLine *>(text->lines.last);
+  *linep = text->lines.last();
   *charp = (*linep)->len;
 
   if (!sel) {
@@ -1117,7 +1116,7 @@ void txt_move_to(Text *text, uint line, uint ch, const bool sel)
     return;
   }
 
-  *linep = static_cast<TextLine *>(text->lines.first);
+  *linep = text->lines.first();
   for (i = 0; i < line; i++) {
     if ((*linep)->next) {
       *linep = (*linep)->next;
@@ -1258,10 +1257,10 @@ static void txt_delete_sel(Text *text)
 
 void txt_sel_all(Text *text)
 {
-  text->curl = static_cast<TextLine *>(text->lines.first);
+  text->curl = text->lines.first();
   text->curc = 0;
 
-  text->sell = static_cast<TextLine *>(text->lines.last);
+  text->sell = text->lines.last();
   text->selc = text->sell->len;
 }
 
@@ -1303,7 +1302,7 @@ void txt_sel_set(Text *text, int startl, int startc, int endl, int endc)
 
   froml = static_cast<TextLine *>(BLI_findlink(&text->lines, startl));
   if (froml == nullptr) {
-    froml = static_cast<TextLine *>(text->lines.last);
+    froml = text->lines.last();
   }
   if (startl == endl) {
     tol = froml;
@@ -1311,7 +1310,7 @@ void txt_sel_set(Text *text, int startl, int startc, int endl, int endc)
   else {
     tol = static_cast<TextLine *>(BLI_findlink(&text->lines, endl));
     if (tol == nullptr) {
-      tol = static_cast<TextLine *>(text->lines.last);
+      tol = text->lines.last();
     }
   }
 
@@ -1371,7 +1370,7 @@ void txt_from_buf_for_undo(Text *text, const char *buf, size_t buf_len)
   /* First re-use existing lines.
    * Good for undo since it means in practice many operations re-use all
    * except for the modified line. */
-  TextLine *l_src = static_cast<TextLine *>(text->lines.first);
+  TextLine *l_src = text->lines.first();
   text->lines.clear_no_delete();
   while (buf_step != buf_end && l_src) {
     /* New lines are ensured by #txt_to_buf_for_undo. */
@@ -1419,7 +1418,7 @@ void txt_from_buf_for_undo(Text *text, const char *buf, size_t buf_len)
     buf_step = buf_step_next + 1;
   }
 
-  text->curl = text->sell = static_cast<TextLine *>(text->lines.first);
+  text->curl = text->sell = text->lines.first();
   text->curc = text->selc = 0;
 
   txt_make_dirty(text);
@@ -1619,7 +1618,7 @@ bool txt_find_string(Text *text, const char *findstr, int wrap, int match_case)
     tl = tl->next;
     if (!tl) {
       if (wrap) {
-        tl = static_cast<TextLine *>(text->lines.first);
+        tl = text->lines.first();
       }
       else {
         break;
@@ -1638,7 +1637,7 @@ bool txt_find_string(Text *text, const char *findstr, int wrap, int match_case)
   }
 
   if (s) {
-    int newl = txt_get_span(static_cast<TextLine *>(text->lines.first), tl);
+    int newl = txt_get_span(text->lines.first(), tl);
     int newc = int(s - tl->line);
     txt_move_to(text, newl, newc, false);
     txt_move_to(text, newl, newc + strlen(findstr), true);

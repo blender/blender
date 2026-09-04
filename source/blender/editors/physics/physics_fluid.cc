@@ -358,7 +358,7 @@ static void fluid_bake_endjob(void *customdata)
   DEG_id_tag_update(&job->ob->id, ID_RECALC_GEOMETRY);
 
   G.is_rendering = false;
-  WM_locked_interface_set(static_cast<wmWindowManager *>(G_MAIN->wm.first), false);
+  WM_locked_interface_set(G_MAIN->wm.first(), false);
 
   /* Bake was successful:
    * Report for ended bake and how long it took. */
@@ -471,7 +471,7 @@ static void fluid_free_endjob(void *customdata)
   FluidDomainSettings *fds = job->fmd->domain;
 
   G.is_rendering = false;
-  WM_locked_interface_set(static_cast<wmWindowManager *>(G_MAIN->wm.first), false);
+  WM_locked_interface_set(G_MAIN->wm.first(), false);
 
   /* Reflect the now empty cache in the viewport too. */
   DEG_id_tag_update(&job->ob->id, ID_RECALC_GEOMETRY);

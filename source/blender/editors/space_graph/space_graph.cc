@@ -144,7 +144,7 @@ static void graph_free(SpaceLink *sl)
     MEM_delete(si->ads);
   }
 
-  if (si->runtime.ghost_curves.first) {
+  if (si->runtime.ghost_curves.first_) {
     BKE_fcurves_free(&si->runtime.ghost_curves);
   }
 }
@@ -152,7 +152,7 @@ static void graph_free(SpaceLink *sl)
 /* spacetype; init callback */
 static void graph_init(wmWindowManager *wm, ScrArea *area)
 {
-  SpaceGraph *sipo = static_cast<SpaceGraph *>(area->spacedata.first);
+  SpaceGraph *sipo = area->spacedata.first_as<SpaceGraph>();
 
   /* Init dope-sheet if non-existent (i.e. for old files). */
   if (sipo->ads == nullptr) {
@@ -622,7 +622,7 @@ static void graph_listener(const wmSpaceTypeListenerParams *params)
 {
   ScrArea *area = params->area;
   const wmNotifier *wmn = params->notifier;
-  SpaceGraph *sipo = static_cast<SpaceGraph *>(area->spacedata.first);
+  SpaceGraph *sipo = area->spacedata.first_as<SpaceGraph>();
 
   /* context changes */
   switch (wmn->category) {
@@ -746,7 +746,7 @@ static void graph_refresh_fcurve_colors(const bContext *C)
       &ac, &anim_data, eAnimFilter_Flags(filter), ac.data, eAnimCont_Types(ac.datatype));
 
   /* loop over F-Curves, assigning colors */
-  for (ale = static_cast<bAnimListElem *>(anim_data.first), i = 0; ale; ale = ale->next, i++) {
+  for (ale = anim_data.first(), i = 0; ale; ale = ale->next, i++) {
     BLI_assert_msg(ELEM(ale->type, ANIMTYPE_FCURVE, ANIMTYPE_NLACURVE),
                    "Expecting only FCurves when using the ANIMFILTER_FCURVESONLY filter");
     FCurve *fcu = static_cast<FCurve *>(ale->data);
@@ -832,7 +832,7 @@ static void graph_refresh_fcurve_colors(const bContext *C)
 
 static void graph_refresh(const bContext *C, ScrArea *area)
 {
-  SpaceGraph *sipo = static_cast<SpaceGraph *>(area->spacedata.first);
+  SpaceGraph *sipo = area->spacedata.first_as<SpaceGraph>();
 
   /* updates to data needed depends on Graph Editor mode... */
   switch (sipo->mode) {
@@ -913,13 +913,13 @@ static void graph_foreach_id(SpaceLink *space_link, LibraryForeachIDData *data)
 
 static int graph_space_subtype_get(ScrArea *area)
 {
-  SpaceGraph *sgraph = static_cast<SpaceGraph *>(area->spacedata.first);
+  SpaceGraph *sgraph = area->spacedata.first_as<SpaceGraph>();
   return sgraph->mode;
 }
 
 static void graph_space_subtype_set(ScrArea *area, int value)
 {
-  SpaceGraph *sgraph = static_cast<SpaceGraph *>(area->spacedata.first);
+  SpaceGraph *sgraph = area->spacedata.first_as<SpaceGraph>();
   sgraph->mode = eGraphEdit_Mode(value);
 }
 
@@ -932,7 +932,7 @@ static void graph_space_subtype_item_extend(bContext * /*C*/,
 
 static StringRefNull graph_space_name_get(const ScrArea *area)
 {
-  SpaceGraph *sgraph = static_cast<SpaceGraph *>(area->spacedata.first);
+  SpaceGraph *sgraph = area->spacedata.first_as<SpaceGraph>();
   const int index = RNA_enum_from_value(rna_enum_space_graph_mode_items, sgraph->mode);
   const EnumPropertyItem item = rna_enum_space_graph_mode_items[index];
   return item.name;
@@ -940,7 +940,7 @@ static StringRefNull graph_space_name_get(const ScrArea *area)
 
 static int graph_space_icon_get(const ScrArea *area)
 {
-  SpaceGraph *sgraph = static_cast<SpaceGraph *>(area->spacedata.first);
+  SpaceGraph *sgraph = area->spacedata.first_as<SpaceGraph>();
   const int index = RNA_enum_from_value(rna_enum_space_graph_mode_items, sgraph->mode);
   const EnumPropertyItem item = rna_enum_space_graph_mode_items[index];
   return item.icon;
@@ -974,7 +974,7 @@ static void graph_space_blend_write(BlendWriter *writer, SpaceLink *sl)
 static bool action_region_poll_hide_in_driver_mode(const RegionPollParams *params)
 {
   BLI_assert(params->area->spacetype == SPACE_GRAPH);
-  const SpaceGraph *sipo = static_cast<const SpaceGraph *>(params->area->spacedata.first);
+  const SpaceGraph *sipo = params->area->spacedata.first_as<SpaceGraph>();
   return sipo->mode != SIPO_MODE_DRIVERS;
 }
 

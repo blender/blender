@@ -275,9 +275,9 @@ void WM_operator_free(wmOperator *op)
     MEM_delete(op->reports);
   }
 
-  if (op->macro.first) {
+  if (op->macro.first()) {
     wmOperator *opm, *opmnext;
-    for (opm = static_cast<wmOperator *>(op->macro.first); opm; opm = opmnext) {
+    for (opm = op->macro.first(); opm; opm = opmnext) {
       opmnext = opm->next;
       WM_operator_free(opm);
     }
@@ -381,7 +381,7 @@ void WM_operator_handlers_clear(wmWindowManager *wm, const Set<wmOperatorType *>
     for (ScrArea &area : screen->areabase) {
       switch (area.spacetype) {
         case SPACE_FILE: {
-          SpaceFile *sfile = static_cast<SpaceFile *>(area.spacedata.first);
+          SpaceFile *sfile = area.spacedata.first_as<SpaceFile>();
           if (sfile->op && types.contains(sfile->op->type)) {
             /* Freed as part of the handler. */
             sfile->op = nullptr;
@@ -474,7 +474,7 @@ void WM_check(bContext *C)
 
   /* WM context. */
   if (wm == nullptr) {
-    wm = static_cast<wmWindowManager *>(bmain->wm.first);
+    wm = bmain->wm.first();
     CTX_wm_manager_set(C, wm);
   }
 
@@ -515,7 +515,7 @@ void wm_clear_default_size(bContext *C)
 
   /* WM context. */
   if (wm == nullptr) {
-    wm = static_cast<wmWindowManager *>(CTX_data_main(C)->wm.first);
+    wm = CTX_data_main(C)->wm.first();
     CTX_wm_manager_set(C, wm);
   }
 

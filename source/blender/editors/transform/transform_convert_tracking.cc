@@ -527,7 +527,7 @@ static void flushTransTracking(TransInfo *t)
 
 static void recalcData_tracking(TransInfo *t)
 {
-  SpaceClip *sc = static_cast<SpaceClip *>(t->area->spacedata.first);
+  SpaceClip *sc = t->area->spacedata.first_as<SpaceClip>();
 
   if (ED_space_clip_check_show_trackedit(sc)) {
     MovieClip *clip = ED_space_clip_get_clip(sc);
@@ -576,7 +576,7 @@ static void recalcData_tracking(TransInfo *t)
 
 static void special_aftertrans_update__movieclip(bContext *C, TransInfo *t)
 {
-  SpaceClip *sc = static_cast<SpaceClip *>(t->area->spacedata.first);
+  SpaceClip *sc = t->area->spacedata.first_as<SpaceClip>();
   MovieClip *clip = ED_space_clip_get_clip(sc);
   const MovieTrackingObject *tracking_object = BKE_tracking_object_get_active(&clip->tracking);
   const int framenr = ED_space_clip_get_clip_frame_number(sc);

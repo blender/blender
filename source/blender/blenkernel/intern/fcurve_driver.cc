@@ -1052,7 +1052,7 @@ void fcurve_free_driver(FCurve *fcu)
   driver = fcu->driver;
 
   /* Free driver targets. */
-  for (dvar = static_cast<DriverVar *>(driver->variables.first); dvar; dvar = dvarn) {
+  for (dvar = driver->variables.first(); dvar; dvar = dvarn) {
     dvarn = dvar->next;
     driver_free_variable_ex(driver, dvar);
   }
@@ -1319,7 +1319,7 @@ static void evaluate_driver_sum(const AnimationEvalContext *anim_eval_context,
   /* Check how many variables there are first (i.e. just one?). */
   if (driver->variables.is_single()) {
     /* Just one target, so just use that. */
-    dvar = static_cast<DriverVar *>(driver->variables.first);
+    dvar = driver->variables.first();
     driver->curval = driver_get_variable_value(anim_eval_context, driver, dvar);
     return;
   }

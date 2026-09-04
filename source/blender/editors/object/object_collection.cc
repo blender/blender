@@ -643,9 +643,7 @@ static wmOperatorStatus collection_importer_import_exec(bContext *C, wmOperator 
 
   /* TODO: If there is already a library for this collection, then an import has already occurred.
    * Return early until "reload" is implemented in the future. */
-  for (Library *lib = static_cast<Library *>(bmain->libraries.first); lib;
-       lib = static_cast<Library *>(lib->id.next))
-  {
+  for (Library *lib = bmain->libraries.first(); lib; lib = static_cast<Library *>(lib->id.next)) {
     if (STREQ(lib->id.name + 2, collection_name)) {
       BKE_reportf(op->reports,
                   RPT_WARNING,

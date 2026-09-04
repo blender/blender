@@ -67,9 +67,7 @@ static void wm_msg_rna_gset_key_free(void *key_p)
 {
   wmMsgSubscribeKey_RNA *key = static_cast<wmMsgSubscribeKey_RNA *>(key_p);
   wmMsgSubscribeValueLink *msg_lnk_next;
-  for (wmMsgSubscribeValueLink *msg_lnk =
-           static_cast<wmMsgSubscribeValueLink *>(key->head.values.first);
-       msg_lnk;
+  for (wmMsgSubscribeValueLink *msg_lnk = key->head.values.first(); msg_lnk;
        msg_lnk = msg_lnk_next)
   {
     msg_lnk_next = msg_lnk->next;
@@ -115,10 +113,7 @@ static void wm_msg_rna_update_by_id(wmMsgBus *mbus, ID *id_src, ID *id_dst)
 
       /* Remove any non-persistent values, so a single persistent
        * value doesn't modify behavior for the rest. */
-      for (wmMsgSubscribeValueLink *
-               msg_lnk = static_cast<wmMsgSubscribeValueLink *>(key->head.values.first),
-              *msg_lnk_next;
-           msg_lnk;
+      for (wmMsgSubscribeValueLink *msg_lnk = key->head.values.first(), *msg_lnk_next; msg_lnk;
            msg_lnk = msg_lnk_next)
       {
         msg_lnk_next = msg_lnk->next;
@@ -156,10 +151,7 @@ static void wm_msg_rna_update_by_id(wmMsgBus *mbus, ID *id_src, ID *id_dst)
       }
 
       if (remove) {
-        for (wmMsgSubscribeValueLink *
-                 msg_lnk = static_cast<wmMsgSubscribeValueLink *>(key->head.values.first),
-                *msg_lnk_next;
-             msg_lnk;
+        for (wmMsgSubscribeValueLink *msg_lnk = key->head.values.first(), *msg_lnk_next; msg_lnk;
              msg_lnk = msg_lnk_next)
         {
           msg_lnk_next = msg_lnk->next;
@@ -196,10 +188,7 @@ static void wm_msg_rna_remove_by_id(wmMsgBus *mbus, const ID *id)
     BLI_gsetIterator_step(&gs_iter);
     if (key->msg.params.ptr.owner_id == id) {
       /* Clear here so we can decrement 'messages_tag_count'. */
-      for (wmMsgSubscribeValueLink *
-               msg_lnk = static_cast<wmMsgSubscribeValueLink *>(key->head.values.first),
-              *msg_lnk_next;
-           msg_lnk;
+      for (wmMsgSubscribeValueLink *msg_lnk = key->head.values.first(), *msg_lnk_next; msg_lnk;
            msg_lnk = msg_lnk_next)
       {
         msg_lnk_next = msg_lnk->next;

@@ -1122,19 +1122,19 @@ void theme_set(int spacetype, int regionid)
 {
   if (spacetype) {
     /* later on, a local theme can be found too */
-    g_theme_state.theme = static_cast<bTheme *>(U.themes.first);
+    g_theme_state.theme = U.themes.first();
     g_theme_state.spacetype = spacetype;
     g_theme_state.regionid = regionid;
   }
   else if (regionid) {
     /* popups */
-    g_theme_state.theme = static_cast<bTheme *>(U.themes.first);
+    g_theme_state.theme = U.themes.first();
     g_theme_state.spacetype = SPACE_PROPERTIES;
     g_theme_state.regionid = regionid;
   }
   else {
     /* for safety, when theme was deleted */
-    g_theme_state.theme = static_cast<bTheme *>(U.themes.first);
+    g_theme_state.theme = U.themes.first();
     g_theme_state.spacetype = SPACE_VIEW3D;
     g_theme_state.regionid = RGN_TYPE_WINDOW;
   }
@@ -1142,7 +1142,7 @@ void theme_set(int spacetype, int regionid)
 
 const bTheme *theme_get()
 {
-  return static_cast<bTheme *>(U.themes.first);
+  return U.themes.first();
 }
 
 void theme_store(bThemeState *theme_state)

@@ -186,7 +186,7 @@ void BKE_rigidbody_free_object(Object *ob, RigidBodyWorld *rbw)
       else {
         /* We have no access to 'owner' RBW when deleting the object ID itself... No choice bu to
          * loop over all scenes then. */
-        for (Scene *scene = static_cast<Scene *>(G_MAIN->scenes.first); scene != nullptr;
+        for (Scene *scene = G_MAIN->scenes.first(); scene != nullptr;
              scene = static_cast<Scene *>(scene->id.next))
         {
           RigidBodyWorld *scene_rbw = scene->rigidbody_world;
@@ -1187,7 +1187,7 @@ RigidBodyWorld *BKE_rigidbody_world_copy(RigidBodyWorld *rbw, const int flag)
     /* This is a regular copy, and not an evaluated copy for depsgraph evaluation. */
     rbw_copy->shared = MEM_new<RigidBodyWorld_Shared>("RigidBodyWorld_Shared");
     BKE_ptcache_copy_list(&rbw_copy->shared->ptcaches, &rbw->shared->ptcaches, LIB_ID_COPY_CACHES);
-    rbw_copy->shared->pointcache = static_cast<PointCache *>(rbw_copy->shared->ptcaches.first);
+    rbw_copy->shared->pointcache = rbw_copy->shared->ptcaches.first();
     BKE_rigidbody_world_init_runtime(rbw_copy);
   }
 
@@ -1368,9 +1368,7 @@ void BKE_rigidbody_constraints_collection_validate(Scene *scene, RigidBodyWorld 
 
 void BKE_rigidbody_main_collection_object_add(Main *bmain, Collection *collection, Object *object)
 {
-  for (Scene *scene = static_cast<Scene *>(bmain->scenes.first); scene;
-       scene = static_cast<Scene *>(scene->id.next))
-  {
+  for (Scene *scene = bmain->scenes.first(); scene; scene = static_cast<Scene *>(scene->id.next)) {
     RigidBodyWorld *rbw = scene->rigidbody_world;
 
     if (rbw == nullptr) {
@@ -1463,8 +1461,7 @@ void BKE_rigidbody_ensure_local_object(Main *bmain, Object *ob)
 {
   if (ob->rigidbody_object != nullptr) {
     /* Add newly local object to scene. */
-    for (Scene *scene = static_cast<Scene *>(bmain->scenes.first); scene;
-         scene = static_cast<Scene *>(scene->id.next))
+    for (Scene *scene = bmain->scenes.first(); scene; scene = static_cast<Scene *>(scene->id.next))
     {
       if (BKE_scene_object_find(*bmain, scene, ob)) {
         rigidbody_add_object_to_scene(bmain, scene, ob);
@@ -1473,8 +1470,7 @@ void BKE_rigidbody_ensure_local_object(Main *bmain, Object *ob)
   }
   if (ob->rigidbody_constraint != nullptr) {
     /* Add newly local object to scene. */
-    for (Scene *scene = static_cast<Scene *>(bmain->scenes.first); scene;
-         scene = static_cast<Scene *>(scene->id.next))
+    for (Scene *scene = bmain->scenes.first(); scene; scene = static_cast<Scene *>(scene->id.next))
     {
       if (BKE_scene_object_find(*bmain, scene, ob)) {
         rigidbody_add_constraint_to_scene(bmain, scene, ob);

@@ -828,7 +828,7 @@ static void maskrasterize_layer_init_scanfill(MaskRasterHandle *mr_handle,
         }
 
         sf_vert = sf_vert_prev;
-        sf_vert_prev = static_cast<ScanFillVert *>(sf_ctx.fillvertbase.last);
+        sf_vert_prev = sf_ctx.fillvertbase.last();
 
         for (j = 0; j < tot_diff_point; j++) {
           ScanFillEdge *sf_edge = BLI_scanfill_edge_add(&sf_ctx, sf_vert_prev, sf_vert);
@@ -1026,9 +1026,7 @@ static void maskrasterize_layer_init_scanfill(MaskRasterHandle *mr_handle,
 
     /* coords */
     cos = reinterpret_cast<float *>(face_coords);
-    for (sf_vert = static_cast<ScanFillVert *>(sf_ctx.fillvertbase.first); sf_vert;
-         sf_vert = sf_vert_next)
-    {
+    for (sf_vert = sf_ctx.fillvertbase.first(); sf_vert; sf_vert = sf_vert_next) {
       sf_vert_next = sf_vert->next;
       copy_v3_v3(cos, sf_vert->co);
 
@@ -1058,9 +1056,7 @@ static void maskrasterize_layer_init_scanfill(MaskRasterHandle *mr_handle,
 
       cos = (&face_coords[vert_num][0]);
 
-      for (sf_vert = static_cast<ScanFillVert *>(sf_ctx.fillvertbase.first); sf_vert;
-           sf_vert = sf_vert->next)
-      {
+      for (sf_vert = sf_ctx.fillvertbase.first(); sf_vert; sf_vert = sf_vert->next) {
         copy_v3_v3(cos, sf_vert->co);
         sf_vert->tmp.u = i++;
         cos += 3;
@@ -1122,9 +1118,7 @@ static void maskrasterize_layer_init_scanfill(MaskRasterHandle *mr_handle,
 
     /* faces */
     face = reinterpret_cast<uint *>(face_array);
-    for (sf_tri = static_cast<ScanFillFace *>(sf_ctx.fillfacebase.first); sf_tri;
-         sf_tri = sf_tri->next)
-    {
+    for (sf_tri = sf_ctx.fillfacebase.first(); sf_tri; sf_tri = sf_tri->next) {
       *(face++) = sf_tri->v3->tmp.u;
       *(face++) = sf_tri->v2->tmp.u;
       *(face++) = sf_tri->v1->tmp.u;

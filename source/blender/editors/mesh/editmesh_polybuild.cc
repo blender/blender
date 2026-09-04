@@ -102,7 +102,7 @@ static bool edbm_preselect_or_active(bContext *C, const View3D *v3d, Base **r_ba
   }
 
   if (gzgroup != nullptr) {
-    wmGizmo *gz = static_cast<wmGizmo *>(gzgroup->gizmos.first);
+    wmGizmo *gz = gzgroup->gizmos.first();
     ED_view3d_gizmo_mesh_preselect_get_active(C, gz, r_base, r_ele);
   }
   else {

@@ -126,7 +126,7 @@ void ED_uvedit_active_vert_loop_set(BMesh *bm, BMLoop *l)
 
 BMLoop *ED_uvedit_active_vert_loop_get(const ToolSettings *ts, BMesh *bm)
 {
-  BMEditSelection *ese = static_cast<BMEditSelection *>(bm->selected.last);
+  BMEditSelection *ese = bm->selected.last();
   if ((ts->uv_flag & UV_FLAG_SELECT_SYNC) && bm->uv_select_sync_valid) {
     if (ese && ese->htype == BM_VERT) {
       BMVert *v = reinterpret_cast<BMVert *>(ese->ele);
@@ -197,7 +197,7 @@ void ED_uvedit_active_edge_loop_set(BMesh *bm, BMLoop *l)
 
 BMLoop *ED_uvedit_active_edge_loop_get(const ToolSettings *ts, BMesh *bm)
 {
-  BMEditSelection *ese = static_cast<BMEditSelection *>(bm->selected.last);
+  BMEditSelection *ese = bm->selected.last();
   if ((ts->uv_flag & UV_FLAG_SELECT_SYNC) && bm->uv_select_sync_valid) {
     if (ese && ese->htype == BM_EDGE) {
       BMEdge *e = reinterpret_cast<BMEdge *>(ese->ele);

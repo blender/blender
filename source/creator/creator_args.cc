@@ -545,7 +545,7 @@ static void arg_py_context_backup(bContext *C, BlendePyContextStore *c_py)
   c_py->has_win = c_py->wm && !c_py->wm->windows.is_empty();
   if (c_py->has_win) {
     c_py->win = CTX_wm_window(C);
-    CTX_wm_window_set(C, static_cast<wmWindow *>(c_py->wm->windows.first));
+    CTX_wm_window_set(C, c_py->wm->windows.first());
   }
   else {
     /* NOTE: this should never happen, although it may be possible when loading
@@ -2625,7 +2625,7 @@ static int arg_handle_scene_set(int argc, const char **argv, void *data)
        * otherwise scripts that run later won't get this scene back from the context. */
       wmWindow *win = CTX_wm_window(C);
       if (win == nullptr) {
-        win = static_cast<wmWindow *>(CTX_wm_manager(C)->windows.first);
+        win = CTX_wm_manager(C)->windows.first();
       }
       if (win != nullptr) {
         WM_window_set_active_scene(CTX_data_main(C), C, win, scene);
@@ -3054,7 +3054,7 @@ static int arg_handle_load_last_file(int /*argc*/, const char ** /*argv*/, void 
   }
 
   bContext *C = static_cast<bContext *>(data);
-  const RecentFile *recent_file = static_cast<const RecentFile *>(G.recent_files.first);
+  const RecentFile *recent_file = G.recent_files.first();
   if (!handle_load_file(C, recent_file->filepath, false)) {
     return -1;
   }

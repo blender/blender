@@ -1558,7 +1558,7 @@ static void vgroup_lock_all(Object *ob, int action, int mask)
   if (action == VGROUP_TOGGLE) {
     action = VGROUP_LOCK;
 
-    for (dg = static_cast<bDeformGroup *>(defbase->first), i = 0; dg; dg = dg->next, i++) {
+    for (dg = defbase->first(), i = 0; dg; dg = dg->next, i++) {
       switch (mask) {
         case VGROUP_MASK_INVERT_UNSELECTED:
         case VGROUP_MASK_SELECTED:
@@ -1582,7 +1582,7 @@ static void vgroup_lock_all(Object *ob, int action, int mask)
     }
   }
 
-  for (dg = static_cast<bDeformGroup *>(defbase->first), i = 0; dg; dg = dg->next, i++) {
+  for (dg = defbase->first(), i = 0; dg; dg = dg->next, i++) {
     switch (mask) {
       case VGROUP_MASK_SELECTED:
         if (!selected[i]) {
@@ -2698,7 +2698,7 @@ static void grease_pencil_clear_from_all_vgroup(Scene &scene,
 {
   const ListBaseT<bDeformGroup> *defbase = BKE_object_defgroup_list(&ob);
 
-  bDeformGroup *dg = static_cast<bDeformGroup *>(defbase->first);
+  bDeformGroup *dg = defbase->first();
   while (dg) {
     bDeformGroup *next_group = dg->next;
     if (!only_unlocked || (dg->flag & DG_LOCK_WEIGHT) == 0) {
@@ -3835,7 +3835,7 @@ static const EnumPropertyItem *vgroup_itemf(bContext *C,
   }
 
   const ListBaseT<bDeformGroup> *defbase = BKE_object_defgroup_list(ob);
-  for (a = 0, def = static_cast<bDeformGroup *>(defbase->first); def; def = def->next, a++) {
+  for (a = 0, def = defbase->first(); def; def = def->next, a++) {
     tmp.value = a;
     tmp.icon = ICON_GROUP_VERTEX;
     tmp.identifier = def->name;
@@ -3914,7 +3914,7 @@ static wmOperatorStatus vgroup_do_remap(Object *ob, const char *name_array, wmOp
   int i;
 
   name = name_array;
-  for (def = static_cast<const bDeformGroup *>(defbase->first), i = 0; def; def = def->next, i++) {
+  for (def = defbase->first(), i = 0; def; def = def->next, i++) {
     sort_map[i] = BKE_defgroup_name_index(defbase, name);
     name += MAX_VGROUP_NAME;
 

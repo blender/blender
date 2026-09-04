@@ -167,7 +167,7 @@ static void write_movieTracks(BlendWriter *writer, ListBaseT<MovieTrackingTrack>
 {
   MovieTrackingTrack *track;
 
-  track = static_cast<MovieTrackingTrack *>(tracks->first);
+  track = tracks->first();
   while (track) {
     writer->write_struct(track);
 
@@ -906,9 +906,7 @@ MovieClip *BKE_movieclip_file_add_exists_ex(Main *bmain, const char *filepath, b
   BLI_path_abs(filepath_abs, BKE_main_blendfile_path(bmain));
 
   /* first search an identical filepath */
-  for (clip = static_cast<MovieClip *>(bmain->movieclips.first); clip;
-       clip = static_cast<MovieClip *>(clip->id.next))
-  {
+  for (clip = bmain->movieclips.first(); clip; clip = static_cast<MovieClip *>(clip->id.next)) {
     STRNCPY(filepath_test, clip->filepath);
     BLI_path_abs(filepath_test, ID_BLEND_PATH(bmain, &clip->id));
 
@@ -1556,7 +1554,7 @@ static void free_buffers(MovieClip *clip)
   }
 
   MovieClip_RuntimeGPUTexture *tex;
-  for (tex = static_cast<MovieClip_RuntimeGPUTexture *>(clip->runtime.gputextures.first); tex;
+  for (tex = clip->runtime.gputextures.first(); tex;
        tex = static_cast<MovieClip_RuntimeGPUTexture *>(tex->next))
   {
     if (tex->gputexture != nullptr) {
@@ -1913,7 +1911,7 @@ static gpu::Texture **movieclip_get_gputexture_ptr(MovieClip *clip, MovieClipUse
 {
   /* Check if we have an existing entry for that clip user. */
   MovieClip_RuntimeGPUTexture *tex;
-  for (tex = static_cast<MovieClip_RuntimeGPUTexture *>(clip->runtime.gputextures.first); tex;
+  for (tex = clip->runtime.gputextures.first(); tex;
        tex = static_cast<MovieClip_RuntimeGPUTexture *>(tex->next))
   {
     if (memcmp(&tex->user, cuser, sizeof(MovieClipUser)) == 0) {

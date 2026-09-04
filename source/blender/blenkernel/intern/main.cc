@@ -120,7 +120,7 @@ void BKE_main_clear(Main &bmain)
     ListBaseT<ID> *lb = lbarray[a];
     ID *id, *id_next;
 
-    for (id = static_cast<ID *>(lb->first); id != nullptr; id = id_next) {
+    for (id = lb->first(); id != nullptr; id = id_next) {
       id_next = static_cast<ID *>(id->next);
 #if 1
       BKE_id_free_ex(&bmain, id, free_flag, false);
@@ -831,7 +831,7 @@ MainLibraryWeakReferenceMap *BKE_main_library_weak_reference_create(Main *bmain)
 
   ListBaseT<ID> *lb;
   FOREACH_MAIN_LISTBASE_BEGIN (bmain, lb) {
-    ID *id_iter = static_cast<ID *>(lb->first);
+    ID *id_iter = lb->first();
     if (id_iter == nullptr) {
       continue;
     }
@@ -1243,7 +1243,7 @@ MainAllIDsIterator &MainAllIDsIterator::operator++()
      * constructor case). */
     ListBaseT<ID> *lb_ids = lbarray_[size_t(curr_lbarray_index_)];
     if (lb_ids && !lb_ids->is_empty()) {
-      curr_id_ = static_cast<ID *>(lb_ids->first);
+      curr_id_ = lb_ids->first();
       return *this;
     }
   }
@@ -1276,7 +1276,7 @@ MainAllIDsIterator &MainAllIDsIterator::operator--()
      * constructor case). */
     ListBaseT<ID> *lb_ids = lbarray_[size_t(curr_lbarray_index_)];
     if (lb_ids && !lb_ids->is_empty()) {
-      curr_id_ = static_cast<ID *>(lb_ids->last);
+      curr_id_ = lb_ids->last();
       return *this;
     }
   }

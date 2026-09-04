@@ -534,7 +534,7 @@ static wmOperatorStatus collection_objects_select_exec(bContext *C, wmOperator *
                          outliner_collect_selected_collections,
                          &selected_collections);
 
-  if (selected_collections.selected_array.first == nullptr) {
+  if (selected_collections.selected_array.first_ == nullptr) {
     return OPERATOR_CANCELLED;
   }
 
@@ -1584,7 +1584,7 @@ static wmOperatorStatus outliner_unhide_all_exec(bContext *C, wmOperator * /*op*
   ViewLayer *view_layer = CTX_data_view_layer(C);
 
   /* Unhide all the collections. */
-  LayerCollection *lc_master = static_cast<LayerCollection *>(view_layer->layer_collections.first);
+  LayerCollection *lc_master = view_layer->layer_collections.first();
   for (LayerCollection &lc_iter : lc_master->layer_collections) {
     BKE_layer_collection_set_flag(&lc_iter, LAYER_COLLECTION_HIDE, false);
   }

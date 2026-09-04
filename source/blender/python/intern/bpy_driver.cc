@@ -439,9 +439,7 @@ float BPY_driver_exec(PathResolvedRNA *anim_rna,
     PyTuple_SET_ITEM(((PyObject *)driver_orig->expr_comp), 1, expr_vars);
     Py_XDECREF(expr_vars_prev);
 
-    for (dvar = static_cast<DriverVar *>(driver_orig->variables.first), i = 0; dvar;
-         dvar = dvar->next)
-    {
+    for (dvar = driver_orig->variables.first(), i = 0; dvar; dvar = dvar->next) {
       PyTuple_SET_ITEM(expr_vars, i++, PyUnicode_FromString(dvar->name));
     }
 
@@ -453,7 +451,7 @@ float BPY_driver_exec(PathResolvedRNA *anim_rna,
 
   /* Add target values to a dict that will be used as `__locals__` dict. */
   driver_vars = _PyDict_NewPresized(PyTuple_GET_SIZE(expr_vars));
-  for (dvar = static_cast<DriverVar *>(driver->variables.first), i = 0; dvar; dvar = dvar->next) {
+  for (dvar = driver->variables.first(), i = 0; dvar; dvar = dvar->next) {
     PyObject *driver_arg = nullptr;
 
 /* Support for any RNA data. */

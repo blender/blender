@@ -438,14 +438,14 @@ static void outliner_sort(ListBaseT<TreeElement> *lb)
    *   with bones coming first (and ARE sorted).
    */
 
-  TreeElement *last_te = static_cast<TreeElement *>(lb->last);
+  TreeElement *last_te = lb->last();
   if (last_te == nullptr) {
     return;
   }
   TreeStoreElem *last_tselem = TREESTORE(last_te);
 
   /* Check if we are expanding Armature data and if there are bone collections. */
-  const TreeElement *first_te = static_cast<TreeElement *>(lb->first);
+  const TreeElement *first_te = lb->first();
   const TreeStoreElem *first_tselem = TREESTORE(first_te);
   const bool inside_armature_data = ELEM(
       first_tselem->type, TSE_BONE, TSE_EBONE, TSE_POSE_CHANNEL);
@@ -516,7 +516,7 @@ static void outliner_sort(ListBaseT<TreeElement> *lb)
 
 static void outliner_collections_children_sort(ListBaseT<TreeElement> *lb)
 {
-  TreeElement *last_te = static_cast<TreeElement *>(lb->last);
+  TreeElement *last_te = lb->last();
   if (last_te == nullptr) {
     return;
   }
@@ -956,7 +956,7 @@ static TreeElement *outliner_extract_children_from_subtree(TreeElement *element,
 
   if (outliner_element_is_collection_or_object(element)) {
     TreeElement *te_prev = nullptr;
-    for (TreeElement *te = static_cast<TreeElement *>(element->subtree.last); te; te = te_prev) {
+    for (TreeElement *te = element->subtree.last(); te; te = te_prev) {
       te_prev = te->prev;
 
       if (!outliner_element_is_collection_or_object(te)) {
@@ -985,7 +985,7 @@ static int outliner_filter_subtree(SpaceOutliner *space_outliner,
   TreeElement *te, *te_next;
   TreeStoreElem *tselem;
 
-  for (te = static_cast<TreeElement *>(lb->first); te; te = te_next) {
+  for (te = lb->first(); te; te = te_next) {
     te_next = te->next;
     if (outliner_element_visible_get(bmain, scene, view_layer, te, exclude_filter) == false) {
       /* Don't free the tree, but extract the children from the parent and add to this tree. */

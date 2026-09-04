@@ -281,12 +281,12 @@ std::string WM_operator_pystring_ex(bContext *C,
   WM_operator_py_idname(idname_py, ot->idname);
   ss << "bpy.ops." << idname_py << "(";
 
-  if (op && op->macro.first) {
+  if (op && op->macro.first()) {
     /* Special handling for macros, else we only get default values in this case... */
     wmOperator *opm;
     bool first_op = true;
 
-    opm = static_cast<wmOperator *>(macro_args ? op->macro.first : nullptr);
+    opm = macro_args ? op->macro.first() : nullptr;
 
     for (; opm; opm = opm->next) {
       PointerRNA *opmptr = opm->ptr;
@@ -313,7 +313,7 @@ std::string WM_operator_pystring_ex(bContext *C,
   else {
     /* Only to get the original props for comparisons. */
     PointerRNA opptr_default;
-    const bool macro_args_test = ot->macro.first ? macro_args : true;
+    const bool macro_args_test = ot->macro.first() ? macro_args : true;
 
     if (opptr == nullptr) {
       opptr_default = WM_operator_properties_create_ptr(ot);
@@ -748,7 +748,7 @@ std::optional<std::string> WM_prop_pystring_assign(bContext *C,
 PointerRNA WM_operator_properties_create_ptr(wmOperatorType *ot)
 {
   /* Set the ID so the context can be accessed: see #STRUCT_NO_CONTEXT_WITHOUT_OWNER_ID. */
-  return RNA_pointer_create_discrete(static_cast<ID *>(G_MAIN->wm.first), ot->srna, nullptr);
+  return RNA_pointer_create_discrete(&G_MAIN->wm.first()->id, ot->srna, nullptr);
 }
 
 PointerRNA WM_operator_properties_create(const char *opstring)
@@ -759,8 +759,7 @@ PointerRNA WM_operator_properties_create(const char *opstring)
     return WM_operator_properties_create_ptr(ot);
   }
   /* Set the ID so the context can be accessed: see #STRUCT_NO_CONTEXT_WITHOUT_OWNER_ID. */
-  return RNA_pointer_create_discrete(
-      static_cast<ID *>(G_MAIN->wm.first), RNA_OperatorProperties, nullptr);
+  return RNA_pointer_create_discrete(&G_MAIN->wm.first()->id, RNA_OperatorProperties, nullptr);
 }
 
 void WM_operator_properties_alloc(PointerRNA **ptr, IDProperty **properties, const char *opstring)
@@ -949,7 +948,7 @@ bool WM_operator_last_properties_store(wmOperator *op)
     op->type->last_properties = IDP_CopyProperty(op->properties);
   }
 
-  if (op->macro.first != nullptr) {
+  if (op->macro.first() != nullptr) {
     for (wmOperator &opm : op->macro) {
       if (opm.properties) {
         if (op->type->last_properties == nullptr) {
@@ -1317,7 +1316,7 @@ IDProperty *WM_operator_last_properties_ensure_idprops(wmOperatorType *ot)
 void WM_operator_last_properties_ensure(wmOperatorType *ot, PointerRNA *ptr)
 {
   IDProperty *props = WM_operator_last_properties_ensure_idprops(ot);
-  *ptr = RNA_pointer_create_discrete(static_cast<ID *>(G_MAIN->wm.first), ot->srna, props);
+  *ptr = RNA_pointer_create_discrete(&G_MAIN->wm.first()->id, ot->srna, props);
 }
 
 ID *WM_operator_drop_load_path(bContext *C, wmOperator *op, const short idcode)
@@ -2537,7 +2536,7 @@ wmPaintCursor *WM_paint_cursor_activate(short space_type,
                                         wmPaintCursorDraw draw,
                                         void *customdata)
 {
-  wmWindowManager *wm = static_cast<wmWindowManager *>(G_MAIN->wm.first);
+  wmWindowManager *wm = G_MAIN->wm.first();
 
   wmPaintCursor *pc = MEM_new_zeroed<wmPaintCursor>("paint cursor");
 
@@ -2555,7 +2554,7 @@ wmPaintCursor *WM_paint_cursor_activate(short space_type,
 
 bool WM_paint_cursor_end(wmPaintCursor *handle)
 {
-  wmWindowManager *wm = static_cast<wmWindowManager *>(G_MAIN->wm.first);
+  wmWindowManager *wm = G_MAIN->wm.first();
   for (wmPaintCursor &pc : wm->runtime->paintcursors) {
     if (&pc == handle) {
       BLI_remlink(&wm->runtime->paintcursors, &pc);
@@ -4166,7 +4165,7 @@ static wmOperatorStatus previews_clear_exec(bContext *C, wmOperator *op)
       PreviewFilterID(RNA_enum_get(op->ptr, "id_type")));
 
   for (int i = 0; lb[i]; i++) {
-    ID *id = static_cast<ID *>(lb[i]->first);
+    ID *id = lb[i]->first();
     if (!id) {
       continue;
     }
@@ -4682,11 +4681,8 @@ const EnumPropertyItem *RNA_action_itemf(bContext *C,
                                          bool *r_free)
 {
 
-  return rna_id_itemf(r_free,
-                      C ? static_cast<ID *>(CTX_data_main(C)->actions.first) : nullptr,
-                      false,
-                      nullptr,
-                      nullptr);
+  return rna_id_itemf(
+      r_free, C ? CTX_data_main(C)->actions.first_as<ID>() : nullptr, false, nullptr, nullptr);
 }
 #if 0 /* UNUSED. */
 const EnumPropertyItem *RNA_action_local_itemf(bContext *C,
@@ -4703,22 +4699,16 @@ const EnumPropertyItem *RNA_collection_itemf(bContext *C,
                                              PropertyRNA * /*prop*/,
                                              bool *r_free)
 {
-  return rna_id_itemf(r_free,
-                      C ? static_cast<ID *>(CTX_data_main(C)->collections.first) : nullptr,
-                      false,
-                      nullptr,
-                      nullptr);
+  return rna_id_itemf(
+      r_free, C ? CTX_data_main(C)->collections.first_as<ID>() : nullptr, false, nullptr, nullptr);
 }
 const EnumPropertyItem *RNA_collection_local_itemf(bContext *C,
                                                    PointerRNA * /*ptr*/,
                                                    PropertyRNA * /*prop*/,
                                                    bool *r_free)
 {
-  return rna_id_itemf(r_free,
-                      C ? static_cast<ID *>(CTX_data_main(C)->collections.first) : nullptr,
-                      true,
-                      nullptr,
-                      nullptr);
+  return rna_id_itemf(
+      r_free, C ? CTX_data_main(C)->collections.first_as<ID>() : nullptr, true, nullptr, nullptr);
 }
 
 const EnumPropertyItem *RNA_image_itemf(bContext *C,
@@ -4726,22 +4716,16 @@ const EnumPropertyItem *RNA_image_itemf(bContext *C,
                                         PropertyRNA * /*prop*/,
                                         bool *r_free)
 {
-  return rna_id_itemf(r_free,
-                      C ? static_cast<ID *>(CTX_data_main(C)->images.first) : nullptr,
-                      false,
-                      nullptr,
-                      nullptr);
+  return rna_id_itemf(
+      r_free, C ? CTX_data_main(C)->images.first_as<ID>() : nullptr, false, nullptr, nullptr);
 }
 const EnumPropertyItem *RNA_image_local_itemf(bContext *C,
                                               PointerRNA * /*ptr*/,
                                               PropertyRNA * /*prop*/,
                                               bool *r_free)
 {
-  return rna_id_itemf(r_free,
-                      C ? static_cast<ID *>(CTX_data_main(C)->images.first) : nullptr,
-                      true,
-                      nullptr,
-                      nullptr);
+  return rna_id_itemf(
+      r_free, C ? CTX_data_main(C)->images.first_as<ID>() : nullptr, true, nullptr, nullptr);
 }
 
 const EnumPropertyItem *RNA_scene_itemf(bContext *C,
@@ -4749,22 +4733,16 @@ const EnumPropertyItem *RNA_scene_itemf(bContext *C,
                                         PropertyRNA * /*prop*/,
                                         bool *r_free)
 {
-  return rna_id_itemf(r_free,
-                      C ? static_cast<ID *>(CTX_data_main(C)->scenes.first) : nullptr,
-                      false,
-                      nullptr,
-                      nullptr);
+  return rna_id_itemf(
+      r_free, C ? CTX_data_main(C)->scenes.first_as<ID>() : nullptr, false, nullptr, nullptr);
 }
 const EnumPropertyItem *RNA_scene_local_itemf(bContext *C,
                                               PointerRNA * /*ptr*/,
                                               PropertyRNA * /*prop*/,
                                               bool *r_free)
 {
-  return rna_id_itemf(r_free,
-                      C ? static_cast<ID *>(CTX_data_main(C)->scenes.first) : nullptr,
-                      true,
-                      nullptr,
-                      nullptr);
+  return rna_id_itemf(
+      r_free, C ? CTX_data_main(C)->scenes.first_as<ID>() : nullptr, true, nullptr, nullptr);
 }
 const EnumPropertyItem *RNA_scene_without_sequencer_scene_itemf(bContext *C,
                                                                 PointerRNA * /*ptr*/,
@@ -4773,7 +4751,7 @@ const EnumPropertyItem *RNA_scene_without_sequencer_scene_itemf(bContext *C,
 {
   Scene *sequencer_scene = C ? CTX_data_sequencer_scene(C) : nullptr;
   return rna_id_itemf(r_free,
-                      C ? static_cast<ID *>(CTX_data_main(C)->scenes.first) : nullptr,
+                      C ? CTX_data_main(C)->scenes.first_as<ID>() : nullptr,
                       false,
                       rna_id_enum_filter_single_and_assets,
                       sequencer_scene);
@@ -4783,22 +4761,16 @@ const EnumPropertyItem *RNA_movieclip_itemf(bContext *C,
                                             PropertyRNA * /*prop*/,
                                             bool *r_free)
 {
-  return rna_id_itemf(r_free,
-                      C ? static_cast<ID *>(CTX_data_main(C)->movieclips.first) : nullptr,
-                      false,
-                      nullptr,
-                      nullptr);
+  return rna_id_itemf(
+      r_free, C ? CTX_data_main(C)->movieclips.first_as<ID>() : nullptr, false, nullptr, nullptr);
 }
 const EnumPropertyItem *RNA_movieclip_local_itemf(bContext *C,
                                                   PointerRNA * /*ptr*/,
                                                   PropertyRNA * /*prop*/,
                                                   bool *r_free)
 {
-  return rna_id_itemf(r_free,
-                      C ? static_cast<ID *>(CTX_data_main(C)->movieclips.first) : nullptr,
-                      true,
-                      nullptr,
-                      nullptr);
+  return rna_id_itemf(
+      r_free, C ? CTX_data_main(C)->movieclips.first_as<ID>() : nullptr, true, nullptr, nullptr);
 }
 
 const EnumPropertyItem *RNA_mask_itemf(bContext *C,
@@ -4807,7 +4779,7 @@ const EnumPropertyItem *RNA_mask_itemf(bContext *C,
                                        bool *r_free)
 {
   return rna_id_itemf(r_free,
-                      C ? static_cast<ID *>(CTX_data_main(C)->masks.first) : nullptr,
+                      C ? static_cast<ID *>(CTX_data_main(C)->masks.first_) : nullptr,
                       false,
                       nullptr,
                       nullptr);
@@ -4818,7 +4790,7 @@ const EnumPropertyItem *RNA_mask_local_itemf(bContext *C,
                                              bool *r_free)
 {
   return rna_id_itemf(r_free,
-                      C ? static_cast<ID *>(CTX_data_main(C)->masks.first) : nullptr,
+                      C ? static_cast<ID *>(CTX_data_main(C)->masks.first_) : nullptr,
                       true,
                       nullptr,
                       nullptr);

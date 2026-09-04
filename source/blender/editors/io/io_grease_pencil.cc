@@ -115,7 +115,7 @@ static bool get_invoke_region(bContext *C,
 
   ARegion *region = BKE_area_find_region_type(area, RGN_TYPE_WINDOW);
   *r_region = region;
-  *r_view3d = static_cast<View3D *>(area->spacedata.first);
+  *r_view3d = area->spacedata.first_as<View3D>();
   *r_rv3d = static_cast<RegionView3D *>(region->regiondata);
   return true;
 }

@@ -55,7 +55,7 @@ void template_shader_fx(Layout * /*layout*/, bContext *C)
   }
   else {
     /* Assuming there's only one group of instanced panels, update the custom data pointers. */
-    Panel *panel = static_cast<Panel *>(region->panels.first);
+    Panel *panel = region->panels.first();
     for (ShaderFxData &fx : *shaderfx) {
       const ShaderFxTypeInfo *fxi = BKE_shaderfx_get_info(ShaderFxType(fx.type));
       if (fxi->panel_register == nullptr) {

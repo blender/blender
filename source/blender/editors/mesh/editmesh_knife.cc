@@ -645,7 +645,7 @@ static void knifetool_draw_visible_angles(const KnifeTool_OpData *kcd)
     float angle = 0.0f;
     float *end;
 
-    kfe = static_cast<KnifeEdge *>((static_cast<LinkData *>(kfv->edges.first))->data);
+    kfe = static_cast<KnifeEdge *>(kfv->edges.first()->data);
     for (LinkData &ref : kfv->edges) {
       tempkfe = static_cast<KnifeEdge *>(ref.data);
       if (tempkfe->v1 != kfv) {
@@ -728,7 +728,7 @@ static void knifetool_draw_visible_angles(const KnifeTool_OpData *kcd)
     }
     else {
       /* Choose minimum angle edge. */
-      kfe = static_cast<KnifeEdge *>((static_cast<LinkData *>(kfv->edges.first))->data);
+      kfe = static_cast<KnifeEdge *>(kfv->edges.first()->data);
       for (LinkData &ref : kfv->edges) {
         tempkfe = static_cast<KnifeEdge *>(ref.data);
         if (tempkfe->v1 != kfv) {
@@ -1516,7 +1516,7 @@ static BMElem *bm_elem_from_knife_vert(KnifeVert *kfv, KnifeEdge **r_kfe)
   /* face? */
   if (ele_test == nullptr) {
     if (kfe->faces.is_single()) {
-      ele_test = static_cast<BMElem *>((static_cast<LinkData *>(kfe->faces.first))->data);
+      ele_test = static_cast<BMElem *>(kfe->faces.first()->data);
     }
   }
 
@@ -2062,7 +2062,7 @@ static void knife_cut_face(KnifeTool_OpData *kcd, BMFace *f, ListBaseT<LinkData>
     return;
   }
 
-  for (r = static_cast<LinkData *>(hits->first); r->next; r = r->next) {
+  for (r = hits->first(); r->next; r = r->next) {
     knife_add_single_cut(
         kcd, static_cast<KnifeLineHit *>(r->data), static_cast<KnifeLineHit *>(r->next->data), f);
   }

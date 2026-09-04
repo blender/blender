@@ -194,7 +194,7 @@ void template_running_jobs(Layout *layout, bContext *C)
         if (area.spacetype != SPACE_FILE) {
           continue;
         }
-        const SpaceFile *sfile = static_cast<SpaceFile *>(area.spacedata.first);
+        const SpaceFile *sfile = area.spacedata.first_as<SpaceFile>();
 
         if (WM_jobs_progress_test(wm, sfile->files, WM_JOB_TYPE_FILESEL_READDIR)) {
           icon = ICON_FILEBROWSER;

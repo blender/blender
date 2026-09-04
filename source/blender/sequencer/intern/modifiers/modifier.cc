@@ -483,7 +483,7 @@ void modifier_clear(Strip *strip)
 {
   StripModifierData *smd, *smd_next;
 
-  for (smd = static_cast<StripModifierData *>(strip->modifiers.first); smd; smd = smd_next) {
+  for (smd = strip->modifiers.first(); smd; smd = smd_next) {
     smd_next = smd->next;
     modifier_free(smd);
   }
@@ -545,7 +545,7 @@ static bool skip_modifier(Scene *scene, const StripModifierData *smd, int timeli
 
 void modifier_apply_stack(ModifierApplyContext &context)
 {
-  if (context.strip.modifiers.first == nullptr) {
+  if (context.strip.modifiers.first() == nullptr) {
     return;
   }
 

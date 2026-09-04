@@ -176,9 +176,7 @@ static wmOperatorStatus pack_all_invoke(bContext *C, wmOperator *op, const wmEve
   Image *ima;
 
   /* First check for dirty images. */
-  for (ima = static_cast<Image *>(bmain->images.first); ima;
-       ima = static_cast<Image *>(ima->id.next))
-  {
+  for (ima = bmain->images.first(); ima; ima = static_cast<Image *>(ima->id.next)) {
     if (BKE_image_is_dirty(ima)) {
       break;
     }

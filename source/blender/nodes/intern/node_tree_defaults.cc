@@ -127,11 +127,7 @@ void node_tree_composit_default_init(const bContext *C, bNodeTree *ntree)
   in->location[1] = 100.0f;
   bke::node_set_active(*ntree, *in);
 
-  bke::node_add_link(*ntree,
-                     *in,
-                     *reinterpret_cast<bNodeSocket *>(in->outputs.first),
-                     *composite,
-                     *reinterpret_cast<bNodeSocket *>(composite->inputs.first));
+  bke::node_add_link(*ntree, *in, *in->outputs.first(), *composite, *composite->inputs.first());
 
   BKE_ntree_update_after_single_tree_change(*CTX_data_main(C), *ntree);
 }

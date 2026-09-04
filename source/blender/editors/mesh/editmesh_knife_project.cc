@@ -71,7 +71,7 @@ static void knifeproject_poly_from_object(const bContext *C,
     const float4x4 projmat = ED_view3d_ob_project_mat_get(
         static_cast<RegionView3D *>(region->regiondata), ob);
 
-    if (nurbslist.first) {
+    if (nurbslist.first_) {
       for (Nurb &nu : nurbslist) {
         if (nu.bp) {
           int a;

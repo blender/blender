@@ -118,7 +118,7 @@ static void nearest_fcurve_vert_store(ListBaseT<tNearestVertInfo> *matches,
         /* check if distance from mouse cursor to vert in screen space is within tolerance */
         ((dist = len_v2v2_int(mval, screen_co)) <= GVERTSEL_TOL))
     {
-      tNearestVertInfo *nvi = static_cast<tNearestVertInfo *>(matches->last);
+      tNearestVertInfo *nvi = matches->last();
       bool replace = false;
 
       /* If there is already a point for the F-Curve,

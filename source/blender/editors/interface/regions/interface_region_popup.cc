@@ -684,7 +684,7 @@ Block *popup_block_refresh(bContext *C, PopupBlockHandle *handle, ARegion *butre
   const BlockHandleCreateFunc handle_create_func = handle->popup_create_vars.handle_create_func;
   void *arg = handle->popup_create_vars.arg;
 
-  Block *block_old = static_cast<Block *>(region->runtime->uiblocks.first);
+  Block *block_old = region->runtime->uiblocks.first();
 
   handle->refresh = (block_old != nullptr);
 

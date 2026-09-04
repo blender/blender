@@ -439,7 +439,7 @@ static bool wm_draw_region_stereo_set(Main *bmain,
   switch (area->spacetype) {
     case SPACE_IMAGE: {
       if (region->regiontype == RGN_TYPE_WINDOW) {
-        SpaceImage *sima = static_cast<SpaceImage *>(area->spacedata.first);
+        SpaceImage *sima = area->spacedata.first_as<SpaceImage>();
         sima->iuser.multiview_eye = sview;
         return true;
       }
@@ -447,7 +447,7 @@ static bool wm_draw_region_stereo_set(Main *bmain,
     }
     case SPACE_VIEW3D: {
       if (region->regiontype == RGN_TYPE_WINDOW) {
-        View3D *v3d = static_cast<View3D *>(area->spacedata.first);
+        View3D *v3d = area->spacedata.first_as<View3D>();
         if (v3d->camera && v3d->camera->type == OB_CAMERA) {
           RegionView3D *rv3d = static_cast<RegionView3D *>(region->regiondata);
           RenderEngine *engine = rv3d->view_render ? RE_view_engine_get(rv3d->view_render) :
@@ -457,7 +457,7 @@ static bool wm_draw_region_stereo_set(Main *bmain,
           }
 
           Camera *cam = id_cast<Camera *>(v3d->camera->data);
-          CameraBGImage *bgpic = static_cast<CameraBGImage *>(cam->bg_images.first);
+          CameraBGImage *bgpic = cam->bg_images.first();
           v3d->multiview_eye = sview;
           if (bgpic) {
             bgpic->iuser.multiview_eye = sview;
@@ -469,7 +469,7 @@ static bool wm_draw_region_stereo_set(Main *bmain,
     }
     case SPACE_NODE: {
       if (region->regiontype == RGN_TYPE_WINDOW) {
-        SpaceNode *snode = static_cast<SpaceNode *>(area->spacedata.first);
+        SpaceNode *snode = area->spacedata.first_as<SpaceNode>();
         if ((snode->flag & SNODE_BACKDRAW) && ED_node_is_compositor(snode)) {
           Image *ima = BKE_image_ensure_viewer(bmain, IMA_TYPE_COMPOSITE, "Viewer Node");
           ima->eye = sview;
@@ -479,7 +479,7 @@ static bool wm_draw_region_stereo_set(Main *bmain,
       break;
     }
     case SPACE_SEQ: {
-      SpaceSeq *sseq = static_cast<SpaceSeq *>(area->spacedata.first);
+      SpaceSeq *sseq = area->spacedata.first_as<SpaceSeq>();
       sseq->multiview_eye = sview;
 
       if (region->regiontype == RGN_TYPE_PREVIEW) {
@@ -541,7 +541,7 @@ static void wm_region_test_render_do_draw(const Scene *scene,
     GPUViewport *viewport = WM_draw_region_get_viewport(region);
 
     if (engine && (engine->flag & RE_ENGINE_DO_DRAW)) {
-      View3D *v3d = static_cast<View3D *>(area->spacedata.first);
+      View3D *v3d = area->spacedata.first_as<View3D>();
       rcti border_rect;
 
       /* Do partial redraw when possible. */
@@ -567,7 +567,7 @@ static void wm_region_test_xr_do_draw(const wmWindowManager *wm,
 {
   if ((area->spacetype == SPACE_VIEW3D) && (region->regiontype == RGN_TYPE_WINDOW)) {
     if (ED_view3d_is_region_xr_mirror_active(
-            wm, static_cast<const View3D *>(area->spacedata.first), region))
+            wm, static_cast<const View3D *>(area->spacedata.first_), region))
     {
       ED_region_tag_redraw_no_rebuild(region);
     }
@@ -1165,7 +1165,7 @@ static void wm_draw_window_onscreen(bContext *C, wmWindow *win, int view)
       if (!region.runtime->visible) {
         continue;
       }
-      const bool do_paint_cursor = (wm->runtime->paintcursors.first &&
+      const bool do_paint_cursor = (wm->runtime->paintcursors.first() &&
                                     &region == screen->active_region);
       const bool do_draw_overlay = (region.runtime->type && region.runtime->type->draw_overlay);
       if (!(do_paint_cursor || do_draw_overlay)) {
@@ -1217,13 +1217,13 @@ static void wm_draw_window_onscreen(bContext *C, wmWindow *win, int view)
   }
 
   /* Always draw, not only when screen tagged. */
-  if (win->runtime->gesture.first) {
+  if (win->runtime->gesture.first_) {
     wm_gesture_draw(win);
     wmWindowViewport(win);
   }
 
   /* Needs pixel coords in screen. */
-  if (wm->runtime->drags.first) {
+  if (wm->runtime->drags.first_) {
     wm_drags_draw(C, win);
     wmWindowViewport(win);
   }

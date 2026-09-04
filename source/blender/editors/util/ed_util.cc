@@ -63,7 +63,7 @@ namespace blender {
 
 void ED_editors_init_for_undo(Main *bmain)
 {
-  wmWindowManager *wm = static_cast<wmWindowManager *>(bmain->wm.first);
+  wmWindowManager *wm = bmain->wm.first();
   for (wmWindow &win : wm->windows) {
     Scene *scene = WM_window_get_active_scene(&win);
     ViewLayer *view_layer = WM_window_get_active_view_layer(&win);
@@ -232,8 +232,8 @@ void ED_editors_exit(Main *bmain, bool do_undo_system)
   }
 
   /* Frees all edit-mode undo-steps. */
-  if (do_undo_system && G_MAIN->wm.first) {
-    wmWindowManager *wm = static_cast<wmWindowManager *>(G_MAIN->wm.first);
+  if (do_undo_system && G_MAIN->wm.first_) {
+    wmWindowManager *wm = G_MAIN->wm.first();
     /* normally we don't check for null undo stack,
      * do here since it may run in different context. */
     if (wm->runtime->undo_stack) {

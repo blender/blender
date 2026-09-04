@@ -23,30 +23,30 @@ static bool listbase_is_valid(const ListBase *listbase)
   } \
   ((void)0)
 
-  if (listbase->first) {
+  if (listbase->first_) {
     const Link *prev, *link;
-    link = static_cast<Link *>(listbase->first);
+    link = static_cast<Link *>(listbase->first_);
     TESTFAIL(link->prev == nullptr);
 
-    link = static_cast<Link *>(listbase->last);
+    link = static_cast<Link *>(listbase->last_);
     TESTFAIL(link->next == nullptr);
 
     prev = nullptr;
-    link = static_cast<Link *>(listbase->first);
+    link = static_cast<Link *>(listbase->first_);
     do {
       TESTFAIL(link->prev == prev);
     } while ((void)(prev = link), (link = link->next));
-    TESTFAIL(prev == listbase->last);
+    TESTFAIL(prev == listbase->last_);
 
     prev = nullptr;
-    link = static_cast<Link *>(listbase->last);
+    link = static_cast<Link *>(listbase->last_);
     do {
       TESTFAIL(link->next == prev);
     } while ((void)(prev = link), (link = link->prev));
-    TESTFAIL(prev == listbase->first);
+    TESTFAIL(prev == listbase->first_);
   }
   else {
-    TESTFAIL(listbase->last == nullptr);
+    TESTFAIL(listbase->last_ == nullptr);
   }
 #undef TESTFAIL
 
@@ -84,26 +84,26 @@ TEST(listbase, FindLinkOrIndex)
   EXPECT_EQ(BLI_rfindlink(&lb, 0), static_cast<void *>(nullptr));
   EXPECT_EQ(BLI_rfindlink(&lb, 1), static_cast<void *>(nullptr));
   EXPECT_EQ(BLI_findindex(&lb, link1), -1);
-  EXPECT_EQ(BLI_findlinkfrom(static_cast<Link *>(lb.first), -1), static_cast<void *>(nullptr));
-  EXPECT_EQ(BLI_findlinkfrom(static_cast<Link *>(lb.first), 0), static_cast<void *>(nullptr));
-  EXPECT_EQ(BLI_findlinkfrom(static_cast<Link *>(lb.first), 1), static_cast<void *>(nullptr));
+  EXPECT_EQ(BLI_findlinkfrom(static_cast<Link *>(lb.first_), -1), static_cast<void *>(nullptr));
+  EXPECT_EQ(BLI_findlinkfrom(static_cast<Link *>(lb.first_), 0), static_cast<void *>(nullptr));
+  EXPECT_EQ(BLI_findlinkfrom(static_cast<Link *>(lb.first_), 1), static_cast<void *>(nullptr));
 
   /* One link */
   BLI_addtail(&lb, link1);
   EXPECT_EQ(BLI_findlink(&lb, 0), link1);
   EXPECT_EQ(BLI_rfindlink(&lb, 0), link1);
   EXPECT_EQ(BLI_findindex(&lb, link1), 0);
-  EXPECT_EQ(BLI_findlinkfrom(static_cast<Link *>(lb.first), 0), link1);
+  EXPECT_EQ(BLI_findlinkfrom(static_cast<Link *>(lb.first_), 0), link1);
 
   /* Two links */
   BLI_addtail(&lb, link2);
   EXPECT_EQ(BLI_findlink(&lb, 1), link2);
   EXPECT_EQ(BLI_rfindlink(&lb, 0), link2);
   EXPECT_EQ(BLI_findindex(&lb, link2), 1);
-  EXPECT_EQ(BLI_findlinkfrom(static_cast<Link *>(lb.first), 1), link2);
+  EXPECT_EQ(BLI_findlinkfrom(static_cast<Link *>(lb.first_), 1), link2);
 
   /* After end of list */
-  EXPECT_EQ(BLI_findlinkfrom(static_cast<Link *>(lb.first), 2), static_cast<void *>(nullptr));
+  EXPECT_EQ(BLI_findlinkfrom(static_cast<Link *>(lb.first_), 2), static_cast<void *>(nullptr));
 
   lb.free_no_destruct();
 }
@@ -224,8 +224,8 @@ TEST(listbase, SplitAfter)
   EXPECT_EQ(lb.is_empty(), true);
   EXPECT_EQ(split_after_lb.count(), 1);
   EXPECT_EQ(BLI_findindex(&split_after_lb, link1), 0);
-  EXPECT_EQ(split_after_lb.first, link1);
-  EXPECT_EQ(split_after_lb.last, link1);
+  EXPECT_EQ(split_after_lb.first_, link1);
+  EXPECT_EQ(split_after_lb.last(), link1);
 
   lb.clear_no_delete();
   split_after_lb.clear_no_delete();
@@ -234,8 +234,8 @@ TEST(listbase, SplitAfter)
   BLI_listbase_split_after(&lb, &split_after_lb, link1);
   EXPECT_EQ(lb.count(), 1);
   EXPECT_EQ(BLI_findindex(&lb, link1), 0);
-  EXPECT_EQ(lb.first, link1);
-  EXPECT_EQ(lb.last, link1);
+  EXPECT_EQ(lb.first_, link1);
+  EXPECT_EQ(lb.last(), link1);
   EXPECT_EQ(split_after_lb.is_empty(), true);
 
   /* Two links */
@@ -249,8 +249,8 @@ TEST(listbase, SplitAfter)
   EXPECT_EQ(split_after_lb.count(), 2);
   EXPECT_EQ(BLI_findindex(&split_after_lb, link1), 0);
   EXPECT_EQ(BLI_findindex(&split_after_lb, link2), 1);
-  EXPECT_EQ(split_after_lb.first, link1);
-  EXPECT_EQ(split_after_lb.last, link2);
+  EXPECT_EQ(split_after_lb.first_, link1);
+  EXPECT_EQ(split_after_lb.last(), link2);
 
   lb.clear_no_delete();
   split_after_lb.clear_no_delete();
@@ -260,12 +260,12 @@ TEST(listbase, SplitAfter)
   BLI_listbase_split_after(&lb, &split_after_lb, link1);
   EXPECT_EQ(lb.count(), 1);
   EXPECT_EQ(BLI_findindex(&lb, link1), 0);
-  EXPECT_EQ(lb.first, link1);
-  EXPECT_EQ(lb.last, link1);
+  EXPECT_EQ(lb.first_, link1);
+  EXPECT_EQ(lb.last(), link1);
   EXPECT_EQ(split_after_lb.count(), 1);
   EXPECT_EQ(BLI_findindex(&split_after_lb, link2), 0);
-  EXPECT_EQ(split_after_lb.first, link2);
-  EXPECT_EQ(split_after_lb.last, link2);
+  EXPECT_EQ(split_after_lb.first_, link2);
+  EXPECT_EQ(split_after_lb.last(), link2);
 
   lb.free_no_destruct();
   split_after_lb.free_no_destruct();
@@ -368,8 +368,8 @@ TEST(listbase, MutableIterator)
   }
   EXPECT_EQ(count, 3);
   EXPECT_EQ(lb.count(), 2);
-  EXPECT_EQ(lb.first, link1);
-  EXPECT_EQ(lb.last, link3);
+  EXPECT_EQ(lb.first_, link1);
+  EXPECT_EQ(lb.last(), link3);
 
   lb.free_no_destruct();
 }
@@ -402,8 +402,8 @@ TEST(listbase, MutableReversedIterator)
   }
   EXPECT_EQ(count, 3);
   EXPECT_EQ(lb.count(), 2);
-  EXPECT_EQ(lb.first, link1);
-  EXPECT_EQ(lb.last, link3);
+  EXPECT_EQ(lb.first_, link1);
+  EXPECT_EQ(lb.last(), link3);
 
   lb.free_no_destruct();
 }
@@ -442,7 +442,7 @@ static bool testsort_listbase_array_str_cmp(ListBaseT<LinkData> *lb, char **arr,
   LinkData *link_step;
   int i;
 
-  link_step = static_cast<LinkData *>(lb->first);
+  link_step = static_cast<LinkData *>(lb->first_);
   for (i = 0; i < arr_num; i++) {
     if (!STREQ(arr[i], (char *)link_step->data)) {
       return false;
@@ -461,7 +461,7 @@ static bool testsort_listbase_sort_is_stable(ListBaseT<LinkData> *lb, bool forwa
 {
   LinkData *link_step;
 
-  link_step = static_cast<LinkData *>(lb->first);
+  link_step = static_cast<LinkData *>(lb->first_);
   while (link_step && link_step->next) {
     if (STREQ((const char *)link_step->data, (const char *)link_step->next->data)) {
       if ((link_step < link_step->next) != forward) {

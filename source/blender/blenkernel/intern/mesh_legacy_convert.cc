@@ -2225,10 +2225,7 @@ static bool is_auto_smooth_node_tree(const bNodeTree &group)
   if (nodes[3]->custom1 != int16_t(bke::AttrDomain::Edge)) {
     return false;
   }
-  if (static_cast<bNodeSocket *>(nodes[4]->inputs.last)
-          ->default_value_typed<bNodeSocketValueBoolean>()
-          ->value != 1)
-  {
+  if (nodes[4]->inputs.last()->default_value_typed<bNodeSocketValueBoolean>()->value != 1) {
     return false;
   }
   if (nodes[4]->custom1 != int16_t(bke::AttrDomain::Face)) {
@@ -2358,7 +2355,7 @@ void BKE_main_mesh_legacy_convert_auto_smooth(Main &bmain)
         WeightedNormalModifierData *nmd = reinterpret_cast<WeightedNormalModifierData *>(&md);
         if ((nmd->flag & MOD_WEIGHTEDNORMAL_KEEP_SHARP) != 0) {
           ModifierData *new_md = create_auto_smooth_modifier(object, add_node_group, angle);
-          BLI_insertlinkbefore(&object.modifiers, object.modifiers.last, new_md);
+          BLI_insertlinkbefore(&object.modifiers, object.modifiers.last(), new_md);
         }
       }
       if (md.type == eModifierType_Nodes) {
@@ -2382,7 +2379,7 @@ void BKE_main_mesh_legacy_convert_auto_smooth(Main &bmain)
       continue;
     }
 
-    ModifierData *last_md = static_cast<ModifierData *>(object.modifiers.last);
+    ModifierData *last_md = object.modifiers.last();
     ModifierData *new_md = create_auto_smooth_modifier(object, add_node_group, angle);
     if (last_md && last_md->type == eModifierType_Subsurf && has_custom_normals &&
         (reinterpret_cast<SubsurfModifierData *>(last_md)->flags &
@@ -2390,7 +2387,7 @@ void BKE_main_mesh_legacy_convert_auto_smooth(Main &bmain)
     {
       /* Add the auto smooth node group before the last subdivision surface modifier if possible.
        * Subdivision surface modifiers have special handling for interpolating custom normals. */
-      BLI_insertlinkbefore(&object.modifiers, object.modifiers.last, new_md);
+      BLI_insertlinkbefore(&object.modifiers, object.modifiers.last(), new_md);
     }
     else {
       BLI_addtail(&object.modifiers, new_md);

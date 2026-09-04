@@ -91,7 +91,7 @@ static bool has_workbench_in_texture_color(const wmWindowManager *wm,
     const bScreen *screen = BKE_workspace_active_screen_get(win.workspace_hook);
     for (ScrArea &area : screen->areabase) {
       if (area.spacetype == SPACE_VIEW3D) {
-        const View3D *v3d = static_cast<const View3D *>(area.spacedata.first);
+        const View3D *v3d = area.spacedata.first_as<View3D>();
 
         if (ED_view3d_has_workbench_in_texture_color(scene, ob, v3d)) {
           return true;

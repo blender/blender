@@ -373,18 +373,18 @@ static bool eyedropper_cryptomatte_sample_fl(bContext *C,
   float fpos[2] = {-1.0f, -1.0};
   switch (area->spacetype) {
     case SPACE_IMAGE: {
-      SpaceImage *sima = static_cast<SpaceImage *>(area->spacedata.first);
+      SpaceImage *sima = area->spacedata.first_as<SpaceImage>();
       ED_space_image_get_position(sima, region, mval, fpos);
       break;
     }
     case SPACE_NODE: {
       Main *bmain = CTX_data_main(C);
-      SpaceNode *snode = static_cast<SpaceNode *>(area->spacedata.first);
+      SpaceNode *snode = area->spacedata.first_as<SpaceNode>();
       ED_space_node_get_position(bmain, snode, region, mval, fpos);
       break;
     }
     case SPACE_CLIP: {
-      SpaceClip *sc = static_cast<SpaceClip *>(area->spacedata.first);
+      SpaceClip *sc = area->spacedata.first_as<SpaceClip>();
       ED_space_clip_get_position(sc, region, mval, fpos);
       break;
     }
@@ -460,20 +460,20 @@ bool eyedropper_color_sample_fl(bContext *C,
           event_xy_win[1] - region->winrct.ymin,
       };
       if (area->spacetype == SPACE_IMAGE) {
-        SpaceImage *sima = static_cast<SpaceImage *>(area->spacedata.first);
+        SpaceImage *sima = area->spacedata.first_as<SpaceImage>();
         if (ED_space_image_color_sample(sima, region, mval, r_col, nullptr)) {
           return true;
         }
       }
       else if (area->spacetype == SPACE_NODE) {
-        SpaceNode *snode = static_cast<SpaceNode *>(area->spacedata.first);
+        SpaceNode *snode = area->spacedata.first_as<SpaceNode>();
         Main *bmain = CTX_data_main(C);
         if (ED_space_node_color_sample(bmain, snode, region, mval, r_col)) {
           return true;
         }
       }
       else if (area->spacetype == SPACE_CLIP) {
-        SpaceClip *sc = static_cast<SpaceClip *>(area->spacedata.first);
+        SpaceClip *sc = area->spacedata.first_as<SpaceClip>();
         if (ED_space_clip_color_sample(sc, region, mval, r_col)) {
           return true;
         }

@@ -39,7 +39,7 @@ class AlembicExportTest : public testing::Test {
     DEG_register_node_types();
 
     /* TODO(sergey): Pass scene layer somehow? */
-    ViewLayer *view_layer = (ViewLayer *)scene.view_layers.first;
+    ViewLayer *view_layer = (ViewLayer *)scene.view_layers.first_;
     depsgraph = DEG_graph_new(bmain, &scene, view_layer, DAG_EVAL_RENDER);
   }
 

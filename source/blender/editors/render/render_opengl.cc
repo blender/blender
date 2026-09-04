@@ -189,7 +189,7 @@ static void screen_opengl_views_setup(OGLRender *oglrender)
 
   if (!is_multiview) {
     /* we only have one view when multiview is off */
-    rv = static_cast<RenderView *>(rr->views.first);
+    rv = rr->views.first();
 
     if (rv == nullptr) {
       rv = MEM_new<RenderView>("new opengl render view");
@@ -211,7 +211,7 @@ static void screen_opengl_views_setup(OGLRender *oglrender)
     }
 
     /* remove all the views that are not needed */
-    rv = static_cast<RenderView *>(rr->views.last);
+    rv = rr->views.last();
     while (rv) {
       srv = static_cast<SceneRenderView *>(
           BLI_findstring(&rd->views, rv->name, offsetof(SceneRenderView, name)));
@@ -505,8 +505,7 @@ static void screen_opengl_render_apply(const bke::BlenderProject *project, OGLRe
   }
 
   rr = RE_AcquireResultRead(oglrender->re);
-  for (rv = static_cast<RenderView *>(rr->views.first), view_id = 0; rv; rv = rv->next, view_id++)
-  {
+  for (rv = rr->views.first(), view_id = 0; rv; rv = rv->next, view_id++) {
     BLI_assert(view_id < oglrender->views_len);
     RE_SetActiveRenderView(oglrender->re, rv->name);
     oglrender->view_id = view_id;
@@ -1103,12 +1102,10 @@ static void write_result(const bke::BlenderProject *project,
       BKE_reportf(&reports, RPT_ERROR, "Write error: cannot save %s", filepath);
     }
   }
-  if (reports.list.first != nullptr) {
+  if (reports.list.first() != nullptr) {
     /* TODO: Should rather use new #BKE_reports_move_to_reports ? */
     std::unique_lock lock(oglrender->reports_mutex);
-    for (Report *report = static_cast<Report *>(reports.list.first); report != nullptr;
-         report = report->next)
-    {
+    for (Report *report = reports.list.first(); report != nullptr; report = report->next) {
       BKE_report(oglrender->reports, static_cast<eReportType>(report->type), report->message);
     }
   }

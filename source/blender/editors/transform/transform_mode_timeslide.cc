@@ -69,7 +69,7 @@ static void applyTimeSlideValue(TransInfo *t, float sval, float cval)
 
   /* Set value for drawing black line. */
   if (t->spacetype == SPACE_ACTION) {
-    SpaceAction *saction = static_cast<SpaceAction *>(t->area->spacedata.first);
+    SpaceAction *saction = t->area->spacedata.first_as<SpaceAction>();
     saction->timeslide = cval;
   }
 
@@ -164,7 +164,7 @@ static void initTimeSlide(TransInfo *t, wmOperator * /*op*/)
 {
   /* This tool is only really available in the Action Editor. */
   if (t->spacetype == SPACE_ACTION) {
-    SpaceAction *saction = static_cast<SpaceAction *>(t->area->spacedata.first);
+    SpaceAction *saction = t->area->spacedata.first_as<SpaceAction>();
 
     /* Set flag for drawing stuff. */
     saction->flag |= SACTION_MOVING;

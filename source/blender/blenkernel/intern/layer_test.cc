@@ -30,7 +30,7 @@ TEST_F(ViewLayerTest, aov_unique_names)
 {
   Main *bmain = BKE_main_new();
   Scene *scene = BKE_scene_add(bmain, "Scene");
-  ViewLayer *view_layer = static_cast<ViewLayer *>(scene->view_layers.first);
+  ViewLayer *view_layer = scene->view_layers.first();
 
   RenderEngineType *engine_type = RE_engines_find(scene->r.engine);
   RenderEngine *engine = RE_engine_create(engine_type);
@@ -112,7 +112,7 @@ TEST_F(ViewLayerTest, aov_conflict)
 {
   Main *bmain = BKE_main_new();
   Scene *scene = BKE_scene_add(bmain, "Scene");
-  ViewLayer *view_layer = static_cast<ViewLayer *>(scene->view_layers.first);
+  ViewLayer *view_layer = scene->view_layers.first();
 
   RenderEngineType *engine_type = RE_engines_find(scene->r.engine);
   RenderEngine *engine = RE_engine_create(engine_type);

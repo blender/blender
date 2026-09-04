@@ -68,7 +68,7 @@ namespace blender {
 
 static void image_scopes_tag_refresh(ScrArea *area)
 {
-  SpaceImage *sima = static_cast<SpaceImage *>(area->spacedata.first);
+  SpaceImage *sima = area->spacedata.first_as<SpaceImage>();
 
   /* only while histogram is visible */
   for (ARegion &region : area->regionbase) {
@@ -284,7 +284,7 @@ static void image_dropboxes() {}
 static void image_refresh(const bContext *C, ScrArea *area)
 {
   Scene *scene = CTX_data_scene(C);
-  SpaceImage *sima = static_cast<SpaceImage *>(area->spacedata.first);
+  SpaceImage *sima = area->spacedata.first_as<SpaceImage>();
   Image *ima;
 
   ima = ED_space_image(sima);
@@ -296,7 +296,7 @@ static void image_listener(const wmSpaceTypeListenerParams *params)
   wmWindow *win = params->window;
   ScrArea *area = params->area;
   const wmNotifier *wmn = params->notifier;
-  SpaceImage *sima = static_cast<SpaceImage *>(area->spacedata.first);
+  SpaceImage *sima = area->spacedata.first_as<SpaceImage>();
 
   /* context changes */
   switch (wmn->category) {
@@ -918,7 +918,7 @@ static void image_main_region_listener(const wmRegionListenerParams *params)
       break;
     case NC_MATERIAL:
       if (wmn->data == ND_SHADING_LINKS) {
-        SpaceImage *sima = static_cast<SpaceImage *>(area->spacedata.first);
+        SpaceImage *sima = area->spacedata.first_as<SpaceImage>();
 
         if (sima->iuser.scene &&
             (sima->iuser.scene->toolsettings->uv_flag & UV_FLAG_SHOW_SAME_IMAGE))
@@ -1133,7 +1133,7 @@ static void image_tools_region_listener(const wmRegionListenerParams *params)
 static void image_tools_header_region_draw(const bContext *C, ARegion *region)
 {
   ScrArea *area = CTX_wm_area(C);
-  SpaceImage *sima = static_cast<SpaceImage *>(area->spacedata.first);
+  SpaceImage *sima = area->spacedata.first_as<SpaceImage>();
 
   image_user_refresh_scene(C, sima);
 
@@ -1156,7 +1156,7 @@ static void image_header_region_init(wmWindowManager * /*wm*/, ARegion *region)
 static void image_header_region_draw(const bContext *C, ARegion *region)
 {
   ScrArea *area = CTX_wm_area(C);
-  SpaceImage *sima = static_cast<SpaceImage *>(area->spacedata.first);
+  SpaceImage *sima = area->spacedata.first_as<SpaceImage>();
 
   image_user_refresh_scene(C, sima);
 
@@ -1252,13 +1252,13 @@ static void image_foreach_id(SpaceLink *space_link, LibraryForeachIDData *data)
  */
 static int image_space_subtype_get(ScrArea *area)
 {
-  SpaceImage *sima = static_cast<SpaceImage *>(area->spacedata.first);
+  SpaceImage *sima = area->spacedata.first_as<SpaceImage>();
   return sima->mode == SI_MODE_UV ? SI_MODE_UV : SI_MODE_VIEW;
 }
 
 static void image_space_subtype_set(ScrArea *area, int value)
 {
-  SpaceImage *sima = static_cast<SpaceImage *>(area->spacedata.first);
+  SpaceImage *sima = area->spacedata.first_as<SpaceImage>();
   if (value == SI_MODE_UV) {
     if (sima->mode != SI_MODE_UV) {
       sima->mode_prev = sima->mode;
@@ -1279,7 +1279,7 @@ static void image_space_subtype_item_extend(bContext * /*C*/,
 
 static StringRefNull image_space_name_get(const ScrArea *area)
 {
-  SpaceImage *sima = static_cast<SpaceImage *>(area->spacedata.first);
+  SpaceImage *sima = area->spacedata.first_as<SpaceImage>();
   int index = RNA_enum_from_value(rna_enum_space_image_mode_items, sima->mode);
   if (index < 0) {
     index = SI_MODE_VIEW;
@@ -1290,7 +1290,7 @@ static StringRefNull image_space_name_get(const ScrArea *area)
 
 static int image_space_icon_get(const ScrArea *area)
 {
-  SpaceImage *sima = static_cast<SpaceImage *>(area->spacedata.first);
+  SpaceImage *sima = area->spacedata.first_as<SpaceImage>();
   int index = RNA_enum_from_value(rna_enum_space_image_mode_items, sima->mode);
   if (index < 0) {
     index = SI_MODE_VIEW;

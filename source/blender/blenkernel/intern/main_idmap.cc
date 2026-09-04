@@ -213,7 +213,7 @@ ID *BKE_main_idmap_lookup_name(IDNameLib_Map *id_map,
 
     GHash *map = type_map->map = BLI_ghash_new(idkey_hash, idkey_cmp, __func__);
     ListBaseT<ID> *lb = which_libbase(id_map->bmain, id_type);
-    for (ID *id = static_cast<ID *>(lb->first); id; id = static_cast<ID *>(id->next)) {
+    for (ID *id = lb->first(); id; id = static_cast<ID *>(id->next)) {
       IDNameLib_Key *key = static_cast<IDNameLib_Key *>(
           BLI_mempool_alloc(id_map->type_maps_keys_pool));
       key->name = id->name + 2;

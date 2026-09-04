@@ -183,7 +183,7 @@ void node_vector_math_label(const bNodeTree * /*ntree*/,
 
 void node_combsep_color_label(const ListBaseT<bNodeSocket> *sockets, NodeCombSepColorMode mode)
 {
-  bNodeSocket *sock1 = static_cast<bNodeSocket *>(sockets->first);
+  bNodeSocket *sock1 = sockets->first();
   bNodeSocket *sock2 = sock1->next;
   bNodeSocket *sock3 = sock2->next;
 

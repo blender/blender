@@ -100,7 +100,7 @@ bool BM_edgeloop_overlap_check(BMEdgeLoopStore *el_store_a, BMEdgeLoopStore *el_
 #define BM_EDGELINK_NEXT(el_store, elink) \
   (elink)->next ? \
       (elink)->next : \
-      (BM_edgeloop_is_closed(el_store) ? (LinkData *)BM_edgeloop_verts_get(el_store)->first : \
+      (BM_edgeloop_is_closed(el_store) ? (LinkData *)BM_edgeloop_verts_get(el_store)->first() : \
                                          NULL)
 
 #define BM_EDGELOOP_NEXT(el_store) \

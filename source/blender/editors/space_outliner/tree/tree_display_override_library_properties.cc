@@ -60,7 +60,7 @@ ListBaseT<TreeElement> TreeDisplayOverrideLibraryProperties::add_library_content
   }
 
   for (int a = 0; a < lbarray.size(); a++) {
-    if (!lbarray[a] || !lbarray[a]->first) {
+    if (!lbarray[a] || !lbarray[a]->first()) {
       continue;
     }
 

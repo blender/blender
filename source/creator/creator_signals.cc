@@ -89,7 +89,7 @@ static void crashlog_file_generate(const char *filepath, const void *os_info)
   /* Might be called after WM/Main exit, so needs to be careful about nullptr-checking before
    * de-referencing. */
 
-  wmWindowManager *wm = G_MAIN ? static_cast<wmWindowManager *>(G_MAIN->wm.first) : nullptr;
+  wmWindowManager *wm = G_MAIN ? G_MAIN->wm.first() : nullptr;
 
   FILE *fp;
   char header[512];

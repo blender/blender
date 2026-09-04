@@ -360,7 +360,7 @@ void BlenderSession::render(blender::Depsgraph &b_depsgraph_)
   /* temporary render result to find needed passes and views */
   blender::RenderResult *b_rr = RE_engine_begin_result(
       &b_engine, 0, 0, 1, 1, b_view_layer.name, nullptr);
-  blender::RenderLayer *b_rlay = static_cast<blender::RenderLayer *>(b_rr->layers.first);
+  blender::RenderLayer *b_rlay = b_rr->layers.first();
 
   {
     const thread_scoped_lock lock(draw_state_.mutex);

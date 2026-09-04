@@ -749,7 +749,7 @@ static PyObject *bpy_app_is_job_running(PyObject * /*self*/, PyObject *args, PyO
   {
     return nullptr;
   }
-  wmWindowManager *wm = static_cast<wmWindowManager *>(G_MAIN->wm.first);
+  wmWindowManager *wm = G_MAIN->wm.first();
   if (job_type_enum.value == WM_JOB_TYPE_SHADER_COMPILATION) {
     /* Shader compilation no longer uses the WM_job API, so we handle this as a special case
      * to avoid breaking the Python API. */

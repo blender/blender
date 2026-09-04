@@ -113,7 +113,7 @@ static wmOperatorStatus surface_slot_remove_exec(bContext *C, wmOperator * /*op*
   }
 
   canvas = pmd->canvas;
-  surface = static_cast<DynamicPaintSurface *>(canvas->surfaces.first);
+  surface = canvas->surfaces.first();
 
   /* find active surface and remove it */
   for (; surface; surface = surface->next) {
@@ -323,7 +323,7 @@ static void dpaint_bake_endjob(void *customdata)
 
   G.is_rendering = false;
 
-  WM_locked_interface_set(static_cast<wmWindowManager *>(G_MAIN->wm.first), false);
+  WM_locked_interface_set(G_MAIN->wm.first(), false);
 
   /* Bake was successful:
    * Report for ended bake and how long it took */

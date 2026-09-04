@@ -108,7 +108,7 @@ LineartStaticMemPoolNode *lineart_mem_new_static_pool(LineartStaticMemPool *smp,
 }
 void *lineart_mem_acquire(LineartStaticMemPool *smp, size_t size)
 {
-  LineartStaticMemPoolNode *smpn = static_cast<LineartStaticMemPoolNode *>(smp->pools.first);
+  LineartStaticMemPoolNode *smpn = smp->pools.first();
   void *ret;
 
   if (!smpn || (smpn->used_byte + size) > smpn->size) {
@@ -127,7 +127,7 @@ void *lineart_mem_acquire_thread(LineartStaticMemPool *smp, size_t size)
 
   BLI_spin_lock(&smp->lock_mem);
 
-  LineartStaticMemPoolNode *smpn = static_cast<LineartStaticMemPoolNode *>(smp->pools.first);
+  LineartStaticMemPoolNode *smpn = smp->pools.first();
 
   if (!smpn || (smpn->used_byte + size) > smpn->size) {
     smpn = lineart_mem_new_static_pool(smp, size);

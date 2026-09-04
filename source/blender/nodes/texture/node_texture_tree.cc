@@ -105,7 +105,7 @@ static void localize(bNodeTree *localtree, bNodeTree * /*ntree*/)
   bNode *node, *node_next;
 
   /* replace muted nodes and reroute nodes by internal links */
-  for (node = static_cast<bNode *>(localtree->nodes.first); node; node = node_next) {
+  for (node = localtree->nodes.first(); node; node = node_next) {
     node_next = node->next;
 
     if (node->is_muted() || node->is_reroute()) {
@@ -164,7 +164,7 @@ bNodeThreadStack *ntreeGetThreadStack(bNodeTreeExec *exec, int thread)
   ListBaseT<bNodeThreadStack> *lb = &exec->threadstack[thread];
   bNodeThreadStack *nts;
 
-  for (nts = static_cast<bNodeThreadStack *>(lb->first); nts; nts = nts->next) {
+  for (nts = lb->first(); nts; nts = nts->next) {
     if (!nts->used) {
       nts->used = true;
       break;

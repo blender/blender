@@ -195,12 +195,12 @@ struct tGPsdata {
 
 static bool annotation_stroke_added_check(tGPsdata *p)
 {
-  return (p->gpf && p->gpf->strokes.last && p->flags & GP_PAINTFLAG_STROKEADDED);
+  return (p->gpf && p->gpf->strokes.last() && p->flags & GP_PAINTFLAG_STROKEADDED);
 }
 
 static void annotation_stroke_added_enable(tGPsdata *p)
 {
-  BLI_assert(p->gpf->strokes.last != nullptr);
+  BLI_assert(p->gpf->strokes.last() != nullptr);
   p->flags |= GP_PAINTFLAG_STROKEADDED;
 }
 
@@ -626,7 +626,7 @@ static short annotation_stroke_addpoint(tGPsdata *p,
      * during mouse slide, e.g.)
      */
     if (annotation_stroke_added_check(p)) {
-      bGPDstroke *gps = static_cast<bGPDstroke *>(p->gpf->strokes.last);
+      bGPDstroke *gps = p->gpf->strokes.last();
       bGPDspoint *pts;
 
       /* first time point is adding to temporary buffer -- need to allocate new point in stroke */
@@ -644,7 +644,7 @@ static short annotation_stroke_addpoint(tGPsdata *p,
        * so initialize depth buffer before converting coordinates
        */
       if (annotation_project_check(p)) {
-        View3D *v3d = static_cast<View3D *>(p->area->spacedata.first);
+        View3D *v3d = p->area->spacedata.first_as<View3D>();
 
         eV3DDepthOverrideMode mode = V3D_DEPTH_GPENCIL_ONLY;
 
@@ -1208,7 +1208,7 @@ static void annotation_stroke_doeraser(tGPsdata *p)
 
   if (p->area->spacetype == SPACE_VIEW3D) {
     if (p->flags & GP_PAINTFLAG_V3D_ERASER_DEPTH) {
-      View3D *v3d = static_cast<View3D *>(p->area->spacedata.first);
+      View3D *v3d = p->area->spacedata.first_as<View3D>();
       view3d_region_operator_needs_gpu(p->region);
       ED_view3d_depth_override(
           p->depsgraph, p->region, v3d, nullptr, V3D_DEPTH_NO_GPENCIL, false, &p->depths);
@@ -1218,7 +1218,7 @@ static void annotation_stroke_doeraser(tGPsdata *p)
   /* loop over strokes of active layer only (session init already took care of ensuring validity),
    * checking segments for intersections to remove
    */
-  for (gps = static_cast<bGPDstroke *>(gpf->strokes.first); gps; gps = gpn) {
+  for (gps = gpf->strokes.first(); gps; gps = gpn) {
     gpn = gps->next;
     /* Not all strokes in the datablock may be valid in the current editor/context
      * (e.g. 2D space strokes in the 3D view, if the same datablock is shared)
@@ -1302,7 +1302,7 @@ static bool annotation_session_initdata(bContext *C, tGPsdata *p)
       break;
     }
     case SPACE_SEQ: {
-      SpaceSeq *sseq = static_cast<SpaceSeq *>(curarea->spacedata.first);
+      SpaceSeq *sseq = curarea->spacedata.first_as<SpaceSeq>();
 
       /* set current area */
       p->area = curarea;
@@ -1328,7 +1328,7 @@ static bool annotation_session_initdata(bContext *C, tGPsdata *p)
       break;
     }
     case SPACE_CLIP: {
-      SpaceClip *sc = static_cast<SpaceClip *>(curarea->spacedata.first);
+      SpaceClip *sc = curarea->spacedata.first_as<SpaceClip>();
       MovieClip *clip = ED_space_clip_get_clip(sc);
 
       if (clip == nullptr) {
@@ -1407,27 +1407,27 @@ static void annotation_visible_on_space(tGPsdata *p)
   ScrArea *area = p->area;
   switch (area->spacetype) {
     case SPACE_VIEW3D: {
-      View3D *v3d = static_cast<View3D *>(area->spacedata.first);
+      View3D *v3d = area->spacedata.first_as<View3D>();
       v3d->flag2 |= V3D_SHOW_ANNOTATION;
       break;
     }
     case SPACE_SEQ: {
-      SpaceSeq *sseq = static_cast<SpaceSeq *>(area->spacedata.first);
+      SpaceSeq *sseq = area->spacedata.first_as<SpaceSeq>();
       sseq->preview_overlay.flag |= SEQ_PREVIEW_SHOW_GPENCIL;
       break;
     }
     case SPACE_IMAGE: {
-      SpaceImage *sima = static_cast<SpaceImage *>(area->spacedata.first);
+      SpaceImage *sima = area->spacedata.first_as<SpaceImage>();
       sima->flag |= SI_SHOW_GPENCIL;
       break;
     }
     case SPACE_NODE: {
-      SpaceNode *snode = static_cast<SpaceNode *>(area->spacedata.first);
+      SpaceNode *snode = area->spacedata.first_as<SpaceNode>();
       snode->flag |= SNODE_SHOW_GPENCIL;
       break;
     }
     case SPACE_CLIP: {
-      SpaceClip *sclip = static_cast<SpaceClip *>(area->spacedata.first);
+      SpaceClip *sclip = area->spacedata.first_as<SpaceClip>();
       sclip->flag |= SC_SHOW_ANNOTATION;
       break;
     }
@@ -1539,7 +1539,7 @@ static void annotation_paint_initstroke(tGPsdata *p,
 
     if (BKE_gpencil_layer_is_editable(p->gpl)) {
       /* Ensure that there's stuff to erase here (not including selection mask below)... */
-      if (p->gpl->actframe && p->gpl->actframe->strokes.first) {
+      if (p->gpl->actframe && p->gpl->actframe->strokes.first_) {
         has_layer_to_erase = true;
       }
     }
@@ -1604,7 +1604,7 @@ static void annotation_paint_initstroke(tGPsdata *p,
   p->subrect = nullptr;
   if ((*p->align_flag & GP_PROJECT_VIEWSPACE) == 0) {
     if (p->area->spacetype == SPACE_VIEW3D) {
-      View3D *v3d = static_cast<View3D *>(p->area->spacedata.first);
+      View3D *v3d = p->area->spacedata.first_as<View3D>();
       RegionView3D *rv3d = static_cast<RegionView3D *>(p->region->regiondata);
 
       /* for camera view set the subrect */
@@ -1657,7 +1657,7 @@ static void annotation_paint_strokeend(tGPsdata *p)
    * the conversions will project the values correctly...
    */
   if (annotation_project_check(p)) {
-    View3D *v3d = static_cast<View3D *>(p->area->spacedata.first);
+    View3D *v3d = p->area->spacedata.first_as<View3D>();
 
     eV3DDepthOverrideMode mode = V3D_DEPTH_GPENCIL_ONLY;
 

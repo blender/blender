@@ -114,14 +114,14 @@ static uiStyle *style_new(ListBaseT<uiStyle> *styles, const char *name, short ui
 
 static uiFont *uifont_to_blfont(int id)
 {
-  uiFont *font = static_cast<uiFont *>(U.uifonts.first);
+  uiFont *font = U.uifonts.first();
 
   for (; font; font = font->next) {
     if (font->uifont_id == id) {
       return font;
     }
   }
-  return static_cast<uiFont *>(U.uifonts.first);
+  return U.uifonts.first();
 }
 
 /* *************** draw ************************ */
@@ -417,7 +417,7 @@ const uiStyle *style_get()
   style = BLI_findstring(&U.uistyles, "Unifont Style", sizeof(style) * 2);
   return (style != nullptr) ? style : U.uistyles.first;
 #else
-  return static_cast<const uiStyle *>(U.uistyles.first);
+  return U.uistyles.first();
 #endif
 }
 
@@ -474,7 +474,7 @@ int fontstyle_height_max(const uiFontStyle *fs)
 
 void style_init()
 {
-  const uiStyle *style = static_cast<uiStyle *>(U.uistyles.first);
+  const uiStyle *style = U.uistyles.first();
 
   /* Recover from uninitialized DPI. */
   if (U.dpi == 0) {
@@ -485,7 +485,7 @@ void style_init()
   /* Needed so that custom fonts are always first. */
   BLF_unload_all();
 
-  uiFont *font_first = static_cast<uiFont *>(U.uifonts.first);
+  uiFont *font_first = U.uifonts.first();
 
   /* default builtin */
   if (font_first == nullptr) {

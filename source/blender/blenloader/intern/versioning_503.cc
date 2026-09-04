@@ -149,7 +149,7 @@ static void version_503_camera_view_fit(RegionView3D *rv3d,
 static void do_versioning_camera_view_zoom(Main *bmain)
 {
   for (bScreen &screen : bmain->screens) {
-    Scene *scene = static_cast<Scene *>(bmain->scenes.first);
+    Scene *scene = bmain->scenes.first_as<Scene>();
     for (wmWindowManager &wm : bmain->wm) {
       for (wmWindow &win : wm.windows) {
         if (win.winid == screen.winid) {
@@ -176,8 +176,8 @@ static void do_versioning_camera_view_zoom(Main *bmain)
                                    id_cast<const Camera *>(camera->data)->sensor_fit :
                                    CAMERA_SENSOR_FIT_AUTO;
 
-        ListBaseT<ARegion> *regions = (area.spacedata.first == &space) ? &area.regionbase :
-                                                                         &space.regionbase;
+        ListBaseT<ARegion> *regions = (area.spacedata.first() == &space) ? &area.regionbase :
+                                                                           &space.regionbase;
         for (ARegion &region : *regions) {
           if (region.regiontype != RGN_TYPE_WINDOW) {
             continue;

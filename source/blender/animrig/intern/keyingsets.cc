@@ -65,14 +65,11 @@ void keyingset_info_unregister(Main *bmain, KeyingSetInfo *keyingset_info)
     if (!STREQ(keyingset.typeinfo, keyingset_info->idname)) {
       continue;
     }
-    Scene *scene;
     BKE_keyingset_free_paths(&keyingset);
     BLI_remlink(&builtin_keyingsets, &keyingset);
 
-    for (scene = static_cast<Scene *>(bmain->scenes.first); scene;
-         scene = static_cast<Scene *>(scene->id.next))
-    {
-      BLI_remlink_safe(&scene->keyingsets, &keyingset);
+    for (Scene &scene : bmain->scenes) {
+      BLI_remlink_safe(&scene.keyingsets, &keyingset);
     }
 
     MEM_delete(&keyingset);

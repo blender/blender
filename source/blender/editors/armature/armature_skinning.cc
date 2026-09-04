@@ -316,8 +316,7 @@ static void add_verts_to_dgroups(
   }
   BKE_pose_channels_hash_ensure(par->pose);
   /* count the number of skinnable bones */
-  numbones = bone_looper(
-      ob, static_cast<Bone *>(arm->bonebase.first), &looper_data, bone_skinnable_cb);
+  numbones = bone_looper(ob, arm->bonebase.first(), &looper_data, bone_skinnable_cb);
 
   if (numbones == 0) {
     return;
@@ -331,7 +330,7 @@ static void add_verts_to_dgroups(
    * and fill it with all of the skinnable bones */
   bonelist = MEM_new_array_zeroed<Bone *>(numbones, "bonelist");
   looper_data.list = bonelist;
-  bone_looper(ob, static_cast<Bone *>(arm->bonebase.first), &looper_data, bone_skinnable_cb);
+  bone_looper(ob, arm->bonebase.first(), &looper_data, bone_skinnable_cb);
 
   /* create an array of pointers to the deform groups that
    * correspond to the skinnable bones (creating them
@@ -340,7 +339,7 @@ static void add_verts_to_dgroups(
   dgroupflip = MEM_new_array_zeroed<bDeformGroup *>(numbones, "dgroupflip");
 
   looper_data.list = dgrouplist;
-  bone_looper(ob, static_cast<Bone *>(arm->bonebase.first), &looper_data, dgroup_skinnable_cb);
+  bone_looper(ob, arm->bonebase.first(), &looper_data, dgroup_skinnable_cb);
 
   /* create an array of root and tip positions transformed into
    * global coords */
@@ -493,8 +492,7 @@ void ED_object_vgroup_calc_from_armature(ReportList *reports,
     /* Traverse the bone list, trying to create empty vertex
      * groups corresponding to the bone.
      */
-    defbase_add = bone_looper(
-        ob, static_cast<Bone *>(arm->bonebase.first), nullptr, vgroup_add_unique_bone_cb);
+    defbase_add = bone_looper(ob, arm->bonebase.first(), nullptr, vgroup_add_unique_bone_cb);
 
     if (defbase_add) {
       /* It's possible there are DWeights outside the range of the current

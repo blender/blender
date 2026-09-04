@@ -64,7 +64,7 @@ ListBaseT<TreeElement> TreeDisplayLibraries::build_tree(const TreeSourceData &so
    * Note: `List<T>` template is similar to non-mutable ListBaseT iteration so we need to
    * iterate over an actual copy of the original list here, to avoid missing some items. */
   for (TreeElement *ten : listbase_to_vector<TreeElement>(tree)) {
-    if (ten == tree.first) {
+    if (ten == tree.first_) {
       /* First item is main, skip. */
       continue;
     }
@@ -108,11 +108,11 @@ TreeElement *TreeDisplayLibraries::add_library_contents(Main &mainvar,
 
   TreeElement *tenlib = nullptr;
   for (int a = 0; a < lbarray.size(); a++) {
-    if (!lbarray[a] || !lbarray[a]->first) {
+    if (!lbarray[a] || !lbarray[a]->first()) {
       continue;
     }
 
-    ID *id = static_cast<ID *>(lbarray[a]->first);
+    ID *id = lbarray[a]->first();
     const bool is_library = (GS(id->name) == ID_LI) && (lib != nullptr);
 
     /* Don't show deprecated types. */

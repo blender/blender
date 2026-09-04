@@ -102,7 +102,7 @@ static void rna_Screen_redraw_update(Main * /*bmain*/, Scene * /*scene*/, Pointe
 static bool rna_Screen_is_animation_playing_get(PointerRNA * /*ptr*/)
 {
   /* can be nullptr on file load, #42619 */
-  wmWindowManager *wm = static_cast<wmWindowManager *>(G_MAIN->wm.first);
+  wmWindowManager *wm = G_MAIN->wm.first();
   return wm ? (ED_screen_animation_playing(wm) != nullptr) : 0;
 }
 
@@ -163,7 +163,7 @@ static void rna_Area_type_update(bContext *C, PointerRNA *ptr)
   wmWindowManager *wm = CTX_wm_manager(C);
   wmWindow *win;
   /* XXX this call still use context, so we trick it to work in the right context */
-  for (win = static_cast<wmWindow *>(wm->windows.first); win; win = win->next) {
+  for (win = wm->windows.first(); win; win = win->next) {
     if (screen == WM_window_get_active_screen(win)) {
       wmWindow *prevwin = CTX_wm_window(C);
       ScrArea *prevsa = CTX_wm_area(C);
@@ -467,7 +467,7 @@ static void rna_def_area_spaces(BlenderRNA *brna, PropertyRNA *cprop)
   RNA_def_struct_ui_text(srna, "Area Spaces", "Collection of spaces");
 
   prop = RNA_def_property(srna, "active", PROP_POINTER, PROP_NONE);
-  RNA_def_property_pointer_sdna(prop, nullptr, "spacedata.first");
+  RNA_def_property_pointer_sdna(prop, nullptr, "spacedata.first_");
   RNA_def_property_struct_type(prop, "Space");
   RNA_def_property_ui_text(prop, "Active Space", "Space currently being displayed in this area");
 }

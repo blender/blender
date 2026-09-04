@@ -231,7 +231,7 @@ static void modifier_unwrap_state(Object *obedit,
   ModifierData *md;
   bool subsurf = options->use_subsurf;
 
-  md = static_cast<ModifierData *>(obedit->modifiers.first);
+  md = obedit->modifiers.first();
 
   /* Subdivision-surface will take the modifier settings
    * only if modifier is first or right after mirror. */
@@ -893,7 +893,7 @@ static ParamHandle *construct_param_handle_subsurfed(const Scene *scene,
   }
 
   /* number of subdivisions to perform */
-  ModifierData *md = static_cast<ModifierData *>(ob->modifiers.first);
+  ModifierData *md = ob->modifiers.first();
   smd_real = reinterpret_cast<SubsurfModifierData *>(md);
 
   smd.levels = smd_real->levels;
@@ -2184,7 +2184,7 @@ void ED_uvedit_live_unwrap_begin(Scene *scene, Object *obedit, wmWindow *win_mod
     uv_parametrizer_slim_live_begin(handle, &options.slim);
 
     if (win_modal) {
-      wmWindowManager *wm = static_cast<wmWindowManager *>(G_MAIN->wm.first);
+      wmWindowManager *wm = G_MAIN->wm.first();
       /* Clear in the unlikely event this is still set. */
       uvedit_live_unwrap_timer_validate(wm);
       BLI_assert(!g_live_unwrap.timer);
@@ -2231,7 +2231,7 @@ void ED_uvedit_live_unwrap_re_solve()
 void ED_uvedit_live_unwrap_end(const bool cancel)
 {
   if (g_live_unwrap.timer) {
-    wmWindowManager *wm = static_cast<wmWindowManager *>(G_MAIN->wm.first);
+    wmWindowManager *wm = G_MAIN->wm.first();
     uvedit_live_unwrap_timer_validate(wm);
     if (g_live_unwrap.timer) {
       wmWindow *win = g_live_unwrap.timer->win;

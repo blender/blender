@@ -68,7 +68,7 @@ static const SubsurfModifierData *get_last_subdiv_modifier(eEvaluationMode eval_
   /* Return the subdiv modifier if it is the last modifier and has
    * the required mode enabled. */
 
-  ModifierData *md = static_cast<ModifierData *>(obj->modifiers.last);
+  ModifierData *md = obj->modifiers.last();
 
   if (!md) {
     return nullptr;

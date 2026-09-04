@@ -125,7 +125,7 @@ void BKE_reports_clear(ReportList *reports)
 
   std::scoped_lock lock(*reports->lock);
 
-  report = static_cast<Report *>(reports->list.first);
+  report = reports->list.first();
 
   while (report) {
     report_next = report->next;
@@ -227,7 +227,7 @@ void BKE_reportf(ReportList *reports, eReportType type, const char *_format, ...
 static void reports_prepend_impl(ReportList *reports, const char *prepend)
 {
   /* Caller must ensure. */
-  BLI_assert(reports && reports->list.first);
+  BLI_assert(reports && reports->list.first());
 
   std::scoped_lock lock(*reports->lock);
 
@@ -243,7 +243,7 @@ static void reports_prepend_impl(ReportList *reports, const char *prepend)
 
 void BKE_reports_prepend(ReportList *reports, const char *prepend)
 {
-  if (!reports || !reports->list.first) {
+  if (!reports || !reports->list.first()) {
     return;
   }
   reports_prepend_impl(reports, RPT_(prepend));
@@ -251,7 +251,7 @@ void BKE_reports_prepend(ReportList *reports, const char *prepend)
 
 void BKE_reports_prependf(ReportList *reports, const char *prepend_format, ...)
 {
-  if (!reports || !reports->list.first) {
+  if (!reports || !reports->list.first()) {
     return;
   }
   va_list args;
@@ -309,7 +309,7 @@ char *BKE_reports_string(ReportList *reports, eReportType level)
   DynStr *ds;
   char *cstring;
 
-  if (!reports || !reports->list.first) {
+  if (!reports || !reports->list.first()) {
     return nullptr;
   }
 

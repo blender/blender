@@ -974,7 +974,7 @@ BMFace *BM_mesh_active_face_get(BMesh *bm, const bool is_sloppy, const bool is_s
     BMEditSelection *ese;
 
     /* Find the latest non-hidden face from the BMEditSelection */
-    ese = static_cast<BMEditSelection *>(bm->selected.last);
+    ese = bm->selected.last();
     for (; ese; ese = ese->prev) {
       if (ese->htype == BM_FACE) {
         f = reinterpret_cast<BMFace *>(ese->ele);
@@ -1005,8 +1005,8 @@ BMFace *BM_mesh_active_face_get(BMesh *bm, const bool is_sloppy, const bool is_s
 
 BMEdge *BM_mesh_active_edge_get(BMesh *bm)
 {
-  if (bm->selected.last) {
-    BMEditSelection *ese = static_cast<BMEditSelection *>(bm->selected.last);
+  if (bm->selected.last()) {
+    BMEditSelection *ese = bm->selected.last();
 
     if (ese && ese->htype == BM_EDGE) {
       return reinterpret_cast<BMEdge *>(ese->ele);
@@ -1018,8 +1018,8 @@ BMEdge *BM_mesh_active_edge_get(BMesh *bm)
 
 BMVert *BM_mesh_active_vert_get(BMesh *bm)
 {
-  if (bm->selected.last) {
-    BMEditSelection *ese = static_cast<BMEditSelection *>(bm->selected.last);
+  if (bm->selected.last()) {
+    BMEditSelection *ese = bm->selected.last();
 
     if (ese && ese->htype == BM_VERT) {
       return reinterpret_cast<BMVert *>(ese->ele);
@@ -1031,8 +1031,8 @@ BMVert *BM_mesh_active_vert_get(BMesh *bm)
 
 BMElem *BM_mesh_active_elem_get(BMesh *bm)
 {
-  if (bm->selected.last) {
-    BMEditSelection *ese = static_cast<BMEditSelection *>(bm->selected.last);
+  if (bm->selected.last()) {
+    BMEditSelection *ese = bm->selected.last();
 
     if (ese) {
       return ese->ele;
@@ -1217,7 +1217,7 @@ void BM_select_history_validate(BMesh *bm)
 {
   BMEditSelection *ese, *ese_next;
 
-  for (ese = static_cast<BMEditSelection *>(bm->selected.first); ese; ese = ese_next) {
+  for (ese = bm->selected.first(); ese; ese = ese_next) {
     ese_next = ese->next;
     if (!BM_elem_flag_test(ese->ele, BM_ELEM_SELECT)) {
       BLI_freelinkN(&(bm->selected), ese);
@@ -1240,7 +1240,7 @@ char BM_select_history_htype_all(const BMesh *bm)
 
 bool BM_select_history_active_get(BMesh *bm, BMEditSelection *ese)
 {
-  BMEditSelection *ese_last = static_cast<BMEditSelection *>(bm->selected.last);
+  BMEditSelection *ese_last = bm->selected.last();
   BMFace *efa = BM_mesh_active_face_get(bm, false, true);
 
   ese->next = ese->prev = nullptr;
@@ -1344,9 +1344,7 @@ void BM_select_history_merge_from_targetmap(BMesh *bm,
   }
 
   /* Remove overlapping duplicates. */
-  for (BMEditSelection *ese = static_cast<BMEditSelection *>(bm->selected.first), *ese_next; ese;
-       ese = ese_next)
-  {
+  for (BMEditSelection *ese = bm->selected.first(), *ese_next; ese; ese = ese_next) {
     ese_next = ese->next;
     if (BM_ELEM_API_FLAG_TEST(ese->ele, _FLAG_OVERLAP)) {
       BM_ELEM_API_FLAG_DISABLE(ese->ele, _FLAG_OVERLAP);

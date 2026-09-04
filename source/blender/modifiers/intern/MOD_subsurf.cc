@@ -174,7 +174,7 @@ static ModifierData *modifier_get_last_enabled_for_mode(const Scene *scene,
                                                         const Object *ob,
                                                         int required_mode)
 {
-  ModifierData *md = static_cast<ModifierData *>(ob->modifiers.last);
+  ModifierData *md = ob->modifiers.last();
 
   while (md) {
     if (BKE_modifier_is_enabled(scene, md, required_mode)) {

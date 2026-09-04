@@ -128,7 +128,7 @@ void ED_node_tree_start(ARegion *region, SpaceNode *snode, bNodeTree *ntree, ID 
 void ED_node_tree_push(ARegion *region, SpaceNode *snode, bNodeTree *ntree, bNode *gnode)
 {
   bNodeTreePath *path = MEM_new<bNodeTreePath>("node tree path");
-  bNodeTreePath *prev_path = static_cast<bNodeTreePath *>(snode->treepath.last);
+  bNodeTreePath *prev_path = snode->treepath.last();
   path->nodetree = ntree;
   if (gnode) {
     if (prev_path) {
@@ -170,10 +170,10 @@ void ED_node_tree_push(ARegion *region, SpaceNode *snode, bNodeTree *ntree, bNod
 
 void ED_node_tree_pop(ARegion *region, SpaceNode *snode)
 {
-  bNodeTreePath *path = static_cast<bNodeTreePath *>(snode->treepath.last);
+  bNodeTreePath *path = snode->treepath.last();
 
   /* don't remove root */
-  if (path == snode->treepath.first) {
+  if (path == snode->treepath.first_) {
     return;
   }
 
@@ -181,7 +181,7 @@ void ED_node_tree_pop(ARegion *region, SpaceNode *snode)
   MEM_delete(path);
 
   /* update current tree */
-  path = static_cast<bNodeTreePath *>(snode->treepath.last);
+  path = snode->treepath.last();
   snode->edittree = path->nodetree;
 
   /* Set view center and zoom from node tree path. */
@@ -207,9 +207,7 @@ bNodeTree *ED_node_tree_get(SpaceNode *snode, int level)
 {
   bNodeTreePath *path;
   int i;
-  for (path = static_cast<bNodeTreePath *>(snode->treepath.last), i = 0; path;
-       path = path->prev, i++)
-  {
+  for (path = snode->treepath.last(), i = 0; path; path = path->prev, i++) {
     if (i == level) {
       return path->nodetree;
     }
@@ -251,7 +249,7 @@ void ED_node_tree_path_get(SpaceNode *snode, char *value)
 
 void ED_node_set_active_viewer_key(SpaceNode *snode)
 {
-  bNodeTreePath *path = static_cast<bNodeTreePath *>(snode->treepath.last);
+  bNodeTreePath *path = snode->treepath.last();
   if (snode->nodetree && path) {
     /* A change in active viewer may result in the change of the output node used by the
      * compositor, so we need to get notified about such changes. */
@@ -280,7 +278,7 @@ namespace ed::space_node {
 
 float2 space_node_group_offset(const SpaceNode &snode)
 {
-  const bNodeTreePath *path = static_cast<bNodeTreePath *>(snode.treepath.last);
+  const bNodeTreePath *path = snode.treepath.last();
 
   if (path && path->prev) {
     return float2(path->view_center) - float2(path->prev->view_center);
@@ -742,7 +740,7 @@ static void node_init(wmWindowManager * /*wm*/, ScrArea * /*area*/) {}
 
 static void node_exit(wmWindowManager *wm, ScrArea *area)
 {
-  SpaceNode *snode = static_cast<SpaceNode *>(area->spacedata.first);
+  SpaceNode *snode = area->spacedata.first_as<SpaceNode>();
   free_previews(*wm, *snode);
 }
 
@@ -776,7 +774,7 @@ static void node_area_listener(const wmSpaceTypeListenerParams *params)
   const wmNotifier *wmn = params->notifier;
 
   /* NOTE: #ED_area_tag_refresh will re-execute compositor. */
-  SpaceNode *snode = static_cast<SpaceNode *>(area->spacedata.first);
+  SpaceNode *snode = area->spacedata.first_as<SpaceNode>();
   /* shaderfrom is only used for new shading nodes, otherwise all shaders are from objects */
   short shader_type = snode->shaderfrom;
 
@@ -977,7 +975,7 @@ static void node_toolbar_region_draw(const bContext *C, ARegion *region)
 
 static void node_cursor(wmWindow *win, ScrArea *area, ARegion *region)
 {
-  SpaceNode *snode = static_cast<SpaceNode *>(area->spacedata.first);
+  SpaceNode *snode = area->spacedata.first_as<SpaceNode>();
 
   /* convert mouse coordinates to v2d space */
   ui::view2d_region_to_view(&region->v2d,
@@ -1532,12 +1530,12 @@ static void node_id_remap(ID *old_id, ID *new_id, SpaceNode *snode)
 
     bNodeTreePath *path, *path_next;
 
-    for (path = static_cast<bNodeTreePath *>(snode->treepath.first); path; path = path->next) {
+    for (path = snode->treepath.first(); path; path = path->next) {
       if (id_cast<ID *>(path->nodetree) == old_id) {
         path->nodetree = id_cast<bNodeTree *>(new_id);
         id_us_ensure_real(new_id);
       }
-      if (path == snode->treepath.first) {
+      if (path == snode->treepath.first_) {
         /* first nodetree in path is same as snode->nodetree */
         snode->nodetree = path->nodetree;
       }
@@ -1556,8 +1554,8 @@ static void node_id_remap(ID *old_id, ID *new_id, SpaceNode *snode)
 
     /* edittree is just the last in the path,
      * set this directly since the path may have been shortened above */
-    if (snode->treepath.last) {
-      path = static_cast<bNodeTreePath *>(snode->treepath.last);
+    if (snode->treepath.last()) {
+      path = snode->treepath.last();
       snode->edittree = path->nodetree;
       ED_node_set_active_viewer_key(snode);
     }
@@ -1599,7 +1597,7 @@ static void node_foreach_id(SpaceLink *space_link, LibraryForeachIDData *data)
   BKE_LIB_FOREACHID_PROCESS_ID(data, snode->id, IDWALK_CB_DIRECT_WEAK_LINK);
   BKE_LIB_FOREACHID_PROCESS_ID(data, snode->from, IDWALK_CB_DIRECT_WEAK_LINK);
 
-  bNodeTreePath *path = static_cast<bNodeTreePath *>(snode->treepath.first);
+  bNodeTreePath *path = snode->treepath.first();
   BLI_assert(path == nullptr || path->nodetree == snode->nodetree);
 
   if (is_embedded_nodetree) {
@@ -1674,8 +1672,8 @@ static void node_foreach_id(SpaceLink *space_link, LibraryForeachIDData *data)
   if (!is_readonly) {
     /* `edittree` is just the last in the path, set this directly since the path may have
      * been shortened above. */
-    if (snode->treepath.last != nullptr) {
-      path = static_cast<bNodeTreePath *>(snode->treepath.last);
+    if (snode->treepath.last() != nullptr) {
+      path = snode->treepath.last();
       snode->edittree = path->nodetree;
     }
     else {
@@ -1696,13 +1694,13 @@ static void node_foreach_id(SpaceLink *space_link, LibraryForeachIDData *data)
 
 static int node_space_subtype_get(ScrArea *area)
 {
-  SpaceNode *snode = static_cast<SpaceNode *>(area->spacedata.first);
+  SpaceNode *snode = area->spacedata.first_as<SpaceNode>();
   return rna_node_tree_idname_to_enum(snode->tree_idname);
 }
 
 static void node_space_subtype_set(ScrArea *area, int value)
 {
-  SpaceNode *snode = static_cast<SpaceNode *>(area->spacedata.first);
+  SpaceNode *snode = area->spacedata.first_as<SpaceNode>();
   ED_node_set_tree_type(snode, rna_node_tree_type_from_enum(value));
 }
 
@@ -1718,7 +1716,7 @@ static void node_space_subtype_item_extend(bContext *C, EnumPropertyItem **item,
 
 static StringRefNull node_space_name_get(const ScrArea *area)
 {
-  SpaceNode *snode = static_cast<SpaceNode *>(area->spacedata.first);
+  SpaceNode *snode = area->spacedata.first_as<SpaceNode>();
   bke::bNodeTreeType *tree_type = bke::node_tree_type_find(snode->tree_idname);
   if (tree_type == nullptr) {
     return IFACE_("Node Editor");
@@ -1728,7 +1726,7 @@ static StringRefNull node_space_name_get(const ScrArea *area)
 
 static int node_space_icon_get(const ScrArea *area)
 {
-  SpaceNode *snode = static_cast<SpaceNode *>(area->spacedata.first);
+  SpaceNode *snode = area->spacedata.first_as<SpaceNode>();
   bke::bNodeTreeType *tree_type = bke::node_tree_type_find(snode->tree_idname);
   if (tree_type == nullptr) {
     return ICON_NODETREE;

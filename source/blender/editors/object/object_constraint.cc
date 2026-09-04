@@ -185,7 +185,7 @@ static void set_constraint_nth_target(bConstraint *con,
       index = targets_num - 1;
     }
 
-    for (ct = static_cast<bConstraintTarget *>(targets.first), i = 0; ct; ct = ct->next, i++) {
+    for (ct = targets.first(), i = 0; ct; ct = ct->next, i++) {
       if (i == index) {
         ct->tar = target;
         STRNCPY_UTF8(ct->subtarget, subtarget);
@@ -518,13 +518,13 @@ static void test_constraints(Main *bmain, Object *ob, bPoseChannel *pchan)
 
 void object_test_constraints(Main *bmain, Object *ob)
 {
-  if (ob->constraints.first) {
+  if (ob->constraints.first_) {
     test_constraints(bmain, ob, nullptr);
   }
 
   if (ob->type == OB_ARMATURE && ob->pose) {
     for (bPoseChannel &pchan : ob->pose->chanbase) {
-      if (pchan.constraints.first) {
+      if (pchan.constraints.first_) {
         test_constraints(bmain, ob, &pchan);
       }
     }
@@ -1073,7 +1073,7 @@ static wmOperatorStatus followpath_path_animate_exec(bContext *C, wmOperator *op
   /* setup dummy 'generator' modifier here to get 1-1 correspondence still working
    * and define basic slope of this curve based on the properties
    */
-  if (!fcu->bezt && !fcu->fpt && !fcu->modifiers.first) {
+  if (!fcu->bezt && !fcu->fpt && !fcu->modifiers.first_) {
     FModifier *fcm = add_fmodifier(&fcu->modifiers, FMODIFIER_TYPE_GENERATOR, fcu);
     FMod_Generator *gen = static_cast<FMod_Generator *>(fcm->data);
 
@@ -1507,7 +1507,7 @@ static wmOperatorStatus constraint_apply_exec(bContext *C, wmOperator *op)
   /* Store name temporarily for report. */
   char name[MAX_NAME];
   STRNCPY_UTF8(name, con->name);
-  const bool is_first_constraint = con != constraints->first;
+  const bool is_first_constraint = con != constraints->first_;
 
   /* Copy the constraint. */
   bool success;
@@ -1688,7 +1688,7 @@ static wmOperatorStatus constraint_copy_to_selected_exec(bContext *C, wmOperator
 
   if (pchan) {
     /* Don't do anything if bone doesn't exist or doesn't have any constraints. */
-    if (pchan->constraints.first == nullptr) {
+    if (pchan->constraints.first_ == nullptr) {
       BKE_report(op->reports, RPT_ERROR, "No constraints for copying");
       return OPERATOR_CANCELLED;
     }
@@ -2094,7 +2094,7 @@ static wmOperatorStatus pose_constraint_copy_exec(bContext *C, wmOperator *op)
   bPoseChannel *pchan = CTX_data_active_pose_bone(C);
 
   /* don't do anything if bone doesn't exist or doesn't have any constraints */
-  if (ELEM(nullptr, pchan, pchan->constraints.first)) {
+  if (ELEM(nullptr, pchan, pchan->constraints.first_)) {
     BKE_report(op->reports, RPT_ERROR, "No active bone with constraints for copying");
     return OPERATOR_CANCELLED;
   }
@@ -2637,7 +2637,7 @@ static wmOperatorStatus pose_ik_add_invoke(bContext *C, wmOperator *op, const wm
   }
 
   /* bone must not have any constraints already */
-  for (con = static_cast<bConstraint *>(pchan->constraints.first); con; con = con->next) {
+  for (con = pchan->constraints.first(); con; con = con->next) {
     if (con->type == CONSTRAINT_TYPE_KINEMATIC) {
       break;
     }
@@ -2733,7 +2733,7 @@ static wmOperatorStatus pose_ik_clear_exec(bContext *C, wmOperator * /*op*/)
 
     /* TODO: should we be checking if these constraints were local
      * before we try and remove them? */
-    for (con = static_cast<bConstraint *>(pchan->constraints.first); con; con = next) {
+    for (con = pchan->constraints.first(); con; con = next) {
       next = con->next;
       if (con->type == CONSTRAINT_TYPE_KINEMATIC) {
         BKE_constraint_remove_ex(&pchan->constraints, ob, con);

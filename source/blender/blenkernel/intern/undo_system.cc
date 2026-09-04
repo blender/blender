@@ -285,7 +285,7 @@ void BKE_undosys_stack_clear(UndoStack *ustack)
 {
   UNDO_NESTED_ASSERT(false);
   CLOG_DEBUG(&LOG, "steps=%d", ustack->steps.count());
-  for (UndoStep *us = static_cast<UndoStep *>(ustack->steps.last), *us_prev; us; us = us_prev) {
+  for (UndoStep *us = ustack->steps.last(), *us_prev; us; us = us_prev) {
     us_prev = us->prev;
     undosys_step_free_and_unlink(ustack, us);
   }
@@ -310,8 +310,8 @@ void BKE_undosys_stack_clear_active(UndoStack *ustack)
 
     bool is_not_empty = ustack->step_active != nullptr;
 
-    while (ustack->steps.last != ustack->step_active) {
-      UndoStep *us_iter = static_cast<UndoStep *>(ustack->steps.last);
+    while (ustack->steps.last() != ustack->step_active) {
+      UndoStep *us_iter = ustack->steps.last();
       undosys_step_free_and_unlink(ustack, us_iter);
       undosys_stack_validate(ustack, is_not_empty);
     }
@@ -325,7 +325,7 @@ static void undosys_stack_clear_all_last(UndoStack *ustack, UndoStep *us)
     bool is_not_empty = true;
     UndoStep *us_iter;
     do {
-      us_iter = static_cast<UndoStep *>(ustack->steps.last);
+      us_iter = ustack->steps.last();
       BLI_assert(us_iter != ustack->step_active);
       undosys_step_free_and_unlink(ustack, us_iter);
       undosys_stack_validate(ustack, is_not_empty);
@@ -343,7 +343,7 @@ static void undosys_stack_clear_all_first(UndoStack *ustack, UndoStep *us, UndoS
     bool is_not_empty = true;
     UndoStep *us_iter;
     do {
-      us_iter = static_cast<UndoStep *>(ustack->steps.first);
+      us_iter = ustack->steps.first();
       if (us_iter == us_exclude) {
         us_iter = us_iter->next;
       }
@@ -431,7 +431,7 @@ void BKE_undosys_stack_limit_steps_and_memory(UndoStack *ustack, int steps, size
   /* keep at least two (original + other) */
   size_t data_size_all = 0;
   size_t us_count = 0;
-  for (us = static_cast<UndoStep *>(ustack->steps.last); us && us->prev; us = us->prev) {
+  for (us = ustack->steps.last(); us && us->prev; us = us->prev) {
     if (memory_limit) {
       data_size_all += us->data_size;
       if (data_size_all > memory_limit) {
@@ -549,8 +549,8 @@ eUndoPushReturn BKE_undosys_step_push_with_type(UndoStack *ustack,
   }
 
   /* Remove all undo-steps after (also when 'ustack->step_active == nullptr'). */
-  while (ustack->steps.last != ustack->step_active) {
-    UndoStep *us_iter = static_cast<UndoStep *>(ustack->steps.last);
+  while (ustack->steps.last() != ustack->step_active) {
+    UndoStep *us_iter = ustack->steps.last();
     undosys_step_free_and_unlink(ustack, us_iter);
     undosys_stack_validate(ustack, is_not_empty);
   }
@@ -576,7 +576,7 @@ eUndoPushReturn BKE_undosys_step_push_with_type(UndoStack *ustack,
       /* Restore 'step_init'. */
       ustack->step_init = static_cast<UndoStep *>(step_init);
       if (ok) {
-        UndoStep *us = static_cast<UndoStep *>(ustack->steps.last);
+        UndoStep *us = ustack->steps.last();
         BLI_assert(STREQ(us->name, name_internal));
         us->skip = true;
 #  ifdef WITH_GLOBAL_UNDO_CORRECT_ORDER
@@ -632,7 +632,7 @@ eUndoPushReturn BKE_undosys_step_push_with_type(UndoStack *ustack,
     const char *name_internal = us_prev->name;
     const bool ok = undosys_stack_push_main(ustack, name_internal, G_MAIN);
     if (ok) {
-      UndoStep *us = static_cast<UndoStep *>(ustack->steps.last);
+      UndoStep *us = ustack->steps.last();
       BLI_assert(STREQ(us->name, name_internal));
       us_prev->skip = true;
 #ifdef WITH_GLOBAL_UNDO_CORRECT_ORDER

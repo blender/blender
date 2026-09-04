@@ -26,7 +26,7 @@ struct RuntimeStruct {
 
 /* NOTE: This type must exist in order for the SDNA to be considered valid. */
 struct ListBase {
-  void *first, *last;
+  void *first_, *last_;
 };
 
 struct TestStruct {

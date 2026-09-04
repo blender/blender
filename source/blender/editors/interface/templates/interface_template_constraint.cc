@@ -279,9 +279,7 @@ void template_constraints(Layout * /*layout*/, bContext *C, bool use_bone_constr
 
   if (!panels_match) {
     panels_free_instanced(C, region);
-    for (bConstraint *con =
-             (constraints == nullptr) ? nullptr : static_cast<bConstraint *>(constraints->first);
-         con;
+    for (bConstraint *con = (constraints == nullptr) ? nullptr : constraints->first(); con;
          con = con->next)
     {
       /* Don't show invalid/legacy constraints. */
@@ -315,7 +313,7 @@ void template_constraints(Layout * /*layout*/, bContext *C, bool use_bone_constr
   }
   else {
     /* Assuming there's only one group of instanced panels, update the custom data pointers. */
-    Panel *panel = static_cast<Panel *>(region->panels.first);
+    Panel *panel = region->panels.first();
     for (bConstraint &con : *constraints) {
       /* Don't show invalid/legacy constraints. */
       if (con.type == CONSTRAINT_TYPE_NULL) {

@@ -357,7 +357,7 @@ void scene_minimize_unused_view_layers(const Depsgraph *depsgraph,
   ViewLayer *view_layer_eval = nullptr;
   /* Find evaluated view layer. At the same time we free memory used by
    * all other of the view layers. */
-  for (ViewLayer *view_layer_cow = reinterpret_cast<ViewLayer *>(scene_cow->view_layers.first),
+  for (ViewLayer *view_layer_cow = reinterpret_cast<ViewLayer *>(scene_cow->view_layers.first_),
                  *view_layer_next;
        view_layer_cow != nullptr;
        view_layer_cow = view_layer_next)
@@ -375,7 +375,8 @@ void scene_minimize_unused_view_layers(const Depsgraph *depsgraph,
    * legacy sake, as this used to remove all other view layers, automatically making the evaluated
    * one the first. Some other code may still assume it is. */
   if (view_layer_eval != nullptr) {
-    BLI_listbase_swaplinks(&scene_cow->view_layers, scene_cow->view_layers.first, view_layer_eval);
+    BLI_listbase_swaplinks(
+        &scene_cow->view_layers, scene_cow->view_layers.first_, view_layer_eval);
   }
 }
 
@@ -430,7 +431,7 @@ void view_layer_update_orig_base_pointers(const ViewLayer *view_layer_orig,
     /* Happens when scene is only used for parameters or compositor/sequencer. */
     return;
   }
-  Base *base_orig = reinterpret_cast<Base *>(view_layer_orig->object_bases.first);
+  Base *base_orig = reinterpret_cast<Base *>(view_layer_orig->object_bases.first_);
   for (Base &base_eval : view_layer_eval->object_bases) {
     base_eval.base_orig = base_orig;
     base_orig = base_orig->next;
@@ -454,7 +455,7 @@ void scene_setup_view_layers_after_remap(const Depsgraph *depsgraph,
                                          Scene *scene_cow)
 {
   const ViewLayer *view_layer_orig = get_original_view_layer(depsgraph, id_node);
-  ViewLayer *view_layer_eval = reinterpret_cast<ViewLayer *>(scene_cow->view_layers.first);
+  ViewLayer *view_layer_eval = reinterpret_cast<ViewLayer *>(scene_cow->view_layers.first_);
   view_layer_update_orig_base_pointers(view_layer_orig, view_layer_eval);
   view_layer_remove_disabled_bases(depsgraph, scene_cow, view_layer_eval);
   /* TODO(sergey): Remove objects from collections as well.
@@ -578,8 +579,8 @@ void update_list_orig_pointers(const ListBaseT<T> *listbase_orig,
                                ListBaseT<T> *listbase,
                                T *T::*orig_field)
 {
-  T *element_orig = reinterpret_cast<T *>(listbase_orig->first);
-  T *element_cow = reinterpret_cast<T *>(listbase->first);
+  T *element_orig = reinterpret_cast<T *>(listbase_orig->first_);
+  T *element_cow = reinterpret_cast<T *>(listbase->first_);
 
   /* Both lists should have the same number of elements, so the check on
    * `element_cow` is just to prevent a crash if this is not the case. */
@@ -643,8 +644,8 @@ void update_pose_orig_pointers(const bPose *pose_orig, bPose *pose_cow)
 void update_nla_strips_orig_pointers(const ListBaseT<NlaStrip> *strips_orig,
                                      ListBaseT<NlaStrip> *strips_cow)
 {
-  NlaStrip *strip_orig = reinterpret_cast<NlaStrip *>(strips_orig->first);
-  NlaStrip *strip_cow = reinterpret_cast<NlaStrip *>(strips_cow->first);
+  NlaStrip *strip_orig = reinterpret_cast<NlaStrip *>(strips_orig->first_);
+  NlaStrip *strip_cow = reinterpret_cast<NlaStrip *>(strips_cow->first_);
   while (strip_orig != nullptr) {
     strip_cow->orig_strip = strip_orig;
     update_nla_strips_orig_pointers(&strip_orig->strips, &strip_cow->strips);
@@ -656,8 +657,8 @@ void update_nla_strips_orig_pointers(const ListBaseT<NlaStrip> *strips_orig,
 void update_nla_tracks_orig_pointers(const ListBaseT<NlaTrack> *tracks_orig,
                                      ListBaseT<NlaTrack> *tracks_cow)
 {
-  NlaTrack *track_orig = reinterpret_cast<NlaTrack *>(tracks_orig->first);
-  NlaTrack *track_cow = reinterpret_cast<NlaTrack *>(tracks_cow->first);
+  NlaTrack *track_orig = reinterpret_cast<NlaTrack *>(tracks_orig->first_);
+  NlaTrack *track_cow = reinterpret_cast<NlaTrack *>(tracks_cow->first_);
   while (track_orig != nullptr) {
     update_nla_strips_orig_pointers(&track_orig->strips, &track_cow->strips);
     track_cow = track_cow->next;

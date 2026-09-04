@@ -203,7 +203,7 @@ ID *get_current_id(const SpaceSpreadsheet *sspreadsheet)
     return nullptr;
   }
   ViewerPathElem *root_context = static_cast<ViewerPathElem *>(
-      sspreadsheet->geometry_id.viewer_path.path.first);
+      sspreadsheet->geometry_id.viewer_path.path.first_);
   if (root_context->type != VIEWER_PATH_ELEM_TYPE_ID) {
     return nullptr;
   }
@@ -526,7 +526,7 @@ static void spreadsheet_main_region_listener(const wmRegionListenerParams *param
 {
   ARegion *region = params->region;
   const wmNotifier *wmn = params->notifier;
-  SpaceSpreadsheet *sspreadsheet = static_cast<SpaceSpreadsheet *>(params->area->spacedata.first);
+  SpaceSpreadsheet *sspreadsheet = params->area->spacedata.first_as<SpaceSpreadsheet>();
 
   switch (wmn->category) {
     case NC_SCENE: {
@@ -586,7 +586,7 @@ static void spreadsheet_header_region_listener(const wmRegionListenerParams *par
 {
   ARegion *region = params->region;
   const wmNotifier *wmn = params->notifier;
-  SpaceSpreadsheet *sspreadsheet = static_cast<SpaceSpreadsheet *>(params->area->spacedata.first);
+  SpaceSpreadsheet *sspreadsheet = params->area->spacedata.first_as<SpaceSpreadsheet>();
 
   switch (wmn->category) {
     case NC_SCENE: {
@@ -756,7 +756,7 @@ static void spreadsheet_blend_write(BlendWriter *writer, SpaceLink *sl)
 
 static void spreadsheet_cursor(wmWindow *win, ScrArea *area, ARegion *region)
 {
-  SpaceSpreadsheet &sspreadsheet = *static_cast<SpaceSpreadsheet *>(area->spacedata.first);
+  SpaceSpreadsheet &sspreadsheet = *area->spacedata.first_as<SpaceSpreadsheet>();
 
   const int2 cursor_re{win->runtime->eventstate->xy[0] - region->winrct.xmin,
                        win->runtime->eventstate->xy[1] - region->winrct.ymin};

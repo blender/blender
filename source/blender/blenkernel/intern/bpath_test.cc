@@ -71,10 +71,10 @@ class BPathTest : public BlenderGTestBase {
 TEST_F(BPathTest, rebase_on_relative)
 {
   /* Test on relative paths, should be modified. */
-  Text *text = reinterpret_cast<Text *>(bmain->texts.first);
+  Text *text = bmain->texts.first_as<Text>();
   text->filepath = BLI_strdup(TEXT_PATH_RELATIVE);
 
-  MovieClip *movie_clip = reinterpret_cast<MovieClip *>(bmain->movieclips.first);
+  MovieClip *movie_clip = bmain->movieclips.first_as<MovieClip>();
   STRNCPY(movie_clip->filepath, MOVIECLIP_PATH_RELATIVE);
 
   BKE_bpath_relative_rebase(bmain, BASE_DIR, REBASE_DIR, nullptr);
@@ -86,10 +86,10 @@ TEST_F(BPathTest, rebase_on_relative)
 TEST_F(BPathTest, rebase_on_absolute)
 {
   /* Test on absolute paths, should not be modified. */
-  Text *text = reinterpret_cast<Text *>(bmain->texts.first);
+  Text *text = bmain->texts.first_as<Text>();
   text->filepath = BLI_strdup(TEXT_PATH_ABSOLUTE);
 
-  MovieClip *movie_clip = reinterpret_cast<MovieClip *>(bmain->movieclips.first);
+  MovieClip *movie_clip = bmain->movieclips.first_as<MovieClip>();
   STRNCPY(movie_clip->filepath, MOVIECLIP_PATH_ABSOLUTE);
 
   BKE_bpath_relative_rebase(bmain, BASE_DIR, REBASE_DIR, nullptr);
@@ -100,10 +100,10 @@ TEST_F(BPathTest, rebase_on_absolute)
 
 TEST_F(BPathTest, convert_to_relative)
 {
-  Text *text = reinterpret_cast<Text *>(bmain->texts.first);
+  Text *text = bmain->texts.first_as<Text>();
   text->filepath = BLI_strdup(TEXT_PATH_RELATIVE);
 
-  MovieClip *movie_clip = reinterpret_cast<MovieClip *>(bmain->movieclips.first);
+  MovieClip *movie_clip = bmain->movieclips.first_as<MovieClip>();
   STRNCPY(movie_clip->filepath, MOVIECLIP_PATH_ABSOLUTE);
 
   BKE_bpath_relative_convert(bmain, BASE_DIR, nullptr);
@@ -116,10 +116,10 @@ TEST_F(BPathTest, convert_to_relative)
 
 TEST_F(BPathTest, convert_to_absolute)
 {
-  Text *text = reinterpret_cast<Text *>(bmain->texts.first);
+  Text *text = bmain->texts.first_as<Text>();
   text->filepath = BLI_strdup(TEXT_PATH_RELATIVE);
 
-  MovieClip *movie_clip = reinterpret_cast<MovieClip *>(bmain->movieclips.first);
+  MovieClip *movie_clip = bmain->movieclips.first_as<MovieClip>();
   STRNCPY(movie_clip->filepath, MOVIECLIP_PATH_ABSOLUTE);
 
   BKE_bpath_absolute_convert(bmain, BASE_DIR, nullptr);
@@ -132,10 +132,10 @@ TEST_F(BPathTest, convert_to_absolute)
 
 TEST_F(BPathTest, list_backup_restore)
 {
-  Text *text = reinterpret_cast<Text *>(bmain->texts.first);
+  Text *text = bmain->texts.first_as<Text>();
   text->filepath = BLI_strdup(TEXT_PATH_RELATIVE);
 
-  MovieClip *movie_clip = reinterpret_cast<MovieClip *>(bmain->movieclips.first);
+  MovieClip *movie_clip = bmain->movieclips.first_as<MovieClip>();
   STRNCPY(movie_clip->filepath, MOVIECLIP_PATH_ABSOLUTE);
 
   void *path_list_handle = BKE_bpath_list_backup(bmain, static_cast<eBPathForeachFlag>(0));

@@ -2173,7 +2173,7 @@ eKeyPasteError paste_animedit_keys(bAnimContext *ac,
 
   if (from_single && to_single) {
     /* 1:1 match, no tricky checking, just paste. */
-    bAnimListElem *ale = static_cast<bAnimListElem *>(anim_data->first);
+    bAnimListElem *ale = anim_data->first();
     FCurve *fcu = static_cast<FCurve *>(ale->data); /* destination F-Curve */
     const FCurve &fcurve_in_copy_buffer =
         *keyframe_copy_buffer->keyframe_data.channelbag(0)->fcurve(0);

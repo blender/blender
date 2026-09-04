@@ -175,7 +175,7 @@ static std::optional<std::string> rna_PointCache_path(const PointerRNA *ptr)
   }
 
   ModifierData *md;
-  for (md = static_cast<ModifierData *>(ob->modifiers.first); md; md = md->next) {
+  for (md = ob->modifiers.first(); md; md = md->next) {
     const ModifierTypeInfo *mti = BKE_modifier_get_info(md->type);
 
     if (!(mti->flags & eModifierTypeFlag_UsesPointCache)) {
@@ -197,7 +197,7 @@ static std::optional<std::string> rna_PointCache_path(const PointerRNA *ptr)
         DynamicPaintModifierData *pmd = reinterpret_cast<DynamicPaintModifierData *>(md);
         if (pmd->canvas) {
           DynamicPaintSurface *surface = static_cast<DynamicPaintSurface *>(
-              pmd->canvas->surfaces.first);
+              pmd->canvas->surfaces.first());
           for (; surface; surface = surface->next) {
             if (surface->pointcache == cache) {
               char name_surface_esc[sizeof(surface->name) * 2];
@@ -333,7 +333,7 @@ static void rna_Cache_idname_change(Main * /*bmain*/, Scene * /*scene*/, Pointer
 
     BKE_ptcache_ids_from_object(&pidlist, ob, scene, 0);
 
-    for (pid = static_cast<PTCacheID *>(pidlist.first); pid; pid = pid->next) {
+    for (pid = pidlist.first(); pid; pid = pid->next) {
       if (pid->cache == cache) {
         pid2 = pid;
       }
@@ -373,8 +373,8 @@ static void rna_Cache_list_begin(CollectionPropertyIterator *iter, PointerRNA *p
     cache = cache->prev;
   }
 
-  lb.first = cache;
-  lb.last = nullptr; /* not used by listbase_begin */
+  lb.first_ = cache;
+  lb.last_ = nullptr; /* not used by listbase_begin */
 
   rna_iterator_listbase_begin(iter, ptr, &lb, nullptr);
 }
@@ -890,7 +890,7 @@ static std::optional<std::string> rna_EffectorWeight_path(const PointerRNA *ptr)
 
       if (pmd->canvas) {
         DynamicPaintSurface *surface = static_cast<DynamicPaintSurface *>(
-            pmd->canvas->surfaces.first);
+            pmd->canvas->surfaces.first());
 
         for (; surface; surface = surface->next) {
           if (surface->effector_weights == ew) {

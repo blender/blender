@@ -199,7 +199,7 @@ bool BLI_astar_graph_solve(BLI_AStarGraph *as_graph,
 
     BLI_BITMAP_ENABLE(done_nodes, node_curr_idx);
 
-    for (ld = static_cast<LinkData *>(node_curr->neighbor_links.first); ld; ld = ld->next) {
+    for (ld = node_curr->neighbor_links.first(); ld; ld = ld->next) {
       BLI_AStarGNLink *link = static_cast<BLI_AStarGNLink *>(ld->data);
       const int node_next_idx = BLI_astar_node_link_other_node(link, node_curr_idx);
 

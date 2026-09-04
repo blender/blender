@@ -196,11 +196,11 @@ TextFormatType *ED_text_format_get(Text *text)
 
     /* If we make it here we never found an extension that worked - return
      * the "default" text format. */
-    return static_cast<TextFormatType *>(tft_lb.first);
+    return tft_lb.first();
   }
 
   /* Return the "default" text format. */
-  return static_cast<TextFormatType *>(tft_lb.first);
+  return tft_lb.first();
 }
 
 const char *ED_text_format_comment_line_prefix(Text *text)

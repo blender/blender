@@ -652,7 +652,7 @@ const EnumPropertyItem *rna_enum_property_items_from_listbase(const ListBaseT<T>
   EnumPropertyItem *item = nullptr;
   int i = 0, totitem = 0;
 
-  const T *list_item = static_cast<const T *>(listbase.first);
+  const T *list_item = listbase.first();
   while (list_item) {
     const EnumPropertyItem tmp = create_item_fn(*list_item, i);
     RNA_enum_item_add(&item, &totitem, &tmp);

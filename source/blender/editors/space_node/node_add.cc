@@ -248,11 +248,8 @@ static wmOperatorStatus add_reroute_exec(bContext *C, wmOperator *op)
       bke::node_set_active(ntree, *reroute);
     }
 
-    bNodeLink &link_from = bke::node_add_link(ntree,
-                                              *item.value.from_node,
-                                              *item.key,
-                                              *reroute,
-                                              *static_cast<bNodeSocket *>(reroute->inputs.first));
+    bNodeLink &link_from = bke::node_add_link(
+        ntree, *item.value.from_node, *item.key, *reroute, *reroute->inputs.first());
 
     /* Mute resulting link if all cut links were muted as well. */
     bke::node_link_set_mute(ntree,
@@ -264,7 +261,7 @@ static wmOperatorStatus add_reroute_exec(bContext *C, wmOperator *op)
     /* Reconnect links from the original output socket to the new reroute. */
     for (bNodeLink *link : cuts.keys()) {
       link->fromnode = reroute;
-      link->fromsock = static_cast<bNodeSocket *>(reroute->outputs.first);
+      link->fromsock = reroute->outputs.first();
       BKE_ntree_update_tag_link_changed(&ntree);
     }
 
@@ -989,7 +986,7 @@ static wmOperatorStatus node_add_image_exec(bContext *C, wmOperator *op)
       continue;
     }
     if (type == GEO_NODE_IMAGE_TEXTURE) {
-      bNodeSocket *image_socket = static_cast<bNodeSocket *>(node->inputs.first);
+      bNodeSocket *image_socket = node->inputs.first();
       bNodeSocketValueImage *socket_value = static_cast<bNodeSocketValueImage *>(
           image_socket->default_value);
       socket_value->value = image;
@@ -1552,7 +1549,7 @@ static wmOperatorStatus node_add_color_exec(bContext *C, wmOperator *op)
     copy_v4_v4(input_color_storage->color, color);
   }
   else {
-    bNodeSocket *sock = static_cast<bNodeSocket *>(color_node->outputs.first);
+    bNodeSocket *sock = color_node->outputs.first();
     if (!sock) {
       BKE_report(op->reports, RPT_WARNING, "Could not find node color socket");
       return OPERATOR_CANCELLED;
@@ -1860,9 +1857,9 @@ static void initialize_compositor_sequencer_node_group(const bContext *C,
 
   bke::node_add_link(ntree,
                      *input_node,
-                     *static_cast<bNodeSocket *>(input_node->outputs.first),
+                     *input_node->outputs.first(),
                      *output_node,
-                     *static_cast<bNodeSocket *>(output_node->inputs.first));
+                     *output_node->inputs.first());
 
   BKE_ntree_update_after_single_tree_change(*CTX_data_main(C), ntree);
 }

@@ -216,7 +216,7 @@ void create_blend_shapes(pxr::UsdStageRefPtr stage,
   std::vector<pxr::SdfPath> blendshape_paths;
 
   /* Get the basis, which we'll use to calculate offsets. */
-  KeyBlock *basis_key = static_cast<KeyBlock *>(key->block.first);
+  KeyBlock *basis_key = key->block.first();
 
   if (!basis_key) {
     return;
@@ -289,7 +289,7 @@ pxr::VtFloatArray get_blendshape_weights(const Key *key)
   pxr::VtFloatArray weights;
 
   for (KeyBlock &kb : key->block) {
-    if (&kb == key->block.first) {
+    if (&kb == key->block.first_) {
       /* Skip the first key, which is the basis. */
       continue;
     }
@@ -443,11 +443,11 @@ Mesh *get_shape_key_basis_mesh(Object *obj)
    * the verts in the basis key positions. */
   const Mesh *mesh = BKE_object_get_pre_modified_mesh(obj);
 
-  if (!mesh || !mesh->key || !mesh->key->block.first) {
+  if (!mesh || !mesh->key || !mesh->key->block.first_) {
     return nullptr;
   }
 
-  const KeyBlock *basis = reinterpret_cast<KeyBlock *>(mesh->key->block.first);
+  const KeyBlock *basis = reinterpret_cast<KeyBlock *>(mesh->key->block.first_);
 
   if (mesh->verts_num != basis->totelem) {
     CLOG_WARN(&LOG, "Vertex and shape key element count mismatch for mesh %s", obj->id.name + 2);

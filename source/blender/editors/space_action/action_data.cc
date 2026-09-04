@@ -538,18 +538,18 @@ void ED_animedit_unlink_action(
       NlaTrack *nlt, *nlt_next;
       NlaStrip *strip, *nstrip;
 
-      for (nlt = static_cast<NlaTrack *>(adt->nla_tracks.first); nlt; nlt = nlt_next) {
+      for (nlt = adt->nla_tracks.first(); nlt; nlt = nlt_next) {
         nlt_next = nlt->next;
 
         if (strstr(nlt->name, DATA_("[Action Stash]"))) {
-          for (strip = static_cast<NlaStrip *>(nlt->strips.first); strip; strip = nstrip) {
+          for (strip = nlt->strips.first(); strip; strip = nstrip) {
             nstrip = strip->next;
 
             if (strip->act == act) {
               /* Remove this strip, and the track too if it doesn't have anything else */
               BKE_nlastrip_remove_and_free(&nlt->strips, strip, true);
 
-              if (nlt->strips.first == nullptr) {
+              if (nlt->strips.first_ == nullptr) {
                 BLI_assert(nstrip == nullptr);
                 BKE_nlatrack_remove_and_free(&adt->nla_tracks, nlt, true);
               }

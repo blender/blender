@@ -186,7 +186,7 @@ void WM_operatortype_remove_ptr(wmOperatorType *ot)
     IDP_FreeProperty(ot->last_properties);
   }
 
-  if (ot->macro.first) {
+  if (ot->macro.first()) {
     wm_operatortype_free_macro(ot);
   }
 
@@ -216,7 +216,7 @@ static void operatortype_ghash_free_cb(wmOperatorType *ot)
     IDP_FreeProperty(ot->last_properties);
   }
 
-  if (ot->macro.first) {
+  if (ot->macro.first()) {
     wm_operatortype_free_macro(ot);
   }
 
@@ -404,7 +404,7 @@ static wmOperatorStatus wm_macro_invoke_internal(bContext *C,
 static wmOperatorStatus wm_macro_invoke(bContext *C, wmOperator *op, const wmEvent *event)
 {
   wm_macro_start(op);
-  return wm_macro_invoke_internal(C, op, event, static_cast<wmOperator *>(op->macro.first));
+  return wm_macro_invoke_internal(C, op, event, op->macro.first());
 }
 
 static wmOperatorStatus wm_macro_modal(bContext *C, wmOperator *op, const wmEvent *event)

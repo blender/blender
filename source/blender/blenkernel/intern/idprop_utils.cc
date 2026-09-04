@@ -195,7 +195,7 @@ static void idp_repr_fn_recursive(ReprState *state, const IDProperty *prop)
     case IDP_GROUP: {
       STR_APPEND_STR("{");
       for (const IDProperty &subprop : prop->data.group) {
-        if (&subprop != prop->data.group.first) {
+        if (&subprop != prop->data.group.first()) {
           STR_APPEND_STR(", ");
         }
         STR_APPEND_STR_QUOTE(subprop.name);

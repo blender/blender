@@ -122,19 +122,18 @@ void WM_gizmotype_free_ptr(wmGizmoType *gzt)
 static void gizmotype_unlink(bContext *C, Main *bmain, wmGizmoType *gzt)
 {
   /* Free instances. */
-  for (bScreen *screen = static_cast<bScreen *>(bmain->screens.first); screen;
+  for (bScreen *screen = bmain->screens.first(); screen;
        screen = static_cast<bScreen *>(screen->id.next))
   {
     for (ScrArea &area : screen->areabase) {
       for (SpaceLink &sl : area.spacedata) {
-        ListBaseT<ARegion> *lb = (&sl == area.spacedata.first) ? &area.regionbase : &sl.regionbase;
+        ListBaseT<ARegion> *lb = (&sl == area.spacedata.first_) ? &area.regionbase :
+                                                                  &sl.regionbase;
         for (ARegion &region : *lb) {
           wmGizmoMap *gzmap = region.runtime->gizmo_map;
           if (gzmap) {
             for (wmGizmoGroup &gzgroup : gzmap->groups) {
-              for (wmGizmo *gz = static_cast<wmGizmo *>(gzgroup.gizmos.first), *gz_next; gz;
-                   gz = gz_next)
-              {
+              for (wmGizmo *gz = gzgroup.gizmos.first(), *gz_next; gz; gz = gz_next) {
                 gz_next = gz->next;
                 BLI_assert(gzgroup.parent_gzmap == gzmap);
                 if (gz->type == gzt) {

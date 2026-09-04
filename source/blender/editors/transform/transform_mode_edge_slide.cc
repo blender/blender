@@ -233,7 +233,7 @@ static void calcEdgeSlide_mval_range(TransInfo *t,
   /* Use for visibility checks. */
   bool use_occlude_geometry = false;
   if (t->spacetype == SPACE_VIEW3D) {
-    v3d = static_cast<View3D *>(t->area ? t->area->spacedata.first : nullptr);
+    v3d = static_cast<View3D *>(t->area ? t->area->spacedata.first_ : nullptr);
     if (v3d) {
       if (tc->obedit->type == OB_MESH) {
         use_occlude_geometry = (tc->obedit->dt > OB_WIRE && !XRAY_ENABLED(v3d));

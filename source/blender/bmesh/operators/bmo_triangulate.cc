@@ -102,9 +102,7 @@ void bmo_triangle_fill_exec(BMesh *bm, BMOperator *op)
 
     nors = MEM_new_array_uninitialized<SortNormal>(nors_tot, __func__);
 
-    for (sf_vert = static_cast<ScanFillVert *>(sf_ctx.fillvertbase.first), i = 0; sf_vert;
-         sf_vert = sf_vert->next, i++)
-    {
+    for (sf_vert = sf_ctx.fillvertbase.first(), i = 0; sf_vert; sf_vert = sf_vert->next, i++) {
       BMVert *v = static_cast<BMVert *>(sf_vert->tmp.p);
       BMIter eiter;
       BMEdge *e_pair[2];

@@ -710,7 +710,7 @@ eSnapFlag *transform_snap_flag_from_spacetype_ptr(TransInfo *t,
       }
       return &ts->snap_flag_anim;
     case SPACE_GRAPH: {
-      SpaceGraph *graph_editor = static_cast<SpaceGraph *>(t->area->spacedata.first);
+      SpaceGraph *graph_editor = t->area->spacedata.first_as<SpaceGraph>();
       switch (graph_editor->mode) {
         case SIPO_MODE_DRIVERS:
           /* The driver editor has a separate snapping flag so it can be kept disabled while
@@ -774,7 +774,7 @@ static eSnapMode snap_mode_from_spacetype(TransInfo *t)
   }
 
   if (t->spacetype == SPACE_GRAPH) {
-    SpaceGraph *graph_editor = static_cast<SpaceGraph *>(t->area->spacedata.first);
+    SpaceGraph *graph_editor = t->area->spacedata.first_as<SpaceGraph>();
     switch (graph_editor->mode) {
       case SIPO_MODE_DRIVERS:
         /* Snapping to full values is the only mode that currently makes
@@ -920,14 +920,14 @@ void transform_snap_grid_init(const TransInfo *t, float r_snap[3], float *r_snap
   if (t->spacetype == SPACE_VIEW3D) {
     /* Used by incremental snap. */
     if (t->region && t->region->regiontype == RGN_TYPE_WINDOW) {
-      View3D *v3d = static_cast<View3D *>(t->area->spacedata.first);
+      View3D *v3d = t->area->spacedata.first_as<View3D>();
       r_snap[0] = r_snap[1] = r_snap[2] = ED_view3d_grid_view_scale(
           t->scene, v3d, t->region, nullptr);
     }
   }
   else if (t->spacetype == SPACE_IMAGE) {
     if (t->region && t->region->regiontype == RGN_TYPE_WINDOW) {
-      SpaceImage *sima = static_cast<SpaceImage *>(t->area->spacedata.first);
+      SpaceImage *sima = t->area->spacedata.first_as<SpaceImage>();
       const View2D *v2d = &t->region->v2d;
       int grid_size = SI_GRID_STEPS_LEN;
       float zoom_factor = ED_space_image_zoom_level(v2d, grid_size);
@@ -1124,7 +1124,7 @@ static void setSnappingCallback(TransInfo *t)
     t->tsnap.snap_target_fn = snap_target_view3d_fn;
   }
   else if (t->spacetype == SPACE_IMAGE) {
-    SpaceImage *sima = static_cast<SpaceImage *>(t->area->spacedata.first);
+    SpaceImage *sima = t->area->spacedata.first_as<SpaceImage>();
     BKE_view_layer_synced_ensure(*t->bmain, t->scene, t->view_layer);
     Object *obact = BKE_view_layer_active_object_get(t->view_layer);
 
@@ -1262,13 +1262,13 @@ void removeSnapPoint(TransInfo *t)
 
 void getSnapPoint(const TransInfo *t, float vec[3])
 {
-  if (t->tsnap.points.first) {
+  if (t->tsnap.points.first_) {
     TransSnapPoint *p;
     int total = 0;
 
     vec[0] = vec[1] = vec[2] = 0;
 
-    for (p = static_cast<TransSnapPoint *>(t->tsnap.points.first); p; p = p->next, total++) {
+    for (p = t->tsnap.points.first(); p; p = p->next, total++) {
       add_v3_v3(vec, p->co);
     }
 
@@ -1699,7 +1699,7 @@ bool peelObjectsTransform(TransInfo *t,
 
   if (!depths_peel.is_empty()) {
     /* At the moment we only use the hits of the first object. */
-    SnapObjectHitDepth *hit_min = static_cast<SnapObjectHitDepth *>(depths_peel.first);
+    SnapObjectHitDepth *hit_min = depths_peel.first();
     for (SnapObjectHitDepth *iter = hit_min->next; iter; iter = iter->next) {
       if (iter->depth < hit_min->depth) {
         hit_min = iter;

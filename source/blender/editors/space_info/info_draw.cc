@@ -91,7 +91,7 @@ static int report_textview_begin(TextViewContext *tvc)
   tvc->sel_end = 0;
 
   /* iterator */
-  tvc->iter = reports->list.last;
+  tvc->iter = reports->list.last();
 
   ui::theme::frame_buffer_clear(TH_BACK);
 

@@ -385,7 +385,7 @@ void BKE_gpencil_modifiers_foreach_ID_link(Object *ob,
                                            GreasePencilIDWalkFunc walk,
                                            void *user_data)
 {
-  GpencilModifierData *md = static_cast<GpencilModifierData *>(ob->greasepencil_modifiers.first);
+  GpencilModifierData *md = ob->greasepencil_modifiers.first();
 
   for (; md; md = md->next) {
     gpencil_modifier_foreach_ID_link(md, ob, walk, user_data);

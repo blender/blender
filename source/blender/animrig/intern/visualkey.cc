@@ -53,7 +53,7 @@ bool visualkey_can_use(PointerRNA *ptr, PropertyRNA *prop)
     Object *ob = static_cast<Object *>(ptr->data);
     RigidBodyOb *rbo = ob->rigidbody_object;
 
-    con = static_cast<bConstraint *>(ob->constraints.first);
+    con = ob->constraints.first();
     has_parent = (ob->parent != nullptr);
 
     /* Active rigidbody objects only, as only those are affected by sim. */
@@ -69,7 +69,7 @@ bool visualkey_can_use(PointerRNA *ptr, PropertyRNA *prop)
       return true;
     }
 
-    con = static_cast<bConstraint *>(pchan->constraints.first);
+    con = pchan->constraints.first();
     has_parent = (pchan->parent != nullptr);
   }
   else {

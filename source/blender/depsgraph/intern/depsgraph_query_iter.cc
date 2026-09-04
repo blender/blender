@@ -294,7 +294,7 @@ static Object *find_object_with_preview_geometry(const ViewerPath &viewer_path)
   if (viewer_path.path.is_empty()) {
     return nullptr;
   }
-  const ViewerPathElem *elem = static_cast<const ViewerPathElem *>(viewer_path.path.first);
+  const ViewerPathElem *elem = viewer_path.path.first();
   if (elem->type != VIEWER_PATH_ELEM_TYPE_ID) {
     return nullptr;
   }

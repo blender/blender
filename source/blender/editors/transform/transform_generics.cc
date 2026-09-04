@@ -69,7 +69,7 @@ void resetTransRestrictions(TransInfo *t)
 static void *t_view_get(TransInfo *t)
 {
   if (t->spacetype == SPACE_VIEW3D) {
-    View3D *v3d = static_cast<View3D *>(t->area->spacedata.first);
+    View3D *v3d = t->area->spacedata.first_as<View3D>();
     return static_cast<void *>(v3d);
   }
   if (t->region) {
@@ -95,15 +95,15 @@ static int t_around_get(TransInfo *t)
       return t->settings->transform_pivot_point;
     }
     case SPACE_IMAGE: {
-      SpaceImage *sima = static_cast<SpaceImage *>(area->spacedata.first);
+      SpaceImage *sima = area->spacedata.first_as<SpaceImage>();
       return sima->around;
     }
     case SPACE_GRAPH: {
-      SpaceGraph *sipo = static_cast<SpaceGraph *>(area->spacedata.first);
+      SpaceGraph *sipo = area->spacedata.first_as<SpaceGraph>();
       return sipo->around;
     }
     case SPACE_CLIP: {
-      SpaceClip *sclip = static_cast<SpaceClip *>(area->spacedata.first);
+      SpaceClip *sclip = area->spacedata.first_as<SpaceClip>();
       return sclip->around;
     }
     case SPACE_SEQ: {
@@ -301,7 +301,7 @@ void initTransInfo(bContext *C, TransInfo *t, wmOperator *op, const wmEvent *eve
     }
   }
   else if (t->spacetype == SPACE_IMAGE) {
-    SpaceImage *sima = static_cast<SpaceImage *>(area->spacedata.first);
+    SpaceImage *sima = area->spacedata.first_as<SpaceImage>();
     BKE_view_layer_synced_ensure(*t->bmain, t->scene, t->view_layer);
     if (ED_space_image_show_uvedit(sima, BKE_view_layer_active_object_get(t->view_layer))) {
       /* UV transform. */
@@ -319,7 +319,7 @@ void initTransInfo(bContext *C, TransInfo *t, wmOperator *op, const wmEvent *eve
     /* Image not in UV edit, nor in mask mode, can happen for some tools. */
   }
   else if (t->spacetype == SPACE_CLIP) {
-    SpaceClip *sclip = static_cast<SpaceClip *>(area->spacedata.first);
+    SpaceClip *sclip = area->spacedata.first_as<SpaceClip>();
     if (ED_space_clip_check_show_trackedit(sclip)) {
       t->options |= CTX_MOVIECLIP;
     }
@@ -816,7 +816,7 @@ void postTrans(bContext *C, TransInfo *t)
       /* Pass. */
     }
     else {
-      SpaceImage *sima = static_cast<SpaceImage *>(t->area->spacedata.first);
+      SpaceImage *sima = t->area->spacedata.first_as<SpaceImage>();
       if (sima->flag & SI_LIVE_UNWRAP) {
         ED_uvedit_live_unwrap_end(t->state == TRANS_CANCEL);
       }
@@ -963,17 +963,17 @@ void calculateCenterCursor2D(TransInfo *t, float r_center[2])
   const float *cursor = nullptr;
 
   if (t->spacetype == SPACE_IMAGE) {
-    SpaceImage *sima = static_cast<SpaceImage *>(t->area->spacedata.first);
+    SpaceImage *sima = t->area->spacedata.first_as<SpaceImage>();
     cursor = sima->cursor;
   }
   if (t->spacetype == SPACE_SEQ) {
-    SpaceSeq *sseq = static_cast<SpaceSeq *>(t->area->spacedata.first);
+    SpaceSeq *sseq = t->area->spacedata.first_as<SpaceSeq>();
     const float2 cursor_pixel = seq::image_preview_unit_to_px(t->scene, sseq->cursor);
     copy_v2_v2(cursor_local_buf, cursor_pixel);
     cursor = cursor_local_buf;
   }
   else if (t->spacetype == SPACE_CLIP) {
-    SpaceClip *space_clip = static_cast<SpaceClip *>(t->area->spacedata.first);
+    SpaceClip *space_clip = t->area->spacedata.first_as<SpaceClip>();
     cursor = space_clip->cursor;
   }
 
@@ -982,11 +982,11 @@ void calculateCenterCursor2D(TransInfo *t, float r_center[2])
       float co[2];
 
       if (t->spacetype == SPACE_IMAGE) {
-        SpaceImage *sima = static_cast<SpaceImage *>(t->area->spacedata.first);
+        SpaceImage *sima = t->area->spacedata.first_as<SpaceImage>();
         BKE_mask_coord_from_image(sima->image, &sima->iuser, co, cursor);
       }
       else if (t->spacetype == SPACE_CLIP) {
-        SpaceClip *space_clip = static_cast<SpaceClip *>(t->area->spacedata.first);
+        SpaceClip *space_clip = t->area->spacedata.first_as<SpaceClip>();
         BKE_mask_coord_from_movieclip(space_clip->clip, &space_clip->user, co, cursor);
       }
       else {
@@ -1011,7 +1011,7 @@ void calculateCenterCursor2D(TransInfo *t, float r_center[2])
 
 void calculateCenterCursorGraph2D(TransInfo *t, float r_center[2])
 {
-  SpaceGraph *sipo = static_cast<SpaceGraph *>(t->area->spacedata.first);
+  SpaceGraph *sipo = t->area->spacedata.first_as<SpaceGraph>();
   Scene *scene = t->scene;
 
   /* Cursor is combination of current frame, and graph-editor cursor value. */
@@ -1200,7 +1200,7 @@ static void calculateZfac(TransInfo *t)
                                   t->center_global);
   }
   else if (t->spacetype == SPACE_IMAGE) {
-    SpaceImage *sima = static_cast<SpaceImage *>(t->area->spacedata.first);
+    SpaceImage *sima = t->area->spacedata.first_as<SpaceImage>();
     t->zfac = 1.0f / sima->zoom;
   }
   else if (t->region) {

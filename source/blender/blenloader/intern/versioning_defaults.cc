@@ -134,7 +134,7 @@ static void blo_update_defaults_screen(bScreen *screen,
 
     if (area.spacetype == SPACE_IMAGE) {
       if (STREQ(workspace_name, "UV Editing")) {
-        SpaceImage *sima = static_cast<SpaceImage *>(area.spacedata.first);
+        SpaceImage *sima = area.spacedata.first_as<SpaceImage>();
         if (sima->mode == SI_MODE_VIEW) {
           sima->mode = SI_MODE_UV;
         }
@@ -142,19 +142,19 @@ static void blo_update_defaults_screen(bScreen *screen,
         sima->uv_edge_opacity = 1.0f;
       }
       else if (STR_ELEM(workspace_name, "Texture Paint", "Shading")) {
-        SpaceImage *sima = static_cast<SpaceImage *>(area.spacedata.first);
+        SpaceImage *sima = area.spacedata.first_as<SpaceImage>();
         /* Face opacity is set to 0 to not interfere with visualization while painting */
         sima->uv_face_opacity = 0.0f;
         sima->uv_edge_opacity = 1.0f;
       }
       else if (BLI_str_startswith(workspace_name, "Compositing")) {
-        SpaceImage *sima = static_cast<SpaceImage *>(area.spacedata.first);
+        SpaceImage *sima = area.spacedata.first_as<SpaceImage>();
         sima->overlay.flag &= ~SI_OVERLAY_DRAW_TEXT_INFO;
       }
     }
     else if (area.spacetype == SPACE_ACTION) {
       /* Show markers region, hide channels and collapse summary in timelines. */
-      SpaceAction *saction = static_cast<SpaceAction *>(area.spacedata.first);
+      SpaceAction *saction = area.spacedata.first_as<SpaceAction>();
       saction->flag |= SACTION_SHOW_MARKERS;
       if (saction->mode == SACTCONT_TIMELINE) {
         saction->ads.flag |= ADS_FLAG_SUMMARY_COLLAPSED;
@@ -175,15 +175,15 @@ static void blo_update_defaults_screen(bScreen *screen,
       }
     }
     else if (area.spacetype == SPACE_GRAPH) {
-      SpaceGraph *sipo = static_cast<SpaceGraph *>(area.spacedata.first);
+      SpaceGraph *sipo = area.spacedata.first_as<SpaceGraph>();
       sipo->flag |= SIPO_SHOW_MARKERS;
     }
     else if (area.spacetype == SPACE_NLA) {
-      SpaceNla *snla = static_cast<SpaceNla *>(area.spacedata.first);
+      SpaceNla *snla = area.spacedata.first_as<SpaceNla>();
       snla->flag |= SNLA_SHOW_MARKERS;
     }
     else if (area.spacetype == SPACE_SEQ) {
-      SpaceSeq *seq = static_cast<SpaceSeq *>(area.spacedata.first);
+      SpaceSeq *seq = area.spacedata.first_as<SpaceSeq>();
       seq->flag |= SEQ_SHOW_MARKERS | SEQ_ZOOM_TO_FIT | SEQ_USE_PROXIES | SEQ_SHOW_OVERLAY;
       seq->render_size = SEQ_RENDER_SIZE_PROXY_100;
       seq->timeline_overlay.flag |= SEQ_TIMELINE_SHOW_STRIP_SOURCE | SEQ_TIMELINE_SHOW_STRIP_NAME |
@@ -198,13 +198,13 @@ static void blo_update_defaults_screen(bScreen *screen,
     }
     else if (area.spacetype == SPACE_TEXT) {
       /* Show syntax and line numbers in Script workspace text editor. */
-      SpaceText *stext = static_cast<SpaceText *>(area.spacedata.first);
+      SpaceText *stext = area.spacedata.first_as<SpaceText>();
       stext->showsyntax = true;
       stext->showlinenrs = true;
       stext->flags |= ST_FIND_WRAP;
     }
     else if (area.spacetype == SPACE_VIEW3D) {
-      View3D *v3d = static_cast<View3D *>(area.spacedata.first);
+      View3D *v3d = area.spacedata.first_as<View3D>();
       /* Screen space cavity by default for faster performance. */
       v3d->shading.cavity_type = V3D_SHADING_CAVITY_CURVATURE;
       v3d->shading.flag |= V3D_SHADING_SPECULAR_HIGHLIGHT;
@@ -273,7 +273,7 @@ static void blo_update_defaults_screen(bScreen *screen,
       }
     }
     else if (area.spacetype == SPACE_CLIP) {
-      SpaceClip *sclip = static_cast<SpaceClip *>(area.spacedata.first);
+      SpaceClip *sclip = area.spacedata.first_as<SpaceClip>();
       sclip->around = V3D_AROUND_CENTER_MEDIAN;
       sclip->mask_info.blend_factor = 0.7f;
       sclip->mask_info.draw_flag = MASK_DRAWFLAG_SPLINE;
@@ -284,9 +284,8 @@ static void blo_update_defaults_screen(bScreen *screen,
   const bool hide_image_tool_header = STR_ELEM(workspace_name, "Rendering", "Compositing");
   for (ScrArea &area : screen->areabase) {
     for (SpaceLink &sl : area.spacedata) {
-      ListBaseT<ARegion> *regionbase = (&sl == static_cast<SpaceLink *>(area.spacedata.first)) ?
-                                           &area.regionbase :
-                                           &sl.regionbase;
+      ListBaseT<ARegion> *regionbase = (&sl == area.spacedata.first()) ? &area.regionbase :
+                                                                         &sl.regionbase;
 
       for (ARegion &region : *regionbase) {
         if (region.regiontype == RGN_TYPE_TOOL_HEADER) {
@@ -307,12 +306,12 @@ static void blo_update_defaults_screen(bScreen *screen,
   if (app_template && STREQ(app_template, "2D_Animation")) {
     for (ScrArea &area : screen->areabase) {
       if (area.spacetype == SPACE_ACTION) {
-        SpaceAction *saction = static_cast<SpaceAction *>(area.spacedata.first);
+        SpaceAction *saction = area.spacedata.first_as<SpaceAction>();
         /* Enable Sliders. */
         saction->flag |= SACTION_SLIDERS;
       }
       else if (area.spacetype == SPACE_VIEW3D) {
-        View3D *v3d = static_cast<View3D *>(area.spacedata.first);
+        View3D *v3d = area.spacedata.first_as<View3D>();
         /* Set Material Color by default. */
         v3d->shading.color_type = V3D_SHADING_MATERIAL_COLOR;
         /* Enable Annotations. */
@@ -333,7 +332,7 @@ void BLO_update_defaults_workspace(WorkSpace *workspace, const char *app_templat
   if (blo_is_builtin_template(app_template)) {
     /* Clear all tools to use default options instead, ignore the tool saved in the file. */
     while (!workspace->tools.is_empty()) {
-      BKE_workspace_tool_remove(workspace, static_cast<bToolRef *>(workspace->tools.first));
+      BKE_workspace_tool_remove(workspace, workspace->tools.first());
     }
 
     /* For 2D animation template. */
@@ -348,7 +347,7 @@ void BLO_update_defaults_workspace(WorkSpace *workspace, const char *app_templat
         if (screen) {
           for (ScrArea &area : screen->areabase) {
             if (area.spacetype == SPACE_VIEW3D) {
-              View3D *v3d = static_cast<View3D *>(area.spacedata.first);
+              View3D *v3d = area.spacedata.first_as<View3D>();
               v3d->shading.flag &= ~V3D_SHADING_CAVITY;
               copy_v3_fl(v3d->shading.single_color, 1.0f);
               STRNCPY(v3d->shading.matcap, "basic_1");
@@ -369,8 +368,8 @@ void BLO_update_defaults_workspace(WorkSpace *workspace, const char *app_templat
               if ((reinterpret_cast<SpaceSeq *>(&sl))->view == SEQ_VIEW_PREVIEW) {
                 continue;
               }
-              ListBaseT<ARegion> *regionbase = (&sl == area.spacedata.first) ? &area.regionbase :
-                                                                               &sl.regionbase;
+              ListBaseT<ARegion> *regionbase = (&sl == area.spacedata.first_) ? &area.regionbase :
+                                                                                &sl.regionbase;
               ARegion *sidebar = BKE_region_find_in_listbase_by_type(regionbase, RGN_TYPE_UI);
               sidebar->flag |= RGN_FLAG_HIDDEN;
             }
@@ -444,8 +443,7 @@ static void blo_update_defaults_scene(Main *bmain, Scene *scene)
   }
 
   /* Rename render layers. */
-  BKE_view_layer_rename(
-      bmain, scene, static_cast<ViewLayer *>(scene->view_layers.first), "ViewLayer");
+  BKE_view_layer_rename(bmain, scene, scene->view_layers.first(), "ViewLayer");
 
   /* Disable Z pass by default. */
   for (ViewLayer &view_layer : scene->view_layers) {

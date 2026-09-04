@@ -71,9 +71,7 @@ static void group_copy_inputs(bNode *gnode, bNodeStack **in, bNodeStack *gstack)
 
   for (bNode &node : ngroup->nodes) {
     if (node.is_group_input()) {
-      for (sock = static_cast<bNodeSocket *>(node.outputs.first), a = 0; sock;
-           sock = sock->next, a++)
-      {
+      for (sock = node.outputs.first(), a = 0; sock; sock = sock->next, a++) {
         if (in[a]) { /* shouldn't need to check this #36694. */
           ns = node_get_socket_stack(gstack, sock);
           if (ns) {

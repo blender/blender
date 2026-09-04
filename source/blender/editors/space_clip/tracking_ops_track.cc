@@ -261,7 +261,7 @@ static void track_markers_updatejob(void *tmv)
 static void track_markers_endjob(void *tmv)
 {
   TrackMarkersJob *tmj = static_cast<TrackMarkersJob *>(tmv);
-  wmWindowManager *wm = static_cast<wmWindowManager *>(tmj->main->wm.first);
+  wmWindowManager *wm = tmj->main->wm.first();
 
   tmj->clip->tracking_context = nullptr;
   tmj->scene->r.cfra = BKE_movieclip_remap_clip_to_scene_frame(tmj->clip, tmj->lastfra);
