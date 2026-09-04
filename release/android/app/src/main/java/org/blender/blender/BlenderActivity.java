@@ -1,6 +1,8 @@
 package org.blender.blender;
 
 import android.content.res.AssetManager;
+import android.content.Intent;
+import android.net.Uri;
 import android.os.Bundle;
 import android.system.Os;
 import android.util.Log;
@@ -11,6 +13,9 @@ import java.io.InputStream;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.StandardCopyOption;
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.List;
 
 import org.libsdl.app.SDLActivity;
 
@@ -35,20 +40,59 @@ public class BlenderActivity extends SDLActivity {
 
     @Override
     protected String[] getArguments() {
-        // Utility hook to pass command-line start-up arguments via ADB.
+        /* Utility hook to pass command-line start-up arguments via ADB.
+         *
+         * Usage example:
+         *   adb shell am start -n org.blender.blender/.BlenderActivity --es args '"--debug-gpu --log ghost.*,gpu.* --log-level debug"'
+         *
+         * TODO: Disable for non-debug builds, as otherwise this could lead to injection (any other app can launch
+         *       the Blender activity with a --python-expr)
+         */
 
-        // Usage example:
-        //   adb shell am start -n org.blender.blender/.BlenderActivity --es args '"--debug-gpu --log ghost.*,gpu.* --log-level debug"'
+        /* NOTE: naively whitespace-split, quoting (as in --python-expr "something space something") is not supported. */
+        List<String> arguments = new ArrayList<>();
+        Intent intent = getIntent();
 
-        // TODO: Disable for non-debug builds, as otherwise this could lead to injection (any other app can launch
-        //       the Blender activity with a --python-expr)
-
-        // NOTE: naively whitespace-split, quoting (as in --python-expr "something space something") is not supported.
-        String extra = getIntent().getStringExtra("args");
-        if (extra == null || extra.trim().isEmpty()) {
-            return new String[0];
+        String extraArguments = intent.getStringExtra("args");
+        if (extraArguments != null && !extraArguments.trim().isEmpty()) {
+            Collections.addAll(arguments, extraArguments.trim().split("\\s+"));
         }
-        return extra.trim().split("\\s+");
+
+        /* Support opening a .blend file from an Android file browser, copying the file from the opening itent (if any)
+           to app-private storage to access the file via a normal path, and add the resulting path to the argument list.*/
+        try {
+            /* TODO: Handle file intents received while Blender is already running. */
+            String blendFile = copyBlendFileFromIntent(intent);
+            if (blendFile != null) {
+                arguments.add(blendFile);
+            }
+        }
+        catch (IOException e) {
+            Log.e(LOG_TAG, "Failed to copy blend file from Android file browser", e);
+        }
+        return arguments.toArray(new String[0]);
+    }
+
+    private String copyBlendFileFromIntent(Intent intent) throws IOException {
+        Uri uri = Intent.ACTION_VIEW.equals(intent.getAction()) ? intent.getData() : null;
+        if (uri == null) {
+            return null;
+        }
+
+        File incomingDir = new File(getCacheDir(), "incoming");
+        deleteRecursive(incomingDir);
+        Files.createDirectories(incomingDir.toPath());
+
+        File destination = Files.createTempFile(incomingDir.toPath(), "blend-", ".blend").toFile();
+        try (InputStream source = getContentResolver().openInputStream(uri)) {
+            if (source == null) {
+                throw new IOException("Failed to open incoming URI: " + uri);
+            }
+            Files.copy(source, destination.toPath(), StandardCopyOption.REPLACE_EXISTING);
+        }
+
+        Log.i(LOG_TAG, "Copied incoming .blend file to " + destination);
+        return destination.getAbsolutePath();
     }
 
     private static void extractAssetDir(AssetManager assets, String path, File targetDir) throws IOException {
