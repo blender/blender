@@ -16,6 +16,7 @@ from bl_ui.properties_paint_common import (
     brush_basic_grease_pencil_vertex_settings,
     BrushAssetShelf,
     draw_mesh_automasking_settings,
+    show_experimental_texture_paint,
 )
 from bl_ui.properties_grease_pencil_common import (
     AnnotationDataPanel,
@@ -187,7 +188,7 @@ class VIEW3D_HT_tool_header(Header):
                 row.popover(panel="VIEW3D_PT_sculpt_symmetry_for_topbar", text="")
             elif mode_string == 'PAINT_VERTEX':
                 row.popover(panel="VIEW3D_PT_tools_vertexpaint_symmetry_for_topbar", text="")
-            elif mode_string == 'PAINT_TEXTURE' and bpy.context.preferences.experimental.use_3d_texture_paint:
+            elif mode_string == 'PAINT_TEXTURE' and show_experimental_texture_paint(tool_settings.image_paint.brush):
                 row.popover(panel="VIEW3D_PT_tools_imagepaint_symmetry_for_topbar", text="")
         elif mode_string == 'SCULPT_CURVES':
             ob = context.object
@@ -338,7 +339,7 @@ class _draw_tool_settings_context_mode:
         if brush is None:
             return False
 
-        if context.preferences.experimental.use_3d_texture_paint:
+        if show_experimental_texture_paint(brush):
             size = "size"
             size_owner = ups if brush.use_unified_size else brush
             if size_owner.use_locked_size == 'SCENE':

@@ -31,6 +31,7 @@ from bl_ui.properties_paint_common import (
     brush_settings_advanced,
     draw_color_settings,
     supports_shape_panel,
+    show_experimental_texture_paint,
 )
 from bl_ui.utils import PresetPanel
 
@@ -898,7 +899,8 @@ class VIEW3D_PT_tools_brush_falloff_normal(View3DPaintPanel, Panel):
 
     @classmethod
     def poll(cls, context):
-        return context.image_paint_object and not bpy.context.preferences.experimental.use_3d_texture_paint
+        brush = context.tool_settings.image_paint.brush
+        return context.image_paint_object and not show_experimental_texture_paint(brush)
 
     def draw_header(self, context):
         tool_settings = context.tool_settings
@@ -1317,6 +1319,7 @@ class VIEW3D_PT_tools_imagepaint_symmetry(Panel, View3DPaintPanel):
         layout.use_property_decorate = False
 
         image_paint = context.tool_settings.image_paint
+        brush = image_paint.brush
 
         ob = context.object
         mesh = ob.data
@@ -1326,7 +1329,7 @@ class VIEW3D_PT_tools_imagepaint_symmetry(Panel, View3DPaintPanel):
         row.prop(mesh, "use_mirror_y", text="Y", toggle=True)
         row.prop(mesh, "use_mirror_z", text="Z", toggle=True)
 
-        if bpy.context.preferences.experimental.use_3d_texture_paint:
+        if show_experimental_texture_paint(brush):
             row = layout.row(align=True, heading="Tiling")
             row.prop(image_paint, "tile_x", text="X", toggle=True)
             row.prop(image_paint, "tile_y", text="Y", toggle=True)
@@ -1366,7 +1369,7 @@ class VIEW3D_PT_tools_imagepaint_options(View3DPaintPanel, Panel):
         ipaint = tool_settings.image_paint
 
         col = layout.column()
-        if bpy.context.preferences.experimental.use_3d_texture_paint:
+        if show_experimental_texture_paint(ipaint.brush):
             # TODO: Enable dither support
             col.prop(ipaint, "dither", slider=True)
             col.active = False

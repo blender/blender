@@ -213,6 +213,12 @@ def brush_asset_shelf_filter_draw(panel, context):
     layout.prop(prefs.view, "use_filter_brushes_by_tool", text="By Active Tool")
 
 
+def show_experimental_texture_paint(brush):
+    if not bpy.context.preferences.experimental.use_3d_texture_paint or not brush:
+        return False
+    return brush.image_brush_type in {'DRAW'}
+
+
 class UnifiedPaintPanel:
     # subclass must set
     # bl_space_type = 'IMAGE_EDITOR'
@@ -602,7 +608,7 @@ class StrokePanel(BrushPanel):
             row = col.row(align=True)
             row.prop(brush, "spacing", text="Spacing")
 
-        if mode == 'SCULPT' or (mode == 'PAINT_TEXTURE' and bpy.context.preferences.experimental.use_3d_texture_paint):
+        if mode == 'SCULPT' or (mode == 'PAINT_TEXTURE' and show_experimental_texture_paint(brush)):
             col.row().prop(brush, "use_scene_spacing", text="Spacing Distance", expand=True)
 
         if mode in {'PAINT_TEXTURE', 'PAINT_2D', 'SCULPT'}:
@@ -757,7 +763,7 @@ class ShapePanel(BrushPanel):
         settings = self.paint_settings_from_active_tool(context)
         mode = self.get_brush_mode(context)
         brush = settings.brush
-        experimental_texture_paint_enabled = bpy.context.preferences.experimental.use_3d_texture_paint
+        experimental_texture_paint_enabled = show_experimental_texture_paint(brush)
 
         if brush is None:
             return
@@ -1250,7 +1256,7 @@ def brush_shared_settings(layout, context, brush, popover=False):
 
     # 3D and 2D Texture Paint #
     if mode in {'PAINT_TEXTURE', 'PAINT_2D'}:
-        if mode == 'PAINT_TEXTURE' and bpy.context.preferences.experimental.use_3d_texture_paint:
+        if mode == 'PAINT_TEXTURE' and show_experimental_texture_paint(brush):
             size_mode = True
         if not popover:
             blend_mode = brush.image_paint_capabilities.has_color
