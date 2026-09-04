@@ -156,11 +156,14 @@ GPUMaterialFromNodeTreeResult GPU_material_from_nodetree(
 using ConstructGPUMaterialFn = void (*)(void *thunk, GPUMaterial *material);
 
 /* Construct a GPU material from a set of callbacks. See the callback types for more information.
- * The given thunk will be passed as the first parameter of each callback. */
+ * The given thunk will be passed as the first parameter of each callback. The UUID identify a
+ * possible variation for the same graph, for instance, a shader whose output is half precision or
+ * full precision. */
 GPUMaterial *GPU_material_from_callbacks(eGPUMaterialEngine engine,
                                          ConstructGPUMaterialFn construct_function_cb,
                                          GPUCodegenCallbackFn generate_code_function_cb,
-                                         void *thunk);
+                                         void *thunk,
+                                         const uint64_t uuid);
 
 void GPU_material_free_single(GPUMaterial *material);
 void GPU_material_free(ListBaseT<LinkData> *gpumaterial);
