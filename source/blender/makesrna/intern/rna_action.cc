@@ -857,6 +857,63 @@ static ActionChannelbag *rna_ActionStrip_channelbag(ID *dna_action_id,
   return strip_data.channelbag_for_slot(slot);
 }
 
+static std::optional<std::string> rna_ActionGroup_path(const PointerRNA *ptr)
+{
+  bActionGroup *group = ptr->data_as<bActionGroup>();
+
+  /* The ActionGroup should be owned by an Action. Once upon a time they were also used as bone
+   * groups in armatures. */
+  if (GS(ptr->owner_id->name) != ID_AC) {
+    return {};
+  }
+
+  PointerRNA channelbag_ptr;
+
+  if (std::optional<AncestorPointerRNA> channelbag_ancestor_ptr =
+          RNA_struct_search_closest_ancestor_by_type(ptr, RNA_ActionChannelbag))
+  {
+    /* Pass the ActionGroup ancestors to the Channelbag pointer as well, to give the
+     * rna_Channelbag_path() direct access to the containing ActionLayer etc. */
+    channelbag_ptr = {ptr->owner_id,
+                      channelbag_ancestor_ptr->type,
+                      channelbag_ancestor_ptr->data,
+                      ptr->ancestors};
+    BLI_assert_msg(channelbag_ptr.has_data(), "PointerRNA ancestors should not be nullptr");
+  }
+  else {
+    /* Go over all layers, strips, and channelbags to find the group. */
+    animrig::Action &action = reinterpret_cast<bAction *>(ptr->owner_id)->wrap();
+    for (animrig::Layer *layer : action.layers()) {
+      for (animrig::Strip *strip : layer->strips()) {
+        if (strip->type() != animrig::Strip::Type::Keyframe) {
+          continue;
+        }
+
+        animrig::StripKeyframeData &strip_data = strip->data<animrig::StripKeyframeData>(action);
+        for (animrig::Channelbag *channelbag : strip_data.channelbags()) {
+          const int group_index = channelbag->channel_groups().first_index_try(group);
+          if (group_index != -1) {
+            const PointerRNA layer_ptr = RNA_pointer_create_id_subdata(
+                action.id, RNA_ActionLayer, layer);
+            const PointerRNA strip_ptr = RNA_pointer_create_with_parent(
+                layer_ptr, RNA_ActionStrip, strip);
+            channelbag_ptr = RNA_pointer_create_with_parent(
+                layer_ptr, RNA_ActionChannelbag, channelbag);
+          }
+        }
+      }
+    }
+  }
+
+  std::optional<std::string> channelbag_path = rna_Channelbag_path(&channelbag_ptr);
+  BLI_assert_msg(channelbag_path, "ActionChannelbag instances should have an RNA path");
+
+  char name_esc[sizeof(group->name) * 2];
+  BLI_str_escape(name_esc, group->name, sizeof(name_esc));
+
+  return fmt::format("{}.groups[\"{}\"]", *channelbag_path, name_esc);
+}
+
 /**
  * Iterator for the fcurves in a channel group.
  *
@@ -2317,6 +2374,8 @@ static void rna_def_action_group(BlenderRNA *brna)
   srna = RNA_def_struct(brna, "ActionGroup", nullptr);
   RNA_def_struct_sdna(srna, "bActionGroup");
   RNA_def_struct_ui_text(srna, "Action Group", "Groups of F-Curves");
+
+  RNA_def_struct_path_func(srna, "rna_ActionGroup_path");
 
   prop = RNA_def_property(srna, "name", PROP_STRING, PROP_NONE);
   RNA_def_property_ui_text(prop, "Name", "");
