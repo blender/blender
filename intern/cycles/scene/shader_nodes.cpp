@@ -2421,7 +2421,12 @@ NODE_DEFINE(GlassBsdfNode)
   distribution_enum.insert("multi_ggx", CLOSURE_BSDF_MICROFACET_MULTI_GGX_GLASS_ID);
   SOCKET_ENUM(
       distribution, "Distribution", distribution_enum, CLOSURE_BSDF_MICROFACET_GGX_GLASS_ID);
+
+  SOCKET_IN_VECTOR(tangent, "Tangent", zero_float3(), SocketType::LINK_TANGENT);
+
   SOCKET_IN_FLOAT(roughness, "Roughness", 0.0f);
+  SOCKET_IN_FLOAT(anisotropy, "Anisotropy", 0.0f);
+  SOCKET_IN_FLOAT(rotation, "Rotation", 0.0f);
   SOCKET_IN_FLOAT(IOR, "IOR", 1.5f);
 
   SOCKET_IN_FLOAT(thin_film_thickness, "Thin Film Thickness", 0.0f);
@@ -2437,6 +2442,31 @@ GlassBsdfNode::GlassBsdfNode() : BsdfNode(get_node_type())
   closure = CLOSURE_BSDF_MICROFACET_GGX_GLASS_ID;
 }
 
+bool GlassBsdfNode::is_isotropic()
+{
+  /* Keep in sync with the thresholds in OSL's node_glass_bsdf and SVM's svm_node_closure_bsdf. */
+  return (!input("Anisotropy")->link && fabsf(anisotropy) <= 1e-4f);
+}
+
+void GlassBsdfNode::attributes(Shader *shader, AttributeRequestSet *attributes)
+{
+  if (shader->has_surface_link()) {
+    if (!input("Tangent")->link && !is_isotropic()) {
+      attributes->add(ATTR_STD_GENERATED);
+    }
+  }
+
+  ShaderNode::attributes(shader, attributes);
+}
+
+void GlassBsdfNode::simplify_settings(Scene * /* scene */)
+{
+  /* If the anisotropy is close enough to zero, fall back to the isotropic case. */
+  if (is_isotropic()) {
+    disconnect_unused_input("Tangent");
+  }
+}
+
 void GlassBsdfNode::compile(SVMCompiler &compiler)
 {
   closure = distribution;
@@ -2444,10 +2474,13 @@ void GlassBsdfNode::compile(SVMCompiler &compiler)
                     SVMNodeGlassBsdfData{
                         .color = compiler.input_float3("Color"),
                         .roughness = compiler.input_float("Roughness"),
+                        .anisotropy = compiler.input_float("Anisotropy"),
+                        .rotation = compiler.input_float("Rotation"),
                         .ior = compiler.input_float("IOR"),
                         .thin_film_thickness = compiler.input_float("Thin Film Thickness"),
                         .thin_film_ior = compiler.input_float("Thin Film IOR"),
                         .normal_offset = compiler.input_link("Normal"),
+                        .tangent_offset = compiler.input_link("Tangent"),
                     });
 }
 

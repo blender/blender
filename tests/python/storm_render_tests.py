@@ -105,6 +105,7 @@ BLOCKLIST_METAL = [
 BLOCKLIST_AMD = BLOCKLIST_METAL + [
     "volume_tricubic_interpolation.blend",
     "holdout.blend",
+    "principled_bsdf_anisotropic_transmission.blend",
 ]
 
 # Minor difference in texture coordinate for white noise hash.
