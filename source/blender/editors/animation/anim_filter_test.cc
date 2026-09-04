@@ -287,15 +287,14 @@ TEST_F(AnimChannelTest, group_channels)
 {
   using namespace blender::ed::animfilter;
 
-  Slot &slot_cube = action->slot_add();
-  ASSERT_EQ(assign_action_and_slot(action, &slot_cube, cube->id), ActionSlotAssignmentResult::OK);
-  Slot &slot_suzanne = action->slot_add();
-  ASSERT_EQ(assign_action_and_slot(action, &slot_suzanne, suzanne->id),
-            ActionSlotAssignmentResult::OK);
+  Slot &slot_cube = action->slot_add_for_id(cube->id);
+  Slot &slot_suzanne = action->slot_add_for_id(suzanne->id);
+  ASSERT_TRUE(assign_action(action, cube->id));
+  ASSERT_TRUE(assign_action(action, suzanne->id));
 
-  Layer &layer_cube = action->layer_add("Kübus layer");
-  Strip &key_strip_cube = layer_cube.strip_add(*action, Strip::Type::Keyframe);
-  StripKeyframeData &strip_data = key_strip_cube.data<StripKeyframeData>(*action);
+  Layer &action_layer = action->layer_add("Kübus layer");
+  Strip &key_strip = action_layer.strip_add(*action, Strip::Type::Keyframe);
+  StripKeyframeData &strip_data = key_strip.data<StripKeyframeData>(*action);
 
   /* Create multiple FCurves on both objects. */
   const KeyframeSettings settings = get_keyframe_settings(false);
@@ -339,12 +338,20 @@ TEST_F(AnimChannelTest, group_channels)
                  },
                  /*use_minimal_grouping=*/false);
 
-  EXPECT_EQ(6, arena.num_channels());
+  /* (2 F-Curves, in 1 group, in 1 slot) * 2 objects, 1 layer, 1 action, 1 root summary. */
+  EXPECT_EQ(11, arena.num_channels());
 
   const SummaryChannel *root = arena.root();
-  debug_stream_hierarchy(std::cerr, *root);
+  /* debug_stream_hierarchy(std::cerr, *root); */
 
-  EXPECT_TRUE(root->tags().is_empty()) << root->tags();
+  /* All F-Curves are on the same Action & Layer, so these tags should bubble all the way to the
+   * root summary channel. */
+  EXPECT_EQ(root->tags().by_type(ChannelTagType::ACTION)->source_data().data_as<Action>(),
+            this->action)
+      << root->tags();
+  EXPECT_EQ(root->tags().by_type(ChannelTagType::ACTION_LAYER)->source_data().data_as<Layer>(),
+            &action_layer)
+      << root->tags();
 }
 
 }  // namespace blender::animrig::tests

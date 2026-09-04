@@ -33,11 +33,13 @@ static bool has_assigned_action(AnimData &anim_data)
  * \param rna_path_items: the RNA path that points to this channelbag.
  */
 static void channels_for_channelbag(const PointerRNA &channelbag_ptr,
-                                    animrig::Channelbag &channelbag,
                                     ChannelTagStack &tags,
                                     Vector<rna_path::Item> rna_path_items,
                                     ChannelArena &arena)
 {
+  BLI_assert(channelbag_ptr.type == RNA_ActionChannelbag);
+  animrig::Channelbag &channelbag = *channelbag_ptr.data_as<animrig::Channelbag>();
+  BLI_assert(channelbag.slot_handle != animrig::Slot::unassigned);
 
   for (const int64_t fcurve_index : channelbag.fcurves().index_range()) {
     FCurve *fcu = channelbag.fcurve(fcurve_index);
@@ -135,12 +137,13 @@ static void channels_for_action_slot(animrig::Action &action,
                  strip_ptr,
                  ParsedRNAPathRef(rna_path_items)});
 
+      /* Append the channelbag to the RNA path. */
       rna_path_items.append(rna_path::Member{UString("channelbags")});
       rna_path_items.append(rna_path::LookupIndex{channelbag_index});
 
       PointerRNA channelbag_ptr = RNA_pointer_create_with_parent(
-          strip_ptr, RNA_ActionChannelbag, strip);
-      channels_for_channelbag(channelbag_ptr, *channelbag, tags, rna_path_items, arena);
+          strip_ptr, RNA_ActionChannelbag, channelbag);
+      channels_for_channelbag(channelbag_ptr, tags, rna_path_items, arena);
 
       /* Pop the channelbag off the RNA path. */
       rna_path_items.pop_last();
