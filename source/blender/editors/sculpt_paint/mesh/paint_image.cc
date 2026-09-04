@@ -687,7 +687,7 @@ void ED_object_texture_paint_mode_enter(bContext *C)
 void ED_object_texture_paint_mode_exit_ex(Main & /*bmain*/, Scene &scene, Object &ob)
 {
   if (USER_EXPERIMENTAL_TEST(&U, use_3d_texture_paint)) {
-    ed::sculpt_paint::mode_exit_generic(ob, OB_MODE_TEXTURE_PAINT);
+    ed::sculpt_paint::mode_exit_generic(scene, ob, OB_MODE_TEXTURE_PAINT);
   }
   else {
     ob.mode &= ~OB_MODE_TEXTURE_PAINT;
