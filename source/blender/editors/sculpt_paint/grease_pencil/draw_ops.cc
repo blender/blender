@@ -1315,6 +1315,9 @@ static VArray<bool> get_fill_boundary_layers(const GreasePencil &grease_pencil,
 struct FillToolTargetInfo {
   ed::greasepencil::MutableDrawingInfo target;
   Vector<ed::greasepencil::DrawingInfo> sources;
+  /* Used for removing newly created (auto)keyframes again in case the tool does not create fills
+   * and thus makes no changes. */
+  bool is_new_keyframe = false;
 };
 
 static Vector<FillToolTargetInfo> ensure_editable_drawings(const Scene &scene,
@@ -1333,6 +1336,7 @@ static Vector<FillToolTargetInfo> ensure_editable_drawings(const Scene &scene,
   const int target_layer_index = *grease_pencil.get_layer_index(target_layer);
 
   VectorSet<int> target_frames;
+  VectorSet<int> new_keyframes;
   /* Add drawing on the current frame. */
   target_frames.add(scene.r.cfra);
   /* Multi-frame edit: Add drawing on frames that are selected in any layer. */
@@ -1351,11 +1355,16 @@ static Vector<FillToolTargetInfo> ensure_editable_drawings(const Scene &scene,
     for (const int frame_number : target_frames) {
       if (!target_layer.frames().contains(frame_number)) {
         if (use_duplicate_frame) {
-          grease_pencil.insert_duplicate_frame(
-              target_layer, *target_layer.start_frame_at(frame_number), frame_number, false);
+          if (grease_pencil.insert_duplicate_frame(
+                  target_layer, *target_layer.start_frame_at(frame_number), frame_number, false))
+          {
+            new_keyframes.add(frame_number);
+          }
         }
         else {
-          grease_pencil.insert_frame(target_layer, frame_number);
+          if (grease_pencil.insert_frame(target_layer, frame_number)) {
+            new_keyframes.add(frame_number);
+          }
         }
       }
     }
@@ -1378,7 +1387,8 @@ static Vector<FillToolTargetInfo> ensure_editable_drawings(const Scene &scene,
         }
       }
 
-      drawings.append({std::move(target), std::move(sources)});
+      const bool is_new_keyframe = new_keyframes.contains(frame_number);
+      drawings.append({std::move(target), std::move(sources), is_new_keyframe});
     }
   }
 
@@ -1690,6 +1700,13 @@ static bool grease_pencil_apply_fill(bContext &C, wmOperator &op, const wmEvent 
   }
 
   if (!did_create_fill) {
+    /* Remove newly created keyframes again. */
+    for (const FillToolTargetInfo &info : target_drawings) {
+      if (info.is_new_keyframe) {
+        Layer &layer = *grease_pencil.layers_for_write()[info.target.layer_index];
+        grease_pencil.remove_frames(layer, {info.target.frame_number});
+      }
+    }
     BKE_report(op.reports, RPT_ERROR, "No fill created");
   }
 
