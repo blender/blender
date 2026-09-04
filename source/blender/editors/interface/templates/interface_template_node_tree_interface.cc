@@ -91,7 +91,7 @@ class NodeSocketViewItem : public BasicTreeViewItem {
   NodeSocketViewItem(bNodeTree &nodetree,
                      bNodeTreeInterface &interface,
                      bNodeTreeInterfaceSocket &socket)
-      : BasicTreeViewItem(socket.name, ICON_NONE), nodetree_(nodetree), socket_(socket)
+      : BasicTreeViewItem(socket.name(), ICON_NONE), nodetree_(nodetree), socket_(socket)
   {
     set_is_active_fn([interface, &socket]() { return interface.active_item() == &socket.item; });
     set_on_activate_fn([&interface](bContext & /*C*/, BasicTreeViewItem &new_active) {
@@ -159,9 +159,9 @@ class NodeSocketViewItem : public BasicTreeViewItem {
   }
   bool rename(const bContext &C, StringRefNull new_name) override
   {
-    MEM_SAFE_DELETE(socket_.name);
+    MEM_SAFE_DELETE(socket_.name_);
 
-    socket_.name = BLI_strdup(new_name.c_str());
+    socket_.name_ = BLI_strdup(new_name.c_str());
     nodetree_.tree_interface.tag_item_property_changed();
     BKE_main_ensure_invariants(*CTX_data_main(&C), nodetree_.id);
     ED_undo_push(&const_cast<bContext &>(C), new_name.c_str());
@@ -169,7 +169,7 @@ class NodeSocketViewItem : public BasicTreeViewItem {
   }
   StringRef get_rename_string() const override
   {
-    return socket_.name;
+    return socket_.name();
   }
 
   void delete_item(bContext *C) override
@@ -195,7 +195,7 @@ class NodePanelViewItem : public BasicTreeViewItem {
   NodePanelViewItem(bNodeTree &nodetree,
                     bNodeTreeInterface &interface,
                     bNodeTreeInterfacePanel &panel)
-      : BasicTreeViewItem(panel.name, ICON_NONE), nodetree_(nodetree), panel_(panel)
+      : BasicTreeViewItem(panel.name(), ICON_NONE), nodetree_(nodetree), panel_(panel)
   {
     set_is_active_fn([interface, &panel]() { return interface.active_item() == &panel.item; });
     set_on_activate_fn([&interface](bContext & /*C*/, BasicTreeViewItem &new_active) {
@@ -279,7 +279,7 @@ class NodePanelViewItem : public BasicTreeViewItem {
   }
   StringRef get_rename_string() const override
   {
-    return panel_.name;
+    return panel_.name();
   }
 
   void delete_item(bContext *C) override

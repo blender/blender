@@ -8,6 +8,8 @@
 
 #pragma once
 
+#include "DNA_outliner_types.h"
+
 #include "tree_element.hh"
 
 namespace blender {
@@ -22,7 +24,13 @@ class TreeElementConstraintBase final : public AbstractTreeElement {
   // Object &object_;
 
  public:
+  static constexpr eTreeStoreElemType element_type = TSE_CONSTRAINT_BASE;
+
   TreeElementConstraintBase(TreeElement &legacy_te, Object &object);
+
+  /** The ID identifying this element in the tree-store, see #AbstractTreeDisplay::add_element().
+   */
+  static ID *owner_id(Object &object);
 
   std::optional<BIFIconID> get_icon() const override
   {
@@ -36,7 +44,14 @@ class TreeElementConstraint final : public AbstractTreeElement {
   bConstraint &con_;
 
  public:
+  static constexpr eTreeStoreElemType element_type = TSE_CONSTRAINT;
+
   TreeElementConstraint(TreeElement &legacy_te, Object &object, bConstraint &con);
+
+  /** The ID identifying this element in the tree-store, see #AbstractTreeDisplay::add_element().
+   */
+  static ID *owner_id(Object &object, bConstraint &con);
+
   std::optional<BIFIconID> get_icon() const override;
 };
 

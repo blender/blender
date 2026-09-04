@@ -310,6 +310,16 @@ static void build_keylist_for_target(MPathTarget &target, AnimKeylist &keylist)
   }
 }
 
+static bool any_range_contains(const Span<Bounds<int>> ranges, const int frame)
+{
+  for (const Bounds<int> &range : ranges) {
+    if (range.contains(frame)) {
+      return true;
+    }
+  }
+  return false;
+}
+
 void animviz_calc_motionpaths(Depsgraph *depsgraph,
                               Scene *scene,
                               MutableSpan<MPathTarget> targets,
@@ -352,25 +362,27 @@ void animviz_calc_motionpaths(Depsgraph *depsgraph,
     ED_keylist_prepare_for_direct_access(mpt.keylist);
   }
 
-  Bounds<int> evaluated_range = {INT_MAX, INT_MIN};
+  Vector<Bounds<int>> evaluated_ranges;
 
   /* We need this extra loop for the edge case when the ranges of the motion paths don't overlap.
    * We need to touch at least one frame of each motion path to ensure it has the
    * `MOTIONPATH_VERT_EVALUATED` flag. In practice this will almost always be the case and this
-   * loop will trigger the `continue` immediately below. */
+   * loop will trigger the `continue` immediately below. That is because we evaluate all targets
+   * for every frame visited (so we only evaluate the depsgraph once per frame). */
   for (MPathTarget &mpt : targets) {
     /* We can safely skip the target if either the start or end frame of it's range was already
      * visited. That is because if we had visited it, and it would need recalculation,
      * `motionpaths_calc_bake_target` would return true meaning the inner loop would continue to
      * run. */
-    if (evaluated_range.contains(mpt.mpath->start_frame) ||
-        evaluated_range.contains(mpt.mpath->end_frame))
+    if (any_range_contains(evaluated_ranges, mpt.mpath->start_frame) ||
+        any_range_contains(evaluated_ranges, mpt.mpath->end_frame))
     {
       continue;
     }
 
     const int start_frame = clamp_i(modified_frame, mpt.mpath->start_frame, mpt.mpath->end_frame);
     int frame = start_frame;
+    Bounds<int> evaluated_range = {start_frame, start_frame};
 
     bool finished_left = false;
     bool finished_right = false;
@@ -392,7 +404,6 @@ void animviz_calc_motionpaths(Depsgraph *depsgraph,
         any_modified |= motionpaths_calc_bake_target(target, frame, depsgraph, scene->camera);
       }
       if (frame == start_frame) {
-        evaluated_range = {frame, frame};
         frame--;
         continue;
       }
@@ -405,11 +416,19 @@ void animviz_calc_motionpaths(Depsgraph *depsgraph,
       }
 
       if (frame < start_frame) {
-        finished_left |= stable_result_counter >= stable_result_threshold;
+        if (stable_result_counter >= stable_result_threshold) {
+          finished_left = true;
+          /* This has to reset the counter because we will sweep the range right of the start frame
+           * next. */
+          stable_result_counter = 0;
+        }
         evaluated_range.min = frame;
       }
       else {
-        finished_right |= stable_result_counter >= stable_result_threshold;
+        if (stable_result_counter >= stable_result_threshold) {
+          finished_right = true;
+          stable_result_counter = 0;
+        }
         evaluated_range.max = frame;
       }
 
@@ -420,6 +439,8 @@ void animviz_calc_motionpaths(Depsgraph *depsgraph,
         frame = evaluated_range.max + 1;
       }
     }
+
+    evaluated_ranges.append(evaluated_range);
   }
 
   /* Clear recalc flags from targets. */

@@ -19,6 +19,7 @@ __all__ = (
     "extensions_movie",
     "extensions_audio",
     "is_subdir",
+    "is_autoexec",
     "module_names",
     "native_pathsep",
     "reduce_dirs",
@@ -33,6 +34,7 @@ from _bpy_path import (
     extensions_audio,
     extensions_movie,
     extensions_image,
+    is_autoexec,
 )
 
 

@@ -23,6 +23,7 @@
 #include "BKE_node_socket_value_iter.hh"
 #include "BKE_pointcloud.hh"
 #include "BKE_volume.hh"
+#include "BKE_volume_grid.hh"
 
 #include "DNA_curves_types.h"
 #include "DNA_grease_pencil_types.h"
@@ -166,7 +167,7 @@ class RuntimeToBakeValue {
     for (const int value_i : root_values_.index_range()) {
       BakeValues::InputValue &input_value = root_values_[value_i];
       if (input_value.value.is_single()) {
-        const GMutablePointer value_ptr = input_value.value.get_single_ptr();
+        const GMutablePointer value_ptr = input_value.value.get();
         if (value_ptr.is_type<GeometrySet>()) {
           prev_geo = value_ptr.get<GeometrySet>();
           continue;
@@ -175,7 +176,7 @@ class RuntimeToBakeValue {
       if (prev_geo && input_value.field_domain.has_value() &&
           input_value.value.is_context_dependent_field())
       {
-        const fn::GField field = input_value.value.get<fn::GField>();
+        const fn::GField &field = input_value.value.ensure_type<fn::GField>();
         if (field.get_input_if<AttributeFieldInput>()) {
           continue;
         }
@@ -198,7 +199,8 @@ class RuntimeToBakeValue {
         }
         if (any_success) {
           /* Replace the field with the one that was just captured. */
-          input_value.value.set(AttributeFieldInput::from(attribute_name, field.cpp_type()));
+          input_value.value.emplace<fn::GField>(
+              AttributeFieldInput::from(attribute_name, field.cpp_type()));
         }
       }
     }
@@ -212,22 +214,23 @@ class RuntimeToBakeValue {
   [[nodiscard]] bool runtime_to_bake__SocketValueVariant(SocketValueVariant &value_variant)
   {
     if (value_variant.is_context_dependent_field()) {
-      const fn::GField field = value_variant.get<fn::GField>();
+      const fn::GField &field = *value_variant.get_if<fn::GField>();
       if (const auto *attribute_field = field.get_input_if<AttributeFieldInput>()) {
         if (const std::string *new_name = referenced_anonymous_attributes_.lookup_ptr(
                 attribute_field->attribute_name()))
         {
-          value_variant.set(AttributeFieldInput::from(*new_name, field.cpp_type()));
+          value_variant.emplace<fn::GField>(
+              AttributeFieldInput::from(*new_name, field.cpp_type()));
         }
       }
       else {
         /* Only attribute fields can be baked. Other fields are discarded. */
-        value_variant.convert_to_single();
+        value_variant.ensure_type(field.cpp_type());
       }
       return true;
     }
     if (value_variant.is_single()) {
-      GMutablePointer value_ptr = value_variant.get_single_ptr();
+      GMutablePointer value_ptr = value_variant.get();
       return this->runtime_to_bake__GMutablePointer(value_ptr);
     }
     if (value_variant.is_list()) {
@@ -238,7 +241,7 @@ class RuntimeToBakeValue {
           return false;
         }
       }
-      value_variant.set(std::move(list_ptr));
+      value_variant.emplace<nodes::GListPtr>(std::move(list_ptr));
       return true;
     }
     if (value_variant.is_volume_grid()) {
@@ -454,7 +457,7 @@ class BakeToRuntimeValue {
   void bake_to_runtime__SocketValueVariant(SocketValueVariant &value_variant, const StringRef name)
   {
     if (value_variant.is_context_dependent_field()) {
-      const fn::GField field = value_variant.get<fn::GField>();
+      const fn::GField &field = *value_variant.get_if<fn::GField>();
       std::string socket_inspection = nodes::make_anonymous_attribute_socket_inspection_string(
           TIP_("Bake"), name);
       if (const auto *attribute_field = field.get_input_if<AttributeFieldInput>()) {
@@ -462,9 +465,10 @@ class BakeToRuntimeValue {
         if (bake_attribute_name.startswith(anonymous_bake_attribute_prefix)) {
           std::string anonymous_attribute_name = this->get_anonymous_attribute_name(
               bake_attribute_name);
-          value_variant.set(AttributeFieldInput::from(std::move(anonymous_attribute_name),
-                                                      attribute_field->cpp_type(),
-                                                      std::move(socket_inspection)));
+          value_variant.emplace<fn::GField>(
+              AttributeFieldInput::from(std::move(anonymous_attribute_name),
+                                        attribute_field->cpp_type(),
+                                        std::move(socket_inspection)));
         }
       }
       else if (const auto *attribute_field = field.get_input_if<DeferredTypeAttributeFieldInput>())
@@ -476,7 +480,7 @@ class BakeToRuntimeValue {
           {
             std::string anonymous_attribute_name = this->get_anonymous_attribute_name(
                 bake_attribute_name);
-            value_variant.set(AttributeFieldInput::from(
+            value_variant.emplace<fn::GField>(AttributeFieldInput::from(
                 std::move(anonymous_attribute_name), *cpp_type, std::move(socket_inspection)));
           }
         }
@@ -484,7 +488,7 @@ class BakeToRuntimeValue {
       return;
     }
     if (value_variant.is_single()) {
-      GMutablePointer value_ptr = value_variant.get_single_ptr();
+      GMutablePointer value_ptr = value_variant.get();
       this->bake_to_runtime__GMutablePointer(value_ptr);
       return;
     }
@@ -494,7 +498,7 @@ class BakeToRuntimeValue {
         nodes::GList &list = list_ptr.get_for_write();
         this->bake_to_runtime__GList(list);
       }
-      value_variant.set(std::move(list_ptr));
+      value_variant.emplace<nodes::GListPtr>(std::move(list_ptr));
     }
   }
 
@@ -645,6 +649,28 @@ BakeValues BakeValues::from_runtime_values(Vector<InputValue> runtime_values,
   return bake_values;
 }
 
+static bool value_variant_valid_for_socket(const SocketValueVariant &value,
+                                           const CPPType &base_cpp_type)
+{
+  if (value.is_field()) {
+    return value.get_if<fn::GField>()->cpp_type() == base_cpp_type;
+  }
+  if (value.is_list()) {
+    const nodes::GListPtr &list = *value.get_if<nodes::GListPtr>();
+    return !list || list->cpp_type() == base_cpp_type;
+  }
+#ifdef WITH_OPENVDB
+  if (value.is_volume_grid()) {
+    const volume_grid::GVolumeGrid &grid = *value.get_if<volume_grid::GVolumeGrid>();
+    return !grid || grid->cpp_type() == &base_cpp_type;
+  }
+#endif
+  if (value.is_single()) {
+    return value.get().type() == &base_cpp_type;
+  }
+  return false;
+}
+
 Vector<SocketValueVariant> BakeValues::to_runtime_values(const Span<OutputKey> keys,
                                                          const ComputeContext &compute_context,
                                                          BakeDataBlockMap *data_block_map) const
@@ -670,9 +696,8 @@ Vector<SocketValueVariant> BakeValues::to_runtime_values(const Span<OutputKey> k
     }
     output_value = item->value;
     bake_to_runtime_op.bake_to_runtime(output_value, item->name.value_or(""));
-    if (!output_value.valid_for_socket(key.type)) {
+    if (!value_variant_valid_for_socket(output_value, *stype->base_cpp_type)) {
       output_value = *stype->geometry_nodes_default_value;
-      continue;
     }
   }
   return output_values;

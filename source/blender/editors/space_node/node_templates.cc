@@ -359,7 +359,7 @@ static Vector<NodeLinkItem> ui_node_link_items(NodeLinkArg *arg,
          */
         const bke::bNodeSocketType *typeinfo = iosock->socket_typeinfo();
         item.socket_type = typeinfo->type;
-        item.socket_name = iosock->name;
+        item.socket_name = iosock->name().c_str();
         item.node_name = ngroup.id.name + 2;
         item.ngroup = &ngroup;
 

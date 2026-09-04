@@ -36,8 +36,6 @@ ResultPrecision Context::get_precision() const
   return ResultPrecision::Full;
 }
 
-void Context::set_info_message(StringRef /*message*/) const {}
-
 void Context::populate_meta_data_for_pass(const Scene * /*scene*/,
                                           int /*view_layer_id*/,
                                           const char * /*pass_name*/,

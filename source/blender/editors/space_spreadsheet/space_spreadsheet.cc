@@ -835,6 +835,7 @@ void register_spacetype()
   /* regions: right panel buttons */
   art = MEM_new_zeroed<ARegionType>("spacetype spreadsheet right region");
   art->regionid = RGN_TYPE_UI;
+  art->flag = ARegionTypeFlag::UsePanelCategoriesSearch;
   art->prefsizex = UI_SIDEBAR_PANEL_WIDTH;
   art->keymapflag = ED_KEYMAP_UI | ED_KEYMAP_FRAMES;
   art->lock = REGION_DRAW_LOCK_ALL;

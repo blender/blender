@@ -29,19 +29,19 @@ class RecursiveVisitor {
   bool check_SocketValueVariant(const SocketValueVariant &value)
   {
     if (value.is_single()) {
-      const GPointer value_ptr = value.get_single_ptr();
+      const GPointer value_ptr = value.get();
       if (this->check_GPointer(value_ptr)) {
         return true;
       }
     }
     else if (value.is_field()) {
-      const fn::GField field = value.get<fn::GField>();
+      const fn::GField &field = *value.get_if<fn::GField>();
       if (this->check_GField(field)) {
         return true;
       }
     }
     else if (value.is_list()) {
-      const nodes::GListPtr list = value.get<nodes::GListPtr>();
+      const nodes::GListPtr &list = *value.get_if<nodes::GListPtr>();
       if (list) {
         if (this->check_GList(*list)) {
           return true;
@@ -54,14 +54,14 @@ class RecursiveVisitor {
   void edit_SocketValueVariant(SocketValueVariant &value)
   {
     if (value.is_single()) {
-      GMutablePointer value_ptr = value.get_single_ptr();
+      GMutablePointer value_ptr = value.get();
       this->edit_GPointer(value_ptr);
       return;
     }
     if (value.is_field()) {
       fn::GField field = value.extract<fn::GField>();
       this->edit_GField(field);
-      value.set(std::move(field));
+      value.emplace<fn::GField>(std::move(field));
       return;
     }
     if (value.is_list()) {
@@ -69,7 +69,7 @@ class RecursiveVisitor {
       if (list) {
         this->edit_GList(list.get_for_write());
       }
-      value.set(std::move(list));
+      value.emplace<nodes::GListPtr>(std::move(list));
       return;
     }
   }

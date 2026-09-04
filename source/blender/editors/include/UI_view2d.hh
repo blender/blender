@@ -565,6 +565,11 @@ struct View2DEdgePanData {
   double edge_pan_start_time_x, edge_pan_start_time_y;
 };
 
+/**
+ * Whether the region in \a bContext has a #View2D that edge panning can actually move.
+ */
+bool view2d_edge_pan_poll(bContext *C);
+
 void view2d_edge_pan_init(bContext *C,
                           View2DEdgePanData *vpd,
                           float inside_pad,

@@ -165,7 +165,8 @@ static void node_geo_exec(GeoNodeExecParams params)
   if (all_single) {
     GArray<> array(*cpp_type, items.size(), NoInitialization());
     for (const int i : items.index_range()) {
-      void *value_ptr = const_cast<void *>(values[i].get_single_ptr_raw());
+      BLI_assert(values[i].is_single());
+      void *value_ptr = values[i].get_if(*cpp_type);
       cpp_type->move_construct(value_ptr, array[i]);
     }
     params.set_output("List"_ustr, GList::from_garray(std::move(array)));

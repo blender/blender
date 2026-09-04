@@ -81,6 +81,14 @@ void ED_region_tag_redraw_cursor(ARegion *region);
 void ED_region_tag_redraw_no_rebuild(ARegion *region);
 void ED_region_tag_refresh_ui(ARegion *region);
 /**
+ * Attempt to activate an button referencing an RNA property in the \a region, it may redraw the
+ * region so it can try one more time.
+ */
+void ED_region_activate_rna_prop(bContext *C,
+                                 ARegion *region,
+                                 const void *data,
+                                 StringRefNull prop_name);
+/**
  * Tag editor overlays to be redrawn. If in doubt about which parts need to be redrawn (partial
  * clipping rectangle set), redraw everything.
  */

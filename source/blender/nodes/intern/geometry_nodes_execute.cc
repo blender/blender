@@ -82,7 +82,7 @@ template<typename T>
   if (!bke::allow_procedural_attribute_access(attribute_name)) {
     return std::nullopt;
   }
-  return bke::SocketValueVariant::From(bke::AttributeFieldInput::from<T>(attribute_name));
+  return bke::SocketValueVariant::from(bke::AttributeFieldInput::from<T>(attribute_name));
 }
 
 template<typename T>
@@ -92,21 +92,21 @@ static bke::SocketValueVariant load_data_block_input(const GeoNodesCallData *cal
   PropertyRNA &prop = *RNA_struct_find_property(&input_props_ptr, "value");
   if (RNA_property_type(&prop) == PROP_STRING) {
     if (!call_data) {
-      return bke::SocketValueVariant::From(static_cast<T *>(nullptr));
+      return bke::SocketValueVariant::from(static_cast<T *>(nullptr));
     }
     BLI_assert(call_data->operator_data);
     const std::string name = RNA_string_get(&input_props_ptr, "value");
     const ID *id_orig = call_data->operator_data->input_ids->lookup_default(name, nullptr);
     if (!id_orig) {
-      return bke::SocketValueVariant::From(static_cast<T *>(nullptr));
+      return bke::SocketValueVariant::from(static_cast<T *>(nullptr));
     }
     const ID *id_eval = call_data->operator_data->depsgraphs->get_evaluated_id(*id_orig);
-    return bke::SocketValueVariant::From(id_cast<T *>(const_cast<ID *>(id_eval)));
+    return bke::SocketValueVariant::from(id_cast<T *>(const_cast<ID *>(id_eval)));
   }
 
   BLI_assert(RNA_property_type(&prop) == PROP_POINTER);
   T *data_block = id_cast<T *>(RNA_pointer_get(&input_props_ptr, "value").owner_id);
-  return bke::SocketValueVariant::From(data_block);
+  return bke::SocketValueVariant::from(data_block);
 }
 
 static GeometryNodesInputType get_effective_input_type(PointerRNA *input_props_ptr,
@@ -204,7 +204,7 @@ static bke::SocketValueVariant init_socket_cpp_value(const GeoNodesCallData *cal
       }
       if (type == GeometryNodesInputType::Layer) {
         const std::string layer_name = RNA_string_get(input_props_ptr, "layer_name");
-        return bke::SocketValueVariant::From(
+        return bke::SocketValueVariant::from(
             fn::GField::from_input<bke::NamedLayerSelectionFieldInput>(layer_name));
       }
       break;
@@ -248,7 +248,7 @@ static bke::SocketValueVariant init_socket_cpp_value(const GeoNodesCallData *cal
           input_props_ptr, ntree, io_socket);
       if (type == GeometryNodesInputType::Value) {
         const int value = RNA_enum_get(input_props_ptr, "value");
-        return bke::SocketValueVariant::From(MenuValue(value));
+        return bke::SocketValueVariant::from(MenuValue(value));
       }
       break;
     }
@@ -398,7 +398,7 @@ static MultiValueMap<bke::AttrDomain, OutputAttributeInfo> find_output_attribute
 
     const int index = socket->index();
     bke::SocketValueVariant &value_variant = *output_values[index].get<bke::SocketValueVariant>();
-    const fn::GField field = value_variant.get<fn::GField>();
+    const fn::GField &field = value_variant.ensure_type<fn::GField>();
 
     const bNodeTreeInterfaceSocket *interface_socket = tree.interface_outputs()[index];
     const bke::AttrDomain domain = bke::AttrDomain(interface_socket->attribute_domain);
@@ -602,8 +602,8 @@ bke::GeometrySet execute_geometry_nodes_on_geometry(const bNodeTree &btree,
     const bke::bNodeSocketType *typeinfo = interface_socket.socket_typeinfo();
     const eNodeSocketDatatype socket_type = typeinfo ? typeinfo->type : SOCK_CUSTOM;
     if (socket_type == SOCK_GEOMETRY && i == 0) {
-      bke::SocketValueVariant &value = scope.construct<bke::SocketValueVariant>();
-      value.set(std::move(input_geometry));
+      bke::SocketValueVariant &value = scope.construct<bke::SocketValueVariant>(
+          bke::SocketValueVariant::from(std::move(input_geometry)));
       param_inputs[function.inputs.main[0]] = &value;
       continue;
     }
@@ -707,7 +707,7 @@ Vector<InferenceValue> get_geometry_nodes_input_inference_values(const bNodeTree
     if (!value.is_single()) {
       continue;
     }
-    const GPointer single_value = value.get_single_ptr();
+    const GPointer single_value = value.get();
     BLI_assert(single_value.type() == stype->base_cpp_type);
     inference_values[input_i] = InferenceValue::from_primitive(single_value.get());
   }

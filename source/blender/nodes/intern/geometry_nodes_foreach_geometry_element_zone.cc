@@ -485,7 +485,7 @@ class LazyFunctionForForeachGeometryElementZone : public LazyFunction {
             params
                 .get_input<SocketValueVariant>(
                     zone_info_.indices.inputs.main[indices_.inputs.lf_outer[item_i]])
-                .get<GField>();
+                .ensure_type<GField>();
         component_info.field_evaluator->add(item_field);
       }
 
@@ -501,7 +501,7 @@ class LazyFunctionForForeachGeometryElementZone : public LazyFunction {
       /* Prepare indices that are passed into each iteration. */
       component_info.index_values.reinitialize(mask.size());
       mask.foreach_index_optimized<int>(
-          [&](const int i, const int pos) { component_info.index_values[pos].set(i); });
+          [&](const int i, const int pos) { component_info.index_values[pos].emplace<int>(i); });
 
       if (create_element_geometries) {
         if (std::optional<Array<GeometrySet>> element_geometries =
@@ -512,7 +512,7 @@ class LazyFunctionForForeachGeometryElementZone : public LazyFunction {
           threading::parallel_for(
               element_geometries->index_range(), 256, [&](const IndexRange range) {
                 for (const int i : range) {
-                  (*component_info.element_geometries)[i] = SocketValueVariant::From(
+                  (*component_info.element_geometries)[i] = SocketValueVariant::from(
                       (*element_geometries)[i]);
                 }
               });
@@ -524,12 +524,13 @@ class LazyFunctionForForeachGeometryElementZone : public LazyFunction {
       for (const int item_i : IndexRange(node_storage.input_items.items_num)) {
         const NodeForeachGeometryElementInputItem &item = node_storage.input_items.items[item_i];
         const eNodeSocketDatatype socket_type = item.socket_type;
+        const CPPType &base_cpp_type = *bke::socket_type_to_geo_nodes_base_cpp_type(socket_type);
         component_info.item_input_values[item_i].reinitialize(mask.size());
         const GVArray &values = component_info.field_evaluator->get_evaluated(item_i);
         mask.foreach_index(
             [&](const int i, const int pos) {
               SocketValueVariant &value_variant = component_info.item_input_values[item_i][pos];
-              void *buffer = value_variant.allocate_single(socket_type);
+              void *buffer = value_variant.allocate_single(base_cpp_type);
               values.get_to_uninitialized(i, buffer);
             },
             exec_mode::grain_size(1024));
@@ -681,7 +682,7 @@ class LazyFunctionForForeachGeometryElementZone : public LazyFunction {
 
     const bNodeSocket &element_geometry_bsocket = zone_.input_node()->output_socket(1);
 
-    static const SocketValueVariant empty_geometry_value = SocketValueVariant::From(GeometrySet());
+    static const SocketValueVariant empty_geometry_value = SocketValueVariant::from(GeometrySet());
     for (const ForeachElementComponent &component_info : eval_storage.components) {
       for (const int i : component_info.body_nodes_range.index_range()) {
         const int body_i = component_info.body_nodes_range[i];
@@ -913,8 +914,7 @@ void LazyFunctionForReduceForeachGeometryElement::handle_main_items_and_geometry
       mask.foreach_index([&](const int i, const int pos) {
         const int lf_param_index = pos * body_main_outputs_num + item_i;
         SocketValueVariant &value_variant = params.get_input<SocketValueVariant>(lf_param_index);
-        value_variant.convert_to_single();
-        const void *value = value_variant.get_single_ptr_raw();
+        const void *value = value_variant.ensure_type(*base_cpp_type);
         base_cpp_type->copy_construct(value, attribute.span[i]);
       });
 
@@ -927,11 +927,11 @@ void LazyFunctionForReduceForeachGeometryElement::handle_main_items_and_geometry
         *base_cpp_type,
         make_anonymous_attribute_socket_inspection_string(
             parent_.output_bnode_.output_socket(parent_.indices_.main.bsocket_outer[item_i])));
-    params.set_output(1 + item_i, SocketValueVariant::From(std::move(attribute_field)));
+    params.set_output(1 + item_i, SocketValueVariant::from(std::move(attribute_field)));
   }
 
   /* Output the original geometry with potentially additional attributes. */
-  params.set_output(main_geometry_output, SocketValueVariant::From(std::move(output_geometry)));
+  params.set_output(main_geometry_output, SocketValueVariant::from(std::move(output_geometry)));
 }
 
 void LazyFunctionForReduceForeachGeometryElement::handle_generation_items(
@@ -1136,7 +1136,7 @@ void LazyFunctionForReduceForeachGeometryElement::handle_generation_items_group(
         const AttrDomain capture_domain = AttrDomain(item.domain);
         const int field_param_i = body_i * body_main_outputs_num +
                                   parent_.indices_.generation.lf_inner[item_i];
-        GField field = params.get_input<SocketValueVariant>(field_param_i).get<GField>();
+        GField field = params.get_input<SocketValueVariant>(field_param_i).copy_as<GField>();
 
         if (capture_domain == AttrDomain::Instance) {
           if (geometry.has_instances()) {
@@ -1179,7 +1179,7 @@ void LazyFunctionForReduceForeachGeometryElement::handle_generation_items_group(
 
   /* Output the joined geometry. */
   params.set_output(parent_.indices_.generation.lf_outer[geometry_item_i],
-                    SocketValueVariant::From(std::move(joined_geometry)));
+                    SocketValueVariant::from(std::move(joined_geometry)));
 
   /* Output the anonymous attribute fields. */
   for (const int local_item_i : generation_items_range.index_range()) {
@@ -1195,7 +1195,7 @@ void LazyFunctionForReduceForeachGeometryElement::handle_generation_items_group(
         make_anonymous_attribute_socket_inspection_string(
             parent_.output_bnode_.output_socket(2 + node_storage.main_items.items_num + item_i)));
     params.set_output(parent_.indices_.generation.lf_outer[item_i],
-                      bke::SocketValueVariant::From(std::move(attribute_field)));
+                      bke::SocketValueVariant::from(std::move(attribute_field)));
   }
 }
 

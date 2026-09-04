@@ -8,6 +8,8 @@
 
 #pragma once
 
+#include "DNA_outliner_types.h"
+
 #include "tree_element.hh"
 
 #include "BKE_action.hh"
@@ -22,6 +24,8 @@ class TreeElementAnimData final : public AbstractTreeElement {
   AnimData &anim_data_;
 
  public:
+  static constexpr eTreeStoreElemType element_type = TSE_ANIM_DATA;
+
   TreeElementAnimData(TreeElement &legacy_te, AnimData &anim_data);
 
   void expand(SpaceOutliner &space_outliner) const override;

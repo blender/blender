@@ -1078,40 +1078,40 @@ namespace implicit_field_inputs {
 
 static void position(const bNode & /*node*/, void *r_value)
 {
-  bke::SocketValueVariant::ConstructIn(r_value,
-                                       bke::AttributeFieldInput::get_field<float3, "position">());
+  bke::SocketValueVariant::construct_in(r_value,
+                                        bke::AttributeFieldInput::get_field<float3, "position">());
 }
 
 static void normal(const bNode & /*node*/, void *r_value)
 {
-  bke::SocketValueVariant::ConstructIn(r_value, bke::NormalFieldInput::get_field());
+  bke::SocketValueVariant::construct_in(r_value, bke::NormalFieldInput::get_field());
 }
 
 static void index(const bNode & /*node*/, void *r_value)
 {
-  bke::SocketValueVariant::ConstructIn(r_value, fn::IndexFieldInput::get_field());
+  bke::SocketValueVariant::construct_in(r_value, fn::IndexFieldInput::get_field());
 }
 
 static void id_or_index(const bNode & /*node*/, void *r_value)
 {
-  bke::SocketValueVariant::ConstructIn(r_value, bke::IDAttributeFieldInput::get_field());
+  bke::SocketValueVariant::construct_in(r_value, bke::IDAttributeFieldInput::get_field());
 }
 
 static void instance_transform(const bNode & /*node*/, void *r_value)
 {
-  bke::SocketValueVariant::ConstructIn(
+  bke::SocketValueVariant::construct_in(
       r_value, bke::AttributeFieldInput::get_field<float4x4, "instance_transform">());
 }
 
 static void handle_left(const bNode & /*node*/, void *r_value)
 {
-  bke::SocketValueVariant::ConstructIn(
+  bke::SocketValueVariant::construct_in(
       r_value, bke::AttributeFieldInput::get_field<float3, "handle_left">());
 }
 
 static void handle_right(const bNode & /*node*/, void *r_value)
 {
-  bke::SocketValueVariant::ConstructIn(
+  bke::SocketValueVariant::construct_in(
       r_value, bke::AttributeFieldInput::get_field<float3, "handle_right">());
 }
 

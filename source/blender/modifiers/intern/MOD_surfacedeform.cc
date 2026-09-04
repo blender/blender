@@ -1636,7 +1636,7 @@ static void panel_register(ARegionType *region_type)
 static void blend_write(BlendWriter *writer, const ID *id_owner, const ModifierData *md)
 {
   SurfaceDeformModifierData smd = *reinterpret_cast<const SurfaceDeformModifierData *>(md);
-  const bool is_undo = BLO_write_is_undo(writer);
+  const bool is_undo = writer->is_undo();
 
   if (ID_IS_OVERRIDE_LIBRARY(id_owner) && !is_undo) {
     BLI_assert(!ID_IS_LINKED(id_owner));
@@ -1651,8 +1651,8 @@ static void blend_write(BlendWriter *writer, const ID *id_owner, const ModifierD
   }
 
   if (smd.verts != nullptr) {
-    BLO_write_shared(
-        writer, smd.verts, sizeof(SDefVert) * smd.bind_verts_num, smd.verts_sharing_info, [&]() {
+    writer->write_shared(
+        smd.verts, sizeof(SDefVert) * smd.bind_verts_num, smd.verts_sharing_info, [&]() {
           SDefVert *bind_verts = smd.verts;
           writer->write_struct_array(smd.bind_verts_num, bind_verts);
 

@@ -360,6 +360,12 @@ PyDoc_STRVAR(
 
 PyDoc_STRVAR(
     /* Wrap. */
+    bpy_app_autoexec_doc,
+    "Boolean, True when auto-execution is allowed (read-only).\n"
+    "\n"
+    ":type: bool\n");
+PyDoc_STRVAR(
+    /* Wrap. */
     bpy_app_autoexec_fail_doc,
     "Boolean, True when auto-execution of scripts failed (read-only).\n"
     "\n"
@@ -680,6 +686,11 @@ static PyGetSetDef bpy_app_getsets[] = {
      reinterpret_cast<void *> G_FLAG_INTERNET_OVERRIDE_PREF_ANY},
 
     /* security */
+    {"autoexec",
+     bpy_app_global_flag_get,
+     nullptr,
+     bpy_app_autoexec_doc,
+     reinterpret_cast<void *>(G_FLAG_SCRIPT_AUTOEXEC)},
     {"autoexec_fail",
      bpy_app_global_flag_get,
      nullptr,

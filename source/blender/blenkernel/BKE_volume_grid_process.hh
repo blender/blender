@@ -20,6 +20,8 @@
 #  include "BLI_generic_span.hh"
 #  include "BLI_index_mask_fwd.hh"
 
+#  include "FN_field.hh"
+
 namespace blender::bke::volume_grid {
 
 using LeafNodeMask = openvdb::util::NodeMask<3u>;
@@ -150,6 +152,13 @@ void sample_tree_indices(const VolumeGridType grid_type,
                          Span<int> zs,
                          const IndexMask &mask,
                          GMutableSpan r_values);
+
+std::optional<VolumeGridType> cpp_type_to_grid_type(const CPPType &cpp_type);
+
+void evaluate_fields_to_grid(const openvdb::MaskTree &mask_tree,
+                             const openvdb::math::Transform &transform,
+                             Span<fn::GField> fields,
+                             MutableSpan<bke::GVolumeGrid> r_output_grids);
 
 }  // namespace blender::bke::volume_grid
 

@@ -203,7 +203,9 @@ class LazyFunctionForRepeatZone : public LazyFunction {
 
     /* Number of iterations to evaluate. */
     const int iterations = std::max<int>(
-        0, params.get_input<SocketValueVariant>(zone_info_.indices.inputs.main[0]).get<int>());
+        0,
+        params.get_input<SocketValueVariant>(zone_info_.indices.inputs.main[0])
+            .ensure_type<int>());
 
     if (iterations >= 10) {
       /* Constructing and running the repeat zone has some overhead so that it's probably worth
@@ -264,7 +266,7 @@ class LazyFunctionForRepeatZone : public LazyFunction {
       eval_storage.index_values.reinitialize(iterations);
       threading::parallel_for(IndexRange(iterations), 1024, [&](const IndexRange range) {
         for (const int i : range) {
-          eval_storage.index_values[i].set(i);
+          eval_storage.index_values[i].emplace<int>(i);
         }
       });
     }

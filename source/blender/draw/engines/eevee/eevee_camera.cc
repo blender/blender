@@ -6,7 +6,11 @@
  * \ingroup eevee
  */
 
+#include "BKE_camera.h"
+#include "BKE_scene.hh"
 #include "BKE_screen.hh"
+#include "BLI_enum_flags.hh"
+#include "BLI_math_base.hh"
 #include "BLI_math_matrix.hh"
 #include "BLI_rect.hh"
 
@@ -23,6 +27,106 @@
 #include "eevee_instance.hh"
 
 namespace blender::eevee {
+
+/** Bitmask identifying which of the 6 cubemap faces (in `cubeface_mat()` order) are needed to
+ * cover a given panoramic projection. `FRONT`/`BACK` alias the `NEG_Z`/`POS_Z` faces since those
+ * are the primary and opposite view directions for all panoramic projections. */
+enum class PanoramicViewBits : uint32_t {
+  POS_X = 1u << 0u,
+  NEG_X = 1u << 1u,
+  POS_Y = 1u << 2u,
+  NEG_Y = 1u << 3u,
+  BACK = 1u << 4u,  /* Pos Z. */
+  FRONT = 1u << 5u, /* Neg Z. */
+};
+ENUM_OPERATORS(PanoramicViewBits)
+constexpr PanoramicViewBits PANORAMIC_VIEW_ALL = PanoramicViewBits((1u << 6u) - 1u);
+constexpr PanoramicViewBits PANORAMIC_VIEW_SIDES = PanoramicViewBits::POS_X |
+                                                   PanoramicViewBits::NEG_X |
+                                                   PanoramicViewBits::POS_Y |
+                                                   PanoramicViewBits::NEG_Y;
+
+static PanoramicViewBits panoramic_fisheye_view_mask_get(const CameraData &cam)
+{
+  constexpr float angle_epsilon = 1.0e-4f;
+  const float half_fov = cam.fisheye_fov * 0.5f;
+  PanoramicViewBits mask = PanoramicViewBits::FRONT;
+  if (half_fov >= float(M_PI_4) - angle_epsilon) {
+    mask |= PANORAMIC_VIEW_SIDES;
+  }
+  if (half_fov >= 3.0f * float(M_PI_4) - angle_epsilon) {
+    mask |= PanoramicViewBits::BACK;
+  }
+  return mask;
+}
+
+/* True if `tan(theta) >= 1` somewhere in `[theta_lo, theta_hi]`. */
+static bool tan_range_reaches_one(float theta_lo, float theta_hi)
+{
+  BLI_assert(theta_lo <= theta_hi);
+  constexpr float inv_period = 1.0f / (2.0f * float(M_PI_2));
+  float min_k = ceilf((theta_lo - float(M_PI_2)) * inv_period);
+  float max_k = floorf((theta_hi - float(M_PI_4)) * inv_period);
+  return min_k <= max_k;
+}
+
+/* Same as `tan_range_reaches_one` but for `tan(theta) <= -1`. */
+static bool tan_range_reaches_minus_one(float theta_lo, float theta_hi)
+{
+  return tan_range_reaches_one(-theta_hi, -theta_lo);
+}
+
+/* Shifting or zooming push the sampled UV out of the front face so we need to include the faces
+ * it spills into. Note that `tan` is cyclical so a wide shift wraps around and needs the
+ * opposite neighbor face */
+static PanoramicViewBits panoramic_equiangular_cubemap_face_view_mask_get(const CameraData &cam)
+{
+  const float2 lo = math::min(cam.uv_bias, cam.uv_bias + cam.uv_scale);
+  const float2 hi = math::max(cam.uv_bias, cam.uv_bias + cam.uv_scale);
+
+  /* see `equiangular_cubemap_face_to_direction` in eevee_camera_lib.bsl.hh */
+  const float alpha_lo = (0.5f - hi.x) * float(M_PI_2);
+  const float alpha_hi = (0.5f - lo.x) * float(M_PI_2);
+  const float beta_lo = (lo.y - 0.5f) * float(M_PI_2);
+  const float beta_hi = (hi.y - 0.5f) * float(M_PI_2);
+
+  PanoramicViewBits mask = PanoramicViewBits::FRONT;
+  /* direction.x = -tan(alpha). */
+  if (tan_range_reaches_one(alpha_lo, alpha_hi)) {
+    mask |= PanoramicViewBits::NEG_X;
+  }
+  if (tan_range_reaches_minus_one(alpha_lo, alpha_hi)) {
+    mask |= PanoramicViewBits::POS_X;
+  }
+  /* direction.y = tan(beta). */
+  if (tan_range_reaches_one(beta_lo, beta_hi)) {
+    mask |= PanoramicViewBits::POS_Y;
+  }
+  if (tan_range_reaches_minus_one(beta_lo, beta_hi)) {
+    mask |= PanoramicViewBits::NEG_Y;
+  }
+  return mask;
+}
+
+static PanoramicViewBits panoramic_view_mask_get(const CameraData &cam)
+{
+  switch (cam.type) {
+    case CAMERA_PANO_EQUIANGULAR_CUBEMAP_FACE:
+      return panoramic_equiangular_cubemap_face_view_mask_get(cam);
+    case CAMERA_PANO_EQUIDISTANT:
+    case CAMERA_PANO_EQUISOLID:
+    case CAMERA_PANO_FISHEYE_LENS_POLYNOMIAL:
+      return panoramic_fisheye_view_mask_get(cam);
+    case CAMERA_PANO_EQUIRECT:
+    case CAMERA_PANO_CENTRAL_CYLINDRICAL:
+    case CAMERA_PANO_MIRROR:
+      /* TODO(L3GiaBao): Can exclude faces when longitude/latitude (or u/v for central cylindrical)
+       * is restricted. */
+      return PANORAMIC_VIEW_ALL;
+    default:
+      return PanoramicViewBits::FRONT;
+  }
+}
 
 /* -------------------------------------------------------------------- */
 /** \name Camera
@@ -44,25 +148,33 @@ void Camera::init()
       case CAM_ORTHO:
         data.type = CAMERA_ORTHO;
         break;
-#if 0 /* TODO(fclem): Make fisheye properties inside blender. */
       case CAM_PANO: {
         switch (cam->panorama_type) {
           default:
-          case CAM_PANO_EQUIRECTANGULAR:
+          case CAM_PANORAMA_EQUIRECTANGULAR:
             data.type = CAMERA_PANO_EQUIRECT;
             break;
-          case CAM_PANO_FISHEYE_EQUIDISTANT:
+          case CAM_PANORAMA_EQUIANGULAR_CUBEMAP_FACE:
+            data.type = CAMERA_PANO_EQUIANGULAR_CUBEMAP_FACE;
+            break;
+          case CAM_PANORAMA_FISHEYE_EQUIDISTANT:
             data.type = CAMERA_PANO_EQUIDISTANT;
             break;
-          case CAM_PANO_FISHEYE_EQUISOLID:
+          case CAM_PANORAMA_FISHEYE_EQUISOLID:
             data.type = CAMERA_PANO_EQUISOLID;
             break;
-          case CAM_PANO_MIRRORBALL:
+          case CAM_PANORAMA_FISHEYE_LENS_POLYNOMIAL:
+            data.type = CAMERA_PANO_FISHEYE_LENS_POLYNOMIAL;
+            break;
+          case CAM_PANORAMA_CENTRAL_CYLINDRICAL:
+            data.type = CAMERA_PANO_CENTRAL_CYLINDRICAL;
+            break;
+          case CAM_PANORAMA_MIRRORBALL:
             data.type = CAMERA_PANO_MIRROR;
             break;
         }
+        break;
       }
-#endif
     }
   }
   else if (inst_.drw_view) {
@@ -90,8 +202,9 @@ void Camera::sync()
   int2 display_extent = inst_.film.display_extent_get();
   int2 film_extent = inst_.film.film_extent_get();
   int2 film_offset = inst_.film.film_offset_get();
-  /* Over-scan in film pixel. Not the same as `render_overscan_get`. */
-  int film_overscan = Film::overscan_pixels_get(overscan_, film_extent);
+  /* Over-scan in film pixel. Not the same as `render_overscan_get`.
+   * Panoramic camera render through per-face subviews so this isn't applicable */
+  int film_overscan = this->is_panoramic() ? 0 : Film::overscan_pixels_get(overscan_, film_extent);
 
   rcti film_rect;
   BLI_rcti_init(&film_rect,
@@ -124,6 +237,10 @@ void Camera::sync()
     data.clip_near = -view.far_clip();
     data.clip_far = -view.near_clip();
     data.fisheye_fov = data.fisheye_lens = -1.0f;
+    data.fisheye_sensor = float2(1.0f);
+    data.fisheye_polynomial_bias = 0.0f;
+    data.fisheye_polynomial_coefficients = float4(0.0f);
+    data.central_cylindrical_range = float4(0.0f);
     data.equirect_bias = float2(0.0f);
     data.equirect_scale = float2(0.0f);
     data.uv_scale = float2(1.0f);
@@ -175,23 +292,50 @@ void Camera::sync()
     const blender::Camera *cam = reinterpret_cast<const blender::Camera *>(camera_eval->data);
     data.clip_near = cam->clip_start;
     data.clip_far = cam->clip_end;
-#if 0 /* TODO(fclem): Make fisheye properties inside blender. */
+    if (this->is_panoramic()) {
+      /* Panoramic projection doesn't use winmat so offset the shared uv_bias instead. */
+      data.uv_bias += float2(cam->shiftx, cam->shifty);
+    }
+    if (data.type == CAMERA_PANO_EQUIRECT) {
+      data.equirect_bias.x = -cam->longitude_min + M_PI_2;
+      data.equirect_bias.y = -cam->latitude_min + M_PI_2;
+      data.equirect_scale.x = cam->longitude_min - cam->longitude_max;
+      data.equirect_scale.y = cam->latitude_min - cam->latitude_max;
+      /* Combine with uv_scale/bias to avoid doing extra computation. */
+      data.equirect_bias += data.uv_bias * data.equirect_scale;
+      data.equirect_scale *= data.uv_scale;
+      data.equirect_scale_inv = 1.0f / data.equirect_scale;
+    }
+    else {
+      data.equirect_bias = float2(0.0f);
+      data.equirect_scale = float2(0.0f);
+      data.equirect_scale_inv = float2(0.0f);
+    }
     data.fisheye_fov = cam->fisheye_fov;
     data.fisheye_lens = cam->fisheye_lens;
-    data.equirect_bias.x = -cam->longitude_min + M_PI_2;
-    data.equirect_bias.y = -cam->latitude_min + M_PI_2;
-    data.equirect_scale.x = cam->longitude_min - cam->longitude_max;
-    data.equirect_scale.y = cam->latitude_min - cam->latitude_max;
-    /* Combine with uv_scale/bias to avoid doing extra computation. */
-    data.equirect_bias += data.uv_bias * data.equirect_scale;
-    data.equirect_scale *= data.uv_scale;
-
-    data.equirect_scale_inv = 1.0f / data.equirect_scale;
-#else
-    data.fisheye_fov = data.fisheye_lens = -1.0f;
-    data.equirect_bias = float2(0.0f);
-    data.equirect_scale = float2(0.0f);
-#endif
+    data.fisheye_polynomial_bias = cam->fisheye_polynomial_k0;
+    data.fisheye_polynomial_coefficients = float4(cam->fisheye_polynomial_k1,
+                                                  cam->fisheye_polynomial_k2,
+                                                  cam->fisheye_polynomial_k3,
+                                                  cam->fisheye_polynomial_k4);
+    data.central_cylindrical_range = float4(
+        -cam->central_cylindrical_range_u_min,
+        -cam->central_cylindrical_range_u_max,
+        cam->central_cylindrical_range_v_min / cam->central_cylindrical_radius,
+        cam->central_cylindrical_range_v_max / cam->central_cylindrical_radius);
+    int render_width, render_height;
+    BKE_render_resolution(&inst_.scene->r, false, &render_width, &render_height);
+    const float fit_xratio = float(render_width) * inst_.scene->r.xasp;
+    const float fit_yratio = float(render_height) * inst_.scene->r.yasp;
+    const int sensor_fit = BKE_camera_sensor_fit(cam->sensor_fit, fit_xratio, fit_yratio);
+    if (sensor_fit == CAMERA_SENSOR_FIT_HOR) {
+      data.fisheye_sensor.x = cam->sensor_x;
+      data.fisheye_sensor.y = cam->sensor_x * fit_yratio / fit_xratio;
+    }
+    else {
+      data.fisheye_sensor.x = cam->sensor_y * fit_xratio / fit_yratio;
+      data.fisheye_sensor.y = cam->sensor_y;
+    }
     is_camera_object_ = true;
   }
   else if (inst_.drw_view) {
@@ -199,10 +343,19 @@ void Camera::sync()
     data.clip_near = -inst_.drw_view->near_clip();
     data.clip_far = -inst_.drw_view->far_clip();
     data.fisheye_fov = data.fisheye_lens = -1.0f;
+    data.fisheye_sensor = float2(1.0f);
+    data.fisheye_polynomial_bias = 0.0f;
+    data.fisheye_polynomial_coefficients = float4(0.0f);
+    data.central_cylindrical_range = float4(0.0f);
     data.equirect_bias = float2(0.0f);
     data.equirect_scale = float2(0.0f);
+    data.equirect_scale_inv = float2(0.0f);
   }
 
+  /* 5% over-scan for DoF (see eevee_view.cc) plus user config. */
+  data.panoramic_view_overscan = this->is_panoramic() ? 1.05f + overscan_ : 1.0f;
+  data.panoramic_view_mask = uint32_t(this->is_panoramic() ? panoramic_view_mask_get(data) :
+                                                             PanoramicViewBits::FRONT);
   data_.initialized = true;
 
   update_bounds();
@@ -210,6 +363,15 @@ void Camera::sync()
 
 void Camera::update_bounds()
 {
+  if (this->is_panoramic()) {
+    bound_sphere.center = data_.viewinv.location();
+    bound_sphere.radius = data_.clip_far;
+    /* Each cubemap face covers a fixed 90 degree FOV. At unit distance from the camera, a face's
+     * corners are at (+-1, +-1), so the diagonal is the diagonal of that 2x2 square. */
+    data_.screen_diagonal_length = 2.0f * float(M_SQRT2);
+    return;
+  }
+
   float left, right, bottom, top, near, far;
   projmat_dimensions(data_.winmat.ptr(), &left, &right, &bottom, &top, &near, &far);
 

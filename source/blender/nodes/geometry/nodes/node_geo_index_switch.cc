@@ -337,10 +337,10 @@ class LazyFunctionForIndexSwitchNode : public LazyFunction {
   {
     SocketValueVariant index_variant = params.get_input<SocketValueVariant>(0);
     if (index_variant.is_context_dependent_field() && can_be_field_) {
-      this->execute_field(index_variant.get<Field<int>>(), params);
+      this->execute_field(index_variant.ensure_type<Field<int>>(), params);
     }
     else {
-      this->execute_single(index_variant.get<int>(), params);
+      this->execute_single(index_variant.ensure_type<int>(), params);
     }
   }
 
@@ -399,7 +399,7 @@ class LazyFunctionForIndexSwitchNode : public LazyFunction {
     GField output_field(FieldOperation::from(std::move(switch_fn), std::move(input_fields)));
 
     void *output_ptr = params.get_output_data_ptr(0);
-    SocketValueVariant::ConstructIn(output_ptr, std::move(output_field));
+    SocketValueVariant::construct_in(output_ptr, std::move(output_field));
     params.output_set(0);
   }
 };

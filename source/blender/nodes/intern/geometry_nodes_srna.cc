@@ -125,7 +125,7 @@ static StructRNA *create_inputs_srna(const bNodeTree &tree, GeneratedTreeSrnaDat
     }
     const StringRefNull identifier = r_generated.scope.allocator().copy_string(socket->identifier);
     PropertyRNA *prop = RNA_def_pointer_runtime(
-        srna, identifier.c_str(), socket_srna, socket->name, "");
+        srna, identifier.c_str(), socket_srna, socket->name().c_str(), "");
     RNA_def_property_override_flag(prop, PROPOVERRIDE_OVERRIDABLE_LIBRARY);
   }
 
@@ -155,8 +155,8 @@ static StructRNA *create_outputs_srna(const bNodeTree &tree, GeneratedTreeSrnaDa
     }
 
     const StringRefNull identifier = allocator.copy_string(output->identifier);
-    const StringRefNull name = allocator.copy_string(output->name);
-    const StringRefNull description = allocator.copy_string(output->description);
+    const StringRefNull name = allocator.copy_string(output->name());
+    const StringRefNull description = allocator.copy_string(output->description());
     const StringRefNull default_value = allocator.copy_string(output->default_attribute_name);
 
     StructRNA *output_srna = RNA_def_struct_ptr(

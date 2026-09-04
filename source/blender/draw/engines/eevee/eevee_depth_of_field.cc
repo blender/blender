@@ -50,7 +50,8 @@ void DepthOfField::init()
                                           camera_object_eval->data) :
                                       nullptr;
 
-  enabled_ = camera && (camera->dof.flag & CAM_DOF_ENABLED) != 0;
+  /* TODO: Support depth of field for panoramic camera. */
+  enabled_ = camera && (camera->dof.flag & CAM_DOF_ENABLED) != 0 && camera->type != CAM_PANO;
 
   if (enabled_ == false) {
     /* Set to invalid value for update detection */
@@ -113,11 +114,6 @@ void DepthOfField::sync()
     aperture *= 0.04f;
   }
 
-  if (camera.is_panoramic()) {
-    /* FIXME: Eyeballed. */
-    aperture *= 0.185f;
-  }
-
   if (camera_data->dof.aperture_ratio < 1.0) {
     /* If ratio is scaling the bokeh outwards, we scale the aperture so that
      * the gather kernel size will encompass the maximum axis. */
@@ -156,7 +152,6 @@ void DepthOfField::sync()
     return;
   }
 
-  /* TODO(fclem): Once we render into multiple view, we will need to use the maximum resolution. */
   int2 max_render_res = inst_.film.render_extent_get();
   int2 half_render_res = math::divide_ceil(max_render_res, int2(2));
   int2 reduce_size = math::ceil_to_multiple(half_render_res, int2(DOF_REDUCE_GROUP_SIZE));
@@ -548,7 +543,6 @@ void DepthOfField::render(View &view,
 
   /* Acquire reduce texture mip chains, and views for each mip level. */
   {
-    /* TODO(fclem): Once we render into multiple view, we'll need to use the maximum resolution. */
     int2 max_render_res = inst_.film.render_extent_get();
     int2 half_render_res = math::divide_ceil(max_render_res, int2(2));
     int2 reduce_size = math::ceil_to_multiple(half_render_res, int2(DOF_REDUCE_GROUP_SIZE));

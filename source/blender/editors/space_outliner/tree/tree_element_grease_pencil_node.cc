@@ -14,6 +14,7 @@
 
 #include "../outliner_intern.hh"
 
+#include "tree_display.hh"
 #include "tree_element_grease_pencil_node.hh"
 
 namespace blender::ed::outliner {
@@ -34,13 +35,15 @@ void TreeElementGreasePencilNode::expand(SpaceOutliner & /*space_outliner*/) con
   }
   int index = 0;
   for (GreasePencilLayerTreeNode &child : node_.as_group().children.items_reversed()) {
-    add_element(&legacy_te_.subtree,
-                &owner_grease_pencil_.id,
-                &child,
-                &legacy_te_,
-                TSE_GREASE_PENCIL_NODE,
-                index++);
+    add_element<TreeElementGreasePencilNode>(
+        {.index = index++}, owner_grease_pencil_, child.wrap());
   }
+}
+
+ID *TreeElementGreasePencilNode::owner_id(GreasePencil &owner_grease_pencil,
+                                          bke::greasepencil::TreeNode & /*node*/)
+{
+  return &owner_grease_pencil.id;
 }
 
 bke::greasepencil::TreeNode &TreeElementGreasePencilNode::node() const

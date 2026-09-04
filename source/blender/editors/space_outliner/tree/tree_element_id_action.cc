@@ -12,6 +12,8 @@
 
 #include "../outliner_intern.hh"
 
+#include "tree_display.hh"
+#include "tree_element_action_slot.hh"
 #include "tree_element_anim_data.hh"
 #include "tree_element_id_action.hh"
 
@@ -64,12 +66,8 @@ void TreeElementIDAction::expand(SpaceOutliner & /*space_outliner*/) const
     /* Show all slots of the Action. */
     int index = 0;
     for (animrig::Slot *slot : action.slots()) {
-      add_element(&legacy_te_.subtree,
-                  reinterpret_cast<ID *>(&action_),
-                  slot,
-                  &legacy_te_,
-                  TSE_ACTION_SLOT,
-                  index++);
+      add_element<TreeElementActionSlot>(
+          {.index = index++, .owner_id = reinterpret_cast<ID *>(&action_)}, *slot);
     }
     return;
   }
@@ -80,12 +78,7 @@ void TreeElementIDAction::expand(SpaceOutliner & /*space_outliner*/) const
   if (!slot) {
     return;
   }
-  add_element(&legacy_te_.subtree,
-              reinterpret_cast<ID *>(&action_),
-              slot,
-              &legacy_te_,
-              TSE_ACTION_SLOT,
-              0);
+  add_element<TreeElementActionSlot>({.owner_id = reinterpret_cast<ID *>(&action_)}, *slot);
 }
 
 }  // namespace blender::ed::outliner

@@ -324,8 +324,9 @@ ccl_device
             if (bsdf && fresnel) {
               const bool backfacing = (sd->runtime_flag & SR_BACKFACING);
               bsdf->N = valid_reflection_N;
-              bsdf->T = zero_float3();
-              bsdf->alpha_x = bsdf->alpha_y = sqr(roughness);
+              bsdf->T = T;
+              bsdf->alpha_x = alpha_x;
+              bsdf->alpha_y = alpha_y;
 
               const float dispersion_scale = saturatef(
                   stack_load(stack, data.transmission_dispersion_scale));
@@ -634,7 +635,7 @@ ccl_device
       else {
         bsdf->T = stack_load_float3(stack, bsdf_data.tangent_offset);
 
-        /* rotate tangent */
+        /* Rotate tangent. */
         const float rotation = stack_load(stack, bsdf_data.rotation);
         if (rotation != 0.0f) {
           bsdf->T = rotate_around_axis(bsdf->T, bsdf->N, rotation * M_2PI_F);
@@ -743,11 +744,34 @@ ccl_device
 
       if (bsdf && fresnel) {
         bsdf->N = maybe_ensure_valid_specular_reflection(sd, N);
-        bsdf->T = zero_float3();
+        const float anisotropy = clamp(stack_load(stack, bsdf_data.anisotropy), -0.99f, 0.99f);
+        const float roughness = sqr(saturatef(stack_load(stack, bsdf_data.roughness)));
+        if (!stack_valid(bsdf_data.tangent_offset) || fabsf(anisotropy) <= 1e-4f) {
+          /* Isotropic case. */
+          bsdf->T = zero_float3();
+          bsdf->alpha_x = bsdf->alpha_y = roughness;
+        }
+        else {
+          bsdf->T = stack_load_float3(stack, bsdf_data.tangent_offset);
+
+          /* Rotate tangent. */
+          const float rotation = stack_load(stack, bsdf_data.rotation);
+          if (rotation != 0.0f) {
+            bsdf->T = rotate_around_axis(bsdf->T, bsdf->N, rotation * M_2PI_F);
+          }
+
+          if (anisotropy < 0.0f) {
+            bsdf->alpha_x = roughness / (1.0f + anisotropy);
+            bsdf->alpha_y = roughness * (1.0f + anisotropy);
+          }
+          else {
+            bsdf->alpha_x = roughness * (1.0f - anisotropy);
+            bsdf->alpha_y = roughness / (1.0f - anisotropy);
+          }
+        }
 
         const float ior = fmaxf(stack_load(stack, bsdf_data.ior), 1e-5f);
         bsdf->ior = (sd->runtime_flag & SR_BACKFACING) ? 1.0f / ior : ior;
-        bsdf->alpha_x = bsdf->alpha_y = sqr(saturatef(stack_load(stack, bsdf_data.roughness)));
 
         fresnel->f0 = make_float3(F0_from_ior(ior));
         fresnel->f90 = white;

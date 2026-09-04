@@ -959,12 +959,12 @@ static void image_buttons_region_init(wmWindowManager *wm, ARegion *region)
   WM_event_add_keymap_handler(&region->runtime->handlers, keymap);
 }
 
-static void image_buttons_region_layout(const bContext *C, ARegion *region)
+std::array<const char *, 4> ED_image_buttons_contexts(const bContext *C)
 {
   const enum eContextObjectMode mode = CTX_data_mode_enum(C);
-  const char *contexts_base[3] = {nullptr};
+  std::array<const char *, 4> contexts_base = {nullptr};
 
-  const char **contexts = contexts_base;
+  const char **contexts = contexts_base.data();
 
   SpaceImage *sima = CTX_wm_space_image(C);
   switch (sima->mode) {
@@ -981,12 +981,18 @@ static void image_buttons_region_layout(const bContext *C, ARegion *region)
       }
       break;
   }
+  return contexts_base;
+}
+
+static void image_buttons_region_layout(const bContext *C, ARegion *region)
+{
+  std::array<const char *, 4> contexts = ED_image_buttons_contexts(C);
 
   ED_region_panels_layout_ex(C,
                              region,
                              &region->runtime->type->paneltypes,
                              wm::OpCallContext::InvokeRegionWin,
-                             contexts_base,
+                             contexts.data(),
                              nullptr);
 }
 
@@ -1367,6 +1373,7 @@ void ED_spacetype_image()
   /* regions: list-view/buttons/scopes */
   art = MEM_new_zeroed<ARegionType>("spacetype image region");
   art->regionid = RGN_TYPE_UI;
+  art->flag = ARegionTypeFlag::UsePanelCategoriesSearch;
   art->prefsizex = UI_SIDEBAR_PANEL_WIDTH;
   art->keymapflag = ED_KEYMAP_UI | ED_KEYMAP_FRAMES;
   art->listener = image_buttons_region_listener;

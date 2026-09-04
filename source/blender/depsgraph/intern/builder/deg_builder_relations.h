@@ -137,7 +137,10 @@ class DepsgraphRelationBuilder : public DepsgraphBuilder {
   virtual void build_scene_parameters(Scene *scene);
   virtual void build_scene_compositor(Scene *scene);
 
-  virtual bool build_layer_collection(LayerCollection *layer_collection);
+  /* Excluded layer collections are not built themselves, but their children are, attached to
+   * `parent_hierarchy_key`: the nearest non-excluded ancestor (or the scene). */
+  virtual void build_layer_collections(LayerCollection *layer_collection,
+                                       const ComponentKey &parent_hierarchy_key);
   virtual void build_view_layer_collections(ViewLayer *view_layer);
 
   virtual void build_view_layer(Scene *scene,

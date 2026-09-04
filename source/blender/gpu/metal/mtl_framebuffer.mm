@@ -188,7 +188,6 @@ bool MTLFrameBuffer::check(char err_out[256])
               BLI_snprintf(err_out, 256, format, name_);
             }
             else {
-              fprintf(stderr, format, name_);
               MTL_LOG_ERROR(format, name_);
             }
             return false;
@@ -203,7 +202,6 @@ bool MTLFrameBuffer::check(char err_out[256])
           BLI_snprintf(err_out, 256, format, name_);
         }
         else {
-          fprintf(stderr, format, name_);
           MTL_LOG_ERROR(format, name_);
         }
         return false;
@@ -221,13 +219,12 @@ bool MTLFrameBuffer::check(char err_out[256])
 
       if (!valid) {
         const char *format =
-            "Framebuffer %n: Depth attachment does not have usage "
+            "Framebuffer %s: Depth attachment does not have usage "
             "'GPU_TEXTURE_USAGE_ATTACHMENT'\n";
         if (err_out) {
           BLI_snprintf(err_out, 256, format, name_);
         }
         else {
-          fprintf(stderr, format, name_);
           MTL_LOG_ERROR(format, name_);
         }
         return false;
@@ -236,13 +233,12 @@ bool MTLFrameBuffer::check(char err_out[256])
     else {
       if (dim_x != depth_att.texture->width_get() || dim_y != depth_att.texture->height_get()) {
         const char *format =
-            "Framebuffer %n: Depth attachment dimensions do not match that of previous "
+            "Framebuffer %s: Depth attachment dimensions do not match that of previous "
             "attachment\n";
         if (err_out) {
           BLI_snprintf(err_out, 256, format, name_);
         }
         else {
-          fprintf(stderr, format, name_);
           MTL_LOG_ERROR(format, name_);
         }
         return false;
@@ -264,7 +260,6 @@ bool MTLFrameBuffer::check(char err_out[256])
           BLI_snprintf(err_out, 256, format, name_);
         }
         else {
-          fprintf(stderr, format, name_);
           MTL_LOG_ERROR(format, name_);
         }
         return false;
@@ -280,7 +275,6 @@ bool MTLFrameBuffer::check(char err_out[256])
           BLI_snprintf(err_out, 256, format, name_);
         }
         else {
-          fprintf(stderr, format, name_);
           MTL_LOG_ERROR(format, name_);
         }
         return false;

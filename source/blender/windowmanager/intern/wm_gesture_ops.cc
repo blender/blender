@@ -37,7 +37,16 @@
 #include "ED_screen.hh"
 #include "ED_select_utils.hh"
 
+#include "UI_view2d.hh"
+
 #include "RNA_access.hh"
+
+#define GESTURE_EDGE_PAN_INSIDE_PAD 2
+#define GESTURE_EDGE_PAN_OUTSIDE_PAD 0
+#define GESTURE_EDGE_PAN_SPEED_RAMP 1.0f
+#define GESTURE_EDGE_PAN_MAX_SPEED 26.0f
+#define GESTURE_EDGE_PAN_DELAY 0.5f
+#define GESTURE_EDGE_PAN_ZOOM_INFLUENCE 0.0f
 
 namespace blender {
 
@@ -89,6 +98,16 @@ static void gesture_modal_state_to_operator(wmOperator *op, int modal_state)
       }
       break;
   }
+}
+
+void gesture_init_mval_set(wmGesture *gesture, const int2 mval)
+{
+  if (gesture->edge_pan_data == nullptr) {
+    return;
+  }
+  const View2D *v2d = gesture->edge_pan_data->v2d;
+  gesture->init_mval_view = float2(ui::view2d_region_to_view_x(v2d, mval.x),
+                                   ui::view2d_region_to_view_y(v2d, mval.y));
 }
 
 static int UNUSED_FUNCTION(gesture_modal_state_from_operator)(wmOperator *op)
@@ -181,6 +200,20 @@ wmOperatorStatus WM_gesture_box_invoke(bContext *C, wmOperator *op, const wmEven
   {
     wmGesture *gesture = static_cast<wmGesture *>(op->customdata);
     gesture->wait_for_input = wait_for_input;
+    if (ui::view2d_edge_pan_poll(C)) {
+      gesture->edge_pan_data = MEM_new<ui::View2DEdgePanData>(__func__);
+      ui::view2d_edge_pan_init(C,
+                               gesture->edge_pan_data,
+                               GESTURE_EDGE_PAN_INSIDE_PAD,
+                               GESTURE_EDGE_PAN_OUTSIDE_PAD,
+                               GESTURE_EDGE_PAN_SPEED_RAMP,
+                               GESTURE_EDGE_PAN_MAX_SPEED,
+                               GESTURE_EDGE_PAN_DELAY,
+                               GESTURE_EDGE_PAN_ZOOM_INFLUENCE);
+
+      const rcti *rect = static_cast<const rcti *>(gesture->customdata);
+      gesture_init_mval_set(gesture, int2(rect->xmin, rect->ymin));
+    }
   }
 
   /* Add modal handler. */
@@ -233,14 +266,25 @@ wmOperatorStatus WM_gesture_box_modal(bContext *C, wmOperator *op, const wmEvent
   else {
     switch (event->type) {
       case MOUSEMOVE: {
+        if (gesture->edge_pan_data) {
+          const View2D *v2d = gesture->edge_pan_data->v2d;
+          ui::view2d_edge_pan_apply_event(C, gesture->edge_pan_data, event);
+          if (!gesture->move) {
+            rect->xmin = ui::view2d_view_to_region_x(v2d, gesture->init_mval_view.x);
+            rect->ymin = ui::view2d_view_to_region_y(v2d, gesture->init_mval_view.y);
+          }
+        }
+
         if (gesture->type == WM_GESTURE_CROSS_RECT && gesture->is_active == false) {
           rect->xmin = rect->xmax = event->xy[0] - gesture->winrct.xmin;
           rect->ymin = rect->ymax = event->xy[1] - gesture->winrct.ymin;
+          gesture_init_mval_set(gesture, int2(rect->xmin, rect->ymin));
         }
         else if (gesture->move) {
           BLI_rcti_translate(rect,
                              (event->xy[0] - gesture->winrct.xmin) - rect->xmax,
                              (event->xy[1] - gesture->winrct.ymin) - rect->ymax);
+          gesture_init_mval_set(gesture, int2(rect->xmin, rect->ymin));
         }
         else {
           rect->xmax = event->xy[0] - gesture->winrct.xmin;

@@ -185,7 +185,7 @@ static bool draw_from_viewer_log_value(CustomSocketDrawParams &params,
   if (!value.is_single()) {
     return false;
   }
-  const GPointer single_value = value.get_single_ptr();
+  const GPointer single_value = value.get();
   return draw_gpointer(params, single_value);
 }
 
@@ -375,12 +375,12 @@ static void log_viewer_attribute(const bNode &node, eval_log::ViewerNodeLog &r_l
     /* Changing the `value` field doesn't change the hash or equality of the item. */
     GMutablePointer geometry_ptr = const_cast<bke::SocketValueVariant &>(
                                        r_log.items.lookup_key_as(*last_geometry_identifier).value)
-                                       .get_single_ptr();
+                                       .get();
     GeometrySet &geometry = *geometry_ptr.get<GeometrySet>();
     if (!(value.is_single() || value.is_field())) {
       continue;
     }
-    const GField field = value.get<GField>();
+    const GField field = value.copy_as<GField>();
     const auto domain_or_auto = bke::AttrDomainSelection(storage.domain);
     if (domain_or_auto == bke::AttrDomainSelection::Instance) {
       if (geometry.has_instances()) {

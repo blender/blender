@@ -1390,6 +1390,15 @@ int popup_context_menu_for_panel(bContext *C, ARegion *region, Panel *panel)
   PopupMenu *pup = popup_menu_begin(C, IFACE_("Sidebar"), ICON_NONE);
   Layout &layout = *popup_menu_layout(pup);
 
+  if (BKE_regiontype_uses_panel_categories_search(region->runtime->type)) {
+    layout.op("UI_OT_region_start_filter",
+              IFACE_("Search..."),
+              ICON_VIEWZOOM,
+              wm::OpCallContext::ExecDefault,
+              UI_ITEM_NONE);
+    layout.separator();
+  }
+
   if (has_panel_category && panel && panel_can_be_pinned(panel)) {
     char tmpstr[80];
     SNPRINTF_UTF8(

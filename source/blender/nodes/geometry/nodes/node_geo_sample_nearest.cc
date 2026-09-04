@@ -8,7 +8,7 @@
 #include "BLI_math_vector.hh"
 
 #include "BKE_bvh.hh"
-#include "BKE_bvhutils.hh"
+#include "BKE_pointcloud.hh"
 
 #include "NOD_rna_define.hh"
 
@@ -19,43 +19,7 @@
 
 #include "node_geometry_util.hh"
 
-namespace blender {
-
-namespace nodes {
-
-void get_closest_in_bvhtree(bke::BVHTreeFromMesh &tree_data,
-                            const VArray<float3> &positions,
-                            const IndexMask &mask,
-                            const MutableSpan<int> r_indices,
-                            const MutableSpan<float> r_distances_sq,
-                            const MutableSpan<float3> r_positions)
-{
-  BLI_assert(positions.size() >= r_indices.size());
-  BLI_assert(positions.size() >= r_distances_sq.size());
-  BLI_assert(positions.size() >= r_positions.size());
-
-  mask.foreach_index([&](const int i) {
-    BVHTreeNearest nearest;
-    nearest.index = -1;
-    nearest.dist_sq = FLT_MAX;
-    const float3 position = positions[i];
-    BLI_bvhtree_find_nearest(
-        tree_data.tree, position, &nearest, tree_data.nearest_callback, &tree_data);
-    if (!r_indices.is_empty()) {
-      r_indices[i] = nearest.index;
-    }
-    if (!r_distances_sq.is_empty()) {
-      r_distances_sq[i] = nearest.dist_sq;
-    }
-    if (!r_positions.is_empty()) {
-      r_positions[i] = nearest.co;
-    }
-  });
-}
-
-}  // namespace nodes
-
-namespace nodes::node_geo_sample_nearest_cc {
+namespace blender::nodes::node_geo_sample_nearest_cc {
 
 static void node_declare(NodeDeclarationBuilder &b)
 {
@@ -89,26 +53,19 @@ static void get_closest_pointcloud_points(const PointCloud &pointcloud,
                                           MutableSpan<float> r_distances_sq)
 {
   BLI_assert(positions.size() >= r_indices.size());
-  const bke::BVHTreeFromPointCloud tree_data = pointcloud.bvh_tree();
-  if (tree_data.tree == nullptr) {
+  if (pointcloud.totpoint == 0) {
     r_indices.fill(0);
     r_distances_sq.fill(0.0f);
     return;
   }
+  const bke::bvh::Tree &tree = pointcloud.bvh_tree();
 
   mask.foreach_index([&](const int i) {
-    BVHTreeNearest nearest;
-    nearest.index = -1;
-    nearest.dist_sq = FLT_MAX;
     const float3 position = positions[i];
-    BLI_bvhtree_find_nearest(tree_data.tree,
-                             position,
-                             &nearest,
-                             tree_data.nearest_callback,
-                             &const_cast<bke::BVHTreeFromPointCloud &>(tree_data));
+    const bke::bvh::ClosestPointResult nearest = *tree.closest_point(position);
     r_indices[i] = nearest.index;
     if (!r_distances_sq.is_empty()) {
-      r_distances_sq[i] = nearest.dist_sq;
+      r_distances_sq[i] = math::distance_squared(position, nearest.position);
     }
   });
 }
@@ -121,8 +78,20 @@ static void get_closest_mesh_points(const Mesh &mesh,
                                     const MutableSpan<float3> r_positions)
 {
   BLI_assert(mesh.verts_num > 0);
-  bke::BVHTreeFromMesh tree_data = mesh.bvh_verts();
-  get_closest_in_bvhtree(tree_data, positions, mask, r_point_indices, r_distances_sq, r_positions);
+  const bke::bvh::Tree &tree = mesh.bvh_verts();
+  mask.foreach_index([&](const int i) {
+    const float3 position = positions[i];
+    const bke::bvh::ClosestPointResult nearest = *tree.closest_point(position);
+    if (!r_point_indices.is_empty()) {
+      r_point_indices[i] = nearest.index;
+    }
+    if (!r_distances_sq.is_empty()) {
+      r_distances_sq[i] = math::distance_squared(position, nearest.position);
+    }
+    if (!r_positions.is_empty()) {
+      r_positions[i] = nearest.position;
+    }
+  });
 }
 
 static void get_closest_mesh_edges(const Mesh &mesh,
@@ -133,8 +102,20 @@ static void get_closest_mesh_edges(const Mesh &mesh,
                                    const MutableSpan<float3> r_positions)
 {
   BLI_assert(mesh.edges_num > 0);
-  bke::BVHTreeFromMesh tree_data = mesh.bvh_edges();
-  get_closest_in_bvhtree(tree_data, positions, mask, r_edge_indices, r_distances_sq, r_positions);
+  const bke::bvh::Tree &tree = mesh.bvh_edges();
+  mask.foreach_index([&](const int i) {
+    const float3 position = positions[i];
+    const bke::bvh::ClosestPointResult nearest = *tree.closest_point(position);
+    if (!r_edge_indices.is_empty()) {
+      r_edge_indices[i] = nearest.index;
+    }
+    if (!r_distances_sq.is_empty()) {
+      r_distances_sq[i] = math::distance_squared(position, nearest.position);
+    }
+    if (!r_positions.is_empty()) {
+      r_positions[i] = nearest.position;
+    }
+  });
 }
 
 static void get_closest_mesh_tris(const Mesh &mesh,
@@ -388,6 +369,4 @@ static void node_register()
 }
 NOD_REGISTER_NODE(node_register)
 
-}  // namespace nodes::node_geo_sample_nearest_cc
-
-}  // namespace blender
+}  // namespace blender::nodes::node_geo_sample_nearest_cc

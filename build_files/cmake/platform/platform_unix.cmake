@@ -723,6 +723,15 @@ if(WITH_SYSTEM_AUDASPACE)
   set_and_warn_library_found("External Audaspace" AUDASPACE_FOUND WITH_SYSTEM_AUDASPACE)
 endif()
 
+# Reading desktop settings (the light/dark theme preference) from the XDG desktop portal.
+# Only the headers are needed when `WITH_GHOST_DBUS_DYNLOAD` is enabled, `libdbus` itself is
+# then an optional runtime dependency.
+if(WITH_GHOST_DBUS)
+  find_package(PkgConfig)
+  pkg_check_modules(dbus dbus-1)
+  set_and_warn_library_found("dbus-1" dbus_FOUND WITH_GHOST_DBUS)
+endif()
+
 if(WITH_GHOST_WAYLAND)
   find_package(PkgConfig)
   pkg_check_modules(xkbcommon xkbcommon)

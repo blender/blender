@@ -484,9 +484,12 @@ bool PathTraceWorkGPU::enqueue_path_iteration()
   if (kernel_creates_shadow_paths(kernel)) {
     compact_shadow_paths();
 
-    const int available_shadow_paths = max_num_paths_ -
-                                       integrator_next_shadow_path_index_.data()[0];
-    if (available_shadow_paths < queue_counter->num_queued[kernel]) {
+    /* Number of shadow paths that may be created for every scheduled path. */
+    const int shadow_paths_per_path = kernel_creates_ao_paths(kernel) ? 2 : 1;
+
+    int available_shadow_paths = max_num_paths_ - integrator_next_shadow_path_index_.data()[0];
+
+    if (available_shadow_paths < queue_counter->num_queued[kernel] * shadow_paths_per_path) {
       if (queue_counter->num_queued[DEVICE_KERNEL_INTEGRATOR_SHADE_LIGHT_NEE]) {
         enqueue_path_iteration(DEVICE_KERNEL_INTEGRATOR_SHADE_LIGHT_NEE);
         return true;
@@ -499,10 +502,25 @@ bool PathTraceWorkGPU::enqueue_path_iteration()
         enqueue_path_iteration(DEVICE_KERNEL_INTEGRATOR_SHADE_SHADOW);
         return true;
       }
+
+      /* Rare corner case where there are not even enough available shadow paths
+       * to run the kernel with 1 path, in this case we must force compaction. */
+      if (available_shadow_paths < shadow_paths_per_path) {
+        compact_shadow_paths(true);
+        available_shadow_paths = max_num_paths_ - integrator_next_shadow_path_index_.data()[0];
+      }
     }
-    else if (kernel_creates_ao_paths(kernel)) {
-      /* AO kernel creates two shadow paths, so limit number of states to schedule. */
-      num_paths_limit = available_shadow_paths / 2;
+
+    /* Limit number of scheduled paths to the available shadow path space. */
+    num_paths_limit = available_shadow_paths / shadow_paths_per_path;
+
+    if (kernel == DEVICE_KERNEL_INTEGRATOR_INTERSECT_MNEE) {
+      /* MNEE should not fill in more than half the available shadow paths,
+       * so there is room to run integrator_shade_surface, which is the only
+       * kernel that can release MNEE shadow paths. */
+      const int num_mnee_paths =
+          queue_counter->num_queued[DEVICE_KERNEL_INTEGRATOR_SHADOW_PATH_MNEE_PENDING];
+      num_paths_limit = min(num_paths_limit, max(max_num_paths_ / 2 - num_mnee_paths, 1));
     }
   }
 
@@ -716,7 +734,7 @@ void PathTraceWorkGPU::compact_main_paths(const int num_active_paths)
   max_active_main_path_index_ = num_active_paths;
 }
 
-void PathTraceWorkGPU::compact_shadow_paths()
+void PathTraceWorkGPU::compact_shadow_paths(const bool force)
 {
   IntegratorQueueCounter *queue_counter = integrator_queue_counter_.data();
   const int num_active_paths =
@@ -734,13 +752,13 @@ void PathTraceWorkGPU::compact_shadow_paths()
     return;
   }
 
-  /* Compact if we can reduce the space used by half. Not always since
+  /* Compact if we can reduce the space used by half. Not always unless forced, since
    * compaction has a cost. */
   const float max_overhead_factor = 2.0f;
   const int min_compact_paths = 32;
   const int num_total_paths = integrator_next_shadow_path_index_.data()[0];
-  if (num_total_paths < num_active_paths * max_overhead_factor ||
-      num_total_paths < min_compact_paths)
+  if (!force && (num_total_paths < num_active_paths * max_overhead_factor ||
+                 num_total_paths < min_compact_paths))
   {
     return;
   }

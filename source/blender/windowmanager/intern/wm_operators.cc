@@ -2297,8 +2297,9 @@ static wmOperatorStatus wm_call_panel_exec(bContext *C, wmOperator *op)
   char idname[BKE_ST_MAXNAME];
   RNA_string_get(op->ptr, "name", idname);
   const bool keep_open = RNA_boolean_get(op->ptr, "keep_open");
+  const bool auto_keymap = RNA_boolean_get(op->ptr, "auto_keymap");
 
-  return ui::popover_panel_invoke(C, idname, keep_open, op->reports);
+  return ui::popover_panel_invoke(C, idname, keep_open, auto_keymap, op->reports);
 }
 
 static std::string wm_call_panel_get_name(wmOperatorType *ot, PointerRNA *ptr)
@@ -2332,6 +2333,12 @@ static void WM_OT_call_panel(wmOperatorType *ot)
       (PROP_STRING_SEARCH_SORT | PROP_STRING_SEARCH_SUGGESTION));
   RNA_def_property_flag(prop, PROP_SKIP_SAVE);
   prop = RNA_def_boolean(ot->srna, "keep_open", true, "Keep Open", "");
+  RNA_def_property_flag(prop, PROP_SKIP_SAVE);
+  prop = RNA_def_boolean(ot->srna,
+                         "auto_keymap",
+                         false,
+                         "Auto Keymap",
+                         "Assign accelerator keys to buttons, shown as underlined characters");
   RNA_def_property_flag(prop, PROP_SKIP_SAVE);
 }
 

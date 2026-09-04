@@ -583,7 +583,6 @@ void ObjectManager::device_update_object_transform(UpdateObjectTransformState *s
 
   kobject.tfm = tfm;
   kobject.itfm = itfm;
-  kobject.volume_density = object_volume_density(tfm, geom);
   kobject.color[0] = color.x;
   kobject.color[1] = color.y;
   kobject.color[2] = color.z;
@@ -593,7 +592,6 @@ void ObjectManager::device_update_object_transform(UpdateObjectTransformState *s
   kobject.particle_index = particle_index;
   kobject.motion_offset = 0;
   kobject.position_offset = ATTR_STD_NOT_FOUND;
-  kobject.normal_offset = ATTR_STD_NOT_FOUND;
   kobject.ao_distance = ob->ao_distance;
   kobject.receiver_light_set = ob->receiver_light_set >= LIGHT_LINK_SET_MAX ?
                                    0 :
@@ -629,7 +627,7 @@ void ObjectManager::device_update_object_transform(UpdateObjectTransformState *s
     if (volume->attributes.find(ATTR_STD_VOLUME_VELOCITY) && volume->get_velocity_scale() != 0.0f)
     {
       flag |= SD_OBJECT_HAS_VOLUME_MOTION;
-      kobject.velocity_scale = volume->get_velocity_scale();
+      kobject.mesh_volume.volume_velocity_scale = volume->get_velocity_scale();
     }
   }
   else if (geom->is_mesh()) {
@@ -707,9 +705,11 @@ void ObjectManager::device_update_object_transform(UpdateObjectTransformState *s
   kobject.num_geom_steps = geom->get_motion_steps();
   kobject.num_tfm_steps = ob->motion.size();
   kobject.numverts = object_num_motion_verts(geom);
-  kobject.numprims = (geom->is_mesh() || geom->is_volume()) ?
-                         static_cast<Mesh *>(geom)->num_triangles() :
-                         0;
+  if (geom->is_mesh() || geom->is_volume()) {
+    kobject.mesh_volume.volume_density = object_volume_density(tfm, geom);
+    kobject.mesh_volume.num_prims = static_cast<Mesh *>(geom)->num_triangles();
+    kobject.mesh_volume.normal_offset = ATTR_STD_NOT_FOUND;
+  }
   kobject.attribute_map_offset = 0;
 
   if (ob->asset_name_is_modified() || update_all) {
@@ -1111,8 +1111,8 @@ void ObjectManager::device_update_geom_offsets(Device * /*unused*/,
 
     /* Cached attribute offsets for quick lookup. */
     int position_offset = ATTR_STD_NOT_FOUND;
-    int normal_offset = ATTR_STD_NOT_FOUND;
     if (geom->is_mesh() || geom->is_volume()) {
+      int normal_offset = ATTR_STD_NOT_FOUND;
       position_offset = find_attribute(dscene->attributes_map.data(),
                                        attr_map_offset,
                                        PRIMITIVE_TRIANGLE,
@@ -1135,6 +1135,10 @@ void ObjectManager::device_update_geom_offsets(Device * /*unused*/,
              static_cast<Mesh *>(geom)->num_triangles() == 0);
       assert(normal_offset != ATTR_STD_NOT_FOUND ||
              static_cast<Mesh *>(geom)->num_triangles() == 0);
+      if (kobject.mesh_volume.normal_offset != normal_offset) {
+        kobject.mesh_volume.normal_offset = normal_offset;
+        update = true;
+      }
     }
     else if (geom->is_hair()) {
       position_offset = find_attribute(dscene->attributes_map.data(),
@@ -1155,10 +1159,6 @@ void ObjectManager::device_update_geom_offsets(Device * /*unused*/,
     }
     if (kobject.position_offset != position_offset) {
       kobject.position_offset = position_offset;
-      update = true;
-    }
-    if (kobject.normal_offset != normal_offset) {
-      kobject.normal_offset = normal_offset;
       update = true;
     }
 

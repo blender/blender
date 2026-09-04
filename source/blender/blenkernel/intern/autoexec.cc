@@ -26,7 +26,7 @@
 
 namespace blender {
 
-bool BKE_autoexec_match(const char *path)
+bool BKE_autoexec_match_unchecked(const char *path)
 {
   bPathCompare *path_cmp;
 
@@ -35,9 +35,6 @@ bool BKE_autoexec_match(const char *path)
 #else
   const int fnmatch_flags = 0;
 #endif
-
-  /* Auto-execution must be enabled by the preference or trusted for this session. */
-  BLI_assert((U.flag & USER_SCRIPT_AUTOEXEC_DISABLE) == 0 || (G.f & G_FLAG_SCRIPT_AUTOEXEC));
 
   for (path_cmp = static_cast<bPathCompare *>(U.autoexec_paths.first); path_cmp;
        path_cmp = path_cmp->next)
@@ -56,6 +53,14 @@ bool BKE_autoexec_match(const char *path)
   }
 
   return false;
+}
+
+bool BKE_autoexec_match(const char *path)
+{
+  /* Auto-execution must be enabled by the preference or trusted for this session. */
+  BLI_assert((U.flag & USER_SCRIPT_AUTOEXEC_DISABLE) == 0 || (G.f & G_FLAG_SCRIPT_AUTOEXEC));
+
+  return BKE_autoexec_match_unchecked(path);
 }
 
 }  // namespace blender

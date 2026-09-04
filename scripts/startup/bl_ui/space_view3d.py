@@ -1187,7 +1187,7 @@ class VIEW3D_MT_editor_menus(Menu):
             elif mesh.use_paint_mask_vertex and mode_string in {'PAINT_WEIGHT', 'PAINT_VERTEX'}:
                 layout.menu("VIEW3D_MT_select_paint_mask_vertex")
         elif mode_string not in {
-                'SCULPT', 'SCULPT_CURVES', 'PAINT_GREASE_PENCIL', 'SCULPT_GREASE_PENCIL', 'WEIGHT_GREASE_PENCIL',
+                'SCULPT', 'SCULPT_CURVES', 'SCULPT_GREASE_PENCIL', 'WEIGHT_GREASE_PENCIL',
                 'VERTEX_GREASE_PENCIL',
         }:
             layout.menu("VIEW3D_MT_select_" + mode_string.lower())
@@ -2218,6 +2218,24 @@ class VIEW3D_MT_select_edit_armature(Menu):
         props = layout.operator("armature.select_hierarchy", text="Extend Child")
         props.extend = True
         props.direction = 'CHILD'
+
+
+class VIEW3D_MT_select_paint_grease_pencil(Menu):
+    bl_label = "Select"
+
+    def draw(self, context):
+        layout = self.layout
+
+        layout.operator("grease_pencil.select_all", text="All").action = 'SELECT'
+        layout.operator("grease_pencil.select_all", text="None").action = 'DESELECT'
+        layout.operator("grease_pencil.select_all", text="Invert").action = 'INVERT'
+
+        layout.separator()
+
+        layout.operator_menu_enum("grease_pencil.select_by_stroke_type", "type", text="By Stroke Type")
+        layout.operator("grease_pencil.select_fill")
+
+        layout.template_node_operator_asset_menu_items(catalog_path=self.bl_label)
 
 
 class VIEW3D_MT_select_edit_grease_pencil(Menu):
@@ -9260,6 +9278,7 @@ classes = (
     VIEW3D_MT_select_edit_lattice,
     VIEW3D_MT_select_edit_armature,
     VIEW3D_MT_select_edit_grease_pencil,
+    VIEW3D_MT_select_paint_grease_pencil,
     VIEW3D_MT_select_paint_mask,
     VIEW3D_MT_select_paint_mask_vertex,
     VIEW3D_MT_select_edit_pointcloud,

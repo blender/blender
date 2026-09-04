@@ -336,8 +336,8 @@ void NodeTreeLogger::log_value(const bNode &node, const bNodeSocket &socket, con
 
   if (type.is<bke::SocketValueVariant>()) {
     bke::SocketValueVariant value_variant = *value.get<bke::SocketValueVariant>();
-    if (value_variant.valid_for_socket(SOCK_GEOMETRY)) {
-      const bke::GeometrySet &geometry = value_variant.get<bke::GeometrySet>();
+    if (value_variant.get().is_type<bke::GeometrySet>()) {
+      const bke::GeometrySet &geometry = *value_variant.get_if<bke::GeometrySet>();
       store_logged_value(this->allocator->construct<GeometryInfoLog>(geometry));
     }
     else if (value_variant.is_context_dependent_field()) {
@@ -354,7 +354,7 @@ void NodeTreeLogger::log_value(const bNode &node, const bNodeSocket &socket, con
       const auto list = value_variant.extract<GListPtr>();
       store_logged_value(this->allocator->construct<ListInfoLog>(list));
     }
-    else if (value_variant.valid_for_socket(SOCK_BUNDLE)) {
+    else if (value_variant.get().is_type<BundlePtr>()) {
       Vector<BundleValueLog::Item> items;
       if (const BundlePtr bundle = value_variant.extract<BundlePtr>()) {
         for (const auto &item : bundle->items()) {
@@ -372,7 +372,7 @@ void NodeTreeLogger::log_value(const bNode &node, const bNodeSocket &socket, con
       }
       store_logged_value(this->allocator->construct<BundleValueLog>(std::move(items)));
     }
-    else if (value_variant.valid_for_socket(SOCK_CLOSURE)) {
+    else if (value_variant.get().is_type<ClosurePtr>()) {
       Vector<ClosureValueLog::Item> inputs;
       Vector<ClosureValueLog::Item> outputs;
       std::optional<ClosureSourceLocation> source_location;
@@ -392,8 +392,7 @@ void NodeTreeLogger::log_value(const bNode &node, const bNodeSocket &socket, con
           std::move(inputs), std::move(outputs), source_location, eval_log));
     }
     else {
-      value_variant.convert_to_single();
-      const GPointer value = value_variant.get_single_ptr();
+      const GPointer value = value_variant.get();
       if (value.type()->is<std::string>()) {
         const std::string &string = *value.get<std::string>();
         store_logged_value(this->allocator->construct<StringLog>(string, *this->allocator));
@@ -420,7 +419,7 @@ const bke::GeometrySet *ViewerNodeLog::main_geometry() const
     for (const Item &item : this->items) {
 #ifdef WITH_OPENVDB
       if (item.value.is_volume_grid()) {
-        const bke::GVolumeGrid grid = item.value.get<bke::GVolumeGrid>();
+        const bke::GVolumeGrid grid = *item.value.get_if<bke::GVolumeGrid>();
         Volume *volume = BKE_id_new_nomain<Volume>(nullptr);
         grid->add_user();
         BKE_volume_grid_add(volume, grid.get());
@@ -428,8 +427,8 @@ const bke::GeometrySet *ViewerNodeLog::main_geometry() const
         return;
       }
 #endif
-      if (item.value.is_single() && item.value.get_single_ptr().is_type<bke::GeometrySet>()) {
-        main_geometry_cache_ = *item.value.get_single_ptr().get<bke::GeometrySet>();
+      if (item.value.is_single() && item.value.get().is_type<bke::GeometrySet>()) {
+        main_geometry_cache_ = *item.value.get().get<bke::GeometrySet>();
         return;
       }
     }

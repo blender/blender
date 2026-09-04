@@ -13424,41 +13424,65 @@ void refresh_for_srna_unregister(Main *bmain, StructRNA *srna_to_unreg)
   CTX_free(C);
 }
 
+static Button *block_find_rna_text_button(Block &block,
+                                          const void *rna_poin_data,
+                                          const char *rna_prop_id)
+{
+  for (Button &but : block.buttons()) {
+    if (but.type == ButtonType::Text) {
+      if (but.rnaprop && but.rnapoin.data == rna_poin_data) {
+        if (STREQ(RNA_property_identifier(but.rnaprop), rna_prop_id)) {
+          return &but;
+        }
+      }
+    }
+  }
+  return nullptr;
+}
+
+bool textbutton_activate_rna(const bContext *C,
+                             ARegion *region,
+                             const void *rna_poin_data,
+                             const char *rna_prop_id,
+                             Block &block)
+{
+  Button *but_text = block_find_rna_text_button(block, rna_poin_data, rna_prop_id);
+
+  if (!but_text) {
+    return false;
+  }
+
+  ARegion *region_ctx = CTX_wm_region(C);
+  /* Temporary context override for activating the button. */
+  CTX_wm_region_set(const_cast<bContext *>(C), region);
+  button_active_only(C, region, &block, but_text);
+  CTX_wm_region_set(const_cast<bContext *>(C), region_ctx);
+  return true;
+}
+
 bool textbutton_activate_rna(const bContext *C,
                              ARegion *region,
                              const void *rna_poin_data,
                              const char *rna_prop_id)
 {
-  Block *block_text = nullptr;
   Button *but_text = nullptr;
-
+  Block *block_text = nullptr;
   for (Block &block : region->runtime->uiblocks) {
-    for (Button &but : block.buttons()) {
-      if (but.type == ButtonType::Text) {
-        if (but.rnaprop && but.rnapoin.data == rna_poin_data) {
-          if (STREQ(RNA_property_identifier(but.rnaprop), rna_prop_id)) {
-            block_text = &block;
-            but_text = &but;
-            break;
-          }
-        }
-      }
-    }
+    but_text = block_find_rna_text_button(block, rna_poin_data, rna_prop_id);
+    block_text = &block;
     if (but_text) {
       break;
     }
   }
-
-  if (but_text) {
-    ARegion *region_ctx = CTX_wm_region(C);
-
-    /* Temporary context override for activating the button. */
-    CTX_wm_region_set(const_cast<bContext *>(C), region);
-    button_active_only(C, region, block_text, but_text);
-    CTX_wm_region_set(const_cast<bContext *>(C), region_ctx);
-    return true;
+  if (!but_text) {
+    return false;
   }
-  return false;
+  ARegion *region_ctx = CTX_wm_region(C);
+  /* Temporary context override for activating the button. */
+  CTX_wm_region_set(const_cast<bContext *>(C), region);
+  button_active_only(C, region, block_text, but_text);
+  CTX_wm_region_set(const_cast<bContext *>(C), region_ctx);
+  return true;
 }
 
 bool textbutton_activate_but(const bContext *C, Button *actbut)

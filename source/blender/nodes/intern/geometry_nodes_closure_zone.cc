@@ -277,7 +277,7 @@ class LazyFunctionForClosureZone : public LazyFunction {
                                         std::move(captured_values))};
 
     params.set_output(zone_info_.indices.outputs.main[0],
-                      bke::SocketValueVariant::From(std::move(closure)));
+                      bke::SocketValueVariant::from(std::move(closure)));
   }
 };
 

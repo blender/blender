@@ -2,11 +2,13 @@
  *
  * SPDX-License-Identifier: GPL-2.0-or-later */
 
+#include "BLI_math_vector.hh"
 #include "BLI_task.hh"
 
-#include "BKE_bvhutils.hh"
+#include "BKE_bvh.hh"
 #include "BKE_geometry_set.hh"
 #include "BKE_mesh.hh"
+#include "BKE_pointcloud.hh"
 
 #include "DNA_pointcloud_types.h"
 
@@ -69,8 +71,13 @@ static void geo_proximity_init(bNodeTree * /*tree*/, bNode *node)
 class ProximityFunction : public mf::MultiFunction {
  private:
   struct BVHTrees {
-    bke::BVHTreeFromMesh mesh_bvh = {};
-    bke::BVHTreeFromPointCloud pointcloud_bvh = {};
+    /** Only used when the group doesn't contain every element; see #mesh_bvh and #pointcloud_bvh.
+     */
+    std::optional<bke::bvh::Tree> mesh_bvh_owned;
+    std::optional<bke::bvh::Tree> pointcloud_bvh_owned;
+    /** Either the owned tree above or the geometry's tree cache, which is reused when possible. */
+    const bke::bvh::Tree *mesh_bvh = nullptr;
+    const bke::bvh::Tree *pointcloud_bvh = nullptr;
   };
 
   GeometrySet target_;
@@ -126,8 +133,15 @@ class ProximityFunction : public mf::MultiFunction {
             if (group_mask.is_empty()) {
               continue;
             }
-            bvh_trees_[group_i].pointcloud_bvh = bke::bvhtree_from_pointcloud_get(pointcloud,
-                                                                                  group_mask);
+            BVHTrees &trees = bvh_trees_[group_i];
+            if (group_mask.size() == pointcloud.totpoint) {
+              trees.pointcloud_bvh = &pointcloud.bvh_tree();
+            }
+            else {
+              trees.pointcloud_bvh_owned = bke::bvh::Tree::from_points(pointcloud.positions(),
+                                                                       group_mask);
+              trees.pointcloud_bvh = &*trees.pointcloud_bvh_owned;
+            }
           }
         },
         threading::individual_task_sizes(
@@ -160,16 +174,39 @@ class ProximityFunction : public mf::MultiFunction {
             if (group_mask.is_empty()) {
               continue;
             }
+            BVHTrees &trees = bvh_trees_[group_i];
+            /* Use the mesh's cached tree when the group contains every element. */
+            const bool use_whole_mesh = group_mask.size() == domain_size;
             switch (type_) {
               case GEO_NODE_PROX_TARGET_POINTS:
-                bvh_trees_[group_i].mesh_bvh = bke::bvhtree_from_mesh_verts_init(mesh, group_mask);
+                if (use_whole_mesh) {
+                  trees.mesh_bvh = &mesh.bvh_verts();
+                }
+                else {
+                  trees.mesh_bvh_owned = bke::bvh::Tree::from_points(mesh.vert_positions(),
+                                                                     group_mask);
+                }
                 break;
               case GEO_NODE_PROX_TARGET_EDGES:
-                bvh_trees_[group_i].mesh_bvh = bke::bvhtree_from_mesh_edges_init(mesh, group_mask);
+                if (use_whole_mesh) {
+                  trees.mesh_bvh = &mesh.bvh_edges();
+                }
+                else {
+                  trees.mesh_bvh_owned = bke::bvh::Tree::from_edges(
+                      mesh.vert_positions(), mesh.edges(), group_mask);
+                }
                 break;
               case GEO_NODE_PROX_TARGET_FACES:
-                bvh_trees_[group_i].mesh_bvh = bke::bvhtree_from_mesh_tris_init(mesh, group_mask);
+                if (use_whole_mesh) {
+                  trees.mesh_bvh = &mesh.bvh_tris();
+                }
+                else {
+                  trees.mesh_bvh_owned = bke::bvh::Tree::from_tris(mesh, group_mask, false);
+                }
                 break;
+            }
+            if (trees.mesh_bvh_owned) {
+              trees.mesh_bvh = &*trees.mesh_bvh_owned;
             }
           }
         },
@@ -220,34 +257,36 @@ class ProximityFunction : public mf::MultiFunction {
         return;
       }
       const BVHTrees &trees = bvh_trees_[group_index];
-      BVHTreeNearest nearest;
       /* Take mesh and pointcloud bvh tree into account. The final result is the closer of the two.
-       * The first bvhtree query will set `nearest.dist_sq` which is then passed into the second
-       * query as a maximum distance. */
-      nearest.dist_sq = FLT_MAX;
-      if (trees.mesh_bvh.tree != nullptr) {
-        BLI_bvhtree_find_nearest(trees.mesh_bvh.tree,
-                                 sample_position,
-                                 &nearest,
-                                 trees.mesh_bvh.nearest_callback,
-                                 const_cast<bke::BVHTreeFromMesh *>(&trees.mesh_bvh));
+       * The distance from the first query is passed into the second query as a maximum distance,
+       * so that the mesh result is kept when both are the same distance away. */
+      float3 nearest_position(0.0f);
+      float nearest_distance = FLT_MAX;
+      if (trees.mesh_bvh != nullptr) {
+        if (const std::optional<bke::bvh::ClosestPointResult> result =
+                trees.mesh_bvh->closest_point(sample_position))
+        {
+          nearest_position = result->position;
+          nearest_distance = math::distance(sample_position, result->position);
+        }
       }
-      if (trees.pointcloud_bvh.tree != nullptr) {
-        BLI_bvhtree_find_nearest(trees.pointcloud_bvh.tree,
-                                 sample_position,
-                                 &nearest,
-                                 trees.pointcloud_bvh.nearest_callback,
-                                 const_cast<bke::BVHTreeFromPointCloud *>(&trees.pointcloud_bvh));
+      if (trees.pointcloud_bvh != nullptr) {
+        if (const std::optional<bke::bvh::ClosestPointResult> result =
+                trees.pointcloud_bvh->closest_point(sample_position, nearest_distance))
+        {
+          nearest_position = result->position;
+          nearest_distance = math::distance(sample_position, result->position);
+        }
       }
 
       if (!positions.is_empty()) {
-        positions[i] = nearest.co;
+        positions[i] = nearest_position;
       }
       if (!is_valid_span.is_empty()) {
         is_valid_span[i] = true;
       }
       if (!distances.is_empty()) {
-        distances[i] = std::sqrt(nearest.dist_sq);
+        distances[i] = nearest_distance;
       }
     });
   }

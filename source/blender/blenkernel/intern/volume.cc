@@ -252,7 +252,7 @@ static void volume_foreach_path(ID *id, BPathForeachPathData *bpath_data)
 static void volume_blend_write(BlendWriter *writer, ID *id, const void *id_address)
 {
   Volume *volume = id_cast<Volume *>(id);
-  const bool is_undo = BLO_write_is_undo(writer);
+  const bool is_undo = writer->is_undo();
 
   /* Do not store packed files in case this is a library override ID. */
   if (ID_IS_OVERRIDE_LIBRARY(volume) && !is_undo) {

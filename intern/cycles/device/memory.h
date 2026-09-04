@@ -221,9 +221,9 @@ template<> struct device_type_traits<Quaternion> {
   static_assert(sizeof(Quaternion) == num_elements * datatype_size(data_type));
 };
 
-template<> struct device_type_traits<PackedSphericalHarmonics> {
+template<> struct device_type_traits<PackedSphericalHarmonicsRest> {
   static const DataType data_type = TYPE_INT8;
-  static const size_t num_elements = sizeof(PackedSphericalHarmonics);
+  static const size_t num_elements = sizeof(PackedSphericalHarmonicsRest);
 };
 
 /* Device Memory

@@ -183,7 +183,7 @@ std::optional<int> getname_anim_fcurve(char *name, ID *id, FCurve *fcu)
       if (const bNodeTreeInterfaceSocket *input = bke::node_find_interface_input_by_identifier(
               *nmd->node_group, propname))
       {
-        propname = input->name;
+        propname = input->name().c_str();
       }
     }
   }

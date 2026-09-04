@@ -275,7 +275,7 @@ static BaseSocketDeclarationBuilder &build_interface_socket_declaration(
   bke::bNodeSocketType *base_typeinfo = bke::node_socket_type_find(io_socket.socket_type);
   eNodeSocketDatatype datatype = SOCK_CUSTOM;
 
-  const UString name(io_socket.name);
+  const UString name(io_socket.name());
   const UString identifier(io_socket.identifier);
 
   BaseSocketDeclarationBuilder *decl = nullptr;
@@ -435,7 +435,7 @@ static BaseSocketDeclarationBuilder &build_interface_socket_declaration(
                 .idname(io_socket.socket_type)
                 .init_socket_fn(get_init_socket_fn(tree.tree_interface, io_socket));
   }
-  decl->description(io_socket.description ? io_socket.description : "");
+  decl->description(io_socket.description());
   decl->hide_value(io_socket.flag & NODE_INTERFACE_SOCKET_HIDE_VALUE);
   decl->compact(io_socket.flag & NODE_INTERFACE_SOCKET_COMPACT);
   decl->panel_toggle(io_socket.flag & NODE_INTERFACE_SOCKET_PANEL_TOGGLE);
@@ -482,8 +482,8 @@ static void node_group_declare_panel_recursive(
       case NodeTreeInterfaceItemType::Panel: {
         add_layout_if_needed();
         const auto &io_panel = node_interface::get_item_as<bNodeTreeInterfacePanel>(*item);
-        auto &panel_b = b.add_panel(UString(io_panel.name), io_panel.identifier)
-                            .description(StringRef(io_panel.description))
+        auto &panel_b = b.add_panel(UString(io_panel.name()), io_panel.identifier)
+                            .description(io_panel.description())
                             .default_closed(io_panel.flag & NODE_INTERFACE_PANEL_DEFAULT_CLOSED);
         node_group_declare_panel_recursive(
             panel_b, node, group, structure_type_by_socket, io_panel, false);

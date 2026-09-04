@@ -32,8 +32,24 @@ static void node_declare(NodeDeclarationBuilder &b)
       .min(0.0f)
       .max(1.0f)
       .subtype(PROP_FACTOR);
+  b.add_input<decl::Float>("Anisotropy"_ustr)
+      .default_value(0.0f)
+      .min(-1.0f)
+      .max(1.0f)
+      .subtype(PROP_FACTOR)
+      .short_label("Anisotropy"_ustr)
+      .description(
+          "Amount of anisotropy for specular reflection. "
+          "Higher absolute values give elongated highlights along the tangent direction");
+  b.add_input<decl::Float>("Rotation"_ustr)
+      .default_value(0.0f)
+      .min(0.0f)
+      .max(1.0f)
+      .subtype(PROP_FACTOR)
+      .description("Rotates the direction of anisotropy, with 1.0 going full circle");
   b.add_input<decl::Float>("IOR"_ustr).default_value(1.5f).min(0.0f).max(1000.0f);
   b.add_input<decl::Vector>("Normal"_ustr).hide_value();
+  b.add_input<decl::Vector>("Tangent"_ustr).hide_value();
   b.add_input<decl::Float>("Weight"_ustr).available(is_gpu_internal);
 
   PanelDeclarationBuilder &film = b.add_panel("Thin Film"_ustr).default_closed(true);
@@ -66,8 +82,8 @@ static int node_shader_gpu_bsdf_glass(GPUMaterial *mat,
                                       GPUNodeStack *in,
                                       GPUNodeStack *out)
 {
-  if (!in[3].link) {
-    GPU_link(mat, "world_normals_get", &in[3].link);
+  if (!in[5].link) {
+    GPU_link(mat, "world_normals_get", &in[5].link);
   }
 
   GPU_material_flag_set(mat, GPU_MATFLAG_GLOSSY | GPU_MATFLAG_REFRACT);

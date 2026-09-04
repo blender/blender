@@ -25,6 +25,8 @@ using namespace blender::gpu;
 
 namespace blender::gpu {
 
+static CLG_LogRef LOG = {"gpu.metal"};
+
 /* Counter for active command buffers. */
 volatile std::atomic<int> MTLCommandBufferManager::num_active_cmd_bufs_in_system = 0;
 
@@ -169,7 +171,7 @@ bool MTLCommandBufferManager::submit(bool wait)
 
       NSError *error = [active_command_buffer_ error];
       if (error != nil) {
-        NSLog(@"%@", error);
+        CLOG_ERROR(&LOG, "Command buffer error: %s", [[error localizedDescription] UTF8String]);
         BLI_assert(false);
       }
     }

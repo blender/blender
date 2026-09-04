@@ -397,6 +397,16 @@ void Film::init(const int2 &extent, const rcti *output_rect)
       data_.overscan = 0;
     }
 
+    if (inst_.camera.is_panoramic()) {
+      /* Reshape into a square so each face's pixel density stays close to the final film.
+       * TODO: Remove once per projection face clipping is implemented. */
+      int64_t render_pixel_count = data_.render_extent.x * int64_t(data_.render_extent.y);
+      render_extent_shading_view_ = int2(ceilf(sqrtf(float(render_pixel_count))));
+    }
+    else {
+      render_extent_shading_view_ = data_.render_extent;
+    }
+
     data_.filter_radius = clamp_f(scene.r.gauss, 0.0f, 100.0f);
     if (sampling.sample_count() == 1) {
       /* Disable filtering if sample count is 1. */
@@ -600,14 +610,17 @@ void Film::sync()
    *
    * See #153463
    */
-  use_compute_ = !inst_.is_viewport() ||
+  /* The fragment shader path below is only safe to call once per frame, so force the
+   * compute path for panoramic to avoid a race between accumulate calls. */
+  use_compute_ = !inst_.is_viewport() || inst_.camera.is_panoramic() ||
                  GPU_type_matches(GPU_DEVICE_INTEL, GPU_OS_MAC, GPU_DRIVER_ANY) ||
                  GPU_type_matches_ex(
                      GPU_DEVICE_QUALCOMM, GPU_OS_WIN, GPU_DRIVER_ANY, GPU_BACKEND_VULKAN);
 
-  eShaderType shader = use_compute_ ? FILM_COMP : FILM_FRAG;
+  eShaderType shader = inst_.camera.is_panoramic() ? FILM_COMP_PANORAMIC :
+                                                     (use_compute_ ? FILM_COMP : FILM_FRAG);
 
-  /* TODO(fclem): Shader variation for panoramic & scaled resolution. */
+  /* TODO(fclem): Shader variation for scaled resolution. */
 
   gpu::Shader *sh = inst_.shaders.static_shader_get(shader);
   accumulate_ps_.init();
@@ -625,6 +638,7 @@ void Film::sync()
   copy_ps_.init();
   if (use_compute_ && inst_.is_viewport()) {
     init_pass(copy_ps_, inst_.shaders.static_shader_get(FILM_COPY));
+    copy_ps_.barrier(GPU_BARRIER_TEXTURE_FETCH | GPU_BARRIER_SHADER_IMAGE_ACCESS);
     copy_ps_.draw_procedural(GPU_PRIM_TRIS, 1, 3);
   }
 
@@ -670,7 +684,7 @@ void Film::init_pass(PassSimple &pass, gpu::Shader *sh)
   pass.bind_ubo("camera_curr", &(*velocity.camera_steps[STEP_CURRENT]));
   pass.bind_ubo("camera_next", &(*velocity.camera_steps[step_next]));
   pass.bind_texture("depth_tx", &rbuffers.depth_tx);
-  pass.bind_texture("combined_tx", &combined_final_tx_);
+  pass.bind_texture("combined_tx", &combined_final_tx_, filter);
   pass.bind_texture("vector_tx", &rbuffers.vector_tx);
   pass.bind_texture("rp_color_tx", &rbuffers.rp_color_tx);
   pass.bind_texture("rp_value_tx", &rbuffers.rp_value_tx);
@@ -693,7 +707,7 @@ void Film::init_pass(PassSimple &pass, gpu::Shader *sh)
 
 void Film::end_sync()
 {
-  use_reprojection_ = inst_.sampling.interactive_mode();
+  use_reprojection_ = inst_.sampling.interactive_mode() && !inst_.camera.is_panoramic();
 
   /* Just bypass the reprojection and reset the accumulation. */
   if (inst_.is_viewport() && !use_reprojection_ && inst_.sampling.is_reset()) {
@@ -790,7 +804,15 @@ void Film::update_sample_table()
   }
 
   data_.samples_len = 0;
-  if (data_.scaling_factor > 1) {
+  if (inst_.camera.is_panoramic()) {
+    /* TODO(fclem): Proper filtering instead of a single nearest sample. A 3x3 or plus-shape
+     * 5-sample kernel would reduce aliasing quite a lot. */
+    data_.samples[0].texel = int2(0, 0);
+    data_.samples[0].weight = 1.0f;
+    data_.samples_weight_total = 1.0f;
+    data_.samples_len = 1;
+  }
+  else if (data_.scaling_factor > 1) {
     /* For this case there might be no valid samples for some pixels.
      * Still visit all four neighbors to have the best weight available.
      * Note that weight is computed on the GPU as it is different for each sample. */
@@ -914,10 +936,12 @@ void Film::accumulate(View &view, gpu::Texture *combined_final_tx)
 
   display_only_ = false;
   inst_.manager->submit(accumulate_ps_, view);
-  inst_.manager->submit(copy_ps_, view);
 
   combined_tx_.swap();
   weight_tx_.swap();
+
+  /* copy_ps_ reads in_combined_tx so it must run after the swap. */
+  inst_.manager->submit(copy_ps_, view);
 
   /* Use history after first sample. */
   if (data_.use_history == 0) {

@@ -6955,13 +6955,17 @@ static wmOperatorStatus start_playback(bContext *C, int sync, int mode)
     return OPERATOR_CANCELLED;
   }
 
-  /* The anim timer MUST be created before the 'jump to the start frame' code below executes. The
-   * anim timer data structure also contains the 'started from' frame, which gets restored on
-   * cancelling the playback, and that should be the actual current frame, not the one that's set
-   * below. */
+  /* The anim timer's 'started from' frame, which gets restored on cancelling the playback, must
+   * be the actual current frame, not the one the STOP_END_FRAME jump below sets it to. So record
+   * it before that jump happens, and restore it into the timer's data further down, after the
+   * timer has been created. Note that the timer is deliberately not created here already: its
+   * presence is used elsewhere (e.g. `ED_screen_animation_playing()`) to tell whether playback
+   * has started, and that should not become true before the ANIMATION_PLAYBACK_PRE callback and
+   * sound playback below have run. */
+  const int frame_before_loop_jump = scene->r.cfra;
+
   ViewLayer *view_layer = is_sequencer ? BKE_view_layer_default_render(scene) :
                                          CTX_data_view_layer(C);
-  ED_screen_animation_timer(C, scene, view_layer, screen->redraws_flag, sync, mode);
 
   /* The SCE_LOOP_MODE_STOP_END_FRAME loop mode is special: playback should stop at the end frame,
    * but when playback starts, in this mode, already at the end frame, it should actually start
@@ -6993,6 +6997,7 @@ static wmOperatorStatus start_playback(bContext *C, int sync, int mode)
     BKE_sound_play_scene(scene_eval);
   }
 
+  ED_screen_animation_timer(C, scene, view_layer, screen->redraws_flag, sync, /*enable=*/mode);
   ED_scene_fps_average_clear(scene);
 
   if (screen->animtimer) {
@@ -7000,6 +7005,7 @@ static wmOperatorStatus start_playback(bContext *C, int sync, int mode)
     ScreenAnimData *sad = static_cast<ScreenAnimData *>(wt->customdata);
 
     sad->region = CTX_wm_region(C);
+    sad->sfra = frame_before_loop_jump;
   }
 
   /* Send a fake mouse-move event so that the active button (the one the mouse hovers over) is

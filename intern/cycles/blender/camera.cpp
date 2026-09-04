@@ -63,6 +63,9 @@ class BlenderCamera {
 
   float2 pixelaspect = one_float2();
 
+  bool use_aspect_override = false;
+  float aspect_override = 0.0f;
+
   float aperture_ratio = 1.0f;
 
   PanoramaType panorama_type = PANORAMA_EQUIRECTANGULAR;
@@ -395,6 +398,29 @@ static Transform blender_camera_matrix(const Transform &tfm,
   return transform_clear_scale(result);
 }
 
+static bool blender_camera_horizontal_fit(const BlenderCamera *bcam,
+                                          const int width,
+                                          const int height)
+{
+  if (bcam->sensor_fit == BlenderCamera::AUTO) {
+    const float xratio = (float)width * bcam->pixelaspect.x;
+    const float yratio = (float)height * bcam->pixelaspect.y;
+    return bcam->use_aspect_override ? (bcam->aspect_override <= 1.0f) : (xratio > yratio);
+  }
+
+  return bcam->sensor_fit == BlenderCamera::HORIZONTAL;
+}
+
+static float blender_camera_frame_fit(const BlenderCamera *bcam, const int width, const int height)
+{
+  const float frame_aspect = bcam->use_aspect_override ? bcam->aspect_override :
+                                                         float(height) / float(width);
+  const blender::float2 frame_size = blender::BKE_camera_frame_size(width, height, frame_aspect);
+
+  return blender_camera_horizontal_fit(bcam, width, height) ? width / frame_size.x :
+                                                              height / frame_size.y;
+}
+
 static void blender_camera_viewplane(BlenderCamera *bcam,
                                      const int width,
                                      const int height,
@@ -408,19 +434,13 @@ static void blender_camera_viewplane(BlenderCamera *bcam,
 
   /* compute x/y aspect and ratio */
   float2 aspect;
-  bool horizontal_fit;
+  bool horizontal_fit = blender_camera_horizontal_fit(bcam, width, height);
 
   /* sensor fitting */
-  if (bcam->sensor_fit == BlenderCamera::AUTO) {
-    horizontal_fit = (xratio > yratio);
-    sensor_size = bcam->sensor_width;
-  }
-  else if (bcam->sensor_fit == BlenderCamera::HORIZONTAL) {
-    horizontal_fit = true;
+  if (bcam->sensor_fit == BlenderCamera::AUTO || bcam->sensor_fit == BlenderCamera::HORIZONTAL) {
     sensor_size = bcam->sensor_width;
   }
   else {
-    horizontal_fit = false;
     sensor_size = bcam->sensor_height;
   }
 
@@ -944,6 +964,12 @@ static void blender_camera_from_view(BlenderCamera *bcam,
       blender_camera_from_object(
           bcam, b_engine, b_render, b_v3d, b_rv3d, *b_ob, b_data, skip_panorama);
 
+      /* Override the aspect, so change in viewport framing is minimized when camera parameters
+       * change. */
+      bcam->use_aspect_override = true;
+      bcam->aspect_override = (float(b_render.ysch) * b_render.yasp) /
+                              (float(b_render.xsch) * b_render.xasp);
+
       if (!skip_panorama && (bcam->type == CAMERA_PANORAMA || bcam->type == CAMERA_CUSTOM)) {
         /* in panorama or custom camera view, we map viewplane to camera border */
         BoundBox2D view_box;
@@ -975,6 +1001,11 @@ static void blender_camera_from_view(BlenderCamera *bcam,
 
         /* offset */
         bcam->offset = make_float2(b_rv3d->camdx, b_rv3d->camdy);
+
+        /* Zoom to fit the camera frame. */
+        const float frame_fit = blender_camera_frame_fit(bcam, width, height);
+        bcam->zoom *= frame_fit;
+        bcam->offset *= frame_fit;
       }
     }
   }

@@ -922,7 +922,7 @@ void BundleDataSource::collect_flat_items(const nodes::Bundle &bundle, const Str
     flat_items_.append(&item.value);
     if (const auto *value = std::get_if<nodes::BundleItemSocketValue>(&item.value.value)) {
       if (value->value.is_single()) {
-        const GPointer ptr = value->value.get_single_ptr();
+        const GPointer ptr = value->value.get();
         if (ptr.is_type<nodes::BundlePtr>()) {
           const nodes::BundlePtr child_bundle = *ptr.get<nodes::BundlePtr>();
           if (child_bundle) {
@@ -1098,7 +1098,7 @@ static bke::SocketValueVariant lookup_bundle_path(const nodes::BundlePtr &bundle
     return {};
   }
   if (path.bundle_path_num == 0) {
-    return bke::SocketValueVariant::From(bundle);
+    return bke::SocketValueVariant::from(bundle);
   }
   Vector<nodes::BundleKey> keys;
   for (const int i : IndexRange(path.bundle_path_num)) {
@@ -1128,34 +1128,34 @@ bke::SocketValueVariant root_display_data_get(const SpaceSpreadsheet *sspreadshe
            * is to display the data directly from the bmesh without a conversion, which can be
            * implemented a bit later. */
           BM_mesh_bm_to_me_for_eval(*em->bm, *new_mesh, nullptr);
-          return bke::SocketValueVariant::From(bke::GeometrySet::from_mesh(new_mesh));
+          return bke::SocketValueVariant::from(bke::GeometrySet::from_mesh(new_mesh));
         }
       }
       else {
-        return bke::SocketValueVariant::From(bke::GeometrySet::from_mesh(
+        return bke::SocketValueVariant::from(bke::GeometrySet::from_mesh(
             const_cast<Mesh *>(mesh), bke::GeometryOwnershipType::ReadOnly));
       }
     }
     else if (object_orig->type == OB_POINTCLOUD) {
       const PointCloud *pointcloud = id_cast<const PointCloud *>(object_orig->data);
-      return bke::SocketValueVariant::From(bke::GeometrySet::from_pointcloud(
+      return bke::SocketValueVariant::from(bke::GeometrySet::from_pointcloud(
           const_cast<PointCloud *>(pointcloud), bke::GeometryOwnershipType::ReadOnly));
     }
     else if (object_orig->type == OB_CURVES) {
       const Curves &curves_id = *id_cast<const Curves *>(object_orig->data);
-      return bke::SocketValueVariant::From(bke::GeometrySet::from_curves(
+      return bke::SocketValueVariant::from(bke::GeometrySet::from_curves(
           &const_cast<Curves &>(curves_id), bke::GeometryOwnershipType::ReadOnly));
     }
     else if (object_orig->type == OB_GREASE_PENCIL) {
       const GreasePencil &grease_pencil = *id_cast<const GreasePencil *>(object_orig->data);
-      return bke::SocketValueVariant::From(bke::GeometrySet::from_grease_pencil(
+      return bke::SocketValueVariant::from(bke::GeometrySet::from_grease_pencil(
           &const_cast<GreasePencil &>(grease_pencil), bke::GeometryOwnershipType::ReadOnly));
     }
     return {};
   }
 
   if (sspreadsheet->geometry_id.viewer_path.path.is_single()) {
-    return bke::SocketValueVariant::From(bke::object_get_evaluated_geometry_set(*object_eval));
+    return bke::SocketValueVariant::from(bke::object_get_evaluated_geometry_set(*object_eval));
   }
 
   const nodes::eval_log::ViewerNodeLog *viewer_log =
@@ -1181,8 +1181,8 @@ bke::SocketValueVariant root_display_data_get(const SpaceSpreadsheet *sspreadshe
       if (!prev_value.is_single()) {
         continue;
       }
-      const GPointer ptr = prev_value.get_single_ptr();
-      if (!ptr.is_type<bke::GeometrySet>()) {
+      const GPointer prev_ptr = prev_value.get();
+      if (!prev_ptr.is_type<bke::GeometrySet>()) {
         continue;
       }
       return prev_value;
@@ -1191,7 +1191,7 @@ bke::SocketValueVariant root_display_data_get(const SpaceSpreadsheet *sspreadshe
   }
 
   if (value.is_single()) {
-    const GPointer ptr = value.get_single_ptr();
+    const GPointer ptr = value.get();
     if (!ptr.is_type<nodes::BundlePtr>()) {
       return value;
     }
@@ -1214,11 +1214,11 @@ std::optional<bke::GeometrySet> root_geometry_set_get(const SpaceSpreadsheet *ss
   if (!display_data.is_single()) {
     return std::nullopt;
   }
-  const GPointer ptr = display_data.get_single_ptr();
+  const GPointer ptr = display_data.get();
   if (!ptr.is_type<bke::GeometrySet>()) {
     return std::nullopt;
   }
-  return display_data.extract<bke::GeometrySet>();
+  return std::move(*display_data.get_if<bke::GeometrySet>());
 }
 
 bke::GeometrySet get_geometry_set_for_instance_ids(const bke::GeometrySet &root_geometry,
@@ -1250,27 +1250,25 @@ static std::unique_ptr<DataSource> data_source_from_socket_value(
   if (value.is_context_dependent_field()) {
     return {};
   }
-  if (value.is_volume_grid()) {
 #ifdef WITH_OPENVDB
-    return std::make_unique<VolumeGridDataSource>(value.get<bke::GVolumeGrid>());
-#else
-    return {};
-#endif
+  if (value.is_volume_grid()) {
+    return std::make_unique<VolumeGridDataSource>(*value.get().get<bke::GVolumeGrid>());
   }
+#endif
   if (value.is_list()) {
-    return std::make_unique<ListDataSource>(value.get<nodes::GListPtr>());
+    return std::make_unique<ListDataSource>(*value.get().get<nodes::GListPtr>());
   }
   if (value.is_single()) {
-    const GPointer ptr = value.get_single_ptr();
+    const GPointer ptr = value.get();
     if (ptr.is_type<nodes::BundlePtr>()) {
-      const nodes::BundlePtr bundle_ptr = value.get<nodes::BundlePtr>();
+      const nodes::BundlePtr bundle_ptr = *value.get().get<nodes::BundlePtr>();
       if (bundle_ptr) {
         return std::make_unique<BundleDataSource>(bundle_ptr);
       }
       return {};
     }
     if (ptr.is_type<nodes::ClosurePtr>()) {
-      const nodes::ClosurePtr closure_ptr = value.get<nodes::ClosurePtr>();
+      const nodes::ClosurePtr closure_ptr = *value.get().get<nodes::ClosurePtr>();
       if (closure_ptr) {
         return std::make_unique<ClosureSignatureDataSource>(closure_ptr, closure_inout);
       }
@@ -1330,9 +1328,9 @@ std::unique_ptr<DataSource> data_source_from_geometry(const bContext *C, Object 
   bke::SocketValueVariant root_data = root_display_data_get(sspreadsheet, object_eval);
 
   if (root_data.is_single()) {
-    const GPointer ptr = root_data.get_single_ptr();
+    const GPointer ptr = root_data.get();
     if (ptr.is_type<bke::GeometrySet>()) {
-      const bke::GeometrySet root_geometry_set = root_data.extract<bke::GeometrySet>();
+      const bke::GeometrySet &root_geometry_set = *ptr.get<bke::GeometrySet>();
       const bke::GeometrySet geometry_set = get_geometry_set_for_instance_ids(
           root_geometry_set,
           Span{sspreadsheet->geometry_id.instance_ids,

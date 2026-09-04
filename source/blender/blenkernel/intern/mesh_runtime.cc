@@ -46,7 +46,6 @@ static void free_batch_cache(MeshRuntime &mesh_runtime)
 
 static void free_bvh_caches(MeshRuntime &mesh_runtime)
 {
-  mesh_runtime.bvh_cache_verts.tag_dirty();
   mesh_runtime.bvh_cache_edges.tag_dirty();
   mesh_runtime.bvh_cache_faces.tag_dirty();
   mesh_runtime.bvh_cache_corner_tris.tag_dirty();
@@ -55,7 +54,9 @@ static void free_bvh_caches(MeshRuntime &mesh_runtime)
   mesh_runtime.bvh_cache_loose_verts_no_hidden.tag_dirty();
   mesh_runtime.bvh_cache_loose_edges.tag_dirty();
   mesh_runtime.bvh_cache_loose_edges_no_hidden.tag_dirty();
-  mesh_runtime.bvh_embree_cache.tag_dirty();
+  mesh_runtime.bvh_embree_tris_cache.tag_dirty();
+  mesh_runtime.bvh_embree_verts_cache.tag_dirty();
+  mesh_runtime.bvh_embree_edges_cache.tag_dirty();
 }
 
 MeshRuntime::MeshRuntime() = default;

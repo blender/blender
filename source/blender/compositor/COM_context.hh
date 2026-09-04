@@ -95,11 +95,6 @@ class Context {
   /* Get the precision of the intermediate results of the compositor. */
   virtual ResultPrecision get_precision() const;
 
-  /* Set an info message. This is called by the compositor evaluator to inform or warn the user
-   * about something, typically an error. The implementation should display the message in an
-   * appropriate place, which can be directly in the UI or just logged to the output stream. */
-  virtual void set_info_message(StringRef message) const;
-
   /* Populates the given meta data from the render stamp information of the given render pass. */
   virtual void populate_meta_data_for_pass(const Scene *scene,
                                            int view_layer_id,

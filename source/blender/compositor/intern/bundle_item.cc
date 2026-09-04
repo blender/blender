@@ -27,7 +27,7 @@ nodes::BundleItemValue BundleItem::new_bundle_item_value(Context &context, Resul
   if (result.type() == ResultType::Bundle) {
     const bke::bNodeSocketType *socket_type = bke::node_socket_type_find_static(SOCK_BUNDLE);
     return nodes::BundleItemValue{nodes::BundleItemSocketValue{
-        socket_type, bke::SocketValueVariant::From(result.get_single_value<nodes::BundlePtr>())}};
+        socket_type, bke::SocketValueVariant::from(result.get_single_value<nodes::BundlePtr>())}};
   }
 
   return nodes::BundleItemValue{nodes::BundleItemInternalValue{

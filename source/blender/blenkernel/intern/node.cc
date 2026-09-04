@@ -1235,8 +1235,7 @@ static void write_node_socket_default_value(BlendWriter *writer, const bNodeSock
 static void write_node_socket(BlendWriter *writer, const bNodeSocket *sock)
 {
   /* Todo(#140111): Forward compatibility support for pixel subtype will be removed in 6.0. */
-  if (!BLO_write_is_undo(writer) && forward_compat::subtype_pixel_to_none().contains(sock->idname))
-  {
+  if (!writer->is_undo() && forward_compat::subtype_pixel_to_none().contains(sock->idname)) {
     forward_compat::pixel_subtype_forward_compat(writer, *sock);
     return;
   }
@@ -1264,7 +1263,7 @@ static void node_blend_write_storage(BlendWriter *writer, bNodeTree *ntree, bNod
      * Not ideal (there is no ideal solution here), but should do for now. */
     NodeGlare *ndg = static_cast<NodeGlare *>(node->storage);
     /* Not in undo case. */
-    if (!BLO_write_is_undo(writer)) {
+    if (!writer->is_undo()) {
       switch (ndg->type) {
         case CMP_NODE_GLARE_STREAKS:
           ndg->angle = ndg->streaks;
@@ -1358,7 +1357,7 @@ void node_tree_blend_write(BlendWriter *writer, bNodeTree *ntree)
 
   /* Restore IDs overridden for forward compatibility. Otherwise their user count becomes wrong. */
   Map<ID **, ID *> ids_to_restore;
-  if (!BLO_write_is_undo(writer)) {
+  if (!writer->is_undo()) {
     forward_compat::update_node_location_legacy(*ntree);
     forward_compat::write_legacy_properties(*ntree, ids_to_restore);
   }
@@ -1384,7 +1383,7 @@ void node_tree_blend_write(BlendWriter *writer, bNodeTree *ntree)
       IDP_BlendWrite(writer, node->system_properties);
     }
 
-    if (!BLO_write_is_undo(writer)) {
+    if (!writer->is_undo()) {
       forward_compat::initialize_legacy_socket_storage(*node);
     }
 
@@ -1428,7 +1427,7 @@ void node_tree_blend_write(BlendWriter *writer, bNodeTree *ntree)
    * data is no longer needed, future allocations might be given the same address by the OS, which
    * will produce a corrupt blend file because multiple data use the same identifier/address in the
    * same ID. */
-  if (!BLO_write_is_undo(writer)) {
+  if (!writer->is_undo()) {
     for (bNode *node : ntree->all_nodes()) {
       forward_compat::free_legacy_socket_storage(*node);
     }
@@ -2231,12 +2230,9 @@ static std::unique_ptr<IDProperty, idprop::IDPropertyDeleter> create_socket_meta
   const bNodeSocketType *base_typeinfo = node_socket_type_find(socket.socket_type);
 
   auto socket_prop = idprop::create_group(socket.identifier);
-  IDP_AddToGroup(socket_prop.get(),
-                 idprop::create("name", socket.name ? socket.name : "").release());
+  IDP_AddToGroup(socket_prop.get(), idprop::create("name", socket.name()).release());
   IDP_AddToGroup(socket_prop.get(), idprop::create("type", base_typeinfo->type).release());
-  IDP_AddToGroup(
-      socket_prop.get(),
-      idprop::create("description", socket.description ? socket.description : "").release());
+  IDP_AddToGroup(socket_prop.get(), idprop::create("description", socket.description()).release());
   switch (base_typeinfo->type) {
     case SOCK_FLOAT: {
       const auto &value = node_interface::get_socket_data_as<bNodeSocketValueFloat>(socket);
@@ -2434,7 +2430,7 @@ IDProperty *node_create_asset_meta_data_properties(const bNodeTree &node_tree)
    * `output_sockets` in Blender 6.0 (next breaking release). */
   auto outputs = idprop::create_group("outputs");
   for (const bNodeTreeInterfaceSocket *socket : node_tree.interface_outputs()) {
-    auto *prop = idprop::create(socket->name ? socket->name : "", socket->socket_type).release();
+    auto *prop = idprop::create(socket->name(), socket->socket_type).release();
     if (!IDP_AddToGroup(outputs.get(), prop)) {
       IDP_FreeProperty(prop);
     }

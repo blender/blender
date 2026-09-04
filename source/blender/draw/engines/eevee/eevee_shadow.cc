@@ -284,7 +284,8 @@ void ShadowPunctual::end_sync(Light &light)
 eShadowProjectionType ShadowDirectional::directional_distribution_type_get(const Camera &camera)
 {
   /* TODO(fclem): Enable the cascade projection if the FOV is tiny in perspective mode. */
-  return camera.is_perspective() ? SHADOW_PROJECTION_CLIPMAP : SHADOW_PROJECTION_CASCADE;
+  return (camera.is_perspective() || camera.is_panoramic()) ? SHADOW_PROJECTION_CLIPMAP :
+                                                              SHADOW_PROJECTION_CASCADE;
 }
 
 /************************************************************************

@@ -2573,7 +2573,7 @@ static void rna_def_userdef_theme_common_anim(BlenderRNA *brna)
 
   prop = RNA_def_property(srna, "playhead", PROP_FLOAT, PROP_COLOR_GAMMA);
   RNA_def_property_float_sdna(prop, nullptr, "playhead");
-  RNA_def_property_array(prop, 3);
+  RNA_def_property_array(prop, 4);
   RNA_def_property_ui_text(prop, "Playhead", "");
   RNA_def_property_update(prop, 0, "rna_userdef_theme_update");
 

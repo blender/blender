@@ -178,9 +178,6 @@ static void texture_view_create_format_test()
 
 static void test_texture_view_SFLOAT_32_32_32_32()
 {
-  if (GPU_backend_get_type() == GPUBackendType::GPU_BACKEND_VULKAN) {
-    GTEST_SKIP() << "TODO: See #162650.";
-  }
   texture_view_create_format_test<TextureFormat::SFLOAT_32_32_32_32,
                                   TextureFormat::SFLOAT_32_32_32_32>();
   texture_view_create_format_test<TextureFormat::SFLOAT_32_32_32_32,
@@ -192,9 +189,6 @@ GPU_TEST(texture_view_SFLOAT_32_32_32_32);
 
 static void test_texture_view_SFLOAT_32_32()
 {
-  if (GPU_backend_get_type() == GPUBackendType::GPU_BACKEND_VULKAN) {
-    GTEST_SKIP() << "TODO: See #162650.";
-  }
   if (GPU_type_matches_ex(GPU_DEVICE_ATI, GPU_OS_ANY, GPU_DRIVER_ANY, GPU_BACKEND_OPENGL)) {
     GTEST_SKIP() << "Broken on AMD.";
   }
@@ -213,9 +207,6 @@ GPU_TEST(texture_view_SFLOAT_32_32);
 
 static void test_texture_view_SFLOAT_32()
 {
-  if (GPU_backend_get_type() == GPUBackendType::GPU_BACKEND_VULKAN) {
-    GTEST_SKIP() << "TODO: See #162650.";
-  }
   if (GPU_type_matches_ex(GPU_DEVICE_ATI, GPU_OS_ANY, GPU_DRIVER_ANY, GPU_BACKEND_OPENGL)) {
     GTEST_SKIP() << "Broken on AMD.";
   }
@@ -245,9 +236,6 @@ GPU_TEST(texture_view_SFLOAT_32);
 
 static void test_texture_view_SFLOAT_16()
 {
-  if (GPU_backend_get_type() == GPUBackendType::GPU_BACKEND_VULKAN) {
-    GTEST_SKIP() << "TODO: See #162650.";
-  }
   if (GPU_type_matches_ex(GPU_DEVICE_ATI, GPU_OS_ANY, GPU_DRIVER_ANY, GPU_BACKEND_OPENGL)) {
     GTEST_SKIP() << "Broken on AMD.";
   }
@@ -266,9 +254,6 @@ GPU_TEST(texture_view_SFLOAT_16);
 
 static void test_texture_view_UINT_8()
 {
-  if (GPU_backend_get_type() == GPUBackendType::GPU_BACKEND_VULKAN) {
-    GTEST_SKIP() << "TODO: See #162650.";
-  }
   texture_view_create_format_test<TextureFormat::UINT_8, TextureFormat::UINT_8>();
   texture_view_create_format_test<TextureFormat::UINT_8, TextureFormat::SINT_8>();
   texture_view_create_format_test<TextureFormat::UINT_8, TextureFormat::SNORM_8>();

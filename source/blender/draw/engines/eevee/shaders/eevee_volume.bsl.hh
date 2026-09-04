@@ -7,6 +7,7 @@
 
 #pragma once
 
+#include "eevee_camera_lib.bsl.hh"
 #include "eevee_colorspace_lib.bsl.hh"
 #include "eevee_hiz.bsl.hh"
 #include "eevee_light_eval.bsl.hh" /* IWYU pragma: export */
@@ -65,15 +66,25 @@ float3 volume_shadow([[resource_table]] const Uniform &uni,
   float3 L = lv.L * lv.dist / uni.uniform_buf.volumes.shadow_steps;
 
   if (is_directional) {
-    /* For sun light we scan the whole frustum. So we need to get the correct endpoints. */
-    float3 ndcP = view.point_world_to_ndc(P);
-    float3 ndcL = view.point_world_to_ndc(P + lv.L * lv.dist) - ndcP;
+    if (is_panoramic(uni.uniform_buf.camera.type)) {
+      /* Panoramic cameras render 6 identical but differently oriented frustums, so we can't use
+       * NDC box to bound the ray like below. Use distance to the camera instead because it's
+       * view-independent. */
+      float3 L_world = lv.L * distance(P, view.position());
+      L = L_world / uni.uniform_buf.volumes.shadow_steps;
+      dd = length(L);
+    }
+    else {
+      /* For sun light we scan the whole frustum. So we need to get the correct endpoints. */
+      float3 ndcP = view.point_world_to_ndc(P);
+      float3 ndcL = view.point_world_to_ndc(P + lv.L * lv.dist) - ndcP;
 
-    float3 ndc_frustum_isect = ndcP + ndcL * line_unit_box_intersect_dist_safe(ndcP, ndcL);
+      float3 ndc_frustum_isect = ndcP + ndcL * line_unit_box_intersect_dist_safe(ndcP, ndcL);
 
-    L = view.point_ndc_to_world(ndc_frustum_isect) - P;
-    L /= uni.uniform_buf.volumes.shadow_steps;
-    dd = length(L);
+      L = view.point_ndc_to_world(ndc_frustum_isect) - P;
+      L /= uni.uniform_buf.volumes.shadow_steps;
+      dd = length(L);
+    }
   }
 
   /* TODO use shadow maps instead. */
@@ -321,15 +332,21 @@ void integration_main([[resource_table]] Integrate &srt,
                uni.uniform_buf.volumes.inv_tex_size;
   float3 view_cell = volume_jitter_to_view(uni, view, uvw);
 
+  const bool uses_radial_depth = volume_uses_radial_depth(uni);
+
   float prev_ray_len;
-  float orig_ray_len;
-  if (view.is_perspective()) {
+  float orig_ray_len = 1.0f;
+  if (uses_radial_depth) {
+    /* Camera distance at froxel Z = 0, negated: `volume_z_to_view_z` returns a view-space Z
+     * (negative, forward is -Z), but the per-step diff below expects a positive distance. */
+    prev_ray_len = -volume_z_to_view_z(uni, view, 0.0f);
+  }
+  else if (view.is_perspective()) {
     prev_ray_len = length(view_cell);
     orig_ray_len = prev_ray_len / view_cell.z;
   }
   else {
     prev_ray_len = view_cell.z;
-    orig_ray_len = 1.0f;
   }
 
   for (int i = 0; i <= uni.uniform_buf.volumes.tex_size.z; i++) {
@@ -338,13 +355,22 @@ void integration_main([[resource_table]] Integrate &srt,
     float3 froxel_scattering = texelFetch(srt.in_scattering_tx, froxel, 0).rgb;
     float3 extinction = texelFetch(srt.in_extinction_tx, froxel, 0).rgb;
 
-    float cell_depth = volume_z_to_view_z(
-        uni, view, (float(i) + 1.0f) * uni.uniform_buf.volumes.inv_tex_size.z);
-    float ray_len = orig_ray_len * cell_depth;
+    float step_len;
+    if (uses_radial_depth) {
+      float ray_len = -volume_z_to_view_z(
+          uni, view, (float(i) + 1.0f) * uni.uniform_buf.volumes.inv_tex_size.z);
+      step_len = abs(ray_len - prev_ray_len);
+      prev_ray_len = ray_len;
+    }
+    else {
+      float cell_depth = volume_z_to_view_z(
+          uni, view, (float(i) + 1.0f) * uni.uniform_buf.volumes.inv_tex_size.z);
+      float ray_len = orig_ray_len * cell_depth;
 
-    /* Evaluate Scattering. */
-    float step_len = abs(ray_len - prev_ray_len);
-    prev_ray_len = ray_len;
+      /* Evaluate Scattering. */
+      step_len = abs(ray_len - prev_ray_len);
+      prev_ray_len = ray_len;
+    }
     float3 froxel_transmittance = exp(-extinction * step_len);
     /** NOTE: Original calculation carries precision issues when compiling for AMD GPUs
      * and running Metal. This version of the equation retains precision well for all
@@ -385,7 +411,10 @@ void resolve_vert([[vertex_id]] const int vert_id, [[position]] float4 &out_posi
 }
 
 /* Step 4 : Apply final integration on top of the scene color.
- * This is only for opaque geometry. */
+ * This is only for opaque geometry.
+ *
+ * Panoramic: each cubemap face resolves its own volumetric contribution independently. No
+ * blending across face edges/corners, so results can disagree right at a face seam. */
 [[fragment]]
 void resolve_frag([[resource_table]] const Uniform &uni,
                   [[resource_table]] const UnifiedVolumeData &volumes,

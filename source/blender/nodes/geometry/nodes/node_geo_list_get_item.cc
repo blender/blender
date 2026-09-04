@@ -123,7 +123,8 @@ static bke::SocketValueVariant get_single_item(GListPtr &list,
                                                const int64_t index)
 {
   bke::SocketValueVariant value;
-  void *value_ptr = value.allocate_single(socket_type);
+  const CPPType &cpp_type = *bke::socket_type_to_geo_nodes_base_cpp_type(socket_type);
+  void *value_ptr = value.allocate_single(cpp_type);
   if (const auto *data = std::get_if<GList::ArrayData>(&list->data())) {
     if (list->is_mutable() && data->sharing_info->is_mutable()) {
       GMutableSpan data_span(list->cpp_type(), const_cast<void *>(data->data), list->size());
@@ -186,8 +187,7 @@ static void node_geo_exec(GeoNodeExecParams params)
       params.set_default_remaining_outputs();
       return;
     }
-    index.convert_to_single();
-    const int index_int = index.get<int>();
+    const int index_int = index.ensure_type<int>();
     if (!IndexRange(list->size()).contains(index_int)) {
       params.error_message_add(NodeWarningType::Error, "Index out of range");
       params.set_default_remaining_outputs();

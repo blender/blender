@@ -4398,7 +4398,7 @@ static bool shrinkwrap_get_tarmat(Depsgraph * /*depsgraph*/,
 
       char cull_mode = scon->flag & CON_SHRINKWRAP_PROJECT_CULL_MASK;
 
-      BKE_shrinkwrap_project_normal(cull_mode, co, no, 0.0f, &transform, &tree, &hit);
+      BKE_shrinkwrap_project_normal(cull_mode, co, no, &transform, &tree, &hit);
 
       if (scon->flag & CON_SHRINKWRAP_PROJECT_OPPOSITE) {
         float inv_no[3];
@@ -4408,7 +4408,7 @@ static bool shrinkwrap_get_tarmat(Depsgraph * /*depsgraph*/,
           cull_mode ^= CON_SHRINKWRAP_PROJECT_CULL_MASK;
         }
 
-        BKE_shrinkwrap_project_normal(cull_mode, co, inv_no, 0.0f, &transform, &tree, &hit);
+        BKE_shrinkwrap_project_normal(cull_mode, co, inv_no, &transform, &tree, &hit);
       }
 
       if (hit.index < 0) {

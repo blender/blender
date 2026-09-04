@@ -694,9 +694,9 @@ static bNodeTreeInterfaceItem *legacy_socket_move_to_interface(bNodeSocket &lega
   new_socket->item.item_type = NodeTreeInterfaceItemType::Socket;
 
   /* Move reusable data. */
-  new_socket->name = BLI_strdup(legacy_socket.name);
+  new_socket->name_ = BLI_strdup(legacy_socket.name);
   new_socket->identifier = BLI_strdup(legacy_socket.identifier);
-  new_socket->description = BLI_strdup(legacy_socket.description);
+  new_socket->description_ = BLI_strdup(legacy_socket.description);
   /* If the socket idname includes a subtype (e.g. "NodeSocketFloatFactor") this will convert it to
    * the base type name ("NodeSocketFloat"). */
   new_socket->socket_type = BLI_strdup(
@@ -899,8 +899,8 @@ static void version_copy_socket(bNodeTreeInterfaceSocket &dst,
                                 char *identifier)
 {
   /* Node socket copy function based on bNodeTreeInterface::item_copy to avoid using blenkernel. */
-  dst.name = BLI_strdup_null(src.name);
-  dst.description = BLI_strdup_null(src.description);
+  dst.name_ = BLI_strdup_null(src.name_);
+  dst.description_ = BLI_strdup_null(src.description_);
   dst.socket_type = BLI_strdup(src.socket_type);
   dst.default_attribute_name = BLI_strdup_null(src.default_attribute_name);
   dst.identifier = identifier;

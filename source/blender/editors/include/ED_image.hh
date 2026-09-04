@@ -8,6 +8,8 @@
 
 #pragma once
 
+#include <array>
+
 #include "DNA_listBase.h"
 #include "DNA_space_types.h"
 
@@ -243,5 +245,7 @@ ListBaseT<ImageFrameRange> ED_image_filesel_detect_sequences(StringRefNull blend
                                                              bool detect_udim);
 
 bool ED_image_tools_paint_poll(bContext *C);
+
+std::array<const char *, 4> ED_image_buttons_contexts(const bContext *C);
 
 }  // namespace blender

@@ -540,10 +540,14 @@ struct Mesh {
    */
   Span<float3> corner_normals() const;
 
-  bke::BVHTreeFromMesh bvh_verts() const;
-  bke::BVHTreeFromMesh bvh_edges() const;
-  bke::BVHTreeFromMesh bvh_legacy_faces() const;
+  const blender::bke::bvh::Tree &bvh_verts() const;
+  const blender::bke::bvh::Tree &bvh_edges() const;
   const blender::bke::bvh::Tree &bvh_tris() const;
+  /**
+   * NOTE: Legacy, to be replaced. Prefer #Mesh::bvh_edges(), which currently only supports
+   * closest point queries.
+   */
+  bke::BVHTreeFromMesh bvh_edges_legacy() const;
   /** NOTE: Legacy, to be replaced. Prefer #Mesh::bvh_tris(). */
   bke::BVHTreeFromMesh bvh_corner_tris() const;
   bke::BVHTreeFromMesh bvh_corner_tris_no_hidden() const;
@@ -551,6 +555,7 @@ struct Mesh {
   bke::BVHTreeFromMesh bvh_loose_edges() const;
   bke::BVHTreeFromMesh bvh_loose_no_hidden_verts() const;
   bke::BVHTreeFromMesh bvh_loose_no_hidden_edges() const;
+  bke::BVHTreeFromMesh bvh_legacy_faces() const;
 
   void count_memory(MemoryCounter &memory) const;
 

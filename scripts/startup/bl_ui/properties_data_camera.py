@@ -21,6 +21,10 @@ class CameraButtonsPanel:
         return context.camera and (engine in cls.COMPAT_ENGINES)
 
 
+def camera_dof_panorama_unsupported(context, cam):
+    return context.engine == 'BLENDER_EEVEE' and cam.type == 'PANO'
+
+
 class CAMERA_PT_presets(PresetPanel, Panel):
     bl_label = "Camera Presets"
     preset_subdir = "camera"
@@ -99,7 +103,7 @@ class DATA_PT_lens(CameraButtonsPanel, Panel):
 
         elif cam.type == 'PANO':
             engine = context.engine
-            if engine == 'CYCLES':
+            if engine in {'CYCLES', 'BLENDER_EEVEE'}:
                 col.prop(cam, "panorama_type")
                 if cam.panorama_type == 'FISHEYE_EQUIDISTANT':
                     col.prop(cam, "fisheye_fov")
@@ -259,7 +263,9 @@ class DATA_PT_camera_dof(CameraButtonsPanel, Panel):
     def draw_header(self, context):
         cam = context.camera
         dof = cam.dof
-        self.layout.prop(dof, "use_dof", text="")
+        layout = self.layout
+        layout.enabled = not camera_dof_panorama_unsupported(context, cam)
+        layout.prop(dof, "use_dof", text="")
 
     def draw(self, context):
         layout = self.layout
@@ -267,7 +273,12 @@ class DATA_PT_camera_dof(CameraButtonsPanel, Panel):
 
         cam = context.camera
         dof = cam.dof
-        layout.active = dof.use_dof
+        dof_unsupported = camera_dof_panorama_unsupported(context, cam)
+
+        if dof_unsupported:
+            layout.label(text="Panoramic Depth of Field is not supported yet", icon='ERROR')
+
+        layout.active = dof.use_dof and not dof_unsupported
 
         col = layout.column()
         col.prop(dof, "focus_object", text="Focus on Object")
@@ -299,7 +310,7 @@ class DATA_PT_camera_dof_aperture(CameraButtonsPanel, Panel):
 
         cam = context.camera
         dof = cam.dof
-        layout.active = dof.use_dof
+        layout.active = dof.use_dof and not camera_dof_panorama_unsupported(context, cam)
 
         flow = layout.grid_flow(row_major=True, columns=0, even_columns=True, even_rows=False, align=False)
 

@@ -1145,7 +1145,7 @@ static void scene_blend_write_compositor_forward_compat(Scene &scene,
 static void scene_blend_write(BlendWriter *writer, ID *id, const void *id_address)
 {
   Scene *sce = id_cast<Scene *>(id);
-  const bool is_write_undo = BLO_write_is_undo(writer);
+  const bool is_write_undo = writer->is_undo();
 
   if (is_write_undo) {
     /* Clean up, important in undo case to reduce false detection of changed data-blocks. */

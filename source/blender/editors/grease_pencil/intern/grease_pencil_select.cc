@@ -1343,6 +1343,10 @@ bke::AttrDomain ED_grease_pencil_selection_domain_get(const ToolSettings *tool_s
   if (object->mode & OB_MODE_VERTEX_GREASE_PENCIL) {
     return ED_grease_pencil_vertex_selection_domain_get(tool_settings);
   }
+  if (object->mode & OB_MODE_PAINT_GREASE_PENCIL) {
+    /* Always use curve selection in Draw Mode. */
+    return bke::AttrDomain::Curve;
+  }
   return bke::AttrDomain::Point;
 }
 

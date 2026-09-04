@@ -70,6 +70,7 @@ void register_node_type_sh_light_falloff()
   ntype.ui_description =
       "Manipulate how light intensity decreases over distance. Typically used for "
       "non-physically-based effects; in reality light always falls off quadratically";
+  ntype.enum_name_legacy = "LIGHT_FALLOFF";
   ntype.nclass = NODE_CLASS_OP_COLOR;
   ntype.declare = file_ns::node_declare;
   ntype.default_width = bke::NodeWidth::_160;

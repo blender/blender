@@ -239,10 +239,12 @@ static_assert(int(GPUMaterialFromNodeTreeResult::WarningType::Info) ==
 GPUMaterial *GPU_material_from_callbacks(eGPUMaterialEngine engine,
                                          ConstructGPUMaterialFn construct_function_cb,
                                          GPUCodegenCallbackFn generate_code_function_cb,
-                                         void *thunk)
+                                         void *thunk,
+                                         const uint64_t uuid)
 {
   /* Allocate a new material and its material graph. */
   GPUMaterial *material = MEM_new<GPUMaterial>(__func__, engine);
+  material->uuid = uuid;
 
   /* Construct the material graph by adding and linking the necessary GPU material nodes. */
   construct_function_cb(thunk, material);

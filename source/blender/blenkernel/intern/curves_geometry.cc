@@ -1998,8 +1998,7 @@ void CurvesGeometry::blend_write_prepare(CurvesGeometry::BlendWriteData &write_d
     this->attribute_storage.dna_attributes_num = write_data.attribute_data.attributes.size();
   }
 
-  BLO_write_generated_pointer_tag(write_data.attribute_data.writer,
-                                  this->attribute_storage.dna_attributes);
+  write_data.attribute_data.writer->generated_pointer_tag(this->attribute_storage.dna_attributes);
 }
 
 void CurvesGeometry::blend_write(BlendWriter &writer,
@@ -2011,8 +2010,7 @@ void CurvesGeometry::blend_write(BlendWriter &writer,
   this->attribute_storage.wrap().blend_write(writer, write_data.attribute_data);
 
   if (this->curve_offsets) {
-    BLO_write_shared(
-        &writer,
+    writer.write_shared(
         this->curve_offsets,
         sizeof(int) * (this->curve_num + 1),
         this->runtime->curve_offsets_sharing_info,
@@ -2022,8 +2020,7 @@ void CurvesGeometry::blend_write(BlendWriter &writer,
   BKE_defbase_blend_write(&writer, &this->vertex_group_names);
 
   if (this->custom_knot_num) {
-    BLO_write_shared(
-        &writer,
+    writer.write_shared(
         this->custom_knots,
         sizeof(float) * this->custom_knot_num,
         this->runtime->custom_knots_sharing_info,

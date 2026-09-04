@@ -2125,7 +2125,19 @@ static wmOperatorStatus sequencer_box_select_invoke(bContext *C,
     }
   }
 
-  return WM_gesture_box_invoke(C, op, event);
+  const wmOperatorStatus opstatus = WM_gesture_box_invoke(C, op, event);
+  const SpaceSeq *sseq = CTX_wm_space_seq(C);
+
+  wmGesture *gesture = static_cast<wmGesture *>(op->customdata);
+  if ((sseq->flag & SEQ_CLAMP_VIEW) && gesture->edge_pan_data && scene != nullptr &&
+      region->regiontype == RGN_TYPE_WINDOW)
+  {
+    const rctf view_bounds = sequencer_clamped_view_bounds_get(C, region);
+    gesture->edge_pan_data->limit.ymin = view_bounds.ymin;
+    gesture->edge_pan_data->limit.ymax = view_bounds.ymax;
+  }
+
+  return opstatus;
 }
 
 void SEQUENCER_OT_select_box(wmOperatorType *ot)

@@ -495,7 +495,7 @@ static void action_blend_write(BlendWriter *writer, ID *id, const void *id_addre
 
   /* Create legacy data for Layered Actions: the F-Curves from the first Slot,
    * bottom layer, first Keyframe strip. */
-  const bool do_write_forward_compat = !BLO_write_is_undo(writer) && action.slot_array_num > 0;
+  const bool do_write_forward_compat = !writer->is_undo() && action.slot_array_num > 0;
   if (do_write_forward_compat) {
     animrig::assert_baklava_phase_1_invariants(action);
     BLI_assert_msg(action.curves.is_empty(), "Layered Action should not have legacy data");

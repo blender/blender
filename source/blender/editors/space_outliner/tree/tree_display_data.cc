@@ -14,6 +14,7 @@
 
 #include "../outliner_intern.hh"
 #include "tree_display.hh"
+#include "tree_element_rna.hh"
 
 namespace blender::ed::outliner {
 
@@ -28,8 +29,7 @@ ListBaseT<TreeElement> TreeDisplayDataAPI::build_tree(const TreeSourceData &sour
 
   PointerRNA mainptr = RNA_main_pointer_create(source_data.bmain);
 
-  TreeElement *te = add_element(
-      &tree, nullptr, static_cast<void *>(&mainptr), nullptr, TSE_RNA_STRUCT, -1);
+  TreeElement *te = add_element<TreeElementRNAStruct>({.lb = &tree, .index = -1}, mainptr);
 
   /* On first view open parent data elements */
   const int show_opened = !space_outliner_.treestore ||

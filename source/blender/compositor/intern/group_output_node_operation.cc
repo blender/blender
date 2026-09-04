@@ -9,7 +9,6 @@
 
 #include "COM_context.hh"
 #include "COM_group_output_node_operation.hh"
-#include "COM_node_group_operation.hh"
 #include "COM_node_operation.hh"
 #include "COM_utilities.hh"
 
@@ -20,12 +19,10 @@ namespace blender::compositor {
  * identifier. */
 class GroupOutputNodeOperation : public NodeOperation {
  private:
-  NodeGroupOperation &node_group_operation_;
+  Operation &node_group_operation_;
 
  public:
-  GroupOutputNodeOperation(Context &context,
-                           const bNode &node,
-                           NodeGroupOperation &node_group_operation)
+  GroupOutputNodeOperation(Context &context, const bNode &node, Operation &node_group_operation)
       : NodeOperation(context, node), node_group_operation_(node_group_operation)
   {
     for (const bNodeSocket *input : node.input_sockets()) {
@@ -62,7 +59,7 @@ class GroupOutputNodeOperation : public NodeOperation {
 
 NodeOperation *get_group_output_node_operation(Context &context,
                                                const bNode &node,
-                                               NodeGroupOperation &node_group_operation)
+                                               Operation &node_group_operation)
 {
   return new GroupOutputNodeOperation(context, node, node_group_operation);
 }
