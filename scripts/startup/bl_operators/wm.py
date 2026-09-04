@@ -3711,25 +3711,65 @@ class WM_OT_drop_blend_file(Operator):
         subtype='FILE_PATH',
         options={'SKIP_SAVE'},
     )
+    use_scripts: BoolProperty(
+        name="Trusted Source",
+        options={'SKIP_SAVE'},
+    )
+
+    @classmethod
+    def _is_autoexec(cls, filepath):
+        """
+        Return true when `filepath` is in a directory which isn't excluded.
+        """
+        return bpy.path.is_autoexec(filepath, canonicalize=True, strip_filename=True)
+
+    def draw(self, context):
+        layout = self.layout
+        filepath = self.filepath
+
+        layout.label(text=bpy.path.basename(filepath), icon='QUESTION')
+
+        col = layout.column()
+        col.operator_context = 'INVOKE_DEFAULT'
+        # Return activates "Open", the primary action of this popup.
+        col.active_default = True
+        props = col.operator("wm.open_mainfile", text="Open", icon='FILE_FOLDER')
+        props.filepath = filepath
+        props.display_file_selector = False
+        props.use_scripts = self.use_scripts
+
+        col = layout.column()
+        if not context.preferences.filepaths.use_scripts_auto_execute or self._is_autoexec(filepath):
+            col.prop(self, "use_scripts")
+        else:
+            col.enabled = False
+            col.prop(self, "use_scripts", text="Trusted Source [Untrusted Path]")
+
+        layout.separator(type='LINE')
+
+        col = layout.column()
+        col.operator_context = 'INVOKE_DEFAULT'
+        # Use the confirm template so pressing these closes the popup,
+        # the popup is kept open otherwise (see `BLOCK_KEEP_OPEN`).
+        col.template_popup_confirm(
+            "wm.link", text="Link...", icon='LINK_BLEND', cancel_text="",
+        ).filepath = filepath
+        col.template_popup_confirm(
+            "wm.append", text="Append...", icon='APPEND_BLEND', cancel_text="",
+        ).filepath = filepath
+
+    def execute(self, context):
+        # Needed so the popup draws this operators UI.
+        return {'CANCELLED'}
 
     def invoke(self, context, _event):
-        context.window_manager.popup_menu(self.draw_menu, title=bpy.path.basename(self.filepath), icon='QUESTION')
-        return {'FINISHED'}
-
-    def draw_menu(self, menu, _context):
-        layout = menu.layout
-
-        col = layout.column()
-        col.operator_context = 'INVOKE_DEFAULT'
-        props = col.operator("wm.open_mainfile", text="Open", icon='FILE_FOLDER')
-        props.filepath = self.filepath
-        props.display_file_selector = False
-
-        layout.separator()
-        col = layout.column()
-        col.operator_context = 'INVOKE_DEFAULT'
-        col.operator("wm.link", text="Link...", icon='LINK_BLEND').filepath = self.filepath
-        col.operator("wm.append", text="Append...", icon='APPEND_BLEND').filepath = self.filepath
+        # Match the file selector, which defaults to the preferences.
+        self.use_scripts = (
+            context.preferences.filepaths.use_scripts_auto_execute and
+            self._is_autoexec(self.filepath)
+        )
+        # The popup shows this operators own UI, keeping it alive while it's open.
+        return context.window_manager.invoke_popup(self, auto_keymap=True)
 
 
 classes = (
