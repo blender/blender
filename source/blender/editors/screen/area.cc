@@ -3468,7 +3468,11 @@ static void side_region_search_move_next_category_with_result(const bContext *C,
   if (region->runtime->search_filter == "") {
     return;
   }
-  if (region->runtime->categories_search_match.contains(region->runtime->category)) {
+  if (!region->runtime->category) {
+    return;
+  }
+  if (region->runtime->categories_search_match.contains(StringRefNull(region->runtime->category)))
+  {
     return;
   }
   const char *next_active = nullptr;
