@@ -598,7 +598,7 @@ static std::optional<std::string> rna_FCurve_path(const PointerRNA *ptr)
           RNA_struct_search_closest_ancestor_by_type(ptr, RNA_ActionChannelbag))
   {
     /* Pass the FCurve ancestors to the Channelbag pointer as well, to give the
-     * rna_ActionStrip_path() direct access to the containing ActionLayer. */
+     * rna_Channelbag_path() direct access to the containing ActionLayer. */
     const PointerRNA channelbag_ptr = {
         &action.id, channelbag_ancestor_ptr->type, channelbag_ancestor_ptr->data, ptr->ancestors};
     BLI_assert_msg(channelbag_ptr.has_data(), "PointerRNA ancestors should not be nullptr");
@@ -624,8 +624,12 @@ static std::optional<std::string> rna_FCurve_path(const PointerRNA *ptr)
       for (animrig::Channelbag *channelbag : strip_data.channelbags()) {
         const int fcurve_index = channelbag->fcurves().first_index_try(fcurve);
         if (fcurve_index != -1) {
-          PointerRNA channelbag_ptr = RNA_pointer_create_discrete(
-              &action.id, RNA_ActionChannelbag, channelbag);
+          const PointerRNA layer_ptr = RNA_pointer_create_id_subdata(
+              action.id, RNA_ActionLayer, layer);
+          const PointerRNA strip_ptr = RNA_pointer_create_with_parent(
+              layer_ptr, RNA_ActionStrip, strip);
+          const PointerRNA channelbag_ptr = RNA_pointer_create_with_parent(
+              layer_ptr, RNA_ActionChannelbag, channelbag);
           const std::optional<std::string> channelbag_path = rna_Channelbag_path(&channelbag_ptr);
           return fmt::format("{}.fcurves[{}]", *channelbag_path, fcurve_index);
         }
