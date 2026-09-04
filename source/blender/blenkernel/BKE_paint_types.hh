@@ -4,6 +4,7 @@
 
 #pragma once
 
+#include "BLI_enum_flags.hh"
 #include "BLI_math_vector_types.hh"
 #include "BLI_utildefines.hh"
 #include "BLI_utility_mixins.hh"
