@@ -65,6 +65,7 @@ static void createTransGreasePencilVerts(bContext *C, TransInfo *t)
                   target_layer, *target_layer.start_frame_at(current_frame), current_frame, false))
           {
             t->flag |= T_DUPLICATED_KEYFRAMES;
+            curves_transform_data->duplicate_layer_keyframes.add(&target_layer, current_frame);
           }
         }
       }
@@ -283,9 +284,8 @@ static void recalcData_grease_pencil(TransInfo *t)
   }
 }
 
-static void special_aftertrans_update__grease_pencil(bContext *C, TransInfo *t)
+static void special_aftertrans_update__grease_pencil(bContext * /*C*/, TransInfo *t)
 {
-  Scene *scene = CTX_data_scene(C);
   MutableSpan<TransDataContainer> trans_data_contrainers(t->data_container, t->data_container_len);
 
   /* If the transform operation was cancelled and new keyframes got created, remove them. */
@@ -295,16 +295,14 @@ static void special_aftertrans_update__grease_pencil(bContext *C, TransInfo *t)
 
   for (TransDataContainer &tc : trans_data_contrainers) {
     GreasePencil &grease_pencil = *id_cast<GreasePencil *>(tc.obedit->data);
+    CurvesTransformData &transform_data = *static_cast<CurvesTransformData *>(tc.custom.type.data);
 
-    Vector<ed::greasepencil::MutableDrawingInfo> drawings =
-        ed::greasepencil::retrieve_editable_drawings_with_falloff(*scene, grease_pencil);
-
-    if (animrig::is_autokey_on(scene)) {
-      for (ed::greasepencil::MutableDrawingInfo &info : drawings) {
-        bke::greasepencil::Layer &layer = grease_pencil.layer(info.layer_index);
-        grease_pencil.remove_frames(layer, {scene->r.cfra});
-      }
+    for (auto item : transform_data.duplicate_layer_keyframes.items()) {
+      bke::greasepencil::Layer &layer = *item.key;
+      grease_pencil.remove_frames(layer, {item.value});
     }
+
+    transform_data.duplicate_layer_keyframes.clear();
   }
 }
 
