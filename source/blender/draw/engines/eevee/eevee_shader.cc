@@ -645,7 +645,7 @@ class SlotAllocator {
   void reserve_slots(gpu::shader::ShaderCreateInfo &info)
   {
     reserve_slots_recursive(info);
-    total_requested_samplers_ = count_bits_uint64(uint64_t(~available_samplers_));
+    total_requested_samplers_ = count_bits_i(~available_samplers_);
 
     for (auto &resource : info.batch_resources_) {
       if (resource.bind_type == gpu::shader::ShaderCreateInfo::Resource::BindType::SAMPLER) {
