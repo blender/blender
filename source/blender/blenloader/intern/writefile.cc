@@ -1092,7 +1092,7 @@ static void writedata(
   bh.len = int64_t(len);
 
   if (wd->debug_dst) {
-    write_raw_data_in_debug_file(wd, len, address_id, adr);
+    write_raw_data_in_debug_file(wd, len, address_id, data);
   }
 
   write_bhead(wd, bh);
