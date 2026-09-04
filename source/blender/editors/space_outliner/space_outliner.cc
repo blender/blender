@@ -7,7 +7,6 @@
  */
 
 /* Allow using deprecated functionality for .blend file I/O. */
-#include "DNA_space_types.h"
 #define DNA_DEPRECATED_ALLOW
 
 #include <cfloat>
