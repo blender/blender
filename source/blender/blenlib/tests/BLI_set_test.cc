@@ -721,6 +721,16 @@ TEST(set, AddOverwrite)
   EXPECT_EQ(set.lookup_key(key).data, "d");
 }
 
+TEST(set, UpdateIntersect)
+{
+  Set<int> set_a = {1, 2, 3, 4, 5, 6};
+  const Set<int> set_b = {2, 3, 5, 7, 11, 13};
+
+  set_a.update_intersect(set_b);
+  const Set<int> expect_intersection = {2, 3, 5};
+  EXPECT_EQ(expect_intersection, set_a);
+}
+
 /**
  * Set this to 1 to activate the benchmark. It is disabled by default, because it prints a lot.
  */

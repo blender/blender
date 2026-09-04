@@ -3,7 +3,10 @@
  * SPDX-License-Identifier: GPL-2.0-or-later */
 
 #include <ostream>
+#include <string>
 
+#include "BLI_assert.hh"
+#include "DNA_action_types.h"
 #include "DNA_anim_types.h"
 
 #include "RNA_access.hh"
@@ -50,6 +53,143 @@ std::ostream &operator<<(std::ostream &stream, const AnimationChannelType type)
   return stream;
 }
 
+std::ostream &operator<<(std::ostream &stream, const ChannelTagType type)
+{
+  switch (type) {
+    case ChannelTagType::FCURVE_GROUP:
+      stream << "FCURVE_GROUP";
+      break;
+    case ChannelTagType::ACTION_STRIP:
+      stream << "ACTION_STRIP";
+      break;
+    case ChannelTagType::ACTION_LAYER:
+      stream << "ACTION_LAYER";
+      break;
+    case ChannelTagType::ACTION_SLOT:
+      stream << "ACTION_SLOT";
+      break;
+    case ChannelTagType::ACTION:
+      stream << "ACTION";
+      break;
+    case ChannelTagType::BONE:
+      stream << "BONE";
+      break;
+    case ChannelTagType::ID:
+      stream << "ID";
+      break;
+    case ChannelTagType::SHAPE_KEY:
+      stream << "SHAPE_KEY";
+      break;
+  }
+  return stream;
+}
+
+std::ostream &operator<<(std::ostream &stream, const ChannelTag &tag)
+{
+  stream << tag.tag_type() << " '" << tag.label() << "'";
+  return stream;
+}
+
+std::ostream &operator<<(std::ostream &stream, const ChannelTagSet &tagset)
+{
+  stream << "[";
+  bool is_first = true;
+  for (const ChannelTag &tag : tagset.all()) {
+    if (!is_first) {
+      stream << "; ";
+    }
+    is_first = false;
+    stream << tag;
+  }
+  stream << "]";
+  return stream;
+}
+
+void debug_stream_hierarchy(std::ostream &stream,
+                            const AnimationChannel &channel,
+                            const StringRef indent)
+{
+  /* Show the channel itself. */
+  stream << indent << "\033[90m" << channel.type() << "\033[0m "
+         << "\033[97m" << channel.label() << "\033[0m";
+  if (channel.type() == AnimationChannelType::DATA) {
+    const DataChannel &data = dynamic_cast<const DataChannel &>(channel);
+    stream << " (\033[95m" << data.source_type() << "\033[0m)";
+  }
+  stream << std::endl;
+
+  /* Show source and data type. */
+  if (channel.source().has_data()) {
+    const PointerRNA source_ptr = channel.source();
+    stream << indent << "   Source: " << RNA_struct_ui_name(source_ptr.type);
+    stream << std::endl;
+  }
+  stream << indent << "   Path  : ";
+  if (const std::optional<ParsedRNAPathRef> source_rna_path = channel.source_rna_path()) {
+    if (source_rna_path->is_empty()) {
+      stream << "\033[90m-empty-\033[0m";
+    }
+    else {
+      stream << "\033[38;5;214m\033[97m" << rna_path::to_string(*source_rna_path) << "\033[0m";
+    }
+  }
+  else {
+    stream << "\033[90m-none-\033[0m";
+  }
+  stream << std::endl;
+
+  /* Show the tags. */
+  stream << indent << "   Tags  : " << channel.tags() << std::endl;
+
+  /* Recurse into children. */
+  if (channel.type() == AnimationChannelType::SUMMARY) {
+    const SummaryChannel &summary = dynamic_cast<const SummaryChannel &>(channel);
+    std::string child_indent = indent + "  ";
+    for (const AnimationChannel *child : summary.children()) {
+      debug_stream_hierarchy(stream, *child, child_indent);
+    }
+  }
+}
+
+/**
+ * Assert that the path constructed for this PointerRNA actually matches the RNA path Blender
+ * would generate for it.
+ */
+static void assert_same_rna_path(const ParsedSourcePath &parsed_rna_path,
+                                 const PointerRNA &rna_pointer)
+{
+  UNUSED_VARS_NDEBUG(parsed_rna_path, rna_pointer);
+#ifndef NDEBUG
+  std::optional<std::string> rna_path_given = parsed_rna_path.to_string();
+  std::optional<std::string> rna_path_generated = RNA_path_from_ID_to_struct(&rna_pointer);
+
+  if (rna_path_given == rna_path_generated) {
+    return;
+  }
+
+  /* A given path that has an empty value will result in a 'no value' generated path, which is a
+   * valid case. */
+  if (rna_path_given.has_value() && rna_path_given->empty() && !rna_path_generated.has_value()) {
+    return;
+  }
+
+  std::cerr << "RNA paths do not match:" << std::endl;
+  if (rna_path_given) {
+    std::cerr << "   Given    : " << *rna_path_given << std::endl;
+  }
+  else {
+    std::cerr << "   Given    : no path" << std::endl;
+  }
+  if (rna_path_generated) {
+    std::cerr << "   Generated: " << *rna_path_generated << std::endl;
+  }
+  else {
+    std::cerr << "   Generated: no path" << std::endl;
+  }
+  BLI_assert_unreachable();
+#endif
+}
+
 static InterpolationSummary combine_interpolation(const InterpolationSummary a,
                                                   const InterpolationSummary b)
 {
@@ -88,9 +228,15 @@ void KeyPoint::merge(const KeyPoint &other)
 ChannelTag::ChannelTag(const ChannelTagType type,
                        const StringRef label,
                        const PointerRNA &source_data,
+                       const std::optional<ParsedSourcePath> source_rna_path,
                        const int sort_priority)
-    : tag_type_(type), label_(label), source_data_(source_data), priority_(sort_priority)
+    : tag_type_(type),
+      label_(label),
+      source_data_(source_data),
+      source_rna_path_(source_rna_path),
+      priority_(sort_priority)
 {
+  assert_same_rna_path(*source_rna_path_, source_data_);
 }
 
 /* ===== AnimationChannel ===== */
@@ -307,30 +453,9 @@ FCurveChannel::FCurveChannel(const PointerRNA &fcurve_ptr, const ParsedSourcePat
           DataChannelType::FCURVE,
           source_rna_path)
 {
-  this->source_ = fcurve_ptr;
+  assert_same_rna_path(*source_rna_path_, fcurve_ptr);
 
-/* Ensure that the path constructed for this F-Curve actually matches the RNA path Blender would
- * generate for it. */
-#ifndef NDEBUG
-  std::optional<std::string> rna_path_given = source_rna_path_->to_string();
-  std::optional<std::string> rna_path_generated = RNA_path_from_ID_to_struct(&fcurve_ptr);
-  if (rna_path_given != rna_path_generated) {
-    std::cerr << "RNA paths do not match:" << std::endl;
-    if (rna_path_given) {
-      std::cerr << "   Given    : " << *rna_path_given << std::endl;
-    }
-    else {
-      std::cerr << "   Given    : no path" << std::endl;
-    }
-    if (rna_path_generated) {
-      std::cerr << "   Generated: " << *rna_path_generated << std::endl;
-    }
-    else {
-      std::cerr << "   Generated: no path" << std::endl;
-    }
-    BLI_assert(source_rna_path_->to_string() == RNA_path_from_ID_to_struct(&fcurve_ptr));
-  }
-#endif
+  this->source_ = fcurve_ptr;
 
   FCurve &fcurve = *fcurve_ptr.data_as<FCurve>();
   const ParsedRNAPathRef rna_path = fcurve.rna_path_parsed();

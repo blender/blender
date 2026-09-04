@@ -28,6 +28,7 @@
 #include <cstring>
 #include <optional>
 
+#include "DNA_action_types.h"
 #include "DNA_anim_types.h"
 #include "DNA_armature_types.h"
 #include "DNA_cachefile_types.h"
@@ -4183,6 +4184,32 @@ ChannelArena &ChannelArena::operator=(ChannelArena &&other)
   return *this;
 }
 
+static void gather_tags(SummaryChannel &channel)
+{
+  bool has_seen_child = false;
+  ChannelTagSet &channel_tag_set = channel.tags();
+
+  /* Take the intersection of the tags of all children. */
+  for (AnimationChannel *child : channel.children()) {
+    if (child->type() == AnimationChannelType::SUMMARY) {
+      gather_tags(*dynamic_cast<SummaryChannel *>(child));
+    }
+
+    if (has_seen_child) {
+      channel_tag_set.update_intersect(child->tags());
+    }
+    else {
+      channel_tag_set = child->tags();
+      has_seen_child = true;
+    }
+
+    if (channel_tag_set.is_empty()) {
+      /* There is no use in continuing to intersect children. */
+      return;
+    }
+  }
+}
+
 void group_channels(ChannelArena &arena,
                     Span<ChannelTagType> tag_order,
                     const bool use_minimal_grouping)
@@ -4233,7 +4260,7 @@ void group_channels(ChannelArena &arena,
 
       for (const auto &[tag, tag_channels] : potential_tags.items()) {
         SummaryChannel *new_summary = arena.allocate_summary_channel(
-            tag.label(), tag.source_data(), std::nullopt, tag.sort_priority());
+            tag.label(), tag.source_data(), tag.source_rna_path(), tag.sort_priority());
         for (DataChannel *child : tag_channels) {
           summary->remove_child(*child);
           new_summary->add_child(*child);
@@ -4254,6 +4281,7 @@ void group_channels(ChannelArena &arena,
   for (SummaryChannel *channel : arena.summary_channels) {
     channel->sort_children();
   }
+  gather_tags(*root);
 }
 
 }  // namespace ed::animfilter

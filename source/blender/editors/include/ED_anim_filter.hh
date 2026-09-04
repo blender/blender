@@ -44,10 +44,17 @@ enum class ChannelTagType {
   SHAPE_KEY,
 };
 
+using ParsedSourcePath = blender::ParsedRNAPath<6>;
+
 class ChannelTag {
   ChannelTagType tag_type_;
   std::string label_;
   PointerRNA source_data_;
+
+  /* RNA path to the source data, relative to the source's owner_id. If the source is an ID the
+   * path is an empty ParsedSourcePath. This is to distinguish "unknown" from "empty". */
+  std::optional<ParsedSourcePath> source_rna_path_;
+
   /* See AnimationChannel::sorting_priority_. */
   int priority_;
 
@@ -55,6 +62,7 @@ class ChannelTag {
   ChannelTag(ChannelTagType type,
              StringRef label,
              const PointerRNA &source_data,
+             std::optional<ParsedSourcePath> source_rna_path,
              int sort_priority_ = 0);
   bool operator==(const ChannelTag &other) const
   {
@@ -75,6 +83,10 @@ class ChannelTag {
   const PointerRNA &source_data() const
   {
     return this->source_data_;
+  }
+  std::optional<ParsedRNAPathRef> source_rna_path() const
+  {
+    return this->source_rna_path_;
   }
   int sort_priority() const
   {
@@ -159,23 +171,36 @@ class ChannelTagSet {
   Set<ChannelTag> tags_;
 
  public:
-  /** Make a local copy of the tag elements. */
-  void operator=(const ChannelTagSet &other)
+  ChannelTagSet() = default;
+  ChannelTagSet(const ChannelTagSet &) = default;
+  ChannelTagSet(ChannelTagSet &&) noexcept = default;
+  ChannelTagSet &operator=(const ChannelTagSet &) = default;
+  ChannelTagSet &operator=(ChannelTagSet &&) = default;
+
+  void set(const Set<ChannelTag> &tags)
   {
-    this->tags_ = other.tags_;
+    this->tags_ = tags;
+  }
+  void set(Set<ChannelTag> &&tags)
+  {
+    this->tags_ = std::move(tags);
   }
 
-  /** Make a local copy of the tag elements. */
-  void set(const ChannelTagStack &tags)
+  void update_intersect(const ChannelTagSet &other)
   {
-    /* TODO: move the tags.as_set() call to the caller. */
-    this->tags_ = tags.as_set();
+    this->tags_.update_intersect(other.tags_);
   }
 
   const Set<ChannelTag> &all() const
   {
     return this->tags_;
   }
+
+  bool is_empty() const
+  {
+    return this->tags_.is_empty();
+  }
+
   const ChannelTag *by_type(const ChannelTagType tag_type) const
   {
     /* TODO store in map so we don't have to search here. */
@@ -192,10 +217,12 @@ class ChannelTagSet {
   }
 };
 
-class AnimationChannel {
- public:
-  using ParsedSourcePath = blender::ParsedRNAPath<6>;
+/* Stream operators for debugging. */
+std::ostream &operator<<(std::ostream &stream, ChannelTagType type);
+std::ostream &operator<<(std::ostream &stream, const ChannelTag &tag);
+std::ostream &operator<<(std::ostream &stream, const ChannelTagSet &tagset);
 
+class AnimationChannel {
  protected:
   AnimationChannelType type_ = AnimationChannelType::UNKNOWN;
   AnimationChannelFlags flags_ = ANIM_CHANNEL_DIRTY;
@@ -262,6 +289,11 @@ class AnimationChannel {
   ChannelTagSet &tags()
   {
     return this->tags_;
+  }
+
+  std::optional<ParsedRNAPathRef> source_rna_path() const
+  {
+    return this->source_rna_path_;
   }
 
   virtual bool is_selected() const = 0;

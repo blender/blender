@@ -2,6 +2,8 @@
  *
  * SPDX-License-Identifier: GPL-2.0-or-later */
 
+#include "anim_filter_source_intern.hh"
+
 #include "BLI_span.hh"
 #include "DNA_ID.h"
 #include "DNA_anim_types.h"
@@ -18,6 +20,7 @@
 #include "ANIM_action.hh"
 
 #include "ED_anim_filter.hh"
+#include <optional>
 
 namespace blender::ed::animfilter {
 
@@ -26,6 +29,9 @@ static bool has_assigned_action(AnimData &anim_data)
   return anim_data.action != nullptr && anim_data.slot_handle != animrig::Slot::unassigned;
 }
 
+/**
+ * \param rna_path_items: the RNA path that points to this channelbag.
+ */
 static void channels_for_channelbag(const PointerRNA &channelbag_ptr,
                                     animrig::Channelbag &channelbag,
                                     ChannelTagStack &tags,
@@ -39,7 +45,14 @@ static void channels_for_channelbag(const PointerRNA &channelbag_ptr,
     if (fcu->grp) {
       PointerRNA group_pointer = RNA_pointer_create_with_parent(
           channelbag_ptr, RNA_ActionGroup, fcu->grp);
-      tags.push({ChannelTagType::FCURVE_GROUP, fcu->grp->name, group_pointer});
+      rna_path_items.append(rna_path::Member{UString("groups")});
+      rna_path_items.append(rna_path::LookupKey{UString{fcu->grp->name}});
+      tags.push({ChannelTagType::FCURVE_GROUP,
+                 fcu->grp->name,
+                 group_pointer,
+                 ParsedRNAPathRef(rna_path_items)});
+      rna_path_items.pop_last();
+      rna_path_items.pop_last();
     }
 
     /* Append the FCurve to the RNA path. */
@@ -49,7 +62,7 @@ static void channels_for_channelbag(const PointerRNA &channelbag_ptr,
     PointerRNA fcurve_ptr = RNA_pointer_create_with_parent(channelbag_ptr, RNA_FCurve, fcu);
     FCurveChannel *channel = arena.allocate_data_channel<FCurveChannel>(
         fcurve_ptr, ParsedRNAPathRef(rna_path_items));
-    channel->tags().set(tags);
+    channel->tags().set(tags.as_set());
 
     /* Pop the FCurve off the RNA path. */
     rna_path_items.pop_last();
@@ -72,21 +85,32 @@ static void channels_for_action_slot(animrig::Action &action,
   Vector<rna_path::Item> rna_path_items;
 
   PointerRNA action_ptr = RNA_pointer_create_discrete(&action.id, RNA_Action, &action);
-  tags.push({ChannelTagType::ACTION, action.id.name + 2, action_ptr});
+  tags.push({ChannelTagType::ACTION, action.id.name + 2, action_ptr, ParsedRNAPathRef()});
 
   Slot *slot = action.slot_for_handle(slot_handle);
   PointerRNA slot_ptr = RNA_pointer_create_id_subdata(action.id, RNA_ActionSlot, slot);
-  tags.push({ChannelTagType::ACTION_SLOT, slot->identifier, slot_ptr});
+
+  rna_path_items.append(rna_path::Member{UString("slots")});
+  rna_path_items.append(rna_path::LookupKey{UString(slot->identifier)});
+  tags.push(
+      {ChannelTagType::ACTION_SLOT, slot->identifier, slot_ptr, ParsedRNAPathRef(rna_path_items)});
+  rna_path_items.pop_last();
+  rna_path_items.pop_last();
 
   for (const int layer_index : action.layers().index_range()) {
     Layer *layer = action.layer(layer_index);
-    PointerRNA layer_ptr = RNA_pointer_create_id_subdata(action.id, RNA_ActionLayer, layer);
-    /* Passing the layer index to guarantee layers are always sorted by their hierarchy. */
-    tags.push({ChannelTagType::ACTION_LAYER, layer->name, layer_ptr, layer_index});
 
     /* Append the layer to the RNA path. */
     rna_path_items.append(rna_path::Member{UString("layers")});
     rna_path_items.append(rna_path::LookupKey{UString(layer->name)});
+
+    PointerRNA layer_ptr = RNA_pointer_create_id_subdata(action.id, RNA_ActionLayer, layer);
+    /* Passing the layer index to guarantee layers are always sorted by their hierarchy. */
+    tags.push({ChannelTagType::ACTION_LAYER,
+               layer->name,
+               layer_ptr,
+               ParsedRNAPathRef(rna_path_items),
+               layer_index});
 
     for (const int64_t strip_index : layer->strips().index_range()) {
       Strip *strip = layer->strip(strip_index);
@@ -99,14 +123,18 @@ static void channels_for_action_slot(animrig::Action &action,
         continue;
       }
 
+      /* Append the strip to the RNA path. */
+      rna_path_items.append(rna_path::Member{UString("strips")});
+      rna_path_items.append(rna_path::LookupIndex{strip_index});
+
       Channelbag *channelbag = action_strip.channelbag(channelbag_index);
       PointerRNA strip_ptr = RNA_pointer_create_with_parent(
           layer_ptr, RNA_ActionKeyframeStrip, strip);
-      tags.push({ChannelTagType::ACTION_STRIP, "strip_name_placeholder", strip_ptr});
+      tags.push({ChannelTagType::ACTION_STRIP,
+                 "strip_name_placeholder",
+                 strip_ptr,
+                 ParsedRNAPathRef(rna_path_items)});
 
-      /* Append the strip + channelbag to the RNA path. */
-      rna_path_items.append(rna_path::Member{UString("strips")});
-      rna_path_items.append(rna_path::LookupIndex{strip_index});
       rna_path_items.append(rna_path::Member{UString("channelbags")});
       rna_path_items.append(rna_path::LookupIndex{channelbag_index});
 
@@ -114,7 +142,11 @@ static void channels_for_action_slot(animrig::Action &action,
           strip_ptr, RNA_ActionChannelbag, strip);
       channels_for_channelbag(channelbag_ptr, *channelbag, tags, rna_path_items, arena);
 
-      /* Pop the layer off the tags & RNA path. */
+      /* Pop the channelbag off the RNA path. */
+      rna_path_items.pop_last();
+      rna_path_items.pop_last();
+
+      /* Pop the strip off the tags & RNA path. */
       tags.pop();
       rna_path_items.pop_last();
       rna_path_items.pop_last();
@@ -150,14 +182,14 @@ static void collect_channels_for_id(ID *animated_id,
   ChannelTagStack tags;
   PointerRNA animated_id_ptr = RNA_pointer_create_discrete(
       animated_id, ID_code_to_RNA_type(animated_id->id_type()), animated_id);
-  tags.push({ChannelTagType::ID, animated_id->name + 2, animated_id_ptr});
+  tags.push({ChannelTagType::ID, animated_id->name + 2, animated_id_ptr, ParsedRNAPathRef()});
   channels_for_action_slot(adt->action->wrap(), adt->slot_handle, tags, arena);
   tags.pop();
 }
 
-static void collection_channels_for_object(Object &obj,
-                                           const CollectionFilters &collection_filters,
-                                           ChannelArena &arena)
+void collection_channels_for_object(Object &obj,
+                                    const CollectionFilters &collection_filters,
+                                    ChannelArena &arena)
 {
   collect_channels_for_id(&obj.id, collection_filters, arena);
   collect_channels_for_id(obj.data, collection_filters, arena);

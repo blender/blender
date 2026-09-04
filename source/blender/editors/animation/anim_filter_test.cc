@@ -7,20 +7,26 @@
 
 #include "BKE_action.hh"
 #include "BKE_anim_data.hh"
+#include "BKE_collection.hh"
+#include "BKE_context.hh"
 #include "BKE_global.hh"
 #include "BKE_gtest_base.hh"
 #include "BKE_idtype.hh"
 #include "BKE_lib_id.hh"
 #include "BKE_main.hh"
 #include "BKE_object.hh"
+#include "BKE_scene.hh"
 
 #include "DNA_anim_types.h"
 #include "DNA_object_types.h"
 #include "DNA_space_types.h"
 
 #include "ED_anim_api.hh"
+#include "ED_anim_filter.hh"
 
 #include "BLI_listbase.hh"
+
+#include "anim_filter_source_intern.hh"
 
 #include "testing/testing.h"
 
@@ -273,6 +279,72 @@ TEST_F(ActionFilterTest, layered_action_active_fcurves)
 
     ANIM_animdata_freelist(&anim_data);
   }
+}
+
+class AnimChannelTest : public ActionFilterTest {};
+
+TEST_F(AnimChannelTest, group_channels)
+{
+  using namespace blender::ed::animfilter;
+
+  Slot &slot_cube = action->slot_add();
+  ASSERT_EQ(assign_action_and_slot(action, &slot_cube, cube->id), ActionSlotAssignmentResult::OK);
+  Slot &slot_suzanne = action->slot_add();
+  ASSERT_EQ(assign_action_and_slot(action, &slot_suzanne, suzanne->id),
+            ActionSlotAssignmentResult::OK);
+
+  Layer &layer_cube = action->layer_add("Kübus layer");
+  Strip &key_strip_cube = layer_cube.strip_add(*action, Strip::Type::Keyframe);
+  StripKeyframeData &strip_data = key_strip_cube.data<StripKeyframeData>(*action);
+
+  /* Create multiple FCurves on both objects. */
+  const KeyframeSettings settings = get_keyframe_settings(false);
+
+  ASSERT_EQ(SingleKeyingResult::SUCCESS,
+            strip_data.keyframe_insert(bmain,
+                                       slot_cube,
+                                       {"location", 0, {}, {}, "Object Transforms"},
+                                       {1.0f, 0.25f},
+                                       settings));
+  ASSERT_EQ(SingleKeyingResult::SUCCESS,
+            strip_data.keyframe_insert(bmain,
+                                       slot_cube,
+                                       {"location", 1, {}, {}, "Object Transforms"},
+                                       {1.0f, 0.25f},
+                                       settings));
+  ASSERT_EQ(SingleKeyingResult::SUCCESS,
+            strip_data.keyframe_insert(bmain,
+                                       slot_suzanne,
+                                       {"location", 0, {}, {}, "Object Transforms"},
+                                       {1.0f, 0.25f},
+                                       settings));
+  ASSERT_EQ(SingleKeyingResult::SUCCESS,
+            strip_data.keyframe_insert(bmain,
+                                       slot_suzanne,
+                                       {"location", 1, {}, {}, "Object Transforms"},
+                                       {1.0f, 0.25f},
+                                       settings));
+
+  /* Collect & group the channels. */
+  ChannelArena arena;
+  collection_channels_for_object(*this->cube, CollectionFilters{}, arena);
+  collection_channels_for_object(*this->suzanne, CollectionFilters{}, arena);
+  group_channels(arena,
+                 {
+                     ChannelTagType::ACTION,
+                     ChannelTagType::ACTION_LAYER,
+                     ChannelTagType::ACTION_SLOT,
+                     ChannelTagType::FCURVE_GROUP,
+                     ChannelTagType::BONE,
+                 },
+                 /*use_minimal_grouping=*/false);
+
+  EXPECT_EQ(6, arena.num_channels());
+
+  const SummaryChannel *root = arena.root();
+  debug_stream_hierarchy(std::cerr, *root);
+
+  EXPECT_TRUE(root->tags().is_empty()) << root->tags();
 }
 
 }  // namespace blender::animrig::tests

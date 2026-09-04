@@ -423,6 +423,24 @@ class Set {
   }
 
   /**
+   * Remove all keys from this set that do not exist in 'other'.
+   *
+   * After the operation completes, 'this' contains the intersection of 'this' and 'other.
+   */
+  void update_intersect(const Set<Key> &other)
+  {
+    Vector<Key> keys_to_remove;
+    for (const Key &key : *this) {
+      if (!other.contains(key)) {
+        keys_to_remove.append(key);
+      }
+    }
+    for (const Key &key : keys_to_remove) {
+      this->remove(key);
+    }
+  }
+
+  /**
    * An iterator that can iterate over all keys in the set. The iterator is invalidated when the
    * set is moved or when it is grown.
    *
@@ -513,8 +531,8 @@ class Set {
 
   /**
    * Remove the key that the iterator is currently pointing at. It is valid to call this method
-   * while iterating over the set. However, after this method has been called, the removed element
-   * must not be accessed anymore.
+   * while iterating over the set. However, after this method has been called, the removed
+   * element must not be accessed anymore.
    */
   void remove(const Iterator &it)
   {
@@ -547,7 +565,8 @@ class Set {
   }
 
   /**
-   * Print common statistics like size and collision count. This is useful for debugging purposes.
+   * Print common statistics like size and collision count. This is useful for debugging
+   * purposes.
    */
   void print_stats(const char *name) const
   {
@@ -565,7 +584,8 @@ class Set {
   }
 
   /**
-   * Remove all elements. Under some circumstances #clear_and_keep_capacity may be more efficient.
+   * Remove all elements. Under some circumstances #clear_and_keep_capacity may be more
+   * efficient.
    */
   void clear()
   {
@@ -592,8 +612,8 @@ class Set {
   }
 
   /**
-   * Creates a new slot array and reinserts all keys inside of that. This method can be used to get
-   * rid of removed slots. Also this is useful for benchmarking the grow function.
+   * Creates a new slot array and reinserts all keys inside of that. This method can be used to
+   * get rid of removed slots. Also this is useful for benchmarking the grow function.
    */
   void rehash()
   {
@@ -650,8 +670,8 @@ class Set {
   }
 
   /**
-   * Potentially resize the set such that it can hold the specified number of keys without another
-   * grow operation.
+   * Potentially resize the set such that it can hold the specified number of keys without
+   * another grow operation.
    */
   void reserve(const int64_t n)
   {
@@ -773,8 +793,8 @@ class Set {
   }
 
   /**
-   * In some cases when exceptions are thrown, it's best to just reset the entire container to make
-   * sure that invariants are maintained. This should happen very rarely in practice.
+   * In some cases when exceptions are thrown, it's best to just reset the entire container to
+   * make sure that invariants are maintained. This should happen very rarely in practice.
    */
   void noexcept_reset() noexcept
   {
