@@ -8874,7 +8874,9 @@ class VIEW3D_PT_paint_texture_context_menu(Panel):
     def draw(self, context):
         layout = self.layout
 
-        brush = context.tool_settings.image_paint.brush
+        paint = context.tool_settings.image_paint
+        space = context.space_data
+        brush = paint.brush
         capabilities = brush.image_paint_capabilities
 
         if capabilities.has_color:
@@ -8884,13 +8886,21 @@ class VIEW3D_PT_paint_texture_context_menu(Panel):
             layout.prop(brush, "blend", text="")
 
         if capabilities.has_radius:
+            size = "size"
+            if space.type == 'VIEW_3D' and show_experimental_texture_paint(brush):
+                ups = paint.unified_paint_settings
+                size_owner = ups if brush.use_unified_size else brush
+                if size_owner.use_locked_size == 'SCENE':
+                    size = "unprojected_size"
+
             UnifiedPaintPanel.prop_unified(
                 layout,
                 context,
                 brush,
-                "size",
+                size,
                 unified_name="use_unified_size",
                 pressure_name="use_pressure_size",
+                text="Size",
                 slider=True,
             )
             UnifiedPaintPanel.prop_unified(
