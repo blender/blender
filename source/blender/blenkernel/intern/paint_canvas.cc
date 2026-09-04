@@ -52,7 +52,7 @@ std::optional<CanvasImageData> BKE_paint_canvas_image_get(const ImagePaintSettin
 {
   if (settings.mode == PAINT_CANVAS_SOURCE_MATERIAL) {
     TexPaintSlot *slot = get_active_slot(&object);
-    if (slot == nullptr) {
+    if (slot == nullptr || slot->ima == nullptr) {
       return std::nullopt;
     }
     return std::make_optional<CanvasImageData>({slot->ima, slot->image_user});
