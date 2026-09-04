@@ -157,6 +157,9 @@ void mode_exit_generic(Scene &scene, Object &ob, const eObjectMode mode_flag)
   else if (mode_flag == OB_MODE_SCULPT) {
     paint = BKE_paint_get_active_from_paintmode(&scene, PaintMode::Sculpt);
   }
+  else if (mode_flag == OB_MODE_TEXTURE_PAINT) {
+    paint = BKE_paint_get_active_from_paintmode(&scene, PaintMode::Texture3D);
+  }
   else {
     BLI_assert(0);
   }
