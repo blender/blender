@@ -67,7 +67,7 @@ ccl_device_inline void motion_triangle_normals_for_step(KernelGlobals kg,
     /* Non-center step: stored after center with center index skipped. */
     int stride;
     if (object_flag & SD_OBJECT_HAS_CORNER_NORMALS) {
-      stride = kernel_data_fetch(objects, object).numprims * 3;
+      stride = kernel_data_fetch(objects, object).mesh_volume.num_prims * 3;
     }
     else {
       stride = kernel_data_fetch(objects, object).numverts;
@@ -159,7 +159,7 @@ ccl_device_inline void motion_triangle_normals(KernelGlobals kg,
 {
   /* Fetch normals. */
   const int object_flag = kernel_data_fetch(object_flag, object);
-  const int offset = kernel_data_fetch(objects, object).normal_offset;
+  const int offset = kernel_data_fetch(objects, object).mesh_volume.normal_offset;
   float3 next_normals[3];
   motion_triangle_normals_for_step(
       kg, object, object_flag, prim, tri_vindex, offset, numsteps, step, normals);

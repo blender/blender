@@ -122,7 +122,7 @@ ccl_device_inline void triangle_vertices_and_normals(KernelGlobals kg,
   P[1] = kernel_data_fetch(tri_verts, position_offset + tri_vindex.y);
   P[2] = kernel_data_fetch(tri_verts, position_offset + tri_vindex.z);
 
-  const int normal_offset = kernel_data_fetch(objects, sd->object).normal_offset;
+  const int normal_offset = kernel_data_fetch(objects, sd->object).mesh_volume.normal_offset;
   int i0, i1, i2;
 
   if (sd->object_flag & SD_OBJECT_HAS_CORNER_NORMALS) {
@@ -144,7 +144,7 @@ ccl_device_inline void triangle_vertices_and_normals(KernelGlobals kg,
 ccl_device_inline float3 triangle_smooth_normal(
     KernelGlobals kg, float3 Ng, int object, int object_flag, int prim, float u, float v)
 {
-  const int normal_offset = kernel_data_fetch(objects, object).normal_offset;
+  const int normal_offset = kernel_data_fetch(objects, object).mesh_volume.normal_offset;
   int i0, i1, i2;
 
   if (object_flag & SD_OBJECT_HAS_CORNER_NORMALS) {
@@ -178,7 +178,7 @@ ccl_device_inline float3 triangle_smooth_normal(KernelGlobals kg,
                                                 ccl_private float3 &N_x,
                                                 ccl_private float3 &N_y)
 {
-  const int normal_offset = kernel_data_fetch(objects, object).normal_offset;
+  const int normal_offset = kernel_data_fetch(objects, object).mesh_volume.normal_offset;
   int i0, i1, i2;
 
   if (object_flag & SD_OBJECT_HAS_CORNER_NORMALS) {
@@ -211,7 +211,7 @@ ccl_device_inline float3 triangle_smooth_normal(KernelGlobals kg,
 ccl_device_inline float3 triangle_smooth_normal_unnormalized_object_space(
     KernelGlobals kg, ccl_private const ShaderData *sd)
 {
-  const int normal_offset = kernel_data_fetch(objects, sd->object).normal_offset;
+  const int normal_offset = kernel_data_fetch(objects, sd->object).mesh_volume.normal_offset;
   int i0, i1, i2;
 
   if (sd->object_flag & SD_OBJECT_HAS_CORNER_NORMALS) {

@@ -372,7 +372,11 @@ ccl_device_inline float object_volume_density(KernelGlobals kg, const int object
     return 1.0f;
   }
 
-  return kernel_data_fetch(objects, object).volume_density;
+  if (kernel_data_fetch(objects, object).primitive_type & PRIMITIVE_TRIANGLE) {
+    return kernel_data_fetch(objects, object).mesh_volume.volume_density;
+  }
+
+  return 1.0f;
 }
 
 /* Pass ID for shader */
