@@ -380,7 +380,7 @@ SequencerToolSettings *tool_settings_init()
   tool_settings->snap_flag = SEQ_SNAP_TO_ALL_CHANNEL_STRIPS;
   tool_settings->snap_distance = 15;
   tool_settings->overlap_mode = SEQ_OVERLAP_SHUFFLE;
-  tool_settings->pivot_point = V3D_AROUND_LOCAL_ORIGINS;
+  tool_settings->pivot_point = V3D_AROUND_CENTER_MEDIAN;
 
   return tool_settings;
 }
