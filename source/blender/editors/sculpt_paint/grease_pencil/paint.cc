@@ -69,22 +69,11 @@ static float brush_radius_to_pixel_radius(const RegionView3D *rv3d,
 }
 
 template<typename T>
-static inline void linear_interpolation(const T &a,
-                                        const T &b,
-                                        MutableSpan<T> dst,
-                                        const bool include_first_point)
+static inline void linear_interpolation(const T &a, const T &b, MutableSpan<T> dst)
 {
-  if (include_first_point) {
-    const float step = math::safe_rcp(float(dst.size() - 1));
-    for (const int i : dst.index_range()) {
-      dst[i] = bke::attribute_math::mix2(float(i) * step, a, b);
-    }
-  }
-  else {
-    const float step = 1.0f / float(dst.size());
-    for (const int i : dst.index_range()) {
-      dst[i] = bke::attribute_math::mix2(float(i + 1) * step, a, b);
-    }
+  const float step = 1.0f / float(dst.size());
+  for (const int i : dst.index_range()) {
+    dst[i] = bke::attribute_math::mix2(float(i + 1) * step, a, b);
   }
 }
 
@@ -387,6 +376,9 @@ struct PaintOperationExecutor {
                                        curves.curves_range().last();
     const IndexRange curve_points = curves.points_by_curve()[active_curve];
     const int last_active_point = curve_points.last();
+
+    /* Don't smooth the first point. */
+    self.active_smooth_start_index_ = 1;
 
     Set<std::string> point_attributes_to_skip;
     Set<std::string> curve_attributes_to_skip;
@@ -812,9 +804,9 @@ struct PaintOperationExecutor {
     MutableSpan<float> new_opacities = self.drawing_->opacities_for_write().slice(new_points);
 
     /* Interpolate the screen space positions. */
-    linear_interpolation<float2>(prev_coords, coords, new_screen_space_coords, is_first_sample);
-    linear_interpolation<float>(prev_radius, radius, new_radii, is_first_sample);
-    linear_interpolation<float>(prev_opacity, opacity, new_opacities, is_first_sample);
+    linear_interpolation<float2>(prev_coords, coords, new_screen_space_coords);
+    linear_interpolation<float>(prev_radius, radius, new_radii);
+    linear_interpolation<float>(prev_opacity, opacity, new_opacities);
     point_attributes_to_skip.add_multiple({"position", "radius", "opacity"});
 
     /* Randomize radii. */
@@ -858,8 +850,7 @@ struct PaintOperationExecutor {
     if (use_vertex_color_ || attributes.contains("vertex_color")) {
       MutableSpan<ColorGeometry4f> new_vertex_colors =
           self.drawing_->vertex_colors_for_write().slice(new_points);
-      linear_interpolation<ColorGeometry4f>(
-          prev_vertex_color, vertex_color_, new_vertex_colors, is_first_sample);
+      linear_interpolation<ColorGeometry4f>(prev_vertex_color, vertex_color_, new_vertex_colors);
       if (use_settings_random_ || attributes.contains("vertex_color")) {
         for (const int i : IndexRange(new_points_num)) {
           new_vertex_colors[i] = ed::greasepencil::randomize_color(*settings_,
@@ -879,10 +870,8 @@ struct PaintOperationExecutor {
     const double new_delta_time = BLI_time_now_seconds() - self.start_time_;
     bke::SpanAttributeWriter<float> delta_times = attributes.convert_or_add_for_write_span<float>(
         "delta_time", bke::AttrDomain::Point);
-    linear_interpolation<float>(float(self.delta_time_),
-                                float(new_delta_time),
-                                delta_times.span.slice(new_points),
-                                is_first_sample);
+    linear_interpolation<float>(
+        float(self.delta_time_), float(new_delta_time), delta_times.span.slice(new_points));
     point_attributes_to_skip.add("delta_time");
     delta_times.finish();
 
