@@ -1233,7 +1233,7 @@ class XpbdSolverStep {
   }
 
   /**
-   * \note This uses the legacy BVH tree because it raycasts against the edge BVH with a ray that
+   * \note This uses the legacy BVH tree because it ray-casts against the edge BVH with a ray that
    * has a radius. bvh::Tree doesn't yet support this.
    */
   std::optional<ClosestMeshEdgeContact> get_closest_mesh_edge_contact(

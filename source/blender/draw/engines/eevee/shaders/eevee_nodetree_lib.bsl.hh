@@ -680,8 +680,8 @@ float3 coordinate_camera(float3 P)
     [[resource_table]] const eevee::Uniform &uni = resource_table_get(eevee::Uniform);
     const CameraData cam = uni.uniform_buf.camera;
     if (is_panoramic(cam.type)) {
-      /* Panoramic camera render through per-face subviews.
-       * Can't use `view` here because that's only one subview, not the camera. */
+      /* Panoramic camera render through per-face sub-views.
+       * Can't use `view` here because that's only one sub-view, not the camera. */
       vP = transform_point(cam.viewmat, P);
     }
     else {
@@ -710,8 +710,8 @@ float3 coordinate_screen(float3 P)
 #else
     const CameraData cam = uni.uniform_buf.camera;
     if (is_panoramic(cam.type)) {
-      /* Panoramic camera render through per-face subviews.
-       * Can't use `view` here because that's only one subview, not the camera. */
+      /* Panoramic camera render through per-face sub-views.
+       * Can't use `view` here because that's only one sub-view, not the camera. */
       float3 dir = P - cam.viewinv[3].xyz;
       window.xy = fract(eevee::camera::uv_from_world(cam, dir) + cam.uv_bias);
     }

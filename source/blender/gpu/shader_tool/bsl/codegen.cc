@@ -971,7 +971,7 @@ struct CodegenContext : NodeErrorHandler {
 
 #ifdef _MSC_VER
 /* Silence warning about bool operand.
- * They cannot happen because they are catched by the above check */
+ * They cannot happen because they are caught by the above check */
 #  pragma warning(push)
 #  pragma warning(disable : 4805)
 #endif

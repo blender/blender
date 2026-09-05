@@ -619,7 +619,7 @@ static wmOperatorStatus actkeys_box_select_invoke(bContext *C,
     }
   }
 
-  /* `SPACE_ACTION` clamps view at draw-time (footgun, draw code should probably be
+  /* `SPACE_ACTION` clamps view at draw-time (foot-gun, draw code should probably be
    * read-only...), so prevent panning past that. We shouldn't limit horizontal range to
    * `tot`, however, because for timelines it is the scene playback range. */
   const ARegion *region = CTX_wm_region(C);

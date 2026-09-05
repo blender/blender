@@ -136,7 +136,7 @@ struct VisibleLightIterator {
 
   bool next()
   {
-    /* clang-format off */ /* Mult-iline macros would break line count. */
+    /* clang-format off */ /* Multi-line macros would break line count. */
     [[resource_table]] const eevee::LightRenderData &lrd = resource_table_get(eevee::LightRenderData);
     /* clang-format on */
     const LightCullingData &culling = lrd.light_cull_buf;
