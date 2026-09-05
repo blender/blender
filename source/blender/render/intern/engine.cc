@@ -852,10 +852,6 @@ bool RE_bake_engine(Render *re,
   RE_engine_free(engine);
   re->engine = nullptr;
 
-  if (BKE_reports_contain(re->reports, RPT_ERROR)) {
-    G.is_break = true;
-  }
-
   return true;
 }
 
