@@ -117,8 +117,6 @@ class BlenderSession {
   bool preview_osl;
   double start_resize_time;
 
-  void *python_thread_state;
-
   bool use_developer_ui;
 
   /* Global state which is common for all render sessions created from Blender.

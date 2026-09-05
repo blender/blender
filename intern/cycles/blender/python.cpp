@@ -91,17 +91,6 @@ void debug_flags_reset()
 
 } /* namespace */
 
-void python_thread_state_save(void **python_thread_state)
-{
-  *python_thread_state = (void *)PyEval_SaveThread();
-}
-
-void python_thread_state_restore(void **python_thread_state)
-{
-  PyEval_RestoreThread((PyThreadState *)*python_thread_state);
-  *python_thread_state = nullptr;
-}
-
 static const char *PyC_UnicodeAsBytes(PyObject *py_str, PyObject **coerce)
 {
   const char *result = PyUnicode_AsUTF8(py_str);
@@ -262,11 +251,9 @@ static PyObject *render_func(PyObject * /*self*/, PyObject *args)
       PyLong_AsVoidPtr(pydepsgraph));
 
   /* Allow Blender to execute other Python scripts. */
-  python_thread_state_save(&session->python_thread_state);
-
+  Py_BEGIN_ALLOW_THREADS;
   session->render(*b_depsgraph);
-
-  python_thread_state_restore(&session->python_thread_state);
+  Py_END_ALLOW_THREADS;
 
   Py_RETURN_NONE;
 }
@@ -282,11 +269,9 @@ static PyObject *render_frame_finish_func(PyObject * /*self*/, PyObject *args)
   BlenderSession *session = (BlenderSession *)PyLong_AsVoidPtr(pysession);
 
   /* Allow Blender to execute other Python scripts. */
-  python_thread_state_save(&session->python_thread_state);
-
+  Py_BEGIN_ALLOW_THREADS;
   session->render_frame_finish();
-
-  python_thread_state_restore(&session->python_thread_state);
+  Py_END_ALLOW_THREADS;
 
   Py_RETURN_NONE;
 }
@@ -363,11 +348,9 @@ static PyObject *bake_func(PyObject * /*self*/, PyObject *args)
       PyLong_AsVoidPtr(pydepsgraph));
   blender::Object *b_object = static_cast<blender::Object *>(PyLong_AsVoidPtr(pyobject));
 
-  python_thread_state_save(&session->python_thread_state);
-
+  Py_BEGIN_ALLOW_THREADS;
   session->bake(*b_depsgraph, *b_object, pass_type, pass_filter, width, height);
-
-  python_thread_state_restore(&session->python_thread_state);
+  Py_END_ALLOW_THREADS;
 
   Py_RETURN_NONE;
 }
@@ -417,7 +400,9 @@ static PyObject *view_pause_func(PyObject * /*self*/, PyObject *args)
   }
 
   BlenderSession *session = (BlenderSession *)PyLong_AsVoidPtr(pysession);
+  Py_BEGIN_ALLOW_THREADS;
   session->view_pause(pause);
+  Py_END_ALLOW_THREADS;
 
   Py_RETURN_NONE;
 }
@@ -445,11 +430,9 @@ static PyObject *reset_func(PyObject * /*self*/, PyObject *args)
   blender::Depsgraph *b_depsgraph = static_cast<blender::Depsgraph *>(
       PyLong_AsVoidPtr(pydepsgraph));
 
-  python_thread_state_save(&session->python_thread_state);
-
+  Py_BEGIN_ALLOW_THREADS;
   session->reset_session(*b_data, *b_depsgraph);
-
-  python_thread_state_restore(&session->python_thread_state);
+  Py_END_ALLOW_THREADS;
 
   Py_RETURN_NONE;
 }
@@ -473,11 +456,9 @@ static PyObject *sync_func(PyObject * /*self*/, PyObject *args)
   blender::Depsgraph *b_depsgraph = static_cast<blender::Depsgraph *>(
       PyLong_AsVoidPtr(pydepsgraph));
 
-  python_thread_state_save(&session->python_thread_state);
-
+  Py_BEGIN_ALLOW_THREADS;
   session->synchronize(*b_depsgraph);
-
-  python_thread_state_restore(&session->python_thread_state);
+  Py_END_ALLOW_THREADS;
 
   Py_RETURN_NONE;
 }

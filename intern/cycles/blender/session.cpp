@@ -65,7 +65,6 @@ BlenderSession::BlenderSession(blender::RenderEngine &b_engine,
       height(0),
       pixelsize(1.0f),
       preview_osl(preview_osl),
-      python_thread_state(nullptr),
       use_developer_ui(b_userpref.experimental.use_cycles_debug &&
                        (b_userpref.flag & blender::USER_DEVELOPER_UI) != 0)
 {
@@ -100,7 +99,6 @@ BlenderSession::BlenderSession(blender::RenderEngine &b_engine,
       height(height),
       pixelsize(blender::U.pixelsize),
       preview_osl(false),
-      python_thread_state(nullptr),
       use_developer_ui(b_userpref.experimental.use_cycles_debug &&
                        (b_userpref.flag & blender::USER_DEVELOPER_UI) != 0)
 {
@@ -400,7 +398,6 @@ void BlenderSession::render(blender::Depsgraph &b_depsgraph_)
                     b_rv3d,
                     width,
                     height,
-                    &python_thread_state,
                     session_params.denoise_device);
 
     /* At the moment we only free if we are not doing multi-view
@@ -698,7 +695,6 @@ void BlenderSession::bake(blender::Depsgraph &b_depsgraph_,
                   b_rv3d,
                   width,
                   height,
-                  &python_thread_state,
                   session_params.denoise_device);
 
   /* Save the current state of the denoiser, as it might be disabled by the pass configuration
@@ -820,7 +816,6 @@ void BlenderSession::synchronize(blender::Depsgraph &b_depsgraph_)
                   b_rv3d,
                   width,
                   height,
-                  &python_thread_state,
                   session_params.denoise_device);
 
   if (b_rv3d) {

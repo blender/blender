@@ -302,7 +302,6 @@ void BlenderSync::sync_data(blender::RenderData &b_render,
                             blender::RegionView3D *b_rv3d,
                             const int width,
                             const int height,
-                            void **python_thread_state,
                             const DeviceInfo &denoise_device_info)
 {
   /* For auto refresh images. */
@@ -337,8 +336,7 @@ void BlenderSync::sync_data(blender::RenderData &b_render,
 
   geometry_synced.clear(); /* use for objects and motion sync */
 
-  sync_objects_and_motion(
-      b_render, b_depsgraph, b_screen, b_v3d, b_rv3d, width, height, python_thread_state);
+  sync_objects_and_motion(b_render, b_depsgraph, b_screen, b_v3d, b_rv3d, width, height);
 
   geometry_synced.clear();
 
