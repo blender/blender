@@ -4578,6 +4578,9 @@ int RNA_property_enum_step(
   RNA_property_enum_items(const_cast<bContext *>(C), ptr, prop, &item_array, &totitem, &free);
 
   if (!totitem) {
+    if (free) {
+      MEM_delete(item_array);
+    }
     return result_value;
   }
 
