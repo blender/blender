@@ -32,6 +32,10 @@ bool OIIOImageLoader::load_metadata(ImageMetaData &metadata,
                                     const ImageLoaderParams &params,
                                     Progress &progress)
 {
+  if (original_filepath_.empty()) {
+    return false;
+  }
+
   /* Metadata may be loaded again after cancelling, start from the original file. */
   texture_cache_filepath_.clear();
 
