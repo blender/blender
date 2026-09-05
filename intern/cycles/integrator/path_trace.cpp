@@ -1366,16 +1366,20 @@ static string full_device_info_description(const DeviceInfo &device_info)
  *
  * Note that the newlines are placed in a way so that the result can be easily concatenated to the
  * full report. */
-static string device_info_list_report(const string &message, const DeviceInfo &device_info)
+static string device_info_list_report(const string &message,
+                                      const DeviceInfo &device_info,
+                                      const bool show_hardware_raytracing)
 {
   string result = "\n" + message + ": ";
   const string pad(message.length() + 2, ' ');
 
   if (device_info.multi_devices.empty()) {
     result += full_device_info_description(device_info) + "\n";
-    result += pad +
-              "    Hardware Ray-Tracing: " + (device_info.use_hardware_raytracing ? "On" : "Off") +
-              "\n";
+    if (show_hardware_raytracing) {
+      result += pad +
+                "  Hardware Ray-Tracing: " + (device_info.use_hardware_raytracing ? "On" : "Off") +
+                "\n";
+    }
     return result;
   }
 
@@ -1386,8 +1390,10 @@ static string device_info_list_report(const string &message, const DeviceInfo &d
     }
 
     result += full_device_info_description(sub_device_info) + "\n";
-    result += pad + "    Hardware Ray-Tracing: " +
-              (sub_device_info.use_hardware_raytracing ? "On" : "Off") + "\n";
+    if (show_hardware_raytracing) {
+      result += pad + "  Hardware Ray-Tracing: " +
+                (sub_device_info.use_hardware_raytracing ? "On" : "Off") + "\n";
+    }
 
     is_first = false;
   }
@@ -1404,7 +1410,7 @@ static string path_trace_devices_report(const vector<unique_ptr<PathTraceWork>> 
     device_info.multi_devices.push_back(path_trace_work->get_device()->info);
   }
 
-  return device_info_list_report("Path tracing on", device_info);
+  return device_info_list_report("Path tracing on", device_info, true);
 }
 
 static string denoiser_device_report(const Denoiser *denoiser)
@@ -1422,7 +1428,7 @@ static string denoiser_device_report(const Denoiser *denoiser)
     return "";
   }
 
-  return device_info_list_report("Denoising on", denoiser_device->info);
+  return device_info_list_report("Denoising on", denoiser_device->info, false);
 }
 
 string PathTrace::full_report() const
