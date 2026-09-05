@@ -51,14 +51,17 @@ struct BevelParameters {
   float shape = 0.5f;
   /** Bevel vertices only or edges. */
   BevelAffect affect_type = BevelAffect::Edges;
-  /** Pre-sampled custom profile points, if non-empty.
+  /**
+   * Pre-sampled custom profile points, if non-empty.
    * Each element is a (x, y) coordinate in the unit square [0,1]x[0,1],
    * sampled at even arc-length intervals from the input curve.
    * The array has #segments + 1 entries (inclusive of both endpoints).
    * Endpoint values (index 0 and last) are always (1,0) and (0,1) so that
-   * they align with the bevel strip corners, matching the #CurveProfile convention. */
+   * they align with the bevel strip corners, matching the #CurveProfile convention.
+   */
   Array<float2> custom_profile_samples;
-  /** Blender units to offset each end of each edge.
+  /**
+   * Blender units to offset each end of each edge.
    * A 4d Array of Arrays indexed by mesh edge id.
    * If affect_type is Edges or Faces, these are in order: source end (left, right), destination
    * end (left, right), viewed from the source end looking towards the destination end,

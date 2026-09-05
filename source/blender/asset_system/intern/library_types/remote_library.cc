@@ -214,13 +214,17 @@ struct ProgressData {
    */
   Map<RequestIdentifier, std::string> req_to_full_urls;
 
-  /** Absolute URLs (see #req_to_full_urls) of all requested files mapped to their expected size on
+  /**
+   * Absolute URLs (see #req_to_full_urls) of all requested files mapped to their expected size on
    * disk. Files that are done downloading (successfully or not) are removed and added to
-   * #done_files below. */
+   * #done_files below.
+   */
   Map<std::string, FileProgress> requested_files;
-  /** Absolute URLs of files that are done downloading (successfully or not) mapped to their
+  /**
+   * Absolute URLs of files that are done downloading (successfully or not) mapped to their
    * expected size on disk. Will be cleared once all current requests are done. This way total
-   * progress reporting can include "done" assets, and progress bars fill up as expected. */
+   * progress reporting can include "done" assets, and progress bars fill up as expected.
+   */
   Map<std::string, FileProgress> done_files;
 };
 

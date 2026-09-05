@@ -115,8 +115,10 @@ struct MeshIn {
 struct Mesh {
   [[legacy_info]] ShaderCreateInfo drw_clipped;
 
-  /** WORKAROUND: This exact compilation constant is checked in Metal backend to enable clip
-   * distances. */
+  /**
+   * WORKAROUND: This exact compilation constant is checked in Metal backend to enable clip
+   * distances.
+   */
   [[compilation_constant]] const bool use_clipping;
 };
 
@@ -158,8 +160,10 @@ struct Curves {
   [[legacy_info]] ShaderCreateInfo draw_curves_infos;
   [[legacy_info]] ShaderCreateInfo drw_clipped;
 
-  /** WORKAROUND: This exact compilation constant is checked in Metal backend to enable clip
-   * distances. */
+  /**
+   * WORKAROUND: This exact compilation constant is checked in Metal backend to enable clip
+   * distances.
+   */
   [[compilation_constant]] const bool use_clipping;
 
   [[sampler(WB_CURVES_COLOR_SLOT) /*, frequency(batch)*/]] samplerBuffer ac;
@@ -236,8 +240,10 @@ struct PointCloud {
   [[legacy_info]] ShaderCreateInfo draw_pointcloud;
   [[legacy_info]] ShaderCreateInfo drw_clipped;
 
-  /** WORKAROUND: This exact compilation constant is checked in Metal backend to enable clip
-   * distances. */
+  /**
+   * WORKAROUND: This exact compilation constant is checked in Metal backend to enable clip
+   * distances.
+   */
   [[compilation_constant]] const bool use_clipping;
 };
 

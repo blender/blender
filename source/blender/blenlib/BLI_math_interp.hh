@@ -35,7 +35,8 @@ namespace math {
  * Texture coordinate wrapping mode.
  */
 enum class InterpWrapMode {
-  /** Image edges are extended outside the image, i.e. sample coordinates are clamped to the edge.
+  /**
+   * Image edges are extended outside the image, i.e. sample coordinates are clamped to the edge.
    */
   Extend,
   /** Image repeats, i.e. sample coordinates are wrapped around. */

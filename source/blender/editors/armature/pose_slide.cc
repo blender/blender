@@ -170,8 +170,10 @@ struct tPoseSlideOp {
 
   /** Which transforms/channels are affected. */
   ePoseSlide_Channels channels;
-  /** Axis-limits for transforms. If any flag is set, the transforms are only applied for that
-   * axis. If none are set, all axes are modified. */
+  /**
+   * Axis-limits for transforms. If any flag is set, the transforms are only applied for that
+   * axis. If none are set, all axes are modified.
+   */
   ed::AxisMutable axis_mutability;
 
   tSlider *slider;

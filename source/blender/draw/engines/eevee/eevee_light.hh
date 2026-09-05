@@ -137,7 +137,7 @@ class LightModule {
   /**
    * In order to treat the world sun lights the same way as regular lights,
    * an #ObjectKey needs to be associated to each of them.
-   * */
+   */
   ObjectKey world_sunlight_key_[WORLD_SUN_MAX] = {ObjectKey(WORLD_SUN_DIFFUSE),
                                                   ObjectKey(WORLD_SUN_GLOSSY)};
   /** Flat array sent to GPU, populated from light_map_. Source buffer for light culling. */

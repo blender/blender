@@ -600,9 +600,11 @@ static void shrinkwrap_calc_normal_projection(ShrinkwrapCalcData *calc)
 
   /* After successfully build the trees, start projection vertices. */
   threading::parallel_for(IndexRange(calc->numVerts), 512, [&](const IndexRange range) {
-    /** \note 'hit.dist' is kept in the targets space, this is only used
+    /**
+     * \note 'hit.dist' is kept in the targets space, this is only used
      * for finding the best hit, to get the real dist,
-     * measure the len_v3v3() from the input coord to hit.co */
+     * measure the len_v3v3() from the input coord to hit.co
+     */
     BVHTreeRayHit hit{};
     for (const int64_t i : range) {
       shrinkwrap_calc_normal_projection_cb_ex(calc, aux_tree, proj_axis, &local2aux, int(i), &hit);

@@ -413,7 +413,8 @@ void BKE_main_collections_parent_relations_rebuild(Main *bmain);
 /**
  * Perform some validation on integrity of the data of this collection.
  *
- * \return `true` if everything is OK, false if some errors are detected. */
+ * \return `true` if everything is OK, false if some errors are detected.
+ */
 bool BKE_collection_validate(Collection *collection);
 
 /* .blend file I/O */

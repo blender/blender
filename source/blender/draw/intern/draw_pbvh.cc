@@ -221,7 +221,7 @@ void DrawCacheImpl::tag_visibility_changed(const IndexMask &node_mask)
 
 void DrawCacheImpl::tag_topology_changed(const IndexMask &node_mask)
 {
-  /** Currently the only times where topology changes are for BMesh dynamic topology, where tagging
+  /* Currently the only times where topology changes are for BMesh dynamic topology, where tagging
    * a visibility update deletes all the GPU data anyway. */
   this->tag_visibility_changed(node_mask);
 }

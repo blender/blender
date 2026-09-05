@@ -174,7 +174,8 @@ struct RenderStats {
 /**
  * The owner is a unique identifier for the render, either an original scene
  * datablock for regular renders, or an area for preview renders.
- * Calling a new render with an existing owner frees the existing render. */
+ * Calling a new render with an existing owner frees the existing render.
+ */
 struct Render *RE_NewRender(const void *owner);
 struct Render *RE_GetRender(const void *owner);
 
@@ -417,9 +418,9 @@ bool RE_ReadRenderResult(struct Scene *scene, struct Scene *scenode);
 struct RenderResult *RE_MultilayerConvert(
     ExrReadHandle *exrhandle, const char *colorspace, bool predivide, int rectx, int recty);
 
-/**
+/*
  * Display, event callbacks and GPU contexts
- * */
+ */
 
 void RE_display_init(Render *re);
 void RE_display_ensure_gpu_context(Render *re);

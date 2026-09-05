@@ -29,8 +29,10 @@ template<
     typename Allocator = GuardedAllocator>
 class GArray {
  protected:
-  /** The type of the data in the array, will be null after the array is default constructed,
-   * but a value should be assigned before any other interaction with the array. */
+  /**
+   * The type of the data in the array, will be null after the array is default constructed,
+   * but a value should be assigned before any other interaction with the array.
+   */
   const CPPType *type_ = nullptr;
   void *data_ = nullptr;
   int64_t size_ = 0;

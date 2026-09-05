@@ -179,7 +179,8 @@ void set_attribute(const pxr::UsdAttribute &attr,
 /**
  * Set the USD attribute to the provided array value at the given time. The value will be written
  * sparsely. For efficiency, this function swaps out the given value, leaving it empty, so it can
- * leverage the USD API where no additional copy of the data is required. */
+ * leverage the USD API where no additional copy of the data is required.
+ */
 template<typename USDT>
 void set_attribute(const pxr::UsdAttribute &attr,
                    pxr::VtArray<USDT> &value,

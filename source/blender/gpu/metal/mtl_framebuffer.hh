@@ -105,7 +105,8 @@ class MTLFrameBuffer : public FrameBuffer {
   /** Whether the primary Frame-buffer attachment is an SRGB target or not. */
   bool srgb_;
 
-  /** Attachment width/height represent raw size of active frame-buffer attachments.
+  /**
+   * Attachment width/height represent raw size of active frame-buffer attachments.
    * For consistency with OpenGL backend, as width_/height_ can affect viewport and scissor
    * size, we need to track this differently to ensure viewport state does not get reset.
    * This size is only used to reset viewport/scissor regions when viewports and scissor are

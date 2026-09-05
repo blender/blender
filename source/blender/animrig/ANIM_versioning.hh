@@ -50,7 +50,8 @@ void convert_legacy_animato_actions(Main &bmain);
  *
  * This always creates a slot and a layer for the Action, even when the Action doesn't actually
  * contain any animation data. This ensures that versioned Actions all look the same, and there's
- * just less variations to keep track of. */
+ * just less variations to keep track of.
+ */
 void convert_legacy_animato_action(bAction &dna_action);
 
 /**

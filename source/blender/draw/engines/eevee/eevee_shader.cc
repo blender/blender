@@ -1036,7 +1036,7 @@ void ShaderModule::material_create_info_amend(GPUMaterial *gpumat, GPUCodegenOut
   auto vertex_inputs = info.vertex_inputs_;
   info.vertex_inputs_.clear();
 
-  /** IMPORTANT: All additional_info containing resources should go before
+  /* IMPORTANT: All additional_info containing resources should go before
    * add_pipeline_create_info. This ensure all resource slot are correctly reserved inside the
    * SlotAllocator. */
 

@@ -180,11 +180,13 @@ struct Changeset {
   }
 };
 
-/** Global change ID tracking.
+/**
+ * Global change ID tracking.
  *
  * This is global so that consumers can store only changeset IDs and detect changes even
  * as image buffers change. If they would store #ImBuf pointers, the same #ImBuf address
- * might get reused for another UDIM tile or pass. */
+ * might get reused for another UDIM tile or pass.
+ */
 static uint64_t g_change_id_counter = 0;
 
 /** Tracker of changes to an image buffer over time. */

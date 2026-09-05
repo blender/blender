@@ -2896,7 +2896,8 @@ static void remove_id_attribute_from_instances(bke::GeometrySet &geometry_set)
   }
 }
 
-/** Propagate instances from the old geometry set to the new geometry set if they are not
+/**
+ * Propagate instances from the old geometry set to the new geometry set if they are not
  * realized.
  */
 static void propagate_instances_to_keep(const bke::GeometrySet &geometry_set,

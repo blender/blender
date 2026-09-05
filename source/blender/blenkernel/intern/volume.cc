@@ -1143,7 +1143,8 @@ openvdb::math::Transform BKE_volume_transform_to_openvdb(const float4x4 &transfo
 /**
  * Returns a grid of the same type as the input, but with more/less resolution. If
  * resolution_factor is 1/2, the resolution on each axis is halved. The transform of the returned
- * grid is adjusted to match the original grid. */
+ * grid is adjusted to match the original grid.
+ */
 template<typename GridType>
 static typename GridType::Ptr create_grid_with_changed_resolution(const GridType &old_grid,
                                                                   const float resolution_factor)

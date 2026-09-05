@@ -1441,9 +1441,10 @@ class UVMinimumEnclosingSquareFinder {
     best_quad = 0.0f;
   }
 
-  /** Calculates the square associated with a rotation of `angle`.
-   * \return Size of square. */
-
+  /**
+   * Calculates the square associated with a rotation of `angle`.
+   * \return Size of square.
+   */
   float update(const double angle)
   {
     float2 dir(cos(angle), sin(angle));

@@ -445,7 +445,8 @@ class CPPType : NonCopyable, NonMovable {
 namespace detail {
 /**
  * Global static variable that contains the #CPPType for a given type after it has been registered
- * with #BLI_CPP_TYPE_REGISTER. This should generally be accessed through #CPPType::get<T>. */
+ * with #BLI_CPP_TYPE_REGISTER. This should generally be accessed through #CPPType::get<T>.
+ */
 template<typename T> inline TypedBuffer<CPPType> cpp_type_impl{};
 }  // namespace detail
 

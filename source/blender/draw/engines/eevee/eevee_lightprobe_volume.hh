@@ -70,7 +70,8 @@ class IrradianceBake {
   /**
    * Basis orientation for each baking projection.
    * Note that this is the view orientation. The projection matrix will take the negative Z axis
-   * as forward and Y as up. */
+   * as forward and Y as up.
+   */
   CartesianBasis basis_x_ = {AxisSigned::Z_POS, AxisSigned::Y_POS, AxisSigned::X_NEG};
   CartesianBasis basis_y_ = {AxisSigned::X_POS, AxisSigned::Z_POS, AxisSigned::Y_NEG};
   CartesianBasis basis_z_ = {AxisSigned::Y_POS, AxisSigned::X_POS, AxisSigned::Z_NEG};
@@ -224,7 +225,8 @@ class VolumeProbeModule {
   bool do_full_update_ = true;
   /**
    * Last used pool size to identify if we can reuse previous irradiance atlas texture. Ref
-   * SceneEEVEE.gi_irradiance_pool_size */
+   * SceneEEVEE.gi_irradiance_pool_size
+   */
   uint irradiance_pool_size_ = 0;
   /** Actual pool size allocated on device. Can be different due to limits. */
   uint irradiance_pool_size_alloc_ = 0;

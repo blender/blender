@@ -188,8 +188,7 @@ struct ShadowTileData {
   bool is_allocated;
   /** True if the tile has been staged for rendering. This will remove the `do_update` flag. */
   bool is_rendered;
-  /** True if the tile is inside the pages_cached_buf (mutually exclusive with `is_allocated`).
-   */
+  /** True if the tile is inside the pages_cached_buf (mutually exclusive with `is_allocated`). */
   bool is_cached;
 };
 /** \note Stored packed as a uint. */

@@ -295,7 +295,8 @@ enum {
   LIB_ID_COPY_SHAPEKEY = 1 << 26,
   /**
    * EXCEPTION! Deep-copy screen used by copied workspace ID.
-   * WARNING: Should always be used, except in `NO_MAIN` cases of copying. */
+   * WARNING: Should always be used, except in `NO_MAIN` cases of copying.
+   */
   LIB_ID_COPY_SCREEN = 1 << 27,
   /** EXCEPTION! Specific deep-copy of node trees used e.g. for rendering purposes. */
   LIB_ID_COPY_NODETREE_LOCALIZE = 1 << 28,

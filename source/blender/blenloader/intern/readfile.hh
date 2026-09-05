@@ -96,13 +96,15 @@ struct FileData {
    */
   int undo_direction = 0;
 
-  /** Used for relative paths handling.
+  /**
+   * Used for relative paths handling.
    *
    * Typically the actual filepath of the read blend-file, except when recovering
    * save-on-exit/autosave files. In the latter case, it will be the path of the file that
    * generated the auto-saved one being recovered.
    *
-   * NOTE: Currently expected to be the same path as #BlendFileData.filepath. */
+   * NOTE: Currently expected to be the same path as #BlendFileData.filepath.
+   */
   char relabase[FILE_MAX] = {};
 
   /** General reading variables. */
@@ -188,7 +190,8 @@ struct FileData {
 
   /**
    * IDMap using UID's as keys of all the old IDs in the old bmain. Used during undo to find a
-   * matching old data when reading a new ID. */
+   * matching old data when reading a new ID.
+   */
   IDNameLib_Map *old_idmap_uid = nullptr;
   /**
    * IDMap using uids as keys of the IDs read (or moved) in the new main(s).
@@ -198,7 +201,8 @@ struct FileData {
    * step, so they could point e.g. to an ID that does not exist in the newly read undo step).
    *
    * Also used to find current valid pointers (or none) of these 'no undo' IDs existing in
-   * read memfile. */
+   * read memfile.
+   */
   IDNameLib_Map *new_idmap_uid = nullptr;
 
   BlendFileReadReport *reports = nullptr;

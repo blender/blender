@@ -445,8 +445,10 @@ class ShaderModule {
   }
 
   const SelectionType selection_type_;
-  /** TODO: Support clipping. This global state should be set by the overlay::Instance and switch
-   * to the shader variations that use clipping. */
+  /**
+   * TODO: Support clipping. This global state should be set by the overlay::Instance and switch
+   * to the shader variations that use clipping.
+   */
   const bool clipping_enabled_;
 
  public:

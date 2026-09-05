@@ -233,15 +233,19 @@ struct FontBufInfoBLF {
   /** Buffer size, keep signed so comparisons with negative values work. */
   int dims[2];
 
-  /** The number of channels in the buffer. Can be either 1 or 4 for grayscale and color buffers
-   * respectively. The red channel of the color is used in case of a grayscale buffer. */
+  /**
+   * The number of channels in the buffer. Can be either 1 or 4 for grayscale and color buffers
+   * respectively. The red channel of the color is used in case of a grayscale buffer.
+   */
   int channel_count;
 
   /** Color-space of the byte buffer (float is scene linear). */
   const ColorSpace *colorspace;
 
-  /** The color, the alphas is get from the glyph! (color is sRGB space). The red channel of the
-   * color is used in case of a grayscale buffer. */
+  /**
+   * The color, the alphas is get from the glyph! (color is sRGB space). The red channel of the
+   * color is used in case of a grayscale buffer.
+   */
   float col_init[4];
   /** Cached conversion from 'col_init'. */
   unsigned char col_char[4];
@@ -275,7 +279,8 @@ struct FontMetrics {
 
   /**
    * Positive number of font units from baseline to top of typical capitals. Can be slightly more
-   * than cap height when head serifs, terminals, or apexes extend above cap line. */
+   * than cap height when head serifs, terminals, or apexes extend above cap line.
+   */
   short ascender;
   /** Negative (!) number of font units from baseline to bottom of letters like `gjpqy`. */
   short descender;

@@ -95,8 +95,10 @@ using blender::int2;
 using blender::int4;
 using blender::uint2;
 using blender::uint4;
-/** IMPORTANT: Do not use in shared struct. Use packed_(float/int/uint)3 instead.
- * Here for static functions usage only. */
+/**
+ * IMPORTANT: Do not use in shared struct. Use packed_(float/int/uint)3 instead.
+ * Here for static functions usage only.
+ */
 using blender::float3;
 using blender::int3;
 using blender::uint3;

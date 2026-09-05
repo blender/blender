@@ -56,15 +56,15 @@ enum class Side : int {
   NoChange,
 };
 
-/* strip_duplicate' flags */
+/** Strip_duplicate flags */
 enum class StripDuplicate : uint8_t {
-  /* Note: Technically, the selected strips are duplicated when `All` is not set. */
+  /** NOTE: Technically, the selected strips are duplicated when `All` is not set. */
   Selected = 0,
-  /* Ensure strips have a unique name. */
+  /** Ensure strips have a unique name. */
   UniqueName = (1 << 0),
-  /* Duplicate strips and the IDs they reference. */
+  /** Duplicate strips and the IDs they reference. */
   Data = (1 << 1),
-  /* If this is set, duplicate all strips. If not set, duplicate selected strips. */
+  /** If this is set, duplicate all strips. If not set, duplicate selected strips. */
   All = (1 << 3),
 };
 ENUM_OPERATORS(StripDuplicate);
@@ -75,8 +75,10 @@ enum class StripRuntimeFlag {
   ClampedRH = (1 << 1),
   Overlap = (1 << 2),
   MarkForDelete = (1 << 4),
-  IgnoreChannelLock = (1 << 5), /* For #SEQUENCER_OT_duplicate_move macro. */
-  ShowOffsets = (1 << 6),       /* Set during #SEQUENCER_OT_slip. */
+  /** For #SEQUENCER_OT_duplicate_move macro. */
+  IgnoreChannelLock = (1 << 5),
+  /** Set during #SEQUENCER_OT_slip. */
+  ShowOffsets = (1 << 6),
 };
 ENUM_OPERATORS(StripRuntimeFlag);
 
@@ -89,11 +91,11 @@ struct StripRuntime {
   AUD_Sound sound_time_stretch;
   float sound_time_stretch_fps = 0.0f;
 
-  /* A null pointer can mean either not loaded yet or that the movie has no metadata. */
+  /** A null pointer can mean either not loaded yet or that the movie has no metadata. */
   IDProperty *movie_metadata = nullptr;
   bool movie_metadata_is_loaded = false;
 
-  /* To detect the removal of a sound modifier. */
+  /** To detect the removal of a sound modifier. */
   int sound_modifiers_count = 0;
 
   void clear_sound_time_stretch();
@@ -115,12 +117,16 @@ struct EditingRuntime {
   PrefetchJob *prefetch_job = nullptr;
   CompositorCache *compositor_cache = nullptr;
 
-  /* Frame index that was rendered with a temporary, unkeyed value
-   * of an animated property. */
+  /**
+   * Frame index that was rendered with a temporary,
+   * unkeyed value of an animated property.
+   */
   std::optional<float> temporary_animation_frame;
 
-  /** Used for rendering a different frame using sequencer_draw_get_transform_preview from the box
-   * blade tool. */
+  /**
+   * Used for rendering a different frame using sequencer_draw_get_transform_preview from the box
+   * blade tool.
+   */
   int transform_preview_frame = 0;
   bool show_transform_preview = false;
 

@@ -215,7 +215,8 @@ bool wm_file_or_session_data_has_unsaved_changes(const Main *bmain, const wmWind
 /**
  * Clear several WM/UI runtime data that would make later complex WM handling impossible.
  *
- * Return data should be cleared by #wm_file_read_setup_wm_finalize. */
+ * Return data should be cleared by #wm_file_read_setup_wm_finalize.
+ */
 static BlendFileReadWMSetupData *wm_file_read_setup_wm_init(bContext *C,
                                                             Main *bmain,
                                                             const bool is_read_homefile)

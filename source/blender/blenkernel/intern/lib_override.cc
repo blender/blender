@@ -776,7 +776,8 @@ struct LibOverrideGroupTagData {
    * Whether we are looping on override data, or their references (linked) one.
    *
    * IMPORTANT: This value controls which of the `reference`/`override` ID pointers are accessed by
-   * the `root`/`hierarchy_root` accessor functions below. */
+   * the `root`/`hierarchy_root` accessor functions below.
+   */
   bool is_override;
 
   ID *root_get()
@@ -818,7 +819,8 @@ struct LibOverrideGroupTagData {
    *
    * NOTE: This is needed only for partial resync, when only part of the liboverridden hierarchy is
    * re-generated, since some IDs in that sub-hierarchy may not be detected as needing to be
-   * overridden, while they would when considering the whole hierarchy. */
+   * overridden, while they would when considering the whole hierarchy.
+   */
   Set<ID *> linked_ids_hierarchy_default_override;
   bool do_create_linked_overrides_set;
 

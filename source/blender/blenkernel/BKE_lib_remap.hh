@@ -95,7 +95,8 @@ enum {
    * Allow remapping of an ID pointer of a certain to another one of a different type.
    *
    * WARNING: Use with caution. Should only be needed in a very small amount of cases, e.g. when
-   * converting an ID type to another. */
+   * converting an ID type to another.
+   */
   ID_REMAP_ALLOW_IDTYPE_MISMATCH = 1 << 9,
 
   /**
@@ -158,7 +159,8 @@ void BKE_libblock_remap_multiple(Main *bmain,
  * implies that calling code handles all the other aspects described above. This is typically the
  * case e.g. in read-file process.
  *
- * WARNING: This call will likely leave the given BMain in invalid state in many aspects. */
+ * WARNING: This call will likely leave the given BMain in invalid state in many aspects.
+ */
 void BKE_libblock_remap_multiple_raw(Main *bmain,
                                      bke::id::IDRemapper &mappings,
                                      const int remap_flags);

@@ -63,8 +63,10 @@ struct ForeachElementComponent {
   Array<Array<SocketValueVariant>> item_input_values;
   /** Geometry for each iteration. */
   std::optional<Array<SocketValueVariant>> element_geometries;
-  /** The set of body evaluation nodes that correspond to this component. This indexes into
-   * `lf_body_nodes`. */
+  /**
+   * The set of body evaluation nodes that correspond to this component.
+   * This indexes into `lf_body_nodes`.
+   */
   IndexRange body_nodes_range;
 
   void emplace_field_context(const GeometrySet &geometry)

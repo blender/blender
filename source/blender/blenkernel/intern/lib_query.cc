@@ -790,7 +790,8 @@ class UnusedIDsData {
   /**
    * Tag all IDs in Main according to their current status.
    *
-   * \warning Must typically be called as final step of the process. */
+   * \warning Must typically be called as final step of the process.
+   */
   void tag_ids() const
   {
     ID *id;

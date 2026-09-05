@@ -27,9 +27,11 @@ template<typename T, int64_t ChunkLen = 64> class Pool : NonCopyable {
 
   /** Allocated item buffer. */
   Vector<std::unique_ptr<Chunk>> values_;
-  /** List of freed elements to be use for the next allocations. A Stack is best here to avoid
+  /**
+   * List of freed elements to be use for the next allocations. A Stack is best here to avoid
    * overhead when growing the free list. It also offers better cache performance than a queue
-   * since last added entries will be reused first. */
+   * since last added entries will be reused first.
+   */
   Stack<T *, 0> free_list_;
 
  public:

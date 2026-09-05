@@ -89,9 +89,10 @@ Context::~Context()
   BLI_assert(back_right == nullptr);
   BLI_assert(texture_pool == nullptr);
 
-  /** IMPORTANT: Do not free resources (texture, batch, buffers) in this function. These objects
-   * are likely to reference the GL/VK/MTLContext which is already destroyed at this point. */
-
+  /**
+   * IMPORTANT: Do not free resources (texture, batch, buffers) in this function. These objects
+   * are likely to reference the GL/VK/MTLContext which is already destroyed at this point.
+   */
   GPU_matrix_state_discard(matrix_state);
   delete state_manager;
   delete imm;

@@ -160,7 +160,8 @@ TEST_F(CryptomatteTest, session_from_stamp_data)
 
 /**
  * Test method that contains known malformed manifests and makes sure that these can be parsed as
- * best as possible. */
+ * best as possible.
+ */
 TEST_F(CryptomatteTest, parsing_malformed_manifests)
 {
   /* Manifest from `multilayer.exr` in the cryptomatte git-repository. */

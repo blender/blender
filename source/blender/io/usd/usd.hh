@@ -175,8 +175,10 @@ struct USDExportParams {
   SceneUnits convert_scene_units = SceneUnits::Meters;
   float custom_meters_per_unit = 1.0f;
 
-  /** Communication structure between the wmJob management code and the worker code. Currently used
-   * to generate safely reports from the worker thread. */
+  /**
+   * Communication structure between the wmJob management code and the worker code. Currently used
+   * to generate safely reports from the worker thread.
+   */
   wmJobWorkerStatus *worker_status = nullptr;
 };
 

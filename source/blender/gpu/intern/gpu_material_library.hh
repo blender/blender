@@ -5,7 +5,8 @@
 /** \file
  * \ingroup gpu
  *
- * Parsing of and code generation using GLSL shaders in gpu/shaders/material. */
+ * Parsing of and code generation using GLSL shaders in gpu/shaders/material.
+ */
 
 #pragma once
 

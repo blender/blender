@@ -51,7 +51,8 @@ class SocketUsageInferencer {
   bool is_disabled_output(const SocketInContext &socket);
   bool is_disabled_group_output(int output_i);
 
-  /** This can be used when detecting the usage of all input sockets in a node tree, instead of
+  /**
+   * This can be used when detecting the usage of all input sockets in a node tree, instead of
    * just the inputs of the group as a whole.
    */
   void mark_top_level_node_outputs_as_used();

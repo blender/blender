@@ -73,7 +73,8 @@ enum LibraryForeachIDCallbackFlag {
   /**
    * That ID is not really used by its owner, it's just an internal hint/helper.
    * This marks the 'from' pointers issue, like Key->from.
-   * How to handle that kind of cases totally depends on what caller code is doing... */
+   * How to handle that kind of cases totally depends on what caller code is doing...
+   */
   IDWALK_CB_LOOPBACK = (1 << 6),
 
   /**

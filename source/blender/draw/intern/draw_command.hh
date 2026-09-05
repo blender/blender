@@ -180,8 +180,10 @@ struct ResourceBind {
   } type;
 
   union {
-    /** TODO: Use draw::Texture|StorageBuffer|UniformBuffer as resources as they will give more
-     * debug info. */
+    /**
+     * TODO: Use draw::Texture|StorageBuffer|UniformBuffer as resources as they will give more
+     * debug info.
+     */
     gpu::UniformBuf *uniform_buf;
     gpu::UniformBuf **uniform_buf_ref;
     gpu::StorageBuf *storage_buf;

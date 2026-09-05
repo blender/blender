@@ -372,7 +372,7 @@ void integration_main([[resource_table]] Integrate &srt,
       prev_ray_len = ray_len;
     }
     float3 froxel_transmittance = exp(-extinction * step_len);
-    /** NOTE: Original calculation carries precision issues when compiling for AMD GPUs
+    /* NOTE: Original calculation carries precision issues when compiling for AMD GPUs
      * and running Metal. This version of the equation retains precision well for all
      * macOS HW configurations.
      * Here is the original for reference:

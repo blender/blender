@@ -29,8 +29,10 @@ struct VolumeFieldDescriptor {
 const FluidModifierData *fluid_gas_domain_modifier(const Object *object,
                                                    const Depsgraph *depsgraph);
 
-/** Resolve the VDB cache file path,per-grid fields and transform
- * for a fluid modifier. */
+/**
+ * Resolve the VDB cache file path,per-grid fields and transform
+ * for a fluid modifier.
+ */
 std::string build_volume_fields_from_modifier(const Object *object,
                                               const FluidModifierData *fmd,
                                               int frame,

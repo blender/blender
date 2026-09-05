@@ -24,8 +24,10 @@ class GLQueryPool : public QueryPool {
   GPUQueryType type_;
   /** Associated GL type. */
   GLenum gl_type_;
-  /** Number of queries that have been issued since last initialization.
-   * Should be equal to query_ids_.size(). */
+  /**
+   * Number of queries that have been issued since last initialization.
+   * Should be equal to query_ids_.size().
+   */
   uint32_t query_issued_;
   /** Can only be initialized once. */
   bool initialized_ = false;

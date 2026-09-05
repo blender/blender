@@ -227,7 +227,7 @@ struct MainColorspace {
    * File working color-space for all scene linear colors.
    * The name is only for the user interface and is not a unique identifier, the matrix is
    * the XYZ color-space is the source of truth.
-   * */
+   */
   char scene_linear_name[64 /*MAX_COLORSPACE_NAME*/] = "";
   float3x3 scene_linear_to_xyz = float3x3::zero();
 
@@ -274,7 +274,8 @@ struct Main : NonCopyable, NonMovable {
    * compatibility issues (data loss).
    *
    * \note In practice currently this is only based on the version numbers, in the future it
-   * could try to use more refined detection on load. */
+   * could try to use more refined detection on load.
+   */
   bool has_forward_compatibility_issues = false;
 
   /**
@@ -718,7 +719,8 @@ void BKE_main_library_weak_reference_add(ID *local_id,
  * before objects, which will be processed before obdata types, etc.).
  *
  * WARNING: DO NOT use break statement with that macro, use #FOREACH_MAIN_LISTBASE and
- * #FOREACH_MAIN_LISTBASE_ID instead if you need that kind of control flow. */
+ * #FOREACH_MAIN_LISTBASE_ID instead if you need that kind of control flow.
+ */
 #define FOREACH_MAIN_ID_BEGIN(_bmain, _id) \
   { \
     ListBaseT<ID> *_lb; \

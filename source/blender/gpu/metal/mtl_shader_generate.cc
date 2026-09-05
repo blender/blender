@@ -991,7 +991,7 @@ static std::string generate_raster_builtins(GeneratedStreams &ss,
   if (flag_is_set(info.builtins_combined(), BuiltinBits::CLIP_DISTANCES) &&
       stage == ShaderStage::VERTEX)
   {
-    /** WORKAROUND: BSL has currently no way to disable clip distances using compilation constant.
+    /* WORKAROUND: BSL has currently no way to disable clip distances using compilation constant.
      * This induce a huge performance gap with the BSL port of workbench shader (see #155865).
      * This adds back the same preprocessor check that was previously here. However, this code is
      * heavily tailored to workbench and assume exact match with the compilation constant name.

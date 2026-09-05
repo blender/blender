@@ -28,9 +28,11 @@
 
 namespace blender::eevee {
 
-/** Bitmask identifying which of the 6 cubemap faces (in `cubeface_mat()` order) are needed to
+/**
+ * Bitmask identifying which of the 6 cubemap faces (in `cubeface_mat()` order) are needed to
  * cover a given panoramic projection. `FRONT`/`BACK` alias the `NEG_Z`/`POS_Z` faces since those
- * are the primary and opposite view directions for all panoramic projections. */
+ * are the primary and opposite view directions for all panoramic projections.
+ */
 enum class PanoramicViewBits : uint32_t {
   POS_X = 1u << 0u,
   NEG_X = 1u << 1u,

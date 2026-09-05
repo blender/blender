@@ -38,12 +38,16 @@ struct MemFileChunk {
   size_t size;
   /** When true, this chunk doesn't own the memory, it's shared with a previous #MemFileChunk */
   bool is_identical;
-  /** When true, this chunk is also identical to the one in the next step (used by undo code to
+  /**
+   * When true, this chunk is also identical to the one in the next step (used by undo code to
    * detect unchanged IDs).
-   * Defined when writing the next step (i.e. last undo step has those always false). */
+   * Defined when writing the next step (i.e. last undo step has those always false).
+   */
   bool is_identical_future;
-  /** Session UID of the ID being currently written (MAIN_ID_SESSION_UID_UNSET when not writing
-   * ID-related data). Used to find matching chunks in previous memundo step. */
+  /**
+   * Session UID of the ID being currently written (MAIN_ID_SESSION_UID_UNSET when not writing
+   * ID-related data). Used to find matching chunks in previous memundo step.
+   */
   uint id_session_uid;
 };
 

@@ -632,15 +632,15 @@ static void do_brush_action(const Depsgraph &depsgraph,
     return;
   }
 
-  /* TODO: Automasking support */
-  /*
+/* TODO: Automasking support */
+#if 0
   if (auto_mask::is_enabled(image_paint_settings.paint, ob, &brush)) {
     auto_mask::Cache &cache = auto_mask::stroke_cache_ensure(depsgraph, image_paint_settings.paint,
   &brush, ob); if (cache.settings.flags & BRUSH_AUTOMASKING_CAVITY_ALL) {
       cache.calc_cavity_factor(depsgraph, ob, node_mask);
     }
   }
-  */
+#endif
 
   /* TODO: Sculpt normal */
   /* TODO: Brush local mat */

@@ -61,7 +61,8 @@ struct NodePlacementContext {
   /**
    * Generate a key for caching a Blender node created for a given USD shader by returning the
    * shader prim path with an optional tag suffix. The tag can be specified in order to generate a
-   * unique key when more than one Blender node is created for the USD shader. */
+   * unique key when more than one Blender node is created for the USD shader.
+   */
   std::string get_key(const pxr::UsdShadeShader &usd_shader, const StringRef tag) const;
 
   /* Returns the Blender node previously cached for the given USD shader. Returns null if no cached

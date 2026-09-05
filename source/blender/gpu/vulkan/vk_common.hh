@@ -122,8 +122,10 @@ VkImageUsageFlags to_vk_image_usage(const eGPUTextureUsage usage,
                                     const GPUTextureFormatFlag format_flag,
                                     bool use_image_host_copy);
 
-/** Test if these settings need EXTENDED_USAGE to be able to bind the
- * texture as a (writable) storage image. */
+/**
+ * Test if these settings need EXTENDED_USAGE to be able to bind the
+ * texture as a (writable) storage image.
+ */
 bool vk_need_extended_usage_for_storage_image(const eGPUTextureUsage usage,
                                               const GPUTextureFormatFlag format_flag);
 /** Other format to use for binding a storage image when the format itself is not supported. */

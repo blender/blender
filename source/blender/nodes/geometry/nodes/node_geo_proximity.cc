@@ -71,7 +71,8 @@ static void geo_proximity_init(bNodeTree * /*tree*/, bNode *node)
 class ProximityFunction : public mf::MultiFunction {
  private:
   struct BVHTrees {
-    /** Only used when the group doesn't contain every element; see #mesh_bvh and #pointcloud_bvh.
+    /**
+     * Only used when the group doesn't contain every element; see #mesh_bvh and #pointcloud_bvh.
      */
     std::optional<bke::bvh::Tree> mesh_bvh_owned;
     std::optional<bke::bvh::Tree> pointcloud_bvh_owned;

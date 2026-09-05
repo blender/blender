@@ -63,8 +63,10 @@ class Film {
   struct DepthState {
     /** Set to 0 if reverse Z is supported, 1 otherwise. */
     float clear_value = 1.0f;
-    /** Set to DRW_STATE_DEPTH_GREATER_EQUAL if reverse Z is supported, DRW_STATE_DEPTH_LESS_EQUAL
-     * otherwise. */
+    /**
+     * Set to DRW_STATE_DEPTH_GREATER_EQUAL if reverse Z is supported, DRW_STATE_DEPTH_LESS_EQUAL
+     * otherwise.
+     */
     DRWState test_state = DRW_STATE_DEPTH_LESS_EQUAL;
   } depth;
 
@@ -155,8 +157,10 @@ class Film {
   {
     return render_extent_shading_view_;
   }
-  /** Returns the film's resolution.
-   * Includes overscan pixels. */
+  /**
+   * Returns the film's resolution.
+   * Includes overscan pixels.
+   */
   int2 render_extent_original_get() const
   {
     return data_.render_extent;

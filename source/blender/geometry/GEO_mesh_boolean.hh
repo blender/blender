@@ -61,8 +61,10 @@ struct BooleanOpParameters {
   Operation boolean_mode;
   /** Can we assume there are no self-intersections in any of the operands? */
   bool no_self_intersections = true;
-  /** Can we assume there are no nested components (e.g., a box inside a box) in any of the
-   * components? */
+  /**
+   * Can we assume there are no nested components (e.g., a box inside a box) in any of the
+   * components?
+   */
   bool no_nested_components = true;
   /** Can we assume the argument meshes are watertight volume enclosing? */
   bool watertight = true;

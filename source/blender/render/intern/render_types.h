@@ -129,9 +129,11 @@ struct Render : public BaseRender {
   /* True if result has GPU textures, to quickly skip cache clear. */
   bool result_has_gpu_texture_caches = false;
 
-  /** Window size, display rect, viewplane.
+  /**
+   * Window size, display rect, viewplane.
    * \note Buffer width and height with percentage applied
-   * without border & crop. convert to long before multiplying together to avoid overflow. */
+   * without border & crop. convert to long before multiplying together to avoid overflow.
+   */
   int winx = 0, winy = 0;
   rcti disprect = {0, 0, 0, 0};  /* part within winx winy */
   rctf viewplane = {0, 0, 0, 0}; /* mapped on winx winy */

@@ -33,7 +33,7 @@ static void extend_curve_straight(const float used_percent_length,
 {
   float overshoot_point_param = used_percent_length * (new_size - 1);
   if (start_points[curve]) {
-    /** Here we use the vector between two adjacent points around #overshoot_point_param as
+    /* Here we use the vector between two adjacent points around #overshoot_point_param as
      * our reference for the direction of extension, however to have better tolerance for jitter,
      * using the vector (a_few_points_back - end_point) might be a better solution in the future.
      */

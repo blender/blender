@@ -262,8 +262,8 @@ static void find_iobject(const IObject &object, IObject &ret, const std::string 
  *         Blender object). The pointer is the AbcObjectReader that represents
  *         the IObject parameter.
  *
- * NOTE: this function is similar to gather_object_paths above, need to keep
- * them in sync. */
+ * NOTE: this function is similar to gather_object_paths above, need to keep them in sync.
+ */
 static std::pair<bool, AbcObjectReader *> visit_object(
     const IObject &object,
     AbcObjectReader::ptr_vector &readers,

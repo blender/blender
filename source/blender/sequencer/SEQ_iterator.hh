@@ -152,8 +152,8 @@ Vector<Strip *> query_rendered_strips_sorted(const Scene *scene,
  * part of other strips' renders (such as effect strip inputs). These should be skipped to avoid
  * unnecessary re-rendering.
  *
- * \note: Take care when changing the logic of this function since order matters.
- * */
+ * \note Take care when changing the logic of this function since order matters.
+ */
 bool must_render_strip(const VectorSet<Strip *> &strip_stack, Strip *target_strip);
 
 /** \} */

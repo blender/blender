@@ -461,8 +461,10 @@ class ExtendableMesh {
       new_face_kinds_.last() = kind;
     }
   }
-  /** Tags a new edge by its combined (original + new) index with the given kind.
-   * Only new edges (index >= mesh.edges_num) are tagged; original edges are silently ignored. */
+  /**
+   * Tags a new edge by its combined (original + new) index with the given kind.
+   * Only new edges (index >= mesh.edges_num) are tagged; original edges are silently ignored.
+   */
   void tag_edge_kind(const int edge_index, const NewEdgeKind kind)
   {
     const int ni = edge_index - mesh.edges_num;
@@ -980,8 +982,10 @@ struct BevelState {
   bool mark_seam;
   bool mark_sharp;
 
-  /** Source-edge indices of the two outer edges of each bevel strip, accumulated during
-   * #bevel_build_edge_polygons for use by the #BevelAttributeOutputs `outer_edge_id` field. */
+  /**
+   * Source-edge indices of the two outer edges of each bevel strip, accumulated during
+   * #bevel_build_edge_polygons for use by the #BevelAttributeOutputs `outer_edge_id` field.
+   */
   Vector<int> outer_edge_src_indices;
 
   VMeshMethod vmesh_method;

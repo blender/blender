@@ -90,7 +90,8 @@ void ANIM_bonecoll_free(BoneCollection *bcoll, const bool do_id_user_count)
  * Construct the mapping from the bones to this collection.
  *
  * This assumes that the bones do not have such a pointer yet, i.e. calling this
- * twice for the same bone collection will cause duplicate pointers. */
+ * twice for the same bone collection will cause duplicate pointers.
+ */
 static void add_reverse_pointers(BoneCollection *bcoll)
 {
   for (BoneCollectionMember &member : bcoll->bones) {

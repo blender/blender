@@ -120,9 +120,11 @@ static void assign_materials(Main *bmain,
 
 } /* namespace utils */
 
-/** This utility structure holds mesh data arrays which are common between the IPolyMeshSchema and
+/**
+ * This utility structure holds mesh data arrays which are common between the IPolyMeshSchema and
  * the ISubDSchema. As those schemas do not derive from one another, this structure is used to read
- * mesh data generically. */
+ * mesh data generically.
+ */
 struct AbcMeshData {
   StringRef iobject_full_name;
   StringRef schema_name;

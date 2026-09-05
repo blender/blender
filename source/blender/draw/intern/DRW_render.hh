@@ -316,8 +316,10 @@ struct DRWContext {
   /** Evaluated ViewLayer. */
   ViewLayer *view_layer = nullptr;
 
-  /** Last resort (some functions take this as an arg so we can't easily avoid).
-   * May be nullptr when used for selection or depth buffer. */
+  /**
+   * Last resort (some functions take this as an arg so we can't easily avoid).
+   * May be nullptr when used for selection or depth buffer.
+   */
   const bContext *evil_C = nullptr;
   /** Can be nullptr depending on context. */
   ARegion *region = nullptr;

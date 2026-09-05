@@ -71,11 +71,13 @@ void generate_single_keying_result_report(const SingleKeyingResult result, Repor
 /**
  * Class for tracking the result of inserting keyframes. Tracks how often each of
  * `SingleKeyingResult` has happened.
- * */
+ */
 class CombinedKeyingResult {
  private:
-  /* The index to the array maps a `SingleKeyingResult` to the number of times this result has
-   * occurred. */
+  /**
+   * The index to the array maps a `SingleKeyingResult` to the number of times this result has
+   * occurred.
+   */
   std::array<int, size_t(SingleKeyingResult::_KEYING_RESULT_MAX)> result_counter;
 
  public:
@@ -86,7 +88,7 @@ class CombinedKeyingResult {
    */
   void add(SingleKeyingResult result, int count = 1);
 
-  /* Add values of the given result to this result. */
+  /** Add values of the given result to this result. */
   void merge(const CombinedKeyingResult &other);
 
   int get_count(const SingleKeyingResult result) const;

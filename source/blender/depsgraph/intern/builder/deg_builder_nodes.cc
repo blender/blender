@@ -1540,7 +1540,8 @@ void DepsgraphNodeBuilder::build_rigidbody(Scene *scene)
    *    and/or not affected by the sim for instance).
    *
    * 3) "Pull Results" - grab the specific transforms applied for a specific
-   *    object - performed as part of object's transform-stack building. */
+   *    object - performed as part of object's transform-stack building.
+   */
 
   /* Create nodes --------------------------------------------------------- */
 
@@ -1612,8 +1613,7 @@ void DepsgraphNodeBuilder::build_rigidbody(Scene *scene)
 
 void DepsgraphNodeBuilder::build_particle_systems(Object *object, bool is_object_visible)
 {
-  /**
-   * Particle Systems Nodes
+  /* Particle Systems Nodes
    * ======================
    *
    * There are two types of nodes associated with representing

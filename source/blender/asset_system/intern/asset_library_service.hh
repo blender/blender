@@ -54,8 +54,10 @@ class AssetLibraryService {
    * library may point to the same path as a custom library.
    */
   using OnDiskLibraryIdentifier = std::pair<eAssetLibraryType, std::string>;
-  /** Mapping of a (type, root path) pair to the AssetLibrary instance.
-   * Always protect access with #on_disk_libraries_mutex_ below. */
+  /**
+   * Mapping of a (type, root path) pair to the AssetLibrary instance.
+   * Always protect access with #on_disk_libraries_mutex_ below.
+   */
   Map<OnDiskLibraryIdentifier, std::unique_ptr<OnDiskAssetLibrary>> on_disk_libraries_;
   mutable std::recursive_mutex on_disk_libraries_mutex_;
   using URLLibraryIdentifier = std::string;
@@ -117,8 +119,10 @@ class AssetLibraryService {
    * Preferences.
    */
   AssetLibrary *get_asset_library_on_disk_custom_preferences(bUserAssetLibrary *custom_library);
-  /** Get a builtin (not user defined) asset library. I.e. a library that is **not** of type
-   * #ASSET_LIBRARY_CUSTOM. */
+  /**
+   * Get a builtin (not user defined) asset library. I.e. a library that is **not** of type
+   * #ASSET_LIBRARY_CUSTOM.
+   */
   AssetLibrary *get_asset_library_on_disk_builtin(eAssetLibraryType type, StringRefNull root_path);
   /** Get the "Current File" asset library. */
   AssetLibrary *get_asset_library_current_file();
@@ -144,8 +148,10 @@ class AssetLibraryService {
    */
   std::string normalize_asset_weak_reference_relative_asset_identifier(
       const AssetWeakReference &asset_reference);
-  /** Get a valid library path from the weak reference. Empty if e.g. the reference is to a local
-   * asset. */
+  /**
+   * Get a valid library path from the weak reference. Empty if e.g. the reference is to a local
+   * asset.
+   */
   std::string resolve_asset_weak_reference_to_library_path(
       const AssetWeakReference &asset_reference);
   /**
@@ -156,24 +162,34 @@ class AssetLibraryService {
    * \note Only works for asset libraries on disk (others can't be resolved).
    */
   std::string resolve_asset_weak_reference_to_full_path(const AssetWeakReference &asset_reference);
-  /** Struct to hold results from path explosion functions
-   * (#resolve_asset_weak_reference_to_exploded_path()). */
+  /**
+   * Struct to hold results from path explosion functions
+   * (#resolve_asset_weak_reference_to_exploded_path()).
+   */
   struct ExplodedPath {
-    /** The string buffer containing the fully resolved path, if resolving was successful. Pointer
-     * so that the contained string address doesn't change when moving this object. */
+    /**
+     * The string buffer containing the fully resolved path, if resolving was successful. Pointer
+     * so that the contained string address doesn't change when moving this object.
+     */
     std::unique_ptr<std::string> full_path;
-    /** Reference into the part of #full_path that is the library directory path. That is, it ends
-     * with the library .blend file ("directory" is misleading). */
+    /**
+     * Reference into the part of #full_path that is the library directory path. That is, it ends
+     * with the library .blend file ("directory" is misleading).
+     */
     StringRef dir_component = "";
-    /** Reference into the part of #full_path that is the ID group name ("Object", "Material",
-     * "Brush", ...). */
+    /**
+     * Reference into the part of #full_path that is the ID group name ("Object", "Material",
+     * "Brush", ...).
+     */
     StringRef group_component = "";
     /** Reference into the part of #full_path that is the ID name. */
     StringRef name_component = "";
   };
-  /** Similar to #BKE_blendfile_library_path_explode, returns the full path as
+  /**
+   * Similar to #BKE_blendfile_library_path_explode, returns the full path as
    * #resolve_asset_weak_reference_to_library_path, with StringRefs to the `dir` (i.e. blendfile
-   * path), `group` (i.e. ID type) and `name` (i.e. ID name) parts. */
+   * path), `group` (i.e. ID type) and `name` (i.e. ID name) parts.
+   */
   std::optional<ExplodedPath> resolve_asset_weak_reference_to_exploded_path(
       const AssetWeakReference &asset_reference);
 
@@ -208,7 +224,8 @@ class AssetLibraryService {
                                           bUserAssetLibrary *preferences_library = nullptr);
   /**
    * Ensure the AssetLibraryService instance is destroyed before a new blend file is loaded.
-   * This makes memory management simple, and ensures a fresh start for every blend file. */
+   * This makes memory management simple, and ensures a fresh start for every blend file.
+   */
   void app_handler_register();
   void app_handler_unregister();
 };

@@ -1358,7 +1358,7 @@ class ShaderNodesInliner {
     bNode *prev_mix = nullptr;
     bNodeSocket *prev_mix_result = nullptr;
     for (const int i : IndexRange(storage.items_num + 1)) {
-      /* Use a math node to turn the index into a factor for the mix node.*/
+      /* Use a math node to turn the index into a factor for the mix node. */
       const int index_to_factor_offset = 1 - i;
 
       bNode *factor_node = nullptr;

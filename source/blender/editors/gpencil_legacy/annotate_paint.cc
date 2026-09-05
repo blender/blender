@@ -167,8 +167,10 @@ struct tGPsdata {
   /** Used when converting to path. */
   double ocurtime;
 
-  /** Inverted transformation matrix applying when converting coords from screen-space
-   * to region space. */
+  /**
+   * Inverted transformation matrix applying when converting coords from screen-space
+   * to region space.
+   */
   float imat[4][4];
   float mat[4][4];
 

@@ -37,9 +37,11 @@ struct PreviewImageRuntime {
   int icon_id = 0;
   int16_t tag[NUM_ICON_SIZES] = {};
 
-  /** This is only needed/used in rare cases (asset previews). Multiple libraries may contain the
+  /**
+   * This is only needed/used in rare cases (asset previews). Multiple libraries may contain the
    * same asset, so they will request the same preview. In that case, the user count can be used to
-   * avoid freeing too early. */
+   * avoid freeing too early.
+   */
   int user_count = 0;
 
   std::array<gpu::Texture *, NUM_ICON_SIZES> gputexture = {};

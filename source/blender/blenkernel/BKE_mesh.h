@@ -276,7 +276,8 @@ struct MLoopNorSpace {
    * All loops using this lnor space (i.e. smooth fan of loops),
    * as (depending on owning MLoopNorSpaceArrary.data_type):
    * - Indices (uint_in_ptr), or
-   * - BMLoop pointers. */
+   * - BMLoop pointers.
+   */
   struct LinkNode *loops;
   char flags;
 };

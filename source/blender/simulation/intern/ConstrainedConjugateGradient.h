@@ -146,7 +146,8 @@ namespace internal
 
 }  // namespace internal
 
-/** \ingroup IterativeLinearSolvers_Module
+/**
+ * \ingroup IterativeLinearSolvers_Module
  * \brief A conjugate gradient solver for sparse self-adjoint problems with additional constraints
  *
  * This class allows to solve for A.x = b sparse linear problems using a conjugate gradient
