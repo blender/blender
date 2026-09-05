@@ -454,6 +454,11 @@ bool Attribute::same_storage(const TypeDesc a, const TypeDesc b)
 
 void Attribute::zero_data(void *dst)
 {
+  if (type == TypePackedSphericalHarmonicsRest) {
+    spherical_harmonics_rest_fill_zero(*static_cast<PackedSphericalHarmonicsRest *>(dst));
+    return;
+  }
+
   memset(dst, 0, data_sizeof());
 }
 
