@@ -891,7 +891,7 @@ struct UserDef_Experimental {
    */
   char use_new_curves_tools = 0;
   char use_extended_asset_browser = 0;
-  char use_sculpt_texture_paint = 0;
+  char use_3d_texture_paint = 0;
   char use_shader_node_previews = 0;
   char use_new_animfilter = 0;
   /**

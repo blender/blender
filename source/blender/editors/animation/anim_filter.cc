@@ -167,7 +167,7 @@ ListBaseT<TimeMarker> *ANIM_marker_list_from_context(const bContext &C)
   if (area->spacetype == SPACE_ACTION) {
     bAction *action = ANIM_active_action_from_area(
         *CTX_data_main(&C), scene, CTX_data_view_layer(&C), area, nullptr);
-    const SpaceAction *space_action = static_cast<const SpaceAction *>(area->spacedata.first);
+    const SpaceAction *space_action = area->spacedata.first_as<SpaceAction>();
     if (action && space_action->flag & SACTION_POSEMARKERS_SHOW) {
       markers = &action->markers;
     }

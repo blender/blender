@@ -41,10 +41,10 @@ class ExperimentalBrushTests(unittest.TestCase):
 
     def _initialize(self, data_type: DataType):
         bpy.ops.wm.read_factory_settings(use_empty=True)
-        bpy.context.preferences.experimental.use_sculpt_texture_paint = True
+        bpy.context.preferences.experimental.use_3d_texture_paint = True
         bpy.ops.ed.undo_push()
         generate_monkey(BackendType.MESH)
-        bpy.ops.sculpt.sculptmode_toggle()
+        bpy.ops.paint.texture_paint_toggle()
 
         bpy.ops.paint.add_texture_paint_slot(
             type='BASE_COLOR',
@@ -64,7 +64,7 @@ class ExperimentalBrushTests(unittest.TestCase):
     def _activate_brush(self, brush):
         result = bpy.ops.brush.asset_activate(
             asset_library_type='ESSENTIALS',
-            relative_asset_identifier='brushes/essentials_brushes-mesh_sculpt.blend/Brush/{}'.format(brush))
+            relative_asset_identifier='brushes/essentials_brushes-mesh_texture.blend/Brush/{}'.format(brush))
         self.assertEqual({'FINISHED'}, result)
 
     def _check_paint_stroke(self, image_name="Base_Color"):
@@ -73,7 +73,7 @@ class ExperimentalBrushTests(unittest.TestCase):
         context_override = bpy.context.copy()
         set_view3d_context_override(context_override)
         with bpy.context.temp_override(**context_override):
-            bpy.ops.sculpt.brush_stroke(stroke=generate_stroke(context_override), override_location=True)
+            bpy.ops.paint.image_paint(stroke=generate_stroke(context_override), override_location=True)
 
         new_data = get_image_data(image_name=image_name)
 
@@ -100,7 +100,7 @@ class BrushTests(unittest.TestCase):
 
     def _initialize(self, data_type: DataType):
         bpy.ops.wm.read_factory_settings(use_empty=True)
-        bpy.context.preferences.experimental.use_sculpt_texture_paint = False
+        bpy.context.preferences.experimental.use_3d_texture_paint = False
         bpy.ops.ed.undo_push()
         generate_monkey(BackendType.MESH)
         bpy.ops.paint.texture_paint_toggle()

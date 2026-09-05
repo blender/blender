@@ -324,6 +324,13 @@ struct ExpressionTypeParser
       return table->err_cls;
     }
 
+#ifdef _MSC_VER
+/* Silence warning about bool operand.
+ * They cannot happen because they are catched by the above check */
+#  pragma warning(push)
+#  pragma warning(disable : 4805)
+#endif
+
     ExprFlag flags = ExprFlag(right.flags);
     if (flags & ExprFlag::IsConstexpr) {
       switch (op_type) {
@@ -348,6 +355,9 @@ struct ExpressionTypeParser
           return table->err_cls;
       }
     }
+#ifdef _MSC_VER
+#  pragma warning(pop)
+#endif
     return {type, flags};
   }
 
@@ -374,6 +384,13 @@ struct ExpressionTypeParser
       return table->err_cls;
     }
 
+#ifdef _MSC_VER
+/* Silence warning about bool operand.
+ * They cannot happen because they are catched by the above check */
+#  pragma warning(push)
+#  pragma warning(disable : 4805)
+#endif
+
     ExprFlag flags = ExprFlag(left.flags);
     if (flags & ExprFlag::IsConstexpr) {
       switch (op_type) {
@@ -387,6 +404,10 @@ struct ExpressionTypeParser
           return table->err_cls;
       }
     }
+
+#ifdef _MSC_VER
+#  pragma warning(pop)
+#endif
     return {type, flags};
   }
 
@@ -424,6 +445,13 @@ struct ExpressionTypeParser
 
     /* For debugging. */
     // std::cout << t.prev().str() << t.str() << t.next().str() << std::endl;
+
+#ifdef _MSC_VER
+/* Silence warning about bool operand.
+ * They cannot happen because they are catched by the above check */
+#  pragma warning(push)
+#  pragma warning(disable : 4805)
+#endif
 
     if (flags & ExprFlag::IsConstexpr) {
       switch (op_type) {
@@ -500,6 +528,10 @@ struct ExpressionTypeParser
           return table->err_cls;
       }
     }
+
+#ifdef _MSC_VER
+#  pragma warning(pop)
+#endif
     return {type, flags};
   }
 

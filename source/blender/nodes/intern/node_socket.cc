@@ -53,6 +53,7 @@
 #include "MEM_guardedalloc.h"
 
 #include "NOD_compositor_nodes_srna.hh"
+#include "NOD_geometry.hh"
 #include "NOD_geometry_nodes_bundle.hh"
 #include "NOD_geometry_nodes_closure.hh"
 #include "NOD_geometry_nodes_srna.hh"
@@ -1005,11 +1006,16 @@ static bke::bNodeSocketType *make_socket_type_bool()
         &srna, "value", data->value, socket.name().c_str(), socket.description().c_str());
     RNA_def_property_flag(prop, PROP_FORCE_GEOMETRY_EVAL);
     RNA_def_property_override_flag(prop, PROPOVERRIDE_OVERRIDABLE_LIBRARY);
-    make_common_type_prop(srna,
-                          socket,
-                          nodes::geometry_nodes_input_type_items_value_or_attribute_or_layer,
-                          nodes::GeometryNodesInputType::Value,
-                          r_generated);
+    make_common_type_prop(
+        srna,
+        socket,
+        nodes::geometry_nodes_input_type_items_value_or_attribute_or_layer,
+        is_layer_selection_field(socket) ?
+            nodes::GeometryNodesInputType::Layer :
+            (socket.default_attribute_name && socket.default_attribute_name[0] != '\0' ?
+                 nodes::GeometryNodesInputType::Attribute :
+                 nodes::GeometryNodesInputType::Value),
+        r_generated);
     make_common_attribute_name_prop(srna, socket, r_generated);
     prop = RNA_def_string(
         &srna,

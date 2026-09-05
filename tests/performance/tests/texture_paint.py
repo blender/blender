@@ -48,7 +48,7 @@ def prepare_scene(context: any, object: MeshType, image_dimension: int, data_typ
     """
     import bpy
 
-    bpy.context.preferences.experimental.use_sculpt_texture_paint = True
+    bpy.context.preferences.experimental.use_3d_texture_paint = True
 
     # Ensure the current mode is object, as it might not be always the case
     # if the benchmark script is run from a non-clean state of the .blend file.
@@ -76,7 +76,7 @@ def prepare_scene(context: any, object: MeshType, image_dimension: int, data_typ
     with context.temp_override(**context_override):
         bpy.ops.view3d.view_axis(type='FRONT')
         bpy.ops.view3d.view_selected()
-    bpy.ops.object.mode_set(mode='SCULPT')
+    bpy.ops.paint.texture_paint_toggle()
 
     is_float_image = data_type == DataType.FLOAT
 
@@ -100,12 +100,12 @@ def prepare_brush():
     import bpy
     bpy.ops.brush.asset_activate(
         asset_library_type='ESSENTIALS',
-        relative_asset_identifier="brushes/essentials_brushes-mesh_sculpt.blend/Brush/Paint Hard")
+        relative_asset_identifier="brushes/essentials_brushes-mesh_texture.blend/Brush/Paint Hard")
 
 
 def generate_stroke(context):
     """
-    Generate stroke for the bpy.ops.sculpt.brush_stroke operator
+    Generate stroke for the bpy.ops.paint.image_paint operator
 
     The generated stroke coves the full plane diagonal.
     """
@@ -159,7 +159,11 @@ def _run_brush_test(args: dict):
     # Create an undo stack explicitly. This isn't created by default in background mode.
     bpy.ops.ed.undo_push()
 
-    prepare_brush()
+    context_override = context.copy()
+    set_view3d_context_override(context_override)
+    with context.temp_override(**context_override):
+        # This needs to run in a View3D context to work correctly for texture paint
+        prepare_brush()
 
     min_measurements = 5
     max_measurements = 100
@@ -170,7 +174,7 @@ def _run_brush_test(args: dict):
         set_view3d_context_override(context_override)
         with context.temp_override(**context_override):
             start = time.time()
-            bpy.ops.sculpt.brush_stroke(stroke=generate_stroke(context_override), override_location=True)
+            bpy.ops.paint.image_paint(stroke=generate_stroke(context_override), override_location=True)
             bpy.ops.ed.undo_push()
             measurements.append(time.time() - start)
         if len(measurements) >= min_measurements and (time.time() - total_time_start) > timeout:

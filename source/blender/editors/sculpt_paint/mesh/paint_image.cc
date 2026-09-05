@@ -71,6 +71,8 @@
 
 #include "IMB_colormanagement.hh"
 
+#include "mesh_paint.hh"
+
 #include "../paint_intern.hh"
 
 namespace blender {
@@ -454,7 +456,7 @@ static void toggle_paint_cursor(Scene &scene, bool enable)
   if (p.runtime->paint_cursor && !enable) {
     WM_paint_cursor_end(static_cast<wmPaintCursor *>(p.runtime->paint_cursor));
     p.runtime->paint_cursor = nullptr;
-    paint_cursor_delete_textures();
+    bke::paint::cursor_reinitialize_textures(p);
   }
   else if (enable) {
     ED_paint_cursor_start(&p, ED_image_tools_paint_poll);
@@ -485,7 +487,7 @@ void ED_space_image_paint_update(Main *bmain, wmWindowManager *wm, Scene *scene)
     ED_paint_cursor_start(&imapaint->paint, ED_image_tools_paint_poll);
   }
   else {
-    paint_cursor_delete_textures();
+    bke::paint::cursor_reinitialize_textures(imapaint->paint);
   }
 }
 
@@ -648,24 +650,26 @@ void ED_object_texture_paint_mode_enter_ex(Main &bmain,
     ED_space_image_sync(&bmain, ima, false);
   }
 
-  ob.mode |= OB_MODE_TEXTURE_PAINT;
+  if (USER_EXPERIMENTAL_TEST(&U, use_3d_texture_paint)) {
+    ed::sculpt_paint::mode_enter_generic(bmain, depsgraph, scene, ob, OB_MODE_TEXTURE_PAINT);
+  }
+  else {
+    ob.mode |= OB_MODE_TEXTURE_PAINT;
+    BKE_paint_init(&bmain, &scene, PaintMode::Texture3D);
+    BKE_paint_brushes_validate(&bmain, &imapaint.paint);
+    toggle_paint_cursor(scene, true);
 
-  BKE_paint_init(&bmain, &scene, PaintMode::Texture3D);
+    Mesh *mesh = BKE_mesh_from_object(&ob);
+    BLI_assert(mesh != nullptr);
+    DEG_id_tag_update(&mesh->id, ID_RECALC_SYNC_TO_EVAL);
 
-  BKE_paint_brushes_validate(&bmain, &imapaint.paint);
+    /* Ensure we have evaluated data for bounding box. */
+    BKE_scene_graph_evaluated_ensure(&depsgraph, &bmain);
 
-  toggle_paint_cursor(scene, true);
-
-  Mesh *mesh = BKE_mesh_from_object(&ob);
-  BLI_assert(mesh != nullptr);
-  DEG_id_tag_update(&mesh->id, ID_RECALC_SYNC_TO_EVAL);
-
-  /* Ensure we have evaluated data for bounding box. */
-  BKE_scene_graph_evaluated_ensure(&depsgraph, &bmain);
-
-  /* Set pivot to bounding box center. */
-  Object *ob_eval = DEG_get_evaluated(&depsgraph, &ob);
-  paint_init_pivot(ob_eval ? ob_eval : &ob, &scene, &imapaint.paint);
+    /* Set pivot to bounding box center. */
+    Object *ob_eval = DEG_get_evaluated(&depsgraph, &ob);
+    paint_init_pivot(ob_eval ? ob_eval : &ob, &scene, &imapaint.paint);
+  }
 
   WM_main_add_notifier(NC_SCENE | ND_MODE, &scene);
 }
@@ -682,9 +686,14 @@ void ED_object_texture_paint_mode_enter(bContext *C)
 
 void ED_object_texture_paint_mode_exit_ex(Main & /*bmain*/, Scene &scene, Object &ob)
 {
-  ob.mode &= ~OB_MODE_TEXTURE_PAINT;
+  if (USER_EXPERIMENTAL_TEST(&U, use_3d_texture_paint)) {
+    ed::sculpt_paint::mode_exit_generic(scene, ob, OB_MODE_TEXTURE_PAINT);
+  }
+  else {
+    ob.mode &= ~OB_MODE_TEXTURE_PAINT;
 
-  toggle_paint_cursor(scene, false);
+    toggle_paint_cursor(scene, false);
+  }
 
   Mesh *mesh = BKE_mesh_from_object(&ob);
   BLI_assert(mesh != nullptr);

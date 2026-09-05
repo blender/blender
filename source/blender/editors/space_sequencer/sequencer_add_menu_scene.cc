@@ -185,14 +185,7 @@ static void sequencer_add_scene_draw(const bContext *C, Menu *menu)
   /* Show existing scenes. */
   Main *bmain = CTX_data_main(C);
   const int scenes_len = bmain->scenes.count();
-  if (scenes_len > 10) {
-    layout.op("SEQUENCER_OT_scene_strip_add",
-              IFACE_("Scene Strip..."),
-              ICON_SCENE_DATA,
-              wm::OpCallContext::InvokeDefault,
-              UI_ITEM_NONE);
-  }
-  else if (scenes_len == 1) {
+  if (scenes_len == 1) {
     layout.label(IFACE_("Scene Strip"), ICON_SCENE_DATA);
     layout.label(IFACE_("No other scenes."), ICON_NONE);
   }

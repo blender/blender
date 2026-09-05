@@ -16,7 +16,7 @@ namespace blender::bke::pbvh::pixels {
 
 void copy_update(Tree &pbvh,
                  Image &image,
-                 ImageUser &image_user,
+                 const ImageUser &image_user,
                  const uv_islands::MeshData &mesh_data);
 
 }  // namespace blender::bke::pbvh::pixels

@@ -279,6 +279,7 @@ bool jump_to_object(bContext *C, Object *ob, const bool /*reveal_hidden*/)
 
     /* Make active if not active. */
     base_activate(C, base);
+    ED_outliner_select_sync_from_object_tag(C);
   }
 
   return true;
@@ -324,6 +325,7 @@ bool jump_to_bone(bContext *C, Object *ob, const char *bone_name, const bool rev
       arm->act_edbone = ebone;
 
       ED_pose_bone_select_tag_update(ob);
+      ED_outliner_select_sync_from_edit_bone_tag(C);
       return true;
     }
   }
@@ -344,6 +346,7 @@ bool jump_to_bone(bContext *C, Object *ob, const char *bone_name, const bool rev
       arm->act_bone = pchan->bone_get(*ob);
 
       ED_pose_bone_select_tag_update(ob);
+      ED_outliner_select_sync_from_pose_bone_tag(C);
       return true;
     }
   }

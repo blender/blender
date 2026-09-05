@@ -1852,7 +1852,7 @@ struct SequencerToolSettings {
    * 0-1 range corresponds to resolution from bound-box to all possible snap points.
    */
   int snap_distance = 0;
-  int pivot_point = 0;
+  int pivot_point = V3D_AROUND_CENTER_MEDIAN;
 };
 
 /** \} */

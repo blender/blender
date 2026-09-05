@@ -328,6 +328,11 @@ bool WM_toolsystem_activate_brush_and_tool(bContext *C, Paint *paint, Brush *bru
     return false;
   }
 
+  if (active_tool == nullptr || active_tool->runtime == nullptr) {
+    BLI_assert(G.background);
+    return false;
+  }
+
   if (active_tool->runtime->brush_type == -1) {
     /* Only update the main brush binding to reference the newly active brush. */
     toolsystem_main_brush_binding_update_from_active(paint);
