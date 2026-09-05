@@ -3007,16 +3007,18 @@ static bool node_link_insert_offset_ntree(NodeInsertOfsData *iofsd, const bool r
   const float back_gap = right_alignment ? gap_left : gap_right;
   const float min_margin = U.node_margin * UI_SCALE_FAC;
 
-  const bool need_offset_insert = back_gap < min_margin;
-  const bool need_offset_side = (front_gap < min_margin) ||
-                                (back_gap + front_gap) < min_margin * 2;
+  const bool need_offset_side = (back_gap + front_gap) < min_margin * 2;
+  const bool need_front_offset_insert = back_gap < min_margin;
+  const bool need_back_offset_insert = !need_offset_side && front_gap < min_margin;
 
-  if (!(need_offset_insert || need_offset_side)) {
+  if (!(need_front_offset_insert || need_back_offset_insert || need_offset_side)) {
     return false;
   }
 
-  const float insert_node_offset = (min_margin - back_gap) * float(need_offset_insert);
-  const float side_offset = min_margin - front_gap + insert_node_offset;
+  const float front_offset = (min_margin - back_gap) * float(need_front_offset_insert);
+  const float back_offset = (front_gap - min_margin) * float(need_back_offset_insert);
+  const float insert_node_offset = need_front_offset_insert ? front_offset : back_offset;
+  const float side_offset = min_margin - front_gap + front_offset;
 
   const float shift_sign = right_alignment ? 1.0f : -1.0f;
 
