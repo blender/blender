@@ -128,7 +128,7 @@ void convert_axis_to_blender(const MutableSpan<float3> positions,
                                       M_SQRT1_2 * (rotations[i].z + rotations[i].y));
 
       if (sh_degrees == 0) {
-        continue;;
+        continue;
       }
 
       if (tls.sh_data.is_empty()) {
