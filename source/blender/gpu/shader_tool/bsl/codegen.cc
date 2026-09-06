@@ -1362,7 +1362,7 @@ struct CodegenContext : NodeErrorHandler {
               SymbolClass *type = id_type_lookup_resolved(decl.type().identifier(), cls);
               for (Declarator d : decl.children_of_type<Declarator>()) {
                 SymbolVariable *var = cls.lookup_variable(table, d.identifier());
-                if (var->is_static) {
+                if (var->is_static || var->bit_offset != 0) {
                   continue;
                 }
                 string access;
@@ -2202,6 +2202,16 @@ struct CodegenContext : NodeErrorHandler {
       return false;
     }
 
+    if (decl.has_single_declarator()) {
+      Declarator d = decl.child_first(NodeType::Declarator);
+      SymbolVariable *var = scope.lookup_variable(table, d.identifier());
+      if (var->is_bitfield && var->bit_offset != 0) {
+        /* Only declare the first member of each field. */
+        skip_node(decl);
+        return false;
+      }
+    }
+
     if (jump) {
       jump_to(decl.front());
     }
@@ -2283,6 +2293,14 @@ struct CodegenContext : NodeErrorHandler {
     ArrayDecl array = decl.array();
     SymbolVariable *var = scope.lookup_variable(table, decl.identifier());
 
+    if (var->is_bitfield && var->bit_offset != 0) {
+      if (decl.prev().type() != NodeType::Declarator || decl.next().type() != NodeType::Declarator)
+      {
+        /* Omitting a declarator in a declarator sequence will create invalid codegen. */
+        error(decl, Diag::BitFieldNotSingleDeclarator);
+      }
+    }
+
     const bool par = match_if('(');
     if (var->type->is_srt()) {
       /* WORKAROUND: Do not pass SRT by reference because it causes issue on metal when the caller
@@ -2306,6 +2324,8 @@ struct CodegenContext : NodeErrorHandler {
     }
 
     array_decl(array, decl, scope);
+
+    skip_node(decl.bitfield());
 
     if (!var->is_error && var->is_constexpr) {
       builder.curr = decl.back();

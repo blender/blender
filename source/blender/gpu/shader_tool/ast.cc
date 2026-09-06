@@ -317,6 +317,8 @@ static std::string to_string(ast::NodeType type)
       return "BreakStmt";
     case ast::NodeType::UsingStmt:
       return "UsingStmt";
+    case ast::NodeType::BitField:
+      return "BitField";
     case ast::NodeType::FuncForwardDecl:
       return "FuncForwardDecl";
     case ast::NodeType::LocalStmt:
@@ -449,6 +451,8 @@ static bool display_type(ast::NodeType type)
     case ast::NodeType::BreakStmt:
       return false;
     case ast::NodeType::UsingStmt:
+      return false;
+    case ast::NodeType::BitField:
       return false;
     case ast::NodeType::FuncForwardDecl:
       return false;
