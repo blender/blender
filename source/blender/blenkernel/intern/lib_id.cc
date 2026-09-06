@@ -219,6 +219,8 @@ void BKE_lib_id_clear_library_data(Main *bmain, ID *id, const int flags)
 
   id_fake_user_clear(id);
 
+  MEM_SAFE_DELETE(id->library_weak_reference);
+
   id->lib = nullptr;
   id->tag &= ~(ID_TAG_INDIRECT | ID_TAG_EXTERN);
   id->flag &= ~(ID_FLAG_INDIRECT_WEAK_LINK | ID_FLAG_LINKED_AND_PACKED);
