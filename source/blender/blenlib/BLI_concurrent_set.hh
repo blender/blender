@@ -75,7 +75,9 @@ class ConcurrentSet : NonCopyable {
   }
   template<typename ForwardKey> const Key &lookup_key_or_add_as(ForwardKey &&key)
   {
-    return *set_.insert(std::forward<ForwardKey>(key)).first;
+    /* Use #emplace instead of #insert, because of a TBB bug that can cause duplicate values to be
+     * added to the set via #insert. */
+    return *set_.emplace(std::forward<ForwardKey>(key)).first;
   }
 
   /** Returns the number of keys currently in the set. */

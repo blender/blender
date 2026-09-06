@@ -461,10 +461,7 @@ static void bchunk_list_decref(BArrayMemory *bs_mem, BChunkList *chunk_list)
 {
   BLI_assert(chunk_list->users > 0);
   if (chunk_list->users == 1) {
-    for (BChunkRef *cref = static_cast<BChunkRef *>(chunk_list->chunk_refs.first), *cref_next;
-         cref;
-         cref = cref_next)
-    {
+    for (BChunkRef *cref = chunk_list->chunk_refs.first(), *cref_next; cref; cref = cref_next) {
       cref_next = cref->next;
       bchunk_decref(bs_mem, cref->link);
       BLI_mempool_free(bs_mem->chunk_ref, cref);
@@ -509,7 +506,7 @@ static void bchunk_list_ensure_min_size_last(const BArrayInfo *info,
                                              BArrayMemory *bs_mem,
                                              BChunkList *chunk_list)
 {
-  BChunkRef *cref = static_cast<BChunkRef *>(chunk_list->chunk_refs.last);
+  BChunkRef *cref = chunk_list->chunk_refs.last();
   if (cref && cref->prev) {
     /* Both are decrefed after use (end of this block). */
     BChunk *chunk_curr = cref->link;
@@ -522,9 +519,9 @@ static void bchunk_list_ensure_min_size_last(const BArrayInfo *info,
         /* We have enough space to merge. */
 
         /* Remove last from the linked-list. */
-        BLI_assert(chunk_list->chunk_refs.last != chunk_list->chunk_refs.first);
+        BLI_assert(chunk_list->chunk_refs.last() != chunk_list->chunk_refs.first());
         cref->prev->next = nullptr;
-        chunk_list->chunk_refs.last = cref->prev;
+        chunk_list->chunk_refs.last_ = cref->prev;
         chunk_list->chunk_refs_len -= 1;
 
         uchar *data_merge = MEM_new_array_uninitialized<uchar>(data_merge_len, __func__);
@@ -665,7 +662,7 @@ static void bchunk_list_append_data(const BArrayInfo *info,
   BLI_assert(data_len <= info->chunk_byte_size_max);
 
   if (!chunk_list->chunk_refs.is_empty()) {
-    BChunkRef *cref = static_cast<BChunkRef *>(chunk_list->chunk_refs.last);
+    BChunkRef *cref = chunk_list->chunk_refs.last();
     BChunk *chunk_prev = cref->link;
 
     if (std::min(chunk_prev->data_len, data_len) < info->chunk_byte_size_min) {
@@ -752,8 +749,7 @@ static void bchunk_list_append_data_n(const BArrayInfo *info,
 
 #ifdef USE_MERGE_CHUNKS
   if (data_len > info->chunk_byte_size) {
-    BLI_assert(((BChunkRef *)chunk_list->chunk_refs.last)->link->data_len >=
-               info->chunk_byte_size_min);
+    BLI_assert((chunk_list->chunk_refs.last())->link->data_len >= info->chunk_byte_size_min);
   }
 #endif
 }
@@ -799,8 +795,7 @@ static void bchunk_list_fill_from_array(const BArrayInfo *info,
 
 #ifdef USE_MERGE_CHUNKS
   if (data_len > info->chunk_byte_size) {
-    BLI_assert(((BChunkRef *)chunk_list->chunk_refs.last)->link->data_len >=
-               info->chunk_byte_size_min);
+    BLI_assert((chunk_list->chunk_refs.last())->link->data_len >= info->chunk_byte_size_min);
   }
 #endif
 
@@ -1295,7 +1290,7 @@ static BChunkList *bchunk_list_from_data_merge(const BArrayInfo *info,
   {
     bool full_match = true;
 
-    const BChunkRef *cref = static_cast<const BChunkRef *>(chunk_list_reference->chunk_refs.first);
+    const BChunkRef *cref = chunk_list_reference->chunk_refs.first();
     while (i_prev < data_len_original) {
       if (cref != nullptr && bchunk_data_compare(cref->link, data, data_len_original, i_prev)) {
         cref_match_first = cref;
@@ -1326,7 +1321,7 @@ static BChunkList *bchunk_list_from_data_merge(const BArrayInfo *info,
   BChunkList *chunk_list = bchunk_list_new(bs_mem, data_len_original);
   if (cref_match_first != nullptr) {
     size_t chunk_size_step = 0;
-    const BChunkRef *cref = static_cast<const BChunkRef *>(chunk_list_reference->chunk_refs.first);
+    const BChunkRef *cref = chunk_list_reference->chunk_refs.first();
     while (true) {
       BChunk *chunk = cref->link;
       chunk_size_step += chunk->data_len;
@@ -1369,7 +1364,7 @@ static BChunkList *bchunk_list_from_data_merge(const BArrayInfo *info,
 
 #ifdef USE_FASTPATH_CHUNKS_LAST
   if (!chunk_list_reference->chunk_refs.is_empty()) {
-    const BChunkRef *cref = static_cast<const BChunkRef *>(chunk_list_reference->chunk_refs.last);
+    const BChunkRef *cref = chunk_list_reference->chunk_refs.last();
     while ((cref->prev != nullptr) && (cref != cref_match_first) &&
            (cref->link->data_len <= data_len - i_prev))
     {
@@ -1420,7 +1415,7 @@ static BChunkList *bchunk_list_from_data_merge(const BArrayInfo *info,
     /* Copy matching chunks, creates using the same 'layout' as the reference. */
     const BChunkRef *cref = cref_match_first ? cref_match_first->next :
                                                static_cast<const BChunkRef *>(
-                                                   chunk_list_reference->chunk_refs.first);
+                                                   chunk_list_reference->chunk_refs.first_);
     while (i_prev != data_len) {
       const size_t i = i_prev + cref->link->data_len;
       BLI_assert(i != i_prev);
@@ -1445,7 +1440,7 @@ static BChunkList *bchunk_list_from_data_merge(const BArrayInfo *info,
   }
   else if ((data_len - i_prev >= info->chunk_byte_size) &&
            (chunk_list_reference->chunk_refs_len >= chunk_list_reference_skip_len) &&
-           (chunk_list_reference->chunk_refs.first != nullptr))
+           (chunk_list_reference->chunk_refs.first() != nullptr))
   {
 
     /* --------------------------------------------------------------------
@@ -1497,7 +1492,7 @@ static BChunkList *bchunk_list_from_data_merge(const BArrayInfo *info,
         chunk_list_reference_bytes_remaining += cref->link->data_len;
       }
       else {
-        cref = static_cast<const BChunkRef *>(chunk_list_reference->chunk_refs.first);
+        cref = chunk_list_reference->chunk_refs.first();
       }
 
 #ifdef USE_PARANOID_CHECKS
@@ -1778,9 +1773,7 @@ static void array_store_free_data(BArrayStore *bs)
   }
 
   /* Free states. */
-  for (BArrayState *state = static_cast<BArrayState *>(bs->states.first), *state_next; state;
-       state = state_next)
-  {
+  for (BArrayState *state = bs->states.first(), *state_next; state; state = state_next) {
     state_next = state->next;
     MEM_delete(state);
   }

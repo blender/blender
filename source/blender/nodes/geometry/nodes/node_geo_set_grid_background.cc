@@ -110,8 +110,8 @@ static void node_geo_exec(GeoNodeExecParams params)
   }
 
   auto background_variant = params.extract_input<bke::SocketValueVariant>("Background"_ustr);
-  background_variant.convert_to_single();
-  const GPointer background = background_variant.get_single_ptr();
+  background_variant.ensure_type(*grid->cpp_type());
+  const GPointer background = background_variant.get();
 
   const bool update_inactive = params.get_input<bool>("Update Inactive"_ustr);
 

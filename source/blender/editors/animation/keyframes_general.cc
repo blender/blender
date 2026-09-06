@@ -1871,8 +1871,8 @@ bool pastebuf_match_path_property(Main * /*bmain*/,
     return false;
   }
 
-  /* If this is a member (like '.rotation_euler') or lookup key (like '["customprop"]') they have
-   * to match. If they are LookupIndex, they also have to be preceeded by the same member to match.
+  /* If this is a member (like '.rotation_euler') or lookup key (like `["customprop"]`) they have
+   * to match. If they are LookupIndex, they also have to be preceded by the same member to match.
    */
   if (last_item_to_match != last_item_in_copy_buffer) {
     return false;
@@ -1887,9 +1887,9 @@ bool pastebuf_match_path_property(Main * /*bmain*/,
     return false;
   }
 
-  const rna_path::Item preceeding_item_to_match = rnapath_to_match.last(1);
-  const rna_path::Item preceeding_item_in_copy_buffer = rnapath_in_copy_buffer.last(1);
-  return preceeding_item_to_match == preceeding_item_in_copy_buffer;
+  const rna_path::Item preceding_item_to_match = rnapath_to_match.last(1);
+  const rna_path::Item preceding_item_in_copy_buffer = rnapath_in_copy_buffer.last(1);
+  return preceding_item_to_match == preceding_item_in_copy_buffer;
 }
 
 bool pastebuf_match_index_only(Main * /*bmain*/,
@@ -2173,7 +2173,7 @@ eKeyPasteError paste_animedit_keys(bAnimContext *ac,
 
   if (from_single && to_single) {
     /* 1:1 match, no tricky checking, just paste. */
-    bAnimListElem *ale = static_cast<bAnimListElem *>(anim_data->first);
+    bAnimListElem *ale = anim_data->first();
     FCurve *fcu = static_cast<FCurve *>(ale->data); /* destination F-Curve */
     const FCurve &fcurve_in_copy_buffer =
         *keyframe_copy_buffer->keyframe_data.channelbag(0)->fcurve(0);

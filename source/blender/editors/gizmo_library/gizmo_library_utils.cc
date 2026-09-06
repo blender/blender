@@ -262,7 +262,7 @@ wmGizmo *gizmo_find_from_properties(const IDProperty *properties,
 {
   /* Based on #rna_GizmoProperties_find_operator. */
 
-  for (bScreen *screen = static_cast<bScreen *>(G_MAIN->screens.first); screen;
+  for (bScreen *screen = G_MAIN->screens.first(); screen;
        screen = static_cast<bScreen *>(screen->id.next))
   {
     for (ScrArea &area : screen->areabase) {

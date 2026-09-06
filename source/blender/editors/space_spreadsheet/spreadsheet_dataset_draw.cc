@@ -781,7 +781,7 @@ class GeometryDataSetTreeView : public ui::AbstractTreeView {
     if (!value.is_single()) {
       return;
     }
-    const GPointer single_value = value.get_single_ptr();
+    const GPointer single_value = value.get();
     if (single_value.is_type<nodes::BundlePtr>()) {
       const nodes::BundlePtr &bundle_ptr = *single_value.get<nodes::BundlePtr>();
       if (bundle_ptr) {
@@ -1132,7 +1132,7 @@ class ViewerPathTreeView : public ui::AbstractTreeView {
     const ViewerPath &viewer_path = sspreadsheet_.geometry_id.viewer_path;
 
     for (const auto [index, elem] : viewer_path.path.enumerate()) {
-      if (&elem == viewer_path.path.first) {
+      if (&elem == viewer_path.path.first_) {
         /* The root item is drawn above the tree view already. */
         continue;
       }
@@ -1348,7 +1348,7 @@ class ViewerDataTreeView : public ui::AbstractTreeView {
     if (!value.is_single()) {
       return;
     }
-    const GPointer single_value = value.get_single_ptr();
+    const GPointer single_value = value.get();
     if (single_value.is_type<nodes::BundlePtr>()) {
       const nodes::BundlePtr &bundle_ptr = *single_value.get<nodes::BundlePtr>();
       if (bundle_ptr) {
@@ -1414,7 +1414,7 @@ static bool viewer_path_ends_with_viewer_node(const ViewerPath &viewer_path)
   if (viewer_path.path.is_empty()) {
     return false;
   }
-  const ViewerPathElem &last_elem = *static_cast<const ViewerPathElem *>(viewer_path.path.last);
+  const ViewerPathElem &last_elem = *viewer_path.path.last();
   return ViewerPathElemType(last_elem.type) == VIEWER_PATH_ELEM_TYPE_VIEWER_NODE;
 }
 

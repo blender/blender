@@ -233,7 +233,7 @@ static void curve_blend_read_data(BlendDataReader *reader, ID *id)
     BLO_read_struct_list(reader, Nurb, &(cu->nurb));
   }
   else {
-    cu->nurb.first = cu->nurb.last = nullptr;
+    cu->nurb.first_ = cu->nurb.last_ = nullptr;
 
     if (cu->str == nullptr) [[unlikely]] {
       cu->len_char32 = 0;

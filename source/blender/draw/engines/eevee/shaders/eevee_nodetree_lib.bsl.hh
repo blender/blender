@@ -11,6 +11,7 @@
 #include "draw_model.bsl.hh"
 #include "draw_view.bsl.hh"
 #include "eevee_bxdf_lut_lib.bsl.hh"
+#include "eevee_camera_lib.bsl.hh"
 #include "eevee_hiz.bsl.hh"
 #include "eevee_light_data.bsl.hh"
 #include "eevee_light_iter.bsl.hh"
@@ -672,11 +673,21 @@ float3 coordinate_camera(float3 P)
     vP = P;
   }
   else {
-    const ViewMatrices view = view_matrices_get();
 #ifdef MAT_GEOM_WORLD
+    const ViewMatrices view = view_matrices_get();
     vP = view.normal_world_to_view(P);
 #else
-    vP = view.point_world_to_view(P);
+    [[resource_table]] const eevee::Uniform &uni = resource_table_get(eevee::Uniform);
+    const CameraData cam = uni.uniform_buf.camera;
+    if (is_panoramic(cam.type)) {
+      /* Panoramic camera render through per-face sub-views.
+       * Can't use `view` here because that's only one sub-view, not the camera. */
+      vP = transform_point(cam.viewmat, P);
+    }
+    else {
+      const ViewMatrices view = view_matrices_get();
+      vP = view.point_world_to_view(P);
+    }
 #endif
   }
   vP.z = -vP.z;
@@ -692,14 +703,25 @@ float3 coordinate_screen(float3 P)
     window.xy = float2(0.5f);
   }
   else {
-    const ViewMatrices view = view_matrices_get();
 #ifdef MAT_GEOM_WORLD
+    const ViewMatrices view = view_matrices_get();
     window.xy = view.point_view_to_screen(interp.P).xy;
-#else
-    /* TODO(fclem): Actual camera transform. */
-    window.xy = view.point_world_to_screen(P).xy;
-#endif
     window.xy = window.xy * uni.uniform_buf.camera.uv_scale + uni.uniform_buf.camera.uv_bias;
+#else
+    const CameraData cam = uni.uniform_buf.camera;
+    if (is_panoramic(cam.type)) {
+      /* Panoramic camera render through per-face sub-views.
+       * Can't use `view` here because that's only one sub-view, not the camera. */
+      float3 dir = P - cam.viewinv[3].xyz;
+      window.xy = fract(eevee::camera::uv_from_world(cam, dir) + cam.uv_bias);
+    }
+    else {
+      const ViewMatrices view = view_matrices_get();
+      /* TODO(fclem): Actual camera transform. */
+      window.xy = view.point_world_to_screen(P).xy;
+      window.xy = window.xy * cam.uv_scale + cam.uv_bias;
+    }
+#endif
   }
   return window;
 }
@@ -882,7 +904,7 @@ bool light_iter_should_skip([[maybe_unused]] eevee::light::VisibleLightIterator 
 
 void node_light_info_impl(const int light_index, float4 &color, float &power, float3 &position)
 {
-  /* clang-format off */ /* Multiline macros would break line count. */
+  /* clang-format off */ /* Multi-line macros would break line count. */
   [[resource_table]] const eevee::LightRenderData &lrd = resource_table_get(eevee::LightRenderData);
   /* clang-format on */
   [[resource_table]] const draw::Model &models = resource_table_get(draw::Model);
@@ -901,7 +923,7 @@ void node_light_info_impl(const int light_index, float4 &color, float &power, fl
 void node_light_evaluation_common_impl(
     int light_index, float3 position, float3 &direction, float &distance, float &mask)
 {
-  /* clang-format off */ /* Multiline macros would break line count. */
+  /* clang-format off */ /* Multi-line macros would break line count. */
   [[resource_table]] const eevee::LightRenderData &lrd = resource_table_get(eevee::LightRenderData);
   /* clang-format on */
 
@@ -918,7 +940,7 @@ template<bool use_diffuse>
 void node_light_evaluation_impl(
     int light_index, float3 position, float3 normal, float roughness, float &factor)
 {
-  /* clang-format off */ /* Multiline macros would break line count. */
+  /* clang-format off */ /* Multi-line macros would break line count. */
   [[resource_table]] const eevee::LightRenderData &lrd = resource_table_get(eevee::LightRenderData);
   /* clang-format on */
   [[resource_table]] UtilityTexture &util_tx = resource_table_get(UtilityTexture);
@@ -962,7 +984,7 @@ void node_shadow_raycast_impl([[maybe_unused]] const int light_index,
                               [[maybe_unused]] float softness,
                               float4 &color)
 {
-  /* clang-format off */ /* Multiline macros would break line count. */
+  /* clang-format off */ /* Multi-line macros would break line count. */
   [[resource_table]] const eevee::LightRenderData &lrd = resource_table_get(eevee::LightRenderData);
   /* clang-format on */
   [[resource_table]] eevee::ShadowRenderData &srd = resource_table_get(eevee::ShadowRenderData);
@@ -1011,7 +1033,7 @@ void node_shadow_raycast_impl([[maybe_unused]] const int light_index,
 
 float4 node_attribute_light_impl(const int light_index, uint attr_hash)
 {
-  /* clang-format off */ /* Multiline macros would break line count. */
+  /* clang-format off */ /* Multi-line macros would break line count. */
   [[resource_table]] const eevee::LightRenderData &lrd = resource_table_get(eevee::LightRenderData);
   /* clang-format on */
   [[resource_table]] const draw::Infos &infos = resource_table_get(draw::Infos);
@@ -1033,7 +1055,7 @@ float4 node_attribute_light_impl(const int light_index, uint attr_hash)
 
 bool node_attribute_light_is_sun_impl(const int light_index)
 {
-  /* clang-format off */ /* Multiline macros would break line count. */
+  /* clang-format off */ /* Multi-line macros would break line count. */
   [[resource_table]] const eevee::LightRenderData &lrd = resource_table_get(eevee::LightRenderData);
   /* clang-format on */
   LightData light = lrd.light_buf[light_index];
@@ -1042,7 +1064,7 @@ bool node_attribute_light_is_sun_impl(const int light_index)
 
 bool node_attribute_light_is_point_impl(const int light_index)
 {
-  /* clang-format off */ /* Multiline macros would break line count. */
+  /* clang-format off */ /* Multi-line macros would break line count. */
   [[resource_table]] const eevee::LightRenderData &lrd = resource_table_get(eevee::LightRenderData);
   /* clang-format on */
   LightData light = lrd.light_buf[light_index];
@@ -1051,7 +1073,7 @@ bool node_attribute_light_is_point_impl(const int light_index)
 
 bool node_attribute_light_is_spot_impl(const int light_index)
 {
-  /* clang-format off */ /* Multiline macros would break line count. */
+  /* clang-format off */ /* Multi-line macros would break line count. */
   [[resource_table]] const eevee::LightRenderData &lrd = resource_table_get(eevee::LightRenderData);
   /* clang-format on */
   LightData light = lrd.light_buf[light_index];
@@ -1060,7 +1082,7 @@ bool node_attribute_light_is_spot_impl(const int light_index)
 
 bool node_attribute_light_is_area_impl(const int light_index)
 {
-  /* clang-format off */ /* Multiline macros would break line count. */
+  /* clang-format off */ /* Multi-line macros would break line count. */
   [[resource_table]] const eevee::LightRenderData &lrd = resource_table_get(eevee::LightRenderData);
   /* clang-format on */
   LightData light = lrd.light_buf[light_index];
@@ -1069,7 +1091,7 @@ bool node_attribute_light_is_area_impl(const int light_index)
 
 float node_attribute_light_cutoff_distance_impl(const int light_index)
 {
-  /* clang-format off */ /* Multiline macros would break line count. */
+  /* clang-format off */ /* Multi-line macros would break line count. */
   [[resource_table]] const eevee::LightRenderData &lrd = resource_table_get(eevee::LightRenderData);
   /* clang-format on */
   LightData light = lrd.light_buf[light_index];
@@ -1090,7 +1112,7 @@ void node_light_accumulation_impl([[maybe_unused]] const int light_index,
                                   Closure &result)
 {
 #if defined(GPU_FRAGMENT_SHADER) || defined(GLSL_CPP_STUBS)
-  /* clang-format off */ /* Multiline macros would break line count. */
+  /* clang-format off */ /* Multi-line macros would break line count. */
   [[resource_table]] const eevee::LightRenderData &lrd = resource_table_get(eevee::LightRenderData);
   [[resource_table]] const eevee::PipelineConstants &pipe = resource_table_get(eevee::PipelineConstants);
   /* clang-format on */

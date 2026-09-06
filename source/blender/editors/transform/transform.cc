@@ -116,7 +116,7 @@ void setTransformViewAspect(TransInfo *t, float r_aspect[3])
   copy_v3_fl(r_aspect, 1.0f);
 
   if (t->spacetype == SPACE_IMAGE) {
-    SpaceImage *sima = static_cast<SpaceImage *>(t->area->spacedata.first);
+    SpaceImage *sima = t->area->spacedata.first_as<SpaceImage>();
 
     if (t->options & CTX_MASK) {
       ED_space_image_get_aspect(sima, &r_aspect[0], &r_aspect[1]);
@@ -136,7 +136,7 @@ void setTransformViewAspect(TransInfo *t, float r_aspect[3])
     }
   }
   else if (t->spacetype == SPACE_CLIP) {
-    SpaceClip *sclip = static_cast<SpaceClip *>(t->area->spacedata.first);
+    SpaceClip *sclip = t->area->spacedata.first_as<SpaceClip>();
 
     if (t->options & CTX_MOVIECLIP) {
       ED_space_clip_get_aspect_dimension_aware(sclip, &r_aspect[0], &r_aspect[1]);
@@ -304,7 +304,7 @@ void projectIntViewEx(TransInfo *t, const float vec[3], int adr[2], const eV3DPr
     }
   }
   else if (t->spacetype == SPACE_IMAGE) {
-    SpaceImage *sima = static_cast<SpaceImage *>(t->area->spacedata.first);
+    SpaceImage *sima = t->area->spacedata.first_as<SpaceImage>();
 
     if (t->options & CTX_MASK) {
       float v[2];
@@ -374,7 +374,7 @@ void projectIntViewEx(TransInfo *t, const float vec[3], int adr[2], const eV3DPr
     adr[1] = out[1];
   }
   else if (t->spacetype == SPACE_CLIP) {
-    SpaceClip *sc = static_cast<SpaceClip *>(t->area->spacedata.first);
+    SpaceClip *sc = t->area->spacedata.first_as<SpaceClip>();
 
     if (t->options & CTX_MASK) {
       MovieClip *clip = ED_space_clip_get_clip(sc);
@@ -467,7 +467,7 @@ void applyAspectRatio(TransInfo *t, float vec[2])
   if ((t->spacetype == SPACE_IMAGE) && (t->mode == TFM_TRANSLATION) &&
       !(t->options & CTX_PAINT_CURVE))
   {
-    SpaceImage *sima = static_cast<SpaceImage *>(t->area->spacedata.first);
+    SpaceImage *sima = t->area->spacedata.first_as<SpaceImage>();
 
     if ((sima->flag & SI_COORDFLOATS) == 0) {
       int width, height;
@@ -491,7 +491,7 @@ void applyAspectRatio(TransInfo *t, float vec[2])
 void removeAspectRatio(TransInfo *t, float vec[2])
 {
   if ((t->spacetype == SPACE_IMAGE) && (t->mode == TFM_TRANSLATION)) {
-    SpaceImage *sima = static_cast<SpaceImage *>(t->area->spacedata.first);
+    SpaceImage *sima = t->area->spacedata.first_as<SpaceImage>();
 
     if ((sima->flag & SI_COORDFLOATS) == 0) {
       int width, height;
@@ -575,7 +575,7 @@ static void viewRedrawForce(const bContext *C, TransInfo *t)
     }
     else {
       /* XXX how to deal with lock? */
-      SpaceImage *sima = static_cast<SpaceImage *>(t->area->spacedata.first);
+      SpaceImage *sima = t->area->spacedata.first_as<SpaceImage>();
       if (sima->lock) {
         BKE_view_layer_synced_ensure(*t->bmain, t->scene, t->view_layer);
         if (Object *ob = BKE_view_layer_edit_object_get(t->view_layer)) {
@@ -590,7 +590,7 @@ static void viewRedrawForce(const bContext *C, TransInfo *t)
     }
   }
   else if (t->spacetype == SPACE_CLIP) {
-    SpaceClip *sc = static_cast<SpaceClip *>(t->area->spacedata.first);
+    SpaceClip *sc = t->area->spacedata.first_as<SpaceClip>();
 
     if (ED_space_clip_check_show_trackedit(sc)) {
       MovieClip *clip = ED_space_clip_get_clip(sc);
@@ -1318,7 +1318,7 @@ wmOperatorStatus transformEvent(TransInfo *t, wmOperator *op, const wmEvent *eve
         break;
       case TFM_MODAL_INSERTOFS_TOGGLE_DIR:
         if (t->spacetype == SPACE_NODE) {
-          SpaceNode *snode = static_cast<SpaceNode *>(t->area->spacedata.first);
+          SpaceNode *snode = t->area->spacedata.first_as<SpaceNode>();
 
           BLI_assert(t->area->spacetype == t->spacetype);
 
@@ -1615,15 +1615,15 @@ static bool transinfo_show_overlay(TransInfo *t, ARegion *region)
       return (v3d->flag2 & V3D_HIDE_OVERLAYS) == 0;
     }
     case SPACE_IMAGE: {
-      const SpaceImage *sima = static_cast<const SpaceImage *>(t->area->spacedata.first);
+      const SpaceImage *sima = t->area->spacedata.first_as<SpaceImage>();
       return (sima->overlay.flag & SI_OVERLAY_SHOW_OVERLAYS) != 0;
     }
     case SPACE_SEQ: {
-      const SpaceSeq *sseq = static_cast<const SpaceSeq *>(t->area->spacedata.first);
+      const SpaceSeq *sseq = t->area->spacedata.first_as<SpaceSeq>();
       return (sseq->flag & SEQ_SHOW_OVERLAY) != 0;
     }
     case SPACE_ACTION: {
-      const SpaceAction *sact = static_cast<const SpaceAction *>(t->area->spacedata.first);
+      const SpaceAction *sact = t->area->spacedata.first_as<SpaceAction>();
       return (sact->overlays.flag & ADS_OVERLAY_SHOW_OVERLAYS) != 0;
     }
     case SPACE_GRAPH: {
@@ -1632,7 +1632,7 @@ static bool transinfo_show_overlay(TransInfo *t, ARegion *region)
       return true;
     }
     case SPACE_CLIP: {
-      const SpaceClip *sclip = static_cast<const SpaceClip *>(t->area->spacedata.first);
+      const SpaceClip *sclip = t->area->spacedata.first_as<SpaceClip>();
       return (sclip->overlay.flag & SC_SHOW_OVERLAYS) != 0;
     }
   }

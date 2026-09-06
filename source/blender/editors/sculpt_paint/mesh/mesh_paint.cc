@@ -2,6 +2,10 @@
  *
  * SPDX-License-Identifier: GPL-2.0-or-later */
 
+/** \file
+ * \ingroup edsculpt
+ */
+
 #include "mesh_paint.hh"
 
 #include "BKE_mesh.h"
@@ -98,6 +102,13 @@ void mode_enter_generic(
     paint = BKE_paint_get_active_from_paintmode(&scene, paint_mode);
     ED_paint_cursor_start(paint, brush_cursor_poll);
   }
+  else if (mode_flag == OB_MODE_TEXTURE_PAINT) {
+    const PaintMode paint_mode = PaintMode::Texture3D;
+
+    BKE_paint_init(&bmain, &scene, paint_mode);
+    paint = BKE_paint_get_active_from_paintmode(&scene, paint_mode);
+    ED_paint_cursor_start(paint, ED_image_tools_paint_poll);
+  }
   else {
     BLI_assert(0);
   }
@@ -114,7 +125,7 @@ void mode_enter_generic(
   init_session(bmain, depsgraph, *paint, ob, mode_flag);
 }
 
-void mode_exit_generic(Object &ob, const eObjectMode mode_flag)
+void mode_exit_generic(Scene &scene, Object &ob, const eObjectMode mode_flag)
 {
   Mesh *mesh = BKE_mesh_from_object(&ob);
   ob.mode &= ~mode_flag;
@@ -136,7 +147,26 @@ void mode_exit_generic(Object &ob, const eObjectMode mode_flag)
 
   BKE_sculptsession_free(&ob);
 
-  paint_cursor_delete_textures();
+  Paint *paint = nullptr;
+  if (mode_flag == OB_MODE_VERTEX_PAINT) {
+    paint = BKE_paint_get_active_from_paintmode(&scene, PaintMode::Vertex);
+  }
+  else if (mode_flag == OB_MODE_WEIGHT_PAINT) {
+    paint = BKE_paint_get_active_from_paintmode(&scene, PaintMode::Weight);
+  }
+  else if (mode_flag == OB_MODE_SCULPT) {
+    paint = BKE_paint_get_active_from_paintmode(&scene, PaintMode::Sculpt);
+  }
+  else if (mode_flag == OB_MODE_TEXTURE_PAINT) {
+    paint = BKE_paint_get_active_from_paintmode(&scene, PaintMode::Texture3D);
+  }
+  else {
+    BLI_assert(0);
+  }
+
+  if (paint) {
+    bke::paint::cursor_reinitialize_textures(*paint);
+  }
 
   /* Never leave derived meshes behind. */
   BKE_object_free_derived_caches(&ob);
@@ -401,22 +431,12 @@ void do_symmetrical_brush_actions_with_tiling_and_feathering(const Depsgraph &de
 void stroke_cache_common_init(
     ViewContext &vc, const Paint &paint, const Brush &brush, Object &object, const float2 mval)
 {
-  bke::PaintRuntime *paint_runtime = paint.runtime;
   SculptSession &ss = *object.runtime->sculpt_session;
   StrokeCache *cache = ss.cache;
 
   cache->initial_mouse = mval;
   cache->mouse = cache->initial_mouse;
   cache->mouse_event = cache->initial_mouse;
-
-  /* Not very nice, but with current events system implementation
-   * we can't handle brush appearance inversion hotkey separately (sergey). */
-  if (cache->toggle_settings.invert) {
-    paint_runtime->draw_inverted = true;
-  }
-  else {
-    paint_runtime->draw_inverted = false;
-  }
 
   /* Truly temporary data that isn't stored in properties. */
   cache->vc = &vc;

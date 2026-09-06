@@ -9,7 +9,6 @@
 
 #include "COM_context.hh"
 #include "COM_group_input_node_operation.hh"
-#include "COM_node_group_operation.hh"
 #include "COM_node_operation.hh"
 #include "COM_utilities.hh"
 
@@ -21,12 +20,10 @@ namespace blender::compositor {
 class GroupInputNodeOperation : public NodeOperation {
  private:
   /* The node group operation that this group input node belongs to. */
-  NodeGroupOperation &node_group_operation_;
+  Operation &node_group_operation_;
 
  public:
-  GroupInputNodeOperation(Context &context,
-                          const bNode &node,
-                          NodeGroupOperation &node_group_operation)
+  GroupInputNodeOperation(Context &context, const bNode &node, Operation &node_group_operation)
       : NodeOperation(context, node), node_group_operation_(node_group_operation)
   {
   }
@@ -50,7 +47,7 @@ class GroupInputNodeOperation : public NodeOperation {
 
 NodeOperation *get_group_input_node_operation(Context &context,
                                               const bNode &node,
-                                              NodeGroupOperation &node_group_operation)
+                                              Operation &node_group_operation)
 {
   return new GroupInputNodeOperation(context, node, node_group_operation);
 }

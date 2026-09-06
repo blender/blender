@@ -9,7 +9,7 @@
 #include "gpu_shader_glsl_extension.glsl"
 
 /** Type aliases. */
-/** IMPORTANT: Be wary of size and alignment matching for types that are present
+/* IMPORTANT: Be wary of size and alignment matching for types that are present
  * in C++ shared code. */
 
 /* Matrix reshaping functions. Needs to be declared before matrix type aliases. */

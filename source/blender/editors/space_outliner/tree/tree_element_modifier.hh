@@ -8,6 +8,8 @@
 
 #pragma once
 
+#include "DNA_outliner_types.h"
+
 #include "tree_element.hh"
 
 namespace blender {
@@ -35,8 +37,14 @@ class TreeElementModifierBase final : public AbstractTreeElement {
   Object &object_;
 
  public:
+  static constexpr eTreeStoreElemType element_type = TSE_MODIFIER_BASE;
+
   TreeElementModifierBase(TreeElement &legacy_te, Object &object);
   void expand(SpaceOutliner & /*soops*/) const override;
+
+  /** The ID identifying this element in the tree-store, see #AbstractTreeDisplay::add_element().
+   */
+  static ID *owner_id(Object &object);
 
   std::optional<BIFIconID> get_icon() const override
   {
@@ -50,10 +58,20 @@ class TreeElementModifier final : public AbstractTreeElement {
   ModifierDataStoreElem &md_;
 
  public:
+  static constexpr eTreeStoreElemType element_type = TSE_MODIFIER;
+
   TreeElementModifier(TreeElement &legacy_te, Object &object, ModifierDataStoreElem &md);
   void expand(SpaceOutliner & /*soops*/) const override;
 
+  /** The ID identifying this element in the tree-store, see #AbstractTreeDisplay::add_element().
+   */
+  static ID *owner_id(Object &object, ModifierDataStoreElem &md);
+
   std::optional<BIFIconID> get_icon() const override;
+
+ private:
+  /** Add a #TreeElementLinkedObject child for \a object, if the modifier references one. */
+  void add_linked_object(Object *object) const;
 };
 
 }  // namespace ed::outliner

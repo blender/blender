@@ -71,7 +71,7 @@ static void required_data_mask(ModifierData *md, CustomData_MeshMasks *r_cddata_
   DynamicPaintModifierData *pmd = reinterpret_cast<DynamicPaintModifierData *>(md);
 
   if (pmd->canvas) {
-    DynamicPaintSurface *surface = static_cast<DynamicPaintSurface *>(pmd->canvas->surfaces.first);
+    DynamicPaintSurface *surface = pmd->canvas->surfaces.first();
     for (; surface; surface = surface->next) {
       /* UVs: #CD_PROP_FLOAT2. */
       if (surface->format == MOD_DPAINT_SURFACE_F_IMAGESEQ ||
@@ -144,7 +144,7 @@ static void foreach_ID_link(ModifierData *md, Object *ob, IDWalkFunc walk, void 
   DynamicPaintModifierData *pmd = reinterpret_cast<DynamicPaintModifierData *>(md);
 
   if (pmd->canvas) {
-    DynamicPaintSurface *surface = static_cast<DynamicPaintSurface *>(pmd->canvas->surfaces.first);
+    DynamicPaintSurface *surface = pmd->canvas->surfaces.first();
 
     for (; surface; surface = surface->next) {
       walk(user_data, ob, reinterpret_cast<ID **>(&surface->brush_group), IDWALK_CB_NOP);

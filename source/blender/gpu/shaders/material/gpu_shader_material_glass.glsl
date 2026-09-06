@@ -8,8 +8,11 @@
 [[node]]
 void node_bsdf_glass(float4 color,
                      float roughness,
+                     float anisotropy,
+                     float rotation,
                      float ior,
                      float3 N,
+                     float3 T,
                      float weight,
                      float thin_film_thickness,
                      float thin_film_ior,

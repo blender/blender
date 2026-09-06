@@ -548,7 +548,6 @@ Schedule compute_schedule(NodeGroupOperation &node_group_operation)
   /* Validate node group. */
   node_group_operation.node_group().ensure_topology_cache();
   if (node_group_operation.node_group().has_available_link_cycle()) {
-    node_group_operation.context().set_info_message("Compositor node group has cyclic links.");
     return schedule;
   }
 

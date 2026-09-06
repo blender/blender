@@ -79,7 +79,7 @@ static void wm_uilisttype_unlink_from_region(const uiListType *ult, ARegion *reg
 static void wm_uilisttype_unlink_from_area(const uiListType *ult, ScrArea *area)
 {
   for (SpaceLink &space_link : area->spacedata) {
-    ListBaseT<ARegion> *regionbase = (&space_link == area->spacedata.first) ?
+    ListBaseT<ARegion> *regionbase = (&space_link == area->spacedata.first_) ?
                                          &area->regionbase :
                                          &space_link.regionbase;
     for (ARegion &region : *regionbase) {
@@ -100,7 +100,7 @@ static void wm_uilisttype_unlink_from_area(const uiListType *ult, ScrArea *area)
  */
 static void wm_uilisttype_unlink(Main *bmain, const uiListType *ult)
 {
-  for (wmWindowManager *wm = static_cast<wmWindowManager *>(bmain->wm.first); wm != nullptr;
+  for (wmWindowManager *wm = bmain->wm.first(); wm != nullptr;
        wm = static_cast<wmWindowManager *>(wm->id.next))
   {
     for (wmWindow &win : wm->windows) {
@@ -110,7 +110,7 @@ static void wm_uilisttype_unlink(Main *bmain, const uiListType *ult)
     }
   }
 
-  for (bScreen *screen = static_cast<bScreen *>(bmain->screens.first); screen != nullptr;
+  for (bScreen *screen = bmain->screens.first(); screen != nullptr;
        screen = static_cast<bScreen *>(screen->id.next))
   {
     for (ScrArea &area : screen->areabase) {

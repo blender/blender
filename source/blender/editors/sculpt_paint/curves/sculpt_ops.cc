@@ -180,7 +180,7 @@ static std::unique_ptr<CurvesSculptStrokeOperation> start_brush_operation(
 
 struct SculptCurvesBrushStroke final : public PaintStroke {
   SculptCurvesBrushStroke(bContext *C, wmOperator *op, const wmEvent *event)
-      : PaintStroke(C, op, event)
+      : PaintStroke(C, op, event, PaintMode::SculptCurves)
   {
   }
 

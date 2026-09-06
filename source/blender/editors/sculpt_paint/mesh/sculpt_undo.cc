@@ -2110,7 +2110,7 @@ void push_end_ex(Object &ob, const bool use_nested_undo)
   }
 
   /* We could remove this and enforce all callers run in an operator using 'OPTYPE_UNDO'. */
-  wmWindowManager *wm = static_cast<wmWindowManager *>(G_MAIN->wm.first);
+  wmWindowManager *wm = G_MAIN->wm.first();
   if (wm->op_undo_depth == 0 || use_nested_undo) {
     UndoStack *ustack = ED_undo_stack_get();
     BKE_undosys_step_push(ustack, nullptr, nullptr, UndoEncodeHints::None);
@@ -2408,7 +2408,7 @@ void geometry_end(Object &ob)
   step_data->undo_size = estimate_geometry_step_size(*step_data);
 
   /* We could remove this and enforce all callers run in an operator using 'OPTYPE_UNDO'. */
-  wmWindowManager *wm = static_cast<wmWindowManager *>(G_MAIN->wm.first);
+  wmWindowManager *wm = G_MAIN->wm.first();
   if (wm->op_undo_depth == 0) {
     UndoStack *ustack = ED_undo_stack_get();
     BKE_undosys_step_push(ustack, nullptr, nullptr, UndoEncodeHints::None);

@@ -88,7 +88,7 @@ static ScrArea *find_area_showing_render_result(bContext *C, Scene *scene, wmWin
     const bScreen *screen = WM_window_get_active_screen(&win);
     for (ScrArea &area : screen->areabase) {
       if (area.spacetype == SPACE_IMAGE) {
-        SpaceImage *sima = static_cast<SpaceImage *>(area.spacedata.first);
+        SpaceImage *sima = area.spacedata.first_as<SpaceImage>();
         if (sima->image && sima->image->type == IMA_TYPE_R_RESULT) {
           area_render = &area;
           win_render = &win;
@@ -112,9 +112,9 @@ static ScrArea *find_area_image_empty(bContext *C)
   SpaceImage *sima;
 
   /* find an image-window showing render result */
-  for (area = static_cast<ScrArea *>(screen->areabase.first); area; area = area->next) {
+  for (area = screen->areabase.first(); area; area = area->next) {
     if (area->spacetype == SPACE_IMAGE) {
-      sima = static_cast<SpaceImage *>(area->spacedata.first);
+      sima = area->spacedata.first_as<SpaceImage>();
       if ((sima->mode == SI_MODE_VIEW) && !sima->image) {
         break;
       }
@@ -194,7 +194,7 @@ ScrArea *render_view_open(bContext *C, int mx, int my, ReportList *reports)
 
     area = CTX_wm_area(C);
     if (area->spacedata.is_single() == false) {
-      sima = static_cast<SpaceImage *>(area->spacedata.first);
+      sima = area->spacedata.first_as<SpaceImage>();
       sima->flag |= SI_PREVSPACE;
     }
   }
@@ -234,7 +234,7 @@ ScrArea *render_view_open(bContext *C, int mx, int my, ReportList *reports)
       area = biggest_non_image_area(C);
       if (area) {
         ED_area_newspace(C, area, SPACE_IMAGE, true);
-        sima = static_cast<SpaceImage *>(area->spacedata.first);
+        sima = area->spacedata.first_as<SpaceImage>();
 
         /* Makes "Escape" go back to previous space. */
         sima->flag |= SI_PREVSPACE;
@@ -249,7 +249,7 @@ ScrArea *render_view_open(bContext *C, int mx, int my, ReportList *reports)
         area = BKE_screen_find_big_area(CTX_wm_screen(C), SPACE_TYPE_ANY, 0);
         if (area->spacetype != SPACE_IMAGE) {
           // XXX newspace(area, SPACE_IMAGE);
-          sima = static_cast<SpaceImage *>(area->spacedata.first);
+          sima = area->spacedata.first_as<SpaceImage>();
 
           /* Makes "Escape" go back to previous space. */
           sima->flag |= SI_PREVSPACE;
@@ -257,7 +257,7 @@ ScrArea *render_view_open(bContext *C, int mx, int my, ReportList *reports)
       }
     }
   }
-  sima = static_cast<SpaceImage *>(area->spacedata.first);
+  sima = area->spacedata.first_as<SpaceImage>();
   sima->link_flag |= SPACE_FLAG_TYPE_TEMPORARY;
 
   /* get the correct image, and scale it */
@@ -297,7 +297,7 @@ static wmOperatorStatus render_view_cancel_exec(bContext *C, wmOperator * /*op*/
 {
   wmWindow *win = CTX_wm_window(C);
   ScrArea *area = CTX_wm_area(C);
-  SpaceImage *sima = static_cast<SpaceImage *>(area->spacedata.first);
+  SpaceImage *sima = area->spacedata.first_as<SpaceImage>();
 
   /* ensure image editor full-screen and area full-screen states are in sync */
   if ((sima->flag & SI_FULLWINDOW) && !area->full) {
@@ -366,7 +366,7 @@ static wmOperatorStatus render_view_show_invoke(bContext *C, wmOperator *op, con
       const bScreen *screen = WM_window_get_active_screen(&win);
 
       if ((WM_window_is_temp_screen(&win) &&
-           (static_cast<ScrArea *>(screen->areabase.first))->spacetype == SPACE_IMAGE) ||
+           (screen->areabase.first())->spacetype == SPACE_IMAGE) ||
           (&win == win_show && win_show != wincur))
       {
         wm_window_raise(&win);
@@ -378,7 +378,7 @@ static wmOperatorStatus render_view_show_invoke(bContext *C, wmOperator *op, con
     if (area) {
       /* but don't close it when rendering */
       if (G.is_rendering == false) {
-        SpaceImage *sima = static_cast<SpaceImage *>(area->spacedata.first);
+        SpaceImage *sima = area->spacedata.first_as<SpaceImage>();
 
         if (sima->flag & SI_PREVSPACE) {
           sima->flag &= ~SI_PREVSPACE;

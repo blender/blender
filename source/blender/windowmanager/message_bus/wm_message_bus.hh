@@ -39,8 +39,10 @@ using wmMsgSubscribeValueUpdateIdFn =
 enum {
   WM_MSG_TYPE_RNA = 0,
   WM_MSG_TYPE_STATIC = 1,
-  /** Messages relating to some remote resources, like progress reporting for online asset
-   * downloads. */
+  /**
+   * Messages relating to some remote resources,
+   * like progress reporting for online asset downloads.
+   */
   WM_MSG_TYPE_REMOTE_IO = 2,
 };
 #define WM_MSG_TYPE_NUM 3

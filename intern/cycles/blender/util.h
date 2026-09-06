@@ -625,7 +625,7 @@ static inline blender::FluidDomainSettings *object_fluid_gas_domain_find(blender
 static blender::SubsurfModifierData *object_subdivision_modifier(blender::Object &b_ob,
                                                                  const bool preview)
 {
-  blender::ModifierData *md = static_cast<blender::ModifierData *>(b_ob.modifiers.last);
+  blender::ModifierData *md = b_ob.modifiers.last();
   if (!md) {
     return nullptr;
   }

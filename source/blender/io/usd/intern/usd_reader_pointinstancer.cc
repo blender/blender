@@ -231,7 +231,7 @@ void USDPointInstancerReader::read_object_data(Main *bmain, const pxr::UsdTimeCo
 
   bke::node_add_link(*ntree,
                      *group_input,
-                     *static_cast<bNodeSocket *>(group_input->outputs.first),
+                     *group_input->outputs.first(),
                      *instance_on_points_node,
                      *bke::node_find_socket(*instance_on_points_node, SOCK_IN, "Points"_ustr));
 
@@ -270,7 +270,7 @@ void USDPointInstancerReader::read_object_data(Main *bmain, const pxr::UsdTimeCo
                      *instance_on_points_node,
                      *bke::node_find_socket(*instance_on_points_node, SOCK_OUT, "Instances"_ustr),
                      *group_output,
-                     *static_cast<bNodeSocket *>(group_output->inputs.first));
+                     *group_output->inputs.first());
 
   BKE_ntree_update_after_single_tree_change(*bmain, *ntree);
 

@@ -16,7 +16,9 @@
 
 #include "../outliner_intern.hh"
 
+#include "tree_display.hh"
 #include "tree_element_gpencil_effect.hh"
+#include "tree_element_linked_object.hh"
 
 namespace blender::ed::outliner {
 
@@ -27,11 +29,16 @@ TreeElementGPencilEffectBase::TreeElementGPencilEffectBase(TreeElement &legacy_t
   legacy_te.name = IFACE_("Effects");
 }
 
+ID *TreeElementGPencilEffectBase::owner_id(Object &object)
+{
+  return &object.id;
+}
+
 void TreeElementGPencilEffectBase::expand(SpaceOutliner & /*space_outliner*/) const
 {
 
   for (const auto [index, fx] : object_.shader_fx.enumerate()) {
-    add_element(&legacy_te_.subtree, &object_.id, &fx, &legacy_te_, TSE_GPENCIL_EFFECT, index);
+    add_element<TreeElementGPencilEffect>({.index = index}, object_, fx);
   }
 }
 
@@ -45,15 +52,18 @@ TreeElementGPencilEffect::TreeElementGPencilEffect(TreeElement &legacy_te,
   legacy_te.directdata = &fx_;
 }
 
+ID *TreeElementGPencilEffect::owner_id(Object &object, ShaderFxData & /*fx*/)
+{
+  return &object.id;
+}
+
 void TreeElementGPencilEffect::expand(SpaceOutliner & /*space_outliner*/) const
 {
   if (fx_.type == eShaderFxType_Swirl) {
-    add_element(&legacy_te_.subtree,
-                reinterpret_cast<ID *>((reinterpret_cast<SwirlShaderFxData *>(&fx_))->object),
-                nullptr,
-                &legacy_te_,
-                TSE_LINKED_OB,
-                0);
+    /* The effect may reference no object, in which case there is nothing to show. */
+    if (Object *object = (reinterpret_cast<SwirlShaderFxData *>(&fx_))->object) {
+      add_element<TreeElementLinkedObject>({}, *reinterpret_cast<ID *>(object));
+    }
   }
 }
 

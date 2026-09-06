@@ -651,7 +651,7 @@ void RNA_def_view_layer(BlenderRNA *brna)
 
   prop = RNA_def_property(srna, "layer_collection", PROP_POINTER, PROP_NONE);
   RNA_def_property_struct_type(prop, "LayerCollection");
-  RNA_def_property_pointer_sdna(prop, nullptr, "layer_collections.first");
+  RNA_def_property_pointer_sdna(prop, nullptr, "layer_collections.first_");
   RNA_def_property_flag(prop, PROP_NEVER_NULL);
   RNA_def_property_ui_text(
       prop,

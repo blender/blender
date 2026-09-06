@@ -24,8 +24,8 @@
 namespace blender {
 
 struct NodesModifierRuntime;
-namespace bke {
-struct BVHTreeFromMesh;
+namespace bke::bvh {
+class Tree;
 }
 
 struct LineartModifierRuntime;
@@ -980,8 +980,11 @@ struct SurfaceModifierData_Runtime {
 
   struct Mesh *mesh = nullptr;
 
-  /** Bounding volume hierarchy of the mesh faces. */
-  bke::BVHTreeFromMesh *bvhtree = nullptr;
+  /**
+   * Bounding volume hierarchy of the mesh triangles, or of the edges when the mesh has no faces.
+   * Owned by #mesh's tree cache rather than by this struct.
+   */
+  const bke::bvh::Tree *bvhtree = nullptr;
 
   int cfra_prev = 0, verts_num = 0;
 };

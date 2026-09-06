@@ -85,7 +85,7 @@ void wm_gizmogroup_free(bContext *C, wmGizmoGroup *gzgroup)
     wm_gizmomap_modal_set(gzmap, C, gzmap->gzmap_context.modal, nullptr, false);
   }
 
-  for (wmGizmo *gz = static_cast<wmGizmo *>(gzgroup->gizmos.first), *gz_next; gz; gz = gz_next) {
+  for (wmGizmo *gz = gzgroup->gizmos.first(), *gz_next; gz; gz = gz_next) {
     gz_next = gz->next;
     if (gzmap->gzmap_context.select.len) {
       WM_gizmo_select_unlink(gzmap, gz);
@@ -270,7 +270,7 @@ void WM_gizmo_group_remove_by_tool(bContext *C,
                                    const bToolRef *tref)
 {
   wmGizmoMapType *gzmap_type = WM_gizmomaptype_find(&gzgt->gzmap_params);
-  for (bScreen *screen = static_cast<bScreen *>(bmain->screens.first); screen;
+  for (bScreen *screen = bmain->screens.first(); screen;
        screen = static_cast<bScreen *>(screen->id.next))
   {
     for (ScrArea &area : screen->areabase) {
@@ -279,9 +279,7 @@ void WM_gizmo_group_remove_by_tool(bContext *C,
           wmGizmoMap *gzmap = region.runtime->gizmo_map;
           if (gzmap && gzmap->type == gzmap_type) {
             wmGizmoGroup *gzgroup, *gzgroup_next;
-            for (gzgroup = static_cast<wmGizmoGroup *>(gzmap->groups.first); gzgroup;
-                 gzgroup = gzgroup_next)
-            {
+            for (gzgroup = gzmap->groups.first(); gzgroup; gzgroup = gzgroup_next) {
               gzgroup_next = gzgroup->next;
               if (gzgroup->type == gzgt) {
                 BLI_assert(gzgroup->parent_gzmap == gzmap);
@@ -996,8 +994,7 @@ void WM_gizmomaptype_group_init_runtime_keymap(const Main *bmain, wmGizmoGroupTy
 {
   /* Initialize key-map.
    * On startup there's an extra call to initialize keymaps for 'permanent' gizmo-groups. */
-  wm_gizmogrouptype_setup_keymap(
-      gzgt, (static_cast<wmWindowManager *>(bmain->wm.first))->runtime->defaultconf);
+  wm_gizmogrouptype_setup_keymap(gzgt, (bmain->wm.first())->runtime->defaultconf);
 }
 
 void WM_gizmomaptype_group_init_runtime(const Main *bmain,
@@ -1010,12 +1007,13 @@ void WM_gizmomaptype_group_init_runtime(const Main *bmain,
   }
 
   /* Now create a gizmo for all existing areas. */
-  for (bScreen *screen = static_cast<bScreen *>(bmain->screens.first); screen;
+  for (bScreen *screen = bmain->screens.first(); screen;
        screen = static_cast<bScreen *>(screen->id.next))
   {
     for (ScrArea &area : screen->areabase) {
       for (SpaceLink &sl : area.spacedata) {
-        ListBaseT<ARegion> *lb = (&sl == area.spacedata.first) ? &area.regionbase : &sl.regionbase;
+        ListBaseT<ARegion> *lb = (&sl == area.spacedata.first_) ? &area.regionbase :
+                                                                  &sl.regionbase;
         for (ARegion &region : *lb) {
           wmGizmoMap *gzmap = region.runtime->gizmo_map;
           if (gzmap && gzmap->type == gzmap_type) {
@@ -1064,19 +1062,18 @@ void WM_gizmomaptype_group_unlink(bContext *C,
                                   const wmGizmoGroupType *gzgt)
 {
   /* Free instances. */
-  for (bScreen *screen = static_cast<bScreen *>(bmain->screens.first); screen;
+  for (bScreen *screen = bmain->screens.first(); screen;
        screen = static_cast<bScreen *>(screen->id.next))
   {
     for (ScrArea &area : screen->areabase) {
       for (SpaceLink &sl : area.spacedata) {
-        ListBaseT<ARegion> *lb = (&sl == area.spacedata.first) ? &area.regionbase : &sl.regionbase;
+        ListBaseT<ARegion> *lb = (&sl == area.spacedata.first_) ? &area.regionbase :
+                                                                  &sl.regionbase;
         for (ARegion &region : *lb) {
           wmGizmoMap *gzmap = region.runtime->gizmo_map;
           if (gzmap && gzmap->type == gzmap_type) {
             wmGizmoGroup *gzgroup, *gzgroup_next;
-            for (gzgroup = static_cast<wmGizmoGroup *>(gzmap->groups.first); gzgroup;
-                 gzgroup = gzgroup_next)
-            {
+            for (gzgroup = gzmap->groups.first(); gzgroup; gzgroup = gzgroup_next) {
               gzgroup_next = gzgroup->next;
               if (gzgroup->type == gzgt) {
                 BLI_assert(gzgroup->parent_gzmap == gzmap);

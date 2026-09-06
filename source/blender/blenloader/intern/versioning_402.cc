@@ -72,9 +72,8 @@ static void version_bonecollection_anim(FCurve *fcurve)
 
 static void versioning_eevee_shadow_settings(Object *object)
 {
-  /** EEVEE no longer uses the Material::blend_shadow property.
-   * Instead, it uses Object::visibility_flag for disabling shadow casting
-   */
+  /* EEVEE no longer uses the Material::blend_shadow property.
+   * Instead, it uses Object::visibility_flag for disabling shadow casting. */
 
   short *material_len = BKE_object_material_len_p(object);
   if (!material_len) {
@@ -358,7 +357,7 @@ static bool versioning_eevee_material_blend_mode_settings(bNodeTree *ntree, floa
 
       bNodeSocket *input_1 = static_cast<bNodeSocket *>(BLI_findlink(&math_node->inputs, 0));
       bNodeSocket *input_2 = static_cast<bNodeSocket *>(BLI_findlink(&math_node->inputs, 1));
-      bNodeSocket *output = static_cast<bNodeSocket *>(math_node->outputs.first);
+      bNodeSocket *output = math_node->outputs.first();
       bNodeSocket *alpha_sock = input_1;
       bNodeSocket *threshold_sock = input_2;
 
@@ -646,8 +645,8 @@ static void add_image_editor_asset_shelf(Main &bmain)
           continue;
         }
 
-        ListBaseT<ARegion> *regionbase = (&sl == area.spacedata.first) ? &area.regionbase :
-                                                                         &sl.regionbase;
+        ListBaseT<ARegion> *regionbase = (&sl == area.spacedata.first_) ? &area.regionbase :
+                                                                          &sl.regionbase;
 
         if (ARegion *new_shelf_region = do_versions_add_region_if_not_found(
                 regionbase, RGN_TYPE_ASSET_SHELF, __func__, RGN_TYPE_TOOL_HEADER))

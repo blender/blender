@@ -225,8 +225,10 @@ class AnimDataConvertor {
   using FCurveCallback = bool(bAction *owner_action, FCurve &fcurve);
   using ActionCallback = bool(bAction &action);
 
-  /** \return True if this AnimDataConvertor is valid, i.e. can be used to process animation data
-   * from source ID. */
+  /**
+   * \return True if this AnimDataConvertor is valid, i.e. can be used to process animation data
+   * from source ID.
+   */
   bool is_valid() const
   {
     return this->animdata_src != nullptr;
@@ -1514,7 +1516,7 @@ static ModifierData &legacy_object_modifier_common(ConversionData &conversion_da
 
   if (mti->flags & eModifierTypeFlag_RequiresOriginalData) {
     ModifierData *md;
-    for (md = static_cast<ModifierData *>(object.modifiers.first);
+    for (md = object.modifiers.first();
          md && BKE_modifier_get_info(md->type)->type == ModifierTypeType::OnlyDeform;
          md = md->next)
     {

@@ -94,7 +94,7 @@ void CurveFromGeometry::create_nurbs(Curve *curve, const OBJImportParams &import
 {
   const NurbsElement &nurbs_geometry = curve_geometry_.nurbs_element_;
   const int8_t degree = get_valid_nurbs_degree(nurbs_geometry);
-  Nurb *nurb = static_cast<Nurb *>(curve->nurb.first);
+  Nurb *nurb = curve->nurb.first();
 
   nurb->type = CU_NURBS;
   nurb->flag = CU_SMOOTH;

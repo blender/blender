@@ -2,6 +2,10 @@
  *
  * SPDX-License-Identifier: GPL-2.0-or-later */
 
+/** \file
+ * \ingroup balembic
+ */
+
 #include "BLI_bounds.hh"
 
 #include "abc_hierarchy_iterator.h"

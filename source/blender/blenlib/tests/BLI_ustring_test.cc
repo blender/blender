@@ -4,6 +4,10 @@
 
 #include "testing/testing.h"
 
+#include <atomic>
+#include <thread>
+
+#include "BLI_array.hh"
 #include "BLI_map.hh"
 #include "BLI_task.hh"
 #include "BLI_task_c.hh"
@@ -194,6 +198,51 @@ TEST(ustring, Concurrency)
     else {
       const std::string number_str = std::to_string(i);
       EXPECT_EQ(results[i], StringRef(number_str));
+    }
+  }
+}
+
+TEST(ustring, ConcurrentSameNewString)
+{
+  /* Every thread interns the same list of strings, none of which exist yet, so the threads race
+   * to add the *same* new string. */
+  constexpr int THREADS_NUM = 8;
+  constexpr int STRINGS_NUM = 200;
+
+  Vector<std::string> strings;
+  for (const int i : IndexRange(STRINGS_NUM)) {
+    strings.append("concurrent_same_new_string_" + std::to_string(i));
+  }
+
+  Array<Array<UString>> results(THREADS_NUM);
+  for (const int thread_i : IndexRange(THREADS_NUM)) {
+    results[thread_i].reinitialize(STRINGS_NUM);
+  }
+
+  std::atomic<int> ready_num = 0;
+  Vector<std::thread> threads;
+  for (const int thread_i : IndexRange(THREADS_NUM)) {
+    threads.append(std::thread([&, thread_i]() {
+      /* Start interning at the same time in all threads, to maximize contention. */
+      ready_num.fetch_add(1);
+      while (ready_num.load() < THREADS_NUM) {
+      }
+      for (const int i : IndexRange(STRINGS_NUM)) {
+        results[thread_i][i] = UString(strings[i]);
+      }
+    }));
+  }
+  for (std::thread &thread : threads) {
+    thread.join();
+  }
+
+  for (const int i : IndexRange(STRINGS_NUM)) {
+    const UString &expected = results[0][i];
+    EXPECT_EQ(expected, StringRef(strings[i]));
+    /* The UString for each thread should reference the same data. */
+    for (const int thread_i : IndexRange(THREADS_NUM)) {
+      EXPECT_EQ(results[thread_i][i].c_str(), expected.c_str());
+      EXPECT_EQ(results[thread_i][i], expected);
     }
   }
 }

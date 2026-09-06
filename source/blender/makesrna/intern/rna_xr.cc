@@ -223,7 +223,7 @@ static void rna_XrActionMapBinding_axis1_region_set(PointerRNA *ptr, int value)
 static void rna_XrActionMapBinding_name_update(Main *bmain, Scene * /*scene*/, PointerRNA *ptr)
 {
 #  ifdef WITH_XR_OPENXR
-  wmWindowManager *wm = static_cast<wmWindowManager *>(bmain->wm.first);
+  wmWindowManager *wm = bmain->wm.first();
   if (wm && wm->xr.runtime) {
     ListBaseT<XrActionMap> *actionmaps = WM_xr_actionmaps_get(wm->xr.runtime);
     short idx = WM_xr_actionmap_selected_index_get(wm->xr.runtime);
@@ -546,7 +546,7 @@ static int rna_XrActionMapItem_bindings_length(PointerRNA *ptr)
 static void rna_XrActionMapItem_name_update(Main *bmain, Scene * /*scene*/, PointerRNA *ptr)
 {
 #  ifdef WITH_XR_OPENXR
-  wmWindowManager *wm = static_cast<wmWindowManager *>(bmain->wm.first);
+  wmWindowManager *wm = bmain->wm.first();
   if (wm && wm->xr.runtime) {
     ListBaseT<XrActionMap> *actionmaps = WM_xr_actionmaps_get(wm->xr.runtime);
     short idx = WM_xr_actionmap_selected_index_get(wm->xr.runtime);
@@ -643,7 +643,7 @@ static int rna_XrActionMap_items_length(PointerRNA *ptr)
 static void rna_XrActionMap_name_update(Main *bmain, Scene * /*scene*/, PointerRNA *ptr)
 {
 #  ifdef WITH_XR_OPENXR
-  wmWindowManager *wm = static_cast<wmWindowManager *>(bmain->wm.first);
+  wmWindowManager *wm = bmain->wm.first();
   if (wm && wm->xr.runtime) {
     XrActionMap *actionmap = static_cast<XrActionMap *>(ptr->data);
     WM_xr_actionmap_ensure_unique(wm->xr.runtime, actionmap);

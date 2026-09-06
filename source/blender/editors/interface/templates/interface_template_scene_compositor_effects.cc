@@ -188,7 +188,7 @@ static void draw_property_for_socket(
     return;
   }
 
-  std::string name = socket.name ? IFACE_(socket.name) : "";
+  std::string name = socket.name();
 
   switch (type) {
     case SOCK_OBJECT: {
@@ -464,7 +464,7 @@ void template_scene_compositor_effects(Layout * /*layout*/, bContext *C)
   }
   else {
     /* Assuming there's only one group of instanced panels, update the custom data pointers. */
-    Panel *panel = static_cast<Panel *>(region->panels.first);
+    Panel *panel = region->panels.first();
     for (SceneCompositorEffect &effect : *effects) {
       /* Move to the next instanced panel corresponding to the next effect. */
       while ((panel->type == nullptr) || !(panel->type->flag & PANEL_TYPE_INSTANCED)) {

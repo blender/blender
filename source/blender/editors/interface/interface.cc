@@ -388,7 +388,7 @@ static void update_window_matrix(const wmWindow *window, const ARegion *region, 
 
 void region_winrct_get_no_margin(const ARegion *region, rcti *r_rect)
 {
-  Block *block = static_cast<Block *>(region->runtime->uiblocks.first);
+  Block *block = region->runtime->uiblocks.first();
   if (block && (block->flag & BLOCK_LOOP) && (block->flag & BLOCK_PIE_MENU) == 0) {
     BLI_rcti_rctf_copy_floor(r_rect, &block->rect);
     BLI_rcti_translate(r_rect, region->winrct.xmin, region->winrct.ymin);
@@ -2134,6 +2134,19 @@ bool button_context_poll_operator(bContext *C, wmOperatorType *ot, const Button 
   return button_context_poll_operator_ex(C, but, &params);
 }
 
+void block_post_layout_callbacks_exec(const bContext *C, ARegion *region, Block *block)
+{
+  BLI_assert(block->active);
+  for (const std::function<void(const bContext &C, ui::Block &block)> &callback :
+       region->runtime->post_block_layout_fns)
+  {
+    if (!block_is_search_only(block)) {
+      callback(*C, *block);
+    }
+  }
+  block->post_block_layout_fns_pending = false;
+}
+
 void block_end_ex(const bContext *C,
                   Main *bmain,
                   wmWindow *window,
@@ -2142,7 +2155,8 @@ void block_end_ex(const bContext *C,
                   Depsgraph *depsgraph,
                   Block *block,
                   const int xy[2],
-                  int r_xy[2])
+                  int r_xy[2],
+                  bool postpone_callbacks)
 {
   BLI_assert(block->active);
 
@@ -2188,7 +2202,7 @@ void block_end_ex(const bContext *C,
   }
 
   /* handle pending stuff */
-  if (block->layouts.first) {
+  if (block->layouts.first_) {
     block_layout_resolve(block);
   }
   block_align_calc(block, region);
@@ -2247,9 +2261,15 @@ void block_end_ex(const bContext *C,
   update_flexible_spacing(region, block);
 
   block->endblock = true;
+  if (!postpone_callbacks) {
+    block_post_layout_callbacks_exec(C, region, block);
+  }
+  else {
+    block->post_block_layout_fns_pending = true;
+  }
 }
 
-void block_end(const bContext *C, Block *block)
+void block_end(const bContext *C, Block *block, bool postpone_callbacks)
 {
   wmWindow *window = CTX_wm_window(C);
 
@@ -2261,7 +2281,8 @@ void block_end(const bContext *C, Block *block)
                CTX_data_depsgraph_pointer(C),
                block,
                window->runtime->eventstate->xy,
-               nullptr);
+               nullptr,
+               postpone_callbacks);
 }
 
 /** \} */
@@ -2814,11 +2835,6 @@ bool button_is_compatible(const Button *but_a, const Button *but_b)
   }
 
   if (but_a->rnaprop) {
-    /* skip 'rnapoin.data', 'rnapoin.owner_id'
-     * allow different data to have the same props edited at once */
-    if (but_a->rnapoin.type != but_b->rnapoin.type) {
-      return false;
-    }
     if (RNA_property_type(but_a->rnaprop) != RNA_property_type(but_b->rnaprop)) {
       return false;
     }
@@ -3895,6 +3911,8 @@ void block_set_active_operator(Block *block, wmOperator *op, const bool free)
 
 void block_free(const bContext *C, Block *block)
 {
+  BLI_assert(!block->post_block_layout_fns_pending);
+
   butstore_clear(block);
 
   for (Button &but : block->buttons()) {
@@ -5743,7 +5761,7 @@ int blocklist_min_y_get(ListBaseT<Block> *lb)
   int min = 0;
 
   for (Block &block : *lb) {
-    if (&block == lb->first || block.rect.ymin < min) {
+    if (&block == lb->first_ || block.rect.ymin < min) {
       min = block.rect.ymin;
     }
   }
@@ -6869,7 +6887,7 @@ void update_text_styles()
     return;
   }
 
-  uiStyle *style = static_cast<uiStyle *>(U.uistyles.first);
+  uiStyle *style = U.uistyles.first();
   const int weight = BLF_default_weight(0);
   style->paneltitle.character_weight = weight;
   style->grouplabel.character_weight = weight;

@@ -2,6 +2,10 @@
  *
  * SPDX-License-Identifier: GPL-2.0-or-later */
 
+/** \file
+ * \ingroup nodes
+ */
+
 #pragma once
 
 #include "BLI_map.hh"
@@ -36,7 +40,8 @@ class InverseEvalParams {
   {
     const bNodeSocket &socket = *node.output_by_identifier(identifier);
     if (const bke::SocketValueVariant *value = socket_values_.lookup_ptr(&socket)) {
-      return value->get<T>();
+      bke::SocketValueVariant value_copy = *value;
+      return value_copy.ensure_type<T>();
     }
     return T();
   }
@@ -45,7 +50,8 @@ class InverseEvalParams {
   {
     const bNodeSocket &socket = *node.input_by_identifier(identifier);
     if (const bke::SocketValueVariant *value = socket_values_.lookup_ptr(&socket)) {
-      return value->get<T>();
+      bke::SocketValueVariant value_copy = *value;
+      return value_copy.ensure_type<T>();
     }
     return T();
   }
@@ -53,7 +59,7 @@ class InverseEvalParams {
   template<typename T> void set_input(const UString identifier, T value)
   {
     const bNodeSocket &socket = *node.input_by_identifier(identifier);
-    updated_socket_values_.add(&socket, bke::SocketValueVariant(value));
+    updated_socket_values_.add(&socket, bke::SocketValueVariant::from(std::move(value)));
   }
 };
 

@@ -463,7 +463,7 @@ void LightModule::sync_light(const ObjectRef &ob_ref)
 
 void LightModule::end_sync()
 {
-  /** IMPORTANT: We cannot add new lights here since the shadow module already executed its
+  /* IMPORTANT: We cannot add new lights here since the shadow module already executed its
    * `end_sync`. Doing so ends up in very bad data access since the shadow data of the new light
    * will not exists on the GPU. */
 

@@ -18,7 +18,9 @@
 
 #include "../outliner_intern.hh"
 
+#include "tree_display.hh"
 #include "tree_element_driver.hh"
+#include "tree_element_linked_object.hh"
 
 namespace blender::ed::outliner {
 
@@ -34,7 +36,7 @@ void TreeElementDriverBase::expand(SpaceOutliner & /*space_outliner*/) const
   ID *lastadded = nullptr;
 
   for (FCurve *fcu : ListBaseWrapper<FCurve>(anim_data_.drivers)) {
-    if (fcu->driver && fcu->driver->variables.first) {
+    if (fcu->driver && fcu->driver->variables.first_) {
       ChannelDriver *driver = fcu->driver;
 
       for (DriverVar *dvar : ListBaseWrapper<DriverVar>(driver->variables)) {
@@ -42,7 +44,9 @@ void TreeElementDriverBase::expand(SpaceOutliner & /*space_outliner*/) const
         DRIVER_TARGETS_USED_LOOPER_BEGIN (dvar) {
           if (lastadded != dtar->id) {
             /* XXX this lastadded check is rather lame, and also fails quite badly... */
-            add_element(&legacy_te_.subtree, dtar->id, nullptr, &legacy_te_, TSE_LINKED_OB, 0);
+            if (dtar->id) {
+              add_element<TreeElementLinkedObject>({}, *dtar->id);
+            }
             lastadded = dtar->id;
           }
         }

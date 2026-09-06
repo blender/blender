@@ -2,6 +2,10 @@
  *
  * SPDX-License-Identifier: GPL-2.0-or-later */
 
+/** \file
+ * \ingroup bke
+ */
+
 #include "DNA_pointcloud_types.h"
 
 #include "BKE_attribute_storage.hh"

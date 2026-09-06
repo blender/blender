@@ -63,8 +63,10 @@ class Film {
   struct DepthState {
     /** Set to 0 if reverse Z is supported, 1 otherwise. */
     float clear_value = 1.0f;
-    /** Set to DRW_STATE_DEPTH_GREATER_EQUAL if reverse Z is supported, DRW_STATE_DEPTH_LESS_EQUAL
-     * otherwise. */
+    /**
+     * Set to DRW_STATE_DEPTH_GREATER_EQUAL if reverse Z is supported, DRW_STATE_DEPTH_LESS_EQUAL
+     * otherwise.
+     */
     DRWState test_state = DRW_STATE_DEPTH_LESS_EQUAL;
   } depth;
 
@@ -113,6 +115,8 @@ class Film {
   PassCategory enabled_categories_ = PassCategory(0);
   bool use_reprojection_ = false;
   bool is_valid_render_extent_ = true;
+  /** Cached value for `render_extent_get`, to avoid computing on every call. */
+  int2 render_extent_shading_view_ = int2(-1);
 
  public:
   Film(Instance &inst, FilmData &data) : inst_(inst), data_(data) {};
@@ -145,8 +149,19 @@ class Film {
 
   void write_viewport_compositor_passes();
 
-  /** Returns shading views internal resolution. Includes overscan pixels. */
+  /**
+   * Returns the extent rendered by one shading view, including overscan: a square cubemap face
+   * for panoramic cameras and the rectangular render extent for all other cameras.
+   */
   int2 render_extent_get() const
+  {
+    return render_extent_shading_view_;
+  }
+  /**
+   * Returns the film's resolution.
+   * Includes overscan pixels.
+   */
+  int2 render_extent_original_get() const
   {
     return data_.render_extent;
   }

@@ -117,8 +117,8 @@ static void emit_attribute_map_entry(AttributeMap *attr_map,
   else if (type == TypeQuaternion) {
     attr_map[index].type = NODE_ATTR_QUATERNION;
   }
-  else if (type == TypePackedSphericalHarmonics) {
-    attr_map[index].type = NODE_ATTR_SPHERICAL_HARMONICS;
+  else if (type == TypePackedSphericalHarmonicsRest) {
+    attr_map[index].type = NODE_ATTR_SPHERICAL_HARMONICS_REST;
   }
   else {
     attr_map[index].type = NODE_ATTR_FLOAT3;
@@ -313,7 +313,7 @@ class AttributeTableBuilder {
         attr_uchar4{dscene->attributes_uchar4, 0, 0},
         attr_normal{dscene->attributes_normal, 0, 0},
         attr_quaternion{dscene->attributes_quaternion, 0, 0},
-        attr_spherical_harmonics{dscene->attributes_spherical_harmonics, 0, 0},
+        attr_spherical_harmonics_rest{dscene->attributes_spherical_harmonics_rest, 0, 0},
         tri_verts{dscene->tri_verts, 0, 0},
         curve_keys{dscene->curve_keys, 0, 0},
         points{dscene->points, 0, 0}
@@ -327,7 +327,7 @@ class AttributeTableBuilder {
   AttributeTableEntry<uchar4> attr_uchar4;
   AttributeTableEntry<packed_normal> attr_normal;
   AttributeTableEntry<Quaternion> attr_quaternion;
-  AttributeTableEntry<PackedSphericalHarmonics> attr_spherical_harmonics;
+  AttributeTableEntry<PackedSphericalHarmonicsRest> attr_spherical_harmonics_rest;
 
   /* Positions in dedicated arrays, gives better BVH2 performance. */
   AttributeTableEntry<packed_float3> tri_verts;
@@ -412,12 +412,12 @@ class AttributeTableBuilder {
         attr_quaternion.add(mattr->data<Quaternion>(step), per_step, mattr->modified);
       }
     }
-    else if (mattr->type == TypePackedSphericalHarmonics) {
-      offset = attr_spherical_harmonics.add(
-          mattr->data<PackedSphericalHarmonics>(), per_step, mattr->modified);
+    else if (mattr->type == TypePackedSphericalHarmonicsRest) {
+      offset = attr_spherical_harmonics_rest.add(
+          mattr->data<PackedSphericalHarmonicsRest>(), per_step, mattr->modified);
       for (int step = 1; step <= num_motion; step++) {
-        attr_spherical_harmonics.add(
-            mattr->data<PackedSphericalHarmonics>(step), per_step, mattr->modified);
+        attr_spherical_harmonics_rest.add(
+            mattr->data<PackedSphericalHarmonicsRest>(step), per_step, mattr->modified);
       }
     }
     else if (mattr->type == TypeFloat4 || mattr->type == TypeRGBA) {
@@ -494,8 +494,8 @@ class AttributeTableBuilder {
     else if (mattr->type == TypeQuaternion) {
       attr_quaternion.reserve(size);
     }
-    else if (mattr->type == TypePackedSphericalHarmonics) {
-      attr_spherical_harmonics.reserve(size);
+    else if (mattr->type == TypePackedSphericalHarmonicsRest) {
+      attr_spherical_harmonics_rest.reserve(size);
     }
     else {
       AttributeTableEntry<packed_float3> &table = (mattr->std == ATTR_STD_POSITION) ? tri_verts :
@@ -556,7 +556,7 @@ class AttributeTableBuilder {
     attr_uchar4.alloc();
     attr_normal.alloc();
     attr_quaternion.alloc();
-    attr_spherical_harmonics.alloc();
+    attr_spherical_harmonics_rest.alloc();
     tri_verts.alloc();
     curve_keys.alloc();
     points.alloc();
@@ -571,7 +571,7 @@ class AttributeTableBuilder {
     attr_uchar4.data.copy_to_device_if_modified();
     attr_normal.data.copy_to_device_if_modified();
     attr_quaternion.data.copy_to_device_if_modified();
-    attr_spherical_harmonics.data.copy_to_device_if_modified();
+    attr_spherical_harmonics_rest.data.copy_to_device_if_modified();
     tri_verts.data.copy_to_device_if_modified();
     curve_keys.data.copy_to_device_if_modified();
     points.data.copy_to_device_if_modified();
@@ -702,7 +702,7 @@ void GeometryManager::device_update_attributes(Device *device,
       dscene->attributes_uchar4.need_realloc(),
       dscene->attributes_normal.need_realloc(),
       dscene->attributes_quaternion.need_realloc(),
-      dscene->attributes_spherical_harmonics.need_realloc(),
+      dscene->attributes_spherical_harmonics_rest.need_realloc(),
   };
 
   /* Fill in attributes. */

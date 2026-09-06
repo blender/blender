@@ -277,7 +277,7 @@ RenderLayer *render_get_single_layer(Render *re, RenderResult *rr)
     }
   }
 
-  return static_cast<RenderLayer *>(rr->layers.first);
+  return rr->layers.first();
 }
 
 static bool render_scene_has_layers_to_render(Scene *scene, ViewLayer *single_layer)
@@ -388,7 +388,7 @@ void RE_AcquireResultImageViews(Render *re, RenderResult *rr)
       /* creates a temporary duplication of views */
       render_result_views_shallowcopy(rr, re->result);
 
-      RenderView *rv = static_cast<RenderView *>(rr->views.first);
+      RenderView *rv = rr->views.first();
       rr->have_combined = (rv->ibuf != nullptr);
 
       /* single layer */
@@ -488,7 +488,7 @@ void RE_ResultGet32(Render *re, uint8_t *dst)
 
 bool RE_ResultIsMultiView(RenderResult *rr)
 {
-  RenderView *view = static_cast<RenderView *>(rr->views.first);
+  RenderView *view = rr->views.first();
   return (view && (view->next || view->name[0]));
 }
 
@@ -630,7 +630,7 @@ void RE_FreeUnusedGPUResources()
 {
   BLI_assert(BLI_thread_is_main());
 
-  wmWindowManager *wm = static_cast<wmWindowManager *>(G_MAIN->wm.first);
+  wmWindowManager *wm = G_MAIN->wm.first();
 
   for (Render *re : RenderGlobal.render_list) {
     bool do_free = true;
@@ -666,7 +666,7 @@ void RE_FreeUnusedGPUResources()
 
       const bScreen *screen = WM_window_get_active_screen(&win);
       for (const ScrArea &area : screen->areabase) {
-        const SpaceLink &space = *static_cast<const SpaceLink *>(area.spacedata.first);
+        const SpaceLink &space = *area.spacedata.first();
 
         if (space.spacetype == SPACE_NODE) {
           const SpaceNode &snode = reinterpret_cast<const SpaceNode &>(space);
@@ -852,7 +852,7 @@ void RE_InitState(Render *re,
     else if (re->result) {
       bool have_layer = false;
 
-      if (re->single_view_layer[0] == '\0' && re->result->layers.first) {
+      if (re->single_view_layer[0] == '\0' && re->result->layers.first()) {
         have_layer = true;
       }
       else {
@@ -1442,7 +1442,7 @@ bool RE_seq_render_active(Scene *scene, const RenderData *rd)
 {
   Editing *ed = scene->ed;
 
-  if (!(rd->scemode & R_DOSEQ) || !ed || !ed->seqbase.first) {
+  if (!(rd->scemode & R_DOSEQ) || !ed || !ed->seqbase.first_) {
     return false;
   }
 
@@ -2813,7 +2813,7 @@ void RE_layer_load_from_file(
   RenderPass *rpass = nullptr;
 
   /* multi-view: since the API takes no 'view', we use the first combined pass found */
-  for (rpass = static_cast<RenderPass *>(layer->passes.first); rpass; rpass = rpass->next) {
+  for (rpass = layer->passes.first(); rpass; rpass = rpass->next) {
     if (STREQ(rpass->name, RE_PASSNAME_COMBINED)) {
       break;
     }
@@ -2874,7 +2874,7 @@ bool RE_layers_have_name(RenderResult *result)
     case 0:
       return false;
     case 1:
-      return ((static_cast<RenderLayer *>(result->layers.first))->name[0] != '\0');
+      return ((result->layers.first())->name[0] != '\0');
     default:
       return true;
   }

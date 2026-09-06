@@ -2,6 +2,10 @@
  *
  * SPDX-License-Identifier: GPL-2.0-or-later */
 
+/** \file
+ * \ingroup bke
+ */
+
 #include <fmt/format.h>
 
 #include "BLI_listbase.hh"
@@ -2254,9 +2258,9 @@ class NodeTreeMainUpdater {
       }
       bNodeTreeInterfacePanel *panel = reinterpret_cast<bNodeTreeInterfacePanel *>(item);
       if (bNodeTreeInterfaceSocket *toggle_socket = panel->header_toggle_socket()) {
-        if (!STREQ(panel->name, toggle_socket->name)) {
-          MEM_SAFE_DELETE(toggle_socket->name);
-          toggle_socket->name = BLI_strdup_null(panel->name);
+        if (!STREQ(panel->name_, toggle_socket->name_)) {
+          MEM_SAFE_DELETE(toggle_socket->name_);
+          toggle_socket->name() = BLI_strdup_null(panel->name_);
           changed = true;
         }
       }

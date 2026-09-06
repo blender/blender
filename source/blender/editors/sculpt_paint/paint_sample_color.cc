@@ -309,8 +309,7 @@ static float3 paint_sample_color(bContext *C,
   const Main *bmain = CTX_data_main(C);
   Scene *scene = CTX_data_scene(C);
   Depsgraph *depsgraph = CTX_data_ensure_evaluated_depsgraph(C);
-  Paint *paint = BKE_paint_get_active_from_context(C);
-  const PaintMode mode = paint->runtime->paint_mode;
+  const PaintMode mode = BKE_paintmode_get_active_from_context(C);
 
   SpaceImage *sima = CTX_wm_space_image(C);
   const View3D *v3d = CTX_wm_view3d(C);
@@ -408,7 +407,7 @@ static wmOperatorStatus sample_color_exec(bContext *C, wmOperator *op)
   wmWindow *win = CTX_wm_window(C);
 
   const bool use_merged_texture = RNA_boolean_get(op->ptr, "merged");
-  const PaintMode mode = paint->runtime->paint_mode;
+  const PaintMode mode = BKE_paintmode_get_active_from_context(C);
   if (ELEM(mode, PaintMode::Vertex, PaintMode::Sculpt) && !use_merged_texture) {
     if (!color_supported_check(scene, object, op->reports)) {
       return OPERATOR_CANCELLED;
@@ -452,7 +451,7 @@ static wmOperatorStatus sample_color_invoke(bContext *C, wmOperator *op, const w
   wmWindow *win = CTX_wm_window(C);
 
   const bool use_merged_texture = RNA_boolean_get(op->ptr, "merged");
-  const PaintMode mode = paint->runtime->paint_mode;
+  const PaintMode mode = BKE_paintmode_get_active_from_context(C);
   if (ELEM(mode, PaintMode::Vertex, PaintMode::Sculpt) && !use_merged_texture) {
     if (!color_supported_check(scene, object, op->reports)) {
       return OPERATOR_CANCELLED;

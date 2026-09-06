@@ -504,7 +504,7 @@ void BLI_uniquename(const ListBase *list,
 
   BLI_uniquename_cb(
       [&](const StringRefNull name) {
-        for (Link *link = static_cast<Link *>(list->first); link; link = link->next) {
+        for (Link *link = static_cast<Link *>(list->first_); link; link = link->next) {
           if (link != vlink) {
             const char *link_name = POINTER_OFFSET((const char *)link, name_offset);
             if (name == link_name) {

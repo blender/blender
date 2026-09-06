@@ -269,11 +269,11 @@ void update_cache_invariants(VPaint &vp, SculptSession &ss, wmOperator *op, cons
 void update_cache_variants(Depsgraph &depsgraph,
                            ViewContext &vc,
                            VPaint &vp,
+                           const PaintMode paint_mode,
                            Object &ob,
                            Base &base,
                            const PaintStroke::StrokeStep &stroke_step)
 {
-  const PaintMode paint_mode = vp.paint.runtime->paint_mode;
   SculptSession &ss = *ob.runtime->sculpt_session;
   StrokeCache *cache = ss.cache;
   Brush &brush = *BKE_paint_brush(&vp.paint);
@@ -590,14 +590,14 @@ void ED_object_vpaintmode_enter(bContext *C, Depsgraph &depsgraph)
 /** \name Exit Vertex Paint Mode
  * \{ */
 
-void ED_object_vpaintmode_exit_ex(Object &ob)
+void ED_object_vpaintmode_exit_ex(Scene &scene, Object &ob)
 {
-  ed::sculpt_paint::mode_exit_generic(ob, OB_MODE_VERTEX_PAINT);
+  ed::sculpt_paint::mode_exit_generic(scene, ob, OB_MODE_VERTEX_PAINT);
 }
 void ED_object_vpaintmode_exit(bContext *C)
 {
   Object *ob = CTX_data_active_object(C);
-  ED_object_vpaintmode_exit_ex(*ob);
+  ED_object_vpaintmode_exit_ex(*CTX_data_scene(C), *ob);
 }
 
 /** \} */
@@ -627,7 +627,7 @@ static wmOperatorStatus vpaint_mode_toggle_exec(bContext *C, wmOperator *op)
   Mesh *mesh = BKE_mesh_from_object(&ob);
 
   if (is_mode_set) {
-    ED_object_vpaintmode_exit_ex(ob);
+    ED_object_vpaintmode_exit_ex(scene, ob);
   }
   else {
     Depsgraph *depsgraph = CTX_data_depsgraph_on_load(C);
@@ -776,7 +776,8 @@ struct VertexPaintStroke final : public PaintStroke {
   VPaint *vertex_paint_;
   Base *base_;
 
-  VertexPaintStroke(bContext *C, wmOperator *op, const wmEvent *event) : PaintStroke(C, op, event)
+  VertexPaintStroke(bContext *C, wmOperator *op, const wmEvent *event)
+      : PaintStroke(C, op, event, PaintMode::Vertex)
   {
     bmain_ = CTX_data_main(C);
     ToolSettings *ts = CTX_data_tool_settings(C);
@@ -1791,7 +1792,8 @@ void VertexPaintStroke::update_step(wmOperator * /*op*/, const StrokeStep &strok
 
   ss.cache->stroke_distance = this->stroke_distance();
 
-  vwpaint::update_cache_variants(*this->depsgraph, vc, *vertex_paint_, ob, *base_, stroke_step);
+  vwpaint::update_cache_variants(
+      *this->depsgraph, vc, *vertex_paint_, PaintMode::Invalid, ob, *base_, stroke_step);
 
   ed::sculpt_paint::do_symmetrical_brush_actions(
       *this->depsgraph, *this->scene, vertex_paint_->paint, ob, vpaint_do_paint, &vpd);

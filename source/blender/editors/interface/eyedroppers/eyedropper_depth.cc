@@ -251,7 +251,7 @@ static void depthdropper_depth_sample_pt(bContext *C,
       ARegion *region = BKE_area_find_region_xy(area, RGN_TYPE_WINDOW, m_xy);
       if (region) {
         Depsgraph *depsgraph = CTX_data_depsgraph_pointer(C);
-        View3D *v3d = static_cast<View3D *>(area->spacedata.first);
+        View3D *v3d = area->spacedata.first_as<View3D>();
         RegionView3D *rv3d = static_cast<RegionView3D *>(region->regiondata);
         /* weak, we could pass in some reference point */
         const float3 &view_co = (v3d->camera && rv3d->persp == RV3D_CAMOB) ?

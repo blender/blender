@@ -186,7 +186,7 @@ GPUMaterialFromNodeTreeResult GPU_material_from_nodetree(
   if (GPUPass *default_pass = pass_replacement_cb ? pass_replacement_cb(thunk, mat) : nullptr) {
     mat->pass = default_pass;
     GPU_pass_acquire(mat->pass);
-    /** WORKAROUND:
+    /* WORKAROUND:
      * The node tree code is never executed in default replaced passes,
      * but the GPU validation will still complain if the node tree UBO is not bound.
      * So we create a dummy UBO with (at least) the size of the default material one (192 bytes).
@@ -239,10 +239,12 @@ static_assert(int(GPUMaterialFromNodeTreeResult::WarningType::Info) ==
 GPUMaterial *GPU_material_from_callbacks(eGPUMaterialEngine engine,
                                          ConstructGPUMaterialFn construct_function_cb,
                                          GPUCodegenCallbackFn generate_code_function_cb,
-                                         void *thunk)
+                                         void *thunk,
+                                         const uint64_t uuid)
 {
   /* Allocate a new material and its material graph. */
   GPUMaterial *material = MEM_new<GPUMaterial>(__func__, engine);
+  material->uuid = uuid;
 
   /* Construct the material graph by adding and linking the necessary GPU material nodes. */
   construct_function_cb(thunk, material);

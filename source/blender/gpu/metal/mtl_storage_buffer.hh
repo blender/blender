@@ -27,9 +27,11 @@ class MTLStorageBuf : public StorageBuf {
   friend MTLCircularBuffer;
 
  private:
-  /** Allocation Handle or indirect wrapped instance.
+  /**
+   * Allocation Handle or indirect wrapped instance.
    * MTLStorageBuf can wrap a MTLVertBuf, MTLIndexBuf or MTLUniformBuf for binding as a writeable
-   * resource. */
+   * resource.
+   */
   enum {
     MTL_STORAGE_BUF_TYPE_DEFAULT = 0,
     MTL_STORAGE_BUF_TYPE_UNIFORMBUF = 1,

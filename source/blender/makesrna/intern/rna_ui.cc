@@ -92,9 +92,7 @@ static ARegionType *region_type_find(ReportList *reports, int space_type, int re
 
   st = BKE_spacetype_from_id(space_type);
 
-  for (art = (st) ? static_cast<ARegionType *>(st->regiontypes.first) : nullptr; art;
-       art = art->next)
-  {
+  for (art = (st) ? st->regiontypes.first() : nullptr; art; art = art->next) {
     if (art->regionid == region_type) {
       break;
     }
@@ -232,8 +230,8 @@ static bool rna_Panel_unregister(Main *bmain, StructRNA *type)
   for (bScreen &screen : bmain->screens) {
     for (ScrArea &area : screen.areabase) {
       for (SpaceLink &sl : area.spacedata) {
-        ListBaseT<ARegion> *regionbase = (&sl == area.spacedata.first) ? &area.regionbase :
-                                                                         &sl.regionbase;
+        ListBaseT<ARegion> *regionbase = (&sl == area.spacedata.first()) ? &area.regionbase :
+                                                                           &sl.regionbase;
         for (ARegion &region : *regionbase) {
           for (Panel &panel : region.panels) {
             panel_type_clear_recursive(&panel, pt);
@@ -323,7 +321,7 @@ static StructRNA *rna_Panel_register(Main *bmain,
   }
 
   /* check if we have registered this panel type before, and remove it */
-  for (pt = static_cast<PanelType *>(art->paneltypes.first); pt; pt = pt->next) {
+  for (pt = art->paneltypes.first(); pt; pt = pt->next) {
     if (STREQ(pt->idname, dummy_pt.idname)) {
       PanelType *pt_next = pt->next;
       StructRNA *srna = pt->rna_ext.srna;
@@ -413,7 +411,7 @@ static StructRNA *rna_Panel_register(Main *bmain,
   pt->draw_header_preset = (have_function[3]) ? panel_draw_header_preset : nullptr;
 
   /* Find position to insert panel based on order. */
-  PanelType *pt_iter = static_cast<PanelType *>(art->paneltypes.last);
+  PanelType *pt_iter = art->paneltypes.last();
 
   for (; pt_iter; pt_iter = pt_iter->prev) {
     /* No header has priority. */
@@ -430,7 +428,7 @@ static StructRNA *rna_Panel_register(Main *bmain,
 
   if (parent) {
     pt->parent = parent;
-    LinkData *pt_child_iter = static_cast<LinkData *>(parent->children.last);
+    LinkData *pt_child_iter = parent->children.last();
     for (; pt_child_iter; pt_child_iter = pt_child_iter->prev) {
       PanelType *pt_child = static_cast<PanelType *>(pt_child_iter->data);
       if (pt_child->order <= pt->order) {
@@ -1726,6 +1724,10 @@ static void rna_def_ui_layout(BlenderRNA *brna)
 
   prop = RNA_def_property(srna, "active", PROP_BOOLEAN, PROP_NONE);
   RNA_def_property_boolean_funcs(prop, "rna_UILayout_active_get", "rna_UILayout_active_set");
+  RNA_def_property_ui_text(prop,
+                           "Active",
+                           "When false, all items within this layout are grayed out. Values can "
+                           "still be changed and interactions are allowed");
 
   prop = RNA_def_property(srna, "active_default", PROP_BOOLEAN, PROP_NONE);
   RNA_def_property_boolean_funcs(
@@ -1756,7 +1758,10 @@ static void rna_def_ui_layout(BlenderRNA *brna)
 
   prop = RNA_def_property(srna, "enabled", PROP_BOOLEAN, PROP_NONE);
   RNA_def_property_boolean_funcs(prop, "rna_UILayout_enabled_get", "rna_UILayout_enabled_set");
-  RNA_def_property_ui_text(prop, "Enabled", "When false, this (sub)layout is grayed out");
+  RNA_def_property_ui_text(prop,
+                           "Enabled",
+                           "When false, all items within this layout are grayed out. Values "
+                           "cannot be changed and interactions are disabled");
 
   prop = RNA_def_property(srna, "alert", PROP_BOOLEAN, PROP_NONE);
   RNA_def_property_boolean_funcs(prop, "rna_UILayout_alert_get", "rna_UILayout_alert_set");

@@ -54,7 +54,7 @@ bGPdata **ED_annotation_data_get_pointers_direct(ID *screen_id,
   /* If there's an active area, check if the particular editor may
    * have defined any special Grease Pencil context for editing. */
   if (area) {
-    SpaceLink *sl = static_cast<SpaceLink *>(area->spacedata.first);
+    SpaceLink *sl = area->spacedata.first_as<SpaceLink>();
 
     switch (area->spacetype) {
       case SPACE_INFO: /* header info */

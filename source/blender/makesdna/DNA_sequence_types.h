@@ -279,12 +279,12 @@ struct StripTransform {
 
 struct StripColorBalance {
   eModColorBalanceMethod method = SEQ_COLOR_BALANCE_METHOD_LIFTGAMMAGAIN;
-  float lift[3] = {};
-  float gamma[3] = {};
-  float gain[3] = {};
-  float slope[3] = {};
-  float offset[3] = {};
-  float power[3] = {};
+  float lift[3] = {1.0, 1.0, 1.0};
+  float gamma[3] = {1.0, 1.0, 1.0};
+  float gain[3] = {1.0, 1.0, 1.0};
+  float slope[3] = {1.0, 1.0, 1.0};
+  float offset[3] = {1.0, 1.0, 1.0};
+  float power[3] = {1.0, 1.0, 1.0};
   eModColorBalanceInverseFlag flag = SEQ_COLOR_BALANCE_INVERSE_NONE;
   char _pad[4] = {};
 };
@@ -998,16 +998,16 @@ struct SequencerMaskModifierData {
 struct WhiteBalanceModifierData {
   StripModifierData modifier;
 
-  float white_value[3] = {};
+  float white_value[3] = {1.0f, 1.0f, 1.0f};
   char _pad[4] = {};
 };
 
 struct SequencerTonemapModifierData {
   StripModifierData modifier;
 
-  float key = 0, offset = 0, gamma = 0;
-  float intensity = 0, contrast = 0, adaptation = 0, correction = 0;
-  eModTonemapType type = SEQ_TONEMAP_RH_SIMPLE;
+  float key = 0.18f, offset = 1.0f, gamma = 1.0f;
+  float intensity = 0, contrast = 0, adaptation = 1.0f, correction = 0;
+  eModTonemapType type = SEQ_TONEMAP_RD_PHOTORECEPTOR;
 };
 
 struct SequencerCompositorModifierData {

@@ -2,6 +2,10 @@
  *
  * SPDX-License-Identifier: GPL-2.0-or-later */
 
+/** \file
+ * \ingroup nodes
+ */
+
 #include "NOD_composite.hh"
 #include "NOD_geometry.hh"
 #include "NOD_register.hh"

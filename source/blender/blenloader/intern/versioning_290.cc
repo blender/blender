@@ -571,7 +571,7 @@ void do_versions_after_linking_290(FileData * /*fd*/, Main *bmain)
     }
 
     /* Patch first frame for old files. */
-    Scene *scene = static_cast<Scene *>(bmain->scenes.first);
+    Scene *scene = bmain->scenes.first();
     if (scene != nullptr) {
       for (Object &ob : bmain->objects) {
         if (ob.type != OB_GPENCIL_LEGACY) {
@@ -579,7 +579,7 @@ void do_versions_after_linking_290(FileData * /*fd*/, Main *bmain)
         }
         bGPdata *gpd = id_cast<bGPdata *>(ob.data);
         for (bGPDlayer &gpl : gpd->layers) {
-          bGPDframe *gpf = static_cast<bGPDframe *>(gpl.frames.first);
+          bGPDframe *gpf = gpl.frames.first();
           if (gpf && gpf->framenum > scene->r.sfra) {
             bGPDframe *gpf_dup = BKE_gpencil_frame_duplicate(gpf, true);
             gpf_dup->framenum = scene->r.sfra;
@@ -799,12 +799,12 @@ static void version_node_join_geometry_for_multi_input_socket(bNodeTree *ntree)
     if (link.tonode->type_legacy == GEO_NODE_JOIN_GEOMETRY &&
         !(link.tosock->flag & SOCK_MULTI_INPUT))
     {
-      link.tosock = static_cast<bNodeSocket *>(link.tonode->inputs.first);
+      link.tosock = link.tonode->inputs.first();
     }
   }
   for (bNode &node : ntree->nodes) {
     if (node.type_legacy == GEO_NODE_JOIN_GEOMETRY) {
-      bNodeSocket *socket = static_cast<bNodeSocket *>(node.inputs.first);
+      bNodeSocket *socket = node.inputs.first();
       socket->flag |= SOCK_MULTI_INPUT;
       socket->limit = 4095;
       bke::node_remove_socket(*ntree, node, *socket->next);
@@ -1813,8 +1813,8 @@ void blo_do_versions_290(FileData *fd, Library * /*lib*/, Main *bmain)
       for (ScrArea &area : screen.areabase) {
         for (SpaceLink &sl : area.spacedata) {
           if (sl.spacetype == SPACE_SPREADSHEET) {
-            ListBaseT<ARegion> *regionbase = (&sl == area.spacedata.first) ? &area.regionbase :
-                                                                             &sl.regionbase;
+            ListBaseT<ARegion> *regionbase = (&sl == area.spacedata.first_) ? &area.regionbase :
+                                                                              &sl.regionbase;
             ARegion *new_footer = do_versions_add_region_if_not_found(
                 regionbase, RGN_TYPE_FOOTER, "footer for spreadsheet", RGN_TYPE_HEADER);
             if (new_footer != nullptr) {

@@ -2,6 +2,10 @@
  *
  * SPDX-License-Identifier: GPL-2.0-or-later */
 
+/** \file
+ * \ingroup edcurves
+ */
+
 #include "BLI_index_mask.hh"
 #include "BLI_task.hh"
 #include "BLI_vector_set.hh"

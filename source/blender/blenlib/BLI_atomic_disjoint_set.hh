@@ -35,7 +35,8 @@ class AtomicDisjointSet {
 
   /**
    * An #Item per element. It's important that the entire item is in a single atomic, so that it
-   * can be updated atomically. */
+   * can be updated atomically.
+   */
   mutable Array<std::atomic<Item>> items_;
 
  public:

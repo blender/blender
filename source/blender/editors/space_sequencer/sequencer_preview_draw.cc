@@ -1838,7 +1838,7 @@ static void sequencer_preview_draw_overlays(const bContext *C,
 void sequencer_preview_region_draw(const bContext *C, ARegion *region)
 {
   const ScrArea *area = CTX_wm_area(C);
-  const SpaceSeq &space_sequencer = *static_cast<const SpaceSeq *>(area->spacedata.first);
+  const SpaceSeq &space_sequencer = *area->spacedata.first_as<SpaceSeq>();
   Scene *scene = CTX_data_sequencer_scene(C);
 
   /* Check if preview needs to be drawn at all. Note: do not draw preview region when

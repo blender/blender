@@ -51,8 +51,9 @@ ShaderOperation::ShaderOperation(Context &context,
                                  const ComputeContext &compute_context)
     : PixelOperation(context, compile_state, compute_context, false)
 {
+  const int64_t uuid = this->context().get_precision() == ResultPrecision::Full ? 0 : 1;
   material_ = GPU_material_from_callbacks(
-      GPU_MAT_COMPOSITOR, &construct_material, &generate_code, this);
+      GPU_MAT_COMPOSITOR, &construct_material, &generate_code, this, uuid);
 }
 
 ShaderOperation::~ShaderOperation()

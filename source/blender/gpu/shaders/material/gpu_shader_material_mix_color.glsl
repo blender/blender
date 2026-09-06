@@ -324,7 +324,7 @@ void node_mix_vector(float fac, float3 v1, float3 v2, float3 &outvec)
 [[node]]
 void node_mix_vector_non_uniform(float3 facvec, float3 v1, float3 v2, float3 &outvec)
 {
-  outvec = endvalue_preserving_mix(v1, v2, fac);
+  outvec = endvalue_preserving_mix(v1, v2, facvec);
 }
 
 [[node]]

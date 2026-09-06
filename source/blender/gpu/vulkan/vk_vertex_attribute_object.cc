@@ -2,6 +2,10 @@
  *
  * SPDX-License-Identifier: GPL-2.0-or-later */
 
+/** \file
+ * \ingroup gpu
+ */
+
 #include "vk_vertex_attribute_object.hh"
 
 #include "vk_batch.hh"

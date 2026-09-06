@@ -586,8 +586,8 @@ inline void Manager::register_layer_attributes(GPUMaterial *material)
 
   if (attr_list != nullptr) {
     for (const GPULayerAttr &attr : *attr_list) {
-      /** Since layer attributes are global to the whole render pass,
-       *  this only collects a table of their names. */
+      /* Since layer attributes are global to the whole render pass,
+       * this only collects a table of their names. */
       layer_attributes.add(attr.hash_code, *&attr);
     }
   }

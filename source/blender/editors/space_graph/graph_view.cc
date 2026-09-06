@@ -91,7 +91,7 @@ static bool calculate_keyframe_bounds(const ListBaseT<bAnimListElem> &anim_data,
                                       rctf &r_bounds)
 {
   /* Check if any channels to set range with. */
-  if (!anim_data.first) {
+  if (!anim_data.first_) {
     return false;
   }
   constexpr float inf = std::numeric_limits<float>::infinity();

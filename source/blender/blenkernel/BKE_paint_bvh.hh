@@ -327,7 +327,10 @@ class Tree {
   static Tree from_spatially_organized_mesh(const Mesh &mesh);
 };
 
-void build_pixels(const Depsgraph &depsgraph, Object &object, Image &image, ImageUser &image_user);
+void build_pixels(const Depsgraph &depsgraph,
+                  Object &object,
+                  Image &image,
+                  const ImageUser &image_user);
 void pixels_free(bke::pbvh::Tree *pbvh);
 
 /**

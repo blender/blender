@@ -1291,7 +1291,7 @@ PyObject *BPy_IDGroup_MapDataToPy(IDProperty *prop)
       PyObject *dict = _PyDict_NewPresized(prop->len);
       IDProperty *loop;
 
-      for (loop = static_cast<IDProperty *>(prop->data.group.first); loop; loop = loop->next) {
+      for (loop = prop->data.group.first(); loop; loop = loop->next) {
         PyObject *wrap = BPy_IDGroup_MapDataToPy(loop);
 
         /* BPy_IDGroup_MapDataToPy sets the error */
@@ -1474,7 +1474,7 @@ static PyObject *IDGroup_Iter_New_WithType(BPy_IDProperty *group,
     BLI_assert(!PyObject_GC_IsTracked((PyObject *)iter));
     PyObject_GC_Track(iter);
     iter->cur = static_cast<IDProperty *>(
-        (reversed ? group->prop->data.group.last : group->prop->data.group.first));
+        (reversed ? group->prop->data.group.last() : group->prop->data.group.first()));
     iter->len_init = group->prop->len;
   }
   else {
@@ -1806,9 +1806,7 @@ PyObject *BPy_Wrap_GetKeys(IDProperty *prop)
   IDProperty *loop;
   int i;
 
-  for (i = 0, loop = static_cast<IDProperty *>(prop->data.group.first); loop && (i < prop->len);
-       loop = loop->next, i++)
-  {
+  for (i = 0, loop = prop->data.group.first(); loop && (i < prop->len); loop = loop->next, i++) {
     PyList_SET_ITEM(list, i, PyUnicode_FromString(loop->name));
   }
 
@@ -1833,9 +1831,7 @@ PyObject *BPy_Wrap_GetValues(ID *id, IDProperty *prop)
   IDProperty *loop;
   int i;
 
-  for (i = 0, loop = static_cast<IDProperty *>(prop->data.group.first); loop;
-       loop = loop->next, i++)
-  {
+  for (i = 0, loop = prop->data.group.first(); loop; loop = loop->next, i++) {
     PyList_SET_ITEM(list, i, BPy_IDGroup_WrapData(id, loop, prop));
   }
 
@@ -1855,9 +1851,7 @@ PyObject *BPy_Wrap_GetItems(ID *id, IDProperty *prop)
   IDProperty *loop;
   int i;
 
-  for (i = 0, loop = static_cast<IDProperty *>(prop->data.group.first); loop;
-       loop = loop->next, i++)
-  {
+  for (i = 0, loop = prop->data.group.first(); loop; loop = loop->next, i++) {
     PyObject *item = PyTuple_New(2);
     PyTuple_SET_ITEMS(
         item, PyUnicode_FromString(loop->name), BPy_IDGroup_WrapData(id, loop, prop));

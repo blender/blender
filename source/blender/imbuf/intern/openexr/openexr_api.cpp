@@ -852,8 +852,10 @@ struct ExrReadHandle {
   Vector<ExrChannel> channels;
   /** Layers and passes. */
   Vector<ExrLayer> layers;
-  /** True once the layer/pass info has been parsed from the file header.
-   * Parsing is deferred to the first call that needs its. */
+  /**
+   * True once the layer/pass info has been parsed from the file header.
+   * Parsing is deferred to the first call that needs its.
+   */
   bool channels_parsed = false;
 };
 

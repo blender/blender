@@ -611,7 +611,7 @@ static void rna_UnifiedPaintSettings_unprojected_size_set(PointerRNA *ptr, float
 static void rna_UnifiedPaintSettings_size_update(bContext *C, PointerRNA *ptr)
 {
   /* changing the unified size should invalidate the overlay but also update the brush */
-  BKE_paint_invalidate_overlay_all();
+  bke::paint::invalidate_overlay_all(*CTX_data_scene(C));
   rna_UnifiedPaintSettings_update(C, ptr);
 }
 

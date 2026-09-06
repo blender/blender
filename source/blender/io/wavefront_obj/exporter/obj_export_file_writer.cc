@@ -57,7 +57,8 @@ static const char *DEFORM_GROUP_DISABLED = "off";
  * Per reference http://www.martinreddy.net/gfx/3d/OBJ.spec:
  * Once a material is assigned, it cannot be turned off; it can only be changed.
  * If a material name is not specified, a white material is used.
- * So an empty material name is written. */
+ * So an empty material name is written.
+ */
 static const char *MATERIAL_GROUP_DISABLED = "";
 
 OBJWriter::OBJWriter(const char *filepath, const OBJExportParams &export_params) noexcept(false)

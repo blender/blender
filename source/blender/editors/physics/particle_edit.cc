@@ -313,7 +313,7 @@ static PTCacheEdit *pe_get_current(Depsgraph *depsgraph, Scene *scene, Object *o
 
   /* in the case of only one editable thing, set pset->edittype accordingly */
   if (pidlist.is_single()) {
-    pid = static_cast<PTCacheID *>(pidlist.first);
+    pid = pidlist.first();
     switch (pid->type) {
       case PTCACHE_TYPE_PARTICLES:
         pset->edittype = PE_TYPE_PARTICLES;
@@ -327,7 +327,7 @@ static PTCacheEdit *pe_get_current(Depsgraph *depsgraph, Scene *scene, Object *o
     }
   }
 
-  for (pid = static_cast<PTCacheID *>(pidlist.first); pid; pid = pid->next) {
+  for (pid = pidlist.first(); pid; pid = pid->next) {
     if (pset->edittype == PE_TYPE_PARTICLES && pid->type == PTCACHE_TYPE_PARTICLES) {
       ParticleSystem *psys = static_cast<ParticleSystem *>(pid->calldata);
 
@@ -5344,8 +5344,7 @@ void PE_create_particle_edit(
       psys_copy_particles(psys, psys_eval);
     }
 
-    totpoint = psys ? psys->totpart :
-                      int((static_cast<PTCacheMem *>(cache->mem_cache.first))->totpoint);
+    totpoint = psys ? psys->totpart : int((cache->mem_cache.first())->totpoint);
 
     edit = MEM_new_zeroed<PTCacheEdit>("PE_create_particle_edit");
     edit->points = MEM_new_array_zeroed<PTCacheEditPoint>(totpoint, "PTCacheEditPoints");
@@ -5447,10 +5446,7 @@ static bool particle_edit_toggle_poll(bContext *C)
 
 static void free_all_psys_edit(Object *object)
 {
-  for (ParticleSystem *psys = static_cast<ParticleSystem *>(object->particlesystem.first);
-       psys != nullptr;
-       psys = psys->next)
-  {
+  for (ParticleSystem *psys = object->particlesystem.first(); psys != nullptr; psys = psys->next) {
     if (psys->edit != nullptr) {
       BLI_assert(psys->free_edit != nullptr);
       psys->free_edit(psys->edit);
@@ -5462,7 +5458,7 @@ static void free_all_psys_edit(Object *object)
 
 bool ED_object_particle_edit_mode_supported(const Object *ob)
 {
-  return (ob->particlesystem.first || BKE_modifiers_findby_type(ob, eModifierType_Cloth) ||
+  return (ob->particlesystem.first() || BKE_modifiers_findby_type(ob, eModifierType_Cloth) ||
           BKE_modifiers_findby_type(ob, eModifierType_Softbody));
 }
 

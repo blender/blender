@@ -56,6 +56,7 @@ struct DRWViewData;
 struct GPUViewport;
 struct DRWTextStore;
 struct GPUViewport;
+struct bToolRef;
 namespace draw {
 class TextureFromPool;
 class ObjectRef;
@@ -315,8 +316,10 @@ struct DRWContext {
   /** Evaluated ViewLayer. */
   ViewLayer *view_layer = nullptr;
 
-  /** Last resort (some functions take this as an arg so we can't easily avoid).
-   * May be nullptr when used for selection or depth buffer. */
+  /**
+   * Last resort (some functions take this as an arg so we can't easily avoid).
+   * May be nullptr when used for selection or depth buffer.
+   */
   const bContext *evil_C = nullptr;
   /** Can be nullptr depending on context. */
   ARegion *region = nullptr;
@@ -326,6 +329,8 @@ struct DRWContext {
   RegionView3D *rv3d = nullptr;
   /** Can be nullptr depending on context. */
   View3D *v3d = nullptr;
+  /* Active tool in the current context. Might be nullptr. */
+  bToolRef *active_tool = nullptr;
   /** Use 'object_edit' for edit-mode */
   Object *obact = nullptr;
   Object *object_pose = nullptr;

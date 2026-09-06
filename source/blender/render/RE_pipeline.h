@@ -174,7 +174,8 @@ struct RenderStats {
 /**
  * The owner is a unique identifier for the render, either an original scene
  * datablock for regular renders, or an area for preview renders.
- * Calling a new render with an existing owner frees the existing render. */
+ * Calling a new render with an existing owner frees the existing render.
+ */
 struct Render *RE_NewRender(const void *owner);
 struct Render *RE_GetRender(const void *owner);
 
@@ -417,9 +418,9 @@ bool RE_ReadRenderResult(struct Scene *scene, struct Scene *scenode);
 struct RenderResult *RE_MultilayerConvert(
     ExrReadHandle *exrhandle, const char *colorspace, bool predivide, int rectx, int recty);
 
-/**
+/*
  * Display, event callbacks and GPU contexts
- * */
+ */
 
 void RE_display_init(Render *re);
 void RE_display_ensure_gpu_context(Render *re);
@@ -461,11 +462,6 @@ struct RenderPass *RE_pass_find_by_name(struct RenderLayer *rl,
  * sharing with other users.
  */
 void RE_pass_set_buffer_data(struct RenderPass *pass, float *data);
-
-/**
- * Ensure a GPU texture corresponding to the render buffer data exists.
- */
-gpu::Texture *RE_pass_ensure_gpu_texture_cache(struct Render *re, struct RenderPass *rpass);
 
 void RE_GetCameraWindow(struct Render *re, const struct Object *camera, float r_winmat[4][4]);
 /**

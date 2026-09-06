@@ -975,6 +975,7 @@ static void normals_calc_faces(const Span<float3> positions,
                                const Span<int> face_indices,
                                MutableSpan<float3> face_normals)
 {
+  PRF_scope(ProfileCategory::Core);
   for (const int i : face_indices) {
     face_normals[i] = mesh::face_normal_calc(positions, corner_verts.slice(faces[i]));
   }
@@ -999,6 +1000,7 @@ static void normals_calc_verts_simple(const GroupedSpan<int> vert_to_face_map,
                                       const Span<int> verts,
                                       MutableSpan<float3> vert_normals)
 {
+  PRF_scope(ProfileCategory::Core);
   for (const int vert : verts) {
     float3 normal(0.0f);
     for (const int face : vert_to_face_map[vert]) {
@@ -1079,6 +1081,7 @@ static void update_normals_mesh(Object &object_orig,
                                 const Span<MeshNode> nodes,
                                 const IndexMask &nodes_to_update)
 {
+  PRF_scope(ProfileCategory::Core);
   /* Position changes are tracked on a per-node level, so all the vertex and face normals for every
    * affected node are recalculated.
    *

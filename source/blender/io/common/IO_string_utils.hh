@@ -2,6 +2,10 @@
  *
  * SPDX-License-Identifier: GPL-2.0-or-later */
 
+/** \file
+ * \ingroup io
+ */
+
 #pragma once
 
 #include "BLI_string_ref.hh"

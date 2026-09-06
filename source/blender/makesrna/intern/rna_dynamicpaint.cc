@@ -160,7 +160,7 @@ static void rna_DynamicPaintSurface_reset_dependency(Main *bmain, Scene *scene, 
 static PointerRNA rna_PaintSurface_active_get(PointerRNA *ptr)
 {
   DynamicPaintCanvasSettings *canvas = static_cast<DynamicPaintCanvasSettings *>(ptr->data);
-  DynamicPaintSurface *surface = static_cast<DynamicPaintSurface *>(canvas->surfaces.first);
+  DynamicPaintSurface *surface = canvas->surfaces.first();
   int id = 0;
 
   for (; surface; surface = surface->next) {
@@ -207,7 +207,7 @@ static void rna_Surface_active_point_range(
 static void rna_DynamicPaint_uvlayer_set(PointerRNA *ptr, const char *value)
 {
   DynamicPaintCanvasSettings *canvas = (static_cast<DynamicPaintSurface *>(ptr->data))->canvas;
-  DynamicPaintSurface *surface = static_cast<DynamicPaintSurface *>(canvas->surfaces.first);
+  DynamicPaintSurface *surface = canvas->surfaces.first();
   int id = 0;
 
   for (; surface; surface = surface->next) {

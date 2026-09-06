@@ -2,7 +2,9 @@
  *
  * SPDX-License-Identifier: GPL-2.0-or-later */
 
-/**
+/** \file
+ * \ingroup draw
+ *
  * GPU generated interpolated position and radius. Updated on attribute change.
  * One thread processes one curve.
  *

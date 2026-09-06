@@ -15,6 +15,7 @@
 
 #include "../outliner_intern.hh"
 
+#include "tree_display.hh"
 #include "tree_element_shapekey.hh"
 
 namespace blender::ed::outliner {
@@ -29,12 +30,8 @@ TreeElementShapeKeyBase::TreeElementShapeKeyBase(TreeElement &legacy_te, Key &ke
 void TreeElementShapeKeyBase::expand(SpaceOutliner & /*space_outliner*/) const
 {
   for (auto [index, keyblock] : key_.block.enumerate()) {
-    add_element(&legacy_te_.subtree,
-                &key_.id,
-                const_cast<KeyBlock *>(&keyblock),
-                &legacy_te_,
-                TSE_SHAPE_KEY_BLOCK,
-                index);
+    add_element<TreeElementShapeKey>({.index = index, .owner_id = &key_.id},
+                                     const_cast<KeyBlock &>(keyblock));
   }
 }
 

@@ -142,7 +142,7 @@ static std::optional<StringRef> find_format_specifier(const StringRef format)
   return std::nullopt;
 }
 
-/** Returns the index of the next unescaped '{', the string size, or -1 on error.*/
+/** Returns the index of the next unescaped '{', the string size, or -1 on error. */
 static int64_t find_next_format_start_or_end(const StringRef format,
                                              const int64_t start,
                                              std::string &r_out,

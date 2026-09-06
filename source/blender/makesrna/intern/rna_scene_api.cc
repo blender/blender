@@ -64,8 +64,7 @@ static void rna_Scene_frame_set(Scene *scene, Main *bmain, int frame, float subf
   BPy_BEGIN_ALLOW_THREADS;
 #  endif
 
-  for (ViewLayer *view_layer = static_cast<ViewLayer *>(scene->view_layers.first);
-       view_layer != nullptr;
+  for (ViewLayer *view_layer = scene->view_layers.first(); view_layer != nullptr;
        view_layer = view_layer->next)
   {
     Depsgraph *depsgraph = BKE_scene_ensure_depsgraph(bmain, scene, view_layer);
@@ -77,7 +76,7 @@ static void rna_Scene_frame_set(Scene *scene, Main *bmain, int frame, float subf
 #  endif
 
   if (BKE_scene_camera_switch_update(scene)) {
-    for (bScreen *screen = static_cast<bScreen *>(bmain->screens.first); screen;
+    for (bScreen *screen = bmain->screens.first(); screen;
          screen = static_cast<bScreen *>(screen->id.next))
     {
       BKE_screen_view3d_scene_sync(screen, scene);

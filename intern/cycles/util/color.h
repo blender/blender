@@ -9,18 +9,6 @@
 
 CCL_NAMESPACE_BEGIN
 
-ccl_device uchar float_to_byte(const float val)
-{
-  return ((val <= 0.0f) ?
-              0 :
-              ((val > (1.0f - 0.5f / 255.0f)) ? 255 : (uchar)((255.0f * val) + 0.5f)));  // NOLINT
-}
-
-ccl_device float byte_to_float(const uchar val)
-{
-  return val * (1.0f / 255.0f);
-}
-
 ccl_device uchar4 color_float_to_byte(const float3 c)
 {
   uchar r;

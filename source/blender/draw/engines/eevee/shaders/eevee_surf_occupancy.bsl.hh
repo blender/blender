@@ -65,6 +65,9 @@ void surf_occupancy([[resource_table]] SurfOccupancy &srt,
   const ViewMatrices view = views.get(0);
   int2 texel = int2(frag_co.xy);
   float vPz = dot(view.forward(), interp.P) - dot(view.forward(), view.position());
+  if (volume_uses_radial_depth(uni)) {
+    vPz = -distance(interp.P, view.position());
+  }
 
   float offset = sampling.rng_1D_get(SAMPLING_VOLUME_W);
   float jitter = volume_froxel_jitter(texel, offset) * uni.uniform_buf.volumes.inv_tex_size.z;

@@ -25,8 +25,10 @@ pxr::HdContainerDataSourceHandle build_light_prim_data_source(
 /** Emit a light Sprim for a lamp object. */
 void emit_light_object(PopulateContext &ctx, const Object *object, EmittedObject &emitted);
 
-/** Emit a per-dupli light Sprim. Lights aren't gprims and don't go
- * through the instancer prototype mechanism. */
+/**
+ * Emit a per-dupli light Sprim. Lights aren't gprims and don't go
+ * through the instancer prototype mechanism.
+ */
 void emit_light_dupli(PopulateContext &ctx, const Object *source, const float dupli_mat[4][4]);
 
 }  // namespace io::hydra

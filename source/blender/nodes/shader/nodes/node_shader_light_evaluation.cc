@@ -2,7 +2,14 @@
  *
  * SPDX-License-Identifier: GPL-2.0-or-later */
 
+/** \file
+ * \ingroup shdnodes
+ */
+
 #include "node_shader_util.hh"
+
+#include "UI_interface_layout.hh"
+#include "UI_resources.hh"
 
 namespace blender {
 

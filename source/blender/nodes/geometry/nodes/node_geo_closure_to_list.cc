@@ -174,7 +174,7 @@ static void node_geo_exec(GeoNodeExecParams params)
     for (const int64_t list_i : range) {
       /* Create input value. */
       BLI_assert(list_i < std::numeric_limits<int>::max());
-      closure_params.inputs[0].value = bke::SocketValueVariant::From(int(list_i));
+      closure_params.inputs[0].value = bke::SocketValueVariant::from(int(list_i));
 
       /* Set output locations. */
       for (const int required_i : required_items.index_range()) {
@@ -207,7 +207,7 @@ static void node_geo_exec(GeoNodeExecParams params)
       GArray<> array(type, count, NoInitialization());
       threading::parallel_for(IndexRange(count), 128, [&](const IndexRange range) {
         for (const int list_i : range) {
-          void *closure_result = const_cast<void *>(values[list_i].get_single_ptr_raw());
+          void *closure_result = values[list_i].get_if(type);
           type.move_construct(closure_result, array[list_i]);
         }
       });

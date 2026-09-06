@@ -486,9 +486,7 @@ static void box_select_elem(
     case ANIMTYPE_MASKDATABLOCK: {
       Mask *mask = static_cast<Mask *>(ale->data);
       MaskLayer *masklay;
-      for (masklay = static_cast<MaskLayer *>(mask->masklayers.first); masklay;
-           masklay = masklay->next)
-      {
+      for (masklay = mask->masklayers.first(); masklay; masklay = masklay->next) {
         ED_masklayer_frames_select_box(masklay, xmin, xmax, sel_data->selectmode);
       }
       break;
@@ -566,9 +564,7 @@ static void box_select_action(bAnimContext *ac,
   const float channel_step = ANIM_UI_get_channel_step();
 
   /* loop over data, doing box select */
-  for (ale = static_cast<bAnimListElem *>(anim_data.first); ale;
-       ale = ale->next, ymax -= channel_step)
-  {
+  for (ale = anim_data.first(); ale; ale = ale->next, ymax -= channel_step) {
     /* get new vertical minimum extent of channel */
     float ymin = ymax - channel_step;
 
@@ -623,7 +619,15 @@ static wmOperatorStatus actkeys_box_select_invoke(bContext *C,
     }
   }
 
-  return WM_gesture_box_invoke(C, op, event);
+  /* `SPACE_ACTION` clamps view at draw-time (foot-gun, draw code should probably be
+   * read-only...), so prevent panning past that. We shouldn't limit horizontal range to
+   * `tot`, however, because for timelines it is the scene playback range. */
+  const ARegion *region = CTX_wm_region(C);
+  const wmOperatorStatus opstatus = WM_gesture_box_invoke(C, op, event);
+  wmGesture *gesture = static_cast<wmGesture *>(op->customdata);
+  gesture->edge_pan_data->limit.ymin = region->v2d.tot.ymin;
+  gesture->edge_pan_data->limit.ymax = region->v2d.tot.ymax;
+  return opstatus;
 }
 
 static wmOperatorStatus actkeys_box_select_exec(bContext *C, wmOperator *op)
@@ -767,9 +771,7 @@ static void region_select_elem(RegionSelectData *sel_data, bAnimListElem *ale, b
     case ANIMTYPE_MASKDATABLOCK: {
       Mask *mask = static_cast<Mask *>(ale->data);
       MaskLayer *masklay;
-      for (masklay = static_cast<MaskLayer *>(mask->masklayers.first); masklay;
-           masklay = masklay->next)
-      {
+      for (masklay = mask->masklayers.first(); masklay; masklay = masklay->next) {
         ED_masklayer_frames_select_region(
             &sel_data->ked, masklay, sel_data->mode, sel_data->selectmode);
       }
@@ -857,9 +859,7 @@ static void region_select_action_keys(bAnimContext *ac,
   const float channel_step = ANIM_UI_get_channel_step();
 
   /* loop over data, doing region select */
-  for (ale = static_cast<bAnimListElem *>(anim_data.first); ale;
-       ale = ale->next, ymax -= channel_step)
-  {
+  for (ale = anim_data.first(); ale; ale = ale->next, ymax -= channel_step) {
     /* get new vertical minimum extent of channel */
     const float ymin = ymax - channel_step;
 

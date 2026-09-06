@@ -1725,7 +1725,7 @@ static void draw_timeline_sfra_efra(const TimelineDrawContext &ctx)
 
   /* While in meta strip, draw a checkerboard overlay outside of frame range. */
   if (ed && !ed->metastack.is_empty()) {
-    const MetaStack *ms = static_cast<const MetaStack *>(ed->metastack.last);
+    const MetaStack *ms = ed->metastack.last();
 
     uint pos = GPU_vertformat_attr_add(immVertexFormat(), "pos", gpu::VertAttrType::SFLOAT_32_32);
     immBindBuiltinProgram(GPU_SHADER_2D_CHECKER);

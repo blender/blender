@@ -178,7 +178,8 @@ bool BKE_scene_validate_setscene(Main *bmain, Scene *sce);
 /**
  * Return fractional frame number taking into account sub-frames and time
  * remapping. This the time value used by animation, modifiers and physics
- * evaluation. */
+ * evaluation.
+ */
 float BKE_scene_ctime_get(const Scene *scene);
 /**
  * Convert integer frame number to fractional frame number taking into account

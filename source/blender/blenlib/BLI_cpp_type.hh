@@ -157,6 +157,10 @@ class CPPType : NonCopyable, NonMovable {
   bool is_copy_assignable = false;
   bool is_move_assignable = false;
 
+  /** Comes from `T::base_type`. */
+  const CPPType *base_type = nullptr;
+  /** Comes from `T::generic_type`. */
+  const CPPType *generic_type = nullptr;
   /**
    * An index that is assigned when the type is registered. Each #CPPtype has a unique index.
    * While the pointer of a #CPPType is also unique, sometimes it's easier to work with an index
@@ -230,6 +234,11 @@ class CPPType : NonCopyable, NonMovable {
    * `BLI_CPP_TYPE_REGISTER`.
    */
   template<typename T> static const CPPType &get();
+  /**
+   * Version of `CPPType::get` that can be used before type registration code is called.
+   * The returned CPPType may not be constructed yet, but the pointer is valid already.
+   */
+  template<typename T> static const CPPType *get_pre_register();
 
   /**
    * Returns the name of the type for debugging purposes. This name should not be used as
@@ -436,7 +445,8 @@ class CPPType : NonCopyable, NonMovable {
 namespace detail {
 /**
  * Global static variable that contains the #CPPType for a given type after it has been registered
- * with #BLI_CPP_TYPE_REGISTER. This should generally be accessed through #CPPType::get<T>. */
+ * with #BLI_CPP_TYPE_REGISTER. This should generally be accessed through #CPPType::get<T>.
+ */
 template<typename T> inline TypedBuffer<CPPType> cpp_type_impl{};
 }  // namespace detail
 
@@ -475,6 +485,11 @@ template<typename T> inline const CPPType &CPPType::get()
    * tests) or `BKE_cpp_types_init` (for general tests). */
   BLI_assert(type.size > 0);
   return type;
+}
+
+template<typename T> inline const CPPType *CPPType::get_pre_register()
+{
+  return detail::cpp_type_impl<std::decay_t<T>>.ptr();
 }
 
 inline StringRefNull CPPType::name() const

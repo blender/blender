@@ -198,7 +198,7 @@ static void write_weights_for_drawing(const ModifierData &md,
 
       dst_weights.span[point_i] = math::clamp(
           dst_weights.span[point_i],
-          /** Weight==0 will remove the point from the group, assign a sufficiently small value
+          /* Weight==0 will remove the point from the group, assign a sufficiently small value
            * there to prevent the visual disconnect, and keep the behavior same as the old
            * modifier. */
           math::max(mmd.min_weight, 1e-5f),

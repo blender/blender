@@ -6,6 +6,7 @@
  * \ingroup spoutliner
  */
 
+#include "DNA_object_types.h"
 #include "DNA_outliner_types.h"
 #include "DNA_particle_types.h"
 
@@ -23,6 +24,11 @@ TreeElementParticleSystem::TreeElementParticleSystem(TreeElement &legacy_te,
   BLI_assert(legacy_te.store_elem->type == TSE_LINKED_PSYS);
   legacy_te.directdata = &psys_;
   legacy_te.name = psys_.part->id.name + 2;
+}
+
+ID *TreeElementParticleSystem::owner_id(Object &object, ParticleSystem & /*psys*/)
+{
+  return &object.id;
 }
 
 }  // namespace blender::ed::outliner

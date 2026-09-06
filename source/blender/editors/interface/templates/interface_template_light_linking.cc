@@ -51,7 +51,7 @@ class CollectionDropTarget {
       return false;
     }
 
-    const wmDragID *drag_id = static_cast<wmDragID *>(drag.ids.first);
+    const wmDragID *drag_id = drag.ids.first();
     if (!drag_id) {
       return false;
     }

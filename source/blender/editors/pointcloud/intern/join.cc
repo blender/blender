@@ -2,6 +2,10 @@
  *
  * SPDX-License-Identifier: GPL-2.0-or-later */
 
+/** \file
+ * \ingroup edpointcloud
+ */
+
 #include "BLI_map.hh"
 
 #include "DNA_scene_types.h"

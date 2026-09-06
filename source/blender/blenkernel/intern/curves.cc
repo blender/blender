@@ -115,7 +115,7 @@ static void curves_blend_write(BlendWriter *writer, ID *id, const void *id_addre
 
   ResourceScope scope;
   bke::CurvesGeometry::BlendWriteData write_data(writer, scope);
-  curves->geometry.wrap().blend_write_prepare(write_data, !BLO_write_is_undo(writer));
+  curves->geometry.wrap().blend_write_prepare(write_data, !writer->is_undo());
 
   /* Write LibData */
   writer->write_id_struct(id_address, curves, [](BlendStructWriter &struct_writer) {

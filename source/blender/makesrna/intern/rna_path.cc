@@ -900,7 +900,7 @@ static char *rna_idp_path(PointerRNA *ptr,
   link.name = nullptr;
   link.index = -1;
 
-  for (iter = static_cast<IDProperty *>(haystack->data.group.first); iter; iter = iter->next) {
+  for (iter = haystack->data.group.first(); iter; iter = iter->next) {
     if (needle == iter) { /* found! */
       link.name = iter->name;
       link.index = -1;

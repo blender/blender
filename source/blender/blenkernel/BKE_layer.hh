@@ -518,9 +518,8 @@ void _BKE_view_layer_synced_ensure_or_assert(const Main *bmain,
     Object *_instance; \
     Base *_base; \
     _BKE_view_layer_synced_ensure_or_assert(_bmain, _scene, _view_layer); \
-    for (_base = (Base *)BKE_view_layer_object_bases_get(_view_layer)->first; _base; \
-         _base = _base->next) \
-    { \
+    for (_base = BKE_view_layer_object_bases_get(_view_layer)->first(); _base; \
+         _base = _base->next) { \
       _instance = _base->object;
 
 #define FOREACH_OBJECT_END \

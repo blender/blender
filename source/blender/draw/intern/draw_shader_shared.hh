@@ -2,6 +2,10 @@
  *
  * SPDX-License-Identifier: GPL-2.0-or-later */
 
+/** \file
+ * \ingroup draw
+ */
+
 #pragma once
 
 #include "GPU_shader_shared_utils.hh"
@@ -537,9 +541,11 @@ struct [[host_shared]] VolumeInfos {
 
 struct [[host_shared]] CurvesInfos {
   /* TODO(fclem): Make it a single uint. */
-  /** Per attribute scope, follows loading order.
+  /**
+   * Per attribute scope, follows loading order.
    * \note uint as bool in GLSL is 4 bytes.
-   * \note GLSL pad arrays of scalar to 16 bytes (std140). */
+   * \note GLSL pad arrays of scalar to 16 bytes (std140).
+   */
   uint4 is_point_attribute[DRW_ATTRIBUTE_PER_CURVES_MAX];
 
   /* Number of vertex in a segment (including restart vertex for cylinder). */
@@ -573,8 +579,10 @@ struct [[host_shared]] ObjectAttribute {
 #endif
 };
 #pragma pack(pop)
-/** \note we only align to 4 bytes and fetch data manually so make sure
- * C++ compiler gives us the same size. */
+/**
+ * \note we only align to 4 bytes and fetch data manually so make sure
+ * C++ compiler gives us the same size.
+ */
 #ifndef GPU_SHADER
 BLI_STATIC_ASSERT_ALIGN(ObjectAttribute, 20)
 #endif

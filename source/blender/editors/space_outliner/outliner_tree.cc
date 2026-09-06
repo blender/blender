@@ -34,6 +34,7 @@
 #include "outliner_intern.hh"
 #include "tree/tree_display.hh"
 #include "tree/tree_element.hh"
+#include "tree/tree_element_id.hh"
 
 #ifdef WIN32
 #  include "BLI_math_base_c.hh" /* M_PI */
@@ -182,175 +183,82 @@ bool outliner_requires_rebuild_on_select_or_active_change(const SpaceOutliner *s
   return exclude_flags & (SO_FILTER_OB_STATE_SELECTED | SO_FILTER_OB_STATE_ACTIVE);
 }
 
-TreeElement *AbstractTreeDisplay::add_element(SpaceOutliner *space_outliner,
-                                              ListBaseT<TreeElement> *lb,
-                                              ID *owner_id,
-                                              void *create_data,
-                                              TreeElement *parent,
-                                              short type,
-                                              short index,
-                                              const bool expand)
+TreeElement *AbstractTreeDisplay::add_id_element(const TreeElementAddParams &params, ID *id)
 {
-  if (!space_outliner->runtime || !space_outliner->runtime->tree_display) {
-    BLI_assert_unreachable();
+  if (id == nullptr) {
     return nullptr;
   }
+  /* Real ID, ensure we do not get non-outliner ID types here... */
+  BLI_assert(TREESTORE_ID_TYPE(id));
 
-  return space_outliner->runtime->tree_display->add_element(
-      lb, owner_id, create_data, parent, type, index, expand);
+  TreeElement *te = add_element_impl(
+      params,
+      TSE_SOME_ID,
+      id,
+      nullptr,
+      false,
+      [&](TreeElement &legacy_te) -> std::unique_ptr<AbstractTreeElement> {
+        return TreeElementID::create_from_id(legacy_te, *id);
+      });
+  BLI_assert_msg(te->abstract_element != nullptr,
+                 "Expected this ID type to be ported to new Outliner tree-element design");
+  return te;
 }
 
-TreeElement *AbstractTreeDisplay::add_element(ListBaseT<TreeElement> *lb,
-                                              ID *owner_id,
-                                              void *create_data,
-                                              TreeElement *parent,
-                                              short type,
-                                              short index,
-                                              const bool expand)
+TreeElement *AbstractTreeDisplay::add_element_impl(
+    const TreeElementAddParams &params,
+    const short type,
+    ID *owner_id,
+    const void *persistent_ptr,
+    const bool allow_null_identity,
+    FunctionRef<std::unique_ptr<AbstractTreeElement>(TreeElement &)> construct_fn)
 {
+  ListBaseT<TreeElement> *lb = params.lb ? params.lb :
+                                           (params.parent ? &params.parent->subtree : nullptr);
+  BLI_assert_msg(lb != nullptr, "Either a sub-tree or a parent to add the element to is required");
+
   /* Pointer to store in #TreeStoreElem.id to identify the element over rebuilds and reconstruct it
-   * on file read. */
-  /* FIXME: This may be an arbitrary void pointer that is cast to an ID pointer. Could be a
-   * temporary stack pointer even. Often works reliably enough at runtime, and file reading handles
-   * cases where data can't be reconstructed just fine (pointer is null'ed). This is still
-   * completely type unsafe and error-prone. */
-  ID *persistent_dataptr = owner_id ? owner_id : static_cast<ID *>(create_data);
-
-  if ((owner_id == nullptr) && ELEM(type, TSE_RNA_STRUCT, TSE_RNA_PROPERTY, TSE_RNA_ARRAY_ELEM)) {
-    persistent_dataptr = static_cast<ID *>((static_cast<PointerRNA *>(create_data))->data);
-  }
-
-  /* exceptions */
-  if (ELEM(type, TSE_ID_BASE)) {
-    /* pass */
-  }
-  else if (ELEM(type, TSE_GENERIC_LABEL)) {
-    persistent_dataptr = nullptr;
-  }
-  else if (persistent_dataptr == nullptr) {
+   * on file read. This is never an arbitrary pointer that happens to be reinterpreted as an ID: it
+   * is either an actual ID, or a pointer the element type explicitly nominated for identification
+   * purposes only. */
+  ID *persistent_dataptr = owner_id ? owner_id :
+                                      static_cast<ID *>(const_cast<void *>(persistent_ptr));
+  if (persistent_dataptr == nullptr && !allow_null_identity) {
+    /* Nothing to identify the element by, so it could not be recognized over rebuilds. Matches the
+     * behavior of the `void *` #add_element(), which skips such elements entirely. */
     return nullptr;
   }
 
-  if (type == TSE_SOME_ID) {
-    /* Real ID, ensure we do not get non-outliner ID types here... */
-    BLI_assert(TREESTORE_ID_TYPE(owner_id));
-  }
+  const short index = short(params.index);
 
   TreeElement *te = MEM_new<TreeElement>(__func__);
   /* add to the visual tree */
   BLI_addtail(lb, te);
   /* add to the storage */
   check_persistent(&space_outliner_, te, persistent_dataptr, type, index);
-  TreeStoreElem *tselem = TREESTORE(te);
 
   /* if we are searching for something expand to see child elements */
   if (SEARCHING_OUTLINER(&space_outliner_)) {
-    tselem->flag |= TSE_CHILDSEARCH;
+    TREESTORE(te)->flag |= TSE_CHILDSEARCH;
   }
 
-  te->parent = parent;
+  te->parent = params.parent;
   te->index = index; /* For data arrays. */
 
-  /* New inheritance based element representation. Not all element types support this yet,
-   * eventually it should replace #TreeElement entirely. */
-  te->abstract_element = AbstractTreeElement::create_from_type(type, *te, owner_id, create_data);
-  if (te->abstract_element) {
-    /* Element types ported to the new design are expected to have their name set at this point! */
-    BLI_assert(te->name != nullptr);
+  /* Note that this may fail, #TreeElementID::create_from_id() returns null for ID types the
+   * Outliner doesn't build elements for (e.g. deprecated ones). */
+  te->abstract_element = construct_fn(*te);
+  if (te->abstract_element == nullptr) {
+    return te;
+  }
+  /* Let the new element inherit the tree display that creates this current tree. */
+  te->abstract_element->display_ = this;
 
-    /* Let the new element inherit the tree display that creates this current tree. */
-    te->abstract_element->display_ = this;
-  }
+  /* Element types are expected to have their name set at this point! */
+  BLI_assert(te->name != nullptr);
 
-  if (ELEM(type, TSE_STRIP, TSE_STRIP_DATA, TSE_STRIP_DUP)) {
-    /* pass */
-  }
-  else if (ELEM(type, TSE_RNA_STRUCT, TSE_RNA_PROPERTY, TSE_RNA_ARRAY_ELEM)) {
-    /* pass */
-  }
-  else if (ELEM(type, TSE_ANIM_DATA, TSE_NLA, TSE_NLA_TRACK, TSE_DRIVER_BASE)) {
-    /* pass */
-  }
-  else if (ELEM(type, TSE_ACTION_SLOT)) {
-    /* pass */
-  }
-  else if (ELEM(type, TSE_GP_LAYER, TSE_GREASE_PENCIL_NODE)) {
-    /* pass */
-  }
-  else if (ELEM(type, TSE_LAYER_COLLECTION, TSE_SCENE_COLLECTION_BASE, TSE_VIEW_COLLECTION_BASE)) {
-    /* pass */
-  }
-  else if (ELEM(type, TSE_ID_BASE, TSE_GENERIC_LABEL)) {
-    /* pass */
-  }
-  else if (ELEM(type, TSE_BONE, TSE_EBONE)) {
-    /* pass */
-  }
-  else if (ELEM(type, TSE_GPENCIL_EFFECT_BASE, TSE_GPENCIL_EFFECT)) {
-    /* pass */
-  }
-  else if (ELEM(type, TSE_DEFGROUP, TSE_DEFGROUP_BASE)) {
-    /* pass */
-  }
-  else if (type == TSE_LINKED_PSYS) {
-    /* pass */
-  }
-  else if (ELEM(type, TSE_CONSTRAINT, TSE_CONSTRAINT_BASE)) {
-    /* pass */
-  }
-  else if (ELEM(type, TSE_POSE_BASE, TSE_POSE_CHANNEL)) {
-    /* pass */
-  }
-  else if (ELEM(type, TSE_BONE_COLLECTION, TSE_BONE_COLLECTION_BASE)) {
-    /* pass */
-  }
-  else if (ELEM(type, TSE_R_LAYER, TSE_R_LAYER_BASE)) {
-    /* pass */
-  }
-  else if (ELEM(type, TSE_MODIFIER, TSE_MODIFIER_BASE)) {
-    /* pass */
-  }
-  else if (type == TSE_LINKED_NODE_TREE) {
-    /* pass */
-  }
-  else if (type == TSE_LINKED_OB) {
-    /* pass */
-  }
-  else if (type == TSE_SHAPE_KEY_BLOCK) {
-    /* pass */
-  }
-  else if (type == TSE_SOME_ID) {
-    BLI_assert_msg(te->abstract_element != nullptr,
-                   "Expected this ID type to be ported to new Outliner tree-element design");
-  }
-  else if (ELEM(type,
-                TSE_LIBRARY_OVERRIDE_BASE,
-                TSE_LIBRARY_OVERRIDE,
-                TSE_LIBRARY_OVERRIDE_OPERATION))
-  {
-    BLI_assert_msg(te->abstract_element != nullptr,
-                   "Expected override types to be ported to new Outliner tree-element design");
-  }
-  else {
-    /* Other cases must be caught above. */
-    BLI_assert(TSE_IS_REAL_ID(tselem));
-    BLI_assert_msg(te->abstract_element != nullptr,
-                   "Element type should use `AbstractTreeElement` to for correct initialization "
-                   "of its `TreeElement` data");
-
-    /* The new type design sets the name already, don't override that here. We need to figure out
-     * how to deal with the idcode for non-TSE_SOME_ID types still. Some rely on it... */
-    te->idcode = GS(owner_id->name);
-  }
-
-  if (!expand) {
-    /* Pass */
-  }
-  else if (te->abstract_element) {
+  if (params.expand) {
     tree_element_expand(*te->abstract_element, space_outliner_);
-  }
-  else {
-    BLI_assert_msg(false, "Element type should use `AbstractTreeElement`");
   }
 
   return te;
@@ -362,30 +270,29 @@ BLI_INLINE void outliner_add_collection_init(TreeElement *te, Collection *collec
   te->directdata = collection;
 }
 
-BLI_INLINE void outliner_add_collection_objects(SpaceOutliner *space_outliner,
+BLI_INLINE void outliner_add_collection_objects(AbstractTreeDisplay &tree_display,
                                                 ListBaseT<TreeElement> *tree,
                                                 Collection *collection,
                                                 TreeElement *parent)
 {
   for (CollectionObject &cob : collection->gobject) {
-    AbstractTreeDisplay::add_element(
-        space_outliner, tree, reinterpret_cast<ID *>(cob.ob), nullptr, parent, TSE_SOME_ID, 0);
+    tree_display.add_id_element({.lb = tree, .parent = parent}, reinterpret_cast<ID *>(cob.ob));
   }
 }
 
-TreeElement *outliner_add_collection_recursive(SpaceOutliner *space_outliner,
+TreeElement *outliner_add_collection_recursive(AbstractTreeDisplay &tree_display,
+                                               SpaceOutliner *space_outliner,
                                                Collection *collection,
                                                TreeElement *ten)
 {
   outliner_add_collection_init(ten, collection);
 
   for (CollectionChild &child : collection->children) {
-    AbstractTreeDisplay::add_element(
-        space_outliner, &ten->subtree, &child.collection->id, nullptr, ten, TSE_SOME_ID, 0);
+    tree_display.add_id_element({.lb = &ten->subtree, .parent = ten}, &child.collection->id);
   }
 
   if (space_outliner->outlinevis != SO_SCENES) {
-    outliner_add_collection_objects(space_outliner, &ten->subtree, collection, ten);
+    outliner_add_collection_objects(tree_display, &ten->subtree, collection, ten);
   }
 
   return ten;
@@ -531,14 +438,14 @@ static void outliner_sort(ListBaseT<TreeElement> *lb)
    *   with bones coming first (and ARE sorted).
    */
 
-  TreeElement *last_te = static_cast<TreeElement *>(lb->last);
+  TreeElement *last_te = lb->last();
   if (last_te == nullptr) {
     return;
   }
   TreeStoreElem *last_tselem = TREESTORE(last_te);
 
   /* Check if we are expanding Armature data and if there are bone collections. */
-  const TreeElement *first_te = static_cast<TreeElement *>(lb->first);
+  const TreeElement *first_te = lb->first();
   const TreeStoreElem *first_tselem = TREESTORE(first_te);
   const bool inside_armature_data = ELEM(
       first_tselem->type, TSE_BONE, TSE_EBONE, TSE_POSE_CHANNEL);
@@ -609,7 +516,7 @@ static void outliner_sort(ListBaseT<TreeElement> *lb)
 
 static void outliner_collections_children_sort(ListBaseT<TreeElement> *lb)
 {
-  TreeElement *last_te = static_cast<TreeElement *>(lb->last);
+  TreeElement *last_te = lb->last();
   if (last_te == nullptr) {
     return;
   }
@@ -962,10 +869,47 @@ static bool outliner_element_visible_get(const Main &bmain,
       }
     }
   }
+  else if ((te->idcode == ID_MA) && (exclude_filter & SO_FILTER_NO_OB_MATERIAL)) {
+    return false;
+  }
+  else if ((te->idcode == ID_KE) && (exclude_filter & SO_FILTER_NO_OB_SHAPE_KEYS)) {
+    return false;
+  }
+  else if ((TREESTORE(te)->type == TSE_BONE_COLLECTION_BASE) &&
+           (exclude_filter & SO_FILTER_NO_ARMATURE_BONE_COLLECTION))
+  {
+    return false;
+  }
   else if ((te->parent != nullptr) && (TREESTORE(te->parent)->type == TSE_SOME_ID) &&
            (te->parent->idcode == ID_OB))
   {
     if (exclude_filter & SO_FILTER_NO_OB_CONTENT) {
+      return false;
+    }
+    const eTreeStoreElemType type = eTreeStoreElemType(TREESTORE(te)->type);
+    if (type == TSE_SOME_ID && te->idcode != ID_OB) {
+      if (exclude_filter & SO_FILTER_NO_OB_DATA) {
+        return false;
+      }
+    }
+    else if ((type == TSE_ANIM_DATA) && (exclude_filter & SO_FILTER_NO_OB_ANIMATION)) {
+      return false;
+    }
+    else if ((type == TSE_CONSTRAINT_BASE) && (exclude_filter & SO_FILTER_NO_OB_CONSTRAINTS)) {
+      return false;
+    }
+    else if ((type == TSE_MODIFIER_BASE) && (exclude_filter & SO_FILTER_NO_OB_MODIFIERS)) {
+      return false;
+    }
+    else if ((type == TSE_DEFGROUP_BASE) && (exclude_filter & SO_FILTER_NO_OB_DEFGROUP)) {
+      return false;
+    }
+    else if ((type == TSE_GPENCIL_EFFECT_BASE) &&
+             (exclude_filter & SO_FILTER_NO_GREASE_PENCIL_EFFECTS))
+    {
+      return false;
+    }
+    else if ((type == TSE_POSE_BASE) && (exclude_filter & SO_FILTER_NO_POSE_BONES)) {
       return false;
     }
   }
@@ -1012,7 +956,7 @@ static TreeElement *outliner_extract_children_from_subtree(TreeElement *element,
 
   if (outliner_element_is_collection_or_object(element)) {
     TreeElement *te_prev = nullptr;
-    for (TreeElement *te = static_cast<TreeElement *>(element->subtree.last); te; te = te_prev) {
+    for (TreeElement *te = element->subtree.last(); te; te = te_prev) {
       te_prev = te->prev;
 
       if (!outliner_element_is_collection_or_object(te)) {
@@ -1041,7 +985,7 @@ static int outliner_filter_subtree(SpaceOutliner *space_outliner,
   TreeElement *te, *te_next;
   TreeStoreElem *tselem;
 
-  for (te = static_cast<TreeElement *>(lb->first); te; te = te_next) {
+  for (te = lb->first(); te; te = te_next) {
     te_next = te->next;
     if (outliner_element_visible_get(bmain, scene, view_layer, te, exclude_filter) == false) {
       /* Don't free the tree, but extract the children from the parent and add to this tree. */

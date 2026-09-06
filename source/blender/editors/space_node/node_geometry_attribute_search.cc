@@ -2,6 +2,10 @@
  *
  * SPDX-License-Identifier: GPL-2.0-or-later */
 
+/** \file
+ * \ingroup spnode
+ */
+
 #include "BLI_map.hh"
 #include "BLI_set.hh"
 #include "BLI_string.hh"

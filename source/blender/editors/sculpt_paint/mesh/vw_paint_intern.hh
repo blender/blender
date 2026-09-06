@@ -50,6 +50,7 @@ void smooth_brush_toggle_on(Main *bmain, Paint *paint, StrokeToggleSettings &tog
 void update_cache_variants(Depsgraph &depsgraph,
                            ViewContext &vc,
                            VPaint &vp,
+                           PaintMode paint_mode,
                            Object &ob,
                            Base &base,
                            const PaintStroke::StrokeStep &ptr);

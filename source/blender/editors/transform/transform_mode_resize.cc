@@ -121,7 +121,7 @@ static bool clip_uv_transform_resize(TransInfo *t, float vec[2])
   float base_offset[2] = {0.0f, 0.0f};
 
   /* If tiled image then constrain to correct/closest UDIM tile, else 0-1 UV space. */
-  const SpaceImage *sima = static_cast<const SpaceImage *>(t->area->spacedata.first);
+  const SpaceImage *sima = t->area->spacedata.first_as<SpaceImage>();
   BKE_image_find_nearest_tile_with_offset(sima->image, t->center_global, base_offset);
 
   /* Assume no change is required. */
