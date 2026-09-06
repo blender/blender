@@ -503,13 +503,14 @@ view_transforms:
 colorspaces:
   - !<ColorSpace>
     name: Linear CIE-XYZ E
-    aliases: ["FilmLight: Linear - XYZ", Linear CIE-XYZ I-E]
+    aliases: [blender:lin_ciexyze_scene, "FilmLight: Linear - XYZ", Linear CIE-XYZ I-E]
     family: Linear
     equalitygroup:
     bitdepth: 32f
     description: |
       1931 CIE XYZ standard with assumed illuminant E white point
     isdata: false
+    interop_id: blender:lin_ciexyze_scene
     from_scene_reference: !<GroupTransform>
       children:
         - !<BuiltinTransform> {style: UTILITY - ACES-AP0_to_CIE-XYZ-D65_BFD}
@@ -598,13 +599,14 @@ colorspaces:
 
   - !<ColorSpace>
     name: Linear FilmLight E-Gamut
-    aliases: [Linear E-Gamut I-D65, "FilmLight: Linear - E-Gamut"]
+    aliases: [blender:lin_egamut_scene, Linear E-Gamut I-D65, "FilmLight: Linear - E-Gamut"]
     family: Linear
     equalitygroup:
     bitdepth: 32f
     description: |
       Linear E-Gamut with illuminant D65 white point
     isdata: false
+    interop_id: blender:lin_egamut_scene
     from_scene_reference: !<GroupTransform>
       children:
         - !<ColorSpaceTransform> {src: ACES2065-1, dst: Linear CIE-XYZ I-D65}
@@ -1086,12 +1088,14 @@ colorspaces:
 
   - !<ColorSpace>
     name: Filmic Log
+    aliases: [blender:filmiclog_rec709_scene]
     family: Log
     equalitygroup:
     bitdepth: 32f
     description: |
       Log based filmic shaper with 16.5 stops of latitude, and 25 stops of dynamic range
     isdata: false
+    interop_id: blender:filmiclog_rec709_scene
     from_scene_reference: !<GroupTransform>
       children:
         - !<ColorSpaceTransform> {src: ACES2065-1, dst: Linear Rec.709}
@@ -1217,13 +1221,14 @@ colorspaces:
 
   - !<ColorSpace>
     name: Luminance Compensation Rec.2020
-    aliases: [Luminance Compensation BT.2020]
+    aliases: [blender:luminancecompensation_rec2020_scene, Luminance Compensation BT.2020]
     family: Utility
     equalitygroup:
     bitdepth: 32f
     description: |
       Offset the negative values in BT.2020 and compensate for luminance, ensuring there is no negative values in Rec.2020
     isdata: false
+    interop_id: blender:luminancecompensation_rec2020_scene
     from_scene_reference: !<GroupTransform>
       children:
         - !<ColorSpaceTransform> {src: ACES2065-1, dst: Linear FilmLight E-Gamut}
@@ -1234,12 +1239,14 @@ colorspaces:
 
   - !<ColorSpace>
     name: AgX Log
+    aliases: [blender:agxlog_rec2020_scene]
     family: Log
     equalitygroup:
     bitdepth: 32f
     description: |
       Log Encoding with Chroma inset and rotation of primaries, and with 25 Stops of Dynamic Range
     isdata: false
+    interop_id: blender:agxlog_rec2020_scene
     from_scene_reference: !<GroupTransform>
       children:
         - !<ColorSpaceTransform> {src: ACES2065-1, dst: Luminance Compensation Rec.2020}
