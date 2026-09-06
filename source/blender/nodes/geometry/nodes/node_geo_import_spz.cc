@@ -90,7 +90,6 @@ static void node_register()
   ntype.ui_name = "Import SPZ";
   ntype.ui_description =
       "Import a point cloud object that is rendered as gaussian splat from an SPZ file";
-  ntype.enum_name_legacy = "IMPORT_SPZ";
   ntype.nclass = NODE_CLASS_INPUT;
   ntype.geometry_node_execute = node_geo_exec;
   ntype.declare = node_declare;
