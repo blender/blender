@@ -1288,6 +1288,7 @@ IDTypeInfo IDType_ID_OB = {
     .foreach_cache = object_foreach_cache,
     .foreach_path = object_foreach_path,
     .foreach_working_space_color = object_foreach_working_space_color,
+    .foreach_asset_weak_reference = nullptr,
     .owner_pointer_get = nullptr,
 
     .blend_write = object_blend_write,

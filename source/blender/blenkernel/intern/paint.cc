@@ -176,6 +176,7 @@ IDTypeInfo IDType_ID_PAL = {
     .foreach_cache = nullptr,
     .foreach_path = nullptr,
     .foreach_working_space_color = palette_foreach_working_space_color,
+    .foreach_asset_weak_reference = nullptr,
     .owner_pointer_get = nullptr,
 
     .blend_write = palette_blend_write,
@@ -246,6 +247,7 @@ IDTypeInfo IDType_ID_PC = {
     .foreach_cache = nullptr,
     .foreach_path = nullptr,
     .foreach_working_space_color = nullptr,
+    .foreach_asset_weak_reference = nullptr,
     .owner_pointer_get = nullptr,
 
     .blend_write = paint_curve_blend_write,
@@ -1117,6 +1119,28 @@ void BKE_paint_previous_asset_reference_set(Paint *paint,
 void BKE_paint_previous_asset_reference_clear(Paint *paint)
 {
   MEM_SAFE_DELETE(paint->runtime->previous_active_brush_reference);
+}
+
+void BKE_paint_foreach_asset_weak_reference(Paint &paint,
+                                            FunctionRef<void(AssetWeakReference &weak_ref)> fn)
+{
+  const auto foreach_reference = [&](AssetWeakReference *weak_ref) {
+    if (weak_ref) {
+      fn(*weak_ref);
+    }
+  };
+
+  foreach_reference(paint.brush_asset_reference);
+  if (paint.runtime) {
+    foreach_reference(paint.runtime->previous_active_brush_reference);
+  }
+
+  foreach_reference(paint.tool_brush_bindings.main_brush_asset_reference);
+  for (NamedBrushAssetReference &brush_binding :
+       paint.tool_brush_bindings.active_brush_per_brush_type)
+  {
+    foreach_reference(brush_binding.brush_asset_reference);
+  }
 }
 
 void BKE_paint_brushes_validate(Main *bmain, Paint *paint)

@@ -2533,6 +2533,7 @@ IDTypeInfo IDType_ID_NT = {
     .foreach_cache = nullptr,
     .foreach_path = bke::node_foreach_path,
     .foreach_working_space_color = bke::node_foreach_working_space_color,
+    .foreach_asset_weak_reference = nullptr,
     .owner_pointer_get = bke::node_owner_pointer_get,
 
     .blend_write = bke::ntree_blend_write,

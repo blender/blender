@@ -184,6 +184,7 @@ IDTypeInfo IDType_ID_VF = {
     .foreach_cache = nullptr,
     .foreach_path = vfont_foreach_path,
     .foreach_working_space_color = nullptr,
+    .foreach_asset_weak_reference = nullptr,
     .owner_pointer_get = nullptr,
 
     .blend_write = vfont_blend_write,

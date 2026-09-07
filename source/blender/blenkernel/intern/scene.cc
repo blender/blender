@@ -1059,6 +1059,15 @@ static void scene_foreach_working_space_color(ID *id, const IDTypeForeachColorFu
   });
 }
 
+static void scene_foreach_asset_weak_reference(ID *id, FunctionRef<void(AssetWeakReference &)> fn)
+{
+  Scene *scene = id_cast<Scene *>(id);
+
+  BKE_paint_settings_foreach_mode(scene->toolsettings, [&fn](Paint &paint) {
+    BKE_paint_foreach_asset_weak_reference(paint, fn);
+  });
+}
+
 static void scene_foreach_cache(ID *id,
                                 IDTypeForeachCacheFunctionCallback function_callback,
                                 void *user_data)
@@ -1673,6 +1682,7 @@ IDTypeInfo IDType_ID_SCE = {
     .foreach_cache = scene_foreach_cache,
     .foreach_path = scene_foreach_path,
     .foreach_working_space_color = scene_foreach_working_space_color,
+    .foreach_asset_weak_reference = scene_foreach_asset_weak_reference,
     .owner_pointer_get = nullptr,
 
     .blend_write = scene_blend_write,
