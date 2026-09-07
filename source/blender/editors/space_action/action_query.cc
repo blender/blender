@@ -21,6 +21,21 @@ static ed::animfilter::CollectionFilters get_filters(SpaceAction &saction)
   return filters;
 }
 
+ed::animfilter::ChannelArena get_data_channels(const bContext &C)
+{
+  using namespace ed::animfilter;
+
+  SpaceAction *saction = CTX_wm_space_action(&C);
+  if (!saction) {
+    BLI_assert_unreachable();
+    return {};
+  }
+
+  ChannelArena arena;
+  collect_animation_channels(C, get_filters(*saction), arena);
+  return arena;
+}
+
 ed::animfilter::ChannelArena get_summary_tree(const bContext &C)
 {
   using namespace ed::animfilter;
@@ -32,7 +47,6 @@ ed::animfilter::ChannelArena get_summary_tree(const bContext &C)
   }
 
   ChannelArena arena;
-
   collect_animation_channels(C, get_filters(*saction), arena);
   /* TODO: don't hard-code the hierarchy. */
   group_channels(arena,

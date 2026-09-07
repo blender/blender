@@ -11,6 +11,7 @@
 #include <limits>
 #include <type_traits>
 
+#include "BLI_bounds.hh"
 #include "BLI_linear_allocator.hh"
 #include "BLI_set.hh"
 #include "BLI_vector.hh"
@@ -222,6 +223,13 @@ std::ostream &operator<<(std::ostream &stream, ChannelTagType type);
 std::ostream &operator<<(std::ostream &stream, const ChannelTag &tag);
 std::ostream &operator<<(std::ostream &stream, const ChannelTagSet &tagset);
 
+enum class SelectionMode {
+  /* Slightly awkward because of `#define SELECT 1` */
+  DO_SELECT = 0,
+  DESELECT = 1,
+  INVERT = 3,
+};
+
 class AnimationChannel {
  protected:
   AnimationChannelType type_ = AnimationChannelType::UNKNOWN;
@@ -298,6 +306,12 @@ class AnimationChannel {
 
   virtual bool is_selected() const = 0;
   virtual void set_selected(bool is_selected) = 0;
+  /**
+   * Change the selection of datapoints in the given range.
+   * Range is inclusive/inclusive.
+   */
+  virtual void change_selection(SelectionMode mode,
+                                Bounds<float> range = {-INFINITY, INFINITY}) = 0;
 
  protected:
   virtual void gather_channeldata() = 0;
@@ -329,6 +343,8 @@ class SummaryChannel final : public AnimationChannel {
 
   bool is_selected() const override;
   void set_selected(bool is_selected) override;
+
+  void change_selection(SelectionMode mode, Bounds<float> range = {-INFINITY, INFINITY}) override;
 
  protected:
   void gather_channeldata() override;
@@ -389,6 +405,7 @@ class FCurveChannel : public DataChannel {
 
   /** Construct a label for the F-Curve, depending on its tags. */
   StringRef label() const override;
+  void change_selection(SelectionMode mode, Bounds<float> range = {-INFINITY, INFINITY}) override;
 
  protected:
   void gather_channeldata() override;
@@ -403,6 +420,7 @@ class GreasePencilChannel : public DataChannel {
 
   bool is_selected() const override;
   void set_selected(bool is_selected) override;
+  void change_selection(SelectionMode mode, Bounds<float> range = {-INFINITY, INFINITY}) override;
 
  protected:
   void gather_channeldata() override;

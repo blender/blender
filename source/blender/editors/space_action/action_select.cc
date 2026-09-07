@@ -35,6 +35,7 @@
 #include "UI_view2d.hh"
 
 #include "ED_anim_api.hh"
+#include "ED_anim_filter.hh"
 #include "ED_gpencil_legacy.hh"
 #include "ED_grease_pencil.hh"
 #include "ED_keyframes_edit.hh"
@@ -43,6 +44,7 @@
 #include "ED_mask.hh"
 #include "ED_screen.hh"
 #include "ED_select_utils.hh"
+#include "ED_space_action.hh"
 
 #include "WM_api.hh"
 #include "WM_types.hh"
@@ -370,40 +372,110 @@ static void deselect_action_keys(bAnimContext *ac, short test, eEditKeyframes_Se
 
 /* ------------------- */
 
-static wmOperatorStatus actkeys_deselectall_exec(bContext *C, wmOperator *op)
+/* Returns true if any datapoint in this channel is selected. */
+static bool is_any_data_selected(ed::animfilter::DataChannel &channel)
 {
-  bAnimContext ac;
-
-  /* get editor data */
-  if (ANIM_animdata_get_context(C, &ac) == 0) {
-    return OPERATOR_CANCELLED;
+  using namespace ed::animfilter;
+  switch (channel.source_type()) {
+    case DataChannelType::FCURVE: {
+      FCurve *fcurve = channel.get_source<FCurve>();
+      if (!fcurve->bezt) {
+        return false;
+      }
+      for (int i = 0; i < fcurve->totvert; i++) {
+        if (BEZT_ISSEL_ANY(&fcurve->bezt[i])) {
+          return true;
+        }
+      }
+      break;
+    }
+    case DataChannelType::GREASE_PENCIL: {
+      GreasePencilLayer *gp_layer = channel.get_source<GreasePencilLayer>();
+      if (ed::greasepencil::has_any_frame_selected(gp_layer->wrap())) {
+        return true;
+      }
+      break;
+    }
   }
 
-  /* 'standard' behavior - check if selected, then apply relevant selection */
-  const int action = RNA_enum_get(op->ptr, "action");
-  switch (action) {
-    case SEL_TOGGLE:
-      deselect_action_keys(&ac, 1, SELECT_ADD);
-      break;
-    case SEL_SELECT:
-      deselect_action_keys(&ac, 0, SELECT_ADD);
-      break;
-    case SEL_DESELECT:
-      deselect_action_keys(&ac, 0, SELECT_SUBTRACT);
-      break;
-    case SEL_INVERT:
-      deselect_action_keys(&ac, 0, SELECT_INVERT);
-      break;
-    default:
-      BLI_assert(0);
-      break;
+  return false;
+}
+
+static wmOperatorStatus actkeys_deselectall_exec(bContext *C, wmOperator *op)
+{
+  if (USER_EXPERIMENTAL_TEST(&U, use_new_animfilter)) {
+    using namespace ed::animfilter;
+    /* We only need to operate on the datachannels in this case because we are operating on all
+     * data, not a screen space user input. */
+    ChannelArena channels = ed::action::get_data_channels(*C);
+    const int action = RNA_enum_get(op->ptr, "action");
+    switch (action) {
+      case SEL_TOGGLE: {
+        SelectionMode mode = SelectionMode::DO_SELECT;
+        for (ed::animfilter::DataChannel *channel : channels.data_channels) {
+          if (is_any_data_selected(*channel)) {
+            mode = SelectionMode::DESELECT;
+            break;
+          }
+        }
+        for (ed::animfilter::DataChannel *channel : channels.data_channels) {
+          channel->change_selection(mode);
+        }
+        break;
+      }
+      case SEL_SELECT:
+        for (ed::animfilter::DataChannel *channel : channels.data_channels) {
+          channel->change_selection(ed::animfilter::SelectionMode::DO_SELECT);
+        }
+        break;
+      case SEL_DESELECT:
+        for (ed::animfilter::DataChannel *channel : channels.data_channels) {
+          channel->change_selection(ed::animfilter::SelectionMode::DESELECT);
+        }
+        break;
+      case SEL_INVERT:
+        for (ed::animfilter::DataChannel *channel : channels.data_channels) {
+          channel->change_selection(ed::animfilter::SelectionMode::DESELECT);
+        }
+        break;
+      default:
+        BLI_assert_unreachable();
+        break;
+    }
+  }
+  else {
+    bAnimContext ac;
+
+    /* get editor data */
+    if (ANIM_animdata_get_context(C, &ac) == 0) {
+      return OPERATOR_CANCELLED;
+    }
+    /* 'standard' behavior - check if selected, then apply relevant selection */
+    const int action = RNA_enum_get(op->ptr, "action");
+    switch (action) {
+      case SEL_TOGGLE:
+        deselect_action_keys(&ac, 1, SELECT_ADD);
+        break;
+      case SEL_SELECT:
+        deselect_action_keys(&ac, 0, SELECT_ADD);
+        break;
+      case SEL_DESELECT:
+        deselect_action_keys(&ac, 0, SELECT_SUBTRACT);
+        break;
+      case SEL_INVERT:
+        deselect_action_keys(&ac, 0, SELECT_INVERT);
+        break;
+      default:
+        BLI_assert(0);
+        break;
+    }
   }
 
   /* set notifier that keyframe selection have changed */
   WM_event_add_notifier(C, NC_ANIMATION | ND_KEYFRAME | NA_SELECTED, nullptr);
-  if (ANIM_animdata_can_have_greasepencil(eAnimCont_Types(eAnimCont_Types(ac.datatype)))) {
+  /* if (ANIM_animdata_can_have_greasepencil(eAnimCont_Types(eAnimCont_Types(ac.datatype)))) {
     WM_event_add_notifier(C, NC_ANIMATION | ND_ANIMCHAN | NA_SELECTED, nullptr);
-  }
+  } */
   return OPERATOR_FINISHED;
 }
 
@@ -522,7 +594,8 @@ static void box_select_elem(
   }
 }
 
-static void box_select_action(bAnimContext *ac,
+static void box_select_action(bContext &C,
+                              bAnimContext *ac,
                               const rcti rect,
                               short mode,
                               const eEditKeyframes_Select selectmode)
@@ -543,60 +616,68 @@ static void box_select_action(bAnimContext *ac,
   ui::view2d_region_to_view(v2d, rect.xmin, rect.ymin + 2, &rectf.xmin, &rectf.ymin);
   ui::view2d_region_to_view(v2d, rect.xmax, rect.ymax - 2, &rectf.xmax, &rectf.ymax);
 
-  /* filter data */
-  filter = (ANIMFILTER_DATA_VISIBLE | ANIMFILTER_LIST_VISIBLE | ANIMFILTER_LIST_CHANNELS);
-  ANIM_animdata_filter(ac, &anim_data, filter, ac->data, eAnimCont_Types(ac->datatype));
-
-  /* Get beztriple editing/validation functions. */
-  sel_data.select_cb = ANIM_editkeyframes_select(selectmode);
-
-  if (ELEM(mode, ACTKEYS_BORDERSEL_FRAMERANGE, ACTKEYS_BORDERSEL_ALLKEYS)) {
-    sel_data.ok_cb = ANIM_editkeyframes_ok(BEZT_OK_FRAMERANGE);
+  if (USER_EXPERIMENTAL_TEST(&U, use_new_animfilter)) {
+    ed::animfilter::ChannelArena channels = ed::action::get_summary_tree(C);
   }
   else {
-    sel_data.ok_cb = nullptr;
-  }
+    /* filter data */
+    filter = (ANIMFILTER_DATA_VISIBLE | ANIMFILTER_LIST_VISIBLE | ANIMFILTER_LIST_CHANNELS);
+    ANIM_animdata_filter(ac, &anim_data, filter, ac->data, eAnimCont_Types(ac->datatype));
 
-  /* init editing data */
-  memset(&sel_data.ked, 0, sizeof(KeyframeEditData));
+    /* Get beztriple editing/validation functions. */
+    sel_data.select_cb = ANIM_editkeyframes_select(selectmode);
 
-  float ymax = ANIM_UI_get_first_channel_top(v2d);
-  const float channel_step = ANIM_UI_get_channel_step();
-
-  /* loop over data, doing box select */
-  for (ale = anim_data.first(); ale; ale = ale->next, ymax -= channel_step) {
-    /* get new vertical minimum extent of channel */
-    float ymin = ymax - channel_step;
-
-    /* set horizontal range (if applicable) */
     if (ELEM(mode, ACTKEYS_BORDERSEL_FRAMERANGE, ACTKEYS_BORDERSEL_ALLKEYS)) {
-      /* if channel is mapped in NLA, apply correction */
-      if (ANIM_nla_mapping_allowed(ale)) {
-        sel_data.ked.iterflags &= ~(KED_F1_NLA_UNMAP | KED_F2_NLA_UNMAP);
-        const float f1 = ANIM_nla_tweakedit_remap(ale, rectf.xmin, NLATIME_CONVERT_UNMAP);
-        const float f2 = ANIM_nla_tweakedit_remap(ale, rectf.xmax, NLATIME_CONVERT_UNMAP);
+      sel_data.ok_cb = ANIM_editkeyframes_ok(BEZT_OK_FRAMERANGE);
+    }
+    else {
+      sel_data.ok_cb = nullptr;
+    }
 
-        /* Make sure f1 & f2 are in order (e.g. in case of NLASTRIP_FLAG_REVERSE). Note: will still
-         * fail for the Summary (since that is excluded from NLA remapping). */
-        sel_data.ked.f1 = math::min(f1, f2);
-        sel_data.ked.f2 = math::max(f1, f2);
+    /* init editing data */
+    memset(&sel_data.ked, 0, sizeof(KeyframeEditData));
+
+    float ymax = ANIM_UI_get_first_channel_top(v2d);
+    const float channel_step = ANIM_UI_get_channel_step();
+
+    /* loop over data, doing box select */
+    for (ale = static_cast<bAnimListElem *>(anim_data.first); ale;
+         ale = ale->next, ymax -= channel_step)
+    {
+      /* get new vertical minimum extent of channel */
+      float ymin = ymax - channel_step;
+
+      /* set horizontal range (if applicable) */
+      if (ELEM(mode, ACTKEYS_BORDERSEL_FRAMERANGE, ACTKEYS_BORDERSEL_ALLKEYS)) {
+        /* if channel is mapped in NLA, apply correction */
+        if (ANIM_nla_mapping_allowed(ale)) {
+          sel_data.ked.iterflags &= ~(KED_F1_NLA_UNMAP | KED_F2_NLA_UNMAP);
+          const float f1 = ANIM_nla_tweakedit_remap(ale, rectf.xmin, NLATIME_CONVERT_UNMAP);
+          const float f2 = ANIM_nla_tweakedit_remap(ale, rectf.xmax, NLATIME_CONVERT_UNMAP);
+
+          /* Make sure f1 & f2 are in order (e.g. in case of NLASTRIP_FLAG_REVERSE). Note: will
+           * still fail for the Summary (since that is excluded from NLA remapping). */
+          sel_data.ked.f1 = math::min(f1, f2);
+          sel_data.ked.f2 = math::max(f1, f2);
+        }
+        else {
+          sel_data.ked.iterflags |= (KED_F1_NLA_UNMAP | KED_F2_NLA_UNMAP); /* for summary tracks */
+          sel_data.ked.f1 = rectf.xmin;
+          sel_data.ked.f2 = rectf.xmax;
+        }
       }
-      else {
-        sel_data.ked.iterflags |= (KED_F1_NLA_UNMAP | KED_F2_NLA_UNMAP); /* for summary tracks */
-        sel_data.ked.f1 = rectf.xmin;
-        sel_data.ked.f2 = rectf.xmax;
+
+      /* perform vertical suitability check (if applicable) */
+      if ((mode == ACTKEYS_BORDERSEL_FRAMERANGE) || !((ymax < rectf.ymin) || (ymin > rectf.ymax)))
+      {
+        box_select_elem(&sel_data, ale, rectf.xmin, rectf.xmax, false);
       }
     }
 
-    /* perform vertical suitability check (if applicable) */
-    if ((mode == ACTKEYS_BORDERSEL_FRAMERANGE) || !((ymax < rectf.ymin) || (ymin > rectf.ymax))) {
-      box_select_elem(&sel_data, ale, rectf.xmin, rectf.xmax, false);
-    }
+    /* cleanup */
+    ANIM_animdata_update(ac, &anim_data);
+    ANIM_animdata_freelist(&anim_data);
   }
-
-  /* cleanup */
-  ANIM_animdata_update(ac, &anim_data);
-  ANIM_animdata_freelist(&anim_data);
 }
 
 /* ------------------- */
@@ -671,7 +752,7 @@ static wmOperatorStatus actkeys_box_select_exec(bContext *C, wmOperator *op)
   }
 
   /* apply box_select action */
-  box_select_action(&ac, rect, mode, selectmode);
+  box_select_action(*C, &ac, rect, mode, selectmode);
 
   /* set notifier that keyframe selection have changed */
   WM_event_add_notifier(C, NC_ANIMATION | ND_KEYFRAME | NA_SELECTED, nullptr);

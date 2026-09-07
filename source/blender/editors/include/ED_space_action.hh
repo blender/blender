@@ -30,6 +30,11 @@ struct SpaceAction_Runtime {
 namespace ed::action {
 
 /**
+ * Returns all data channels for this editor. The summaries will not be built by this function.
+ */
+ed::animfilter::ChannelArena get_data_channels(const bContext &C);
+
+/**
  * Return the buffered data or build up the tree if required.
  */
 ed::animfilter::ChannelArena get_summary_tree(const bContext &C);

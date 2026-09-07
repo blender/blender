@@ -13,6 +13,7 @@
 #include "RNA_path.hh"
 #include "RNA_prototypes.hh"
 
+#include "BKE_fcurve.hh"
 #include "BKE_grease_pencil.hh"
 #include "BKE_lib_id.hh"
 
@@ -300,6 +301,14 @@ SummaryChannel::SummaryChannel(const StringRef label,
   sorting_priority_ = sorting_priority;
 }
 
+void SummaryChannel::change_selection(const SelectionMode mode, const Bounds<float> range)
+{
+  /* Any modifications to the range would happen here. E.g. for time remapping. */
+  for (AnimationChannel *child : children_) {
+    child->change_selection(mode, range);
+  }
+}
+
 void SummaryChannel::gather_channeldata()
 {
   this->datapoints_.clear();
@@ -530,6 +539,39 @@ void FCurveChannel::gather_channeldata()
   }
 }
 
+void FCurveChannel::change_selection(const SelectionMode mode, const Bounds<float> range)
+{
+  FCurve *fcurve = this->get_source<FCurve>();
+  if (!fcurve || !fcurve->bezt || fcurve->totvert == 0) {
+    return;
+  }
+  if (fcurve->bezt[0].vec[1][0] > range.max ||
+      fcurve->bezt[fcurve->totvert - 1].vec[1][0] < range.min)
+  {
+    return;
+  }
+  bool frame_on_key;
+  const int start_index = BKE_fcurve_bezt_binarysearch_index(
+      fcurve->bezt, range.min, fcurve->totvert, &frame_on_key);
+  for (int i = start_index; i < fcurve->totvert; i++) {
+    BezTriple &key = fcurve->bezt[i];
+    if (key.vec[1][0] > range.max) {
+      break;
+    }
+    switch (mode) {
+      case SelectionMode::DO_SELECT:
+        BEZT_SEL_ALL(&key);
+        break;
+      case SelectionMode::DESELECT:
+        BEZT_DESEL_ALL(&key);
+        break;
+      case SelectionMode::INVERT:
+        BEZT_SEL_INVERT(&key);
+        break;
+    }
+  }
+}
+
 bool FCurveChannel::is_selected() const
 {
   const FCurve *fcu = this->get_source<FCurve>();
@@ -593,6 +635,11 @@ void GreasePencilChannel::gather_channeldata()
     KeyPoint p((float(frame)));
     this->datapoints_.append(p);
   }
+}
+
+void GreasePencilChannel::change_selection(const SelectionMode mode, const Bounds<float> range)
+{
+  /* TODO ad selection support. */
 }
 
 bool GreasePencilChannel::is_selected() const
