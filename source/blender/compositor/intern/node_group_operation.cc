@@ -68,7 +68,8 @@ void NodeGroupOperation::execute()
 {
   const ScopedNodeGroupTimer node_group_timer{compute_context_,
                                               this->context().nodes_evaluation_log()};
-  const Schedule schedule = compute_schedule(*this);
+  const Schedule schedule = compute_schedule(
+      this->context(), this->node_group(), compute_context_, *this);
   NodeTreeEvaluator node_tree_evaluator(this->context(), schedule, *this, compute_context_);
   node_tree_evaluator.evaluate();
 
@@ -81,11 +82,6 @@ void NodeGroupOperation::execute()
 const bNodeTree &NodeGroupOperation::node_group() const
 {
   return node_group_;
-}
-
-const ComputeContext &NodeGroupOperation::compute_context() const
-{
-  return compute_context_;
 }
 
 }  // namespace blender::compositor
