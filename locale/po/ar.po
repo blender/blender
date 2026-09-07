@@ -1,9 +1,9 @@
 
 msgid ""
 msgstr ""
-"Project-Id-Version: Blender 5.3.0 Alpha (b'32296898e057')\n"
+"Project-Id-Version: Blender 5.3.0 Alpha (b'f5df8c32f99b')\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-08-31 07:41+0000\n"
+"POT-Creation-Date: 2026-09-07 07:47+0000\n"
 "PO-Revision-Date: 2025-07-23 14:53+0000\n"
 "Last-Translator: Anonymous <noreply@weblate.org>\n"
 "Language-Team: Arabic <https://translate.blender.org/projects/blender-ui/ui/ar/>\n"
@@ -15648,52 +15648,12 @@ msgid "Material slot name"
 msgstr "ﺔﻣﺎﺨﻟﺍ ﺔﺤﺘﻓ ﻢﺳﺇ"
 
 
-msgid "Snap"
-msgstr "ﻱﺫﺎﺣ"
-
-
-msgid "Proportional Editing Falloff"
-msgstr "ﻲﺒﺴﻨﻟﺍ ﺮﻳﺮﺤﺘﻟﺍ ﻲﺷﻼ﻿ﺗ"
-
-
-msgid "Import"
-msgstr "ﺩﺭﻮﺘﺳﺇ"
-
-
-msgid "Mirror"
-msgstr "ﻞﺛﺎﻣ"
-
-
-msgid "UV Mapping"
-msgstr "UV ءﺎﺴﻛﺇ"
-
-
-msgid "Navigation"
-msgstr "ﺢﻔّﺼﺗ"
-
-
-msgid "Align View"
-msgstr "ﺮﻈﻨﻤﻟﺍ ﻱﺫﺎﺣ"
-
-
-msgid "Align View to Active"
-msgstr "ﻝﺎﻌّﻔﻠﻟ ﺮﻈﻨﻤﻟﺍ ﻱﺫﺎﺣ"
-
-
 msgid "Select More/Less"
 msgstr "ﻞﻗﺍ/ﺮﺜﻛﺍ ﺭﺎﻴﺘﺧﺍ"
 
 
-msgid "Math"
-msgstr "ﺏﺎﺴﺣ"
-
-
-msgid "UV"
-msgstr "ﺭﻭﺎﺤﻣ"
-
-
-msgid "Select Similar"
-msgstr "ﻞﺛﺎﻤﻤﻟﺍ ﺮﺘﺧﺇ"
+msgid "Import"
+msgstr "ﺩﺭﻮﺘﺳﺇ"
 
 
 msgid "Select All by Trait"
@@ -15704,44 +15664,68 @@ msgid "Select Linked"
 msgstr "ﺔﻄﺒﺗﺮﻤﻟﺍ ﺭﺎﺘﺧﺇ"
 
 
-msgid "Metaball"
-msgstr "ﺔﻠﻋﺎﻔﺘﻣ ﺓﺮﻛ"
+msgid "Select Similar"
+msgstr "ﻞﺛﺎﻤﻤﻟﺍ ﺮﺘﺧﺇ"
 
 
-msgid "Light"
-msgstr "ءﻮﺿ"
+msgid "Math"
+msgstr "ﺏﺎﺴﺣ"
 
 
-msgid "Relations"
-msgstr "ﺕﺎﻗﻼ﻿ﻌﻟﺍ"
+msgid "Align View to Active"
+msgstr "ﻝﺎﻌّﻔﻠﻟ ﺮﻈﻨﻤﻟﺍ ﻱﺫﺎﺣ"
 
 
-msgid "Rigid Body"
-msgstr "ﻞﻋﺎﻔﺘﻣ ﻢﺴﺟ"
+msgid "UV"
+msgstr "ﺭﻭﺎﺤﻣ"
 
 
-msgid "Apply"
-msgstr "ﻖﺒﻃ"
+msgid "Navigation"
+msgstr "ﺢﻔّﺼﺗ"
 
 
-msgid "Track"
-msgstr "ﺐﻘّﻌﺗ"
+msgid "Align View"
+msgstr "ﺮﻈﻨﻤﻟﺍ ﻱﺫﺎﺣ"
 
 
-msgid "Quick Effects"
-msgstr "ﺔﻌﻳﺮﺳ ﺕﺍﺮﻴﺛﺄﺗ"
+msgid "UV Mapping"
+msgstr "UV ءﺎﺴﻛﺇ"
+
+
+msgid "Snap"
+msgstr "ﻱﺫﺎﺣ"
+
+
+msgid "Bone Roll"
+msgstr "ﺔﻤﻈﻌﻟﺍ ءﺍﻮﺘﻟﺍ"
+
+
+msgid "Mirror"
+msgstr "ﻞﺛﺎﻣ"
+
+
+msgid "Proportional Editing Falloff"
+msgstr "ﻲﺒﺴﻨﻟﺍ ﺮﻳﺮﺤﺘﻟﺍ ﻲﺷﻼ﻿ﺗ"
+
+
+msgid "Names"
+msgstr "ءﺎﻤﺳﺃ"
 
 
 msgid "Layout"
 msgstr "ﻖﻴﺴﻨﺗ"
 
 
-msgid "Make Single User"
-msgstr "ﻡﺪﺨﺘﺴﻤﻟﺍ ﺪﻴﺣﻭ ﻪﻠﻌﺟﺍ"
+msgid "Metaball"
+msgstr "ﺔﻠﻋﺎﻔﺘﻣ ﺓﺮﻛ"
 
 
-msgid "Hooks"
-msgstr "ﺕﺎﻓﺎﻄﺧ"
+msgid "Special Characters"
+msgstr "ﺔﺻﺎﺧ ﻑﺮﺣﺃ"
+
+
+msgid "Merge"
+msgstr "ﺞﻣﺩﺇ"
 
 
 msgid "Keying"
@@ -15752,32 +15736,48 @@ msgid "Tracking"
 msgstr "ﺔﻘﺣﻼ﻿ﻤﻟﺍ"
 
 
-msgid "In-Betweens"
-msgstr "ﻦﻴﺑ ﺎﻣ"
+msgid "Face Data"
+msgstr "ﻪﺟﻮﻟﺍ ﺕﺎﻧﺎﻴﺑ"
+
+
+msgid "Apply"
+msgstr "ﻖﺒﻃ"
 
 
 msgid "Propagate"
 msgstr "ﻢﻤﻋ"
 
 
-msgid "Names"
-msgstr "ءﺎﻤﺳﺃ"
+msgid "In-Betweens"
+msgstr "ﻦﻴﺑ ﺎﻣ"
 
 
-msgid "Face Data"
-msgstr "ﻪﺟﻮﻟﺍ ﺕﺎﻧﺎﻴﺑ"
+msgid "Hooks"
+msgstr "ﺕﺎﻓﺎﻄﺧ"
 
 
-msgid "Merge"
-msgstr "ﺞﻣﺩﺇ"
+msgid "Make Single User"
+msgstr "ﻡﺪﺨﺘﺴﻤﻟﺍ ﺪﻴﺣﻭ ﻪﻠﻌﺟﺍ"
 
 
-msgid "Special Characters"
-msgstr "ﺔﺻﺎﺧ ﻑﺮﺣﺃ"
+msgid "Quick Effects"
+msgstr "ﺔﻌﻳﺮﺳ ﺕﺍﺮﻴﺛﺄﺗ"
 
 
-msgid "Bone Roll"
-msgstr "ﺔﻤﻈﻌﻟﺍ ءﺍﻮﺘﻟﺍ"
+msgid "Track"
+msgstr "ﺐﻘّﻌﺗ"
+
+
+msgid "Rigid Body"
+msgstr "ﻞﻋﺎﻔﺘﻣ ﻢﺴﺟ"
+
+
+msgid "Relations"
+msgstr "ﺕﺎﻗﻼ﻿ﻌﻟﺍ"
+
+
+msgid "Light"
+msgstr "ءﻮﺿ"
 
 
 msgctxt "MovieClip"
@@ -27680,16 +27680,16 @@ msgid "Palette Color"
 msgstr "ﻥﻮﻠﻟﺍ ﺔﺣﻮﻟ"
 
 
-msgid "Render Pass"
-msgstr "ﺮﻴﻴﺼﺗ ﺮﻤﻣ"
+msgid "Transform Orientations"
+msgstr "ﻝﻮﺤﺘﻟﺍ ﺕﺎﻫﺎﺠﺗﺍ"
 
 
 msgid "Motion Tracking"
 msgstr "ﺔﻛﺮﺤﻟﺍ ﺔﻘﺣﻼ﻿ﻣ"
 
 
-msgid "Transform Orientations"
-msgstr "ﻝﻮﺤﺘﻟﺍ ﺕﺎﻫﺎﺠﺗﺍ"
+msgid "Render Pass"
+msgstr "ﺮﻴﻴﺼﺗ ﺮﻤﻣ"
 
 
 msgid "Bone Constraints"
@@ -34170,6 +34170,11 @@ msgstr "ﻲﻟﺎﺘﻟﺍ ﻂﻳﺮﺸﻟﺍ ﻰﻟﺍ ﺰﻔﻗﺍ"
 
 
 msgctxt "Operator"
+msgid "Text"
+msgstr "ﺺﻧ"
+
+
+msgctxt "Operator"
 msgid "Change Keying Set..."
 msgstr "...ﺢﻴﺗﺎﻔﻤﻟﺍ ﺔﻋﻮﻤﺠﻣ ﺮﻴﻏ"
 
@@ -34206,11 +34211,6 @@ msgstr "ﻦﻴﻤﻳ"
 msgctxt "Operator"
 msgid "Color"
 msgstr "ﻥﻮﻠﻟﺍ"
-
-
-msgctxt "Operator"
-msgid "Text"
-msgstr "ﺺﻧ"
 
 
 msgctxt "Operator"
@@ -36572,12 +36572,12 @@ msgid "BSDF"
 msgstr "BSDF"
 
 
-msgid "IOR"
-msgstr "ﺭﺎﺴﻜﻧﻻ﻿ﺍ ﻞﻣﺎﻌﻣ"
-
-
 msgid "Anisotropy"
 msgstr "ﺱﺎﻜﻌﻧﻹ﻿ﺍ ﻞﻜﺸﺗ"
+
+
+msgid "IOR"
+msgstr "ﺭﺎﺴﻜﻧﻻ﻿ﺍ ﻞﻣﺎﻌﻣ"
 
 
 msgid "RoughnessU"
