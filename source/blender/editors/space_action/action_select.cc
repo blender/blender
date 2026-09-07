@@ -641,9 +641,7 @@ static void box_select_action(bContext &C,
     const float channel_step = ANIM_UI_get_channel_step();
 
     /* loop over data, doing box select */
-    for (ale = static_cast<bAnimListElem *>(anim_data.first); ale;
-         ale = ale->next, ymax -= channel_step)
-    {
+    for (ale = anim_data.first(); ale; ale = ale->next, ymax -= channel_step) {
       /* get new vertical minimum extent of channel */
       float ymin = ymax - channel_step;
 
