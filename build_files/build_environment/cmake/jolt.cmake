@@ -1,0 +1,40 @@
+# SPDX-FileCopyrightText: 2002-2026 Blender Authors
+#
+# SPDX-License-Identifier: GPL-2.0-or-later
+
+set(JOLT_EXTRA_ARGS
+  -DCMAKE_BUILD_TYPE=Release
+
+  -DDEBUG_RENDERER_IN_DEBUG_AND_RELEASE=false
+  -DJPH_BUILD_SHARED_LIBS=true
+  -DJPH_USE_DX12=false
+  -DJPH_USE_MTL=false
+  -DJPH_USE_VK=false
+
+  -DTARGET_HELLO_WORLD=false
+  -DTARGET_PERFORMANCE_TEST=false
+  -DTARGET_SAMPLES=false
+  -DTARGET_UNIT_TESTS=false
+  -DTARGET_VIEWER=false
+
+  #Do we want this?
+  #-DJPH_CROSS_PLATFORM_DETERMINISTIC=true
+
+  # TODO check AVX and SSE toggles
+)
+
+
+ExternalProject_Add(external_jolt
+  URL file://${PACKAGE_DIR}/${JOLT_FILE}
+  DOWNLOAD_DIR ${DOWNLOAD_DIR}
+  URL_HASH ${JOLT_HASH_TYPE}=${JOLT_HASH}
+  PREFIX ${BUILD_DIR}/jolt
+  CMAKE_GENERATOR ${PLATFORM_ALT_GENERATOR}
+
+  CMAKE_ARGS
+    -DCMAKE_INSTALL_PREFIX=${LIBDIR}/jolt
+    ${DEFAULT_CMAKE_FLAGS}
+    ${JOLT_EXTRA_ARGS}
+
+  INSTALL_DIR ${LIBDIR}/jolt
+)
