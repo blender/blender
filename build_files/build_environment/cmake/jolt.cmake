@@ -48,3 +48,11 @@ ExternalProject_Add(external_jolt
 
   INSTALL_DIR ${LIBDIR}/jolt
 )
+
+if(WIN32)
+  # TODO
+else()
+  harvest(external_jolt jolt/include jolt/include "*.h")
+  harvest(external_jolt jolt/lib/cmake/Jolt jolt/lib/cmake/Jolt "*.cmake")
+  harvest_rpath_lib(external_jolt jolt/lib jolt/lib "*${SHAREDLIBEXT}*")
+endif()
