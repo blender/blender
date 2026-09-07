@@ -59,6 +59,22 @@ ed::animfilter::ChannelArena get_summary_tree(const bContext &C)
                  },
                  saction->ads.flag & ADS_FLAG_MINIMAL_GROUPING);
 
+  /* Record this "use" of the channel runtime, as this is the moment where new channels are first
+   * seen and old channels no longer exist. */
+  saction->runtime->last_used++;
+
+  /* Update the channels with the previously-stored UI state. */
+  for (SummaryChannel *summary : arena.summary_channels) {
+    const ChannelIdentifier chan_ident = summary->identifier();
+
+    SAction_AnimationChannelState *ui_state = saction->runtime->channel_states.lookup_ptr(
+        chan_ident);
+    if (ui_state) {
+      ui_state->last_used = saction->runtime->last_used;
+      summary->update_from_ui_state(*ui_state);
+    }
+  }
+
   return arena;
 }
 

@@ -22,6 +22,8 @@
 #include "RNA_path.hh"
 #include "RNA_types.hh"
 
+#include "ED_space_action.hh"
+
 namespace blender {
 
 struct bContext;
@@ -222,6 +224,8 @@ class ChannelTagSet {
 std::ostream &operator<<(std::ostream &stream, ChannelTagType type);
 std::ostream &operator<<(std::ostream &stream, const ChannelTag &tag);
 std::ostream &operator<<(std::ostream &stream, const ChannelTagSet &tagset);
+std::ostream &operator<<(std::ostream &stream, const ChannelIdentifier &chan_ident);
+std::ostream &operator<<(std::ostream &stream, const ParsedSourcePath &rna_path);
 
 enum class SelectionMode {
   /* Slightly awkward because of `#define SELECT 1` */
@@ -265,6 +269,14 @@ class AnimationChannel {
   AnimationChannel &operator=(AnimationChannel &&) = delete;
 
   virtual int64_t hash() const;
+
+  ChannelIdentifier identifier() const
+  {
+    if (!source_.has_owner_id() || !source_.has_data()) {
+      return {};
+    }
+    return {source_.owner_id, source_rna_path_};
+  }
 
   AnimationChannelType type() const
   {
@@ -322,6 +334,9 @@ class AnimationChannel {
 class SummaryChannel final : public AnimationChannel {
   Vector<AnimationChannel *> children_;
 
+  /** Collapsed/expanded state, if known. */
+  std::optional<bool> is_collapsed_ = {};
+
  public:
   SummaryChannel(StringRef label);
   SummaryChannel(StringRef label,
@@ -345,6 +360,9 @@ class SummaryChannel final : public AnimationChannel {
   void set_selected(bool is_selected) override;
 
   void change_selection(SelectionMode mode, Bounds<float> range = {-INFINITY, INFINITY}) override;
+
+  void update_from_ui_state(const SAction_AnimationChannelState &ui_state);
+  bool is_collapsed() const;
 
  protected:
   void gather_channeldata() override;

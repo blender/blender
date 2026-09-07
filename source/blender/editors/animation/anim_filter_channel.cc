@@ -106,6 +106,30 @@ std::ostream &operator<<(std::ostream &stream, const ChannelTagSet &tagset)
   return stream;
 }
 
+std::ostream &operator<<(std::ostream &stream, const ParsedSourcePath &rna_path)
+{
+  if (rna_path.items.is_empty()) {
+    stream << "-empty path-";
+  }
+  else {
+    stream << rna_path.to_string();
+  }
+  return stream;
+}
+
+std::ostream &operator<<(std::ostream &stream, const ChannelIdentifier &chan_ident)
+{
+  stream << "[" << (chan_ident.owner_id ? chan_ident.owner_id->name : "-no owner-") << " ";
+
+  if (chan_ident.source_rna_path.has_value()) {
+    stream << *chan_ident.source_rna_path;
+  }
+  else {
+    stream << "-no-value-";
+  }
+  return stream;
+}
+
 void debug_stream_hierarchy(std::ostream &stream,
                             const AnimationChannel &channel,
                             const StringRef indent)
@@ -307,6 +331,23 @@ void SummaryChannel::change_selection(const SelectionMode mode, const Bounds<flo
   for (AnimationChannel *child : children_) {
     child->change_selection(mode, range);
   }
+}
+
+void SummaryChannel::update_from_ui_state(const SAction_AnimationChannelState &ui_state)
+{
+  // std::cerr << "\033[95m" << __func__ << "\033[0m: "
+  //           << (ui_state.is_collapsed ? "\033[94mcollapsed\033[0m" : "\033[96mexpanded\033[0m ")
+  //           << " for " << this->identifier() << "\n";
+  this->is_collapsed_ = ui_state.is_collapsed;
+}
+
+bool SummaryChannel::is_collapsed() const
+{
+  if (!this->is_collapsed_.has_value()) {
+    /* TODO: let the channel determine its default state based on its source type. */
+    return false;
+  }
+  return this->is_collapsed_.value();
 }
 
 void SummaryChannel::gather_channeldata()

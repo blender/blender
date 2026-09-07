@@ -29,7 +29,10 @@
 #include "ED_anim_api.hh"
 #include "ED_anim_filter.hh"
 #include "ED_keyframes_draw.hh"
+#include "ED_space_action.hh"
 #include "ED_undo.hh"
+
+#include "WM_api.hh"
 
 namespace blender::ed::animfilter {
 
@@ -77,13 +80,19 @@ class ChannelItem : public ui::AbstractTreeViewItem {
   std::string label_;
   bool is_selected_;
   bool is_datachannel_;
+  ChannelIdentifier channel_identifier_;
+  const SAction_AnimationChannelState *initial_state_;
 
  public:
-  ChannelItem(AnimationChannel &channel)
+  ChannelItem(AnimationChannel &channel,
+              ChannelIdentifier channel_identifier,
+              const SAction_AnimationChannelState *initial_state)
       : source_(channel.source()),
         label_(channel.label()),
         is_selected_(channel.is_selected()),
-        is_datachannel_(channel.type() == AnimationChannelType::DATA)
+        is_datachannel_(channel.type() == AnimationChannelType::DATA),
+        channel_identifier_(channel_identifier),
+        initial_state_(initial_state)
   {
   }
 
@@ -101,6 +110,35 @@ class ChannelItem : public ui::AbstractTreeViewItem {
         layout.prop(&source_, "lock", ui::ITEM_R_ICON_ONLY, std::nullopt, ICON_UNLOCKED);
       }
     }
+  }
+
+  void on_collapse_change(bContext &C, const bool is_collapsed) override
+  {
+    SpaceAction *saction = CTX_wm_space_action(&C);
+    BLI_assert_msg(saction, "expecting animation ChannelItem to be used in a Dope Sheet");
+    if (!saction) {
+      return;
+    }
+
+    /* Store the expanded/collapsed state. */
+    // std::cerr << "\033[95m" << __func__ << "\033[0m: "
+    //           << (is_collapsed ? "\033[94mcollapsed\033[0m" : "\033[96mexpanded\033[0m ")
+    //           << " for " << channel_identifier_ << "\n";
+    SAction_AnimationChannelState &channel_state =
+        saction->runtime->channel_states.lookup_or_add_default(channel_identifier_);
+    channel_state.is_collapsed = is_collapsed;
+    channel_state.last_used = saction->runtime->last_used;
+
+    /* Trigger redrawing of the keys. */
+    WM_event_add_notifier(&C, NC_ANIMATION | ND_ANIMCHAN | NA_EDITED, nullptr);
+  }
+
+  std::optional<bool> should_be_collapsed() const override
+  {
+    if (!this->initial_state_) {
+      return {};
+    }
+    return this->initial_state_->is_collapsed;
   }
 
  protected:
@@ -138,38 +176,45 @@ class ChannelItem : public ui::AbstractTreeViewItem {
 };
 
 class ChannelTreeView : public ui::AbstractTreeView {
-
   SummaryChannel &root_;
+  Map<ed::animfilter::ChannelIdentifier, SAction_AnimationChannelState> &channel_states_;
 
-  void add_channel_children(ChannelItem &parent, Span<AnimationChannel *> channels)
+  void add_channel_recursive(TreeViewItemContainer &container, AnimationChannel &channel)
   {
-    for (AnimationChannel *channel : channels) {
-      ChannelItem &item = parent.add_tree_item<ChannelItem>(*channel);
-      if (channel->type() == AnimationChannelType::SUMMARY) {
-        uchar4 color = channel_color_from_rna_pointer(channel->source());
-        /* Disable for now to make the tree item backdrop the same as in the main region. */
-        // color[3] = 255;
-        item.set_custom_color(color);
+    /* Create the tree item for the channel. */
+    const ChannelIdentifier chan_ident = channel.identifier();
+    ChannelItem &item = container.add_tree_item<ChannelItem>(
+        channel, chan_ident, channel_states_.lookup_ptr(chan_ident));
+    item.uncollapse_by_default();
+
+    /* Set the color based on the channel type. */
+    if (channel.type() == AnimationChannelType::SUMMARY) {
+      uchar4 color = channel_color_from_rna_pointer(channel.source());
+      /* Disable for now to make the tree item backdrop the same as in the main region. */
+      // color[3] = 255;
+      item.set_custom_color(color);
+    }
+
+    /* Recurse into children. */
+    if (channel.type() == AnimationChannelType::SUMMARY) {
+      SummaryChannel &summary = static_cast<SummaryChannel &>(channel);
+      for (AnimationChannel *child : summary.children()) {
+        add_channel_recursive(item, *child);
       }
-      if (channel->type() == AnimationChannelType::SUMMARY) {
-        SummaryChannel *summary = static_cast<SummaryChannel *>(channel);
-        add_channel_children(item, summary->children());
-      }
-      item.uncollapse_by_default();
     }
   }
 
  public:
-  ChannelTreeView(SummaryChannel &root) : root_(root) {}
+  ChannelTreeView(
+      SummaryChannel &root,
+      Map<ed::animfilter::ChannelIdentifier, SAction_AnimationChannelState> &channel_states)
+      : root_(root), channel_states_(channel_states)
+  {
+  }
 
   void build_tree() override
   {
-    ChannelItem &root_item = add_tree_item<ChannelItem>(root_);
-    uchar4 color = channel_color_from_rna_pointer(root_.source());
-    // color[3] = 255;
-    root_item.set_custom_color(color);
-    add_channel_children(root_item, root_.children());
-    root_item.uncollapse_by_default();
+    this->add_channel_recursive(*this, root_);
   }
 };
 
@@ -188,8 +233,13 @@ void draw_channel_tree(const bContext &C, SummaryChannel &root, View2D & /* v2d 
                                         0,
                                         ui::style_get());
 
+  SpaceAction *saction = CTX_wm_space_action(&C);
+  BLI_assert_msg(saction, "expecting to be called for a Dope Sheet");
+
   ui::AbstractTreeView *tree_view = ui::block_add_view(
-      *block, "channel_tree", std::make_unique<ChannelTreeView>(root));
+      *block,
+      "channel_tree",
+      std::make_unique<ChannelTreeView>(root, saction->runtime->channel_states));
   /* Just making it explicit that this is the row height we use as a base. */
   tree_view->set_row_height(UI_UNIT_Y);
   tree_view->set_row_scale_y(ANIM_UI_get_channel_scale_factor());
@@ -339,12 +389,19 @@ static float draw_keys_recurse(const bContext &C,
   draw_channel_keys(channel, channel_y, v2d);
   row_top -= channel_step;
 
-  if (channel.type() == AnimationChannelType::SUMMARY) {
-    /* TODO ignore if channel is collapsed. */
-    SummaryChannel *summary = static_cast<SummaryChannel *>(&channel);
-    for (AnimationChannel *child : summary->children()) {
-      row_top = draw_keys_recurse(C, *child, v2d, row_top, channel_step, settings);
-    }
+  if (channel.type() != AnimationChannelType::SUMMARY) {
+    return row_top;
+  }
+
+  /* Get the expanded/collapsed state. */
+  SummaryChannel *summary = dynamic_cast<SummaryChannel *>(&channel);
+  if (summary->is_collapsed()) {
+    return row_top;
+  }
+
+  /* Draw the children. */
+  for (AnimationChannel *child : summary->children()) {
+    row_top = draw_keys_recurse(C, *child, v2d, row_top, channel_step, settings);
   }
   return row_top;
 }
@@ -369,12 +426,19 @@ static float draw_key_area_background_recurse(const bContext &C,
            row_top - channel_step + skip / 2.0);
 
   row_top -= channel_step;
-  if (channel.type() == AnimationChannelType::SUMMARY) {
-    /* TODO ignore if channel is collapsed. */
-    SummaryChannel *summary = static_cast<SummaryChannel *>(&channel);
-    for (AnimationChannel *child : summary->children()) {
-      row_top = draw_key_area_background_recurse(C, *child, v2d, row_top, channel_step, pos);
-    }
+  if (channel.type() != AnimationChannelType::SUMMARY) {
+    return row_top;
+  }
+
+  /* Check the collapsed/expanded state. */
+  SummaryChannel *summary = dynamic_cast<SummaryChannel *>(&channel);
+  if (summary->is_collapsed()) {
+    return row_top;
+  }
+
+  /* Draw the children. */
+  for (AnimationChannel *child : summary->children()) {
+    row_top = draw_key_area_background_recurse(C, *child, v2d, row_top, channel_step, pos);
   }
   return row_top;
 }
