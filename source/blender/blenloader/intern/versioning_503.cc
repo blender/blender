@@ -235,6 +235,12 @@ void do_versions_after_linking_503(FileData * /*fd*/, Main *bmain)
     do_versioning_camera_view_zoom(bmain);
   }
 
+  if (!MAIN_VERSION_FILE_ATLEAST(bmain, 503, 20)) {
+    /* Shift animation data to accommodate the new anisotropic inputs. */
+    version_node_socket_index_animdata(bmain, NTREE_SHADER, "ShaderNodeBsdfGlass", 5, 3, 7);
+    version_node_socket_index_animdata(bmain, NTREE_SHADER, "ShaderNodeBsdfGlass", 2, 2, 4);
+  }
+
   /**
    * Always bump subversion in BKE_blender_version.h when adding versioning
    * code here, and wrap it inside a MAIN_VERSION_FILE_ATLEAST check.
