@@ -1146,7 +1146,7 @@ void SourceProcessor::parse_library_functions(Parser &parser)
           Token curr = arg.front();
           /* Skip attribute. */
           if (curr == '[') {
-            curr = curr.next();
+            curr = curr.scope().back().next();
           }
           /* Skip const. */
           if (curr.str() == "const") {
