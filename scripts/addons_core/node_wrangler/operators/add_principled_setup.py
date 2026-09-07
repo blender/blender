@@ -18,7 +18,6 @@ from ..utils.nodes import (
     nw_check_active,
     nw_check_node_type,
     nw_check_space_type,
-    get_nodes_links,
     force_update,
 )
 from ..utils.paths import (
@@ -79,7 +78,9 @@ class NODE_OT_add_principled_setup(Operator, NWBase, ImportHelper):
             self.report({'INFO'}, 'No files selected')
             return {'CANCELLED'}
 
-        nodes, links = get_nodes_links(context)
+        tree = context.space_data.edit_tree
+        nodes = tree.nodes
+        links = tree.links
         active_node = nodes.active
 
         # Filter textures names for texture-types in filenames.
