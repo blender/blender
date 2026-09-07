@@ -24,7 +24,6 @@ set(INC_SYS
 
 set(SRC
   COM_bundle_item.hh
-  COM_compile_state.hh
   COM_context.hh
   COM_conversion_operation.hh
   COM_derived_resources.hh
@@ -38,6 +37,7 @@ set(SRC
   COM_multi_function_procedure_operation.hh
   COM_node_group_operation.hh
   COM_node_operation.hh
+  COM_node_tree_evaluator.hh
   COM_operation.hh
   COM_pixel_operation.hh
   COM_realize_on_domain_operation.hh
@@ -54,7 +54,6 @@ set(SRC
   COM_utilities.hh
 
   intern/bundle_item.cc
-  intern/compile_state.cc
   intern/context.cc
   intern/conversion_operation.cc
   intern/domain.cc
@@ -66,6 +65,7 @@ set(SRC
   intern/multi_function_procedure_operation.cc
   intern/node_group_operation.cc
   intern/node_operation.cc
+  intern/node_tree_evaluator.cc
   intern/operation.cc
   intern/pixel_operation.cc
   intern/realize_on_domain_operation.cc
