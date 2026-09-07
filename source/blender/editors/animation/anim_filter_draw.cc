@@ -126,7 +126,7 @@ class ChannelItem : public ui::AbstractTreeViewItem {
 
   bool rename(const bContext &C, StringRefNull new_name) override
   {
-    PropertyRNA *prop = name_prop_from_rna(const_cast<PointerRNA &>(this->source_));
+    PropertyRNA *prop = name_prop_from_rna(this->source_);
     RNA_property_string_set(&this->source_, prop, new_name.c_str());
     RNA_property_update(&const_cast<bContext &>(C), &this->source_, prop);
 
