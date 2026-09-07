@@ -32,8 +32,8 @@ static int gpu_shader_bool(GPUMaterial *mat,
                            GPUNodeStack *out)
 {
   NodeInputBool *node_storage = static_cast<NodeInputBool *>(node->storage);
-  float value = float(node_storage->boolean);
-  return GPU_link(mat, "set_value", GPU_uniform(&value), &out->link);
+  bool value = node_storage->boolean;
+  return GPU_link(mat, "set_bool", GPU_uniform(&value), &out->link);
 }
 
 static void node_build_multi_function(NodeMultiFunctionBuilder &builder)

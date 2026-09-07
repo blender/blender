@@ -695,9 +695,9 @@ float4x4 float4x4_from_float4(float4 value)
   return quaternion_to_float4x4(value);
 }
 
-int int_from_float4(float4 value)
+int int_from_float4(float4 value, float3 luminance_coefficients)
 {
-  return float4_to_int(value);
+  return color_to_int(value, luminance_coefficients);
 }
 
 int int_from_float3(float3 value)
@@ -800,9 +800,9 @@ int3 int3_from_bool(bool value)
   return bool_to_int3(value);
 }
 
-bool bool_from_float4(float4 value)
+bool bool_from_float4(float4 value, float3 luminance_coefficients)
 {
-  return float4_to_bool(value);
+  return color_to_bool(value, luminance_coefficients);
 }
 
 bool bool_from_float3(float3 value)

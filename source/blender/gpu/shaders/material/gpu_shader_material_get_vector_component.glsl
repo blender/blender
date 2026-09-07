@@ -12,9 +12,3 @@ void node_get_vector_component(float3 vector, int index, float &result)
     result = 0.0f;
   }
 }
-
-[[node]]
-void node_vector_component_float(float3 vector, float index, float &result)
-{
-  node_vector_component(vector, int(index), result);
-}

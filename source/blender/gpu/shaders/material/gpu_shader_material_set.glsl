@@ -9,6 +9,18 @@ void set_value(float val, float &outval)
 }
 
 [[node]]
+void set_int(int val, int &outval)
+{
+  outval = val;
+}
+
+[[node]]
+void set_bool(bool val, bool &outval)
+{
+  outval = val;
+}
+
+[[node]]
 void set_rgb(float3 col, float3 &outcol)
 {
   outcol = col;

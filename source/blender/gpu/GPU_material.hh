@@ -493,7 +493,18 @@ struct GPUNodeStack {
     if (this->link) {
       return true;
     }
-    return saturate_f(std::get<float>(this->value)) > near_zero;
+    switch (this->type) {
+      case GPU_FLOAT:
+        return saturate_f(std::get<float>(this->value)) > near_zero;
+      case GPU_INT:
+        return std::get<int>(this->value) != 0;
+      case GPU_BOOL:
+        return std::get<bool>(this->value);
+      default:
+        break;
+    }
+    BLI_assert_unreachable();
+    return true;
   }
 
   bool socket_not_one() const
@@ -501,7 +512,18 @@ struct GPUNodeStack {
     if (this->link) {
       return true;
     }
-    return saturate_f(std::get<float>(this->value)) < near_one;
+    switch (this->type) {
+      case GPU_FLOAT:
+        return saturate_f(std::get<float>(this->value)) < near_one;
+      case GPU_INT:
+        return std::get<int>(this->value) != 1;
+      case GPU_BOOL:
+        return !std::get<bool>(this->value);
+      default:
+        break;
+    }
+    BLI_assert_unreachable();
+    return true;
   }
 
   bool socket_not_black() const

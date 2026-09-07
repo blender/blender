@@ -72,7 +72,7 @@ void node_bsdf_principled(float4 base_color,
                           const float roughness,
                           const float ior,
                           float alpha,
-                          const float thin_wall,
+                          const bool thin_wall,
                           float3 N,
                           const float float_weight,
                           const float diffuse_roughness,
@@ -151,8 +151,7 @@ void node_bsdf_principled(float4 base_color,
   N = normalize_fallback(N, g_data.N);
   const float3 V = coordinate_incoming(g_data.P);
   const float NV = dot(N, V);
-  const bool thin_walled = (thin_wall != 0.0f);
-  const bool multiggx = thin_walled || (do_multiscatter != 0.0f);
+  const bool multiggx = thin_wall || (do_multiscatter != 0.0f);
 
   float3 weight = float3(float_weight);
   ClosureDiffuse diffuse_data;
@@ -165,9 +164,9 @@ void node_bsdf_principled(float4 base_color,
   weight = openpbr_eval_metal(
       weight, clamped_base_color, specular, metallic, NV, multiggx, reflection_data);
   weight = principled_eval_translucent(
-      weight, specular, transmission, N, NV, thin_walled, multiggx, reflection_data);
+      weight, specular, transmission, N, NV, thin_wall, multiggx, reflection_data);
   weight = principled_eval_gloss(weight, specular, N, NV, multiggx, reflection_data);
-  weight = openpbr_eval_subsurface(weight, subsurface, thin_walled, N, diffuse_data);
+  weight = openpbr_eval_subsurface(weight, subsurface, thin_wall, N, diffuse_data);
   openpbr_eval_diffuse(weight, base_color.rgb, N, diffuse_data);
 
   result = Closure(0);
