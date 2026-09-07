@@ -712,22 +712,22 @@ static void wm_keymap_patch(wmKeyMap *km, wmKeyMap *diff_km)
       /* We seek only for exact copy here! See #42137. */
       wmKeyMapItem *kmi_add = wm_keymap_find_item_equals(km, kmdi.add_item);
 
-      /* If kmi_add is same as kmi_remove (can happen in some cases,
-       * typically when we got kmi_remove from #wm_keymap_find_item_equals_result()),
+      /* If `kmi_add` is same as `kmi_remove` (can happen in some cases,
+       * typically when we got `kmi_remove` from #wm_keymap_find_item_equals_result()),
        * no need to add or remove anything, see #45579. */
 
-      /**
-       * \note This typically happens when we apply user-defined keymap diff to a base one that
+      /* NOTE: This typically happens when we apply user-defined keymap diff to a base one that
        * was exported with that customized keymap already. In that case:
        *
-       * - wm_keymap_find_item_equals(km, kmdi->remove_item) finds nothing
-       *   (because actual shortcut of current base does not match kmdi->remove_item any more).
-       * - wm_keymap_find_item_equals_result(km, kmdi->remove_item) finds the current kmi from
+       * - `wm_keymap_find_item_equals(km, kmdi->remove_item)` finds nothing
+       *   (because actual shortcut of current base does not match `kmdi->remove_item any more`).
+       * - `wm_keymap_find_item_equals_result(km, kmdi->remove_item)` finds the current `kmi` from
        *   base keymap (because it does exactly the same thing).
-       * - wm_keymap_find_item_equals(km, kmdi->add_item) finds the same kmi,
+       * - `wm_keymap_find_item_equals(km, kmdi->add_item)` finds the same `kmi`,
        *   since base keymap was exported with that user-defined shortcut already!
        *
-       *       Maybe we should rather keep user-defined keymaps specific to a given base one? */
+       *       Maybe we should rather keep user-defined keymaps specific to a given base one?
+       */
       if (kmi_add != nullptr && kmi_add == kmi_remove) {
         kmi_remove = nullptr;
       }

@@ -459,8 +459,9 @@ static TransData *ActionFCurveToTransData(TransData *td,
 
   for (i = 0, bezt = fcu->bezt; i < fcu->totvert; i++, bezt++) {
     /* Only add selected keyframes (for now, proportional edit is not enabled). */
-    if (is_prop_edit || (bezt->f2 & SELECT)) { /* Note this MUST match #count_fcurve_keys(), so
-                                                  can't use #BEZT_ISSEL_ANY() macro. */
+
+    /* Note this check MUST match #count_fcurve_keys(), so can't use #BEZT_ISSEL_ANY() macro. */
+    if (is_prop_edit || (bezt->f2 & SELECT)) {
       /* Only add if on the right 'side' of the current frame. */
       if (FrameOnMouseSide(side, bezt->vec[1][0], cfra)) {
         TimeToTransData(td, td2d, bezt, ale, ypos);

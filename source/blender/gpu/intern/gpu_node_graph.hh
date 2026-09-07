@@ -226,7 +226,8 @@ void gpu_node_graph_finalize_uniform_attrs(GPUNodeGraph *graph);
  *
  * NOTE: Graph optimizations will produce a shader which needs to be re-compiled
  * more frequently, however, the default material pass will always exist to fall
- * back on. */
+ * back on.
+ */
 void gpu_node_graph_optimize(GPUNodeGraph *graph);
 
 /**

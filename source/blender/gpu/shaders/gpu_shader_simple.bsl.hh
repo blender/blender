@@ -182,10 +182,8 @@ struct VertOutPoint {
 
 [[fragment]] void simple_point_frag(
     [[resource_table]] const SimplePoint &srt,
-    [[resource_table]] const ColorSpace &colorspace,
     [[point_coord]] const float2 pt_coord,
     [[in]] [[condition(!use_smooth_color)]] const VertOutPoint &v_out,
-    [[in]] [[condition(use_smooth_color)]] const VertOutSmooth &smooth_out,
     [[out]] FragOut &frag_out)
 {
   /* transparent outside of point
@@ -295,7 +293,6 @@ struct Dashed {
 };
 
 [[fragment]] void dashed_line_frag([[resource_table]] const Dashed &srt,
-                                   [[frag_coord]] const float4 frag_co,
                                    [[in]] const VertOutDashed &v_out,
                                    [[out]] FragOut &frag_out)
 {
@@ -324,7 +321,6 @@ struct SimpleLit {
 };
 
 [[fragment]] void simple_lit_frag([[resource_table]] const SimpleLit &srt,
-                                  [[frag_coord]] const float4 frag_co,
                                   [[in]] const VertOutLit &v_out,
                                   [[out]] FragOut &frag_out)
 {

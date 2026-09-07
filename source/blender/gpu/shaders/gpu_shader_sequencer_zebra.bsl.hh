@@ -24,9 +24,7 @@ struct VertOut {
   [[smooth]] float2 uv;
 };
 
-[[vertex]] void main_vert([[vertex_id]] const int vert_id,
-                          [[instance_id]] const int inst_id,
-                          [[resource_table]] Resources &srt,
+[[vertex]] void main_vert([[resource_table]] Resources &srt,
                           [[in]] const VertIn &v_in,
                           [[out]] VertOut &v_out,
                           [[position]] float4 &position)

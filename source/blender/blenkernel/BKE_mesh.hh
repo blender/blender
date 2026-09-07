@@ -418,7 +418,8 @@ void mesh_sharp_edges_set_from_angle(Mesh &mesh, float angle, bool keep_sharp_ed
 
 /**
  * Calculate edge visibility based on vertex visibility, hides an edge when either of its
- * vertices are hidden. */
+ * vertices are hidden.
+ */
 void mesh_edge_hide_from_vert(Span<int2> edges, Span<bool> hide_vert, MutableSpan<bool> hide_edge);
 
 /* Hide faces when any of their vertices are hidden. */

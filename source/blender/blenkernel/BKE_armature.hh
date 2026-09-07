@@ -529,8 +529,10 @@ struct BBoneSplineParameters {
 
 /** Sets the location of the pose channel, respecting #bPoseChannel::protectflag. */
 void BKE_pchan_protected_location_set(bPoseChannel *pchan, const float location[3]);
-/** Sets the rotation of the pose channel, respecting the #bPoseChannel::protectflag. Depending on
- * the current rotation mode, this either modifies quaternion, euler or axis angle. */
+/**
+ * Sets the rotation of the pose channel, respecting the #bPoseChannel::protectflag. Depending on
+ * the current rotation mode, this either modifies quaternion, euler or axis angle.
+ */
 void BKE_pchan_protected_rotation_set(bPoseChannel *pchan, const float mat[3][3]);
 /** Sets the location of the pose channel, respecting #bPoseChannel::protectflag. */
 void BKE_pchan_protected_scale_set(bPoseChannel *pchan, const float scale[3]);
@@ -748,7 +750,8 @@ struct bArmature_Runtime {
    *
    * This is used when regenerating the bones array, to ensure only a single thread does this. Read
    * access to the bones array is not protected. So far this has worked well; it's not guaranteed
-   * that there won't be a race condition, though. */
+   * that there won't be a race condition, though.
+   */
   Mutex bones_mutex;
 
   /** Clear the `bones` array, ensuring it is rebuilt on its next use. */

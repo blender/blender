@@ -748,28 +748,27 @@ bool BKE_paint_brush_set(Paint *paint, Brush *brush)
   return true;
 }
 
-static const char *paint_brush_essentials_asset_file_name_from_paint_mode(
-    const PaintMode paint_mode)
+static const char *paint_brush_essentials_asset_file_name_from_asset_category(
+    const bke::paint::AssetCategory asset_category)
 {
-  switch (paint_mode) {
-    case PaintMode::Sculpt:
+  switch (asset_category) {
+    case bke::paint::AssetCategory::MeshSculpt:
       return "essentials_brushes-mesh_sculpt.blend";
-    case PaintMode::Vertex:
+    case bke::paint::AssetCategory::MeshVertex:
       return "essentials_brushes-mesh_vertex.blend";
-    case PaintMode::Weight:
+    case bke::paint::AssetCategory::MeshWeight:
       return "essentials_brushes-mesh_weight.blend";
-    case PaintMode::Texture2D:
-    case PaintMode::Texture3D:
+    case bke::paint::AssetCategory::MeshTexture:
       return "essentials_brushes-mesh_texture.blend";
-    case PaintMode::GPencil:
+    case bke::paint::AssetCategory::GPencilDraw:
       return "essentials_brushes-gp_draw.blend";
-    case PaintMode::SculptGPencil:
+    case bke::paint::AssetCategory::GPencilSculpt:
       return "essentials_brushes-gp_sculpt.blend";
-    case PaintMode::WeightGPencil:
+    case bke::paint::AssetCategory::GPencilWeight:
       return "essentials_brushes-gp_weight.blend";
-    case PaintMode::VertexGPencil:
+    case bke::paint::AssetCategory::GPencilVertex:
       return "essentials_brushes-gp_vertex.blend";
-    case PaintMode::SculptCurves:
+    case bke::paint::AssetCategory::CurvesSculpt:
       return "essentials_brushes-curve_sculpt.blend";
     default:
       return nullptr;
@@ -777,10 +776,10 @@ static const char *paint_brush_essentials_asset_file_name_from_paint_mode(
 }
 
 static AssetWeakReference *paint_brush_asset_reference_ptr_from_essentials(
-    const char *name, const PaintMode paint_mode)
+    const char *name, const bke::paint::AssetCategory asset_category)
 {
-  const char *essentials_file_name = paint_brush_essentials_asset_file_name_from_paint_mode(
-      paint_mode);
+  const char *essentials_file_name = paint_brush_essentials_asset_file_name_from_asset_category(
+      asset_category);
   if (!essentials_file_name) {
     return nullptr;
   }
@@ -794,10 +793,10 @@ static AssetWeakReference *paint_brush_asset_reference_ptr_from_essentials(
 }
 
 static std::optional<AssetWeakReference> paint_brush_asset_reference_from_essentials(
-    const char *name, const PaintMode paint_mode)
+    const char *name, const bke::paint::AssetCategory asset_category)
 {
-  const char *essentials_file_name = paint_brush_essentials_asset_file_name_from_paint_mode(
-      paint_mode);
+  const char *essentials_file_name = paint_brush_essentials_asset_file_name_from_asset_category(
+      asset_category);
   if (!essentials_file_name) {
     return {};
   }
@@ -810,10 +809,12 @@ static std::optional<AssetWeakReference> paint_brush_asset_reference_from_essent
   return weak_ref;
 }
 
-Brush *BKE_paint_brush_from_essentials(Main *bmain, const PaintMode paint_mode, const char *name)
+Brush *BKE_paint_brush_from_essentials(Main *bmain,
+                                       const bke::paint::AssetCategory asset_category,
+                                       const char *name)
 {
   std::optional<AssetWeakReference> weak_ref = paint_brush_asset_reference_from_essentials(
-      name, paint_mode);
+      name, asset_category);
   if (!weak_ref) {
     return nullptr;
   }
@@ -829,18 +830,18 @@ static void paint_brush_set_essentials_reference(Paint *paint, const char *name)
 
   BLI_assert(paint->runtime->initialized);
   paint->brush_asset_reference = paint_brush_asset_reference_ptr_from_essentials(
-      name, paint->runtime->paint_mode);
+      name, paint->runtime->asset_category);
   paint->brush = nullptr;
 }
 
-static void paint_brush_default_essentials_name_get(const PaintMode paint_mode,
+static void paint_brush_default_essentials_name_get(const bke::paint::AssetCategory asset_category,
                                                     std::optional<int> brush_type,
                                                     StringRefNull *r_name)
 {
   const char *name = "";
 
-  switch (paint_mode) {
-    case PaintMode::Sculpt:
+  switch (asset_category) {
+    case bke::paint::AssetCategory::MeshSculpt:
       name = "Draw";
       if (brush_type) {
         switch (eBrushSculptType(*brush_type)) {
@@ -867,7 +868,7 @@ static void paint_brush_default_essentials_name_get(const PaintMode paint_mode,
         }
       }
       break;
-    case PaintMode::Vertex:
+    case bke::paint::AssetCategory::MeshVertex:
       name = "Paint Hard";
       if (brush_type) {
         switch (eBrushVertexPaintType(*brush_type)) {
@@ -886,7 +887,7 @@ static void paint_brush_default_essentials_name_get(const PaintMode paint_mode,
         }
       }
       break;
-    case PaintMode::Weight:
+    case bke::paint::AssetCategory::MeshWeight:
       name = "Add Weight";
       if (brush_type) {
         switch (eBrushWeightPaintType(*brush_type)) {
@@ -905,8 +906,7 @@ static void paint_brush_default_essentials_name_get(const PaintMode paint_mode,
         }
       }
       break;
-    case PaintMode::Texture2D:
-    case PaintMode::Texture3D:
+    case bke::paint::AssetCategory::MeshTexture:
       name = "Paint Hard";
       if (brush_type) {
         switch (eBrushImagePaintType(*brush_type)) {
@@ -930,7 +930,7 @@ static void paint_brush_default_essentials_name_get(const PaintMode paint_mode,
         }
       }
       break;
-    case PaintMode::SculptCurves:
+    case bke::paint::AssetCategory::CurvesSculpt:
       name = "Comb";
       if (brush_type) {
         switch (eBrushCurvesSculptType(*brush_type)) {
@@ -951,7 +951,7 @@ static void paint_brush_default_essentials_name_get(const PaintMode paint_mode,
         }
       }
       break;
-    case PaintMode::GPencil:
+    case bke::paint::AssetCategory::GPencilDraw:
       name = "Pencil";
       /* Different default brush for some brush types. */
       if (brush_type) {
@@ -969,7 +969,7 @@ static void paint_brush_default_essentials_name_get(const PaintMode paint_mode,
         }
       }
       break;
-    case PaintMode::VertexGPencil:
+    case bke::paint::AssetCategory::GPencilVertex:
       name = "Paint";
       if (brush_type) {
         switch (eBrushGPVertexType(*brush_type)) {
@@ -995,7 +995,7 @@ static void paint_brush_default_essentials_name_get(const PaintMode paint_mode,
         }
       }
       break;
-    case PaintMode::SculptGPencil:
+    case bke::paint::AssetCategory::GPencilSculpt:
       name = "Smooth";
       if (brush_type) {
         switch (eBrushGPSculptType(*brush_type)) {
@@ -1007,7 +1007,7 @@ static void paint_brush_default_essentials_name_get(const PaintMode paint_mode,
         }
       }
       break;
-    case PaintMode::WeightGPencil:
+    case bke::paint::AssetCategory::GPencilWeight:
       name = "Paint";
       if (brush_type) {
         switch (eBrushGPWeightType(*brush_type)) {
@@ -1035,16 +1035,16 @@ static void paint_brush_default_essentials_name_get(const PaintMode paint_mode,
 }
 
 std::optional<AssetWeakReference> BKE_paint_brush_type_default_reference(
-    const PaintMode paint_mode, std::optional<int> brush_type)
+    const bke::paint::AssetCategory asset_category, std::optional<int> brush_type)
 {
   StringRefNull name;
 
-  paint_brush_default_essentials_name_get(paint_mode, brush_type, &name);
+  paint_brush_default_essentials_name_get(asset_category, brush_type, &name);
   if (name.is_empty()) {
     return {};
   }
 
-  return paint_brush_asset_reference_from_essentials(name.c_str(), paint_mode);
+  return paint_brush_asset_reference_from_essentials(name.c_str(), asset_category);
 }
 
 static void paint_brush_set_default_reference(Paint *paint, const bool do_regular = true)
@@ -1057,7 +1057,7 @@ static void paint_brush_set_default_reference(Paint *paint, const bool do_regula
 
   StringRefNull name;
 
-  paint_brush_default_essentials_name_get(paint->runtime->paint_mode, std::nullopt, &name);
+  paint_brush_default_essentials_name_get(paint->runtime->asset_category, std::nullopt, &name);
 
   if (do_regular && !name.is_empty()) {
     paint_brush_set_essentials_reference(paint, name.c_str());
@@ -1138,41 +1138,39 @@ static void paint_runtime_init(const ToolSettings *ts, Paint *paint)
 
   if (paint == &ts->imapaint.paint) {
     paint->runtime->ob_mode = OB_MODE_TEXTURE_PAINT;
-    /* Note: This is an odd case where 3D Texture paint and Image Paint share the same struct.
-     * It would be equally valid to assign PaintMode::Texture2D to this. */
-    paint->runtime->paint_mode = PaintMode::Texture3D;
+    paint->runtime->asset_category = bke::paint::AssetCategory::MeshTexture;
   }
   else if (ts->sculpt && paint == &ts->sculpt->paint) {
     paint->runtime->ob_mode = OB_MODE_SCULPT;
-    paint->runtime->paint_mode = PaintMode::Sculpt;
+    paint->runtime->asset_category = bke::paint::AssetCategory::MeshSculpt;
   }
   else if (ts->vpaint && paint == &ts->vpaint->paint) {
     paint->runtime->ob_mode = OB_MODE_VERTEX_PAINT;
-    paint->runtime->paint_mode = PaintMode::Vertex;
+    paint->runtime->asset_category = bke::paint::AssetCategory::MeshVertex;
   }
   else if (ts->wpaint && paint == &ts->wpaint->paint) {
     paint->runtime->ob_mode = OB_MODE_WEIGHT_PAINT;
-    paint->runtime->paint_mode = PaintMode::Weight;
+    paint->runtime->asset_category = bke::paint::AssetCategory::MeshWeight;
   }
   else if (ts->gp_paint && paint == &ts->gp_paint->paint) {
     paint->runtime->ob_mode = OB_MODE_PAINT_GREASE_PENCIL;
-    paint->runtime->paint_mode = PaintMode::GPencil;
+    paint->runtime->asset_category = bke::paint::AssetCategory::GPencilDraw;
   }
   else if (ts->gp_vertexpaint && paint == &ts->gp_vertexpaint->paint) {
     paint->runtime->ob_mode = OB_MODE_VERTEX_GREASE_PENCIL;
-    paint->runtime->paint_mode = PaintMode::VertexGPencil;
+    paint->runtime->asset_category = bke::paint::AssetCategory::GPencilVertex;
   }
   else if (ts->gp_sculptpaint && paint == &ts->gp_sculptpaint->paint) {
     paint->runtime->ob_mode = OB_MODE_SCULPT_GREASE_PENCIL;
-    paint->runtime->paint_mode = PaintMode::SculptGPencil;
+    paint->runtime->asset_category = bke::paint::AssetCategory::GPencilSculpt;
   }
   else if (ts->gp_weightpaint && paint == &ts->gp_weightpaint->paint) {
     paint->runtime->ob_mode = OB_MODE_WEIGHT_GREASE_PENCIL;
-    paint->runtime->paint_mode = PaintMode::WeightGPencil;
+    paint->runtime->asset_category = bke::paint::AssetCategory::GPencilWeight;
   }
   else if (ts->curves_sculpt && paint == &ts->curves_sculpt->paint) {
     paint->runtime->ob_mode = OB_MODE_SCULPT_CURVES;
-    paint->runtime->paint_mode = PaintMode::SculptCurves;
+    paint->runtime->asset_category = bke::paint::AssetCategory::CurvesSculpt;
   }
   else {
     BLI_assert_unreachable();
@@ -1608,7 +1606,7 @@ void BKE_paint_copy(const Paint *src, Paint *dst, const int flag)
 
   dst->runtime = MEM_new<bke::PaintRuntime>(__func__);
   if (src->runtime) {
-    dst->runtime->paint_mode = src->runtime->paint_mode;
+    dst->runtime->asset_category = src->runtime->asset_category;
     dst->runtime->ob_mode = src->runtime->ob_mode;
     dst->runtime->primary_snap = std::make_unique<bke::paint::TexSnapshot>();
     dst->runtime->secondary_snap = std::make_unique<bke::paint::TexSnapshot>();

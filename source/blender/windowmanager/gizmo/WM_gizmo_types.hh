@@ -66,12 +66,14 @@ enum eWM_GizmoFlag {
   WM_GIZMO_HIDDEN_KEYMAP = (1 << 5),
   /**
    * When set 'scale_final' value also scales the offset.
-   * Use when offset is to avoid screen-space overlap instead of absolute positioning. */
+   * Use when offset is to avoid screen-space overlap instead of absolute positioning.
+   */
   WM_GIZMO_DRAW_OFFSET_SCALE = (1 << 6),
   /**
    * User should still use 'scale_final' for any handles and UI elements.
    * This simply skips scale when calculating the final matrix.
-   * Needed when the gizmo needs to align with the interface underneath it. */
+   * Needed when the gizmo needs to align with the interface underneath it.
+   */
   WM_GIZMO_DRAW_NO_SCALE = (1 << 7),
   /**
    * Hide the cursor and lock its position while interacting with this gizmo.
@@ -83,8 +85,10 @@ enum eWM_GizmoFlag {
   /** Use the active tools operator properties when running as an operator. */
   WM_GIZMO_OPERATOR_TOOL_INIT = (1 << 10),
 
-  /** Don't pass through events to other handlers
-   * (allows click/drag not to have its events stolen by press events in other keymaps). */
+  /**
+   * Don't pass through events to other handlers
+   * (allows click/drag not to have its events stolen by press events in other keymaps).
+   */
   WM_GIZMO_EVENT_HANDLE_ALL = (1 << 11),
 
   /** Don't use tool-tips for this gizmo (can be distracting). */
@@ -104,8 +108,10 @@ ENUM_OPERATORS(eWM_GizmoFlag);
 enum eWM_GizmoFlagGroupTypeFlag {
   /** Mark gizmo-group as being 3D. */
   WM_GIZMOGROUPTYPE_3D = (1 << 0),
-  /** Scale gizmos as 3D object that respects zoom (otherwise zoom independent draw size).
-   * NOTE: currently only for 3D views, 2D support needs adding. */
+  /**
+   * Scale gizmos as 3D object that respects zoom (otherwise zoom independent draw size).
+   * NOTE: currently only for 3D views, 2D support needs adding.
+   */
   WM_GIZMOGROUPTYPE_SCALE = (1 << 1),
   /** Gizmos can be depth culled with scene objects (covered by other geometry - TODO). */
   WM_GIZMOGROUPTYPE_DEPTH_3D = (1 << 2),
@@ -131,7 +137,8 @@ enum eWM_GizmoFlagGroupTypeFlag {
    * The main issue is controlling how a gizmo is activated with a tool
    * when a tool can activate multiple operators based on the key-map.
    * We could even move the options into the key-map item.
-   * ~ campbell. */
+   * ~ campbell.
+   */
   WM_GIZMOGROUPTYPE_TOOL_INIT = (1 << 7),
 
   /**
@@ -182,8 +189,10 @@ enum eWM_GizmoFlagMapTypeUpdateFlag {
   WM_GIZMOMAPTYPE_UPDATE_INIT = (1 << 0),
   WM_GIZMOMAPTYPE_UPDATE_REMOVE = (1 << 1),
 
-  /** Needed because keymap may be registered before and after window initialization.
-   * So we need to keep track of keymap initialization separately. */
+  /**
+   * Needed because keymap may be registered before and after window initialization.
+   * So we need to keep track of keymap initialization separately.
+   */
   WM_GIZMOMAPTYPE_KEYMAP_INIT = (1 << 2),
 };
 ENUM_OPERATORS(eWM_GizmoFlagMapTypeUpdateFlag)
@@ -212,8 +221,10 @@ namespace blender {
 
 struct wmGizmoOpElem {
   wmOperatorType *type = nullptr;
-  /** Operator properties if gizmo spawns and controls an operator,
-   * or owner pointer if gizmo spawns and controls a property. */
+  /**
+   * Operator properties if gizmo spawns and controls an operator,
+   * or owner pointer if gizmo spawns and controls a property.
+   */
   PointerRNA ptr = {};
 
   bool is_redo = false;
@@ -226,8 +237,10 @@ struct wmGizmo {
   /** While we don't have a real type, use this to put type-like vars. */
   const wmGizmoType *type;
 
-  /** Overrides 'type->modal' when set.
-   * Note that this is a workaround, remove if we can. */
+  /**
+   * Overrides 'type->modal' when set.
+   * Note that this is a workaround, remove if we can.
+   */
   wmGizmoFnModal custom_modal;
 
   /** Pointer back to group this gizmo is in (just for quick access). */
@@ -246,8 +259,10 @@ struct wmGizmo {
   /** State flags (active, highlighted, selected). */
   eWM_GizmoFlagState state;
 
-  /** Optional ID for highlighting different parts of this gizmo.
-   * -1 when unset, otherwise a valid index. (Used as index to 'op_data'). */
+  /**
+   * Optional ID for highlighting different parts of this gizmo.
+   * -1 when unset, otherwise a valid index. (Used as index to 'op_data').
+   */
   int highlight_part;
 
   /**
@@ -256,8 +271,10 @@ struct wmGizmo {
    */
   int drag_part;
 
-  /** Distance to bias this gizmo above others when picking
-   * (in world-space, scaled by the gizmo scale - when used). */
+  /**
+   * Distance to bias this gizmo above others when picking
+   * (in world-space, scaled by the gizmo scale - when used).
+   */
   float select_bias;
 
   /* Transformation of the gizmo in 2d or 3d space.
@@ -286,8 +303,10 @@ struct wmGizmo {
   /** Data used during interaction. */
   void *interaction_data;
 
-  /** Operator to spawn when activating the gizmo (overrides property editing),
-   * an array of items (aligned with #wmGizmo.highlight_part). */
+  /**
+   * Operator to spawn when activating the gizmo (overrides property editing),
+   * an array of items (aligned with #wmGizmo.highlight_part).
+   */
   Vector<wmGizmoOpElem, 4> op_data;
 
   IDProperty *properties;
@@ -353,8 +372,10 @@ struct wmGizmoType {
 
   const char *idname; /* #MAX_NAME. */
 
-  /** Set to `sizeof(wmGizmo)` or larger for instances of this type,
-   * use so we can cast to other types without the hassle of a custom-data pointer. */
+  /**
+   * Set to `sizeof(wmGizmo)` or larger for instances of this type,
+   * use so we can cast to other types without the hassle of a custom-data pointer.
+   */
   uint struct_size;
 
   /** Initialize struct (calloc'd 'struct_size' region). */
@@ -366,8 +387,10 @@ struct wmGizmoType {
   /** Determines 3d intersection by rendering the gizmo in a selection routine. */
   wmGizmoFnDrawSelect draw_select;
 
-  /** Determine if the mouse intersects with the gizmo.
-   * The calculation should be done in the callback itself, -1 for no selection. */
+  /**
+   * Determine if the mouse intersects with the gizmo.
+   * The calculation should be done in the callback itself, -1 for no selection.
+   */
   wmGizmoFnTestSelect test_select;
 
   /** Handler used by the gizmo. Usually handles interaction tied to a gizmo type. */
@@ -447,13 +470,17 @@ struct wmGizmoGroupType {
   /** Initialize data for before invoke. */
   wmGizmoGroupFnInvokePrepare invoke_prepare;
 
-  /** Keymap init callback for this gizmo-group (optional),
-   * will fall back to default tweak keymap when left NULL. */
+  /**
+   * Keymap init callback for this gizmo-group (optional),
+   * will fall back to default tweak keymap when left NULL.
+   */
   wmGizmoGroupFnSetupKeymap setup_keymap;
 
-  /** Optionally subscribe to wmMsgBus events,
+  /**
+   * Optionally subscribe to wmMsgBus events,
    * these are calculated automatically from RNA properties,
-   * only needed if gizmos depend indirectly on properties. */
+   * only needed if gizmos depend indirectly on properties.
+   */
   wmGizmoGroupFnMsgBusSubscribe message_subscribe;
 
   /** Keymap created with callback from above. */

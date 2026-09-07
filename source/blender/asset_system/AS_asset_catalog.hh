@@ -72,7 +72,8 @@ class AssetCatalogService {
    * service user is responsible for it. It is cleared by #write_to_disk().
    *
    * This "dirty" state is tracked per catalog, so that it's possible to gracefully load changes
-   * from disk. Any catalog with unsaved changes will not be overwritten by on-disk changes. */
+   * from disk. Any catalog with unsaved changes will not be overwritten by on-disk changes.
+   */
   void tag_has_unsaved_changes(AssetCatalog *edited_catalog = nullptr);
   bool has_unsaved_changes() const;
 
@@ -115,7 +116,8 @@ class AssetCatalogService {
    * - Create a new file blender_assets.cats.txt next to the blend file.
    *
    * Return true on success, which either means there were no in-memory categories to save,
-   * or the save was successful. */
+   * or the save was successful.
+   */
   bool write_to_disk(const CatalogFilePath &blend_file_path);
 
   /**
@@ -124,7 +126,8 @@ class AssetCatalogService {
    * from), and that catalogs will be merged with already-existing ones in that location.
    *
    * Use this for a "Save as..." that has to write the catalogs to the new blend file location,
-   * instead of updating the previously read CDF. */
+   * instead of updating the previously read CDF.
+   */
   void prepare_to_merge_on_write();
 
   /**
@@ -145,12 +148,14 @@ class AssetCatalogService {
    * efficient call as it's just a linear search over the catalogs.
    *
    * If there are multiple catalogs with the same path, return the first-loaded one. If there is
-   * none marked as "first loaded", return the one with the lowest UUID. */
+   * none marked as "first loaded", return the one with the lowest UUID.
+   */
   AssetCatalog *find_catalog_by_path(const AssetCatalogPath &path) const;
 
   /**
    * Return true only if this catalog is known.
-   * This treats deleted catalogs as "unknown". */
+   * This treats deleted catalogs as "unknown".
+   */
   bool is_catalog_known(CatalogID catalog_id) const;
 
   /**
@@ -198,7 +203,8 @@ class AssetCatalogService {
 
   /**
    * Store the current catalogs in the undo stack.
-   * This snapshots everything in the #AssetCatalogCollection. */
+   * This snapshots everything in the #AssetCatalogCollection.
+   */
   void undo_push();
   /**
    * Restore the last-saved undo snapshot, pushing the current state onto the redo stack.
@@ -208,7 +214,8 @@ class AssetCatalogService {
   bool is_undo_possbile() const;
   /**
    * Restore the last-saved redo snapshot, pushing the current state onto the undo stack.
-   * The caller is responsible for first checking that undoing is possible. */
+   * The caller is responsible for first checking that undoing is possible.
+   */
   void redo();
   bool is_redo_possbile() const;
 
@@ -247,7 +254,8 @@ class AssetCatalogService {
 
   /**
    * Hard delete a catalog. This simply removes the catalog from existence. The deletion will not
-   * be remembered, and reloading the CDF will bring it back. */
+   * be remembered, and reloading the CDF will bring it back.
+   */
   void delete_catalog_by_id_hard(CatalogID catalog_id);
 
   std::unique_ptr<AssetCatalogDefinitionFile> parse_catalog_file(
@@ -255,7 +263,8 @@ class AssetCatalogService {
 
   /**
    * Construct an in-memory catalog definition file (CDF) from the currently known catalogs.
-   * This object can then be processed further before saving to disk. */
+   * This object can then be processed further before saving to disk.
+   */
   std::unique_ptr<AssetCatalogDefinitionFile> construct_cdf_in_memory(
       const CatalogFilePath &file_path) const;
 
@@ -310,7 +319,8 @@ class AssetCatalog {
    * so to avoid complete data-loss when the catalog definition file gets lost,
    * we also store a human-readable simple name for the catalog.
    *
-   * It should fit in sizeof(AssetMetaData::catalog_simple_name) bytes. */
+   * It should fit in sizeof(AssetMetaData::catalog_simple_name) bytes.
+   */
   std::string simple_name;
 
   struct Flags {
@@ -370,7 +380,8 @@ struct AssetCatalogLessThan {
 
 /**
  * Set that stores catalogs ordered by (path, UUID).
- * Being a set, duplicates are removed. The catalog's simple name is ignored in this. */
+ * Being a set, duplicates are removed. The catalog's simple name is ignored in this.
+ */
 using AssetCatalogOrderedSet = std::set<const AssetCatalog *, AssetCatalogLessThan>;
 using MutableAssetCatalogOrderedSet = std::set<AssetCatalog *, AssetCatalogLessThan>;
 

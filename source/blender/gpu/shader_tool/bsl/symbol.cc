@@ -46,6 +46,8 @@ struct SymbolParser : NodeErrorHandler {
     }
 
     int offset = 0;
+    int bitfield_offset = 0;
+    SymbolVariable *bitfield_base = nullptr;
 
     /* For enums, the value of the last declaration. */
     ConstexprValue enum_last_val = -1;
@@ -80,7 +82,7 @@ struct SymbolParser : NodeErrorHandler {
             parse_func_decl(scope, child, prefix);
             break;
           case NodeType::VarDecl:
-            parse_var_decl(scope, child, offset, prefix);
+            parse_var_decl(scope, child, offset, bitfield_offset, bitfield_base, prefix);
             break;
           case NodeType::StructuredBinding:
             parse_structured_binding(scope, child);
@@ -910,7 +912,12 @@ struct SymbolParser : NodeErrorHandler {
     }
   }
 
-  void parse_var_decl(SymbolScope &scope, VarDecl var, int &offset, const std::string &prefix)
+  void parse_var_decl(SymbolScope &scope,
+                      VarDecl var,
+                      int &offset,
+                      int &bitfield_offset,
+                      SymbolVariable *&bitfield_base,
+                      const std::string &prefix)
   {
     IdQualified type_id = var.type().identifier();
     string_view type_id_str = type_id.str();
@@ -986,6 +993,7 @@ struct SymbolParser : NodeErrorHandler {
         error(decl, Diag::ReferenceMixedVarDecl);
         continue;
       }
+      ast::BitField bitfield = decl.bitfield();
 
       SymbolVariable *sym = table.var_arena.alloc(&scope, type, decl, table);
       sym->res_type = attr.res_type;
@@ -1026,13 +1034,67 @@ struct SymbolParser : NodeErrorHandler {
       }
 
       if (cls) {
-        sym->set_offset(cls->is_union, offset);
+        if (sym->is_bitfield) {
+          if ((sym->type != table.int_cls && sym->type != table.uint_cls) ||
+              sym->array_dimensions != 0)
+          {
+            error(decl, Diag::BitFieldNotIntegral, sym->type->original);
+          }
+          ExpressionResult result =
+              table.expr_type_analysis(scope, bitfield.expr().child_first()).unwrap(this);
+          if (!result.is_constexpr()) {
+            error(decl, Diag::ExprNotIntegralConstant);
+          }
+          int len = value_as<int>(result.value);
+          if (len > 32) {
+            error(decl, Diag::BitFieldSizeTooLarge, to_string(len));
+          }
+          else if (len == 0) {
+            error(decl, Diag::BitFieldSizeNull);
+          }
+          else if (len < 0) {
+            error(decl, Diag::BitFieldSizeNegative, to_string(len));
+          }
+          else {
+            if (bitfield_base && bitfield_offset + len <= 32 && !cls->is_union) {
+              /* Fits in existing bitfield. */
+              sym->bit_length = len;
+              sym->bit_offset = bitfield_offset;
+              bitfield_offset += len;
+            }
+            else {
+              /* Doesn't fit in existing bitfield or first in bitfield. Start a new bitfield. */
+              sym->bit_length = len;
+              sym->bit_offset = 0;
+              bitfield_offset = len;
+              bitfield_base = sym;
+            }
+          }
+        }
+        else {
+          /* Terminate any in progress bitfield. */
+          bitfield_base = nullptr;
+        }
+
+        if (sym->bit_offset != 0 && bitfield_base) {
+          /* Bitfield members copy their offset from the first bitfield member. */
+          sym->offset = bitfield_base->offset;
+        }
+        else {
+          sym->set_offset(cls->is_union, offset);
+        }
 
         /* Alias to the first, non-anonymous parent. */
         if (cls->is_anonymous) {
           if (named_parent->variable_emplace(sym)) {
             error(sym->loc.tok, Diag::Redefinition, sym->identifier);
           }
+        }
+
+        if (bitfield_base) {
+          /* Note: we mutate assignments into bitfieldInsert in a second pass. */
+          sym->identifier = bitfield_base->original + ".bitfieldExtract(" +
+                            to_string(sym->bit_offset) + ", " + to_string(sym->bit_length) + ")";
         }
 
         if (cls->is_anonymous || cls->is_union) {

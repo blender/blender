@@ -1393,8 +1393,10 @@ struct RNACompareOverrideDiffPropPtrContext {
    * (i.e. only uses its index).
    */
   bool no_prop_name = false;
-  /** RNA collection items: forcefully get an item property name, even if one of the items is
-   *  null/doesn't have one. Mutually exclusive with `no_prop_name`. */
+  /**
+   * RNA collection items: forcefully get an item property name, even if one of the items is
+   * null/doesn't have one. Mutually exclusive with `no_prop_name`.
+   */
   bool do_force_name = false;
   /** RNA collection ID items: also check and store item's ID pointers. */
   bool use_id_pointer = false;
@@ -1424,10 +1426,12 @@ struct RNACompareOverrideDiffPropPtrContext {
   /**
    * Status info, usually set by a call to #rna_property_override_diff_propptr_validate_diffing.
    */
-  /** Indicate whether the two given RNA pointers can be considered 'matching data', i.e. the
+  /**
+   * Indicate whether the two given RNA pointers can be considered 'matching data', i.e. the
    * pointers themselves should not be compared, but rather the content of the RNA structs they
    * point to. Note that this is never the case for ID RNA pointers (i.e. when `is_id` below is
-   * `true`). */
+   * `true`).
+   */
   bool is_valid_for_diffing = true;
 
   bool is_id = false;

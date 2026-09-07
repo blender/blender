@@ -123,8 +123,10 @@ struct ImBufFloatBuffer {
 };
 
 enum ImBufGPUFlag : int {
-  /** GPU texture failed to be loaded onto the GPU, to distinguish a null
-   * texture between not yet loaded and failed to load. */
+  /**
+   * GPU texture failed to be loaded onto the GPU, to distinguish a null
+   * texture between not yet loaded and failed to load.
+   */
   IMB_GPU_LOAD_FAILED = (1 << 0),
 };
 ENUM_OPERATORS(ImBufGPUFlag)
@@ -317,8 +319,10 @@ enum {
   IB_BITMAPDIRTY = (1 << 1),
   /** image buffer is persistent in the memory and should never be removed from the cache */
   IB_PERSISTENT = (1 << 2),
-  /** The image buffer is backed by a GPU texture storage but the host buffers either do not exist
-   * or are out-dated and needs to read from the GPU texture. */
+  /**
+   * The image buffer is backed by a GPU texture storage but the host buffers either do not exist
+   * or are out-dated and needs to read from the GPU texture.
+   */
   IB_HOST_BUFFER_INVALID = (1 << 3),
 };
 

@@ -222,15 +222,11 @@ static void blender_camera_from_object(BlenderCamera *bcam,
 {
   bcam->motion_steps = object_motion_steps(b_ob, b_ob);
 
-  if (!b_ob.data) {
-    /* A blender local camera can be an Empty even. */
-    return;
-  }
+  /* A blender local camera can be an Empty even, which has no object data. */
+  blender::ID *b_ob_data = static_cast<blender::ID *>(b_ob.data);
 
-  blender::ID &b_ob_data = *static_cast<blender::ID *>(b_ob.data);
-
-  if (b_ob_data.id_type() == blender::ID_CA) {
-    blender::Camera &b_camera = blender::id_cast<blender::Camera &>(b_ob_data);
+  if (b_ob_data && b_ob_data->id_type() == blender::ID_CA) {
+    blender::Camera &b_camera = blender::id_cast<blender::Camera &>(*b_ob_data);
 
     bcam->nearclip = b_camera.clip_start;
     bcam->farclip = b_camera.clip_end;
@@ -357,13 +353,17 @@ static void blender_camera_from_object(BlenderCamera *bcam,
       }
     }
   }
-  else if (b_ob_data.id_type() == blender::ID_LA) {
+  else if (b_ob_data && b_ob_data->id_type() == blender::ID_LA) {
     /* Can also look through spot light. */
-    const blender::Light &b_light = reinterpret_cast<const blender::Light &>(b_ob_data);
+    const blender::Light &b_light = reinterpret_cast<const blender::Light &>(*b_ob_data);
     const float lens = 16.0f / tanf(b_light.spotsize * 0.5f);
     if (lens > 0.0f) {
       bcam->lens = lens;
     }
+  }
+  else {
+    /* Like Blender, fall back to 35mm for other object types. */
+    bcam->lens = 35.0f;
   }
 }
 

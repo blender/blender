@@ -68,7 +68,6 @@ class BlenderSync {
                  blender::RegionView3D *b_rv3d,
                  const int width,
                  const int height,
-                 void **python_thread_state,
                  const DeviceInfo &denoise_device_info);
   void sync_view_layer(blender::ViewLayer &b_view_layer);
   void sync_render_passes(blender::RenderLayer &b_rlay, blender::ViewLayer &b_view_layer);
@@ -133,8 +132,7 @@ class BlenderSync {
                                blender::View3D *b_v3d,
                                blender::RegionView3D *b_rv3d,
                                const int width,
-                               const int height,
-                               void **python_thread_state);
+                               const int height);
   void sync_film(blender::ViewLayer &b_view_layer,
                  blender::bScreen *b_screen,
                  blender::View3D *b_v3d);

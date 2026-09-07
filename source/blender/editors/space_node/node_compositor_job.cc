@@ -269,6 +269,9 @@ void ED_node_compositor_job(Main *bmain,
                             ViewLayer *view_layer,
                             const bool triggered_by_user)
 {
+  /* Avoid displaying stale warnings/errors of the previously assigned node group. */
+  scene->runtime->compositor.nodes_evaluation_log.reset();
+
   if (!is_compositing_possible(scene)) {
     return;
   }

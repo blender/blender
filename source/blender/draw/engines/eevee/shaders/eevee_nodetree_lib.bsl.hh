@@ -680,8 +680,8 @@ float3 coordinate_camera(float3 P)
     [[resource_table]] const eevee::Uniform &uni = resource_table_get(eevee::Uniform);
     const CameraData cam = uni.uniform_buf.camera;
     if (is_panoramic(cam.type)) {
-      /* Panoramic camera render through per-face subviews.
-       * Can't use `view` here because that's only one subview, not the camera. */
+      /* Panoramic camera render through per-face sub-views.
+       * Can't use `view` here because that's only one sub-view, not the camera. */
       vP = transform_point(cam.viewmat, P);
     }
     else {
@@ -710,8 +710,8 @@ float3 coordinate_screen(float3 P)
 #else
     const CameraData cam = uni.uniform_buf.camera;
     if (is_panoramic(cam.type)) {
-      /* Panoramic camera render through per-face subviews.
-       * Can't use `view` here because that's only one subview, not the camera. */
+      /* Panoramic camera render through per-face sub-views.
+       * Can't use `view` here because that's only one sub-view, not the camera. */
       float3 dir = P - cam.viewinv[3].xyz;
       window.xy = fract(eevee::camera::uv_from_world(cam, dir) + cam.uv_bias);
     }
@@ -985,11 +985,11 @@ void node_shadow_raycast_impl([[maybe_unused]] const int light_index,
                               float4 &color)
 {
   /* clang-format off */ /* Multi-line macros would break line count. */
-  [[resource_table]] const eevee::LightRenderData &lrd = resource_table_get(eevee::LightRenderData);
+  [[resource_table, maybe_unused]] const eevee::LightRenderData &lrd = resource_table_get(eevee::LightRenderData);
+  [[resource_table, maybe_unused]] eevee::ShadowRenderData &srd = resource_table_get(eevee::ShadowRenderData);
   /* clang-format on */
-  [[resource_table]] eevee::ShadowRenderData &srd = resource_table_get(eevee::ShadowRenderData);
-  [[resource_table]] draw::Infos &infos = resource_table_get(draw::Infos);
-  [[resource_table]] eevee::Uniform &uni = resource_table_get(eevee::Uniform);
+  [[resource_table, maybe_unused]] draw::Infos &infos = resource_table_get(draw::Infos);
+  [[resource_table, maybe_unused]] eevee::Uniform &uni = resource_table_get(eevee::Uniform);
 
   color = float4(1.0f);
 

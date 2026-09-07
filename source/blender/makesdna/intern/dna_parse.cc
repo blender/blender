@@ -182,8 +182,10 @@ static bool is_identifier_continuation(char c)
   return is_identifier_start(c) || (c >= '0' && c <= '9');
 }
 
-/** Turn a DNA header into a token stream for parsing. Tokens will reference the
- * source string data so it must be kept alive. */
+/**
+ * Turn a DNA header into a token stream for parsing. Tokens will reference the
+ * source string data so it must be kept alive.
+ */
 static TokenStream tokenize_dna_header(StringRef source)
 {
   TokenStream stream;

@@ -114,7 +114,8 @@ struct ImagePaintStroke final : public PaintStroke {
   wmPaintCursor *cursor_ = nullptr;
 
  public:
-  ImagePaintStroke(bContext *C, wmOperator *op, const wmEvent *event) : PaintStroke(C, op, event)
+  ImagePaintStroke(bContext *C, wmOperator *op, const wmEvent *event)
+      : PaintStroke(C, op, event, PaintMode::Texture2D)
   {
   }
 
@@ -287,7 +288,8 @@ struct TexturePaintStroke final : public PaintStroke {
   wmPaintCursor *cursor_ = nullptr;
 
  public:
-  TexturePaintStroke(bContext *C, wmOperator *op, const wmEvent *event) : PaintStroke(C, op, event)
+  TexturePaintStroke(bContext *C, wmOperator *op, const wmEvent *event)
+      : PaintStroke(C, op, event, PaintMode::Texture3D)
   {
   }
 
@@ -468,7 +470,7 @@ struct ExperimentalTexturePaintStroke final : public PaintStroke {
   ImagePaintSettings *settings_;
 
   ExperimentalTexturePaintStroke(bContext *C, wmOperator *op, const wmEvent *event)
-      : PaintStroke(C, op, event)
+      : PaintStroke(C, op, event, PaintMode::Texture3D)
   {
     base_ = CTX_data_active_base(C);
     ToolSettings *tool_settings = CTX_data_tool_settings(C);
@@ -632,15 +634,15 @@ static void do_brush_action(const Depsgraph &depsgraph,
     return;
   }
 
-  /* TODO: Automasking support */
-  /*
+/* TODO: Automasking support */
+#if 0
   if (auto_mask::is_enabled(image_paint_settings.paint, ob, &brush)) {
     auto_mask::Cache &cache = auto_mask::stroke_cache_ensure(depsgraph, image_paint_settings.paint,
   &brush, ob); if (cache.settings.flags & BRUSH_AUTOMASKING_CAVITY_ALL) {
       cache.calc_cavity_factor(depsgraph, ob, node_mask);
     }
   }
-  */
+#endif
 
   /* TODO: Sculpt normal */
   /* TODO: Brush local mat */

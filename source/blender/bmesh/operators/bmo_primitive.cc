@@ -1064,12 +1064,25 @@ void bmo_create_quadsphere_exec(BMesh *bm, BMOperator *op)
     for (int v = 0; v < seg; v++) {
       for (int u = 0; u < seg; u++) {
         const int3 grid_index = grid_index_corner + (step_u * u) + (step_v * v);
-        BMVert *vquad[4] = {
-            varr[vert_index_from_grid_index_fn(grid_index)],
-            varr[vert_index_from_grid_index_fn(grid_index + step_u)],
-            varr[vert_index_from_grid_index_fn(grid_index + step_u + step_v)],
-            varr[vert_index_from_grid_index_fn(grid_index + step_v)],
-        };
+        /* The render split always cuts quads along the same (0-2) diagonal,
+         * so quads on two of the four corners never get cut through their corner vertex at all.
+         * Flip those quads vertices to use the other diagonal instead.
+         * The final result is a more spherical surface when quads are split into triangles.
+         * See !163500 which shows the difference. */
+        const bool flip_quad_direction = (((u * 2) + 1) < seg) != (((v * 2) + 1) < seg);
+        BMVert *vquad[4];
+        if (!flip_quad_direction) {
+          vquad[0] = varr[vert_index_from_grid_index_fn(grid_index)];
+          vquad[1] = varr[vert_index_from_grid_index_fn(grid_index + step_u)];
+          vquad[2] = varr[vert_index_from_grid_index_fn(grid_index + step_u + step_v)];
+          vquad[3] = varr[vert_index_from_grid_index_fn(grid_index + step_v)];
+        }
+        else {
+          vquad[0] = varr[vert_index_from_grid_index_fn(grid_index + step_u)];
+          vquad[1] = varr[vert_index_from_grid_index_fn(grid_index + step_u + step_v)];
+          vquad[2] = varr[vert_index_from_grid_index_fn(grid_index + step_v)];
+          vquad[3] = varr[vert_index_from_grid_index_fn(grid_index)];
+        }
         BMFace *f = BM_face_create_verts(bm, vquad, 4, nullptr, BM_CREATE_NOP, true);
 
         if (calc_uvs) {
@@ -1089,6 +1102,10 @@ void bmo_create_quadsphere_exec(BMesh *bm, BMOperator *op)
               {uv_min[0], uv_max[1]},
           };
           BMLoop *l = BM_FACE_FIRST_LOOP(f);
+          /* UV's are is in the un-flipped vertex order, shift the read index when necessary. */
+          if (flip_quad_direction) {
+            l = l->prev;
+          }
           for (int i = 0; i < 4; i++, l = l->next) {
             copy_v2_v2(BM_ELEM_CD_GET_FLOAT_P(l, cd_loop_uv_offset), uvs[i]);
           }

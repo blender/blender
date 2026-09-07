@@ -58,8 +58,10 @@ class ShadingView {
 
   /** Main views is created from the camera (or is from the viewport). It is not jittered. */
   View main_view_ = {"main_view"};
-  /** Sub views is jittered versions or the main views. This allows jitter updates without trashing
-   * the visibility culling cache. */
+  /**
+   * Sub views is jittered versions or the main views. This allows jitter updates without trashing
+   * the visibility culling cache.
+   */
   View jitter_view_ = {"jitter_view"};
   /** Same as jitter_view_ but has Depth Of Field jitter applied. */
   View render_view_;

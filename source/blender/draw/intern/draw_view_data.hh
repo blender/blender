@@ -65,8 +65,10 @@ struct DRWViewData {
   DefaultTextureList dtxl = {};
   /** True indicates the textures inside dtxl are from the viewport and should not be freed. */
   bool from_viewport = false;
-  /** Common size for texture in the engines texture list.
-   * We free all texture lists if it changes. */
+  /**
+   * Common size for texture in the engines texture list.
+   * We free all texture lists if it changes.
+   */
   int2 texture_list_size = {0, 0};
 
   /** Engines running for this viewport. nullptr if not enabled. */

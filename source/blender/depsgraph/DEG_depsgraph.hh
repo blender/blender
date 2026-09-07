@@ -244,7 +244,8 @@ uint64_t DEG_get_update_count(const Depsgraph *depsgraph);
  * modifiers are still evaluated.
  *
  * For example, this ensures that an object which is needed by a modifier is ignoring checks about
- * whether the object is hidden or the modifier is disabled. */
+ * whether the object is hidden or the modifier is disabled.
+ */
 void DEG_disable_visibility_optimization(Depsgraph *depsgraph);
 
 /** \} */

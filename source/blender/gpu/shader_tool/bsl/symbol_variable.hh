@@ -66,7 +66,11 @@ struct SymbolVariable : Symbol {
   int array_elements = 0;
   /* In bytes. From scope start, taking alignment into account. */
   int offset = 0;
+  /* In bits. From start and length in a bitfield. 0 otherwise.  */
+  int bit_offset = 0;
+  int bit_length = 0;
 
+  bool is_bitfield = false;
   bool is_static = false;
   bool is_error = false;
   bool is_constexpr = false;

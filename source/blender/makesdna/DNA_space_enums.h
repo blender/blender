@@ -419,6 +419,10 @@ enum eSpaceSeq_SequencerTimelineOverlay_Flag : int {
   SEQ_TIMELINE_SHOW_GRID = (1 << 18),
   /** Show continuous sequence of thumbnails. */
   SEQ_TIMELINE_CONTINUOUS_THUMBNAILS = (1 << 19),
+  /** Show a single thumbnail in the middle. */
+  SEQ_TIMELINE_MIDDLE_THUMBNAILS = (1 << 20),
+  /** Draw thumbnails on strips. */
+  SEQ_TIMELINE_SHOW_THUMBNAILS = (1 << 21),
 };
 ENUM_OPERATORS(eSpaceSeq_SequencerTimelineOverlay_Flag)
 

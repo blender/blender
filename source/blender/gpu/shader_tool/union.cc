@@ -431,6 +431,24 @@ void SourceProcessor::lower_union_setters(Parser &parser)
   parser.apply_mutations();
 }
 
+void SourceProcessor::lower_bitfield_setters(Parser &parser)
+{
+  /* Replace assignment pattern.
+   * Example: `a.bitfieldExtract(1,2) = c;` >  `a.bitfieldInsert(c,1,2);` */
+  parser().foreach_match("A(..)=", [&](const Tokens &t) {
+    if (t[0].str() != "bitfieldExtract") {
+      return;
+    }
+    Scope assign = t[5].scope();
+    string_view value = parser.substr(assign.front().next(), assign.back());
+    parser.replace(t[0], "bitfieldInsertAssign");
+    parser.insert_after(t[1], string(value) + ", ");
+    parser.replace(assign, "");
+  });
+
+  parser.apply_mutations();
+}
+
 /**
  * For safety reason, union members need to be declared with the union_t template.
  * This avoid raw member access which we cannot emulate. Instead this forces the use of the `()`

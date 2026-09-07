@@ -5,7 +5,8 @@
 /** \file
  * \ingroup depsgraph
  *
- * Light linking utilities. */
+ * Light linking utilities.
+ */
 
 #include "intern/depsgraph_light_linking.hh"
 

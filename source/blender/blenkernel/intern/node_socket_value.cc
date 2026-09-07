@@ -109,7 +109,7 @@ bool SocketValueVariantTypeInfo::try_convert_fn(const CPPType &dst_type,
     const CPPType &src_base_type = src_field.cpp_type();
     if (dst_type.generic_type && dst_type.generic_type->is<GField>()) {
       if (src_base_type == *dst_type.base_type) {
-        /* Nothing to do.*/
+        /* Nothing to do. */
         return true;
       }
       const ConversionFunctions *fns = conversions.get_conversion_functions(src_base_type,

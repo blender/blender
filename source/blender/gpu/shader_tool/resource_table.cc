@@ -327,7 +327,7 @@ void SourceProcessor::lower_using(Parser &parser)
     /* Assignments do not allow to alias functions symbols. */
     const bool use_alias = from.str() != to_end.str();
     const bool replace_fn = !use_alias;
-    /** IMPORTANT: If replace_fn is true, this can replace any symbol type if there are functions
+    /* IMPORTANT: If `replace_fn` is true, this can replace any symbol type if there are functions
      * and types with the same name. We could support being more explicit about the type of
      * symbol to replace using an optional attribute [[gpu::using_function]]. */
 

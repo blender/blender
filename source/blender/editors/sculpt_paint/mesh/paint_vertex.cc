@@ -269,11 +269,11 @@ void update_cache_invariants(VPaint &vp, SculptSession &ss, wmOperator *op, cons
 void update_cache_variants(Depsgraph &depsgraph,
                            ViewContext &vc,
                            VPaint &vp,
+                           const PaintMode paint_mode,
                            Object &ob,
                            Base &base,
                            const PaintStroke::StrokeStep &stroke_step)
 {
-  const PaintMode paint_mode = vp.paint.runtime->paint_mode;
   SculptSession &ss = *ob.runtime->sculpt_session;
   StrokeCache *cache = ss.cache;
   Brush &brush = *BKE_paint_brush(&vp.paint);
@@ -776,7 +776,8 @@ struct VertexPaintStroke final : public PaintStroke {
   VPaint *vertex_paint_;
   Base *base_;
 
-  VertexPaintStroke(bContext *C, wmOperator *op, const wmEvent *event) : PaintStroke(C, op, event)
+  VertexPaintStroke(bContext *C, wmOperator *op, const wmEvent *event)
+      : PaintStroke(C, op, event, PaintMode::Vertex)
   {
     bmain_ = CTX_data_main(C);
     ToolSettings *ts = CTX_data_tool_settings(C);
@@ -1791,7 +1792,8 @@ void VertexPaintStroke::update_step(wmOperator * /*op*/, const StrokeStep &strok
 
   ss.cache->stroke_distance = this->stroke_distance();
 
-  vwpaint::update_cache_variants(*this->depsgraph, vc, *vertex_paint_, ob, *base_, stroke_step);
+  vwpaint::update_cache_variants(
+      *this->depsgraph, vc, *vertex_paint_, PaintMode::Invalid, ob, *base_, stroke_step);
 
   ed::sculpt_paint::do_symmetrical_brush_actions(
       *this->depsgraph, *this->scene, vertex_paint_->paint, ob, vpaint_do_paint, &vpd);

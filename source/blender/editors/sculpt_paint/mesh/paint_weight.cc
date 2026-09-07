@@ -893,7 +893,8 @@ struct WeightPaintStroke final : public PaintStroke {
   VPaint *weight_paint_;
   Base *base_;
 
-  WeightPaintStroke(bContext *C, wmOperator *op, const wmEvent *event) : PaintStroke(C, op, event)
+  WeightPaintStroke(bContext *C, wmOperator *op, const wmEvent *event)
+      : PaintStroke(C, op, event, PaintMode::Weight)
   {
     bmain_ = CTX_data_main(C);
     tool_settings_ = CTX_data_tool_settings(C);
@@ -1808,7 +1809,8 @@ void WeightPaintStroke::update_step(wmOperator * /*op*/, const StrokeStep &strok
   SculptSession &ss = *ob->runtime->sculpt_session;
   StrokeCache &cache = *ss.cache;
 
-  vwpaint::update_cache_variants(*this->depsgraph, *vc, wp, *ob, *this->base_, stroke_step);
+  vwpaint::update_cache_variants(
+      *this->depsgraph, *vc, wp, PaintMode::Invalid, *ob, *this->base_, stroke_step);
 
   const float brush_alpha_value = BKE_brush_alpha_get(&wp.paint, &brush);
 

@@ -349,7 +349,8 @@ void GPU_shader_async_specialization_cancel(AsyncSpecializationHandle &handle);
  *
  * \param: shader: The shader whose cache to warm.
  * \param limit: The maximum number of PSOs to compile within a call. Specifying
- * a limit <= 0 will compile a PSO for all cached PSOs in the parent shader. */
+ * a limit <= 0 will compile a PSO for all cached PSOs in the parent shader.
+ */
 void GPU_shader_warm_cache(gpu::Shader *shader, int limit);
 
 /* We expect the parent shader to be compiled and already have some cached PSOs when being assigned

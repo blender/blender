@@ -104,7 +104,7 @@ void SmoothOperation::on_stroke_extended(const bContext &C, const InputSample &e
   const Brush &brush = [&]() -> const Brush & {
     if (temp_smooth_) {
       const Brush *brush = BKE_paint_brush_from_essentials(
-          CTX_data_main(&C), PaintMode::SculptGPencil, "Smooth");
+          CTX_data_main(&C), bke::paint::AssetCategory::GPencilSculpt, "Smooth");
       BLI_assert(brush != nullptr);
       return *brush;
     }

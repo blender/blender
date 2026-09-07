@@ -186,8 +186,10 @@ struct CopyPixelTile {
   Vector<CopyPixelGroup> groups;
   Vector<DeltaCopyPixelCommand> command_deltas;
 
-  /** The groups used by each seam tile, as an index range into #groups which is
-   * sorted by seam tile. */
+  /**
+   * The groups used by each seam tile, as an index range into #groups which is
+   * sorted by seam tile.
+   */
   Map<int, IndexRange> seam_tile_to_groups;
 
   CopyPixelTile(image::TileNumber tile_number) : tile_number(tile_number) {}

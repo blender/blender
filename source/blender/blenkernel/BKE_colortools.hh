@@ -179,7 +179,8 @@ void BKE_curvemapping_compute_slopes(const CurveMapping *curve_mapping,
  * - The start point is at (0, 0).
  * - The end point is at (1, 1).
  * Note that this could return false even if the curve map is identity, this happens in the case
- * when more than 2 points exist in the curve map but all points are collinear. */
+ * when more than 2 points exist in the curve map but all points are collinear.
+ */
 bool BKE_curvemapping_is_map_identity(const CurveMapping *curve_mapping, int index);
 
 /**

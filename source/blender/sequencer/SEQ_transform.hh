@@ -81,7 +81,8 @@ bool transform_is_locked(const ListBaseT<SeqTimelineChannel> *channels, const St
 
 /**
  * Get per-axis mirror factors for a \a strip image.
- * \return float2 where each component is 1.0f (normal) or -1.0f (mirrored). */
+ * \return float2 where each component is 1.0f (normal) or -1.0f (mirrored).
+ */
 float2 image_transform_mirror_factor_get(const Strip *strip);
 
 /**

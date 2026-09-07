@@ -260,6 +260,9 @@ struct ScopeParser {
         case Default:   /* For C++ constructor. */
         case Comma:     /* For C++ constructor. */
         case Equal:     /* For C++ operator. */
+        case Minus:     /* For C++ operator. */
+        case Plus:      /* For C++ operator. */
+        case Divide:    /* For C++ operator. */
         case Word:
           next();
           break;

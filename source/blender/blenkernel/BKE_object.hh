@@ -709,7 +709,8 @@ bool BKE_object_empty_image_data_is_visible_in_view3d(const Object *ob, const Re
  * preserves all possible custom data layers.
  *
  * NOTE: Dependency graph argument is required when preserve_all_data_layers is truth, and is
- * ignored otherwise. */
+ * ignored otherwise.
+ */
 Mesh *BKE_object_to_mesh(Depsgraph *depsgraph, Object *object, bool preserve_all_data_layers);
 
 void BKE_object_to_mesh_clear(Object *object);

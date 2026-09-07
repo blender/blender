@@ -319,7 +319,8 @@ static void polyedge_beauty_cost_update(
 
 static void polyedge_rotate(HalfEdge *edges, const HalfEdge *e)
 {
-  /** CCW winding, rotate internal edge to new vertical state.
+  /**
+   * CCW winding, rotate internal edge to new vertical state.
    *
    * \code{.unparsed}
    *   Before         After

@@ -39,10 +39,12 @@ enum class ImBufFlags {
   MultiLayer = 1 << 7,
   Metadata = 1 << 8,
   Deinterlace = 1 << 9,
-  /** Do not clear image pixel buffer to zero. Without this flag, allocating
+  /**
+   * Do not clear image pixel buffer to zero. Without this flag, allocating
    * a new ImBuf does clear the pixel data to zero (transparent black). If
    * whole pixel data is overwritten after allocation, then this flag can be
-   * faster since it avoids a memory clear. */
+   * faster since it avoids a memory clear.
+   */
   UninitializedPixels = 1 << 10,
 
   /** Indicates whether image on disk have pre-multiplied alpha. */
@@ -55,8 +57,9 @@ enum class ImBufFlags {
   AlphaIgnore = 1 << 15,
   Thumbnail = 1 << 16,
   /**
-   * The image contains display window information. See ImbBuf.display_size and other members for
-   * more information. */
+   * The image contains display window information.
+   * See #ImbBuf.display_size and other members for more information.
+   */
   HasDisplayWindow = 1 << 17,
 
   /** Perform no color space conversions when reading, leave the image in the file colorspace. */

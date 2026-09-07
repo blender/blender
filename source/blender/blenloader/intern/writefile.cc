@@ -815,7 +815,8 @@ static void write_bhead(WriteData *wd, const BHead &bhead)
 
 /**
  * This bit is used to mark address ids that are generated for pointers during undo (when writing
- * undo steps, most addresses are used as-is). */
+ * undo steps, most addresses are used as-is).
+ */
 constexpr uint64_t generated_address_id_on_undo_flag = uint64_t(1) << 63;
 /** Mask to remove bits form the generated hash values used as stable addresses. */
 constexpr uint64_t generated_address_id_mask = generated_address_id_on_undo_flag;

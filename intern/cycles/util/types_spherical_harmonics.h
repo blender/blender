@@ -47,22 +47,6 @@ struct PackedSphericalHarmonicsRest {
    * for `this`. */
 };
 
-/* Set all spherical harmonics values to 0. */
-ccl_device_forceinline void spherical_harmonics_rest_fill_zero(
-    ccl_global PackedSphericalHarmonicsRest &packed_spherical_harmonics_rest)
-{
-#if !defined(__KERNEL_GPU__)
-  memset(packed_spherical_harmonics_rest.coefficients,
-         0,
-         sizeof(packed_spherical_harmonics_rest.coefficients));
-#else
-  /* Metal does not support memset() call. */
-  for (int i = 0; i < 3 * PackedSphericalHarmonicsRest::MAX_COEFFICIENTS; ++i) {
-    packed_spherical_harmonics_rest.coefficients[i] = 0;
-  }
-#endif
-}
-
 /* Quantize spherical harmonics coefficients from float to uint8_t.
  * Similar to the float_to_byte(), but deals with input values in the range [-1 .. 1]. */
 ccl_device_forceinline uint8_t quantize_spherical_harmonics(const float value)
@@ -74,6 +58,24 @@ ccl_device_forceinline uint8_t quantize_spherical_harmonics(const float value)
 ccl_device_forceinline float unquantize_spherical_harmonics(const uint8_t value)
 {
   return byte_to_float(value) * 2.0f - 1.0f;
+}
+
+/* Set all spherical harmonics values to 0. */
+ccl_device_forceinline void spherical_harmonics_rest_fill_zero(
+    ccl_global PackedSphericalHarmonicsRest &packed_spherical_harmonics_rest)
+{
+  /* Note this is not the same as integer 0. */
+  const uint8_t zero = quantize_spherical_harmonics(0.0f);
+#if !defined(__KERNEL_GPU__)
+  memset(packed_spherical_harmonics_rest.coefficients,
+         zero,
+         sizeof(packed_spherical_harmonics_rest.coefficients));
+#else
+  /* Metal does not support memset() call. */
+  for (int i = 0; i < 3 * PackedSphericalHarmonicsRest::MAX_COEFFICIENTS; ++i) {
+    packed_spherical_harmonics_rest.coefficients[i] = zero;
+  }
+#endif
 }
 
 /* Set the spherical harmonic coefficient by its flat index. */

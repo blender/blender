@@ -290,15 +290,18 @@ enum PropertySubType {
    * WARNING: Default generated RNA accessor code will treat the underlying data as a regular
    * C string (using `strlen` e.g. to get its length). If the bytes array may contain null chars,
    * the RNA property _must_ have custom accessors defined (through
-   * #RNA_def_property_string_funcs). */
+   * #RNA_def_property_string_funcs).
+   */
   PROP_BYTESTRING = 4,
   /* 5 was used by "PROP_TRANSLATE" sub-type, which is now a flag. */
   /** A string which should not be displayed in UI. */
   PROP_PASSWORD = 6,
 
   /* numbers */
-  /** A dimension in pixel units, possibly before DPI scaling (so value may not be the final pixel
-   * value but the one to apply DPI scale to). */
+  /**
+   * A dimension in pixel units, possibly before DPI scaling (so value may not be the final pixel
+   * value but the one to apply DPI scale to).
+   */
   PROP_PIXEL = 12,
   PROP_UNSIGNED = 13,
   PROP_PERCENTAGE = 14,
@@ -596,7 +599,8 @@ enum PropertyOverrideFlag : int32_t {
    * system. It is used for example for ID's names, since we cannot prevent local override to
    * get a different name from the linked reference, and ID names are 'rna name property' (i.e. are
    * used in overrides of collections of IDs). See also `BKE_lib_override_library_update()` where
-   * we deal manually with the value of that property at DNA level. */
+   * we deal manually with the value of that property at DNA level.
+   */
   PROPOVERRIDE_IGNORE = (1 << 2),
 
   /*** Collections-related ***/

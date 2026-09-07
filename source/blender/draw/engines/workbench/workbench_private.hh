@@ -620,15 +620,17 @@ class AntiAliasingPass {
   void init(const SceneState &scene_state);
   void sync(const SceneState &scene_state, SceneResources &resources);
   void setup_view(View &view, const SceneState &scene_state);
-  void draw(
-      const DRWContext *draw_ctx,
-      Manager &manager,
-      View &view,
-      const SceneState &scene_state,
-      SceneResources &resources,
-      /** Passed directly since we may need to copy back the results from the first sample,
-       * and resources.depth_in_front_tx is only valid when mesh passes have to draw to it. */
-      gpu::Texture *depth_in_front_tx);
+  /**
+   * \param depth_in_front_tx: Passed directly since we may need to copy back the results
+   * from the first sample, and resources.depth_in_front_tx is only valid when mesh passes
+   * have to draw to it.
+   */
+  void draw(const DRWContext *draw_ctx,
+            Manager &manager,
+            View &view,
+            const SceneState &scene_state,
+            SceneResources &resources,
+            gpu::Texture *depth_in_front_tx);
 };
 
 }  // namespace blender::workbench

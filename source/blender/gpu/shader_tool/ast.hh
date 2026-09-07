@@ -40,6 +40,7 @@ enum class NodeType : char {
   VarDecl,
   Declarator,
   StaticStmt,
+  BitField,
   FuncDecl,
   FuncForwardDecl,
   FuncArgList,
@@ -824,6 +825,15 @@ struct StructuredBinding : Node {
   }
 };
 
+struct BitField : Node {
+  NODE_COMMON(BitField);
+
+  Expr expr() const
+  {
+    return child_first();
+  }
+};
+
 struct Declarator : Node {
   NODE_COMMON(Declarator);
 
@@ -855,6 +865,11 @@ struct Declarator : Node {
   ArrayDecl array() const
   {
     return identifier().next();
+  }
+
+  BitField bitfield() const
+  {
+    return child_last(NodeType::BitField);
   }
 
   InitializerList initializer_list() const
@@ -890,6 +905,13 @@ struct VarDecl : Node {
   bool is_reference() const
   {
     return Declarator(child_first(NodeType::Declarator)).is_reference();
+  }
+
+  bool has_single_declarator() const
+  {
+    Declarator d_first = child_first(NodeType::Declarator);
+    Declarator d_last = child_last(NodeType::Declarator);
+    return d_first.is_valid() && d_first.id == d_last.id;
   }
 };
 

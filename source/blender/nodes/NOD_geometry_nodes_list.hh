@@ -80,8 +80,10 @@ class GList : public ImplicitSharingMixin {
   const CPPType &cpp_type() const;
   int64_t size() const;
 
-  /** Access values stored in the list. This is a variant because lists support different storage
-   * backends and more may be added in the future. */
+  /**
+   * Access values stored in the list. This is a variant because lists support different storage
+   * backends and more may be added in the future.
+   */
   std::variant<GSpan, GPointer> values() const;
   std::variant<GMutableSpan, GMutablePointer> values_for_write();
 

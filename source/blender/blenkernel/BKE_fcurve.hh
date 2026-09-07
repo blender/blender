@@ -87,7 +87,8 @@ struct FModifierTypeInfo {
   void (*copy_data)(FModifier *fcm, const FModifier *src);
   /**
    * Set settings for data that will be used for FCuModifier.data
-   * (memory already allocated using #MEM_new_zeroed). */
+   * (memory already allocated using #MEM_new_zeroed).
+   */
   void (*new_data)(void *mdata);
   /** Verifies that the modifier settings are valid */
   void (*verify_data)(FModifier *fcm);

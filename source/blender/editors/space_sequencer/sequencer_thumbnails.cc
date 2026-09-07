@@ -170,6 +170,47 @@ static bool is_thumbnail_in_view(const float timeline_frame,
   return false;
 }
 
+static void get_seq_strip_middle_thumbnail(const View2D *v2d,
+                                           const bContext *C,
+                                           const StripDrawContext &strip,
+                                           Scene *scene,
+                                           const float thumb_width,
+                                           const float crop_x_multiplier,
+                                           const float upper_thumb_bound,
+                                           bool is_muted,
+                                           Vector<SeqThumbInfo> &r_thumbs)
+{
+  const float left_frame = max_ff(strip.content_start, strip.left_handle);
+  const float right_frame = strip.is_single_image ? left_frame :
+                                                    min_ff(strip.content_end, strip.right_handle);
+  const float strip_width = strip.is_single_image ? (strip.right_handle - strip.left_handle) :
+                                                    (right_frame - left_frame);
+  const float middle_frame = roundf((left_frame + right_frame) / 2.0f);
+
+  /* To center the thumbnail, offset it by half its width to the left. */
+  const float display_offset = (strip.is_single_image ? strip_width / 2.0f : 0.0f) -
+                               (thumb_width / 2.0f);
+
+  /* Thumbnail is centered, so same crop used for left and right. */
+  const float crop = max_ff(0.0f, thumb_width - strip_width) / 2.0f;
+
+  if (is_thumbnail_in_view(middle_frame + display_offset, thumb_width, v2d)) {
+    add_thumbnail_at_frame(middle_frame,
+                           C,
+                           v2d,
+                           strip,
+                           scene,
+                           thumb_width,
+                           crop,
+                           crop,
+                           crop_x_multiplier,
+                           upper_thumb_bound,
+                           display_offset,
+                           is_muted,
+                           r_thumbs);
+  }
+}
+
 static void get_seq_strip_ends_thumbnails(const View2D *v2d,
                                           const bContext *C,
                                           const StripDrawContext &strip,
@@ -244,6 +285,7 @@ static void get_seq_strip_thumbnails(const View2D *v2d,
                                      Scene *scene,
                                      const StripDrawContext &strip,
                                      bool is_muted,
+                                     bool show_only_middle,
                                      bool show_only_at_strip_ends,
                                      Vector<SeqThumbInfo> &r_thumbs)
 {
@@ -269,6 +311,19 @@ static void get_seq_strip_thumbnails(const View2D *v2d,
   float upper_thumb_bound = min_ff(strip.right_handle, strip.content_end);
   if (strip.is_single_image) {
     upper_thumb_bound = strip.right_handle;
+  }
+
+  if (show_only_middle) {
+    get_seq_strip_middle_thumbnail(v2d,
+                                   C,
+                                   strip,
+                                   scene,
+                                   thumb_width,
+                                   crop_x_multiplier,
+                                   upper_thumb_bound,
+                                   is_muted,
+                                   r_thumbs);
+    return;
   }
 
   if (show_only_at_strip_ends) {
@@ -414,10 +469,7 @@ void draw_strip_thumbnails(const TimelineDrawContext &ctx,
                            StripsDrawBatch &strips_batch,
                            const Vector<StripDrawContext> &strips)
 {
-  const bool show_thumbnails = (ctx.sseq->timeline_overlay.flag &
-                                SEQ_TIMELINE_STRIP_END_THUMBNAILS) ||
-                               (ctx.sseq->timeline_overlay.flag &
-                                SEQ_TIMELINE_CONTINUOUS_THUMBNAILS);
+  const bool show_thumbnails = (ctx.sseq->timeline_overlay.flag & SEQ_TIMELINE_SHOW_THUMBNAILS);
   /* Nothing to do if we're not showing thumbnails overall. */
   if ((ctx.sseq->flag & SEQ_SHOW_OVERLAY) == 0 || !show_thumbnails) {
     return;
@@ -428,12 +480,19 @@ void draw_strip_thumbnails(const TimelineDrawContext &ctx,
   /* Gather information for all thumbnails. */
   Vector<SeqThumbInfo> thumbs;
   /* Thumbnail display mode (Strip ends / Continuous). */
+  const bool show_only_middle = (ctx.sseq->timeline_overlay.flag & SEQ_TIMELINE_MIDDLE_THUMBNAILS);
   const bool show_only_at_strip_ends = (ctx.sseq->timeline_overlay.flag &
                                         SEQ_TIMELINE_STRIP_END_THUMBNAILS);
 
   for (const StripDrawContext &strip : strips) {
-    get_seq_strip_thumbnails(
-        ctx.v2d, ctx.C, ctx.scene, strip, strip.is_muted, show_only_at_strip_ends, thumbs);
+    get_seq_strip_thumbnails(ctx.v2d,
+                             ctx.C,
+                             ctx.scene,
+                             strip,
+                             strip.is_muted,
+                             show_only_middle,
+                             show_only_at_strip_ends,
+                             thumbs);
   }
   if (thumbs.is_empty()) {
     return;

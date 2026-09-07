@@ -600,10 +600,15 @@ const EnumPropertyItem rna_enum_clip_editor_mode_items[] = {
  */
 const EnumPropertyItem buttons_context_items[] = {
     {BCONTEXT_TOOL, "TOOL", ICON_TOOL_SETTINGS, "Tool", "Active Tool and Workspace settings"},
-    {BCONTEXT_SCENE, "SCENE", ICON_SCENE_DATA, "Scene", "Scene Properties"},
     {BCONTEXT_RENDER, "RENDER", ICON_SCENE, "Render", "Render Properties"},
     {BCONTEXT_OUTPUT, "OUTPUT", ICON_OUTPUT, "Output", "Output Properties"},
+    {BCONTEXT_SCENE, "SCENE", ICON_SCENE_DATA, "Scene", "Scene Properties"},
     {BCONTEXT_VIEW_LAYER, "VIEW_LAYER", ICON_RENDER_RESULT, "View Layer", "View Layer Properties"},
+    {BCONTEXT_COMPOSITOR,
+     "COMPOSITOR",
+     ICON_NODE_COMPOSITING,
+     "Compositor & Effects",
+     "Procedural scene post-processing"},
     {BCONTEXT_WORLD, "WORLD", ICON_WORLD, "World", "World Properties"},
     {BCONTEXT_COLLECTION, "COLLECTION", ICON_GROUP, "Collection", "Collection Properties"},
     {BCONTEXT_OBJECT, "OBJECT", ICON_OBJECT_DATA, "Object", "Object Properties"},
@@ -631,11 +636,6 @@ const EnumPropertyItem buttons_context_items[] = {
      ICON_SEQ_STRIP_MODIFIER,
      "Strip Modifiers",
      "Strip Modifier Properties"},
-    {BCONTEXT_COMPOSITOR,
-     "COMPOSITOR",
-     ICON_NODE_COMPOSITING,
-     "Compositor & Effects",
-     "Procedural scene post-processing"},
     {0, nullptr, 0, nullptr, nullptr},
 };
 
@@ -6333,27 +6333,17 @@ static void rna_def_space_properties_filter(StructRNA *srna)
 {
   /* Order must follow `buttons_context_items`. */
   constexpr std::array<StringRefNull, BCONTEXT_TOT> filter_items = {
-      "show_properties_tool",
-      "show_properties_scene",
-      "show_properties_render",
-      "show_properties_output",
-      "show_properties_view_layer",
-      "show_properties_world",
-      "show_properties_collection",
-      "show_properties_object",
-      "show_properties_constraints",
-      "show_properties_modifiers",
-      "show_properties_data",
-      "show_properties_bone",
-      "show_properties_bone_constraints",
-      "show_properties_material",
-      "show_properties_texture",
-      "show_properties_particles",
-      "show_properties_physics",
-      "show_properties_effects",
-      "show_properties_strip",
+      "show_properties_tool",           "show_properties_render",
+      "show_properties_output",         "show_properties_scene",
+      "show_properties_view_layer",     "show_properties_compositor",
+      "show_properties_world",          "show_properties_collection",
+      "show_properties_object",         "show_properties_constraints",
+      "show_properties_modifiers",      "show_properties_data",
+      "show_properties_bone",           "show_properties_bone_constraints",
+      "show_properties_material",       "show_properties_texture",
+      "show_properties_particles",      "show_properties_physics",
+      "show_properties_effects",        "show_properties_strip",
       "show_properties_strip_modifier",
-      "show_properties_compositor",
   };
 
   for (const int i : IndexRange(BCONTEXT_TOT)) {
@@ -6876,7 +6866,11 @@ static void rna_def_space_sequencer_timeline_overlay(BlenderRNA *brna)
   RNA_def_property_update(prop, NC_SPACE | ND_SPACE_SEQUENCER, nullptr);
 
   static const EnumPropertyItem thumbnail_style_items[] = {
-      {0, "NO_THUMBNAILS", 0, "None", "Do not show strip thumbnails"},
+      {SEQ_TIMELINE_MIDDLE_THUMBNAILS,
+       "MIDDLE",
+       0,
+       "Middle",
+       "Show single thumbnail in the middle of each strip"},
       {SEQ_TIMELINE_STRIP_END_THUMBNAILS,
        "STRIP_ENDS",
        0,
@@ -6888,6 +6882,13 @@ static void rna_def_space_sequencer_timeline_overlay(BlenderRNA *brna)
        "Continuous",
        "Display thumbnails as a filmstrip"},
       {0, nullptr, 0, nullptr, nullptr}};
+
+  prop = RNA_def_property(srna, "show_thumbnails", PROP_BOOLEAN, PROP_NONE);
+  RNA_def_property_boolean_sdna(
+      prop, nullptr, "timeline_overlay.flag", SEQ_TIMELINE_SHOW_THUMBNAILS);
+  RNA_def_property_ui_text(prop, "Show Thumbnails", "Display strip thumbnails");
+  RNA_def_property_clear_flag(prop, PROP_ANIMATABLE);
+  RNA_def_property_update(prop, NC_SPACE | ND_SPACE_SEQUENCER, nullptr);
 
   prop = RNA_def_property(srna, "thumbnail_display_style", PROP_ENUM, PROP_NONE);
   RNA_def_property_enum_bitflag_sdna(prop, nullptr, "timeline_overlay.flag");

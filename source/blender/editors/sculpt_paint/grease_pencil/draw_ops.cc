@@ -82,8 +82,8 @@ namespace ed::sculpt_paint {
  * \{ */
 
 struct GreasePencilPaintStroke final : public PaintStroke {
-  GreasePencilPaintStroke(bContext *C, wmOperator *op, const wmEvent *event)
-      : PaintStroke(C, op, event)
+  GreasePencilPaintStroke(bContext *C, wmOperator *op, const wmEvent *event, PaintMode mode)
+      : PaintStroke(C, op, event, mode)
   {
   }
 
@@ -290,7 +290,8 @@ static wmOperatorStatus grease_pencil_brush_stroke_invoke(bContext *C,
     return retval;
   }
 
-  GreasePencilPaintStroke *stroke = MEM_new<GreasePencilPaintStroke>(__func__, C, op, event);
+  GreasePencilPaintStroke *stroke = MEM_new<GreasePencilPaintStroke>(
+      __func__, C, op, event, PaintMode::GPencil);
   op->customdata = stroke;
 
   retval = op->type->modal(C, op, event);
@@ -399,7 +400,8 @@ static wmOperatorStatus grease_pencil_sculpt_paint_invoke(bContext *C,
   }
   WM_event_add_notifier(C, NC_GPENCIL | NA_EDITED, nullptr);
 
-  GreasePencilPaintStroke *stroke = MEM_new<GreasePencilPaintStroke>(__func__, C, op, event);
+  GreasePencilPaintStroke *stroke = MEM_new<GreasePencilPaintStroke>(
+      __func__, C, op, event, PaintMode::SculptGPencil);
   op->customdata = stroke;
 
   const wmOperatorStatus retval = op->type->modal(C, op, event);
@@ -501,7 +503,8 @@ static wmOperatorStatus grease_pencil_weight_brush_stroke_invoke(bContext *C,
     return OPERATOR_CANCELLED;
   }
 
-  GreasePencilPaintStroke *stroke = MEM_new<GreasePencilPaintStroke>(__func__, C, op, event);
+  GreasePencilPaintStroke *stroke = MEM_new<GreasePencilPaintStroke>(
+      __func__, C, op, event, PaintMode::WeightGPencil);
   op->customdata = stroke;
 
   const wmOperatorStatus retval = op->type->modal(C, op, event);
@@ -610,7 +613,8 @@ static wmOperatorStatus grease_pencil_vertex_brush_stroke_invoke(bContext *C,
   }
   WM_event_add_notifier(C, NC_GPENCIL | NA_EDITED, nullptr);
 
-  GreasePencilPaintStroke *stroke = MEM_new<GreasePencilPaintStroke>(__func__, C, op, event);
+  GreasePencilPaintStroke *stroke = MEM_new<GreasePencilPaintStroke>(
+      __func__, C, op, event, PaintMode::VertexGPencil);
   op->customdata = stroke;
 
   const wmOperatorStatus retval = op->type->modal(C, op, event);

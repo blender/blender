@@ -41,6 +41,9 @@ optional<TokenException> SymbolClass::get_flat_members_recursive(const SymbolCla
 {
   /* Iterate through variables in their declaration order */
   for (SymbolVariable *var : cls->non_static_variables_in_declaration_order()) {
+    if (var->bit_offset != 0) {
+      continue;
+    }
     /* Construct the full access path. */
     /* If the identifier is empty (e.g., an anonymous union/struct), we skip adding the dot. */
     std::string next_path = current_path;

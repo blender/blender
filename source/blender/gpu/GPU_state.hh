@@ -93,24 +93,32 @@ enum GPUBlend {
   GPU_BLEND_ADDITIVE_PREMULT,
   GPU_BLEND_MULTIPLY,
   GPU_BLEND_SUBTRACT,
-  /** Replace logic op: SRC * (1 - DST)
-   * NOTE: Does not modify alpha. */
+  /**
+   * Replace logic op: SRC * (1 - DST)
+   * NOTE: Does not modify alpha.
+   */
   GPU_BLEND_INVERT,
   /** Stores min(SRC, DST) per component. */
   GPU_BLEND_MIN,
   /** Stores max(SRC, DST) per component. */
   GPU_BLEND_MAX,
-  /** Order independent transparency.
-   * NOTE: Cannot be used as is. Needs special setup (frame-buffer, shader ...). */
+  /**
+   * Order independent transparency.
+   * NOTE: Cannot be used as is. Needs special setup (frame-buffer, shader ...).
+   */
   GPU_BLEND_OIT,
   /** Special blend to add color under and multiply DST color by SRC alpha. */
   GPU_BLEND_BACKGROUND,
-  /** Custom blend parameters using dual source blending : SRC0 + SRC1 * DST
-   * NOTE: Can only be used with _ONE_ Draw Buffer and shader needs to be specialized. */
+  /**
+   * Custom blend parameters using dual source blending : SRC0 + SRC1 * DST
+   * NOTE: Can only be used with _ONE_ Draw Buffer and shader needs to be specialized.
+   */
   GPU_BLEND_CUSTOM,
   GPU_BLEND_ALPHA_UNDER_PREMUL,
-  /** Multiplies every channel (alpha included) by `1 - SRC.a`. Used for piercing a hole using an
-   * image alpha channel. */
+  /**
+   * Multiplies every channel (alpha included) by `1 - SRC.a`. Used for piercing a hole using an
+   * image alpha channel.
+   */
   GPU_BLEND_OVERLAY_MASK_FROM_ALPHA,
   /**
    * Alpha channel is interpreted as transmittance (aka transparency) and not alpha.

@@ -50,7 +50,14 @@ const blender::detail::UStringEntry &ustring_ensure_entry(const char *str);
  */
 class UString {
  public:
+#if defined(_MSC_VER) && !defined(NDEBUG)
+  /* MSVC's extended STL checks do something to std::string where you can't have a global constexpr
+   * without it causing a build error this only happens in debug builds, for details see :
+   * https://github.com/microsoft/STL/issues/4427 */
+  static const inline blender::detail::UStringEntry EMPTY_ENTRY = {"", hash_string("")};
+#else
   static constexpr blender::detail::UStringEntry EMPTY_ENTRY = {"", hash_string("")};
+#endif
 
  private:
   const blender::detail::UStringEntry *ptr_ = &EMPTY_ENTRY;

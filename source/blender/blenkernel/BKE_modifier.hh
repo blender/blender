@@ -70,7 +70,8 @@ enum class ModifierTypeType {
   /**
    * Like Nonconstructive, but does not affect the geometry
    * of the object, rather some of its CustomData layers.
-   * E.g. UVProject and WeightVG modifiers. */
+   * E.g. UVProject and WeightVG modifiers.
+   */
   NonGeometrical,
 };
 

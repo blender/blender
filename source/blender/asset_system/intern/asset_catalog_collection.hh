@@ -24,13 +24,17 @@ class AssetCatalogCollection {
   /** All catalogs known, except the known-but-deleted ones. */
   OwningAssetCatalogMap catalogs_;
 
-  /** Catalogs that have been deleted. They are kept around so that the load-merge-save of catalog
+  /**
+   * Catalogs that have been deleted. They are kept around so that the load-merge-save of catalog
    * definition files can actually delete them if they already existed on disk (instead of the
-   * merge operation resurrecting them). */
+   * merge operation resurrecting them).
+   */
   OwningAssetCatalogMap deleted_catalogs_;
 
-  /* For now only a single catalog definition file is supported.
-   * The aim is to support an arbitrary number of such files per asset library in the future. */
+  /**
+   * For now only a single catalog definition file is supported.
+   * The aim is to support an arbitrary number of such files per asset library in the future.
+   */
   std::unique_ptr<AssetCatalogDefinitionFile> catalog_definition_file_;
 
   /** Whether any of the catalogs have unsaved changes. */
@@ -44,7 +48,8 @@ class AssetCatalogCollection {
   AssetCatalogCollection(const AssetCatalogCollection &other) = delete;
   AssetCatalogCollection(AssetCatalogCollection &&other) noexcept = default;
 
-  /** Check if this contains any catalogs or deleted catalogs. Doesn't check if a CDF is present.
+  /**
+   * Check if this contains any catalogs or deleted catalogs. Doesn't check if a CDF is present.
    */
   bool is_empty() const;
 

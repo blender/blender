@@ -10,6 +10,8 @@
 
 #include <variant>
 
+#include "BKE_paint_types.hh"
+
 #include "BLI_array.hh"
 #include "BLI_bit_vector.hh"
 #include "BLI_enum_flags.hh"
@@ -174,7 +176,9 @@ PaintMode BKE_paintmode_get_from_tool(const bToolRef *tref);
 
 Brush *BKE_paint_brush(Paint *paint);
 const Brush *BKE_paint_brush_for_read(const Paint *paint);
-Brush *BKE_paint_brush_from_essentials(Main *bmain, PaintMode paint_mode, const char *name);
+Brush *BKE_paint_brush_from_essentials(Main *bmain,
+                                       bke::paint::AssetCategory asset_category,
+                                       const char *name);
 
 /**
  * Check if brush \a brush may be set/activated for \a paint. Passing null for \a brush will return
@@ -212,7 +216,7 @@ void BKE_paint_previous_asset_reference_set(Paint *paint,
 void BKE_paint_previous_asset_reference_clear(Paint *paint);
 
 std::optional<AssetWeakReference> BKE_paint_brush_type_default_reference(
-    PaintMode paint_mode, std::optional<int> brush_type);
+    bke::paint::AssetCategory asset_category, std::optional<int> brush_type);
 void BKE_paint_brushes_set_default_references(ToolSettings *ts);
 /**
  * Make sure the active brush asset is available as active brush, importing it if necessary. If

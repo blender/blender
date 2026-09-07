@@ -72,9 +72,8 @@ static void version_bonecollection_anim(FCurve *fcurve)
 
 static void versioning_eevee_shadow_settings(Object *object)
 {
-  /** EEVEE no longer uses the Material::blend_shadow property.
-   * Instead, it uses Object::visibility_flag for disabling shadow casting
-   */
+  /* EEVEE no longer uses the Material::blend_shadow property.
+   * Instead, it uses Object::visibility_flag for disabling shadow casting. */
 
   short *material_len = BKE_object_material_len_p(object);
   if (!material_len) {

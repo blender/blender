@@ -740,6 +740,11 @@ add_blender_test(
 )
 
 add_blender_test(
+  bl_animation_context_markers
+  --python ${TEST_PYTHON_DIR}/bl_animation_context_markers.py
+)
+
+add_blender_test(
   bl_animation_rename
   --python ${CMAKE_CURRENT_LIST_DIR}/bl_animation_rename.py
 )

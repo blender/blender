@@ -32,8 +32,10 @@ struct BLI_AStarGNode {
 
 struct BLI_AStarSolution {
   /* Final 'most useful' data. */
-  /** Number of steps (i.e. walked links) in path
-   * (nodes num, including start and end, is steps + 1). */
+  /**
+   * Number of steps (i.e. walked links) in path
+   * (nodes num, including start and end, is steps + 1).
+   */
   int steps;
   /** Store the path, in reversed order (from destination to source node), as indices. */
   int *prev_nodes;

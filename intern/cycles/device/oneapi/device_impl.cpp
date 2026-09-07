@@ -946,7 +946,7 @@ void OneapiDevice::image_free(device_image &mem)
           (sycl::ext::oneapi::experimental::image_mem_handle::raw_handle_type)cmem.array};
 
       try {
-        /* We have allocated only standard image, so we also deallocate only them. */
+        /* We have allocated only standard images, so we also deallocate only them. */
         sycl::ext::oneapi::experimental::free_image_mem(
             imgHandle, sycl::ext::oneapi::experimental::image_type::standard, *queue);
       }

@@ -1851,7 +1851,8 @@ TEST_P(VKRenderGraphTestScheduler, begin_draw_storage_dispatch_begin_draw_end_su
 /**
  * Reproduces VUID-vkCmdBeginRendering-pRenderingInfo-09588 by testing the restart path in
  * groups_build_commands() with a depth attachment that transitions to GENERAL layout during
- * storage access, then needs to be transitioned back before vkCmdBeginRendering. */
+ * storage access, then needs to be transitioned back before vkCmdBeginRendering.
+ */
 TEST_P(VKRenderGraphTestScheduler, begin_draw_storage_end_begin_draw_restart_depth)
 {
   VkHandle<VkImage> image(1u);

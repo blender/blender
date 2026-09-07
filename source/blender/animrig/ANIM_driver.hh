@@ -17,8 +17,10 @@ struct FCurve;
 
 namespace animrig {
 
-/** Evaluates the driver on the frame given in `anim_eval_context` and returns the value. Returns 0
- * if the RNA path can't be resolved. */
+/**
+ * Evaluates the driver on the frame given in `anim_eval_context` and returns the value. Returns 0
+ * if the RNA path can't be resolved.
+ */
 float evaluate_driver_from_rna_pointer(const AnimationEvalContext *anim_eval_context,
                                        PointerRNA *ptr,
                                        PropertyRNA *prop,

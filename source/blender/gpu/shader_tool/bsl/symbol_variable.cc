@@ -26,6 +26,7 @@ SymbolVariable::SymbolVariable(SymbolScope *parent,
           string(decl.identifier().str()), string(decl.identifier().str()), decl.front(), parent),
       type(type),
       array_dimensions(decl.array().dimensions()),
+      is_bitfield(decl.bitfield().is_valid()),
       is_static(decl.type().is_static()),
       is_compilation_const(AttrList(decl.type().prev()).contains_attr("compilation_constant"))
 {

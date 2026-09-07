@@ -106,8 +106,10 @@ struct BLI_mempool {
 #endif
   /** Single linked list of allocated chunks. */
   BLI_mempool_chunk *chunks;
-  /** Keep a pointer to the last, so we can append new chunks there
-   * this is needed for iteration so we can loop over chunks in the order added. */
+  /**
+   * Keep a pointer to the last, so we can append new chunks there
+   * this is needed for iteration so we can loop over chunks in the order added.
+   */
   BLI_mempool_chunk *chunk_tail;
 
   /** Element size in bytes. */

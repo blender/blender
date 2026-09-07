@@ -385,13 +385,13 @@ std::optional<AssetWeakReference> WM_toolsystem_last_brush_asset_from_brush_type
     if (brush_ref && brush_ref->brush_asset_reference) {
       return *brush_ref->brush_asset_reference;
     }
-    return BKE_paint_brush_type_default_reference(paint->runtime->paint_mode, brush_type);
+    return BKE_paint_brush_type_default_reference(paint->runtime->asset_category, brush_type);
   }
 
   if (paint->tool_brush_bindings.main_brush_asset_reference) {
     return *paint->tool_brush_bindings.main_brush_asset_reference;
   }
-  return BKE_paint_brush_type_default_reference(paint->runtime->paint_mode, std::nullopt);
+  return BKE_paint_brush_type_default_reference(paint->runtime->asset_category, std::nullopt);
 }
 
 static void toolsystem_brush_activate_from_toolref_for_object_paint(Main *bmain,

@@ -480,19 +480,23 @@ struct wmNotifier {
  */
 #define ND_POSE (20 << 16)
 #define ND_BONE_ACTIVE (21 << 16)
-/** Intended for selection and visibility changes in pose/armature edit modes.
+/**
+ * Intended for selection and visibility changes in pose/armature edit modes.
  * Historically this was also used for most edit-mode changes (also "structural" like adding,
  * deleting, subdividing, filling, ..., bones). Also covers hiding/revealing (in pose-mode and
  * edit-mode). Note this causes a full (possibly slow) rebuild of the Outliner tree. For such
- * changes, new code should use #ND_ARMATURE_STRUCTURE. */
+ * changes, new code should use #ND_ARMATURE_STRUCTURE.
+ */
 #define ND_BONE_SELECT (22 << 16)
-/** Indicate a change to the structure of the armature; this has implications for both the armature
+/**
+ * Indicate a change to the structure of the armature; this has implications for both the armature
  * object and the armature data.
  *
  * The value is set to #ND_BONE_SELECT as a transitional state, as currently that notifier is
  * already used to signify such structural changes. In the future, those uses of #ND_BONE_SELECT
  * should be replaced with #ND_ARMATURE_STRUCTURE, making the selection notifier only relevant for
- * selection again. See #153774. */
+ * selection again. See #153774.
+ */
 #define ND_ARMATURE_STRUCTURE ND_BONE_SELECT
 #define ND_DRAW (23 << 16)
 #define ND_MODIFIER (24 << 16)
@@ -691,14 +695,20 @@ struct wmGesture {
   uint wait_for_input : 1;
   /** Use for gestures that can be moved, like box selection. */
   uint move : 1;
-  /** For gestures that support snapping, stores if snapping is enabled using the modal keymap
-   * toggle. */
+  /**
+   * For gestures that support snapping,
+   * stores if snapping is enabled using the modal keymap toggle.
+   */
   uint use_snap : 1;
-  /** For gestures that support flip, stores if flip is enabled using the modal keymap
-   * toggle. */
+  /**
+   * For gestures that support flip,
+   * stores if flip is enabled using the modal keymap toggle.
+   */
   uint use_flip : 1;
-  /** For gestures that support smoothing, stores if smoothing is enabled using the modal keymap
-   * toggle. */
+  /**
+   * For gestures that support smoothing,
+   * stores if smoothing is enabled using the modal keymap toggle.
+   */
   uint use_smooth : 1;
 
   /**
@@ -921,7 +931,8 @@ struct wmNDOFMotionData {
    */
   /** Translation. */
   float tvec[3];
-  /** Rotation.
+  /**
+   * Rotation.
    * <pre>
    * axis = (rx,ry,rz).normalized.
    * amount = (rx,ry,rz).magnitude [in revolutions, 1.0 = 360 deg]
@@ -1280,9 +1291,11 @@ struct wmPaintCursor {
 enum eWM_DragDataType : int8_t {
   WM_DRAG_ID,
   WM_DRAG_ASSET,
-  /** The user is dragging multiple assets. This is only supported in few specific cases, proper
-   * multi-item support for dragging isn't supported well yet. Therefore this is kept separate from
-   * #WM_DRAG_ASSET. */
+  /**
+   * The user is dragging multiple assets. This is only supported in few specific cases, proper
+   * multi-item support for dragging isn't supported well yet.
+   * Therefore this is kept separate from #WM_DRAG_ASSET.
+   */
   WM_DRAG_ASSET_LIST,
   WM_DRAG_RNA,
   WM_DRAG_PATH,
@@ -1441,16 +1454,20 @@ struct wmDropBox {
   /** Test if the dropbox is active. */
   bool (*poll)(bContext *C, wmDrag *drag, const wmEvent *event);
 
-  /** Called when the drag action starts. Can be used to prefetch data for previews.
+  /**
+   * Called when the drag action starts. Can be used to prefetch data for previews.
    * \note The dropbox that will be called eventually is not known yet when starting the drag.
-   * So this callback is called on every dropbox that is registered in the current screen. */
+   * So this callback is called on every dropbox that is registered in the current screen.
+   */
   void (*on_drag_start)(bContext *C, wmDrag *drag);
 
   /** Called when poll returns true the first time. Typically used to setup some drawing data. */
   void (*on_enter)(wmDropBox *drop, wmDrag *drag);
 
-  /** Called when poll returns false the first time or when the drag event ends (successful drop or
-   * canceled). Typically used to cleanup resources or end drawing. */
+  /**
+   * Called when poll returns false the first time or when the drag event ends (successful drop or
+   * canceled). Typically used to cleanup resources or end drawing.
+   */
   void (*on_exit)(wmDropBox *drop, wmDrag *drag);
 
   /** Before exec, this copies drag info to #wmDrop properties. */

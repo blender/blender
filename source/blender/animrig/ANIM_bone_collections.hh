@@ -197,7 +197,8 @@ bool ANIM_armature_bonecoll_move(bArmature *armature, BoneCollection *bcoll, int
 BoneCollection *ANIM_armature_bonecoll_get_by_name(bArmature *armature,
                                                    const char *name) ATTR_WARN_UNUSED_RESULT;
 
-/** Scan the bone collections to find the one with the given name.
+/**
+ * Scan the bone collections to find the one with the given name.
  *
  * \return the index of the bone collection, or -1 if not found.
  */
@@ -213,14 +214,16 @@ void ANIM_armature_bonecoll_name_set(Main &bmain,
  * Show this bone collection.
  *
  * This marks the bone collection as 'visible'. Whether it is effectively
- * visible also depends on the visibility state of its ancestors. */
+ * visible also depends on the visibility state of its ancestors.
+ */
 void ANIM_bonecoll_show(bArmature *armature, BoneCollection *bcoll);
 
 /**
  * Hide this bone collection.
  *
  * This marks the bone collection as 'hidden'. This also effectively hides its descendants,
- * regardless of their visibility state. */
+ * regardless of their visibility state.
+ */
 void ANIM_bonecoll_hide(bArmature *armature, BoneCollection *bcoll);
 
 /**

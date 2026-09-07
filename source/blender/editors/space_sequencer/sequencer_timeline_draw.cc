@@ -1321,10 +1321,7 @@ static void draw_strips_background(const TimelineDrawContext &ctx,
     }
     data.col_background = color_pack(col);
 
-    const bool show_thumbnails = (ctx.sseq->timeline_overlay.flag &
-                                  SEQ_TIMELINE_STRIP_END_THUMBNAILS) ||
-                                 (ctx.sseq->timeline_overlay.flag &
-                                  SEQ_TIMELINE_CONTINUOUS_THUMBNAILS);
+    const bool show_thumbnails = (ctx.sseq->timeline_overlay.flag & SEQ_TIMELINE_SHOW_THUMBNAILS);
     /* Darker color band for thumbnail strips. */
     if (show_overlay && seq::strip_can_have_thumbnail(scene, strip.strip) && show_thumbnails) {
       /* The more negative the offset, darker the color. */
@@ -1550,10 +1547,7 @@ static void draw_strip_texts(const TimelineDrawContext &ctx,
                              const Vector<StripDrawContext> &strips)
 {
   /* Nothing to do if we're not showing thumbnails overall. */
-  const bool show_thumbnails = (ctx.sseq->timeline_overlay.flag &
-                                SEQ_TIMELINE_STRIP_END_THUMBNAILS) ||
-                               (ctx.sseq->timeline_overlay.flag &
-                                SEQ_TIMELINE_CONTINUOUS_THUMBNAILS);
+  const bool show_thumbnails = (ctx.sseq->timeline_overlay.flag & SEQ_TIMELINE_SHOW_THUMBNAILS);
   if ((ctx.sseq->flag & SEQ_SHOW_OVERLAY) == 0 || !show_thumbnails) {
     return;
   }

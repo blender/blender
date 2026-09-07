@@ -161,7 +161,9 @@ svm_node_attr_surface_eval(KernelGlobals kg,
         return make_float3(average(make_float3(q)));
       }
       if (type == NODE_ATTR_OUTPUT_FLOAT_ALPHA) {
-        return make_float3(dual<float>(q.val.w, q.dx.w, q.dy.w));
+        /* Use make_float4, which is used for the non-dual case and swizzles components. */
+        return make_float3(
+            dual<float>(make_float4(q.val).w, make_float4(q.dx).w, make_float4(q.dy).w));
       }
       return make_float3(q);
     }

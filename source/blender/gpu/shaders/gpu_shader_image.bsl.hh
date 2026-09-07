@@ -52,7 +52,6 @@ struct VertOut {
 [[vertex]] void image_rect_vert([[resource_table]] const Image &srt,
                                 [[resource_table]] const ImageRect &rect,
                                 [[vertex_id]] const int vert_id,
-                                [[in]] const VertIn &v_in,
                                 [[out]] VertOut &v_out,
                                 [[position]] float4 &out_pos)
 {
@@ -214,7 +213,6 @@ struct FragOutStereo {
 };
 
 [[fragment]] void image_overlay_merge_stereo_frag([[resource_table]] const ImageStereoMerge &srt,
-                                                  [[resource_table]] const ColorSpace &colorspace,
                                                   [[frag_coord]] const float4 frag_co,
                                                   [[out]] FragOutStereo &frag_out)
 {

@@ -100,7 +100,7 @@ static void gesture_modal_state_to_operator(wmOperator *op, int modal_state)
   }
 }
 
-void gesture_init_mval_set(wmGesture *gesture, const int2 mval)
+static void gesture_init_mval_set(wmGesture *gesture, const int2 mval)
 {
   if (gesture->edge_pan_data == nullptr) {
     return;
