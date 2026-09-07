@@ -116,6 +116,9 @@ RESHAPE(float3x3, mat3x3, mat3x4)
 #define isampler2DAtomic isampler2D
 #define isampler3DAtomic isampler3D
 
+#define bitfieldInsertAssign(base, value, offset, bits) \
+  base = bitfieldInsert(base, value, offset, bits)
+
 /* Pass through functions. */
 #define imageFence(image)
 

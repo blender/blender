@@ -7,9 +7,18 @@
 #include "BLI_set.hh"
 #include "BLI_vector_set.hh"
 
-#include "COM_node_group_operation.hh"
+namespace blender {
+struct bNodeTree;
+struct bNode;
+struct bNodeSocket;
+struct ComputeContextHash;
+class ComputeContext;
+}  // namespace blender
 
 namespace blender::compositor {
+
+class Context;
+class Operation;
 
 struct Schedule {
   VectorSet<const bNode *> nodes;
@@ -18,11 +27,15 @@ struct Schedule {
   Set<const bNodeSocket *> unneeded_inputs;
 };
 
-/* Computes the execution schedule of the given node group operation. Only outputs types and node
- * group outputs that are need are computed. This is essentially a post-order depth first traversal
- * of the node tree from the needed output nodes to the leaf input nodes, with informed order of
- * traversal of dependencies based on a heuristic estimation of the number of needed buffers. */
-Schedule compute_schedule(NodeGroupOperation &node_group_operation);
+/* Computes the execution schedule of the given node group which is being evaluated for the given
+ * operation in the given compute context. Only output types and node group outputs that are
+ * needed are computed. This is essentially a post-order depth first traversal of the node tree
+ * from the needed output nodes to the leaf input nodes, with informed order of traversal of
+ * dependencies based on a heuristic estimation of the number of needed buffers. */
+Schedule compute_schedule(const Context &context,
+                          const bNodeTree &node_group,
+                          const ComputeContext &compute_context,
+                          Operation &operation);
 
 /* Checks if the given node group with the given compute context has an active Viewer node in it or
  * in one of its descendants. Only nodes of node groups whose compute context match that of the

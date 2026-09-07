@@ -4,8 +4,10 @@
 
 #include <limits>
 
+#include "BLI_compute_context.hh"
 #include "BLI_set.hh"
 #include "BLI_string_ref.hh"
+#include "BLI_vector.hh"
 #include "BLI_vector_set.hh"
 
 #include "DNA_node_types.h"
@@ -13,41 +15,59 @@
 #include "BKE_node.hh"
 #include "BKE_node_runtime.hh"
 
-#include "COM_compile_state.hh"
 #include "COM_context.hh"
 #include "COM_domain.hh"
+#include "COM_group_input_node_operation.hh"
+#include "COM_group_node_operation.hh"
+#include "COM_group_output_node_operation.hh"
 #include "COM_implicit_input_operation.hh"
 #include "COM_input_descriptor.hh"
+#include "COM_multi_function_procedure_operation.hh"
 #include "COM_node_operation.hh"
+#include "COM_node_tree_evaluator.hh"
 #include "COM_pixel_operation.hh"
 #include "COM_result.hh"
 #include "COM_scheduler.hh"
 #include "COM_shader_operation.hh"
+#include "COM_single_value_node_input_operation.hh"
+#include "COM_undefined_node_operation.hh"
 #include "COM_utilities.hh"
 
 namespace blender::compositor {
 
-CompileState::CompileState(const Context &context, const Schedule &schedule)
-    : context_(context), schedule_(schedule)
+NodeTreeEvaluator::NodeTreeEvaluator(Context &context,
+                                     const Schedule &schedule,
+                                     Operation &operation,
+                                     const ComputeContext &compute_context)
+    : context_(context),
+      schedule_(schedule),
+      operation_(operation),
+      compute_context_(compute_context)
 {
 }
 
-const Schedule &CompileState::get_schedule()
+void NodeTreeEvaluator::evaluate()
 {
-  return schedule_;
+  for (const bNode *node : this->schedule().nodes) {
+    if (this->context().is_canceled()) {
+      this->cancel_evaluation();
+      break;
+    }
+
+    if (this->should_compile_pixel_compile_unit(*node)) {
+      this->evaluate_pixel_compile_unit();
+    }
+
+    if (is_pixel_node(*node)) {
+      this->add_node_to_pixel_compile_unit(*node);
+    }
+    else {
+      this->evaluate_node(*node);
+    }
+  }
 }
 
-void CompileState::map_node_to_node_operation(const bNode &node, NodeOperation *operations)
-{
-  node_operations_.add_new(&node, operations);
-}
-
-void CompileState::map_node_to_pixel_operation(const bNode &node, PixelOperation *operations)
-{
-  pixel_operations_.add_new(&node, operations);
-}
-
-Result &CompileState::get_result_from_output_socket(const bNodeSocket &output)
+Result &NodeTreeEvaluator::get_result_from_output_socket(const bNodeSocket &output)
 {
   /* The output belongs to a node that was compiled into a standard node operation, so return a
    * reference to the result from that operation using the output identifier. */
@@ -63,7 +83,199 @@ Result &CompileState::get_result_from_output_socket(const bNodeSocket &output)
   return operation->get_result(operation->get_output_identifier_from_output_socket(output));
 }
 
-void CompileState::add_node_to_pixel_compile_unit(const bNode &node)
+PixelCompileUnit &NodeTreeEvaluator::pixel_compile_unit()
+{
+  return pixel_compile_unit_;
+}
+
+const Schedule &NodeTreeEvaluator::schedule()
+{
+  return schedule_;
+}
+
+void NodeTreeEvaluator::evaluate_node(const bNode &node)
+{
+  NodeOperation *operation = this->create_node_operation(node);
+  operation->set_compute_context(compute_context_);
+
+  this->map_node_to_node_operation(node, operation);
+
+  map_node_operation_inputs_to_their_results(node, operation);
+
+  /* This has to be done after input mapping because the method may add Input Single Value
+   * Operations to the operations stream, which needs to be evaluated before the operation itself
+   * is evaluated. */
+  operations_stream_.append(std::unique_ptr<Operation>(operation));
+
+  operation->compute_results_reference_counts(this->schedule());
+
+  operation->evaluate();
+}
+
+NodeOperation *NodeTreeEvaluator::create_node_operation(const bNode &node)
+{
+  const char *disabled_hint = nullptr;
+  if (!node.typeinfo->poll(node.typeinfo, &node.owner_tree(), &disabled_hint)) {
+    return get_undefined_node_operation(this->context(), node);
+  }
+
+  if (node.is_group()) {
+    return get_group_node_operation(this->context(), node);
+  }
+
+  if (node.is_group_output()) {
+    return get_group_output_node_operation(this->context(), node, this->operation());
+  }
+
+  if (node.is_group_input()) {
+    return get_group_input_node_operation(this->context(), node, this->operation());
+  }
+
+  return node.typeinfo->get_compositor_operation(this->context(), node);
+}
+
+void NodeTreeEvaluator::map_node_operation_inputs_to_their_results(const bNode &node,
+                                                                   NodeOperation *operation)
+{
+  for (const bNodeSocket *input : node.input_sockets()) {
+    if (!is_socket_available(input)) {
+      continue;
+    }
+
+    const bNodeSocket *output = get_output_linked_to_input(*input);
+    if (output && this->schedule().nodes.contains(&output->owner_node()) &&
+        !this->schedule().unneeded_inputs.contains(input))
+    {
+      /* The input is linked to a node that is part of the schedule. So map the input to the result
+       * we get from the output. */
+      Result &result = this->get_result_from_output_socket(*output);
+      operation->map_input_to_result(input->identifier, &result);
+      continue;
+    }
+
+    const InputDescriptor input_descriptor = input_descriptor_from_input_socket(input);
+    if (!input_descriptor.implicit_input.has_value()) {
+      /* The input is unlinked with no implicit value. So map the input to the result of a newly
+       * created Input Single Value Operation. */
+      SingleValueNodeInputOperation *input_operation = new SingleValueNodeInputOperation(
+          this->context(), *input);
+      operations_stream_.append(std::unique_ptr<SingleValueNodeInputOperation>(input_operation));
+      input_operation->evaluate();
+      operation->map_input_to_result(input->identifier, &input_operation->get_result());
+      continue;
+    }
+
+    ImplicitInputOperation *input_operation = new ImplicitInputOperation(
+        this->context(), input_descriptor.implicit_input.value());
+    operations_stream_.append(std::unique_ptr<ImplicitInputOperation>(input_operation));
+    input_operation->evaluate();
+    operation->map_input_to_result(input->identifier, &input_operation->get_result());
+  }
+}
+
+PixelOperation *NodeTreeEvaluator::create_pixel_operation()
+{
+  /* Use multi-function procedure to execute the pixel compile unit for CPU contexts or if the
+   * compile unit is single value and would thus be more efficient to execute on the CPU. */
+  const bool is_single_value = this->is_pixel_compile_unit_single_value();
+  if (!this->context().use_gpu() || is_single_value) {
+    return new MultiFunctionProcedureOperation(
+        this->context(), *this, is_single_value, compute_context_);
+  }
+
+  return new ShaderOperation(this->context(), *this, compute_context_);
+}
+
+void NodeTreeEvaluator::evaluate_pixel_compile_unit()
+{
+  PixelCompileUnit &compile_unit = this->pixel_compile_unit();
+
+  /* Only compute previews if they are needed and the node group is currently active. */
+  const bool needs_node_previews = flag_is_set(this->context().needed_side_effect_output_types(),
+                                               SideEffectOutputTypes::NodePreviews);
+  const bool is_active_context = compute_context_.hash() ==
+                                 this->context().get_active_compute_context_hash();
+  const bool are_node_previews_needed = needs_node_previews && is_active_context;
+
+  /* Pixel operations might have limitations on the number of outputs or inputs they can have, so
+   * we might have to split the compile unit into smaller units to workaround this limitation. In
+   * practice, splitting will almost always never happen due to the scheduling strategy we use, so
+   * the base case remains fast. */
+  if (compile_unit.size() > 1 &&
+      (this->pixel_compile_unit_has_too_many_outputs(are_node_previews_needed) ||
+       this->pixel_compile_unit_has_too_many_inputs()))
+  {
+    const int split_index = compile_unit.size() / 2;
+    const PixelCompileUnit start_compile_unit(compile_unit.as_span().take_front(split_index));
+    const PixelCompileUnit end_compile_unit(compile_unit.as_span().drop_front(split_index));
+
+    this->pixel_compile_unit() = start_compile_unit;
+    this->evaluate_pixel_compile_unit();
+
+    this->pixel_compile_unit() = end_compile_unit;
+    this->evaluate_pixel_compile_unit();
+
+    /* No need to continue, the above recursive calls will eventually exist the loop and do the
+     * actual compilation. */
+    return;
+  }
+
+  PixelOperation *operation = this->create_pixel_operation();
+
+  for (const bNode *node : compile_unit) {
+    this->map_node_to_pixel_operation(*node, operation);
+  }
+
+  map_pixel_operation_inputs_to_their_results(operation);
+
+  operations_stream_.append(std::unique_ptr<Operation>(operation));
+
+  operation->compute_results_reference_counts(this->schedule());
+
+  operation->evaluate();
+
+  this->reset_pixel_compile_unit();
+}
+
+void NodeTreeEvaluator::map_pixel_operation_inputs_to_their_results(PixelOperation *operation)
+{
+  for (const auto item : operation->get_inputs_to_linked_outputs_map().items()) {
+    const bNodeSocket &output = *item.value;
+    const StringRef input_identifier = item.key;
+
+    Result *input_result = &this->get_result_from_output_socket(output);
+    operation->map_input_to_result(input_identifier, input_result);
+
+    /* Correct the reference count of the result in case multiple of the result's outgoing links
+     * corresponds to a single input in the pixel operation. See the description of the member
+     * inputs_to_reference_counts_map_ variable for more information. */
+    const int internal_reference_count = operation->get_internal_input_reference_count(
+        input_identifier);
+    input_result->decrement_reference_count(internal_reference_count - 1);
+  }
+
+  for (const auto item : operation->get_implicit_inputs_to_input_identifiers_map().items()) {
+    ImplicitInputOperation *input_operation = new ImplicitInputOperation(this->context(),
+                                                                         item.key);
+    operation->map_input_to_result(item.value, &input_operation->get_result());
+
+    operations_stream_.append(std::unique_ptr<ImplicitInputOperation>(input_operation));
+
+    input_operation->evaluate();
+  }
+}
+
+void NodeTreeEvaluator::map_node_to_node_operation(const bNode &node, NodeOperation *operation)
+{
+  node_operations_.add_new(&node, operation);
+}
+
+void NodeTreeEvaluator::map_node_to_pixel_operation(const bNode &node, PixelOperation *operation)
+{
+  pixel_operations_.add_new(&node, operation);
+}
+
+void NodeTreeEvaluator::add_node_to_pixel_compile_unit(const bNode &node)
 {
   pixel_compile_unit_.add_new(&node);
 
@@ -80,23 +292,18 @@ void CompileState::add_node_to_pixel_compile_unit(const bNode &node)
   }
 }
 
-PixelCompileUnit &CompileState::get_pixel_compile_unit()
-{
-  return pixel_compile_unit_;
-}
-
-bool CompileState::is_pixel_compile_unit_single_value()
+bool NodeTreeEvaluator::is_pixel_compile_unit_single_value()
 {
   return is_pixel_compile_unit_single_value_;
 }
 
-void CompileState::reset_pixel_compile_unit()
+void NodeTreeEvaluator::reset_pixel_compile_unit()
 {
   pixel_compile_unit_.clear();
   pixel_compile_unit_domain_.reset();
 }
 
-bool CompileState::should_compile_pixel_compile_unit(const bNode &node)
+bool NodeTreeEvaluator::should_compile_pixel_compile_unit(const bNode &node)
 {
   /* If the pixel compile unit is empty, then it can't be compiled yet. */
   if (pixel_compile_unit_.is_empty()) {
@@ -130,7 +337,7 @@ bool CompileState::should_compile_pixel_compile_unit(const bNode &node)
   return false;
 }
 
-bool CompileState::is_pixel_node_single_value(const bNode &node)
+bool NodeTreeEvaluator::is_pixel_node_single_value(const bNode &node)
 {
   /* If any of the outputs are single-only outputs, then the node is operating on single values. */
   for (const bNodeSocket *output : node.output_sockets()) {
@@ -197,7 +404,7 @@ bool CompileState::is_pixel_node_single_value(const bNode &node)
   return true;
 }
 
-Domain CompileState::compute_pixel_node_domain(const bNode &node)
+Domain NodeTreeEvaluator::compute_pixel_node_domain(const bNode &node)
 {
   /* Default to an identity domain in case no domain input was found, most likely because all
    * inputs are single values. */
@@ -274,7 +481,8 @@ Domain CompileState::compute_pixel_node_domain(const bNode &node)
   return node_domain;
 }
 
-bool CompileState::pixel_compile_unit_has_too_many_outputs(const bool are_node_previews_needed)
+bool NodeTreeEvaluator::pixel_compile_unit_has_too_many_outputs(
+    const bool are_node_previews_needed)
 {
   /* Only GPU and non-single units have output count limitations. */
   if (!context_.use_gpu() || is_pixel_compile_unit_single_value_) {
@@ -317,7 +525,7 @@ bool CompileState::pixel_compile_unit_has_too_many_outputs(const bool are_node_p
   return false;
 }
 
-bool CompileState::pixel_compile_unit_has_too_many_inputs()
+bool NodeTreeEvaluator::pixel_compile_unit_has_too_many_inputs()
 {
   /* Only GPU and non-single units have input count limitations. */
   if (!context_.use_gpu() || is_pixel_compile_unit_single_value_) {
@@ -333,7 +541,7 @@ bool CompileState::pixel_compile_unit_has_too_many_inputs()
         continue;
       }
 
-      if (this->get_schedule().unneeded_inputs.contains(input)) {
+      if (this->schedule().unneeded_inputs.contains(input)) {
         continue;
       }
 
@@ -386,6 +594,23 @@ bool CompileState::pixel_compile_unit_has_too_many_inputs()
   }
 
   return false;
+}
+
+void NodeTreeEvaluator::cancel_evaluation()
+{
+  for (const std::unique_ptr<Operation> &operation : operations_stream_) {
+    operation->free_results();
+  }
+}
+
+Context &NodeTreeEvaluator::context()
+{
+  return context_;
+}
+
+Operation &NodeTreeEvaluator::operation()
+{
+  return operation_;
 }
 
 }  // namespace blender::compositor

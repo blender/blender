@@ -18,6 +18,7 @@
 
 #include "COM_algorithm_compute_preview.hh"
 #include "COM_context.hh"
+#include "COM_node_tree_evaluator.hh"
 #include "COM_operation.hh"
 #include "COM_pixel_operation.hh"
 #include "COM_result.hh"
@@ -27,11 +28,11 @@
 namespace blender::compositor {
 
 PixelOperation::PixelOperation(Context &context,
-                               CompileState &compile_state,
+                               NodeTreeEvaluator &node_tree_evaluator,
                                const ComputeContext &compute_context,
                                const bool is_single_value)
     : Operation(context),
-      compile_state_(compile_state),
+      node_tree_evaluator_(node_tree_evaluator),
       compute_context_(compute_context),
       is_single_value_(is_single_value)
 {
@@ -78,7 +79,7 @@ void PixelOperation::log_data()
   /* All inputs and outputs of pixel operations operate in the same domain, so the operation domain
    * should be logged for all. The exception is inputs that are single values, in which case, their
    * value is simply logged. */
-  for (const bNode *node : compile_state_.get_pixel_compile_unit()) {
+  for (const bNode *node : node_tree_evaluator_.pixel_compile_unit()) {
     /* Log output values. */
     for (const bNodeSocket *output_socket : node->output_sockets()) {
       if (!is_socket_available(output_socket)) {
@@ -102,7 +103,7 @@ void PixelOperation::log_data()
         continue;
       }
 
-      if (compile_state_.get_schedule().unneeded_inputs.contains(input_socket)) {
+      if (node_tree_evaluator_.schedule().unneeded_inputs.contains(input_socket)) {
         continue;
       }
 
@@ -133,14 +134,14 @@ void PixelOperation::log_data()
       /* The input is linked to a node that is inside the pixel operation, so skip it since it will
        * inherit its value from an output that was logged above. */
       const bNodeSocket &linked_output = *input_socket->logically_linked_sockets()[0];
-      if (compile_state_.get_pixel_compile_unit().contains(&linked_output.owner_node())) {
+      if (node_tree_evaluator_.pixel_compile_unit().contains(&linked_output.owner_node())) {
         continue;
       }
 
       /* Otherwise, it is linked to a node that is outside of the compile unit. If it is a single
        * value, skip it since it will inherit its value from an output that was logged before, if
        * not, we log the operation domain. */
-      const Result &input = compile_state_.get_result_from_output_socket(linked_output);
+      const Result &input = node_tree_evaluator_.get_result_from_output_socket(linked_output);
       if (input.is_single_value()) {
         continue;
       }
@@ -196,7 +197,7 @@ void PixelOperation::compute_results_reference_counts(const Schedule &schedule)
            * directly. */
           return schedule.nodes.contains(&input.owner_node()) &&
                  !schedule.unneeded_inputs.contains(&input) &&
-                 !compile_state_.get_pixel_compile_unit().contains(&input.owner_node());
+                 !node_tree_evaluator_.pixel_compile_unit().contains(&input.owner_node());
         });
 
     if (preview_outputs_.contains(item.key)) {

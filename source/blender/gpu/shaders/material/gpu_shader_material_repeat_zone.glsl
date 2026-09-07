@@ -6,7 +6,7 @@
 
 #  define REPEAT_BEGIN(count, var) \
     for (int var##_i = 0; var##_i < count; var##_i++) { \
-      var = float(var##_i);
+      var = var##_i;
 
 #  define REPEAT_END() }
 
@@ -17,7 +17,7 @@
  * Functions need parameters to be reflected, but we don't really rely on the reflection data.
  */
 [[node]]
-void REPEAT_BEGIN(float dummy) {};
+void REPEAT_BEGIN(int dummy) {};
 [[node]]
 void REPEAT_END(float dummy) {};
 

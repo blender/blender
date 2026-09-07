@@ -6638,7 +6638,7 @@ static void rna_def_modifier_remesh(BlenderRNA *brna)
   RNA_def_property_update(prop, 0, "rna_Modifier_update");
 
   prop = RNA_def_property(srna, "scale", PROP_FLOAT, PROP_NONE);
-  RNA_def_property_ui_range(prop, 0, 0.99, 0.01, 3);
+  RNA_def_property_ui_range(prop, 0, 0.99, 0.01, 4);
   RNA_def_property_range(prop, 0, 0.99);
   RNA_def_property_ui_text(
       prop, "Scale", "The ratio of the largest dimension of the model over the size of the grid");

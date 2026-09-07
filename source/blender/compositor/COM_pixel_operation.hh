@@ -20,7 +20,7 @@ class ComputeContext;
 namespace blender::compositor {
 
 struct Schedule;
-class CompileState;
+class NodeTreeEvaluator;
 
 /* A type representing a contiguous subset of the node execution schedule that will be compiled
  * into a Pixel Operation. */
@@ -32,19 +32,19 @@ using PixelCompileUnit = VectorSet<const bNode *>;
  * An operation that is evaluated pixel-wise and is compiled from a contiguous subset of the node
  * execution schedule, whose nodes all represent pixel-wise operations. The subset of the node
  * execution schedule is called a Pixel Compile Unit and contains nodes that are called Pixel
- * nodes, see the discussion in COM_compile_state.hh for more information. Since the nodes inside
- * the compile unit are all pixel wise, they can be combined into a single operation that can be
- * evaluated more efficiently. This is an abstract class that should be implemented to compile and
- * evaluate the compile unit as needed.
+ * nodes, see the discussion in COM_node_tree_evaluator.hh for more information. Since the nodes
+ * inside the compile unit are all pixel wise, they can be combined into a single operation that
+ * can be evaluated more efficiently. This is an abstract class that should be implemented to
+ * compile and evaluate the compile unit as needed.
  *
  * Consider the following node graph with a node execution schedule denoted by the number on each
  * node. The compiler may decide to compile a subset of the execution schedule into a pixel
  * operation if they are all pixel nodes, in this case, the nodes from 3 to 5 were compiled
  * together into a pixel operation. This subset is called the pixel compile unit. See the
- * discussion in COM_evaluator.hh for more information on the compilation process. Links that are
- * internal to the pixel operation are established between the input and outputs of the pixel
- * nodes, for instance, the links between nodes 3 and 4 as well as those between nodes 4 and 5.
- * However, links that cross the boundary of the pixel operation needs special handling.
+ * discussion in COM_node_tree_evaluator.hh for more information on the compilation process. Links
+ * that are internal to the pixel operation are established between the input and outputs of the
+ * pixel nodes, for instance, the links between nodes 3 and 4 as well as those between nodes 4
+ * and 5. However, links that cross the boundary of the pixel operation needs special handling.
  *
  *                                        Pixel Operation
  *                   +------------------------------------------------------+
@@ -71,9 +71,9 @@ using PixelCompileUnit = VectorSet<const bNode *>;
  * the link from node 5 to node 6 is declared as an output to the operation. */
 class PixelOperation : public Operation {
  protected:
-  /* The compile state which currently contains a pixel compile unit that needs to be compiled into
-   * this pixel operation. */
-  CompileState &compile_state_;
+  /* The node tree evaluator which currently contains a pixel compile unit that needs to be
+   * compiled into this pixel operation. */
+  NodeTreeEvaluator &node_tree_evaluator_;
   /* The compute context where this pixel operation is executing. */
   const ComputeContext &compute_context_;
   /* A map that associates the identifier of each input of the operation with the output socket it
@@ -110,7 +110,7 @@ class PixelOperation : public Operation {
 
  public:
   PixelOperation(Context &context,
-                 CompileState &compile_state,
+                 NodeTreeEvaluator &node_tree_evaluator,
                  const ComputeContext &compute_context,
                  const bool is_single_value);
 

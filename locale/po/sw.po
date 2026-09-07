@@ -1,9 +1,9 @@
 
 msgid ""
 msgstr ""
-"Project-Id-Version: Blender 5.3.0 Alpha (b'32296898e057')\n"
+"Project-Id-Version: Blender 5.3.0 Alpha (b'f5df8c32f99b')\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-08-31 07:41+0000\n"
+"POT-Creation-Date: 2026-09-07 07:47+0000\n"
 "PO-Revision-Date: 2025-11-14 10:59+0000\n"
 "Last-Translator: Isaac Gicheha <shwaky3@gmail.com>\n"
 "Language-Team: Swahili <https://translate.blender.org/projects/blender-ui/ui/sw/>\n"
@@ -28218,8 +28218,8 @@ msgid "Editor menu containing buttons"
 msgstr "Menyu ya mhariri iliyo na vitufe"
 
 
-msgid "Snap"
-msgstr "Picha"
+msgid "Instances"
+msgstr "Matukio"
 
 
 msgid "Read"
@@ -28238,52 +28238,44 @@ msgid "Primitives"
 msgstr "Watu wa kwanza"
 
 
-msgid "Instances"
-msgstr "Matukio"
-
-
 msgid "Import"
 msgstr "Ingiza"
-
-
-msgid "Mirror"
-msgstr "Kioo"
 
 
 msgid "Utilities"
 msgstr "Huduma"
 
 
+msgid "Select Linked"
+msgstr "Chagua Imeunganishwa"
+
+
 msgid "Deprecated"
 msgstr "Imeacha kutumika"
-
-
-msgid "Navigation"
-msgstr "Urambazaji"
 
 
 msgid "Math"
 msgstr "Hisabati"
 
 
-msgid "Select Linked"
-msgstr "Chagua Imeunganishwa"
+msgid "Navigation"
+msgstr "Urambazaji"
 
 
-msgid "Metaball"
-msgstr "Mpira wa miguu"
+msgid "Snap"
+msgstr "Picha"
 
 
-msgid "Light"
-msgstr "Mwanga"
+msgid "Mirror"
+msgstr "Kioo"
 
 
-msgid "Light Probe"
-msgstr "Uchunguzi wa Mwanga"
+msgid "Pivot Point"
+msgstr "Egemeo"
 
 
-msgid "Apply"
-msgstr "Tumia"
+msgid "Clean Up"
+msgstr "Safisha"
 
 
 msgid "Show/Hide"
@@ -28294,20 +28286,24 @@ msgid "Linked"
 msgstr "Imeunganishwa"
 
 
-msgid "Clean Up"
-msgstr "Safisha"
-
-
 msgid "Layout"
 msgstr "Mpangilio"
 
 
-msgid "Asset"
-msgstr "Mali"
+msgid "Metaball"
+msgstr "Mpira wa miguu"
 
 
 msgid "Adjust"
 msgstr "Rekebisha"
+
+
+msgid "Merge"
+msgstr "Unganisha"
+
+
+msgid "Bone Collections"
+msgstr "Mikusanyo ya Mifupa"
 
 
 msgid "Keying"
@@ -28318,16 +28314,20 @@ msgid "Tracking"
 msgstr "Kufuatilia"
 
 
-msgid "Bone Collections"
-msgstr "Mikusanyo ya Mifupa"
+msgid "Apply"
+msgstr "Tumia"
 
 
-msgid "Merge"
-msgstr "Unganisha"
+msgid "Asset"
+msgstr "Mali"
 
 
-msgid "Pivot Point"
-msgstr "Egemeo"
+msgid "Light Probe"
+msgstr "Uchunguzi wa Mwanga"
+
+
+msgid "Light"
+msgstr "Mwanga"
 
 
 msgid "Keyframe Insert Pie"
@@ -49686,10 +49686,6 @@ msgid "Do not export materials, but write multiple primitive groups per mesh, ke
 msgstr "Usisafirishe nje nyenzo, lakini andika vikundi vingi vya zamani kwa kila matundu, ukihifadhi habari ya yanayopangwa"
 
 
-msgid "No export"
-msgstr "Hakuna usafirishaji"
-
-
 msgid "Do not export materials, and combine mesh primitive groups, losing material slot information"
 msgstr "Usihamishe nyenzo nje, na uchanganye vikundi vya zamani vya matundu, ukipoteza maelezo ya nyenzo"
 
@@ -66815,6 +66811,10 @@ msgid "Deselect All"
 msgstr "Ondoa Kuchagua Zote"
 
 
+msgid "Add a text strip to the sequencer"
+msgstr "Ongeza kipande cha maandishi kwenye mpangilio"
+
+
 msgctxt "Operator"
 msgid "Unlock Strips"
 msgstr "Fungua Vipande"
@@ -72398,76 +72398,76 @@ msgid "Panel containing UI elements"
 msgstr "Paneli iliyo na vipengele vya UI"
 
 
-msgid "View Lock"
-msgstr "Kufuli ya Tazama"
-
-
-msgid "Selectability & Visibility"
-msgstr "Uteuzi"
-
-
-msgid "Shadow Settings"
-msgstr "Mipangilio ya Kivuli"
-
-
-msgid "SSAO Settings"
-msgstr "Mipangilio ya SSAO"
-
-
-msgid "Viewer Node"
-msgstr "Njia ya Mtazamaji"
-
-
-msgid "Motion Tracking"
-msgstr "Kufuatilia Mwendo"
-
-
-msgid "Mesh Edit Mode"
-msgstr "Njia ya Kuhariri Mesh"
-
-
-msgid "Measurement"
-msgstr "Kipimo"
-
-
-msgid "Curve Edit Mode"
-msgstr "Njia ya Kuhariri Curve"
-
-
-msgid "Transform Orientations"
-msgstr "Badilisha Mielekeo"
+msgid "Drawing Plane"
+msgstr "Ndege ya Kuchora"
 
 
 msgid "Stroke Placement"
 msgstr "Uwekaji wa Kiharusi"
 
 
-msgid "Drawing Plane"
-msgstr "Ndege ya Kuchora"
+msgid "Transform Orientations"
+msgstr "Badilisha Mielekeo"
 
 
-msgid "Quad View"
-msgstr "Mtazamo wa Quad"
+msgid "Viewer Node"
+msgstr "Njia ya Mtazamaji"
 
 
-msgid "Multi Frame"
-msgstr "Fremu nyingi"
+msgid "Curve Edit Mode"
+msgstr "Njia ya Kuhariri Curve"
 
 
-msgid "Auto-Masking"
-msgstr "Kufunika Masking Kiotomatiki"
+msgid "Measurement"
+msgstr "Kipimo"
 
 
-msgid "Curves Sculpt Add Curve Options"
-msgstr "Mchoro wa Mikunjo Ongeza Chaguzi za Mviringo"
+msgid "Mesh Edit Mode"
+msgstr "Njia ya Kuhariri Mesh"
+
+
+msgid "Motion Tracking"
+msgstr "Kufuatilia Mwendo"
+
+
+msgid "SSAO Settings"
+msgstr "Mipangilio ya SSAO"
+
+
+msgid "Shadow Settings"
+msgstr "Mipangilio ya Kivuli"
+
+
+msgid "Selectability & Visibility"
+msgstr "Uteuzi"
+
+
+msgid "View Lock"
+msgstr "Kufuli ya Tazama"
+
+
+msgid "Viewport Debug"
+msgstr "Utatuzi wa kituo cha kutazama"
 
 
 msgid "Curves Sculpt Parameter Falloff"
 msgstr "Curves Sculpt Parameta Falloff"
 
 
-msgid "Viewport Debug"
-msgstr "Utatuzi wa kituo cha kutazama"
+msgid "Curves Sculpt Add Curve Options"
+msgstr "Mchoro wa Mikunjo Ongeza Chaguzi za Mviringo"
+
+
+msgid "Auto-Masking"
+msgstr "Kufunika Masking Kiotomatiki"
+
+
+msgid "Multi Frame"
+msgstr "Fremu nyingi"
+
+
+msgid "Quad View"
+msgstr "Mtazamo wa Quad"
 
 
 msgid "Motion Blur"
@@ -74747,14 +74747,6 @@ msgstr "Zana Mpya za Curves"
 
 msgid "Enable additional features for the new curves data block"
 msgstr "Washa vipengele vya ziada kwa kizuizi kipya cha data cha curves"
-
-
-msgid "Sculpt Texture Paint"
-msgstr "Mchoro wa Rangi ya Umbile"
-
-
-msgid "Use texture painting in Sculpt Mode"
-msgstr "Tumia uchoraji wa maandishi katika Hali ya Uchongaji"
 
 
 msgid "Shader Node Previews"
@@ -78116,6 +78108,10 @@ msgstr "Data maalum ya eneo (aina inategemea aina ya mkoa)"
 
 msgid "Region height"
 msgstr "Urefu wa mkoa"
+
+
+msgid "Live search filtering string"
+msgstr "Mfuatano wa kuchuja utafutaji wa moja kwa moja"
 
 
 msgid "Type of this region"
@@ -82139,10 +82135,6 @@ msgid "Show only selectable objects"
 msgstr "Onyesha vitu vinavyoweza kuchaguliwa pekee"
 
 
-msgid "Live search filtering string"
-msgstr "Mfuatano wa kuchuja utafutaji wa moja kwa moja"
-
-
 msgid "Library Override View Mode"
 msgstr "Njia ya Kutazama ya Kubatilisha Maktaba"
 
@@ -82360,10 +82352,6 @@ msgid "Active Tool and Workspace settings"
 msgstr "Mipangilio ya Zana Inayotumika na Nafasi ya Kazi"
 
 
-msgid "Scene Properties"
-msgstr "Sifa za Mandhari"
-
-
 msgctxt "ID"
 msgid "Render"
 msgstr "Render"
@@ -82380,6 +82368,10 @@ msgstr "Pato"
 
 msgid "Output Properties"
 msgstr "Sifa za Pato"
+
+
+msgid "Scene Properties"
+msgstr "Sifa za Mandhari"
 
 
 msgctxt "ID"
@@ -95927,12 +95919,12 @@ msgid "All View Layers"
 msgstr "Tabaka Zote za Mwonekano"
 
 
-msgid "Object Contents"
-msgstr "Yaliyomo ya Kitu"
-
-
 msgid "Empties"
 msgstr "Tupu"
+
+
+msgid "Object Contents"
+msgstr "Yaliyomo ya Kitu"
 
 
 msgctxt "Operator"
@@ -96057,6 +96049,11 @@ msgstr "Rukia Ukanda Unaofuata (Katikati)"
 
 
 msgctxt "Operator"
+msgid "Text"
+msgstr "Maandishi"
+
+
+msgctxt "Operator"
 msgid "Fade"
 msgstr "Fifisha"
 
@@ -96171,23 +96168,8 @@ msgstr "Mshiko"
 
 
 msgctxt "Operator"
-msgid "Clip..."
-msgstr "Klipu..."
-
-
-msgctxt "Operator"
-msgid "Mask..."
-msgstr "Kinyago..."
-
-
-msgctxt "Operator"
 msgid "Color"
 msgstr "Rangi"
-
-
-msgctxt "Operator"
-msgid "Text"
-msgstr "Maandishi"
 
 
 msgctxt "Operator"
@@ -96271,11 +96253,6 @@ msgstr "benchi ya kazi"
 msgctxt "Operator"
 msgid "Change Scene..."
 msgstr "Badilisha Onyesho..."
-
-
-msgctxt "Operator"
-msgid "Clip"
-msgstr "Klipu"
 
 
 msgctxt "Operator"
@@ -104832,10 +104809,6 @@ msgid "Link inside collection"
 msgstr "Unganisha ndani ya mkusanyiko"
 
 
-msgid "Move inside collection (Ctrl to link, Shift to parent)"
-msgstr "Sogeza ndani ya mkusanyiko (Ctrl ili kuunganisha, Shift kwa mzazi)"
-
-
 msgid "Move inside collection (Ctrl to link)"
 msgstr "Sogeza ndani ya mkusanyiko (Ctrl ili kuunganisha)"
 
@@ -105070,10 +105043,6 @@ msgstr "Ongeza ukanda wa madoido wa kiteuzi cha kamera nyingi kwenye mpangilio"
 
 msgid "Add an adjustment layer effect strip to the sequencer"
 msgstr "Ongeza ukanda wa athari ya safu ya urekebishaji kwenye mpangilio"
-
-
-msgid "Add a text strip to the sequencer"
-msgstr "Ongeza kipande cha maandishi kwenye mpangilio"
 
 
 msgid "Add a color mix effect strip to the sequencer"

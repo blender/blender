@@ -1374,8 +1374,10 @@ if(UNIX AND NOT (APPLE OR HAIKU))
   set_and_warn_incompatible(WITH_HEADLESS WITH_GHOST_WAYLAND OFF)
   set_and_warn_incompatible(WITH_HEADLESS WITH_GHOST_X11 OFF)
   # Only the WAYLAND back-end currently reads desktop settings over DBUS.
-  set_and_warn_dependency(WITH_GHOST_WAYLAND WITH_GHOST_DBUS OFF)
-  set_and_warn_incompatible(WITH_HEADLESS WITH_GHOST_DBUS OFF)
+  if (DEFINED WITH_GHOST_DBUS)
+    set_and_warn_dependency(WITH_GHOST_WAYLAND WITH_GHOST_DBUS OFF)
+    set_and_warn_incompatible(WITH_HEADLESS WITH_GHOST_DBUS OFF)
+  endif()
 endif()
 set_and_warn_incompatible(WITH_HEADLESS WITH_GHOST_SDL OFF)
 

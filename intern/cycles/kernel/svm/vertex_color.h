@@ -87,8 +87,9 @@ ccl_device_noinline void svm_node_vertex_color_derivative(
       else if (node.bump_offset == NODE_BUMP_OFFSET_DY) {
         vertex_color.val += vertex_color.dy * node.bump_filter_width;
       }
-      color = make_float3(vertex_color.val);
-      alpha = vertex_color.val.w;
+      const float4 f = make_float4(vertex_color.val);
+      color = make_float3(f);
+      alpha = f.w;
     }
     else {
       dual3 vertex_color = primitive_surface_attribute<dual3>(kg, sd, descriptor);

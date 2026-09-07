@@ -71,14 +71,22 @@ static void geo_proximity_init(bNodeTree * /*tree*/, bNode *node)
 class ProximityFunction : public mf::MultiFunction {
  private:
   struct BVHTrees {
-    /**
-     * Only used when the group doesn't contain every element; see #mesh_bvh and #pointcloud_bvh.
-     */
+    /** Used when the group doesn't contain every element. */
     std::optional<bke::bvh::Tree> mesh_bvh_owned;
     std::optional<bke::bvh::Tree> pointcloud_bvh_owned;
-    /** Either the owned tree above or the geometry's tree cache, which is reused when possible. */
-    const bke::bvh::Tree *mesh_bvh = nullptr;
-    const bke::bvh::Tree *pointcloud_bvh = nullptr;
+
+    /** The geometry's tree cache, which is reused when the group contains every element. */
+    const bke::bvh::Tree *mesh_bvh_cached = nullptr;
+    const bke::bvh::Tree *pointcloud_bvh_cached = nullptr;
+
+    const bke::bvh::Tree *mesh_bvh() const
+    {
+      return mesh_bvh_owned ? &*mesh_bvh_owned : mesh_bvh_cached;
+    }
+    const bke::bvh::Tree *pointcloud_bvh() const
+    {
+      return pointcloud_bvh_owned ? &*pointcloud_bvh_owned : pointcloud_bvh_cached;
+    }
   };
 
   GeometrySet target_;
@@ -136,12 +144,11 @@ class ProximityFunction : public mf::MultiFunction {
             }
             BVHTrees &trees = bvh_trees_[group_i];
             if (group_mask.size() == pointcloud.totpoint) {
-              trees.pointcloud_bvh = &pointcloud.bvh_tree();
+              trees.pointcloud_bvh_cached = &pointcloud.bvh_tree();
             }
             else {
               trees.pointcloud_bvh_owned = bke::bvh::Tree::from_points(pointcloud.positions(),
                                                                        group_mask);
-              trees.pointcloud_bvh = &*trees.pointcloud_bvh_owned;
             }
           }
         },
@@ -181,7 +188,7 @@ class ProximityFunction : public mf::MultiFunction {
             switch (type_) {
               case GEO_NODE_PROX_TARGET_POINTS:
                 if (use_whole_mesh) {
-                  trees.mesh_bvh = &mesh.bvh_verts();
+                  trees.mesh_bvh_cached = &mesh.bvh_verts();
                 }
                 else {
                   trees.mesh_bvh_owned = bke::bvh::Tree::from_points(mesh.vert_positions(),
@@ -190,7 +197,7 @@ class ProximityFunction : public mf::MultiFunction {
                 break;
               case GEO_NODE_PROX_TARGET_EDGES:
                 if (use_whole_mesh) {
-                  trees.mesh_bvh = &mesh.bvh_edges();
+                  trees.mesh_bvh_cached = &mesh.bvh_edges();
                 }
                 else {
                   trees.mesh_bvh_owned = bke::bvh::Tree::from_edges(
@@ -199,15 +206,12 @@ class ProximityFunction : public mf::MultiFunction {
                 break;
               case GEO_NODE_PROX_TARGET_FACES:
                 if (use_whole_mesh) {
-                  trees.mesh_bvh = &mesh.bvh_tris();
+                  trees.mesh_bvh_cached = &mesh.bvh_tris();
                 }
                 else {
                   trees.mesh_bvh_owned = bke::bvh::Tree::from_tris(mesh, group_mask, false);
                 }
                 break;
-            }
-            if (trees.mesh_bvh_owned) {
-              trees.mesh_bvh = &*trees.mesh_bvh_owned;
             }
           }
         },
@@ -263,17 +267,17 @@ class ProximityFunction : public mf::MultiFunction {
        * so that the mesh result is kept when both are the same distance away. */
       float3 nearest_position(0.0f);
       float nearest_distance = FLT_MAX;
-      if (trees.mesh_bvh != nullptr) {
-        if (const std::optional<bke::bvh::ClosestPointResult> result =
-                trees.mesh_bvh->closest_point(sample_position))
+      if (const bke::bvh::Tree *mesh_bvh = trees.mesh_bvh()) {
+        if (const std::optional<bke::bvh::ClosestPointResult> result = mesh_bvh->closest_point(
+                sample_position))
         {
           nearest_position = result->position;
           nearest_distance = math::distance(sample_position, result->position);
         }
       }
-      if (trees.pointcloud_bvh != nullptr) {
+      if (const bke::bvh::Tree *pointcloud_bvh = trees.pointcloud_bvh()) {
         if (const std::optional<bke::bvh::ClosestPointResult> result =
-                trees.pointcloud_bvh->closest_point(sample_position, nearest_distance))
+                pointcloud_bvh->closest_point(sample_position, nearest_distance))
         {
           nearest_position = result->position;
           nearest_distance = math::distance(sample_position, result->position);

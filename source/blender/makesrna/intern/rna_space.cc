@@ -6865,7 +6865,11 @@ static void rna_def_space_sequencer_timeline_overlay(BlenderRNA *brna)
   RNA_def_property_update(prop, NC_SPACE | ND_SPACE_SEQUENCER, nullptr);
 
   static const EnumPropertyItem thumbnail_style_items[] = {
-      {0, "NO_THUMBNAILS", 0, "None", "Do not show strip thumbnails"},
+      {SEQ_TIMELINE_MIDDLE_THUMBNAILS,
+       "MIDDLE",
+       0,
+       "Middle",
+       "Show single thumbnail in the middle of each strip"},
       {SEQ_TIMELINE_STRIP_END_THUMBNAILS,
        "STRIP_ENDS",
        0,
@@ -6877,6 +6881,13 @@ static void rna_def_space_sequencer_timeline_overlay(BlenderRNA *brna)
        "Continuous",
        "Display thumbnails as a filmstrip"},
       {0, nullptr, 0, nullptr, nullptr}};
+
+  prop = RNA_def_property(srna, "show_thumbnails", PROP_BOOLEAN, PROP_NONE);
+  RNA_def_property_boolean_sdna(
+      prop, nullptr, "timeline_overlay.flag", SEQ_TIMELINE_SHOW_THUMBNAILS);
+  RNA_def_property_ui_text(prop, "Show Thumbnails", "Display strip thumbnails");
+  RNA_def_property_clear_flag(prop, PROP_ANIMATABLE);
+  RNA_def_property_update(prop, NC_SPACE | ND_SPACE_SEQUENCER, nullptr);
 
   prop = RNA_def_property(srna, "thumbnail_display_style", PROP_ENUM, PROP_NONE);
   RNA_def_property_enum_bitflag_sdna(prop, nullptr, "timeline_overlay.flag");

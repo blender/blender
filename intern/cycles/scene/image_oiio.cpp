@@ -32,6 +32,10 @@ bool OIIOImageLoader::load_metadata(ImageMetaData &metadata,
                                     const ImageLoaderParams &params,
                                     Progress &progress)
 {
+  if (original_filepath_.empty()) {
+    return false;
+  }
+
   if (params.use_texture_cache) {
     const std::string &filepath = get_filepath();
     const bool found = resolve_tx(filepath,

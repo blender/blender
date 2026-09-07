@@ -235,6 +235,12 @@ void do_versions_after_linking_503(FileData * /*fd*/, Main *bmain)
     do_versioning_camera_view_zoom(bmain);
   }
 
+  if (!MAIN_VERSION_FILE_ATLEAST(bmain, 503, 20)) {
+    /* Shift animation data to accommodate the new anisotropic inputs. */
+    version_node_socket_index_animdata(bmain, NTREE_SHADER, "ShaderNodeBsdfGlass", 5, 3, 7);
+    version_node_socket_index_animdata(bmain, NTREE_SHADER, "ShaderNodeBsdfGlass", 2, 2, 4);
+  }
+
   /**
    * Always bump subversion in BKE_blender_version.h when adding versioning
    * code here, and wrap it inside a MAIN_VERSION_FILE_ATLEAST check.
@@ -511,6 +517,25 @@ void blo_do_versions_503(FileData * /*fd*/, Library * /*lib*/, Main *bmain)
           }
           return true;
         });
+      }
+    }
+  }
+
+  if (!MAIN_VERSION_FILE_ATLEAST(bmain, 503, 19)) {
+    for (bScreen &screen : bmain->screens) {
+      for (ScrArea &area : screen.areabase) {
+        for (SpaceLink &space : area.spacedata) {
+          if (space.spacetype == SPACE_SEQ) {
+            SpaceSeq *space_sequencer = reinterpret_cast<SpaceSeq *>(&space);
+            SequencerTimelineOverlay &timeline_overlay = space_sequencer->timeline_overlay;
+            const bool show_thumbnails =
+                (timeline_overlay.flag & SEQ_TIMELINE_MIDDLE_THUMBNAILS) ||
+                (timeline_overlay.flag & SEQ_TIMELINE_STRIP_END_THUMBNAILS) ||
+                (timeline_overlay.flag & SEQ_TIMELINE_CONTINUOUS_THUMBNAILS);
+            SET_FLAG_FROM_TEST(
+                timeline_overlay.flag, show_thumbnails, SEQ_TIMELINE_SHOW_THUMBNAILS);
+          }
+        }
       }
     }
   }

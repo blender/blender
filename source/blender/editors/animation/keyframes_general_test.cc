@@ -591,6 +591,16 @@ TEST_F(keyframes_paste, pastebuf_match_path_property)
         flip))
         << "same bone, other property";
 
+    /* Malformed paths shouldn't generate a match or crash Blender. */
+    EXPECT_FALSE(pastebuf_match_path_property(bmain,
+                                              *fcurve,
+                                              *fake_armob_fcurve("pose.bones[\"hand.", 0, true),
+                                              unassigned,
+                                              from_single,
+                                              to_single,
+                                              flip))
+        << "malformed rna path";
+
     EXPECT_FALSE(
         pastebuf_match_path_property_and_component_length(bmain,
                                                           *fcurve,
