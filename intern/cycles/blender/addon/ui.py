@@ -894,7 +894,7 @@ class CYCLES_RENDER_PT_performance_texture_cache(CyclesButtonsPanel, Panel):
 
         col.prop(rd, "use_auto_generate_texture_cache", text="Auto Generate")
 
-        row = col.split(factor=0.4)
+        row = col.split(factor=col.property_split_factor)
         row.label()
         sub = row.row(align=True)
         sub.operator("render.generate_texture_cache", text="Generate")

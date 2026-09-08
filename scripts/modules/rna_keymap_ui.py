@@ -195,7 +195,7 @@ def draw_kmi(display_keymaps, kc, km, kmi, layout, level):
 
         box = col.box()
 
-        split = box.split(factor=0.4)
+        split = box.split(factor=box.property_split_factor)
         sub = split.row()
 
         if km.is_modal:
@@ -567,7 +567,7 @@ def draw_keymaps(context, layout):
 
     # layout.context_pointer_set("keyconfig", wm.keyconfigs.active)
     # row.operator("preferences.keyconfig_remove", text="", icon='X')
-    rowsub = row.split(factor=0.4, align=True)
+    rowsub = row.split(factor=row.property_split_factor, align=True)
     # postpone drawing into rowsub, so we can set alert!
 
     layout.separator()

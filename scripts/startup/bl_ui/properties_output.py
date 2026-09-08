@@ -450,7 +450,7 @@ class RENDER_PT_output_pixel_density(RenderOutputButtonsPanel, Panel):
         layout.prop(rd, "ppm_factor", text="Pixels")
         layout.active = rd.save_output
 
-        row = layout.split(factor=0.4)
+        row = layout.split(factor=layout.property_split_factor)
         row.alignment = 'RIGHT'
         row.label(text="Unit")
         row.menu("RENDER_MT_pixeldensity_presets", text=pixeldensity_label_text)
@@ -564,7 +564,7 @@ class RENDER_PT_encoding_video(RenderOutputButtonsPanel, Panel):
             layout.label(text="HDR needs 10 or 12 bits", icon='STATUS_ERROR')
 
         # Color space
-        split = layout.split(factor=0.4)
+        split = layout.split(factor=layout.property_split_factor)
         col = split.column()
         col.alignment = 'RIGHT'
         col.label(text="Color Space")
