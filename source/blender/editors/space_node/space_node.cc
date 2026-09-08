@@ -1117,7 +1117,7 @@ static bool node_import_file_drop_poll(bContext *C, wmDrag *drag, const wmEvent 
     }
     if (is_geometry_tree &&
         (path.endswith(".csv") || path.endswith(".obj") || path.endswith(".ply") ||
-         path.endswith(".stl") || path.endswith(".vdb")))
+         path.endswith(".stl") || path.endswith(".vdb") || path.endswith(".spz")))
     {
       return true;
     }
