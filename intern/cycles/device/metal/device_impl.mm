@@ -363,7 +363,6 @@ string MetalDevice::preprocess_source(MetalPipelineType pso_type,
 #  endif
 
   global_defines += "#define __KERNEL_METAL_APPLE__\n";
-  global_defines += "#define __METAL_FUNCTION_CONSTANTS_64BIT__\n";
   if (@available(macos 14.0, *)) {
     /* Use Program Scope Global Built-ins, when available. */
     global_defines += "#define __METAL_GLOBAL_BUILTINS__\n";
