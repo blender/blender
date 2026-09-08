@@ -34,6 +34,9 @@ void HdCyclesVolume::Populate(HdSceneDelegate *sceneDelegate, HdDirtyBits dirtyB
 {
   Scene *const scene = (Scene *)_geom->get_owner();
 
+  /* USD/Hydra convention is that volume density is in object space. */
+  _geom->set_object_space(true);
+
   if (dirtyBits & HdChangeTracker::DirtyVolumeField) {
     const HdSceneIndexPrim prim = GetPrim(sceneDelegate, GetId());
     HdVolumeFieldBindingSchema bindings = HdVolumeFieldBindingSchema::GetFromParent(
