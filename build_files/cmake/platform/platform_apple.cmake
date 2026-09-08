@@ -375,7 +375,6 @@ endif()
 add_bundled_libraries(meshoptimizer/lib)
 
 if(WITH_TRACY)
-  set(Tracy_ROOT_DIR ${LIBDIR}/tracy)
   find_package(Tracy REQUIRED CONFIG)
 endif()
 

@@ -1191,7 +1191,6 @@ if((WITH_EMBREE AND EMBREE_SYCL_SUPPORT) OR (WITH_CYCLES AND WITH_CYCLES_DEVICE_
 endif()
 
 if(WITH_TRACY)
-  set(Tracy_ROOT_DIR ${LIBDIR}/tracy)
   find_package(Tracy REQUIRED CONFIG)
 endif()
 
