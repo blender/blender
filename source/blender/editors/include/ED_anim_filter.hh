@@ -164,8 +164,8 @@ struct KeyPoint {
     return this->frame == other.frame;
   }
 
-  /** Combine the values of the given point with the values of this point. The points are expected
-   * to be on the same frame. */
+  /**
+   * Combine the values of the given point with the values of this point. */
   void merge(const KeyPoint &other);
 };
 
