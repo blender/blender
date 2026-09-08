@@ -375,10 +375,6 @@ string MetalDevice::preprocess_source(MetalPipelineType pso_type,
   }
 #  endif
 
-  NSProcessInfo *processInfo = [NSProcessInfo processInfo];
-  NSOperatingSystemVersion macos_ver = [processInfo operatingSystemVersion];
-  global_defines += "#define __KERNEL_METAL_MACOS__ " + to_string(macos_ver.majorVersion) + "\n";
-
 #  if TARGET_CPU_ARM64
   global_defines += "#define __KERNEL_METAL_TARGET_CPU_ARM64__\n";
 #  endif
