@@ -6,6 +6,8 @@
  * \ingroup RNA
  */
 
+#include "DNA_pointcloud_types.h"
+
 #include "RNA_define.hh"
 #include "RNA_enum_types.hh"
 
@@ -164,6 +166,20 @@ static void rna_def_point(BlenderRNA *brna)
 
 static void rna_def_pointcloud(BlenderRNA *brna)
 {
+  static const EnumPropertyItem type_items[] = {
+      {int(PointCloudType::Points),
+       "POINTS",
+       0,
+       "Points",
+       "Simple point cloud represented by points with position and radius"},
+      {int(PointCloudType::GSplat),
+       "GAUSSIAN_SPLAT",
+       0,
+       "3D Gaussian Splat",
+       "A point cloud that represents the original 3D Gaussian Splats technique"},
+      {0, nullptr, 0, nullptr, nullptr},
+  };
+
   StructRNA *srna;
   PropertyRNA *prop;
   FunctionRNA *func;
@@ -208,6 +224,12 @@ static void rna_def_pointcloud(BlenderRNA *brna)
                                     "rna_IDMaterials_assign_int");
 
   rna_def_attributes_common(srna, AttributeOwnerType::PointCloud);
+
+  /* Type. */
+  prop = RNA_def_property(srna, "type", PROP_ENUM, PROP_NONE);
+  RNA_def_property_enum_items(prop, type_items);
+  RNA_def_property_ui_text(prop, "Type", "Representation type of the pointcloud");
+  RNA_def_property_update(prop, 0, "rna_PointCloud_update_data");
 
   /* common */
   rna_def_animdata_common(srna);
