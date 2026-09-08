@@ -761,6 +761,7 @@ static const EnumPropertyItem spreadsheet_table_id_type_items[] = {
 #  include "ED_render.hh"
 #  include "ED_screen.hh"
 #  include "ED_sequencer.hh"
+#  include "ED_space_action.hh"
 #  include "ED_spreadsheet.hh"
 #  include "ED_text.hh"
 #  include "ED_transform.hh"

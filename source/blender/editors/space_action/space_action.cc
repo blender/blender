@@ -197,6 +197,26 @@ static SpaceLink *action_duplicate(SpaceLink *sl)
   return reinterpret_cast<SpaceLink *>(saction);
 }
 
+/** Get the channels, caching them on the space data. */
+static ed::animfilter::ChannelArena &space_action_channel_arena(const bContext &C)
+{
+  SpaceAction *saction = CTX_wm_space_action(&C);
+  SpaceAction_Runtime *runtime = saction->runtime;
+  if (!runtime->channel_arena) {
+    ed::animfilter::ChannelArena channels = ed::action::get_summary_tree(C);
+    runtime->channel_arena.emplace(std::move(channels));
+  }
+
+  return *runtime->channel_arena;
+}
+
+/** Clean up any cached data that was built during drawing of regions. */
+static void action_draw_post(const bContext * /*C*/, ScrArea *area)
+{
+  SpaceAction *saction = area->spacedata.first_as<SpaceAction>();
+  saction->runtime->channel_arena.reset();
+}
+
 /* add handlers, stuff you only do once or on area/region changes */
 static void action_main_region_init(wmWindowManager *wm, ARegion *region)
 {
@@ -245,7 +265,7 @@ static void action_main_region_draw(const bContext *C, ARegion *region)
   ui::theme::frame_buffer_clear(TH_BACK);
 
   if (USER_EXPERIMENTAL_TEST(&U, use_new_animfilter)) {
-    ed::animfilter::ChannelArena channels = ed::action::get_summary_tree(*C);
+    ed::animfilter::ChannelArena &channels = space_action_channel_arena(*C);
     ListBaseT<TimeMarker> *markers = ANIM_marker_list_from_context(*C);
     set_v2d_height(v2d, channels.num_channels(), !markers->is_empty());
     ui::view2d_view_ortho(v2d);
@@ -399,7 +419,7 @@ static void action_channel_region_draw(const bContext *C, ARegion *region)
   View2D *v2d = &region->v2d;
 
   if (USER_EXPERIMENTAL_TEST(&U, use_new_animfilter)) {
-    ed::animfilter::ChannelArena channels = ed::action::get_summary_tree(*C);
+    ed::animfilter::ChannelArena &channels = space_action_channel_arena(*C);
     /* The View2D's height needs to be set before calling view2d_view_ortho because the latter
      * uses the View2D's `cur` rect which might be modified when setting the height. */
     /* TODO respect markers region and make v2d work. */
@@ -1040,6 +1060,7 @@ void ED_spacetype_action()
   st->keymap = action_keymap;
   st->listener = action_listener;
   st->refresh = action_refresh;
+  st->draw_post = action_draw_post;
   st->id_remap = action_id_remap;
   st->foreach_id = action_foreach_id;
   st->space_subtype_item_extend = action_space_subtype_item_extend;
