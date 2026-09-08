@@ -366,7 +366,8 @@ template<class T> void write_resource(void *address_in_arg_buffer, T resource, i
   zero_resource(address_in_arg_buffer, index);
   uint64_t *pptr = (uint64_t *)address_in_arg_buffer;
   if (resource) {
-    pptr[index] = metal_gpuResourceID(resource);
+    MTLResourceID resource_id = resource.gpuResourceID;
+    pptr[index] = (uint64_t &)resource_id;
   }
 }
 
@@ -375,7 +376,7 @@ template<> void write_resource(void *address_in_arg_buffer, id<MTLBuffer> buffer
   zero_resource(address_in_arg_buffer, index);
   uint64_t *pptr = (uint64_t *)address_in_arg_buffer;
   if (buffer) {
-    pptr[index] = metal_gpuAddress(buffer);
+    pptr[index] = buffer.gpuAddress;
   }
 }
 

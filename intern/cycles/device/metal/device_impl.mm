@@ -87,9 +87,6 @@ MetalDevice::MetalDevice(const DeviceInfo &info, Stats &stats, Profiler &profile
     mtlDevice = usable_devices[mtlDevId];
     metal_printf("Creating new Cycles Metal device: %s", info.description.c_str());
 
-    /* Ensure that back-compatibility helpers for getting gpuAddress & gpuResourceID are set up. */
-    metal_gpu_address_helper_init(mtlDevice);
-
     /* Enable increased concurrent shader compiler limit.
      * This is also done by MTLContext::MTLContext, but only in GUI mode. */
     if (@available(macOS 13.3, *)) {
@@ -1025,7 +1022,7 @@ void MetalDevice::const_copy_to(const char *name, void *host, const size_t size)
       if (mmem[i]) {
         mmem[i]->pointer_index = pointer_index + i;
         if (mmem[i]->mtlBuffer) {
-          addresses[i] = metal_gpuAddress(mmem[i]->mtlBuffer);
+          addresses[i] = mmem[i]->mtlBuffer.gpuAddress;
         }
       }
     }
