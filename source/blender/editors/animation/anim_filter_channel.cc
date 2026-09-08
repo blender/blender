@@ -386,12 +386,13 @@ void SummaryChannel::gather_channeldata()
 
       has_data = true;
       const KeyPoint &child_keypoint = child_keypoints[keypoint_index];
+      const int frame_before_merge = next_keypoint.frame;
       next_keypoint.merge(child_keypoint);
       if (child_keypoint.frame > next_keypoint.frame) {
         continue;
       }
 
-      if (child_keypoint.frame < next_keypoint.frame) {
+      if (child_keypoint.frame < frame_before_merge) {
         channels_to_advance.clear();
         channels_to_advance.append(channel_index);
       }
@@ -679,11 +680,20 @@ void GreasePencilChannel::gather_channeldata()
   GreasePencilLayer *gp_layer = this->get_source<GreasePencilLayer>();
 
   bke::greasepencil::Layer &layer = gp_layer->wrap();
-  for (const int frame : layer.frames().keys()) {
-    KeyPoint p(frame);
-    const GreasePencilFrame *gp_frame = layer.frame_at(frame);
-    p.is_selected = gp_frame->is_selected();
-    this->datapoints_.append(p);
+  this->datapoints_.resize(layer.frames().size());
+  int frame_index = 0;
+  int prev_drawing_index = -1;
+  for (const auto &[frame, gp_frame] : layer.frames().items()) {
+    KeyPoint &p = this->datapoints_[frame_index];
+    p.frame = frame;
+    p.is_selected = gp_frame.is_selected();
+    /* Grease Pencil data has no useful interpolation information. */
+    p.interpolation = InterpolationSummary::MIXED;
+    if (frame_index > 0) {
+      this->datapoints_[frame_index - 1].has_motion = gp_frame.drawing_index != prev_drawing_index;
+    }
+    prev_drawing_index = gp_frame.drawing_index;
+    frame_index++;
   }
 }
 
