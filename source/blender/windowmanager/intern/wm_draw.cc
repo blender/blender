@@ -979,10 +979,7 @@ static void wm_draw_area_offscreen(bContext *C, wmWindow *win, ScrArea *area, bo
   CTX_wm_area_set(C, area);
   GPU_debug_group_begin(wm_area_name(area));
 
-  /* Call space-level pre-draw callback. */
-  if (area->type->draw_pre) {
-    area->type->draw_pre(C, area);
-  }
+  bool is_any_region_drawn = false;
 
   /* Compute UI layouts for dynamically size regions. */
   for (ARegion &region : area->regionbase) {
@@ -1019,6 +1016,14 @@ static void wm_draw_area_offscreen(bContext *C, wmWindow *win, ScrArea *area, bo
   for (ARegion &region : area->regionbase) {
     if (!region.runtime->visible || !region.runtime->do_draw) {
       continue;
+    }
+
+    /* Call space-level pre-draw callback if this is the first region to be drawn. */
+    if (!is_any_region_drawn) {
+      if (area->type->draw_pre) {
+        area->type->draw_pre(C, area);
+      }
+      is_any_region_drawn = true;
     }
 
     CTX_wm_region_set(C, &region);
@@ -1070,8 +1075,8 @@ static void wm_draw_area_offscreen(bContext *C, wmWindow *win, ScrArea *area, bo
     CTX_wm_region_set(C, nullptr);
   }
 
-  /* Call space-level post-draw callback. */
-  if (area->type->draw_post) {
+  /* Call space-level post-draw callback, but only if there was at least one region drawn. */
+  if (is_any_region_drawn && area->type->draw_post) {
     area->type->draw_post(C, area);
   }
 
