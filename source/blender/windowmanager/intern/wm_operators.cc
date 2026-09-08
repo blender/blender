@@ -747,8 +747,9 @@ std::optional<std::string> WM_prop_pystring_assign(bContext *C,
 
 PointerRNA WM_operator_properties_create_ptr(wmOperatorType *ot)
 {
+  wmWindowManager *wm = G_MAIN->wm.first();
   /* Set the ID so the context can be accessed: see #STRUCT_NO_CONTEXT_WITHOUT_OWNER_ID. */
-  return RNA_pointer_create_discrete(&G_MAIN->wm.first()->id, ot->srna, nullptr);
+  return RNA_pointer_create_discrete(wm ? &wm->id : nullptr, ot->srna, nullptr);
 }
 
 PointerRNA WM_operator_properties_create(const char *opstring)
@@ -758,8 +759,9 @@ PointerRNA WM_operator_properties_create(const char *opstring)
   if (ot) {
     return WM_operator_properties_create_ptr(ot);
   }
+  wmWindowManager *wm = G_MAIN->wm.first();
   /* Set the ID so the context can be accessed: see #STRUCT_NO_CONTEXT_WITHOUT_OWNER_ID. */
-  return RNA_pointer_create_discrete(&G_MAIN->wm.first()->id, RNA_OperatorProperties, nullptr);
+  return RNA_pointer_create_discrete(wm ? &wm->id : nullptr, RNA_OperatorProperties, nullptr);
 }
 
 void WM_operator_properties_alloc(PointerRNA **ptr, IDProperty **properties, const char *opstring)
@@ -1315,8 +1317,9 @@ IDProperty *WM_operator_last_properties_ensure_idprops(wmOperatorType *ot)
 
 void WM_operator_last_properties_ensure(wmOperatorType *ot, PointerRNA *ptr)
 {
+  wmWindowManager *wm = G_MAIN->wm.first();
   IDProperty *props = WM_operator_last_properties_ensure_idprops(ot);
-  *ptr = RNA_pointer_create_discrete(&G_MAIN->wm.first()->id, ot->srna, props);
+  *ptr = RNA_pointer_create_discrete(wm ? &wm->id : nullptr, ot->srna, props);
 }
 
 ID *WM_operator_drop_load_path(bContext *C, wmOperator *op, const short idcode)
