@@ -67,6 +67,8 @@ ed::animfilter::ChannelArena get_summary_tree(const bContext &C)
   for (SummaryChannel *summary : arena.summary_channels) {
     const ChannelIdentifier chan_ident = summary->identifier();
 
+    /* TODO: instead of updating directly, do it on demand. That'll prevent doing this map lookup
+     * for ALL channels, and defer it to run only where necessary. */
     SAction_AnimationChannelState *ui_state = saction->runtime->channel_states.lookup_ptr(
         chan_ident);
     if (ui_state) {
