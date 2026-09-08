@@ -129,6 +129,12 @@ struct SpaceType {
   /** Refresh context, called after file-reads, #ED_area_tag_refresh(). */
   void (*refresh)(const bContext *C, ScrArea *area);
 
+  /** Called before the regions of this area are redrawn. */
+  void (*draw_pre)(const bContext *C, ScrArea *area);
+
+  /** Called after the regions of this area are redrawn. */
+  void (*draw_post)(const bContext *C, ScrArea *area);
+
   /** After a spacedata copy, an init should result in exact same situation. */
   SpaceLink *(*duplicate)(SpaceLink *sl);
 

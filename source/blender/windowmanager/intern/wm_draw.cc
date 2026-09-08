@@ -979,6 +979,11 @@ static void wm_draw_area_offscreen(bContext *C, wmWindow *win, ScrArea *area, bo
   CTX_wm_area_set(C, area);
   GPU_debug_group_begin(wm_area_name(area));
 
+  /* Call space-level pre-draw callback. */
+  if (area->type->draw_pre) {
+    area->type->draw_pre(C, area);
+  }
+
   /* Compute UI layouts for dynamically size regions. */
   for (ARegion &region : area->regionbase) {
     if (region.flag & RGN_FLAG_POLL_FAILED) {
@@ -1063,6 +1068,11 @@ static void wm_draw_area_offscreen(bContext *C, wmWindow *win, ScrArea *area, bo
     region.flag &= ~RGN_FLAG_SEARCH_FILTER_UPDATE;
 
     CTX_wm_region_set(C, nullptr);
+  }
+
+  /* Call space-level post-draw callback. */
+  if (area->type->draw_post) {
+    area->type->draw_post(C, area);
   }
 
   CTX_wm_area_set(C, nullptr);
