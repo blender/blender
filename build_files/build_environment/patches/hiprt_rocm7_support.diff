@@ -29,10 +29,20 @@ index 58daa96..88cbcf2 100644
  #endif
  
 diff --git a/hiprt/impl/hiprt_device_impl.h b/hiprt/impl/hiprt_device_impl.h
-index 0687234..bc0737a 100644
+index 0687234..272594d 100644
 --- a/hiprt/impl/hiprt_device_impl.h
 +++ b/hiprt/impl/hiprt_device_impl.h
-@@ -362,10 +362,10 @@ TraversalBase<Stack>::testInternalNode( const hiprtRay& ray, const float3& invD,
+@@ -37,7 +37,8 @@
+ #include <hiprt/hiprt_device.h>
+
+ #if __gfx1030__ || __gfx1031__ || __gfx1032__ || __gfx1033__ || __gfx1034__ || __gfx1035__ || __gfx1036__ || __gfx1100__ || \
+-	__gfx1101__ || __gfx1102__ || __gfx1103__ || __gfx1150__ || __gfx1151__ || __gfx1152__ || __gfx1200__ || __gfx1201__
++	__gfx1101__ || __gfx1102__ || __gfx1103__ || __gfx1150__ || __gfx1151__ || __gfx1152__ || __gfx1153__ || \
++	__gfx1200__ || __gfx1201__ ||
+ #ifndef __USE_HWI__
+ #define __USE_HWI__
+ #endif
+@@ -362,10 +363,10 @@ TraversalBase<Stack>::testInternalNode( const hiprtRay& ray, const float3& invD,
  	auto result = __builtin_amdgcn_image_bvh_intersect_ray_l(
  		encodeBaseAddr( nodes, nodeIndex ),
  		ray.maxT,
@@ -47,7 +57,7 @@ index 0687234..bc0737a 100644
  #endif
  	if ( m_stack.vacancy() < 3 )
  	{
-@@ -397,11 +397,13 @@ HIPRT_DEVICE bool TraversalBase<Stack>::testTriangleNode(
+@@ -397,11 +398,13 @@ HIPRT_DEVICE bool TraversalBase<Stack>::testTriangleNode(
  		hit.normal = node.m_triPair.fetchTriangle( leafIndex & 1 ).normal( node.m_flags >> ( ( leafIndex & 1 ) * 8 ) );
  	}
  #else
@@ -66,3 +76,15 @@ index 0687234..bc0737a 100644
  	float invDenom = __ocml_native_recip_f32( __int_as_float( result[1] ) );
  	float t		   = __int_as_float( result[0] ) * invDenom;
  	hasHit		   = ray.minT <= t && t <= ray.maxT;
+diff --git a/scripts/bitcodes/common_tools.py b/scripts/bitcodes/common_tools.py
+index 10604e5..bd46b5f 100644
+--- a/scripts/bitcodes/common_tools.py
++++ b/scripts/bitcodes/common_tools.py
+@@ -58,6 +58,7 @@ def getAMDGPUArchs(hip_sdk_version_num):
+
+     if hip_sdk_version_num >= 63:
+         gpus_archs.append('gfx1152')
++        gpus_archs.append('gfx1153')
+
+     if hip_sdk_version_num >= 62: # Navi4 supported from 6.2
+         gpus_archs.append('gfx1200')
