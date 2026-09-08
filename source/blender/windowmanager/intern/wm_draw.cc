@@ -996,6 +996,14 @@ static void wm_draw_area_offscreen(bContext *C, wmWindow *win, ScrArea *area, bo
     if ((region.runtime->visible || ignore_visibility) && region.runtime->do_draw &&
         region.runtime->type && region.runtime->type->layout)
     {
+      /* Call space-level pre-draw callback if this is the first region to be laid out. */
+      if (!is_any_region_drawn) {
+        if (area->type->draw_pre) {
+          area->type->draw_pre(C, area);
+        }
+        is_any_region_drawn = true;
+      }
+
       CTX_wm_region_set(C, &region);
       ED_region_do_layout(C, &region);
       CTX_wm_region_set(C, nullptr);
@@ -1018,7 +1026,8 @@ static void wm_draw_area_offscreen(bContext *C, wmWindow *win, ScrArea *area, bo
       continue;
     }
 
-    /* Call space-level pre-draw callback if this is the first region to be drawn. */
+    /* Call space-level pre-draw callback if it wasn't called yet, which can happen when none of
+     * the regions had a layout callback. */
     if (!is_any_region_drawn) {
       if (area->type->draw_pre) {
         area->type->draw_pre(C, area);
