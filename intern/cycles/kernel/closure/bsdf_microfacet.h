@@ -516,16 +516,26 @@ ccl_device_forceinline FresnelCoeff microfacet_fresnel(KernelGlobals kg,
       coeff.transmittance = zero_spectrum();
     }
   }
+  else if (bsdf->fresnel_type == MicrofacetFresnel::DIELECTRIC_TINT) {
+    Spectrum F;
+    ccl_private FresnelDielectricTint *fresnel = (ccl_private FresnelDielectricTint *)
+                                                     bsdf->fresnel;
+    if (fresnel->thin_film.thickness > THINFILM_THICKNESS_CUTOFF) {
+      FOREACH_SPECTRUM_CHANNEL (i) {
+        GET_SPECTRUM_CHANNEL(F, i) = fresnel_iridescence_channel<false>(
+            kg, i, 1.0f, fresnel->thin_film, bsdf->ior, 0.0f, -1.0f, cos_theta_i, r_cos_theta_t);
+      }
+    }
+    else {
+      F = make_spectrum(fresnel_dielectric(cos_theta_i, bsdf->ior, r_cos_theta_t));
+    }
+    coeff *= F;
+    coeff *= ((ccl_private FresnelDielectricTint *)bsdf->fresnel)->tint;
+  }
   else {
     /* Transmissive dielectric. */
     coeff *= fresnel_dielectric(cos_theta_i, bsdf->ior, r_cos_theta_t);
-
-    if (bsdf->fresnel_type == MicrofacetFresnel::DIELECTRIC_TINT) {
-      coeff *= ((ccl_private FresnelDielectricTint *)bsdf->fresnel)->tint;
-    }
-    else {
-      kernel_assert(bsdf->fresnel_type == MicrofacetFresnel::DIELECTRIC);
-    }
+    kernel_assert(bsdf->fresnel_type == MicrofacetFresnel::DIELECTRIC);
   }
 
   return coeff;
@@ -673,6 +683,13 @@ ccl_device Spectrum bsdf_microfacet_estimate_albedo(KernelGlobals kg,
       const Spectrum reflectance = mix(fresnel->f0, one_spectrum(), s) * float(eval_reflection);
       return reflectance;
     }
+  }
+  if (bsdf->fresnel_type == MicrofacetFresnel::DIELECTRIC_TINT &&
+      ((ccl_private FresnelDielectricTint *)bsdf->fresnel)->thin_film.thickness >
+          THINFILM_THICKNESS_CUTOFF)
+  {
+    /* Precomputing LUTs for thin-film iridescence isn't viable, so fall back to the specular
+     * reflection approximation from the microfacet_fresnel call above in that case. */
   }
   else if ((bsdf->fresnel_type == MicrofacetFresnel::DIELECTRIC ||
             bsdf->fresnel_type == MicrofacetFresnel::DIELECTRIC_TINT) &&
