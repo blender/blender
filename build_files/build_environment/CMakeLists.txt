@@ -194,6 +194,8 @@ include(cmake/draco.cmake)
 include(cmake/meshoptimizer.cmake)
 include(cmake/tracy.cmake)
 include(cmake/jolt.cmake)
+include(cmake/rapidjson.cmake)
+include(cmake/opentimelineio.cmake)
 # Keep these last.
 include(cmake/deps_md.cmake)
 include(cmake/cve_check.cmake)

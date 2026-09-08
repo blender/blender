@@ -1518,3 +1518,22 @@ set(JOLT_FILE jolt-${JOLT_VERSION}.tar.gz)
 set(JOLT_HOMEPAGE https://github.com/jrouwe/JoltPhysics)
 set(JOLT_LICENSE SPDX:MIT)
 set(JOLT_COPYRIGHT "Copyright 2021 Jorrit Rouwe")
+
+# Using the same RapidJSON git commit revision as the OpenTimelineIO submodule (src/deps/rapidjson in the repo). Keep in sync.
+set(RAPIDJSON_VERSION 24b5e7a8b27f42fa16b96fc70aade9106cf7102f)  # Latest master on 2026-09-08
+set(RAPIDJSON_URI https://github.com/Tencent/rapidjson/archive/${RAPIDJSON_VERSION}.tar.gz)
+set(RAPIDJSON_HASH 2d2601a82d2d3b7e143a3c8d43ef616671391034bc46891a9816b79cf2d3e7a8)
+set(RAPIDJSON_HASH_TYPE SHA256)
+set(RAPIDJSON_FILE rapidjson-${RAPIDJSON_VERSION}.tar.gz)
+set(RAPIDJSON_HOMEPAGE http://rapidjson.org)
+set(RAPIDJSON_LICENSE SPDX:MIT)
+set(RAPIDJSON_COPYRIGHT "Copyright (C) 2015 THL A29 Limited, a Tencent company, and Milo Yip. All rights reserved.")
+
+set(OPENTIMELINEIO_VERSION 0.18.1)
+set(OPENTIMELINEIO_URI https://github.com/AcademySoftwareFoundation/OpenTimelineIO/archive/refs/tags/v${OPENTIMELINEIO_VERSION}.tar.gz)
+set(OPENTIMELINEIO_HASH bcb516a43a962dac0cde3e1f9da634c1fd409915d499ff8f3ce6f738a4637d72)
+set(OPENTIMELINEIO_HASH_TYPE SHA256)
+set(OPENTIMELINEIO_FILE OpenTimelineIO-${OPENTIMELINEIO_VERSION}.tar.gz)
+set(OPENTIMELINEIO_HOMEPAGE https://github.com/AcademySoftwareFoundation/OpenTimelineIO)
+set(OPENTIMELINEIO_LICENSE SPDX:Apache-2.0)
+set(OPENTIMELINEIO_COPYRIGHT "Copyright Contributors to the OpenTimelineIO project.")
