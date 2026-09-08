@@ -60,6 +60,9 @@ static void node_geo_exec(GeoNodeExecParams params)
 
         Mesh *mesh = PLY_import_mesh(import_params);
 
+        // TODO(sergey): Support loading PLY as point cloud of gaussian splat.
+        // PointCloud *point_cloud = PLY_import_point_cloud(import_params);
+
         auto cached_value = std::make_unique<LoadPlyCache>();
         cached_value->geometry = GeometrySet::from_mesh(mesh);
 

@@ -48,4 +48,9 @@ Mesh *PLY_import_mesh(const PLYImportParams &params)
   return io::ply::import_mesh(params);
 }
 
+PointCloud *PLY_import_point_cloud(const PLYImportParams &params)
+{
+  return io::ply::import_point_cloud(params);
+}
+
 }  // namespace blender
