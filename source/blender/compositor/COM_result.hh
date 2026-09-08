@@ -362,7 +362,7 @@ class Result {
   /* Returns true if this result should be computed and false otherwise. The result should be
    * computed if its reference count is not zero, that is, its result is used by at least one
    * operation. */
-  bool should_compute();
+  bool should_compute() const;
 
   /* Returns a reference to the derived resources of the result, which is allocated if it was not
    * allocated already. */

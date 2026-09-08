@@ -1106,7 +1106,7 @@ void Result::free()
   }
 }
 
-bool Result::should_compute()
+bool Result::should_compute() const
 {
   return reference_count_ != 0;
 }

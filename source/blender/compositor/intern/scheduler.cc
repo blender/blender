@@ -23,7 +23,6 @@
 #include "NOD_geo_menu_switch.hh"
 
 #include "COM_context.hh"
-#include "COM_operation.hh"
 #include "COM_scheduler.hh"
 #include "COM_utilities.hh"
 
@@ -82,13 +81,162 @@ static bool has_file_output_recursive(const bNodeTree &node_group)
   return false;
 }
 
+/* Returns the value of the given input if it can be determined statically, otherwise nullopt is
+ * returned. The value is only known statically if the socket_result_fn returns an allocated result
+ * for it or the input is connected to a context-based nodes like the Is Viewport node. */
+template<typename T, typename SocketT>
+static std::optional<T> get_input_socket_value(const Context &context,
+                                               const bNodeSocket &input,
+                                               SocketResultFn socket_result_fn)
+{
+  if (!input.is_logically_linked()) {
+    return T(input.default_value_typed<SocketT>()->value);
+  }
+
+  const bNodeSocket *linked_output = input.logically_linked_sockets()[0];
+  if (linked_output->owner_node().is_type("GeometryNodeIsViewport"_ustr)) {
+    /* Is Viewport node's value can be determined statically.
+     * Convert according to the same implicit conversion table used at runtime. */
+    const bool is_viewport = context.is_viewport();
+    if constexpr (std::is_same_v<T, bool>) {
+      return is_viewport;
+    }
+    else {
+      const CPPType &from_type = CPPType::get<bool>();
+      const CPPType &to_type = CPPType::get<T>();
+      const bke::DataTypeConversions &conversions = bke::get_implicit_type_conversions();
+      if (!conversions.is_convertible(from_type, to_type)) {
+        return std::nullopt;
+      }
+      T converted_value;
+      conversions.convert_to_uninitialized(from_type, to_type, &is_viewport, &converted_value);
+      return converted_value;
+    }
+  }
+
+  if (linked_output->type != input.type) {
+    return std::nullopt;
+  }
+
+  const Result *result = socket_result_fn(*linked_output);
+  if (!result || !result->is_allocated()) {
+    return std::nullopt;
+  }
+
+  return result->get_single_value_default<T>();
+}
+
+/* Returns true if the given input of the given Switch node in the given operation is needed by the
+ * node. */
+static bool is_switch_node_input_needed(const Context &context,
+                                        const bNode &node,
+                                        const bNodeSocket &input,
+                                        SocketResultFn socket_result_fn)
+{
+  const UString condition_identifier = "Switch"_ustr;
+  if (input.identifier_ustr() == condition_identifier) {
+    return true;
+  }
+
+  const std::optional<bool> condition = get_input_socket_value<bool, bNodeSocketValueBoolean>(
+      context, *node.input_by_identifier(condition_identifier), socket_result_fn);
+  if (!condition.has_value()) {
+    return true;
+  }
+
+  return (input.identifier_ustr() == "True"_ustr) == condition.value();
+}
+
+/* Returns true if the given input of the given menu switch node in the given operation is needed
+ * by the node. */
+static bool is_menu_switch_node_input_needed(const Context &context,
+                                             const bNode &node,
+                                             const bNodeSocket &input,
+                                             SocketResultFn socket_result_fn)
+{
+  const UString menu_identifier = "Menu"_ustr;
+  if (input.identifier_ustr() == menu_identifier) {
+    return true;
+  }
+
+  const std::optional<nodes::MenuValue> menu =
+      get_input_socket_value<nodes::MenuValue, bNodeSocketValueMenu>(
+          context, *node.input_by_identifier(menu_identifier), socket_result_fn);
+  if (!menu.has_value()) {
+    return true;
+  }
+
+  const NodeEnumItem menu_item = NodeEnumItem{nullptr, nullptr, menu.value().value};
+  const std::string identifier = nodes::MenuSwitchItemsAccessor::socket_identifier_for_item(
+      menu_item);
+  return input.identifier == identifier;
+}
+
+/* Returns true if the given input of the given Index Switch node in the given operation is needed
+ * by the node. */
+static bool is_index_switch_node_input_needed(const Context &context,
+                                              const bNode &node,
+                                              const bNodeSocket &input,
+                                              SocketResultFn socket_result_fn)
+{
+  const UString index_identifier = "Index"_ustr;
+  if (input.identifier_ustr() == index_identifier) {
+    return true;
+  }
+
+  const std::optional<int> index = get_input_socket_value<int, bNodeSocketValueInt>(
+      context, *node.input_by_identifier(index_identifier), socket_result_fn);
+  if (!index.has_value()) {
+    return true;
+  }
+
+  const NodeIndexSwitch &storage = *static_cast<const NodeIndexSwitch *>(node.storage);
+  if (!IndexRange(storage.items_num).contains(index.value())) {
+    return false;
+  }
+
+  const std::string identifier = nodes::IndexSwitchItemsAccessor::socket_identifier_for_item(
+      storage.items[index.value()]);
+  return input.identifier == identifier;
+}
+
+/* Returns true if the given input of the given node in the given operation is needed by the
+ * compositor. */
+static bool is_input_needed(const Context &context,
+                            const bNode &node,
+                            const bNodeSocket &input,
+                            SocketResultFn socket_result_fn)
+{
+  if (node.is_group_output()) {
+    const Result *result = socket_result_fn(input);
+    if (!result) {
+      return true;
+    }
+    return result->should_compute();
+  }
+
+  if (node.is_type("GeometryNodeSwitch"_ustr)) {
+    return is_switch_node_input_needed(context, node, input, socket_result_fn);
+  }
+
+  if (node.is_type("GeometryNodeMenuSwitch"_ustr)) {
+    return is_menu_switch_node_input_needed(context, node, input, socket_result_fn);
+  }
+
+  if (node.is_type("GeometryNodeIndexSwitch"_ustr)) {
+    return is_index_switch_node_input_needed(context, node, input, socket_result_fn);
+  }
+
+  return true;
+}
+
 /* Get a stack of the output nodes whose result should be computed. This typically includes the
  * main output node like the Group Output node, as well as side-effect nodes if requested by the
  * context like the File Output, Viewer nodes, or group nodes that have those side effect nodes. */
 static Stack<const bNode *> get_output_nodes(const Context &context,
                                              const bNodeTree &node_group,
                                              const ComputeContext &compute_context,
-                                             Operation &operation)
+                                             SocketResultFn socket_result_fn)
 {
   node_group.ensure_topology_cache();
   const SideEffectOutputTypes needed_side_effect_output_types =
@@ -150,172 +298,22 @@ static Stack<const bNode *> get_output_nodes(const Context &context,
     }
   }
 
-  bool is_any_group_output_needed = false;
-  for (const bNodeTreeInterfaceSocket *output : node_group.interface_outputs()) {
-    if (operation.get_result(output->identifier).should_compute()) {
-      is_any_group_output_needed = true;
-      break;
-    }
-  }
+  /* Add Group Output node if any of its inputs are needed. */
+  const bNode *output_node = node_group.group_output_node();
+  if (output_node && !output_node->is_muted()) {
+    for (const bNodeSocket *input : output_node->input_sockets()) {
+      if (!is_socket_available(input)) {
+        continue;
+      }
 
-  /* Add Group Output node if any of its outputs are needed. */
-  if (is_any_group_output_needed) {
-    const bNode *output_node = node_group.group_output_node();
-    if (output_node && !output_node->is_muted()) {
-      node_stack.push(output_node);
+      if (is_input_needed(context, *output_node, *input, socket_result_fn)) {
+        node_stack.push(output_node);
+        break;
+      }
     }
   }
 
   return node_stack;
-}
-
-/* Returns the value of the input of the node with the given identifier in the given operation. If
- * the value can not be determined statically, a nullopt is returned. The value is only known
- * statically if the input is not connected, directly connected to the input of the operation, or
- * connected to a context-based nodes like the Is Viewport node. */
-template<typename T, typename SocketT>
-static std::optional<T> get_input_socket_value(const Context &context,
-                                               const bNode &node,
-                                               const UString &identifier,
-                                               Operation &operation)
-{
-  const bNodeSocket &input = *node.input_by_identifier(identifier);
-  if (!input.is_logically_linked()) {
-    return T(input.default_value_typed<SocketT>()->value);
-  }
-
-  const bNodeSocket *linked_output = input.logically_linked_sockets()[0];
-  const bNode &linked_node = linked_output->owner_node();
-
-  if (linked_node.is_type("GeometryNodeIsViewport"_ustr)) {
-    /* Is Viewport node's value can be determined statically.
-     * Convert according to the same implicit conversion table used at runtime. */
-    const bool is_viewport = context.is_viewport();
-    if constexpr (std::is_same_v<T, bool>) {
-      return is_viewport;
-    }
-    else {
-      const CPPType &from_type = CPPType::get<bool>();
-      const CPPType &to_type = CPPType::get<T>();
-      const bke::DataTypeConversions &conversions = bke::get_implicit_type_conversions();
-      if (!conversions.is_convertible(from_type, to_type)) {
-        return std::nullopt;
-      }
-      T converted_value;
-      conversions.convert_to_uninitialized(from_type, to_type, &is_viewport, &converted_value);
-      return converted_value;
-    }
-  }
-
-  if (!linked_node.is_group_input()) {
-    return std::nullopt;
-  }
-
-  if (linked_output->type != input.type) {
-    return std::nullopt;
-  }
-
-  return operation.get_input(linked_output->identifier).get_single_value_default<T>();
-}
-
-/* Returns true if the given input of the given Switch node in the given operation is needed by the
- * node. */
-static bool is_switch_node_input_needed(const Context &context,
-                                        const bNode &node,
-                                        const bNodeSocket &input,
-                                        Operation &operation)
-{
-  const UString condition_identifier = "Switch"_ustr;
-  if (input.identifier_ustr() == condition_identifier) {
-    return true;
-  }
-
-  const std::optional<bool> condition = get_input_socket_value<bool, bNodeSocketValueBoolean>(
-      context, node, condition_identifier, operation);
-  if (!condition.has_value()) {
-    return true;
-  }
-
-  return (input.identifier_ustr() == "True"_ustr) == condition.value();
-}
-
-/* Returns true if the given input of the given menu switch node in the given operation is needed
- * by the node. */
-static bool is_menu_switch_node_input_needed(const Context &context,
-                                             const bNode &node,
-                                             const bNodeSocket &input,
-                                             Operation &operation)
-{
-  const UString menu_identifier = "Menu"_ustr;
-  if (input.identifier_ustr() == menu_identifier) {
-    return true;
-  }
-
-  const std::optional<nodes::MenuValue> menu =
-      get_input_socket_value<nodes::MenuValue, bNodeSocketValueMenu>(
-          context, node, menu_identifier, operation);
-  if (!menu.has_value()) {
-    return true;
-  }
-
-  const NodeEnumItem menu_item = NodeEnumItem{nullptr, nullptr, menu.value().value};
-  const std::string identifier = nodes::MenuSwitchItemsAccessor::socket_identifier_for_item(
-      menu_item);
-  return input.identifier == identifier;
-}
-
-/* Returns true if the given input of the given Index Switch node in the given operation is needed
- * by the node. */
-static bool is_index_switch_node_input_needed(const Context &context,
-                                              const bNode &node,
-                                              const bNodeSocket &input,
-                                              Operation &operation)
-{
-  const UString index_identifier = "Index"_ustr;
-  if (input.identifier_ustr() == index_identifier) {
-    return true;
-  }
-
-  const std::optional<int> index = get_input_socket_value<int, bNodeSocketValueInt>(
-      context, node, index_identifier, operation);
-  if (!index.has_value()) {
-    return true;
-  }
-
-  const NodeIndexSwitch &storage = *static_cast<const NodeIndexSwitch *>(node.storage);
-  if (!IndexRange(storage.items_num).contains(index.value())) {
-    return false;
-  }
-
-  const std::string identifier = nodes::IndexSwitchItemsAccessor::socket_identifier_for_item(
-      storage.items[index.value()]);
-  return input.identifier == identifier;
-}
-
-/* Returns true if the given input of the given node in the given operation is needed by the
- * compositor. */
-static bool is_input_needed(const Context &context,
-                            const bNode &node,
-                            const bNodeSocket &input,
-                            Operation &operation)
-{
-  if (node.is_group_output()) {
-    return operation.get_result(input.identifier).should_compute();
-  }
-
-  if (node.is_type("GeometryNodeSwitch"_ustr)) {
-    return is_switch_node_input_needed(context, node, input, operation);
-  }
-
-  if (node.is_type("GeometryNodeMenuSwitch"_ustr)) {
-    return is_menu_switch_node_input_needed(context, node, input, operation);
-  }
-
-  if (node.is_type("GeometryNodeIndexSwitch"_ustr)) {
-    return is_index_switch_node_input_needed(context, node, input, operation);
-  }
-
-  return true;
 }
 
 /* A type representing a mapping that associates each node with a heuristic estimation of the
@@ -374,7 +372,7 @@ using NeededBuffers = Map<const bNode *, int>;
  *   which we can merely speculate at scheduling-time as described above. */
 static NeededBuffers compute_number_of_needed_buffers(const Context &context,
                                                       Stack<const bNode *> &output_nodes,
-                                                      Operation &operation)
+                                                      SocketResultFn socket_result_fn)
 {
   NeededBuffers needed_buffers;
 
@@ -400,7 +398,7 @@ static NeededBuffers compute_number_of_needed_buffers(const Context &context,
         continue;
       }
 
-      if (!is_input_needed(context, node, *input, operation)) {
+      if (!is_input_needed(context, node, *input, socket_result_fn)) {
         continue;
       }
 
@@ -442,7 +440,7 @@ static NeededBuffers compute_number_of_needed_buffers(const Context &context,
         continue;
       }
 
-      if (!is_input_needed(context, node, *input, operation)) {
+      if (!is_input_needed(context, node, *input, socket_result_fn)) {
         continue;
       }
 
@@ -504,9 +502,9 @@ static NeededBuffers compute_number_of_needed_buffers(const Context &context,
 /* Find the nodes that the given node depends on. Nodes already scheduled are not included.
  * Unneeded inputs are marked in the schedule. */
 static Vector<const bNode *> find_dependency_nodes(const Context &context,
-                                                   Operation &operation,
                                                    Schedule &schedule,
-                                                   const bNode &node)
+                                                   const bNode &node,
+                                                   SocketResultFn socket_result_fn)
 {
   VectorSet<const bNode *> dependency_nodes;
   for (const bNodeSocket *input : node.input_sockets()) {
@@ -514,7 +512,7 @@ static Vector<const bNode *> find_dependency_nodes(const Context &context,
       continue;
     }
 
-    if (!is_input_needed(context, node, *input, operation)) {
+    if (!is_input_needed(context, node, *input, socket_result_fn)) {
       schedule.unneeded_inputs.add(input);
       continue;
     }
@@ -553,7 +551,7 @@ static Vector<const bNode *> find_dependency_nodes(const Context &context,
 Schedule compute_schedule(const Context &context,
                           const bNodeTree &node_group,
                           const ComputeContext &compute_context,
-                          Operation &operation)
+                          const SocketResultFn socket_result_fn)
 {
   Schedule schedule;
 
@@ -565,7 +563,7 @@ Schedule compute_schedule(const Context &context,
 
   /* Get a stack of the initial output nodes used to traverse the node group. */
   Stack<const bNode *> node_stack = get_output_nodes(
-      context, node_group, compute_context, operation);
+      context, node_group, compute_context, socket_result_fn);
 
   /* No output nodes, the node group has no effect, return an empty schedule. */
   if (node_stack.is_empty()) {
@@ -574,7 +572,7 @@ Schedule compute_schedule(const Context &context,
 
   /* Compute the number of buffers needed by each node connected to the outputs. */
   const NeededBuffers needed_buffers = compute_number_of_needed_buffers(
-      context, node_stack, operation);
+      context, node_stack, socket_result_fn);
 
   /* Traverse the node group in a post order depth first manner, scheduling the nodes in an order
    * informed by the number of buffers needed by each node. Post order traversal guarantee that all
@@ -587,7 +585,7 @@ Schedule compute_schedule(const Context &context,
     const bNode &node = *node_stack.peek();
 
     Vector<const bNode *> dependency_nodes = find_dependency_nodes(
-        context, operation, schedule, node);
+        context, schedule, node, socket_result_fn);
 
     /* Push the dependency nodes to the node stack such that the node with the highest number of
      * needed buffers is scheduled first, so we push the nodes in ascending order. */
