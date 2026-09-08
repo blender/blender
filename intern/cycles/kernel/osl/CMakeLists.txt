@@ -35,15 +35,6 @@ set(LIB
   PRIVATE bf::dependencies::optional::pugixml
 )
 
-if(APPLE)
-  # Disable allocation warning on macOS prior to 10.14: the OSLRenderServices
-  # contains member which is 64 bytes aligned (cache inside of OIIO's
-  # unordered_map_concurrent). This is not something what the SDK supports, but
-  # since we take care of allocations ourselves is OK to ignore the
-  # diagnostic message.
-  string(APPEND CMAKE_CXX_FLAGS " -faligned-allocation")
-endif()
-
 include_directories(${INC})
 include_directories(SYSTEM ${INC_SYS})
 
