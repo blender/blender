@@ -363,6 +363,11 @@ void BKE_add_template_variables_for_node(bke::path_templates::VariableMap &varia
                                          const bNode &owning_node);
 
 /**
+ * Escape `{` and `}`, so #BKE_path_apply_template() does not treat them as templates.
+ */
+std::string BKE_path_template_escape(StringRef text);
+
+/**
  * Check if a path contains any templating syntax at all.
  *
  * This is primarily intended to be used as a pre-check in performance-sensitive

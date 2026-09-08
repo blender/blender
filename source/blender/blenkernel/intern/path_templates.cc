@@ -877,6 +877,21 @@ bool BKE_path_contains_template_syntax(StringRef path)
   return path.find_first_of("{}") != std::string_view::npos;
 }
 
+std::string BKE_path_template_escape(const StringRef text)
+{
+  std::string escaped;
+  escaped.reserve(text.size());
+
+  for (const char c : text) {
+    escaped.push_back(c);
+    if (c == '{' || c == '}') {
+      escaped.push_back(c);
+    }
+  }
+
+  return escaped;
+}
+
 /**
  * Evaluates the path template in `in_path` and writes the result to `r_out_path`
  * if provided.
