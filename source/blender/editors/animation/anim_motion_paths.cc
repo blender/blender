@@ -370,17 +370,14 @@ void animviz_calc_motionpaths(Depsgraph *depsgraph,
    * loop will trigger the `continue` immediately below. That is because we evaluate all targets
    * for every frame visited (so we only evaluate the depsgraph once per frame). */
   for (MPathTarget &mpt : targets) {
-    /* We can safely skip the target if either the start or end frame of it's range was already
+    const int start_frame = clamp_i(modified_frame, mpt.mpath->start_frame, mpt.mpath->end_frame);
+    /* We can safely skip the target if the start frame of it's range was already
      * visited. That is because if we had visited it, and it would need recalculation,
-     * `motionpaths_calc_bake_target` would return true meaning the inner loop would continue to
-     * run. */
-    if (any_range_contains(evaluated_ranges, mpt.mpath->start_frame) ||
-        any_range_contains(evaluated_ranges, mpt.mpath->end_frame))
-    {
+     * `motionpaths_calc_bake_target` would return `true`, meaning any neighboring frames would
+     * also be visited. */
+    if (any_range_contains(evaluated_ranges, start_frame)) {
       continue;
     }
-
-    const int start_frame = clamp_i(modified_frame, mpt.mpath->start_frame, mpt.mpath->end_frame);
     int frame = start_frame;
     Bounds<int> evaluated_range = {start_frame, start_frame};
 
