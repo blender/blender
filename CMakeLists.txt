@@ -508,6 +508,9 @@ mark_as_advanced(WITH_SYSTEM_GLOG)
 # Freestyle
 option(WITH_FREESTYLE "Enable Freestyle (advanced edges rendering)" ON)
 
+# Physics
+option(WITH_JOLT "Enable the Jolt Physics library" ON)
+
 # Libraries.
 if(UNIX AND NOT APPLE)
   # Optionally build without pre-compiled libraries.

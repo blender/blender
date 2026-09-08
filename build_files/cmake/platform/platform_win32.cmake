@@ -1194,6 +1194,10 @@ if(WITH_TRACY)
   find_package(Tracy REQUIRED CONFIG)
 endif()
 
+if(WITH_JOLT)
+  find_package(Jolt REQUIRED CONFIG)
+endif()
+
 # Add the MSVC directory to the path so when building with ASAN enabled tools such as
 # `msgfmt` which run before the install phase can find the asan shared libraries.
 get_filename_component(_msvc_path ${CMAKE_C_COMPILER} DIRECTORY)

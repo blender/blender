@@ -378,6 +378,11 @@ if(WITH_TRACY)
   find_package(Tracy REQUIRED CONFIG)
 endif()
 
+if(WITH_JOLT)
+  find_package(Jolt REQUIRED CONFIG)
+endif()
+add_bundled_libraries(jolt/lib)
+
 if(EXISTS ${LIBDIR})
   without_system_libs_end()
 endif()

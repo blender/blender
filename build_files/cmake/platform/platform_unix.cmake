@@ -584,6 +584,13 @@ if(WITH_TRACY)
   mark_as_advanced(Tracy_DIR)
 endif()
 
+if(WITH_JOLT)
+  find_package_wrapper(Jolt REQUIRED)
+  set_and_warn_library_found("Jolt" JOLT_FOUND WITH_JOLT)
+  mark_as_advanced(Jolt_DIR)
+endif()
+add_bundled_libraries(jolt/lib)
+
 if(DEFINED LIBDIR)
   without_system_libs_end()
 endif()

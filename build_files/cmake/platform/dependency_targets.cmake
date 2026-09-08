@@ -514,3 +514,14 @@ if(TARGET Tracy::TracyClient)
   target_compile_definitions(bf_deps_optional_tracy_client INTERFACE WITH_TRACY)
   target_link_libraries(bf_deps_optional_tracy_client INTERFACE Tracy::TracyClient)
 endif()
+
+# -----------------------------------------------------------------------------
+# Configure Jolt
+
+add_library(bf_deps_optional_jolt INTERFACE)
+add_library(bf::dependencies::optional::jolt ALIAS bf_deps_optional_jolt)
+
+if(TARGET Jolt::Jolt)
+  target_compile_definitions(bf_deps_optional_jolt INTERFACE WITH_JOLT)
+  target_link_libraries(bf_deps_optional_jolt INTERFACE Jolt::Jolt)
+endif()
