@@ -57,6 +57,10 @@ static wmOperatorStatus wm_spz_import_exec(bContext *C, wmOperator *op)
   return OPERATOR_FINISHED;
 }
 
+static void wm_spz_import_draw(bContext * /*C*/, wmOperator * /*op*/)
+{
+}
+
 void WM_OT_spz_import(wmOperatorType *ot)
 {
   PropertyRNA *prop;
@@ -67,6 +71,7 @@ void WM_OT_spz_import(wmOperatorType *ot)
 
   ot->invoke = ed::io::filesel_drop_import_invoke;
   ot->exec = wm_spz_import_exec;
+  ot->ui = wm_spz_import_draw;
   ot->poll = WM_operator_winactive;
   ot->flag = OPTYPE_UNDO | OPTYPE_PRESET;
 
@@ -74,8 +79,7 @@ void WM_OT_spz_import(wmOperatorType *ot)
                                  FILE_TYPE_FOLDER,
                                  FILE_BLENDER,
                                  FILE_OPENFILE,
-                                 WM_FILESEL_FILEPATH | WM_FILESEL_FILES | WM_FILESEL_DIRECTORY |
-                                     WM_FILESEL_SHOW_PROPS,
+                                 WM_FILESEL_FILEPATH | WM_FILESEL_FILES | WM_FILESEL_DIRECTORY,
                                  FILE_DEFAULTDISPLAY,
                                  FILE_SORT_DEFAULT);
 
