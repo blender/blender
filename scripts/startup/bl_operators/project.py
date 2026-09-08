@@ -345,7 +345,7 @@ def save_project(project, report=None):
     config_path = root_path.joinpath(PROJECT_DIR, PROJECT_CONFIG)
 
     try:
-        with config_path.open(mode='wt') as f:
+        with config_path.open(mode='wt', encoding='utf-8', newline='\n') as f:
             f.write(config_toml)
     except PermissionError:
         if report:
