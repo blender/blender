@@ -352,6 +352,9 @@ bool SummaryChannel::is_collapsed() const
 
 void SummaryChannel::gather_channeldata()
 {
+  PRF_scope_with_name("ed::animfilter::SummaryChannel::gather_channeldata",
+                      ProfileCategory::Editor);
+
   this->datapoints_.clear();
 
   /* Combine the datapoints of all children by iterating them front to back. Assumes that the data
@@ -544,6 +547,9 @@ template<> GreasePencilLayer *DataChannel::get_source<GreasePencilLayer>() const
 
 void FCurveChannel::gather_channeldata()
 {
+  PRF_scope_with_name("ed::animfilter::FCurveChannel::gather_channeldata",
+                      ProfileCategory::Editor);
+
   BLI_assert(this->source_type_ == DataChannelType::FCURVE);
   const FCurve *fcurve = this->get_source<FCurve>();
   if (!fcurve || !fcurve->bezt) {
@@ -664,6 +670,9 @@ GreasePencilChannel::GreasePencilChannel(GreasePencil &containing_gp,
 
 void GreasePencilChannel::gather_channeldata()
 {
+  PRF_scope_with_name("ed::animfilter::GreasePencilChannel::gather_channeldata",
+                      ProfileCategory::Editor);
+
   BLI_assert(this->source_type_ == DataChannelType::GREASE_PENCIL);
 
   GreasePencilLayer *gp_layer = this->get_source<GreasePencilLayer>();

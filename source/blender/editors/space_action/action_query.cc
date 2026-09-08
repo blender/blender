@@ -9,6 +9,8 @@
 #include "ED_anim_filter.hh"
 #include "ED_space_action.hh"
 
+#include "PRF_profile.hh"
+
 namespace blender::ed::action {
 
 static ed::animfilter::CollectionFilters get_filters(SpaceAction &saction)
@@ -46,6 +48,8 @@ ed::animfilter::ChannelArena get_summary_tree(const bContext &C)
     return {};
   }
 
+  PRF_scope_with_name("ed::animfilter::get_summary_tree", ProfileCategory::Editor);
+
   ChannelArena arena;
   collect_animation_channels(C, get_filters(*saction), arena);
   /* TODO: don't hard-code the hierarchy. */
@@ -59,24 +63,28 @@ ed::animfilter::ChannelArena get_summary_tree(const bContext &C)
                  },
                  saction->ads.flag & ADS_FLAG_MINIMAL_GROUPING);
 
-  /* Record this "use" of the channel runtime, as this is the moment where new channels are first
-   * seen and old channels no longer exist. */
-  saction->runtime->last_used++;
+  {
+    PRF_scope_with_name("ed::animfilter::get_summary_tree::ui_state", ProfileCategory::Editor);
 
-  /* Update the channels with the previously-stored UI state. */
-  for (SummaryChannel *summary : arena.summary_channels) {
-    const ChannelIdentifier chan_ident = summary->identifier();
+    /* Record this "use" of the channel runtime, as this is the moment where new channels are first
+     * seen and old channels no longer exist. */
+    saction->runtime->last_used++;
 
-    /* TODO: instead of updating directly, do it on demand. That'll prevent doing this map lookup
-     * for ALL channels, and defer it to run only where necessary. */
-    SAction_AnimationChannelState *ui_state = saction->runtime->channel_states.lookup_ptr(
-        chan_ident);
-    if (ui_state) {
-      ui_state->last_used = saction->runtime->last_used;
-      summary->update_from_ui_state(*ui_state);
+    /* Update the channels with the previously-stored UI state. */
+
+    for (SummaryChannel *summary : arena.summary_channels) {
+      const ChannelIdentifier chan_ident = summary->identifier();
+
+      /* TODO: instead of updating directly, do it on demand. That'll prevent doing this map lookup
+       * for ALL channels, and defer it to run only where necessary. */
+      SAction_AnimationChannelState *ui_state = saction->runtime->channel_states.lookup_ptr(
+          chan_ident);
+      if (ui_state) {
+        ui_state->last_used = saction->runtime->last_used;
+        summary->update_from_ui_state(*ui_state);
+      }
     }
   }
-
   return arena;
 }
 

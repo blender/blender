@@ -4207,6 +4207,8 @@ void group_channels(ChannelArena &arena,
                     Span<ChannelTagType> tag_order,
                     const bool use_minimal_grouping)
 {
+  PRF_scope_with_name("ed::animfilter::group_channels", ProfileCategory::Editor);
+
   SummaryChannel *root = arena.allocate_summary_channel("Summary");
 
   for (DataChannel *channel : arena.data_channels) {

@@ -5,6 +5,7 @@
 #include "anim_filter_source_intern.hh"
 
 #include "BLI_span.hh"
+
 #include "DNA_ID.h"
 #include "DNA_anim_types.h"
 #include "DNA_material_types.h"
@@ -20,6 +21,7 @@
 #include "ANIM_action.hh"
 
 #include "ED_anim_filter.hh"
+
 #include <optional>
 
 namespace blender::ed::animfilter {
@@ -210,6 +212,8 @@ void collect_animation_channels(const bContext &C,
                                 const CollectionFilters &collection_filters,
                                 ChannelArena &arena)
 {
+  PRF_scope_with_name("ed::animfilter::collect_animation_channels", ProfileCategory::Editor);
+
   Vector<PointerRNA> objects;
   if (collection_filters.only_selected) {
     CTX_data_selected_objects(&C, &objects);
