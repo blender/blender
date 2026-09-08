@@ -510,7 +510,7 @@ endif()
 add_library(bf_deps_optional_tracy_client INTERFACE)
 add_library(bf::dependencies::optional::tracy_client ALIAS bf_deps_optional_tracy_client)
 
-if(WITH_TRACY)
+if(TARGET Tracy::TracyClient)
   target_compile_definitions(bf_deps_optional_tracy_client INTERFACE WITH_TRACY)
   target_link_libraries(bf_deps_optional_tracy_client INTERFACE Tracy::TracyClient)
 endif()
