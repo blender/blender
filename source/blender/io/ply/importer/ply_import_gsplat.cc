@@ -135,7 +135,8 @@ PointCloud *convert_gsplat_ply_to_point_cloud(const PlyData &data, const PLYImpo
   for (int i = 0; i < data.vertices.size(); i++) {
     radiance_base[i] = float4(ply_f_dc[0][i], ply_f_dc[1][i], ply_f_dc[2][i], ply_opacity[i]);
     scale[i] = float3(ply_scale[0][i], ply_scale[1][i], ply_scale[2][i]);
-    rotation[i] = math::Quaternion(ply_rot[0][i], ply_rot[1][i], ply_rot[2][i], ply_rot[3][i]);
+    rotation[i] = math::normalize(
+        math::Quaternion(ply_rot[0][i], ply_rot[1][i], ply_rot[2][i], ply_rot[3][i]));
 
     radiance_base[i].w = gsplat::OriginalActivationFunctions::decode_opacity(radiance_base[i].w);
     scale[i] = gsplat::OriginalActivationFunctions::decode_scale(scale[i]);
