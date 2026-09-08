@@ -41,15 +41,7 @@ struct AvgLogLum {
 static void tonemapmodifier_init_data(StripModifierData *smd)
 {
   SequencerTonemapModifierData *tmmd = reinterpret_cast<SequencerTonemapModifierData *>(smd);
-  /* Same as tone-map compositor node. */
-  tmmd->type = SEQ_TONEMAP_RD_PHOTORECEPTOR;
-  tmmd->key = 0.18f;
-  tmmd->offset = 1.0f;
-  tmmd->gamma = 1.0f;
-  tmmd->intensity = 0.0f;
-  tmmd->contrast = 0.0f;
-  tmmd->adaptation = 1.0f;
-  tmmd->correction = 0.0f;
+  INIT_DEFAULT_STRUCT_AFTER(tmmd, modifier);
 }
 
 /* Convert chunk of float image pixels to scene linear space, in-place. */

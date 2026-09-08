@@ -243,18 +243,7 @@ struct ColorBalanceApplyOp {
 static void colorBalance_init_data(StripModifierData *smd)
 {
   ColorBalanceModifierData *cbmd = reinterpret_cast<ColorBalanceModifierData *>(smd);
-
-  cbmd->color_multiply = 1.0f;
-  cbmd->color_balance.method = SEQ_COLOR_BALANCE_METHOD_LIFTGAMMAGAIN;
-
-  for (int c = 0; c < 3; c++) {
-    cbmd->color_balance.lift[c] = 1.0f;
-    cbmd->color_balance.gamma[c] = 1.0f;
-    cbmd->color_balance.gain[c] = 1.0f;
-    cbmd->color_balance.slope[c] = 1.0f;
-    cbmd->color_balance.offset[c] = 1.0f;
-    cbmd->color_balance.power[c] = 1.0f;
-  }
+  INIT_DEFAULT_STRUCT_AFTER(cbmd, modifier);
 }
 
 static void colorBalance_apply(ModifierApplyContext &context, StripModifierData *smd)

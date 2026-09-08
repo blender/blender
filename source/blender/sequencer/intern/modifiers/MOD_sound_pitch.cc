@@ -25,12 +25,7 @@ namespace blender::seq {
 static void pitchmodifier_init_data(StripModifierData *smd)
 {
   PitchModifierData *pmd = reinterpret_cast<PitchModifierData *>(smd);
-  pmd->mode = ePitchMode::PITCH_MODE_SEMITONES;
-  pmd->semitones = 0;
-  pmd->cents = 0;
-  pmd->ratio = 1;
-  pmd->preserve_formant = false;
-  pmd->quality = ePitchQuality::PITCH_QUALITY_HIGH;
+  INIT_DEFAULT_STRUCT_AFTER(pmd, modifier);
 }
 
 static void pitchmodifier_draw(const bContext * /*C*/, Panel *panel)

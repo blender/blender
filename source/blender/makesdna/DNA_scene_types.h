@@ -1876,16 +1876,20 @@ ENUM_OPERATORS(eSequencerSnapFlag)
 
 struct SequencerToolSettings {
   eSeqImageFitMethod fit_method = SEQ_SCALE_TO_FIT;
-  eSequencerSnapMode snap_mode = {};
-  eSequencerSnapFlag snap_flag = {};
-  eSeqOverlapMode overlap_mode = SEQ_OVERLAP_RIPPLE;
+  eSequencerSnapMode snap_mode = SEQ_SNAP_TO_STRIPS | SEQ_SNAP_TO_CURRENT_FRAME |
+                                 SEQ_SNAP_TO_STRIP_HOLD | SEQ_SNAP_TO_MARKERS |
+                                 SEQ_SNAP_TO_RETIMING | SEQ_SNAP_TO_PREVIEW_BORDERS |
+                                 SEQ_SNAP_TO_PREVIEW_CENTER | SEQ_SNAP_TO_STRIPS_PREVIEW |
+                                 SEQ_SNAP_TO_FRAME_RANGE;
+  eSequencerSnapFlag snap_flag = SEQ_SNAP_TO_ALL_CHANNEL_STRIPS;
+  eSeqOverlapMode overlap_mode = SEQ_OVERLAP_SHUFFLE;
   eSeqRippleFlag ripple_flag = SEQ_RIPPLE_ALL_CHANNELS | SEQ_RIPPLE_MARKERS |
                                SEQ_RIPPLE_CLEAR_RANGES;
   /**
    * When there are many snap points,
    * 0-1 range corresponds to resolution from bound-box to all possible snap points.
    */
-  int snap_distance = 0;
+  int snap_distance = 15;
   int pivot_point = V3D_AROUND_CENTER_MEDIAN;
 };
 

@@ -355,10 +355,7 @@ static SeqResult do_blend_mode_effect(const RenderData *context,
 
 static void init_colormix_effect(Strip *strip)
 {
-  ColorMixVars *data = MEM_new<ColorMixVars>("colormixvars");
-  strip->effectdata = data;
-  data->blend_effect = STRIP_BLEND_OVERLAY;
-  data->factor = 1.0f;
+  strip->effectdata = MEM_new<ColorMixVars>("colormixvars");
 }
 
 static void free_colormix_effect(Strip *strip, const bool /*do_id_user*/)

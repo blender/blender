@@ -125,14 +125,7 @@ static void blur_isolate_highlights(const float4 *in,
 
 static void init_glow_effect(Strip *strip)
 {
-  GlowVars *data = MEM_new<GlowVars>("glowvars");
-  strip->effectdata = data;
-  data->fMini = 0.25f;
-  data->fClamp = 1.0f;
-  data->fBoost = 0.5f;
-  data->dDist = 3.0f;
-  data->dQuality = 3;
-  data->bNoComp = 0;
+  strip->effectdata = MEM_new<GlowVars>("glowvars");
 }
 
 static void free_glow_effect(Strip *strip, const bool /*do_id_user*/)

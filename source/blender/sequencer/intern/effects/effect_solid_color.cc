@@ -20,10 +20,7 @@ namespace blender::seq {
 
 static void init_solid_color(Strip *strip)
 {
-  SolidColorVars *data = MEM_new<SolidColorVars>("solidcolor");
-  strip->effectdata = data;
-  data->col[0] = data->col[1] = data->col[2] = 0.5;
-  data->width = data->height = 1;
+  strip->effectdata = MEM_new<SolidColorVars>("solidcolor");
 }
 
 static void free_solid_color(Strip *strip, const bool /*do_id_user*/)

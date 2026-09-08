@@ -24,10 +24,7 @@ namespace blender::seq {
 static void echomodifier_init_data(StripModifierData *smd)
 {
   EchoModifierData *emd = reinterpret_cast<EchoModifierData *>(smd);
-
-  emd->delay = 1.0f;
-  emd->feedback = 0.5f;
-  emd->mix = 0.5f;
+  INIT_DEFAULT_STRUCT_AFTER(emd, modifier);
 }
 
 static void echomodifier_draw(const bContext * /*C*/, Panel *panel)

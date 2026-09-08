@@ -6,8 +6,6 @@
  * \ingroup sequencer
  */
 
-#include "BLI_math_vector_c.hh"
-
 #include "BLT_translation.hh"
 
 #include "DNA_sequence_types.h"
@@ -28,7 +26,7 @@ namespace blender::seq {
 static void whiteBalance_init_data(StripModifierData *smd)
 {
   WhiteBalanceModifierData *cbmd = reinterpret_cast<WhiteBalanceModifierData *>(smd);
-  copy_v3_fl(cbmd->white_value, 1.0f);
+  INIT_DEFAULT_STRUCT_AFTER(cbmd, modifier);
 }
 
 struct WhiteBalanceApplyOp {

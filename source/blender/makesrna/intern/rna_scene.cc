@@ -4736,7 +4736,6 @@ static void rna_def_sequencer_tool_settings(BlenderRNA *brna)
 
   prop = RNA_def_property(srna, "snap_distance", PROP_INT, PROP_PIXEL);
   RNA_def_property_int_sdna(prop, nullptr, "snap_distance");
-  RNA_def_property_int_default(prop, 15);
   RNA_def_property_ui_range(prop, 0, 50, 1, 1);
   RNA_def_property_ui_text(prop, "Snapping Distance", "Maximum distance for snapping in pixels");
 

@@ -189,36 +189,9 @@ static void init_text_effect(Strip *strip)
   TextVars *data = MEM_new<TextVars>("textvars");
   strip->effectdata = data;
 
-  data->text_font = nullptr;
-  data->text_blf_id = -1;
-  data->text_size = 60.0f;
-  data->space_line = 1.0f;
-  data->abs_space_line = 60.0f; /* Keep in sync with `data->text_size` at init. */
-
-  copy_v4_fl(data->color, 1.0f);
-  data->shadow_color[3] = 0.7f;
-  data->shadow_angle = DEG2RADF(65.0f);
-  data->shadow_offset = 0.04f;
-  data->shadow_blur = 0.0f;
-  data->box_color[0] = 0.2f;
-  data->box_color[1] = 0.2f;
-  data->box_color[2] = 0.2f;
-  data->box_color[3] = 0.7f;
-  data->box_margin = 0.01f;
-  data->box_roundness = 0.0f;
-  data->outline_color[3] = 0.7f;
-  data->outline_width = 0.05f;
-
   data->text_ptr = BLI_strdup("Text");
   data->text_len_bytes = strlen(data->text_ptr);
   data->cursor_offset = data->text_len_bytes;
-
-  data->loc[0] = 0.5f;
-  data->loc[1] = 0.5f;
-  data->anchor_x = SEQ_TEXT_ANCHOR_X_CENTER;
-  data->anchor_y = SEQ_TEXT_ANCHOR_Y_CENTER;
-  data->align = SEQ_TEXT_ALIGN_X_CENTER;
-  data->wrap_width = 1.0f;
 }
 
 static void text_font_unload(TextVars *data, const bool do_id_user)

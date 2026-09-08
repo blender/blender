@@ -27,12 +27,7 @@ namespace blender::seq {
 
 static void init_speed_effect(Strip *strip)
 {
-  SpeedControlVars *data = MEM_new<SpeedControlVars>("speedcontrolvars");
-  strip->effectdata = data;
-  data->speed_control_type = SEQ_SPEED_STRETCH;
-  data->speed_fader = 1.0f;
-  data->speed_fader_length = 0.0f;
-  data->speed_fader_frame_number = 0.0f;
+  strip->effectdata = MEM_new<SpeedControlVars>("speedcontrolvars");
 }
 
 static void free_speed_effect(Strip *strip, const bool /*do_id_user*/)

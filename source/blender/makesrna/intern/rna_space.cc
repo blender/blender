@@ -6867,6 +6867,7 @@ static void rna_def_space_sequencer_timeline_overlay(BlenderRNA *brna)
   prop = RNA_def_property(srna, "waveform_display_type", PROP_ENUM, PROP_NONE);
   RNA_def_property_enum_bitflag_sdna(prop, nullptr, "timeline_overlay.flag");
   RNA_def_property_enum_items(prop, waveform_type_display_items);
+  RNA_def_property_enum_default(prop, 0);
   RNA_def_property_ui_text(prop, "Waveform Display", "How Waveforms are displayed");
   RNA_def_property_update(prop, NC_SPACE | ND_SPACE_SEQUENCER, nullptr);
 
@@ -6883,6 +6884,7 @@ static void rna_def_space_sequencer_timeline_overlay(BlenderRNA *brna)
   prop = RNA_def_property(srna, "waveform_display_style", PROP_ENUM, PROP_NONE);
   RNA_def_property_enum_bitflag_sdna(prop, nullptr, "timeline_overlay.flag");
   RNA_def_property_enum_items(prop, waveform_style_display_items);
+  RNA_def_property_enum_default(prop, SEQ_TIMELINE_WAVEFORMS_HALF);
   RNA_def_property_ui_text(prop, "Waveform Style", "How Waveforms are displayed");
   RNA_def_property_update(prop, NC_SPACE | ND_SPACE_SEQUENCER, nullptr);
 
@@ -6914,6 +6916,7 @@ static void rna_def_space_sequencer_timeline_overlay(BlenderRNA *brna)
   prop = RNA_def_property(srna, "thumbnail_display_style", PROP_ENUM, PROP_NONE);
   RNA_def_property_enum_bitflag_sdna(prop, nullptr, "timeline_overlay.flag");
   RNA_def_property_enum_items(prop, thumbnail_style_items);
+  RNA_def_property_enum_default(prop, SEQ_TIMELINE_STRIP_END_THUMBNAILS);
   RNA_def_property_ui_text(prop, "Thumbnail style", "How thumbnails are displayed");
   RNA_def_property_update(prop, NC_SPACE | ND_SPACE_SEQUENCER, nullptr);
 
@@ -7097,6 +7100,7 @@ static void rna_def_space_sequencer(BlenderRNA *brna)
   prop = RNA_def_property(srna, "preview_channels", PROP_ENUM, PROP_NONE);
   RNA_def_property_enum_bitflag_sdna(prop, nullptr, "flag");
   RNA_def_property_enum_items(prop, preview_channels_items);
+  RNA_def_property_enum_default(prop, SEQ_USE_ALPHA);
   RNA_def_property_ui_text(prop, "Display Channels", "Channels of the preview to display");
   RNA_def_property_flag(prop, PROP_CONTEXT_UPDATE);
   RNA_def_property_update(prop, NC_SPACE | ND_SPACE_SEQUENCER, "rna_SequenceEditor_update_cache");
