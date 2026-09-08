@@ -580,6 +580,7 @@ endif()
 
 if(WITH_TRACY)
   find_package_wrapper(Tracy REQUIRED)
+  set_and_warn_library_found("Tracy" TRACY_FOUND WITH_TRACY)
   mark_as_advanced(Tracy_DIR)
 endif()
 
