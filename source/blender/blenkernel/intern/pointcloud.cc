@@ -224,13 +224,14 @@ PointCloud *BKE_pointcloud_add(Main *bmain, const char *name)
   return pointcloud;
 }
 
-PointCloud *BKE_pointcloud_new_nomain(const int totpoint)
+PointCloud *BKE_pointcloud_new_nomain(const PointCloudType type, const int totpoint)
 {
   PointCloud *pointcloud = static_cast<PointCloud *>(BKE_libblock_alloc(
       nullptr, ID_PT, BKE_idtype_idcode_to_name(ID_PT), LIB_ID_CREATE_LOCALIZE));
 
   BKE_libblock_init_empty(&pointcloud->id);
 
+  pointcloud->type = type;
   pointcloud->totpoint = totpoint;
 
   pointcloud->attributes_for_write().add<float3>(
@@ -243,12 +244,16 @@ void BKE_pointcloud_nomain_to_pointcloud(PointCloud *pointcloud_src, PointCloud 
 {
   BLI_assert(pointcloud_src->id.tag & ID_TAG_NO_MAIN);
 
+  pointcloud_dst->type = pointcloud_src->type;
+
   pointcloud_dst->totpoint = pointcloud_src->totpoint;
   pointcloud_dst->attribute_storage.wrap() = std::move(pointcloud_src->attribute_storage.wrap());
+
   pointcloud_dst->runtime->bounds_cache = pointcloud_src->runtime->bounds_cache;
   pointcloud_dst->runtime->bounds_with_radius_cache =
       pointcloud_src->runtime->bounds_with_radius_cache;
   pointcloud_dst->runtime->bvh_cache = pointcloud_src->runtime->bvh_cache;
+
   BKE_id_free(nullptr, pointcloud_src);
 }
 
@@ -320,6 +325,7 @@ void BKE_pointcloud_material_remap(PointCloud *pointcloud, const uint *remap, co
 
 void pointcloud_copy_parameters(const PointCloud &src, PointCloud &dst)
 {
+  dst.type = src.type;
   dst.flag = src.flag;
   MEM_SAFE_DELETE(dst.mat);
   dst.mat = MEM_new_array_uninitialized<Material *>(src.totcol, __func__);
@@ -430,7 +436,7 @@ void BKE_pointcloud_data_update(Depsgraph *depsgraph, Scene *scene, Object *obje
 
   /* If the geometry set did not contain a point cloud, we still create an empty one. */
   if (pointcloud_eval == nullptr) {
-    pointcloud_eval = BKE_pointcloud_new_nomain(0);
+    pointcloud_eval = BKE_pointcloud_new_nomain(pointcloud->type, 0);
   }
 
   /* Assign evaluated object. */
@@ -472,9 +478,10 @@ void BKE_pointcloud_batch_cache_free(PointCloud *pointcloud)
 
 namespace bke {
 
-PointCloud *pointcloud_new_no_attributes(int totpoint)
+PointCloud *pointcloud_new_no_attributes(const PointCloudType type, const int totpoint)
 {
   PointCloud *pointcloud = BKE_id_new_nomain<PointCloud>(nullptr);
+  pointcloud->type = type;
   pointcloud->totpoint = totpoint;
   return pointcloud;
 }
