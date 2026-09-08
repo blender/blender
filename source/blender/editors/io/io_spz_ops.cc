@@ -57,9 +57,7 @@ static wmOperatorStatus wm_spz_import_exec(bContext *C, wmOperator *op)
   return OPERATOR_FINISHED;
 }
 
-static void wm_spz_import_draw(bContext * /*C*/, wmOperator * /*op*/)
-{
-}
+static void wm_spz_import_draw(bContext * /*C*/, wmOperator * /*op*/) {}
 
 void WM_OT_spz_import(wmOperatorType *ot)
 {
