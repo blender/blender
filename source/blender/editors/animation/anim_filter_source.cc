@@ -8,6 +8,7 @@
 
 #include "DNA_ID.h"
 #include "DNA_anim_types.h"
+#include "DNA_grease_pencil_types.h"
 #include "DNA_material_types.h"
 #include "DNA_object_types.h"
 
@@ -17,6 +18,7 @@
 
 #include "BKE_anim_data.hh"
 #include "BKE_context.hh"
+#include "BKE_grease_pencil.hh"
 
 #include "ANIM_action.hh"
 
@@ -200,6 +202,21 @@ void collection_channels_for_object(Object &obj,
   collect_channels_for_id(obj.data, collection_filters, arena);
   for (int i = 0; i < obj.totcol; i++) {
     collect_channels_for_id(&obj.mat[i]->id, collection_filters, arena);
+  }
+  if (obj.type == OB_GREASE_PENCIL && obj.data) {
+    ChannelTagStack tags;
+    GreasePencil *gp = id_cast<GreasePencil *>(obj.data);
+    PointerRNA gp_id_ptr = RNA_pointer_create_discrete(
+        &gp->id, ID_code_to_RNA_type(gp->id.id_type()), gp);
+
+    tags.push({ChannelTagType::ID, obj.data->name + 2, gp_id_ptr, ParsedRNAPathRef()});
+    for (bke::greasepencil::Layer *layer : gp->layers_for_write()) {
+      /* TODO: what is the parsed source path for gp. */
+      GreasePencilChannel *gp_channel = arena.allocate_data_channel<GreasePencilChannel>(
+          *gp, *layer, ParsedSourcePath());
+      gp_channel->tags().set(tags.as_set());
+    }
+    tags.pop();
   }
 }
 

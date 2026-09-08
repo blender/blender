@@ -19,6 +19,7 @@
 
 #include "ED_anim_api.hh"
 #include "ED_anim_filter.hh"
+#include "ED_grease_pencil.hh"
 
 #include "ANIM_action.hh"
 #include "ANIM_rna.hh"
@@ -676,13 +677,12 @@ void GreasePencilChannel::gather_channeldata()
   BLI_assert(this->source_type_ == DataChannelType::GREASE_PENCIL);
 
   GreasePencilLayer *gp_layer = this->get_source<GreasePencilLayer>();
-  if (!gp_layer) {
-    return;
-  }
 
   bke::greasepencil::Layer &layer = gp_layer->wrap();
-  for (int frame : layer.frames().keys()) {
-    KeyPoint p((float(frame)));
+  for (const int frame : layer.frames().keys()) {
+    KeyPoint p(frame);
+    const GreasePencilFrame *gp_frame = layer.frame_at(frame);
+    p.is_selected = gp_frame->is_selected();
     this->datapoints_.append(p);
   }
 }
@@ -690,18 +690,46 @@ void GreasePencilChannel::gather_channeldata()
 void GreasePencilChannel::change_selection(const SelectionMode /*mode*/,
                                            const Bounds<float> /*range*/)
 {
-  /* TODO ad selection support. */
+  GreasePencilLayer *gp_layer = this->get_source<GreasePencilLayer>();
+  bke::greasepencil::Layer &layer = gp_layer->wrap();
+  /* not using ed::greasepencil::select_frames_range because that uses inclusive/exclusive. for its
+   * selection range. */
+  for (auto [frame, gp_frame] : layer.frames_for_write().items()) {
+    if (frame < range.min) {
+      continue;
+    }
+    if (frame > range.max) {
+      break;
+    }
+    switch (mode) {
+      case SelectionMode::DO_SELECT:
+        gp_frame.flag |= GP_FRAME_SELECTED;
+        break;
+
+      case SelectionMode::DESELECT:
+        gp_frame.flag &= ~GP_FRAME_SELECTED;
+        break;
+
+      case SelectionMode::INVERT:
+        gp_frame.flag ^= GP_FRAME_SELECTED;
+        break;
+    }
+    layer.tag_frames_map_changed();
+  }
 }
 
 bool GreasePencilChannel::is_selected() const
 {
-  /* TODO: add selection support. */
-  return false;
+  GreasePencilLayer *gp_layer = this->get_source<GreasePencilLayer>();
+  bke::greasepencil::Layer &layer = gp_layer->wrap();
+  return layer.is_selected();
 }
 
-void GreasePencilChannel::set_selected(const bool /*is_selected*/)
+void GreasePencilChannel::set_selected(const bool is_selected)
 {
-  /* TODO: add selection support. */
+  GreasePencilLayer *gp_layer = this->get_source<GreasePencilLayer>();
+  bke::greasepencil::Layer &layer = gp_layer->wrap();
+  layer.set_selected(is_selected);
 }
 
 }  // namespace blender::ed::animfilter
