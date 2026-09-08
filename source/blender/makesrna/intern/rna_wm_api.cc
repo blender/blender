@@ -136,9 +136,9 @@ static void rna_Operator_enum_search_invoke(bContext *C, wmOperator *op)
   WM_enum_search_invoke(C, op, nullptr);
 }
 
-static int rna_Operator_ui_popup(bContext *C, wmOperator *op, int width)
+static int rna_Operator_ui_popup(bContext *C, wmOperator *op, int width, bool auto_keymap)
 {
-  return wmOperatorStatus(WM_operator_ui_popup(C, op, width));
+  return wmOperatorStatus(WM_operator_ui_popup(C, op, width, auto_keymap));
 }
 
 static bool rna_event_modal_handler_add(bContext *C, ReportList *reports, wmOperator *op)
@@ -1161,6 +1161,11 @@ void RNA_api_wm(StructRNA *srna)
                                   "Operator popup invoke "
                                   "(only shows operator's properties, without executing it)");
   rna_generic_op_invoke(func, WM_GEN_INVOKE_SIZE | WM_GEN_INVOKE_RETURN);
+  RNA_def_boolean(func,
+                  "auto_keymap",
+                  false,
+                  "Auto Keymap",
+                  "Assign accelerator keys to buttons, shown as underlined characters");
 
   func = RNA_def_function(srna, "invoke_confirm", "rna_Operator_confirm");
   RNA_def_function_ui_description(
