@@ -1,7 +1,5 @@
 ==== Point Clouds: 1
 - PointCloud 'PointCloud' points:800
-  - attr '_RADIUS' FLOAT POINT
-    - 0.044 0.018 0.018 0.039 0.004 ... 0.000 0.000 0.000 0.000 0.000 
   - attr '_TEST' FLOAT POINT
     - 0.000 0.000 0.000 0.000 0.000 ... 0.200 0.200 0.200 0.200 0.200 
   - attr 'position' FLOAT_VECTOR POINT
@@ -12,6 +10,8 @@
     - (0.163, 0.693, -0.157)
     - (0.362, -0.931, -0.260)
     - (0.919, 0.073, 0.061)
+  - attr 'radius' FLOAT POINT
+    - 0.044 0.018 0.018 0.039 0.004 ... 0.000 0.000 0.000 0.000 0.000 
 
 ==== Objects: 1
 - Obj 'PointCloud' POINTCLOUD data:'PointCloud'

@@ -88,6 +88,7 @@ def do_primitives_pointcloud(gltf, mesh_idx, pointcloud):
     attribute_type = {}
     attribute_component_type = {}
     attribute_data_type = {}
+    total_num_points = 0
 
     for prim in pypc.primitives:
         if 'POSITION' not in prim.attributes:
@@ -116,8 +117,8 @@ def do_primitives_pointcloud(gltf, mesh_idx, pointcloud):
         vs = BinaryData.decode_accessor(gltf, prim.attributes['POSITION'], cache=True)
         point_locs = np.concatenate((point_locs, vs[unique_indices]))
 
-        # Custom Attributes for this primitive
-        custom_attrs = [k for k in prim.attributes if k.startswith('_') or k.startswith('KHR_')]
+        # Custom Attributes for this primitive, and Vertex Color
+        custom_attrs = [k for k in prim.attributes if k.startswith(('_', 'KHR_', 'COLOR_'))]
         for attr in custom_attrs:
             if attr not in attributes:  # This attribute is not yet known
                 # So set it up
@@ -144,6 +145,9 @@ def do_primitives_pointcloud(gltf, mesh_idx, pointcloud):
                 )
                 attributes[attr] = np.concatenate((attributes[attr], attr_data))
 
+        prim.num_points = len(unique_indices)
+        total_num_points += prim.num_points
+
     pointcloud.resize(point_locs.shape[0])  # Add points to the point cloud
 
     # Setup positions
@@ -153,13 +157,17 @@ def do_primitives_pointcloud(gltf, mesh_idx, pointcloud):
 
     # Custom Attributes
 
+    # Special cases (for example, _RADIUS will be imported as 'radius'))
+    specials = {
+        '_RADIUS': 'radius'}
+
     for attr in attributes:
         blender_attribute_data_type = attribute_data_type[attr]
 
         if blender_attribute_data_type is None:
             continue
 
-        blender_attribute = pointcloud.attributes.new(attr, blender_attribute_data_type, 'POINT')
+        blender_attribute = pointcloud.attributes.new(specials.get(attr, attr), blender_attribute_data_type, 'POINT')
         if DataType.num_elements(attribute_type[attr]) == 1:
             blender_attribute.data.foreach_set('value', attributes[attr].flatten())
         elif DataType.num_elements(gltf.data.accessors[prim.attributes[attr]].type) > 1:
@@ -167,6 +175,9 @@ def do_primitives_pointcloud(gltf, mesh_idx, pointcloud):
                 blender_attribute.data.foreach_set('color', attributes[attr].flatten())
             else:
                 blender_attribute.data.foreach_set('vector', attributes[attr].flatten())
+
+    # Manage materials
+    manage_materials(gltf, pypc, pointcloud, num_points, on='POINT')
 
 
 def do_primitives(gltf, mesh_idx, skin_idx, mesh, ob):
@@ -509,124 +520,9 @@ def do_primitives(gltf, mesh_idx, skin_idx, mesh, ob):
 
             sk_i += 1
 
-    # ----
-    # Assign materials to faces
-    has_materials = any(prim.material is not None for prim in pymesh.primitives)
-    # Even if no primitive have material, we need to create slots if some primitives have some variant
-    if has_materials is False:
-        has_materials = any(prim.extensions is not None and 'KHR_materials_variants' in prim.extensions.keys()
-                            for prim in pymesh.primitives)
-
-    # Even if there is no material, some primitives can have some Vertex Color
-    # (and we need to create a slot for them, with a default material + vertex color)
-    if has_materials is False:
-        has_materials = any(prim.attributes.get('COLOR_0') is not None for prim in pymesh.primitives)
-
-    default_materials = {}  # Store VC => index
-    we_can_merge_slots = gltf.import_settings['import_merge_material_slots']
-
-    if has_materials is True:
-        bl_material_index_dtype = np.intc
-        material_indices = np.empty(num_faces, dtype=bl_material_index_dtype)
-        empty_material_slot_index = None
-        f = 0
-
-        for idx_prim, prim in enumerate(pymesh.primitives):
-
-            has_variant = prim.extensions is not None and 'KHR_materials_variants' in prim.extensions.keys() \
-                and 'mappings' in prim.extensions['KHR_materials_variants'].keys()
-
-            if prim.material is not None:
-                # Get the material
-                pymaterial = gltf.data.materials[prim.material]
-                vertex_color = 'COLOR_0' if ('COLOR_0' in prim.attributes) else None
-                if vertex_color not in pymaterial.blender_material:
-                    BlenderMaterial.create(gltf, prim.material, vertex_color)
-                material_name = pymaterial.blender_material[vertex_color]
-
-                # Put material in slot (if not there)
-                # So we are going to use the existing slot if exists, or create a new one
-                if we_can_merge_slots is True and not has_variant:
-                    if material_name not in mesh.materials:
-                        mesh.materials.append(bpy.data.materials[material_name])
-                    material_index = mesh.materials.find(material_name)
-                else:
-                    # In case of variant, do not merge slots // or if user does not want to merge slots
-                    # So we are going to create a new slot
-                    mesh.materials.append(bpy.data.materials[material_name])
-                    material_index = len(mesh.materials) - 1
-            else:
-                # Check if the primitive has a vertex color
-                vertex_color = 'COLOR_0' if ('COLOR_0' in prim.attributes) else None
-                if vertex_color is not None:
-                    if we_can_merge_slots is True and not has_variant:
-                        # Check if we already have a slot for default material + this vertec color
-                        if vertex_color in default_materials.keys():
-                            material_index = default_materials[vertex_color]
-                        else:
-                            # Create a new slot for default material + this vertec color
-                            name = BlenderMaterial.create(gltf, None, vertex_color)
-                            mesh.materials.append(bpy.data.materials[name])
-                            material_index = len(mesh.materials) - 1
-                            default_materials[vertex_color] = material_index
-                    else:
-                        # In case of variant, do not merge slots // or if user does not want to merge slots
-                        # So we are going to create a new slot if not exists already
-                        # Else, create a new slot, but using the existing material
-                        if vertex_color in default_materials.keys():
-                            material_index = default_materials[vertex_color]
-                            mesh.materials.append(bpy.data.materials[mesh.materials[material_index].name])
-                            material_index = len(mesh.materials) - 1
-                        else:
-                            name = BlenderMaterial.create(gltf, None, vertex_color)
-                            mesh.materials.append(bpy.data.materials[name])
-                            material_index = len(mesh.materials) - 1
-                            default_materials[vertex_color] = material_index
-                else:
-                    if we_can_merge_slots is True and not has_variant:
-                        # Create an empty slot if not exists already, or use the existing one
-                        if empty_material_slot_index is None:
-                            mesh.materials.append(None)
-                            empty_material_slot_index = len(mesh.materials) - 1
-                        material_index = empty_material_slot_index
-                    else:
-                        # In case of variant, do not merge slots // or if user does not want to merge slots
-                        # So we are going to create a new slot
-                        mesh.materials.append(None)
-                        material_index = len(mesh.materials) - 1
-
-            material_indices[f:f + prim.num_faces].fill(material_index)
-
-            f += prim.num_faces
-
-            # Manage variants
-            if has_variant:
-
-                # Store default material
-                default_mat = mesh.gltf2_variant_default_materials.add()
-                default_mat.material_slot_index = material_index
-                default_mat.default_material = bpy.data.materials[material_name] if prim.material is not None else None
-
-                for mapping in prim.extensions['KHR_materials_variants']['mappings']:
-                    # Store, for each variant, the material link to this primitive
-
-                    variant_primitive = mesh.gltf2_variant_mesh_data.add()
-                    variant_primitive.material_slot_index = material_index
-                    if 'material' not in mapping.keys():
-                        # Default material
-                        variant_primitive.material = None
-                    else:
-                        vertex_color = 'COLOR_0' if 'COLOR_0' in prim.attributes else None
-                        if str(mapping['material']) + str(vertex_color) not in gltf.variant_mapping.keys():
-                            BlenderMaterial.create(gltf, mapping['material'], vertex_color)
-                        variant_primitive.material = gltf.variant_mapping[str(mapping['material']) + str(vertex_color)]
-
-                    for variant in mapping['variants']:
-                        vari = variant_primitive.variants.add()
-                        vari.variant.variant_idx = variant
-
-        material_index_attribute = attribute_ensure(mesh.attributes, 'material_index', 'INT', 'FACE')
-        material_index_attribute.data.foreach_set('value', material_indices)
+    # ---------------
+    # Material management
+    manage_materials(gltf, pymesh, mesh, num_faces)
 
     # Custom Attributes
     for idx, attr in enumerate(attributes):
@@ -660,6 +556,128 @@ def do_primitives(gltf, mesh_idx, skin_idx, mesh, ob):
 
     if has_normals:
         mesh.normals_split_custom_set_from_vertices(vert_normals)
+
+
+def manage_materials(gltf, pymesh, data, num_elements, on='FACE'):
+    has_materials = any(prim.material is not None for prim in pymesh.primitives)
+    # Even if no primitive have material, we need to create slots if some primitives have some variant
+    if has_materials is False:
+        has_materials = any(prim.extensions is not None and 'KHR_materials_variants' in prim.extensions.keys()
+                            for prim in pymesh.primitives)
+
+    # Even if there is no material, some primitives can have some Vertex Color
+    # (and we need to create a slot for them, with a default material + vertex color)
+    if has_materials is False:
+        has_materials = any(prim.attributes.get('COLOR_0') is not None for prim in pymesh.primitives)
+
+    default_materials = {}  # Store VC => index
+    we_can_merge_slots = gltf.import_settings['import_merge_material_slots']
+
+    if has_materials is True:
+        bl_material_index_dtype = np.intc
+        material_indices = np.empty(num_elements, dtype=bl_material_index_dtype)
+        empty_material_slot_index = None
+        e = 0  # e = element (face or point)
+
+        for idx_prim, prim in enumerate(pymesh.primitives):
+
+            has_variant = prim.extensions is not None and 'KHR_materials_variants' in prim.extensions.keys() \
+                and 'mappings' in prim.extensions['KHR_materials_variants'].keys()
+
+            if prim.material is not None:
+                # Get the material
+                pymaterial = gltf.data.materials[prim.material]
+                vertex_color = 'COLOR_0' if ('COLOR_0' in prim.attributes) else None
+                if vertex_color not in pymaterial.blender_material:
+                    BlenderMaterial.create(gltf, prim.material, vertex_color)
+                material_name = pymaterial.blender_material[vertex_color]
+
+                # Put material in slot (if not there)
+                # So we are going to use the existing slot if exists, or create a new one
+                if we_can_merge_slots is True and not has_variant:
+                    if material_name not in data.materials:
+                        data.materials.append(bpy.data.materials[material_name])
+                    material_index = data.materials.find(material_name)
+                else:
+                    # In case of variant, do not merge slots // or if user does not want to merge slots
+                    # So we are going to create a new slot
+                    data.materials.append(bpy.data.materials[material_name])
+                    material_index = len(data.materials) - 1
+            else:
+                # Check if the primitive has a vertex color
+                vertex_color = 'COLOR_0' if ('COLOR_0' in prim.attributes) else None
+                if vertex_color is not None:
+                    if we_can_merge_slots is True and not has_variant:
+                        # Check if we already have a slot for default material + this vertec color
+                        if vertex_color in default_materials.keys():
+                            material_index = default_materials[vertex_color]
+                        else:
+                            # Create a new slot for default material + this vertec color
+                            name = BlenderMaterial.create(gltf, None, vertex_color)
+                            data.materials.append(bpy.data.materials[name])
+                            material_index = len(data.materials) - 1
+                            default_materials[vertex_color] = material_index
+                    else:
+                        # In case of variant, do not merge slots // or if user does not want to merge slots
+                        # So we are going to create a new slot if not exists already
+                        # Else, create a new slot, but using the existing material
+                        if vertex_color in default_materials.keys():
+                            material_index = default_materials[vertex_color]
+                            data.materials.append(bpy.data.materials[data.materials[material_index].name])
+                            material_index = len(data.materials) - 1
+                        else:
+                            name = BlenderMaterial.create(gltf, None, vertex_color)
+                            data.materials.append(bpy.data.materials[name])
+                            material_index = len(data.materials) - 1
+                            default_materials[vertex_color] = material_index
+                else:
+                    if we_can_merge_slots is True and not has_variant:
+                        # Create an empty slot if not exists already, or use the existing one
+                        if empty_material_slot_index is None:
+                            data.materials.append(None)
+                            empty_material_slot_index = len(data.materials) - 1
+                        material_index = empty_material_slot_index
+                    else:
+                        # In case of variant, do not merge slots // or if user does not want to merge slots
+                        # So we are going to create a new slot
+                        data.materials.append(None)
+                        material_index = len(data.materials) - 1
+
+            # Assign materials to faces (or point)
+            to_be_added = prim.num_faces if on == 'FACE' else prim.num_points
+            material_indices[e:e + to_be_added].fill(material_index)
+
+            e += to_be_added
+
+            # Manage variants
+            if has_variant:
+
+                # Store default material
+                default_mat = data.gltf2_variant_default_materials.add()
+                default_mat.material_slot_index = material_index
+                default_mat.default_material = bpy.data.materials[data.materials[material_index]
+                                                                  .name] if prim.material is not None else None
+
+                for mapping in prim.extensions['KHR_materials_variants']['mappings']:
+                    # Store, for each variant, the material link to this primitive
+
+                    variant_primitive = data.gltf2_variant_mesh_data.add()
+                    variant_primitive.material_slot_index = material_index
+                    if 'material' not in mapping.keys():
+                        # Default material
+                        variant_primitive.material = None
+                    else:
+                        vertex_color = 'COLOR_0' if 'COLOR_0' in prim.attributes else None
+                        if str(mapping['material']) + str(vertex_color) not in gltf.variant_mapping.keys():
+                            BlenderMaterial.create(gltf, mapping['material'], vertex_color)
+                        variant_primitive.material = gltf.variant_mapping[str(mapping['material']) + str(vertex_color)]
+
+                    for variant in mapping['variants']:
+                        vari = variant_primitive.variants.add()
+                        vari.variant.variant_idx = variant
+
+        material_index_attribute = attribute_ensure(data.attributes, 'material_index', 'INT', on)
+        material_index_attribute.data.foreach_set('value', material_indices)
 
 
 def points_edges_tris(mode, indices):
