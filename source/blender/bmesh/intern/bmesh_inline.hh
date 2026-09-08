@@ -114,7 +114,8 @@ BLI_INLINE void _bm_elem_flag_merge_into(BMHeader *head,
  *                    adding new vert/edge/faces since they may be added at
  *                    the end of the array.
  *
- * - campbell */
+ * - campbell
+ */
 
 #define BM_elem_index_get(ele) _bm_elem_index_get(&(ele)->head)
 #define BM_elem_index_set(ele, index) _bm_elem_index_set(&(ele)->head, index)

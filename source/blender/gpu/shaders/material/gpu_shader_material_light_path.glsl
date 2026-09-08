@@ -2,6 +2,10 @@
  *
  * SPDX-License-Identifier: GPL-2.0-or-later */
 
+#pragma once
+
+#include "gpu_shader_material_interface.bsl.hh"
+
 [[node]]
 void node_light_path(float &is_camera_ray,
                      float &is_shadow_ray,
@@ -19,6 +23,7 @@ void node_light_path(float &is_camera_ray,
                      float &transmission_depth,
                      float &path_depth)
 {
+  /* TODO(fclem): EEVEE implementation leaking. */
   /* Supported. */
   is_camera_ray = float(g_data.ray_type == RAY_TYPE_CAMERA);
   is_shadow_ray = float(g_data.ray_type == RAY_TYPE_SHADOW);

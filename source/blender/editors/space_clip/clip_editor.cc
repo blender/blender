@@ -361,7 +361,7 @@ void ED_clip_update_frame(const Main *mainp, int cfra)
 
       for (ScrArea &area : screen->areabase) {
         if (area.spacetype == SPACE_CLIP) {
-          SpaceClip *sc = static_cast<SpaceClip *>(area.spacedata.first);
+          SpaceClip *sc = area.spacedata.first_as<SpaceClip>();
 
           sc->scopes.ok = false;
 

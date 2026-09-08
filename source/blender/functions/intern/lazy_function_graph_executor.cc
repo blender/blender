@@ -2,6 +2,10 @@
  *
  * SPDX-License-Identifier: GPL-2.0-or-later */
 
+/** \file
+ * \ingroup fn
+ */
+
 #include "FN_lazy_function_graph_executor.hh"
 
 /* The entire executor is included here. Otherwise an additional indirection using forward

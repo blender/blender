@@ -4,10 +4,13 @@
 
 #pragma once
 
+#include "gpu_shader_compat.hh"
+
 /* A bit out of place but needs to be included before . */
 namespace eevee {
 
 struct PipelineConstants {
+  [[compilation_constant]] bool use_lighting_nodes;
   [[compilation_constant]] bool use_velocity;
   [[compilation_constant]] bool use_transparency;
   [[compilation_constant]] bool use_clip_plane;

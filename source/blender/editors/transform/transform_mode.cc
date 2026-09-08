@@ -551,7 +551,7 @@ void constraintScaleLim(const TransInfo *t, const TransDataContainer *tc, int td
 /** \name Transform (Rotation Utils)
  * \{ */
 
-void headerRotation(TransInfo *t, char *str, const int str_size, float final)
+void headerRotation(TransInfo *t, char *str, const int str_maxncpy, float final)
 {
   size_t ofs = 0;
 
@@ -560,12 +560,16 @@ void headerRotation(TransInfo *t, char *str, const int str_size, float final)
 
     outputNumInput(&(t->num), c, t->scene->unit);
 
-    ofs += BLI_snprintf_utf8_rlen(
-        str + ofs, str_size - ofs, IFACE_("Rotation: %s %s %s"), &c[0], t->con.text, t->proptext);
+    ofs += BLI_snprintf_utf8_rlen(str + ofs,
+                                  str_maxncpy - ofs,
+                                  IFACE_("Rotation: %s %s %s"),
+                                  &c[0],
+                                  t->con.text,
+                                  t->proptext);
   }
   else {
     ofs += BLI_snprintf_utf8_rlen(str + ofs,
-                                  str_size - ofs,
+                                  str_maxncpy - ofs,
                                   IFACE_("Rotation: %.2f%s %s"),
                                   RAD2DEGF(final),
                                   t->con.text,
@@ -574,7 +578,7 @@ void headerRotation(TransInfo *t, char *str, const int str_size, float final)
 
   if (t->flag & T_PROP_EDIT_ALL) {
     ofs += BLI_snprintf_utf8_rlen(
-        str + ofs, str_size - ofs, IFACE_(" Proportional size: %.2f"), t->prop_size);
+        str + ofs, str_maxncpy - ofs, IFACE_(" Proportional size: %.2f"), t->prop_size);
   }
 }
 
@@ -857,7 +861,7 @@ void ElementRotation(const TransInfo *t,
 /** \name Transform (Resize Utils)
  * \{ */
 
-void headerResize(TransInfo *t, const float vec[3], char *str, const int str_size)
+void headerResize(TransInfo *t, const float vec[3], char *str, const int str_maxncpy)
 {
   char tvec[NUM_STR_REP_LEN * 3];
   size_t ofs = 0;
@@ -874,7 +878,7 @@ void headerResize(TransInfo *t, const float vec[3], char *str, const int str_siz
     switch (t->num.idx_max) {
       case 0:
         ofs += BLI_snprintf_utf8_rlen(str + ofs,
-                                      str_size - ofs,
+                                      str_maxncpy - ofs,
                                       IFACE_("Scale: %s%s %s"),
                                       &tvec[0],
                                       t->con.text,
@@ -882,7 +886,7 @@ void headerResize(TransInfo *t, const float vec[3], char *str, const int str_siz
         break;
       case 1:
         ofs += BLI_snprintf_utf8_rlen(str + ofs,
-                                      str_size - ofs,
+                                      str_maxncpy - ofs,
                                       IFACE_("Scale: %s : %s%s %s"),
                                       &tvec[0],
                                       &tvec[NUM_STR_REP_LEN],
@@ -891,7 +895,7 @@ void headerResize(TransInfo *t, const float vec[3], char *str, const int str_siz
         break;
       case 2:
         ofs += BLI_snprintf_utf8_rlen(str + ofs,
-                                      str_size - ofs,
+                                      str_maxncpy - ofs,
                                       IFACE_("Scale: %s : %s : %s%s %s"),
                                       &tvec[0],
                                       &tvec[NUM_STR_REP_LEN],
@@ -904,7 +908,7 @@ void headerResize(TransInfo *t, const float vec[3], char *str, const int str_siz
   else {
     if (t->flag & T_2D_EDIT) {
       ofs += BLI_snprintf_utf8_rlen(str + ofs,
-                                    str_size - ofs,
+                                    str_maxncpy - ofs,
                                     IFACE_("Scale X: %s   Y: %s%s %s"),
                                     &tvec[0],
                                     &tvec[NUM_STR_REP_LEN],
@@ -913,7 +917,7 @@ void headerResize(TransInfo *t, const float vec[3], char *str, const int str_siz
     }
     else {
       ofs += BLI_snprintf_utf8_rlen(str + ofs,
-                                    str_size - ofs,
+                                    str_maxncpy - ofs,
                                     IFACE_("Scale X: %s   Y: %s  Z: %s%s %s"),
                                     &tvec[0],
                                     &tvec[NUM_STR_REP_LEN],
@@ -925,7 +929,7 @@ void headerResize(TransInfo *t, const float vec[3], char *str, const int str_siz
 
   if (t->flag & T_PROP_EDIT_ALL) {
     ofs += BLI_snprintf_utf8_rlen(
-        str + ofs, str_size - ofs, IFACE_(" Proportional size: %.2f"), t->prop_size);
+        str + ofs, str_maxncpy - ofs, IFACE_(" Proportional size: %.2f"), t->prop_size);
   }
 }
 

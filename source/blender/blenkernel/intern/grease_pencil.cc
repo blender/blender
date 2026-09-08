@@ -295,12 +295,12 @@ static void grease_pencil_blend_write(BlendWriter *writer, ID *id, const void *i
   bke::AttributeStorage::BlendWriteData attribute_data{writer, scope};
   attribute_storage_blend_write_prepare(
       grease_pencil->attribute_storage.wrap(),
-      !BLO_write_is_undo(writer),
+      !writer->is_undo(),
       [&](const AttrDomain /*domain*/) { return grease_pencil->layers().size(); },
       attribute_data);
   grease_pencil->attribute_storage.dna_attributes = attribute_data.attributes.data();
   grease_pencil->attribute_storage.dna_attributes_num = attribute_data.attributes.size();
-  BLO_write_generated_pointer_tag(writer, grease_pencil->attribute_storage.dna_attributes);
+  writer->generated_pointer_tag(grease_pencil->attribute_storage.dna_attributes);
 
   CustomData_reset(&grease_pencil->layers_data_legacy);
 
@@ -691,18 +691,24 @@ static void update_curve_plane_normal_cache(const Span<float3> positions,
 
         /* Calculate normal using Newell's method. */
         float3 normal(0.0f);
+        const float3 first_point = positions[points.first()];
         float3 prev_point = positions[points.last()];
+        float max_extent_sq = 0.0f;
         for (const int point_i : points) {
           const float3 curr_point = positions[point_i];
           add_newell_cross_v3_v3v3(normal, prev_point, curr_point);
+          max_extent_sq = math::max(max_extent_sq, math::length_squared(curr_point - first_point));
           prev_point = curr_point;
         }
 
         float length;
         normal = math::normalize_and_get_length(normal, length);
         /* Check for degenerate case where the points are on a line (Newell's method can introduce
-         * a small error that accumulates with many points). */
-        if (length < std::numeric_limits<float>::epsilon() * points.size()) {
+         * a small error that accumulates with many points, scaling with the squared extent of the
+         * stroke, hence the `max_extent_sq` factor). */
+        if (length <
+            std::numeric_limits<float>::epsilon() * math::max(points.size() * max_extent_sq, 1.0f))
+        {
           for (const int point_i : points.drop_back(1)) {
             float3 segment_vec = positions[point_i] - positions[point_i + 1];
             if (math::length_squared(segment_vec) != 0.0f) {
@@ -1989,13 +1995,13 @@ void LayerGroup::move_node_down(TreeNode &node, const int step)
 void LayerGroup::move_node_top(TreeNode &node)
 {
   BLI_remlink(&this->children, &node);
-  BLI_insertlinkafter(&this->children, this->children.last, &node);
+  BLI_insertlinkafter(&this->children, this->children.last(), &node);
   this->tag_nodes_cache_dirty();
 }
 void LayerGroup::move_node_bottom(TreeNode &node)
 {
   BLI_remlink(&this->children, &node);
-  BLI_insertlinkbefore(&this->children, this->children.first, &node);
+  BLI_insertlinkbefore(&this->children, this->children.first(), &node);
   this->tag_nodes_cache_dirty();
 }
 
@@ -2020,9 +2026,8 @@ bool LayerGroup::unlink_node(TreeNode &link, const bool keep_children)
     /* Take ownership of the children of `link` by replacing the node with the listbase of its
      * children. */
     ListBaseT<GreasePencilLayerTreeNode> link_children = link.as_group().children;
-    GreasePencilLayerTreeNode *first = static_cast<GreasePencilLayerTreeNode *>(
-        link_children.first);
-    GreasePencilLayerTreeNode *last = static_cast<GreasePencilLayerTreeNode *>(link_children.last);
+    GreasePencilLayerTreeNode *first = link_children.first();
+    GreasePencilLayerTreeNode *last = link_children.last();
 
     /* Rewrite the parent pointers. */
     for (GreasePencilLayerTreeNode &child : link_children) {
@@ -2040,11 +2045,11 @@ bool LayerGroup::unlink_node(TreeNode &link, const bool keep_children)
     }
 
     /* Update first and/or last link(s). */
-    if (this->children.last == &link) {
-      this->children.last = last;
+    if (this->children.last() == &link) {
+      this->children.last_ = last;
     }
-    if (this->children.first == &link) {
-      this->children.first = first;
+    if (this->children.first() == &link) {
+      this->children.first_ = first;
     }
 
     /* Listbase has been inserted in `this->children` we can clear the pointers in `link`. */
@@ -4503,7 +4508,7 @@ void GreasePencil::remove_group(bke::greasepencil::LayerGroup &group, const bool
   if (&group.as_node() == this->get_active_node()) {
     /* If we keep the children and there is at least one child, make it the active node. */
     if (keep_children && !group.is_empty()) {
-      this->set_active_node(reinterpret_cast<TreeNode *>(group.children.last));
+      this->set_active_node(reinterpret_cast<TreeNode *>(group.children.last()));
     }
     else {
       update_active_node_from_node_to_remove(*this, group.as_node());
@@ -4623,7 +4628,7 @@ static void write_drawing_array(GreasePencil &grease_pencil,
         bke::CurvesGeometry &curves = drawing_copy.geometry.wrap();
 
         bke::CurvesGeometry::BlendWriteData write_data(writer, scope);
-        curves.blend_write_prepare(write_data, !BLO_write_is_undo(writer));
+        curves.blend_write_prepare(write_data, !writer->is_undo());
         drawing_copy.runtime = nullptr;
 
         writer->write_struct_at_address_cast<GreasePencilDrawing>(

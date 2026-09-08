@@ -1065,8 +1065,7 @@ void ED_view3d_quadview_update(ScrArea *area, ARegion *region, bool do_clip)
   }
 
   if (RV3D_LOCK_FLAGS(rv3d) & RV3D_BOXVIEW) {
-    view3d_boxview_sync(area,
-                        static_cast<ARegion *>(region_sync ? region_sync : area->regionbase.last));
+    view3d_boxview_sync(area, region_sync ? region_sync : area->regionbase.last());
   }
 
   /* ensure locked regions have an axis, locked user views don't make much sense */

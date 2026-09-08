@@ -2,6 +2,10 @@
  *
  * SPDX-License-Identifier: GPL-2.0-or-later */
 
+/** \file
+ * \ingroup spuserpref
+ */
+
 #include "BLI_listbase.hh"
 #include "BLI_string.hh"
 
@@ -22,6 +26,8 @@
 #include "UI_view2d.hh"
 
 #include "BLO_read_write.hh"
+
+#include "project_intern.hh"
 
 namespace blender {
 
@@ -197,6 +203,7 @@ void ED_spacetype_project()
   art->draw = project_main_region_draw;
   art->listener = project_main_region_listener;
   art->keymapflag = ED_KEYMAP_UI;
+  project_asset_panel_register(*art);
 
   BLI_addhead(&st->regiontypes, art);
 

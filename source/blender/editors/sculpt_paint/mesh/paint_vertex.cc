@@ -173,36 +173,31 @@ void init_stroke(const wmOperator &op, Main &main, Paint &paint, Depsgraph &deps
   }
 }
 
-IndexMask pbvh_gather_generic(const Depsgraph &depsgraph,
-                              const Object &ob,
-                              const VPaint &wp,
-                              const Brush &brush,
-                              IndexMaskMemory &memory)
+void update_sculpt_normal(const Depsgraph &depsgraph,
+                          const Object &ob,
+                          const VPaint &vp,
+                          const Brush &brush,
+                          const IndexMask node_mask)
 {
   SculptSession &ss = *ob.runtime->sculpt_session;
-  const bke::pbvh::Tree &pbvh = *bke::object::pbvh_get(ob);
-  const bool use_normal = vwpaint::use_normal(wp);
-  IndexMask nodes;
 
-  /* Build a list of all nodes that are potentially within the brush's area of influence */
+  const bool use_normal = vwpaint::use_normal(vp);
+
+  if (!use_normal) {
+    ss.cache->sculpt_normal_symm = float3(0);
+    return;
+  }
+
   if (brush.falloff_shape == PAINT_FALLOFF_SHAPE_SPHERE) {
-    nodes = bke::pbvh::search_nodes(pbvh, memory, [&](const bke::pbvh::Node &node) {
-      return node_in_sphere(node, ss.cache->location_symm, ss.cache->radius_squared, true);
-    });
-
+    /* TODO: This is inefficient for symmetry */
     ss.cache->sculpt_normal_symm =
-        use_normal ? calc_area_normal(depsgraph, brush, ob, nodes).value_or(float3(0)) : float3(0);
+        calc_area_normal(depsgraph, brush, ob, node_mask).value_or(float3(0));
+    return;
   }
-  else {
-    const DistRayAABB_Precalc ray_dist_precalc = dist_squared_ray_to_aabb_v3_precalc(
-        ss.cache->location_symm, ss.cache->view_normal_symm);
-    nodes = bke::pbvh::search_nodes(pbvh, memory, [&](const bke::pbvh::Node &node) {
-      return node_in_cylinder(ray_dist_precalc, node, ss.cache->radius_squared, true);
-    });
 
-    ss.cache->sculpt_normal_symm = use_normal ? ss.cache->view_normal_symm : float3(0);
-  }
-  return nodes;
+  /* TODO: This should be removed after the normal is fixed */
+  BLI_assert(brush.falloff_shape == PAINT_FALLOFF_SHAPE_TUBE);
+  ss.cache->sculpt_normal_symm = ss.cache->view_normal_symm;
 }
 
 bool mode_toggle_poll_test(bContext *C)
@@ -256,81 +251,40 @@ void update_cache_invariants(VPaint &vp, SculptSession &ss, wmOperator *op, cons
 {
   PaintStroke *stroke = static_cast<PaintStroke *>(op->customdata);
   StrokeCache *cache = ss.cache;
-  bke::PaintRuntime &paint_runtime = *vp.paint.runtime;
   ViewContext *vc = &stroke->vc;
-  Object &ob = *stroke->object;
-  float mat[3][3];
-  float view_dir[3] = {0.0f, 0.0f, 1.0f};
 
-  /* Initial mouse location */
-  if (mval) {
-    copy_v2_v2(cache->initial_mouse, mval);
-  }
-  else {
-    zero_v2(cache->initial_mouse);
-  }
+  stroke_cache_common_init(*vc, vp.paint, *stroke->brush, *stroke->object, mval);
 
-  /* not very nice, but with current events system implementation
-   * we can't handle brush appearance inversion hotkey separately (sergey) */
-  if (cache->toggle_settings.invert) {
-    paint_runtime.draw_inverted = true;
-  }
-  else {
-    paint_runtime.draw_inverted = false;
-  }
-
-  copy_v2_v2(cache->mouse, cache->initial_mouse);
-  const Brush *brush = BKE_paint_brush(&vp.paint);
-  /* Truly temporary data that isn't stored in properties */
-  cache->vc = vc;
-  cache->brush = brush;
-  cache->paint = &vp.paint;
-  cache->first_time = true;
-
-  /* cache projection matrix */
-  cache->projection_mat = ED_view3d_ob_project_mat_get(cache->vc->rv3d, &ob);
-
-  invert_m4_m4(ob.runtime->world_to_object.ptr(), ob.object_to_world().ptr());
-  copy_m3_m4(mat, cache->vc->rv3d->viewinv);
-  mul_m3_v3(mat, view_dir);
-  copy_m3_m4(mat, ob.world_to_object().ptr());
-  mul_m3_v3(mat, view_dir);
-  normalize_v3_v3(cache->view_normal, view_dir);
-
-  cache->view_normal_symm = cache->view_normal;
-
-  cache->initial_normal = ss.cursor_sampled_normal.value_or(ss.cursor_normal);
-  cache->initial_normal_symm = ss.cursor_sampled_normal.value_or(ss.cursor_normal);
-
-  cache->base_brush_strength = BKE_brush_alpha_get(&vp.paint, brush);
+  cache->base_brush_strength = BKE_brush_alpha_get(&vp.paint, stroke->brush);
   cache->bstrength = cache->base_brush_strength;
-  cache->is_last_valid = false;
 
   cache->accum = true;
 
-  if (BKE_brush_color_jitter_get_settings(&vp.paint, brush)) {
+  if (BKE_brush_color_jitter_get_settings(&vp.paint, stroke->brush)) {
     cache->initial_hsv_jitter = seed_hsv_jitter();
   }
 }
 
-void update_cache_variants(
-    Depsgraph &depsgraph, ViewContext &vc, VPaint &vp, Object &ob, Base &base, PointerRNA *ptr)
+/** \see #stroke_cache_update for a similar implementation for Sculpt Mode */
+void update_cache_variants(Depsgraph &depsgraph,
+                           ViewContext &vc,
+                           VPaint &vp,
+                           const PaintMode paint_mode,
+                           Object &ob,
+                           Base &base,
+                           const PaintStroke::StrokeStep &stroke_step)
 {
-  const PaintMode paint_mode = vp.paint.runtime->paint_mode;
   SculptSession &ss = *ob.runtime->sculpt_session;
   StrokeCache *cache = ss.cache;
   Brush &brush = *BKE_paint_brush(&vp.paint);
 
-  /* This effects the actual brush radius, so things farther away
-   * are compared with a larger radius and vice versa. */
-  if (cache->first_time) {
-    RNA_float_get_array(ptr, "location", cache->location);
-  }
+  /* TODO: When anchored strokes get supported, this needs to match the implementation in
+   * #stroke_cache_update */
+  cache->location = stroke_step.location;
+  cache->mouse = stroke_step.mouse;
+  cache->mouse_event = stroke_step.mouse_event;
 
-  RNA_float_get_array(ptr, "mouse_event", cache->mouse_event);
-  RNA_float_get_array(ptr, "mouse", cache->mouse);
-
-  if (cache->first_time) {
+  if (stroke_is_first_brush_step_of_symmetry_pass(*cache)) {
     cursor_geometry_info_update(
         depsgraph, vp.paint, nullptr, vc, &base, cache->mouse_event, false);
   }
@@ -341,11 +295,11 @@ void update_cache_variants(
    * It's more an events design issue, which doesn't split coordinate/pressure/angle
    * changing events. We should avoid this after events system re-design */
   if (paint_supports_dynamic_size(brush, paint_mode) || cache->first_time) {
-    cache->pressure = RNA_float_get(ptr, "pressure");
+    cache->pressure = stroke_step.pressure;
   }
 
   /* Truly temporary data that isn't stored in properties */
-  if (cache->first_time) {
+  if (stroke_is_first_brush_step_of_symmetry_pass(*cache)) {
     cache->initial_radius = paint_calc_object_space_radius(
         *cache->vc, cache->location, BKE_brush_radius_get(&vp.paint, &brush));
     BKE_brush_unprojected_size_set(&vp.paint, &brush, cache->initial_radius * 2.0f);
@@ -383,14 +337,6 @@ void get_brush_alpha_data(const SculptSession &ss,
                                 BKE_curvemapping_evaluateF(
                                     brush.curve_strength, 0, ss.cache->pressure) :
                                 1.0f;
-}
-
-void last_stroke_update(const float location[3], Paint &paint)
-{
-  bke::PaintRuntime &paint_runtime = *paint.runtime;
-  paint_runtime.average_stroke_counter++;
-  add_v3_v3(paint_runtime.average_stroke_accum, location);
-  paint_runtime.last_stroke_valid = true;
 }
 
 /* -------------------------------------------------------------------- */
@@ -474,7 +420,7 @@ static ColorPaint4f vpaint_get_current_col(VPaint &vp, bool secondary)
   return ColorPaint4f(brush_color.x, brush_color.y, brush_color.z, 1.0f);
 }
 
-/* wpaint has 'wpaint_blend' */
+/* Weight-paint has `wpaint_blend`. */
 template<typename Color, typename Traits>
 static Color vpaint_blend(const VPaint &vp,
                           Color color_curr,
@@ -644,14 +590,14 @@ void ED_object_vpaintmode_enter(bContext *C, Depsgraph &depsgraph)
 /** \name Exit Vertex Paint Mode
  * \{ */
 
-void ED_object_vpaintmode_exit_ex(Object &ob)
+void ED_object_vpaintmode_exit_ex(Scene &scene, Object &ob)
 {
-  ed::sculpt_paint::mode_exit_generic(ob, OB_MODE_VERTEX_PAINT);
+  ed::sculpt_paint::mode_exit_generic(scene, ob, OB_MODE_VERTEX_PAINT);
 }
 void ED_object_vpaintmode_exit(bContext *C)
 {
   Object *ob = CTX_data_active_object(C);
-  ED_object_vpaintmode_exit_ex(*ob);
+  ED_object_vpaintmode_exit_ex(*CTX_data_scene(C), *ob);
 }
 
 /** \} */
@@ -681,7 +627,7 @@ static wmOperatorStatus vpaint_mode_toggle_exec(bContext *C, wmOperator *op)
   Mesh *mesh = BKE_mesh_from_object(&ob);
 
   if (is_mode_set) {
-    ED_object_vpaintmode_exit_ex(ob);
+    ED_object_vpaintmode_exit_ex(scene, ob);
   }
   else {
     Depsgraph *depsgraph = CTX_data_depsgraph_on_load(C);
@@ -830,7 +776,8 @@ struct VertexPaintStroke final : public PaintStroke {
   VPaint *vertex_paint_;
   Base *base_;
 
-  VertexPaintStroke(bContext *C, wmOperator *op, const wmEvent *event) : PaintStroke(C, op, event)
+  VertexPaintStroke(bContext *C, wmOperator *op, const wmEvent *event)
+      : PaintStroke(C, op, event, PaintMode::Vertex)
   {
     bmain_ = CTX_data_main(C);
     ToolSettings *ts = CTX_data_tool_settings(C);
@@ -838,18 +785,18 @@ struct VertexPaintStroke final : public PaintStroke {
     base_ = CTX_data_active_base(C);
   }
 
-  bool get_location(float out[3], const float mouse[2], bool force_original) override;
-  bool test_start(wmOperator *op, const float mouse[2]) override;
+  std::optional<float3> get_location(float2 mouse, bool force_original) override;
+  bool test_start(wmOperator *op, float2 mouse) override;
   void redraw(bool final) override;
   bool test_cancel() override;
-  void update_step(wmOperator *op, PointerRNA *itemptr) override;
+  void update_step(wmOperator *op, const StrokeStep &stroke_step) override;
   void done(bool is_cancel, bool stroke_started) override;
 };
 
-bool VertexPaintStroke::get_location(float out[3], const float mouse[2], bool force_original)
+std::optional<float3> VertexPaintStroke::get_location(const float2 mouse, bool force_original)
 {
   return stroke_get_location_bvh(
-      *this->depsgraph, this->vc, *this->paint, this->brush, out, mouse, force_original);
+      *this->depsgraph, this->vc, *this->paint, this->brush, mouse, force_original);
 }
 
 static void init_session_data(Object &ob)
@@ -859,7 +806,7 @@ static void init_session_data(Object &ob)
   UNUSED_VARS_NDEBUG(ob);
 }
 
-bool VertexPaintStroke::test_start(wmOperator *op, const float mouse[2])
+bool VertexPaintStroke::test_start(wmOperator *op, const float2 mouse)
 {
   Scene &scene = *this->scene;
   ToolSettings &ts = *scene.toolsettings;
@@ -1240,7 +1187,9 @@ static void do_vpaint_brush_smear(const Depsgraph &depsgraph,
 {
   SculptSession &ss = *ob.runtime->sculpt_session;
   StrokeCache &cache = *ss.cache;
-  if (!cache.is_last_valid) {
+
+  if (stroke_is_first_brush_step_of_symmetry_pass(cache)) {
+    /* We need a directional component to calculate the effect of this brush */
     return;
   }
 
@@ -1805,7 +1754,9 @@ static void vpaint_do_paint(const Depsgraph &depsgraph,
   const VPaint &vp = *scene.toolsettings->vpaint;
   Mesh &mesh = *id_cast<Mesh *>(ob.data);
   IndexMaskMemory memory;
-  const IndexMask node_mask = vwpaint::pbvh_gather_generic(depsgraph, ob, vp, brush, memory);
+  const IndexMask node_mask = gather_brush_nodes(
+      ob, brush, memory, BKE_pbvh_node_fully_hidden_get);
+  vwpaint::update_sculpt_normal(depsgraph, ob, vp, brush, node_mask);
 
   if (auto_mask::is_enabled(vp.paint, ob, &brush)) {
     auto_mask::Cache &cache = auto_mask::stroke_cache_ensure(depsgraph, vp.paint, &brush, ob);
@@ -1831,7 +1782,7 @@ static void vpaint_do_paint(const Depsgraph &depsgraph,
   attribute.finish();
 }
 
-void VertexPaintStroke::update_step(wmOperator * /*op*/, PointerRNA *itemptr)
+void VertexPaintStroke::update_step(wmOperator * /*op*/, const StrokeStep &stroke_step)
 {
   VPaintData &vpd = *static_cast<VPaintData *>(mode_data_.get());
   ViewContext &vc = vpd.vc;
@@ -1841,23 +1792,14 @@ void VertexPaintStroke::update_step(wmOperator * /*op*/, PointerRNA *itemptr)
 
   ss.cache->stroke_distance = this->stroke_distance();
 
-  vwpaint::update_cache_variants(*this->depsgraph, vc, *vertex_paint_, ob, *base_, itemptr);
-
-  float mat[4][4];
-
-  ED_view3d_init_mats_rv3d(&ob, vc.rv3d);
-
-  mul_m4_m4m4(mat, vc.rv3d->persmat, ob.object_to_world().ptr());
-
-  swap_m4m4(vc.rv3d->persmat, mat);
+  vwpaint::update_cache_variants(
+      *this->depsgraph, vc, *vertex_paint_, PaintMode::Invalid, ob, *base_, stroke_step);
 
   ed::sculpt_paint::do_symmetrical_brush_actions(
       *this->depsgraph, *this->scene, vertex_paint_->paint, ob, vpaint_do_paint, &vpd);
 
+  ss.cache->first_time = false;
   copy_v3_v3(cache.last_location, cache.location);
-  cache.is_last_valid = true;
-
-  swap_m4m4(vc.rv3d->persmat, mat);
 
   BKE_mesh_batch_cache_dirty_tag(id_cast<Mesh *>(ob.data), BKE_MESH_BATCH_DIRTY_ALL);
 
@@ -1870,7 +1812,7 @@ void VertexPaintStroke::update_step(wmOperator * /*op*/, PointerRNA *itemptr)
    * also needed for "Frame Selected" on last stroke. */
   float loc_world[3];
   mul_v3_m4v3(loc_world, ob.object_to_world().ptr(), ss.cache->location);
-  vwpaint::last_stroke_update(loc_world, *this->paint);
+  bke::paint::stroke_track_location(*this->paint, loc_world);
 
   ED_region_tag_redraw(vc.region);
 

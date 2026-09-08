@@ -1,9 +1,9 @@
 
 msgid ""
 msgstr ""
-"Project-Id-Version: Blender 5.3.0 Alpha (b'af4852ed4560')\n"
+"Project-Id-Version: Blender 5.3.0 Alpha (b'f5df8c32f99b')\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-08-10 07:54+0000\n"
+"POT-Creation-Date: 2026-09-07 07:47+0000\n"
 "PO-Revision-Date: 2026-03-19 12:41+0000\n"
 "Last-Translator: Banditer1483 <pleum.wongvarit@gmail.com>\n"
 "Language-Team: Thai <https://translate.blender.org/projects/blender-ui/ui/th/>\n"
@@ -3610,32 +3610,16 @@ msgid "A color space, view or display was not found, which likely means the Open
 msgstr "ไม่พบพื้นที่สี มุมมอง หรือการแสดงผล ซึ่งอาจหมายความว่าไฟล์การกำหนดค่า OpenColorIO ที่ใช้สร้างไฟล์ Blend นี้หายไป"
 
 
-msgid "Working Space"
-msgstr "พื้นที่ทำงาน"
-
-
 msgid "Color space used for all scene linear colors in this file, and for compositing, shader and geometry nodes processing"
 msgstr "พื้นที่สีที่ใช้สำหรับสีเชิงเส้นทั้งหมดในฉากในไฟล์นี้ รวมถึงการประมวลผลโหนดการจัดองค์ประกอบภาพ เชเดอร์ และเรขาคณิต"
-
-
-msgid "Linear Rec.709"
-msgstr "ลิเนียร์ เรค.709"
 
 
 msgid "Linear BT.709 with illuminant D65 white point"
 msgstr "เส้นตรง BT.709 พร้อมแหล่งกำเนิดแสงจุดขาว D65"
 
 
-msgid "Linear Rec.2020"
-msgstr "ลิเนียร์ เรค.2020"
-
-
 msgid "Linear BT.2020 with illuminant D65 white point"
 msgstr "ไฟส่องสว่างแบบเส้นตรง BT.2020 พร้อมจุดสีขาว D65"
-
-
-msgid "ACEScg"
-msgstr "เอซีเอสซีจี"
 
 
 msgid "Linear AP1 with ACES white point"
@@ -3783,16 +3767,8 @@ msgid "Status"
 msgstr "สถิติ"
 
 
-msgid "Display"
-msgstr "แสดง"
-
-
 msgid "Curve"
 msgstr "เส้นโค้ง"
-
-
-msgid "View"
-msgstr "มุมมอง"
 
 
 msgid "Brightness"
@@ -3914,6 +3890,10 @@ msgstr "พื้นผิว"
 
 msgid "Plane"
 msgstr "ระนาบ"
+
+
+msgid "View"
+msgstr "มุมมอง"
 
 
 msgid "Radius"
@@ -4650,6 +4630,10 @@ msgid "Display Color"
 msgstr "สีที่แสดง"
 
 
+msgid "Display"
+msgstr "แสดง"
+
+
 msgid "Particle"
 msgstr "อนุภาค"
 
@@ -4909,44 +4893,28 @@ msgid "Mix Color"
 msgstr "ผสมสี"
 
 
-msgid "Names"
-msgstr "ชื่อ"
+msgid "Import"
+msgstr "นำเข้า"
 
 
-msgid "Keying"
-msgstr "คีย์"
+msgid "Viewpoint"
+msgstr "จุดของมุมมอง"
 
 
 msgid "Math"
 msgstr "คณิตศาสตร์"
 
 
-msgid "Pivot Point"
-msgstr "จุดหมุน"
+msgid "Align View to Active"
+msgstr "จัดมุมมองไปยังที่วัตถุใช้งาน"
 
 
-msgid "Snap"
-msgstr "ยึดติด"
+msgid "UV"
+msgstr "UV"
 
 
-msgid "Proportional Editing Falloff"
-msgstr "แก้ไข"
-
-
-msgid "Mask Edit"
-msgstr "การแก้ไขหน้ากาก"
-
-
-msgid "Mirror"
-msgstr "กระจกสะท้อน"
-
-
-msgid "Local View"
-msgstr "มุมมองท้องถิ่น"
-
-
-msgid "Viewpoint"
-msgstr "จุดของมุมมอง"
+msgid "View Regions"
+msgstr "ขอบเขตมุมมอง"
 
 
 msgid "Navigation"
@@ -4957,56 +4925,72 @@ msgid "Align View"
 msgstr "จัดมุมมอง"
 
 
-msgid "Align View to Active"
-msgstr "จัดมุมมองไปยังที่วัตถุใช้งาน"
+msgid "Local View"
+msgstr "มุมมองท้องถิ่น"
 
 
-msgid "View Regions"
-msgstr "ขอบเขตมุมมอง"
+msgid "Snap"
+msgstr "ยึดติด"
+
+
+msgid "Mirror"
+msgstr "กระจกสะท้อน"
+
+
+msgid "Mask Edit"
+msgstr "การแก้ไขหน้ากาก"
+
+
+msgid "Proportional Editing Falloff"
+msgstr "แก้ไข"
+
+
+msgid "Pivot Point"
+msgstr "จุดหมุน"
+
+
+msgid "Names"
+msgstr "ชื่อ"
+
+
+msgid "Layout"
+msgstr "เค้าโครง"
 
 
 msgid "Metaball"
 msgstr "เมตาบอล"
 
 
-msgid "Light"
-msgstr "แสง"
+msgid "Merge"
+msgstr "ผสาน"
 
 
-msgid "Add Image"
-msgstr "เพิ่มภาพ"
-
-
-msgid "Apply"
-msgstr "นำไปใช้"
-
-
-msgid "Import"
-msgstr "นำเข้า"
-
-
-msgid "Track"
-msgstr "แทร็ค"
-
-
-msgid "Hooks"
-msgstr "ตะขอ"
-
-
-msgid "UV"
-msgstr "UV"
+msgid "Keying"
+msgstr "คีย์"
 
 
 msgid "Face Data"
 msgstr "ข้อมูลด้าน"
 
 
-msgid "Merge"
-msgstr "ผสาน"
+msgid "Apply"
+msgstr "นำไปใช้"
 
 
-msgid "Layout"
-msgstr "เค้าโครง"
+msgid "Hooks"
+msgstr "ตะขอ"
+
+
+msgid "Track"
+msgstr "แทร็ค"
+
+
+msgid "Add Image"
+msgstr "เพิ่มภาพ"
+
+
+msgid "Light"
+msgstr "แสง"
 
 
 msgid "Zoom"
@@ -5291,10 +5275,6 @@ msgstr "ผลลัพธ์"
 
 msgid "YCbCr"
 msgstr "YCbCr"
-
-
-msgid "To"
-msgstr "ไปยัง"
 
 
 msgid "RGB Curves"
@@ -6275,12 +6255,12 @@ msgid "Single Image"
 msgstr "ภาพเดี่ยว"
 
 
-msgid "View Lock"
-msgstr "ล็อกมุมมอง"
-
-
 msgid "Overlays"
 msgstr "วางซ้อน"
+
+
+msgid "View Lock"
+msgstr "ล็อกมุมมอง"
 
 
 msgid "Mask Display"
@@ -6301,6 +6281,10 @@ msgstr "เบ็ดเตล็ด"
 
 msgid "Movement"
 msgstr "การเคลื่อนไหว"
+
+
+msgid "Working Space"
+msgstr "พื้นที่ทำงาน"
 
 
 msgid "Shadows"
@@ -7185,6 +7169,11 @@ msgstr "แสดง"
 
 
 msgctxt "Operator"
+msgid "Text"
+msgstr "ข้อความ"
+
+
+msgctxt "Operator"
 msgid "Fade"
 msgstr "จาง"
 
@@ -7224,18 +7213,8 @@ msgstr "ทั้งสองด้าน"
 
 
 msgctxt "Operator"
-msgid "Mask..."
-msgstr "หน้ากาก..."
-
-
-msgctxt "Operator"
 msgid "Color"
 msgstr "สี"
-
-
-msgctxt "Operator"
-msgid "Text"
-msgstr "ข้อความ"
 
 
 msgctxt "Operator"

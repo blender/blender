@@ -19,6 +19,7 @@
 #  include "BKE_volume_grid_type_traits.hh"
 
 #  include "BLI_cache_mutex.hh"
+#  include "BLI_cpp_type.hh"
 #  include "BLI_implicit_sharing_ptr.hh"
 #  include "BLI_mutex.hh"
 #  include "BLI_string_ref.hh"
@@ -238,6 +239,11 @@ class VolumeGridData : public ImplicitSharingMixin {
    * True if the grid is fully loaded (including the meta-data, transform and tree).
    */
   bool is_loaded() const;
+
+  /**
+   * Standard Blender CPPType for the value type (e.g. float3 instead of openvdb::Vec3f).
+   */
+  const CPPType *cpp_type() const;
 
   void count_memory(MemoryCounter &memory) const;
 

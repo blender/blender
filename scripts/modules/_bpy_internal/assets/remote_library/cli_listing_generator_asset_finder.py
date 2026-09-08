@@ -50,7 +50,7 @@ class FileVersionInfo:
 
 
 # Match numbers after `@b`, but do not allow leading zeroes. This prevents having different markers (and thus different
-# filenames) for the same version. Case-sensitive filesystems can still have two files (lower & upper case `b`) so this
+# filenames) for the same version. Case-sensitive file-systems can still have two files (lower & upper case `b`) so this
 # still has to be taken into account.
 _filename_re = re.compile('(.*?)@b(0|[1-9][0-9]*)_(0|[1-9][0-9]*)', flags=re.IGNORECASE)
 
@@ -244,6 +244,8 @@ def _get_asset_meta(asset_data: bpy.types.AssetData) -> api_models.AssetMetadata
         meta.description = asset_data.description
     if asset_data.license:
         meta.license = asset_data.license
+    if asset_data.webpage:
+        meta.webpage = asset_data.webpage
     if asset_data.copyright:
         meta.copyright = asset_data.copyright
     if asset_data.use_preferred_import_method:

@@ -1026,8 +1026,10 @@ eGPUTextureUsage GPU_texture_mipmap_usage(gpu::TextureFormat format);
  */
 void GPU_texture_update_mipmap_chain(gpu::Texture *texture);
 
-/** Chunk size for partial updates of the mipmaps, must match #MIPMAP_UPDATE_CHUNK_SIZE in
- * GPU_shader_shared.hh. */
+/**
+ * Chunk size for partial updates of the mipmaps, must match #MIPMAP_UPDATE_CHUNK_SIZE in
+ * GPU_shader_shared.hh.
+ */
 constexpr int GPU_TEXTURE_MIPMAP_UPDATE_CHUNK_SIZE = 256;
 
 /**

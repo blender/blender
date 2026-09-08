@@ -7,6 +7,7 @@
  */
 
 #pragma once
+#include <array>
 
 #include "BLI_bounds_types.hh"
 #include "BLI_enum_flags.hh"
@@ -1419,6 +1420,8 @@ void ED_view3d_gizmo_ruler_remove_by_gpencil_layer(struct bContext *C, bGPDlayer
 void ED_view3d_buttons_region_layout_ex(const bContext *C,
                                         ARegion *region,
                                         const char *category_override);
+
+std::array<const char *, 4> ED_view3d_buttons_contexts(const bContext *C);
 
 /* `view3d_view.cc` */
 

@@ -251,7 +251,7 @@ void Instance::begin_sync()
     /* Merges the object's depth to the viewport compositor depth pass. */
     PassSimple &pass = this->merge_depth_pass_ps;
     pass.init();
-    pass.state_set(DRW_STATE_NO_DRAW);
+    pass.state_set(DRW_STATE_WRITE_COLOR);
     pass.shader_set(ShaderCache::get().depth_pass_merge.get());
     pass.bind_texture("depth_buf", &this->depth_tx);
     pass.bind_image("depth_pass_img", &this->depth_pass_img);

@@ -11,6 +11,7 @@
 
 #include "../outliner_intern.hh"
 
+#include "tree_display.hh"
 #include "tree_element_id_curve.hh"
 
 namespace blender::ed::outliner {
@@ -30,12 +31,7 @@ void TreeElementIDCurve::expand(SpaceOutliner & /*space_outliner*/) const
 void TreeElementIDCurve::expand_materials() const
 {
   for (int a = 0; a < curve_.totcol; a++) {
-    add_element(&legacy_te_.subtree,
-                reinterpret_cast<ID *>(curve_.mat[a]),
-                nullptr,
-                &legacy_te_,
-                TSE_SOME_ID,
-                a);
+    add_id_element({.index = a}, reinterpret_cast<ID *>(curve_.mat[a]));
   }
 }
 

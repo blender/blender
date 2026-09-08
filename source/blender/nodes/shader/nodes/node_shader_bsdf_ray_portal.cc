@@ -2,6 +2,10 @@
  *
  * SPDX-License-Identifier: GPL-2.0-or-later */
 
+/** \file
+ * \ingroup shdnodes
+ */
+
 #include "node_shader_util.hh"
 
 #include "BLI_math_vector_c.hh"
@@ -28,7 +32,7 @@ static int node_shader_gpu_bsdf_ray_portal(GPUMaterial *mat,
                                            GPUNodeStack *in,
                                            GPUNodeStack *out)
 {
-  if (in[0].link || !is_zero_v3(in[0].vec)) {
+  if (in[0].link || !is_zero_v3(std::get<float4>(in[0].value))) {
     GPU_material_flag_set(mat, GPU_MATFLAG_TRANSPARENT);
   }
   return GPU_stack_link(mat, node, "node_bsdf_ray_portal", in, out);

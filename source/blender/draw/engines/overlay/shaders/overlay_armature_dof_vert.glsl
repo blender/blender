@@ -19,7 +19,7 @@ float3 sphere_project(float ax, float az)
 
 void main()
 {
-  float4x4 inst_obmat = data_buf[gl_InstanceID].object_to_world;
+  float4x4 inst_obmat = data_buf[gpu_InstanceIndex].object_to_world;
   float4x4 model_mat = inst_obmat;
   model_mat[0][3] = model_mat[1][3] = model_mat[2][3] = 0.0f;
   model_mat[3][3] = 1.0f;
@@ -32,7 +32,7 @@ void main()
 
   float3 world_pos = (model_mat * float4(final_pos, 1.0f)).xyz;
   gl_Position = drw_point_world_to_homogenous(world_pos);
-  final_color = data_buf[gl_InstanceID].color_;
+  final_color = data_buf[gpu_InstanceIndex].color_;
 
   edge_start = edge_pos = ((gl_Position.xy / gl_Position.w) * 0.5f + 0.5f) *
                           uniform_buf.size_viewport;

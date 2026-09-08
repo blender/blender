@@ -2,6 +2,10 @@
  *
  * SPDX-License-Identifier: GPL-2.0-or-later */
 
+/** \file
+ * \ingroup draw
+ */
+
 #pragma once
 
 #include "draw_view_infos.hh"
@@ -24,9 +28,9 @@ uint drw_resource_id_raw()
 {
 #if defined(GPU_VERTEX_SHADER)
 #  ifdef WITH_CUSTOM_IDS
-  uint id = res_id_with_custom_id_buf[gpu_BaseInstance + gl_InstanceID].x;
+  uint id = res_id_with_custom_id_buf[gpu_InstanceIndex].x;
 #  else
-  uint id = res_id_buf[gpu_BaseInstance + gl_InstanceID];
+  uint id = res_id_buf[gpu_InstanceIndex];
 #  endif
   return id;
 
@@ -45,8 +49,8 @@ uint drw_custom_id()
 {
 #ifdef WITH_CUSTOM_IDS
 #  if defined(GPU_VERTEX_SHADER)
-  uint inst_id = gpu_BaseInstance + gl_InstanceID;
-  return res_id_with_custom_id_buf[gpu_BaseInstance + gl_InstanceID].y;
+  uint inst_id = gpu_InstanceIndex;
+  return res_id_with_custom_id_buf[gpu_InstanceIndex].y;
 #  endif
 #endif
   return 0;

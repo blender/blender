@@ -2,6 +2,10 @@
  *
  * SPDX-License-Identifier: GPL-2.0-or-later */
 
+/** \file
+ * \ingroup RNA
+ */
+
 #include <sstream>
 #include <utility>
 

@@ -612,7 +612,7 @@ void BKE_tracking_homography_between_two_quads(/*const*/ float reference_corners
 bool BKE_tracking_reconstruction_check(MovieTracking *tracking,
                                        MovieTrackingObject *tracking_object,
                                        char *error_msg,
-                                       int error_size);
+                                       int error_msg_maxncpy);
 
 /**
  * Create context for camera/object motion reconstruction.

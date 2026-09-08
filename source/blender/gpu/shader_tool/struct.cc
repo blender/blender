@@ -15,6 +15,7 @@
 namespace blender::gpu::shader {
 using namespace std;
 using namespace shader::parser;
+using namespace shader::parser::ast;
 using namespace metadata;
 
 /* `class` -> `struct` */
@@ -193,8 +194,7 @@ void SourceProcessor::lower_implicit_member(Parser &parser)
   parser.apply_mutations();
 }
 
-/* Move all method definition outside of struct definition blocks. */
-void SourceProcessor::lower_method_definitions(Parser &parser)
+void SourceProcessor::lower_this_keyword(Parser &parser)
 {
   /* NOTE: We need to avoid the case of `a * this->b` being replaced as 2 dereferences. */
 
@@ -204,7 +204,12 @@ void SourceProcessor::lower_method_definitions(Parser &parser)
   parser().foreach_match("*T;", [&](const Tokens &t) { parser.replace(t[0], t[1], "this_"); });
   /* `this->` -> `this_.` */
   parser().foreach_match("T->", [&](const Tokens &t) { parser.replace(t[0], t[2], "this_."); });
+}
 
+/* Move all method definition outside of struct definition blocks. */
+void SourceProcessor::lower_method_definitions(Parser &parser)
+{
+  lower_this_keyword(parser);
   parser.apply_mutations();
 
   parser().foreach_match("sA:", [&](const Tokens &toks) {
@@ -215,7 +220,7 @@ void SourceProcessor::lower_method_definitions(Parser &parser)
   });
 
   parser().foreach_match("cAA(..)c?{..}", [&](const Tokens &toks) {
-    if (toks[0].prev() == Const) {
+    if (toks[0].prev() == TokenType::Const) {
       report_error(toks[0],
                    "function return type is marked `const` but it makes no sense for values "
                    "and returning reference is not supported");
@@ -330,8 +335,26 @@ void SourceProcessor::lower_method_definitions(Parser &parser)
   parser.apply_mutations();
 }
 
+void SourceProcessor::lower_constructors(Parser &parser)
+{
+  for (FuncCall call : parser.root().descendants_of_type<FuncCall>()) {
+    if (call.identifier().str() != "_ctor") {
+      continue;
+    }
+    Token comma = call.parameters().child_first().back().next();
+    if (comma != ',') {
+      report_error(comma, "Compiler error: expecting comma");
+    }
+    parser.replace(comma, ")");
+    parser.replace(call.back(), " _rotc()");
+  }
+  if (error_handler.err) {
+    throw ParserException();
+  }
+}
+
 /* Transform `a.fn(b)` into `fn(a, b)`. */
-void SourceProcessor::lower_method_calls(Parser &parser)
+void SourceProcessor::lower_method_calls(Parser &parser, bool with_prefix)
 {
   do {
     parser().foreach_scope(ScopeType::Function, [&](Scope scope) {
@@ -369,7 +392,7 @@ void SourceProcessor::lower_method_calls(Parser &parser)
           break;
         }
         string this_str = parser.substr_range_inclusive(start_of_this, end_of_this);
-        string func_str = method_call_prefix + string(func.str());
+        string func_str = (with_prefix ? method_call_prefix : "") + string(func.str());
         const bool has_no_arg = par_open.next() == ')';
         /* `a.fn(b)` -> `_fn(a, b)` */
         parser.replace_try(
@@ -537,6 +560,43 @@ void SourceProcessor::lower_structured_bindings(Parser &parser)
     });
   });
 
+  parser.apply_mutations();
+}
+
+void SourceProcessor::lower_method_forward_declaration(Parser &parser)
+{
+  for (Preprocessor directive : parser.root().children_of_type<Preprocessor>()) {
+    if (!directive.str().starts_with("#pragma member_forward_decl")) {
+      continue;
+    }
+    string_view cls_name = directive.back().str();
+    FuncForwardDecl fwd_decl = directive.next();
+    if (!fwd_decl.is_valid()) {
+      report_error(
+          directive.front(),
+          "Compiler error: expecting forward declaration after 'pragma member_forward_decl'");
+    }
+    /* Search for declaration. */
+    ClassDecl cls_decl = {};
+    for (ClassDecl decl : parser.root().children_of_type<ClassDecl>()) {
+      if (decl.identifier().str() == cls_name) {
+        cls_decl = decl;
+        break;
+      }
+    }
+    if (!cls_decl.is_valid()) {
+      report_error(fwd_decl.front(),
+                   "Compiler error: can't locate class instantiation of '" + string(cls_name) +
+                       "'");
+    }
+    /* Move the forward declaration. */
+    parser.insert_after(cls_decl.back(),
+                        "#ifndef GPU_METAL\n" + string(fwd_decl.str()) + "\n#endif\n");
+    parser.replace(directive.front(), fwd_decl.back(), "");
+  }
+  if (error_handler.err) {
+    throw ParserException();
+  }
   parser.apply_mutations();
 }
 

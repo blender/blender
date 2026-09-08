@@ -12,7 +12,7 @@
 namespace blender {
 
 struct Camera;
-struct Scene;
+struct Object;
 
 namespace io::hydra {
 
@@ -25,7 +25,7 @@ class CameraDelegate {
  public:
   CameraDelegate(pxr::HdRenderIndex *render_index, pxr::SdfPath const &camera_id);
 
-  void sync(const Scene *scene);
+  void sync(const Object *camera_object);
   void SetCamera(pxr::GfCamera const &camera);
   pxr::SdfPath const &GetCameraId() const
   {

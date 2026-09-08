@@ -26,6 +26,7 @@ struct ID;
 struct Main;
 struct ReportList;
 
+/* -------------------------------------------------------------------- */
 /** \name Core `foreach_path` API.
  * \{ */
 
@@ -165,6 +166,7 @@ void BKE_bpath_foreach_path_main(BPathForeachPathData *bpath_data);
 
 /** \} */
 
+/* -------------------------------------------------------------------- */
 /** \name Helpers to handle common cases from `IDTypeInfo`'s `foreach_path` functions.
  * \{ */
 
@@ -226,6 +228,7 @@ bool BKE_bpath_foreach_path_allocated_process(BPathForeachPathData *bpath_data, 
 
 /** \} */
 
+/* -------------------------------------------------------------------- */
 /** \name High level features.
  * \{ */
 
@@ -257,7 +260,8 @@ void BKE_bpath_summary_report(const BPathSummary &summary, ReportList *reports);
 void BKE_bpath_missing_files_find(Main *bmain,
                                   const char *searchpath,
                                   ReportList *reports,
-                                  bool find_all);
+                                  bool find_all,
+                                  BPathSummary *r_summary = nullptr);
 
 /** Rebase all relative file paths in given \a bmain from \a basedir_src to \a basedir_dst. */
 void BKE_bpath_relative_rebase(Main *bmain,

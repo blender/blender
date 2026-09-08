@@ -18,6 +18,7 @@
 #include "../outliner_intern.hh"
 #include "common.hh"
 #include "tree_display.hh"
+#include "tree_element_id_base.hh"
 
 namespace blender::ed::outliner {
 
@@ -54,15 +55,15 @@ ListBaseT<TreeElement> TreeDisplayIDOrphans::build_tree(const TreeSourceData &so
     /* Header for this type of data-block. */
     TreeElement *te = nullptr;
     if (!filter_id_type) {
-      ID *id = static_cast<ID *>(lbarray[a]->first);
-      te = add_element(&tree, nullptr, lbarray[a], nullptr, TSE_ID_BASE, 0);
+      ID *id = lbarray[a]->first();
+      te = add_element<TreeElementIDBase>({.lb = &tree, .persistent_ptr = lbarray[a]});
       te->name = outliner_idcode_to_plural(GS(id->name));
     }
 
     /* Add the orphaned data-blocks - these will not be added with any subtrees attached. */
     for (ID *id : List<ID>(lbarray[a])) {
       if (ID_REFCOUNTING_USERS(id) <= 0) {
-        add_element((te) ? &te->subtree : &tree, id, nullptr, te, TSE_SOME_ID, 0, false);
+        add_id_element({.lb = (te) ? &te->subtree : &tree, .parent = te, .expand = false}, id);
       }
     }
   }
@@ -75,7 +76,7 @@ bool TreeDisplayIDOrphans::datablock_has_orphans(ListBaseT<ID> &lb) const
   if (lb.is_empty()) {
     return false;
   }
-  const IDTypeInfo *id_type = BKE_idtype_get_info_from_id(static_cast<ID *>(lb.first));
+  const IDTypeInfo *id_type = BKE_idtype_get_info_from_id(lb.first());
   if (id_type->flags & IDTYPE_FLAGS_NEVER_UNUSED) {
     /* These ID types are never unused. */
     return false;

@@ -66,7 +66,7 @@ static void undoptcache_from_editcache(PTCacheUndo *undo, PTCacheEdit *edit)
     PTCacheMem *pm;
 
     BLI_duplicatelist(&undo->mem_cache, &edit->pid.cache->mem_cache);
-    pm = static_cast<PTCacheMem *>(undo->mem_cache.first);
+    pm = undo->mem_cache.first();
 
     for (; pm; pm = pm->next) {
       for (int i = 0; i < BPHYS_TOT_DATA; i++) {
@@ -147,7 +147,7 @@ static void undoptcache_to_editcache(PTCacheUndo *undo, PTCacheEdit *edit)
 
     BLI_duplicatelist(&edit->pid.cache->mem_cache, &undo->mem_cache);
 
-    pm = static_cast<PTCacheMem *>(edit->pid.cache->mem_cache.first);
+    pm = edit->pid.cache->mem_cache.first();
 
     for (; pm; pm = pm->next) {
       for (i = 0; i < BPHYS_TOT_DATA; i++) {

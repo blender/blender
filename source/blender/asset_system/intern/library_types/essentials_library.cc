@@ -32,7 +32,7 @@ static CLG_LogRef LOG = {"asset.library.essentials"};
 EssentialsAssetLibrary::EssentialsAssetLibrary()
     : OnDiskAssetLibrary(ASSET_LIBRARY_ESSENTIALS,
                          {},
-                         utils::normalize_directory_path(essentials_directory_path()),
+                         utils::resolve_directory_path(essentials_directory_path()),
                          /*is_read_only=*/true)
 {
 }

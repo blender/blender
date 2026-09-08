@@ -504,6 +504,8 @@ template float3 transform_direction(const float3x3 &mat, const float3 &direction
 template float3 transform_direction(const float4x4 &mat, const float3 &direction);
 template float3 project_point(const float4x4 &mat, const float3 &point);
 template float2 project_point(const float3x3 &mat, const float2 &point);
+template float3 project_point_safe(const float4x4 &mat, const float3 &point);
+template float2 project_point_safe(const float3x3 &mat, const float2 &point);
 
 namespace projection {
 
@@ -554,7 +556,7 @@ void transform_normals(const float3x3 &transform, MutableSpan<float3> normals)
   if (math::is_equal(transform, float3x3::identity(), 1e-6f)) {
     return;
   }
-  PRF_scope_with_name("math::transform_points", ProfileCategory::Default);
+  PRF_scope(ProfileCategory::Default);
   const float3x3 normal_transform = math::transpose(math::invert(transform));
   if (is_similarity_transform(normal_transform)) {
     const float3x3 normalized_transform = math::normalize(normal_transform);
@@ -579,7 +581,7 @@ void transform_normals(Span<float3> src, const float3x3 &transform, MutableSpan<
     dst.copy_from(src);
     return;
   }
-  PRF_scope_with_name("math::transform_points", ProfileCategory::Default);
+  PRF_scope(ProfileCategory::Default);
   const float3x3 normal_transform = math::transpose(math::invert(transform));
   if (is_similarity_transform(normal_transform)) {
     const float3x3 normalized_transform = math::normalize(normal_transform);
@@ -607,7 +609,7 @@ static void transform_points_no_threading(const Span<float3> src,
                                           const float4x4 &transform,
                                           MutableSpan<float3> dst)
 {
-  PRF_scope_with_name("math::transform_points", ProfileCategory::Default);
+  PRF_scope(ProfileCategory::Default);
   for (const int64_t i : src.index_range()) {
     dst[i] = math::transform_point(transform, src[i]);
   }
@@ -635,7 +637,7 @@ void transform_points(const Span<float3> src,
 
 static void transform_points_no_threading(const float4x4 &transform, MutableSpan<float3> points)
 {
-  PRF_scope_with_name("math::transform_points", ProfileCategory::Default);
+  PRF_scope(ProfileCategory::Default);
   for (float3 &position : points) {
     position = math::transform_point(transform, position);
   }

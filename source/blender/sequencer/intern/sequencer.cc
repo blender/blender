@@ -268,7 +268,7 @@ void seq_free_strip_recurse(Scene *scene, Strip *strip, const bool do_id_user)
 {
   Strip *istrip_next;
 
-  for (Strip *istrip = static_cast<Strip *>(strip->seqbase.first); istrip; istrip = istrip_next) {
+  for (Strip *istrip = strip->seqbase.first(); istrip; istrip = istrip_next) {
     istrip_next = istrip->next;
     seq_free_strip_recurse(scene, istrip, do_id_user);
   }
@@ -380,7 +380,7 @@ SequencerToolSettings *tool_settings_init()
   tool_settings->snap_flag = SEQ_SNAP_TO_ALL_CHANNEL_STRIPS;
   tool_settings->snap_distance = 15;
   tool_settings->overlap_mode = SEQ_OVERLAP_SHUFFLE;
-  tool_settings->pivot_point = V3D_AROUND_LOCAL_ORIGINS;
+  tool_settings->pivot_point = V3D_AROUND_CENTER_MEDIAN;
 
   return tool_settings;
 }
@@ -470,7 +470,7 @@ MetaStack *meta_stack_active_get(const Editing *ed)
     return nullptr;
   }
 
-  return static_cast<MetaStack *>(ed->metastack.last);
+  return ed->metastack.last();
 }
 
 void meta_stack_set(const Scene *scene, Strip *dst)
@@ -671,7 +671,7 @@ static Strip *strip_duplicate(StripDuplicateContext &ctx,
     strip_new->system_properties = IDP_CopyProperty_ex(strip->system_properties, ctx.copy_flag);
   }
 
-  if (strip_new->modifiers.first) {
+  if (strip_new->modifiers.first_) {
     strip_new->modifiers.clear_no_delete();
 
     modifier_list_copy(strip_new, strip, ctx.copy_flag);
@@ -897,7 +897,7 @@ static bool strip_write_data_cb(Strip *strip, void *userdata)
           break;
         case STRIP_TYPE_TEXT: {
           TextVars *text = static_cast<TextVars *>(strip->effectdata);
-          if (!BLO_write_is_undo(writer)) {
+          if (!writer->is_undo()) {
             /* Copy current text into legacy buffer. */
             STRNCPY_UTF8(text->text_legacy, text->text_ptr);
           }

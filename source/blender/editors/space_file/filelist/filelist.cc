@@ -1155,6 +1155,45 @@ void filelist_setrecursion(FileList *filelist, const int recursion_level)
   }
 }
 
+void filelist_entry_glob_tag(FileListInternEntry *entry, const char *filter_glob)
+{
+  entry->typeflag &= ~FILE_TYPE_OPERATOR;
+
+  if (entry->typeflag & (FILE_TYPE_DIR | FILE_TYPE_BLENDERLIB)) {
+    return;
+  }
+  if (filter_glob[0] == '\0') {
+    return;
+  }
+
+  /* Aliases & shortcuts match their target, its extension may differ from the link. */
+  const char *path = entry->redirection_path ? entry->redirection_path : entry->relpath;
+  if (BLI_path_extension_check_glob(path, filter_glob)) {
+    entry->typeflag |= FILE_TYPE_OPERATOR;
+  }
+}
+
+void filelist_reset_glob(FileList *filelist)
+{
+  for (FileListInternEntry &entry : filelist->filelist_intern.entries) {
+    filelist_entry_glob_tag(&entry, filelist->filter_glob);
+  }
+
+  filelist->flags &= ~FL_NEED_RESET_GLOB;
+}
+
+void filelist_setglob(FileList *filelist, const char *filter_glob)
+{
+  /* The glob is stored in #FileListInternEntry.typeflag, so filtering again isn't enough.
+   * Re-tag the entries, reading the directory again would be needlessly heavy. */
+
+  if (!STREQ(filelist->filter_glob, filter_glob)) {
+    STRNCPY(filelist->filter_glob, filter_glob);
+    filelist->flags |= FL_NEED_RESET_GLOB;
+    filelist_tag_needs_filtering(filelist);
+  }
+}
+
 bool filelist_needs_force_reset(const FileList *filelist)
 {
   return (filelist->flags & (FL_FORCE_RESET | FL_FORCE_RESET_MAIN_FILES)) != 0;

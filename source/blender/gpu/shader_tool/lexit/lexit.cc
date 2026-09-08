@@ -919,9 +919,95 @@ static void lex_comment(const std::string_view str,
   cursor--;
 }
 
+static bool is_whitespace(char c)
+{
+  return (c == ' ' || c == '\t' || c == '\n' || c == '\r' || c == '\v' || c == '\f');
+}
+
+static void lex_angle(const std::string_view str,
+                      const TokenType *types,
+                      const uint32_t *offsets,
+                      const uint32_t *offsets_end,
+                      uint32_t &cursor,
+                      TokenType &out_type)
+{
+  /* If this is the very first token, it cannot be preceded by anything. */
+  if (static_cast<const TokenType *>(&out_type) == types) {
+    return;
+  }
+  /* Extract the previously processed token type directly from the output stream. */
+  const TokenType prev = *(&out_type - 1);
+
+  /* Detect if preceded by whitespace by checking the literal char right before this token. */
+  bool preceded_by_space = false;
+  const uint32_t start = offsets[cursor];
+  if (start > 0) {
+    preceded_by_space = is_whitespace(str[start - 1]);
+  }
+
+  /* Mimic the template token identification logic. */
+  if (out_type == LThan) {
+    if (!preceded_by_space && prev != AngleOpen) {
+      /* TODO(fclem): Can't mutate them here because the whole legacy compiler depends on template
+       * token being AngleOpen. */
+      // out_type = TemplateOpen;
+      return;
+    }
+    /* Merge back split multi-tokens. */
+    {
+      const bool not_followed_by_whitespace = offsets_end[cursor] == offsets[cursor + 1];
+      if (types[cursor + 1] == LThan && not_followed_by_whitespace) {
+        cursor += 1; /* `<<` */
+      }
+    }
+    {
+      const bool not_followed_by_whitespace = offsets_end[cursor] == offsets[cursor + 1];
+      if (types[cursor + 1] == Assign && not_followed_by_whitespace) {
+        cursor += 1; /* `<<=` or `<=` */
+      }
+    }
+  }
+  else if (out_type == GThan) {
+    if (!preceded_by_space && prev != Minus
+        /* && prev != AngleClose // Only possible if we tag as TemplateClose. See below. */)
+    {
+      /* TODO(fclem): Can't mutate them here because the whole legacy compiler depends on template
+       * token being AngleClose. */
+      // out_type = TemplateClose;
+      if (prev != AngleClose) {
+        return;
+      }
+      /* WORKAROUND: Because the previous token cannot have been tagged as TemplateClose, we have
+       * to backtrack to check them. */
+      uint32_t curr = offsets[cursor];
+      while (--curr) {
+        if (str[curr] != '>') {
+          if (!is_whitespace(str[curr])) {
+            return; /* This is a TemplateClose. */
+          }
+          break;
+        }
+      }
+    }
+    /* Merge back split multi-tokens. */
+    {
+      const bool not_followed_by_whitespace = offsets_end[cursor] == offsets[cursor + 1];
+      if (types[cursor + 1] == GThan && not_followed_by_whitespace) {
+        cursor += 1; /* `>>` */
+      }
+    }
+    {
+      const bool not_followed_by_whitespace = offsets_end[cursor] == offsets[cursor + 1];
+      if (types[cursor + 1] == Assign && not_followed_by_whitespace) {
+        cursor += 1; /* `>>=` or `>=` */
+      }
+    }
+  }
+}
+
 /* Ideally this should not be needed and the `tokenize` step should just parse them correctly.
  * But this would much harder to implement. */
-void TokenBuffer::merge_complex_literals()
+void TokenBuffer::merge_complex_literals(bool bsl_template_angle_bracket_lexing)
 {
   const TokenType *in_types = types_.get();
   TokenType *out_type = types_.get();
@@ -947,6 +1033,12 @@ void TokenBuffer::merge_complex_literals()
         break;
       case Slash:
         lex_comment(str_, in_types, in_offsets, i, *out_type);
+        break;
+      case GThan:
+      case LThan:
+        if (bsl_template_angle_bracket_lexing) {
+          lex_angle(str_, in_types, in_offsets, in_offset_end, i, *out_type);
+        }
         break;
       default:
         continue;

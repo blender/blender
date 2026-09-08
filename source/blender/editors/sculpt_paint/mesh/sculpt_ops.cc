@@ -342,18 +342,6 @@ void object_sculpt_mode_enter(Main &bmain,
     BKE_report(reports, RPT_WARNING, "Object has negative scale, sculpting may be unpredictable");
   }
 
-  if (USER_EXPERIMENTAL_TEST(&U, use_sculpt_texture_paint)) {
-    BKE_texpaint_slots_refresh_object(&scene, &ob);
-
-    PaintModeSettings *paint_settings = &scene.toolsettings->paint_mode;
-    Image *image;
-    ImageUser *image_user;
-
-    if (BKE_paint_canvas_image_get(paint_settings, &ob, &image, &image_user)) {
-      ED_space_image_sync(&bmain, image, false);
-    }
-  }
-
   ed::sculpt_paint::mode_enter_generic(bmain, depsgraph, scene, ob, OB_MODE_SCULPT);
 
   if (mesh->attributes().contains(".sculpt_face_set")) {
@@ -403,7 +391,7 @@ void object_sculpt_mode_enter(Main &bmain,
 
     if ((message_unsupported == nullptr) || force_dyntopo) {
       /* Needed because we may be entering this mode before the undo system loads. */
-      wmWindowManager *wm = static_cast<wmWindowManager *>(bmain.wm.first);
+      wmWindowManager *wm = bmain.wm.first();
       const bool has_undo = wm->runtime->undo_stack != nullptr;
       /* Undo push is needed to prevent memory leak. */
       if (has_undo) {
@@ -455,7 +443,7 @@ void object_sculpt_mode_exit(Main &bmain, Depsgraph &depsgraph, Scene &scene, Ob
   }
 
   DEG_id_tag_update(&ob.id, ID_RECALC_GEOMETRY);
-  ed::sculpt_paint::mode_exit_generic(ob, OB_MODE_SCULPT);
+  ed::sculpt_paint::mode_exit_generic(scene, ob, OB_MODE_SCULPT);
 }
 
 void object_sculpt_mode_exit(bContext *C, Depsgraph &depsgraph)

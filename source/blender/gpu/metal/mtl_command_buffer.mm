@@ -2,6 +2,10 @@
  *
  * SPDX-License-Identifier: GPL-2.0-or-later */
 
+/** \file
+ * \ingroup gpu
+ */
+
 #include "DNA_userdef_types.h"
 
 #include "GPU_debug.hh"
@@ -20,6 +24,8 @@
 using namespace blender::gpu;
 
 namespace blender::gpu {
+
+static CLG_LogRef LOG = {"gpu.metal"};
 
 /* Counter for active command buffers. */
 volatile std::atomic<int> MTLCommandBufferManager::num_active_cmd_bufs_in_system = 0;
@@ -165,7 +171,7 @@ bool MTLCommandBufferManager::submit(bool wait)
 
       NSError *error = [active_command_buffer_ error];
       if (error != nil) {
-        NSLog(@"%@", error);
+        CLOG_ERROR(&LOG, "Command buffer error: %s", [[error localizedDescription] UTF8String]);
         BLI_assert(false);
       }
     }
@@ -971,9 +977,7 @@ void MTLVertexCommandEncoder::set_sampler(id<MTLSamplerState> sampler_state, int
 void MTLVertexCommandEncoder::set_acceleration_structure(id<MTLAccelerationStructure> accel,
                                                          int index)
 {
-  if (@available(macOS 12.0, *)) {
-    [enc setVertexAccelerationStructure:accel atBufferIndex:index];
-  }
+  [enc setVertexAccelerationStructure:accel atBufferIndex:index];
 }
 void MTLVertexCommandEncoder::use_resource(id<MTLResource> resource, MTLResourceUsage usage)
 {
@@ -1003,9 +1007,7 @@ void MTLFragmentCommandEncoder::set_sampler(id<MTLSamplerState> sampler_state, i
 void MTLFragmentCommandEncoder::set_acceleration_structure(id<MTLAccelerationStructure> accel,
                                                            int index)
 {
-  if (@available(macOS 12.0, *)) {
-    [enc setFragmentAccelerationStructure:accel atBufferIndex:index];
-  }
+  [enc setFragmentAccelerationStructure:accel atBufferIndex:index];
 }
 void MTLFragmentCommandEncoder::use_resource(id<MTLResource> resource, MTLResourceUsage usage)
 {

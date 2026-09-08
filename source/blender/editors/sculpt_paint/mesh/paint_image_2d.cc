@@ -1707,9 +1707,7 @@ void *paint_2d_new_stroke(bContext *C, wmOperator *op, const BrushStrokeMode mod
   /* Initialize offsets here, they're needed for the uv space clip test before lazy-loading the
    * tile properly. */
   int tile_idx = 0;
-  for (ImageTile *tile = static_cast<ImageTile *>(s->image->tiles.first); tile;
-       tile = tile->next, tile_idx++)
-  {
+  for (ImageTile *tile = s->image->tiles.first(); tile; tile = tile->next, tile_idx++) {
     s->tiles[tile_idx].iuser.tile = tile->tile_number;
     s->tiles[tile_idx].uv_origin[0] = ((tile->tile_number - 1001) % 10);
     s->tiles[tile_idx].uv_origin[1] = ((tile->tile_number - 1001) / 10);
@@ -1780,7 +1778,7 @@ void paint_2d_redraw(const bContext *C, void *ps, bool final)
   }
 }
 
-void paint_2d_stroke_done(void *ps)
+void paint_2d_stroke_done(void *ps, wmPaintCursor *cursor)
 {
   ImagePaintState *s = static_cast<ImagePaintState *>(ps);
 
@@ -1793,6 +1791,7 @@ void paint_2d_stroke_done(void *ps)
   paint_brush_exit_tex(s->brush);
 
   MEM_delete(s);
+  WM_paint_cursor_end(cursor);
 }
 
 static void paint_2d_fill_add_pixel_byte(const int x_px,

@@ -55,6 +55,9 @@ namespace blender {
 #ifdef DEBUG_TIME
 #  include "BLI_time_utildefines.hh"
 #endif
+/* -------------------------------------------------------------------- */
+/** \name Pose Mode Enter/Exit
+ * \{ */
 
 Object *ED_pose_object_from_context(bContext *C)
 {
@@ -131,11 +134,14 @@ bool ED_object_posemode_exit(bContext *C, Object *ob)
   if (ok) {
     WM_event_add_notifier(C, NC_SCENE | ND_MODE | NS_MODE_OBJECT, nullptr);
   }
+  /** \} */
+
   return ok;
 }
 
-/* ********************************************** */
-/* Motion Paths */
+/* -------------------------------------------------------------------- */
+/** \name Motion Paths
+ * \{ */
 
 void ED_pose_recalculate_paths(bContext *C, Scene *scene, Object *ob)
 {
@@ -468,7 +474,11 @@ void POSE_OT_paths_range_update(wmOperatorType *ot)
   ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO;
 }
 
-/* ********************************************** */
+/** \} */
+
+/* -------------------------------------------------------------------- */
+/** \name Bone Name Operators
+ * \{ */
 
 static wmOperatorStatus pose_flip_names_exec(bContext *C, wmOperator *op)
 {
@@ -586,7 +596,11 @@ void POSE_OT_autoside_names(wmOperatorType *ot)
   ot->prop = RNA_def_enum(ot->srna, "axis", axis_items, 0, "Axis", "Axis to tag names with");
 }
 
-/* ********************************************** */
+/** \} */
+
+/* -------------------------------------------------------------------- */
+/** \name Set Rotation Mode Operator
+ * \{ */
 
 static wmOperatorStatus pose_bone_rotmode_exec(bContext *C, wmOperator *op)
 {
@@ -638,8 +652,11 @@ void POSE_OT_rotation_mode_set(wmOperatorType *ot)
       ot->srna, "type", rna_enum_object_rotation_mode_items, 0, "Rotation Mode", "");
 }
 
-/* ********************************************** */
-/* Show/Hide Bones */
+/** \} */
+
+/* -------------------------------------------------------------------- */
+/** \name Show/Hide Bones
+ * \{ */
 
 /* active object is armature in posemode, poll checked */
 static wmOperatorStatus pose_hide_exec(bContext *C, wmOperator *op)
@@ -752,6 +769,8 @@ void POSE_OT_reveal(wmOperatorType *ot)
 
   RNA_def_boolean(ot->srna, "select", true, "Select", "");
 }
+
+/** \} */
 
 /* -------------------------------------------------------------------- */
 /** \name Flip Quaternions

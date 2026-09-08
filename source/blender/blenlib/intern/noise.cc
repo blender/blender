@@ -2302,7 +2302,8 @@ static float2 compute_2d_gabor_kernel(const float2 position,
  * \lim_{x \to \infty} \frac{1 - e^{-2 \pi f_0^2}}{4}
  * \endcode
  *
- * To get an approximation of 0.25. */
+ * To get an approximation of 0.25.
+ */
 static float compute_2d_gabor_standard_deviation()
 {
   const float integral_of_gabor_squared = 0.25f;

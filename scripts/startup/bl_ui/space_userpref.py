@@ -589,8 +589,19 @@ class USERPREF_PT_edit_sequence_editor(EditingPanel, CenterAlignMixIn, Panel):
         prefs = context.preferences
         edit = prefs.edit
 
-        layout.prop(edit, "connect_strips_by_default")
         layout.prop(edit, "clamp_strips_by_default")
+
+
+class USERPREF_PT_edit_sequence_editor_new_strips(EditingPanel, CenterAlignMixIn, Panel):
+    bl_label = "New Strips"
+    bl_parent_id = "USERPREF_PT_edit_sequence_editor"
+
+    def draw_centered(self, context, layout):
+        prefs = context.preferences
+        edit = prefs.edit
+
+        layout.prop(edit, "default_strip_length", text="Strip Length")
+        layout.prop(edit, "connect_strips_by_default", text="Connect Movie Strips")
 
 
 class USERPREF_PT_edit_misc(EditingPanel, CenterAlignMixIn, Panel):
@@ -1266,6 +1277,7 @@ class USERPREF_PT_theme_interface_styles(ThemePanel, CenterAlignMixIn, Panel):
 
         col = flow.column()
         col.prop(ui, "widget_text_cursor")
+        col.prop(ui, "link")
 
 
 class USERPREF_PT_theme_interface_transparent_checker(ThemePanel, CenterAlignMixIn, Panel):
@@ -3036,7 +3048,7 @@ class USERPREF_PT_experimental_prototypes(ExperimentalPanel, Panel):
             context.preferences,
             (
                 ({"property": "use_new_curves_tools"}, ("blender/blender/issues/68981", "#68981")),
-                ({"property": "use_sculpt_texture_paint"}, ("blender/blender/issues/96225", "#96225")),
+                ({"property": "use_3d_texture_paint"}, ("blender/blender/issues/156410", "#156410")),
             ),
         )
 
@@ -3098,6 +3110,7 @@ classes = (
     USERPREF_PT_edit_text_editor,
     USERPREF_PT_edit_node_editor,
     USERPREF_PT_edit_sequence_editor,
+    USERPREF_PT_edit_sequence_editor_new_strips,
     USERPREF_PT_edit_misc,
 
     USERPREF_PT_animation_timeline,

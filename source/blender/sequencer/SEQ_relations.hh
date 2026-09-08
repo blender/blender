@@ -37,6 +37,11 @@ bool relations_render_loop_check(Strip *strip_main, Strip *strip);
 void relations_free_imbuf(Scene *scene, ListBaseT<Strip> *seqbase, bool for_render);
 
 /**
+ * Free all cached sequencer data of \a scene, including media presence and all caches.
+ */
+void relations_refresh_all(Scene *scene);
+
+/**
  * Invalidates various caches related to a given strip:
  * - Final cached frames over the length of the strip,
  * - Intra-frame caches of the current frame,

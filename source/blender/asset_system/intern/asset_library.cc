@@ -68,6 +68,11 @@ AssetLibrary *AS_asset_library_load_from_directory(const char *name, const char 
   return lib;
 }
 
+std::string AS_asset_library_resolve_path(StringRef path)
+{
+  return utils::resolve_directory_path(path);
+}
+
 bool AS_asset_library_has_any_unsaved_catalogs()
 {
   AssetLibraryService *service = AssetLibraryService::get();
@@ -85,7 +90,7 @@ std::string AS_asset_library_find_suitable_root_path_from_path(const StringRefNu
   if (bUserAssetLibrary *preferences_lib = BKE_preferences_asset_library_containing_path(
           &U, input_path.c_str()))
   {
-    return preferences_lib->dirpath;
+    return preferences_lib->resolved_dirpath;
   }
 
   char buffer[FILE_MAXDIR];
@@ -222,7 +227,7 @@ AssetLibrary::AssetLibrary(eAssetLibraryType library_type,
     : library_type_(library_type),
       is_read_only_(is_read_only),
       name_(name),
-      root_path_(std::make_shared<std::string>(utils::normalize_directory_path(root_path))),
+      root_path_(std::make_shared<std::string>(utils::resolve_directory_path(root_path))),
       catalog_service_(std::make_unique<AssetCatalogService>(
           *root_path_,
           is_read_only ? std::optional{AssetCatalogService::read_only_tag{}} : std::nullopt))

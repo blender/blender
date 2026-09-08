@@ -20,6 +20,7 @@
 #include "BLI_math_vector_c.hh"
 #include "BLI_path_utils.hh"
 #include "BLI_string.hh"
+#include "BLI_string_utf8.hh"
 
 #include "CLG_log.h"
 
@@ -557,7 +558,8 @@ static StudioLight *studiolight_add_file(const char *filepath, int flag)
       BLI_path_extension_check_array(filename, imb_ext_image))
   {
     StudioLight *sl = studiolight_create(STUDIOLIGHT_EXTERNAL_FILE | flag);
-    STRNCPY(sl->name, filename);
+    const size_t name_len = STRNCPY_RLEN(sl->name, filename);
+    BLI_str_utf8_invalid_strip(sl->name, name_len);
     STRNCPY(sl->filepath, filepath);
 
     if ((flag & STUDIOLIGHT_TYPE_STUDIO) != 0) {
@@ -972,7 +974,8 @@ StudioLight *BKE_studiolight_create(const char *filepath,
   char filename[FILE_MAXFILE];
   BLI_path_split_file_part(filepath, filename, FILE_MAXFILE);
   STRNCPY(sl->filepath, filepath);
-  STRNCPY(sl->name, filename);
+  const size_t name_len = STRNCPY_RLEN(sl->name, filename);
+  BLI_str_utf8_invalid_strip(sl->name, name_len);
 
   memcpy(sl->light, light, sizeof(*light) * 4);
   memcpy(sl->light_ambient, light_ambient, sizeof(*light_ambient) * 3);

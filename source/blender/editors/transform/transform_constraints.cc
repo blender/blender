@@ -69,7 +69,12 @@ static void projection_matrix_calc(const TransInfo *t, float r_pmtx[3][3])
   mul_m3_m3m3(r_pmtx, t->spacemtx, mat);
 }
 
-/* ************************** CONSTRAINTS ************************* */
+/** \} */
+
+/* -------------------------------------------------------------------- */
+/** \name Constraints
+ * \{ */
+
 #define CONSTRAIN_EPSILON 0.0001f
 
 static void constraint_plane_normal_calc(const TransInfo *t, float r_plane_no[3])

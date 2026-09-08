@@ -392,6 +392,8 @@ if(DEFINED LIBDIR)
     ${SYCL_ROOT_DIR}/lib/libur_*.so.*
   )
   list(FILTER _sycl_runtime_libraries EXCLUDE REGEX "\\.py$")
+  # Only bundle the v2 Level Zero adapter, not the legacy libur_adapter_level_zero.so (#159584).
+  list(FILTER _sycl_runtime_libraries EXCLUDE REGEX "ur_adapter_level_zero\\.so")
   list(APPEND PLATFORM_BUNDLED_LIBRARIES ${_sycl_runtime_libraries})
   unset(_sycl_runtime_libraries)
 endif()
@@ -724,6 +726,15 @@ if(WITH_SYSTEM_AUDASPACE)
   find_package_wrapper(Audaspace)
   set(AUDASPACE_FOUND ${AUDASPACE_FOUND} AND ${AUDASPACE_C_FOUND})
   set_and_warn_library_found("External Audaspace" AUDASPACE_FOUND WITH_SYSTEM_AUDASPACE)
+endif()
+
+# Reading desktop settings (the light/dark theme preference) from the XDG desktop portal.
+# Only the headers are needed when `WITH_GHOST_DBUS_DYNLOAD` is enabled, `libdbus` itself is
+# then an optional runtime dependency.
+if(WITH_GHOST_DBUS)
+  find_package(PkgConfig)
+  pkg_check_modules(dbus dbus-1)
+  set_and_warn_library_found("dbus-1" dbus_FOUND WITH_GHOST_DBUS)
 endif()
 
 if(WITH_GHOST_WAYLAND)

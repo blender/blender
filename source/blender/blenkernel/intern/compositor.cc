@@ -2,6 +2,10 @@
  *
  * SPDX-License-Identifier: GPL-2.0-or-later */
 
+/** \file
+ * \ingroup bke
+ */
+
 #include <limits>
 #include <string>
 
@@ -66,10 +70,17 @@ Cache::~Cache()
   this->clear_frames();
 }
 
-const ImBuf *Cache::get_frame(const int frame_number, const int view_identifier)
+ImBuf *Cache::get_frame(const int frame_number, const int view_identifier)
 {
   std::scoped_lock lock{frames_mutex_};
-  return this->frames_.lookup_try(FrameKey(frame_number, view_identifier)).value_or(nullptr);
+  const FrameKey key = FrameKey(frame_number, view_identifier);
+  ImBuf *cached_frame = this->frames_.lookup_try(key).value_or(nullptr);
+  if (!cached_frame) {
+    return nullptr;
+  }
+
+  IMB_refImBuf(cached_frame);
+  return cached_frame;
 }
 
 void Cache::add_frame(const int frame_number, const int view_identifier, ImBuf *image_buffer)
@@ -96,7 +107,7 @@ void Cache::clear_frames()
   this->frames_.clear();
 }
 
-Vector<IndexRange> Cache::compute_frame_ranges()
+Vector<Cache::FrameRange> Cache::compute_frame_ranges()
 {
   /* Compute a sorted vector of all cached frames. */
   VectorSet<int> frame_numbers_set;
@@ -110,18 +121,17 @@ Vector<IndexRange> Cache::compute_frame_ranges()
   Vector<int> frame_numbers = frame_numbers_set.extract_vector();
   std::ranges::sort(frame_numbers);
 
-  Vector<IndexRange> frame_ranges;
+  Vector<FrameRange> frame_ranges;
   for (const int frame : frame_numbers) {
     /* We start a new range by appending a singleton range of the current frame, either because
      * this is the first range or because the last range will not be contiguous with the current
      * frame. */
-    if (frame_ranges.is_empty() || frame - frame_ranges.last().last() > 1) {
-      frame_ranges.append(IndexRange(frame, 1));
+    if (frame_ranges.is_empty() || frame - frame_ranges.last().end > 1) {
+      frame_ranges.append(FrameRange(frame, frame));
     }
     else {
       /* Otherwise, the frame is contiguous with the last range, so we just grow its size by 1. */
-      frame_ranges.last() = IndexRange(frame_ranges.last().start(),
-                                       frame_ranges.last().size() + 1);
+      frame_ranges.last().end++;
     }
   }
 
@@ -605,7 +615,7 @@ bool is_viewport_compositor_used(const bContext &context)
   for (const wmWindow &window : window_manager->windows) {
     const bScreen *screen = WM_window_get_active_screen(&window);
     for (const ScrArea &area : screen->areabase) {
-      const SpaceLink &space = *static_cast<const SpaceLink *>(area.spacedata.first);
+      const SpaceLink &space = *area.spacedata.first();
       if (space.spacetype == SPACE_VIEW3D) {
         const View3D &view_3d = reinterpret_cast<const View3D &>(space);
         for (ARegion &region : area.regionbase) {

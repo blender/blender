@@ -360,8 +360,7 @@ void BKE_main_namemap_clear(Main &bmain)
   auto bmain_namemap_clear = [](Main *bmain_iter) -> void {
     BKE_main_namemap_destroy(&bmain_iter->name_map);
     BKE_main_namemap_destroy(&bmain_iter->name_map_global);
-    for (Library *lib_iter = static_cast<Library *>(bmain_iter->libraries.first);
-         lib_iter != nullptr;
+    for (Library *lib_iter = bmain_iter->libraries.first(); lib_iter != nullptr;
          lib_iter = static_cast<Library *>(lib_iter->id.next))
     {
       BKE_main_namemap_destroy(&lib_iter->runtime->name_map);
@@ -759,7 +758,7 @@ static bool main_namemap_validate_and_fix(Main &bmain, const bool do_fix)
       }
     }
 
-    lib = static_cast<Library *>((lib == nullptr) ? bmain.libraries.first : lib->id.next);
+    lib = static_cast<Library *>((lib == nullptr) ? bmain.libraries.first() : lib->id.next);
     name_map = (lib != nullptr) ? lib->runtime->name_map : nullptr;
   } while (lib != nullptr);
 

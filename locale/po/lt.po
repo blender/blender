@@ -1,9 +1,9 @@
 
 msgid ""
 msgstr ""
-"Project-Id-Version: Blender 5.3.0 Alpha (b'af4852ed4560')\n"
+"Project-Id-Version: Blender 5.3.0 Alpha (b'f5df8c32f99b')\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-08-10 07:54+0000\n"
+"POT-Creation-Date: 2026-09-07 07:47+0000\n"
 "PO-Revision-Date: 2025-07-23 15:18+0000\n"
 "Last-Translator: Aras Pranckevičius <aras@nesnausk.org>\n"
 "Language-Team: Lithuanian <https://translate.blender.org/projects/blender-ui/ui/lt/>\n"
@@ -1041,10 +1041,6 @@ msgid "Version"
 msgstr "Versija"
 
 
-msgid "ACEScg"
-msgstr "„ACEScg“"
-
-
 msgid "Not yet defined"
 msgstr "Dar nėra apibrėžtas"
 
@@ -1407,28 +1403,8 @@ msgid "Exclude"
 msgstr "Išskirti"
 
 
-msgid "ACES2065-1"
-msgstr "„ACES2065-1“"
-
-
-msgid "AgX Log"
-msgstr "„AgX“ žurnalas"
-
-
-msgid "Rec.1886"
-msgstr "„Rec.1886“"
-
-
-msgid "Rec.2020"
-msgstr "„Rec.2020“"
-
-
 msgid "Color space that the sequencer operates in"
 msgstr "Vaizdo montavimo spalvų erdvė"
-
-
-msgid "View"
-msgstr "Rodymas"
 
 
 msgid "Temperature"
@@ -1453,6 +1429,10 @@ msgstr "„HSL“"
 
 msgid "Elements"
 msgstr "Elementai"
+
+
+msgid "Identifier"
+msgstr "Identifikatorius"
 
 
 msgctxt "Text"
@@ -1526,6 +1506,10 @@ msgstr "Gylis"
 
 msgid "Surface"
 msgstr "Paviršius"
+
+
+msgid "View"
+msgstr "Rodymas"
 
 
 msgid "Radius"
@@ -1702,10 +1686,6 @@ msgstr "Sūkurys"
 
 msgid "Wind"
 msgstr "Vėjas"
-
-
-msgid "Identifier"
-msgstr "Identifikatorius"
 
 
 msgid "Group"
@@ -3089,24 +3069,24 @@ msgid "Dots"
 msgstr "Taškai"
 
 
+msgid "Import"
+msgstr "Importuoti"
+
+
 msgid "Show/Hide"
 msgstr "Rodyti/Slėpti"
+
+
+msgid "Layout"
+msgstr "Išdėstymas/Maketas"
 
 
 msgid "Apply"
 msgstr "Pritaikyti"
 
 
-msgid "Import"
-msgstr "Importuoti"
-
-
 msgid "Track"
 msgstr "Sekti"
-
-
-msgid "Layout"
-msgstr "Išdėstymas/Maketas"
 
 
 msgid "Animals"
@@ -3927,10 +3907,6 @@ msgid "Tool"
 msgstr "Įrankis"
 
 
-msgid "Scene Properties"
-msgstr "Scenos ypatybės"
-
-
 msgctxt "ID"
 msgid "Render"
 msgstr "Vaizduoti"
@@ -3943,6 +3919,10 @@ msgstr "Išvestis"
 
 msgid "Output Properties"
 msgstr "Išvesties ypatybės"
+
+
+msgid "Scene Properties"
+msgstr "Scenos ypatybės"
 
 
 msgid "World Properties"
@@ -4389,13 +4369,13 @@ msgstr "Nauja/-s/-i"
 
 
 msgctxt "Operator"
-msgid "Color"
-msgstr "Spalva"
+msgid "Text"
+msgstr "Tekstas"
 
 
 msgctxt "Operator"
-msgid "Text"
-msgstr "Tekstas"
+msgid "Color"
+msgstr "Spalva"
 
 
 msgctxt "Text"

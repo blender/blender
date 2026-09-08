@@ -59,6 +59,7 @@ enum eAssetLibrary_Flag : int {
   ASSET_LIBRARY_DISABLED = (1 << 1),
   ASSET_LIBRARY_USE_REMOTE_URL = (1 << 2),
   ASSET_LIBRARY_USE_AUTH_TOKEN = (1 << 3),
+  ASSET_LIBRARY_PROJECT_DEFINED = (1 << 4),
 };
 
 enum class AssetAccess : int8_t {
@@ -127,6 +128,9 @@ struct AssetMetaData {
 
   /** Optional license of this asset for display in the UI. Dynamic length. */
   char *license = nullptr;
+
+  /** Optional webpage of this asset for display in UI. Dynamic length. */
+  char *webpage = nullptr;
 
   /** User defined tags for this asset. The asset manager uses these for filtering, but how they
    * function exactly (e.g. how they are registered to provide a list of searchable available tags)

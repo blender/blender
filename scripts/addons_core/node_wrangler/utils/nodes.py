@@ -129,7 +129,6 @@ def node_at_pos(nodes, context, event):
 
 def store_mouse_cursor(context, event):
     space = context.space_data
-    v2d = context.region.view2d
     tree = space.edit_tree
 
     # convert mouse position to the View2D for later node placement
@@ -137,11 +136,6 @@ def store_mouse_cursor(context, event):
         space.cursor_location_from_region(event.mouse_region_x, event.mouse_region_y)
     else:
         space.cursor_location = tree.view_center
-
-
-def get_nodes_links(context):
-    tree = context.space_data.edit_tree
-    return tree.nodes, tree.links
 
 
 def get_internal_socket(socket):

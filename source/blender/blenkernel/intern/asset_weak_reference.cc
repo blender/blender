@@ -183,4 +183,21 @@ void BKE_asset_catalog_path_list_add_path(ListBaseT<AssetCatalogPathLink> &catal
   BLI_addtail(&catalog_path_list, new_path);
 }
 
+bool BKE_asset_catalog_path_list_remove_path(ListBaseT<AssetCatalogPathLink> &catalog_path_list,
+                                             const char *catalog_path)
+{
+  bool changed = false;
+
+  for (AssetCatalogPathLink &path_link : catalog_path_list.items_mutable()) {
+    if (!STREQ(path_link.path, catalog_path)) {
+      continue;
+    }
+    MEM_delete(path_link.path);
+    BLI_freelinkN(&catalog_path_list, &path_link);
+    changed = true;
+  }
+
+  return changed;
+}
+
 }  // namespace blender

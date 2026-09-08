@@ -2,6 +2,10 @@
  *
  * SPDX-License-Identifier: GPL-2.0-or-later */
 
+/** \file
+ * \ingroup shdnodes
+ */
+
 #include "node_shader_util.hh"
 #include "node_util.hh"
 
@@ -148,7 +152,7 @@ static int node_shader_gpu_tex_image(GPUMaterial *mat,
     }
   }
 
-  if (out[0].hasoutput) {
+  if (out[0].hasoutput && out[0].link) {
     if (ELEM(ima->alpha_mode, IMA_ALPHA_IGNORE, IMA_ALPHA_CHANNEL_PACKED) ||
         IMB_colormanagement_space_name_is_data(ima->colorspace_settings.name))
     {

@@ -97,9 +97,7 @@ void BKE_blender_user_menu_item_free(bUserMenuItem *umi)
 
 void BKE_blender_user_menu_item_free_list(ListBaseT<bUserMenuItem> *lb)
 {
-  for (bUserMenuItem *umi = static_cast<bUserMenuItem *>(lb->first), *umi_next; umi;
-       umi = umi_next)
-  {
+  for (bUserMenuItem *umi = lb->first(), *umi_next; umi; umi = umi_next) {
     umi_next = umi->next;
     BKE_blender_user_menu_item_free(umi);
   }

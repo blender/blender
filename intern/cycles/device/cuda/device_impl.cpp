@@ -790,7 +790,7 @@ void CUDADevice::image_alloc(device_image &mem)
    *
    * Cycles expects to read all image data as normalized float values in
    * kernel/device/gpu/image.h. But storing all data as floats would be very inefficient due to the
-   * huge size of float image. So in the code below, we define different texture types including
+   * huge size of float images. So in the code below, we define different texture types including
    * integer types, with the aim of using CUDA's default promotion behavior of integer data to
    * floating point data in the range [0, 1], as noted in the CUDA documentation on
    * cuTexObjectCreate API Call.

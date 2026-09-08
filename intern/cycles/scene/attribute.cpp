@@ -24,10 +24,10 @@ Attribute::Attribute(ustring name,
                      AttributePrimitive prim)
     : name(name), std(ATTR_STD_NONE), type(type), element(element), flags(0), modified(true)
 {
-  /* string and matrix not supported! */
+  /* String is not supported! */
   assert(type == TypeFloat || type == TypeColor || type == TypePoint || type == TypeVector ||
          type == TypeNormal || type == TypeMatrix || type == TypeFloat2 || type == TypeFloat4 ||
-         type == TypeRGBA);
+         type == TypeRGBA || type == TypeQuaternion || type == TypePackedSphericalHarmonicsRest);
 
   if (element & ATTR_ELEMENT_VOXEL) {
     auto *data = GuardedAllocator<ImageHandle>().allocate(1);
@@ -350,6 +350,12 @@ size_t Attribute::data_sizeof() const
   if (type == TypeRGBA) {
     return sizeof(float4);
   }
+  if (type == TypeQuaternion) {
+    return sizeof(Quaternion);
+  }
+  if (type == TypePackedSphericalHarmonicsRest) {
+    return sizeof(PackedSphericalHarmonicsRest);
+  }
   return sizeof(packed_float3);
 }
 
@@ -448,6 +454,11 @@ bool Attribute::same_storage(const TypeDesc a, const TypeDesc b)
 
 void Attribute::zero_data(void *dst)
 {
+  if (type == TypePackedSphericalHarmonicsRest) {
+    spherical_harmonics_rest_fill_zero(*static_cast<PackedSphericalHarmonicsRest *>(dst));
+    return;
+  }
+
   memset(dst, 0, data_sizeof());
 }
 
@@ -597,6 +608,14 @@ AttrKernelDataType Attribute::kernel_type(const Attribute &attr)
 
   if (attr.type == TypeFloat4 || attr.type == TypeRGBA || attr.type == TypeMatrix) {
     return AttrKernelDataType::FLOAT4;
+  }
+
+  if (attr.type == TypeQuaternion) {
+    return AttrKernelDataType::QUATERNION;
+  }
+
+  if (attr.type == TypePackedSphericalHarmonicsRest) {
+    return AttrKernelDataType::SPHERICAL_HARMONICS_REST;
   }
 
   return AttrKernelDataType::FLOAT3;
@@ -1132,12 +1151,12 @@ void AttributeSet::clear_modified()
 void AttributeSet::tag_modified(const Attribute &attr)
 {
   const AttrKernelDataType kernel_type = Attribute::kernel_type(attr);
-  modified_flag |= (1u << kernel_type);
+  modified_flag |= (1u << uint(kernel_type));
 }
 
-bool AttributeSet::modified(AttrKernelDataType kernel_type) const
+bool AttributeSet::modified(const AttrKernelDataType kernel_type) const
 {
-  return (modified_flag & (1u << kernel_type)) != 0;
+  return (modified_flag & (1u << uint(kernel_type))) != 0;
 }
 
 /* AttributeRequest */
@@ -1220,7 +1239,7 @@ void AttributeRequestSet::add(AttributeStandard std)
   for (AttributeRequest &req : requests) {
     if (req.std == std) {
       /* Clear the name so that std is preferred if available, and name
-       * is only used as a last restort in #AttributeSet::find. */
+       * is only used as a last resort in #AttributeSet::find. */
       req.name = ustring();
       return;
     }

@@ -249,7 +249,7 @@ static wmOperatorStatus ptcache_bake_modal(bContext *C, wmOperator *op, const wm
   Scene *scene = static_cast<Scene *>(op->customdata);
 
   /* no running blender, remove handler and pass through */
-  if (0 == WM_jobs_test(CTX_wm_manager(C), scene, WM_JOB_TYPE_POINTCACHE)) {
+  if (!WM_jobs_has_running(CTX_wm_manager(C), scene, WM_JOB_TYPE_POINTCACHE)) {
     return OPERATOR_FINISHED | OPERATOR_PASS_THROUGH;
   }
 
@@ -423,10 +423,10 @@ static wmOperatorStatus ptcache_remove_exec(bContext *C, wmOperator * /*op*/)
   PTCacheID pid = BKE_ptcache_id_find(ob, scene, cache);
 
   /* don't delete last cache */
-  if (pid.cache && pid.ptcaches->first != pid.ptcaches->last) {
+  if (pid.cache && pid.ptcaches->first() != pid.ptcaches->last()) {
     BLI_remlink(pid.ptcaches, pid.cache);
     BKE_ptcache_free(pid.cache);
-    *(pid.cache_ptr) = static_cast<PointCache *>(pid.ptcaches->first);
+    *(pid.cache_ptr) = pid.ptcaches->first();
 
     DEG_id_tag_update(&ob->id, ID_RECALC_SYNC_TO_EVAL);
     WM_event_add_notifier(C, NC_OBJECT | ND_POINTCACHE, ob);

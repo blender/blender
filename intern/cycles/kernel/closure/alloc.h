@@ -96,25 +96,20 @@ ccl_device_inline ccl_private ShaderClosure *bsdf_alloc(ccl_private ShaderData *
 template<class Bsdf>
 ccl_device_inline ccl_private Bsdf *bsdf_alloc_maybe_emission(ccl_private ShaderData *sd,
                                                               ccl_private Bsdf *bsdf,
-                                                              const uint32_t path_flag,
                                                               Spectrum weight)
 {
-  if (path_flag & PATH_RAY_EMISSION) {
+  if (!(closure_sample_weight(sd->runtime_flag, weight) > 0.0f)) {
+    return nullptr;
+  }
+
+  if ((sd->num_closure_left == 0) && (sd->shader_flag & SD_HAS_EMISSION)) {
     /* When evaluating emission we don't allocate closures, but we still need a valid closure to
      * compute the weight. */
-    const float sample_weight = closure_sample_weight(sd->runtime_flag, weight);
-    if (!(sample_weight > 0.0f)) {
-      return nullptr;
-    }
-
     bsdf->weight = weight;
-    bsdf->sample_weight = sample_weight;
-  }
-  else {
-    bsdf = (ccl_private Bsdf *)bsdf_alloc(sd, sizeof(Bsdf), weight);
+    return bsdf;
   }
 
-  return bsdf;
+  return (ccl_private Bsdf *)bsdf_alloc(sd, sizeof(Bsdf), weight);
 }
 
 CCL_NAMESPACE_END

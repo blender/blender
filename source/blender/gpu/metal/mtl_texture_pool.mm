@@ -11,9 +11,8 @@
 #include "BKE_global.hh"
 
 #include "mtl_backend.hh"
+#include "mtl_debug.hh"
 #include "mtl_texture_pool.hh"
-
-#include "CLG_log.h"
 
 #include "fmt/format.h"
 
@@ -290,7 +289,7 @@ void MTLTexturePool::reset(bool force_free)
 void MTLTexturePool::log_usage_data() const
 {
   int64_t total_texture_count = acquired_.size() + pool_.size();
-  CLOG_TRACE(&LOG,
+  CLOG_DEBUG(&LOG,
              "MTLTexturePool uses %ld textures (%ld consecutively)",
              static_cast<long>(total_texture_count),
              static_cast<long>(current_usage_data_.usage_count_max));

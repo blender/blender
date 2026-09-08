@@ -835,7 +835,7 @@ static void draw_seq_text_get_source(const Strip *strip, char *r_source, size_t 
 static size_t draw_seq_text_get_overlay_string(const TimelineDrawContext &ctx,
                                                const StripDrawContext &strip_ctx,
                                                char *r_overlay_string,
-                                               size_t overlay_string_len)
+                                               size_t overlay_string_maxncpy)
 {
   const Strip *strip = strip_ctx.strip;
 
@@ -879,7 +879,7 @@ static size_t draw_seq_text_get_overlay_string(const TimelineDrawContext &ctx,
 
   BLI_assert(i <= ARRAY_SIZE(text_array));
 
-  return BLI_string_join_array(r_overlay_string, overlay_string_len, text_array, i);
+  return BLI_string_join_array(r_overlay_string, overlay_string_maxncpy, text_array, i);
 }
 
 static void get_strip_text_color(const StripDrawContext &strip_ctx, uchar r_col[4])
@@ -1321,10 +1321,7 @@ static void draw_strips_background(const TimelineDrawContext &ctx,
     }
     data.col_background = color_pack(col);
 
-    const bool show_thumbnails = (ctx.sseq->timeline_overlay.flag &
-                                  SEQ_TIMELINE_STRIP_END_THUMBNAILS) ||
-                                 (ctx.sseq->timeline_overlay.flag &
-                                  SEQ_TIMELINE_CONTINUOUS_THUMBNAILS);
+    const bool show_thumbnails = (ctx.sseq->timeline_overlay.flag & SEQ_TIMELINE_SHOW_THUMBNAILS);
     /* Darker color band for thumbnail strips. */
     if (show_overlay && seq::strip_can_have_thumbnail(scene, strip.strip) && show_thumbnails) {
       /* The more negative the offset, darker the color. */
@@ -1487,7 +1484,7 @@ static void strip_data_handle_flags_set(const StripDrawContext &strip,
   const bool selected = strip.strip->flag & SEQ_SELECT;
   /* Handles on left/right side. */
   if (!seq::transform_is_locked(ctx.channels, strip.strip) &&
-      can_select_handle(scene, strip.strip, ctx.v2d))
+      can_select_handle(scene, strip.strip))
   {
     const bool selected_l = selected && handle_is_selected(strip.strip, STRIP_HANDLE_LEFT);
     const bool selected_r = selected && handle_is_selected(strip.strip, STRIP_HANDLE_RIGHT);
@@ -1550,10 +1547,7 @@ static void draw_strip_texts(const TimelineDrawContext &ctx,
                              const Vector<StripDrawContext> &strips)
 {
   /* Nothing to do if we're not showing thumbnails overall. */
-  const bool show_thumbnails = (ctx.sseq->timeline_overlay.flag &
-                                SEQ_TIMELINE_STRIP_END_THUMBNAILS) ||
-                               (ctx.sseq->timeline_overlay.flag &
-                                SEQ_TIMELINE_CONTINUOUS_THUMBNAILS);
+  const bool show_thumbnails = (ctx.sseq->timeline_overlay.flag & SEQ_TIMELINE_SHOW_THUMBNAILS);
   if ((ctx.sseq->flag & SEQ_SHOW_OVERLAY) == 0 || !show_thumbnails) {
     return;
   }
@@ -1725,7 +1719,7 @@ static void draw_timeline_sfra_efra(const TimelineDrawContext &ctx)
 
   /* While in meta strip, draw a checkerboard overlay outside of frame range. */
   if (ed && !ed->metastack.is_empty()) {
-    const MetaStack *ms = static_cast<const MetaStack *>(ed->metastack.last);
+    const MetaStack *ms = ed->metastack.last();
 
     uint pos = GPU_vertformat_attr_add(immVertexFormat(), "pos", gpu::VertAttrType::SFLOAT_32_32);
     immBindBuiltinProgram(GPU_SHADER_2D_CHECKER);

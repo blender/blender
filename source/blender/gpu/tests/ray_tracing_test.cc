@@ -385,7 +385,7 @@ static void test_ray_tracing_fragment()
   tlas->add_instance(*blas, float4x4::identity());
   tlas->build();
 
-  /* Rays from the cube centre hit; rays outside pointing away miss. */
+  /* Rays from the cube center hit; rays outside pointing away miss. */
   Vector<Ray> rays;
   rays.append({float3(0.0f, 0.0f, 0.0f), float3(-1.0f, 0.0f, 0.0f), true});
   rays.append({float3(0.0f, 0.0f, 0.0f), float3(1.0f, 0.0f, 0.0f), true});
@@ -468,7 +468,7 @@ static void test_ray_tracing_instance_custom_index()
   tlas->add_instance(*blas, float4x4::identity());
   tlas->build();
 
-  /* All rays start at the cube centre and hit it. */
+  /* All rays start at the cube center and hit it. */
   Vector<Ray> rays;
   rays.append({float3(0.0f, 0.0f, 0.0f), float3(-1.0f, 0.0f, 0.0f), true});
   rays.append({float3(0.0f, 0.0f, 0.0f), float3(1.0f, 0.0f, 0.0f), true});

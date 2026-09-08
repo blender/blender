@@ -162,9 +162,6 @@ static Vector<StringRefNull> missing_capabilities_get(VkPhysicalDevice vk_physic
   if (features.features.multiViewport == VK_FALSE) {
     missing_capabilities.append("multi viewport");
   }
-  if (features.features.shaderClipDistance == VK_FALSE) {
-    missing_capabilities.append("shader clip distance");
-  }
   if (features.features.fragmentStoresAndAtomics == VK_FALSE) {
     missing_capabilities.append("fragment stores and atomics");
   }
@@ -377,7 +374,7 @@ void VKBackend::supported_devices_print(FILE *fp)
   size_t w_id = strlen(col_id);
   for (const Row &row : rows) {
     char buf[16];
-    w_index = std::max(w_index, BLI_snprintf_rlen(buf, sizeof(buf), "%d", row.index));
+    w_index = std::max(w_index, SNPRINTF_RLEN(buf, "%d", row.index));
     w_id = std::max(w_id, row.identifier.size());
   }
 
@@ -584,6 +581,9 @@ void VKBackend::detect_workarounds(VKDevice &device)
     workarounds.not_aligned_pixel_formats = true;
   }
 
+  extensions.shader_clip_distance = device.physical_device_features_get().shaderClipDistance ==
+                                    VK_TRUE;
+
   /* During testing graphics pipeline library feature it was detected that it would crash on
    * official AMD drivers.
    */
@@ -636,26 +636,16 @@ void VKBackend::detect_workarounds(VKDevice &device)
     GPUIntelGpuArch gpu_arch = GPU_platform_get_intel_arch(
         device.physical_device_properties_get().deviceID);
 
-    /* Intel Gen9 iGPUs (Intel 7th to 10th Gen Processor Graphics driver) show a black screen at
-     * application startup when using VK_EXT_vertex_input_dynamic_state.
-     *
-     * See #147721
-     */
     if (gpu_arch == GPUIntelGpuArch::Gen9AndOlder) {
+      /* Intel Gen9 iGPUs (Intel 7th to 10th Gen Processor Graphics driver) show a black screen at
+       * application startup when using VK_EXT_vertex_input_dynamic_state.
+       *
+       * See #147721
+       */
       extensions.vertex_input_dynamic_state = false;
-    }
 
-    /* Using the texture pool causes varying issues on older Intel iGPUs.
-     * Note: Gen12 iGPUs are partly covered by the Intel 11th to 14th Gen Processor Graphics driver
-     * and the Intel Arc Graphics driver (the latter handles Arrow Lake and Meteor Lake).
-     * - Visual corruptions can be seen on Gen9 and older iGPUs (Intel 7th to 10th Gen Processor
-     * Graphics driver; #147721).
-     * - When using the image cache, visual artifacts can be seen on Gen11 and Gen12 iGPUs
-     * (#156496) and Gen12 dGPUs (#160002).
-     * - When using the texture pool without the image cache, memory leaks happen on Gen11 and
-     * Gen12 GPUs (#157777).
-     */
-    if (gpu_arch <= GPUIntelGpuArch::Gen12) {
+      /* Using the texture pool causes visual corruptions on Gen9 and older iGPUs (Intel 7th to
+       * 10th Gen Processor Graphics driver; #147721). */
       GCaps.texture_pool_workaround = true;
     }
   }
@@ -744,7 +734,7 @@ Fence *VKBackend::fence_alloc()
   return new VKFence();
 }
 
-WorkInFlight *VKBackend::work_in_flight_alloc(unsigned int max_in_flight)
+WorkInFlight *VKBackend::work_in_flight_alloc(uint max_in_flight)
 {
   return new VKWorkInFlight(max_in_flight);
 }

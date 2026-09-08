@@ -260,4 +260,10 @@ _km_hierarchy = [
         ('Generic Gizmo Select', 'EMPTY', 'WINDOW', []),
         ('Generic Gizmo Tweak Modal Map', 'EMPTY', 'WINDOW', []),
     ]),
+
+    ('Generic Tool: Annotate', 'EMPTY', 'WINDOW', [
+        ('Generic Tool: Annotate Line', 'EMPTY', 'WINDOW', []),
+        ('Generic Tool: Annotate Polygon', 'EMPTY', 'WINDOW', []),
+        ('Generic Tool: Annotate Eraser', 'EMPTY', 'WINDOW', []),
+    ]),
 ]

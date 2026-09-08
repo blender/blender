@@ -25,14 +25,14 @@ void seq_multiview_name(const Scene *scene,
                         const char *prefix,
                         const char *ext,
                         char *r_path,
-                        size_t r_size);
+                        size_t r_path_maxncpy);
 
 /** Resolve one individual-view filepath. The returned suffix is optional. */
 bool seq_multiview_view_filepath_get(const Scene &scene,
                                      const char *filepath,
                                      int view_id,
                                      char *r_filepath,
-                                     size_t filepath_size,
+                                     size_t r_filepath_maxncpy,
                                      const char **r_suffix);
 /**
  * The number of files that a multi-view enabled strip needs to resolve the requested

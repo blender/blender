@@ -207,7 +207,7 @@ static wmOperatorStatus solve_camera_invoke(bContext *C, wmOperator *op, const w
   wmJob *wm_job;
   char error_msg[256] = "\0";
 
-  if (WM_jobs_test(CTX_wm_manager(C), CTX_data_scene(C), WM_JOB_TYPE_CLIP_SOLVE_CAMERA)) {
+  if (WM_jobs_has_running(CTX_wm_manager(C), CTX_data_scene(C), WM_JOB_TYPE_CLIP_SOLVE_CAMERA)) {
     /* only one solve is allowed at a time */
     return OPERATOR_CANCELLED;
   }
@@ -252,7 +252,7 @@ static wmOperatorStatus solve_camera_invoke(bContext *C, wmOperator *op, const w
 static wmOperatorStatus solve_camera_modal(bContext *C, wmOperator * /*op*/, const wmEvent *event)
 {
   /* No running solver, remove handler and pass through. */
-  if (0 == WM_jobs_test(CTX_wm_manager(C), CTX_wm_area(C), WM_JOB_TYPE_CLIP_SOLVE_CAMERA)) {
+  if (!WM_jobs_has_running(CTX_wm_manager(C), CTX_data_scene(C), WM_JOB_TYPE_CLIP_SOLVE_CAMERA)) {
     return OPERATOR_FINISHED | OPERATOR_PASS_THROUGH;
   }
 

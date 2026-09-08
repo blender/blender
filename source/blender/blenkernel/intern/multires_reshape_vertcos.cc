@@ -55,7 +55,7 @@ static void multires_reshape_vertcos_foreach_vert(
                                                              grid_coord.grid_index);
 
   const int num_corners = reshape_context->base_faces[face_index].size();
-  const int start_grid_index = reshape_context->face_start_grid_index[face_index];
+  const int start_grid_index = reshape_context->base_faces[face_index].start();
   const int corner = grid_coord.grid_index - start_grid_index;
 
   if (grid_coord.u == 0.0f && grid_coord.v == 0.0f) {

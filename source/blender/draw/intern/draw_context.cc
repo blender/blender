@@ -80,6 +80,7 @@
 #include "UI_view2d.hh"
 
 #include "WM_api.hh"
+#include "WM_toolsystem.hh"
 
 #include "DRW_render.hh"
 #include "draw_cache.hh"
@@ -158,6 +159,10 @@ DRWContext::DRWContext(Mode mode_,
   }
   else {
     this->object_pose = nullptr;
+  }
+
+  if (C != nullptr) {
+    this->active_tool = WM_toolsystem_ref_from_context(C);
   }
 
   /* View layer can be lazily synced. */
@@ -1008,9 +1013,7 @@ void DRW_cache_free_old_batches(Main *bmain)
 
   lasttime = ctime;
 
-  for (scene = static_cast<Scene *>(bmain->scenes.first); scene;
-       scene = static_cast<Scene *>(scene->id.next))
-  {
+  for (scene = bmain->scenes.first(); scene; scene = static_cast<Scene *>(scene->id.next)) {
     for (ViewLayer &view_layer : scene->view_layers) {
       Depsgraph *depsgraph = BKE_scene_get_depsgraph(scene, &view_layer);
       if (depsgraph == nullptr) {
@@ -1111,7 +1114,9 @@ static void drw_render_border_mask(const DRWContext &ctx)
   const RegionView3D *rv3d = ctx.rv3d;
 
   /* Check if we need to do any render border masking. */
-  if (v3d == nullptr || rv3d == nullptr || rv3d->persp != RV3D_CAMOB || rv3d->camroll == 0.0f) {
+  if (v3d == nullptr || rv3d == nullptr || rv3d->persp != RV3D_CAMOB || v3d->camera == nullptr ||
+      rv3d->camroll == 0.0f)
+  {
     return;
   }
 
@@ -1919,8 +1924,7 @@ void DRW_render_gpencil(RenderEngine *engine, Depsgraph *depsgraph)
     BLI_rcti_init(&render_rect, 0, draw_ctx.size[0], 0, draw_ctx.size[1]);
   }
 
-  for (RenderView *render_view = static_cast<RenderView *>(render_result->views.first);
-       render_view != nullptr;
+  for (RenderView *render_view = render_result->views.first(); render_view != nullptr;
        render_view = render_view->next)
   {
     RE_SetActiveRenderView(render, render_view->name);
@@ -1985,9 +1989,8 @@ void DRW_render_to_image(
                                                        draw_ctx.size[1],
                                                        view_layer->name,
                                                        /*RR_ALL_VIEWS*/ nullptr);
-  RenderLayer *render_layer = static_cast<RenderLayer *>(render_result->layers.first);
-  for (RenderView *render_view = static_cast<RenderView *>(render_result->views.first);
-       render_view != nullptr;
+  RenderLayer *render_layer = render_result->layers.first();
+  for (RenderView *render_view = render_result->views.first(); render_view != nullptr;
        render_view = render_view->next)
   {
     RE_SetActiveRenderView(render, render_view->name);

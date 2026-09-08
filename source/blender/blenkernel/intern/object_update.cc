@@ -240,11 +240,11 @@ void BKE_object_handle_data_update(Depsgraph *depsgraph, Scene *scene, Object *o
   }
 
   /* particles */
-  if (!(ob->mode & OB_MODE_EDIT) && ob->particlesystem.first) {
+  if (!(ob->mode & OB_MODE_EDIT) && ob->particlesystem.first()) {
     const bool use_render_params = (DEG_get_mode(depsgraph) == DAG_EVAL_RENDER);
     ParticleSystem *tpsys, *psys;
     ob->transflag &= ~OB_DUPLIPARTS;
-    psys = static_cast<ParticleSystem *>(ob->particlesystem.first);
+    psys = ob->particlesystem.first();
     while (psys) {
       if (psys_check_enabled(ob, psys, use_render_params)) {
         /* check use of dupli objects here */
@@ -298,9 +298,8 @@ void BKE_object_sync_to_original(Depsgraph *depsgraph, Object *object)
 
   /* Particle edit mode draws from the original object, so sync imat from evaluated to original
    * object so drawing uses the correct transform. */
-  for (ParticleSystem *
-           psys_eval = static_cast<ParticleSystem *>(object->particlesystem.first),
-          *psys_orig = static_cast<ParticleSystem *>(object_orig->particlesystem.first);
+  for (ParticleSystem *psys_eval = object->particlesystem.first(),
+                      *psys_orig = object_orig->particlesystem.first();
        psys_eval && psys_orig;
        psys_eval = psys_eval->next, psys_orig = psys_orig->next)
   {
@@ -315,8 +314,7 @@ void BKE_object_sync_to_original(Depsgraph *depsgraph, Object *object)
   object_orig->flag = object->flag;
 
   /* Copy back error messages from modifiers. */
-  for (ModifierData *md = static_cast<ModifierData *>(object->modifiers.first),
-                    *md_orig = static_cast<ModifierData *>(object_orig->modifiers.first);
+  for (ModifierData *md = object->modifiers.first(), *md_orig = object_orig->modifiers.first();
        md != nullptr && md_orig != nullptr;
        md = md->next, md_orig = md_orig->next)
   {
@@ -476,9 +474,7 @@ void BKE_object_eval_eval_base_flags(Depsgraph *depsgraph,
   object->runtime->local_collections_bits = base->local_collections_bits;
 
   if (object->mode == OB_MODE_PARTICLE_EDIT) {
-    for (ParticleSystem *psys = static_cast<ParticleSystem *>(object->particlesystem.first);
-         psys != nullptr;
-         psys = psys->next)
+    for (ParticleSystem *psys = object->particlesystem.first(); psys != nullptr; psys = psys->next)
     {
       BKE_particle_batch_cache_dirty_tag(psys, BKE_PARTICLE_BATCH_DIRTY_ALL);
     }

@@ -45,18 +45,18 @@ void seq_multiview_name(const Scene *scene,
                         const char *prefix,
                         const char *ext,
                         char *r_path,
-                        size_t r_size)
+                        size_t r_path_maxncpy)
 {
   const char *suffix = BKE_scene_multiview_view_id_suffix_get(&scene->r, view_id);
   BLI_assert(ext != nullptr && suffix != nullptr && prefix != nullptr);
-  BLI_snprintf(r_path, r_size, "%s%s%s", prefix, suffix, ext);
+  BLI_snprintf(r_path, r_path_maxncpy, "%s%s%s", prefix, suffix, ext);
 }
 
 bool seq_multiview_view_filepath_get(const Scene &scene,
                                      const char *filepath,
                                      const int view_id,
                                      char *r_filepath,
-                                     const size_t filepath_size,
+                                     const size_t r_filepath_maxncpy,
                                      const char **r_suffix)
 {
   char prefix[FILE_MAX];
@@ -70,7 +70,7 @@ bool seq_multiview_view_filepath_get(const Scene &scene,
   if (r_suffix != nullptr) {
     *r_suffix = suffix;
   }
-  BLI_snprintf(r_filepath, filepath_size, "%s%s%s", prefix, suffix, ext);
+  BLI_snprintf(r_filepath, r_filepath_maxncpy, "%s%s%s", prefix, suffix, ext);
   return true;
 }
 

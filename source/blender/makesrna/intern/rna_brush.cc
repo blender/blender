@@ -737,9 +737,8 @@ static void rna_Brush_main_tex_update(bContext *C, PointerRNA *ptr)
 {
   Main *bmain = CTX_data_main(C);
   Scene *scene = CTX_data_scene(C);
-  ViewLayer *view_layer = CTX_data_view_layer(C);
   Brush *br = static_cast<Brush *>(ptr->data);
-  BKE_paint_invalidate_overlay_tex(*bmain, scene, view_layer, br->mtex.tex);
+  bke::paint::invalidate_overlay_tex(*scene, br->mtex.tex);
   rna_Brush_update(bmain, scene, ptr);
 }
 
@@ -747,15 +746,14 @@ static void rna_Brush_secondary_tex_update(bContext *C, PointerRNA *ptr)
 {
   Main *bmain = CTX_data_main(C);
   Scene *scene = CTX_data_scene(C);
-  ViewLayer *view_layer = CTX_data_view_layer(C);
   Brush *br = static_cast<Brush *>(ptr->data);
-  BKE_paint_invalidate_overlay_tex(*bmain, scene, view_layer, br->mask_mtex.tex);
+  bke::paint::invalidate_overlay_tex(*scene, br->mask_mtex.tex);
   rna_Brush_update(bmain, scene, ptr);
 }
 
 static void rna_Brush_size_update(Main *bmain, Scene *scene, PointerRNA *ptr)
 {
-  BKE_paint_invalidate_overlay_all();
+  bke::paint::invalidate_overlay_all(*scene);
   rna_Brush_update(bmain, scene, ptr);
 }
 
@@ -767,13 +765,11 @@ static void rna_Brush_stroke_update(Main *bmain, Scene *scene, PointerRNA *ptr)
 
 static void rna_TextureSlot_brush_angle_update(bContext *C, PointerRNA *ptr)
 {
-  const Main *bmain = CTX_data_main(C);
   Scene *scene = CTX_data_scene(C);
   MTex *mtex = static_cast<MTex *>(ptr->data);
   /* skip invalidation of overlay for stencil mode */
   if (mtex->brush_map_mode != MTEX_MAP_MODE_STENCIL) {
-    ViewLayer *view_layer = CTX_data_view_layer(C);
-    BKE_paint_invalidate_overlay_tex(*bmain, scene, view_layer, mtex->tex);
+    bke::paint::invalidate_overlay_tex(*scene, mtex->tex);
   }
 
   rna_TextureSlot_update(C, ptr);
@@ -3244,7 +3240,7 @@ static void rna_def_brush(BlenderRNA *brna)
       prop, "Dash Length", "Length of a dash cycle measured in stroke samples");
   RNA_def_property_update(prop, 0, "rna_Brush_update");
 
-  prop = RNA_def_property(srna, "plane_offset", PROP_FLOAT, PROP_DISTANCE);
+  prop = RNA_def_property(srna, "plane_offset", PROP_FLOAT, PROP_NONE);
   RNA_def_property_float_sdna(prop, nullptr, "plane_offset");
   RNA_def_property_float_default(prop, 0);
   RNA_def_property_range(prop, -2.0f, 2.0f);
@@ -3255,7 +3251,7 @@ static void rna_def_brush(BlenderRNA *brna)
       "Adjust plane on which the brush acts towards or away from the object surface");
   RNA_def_property_update(prop, 0, "rna_Brush_update");
 
-  prop = RNA_def_property(srna, "plane_trim", PROP_FLOAT, PROP_DISTANCE);
+  prop = RNA_def_property(srna, "plane_trim", PROP_FLOAT, PROP_NONE);
   RNA_def_property_float_sdna(prop, nullptr, "plane_trim");
   RNA_def_property_range(prop, 0, 1.0f);
   RNA_def_property_ui_text(

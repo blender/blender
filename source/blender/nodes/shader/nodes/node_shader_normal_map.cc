@@ -2,6 +2,10 @@
  *
  * SPDX-License-Identifier: GPL-2.0-or-later */
 
+/** \file
+ * \ingroup shdnodes
+ */
+
 #include "DNA_node_types.h"
 #include "node_shader_util.hh"
 #include "node_util.hh"
@@ -11,6 +15,8 @@
 #include "BKE_scene.hh"
 
 #include "DEG_depsgraph_query.hh"
+
+#include "ED_node.hh"
 
 #include "RNA_access.hh"
 
@@ -43,8 +49,7 @@ static void node_shader_buts_normal_map(ui::Layout &layout, bContext *C, Pointer
   if (RNA_enum_get(ptr, "space") == SHD_SPACE_TANGENT) {
     layout.prop(ptr, "base", ui::ITEM_R_SPLIT_EMPTY_NAME, "", ICON_NONE);
 
-    PointerRNA obptr = CTX_data_pointer_get(C, "active_object");
-    Object *object = static_cast<Object *>(obptr.data);
+    Object *object = ed::space_node::get_space_editor_object(C);
 
     if (object && object->type == OB_MESH) {
       Depsgraph *depsgraph = CTX_data_depsgraph_pointer(C);
@@ -80,7 +85,7 @@ static int gpu_shader_normal_map(GPUMaterial *mat,
     strength = in[0].link;
   }
   else {
-    strength = GPU_uniform(in[0].vec);
+    strength = GPU_uniform(in[0]);
   }
 
   GPUNodeLink *newnormal;
@@ -88,7 +93,7 @@ static int gpu_shader_normal_map(GPUMaterial *mat,
     newnormal = in[1].link;
   }
   else {
-    newnormal = GPU_uniform(in[1].vec);
+    newnormal = GPU_uniform(in[1]);
   }
 
   const char *color_to_normal_fnc_name = "color_to_normal_new_shading";

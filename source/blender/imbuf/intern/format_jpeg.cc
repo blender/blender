@@ -682,9 +682,10 @@ static void write_jpeg(jpeg_compress_struct *cinfo, ImBuf *ibuf)
     }
   }
 
-  /* Write ICC profile if there is one associated with the colorspace. */
+  /* Write ICC profile if there is one associated with the colorspace.
+   * Our profiles are only valid for RGB channels. */
   const ColorSpace *colorspace = ibuf->byte_buffer.colorspace;
-  if (colorspace) {
+  if (colorspace && cinfo->in_color_space == JCS_RGB) {
     Vector<char> icc_profile = IMB_colormanagement_space_to_icc_profile(colorspace);
     if (!icc_profile.is_empty()) {
       icc_profile.prepend({'I', 'C', 'C', '_', 'P', 'R', 'O', 'F', 'I', 'L', 'E', 0, 0, 1});

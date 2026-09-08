@@ -2,6 +2,10 @@
  *
  * SPDX-License-Identifier: GPL-2.0-or-later */
 
+/** \file
+ * \ingroup nodes
+ */
+
 #include "BLI_memory_counter.hh"
 
 #include "NOD_geometry_nodes_bundle.hh"
@@ -335,6 +339,12 @@ GListPtr GList::from_garray(GArray<> array)
   array_data.sharing_info = ImplicitSharingPtr<>(sharable_data);
   return GList::create(
       sharable_data->data.type(), std::move(array_data), sharable_data->data.size());
+}
+
+GListPtr GList::from_single(const GPointer value, const int64_t size)
+{
+  const CPPType &type = *value.type();
+  return GListPtr{MEM_new<GList>(__func__, type, SingleData::ForValue(value), size)};
 }
 
 }  // namespace blender::nodes

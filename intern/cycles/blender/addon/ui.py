@@ -194,17 +194,6 @@ def has_optixdenoiser_gpu_devices(context):
     return context.preferences.addons[__package__].preferences.has_optixdenoiser_gpu_devices()
 
 
-def use_mnee(context):
-    # The MNEE kernel doesn't compile on macOS < 13.
-    if use_metal(context):
-        import platform
-        version, _, _ = platform.mac_ver()
-        major_version = version.split(".")[0]
-        if int(major_version) < 13:
-            return False
-    return True
-
-
 class CYCLES_RENDER_PT_sampling(CyclesButtonsPanel, Panel):
     bl_label = "Sampling"
 
@@ -1677,8 +1666,7 @@ class CYCLES_LIGHT_PT_settings(CyclesButtonsPanel, Panel):
         sub.active = not (light.type == 'AREA' and clamp.is_portal)
         sub.prop(light, "use_shadow", text="Cast Shadow")
         sub.prop(clamp, "use_multiple_importance_sampling", text="Multiple Importance")
-        if use_mnee(context):
-            sub.prop(clamp, "is_caustics_light", text="Shadow Caustics")
+        sub.prop(clamp, "is_caustics_light", text="Shadow Caustics")
 
         if light.type == 'AREA':
             col.prop(clamp, "is_portal", text="Portal")

@@ -2,6 +2,10 @@
  *
  * SPDX-License-Identifier: GPL-2.0-or-later */
 
+/** \file
+ * \ingroup bke
+ */
+
 #pragma once
 
 #include "BKE_attribute_enums.hh"
@@ -10,6 +14,8 @@
 
 #include "BLI_compute_context.hh"
 #include "BLI_map.hh"
+
+#include "DNA_node_types.h"
 
 namespace blender::bke::bake {
 

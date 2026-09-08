@@ -110,6 +110,9 @@ gpu::MTLTexture::~MTLTexture()
 /** \} */
 
 /* -------------------------------------------------------------------- */
+/** \name Texture Views
+ * \{ */
+
 void gpu::MTLTexture::bake_mip_swizzle_view()
 {
   if (texture_view_dirty_flags_) {
@@ -234,6 +237,9 @@ void gpu::MTLTexture::bake_mip_swizzle_view()
   }
 }
 
+/** \} */
+
+/* -------------------------------------------------------------------- */
 /** \name Operations
  * \{ */
 
@@ -2319,10 +2325,12 @@ void gpu::MTLTexture::ensure_baked()
       }
     }
 
-    /** Atomic texture fallback.
+    /**
+     * Atomic texture fallback.
      * If texture atomic operations are required and are not natively supported, we instead
      * allocate a buffer-backed 2D texture and perform atomic operations on this instead. Support
-     * for 2D Array textures and 3D textures is achieved via packing layers into the 2D texture. */
+     * for 2D Array textures and 3D textures is achieved via packing layers into the 2D texture.
+     */
     bool native_texture_atomics = MTLBackend::get_capabilities().supports_texture_atomics;
     if ((internal_gpu_image_usage_flags_ & GPU_TEXTURE_USAGE_ATOMIC) && !native_texture_atomics) {
 
@@ -2497,11 +2505,13 @@ MTLStorageBuf *gpu::MTLTexture::get_storagebuf()
   }
   return storage_buffer_;
 }
+
 /** \} */
 
 /* -------------------------------------------------------------------- */
-/** \name SRGB Handling.
+/** \name SRGB Handling
  * \{ */
+
 bool MTLTexture::is_format_srgb()
 {
   return (format_ == TextureFormat::SRGBA_8_8_8_8);
@@ -2518,6 +2528,7 @@ id<MTLTexture> MTLTexture::get_non_srgb_handle()
 }
 
 /** \} */
+
 /* -------------------------------------------------------------------- */
 /** \name Pixel Buffer
  * \{ */

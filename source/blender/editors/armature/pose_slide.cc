@@ -170,8 +170,10 @@ struct tPoseSlideOp {
 
   /** Which transforms/channels are affected. */
   ePoseSlide_Channels channels;
-  /** Axis-limits for transforms. If any flag is set, the transforms are only applied for that
-   * axis. If none are set, all axes are modified. */
+  /**
+   * Axis-limits for transforms. If any flag is set, the transforms are only applied for that
+   * axis. If none are set, all axes are modified.
+   */
   ed::AxisMutable axis_mutability;
 
   tSlider *slider;
@@ -281,7 +283,7 @@ static int pose_slide_init(bContext *C, wmOperator *op, ePoseSlide_Modes mode)
 
   if (pso->area && (pso->area->spacetype == SPACE_VIEW3D)) {
     /* Save current bone visibility. */
-    View3D *v3d = static_cast<View3D *>(pso->area->spacedata.first);
+    View3D *v3d = static_cast<View3D *>(pso->area->spacedata.first_);
     pso->overlay_flag = v3d->overlay.flag;
   }
 
@@ -300,7 +302,7 @@ static void pose_slide_exit(bContext *C, wmOperator *op)
 
   /* Hide Bone Overlay. */
   if (pso->area && (pso->area->spacetype == SPACE_VIEW3D)) {
-    View3D *v3d = static_cast<View3D *>(pso->area->spacedata.first);
+    View3D *v3d = static_cast<View3D *>(pso->area->spacedata.first_);
     v3d->overlay.flag = pso->overlay_flag;
   }
 
@@ -538,17 +540,14 @@ static void pose_slide_apply_quat(tPoseSlideOp *pso, SlideSubject *slide_subject
       /* Compute breakdown based on actual frame range. */
       const float interp_factor = (current_frame - pso->prev_frame) /
                                   float(pso->next_frame - pso->prev_frame);
-      ed::Rotation current = transformable->get_rotation();
       ed::Rotation breakdown = ed::rotation_interpolated(
           rot_prev_frame, rot_next_frame, interp_factor);
 
       if (pso->mode == POSESLIDE_PUSH) {
-        transformable->set_rotation(breakdown);
-        transformable->blend_rotation_to(current, factor, ed::AXIS_MUTABLE_ALL);
+        transformable->blend_rotation_to(breakdown, -factor, ed::AXIS_MUTABLE_ALL);
       }
       else {
         BLI_assert(pso->mode == POSESLIDE_RELAX);
-        transformable->set_rotation(current);
         transformable->blend_rotation_to(breakdown, factor, ed::AXIS_MUTABLE_ALL);
       }
       break;
@@ -803,7 +802,7 @@ static void pose_slide_draw_status(bContext *C, tPoseSlideOp *pso)
   }
   else if (pso->area && (pso->area->spacetype == SPACE_VIEW3D)) {
     ED_slider_status_get(pso->slider, status);
-    View3D *v3d = static_cast<View3D *>(pso->area->spacedata.first);
+    View3D *v3d = static_cast<View3D *>(pso->area->spacedata.first_);
     status.item_bool(
         IFACE_("Bone Visibility"), !(v3d->overlay.flag & V3D_OVERLAY_HIDE_BONES), ICON_EVENT_H);
   }
@@ -1086,7 +1085,7 @@ static wmOperatorStatus pose_slide_modal(bContext *C, wmOperator *op, const wmEv
           /* Toggle Bone visibility. */
           case EVT_HKEY: {
             if (pso->area && (pso->area->spacetype == SPACE_VIEW3D)) {
-              View3D *v3d = static_cast<View3D *>(pso->area->spacedata.first);
+              View3D *v3d = static_cast<View3D *>(pso->area->spacedata.first_);
               v3d->overlay.flag ^= V3D_OVERLAY_HIDE_BONES;
               ED_region_tag_redraw(pso->region);
             }

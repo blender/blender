@@ -29,7 +29,7 @@ struct BLI_mempool;
 
 /**
  * \param use_flush_denormals_to_zero: Enable flush-to-zero and denormals-are-zero on the main
- * thread and on every task scheduler thread. Applying this consitently keeps results reproducible
+ * thread and on every task scheduler thread. Applying this consistently keeps results reproducible
  * no matter which thread a computation runs on.
  */
 void BLI_task_scheduler_init(bool use_flush_denormals_to_zero = true);

@@ -433,7 +433,7 @@ static void multiresbake_freejob(void *bkv)
   MultiresBakeJob *bkj = static_cast<MultiresBakeJob *>(bkv);
   MultiresBakerJobData *data, *next;
 
-  data = static_cast<MultiresBakerJobData *>(bkj->data.first);
+  data = bkj->data.first();
   while (data) {
     next = data->next;
     /* delete here, since this delete will be called from main thread */
@@ -455,7 +455,7 @@ static wmOperatorStatus multiresbake_image_exec(bContext *C, wmOperator *op)
   MultiresBakeJob *bkr = MEM_new_zeroed<MultiresBakeJob>(__func__);
   init_multiresbake_job(C, bkr);
 
-  if (!bkr->data.first) {
+  if (!bkr->data.first_) {
     BKE_report(op->reports, RPT_ERROR, "No objects found to bake from");
     MEM_delete(bkr);
     return OPERATOR_CANCELLED;
@@ -491,7 +491,8 @@ static wmOperatorStatus objects_bake_render_modal(bContext *C,
                                                   const wmEvent *event)
 {
   /* no running blender, remove handler and pass through */
-  if (0 == WM_jobs_test(CTX_wm_manager(C), CTX_data_scene(C), WM_JOB_TYPE_OBJECT_BAKE_TEXTURE)) {
+  if (!WM_jobs_has_running(CTX_wm_manager(C), CTX_data_scene(C), WM_JOB_TYPE_OBJECT_BAKE_TEXTURE))
+  {
     return OPERATOR_FINISHED | OPERATOR_PASS_THROUGH;
   }
 

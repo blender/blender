@@ -614,7 +614,7 @@ static const EnumPropertyItem *rna_Constraint_target_space_itemf(bContext * /*C*
   bConstraintTarget *ct;
 
   if (BKE_constraint_targets_get(con, &targets)) {
-    for (ct = static_cast<bConstraintTarget *>(targets.first); ct; ct = ct->next) {
+    for (ct = targets.first(); ct; ct = ct->next) {
       if (ct->tar && ct->tar->type == OB_ARMATURE && !(ct->flag & CONSTRAINT_TAR_CUSTOM_SPACE)) {
         break;
       }
@@ -1187,6 +1187,7 @@ static void rna_def_constraint_armature_deform_targets(BlenderRNA *brna, Propert
   RNA_def_function_flag(func, FUNC_USE_SELF_ID | FUNC_USE_MAIN);
   RNA_def_function_ui_description(func, "Add a new target to the constraint");
   parm = RNA_def_pointer(func, "target", "ConstraintTargetBone", "", "New target bone");
+  RNA_def_parameter_flags(parm, PROP_NEVER_NULL, ParameterFlag(0));
   RNA_def_function_return(func, parm);
 
   func = RNA_def_function(srna, "remove", "rna_ArmatureConstraint_target_remove");

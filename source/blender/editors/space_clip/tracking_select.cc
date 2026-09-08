@@ -41,7 +41,7 @@
 namespace blender {
 
 /* -------------------------------------------------------------------- */
-/** \name Point track marker picking.
+/** \name Point Track Marker Picking
  * \{ */
 
 BLI_INLINE PointTrackPick point_track_pick_make_null()
@@ -353,7 +353,7 @@ bool ed_tracking_point_track_pick_can_slide(const SpaceClip *space_clip,
 /** \} */
 
 /* -------------------------------------------------------------------- */
-/** \name Plane track marker picking.
+/** \name Plane Track Marker Picking
  * \{ */
 
 BLI_INLINE PlaneTrackPick plane_track_pick_make_null()
@@ -457,7 +457,7 @@ bool ed_tracking_plane_track_pick_can_slide(const PlaneTrackPick *pick)
 /** \} */
 
 /* -------------------------------------------------------------------- */
-/** \name Pick closest point or plane track.
+/** \name Closest Track Picking
  * \{ */
 
 BLI_INLINE TrackingPick tracking_pick_make_null()
@@ -523,7 +523,9 @@ TrackingPick ed_tracking_pick_closest(const TrackPickOptions *options,
 
 /** \} */
 
-/********************** mouse select operator *********************/
+/* -------------------------------------------------------------------- */
+/** \name Deselect Utilities
+ * \{ */
 
 void ed_tracking_deselect_all_tracks(ListBaseT<MovieTrackingTrack> *tracks_base)
 {
@@ -538,6 +540,12 @@ void ed_tracking_deselect_all_plane_tracks(ListBaseT<MovieTrackingPlaneTrack> *p
     plane_track.flag &= ~PLANE_TRACK_SELECT;
   }
 }
+
+/** \} */
+
+/* -------------------------------------------------------------------- */
+/** \name Mouse Select Operator
+ * \{ */
 
 static bool select_poll(bContext *C)
 {
@@ -716,7 +724,11 @@ bool ED_clip_can_select(bContext *C)
   return select_poll(C);
 }
 
-/********************** box select operator *********************/
+/** \} */
+
+/* -------------------------------------------------------------------- */
+/** \name Box Select Operator
+ * \{ */
 
 static wmOperatorStatus box_select_exec(bContext *C, wmOperator *op)
 {
@@ -818,7 +830,11 @@ void CLIP_OT_select_box(wmOperatorType *ot)
   WM_operator_properties_select_operation_simple(ot);
 }
 
-/********************** lasso select operator *********************/
+/** \} */
+
+/* -------------------------------------------------------------------- */
+/** \name Lasso Select Operator
+ * \{ */
 
 static int do_lasso_select_marker(bContext *C, const Span<int2> mcoords, bool select)
 {
@@ -944,7 +960,11 @@ void CLIP_OT_select_lasso(wmOperatorType *ot)
   WM_operator_properties_select_operation_simple(ot);
 }
 
-/********************** circle select operator *********************/
+/** \} */
+
+/* -------------------------------------------------------------------- */
+/** \name Circle Select Operator
+ * \{ */
 
 static int point_inside_ellipse(const float point[2],
                                 const float offset[2],
@@ -1078,7 +1098,11 @@ void CLIP_OT_select_circle(wmOperatorType *ot)
   WM_operator_properties_select_operation_simple(ot);
 }
 
-/********************** select all operator *********************/
+/** \} */
+
+/* -------------------------------------------------------------------- */
+/** \name Select All Operator
+ * \{ */
 
 static wmOperatorStatus select_all_exec(bContext *C, wmOperator *op)
 {
@@ -1123,7 +1147,11 @@ void CLIP_OT_select_all(wmOperatorType *ot)
   WM_operator_properties_select_all(ot);
 }
 
-/********************** select grouped operator *********************/
+/** \} */
+
+/* -------------------------------------------------------------------- */
+/** \name Select Grouped Operator
+ * \{ */
 
 static wmOperatorStatus select_grouped_exec(bContext *C, wmOperator *op)
 {
@@ -1219,5 +1247,7 @@ void CLIP_OT_select_grouped(wmOperatorType *ot)
   /* properties */
   RNA_def_enum(ot->srna, "group", select_group_items, 1, "Group", "Select tracks by group");
 }
+
+/** \} */
 
 }  // namespace blender

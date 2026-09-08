@@ -27,7 +27,7 @@ static void node_init(bNodeTree * /*ntree*/, bNode *node)
   node->custom1 = NODE_VIEWER_SHORTCUT_NONE;
 }
 
-static void node_init_api(const bContext *C, PointerRNA * /*node_pointer*/)
+static void node_init_api(const bContext *C, PointerRNA * /*node_ptr*/)
 {
   BKE_image_ensure_viewer(CTX_data_main(C), IMA_TYPE_COMPOSITE, "Viewer Node");
 }

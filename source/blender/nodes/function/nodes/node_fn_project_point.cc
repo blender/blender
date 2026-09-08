@@ -24,7 +24,7 @@ static void node_build_multi_function(NodeMultiFunctionBuilder &builder)
 {
   static auto fn = mf::build::SI2_SO<float3, float4x4, float3>(
       "Project Point",
-      [](float3 point, float4x4 matrix) { return math::project_point(matrix, point); });
+      [](float3 point, float4x4 matrix) { return math::project_point_safe(matrix, point); });
   builder.set_matching_fn(fn);
 }
 

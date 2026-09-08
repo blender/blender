@@ -67,7 +67,7 @@ template<typename LB, typename T> class ListBaseWrapperTemplate {
 
   Iterator begin() const
   {
-    return Iterator(listbase_, static_cast<T *>(listbase_->first));
+    return Iterator(listbase_, static_cast<T *>(listbase_->first_));
   }
 
   Iterator end() const

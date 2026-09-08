@@ -129,6 +129,7 @@ def gitea_json_pull_request_by_base_and_head_get(repo_name: str, base: str, head
 
 
 def gitea_json_issues_search(
+        repo: str | None = None,
         type: str | None = None,
         since: str | None = None,
         before: str | None = None,
@@ -140,7 +141,7 @@ def gitea_json_issues_search(
         verbose: bool = True,
 ) -> list[dict[str, Any]]:
     """
-    Search for issues across the repositories that the user has access to.
+    Search for issues across the repositories that the user has access to, or a specific repository if one is provided.
     :param type: filter by type (issues / pulls) if set.
     :param since: Only show notifications updated after the given time. This is a timestamp in RFC 3339 format.
     :param before: Only show notifications updated before the given time. This is a timestamp in RFC 3339 format.
@@ -153,7 +154,7 @@ def gitea_json_issues_search(
     :return: List of issues or pulls.
     """
 
-    query_params = {k: v for k, v in locals().items() if v and k not in {"verbose"}}
+    query_params = {k: v for k, v in locals().items() if v and k not in {"repo", "verbose"}}
     for k, v in query_params.items():
         if v is True:
             query_params[k] = "true"
@@ -167,7 +168,10 @@ def gitea_json_issues_search(
         print("Query params:", {
               k: v for k, v in query_params.items() if k not in {"type", "access_token"}})
 
-    base_url = f"{BASE_API_URL}/repos/issues/search"
+    if repo is None:
+        base_url = f"{BASE_API_URL}/repos/issues/search"
+    else:
+        base_url = f"{BASE_API_URL}/repos/{repo}/issues"
     encoded_query_params = urllib.parse.urlencode(query_params)
     issues_url = f"{base_url}?{encoded_query_params}"
 

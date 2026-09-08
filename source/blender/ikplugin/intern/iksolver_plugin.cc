@@ -102,9 +102,8 @@ static void initialize_posetree(Object * /*ob*/, bPoseChannel *pchan_tip)
 
     /* setup the chain data */
     /* we make tree-IK, unless all existing targets are in this chain */
-    for (tree = static_cast<PoseTree *>(pchan_root->iktree.first); tree; tree = tree->next) {
-      for (target = static_cast<PoseTarget *>(tree->targets.first); target; target = target->next)
-      {
+    for (tree = pchan_root->iktree.first(); tree; tree = tree->next) {
+      for (target = tree->targets.first(); target; target = target->next) {
         curchan = tree->pchan[target->tip];
         if (curchan->flag & POSE_CHAIN) {
           curchan->flag &= ~POSE_CHAIN;
@@ -611,8 +610,8 @@ void iksolver_initialize_tree(Depsgraph * /*depsgraph*/,
 void iksolver_execute_tree(
     Depsgraph *depsgraph, Scene *scene, Object *ob, bPoseChannel *pchan_root, float ctime)
 {
-  while (pchan_root->iktree.first) {
-    PoseTree *tree = static_cast<PoseTree *>(pchan_root->iktree.first);
+  while (pchan_root->iktree.first_) {
+    PoseTree *tree = pchan_root->iktree.first();
     int a;
 
     /* stop on the first tree that isn't a standard IK chain */
@@ -680,8 +679,8 @@ void iksolver_clear_data(bPose *pose)
       continue;
     }
 
-    while (pchan.iktree.first) {
-      PoseTree *tree = static_cast<PoseTree *>(pchan.iktree.first);
+    while (pchan.iktree.first_) {
+      PoseTree *tree = pchan.iktree.first();
 
       /* stop on the first tree that isn't a standard IK chain */
       if (tree->type != CONSTRAINT_TYPE_KINEMATIC) {

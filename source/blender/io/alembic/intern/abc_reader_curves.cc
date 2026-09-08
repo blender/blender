@@ -41,11 +41,36 @@ using Alembic::AbcGeom::ICurvesSchema;
 using Alembic::AbcGeom::IFloatGeomParam;
 using Alembic::AbcGeom::IInt16Property;
 using Alembic::AbcGeom::ISampleSelector;
+using Alembic::AbcGeom::IV3fArrayProperty;
 using Alembic::AbcGeom::kWrapExisting;
 
 namespace io::alembic {
 
 static CLG_LogRef LOG = {"io.alembic"};
+
+/* Specialization of #has_animations() as defined in abc_reader_object.h. */
+template<> bool has_animations(Alembic::AbcGeom::ICurvesSchema &schema, ImportSettings *settings)
+{
+  if (settings->is_sequence || !schema.isConstant()) {
+    return true;
+  }
+
+  /* NOTE: ICurvesSchema::isConstant() checks a few attributes already, here we check for widths
+   * and velocities. There are other attributes which may be animated, like curve orders or
+   * periodicity, which we ignore for now until we meet such files in the wild. */
+
+  IFloatGeomParam widths_param = schema.getWidthsParam();
+  if (widths_param.valid() && !widths_param.isConstant()) {
+    return true;
+  }
+
+  IV3fArrayProperty velocities_prop = schema.getVelocitiesProperty();
+  if (velocities_prop.valid() && !velocities_prop.isConstant()) {
+    return true;
+  }
+
+  return false;
+}
 
 static int16_t get_curve_resolution(const ICurvesSchema &schema,
                                     const Alembic::Abc::ISampleSelector &sample_sel)
@@ -226,15 +251,18 @@ struct PreprocessedSampleData {
   P3fArraySamplePtr ceil_positions = nullptr;
   FloatArraySamplePtr weights = nullptr;
   FloatArraySamplePtr radii = nullptr;
+
+  V3fArraySamplePtr velocities = nullptr;
 };
 
 /* Compute topological information about the curves. We do this step mainly to properly account
  * for curves overlaps which imply different offsets between Blender and Alembic, but also to
  * validate the data and cache some values. */
-static std::optional<PreprocessedSampleData> preprocess_sample(StringRefNull iobject_name,
-                                                               bool use_interpolation,
-                                                               const ICurvesSchema &schema,
-                                                               const ISampleSelector sample_sel)
+static std::optional<PreprocessedSampleData> preprocess_sample(
+    StringRefNull iobject_name,
+    const AbcReadGeometryParams &read_params,
+    const ICurvesSchema &schema,
+    const ISampleSelector sample_sel)
 {
 
   ICurvesSchema::Sample smp;
@@ -363,6 +391,7 @@ static std::optional<PreprocessedSampleData> preprocess_sample(StringRefNull iob
       get_sample_interpolation_settings(
           sample_sel, schema.getTimeSampling(), schema.getNumSamples());
 
+  const bool use_interpolation = read_params.read_flag & MOD_MESHSEQ_INTERPOLATE_VERTICES;
   if (use_interpolation && interpolation_settings.has_value()) {
     Alembic::AbcGeom::ICurvesSchema::Sample ceil_smp;
     schema.get(ceil_smp, Alembic::Abc::ISampleSelector(interpolation_settings->ceil_index));
@@ -370,6 +399,10 @@ static std::optional<PreprocessedSampleData> preprocess_sample(StringRefNull iob
       data.ceil_positions = ceil_smp.getPositions();
       data.interpolation_settings = interpolation_settings;
     }
+  }
+
+  if (!read_params.velocity_name.empty() && read_params.velocity_scale != 0.0f) {
+    data.velocities = get_velocity_prop(schema, sample_sel, read_params.velocity_name);
   }
 
   return data;
@@ -413,7 +446,8 @@ void AbcCurveReader::readObjectData(Main *bmain, const Alembic::Abc::ISampleSele
   m_object = BKE_object_add_only_object(bmain, OB_CURVES, m_object_name.c_str());
   m_object->data = id_cast<ID *>(curves);
 
-  read_curves_sample(curves, false, m_curves_schema, sample_sel);
+  AbcReadGeometryParams read_params{};
+  read_curves_sample(curves, read_params, m_curves_schema, sample_sel);
 
   if (m_settings->always_add_cache_reader || has_animations(m_curves_schema, m_settings)) {
     addCacheModifier();
@@ -459,12 +493,12 @@ static void add_bezier_control_point(int cp,
 }
 
 void AbcCurveReader::read_curves_sample(Curves *curves_id,
-                                        bool use_interpolation,
+                                        const AbcReadGeometryParams &read_params,
                                         const ICurvesSchema &schema,
                                         const ISampleSelector &sample_sel)
 {
   std::optional<PreprocessedSampleData> opt_preprocess = preprocess_sample(
-      m_iobject.getFullName(), use_interpolation, schema, sample_sel);
+      m_iobject.getFullName(), read_params, schema, sample_sel);
   if (!opt_preprocess) {
     return;
   }
@@ -576,6 +610,19 @@ void AbcCurveReader::read_curves_sample(Curves *curves_id,
       }
     }
   }
+
+  if (data.velocities && data.velocities->size() == curves.point_num) {
+    bke::MutableAttributeAccessor attributes = curves.attributes_for_write();
+    bke::SpanAttributeWriter attr = attributes.lookup_or_add_for_write_span<float3>(
+        "velocity", bke::AttrDomain::Point);
+    MutableSpan<float3> velocity = attr.span;
+    for (int64_t i = 0; i < curves.point_num; i++) {
+      const Imath::V3f &vel_in = (*data.velocities)[i];
+      copy_zup_from_yup(velocity[i], vel_in.getValue());
+      mul_v3_fl(velocity[i], read_params.velocity_scale);
+    }
+    attr.finish();
+  }
 }
 
 void AbcCurveReader::read_geometry(bke::GeometrySet &geometry_set,
@@ -585,8 +632,7 @@ void AbcCurveReader::read_geometry(bke::GeometrySet &geometry_set,
 {
   Curves *curves = geometry_set.get_curves_for_write();
 
-  bool use_interpolation = read_params.read_flag & MOD_MESHSEQ_INTERPOLATE_VERTICES;
-  read_curves_sample(curves, use_interpolation, m_curves_schema, sample_sel);
+  read_curves_sample(curves, read_params, m_curves_schema, sample_sel);
 }
 
 }  // namespace io::alembic

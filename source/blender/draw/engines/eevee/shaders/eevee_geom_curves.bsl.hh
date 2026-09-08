@@ -49,8 +49,8 @@ struct GeomCurve {
     [[base_instance]] const int /*base_inst*/, /* Used by model_lib. */
     [[vertex_id]] const int vert_id,
     [[position]] float4 &out_position,
-    /* Note: Removed manually if not needed. Otherwise, can generate geometry shader fallback. */
-    [[viewport_index]] int &out_viewport)
+    /* Note: Removed if not needed. Otherwise, can generate geometry shader fallback. */
+    [[viewport_index, condition(is_shadow_pipe)]] int &out_viewport)
 {
   draw::ID id = res_id.get(inst_index);
   uint view_id = 0;

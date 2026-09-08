@@ -2,6 +2,10 @@
  *
  * SPDX-License-Identifier: GPL-2.0-or-later */
 
+/** \file
+ * \ingroup spnode
+ */
+
 #include "AS_asset_library.hh"
 #include "AS_asset_representation.hh"
 
@@ -78,18 +82,12 @@ static void add_reroute_node_fn(nodes::LinkSearchOpParams &params)
 {
   bNode &reroute = params.add_node("NodeReroute"_ustr);
   if (params.socket.in_out == SOCK_IN) {
-    bke::node_add_link(params.node_tree,
-                       reroute,
-                       *static_cast<bNodeSocket *>(reroute.outputs.first),
-                       params.node,
-                       params.socket);
+    bke::node_add_link(
+        params.node_tree, reroute, *reroute.outputs.first(), params.node, params.socket);
   }
   else {
-    bke::node_add_link(params.node_tree,
-                       params.node,
-                       params.socket,
-                       reroute,
-                       *static_cast<bNodeSocket *>(reroute.inputs.first));
+    bke::node_add_link(
+        params.node_tree, params.node, params.socket, reroute, *reroute.inputs.first());
   }
 }
 
@@ -322,12 +320,12 @@ static void gather_socket_link_operations(const bContext &C,
           return true;
         }
       }
-      search_link_ops.append({std::string(IFACE_("Group Input")) + " " + UI_MENU_ARROW_SEP +
-                                  (interface_socket.name ? interface_socket.name : ""),
-                              [interface_socket](nodes::LinkSearchOpParams &params) {
-                                add_existing_group_input_fn(params, interface_socket);
-                              },
-                              weight});
+      search_link_ops.append(
+          {std::string(IFACE_("Group Input")) + " " + UI_MENU_ARROW_SEP + interface_socket.name(),
+           [interface_socket](nodes::LinkSearchOpParams &params) {
+             add_existing_group_input_fn(params, interface_socket);
+           },
+           weight});
       weight--;
       return true;
     });

@@ -145,9 +145,9 @@ void ED_object_vpaintmode_enter(bContext *C, Depsgraph &depsgraph);
 void ED_object_wpaintmode_enter_ex(Main &bmain, Depsgraph &depsgraph, Scene &scene, Object &ob);
 void ED_object_wpaintmode_enter(bContext *C, Depsgraph &depsgraph);
 
-void ED_object_vpaintmode_exit_ex(Object &ob);
+void ED_object_vpaintmode_exit_ex(Scene &scene, Object &ob);
 void ED_object_vpaintmode_exit(bContext *C);
-void ED_object_wpaintmode_exit_ex(Object &ob);
+void ED_object_wpaintmode_exit_ex(Scene &scene, Object &ob);
 void ED_object_wpaintmode_exit(bContext *C);
 
 void ED_object_texture_paint_mode_enter_ex(Main &bmain,

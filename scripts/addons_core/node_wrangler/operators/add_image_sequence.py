@@ -15,7 +15,6 @@ from ..utils.nodes import (
     NWBase,
     nw_check,
     nw_check_space_type,
-    get_nodes_links,
     node_mid_pt,
 )
 
@@ -62,12 +61,12 @@ class NODE_OT_add_image_sequence(Operator, NWBase, ImportHelper):
         layout.prop(self, 'frame_start')
 
     def execute(self, context):
-        nodes, links = get_nodes_links(context)
         directory = bpy.path.abspath(self.directory)
         filename = self.filename
         files = self.files
         frame_start = self.frame_start
         tree = context.space_data.node_tree
+        nodes = tree.nodes
 
         # DEBUG
         # print ("\nDIR:", directory)
@@ -119,14 +118,12 @@ class NODE_OT_add_image_sequence(Operator, NWBase, ImportHelper):
         nodes_list = [node for node in nodes]
         if nodes_list:
             nodes_list.sort(key=lambda k: k.location.x)
-            xloc = nodes_list[0].location.x - 220  # place new nodes at far left
             yloc = 0
             for node in nodes:
                 node.select = False
                 yloc += node_mid_pt(node, 'y')
             yloc = yloc / len(nodes)
         else:
-            xloc = 0
             yloc = 0
 
         name_with_hashes = without_num + "#" * count_numbers + '.' + extension

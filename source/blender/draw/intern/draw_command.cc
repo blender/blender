@@ -751,7 +751,7 @@ void DrawCommandBuf::finalize_commands(Vector<Header, 0> &headers,
     GPU_batch_draw_parameter_get(
         cmd.batch, &batch_vert_len, &batch_vert_first, &batch_base_index, &batch_inst_len);
     /* Instancing attributes are not supported using the new pipeline since we use the base
-     * instance to set the correct resource_id. Workaround is a storage_buf + gl_InstanceID. */
+     * instance to set the correct resource_id. Workaround is a storage_buf + gpu_InstanceIndex. */
     BLI_assert(batch_inst_len == 1);
 
     if (cmd.vertex_len == uint(-1)) {
@@ -824,7 +824,7 @@ void DrawMultiBuf::generate_commands(Vector<Header, 0> & /*headers*/,
                                                          group.desc.vertex_first;
     group.base_index = batch_base_index;
     /* Instancing attributes are not supported using the new pipeline since we use the base
-     * instance to set the correct resource_id. Workaround is a storage_buf + gl_InstanceID. */
+     * instance to set the correct resource_id. Workaround is a storage_buf + gpu_InstanceIndex. */
     BLI_assert(batch_inst_len == 1);
     UNUSED_VARS_NDEBUG(batch_inst_len);
 

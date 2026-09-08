@@ -112,7 +112,7 @@ void EmittedWorld::emit(PopulateContext &ctx,
   inputs.use_scene_world = !view3d || V3D_USES_SCENE_WORLD(view3d);
   if (view3d) {
     inputs.shading_type = view3d->shading.type;
-    BLI_strncpy(inputs.studiolight, view3d->shading.lookdev_light, sizeof(inputs.studiolight));
+    STRNCPY(inputs.studiolight, view3d->shading.lookdev_light);
     inputs.studiolight_intensity = view3d->shading.studiolight_intensity;
     inputs.studiolight_rot_z = view3d->shading.studiolight_rot_z;
   }

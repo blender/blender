@@ -2,6 +2,10 @@
  *
  * SPDX-License-Identifier: GPL-2.0-or-later */
 
+/** \file
+ * \ingroup nodes
+ */
+
 #include <fmt/format.h>
 #include <variant>
 
@@ -445,6 +449,11 @@ class ShaderNodesInliner {
     }
   }
 
+  bool should_use_link(const bNodeLink &link) const
+  {
+    return link.is_used() && (link.flag & NODE_LINK_VALID);
+  }
+
   void handle_input_socket(const SocketInContext &socket)
   {
     if (socket->is_multi_input()) {
@@ -454,7 +463,9 @@ class ShaderNodesInliner {
 
     const bNodeLink *used_link = nullptr;
     for (const bNodeLink *link : socket->directly_linked_links()) {
-      if (!link->is_used() || link->fromnode == nullptr || link->fromnode->is_undefined()) {
+      if (!this->should_use_link(*link) || link->fromnode == nullptr ||
+          link->fromnode->is_undefined())
+      {
         continue;
       }
       used_link = link;
@@ -500,7 +511,7 @@ class ShaderNodesInliner {
     bool all_links_ready = true;
     Vector<SocketValue, 0> values;
     for (const bNodeLink *link : socket->directly_linked_links()) {
-      if (!link->is_used()) {
+      if (!this->should_use_link(*link)) {
         continue;
       }
       const ComputeContext *from_context = this->get_link_source_context(*link, socket);
@@ -656,7 +667,7 @@ class ShaderNodesInliner {
         if (src_socket->is_multi_input()) {
           const bNodeLink *src_link = nullptr;
           for (const bNodeLink *link : src_socket->directly_linked_links()) {
-            if (link->is_used()) {
+            if (this->should_use_link(*link)) {
               src_link = link;
               break;
             }
@@ -1250,10 +1261,10 @@ class ShaderNodesInliner {
       }
       case SOCK_SHADER: {
         mix.node = this->add_node("ShaderNodeMixShader"_ustr);
-        mix.factor_in = static_cast<bNodeSocket *>(mix.node->inputs.first);
+        mix.factor_in = mix.node->inputs.first();
         mix.a_in = mix.factor_in->next;
         mix.b_in = mix.a_in->next;
-        mix.result_out = static_cast<bNodeSocket *>(mix.node->outputs.first);
+        mix.result_out = mix.node->outputs.first();
         break;
       }
       default: {
@@ -1319,7 +1330,7 @@ class ShaderNodesInliner {
       return;
     }
 
-    /* If the index is not a constant value, we immitate the index switch node using a chain of
+    /* If the index is not a constant value, we imitate the index switch node using a chain of
      * mix nodes. This allows renderers using the Index Switch node with rendering backends which
      * don't support it natively. */
     const std::optional<eNodeSocketDatatype> internal_mix_type =
@@ -1340,14 +1351,14 @@ class ShaderNodesInliner {
     /* Use a truncate node to turn the input value into an int. */
     bNode &truncate_math_node = *this->add_node("ShaderNodeMath"_ustr);
     truncate_math_node.custom1 = NODE_MATH_TRUNC;
-    bNodeSocket &truncate_input = *static_cast<bNodeSocket *>(truncate_math_node.inputs.first);
-    bNodeSocket &truncate_output = *static_cast<bNodeSocket *>(truncate_math_node.outputs.first);
+    bNodeSocket &truncate_input = *truncate_math_node.inputs.first();
+    bNodeSocket &truncate_output = *truncate_math_node.outputs.first();
     this->set_input_socket_value(node, truncate_math_node, truncate_input, *index_input_value);
 
     bNode *prev_mix = nullptr;
     bNodeSocket *prev_mix_result = nullptr;
     for (const int i : IndexRange(storage.items_num + 1)) {
-      /* Use a math node to turn the index into a factor for the mix node.*/
+      /* Use a math node to turn the index into a factor for the mix node. */
       const int index_to_factor_offset = 1 - i;
 
       bNode *factor_node = nullptr;
@@ -1360,14 +1371,14 @@ class ShaderNodesInliner {
       else {
         bNode &add_math_node = *this->add_node("ShaderNodeMath"_ustr);
         add_math_node.custom1 = NODE_MATH_ADD;
-        bNodeSocket &add_in_1 = *static_cast<bNodeSocket *>(add_math_node.inputs.first);
+        bNodeSocket &add_in_1 = *add_math_node.inputs.first();
         bNodeSocket &add_in_2 = *add_in_1.next;
         bke::node_add_link(
             dst_tree_, truncate_math_node, truncate_output, add_math_node, add_in_1);
         static_cast<bNodeSocketValueFloat *>(add_in_2.default_value)->value =
             index_to_factor_offset;
         factor_node = &add_math_node;
-        factor_out = static_cast<bNodeSocket *>(add_math_node.outputs.first);
+        factor_out = add_math_node.outputs.first();
       }
 
       const MixNodeInfo mix = this->create_mix_node(*internal_mix_type);
@@ -1439,9 +1450,9 @@ class ShaderNodesInliner {
      * accidentally mixing between the two input values. */
     bNode &to_bool_math_node = *this->add_node("ShaderNodeMath"_ustr);
     to_bool_math_node.custom1 = NODE_MATH_GREATER_THAN;
-    bNodeSocket &to_bool_in_1 = *static_cast<bNodeSocket *>(to_bool_math_node.inputs.first);
+    bNodeSocket &to_bool_in_1 = *to_bool_math_node.inputs.first();
     bNodeSocket &to_bool_in_2 = *to_bool_in_1.next;
-    bNodeSocket &to_bool_out = *static_cast<bNodeSocket *>(to_bool_math_node.outputs.first);
+    bNodeSocket &to_bool_out = *to_bool_math_node.outputs.first();
     this->set_input_socket_value(node, to_bool_math_node, to_bool_in_1, *switch_input_value);
     static_cast<bNodeSocketValueFloat *>(to_bool_in_2.default_value)->value = 0.0f;
 
@@ -1713,7 +1724,7 @@ class ShaderNodesInliner {
         ColorGeometry4f color;
         data_type_conversions_.convert_to_uninitialized(
             from_cpp_type, to_cpp_type, src_buffer, &color);
-        bNodeSocket *output_socket = static_cast<bNodeSocket *>(color_node->outputs.first);
+        bNodeSocket *output_socket = color_node->outputs.first();
         auto *socket_storage = static_cast<bNodeSocketValueRGBA *>(output_socket->default_value);
         copy_v3_v3(socket_storage->value, color);
         socket_storage->value[3] = 1.0f;
@@ -1759,7 +1770,7 @@ class ShaderNodesInliner {
       return;
     }
     if (!params_.allow_preserving_repeat_zones) {
-      const bool is_iterations_input = dst_node.inputs.first == &dst_socket &&
+      const bool is_iterations_input = dst_node.inputs.first_ == &dst_socket &&
                                        dst_node.is_type("GeometryNodeRepeatInput"_ustr);
       if (is_iterations_input) {
         this->add_dynamic_repeat_zone_iterations_error(original_node);
@@ -1812,7 +1823,7 @@ class ShaderNodesInliner {
   {
     if (const float *value_float = std::get_if<float>(&value.value)) {
       bNode *node = this->add_node("ShaderNodeValue"_ustr);
-      bNodeSocket *socket = static_cast<bNodeSocket *>(node->outputs.first);
+      bNodeSocket *socket = node->outputs.first();
       socket->default_value_typed<bNodeSocketValueFloat>()->value = *value_float;
       return {node, socket};
     }
@@ -1820,24 +1831,24 @@ class ShaderNodesInliner {
       bNode *node = this->add_node("FunctionNodeInputInt"_ustr);
       auto &storage = *static_cast<NodeInputInt *>(node->storage);
       storage.integer = *value_int;
-      return {node, static_cast<bNodeSocket *>(node->outputs.first)};
+      return {node, node->outputs.first()};
     }
     if (const bool *value_bool = std::get_if<bool>(&value.value)) {
       bNode *node = this->add_node("FunctionNodeInputBool"_ustr);
       auto &storage = *static_cast<NodeInputBool *>(node->storage);
       storage.boolean = int(*value_bool);
-      return {node, static_cast<bNodeSocket *>(node->outputs.first)};
+      return {node, node->outputs.first()};
     }
     if (const float3 *value_float3 = std::get_if<float3>(&value.value)) {
       bNode *node = this->add_node("FunctionNodeInputVector"_ustr);
       auto &storage = *static_cast<NodeInputVector *>(node->storage);
       copy_v3_v3(storage.vector, *value_float3);
       storage.dimensions = 3;
-      return {node, static_cast<bNodeSocket *>(node->outputs.first)};
+      return {node, node->outputs.first()};
     }
     if (const ColorGeometry4f *value_color = std::get_if<ColorGeometry4f>(&value.value)) {
       bNode *node = this->add_node("ShaderNodeRGB"_ustr);
-      bNodeSocket *output_socket = static_cast<bNodeSocket *>(node->outputs.first);
+      bNodeSocket *output_socket = node->outputs.first();
       auto *socket_storage = static_cast<bNodeSocketValueRGBA *>(output_socket->default_value);
       copy_v3_v3(socket_storage->value, *value_color);
       socket_storage->value[3] = 1.0f;

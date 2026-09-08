@@ -70,11 +70,10 @@ static void node_declare(NodeDeclarationBuilder &b)
       .description("The extension mode applied to the Y axis");
 }
 
-static void node_init(const bContext *C, PointerRNA *ptr)
+static void node_init_api(const bContext *C, PointerRNA *node_ptr)
 {
-  bNode *node = static_cast<bNode *>(ptr->data);
+  bNode *node = node_ptr->data_as<bNode>();
   Scene *scene = CTX_data_scene(C);
-
   node->id = id_cast<ID *>(scene->clip);
   id_us_plus(node->id);
 }
@@ -195,7 +194,7 @@ static void node_register()
   ntype.enum_name_legacy = "STABILIZE2D";
   ntype.nclass = NODE_CLASS_DISTORT;
   ntype.declare = node_declare;
-  ntype.initfunc_api = node_init;
+  ntype.initfunc_api = node_init_api;
   ntype.get_compositor_operation = get_compositor_operation;
 
   bke::node_register_type(ntype);

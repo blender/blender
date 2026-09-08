@@ -136,9 +136,9 @@ static void rna_Operator_enum_search_invoke(bContext *C, wmOperator *op)
   WM_enum_search_invoke(C, op, nullptr);
 }
 
-static int rna_Operator_ui_popup(bContext *C, wmOperator *op, int width)
+static int rna_Operator_ui_popup(bContext *C, wmOperator *op, int width, bool auto_keymap)
 {
-  return wmOperatorStatus(WM_operator_ui_popup(C, op, width));
+  return wmOperatorStatus(WM_operator_ui_popup(C, op, width, auto_keymap));
 }
 
 static bool rna_event_modal_handler_add(bContext *C, ReportList *reports, wmOperator *op)
@@ -536,7 +536,7 @@ static wmKeyMap *rna_KeyMaps_new(wmKeyConfig *keyconf,
      * add-ons can define modal key-maps.
      * Currently this is only useful for add-ons to override built-in modal keymaps
      * which is not the intended use for add-on keymaps. */
-    wmWindowManager *wm = static_cast<wmWindowManager *>(G_MAIN->wm.first);
+    wmWindowManager *wm = G_MAIN->wm.first();
     if (keyconf == wm->runtime->addonconf) {
       BKE_reportf(reports, RPT_ERROR, "Modal key-maps not supported for add-on key-config");
       return nullptr;
@@ -685,14 +685,15 @@ static void rna_PopMenuEnd(bContext *C, PointerRNA *handle)
 static PointerRNA rna_PopoverBegin(bContext *C,
                                    ReportList *reports,
                                    const int ui_units_x,
-                                   const bool from_active_button)
+                                   const bool from_active_button,
+                                   const bool auto_keymap)
 {
   if (!rna_popup_context_ok_or_report(C, reports)) {
     return {};
   }
 
   void *data = static_cast<void *>(
-      ui::popover_begin(C, U.widget_unit * ui_units_x, from_active_button));
+      ui::popover_begin(C, U.widget_unit * ui_units_x, from_active_button, auto_keymap));
   PointerRNA ptr_result = RNA_pointer_create_discrete(nullptr, RNA_UIPopover, data);
   return ptr_result;
 }
@@ -1006,6 +1007,7 @@ void RNA_api_window(StructRNA *srna)
   RNA_def_boolean(func, "oskey", false, "OS Key", "");
   RNA_def_boolean(func, "hyper", false, "Hyper", "");
   parm = RNA_def_pointer(func, "event", "Event", "Item", "Added key map item");
+  RNA_def_parameter_flags(parm, PROP_NEVER_NULL, ParameterFlag(0));
   RNA_def_function_return(func, parm);
 
   func = RNA_def_function(srna, "find_playing_scene", "rna_Window_find_playing_scene");
@@ -1076,6 +1078,7 @@ void RNA_api_wm(StructRNA *srna)
   RNA_def_property_ui_text(parm, "Time Step", "Interval in seconds between timer events");
   RNA_def_pointer(func, "window", "Window", "", "Window to attach the timer to, or None");
   parm = RNA_def_pointer(func, "result", "Timer", "", "");
+  RNA_def_parameter_flags(parm, PROP_NEVER_NULL, ParameterFlag(0));
   RNA_def_function_return(func, parm);
 
   func = RNA_def_function(srna, "event_timer_remove", "rna_event_timer_remove");
@@ -1158,6 +1161,11 @@ void RNA_api_wm(StructRNA *srna)
                                   "Operator popup invoke "
                                   "(only shows operator's properties, without executing it)");
   rna_generic_op_invoke(func, WM_GEN_INVOKE_SIZE | WM_GEN_INVOKE_RETURN);
+  RNA_def_boolean(func,
+                  "auto_keymap",
+                  false,
+                  "Auto Keymap",
+                  "Assign accelerator keys to buttons, shown as underlined characters");
 
   func = RNA_def_function(srna, "invoke_confirm", "rna_Operator_confirm");
   RNA_def_function_ui_description(
@@ -1249,6 +1257,11 @@ void RNA_api_wm(StructRNA *srna)
   RNA_def_function_return(func, parm);
   RNA_def_boolean(
       func, "from_active_button", false, "Use Button", "Use the active button for positioning");
+  RNA_def_boolean(func,
+                  "auto_keymap",
+                  false,
+                  "Auto Keymap",
+                  "Assign accelerator keys to buttons, shown as underlined characters");
 
   /* wrap popover_end */
   func = RNA_def_function(srna, "popover_end__internal", "rna_PopoverEnd");
@@ -1458,6 +1471,7 @@ void RNA_api_keymap(StructRNA *srna)
   func = RNA_def_function(srna, "active", "rna_keymap_active");
   RNA_def_function_flag(func, FUNC_USE_CONTEXT);
   parm = RNA_def_pointer(func, "keymap", "KeyMap", "Key Map", "Active key map");
+  RNA_def_parameter_flags(parm, PROP_NEVER_NULL, ParameterFlag(0));
   RNA_def_function_return(func, parm);
 
   func = RNA_def_function(srna, "restore_to_default", "rna_keymap_restore_to_default");
@@ -1516,6 +1530,7 @@ void RNA_api_keymapitems(StructRNA *srna)
                   "Force item to be added at start (not end) of key map so that "
                   "it doesn't get blocked by an existing key map item");
   parm = RNA_def_pointer(func, "item", "KeyMapItem", "Item", "Added key map item");
+  RNA_def_parameter_flags(parm, PROP_NEVER_NULL, ParameterFlag(0));
   RNA_def_function_return(func, parm);
 
   func = RNA_def_function(srna, "new_modal", "rna_KeyMap_item_new_modal");
@@ -1536,6 +1551,7 @@ void RNA_api_keymapitems(StructRNA *srna)
   RNA_def_enum(func, "direction", rna_enum_event_direction_items, KM_ANY, "Direction", "");
   RNA_def_boolean(func, "repeat", false, "Repeat", "When set, accept key-repeat events");
   parm = RNA_def_pointer(func, "item", "KeyMapItem", "Item", "Added key map item");
+  RNA_def_parameter_flags(parm, PROP_NEVER_NULL, ParameterFlag(0));
   RNA_def_function_return(func, parm);
 
   func = RNA_def_function(srna, "new_from_item", "rna_KeyMap_item_new_from_item");
@@ -1544,6 +1560,7 @@ void RNA_api_keymapitems(StructRNA *srna)
   RNA_def_parameter_flags(parm, PROP_NEVER_NULL, PARM_REQUIRED);
   RNA_def_boolean(func, "head", false, "At Head", "");
   parm = RNA_def_pointer(func, "result", "KeyMapItem", "Item", "Added key map item");
+  RNA_def_parameter_flags(parm, PROP_NEVER_NULL, ParameterFlag(0));
   RNA_def_function_return(func, parm);
 
   func = RNA_def_function(srna, "remove", "rna_KeyMap_item_remove");
@@ -1623,6 +1640,7 @@ void RNA_api_keymaps(StructRNA *srna)
                   "Modal keymaps are not supported for :class:`KeyConfigs.addons`.");
   RNA_def_boolean(func, "tool", false, "Tool", "Keymap for active tools");
   parm = RNA_def_pointer(func, "keymap", "KeyMap", "Key Map", "Added key map");
+  RNA_def_parameter_flags(parm, PROP_NEVER_NULL, ParameterFlag(0));
   RNA_def_function_return(func, parm);
 
   func = RNA_def_function(srna, "remove", "rna_KeyMaps_remove");
@@ -1666,6 +1684,7 @@ void RNA_api_keyconfigs(StructRNA *srna)
   RNA_def_parameter_flags(parm, PropertyFlag(0), PARM_REQUIRED);
   parm = RNA_def_pointer(
       func, "keyconfig", "KeyConfig", "Key Configuration", "Added key configuration");
+  RNA_def_parameter_flags(parm, PROP_NEVER_NULL, ParameterFlag(0));
   RNA_def_function_return(func, parm);
 
   func = RNA_def_function(srna, "remove", "rna_KeyConfig_remove"); /* remove_keyconfig */

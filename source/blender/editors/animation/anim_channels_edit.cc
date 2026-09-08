@@ -253,7 +253,7 @@ void ANIM_set_active_channel(bAnimContext *ac,
   }
 
   /* only clear the 'active' flag for the channels of the same type */
-  for (ale = static_cast<bAnimListElem *>(anim_data.first); ale; ale = ale->next) {
+  for (ale = anim_data.first(); ale; ale = ale->next) {
     /* skip if types don't match */
     if (channel_type != ale->type) {
       continue;
@@ -958,7 +958,7 @@ void ANIM_flush_setting_anim_channels(bAnimContext *ac,
   int matchLevel = 0;
 
   /* sanity check */
-  if (ELEM(nullptr, anim_data, anim_data->first)) {
+  if (ELEM(nullptr, anim_data, anim_data->first())) {
     return;
   }
 
@@ -1103,7 +1103,7 @@ static bool animedit_poll_channels_nla_tweakmode_off(bContext *C)
 /** \} */
 
 /* -------------------------------------------------------------------- */
-/** \name Move (Rearrange) Channels Operator
+/** \name Move (Rearrange) Channel Defines
  * \{ */
 
 /* constants for channel rearranging */
@@ -1124,7 +1124,11 @@ static const EnumPropertyItem prop_animchannel_rearrange_types[] = {
     {0, nullptr, 0, nullptr, nullptr},
 };
 
-/* Reordering "Islands" Defines ----------------------------------- */
+/** \} */
+
+/* -------------------------------------------------------------------- */
+/** \name Reordering "Islands" Defines
+ * \{ */
 
 /* Island definition - just a listbase container */
 struct tReorderChannelIsland {
@@ -1142,7 +1146,11 @@ enum eReorderIslandFlag {
   REORDER_ISLAND_HIDDEN = (1 << 3),      /* island is not visible */
 };
 
-/* Rearrange Methods --------------------------------------------- */
+/** \} */
+
+/* -------------------------------------------------------------------- */
+/** \name Rearrange Methods
+ * \{ */
 
 static bool rearrange_island_ok(tReorderChannelIsland *island)
 {
@@ -1165,7 +1173,7 @@ static bool rearrange_island_top(ListBaseT<tReorderChannelIsland> *list,
     BLI_remlink(list, island);
 
     /* make it first element */
-    BLI_insertlinkbefore(list, list->first, island);
+    BLI_insertlinkbefore(list, list->first_, island);
 
     return true;
   }
@@ -1233,7 +1241,7 @@ static bool rearrange_island_bottom(ListBaseT<tReorderChannelIsland> *list,
                                     tReorderChannelIsland *island)
 {
   if (rearrange_island_ok(island)) {
-    tReorderChannelIsland *last = static_cast<tReorderChannelIsland *>(list->last);
+    tReorderChannelIsland *last = list->last();
 
     /* remove island from current position */
     BLI_remlink(list, island);
@@ -1300,7 +1308,11 @@ static AnimChanRearrangeFp rearrange_gpencil_get_mode_func(eRearrangeAnimChan_Mo
   }
 }
 
-/* Rearrange Islands Generics ------------------------------------- */
+/** \} */
+
+/* -------------------------------------------------------------------- */
+/** \name Rearrange Islands Generics
+ * \{ */
 
 /* add channel into list of islands */
 template<typename T>
@@ -1311,7 +1323,7 @@ static void rearrange_animchannel_add_to_islands(ListBaseT<tReorderChannelIsland
                                                  const bool is_hidden)
 {
   /* always try to add to last island if possible */
-  tReorderChannelIsland *island = static_cast<tReorderChannelIsland *>(islands->last);
+  tReorderChannelIsland *island = islands->last();
   bool is_sel = false, is_untouchable = false;
 
   /* get flags - selected and untouchable from the channel */
@@ -1391,7 +1403,7 @@ static void rearrange_animchannel_flatten_islands(ListBaseT<tReorderChannelIslan
   BLI_assert(srcList->is_empty());
 
   /* go through merging islands */
-  for (island = static_cast<tReorderChannelIsland *>(islands->first); island; island = isn) {
+  for (island = islands->first(); island; island = isn) {
     isn = island->next;
 
     /* merge island channels back to main list, then delete the island */
@@ -1456,7 +1468,7 @@ static bool rearrange_animchannel_islands(ListBaseT<T> *list,
   }
 
   /* group channels into islands */
-  for (channel = static_cast<Link *>(list->first); channel; channel = chanNext) {
+  for (channel = list->template first_as<Link>(); channel; channel = chanNext) {
     /* find out whether this channel is present in anim_data_visible or not! */
     const bool is_hidden =
         (BLI_findptr(anim_data_visible, channel, offsetof(bAnimListElem, data)) == nullptr);
@@ -1471,9 +1483,9 @@ static bool rearrange_animchannel_islands(ListBaseT<T> *list,
    *   to the direction we're moving things,
    *   so that we shouldn't need to encounter items we've moved already.
    */
-  if (islands.first != islands.last) {
+  if (islands.first() != islands.last()) {
     tReorderChannelIsland *first = static_cast<tReorderChannelIsland *>(
-        (mode > 0) ? islands.last : islands.first);
+        (mode > 0) ? islands.last() : islands.first());
     tReorderChannelIsland *island, *isn = nullptr;
 
     for (island = first; island; island = isn) {
@@ -1494,7 +1506,11 @@ static bool rearrange_animchannel_islands(ListBaseT<T> *list,
   return done;
 }
 
-/* NLA Specific Stuff ----------------------------------------------------- */
+/** \} */
+
+/* -------------------------------------------------------------------- */
+/** \name Rearrange NLA Tracks
+ * \{ */
 
 /* Change the order NLA Tracks within NLA Stack
  * ! NLA tracks are displayed in opposite order, so directions need care
@@ -1524,17 +1540,15 @@ static void rearrange_nla_tracks(bAnimContext *ac, AnimData *adt, eRearrangeAnim
   ListBaseT<NlaTrack> extracted_nonlocal_nla_tracks = {nullptr, nullptr};
   if (is_liboverride) {
     NlaTrack *nla_track;
-    for (nla_track = static_cast<NlaTrack *>(adt->nla_tracks.first); nla_track != nullptr;
-         nla_track = nla_track->next)
-    {
+    for (nla_track = adt->nla_tracks.first(); nla_track != nullptr; nla_track = nla_track->next) {
       if (!BKE_nlatrack_is_nonlocal_in_liboverride(&ac->obact->id, nla_track)) {
         break;
       }
     }
     if (nla_track != nullptr && nla_track->prev != nullptr) {
-      extracted_nonlocal_nla_tracks.first = adt->nla_tracks.first;
-      extracted_nonlocal_nla_tracks.last = nla_track->prev;
-      adt->nla_tracks.first = nla_track;
+      extracted_nonlocal_nla_tracks.first_ = adt->nla_tracks.first_;
+      extracted_nonlocal_nla_tracks.last_ = nla_track->prev;
+      adt->nla_tracks.first_ = nla_track;
       nla_track->prev->next = nullptr;
       nla_track->prev = nullptr;
     }
@@ -1550,18 +1564,20 @@ static void rearrange_nla_tracks(bAnimContext *ac, AnimData *adt, eRearrangeAnim
   /* Add back non-local NLA tracks at the beginning of the animation data's list. */
   if (!extracted_nonlocal_nla_tracks.is_empty()) {
     BLI_assert(is_liboverride);
-    static_cast<NlaTrack *>(extracted_nonlocal_nla_tracks.last)->next = static_cast<NlaTrack *>(
-        adt->nla_tracks.first);
-    static_cast<NlaTrack *>(adt->nla_tracks.first)->prev = static_cast<NlaTrack *>(
-        extracted_nonlocal_nla_tracks.last);
-    adt->nla_tracks.first = extracted_nonlocal_nla_tracks.first;
+    extracted_nonlocal_nla_tracks.last()->next = adt->nla_tracks.first();
+    adt->nla_tracks.first()->prev = extracted_nonlocal_nla_tracks.last();
+    adt->nla_tracks.first_ = extracted_nonlocal_nla_tracks.first_;
   }
 
   /* free temp data */
   anim_data_visible.free_no_destruct();
 }
 
-/* Drivers Specific Stuff ------------------------------------------------- */
+/** \} */
+
+/* -------------------------------------------------------------------- */
+/** \name Rearrange Drivers
+ * \{ */
 
 /* Change the order drivers within AnimData block
  * mode: REARRANGE_ANIMCHAN_*
@@ -1594,7 +1610,11 @@ static void rearrange_driver_channels(bAnimContext *ac,
   anim_data_visible.free_no_destruct();
 }
 
-/* Action Specific Stuff ------------------------------------------------- */
+/** \} */
+
+/* -------------------------------------------------------------------- */
+/** \name Rearrange Action Channels
+ * \{ */
 
 /**
  * Move selected, visible action slots in the channel list according to `mode`.
@@ -2012,7 +2032,11 @@ static void rearrange_action_channels(bAnimContext *ac, bAction *act, eRearrange
   rearrange_layered_action_fcurves(ac, act->wrap(), mode);
 }
 
-/* ------------------- */
+/** \} */
+
+/* -------------------------------------------------------------------- */
+/** \name Rearrange NLA Control Channels
+ * \{ */
 
 static void rearrange_nla_control_channels(bAnimContext *ac,
                                            AnimData *adt,
@@ -2047,7 +2071,11 @@ static void rearrange_nla_control_channels(bAnimContext *ac,
   anim_data_visible.free_no_destruct();
 }
 
-/* ------------------- */
+/** \} */
+
+/* -------------------------------------------------------------------- */
+/** \name Rearrange Grease Pencil Channels
+ * \{ */
 
 static void rearrange_grease_pencil_channels(bAnimContext *ac, eRearrangeAnimChan_Mode mode)
 {
@@ -2156,7 +2184,11 @@ static void rearrange_gpencil_channels(bAnimContext *ac, eRearrangeAnimChan_Mode
   WM_main_add_notifier(NC_GPENCIL | ND_DATA | NA_EDITED, nullptr);
 }
 
-/* ------------------- */
+/** \} */
+
+/* -------------------------------------------------------------------- */
+/** \name Move (Rearrange) Channels Operator
+ * \{ */
 
 static wmOperatorStatus animchannels_rearrange_exec(bContext *C, wmOperator *op)
 {
@@ -2232,7 +2264,7 @@ static wmOperatorStatus animchannels_rearrange_exec(bContext *C, wmOperator *op)
         default: /* DopeSheet/Graph Editor - Some Actions + NLA Control Curves */
         {
           /* NLA Control Curves */
-          if (adt->nla_tracks.first) {
+          if (adt->nla_tracks.first_) {
             rearrange_nla_control_channels(&ac, adt, mode);
           }
 
@@ -2334,8 +2366,6 @@ static bool animchannels_grouping_poll(bContext *C)
   return true;
 }
 
-/* ----------------------------------------------------------- */
-
 static void animchannels_group_channels(bAnimContext *ac,
                                         bAnimListElem *adt_ref,
                                         const char name[])
@@ -2353,7 +2383,7 @@ static void animchannels_group_channels(bAnimContext *ac,
                                    ANIMFILTER_SEL | ANIMFILTER_FCURVESONLY;
   ANIM_animdata_filter(ac, &anim_data, filter, adt_ref, ANIMCONT_CHANNEL);
 
-  if (anim_data.first == nullptr) {
+  if (anim_data.first_ == nullptr) {
     return;
   }
 
@@ -2789,7 +2819,7 @@ static wmOperatorStatus animchannels_delete_exec(bContext *C, wmOperator * /*op*
         ale.update = ANIM_UPDATE_DEPS;
 
         /* Free Grease Pencil data block when last annotation layer is removed, see: #112683. */
-        if (gpd->flag & GP_DATA_ANNOTATIONS && gpd->layers.first == nullptr) {
+        if (gpd->flag & GP_DATA_ANNOTATIONS && gpd->layers.first_ == nullptr) {
           BKE_gpencil_free_data(gpd, true);
 
           Scene *scene = CTX_data_scene(C);
@@ -2912,8 +2942,6 @@ static const EnumPropertyItem prop_animchannel_settings_types[] = {
     {0, nullptr, 0, nullptr, nullptr},
 };
 
-/* ------------------- */
-
 /**
  * Set/clear a particular flag (setting) for all selected + visible channels
  * \param setting: the setting to modify.
@@ -3002,7 +3030,11 @@ static void setflag_anim_channels(bAnimContext *ac,
   all_data.free_no_destruct();
 }
 
-/* ------------------- */
+/** \} */
+
+/* -------------------------------------------------------------------- */
+/** \name Set/Toggle Channel Flags Operators
+ * \{ */
 
 static wmOperatorStatus animchannels_setflag_exec(bContext *C, wmOperator *op)
 {
@@ -3302,20 +3334,20 @@ static wmOperatorStatus animchannels_clean_empty_exec(bContext *C, wmOperator * 
     }
 
     /* 2) No NLA Tracks and/or NLA Strips */
-    if (adt->nla_tracks.first == nullptr) {
+    if (adt->nla_tracks.first_ == nullptr) {
       nla_empty = true;
     }
     else {
       /* empty tracks? */
       for (NlaTrack &nlt : adt->nla_tracks) {
-        if (nlt.strips.first) {
+        if (nlt.strips.first_) {
           /* stop searching, as we found one that actually had stuff we don't want lost
            * NOTE: nla_empty gets reset to false, as a previous track may have been empty
            */
           nla_empty = false;
           break;
         }
-        if (nlt.strips.first == nullptr) {
+        if (nlt.strips.first_ == nullptr) {
           /* this track is empty, but another one may still have stuff in it, so can't break yet */
           nla_empty = true;
         }
@@ -3323,7 +3355,7 @@ static wmOperatorStatus animchannels_clean_empty_exec(bContext *C, wmOperator * 
     }
 
     /* 3) Drivers */
-    drivers_empty = (adt->drivers.first == nullptr);
+    drivers_empty = (adt->drivers.first_ == nullptr);
 
     /* remove AnimData? */
     if (action_empty && nla_empty && drivers_empty) {
@@ -3457,14 +3489,11 @@ static bool animchannels_select_filter_poll(bContext *C)
 }
 
 static wmOperatorStatus animchannels_select_filter_invoke(bContext *C,
-                                                          wmOperator *op,
+                                                          wmOperator * /*op*/,
                                                           const wmEvent * /*event*/)
 {
   ScrArea *area = CTX_wm_area(C);
-  ARegion *region_ctx = CTX_wm_region(C);
   ARegion *region_channels = BKE_area_find_region_type(area, RGN_TYPE_CHANNELS);
-
-  CTX_wm_region_set(C, region_channels);
 
   /* Show the channel region if it's hidden. This means that direct activation of the input field
    * is impossible, as it may not exist yet. For that reason, the actual activation is deferred to
@@ -3474,27 +3503,12 @@ static wmOperatorStatus animchannels_select_filter_invoke(bContext *C,
     ED_region_toggle_hidden(C, region_channels);
     ED_region_tag_redraw(region_channels);
   }
-
-  WM_event_add_modal_handler(C, op);
-
-  CTX_wm_region_set(C, region_ctx);
-  return OPERATOR_RUNNING_MODAL;
-}
-
-static wmOperatorStatus animchannels_select_filter_modal(bContext *C,
-                                                         wmOperator * /*op*/,
-                                                         const wmEvent * /*event*/)
-{
   bAnimContext ac;
   if (ANIM_animdata_get_context(C, &ac) == 0) {
     return OPERATOR_CANCELLED;
   }
 
-  ARegion *region = CTX_wm_region(C);
-  if (ui::textbutton_activate_rna(C, region, ac.ads, "filter_text")) {
-    /* Redraw to make sure it shows the cursor after activating */
-    WM_event_add_notifier(C, NC_ANIMATION | ND_ANIMCHAN | NA_EDITED, nullptr);
-  }
+  ED_region_activate_rna_prop(C, region_channels, ac.ads, "filter_text");
 
   return OPERATOR_FINISHED;
 }
@@ -3510,7 +3524,6 @@ static void ANIM_OT_channels_select_filter(wmOperatorType *ot)
 
   /* callbacks */
   ot->invoke = animchannels_select_filter_invoke;
-  ot->modal = animchannels_select_filter_modal;
   ot->poll = animchannels_select_filter_poll;
 }
 
@@ -4173,9 +4186,7 @@ static int click_select_channel_group(bAnimContext *ac,
     }
 
     /* only select channels in group and group itself */
-    for (fcu = static_cast<FCurve *>(agrp->channels.first); fcu && fcu->grp == agrp;
-         fcu = fcu->next)
-    {
+    for (fcu = agrp->channels.first(); fcu && fcu->grp == agrp; fcu = fcu->next) {
       fcu->flag |= FCURVE_SELECTED;
     }
     agrp->flag |= AGRP_SELECTED;
@@ -5025,6 +5036,12 @@ static void ANIM_OT_channel_view_pick(wmOperatorType *ot)
                              "Ignore frames outside of the preview range");
 }
 
+/** \} */
+
+/* -------------------------------------------------------------------- */
+/** \name Bake Channels Operator
+ * \{ */
+
 static const EnumPropertyItem channel_bake_key_options[] = {
     {BEZT_IPO_BEZ, "BEZIER", 0, "Bézier", "New keys will be Bézier"},
     {BEZT_IPO_LIN, "LIN", 0, "Linear", "New keys will be linear"},
@@ -5219,6 +5236,12 @@ static void ANIM_OT_channels_bake(wmOperatorType *ot)
                   "Bake Modifiers into keyframes and delete them after");
 }
 
+/** \} */
+
+/* -------------------------------------------------------------------- */
+/** \name Move Slot Channels to New Action Operator
+ * \{ */
+
 static wmOperatorStatus slot_channels_move_to_new_action_exec(bContext *C, wmOperator *op)
 {
   using namespace blender::animrig;
@@ -5313,6 +5336,12 @@ static void ANIM_OT_slot_channels_move_to_new_action(wmOperatorType *ot)
   ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO;
 }
 
+/** \} */
+
+/* -------------------------------------------------------------------- */
+/** \name Separate Slots Operator
+ * \{ */
+
 static wmOperatorStatus separate_slots_exec(bContext *C, wmOperator *op)
 {
   using namespace blender::animrig;
@@ -5382,6 +5411,12 @@ static void ANIM_OT_separate_slots(wmOperatorType *ot)
 
   ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO;
 }
+
+/** \} */
+
+/* -------------------------------------------------------------------- */
+/** \name View Curve in Graph Editor Operator
+ * \{ */
 
 /**
  *  Find a Graph Editor area and set the context arguments accordingly.

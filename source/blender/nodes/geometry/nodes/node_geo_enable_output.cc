@@ -75,7 +75,7 @@ class LazyFunctionForEnableOutputNode : public LazyFunction {
       set_default_remaining_node_outputs(params, node_);
       return;
     }
-    const bool keep = enable_variant.get<bool>();
+    const bool keep = enable_variant.copy_as<bool>();
     if (!keep) {
       set_default_remaining_node_outputs(params, node_);
       return;

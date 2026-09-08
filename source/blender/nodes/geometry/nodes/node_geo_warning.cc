@@ -47,7 +47,7 @@ class LazyFunctionForWarningNode : public LazyFunction {
   void execute_impl(lf::Params &params, const lf::Context &context) const override
   {
     const SocketValueVariant show_variant = params.get_input<SocketValueVariant>(0);
-    const bool show = show_variant.get<bool>();
+    const bool show = show_variant.copy_as<bool>();
     if (!show) {
       params.set_output(0, show_variant);
       return;

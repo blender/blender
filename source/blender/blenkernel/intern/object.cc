@@ -516,9 +516,7 @@ static void object_foreach_id(ID *id, LibraryForeachIDData *data)
 static void object_foreach_path_pointcache(ListBaseT<PointCache> *ptcache_list,
                                            BPathForeachPathData *bpath_data)
 {
-  for (PointCache *cache = static_cast<PointCache *>(ptcache_list->first); cache != nullptr;
-       cache = cache->next)
-  {
+  for (PointCache *cache = ptcache_list->first(); cache != nullptr; cache = cache->next) {
     if (cache->flag & PTCACHE_DISK_CACHE) {
       BKE_bpath_foreach_path_fixed_process(bpath_data, cache->path, sizeof(cache->path));
     }
@@ -730,14 +728,14 @@ static void create_legacy_geometry_nodes_properties(Object &ob)
         const int type = IDP_int_get(type_prop);
         if (type == int(nodes::GeometryNodesInputType::Layer)) {
           if (const IDProperty *name = IDP_GetPropertyFromGroup(&prop, "layer_name")) {
-            IDProperty *legacy_prop = IDP_CopyProperty(name);
+            IDProperty *legacy_prop = IDP_CopyProperty_ex(name, LIB_ID_CREATE_NO_USER_REFCOUNT);
             STRNCPY(legacy_prop->name, identifier.c_str());
             IDP_AddToGroup(legacy_props, legacy_prop);
           }
         }
         else {
           if (const IDProperty *value = IDP_GetPropertyFromGroup(&prop, "value")) {
-            IDProperty *legacy_prop = IDP_CopyProperty(value);
+            IDProperty *legacy_prop = IDP_CopyProperty_ex(value, LIB_ID_CREATE_NO_USER_REFCOUNT);
             STRNCPY(legacy_prop->name, identifier.c_str());
             IDP_AddToGroup(legacy_props, legacy_prop);
           }
@@ -748,7 +746,8 @@ static void create_legacy_geometry_nodes_properties(Object &ob)
               bke::idprop::create(identifier + "_use_attribute", int(use_attribute)).release());
 
           if (const IDProperty *name = IDP_GetPropertyFromGroup(&prop, "attribute_name")) {
-            IDProperty *legacy_attr_prop = IDP_CopyProperty(name);
+            IDProperty *legacy_attr_prop = IDP_CopyProperty_ex(name,
+                                                               LIB_ID_CREATE_NO_USER_REFCOUNT);
             SNPRINTF(legacy_attr_prop->name, "%s_attribute_name", identifier.c_str());
             IDP_AddToGroup(legacy_props, legacy_attr_prop);
           }
@@ -764,7 +763,7 @@ static void create_legacy_geometry_nodes_properties(Object &ob)
         }
         const StringRefNull identifier = prop.name;
         if (const IDProperty *name = IDP_GetPropertyFromGroup(&prop, "attribute_name")) {
-          IDProperty *legacy_prop = IDP_CopyProperty(name);
+          IDProperty *legacy_prop = IDP_CopyProperty_ex(name, LIB_ID_CREATE_NO_USER_REFCOUNT);
           SNPRINTF(legacy_prop->name, "%s_attribute_name", identifier.c_str());
           IDP_AddToGroup(legacy_props, legacy_prop);
         }
@@ -797,7 +796,7 @@ static void object_blend_write(BlendWriter *writer, ID *id, const void *id_addre
 {
   Object *ob = id_cast<Object *>(id);
 
-  const bool is_undo = BLO_write_is_undo(writer);
+  const bool is_undo = writer->is_undo();
 
   /* Clean up, important in undo case to reduce false detection of changed data-blocks. */
   ob->runtime = nullptr;
@@ -922,7 +921,7 @@ static void object_blend_read_data(BlendDataReader *reader, ID *id)
   BKE_shaderfx_blend_read_data(reader, &ob->shader_fx, ob);
 
   BLO_read_struct_list(reader, PartEff, &ob->effect);
-  paf = static_cast<PartEff *>(ob->effect.first);
+  paf = ob->effect.first_as<PartEff>();
   while (paf) {
     if (paf->type == EFF_PARTICLE) {
       paf->keys = nullptr;
@@ -1031,8 +1030,8 @@ static void object_blend_read_data(BlendDataReader *reader, ID *id)
   BKE_constraint_blend_read_data(reader, &ob->id, &ob->constraints);
 
   BLO_read_struct_list(reader, ObHook, &ob->hooks);
-  while (ob->hooks.first) {
-    ObHook *hook = static_cast<ObHook *>(ob->hooks.first);
+  while (ob->hooks.first()) {
+    ObHook *hook = ob->hooks.first();
     HookModifierData *hmd = reinterpret_cast<HookModifierData *>(
         BKE_modifier_new(eModifierType_Hook));
 
@@ -1148,7 +1147,7 @@ static void object_blend_read_after_liblink(BlendLibReader *reader, ID *id)
   /* When loading undo steps, for objects in modes that use `sculpt_session`, recreate the mode
    * runtime data. For regular non-undo reading, this is currently handled by mode switching after
    * the initial file read. */
-  if (BLO_read_lib_is_undo(reader) && ob->mode & OB_MODE_ALL_SCULPT) {
+  if (BLO_read_lib_is_undo(reader) && BKE_object_use_sculptsession(ob->mode)) {
     /* The runtime may have been created in a non-matching mode and should be deleted here. */
     if (ob->runtime->sculpt_session != nullptr &&
         ob->runtime->sculpt_session->mode_type != ob->mode)
@@ -1165,7 +1164,7 @@ PartEff *BKE_object_do_version_give_parteff_245(Object *ob)
 {
   PartEff *paf;
 
-  paf = static_cast<PartEff *>(ob->effect.first);
+  paf = ob->effect.first_as<PartEff>();
   while (paf) {
     if (paf->type == EFF_PARTICLE) {
       return paf;
@@ -1199,9 +1198,7 @@ static void object_lib_override_apply_post(ID *id_dst, ID *id_src)
    * (maybe a new flag to allow override code to set values of some read-only properties?).
    */
   PTCacheID *pid_src, *pid_dst;
-  for (pid_dst = static_cast<PTCacheID *>(pidlist_dst.first),
-      pid_src = static_cast<PTCacheID *>(pidlist_src.first);
-       pid_dst != nullptr;
+  for (pid_dst = pidlist_dst.first(), pid_src = pidlist_src.first(); pid_dst != nullptr;
        pid_dst = pid_dst->next, pid_src = (pid_src != nullptr) ? pid_src->next : nullptr)
   {
     /* If pid's do not match, just tag info of caches in dst as dirty and continue. */
@@ -1219,8 +1216,8 @@ static void object_lib_override_apply_post(ID *id_dst, ID *id_src)
     }
 
     PointCache *point_cache_dst, *point_cache_src;
-    for (point_cache_dst = static_cast<PointCache *>(pid_dst->ptcaches->first),
-        point_cache_src = static_cast<PointCache *>(pid_src->ptcaches->first);
+    for (point_cache_dst = pid_dst->ptcaches->first(),
+        point_cache_src = pid_src->ptcaches->first();
          point_cache_dst != nullptr;
          point_cache_dst = point_cache_dst->next,
         point_cache_src = (point_cache_src != nullptr) ? point_cache_src->next : nullptr)
@@ -1856,7 +1853,7 @@ void BKE_object_free_caches(Object *object)
   short update_flag = 0;
 
   /* Free particle system caches holding paths. */
-  if (object->particlesystem.first) {
+  if (object->particlesystem.first()) {
     for (ParticleSystem &psys : object->particlesystem) {
       psys_free_path_cache(&psys, psys.edit);
       update_flag |= ID_RECALC_PSYS_REDO;
@@ -2071,7 +2068,7 @@ int BKE_object_visibility(const Object *ob, const int dag_eval_mode)
 
   /* Test which components the object has. */
   int visibility = OB_VISIBLE_SELF;
-  if (ob->particlesystem.first) {
+  if (ob->particlesystem.first()) {
     visibility |= OB_VISIBLE_INSTANCES | OB_VISIBLE_PARTICLES;
   }
   else if (ob->transflag & OB_DUPLI) {
@@ -3330,7 +3327,8 @@ static void give_parvert(const Object *par, int nr, float vec[3], const bool use
 
     /* It is possible that a cycle in the dependency graph was resolved in a way that caused this
      * object to be evaluated before its dependencies. In this case the curve cache may be null. */
-    if (par->runtime->curve_cache && par->runtime->curve_cache->deformed_nurbs.first != nullptr) {
+    if (par->runtime->curve_cache && par->runtime->curve_cache->deformed_nurbs.first() != nullptr)
+    {
       nurb = &par->runtime->curve_cache->deformed_nurbs;
     }
     else {
@@ -3504,7 +3502,7 @@ static void object_where_is_calc_ex(Depsgraph *depsgraph,
   BKE_rigidbody_sync_transforms(rbw, ob, ctime);
 
   /* solve constraints */
-  if (ob->constraints.first && !(ob->transflag & OB_NO_CONSTRAINTS)) {
+  if (ob->constraints.first() && !(ob->transflag & OB_NO_CONSTRAINTS)) {
     bConstraintOb *cob;
     cob = BKE_constraints_make_evalob(depsgraph, scene, ob, nullptr, CONSTRAINT_OBTYPE_OBJECT);
     BKE_constraints_solve(depsgraph, &ob->constraints, cob, ctime);
@@ -4038,7 +4036,7 @@ void BKE_object_foreach_display_point(Object *ob,
       }
     }
   }
-  else if (ob->runtime->curve_cache && ob->runtime->curve_cache->disp.first) {
+  else if (ob->runtime->curve_cache && ob->runtime->curve_cache->disp.first()) {
     for (DispList &dl : ob->runtime->curve_cache->disp) {
       const float *v3 = dl.verts;
       int totvert = dl.nr;
@@ -4296,9 +4294,18 @@ void BKE_object_handle_update(Depsgraph *depsgraph, Scene *scene, Object *ob)
   BKE_object_handle_update_ex(depsgraph, scene, ob, nullptr);
 }
 
+bool BKE_object_use_sculptsession(eObjectMode mode)
+{
+  eObjectMode allowed_modes = OB_MODE_ALL_SCULPT;
+  if (USER_EXPERIMENTAL_TEST(&U, use_3d_texture_paint)) {
+    allowed_modes |= OB_MODE_TEXTURE_PAINT;
+  }
+  return mode & allowed_modes;
+}
+
 void BKE_object_sculpt_data_create(Object *ob)
 {
-  BLI_assert((ob->runtime->sculpt_session == nullptr) && (ob->mode & OB_MODE_ALL_SCULPT));
+  BLI_assert((ob->runtime->sculpt_session == nullptr) && BKE_object_use_sculptsession(ob->mode));
   ob->runtime->sculpt_session = MEM_new<SculptSession>(__func__);
   ob->runtime->sculpt_session->mode_type = ob->mode;
 }
@@ -4563,7 +4570,7 @@ int BKE_object_insert_ptcache(Object *ob)
 
   BLI_listbase_sort(&ob->pc_ids, pc_cmp);
 
-  for (link = static_cast<LinkData *>(ob->pc_ids.first), i = 0; link; link = link->next, i++) {
+  for (link = ob->pc_ids.first(), i = 0; link; link = link->next, i++) {
     int index = POINTER_AS_INT(link->data);
 
     if (i < index) {
@@ -4586,7 +4593,7 @@ static int pc_findindex(ListBaseT<LinkData> *listbase, int index)
     return -1;
   }
 
-  LinkData *link = static_cast<LinkData *>(listbase->first);
+  LinkData *link = listbase->first();
   while (link) {
     if (POINTER_AS_INT(link->data) == index) {
       return number;
@@ -4661,7 +4668,7 @@ static KeyBlock *insert_lattkey(Main *bmain, Object *ob, const char *name, const
   if (newkey || from_mix == false) {
     kb = BKE_keyblock_add_ctime(key, name, false);
     if (!newkey) {
-      KeyBlock *basekb = static_cast<KeyBlock *>(key->block.first);
+      KeyBlock *basekb = key->block.first();
       kb->data = MEM_dupalloc_void(basekb->data);
       kb->totelem = basekb->totelem;
     }
@@ -4701,7 +4708,7 @@ static KeyBlock *insert_curvekey(Main *bmain, Object *ob, const char *name, cons
     /* create from curve */
     kb = BKE_keyblock_add_ctime(key, name, false);
     if (!newkey) {
-      KeyBlock *basekb = static_cast<KeyBlock *>(key->block.first);
+      KeyBlock *basekb = key->block.first();
       kb->data = MEM_dupalloc_void(basekb->data);
       kb->totelem = basekb->totelem;
     }
@@ -4806,7 +4813,7 @@ bool BKE_object_shapekey_remove(Main *bmain, Object *ob, KeyBlock *kb)
   BLI_remlink(&key->block, kb);
   key->totkey--;
   if (key->refkey == kb) {
-    key->refkey = static_cast<KeyBlock *>(key->block.first);
+    key->refkey = key->block.first();
 
     if (key->refkey) {
       /* apply new basis key on original data */
@@ -5116,7 +5123,7 @@ int BKE_object_scenes_users_get(Main *bmain, Object *ob)
 MovieClip *BKE_object_movieclip_get(Scene *scene, const Object *ob, bool use_default)
 {
   MovieClip *clip = use_default ? scene->clip : nullptr;
-  bConstraint *con = static_cast<bConstraint *>(ob->constraints.first), *scon = nullptr;
+  bConstraint *con = ob->constraints.first(), *scon = nullptr;
 
   while (con) {
     if (con->type == CONSTRAINT_TYPE_CAMERASOLVER) {
@@ -5398,7 +5405,7 @@ KDTree<float3> *BKE_object_as_kdtree(Object *ob, int *r_tot)
       tree = kdtree_new<float3>(tot);
       i = 0;
 
-      nu = static_cast<Nurb *>(cu->nurb.first);
+      nu = cu->nurb.first();
       while (nu) {
         if (nu->bezt) {
           BezTriple *bezt;
@@ -5637,7 +5644,7 @@ void BKE_object_modifier_update_subframe(Depsgraph *depsgraph,
 
 void BKE_object_update_select_id(Main *bmain)
 {
-  Object *ob = static_cast<Object *>(bmain->objects.first);
+  Object *ob = bmain->objects.first();
   int select_id = 1;
   while (ob) {
     ob->runtime->select_id = select_id++;
@@ -5694,7 +5701,7 @@ void BKE_object_check_uids_unique_and_report(const Object *object)
 
 SubsurfModifierData *BKE_object_get_last_subsurf_modifier(const Object *ob)
 {
-  ModifierData *md = static_cast<ModifierData *>(ob->modifiers.last);
+  ModifierData *md = ob->modifiers.last();
 
   while (md) {
     if (md->type == eModifierType_Subsurf) {

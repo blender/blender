@@ -893,7 +893,8 @@ struct WeightPaintStroke final : public PaintStroke {
   VPaint *weight_paint_;
   Base *base_;
 
-  WeightPaintStroke(bContext *C, wmOperator *op, const wmEvent *event) : PaintStroke(C, op, event)
+  WeightPaintStroke(bContext *C, wmOperator *op, const wmEvent *event)
+      : PaintStroke(C, op, event, PaintMode::Weight)
   {
     bmain_ = CTX_data_main(C);
     tool_settings_ = CTX_data_tool_settings(C);
@@ -901,18 +902,18 @@ struct WeightPaintStroke final : public PaintStroke {
     base_ = CTX_data_active_base(C);
   }
 
-  bool get_location(float out[3], const float mouse[2], bool force_original) override;
-  bool test_start(wmOperator *op, const float mouse[2]) override;
+  std::optional<float3> get_location(float2 mouse, bool force_original) override;
+  bool test_start(wmOperator *op, float2 mouse) override;
   void redraw(bool final) override;
   bool test_cancel() override;
-  void update_step(wmOperator *op, PointerRNA *itemptr) override;
+  void update_step(wmOperator *op, const StrokeStep &stroke_step) override;
   void done(bool is_cancel, bool stroke_started) override;
 };
 
-bool WeightPaintStroke::get_location(float out[3], const float mouse[2], bool force_original)
+std::optional<float3> WeightPaintStroke::get_location(const float2 mouse, bool force_original)
 {
   return stroke_get_location_bvh(
-      *this->depsgraph, this->vc, *this->paint, this->brush, out, mouse, force_original);
+      *this->depsgraph, this->vc, *this->paint, this->brush, mouse, force_original);
 }
 
 static void init_session_data(const VPaint &wpaint, Object &ob, WPaintData &wpd)
@@ -932,7 +933,7 @@ static void init_session_data(const VPaint &wpaint, Object &ob, WPaintData &wpd)
   }
 }
 
-bool WeightPaintStroke::test_start(wmOperator *op, const float mouse[2])
+bool WeightPaintStroke::test_start(wmOperator *op, const float2 mouse)
 {
   Scene &scene = *this->scene;
   ToolSettings &ts = *scene.toolsettings;
@@ -1276,7 +1277,9 @@ static void do_wpaint_brush_smear(const Depsgraph &depsgraph,
   MutableSpan<bke::pbvh::MeshNode> nodes = bke::object::pbvh_get(ob)->nodes<bke::pbvh::MeshNode>();
   const GroupedSpan<int> vert_to_face = mesh.vert_to_face_map();
   const StrokeCache &cache = *ss.cache;
-  if (!cache.is_last_valid) {
+
+  if (stroke_is_first_brush_step_of_symmetry_pass(cache)) {
+    /* We need a directional component to calculate the effect of this brush */
     return;
   }
 
@@ -1645,16 +1648,16 @@ void ED_object_wpaintmode_enter(bContext *C, Depsgraph &depsgraph)
 /** \name Exit Weight Paint Mode
  * \{ */
 
-void ED_object_wpaintmode_exit_ex(Object &ob)
+void ED_object_wpaintmode_exit_ex(Scene &scene, Object &ob)
 {
-  ed::sculpt_paint::mode_exit_generic(ob, OB_MODE_WEIGHT_PAINT);
+  ed::sculpt_paint::mode_exit_generic(scene, ob, OB_MODE_WEIGHT_PAINT);
   ED_mesh_mirror_spatial_table_end(&ob);
   ED_mesh_mirror_topo_table_end(&ob);
 }
 void ED_object_wpaintmode_exit(bContext *C)
 {
   Object *ob = CTX_data_active_object(C);
-  ED_object_wpaintmode_exit_ex(*ob);
+  ED_object_wpaintmode_exit_ex(*CTX_data_scene(C), *ob);
 }
 /** \} */
 
@@ -1724,7 +1727,7 @@ static wmOperatorStatus wpaint_mode_toggle_exec(bContext *C, wmOperator *op)
   Mesh *mesh = BKE_mesh_from_object(&ob);
 
   if (is_mode_set) {
-    ED_object_wpaintmode_exit_ex(ob);
+    ED_object_wpaintmode_exit_ex(scene, ob);
   }
   else {
     Depsgraph *depsgraph = CTX_data_depsgraph_on_load(C);
@@ -1766,6 +1769,7 @@ void PAINT_OT_weight_paint_toggle(wmOperatorType *ot)
 
 /** \} */
 
+/* -------------------------------------------------------------------- */
 /** \name Weight Paint Operator
  * \{ */
 
@@ -1779,7 +1783,9 @@ static void wpaint_do_paint(const Depsgraph &depsgraph,
   VPaint &wp = *scene.toolsettings->wpaint;
   Mesh &mesh = *id_cast<Mesh *>(ob.data);
   IndexMaskMemory memory;
-  const IndexMask node_mask = vwpaint::pbvh_gather_generic(depsgraph, ob, wp, brush, memory);
+  const IndexMask node_mask = gather_brush_nodes(
+      ob, brush, memory, BKE_pbvh_node_fully_hidden_get);
+  vwpaint::update_sculpt_normal(depsgraph, ob, wp, brush, node_mask);
 
   if (auto_mask::is_enabled(wp.paint, ob, &brush)) {
     auto_mask::Cache &cache = auto_mask::stroke_cache_ensure(depsgraph, wp.paint, &brush, ob);
@@ -1791,7 +1797,7 @@ static void wpaint_do_paint(const Depsgraph &depsgraph,
   wpaint_paint_leaves(depsgraph, ob, wp, wpd, wpd.info, mesh, node_mask);
 }
 
-void WeightPaintStroke::update_step(wmOperator * /*op*/, PointerRNA *itemptr)
+void WeightPaintStroke::update_step(wmOperator * /*op*/, const StrokeStep &stroke_step)
 {
   VPaint &wp = *weight_paint_;
   const ToolSettings &ts = *tool_settings_;
@@ -1803,9 +1809,8 @@ void WeightPaintStroke::update_step(wmOperator * /*op*/, PointerRNA *itemptr)
   SculptSession &ss = *ob->runtime->sculpt_session;
   StrokeCache &cache = *ss.cache;
 
-  vwpaint::update_cache_variants(*this->depsgraph, *vc, wp, *ob, *this->base_, itemptr);
-
-  float mat[4][4];
+  vwpaint::update_cache_variants(
+      *this->depsgraph, *vc, wp, PaintMode::Invalid, *ob, *this->base_, stroke_step);
 
   const float brush_alpha_value = BKE_brush_alpha_get(&wp.paint, &brush);
 
@@ -1817,10 +1822,6 @@ void WeightPaintStroke::update_step(wmOperator * /*op*/, PointerRNA *itemptr)
   }
 
   ob = vc->obact;
-
-  ED_view3d_init_mats_rv3d(ob, vc->rv3d);
-
-  mul_m4_m4m4(mat, vc->rv3d->persmat, ob->object_to_world().ptr());
 
   Mesh &mesh = *id_cast<Mesh *>(ob->data);
 
@@ -1865,22 +1866,19 @@ void WeightPaintStroke::update_step(wmOperator * /*op*/, PointerRNA *itemptr)
         *this->depsgraph, *this->scene, wp.paint, *ob, wpaint_do_paint, wpd);
   }
 
+  ss.cache->first_time = false;
   copy_v3_v3(cache.last_location, cache.location);
-  cache.is_last_valid = true;
-
-  swap_m4m4(vc->rv3d->persmat, mat);
 
   /* Calculate pivot for rotation around selection if needed.
    * also needed for "Frame Selected" on last stroke. */
   float loc_world[3];
   mul_v3_m4v3(loc_world, ob->object_to_world().ptr(), ss.cache->location);
-  vwpaint::last_stroke_update(loc_world, wp.paint);
+  bke::paint::stroke_track_location(*this->paint, loc_world);
 
   BKE_mesh_batch_cache_dirty_tag(&mesh, BKE_MESH_BATCH_DIRTY_ALL);
 
   DEG_id_tag_update(&mesh.id, ID_RECALC_GEOMETRY);
   WM_event_add_notifier(this->evil_C, NC_OBJECT | ND_DRAW, ob);
-  swap_m4m4(wpd->vc.rv3d->persmat, mat);
 
   ED_region_tag_redraw(vc->region);
 }
@@ -1895,7 +1893,7 @@ void WeightPaintStroke::done(bool /*is_cancel*/, bool /*stroke_started*/)
     vwpaint::smooth_brush_toggle_off(this->paint, ss.cache);
   }
 
-  if (ob.particlesystem.first) {
+  if (ob.particlesystem.first_) {
     for (ParticleSystem &psys : ob.particlesystem) {
       for (int i = 0; i < PSYS_TOT_VG; i++) {
         if (psys.vgroup[i] == BKE_object_defgroup_active_index_get(&ob)) {

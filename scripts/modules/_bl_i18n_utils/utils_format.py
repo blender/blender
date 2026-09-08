@@ -6,7 +6,7 @@
 # Parse 'printf' and 'format' formatting tokens in a given string.
 #
 # used both by the general 'sanity' validation code for translated messages
-# (as broken fromatting items in translations can easily crash Blender), and
+# (as broken formatting items in translations can easily crash Blender), and
 # the LTR code pre-processing languages like Arabic or Hebrew.
 
 import re

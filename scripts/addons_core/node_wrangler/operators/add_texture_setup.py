@@ -2,7 +2,6 @@
 #
 # SPDX-License-Identifier: GPL-2.0-or-later
 
-import bpy
 from bpy.types import Operator
 from bpy.props import BoolProperty
 from bpy_extras.node_utils import connect_sockets
@@ -16,7 +15,6 @@ from ..utils.nodes import (
     nw_check,
     nw_check_selected,
     nw_check_space_type,
-    get_nodes_links,
 )
 
 
@@ -40,7 +38,8 @@ class NODE_OT_add_texture_setup(Operator, NWBase):
                 and nw_check_selected(cls, context))
 
     def execute(self, context):
-        nodes, links = get_nodes_links(context)
+        tree = context.space_data.edit_tree
+        nodes = tree.nodes
 
         texture_types = get_texture_node_types()
         selected_nodes = [n for n in nodes if n.select]

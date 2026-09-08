@@ -839,6 +839,7 @@ void RNA_api_strip_elements(BlenderRNA *brna, PropertyRNA *cprop)
   RNA_def_parameter_flags(parm, PropertyFlag(0), PARM_REQUIRED);
   /* return type */
   parm = RNA_def_pointer(func, "elem", "StripElement", "", "New StripElement");
+  RNA_def_parameter_flags(parm, PROP_NEVER_NULL, ParameterFlag(0));
   RNA_def_function_return(func, parm);
 
   func = RNA_def_function(srna, "pop", "rna_StripElements_pop");
@@ -957,6 +958,7 @@ void RNA_api_strips(StructRNA *srna, const bool metastrip)
   RNA_def_parameter_flags(parm, PropertyFlag(0), PARM_REQUIRED);
   /* return type */
   parm = RNA_def_pointer(func, "sequence", "Strip", "", "New Strip");
+  RNA_def_parameter_flags(parm, PROP_NEVER_NULL, ParameterFlag(0));
   RNA_def_function_return(func, parm);
 
   func = RNA_def_function(srna, "new_mask", new_mask_func_name);
@@ -988,6 +990,7 @@ void RNA_api_strips(StructRNA *srna, const bool metastrip)
   RNA_def_parameter_flags(parm, PropertyFlag(0), PARM_REQUIRED);
   /* return type */
   parm = RNA_def_pointer(func, "sequence", "Strip", "", "New Strip");
+  RNA_def_parameter_flags(parm, PROP_NEVER_NULL, ParameterFlag(0));
   RNA_def_function_return(func, parm);
 
   func = RNA_def_function(srna, "new_scene", new_scene_func_name);
@@ -1019,6 +1022,7 @@ void RNA_api_strips(StructRNA *srna, const bool metastrip)
   RNA_def_parameter_flags(parm, PropertyFlag(0), PARM_REQUIRED);
   /* return type */
   parm = RNA_def_pointer(func, "sequence", "Strip", "", "New Strip");
+  RNA_def_parameter_flags(parm, PROP_NEVER_NULL, ParameterFlag(0));
   RNA_def_function_return(func, parm);
 
   func = RNA_def_function(srna, "new_image", new_image_func_name);
@@ -1056,6 +1060,7 @@ void RNA_api_strips(StructRNA *srna, const bool metastrip)
                       "Mode for fitting the image to the canvas");
   /* return type */
   parm = RNA_def_pointer(func, "sequence", "Strip", "", "New Strip");
+  RNA_def_parameter_flags(parm, PROP_NEVER_NULL, ParameterFlag(0));
   RNA_def_function_return(func, parm);
 
   func = RNA_def_function(srna, "new_movie", new_movie_func_name);
@@ -1095,6 +1100,7 @@ void RNA_api_strips(StructRNA *srna, const bool metastrip)
       func, "stream", 0, 0, SHRT_MAX, "Stream", "Stream index for multi-stream files", 0, 20);
   /* return type */
   parm = RNA_def_pointer(func, "sequence", "Strip", "", "New Strip");
+  RNA_def_parameter_flags(parm, PROP_NEVER_NULL, ParameterFlag(0));
   RNA_def_function_return(func, parm);
 
   func = RNA_def_function(srna, "new_sound", new_sound_func_name);
@@ -1128,6 +1134,7 @@ void RNA_api_strips(StructRNA *srna, const bool metastrip)
       func, "stream", 0, 0, SHRT_MAX, "Stream", "Stream index for multi-stream files", 0, 20);
   /* return type */
   parm = RNA_def_pointer(func, "sequence", "Strip", "", "New Strip");
+  RNA_def_parameter_flags(parm, PROP_NEVER_NULL, ParameterFlag(0));
   RNA_def_function_return(func, parm);
 
   func = RNA_def_function(srna, "new_meta", new_meta_func_name);
@@ -1157,6 +1164,7 @@ void RNA_api_strips(StructRNA *srna, const bool metastrip)
   RNA_def_parameter_flags(parm, PropertyFlag(0), PARM_REQUIRED);
   /* return type */
   parm = RNA_def_pointer(func, "sequence", "Strip", "", "New Strip");
+  RNA_def_parameter_flags(parm, PROP_NEVER_NULL, ParameterFlag(0));
   RNA_def_function_return(func, parm);
 
   func = RNA_def_function(srna, "new_effect", new_effect_func_name);
@@ -1200,6 +1208,7 @@ void RNA_api_strips(StructRNA *srna, const bool metastrip)
   RNA_def_pointer(func, "input2", "Strip", "", "Second input strip for effect");
   /* return type */
   parm = RNA_def_pointer(func, "sequence", "Strip", "", "New Strip");
+  RNA_def_parameter_flags(parm, PROP_NEVER_NULL, ParameterFlag(0));
   RNA_def_function_return(func, parm);
 
   func = RNA_def_function(srna, "remove", remove_func_name);

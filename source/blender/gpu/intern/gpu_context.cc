@@ -89,9 +89,10 @@ Context::~Context()
   BLI_assert(back_right == nullptr);
   BLI_assert(texture_pool == nullptr);
 
-  /** IMPORTANT: Do not free resources (texture, batch, buffers) in this function. These objects
-   * are likely to reference the GL/VK/MTLContext which is already destroyed at this point. */
-
+  /**
+   * IMPORTANT: Do not free resources (texture, batch, buffers) in this function. These objects
+   * are likely to reference the GL/VK/MTLContext which is already destroyed at this point.
+   */
   GPU_matrix_state_discard(matrix_state);
   delete state_manager;
   delete imm;
@@ -520,6 +521,11 @@ bool GPU_backend_type_selection_detect()
 
 static bool gpu_backend_supported()
 {
+  /* Skip the support check if "--debug-gpu-backend-no-fallback" is used. */
+  if (G.debug & G_DEBUG_GPU_BACKEND_NO_FALLBACK) {
+    return true;
+  }
+
   switch (g_backend_type) {
     case GPU_BACKEND_OPENGL:
 #ifdef WITH_OPENGL_BACKEND

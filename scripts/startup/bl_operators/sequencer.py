@@ -394,7 +394,7 @@ class SequencerFileHandlerBase:
     def poll_drop(cls, context):
         return (
             (context.region is not None) and
-            (context.region.type == 'WINDOW') and
+            (context.region.type in {'WINDOW', 'PREVIEW'}) and
             (context.area is not None) and
             (context.area.ui_type == 'SEQUENCE_EDITOR')
         )
@@ -421,6 +421,13 @@ class SEQUENCER_FH_sound_strip(FileHandler, SequencerFileHandlerBase):
     bl_file_extensions = ";".join(bpy.path.extensions_audio)
 
 
+class SEQUENCER_FH_text_strip(FileHandler, SequencerFileHandlerBase):
+    bl_idname = "SEQUENCER_FH_text_strip"
+    bl_label = "Text strip"
+    bl_import_operator = "SEQUENCER_OT_text_strip_add"
+    bl_file_extensions = ".txt"
+
+
 classes = (
     SequencerCrossfadeSounds,
     SequencerSplitMulticam,
@@ -431,4 +438,5 @@ classes = (
     SEQUENCER_FH_image_strip,
     SEQUENCER_FH_movie_strip,
     SEQUENCER_FH_sound_strip,
+    SEQUENCER_FH_text_strip,
 )

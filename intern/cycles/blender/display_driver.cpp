@@ -94,7 +94,7 @@ blender::gpu::Shader *BlenderDisplaySpaceShader::get_shader_program()
 /* Higher level representation of a texture from the graphics library. */
 class DisplayGPUTexture {
  public:
-  /* Global counter for all allocated blender::GPUTextures used by instances of this class. */
+  /* Global counter for all allocated GPUTextures used by instances of this class. */
   static inline std::atomic<int> num_used = 0;
 
   DisplayGPUTexture() = default;
@@ -176,7 +176,7 @@ class DisplayGPUTexture {
     --num_used;
   }
 
-  /* Texture resource allocated by the blender::GPU module.
+  /* Texture resource allocated by the GPU module.
    *
    * NOTE: Allocated on the render engine's context. */
   blender::gpu::Texture *gpu_texture = nullptr;
@@ -197,7 +197,7 @@ class DisplayGPUTexture {
 /* Higher level representation of a Pixel Buffer Object (PBO) from the graphics library. */
 class DisplayGPUPixelBuffer {
  public:
-  /* Global counter for all allocated blender::GPU module PBOs used by instances of this class. */
+  /* Global counter for all allocated GPU module PBOs used by instances of this class. */
   static inline std::atomic<int> num_used = 0;
 
   DisplayGPUPixelBuffer() = default;
@@ -281,7 +281,7 @@ class DisplayGPUPixelBuffer {
     --num_used;
   }
 
-  /* Pixel Buffer Object allocated by the blender::GPU module.
+  /* Pixel Buffer Object allocated by the GPU module.
    *
    * NOTE: Allocated on the render engine's context. */
   blender::GPUPixelBuffer *gpu_pixel_buffer = nullptr;
@@ -442,7 +442,7 @@ bool BlenderDisplayDriver::update_begin(const Params &params,
    * at a resolution divider 1. This was we don't need to recreate graphics interoperability
    * objects which are costly and which are tied to the specific underlying buffer size.
    * The downside of this approach is that when graphics interoperability is not used we are
-   * sending too much data to blender::GPU when resolution divider is not 1. */
+   * sending too much data to GPU when resolution divider is not 1. */
   /* TODO(sergey): Investigate whether keeping the PBO exact size of the texture makes non-interop
    * mode faster. */
   const int buffer_width = params.size.x;
@@ -496,17 +496,16 @@ void BlenderDisplayDriver::update_end()
    *
    * This allows to ensure that the unpacking happens while resources like graphics interop (which
    * lifetime is outside of control of the display driver) are still valid, as well as allows to
-   * move the tile from being current to finished blender::immediately after this call.
+   * move the tile from being current to finished immediately after this call.
    *
    * One concern with this approach is that if the update happens more often than drawing then
-   * doing the unpack here occupies blender::GPU transfer for no good reason. However, the render
-   * scheduler takes care of ensuring updates don't happen that often. In regular applications
-   * redraw will happen much more often than this update.
+   * doing the unpack here occupies GPU transfer for no good reason. However, the render scheduler
+   * takes care of ensuring updates don't happen that often. In regular applications redraw will
+   * happen much more often than this update.
    *
-   * On some older blender::GPUs on macOS, there is a driver crash when updating the texture for
-   * viewport renders while Blender is drawing. As a workaround update texture during draw, under
-   * assumption that there is no graphics interop on macOS and viewport render has a single tile.
-   */
+   * On some older GPUs on macOS, there is a driver crash when updating the texture for viewport
+   * renders while Blender is drawing. As a workaround update texture during draw, under assumption
+   * that there is no graphics interop on macOS and viewport render has a single tile. */
   if (!background_ && blender::GPU_type_matches_ex(blender::GPU_DEVICE_NVIDIA,
                                                    blender::GPU_OS_MAC,
                                                    blender::GPU_DRIVER_ANY,
@@ -518,7 +517,7 @@ void BlenderDisplayDriver::update_end()
     update_tile_texture_pixels(tiles_->current_tile);
   }
 
-  /* Ensure blender::GPU fence exists to synchronize upload. */
+  /* Ensure GPU fence exists to synchronize upload. */
   blender::GPU_fence_signal(gpu_upload_sync_);
 
   blender::GPU_flush();
@@ -538,7 +537,7 @@ half4 *BlenderDisplayDriver::map_texture_buffer()
    * and not. For the denoised image it may be able to use graphics interop as that
    * buffer is written to by one device, while the noisy renders can not use it.
    *
-   * We need to clear the graphics interop buffer on that switch, as blender::GPU_pixel_buffer_map
+   * We need to clear the graphics interop buffer on that switch, as GPU_pixel_buffer_map
    * may recreate the buffer or handle. */
   graphics_interop_buffer_.clear();
 
@@ -687,11 +686,11 @@ static void draw_tile(const float2 &zoom,
   const DisplayGPUTexture &texture = draw_tile.texture;
 
   if (!DCHECK_NOTNULL(texture.gpu_texture)) {
-    LOG_ERROR << "Display driver tile blender::GPU texture resource unavailable.";
+    LOG_ERROR << "Display driver tile GPU texture resource unavailable.";
     return;
   }
 
-  /* Trick to keep sharp rendering without jagged edges on all blender::GPUs.
+  /* Trick to keep sharp rendering without jagged edges on all GPUs.
    *
    * The idea here is to enforce driver to use linear interpolation when the image is zoomed out.
    * For the render result with a resolution divider in effect we always use nearest interpolation.
@@ -821,13 +820,13 @@ void BlenderDisplayDriver::draw(const Params &params)
 void BlenderDisplayDriver::gpu_context_create()
 {
   if (!RE_engine_gpu_context_create(&b_engine_)) {
-    LOG_ERROR << "Error creating blender::GPU context.";
+    LOG_ERROR << "Error creating GPU context.";
     return;
   }
 
-  /* Create global blender::GPU resources for display driver. */
+  /* Create global GPU resources for display driver. */
   if (!gpu_resources_create()) {
-    LOG_ERROR << "Error creating blender::GPU resources for Display Driver.";
+    LOG_ERROR << "Error creating GPU resources for Display Driver.";
     return;
   }
 }
@@ -861,7 +860,7 @@ bool BlenderDisplayDriver::gpu_resources_create()
 {
   /* Ensure context is active for resource creation. */
   if (!gpu_context_enable()) {
-    LOG_ERROR << "Error enabling blender::GPU context.";
+    LOG_ERROR << "Error enabling GPU context.";
     return false;
   }
 
@@ -869,7 +868,7 @@ bool BlenderDisplayDriver::gpu_resources_create()
   gpu_render_sync_ = blender::GPU_fence_create();
 
   if (!DCHECK_NOTNULL(gpu_upload_sync_) || !DCHECK_NOTNULL(gpu_render_sync_)) {
-    LOG_ERROR << "Error creating blender::GPU synchronization primitives.";
+    LOG_ERROR << "Error creating GPU synchronization primitives.";
     assert(0);
     return false;
   }

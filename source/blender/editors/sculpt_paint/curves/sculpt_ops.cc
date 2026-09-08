@@ -180,41 +180,37 @@ static std::unique_ptr<CurvesSculptStrokeOperation> start_brush_operation(
 
 struct SculptCurvesBrushStroke final : public PaintStroke {
   SculptCurvesBrushStroke(bContext *C, wmOperator *op, const wmEvent *event)
-      : PaintStroke(C, op, event)
+      : PaintStroke(C, op, event, PaintMode::SculptCurves)
   {
   }
 
-  bool get_location(float out[3], const float mouse[2], bool force_original) override;
-  bool test_start(wmOperator *op, const float mouse[2]) override;
+  std::optional<float3> get_location(float2 mouse, bool force_original) override;
+  bool test_start(wmOperator *op, float2 mouse) override;
   void redraw(bool final) override;
   bool test_cancel() override;
-  void update_step(wmOperator *op, PointerRNA *stroke_element) override;
+  void update_step(wmOperator *op, const StrokeStep &stroke_step) override;
   void done(bool is_cancel, bool stroke_started) override;
 
  private:
   std::unique_ptr<CurvesSculptStrokeOperation> operation_;
 };
 
-bool SculptCurvesBrushStroke::get_location(float out[3],
-                                           const float mouse[2],
-                                           bool /*force_original*/)
+std::optional<float3> SculptCurvesBrushStroke::get_location(const float2 mouse,
+                                                            bool /*force_original*/)
 {
-  out[0] = mouse[0];
-  out[1] = mouse[1];
-  out[2] = 0;
-  return true;
+  return float3(mouse.x, mouse.y, 0.0f);
 }
 
-bool SculptCurvesBrushStroke::test_start(wmOperator * /*op*/, const float /*mouse*/[2])
+bool SculptCurvesBrushStroke::test_start(wmOperator * /*op*/, const float2 /*mouse*/)
 {
   return true;
 }
 
-void SculptCurvesBrushStroke::update_step(wmOperator *op, PointerRNA *stroke_element)
+void SculptCurvesBrushStroke::update_step(wmOperator *op, const StrokeStep &stroke_step)
 {
   StrokeExtension stroke_extension;
-  RNA_float_get_array(stroke_element, "mouse", stroke_extension.mouse_position);
-  stroke_extension.pressure = RNA_float_get(stroke_element, "pressure");
+  stroke_extension.mouse_position = stroke_step.mouse;
+  stroke_extension.pressure = stroke_step.pressure;
   stroke_extension.reports = op->reports;
 
   if (!operation_) {

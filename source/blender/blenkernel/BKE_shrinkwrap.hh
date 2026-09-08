@@ -8,6 +8,7 @@
  */
 
 /* Shrinkwrap stuff */
+#include "BKE_bvh.hh"
 #include "BKE_bvhutils.hh"
 
 #include "BKE_context.hh"
@@ -83,8 +84,11 @@ const ShrinkwrapBoundaryData &boundary_cache_ensure(const Mesh &mesh);
 struct ShrinkwrapTreeData {
   Mesh *mesh;
 
+  /** Tree of the mesh triangles. Unused for #MOD_SHRINKWRAP_NEAREST_VERTEX. */
   const BVHTree *bvh;
   bke::BVHTreeFromMesh treeData;
+  /** Tree of the mesh vertices. Only used for #MOD_SHRINKWRAP_NEAREST_VERTEX. */
+  const bke::bvh::Tree *vert_tree;
 
   OffsetIndices<int> faces;
   Span<int2> edges;
@@ -192,7 +196,6 @@ void BKE_shrinkwrap_remesh_target_project(Mesh *src_me, Mesh *target_me, Object 
 bool BKE_shrinkwrap_project_normal(char options,
                                    const float vert[3],
                                    const float dir[3],
-                                   float ray_radius,
                                    const SpaceTransform *transf,
                                    ShrinkwrapTreeData *tree,
                                    BVHTreeRayHit *hit);

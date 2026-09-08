@@ -4442,7 +4442,7 @@ void BKE_fluid_particle_system_destroy(Object *ob, const int particle_type)
   ParticleSystemModifierData *pfmd;
   ParticleSystem *psys, *next_psys;
 
-  for (psys = static_cast<ParticleSystem *>(ob->particlesystem.first); psys; psys = next_psys) {
+  for (psys = ob->particlesystem.first(); psys; psys = next_psys) {
     next_psys = psys->next;
     if (psys->part->type == particle_type) {
       /* clear modifier */

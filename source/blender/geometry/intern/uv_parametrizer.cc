@@ -2379,67 +2379,52 @@ static void p_chart_simplify(PChart *chart)
 
 struct PAbfSystem {
   int ninterior, nfaces, nangles;
-  float *alpha, *beta, *sine, *cosine, *weight;
-  float *bAlpha, *bTriangle, *bInterior;
-  float *lambdaTriangle, *lambdaPlanar, *lambdaLength;
-  float (*J2dt)[3], *bstar, *dstar;
+  Array<float> alpha;
+  Array<float> beta;
+  Array<float> sine;
+  Array<float> cosine;
+  Array<float> weight;
+  Array<float> bAlpha;
+  Array<float> bTriangle;
+  Array<float> bInterior;
+  Array<float> lambdaTriangle;
+  Array<float> lambdaPlanar;
+  Array<float> lambdaLength;
+  Array<float[3]> J2dt;
+  Array<float> bstar;
+  Array<float> dstar;
 };
 
 static void p_abf_setup_system(PAbfSystem *sys)
 {
-  int i;
+  sys->alpha.reinitialize(sys->nangles);
+  sys->beta.reinitialize(sys->nangles);
+  sys->sine.reinitialize(sys->nangles);
+  sys->cosine.reinitialize(sys->nangles);
+  sys->weight.reinitialize(sys->nangles);
 
-  sys->alpha = MEM_new_array_uninitialized<float>(size_t(sys->nangles), "ABFalpha");
-  sys->beta = MEM_new_array_uninitialized<float>(size_t(sys->nangles), "ABFbeta");
-  sys->sine = MEM_new_array_uninitialized<float>(size_t(sys->nangles), "ABFsine");
-  sys->cosine = MEM_new_array_uninitialized<float>(size_t(sys->nangles), "ABFcosine");
-  sys->weight = MEM_new_array_uninitialized<float>(size_t(sys->nangles), "ABFweight");
+  sys->bAlpha.reinitialize(sys->nangles);
+  sys->bTriangle.reinitialize(sys->nfaces);
+  sys->bInterior.reinitialize(2 * size_t(sys->ninterior));
 
-  sys->bAlpha = MEM_new_array_uninitialized<float>(size_t(sys->nangles), "ABFbalpha");
-  sys->bTriangle = MEM_new_array_uninitialized<float>(size_t(sys->nfaces), "ABFbtriangle");
-  sys->bInterior = MEM_new_array_uninitialized<float>(2 * size_t(sys->ninterior), "ABFbinterior");
+  sys->lambdaTriangle.reinitialize(sys->nfaces);
+  sys->lambdaTriangle.as_mutable_span().fill(0.0f);
+  sys->lambdaPlanar.reinitialize(sys->ninterior);
+  sys->lambdaPlanar.as_mutable_span().fill(0.0f);
+  sys->lambdaLength.reinitialize(sys->ninterior);
+  sys->lambdaLength.as_mutable_span().fill(1.0f);
 
-  sys->lambdaTriangle = MEM_new_array_zeroed<float>(sys->nfaces, "ABFlambdatri");
-  sys->lambdaPlanar = MEM_new_array_zeroed<float>(sys->ninterior, "ABFlamdaplane");
-  sys->lambdaLength = MEM_new_array_uninitialized<float>(sys->ninterior, "ABFlambdalen");
-
-  sys->J2dt = MEM_new_array_uninitialized<float[3]>(size_t(sys->nangles), "ABFj2dt");
-  sys->bstar = MEM_new_array_uninitialized<float>(size_t(sys->nfaces), "ABFbstar");
-  sys->dstar = MEM_new_array_uninitialized<float>(size_t(sys->nfaces), "ABFdstar");
-
-  for (i = 0; i < sys->ninterior; i++) {
-    sys->lambdaLength[i] = 1.0;
-  }
-}
-
-static void p_abf_free_system(PAbfSystem *sys)
-{
-  MEM_delete(sys->alpha);
-  MEM_delete(sys->beta);
-  MEM_delete(sys->sine);
-  MEM_delete(sys->cosine);
-  MEM_delete(sys->weight);
-  MEM_delete(sys->bAlpha);
-  MEM_delete(sys->bTriangle);
-  MEM_delete(sys->bInterior);
-  MEM_delete(sys->lambdaTriangle);
-  MEM_delete(sys->lambdaPlanar);
-  MEM_delete(sys->lambdaLength);
-  MEM_delete(sys->J2dt);
-  MEM_delete(sys->bstar);
-  MEM_delete(sys->dstar);
+  sys->J2dt.reinitialize(sys->nangles);
+  sys->bstar.reinitialize(sys->nfaces);
+  sys->dstar.reinitialize(sys->nfaces);
 }
 
 static void p_abf_compute_sines(PAbfSystem *sys)
 {
-  float *sine = sys->sine;
-  float *cosine = sys->cosine;
-  const float *alpha = sys->alpha;
-
   for (int i = 0; i < sys->nangles; i++) {
-    const double angle = alpha[i];
-    sine[i] = sin(angle);
-    cosine[i] = cos(angle);
+    const double angle = sys->alpha[i];
+    sys->sine[i] = sin(angle);
+    sys->cosine[i] = cos(angle);
   }
 }
 
@@ -2863,7 +2848,6 @@ static bool p_chart_abf_solve(PChart *chart)
 
       if (!p_abf_matrix_invert(&sys, chart)) {
         param_warning("ABF failed to invert matrix");
-        p_abf_free_system(&sys);
         return false;
       }
 
@@ -2872,13 +2856,12 @@ static bool p_chart_abf_solve(PChart *chart)
 
     if (i == ABF_MAX_ITER) {
       param_warning("ABF maximum iterations reached");
-      p_abf_free_system(&sys);
       return false;
     }
   }
 
-  chart->abf_alpha = MEM_dupalloc(sys.alpha);
-  p_abf_free_system(&sys);
+  chart->abf_alpha = MEM_new_array_uninitialized<float>(sys.alpha.size(), __func__);
+  MutableSpan<float>(chart->abf_alpha, sys.alpha.size()).copy_from(sys.alpha);
 
   return true;
 }

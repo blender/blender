@@ -137,7 +137,7 @@ static void vfont_foreach_path(ID *id, BPathForeachPathData *bpath_data)
 static void vfont_blend_write(BlendWriter *writer, ID *id, const void *id_address)
 {
   VFont *vf = id_cast<VFont *>(id);
-  const bool is_undo = BLO_write_is_undo(writer);
+  const bool is_undo = writer->is_undo();
 
   /* Clean up, important in undo case to reduce false detection of changed datablocks. */
   vf->data = nullptr;
@@ -250,8 +250,8 @@ void BKE_vfont_data_free(VFont *vfont)
           continue;
         }
 
-        while (che->nurbsbase.first) {
-          Nurb *nu = static_cast<Nurb *>(che->nurbsbase.first);
+        while (che->nurbsbase.first()) {
+          Nurb *nu = che->nurbsbase.first();
           if (nu->bezt) {
             MEM_delete(nu->bezt);
           }

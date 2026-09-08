@@ -104,7 +104,7 @@ void MTLImmediate::end()
     /* Reset vertex descriptor to default state. */
     desc.reset_vertex_descriptor();
     desc.vertex_descriptor.total_attributes = interface.attr_len_;
-    desc.vertex_descriptor.max_attribute_value = interface.attr_len_ - 1;
+    desc.vertex_descriptor.max_attribute_value = 0;
     desc.vertex_descriptor.num_vert_buffers = 1;
 
     for (int i = 0; i < desc.vertex_descriptor.total_attributes; i++) {
@@ -157,6 +157,9 @@ void MTLImmediate::end()
       /* Using attribute offset in vertex format, as this will be correct */
       pso_attr.offset = attr->offset;
       pso_attr.buffer_index = imm_buffer_slot;
+
+      desc.vertex_descriptor.max_attribute_value = i;
+
       BLI_assert(pso_attr.format != MTLVertexFormatInvalid);
     }
 

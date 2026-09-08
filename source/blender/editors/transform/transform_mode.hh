@@ -54,6 +54,9 @@ struct TransModeInfo {
 
   /** Custom drawing. */
   void (*draw_fn)(TransInfo *);
+
+  /** Optional callback to override the status bar. Requires `t->context` to be set. */
+  void (*status_fn)(TransInfo *);
 };
 
 /* Header of #TransDataEdgeSlideVert, #TransDataEdgeSlideEdge. */
@@ -79,7 +82,7 @@ void constraintScaleLim(const TransInfo *t, const TransDataContainer *tc, int td
 /**
  * Used by Transform Rotation and Transform Normal Rotation.
  */
-void headerRotation(TransInfo *t, char *str, int str_size, float final);
+void headerRotation(TransInfo *t, char *str, int str_maxncpy, float final);
 /**
  * Applies values of rotation to `td->loc` and `td->ext->quat`
  * based on a rotation matrix (mat) and a pivot (center).
@@ -98,7 +101,7 @@ void ElementRotation(const TransInfo *t,
                      TransDataExtension *td_ext,
                      const float mat[3][3],
                      short around);
-void headerResize(TransInfo *t, const float vec[3], char *str, int str_size);
+void headerResize(TransInfo *t, const float vec[3], char *str, int str_maxncpy);
 void ElementResize(const TransInfo *t,
                    const TransDataContainer *tc,
                    int td_index,

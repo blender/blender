@@ -17,6 +17,7 @@
 #include "DNA_scene_types.h"
 
 #include "DEG_depsgraph.hh"
+#include "DEG_depsgraph_build.hh"
 
 #include "RNA_access.hh"
 #include "RNA_define.hh"
@@ -45,6 +46,9 @@ static wmOperatorStatus mask_shape_key_insert_exec(bContext *C, wmOperator * /*o
   Mask *mask = CTX_data_edit_mask(C);
   bool changed = false;
 
+  bool mask_was_animated = false;
+  bool mask_now_animated = false;
+
   for (MaskLayer &mask_layer : mask->masklayers) {
     MaskLayerShape *mask_layer_shape;
 
@@ -52,11 +56,21 @@ static wmOperatorStatus mask_shape_key_insert_exec(bContext *C, wmOperator * /*o
       continue;
     }
 
+    mask_was_animated |= BKE_mask_layer_is_animated(mask_layer);
+
     mask_layer_shape = BKE_mask_layer_shape_verify_frame(&mask_layer, frame);
     BKE_mask_layer_shape_from_mask(&mask_layer, mask_layer_shape);
     changed = true;
 
+    mask_now_animated |= BKE_mask_layer_is_animated(mask_layer);
+
     select_only_layer_shape(&mask_layer, mask_layer_shape);
+  }
+
+  /* The depsgraph relations were built assuming the mask was not animated, so need to update
+   * relations. */
+  if (mask_was_animated != mask_now_animated) {
+    DEG_relations_tag_update(CTX_data_main(C));
   }
 
   if (changed) {
@@ -90,6 +104,9 @@ static wmOperatorStatus mask_shape_key_clear_exec(bContext *C, wmOperator * /*op
   Mask *mask = CTX_data_edit_mask(C);
   bool changed = false;
 
+  bool mask_was_animated = false;
+  bool mask_now_animated = false;
+
   for (MaskLayer &mask_layer : mask->masklayers) {
     MaskLayerShape *mask_layer_shape;
 
@@ -97,12 +114,22 @@ static wmOperatorStatus mask_shape_key_clear_exec(bContext *C, wmOperator * /*op
       continue;
     }
 
+    mask_was_animated |= BKE_mask_layer_is_animated(mask_layer);
+
     mask_layer_shape = BKE_mask_layer_shape_find_frame(&mask_layer, frame);
 
     if (mask_layer_shape) {
       BKE_mask_layer_shape_unlink(&mask_layer, mask_layer_shape);
       changed = true;
     }
+
+    mask_now_animated |= BKE_mask_layer_is_animated(mask_layer);
+  }
+
+  /* The depsgraph relations were built assuming the mask was animated, so need to update
+   * relations. */
+  if (mask_was_animated != mask_now_animated) {
+    DEG_relations_tag_update(CTX_data_main(C));
   }
 
   if (changed) {
@@ -142,7 +169,7 @@ static wmOperatorStatus mask_shape_key_feather_reset_exec(bContext *C, wmOperato
       continue;
     }
 
-    if (mask_layer.splines_shapes.first) {
+    if (mask_layer.splines_shapes.first_) {
       MaskLayerShape *mask_layer_shape_reset;
 
       /* Get the shape-key of the current state. */
@@ -238,12 +265,11 @@ static wmOperatorStatus mask_shape_key_rekey_exec(bContext *C, wmOperator *op)
       continue;
     }
 
-    if (mask_layer.splines_shapes.first) {
+    if (mask_layer.splines_shapes.first_) {
       MaskLayerShape *mask_layer_shape, *mask_layer_shape_next;
       MaskLayerShape *mask_layer_shape_lastsel = nullptr;
 
-      for (mask_layer_shape = static_cast<MaskLayerShape *>(mask_layer.splines_shapes.first);
-           mask_layer_shape;
+      for (mask_layer_shape = mask_layer.splines_shapes.first(); mask_layer_shape;
            mask_layer_shape = mask_layer_shape_next)
       {
         MaskLayerShape *mask_layer_shape_a = nullptr;
@@ -288,8 +314,7 @@ static wmOperatorStatus mask_shape_key_rekey_exec(bContext *C, wmOperator *op)
           }
 
           /* re-key, NOTE: can't modify the keys here since it messes up. */
-          for (mask_layer_shape_tmp = static_cast<MaskLayerShape *>(shapes_tmp.first);
-               mask_layer_shape_tmp;
+          for (mask_layer_shape_tmp = shapes_tmp.first(); mask_layer_shape_tmp;
                mask_layer_shape_tmp = mask_layer_shape_tmp->next)
           {
             BKE_mask_layer_evaluate(&mask_layer, mask_layer_shape_tmp->frame, true);
@@ -300,8 +325,7 @@ static wmOperatorStatus mask_shape_key_rekey_exec(bContext *C, wmOperator *op)
           }
 
           /* restore unselected points and free copies */
-          for (mask_layer_shape_tmp = static_cast<MaskLayerShape *>(shapes_tmp.first);
-               mask_layer_shape_tmp;
+          for (mask_layer_shape_tmp = shapes_tmp.first(); mask_layer_shape_tmp;
                mask_layer_shape_tmp = mask_layer_shape_tmp_next)
           {
             /* restore */
@@ -387,29 +411,39 @@ void MASK_OT_shape_key_rekey(wmOperatorType *ot)
 
 /* *** Shape Key Utils *** */
 
-void ED_mask_layer_shape_auto_key(MaskLayer *mask_layer, const int frame)
+void ED_mask_layer_shape_auto_key(const bContext *C, MaskLayer *mask_layer, const int frame)
 {
   MaskLayerShape *mask_layer_shape;
+
+  const bool mask_was_animated = BKE_mask_layer_is_animated(*mask_layer);
 
   mask_layer_shape = BKE_mask_layer_shape_verify_frame(mask_layer, frame);
   BKE_mask_layer_shape_from_mask(mask_layer, mask_layer_shape);
 
+  const bool mask_now_animated = BKE_mask_layer_is_animated(*mask_layer);
+
+  /* The depsgraph relations were built assuming the mask was not animated, so need to update
+   * relations. */
+  if (mask_was_animated != mask_now_animated) {
+    DEG_relations_tag_update(CTX_data_main(C));
+  }
+
   select_only_layer_shape(mask_layer, mask_layer_shape);
 }
 
-bool ED_mask_layer_shape_auto_key_all(Mask *mask, const int frame)
+bool ED_mask_layer_shape_auto_key_all(const bContext *C, Mask *mask, const int frame)
 {
   bool changed = false;
 
   for (MaskLayer &mask_layer : mask->masklayers) {
-    ED_mask_layer_shape_auto_key(&mask_layer, frame);
+    ED_mask_layer_shape_auto_key(C, &mask_layer, frame);
     changed = true;
   }
 
   return changed;
 }
 
-bool ED_mask_layer_shape_auto_key_select(Mask *mask, const int frame)
+bool ED_mask_layer_shape_auto_key_select(const bContext *C, Mask *mask, const int frame)
 {
   bool changed = false;
 
@@ -419,7 +453,7 @@ bool ED_mask_layer_shape_auto_key_select(Mask *mask, const int frame)
       continue;
     }
 
-    ED_mask_layer_shape_auto_key(&mask_layer, frame);
+    ED_mask_layer_shape_auto_key(C, &mask_layer, frame);
     changed = true;
   }
 

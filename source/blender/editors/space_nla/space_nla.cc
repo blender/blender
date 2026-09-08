@@ -141,7 +141,7 @@ static void nla_free(SpaceLink *sl)
 /* spacetype; init callback */
 static void nla_init(wmWindowManager *wm, ScrArea *area)
 {
-  SpaceNla *snla = static_cast<SpaceNla *>(area->spacedata.first);
+  SpaceNla *snla = area->spacedata.first_as<SpaceNla>();
 
   /* init dope-sheet data if non-existent (i.e. for old files). */
   if (snla->ads == nullptr) {
@@ -727,6 +727,7 @@ void ED_spacetype_nla()
   /* regions: UI buttons */
   art = MEM_new_zeroed<ARegionType>("spacetype nla region");
   art->regionid = RGN_TYPE_UI;
+  art->flag = ARegionTypeFlag::UsePanelCategoriesSearch;
   art->prefsizex = UI_SIDEBAR_PANEL_WIDTH;
   art->keymapflag = ED_KEYMAP_UI | ED_KEYMAP_FRAMES;
   art->listener = nla_region_listener;

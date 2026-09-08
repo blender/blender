@@ -47,24 +47,16 @@ class Context : public compositor::Context {
  private:
   const Main *main_;
   const Scene *scene_;
-  /* A pointer to the info message of the compositor engine. This is a char array of size
-   * GPU_INFO_SIZE. The message is cleared prior to updating or evaluating the compositor. */
-  char *info_message_;
   /* The hash of the active compute context. */
   const ComputeContextHash active_compute_context_hash_;
 
  public:
-  Context(compositor::StaticCacheManager &cache_manager,
-          const Main *main,
-          const Scene *scene,
-          char *info_message)
+  Context(compositor::StaticCacheManager &cache_manager, const Main *main, const Scene *scene)
       : compositor::Context(cache_manager),
         main_(main),
         scene_(scene),
-        info_message_(info_message),
         active_compute_context_hash_(bke::compositor::compute_active_compute_context_hash(*scene))
   {
-    this->set_info_message("");
   }
 
   const Main &get_main() const override
@@ -85,6 +77,11 @@ class Context : public compositor::Context {
   bool is_viewport() const override
   {
     return true;
+  }
+
+  compositor::SideEffectOutputTypes needed_side_effect_output_types() const override
+  {
+    return compositor::SideEffectOutputTypes::ViewerNode;
   }
 
   const ComputeContextHash &get_active_compute_context_hash() const override
@@ -325,21 +322,10 @@ class Context : public compositor::Context {
     return compositor::ResultPrecision::Half;
   }
 
-  void set_info_message(StringRef message) const override
-  {
-    message.copy_utf8_truncated(info_message_, GPU_INFO_SIZE);
-  }
-
-  compositor::NodeGroupOutputTypes needed_outputs() const
-  {
-    return compositor::NodeGroupOutputTypes::ViewerNode;
-  }
-
   void evaluate()
   {
-    const compositor::NodeGroupOutputTypes needed_outputs = this->needed_outputs();
     compositor::SceneCompositorEffectsOperation operation =
-        compositor::SceneCompositorEffectsOperation(*this, needed_outputs);
+        compositor::SceneCompositorEffectsOperation(*this);
 
     const int active_view_layer_index = BLI_findstringindex(
         &scene_->view_layers, DRW_context_get()->view_layer->name, offsetof(ViewLayer, name));
@@ -353,13 +339,9 @@ class Context : public compositor::Context {
       return;
     }
 
+    /* If the no viewer output exist, write the output as a viewer. */
     compositor::Result &output_result = operation.get_result();
-
-    /* If the operation does not have a viewer output but one is needed, write the output as a
-     * viewer. */
-    const bool needs_viewer_output = flag_is_set(needed_outputs,
-                                                 compositor::NodeGroupOutputTypes::ViewerNode);
-    if (!operation.has_viewer_output() && needs_viewer_output) {
+    if (!operation.has_viewer_output()) {
       this->write_viewer(output_result);
     }
 
@@ -384,10 +366,8 @@ class Instance : public DrawEngine {
 
   void draw(Manager & /*manager*/) final
   {
-    Context context(cache_manager_,
-                    DEG_get_bmain(DRW_context_get()->depsgraph),
-                    DRW_context_get()->scene,
-                    this->info);
+    Context context(
+        cache_manager_, DEG_get_bmain(DRW_context_get()->depsgraph), DRW_context_get()->scene);
     if (context.get_camera_region().is_empty()) {
       return;
     }

@@ -36,7 +36,7 @@ MTLShaderInterface::MTLShaderInterface(const char *name,
     STRNCPY(this->name, name);
   }
 
-  shader_builtins_ = info.builtins_;
+  shader_builtins_ = info.builtins_combined();
 
   attr_len_ = info.vertex_inputs_.size();
   uniform_len_ = info.push_constants_.size();

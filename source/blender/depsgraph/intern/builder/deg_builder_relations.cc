@@ -69,6 +69,7 @@
 #include "BKE_key.hh"
 #include "BKE_layer.hh"
 #include "BKE_lib_query.hh"
+#include "BKE_mask.hh"
 #include "BKE_material.hh"
 #include "BKE_mball.hh"
 #include "BKE_modifier.hh"
@@ -783,21 +784,21 @@ void DepsgraphRelationBuilder::build_object(Object *object)
   build_object_modifiers(object);
 
   /* Grease Pencil Modifiers. */
-  if (object->greasepencil_modifiers.first != nullptr) {
+  if (object->greasepencil_modifiers.first() != nullptr) {
     BuilderWalkUserData data;
     data.builder = this;
     BKE_gpencil_modifiers_foreach_ID_link(object, modifier_walk, &data);
   }
 
   /* Shader FX. */
-  if (object->shader_fx.first != nullptr) {
+  if (object->shader_fx.first() != nullptr) {
     BuilderWalkUserData data;
     data.builder = this;
     BKE_shaderfx_foreach_ID_link(object, modifier_walk, &data);
   }
 
   /* Constraints. */
-  if (object->constraints.first != nullptr) {
+  if (object->constraints.first() != nullptr) {
     BuilderWalkUserData data;
     data.builder = this;
     BKE_constraints_id_loop(&object->constraints, constraint_walk, IDWALK_NOP, &data);
@@ -806,7 +807,7 @@ void DepsgraphRelationBuilder::build_object(Object *object)
   /* Object constraints. */
   OperationKey object_transform_simulation_init_key(
       &object->id, NodeType::TRANSFORM, OperationCode::TRANSFORM_SIMULATION_INIT);
-  if (object->constraints.first != nullptr) {
+  if (object->constraints.first() != nullptr) {
     OperationKey constraint_key(
         &object->id, NodeType::TRANSFORM, OperationCode::TRANSFORM_CONSTRAINTS);
     /* Constraint relations. */
@@ -840,7 +841,7 @@ void DepsgraphRelationBuilder::build_object(Object *object)
   build_object_data(object);
 
   /* Particle systems. */
-  if (object->particlesystem.first != nullptr) {
+  if (object->particlesystem.first() != nullptr) {
     build_particle_systems(object);
   }
 
@@ -1765,7 +1766,7 @@ void DepsgraphRelationBuilder::build_animdata_nlastrip_targets(ID *id,
       build_animdata_action_targets(
           id, strip.action_slot_handle, adt_key, operation_from, strip.act);
     }
-    else if (strip.strips.first != nullptr) {
+    else if (strip.strips.first() != nullptr) {
       build_animdata_nlastrip_targets(id, adt_key, operation_from, &strip.strips);
     }
   }
@@ -1788,7 +1789,7 @@ void DepsgraphRelationBuilder::build_animdata_drivers(ID *id)
     build_driver(id, &fcu);
 
     /* prevent driver from occurring before its own animation... */
-    if (adt->action || adt->nla_tracks.first) {
+    if (adt->action || adt->nla_tracks.first_) {
       add_relation(adt_key, driver_key, "AnimData Before Drivers");
     }
 
@@ -2620,7 +2621,7 @@ void DepsgraphRelationBuilder::build_object_data_geometry(Object *object)
                OperationKey(&object->id, NodeType::INSTANCING, OperationCode::INSTANCE_GEOMETRY),
                "Transform -> Instance Geometry");
   /* Shader FX. */
-  if (object->shader_fx.first != nullptr) {
+  if (object->shader_fx.first() != nullptr) {
     ModifierUpdateDepsgraphContext ctx = {};
     ctx.scene = scene_;
     ctx.object = object;
@@ -2682,7 +2683,7 @@ void DepsgraphRelationBuilder::build_object_data_geometry(Object *object)
   Key *key = BKE_key_from_object(object);
   if (key != nullptr) {
     if (key->adt != nullptr) {
-      if (key->adt->action || key->adt->nla_tracks.first) {
+      if (key->adt->action || key->adt->nla_tracks.first_) {
         ComponentKey obdata_key(object->data, NodeType::GEOMETRY);
         ComponentKey adt_key(&key->id, NodeType::ANIMATION);
         add_relation(adt_key, obdata_key, "Animation");
@@ -3369,8 +3370,10 @@ void DepsgraphRelationBuilder::build_mask(Mask *mask)
   build_parameters(mask_id);
   /* Own mask animation. */
   OperationKey mask_animation_key(mask_id, NodeType::ANIMATION, OperationCode::MASK_ANIMATION);
-  TimeSourceKey time_src_key;
-  add_relation(time_src_key, mask_animation_key, "TimeSrc -> Mask Animation");
+  if (BKE_mask_is_animated(*mask)) {
+    TimeSourceKey time_src_key;
+    add_relation(time_src_key, mask_animation_key, "TimeSrc -> Mask Animation");
+  }
   /* Final mask evaluation. */
   OperationKey mask_eval_key(mask_id, NodeType::PARAMETERS, OperationCode::MASK_EVAL);
   add_relation(mask_animation_key, mask_eval_key, "Mask Animation -> Mask Eval");

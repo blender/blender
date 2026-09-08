@@ -240,7 +240,7 @@ static wmGizmo *rna_GizmoProperties_find_operator(PointerRNA *ptr)
 #  endif
 
   /* We could try workaround this lookup, but not trivial. */
-  for (bScreen *screen = static_cast<bScreen *>(G_MAIN->screens.first); screen;
+  for (bScreen *screen = G_MAIN->screens.first(); screen;
        screen = static_cast<bScreen *>(screen->id.next))
   {
     IDProperty *properties = static_cast<IDProperty *>(ptr->data);
@@ -614,9 +614,8 @@ static void rna_GizmoGroup_gizmo_remove(wmGizmoGroup *gzgroup, bContext *C, wmGi
 
 static void rna_GizmoGroup_gizmo_clear(wmGizmoGroup *gzgroup, bContext *C)
 {
-  while (gzgroup->gizmos.first) {
-    WM_gizmo_unlink(
-        &gzgroup->gizmos, gzgroup->parent_gzmap, static_cast<wmGizmo *>(gzgroup->gizmos.first), C);
+  while (gzgroup->gizmos.first()) {
+    WM_gizmo_unlink(&gzgroup->gizmos, gzgroup->parent_gzmap, gzgroup->gizmos.first(), C);
   }
 }
 
@@ -993,6 +992,7 @@ static void rna_def_gizmos(BlenderRNA *brna, PropertyRNA *cprop)
   parm = RNA_def_string(func, "type", "Type", 0, "", "Gizmo identifier"); /* optional */
   RNA_def_parameter_flags(parm, PropertyFlag(0), PARM_REQUIRED);
   parm = RNA_def_pointer(func, "gizmo", "Gizmo", "", "New gizmo");
+  RNA_def_parameter_flags(parm, PROP_NEVER_NULL, ParameterFlag(0));
   RNA_def_function_return(func, parm);
 
   func = RNA_def_function(srna, "remove", "rna_GizmoGroup_gizmo_remove");

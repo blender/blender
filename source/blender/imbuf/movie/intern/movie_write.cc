@@ -939,7 +939,7 @@ static AVStream *alloc_video_stream(MovieWriter *context,
                                     int rectx,
                                     int recty,
                                     char *error,
-                                    int error_size)
+                                    int error_maxncpy)
 {
   AVStream *st;
   const AVCodec *codec;
@@ -1238,7 +1238,7 @@ static AVStream *alloc_video_stream(MovieWriter *context,
     char error_str[AV_ERROR_MAX_STRING_SIZE];
     av_make_error_string(error_str, AV_ERROR_MAX_STRING_SIZE, ret);
     CLOG_ERROR(&LOG, "Couldn't initialize video codec: %s\n", error_str);
-    BLI_strncpy(error, ffmpeg_last_error(), error_size);
+    BLI_strncpy(error, ffmpeg_last_error(), error_maxncpy);
     av_dict_free(&opts);
     avcodec_free_context(&c);
     context->video_codec = nullptr;

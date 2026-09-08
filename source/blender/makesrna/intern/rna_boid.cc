@@ -178,7 +178,7 @@ static std::optional<std::string> rna_BoidRule_path(const PointerRNA *ptr)
 static PointerRNA rna_BoidState_active_boid_rule_get(PointerRNA *ptr)
 {
   BoidState *state = static_cast<BoidState *>(ptr->data);
-  BoidRule *rule = static_cast<BoidRule *>(state->rules.first);
+  BoidRule *rule = state->rules.first();
 
   for (; rule; rule = rule->next) {
     if (rule->flag & BOIDRULE_CURRENT) {
@@ -198,7 +198,7 @@ static void rna_BoidState_active_boid_rule_index_range(
 static int rna_BoidState_active_boid_rule_index_get(PointerRNA *ptr)
 {
   BoidState *state = static_cast<BoidState *>(ptr->data);
-  BoidRule *rule = static_cast<BoidRule *>(state->rules.first);
+  BoidRule *rule = state->rules.first();
   int i = 0;
 
   for (; rule; rule = rule->next, i++) {
@@ -212,7 +212,7 @@ static int rna_BoidState_active_boid_rule_index_get(PointerRNA *ptr)
 static void rna_BoidState_active_boid_rule_index_set(PointerRNA *ptr, int value)
 {
   BoidState *state = static_cast<BoidState *>(ptr->data);
-  BoidRule *rule = static_cast<BoidRule *>(state->rules.first);
+  BoidRule *rule = state->rules.first();
   int i = 0;
 
   for (; rule; rule = rule->next, i++) {
@@ -249,7 +249,7 @@ static std::optional<std::string> rna_BoidSettings_path(const PointerRNA *ptr)
 static PointerRNA rna_BoidSettings_active_boid_state_get(PointerRNA *ptr)
 {
   BoidSettings *boids = static_cast<BoidSettings *>(ptr->data);
-  BoidState *state = static_cast<BoidState *>(boids->states.first);
+  BoidState *state = boids->states.first();
 
   for (; state; state = state->next) {
     if (state->flag & BOIDSTATE_CURRENT) {
@@ -269,7 +269,7 @@ static void rna_BoidSettings_active_boid_state_index_range(
 static int rna_BoidSettings_active_boid_state_index_get(PointerRNA *ptr)
 {
   BoidSettings *boids = static_cast<BoidSettings *>(ptr->data);
-  BoidState *state = static_cast<BoidState *>(boids->states.first);
+  BoidState *state = boids->states.first();
   int i = 0;
 
   for (; state; state = state->next, i++) {
@@ -283,7 +283,7 @@ static int rna_BoidSettings_active_boid_state_index_get(PointerRNA *ptr)
 static void rna_BoidSettings_active_boid_state_index_set(PointerRNA *ptr, int value)
 {
   BoidSettings *boids = static_cast<BoidSettings *>(ptr->data);
-  BoidState *state = static_cast<BoidState *>(boids->states.first);
+  BoidState *state = boids->states.first();
   int i = 0;
 
   for (; state; state = state->next, i++) {

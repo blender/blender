@@ -39,6 +39,7 @@ void node_eevee_specular(float4 diffuse,
 
   float alpha = (1.0f - transp) * weight;
 
+  /* TODO(fclem): EEVEE implementation leaking. */
   [[resource_table]] UtilityTexture &util_tx = resource_table_get(UtilityTexture);
 
   ClosureDiffuse diffuse_data;

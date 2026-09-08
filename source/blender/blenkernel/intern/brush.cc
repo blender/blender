@@ -1861,6 +1861,15 @@ float normal_weight_get(const Brush &brush, const bool invert)
 
   return brush.normal_weight == 0.0f;
 }
+bool implements_3d_texture_paint(const Brush &brush)
+{
+  switch (brush.image_brush_type) {
+    case IMAGE_PAINT_BRUSH_TYPE_DRAW:
+      return true;
+    default:
+      return false;
+  }
+}
 }  // namespace bke::brush
 
 /* -------------------------------------------------------------------- */

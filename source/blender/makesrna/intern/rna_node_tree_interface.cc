@@ -1169,7 +1169,7 @@ static bool rna_NodeTreeInterface_items_lookup_string(PointerRNA *ptr,
     switch (item->item_type) {
       case NodeTreeInterfaceItemType::Socket: {
         bNodeTreeInterfaceSocket *socket = reinterpret_cast<bNodeTreeInterfaceSocket *>(item);
-        if (STREQ(socket->name, key)) {
+        if (STREQ(socket->name_, key)) {
           rna_pointer_create_with_ancestors(*ptr, RNA_NodeTreeInterfaceSocket, socket, *r_ptr);
           return true;
         }
@@ -1177,7 +1177,7 @@ static bool rna_NodeTreeInterface_items_lookup_string(PointerRNA *ptr,
       }
       case NodeTreeInterfaceItemType::Panel: {
         bNodeTreeInterfacePanel *panel = reinterpret_cast<bNodeTreeInterfacePanel *>(item);
-        if (STREQ(panel->name, key)) {
+        if (STREQ(panel->name_, key)) {
           rna_pointer_create_with_ancestors(*ptr, RNA_NodeTreeInterfacePanel, panel, *r_ptr);
           return true;
         }
@@ -1290,6 +1290,7 @@ static void rna_def_node_interface_socket(BlenderRNA *brna)
   RNA_def_struct_system_idprops_func(srna, "rna_NodeTreeInterfaceSocket_idprops");
 
   prop = RNA_def_property(srna, "name", PROP_STRING, PROP_NONE);
+  RNA_def_property_string_sdna(prop, nullptr, "name_");
   RNA_def_property_ui_text(prop, "Name", "Socket name");
   RNA_def_struct_name_property(srna, prop);
   RNA_def_property_update(prop, NC_NODE | NA_EDITED, "rna_NodeTreeInterfaceItem_update");
@@ -1303,7 +1304,7 @@ static void rna_def_node_interface_socket(BlenderRNA *brna)
   RNA_def_property_ui_text(prop, "Identifier", "Unique identifier for mapping sockets");
 
   prop = RNA_def_property(srna, "description", PROP_STRING, PROP_NONE);
-  RNA_def_property_string_sdna(prop, nullptr, "description");
+  RNA_def_property_string_sdna(prop, nullptr, "description_");
   RNA_def_property_ui_text(prop, "Description", "Socket description");
   RNA_def_property_update(prop, NC_NODE | NA_EDITED, "rna_NodeTreeInterfaceItem_update");
 
@@ -1484,12 +1485,13 @@ static void rna_def_node_interface_panel(BlenderRNA *brna)
   RNA_def_struct_sdna(srna, "bNodeTreeInterfacePanel");
 
   prop = RNA_def_property(srna, "name", PROP_STRING, PROP_NONE);
+  RNA_def_property_string_sdna(prop, nullptr, "name_");
   RNA_def_property_ui_text(prop, "Name", "Panel name");
   RNA_def_struct_name_property(srna, prop);
   RNA_def_property_update(prop, NC_NODE | NA_EDITED, "rna_NodeTreeInterfaceItem_update");
 
   prop = RNA_def_property(srna, "description", PROP_STRING, PROP_NONE);
-  RNA_def_property_string_sdna(prop, nullptr, "description");
+  RNA_def_property_string_sdna(prop, nullptr, "description_");
   RNA_def_property_ui_text(prop, "Description", "Panel description");
   RNA_def_property_update(prop, NC_NODE | NA_EDITED, "rna_NodeTreeInterfaceItem_update");
 
@@ -1574,6 +1576,7 @@ static void rna_def_node_tree_interface_items_api(StructRNA *srna)
       func, "parent", "NodeTreeInterfacePanel", "Parent", "Panel to add the socket in");
   /* return value */
   parm = RNA_def_pointer(func, "item", "NodeTreeInterfaceSocket", "Socket", "New socket");
+  RNA_def_parameter_flags(parm, PROP_NEVER_NULL, ParameterFlag(0));
   RNA_def_function_return(func, parm);
 
   func = RNA_def_function(srna, "new_panel", "rna_NodeTreeInterfaceItems_new_panel");
@@ -1586,6 +1589,7 @@ static void rna_def_node_tree_interface_items_api(StructRNA *srna)
   RNA_def_parameter_flags(parm, PropertyFlag(0), PARM_REQUIRED);
   /* return value */
   parm = RNA_def_pointer(func, "item", "NodeTreeInterfacePanel", "Panel", "New panel");
+  RNA_def_parameter_flags(parm, PROP_NEVER_NULL, ParameterFlag(0));
   RNA_def_function_return(func, parm);
 
   func = RNA_def_function(srna, "copy", "rna_NodeTreeInterfaceItems_copy");
@@ -1596,6 +1600,7 @@ static void rna_def_node_tree_interface_items_api(StructRNA *srna)
   /* return value */
   parm = RNA_def_pointer(
       func, "item_copy", "NodeTreeInterfaceItem", "Item Copy", "Copy of the item");
+  RNA_def_parameter_flags(parm, PROP_NEVER_NULL, ParameterFlag(0));
   RNA_def_function_return(func, parm);
 
   func = RNA_def_function(srna, "remove", "rna_NodeTreeInterfaceItems_remove");

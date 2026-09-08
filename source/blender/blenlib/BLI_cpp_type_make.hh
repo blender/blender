@@ -471,6 +471,12 @@ CPPType::CPPType(TypeTag<T> /*type*/,
   this->is_copy_assignable = copy_assign_ != nullptr;
   this->is_move_assignable = move_assign_ != nullptr;
 
+  if constexpr (requires { typename T::base_type; }) {
+    this->base_type = CPPType::get_pre_register<typename T::base_type>();
+  }
+  if constexpr (requires { typename T::generic_type; }) {
+    this->generic_type = CPPType::get_pre_register<typename T::generic_type>();
+  }
   this->type_index = type_index_counter++;
 }
 

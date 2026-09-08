@@ -2,6 +2,10 @@
  *
  * SPDX-License-Identifier: GPL-2.0-or-later */
 
+/** \file
+ * \ingroup bke
+ */
+
 #include "BLI_generic_virtual_array.hh"
 #include "BLI_math_quaternion.hh"
 #include "BLI_virtual_array.hh"

@@ -139,6 +139,8 @@ display_colorspaces:
       sRGB IEC 61966-2-1 compound (piece-wise) encoding
     isdata: false
     interop_id: srgb_rec709_display
+    interchange:
+      icc_profile_name: srgb_rec709_display.icc
     from_display_reference: !<GroupTransform>
       children:
         - !<ColorSpaceTransform> {src: cie_xyz_d65_interchange, dst: Linear Rec.709}
@@ -515,7 +517,7 @@ colorspaces:
 
   - !<ColorSpace>
     name: Linear Rec.709
-    aliases: [lin_rec709_scene, Linear, Linear BT.709, Linear BT.709 I-D65, Linear Tristimulus, linrec709, Utility - Linear - sRGB, Utility - Linear - Rec.709, lin_srgb, Linear Rec.709 (sRGB), lin_rec709_srgb, lin_rec709, lin_srgb, "CGI: Linear - Rec.709"]
+    aliases: [lin_rec709_scene, lin_rec709_display, Linear, Linear BT.709, Linear BT.709 I-D65, Linear Tristimulus, linrec709, Utility - Linear - sRGB, Utility - Linear - Rec.709, lin_srgb, Linear Rec.709 (sRGB), lin_rec709_srgb, lin_rec709, lin_srgb, "CGI: Linear - Rec.709"]
     family: Linear
     equalitygroup:
     bitdepth: 32f
@@ -530,7 +532,7 @@ colorspaces:
 
   - !<ColorSpace>
     name: Linear DCI-P3 D65
-    aliases: [lin_p3d65_scene, Linear DCI-P3 I-D65, Linear P3-D65, lin_p3d65, Utility - Linear - P3-D65, Apple DCI-P3 D65]
+    aliases: [lin_p3d65_scene, lin_p3d65_display, Linear DCI-P3 I-D65, Linear P3-D65, lin_p3d65, Utility - Linear - P3-D65, Apple DCI-P3 D65]
     family: Linear
     equalitygroup:
     bitdepth: 32f
@@ -545,7 +547,7 @@ colorspaces:
 
   - !<ColorSpace>
     name: Linear Rec.2020
-    aliases: [lin_rec2020_scene, Linear BT.2020 I-D65, Linear BT.2020, lin_rec2020, Utility - Linear - Rec.2020]
+    aliases: [lin_rec2020_scene, lin_rec2020_display, Linear BT.2020 I-D65, Linear BT.2020, lin_rec2020, Utility - Linear - Rec.2020]
     family: Linear
     equalitygroup:
     bitdepth: 32f
@@ -1119,7 +1121,7 @@ colorspaces:
 
   - !<ColorSpace>
     name: Gamma 2.2 Encoded Rec.709
-    aliases: [g22_rec709_scene, g22_rec709, Gamma 2.2 Rec.709 - Texture, Utility - Gamma 2.2 - Rec.709 - Texture, sRGB 2.2]
+    aliases: [g22_rec709_scene, g22_rec709_display, g22_rec709, Gamma 2.2 Rec.709 - Texture, Utility - Gamma 2.2 - Rec.709 - Texture, sRGB 2.2]
     family: Utility
     equalitygroup:
     bitdepth: 32f
@@ -1135,7 +1137,7 @@ colorspaces:
 
   - !<ColorSpace>
     name: Gamma 2.4 Encoded Rec.709
-    aliases: [ocio:g24_rec709_scene, g24_rec709, Gamma 2.4 Rec.709 - Texture, Utility - Rec.709 - Display, rec709_display]
+    aliases: [g24_rec709_scene, ocio:g24_rec709_scene, g24_rec709, Gamma 2.4 Rec.709 - Texture, Utility - Rec.709 - Display, rec709_display]
     family: Utility
     equalitygroup:
     bitdepth: 32f
@@ -1143,7 +1145,7 @@ colorspaces:
       2.4 gamma-encoded Rec.709 with illuminant D65 white point.
       For use with scene-referred textures.
     isdata: false
-    interop_id: ocio:g24_rec709_scene
+    interop_id: g24_rec709_scene
     from_scene_reference: !<GroupTransform>
       children:
         - !<MatrixTransform> {matrix: [2.52168618674388, -1.13413098823972, -0.387555198504164, 0, -0.276479914229922, 1.37271908766826, -0.096239173438334, 0, -0.0153780649660342, -0.152975335867399, 1.16835340083343, 0, 0, 0, 0, 1]}

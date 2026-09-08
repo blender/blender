@@ -248,6 +248,9 @@ void BKE_mask_point_parent_matrix_get(MaskSplinePoint *point,
 /** \name Animation
  * \{ */
 
+bool BKE_mask_layer_is_animated(MaskLayer &mask_layer);
+bool BKE_mask_is_animated(Mask &mask);
+
 int BKE_mask_layer_shape_totvert(MaskLayer *masklay);
 /**
  * Inverse of #BKE_mask_layer_shape_to_mask

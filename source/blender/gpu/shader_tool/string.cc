@@ -13,6 +13,7 @@
 namespace blender::gpu::shader {
 using namespace std;
 using namespace shader::parser;
+using namespace shader::parser::ast;
 using namespace metadata;
 
 void SourceProcessor::lower_strings_sequences(Parser &parser)
@@ -75,6 +76,55 @@ void SourceProcessor::lower_assert(Parser &parser, [[maybe_unused]] const string
 #endif
     parser.replace(tokens[0], tokens[4], replacement);
   });
+  parser.apply_mutations();
+}
+
+/* Turn assert into a printf. */
+void SourceProcessor::lower_assert_ast(Parser &parser, [[maybe_unused]] const string &filename)
+{
+  /* Example: `assert(i < 0)` > `if (!(i < 0)) { printf(...); }` */
+  for (FuncCall call : parser.root().descendants_of_type<FuncCall>()) {
+    if (call.identifier().str() != "assert") {
+      return;
+    }
+
+    string replacement;
+#ifdef WITH_GPU_SHADER_ASSERT
+    string condition = string(call.parameters().str());
+
+    auto escape = [](string s) {
+      string result;
+      for (char c : s) {
+        if (c == '%') {
+          result += "%%";
+        }
+        else if (c == '\\') {
+          result += "\\\\";
+        }
+        else if (c == '\"') {
+          result += "\\\"";
+        }
+        else {
+          result += c;
+        }
+      }
+      return result;
+    };
+
+    replacement += "if (!" + condition + ") ";
+    replacement += "{";
+    replacement += " printf(\"";
+    replacement += "Assertion failed: " + escape(condition) + ", ";
+    replacement += "file " + filename + ", ";
+    replacement += "line " + to_string(call.parameters().front().line_number()) + ", ";
+    replacement += "thread (%u,%u,%u).\\n";
+    replacement += "\"";
+    replacement += ", GPU_THREAD.x, GPU_THREAD.y, GPU_THREAD.z); ";
+    replacement += "}";
+#endif
+    parser.replace(call, replacement);
+  }
+
   parser.apply_mutations();
 }
 

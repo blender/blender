@@ -99,9 +99,9 @@ enum CDT_output_type {
 enum CDT_ids_needed_type {
   /** Do not require original id maps at all. */
   CDT_NO_ORIG_IDS = 0,
-  /** Require  new vertces -> original ones. */
+  /** Require  new vertices -> original ones. */
   CDT_ORIG_VERTS = (1 << 0),
-  /** Require new vertices that result from edge intersections -> intersecting edgs.  */
+  /** Require new vertices that result from edge intersections -> intersecting edges.  */
   CDT_INTERSECTED_EDGES = (1 << 1),
   /** Require new edges -> original ones (maybe part of original faces). */
   CDT_ORIG_EDGES = (1 << 2),
@@ -109,8 +109,10 @@ enum CDT_ids_needed_type {
   CDT_ORIG_FACES = (1 << 3),
   /** If set, include CW faces (going outward) when CDT_ORIG_FACES is set, else don't. */
   CDT_CW_ORIG_FACES = (1 << 4),
-  /** If set, in any of the previous requirements that produce lists, we only need one
-     representative value in the list. */
+  /**
+   * If set, in any of the previous requirements that produce lists, we only need one
+   * representative value in the list.
+   */
   CDT_ONLY_ONE_ORIG = (1 << 5)
 };
 ENUM_OPERATORS(CDT_ids_needed_type)

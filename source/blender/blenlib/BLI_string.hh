@@ -201,13 +201,13 @@ size_t BLI_vsnprintf_rlen(char *__restrict dst,
                           va_list arg) ATTR_PRINTF_FORMAT(3, 0);
 
 char *BLI_sprintfN_with_buffer(char *fixed_buf,
-                               size_t fixed_buf_size,
+                               size_t fixed_buf_maxncpy,
                                size_t *result_len,
                                const char *__restrict format,
                                ...) ATTR_WARN_UNUSED_RESULT ATTR_NONNULL(1, 3, 4)
     ATTR_PRINTF_FORMAT(4, 5);
 char *BLI_vsprintfN_with_buffer(char *fixed_buf,
-                                size_t fixed_buf_size,
+                                size_t fixed_buf_maxncpy,
                                 size_t *result_len,
                                 const char *__restrict format,
                                 va_list args) ATTR_WARN_UNUSED_RESULT ATTR_NONNULL(1, 3, 4)

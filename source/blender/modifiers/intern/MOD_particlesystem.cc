@@ -98,7 +98,7 @@ static void deform_verts(ModifierData *md,
   ParticleSystemModifierData *psmd = reinterpret_cast<ParticleSystemModifierData *>(md);
   ParticleSystem *psys = nullptr;
 
-  if (ctx->object->particlesystem.first) {
+  if (ctx->object->particlesystem.first()) {
     psys = psmd->psys;
   }
   else {

@@ -87,7 +87,10 @@ include(build_files/cmake/macros.cmake)
 if(EXISTS ${CMAKE_SOURCE_DIR}/release/datafiles/startup.blend)
   file(SIZE ${CMAKE_SOURCE_DIR}/release/datafiles/startup.blend startup_size)
   if(${startup_size} LESS 1024)
-    message(FATAL_ERROR "Detected incomplete startup blend, likely due to missing Git LFS checkout.\nRunning \"make update\" or \"git lfs pull\" may resolve the issue.")
+    message(FATAL_ERROR
+      "Detected incomplete startup blend, likely due to missing Git LFS checkout.\n"
+      "Running \"make update\" or \"git lfs pull\" may resolve the issue."
+    )
   endif()
   unset(startup_size)
 endif()
@@ -342,6 +345,21 @@ if(UNIX AND NOT (APPLE OR HAIKU))
   mark_as_advanced(WITH_GHOST_WAYLAND)
 
   if(WITH_GHOST_WAYLAND)
+    option(WITH_GHOST_DBUS "\
+Enable reading desktop settings over DBUS, such as the light/dark theme preference. \
+Requires the `dbus-1` headers at build time."
+      ON
+    )
+    mark_as_advanced(WITH_GHOST_DBUS)
+  endif()
+
+  option(WITH_GHOST_DBUS_DYNLOAD "\
+Enable runtime dynamic loading of `libdbus` (avoids a link time dependency)"
+    ON
+  )
+  mark_as_advanced(WITH_GHOST_DBUS_DYNLOAD)
+
+  if(WITH_GHOST_WAYLAND)
     option(WITH_GHOST_CSD "Enable client side decorations with Wayland" ON)
     mark_as_advanced(WITH_GHOST_CSD)
 
@@ -592,7 +610,10 @@ Path to python site-packages or dist-packages containing 'zstandard' module"
   mark_as_advanced(PYTHON_ZSTANDARD_PATH)
 endif()
 
-option(WITH_COMPILER_SIMD "Add the recommended Blender default SIMD flags to the compiler's C_FLAGS/CXX_FLAGS" ON)
+option(WITH_COMPILER_SIMD "\
+Add the recommended Blender default SIMD flags to the compiler's C_FLAGS/CXX_FLAGS"
+  ON
+)
 mark_as_advanced(WITH_COMPILER_SIMD)
 
 
@@ -1355,6 +1376,11 @@ endif()
 if(UNIX AND NOT (APPLE OR HAIKU))
   set_and_warn_incompatible(WITH_HEADLESS WITH_GHOST_WAYLAND OFF)
   set_and_warn_incompatible(WITH_HEADLESS WITH_GHOST_X11 OFF)
+  # Only the WAYLAND back-end currently reads desktop settings over DBUS.
+  if (DEFINED WITH_GHOST_DBUS)
+    set_and_warn_dependency(WITH_GHOST_WAYLAND WITH_GHOST_DBUS OFF)
+    set_and_warn_incompatible(WITH_HEADLESS WITH_GHOST_DBUS OFF)
+  endif()
 endif()
 set_and_warn_incompatible(WITH_HEADLESS WITH_GHOST_SDL OFF)
 
@@ -1437,7 +1463,8 @@ set(WITH_BINRELOC OFF)
 # MACOSX only, set to avoid uninitialized
 set(EXETYPE "")
 
-# WITH_SDL is uncached, depends on either WITH_SDL_AUDIO, WITH_GHOST_SDL or WITH_CYCLES_STANDALONE_GUI being set.
+# WITH_SDL is uncached, depends on either WITH_SDL_AUDIO, WITH_GHOST_SDL
+# or WITH_CYCLES_STANDALONE_GUI being set.
 set(WITH_SDL OFF)
 if(WITH_SDL_AUDIO OR WITH_GHOST_SDL OR WITH_CYCLES_STANDALONE_GUI)
   set(WITH_SDL ON)
@@ -2567,6 +2594,10 @@ if(FIRST_RUN)
     endif()
     if(WITH_GHOST_WAYLAND)
       info_cfg_option(WITH_GHOST_WAYLAND_DYNLOAD)
+    endif()
+    info_cfg_option(WITH_GHOST_DBUS)
+    if(WITH_GHOST_DBUS)
+      info_cfg_option(WITH_GHOST_DBUS_DYNLOAD)
     endif()
   endif()
 

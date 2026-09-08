@@ -127,23 +127,6 @@ class NodeOperator:
         options={'SKIP_SAVE'},
     )
 
-    @classmethod
-    def description(cls, _context, properties):
-        from nodeitems_builtins import node_tree_group_type
-
-        nodetype = properties["type"]
-        if nodetype in node_tree_group_type.values():
-            for setting in properties.settings:
-                if setting.name == "node_tree":
-                    node_group = eval(setting.value)
-                    if node_group.description:
-                        return node_group.description
-        bl_rna = bpy.types.Node.bl_rna_get_subclass(nodetype)
-        if bl_rna is not None:
-            return tip_(bl_rna.description)
-        else:
-            return ""
-
     # Deselect all nodes in the tree.
     @staticmethod
     def deselect_nodes(context):
@@ -544,8 +527,27 @@ class NodeSwapOperator(NodeOperator):
             new_node.inputs[0].default_value = int(old_selector_value)
 
 
+class SingleNodeOperator:
+    @classmethod
+    def description(cls, _context, properties):
+        from nodeitems_builtins import node_tree_group_type
+
+        nodetype = properties["type"]
+        if nodetype in node_tree_group_type.values():
+            for setting in properties.settings:
+                if setting.name == "node_tree":
+                    node_group = eval(setting.value)
+                    if node_group.description:
+                        return node_group.description
+        bl_rna = bpy.types.Node.bl_rna_get_subclass(nodetype)
+        if bl_rna is not None:
+            return tip_(bl_rna.description)
+        else:
+            return ""
+
+
 # Simple basic operator for adding a node.
-class NODE_OT_add_node(NodeAddOperator, Operator):
+class NODE_OT_add_node(NodeAddOperator, SingleNodeOperator, Operator):
     """Add a node to the active tree"""
     bl_idname = "node.add_node"
     bl_label = "Add Node"
@@ -577,7 +579,7 @@ class NODE_OT_add_node(NodeAddOperator, Operator):
             return {'CANCELLED'}
 
 
-class NODE_OT_swap_node(NodeSwapOperator, Operator):
+class NODE_OT_swap_node(NodeSwapOperator, SingleNodeOperator, Operator):
     """Replace the selected nodes with the specified type"""
     bl_idname = "node.swap_node"
     bl_label = "Swap Node"

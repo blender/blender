@@ -472,7 +472,8 @@ struct JoinEdgesNeighborItem {
 };
 
 struct JoinEdgesNeighborInfo {
-  /** Logically there can only ever be 8 items in this array.
+  /**
+   * Logically there can only ever be 8 items in this array.
    *
    * Since a quad has no more than 4 neighbor triangles, and each neighbor triangle has no more
    * than two edges to consider, #reprioritize_face_neighbors can't possibly call this function

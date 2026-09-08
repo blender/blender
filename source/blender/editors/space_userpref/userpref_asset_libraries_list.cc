@@ -20,14 +20,11 @@
 #include "RNA_enum_types.hh"
 #include "RNA_prototypes.hh"
 
+#include "ED_asset_library_ui.hh"
+
 #include "userpref_intern.hh"
 
 namespace blender {
-
-struct AnyAssetLibraryDefinition {
-  eAssetLibraryType type;
-  bUserAssetLibrary *user_library;
-};
 
 constexpr int FIXED_ITEMS_COUNT = 2;
 
@@ -82,32 +79,28 @@ std::optional<int> userpref_ui_asset_libraries_index_from_user_library(
   return std::nullopt;
 }
 
-struct AssetLibraryListItem : public ui::AbstractTreeViewItem {
-  AnyAssetLibraryDefinition library;
-  int index_in_list = 0;
+struct AssetLibraryListItem : public AssetLibraryListItemCommon {
 
-  AssetLibraryListItem(const AnyAssetLibraryDefinition &library, const int index_in_list)
-      : library(library), index_in_list(index_in_list)
-  {
-
-    if (library.user_library) {
-      label_ = library.user_library->name;
-    }
-    else {
-      const char *name_cstr;
-      RNA_enum_name_gettexted(
-          rna_enum_asset_library_type_items, library.type, BLT_I18NCONTEXT_DEFAULT, &name_cstr);
-      label_ = name_cstr;
-    }
-  }
+  /* Use the constructor from AssetLibraryListItemCommon. */
+  using AssetLibraryListItemCommon::AssetLibraryListItemCommon;
 
   void build_row(ui::Layout &row) override
   {
     const bool is_remote_library = library.user_library &&
                                    (library.user_library->flag & ASSET_LIBRARY_USE_REMOTE_URL);
+    const bool project_library = library.user_library &&
+                                 (library.user_library->flag & ASSET_LIBRARY_PROJECT_DEFINED);
 
     if (library.user_library) {
       row.label(label_, is_remote_library ? ICON_INTERNET : ICON_DISK_DRIVE);
+
+      if (project_library) {
+        row.active_set(false);
+        ui::Layout &sub = row.row(true);
+        /* Draw text grayed out. */
+        sub.alignment_set(ui::LayoutAlign::Right);
+        sub.label(IFACE_("Project Defined"), ICON_NONE);
+      }
     }
     else {
       row.label(label_, ICON_NONE);
@@ -125,7 +118,7 @@ struct AssetLibraryListItem : public ui::AbstractTreeViewItem {
       row.label("", ICON_STATUS_ERROR);
     }
 
-    if (library.user_library) {
+    if (library.user_library && !project_library) {
       PointerRNA ptr = RNA_pointer_create_discrete(
           nullptr, RNA_UserAssetLibrary, library.user_library);
       row.prop(&ptr,
@@ -144,108 +137,7 @@ struct AssetLibraryListItem : public ui::AbstractTreeViewItem {
   {
     return U.active_asset_library == index_in_list;
   }
-  bool supports_renaming() const override
-  {
-    return library.user_library != nullptr;
-  }
-  bool rename(const bContext &C, StringRefNull new_name) override
-  {
-    PointerRNA ptr = RNA_pointer_create_discrete(
-        nullptr, RNA_UserAssetLibrary, library.user_library);
-    PropertyRNA *prop = RNA_struct_find_property(&ptr, "name");
-    RNA_property_string_set(&ptr, prop, new_name.c_str());
-    RNA_property_update(&const_cast<bContext &>(C), &ptr, prop);
-    return true;
-  }
 };
-
-struct AssetLibraryList : public ui::AbstractTreeView {
-  void build_tree() override
-  {
-    this->is_flat_ = true;
-
-    Vector<AnyAssetLibraryDefinition> libraries = userpref_ui_asset_libraries();
-
-    int i = 0;
-    for (const AnyAssetLibraryDefinition &library : libraries) {
-      add_tree_item<AssetLibraryListItem>(library, i++);
-    }
-  }
-};
-
-static void draw_library_list(const bContext &C, ui::Layout &layout)
-{
-  ui::Block *block = layout.block();
-
-  ui::AbstractTreeView *tree_view = block_add_view(
-      *block, "Asset Libraries Preferences", std::make_unique<AssetLibraryList>());
-  tree_view->set_default_rows(5);
-
-  ui::TreeViewBuilder::build_tree_view(C, *tree_view, layout);
-}
-
-static void draw_active_library_settings(const bContext *C,
-                                         ui::Layout &layout,
-                                         const AnyAssetLibraryDefinition &library)
-{
-  if (library.type == ASSET_LIBRARY_ESSENTIALS) {
-    PointerRNA prefs_ptr = RNA_pointer_create_discrete(nullptr, RNA_PreferencesAssetLibraries, &U);
-
-    ui::Layout &row = layout.row(false);
-    row.active_set((G.f & G_FLAG_INTERNET_ALLOW) != 0);
-    row.prop(&prefs_ptr,
-             "use_online_essentials",
-             UI_ITEM_NONE,
-             IFACE_("Include Online Essentials"),
-             ICON_NONE);
-  }
-
-  if (library.user_library) {
-    PointerRNA library_ptr = RNA_pointer_create_discrete(
-        nullptr, RNA_UserAssetLibrary, library.user_library);
-
-    if (library.user_library->flag & ASSET_LIBRARY_USE_REMOTE_URL) {
-      if (USER_EXPERIMENTAL_TEST(&U, use_remote_asset_libraries)) {
-        ui::Layout &row = layout.row(false);
-        row.red_alert_set(!library.user_library->remote_url[0]);
-        row.prop(&library_ptr,
-                 RNA_struct_find_property(&library_ptr, "remote_url"),
-                 RNA_NO_INDEX,
-                 0,
-                 UI_ITEM_NONE,
-                 "",
-                 ICON_INTERNET,
-                 IFACE_("Repository URL"));
-      }
-      layout.prop(&library_ptr, "import_method", UI_ITEM_NONE, IFACE_("Import Method"), ICON_NONE);
-
-      if (ui::Layout *panel = layout.panel(C, "advanced", true, IFACE_("Advanced"))) {
-        panel->use_property_split_set(true);
-        ui::Layout &col = panel->column(true, IFACE_("Authentication"));
-        col.prop(&library_ptr, "use_auth_token", UI_ITEM_NONE, std::nullopt, ICON_NONE);
-
-        if (library.user_library->flag & ASSET_LIBRARY_USE_AUTH_TOKEN) {
-          if (!library.user_library->auth_token) {
-            col.red_alert_set(true);
-          }
-          col.prop(&library_ptr,
-                   RNA_struct_find_property(&library_ptr, "auth_token"),
-                   RNA_NO_INDEX,
-                   0,
-                   UI_ITEM_NONE,
-                   IFACE_("Secret"),
-                   library.user_library->auth_token ? ICON_LOCKED : ICON_UNLOCKED,
-                   std::nullopt);
-        }
-      }
-    }
-    else {
-      layout.prop(&library_ptr, "path", UI_ITEM_NONE, std::nullopt, ICON_NONE);
-      layout.prop(&library_ptr, "import_method", UI_ITEM_NONE, IFACE_("Import Method"), ICON_NONE);
-      layout.prop(&library_ptr, "use_relative_path", UI_ITEM_NONE, std::nullopt, ICON_NONE);
-    }
-  }
-}
 
 void userpref_asset_libraries_panel_draw(const bContext *C, Panel *panel)
 {
@@ -255,7 +147,7 @@ void userpref_asset_libraries_panel_draw(const bContext *C, Panel *panel)
 
   ui::Layout &row = layout.row(false);
 
-  draw_library_list(*C, row);
+  draw_library_list<AssetLibraryListItem>(*C, row, libraries, "Asset Libraries Preferences");
 
   ui::Layout &col = row.column(true);
   if (USER_EXPERIMENTAL_TEST(&U, use_remote_asset_libraries)) {
@@ -269,8 +161,11 @@ void userpref_asset_libraries_panel_draw(const bContext *C, Panel *panel)
   ui::Layout &sub = col.row(true);
   const bool active_idx_in_range = U.active_asset_library >= 0 &&
                                    U.active_asset_library < libraries.size();
-  sub.enabled_set(active_idx_in_range &&
-                  libraries[U.active_asset_library].type == ASSET_LIBRARY_CUSTOM);
+  const bool is_custom_library = libraries[U.active_asset_library].type == ASSET_LIBRARY_CUSTOM;
+  const bool is_project_library = is_custom_library &&
+                                  (libraries[U.active_asset_library].user_library->flag &
+                                   ASSET_LIBRARY_PROJECT_DEFINED);
+  sub.enabled_set(active_idx_in_range && is_custom_library && !is_project_library);
   PointerRNA props = sub.op("preferences.asset_library_remove", "", ICON_REMOVE);
   /* Convert from UI-items list index to #U.asset_libraries index. */
   RNA_int_set(&props, "index", U.active_asset_library - FIXED_ITEMS_COUNT);
@@ -281,6 +176,11 @@ void userpref_asset_libraries_panel_draw(const bContext *C, Panel *panel)
 
   layout.separator();
 
+  if (is_project_library) {
+    layout.label(IFACE_("Settings of project asset libraries can be edited in Project Setup."),
+                 ICON_NONE);
+    return;
+  }
   draw_active_library_settings(C, layout, libraries[U.active_asset_library]);
 }
 

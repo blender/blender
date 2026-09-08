@@ -8,10 +8,16 @@
 
 #include <cstring>
 
+#include "AS_remote_library.hh"
+
+#include "BLT_translation.hh"
+
 #include "DNA_space_types.h"
+#include "DNA_userdef_types.h"
 #include "MEM_guardedalloc.h"
 
 #include "BLI_listbase.hh"
+#include "BLI_path_utils.hh"
 #include "BLI_string.hh"
 #include "BLI_string_utf8.hh"
 
@@ -19,6 +25,7 @@
 #include "BKE_preferences.h"
 #include "BKE_screen.hh"
 
+#include "ED_asset.hh"
 #include "ED_screen.hh"
 #include "ED_space_api.hh"
 #include "ED_userpref.hh"
@@ -172,6 +179,121 @@ Vector<int> ED_userpref_tabs_list(SpaceUserPref * /*prefs*/)
   return result;
 }
 
+bUserAssetLibrary *ED_userpref_asset_library_new(const bContext *C,
+                                                 const char *name,
+                                                 const char *dirpath,
+                                                 bUserAssetLibraryAddType library_type,
+                                                 bool is_project_defined,
+                                                 std::optional<UUID> uuid,
+                                                 std::optional<char *> auth_token)
+{
+  bUserAssetLibrary *new_library;
+
+  char final_name[FILE_MAX];
+  STRNCPY(final_name, name);
+
+  switch (library_type) {
+    case bUserAssetLibraryAddType::Local: {
+      char final_dirpath[FILE_MAX];
+      STRNCPY(final_dirpath, dirpath);
+      BLI_path_slash_rstrip(final_dirpath);
+      if (!final_name[0]) {
+        BLI_path_split_file_part(final_dirpath, final_name, sizeof(final_name));
+      }
+      if (!final_name[0]) {
+        STRNCPY(final_name, DATA_("Local Asset Library"));
+      }
+
+      if (is_project_defined) {
+        new_library = BKE_preferences_project_asset_library_add(
+            &U, final_name, final_dirpath, uuid);
+      }
+      else {
+        new_library = BKE_preferences_asset_library_add(&U, final_name, final_dirpath);
+      }
+      break;
+    }
+    case bUserAssetLibraryAddType::Remote: {
+      if (!final_name[0]) {
+        BKE_preferences_remote_to_name(dirpath, final_name);
+      }
+      if (!final_name[0]) {
+        STRNCPY(final_name, DATA_("Remote Asset Library"));
+      }
+
+      if (is_project_defined) {
+        /* Not implemented yet for project asset libraries. */
+        BLI_assert_unreachable();
+      }
+      else {
+        new_library = BKE_preferences_remote_asset_library_add(
+            &U, final_name, dirpath, auth_token.value_or(nullptr));
+      }
+      break;
+    }
+  }
+
+  if (!is_project_defined) {
+    /* Make sure that the asset list is sorted so that the new user preference library is put
+     * before the first project defined library. */
+    bUserAssetLibrary *first_project_library = nullptr;
+    for (bUserAssetLibrary &library : U.asset_libraries) {
+      if (library.flag & ASSET_LIBRARY_PROJECT_DEFINED) {
+        first_project_library = &library;
+        break;
+      }
+    }
+
+    if (first_project_library) {
+      /* reinsert library into new position */
+      BLI_remlink(&U.asset_libraries, new_library);
+      BLI_insertlinkbefore(&U.asset_libraries, first_project_library, new_library);
+    }
+  }
+
+  /* Activate new library in the UI for further setup. */
+  if (const std::optional<int> new_active_idx =
+          userpref_ui_asset_libraries_index_from_user_library(*new_library))
+  {
+    U.active_asset_library = *new_active_idx;
+  }
+
+  if (new_library->flag & ASSET_LIBRARY_USE_REMOTE_URL) {
+    blender::asset_system::remote_library_request_download(*new_library);
+  }
+
+  /* There's no dedicated notifier for the Preferences. */
+  WM_main_add_notifier(NC_WINDOW | ND_SPACE_ASSET_PARAMS, nullptr);
+  ed::asset::list::clear_all_library(C);
+
+  return new_library;
+}
+
+void ED_userpref_asset_library_remove(bContext *C, bUserAssetLibrary *asset_library)
+{
+  const bool use_remote_libraries = USER_EXPERIMENTAL_TEST(&U, use_remote_asset_libraries);
+  const bool is_remote_library = asset_library->flag & ASSET_LIBRARY_USE_REMOTE_URL;
+
+  if (is_remote_library && !use_remote_libraries) {
+    /* This is a corner case, where the active library is a remote one, but remote libraries are
+     * not shown. This only happens right after disabling the experimental flag, which doesn't
+     * update the active library index, or when somebody set the active index via Python. Just
+     * pretend the deletion happened (because actually deleting hidden things is bad), and let the
+     * code below activate a non-remote (and so visible) library. */
+  }
+  else {
+    BKE_preferences_asset_library_remove(&U, asset_library);
+  }
+
+  /* Update active library index to be in range. */
+  const int count_remaining = userpref_ui_asset_libraries_count();
+  CLAMP(U.active_asset_library, 0, count_remaining - 1);
+
+  /* Trigger refresh for the Asset Browser. */
+  WM_main_add_notifier(NC_SPACE | ND_SPACE_ASSET_PARAMS, nullptr);
+  ed::asset::list::clear_all_library(C);
+}
+
 /* -------------------------------------------------------------------- */
 /** \name "Off Screen" Layout Generation for Userpref Search
  * \{ */
@@ -314,8 +436,8 @@ static void userpref_main_region_layout(const bContext *C, ARegion *region)
     }
     const char *id = items[i].identifier;
     BLI_assert(strlen(id) < sizeof(id_lower));
-    STRNCPY_UTF8(id_lower, id);
-    BLI_str_tolower_ascii(id_lower, strlen(id_lower));
+    const size_t id_lower_len = STRNCPY_UTF8_RLEN(id_lower, id);
+    BLI_str_tolower_ascii(id_lower, id_lower_len);
   }
 
   ED_region_panels_layout_ex(C,

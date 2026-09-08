@@ -530,10 +530,12 @@ void sun_extraction([[resource_table]] SunExtraction &srt,
     float shape_power = M_1_PI * (1.0f + 1.0f / square(sun_radius));
     float point_power = 1.0f;
 
-    srt.sunlight_buf[srt.sun_id].power[LIGHT_DIFFUSE] = shape_power;
-    srt.sunlight_buf[srt.sun_id].power[LIGHT_SPECULAR] = shape_power;
-    srt.sunlight_buf[srt.sun_id].power[LIGHT_TRANSMISSION] = shape_power;
-    srt.sunlight_buf[srt.sun_id].power[LIGHT_VOLUME] = point_power;
+    srt.sunlight_buf[srt.sun_id].shape_power = shape_power;
+    srt.sunlight_buf[srt.sun_id].point_power = point_power;
+    srt.sunlight_buf[srt.sun_id].power_factor[LIGHT_DIFFUSE] = 1.0f;
+    srt.sunlight_buf[srt.sun_id].power_factor[LIGHT_SPECULAR] = 1.0f;
+    srt.sunlight_buf[srt.sun_id].power_factor[LIGHT_TRANSMISSION] = 1.0f;
+    srt.sunlight_buf[srt.sun_id].power_factor[LIGHT_VOLUME] = 1.0f;
 
     /* NOTE: Use the radius from UI instead of auto sun size for now. */
   }

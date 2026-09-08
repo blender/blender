@@ -295,7 +295,8 @@ enum {
   LIB_ID_COPY_SHAPEKEY = 1 << 26,
   /**
    * EXCEPTION! Deep-copy screen used by copied workspace ID.
-   * WARNING: Should always be used, except in `NO_MAIN` cases of copying. */
+   * WARNING: Should always be used, except in `NO_MAIN` cases of copying.
+   */
   LIB_ID_COPY_SCREEN = 1 << 27,
   /** EXCEPTION! Specific deep-copy of node trees used e.g. for rendering purposes. */
   LIB_ID_COPY_NODETREE_LOCALIZE = 1 << 28,
@@ -677,8 +678,8 @@ void BKE_libblock_management_usercounts_clear(Main *bmain, void *idv);
  *
  * This is a no-op when `id` is `nullptr` or not linked.
  *
- * \param enforce_fix if true, unconditionally set the linked data as extern (even if it was
- * already defined as suc, or if it was in a broken state with e.g. no direct/indirect status
+ * \param enforce_fix: if true, unconditionally set the linked data as extern (even if it was
+ * already defined as such, or if it was in a broken state with e.g. no direct/indirect status
  * defined).
  *
  * This status is rechecked for the whole Main data-base as a step of pre-blend-file writing

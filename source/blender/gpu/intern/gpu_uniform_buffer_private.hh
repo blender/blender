@@ -41,9 +41,11 @@ class UniformBuf {
   virtual void bind_as_ssbo(int slot) = 0;
   virtual void unbind() = 0;
 
-  /** Used to defer data upload at drawing time.
+  /**
+   * Used to defer data upload at drawing time.
    * This is useful if the thread has no context bound.
-   * This transfers ownership to this UniformBuf. */
+   * This transfers ownership to this UniformBuf.
+   */
   void attach_data(void *data)
   {
     data_ = data;

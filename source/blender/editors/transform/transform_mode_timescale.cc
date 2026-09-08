@@ -164,6 +164,7 @@ TransModeInfo TransMode_timescale = {
     /*snap_distance_fn*/ nullptr,
     /*snap_apply_fn*/ timescale_snap_apply_fn,
     /*draw_fn*/ nullptr,
+    /*status_fn*/ nullptr,
 };
 
 }  // namespace blender::ed::transform

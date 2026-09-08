@@ -251,6 +251,11 @@ void ABCCurveWriter::do_write(HierarchyContext &context)
                                orders,
                                knots);
 
+  std::vector<Imath::V3f> velocities;
+  if (get_velocities(curves.attributes(), velocities)) {
+    sample.setVelocities(velocities);
+  }
+
   update_bounding_box(context.object);
   sample.setSelfBounds(bounding_box_);
   abc_curve_schema_.set(sample);

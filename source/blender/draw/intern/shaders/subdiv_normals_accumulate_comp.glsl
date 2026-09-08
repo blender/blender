@@ -2,7 +2,10 @@
  *
  * SPDX-License-Identifier: GPL-2.0-or-later */
 
-/* Accumulate vertex normals from their adjacent faces.
+/** \file
+ * \ingroup draw
+ *
+ * Accumulate vertex normals from their adjacent faces.
  *
  * Accumulated normals needs to be finalized `subdiv_vbo_lnor_comp.glsl`.
  * to be stored as loops.

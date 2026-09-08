@@ -236,7 +236,7 @@ static std::optional<std::string> rna_ColorRamp_path(const PointerRNA *ptr)
         bNodeTree *ntree = id_cast<bNodeTree *>(id);
         bNode *node;
 
-        for (node = static_cast<bNode *>(ntree->nodes.first); node; node = node->next) {
+        for (node = ntree->nodes.first(); node; node = node->next) {
           if (ELEM(node->type_legacy, SH_NODE_VALTORGB, TEX_NODE_VALTORGB)) {
             if (node->storage == ptr->data) {
               /* all node color ramp properties called 'color_ramp'
@@ -304,7 +304,7 @@ static std::optional<std::string> rna_ColorRampElement_path(const PointerRNA *pt
         bNodeTree *ntree = id_cast<bNodeTree *>(id);
         bNode *node;
 
-        for (node = static_cast<bNode *>(ntree->nodes.first); node; node = node->next) {
+        for (node = ntree->nodes.first(); node; node = node->next) {
           if (ELEM(node->type_legacy, SH_NODE_VALTORGB, TEX_NODE_VALTORGB)) {
             ramp_ptr = RNA_pointer_create_discrete(id, RNA_ColorRamp, node->storage);
             COLRAMP_GETPATH;
@@ -317,7 +317,7 @@ static std::optional<std::string> rna_ColorRampElement_path(const PointerRNA *pt
         LinkData *link;
 
         BKE_linestyle_modifier_list_color_ramps(id_cast<FreestyleLineStyle *>(id), &listbase);
-        for (link = static_cast<LinkData *>(listbase.first); link; link = link->next) {
+        for (link = listbase.first(); link; link = link->next) {
           ramp_ptr = RNA_pointer_create_discrete(id, RNA_ColorRamp, link->data);
           COLRAMP_GETPATH;
         }
@@ -360,7 +360,7 @@ static void rna_ColorRamp_update(Main *bmain, Scene * /*scene*/, PointerRNA *ptr
         bNodeTree *ntree = id_cast<bNodeTree *>(id);
         bNode *node;
 
-        for (node = static_cast<bNode *>(ntree->nodes.first); node; node = node->next) {
+        for (node = ntree->nodes.first(); node; node = node->next) {
           if (ELEM(node->type_legacy, SH_NODE_VALTORGB, TEX_NODE_VALTORGB)) {
             BKE_ntree_update_tag_node_property(ntree, node);
             BKE_main_ensure_invariants(*bmain, ntree->id);
@@ -545,9 +545,7 @@ static void rna_ColorManagedDisplaySettings_display_device_update(Main *bmain,
     WM_main_add_notifier(NC_SCENE | ND_SEQUENCER, nullptr);
 
     /* Color management can be baked into shaders, need to refresh. */
-    for (Material *ma = static_cast<Material *>(bmain->materials.first); ma;
-         ma = static_cast<Material *>(ma->id.next))
-    {
+    for (Material *ma = bmain->materials.first(); ma; ma = static_cast<Material *>(ma->id.next)) {
       DEG_id_tag_update(&ma->id, ID_RECALC_SYNC_TO_EVAL);
     }
   }
@@ -931,6 +929,7 @@ static void rna_def_curvemap_points_api(BlenderRNA *brna, PropertyRNA *cprop)
       func, "value", 0.0f, -FLT_MAX, FLT_MAX, "Value", "Value of point", -FLT_MAX, FLT_MAX);
   RNA_def_parameter_flags(parm, PropertyFlag(0), PARM_REQUIRED);
   parm = RNA_def_pointer(func, "point", "CurveMapPoint", "", "New point");
+  RNA_def_parameter_flags(parm, PROP_NEVER_NULL, ParameterFlag(0));
   RNA_def_function_return(func, parm);
 
   func = RNA_def_function(srna, "remove", "rna_CurveMap_remove_point");
@@ -1144,6 +1143,7 @@ static void rna_def_color_ramp_element_api(BlenderRNA *brna, PropertyRNA *cprop)
   RNA_def_parameter_flags(parm, PropertyFlag(0), PARM_REQUIRED);
   /* return type */
   parm = RNA_def_pointer(func, "element", "ColorRampElement", "", "New element");
+  RNA_def_parameter_flags(parm, PROP_NEVER_NULL, ParameterFlag(0));
   RNA_def_function_return(func, parm);
 
   func = RNA_def_function(srna, "remove", "rna_ColorRampElement_remove");

@@ -533,7 +533,7 @@ static void panel_register(ARegionType *region_type)
 static void blend_write(BlendWriter *writer, const ID *id_owner, const ModifierData *md)
 {
   MeshDeformModifierData mmd = *reinterpret_cast<const MeshDeformModifierData *>(md);
-  const bool is_undo = BLO_write_is_undo(writer);
+  const bool is_undo = writer->is_undo();
 
   if (ID_IS_OVERRIDE_LIBRARY(id_owner) && !is_undo) {
     BLI_assert(!ID_IS_LINKED(id_owner));
@@ -563,44 +563,41 @@ static void blend_write(BlendWriter *writer, const ID *id_owner, const ModifierD
 
   const int size = mmd.dyngridsize;
 
-  BLO_write_shared(writer,
-                   mmd.bindinfluences,
-                   sizeof(MDefInfluence) * mmd.influences_num,
-                   mmd.bindinfluences_sharing_info,
-                   [&]() { writer->write_struct_array(mmd.influences_num, mmd.bindinfluences); });
+  writer->write_shared(
+      mmd.bindinfluences,
+      sizeof(MDefInfluence) * mmd.influences_num,
+      mmd.bindinfluences_sharing_info,
+      [&]() { writer->write_struct_array(mmd.influences_num, mmd.bindinfluences); });
 
   /* NOTE: `bindoffset` is abusing `verts_num + 1` as its size, this becomes an incorrect value in
    * case `verts_num == 0`, since `bindoffset` is then nullptr, not a size 1 allocated array. */
   if (mmd.verts_num > 0) {
-    BLO_write_shared(writer,
-                     mmd.bindoffsets,
-                     sizeof(int) * (mmd.verts_num + 1),
-                     mmd.bindoffsets_sharing_info,
-                     [&]() { writer->write_int32_array(mmd.verts_num + 1, mmd.bindoffsets); });
+    writer->write_shared(mmd.bindoffsets,
+                         sizeof(int) * (mmd.verts_num + 1),
+                         mmd.bindoffsets_sharing_info,
+                         [&]() { writer->write_int32_array(mmd.verts_num + 1, mmd.bindoffsets); });
   }
   else {
     BLI_assert(mmd.bindoffsets == nullptr);
   }
 
-  BLO_write_shared(writer,
-                   mmd.bindcagecos,
-                   sizeof(float[3]) * mmd.cage_verts_num,
-                   mmd.bindcagecos_sharing_info,
-                   [&]() { writer->write_float3_array(mmd.cage_verts_num, mmd.bindcagecos); });
-  BLO_write_shared(
-      writer, mmd.dyngrid, sizeof(MDefCell) * size * size * size, mmd.dyngrid_sharing_info, [&]() {
-        writer->write_struct_array(size * size * size, mmd.dyngrid);
-      });
-  BLO_write_shared(writer,
-                   mmd.dyninfluences,
-                   sizeof(MDefInfluence) * mmd.influences_num,
-                   mmd.dyninfluences_sharing_info,
-                   [&]() { writer->write_struct_array(mmd.influences_num, mmd.dyninfluences); });
-  BLO_write_shared(writer,
-                   mmd.dynverts,
-                   sizeof(MDefInfluence) * mmd.verts_num,
-                   mmd.dynverts_sharing_info,
-                   [&]() { writer->write_int32_array(mmd.verts_num, mmd.dynverts); });
+  writer->write_shared(mmd.bindcagecos,
+                       sizeof(float[3]) * mmd.cage_verts_num,
+                       mmd.bindcagecos_sharing_info,
+                       [&]() { writer->write_float3_array(mmd.cage_verts_num, mmd.bindcagecos); });
+  writer->write_shared(mmd.dyngrid,
+                       sizeof(MDefCell) * size * size * size,
+                       mmd.dyngrid_sharing_info,
+                       [&]() { writer->write_struct_array(size * size * size, mmd.dyngrid); });
+  writer->write_shared(
+      mmd.dyninfluences,
+      sizeof(MDefInfluence) * mmd.influences_num,
+      mmd.dyninfluences_sharing_info,
+      [&]() { writer->write_struct_array(mmd.influences_num, mmd.dyninfluences); });
+  writer->write_shared(mmd.dynverts,
+                       sizeof(MDefInfluence) * mmd.verts_num,
+                       mmd.dynverts_sharing_info,
+                       [&]() { writer->write_int32_array(mmd.verts_num, mmd.dynverts); });
 
   writer->write_struct_at_address(md, &mmd);
 }

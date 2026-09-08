@@ -96,10 +96,7 @@ static void finish_pivot_change(bContext *C, Object &ob)
 
   /* Update the viewport navigation rotation origin. */
   Paint *paint = BKE_paint_get_active_from_context(C);
-  bke::PaintRuntime *paint_runtime = paint->runtime;
-  paint_runtime->average_stroke_accum = ss.pivot_pos;
-  paint_runtime->average_stroke_counter = 1;
-  paint_runtime->last_stroke_valid = true;
+  bke::paint::stroke_set_location(*paint, ss.pivot_pos);
 
   ED_region_tag_redraw(region);
   WM_event_add_notifier(C, NC_GEOM | ND_SELECT, ob.data);
@@ -994,9 +991,8 @@ static wmOperatorStatus set_pivot_position_exec(bContext *C, wmOperator *op)
     }
     case PivotPositionMode::CursorSurface: {
       const float2 mval(RNA_float_get(op->ptr, "mouse_x"), RNA_float_get(op->ptr, "mouse_y"));
-      float3 stroke_location;
-      if (stroke_get_location_bvh(C, stroke_location, mval, false)) {
-        ss.pivot_pos = stroke_location;
+      if (std::optional<float3> stroke_location = stroke_get_location_bvh(C, mval, false)) {
+        ss.pivot_pos = *stroke_location;
       }
       break;
     }

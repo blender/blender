@@ -51,7 +51,7 @@ Span<const char *> default_dna_header_filenames()
   static const char *files[] = {
 #include "dna_includes_as_strings.h"
   };
-  return Span<const char *>(files, sizeof(files) / sizeof(files[0]));
+  return Span<const char *>(files, ARRAY_SIZE(files));
 }
 
 [[nodiscard]] static bool read_file_data(const StringRefNull filepath, Vector<char> &data)
@@ -182,8 +182,10 @@ static bool is_identifier_continuation(char c)
   return is_identifier_start(c) || (c >= '0' && c <= '9');
 }
 
-/** Turn a DNA header into a token stream for parsing. Tokens will reference the
- * source string data so it must be kept alive. */
+/**
+ * Turn a DNA header into a token stream for parsing. Tokens will reference the
+ * source string data so it must be kept alive.
+ */
 static TokenStream tokenize_dna_header(StringRef source)
 {
   TokenStream stream;
@@ -194,7 +196,7 @@ static TokenStream tokenize_dna_header(StringRef source)
     const char c = *cur;
 
     /* White-space. */
-    if (c == ' ' || c == '\t' || c == '\n' || c == '\r') {
+    if (ELEM(c, ' ', '\t', '\n', '\r')) {
       cur++;
       continue;
     }
@@ -397,7 +399,7 @@ static void skip_initializer(TokenStream &stream)
   int depth = 0;
   while (!stream.at_end()) {
     const TokenKind k = stream.kind();
-    if (depth == 0 && (k == ',' || k == ';')) {
+    if (depth == 0 && ELEM(k, ',', ';')) {
       return;
     }
     if (k == '{' || k == '(') {

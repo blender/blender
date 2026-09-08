@@ -141,7 +141,7 @@ void Engine::sync(Depsgraph *depsgraph, bContext *context)
     }
     usd_scene_delegate_->populate(depsgraph);
   }
-  free_camera_delegate_->sync(scene_);
+  free_camera_delegate_->sync(camera_object());
 }
 
 void Engine::set_render_setting(const std::string &key, const pxr::VtValue &val)

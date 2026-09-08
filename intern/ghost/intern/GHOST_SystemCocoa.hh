@@ -27,7 +27,8 @@ class GHOST_SystemCocoa : public GHOST_System {
   /**
    * Constructor.
    */
-  GHOST_SystemCocoa();
+  GHOST_SystemCocoa(bool background);
+  GHOST_SystemCocoa() : GHOST_SystemCocoa(true) {}
 
   /**
    * Destructor.
@@ -352,6 +353,9 @@ class GHOST_SystemCocoa : public GHOST_System {
 
   /** Ignores window size messages (when window is dragged). */
   bool ignore_window_sized_messages_;
+
+  /** Background-mode, do not display the app icon in the macOS Dock. */
+  bool background_mode_;
 
   /** Temporarily ignore momentum scroll events */
   bool ignore_momentum_scroll_;

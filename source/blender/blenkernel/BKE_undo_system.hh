@@ -194,7 +194,8 @@ struct UndoType {
 
   /**
    * The size of the undo struct 'inherited' from #UndoStep for that specific type. Used for
-   * generic allocation in BKE's `undo_system.cc`. */
+   * generic allocation in BKE's `undo_system.cc`.
+   */
   size_t step_size;
 };
 

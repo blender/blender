@@ -113,6 +113,7 @@ set(SRC
   xpbd/GEO_xpbd_constraint_collision_edge.hh
   xpbd/GEO_xpbd_constraint_collision_face.hh
   xpbd/GEO_xpbd_constraint_coloring.hh
+  xpbd/GEO_xpbd_constraint_coloring_utils.hh
   xpbd/GEO_xpbd_constraint_damping_angular.hh
   xpbd/GEO_xpbd_constraint_damping_linear.hh
   xpbd/GEO_xpbd_constraint_distance.hh

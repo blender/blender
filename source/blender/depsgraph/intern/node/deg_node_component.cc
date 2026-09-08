@@ -37,7 +37,8 @@ ComponentNode::ComponentNode()
     : entry_operation(nullptr),
       exit_operation(nullptr),
       possibly_affects_visible_id(false),
-      affects_visible_id(false)
+      affects_visible_id(false),
+      is_user_modified(false)
 {
   operations_map = new Map<ComponentNode::OperationIDKey, OperationNode *>();
 }

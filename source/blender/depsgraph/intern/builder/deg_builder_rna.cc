@@ -390,6 +390,13 @@ RNANodeIdentifier RNANodeQuery::construct_node_identifier(const PointerRNA *ptr,
     node_identifier.type = NodeType::GEOMETRY;
     return node_identifier;
   }
+  else if (ptr->owner_id && GS(ptr->owner_id->name) == ID_SCE &&
+           RNA_struct_search_closest_ancestor_by_type(ptr, RNA_SceneCompositorEffect))
+  {
+    node_identifier.type = NodeType::COMPOSITOR;
+    node_identifier.operation_code = OperationCode::COMPOSITOR_EVAL;
+    return node_identifier;
+  }
   if (prop != nullptr) {
     /* All unknown data effectively falls under "parameter evaluation". */
     node_identifier.type = NodeType::PARAMETERS;

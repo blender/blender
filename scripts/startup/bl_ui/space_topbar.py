@@ -201,9 +201,6 @@ class TOPBAR_MT_file(Menu):
 
         layout.menu("TOPBAR_MT_file_import", icon='IMPORT')
         layout.menu("TOPBAR_MT_file_export", icon='EXPORT')
-        row = layout.row()
-        row.operator("wm.collection_export_all")
-        row.enabled = context.view_layer.has_export_collections
 
         layout.separator()
 
@@ -412,7 +409,13 @@ class TOPBAR_MT_file_export(Menu):
     bl_label = "Export"
     bl_owner_use_filter = False
 
-    def draw(self, _context):
+    def draw(self, context):
+        row = self.layout.row()
+        row.operator("wm.collection_export_all")
+        row.enabled = context.view_layer.has_export_collections
+
+        self.layout.separator()
+
         if bpy.app.build_options.alembic:
             self.layout.operator("wm.alembic_export", text="Alembic (.abc)")
         if bpy.app.build_options.usd:
@@ -796,31 +799,12 @@ class TOPBAR_PT_name_marker(Panel):
     bl_ui_units_x = 14
 
     @staticmethod
-    def is_using_pose_markers(context):
-        sd = context.space_data
-        return (
-            sd.type == 'DOPESHEET_EDITOR' and sd.mode in {'ACTION', 'SHAPEKEY'} and
-            sd.show_pose_markers and context.active_action
-        )
-
-    @staticmethod
-    def is_using_sequencer(context):
-        sd = context.space_data
-        return sd.type == 'SEQUENCE_EDITOR'
-
-    @staticmethod
     def get_selected_marker(context):
-        if TOPBAR_PT_name_marker.is_using_pose_markers(context):
-            markers = context.active_action.pose_markers
-        elif TOPBAR_PT_name_marker.is_using_sequencer(context):
-            markers = context.sequencer_scene.timeline_markers
-        else:
-            markers = context.scene.timeline_markers
-
-        for marker in markers:
-            if marker.select:
-                return marker
-        return None
+        sd = context.space_data
+        if sd.type == 'SEQUENCE_EDITOR':
+            with context.temp_override(scene=context.sequencer_scene):
+                return context.selected_markers[0] if context.selected_markers else None
+        return context.selected_markers[0] if context.selected_markers else None
 
     @staticmethod
     def row_with_icon(layout, icon):
@@ -850,7 +834,7 @@ class TOPBAR_PT_name_marker(Panel):
         icon = 'TIME'
         if marker.camera is not None:
             icon = 'CAMERA_DATA'
-        elif self.is_using_pose_markers(context):
+        elif marker.id_data.id_type == 'ACTION':
             icon = 'ARMATURE_DATA'
         row = self.row_with_icon(layout, icon)
         row.prop(marker, "name", text="")

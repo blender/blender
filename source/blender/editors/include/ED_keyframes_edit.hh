@@ -27,11 +27,10 @@ struct bAnimContext;
 struct bAnimListElem;
 struct bDopeSheet;
 
-/* ************************************************ */
-/* Common Macros and Defines */
-
 /* -------------------------------------------------------------------- */
 /** \name Tool Flags
+ *
+ * Common macros and defines.
  * \{ */
 
 /** bezt validation. */
@@ -56,6 +55,10 @@ enum eEditKeyframes_Validate {
 };
 
 /** \} */
+
+/* -------------------------------------------------------------------- */
+/** \name Tool Modes
+ * \{ */
 
 /* select modes */
 enum eEditKeyframes_Select {
@@ -119,11 +122,12 @@ struct KeyframeEdit_CircleData {
   float radius_squared;
 };
 
-/* ************************************************ */
-/* Non-Destructive Editing API (keyframes_edit.cc) */
+/** \} */
 
 /* -------------------------------------------------------------------- */
 /** \name Defines for 'OK' polls + KeyframeEditData Flags
+ *
+ * Non-destructive editing API, implemented in `keyframes_edit.cc`.
  * \{ */
 
 /* which verts of a keyframe is active (after polling) */
@@ -418,8 +422,13 @@ bool keyframe_region_lasso_test(const KeyframeEdit_LassoData *data_lasso, const 
 
 bool keyframe_region_circle_test(const KeyframeEdit_CircleData *data_circle, const float xy[2]);
 
-/* ************************************************ */
-/* Destructive Editing API `keyframes_general.cc`. */
+/** \} */
+
+/* -------------------------------------------------------------------- */
+/** \name Destructive Editing API
+ *
+ * Implemented in `keyframes_general.cc`.
+ * \{ */
 
 bool duplicate_fcurve_keys(FCurve *fcu);
 float get_default_rna_value(const FCurve *fcu, PropertyRNA *prop, PointerRNA *ptr);
@@ -550,8 +559,6 @@ struct KeyframePasteContext {
 eKeyPasteError paste_animedit_keys(bAnimContext *ac,
                                    ListBaseT<bAnimListElem> *anim_data,
                                    const KeyframePasteContext &paste_context);
-
-/* ************************************************ */
 
 /** \} */
 

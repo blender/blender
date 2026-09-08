@@ -28,6 +28,7 @@ void node_normal_map(
   }
   tangent *= (FrontFacing ? 1.0f : -1.0f);
   float3 B = tangent.w * cross(input_normal, tangent.xyz);
+  /* TODO(fclem): EEVEE implementation leaking. */
   B *= (object_infos_get().flag & OBJECT_NEGATIVE_SCALE) != 0 ? -1.0f : 1.0f;
 
   /* Apply strength here instead of in node_normal_map_mix for tangent space. */

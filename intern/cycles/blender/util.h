@@ -86,9 +86,6 @@ static inline blender::Mesh *object_copy_mesh_data(const BObjectInfo &b_ob_info)
 
 int blender_attribute_name_split_type(ustring name, string *r_real_name);
 
-void python_thread_state_save(void **python_thread_state);
-void python_thread_state_restore(void **python_thread_state);
-
 static inline blender::Mesh *object_to_mesh(BObjectInfo &b_ob_info)
 {
   blender::Mesh *mesh = (b_ob_info.object_data->id_type() == blender::ID_ME) ?
@@ -625,7 +622,7 @@ static inline blender::FluidDomainSettings *object_fluid_gas_domain_find(blender
 static blender::SubsurfModifierData *object_subdivision_modifier(blender::Object &b_ob,
                                                                  const bool preview)
 {
-  blender::ModifierData *md = static_cast<blender::ModifierData *>(b_ob.modifiers.last);
+  blender::ModifierData *md = b_ob.modifiers.last();
   if (!md) {
     return nullptr;
   }

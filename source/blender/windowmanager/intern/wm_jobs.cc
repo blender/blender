@@ -261,7 +261,7 @@ wmJob *WM_jobs_get(wmWindowManager *wm,
   return wm_job;
 }
 
-bool WM_jobs_test(const wmWindowManager *wm, const void *owner, int job_type)
+bool WM_jobs_progress_test(const wmWindowManager *wm, const void *owner, int job_type)
 {
   /* Job can be running or about to run (suspended). */
   for (wmJob &wm_job : wm->runtime->jobs) {
@@ -298,7 +298,7 @@ static void wm_jobs_update_progress_bars(wmWindowManager *wm)
   float jobs_progress = 0;
 
   for (wmJob &wm_job : wm->runtime->jobs) {
-    if (wm_job.threads.first && !wm_job.ready) {
+    if (wm_job.threads.first() && !wm_job.ready) {
       if (wm_job.flag & WM_JOB_PROGRESS) {
         /* Accumulate global progress for running jobs. */
         jobs_progress++;
@@ -622,7 +622,7 @@ void WM_jobs_kill_all(wmWindowManager *wm)
 {
   wmJob *wm_job;
 
-  while ((wm_job = static_cast<wmJob *>(wm->runtime->jobs.first))) {
+  while ((wm_job = wm->runtime->jobs.first())) {
     wm_jobs_kill_job(wm, wm_job);
   }
 
@@ -721,7 +721,7 @@ void wm_jobs_timer(wmWindowManager *wm, wmTimer *wt)
 
   if (wm_job) {
     /* Running threads. */
-    if (wm_job->threads.first) {
+    if (wm_job->threads.first()) {
       /* Let threads get temporary lock over main thread if needed. */
       wm_job_main_thread_yield(wm_job);
 
@@ -751,7 +751,7 @@ void wm_jobs_handle_finished(const bContext *C)
 {
   wmWindowManager *wm = CTX_wm_manager(C);
   for (wmJob &job : wm->runtime->jobs.items_reversed_mutable()) {
-    if (!job.threads.first) {
+    if (!job.threads.first()) {
       continue;
     }
 
@@ -806,24 +806,29 @@ void wm_jobs_handle_finished(const bContext *C)
   wm_jobs_update_progress_bars(wm);
 }
 
-bool WM_jobs_has_running(const wmWindowManager *wm)
+bool WM_jobs_has_running(const wmWindowManager *window_manager,
+                         const void *owner,
+                         const eWM_JobType type,
+                         const eWM_JobFlag exclude_flags)
 {
-  for (const wmJob &wm_job : wm->runtime->jobs) {
-    if (wm_job.running) {
+  for (const wmJob &job : window_manager->runtime->jobs) {
+    if (owner && job.owner != owner) {
+      continue;
+    }
+
+    if (!ELEM(type, WM_JOB_TYPE_ANY, job.job_type)) {
+      continue;
+    }
+
+    if (job.flag & exclude_flags) {
+      continue;
+    }
+
+    if (job.running || job.suspended) {
       return true;
     }
   }
 
-  return false;
-}
-
-bool WM_jobs_has_running_type(const wmWindowManager *wm, int job_type)
-{
-  for (wmJob &wm_job : wm->runtime->jobs) {
-    if (wm_job.running && wm_job.job_type == job_type) {
-      return true;
-    }
-  }
   return false;
 }
 

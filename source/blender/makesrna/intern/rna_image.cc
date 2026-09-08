@@ -601,7 +601,7 @@ static int rna_Image_frame_duration_get(PointerRNA *ptr)
   }
 
   if (BKE_image_has_anim(ima)) {
-    MovieReader *anim = (static_cast<ImageAnim *>(ima->anims.first))->anim;
+    MovieReader *anim = (ima->anims.first())->anim;
     if (anim) {
       duration = MOV_get_duration_frames(anim);
     }
@@ -726,7 +726,7 @@ static PointerRNA rna_Image_packed_file_get(PointerRNA *ptr)
   Image *ima = id_cast<Image *>(ptr->owner_id);
 
   if (BKE_image_has_packedfile(ima)) {
-    ImagePackedFile *imapf = static_cast<ImagePackedFile *>(ima->packedfiles.first);
+    ImagePackedFile *imapf = ima->packedfiles.first();
     return RNA_pointer_create_with_parent(*ptr, RNA_PackedFile, imapf->packedfile);
   }
   return {};
@@ -972,6 +972,7 @@ static void rna_def_render_slots(BlenderRNA *brna, PropertyRNA *cprop)
   RNA_def_function_ui_description(func, "Add a render slot to the image");
   parm = RNA_def_string(func, "name", nullptr, 0, "Name", "New name for the render slot");
   parm = RNA_def_pointer(func, "result", "RenderSlot", "", "Newly created render layer");
+  RNA_def_parameter_flags(parm, PROP_NEVER_NULL, ParameterFlag(0));
   RNA_def_function_return(func, parm);
 }
 

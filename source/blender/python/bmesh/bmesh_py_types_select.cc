@@ -38,7 +38,7 @@ static PyObject *bpy_bmeditselseq_active_get(BPy_BMEditSelSeq *self, void * /*cl
   BMEditSelection *ese;
   BPY_BM_CHECK_OBJ(self);
 
-  if ((ese = static_cast<BMEditSelection *>(self->bm->selected.last))) {
+  if ((ese = self->bm->selected.last())) {
     return BPy_BMElem_CreatePyObject(self->bm, &ese->ele->head);
   }
 
@@ -257,7 +257,7 @@ static PyObject *bpy_bmeditselseq_subscript_slice(BPy_BMEditSelSeq *self,
   list = PyList_New(0);
 
   /* First loop up-until the start. */
-  for (ese = static_cast<BMEditSelection *>(self->bm->selected.first); ese; ese = ese->next) {
+  for (ese = self->bm->selected.first(); ese; ese = ese->next) {
     if (count == start) {
       break;
     }
@@ -380,7 +380,7 @@ static PyObject *bpy_bmeditselseq_iter(BPy_BMEditSelSeq *self)
 
   BPY_BM_CHECK_OBJ(self);
   py_iter = reinterpret_cast<BPy_BMEditSelIter *>(BPy_BMEditSelIter_CreatePyObject(self->bm));
-  py_iter->ese = static_cast<BMEditSelection *>(self->bm->selected.first);
+  py_iter->ese = self->bm->selected.first();
   return reinterpret_cast<PyObject *>(py_iter);
 }
 

@@ -25,8 +25,12 @@ struct Stereo3dFormat;
 
 namespace seq {
 
-/** Length of strips which have no inherent duration, like color, text, and images. */
-constexpr int DEFAULT_STRIP_LENGTH = 25; /* XXX arbitrary but ok for now. */
+/**
+ * Default duration in *frames* for strips with no inherent duration (color, text, etc).
+ *
+ * \note For default length in seconds, use #U.sequencer_default_strip_length.
+ */
+int default_strip_length(double scene_fps);
 
 /** #SeqLoadData.flags */
 enum eLoadFlags {

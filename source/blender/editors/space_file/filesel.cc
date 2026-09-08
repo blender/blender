@@ -461,8 +461,7 @@ static void fileselect_refresh_asset_params(FileAssetSelectParams *asset_params)
       break;
     case ASSET_LIBRARY_CUSTOM:
       BLI_assert(user_library);
-      STRNCPY(base_params->dir, user_library->dirpath);
-      BLI_path_slash_native(base_params->dir);
+      STRNCPY(base_params->dir, user_library->resolved_dirpath);
       base_params->type = (user_library->flag & ASSET_LIBRARY_USE_REMOTE_URL) ?
                               FILE_ASSET_LIBRARY_REMOTE :
                               FILE_ASSET_LIBRARY;
@@ -1189,7 +1188,7 @@ void ED_file_change_dir_ex(bContext *C, ScrArea *area)
   if (area->spacetype != SPACE_FILE) [[unlikely]] {
     return;
   }
-  SpaceFile *sfile = static_cast<SpaceFile *>(area->spacedata.first);
+  SpaceFile *sfile = area->spacedata.first_as<SpaceFile>();
   FileSelectParams *params = ED_fileselect_get_active_params(sfile);
   if (params) {
     wmWindowManager *wm = CTX_wm_manager(C);
@@ -1476,7 +1475,7 @@ ScrArea *ED_fileselect_handler_area_find(const wmWindow *win, const wmOperator *
 
   ED_screen_areas_iter (win, screen, area) {
     if (area->spacetype == SPACE_FILE) {
-      SpaceFile *sfile = static_cast<SpaceFile *>(area->spacedata.first);
+      SpaceFile *sfile = area->spacedata.first_as<SpaceFile>();
 
       if (sfile->op == file_operator) {
         return area;
@@ -1496,7 +1495,7 @@ ScrArea *ED_fileselect_handler_area_find_any_with_op(const wmWindow *win)
       continue;
     }
 
-    const SpaceFile *sfile = static_cast<SpaceFile *>(area->spacedata.first);
+    const SpaceFile *sfile = area->spacedata.first_as<SpaceFile>();
     if (sfile->op) {
       return area;
     }

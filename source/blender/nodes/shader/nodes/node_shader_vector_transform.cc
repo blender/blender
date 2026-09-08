@@ -146,7 +146,7 @@ static int gpu_shader_vect_transform(GPUMaterial *mat,
     inputlink = in[0].link;
   }
   else {
-    inputlink = GPU_uniform(in[0].vec);
+    inputlink = GPU_uniform(in[0]);
   }
 
   const char *func_name = get_gpufn_name_from_to(

@@ -438,11 +438,11 @@ static void special_aftertrans_update__mask(bContext *C, TransInfo *t)
   Mask *mask = nullptr;
 
   if (t->spacetype == SPACE_CLIP) {
-    SpaceClip *sc = static_cast<SpaceClip *>(t->area->spacedata.first);
+    SpaceClip *sc = t->area->spacedata.first_as<SpaceClip>();
     mask = ED_space_clip_get_mask(sc);
   }
   else if (t->spacetype == SPACE_IMAGE) {
-    SpaceImage *sima = static_cast<SpaceImage *>(t->area->spacedata.first);
+    SpaceImage *sima = t->area->spacedata.first_as<SpaceImage>();
     mask = ED_space_image_get_mask(sima);
   }
   else {
@@ -454,10 +454,11 @@ static void special_aftertrans_update__mask(bContext *C, TransInfo *t)
   }
 
   /* TODO: don't key all masks. */
-  if (animrig::is_autokey_on(t->scene)) {
+  const bool canceled = (t->state == TRANS_CANCEL);
+  if (animrig::is_autokey_on(t->scene) && !canceled) {
     Scene *scene = t->scene;
 
-    if (ED_mask_layer_shape_auto_key_select(mask, scene->r.cfra)) {
+    if (ED_mask_layer_shape_auto_key_select(C, mask, scene->r.cfra)) {
       WM_event_add_notifier(C, NC_MASK | ND_DATA, &mask->id);
       DEG_id_tag_update(&mask->id, 0);
     }

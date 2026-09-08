@@ -16,6 +16,7 @@ set(INC_GLSL
   ../../../../gpu/intern
   ../../../../gpu/shaders
   ../../../../gpu/shaders/common
+  ../../../../gpu/shaders/compat
   ../../../../gpu/shaders/infos
 
   # For grease pencil.

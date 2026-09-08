@@ -221,7 +221,7 @@ void outliner_item_mode_toggle(bContext *C,
 /** \} */
 
 /* -------------------------------------------------------------------- */
-/** \name Outliner Element Selection/Activation on Click Operator
+/** \name Element Activation
  * \{ */
 
 static void tree_element_viewlayer_activate(bContext *C, TreeElement *te)
@@ -448,7 +448,7 @@ static void tree_element_camera_activate(bContext *C, Scene *scene, TreeElement 
   scene->camera = ob;
 
   Main *bmain = CTX_data_main(C);
-  wmWindowManager *wm = static_cast<wmWindowManager *>(bmain->wm.first);
+  wmWindowManager *wm = bmain->wm.first();
 
   WM_windows_scene_data_sync(&wm->windows, scene);
   DEG_id_tag_update(&scene->id, ID_RECALC_SYNC_TO_EVAL);
@@ -618,7 +618,7 @@ static void tree_element_bone_activate(bContext *C,
   if (ob) {
     if (set != OL_SETSEL_EXTEND) {
       /* single select forces all other bones to get unselected */
-      for (Bone *bone_iter = static_cast<Bone *>(arm->bonebase.first); bone_iter != nullptr;
+      for (Bone *bone_iter = arm->bonebase.first(); bone_iter != nullptr;
            bone_iter = bone_iter->next)
       {
         bone_iter->flag &= ~(BONE_TIPSEL | BONE_SELECTED | BONE_ROOTSEL);
@@ -782,7 +782,7 @@ static void tree_element_strip_dup_activate(WorkSpace *workspace, TreeElement * 
 #if 0
   select_single_seq(strip, 1);
 #endif
-  Strip *p = static_cast<Strip *>(ed->current_strips()->first);
+  Strip *p = ed->current_strips()->first();
   while (p) {
     if ((!p->data) || (!p->data->stripdata) || (p->data->stripdata->filename[0] == '\0')) {
       p = p->next;
@@ -802,7 +802,7 @@ static void tree_element_master_collection_activate(const bContext *C)
 {
   ViewLayer *view_layer = CTX_data_view_layer(C);
   LayerCollection *layer_collection = static_cast<LayerCollection *>(
-      view_layer->layer_collections.first);
+      view_layer->layer_collections.first_);
   BKE_layer_collection_activate(view_layer, layer_collection);
   /* A very precise notifier - ND_LAYER alone is quite vague, we want to avoid unnecessary work
    * when only the active collection changes. */
@@ -825,8 +825,6 @@ static void tree_element_text_activate(bContext *C, TreeElement *te)
   Text *text = reinterpret_cast<Text *>(te->store_elem->id);
   ED_text_activate_in_screen(C, text);
 }
-
-/* ---------------------------------------------- */
 
 void tree_element_activate(bContext *C,
                            const TreeViewContext &tvc,
@@ -941,6 +939,12 @@ void tree_element_type_active_set(bContext *C,
       break;
   }
 }
+
+/** \} */
+
+/* -------------------------------------------------------------------- */
+/** \name Element Active State Query
+ * \{ */
 
 static eOLDrawState tree_element_defgroup_state_get(const Main &bmain,
                                                     const Scene *scene,
@@ -1105,7 +1109,7 @@ static eOLDrawState tree_element_grease_pencil_node_state_get(const TreeElement 
 static eOLDrawState tree_element_master_collection_state_get(
     const ViewLayer *view_layer, const LayerCollection *layer_collection)
 {
-  if (layer_collection == view_layer->layer_collections.first) {
+  if (layer_collection == view_layer->layer_collections.first_) {
     return OL_DRAWSEL_NORMAL;
   }
   return OL_DRAWSEL_NONE;
@@ -1290,6 +1294,12 @@ bPoseChannel *outliner_find_parent_bone(TreeElement *te, TreeElement **r_bone_te
   return nullptr;
 }
 
+/** \} */
+
+/* -------------------------------------------------------------------- */
+/** \name Properties Editor Sync
+ * \{ */
+
 static void outliner_sync_to_properties_editors(const bContext *C,
                                                 PointerRNA *ptr,
                                                 const eSpaceButtons_Context context)
@@ -1301,7 +1311,7 @@ static void outliner_sync_to_properties_editors(const bContext *C,
       continue;
     }
 
-    SpaceProperties *sbuts = static_cast<SpaceProperties *>(area.spacedata.first);
+    SpaceProperties *sbuts = area.spacedata.first_as<SpaceProperties>();
     if (ED_buttons_should_sync_with_outliner(C, sbuts, &area)) {
       ED_buttons_set_context(C, sbuts, ptr, context);
     }
@@ -1500,7 +1510,11 @@ static void outliner_set_properties_tab(bContext *C, TreeElement *te, TreeStoreE
   }
 }
 
-/* ================================================ */
+/** \} */
+
+/* -------------------------------------------------------------------- */
+/** \name Outliner Element Selection/Activation on Click Operator
+ * \{ */
 
 /**
  * Action when clicking to activate an item (typically under the mouse cursor),
@@ -2135,9 +2149,9 @@ void OUTLINER_OT_select_box(wmOperatorType *ot)
 static TreeElement *outliner_find_rightmost_visible_child(SpaceOutliner *space_outliner,
                                                           TreeElement *te)
 {
-  while (te->subtree.last) {
+  while (te->subtree.last()) {
     if (TSELEM_OPEN(TREESTORE(te), space_outliner)) {
-      te = static_cast<TreeElement *>(te->subtree.last);
+      te = te->subtree.last();
     }
     else {
       break;
@@ -2180,8 +2194,8 @@ static TreeElement *outliner_find_next_element(SpaceOutliner *space_outliner, Tr
 {
   TreeStoreElem *tselem = TREESTORE(te);
 
-  if (TSELEM_OPEN(tselem, space_outliner) && te->subtree.first) {
-    te = static_cast<TreeElement *>(te->subtree.first);
+  if (TSELEM_OPEN(tselem, space_outliner) && te->subtree.first()) {
+    te = te->subtree.first();
   }
   else if (te->next) {
     te = te->next;
@@ -2218,7 +2232,7 @@ static TreeElement *outliner_walk_right(SpaceOutliner *space_outliner,
 
   /* Only walk down a level if the element is open and not toggling expand */
   if (!toggle_all && TSELEM_OPEN(tselem, space_outliner) && !te->subtree.is_empty()) {
-    te = static_cast<TreeElement *>(te->subtree.first);
+    te = te->subtree.first();
   }
   else {
     outliner_item_openclose(te, true, toggle_all);
@@ -2270,7 +2284,7 @@ static TreeElement *find_walk_select_start_element(SpaceOutliner *space_outliner
 
   /* If no active element exists, use the first element in the tree */
   if (!active_te) {
-    active_te = static_cast<TreeElement *>(space_outliner->runtime->tree.first);
+    active_te = space_outliner->runtime->tree.first();
     *r_changed = true;
   }
 

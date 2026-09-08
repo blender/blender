@@ -47,6 +47,7 @@ set(SRC
   curves.cpp
   scene.cpp
   shader.cpp
+  shader.tables
   shader_graph.cpp
   shader_nodes.cpp
   stats.cpp
@@ -85,6 +86,7 @@ set(SRC_HEADERS
   pointcloud.h
   curves.h
   scene.h
+  scene_attributes.h
   shader.h
   shader_graph.h
   shader_nodes.h

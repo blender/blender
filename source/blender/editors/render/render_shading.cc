@@ -1077,7 +1077,7 @@ void SCENE_OT_view_layer_add(wmOperatorType *ot)
 static bool view_layer_remove_poll(bContext *C)
 {
   Scene *scene = CTX_data_scene(C);
-  return (scene->view_layers.first != scene->view_layers.last);
+  return (scene->view_layers.first() != scene->view_layers.last());
 }
 
 static wmOperatorStatus view_layer_remove_exec(bContext *C, wmOperator * /*op*/)
@@ -1547,7 +1547,7 @@ static wmOperatorStatus lightprobe_cache_bake_modal(bContext *C,
   Scene *scene = data->scene;
 
   /* No running bake, remove handler and pass through. */
-  if (0 == WM_jobs_test(CTX_wm_manager(C), scene, WM_JOB_TYPE_LIGHT_BAKE)) {
+  if (!WM_jobs_has_running(CTX_wm_manager(C), scene, WM_JOB_TYPE_LIGHT_BAKE)) {
     std::string report = data->report;
 
     MEM_delete(data);

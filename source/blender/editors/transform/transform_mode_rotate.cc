@@ -432,6 +432,7 @@ TransModeInfo TransMode_rotate = {
     /*snap_distance_fn*/ RotationBetween,
     /*snap_apply_fn*/ ApplySnapRotation,
     /*draw_fn*/ nullptr,
+    /*status_fn*/ nullptr,
 };
 
 }  // namespace blender::ed::transform

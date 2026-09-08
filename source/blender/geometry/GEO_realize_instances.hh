@@ -2,6 +2,10 @@
  *
  * SPDX-License-Identifier: GPL-2.0-or-later */
 
+/** \file
+ * \ingroup geo
+ */
+
 #pragma once
 
 #include "BKE_geometry_set.hh"
@@ -26,6 +30,8 @@ struct RealizeInstancesOptions {
   bool realize_instance_attributes = true;
   /** Propagate instance attributes to the point domain rather than the curve domain. */
   bool realize_to_point_domain = true;
+  /** Reverse face winding for mesh instances with negative-determinant transforms. */
+  bool preserve_normals = false;
 
   std::reference_wrapper<const bke::AttributeFilter> attribute_filter =
       bke::AttributeFilter::default_filter();

@@ -71,21 +71,6 @@ BVHTreeFromMesh bvhtree_from_mesh_corner_tris_ex(Span<float3> vert_positions,
                                                  bool map_global_indices = true);
 
 /**
- * Build a BVH-tree from the triangles in the mesh that correspond to the faces in the given mask.
- */
-BVHTreeFromMesh bvhtree_from_mesh_tris_init(const Mesh &mesh, const IndexMask &faces_mask);
-
-/**
- * Build a BVH-tree containing the given edges.
- */
-BVHTreeFromMesh bvhtree_from_mesh_edges_init(const Mesh &mesh, const IndexMask &edges_mask);
-
-/**
- * Build a BVH-tree containing the given vertices.
- */
-BVHTreeFromMesh bvhtree_from_mesh_verts_init(const Mesh &mesh, const IndexMask &verts_mask);
-
-/**
  * Math functions used by callbacks
  */
 float bvhtree_ray_tri_intersection(
@@ -96,19 +81,6 @@ float bvhtree_sphereray_tri_intersection(const BVHTreeRay *ray,
                                          const float v0[3],
                                          const float v1[3],
                                          const float v2[3]);
-
-struct BVHTreeFromPointCloud {
-  const BVHTree *tree = nullptr;
-
-  BVHTree_NearestPointCallback nearest_callback;
-
-  Span<float3> positions;
-
-  std::unique_ptr<BVHTree, BVHTreeDeleter> owned_tree;
-};
-
-BVHTreeFromPointCloud bvhtree_from_pointcloud_get(const PointCloud &pointcloud,
-                                                  const IndexMask &points_mask);
 
 }  // namespace bke
 }  // namespace blender

@@ -24,6 +24,7 @@ void node_bsdf_glossy(float4 color,
   float3 V = coordinate_incoming(g_data.P);
   float NV = dot(N, V);
 
+  /* TODO(fclem): EEVEE implementation leaking. */
   [[resource_table]] UtilityTexture &util_tx = resource_table_get(UtilityTexture);
   eevee::lut::GGXBrdfData lut = eevee::lut::GGXBrdfData::sample_utility_tx(util_tx, NV, roughness);
 

@@ -165,7 +165,7 @@ static void library_foreach_path(ID *id, BPathForeachPathData *bpath_data)
 static void library_blend_write_data(BlendWriter *writer, ID *id, const void *id_address)
 {
   Library *library = reinterpret_cast<Library *>(id);
-  const bool is_undo = BLO_write_is_undo(writer);
+  const bool is_undo = writer->is_undo();
 
   /* Runtime tags need to be preserved across undo steps. */
   if (is_undo) {

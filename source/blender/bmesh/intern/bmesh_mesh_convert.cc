@@ -226,7 +226,8 @@ static Vector<MeshToBMeshLayerInfo> mesh_to_bm_copy_info_calc(const Mesh &mesh,
     MeshToBMeshLayerInfo info{};
     info.type = type;
     info.bmesh_offset = bm_layer.offset;
-    if (const bke::Attribute *attr = storage.lookup(layer_name)) {
+    const bke::Attribute *attr = storage.lookup(layer_name);
+    if (attr && attr->domain() == domain) {
       switch (attr->storage_type()) {
         case bke::AttrStorageType::Array: {
           const auto &array_data = std::get<bke::Attribute::ArrayData>(attr->data());
@@ -488,9 +489,7 @@ void BM_mesh_bm_from_me(BMesh *bm, const Mesh *mesh, const BMeshFromMeshParams *
 
     int i;
     KeyBlock *block;
-    for (i = 0, block = static_cast<KeyBlock *>(mesh->key->block.first); i < tot_shape_keys;
-         block = block->next, i++)
-    {
+    for (i = 0, block = mesh->key->block.first(); i < tot_shape_keys; block = block->next, i++) {
       if (is_new) {
         CustomData_add_layer_named(&bm->vdata, CD_SHAPEKEY, CD_SET_DEFAULT, 0, block->name);
         int j = CustomData_get_layer_index_n(&bm->vdata, CD_SHAPEKEY, i);
@@ -905,7 +904,7 @@ static void bm_to_mesh_shape(BMesh *bm,
     }
 
     KeyBlock *currkey;
-    for (currkey = static_cast<KeyBlock *>(key->block.first); currkey; currkey = currkey->next) {
+    for (currkey = key->block.first(); currkey; currkey = currkey->next) {
       if (currkey->uid == bm->vdata.layers[i].uid) {
         break;
       }
@@ -1979,8 +1978,6 @@ void BM_mesh_bm_to_me_compact(BMesh &bm,
 
   /* Must be an empty mesh. */
   BLI_assert(mesh.verts_num == 0);
-
-  BLI_assert(mesh.attributes_active_index == -1);
 
   /* Just in case, clear the derived geometry caches from the input mesh. */
   BKE_mesh_runtime_clear_geometry(&mesh);

@@ -253,7 +253,7 @@ static bNodeSocket *best_socket_output(bNodeTree *ntree,
   /* Always allow linking to an reroute node. The socket type of the reroute sockets might change
    * after the link has been created. */
   if (node->is_reroute()) {
-    return static_cast<bNodeSocket *>(node->outputs.first);
+    return node->outputs.first();
   }
 
   return nullptr;
@@ -543,7 +543,7 @@ static bNodeSocket *node_link_viewer_get_socket(bNodeTree &ntree,
 {
   if (viewer_node.type_legacy != GEO_NODE_VIEWER) {
     /* In viewer nodes in the compositor, only the first input should be linked to. */
-    return static_cast<bNodeSocket *>(viewer_node.inputs.first);
+    return viewer_node.inputs.first();
   }
   if (!nodes::GeoViewerItemsAccessor::supports_socket_type(src_socket.typeinfo->type, ntree.type))
   {
@@ -1137,9 +1137,8 @@ static bNodeSocket *node_find_linkable_socket(const bNodeTree &ntree,
                                               const bNode *node,
                                               bNodeSocket *socket_to_match)
 {
-  bNodeSocket *first_socket = socket_to_match->in_out == SOCK_IN ?
-                                  static_cast<bNodeSocket *>(node->inputs.first) :
-                                  static_cast<bNodeSocket *>(node->outputs.first);
+  bNodeSocket *first_socket = socket_to_match->in_out == SOCK_IN ? node->inputs.first() :
+                                                                   node->outputs.first();
 
   bNodeSocket *socket = socket_to_match->next ? socket_to_match->next : first_socket;
   while (socket != socket_to_match) {
@@ -2745,15 +2744,14 @@ void node_insert_on_link_flags_clear(bNodeTree &node_tree)
 
 void node_insert_on_link_flags(Main &bmain, SpaceNode &snode, bool is_new_node)
 {
-  bNodeTree &node_tree = *snode.edittree;
-  node_tree.ensure_topology_cache();
-  bNode *node_to_insert = get_selected_node_for_insertion(node_tree);
+  bNodeTree &ntree = *snode.edittree;
+  ntree.ensure_topology_cache();
+  bNode *node_to_insert = get_selected_node_for_insertion(ntree);
   if (!node_to_insert) {
     return;
   }
 
   /* Find link to insert on. */
-  bNodeTree &ntree = *snode.edittree;
   bNodeLink *old_link = nullptr;
   for (bNodeLink &link : ntree.links) {
     if (link.flag & NODE_LINK_INSERT_TARGET) {
@@ -2763,7 +2761,7 @@ void node_insert_on_link_flags(Main &bmain, SpaceNode &snode, bool is_new_node)
       break;
     }
   }
-  node_insert_on_link_flags_clear(node_tree);
+  node_insert_on_link_flags_clear(ntree);
   if (old_link == nullptr) {
     return;
   }
@@ -3009,16 +3007,18 @@ static bool node_link_insert_offset_ntree(NodeInsertOfsData *iofsd, const bool r
   const float back_gap = right_alignment ? gap_left : gap_right;
   const float min_margin = U.node_margin * UI_SCALE_FAC;
 
-  const bool need_offset_insert = back_gap < min_margin;
-  const bool need_offset_side = (front_gap < min_margin) ||
-                                (back_gap + front_gap) < min_margin * 2;
+  const bool need_offset_side = (back_gap + front_gap) < min_margin * 2;
+  const bool need_front_offset_insert = back_gap < min_margin;
+  const bool need_back_offset_insert = !need_offset_side && front_gap < min_margin;
 
-  if (!(need_offset_insert || need_offset_side)) {
+  if (!(need_front_offset_insert || need_back_offset_insert || need_offset_side)) {
     return false;
   }
 
-  const float insert_node_offset = (min_margin - back_gap) * float(need_offset_insert);
-  const float side_offset = min_margin - front_gap + insert_node_offset;
+  const float front_offset = (min_margin - back_gap) * float(need_front_offset_insert);
+  const float back_offset = (front_gap - min_margin) * float(need_back_offset_insert);
+  const float insert_node_offset = need_front_offset_insert ? front_offset : back_offset;
+  const float side_offset = min_margin - front_gap + front_offset;
 
   const float shift_sign = right_alignment ? 1.0f : -1.0f;
 

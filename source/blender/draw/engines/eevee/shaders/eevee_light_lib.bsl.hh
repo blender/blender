@@ -272,4 +272,22 @@ float light_ltc(sampler2DArray utility_tx,
   return eevee::ltc::evaluate_disk(utility_tx, ltc_data, vertices.v);
 }
 
+namespace eevee {
+namespace light {
+
+float power_get(LightData light, LightingType type)
+{
+  /* Mask anything above 3. See LIGHT_TRANSLUCENT_WITH_THICKNESS. */
+  return light.power_factor[type & 3u] *
+         (type != LIGHT_VOLUME ? light.shape_power : light.point_power);
+}
+
+bool light_linking_affects_receiver(uint2 light_set_membership, uchar receiver_light_set)
+{
+  return bitmask64_test(light_set_membership, receiver_light_set);
+}
+
+}  // namespace light
+}  // namespace eevee
+
 /** \} */

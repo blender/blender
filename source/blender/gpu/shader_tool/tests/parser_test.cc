@@ -47,6 +47,24 @@ TEST(shader_tool, Parser)
   }
   {
     string input = R"(
+template<typename F>;
+template<test<>>;
+template<>;
+template test<1, 2>;
+a << b;
+a >> b;
+a >= b;
+a == b;
+a <= b;
+a <<= b;
+a >>= b;
+)";
+    string expect = R"(
+t<BA>;t<A<>>;t<>;tA<1,1>;AwA;AWA;AGA;AEA;ALA;A5A;A6A;)";
+    EXPECT_EQ(Lexer(input, err_handler).token_types_str(), expect);
+  }
+  {
+    string input = R"(
 struct T {
     int t = 1;
 };
@@ -185,8 +203,7 @@ int b = 0;
 int a = 0;
 #endif
 )";
-    string error;
-    string output = process_test_string(input, error);
+    auto [output, _, error] = process_test_string(input);
     EXPECT_EQ(output, expect);
     EXPECT_EQ(error, "");
   }

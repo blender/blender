@@ -2,6 +2,10 @@
  *
  * SPDX-License-Identifier: GPL-2.0-or-later */
 
+/** \file
+ * \ingroup draw
+ */
+
 #pragma once
 
 #include "draw_object_infos_infos.hh"
@@ -419,7 +423,7 @@ float2 get_rotation(float4 viewport_res,
  *
  *
  * WARNING: Max attribute count is actually 14 because OSX OpenGL implementation
- * considers gl_VertexID and gl_InstanceID as vertex attribute. (see #74536)
+ * considers gl_VertexID and gpu_InstanceIndex as vertex attribute. (see #74536)
  */
 float4 gpencil_vertex(float4 viewport_res,
                       gpMaterialFlag material_flags,

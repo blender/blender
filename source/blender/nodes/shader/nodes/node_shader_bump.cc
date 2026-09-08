@@ -82,7 +82,7 @@ static int gpu_shader_bump(GPUMaterial *mat,
     GPU_link(mat, "world_normals_get", &in[SOCK_NORMAL_ID].link);
   }
 
-  const float filter_width = in[SOCK_FILTER_WIDTH_ID].vec[0];
+  const float filter_width = std::get<float>(in[SOCK_FILTER_WIDTH_ID].value);
   const char *height_function = GPU_material_split_sub_function(
       mat, GPU_FLOAT, &in[SOCK_HEIGHT_ID].link);
 

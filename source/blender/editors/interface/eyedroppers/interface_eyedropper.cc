@@ -25,8 +25,6 @@
 namespace blender::ui {
 
 /* -------------------------------------------------------------------- */
-/* Keymap
- */
 /** \name Modal Keymap
  * \{ */
 
@@ -88,9 +86,6 @@ wmKeyMap *eyedropper_colorband_modal_keymap(wmKeyConfig *keyconf)
 /** \} */
 
 /* -------------------------------------------------------------------- */
-/* Utility Functions
- */
-
 /** \name Generic Shared Functions
  * \{ */
 

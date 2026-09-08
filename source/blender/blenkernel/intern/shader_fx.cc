@@ -218,18 +218,14 @@ void BKE_shaderfx_copy(ListBaseT<ShaderFxData> *dst, const ListBaseT<ShaderFxDat
   dst->clear_no_delete();
   BLI_duplicatelist(dst, src);
 
-  for (srcfx = static_cast<ShaderFxData *>(src->first),
-      fx = static_cast<ShaderFxData *>(dst->first);
-       srcfx && fx;
-       srcfx = srcfx->next, fx = fx->next)
-  {
+  for (srcfx = src->first(), fx = dst->first(); srcfx && fx; srcfx = srcfx->next, fx = fx->next) {
     BKE_shaderfx_copydata(srcfx, fx);
   }
 }
 
 ShaderFxData *BKE_shaderfx_findby_type(Object *ob, ShaderFxType type)
 {
-  ShaderFxData *fx = static_cast<ShaderFxData *>(ob->shader_fx.first);
+  ShaderFxData *fx = ob->shader_fx.first();
 
   for (; fx; fx = fx->next) {
     if (fx->type == type) {
@@ -242,7 +238,7 @@ ShaderFxData *BKE_shaderfx_findby_type(Object *ob, ShaderFxType type)
 
 void BKE_shaderfx_foreach_ID_link(Object *ob, ShaderFxIDWalkFunc walk, void *user_data)
 {
-  ShaderFxData *fx = static_cast<ShaderFxData *>(ob->shader_fx.first);
+  ShaderFxData *fx = ob->shader_fx.first();
 
   for (; fx; fx = fx->next) {
     const ShaderFxTypeInfo *fxi = BKE_shaderfx_get_info(ShaderFxType(fx->type));

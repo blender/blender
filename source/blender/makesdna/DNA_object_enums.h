@@ -51,7 +51,11 @@ enum eDrawType : char {
   (OB_MODE_PAINT_GREASE_PENCIL | OB_MODE_SCULPT_GREASE_PENCIL | OB_MODE_WEIGHT_GREASE_PENCIL | \
    OB_MODE_VERTEX_GREASE_PENCIL)
 
-/** Any mode that uses object.runtime->sculpt_session. */
+/**
+ * Any mode that uses object.runtime->sculpt_session.
+ *
+ * \warning Use #BKE_object_use_sculptsession for runtime handling of experimental flags.
+ */
 #define OB_MODE_ALL_SCULPT (OB_MODE_SCULPT | OB_MODE_VERTEX_PAINT | OB_MODE_WEIGHT_PAINT)
 
 /** Any mode that uses weight-paint. */

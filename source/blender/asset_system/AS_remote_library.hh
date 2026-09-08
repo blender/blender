@@ -226,14 +226,18 @@ class RemoteLibraryLoadingStatus {
                                                  StringRef library_url,
                                                  StringRef absolute_file_url,
                                                  StringRef local_file_abspath);
-  /** Should be called when an asset file download has failed. Partial progress for the file is
-   * reset to zero, since a future retry has to start from scratch. */
+  /**
+   * Should be called when an asset file download has failed. Partial progress for the file is
+   * reset to zero, since a future retry has to start from scratch.
+   */
   static void ping_asset_file_download_failed(const bContext &C,
                                               StringRef library_url,
                                               StringRef absolute_file_url,
                                               StringRef local_file_abspath);
-  /** Inform the asset system that there are no more pending asset file downloads for any asset
-   * library. */
+  /**
+   * Inform the asset system that there are no more pending asset file downloads for any asset
+   * library.
+   */
   static void ping_download_queue_done(const bContext &C);
   static void ping_metafiles_in_place(StringRef url);
   static void set_finished(StringRef url);

@@ -10,6 +10,7 @@
 #include <cstring>
 #include <limits>
 
+#include "DNA_space_types.h"
 #include "MEM_guardedalloc.h"
 
 #include "DNA_object_types.h"
@@ -844,8 +845,7 @@ void ED_screens_init(bContext *C, Main *bmain, wmWindowManager *wm)
     CTX_wm_window_set(C, &win);
 
     if (BKE_workspace_active_get(win.workspace_hook) == nullptr) {
-      BKE_workspace_active_set(win.workspace_hook,
-                               static_cast<WorkSpace *>(bmain->workspaces.first));
+      BKE_workspace_active_set(win.workspace_hook, bmain->workspaces.first());
     }
 
     ED_screen_refresh(C, wm, &win);
@@ -1332,7 +1332,7 @@ void ED_screen_global_areas_refresh(wmWindow *win)
   /* Don't create global area for child and temporary windows. */
   bScreen *screen = BKE_workspace_active_screen_get(win->workspace_hook);
   if (!WM_window_is_main_top_level(win)) {
-    if (win->global_areas.areabase.first) {
+    if (win->global_areas.areabase.first_) {
       screen->do_refresh = true;
       BKE_screen_area_map_free(&win->global_areas);
     }
@@ -1439,7 +1439,7 @@ static void screen_set_3dview_camera(
   ListBaseT<ARegion> *regionbase;
 
   /* regionbase is in different place depending if space is active. */
-  if (v3d == area->spacedata.first) {
+  if (v3d == area->spacedata.first_) {
     regionbase = &area->regionbase;
   }
   else {
@@ -1523,7 +1523,7 @@ ScrArea *ED_screen_full_newspace(bContext *C, ScrArea *area, int type)
 
   if (!area || area->full == nullptr) {
     newscreen = ED_screen_state_maximized_create(C);
-    newsa = static_cast<ScrArea *>(newscreen->areabase.first);
+    newsa = newscreen->areabase.first();
     BLI_assert(newsa->spacetype == SPACE_EMPTY);
   }
 
@@ -1532,7 +1532,7 @@ ScrArea *ED_screen_full_newspace(bContext *C, ScrArea *area, int type)
   }
 
   BLI_assert(newsa);
-  newsl = static_cast<SpaceLink *>(newsa->spacedata.first);
+  newsl = newsa->spacedata.first();
 
   /* Tag the active space before changing, so we can identify it when user wants to go back. */
   if (newsl && (newsl->link_flag & SPACE_FLAG_TYPE_TEMPORARY) == 0) {
@@ -1563,7 +1563,7 @@ void ED_screen_full_prevspace(bContext *C, ScrArea *area)
 
 void ED_screen_restore_temp_type(bContext *C, ScrArea *area)
 {
-  SpaceLink *sl = static_cast<SpaceLink *>(area->spacedata.first);
+  SpaceLink *sl = area->spacedata.first_as<SpaceLink>();
 
   /* In case nether functions below run. */
   ED_area_tag_redraw(area);
@@ -1580,7 +1580,7 @@ void ED_screen_restore_temp_type(bContext *C, ScrArea *area)
 void ED_screen_full_restore(bContext *C, ScrArea *area)
 {
   wmWindow *win = CTX_wm_window(C);
-  SpaceLink *sl = static_cast<SpaceLink *>(area->spacedata.first);
+  SpaceLink *sl = area->spacedata.first_as<SpaceLink>();
   bScreen *screen = CTX_wm_screen(C);
   eScreen_State state = (screen ? screen->state : SCREENMAXIMIZED);
 
@@ -1643,7 +1643,7 @@ static bScreen *screen_state_to_nonnormal(bContext *C,
   screen->animtimer = oldscreen->animtimer;
   oldscreen->animtimer = nullptr;
 
-  newa = static_cast<ScrArea *>(screen->areabase.first);
+  newa = screen->areabase.first();
 
   /* swap area */
   if (toggle_area) {
@@ -1679,7 +1679,7 @@ static bScreen *screen_state_to_nonnormal(bContext *C,
     /* Temporarily hide gizmos and overlays. */
     screen->fullscreen_flag = eScreen_Fullscreen_Flag{};
     if (newa->spacetype == SPACE_VIEW3D) {
-      View3D *v3d = static_cast<View3D *>(newa->spacedata.first);
+      View3D *v3d = newa->spacedata.first_as<View3D>();
       if (v3d && !(v3d->gizmo_flag & V3D_GIZMO_HIDE_NAVIGATE)) {
         screen->fullscreen_flag |= FULLSCREEN_RESTORE_GIZMO_NAVIGATE;
         v3d->gizmo_flag |= V3D_GIZMO_HIDE_NAVIGATE;
@@ -1694,21 +1694,21 @@ static bScreen *screen_state_to_nonnormal(bContext *C,
       }
     }
     else if (newa->spacetype == SPACE_CLIP) {
-      SpaceClip *sc = static_cast<SpaceClip *>(newa->spacedata.first);
+      SpaceClip *sc = newa->spacedata.first_as<SpaceClip>();
       if (sc && !(sc->gizmo_flag & SCLIP_GIZMO_HIDE_NAVIGATE)) {
         screen->fullscreen_flag |= FULLSCREEN_RESTORE_GIZMO_NAVIGATE;
         sc->gizmo_flag |= SCLIP_GIZMO_HIDE_NAVIGATE;
       }
     }
     else if (newa->spacetype == SPACE_SEQ) {
-      SpaceSeq *sseq = static_cast<SpaceSeq *>(newa->spacedata.first);
+      SpaceSeq *sseq = newa->spacedata.first_as<SpaceSeq>();
       if (sseq && !(sseq->gizmo_flag & SEQ_GIZMO_HIDE_NAVIGATE)) {
         screen->fullscreen_flag |= FULLSCREEN_RESTORE_GIZMO_NAVIGATE;
         sseq->gizmo_flag |= SEQ_GIZMO_HIDE_NAVIGATE;
       }
     }
     else if (newa->spacetype == SPACE_IMAGE) {
-      SpaceImage *sima = static_cast<SpaceImage *>(newa->spacedata.first);
+      SpaceImage *sima = newa->spacedata.first_as<SpaceImage>();
       if (sima && !(sima->gizmo_flag & SI_GIZMO_HIDE_NAVIGATE)) {
         screen->fullscreen_flag |= FULLSCREEN_RESTORE_GIZMO_NAVIGATE;
         sima->gizmo_flag |= SI_GIZMO_HIDE_NAVIGATE;
@@ -1794,7 +1794,7 @@ ScrArea *ED_screen_state_toggle(bContext *C,
       }
       /* Restore gizmos and overlays to their prior states. */
       if (area->spacetype == SPACE_VIEW3D) {
-        View3D *v3d = static_cast<View3D *>(area->spacedata.first);
+        View3D *v3d = area->spacedata.first_as<View3D>();
         if (v3d) {
           v3d->gizmo_flag = (screen->fullscreen_flag & FULLSCREEN_RESTORE_GIZMO_NAVIGATE) ?
                                 v3d->gizmo_flag & ~V3D_GIZMO_HIDE_NAVIGATE :
@@ -1808,7 +1808,7 @@ ScrArea *ED_screen_state_toggle(bContext *C,
         }
       }
       else if (area->spacetype == SPACE_CLIP) {
-        SpaceClip *sc = static_cast<SpaceClip *>(area->spacedata.first);
+        SpaceClip *sc = area->spacedata.first_as<SpaceClip>();
         if (sc) {
           sc->gizmo_flag = (screen->fullscreen_flag & FULLSCREEN_RESTORE_GIZMO_NAVIGATE) ?
                                sc->gizmo_flag & ~SCLIP_GIZMO_HIDE_NAVIGATE :
@@ -1816,7 +1816,7 @@ ScrArea *ED_screen_state_toggle(bContext *C,
         }
       }
       else if (area->spacetype == SPACE_SEQ) {
-        SpaceSeq *sseq = static_cast<SpaceSeq *>(area->spacedata.first);
+        SpaceSeq *sseq = area->spacedata.first_as<SpaceSeq>();
         if (sseq) {
           sseq->gizmo_flag = (screen->fullscreen_flag & FULLSCREEN_RESTORE_GIZMO_NAVIGATE) ?
                                  sseq->gizmo_flag & ~SEQ_GIZMO_HIDE_NAVIGATE :
@@ -1824,7 +1824,7 @@ ScrArea *ED_screen_state_toggle(bContext *C,
         }
       }
       else if (area->spacetype == SPACE_IMAGE) {
-        SpaceImage *sima = static_cast<SpaceImage *>(area->spacedata.first);
+        SpaceImage *sima = area->spacedata.first_as<SpaceImage>();
         if (sima) {
           sima->gizmo_flag = (screen->fullscreen_flag & FULLSCREEN_RESTORE_GIZMO_NAVIGATE) ?
                                  sima->gizmo_flag & ~SI_GIZMO_HIDE_NAVIGATE :
@@ -1861,7 +1861,7 @@ ScrArea *ED_screen_state_toggle(bContext *C,
      * mouse is outside of the window and we open a file browser */
     if (!toggle_area || toggle_area->global) {
       bScreen *oldscreen = WM_window_get_active_screen(win);
-      toggle_area = static_cast<ScrArea *>(oldscreen->areabase.first);
+      toggle_area = oldscreen->areabase.first();
     }
 
     screen = screen_state_to_nonnormal(C, win, toggle_area, state);
@@ -1878,9 +1878,9 @@ ScrArea *ED_screen_state_toggle(bContext *C,
    * an area after toggling full-screen for example (see: #89526).
    * NOTE: an old comment stated this was "bad code",
    * however it doesn't cause problems so leave as-is. */
-  CTX_wm_area_set(C, static_cast<ScrArea *>(screen->areabase.first));
+  CTX_wm_area_set(C, screen->areabase.first());
 
-  return static_cast<ScrArea *>(screen->areabase.first);
+  return screen->areabase.first();
 }
 
 ScrArea *ED_screen_temp_space_open(
@@ -1913,13 +1913,13 @@ ScrArea *ED_screen_temp_space_open(
         ScrArea *area = ctx_area;
         ED_area_newspace(C, ctx_area, space_type, true);
         area->flag |= AREA_FLAG_STACKED_FULLSCREEN;
-        (static_cast<SpaceLink *>(area->spacedata.first))->link_flag |= SPACE_FLAG_TYPE_TEMPORARY;
+        (area->spacedata.first())->link_flag |= SPACE_FLAG_TYPE_TEMPORARY;
         return area;
       }
 
       /* Create a new fullscreen area. */
       ScrArea *area = ED_screen_full_newspace(C, ctx_area, int(space_type));
-      (static_cast<SpaceLink *>(area->spacedata.first))->link_flag |= SPACE_FLAG_TYPE_TEMPORARY;
+      (area->spacedata.first())->link_flag |= SPACE_FLAG_TYPE_TEMPORARY;
       return area;
     }
   }
@@ -2081,7 +2081,7 @@ bool ED_screen_stereo3d_required(const bScreen *screen, const Scene *scene)
           continue;
         }
 
-        v3d = static_cast<View3D *>(area.spacedata.first);
+        v3d = area.spacedata.first_as<View3D>();
         if (v3d->camera && v3d->stereo3d_camera == STEREO_3D_ID) {
           for (ARegion &region : area.regionbase) {
             if (region.regiondata && region.regiontype == RGN_TYPE_WINDOW) {
@@ -2099,7 +2099,7 @@ bool ED_screen_stereo3d_required(const bScreen *screen, const Scene *scene)
 
         /* images should always show in stereo, even if
          * the file doesn't have views enabled */
-        sima = static_cast<SpaceImage *>(area.spacedata.first);
+        sima = area.spacedata.first_as<SpaceImage>();
         if (sima->image && BKE_image_is_stereo(sima->image) &&
             (sima->iuser.flag & IMA_SHOW_STEREO))
         {
@@ -2114,7 +2114,7 @@ bool ED_screen_stereo3d_required(const bScreen *screen, const Scene *scene)
           continue;
         }
 
-        snode = static_cast<SpaceNode *>(area.spacedata.first);
+        snode = area.spacedata.first_as<SpaceNode>();
         if ((snode->flag & SNODE_BACKDRAW) && ED_node_is_compositor(snode)) {
           return true;
         }
@@ -2127,7 +2127,7 @@ bool ED_screen_stereo3d_required(const bScreen *screen, const Scene *scene)
           continue;
         }
 
-        sseq = static_cast<SpaceSeq *>(area.spacedata.first);
+        sseq = area.spacedata.first_as<SpaceSeq>();
         if (ELEM(sseq->view, SEQ_VIEW_PREVIEW, SEQ_VIEW_SEQUENCE_PREVIEW)) {
           return true;
         }
@@ -2163,7 +2163,7 @@ ScrArea *ED_screen_area_find_with_spacedata(const bScreen *screen,
 {
   if (only_visible) {
     for (ScrArea &area : screen->areabase) {
-      if (area.spacedata.first == sl) {
+      if (area.spacedata.first() == sl) {
         return &area;
       }
     }

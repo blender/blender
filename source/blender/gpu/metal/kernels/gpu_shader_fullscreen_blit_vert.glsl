@@ -2,6 +2,10 @@
  *
  * SPDX-License-Identifier: GPL-2.0-or-later */
 
+/** \file
+ * \ingroup gpu
+ */
+
 void main()
 {
   /* The position represents a 0-1 square, we first scale it by the size we want to have it on

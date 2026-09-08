@@ -784,7 +784,7 @@ ID *WM_drag_get_local_ID(const wmDrag *drag, short idcode)
     return nullptr;
   }
 
-  wmDragID *drag_id = static_cast<wmDragID *>(drag->ids.first);
+  wmDragID *drag_id = drag->ids.first();
   if (!drag_id) {
     return nullptr;
   }
@@ -800,7 +800,7 @@ ID *WM_drag_get_local_ID_from_event(const wmEvent *event, short idcode)
   }
 
   ListBaseT<wmDrag> *lb = static_cast<ListBaseT<wmDrag> *>(event->customdata);
-  return WM_drag_get_local_ID(static_cast<const wmDrag *>(lb->first), idcode);
+  return WM_drag_get_local_ID(lb->first(), idcode);
 }
 
 bool WM_drag_is_ID_type(const wmDrag *drag, int idcode)

@@ -126,7 +126,7 @@ void ED_uvedit_active_vert_loop_set(BMesh *bm, BMLoop *l)
 
 BMLoop *ED_uvedit_active_vert_loop_get(const ToolSettings *ts, BMesh *bm)
 {
-  BMEditSelection *ese = static_cast<BMEditSelection *>(bm->selected.last);
+  BMEditSelection *ese = bm->selected.last();
   if ((ts->uv_flag & UV_FLAG_SELECT_SYNC) && bm->uv_select_sync_valid) {
     if (ese && ese->htype == BM_VERT) {
       BMVert *v = reinterpret_cast<BMVert *>(ese->ele);
@@ -197,7 +197,7 @@ void ED_uvedit_active_edge_loop_set(BMesh *bm, BMLoop *l)
 
 BMLoop *ED_uvedit_active_edge_loop_get(const ToolSettings *ts, BMesh *bm)
 {
-  BMEditSelection *ese = static_cast<BMEditSelection *>(bm->selected.last);
+  BMEditSelection *ese = bm->selected.last();
   if ((ts->uv_flag & UV_FLAG_SELECT_SYNC) && bm->uv_select_sync_valid) {
     if (ese && ese->htype == BM_EDGE) {
       BMEdge *e = reinterpret_cast<BMEdge *>(ese->ele);
@@ -5281,10 +5281,10 @@ static wmOperatorStatus uv_circle_select_exec(bContext *C, wmOperator *op)
     /* do selection */
     if (uv_select_mode == UV_SELECT_FACE) {
       /* Handle face selection (face center). */
-      if (use_select_linked) {
-        BM_mesh_elem_hflag_disable_all(bm, BM_FACE, BM_ELEM_TAG, false);
-      }
       BM_ITER_MESH (efa, &iter, bm, BM_FACES_OF_MESH) {
+        /* Clear the tag on hidden faces too, needed for: #uv_select_flush_from_tag_face. */
+        BM_elem_flag_disable(efa, BM_ELEM_TAG);
+
         if (!uvedit_face_visible_test(scene, efa)) {
           continue;
         }
@@ -5294,7 +5294,6 @@ static wmOperatorStatus uv_circle_select_exec(bContext *C, wmOperator *op)
           }
         }
         else {
-          BM_elem_flag_disable(efa, BM_ELEM_TAG);
           if (select == uvedit_face_select_test(scene, bm, efa)) {
             continue;
           }
@@ -5519,10 +5518,9 @@ static bool do_lasso_select_mesh_uv(bContext *C, const Span<int2> mcoords, const
 
     if (uv_select_mode == UV_SELECT_FACE) {
       /* Handle face selection (face center). */
-      if (use_select_linked) {
-        BM_mesh_elem_hflag_disable_all(bm, BM_FACE, BM_ELEM_TAG, false);
-      }
       BM_ITER_MESH (efa, &iter, bm, BM_FACES_OF_MESH) {
+        /* Clear the tag on hidden faces too, needed for: #uv_select_flush_from_tag_face. */
+        BM_elem_flag_disable(efa, BM_ELEM_TAG);
         if (!uvedit_face_visible_test(scene, efa)) {
           continue;
         }
@@ -5532,7 +5530,6 @@ static bool do_lasso_select_mesh_uv(bContext *C, const Span<int2> mcoords, const
           }
         }
         else {
-          BM_elem_flag_disable(efa, BM_ELEM_TAG);
           if (select == uvedit_face_select_test(scene, bm, efa)) {
             continue;
           }
@@ -6255,6 +6252,8 @@ void UV_OT_select_by_winding(wmOperatorType *ot)
 }
 
 /** \} */
+
+/* -------------------------------------------------------------------- */
 /** \name Select Similar Operator
  * \{ */
 

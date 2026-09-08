@@ -9,6 +9,8 @@
  */
 
 #include <cstdio>
+#include <type_traits>
+#include <variant>
 
 #include "MEM_guardedalloc.h"
 
@@ -17,6 +19,7 @@
 #include "BLI_assert.hh"
 #include "BLI_ghash.hh"
 #include "BLI_listbase.hh"
+#include "BLI_memory_utils.hh"
 #include "BLI_stack.hh"
 #include "BLI_string.hh"
 #include "BLI_utildefines.hh"
@@ -174,10 +177,10 @@ static void gpu_node_input_link(GPUNode *node, GPUNodeLink *link, const GPUType 
   if (link->link_type == GPU_NODE_LINK_OUTPUT) {
     outnode = link->output->node;
     name = outnode->name;
-    input = static_cast<GPUInput *>(outnode->inputs.first);
+    input = outnode->inputs.first();
 
     if (STR_ELEM(name, "set_value", "set_rgb", "set_rgba") && (input->type == type)) {
-      input = MEM_dupalloc(static_cast<GPUInput *>(outnode->inputs.first));
+      input = MEM_dupalloc(outnode->inputs.first());
 
       switch (input->source) {
         case GPU_SOURCE_ATTR:
@@ -276,56 +279,109 @@ static void gpu_node_input_link(GPUNode *node, GPUNodeLink *link, const GPUType 
   BLI_addtail(&node->inputs, input);
 }
 
-static GPUNodeLink *gpu_node_stack_constant_link(const GPUNodeStack &stack)
+GPUNodeLink *GPU_constant(const float *num)
 {
-  switch (stack.type) {
-    case GPU_FLOAT:
-    case GPU_VEC2:
-    case GPU_VEC3:
-    case GPU_VEC4:
-      return GPU_constant(stack.vec);
-    case GPU_INT:
-    case GPU_INT2:
-    case GPU_INT3:
-    case GPU_INT4:
-      return GPU_constant(&stack.integer_data.x);
-    case GPU_BOOL:
-      return GPU_constant(&stack.boolean_data);
-    default:
-      /* Fallback for unhandled types. Not meant to expose real stack.vec values. */
-      return GPU_constant(stack.vec);
-  }
+  GPUNodeLink *link = gpu_node_link_create();
+  link->link_type = GPU_NODE_LINK_CONSTANT;
+  link->data = num;
+  return link;
 }
 
-static GPUNodeLink *gpu_node_stack_uniform_link(const GPUNodeStack &stack)
+GPUNodeLink *GPU_uniform(const float *num)
 {
-  switch (stack.type) {
-    case GPU_FLOAT:
-    case GPU_VEC2:
-    case GPU_VEC3:
-    case GPU_VEC4:
-      return GPU_uniform(stack.vec);
-    case GPU_INT:
-    case GPU_INT2:
-    case GPU_INT3:
-    case GPU_INT4:
-      return GPU_uniform(&stack.integer_data.x);
-    case GPU_BOOL:
-      return GPU_uniform(&stack.boolean_data);
-    default:
-      /* Fallback for unhandled types. Not meant to expose real stack.vec values. */
-      return GPU_uniform(stack.vec);
-  }
+  GPUNodeLink *link = gpu_node_link_create();
+  link->link_type = GPU_NODE_LINK_UNIFORM;
+  link->data = num;
+  return link;
+}
+
+GPUNodeLink *GPU_constant(const int *num)
+{
+  GPUNodeLink *link = gpu_node_link_create();
+  link->link_type = GPU_NODE_LINK_CONSTANT;
+  link->data = num;
+  return link;
+}
+
+GPUNodeLink *GPU_uniform(const int *num)
+{
+  GPUNodeLink *link = gpu_node_link_create();
+  link->link_type = GPU_NODE_LINK_UNIFORM;
+  link->data = num;
+  return link;
+}
+
+GPUNodeLink *GPU_constant(const bool *num)
+{
+  GPUNodeLink *link = gpu_node_link_create();
+  link->link_type = GPU_NODE_LINK_CONSTANT;
+  link->data = num;
+  return link;
+}
+
+GPUNodeLink *GPU_uniform(const bool *num)
+{
+  GPUNodeLink *link = gpu_node_link_create();
+  link->link_type = GPU_NODE_LINK_UNIFORM;
+  link->data = num;
+  return link;
+}
+
+GPUNodeLink *GPU_constant(const GPUNodeStack &stack)
+{
+  return std::visit(
+      [](const auto &value) -> GPUNodeLink * {
+        using T = std::decay_t<decltype(value)>;
+        if constexpr (std::is_same_v<T, std::monostate>) {
+          /* Use fallback for sockets with no constant representation. */
+          static const float4 dummy(0.0f);
+          return GPU_constant(dummy);
+        }
+        else if constexpr (std::is_arithmetic_v<T>) {
+          return GPU_constant(&value);
+        }
+        else if constexpr (is_same_any_v<T, float3x3, float4x4>) {
+          return GPU_constant(value.base_ptr());
+        }
+        else {
+          return GPU_constant(value);
+        }
+      },
+      stack.value);
+}
+
+GPUNodeLink *GPU_uniform(const GPUNodeStack &stack)
+{
+  return std::visit(
+      [](const auto &value) -> GPUNodeLink * {
+        using T = std::decay_t<decltype(value)>;
+        if constexpr (std::is_same_v<T, std::monostate>) {
+          /* Use fallback for sockets with no constant representation. */
+          static const float4 dummy(0.0f);
+          return GPU_uniform(dummy);
+        }
+        else if constexpr (std::is_arithmetic_v<T>) {
+          return GPU_uniform(&value);
+        }
+        else if constexpr (is_same_any_v<T, float3x3, float4x4>) {
+          return GPU_uniform(value.base_ptr());
+        }
+        else {
+          return GPU_uniform(value);
+        }
+      },
+      stack.value);
 }
 
 static const char *gpu_uniform_set_function_from_type(eNodeSocketDatatype type)
 {
   switch (type) {
-    /* For now INT & BOOL are supported as float. */
-    case SOCK_INT:
     case SOCK_FLOAT:
-    case SOCK_BOOLEAN:
       return "set_value";
+    case SOCK_INT:
+      return "set_int";
+    case SOCK_BOOLEAN:
+      return "set_bool";
     case SOCK_VECTOR:
       return "set_rgb";
     case SOCK_RGBA:
@@ -362,11 +418,11 @@ static GPUNodeLink *gpu_uniformbuffer_link(GPUMaterial *mat,
     return nullptr;
   }
 
-  if (!ELEM(socket->type, SOCK_INT, SOCK_FLOAT, SOCK_VECTOR, SOCK_RGBA)) {
+  if (!ELEM(socket->type, SOCK_BOOLEAN, SOCK_INT, SOCK_FLOAT, SOCK_VECTOR, SOCK_RGBA)) {
     return nullptr;
   }
 
-  GPUNodeLink *link = gpu_node_stack_uniform_link(*stack);
+  GPUNodeLink *link = GPU_uniform(*stack);
 
   if (in_out == SOCK_IN) {
     GPU_link(mat, gpu_uniform_set_function_from_type(socket->type), link, &stack->link);
@@ -387,7 +443,7 @@ static void gpu_node_input_socket(
     gpu_node_input_link(node, sock->link, sock->type);
   }
   else {
-    gpu_node_input_link(node, gpu_node_stack_constant_link(*sock), sock->type);
+    gpu_node_input_link(node, GPU_constant(*sock), sock->type);
   }
 }
 
@@ -441,8 +497,7 @@ static bool uniform_attr_list_cmp(const void *a, const void *b)
     return true;
   }
 
-  GPUUniformAttr *attr_a = static_cast<GPUUniformAttr *>(set_a->list.first),
-                 *attr_b = static_cast<GPUUniformAttr *>(set_b->list.first);
+  GPUUniformAttr *attr_a = set_a->list.first(), *attr_b = set_b->list.first();
 
   for (; attr_a && attr_b; attr_a = attr_a->next, attr_b = attr_b->next) {
     if (!STREQ(attr_a->name, attr_b->name) || attr_a->use_dupli != attr_b->use_dupli) {
@@ -541,7 +596,7 @@ static GPUMaterialAttribute *gpu_node_graph_add_attribute(GPUNodeGraph *graph,
 {
   /* Find existing attribute. */
   int num_attributes = 0;
-  GPUMaterialAttribute *attr = static_cast<GPUMaterialAttribute *>(graph->attributes.first);
+  GPUMaterialAttribute *attr = graph->attributes.first();
   for (; attr; attr = attr->next) {
     if (attr->type == type && STREQ(attr->name, name) &&
         attr->is_default_color == is_default_color && attr->is_hair_length == is_hair_length &&
@@ -579,7 +634,7 @@ static GPUUniformAttr *gpu_node_graph_add_uniform_attribute(GPUNodeGraph *graph,
 {
   /* Find existing attribute. */
   GPUUniformAttrList *attrs = &graph->uniform_attrs;
-  GPUUniformAttr *attr = static_cast<GPUUniformAttr *>(attrs->list.first);
+  GPUUniformAttr *attr = attrs->list.first();
 
   for (; attr; attr = attr->next) {
     if (STREQ(attr->name, name) && attr->use_dupli == use_dupli) {
@@ -609,7 +664,7 @@ static GPULayerAttr *gpu_node_graph_add_layer_attribute(GPUNodeGraph *graph, con
 {
   /* Find existing attribute. */
   ListBaseT<GPULayerAttr> *attrs = &graph->layer_attrs;
-  GPULayerAttr *attr = static_cast<GPULayerAttr *>(attrs->first);
+  GPULayerAttr *attr = attrs->first();
 
   for (; attr; attr = attr->next) {
     if (STREQ(attr->name, name)) {
@@ -652,7 +707,7 @@ static GPUMaterialTexture *gpu_node_graph_add_texture(GPUNodeGraph *graph,
 {
   /* Find existing texture. */
   int num_textures = 0;
-  GPUMaterialTexture *tex = static_cast<GPUMaterialTexture *>(graph->textures.first);
+  GPUMaterialTexture *tex = graph->textures.first();
   for (; tex; tex = tex->next) {
     if (tex->ima == ima && tex->colorband == colorband && tex->sky == sky &&
         tex->sampler_state == sampler_state && gpu_image_user_match(tex, iuser))
@@ -798,54 +853,6 @@ GPUNodeLink *GPU_layer_attribute(GPUMaterial *mat, const char *name)
   GPUNodeLink *link = gpu_node_link_create();
   link->link_type = GPU_NODE_LINK_LAYER_ATTR;
   link->layer_attr = attr;
-  return link;
-}
-
-GPUNodeLink *GPU_constant(const float *num)
-{
-  GPUNodeLink *link = gpu_node_link_create();
-  link->link_type = GPU_NODE_LINK_CONSTANT;
-  link->data = num;
-  return link;
-}
-
-GPUNodeLink *GPU_uniform(const float *num)
-{
-  GPUNodeLink *link = gpu_node_link_create();
-  link->link_type = GPU_NODE_LINK_UNIFORM;
-  link->data = num;
-  return link;
-}
-
-GPUNodeLink *GPU_constant(const int *num)
-{
-  GPUNodeLink *link = gpu_node_link_create();
-  link->link_type = GPU_NODE_LINK_CONSTANT;
-  link->data = num;
-  return link;
-}
-
-GPUNodeLink *GPU_uniform(const int *num)
-{
-  GPUNodeLink *link = gpu_node_link_create();
-  link->link_type = GPU_NODE_LINK_UNIFORM;
-  link->data = num;
-  return link;
-}
-
-GPUNodeLink *GPU_constant(const bool *num)
-{
-  GPUNodeLink *link = gpu_node_link_create();
-  link->link_type = GPU_NODE_LINK_CONSTANT;
-  link->data = num;
-  return link;
-}
-
-GPUNodeLink *GPU_uniform(const bool *num)
-{
-  GPUNodeLink *link = gpu_node_link_create();
-  link->link_type = GPU_NODE_LINK_UNIFORM;
-  link->data = num;
   return link;
 }
 
@@ -1229,9 +1236,7 @@ void gpu_node_graph_prune_unused(GPUNodeGraph *graph)
     gpu_nodes_tag(graph, compositor_link.outlink, GPU_NODE_TAG_COMPOSITOR);
   }
 
-  for (GPUNode *node = static_cast<GPUNode *>(graph->nodes.first), *next = nullptr; node;
-       node = next)
-  {
+  for (GPUNode *node = graph->nodes.first(), *next = nullptr; node; node = next) {
     next = node->next;
 
     if (node->tag == GPU_NODE_TAG_NONE) {
@@ -1240,10 +1245,7 @@ void gpu_node_graph_prune_unused(GPUNodeGraph *graph)
     }
   }
 
-  for (GPUMaterialAttribute *attr = static_cast<GPUMaterialAttribute *>(graph->attributes.first),
-                            *next = nullptr;
-       attr;
-       attr = next)
+  for (GPUMaterialAttribute *attr = graph->attributes.first(), *next = nullptr; attr; attr = next)
   {
     next = attr->next;
     if (attr->users == 0) {
@@ -1251,11 +1253,7 @@ void gpu_node_graph_prune_unused(GPUNodeGraph *graph)
     }
   }
 
-  for (GPUMaterialTexture *tex = static_cast<GPUMaterialTexture *>(graph->textures.first),
-                          *next = nullptr;
-       tex;
-       tex = next)
-  {
+  for (GPUMaterialTexture *tex = graph->textures.first(), *next = nullptr; tex; tex = next) {
     next = tex->next;
     if (tex->users == 0) {
       BLI_freelinkN(&graph->textures, tex);
@@ -1323,7 +1321,7 @@ GPUNodeLink *GPU_node_get_input_link(const bNode &node,
   if (input.link) {
     return input.link;
   }
-  return gpu_node_stack_uniform_link(input);
+  return GPU_uniform(input);
 }
 
 }  // namespace blender

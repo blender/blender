@@ -140,7 +140,7 @@ static void node_geo_exec(GeoNodeExecParams params)
   }
   auto filter_value = params.extract_input<bke::SocketValueVariant>("Selection"_ustr);
   if (filter_value.is_single()) {
-    if (filter_value.get<bool>()) {
+    if (filter_value.ensure_type<bool>()) {
       output_lists(params, list, IndexMask(list->size()));
     }
     else {
@@ -155,7 +155,7 @@ static void node_geo_exec(GeoNodeExecParams params)
     output_lists(params, list, field_evaluator.get_evaluated_as_mask(0));
   }
   else if (filter_value.is_list()) {
-    const GListPtr keep_list = filter_value.get<GListPtr>();
+    const GListPtr keep_list = *filter_value.get_if<GListPtr>();
     const VArray<bool> values = keep_list->varray().typed<bool>();
     if (values.size() < list->size()) {
       params.error_message_add(NodeWarningType::Error, "\"Selection\" list is too small");

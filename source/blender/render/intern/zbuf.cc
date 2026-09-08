@@ -293,7 +293,7 @@ static void zspan_rasterize_conservative_line(ZSpan *zspan,
   const float inv_dy = math::safe_divide(1.0f, maxy - miny);
 
   for (; y0 <= y1; y0++) {
-    /* Compute line x range inside current scanline, interpolating between endpoints. */
+    /* Compute line x range inside current scan-line, interpolating between endpoints. */
     const float ta = (clamp_f(y0 - 0.5f, miny, maxy) - miny) * inv_dy;
     const float tb = (maxy - clamp_f(y0 + 0.5f, miny, maxy)) * inv_dy;
     const float xa = math::interpolate(x_miny, x_maxy, ta);
@@ -305,7 +305,7 @@ static void zspan_rasterize_conservative_line(ZSpan *zspan,
     int x0 = floor(minx + 0.5f);
     int x1 = floor(maxx + 0.5f);
 
-    /* Clip and cull scanline. */
+    /* Clip and cull scan-line. */
     x0 = std::max(x0, 0);
     if (x1 >= zspan->rectx) {
       x1 = zspan->rectx - 1;

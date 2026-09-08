@@ -208,8 +208,10 @@ template<typename T> struct CDTVert {
   FatCo<T> co;
   /** Some edge attached to it. */
   SymEdge<T> *symedge{nullptr};
-  /** Set of corresponding vertex input ids. Not used if don't need CDT_ORIG_VERTS.
-   * Only need one if CDT_ONLY_ONE_ORIG. */
+  /**
+   * Set of corresponding vertex input ids. Not used if don't need CDT_ORIG_VERTS.
+   * Only need one if CDT_ONLY_ONE_ORIG.
+   */
   VectorSet<uint32_t> input_ids;
   /** Index into array that #CDTArrangement keeps. */
   int index{-1};
@@ -225,9 +227,11 @@ template<typename T> struct CDTVert {
 };
 
 template<typename T> struct CDTEdge {
-  /** Set of input edge ids that this is part of.
+  /**
+   * Set of input edge ids that this is part of.
    * If don't need CDT_ORIG_EDGES, then should contain 0 if it is a constrained edge,
-   * else empty. */
+   * else empty.
+   */
   VectorSet<uint32_t> input_ids;
   /** The directed edges for this edge. */
   SymEdge<T> symedges[2]{SymEdge<T>(), SymEdge<T>()};
@@ -238,9 +242,11 @@ template<typename T> struct CDTEdge {
 template<typename T> struct CDTFace {
   /** A symedge in face; only used during output, so only valid then. */
   SymEdge<T> *symedge{nullptr};
-  /** Set of input face ids that this is part of.
+  /**
+   * Set of input face ids that this is part of.
    * If don't need CDT_ORIG_FACES, then should contain 0 if it is part of a constrained face,
-   * else empty. */
+   * else empty.
+   */
   VectorSet<uint32_t> input_ids;
   /** Used by algorithms operating on CDT structures. */
   int visit_index{0};
@@ -269,8 +275,10 @@ template<typename T> struct CDTArrangement {
   CDTArrangement() = default;
   ~CDTArrangement();
 
-  /** Hint to how much space to reserve in the Vectors of the arrangement,
-   * based on these counts of input elements. */
+  /**
+   * Hint to how much space to reserve in the Vectors of the arrangement,
+   * based on these counts of input elements.
+   */
   void reserve(int verts_num, int edges_num, int faces_num);
 
   /**
@@ -2303,7 +2311,7 @@ template<typename T> void add_edge_constraints(CDT_state<T> *cdt_state, const CD
  *
  * NOTE: if the input face is not CCW oriented, we would be labeling the outside, not the inside.
  * There will be another surrounding set of faces and those are the ones whose original faces
- * should be propgated, not the hole face ids. So we'll skip the flood fill for CW faces.
+ * should be propagated, not the hole face ids. So we'll skip the flood fill for CW faces.
  * If the boundary has self crossings then it is a mixture of CCW and CW; by using the signed
  * area we find the "dominant" direction and hopefully that's what the user intended.
  * (In current usage throughout Blender, the only code that cares about original face id

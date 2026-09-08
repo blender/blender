@@ -2,6 +2,10 @@
  *
  * SPDX-License-Identifier: GPL-2.0-or-later */
 
+/** \file
+ * \ingroup bke
+ */
+
 #include "BLI_atomic_disjoint_set.hh"
 #include "BLI_bit_span_ops.hh"
 #include "BLI_bit_vector.hh"
@@ -1382,9 +1386,11 @@ float UVBorderEdge::length(const UVIsland &island) const
 /** \name UV islands
  * \{ */
 
-/** Find which triangles are near a UV island border, to only build island data
+/**
+ * Find which triangles are near a UV island border, to only build island data
  * structures for those. This includes triangles that have either an edge or a
- * a vertex on the border. */
+ * a vertex on the border.
+ */
 static void find_triangles_near_border(const MeshData &mesh_data,
                                        MutableSpan<bool> r_tri_corner_near_border,
                                        MutableSpan<bool> r_tri_near_border)

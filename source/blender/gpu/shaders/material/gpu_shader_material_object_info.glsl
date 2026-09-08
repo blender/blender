@@ -11,6 +11,7 @@ void node_object_info(float mat_index,
                       float &material_index,
                       float &random)
 {
+  /* TODO(fclem): EEVEE implementation leaking. */
   location = object_matrices_get().model[3].xyz;
   ObjectInfos info = object_infos_get();
   color = info.ob_color;

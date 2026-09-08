@@ -112,6 +112,11 @@ struct VKExtensions {
    */
   bool multi_draw_indirect = false;
 
+  /**
+   * Device supports `shaderClipDistance` feature.
+   */
+  bool shader_clip_distance = false;
+
   /** Log enabled features and extensions. */
   void log() const;
 };
@@ -390,6 +395,7 @@ class VKDevice : public NonCopyable {
   std::string glsl_fragment_patch_get(bool use_ray_query) const;
   std::string glsl_compute_patch_get(bool use_ray_query) const;
   shader::GeneratedSource extensions_define(StringRefNull stage_define, bool use_ray_query) const;
+  uint32_t glsl_patch_version_get(bool use_ray_query) const;
 
   /* -------------------------------------------------------------------- */
   /** \name Render graph

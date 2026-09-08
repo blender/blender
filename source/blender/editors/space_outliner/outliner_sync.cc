@@ -87,7 +87,7 @@ void ED_outliner_select_sync_flag_outliners(const bContext *C)
   Main *bmain = CTX_data_main(C);
   wmWindowManager *wm = CTX_wm_manager(C);
 
-  for (bScreen *screen = static_cast<bScreen *>(bmain->screens.first); screen;
+  for (bScreen *screen = bmain->screens.first(); screen;
        screen = static_cast<bScreen *>(screen->id.next))
   {
     for (ScrArea &area : screen->areabase) {
@@ -236,6 +236,7 @@ static void outliner_select_sync_to_pose_bone(TreeElement *te,
                                               Set<bPoseChannel *> &selected_pbones)
 {
   Object *ob = id_cast<Object *>(tselem->id);
+  BKE_pose_ensure_bone_indices(*ob);
   bArmature *arm = id_cast<bArmature *>(ob->data);
   bPoseChannel *pchan = static_cast<bPoseChannel *>(te->directdata);
 

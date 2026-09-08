@@ -1116,7 +1116,10 @@ wmOperatorStatus WM_operator_props_dialog_popup(
     bool show_icon = false);
 
 wmOperatorStatus WM_operator_redo_popup(bContext *C, wmOperator *op);
-wmOperatorStatus WM_operator_ui_popup(bContext *C, wmOperator *op, int width);
+/**
+ * \param auto_keymap: Assign accelerator keys to buttons.
+ */
+wmOperatorStatus WM_operator_ui_popup(bContext *C, wmOperator *op, int width, bool auto_keymap);
 
 /**
  * Can't be used as an invoke directly, needs message arg (can be NULL).
@@ -1964,7 +1967,10 @@ enum eWM_JobFlag {
    * wait on previous ones to finish then.
    */
   WM_JOB_EXCL_RENDER = (1 << 1),
+  /* The job reports a progress. */
   WM_JOB_PROGRESS = (1 << 2),
+  /* The job runs in the background and does not block operators undo/redo. */
+  WM_JOB_BACKGROUND = (1 << 3),
 };
 ENUM_OPERATORS(eWM_JobFlag);
 
@@ -1986,10 +1992,12 @@ enum eWM_JobType {
   WM_JOB_TYPE_OBJECT_BAKE,
   WM_JOB_TYPE_FILESEL_READDIR,
   WM_JOB_TYPE_ASSET_LIBRARY_LOAD,
-  /** For the global asset list storage (#ED_asset_list.hh). Use a different job type from
+  /**
+   * For the global asset list storage (#ED_asset_list.hh). Use a different job type from
    * #WM_JOB_TYPE_ASSET_LIBRARY_LOAD (used by the asset browser) so the global storage loading can
    * happen independently of the asset browser loading. They would block each other if the type was
-   * the same. */
+   * the same.
+   */
   WM_JOB_TYPE_ASSET_LIBRARY_GLOBAL_LISTING_LOAD,
   WM_JOB_TYPE_CLIP_BUILD_PROXY,
   WM_JOB_TYPE_CLIP_TRACK_MARKERS,
@@ -2037,7 +2045,7 @@ wmJob *WM_jobs_get(wmWindowManager *wm,
 /**
  * Returns true if job runs, for UI (progress) indicators.
  */
-bool WM_jobs_test(const wmWindowManager *wm, const void *owner, int job_type);
+bool WM_jobs_progress_test(const wmWindowManager *wm, const void *owner, int job_type);
 float WM_jobs_progress(const wmWindowManager *wm, const void *owner);
 const char *WM_jobs_name(const wmWindowManager *wm, const void *owner);
 /**
@@ -2123,8 +2131,15 @@ void WM_jobs_kill_type(wmWindowManager *wm, const void *owner, int job_type);
  */
 void WM_jobs_kill_all_from_owner(wmWindowManager *wm, const void *owner) ATTR_NONNULL();
 
-bool WM_jobs_has_running(const wmWindowManager *wm);
-bool WM_jobs_has_running_type(const wmWindowManager *wm, int job_type);
+/**
+ * Checks if the given window manager has any running or suspended jobs of the given type and
+ * owner. If the given owner is nullptr, any owner can be matched. Additionally, jobs with a flag
+ * in the given exclude_flags will be ignored.
+ */
+bool WM_jobs_has_running(const wmWindowManager *window_manager,
+                         const void *owner,
+                         const eWM_JobType type,
+                         const eWM_JobFlag exclude_flags = {});
 
 void WM_job_main_thread_lock_acquire(wmJob *wm_job);
 void WM_job_main_thread_lock_release(wmJob *wm_job);

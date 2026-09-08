@@ -16,7 +16,7 @@ namespace blender::asset_system::utils {
  * Returns a normalized directory path with a trailing slash, and a maximum length of #PATH_MAX.
  * Slashes are converted to native format.
  */
-std::string normalize_directory_path(StringRef directory);
+std::string resolve_directory_path(StringRef directory);
 
 /**
  * Normalize the given `path` (remove 'parent directory' and double-slashes element etc., and
@@ -26,6 +26,6 @@ std::string normalize_directory_path(StringRef directory);
  * string up to the given length is processed, the rest remains unchanged. Needed to avoid
  * modifying ID name part of linked library paths.
  */
-std::string normalize_path(StringRefNull path, int64_t max_len = StringRef::not_found);
+std::string resolve_path(StringRefNull path, int64_t max_len = StringRef::not_found);
 
 }  // namespace blender::asset_system::utils

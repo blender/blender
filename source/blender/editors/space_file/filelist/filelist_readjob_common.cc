@@ -327,11 +327,10 @@ static int filelist_readjob_list_dir(FileListReadJob *job_params,
         }
         else {
           entry->typeflag = eFileSel_File_Types(ED_path_extension_type(target));
-          if (filter_glob[0] && BLI_path_extension_check_glob(target, filter_glob)) {
-            entry->typeflag |= FILE_TYPE_OPERATOR;
-          }
         }
       }
+
+      filelist_entry_glob_tag(entry, filter_glob);
 
 #ifndef WIN32
       /* Set linux-style dot files hidden too. */
@@ -706,7 +705,7 @@ void filelist_readjob_recursive_dir_add_items(const bool do_lib,
   td_dir->level = 1;
 
   STRNCPY(dir, filelist->filelist.root);
-  STRNCPY(filter_glob, filelist->filter_data.filter_glob);
+  STRNCPY(filter_glob, filelist->filter_glob);
 
   BLI_path_abs(dir, job_params->main_filepath);
   BLI_path_normalize_dir(dir, sizeof(dir));

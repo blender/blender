@@ -16,7 +16,10 @@ def decode_primitive(gltf, prim):
     """
 
     # Load DLL and setup function signatures.
-    dll = cdll.LoadLibrary(str(dll_path('bf_intern_draco_bridge', 'Draco').resolve()))
+    path = dll_path('bf_intern_draco_bridge', 'Draco')
+    if path is None:
+        raise ImportError("Draco decoder library not found")
+    dll = cdll.LoadLibrary(str(path.resolve()))
 
     dll.decoderCreate.restype = c_void_p
     dll.decoderCreate.argtypes = []

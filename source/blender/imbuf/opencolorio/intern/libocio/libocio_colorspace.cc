@@ -100,10 +100,11 @@ LibOCIOColorSpace::LibOCIOColorSpace(const int index,
   }
 
   /* Special case that we can not handle as an alias, because it's a role too. */
-  if (interop_id_.is_empty()) {
+  if (interop_id_.is_empty() || interop_id_ == "data") {
     const char *data_name = ocio_config->getRoleColorSpace(OCIO_NAMESPACE::ROLE_DATA);
     if (data_name && STREQ(ocio_color_space->getName(), data_name)) {
       interop_id_ = "data";
+      is_primary_interop_id_ = true;
     }
   }
 

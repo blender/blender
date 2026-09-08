@@ -214,8 +214,8 @@ int BM_mesh_edgeloops_find(BMesh *bm,
          * the loop is cyclic, anchored at that junction. Drop the duplicated end and flag it
          * (kept distinct from a fully closed loop, which has no anchor). */
         if (built && el_store->len >= 2) {
-          LinkData *node_first = static_cast<LinkData *>(el_store->verts.first);
-          LinkData *node_last = static_cast<LinkData *>(el_store->verts.last);
+          LinkData *node_first = el_store->verts.first();
+          LinkData *node_last = el_store->verts.last();
           if (node_first->data == node_last->data) {
             BLI_remlink(&el_store->verts, node_last);
             MEM_delete(node_last);
@@ -284,7 +284,7 @@ static bool bm_loop_path_build_step(BLI_mempool *vs_pool,
   VertStep *vs, *vs_next;
   BLI_assert(abs(dir) == 1);
 
-  for (vs = static_cast<VertStep *>(lb->first); vs; vs = vs_next) {
+  for (vs = lb->first(); vs; vs = vs_next) {
     BMIter iter;
     BMEdge *e;
     /* these values will be the same every iteration */
@@ -532,10 +532,10 @@ void BM_mesh_edgeloops_calc_order(BMesh * /*bm*/,
   }
 
   /* not so efficient re-ordering */
-  while (eloops->first) {
+  while (eloops->first()) {
     BMEdgeLoopStore *el_store_best = nullptr;
-    const float *co = (static_cast<BMEdgeLoopStore *>(eloops_ordered.last))->co;
-    const float *no = (static_cast<BMEdgeLoopStore *>(eloops_ordered.last))->no;
+    const float *co = (eloops_ordered.last())->co;
+    const float *no = (eloops_ordered.last())->no;
     float len_best_sq = FLT_MAX;
 
     if (use_normals) {
@@ -640,15 +640,14 @@ void BM_edgeloop_edges_get(BMEdgeLoopStore *el_store, BMEdge **e_arr)
 {
   LinkData *node;
   int i = 0;
-  for (node = static_cast<LinkData *>(el_store->verts.first); node && node->next;
-       node = node->next)
-  {
+  for (node = el_store->verts.first(); node && node->next; node = node->next) {
     e_arr[i++] = BM_edge_exists(NODE_AS_V(node), NODE_AS_V(node->next));
     BLI_assert(e_arr[i - 1] != nullptr);
   }
 
   if (el_store->flag & BM_EDGELOOP_IS_CLOSED) {
-    e_arr[i] = BM_edge_exists(NODE_AS_V(el_store->verts.first), NODE_AS_V(el_store->verts.last));
+    e_arr[i] = BM_edge_exists(NODE_AS_V(el_store->verts.first()),
+                              NODE_AS_V(el_store->verts.last()));
     BLI_assert(e_arr[i] != nullptr);
   }
   BLI_assert(el_store->len == i + 1);
@@ -656,9 +655,9 @@ void BM_edgeloop_edges_get(BMEdgeLoopStore *el_store, BMEdge **e_arr)
 
 void BM_edgeloop_calc_center(BMesh * /*bm*/, BMEdgeLoopStore *el_store)
 {
-  LinkData *node_curr = static_cast<LinkData *>(el_store->verts.last);
-  LinkData *node_prev = (static_cast<LinkData *>(el_store->verts.last))->prev;
-  LinkData *node_first = static_cast<LinkData *>(el_store->verts.first);
+  LinkData *node_curr = el_store->verts.last();
+  LinkData *node_prev = (el_store->verts.last())->prev;
+  LinkData *node_first = el_store->verts.first();
   LinkData *node_next = node_first;
 
   const float *v_prev = NODE_AS_CO(node_prev);
@@ -697,8 +696,8 @@ void BM_edgeloop_calc_center(BMesh * /*bm*/, BMEdgeLoopStore *el_store)
 
 bool BM_edgeloop_calc_normal(BMesh * /*bm*/, BMEdgeLoopStore *el_store)
 {
-  LinkData *node_curr = static_cast<LinkData *>(el_store->verts.first);
-  const float *v_prev = NODE_AS_CO(el_store->verts.last);
+  LinkData *node_curr = el_store->verts.first();
+  const float *v_prev = NODE_AS_CO(el_store->verts.last());
   const float *v_curr = NODE_AS_CO(node_curr);
 
   zero_v3(el_store->no);
@@ -727,8 +726,8 @@ bool BM_edgeloop_calc_normal_aligned(BMesh * /*bm*/,
                                      BMEdgeLoopStore *el_store,
                                      const float no_align[3])
 {
-  LinkData *node_curr = static_cast<LinkData *>(el_store->verts.first);
-  const float *v_prev = NODE_AS_CO(el_store->verts.last);
+  LinkData *node_curr = el_store->verts.first();
+  const float *v_prev = NODE_AS_CO(el_store->verts.last());
   const float *v_curr = NODE_AS_CO(node_curr);
 
   zero_v3(el_store->no);
@@ -787,7 +786,7 @@ void BM_edgeloop_expand(
 
   /* first double until we are more than half as big */
   while ((el_store->len * 2) < el_store_len) {
-    LinkData *node_curr = static_cast<LinkData *>(el_store->verts.first);
+    LinkData *node_curr = el_store->verts.first();
     while (node_curr) {
       LinkData *node_curr_copy = MEM_dupalloc(node_curr);
       if (split == false) {
@@ -797,7 +796,7 @@ void BM_edgeloop_expand(
       else {
         if (node_curr->next || (el_store->flag & BM_EDGELOOP_IS_CLOSED)) {
           EDGE_SPLIT(node_curr_copy,
-                     node_curr->next ? node_curr->next : (LinkData *)el_store->verts.first);
+                     node_curr->next ? node_curr->next : (LinkData *)el_store->verts.first());
           BLI_insertlinkafter(&el_store->verts, node_curr, node_curr_copy);
           node_curr = node_curr_copy->next;
         }
@@ -814,7 +813,7 @@ void BM_edgeloop_expand(
   }
 
   if (el_store->len < el_store_len) {
-    LinkData *node_curr = static_cast<LinkData *>(el_store->verts.first);
+    LinkData *node_curr = el_store->verts.first();
 
     int iter_prev = 0;
     BLI_FOREACH_SPARSE_RANGE (el_store->len, (el_store_len - el_store->len), iter) {
@@ -832,7 +831,7 @@ void BM_edgeloop_expand(
       else {
         if (node_curr->next || (el_store->flag & BM_EDGELOOP_IS_CLOSED)) {
           EDGE_SPLIT(node_curr_copy,
-                     node_curr->next ? node_curr->next : (LinkData *)el_store->verts.first);
+                     node_curr->next ? node_curr->next : (LinkData *)el_store->verts.first());
           BLI_insertlinkafter(&el_store->verts, node_curr, node_curr_copy);
           node_curr = node_curr_copy->next;
         }

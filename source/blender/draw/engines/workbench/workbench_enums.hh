@@ -2,6 +2,10 @@
  *
  * SPDX-License-Identifier: GPL-2.0-or-later */
 
+/** \file
+ * \ingroup draw_engine
+ */
+
 #include "BLI_assert.hh"
 #include "DNA_object_types.h"
 #include "DNA_view3d_enums.h"

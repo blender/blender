@@ -2,6 +2,10 @@
  *
  * SPDX-License-Identifier: GPL-2.0-or-later */
 
+/** \file
+ * \ingroup gpu
+ */
+
 void main()
 {
   uint val = textureLod(source_data, texCoord_interp, mip).r;

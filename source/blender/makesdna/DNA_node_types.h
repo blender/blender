@@ -479,6 +479,12 @@ enum eNodeGlossy_Dist : short {
   SHD_GLOSSY_MULTI_GGX = 4,
 };
 
+/* Light evaluation mode. */
+enum eNodeLightEval_Mode : short {
+  SHD_LIGHT_EVAL_DIFFUSE = 0,
+  SHD_LIGHT_EVAL_GLOSSY = 1,
+};
+
 /* sheen distributions */
 #define SHD_SHEEN_ASHIKHMIN 0
 #define SHD_SHEEN_MICROFIBER 1
@@ -502,6 +508,7 @@ enum eNodeShader_AttributeType : short {
   SHD_ATTRIBUTE_OBJECT = 1,
   SHD_ATTRIBUTE_INSTANCER = 2,
   SHD_ATTRIBUTE_VIEW_LAYER = 3,
+  SHD_ATTRIBUTE_LIGHT = 4,
 };
 
 /* toon modes */
@@ -1904,7 +1911,11 @@ struct bNodeTree {
   /** Width of the current view. Used to store and set zoom level. */
   float view_width = 0.0f;
 
-  char _pad[4];
+  /**
+   * Seed used when generating the next #bNode.identifier randomly. Using a more predictable seed
+   * helps keeping .blend files more stable.
+   */
+  uint32_t next_node_identifier_seed = 0;
 
   ListBaseT<bNode> nodes;
   ListBaseT<bNodeLink> links;
@@ -3475,7 +3486,7 @@ struct NodeGeometryViewer {
 
   /** #eCustomDataType. */
   int8_t data_type_legacy = 0;
-  /** #AttrDomain. */
+  /** #AttrDomainSelection. */
   int8_t domain = 0;
 
   char _pad[2] = {};
@@ -3753,6 +3764,25 @@ struct NodeIndexSwitch {
 #ifdef __cplusplus
   Span<IndexSwitchItem> items_span() const;
   MutableSpan<IndexSwitchItem> items_span();
+#endif
+};
+
+struct CombineListItem {
+  int identifier = 0;
+};
+
+struct NodeCombineList {
+  DNA_DEFINE_CXX_METHODS(NodeCombineList)
+
+  CombineListItem *items = nullptr;
+  int items_num = 0;
+  int next_identifier = 0;
+  eNodeSocketDatatype data_type = {};
+
+  char _pad[6] = {};
+#ifdef __cplusplus
+  Span<CombineListItem> items_span() const;
+  MutableSpan<CombineListItem> items_span();
 #endif
 };
 

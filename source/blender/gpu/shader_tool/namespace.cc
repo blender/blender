@@ -16,6 +16,7 @@
 namespace blender::gpu::shader {
 using namespace std;
 using namespace shader::parser;
+using namespace shader::parser::ast;
 using namespace metadata;
 
 static string get_prefix(Scope ns_scope)
@@ -55,7 +56,7 @@ TemplateDefinition SourceProcessor::parse_template_definition(SourceProcessor::P
     symbol.identifier = string(name.str());
   }
   else {
-    Token fn_args = body_start.prev() == Const ? body_start.prev(2) : body_start.prev();
+    Token fn_args = body_start.prev() == TokenType::Const ? body_start.prev(2) : body_start.prev();
     Token fn_name = fn_args.scope().front().prev();
     symbol.identifier = string(fn_name.str());
   }
@@ -86,7 +87,7 @@ void SourceProcessor::parse_namespace_symbols(SourceProcessor::Parser &parser,
     if (name.scope() != ns_scope) {
       return;
     }
-    Symbol symbol;
+    metadata::Symbol symbol;
     symbol.name_space = get_prefix(ns_scope);
     symbol.identifier = identifier;
     symbol.definition_line = line;
@@ -176,7 +177,7 @@ static void lower_namespace(string ns_prefix,
                             const Scope &scope,
                             SourceProcessor::Parser &parser,
                             ErrorHandler &error_handler,
-                            const set<Symbol> &symbols_set)
+                            const set<metadata::Symbol> &symbols_set)
 {
   string ns_name(scope.front().prev().str());
   ns_prefix += ns_name + "::";
@@ -336,7 +337,7 @@ static void lower_namespace(string ns_prefix,
   });
 
   Token namespace_tok = scope.front().prev().namespace_start().prev();
-  if (namespace_tok == Namespace) {
+  if (namespace_tok == TokenType::Namespace) {
     parser.erase(namespace_tok, scope.front());
     parser.erase(scope.back());
   }
@@ -352,7 +353,7 @@ void SourceProcessor::lower_namespaces(Parser &parser)
 
   /* Expand compound namespaces. Simplify lowering.
    * Example: `namespace A::B {}` > `namespace A { namespace B {} }` */
-  parser().foreach_token(Namespace, [&](Token t) {
+  parser().foreach_token(TokenType::Namespace, [&](Token t) {
     int nesting = 0;
     Token name = t.next();
     while (name.next() == ':') {
@@ -370,7 +371,7 @@ void SourceProcessor::lower_namespaces(Parser &parser)
 
   /* Using an ordered set ordered by namespace make homonym symbols are resolve
    * properly (closest from current namespace). */
-  set<Symbol> symbols_set;
+  set<metadata::Symbol> symbols_set;
   {
     /* Deduplicate symbols. Done this way because we want to keep line definition ordering
      * inside the symbols_set. */

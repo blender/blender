@@ -6,6 +6,8 @@
  * \ingroup modifiers
  */
 
+#include <fmt/format.h>
+
 #include "BLI_utildefines.hh"
 
 #include "BLI_array.hh"

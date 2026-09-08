@@ -63,7 +63,7 @@ namespace blender {
 
 void ED_editors_init_for_undo(Main *bmain)
 {
-  wmWindowManager *wm = static_cast<wmWindowManager *>(bmain->wm.first);
+  wmWindowManager *wm = bmain->wm.first();
   for (wmWindow &win : wm->windows) {
     Scene *scene = WM_window_get_active_scene(&win);
     ViewLayer *view_layer = WM_window_get_active_view_layer(&win);
@@ -168,7 +168,7 @@ void ED_editors_init(bContext *C)
     if (mode == OB_MODE_EDIT) {
       object::editmode_enter_ex(bmain, scene, &ob, 0);
     }
-    else if (mode & OB_MODE_ALL_SCULPT) {
+    else if (BKE_object_use_sculptsession(mode)) {
       if (obact == &ob) {
         if (mode == OB_MODE_SCULPT) {
           ed::sculpt_paint::object_sculpt_mode_enter(
@@ -180,6 +180,9 @@ void ED_editors_init(bContext *C)
         else if (mode == OB_MODE_WEIGHT_PAINT) {
           ED_object_wpaintmode_enter_ex(*bmain, *depsgraph, *scene, ob);
         }
+        else if (mode == OB_MODE_TEXTURE_PAINT) {
+          ED_object_texture_paint_mode_enter_ex(*bmain, *scene, *depsgraph, ob);
+        }
         else {
           BLI_assert_unreachable();
         }
@@ -187,7 +190,7 @@ void ED_editors_init(bContext *C)
       else {
         /* Create data for non-active objects which need it for
          * mode-switching but don't yet support multi-editing. */
-        if (mode & OB_MODE_ALL_SCULPT) {
+        if (BKE_object_use_sculptsession(mode)) {
           ob.mode = mode;
           BKE_object_sculpt_data_create(&ob);
         }
@@ -232,8 +235,8 @@ void ED_editors_exit(Main *bmain, bool do_undo_system)
   }
 
   /* Frees all edit-mode undo-steps. */
-  if (do_undo_system && G_MAIN->wm.first) {
-    wmWindowManager *wm = static_cast<wmWindowManager *>(G_MAIN->wm.first);
+  if (do_undo_system && G_MAIN->wm.first_) {
+    wmWindowManager *wm = G_MAIN->wm.first();
     /* normally we don't check for null undo stack,
      * do here since it may run in different context. */
     if (wm->runtime->undo_stack) {

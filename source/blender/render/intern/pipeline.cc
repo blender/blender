@@ -277,7 +277,7 @@ RenderLayer *render_get_single_layer(Render *re, RenderResult *rr)
     }
   }
 
-  return static_cast<RenderLayer *>(rr->layers.first);
+  return rr->layers.first();
 }
 
 static bool render_scene_has_layers_to_render(Scene *scene, ViewLayer *single_layer)
@@ -388,7 +388,7 @@ void RE_AcquireResultImageViews(Render *re, RenderResult *rr)
       /* creates a temporary duplication of views */
       render_result_views_shallowcopy(rr, re->result);
 
-      RenderView *rv = static_cast<RenderView *>(rr->views.first);
+      RenderView *rv = rr->views.first();
       rr->have_combined = (rv->ibuf != nullptr);
 
       /* single layer */
@@ -488,7 +488,7 @@ void RE_ResultGet32(Render *re, uint8_t *dst)
 
 bool RE_ResultIsMultiView(RenderResult *rr)
 {
-  RenderView *view = static_cast<RenderView *>(rr->views.first);
+  RenderView *view = rr->views.first();
   return (view && (view->next || view->name[0]));
 }
 
@@ -630,7 +630,7 @@ void RE_FreeUnusedGPUResources()
 {
   BLI_assert(BLI_thread_is_main());
 
-  wmWindowManager *wm = static_cast<wmWindowManager *>(G_MAIN->wm.first);
+  wmWindowManager *wm = G_MAIN->wm.first();
 
   for (Render *re : RenderGlobal.render_list) {
     bool do_free = true;
@@ -638,9 +638,9 @@ void RE_FreeUnusedGPUResources()
     /* Don't free scenes being rendered or composited. Note there is no
      * race condition here because we are on the main thread and new jobs can only
      * be started from the main thread. */
-    if (WM_jobs_test(wm, re->owner, WM_JOB_TYPE_RENDER) ||
-        WM_jobs_test(wm, re->owner, WM_JOB_TYPE_COMPOSITE) ||
-        WM_jobs_test(wm, re->owner, WM_JOB_TYPE_OBJECT_BAKE))
+    if (WM_jobs_has_running(wm, re->owner, WM_JOB_TYPE_RENDER) ||
+        WM_jobs_has_running(wm, re->owner, WM_JOB_TYPE_COMPOSITE) ||
+        WM_jobs_has_running(wm, re->owner, WM_JOB_TYPE_OBJECT_BAKE))
     {
       do_free = false;
     }
@@ -666,7 +666,7 @@ void RE_FreeUnusedGPUResources()
 
       const bScreen *screen = WM_window_get_active_screen(&win);
       for (const ScrArea &area : screen->areabase) {
-        const SpaceLink &space = *static_cast<const SpaceLink *>(area.spacedata.first);
+        const SpaceLink &space = *area.spacedata.first();
 
         if (space.spacetype == SPACE_NODE) {
           const SpaceNode &snode = reinterpret_cast<const SpaceNode &>(space);
@@ -852,7 +852,7 @@ void RE_InitState(Render *re,
     else if (re->result) {
       bool have_layer = false;
 
-      if (re->single_view_layer[0] == '\0' && re->result->layers.first) {
+      if (re->single_view_layer[0] == '\0' && re->result->layers.first()) {
         have_layer = true;
       }
       else {
@@ -1361,11 +1361,11 @@ static void do_render_compositor(Render *re)
           /* If we have consistent depsgraph now would be a time to update them. */
         }
 
-        compositor::NodeGroupOutputTypes needed_outputs =
-            compositor::NodeGroupOutputTypes::FileOutputNode;
+        compositor::SideEffectOutputTypes needed_side_effects_outputs =
+            compositor::SideEffectOutputTypes::FileOutputNode;
         if (!G.background) {
-          needed_outputs |= compositor::NodeGroupOutputTypes::ViewerNode |
-                            compositor::NodeGroupOutputTypes::NodePreviews;
+          needed_side_effects_outputs |= compositor::SideEffectOutputTypes::ViewerNode |
+                                         compositor::SideEffectOutputTypes::NodePreviews;
         }
 
         CLOG_STR_INFO(&LOG, "Executing compositor");
@@ -1383,7 +1383,7 @@ static void do_render_compositor(Render *re)
                                                             re->r,
                                                             rv.name,
                                                             &compositor_render_context,
-                                                            needed_outputs,
+                                                            needed_side_effects_outputs,
                                                             false));
         }
         compositor_render_context.save_file_outputs(re->pipeline_scene_eval);
@@ -1442,7 +1442,7 @@ bool RE_seq_render_active(Scene *scene, const RenderData *rd)
 {
   Editing *ed = scene->ed;
 
-  if (!(rd->scemode & R_DOSEQ) || !ed || !ed->seqbase.first) {
+  if (!(rd->scemode & R_DOSEQ) || !ed || !ed->seqbase.first_) {
     return false;
   }
 
@@ -2813,7 +2813,7 @@ void RE_layer_load_from_file(
   RenderPass *rpass = nullptr;
 
   /* multi-view: since the API takes no 'view', we use the first combined pass found */
-  for (rpass = static_cast<RenderPass *>(layer->passes.first); rpass; rpass = rpass->next) {
+  for (rpass = layer->passes.first(); rpass; rpass = rpass->next) {
     if (STREQ(rpass->name, RE_PASSNAME_COMBINED)) {
       break;
     }
@@ -2874,7 +2874,7 @@ bool RE_layers_have_name(RenderResult *result)
     case 0:
       return false;
     case 1:
-      return ((static_cast<RenderLayer *>(result->layers.first))->name[0] != '\0');
+      return ((result->layers.first())->name[0] != '\0');
     default:
       return true;
   }

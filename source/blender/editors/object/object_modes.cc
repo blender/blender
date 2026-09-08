@@ -228,8 +228,9 @@ bool mode_set_ex(bContext *C, eObjectMode mode, bool use_undo, ReportList *repor
     if (ob->data && !ID_IS_EDITABLE(ob->data)) {
       const ID &obdata_id = *ob->data;
       char obdata_idtype_name_lower[MAX_ID_NAME];
-      STRNCPY(obdata_idtype_name_lower, BKE_idtype_idcode_to_name(GS(obdata_id.name)));
-      BLI_str_tolower_ascii(obdata_idtype_name_lower, strlen(obdata_idtype_name_lower));
+      const size_t obdata_idtype_name_lower_len = STRNCPY_RLEN(
+          obdata_idtype_name_lower, BKE_idtype_idcode_to_name(GS(obdata_id.name)));
+      BLI_str_tolower_ascii(obdata_idtype_name_lower, obdata_idtype_name_lower_len);
 
       if (ID_IS_PACKED(ob->data)) {
         BKE_reportf(reports,
@@ -287,7 +288,7 @@ static bool ed_object_mode_generic_exit_ex(
       if (only_test) {
         return true;
       }
-      ED_object_vpaintmode_exit_ex(*ob);
+      ED_object_vpaintmode_exit_ex(*scene, *ob);
     }
   }
   else if (ob->mode & OB_MODE_WEIGHT_PAINT) {
@@ -297,7 +298,7 @@ static bool ed_object_mode_generic_exit_ex(
       if (only_test) {
         return true;
       }
-      ED_object_wpaintmode_exit_ex(*ob);
+      ED_object_wpaintmode_exit_ex(*scene, *ob);
     }
   }
   else if (ob->mode & OB_MODE_SCULPT) {
@@ -449,10 +450,7 @@ static void object_transfer_mode_reposition_view_pivot(ARegion *region,
   if (!ED_view3d_autodist_simple(region, mval, global_loc, 0, nullptr)) {
     return;
   }
-  bke::PaintRuntime *paint_runtime = paint->runtime;
-  copy_v3_v3(paint_runtime->average_stroke_accum, global_loc);
-  paint_runtime->average_stroke_counter = 1;
-  paint_runtime->last_stroke_valid = true;
+  bke::paint::stroke_set_location(*paint, float3(global_loc));
 }
 
 constexpr float mode_transfer_flash_length = 0.55f;

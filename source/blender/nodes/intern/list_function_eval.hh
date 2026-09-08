@@ -35,10 +35,12 @@ class SampleIndexFunction : public mf::MultiFunction {
   void hash_unique(UniqueHashBytes &hash) const override;
 };
 
-void execute_multi_function_on_value_variant__list(const MultiFunction &fn,
+bool execute_multi_function_on_value_variant__list(const MultiFunction &fn,
+                                                   const std::shared_ptr<MultiFunction> &owned_fn,
                                                    const Span<SocketValueVariant *> input_values,
                                                    const Span<SocketValueVariant *> output_values,
-                                                   GeoNodesUserData *user_data);
+                                                   GeoNodesUserData *user_data,
+                                                   std::string &r_error_message);
 
 GListPtr evaluate_field_to_list(GField field, const int64_t count);
 

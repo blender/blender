@@ -66,10 +66,10 @@ struct ThumbnailCache {
     std::string path;
     /* Used for strips that are IDs. We store the session UID so it stays valid
      * across undo/redo. */
-    unsigned int id_session_uid = 0;
+    uint id_session_uid = 0;
     /* Hash of any extra data that needs to be part of source key (e.g. camera for scene
      * strips). */
-    unsigned int extra_bits = 0;
+    uint extra_bits = 0;
 
     bool is_valid() const
     {
@@ -142,7 +142,7 @@ struct ThumbnailCache {
   /* Local copies of IDs (e.g. movie clip, mask) used for thumbnails, keyed by session UID.
    * Copies are needed so that the thumbnail generation thread is safe with regards to ID
    * modifications or deletions that might happen on the main thread. */
-  Map<unsigned int, ID *> id_copies_;
+  Map<uint, ID *> id_copies_;
   /* Scene strip thumbnail requests. These need to be rendered on main thread (due to usage of main
    * GPU/DRW context), and are processed separately. */
   Set<Request> scene_requests_;
@@ -378,7 +378,7 @@ void ThumbGenerationJob::ensure_job(const bContext *C, ThumbnailCache *cache)
                               win,
                               scene,
                               "Generating strip thumbnails...",
-                              eWM_JobFlag(0),
+                              WM_JOB_BACKGROUND,
                               WM_JOB_TYPE_SEQ_DRAW_THUMBNAIL);
   if (!WM_jobs_is_running(wm_job)) {
     ThumbGenerationJob *tj = MEM_new<ThumbGenerationJob>("ThumbGenerationJob", scene, cache);
@@ -403,9 +403,9 @@ void ThumbGenerationJob::free_fn(void *customdata)
 static ID *get_id_copy(ThumbnailCache *cache,
                        const ThumbnailCache::Request &request,
                        ID *&cur_id_copy,
-                       unsigned int &cur_id_uid)
+                       uint &cur_id_uid)
 {
-  const unsigned int uid = request.source_key.id_session_uid;
+  const uint uid = request.source_key.id_session_uid;
   if (uid != cur_id_uid) {
     if (cur_id_copy != nullptr) {
       BKE_id_free(nullptr, cur_id_copy);
@@ -477,7 +477,7 @@ void ThumbGenerationJob::run_fn(void *customdata, wmJobWorkerStatus *worker_stat
        * popping it out of the cache's map, a concurrent cache clear/eviction can never free a copy
        * we are still rendering from. The copy is freed when switching sources or at loop end. */
       ID *cur_id_copy = nullptr;
-      unsigned int cur_id_uid = 0;
+      uint cur_id_uid = 0;
       for (const ThumbnailCache::Request &request : requests) {
         if (worker_status->stop) {
           break;

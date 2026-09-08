@@ -134,7 +134,7 @@ bool AbstractHierarchyWriter::check_is_animated(const HierarchyContext &context)
   /* Test modifiers. */
   /* TODO(Sybren): replace this with a check on the depsgraph to properly check for dependency on
    * time. */
-  ModifierData *md = static_cast<ModifierData *>(object->modifiers.first);
+  ModifierData *md = object->modifiers.first();
   while (md) {
     if (md->type != eModifierType_Subsurf) {
       return true;
@@ -741,7 +741,7 @@ void AbstractHierarchyIterator::make_writers_particle_systems(
     const HierarchyContext *transform_context)
 {
   Object *object = transform_context->object;
-  ParticleSystem *psys = static_cast<ParticleSystem *>(object->particlesystem.first);
+  ParticleSystem *psys = object->particlesystem.first();
   for (; psys; psys = psys->next) {
     if (!psys_check_enabled(object, psys, true)) {
       continue;

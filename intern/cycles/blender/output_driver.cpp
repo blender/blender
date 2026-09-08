@@ -35,7 +35,7 @@ bool BlenderOutputDriver::read_render_tile(const Tile &tile)
     return false;
   }
 
-  blender::RenderLayer *b_rlay = static_cast<blender::RenderLayer *>(b_rr->layers.first);
+  blender::RenderLayer *b_rlay = b_rr->layers.first();
 
   /* Copy each pass.
    * TODO:copy only the required ones for better performance? */
@@ -97,7 +97,7 @@ void BlenderOutputDriver::write_render_tile(const Tile &tile)
     return;
   }
 
-  blender::RenderLayer *b_rlay = static_cast<blender::RenderLayer *>(b_rr->layers.first);
+  blender::RenderLayer *b_rlay = b_rr->layers.first();
 
   vector<float> pixels(static_cast<size_t>(tile.size.x) * tile.size.y * 4);
 

@@ -10,6 +10,8 @@
 
 #include <variant>
 
+#include "BKE_paint_types.hh"
+
 #include "BLI_array.hh"
 #include "BLI_bit_vector.hh"
 #include "BLI_enum_flags.hh"
@@ -23,9 +25,12 @@
 #include "BLI_utility_mixins.hh"
 #include "BLI_vector.hh"
 
+#include "BKE_paint_types.hh"
+
 #include "DNA_brush_enums.h"
 #include "DNA_meshdata_types.h"
 #include "DNA_object_enums.h"
+#include "DNA_scene_types.h"
 
 namespace blender {
 
@@ -87,20 +92,6 @@ struct bContext;
 struct bToolRef;
 
 /* overlay invalidation */
-enum ePaintOverlayControlFlags {
-  PAINT_OVERLAY_INVALID_TEXTURE_PRIMARY = 1,
-  PAINT_OVERLAY_INVALID_TEXTURE_SECONDARY = (1 << 2),
-  PAINT_OVERLAY_INVALID_CURVE = (1 << 3),
-  PAINT_OVERLAY_OVERRIDE_CURSOR = (1 << 4),
-  PAINT_OVERLAY_OVERRIDE_PRIMARY = (1 << 5),
-  PAINT_OVERLAY_OVERRIDE_SECONDARY = (1 << 6),
-};
-ENUM_OPERATORS(ePaintOverlayControlFlags);
-
-#define PAINT_OVERRIDE_MASK \
-  (PAINT_OVERLAY_OVERRIDE_SECONDARY | PAINT_OVERLAY_OVERRIDE_PRIMARY | \
-   PAINT_OVERLAY_OVERRIDE_CURSOR)
-
 /**
  * Defines 8 areas resulting of splitting the object space by the XYZ axis planes. This is used to
  * flip or mirror transform values depending on where the vertex is and where the transform
@@ -117,24 +108,21 @@ ENUM_OPERATORS(ePaintSymmetryAreas);
 
 #define PAINT_SYMM_AREAS 8
 
-void BKE_paint_invalidate_overlay_tex(const Main &bmain,
-                                      Scene *scene,
-                                      ViewLayer *view_layer,
-                                      const Tex *tex);
-void BKE_paint_invalidate_cursor_overlay(const Main &bmain,
-                                         Scene *scene,
-                                         ViewLayer *view_layer,
-                                         CurveMapping *curve);
-void BKE_paint_invalidate_overlay_all();
-ePaintOverlayControlFlags BKE_paint_get_overlay_flags();
-void BKE_paint_reset_overlay_invalid(ePaintOverlayControlFlags flag);
-void BKE_paint_set_overlay_override(eOverlayFlags flag);
+namespace bke::paint {
+void invalidate_overlay_tex(Scene &scene, const Tex *tex);
+void invalidate_cursor_overlay(Scene &scene, CurveMapping *curve);
+void invalidate_overlay_all(Scene &scene);
+void invalidate_overlay_all(Paint &paint);
+eOverlayControlFlags get_overlay_flags(const Paint &paint);
+void reset_overlay_flag(Paint &paint, eOverlayControlFlags flag);
+void set_overlay_brush_override(Paint &paint, eOverlayFlags flag);
+void cursor_reinitialize_textures(Paint &paint);
+}  // namespace bke::paint
 
 /* Palettes. */
 
 Palette *BKE_palette_add(Main *bmain, const char *name);
 PaletteColor *BKE_palette_color_add(Palette *palette);
-bool BKE_palette_is_empty(const Palette *palette);
 /**
  * Remove color from palette. Must be certain color is inside the palette!
  */
@@ -167,7 +155,7 @@ void BKE_paint_copy(const Paint *src, Paint *dst, int flag);
 /**
  * Iterate over all paint settings in a scene.
  */
-void BKE_paint_settings_foreach_mode(ToolSettings *ts, FunctionRef<void(Paint *paint)> fn);
+void BKE_paint_settings_foreach_mode(ToolSettings *ts, FunctionRef<void(Paint &paint)> fn);
 
 void BKE_paint_cavity_curve_preset(Paint *paint, int preset);
 
@@ -177,7 +165,6 @@ eObjectMode BKE_paint_object_mode_from_paintmode(PaintMode mode);
 bool BKE_paint_ensure_from_paintmode(Scene *sce, PaintMode mode);
 Paint *BKE_paint_get_active_from_paintmode(Scene *sce, PaintMode mode);
 const EnumPropertyItem *BKE_paint_get_tool_enum_from_paintmode(PaintMode mode);
-uint BKE_paint_get_brush_type_offset_from_paintmode(PaintMode mode);
 std::optional<int> BKE_paint_get_brush_type_from_obmode(const Brush *brush, eObjectMode ob_mode);
 std::optional<int> BKE_paint_get_brush_type_from_paintmode(const Brush *brush, PaintMode mode);
 Paint *BKE_paint_get_active(const Main &bmain, Scene *sce, ViewLayer *view_layer);
@@ -189,7 +176,9 @@ PaintMode BKE_paintmode_get_from_tool(const bToolRef *tref);
 
 Brush *BKE_paint_brush(Paint *paint);
 const Brush *BKE_paint_brush_for_read(const Paint *paint);
-Brush *BKE_paint_brush_from_essentials(Main *bmain, PaintMode paint_mode, const char *name);
+Brush *BKE_paint_brush_from_essentials(Main *bmain,
+                                       bke::paint::AssetCategory asset_category,
+                                       const char *name);
 
 /**
  * Check if brush \a brush may be set/activated for \a paint. Passing null for \a brush will return
@@ -227,7 +216,7 @@ void BKE_paint_previous_asset_reference_set(Paint *paint,
 void BKE_paint_previous_asset_reference_clear(Paint *paint);
 
 std::optional<AssetWeakReference> BKE_paint_brush_type_default_reference(
-    PaintMode paint_mode, std::optional<int> brush_type);
+    bke::paint::AssetCategory asset_category, std::optional<int> brush_type);
 void BKE_paint_brushes_set_default_references(ToolSettings *ts);
 /**
  * Make sure the active brush asset is available as active brush, importing it if necessary. If
@@ -241,16 +230,6 @@ void BKE_paint_brushes_set_default_references(ToolSettings *ts);
  */
 void BKE_paint_brushes_ensure(Main *bmain, Paint *paint);
 void BKE_paint_brushes_validate(Main *bmain, Paint *paint);
-
-/* Secondary eraser brush. */
-
-Brush *BKE_paint_eraser_brush(Paint *paint);
-const Brush *BKE_paint_eraser_brush_for_read(const Paint *paint);
-
-bool BKE_paint_eraser_brush_set(Paint *paint, Brush *brush);
-Brush *BKE_paint_eraser_brush_from_essentials(Main *bmain, PaintMode paint_mode, const char *name);
-bool BKE_paint_eraser_brush_set_default(Main *bmain, Paint *paint);
-bool BKE_paint_eraser_brush_set_essentials(Main *bmain, Paint *paint, const char *name);
 
 /* Paint palette. */
 
@@ -317,7 +296,12 @@ bool paint_calculate_rake_rotation(Paint &paint,
                                    bool is_first_dab);
 void paint_update_brush_rake_rotation(Paint &paint, const Brush &brush, float rotation);
 
-void BKE_paint_stroke_get_average(const Paint *paint, const Object *ob, float stroke[3]);
+namespace bke::paint {
+float3 stroke_get_average(const Paint *paint, const Object *ob);
+void paint_stroke_reset_location(Paint &paint);
+void stroke_track_location(Paint &paint, float3 location);
+void stroke_set_location(Paint &paint, float3 location);
+}  // namespace bke::paint
 
 float3 BKE_paint_randomize_color(const BrushColorJitterSettings &color_jitter,
                                  const float3 &initial_hsv_jitter,
@@ -486,7 +470,7 @@ struct SculptSession : NonCopyable, NonMovable {
   float4 prev_pivot_rot = float4(1.0f, 0.0f, 0.0f, 0.0f);
   float3 prev_pivot_scale = {};
 
-  eObjectMode mode_type;
+  eObjectMode mode_type = OB_MODE_OBJECT;
 
   /**
    * ID data is older than sculpt-mode data.
@@ -631,17 +615,18 @@ bool BKE_object_sculpt_use_dyntopo(const Object *object);
 
 /* paint_canvas.cc */
 
+using CanvasImageUser = std::variant<ImageUser, ImageUser *>;
+using CanvasImageData = std::pair<Image *, CanvasImageUser>;
+
 /**
  * Create a key that can be used to compare with previous ones to identify changes.
  * The resulting 'string' is owned by the caller.
  */
-std::string BKE_paint_canvas_key_get(PaintModeSettings *settings, Object *ob);
+std::string BKE_paint_canvas_key_get(ImagePaintSettings &settings, Object *ob);
 
-bool BKE_paint_canvas_image_get(PaintModeSettings *settings,
-                                Object *ob,
-                                Image **r_image,
-                                ImageUser **r_image_user);
-std::optional<StringRef> BKE_paint_canvas_uvmap_name_get(const PaintModeSettings *settings,
+std::optional<CanvasImageData> BKE_paint_canvas_image_get(const ImagePaintSettings &settings,
+                                                          Object &object);
+std::optional<StringRef> BKE_paint_canvas_uvmap_name_get(const ImagePaintSettings &settings,
                                                          Object *ob);
 CurveMapping *BKE_sculpt_default_cavity_curve();
 CurveMapping *BKE_paint_default_curve();

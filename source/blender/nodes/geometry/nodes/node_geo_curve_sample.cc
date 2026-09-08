@@ -515,7 +515,7 @@ static void node_geo_exec(GeoNodeExecParams params)
   bke::SocketValueVariant value;
   std::shared_ptr<FieldOperation> sample_op;
   if (curves.curves_num() == 1) {
-    auto curve_index = bke::SocketValueVariant::From(fn::Field<int>(0));
+    auto curve_index = bke::SocketValueVariant::from(fn::Field<int>(0));
     if (!execute_multi_function_on_value_variant(
             std::make_unique<SampleCurveFunction>(
                 std::move(geometry_set), mode, std::move(src_values_field)),

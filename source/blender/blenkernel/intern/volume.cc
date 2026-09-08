@@ -252,7 +252,7 @@ static void volume_foreach_path(ID *id, BPathForeachPathData *bpath_data)
 static void volume_blend_write(BlendWriter *writer, ID *id, const void *id_address)
 {
   Volume *volume = id_cast<Volume *>(id);
-  const bool is_undo = BLO_write_is_undo(writer);
+  const bool is_undo = writer->is_undo();
 
   /* Do not store packed files in case this is a library override ID. */
   if (ID_IS_OVERRIDE_LIBRARY(volume) && !is_undo) {
@@ -1143,7 +1143,8 @@ openvdb::math::Transform BKE_volume_transform_to_openvdb(const float4x4 &transfo
 /**
  * Returns a grid of the same type as the input, but with more/less resolution. If
  * resolution_factor is 1/2, the resolution on each axis is halved. The transform of the returned
- * grid is adjusted to match the original grid. */
+ * grid is adjusted to match the original grid.
+ */
 template<typename GridType>
 static typename GridType::Ptr create_grid_with_changed_resolution(const GridType &old_grid,
                                                                   const float resolution_factor)

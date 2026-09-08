@@ -25,7 +25,8 @@ namespace blender {
 
 /**
  * UUID generator for random (version 4) UUIDs. See RFC4122 section 4.4.
- * This function is not thread-safe. */
+ * This function is not thread-safe.
+ */
 bUUID BLI_uuid_generate_random();
 
 /**
@@ -86,7 +87,8 @@ bool operator!=(UUID uuid1, UUID uuid2);
 
 /**
  * Lexicographic comparison of the UUIDs.
- * Equivalent to string comparison on the formatted UUIDs. */
+ * Equivalent to string comparison on the formatted UUIDs.
+ */
 bool operator<(UUID uuid1, UUID uuid2);
 
 }  // namespace blender
