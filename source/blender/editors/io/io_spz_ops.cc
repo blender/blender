@@ -73,7 +73,7 @@ void WM_OT_spz_import(wmOperatorType *ot)
   ot->exec = wm_spz_import_exec;
   ot->ui = wm_spz_import_draw;
   ot->poll = WM_operator_winactive;
-  ot->flag = OPTYPE_UNDO | OPTYPE_PRESET;
+  ot->flag = OPTYPE_UNDO;
 
   WM_operator_properties_filesel(ot,
                                  FILE_TYPE_FOLDER,
