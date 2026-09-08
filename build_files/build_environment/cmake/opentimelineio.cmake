@@ -42,7 +42,8 @@ if(WIN32)
 else()
   harvest(external_opentimelineio opentimelineio/include opentimelineio/include "*.h")
   # Cmake files first because harvest_rpath_lib edits them.
-  harvest(external_opentimelineio opentimelineio/share/opentimelineio opentimelineio/share/opentimelineio "*.cmake")
+  harvest(external_opentimelineio opentimelineio/share/opentimelineio opentimelineio/lib/cmake/OpenTimelineIO "*.cmake")
+  harvest(external_opentimelineio opentimelineio/share/opentime opentimelineio/lib/cmake/OpenTime "*.cmake")
   harvest_rpath_lib(external_opentimelineio opentimelineio/lib opentimelineio/lib "*${SHAREDLIBEXT}*")
 endif()
 
