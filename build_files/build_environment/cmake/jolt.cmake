@@ -7,6 +7,8 @@ set(JOLT_EXTRA_ARGS
 
   -DCROSS_PLATFORM_DETERMINISTIC=ON
   -DDEBUG_RENDERER_IN_DEBUG_AND_RELEASE=OFF
+  # TODO: Confirm DOUBLE_PRECISION ON/OFF value with Nodes & Physics Module developers, set to the default for now.
+  -DDOUBLE_PRECISION=OFF
 
   # Compute backends.
   -DJPH_USE_DX12=OFF
