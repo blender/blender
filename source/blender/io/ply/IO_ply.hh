@@ -20,6 +20,7 @@ namespace blender {
 
 struct Mesh;
 struct bContext;
+struct PointCloud;
 struct ReportList;
 
 enum class ePLYVertexColorMode {
@@ -78,5 +79,6 @@ void PLY_export(bContext *C, const PLYExportParams &params);
 void PLY_import(bContext *C, const PLYImportParams &params);
 
 Mesh *PLY_import_mesh(const PLYImportParams &params);
+PointCloud *PLY_import_point_cloud(const PLYImportParams &params);
 
 }  // namespace blender
