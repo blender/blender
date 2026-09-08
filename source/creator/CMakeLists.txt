@@ -614,6 +614,18 @@ if(WIN32)
       CONFIGURATIONS Debug
     )
   endif()
+  if(EXISTS ${LIBDIR}/jolt/bin/jolt.dll) # 5.3+
+    windows_install_shared_manifest(
+      FILES
+        ${LIBDIR}/jolt/bin/jolt.dll
+      RELEASE
+    )
+    windows_install_shared_manifest(
+      FILES
+        ${LIBDIR}/jolt/bin/jolt_d.dll
+      DEBUG
+    )
+  endif()  
   if(EXISTS ${LIBDIR}/ceres/bin/ceres.dll) # 5.1+
     windows_install_shared_manifest(
       FILES
