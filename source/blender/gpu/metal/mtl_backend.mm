@@ -510,12 +510,7 @@ void MTLBackend::capabilities_init(MTLContext *ctx)
 #endif
 
   /* Ray queries require macOS 13. */
-  MTLBackend::capabilities.supports_ray_tracing = false;
-#if defined(MAC_OS_VERSION_13_0)
-  if (@available(macOS 13.0, *)) {
-    MTLBackend::capabilities.supports_ray_tracing = [device supportsRaytracing];
-  }
-#endif
+  MTLBackend::capabilities.supports_ray_tracing = [device supportsRaytracing];
   GCaps.ray_query_support = MTLBackend::capabilities.supports_ray_tracing;
 
   /* Vertex pipeline stores and atomics support. */

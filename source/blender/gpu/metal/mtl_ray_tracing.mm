@@ -67,9 +67,7 @@ void MTLBottomLevelAS::add_geometry(IndexBuf &index_buffer, VertBuf &vertex_buff
   geo.vertexBuffer = vertex_metal_buffer;
   geo.vertexBufferOffset = 0;
   geo.vertexStride = vertex_buffer.format.stride;
-  if (@available(macOS 13.0, *)) {
-    geo.vertexFormat = MTLAttributeFormatFloat3;
-  }
+  geo.vertexFormat = MTLAttributeFormatFloat3;
   geo.indexBuffer = index_metal_buffer;
   geo.indexBufferOffset = 0;
   geo.indexType = mtl_index.is_32bit() ? MTLIndexTypeUInt32 : MTLIndexTypeUInt16;
@@ -189,29 +187,25 @@ void MTLTopLevelAS::build()
     desc.instanceCount = instance_count;
     desc.instanceDescriptorBufferOffset = 0;
 
-    /* The UserID instance descriptor + instanceDescriptorType are macOS 12; the ray-query feature
-     * requires macOS 13, so this branch always runs when reached. userID is the Metal equivalent
-     * of the per-instance custom index. */
+    /* userID is the Metal equivalent of the per-instance custom index. */
     gpu::MTLBuffer *instance_buffer = nullptr;
-    if (@available(macOS 12.0, *)) {
-      instance_buffer = MTLContext::get_global_memory_manager()->allocate(
-          descriptor_count * sizeof(MTLAccelerationStructureUserIDInstanceDescriptor), true);
-      MTLAccelerationStructureUserIDInstanceDescriptor *descs =
-          (MTLAccelerationStructureUserIDInstanceDescriptor *)instance_buffer->get_host_ptr();
-      for (int64_t i = 0; i < instance_count; i++) {
-        const Instance &inst = instances_[i];
-        descs[i].transformationMatrix = pack_transform(inst.transform);
-        descs[i].options = MTLAccelerationStructureInstanceOptionOpaque;
-        descs[i].mask = inst.mask;
-        descs[i].intersectionFunctionTableOffset = 0;
-        descs[i].accelerationStructureIndex = uint32_t(i);
-        /* Per-instance custom index; hardcoded 0 to match Vulkan until add_instance exposes it. */
-        descs[i].userID = 0;
-        [blas_array addObject:inst.blas->acceleration_structure()];
-      }
-      desc.instanceDescriptorType = MTLAccelerationStructureInstanceDescriptorTypeUserID;
-      desc.instanceDescriptorStride = sizeof(MTLAccelerationStructureUserIDInstanceDescriptor);
+    instance_buffer = MTLContext::get_global_memory_manager()->allocate(
+        descriptor_count * sizeof(MTLAccelerationStructureUserIDInstanceDescriptor), true);
+    MTLAccelerationStructureUserIDInstanceDescriptor *descs =
+        (MTLAccelerationStructureUserIDInstanceDescriptor *)instance_buffer->get_host_ptr();
+    for (int64_t i = 0; i < instance_count; i++) {
+      const Instance &inst = instances_[i];
+      descs[i].transformationMatrix = pack_transform(inst.transform);
+      descs[i].options = MTLAccelerationStructureInstanceOptionOpaque;
+      descs[i].mask = inst.mask;
+      descs[i].intersectionFunctionTableOffset = 0;
+      descs[i].accelerationStructureIndex = uint32_t(i);
+      /* Per-instance custom index; hardcoded 0 to match Vulkan until add_instance exposes it. */
+      descs[i].userID = 0;
+      [blas_array addObject:inst.blas->acceleration_structure()];
     }
+    desc.instanceDescriptorType = MTLAccelerationStructureInstanceDescriptorTypeUserID;
+    desc.instanceDescriptorStride = sizeof(MTLAccelerationStructureUserIDInstanceDescriptor);
 
     BLI_assert(instance_buffer != nullptr);
     desc.instanceDescriptorBuffer = instance_buffer->get_metal_buffer();

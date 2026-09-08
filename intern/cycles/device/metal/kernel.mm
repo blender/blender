@@ -470,12 +470,9 @@ static MTLFunctionConstantValues *GetConstantValues(const KernelData *data = nul
   [constant_values setConstantValue:&kernel_features_lo
                                type:MTLDataTypeUInt
                             atIndex:KernelData_kernel_features_lo];
-
-  if (@available(macOS 12.0, *)) {
-    [constant_values setConstantValue:&data->kernel_features
-                                 type:MTLDataTypeULong
-                              atIndex:KernelData_kernel_features_64bit];
-  }
+  [constant_values setConstantValue:&data->kernel_features
+                               type:MTLDataTypeULong
+                            atIndex:KernelData_kernel_features_64bit];
 
   return constant_values;
 }

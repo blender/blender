@@ -225,17 +225,13 @@ static ::MTLCompileOptions *get_compile_options(const bool use_subpass_input,
   if (use_subpass_input) {
     options.languageVersion = MTLLanguageVersion2_3;
   }
-#if defined(MAC_OS_VERSION_13_0)
-  if (@available(macOS 13.0, *)) {
-    /* Inline ray queries require Metal 3.0. */
-    if (use_ray_query) {
-      options.languageVersion = MTLLanguageVersion3_0;
-    }
+  /* Inline ray queries requires Metal 3.0. */
+  if (use_ray_query) {
+    options.languageVersion = MTLLanguageVersion3_0;
   }
-#endif
 #if defined(MAC_OS_VERSION_14_0)
-  if (@available(macOS 14.00, *)) {
-    /* Texture atomics require Metal 3.1. */
+  if (@available(macOS 14.0, *)) {
+    /* Texture atomics requires Metal 3.1. */
     if (use_texture_atomic) {
       options.languageVersion = MTLLanguageVersion3_1;
     }
