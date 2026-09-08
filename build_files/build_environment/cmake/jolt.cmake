@@ -3,6 +3,7 @@
 # SPDX-License-Identifier: GPL-2.0-or-later
 
 set(JOLT_EXTRA_ARGS
+  -DCMAKE_DEBUG_POSTFIX=_d
   -DJPH_BUILD_SHARED_LIBS=ON
 
   -DCROSS_PLATFORM_DETERMINISTIC=ON
@@ -52,7 +53,24 @@ ExternalProject_Add(external_jolt
 )
 
 if(WIN32)
-  # TODO
+  if(BUILD_MODE STREQUAL Release)
+    ExternalProject_Add_Step(external_jolt after_install
+      COMMAND ${CMAKE_COMMAND} -E copy_directory
+        ${LIBDIR}/jolt
+        ${HARVEST_TARGET}/jolt
+      DEPENDEES install
+    )
+  else()
+    ExternalProject_Add_Step(external_jolt after_install
+      COMMAND ${CMAKE_COMMAND} -E copy_directory
+        ${LIBDIR}/jolt/lib
+        ${HARVEST_TARGET}/jolt/lib
+      COMMAND ${CMAKE_COMMAND} -E copy_directory
+        ${LIBDIR}/jolt/bin
+        ${HARVEST_TARGET}/jolt/bin
+      DEPENDEES install
+    )
+  endif()
 else()
   harvest(external_jolt jolt/include jolt/include "*.h")
   harvest(external_jolt jolt/lib/cmake/Jolt jolt/lib/cmake/Jolt "*.cmake")
