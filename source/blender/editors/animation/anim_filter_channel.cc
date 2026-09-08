@@ -687,7 +687,8 @@ void GreasePencilChannel::gather_channeldata()
   }
 }
 
-void GreasePencilChannel::change_selection(const SelectionMode mode, const Bounds<float> range)
+void GreasePencilChannel::change_selection(const SelectionMode /*mode*/,
+                                           const Bounds<float> /*range*/)
 {
   /* TODO ad selection support. */
 }
