@@ -685,14 +685,15 @@ static void rna_PopMenuEnd(bContext *C, PointerRNA *handle)
 static PointerRNA rna_PopoverBegin(bContext *C,
                                    ReportList *reports,
                                    const int ui_units_x,
-                                   const bool from_active_button)
+                                   const bool from_active_button,
+                                   const bool auto_keymap)
 {
   if (!rna_popup_context_ok_or_report(C, reports)) {
     return {};
   }
 
   void *data = static_cast<void *>(
-      ui::popover_begin(C, U.widget_unit * ui_units_x, from_active_button));
+      ui::popover_begin(C, U.widget_unit * ui_units_x, from_active_button, auto_keymap));
   PointerRNA ptr_result = RNA_pointer_create_discrete(nullptr, RNA_UIPopover, data);
   return ptr_result;
 }
@@ -1251,6 +1252,11 @@ void RNA_api_wm(StructRNA *srna)
   RNA_def_function_return(func, parm);
   RNA_def_boolean(
       func, "from_active_button", false, "Use Button", "Use the active button for positioning");
+  RNA_def_boolean(func,
+                  "auto_keymap",
+                  false,
+                  "Auto Keymap",
+                  "Assign accelerator keys to buttons, shown as underlined characters");
 
   /* wrap popover_end */
   func = RNA_def_function(srna, "popover_end__internal", "rna_PopoverEnd");
