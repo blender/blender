@@ -3004,7 +3004,8 @@ class XpbdSolverStep {
   PointCloud *write_back__plane_contacts(const IndexRange mesh_colliders_range,
                                          const OffsetIndices<int> points_by_chunk)
   {
-    PointCloud *pointcloud = BKE_pointcloud_new_nomain(points_by_chunk.total_size());
+    PointCloud *pointcloud = BKE_pointcloud_new_nomain(PointCloudType::Points,
+                                                       points_by_chunk.total_size());
     MutableAttributeAccessor attributes = pointcloud->attributes_for_write();
     bke::SpanAttributeWriter<int> geometries_writer =
         attributes.lookup_or_add_for_write_only_span<int>("geometry", AttrDomain::Point);
@@ -3084,7 +3085,8 @@ class XpbdSolverStep {
   PointCloud *write_back__edge_contacts(const IndexRange mesh_colliders_range,
                                         const OffsetIndices<int> points_by_chunk)
   {
-    PointCloud *pointcloud = BKE_pointcloud_new_nomain(points_by_chunk.total_size());
+    PointCloud *pointcloud = BKE_pointcloud_new_nomain(PointCloudType::Points,
+                                                       points_by_chunk.total_size());
     MutableAttributeAccessor attributes = pointcloud->attributes_for_write();
     bke::SpanAttributeWriter<int> geometries_writer =
         attributes.lookup_or_add_for_write_only_span<int>("geometry", AttrDomain::Point);
