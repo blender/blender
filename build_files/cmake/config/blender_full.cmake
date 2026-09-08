@@ -62,6 +62,7 @@ set(WITH_MATERIALX           ON  CACHE BOOL "" FORCE)
 set(WITH_HYDRA               ON  CACHE BOOL "" FORCE)
 set(WITH_XR_OPENXR           ON  CACHE BOOL "" FORCE)
 set(WITH_JOLT                ON  CACHE BOOL "" FORCE)
+set(WITH_OPENTIMELINEIO      ON  CACHE BOOL "" FORCE)
 
 # platform dependent options
 if(APPLE)

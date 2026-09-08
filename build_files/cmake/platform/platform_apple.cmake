@@ -383,6 +383,11 @@ if(WITH_JOLT)
 endif()
 add_bundled_libraries(jolt/lib)
 
+if(WITH_OPENTIMELINEIO)
+  find_package(OpenTimelineIO REQUIRED CONFIG)
+endif()
+add_bundled_libraries(opentimelineio/lib)
+
 if(EXISTS ${LIBDIR})
   without_system_libs_end()
 endif()
