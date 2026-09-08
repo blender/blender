@@ -116,6 +116,23 @@ class POINTCLOUD_UL_attributes(UIList):
         sub.label(text=data_type.name)
 
 
+class DATA_PT_pointcloud_type(DataButtonsPanel, Panel):
+    bl_label = "Type"
+    bl_options = {'DEFAULT_CLOSED'}
+    COMPAT_ENGINES = {
+        'BLENDER_RENDER',
+        'BLENDER_EEVEE',
+        'BLENDER_WORKBENCH',
+    }
+
+    def draw(self, context):
+        pointcloud = context.pointcloud
+
+        layout = self.layout
+
+        layout.prop(pointcloud, "type")
+
+
 class DATA_PT_pointcloud_attributes(DataButtonsPanel, Panel):
     bl_label = "Attributes"
     COMPAT_ENGINES = {
@@ -162,6 +179,7 @@ class DATA_PT_custom_props_pointcloud(DataButtonsPanel, PropertyPanel, Panel):
 
 classes = (
     DATA_PT_context_pointcloud,
+    DATA_PT_pointcloud_type,
     DATA_PT_pointcloud_attributes,
     DATA_PT_custom_props_pointcloud,
     POINTCLOUD_MT_add_attribute,

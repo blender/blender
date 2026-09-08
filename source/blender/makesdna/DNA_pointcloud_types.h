@@ -43,6 +43,11 @@ enum ePointCloud_Flag : int {
 };
 ENUM_OPERATORS(ePointCloud_Flag)
 
+enum class PointCloudType : short {
+  Points = 0,
+  GSplat = 1,
+};
+
 struct PointCloud {
 #ifdef __cplusplus
   /** See #ID_Type comment for why this is here. */
@@ -51,6 +56,9 @@ struct PointCloud {
 
   ID id;
   struct AnimData *adt = nullptr; /* animation data (must be immediately after id) */
+
+  PointCloudType type = PointCloudType::Points;
+  short _pad1[3] = {};
 
   ePointCloud_Flag flag = {};
 
