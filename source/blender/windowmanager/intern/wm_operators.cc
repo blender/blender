@@ -1477,6 +1477,8 @@ struct wmOpPopUp {
   wmPopupPosition position;
   bool cancel_default;
   bool mouse_move_quit;
+  /** Assign accelerator keys to buttons (#ui::BLOCK_NUMSELECT). */
+  bool use_numselect;
   bool include_properties;
 };
 
@@ -1693,6 +1695,9 @@ static ui::Block *wm_operator_ui_create(bContext *C, ARegion *region, void *user
   ui::Block *block = block_begin(C, region, __func__, ui::EmbossType::Emboss);
   block_flag_disable(block, ui::BLOCK_LOOP);
   block_flag_enable(block, ui::BLOCK_KEEP_OPEN | ui::BLOCK_MOVEMOUSE_QUIT | ui::BLOCK_POPUP);
+  if (data->use_numselect) {
+    block_flag_enable(block, ui::BLOCK_NUMSELECT);
+  }
   block_theme_style_set(block, ui::BLOCK_THEME_STYLE_REGULAR);
 
   popup_dummy_panel_set(region, block, op->idname);
@@ -1773,11 +1778,15 @@ wmOperatorStatus WM_operator_confirm_ex(bContext *C,
   return OPERATOR_RUNNING_MODAL;
 }
 
-wmOperatorStatus WM_operator_ui_popup(bContext *C, wmOperator *op, int width)
+wmOperatorStatus WM_operator_ui_popup(bContext *C,
+                                      wmOperator *op,
+                                      int width,
+                                      const bool use_numselect)
 {
   wmOpPopUp *data = MEM_new<wmOpPopUp>(__func__);
   data->op = op;
   data->width = width * UI_SCALE_FAC;
+  data->use_numselect = use_numselect;
   data->free_op = true; /* If this runs and gets registered we may want not to free it. */
   popup_block_ex(C, wm_operator_ui_create, nullptr, wm_operator_ui_popup_cancel, data, op);
   return OPERATOR_RUNNING_MODAL;
