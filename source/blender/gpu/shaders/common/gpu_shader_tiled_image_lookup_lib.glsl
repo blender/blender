@@ -6,7 +6,7 @@
 
 #include "gpu_shader_compat.hh"
 
-bool tiled_image_lookup(float3 &co, sampler2DArray ima, sampler1DArray map)
+bool tiled_image_lookup(float3 &co, sampler2DArray /*ima*/, sampler1DArray map)
 {
   float2 tile_pos = floor(co.xy);
 

@@ -1,0 +1,24 @@
+/* SPDX-FileCopyrightText: 2019-2023 Blender Authors
+ *
+ * SPDX-License-Identifier: GPL-2.0-or-later */
+
+#pragma once
+
+#include "gpu_shader_material_interface.bsl.hh"
+#include "gpu_shader_math_vector_safe_lib.glsl"
+#include "gpu_shader_utildefines_lib.glsl"
+
+[[node]]
+void node_bsdf_sheen(float4 color, float roughness, float3 N, float weight, Closure &result)
+{
+  color = max(color, float4(0.0f));
+  roughness = saturate(roughness);
+  N = safe_normalize(N);
+
+  /* Fall back to diffuse. */
+  ClosureDiffuse diffuse_data;
+  diffuse_data.color = color.rgb * weight;
+  diffuse_data.N = N;
+
+  result = closure_eval(diffuse_data);
+}
