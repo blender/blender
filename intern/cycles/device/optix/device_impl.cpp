@@ -140,6 +140,12 @@ OptiXDevice::~OptiXDevice()
   if (osl_camera_module != nullptr) {
     optixModuleDestroy(osl_camera_module);
   }
+  if (osl_shadow_module != nullptr) {
+    optixModuleDestroy(osl_shadow_module);
+  }
+  if (osl_shadow_curve_module != nullptr) {
+    optixModuleDestroy(osl_shadow_curve_module);
+  }
   if (osl_volume_module != nullptr) {
     optixModuleDestroy(osl_volume_module);
   }
@@ -350,6 +356,14 @@ bool OptiXDevice::load_kernels(const uint64_t kernel_features)
     optixModuleDestroy(osl_camera_module);
     osl_camera_module = nullptr;
   }
+  if (osl_shadow_module != nullptr) {
+    optixModuleDestroy(osl_shadow_module);
+    osl_shadow_module = nullptr;
+  }
+  if (osl_shadow_curve_module != nullptr) {
+    optixModuleDestroy(osl_shadow_curve_module);
+    osl_shadow_curve_module = nullptr;
+  }
   if (osl_volume_module != nullptr) {
     optixModuleDestroy(osl_volume_module);
     osl_volume_module = nullptr;
@@ -473,6 +487,16 @@ bool OptiXDevice::load_kernels(const uint64_t kernel_features)
     if (use_osl_camera && !load_optional_module("kernel_optix_osl_camera", osl_camera_ptx_data)) {
       return false;
     }
+    string osl_shadow_ptx_data;
+    if (use_osl_shading && !load_optional_module("kernel_optix_osl_shadow", osl_shadow_ptx_data)) {
+      return false;
+    }
+    string osl_shadow_curve_ptx_data;
+    if (use_osl_shading &&
+        !load_optional_module("kernel_optix_osl_shadow_curve", osl_shadow_curve_ptx_data))
+    {
+      return false;
+    }
     string osl_volume_ptx_data;
     if (use_osl_volume && !load_optional_module("kernel_optix_osl_volume", osl_volume_ptx_data)) {
       return false;
@@ -485,6 +509,8 @@ bool OptiXDevice::load_kernels(const uint64_t kernel_features)
     OptixResult shader_raytrace_result = OPTIX_SUCCESS;
 #  ifdef WITH_OSL
     OptixResult osl_camera_result = OPTIX_SUCCESS;
+    OptixResult osl_shadow_result = OPTIX_SUCCESS;
+    OptixResult osl_shadow_curve_result = OPTIX_SUCCESS;
     OptixResult osl_volume_result = OPTIX_SUCCESS;
 #  endif
 
@@ -502,6 +528,15 @@ bool OptiXDevice::load_kernels(const uint64_t kernel_features)
                           shader_raytrace_result);
     }
 #  ifdef WITH_OSL
+    if (use_osl_shading) {
+      create_optix_module(
+          pool, module_options, osl_shadow_ptx_data, osl_shadow_module, osl_shadow_result);
+      create_optix_module(pool,
+                          module_options,
+                          osl_shadow_curve_ptx_data,
+                          osl_shadow_curve_module,
+                          osl_shadow_curve_result);
+    }
     if (use_osl_camera) {
       create_optix_module(
           pool, module_options, osl_camera_ptx_data, osl_camera_module, osl_camera_result);
@@ -534,6 +569,16 @@ bool OptiXDevice::load_kernels(const uint64_t kernel_features)
     if (osl_camera_result != OPTIX_SUCCESS) {
       set_error(string_printf("Failed to load OptiX OSL camera kernel (%s)",
                               optixGetErrorName(osl_camera_result)));
+      return false;
+    }
+    if (osl_shadow_result != OPTIX_SUCCESS) {
+      set_error(string_printf("Failed to load OptiX OSL shadow kernel (%s)",
+                              optixGetErrorName(osl_shadow_result)));
+      return false;
+    }
+    if (osl_shadow_curve_result != OPTIX_SUCCESS) {
+      set_error(string_printf("Failed to load OptiX OSL shadow curve kernel (%s)",
+                              optixGetErrorName(osl_shadow_curve_result)));
       return false;
     }
     if (osl_volume_result != OPTIX_SUCCESS) {
@@ -740,7 +785,7 @@ bool OptiXDevice::load_kernels(const uint64_t kernel_features)
           "__raygen__kernel_optix_integrator_shade_volume_ray_marching";
     }
     group_descs[PG_RGEN_SHADE_SHADOW].kind = OPTIX_PROGRAM_GROUP_KIND_RAYGEN;
-    group_descs[PG_RGEN_SHADE_SHADOW].raygen.module = optix_module;
+    group_descs[PG_RGEN_SHADE_SHADOW].raygen.module = osl_shadow_module;
     group_descs[PG_RGEN_SHADE_SHADOW].raygen.entryFunctionName =
         "__raygen__kernel_optix_integrator_shade_shadow";
     group_descs[PG_RGEN_SHADE_DEDICATED_LIGHT].kind = OPTIX_PROGRAM_GROUP_KIND_RAYGEN;
@@ -756,7 +801,7 @@ bool OptiXDevice::load_kernels(const uint64_t kernel_features)
     group_descs[PG_RGEN_EVAL_BACKGROUND].raygen.entryFunctionName =
         "__raygen__kernel_optix_shader_eval_background";
     group_descs[PG_RGEN_EVAL_CURVE_SHADOW_TRANSPARENCY].kind = OPTIX_PROGRAM_GROUP_KIND_RAYGEN;
-    group_descs[PG_RGEN_EVAL_CURVE_SHADOW_TRANSPARENCY].raygen.module = optix_module;
+    group_descs[PG_RGEN_EVAL_CURVE_SHADOW_TRANSPARENCY].raygen.module = osl_shadow_curve_module;
     group_descs[PG_RGEN_EVAL_CURVE_SHADOW_TRANSPARENCY].raygen.entryFunctionName =
         "__raygen__kernel_optix_shader_eval_curve_shadow_transparency";
     group_descs[PG_RGEN_EVAL_VOLUME_DENSITY].kind = OPTIX_PROGRAM_GROUP_KIND_RAYGEN;

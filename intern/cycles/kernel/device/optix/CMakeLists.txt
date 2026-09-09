@@ -26,6 +26,8 @@ if(WITH_CYCLES_OSL)
     kernel_osl_camera.cu
     kernel_osl_mnee.cu
     kernel_osl_shader_raytrace.cu
+    kernel_osl_shadow.cu
+    kernel_osl_shadow_curve.cu
     kernel_osl_volume.cu
   )
 endif()
@@ -129,6 +131,14 @@ if(WITH_CYCLES_CUDA_BINARIES AND WITH_CYCLES_DEVICE_OPTIX)
     cycles_optix_kernel_add(
       kernel_optix_osl_mnee
       "kernel_osl_mnee.cu"
+      "--relocatable-device-code=true")
+    cycles_optix_kernel_add(
+      kernel_optix_osl_shadow
+      "kernel_osl_shadow.cu"
+      "--relocatable-device-code=true")
+    cycles_optix_kernel_add(
+      kernel_optix_osl_shadow_curve
+      "kernel_osl_shadow_curve.cu"
       "--relocatable-device-code=true")
     cycles_optix_kernel_add(
       kernel_optix_osl_volume
