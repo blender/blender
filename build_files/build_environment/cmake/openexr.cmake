@@ -43,7 +43,13 @@ ExternalProject_Add(external_openexr
 
   PATCH_COMMAND ${PATCH_CMD} -p 1 -d
     ${BUILD_DIR}/openexr/src/external_openexr <
-    ${PATCH_DIR}/openexr_deflate_cmake.diff
+    ${PATCH_DIR}/openexr_deflate_cmake.diff && 
+    ${PATCH_CMD} -p 1 -d
+    ${BUILD_DIR}/openexr/src/external_openexr <
+    ${PATCH_DIR}/openexr_2594.diff &&
+    ${PATCH_CMD} -p 1 -d 
+    ${BUILD_DIR}/openexr/src/external_openexr <
+    ${PATCH_DIR}/openexr_python_link.diff
 
   CMAKE_ARGS
     -DCMAKE_INSTALL_PREFIX=${LIBDIR}/openexr
@@ -76,8 +82,9 @@ if(WIN32)
     COMMAND ${CMAKE_COMMAND} -E copy
       ${LIBDIR}/openexr/bin/OpenEXR${OPENEXR_VERSION_POSTFIX}.dll
       ${HARVEST_TARGET}/openexr/bin/OpenEXR${OPENEXR_VERSION_POSTFIX}.dll
-    # TODO: OpenEXR PYthon binding copy
-
+    COMMAND ${CMAKE_COMMAND} -E copy_directory
+      ${LIBDIR}/openexr/python
+      ${HARVEST_TARGET}/openexr/python
     DEPENDEES install
   )
 else()
