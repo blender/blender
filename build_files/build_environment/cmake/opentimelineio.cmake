@@ -5,6 +5,7 @@
 set(OPENTIMELINEIO_EXTRA_ARGS
   -DOTIO_SHARED_LIBS=ON
   -DOTIO_AUTOMATIC_SUBMODULES=OFF
+  -DBUILD_TESTING=OFF
 
   -DOTIO_CXX_INSTALL=ON
   -DOTIO_PYTHON_INSTALL=ON
@@ -16,6 +17,7 @@ set(OPENTIMELINEIO_EXTRA_ARGS
   -DOTIO_FIND_MINIZIP_NG=ON
 
   -DImath_ROOT=${LIBDIR}/imath
+  -DZLIB_ROOT=${LIBDIR}/zlib
   -DRapidJSON_ROOT=${LIBDIR}/rapidjson
   -Dminizip-ng_ROOT=${LIBDIR}/minizipng
   -Dpybind11_ROOT=${LIBDIR}/pybind11
@@ -39,7 +41,10 @@ ExternalProject_Add(external_opentimelineio
     #  - Installs C++ libraries into lib, using @rpath install names on macOS
     #  - Omits minizip/zlib find_dependency() calls from the installed CMake package config
     ${PATCH_CMD} -p 1 -d ${BUILD_DIR}/opentimelineio/src/external_opentimelineio
-      -i ${PATCH_DIR}/opentimelineio.diff
+      -i ${PATCH_DIR}/opentimelineio.diff &&
+    # shared support is broken and does not get CI'd upstream, small patch to fix all their issues
+    ${PATCH_CMD} -p 1 -d ${BUILD_DIR}/opentimelineio/src/external_opentimelineio
+      -i ${PATCH_DIR}/opentimelineio_shared.diff
 
   CMAKE_ARGS
     -DCMAKE_INSTALL_PREFIX=${LIBDIR}/opentimelineio
