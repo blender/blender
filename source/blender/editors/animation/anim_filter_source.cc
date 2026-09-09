@@ -158,8 +158,10 @@ static void channels_for_action_slot(animrig::Action &action,
 
   rna_path_items.append(rna_path::Member{UString("slots")});
   rna_path_items.append(rna_path::LookupKey{UString(slot->identifier)});
-  tags.push(
-      {ChannelTagType::ACTION_SLOT, slot->identifier, slot_ptr, ParsedRNAPathRef(rna_path_items)});
+  tags.push({ChannelTagType::ACTION_SLOT,
+             slot->identifier + 2,
+             slot_ptr,
+             ParsedRNAPathRef(rna_path_items)});
   rna_path_items.pop_last();
   rna_path_items.pop_last();
 
