@@ -284,10 +284,33 @@ struct DrawSettings {
   }
 };
 
-static void draw_channel_keys(AnimationChannel &channel, const float y, View2D &v2d)
+static bool point_less_than(const KeyPoint &p, const float frame)
+{
+  return p.frame < frame;
+}
+
+static bool point_larger_than(const float frame, const KeyPoint &p)
+{
+  return frame < p.frame;
+}
+
+static void draw_channel_keys(AnimationChannel &channel, const float y, const View2D &v2d)
 {
   Span<KeyPoint> datapoints = channel.datapoints();
   if (datapoints.is_empty()) {
+    return;
+  }
+  const float key_size = get_key_height();
+  /* Using binary search to find the bounds to draw. */
+  const KeyPoint *start = std::lower_bound(
+      datapoints.begin(), datapoints.end(), v2d.cur.xmin - key_size, point_less_than);
+  if (start == datapoints.end()) {
+    return;
+  }
+  const KeyPoint *end = std::upper_bound(
+      start, datapoints.end(), v2d.cur.xmax + key_size, point_larger_than);
+  const int key_count = std::distance(start, end);
+  if (key_count == 0) {
     return;
   }
   GPU_blend(GPU_BLEND_ALPHA);
@@ -307,13 +330,13 @@ static void draw_channel_keys(AnimationChannel &channel, const float y, View2D &
   immBindBuiltinProgram(GPU_SHADER_KEYFRAME_SHAPE);
   immUniform1f("outline_scale", 1.0f);
   immUniform2f("ViewportSize", BLI_rcti_size_x(&v2d.mask) + 1, BLI_rcti_size_y(&v2d.mask) + 1);
-  immBegin(GPU_PRIM_POINTS, datapoints.size());
-  const float key_size = get_key_height();
-  for (const KeyPoint &point : datapoints) {
-    draw_keyframe_shape(point.frame,
+  immBegin(GPU_PRIM_POINTS, key_count);
+  /* TODO is there a modern way to iterate this? */
+  for (const KeyPoint *point = start; point != end; point++) {
+    draw_keyframe_shape(point->frame,
                         y,
                         key_size,
-                        point.is_selected,
+                        point->is_selected,
                         BEZT_KEYTYPE_KEYFRAME,
                         KEYFRAME_SHAPE_BOTH,
                         1.0,
@@ -332,7 +355,8 @@ static void draw_channel_keys(AnimationChannel &channel, const float y, View2D &
 /* Draw extras that are not keyframes like lines between keys. */
 static void draw_channel_decorations(AnimationChannel &channel,
                                      const float y,
-                                     const DrawSettings &settings)
+                                     const DrawSettings &settings,
+                                     const View2D &v2d)
 {
   Span<KeyPoint> datapoints = channel.datapoints();
   if (datapoints.size() < 2) {
@@ -347,6 +371,9 @@ static void draw_channel_decorations(AnimationChannel &channel,
     rctf box;
     box.xmin = point.frame;
     box.xmax = datapoints[i + 1].frame;
+    if (box.xmax < v2d.cur.xmin || box.xmin > v2d.cur.xmax) {
+      continue;
+    }
 
     if (!point.has_motion) {
       box.ymin = y - settings.motion_line_height / 2;
@@ -385,8 +412,10 @@ static float draw_keys_recurse(const bContext &C,
                                const DrawSettings &settings)
 {
   const float channel_y = row_top - channel_step / 2.0;
-  draw_channel_decorations(channel, channel_y, settings);
-  draw_channel_keys(channel, channel_y, v2d);
+  if (channel_y + channel_step > v2d.cur.ymin && channel_y - channel_step < v2d.cur.ymax) {
+    draw_channel_decorations(channel, channel_y, settings, v2d);
+    draw_channel_keys(channel, channel_y, v2d);
+  }
   row_top -= channel_step;
 
   if (channel.type() != AnimationChannelType::SUMMARY) {
