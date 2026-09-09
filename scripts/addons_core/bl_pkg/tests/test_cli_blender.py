@@ -54,7 +54,17 @@ BLENDER_BIN = os.environ.get("BLENDER_BIN")
 if BLENDER_BIN is None:
     raise Exception("BLENDER_BIN: environment variable not defined")
 
-BLENDER_VERSION_STR = subprocess.check_output([BLENDER_BIN, "--version"]).split()[1].decode('ascii')
+# Needed for ASAN builds. Leaks are not checked, failing every command isn't useful
+# here & the check runs when each command exits, which is slow.
+ASAN_OPTIONS = "exitcode=0:leak_check_at_exit=0:{:s}".format(
+    # Support using existing configuration (if set).
+    os.environ.get("ASAN_OPTIONS", ""),
+)
+
+BLENDER_VERSION_STR = subprocess.check_output(
+    [BLENDER_BIN, "--version"],
+    env={**os.environ, "ASAN_OPTIONS": ASAN_OPTIONS},
+).split()[1].decode('ascii')
 BLENDER_VERSION: tuple[int, int, int] = tuple(int(x) for x in BLENDER_VERSION_STR.split("."))  # type: ignore
 assert len(BLENDER_VERSION) == 3
 
@@ -303,12 +313,10 @@ def run_blender(
     env_overlay = {
         "TMPDIR": TEMP_DIR_TMPDIR,
         "BLENDER_USER_RESOURCES": TEMP_DIR_BLENDER_USER,
-        # Needed for ASAN builds.
-        "ASAN_OPTIONS": "log_path={:s}:exitcode=0:{:s}".format(
+        "ASAN_OPTIONS": "log_path={:s}:{:s}".format(
             # Needed so the `stdout` & `stderr` aren't mixed in with ASAN messages.
             os.path.join(TEMP_DIR_TMPDIR, "blender_asan.txt"),
-            # Support using existing configuration (if set).
-            os.environ.get("ASAN_OPTIONS", ""),
+            ASAN_OPTIONS,
         ),
     }
 
