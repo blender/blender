@@ -2673,7 +2673,7 @@ class USERPREF_PT_addons(AddOnPanel, Panel):
                 if value := bl_info["warning"]:
                     split = colsub.row().split(factor=0.15)
                     split.label(text="Warning:")
-                    split.label(text="  " + iface_(value), icon='STATUS_WARNING')
+                    split.label_multiline(text=iface_(value), icon='STATUS_WARNING')
                 del value
 
                 user_addon = USERPREF_PT_addons.is_user_addon(mod, user_addon_paths)
