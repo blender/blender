@@ -98,5 +98,4 @@ add_dependencies(
   external_deflate
   external_openjph
   external_pybind11
-  external_python
 )
