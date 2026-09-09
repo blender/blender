@@ -1225,11 +1225,13 @@ Vector<char> IMB_colormanagement_space_to_icc_profile(const ColorSpace *colorspa
 
 /* Primaries */
 static const int CICP_PRI_REC709 = 1;
+static const int CICP_PRI_UNSPECIFIED = 2;
 static const int CICP_PRI_REC2020 = 9;
 static const int CICP_PRI_XYZD65 = 10;
 static const int CICP_PRI_P3D65 = 12;
 /* Transfer functions */
 static const int CICP_TRC_BT709 = 1;
+static const int CICP_TRC_UNSPECIFIED = 2;
 static const int CICP_TRC_G22 = 4;
 static const int CICP_TRC_LINEAR = 8;
 static const int CICP_TRC_SRGB = 13;
@@ -1244,7 +1246,7 @@ static const int CICP_MATRIX_REC2020_NCL = 9;
 static const int CICP_RANGE_FULL = 1;
 
 bool IMB_colormanagement_space_to_cicp(const ColorSpace *colorspace,
-                                       const ColorManagedFileOutput output,
+                                       const ColorManagedFileOutput /*output*/,
                                        const bool rgb_matrix,
                                        int cicp[4])
 {
@@ -1308,7 +1310,7 @@ bool IMB_colormanagement_space_to_cicp(const ColorSpace *colorspace,
     return true;
   }
   if (ELEM(interop_id, "blender:g24_rec2020_display", "g24_rec2020_scene")) {
-    /* There is no gamma 2.4 TRC, but BT.709 is close. */
+    /* In CICP terms, Rec709 == BT.1886 == 2.4 gamma */
     cicp[0] = CICP_PRI_REC2020;
     cicp[1] = CICP_TRC_BT709;
     cicp[2] = (rgb_matrix) ? CICP_MATRIX_RGB : CICP_MATRIX_REC2020_NCL;
@@ -1316,7 +1318,7 @@ bool IMB_colormanagement_space_to_cicp(const ColorSpace *colorspace,
     return true;
   }
   if (ELEM(interop_id, "g24_rec709_display", "g24_rec709_scene")) {
-    /* There is no gamma 2.4 TRC, but BT.709 is close. */
+    /* In CICP terms, Rec709 == BT.1886 == 2.4 gamma */
     cicp[0] = CICP_PRI_REC709;
     cicp[1] = CICP_TRC_BT709;
     cicp[2] = (rgb_matrix) ? CICP_MATRIX_RGB : CICP_MATRIX_BT709;
@@ -1324,19 +1326,18 @@ bool IMB_colormanagement_space_to_cicp(const ColorSpace *colorspace,
     return true;
   }
   if (ELEM(interop_id, "srgb_p3d65_display", "srgbe_p3d65_display", "srgb_p3d65_scene")) {
-    /* For video we use BT.709 to match default sRGB writing, even though it is wrong.
-     * But we have been writing sRGB like this forever, and there is the so called
-     * "Quicktime gamma shift bug" that complicates things. */
     cicp[0] = CICP_PRI_P3D65;
-    cicp[1] = (output == ColorManagedFileOutput::Video) ? CICP_TRC_BT709 : CICP_TRC_SRGB;
+    cicp[1] = CICP_TRC_SRGB;
     cicp[2] = (rgb_matrix) ? CICP_MATRIX_RGB : CICP_MATRIX_BT709;
     cicp[3] = CICP_RANGE_FULL;
     return true;
   }
   if (ELEM(interop_id, "srgb_rec709_display", "srgb_rec709_scene")) {
-    /* Don't write anything for backwards compatibility. Is fine for PNG
-     * and video but may reconsider when JXL or AVIF get added. */
-    return false;
+    cicp[0] = CICP_PRI_REC709;
+    cicp[1] = CICP_TRC_SRGB;
+    cicp[2] = (rgb_matrix) ? CICP_MATRIX_RGB : CICP_MATRIX_BT709;
+    cicp[3] = CICP_RANGE_FULL;
+    return true;
   }
   if (ELEM(interop_id, "lin_rec709_display", "lin_rec709_scene")) {
     cicp[0] = CICP_PRI_REC709;
@@ -1371,7 +1372,7 @@ bool IMB_colormanagement_space_to_cicp(const ColorSpace *colorspace,
 }
 
 const ColorSpace *IMB_colormanagement_space_from_cicp(const int cicp[4],
-                                                      const ColorManagedFileOutput output)
+                                                      const ColorManagedFileOutput /*output*/)
 {
   StringRefNull interop_id;
 
@@ -1399,14 +1400,7 @@ const ColorSpace *IMB_colormanagement_space_from_cicp(const int cicp[4],
     interop_id = "blender:g24_rec2020_display";
   }
   else if (cicp[0] == CICP_PRI_REC709 && cicp[1] == CICP_TRC_BT709) {
-    if (output == ColorManagedFileOutput::Video) {
-      /* Arguably this should be g24_rec709_display, but we write sRGB like this.
-       * So there is an exception for now. */
-      interop_id = "srgb_rec709_display";
-    }
-    else {
-      interop_id = "g24_rec709_display";
-    }
+    interop_id = "g24_rec709_display";
   }
   else if (cicp[0] == CICP_PRI_P3D65 && ELEM(cicp[1], CICP_TRC_SRGB, CICP_TRC_BT709)) {
     interop_id = "srgb_p3d65_display";
@@ -1425,6 +1419,13 @@ const ColorSpace *IMB_colormanagement_space_from_cicp(const int cicp[4],
   }
   else if (cicp[0] == CICP_PRI_XYZD65 && cicp[1] == CICP_TRC_LINEAR) {
     interop_id = "lin_ciexyzd65_scene";
+  }
+  else if (cicp[0] == CICP_PRI_UNSPECIFIED && cicp[1] == CICP_TRC_UNSPECIFIED) {
+    /* Previous Blender behaviour was to tag sRGB as Rec709 to help roundtripping
+     * and avoid color shifts between Blender and other players.
+     * We now try to explicitly tag unknown media as "unknown", but can read it back
+     * as sRGB which is the default behaviour of many players */
+    interop_id = "srgb_rec709_display";
   }
 
   return interop_id.is_empty() ? nullptr : g_config()->get_color_space_by_interop_id(interop_id);
