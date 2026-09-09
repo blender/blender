@@ -75,6 +75,20 @@ static uchar4 channel_color_from_rna_pointer(const PointerRNA &ptr)
   return color;
 }
 
+static int icon_from_rna_pointer(const PointerRNA &ptr)
+{
+  /* Special cases for which we don't want icons. */
+  if (ptr.type == RNA_FCurve) {
+    return ICON_NONE;
+  }
+  const int icon = RNA_struct_ui_icon(ptr.type);
+  /* The above returns ICON_DOT as a default. */
+  if (icon != ICON_DOT) {
+    return icon;
+  }
+  return ICON_NONE;
+}
+
 class ChannelItem : public ui::AbstractTreeViewItem {
   PointerRNA source_;
   std::string label_;
@@ -94,11 +108,12 @@ class ChannelItem : public ui::AbstractTreeViewItem {
         channel_identifier_(channel_identifier),
         initial_state_(initial_state)
   {
+    this->set_selected(channel.is_selected());
   }
 
   void build_row(ui::Layout &layout) override
   {
-    layout.label(this->label_, this->is_selected_ ? ICON_BOIDS : ICON_NONE);
+    layout.label(this->label_, icon_from_rna_pointer(this->source_));
 
     if (is_datachannel_) {
       /* TODO make this work for GP. ideally we'd have access to the channel here still so we don't
