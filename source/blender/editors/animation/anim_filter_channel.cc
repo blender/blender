@@ -6,6 +6,7 @@
 #include <string>
 
 #include "BLI_assert.hh"
+
 #include "DNA_action_types.h"
 #include "DNA_anim_types.h"
 
@@ -370,11 +371,13 @@ void SummaryChannel::gather_channeldata()
   /* Used to track if any child channel can be iterated further. */
   bool has_data = true;
 
+  /* Store the index of the child channels for which we need to step to the next KeyPoint. */
+  Vector<int> channels_to_advance;
+  channels_to_advance.reserve(this->children_.size());
   while (has_data) {
     has_data = false;
 
-    /* Store the index of the child channels for which we need to step to the next KeyPoint. */
-    Vector<int> channels_to_advance;
+    channels_to_advance.clear();
     KeyPoint next_keypoint;
 
     for (const int channel_index : channel_keypoint_indices.index_range()) {
