@@ -1329,8 +1329,8 @@ static std::string collection_drop_tooltip(bContext *C,
             return TIP_("Move parent object inside collection");
           }
           return TIP_(
-              "Move inside collection (Ctrl to link, Shift to parent,\n Ctrl + Shift to move "
-              "only parent)");
+              "Move inside collection (Ctrl to link, Shift to parent, "
+              "Ctrl + Shift to move only parent)");
         }
         return TIP_("Move inside collection (Ctrl to link)");
       }
