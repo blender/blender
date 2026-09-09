@@ -12,7 +12,6 @@
 # see: `build_files/buildbot/config/*.cmake`.
 
 set(WITH_ALEMBIC             ON  CACHE BOOL "" FORCE)
-set(WITH_ASSERT_ABORT        OFF CACHE BOOL "" FORCE)
 set(WITH_AUDASPACE           ON  CACHE BOOL "" FORCE)
 set(WITH_BUILDINFO           ON  CACHE BOOL "" FORCE)
 set(WITH_BULLET              ON  CACHE BOOL "" FORCE)
@@ -28,6 +27,7 @@ set(WITH_FFTW3               ON  CACHE BOOL "" FORCE)
 set(WITH_FREESTYLE           ON  CACHE BOOL "" FORCE)
 set(WITH_GMP                 ON  CACHE BOOL "" FORCE)
 set(WITH_HARU                ON  CACHE BOOL "" FORCE)
+set(WITH_HYDRA               ON  CACHE BOOL "" FORCE)
 set(WITH_IK_ITASC            ON  CACHE BOOL "" FORCE)
 set(WITH_IK_SOLVER           ON  CACHE BOOL "" FORCE)
 set(WITH_IMAGE_CINEON        ON  CACHE BOOL "" FORCE)
@@ -59,12 +59,13 @@ set(WITH_PUGIXML             ON  CACHE BOOL "" FORCE)
 set(WITH_PYTHON_INSTALL      ON  CACHE BOOL "" FORCE)
 set(WITH_QUADRIFLOW          ON  CACHE BOOL "" FORCE)
 set(WITH_RUBBERBAND          ON  CACHE BOOL "" FORCE)
-set(WITH_SDL_AUDIO           OFF CACHE BOOL "" FORCE)
 set(WITH_TBB                 ON  CACHE BOOL "" FORCE)
 set(WITH_USD                 ON  CACHE BOOL "" FORCE)
 set(WITH_MATERIALX           ON  CACHE BOOL "" FORCE)
-set(WITH_HYDRA               ON  CACHE BOOL "" FORCE)
 set(WITH_XR_OPENXR           ON  CACHE BOOL "" FORCE)
+
+set(WITH_ASSERT_ABORT        OFF CACHE BOOL "" FORCE)
+set(WITH_SDL_AUDIO           OFF CACHE BOOL "" FORCE)
 
 # platform dependent options
 if(APPLE)
