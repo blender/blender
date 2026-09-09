@@ -22,6 +22,7 @@
 #include "BKE_pose.hh"
 
 #include "ANIM_action.hh"
+#include "ANIM_armature.hh"
 #include "ANIM_rna.hh"
 
 #include "ED_anim_filter.hh"
@@ -62,7 +63,8 @@ static PointerRNA pose_bone_for_fcurve(const FCurve &fcurve, const ChannelTagSta
 static void channels_for_channelbag(const PointerRNA &channelbag_ptr,
                                     ChannelTagStack &tags,
                                     Vector<rna_path::Item> rna_path_items,
-                                    ChannelArena &arena)
+                                    ChannelArena &arena,
+                                    const CollectionFilters &collection_filters)
 {
   BLI_assert(channelbag_ptr.type == RNA_ActionChannelbag);
   animrig::Channelbag &channelbag = *channelbag_ptr.data_as<animrig::Channelbag>();
@@ -90,17 +92,32 @@ static void channels_for_channelbag(const PointerRNA &channelbag_ptr,
 
     PointerRNA pose_bone_pointer = pose_bone_for_fcurve(*fcu, tags);
 
+    bool skip_fcurve = false;
+
     if (pose_bone_pointer.has_data()) {
+      bPoseChannel *pose_bone = pose_bone_pointer.data_as<bPoseChannel>();
+
+      Object *object = id_cast<Object *>(pose_bone_pointer.owner_id);
+      bArmature *armature = id_cast<bArmature *>(object->data);
       /* We have to check for visibility here. This is not as nice as with objects where we can
        * just skip the object entirely since bones are not the owner of their animation. */
-      bPoseChannel *pose_bone = pose_bone_pointer.data_as<bPoseChannel>();
+      if (!animrig::bone_is_visible(armature, {pose_bone, pose_bone->bone_get(*object)})) {
+        skip_fcurve = true;
+      }
+      if (collection_filters.only_selected &&
+          !animrig::bone_is_selected(armature, {pose_bone, pose_bone->bone_get(*object)}))
+      {
+        skip_fcurve = true;
+      }
       tags.push(
           {ChannelTagType::BONE, pose_bone->name, pose_bone_pointer, fcu->rna_path_parsed()});
     }
-    PointerRNA fcurve_ptr = RNA_pointer_create_with_parent(channelbag_ptr, RNA_FCurve, fcu);
-    FCurveChannel *channel = arena.allocate_data_channel<FCurveChannel>(
-        fcurve_ptr, ParsedRNAPathRef(rna_path_items));
-    channel->tags().set(tags.as_set());
+    if (!skip_fcurve) {
+      PointerRNA fcurve_ptr = RNA_pointer_create_with_parent(channelbag_ptr, RNA_FCurve, fcu);
+      FCurveChannel *channel = arena.allocate_data_channel<FCurveChannel>(
+          fcurve_ptr, ParsedRNAPathRef(rna_path_items));
+      channel->tags().set(tags.as_set());
+    }
 
     /* Pop the FCurve off the RNA path. */
     rna_path_items.pop_last();
@@ -119,7 +136,8 @@ static void channels_for_channelbag(const PointerRNA &channelbag_ptr,
 static void channels_for_action_slot(animrig::Action &action,
                                      const animrig::slot_handle_t slot_handle,
                                      ChannelTagStack &tags,
-                                     ChannelArena &arena)
+                                     ChannelArena &arena,
+                                     const CollectionFilters &collection_filters)
 {
   using namespace animrig;
 
@@ -183,7 +201,7 @@ static void channels_for_action_slot(animrig::Action &action,
 
       PointerRNA channelbag_ptr = RNA_pointer_create_with_parent(
           strip_ptr, RNA_ActionChannelbag, channelbag);
-      channels_for_channelbag(channelbag_ptr, tags, rna_path_items, arena);
+      channels_for_channelbag(channelbag_ptr, tags, rna_path_items, arena, collection_filters);
 
       /* Pop the channelbag off the RNA path. */
       rna_path_items.pop_last();
@@ -226,7 +244,7 @@ static void collect_channels_for_id(ID *animated_id,
   PointerRNA animated_id_ptr = RNA_pointer_create_discrete(
       animated_id, ID_code_to_RNA_type(animated_id->id_type()), animated_id);
   tags.push({ChannelTagType::ID, animated_id->name + 2, animated_id_ptr, ParsedRNAPathRef()});
-  channels_for_action_slot(adt->action->wrap(), adt->slot_handle, tags, arena);
+  channels_for_action_slot(adt->action->wrap(), adt->slot_handle, tags, arena, collection_filters);
   tags.pop();
 }
 
