@@ -174,9 +174,7 @@ if(WITH_CODEC_FFMPEG)
     vorbisfile vpx x264)
   # Frameworks required by libavfilter, using legacy macOS CGL
   string(APPEND PLATFORM_LINKFLAGS " -framework CoreImage -framework OpenGL")
-  string(APPEND PLATFORM_LINKFLAGS
-    " -framework VideoToolbox -framework CoreMedia -framework CoreVideo"
-  )
+  string(APPEND PLATFORM_LINKFLAGS " -framework VideoToolbox -framework CoreMedia -framework CoreVideo")
   if(EXISTS ${LIBDIR}/ffmpeg/lib/libaom.a)
     list(APPEND FFMPEG_FIND_COMPONENTS aom)
   endif()
