@@ -349,9 +349,12 @@ def run_blender(
         stdout=subprocess.PIPE,
         # Allow the caller to read a non-zero return-code.
         check=False,
+        # Decode using universal newlines, WIN32 writes CRLF which breaks output comparisons.
+        text=True,
+        encoding="utf-8",
     )
-    stdout = output.stdout.decode("utf-8")
-    stderr = output.stderr.decode("utf-8")
+    stdout = output.stdout
+    stderr = output.stderr
 
     if VERBOSE_CMD:
         print(stdout)
