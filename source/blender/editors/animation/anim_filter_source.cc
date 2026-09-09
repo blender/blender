@@ -10,6 +10,7 @@
 #include "DNA_anim_types.h"
 #include "DNA_grease_pencil_types.h"
 #include "DNA_material_types.h"
+#include "DNA_node_types.h"
 #include "DNA_object_types.h"
 
 #include "RNA_access.hh"
@@ -109,8 +110,10 @@ static void channels_for_channelbag(const PointerRNA &channelbag_ptr,
       {
         skip_fcurve = true;
       }
-      tags.push(
-          {ChannelTagType::BONE, pose_bone->name, pose_bone_pointer, fcu->rna_path_parsed()});
+      tags.push({ChannelTagType::BONE,
+                 pose_bone->name,
+                 pose_bone_pointer,
+                 fcu->rna_path_parsed().slice(0, 3)});
     }
     if (!skip_fcurve) {
       PointerRNA fcurve_ptr = RNA_pointer_create_with_parent(channelbag_ptr, RNA_FCurve, fcu);
@@ -255,8 +258,12 @@ void collection_channels_for_object(Object &obj,
   collect_channels_for_id(&obj.id, collection_filters, arena);
   collect_channels_for_id(obj.data, collection_filters, arena);
   for (int i = 0; i < obj.totcol; i++) {
-    collect_channels_for_id(&obj.mat[i]->id, collection_filters, arena);
+    if (obj.mat[i]) {
+      collect_channels_for_id(&obj.mat[i]->id, collection_filters, arena);
+      collect_channels_for_id(&obj.mat[i]->nodetree->id, collection_filters, arena);
+    }
   }
+
   if (obj.type == OB_GREASE_PENCIL && obj.data) {
     ChannelTagStack tags;
     GreasePencil *gp = id_cast<GreasePencil *>(obj.data);
