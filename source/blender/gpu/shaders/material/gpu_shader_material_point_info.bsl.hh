@@ -4,7 +4,7 @@
 
 #pragma once
 
-#include "gpu_shader_common_hash.glsl"
+#include "gpu_shader_common_hash.bsl.hh"
 
 [[node]]
 void node_point_info(float3 &position, float &radius, float &random)

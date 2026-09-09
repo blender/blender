@@ -529,7 +529,7 @@ class _draw_tool_settings_context_mode:
         BrushAssetShelf.draw_popup_selector(layout, context, brush)
 
         if brush.gpencil_vertex_brush_type not in {'BLUR', 'AVERAGE', 'SMEAR'}:
-            layout.separator(factor=0.4)
+            layout.separator(factor=layout.property_split_factor)
             ups = paint.unified_paint_settings
             prop_owner = ups if brush.use_unified_color else brush
             layout.prop_with_popover(prop_owner, "color", text="", panel="TOPBAR_PT_grease_pencil_vertex_color")
@@ -705,7 +705,7 @@ class _draw_tool_settings_context_mode:
             brush_basic__draw_color_selector(context, layout, brush, brush.gpencil_settings)
 
         if grease_pencil_tool == 'TINT':
-            row.separator(factor=0.4)
+            row.separator(factor=layout.property_split_factor)
             row.prop_with_popover(brush, "color", text="", panel="TOPBAR_PT_grease_pencil_vertex_color")
 
         from bl_ui.properties_paint_common import (

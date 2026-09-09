@@ -5,7 +5,7 @@
 #pragma once
 
 #include "gpu_shader_material_voronoi.bsl.hh"
-#include "gpu_shader_math_vector_safe_lib.glsl"
+#include "gpu_shader_math_vector_safe.bsl.hh"
 
 /* TODO(jbakker): Deduplicate code when OpenGL backend has been removed.
  * `fractal_voronoi_x_fx` functions are identical, except for the input parameter.

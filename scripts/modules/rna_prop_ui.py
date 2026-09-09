@@ -206,7 +206,7 @@ def draw(layout, context, context_member, property_type, *, use_edit=True):
         elif to_list:
             value = to_list()
 
-        split = layout.split(factor=0.4, align=True)
+        split = layout.split(factor=layout.property_split_factor, align=True)
         label_row = split.row()
         label_row.alignment = 'RIGHT'
         label_row.label(text=key, translate=False)

@@ -4,9 +4,9 @@
 
 #pragma once
 
-#include "gpu_shader_math_matrix_construct_lib.glsl"
-#include "gpu_shader_math_vector_reduce_lib.glsl"
-#include "gpu_shader_utildefines_lib.glsl" /* IWYU pragma: export constants */
+#include "gpu_shader_math_matrix_construct.bsl.hh"
+#include "gpu_shader_math_vector_reduce.bsl.hh"
+#include "gpu_shader_utildefines.bsl.hh" /* IWYU pragma: export constants */
 
 /* Apply left Jacobi rotation on 3x3 matrix : matrix = rotation * matrix.
  * Rotates rows p and q. */

@@ -4,9 +4,9 @@
 
 #pragma once
 
-#include "gpu_shader_math_euler_lib.glsl"
-#include "gpu_shader_math_matrix_construct_lib.glsl"
-#include "gpu_shader_math_vector_safe_lib.glsl"
+#include "gpu_shader_math_euler.bsl.hh"
+#include "gpu_shader_math_matrix_construct.bsl.hh"
+#include "gpu_shader_math_vector_safe.bsl.hh"
 
 [[node]]
 void mapping_mat4(float3 vec,

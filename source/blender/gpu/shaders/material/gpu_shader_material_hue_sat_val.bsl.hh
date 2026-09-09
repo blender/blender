@@ -4,7 +4,7 @@
 
 #pragma once
 
-#include "gpu_shader_common_color_utils.glsl"
+#include "gpu_shader_common_color_utils.bsl.hh"
 
 [[node]]
 void hue_sat(float hue, float sat, float value, float fac, float4 col, float4 &outcol)

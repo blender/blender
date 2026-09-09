@@ -9,8 +9,8 @@
 #include "eevee_camera_shared.hh"
 #include "eevee_defines.hh"
 #include "eevee_velocity_shared.hh"
-#include "gpu_shader_math_base_lib.glsl"
-#include "gpu_shader_math_matrix_transform_lib.glsl"
+#include "gpu_shader_math_base.bsl.hh"
+#include "gpu_shader_math_matrix_transform.bsl.hh"
 
 namespace eevee::velocity {
 

@@ -15,8 +15,8 @@ VERTEX_SHADER_CREATE_INFO(overlay_edit_mesh_edge)
 #include "draw_view_lib.glsl"
 #include "gpu_shader_attribute_load_lib.glsl"
 #include "gpu_shader_index_load_lib.glsl"
-#include "gpu_shader_math_vector_lib.glsl"
-#include "gpu_shader_utildefines_lib.glsl"
+#include "gpu_shader_math_vector.bsl.hh"
+#include "gpu_shader_utildefines.bsl.hh"
 #include "overlay_edit_mesh_common_lib.glsl"
 #include "overlay_edit_mesh_lib.glsl"
 

@@ -15,7 +15,7 @@
 #include "eevee_sampling_lib.bsl.hh"
 #include "eevee_subsurface_shared.hh"
 #include "gpu_shader_compat.hh"
-#include "gpu_shader_math_base_lib.glsl"
+#include "gpu_shader_math_base.bsl.hh"
 
 namespace eevee::lut {
 

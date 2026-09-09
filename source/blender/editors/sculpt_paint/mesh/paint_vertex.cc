@@ -1793,7 +1793,7 @@ void VertexPaintStroke::update_step(wmOperator * /*op*/, const StrokeStep &strok
   ss.cache->stroke_distance = this->stroke_distance();
 
   vwpaint::update_cache_variants(
-      *this->depsgraph, vc, *vertex_paint_, PaintMode::Invalid, ob, *base_, stroke_step);
+      *this->depsgraph, vc, *vertex_paint_, this->paint_mode, ob, *base_, stroke_step);
 
   ed::sculpt_paint::do_symmetrical_brush_actions(
       *this->depsgraph, *this->scene, vertex_paint_->paint, ob, vpaint_do_paint, &vpd);

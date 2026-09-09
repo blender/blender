@@ -4,7 +4,7 @@
 
 #pragma once
 
-#include "gpu_shader_common_math.glsl"
+#include "gpu_shader_common_math.bsl.hh"
 #include "gpu_shader_material_interface.bsl.hh"
 
 [[node]]

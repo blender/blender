@@ -4,9 +4,9 @@
 
 #pragma once
 
-#include "gpu_shader_math_rotation_conversion_lib.glsl"
-#include "gpu_shader_math_vector_compare_lib.glsl"
-#include "gpu_shader_math_vector_lib.glsl"
+#include "gpu_shader_math_rotation_conversion.bsl.hh"
+#include "gpu_shader_math_vector.bsl.hh"
+#include "gpu_shader_math_vector_compare.bsl.hh"
 
 [[node]]
 void axes_to_rotation(float3 primary_in,

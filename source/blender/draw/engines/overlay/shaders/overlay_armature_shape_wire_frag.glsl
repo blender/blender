@@ -6,7 +6,7 @@
 
 FRAGMENT_SHADER_CREATE_INFO(overlay_armature_shape_wire)
 
-#include "gpu_shader_utildefines_lib.glsl"
+#include "gpu_shader_utildefines.bsl.hh"
 #include "select_lib.glsl"
 
 float edge_step(float dist)

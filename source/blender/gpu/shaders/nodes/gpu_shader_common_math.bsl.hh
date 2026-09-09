@@ -6,8 +6,7 @@
 
 #include "gpu_shader_compat.hh"
 
-#include "gpu_shader_math_base_lib.glsl"
-#include "gpu_shader_math_safe_lib.glsl"
+#include "gpu_shader_math_safe.bsl.hh"
 
 [[node]]
 void math_add(float a, float b, float /*c*/, float &result)

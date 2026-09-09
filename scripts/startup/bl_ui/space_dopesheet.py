@@ -786,7 +786,7 @@ class DOPESHEET_PT_action_slot(Panel):
         except (KeyError, IndexError, AttributeError) as ex:
             idtype_label = str(ex)
 
-        split = layout.split(factor=0.4)
+        split = layout.split(factor=layout.property_split_factor)
         split.alignment = 'RIGHT'
         split.label(text="Type")
         split.alignment = 'LEFT'

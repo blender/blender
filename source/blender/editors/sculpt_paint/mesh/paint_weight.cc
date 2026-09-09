@@ -1810,7 +1810,7 @@ void WeightPaintStroke::update_step(wmOperator * /*op*/, const StrokeStep &strok
   StrokeCache &cache = *ss.cache;
 
   vwpaint::update_cache_variants(
-      *this->depsgraph, *vc, wp, PaintMode::Invalid, *ob, *this->base_, stroke_step);
+      *this->depsgraph, *vc, wp, this->paint_mode, *ob, *this->base_, stroke_step);
 
   const float brush_alpha_value = BKE_brush_alpha_get(&wp.paint, &brush);
 

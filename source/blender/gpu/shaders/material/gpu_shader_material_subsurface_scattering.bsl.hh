@@ -5,7 +5,7 @@
 #pragma once
 
 #include "gpu_shader_material_interface.bsl.hh"
-#include "gpu_shader_math_vector_safe_lib.glsl"
+#include "gpu_shader_math_vector_safe.bsl.hh"
 
 [[node]]
 void node_subsurface_scattering(float4 color,

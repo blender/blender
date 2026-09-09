@@ -4,7 +4,7 @@
 
 #pragma once
 
-#include "gpu_shader_math_vector_compare_lib.glsl"
+#include "gpu_shader_math_vector_compare.bsl.hh"
 
 [[node]]
 void quaternion_to_rotation(float w, float x, float y, float z, float4 &rotation)

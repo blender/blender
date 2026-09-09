@@ -111,7 +111,6 @@ static void pixel_radius_update(PaintCursorContext &pcontext)
 }
 
 /* Special actions taken when paint cursor goes over mesh */
-/* TODO: sculpt only for now. */
 /* TODO: We should not be updating data as part of the drawing callbacks. */
 static void brush_unprojected_size_update(Paint &paint,
                                           Brush &brush,
@@ -191,7 +190,7 @@ void mesh_cursor_update_and_init(PaintCursorContext &pcontext)
     pcontext.location = paint_runtime.last_location;
   }
 
-  if (bke::paint::supports_scene_size(pcontext.mode)) {
+  if (bke::paint::supports_scene_size(pcontext.mode, brush)) {
     pixel_radius_update(pcontext);
 
     if (BKE_brush_use_locked_size(pcontext.paint, &brush)) {
@@ -349,7 +348,7 @@ static void screen_space_point_draw(const uint gpuattr,
 static void tiling_preview_draw(const uint gpuattr,
                                 const ARegion *region,
                                 const float true_location[3],
-                                const Sculpt &sd,
+                                const Paint &paint,
                                 const Object &ob,
                                 const float radius)
 {
@@ -364,11 +363,11 @@ static void tiling_preview_draw(const uint gpuattr,
   int start[3];
   int end[3];
   int cur[3];
-  const float *step = sd.paint.tile_offset;
+  const float *step = paint.tile_offset;
 
   copy_v3_v3(orgLoc, true_location);
   for (int dim = 0; dim < 3; dim++) {
-    if ((sd.paint.symmetry_flags & (PAINT_TILE_X << dim)) && step[dim] > 0) {
+    if ((paint.symmetry_flags & (PAINT_TILE_X << dim)) && step[dim] > 0) {
       start[dim] = (bounds.min[dim] - orgLoc[dim] - radius) / step[dim];
       end[dim] = (bounds.max[dim] - orgLoc[dim] + radius) / step[dim];
     }
@@ -396,10 +395,11 @@ static void tiling_preview_draw(const uint gpuattr,
 }
 
 static void point_with_symmetry_draw(const PaintMode paint_mode,
+                                     const Brush &brush,
                                      const uint gpuattr,
                                      const ARegion *region,
                                      const float true_location[3],
-                                     const Sculpt *sd,
+                                     const Paint &paint,
                                      const Object &ob,
                                      const float radius)
 {
@@ -416,9 +416,8 @@ static void point_with_symmetry_draw(const PaintMode paint_mode,
       screen_space_point_draw(gpuattr, region, location, ob.object_to_world().ptr(), 3);
 
       /* Tiling. */
-      if (bke::paint::supports_symmetry_tiling(paint_mode)) {
-        BLI_assert(sd && paint_mode == PaintMode::Sculpt);
-        tiling_preview_draw(gpuattr, region, location, *sd, ob, radius);
+      if (bke::paint::supports_symmetry_tiling(paint_mode, brush)) {
+        tiling_preview_draw(gpuattr, region, location, paint, ob, radius);
       }
 
       /* Radial Symmetry. */
@@ -430,9 +429,8 @@ static void point_with_symmetry_draw(const PaintMode paint_mode,
           rotate_m4(symm_rot_mat, raxis + 'X', angle);
           mul_m4_v3(symm_rot_mat, location);
 
-          if (bke::paint::supports_symmetry_tiling(paint_mode)) {
-            BLI_assert(sd && paint_mode == PaintMode::Sculpt);
-            tiling_preview_draw(gpuattr, region, location, *sd, ob, radius);
+          if (bke::paint::supports_symmetry_tiling(paint_mode, brush)) {
+            tiling_preview_draw(gpuattr, region, location, paint, ob, radius);
           }
           screen_space_point_draw(gpuattr, region, location, ob.object_to_world().ptr(), 3);
         }
@@ -566,10 +564,11 @@ static void screen_space_overlays_draw(const PaintCursorContext &pcontext)
   if (math::distance(active_vertex_co, pcontext.location) < pcontext.radius) {
     immUniformColor3fvAlpha(pcontext.outline_col, pcontext.outline_alpha);
     point_with_symmetry_draw(pcontext.mode,
+                             brush,
                              pcontext.pos,
                              pcontext.region,
                              active_vertex_co,
-                             pcontext.sd,
+                             *pcontext.paint,
                              active_object,
                              pcontext.radius);
   }

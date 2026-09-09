@@ -8,7 +8,7 @@
 
 #include "eevee_pipeline.bsl.hh"
 #include "gpu_shader_codegen_lib.glsl"
-#include "gpu_shader_math_vector_reduce_lib.glsl"
+#include "gpu_shader_math_vector_reduce.bsl.hh"
 
 packed_float3 g_emission;
 packed_float3 g_transmittance;

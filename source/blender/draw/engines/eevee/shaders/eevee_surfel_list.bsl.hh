@@ -7,7 +7,7 @@
 #include "draw_view.bsl.hh"
 #include "eevee_surfel.bsl.hh"
 #include "gpu_shader_index_range_lib.glsl"
-#include "gpu_shader_math_matrix_transform_lib.glsl"
+#include "gpu_shader_math_matrix_transform.bsl.hh"
 
 namespace eevee::surfel {
 

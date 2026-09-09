@@ -9,7 +9,7 @@ VERTEX_SHADER_CREATE_INFO(overlay_armature_stick)
 #include "draw_model_lib.glsl"
 #include "draw_view_clipping_lib.glsl"
 #include "draw_view_lib.glsl"
-#include "gpu_shader_utildefines_lib.glsl"
+#include "gpu_shader_utildefines.bsl.hh"
 #include "select_lib.glsl"
 
 /* project to screen space */

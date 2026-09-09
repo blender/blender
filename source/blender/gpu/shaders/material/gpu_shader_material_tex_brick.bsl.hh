@@ -4,7 +4,7 @@
 
 #pragma once
 
-#include "gpu_shader_common_hash.glsl"
+#include "gpu_shader_common_hash.bsl.hh"
 
 float2 calc_brick_texture(float3 p,
                           float mortar_size,

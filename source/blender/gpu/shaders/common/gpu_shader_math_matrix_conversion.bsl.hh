@@ -4,11 +4,11 @@
 
 #pragma once
 
-#include "gpu_shader_math_base_lib.glsl"
-#include "gpu_shader_math_euler_lib.glsl"
-#include "gpu_shader_math_matrix_compare_lib.glsl"
-#include "gpu_shader_math_quaternion_lib.glsl"
-#include "gpu_shader_utildefines_lib.glsl"
+#include "gpu_shader_math_base.bsl.hh"
+#include "gpu_shader_math_euler.bsl.hh"
+#include "gpu_shader_math_matrix_compare.bsl.hh"
+#include "gpu_shader_math_quaternion.bsl.hh"
+#include "gpu_shader_utildefines.bsl.hh"
 
 /* -------------------------------------------------------------------- */
 /** \name Conversion function.

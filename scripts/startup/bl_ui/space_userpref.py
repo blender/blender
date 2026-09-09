@@ -693,7 +693,7 @@ class USERPREF_PT_animation_timeline_advanced(AnimationPanel, CenterAlignMixIn, 
         edit = prefs.edit
 
         layout.prop(edit, "use_negative_frames")
-        split = layout.split(factor=0.4)
+        split = layout.split(factor=layout.property_split_factor)
         split.active = edit.use_negative_frames
         split.separator()
         split.label_multiline(
@@ -837,7 +837,7 @@ class USERPREF_PT_system_network(SystemPanel, CenterAlignMixIn, Panel):
         # Show when the preference has been overridden and doesn't match the current preference.
         runtime_online_access = bpy.app.online_access
         if system.use_online_access != runtime_online_access:
-            row = layout.split(factor=0.4)
+            row = layout.split(factor=layout.property_split_factor)
             row.label(text="")
             if runtime_online_access:
                 text = iface_("Enabled on startup, overriding the preference.")

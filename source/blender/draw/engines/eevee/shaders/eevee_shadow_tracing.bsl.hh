@@ -15,10 +15,10 @@
 #include "eevee_shadow.bsl.hh"
 #include "eevee_thickness_lib.bsl.hh"
 #include "eevee_uniform.bsl.hh"
-#include "gpu_shader_math_base_lib.glsl"
-#include "gpu_shader_math_rotation_lib.glsl"
-#include "gpu_shader_math_vector_safe_lib.glsl"
-#include "gpu_shader_ray_utils_lib.glsl"
+#include "gpu_shader_math_base.bsl.hh"
+#include "gpu_shader_math_rotation.bsl.hh"
+#include "gpu_shader_math_vector_safe.bsl.hh"
+#include "gpu_shader_ray_utils.bsl.hh"
 
 namespace eevee {
 

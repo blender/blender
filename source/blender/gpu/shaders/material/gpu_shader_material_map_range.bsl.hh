@@ -4,8 +4,8 @@
 
 #pragma once
 
-#include "gpu_shader_math_safe_lib.glsl"
-#include "gpu_shader_math_vector_safe_lib.glsl"
+#include "gpu_shader_math_safe.bsl.hh"
+#include "gpu_shader_math_vector_safe.bsl.hh"
 
 float smootherstep(float edge0, float edge1, float x)
 {

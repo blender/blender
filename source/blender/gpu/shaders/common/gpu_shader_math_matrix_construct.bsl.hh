@@ -4,11 +4,11 @@
 
 #pragma once
 
-#include "gpu_shader_math_angle_lib.glsl"
-#include "gpu_shader_math_axis_angle_lib.glsl"
-#include "gpu_shader_math_base_lib.glsl"
-#include "gpu_shader_math_euler_lib.glsl"
-#include "gpu_shader_math_quaternion_lib.glsl"
+#include "gpu_shader_math_angle.bsl.hh"
+#include "gpu_shader_math_axis_angle.bsl.hh"
+#include "gpu_shader_math_base.bsl.hh"
+#include "gpu_shader_math_euler.bsl.hh"
+#include "gpu_shader_math_quaternion.bsl.hh"
 
 /* -------------------------------------------------------------------- */
 /** \name Static constructors

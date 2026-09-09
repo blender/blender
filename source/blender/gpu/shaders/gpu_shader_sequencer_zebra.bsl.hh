@@ -4,7 +4,7 @@
 
 #pragma once
 
-#include "gpu_shader_common_color_utils.glsl"
+#include "gpu_shader_common_color_utils.bsl.hh"
 
 namespace sequencer::zebra {
 

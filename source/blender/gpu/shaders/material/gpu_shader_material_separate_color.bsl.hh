@@ -4,7 +4,7 @@
 
 #pragma once
 
-#include "gpu_shader_common_color_utils.glsl"
+#include "gpu_shader_common_color_utils.bsl.hh"
 
 [[node]]
 void separate_color_rgb(float4 col, float &r, float &g, float &b)

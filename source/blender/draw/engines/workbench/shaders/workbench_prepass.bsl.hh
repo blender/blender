@@ -11,7 +11,7 @@
 #include "draw_pointcloud_lib.glsl"
 #include "draw_view.bsl.hh"
 #include "draw_view_clipping_lib.glsl"
-#include "gpu_shader_math_base_lib.glsl"
+#include "gpu_shader_math_base.bsl.hh"
 #include "workbench_common.bsl.hh"
 #include "workbench_image.bsl.hh"
 #include "workbench_matcap.bsl.hh"

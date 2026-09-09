@@ -4,8 +4,8 @@
 
 #pragma once
 
-#include "gpu_shader_math_base_lib.glsl"
-#include "gpu_shader_math_constants_lib.glsl"
+#include "gpu_shader_math_base.bsl.hh"
+#include "gpu_shader_math_constants.bsl.hh"
 
 /* Define macro flags for code adaption. */
 /* No macro flags necessary, as code is adapted to GLSL by default. */

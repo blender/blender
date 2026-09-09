@@ -4,8 +4,8 @@
 
 #pragma once
 
-#include "gpu_shader_math_euler_lib.glsl"
-#include "gpu_shader_math_matrix_construct_lib.glsl"
+#include "gpu_shader_math_euler.bsl.hh"
+#include "gpu_shader_math_matrix_construct.bsl.hh"
 
 float3 rotate_around_axis(float3 p, float3 axis, float angle)
 {

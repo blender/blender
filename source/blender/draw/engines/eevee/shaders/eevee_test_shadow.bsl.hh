@@ -6,9 +6,9 @@
 
 #include "eevee_shadow.bsl.hh"
 
-#include "gpu_shader_math_vector_lib.glsl"
+#include "gpu_shader_math_vector.bsl.hh"
 #include "gpu_shader_test_lib.bsl.hh"
-#include "gpu_shader_utildefines_lib.glsl" /* IWYU pragma: export FLT_MAX */
+#include "gpu_shader_utildefines.bsl.hh" /* IWYU pragma: export FLT_MAX */
 
 void set_clipmap_data(LightData &light,
                       int clipmap_lod_min,

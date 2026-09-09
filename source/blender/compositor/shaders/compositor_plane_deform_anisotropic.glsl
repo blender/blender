@@ -7,7 +7,7 @@
 COMPUTE_SHADER_CREATE_INFO(compositor_plane_deform_anisotropic_masked)
 
 #include "gpu_shader_compositor_texture_utilities.glsl"
-#include "gpu_shader_math_base_lib.glsl"
+#include "gpu_shader_math_base.bsl.hh"
 
 void main()
 {

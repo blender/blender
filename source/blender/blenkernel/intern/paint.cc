@@ -1880,7 +1880,7 @@ bool paint_is_bmesh_face_hidden(const BMFace *f)
 }
 
 namespace bke::paint {
-bool supports_scene_size(const PaintMode paint_mode)
+bool supports_scene_size(const PaintMode paint_mode, const Brush &brush)
 {
   switch (paint_mode) {
     case PaintMode::Sculpt:
@@ -1888,7 +1888,10 @@ bool supports_scene_size(const PaintMode paint_mode)
     case PaintMode::Vertex:
     case PaintMode::Weight:
     case PaintMode::Texture3D:
-      return false;
+      if (!USER_EXPERIMENTAL_TEST(&U, use_3d_texture_paint)) {
+        return false;
+      }
+      return brush::implements_3d_texture_paint(brush);
     case PaintMode::GPencil:
     case PaintMode::VertexGPencil:
     case PaintMode::SculptGPencil:
@@ -1905,15 +1908,19 @@ bool supports_scene_size(const PaintMode paint_mode)
   BLI_assert_unreachable();
   return false;
 }
-bool supports_symmetry_tiling(const PaintMode paint_mode)
+bool supports_symmetry_tiling(const PaintMode paint_mode, const Brush &brush)
 {
   switch (paint_mode) {
     case PaintMode::Sculpt:
       return true;
     case PaintMode::Vertex:
     case PaintMode::Weight:
-    case PaintMode::Texture3D:
       return false;
+    case PaintMode::Texture3D:
+      if (!USER_EXPERIMENTAL_TEST(&U, use_3d_texture_paint)) {
+        return false;
+      }
+      return brush::implements_3d_texture_paint(brush);
     case PaintMode::GPencil:
     case PaintMode::VertexGPencil:
     case PaintMode::SculptGPencil:

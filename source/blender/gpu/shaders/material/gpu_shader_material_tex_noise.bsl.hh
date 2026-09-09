@@ -12,7 +12,7 @@
 
 #pragma once
 
-#include "gpu_shader_common_hash.glsl"
+#include "gpu_shader_common_hash.bsl.hh"
 #include "gpu_shader_material_fractal_noise.bsl.hh"
 #include "gpu_shader_material_noise.bsl.hh"
 

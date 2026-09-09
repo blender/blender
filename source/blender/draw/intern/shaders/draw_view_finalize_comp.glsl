@@ -11,7 +11,7 @@
 #include "draw_view_infos.hh"
 
 #include "draw_view_lib.glsl"
-#include "gpu_shader_math_matrix_transform_lib.glsl"
+#include "gpu_shader_math_matrix_transform.bsl.hh"
 
 COMPUTE_SHADER_CREATE_INFO(draw_view_finalize)
 
