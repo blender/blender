@@ -119,6 +119,15 @@ class ChannelTagStack {
   {
     tags_.pop_last();
   };
+  const ChannelTag *find_type(const ChannelTagType t) const
+  {
+    for (const ChannelTag &tag : this->tags_) {
+      if (tag.tag_type() == t) {
+        return &tag;
+      }
+    }
+    return nullptr;
+  }
 
   Set<ChannelTag> as_set() const
   {

@@ -19,8 +19,10 @@
 #include "BKE_anim_data.hh"
 #include "BKE_context.hh"
 #include "BKE_grease_pencil.hh"
+#include "BKE_pose.hh"
 
 #include "ANIM_action.hh"
+#include "ANIM_rna.hh"
 
 #include "ED_anim_filter.hh"
 
@@ -31,6 +33,27 @@ namespace blender::ed::animfilter {
 static bool has_assigned_action(AnimData &anim_data)
 {
   return anim_data.action != nullptr && anim_data.slot_handle != animrig::Slot::unassigned;
+}
+
+/* Find the bPoseChannel that this FCurve references. If it does not reference a pose bone, nullptr
+ * is returned. The `tags` have to contain a tag of type ID that is an Object. */
+static PointerRNA pose_bone_for_fcurve(const FCurve &fcurve, const ChannelTagStack &tags)
+{
+  std::optional<std::string> bone_name = animrig::pose_bone_name_from_rna_path(
+      fcurve.rna_path_parsed());
+  if (!bone_name) {
+    return {};
+  }
+  /* Assuming here that we have an ID that this action is assigned to. We need the object to find
+   * the pose bone. */
+  const ChannelTag *id_tag = tags.find_type(ChannelTagType::ID);
+  if (!id_tag || id_tag->source_data().type != RNA_Object) {
+    return {};
+  }
+  Object *obj = id_tag->source_data().data_as<Object>();
+  bPoseChannel *pose_bone = BKE_pose_channel_find_name(obj->pose, bone_name.value().c_str());
+  PointerRNA pose_bone_pointer = RNA_pointer_create_discrete(&obj->id, RNA_PoseBone, pose_bone);
+  return pose_bone_pointer;
 }
 
 /**
@@ -65,6 +88,15 @@ static void channels_for_channelbag(const PointerRNA &channelbag_ptr,
     rna_path_items.append(rna_path::Member{UString("fcurves")});
     rna_path_items.append(rna_path::LookupIndex{fcurve_index});
 
+    PointerRNA pose_bone_pointer = pose_bone_for_fcurve(*fcu, tags);
+
+    if (pose_bone_pointer.has_data()) {
+      /* We have to check for visibility here. This is not as nice as with objects where we can
+       * just skip the object entirely since bones are not the owner of their animation. */
+      bPoseChannel *pose_bone = pose_bone_pointer.data_as<bPoseChannel>();
+      tags.push(
+          {ChannelTagType::BONE, pose_bone->name, pose_bone_pointer, fcu->rna_path_parsed()});
+    }
     PointerRNA fcurve_ptr = RNA_pointer_create_with_parent(channelbag_ptr, RNA_FCurve, fcu);
     FCurveChannel *channel = arena.allocate_data_channel<FCurveChannel>(
         fcurve_ptr, ParsedRNAPathRef(rna_path_items));
@@ -73,6 +105,10 @@ static void channels_for_channelbag(const PointerRNA &channelbag_ptr,
     /* Pop the FCurve off the RNA path. */
     rna_path_items.pop_last();
     rna_path_items.pop_last();
+
+    if (pose_bone_pointer.has_data()) {
+      tags.pop();
+    }
 
     if (fcu->grp) {
       tags.pop();
