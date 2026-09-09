@@ -226,8 +226,7 @@ void draw_channel_tree(const bContext &C, SummaryChannel &root, View2D & /* v2d 
                                         ui::LayoutDirection::Vertical,
                                         ui::LayoutType::Panel,
                                         0,
-                                        region->winy - UI_TIME_SCRUB_MARGIN_Y -
-                                            ANIM_UI_get_channel_skip(),
+                                        -UI_TIME_SCRUB_MARGIN_Y - ANIM_UI_get_channel_skip(),
                                         region->winx,
                                         0,
                                         0,
