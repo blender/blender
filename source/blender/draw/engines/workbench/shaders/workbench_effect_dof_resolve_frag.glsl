@@ -11,7 +11,7 @@
 #include "infos/workbench_effect_dof_infos.hh"
 
 #include "draw_view_lib.glsl"
-#include "gpu_shader_utildefines_lib.glsl"
+#include "gpu_shader_utildefines.bsl.hh"
 #include "workbench_effect_dof_lib.glsl"
 
 /**

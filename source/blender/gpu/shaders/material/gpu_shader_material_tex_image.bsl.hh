@@ -4,10 +4,10 @@
 
 #pragma once
 
-#include "gpu_shader_bicubic_sampler_lib.glsl"
+#include "gpu_shader_bicubic_sampler.bsl.hh"
 #include "gpu_shader_material_interface.bsl.hh"
-#include "gpu_shader_math_constants_lib.glsl"
-#include "gpu_shader_tiled_image_lookup_lib.glsl"
+#include "gpu_shader_math_constants.bsl.hh"
+#include "gpu_shader_tiled_image_lookup.bsl.hh"
 
 [[node]]
 void point_texco_remap_square(float3 vin, float3 &vout)

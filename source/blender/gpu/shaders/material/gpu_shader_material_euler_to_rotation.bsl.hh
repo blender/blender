@@ -4,8 +4,8 @@
 
 #pragma once
 
-#include "gpu_shader_math_euler_lib.glsl"
-#include "gpu_shader_math_rotation_conversion_lib.glsl"
+#include "gpu_shader_math_euler.bsl.hh"
+#include "gpu_shader_math_rotation_conversion.bsl.hh"
 
 [[node]]
 void euler_to_rotation(float3 euler, float4 &rotation)

@@ -17,7 +17,9 @@
 #  define USHRT_MAX 0x0000FFFFu
 #  define UINT_MAX 0xFFFFFFFFu
 #endif
-#define NAN_FLT uintBitsToFloat(0x7FC00000u)
+#ifndef NAN_FLT
+#  define NAN_FLT uintBitsToFloat(0x7FC00000u)
+#endif
 #define FLT_11_MAX uintBitsToFloat(0x477E0000)
 #define FLT_10_MAX uintBitsToFloat(0x477C0000)
 #define FLT_11_11_10_MAX float3(FLT_11_MAX, FLT_11_MAX, FLT_10_MAX)
@@ -74,9 +76,6 @@ void set_flag_from_test(int &value, bool test, int flag)
     value &= ~flag;
   }
 }
-
-/* Keep define to match C++ implementation. */
-#define SET_FLAG_FROM_TEST(value, test, flag) set_flag_from_test(value, test, flag)
 
 /**
  * Return true if the bit inside bitmask at bit_index is set high.

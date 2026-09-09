@@ -15,7 +15,7 @@
 #include "draw_shape_lib.glsl"
 #include "eevee_light_iter.bsl.hh"
 #include "eevee_shadow_shared.hh"
-#include "gpu_shader_utildefines_lib.glsl"
+#include "gpu_shader_utildefines.bsl.hh"
 
 namespace eevee::shadow {
 

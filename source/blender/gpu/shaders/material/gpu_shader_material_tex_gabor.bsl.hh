@@ -20,9 +20,9 @@
 
 #pragma once
 
-#include "gpu_shader_common_hash.glsl"
-#include "gpu_shader_math_constants_lib.glsl"
-#include "gpu_shader_math_vector_lib.glsl"
+#include "gpu_shader_common_hash.bsl.hh"
+#include "gpu_shader_math_constants.bsl.hh"
+#include "gpu_shader_math_vector.bsl.hh"
 
 #define SHD_GABOR_TYPE_2D 0.0f
 #define SHD_GABOR_TYPE_3D 1.0f

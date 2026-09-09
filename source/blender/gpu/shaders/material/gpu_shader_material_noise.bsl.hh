@@ -4,8 +4,8 @@
 
 #pragma once
 
-#include "gpu_shader_common_hash.glsl"
-#include "gpu_shader_math_vector_safe_lib.glsl"
+#include "gpu_shader_common_hash.bsl.hh"
+#include "gpu_shader_math_vector_safe.bsl.hh"
 
 /* clang-format off */
 #define FLOORFRAC(x, x_int, x_fract) { float x_floor = floor(x); x_int = int(x_floor); x_fract = x - x_floor; }

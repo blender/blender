@@ -5,7 +5,7 @@
 #pragma once
 
 #include "gpu_shader_compat.hh"
-#include "gpu_shader_math_vector_lib.glsl"
+#include "gpu_shader_math_vector.bsl.hh"
 
 /* -------------------------------------------------------------------- */
 /** \name Normalize

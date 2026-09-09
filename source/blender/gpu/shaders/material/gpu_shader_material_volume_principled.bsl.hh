@@ -6,7 +6,7 @@
 
 #include "gpu_shader_material_blackbody.bsl.hh"
 #include "gpu_shader_material_interface.bsl.hh"
-#include "gpu_shader_math_constants_lib.glsl"
+#include "gpu_shader_math_constants.bsl.hh"
 
 [[node]]
 void node_volume_principled(float4 color,

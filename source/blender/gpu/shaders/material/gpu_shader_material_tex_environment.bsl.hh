@@ -5,7 +5,7 @@
 #pragma once
 
 #include "gpu_shader_material_vector_math.bsl.hh"
-#include "gpu_shader_math_base_lib.glsl"
+#include "gpu_shader_math_base.bsl.hh"
 
 [[node]]
 void node_tex_environment_equirectangular(float3 co, float3 &uv)

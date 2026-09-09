@@ -11,7 +11,7 @@
 #pragma once
 
 #include "eevee_renderpass.bsl.hh"
-#include "gpu_shader_fullscreen_lib.glsl"
+#include "gpu_shader_fullscreen.bsl.hh"
 
 namespace eevee::forward {
 

@@ -6,11 +6,13 @@ set(INC_GLSL
   .
   ..
   ../..
-  ../../intern
+  ../../..
+  ../../../intern
 
   # For variadic macros
   ../../../blenlib
 
+  ../material
   ../common
   ../infos
   ../compat

@@ -11,8 +11,8 @@ VERTEX_SHADER_CREATE_INFO(overlay_edit_curves_handle)
 #include "draw_view_lib.glsl"
 #include "gpu_shader_attribute_load_lib.glsl"
 #include "gpu_shader_index_load_lib.glsl"
-#include "gpu_shader_math_constants_lib.glsl"
-#include "gpu_shader_utildefines_lib.glsl"
+#include "gpu_shader_math_constants.bsl.hh"
+#include "gpu_shader_utildefines.bsl.hh"
 
 #define M_TAN_PI_BY_8 tan(M_PI / 8)
 #define M_TAN_3_PI_BY_8 tan(3 * M_PI / 8)

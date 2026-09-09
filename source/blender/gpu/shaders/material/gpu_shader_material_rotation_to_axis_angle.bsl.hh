@@ -4,7 +4,7 @@
 
 #pragma once
 
-#include "gpu_shader_math_rotation_conversion_lib.glsl"
+#include "gpu_shader_math_rotation_conversion.bsl.hh"
 
 [[node]]
 void rotation_to_axis_angle(float4 rotation, float3 &axis, float &angle)

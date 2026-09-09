@@ -6,6 +6,48 @@
  * Compile shader files as C++ inside one compilation unit to lint syntax and get IDE integration.
  */
 
+#include "gpu_shader_bicubic_sampler.bsl.hh"          /* IWYU pragma: export */
+#include "gpu_shader_debug_gradients.bsl.hh"          /* IWYU pragma: export */
+#include "gpu_shader_fullscreen.bsl.hh"               /* IWYU pragma: export */
+#include "gpu_shader_index_load.bsl.hh"               /* IWYU pragma: export */
+#include "gpu_shader_math_angle.bsl.hh"               /* IWYU pragma: export */
+#include "gpu_shader_math_axis_angle.bsl.hh"          /* IWYU pragma: export */
+#include "gpu_shader_math_base.bsl.hh"                /* IWYU pragma: export */
+#include "gpu_shader_math_constants.bsl.hh"           /* IWYU pragma: export */
+#include "gpu_shader_math_euler.bsl.hh"               /* IWYU pragma: export */
+#include "gpu_shader_math_fast.bsl.hh"                /* IWYU pragma: export */
+#include "gpu_shader_math_matrix.bsl.hh"              /* IWYU pragma: export */
+#include "gpu_shader_math_matrix_adjoint.bsl.hh"      /* IWYU pragma: export */
+#include "gpu_shader_math_matrix_compare.bsl.hh"      /* IWYU pragma: export */
+#include "gpu_shader_math_matrix_construct.bsl.hh"    /* IWYU pragma: export */
+#include "gpu_shader_math_matrix_conversion.bsl.hh"   /* IWYU pragma: export */
+#include "gpu_shader_math_matrix_interpolate.bsl.hh"  /* IWYU pragma: export */
+#include "gpu_shader_math_matrix_normalize.bsl.hh"    /* IWYU pragma: export */
+#include "gpu_shader_math_matrix_projection.bsl.hh"   /* IWYU pragma: export */
+#include "gpu_shader_math_matrix_transform.bsl.hh"    /* IWYU pragma: export */
+#include "gpu_shader_math_quaternion.bsl.hh"          /* IWYU pragma: export */
+#include "gpu_shader_math_rotation.bsl.hh"            /* IWYU pragma: export */
+#include "gpu_shader_math_rotation_conversion.bsl.hh" /* IWYU pragma: export */
+#include "gpu_shader_math_safe.bsl.hh"                /* IWYU pragma: export */
+#include "gpu_shader_math_vector.bsl.hh"              /* IWYU pragma: export */
+#include "gpu_shader_math_vector_compare.bsl.hh"      /* IWYU pragma: export */
+#include "gpu_shader_math_vector_reduce.bsl.hh"       /* IWYU pragma: export */
+#include "gpu_shader_math_vector_safe.bsl.hh"         /* IWYU pragma: export */
+#include "gpu_shader_offset_indices_lib.glsl"         /* IWYU pragma: export */
+#include "gpu_shader_ray.bsl.hh"                      /* IWYU pragma: export */
+#include "gpu_shader_ray_utils.bsl.hh"                /* IWYU pragma: export */
+#include "gpu_shader_shared_exponent.bsl.hh"          /* IWYU pragma: export */
+#include "gpu_shader_test_lib.bsl.hh"                 /* IWYU pragma: export */
+#include "gpu_shader_tiled_image_lookup.bsl.hh"       /* IWYU pragma: export */
+#include "gpu_shader_utildefines.bsl.hh"              /* IWYU pragma: export */
+
+#include "gpu_shader_common_color_ramp.bsl.hh"                 /* IWYU pragma: export */
+#include "gpu_shader_common_color_utils.bsl.hh"                /* IWYU pragma: export */
+#include "gpu_shader_common_curves.bsl.hh"                     /* IWYU pragma: export */
+#include "gpu_shader_common_hash.bsl.hh"                       /* IWYU pragma: export */
+#include "gpu_shader_common_math.bsl.hh"                       /* IWYU pragma: export */
+#include "gpu_shader_common_math_utils.bsl.hh"                 /* IWYU pragma: export */
+#include "gpu_shader_common_mix_rgb.bsl.hh"                    /* IWYU pragma: export */
 #include "gpu_shader_material_add_shader.bsl.hh"               /* IWYU pragma: export */
 #include "gpu_shader_material_align_rotation_to_vector.bsl.hh" /* IWYU pragma: export */
 #include "gpu_shader_material_ambient_occlusion.bsl.hh"        /* IWYU pragma: export */

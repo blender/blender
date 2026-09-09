@@ -4,7 +4,7 @@
 
 #pragma once
 
-#include "gpu_shader_math_vector_safe_lib.glsl"
+#include "gpu_shader_math_vector_safe.bsl.hh"
 
 float3 vector_math_safe_normalize(float3 a)
 {

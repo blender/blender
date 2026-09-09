@@ -5,7 +5,7 @@
 #pragma once
 
 #include "gpu_shader_compat.hh"
-#include "gpu_shader_math_constants_lib.glsl"
+#include "gpu_shader_math_constants.bsl.hh"
 
 /* There are two common ways of implementing a linear interpolation: result = a + t * (b - a) and
  * result = (1 - t) * a + t * b. The former variant is called "mix" in our code and it ensures that

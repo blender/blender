@@ -4,10 +4,10 @@
 
 #pragma once
 
-#include "gpu_shader_common_color_utils.glsl"
-#include "gpu_shader_math_base_lib.glsl"
-#include "gpu_shader_math_rotation_lib.glsl"
-#include "gpu_shader_math_vector_lib.glsl"
+#include "gpu_shader_common_color_utils.bsl.hh"
+#include "gpu_shader_math_base.bsl.hh"
+#include "gpu_shader_math_rotation.bsl.hh"
+#include "gpu_shader_math_vector.bsl.hh"
 
 [[node]]
 void node_mix_blend(float fac, float4 col1, float4 col2, float4 &outcol)

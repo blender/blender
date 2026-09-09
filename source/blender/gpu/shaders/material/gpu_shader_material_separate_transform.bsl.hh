@@ -4,8 +4,8 @@
 
 #pragma once
 
-#include "gpu_shader_math_quaternion_lib.glsl"
-#include "gpu_shader_math_rotation_conversion_lib.glsl"
+#include "gpu_shader_math_quaternion.bsl.hh"
+#include "gpu_shader_math_rotation_conversion.bsl.hh"
 
 [[node]]
 void separate_transform(float4x4 transform, float3 &translation, float4 &rotation, float3 &scale)

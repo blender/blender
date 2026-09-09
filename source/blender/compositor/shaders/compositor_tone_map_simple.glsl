@@ -11,7 +11,7 @@
 COMPUTE_SHADER_CREATE_INFO(compositor_tone_map_simple)
 
 #include "gpu_shader_compositor_texture_utilities.glsl"
-#include "gpu_shader_math_vector_safe_lib.glsl"
+#include "gpu_shader_math_vector_safe.bsl.hh"
 
 void main()
 {

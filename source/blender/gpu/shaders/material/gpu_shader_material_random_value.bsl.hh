@@ -4,7 +4,7 @@
 
 #pragma once
 
-#include "gpu_shader_common_hash.glsl"
+#include "gpu_shader_common_hash.bsl.hh"
 
 [[node]]
 void random_value_vector(float3 min_value, float3 max_value, int id, int seed, float3 &result)

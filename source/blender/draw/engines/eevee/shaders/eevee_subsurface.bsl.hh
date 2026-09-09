@@ -11,10 +11,10 @@
 #include "eevee_sampling_lib.bsl.hh"
 #include "eevee_subsurface_shared.hh"
 #include "gpu_shader_codegen_lib.glsl"
-#include "gpu_shader_math_angle_lib.glsl"
-#include "gpu_shader_math_matrix_construct_lib.glsl"
-#include "gpu_shader_math_vector_safe_lib.glsl"
-#include "gpu_shader_shared_exponent_lib.glsl"
+#include "gpu_shader_math_angle.bsl.hh"
+#include "gpu_shader_math_matrix_construct.bsl.hh"
+#include "gpu_shader_math_vector_safe.bsl.hh"
+#include "gpu_shader_shared_exponent.bsl.hh"
 
 namespace eevee::subsurface {
 

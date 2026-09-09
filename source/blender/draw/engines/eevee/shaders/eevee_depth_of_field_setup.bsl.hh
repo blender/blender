@@ -8,7 +8,7 @@
 #include "eevee_depth_of_field_lib.bsl.hh"
 #include "eevee_reverse_z_lib.bsl.hh"
 #include "eevee_velocity.bsl.hh"
-#include "gpu_shader_math_safe_lib.glsl"
+#include "gpu_shader_math_safe.bsl.hh"
 
 namespace eevee::dof::setup {
 

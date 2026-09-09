@@ -10,9 +10,9 @@
 
 #include "draw_object_infos_infos.hh"
 
-#include "gpu_shader_math_constants_lib.glsl"
-#include "gpu_shader_math_matrix_conversion_lib.glsl"
-#include "gpu_shader_math_matrix_transform_lib.glsl"
+#include "gpu_shader_math_constants.bsl.hh"
+#include "gpu_shader_math_matrix_conversion.bsl.hh"
+#include "gpu_shader_math_matrix_transform.bsl.hh"
 
 /**
  * Library to create hairs dynamically from control points.

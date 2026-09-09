@@ -6,7 +6,7 @@
 
 #include "gpu_shader_compat.hh"
 
-#include "gpu_shader_common_color_utils.glsl"
+#include "gpu_shader_common_color_utils.bsl.hh"
 
 [[node]]
 void mix_blend(float fac, float4 col1, float4 col2, float4 &outcol)
@@ -235,8 +235,6 @@ void mix_burn(float fac, float4 col1, float4 col2, float4 &outcol)
 [[node]]
 void mix_hue(float fac, float4 col1, float4 col2, float4 &outcol)
 {
-  float facm = 1.0f - fac;
-
   outcol = col1;
 
   float4 hsv, hsv2, tmp;
@@ -286,8 +284,6 @@ void mix_val(float fac, float4 col1, float4 col2, float4 &outcol)
 [[node]]
 void mix_color(float fac, float4 col1, float4 col2, float4 &outcol)
 {
-  float facm = 1.0f - fac;
-
   outcol = col1;
 
   float4 hsv, hsv2, tmp;

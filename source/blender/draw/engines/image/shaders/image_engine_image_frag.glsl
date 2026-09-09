@@ -4,7 +4,7 @@
 
 #include "infos/engine_image_infos.hh"
 
-#include "gpu_shader_math_matrix_transform_lib.glsl"
+#include "gpu_shader_math_matrix_transform.bsl.hh"
 #include "image_engine_lib.glsl"
 
 void main()

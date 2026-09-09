@@ -4,9 +4,7 @@
 
 #pragma once
 
-#include "gpu_shader_compat.hh"
-
-#include "gpu_shader_math_constants_lib.glsl"
+#include "gpu_shader_math_constants.bsl.hh"
 
 struct AngleRadian {
   /* Note that value is public because of the lack of casting operator in GLSL. */

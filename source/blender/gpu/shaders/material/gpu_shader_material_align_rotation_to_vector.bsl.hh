@@ -4,10 +4,10 @@
 
 #pragma once
 
-#include "gpu_shader_math_constants_lib.glsl"
-#include "gpu_shader_math_rotation_conversion_lib.glsl"
-#include "gpu_shader_math_vector_compare_lib.glsl"
-#include "gpu_shader_math_vector_lib.glsl"
+#include "gpu_shader_math_constants.bsl.hh"
+#include "gpu_shader_math_rotation_conversion.bsl.hh"
+#include "gpu_shader_math_vector.bsl.hh"
+#include "gpu_shader_math_vector_compare.bsl.hh"
 
 float3 project_plane_normalized_v3_v3v3(float3 p, float3 v_plane)
 {
