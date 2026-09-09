@@ -1,0 +1,106 @@
+diff --git a/CMakeLists.txt b/CMakeLists.txt
+index ea11696eefc..9ccab5fd745 100644
+--- a/CMakeLists.txt
++++ b/CMakeLists.txt
+@@ -95,7 +95,7 @@ if(OTIO_PYTHON_INSTALL)
+         # either python_install or install_prefix have been set
+         if(NOT OTIO_PYTHON_INSTALL_DIR)
+             # CMAKE_INSTALL_PREFIX was set, so install the python components there
+-            set(OTIO_RESOLVED_PYTHON_INSTALL_DIR "${CMAKE_INSTALL_PREFIX}/python")
++            set(OTIO_RESOLVED_PYTHON_INSTALL_DIR "python")
+ 
+             # In order to not require setting $PYTHONPATH to point at the .so,
+             # the shared libraries are installed into the python library
+@@ -114,7 +114,7 @@ if(OTIO_PYTHON_INSTALL)
+     endif()
+ 
+ else()
+-    set(OTIO_RESOLVED_CXX_DYLIB_INSTALL_DIR "${CMAKE_INSTALL_PREFIX}/lib")
++    set(OTIO_RESOLVED_CXX_DYLIB_INSTALL_DIR "lib")
+     message(STATUS "OTIO C++ installing to ${CMAKE_INSTALL_PREFIX}")
+ endif()
+ 
+@@ -151,7 +151,8 @@ endif()
+ #
+ math(EXPR OTIO_SOVERSION "${OTIO_VERSION_MAJOR} * 100 + ${OTIO_VERSION_MINOR}")
+ 
+-set(OTIO_RESOLVED_CXX_INSTALL_DIR "${CMAKE_INSTALL_PREFIX}")
++# Relative destinations keep installed CMake targets relocatable.
++set(OTIO_RESOLVED_CXX_INSTALL_DIR ".")
+ 
+ if(OTIO_CXX_INSTALL)
+     message(STATUS "Installing C++ bindings to: ${OTIO_RESOLVED_CXX_INSTALL_DIR}")
+@@ -282,7 +283,7 @@ endif()
+ 
+ #----- minizip-ng
+ if(OTIO_FIND_MINIZIP_NG)
+-    find_package(minizip-ng REQUIRED)
++    find_package(minizip-ng CONFIG REQUIRED NAMES minizip)
+     if (minizip-ng_FOUND)
+         message(STATUS "Found minizip-ng at ${minizip-ng_CONFIG}")
+     endif()
+diff --git a/src/opentime/CMakeLists.txt b/src/opentime/CMakeLists.txt
+index 4f071060ecb..6b8bf526100 100644
+--- a/src/opentime/CMakeLists.txt
++++ b/src/opentime/CMakeLists.txt
+@@ -41,7 +41,7 @@ endif()
+ 
+ if(APPLE)
+     set_target_properties(opentime PROPERTIES 
+-        INSTALL_NAME_DIR "@loader_path"
++        INSTALL_NAME_DIR "@rpath"
+         MACOSX_RPATH ON)
+ endif()
+ 
+@@ -53,6 +53,8 @@ target_compile_options(opentime PRIVATE
+ )
+ 
+ if(OTIO_CXX_INSTALL)
++    # Blender installs C++ libraries separately from the Python extensions.
++    set(OTIO_RESOLVED_CXX_DYLIB_INSTALL_DIR "lib")
+     install(FILES ${OPENTIME_HEADER_FILES} 
+             DESTINATION "${OTIO_RESOLVED_CXX_INSTALL_DIR}/include/opentime")
+ 
+@@ -90,4 +92,3 @@ if(OTIO_CXX_INSTALL)
+             ${OTIO_RESOLVED_CXX_INSTALL_DIR}/lib/cmake/opentime
+     )
+ endif()
+-
+diff --git a/src/opentimelineio/CMakeLists.txt b/src/opentimelineio/CMakeLists.txt
+index dd1c881c51b..3a861a61e4e 100644
+--- a/src/opentimelineio/CMakeLists.txt
++++ b/src/opentimelineio/CMakeLists.txt
+@@ -118,7 +118,7 @@ endif()
+ 
+ if(APPLE)
+     set_target_properties(opentimelineio PROPERTIES 
+-        INSTALL_NAME_DIR "@loader_path"
++        INSTALL_NAME_DIR "@rpath"
+         MACOSX_RPATH ON)
+ endif()
+ 
+@@ -131,6 +131,8 @@ target_compile_options(opentimelineio PRIVATE
+ )
+ 
+ if(OTIO_CXX_INSTALL)
++    # Blender installs C++ libraries separately from the Python extensions.
++    set(OTIO_RESOLVED_CXX_DYLIB_INSTALL_DIR "lib")
+     install(FILES ${OPENTIMELINEIO_HEADER_FILES} 
+             DESTINATION "${OTIO_RESOLVED_CXX_INSTALL_DIR}/include/opentimelineio")
+ 
+@@ -145,9 +147,12 @@ if(OTIO_CXX_INSTALL)
+     endif()
+ 
+     set(OTIO_CONFIG_DEPENDENCIES "")
+-    string(APPEND OTIO_CONFIG_DEPENDENCIES "find_dependency(ZLIB)\n")
+-    if(OTIO_FIND_MINIZIP_NG)
+-        string(APPEND OTIO_CONFIG_DEPENDENCIES "find_dependency(minizip-ng)\n")
++    # Private dependencies are already linked into Blender's shared library.
++    if(NOT OTIO_SHARED_LIBS)
++        string(APPEND OTIO_CONFIG_DEPENDENCIES "find_dependency(ZLIB)\n")
++        if(OTIO_FIND_MINIZIP_NG)
++            string(APPEND OTIO_CONFIG_DEPENDENCIES "find_dependency(minizip-ng CONFIG NAMES minizip)\n")
++        endif()
+     endif()
+ 
+     install(TARGETS opentimelineio
