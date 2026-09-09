@@ -23,6 +23,7 @@
 #  include "util/path.h"
 #  include "util/progress.h"
 #  include "util/task.h"
+#  include "util/time.h"
 
 #  define __KERNEL_OPTIX__
 #  include "kernel/device/optix/globals.h"
@@ -422,6 +423,7 @@ bool OptiXDevice::load_kernels(const uint64_t kernel_features)
       string cflags = compile_kernel_get_common_cflags(kernel_features);
       ptx_filename = compile_kernel(cflags, ("kernel" + suffix).c_str(), true);
     }
+    LOG_INFO << "OptiX: Loading module from " << ptx_filename;
     if (ptx_filename.empty() || !path_read_compressed_text(ptx_filename, base_ptx_data)) {
       set_error(string_printf("Failed to load OptiX kernel from '%s'", ptx_filename.c_str()));
       return false;
@@ -430,6 +432,7 @@ bool OptiXDevice::load_kernels(const uint64_t kernel_features)
     auto load_optional_module = [this, &kernel_features](const string &name,
                                                          string &ptx_data) -> bool {
       string filename = path_get("lib/" + name + ".ptx.zst");
+      LOG_INFO << "OptiX: Loading optional module from " << filename;
       if (use_adaptive_compilation() || path_file_size(filename) == -1) {
         /* Map kernel_optix_foo.ptx to kernel_foo.cu. */
         const char *suffix = "_optix";
@@ -485,6 +488,8 @@ bool OptiXDevice::load_kernels(const uint64_t kernel_features)
     OptixResult osl_volume_result = OPTIX_SUCCESS;
 #  endif
 
+    const scoped_timer load_module_timer;
+    LOG_INFO << "OptiX: Creating modules.";
     create_optix_module(pool, module_options, base_ptx_data, optix_module, base_result);
     if (use_mnee) {
       create_optix_module(pool, module_options, mnee_ptx_data, mnee_module, mnee_result);
@@ -507,6 +512,7 @@ bool OptiXDevice::load_kernels(const uint64_t kernel_features)
     }
 #  endif
     pool.wait_work();
+    LOG_INFO << "OptiX: modules created in " << load_module_timer.get_time() << " seconds.";
 
     if (base_result != OPTIX_SUCCESS) {
       set_error(string_printf("Failed to load OptiX kernel from '%s' (%s)",
@@ -1030,11 +1036,17 @@ bool OptiXDevice::load_osl_kernels()
 
     TaskPool pool;
     OptixResult services_result, shadeops_result;
-    create_optix_module(
-        pool, module_options, osl_services_ptx, osl_modules[id_osl_services], services_result);
-    create_optix_module(
-        pool, module_options, shadeops_ptx, osl_modules[id_osl_shadeops], shadeops_result);
-    pool.wait_work();
+    {
+      const scoped_timer timer;
+      LOG_INFO << "OptiX: Creating OSL services and shaderops modules.";
+      create_optix_module(
+          pool, module_options, osl_services_ptx, osl_modules[id_osl_services], services_result);
+      create_optix_module(
+          pool, module_options, shadeops_ptx, osl_modules[id_osl_shadeops], shadeops_result);
+      pool.wait_work();
+      LOG_INFO << "OptiX: OSL services and shaderops modules created in " << timer.get_time()
+               << " seconds.";
+    }
 
     {
       if (services_result != OPTIX_SUCCESS) {
@@ -1081,15 +1093,18 @@ bool OptiXDevice::load_osl_kernels()
   TaskPool pool;
   vector<OptixResult> results(osl_kernels.size(), OPTIX_SUCCESS);
 
-  for (size_t i = 0; i < osl_kernels.size(); ++i) {
-    if (osl_kernels[i].ptx.empty()) {
-      continue;
+  {
+    const scoped_timer timer;
+    LOG_INFO << "OptiX: Creating OSL kernel modules.";
+    for (size_t i = 0; i < osl_kernels.size(); ++i) {
+      if (osl_kernels[i].ptx.empty()) {
+        continue;
+      }
+      create_optix_module(pool, module_options, osl_kernels[i].ptx, osl_modules[i], results[i]);
     }
-
-    create_optix_module(pool, module_options, osl_kernels[i].ptx, osl_modules[i], results[i]);
+    pool.wait_work();
+    LOG_INFO << "OptiX: OSL kernel modules created in " << timer.get_time() << " seconds.";
   }
-
-  pool.wait_work();
 
   for (size_t i = 0; i < osl_kernels.size(); ++i) {
     if (osl_kernels[i].ptx.empty()) {
