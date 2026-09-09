@@ -6,6 +6,8 @@
  * \ingroup gpu
  */
 
+#include <fmt/ranges.h>
+
 #include "BKE_global.hh"
 
 #include "DNA_userdef_types.h"
@@ -44,6 +46,8 @@ using namespace blender::gpu;
 using namespace blender::gpu::shader;
 
 namespace blender::gpu {
+
+static CLG_LogRef LOG = {"gpu.metal"};
 
 const char *to_string(ShaderStage stage)
 {
@@ -221,17 +225,13 @@ static ::MTLCompileOptions *get_compile_options(const bool use_subpass_input,
   if (use_subpass_input) {
     options.languageVersion = MTLLanguageVersion2_3;
   }
-#if defined(MAC_OS_VERSION_13_0)
-  if (@available(macOS 13.0, *)) {
-    /* Inline ray queries require Metal 3.0. */
-    if (use_ray_query) {
-      options.languageVersion = MTLLanguageVersion3_0;
-    }
+  /* Inline ray queries requires Metal 3.0. */
+  if (use_ray_query) {
+    options.languageVersion = MTLLanguageVersion3_0;
   }
-#endif
 #if defined(MAC_OS_VERSION_14_0)
-  if (@available(macOS 14.00, *)) {
-    /* Texture atomics require Metal 3.1. */
+  if (@available(macOS 14.0, *)) {
+    /* Texture atomics requires Metal 3.1. */
     if (use_texture_atomic) {
       options.languageVersion = MTLLanguageVersion3_1;
     }
@@ -949,10 +949,9 @@ MTLRenderPipelineStateInstance *MTLShader::bake_graphic_pipeline_state(
       }
       else {
         if (pipeline_descriptor.blending_enabled && !format_supports_blending) {
-          shader_debug_printf(
-              "[Warning] Attempting to Bake PSO, but MTLPixelFormat %d does not support "
-              "blending\n",
-              *((int *)&pixel_format));
+          CLOG_WARN(&LOG,
+                    "Attempting to Bake PSO, but MTLPixelFormat %d does not support blending",
+                    (int)pixel_format);
         }
       }
     }
@@ -981,12 +980,16 @@ MTLRenderPipelineStateInstance *MTLShader::bake_graphic_pipeline_state(
                                   reflection:&reflection_data
                                        error:&error];
     if (error) {
-      NSLog(@"Failed to create PSO for shader: %s error %@\n", this->name, error);
+      CLOG_ERROR(&LOG,
+                 "Failed to create PSO for shader: %s error %s",
+                 this->name,
+                 [[error localizedDescription] UTF8String]);
       BLI_assert(false);
       return nullptr;
     }
     if (!pso) {
-      NSLog(@"Failed to create PSO for shader: %s, but no error was provided!\n", this->name);
+      CLOG_ERROR(
+          &LOG, "Failed to create PSO for shader: %s, but no error was provided!", this->name);
       BLI_assert(false);
       return nullptr;
     }
@@ -1008,10 +1011,10 @@ MTLRenderPipelineStateInstance *MTLShader::bake_graphic_pipeline_state(
     pso_inst->shader_pso_index = pso_cache_.size();
     pso_cache_.add(pipeline_descriptor, pso_inst);
     pso_cache_lock_.unlock();
-    shader_debug_printf(
-        "PSO CACHE: Stored new variant in PSO cache for shader '%s' Hash: '%llu'\n",
-        this->name,
-        pipeline_descriptor.hash());
+    CLOG_DEBUG(&LOG,
+               "PSO CACHE: Stored new variant in PSO cache for shader '%s' Hash: '%llu'",
+               this->name,
+               (unsigned long long)pipeline_descriptor.hash());
     return pso_inst;
   }
 }
@@ -1056,7 +1059,9 @@ MTLComputePipelineStateInstance *MTLShader::bake_compute_pipeline_state(
   [values release];
 
   if (error) {
-    NSLog(@"Compile Error - Metal Shader compute function, error %@", error);
+    CLOG_WARN(&LOG,
+              "Metal Shader compute function, error %s",
+              [[error localizedDescription] UTF8String]);
 
     /* Only exit out if genuine error and not warning */
     if ([[error localizedDescription] rangeOfString:@"Compilation succeeded"].location ==
@@ -1107,12 +1112,16 @@ MTLComputePipelineStateInstance *MTLShader::bake_compute_pipeline_state(
   [desc release];
 
   if (error) {
-    NSLog(@"Failed to create PSO for compute shader: %s error %@\n", this->name, error);
+    CLOG_ERROR(&LOG,
+               "Failed to create PSO for compute shader: %s error %s",
+               this->name,
+               [[error localizedDescription] UTF8String]);
     return nullptr;
   }
   if (!pso) {
-    NSLog(@"Failed to create PSO for compute shader: %s, but no error was provided!\n",
-          this->name);
+    CLOG_ERROR(&LOG,
+               "Failed to create PSO for compute shader: %s, but no error was provided!",
+               this->name);
     return nullptr;
   }
 

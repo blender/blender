@@ -152,7 +152,7 @@ inline int indices_per_primitive(GPUPrimType prim_type)
       return 4;
     case GPU_PRIM_TRIS_ADJ:
       return 6;
-    /** IMPORTANT: These last two expects no restart primitive.
+    /* IMPORTANT: These last two expects no restart primitive.
      * Asserting for this would be too slow. Just don't be stupid.
      * This is needed for polylines but should be deprecated.
      * See GPU_batch_draw_expanded_parameter_get */

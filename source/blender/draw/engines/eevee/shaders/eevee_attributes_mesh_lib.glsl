@@ -6,7 +6,7 @@
 
 #include "eevee_geom_types_lib.bsl.hh"
 #include "gpu_shader_codegen_lib.glsl"
-#include "gpu_shader_math_vector_safe_lib.glsl"
+#include "gpu_shader_math_vector_safe.bsl.hh"
 
 /* -------------------------------------------------------------------- */
 /** \name Mesh

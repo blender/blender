@@ -62,11 +62,13 @@ set(WITH_TBB_MALLOC_PROXY    OFF CACHE BOOL "" FORCE)
 set(WITH_USD                 OFF CACHE BOOL "" FORCE)
 set(WITH_MATERIALX           OFF CACHE BOOL "" FORCE)
 set(WITH_XR_OPENXR           OFF CACHE BOOL "" FORCE)
+
 set(WITH_ASSERT_RELEASE       ON CACHE BOOL "" FORCE)
 
 if(UNIX AND NOT (APPLE OR TARGET_ANDROID))
   set(WITH_GHOST_WAYLAND        ON CACHE BOOL "" FORCE)
   set(WITH_GHOST_X11           OFF CACHE BOOL "" FORCE)
+  set(WITH_GHOST_DBUS          OFF CACHE BOOL "" FORCE)
 
   # Keep X11 options so the build is still "lite" if X11 is enabled.
   set(WITH_GHOST_XDND          OFF CACHE BOOL "" FORCE)

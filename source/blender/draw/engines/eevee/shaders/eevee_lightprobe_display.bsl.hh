@@ -9,7 +9,7 @@
 #include "eevee_lightprobe_sphere.bsl.hh"
 #include "eevee_lightprobe_volume.bsl.hh"
 #include "eevee_reverse_z_lib.bsl.hh"
-#include "gpu_shader_math_matrix_transform_lib.glsl"
+#include "gpu_shader_math_matrix_transform.bsl.hh"
 
 namespace eevee::lightprobe {
 

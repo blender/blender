@@ -6,6 +6,8 @@
  * \ingroup edarmature
  */
 
+#include <fmt/format.h>
+
 #include "MEM_guardedalloc.h"
 
 #include "BLI_listbase.hh"
@@ -383,9 +385,7 @@ void slide_subjects_free(ListBaseT<SlideSubject> *slide_subjects)
   SlideSubject *slide_subject, *pfln = nullptr;
 
   /* free the temp pchan links and their data */
-  for (slide_subject = static_cast<SlideSubject *>(slide_subjects->first); slide_subject;
-       slide_subject = pfln)
-  {
+  for (slide_subject = slide_subjects->first(); slide_subject; slide_subject = pfln) {
     pfln = slide_subject->next;
 
     MEM_delete(slide_subject->transformable);

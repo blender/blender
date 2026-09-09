@@ -530,13 +530,6 @@ class OUTLINER_PT_options_filter(Panel):
         sub = col.column(align=True)
         sub.active = space.use_filter_object
 
-        row = sub.row()
-        row.label(icon='BLANK1')
-        row.prop(space, "use_filter_object_content", text="Object Contents")
-        row = sub.row()
-        row.label(icon='BLANK1')
-        row.prop(space, "use_filter_children", text="Object Children")
-
         if bpy.data.meshes:
             row = sub.row()
             row.label(icon='MESH_DATA')
@@ -576,6 +569,73 @@ class OUTLINER_PT_options_filter(Panel):
             row.label(icon='BLANK1')
             row.prop(space, "use_filter_object_others", text="Others")
 
+        row = sub.row()
+        row.label(icon='BLANK1')
+        row.prop(space, "use_filter_children", text="Object Children")
+
+
+class OUTLINER_PT_options_object_data(Panel):
+    bl_space_type = 'OUTLINER'
+    bl_region_type = 'HEADER'
+    bl_label = ""
+    bl_parent_id = "OUTLINER_PT_options_filter"
+    bl_options = {'DEFAULT_CLOSED'}
+
+    def draw_header(self, context):
+        layout = self.layout
+        space = context.space_data
+        layout.prop(space, "use_filter_object_content", text="Object Contents")
+
+    def draw(self, context):
+        space = context.space_data
+        layout = self.layout
+
+        layout.active = space.use_filter_object and space.use_filter_object_content
+        panel_column = layout.column(align=True)
+        panel_column.use_property_split = False
+        panel_column.use_property_decorate = False
+
+        row = panel_column.row(align=True)
+        row.label(icon='OBJECT_DATA')
+        row.separator()
+        row.prop(space, "use_filter_object_data", text="Object Data")
+        row = panel_column.row(align=True)
+        row.label(icon='GROUP_VERTEX')
+        row.separator()
+        row.prop(space, "use_filter_object_vertex_groups", text="Vertex Groups")
+        row = panel_column.row(align=True)
+        row.label(icon='SHAPEKEY_DATA')
+        row.separator()
+        row.prop(space, "use_filter_object_shape_keys", text="Shape Keys")
+        row = panel_column.row(align=True)
+        row.label(icon='ANIM_DATA')
+        row.separator()
+        row.prop(space, "use_filter_object_animation", text="Animation Data")
+        row = panel_column.row(align=True)
+        row.label(icon='CONSTRAINT')
+        row.separator()
+        row.prop(space, "use_filter_object_constraints", text="Constraints")
+        row = panel_column.row(align=True)
+        row.label(icon='MODIFIER_ON')
+        row.separator()
+        row.prop(space, "use_filter_object_modifiers", text="Modifiers")
+        row = panel_column.row(align=True)
+        row.label(icon='GROUP_BONE')
+        row.separator()
+        row.prop(space, "use_filter_bone_collections", text="Bone Collections")
+        row = panel_column.row(align=True)
+        row.label(icon='SHADERFX')
+        row.separator()
+        row.prop(space, "use_filter_grease_pencil_effects", text="Grease Pencil Effects")
+        row = panel_column.row(align=True)
+        row.label(icon='BONE_DATA')
+        row.separator()
+        row.prop(space, "use_filter_pose_bones", text="Pose Bones")
+        row = panel_column.row(align=True)
+        row.label(icon='MATERIAL')
+        row.separator()
+        row.prop(space, "use_filter_object_materials", text="Materials")
+
 
 classes = (
     OUTLINER_HT_header,
@@ -595,6 +655,7 @@ classes = (
     OUTLINER_PT_filter,
     OUTLINER_PT_options_search,
     OUTLINER_PT_options_filter,
+    OUTLINER_PT_options_object_data,
 )
 
 if __name__ == "__main__":  # only for live edit.

@@ -56,82 +56,82 @@ void BKE_animdata_main_cb(Main *bmain, const FunctionRef<void(ID *, AnimData *)>
   (void)0
 
   /* nodes */
-  ANIMDATA_IDS_CB(bmain->nodetrees.first);
+  ANIMDATA_IDS_CB(bmain->nodetrees.first_as<ID>());
 
   /* textures */
-  ANIMDATA_NODETREE_IDS_CB(bmain->textures.first, Tex);
+  ANIMDATA_NODETREE_IDS_CB(bmain->textures.first_as<ID>(), Tex);
 
   /* lights */
-  ANIMDATA_NODETREE_IDS_CB(bmain->lights.first, Light);
+  ANIMDATA_NODETREE_IDS_CB(bmain->lights.first_as<ID>(), Light);
 
   /* materials */
-  ANIMDATA_NODETREE_IDS_CB(bmain->materials.first, Material);
+  ANIMDATA_NODETREE_IDS_CB(bmain->materials.first_as<ID>(), Material);
 
   /* cameras */
-  ANIMDATA_IDS_CB(bmain->cameras.first);
+  ANIMDATA_IDS_CB(bmain->cameras.first_as<ID>());
 
   /* shapekeys */
-  ANIMDATA_IDS_CB(bmain->shapekeys.first);
+  ANIMDATA_IDS_CB(bmain->shapekeys.first_as<ID>());
 
   /* metaballs */
-  ANIMDATA_IDS_CB(bmain->metaballs.first);
+  ANIMDATA_IDS_CB(bmain->metaballs.first_as<ID>());
 
   /* curves */
-  ANIMDATA_IDS_CB(bmain->curves.first);
+  ANIMDATA_IDS_CB(bmain->curves.first_as<ID>());
 
   /* armatures */
-  ANIMDATA_IDS_CB(bmain->armatures.first);
+  ANIMDATA_IDS_CB(bmain->armatures.first_as<ID>());
 
   /* lattices */
-  ANIMDATA_IDS_CB(bmain->lattices.first);
+  ANIMDATA_IDS_CB(bmain->lattices.first_as<ID>());
 
   /* meshes */
-  ANIMDATA_IDS_CB(bmain->meshes.first);
+  ANIMDATA_IDS_CB(bmain->meshes.first_as<ID>());
 
   /* particles */
-  ANIMDATA_IDS_CB(bmain->particles.first);
+  ANIMDATA_IDS_CB(bmain->particles.first_as<ID>());
 
   /* speakers */
-  ANIMDATA_IDS_CB(bmain->speakers.first);
+  ANIMDATA_IDS_CB(bmain->speakers.first_as<ID>());
 
   /* movie clips */
-  ANIMDATA_IDS_CB(bmain->movieclips.first);
+  ANIMDATA_IDS_CB(bmain->movieclips.first_as<ID>());
 
   /* objects */
-  ANIMDATA_IDS_CB(bmain->objects.first);
+  ANIMDATA_IDS_CB(bmain->objects.first_as<ID>());
 
   /* masks */
-  ANIMDATA_IDS_CB(bmain->masks.first);
+  ANIMDATA_IDS_CB(bmain->masks.first_as<ID>());
 
   /* worlds */
-  ANIMDATA_NODETREE_IDS_CB(bmain->worlds.first, World);
+  ANIMDATA_NODETREE_IDS_CB(bmain->worlds.first_as<ID>(), World);
 
   /* scenes */
-  ANIMDATA_NODETREE_IDS_CB(bmain->scenes.first, Scene);
+  ANIMDATA_NODETREE_IDS_CB(bmain->scenes.first_as<ID>(), Scene);
 
   /* line styles */
-  ANIMDATA_IDS_CB(bmain->linestyles.first);
+  ANIMDATA_IDS_CB(bmain->linestyles.first_as<ID>());
 
   /* grease pencil */
-  ANIMDATA_IDS_CB(bmain->gpencils.first);
+  ANIMDATA_IDS_CB(bmain->gpencils.first_as<ID>());
 
   /* grease pencil */
-  ANIMDATA_IDS_CB(bmain->grease_pencils.first);
+  ANIMDATA_IDS_CB(bmain->grease_pencils.first_as<ID>());
 
   /* palettes */
-  ANIMDATA_IDS_CB(bmain->palettes.first);
+  ANIMDATA_IDS_CB(bmain->palettes.first_as<ID>());
 
   /* cache files */
-  ANIMDATA_IDS_CB(bmain->cachefiles.first);
+  ANIMDATA_IDS_CB(bmain->cachefiles.first_as<ID>());
 
   /* Hair Curves. */
-  ANIMDATA_IDS_CB(bmain->hair_curves.first);
+  ANIMDATA_IDS_CB(bmain->hair_curves.first_as<ID>());
 
   /* pointclouds */
-  ANIMDATA_IDS_CB(bmain->pointclouds.first);
+  ANIMDATA_IDS_CB(bmain->pointclouds.first_as<ID>());
 
   /* volumes */
-  ANIMDATA_IDS_CB(bmain->volumes.first);
+  ANIMDATA_IDS_CB(bmain->volumes.first_as<ID>());
 }
 
 }  // namespace blender

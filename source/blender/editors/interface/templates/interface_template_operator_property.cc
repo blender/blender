@@ -394,12 +394,12 @@ void template_collection_importer(Layout *layout, bContext *C)
 
   Layout &col = layout->column(false);
   if (data == nullptr) {
-    col.menu("COLLECTION_MT_importer_add", "Add", ICON_ADD);
+    col.menu("COLLECTION_MT_importer_add", IFACE_("Add"), ICON_ADD);
     return;
   }
 
   Layout &row = layout->row(true);
-  row.op("COLLECTION_OT_importer_import", "Import", ICON_IMPORT);
+  row.op("COLLECTION_OT_importer_import", IFACE_("Import"), ICON_IMPORT);
   row.op("COLLECTION_OT_importer_remove", "", ICON_X);
 
   layout->separator();

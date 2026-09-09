@@ -7,9 +7,9 @@
 #include "eevee_bxdf_types.bsl.hh"
 #include "eevee_utility_tx.bsl.hh"
 #include "gpu_shader_compat.hh"
-#include "gpu_shader_math_matrix_construct_lib.glsl"
-#include "gpu_shader_math_vector_lib.glsl"
-#include "gpu_shader_utildefines_lib.glsl"
+#include "gpu_shader_math_matrix_construct.bsl.hh"
+#include "gpu_shader_math_vector.bsl.hh"
+#include "gpu_shader_utildefines.bsl.hh"
 
 namespace eevee {
 
@@ -105,8 +105,8 @@ struct LTCData {
 
     /* Rotate into orthonormal basis around N. */
     /* TODO(not_mark): re-enable, and update tests as this causes precision change. */
-    /* float3x3 T = from_incident_vector(N, V);
-    Minv = Minv * transpose(T); */
+    // float3x3 T = from_incident_vector(N, V);
+    // Minv = Minv * transpose(T);
 
     LTCData ltc_data;
     ltc_data.Minv = Minv;
@@ -124,8 +124,8 @@ struct LTCData {
   {
     /* Rotate into orthonormal basis around N. */
     /* TODO(not_mark): re-enable, and update tests as this causes precision change. */
-    /* float3x3 T = from_incident_vector(N, V);
-    float3x3 Minv = transpose(T); */
+    // float3x3 T = from_incident_vector(N, V);
+    // float3x3 Minv = transpose(T);
     float3x3 Minv = mat3x3_identity();
 
     LTCData ltc_data;

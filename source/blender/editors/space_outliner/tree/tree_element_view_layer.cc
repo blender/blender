@@ -16,6 +16,7 @@
 
 #include "../outliner_intern.hh"
 
+#include "tree_display.hh"
 #include "tree_element_view_layer.hh"
 
 namespace blender::ed::outliner {
@@ -27,10 +28,15 @@ TreeElementViewLayerBase::TreeElementViewLayerBase(TreeElement &legacy_te, Scene
   legacy_te_.name = IFACE_("View Layers");
 }
 
+ID *TreeElementViewLayerBase::owner_id(Scene &scene)
+{
+  return &scene.id;
+}
+
 void TreeElementViewLayerBase::expand(SpaceOutliner & /*space_outliner*/) const
 {
   for (auto *view_layer : ListBaseWrapper<ViewLayer>(scene_.view_layers)) {
-    add_element(&legacy_te_.subtree, &scene_.id, view_layer, &legacy_te_, TSE_R_LAYER, 0);
+    add_element<TreeElementViewLayer>({}, scene_, *view_layer);
   }
 }
 
@@ -42,6 +48,11 @@ TreeElementViewLayer::TreeElementViewLayer(TreeElement &legacy_te,
   BLI_assert(legacy_te.store_elem->type == TSE_R_LAYER);
   legacy_te.name = view_layer_.name;
   legacy_te.directdata = &view_layer_;
+}
+
+ID *TreeElementViewLayer::owner_id(Scene &scene, ViewLayer & /*view_layer*/)
+{
+  return &scene.id;
 }
 
 }  // namespace blender::ed::outliner

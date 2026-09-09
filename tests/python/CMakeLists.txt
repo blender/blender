@@ -740,6 +740,11 @@ add_blender_test(
 )
 
 add_blender_test(
+  bl_animation_context_markers
+  --python ${TEST_PYTHON_DIR}/bl_animation_context_markers.py
+)
+
+add_blender_test(
   bl_animation_rename
   --python ${CMAKE_CURRENT_LIST_DIR}/bl_animation_rename.py
 )
@@ -986,7 +991,16 @@ if((WITH_CYCLES OR WITH_GPU_RENDER_TESTS) AND TEST_SRC_DIR_EXISTS)
     list(APPEND workbench_tests grease_pencil)
   endif()
 
+  set(gpu_render_tests ${render_tests})
+  # Remove cycles specific tests.
+  list(FILTER gpu_render_tests EXCLUDE REGEX light_group|shadow_catcher|denoise|guiding|reports)
+
+  # Add EEVEE specific tests.
+  set(eevee_tests ${gpu_render_tests};lighting_nodes)
+
   list(SORT render_tests)
+  list(SORT gpu_render_tests)
+  list(SORT eevee_tests)
   list(SORT workbench_tests)
 
   # Cycles
@@ -1053,9 +1067,6 @@ if((WITH_CYCLES OR WITH_GPU_RENDER_TESTS) AND TEST_SRC_DIR_EXISTS)
   endif()
 
   if(WITH_GPU_RENDER_TESTS)
-    list(APPEND gpu_render_tests ${render_tests})
-    list(FILTER gpu_render_tests EXCLUDE REGEX light_group|shadow_catcher|denoise|guiding|reports)
-
     function(add_gpu_render_tests name script render_tests)
       if(WITH_OPENGL_BACKEND)
         foreach(render_test ${render_tests})
@@ -1098,7 +1109,7 @@ if((WITH_CYCLES OR WITH_GPU_RENDER_TESTS) AND TEST_SRC_DIR_EXISTS)
       endif()
     endfunction()
 
-    add_gpu_render_tests(eevee "eevee_render_tests.py" "${gpu_render_tests}")
+    add_gpu_render_tests(eevee "eevee_render_tests.py" "${eevee_tests}")
     add_gpu_render_tests(workbench "workbench_render_tests.py" "${workbench_tests}")
     if(WITH_GPU_RENDER_TESTS_HEADED)
       add_gpu_render_tests(overlay "overlay_render_tests.py" "overlay")
@@ -1776,6 +1787,14 @@ if(WITH_UI_TESTS)
     test_drag_interactions.graph_editor_drag
     test_drag_interactions.uv_editor_drag
     test_drag_interactions.image_editor_pan
+    test_drop_interactions.view3d_drop_world
+    test_drop_interactions.view3d_drop_world_session_uid
+    test_drop_interactions.view3d_drop_world_cancel
+    test_drop_interactions.ui_drop_material_slot
+    test_drop_interactions.scene_drop_scene_asset
+    test_drop_interactions.scene_drop_scene_asset_cancel
+    test_drop_interactions.scene_drop_scene_asset_child_window
+    test_drop_interactions.file_browser_drop_folder
     test_sequencer.compositor_modifier_mask_with_single_input
     test_menu_search_and_exec.view3d_add
     test_menu_search_and_exec.modifier_add
@@ -1817,6 +1836,7 @@ if(WITH_UI_TESTS)
     test_tool_activation.image_editor
     test_tool_activation.node_editor
     test_tool_activation.sequencer
+    test_preferences_draw_all.test_preferences_draw_all
   )
   foreach(ui_test ${_ui_tests})
     add_blender_test_ui(

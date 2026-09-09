@@ -324,7 +324,7 @@ static wmOperatorStatus report_delete_exec(bContext *C, wmOperator * /*op*/)
 
   Report *report, *report_next;
 
-  for (report = static_cast<Report *>(reports->list.first); report;) {
+  for (report = reports->list.first(); report;) {
     report_next = report->next;
 
     if ((report->type & report_mask) && (report->flag & SELECT)) {

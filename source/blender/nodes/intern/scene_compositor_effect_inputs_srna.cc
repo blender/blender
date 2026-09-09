@@ -2,6 +2,10 @@
  *
  * SPDX-License-Identifier: GPL-2.0-or-later */
 
+/** \file
+ * \ingroup nodes
+ */
+
 #include <fmt/format.h>
 
 #include "BLI_listbase.hh"
@@ -66,7 +70,7 @@ static StructRNA *create_inputs_srna(const bNodeTree &node_group,
     }
     const StringRefNull identifier = r_generated.scope.allocator().copy_string(socket->identifier);
     PropertyRNA *property = RNA_def_pointer_runtime(
-        srna, identifier.c_str(), socket_srna, socket->name, "");
+        srna, identifier.c_str(), socket_srna, socket->name().c_str(), "");
     RNA_def_property_override_flag(property, PROPOVERRIDE_OVERRIDABLE_LIBRARY);
   }
 

@@ -29,7 +29,7 @@ TEST_F(DepsgraphObjectIteratorTest, ObjectOnlyViewerPath)
   Main *bmain = BKE_main_new();
   BLI_SCOPED_DEFER([&]() { BKE_main_free(bmain); });
   Scene *scene = BKE_scene_add(bmain, "Scene");
-  ViewLayer *view_layer = static_cast<ViewLayer *>(scene->view_layers.first);
+  ViewLayer *view_layer = scene->view_layers.first();
   Object *object_a = BKE_object_add(bmain, scene, view_layer, OB_EMPTY, "Object A");
   Object *object_b = BKE_object_add(bmain, scene, view_layer, OB_EMPTY, "Object B");
 

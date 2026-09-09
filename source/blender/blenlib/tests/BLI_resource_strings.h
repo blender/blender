@@ -2,6 +2,10 @@
  *
  * SPDX-License-Identifier: Apache-2.0 */
 
+/** \file
+ * \ingroup bli
+ */
+
 #pragma once
 
 namespace blender {

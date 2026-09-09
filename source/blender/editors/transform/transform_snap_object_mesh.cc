@@ -151,11 +151,11 @@ static bool raycastMesh(SnapObjectContext *sctx,
     data.ob_uuid = ob_index;
     data.hit_list = sctx->runtime.hit_list;
 
-    void *hit_last_prev = data.hit_list->last;
+    void *hit_last_prev = data.hit_list->last();
     BLI_bvhtree_ray_cast_all(
         treedata.tree, ray_start_local, ray_normal_local, 0.0f, depth_max, raycast_all_cb, &data);
 
-    retval = hit_last_prev != data.hit_list->last;
+    retval = hit_last_prev != data.hit_list->last();
   }
   else {
     BVHTreeRayHit hit{};

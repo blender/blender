@@ -72,27 +72,31 @@ static void node_declare(NodeDeclarationBuilder &b)
   b.add_output<decl::Vector>("Speed"_ustr).subtype(PROP_VELOCITY).dimensions(4);
 }
 
-static void node_init(const bContext *C, PointerRNA *ptr)
+static void node_init(bNodeTree * /*node_tree*/, bNode *node)
 {
-  bNode *node = static_cast<bNode *>(ptr->data);
-
   NodeTrackPosData *data = MEM_new<NodeTrackPosData>(__func__);
   node->storage = data;
+}
 
+static void node_init_api(const bContext *C, PointerRNA *node_ptr)
+{
   const Scene *scene = CTX_data_scene(C);
-  if (scene->clip) {
-    MovieClip *clip = scene->clip;
-    MovieTracking *tracking = &clip->tracking;
+  MovieClip *movie_clip = scene->clip;
+  if (!movie_clip) {
+    return;
+  }
 
-    node->id = &clip->id;
-    id_us_plus(&clip->id);
+  bNode *node = node_ptr->data_as<bNode>();
+  node->id = &movie_clip->id;
+  id_us_plus(&movie_clip->id);
 
-    const MovieTrackingObject *tracking_object = BKE_tracking_object_get_active(tracking);
-    STRNCPY_UTF8(data->tracking_object, tracking_object->name);
+  NodeTrackPosData &data = node_storage(*node);
+  const MovieTrackingObject *tracking_object = BKE_tracking_object_get_active(
+      &movie_clip->tracking);
+  STRNCPY_UTF8(data.tracking_object, tracking_object->name);
 
-    if (tracking_object->active_track) {
-      STRNCPY_UTF8(data->track_name, tracking_object->active_track->name);
-    }
+  if (tracking_object->active_track) {
+    STRNCPY_UTF8(data.track_name, tracking_object->active_track->name);
   }
 }
 
@@ -370,7 +374,8 @@ static void node_register()
   ntype.nclass = NODE_CLASS_INPUT;
   ntype.declare = node_declare;
   ntype.draw_buttons = node_draw_buttons;
-  ntype.initfunc_api = node_init;
+  ntype.initfunc = node_init;
+  ntype.initfunc_api = node_init_api;
   bke::node_type_storage(
       ntype, "NodeTrackPosData", node_free_standard_storage, node_copy_standard_storage);
   ntype.get_compositor_operation = get_compositor_operation;

@@ -77,7 +77,7 @@ class PathTraceWorkGPU : public PathTraceWork {
   void compute_sorted_queued_paths(DeviceKernel queued_kernel, const int num_paths_limit);
 
   void compact_main_paths(const int num_active_paths);
-  void compact_shadow_paths();
+  void compact_shadow_paths(const bool force = false);
   void compact_paths(const int num_active_paths,
                      const int max_active_path_index,
                      DeviceKernel terminated_paths_kernel,

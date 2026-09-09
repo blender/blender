@@ -580,7 +580,7 @@ static void graph_panel_key_properties(const bContext *C, Panel *panel)
     }
   }
   else {
-    if ((fcu->bezt == nullptr) && (fcu->modifiers.first)) {
+    if ((fcu->bezt == nullptr) && (fcu->modifiers.first_)) {
       /* modifiers only - so no keyframes to be active */
       layout.label(RPT_("F-Curve only has F-Modifiers"), ICON_NONE);
       layout.label(RPT_("See Modifiers panel below"), ICON_STATUS_INFO);
@@ -674,7 +674,7 @@ static void driver_dvar_invalid_name_query_cb(bContext *C, DriverVar *dvar)
                  ICON_STATUS_ERROR);
   }
   if (dvar->flag & DVAR_FLAG_INVALID_PY_KEYWORD) {
-    layout.label(RPT_("It cannot be a reserved keyword in Python"), ICON_STATUS_WARNING);
+    layout.label(RPT_("It cannot be a reserved keyword in Python"), ICON_STATUS_ERROR);
   }
 
   popup_menu_end(C, pup);
@@ -981,7 +981,7 @@ static void graph_draw_driver_settings_panel(ui::Layout &layout,
 
     if (driver->flag & DRIVER_FLAG_PYTHON_BLOCKED) {
       /* TODO: Add button to enable? */
-      error_col.label(RPT_("Python restricted for security"), ICON_STATUS_WARNING);
+      error_col.label(RPT_("Python restricted for security"), ICON_STATUS_ERROR);
       error_col.label(RPT_("Slow Python expression"), ICON_STATUS_INFO);
     }
     else if (driver->flag & DRIVER_FLAG_INVALID) {

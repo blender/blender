@@ -123,6 +123,7 @@ void MESH_OT_primitive_grid_add(wmOperatorType *ot);
 void MESH_OT_primitive_monkey_add(wmOperatorType *ot);
 void MESH_OT_primitive_uv_sphere_add(wmOperatorType *ot);
 void MESH_OT_primitive_ico_sphere_add(wmOperatorType *ot);
+void MESH_OT_primitive_quad_sphere_add(wmOperatorType *ot);
 
 /* *** `editmesh_add_gizmo.cc` *** */
 

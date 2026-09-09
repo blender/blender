@@ -32,7 +32,6 @@
  */
 
 #include <cstring>
-#include <fmt/ranges.h>
 #include <string>
 #include <string_view>
 
@@ -54,6 +53,9 @@ class StringRefBase {
   constexpr StringRefBase(const char *data, int64_t size);
 
  public:
+  /** Makes this type "string-like" for some libraries (e.g. `fmt`). */
+  using value_type = char;
+
   /** Similar to #string_view::npos, but signed. */
   static constexpr int64_t not_found = -1;
 
@@ -718,14 +720,3 @@ inline std::string_view format_as(StringRef str)
 /** \} */
 
 }  // namespace blender
-
-/**
- * Disable conflicting range formatter in fmtlib. Otherwise we will get compile errors
- * where fmtlib doesn't know if it should use the formatter from format.h or ranges.h.
- */
-namespace fmt {
-
-template<> struct is_range<blender::StringRef, char> : std::false_type {};
-template<> struct is_range<blender::StringRefNull, char> : std::false_type {};
-
-}  // namespace fmt

@@ -10,7 +10,7 @@
 #include "eevee_shadow.bsl.hh"
 #include "eevee_shadow_tracing.bsl.hh"
 #include "eevee_thickness_lib.bsl.hh"
-#include "gpu_shader_utildefines_lib.glsl"
+#include "gpu_shader_utildefines.bsl.hh"
 
 #if !defined(SRT_CONSTANT_light_closure_eval_count_reflect)
 #  define SRT_CONSTANT_light_closure_eval_count_reflect 0
@@ -56,17 +56,6 @@ template<> struct ClosureStack<false> {
 template<> struct ClosureStack<true> {
   ClosureLight cl[LIGHT_STACK_SIZE_TRANSMIT];
 };
-
-float power_get(LightData light, LightingType type)
-{
-  /* Mask anything above 3. See LIGHT_TRANSLUCENT_WITH_THICKNESS. */
-  return light.power[type & 3u];
-}
-
-bool light_linking_affects_receiver(uint2 light_set_membership, uchar receiver_light_set)
-{
-  return bitmask64_test(light_set_membership, receiver_light_set);
-}
 
 void eval_single_closure(sampler2DArray util_tx,
                          LightData light,
@@ -159,6 +148,7 @@ template<bool is_transmission> struct EvalCtx {
                            stack.cl[0].N,
                            terminator_normal_offset,
                            terminator_geometry_offset,
+                           1.0f,
                            ray_count,
                            ray_step_count);
     }

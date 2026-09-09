@@ -242,43 +242,72 @@ enum {
 
 /** #Global.debug */
 enum {
-  G_DEBUG = (1 << 0),                 /* general debug flag, print more info in unexpected cases */
-  G_DEBUG_PYTHON = (1 << 2),          /* extra python info */
-  G_DEBUG_EVENTS = (1 << 3),          /* input/window/screen events */
-  G_DEBUG_HANDLERS = (1 << 4),        /* events handling */
-  G_DEBUG_WM = (1 << 5),              /* operator, undo */
-  G_DEBUG_JOBS = (1 << 6),            /* jobs time profiling */
-  G_DEBUG_FREESTYLE = (1 << 7),       /* freestyle messages */
-  G_DEBUG_DEPSGRAPH_BUILD = (1 << 8), /* depsgraph construction messages */
-  G_DEBUG_DEPSGRAPH_EVAL = (1 << 9),  /* depsgraph evaluation messages */
-  G_DEBUG_DEPSGRAPH_TAG = (1 << 10),  /* depsgraph tagging messages */
-  G_DEBUG_DEPSGRAPH_TIME = (1 << 11), /* depsgraph timing statistics and messages */
-  G_DEBUG_DEPSGRAPH_NO_THREADS = (1 << 12), /* single threaded depsgraph */
-  G_DEBUG_DEPSGRAPH_PRETTY = (1 << 13),     /* use pretty colors in depsgraph messages */
-  G_DEBUG_DEPSGRAPH_UID = (1 << 14),        /* Verify validness of session-wide identifiers
-                                             * assigned to ID datablocks */
+  /** General debug flag, print more info in unexpected cases. */
+  G_DEBUG = (1 << 0),
+  /** Extra python info. */
+  G_DEBUG_PYTHON = (1 << 2),
+  /** Input/window/screen events. */
+  G_DEBUG_EVENTS = (1 << 3),
+  /** Events handling. */
+  G_DEBUG_HANDLERS = (1 << 4),
+  /** Operator, undo. */
+  G_DEBUG_WM = (1 << 5),
+  /** Jobs time profiling. */
+  G_DEBUG_JOBS = (1 << 6),
+  /** Freestyle messages. */
+  G_DEBUG_FREESTYLE = (1 << 7),
+  /** Depsgraph construction messages. */
+  G_DEBUG_DEPSGRAPH_BUILD = (1 << 8),
+  /** Depsgraph evaluation messages. */
+  G_DEBUG_DEPSGRAPH_EVAL = (1 << 9),
+  /** Depsgraph tagging messages. */
+  G_DEBUG_DEPSGRAPH_TAG = (1 << 10),
+  /** Depsgraph timing statistics and messages. */
+  G_DEBUG_DEPSGRAPH_TIME = (1 << 11),
+  /** Single threaded depsgraph. */
+  G_DEBUG_DEPSGRAPH_NO_THREADS = (1 << 12),
+  /** Use pretty colors in depsgraph messages. */
+  G_DEBUG_DEPSGRAPH_PRETTY = (1 << 13),
+  /** Verify validness of session-wide identifiers assigned to ID data-blocks. */
+  G_DEBUG_DEPSGRAPH_UID = (1 << 14),
   G_DEBUG_DEPSGRAPH = (G_DEBUG_DEPSGRAPH_BUILD | G_DEBUG_DEPSGRAPH_EVAL | G_DEBUG_DEPSGRAPH_TAG |
                        G_DEBUG_DEPSGRAPH_TIME | G_DEBUG_DEPSGRAPH_UID),
-  G_DEBUG_SIMDATA = (1 << 15),                     /* sim debug data display */
-  G_DEBUG_GPU = (1 << 16),                         /* gpu debug */
-  G_DEBUG_IO = (1 << 17),                          /* IO Debugging. */
-  G_DEBUG_GPU_FORCE_WORKAROUNDS = (1 << 18),       /* Force GPU workarounds bypassing detection. */
-  G_DEBUG_GPU_FORCE_VULKAN_LOCAL_READ = (1 << 19), /* Force GPU dynamic rendering local read. */
-  G_DEBUG_GPU_COMPILE_SHADERS = (1 << 20),         /* Compile all statically defined shaders. . */
-  G_DEBUG_GPU_RENDERDOC = (1 << 21),               /* Enable RenderDoc integration. */
-  G_DEBUG_GPU_SHADER_DEBUG_INFO = (1 << 22), /* Enable the generation of shader debug info. */
-  G_DEBUG_GPU_NO_TEXTURE_POOL = (1 << 23),   /* Disable memory aliasing in the texture pool. */
-  G_DEBUG_XR = (1 << 24),                    /* XR/OpenXR messages */
-  G_DEBUG_XR_TIME = (1 << 25),               /* XR/OpenXR timing messages */
+  /** Simulation debug data display. */
+  G_DEBUG_SIMDATA = (1 << 15),
+  /** GPU debug. */
+  G_DEBUG_GPU = (1 << 16),
+  /** IO Debugging.. */
+  G_DEBUG_IO = (1 << 17),
+  /** Force GPU workarounds bypassing detection. */
+  G_DEBUG_GPU_FORCE_WORKAROUNDS = (1 << 18),
+  /** Force GPU dynamic rendering local read. */
+  G_DEBUG_GPU_FORCE_VULKAN_LOCAL_READ = (1 << 19),
+  /** Compile all statically defined shaders. . */
+  G_DEBUG_GPU_COMPILE_SHADERS = (1 << 20),
+  /** Enable RenderDoc integration. */
+  G_DEBUG_GPU_RENDERDOC = (1 << 21),
+  /** Enable the generation of shader debug info. */
+  G_DEBUG_GPU_SHADER_DEBUG_INFO = (1 << 22),
+  /** Disable memory aliasing in the texture pool. */
+  G_DEBUG_GPU_NO_TEXTURE_POOL = (1 << 23),
+  /** XR/OpenXR messages */
+  G_DEBUG_XR = (1 << 24),
+  /** XR/OpenXR timing messages */
+  G_DEBUG_XR_TIME = (1 << 25),
 
-  G_DEBUG_GHOST = (1 << 26),  /* Debug GHOST module. */
-  G_DEBUG_WINTAB = (1 << 27), /* Debug Wintab. */
+  /** Debug GHOST module. */
+  G_DEBUG_GHOST = (1 << 26),
+  /** Debug WINTAB. */
+  G_DEBUG_WINTAB = (1 << 27),
 
-  G_DEBUG_GPU_SHADER_NO_PREPROCESSOR = (1 << 28), /* Disable the preprocessor (implies NO_DCE). */
-  G_DEBUG_GPU_SHADER_NO_DCE = (1 << 29),          /* Disable Dead Code Elimination. */
-  G_DEBUG_GPU_DEVICE_NO_FALLBACK = (1 << 30),  /* Fail when the requested GPU device is invalid. */
-  G_DEBUG_GPU_BACKEND_NO_FALLBACK = (1 << 31), /* Skip GPU backend support check and fail if the
-                                                  selected backend is not supported. */
+  /** Disable the preprocessor (implies NO_DCE). */
+  G_DEBUG_GPU_SHADER_NO_PREPROCESSOR = (1 << 28),
+  /** Disable Dead Code Elimination. */
+  G_DEBUG_GPU_SHADER_NO_DCE = (1 << 29),
+  /** Fail when the requested GPU device is invalid. */
+  G_DEBUG_GPU_DEVICE_NO_FALLBACK = (1 << 30),
+  /** Skip GPU backend support check and fail if the selected backend is not supported. */
+  G_DEBUG_GPU_BACKEND_NO_FALLBACK = (1 << 31),
 };
 
 #define G_DEBUG_ALL \

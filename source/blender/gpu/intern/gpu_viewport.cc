@@ -69,11 +69,13 @@ struct GPUViewport {
   gpu::Texture *depth_tx = nullptr;
   /** Compositing framebuffer for stereo viewport. */
   gpu::FrameBuffer *stereo_comp_fb = nullptr;
-  /** Color render and overlay frame-buffers for drawing outside of DRW module.
+  /**
+   * Color render and overlay frame-buffers for drawing outside of DRW module.
    * The render framebuffer is expected to be in the linear space and viewport will perform color
    * management on it to bring it to the display space.
    * The overlay frame-buffer is expected to be in the display space and viewport does not do any
-   * color management on it. */
+   * color management on it.
+   */
   gpu::FrameBuffer *render_fb = nullptr;
   gpu::FrameBuffer *overlay_fb = nullptr;
 

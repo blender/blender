@@ -241,7 +241,7 @@ static bool rna_Fluid_parts_exists(PointerRNA *ptr, int ptype)
   Object *ob = id_cast<Object *>(ptr->owner_id);
   ParticleSystem *psys;
 
-  for (psys = static_cast<ParticleSystem *>(ob->particlesystem.first); psys; psys = psys->next) {
+  for (psys = ob->particlesystem.first(); psys; psys = psys->next) {
     if (psys->part->type == ptype) {
       return true;
     }

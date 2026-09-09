@@ -35,7 +35,8 @@ void image_size_to_thumb_size(int &r_width, int &r_height, int size = THUMB_SIZE
  * the closest frame that has a thumbnail already.
  *
  * When there is no exact match, a request to load a thumbnail will be internally added and
- * processed in the background. */
+ * processed in the background.
+ */
 ImBuf *thumbnail_cache_get(const bContext *C,
                            Scene *scene,
                            const Strip *strip,

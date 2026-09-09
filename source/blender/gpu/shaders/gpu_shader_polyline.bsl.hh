@@ -7,7 +7,7 @@
 #include "gpu_shader_attribute_load_lib.glsl"
 #include "gpu_shader_colorspace.bsl.hh"
 #include "gpu_shader_index_load.bsl.hh"
-#include "gpu_shader_utildefines_lib.glsl"
+#include "gpu_shader_utildefines.bsl.hh"
 
 namespace builtin::polyline {
 

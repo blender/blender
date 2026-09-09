@@ -8,7 +8,7 @@ VERTEX_SHADER_CREATE_INFO(overlay_extra_spot_cone)
 
 #include "draw_view_clipping_lib.glsl"
 #include "draw_view_lib.glsl"
-#include "gpu_shader_utildefines_lib.glsl"
+#include "gpu_shader_utildefines.bsl.hh"
 #include "overlay_common_lib.glsl"
 #include "select_lib.glsl"
 

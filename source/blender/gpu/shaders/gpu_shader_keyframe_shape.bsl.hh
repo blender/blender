@@ -5,7 +5,7 @@
 #pragma once
 
 #include "GPU_shader_shared.hh"
-#include "gpu_shader_utildefines_lib.glsl"
+#include "gpu_shader_utildefines.bsl.hh"
 
 namespace builtin::keyframe {
 

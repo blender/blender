@@ -7,7 +7,8 @@
  *
  * This file contains wrapper functions related to global interpreter lock.
  * these functions are slightly different from the original Python API,
- * don't throw SIGABRT even if the thread state is nullptr. */
+ * don't throw SIGABRT even if the thread state is nullptr.
+ */
 
 #include <Python.h>
 

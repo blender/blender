@@ -169,7 +169,7 @@ static void sh_node_mix_update(bNodeTree *ntree, bNode *node)
   const NodeShaderMix &storage = node_storage(*node);
   const eNodeSocketDatatype data_type = storage.data_type;
 
-  bNodeSocket *sock_factor = static_cast<bNodeSocket *>(node->inputs.first);
+  bNodeSocket *sock_factor = node->inputs.first();
   bNodeSocket *sock_factor_vec = static_cast<bNodeSocket *>(sock_factor->next);
 
   bool use_vector_factor = data_type == SOCK_VECTOR &&

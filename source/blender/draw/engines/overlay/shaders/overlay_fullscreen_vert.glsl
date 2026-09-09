@@ -7,7 +7,7 @@
 
 VERTEX_SHADER_CREATE_INFO(overlay_fullscreen)
 
-#include "gpu_shader_fullscreen_lib.glsl"
+#include "gpu_shader_fullscreen.bsl.hh"
 
 void main()
 {

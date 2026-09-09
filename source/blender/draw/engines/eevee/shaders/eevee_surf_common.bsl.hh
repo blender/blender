@@ -11,8 +11,8 @@
 #include "eevee_shadow_shared.hh"
 #include "eevee_uniform.bsl.hh"
 #include "gpu_shader_codegen_lib.glsl"
-#include "gpu_shader_math_base_lib.glsl"
-#include "gpu_shader_math_vector_safe_lib.glsl"
+#include "gpu_shader_math_base.bsl.hh"
+#include "gpu_shader_math_vector_safe.bsl.hh"
 
 namespace eevee {
 

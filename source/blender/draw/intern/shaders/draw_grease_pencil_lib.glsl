@@ -2,6 +2,10 @@
  *
  * SPDX-License-Identifier: GPL-2.0-or-later */
 
+/** \file
+ * \ingroup draw
+ */
+
 #pragma once
 
 #include "draw_object_infos_infos.hh"
@@ -12,11 +16,11 @@ SHADER_LIBRARY_CREATE_INFO(draw_gpencil)
 #include "draw_object_infos_lib.glsl"
 #include "draw_view_lib.glsl"
 
-#include "gpu_shader_math_constants_lib.glsl"
-#include "gpu_shader_math_matrix_transform_lib.glsl"
-#include "gpu_shader_math_vector_lib.glsl"
-#include "gpu_shader_math_vector_safe_lib.glsl"
-#include "gpu_shader_utildefines_lib.glsl"
+#include "gpu_shader_math_constants.bsl.hh"
+#include "gpu_shader_math_matrix_transform.bsl.hh"
+#include "gpu_shader_math_vector.bsl.hh"
+#include "gpu_shader_math_vector_safe.bsl.hh"
+#include "gpu_shader_utildefines.bsl.hh"
 
 #ifndef DRW_GPENCIL_INFO
 #  error Missing additional info draw_gpencil

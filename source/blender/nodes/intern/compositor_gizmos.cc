@@ -2,6 +2,10 @@
  *
  * SPDX-License-Identifier: GPL-2.0-or-later */
 
+/** \file
+ * \ingroup nodes
+ */
+
 #include "BLI_listbase_iterator.hh"
 #include "BLI_math_matrix_c.hh"
 #include "BLI_math_rotation_c.hh"
@@ -32,6 +36,7 @@
 #include "WM_types.hh"
 
 #include "NOD_compositor_gizmos.hh" /* Own include. */
+#include "NOD_eval_log.hh"
 
 namespace blender::nodes::gizmos {
 
@@ -122,13 +127,13 @@ static SpaceNode *find_active_node_editor(const bContext *C)
   for (wmWindow &window : window_manager->windows) {
     bScreen *screen = WM_window_get_active_screen(&window);
     for (ScrArea &area : screen->areabase) {
-      SpaceLink *space_link = static_cast<SpaceLink *>(area.spacedata.first);
+      SpaceLink *space_link = area.spacedata.first();
       if (!space_link || space_link->spacetype != SPACE_NODE) {
         continue;
       }
       SpaceNode *snode = reinterpret_cast<SpaceNode *>(space_link);
       if (snode->edittree && snode->edittree->type == NTREE_COMPOSIT) {
-        bNodeTreePath *path = static_cast<bNodeTreePath *>(snode->treepath.last);
+        bNodeTreePath *path = snode->treepath.last();
         if (snode->nodetree->active_viewer_key == path->parent_key) {
           return snode;
         }
@@ -137,6 +142,19 @@ static SpaceNode *find_active_node_editor(const bContext *C)
   }
 
   return nullptr;
+}
+
+static void apply_socket_callback(
+    bNode &node,
+    const UString socket_identifier,
+    const FunctionRef<void(PointerRNA &, PropertyRNA *, int)> callback,
+    const int index = 0)
+{
+  bNodeSocket *socket = bke::node_find_socket(node, SOCK_IN, socket_identifier);
+  BLI_assert(socket != nullptr);
+  PointerRNA ptr = RNA_pointer_create_discrete(&node.owner_tree().id, RNA_NodeSocket, socket);
+  PropertyRNA *prop = RNA_struct_find_property(&ptr, "default_value");
+  callback(ptr, prop, index);
 }
 
 /** \} */
@@ -235,7 +253,7 @@ void box_mask_setup(const bContext * /*C*/, wmGizmoGroup *gzgroup)
 void bbox_draw_prepare_space_node(const bContext *C, wmGizmoGroup *gzgroup)
 {
   ARegion *region = CTX_wm_region(C);
-  wmGizmo *gz = static_cast<wmGizmo *>(gzgroup->gizmos.first);
+  wmGizmo *gz = gzgroup->gizmos.first();
 
   SpaceNode *snode = CTX_wm_space_node(C);
 
@@ -246,7 +264,7 @@ void bbox_draw_prepare_space_node(const bContext *C, wmGizmoGroup *gzgroup)
 void bbox_draw_prepare_space_image(const bContext *C, wmGizmoGroup *gzgroup)
 {
   ARegion *region = CTX_wm_region(C);
-  wmGizmo *gz = static_cast<wmGizmo *>(gzgroup->gizmos.first);
+  wmGizmo *gz = gzgroup->gizmos.first();
 
   SpaceImage *sima = CTX_wm_space_image(C);
   const float2 offset = float2{sima->xof, sima->yof} * sima->zoom;
@@ -353,24 +371,9 @@ static void gizmo_node_box_mask_foreach_rna_prop(
 {
   bNode *node = static_cast<bNode *>(gz_prop->custom_func.user_data);
 
-  bNodeSocket *position_socket = bke::node_find_socket(*node, SOCK_IN, "Position"_ustr);
-  bNodeTree &node_tree = node->owner_tree();
-  PointerRNA position_ptr = RNA_pointer_create_discrete(
-      &node_tree.id, RNA_NodeSocket, position_socket);
-  PropertyRNA *position_prop = RNA_struct_find_property(&position_ptr, "default_value");
-
-  bNodeSocket *size_socket = bke::node_find_socket(*node, SOCK_IN, "Size"_ustr);
-  PointerRNA size_ptr = RNA_pointer_create_discrete(&node_tree.id, RNA_NodeSocket, size_socket);
-  PropertyRNA *size_prop = RNA_struct_find_property(&size_ptr, "default_value");
-
-  bNodeSocket *rotation_socket = bke::node_find_socket(*node, SOCK_IN, "Rotation"_ustr);
-  PointerRNA rotation_ptr = RNA_pointer_create_discrete(
-      &node_tree.id, RNA_NodeSocket, rotation_socket);
-  PropertyRNA *rotation_prop = RNA_struct_find_property(&rotation_ptr, "default_value");
-
-  callback(position_ptr, position_prop, -1);
-  callback(size_ptr, size_prop, -1);
-  callback(rotation_ptr, rotation_prop, 0);
+  apply_socket_callback(*node, "Position"_ustr, callback, -1);
+  apply_socket_callback(*node, "Size"_ustr, callback, -1);
+  apply_socket_callback(*node, "Rotation"_ustr, callback);
 }
 
 void box_mask_refresh(const bContext *C, wmGizmoGroup *gzgroup)
@@ -597,7 +600,7 @@ bool crop_poll_space_image(const bContext *C, wmGizmoGroupType * /*gzgt*/)
 void crop_draw_prepare_space_node(const bContext *C, wmGizmoGroup *gzgroup)
 {
   ARegion *region = CTX_wm_region(C);
-  wmGizmo *gz = static_cast<wmGizmo *>(gzgroup->gizmos.first);
+  wmGizmo *gz = gzgroup->gizmos.first();
 
   SpaceNode *snode = CTX_wm_space_node(C);
 
@@ -609,29 +612,11 @@ static void gizmo_node_crop_foreach_rna_prop(
     const FunctionRef<void(PointerRNA &ptr, PropertyRNA *prop, int index)> callback)
 {
   bNode *node = static_cast<bNode *>(gz_prop->custom_func.user_data);
-  bNodeTree &node_tree = node->owner_tree();
 
-  bNodeSocket *x_socket = bke::node_find_socket(*node, SOCK_IN, "X"_ustr);
-  PointerRNA x_ptr = RNA_pointer_create_discrete(&node_tree.id, RNA_NodeSocket, x_socket);
-  PropertyRNA *x_prop = RNA_struct_find_property(&x_ptr, "default_value");
-
-  bNodeSocket *y_socket = bke::node_find_socket(*node, SOCK_IN, "Y"_ustr);
-  PointerRNA y_ptr = RNA_pointer_create_discrete(&node_tree.id, RNA_NodeSocket, y_socket);
-  PropertyRNA *y_prop = RNA_struct_find_property(&y_ptr, "default_value");
-
-  bNodeSocket *width_socket = bke::node_find_socket(*node, SOCK_IN, "Width"_ustr);
-  PointerRNA width_ptr = RNA_pointer_create_discrete(&node_tree.id, RNA_NodeSocket, width_socket);
-  PropertyRNA *width_prop = RNA_struct_find_property(&width_ptr, "default_value");
-
-  bNodeSocket *height_socket = bke::node_find_socket(*node, SOCK_IN, "Height"_ustr);
-  PointerRNA height_ptr = RNA_pointer_create_discrete(
-      &node_tree.id, RNA_NodeSocket, height_socket);
-  PropertyRNA *height_prop = RNA_struct_find_property(&height_ptr, "default_value");
-
-  callback(x_ptr, x_prop, 0);
-  callback(y_ptr, y_prop, 0);
-  callback(width_ptr, width_prop, 0);
-  callback(height_ptr, height_prop, 0);
+  apply_socket_callback(*node, "X"_ustr, callback);
+  apply_socket_callback(*node, "Y"_ustr, callback);
+  apply_socket_callback(*node, "Width"_ustr, callback);
+  apply_socket_callback(*node, "Height"_ustr, callback);
 }
 
 void crop_refresh(const bContext *C, wmGizmoGroup *gzgroup)
@@ -756,7 +741,7 @@ void glare_draw_prepare_space_image(const bContext *C, wmGizmoGroup *gzgroup)
 
   NodeGlareWidgetGroup *glare_group = static_cast<NodeGlareWidgetGroup *>(gzgroup->customdata);
   ARegion *region = CTX_wm_region(C);
-  wmGizmo *gz = static_cast<wmGizmo *>(gzgroup->gizmos.first);
+  wmGizmo *gz = gzgroup->gizmos.first();
 
   SpaceImage *sima = CTX_wm_space_image(C);
   const float2 offset = float2{-sima->xof, -sima->yof} * sima->zoom;
@@ -793,7 +778,7 @@ void glare_draw_prepare_space_node(const bContext *C, wmGizmoGroup *gzgroup)
 
   NodeGlareWidgetGroup *glare_group = static_cast<NodeGlareWidgetGroup *>(gzgroup->customdata);
   ARegion *region = CTX_wm_region(C);
-  wmGizmo *gz = static_cast<wmGizmo *>(gzgroup->gizmos.first);
+  wmGizmo *gz = gzgroup->gizmos.first();
 
   SpaceNode *snode = CTX_wm_space_node(C);
 
@@ -999,9 +984,7 @@ void corner_pin_refresh(const bContext *C, wmGizmoGroup *gzgroup)
 
   /* need to set property here for undo. TODO: would prefer to do this in _init. */
   int i = 0;
-  for (bNodeSocket *sock = static_cast<bNodeSocket *>(node->inputs.first); sock && i < 4;
-       sock = sock->next)
-  {
+  for (bNodeSocket *sock = node->inputs.first(); sock && i < 4; sock = sock->next) {
     if (sock->type == SOCK_VECTOR) {
       wmGizmo *gz = cpin_group->gizmos[i++];
 
@@ -1092,19 +1075,8 @@ static void gizmo_node_split_foreach_rna_prop(
 {
   bNode *node = static_cast<bNode *>(gz_prop->custom_func.user_data);
 
-  bNodeSocket *position_socket = bke::node_find_socket(*node, SOCK_IN, "Position"_ustr);
-  bNodeTree &node_tree = node->owner_tree();
-  PointerRNA position_ptr = RNA_pointer_create_discrete(
-      &node_tree.id, RNA_NodeSocket, position_socket);
-  PropertyRNA *position_prop = RNA_struct_find_property(&position_ptr, "default_value");
-
-  bNodeSocket *rotation_socket = bke::node_find_socket(*node, SOCK_IN, "Rotation"_ustr);
-  PointerRNA rotation_ptr = RNA_pointer_create_discrete(
-      &node_tree.id, RNA_NodeSocket, rotation_socket);
-  PropertyRNA *rotation_prop = RNA_struct_find_property(&rotation_ptr, "default_value");
-
-  callback(position_ptr, position_prop, -1);
-  callback(rotation_ptr, rotation_prop, 0);
+  apply_socket_callback(*node, "Position"_ustr, callback, -1);
+  apply_socket_callback(*node, "Rotation"_ustr, callback);
 }
 
 static void gizmo_node_split_prop_matrix_get(const wmGizmo *gz,
@@ -1406,6 +1378,196 @@ void transform_refresh(const bContext *C, wmGizmoGroup *gzgroup)
   WM_gizmo_target_property_def_func(cage, "matrix", &params);
 
   BKE_image_release_ibuf(ima, ibuf, lock);
+}
+
+static void gizmo_node_translate_prop_offset_get(const wmGizmo *gz,
+                                                 wmGizmoProperty *gz_prop,
+                                                 void *value_p)
+{
+  float *gz_offset = static_cast<float(*)>(value_p);
+  BLI_assert(gz_prop->type->array_length == 3);
+  NodeBBoxWidgetGroup *translate_group = static_cast<NodeBBoxWidgetGroup *>(
+      gz->parent_gzgroup->customdata);
+  const float2 offset = translate_group->state.offset;
+  const bNode *node = static_cast<const bNode *>(gz_prop->custom_func.user_data);
+
+  const bNodeSocket *x_input = bke::node_find_socket(*node, SOCK_IN, "X"_ustr);
+  const float x = x_input->default_value_typed<bNodeSocketValueFloat>()->value;
+
+  const bNodeSocket *y_input = bke::node_find_socket(*node, SOCK_IN, "Y"_ustr);
+  const float y = y_input->default_value_typed<bNodeSocketValueFloat>()->value;
+
+  gz_offset[0] = x + offset.x;
+  gz_offset[1] = y + offset.y;
+  gz_offset[2] = 0.0f;
+}
+
+static void gizmo_node_translate_prop_offset_set(const wmGizmo *gz,
+                                                 wmGizmoProperty *gz_prop,
+                                                 const void *value_p)
+{
+  const float *gz_offset = static_cast<const float(*)>(value_p);
+  BLI_assert(gz_prop->type->array_length == 3);
+  NodeBBoxWidgetGroup *translate_group = static_cast<NodeBBoxWidgetGroup *>(
+      gz->parent_gzgroup->customdata);
+  const float2 offset = translate_group->state.offset;
+  bNode *node = static_cast<bNode *>(gz_prop->custom_func.user_data);
+
+  bNodeSocket *x_input = bke::node_find_socket(*node, SOCK_IN, "X"_ustr);
+  bNodeSocket *y_input = bke::node_find_socket(*node, SOCK_IN, "Y"_ustr);
+
+  x_input->default_value_typed<bNodeSocketValueFloat>()->value = gz_offset[0] - offset.x;
+  y_input->default_value_typed<bNodeSocketValueFloat>()->value = gz_offset[1] - offset.y;
+
+  gizmo_node_bbox_update(translate_group);
+}
+
+void translate_setup(const bContext * /*C*/, wmGizmoGroup *gzgroup)
+{
+  NodeBBoxWidgetGroup *translate_group = MEM_new<NodeBBoxWidgetGroup>(__func__);
+
+  translate_group->border = WM_gizmo_new("GIZMO_GT_move_3d", gzgroup, nullptr);
+
+  RNA_enum_set(translate_group->border->ptr, "draw_style", ED_GIZMO_MOVE_STYLE_CROSS_2D);
+
+  gzgroup->customdata = translate_group;
+  gzgroup->customdata_free = [](void *customdata) {
+    MEM_delete(static_cast<NodeBBoxWidgetGroup *>(customdata));
+  };
+}
+
+static float2 translate_gizmo_input_offset(const SpaceNode &snode, const bNode &node)
+{
+  /* Gizmos may be drawn before the node tree is evaluated. */
+  const float2 fallback = {0.0f, 0.0f};
+  const bNodeSocket *image_input = bke::node_find_socket(node, SOCK_IN, "Image"_ustr);
+  if (!image_input) {
+    return fallback;
+  }
+
+  eval_log::ContextualNodeTreeLogs tree_logs = eval_log::NodesEvalLog::get_contextual_tree_logs(
+      snode);
+  eval_log::NodeTreeLog *tree_log = tree_logs.get_main_tree_log(*image_input);
+  if (!tree_log) {
+    return fallback;
+  }
+
+  tree_log->ensure_socket_values();
+  const auto *image_log = dynamic_cast<const eval_log::ImageInfoLog *>(
+      tree_log->find_socket_value_log(*image_input));
+  if (!image_log) {
+    return fallback;
+  }
+
+  /* Logging considers data and display size. */
+  return image_log->transformation.location();
+}
+
+static void gizmo_node_translate_foreach_rna_prop(
+    wmGizmoProperty *gz_prop,
+    const FunctionRef<void(PointerRNA &ptr, PropertyRNA *prop, int index)> callback)
+{
+  bNode *node = static_cast<bNode *>(gz_prop->custom_func.user_data);
+
+  apply_socket_callback(*node, "X"_ustr, callback);
+  apply_socket_callback(*node, "Y"_ustr, callback);
+}
+
+void translate_refresh(const bContext *C, wmGizmoGroup *gzgroup)
+{
+  Main *bmain = CTX_data_main(C);
+  NodeBBoxWidgetGroup *translate_group = static_cast<NodeBBoxWidgetGroup *>(gzgroup->customdata);
+  wmGizmo *gz = translate_group->border;
+
+  void *lock;
+  Image *ima = BKE_image_ensure_viewer(bmain, IMA_TYPE_COMPOSITE, "Viewer Node");
+  ImBuf *ibuf = BKE_image_acquire_ibuf(ima, nullptr, &lock);
+
+  if (ibuf == nullptr) [[unlikely]] {
+    WM_gizmo_set_flag(gz, WM_GIZMO_HIDDEN, true);
+    BKE_image_release_ibuf(ima, ibuf, lock);
+    return;
+  }
+
+  translate_group->state.dims = node_gizmo_safe_calc_dims(ibuf, GIZMO_NODE_DEFAULT_DIMS);
+
+  SpaceNode *snode = find_active_node_editor(C);
+  BLI_assert(snode != nullptr);
+
+  bNode *node = bke::node_get_active(*snode->edittree);
+
+  translate_group->state.offset = translate_gizmo_input_offset(*snode, *node);
+  translate_group->update_data.context = const_cast<bContext *>(C);
+  bNodeSocket *source_input = bke::node_find_socket(*node, SOCK_IN, "X"_ustr);
+  translate_group->update_data.ptr = RNA_pointer_create_discrete(
+      reinterpret_cast<ID *>(snode->edittree), RNA_NodeSocket, source_input);
+  translate_group->update_data.prop = RNA_struct_find_property(&translate_group->update_data.ptr,
+                                                               "enabled");
+  BLI_assert(translate_group->update_data.prop != nullptr);
+
+  wmGizmoPropertyFnParams params{};
+  params.value_get_fn = gizmo_node_translate_prop_offset_get;
+  params.value_set_fn = gizmo_node_translate_prop_offset_set;
+  params.range_get_fn = nullptr;
+  params.user_data = node;
+  params.foreach_rna_prop_fn = gizmo_node_translate_foreach_rna_prop;
+  WM_gizmo_target_property_def_func(gz, "offset", &params);
+
+  WM_gizmo_set_flag(gz, WM_GIZMO_DRAW_MODAL, true);
+
+  BKE_image_release_ibuf(ima, ibuf, lock);
+}
+
+static bool show_translate_gizmo(const SpaceNode &snode)
+{
+  bNodeTree *node_tree = snode.edittree;
+  BLI_assert(node_tree != nullptr);
+
+  bNode *node = bke::node_get_active(*node_tree);
+
+  if (!node || !node->is_type("CompositorNodeTranslate"_ustr)) {
+    return false;
+  }
+
+  node_tree->ensure_topology_cache();
+  for (bNodeSocket &input : node->inputs) {
+    if (STR_ELEM(input.name, "X", "Y") && input.is_directly_linked()) {
+      return false;
+    }
+  }
+  return true;
+}
+
+bool translate_poll_space_node(const bContext *C, wmGizmoGroupType * /*gzgt*/)
+{
+  SpaceNode *snode = CTX_wm_space_node(C);
+  if (snode == nullptr) {
+    return false;
+  }
+  if (!node_gizmo_is_set_visible(*snode)) {
+    return false;
+  }
+
+  return show_translate_gizmo(*snode);
+}
+
+bool translate_poll_space_image(const bContext *C, wmGizmoGroupType * /*gzgt*/)
+{
+  const SpaceImage *sima = CTX_wm_space_image(C);
+  if (sima == nullptr) {
+    return false;
+  }
+
+  if (!image_gizmo_is_set_visible(*sima)) {
+    return false;
+  }
+
+  const SpaceNode *snode = find_active_node_editor(C);
+  if (snode == nullptr || snode->edittree == nullptr) {
+    return false;
+  }
+
+  return show_translate_gizmo(*snode);
 }
 
 }  // namespace blender::nodes::gizmos

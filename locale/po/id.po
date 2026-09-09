@@ -1,9 +1,9 @@
 
 msgid ""
 msgstr ""
-"Project-Id-Version: Blender 5.3.0 Alpha (b'32296898e057')\n"
+"Project-Id-Version: Blender 5.3.0 Alpha (b'f5df8c32f99b')\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-08-31 07:41+0000\n"
+"POT-Creation-Date: 2026-09-07 07:47+0000\n"
 "PO-Revision-Date: 2026-06-02 05:12+0000\n"
 "Last-Translator: Fadli Birdie Zeinda <justbirdie00@gmail.com>\n"
 "Language-Team: Indonesian <https://translate.blender.org/projects/blender-ui/ui/id/>\n"
@@ -15676,14 +15676,6 @@ msgid "Use Material Mask"
 msgstr "Gunakan Masker Bahan"
 
 
-msgid "Snap"
-msgstr "Jepret"
-
-
-msgid "Sample"
-msgstr "Sampel"
-
-
 msgid "Gizmo"
 msgstr "Gizmo"
 
@@ -15692,20 +15684,20 @@ msgid "Instances"
 msgstr "Contoh-contoh"
 
 
+msgid "Sample"
+msgstr "Sampel"
+
+
 msgid "Import"
 msgstr "Impor"
-
-
-msgid "Mirror"
-msgstr "Cermin"
 
 
 msgid "Utilities"
 msgstr "Utilitas"
 
 
-msgid "Navigation"
-msgstr "Navigasi"
+msgid "Select Linked"
+msgstr "Seleksi yang Terhubung"
 
 
 msgid "Math"
@@ -15716,36 +15708,20 @@ msgid "UV"
 msgstr "UV"
 
 
-msgid "Select Linked"
-msgstr "Seleksi yang Terhubung"
+msgid "Navigation"
+msgstr "Navigasi"
 
 
-msgid "Assign Material"
-msgstr "Tugaskan Bahan"
+msgid "Snap"
+msgstr "Jepret"
 
 
-msgid "Metaball"
-msgstr "Metabola"
+msgid "Mirror"
+msgstr "Cermin"
 
 
-msgid "Light"
-msgstr "Cahaya"
-
-
-msgid "Light Probe"
-msgstr "Probe Cahaya"
-
-
-msgid "Add Image"
-msgstr "Tambah Gambar"
-
-
-msgid "Apply"
-msgstr "Tetapkan"
-
-
-msgid "Track"
-msgstr "Lacak"
+msgid "Names"
+msgstr "Nama"
 
 
 msgid "Linked"
@@ -15756,24 +15732,48 @@ msgid "Layout"
 msgstr "Tata Letak"
 
 
-msgid "Asset"
-msgstr "Aset"
+msgid "Metaball"
+msgstr "Metabola"
 
 
-msgid "Hooks"
-msgstr "Kait"
+msgid "Merge"
+msgstr "Menggabungkan"
 
 
 msgid "Tracking"
 msgstr "Pelacakan"
 
 
-msgid "Names"
-msgstr "Nama"
+msgid "Apply"
+msgstr "Tetapkan"
 
 
-msgid "Merge"
-msgstr "Menggabungkan"
+msgid "Hooks"
+msgstr "Kait"
+
+
+msgid "Asset"
+msgstr "Aset"
+
+
+msgid "Track"
+msgstr "Lacak"
+
+
+msgid "Add Image"
+msgstr "Tambah Gambar"
+
+
+msgid "Light Probe"
+msgstr "Probe Cahaya"
+
+
+msgid "Assign Material"
+msgstr "Tugaskan Bahan"
+
+
+msgid "Light"
+msgstr "Cahaya"
 
 
 msgid "Animals"
@@ -30239,16 +30239,16 @@ msgid "Paste Data-Blocks"
 msgstr "Tempel Data-Blok"
 
 
-msgid "Object Contents"
-msgstr "Konten Objek"
+msgid "Empties"
+msgstr "Kosongan"
 
 
 msgid "Object Children"
 msgstr "Anak Objek"
 
 
-msgid "Empties"
-msgstr "Kosongan"
+msgid "Object Contents"
+msgstr "Konten Objek"
 
 
 msgctxt "Operator"
@@ -30295,6 +30295,11 @@ msgstr "Lompat ke Strip Sebelumnya"
 msgctxt "Operator"
 msgid "Jump to Next Strip"
 msgstr "Lompat ke Strip Selanjutnya"
+
+
+msgctxt "Operator"
+msgid "Text"
+msgstr "Teks"
 
 
 msgid "No Items Available"
@@ -30355,23 +30360,8 @@ msgstr "Kedua Sisi"
 
 
 msgctxt "Operator"
-msgid "Clip..."
-msgstr "Klip..."
-
-
-msgctxt "Operator"
-msgid "Mask..."
-msgstr "Masker..."
-
-
-msgctxt "Operator"
 msgid "Color"
 msgstr "Warna"
-
-
-msgctxt "Operator"
-msgid "Text"
-msgstr "Teks"
 
 
 msgctxt "Operator"
@@ -30396,11 +30386,6 @@ msgstr "Regang ke Isi"
 
 msgid "Resolutions"
 msgstr "Resolusi"
-
-
-msgctxt "Operator"
-msgid "Clip"
-msgstr "Klip"
 
 
 msgctxt "Text"

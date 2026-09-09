@@ -145,7 +145,7 @@ static void createTransSeqImageData(bContext *C, TransInfo *t)
 {
   Scene *scene = CTX_data_sequencer_scene(C);
   Editing *ed = seq::editing_get(scene);
-  const SpaceSeq *sseq = static_cast<const SpaceSeq *>(t->area->spacedata.first);
+  const SpaceSeq *sseq = t->area->spacedata.first_as<SpaceSeq>();
   const ARegion *region = t->region;
 
   if (ed == nullptr) {

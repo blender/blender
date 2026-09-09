@@ -181,8 +181,10 @@ class ImplicitSharingInfo : NonCopyable, NonMovable {
   }
 
  private:
-  /** Has to free the #ImplicitSharingInfo and the referenced data. The data might have been freed
-   * before by #delete_data_only already. This case should be handled here. */
+  /**
+   * Has to free the #ImplicitSharingInfo and the referenced data. The data might have been freed
+   * before by #delete_data_only already. This case should be handled here.
+   */
   virtual void delete_self_with_data() = 0;
   /** Can free the referenced data but the #ImplicitSharingInfo still has to be kept alive. */
   virtual void delete_data_only() {}

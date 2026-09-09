@@ -19,7 +19,6 @@
 #include "BLO_read_write.hh"
 
 #ifdef WITH_OPENVDB
-#  include "BKE_volume_grid_fields.hh"
 #  include "BKE_volume_grid_process.hh"
 #endif
 
@@ -140,144 +139,6 @@ static void node_gather_link_search_ops(GatherLinkSearchOpParams &params)
   }
 }
 
-#ifdef WITH_OPENVDB
-BLI_NOINLINE static void process_leaf_node(const Span<fn::GField> fields,
-                                           const openvdb::math::Transform &transform,
-                                           const grid::LeafNodeMask &leaf_node_mask,
-                                           const openvdb::CoordBBox &leaf_bbox,
-                                           const grid::GetVoxelsFn get_voxels_fn,
-                                           const Span<openvdb::GridBase::Ptr> output_grids)
-{
-  AlignedBuffer<8192, 8> allocation_buffer;
-  ResourceScope scope(allocation_buffer);
-
-  const IndexMask index_mask = IndexMask::from_predicate(
-      IndexRange(grid::LeafNodeMask::SIZE),
-      scope.allocator(),
-      [&](const int64_t i) { return leaf_node_mask.isOn(i); },
-      exec_mode::serial);
-
-  const openvdb::Coord any_voxel_in_leaf = leaf_bbox.min();
-  MutableSpan<openvdb::Coord> voxels = scope.allocator().allocate_array<openvdb::Coord>(
-      index_mask.min_array_size());
-  get_voxels_fn(voxels);
-
-  bke::VoxelFieldContext field_context{transform, voxels};
-  fn::FieldEvaluator evaluator{field_context, &index_mask};
-
-  Array<MutableSpan<bool>> boolean_outputs(fields.size());
-  for (const int i : fields.index_range()) {
-    const CPPType &type = fields[i].cpp_type();
-    grid::to_typed_grid(*output_grids[i], [&](auto &grid) {
-      using GridT = typename std::decay_t<decltype(grid)>;
-      using ValueT = typename GridT::ValueType;
-
-      auto &tree = grid.tree();
-      auto *leaf_node = tree.probeLeaf(any_voxel_in_leaf);
-      /* Should have been added before. */
-      BLI_assert(leaf_node);
-
-      /* Boolean grids are special because they encode the values as bitmask. */
-      if constexpr (std::is_same_v<ValueT, bool>) {
-        boolean_outputs[i] = scope.allocator().allocate_array<bool>(index_mask.min_array_size());
-        evaluator.add_with_destination(fields[i], boolean_outputs[i]);
-      }
-      else {
-        /* Write directly into the buffer of the output leaf node. */
-        ValueT *buffer = leaf_node->buffer().data();
-        evaluator.add_with_destination(fields[i],
-                                       GMutableSpan(type, buffer, grid::LeafNodeMask::SIZE));
-      }
-    });
-  }
-
-  evaluator.evaluate();
-
-  for (const int i : fields.index_range()) {
-    if (!boolean_outputs[i].is_empty()) {
-      grid::set_mask_leaf_buffer_from_bools(static_cast<openvdb::BoolGrid &>(*output_grids[i]),
-                                            boolean_outputs[i],
-                                            index_mask,
-                                            voxels);
-    }
-  }
-}
-
-BLI_NOINLINE static void process_voxels(const Span<fn::GField> fields,
-                                        const openvdb::math::Transform &transform,
-                                        const Span<openvdb::Coord> voxels,
-                                        const Span<openvdb::GridBase::Ptr> output_grids)
-{
-  const int64_t voxels_num = voxels.size();
-  AlignedBuffer<8192, 8> allocation_buffer;
-  ResourceScope scope(allocation_buffer);
-
-  bke::VoxelFieldContext field_context{transform, voxels};
-  fn::FieldEvaluator evaluator{field_context, voxels_num};
-
-  Array<GMutableSpan> output_values(output_grids.size());
-  for (const int i : fields.index_range()) {
-    const CPPType &type = fields[i].cpp_type();
-    output_values[i] = {type, scope.allocator().allocate_array(type, voxels_num), voxels_num};
-    evaluator.add_with_destination(fields[i], output_values[i]);
-  }
-  evaluator.evaluate();
-
-  for (const int i : fields.index_range()) {
-    grid::set_grid_values(*output_grids[i], output_values[i], voxels);
-  }
-}
-
-BLI_NOINLINE static void process_tiles(const Span<fn::GField> fields,
-                                       const openvdb::math::Transform &transform,
-                                       const Span<openvdb::CoordBBox> tiles,
-                                       const Span<openvdb::GridBase::Ptr> output_grids)
-{
-  const int64_t tiles_num = tiles.size();
-  AlignedBuffer<8192, 8> allocation_buffer;
-  ResourceScope scope(allocation_buffer);
-
-  bke::TilesFieldContext field_context{transform, tiles};
-  fn::FieldEvaluator evaluator{field_context, tiles_num};
-
-  Array<GMutableSpan> output_values(output_grids.size());
-  for (const int i : fields.index_range()) {
-    const CPPType &type = fields[i].cpp_type();
-    output_values[i] = {type, scope.allocator().allocate_array(type, tiles_num), tiles_num};
-    evaluator.add_with_destination(fields[i], output_values[i]);
-  }
-  evaluator.evaluate();
-
-  for (const int i : fields.index_range()) {
-    grid::set_tile_values(*output_grids[i], output_values[i], tiles);
-  }
-}
-
-BLI_NOINLINE static void process_background(const Span<fn::GField> fields,
-                                            const openvdb::math::Transform &transform,
-                                            const Span<openvdb::GridBase::Ptr> output_grids)
-{
-  AlignedBuffer<256, 8> allocation_buffer;
-  ResourceScope scope(allocation_buffer);
-
-  static const openvdb::CoordBBox background_space = openvdb::CoordBBox::inf();
-  bke::TilesFieldContext field_context(transform, Span<openvdb::CoordBBox>(&background_space, 1));
-  fn::FieldEvaluator evaluator(field_context, 1);
-
-  Array<GMutablePointer> output_values(output_grids.size());
-  for (const int i : fields.index_range()) {
-    const CPPType &type = fields[i].cpp_type();
-    output_values[i] = {type, scope.allocator().allocate(type)};
-    evaluator.add_with_destination(fields[i], GMutableSpan{type, output_values[i].get(), 1});
-  }
-  evaluator.evaluate();
-
-  for (const int i : fields.index_range()) {
-    grid::set_grid_background(*output_grids[i], output_values[i]);
-  }
-}
-#endif
-
 static void node_geo_exec(GeoNodeExecParams params)
 {
 #ifdef WITH_OPENVDB
@@ -315,35 +176,13 @@ static void node_geo_exec(GeoNodeExecParams params)
   grid::to_typed_grid(topology_base,
                       [&](const auto &grid) { mask_tree.topologyUnion(grid.tree()); });
 
-  Vector<openvdb::GridBase::Ptr> output_grids(required_items.size());
-  for (const int i : required_items.index_range()) {
-    const int item_i = required_items[i];
-    const eNodeSocketDatatype socket_type = items[item_i].data_type;
-    const VolumeGridType grid_type = *bke::socket_type_to_grid_type(socket_type);
-    output_grids[i] = grid::create_grid_with_topology(mask_tree, transform, grid_type);
-  }
-
-  grid::parallel_grid_topology_tasks(
-      mask_tree,
-      [&](const grid::LeafNodeMask &leaf_node_mask,
-          const openvdb::CoordBBox &leaf_bbox,
-          const grid::GetVoxelsFn get_voxels_fn) {
-        process_leaf_node(
-            fields, transform, leaf_node_mask, leaf_bbox, get_voxels_fn, output_grids);
-      },
-      [&](const Span<openvdb::Coord> voxels) {
-        process_voxels(fields, transform, voxels, output_grids);
-      },
-      [&](const Span<openvdb::CoordBBox> tiles) {
-        process_tiles(fields, transform, tiles, output_grids);
-      });
-
-  process_background(fields, transform, output_grids);
+  Vector<bke::GVolumeGrid> output_grids(fields.size());
+  evaluate_fields_to_grid(mask_tree, transform, fields, output_grids);
 
   for (const int i : required_items.index_range()) {
     const int item_i = required_items[i];
     const std::string identifier = ItemsAccessor::output_socket_identifier_for_item(items[item_i]);
-    params.set_output(UString(identifier), bke::GVolumeGrid(std::move(output_grids[i])));
+    params.set_output(UString(identifier), std::move(output_grids[i]));
   }
 
 #else

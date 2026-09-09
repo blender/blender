@@ -1048,7 +1048,7 @@ static void replace_interface_socket(
 
   if (proxy_node) {
     BLI_assert(proxy_node);
-    STRNCPY(proxy_node->label, io_socket.name);
+    STRNCPY(proxy_node->label, io_socket.name().c_str());
 
     const float width = (proxy_node->is_reroute() ? 0.0f : proxy_node->width);
     const float height = (proxy_node->is_reroute() ? 0.0f : proxy_node->height);

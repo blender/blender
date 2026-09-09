@@ -2,7 +2,9 @@
  *
  * SPDX-License-Identifier: GPL-2.0-or-later */
 
-/**
+/** \file
+ * \ingroup draw
+ *
  * GPU generated indirection buffer. Updated on topology change.
  * One thread processes one curve.
  */
@@ -13,7 +15,7 @@ COMPUTE_SHADER_CREATE_INFO(draw_curves_topology)
 
 #include "gpu_shader_attribute_load_lib.glsl"
 #include "gpu_shader_offset_indices_lib.glsl"
-#include "gpu_shader_utildefines_lib.glsl"
+#include "gpu_shader_utildefines.bsl.hh"
 
 void main()
 {

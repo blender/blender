@@ -13,6 +13,7 @@
 #include "RNA_prototypes.hh"
 
 #include "BKE_compositor.hh"
+#include "BKE_compute_contexts.hh"
 #include "BKE_node.hh"
 #include "BKE_node_runtime.hh"
 
@@ -23,9 +24,8 @@
 
 namespace blender::compositor {
 
-SceneCompositorEffectsOperation::SceneCompositorEffectsOperation(
-    Context &context, const NodeGroupOutputTypes needed_outputs)
-    : SimpleOperation(context), needed_outputs_(needed_outputs)
+SceneCompositorEffectsOperation::SceneCompositorEffectsOperation(Context &context)
+    : SimpleOperation(context)
 {
   this->declare_input_descriptor(InputDescriptor{ResultType::Color});
   this->populate_result(ResultType::Color);
@@ -163,7 +163,8 @@ static Result *get_effect_input(Context &context,
 void SceneCompositorEffectsOperation::execute()
 {
   const Scene &scene = this->context().get_scene();
-  const bool needs_viewer_output = flag_is_set(needed_outputs_, NodeGroupOutputTypes::ViewerNode);
+  const bool needs_viewer_output = flag_is_set(this->context().needed_side_effect_output_types(),
+                                               SideEffectOutputTypes::ViewerNode);
   const bke::DataBlockComputeContext scene_compute_context(nullptr, scene.id);
 
   std::unique_ptr<NodeGroupOperation> last_operation;
@@ -182,7 +183,7 @@ void SceneCompositorEffectsOperation::execute()
 
     const bNodeTree &node_group = *effect.node_group;
     NodeGroupOperation *effect_operation = new NodeGroupOperation(
-        this->context(), node_group, needed_outputs_, effect_compute_context);
+        this->context(), node_group, effect_compute_context);
 
     /* If the node group has no viewer node in the active context, and the context requires a
      * viewer output, we use the group output as a viewer. */

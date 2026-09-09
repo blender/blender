@@ -134,7 +134,8 @@ struct SurfVolume {
 
 /* Note: Only the front fragments have to be invoked. */
 [[fragment]] [[early_fragment_tests]] [[texture_atomic]]
-void surf_volume([[resource_table]] SurfVolume &srt,
+void surf_volume([[resource_table]] PipelineConstants & /*pipe*/,
+                 [[resource_table]] SurfVolume &srt,
                  [[resource_table]] const Uniform &uni,
                  [[resource_table]] const draw::Model &models,
                  [[resource_table]] const draw::View &views,

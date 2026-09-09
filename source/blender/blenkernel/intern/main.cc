@@ -120,7 +120,7 @@ void BKE_main_clear(Main &bmain)
     ListBaseT<ID> *lb = lbarray[a];
     ID *id, *id_next;
 
-    for (id = static_cast<ID *>(lb->first); id != nullptr; id = id_next) {
+    for (id = lb->first(); id != nullptr; id = id_next) {
       id_next = static_cast<ID *>(id->next);
 #if 1
       BKE_id_free_ex(&bmain, id, free_flag, false);
@@ -831,7 +831,7 @@ MainLibraryWeakReferenceMap *BKE_main_library_weak_reference_create(Main *bmain)
 
   ListBaseT<ID> *lb;
   FOREACH_MAIN_LISTBASE_BEGIN (bmain, lb) {
-    ID *id_iter = static_cast<ID *>(lb->first);
+    ID *id_iter = lb->first();
     if (id_iter == nullptr) {
       continue;
     }
@@ -841,7 +841,8 @@ MainLibraryWeakReferenceMap *BKE_main_library_weak_reference_create(Main *bmain)
     BLI_assert(BKE_idtype_idcode_is_linkable(id_iter->id_type()));
 
     FOREACH_MAIN_LISTBASE_ID_BEGIN (lb, id_iter) {
-      if (id_iter->library_weak_reference == nullptr) {
+      /* Only local IDs can be reused, not linked editable assets. */
+      if (id_iter->library_weak_reference == nullptr || ID_IS_LINKED(id_iter)) {
         continue;
       }
       const LibWeakRefKey key{id_iter->library_weak_reference->library_filepath,
@@ -944,6 +945,9 @@ ID *BKE_main_library_weak_reference_find(Main *bmain,
 
   ListBaseT<ID> *id_list = which_libbase(bmain, GS(library_id_name));
   for (ID &existing_id : *id_list) {
+    if (ID_IS_LINKED(&existing_id)) {
+      continue;
+    }
     if (!(existing_id.library_weak_reference &&
           STREQ(existing_id.library_weak_reference->library_id_name, library_id_name)))
     {
@@ -1243,7 +1247,7 @@ MainAllIDsIterator &MainAllIDsIterator::operator++()
      * constructor case). */
     ListBaseT<ID> *lb_ids = lbarray_[size_t(curr_lbarray_index_)];
     if (lb_ids && !lb_ids->is_empty()) {
-      curr_id_ = static_cast<ID *>(lb_ids->first);
+      curr_id_ = lb_ids->first();
       return *this;
     }
   }
@@ -1276,7 +1280,7 @@ MainAllIDsIterator &MainAllIDsIterator::operator--()
      * constructor case). */
     ListBaseT<ID> *lb_ids = lbarray_[size_t(curr_lbarray_index_)];
     if (lb_ids && !lb_ids->is_empty()) {
-      curr_id_ = static_cast<ID *>(lb_ids->last);
+      curr_id_ = lb_ids->last();
       return *this;
     }
   }

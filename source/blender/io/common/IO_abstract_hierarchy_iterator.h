@@ -2,7 +2,9 @@
  *
  * SPDX-License-Identifier: GPL-2.0-or-later */
 
-/*
+/** \file
+ * \ingroup io
+ *
  * This file contains the AbstractHierarchyIterator. It is intended for exporters for file
  * formats that concern an entire hierarchy of objects (rather than, for example, an OBJ file that
  * contains only a single mesh). Examples are Universal Scene Description (USD) and Alembic.

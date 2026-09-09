@@ -766,7 +766,7 @@ static bool bpath_list_restore(BPathForeachPathData *bpath_data,
    * If this happens, there is a bug in caller code. */
   BLI_assert(!path_list->is_empty());
 
-  PathStore *path_store = static_cast<PathStore *>(path_list->first);
+  PathStore *path_store = path_list->first();
   const char *filepath = path_store->filepath;
   bool is_path_changed = false;
 

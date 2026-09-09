@@ -1012,12 +1012,12 @@ void butstore_update(Block *block)
 {
   /* move this list to the new block */
   if (block->oldblock) {
-    if (block->oldblock->butstore.first) {
+    if (block->oldblock->butstore.first_) {
       BLI_movelisttolist(&block->butstore, &block->oldblock->butstore);
     }
   }
 
-  if (block->butstore.first == nullptr) [[likely]] {
+  if (block->butstore.first_ == nullptr) [[likely]] {
     return;
   }
 

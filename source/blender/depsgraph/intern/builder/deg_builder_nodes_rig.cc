@@ -154,8 +154,7 @@ void DepsgraphNodeBuilder::build_rig(Object *object)
       BKE_pose_update_constraint_flags(*object);
     }
   }
-  /**
-   * Pose Rig Graph
+  /* Pose Rig Graph
    * ==============
    *
    * Pose Component:
@@ -264,11 +263,10 @@ void DepsgraphNodeBuilder::build_rig(Object *object)
           &object->id, NodeType::PARAMETERS, OperationCode::PARAMETERS_EVAL, nullptr, pchan.name);
     }
     /* Build constraints. */
-    if (pchan.constraints.first != nullptr) {
+    if (pchan.constraints.first() != nullptr) {
       build_pose_constraints(object, &pchan, pchan_index);
     }
-    /**
-     * IK Solvers.
+    /* IK Solvers.
      *
      * - These require separate processing steps are pose-level
      *   to be executed between chains of bones (i.e. once the

@@ -17,8 +17,10 @@ namespace blender::gpu {
 
 class MTLQueryPool : public QueryPool {
  private:
-  /** Number of queries that have been issued since last initialization.
-   * Should be equal to query_ids_.size(). */
+  /**
+   * Number of queries that have been issued since last initialization.
+   * Should be equal to query_ids_.size().
+   */
   uint32_t query_issued_;
   /** Type of this query pool. */
   GPUQueryType type_;

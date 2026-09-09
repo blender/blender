@@ -15,6 +15,7 @@
 #include "BLI_function_ref.hh"
 
 #include "DNA_space_types.h"
+#include "DNA_workspace_types.h"
 #include "DNA_world_types.h"
 
 #include "GPU_matrix.hh"
@@ -132,6 +133,7 @@ struct State {
   const SpaceLink *space_data = nullptr;
   const ARegion *region = nullptr;
   const RegionView3D *rv3d = nullptr;
+  const bToolRef *active_tool = nullptr;
   DRWTextStore *dt = nullptr;
   View3DOverlay overlay = {};
   eSpace_Type space_type = SPACE_EMPTY;
@@ -443,8 +445,10 @@ class ShaderModule {
   }
 
   const SelectionType selection_type_;
-  /** TODO: Support clipping. This global state should be set by the overlay::Instance and switch
-   * to the shader variations that use clipping. */
+  /**
+   * TODO: Support clipping. This global state should be set by the overlay::Instance and switch
+   * to the shader variations that use clipping.
+   */
   const bool clipping_enabled_;
 
  public:

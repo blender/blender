@@ -8,6 +8,7 @@
 #include "util/math_float3.h"
 #include "util/types_dual.h"
 #include "util/types_float3.h"
+#include "util/types_quaternion.h"
 
 CCL_NAMESPACE_BEGIN
 
@@ -29,6 +30,11 @@ ccl_device_template_spec dual3 make_zero()
 ccl_device_template_spec dual4 make_zero()
 {
   return dual4();
+}
+
+ccl_device_template_spec dual<Quaternion> make_zero()
+{
+  return dual<Quaternion>();
 }
 
 template<class T> ccl_device_inline bool is_zero(const ccl_private dual<T> &a)

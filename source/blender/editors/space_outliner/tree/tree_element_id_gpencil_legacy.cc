@@ -13,6 +13,8 @@
 
 #include "../outliner_intern.hh"
 
+#include "tree_display.hh"
+#include "tree_element_gpencil_layer.hh"
 #include "tree_element_id_gpencil_legacy.hh"
 
 namespace blender::ed::outliner {
@@ -33,7 +35,7 @@ void TreeElementIDGPLegacy::expand_layers() const
 {
   int index = 0;
   for (bGPDlayer &gpl : gpd_.layers.items_reversed()) {
-    add_element(&legacy_te_.subtree, &gpd_.id, &gpl, &legacy_te_, TSE_GP_LAYER, index);
+    add_element<TreeElementGPencilLayer>({.index = index, .owner_id = &gpd_.id}, gpl);
     index++;
   }
 }

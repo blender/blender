@@ -969,6 +969,13 @@ struct CodegenContext : NodeErrorHandler {
             return 0;
           }
 
+#ifdef _MSC_VER
+/* Silence warning about bool operand.
+ * They cannot happen because they are caught by the above check */
+#  pragma warning(push)
+#  pragma warning(disable : 4805)
+#endif
+
           /* Assign with the correct type cast. */
           switch (op.front().type()) {
             case Assign:
@@ -1003,6 +1010,9 @@ struct CodegenContext : NodeErrorHandler {
             default:
               break;
           }
+#ifdef _MSC_VER
+#  pragma warning(pop)
+#endif
         }
       }
     }
@@ -1352,7 +1362,7 @@ struct CodegenContext : NodeErrorHandler {
               SymbolClass *type = id_type_lookup_resolved(decl.type().identifier(), cls);
               for (Declarator d : decl.children_of_type<Declarator>()) {
                 SymbolVariable *var = cls.lookup_variable(table, d.identifier());
-                if (var->is_static) {
+                if (var->is_static || var->bit_offset != 0) {
                   continue;
                 }
                 string access;
@@ -1981,8 +1991,8 @@ struct CodegenContext : NodeErrorHandler {
   void if_statement(Node decl,
                     SymbolScope &parent_scope,
                     int &local_scope_id,
-                    bool preceeded_by_true_if_constexpr = false,
-                    bool preceeded_by_regular_if = false)
+                    bool preceded_by_true_if_constexpr = false,
+                    bool preceded_by_regular_if = false)
   {
     SymbolScope *scope = parent_scope.child_scope(local_scope_id++);
     if (scope == nullptr) {
@@ -2020,7 +2030,7 @@ struct CodegenContext : NodeErrorHandler {
     /* Generate a 'else' statement only if there is a non-constexpr if above in the chain,
      * and if no 'if constexpr' evaluated to true above in the chain,
      * and if not a 'if constexpr' itself. */
-    if (preceeded_by_regular_if && !preceeded_by_true_if_constexpr &&
+    if (preceded_by_regular_if && !preceded_by_true_if_constexpr &&
         (!is_constexpr || constexpr_value == true))
     {
       match_if(Else);
@@ -2031,7 +2041,7 @@ struct CodegenContext : NodeErrorHandler {
 
     /* Generate a if statement only if this is not a 'if constexpr',
      * and if no 'if constexpr' evaluated to true above in the chain. */
-    if (!is_constexpr && !preceeded_by_true_if_constexpr) {
+    if (!is_constexpr && !preceded_by_true_if_constexpr) {
       match_if(If);
       skip_if(Constexpr);
       if (cond.is_valid()) {
@@ -2046,7 +2056,7 @@ struct CodegenContext : NodeErrorHandler {
 
     LocalScope body = decl.child_last(NodeType::LocalScope);
 
-    if (!preceeded_by_true_if_constexpr && (!is_constexpr || constexpr_value == true)) {
+    if (!preceded_by_true_if_constexpr && (!is_constexpr || constexpr_value == true)) {
       local_scope(body, *scope);
     }
 
@@ -2062,8 +2072,8 @@ struct CodegenContext : NodeErrorHandler {
       if_statement(next,
                    parent_scope,
                    local_scope_id,
-                   preceeded_by_true_if_constexpr || (is_constexpr && constexpr_value == true),
-                   preceeded_by_regular_if || !is_constexpr);
+                   preceded_by_true_if_constexpr || (is_constexpr && constexpr_value == true),
+                   preceded_by_regular_if || !is_constexpr);
     }
     else {
       jump_to(next.front());
@@ -2192,6 +2202,16 @@ struct CodegenContext : NodeErrorHandler {
       return false;
     }
 
+    if (decl.has_single_declarator()) {
+      Declarator d = decl.child_first(NodeType::Declarator);
+      SymbolVariable *var = scope.lookup_variable(table, d.identifier());
+      if (var->is_bitfield && var->bit_offset != 0) {
+        /* Only declare the first member of each field. */
+        skip_node(decl);
+        return false;
+      }
+    }
+
     if (jump) {
       jump_to(decl.front());
     }
@@ -2273,6 +2293,14 @@ struct CodegenContext : NodeErrorHandler {
     ArrayDecl array = decl.array();
     SymbolVariable *var = scope.lookup_variable(table, decl.identifier());
 
+    if (var->is_bitfield && var->bit_offset != 0) {
+      if (decl.prev().type() != NodeType::Declarator || decl.next().type() != NodeType::Declarator)
+      {
+        /* Omitting a declarator in a declarator sequence will create invalid codegen. */
+        error(decl, Diag::BitFieldNotSingleDeclarator);
+      }
+    }
+
     const bool par = match_if('(');
     if (var->type->is_srt()) {
       /* WORKAROUND: Do not pass SRT by reference because it causes issue on metal when the caller
@@ -2296,6 +2324,8 @@ struct CodegenContext : NodeErrorHandler {
     }
 
     array_decl(array, decl, scope);
+
+    skip_node(decl.bitfield());
 
     if (!var->is_error && var->is_constexpr) {
       builder.curr = decl.back();

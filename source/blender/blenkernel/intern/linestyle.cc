@@ -124,22 +124,16 @@ static void linestyle_free_data(ID *id)
     linestyle->nodetree = nullptr;
   }
 
-  while ((linestyle_modifier = static_cast<LineStyleModifier *>(linestyle->color_modifiers.first)))
-  {
+  while ((linestyle_modifier = linestyle->color_modifiers.first())) {
     BKE_linestyle_color_modifier_remove(linestyle, linestyle_modifier);
   }
-  while ((linestyle_modifier = static_cast<LineStyleModifier *>(linestyle->alpha_modifiers.first)))
-  {
+  while ((linestyle_modifier = linestyle->alpha_modifiers.first())) {
     BKE_linestyle_alpha_modifier_remove(linestyle, linestyle_modifier);
   }
-  while ((
-      linestyle_modifier = static_cast<LineStyleModifier *>(linestyle->thickness_modifiers.first)))
-  {
+  while ((linestyle_modifier = linestyle->thickness_modifiers.first())) {
     BKE_linestyle_thickness_modifier_remove(linestyle, linestyle_modifier);
   }
-  while (
-      (linestyle_modifier = static_cast<LineStyleModifier *>(linestyle->geometry_modifiers.first)))
-  {
+  while ((linestyle_modifier = linestyle->geometry_modifiers.first())) {
     BKE_linestyle_geometry_modifier_remove(linestyle, linestyle_modifier);
   }
 }
@@ -723,6 +717,7 @@ IDTypeInfo IDType_ID_LS = {
     .foreach_cache = nullptr,
     .foreach_path = nullptr,
     .foreach_working_space_color = linestyle_foreach_working_space_color,
+    .foreach_asset_weak_reference = nullptr,
     .owner_pointer_get = nullptr,
 
     .blend_write = linestyle_blend_write,

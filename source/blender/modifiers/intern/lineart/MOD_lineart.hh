@@ -122,18 +122,22 @@ struct LineartElementLinkNode {
 
 struct LineartEdgeSegment {
   LineartEdgeSegment *next, *prev;
-  /** The point after which a property of the segment is changed, e.g. occlusion/material mask etc.
-   * ratio==0: v1  ratio==1: v2 (this is in 2D projected space), */
+  /**
+   * The point after which a property of the segment is changed, e.g. occlusion/material mask etc.
+   * ratio==0: v1  ratio==1: v2 (this is in 2D projected space),
+   */
   double ratio;
   /** Occlusion level after "ratio" point */
   uint8_t occlusion;
 
-  /* Used to filter line art occlusion edges */
+  /** Used to filter line art occlusion edges. */
   uint8_t material_mask_bits;
 
-  /* Lit/shaded flag for shadow is stored here.
+  /**
+   * Lit/shaded flag for shadow is stored here.
    * TODO(Yiming): Transfer material masks from shadow results
-   * onto here so then we can even filter transparent shadows. */
+   * onto here so then we can even filter transparent shadows.
+   */
   uint32_t shadow_mask_bits;
 };
 
@@ -183,8 +187,10 @@ struct LineartVert {
 struct LineartEdge {
   LineartVert *v1, *v2;
 
-  /** These two variables are also used to specify original edge and segment during 3rd stage
-   * reprojection, So we can easily find out the line which results come from. */
+  /**
+   * These two variables are also used to specify original edge and segment during 3rd stage
+   * reprojection, So we can easily find out the line which results come from.
+   */
   LineartTriangle *t1, *t2;
 
   ListBaseT<LineartEdgeSegment> segments;
@@ -445,16 +451,20 @@ struct LineartData {
 
 struct LineartCache {
   ed::greasepencil::LineartLimitInfo LimitInfo;
-  /** Separate memory pool for chain data and shadow, this goes to the cache, so when we free the
-   * main pool, chains and shadows will still be available. */
+  /**
+   * Separate memory pool for chain data and shadow, this goes to the cache, so when we free the
+   * main pool, chains and shadows will still be available.
+   */
   LineartStaticMemPool chain_data_pool;
   LineartStaticMemPool shadow_data_pool;
 
   /** A copy of ld->chains so we have that data available after ld has been destroyed. */
   ListBaseT<LineartEdgeChain> chains;
 
-  /** Shadow-computed feature lines from original meshes to be matched with the second load of
-   * meshes thus providing lit/shade info in the second run of line art. */
+  /**
+   * Shadow-computed feature lines from original meshes to be matched with the second load of
+   * meshes thus providing lit/shade info in the second run of line art.
+   */
   ListBaseT<LineartElementLinkNode> shadow_elns;
 
   /** Cache only contains edge types specified in this variable. */

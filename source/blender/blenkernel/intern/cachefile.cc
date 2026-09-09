@@ -141,6 +141,7 @@ IDTypeInfo IDType_ID_CF = {
     .foreach_cache = nullptr,
     .foreach_path = cache_file_foreach_path,
     .foreach_working_space_color = nullptr,
+    .foreach_asset_weak_reference = nullptr,
     .owner_pointer_get = nullptr,
 
     .blend_write = cache_file_blend_write,
@@ -346,10 +347,7 @@ void BKE_cachefile_eval(Main *bmain, Depsgraph *depsgraph, CacheFile *cache_file
   if (BLI_path_extension_check_glob(filepath, "*.abc")) {
     cache_file->type = CACHEFILE_TYPE_ALEMBIC;
     cache_file->handle = ABC_create_handle(
-        bmain,
-        filepath,
-        static_cast<const CacheFileLayer *>(cache_file->layers.first),
-        &cache_file->object_paths);
+        bmain, filepath, cache_file->layers.first(), &cache_file->object_paths);
     STRNCPY(cache_file->handle_filepath, filepath);
   }
 #endif

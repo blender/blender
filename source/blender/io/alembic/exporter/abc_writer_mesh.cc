@@ -81,7 +81,7 @@ static const SubsurfModifierData *get_last_subdiv_modifier(eEvaluationMode eval_
   /* Return the subdiv modifier if it is the last modifier and has
    * the required mode enabled. */
 
-  ModifierData *md = static_cast<ModifierData *>(obj->modifiers.last);
+  ModifierData *md = obj->modifiers.last();
 
   while (md != nullptr) {
     if (md->type != eModifierType_ParticleSystem) {
@@ -160,7 +160,7 @@ Alembic::Abc::OCompoundProperty ABCGenericMeshWriter::abc_prop_for_custom_props(
 
 bool ABCGenericMeshWriter::export_as_subdivision_surface(Object *ob_eval) const
 {
-  ModifierData *md = static_cast<ModifierData *>(ob_eval->modifiers.last);
+  ModifierData *md = ob_eval->modifiers.last();
 
   for (; md; md = md->prev) {
     /* This modifier has been temporarily disabled by SubdivModifierDisabler,

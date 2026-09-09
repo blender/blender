@@ -1152,6 +1152,95 @@ void fn() {
   }
 }
 
+TEST(shader_tool, BitField)
+{
+  {
+    string input = R"(
+struct A {
+  int a : 2;
+  int b : 15;
+  int c : 30;
+  int d : 1;
+  int e;
+  int f : 1;
+};
+
+void f(A t)
+{
+  t.a + 2;
+  t.b + 2;
+  t.c + 2;
+  t.d + 2;
+  t.e + 2;
+  t.f + 2;
+  t.a = 2;
+  t.b = 2;
+  t.c = 2;
+  t.d = 2;
+  t.e = 2;
+  t.f = 2;
+}
+)";
+    string expect = R"(
+struct A {
+  int a    ;
+
+  int c     ;
+
+  int e;
+  int f    ;
+};
+#line 2
+A A_ctor_() {A r;r.a=0;r.c=0;r.e=0;r.f=0;return r;}
+#line 11
+void f(A t)
+{
+  bitfieldExtract(t.a, 0, 2) + 2;
+  bitfieldExtract(t.a, 2, 15) + 2;
+  bitfieldExtract(t.c, 0, 30) + 2;
+  bitfieldExtract(t.c, 30, 1) + 2;
+  t.e + 2;
+  bitfieldExtract(t.f, 0, 1) + 2;
+  bitfieldInsertAssign(t.a, 2, 0, 2) ;
+  bitfieldInsertAssign(t.a, 2, 2, 15) ;
+  bitfieldInsertAssign(t.c, 2, 0, 30) ;
+  bitfieldInsertAssign(t.c, 2, 30, 1) ;
+  t.e = 2;
+  bitfieldInsertAssign(t.f, 2, 0, 1) ;
+}
+)";
+    auto [output, _, error] = process_test_string(input, Language::BSL);
+    EXPECT_EQ(output, expect);
+    EXPECT_EQ(error, "");
+  }
+
+  {
+    string input = R"(struct A { float a : 2; };)";
+    auto [output, _, error] = process_test_string(input, Language::BSL);
+    EXPECT_EQ(error, "Bit-field has non-integral type 'float'");
+  }
+  {
+    string input = R"(struct A { int a : -2; };)";
+    auto [output, _, error] = process_test_string(input, Language::BSL);
+    EXPECT_EQ(error, "Width of bit-field (-2 bits) is negative");
+  }
+  {
+    string input = R"(struct A { int a : 33+2; };)";
+    auto [output, _, error] = process_test_string(input, Language::BSL);
+    EXPECT_EQ(error, "Width of bit-field (35 bits) exceeds the width of its type");
+  }
+  {
+    string input = R"(struct A { int a : 2 - 2; };)";
+    auto [output, _, error] = process_test_string(input, Language::BSL);
+    EXPECT_EQ(error, "Width of bit-field is zero");
+  }
+  {
+    string input = R"(struct A { int a : 2, b : 2; };)";
+    auto [output, _, error] = process_test_string(input, Language::BSL);
+    EXPECT_EQ(error, "Bitfields must have single declarator");
+  }
+}
+
 /* Process a test string inside a wrapper function. */
 static inline Result process_test_buffer(std::string str,
                                          std::string buffer,

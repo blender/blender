@@ -608,6 +608,7 @@ IDTypeInfo IDType_ID_BR = {
     .foreach_cache = nullptr,
     .foreach_path = nullptr,
     .foreach_working_space_color = brush_foreach_working_space_color,
+    .foreach_asset_weak_reference = nullptr,
     .owner_pointer_get = nullptr,
 
     .blend_write = brush_blend_write,
@@ -1860,6 +1861,15 @@ float normal_weight_get(const Brush &brush, const bool invert)
   }
 
   return brush.normal_weight == 0.0f;
+}
+bool implements_3d_texture_paint(const Brush &brush)
+{
+  switch (brush.image_brush_type) {
+    case IMAGE_PAINT_BRUSH_TYPE_DRAW:
+      return true;
+    default:
+      return false;
+  }
 }
 }  // namespace bke::brush
 

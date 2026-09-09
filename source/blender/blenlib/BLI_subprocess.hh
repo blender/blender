@@ -103,7 +103,7 @@ class SharedMemory : NonCopyable {
   /**
    * Get a pointer to the shared memory block.
    * WARNING: It can be null if creation failed, or invalid if the owner destructor has run.
-   * */
+   */
   void *get_data()
   {
     return data_;

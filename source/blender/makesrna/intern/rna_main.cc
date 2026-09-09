@@ -64,7 +64,7 @@ static bool rna_Main_is_dirty_get(PointerRNA *ptr)
   /* XXX, not totally nice to do it this way, should store in main ? */
   Main *bmain = static_cast<Main *>(ptr->data);
   wmWindowManager *wm;
-  if ((wm = static_cast<wmWindowManager *>(bmain->wm.first))) {
+  if ((wm = bmain->wm.first())) {
     return !wm->file_saved;
   }
 

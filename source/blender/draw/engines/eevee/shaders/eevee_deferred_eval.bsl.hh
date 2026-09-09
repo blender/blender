@@ -19,8 +19,8 @@
 #include "eevee_reverse_z_lib.bsl.hh"
 #include "eevee_subsurface_lib.bsl.hh"
 #include "gpu_shader_codegen_lib.glsl"
-#include "gpu_shader_fullscreen_lib.glsl"
-#include "gpu_shader_shared_exponent_lib.glsl"
+#include "gpu_shader_fullscreen.bsl.hh"
+#include "gpu_shader_shared_exponent.bsl.hh"
 
 namespace eevee::deferred {
 

@@ -391,7 +391,7 @@ static void vfont_char_build_impl(const Curve &cu,
   /* Select the glyph data */
   const Nurb *nu_from_vchar = nullptr;
   if (che) {
-    nu_from_vchar = static_cast<Nurb *>(che->nurbsbase.first);
+    nu_from_vchar = che->nurbsbase.first();
   }
 
   /* Create the character. */

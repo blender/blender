@@ -2,16 +2,18 @@
  *
  * SPDX-License-Identifier: GPL-2.0-or-later */
 
-/**
+/** \file
+ * \ingroup draw
+ *
  * Finish computation of a few draw resource after sync.
  */
 
 #include "draw_view_infos.hh"
 
-#include "gpu_shader_math_matrix_transform_lib.glsl"
-#include "gpu_shader_math_vector_reduce_lib.glsl"
-#include "gpu_shader_math_vector_safe_lib.glsl"
-#include "gpu_shader_utildefines_lib.glsl"
+#include "gpu_shader_math_matrix_transform.bsl.hh"
+#include "gpu_shader_math_vector_reduce.bsl.hh"
+#include "gpu_shader_math_vector_safe.bsl.hh"
+#include "gpu_shader_utildefines.bsl.hh"
 
 COMPUTE_SHADER_CREATE_INFO(draw_resource_finalize)
 

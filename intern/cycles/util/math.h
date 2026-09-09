@@ -23,4 +23,8 @@
 
 #include "util/rect.h"  // IWYU pragma: export
 
+#include "util/math_quaternion.h"  // IWYU pragma: export
+
 #include "util/math_float3x3.h"  // IWYU pragma: export
+
+#include "util/math_spherical_harmonics.h"  // IWYU pragma: export

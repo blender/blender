@@ -7,6 +7,7 @@
  */
 
 #include "BKE_duplilist.hh"
+#include "BLI_ghash.hh"
 #include "GPU_material.hh"
 
 #include "draw_handle.hh"
@@ -25,6 +26,16 @@ bool ObjectAttribute::sync(const draw::ObjectRef &ref,
   /* This function mirrors `lookup_instance_property` in `cycles/blender/blender_object.cpp`. */
   hash_code = attr.hash_code;
   return ref.find_rgba_attribute(attr, instance_index, &data_x);
+}
+
+bool ObjectAttribute::sync(const draw::ObjectRef &ref,
+                           const char *name,
+                           bool use_dupli,
+                           int instance_index)
+{
+  /* Mimic gpu_node_graph_add_uniform_attribute */
+  hash_code = BLI_ghashutil_strhash_p(name) << 1 | (use_dupli ? 0 : 1);
+  return ref.find_rgba_attribute(name, use_dupli, instance_index, &data_x);
 }
 
 /** \} */

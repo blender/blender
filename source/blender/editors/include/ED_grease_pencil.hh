@@ -334,6 +334,8 @@ bool grease_pencil_sculpting_poll(bContext *C);
 bool grease_pencil_weight_painting_poll(bContext *C);
 bool grease_pencil_vertex_painting_poll(bContext *C);
 
+bool check_brush_needs_new_material(Object *object, const Brush *brush);
+
 float opacity_from_input_sample(const float pressure,
                                 const Brush *brush,
                                 const BrushGpencilSettings *settings);

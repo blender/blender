@@ -576,7 +576,8 @@ class Layer : public blender::GreasePencilLayer {
   /**
    * \returns the index of the active drawing at frame \a frame_number or -1 if there is no
    * drawing.
-   * TODO: This should be a private API! */
+   * TODO: This should be a private API!
+   */
   int drawing_index_at(const int frame_number) const;
 
   /**
@@ -1173,7 +1174,8 @@ void BKE_grease_pencil_copy_layer_group_parameters(const bke::greasepencil::Laye
 
 /**
  * Move data from a grease pencil outside of the main data-base into a grease pencil in the
- * data-base. Takes ownership of the source grease pencil. */
+ * data-base. Takes ownership of the source grease pencil.
+ */
 void BKE_grease_pencil_nomain_to_grease_pencil(GreasePencil *grease_pencil_src,
                                                GreasePencil *grease_pencil_dst);
 

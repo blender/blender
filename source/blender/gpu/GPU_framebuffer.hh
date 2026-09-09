@@ -573,7 +573,8 @@ uint GPU_framebuffer_stack_level_get();
  * Return true if \a framebuffer is the active framebuffer of the active context.
  * \note return false if no context is active.
  * \note this is undefined behavior if \a framebuffer is `nullptr`.
- * DEPRECATED: Kept only because of Python GPU API. */
+ * DEPRECATED: Kept only because of Python GPU API.
+ */
 bool GPU_framebuffer_bound(gpu::FrameBuffer *fb);
 
 /**

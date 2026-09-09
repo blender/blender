@@ -2,6 +2,10 @@
  *
  * SPDX-License-Identifier: GPL-2.0-or-later */
 
+/** \file
+ * \ingroup draw
+ */
+
 #pragma once
 
 #include "draw_object_infos_infos.hh"
@@ -10,10 +14,10 @@ SHADER_LIBRARY_CREATE_INFO(draw_pointcloud)
 
 #include "draw_defines.hh"
 
-#include "gpu_shader_math_constants_lib.glsl"
-#include "gpu_shader_math_matrix_conversion_lib.glsl"
-#include "gpu_shader_math_matrix_transform_lib.glsl"
-#include "gpu_shader_utildefines_lib.glsl"
+#include "gpu_shader_math_constants.bsl.hh"
+#include "gpu_shader_math_matrix_conversion.bsl.hh"
+#include "gpu_shader_math_matrix_transform.bsl.hh"
+#include "gpu_shader_utildefines.bsl.hh"
 
 namespace pointcloud {
 

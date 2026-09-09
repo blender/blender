@@ -33,4 +33,8 @@
 
 #include "util/types_dual.h"  // IWYU pragma: export
 
+#include "util/types_quaternion.h"  // IWYU pragma: export
+
 #include "util/types_float3x3.h"  // IWYU pragma: export
+
+#include "util/types_spherical_harmonics.h"  // IWYU pragma: export

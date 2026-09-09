@@ -314,6 +314,7 @@ SourceProcessor::Result SourceProcessor::convert_bsl()
     /* Lower class methods. */
     lower_method_forward_declaration(parser);
     lower_union_setters(parser);
+    lower_bitfield_setters(parser);
     lower_method_calls(parser, false);
     /* Lower string, assert, printf. */
     lower_strings(parser);
@@ -1142,24 +1143,39 @@ void SourceProcessor::parse_library_functions(Parser &parser)
 
         fn_args.foreach_scope(ScopeType::FunctionArg, [&](Scope arg) {
           /* Note: There is no array support. */
-          const Token name = arg.back();
-          const Token type = name.prev() == '&' ? name.prev().prev() : name.prev();
-          string qualifier(type.prev().str());
-          if (qualifier != "out" && qualifier != "inout" && qualifier != "in") {
-            if (name.prev() == '&') {
-              qualifier = "out";
-            }
-            else if (qualifier != "const" && qualifier != "(" && qualifier != ",") {
-              report_error(type.prev(),
-                           "Unrecognized qualifier, expecting 'const', 'in', 'out' or 'inout'.");
-              qualifier = "in";
-            }
-            else {
-              qualifier = "in";
-            }
+          Token curr = arg.front();
+          /* Skip attribute. */
+          if (curr == '[') {
+            curr = curr.scope().back().next();
           }
-          fn.arguments.emplace_back(ArgumentFormat{metadata::Qualifier(hash(qualifier)),
-                                                   metadata::Type(hash(string(type.str())))});
+          /* Skip const. */
+          if (curr.str() == "const") {
+            curr = curr.next();
+          }
+          /* Parse qualifier. */
+          string qualifier = "in";
+          if (curr.str() == "in") {
+            qualifier = "in";
+            curr = curr.next();
+          }
+          else if (curr.str() == "out") {
+            qualifier = "out";
+            curr = curr.next();
+          }
+          /* Parse the type */
+          string type = string(curr.str());
+          curr = curr.next();
+          /* Skip optional parenthesis. */
+          if (curr == '(') {
+            curr = curr.next();
+          }
+          /* Reference. */
+          if (curr == '&') {
+            qualifier = "out";
+          }
+
+          fn.arguments.emplace_back(
+              ArgumentFormat{metadata::Qualifier(hash(qualifier)), metadata::Type(hash(type))});
         });
 
         metadata_.functions.emplace_back(fn);

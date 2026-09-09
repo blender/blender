@@ -817,7 +817,7 @@ static void panel_register(ARegionType *region_type)
 static void blend_write(BlendWriter *writer, const ID *id_owner, const ModifierData *md)
 {
   LaplacianDeformModifierData lmd = *reinterpret_cast<const LaplacianDeformModifierData *>(md);
-  const bool is_undo = BLO_write_is_undo(writer);
+  const bool is_undo = writer->is_undo();
 
   if (ID_IS_OVERRIDE_LIBRARY(id_owner) && !is_undo) {
     BLI_assert(!ID_IS_LINKED(id_owner));
@@ -832,10 +832,10 @@ static void blend_write(BlendWriter *writer, const ID *id_owner, const ModifierD
   }
 
   if (lmd.vertexco != nullptr) {
-    BLO_write_shared(
-        writer, lmd.vertexco, sizeof(float[3]) * lmd.verts_num, lmd.vertexco_sharing_info, [&]() {
-          writer->write_float3_array(lmd.verts_num, lmd.vertexco);
-        });
+    writer->write_shared(lmd.vertexco,
+                         sizeof(float[3]) * lmd.verts_num,
+                         lmd.vertexco_sharing_info,
+                         [&]() { writer->write_float3_array(lmd.verts_num, lmd.vertexco); });
   }
 
   writer->write_struct_at_address(md, &lmd);

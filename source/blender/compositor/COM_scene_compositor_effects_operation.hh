@@ -15,7 +15,6 @@ struct bNodeTreeInterfaceSocket;
 namespace blender::compositor {
 
 class Context;
-enum class NodeGroupOutputTypes : uint8_t;
 
 /* ------------------------------------------------------------------------------------------------
  * Scene Compositor Effects Operation
@@ -27,8 +26,6 @@ enum class NodeGroupOutputTypes : uint8_t;
  * will be allocated, albeit with a default value in case has_output() is false. */
 class SceneCompositorEffectsOperation : public SimpleOperation {
  private:
-  /* The outputs that the operation should compute. */
-  NodeGroupOutputTypes needed_outputs_;
   /* True if the operation wrote an output. */
   bool has_output_ = false;
   /* True if the operation wrote a viewer output. */
@@ -36,7 +33,7 @@ class SceneCompositorEffectsOperation : public SimpleOperation {
 
  public:
   /* Declares an input of type color and an output of type color. */
-  SceneCompositorEffectsOperation(Context &context, NodeGroupOutputTypes needed_outputs);
+  SceneCompositorEffectsOperation(Context &context);
 
   /* Compile and evaluate the node group. */
   void execute() override;

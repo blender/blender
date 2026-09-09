@@ -8,10 +8,10 @@
 #include "eevee_sampling_lib.bsl.hh"
 #include "eevee_shadow_shared.hh"
 #include "eevee_uniform.bsl.hh"
-#include "gpu_shader_math_fast_lib.glsl"
-#include "gpu_shader_math_matrix_construct_lib.glsl"
-#include "gpu_shader_math_matrix_lib.glsl"
-#include "gpu_shader_math_matrix_projection_lib.glsl"
+#include "gpu_shader_math_fast.bsl.hh"
+#include "gpu_shader_math_matrix.bsl.hh"
+#include "gpu_shader_math_matrix_construct.bsl.hh"
+#include "gpu_shader_math_matrix_projection.bsl.hh"
 
 namespace eevee::light {
 
@@ -289,10 +289,13 @@ void shadow_setup_main([[resource_table]] Resources &srt,
     return;
   }
 
+  bool use_jitter = (light.flags & LIGHT_USE_SHADOW_JITTER) != 0 &&
+                    uni.uniform_buf.shadow.use_jitter;
+
   if (is_sun_light(light.type)) {
     /* Distant lights. */
 
-    if (light.shadow_jitter && uni.uniform_buf.shadow.use_jitter) {
+    if (use_jitter) {
       /* TODO(fclem): Remove atan here. We only need the cosine of the angle. */
       float shape_angle = atan_fast(light.sun().shape_radius);
 
@@ -323,7 +326,7 @@ void shadow_setup_main([[resource_table]] Resources &srt,
     /* Local lights. */
     float3 position_on_light = float3(0.0f);
 
-    if (light.shadow_jitter && uni.uniform_buf.shadow.use_jitter) {
+    if (use_jitter) {
       float3 rand = sampling.rng_3D_get(SAMPLING_SHADOW_I);
 
       if (is_area_light(light.type)) {

@@ -256,6 +256,15 @@ void ViewportEngine::render(bContext *context)
   render();
 }
 
+const Object *ViewportEngine::camera_object() const
+{
+  const View3D *v3d = context_ ? CTX_wm_view3d(context_) : nullptr;
+  if (v3d && v3d->camera) {
+    return DEG_get_evaluated(depsgraph_, v3d->camera);
+  }
+  return scene_->camera;
+}
+
 void ViewportEngine::notify_status(float /*progress*/,
                                    const std::string &info,
                                    const std::string &status)

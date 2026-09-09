@@ -14,7 +14,7 @@ namespace blender::nodes::node_fn_get_vector_component_cc {
 static void node_declare(NodeDeclarationBuilder &b)
 {
   b.is_function_node();
-  b.add_input<decl::Vector>("Vector"_ustr).optional_label();
+  b.add_input<decl::Vector>("Vector"_ustr).subtype(PROP_XYZ).optional_label();
   b.add_input<decl::Int>("Index"_ustr).min(0).max(2);
   b.add_output<decl::Float>("Value"_ustr);
 }
@@ -31,10 +31,7 @@ static int node_gpu_material(GPUMaterial *mat,
                              GPUNodeStack *in,
                              GPUNodeStack *out)
 {
-  /* EEVEE represents integer sockets as floats, while the compositor uses native integers. */
-  const char *function_name = in[1].type == GPU_FLOAT ? "node_vector_component_float" :
-                                                        "node_vector_component";
-  return GPU_stack_link(mat, node, function_name, in, out);
+  return GPU_stack_link(mat, node, "node_get_vector_component", in, out);
 }
 
 NODE_SHADER_MATERIALX_BEGIN

@@ -32,8 +32,8 @@ static int gpu_shader_int(GPUMaterial *mat,
                           GPUNodeStack *out)
 {
   NodeInputInt *node_storage = static_cast<NodeInputInt *>(node->storage);
-  float integer = float(node_storage->integer);
-  return GPU_link(mat, "set_value", GPU_uniform(&integer), &out->link);
+  int integer = node_storage->integer;
+  return GPU_link(mat, "set_int", GPU_uniform(&integer), &out->link);
 }
 
 static void node_build_multi_function(NodeMultiFunctionBuilder &builder)

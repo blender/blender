@@ -366,7 +366,8 @@ template<class T> void write_resource(void *address_in_arg_buffer, T resource, i
   zero_resource(address_in_arg_buffer, index);
   uint64_t *pptr = (uint64_t *)address_in_arg_buffer;
   if (resource) {
-    pptr[index] = metal_gpuResourceID(resource);
+    MTLResourceID resource_id = resource.gpuResourceID;
+    pptr[index] = (uint64_t &)resource_id;
   }
 }
 
@@ -375,7 +376,7 @@ template<> void write_resource(void *address_in_arg_buffer, id<MTLBuffer> buffer
   zero_resource(address_in_arg_buffer, index);
   uint64_t *pptr = (uint64_t *)address_in_arg_buffer;
   if (buffer) {
-    pptr[index] = metal_gpuAddress(buffer);
+    pptr[index] = buffer.gpuAddress;
   }
 }
 
@@ -517,19 +518,16 @@ bool MetalDeviceQueue::enqueue(DeviceKernel kernel,
     if (!metal_device_->mtlResidencySet_enabled && metal_device_->use_metalrt &&
         device_kernel_has_intersection(kernel))
     {
-      if (@available(macos 12.0, *)) {
-
-        if (id<MTLAccelerationStructure> accel_struct = metal_device_->accel_struct) {
-          /* Mark all Accelerations resources as used */
-          [mtlComputeCommandEncoder useResource:accel_struct usage:MTLResourceUsageRead];
-          if (metal_device_->blas_buffer) {
-            [mtlComputeCommandEncoder useResource:metal_device_->blas_buffer
-                                            usage:MTLResourceUsageRead];
-          }
-          [mtlComputeCommandEncoder useResources:metal_device_->unique_blas_array.data()
-                                           count:metal_device_->unique_blas_array.size()
-                                           usage:MTLResourceUsageRead];
+      if (id<MTLAccelerationStructure> accel_struct = metal_device_->accel_struct) {
+        /* Mark all Accelerations resources as used */
+        [mtlComputeCommandEncoder useResource:accel_struct usage:MTLResourceUsageRead];
+        if (metal_device_->blas_buffer) {
+          [mtlComputeCommandEncoder useResource:metal_device_->blas_buffer
+                                          usage:MTLResourceUsageRead];
         }
+        [mtlComputeCommandEncoder useResources:metal_device_->unique_blas_array.data()
+                                         count:metal_device_->unique_blas_array.size()
+                                         usage:MTLResourceUsageRead];
       }
 
       for (int table = 0; table < METALRT_TABLE_NUM; table++) {
@@ -807,7 +805,7 @@ void MetalDeviceQueue::prepare_resources()
     }
     else if (it.second->mtlTexture) {
       /* METAL_WIP - use array version (i.e. useResources) */
-      [mtlComputeEncoder_ useResource:it.second->mtlTexture usage:usage | MTLResourceUsageSample];
+      [mtlComputeEncoder_ useResource:it.second->mtlTexture usage:usage];
     }
   }
 

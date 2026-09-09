@@ -1,9 +1,9 @@
 
 msgid ""
 msgstr ""
-"Project-Id-Version: Blender 5.3.0 Alpha (b'32296898e057')\n"
+"Project-Id-Version: Blender 5.3.0 Alpha (b'f5df8c32f99b')\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-08-31 07:41+0000\n"
+"POT-Creation-Date: 2026-09-07 07:47+0000\n"
 "PO-Revision-Date: 2026-08-30 01:08+0000\n"
 "Last-Translator: Damien Picard <dam.pic@free.fr>\n"
 "Language-Team: French <https://translate.blender.org/projects/blender-ui/ui/fr/>\n"
@@ -36144,44 +36144,8 @@ msgid "Editor menu containing buttons"
 msgstr "Menu d’éditeur contenant des boutons"
 
 
-msgid "Snap"
-msgstr "Aimanter"
-
-
-msgid "Proportional Editing Falloff"
-msgstr "Atténuation de l’édition proportionnelle"
-
-
-msgid "Read"
-msgstr "Lecture"
-
-
-msgid "Mask Edit"
-msgstr "Édition du masque"
-
-
-msgid "Sample"
-msgstr "Échantillonner"
-
-
-msgid "Automasking"
-msgstr "Masquage auto"
-
-
-msgid "Write"
-msgstr "Écriture"
-
-
-msgid "Face Sets Edit"
-msgstr "Édition des ensembles de faces"
-
-
-msgid "Primitives"
-msgstr "Primitives"
-
-
-msgid "Vertex Group Locks"
-msgstr "Verrouillages des groupes de sommets"
+msgid "Select More/Less"
+msgstr "Sélectionner plus ou moins"
 
 
 msgid "Gizmo"
@@ -36192,36 +36156,72 @@ msgid "Instances"
 msgstr "Instances"
 
 
+msgid "Read"
+msgstr "Lecture"
+
+
+msgid "Sample"
+msgstr "Échantillonner"
+
+
+msgid "Write"
+msgstr "Écriture"
+
+
+msgid "Primitives"
+msgstr "Primitives"
+
+
 msgid "Import"
 msgstr "Importer"
 
 
-msgid "Mirror"
-msgstr "Miroir"
-
-
-msgid "Render Preview"
-msgstr "Rendu de prévisualisation"
-
-
-msgid "UV Mapping"
-msgstr "Placage UV"
-
-
-msgid "Local View"
-msgstr "Vue locale"
-
-
-msgid "Utilities"
-msgstr "Utilitaires"
+msgid "Select Loops"
+msgstr "Sélectionner les boucles"
 
 
 msgid "Viewpoint"
 msgstr "Point de vue"
 
 
+msgid "Render Preview"
+msgstr "Rendu de prévisualisation"
+
+
+msgid "Select All by Trait"
+msgstr "Tout sélectionner par caractéristiques"
+
+
+msgid "Utilities"
+msgstr "Utilitaires"
+
+
+msgid "Select Linked"
+msgstr "Sélectionner liés"
+
+
 msgid "Deprecated"
 msgstr "Obsolète"
+
+
+msgid "Select Similar"
+msgstr "Sélectionner similaires"
+
+
+msgid "Math"
+msgstr "Maths"
+
+
+msgid "Align View to Active"
+msgstr "Aligner la vue sur l’actif"
+
+
+msgid "UV"
+msgstr "UV"
+
+
+msgid "View Regions"
+msgstr "Régions dans la vue"
 
 
 msgid "Navigation"
@@ -36232,100 +36232,168 @@ msgid "Align View"
 msgstr "Aligner la vue"
 
 
-msgid "Align View to Active"
-msgstr "Aligner la vue sur l’actif"
+msgid "UV Mapping"
+msgstr "Placage UV"
 
 
-msgid "View Regions"
-msgstr "Régions dans la vue"
+msgid "Local View"
+msgstr "Vue locale"
 
 
-msgid "Select More/Less"
-msgstr "Sélectionner plus ou moins"
+msgid "Snap"
+msgstr "Aimanter"
 
 
-msgid "Math"
-msgstr "Maths"
+msgid "Bone Roll"
+msgstr "Roulis de l’os"
 
 
-msgid "UV"
-msgstr "UV"
+msgid "Mirror"
+msgstr "Miroir"
 
 
-msgid "Select Similar"
-msgstr "Sélectionner similaires"
+msgid "Automasking"
+msgstr "Masquage auto"
 
 
-msgid "Select All by Trait"
-msgstr "Tout sélectionner par caractéristiques"
+msgid "Vertex Group Locks"
+msgstr "Verrouillages des groupes de sommets"
 
 
-msgid "Select Linked"
-msgstr "Sélectionner liés"
+msgid "Face Sets Edit"
+msgstr "Édition des ensembles de faces"
 
 
-msgid "Select Loops"
-msgstr "Sélectionner les boucles"
+msgid "Mask Edit"
+msgstr "Édition du masque"
 
 
-msgid "Assign Material"
-msgstr "Assigner un matériau"
+msgid "Proportional Editing Falloff"
+msgstr "Atténuation de l’édition proportionnelle"
 
 
-msgid "Metaball"
-msgstr "Métaballe"
-
-
-msgid "Light"
-msgstr "Éclairage"
-
-
-msgid "Light Probe"
-msgstr "Sonde d’éclairage"
-
-
-msgid "Add Image"
-msgstr "Ajouter une image"
-
-
-msgid "Relations"
-msgstr "Relations"
-
-
-msgid "Rigid Body"
-msgstr "Corps rigide"
-
-
-msgid "Apply"
-msgstr "Appliquer"
-
-
-msgid "Track"
-msgstr "Suivi"
-
-
-msgid "Quick Effects"
-msgstr "Effets rapides"
-
-
-msgid "Show/Hide"
-msgstr "Afficher/cacher"
-
-
-msgid "Linked"
-msgstr "Liés"
+msgid "Pivot Point"
+msgstr "Point de pivot"
 
 
 msgid "Clean Up"
 msgstr "Nettoyer"
 
 
+msgid "Show/Hide"
+msgstr "Afficher/cacher"
+
+
+msgid "Names"
+msgstr "Noms"
+
+
+msgid "Linked"
+msgstr "Liés"
+
+
 msgid "Layout"
 msgstr "Disposition"
 
 
-msgid "Asset"
-msgstr "Asset"
+msgid "Metaball"
+msgstr "Métaballe"
+
+
+msgid "Kerning"
+msgstr "Approche"
+
+
+msgid "Special Characters"
+msgstr "Caractères spéciaux"
+
+
+msgid "Adjust"
+msgstr "Ajuster"
+
+
+msgid "Merge"
+msgstr "Fusionner"
+
+
+msgid "Bone Collections"
+msgstr "Collections d’os"
+
+
+msgid "Keying"
+msgstr "Incrustation"
+
+
+msgid "Tracking"
+msgstr "Suivi"
+
+
+msgid "Set Face Strength"
+msgstr "Définir la force de face"
+
+
+msgid "Select by Face Strength"
+msgstr "Sélectionner par force de face"
+
+
+msgid "Face Data"
+msgstr "Données de face"
+
+
+msgid "Creative"
+msgstr "Créatif"
+
+
+msgid "Mesh Select Mode"
+msgstr "Mode de sélection du maillage"
+
+
+msgid "Disable Bone Options"
+msgstr "Désactiver des options d’os"
+
+
+msgid "Enable Bone Options"
+msgstr "Activer des options d’os"
+
+
+msgid "Toggle Bone Options"
+msgstr "(Dés)activer des options d’os"
+
+
+msgid "Apply"
+msgstr "Appliquer"
+
+
+msgid "Propagate"
+msgstr "Propager"
+
+
+msgid "In-Betweens"
+msgstr "Intervalles"
+
+
+msgid "Clear Transform"
+msgstr "Réinitialiser la transformation"
+
+
+msgid "Random Mask"
+msgstr "Masque aléatoire"
+
+
+msgid "Sculpt Set Pivot"
+msgstr "Définir le pivot pour la sculpture"
+
+
+msgid "Face Sets Init"
+msgstr "Initialiser les ensembles de faces"
+
+
+msgid "Trim/Add"
+msgstr "Découper/Ajouter"
+
+
+msgid "Hooks"
+msgstr "Crochets"
 
 
 msgid "Make Single User"
@@ -36340,108 +36408,40 @@ msgid "Link/Transfer Data"
 msgstr "Lier/transférer des données"
 
 
-msgid "Hooks"
-msgstr "Crochets"
+msgid "Asset"
+msgstr "Asset"
 
 
-msgid "Trim/Add"
-msgstr "Découper/Ajouter"
+msgid "Quick Effects"
+msgstr "Effets rapides"
 
 
-msgid "Adjust"
-msgstr "Ajuster"
-
-
-msgid "Sculpt Set Pivot"
-msgstr "Définir le pivot pour la sculpture"
-
-
-msgid "Face Sets Init"
-msgstr "Initialiser les ensembles de faces"
-
-
-msgid "Random Mask"
-msgstr "Masque aléatoire"
-
-
-msgid "Keying"
-msgstr "Incrustation"
-
-
-msgid "Tracking"
+msgid "Track"
 msgstr "Suivi"
 
 
-msgid "Clear Transform"
-msgstr "Réinitialiser la transformation"
+msgid "Rigid Body"
+msgstr "Corps rigide"
 
 
-msgid "In-Betweens"
-msgstr "Intervalles"
+msgid "Add Image"
+msgstr "Ajouter une image"
 
 
-msgid "Propagate"
-msgstr "Propager"
+msgid "Relations"
+msgstr "Relations"
 
 
-msgid "Bone Collections"
-msgstr "Collections d’os"
+msgid "Light Probe"
+msgstr "Sonde d’éclairage"
 
 
-msgid "Names"
-msgstr "Noms"
+msgid "Assign Material"
+msgstr "Assigner un matériau"
 
 
-msgid "Creative"
-msgstr "Créatif"
-
-
-msgid "Toggle Bone Options"
-msgstr "(Dés)activer des options d’os"
-
-
-msgid "Enable Bone Options"
-msgstr "Activer des options d’os"
-
-
-msgid "Disable Bone Options"
-msgstr "Désactiver des options d’os"
-
-
-msgid "Mesh Select Mode"
-msgstr "Mode de sélection du maillage"
-
-
-msgid "Face Data"
-msgstr "Données de face"
-
-
-msgid "Select by Face Strength"
-msgstr "Sélectionner par force de face"
-
-
-msgid "Set Face Strength"
-msgstr "Définir la force de face"
-
-
-msgid "Merge"
-msgstr "Fusionner"
-
-
-msgid "Pivot Point"
-msgstr "Point de pivot"
-
-
-msgid "Special Characters"
-msgstr "Caractères spéciaux"
-
-
-msgid "Kerning"
-msgstr "Approche"
-
-
-msgid "Bone Roll"
-msgstr "Roulis de l’os"
+msgid "Light"
+msgstr "Éclairage"
 
 
 msgid "Keyframe Insert Pie"
@@ -64729,10 +64729,6 @@ msgid "Export minimal materials as defined in Viewport display properties"
 msgstr "Exporter des matériaux basiques, comme définis dans les propriétés d’affichage de la vue 3D"
 
 
-msgid "No export"
-msgstr "Aucun export"
-
-
 msgid "Do not export materials, and combine mesh primitive groups, losing material slot information"
 msgstr "Ne pas exporter les matériaux, et combiner les groupes de primitives du maillage, en perdant les informations d’emplacements de matériaux"
 
@@ -80917,6 +80913,14 @@ msgid "Paint a stroke into the image"
 msgstr "Peindre un trait dans l’image"
 
 
+msgid "Override Location"
+msgstr "Redéfinir la position"
+
+
+msgid "Override the given \"location\" array by recalculating object space positions from the provided \"mouse_event\" positions"
+msgstr "Redéfinir le tableau \"location\" donné en recalculant les positions en espace objet à partir des positions \"mouse_event\" fournies"
+
+
 msgctxt "Operator"
 msgid "Mask Box Gesture"
 msgstr "Gestuelle de masque rectangulaire"
@@ -81149,14 +81153,6 @@ msgstr "Peinture de sommets"
 
 msgid "Paint a stroke in the active color attribute layer"
 msgstr "Peindre un trait dans le calque d’attribut de couleur actif"
-
-
-msgid "Override Location"
-msgstr "Redéfinir la position"
-
-
-msgid "Override the given \"location\" array by recalculating object space positions from the provided \"mouse_event\" positions"
-msgstr "Redéfinir le tableau \"location\" donné en recalculant les positions en espace objet à partir des positions \"mouse_event\" fournies"
 
 
 msgctxt "Operator"
@@ -87069,6 +87065,10 @@ msgstr "Insérer un retour à la ligne"
 
 msgid "Select all characters"
 msgstr "Sélectionner tous les caractères"
+
+
+msgid "Add a text strip to the sequencer"
+msgstr "Ajouter une bande de texte au séquenceur"
 
 
 msgctxt "Operator"
@@ -94902,24 +94902,44 @@ msgid "Panel containing UI elements"
 msgstr "Panneau contenant des éléments d’interface"
 
 
-msgid "Active Tool"
-msgstr "Outil actif"
+msgid "Guides"
+msgstr "Guides"
 
 
-msgid "View Lock"
-msgstr "Verrouillage de la vue"
+msgid "Drawing Plane"
+msgstr "Plan de dessin"
 
 
-msgid "Selectability & Visibility"
-msgstr "Sélectionnabilité et visibilité"
+msgid "Stroke Placement"
+msgstr "Placement de trait"
 
 
-msgid "Shadow Settings"
-msgstr "Réglages d’ombre"
+msgid "Transform Orientations"
+msgstr "Orientations de transformation"
 
 
-msgid "SSAO Settings"
-msgstr "Réglages de SSAO"
+msgid "Viewer Node"
+msgstr "Nœud visualiseur"
+
+
+msgid "Curves Edit Mode"
+msgstr "Mode édition courbes"
+
+
+msgid "Curve Edit Mode"
+msgstr "Mode édition courbe"
+
+
+msgid "Measurement"
+msgstr "Mesure"
+
+
+msgid "Mesh Edit Mode"
+msgstr "Mode édition maillage"
+
+
+msgid "Motion Tracking"
+msgstr "Suivi de mouvement (motion tracking)"
 
 
 msgid "Cavity"
@@ -94934,92 +94954,12 @@ msgid "Overlays"
 msgstr "Surimpressions"
 
 
-msgid "Guides"
-msgstr "Guides"
+msgid "SSAO Settings"
+msgstr "Réglages de SSAO"
 
 
-msgid "Viewer Node"
-msgstr "Nœud visualiseur"
-
-
-msgid "Motion Tracking"
-msgstr "Suivi de mouvement (motion tracking)"
-
-
-msgid "Mesh Edit Mode"
-msgstr "Mode édition maillage"
-
-
-msgid "Measurement"
-msgstr "Mesure"
-
-
-msgid "Curve Edit Mode"
-msgstr "Mode édition courbe"
-
-
-msgid "Curves Edit Mode"
-msgstr "Mode édition courbes"
-
-
-msgid "Transform Orientations"
-msgstr "Orientations de transformation"
-
-
-msgid "Stroke Placement"
-msgstr "Placement de trait"
-
-
-msgid "Drawing Plane"
-msgstr "Plan de dessin"
-
-
-msgid "Grease Pencil Options"
-msgstr "Options du Grease Pencil"
-
-
-msgid "Quad View"
-msgstr "Vue quadrants"
-
-
-msgid "Onion Skin"
-msgstr "Pelures d’oignon"
-
-
-msgid "Stereoscopy"
-msgstr "Stéréoscopie"
-
-
-msgid "Multi Frame"
-msgstr "Multi-frames"
-
-
-msgid "Auto-Masking"
-msgstr "Masquage auto"
-
-
-msgid "Curves Sculpt Add Curve Options"
-msgstr "Sculpture courbes – options d’ajout de courbe"
-
-
-msgid "Curves Sculpt Parameter Falloff"
-msgstr "Sculpture courbes – atténuation le long de la courbe"
-
-
-msgid "Curves Grow/Shrink Scaling"
-msgstr "Courbes – échelle pour grandir/raccourcir"
-
-
-msgid "Viewport Debug"
-msgstr "Débugage vue 3D"
-
-
-msgid "VR"
-msgstr "VR"
-
-
-msgid "VR Info"
-msgstr "Infos VR"
+msgid "Shadow Settings"
+msgstr "Réglages d’ombre"
 
 
 msgid "glTF Variants"
@@ -95030,12 +94970,72 @@ msgid "glTF Material Variants"
 msgstr "Variantes de matériaux glTF"
 
 
+msgid "Selectability & Visibility"
+msgstr "Sélectionnabilité et visibilité"
+
+
+msgid "Active Tool"
+msgstr "Outil actif"
+
+
+msgid "View Lock"
+msgstr "Verrouillage de la vue"
+
+
 msgid "glTF"
 msgstr "glTF"
 
 
 msgid "glTF Animations"
 msgstr "Animations glTF"
+
+
+msgid "VR"
+msgstr "VR"
+
+
+msgid "VR Info"
+msgstr "Infos VR"
+
+
+msgid "Viewport Debug"
+msgstr "Débugage vue 3D"
+
+
+msgid "Curves Grow/Shrink Scaling"
+msgstr "Courbes – échelle pour grandir/raccourcir"
+
+
+msgid "Curves Sculpt Parameter Falloff"
+msgstr "Sculpture courbes – atténuation le long de la courbe"
+
+
+msgid "Curves Sculpt Add Curve Options"
+msgstr "Sculpture courbes – options d’ajout de courbe"
+
+
+msgid "Auto-Masking"
+msgstr "Masquage auto"
+
+
+msgid "Multi Frame"
+msgstr "Multi-frames"
+
+
+msgid "Stereoscopy"
+msgstr "Stéréoscopie"
+
+
+msgid "Onion Skin"
+msgstr "Pelures d’oignon"
+
+
+msgid "Quad View"
+msgstr "Vue quadrants"
+
+
+msgid "Grease Pencil Options"
+msgstr "Options du Grease Pencil"
 
 
 msgid "Import Settings"
@@ -98709,14 +98709,6 @@ msgid "Enable asset libraries served over HTTP/HTTPS"
 msgstr "Activer les bibliothèques d’assets servies par HTTP/HTTPS"
 
 
-msgid "Sculpt Texture Paint"
-msgstr "Peinture de texture en mode sculpture"
-
-
-msgid "Use texture painting in Sculpt Mode"
-msgstr "Utiliser la peinture de textures en mode sculpture"
-
-
 msgid "Shader Node Previews"
 msgstr "Afficher les aperçus des nœuds de shading"
 
@@ -100455,10 +100447,6 @@ msgid "English (UK)"
 msgstr "Anglais (UK) – English (UK)"
 
 
-msgid "Locale code: en_GB. Translation progress: 94%"
-msgstr "Identificateur de culture : en_GB. Progrès de la traduction : 94%"
-
-
 msgid "English (US)"
 msgstr "Anglais (USA) – English (US)"
 
@@ -100645,10 +100633,6 @@ msgstr "Slovaque – Slovenčina"
 
 msgid "Slovenian - Slovenščina"
 msgstr "Slovène – Slovenščina"
-
-
-msgid "Locale code: sl. Translation progress: 52%"
-msgstr "Identificateur de culture : sl. Progrès de la traduction : 52%"
 
 
 msgid "Spanish - Español"
@@ -104828,6 +104812,10 @@ msgstr "Données spécifiques à la région (leur type dépend du type de régio
 
 msgid "Region height"
 msgstr "Hauteur de région"
+
+
+msgid "Live search filtering string"
+msgstr "Texte utilisé pour filtrer la recherche en temps réel"
 
 
 msgid "Type of this region"
@@ -110030,10 +110018,6 @@ msgid "Show only selectable objects"
 msgstr "Afficher seulement les objets sélectionnables"
 
 
-msgid "Live search filtering string"
-msgstr "Texte utilisé pour filtrer la recherche en temps réel"
-
-
 msgid "Library Override View Mode"
 msgstr "Mode vue des redéfinitions de bibliothèques"
 
@@ -110275,10 +110259,6 @@ msgid "Active Tool and Workspace settings"
 msgstr "Paramètres de l’outil actif et de l’espace de travail"
 
 
-msgid "Scene Properties"
-msgstr "Propriétés de la scène"
-
-
 msgctxt "ID"
 msgid "Render"
 msgstr "Rendu"
@@ -110295,6 +110275,10 @@ msgstr "Sortie"
 
 msgid "Output Properties"
 msgstr "Propriétés de sortie"
+
+
+msgid "Scene Properties"
+msgstr "Propriétés de la scène"
 
 
 msgctxt "ID"
@@ -130709,16 +130693,16 @@ msgid "All View Layers"
 msgstr "Tous les calques de vue"
 
 
-msgid "Object Contents"
-msgstr "Contenu des objets"
+msgid "Empties"
+msgstr "Objets vides"
 
 
 msgid "Object Children"
 msgstr "Enfants des objets"
 
 
-msgid "Empties"
-msgstr "Objets vides"
+msgid "Object Contents"
+msgstr "Contenu des objets"
 
 
 msgctxt "Operator"
@@ -130915,6 +130899,11 @@ msgstr "Image/Séquence…"
 
 
 msgctxt "Operator"
+msgid "Text"
+msgstr "Texte"
+
+
+msgctxt "Operator"
 msgid "Fade"
 msgstr "Fondu"
 
@@ -131063,23 +131052,8 @@ msgstr "Poignée"
 
 
 msgctxt "Operator"
-msgid "Clip..."
-msgstr "Bande…"
-
-
-msgctxt "Operator"
-msgid "Mask..."
-msgstr "Masque…"
-
-
-msgctxt "Operator"
 msgid "Color"
 msgstr "Couleur"
-
-
-msgctxt "Operator"
-msgid "Text"
-msgstr "Texte"
 
 
 msgctxt "Operator"
@@ -131249,11 +131223,6 @@ msgstr "Zoom de prévis"
 msgctxt "Operator"
 msgid "Change Scene..."
 msgstr "Changer la scène…"
-
-
-msgctxt "Operator"
-msgid "Clip"
-msgstr "Clip"
 
 
 msgctxt "Operator"
@@ -136729,10 +136698,6 @@ msgstr "Indice de couleur invalide"
 
 msgid "Anisotropic"
 msgstr "Anisotrope"
-
-
-msgid "Compositor node group has cyclic links."
-msgstr "Le groupe de nœuds de compositing a des liens cycliques."
 
 
 msgid "Error: Too many AOVs"
@@ -145639,10 +145604,6 @@ msgid "Link inside collection"
 msgstr "Lier dans la collection"
 
 
-msgid "Move inside collection (Ctrl to link, Shift to parent)"
-msgstr "Déplacer dans la collection (Ctrl pour lier, Maj pour parenter)"
-
-
 msgid "Move inside collection (Ctrl to link)"
 msgstr "Déplacer dans la collection (Ctrl pour lier)"
 
@@ -146418,10 +146379,6 @@ msgid "Add a gaussian blur effect strip for a single selected strip with video c
 msgstr "Ajouter une bande d’effet flou gaussien à une seule bande sélectionnée avec contenu vidéo"
 
 
-msgid "Add a text strip to the sequencer"
-msgstr "Ajouter une bande de texte au séquenceur"
-
-
 msgid "Add a color mix effect strip to the sequencer"
 msgstr "Ajouter une bande d’effet Mélange de couleur au séquenceur"
 
@@ -146472,10 +146429,6 @@ msgstr "Scène vide"
 
 msgid "No scene assets."
 msgstr "Aucun asset de scène."
-
-
-msgid "Scene Strip..."
-msgstr "Bande scène…"
 
 
 msgid "No other scenes."
@@ -157480,6 +157433,10 @@ msgid "BSDF"
 msgstr "BSDF"
 
 
+msgid "Anisotropy"
+msgstr "Anisotropie"
+
+
 msgid "IOR"
 msgstr "IDR"
 
@@ -157492,6 +157449,10 @@ msgid "Thin Film IOR"
 msgstr "IDR de la couche mince"
 
 
+msgid "Rotates the direction of anisotropy, with 1.0 going full circle"
+msgstr "Tourner la direction de l’anisotropie, 1.0 fait une rotation complète"
+
+
 msgid "Thickness of the film in nanometers"
 msgstr "Épaisseur de la couche mince en nanomètres"
 
@@ -157502,10 +157463,6 @@ msgstr "Indice de réfraction (IDR) de la couche mince"
 
 msgid "Thin Film"
 msgstr "Couche mince"
-
-
-msgid "Anisotropy"
-msgstr "Anisotropie"
 
 
 msgid "RoughnessU"
@@ -157634,10 +157591,6 @@ msgstr "Rugosité des microfacettes de la surface (0.0 est une réflexion de mir
 
 msgid "Amount of anisotropy for reflection. Higher values give elongated highlights along the tangent direction"
 msgstr "Quantité d’anisotropie pour la réflexion. Des valeurs plus élevées donnent des hautes lumières allongées dans la direction tangente"
-
-
-msgid "Rotates the direction of anisotropy, with 1.0 going full circle"
-msgstr "Tourner la direction de l’anisotropie, 1.0 fait une rotation complète"
 
 
 msgid "Thin Wall"

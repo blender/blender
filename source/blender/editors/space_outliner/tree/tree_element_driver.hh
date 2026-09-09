@@ -8,6 +8,8 @@
 
 #pragma once
 
+#include "DNA_outliner_types.h"
+
 #include "tree_element.hh"
 
 namespace blender {
@@ -20,7 +22,15 @@ class TreeElementDriverBase final : public AbstractTreeElement {
   AnimData &anim_data_;
 
  public:
+  static constexpr eTreeStoreElemType element_type = TSE_DRIVER_BASE;
+
   TreeElementDriverBase(TreeElement &legacy_te, AnimData &anim_data);
+
+  /** Driver bases have no owner ID, identify them by the animation data. */
+  static const void *persistent_ptr(AnimData &anim_data)
+  {
+    return &anim_data;
+  }
 
   void expand(SpaceOutliner &space_outliner) const override;
 

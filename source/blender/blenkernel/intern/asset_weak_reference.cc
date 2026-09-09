@@ -15,6 +15,8 @@
 #include "AS_asset_library.hh"
 
 #include "BKE_asset.hh"
+#include "BKE_idtype.hh"
+#include "BKE_main.hh"
 
 #include "BLO_read_write.hh"
 
@@ -126,6 +128,19 @@ void BKE_asset_weak_reference_read(BlendDataReader *reader, AssetWeakReference *
   BLO_read_string(reader, &weak_ref->relative_asset_identifier);
 }
 
+void BKE_asset_weak_reference_foreach_main(Main &bmain,
+                                           FunctionRef<void(AssetWeakReference &weak_ref)> fn)
+{
+  ID *id;
+  FOREACH_MAIN_ID_BEGIN (&bmain, id) {
+    const IDTypeInfo *id_type = BKE_idtype_get_info_from_id(id);
+    if (id_type->foreach_asset_weak_reference) {
+      id_type->foreach_asset_weak_reference(id, fn);
+    }
+  }
+  FOREACH_MAIN_ID_END;
+}
+
 void BKE_asset_catalog_path_list_free(ListBaseT<AssetCatalogPathLink> &catalog_path_list)
 {
   for (AssetCatalogPathLink &catalog_path : catalog_path_list.items_mutable()) {
@@ -181,6 +196,23 @@ void BKE_asset_catalog_path_list_add_path(ListBaseT<AssetCatalogPathLink> &catal
   AssetCatalogPathLink *new_path = MEM_new<AssetCatalogPathLink>(__func__);
   new_path->path = BLI_strdup(catalog_path);
   BLI_addtail(&catalog_path_list, new_path);
+}
+
+bool BKE_asset_catalog_path_list_remove_path(ListBaseT<AssetCatalogPathLink> &catalog_path_list,
+                                             const char *catalog_path)
+{
+  bool changed = false;
+
+  for (AssetCatalogPathLink &path_link : catalog_path_list.items_mutable()) {
+    if (!STREQ(path_link.path, catalog_path)) {
+      continue;
+    }
+    MEM_delete(path_link.path);
+    BLI_freelinkN(&catalog_path_list, &path_link);
+    changed = true;
+  }
+
+  return changed;
 }
 
 }  // namespace blender

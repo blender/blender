@@ -2,8 +2,8 @@
  *
  * SPDX-License-Identifier: GPL-2.0-or-later */
 
-#include "gpu_shader_math_base_lib.glsl"
-#include "gpu_shader_math_safe_lib.glsl"
+#include "gpu_shader_math_base.bsl.hh"
+#include "gpu_shader_math_safe.bsl.hh"
 
 [[node]]
 void node_composite_difference_matte(

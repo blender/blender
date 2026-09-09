@@ -38,7 +38,7 @@ namespace blender::ed::sculpt_paint {
 
 void mode_enter_generic(
     Main &bmain, Depsgraph &depsgraph, Scene &scene, Object &ob, eObjectMode mode_flag);
-void mode_exit_generic(Object &ob, eObjectMode mode_flag);
+void mode_exit_generic(Scene &scene, Object &ob, eObjectMode mode_flag);
 
 /** Main brush action callback */
 using BrushActionFn = FunctionRef<void(const Depsgraph &depsgraph,

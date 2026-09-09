@@ -30,7 +30,7 @@ void BM_mesh_edgesplit(BMesh *bm,
   bool use_ese = false;
   Map<BMElem *, BMEditSelection *> ese_gh;
 
-  if (copy_select && bm->selected.first) {
+  if (copy_select && bm->selected.first()) {
     for (BMEditSelection &ese : bm->selected) {
       if (ese.htype != BM_FACE) {
         ese_gh.add(ese.ele, &ese);

@@ -302,12 +302,18 @@ class SEQUENCER_PT_sequencer_overlay_thumbnails(Panel):
         st = context.space_data
         return st.view_type in {'SEQUENCER', 'SEQUENCER_PREVIEW'}
 
+    def draw_header(self, context):
+        overlay_settings = context.space_data.timeline_overlay
+        layout = self.layout
+        layout.active = context.space_data.show_overlays
+        layout.prop(overlay_settings, "show_thumbnails", text="")
+
     def draw(self, context):
         st = context.space_data
         overlay_settings = st.timeline_overlay
         layout = self.layout
 
-        layout.active = st.show_overlays
+        layout.active = st.show_overlays and overlay_settings.show_thumbnails
 
         row = layout.row()
         row.prop(overlay_settings, "thumbnail_display_style", expand=True)
@@ -700,25 +706,15 @@ class SEQUENCER_MT_add(Menu):
 
         layout.menu("SEQUENCER_MT_add_scene", text="Scene", icon='SCENE_DATA')
 
-        bpy_data_movieclips_len = len(bpy.data.movieclips)
-        if bpy_data_movieclips_len > 10:
-            layout.operator_context = 'INVOKE_DEFAULT'
-            layout.operator("sequencer.movieclip_strip_add", text="Clip...", icon='TRACKER')
-        elif bpy_data_movieclips_len > 0:
-            layout.operator_menu_enum("sequencer.movieclip_strip_add", "clip", text="Clip", icon='TRACKER')
+        if bpy.data.movieclips:
+            layout.menu("SEQUENCER_MT_add_clip", text="Clip", text_ctxt=i18n_contexts.id_movieclip, icon='TRACKER')
         else:
             layout.menu("SEQUENCER_MT_add_empty", text="Clip", text_ctxt=i18n_contexts.id_movieclip, icon='TRACKER')
-        del bpy_data_movieclips_len
 
-        bpy_data_masks_len = len(bpy.data.masks)
-        if bpy_data_masks_len > 10:
-            layout.operator_context = 'INVOKE_DEFAULT'
-            layout.operator("sequencer.mask_strip_add", text="Mask...", icon='MOD_MASK')
-        elif bpy_data_masks_len > 0:
-            layout.operator_menu_enum("sequencer.mask_strip_add", "mask", text="Mask", icon='MOD_MASK')
+        if bpy.data.masks:
+            layout.menu("SEQUENCER_MT_add_mask", text="Mask", icon='MOD_MASK')
         else:
             layout.menu("SEQUENCER_MT_add_empty", text="Mask", icon='MOD_MASK')
-        del bpy_data_masks_len
 
         layout.separator()
 
@@ -730,7 +726,7 @@ class SEQUENCER_MT_add(Menu):
 
         layout.operator_context = 'INVOKE_REGION_WIN'
         layout.operator("sequencer.effect_strip_add", text="Color", icon='COLOR').type = 'COLOR'
-        layout.operator("sequencer.effect_strip_add", text="Text", icon='FONT_DATA').type = 'TEXT'
+        layout.operator("sequencer.text_strip_add", text="Text", icon='FONT_DATA')
 
         layout.separator()
         total, nonsound = selected_strips_count(context)
@@ -760,6 +756,29 @@ class SEQUENCER_MT_add_empty(Menu):
         layout = self.layout
 
         layout.label(text="No Items Available")
+
+
+class SEQUENCER_MT_add_clip(Menu):
+    bl_label = "Clip"
+    bl_translation_context = i18n_contexts.id_movieclip
+
+    def draw(self, _context):
+        layout = self.layout
+        layout.operator_context = 'INVOKE_REGION_WIN'
+
+        for clip in bpy.data.movieclips:
+            layout.operator("sequencer.movieclip_strip_add", text=clip.name, translate=False).clip = clip.name
+
+
+class SEQUENCER_MT_add_mask(Menu):
+    bl_label = "Mask"
+
+    def draw(self, _context):
+        layout = self.layout
+        layout.operator_context = 'INVOKE_REGION_WIN'
+
+        for mask in bpy.data.masks:
+            layout.operator("sequencer.mask_strip_add", text=mask.name, translate=False).mask = mask.name
 
 
 class SEQUENCER_MT_add_transitions(Menu):
@@ -1651,19 +1670,19 @@ class SEQUENCER_PT_cache_view_settings(SequencerButtonsPanel, Panel):
             col = layout.box()
             col = col.column(align=True)
 
-            split = col.split(factor=0.4, align=True)
+            split = col.split(factor=col.property_split_factor, align=True)
             split.alignment = 'RIGHT'
             split.label(text="Current Cache Size")
             split.alignment = 'LEFT'
             split.label(text=iface_("{:d} MB").format(cache_raw_size + cache_final_size), translate=False)
 
-            split = col.split(factor=0.4, align=True)
+            split = col.split(factor=col.property_split_factor, align=True)
             split.alignment = 'RIGHT'
             split.label(text="Raw")
             split.alignment = 'LEFT'
             split.label(text=iface_("{:d} MB").format(cache_raw_size), translate=False)
 
-            split = col.split(factor=0.4, align=True)
+            split = col.split(factor=col.property_split_factor, align=True)
             split.alignment = 'RIGHT'
             split.label(text="Final")
             split.alignment = 'LEFT'
@@ -2083,6 +2102,8 @@ classes = (
     SEQUENCER_MT_add_effect,
     SEQUENCER_MT_add_transitions,
     SEQUENCER_MT_add_empty,
+    SEQUENCER_MT_add_clip,
+    SEQUENCER_MT_add_mask,
     SEQUENCER_MT_strip_effect,
     SEQUENCER_MT_strip_effect_change,
     SEQUENCER_MT_strip,

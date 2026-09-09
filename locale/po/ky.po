@@ -1,9 +1,9 @@
 
 msgid ""
 msgstr ""
-"Project-Id-Version: Blender 5.3.0 Alpha (b'32296898e057')\n"
+"Project-Id-Version: Blender 5.3.0 Alpha (b'f5df8c32f99b')\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-08-31 07:41+0000\n"
+"POT-Creation-Date: 2026-09-07 07:47+0000\n"
 "PO-Revision-Date: 2025-07-23 15:20+0000\n"
 "Last-Translator: Anonymous <noreply@weblate.org>\n"
 "Language-Team: Kyrgyz <https://translate.blender.org/projects/blender-ui/ui/ky/>\n"
@@ -1302,20 +1302,20 @@ msgid "Import"
 msgstr "Импорттоо"
 
 
-msgid "Mirror"
-msgstr "Чагылтуу"
-
-
 msgid "UV"
 msgstr "UV"
 
 
-msgid "Apply"
-msgstr "Колдонуу"
+msgid "Mirror"
+msgstr "Чагылтуу"
 
 
 msgid "Tracking"
 msgstr "Трекинг"
+
+
+msgid "Apply"
+msgstr "Колдонуу"
 
 
 msgctxt "MovieClip"
@@ -3123,6 +3123,11 @@ msgstr "Үн"
 
 
 msgctxt "Operator"
+msgid "Text"
+msgstr "Текст"
+
+
+msgctxt "Operator"
 msgid "Left"
 msgstr "Солдон"
 
@@ -3135,11 +3140,6 @@ msgstr "Оңдон"
 msgctxt "Operator"
 msgid "Color"
 msgstr "Түс"
-
-
-msgctxt "Operator"
-msgid "Text"
-msgstr "Текст"
 
 
 msgctxt "Text"

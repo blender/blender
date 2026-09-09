@@ -123,8 +123,8 @@ static void node_reroute_add_storage(bNodeTree &tree)
         continue;
       }
 
-      bNodeSocket &input = *static_cast<bNodeSocket *>(node->inputs.first);
-      bNodeSocket &output = *static_cast<bNodeSocket *>(node->outputs.first);
+      bNodeSocket &input = *node->inputs.first();
+      bNodeSocket &output = *node->outputs.first();
 
       /* Use uniform identifier for sockets. In old Blender versions (<=2021, up to af0b7925), the
        * identifiers were sometimes all lower case. Fixing those wrong socket identifiers is
@@ -167,7 +167,7 @@ static void hide_simulation_node_skip_socket_value(Main &bmain)
       if (node.type_legacy != GEO_NODE_SIMULATION_OUTPUT) {
         continue;
       }
-      bNodeSocket *skip_input = static_cast<bNodeSocket *>(node.inputs.first);
+      bNodeSocket *skip_input = node.inputs.first();
       if (!skip_input || !STREQ(skip_input->identifier, "Skip")) {
         continue;
       }
@@ -338,7 +338,7 @@ void blo_do_versions_403(FileData * /*fd*/, Library * /*lib*/, Main *bmain)
         }
 
         /* Find out if all inputs have the same Save As Render option. */
-        const bNodeSocket *first_input = static_cast<bNodeSocket *>(node.inputs.first);
+        const bNodeSocket *first_input = node.inputs.first();
         const NodeImageMultiFileSocket *first_input_storage =
             static_cast<NodeImageMultiFileSocket *>(first_input->storage);
         const bool first_save_as_render = first_input_storage->save_as_render;

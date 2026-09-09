@@ -10,7 +10,7 @@
 
 #pragma once
 
-#include "gpu_shader_math_vector_lib.glsl"
+#include "gpu_shader_math_vector.bsl.hh"
 
 #define dof_aperturesize dof_params.x
 #define dof_distance dof_params.y

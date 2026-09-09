@@ -58,8 +58,10 @@ struct EffectHandle {
                        const SeqResult &input2);
 };
 
-/** Get the effect handle for a given strip.
- * If `strip` is not an effect strip, returns empty `EffectHandle`. */
+/**
+ * Get the effect handle for a given strip.
+ * If `strip` is not an effect strip, returns empty `EffectHandle`.
+ */
 EffectHandle strip_effect_handle_get(Strip *strip);
 
 EffectHandle strip_blend_mode_handle_get(Strip *strip);

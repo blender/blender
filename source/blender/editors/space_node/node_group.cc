@@ -870,7 +870,7 @@ static wmOperatorStatus node_default_group_width_set_exec(bContext *C, wmOperato
   SpaceNode *snode = CTX_wm_space_node(C);
   bNodeTree *ntree = snode->edittree;
 
-  bNodeTreePath *last_path_item = static_cast<bNodeTreePath *>(snode->treepath.last);
+  bNodeTreePath *last_path_item = snode->treepath.last();
   bNodeTreePath *parent_path_item = last_path_item->prev;
   if (!parent_path_item) {
     return OPERATOR_CANCELLED;

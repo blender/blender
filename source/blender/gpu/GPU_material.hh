@@ -83,6 +83,9 @@ enum eGPUMaterialFlag {
   GPU_MATFLAG_COAT = (1 << 9),
   GPU_MATFLAG_TRANSLUCENT = (1 << 10),
   GPU_MATFLAG_RAYCAST = (1 << 11),
+  GPU_MATFLAG_LIGHTING = (1 << 12),
+  GPU_MATFLAG_LIGHT_ATTRIBUTE = (1 << 13),
+  GPU_MATFLAG_SHADOW_OFFSET = (1 << 14),
 
   GPU_MATFLAG_VOLUME_SCATTER = (1 << 16),
   GPU_MATFLAG_VOLUME_ABSORPTION = (1 << 17),
@@ -153,11 +156,14 @@ GPUMaterialFromNodeTreeResult GPU_material_from_nodetree(
 using ConstructGPUMaterialFn = void (*)(void *thunk, GPUMaterial *material);
 
 /* Construct a GPU material from a set of callbacks. See the callback types for more information.
- * The given thunk will be passed as the first parameter of each callback. */
+ * The given thunk will be passed as the first parameter of each callback. The UUID identify a
+ * possible variation for the same graph, for instance, a shader whose output is half precision or
+ * full precision. */
 GPUMaterial *GPU_material_from_callbacks(eGPUMaterialEngine engine,
                                          ConstructGPUMaterialFn construct_function_cb,
                                          GPUCodegenCallbackFn generate_code_function_cb,
-                                         void *thunk);
+                                         void *thunk,
+                                         const uint64_t uuid);
 
 void GPU_material_free_single(GPUMaterial *material);
 void GPU_material_free(ListBaseT<LinkData> *gpumaterial);
@@ -487,7 +493,18 @@ struct GPUNodeStack {
     if (this->link) {
       return true;
     }
-    return saturate_f(std::get<float>(this->value)) > near_zero;
+    switch (this->type) {
+      case GPU_FLOAT:
+        return saturate_f(std::get<float>(this->value)) > near_zero;
+      case GPU_INT:
+        return std::get<int>(this->value) != 0;
+      case GPU_BOOL:
+        return std::get<bool>(this->value);
+      default:
+        break;
+    }
+    BLI_assert_unreachable();
+    return true;
   }
 
   bool socket_not_one() const
@@ -495,7 +512,18 @@ struct GPUNodeStack {
     if (this->link) {
       return true;
     }
-    return saturate_f(std::get<float>(this->value)) < near_one;
+    switch (this->type) {
+      case GPU_FLOAT:
+        return saturate_f(std::get<float>(this->value)) < near_one;
+      case GPU_INT:
+        return std::get<int>(this->value) != 1;
+      case GPU_BOOL:
+        return !std::get<bool>(this->value);
+      default:
+        break;
+    }
+    BLI_assert_unreachable();
+    return true;
   }
 
   bool socket_not_black() const

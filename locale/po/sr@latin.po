@@ -1,9 +1,9 @@
 
 msgid ""
 msgstr ""
-"Project-Id-Version: Blender 5.3.0 Alpha (b'32296898e057')\n"
+"Project-Id-Version: Blender 5.3.0 Alpha (b'f5df8c32f99b')\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-08-31 07:41+0000\n"
+"POT-Creation-Date: 2026-09-07 07:47+0000\n"
 "PO-Revision-Date: 2025-07-23 14:56+0000\n"
 "Last-Translator: Anonymous <noreply@weblate.org>\n"
 "Language-Team: Serbian (Latin script) <https://translate.blender.org/projects/blender-ui/ui/sr_Latn/>\n"
@@ -8498,32 +8498,12 @@ msgid "Material slot name"
 msgstr "Naziv slota materijala"
 
 
-msgid "Snap"
-msgstr "Lepljenje"
-
-
 msgid "Import"
 msgstr "Uvoz"
 
 
-msgid "Mirror"
-msgstr "Ogledalo"
-
-
-msgid "UV Mapping"
-msgstr "UV Mapiranje"
-
-
-msgid "Local View"
-msgstr "Lokalni pogled"
-
-
-msgid "Navigation"
-msgstr "Navigacija"
-
-
-msgid "Align View"
-msgstr "Poravnaj pogled"
+msgid "Select Linked"
+msgstr "Izaberi povezano"
 
 
 msgid "Math"
@@ -8534,48 +8514,56 @@ msgid "UV"
 msgstr "UV"
 
 
-msgid "Select Linked"
-msgstr "Izaberi povezano"
+msgid "Navigation"
+msgstr "Navigacija"
 
 
-msgid "Metaball"
-msgstr "Meta lopta"
+msgid "Align View"
+msgstr "Poravnaj pogled"
 
 
-msgid "Light"
-msgstr "Svetlost"
+msgid "UV Mapping"
+msgstr "UV Mapiranje"
 
 
-msgid "Relations"
-msgstr "Odnosi"
+msgid "Local View"
+msgstr "Lokalni pogled"
 
 
-msgid "Rigid Body"
-msgstr "Kruto telo"
+msgid "Snap"
+msgstr "Lepljenje"
 
 
-msgid "Apply"
-msgstr "Primeni"
+msgid "Bone Roll"
+msgstr "Rolna kostiju"
 
 
-msgid "Track"
-msgstr "Staza"
-
-
-msgid "Quick Effects"
-msgstr "Brzi efekti"
+msgid "Mirror"
+msgstr "Ogledalo"
 
 
 msgid "Show/Hide"
 msgstr "Prikaži/sakrij"
 
 
+msgid "Names"
+msgstr "Imena"
+
+
 msgid "Linked"
 msgstr "Povezano"
 
 
-msgid "Hooks"
-msgstr "Udice"
+msgid "Metaball"
+msgstr "Meta lopta"
+
+
+msgid "Special Characters"
+msgstr "Specijalni znaci"
+
+
+msgid "Merge"
+msgstr "Sjedini"
 
 
 msgid "Keying"
@@ -8586,48 +8574,60 @@ msgid "Tracking"
 msgstr "Praćenje"
 
 
-msgid "Clear Transform"
-msgstr "Očisti transformacije"
-
-
-msgid "In-Betweens"
-msgstr "U međuvremenu"
-
-
-msgid "Propagate"
-msgstr "Prenesi"
-
-
-msgid "Names"
-msgstr "Imena"
-
-
-msgid "Toggle Bone Options"
-msgstr "Manje/više informacija"
-
-
-msgid "Enable Bone Options"
-msgstr "Omogući opcije kostiju"
+msgid "Mesh Select Mode"
+msgstr "Mod izbora mreže"
 
 
 msgid "Disable Bone Options"
 msgstr "Onemogući opcije kostiju"
 
 
-msgid "Mesh Select Mode"
-msgstr "Mod izbora mreže"
+msgid "Enable Bone Options"
+msgstr "Omogući opcije kostiju"
 
 
-msgid "Merge"
-msgstr "Sjedini"
+msgid "Toggle Bone Options"
+msgstr "Manje/više informacija"
 
 
-msgid "Special Characters"
-msgstr "Specijalni znaci"
+msgid "Apply"
+msgstr "Primeni"
 
 
-msgid "Bone Roll"
-msgstr "Rolna kostiju"
+msgid "Propagate"
+msgstr "Prenesi"
+
+
+msgid "In-Betweens"
+msgstr "U međuvremenu"
+
+
+msgid "Clear Transform"
+msgstr "Očisti transformacije"
+
+
+msgid "Hooks"
+msgstr "Udice"
+
+
+msgid "Quick Effects"
+msgstr "Brzi efekti"
+
+
+msgid "Track"
+msgstr "Staza"
+
+
+msgid "Rigid Body"
+msgstr "Kruto telo"
+
+
+msgid "Relations"
+msgstr "Odnosi"
+
+
+msgid "Light"
+msgstr "Svetlost"
 
 
 msgid "Basic"
@@ -19044,12 +19044,12 @@ msgid "Restrict"
 msgstr "Ograniči"
 
 
-msgid "Motion Tracking"
-msgstr "Praćenje pokreta"
-
-
 msgid "Transform Orientations"
 msgstr "Transformacija orijentacija"
+
+
+msgid "Motion Tracking"
+msgstr "Praćenje pokreta"
 
 
 msgid "Bone Constraints"
@@ -25076,12 +25076,12 @@ msgid "BSDF"
 msgstr "BSDF"
 
 
-msgid "IOR"
-msgstr "IOR"
-
-
 msgid "Anisotropy"
 msgstr "Anizotropno"
+
+
+msgid "IOR"
+msgstr "IOR"
 
 
 msgid "RoughnessU"

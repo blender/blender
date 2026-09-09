@@ -57,10 +57,12 @@ PUSH_CONSTANT(int, curves_start)
 PUSH_CONSTANT(int, curves_count)
 PUSH_CONSTANT(bool, use_point_weight)
 PUSH_CONSTANT(bool, use_cyclic)
-/** IMPORTANT: For very dumb reasons, on GL the default specialization is compiled and used for
+/**
+ * IMPORTANT: For very dumb reasons, on GL the default specialization is compiled and used for
  * creating the shader interface. If this happens to optimize out some push_constants that are
  * valid in other specialization, we will never be able to set them. So choose the specialization
- * that uses all push_constants. */
+ * that uses all push_constants.
+ */
 SPECIALIZATION_CONSTANT(int, evaluated_type, 3) /* CURVE_TYPE_NURBS */
 TYPEDEF_SOURCE("draw_attribute_shader_shared.hh")
 COMPUTE_SOURCE("draw_curves_interpolation_comp.glsl")

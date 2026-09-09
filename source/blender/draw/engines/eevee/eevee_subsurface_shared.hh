@@ -2,7 +2,9 @@
  *
  * SPDX-License-Identifier: GPL-2.0-or-later */
 
-/**
+/** \file
+ * \ingroup eevee
+ *
  * Shared code between host and client code-bases.
  */
 
@@ -29,9 +31,11 @@ struct [[host_shared]] SubsurfaceData {
   float4 samples[SSS_SAMPLE_MAX];
   /** Number of samples precomputed in the set. */
   int sample_len;
-  /** WORKAROUND: To avoid invalid integral for components that have very small radius, we clamp
+  /**
+   * WORKAROUND: To avoid invalid integral for components that have very small radius, we clamp
    * the minimal radius. This add bias to the SSS effect but this is the simplest workaround I
-   * could find to ship this without visible artifact. */
+   * could find to ship this without visible artifact.
+   */
   float min_radius;
   int _pad1;
   int _pad2;

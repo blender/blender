@@ -71,7 +71,7 @@ void rebuild_slot_user_cache(Main &bmain)
   ID *id;
   FOREACH_MAIN_LISTBASE_BEGIN (&bmain, ids_of_idtype) {
     /* Check whether this ID type can be animated. If not, just skip all IDs of this type. */
-    id = static_cast<ID *>(ids_of_idtype->first);
+    id = ids_of_idtype->first();
     if (!id || !id_type_can_have_animdata(GS(id->name))) {
       continue;
     }

@@ -2,6 +2,10 @@
  *
  * SPDX-License-Identifier: GPL-2.0-or-later */
 
+/** \file
+ * \ingroup bke
+ */
+
 #ifdef WITH_OPENVDB
 
 #  include "DNA_customdata_types.h"
@@ -18,15 +22,6 @@
 #  include "FN_field_evaluation.hh"
 
 namespace blender::bke::volume_grid::multi_function_eval {
-
-static std::optional<VolumeGridType> cpp_type_to_grid_type(const CPPType &cpp_type)
-{
-  const std::optional<eCustomDataType> cd_type = bke::cpp_type_to_custom_data_type(cpp_type);
-  if (!cd_type) {
-    return std::nullopt;
-  }
-  return bke::custom_data_type_to_volume_grid_type(*cd_type);
-}
 
 /**
  * Call the multi-function in a batch on all active voxels in a leaf node.

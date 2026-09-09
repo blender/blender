@@ -20,7 +20,7 @@
 #include "eevee_shadow_shared.hh"
 #include "eevee_shadow_tilemap_lib.bsl.hh"
 #include "eevee_volume_lib.bsl.hh"
-#include "gpu_shader_math_vector_compare_lib.glsl"
+#include "gpu_shader_math_vector_compare.bsl.hh"
 
 namespace eevee::shadow::usage {
 

@@ -54,6 +54,8 @@ template<int C, int R> struct MatOp {
 
   friend RowT operator*(ColT, MatT) RET;
   friend ColT operator*(MatT, RowT) RET;
+  friend MatT operator*(MatT, float) RET;
+  friend MatT operator*(float, MatT) RET;
 };
 
 template<int R> struct MatBase<2, R> : MatOp<2, R> {

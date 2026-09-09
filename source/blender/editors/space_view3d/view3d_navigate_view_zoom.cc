@@ -418,7 +418,7 @@ static void view_zoom_apply_step(bContext *C,
                                  const int delta,
                                  const int zoom_xy[2])
 {
-  View3D *v3d = static_cast<View3D *>(area->spacedata.first);
+  View3D *v3d = area->spacedata.first_as<View3D>();
   RegionView3D *rv3d = static_cast<RegionView3D *>(region->regiondata);
   bool use_cam_zoom;
 
@@ -468,7 +468,7 @@ static wmOperatorStatus viewzoom_exec(bContext *C, wmOperator *op)
   Scene *scene = CTX_data_scene(C);
   ScrArea *area = CTX_wm_area(C);
   ARegion *region = CTX_wm_region(C);
-  View3D *v3d = static_cast<View3D *>(area->spacedata.first);
+  View3D *v3d = area->spacedata.first_as<View3D>();
   RegionView3D *rv3d = static_cast<RegionView3D *>(region->regiondata);
 
   const int delta = RNA_int_get(op->ptr, "delta");

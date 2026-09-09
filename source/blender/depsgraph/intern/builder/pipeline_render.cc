@@ -2,6 +2,10 @@
  *
  * SPDX-License-Identifier: GPL-2.0-or-later */
 
+/** \file
+ * \ingroup depsgraph
+ */
+
 #include "pipeline_render.h"
 
 #include "intern/builder/deg_builder_nodes.h"

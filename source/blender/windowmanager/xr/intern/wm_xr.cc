@@ -208,7 +208,7 @@ void wm_xr_runtime_data_free(wmXrRuntimeData **runtime)
     ScrArea *xr_offscreen_area = (*runtime)->offscreen_area;
     BLI_assert(xr_offscreen_area);
 
-    wmWindowManager *wm = static_cast<wmWindowManager *>(G_MAIN->wm.first);
+    wmWindowManager *wm = G_MAIN->wm.first();
     wmWindow *xr_win = wm_xr_session_root_window_or_fallback_get(wm, (*runtime));
     WM_event_remove_handlers_by_area(&xr_win->runtime->handlers, xr_offscreen_area);
     ED_area_offscreen_free(wm, xr_win, xr_offscreen_area);

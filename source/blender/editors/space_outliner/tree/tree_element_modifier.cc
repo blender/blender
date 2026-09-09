@@ -19,7 +19,11 @@
 
 #include "../outliner_intern.hh"
 
+#include "tree_display.hh"
+#include "tree_element_linked_node_tree.hh"
+#include "tree_element_linked_object.hh"
 #include "tree_element_modifier.hh"
+#include "tree_element_particle_system.hh"
 
 namespace blender::ed::outliner {
 
@@ -29,18 +33,23 @@ TreeElementModifierBase::TreeElementModifierBase(TreeElement &legacy_te, Object 
   legacy_te.name = IFACE_("Modifiers");
 }
 
+ID *TreeElementModifierBase::owner_id(Object &object)
+{
+  return &object.id;
+}
+
 void TreeElementModifierBase::expand(SpaceOutliner & /*space_outliner*/) const
 {
 
   for (const auto [index, md] : object_.modifiers.enumerate()) {
     ModifierDataStoreElem md_store(&md);
 
-    add_element(&legacy_te_.subtree, &object_.id, &md_store, &legacy_te_, TSE_MODIFIER, index);
+    add_element<TreeElementModifier>({.index = index}, object_, md_store);
   }
   for (const auto [index, md] : object_.greasepencil_modifiers.enumerate()) {
     ModifierDataStoreElem md_store(&md);
 
-    add_element(&legacy_te_.subtree, &object_.id, &md_store, &legacy_te_, TSE_MODIFIER, index);
+    add_element<TreeElementModifier>({.index = index}, object_, md_store);
   }
 }
 
@@ -59,84 +68,57 @@ TreeElementModifier::TreeElementModifier(TreeElement &legacy_te,
   }
 }
 
+ID *TreeElementModifier::owner_id(Object &object, ModifierDataStoreElem & /*md*/)
+{
+  return &object.id;
+}
+
+void TreeElementModifier::add_linked_object(Object *object) const
+{
+  /* Modifiers may reference no object, in which case there is nothing to show. */
+  if (object == nullptr) {
+    return;
+  }
+  add_element<TreeElementLinkedObject>({}, *reinterpret_cast<ID *>(object));
+}
+
 void TreeElementModifier::expand(SpaceOutliner & /*space_outliner*/) const
 {
   if (md_.type == MODIFIER_TYPE) {
     ModifierData *md = md_.md;
     if (md->type == eModifierType_Lattice) {
-      add_element(&legacy_te_.subtree,
-                  reinterpret_cast<ID *>((reinterpret_cast<LatticeModifierData *>(md))->object),
-                  nullptr,
-                  &legacy_te_,
-                  TSE_LINKED_OB,
-                  0);
+      add_linked_object((reinterpret_cast<LatticeModifierData *>(md))->object);
     }
     else if (md->type == eModifierType_Curve) {
-      add_element(&legacy_te_.subtree,
-                  reinterpret_cast<ID *>((reinterpret_cast<CurveModifierData *>(md))->object),
-                  nullptr,
-                  &legacy_te_,
-                  TSE_LINKED_OB,
-                  0);
+      add_linked_object((reinterpret_cast<CurveModifierData *>(md))->object);
     }
     else if (md->type == eModifierType_Armature) {
-      add_element(&legacy_te_.subtree,
-                  reinterpret_cast<ID *>((reinterpret_cast<ArmatureModifierData *>(md))->object),
-                  nullptr,
-                  &legacy_te_,
-                  TSE_LINKED_OB,
-                  0);
+      add_linked_object((reinterpret_cast<ArmatureModifierData *>(md))->object);
     }
     else if (md->type == eModifierType_Hook) {
-      add_element(&legacy_te_.subtree,
-                  reinterpret_cast<ID *>((reinterpret_cast<HookModifierData *>(md))->object),
-                  nullptr,
-                  &legacy_te_,
-                  TSE_LINKED_OB,
-                  0);
+      add_linked_object((reinterpret_cast<HookModifierData *>(md))->object);
     }
     else if (md->type == eModifierType_Nodes) {
-      add_element(&legacy_te_.subtree,
-                  reinterpret_cast<ID *>((reinterpret_cast<NodesModifierData *>(md))->node_group),
-                  nullptr,
-                  &legacy_te_,
-                  TSE_LINKED_NODE_TREE,
-                  0);
+      if (bNodeTree *node_group = (reinterpret_cast<NodesModifierData *>(md))->node_group) {
+        add_element<TreeElementLinkedNodeTree>({}, *reinterpret_cast<ID *>(node_group));
+      }
     }
     else if (md->type == eModifierType_ParticleSystem) {
       ParticleSystem *psys = (reinterpret_cast<ParticleSystemModifierData *>(md))->psys;
 
-      add_element(&legacy_te_.subtree, &object_.id, psys, &legacy_te_, TSE_LINKED_PSYS, 0);
+      add_element<TreeElementParticleSystem>({}, object_, *psys);
     }
   }
   if (md_.type == GPENCIL_MODIFIER_TYPE) {
     GpencilModifierData *md = md_.gp_md;
     if (md->type == eGpencilModifierType_Armature) {
-      add_element(
-          &legacy_te_.subtree,
-          reinterpret_cast<ID *>((reinterpret_cast<ArmatureGpencilModifierData *>(md))->object),
-          nullptr,
-          &legacy_te_,
-          TSE_LINKED_OB,
-          0);
+      add_linked_object((reinterpret_cast<ArmatureGpencilModifierData *>(md))->object);
     }
     else if (md->type == eGpencilModifierType_Hook) {
-      add_element(
-          &legacy_te_.subtree,
-          reinterpret_cast<ID *>((reinterpret_cast<HookGpencilModifierData *>(md))->object),
-          nullptr,
-          &legacy_te_,
-          TSE_LINKED_OB,
-          0);
+      add_linked_object((reinterpret_cast<HookGpencilModifierData *>(md))->object);
     }
     else if (md->type == eGpencilModifierType_Lattice) {
-      add_element(
-          &legacy_te_.subtree,
-          reinterpret_cast<ID *>((reinterpret_cast<LatticeGpencilModifierData *>(md))->object),
-          nullptr,
-          &legacy_te_,
-          TSE_LINKED_OB,
-          0);
+      add_linked_object((reinterpret_cast<LatticeGpencilModifierData *>(md))->object);
     }
   }
 }

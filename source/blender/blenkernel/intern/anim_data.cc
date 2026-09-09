@@ -479,7 +479,7 @@ void BKE_animdata_merge_copy(
   STRNCPY_UTF8(dst->tmp_last_slot_identifier, src->tmp_last_slot_identifier);
 
   /* duplicate NLA data */
-  if (src->nla_tracks.first) {
+  if (src->nla_tracks.first()) {
     ListBaseT<NlaTrack> tracks = {nullptr, nullptr};
 
     BKE_nla_tracks_copy(bmain, &tracks, &src->nla_tracks, 0);
@@ -487,7 +487,7 @@ void BKE_animdata_merge_copy(
   }
 
   /* duplicate drivers (F-Curves) */
-  if (src->drivers.first) {
+  if (src->drivers.first()) {
     ListBaseT<FCurve> drivers = {nullptr, nullptr};
 
     BKE_fcurves_copy(&drivers, &src->drivers);
@@ -671,7 +671,7 @@ void BKE_animdata_copy_by_basepath(Main &bmain,
   }
 
   /* Copy drivers in the animation data. */
-  if (src_adt->drivers.first) {
+  if (src_adt->drivers.first()) {
     for (const AnimationBasePathChange &basepath_change : basepaths) {
       if (animdata_copy_drivers_by_basepath(
               *src_adt, *dst_adt, basepath_change.src_basepath, basepath_change.dst_basepath))
@@ -1064,7 +1064,7 @@ static bool fcurves_path_remove_from_listbase(const char *prefix, ListBaseT<FCur
   }
 
   /* we need to check every curve... */
-  for (fcu = static_cast<FCurve *>(curves->first); fcu; fcu = fcn) {
+  for (fcu = curves->first(); fcu; fcu = fcn) {
     fcn = fcu->next;
     const StringRefNull rna_path = fcu->rna_path();
     if (rna_path.startswith(prefix)) {

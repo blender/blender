@@ -624,7 +624,7 @@ void do_versions_after_linking_501(FileData *fd, Main *bmain)
         for (SpaceLink &space : area.spacedata) {
           if (space.spacetype == SPACE_NODE) {
             SpaceNode *space_node = reinterpret_cast<SpaceNode *>(&space);
-            bNodeTreePath *path = static_cast<bNodeTreePath *>(space_node->treepath.last);
+            bNodeTreePath *path = space_node->treepath.last();
             if (space_node->nodetree && path) {
               space_node->nodetree->active_viewer_key = path->parent_key;
             }

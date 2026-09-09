@@ -129,21 +129,21 @@ static bool WIDGETGROUP_navigate_poll(const bContext *C, wmGizmoGroupType * /*gz
   }
   switch (area->spacetype) {
     case SPACE_SEQ: {
-      const SpaceSeq *sseq = static_cast<const SpaceSeq *>(area->spacedata.first);
+      const SpaceSeq *sseq = area->spacedata.first_as<SpaceSeq>();
       if (sseq->gizmo_flag & (SEQ_GIZMO_HIDE | SEQ_GIZMO_HIDE_NAVIGATE)) {
         return false;
       }
       break;
     }
     case SPACE_IMAGE: {
-      const SpaceImage *sima = static_cast<const SpaceImage *>(area->spacedata.first);
+      const SpaceImage *sima = area->spacedata.first_as<SpaceImage>();
       if (sima->gizmo_flag & (SI_GIZMO_HIDE | SI_GIZMO_HIDE_NAVIGATE)) {
         return false;
       }
       break;
     }
     case SPACE_CLIP: {
-      const SpaceClip *sc = static_cast<const SpaceClip *>(area->spacedata.first);
+      const SpaceClip *sc = area->spacedata.first_as<SpaceClip>();
       if (sc->gizmo_flag & (SCLIP_GIZMO_HIDE | SCLIP_GIZMO_HIDE_NAVIGATE)) {
         return false;
       }

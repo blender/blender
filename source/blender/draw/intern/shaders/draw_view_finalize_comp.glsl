@@ -2,14 +2,16 @@
  *
  * SPDX-License-Identifier: GPL-2.0-or-later */
 
-/**
+/** \file
+ * \ingroup draw
+ *
  * Compute culling data for each views of a given view buffer.
  */
 
 #include "draw_view_infos.hh"
 
 #include "draw_view_lib.glsl"
-#include "gpu_shader_math_matrix_transform_lib.glsl"
+#include "gpu_shader_math_matrix_transform.bsl.hh"
 
 COMPUTE_SHADER_CREATE_INFO(draw_view_finalize)
 

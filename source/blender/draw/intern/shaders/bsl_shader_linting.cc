@@ -2,7 +2,9 @@
  *
  * SPDX-License-Identifier: GPL-2.0-or-later */
 
-/**
+/** \file
+ * \ingroup draw
+ *
  * Compile shader files as C++ inside one compilation unit to lint syntax and get IDE integration.
  */
 

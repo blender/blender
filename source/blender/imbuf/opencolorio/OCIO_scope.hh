@@ -25,8 +25,10 @@ struct ScopeGraticule {
 struct ScopeInfo {
   /** Graticules. */
   Vector<ScopeGraticule> graticules;
-  /** Display code value corresponding to 100 nits (SDR reference white).
-   * 1.0 for SDR displays, less than 1.0 for HDR displays. */
+  /**
+   * Display code value corresponding to 100 nits (SDR reference white).
+   * 1.0 for SDR displays, less than 1.0 for HDR displays.
+   */
   float sdr_white_level = 1.0f;
   /** Max luminance in nits from the view transform, 0 if unknown. */
   int view_transform_max_nits = 0;

@@ -11,7 +11,7 @@
 #include "draw_pointcloud_lib.glsl"
 #include "draw_view.bsl.hh"
 #include "draw_view_clipping_lib.glsl"
-#include "gpu_shader_math_base_lib.glsl"
+#include "gpu_shader_math_base.bsl.hh"
 #include "workbench_common.bsl.hh"
 #include "workbench_image.bsl.hh"
 #include "workbench_matcap.bsl.hh"
@@ -115,8 +115,10 @@ struct MeshIn {
 struct Mesh {
   [[legacy_info]] ShaderCreateInfo drw_clipped;
 
-  /** WORKAROUND: This exact compilation constant is checked in Metal backend to enable clip
-   * distances. */
+  /**
+   * WORKAROUND: This exact compilation constant is checked in Metal backend to enable clip
+   * distances.
+   */
   [[compilation_constant]] const bool use_clipping;
 };
 
@@ -158,8 +160,10 @@ struct Curves {
   [[legacy_info]] ShaderCreateInfo draw_curves_infos;
   [[legacy_info]] ShaderCreateInfo drw_clipped;
 
-  /** WORKAROUND: This exact compilation constant is checked in Metal backend to enable clip
-   * distances. */
+  /**
+   * WORKAROUND: This exact compilation constant is checked in Metal backend to enable clip
+   * distances.
+   */
   [[compilation_constant]] const bool use_clipping;
 
   [[sampler(WB_CURVES_COLOR_SLOT) /*, frequency(batch)*/]] samplerBuffer ac;
@@ -236,8 +240,10 @@ struct PointCloud {
   [[legacy_info]] ShaderCreateInfo draw_pointcloud;
   [[legacy_info]] ShaderCreateInfo drw_clipped;
 
-  /** WORKAROUND: This exact compilation constant is checked in Metal backend to enable clip
-   * distances. */
+  /**
+   * WORKAROUND: This exact compilation constant is checked in Metal backend to enable clip
+   * distances.
+   */
   [[compilation_constant]] const bool use_clipping;
 };
 

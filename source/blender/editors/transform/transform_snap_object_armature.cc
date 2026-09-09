@@ -62,7 +62,7 @@ eSnapMode snapArmature(SnapObjectContext *sctx,
       }
     }
   }
-  else if (ob_eval->pose && ob_eval->pose->chanbase.first) {
+  else if (ob_eval->pose && ob_eval->pose->chanbase.first_) {
     for (bPoseChannel &pchan : ob_eval->pose->chanbase) {
       if (!animrig::bone_is_visible(arm, {&pchan, pchan.bone_get(*ob_eval)})) {
         /* Skip hidden bones. */

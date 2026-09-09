@@ -2,6 +2,10 @@
  *
  * SPDX-License-Identifier: GPL-2.0-or-later */
 
+/** \file
+ * \ingroup balembic
+ */
+
 #include "abc_keyframing.h"
 #include "abc_reader_archive.h"
 

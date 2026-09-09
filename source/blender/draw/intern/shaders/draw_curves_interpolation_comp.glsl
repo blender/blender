@@ -2,7 +2,9 @@
  *
  * SPDX-License-Identifier: GPL-2.0-or-later */
 
-/**
+/** \file
+ * \ingroup draw
+ *
  * GPU generated interpolated position and radius. Updated on attribute change.
  * One thread processes one curve.
  *
@@ -12,8 +14,8 @@
 #include "draw_curves_infos.hh"
 
 #include "gpu_shader_attribute_load_lib.glsl"
-#include "gpu_shader_math_matrix_transform_lib.glsl"
-#include "gpu_shader_math_safe_lib.glsl"
+#include "gpu_shader_math_matrix_transform.bsl.hh"
+#include "gpu_shader_math_safe.bsl.hh"
 #include "gpu_shader_offset_indices_lib.glsl"
 
 /* We workaround the lack of function pointers by using different type to overload the attribute

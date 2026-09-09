@@ -28,7 +28,8 @@ struct VKClearDepthStencilImageCreateInfo {
    * All image aspects of the image that will be cleared.
    *
    * Used during the pipeline barriers as the full image aspect needs to be known for changing the
-   * layout. Even when only one aspect is eventually cleared. */
+   * layout. Even when only one aspect is eventually cleared.
+   */
   VkImageAspectFlags vk_image_aspects;
 };
 

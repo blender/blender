@@ -2,6 +2,10 @@
  *
  * SPDX-License-Identifier: GPL-2.0-or-later */
 
+/** \file
+ * \ingroup nodes
+ */
+
 #include <fmt/format.h>
 #include <sstream>
 
@@ -242,11 +246,11 @@ static void add_layer_name_search_button(DrawGroupInputsContext &ctx,
 
   layout.use_property_decorate_set(false);
 
-  ui::Layout &split = layout.split(0.4f, false);
+  ui::Layout &split = layout.split(ui::Layout::PROPERTY_SPLIT_FACTOR, false);
   ui::Layout &name_row = split.row(false);
   name_row.alignment_set(ui::LayoutAlign::Right);
 
-  name_row.label(socket.name ? IFACE_(socket.name) : "", ICON_NONE);
+  name_row.label(IFACE_(socket.name()), ICON_NONE);
   ui::Layout &prop_row = split.row(true);
 
   ui::Block *block = prop_row.block();
@@ -261,7 +265,7 @@ static void add_layer_name_search_button(DrawGroupInputsContext &ctx,
                                       socket_props_ptr,
                                       "layer_name",
                                       0,
-                                      StringRef(socket.description));
+                                      socket.description());
   button_placeholder_set(but, IFACE_("Layer"));
   layout.label("", ICON_BLANK1);
 
@@ -374,7 +378,7 @@ static void add_attribute_search_button(DrawGroupInputsContext &ctx,
                                       socket_props_ptr,
                                       "attribute_name",
                                       0,
-                                      StringRef(socket.description));
+                                      socket.description());
 
   const Object *object = ed::object::context_object(&ctx.C);
   BLI_assert(object != nullptr);
@@ -421,14 +425,13 @@ static void add_attribute_search_or_value_buttons(
   /* We're handling this manually in this case. */
   layout.use_property_decorate_set(false);
 
-  ui::Layout &split = layout.split(0.4f, false);
+  ui::Layout &split = layout.split(ui::Layout::PROPERTY_SPLIT_FACTOR, false);
   ui::Layout &name_row = split.row(false);
   name_row.alignment_set(ui::LayoutAlign::Right);
 
   ui::Layout *prop_row = nullptr;
-  const StringRefNull socket_name = use_name.has_value() ?
-                                        (*use_name) :
-                                        (socket.name ? IFACE_(socket.name) : "");
+  const StringRefNull socket_name = use_name.has_value() ? (*use_name) :
+                                                           IFACE_(socket.name().c_str());
 
   if (type == SOCK_BOOLEAN && !show_attribute_input) {
     name_row.label("", ICON_NONE);
@@ -488,7 +491,7 @@ static void draw_property_for_socket(DrawGroupInputsContext &ctx,
     return;
   }
 
-  std::string name = socket.name ? IFACE_(socket.name) : "";
+  std::string name = IFACE_(socket.name());
 
   /* If the property has a prefix that's the same string as the name of the panel it's in, remove
    * the prefix so it appears less verbose. */
@@ -741,10 +744,10 @@ static void draw_property_for_output_socket(DrawGroupInputsContext &ctx,
                                             ui::Layout &layout,
                                             const bNodeTreeInterfaceSocket &socket)
 {
-  ui::Layout &split = layout.split(0.4f, false);
+  ui::Layout &split = layout.split(ui::Layout::PROPERTY_SPLIT_FACTOR, false);
   ui::Layout &name_row = split.row(false);
   name_row.alignment_set(ui::LayoutAlign::Right);
-  name_row.label(socket.name ? socket.name : "", ICON_NONE);
+  name_row.label(socket.name(), ICON_NONE);
 
   PropertyRNA *prop = RNA_struct_find_property(ctx.properties_ptr, "outputs");
   if (!prop) {
@@ -820,7 +823,7 @@ static void draw_named_attributes_panel(ui::Layout &layout, Object &object, Node
     const eval_log::NamedAttributeUsage usage = attribute.usage;
 
     /* #uiLayoutRowWithHeading doesn't seem to work in this case. */
-    ui::Layout &split = layout.split(0.4f, false);
+    ui::Layout &split = layout.split(ui::Layout::PROPERTY_SPLIT_FACTOR, false);
 
     std::stringstream ss;
     Vector<std::string> usages;

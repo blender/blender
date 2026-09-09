@@ -2,6 +2,10 @@
  *
  * SPDX-License-Identifier: GPL-2.0-or-later */
 
+/** \file
+ * \ingroup balembic
+ */
+
 #include "ABC_alembic.h"
 #include "IO_subdiv_disabler.hh"
 #include "abc_archive.h"

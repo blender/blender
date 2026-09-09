@@ -2,7 +2,11 @@
  *
  * SPDX-License-Identifier: GPL-2.0-or-later */
 
-/* Create index buffer for lines and loose lines. */
+/** \file
+ * \ingroup draw
+ *
+ * Create index buffer for lines and loose lines.
+ */
 
 #include "subdiv_lib.glsl"
 

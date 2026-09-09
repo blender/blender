@@ -373,7 +373,7 @@ static bool seq_input_have_to_preprocess(const Strip *strip)
     return true;
   }
 
-  if (strip->modifiers.first) {
+  if (strip->modifiers.first_) {
     return true;
   }
 
@@ -666,7 +666,7 @@ static SeqResult input_preprocess(const RenderData *context,
   const bool do_scale_to_render_size = seq_need_scale_to_render_size(strip, is_proxy_image);
   const float image_scale_factor = do_scale_to_render_size ? preview_scale_factor : 1.0f;
 
-  if (strip->modifiers.first) {
+  if (strip->modifiers.first_) {
     result.image = IMB_makeSingleUser(result.image);
     float3x3 matrix = calc_strip_transform_matrix(scene,
                                                   strip,

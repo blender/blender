@@ -106,7 +106,7 @@ struct SurfaceForwardFragOut {
 /* Early fragment test is needed for render passes support for forward surfaces. */
 /* NOTE: This removes the possibility of using gl_FragDepth. */
 [[fragment]] [[early_fragment_tests]]
-void surf_forward([[resource_table]] PipelineConstants & /*pipe*/,
+void surf_forward([[resource_table]] PipelineConstants &pipe,
                   [[resource_table]] SurfaceForward & /*srt*/,
                   [[resource_table]] LightEvalIterator & /*lights*/,
                   [[resource_table]] LightprobeRenderData & /*lightprobes*/,
@@ -144,6 +144,12 @@ void surf_forward([[resource_table]] PipelineConstants & /*pipe*/,
   float3 radiance, transmittance;
   eevee::forward_lighting_eval(
       view, resource_id, g_thickness_forward, gl_FragCoord.xy, radiance, transmittance);
+
+  if (pipe.use_lighting_nodes) [[static_branch]] {
+    radiance += g_diffuse_light;
+    radiance += g_glossy_light;
+    radiance += g_transmission_light;
+  }
 
   /* Volumetric resolve and compositing. */
   float2 uvs = gl_FragCoord.xy * uni.uniform_buf.volumes.main_view_extent_inv;

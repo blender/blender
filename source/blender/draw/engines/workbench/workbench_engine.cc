@@ -2,6 +2,10 @@
  *
  * SPDX-License-Identifier: GPL-2.0-or-later */
 
+/** \file
+ * \ingroup draw_engine
+ */
+
 #include "BLI_rect.hh"
 #include "BLI_string.hh"
 
@@ -217,7 +221,7 @@ class Instance : public DrawEngine {
       }
     }
 
-    if (ob->type == OB_MESH && ob->modifiers.first != nullptr) {
+    if (ob->type == OB_MESH && ob->modifiers.first() != nullptr) {
       for (ModifierData &md : ob->modifiers) {
         if (md.type != eModifierType_ParticleSystem) {
           continue;
@@ -460,7 +464,7 @@ class Instance : public DrawEngine {
   {
     int2 resolution = scene_state_.resolution;
 
-    /** Always setup in-front depth, since Overlays can be updated without causing a Workbench
+    /* Always setup in-front depth, since Overlays can be updated without causing a Workbench
      * re-sync (See #113580). */
     bool needs_depth_in_front = !transparent_ps_.accumulation_in_front_ps_.is_empty() ||
                                 (!opaque_ps_.gbuffer_in_front_ps_.is_empty() &&

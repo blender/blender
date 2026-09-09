@@ -80,7 +80,7 @@ static bool gizmo2d_generic_poll(const bContext *C, wmGizmoGroupType *gzgt)
    * If there are cases that need to check other flags - this function could be split. */
   switch (area->spacetype) {
     case SPACE_IMAGE: {
-      const SpaceImage *sima = static_cast<const SpaceImage *>(area->spacedata.first);
+      const SpaceImage *sima = area->spacedata.first_as<SpaceImage>();
       Object *obedit = CTX_data_edit_object(C);
       if (!(ED_space_image_show_uvedit(sima, obedit) || ED_space_image_show_mask(sima))) {
         return false;
@@ -88,7 +88,7 @@ static bool gizmo2d_generic_poll(const bContext *C, wmGizmoGroupType *gzgt)
       break;
     }
     case SPACE_SEQ: {
-      const SpaceSeq *sseq = static_cast<const SpaceSeq *>(area->spacedata.first);
+      const SpaceSeq *sseq = area->spacedata.first_as<SpaceSeq>();
       if (sseq->gizmo_flag & (SEQ_GIZMO_HIDE | SEQ_GIZMO_HIDE_TOOL)) {
         return false;
       }
@@ -120,7 +120,7 @@ static void gizmo2d_pivot_point_message_subscribe(wmGizmoGroup *gzgroup,
 
   switch (area->spacetype) {
     case SPACE_IMAGE: {
-      SpaceImage *sima = static_cast<SpaceImage *>(area->spacedata.first);
+      SpaceImage *sima = area->spacedata.first_as<SpaceImage>();
       PointerRNA ptr = RNA_pointer_create_discrete(&screen->id, RNA_SpaceImageEditor, sima);
       {
         const PropertyRNA *props[] = {
@@ -239,7 +239,7 @@ static bool gizmo2d_calc_bounds(const bContext *C, float *r_center, float *r_min
   ScrArea *area = CTX_wm_area(C);
   bool has_select = false;
   if (area->spacetype == SPACE_IMAGE) {
-    const SpaceImage *sima = static_cast<const SpaceImage *>(area->spacedata.first);
+    const SpaceImage *sima = area->spacedata.first_as<SpaceImage>();
     switch (sima->mode) {
       case SI_MODE_UV: {
         const Main *bmain = CTX_data_main(C);
@@ -288,7 +288,7 @@ static bool gizmo2d_calc_bounds(const bContext *C, float *r_center, float *r_min
        */
       const int pivot_point = scene->toolsettings->sequencer_tool_settings->pivot_point;
       if (pivot_point == V3D_AROUND_CURSOR) {
-        SpaceSeq *sseq = static_cast<SpaceSeq *>(area->spacedata.first);
+        SpaceSeq *sseq = area->spacedata.first_as<SpaceSeq>();
         const float2 cursor_pixel = seq::image_preview_unit_to_px(scene, sseq->cursor);
         copy_v2_v2(r_center, cursor_pixel);
       }
@@ -390,7 +390,7 @@ static bool gizmo2d_calc_transform_pivot(const bContext *C,
   if (area->spacetype == SPACE_IMAGE) {
     const Main *bmain = CTX_data_main(C);
     Scene *scene = CTX_data_scene(C);
-    const SpaceImage *sima = static_cast<const SpaceImage *>(area->spacedata.first);
+    const SpaceImage *sima = area->spacedata.first_as<SpaceImage>();
     ViewLayer *view_layer = CTX_data_view_layer(C);
     switch (sima->mode) {
       case SI_MODE_UV:
@@ -407,7 +407,7 @@ static bool gizmo2d_calc_transform_pivot(const bContext *C,
   }
   else if (area->spacetype == SPACE_SEQ) {
     Scene *scene = CTX_data_sequencer_scene(C);
-    SpaceSeq *sseq = static_cast<SpaceSeq *>(area->spacedata.first);
+    SpaceSeq *sseq = area->spacedata.first_as<SpaceSeq>();
     const int pivot_point = scene->toolsettings->sequencer_tool_settings->pivot_point;
 
     if (pivot_point == V3D_AROUND_CURSOR) {

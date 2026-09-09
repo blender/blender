@@ -2,7 +2,6 @@
 #
 # SPDX-License-Identifier: GPL-2.0-or-later
 
-import bpy
 from bpy.types import Operator
 from bpy_extras.node_utils import connect_sockets
 from bpy.app.translations import pgettext_rpt as rpt_
@@ -12,10 +11,11 @@ from itertools import chain
 from ..utils.nodes import (
     nw_check,
     nw_check_selected,
+    transfer_links,
 )
 
-
 #### ------------------------------ OPERATORS ------------------------------ ####
+
 
 class NODE_OT_reset_selected(Operator):
     """Revert nodes back to the default state, but keep connections"""
@@ -81,12 +81,6 @@ class NODE_OT_reset_selected(Operator):
             node_tree = node.id_data
             props_to_copy = 'bl_idname name location height width'.split(' ')
 
-            reconnections = []
-            mappings = chain.from_iterable([node.inputs, node.outputs])
-            for i in (i for i in mappings if i.is_linked):
-                for L in i.links:
-                    reconnections.append([L.from_socket.path_from_id(), L.to_socket.path_from_id()])
-
             props = {j: getattr(node, j) for j in props_to_copy}
 
             new_node = node_tree.nodes.new(props['bl_idname'])
@@ -95,16 +89,15 @@ class NODE_OT_reset_selected(Operator):
             for prop in props_to_copy:
                 setattr(new_node, prop, props[prop])
 
+            transfer_links(node_tree, node, new_node)
             nodes = node_tree.nodes
             nodes.remove(node)
+
             new_node.name = props['name']
 
             if parent:
                 new_node.parent = parent
                 new_node.location = node_loc
-
-            for str_from, str_to in reconnections:
-                connect_sockets(eval(str_from), eval(str_to))
 
             new_node.select = False
             success_names.append(new_node.name)

@@ -451,16 +451,16 @@ static wmOperatorStatus box_select_exec(bContext *C, wmOperator *op)
   ED_mask_point_pos(area, region, rect.xmax, rect.ymax, &rectf.xmax, &rectf.ymax);
 
   /* do actual selection */
-  for (MaskLayer *mask_layer_orig = static_cast<MaskLayer *>(mask_orig->masklayers.first),
-                 *mask_layer_eval = static_cast<MaskLayer *>(mask_eval->masklayers.first);
+  for (MaskLayer *mask_layer_orig = mask_orig->masklayers.first(),
+                 *mask_layer_eval = mask_eval->masklayers.first();
        mask_layer_orig != nullptr;
        mask_layer_orig = mask_layer_orig->next, mask_layer_eval = mask_layer_eval->next)
   {
     if (mask_layer_orig->visibility_flag & (MASK_HIDE_VIEW | MASK_HIDE_SELECT)) {
       continue;
     }
-    for (MaskSpline *spline_orig = static_cast<MaskSpline *>(mask_layer_orig->splines.first),
-                    *spline_eval = static_cast<MaskSpline *>(mask_layer_eval->splines.first);
+    for (MaskSpline *spline_orig = mask_layer_orig->splines.first(),
+                    *spline_eval = mask_layer_eval->splines.first();
          spline_orig != nullptr;
          spline_orig = spline_orig->next, spline_eval = spline_eval->next)
     {
@@ -543,16 +543,16 @@ static bool do_lasso_select_mask(bContext *C, const Span<int2> mcoords, const eS
   BLI_lasso_boundbox(&rect, mcoords);
 
   /* do actual selection */
-  for (MaskLayer *mask_layer_orig = static_cast<MaskLayer *>(mask_orig->masklayers.first),
-                 *mask_layer_eval = static_cast<MaskLayer *>(mask_eval->masklayers.first);
+  for (MaskLayer *mask_layer_orig = mask_orig->masklayers.first(),
+                 *mask_layer_eval = mask_eval->masklayers.first();
        mask_layer_orig != nullptr;
        mask_layer_orig = mask_layer_orig->next, mask_layer_eval = mask_layer_eval->next)
   {
     if (mask_layer_orig->visibility_flag & (MASK_HIDE_VIEW | MASK_HIDE_SELECT)) {
       continue;
     }
-    for (MaskSpline *spline_orig = static_cast<MaskSpline *>(mask_layer_orig->splines.first),
-                    *spline_eval = static_cast<MaskSpline *>(mask_layer_eval->splines.first);
+    for (MaskSpline *spline_orig = mask_layer_orig->splines.first(),
+                    *spline_eval = mask_layer_eval->splines.first();
          spline_orig != nullptr;
          spline_orig = spline_orig->next, spline_eval = spline_eval->next)
     {
@@ -693,16 +693,16 @@ static wmOperatorStatus circle_select_exec(bContext *C, wmOperator *op)
   }
 
   /* do actual selection */
-  for (MaskLayer *mask_layer_orig = static_cast<MaskLayer *>(mask_orig->masklayers.first),
-                 *mask_layer_eval = static_cast<MaskLayer *>(mask_eval->masklayers.first);
+  for (MaskLayer *mask_layer_orig = mask_orig->masklayers.first(),
+                 *mask_layer_eval = mask_eval->masklayers.first();
        mask_layer_orig != nullptr;
        mask_layer_orig = mask_layer_orig->next, mask_layer_eval = mask_layer_eval->next)
   {
     if (mask_layer_orig->visibility_flag & (MASK_HIDE_VIEW | MASK_HIDE_SELECT)) {
       continue;
     }
-    for (MaskSpline *spline_orig = static_cast<MaskSpline *>(mask_layer_orig->splines.first),
-                    *spline_eval = static_cast<MaskSpline *>(mask_layer_eval->splines.first);
+    for (MaskSpline *spline_orig = mask_layer_orig->splines.first(),
+                    *spline_eval = mask_layer_eval->splines.first();
          spline_orig != nullptr;
          spline_orig = spline_orig->next, spline_eval = spline_eval->next)
     {

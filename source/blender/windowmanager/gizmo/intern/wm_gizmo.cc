@@ -64,8 +64,7 @@ static wmGizmo *wm_gizmo_create(const wmGizmoType *gzt, PointerRNA *properties)
   else {
     gz->properties = bke::idprop::create_group("wmGizmoProperties").release();
   }
-  *gz->ptr = RNA_pointer_create_discrete(
-      static_cast<ID *>(G_MAIN->wm.first), gzt->srna, gz->properties);
+  *gz->ptr = RNA_pointer_create_discrete(&G_MAIN->wm.first()->id, gzt->srna, gz->properties);
 
   WM_gizmo_properties_sanitize(gz->ptr, false);
 

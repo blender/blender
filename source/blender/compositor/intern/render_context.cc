@@ -120,7 +120,7 @@ void FileOutput::add_pass(const char *pass_name,
   /* Passes can only be added for EXR images. */
   BLI_assert(ELEM(format_.imtype, R_IMF_IMTYPE_OPENEXR, R_IMF_IMTYPE_MULTILAYER));
 
-  RenderLayer *render_layer = static_cast<RenderLayer *>(render_result_->layers.first);
+  RenderLayer *render_layer = render_result_->layers.first();
   RenderPass *render_pass = MEM_new<RenderPass>("Render Pass For File Output.");
   BLI_addtail(&render_layer->passes, render_pass);
   STRNCPY(render_pass->name, pass_name);

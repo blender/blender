@@ -54,7 +54,7 @@ TEST_F(BakeItemsSerializeTest, nested_bundle_with_geometry_and_bundle_lists)
   bundle.add(*nodes::BundleKey::from_str("geometries"),
              nodes::BundleItemSocketValue{
                  node_socket_type_find_static(SOCK_GEOMETRY),
-                 SocketValueVariant::From(nodes::GList::from_container(std::move(geometries)))});
+                 SocketValueVariant::from(nodes::GList::from_container(std::move(geometries)))});
 
   Vector<std::string> strings;
   strings.append("cloth");
@@ -62,18 +62,18 @@ TEST_F(BakeItemsSerializeTest, nested_bundle_with_geometry_and_bundle_lists)
   bundle.add(*nodes::BundleKey::from_str("strings"),
              nodes::BundleItemSocketValue{
                  node_socket_type_find_static(SOCK_STRING),
-                 SocketValueVariant::From(nodes::GList::from_container(std::move(strings)))});
+                 SocketValueVariant::from(nodes::GList::from_container(std::move(strings)))});
 
   Vector<nodes::BundlePtr> child_bundles;
   child_bundles.append(nodes::Bundle::create());
   child_bundles.append(nodes::Bundle::create());
   bundle.add(*nodes::BundleKey::from_str("bundles"),
              nodes::BundleItemSocketValue{node_socket_type_find_static(SOCK_BUNDLE),
-                                          SocketValueVariant::From(nodes::GList::from_container(
+                                          SocketValueVariant::from(nodes::GList::from_container(
                                               std::move(child_bundles)))});
 
   Map<int, BakeValues::Item> items;
-  items.add_new(0, BakeValues::Item{SocketValueVariant::From(std::move(bundle_ptr))});
+  items.add_new(0, BakeValues::Item{SocketValueVariant::from(std::move(bundle_ptr))});
 
   const std::optional<BakeValues> bake_values = roundtrip_bake_values(
       BakeValues(std::move(items)));
@@ -81,7 +81,7 @@ TEST_F(BakeItemsSerializeTest, nested_bundle_with_geometry_and_bundle_lists)
   const BakeValues::Item *item = bake_values->values_by_id().lookup_ptr(0);
   ASSERT_NE(item, nullptr);
 
-  nodes::BundlePtr restored_bundle = item->value.get<nodes::BundlePtr>();
+  nodes::BundlePtr restored_bundle = *item->value.get_if<nodes::BundlePtr>();
   ASSERT_TRUE(restored_bundle);
 
   std::optional<nodes::GListPtr> restored_geometries = restored_bundle->lookup<nodes::GListPtr>(

@@ -1047,16 +1047,21 @@ const ListBaseT<PropertyRNA> *RNA_struct_type_properties(StructRNA *srna)
   return &srna->cont.properties;
 }
 
-PropertyRNA *RNA_struct_type_find_property_no_base(StructRNA *srna, const char *identifier)
+PropertyRNA *RNA_struct_type_find_property_no_base(StructRNA *srna, const UString identifier)
 {
-  return static_cast<PropertyRNA *>(
-      BLI_findstring_ptr(&srna->cont.properties, identifier, offsetof(PropertyRNA, identifier)));
+  for (PropertyRNA &prop : srna->cont.properties) {
+    if (prop.identifier == identifier) {
+      return &prop;
+    }
+  }
+  return nullptr;
 }
 
 PropertyRNA *RNA_struct_type_find_property(StructRNA *srna, const char *identifier)
 {
+  const UString identifier_ustr(identifier);
   for (; srna; srna = srna->base) {
-    PropertyRNA *prop = RNA_struct_type_find_property_no_base(srna, identifier);
+    PropertyRNA *prop = RNA_struct_type_find_property_no_base(srna, identifier_ustr);
     if (prop != nullptr) {
       return prop;
     }
@@ -4573,6 +4578,9 @@ int RNA_property_enum_step(
   RNA_property_enum_items(const_cast<bContext *>(C), ptr, prop, &item_array, &totitem, &free);
 
   if (!totitem) {
+    if (free) {
+      MEM_delete(item_array);
+    }
     return result_value;
   }
 
@@ -6560,7 +6568,7 @@ void rna_iterator_listbase_begin(CollectionPropertyIterator *iter,
 
   ListBaseIterator *internal = &iter->internal.listbase;
 
-  internal->link = (lb) ? static_cast<Link *>(lb->first) : nullptr;
+  internal->link = (lb) ? static_cast<Link *>(lb->first_) : nullptr;
   internal->skip = skip;
 
   iter->valid = (internal->link != nullptr);
@@ -7627,7 +7635,7 @@ PropertyRNA *RNA_function_find_parameter(PointerRNA * /*ptr*/,
 {
   PropertyRNA *parm;
 
-  parm = static_cast<PropertyRNA *>(func->cont.properties.first);
+  parm = func->cont.properties.first();
   for (; parm; parm = parm->next) {
     if (STREQ(RNA_property_identifier(parm), identifier)) {
       break;
@@ -7756,7 +7764,7 @@ void RNA_parameter_list_free(ParameterList *parms)
 {
   PropertyRNA *parm;
 
-  parm = static_cast<PropertyRNA *>(parms->func->cont.properties.first);
+  parm = parms->func->cont.properties.first();
   void *data = parms->data;
   for (; parm; parm = parm->next) {
     if (parm->type == PROP_COLLECTION) {
@@ -7807,7 +7815,7 @@ void RNA_parameter_list_begin(ParameterList *parms, ParameterIterator *iter)
   // RNA_pointer_create_discrete(nullptr, RNA_Function, parms->func, &iter->funcptr); /* UNUSED */
 
   iter->parms = parms;
-  iter->parm = static_cast<PropertyRNA *>(parms->func->cont.properties.first);
+  iter->parm = parms->func->cont.properties.first();
   iter->valid = iter->parm != nullptr;
   iter->offset = 0;
 
@@ -7867,7 +7875,7 @@ void RNA_parameter_get_lookup(ParameterList *parms, const char *identifier, void
 {
   PropertyRNA *parm;
 
-  parm = static_cast<PropertyRNA *>(parms->func->cont.properties.first);
+  parm = parms->func->cont.properties.first();
   for (; parm; parm = parm->next) {
     if (STREQ(RNA_property_identifier(parm), identifier)) {
       break;
@@ -7937,7 +7945,7 @@ void RNA_parameter_set_lookup(ParameterList *parms, const char *identifier, cons
 {
   PropertyRNA *parm;
 
-  parm = static_cast<PropertyRNA *>(parms->func->cont.properties.first);
+  parm = parms->func->cont.properties.first();
   for (; parm; parm = parm->next) {
     if (STREQ(RNA_property_identifier(parm), identifier)) {
       break;

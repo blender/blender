@@ -9,6 +9,7 @@
 #pragma once
 
 #include "BLI_compiler_attrs.hh"
+#include "BLI_function_ref.hh"
 
 #include "DNA_asset_types.h"
 
@@ -21,6 +22,7 @@ struct BlendDataReader;
 struct BlendWriter;
 struct ID;
 struct IDProperty;
+struct Main;
 struct PreviewImage;
 
 using PreSaveFn = void (*)(void *asset_ptr, AssetMetaData *asset_data);
@@ -86,6 +88,9 @@ void BKE_asset_metadata_read(BlendDataReader *reader, AssetMetaData *asset_data)
 void BKE_asset_weak_reference_write(BlendWriter *writer, const AssetWeakReference *weak_ref);
 void BKE_asset_weak_reference_read(BlendDataReader *reader, AssetWeakReference *weak_ref);
 
+void BKE_asset_weak_reference_foreach_main(Main &bmain,
+                                           FunctionRef<void(AssetWeakReference &weak_ref)> fn);
+
 void BKE_asset_catalog_path_list_free(ListBaseT<AssetCatalogPathLink> &catalog_path_list);
 ListBaseT<AssetCatalogPathLink> BKE_asset_catalog_path_list_duplicate(
     const ListBaseT<AssetCatalogPathLink> &catalog_path_list);
@@ -97,5 +102,7 @@ bool BKE_asset_catalog_path_list_has_path(const ListBaseT<AssetCatalogPathLink> 
                                           const char *catalog_path);
 void BKE_asset_catalog_path_list_add_path(ListBaseT<AssetCatalogPathLink> &catalog_path_list,
                                           const char *catalog_path);
+bool BKE_asset_catalog_path_list_remove_path(ListBaseT<AssetCatalogPathLink> &catalog_path_list,
+                                             const char *catalog_path);
 
 }  // namespace blender

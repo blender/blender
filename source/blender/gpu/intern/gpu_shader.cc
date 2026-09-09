@@ -1245,7 +1245,7 @@ bool ShaderCompiler::is_compiling()
 
 void ShaderCompiler::wait_for_all()
 {
-  /** NOTE: We can't rely on BLI_thread_queue_wait_finish, since that only waits until the queue is
+  /* NOTE: We can't rely on BLI_thread_queue_wait_finish, since that only waits until the queue is
    * empty, but the works might still being processed. */
   std::unique_lock lock(mutex_);
   BLI_assert(!is_paused_);

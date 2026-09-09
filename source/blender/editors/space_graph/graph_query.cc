@@ -2,6 +2,10 @@
  *
  * SPDX-License-Identifier: GPL-2.0-or-later */
 
+/** \file
+ * \ingroup spgraph
+ */
+
 #include "DNA_listBase.h"
 #include "DNA_userdef_types.h"
 

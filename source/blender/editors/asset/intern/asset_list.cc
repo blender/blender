@@ -433,7 +433,7 @@ static void on_save_post(Main *main,
                          int /*num_pointers*/,
                          void * /*arg*/)
 {
-  wmWindowManager *wm = static_cast<wmWindowManager *>(main->wm.first);
+  wmWindowManager *wm = main->wm.first();
   const AssetLibraryReference current_file_library =
       asset_system::current_file_library_reference();
   clear(&current_file_library, wm);
@@ -499,7 +499,7 @@ static void foreach_visible_asset_browser_showing_library(
       /* Only needs to cover visible file/asset browsers, since others are already cleared through
        * area exiting. */
       if (area.spacetype == SPACE_FILE) {
-        SpaceFile *sfile = reinterpret_cast<SpaceFile *>(area.spacedata.first);
+        SpaceFile *sfile = area.spacedata.first_as<SpaceFile>();
         if (sfile->browse_mode == FILE_BROWSE_MODE_ASSETS) {
           if (sfile->asset_params && sfile->asset_params->asset_library_ref == library_reference) {
             fn(*sfile);
@@ -568,7 +568,7 @@ void on_remote_assets_downloaded(wmWindowManager &wm,
       /* Only needs to cover visible file/asset browsers, since others are already cleared through
        * area exiting. */
       if (area.spacetype == SPACE_FILE) {
-        SpaceFile *sfile = reinterpret_cast<SpaceFile *>(area.spacedata.first);
+        SpaceFile *sfile = area.spacedata.first_as<SpaceFile>();
         if (sfile->browse_mode == FILE_BROWSE_MODE_ASSETS) {
           filelist_remote_asset_library_refresh_online_assets_status(
               sfile->files, library_url, downloaded_file_abspath);

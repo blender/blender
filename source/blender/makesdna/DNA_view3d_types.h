@@ -604,7 +604,7 @@ struct View3DShading {
   eV3DShadingColorType wire_color_type = V3D_SHADING_SINGLE_COLOR;
 
   /** When to preview the compositor output in the viewport. */
-  View3DShadingUseCompositor use_compositor = V3D_SHADING_USE_COMPOSITOR_DISABLED;
+  View3DShadingUseCompositor use_compositor = V3D_SHADING_USE_COMPOSITOR_ALWAYS;
 
   char _pad = {};
 

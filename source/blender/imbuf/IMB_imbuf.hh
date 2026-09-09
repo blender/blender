@@ -113,7 +113,8 @@ eImFileTypeCapability IMB_ftype_capability_write(eImbFileType ftype);
  */
 enum class IMBThumbLoadFlags {
   Zero = 0,
-  /** Normally files larger than 100MB are not loaded for thumbnails, except when this flag is set.
+  /**
+   * Normally files larger than 100MB are not loaded for thumbnails, except when this flag is set.
    */
   LoadLargeFiles = (1 << 0),
 };
@@ -629,9 +630,7 @@ gpu::Texture *IMB_create_gpu_texture(const char *name, ImBuf *ibuf, GPUTextureCr
  * yet. */
 gpu::Texture *IMB_acquire_gpu_texture(const char *name,
                                       ImBuf *ibuf,
-                                      bool use_high_bitdepth,
-                                      bool use_premult,
-                                      bool limit_size,
+                                      GPUTextureCreateFlags texture_create_flags,
                                       bool try_only = false);
 
 gpu::TextureFormat IMB_gpu_get_texture_format(const ImBuf *ibuf,

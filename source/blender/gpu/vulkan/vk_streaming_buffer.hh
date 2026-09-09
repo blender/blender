@@ -26,8 +26,10 @@ class VKContext;
 class VKStreamingBuffer {
   /** Current host buffer storing the data to be uploaded. */
   std::optional<std::unique_ptr<VKBuffer>> host_buffer_;
-  /** Minimum alignment for streaming. Needs to be set to
-   * `VkPhysicalDeviceLimits.min*OffsetAlignment` */
+  /**
+   * Minimum alignment for streaming. Needs to be set to
+   * `VkPhysicalDeviceLimits.min*OffsetAlignment`
+   */
   VkDeviceSize min_offset_alignment_;
   /** Device buffer that is being updated. */
   VKResourceWithHandle<VkBuffer> vk_buffer_dst_;

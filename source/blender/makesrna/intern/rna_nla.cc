@@ -123,8 +123,8 @@ static std::optional<std::string> rna_NlaStrip_path(const PointerRNA *ptr)
     NlaTrack *nlt;
     NlaStrip *nls;
 
-    for (nlt = static_cast<NlaTrack *>(adt->nla_tracks.first); nlt; nlt = nlt->next) {
-      for (nls = static_cast<NlaStrip *>(nlt->strips.first); nls; nls = nls->next) {
+    for (nlt = adt->nla_tracks.first(); nlt; nlt = nlt->next) {
+      for (nls = nlt->strips.first(); nls; nls = nls->next) {
         if (nls == strip) {
           /* XXX but if we animate like this, the control will never work... */
           char name_esc_nlt[sizeof(nlt->name) * 2];
@@ -650,7 +650,7 @@ static NlaStrip *rna_NlaStrip_new(ID *id,
     while ((nlt = nlt->prev) != nullptr) {
       nlt_p = nlt;
     }
-    adt.nla_tracks.first = nlt_p;
+    adt.nla_tracks.first_ = nlt_p;
 
     /* do the same thing to find the last track */
     nlt_p = track;
@@ -658,7 +658,7 @@ static NlaStrip *rna_NlaStrip_new(ID *id,
     while ((nlt = nlt->next) != nullptr) {
       nlt_p = nlt;
     }
-    adt.nla_tracks.last = nlt_p;
+    adt.nla_tracks.last_ = nlt_p;
 
     STRNCPY(strip->name, name);
     BKE_nlastrip_validate_name(&adt, strip);

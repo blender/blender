@@ -800,7 +800,7 @@ static int rna_Strip_content_duration_get(PointerRNA *ptr)
 static int strip_default_duration(const Strip *strip, const Scene *scene)
 {
   if (seq::transform_single_image_check(strip)) {
-    return seq::DEFAULT_STRIP_LENGTH;
+    return seq::default_strip_length(scene->frames_per_second());
   }
   return strip->length(scene);
 }
@@ -1427,9 +1427,7 @@ static bool colbalance_seq_cmp_fn(Strip *strip, void *arg_pt)
 {
   StripSearchData *data = static_cast<StripSearchData *>(arg_pt);
 
-  for (StripModifierData *smd = static_cast<StripModifierData *>(strip->modifiers.first); smd;
-       smd = smd->next)
-  {
+  for (StripModifierData *smd = strip->modifiers.first(); smd; smd = smd->next) {
     if (smd->type == eSeqModifierType_ColorBalance) {
       ColorBalanceModifierData *cbmd = reinterpret_cast<ColorBalanceModifierData *>(smd);
 

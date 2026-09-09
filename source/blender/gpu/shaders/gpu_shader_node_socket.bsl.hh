@@ -4,8 +4,8 @@
 
 #pragma once
 
-#include "gpu_shader_math_constants_lib.glsl"
-#include "gpu_shader_math_matrix_construct_lib.glsl"
+#include "gpu_shader_math_constants.bsl.hh"
+#include "gpu_shader_math_matrix_construct.bsl.hh"
 
 namespace builtin::socket {
 
@@ -168,9 +168,7 @@ float2 calculate_thresholds(float aa_size, float threshold)
   return float2(inner_threshold, outer_threshold);
 }
 
-[[fragment]] void main_frag([[resource_table]] const Resources &srt,
-                            [[in]] const VertOut &v_out,
-                            [[out]] FragOut &frag_out)
+[[fragment]] void main_frag([[in]] const VertOut &v_out, [[out]] FragOut &frag_out)
 {
   float2 absUV = abs(v_out.uv);
   float2 co = max(float2(absUV - v_out.extrusion), float2(0.0f));

@@ -2,7 +2,9 @@
  *
  * SPDX-License-Identifier: GPL-2.0-or-later */
 
-/**
+/** \file
+ * \ingroup eevee
+ *
  * Shared code between host and client code-bases.
  */
 
@@ -111,7 +113,8 @@ struct [[host_shared]] UniformData {
 
 /**
  * World space clip plane equation. Used to render planar light-probes.
- * Moved here to avoid dependencies to light-probe just for this. */
+ * Moved here to avoid dependencies to light-probe just for this.
+ */
 struct [[host_shared]] ClipPlaneData {
   float4 plane;
 };

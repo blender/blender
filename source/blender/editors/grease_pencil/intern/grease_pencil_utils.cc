@@ -14,6 +14,7 @@
 #include "BKE_deform.hh"
 #include "BKE_grease_pencil.hh"
 #include "BKE_lib_id.hh"
+#include "BKE_library.hh"
 #include "BKE_material.hh"
 #include "BKE_paint.hh"
 #include "BKE_report.hh"
@@ -26,6 +27,7 @@
 #include "BLI_math_vector.hh"
 #include "BLI_vector_set.hh"
 
+#include "DNA_ID.h"
 #include "DNA_brush_types.h"
 #include "DNA_material_types.h"
 #include "DNA_object_types.h"
@@ -1727,6 +1729,13 @@ wmOperatorStatus grease_pencil_draw_operator_invoke(bContext *C,
 
   if (!active_layer.is_editable()) {
     BKE_report(op->reports, RPT_ERROR, "Active layer is locked or hidden");
+    return OPERATOR_CANCELLED;
+  }
+
+  if (ed::greasepencil::check_brush_needs_new_material(object, brush) &&
+      (!ID_IS_EDITABLE(&object->id) || ID_IS_OVERRIDE_LIBRARY(&object->id)))
+  {
+    BKE_report(op->reports, RPT_ERROR, "Cannot create new material on linked object");
     return OPERATOR_CANCELLED;
   }
 

@@ -44,6 +44,66 @@ def _load_blend():
     return e, t, window, area
 
 
+def _op_hide_region_header():
+    from bpy.types import Operator
+
+    class TEST_PT_hide_region_header(Operator):
+        bl_label = "Test Hide Region Header Operator"
+        bl_idname = "test.hide_region_header"
+
+        def execute(self, context):
+            context.area.spaces.active.show_region_header = False
+            return {'FINISHED'}
+
+    return TEST_PT_hide_region_header
+
+
+def _space_hide_region_header(space, e, t):
+    """Hides the Header region in the space, search filter invocation (`Ctrl+F`) should un-hide this region to properly activate the filter button."""
+    yield from ui.call_menu(e, "Test Hide Region Header Operator")
+    t.assertFalse(space.show_region_header, "Header Region did not get hidden")
+
+
+def _op_hide_region_channels():
+    from bpy.types import Operator
+
+    class TEST_PT_hide_region_channels(Operator):
+        bl_label = "Test Hide Region Channels Operator"
+        bl_idname = "test.hide_region_channels"
+
+        def execute(self, context):
+            context.area.spaces.active.show_region_channels = False
+            return {'FINISHED'}
+
+    return TEST_PT_hide_region_channels
+
+
+def _space_hide_region_channels(space, e, t):
+    """Hides the Channels region in the space, search filter invocation (`Ctrl+F`) should un-hide this region to properly activate the filter button."""
+    yield from ui.call_menu(e, "Test Hide Region Channels Operator")
+    t.assertFalse(space.show_region_channels, "Channels Region did not get hidden")
+
+
+def _op_hide_region_ui():
+    from bpy.types import Operator
+
+    class TEST_PT_hide_region_ui(Operator):
+        bl_label = "Test Hide Region UI Operator"
+        bl_idname = "test.hide_region_ui"
+
+        def execute(self, context):
+            context.area.spaces.active.show_region_ui = False
+            return {'FINISHED'}
+
+    return TEST_PT_hide_region_ui
+
+
+def _space_hide_region_ui(space, e, t):
+    """Hides the UI region in the space, search filter invocation (`Ctrl+F`) should un-hide this region to properly activate the filter button."""
+    yield from ui.call_menu(e, "Test Hide Region UI Operator")
+    t.assertFalse(space.show_region_ui, "UI Region did not get hidden")
+
+
 def test_properties_search():
     """
     Properties editor - Ctrl+F -> 'subdivision'.
@@ -53,6 +113,9 @@ def test_properties_search():
     import bpy
 
     e, t, window, area = yield from _load_blend()
+
+    op_hide_region_header = _op_hide_region_header()
+    bpy.utils.register_class(op_hide_region_header)
 
     _set_area_type(area, 'PROPERTIES')
 
@@ -65,15 +128,22 @@ def test_properties_search():
     yield
 
     e.cursor_position_set(*ui.get_area_center(area), move=True)
+
+    yield from _space_hide_region_header(space, e, t)
+
     yield e.ctrl.f()
     yield e.text("subdivision")
     yield e.ret()
     t.assertEqual(space.search_filter, "subdivision", "Properties: search_filter was not set by Ctrl+F")
 
+    yield from _space_hide_region_header(space, e, t)
+
     yield e.ctrl.f()
     yield e.back_space()
     yield e.ret()
     t.assertEqual(space.search_filter, "", "Properties: search_filter should be empty after clearing")
+
+    bpy.utils.unregister_class(op_hide_region_header)
 
 
 def test_outliner_search():
@@ -85,6 +155,9 @@ def test_outliner_search():
 
     e, t, window, area = yield from _load_blend()
 
+    op_hide_region_header = _op_hide_region_header()
+    bpy.utils.register_class(op_hide_region_header)
+
     _set_area_type(area, 'OUTLINER')
 
     space = area.spaces.active
@@ -92,15 +165,21 @@ def test_outliner_search():
     t.assertIn("__search_test_cube__", bpy.data.objects, "Blend file is missing __search_test_cube__")
 
     e.cursor_position_set(*ui.get_area_center(area), move=True)
+
+    yield from _space_hide_region_header(space, e, t)
+
     yield e.ctrl.f()
     yield e.text("__search_test_cube__")
     yield e.ret()
     t.assertEqual(space.filter_text, "__search_test_cube__", "Outliner: filter_text was not set by Ctrl+F")
 
+    yield from _space_hide_region_header(space, e, t)
+
     yield e.ctrl.f()
     yield e.back_space()
     yield e.ret()
     t.assertEqual(space.filter_text, "", "Outliner: filter_text was not cleared")
+    bpy.utils.unregister_class(op_hide_region_header)
 
 
 def test_dopesheet_search():
@@ -111,6 +190,9 @@ def test_dopesheet_search():
 
     e, t, window, area = yield from _load_blend()
 
+    op_hide_region_channels = _op_hide_region_channels()
+    bpy.utils.register_class(op_hide_region_channels)
+
     _set_area_type(area, 'DOPESHEET_EDITOR')
     with bpy.context.temp_override(area=area):
         area.spaces.active.ui_mode = 'DOPESHEET'
@@ -120,11 +202,16 @@ def test_dopesheet_search():
     t.assertIsInstance(space, bpy.types.SpaceDopeSheetEditor, "Area did not switch to Dope Sheet")
 
     e.cursor_position_set(*ui.get_area_center(area), move=True)
+
+    yield from _space_hide_region_channels(space, e, t)
+
     yield e.ctrl.f()
     yield e.text("location")
     yield e.ret()
     t.assertEqual(space.dopesheet.filter_text, "location",
                   "Dope Sheet: filter_text was not set by Ctrl+F")
+
+    yield from _space_hide_region_channels(space, e, t)
 
     yield e.ctrl.f()
     yield e.back_space()
@@ -141,23 +228,33 @@ def test_graph_editor_search():
 
     e, t, window, area = yield from _load_blend()
 
+    op_hide_region_channels = _op_hide_region_channels()
+    bpy.utils.register_class(op_hide_region_channels)
+
     _set_area_type(area, 'GRAPH_EDITOR')
 
     space = area.spaces.active
     t.assertIsInstance(space, bpy.types.SpaceGraphEditor, "Area did not switch to Graph Editor")
 
     e.cursor_position_set(*ui.get_area_center(area), move=True)
+
+    yield from _space_hide_region_channels(space, e, t)
+
     yield e.ctrl.f()
     yield e.text("location")
     yield e.ret()
     t.assertEqual(space.dopesheet.filter_text, "location",
                   "Graph Editor: filter_text was not set by Ctrl+F")
 
+    yield from _space_hide_region_channels(space, e, t)
+
     yield e.ctrl.f()
     yield e.back_space()
     yield e.ret()
     t.assertEqual(space.dopesheet.filter_text, "",
                   "Graph Editor: filter_text was not cleared")
+
+    bpy.utils.unregister_class(op_hide_region_channels)
 
 
 def test_file_browser_search():
@@ -167,6 +264,9 @@ def test_file_browser_search():
     import bpy
 
     e, t, window, area = yield from _load_blend()
+
+    op_hide_region_ui = _op_hide_region_ui()
+    bpy.utils.register_class(op_hide_region_ui)
 
     _set_area_type(area, 'FILE_BROWSER')
 
@@ -182,13 +282,20 @@ def test_file_browser_search():
     t.assertIsNotNone(params, "File Browser: params is None after navigation")
 
     e.cursor_position_set(*ui.get_area_center(area), move=True)
+
+    yield from _space_hide_region_ui(space, e, t)
+
     yield e.ctrl.f()
     yield e.text("search_target")
     yield e.ret()
     t.assertEqual(params.filter_search, "search_target",
                   "File Browser: filter_search was not set by Ctrl+F")
 
+    yield from _space_hide_region_ui(space, e, t)
+
     yield e.ctrl.f()
     yield e.back_space()
     yield e.ret()
     t.assertEqual(params.filter_search, "", "File Browser: filter_search was not cleared")
+
+    bpy.utils.unregister_class(op_hide_region_ui)

@@ -180,7 +180,7 @@ static std::unique_ptr<CurvesSculptStrokeOperation> start_brush_operation(
 
 struct SculptCurvesBrushStroke final : public PaintStroke {
   SculptCurvesBrushStroke(bContext *C, wmOperator *op, const wmEvent *event)
-      : PaintStroke(C, op, event)
+      : PaintStroke(C, op, event, PaintMode::SculptCurves)
   {
   }
 
@@ -188,7 +188,7 @@ struct SculptCurvesBrushStroke final : public PaintStroke {
   bool test_start(wmOperator *op, float2 mouse) override;
   void redraw(bool final) override;
   bool test_cancel() override;
-  void update_step(wmOperator *op, PointerRNA *stroke_element) override;
+  void update_step(wmOperator *op, const StrokeStep &stroke_step) override;
   void done(bool is_cancel, bool stroke_started) override;
 
  private:
@@ -206,11 +206,11 @@ bool SculptCurvesBrushStroke::test_start(wmOperator * /*op*/, const float2 /*mou
   return true;
 }
 
-void SculptCurvesBrushStroke::update_step(wmOperator *op, PointerRNA *stroke_element)
+void SculptCurvesBrushStroke::update_step(wmOperator *op, const StrokeStep &stroke_step)
 {
   StrokeExtension stroke_extension;
-  RNA_float_get_array(stroke_element, "mouse", stroke_extension.mouse_position);
-  stroke_extension.pressure = RNA_float_get(stroke_element, "pressure");
+  stroke_extension.mouse_position = stroke_step.mouse;
+  stroke_extension.pressure = stroke_step.pressure;
   stroke_extension.reports = op->reports;
 
   if (!operation_) {

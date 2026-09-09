@@ -343,7 +343,7 @@ struct BSLParser {
       qualified_id();
     }
     do {
-      declarator(false);
+      declarator(false, is_member);
     } while (match_if(','));
     /* Check if current token is valid. Otherwise we could be at end of file after the last
      * semicolon. */
@@ -354,7 +354,7 @@ struct BSLParser {
     return valid;
   }
 
-  void declarator(bool optional_id_name = true)
+  void declarator(bool optional_id_name = true, bool optional_bitfield = false)
   {
     NODE(Declarator);
     bool par = match_if('(');
@@ -376,6 +376,10 @@ struct BSLParser {
       match(')');
     }
 
+    if (optional_bitfield) {
+      bitfield_optional();
+    }
+
     if (peek() == '{') {
       initializer_list();
     }
@@ -383,6 +387,16 @@ struct BSLParser {
       array_optional();
       assignment_optional();
     }
+  }
+
+  void bitfield_optional()
+  {
+    if (peek() != ':') {
+      return;
+    }
+    NODE(BitField);
+    match_if(Colon);
+    expression(true);
   }
 
   bool func_decl(bool expect_template_params = false, bool expect_body = true)
@@ -683,7 +697,7 @@ struct BSLParser {
     match(Number);
   }
 
-  void expression(bool break_on_comma = false)
+  void expression(bool break_on_comma = false, bool break_on_equal = false)
   {
     NODE(Expr);
     bool is_first_statement = true;
@@ -761,6 +775,10 @@ struct BSLParser {
           break;
         }
         case Assign:
+          if (break_on_equal) {
+            return;
+          }
+          [[fallthrough]];
         case AssignAdd:
         case AssignSub:
         case AssignMul:

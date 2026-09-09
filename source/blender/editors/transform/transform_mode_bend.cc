@@ -305,7 +305,7 @@ static void initBend(TransInfo *t, wmOperator * /*op*/)
   copy_v3_v3(data->warp_sta, curs);
   if (t->spacetype == SPACE_VIEW3D) {
     ED_view3d_win_to_3d(
-        static_cast<View3D *>(t->area->spacedata.first), t->region, curs, t->mval, data->warp_end);
+        t->area->spacedata.first_as<View3D>(), t->region, curs, t->mval, data->warp_end);
   }
   else {
     copy_v3_v3(data->warp_end, curs); /* Dummy value. */
@@ -336,6 +336,7 @@ TransModeInfo TransMode_bend = {
     /*snap_distance_fn*/ nullptr,
     /*snap_apply_fn*/ nullptr,
     /*draw_fn*/ nullptr,
+    /*status_fn*/ nullptr,
 };
 
 }  // namespace blender::ed::transform
