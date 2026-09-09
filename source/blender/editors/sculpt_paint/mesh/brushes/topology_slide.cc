@@ -175,8 +175,11 @@ static void calc_faces(const Depsgraph &depsgraph,
 
   const OrigPositionData orig_data = orig_position_data_get_mesh(object, node);
   const Span<int> verts = node.verts();
-  const MutableSpan positions = gather_data_mesh(position_data.eval, verts, tls.positions);
+  Array<float3, bke::pbvh::MESH_LEAF_LIMIT> positions(verts.size());
+  gather_data_mesh(position_data.eval, verts, positions.as_mutable_span());
 
+  Array<float, bke::pbvh::MESH_LEAF_LIMIT> factors(verts.size());
+  Array<float, bke::pbvh::MESH_LEAF_LIMIT> distances(verts.size());
   calc_factors_common_from_orig_data_mesh(depsgraph,
                                           brush,
                                           object,
@@ -184,10 +187,10 @@ static void calc_faces(const Depsgraph &depsgraph,
                                           orig_data.positions,
                                           orig_data.normals,
                                           node,
-                                          tls.factors,
-                                          tls.distances);
+                                          factors,
+                                          distances);
 
-  scale_factors(tls.factors, cache.bstrength);
+  scale_factors(factors, cache.bstrength);
 
   const GroupedSpan<int> neighbors = calc_vert_neighbors(faces,
                                                          corner_verts,
@@ -197,11 +200,10 @@ static void calc_faces(const Depsgraph &depsgraph,
                                                          tls.neighbor_offsets,
                                                          tls.neighbor_data);
 
-  tls.translations.resize(verts.size());
-  const MutableSpan<float3> translations = tls.translations;
+  Array<float3, bke::pbvh::MESH_LEAF_LIMIT> translations(verts.size());
   calc_translation_directions(brush, cache, positions, translations);
   calc_neighbor_influence(position_data.eval, positions, neighbors, translations);
-  scale_translations(translations, tls.factors);
+  scale_translations(translations, factors);
 
   clip_and_lock_translations(sd, ss, position_data.eval, verts, translations);
   position_data.deform(translations, verts);
