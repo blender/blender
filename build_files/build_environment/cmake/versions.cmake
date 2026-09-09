@@ -270,10 +270,10 @@ set(OPENCOLORIO_HOMEPAGE https://github.com/AcademySoftwareFoundation/OpenColorI
 set(OPENCOLORIO_LICENSE SPDX:BSD-3-Clause)
 set(OPENCOLORIO_COPYRIGHT "Copyright Contributors to the OpenColorIO Project.")
 
-set(MINIZIPNG_VERSION 4.0.10)
+set(MINIZIPNG_VERSION 4.2.2)
 set(MINIZIPNG_NAME minizip-ng)
 set(MINIZIPNG_URI https://github.com/zlib-ng/minizip-ng/archive/${MINIZIPNG_VERSION}.tar.gz)
-set(MINIZIPNG_HASH 9b4de14db78016419598d0f292fde244)
+set(MINIZIPNG_HASH 18f641a533be10efe89a8429197ff662)
 set(MINIZIPNG_HASH_TYPE MD5)
 set(MINIZIPNG_FILE minizip-ng-${MINIZIPNG_VERSION}.tar.gz)
 set(MINIZIPNG_CPE "cpe:2.3:a:zlib-ng:minizip-ng:${MINIZIPNG_VERSION}:*:*:*:*:*:*:*")
@@ -341,7 +341,7 @@ Copyright © 1988-1997 Sam Leffler.
 Copyright © 1991-1997 Silicon Graphics, Inc.
 ]=])
 
-# TODO: the URI has been changed to use the github generated releases, change this back to 
+# TODO: the URI has been changed to use the github generated releases, change this back to
 # https://github.com/AcademySoftwareFoundation/OpenShadingLanguage/releases/download/v${OSL_VERSION}/OSL-${OSL_VERSION}.tar.gz
 # once stable release tarballs become available again upstream
 set(OSL_VERSION 1.15.6.0)
