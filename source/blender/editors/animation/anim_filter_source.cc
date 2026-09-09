@@ -20,6 +20,7 @@
 #include "BKE_anim_data.hh"
 #include "BKE_context.hh"
 #include "BKE_grease_pencil.hh"
+#include "BKE_material.hh"
 #include "BKE_pose.hh"
 
 #include "ANIM_action.hh"
@@ -257,10 +258,14 @@ void collection_channels_for_object(Object &obj,
 {
   collect_channels_for_id(&obj.id, collection_filters, arena);
   collect_channels_for_id(obj.data, collection_filters, arena);
-  for (int i = 0; i < obj.totcol; i++) {
-    if (obj.mat[i]) {
-      collect_channels_for_id(&obj.mat[i]->id, collection_filters, arena);
-      collect_channels_for_id(&obj.mat[i]->nodetree->id, collection_filters, arena);
+
+  for (const int i : IndexRange(obj.totcol)) {
+    /* The given number is expected to be 1 based... why........ */
+    Material *mat = BKE_object_material_get(&obj, i + 1);
+
+    if (mat) {
+      collect_channels_for_id(&mat->id, collection_filters, arena);
+      collect_channels_for_id(&mat->nodetree->id, collection_filters, arena);
     }
   }
 
