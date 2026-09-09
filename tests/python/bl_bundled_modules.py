@@ -36,6 +36,7 @@ from pxr import Usd
 import MaterialX
 import OpenImageIO
 import PyOpenColorIO
+import OpenEXR
 
 # Test both old and new names, remove when all 4.4 libs have landed.
 try:
