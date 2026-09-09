@@ -1500,6 +1500,28 @@ elseif(WIN32)
           PATTERN "*.pyo" EXCLUDE                 # * any cache *
         )
       endif()
+      # OpenEXR python bindings.
+      # Check they exist so building against non `LIBDIR` Python works as expected.
+      if(EXISTS ${LIBDIR}/openexr/python/Release/OpenEXR)
+        install(
+          DIRECTORY ${LIBDIR}/openexr/python/Release/OpenEXR
+          DESTINATION ${TARGETDIR_SITE_PACKAGES}/
+          CONFIGURATIONS Release;RelWithDebInfo;MinSizeRel
+          PATTERN "__pycache__" EXCLUDE           # * any cache *
+          PATTERN "*.pyc" EXCLUDE                 # * any cache *
+          PATTERN "*.pyo" EXCLUDE                 # * any cache *
+        )
+      endif()
+      if(EXISTS ${LIBDIR}/openexr/python/Debug/OpenEXR)
+        install(
+          DIRECTORY ${LIBDIR}/openexr/python/Debug/OpenEXR
+          DESTINATION ${TARGETDIR_SITE_PACKAGES}/
+          CONFIGURATIONS Debug
+          PATTERN "__pycache__" EXCLUDE           # * any cache *
+          PATTERN "*.pyc" EXCLUDE                 # * any cache *
+          PATTERN "*.pyo" EXCLUDE                 # * any cache *
+        )
+      endif()
     endif()
 
     if(WITH_PYTHON_INSTALL)
