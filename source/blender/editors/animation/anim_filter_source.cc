@@ -9,7 +9,9 @@
 #include "DNA_ID.h"
 #include "DNA_anim_types.h"
 #include "DNA_grease_pencil_types.h"
+#include "DNA_key_types.h"
 #include "DNA_material_types.h"
+#include "DNA_mesh_types.h"
 #include "DNA_node_types.h"
 #include "DNA_object_types.h"
 
@@ -252,6 +254,22 @@ static void collect_channels_for_id(ID *animated_id,
   tags.pop();
 }
 
+static void collect_channels_for_grease_pencil(GreasePencil &gp, ChannelArena &arena)
+{
+  ChannelTagStack tags;
+  PointerRNA gp_id_ptr = RNA_pointer_create_discrete(
+      &gp.id, ID_code_to_RNA_type(gp.id.id_type()), &gp);
+
+  tags.push({ChannelTagType::ID, gp.id.name + 2, gp_id_ptr, ParsedRNAPathRef()});
+  for (bke::greasepencil::Layer *layer : gp.layers_for_write()) {
+    /* TODO: what is the parsed source path for gp. */
+    GreasePencilChannel *gp_channel = arena.allocate_data_channel<GreasePencilChannel>(
+        gp, *layer, ParsedSourcePath());
+    gp_channel->tags().set(tags.as_set());
+  }
+  tags.pop();
+}
+
 void collection_channels_for_object(Object &obj,
                                     const CollectionFilters &collection_filters,
                                     ChannelArena &arena)
@@ -268,21 +286,21 @@ void collection_channels_for_object(Object &obj,
       collect_channels_for_id(&mat->nodetree->id, collection_filters, arena);
     }
   }
+  if (obj.data) {
+    switch (obj.type) {
+      case OB_GREASE_PENCIL:
+        collect_channels_for_grease_pencil(*id_cast<GreasePencil *>(obj.data), arena);
+        break;
 
-  if (obj.type == OB_GREASE_PENCIL && obj.data) {
-    ChannelTagStack tags;
-    GreasePencil *gp = id_cast<GreasePencil *>(obj.data);
-    PointerRNA gp_id_ptr = RNA_pointer_create_discrete(
-        &gp->id, ID_code_to_RNA_type(gp->id.id_type()), gp);
+      case OB_MESH: {
+        Mesh *mesh = id_cast<Mesh *>(obj.data);
+        collect_channels_for_id(&mesh->key->id, collection_filters, arena);
+        break;
+      }
 
-    tags.push({ChannelTagType::ID, obj.data->name + 2, gp_id_ptr, ParsedRNAPathRef()});
-    for (bke::greasepencil::Layer *layer : gp->layers_for_write()) {
-      /* TODO: what is the parsed source path for gp. */
-      GreasePencilChannel *gp_channel = arena.allocate_data_channel<GreasePencilChannel>(
-          *gp, *layer, ParsedSourcePath());
-      gp_channel->tags().set(tags.as_set());
+      default:
+        break;
     }
-    tags.pop();
   }
 }
 
