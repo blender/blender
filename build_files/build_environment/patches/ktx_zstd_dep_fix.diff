@@ -1,0 +1,56 @@
+--- KTX-Software-4.4.2\CMakeLists.txt	2025-10-04 01:06:54.000000000 -0700
++++ external_ktx\CMakeLists.txt	2026-09-09 10:34:26.276917400 -0700
+@@ -389,7 +389,6 @@
+     external/basisu/transcoder/basisu_transcoder.cpp
+     external/basisu/transcoder/basisu_transcoder.h
+     external/basisu/transcoder/basisu.h
+-    external/basisu/zstd/zstd.c
+     lib/checkheader.c
+     external/dfdutils/createdfd.c
+     external/dfdutils/colourspaces.c
+@@ -608,9 +607,6 @@
+         ${KTX_BASISU_INCLUDE_DIRS}
+         external
+ 
+-        $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/external/basisu/zstd>
+-        $<INSTALL_INTERFACE:external/basisu/zstd>
+-
+         $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/utils>
+         $<INSTALL_INTERFACE:utils>
+     )
+@@ -754,6 +750,8 @@
+     endif()
+ 
+     if(KTX_FEATURE_VK_UPLOAD)
++        find_package(zstd CONFIG REQUIRED)
++        target_link_libraries(${target} PRIVATE zstd::libzstd)
+         target_sources(
+             ${target}
+         PRIVATE
+@@ -768,7 +766,6 @@
+             $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/external/dfdutils>
+             $<INSTALL_INTERFACE:external/dfdutils>
+         )
+-
+         get_target_property( KTX_PUBLIC_HEADER ${target} PUBLIC_HEADER )
+         list(APPEND KTX_PUBLIC_HEADER ${CMAKE_CURRENT_SOURCE_DIR}/include/ktxvulkan.h)
+         set_target_properties(${target} PROPERTIES
+@@ -972,10 +969,6 @@
+             external/basisu/transcoder/basisu_transcoder.cpp
+             "-Wno-sign-compare;-Wno-unused-function;-Wno-unused-variable"
+         )
+-        set_source_files_properties(
+-            external/basisu/zstd/zstd.c
+-            PROPERTIES COMPILE_OPTIONS "-Wno-unused-function"
+-        )
+     endif()
+ else()
+     message(FATAL_ERROR "${CMAKE_CXX_COMPILER_ID} not yet supported.")
+@@ -989,7 +982,6 @@
+     external/basisu/transcoder/basisu_transcoder.cpp
+     COMPILE_OPTIONS
+ )
+-get_source_file_property(zstd_options external/basisu/zstd/zstd.c COMPILE_OPTIONS)
+ 
+ if(EMSCRIPTEN)
+     set(
