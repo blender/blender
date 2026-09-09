@@ -219,7 +219,7 @@ void OptiXDevice::create_optix_module(TaskPool &pool,
                                       &module,
                                       &task);
   if (result == OPTIX_SUCCESS) {
-    execute_optix_task(pool, task, result);
+    pool.push([&pool, task, &result] { execute_optix_task(pool, task, result); });
   }
 }
 
