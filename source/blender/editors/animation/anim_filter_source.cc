@@ -25,6 +25,7 @@
 #include "BKE_grease_pencil.hh"
 #include "BKE_main.hh"
 #include "BKE_material.hh"
+#include "BKE_modifier.hh"
 #include "BKE_pose.hh"
 
 #include "ANIM_action.hh"
@@ -276,6 +277,32 @@ static void collect_channels_for_grease_pencil(GreasePencil &gp, ChannelArena &a
   tags.pop();
 }
 
+struct ModifierIDIterArgs {
+  const CollectionFilters &collection_filters;
+  ChannelArena &arena;
+};
+
+static void foreach_modifier_ID_callback(void *user_data,
+                                         Object * /* ob */,
+                                         ID **idpoin,
+                                         LibraryForeachIDCallbackFlag /*cb_flag*/)
+{
+  ID *id = *idpoin;
+  if (id == nullptr) {
+    return;
+  }
+  ModifierIDIterArgs *args = reinterpret_cast<ModifierIDIterArgs *>(user_data);
+  switch (id->id_type()) {
+    case ID_NT:
+    case ID_TE:
+    case ID_CF:
+      collect_channels_for_id(id, args->collection_filters, args->arena);
+      break;
+    default:
+      break;
+  }
+}
+
 void collection_channels_for_object(Object &obj,
                                     const CollectionFilters &collection_filters,
                                     ChannelArena &arena)
@@ -309,6 +336,11 @@ void collection_channels_for_object(Object &obj,
       default:
         break;
     }
+  }
+
+  if (!collection_filters.ignore_modifier_ids) {
+    ModifierIDIterArgs args(collection_filters, arena);
+    BKE_modifiers_foreach_ID_link(&obj, foreach_modifier_ID_callback, &args);
   }
 }
 

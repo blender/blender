@@ -21,6 +21,7 @@ static ed::animfilter::CollectionFilters get_filters(SpaceAction &saction)
   filters.show_hidden = saction.ads.filterflag & ADS_FILTER_INCL_HIDDEN;
   /* TODO: implement. See `fcurve_has_errors`. */
   filters.only_errors = saction.ads.filterflag & ADS_FILTER_ONLY_ERRORS;
+  filters.ignore_modifier_ids = saction.ads.filterflag & ADS_FILTER_NOMODIFIERS;
 
   /* This is not nice but we have to keep for backwards compatibility. In the future it would be
    * good to store the ID type bit directly on the dopesheet. */
@@ -74,10 +75,6 @@ static ed::animfilter::CollectionFilters get_filters(SpaceAction &saction)
   }
   if (saction.ads.filterflag & ADS_FILTER_NOLINESTYLE) {
     filters.id_type_blocklist.add(ID_LS);
-  }
-  if (saction.ads.filterflag & ADS_FILTER_NOMODIFIERS) {
-    /* TODO Not sure how that worked. */
-    // filters.id_type_blocklist.add(ID_MA);
   }
   if (saction.ads.filterflag & ADS_FILTER_NOGPENCIL) {
     filters.id_type_blocklist.add(ID_GP);

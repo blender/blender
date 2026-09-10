@@ -596,8 +596,14 @@ class ChannelArena {
 
 struct CollectionFilters {
   bool only_selected = true;
+  /* Show keys of hidden objects/bones. This is only used if `only_selected` is false. */
   bool show_hidden = false;
   bool only_errors = false;
+  /**
+   * Skip any IDs that an object modifier points to.
+   * See the comment on ADS_FILTER_NOMODIFIERS. I (christoph) don't think this is a useful setting,
+   * but it is kept for backwards compatibility. */
+  bool ignore_modifier_ids = false;
 
   /* Limit the returned data to only channels of the given type.
    * If empty, all channel types are returned. */

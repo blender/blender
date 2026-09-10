@@ -437,6 +437,9 @@ enum eDopeSheet_FilterFlag : int {
   ADS_FILTER_NOTEX = (1 << 20),
   ADS_FILTER_NOSPK = (1 << 21),
   ADS_FILTER_NOLINESTYLE = (1 << 22),
+  /* Contrary to the surrounding flags this does not turn an ID off. If this flag is set, object
+     modifiers are not visited for pointers to other IDs. It's those ID pointers that are ignored.
+   */
   ADS_FILTER_NOMODIFIERS = (1 << 23),
   ADS_FILTER_NOGPENCIL = (1 << 24),
   /* NOTE: all new datablock filters will have to go in filterflag2 (see below) */
