@@ -309,6 +309,14 @@ std::optional<bke::path_templates::VariableMap> BKE_build_template_variables_for
     const bContext *C, PointerRNA *ptr, PropertyRNA *prop);
 
 /**
+ * Add project related variables.
+ *
+ * \see #BKE_path_apply_template()
+ */
+void BKE_add_template_variables_for_project(bke::path_templates::VariableMap &variables,
+                                            const bke::BlenderProject &project);
+
+/**
  * Add the general variables that should be available for all path templates.
  *
  * This is typically used when building a variable map to pass to

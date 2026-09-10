@@ -443,6 +443,13 @@ static void rna_userdef_asset_library_name_set(PointerRNA *ptr, const char *valu
   BKE_preferences_asset_library_name_set(&U, library, value);
 }
 
+static StructRNA *rna_UserAssetLibrary_refine(PointerRNA *ptr)
+{
+  const bUserAssetLibrary *library = static_cast<bUserAssetLibrary *>(ptr->data);
+  return (library->flag & ASSET_LIBRARY_PROJECT_DEFINED) ? RNA_ProjectAssetLibrary :
+                                                           RNA_PreferencesAssetLibrary;
+}
+
 static void rna_userdef_asset_library_path_set(PointerRNA *ptr, const char *value)
 {
   bUserAssetLibrary *library = static_cast<bUserAssetLibrary *>(ptr->data);
@@ -7073,6 +7080,7 @@ static void rna_def_userdef_filepaths_asset_library(BlenderRNA *brna)
   RNA_def_struct_sdna(srna, "bUserAssetLibrary");
   RNA_def_struct_ui_text(
       srna, "Asset Library", "Settings to define a reusable library for Asset Browsers to use");
+  RNA_def_struct_refine_func(srna, "rna_UserAssetLibrary_refine");
 
   prop = RNA_def_property(srna, "name", PROP_STRING, PROP_NONE);
   RNA_def_property_ui_text(
@@ -7080,16 +7088,6 @@ static void rna_def_userdef_filepaths_asset_library(BlenderRNA *brna)
   RNA_def_property_string_funcs(prop, nullptr, nullptr, "rna_userdef_asset_library_name_set");
   RNA_def_struct_name_property(srna, prop);
   RNA_def_property_update(prop, 0, "rna_userdef_asset_libraries_update");
-
-  prop = RNA_def_property(srna, "path", PROP_STRING, PROP_DIRPATH);
-  RNA_def_property_string_sdna(prop, nullptr, "dirpath");
-  RNA_def_property_ui_text(
-      prop, "Path", "Path to a directory with .blend files to use as an asset library");
-  RNA_def_property_translation_context(prop, BLT_I18NCONTEXT_EDITOR_FILEBROWSER);
-  RNA_def_property_string_funcs(prop, nullptr, nullptr, "rna_userdef_asset_library_path_set");
-  RNA_def_property_editable_func(prop, "rna_userdef_asset_library_path_editable");
-  RNA_def_property_flag(prop, PROP_CONTEXT_UPDATE);
-  RNA_def_property_update(prop, 0, "rna_userdef_asset_libraries_refresh");
 
   prop = RNA_def_property(srna, "enabled", PROP_BOOLEAN, PROP_NONE);
   RNA_def_property_boolean_negative_sdna(prop, nullptr, "flag", ASSET_LIBRARY_DISABLED);
@@ -7166,6 +7164,54 @@ static void rna_def_userdef_filepaths_asset_library(BlenderRNA *brna)
       "Invalid UUID",
       "If the UUID is invalid for the asset, the invalid string will be available here.");
   RNA_def_property_clear_flag(prop, PROP_EDITABLE);
+}
+
+static void rna_def_userdef_preferences_asset_library(BlenderRNA *brna)
+{
+  StructRNA *srna;
+  PropertyRNA *prop;
+
+  srna = RNA_def_struct(brna, "PreferencesAssetLibrary", "UserAssetLibrary");
+  RNA_def_struct_sdna(srna, "bUserAssetLibrary");
+  RNA_def_struct_ui_text(srna,
+                         "Preferences Asset Library",
+                         "An asset library defined in the Preferences, available whatever project "
+                         "or blend file is open");
+
+  prop = RNA_def_property(srna, "path", PROP_STRING, PROP_DIRPATH);
+  RNA_def_property_string_sdna(prop, nullptr, "dirpath");
+  RNA_def_property_ui_text(
+      prop, "Path", "Path to a directory with .blend files to use as an asset library");
+  RNA_def_property_translation_context(prop, BLT_I18NCONTEXT_EDITOR_FILEBROWSER);
+  RNA_def_property_string_funcs(prop, nullptr, nullptr, "rna_userdef_asset_library_path_set");
+  RNA_def_property_editable_func(prop, "rna_userdef_asset_library_path_editable");
+  RNA_def_property_flag(prop, PROP_CONTEXT_UPDATE);
+  RNA_def_property_update(prop, 0, "rna_userdef_asset_libraries_refresh");
+}
+
+static void rna_def_project_asset_library(BlenderRNA *brna)
+{
+  StructRNA *srna;
+  PropertyRNA *prop;
+
+  /* Separate subclass than PreferencesAssetLibrary, to set PROP_VARIABLES_PROJECT on the path. */
+  srna = RNA_def_struct(brna, "ProjectAssetLibrary", "UserAssetLibrary");
+  RNA_def_struct_sdna(srna, "bUserAssetLibrary");
+  RNA_def_struct_ui_text(srna,
+                         "Project Asset Library",
+                         "Settings to define a reusable library for Asset Browsers to use");
+
+  prop = RNA_def_property(srna, "path", PROP_STRING, PROP_DIRPATH);
+  RNA_def_property_string_sdna(prop, nullptr, "dirpath");
+  RNA_def_property_flag(prop, PROP_PATH_SUPPORTS_TEMPLATES);
+  RNA_def_property_path_template_type(prop, PROP_VARIABLES_PROJECT);
+  RNA_def_property_ui_text(
+      prop, "Path", "Path to a directory with .blend files to use as an asset library");
+  RNA_def_property_translation_context(prop, BLT_I18NCONTEXT_EDITOR_FILEBROWSER);
+  RNA_def_property_string_funcs(prop, nullptr, nullptr, "rna_userdef_asset_library_path_set");
+  RNA_def_property_editable_func(prop, "rna_userdef_asset_library_path_editable");
+  RNA_def_property_flag(prop, PROP_CONTEXT_UPDATE);
+  RNA_def_property_update(prop, 0, "rna_userdef_asset_libraries_refresh");
 }
 
 static void rna_def_userdef_filepaths_extension_repo(BlenderRNA *brna)
@@ -7666,6 +7712,8 @@ static void rna_def_userdef_filepaths(BlenderRNA *brna)
   RNA_def_property_ui_text(prop, "File Preview Type", "What type of blend preview to create");
 
   rna_def_userdef_filepaths_asset_library(brna);
+  rna_def_userdef_preferences_asset_library(brna);
+  rna_def_project_asset_library(brna);
 
   prop = RNA_def_property(srna, "asset_libraries", PROP_COLLECTION, PROP_NONE);
   RNA_def_property_struct_type(prop, "UserAssetLibrary");

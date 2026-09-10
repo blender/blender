@@ -772,10 +772,6 @@ class PROJECT_OT_AssetLibraryAdd(Operator):
             .decode('utf-8', 'ignore') \
             or data_(ASSET_LIBRARY_DEFAULT_NAME)
 
-        # Replace base path with {project_root} if it is within the project folder.
-        root_path = bpy.data.project.root_path
-        if asset_library_path.startswith(root_path):
-            asset_library_path = "{project_root}" + asset_library_path[len(root_path):]
         bpy.data.project.asset_libraries.new(name=asset_library_name, directory=asset_library_path)
 
         return {'FINISHED'}

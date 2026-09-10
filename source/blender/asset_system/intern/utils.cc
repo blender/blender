@@ -11,8 +11,6 @@
 #include "BLI_path_utils.hh"
 #include "BLI_string.hh"
 
-#include "MEM_guardedalloc.h"
-
 #include "BKE_global.hh"
 #include "BKE_path_templates.hh"
 
