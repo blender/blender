@@ -2651,7 +2651,20 @@ template<typename T> void remove_non_constraint_edges_leave_valid_bmesh(CDT_stat
     }
   }
   std::ranges::sort(dissolvable_edges, [](const EdgeToSort<T> &a, const EdgeToSort<T> &b) -> bool {
-    return (a.len_squared < b.len_squared);
+    if (a.len_squared != b.len_squared) {
+      return a.len_squared < b.len_squared;
+    }
+    /* Tie-break on the vertices, `std::ranges::sort` isn't stable so without this
+     * equal length edges dissolve in a platform dependent order.
+     * Order the pair so the result doesn't depend on the direction the edge was created. */
+    const auto edge_verts_fn = [](const CDTEdge<T> *e) -> int2 {
+      const int v0 = e->symedges[0].vert->index;
+      const int v1 = e->symedges[1].vert->index;
+      return (v0 < v1) ? int2(v0, v1) : int2(v1, v0);
+    };
+    const int2 a_verts = edge_verts_fn(a.e);
+    const int2 b_verts = edge_verts_fn(b.e);
+    return (a_verts.x != b_verts.x) ? (a_verts.x < b_verts.x) : (a_verts.y < b_verts.y);
   });
   for (EdgeToSort<T> &ets : dissolvable_edges) {
     CDTEdge<T> *e = ets.e;
