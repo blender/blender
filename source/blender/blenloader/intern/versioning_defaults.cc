@@ -173,6 +173,13 @@ static void blo_update_defaults_screen(bScreen *screen,
           }
         }
       }
+
+      /* Reveal the footer by default. */
+      for (ARegion &region : area.regionbase) {
+        if (region.regiontype == RGN_TYPE_FOOTER) {
+          region.flag &= ~RGN_FLAG_HIDDEN;
+        }
+      }
     }
     else if (area.spacetype == SPACE_GRAPH) {
       SpaceGraph *sipo = area.spacedata.first_as<SpaceGraph>();
