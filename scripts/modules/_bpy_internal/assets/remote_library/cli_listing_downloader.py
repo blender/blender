@@ -40,6 +40,7 @@ def cli_main(arguments_raw: argparse.Namespace) -> None:
 
     downloader = listing_downloader.RemoteAssetListingDownloader(
         arguments.url,
+        "",  # auth_token
         base_path,
         lambda *args: None,
         on_done_callback)

@@ -61,7 +61,7 @@ std::optional<std::string> asset_edit_id_save_as(Main &global_main,
                                                  AssetWeakReference &r_weak_ref,
                                                  ReportList &reports);
 
-bool asset_edit_id_save(Main &global_main, const ID &id, ReportList &reports);
+bool asset_edit_id_save(Main &global_main, ID &id, ReportList &reports);
 /**
  * Relink the asset from the library. This causes the ID to be re-allocated, so its address
  * changes. Even in case of failure to reload the asset, \a id will be deleted.

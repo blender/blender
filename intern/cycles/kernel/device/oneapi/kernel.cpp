@@ -735,6 +735,9 @@ bool oneapi_enqueue_kernel(KernelContext *kernel_context,
         case DEVICE_KERNEL_NUM:
         case DEVICE_KERNEL_INTEGRATOR_MEGAKERNEL:
         case DEVICE_KERNEL_INTEGRATOR_SHADOW_PATH_MNEE_PENDING:
+        case DEVICE_KERNEL_FILTER_GUIDING_PREPROCESS_TO_SURFACE:
+        case DEVICE_KERNEL_FILTER_COLOR_PREPROCESS_TO_SURFACE:
+        case DEVICE_KERNEL_FILTER_COLOR_POSTPROCESS_FROM_SURFACE:
           kernel_assert(0);
           break;
       }

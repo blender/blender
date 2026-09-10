@@ -12,8 +12,8 @@ COMPUTE_SHADER_CREATE_INFO(compositor_inpaint_fill_region)
 
 #include "gpu_shader_compositor_jump_flooding_lib.glsl"
 #include "gpu_shader_compositor_texture_utilities.glsl"
-#include "gpu_shader_math_base_lib.glsl"
-#include "gpu_shader_math_constants_lib.glsl"
+#include "gpu_shader_math_base.bsl.hh"
+#include "gpu_shader_math_constants.bsl.hh"
 
 void main()
 {

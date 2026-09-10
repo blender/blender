@@ -3,17 +3,19 @@
 # SPDX-License-Identifier: Apache-2.0
 
 
-from ..com import conversion as gltf2_blender_conversion
-from .attribute_utils import extract_attribute_data
 import numpy as np
 
+from ..com import conversion as gltf2_blender_conversion
+from .attribute_utils import extract_attribute_data
+from .material.materials import get_base_material
+from .primitive_extract import LoopData, PrimitiveCreator
 
-def gather_point_cloud(blender_pointcloud, export_settings):
+
+def gather_point_cloud(blender_pointcloud, materials, export_settings):
 
     primitives = []
 
-    # Do not export if we don't export loose points
-    if not export_settings['gltf_loose_points']:
+    if not export_settings['gltf_pointclouds']:
         return []
 
     # Position
@@ -26,6 +28,7 @@ def gather_point_cloud(blender_pointcloud, export_settings):
     if source:
         source.foreach_get(foreach_attribute, locs)
     locs = locs.reshape(len(blender_pointcloud.attributes['position'].data), 3)
+    PrimitiveCreator.zup2yup(locs)
 
     # Radius
     radius = np.empty(
@@ -52,6 +55,34 @@ def gather_point_cloud(blender_pointcloud, export_settings):
         'component_type': gltf2_blender_conversion.get_component_type('FLOAT')
     }
 
+    # Detect Vertex Color usage
+    loop_data = LoopData(
+        vc_infos_index=0,
+        materials_use_vc=None,
+        warning_already_displayed=False,
+        warning_already_displayed_vc_nodetree=False
+    )
+    base_material, material_info = get_base_material(0, materials, export_settings)
+
+    vc_infos = PrimitiveCreator.manage_VC(
+        base_material,
+        0,
+        material_info,
+        blender_pointcloud,
+        loop_data,
+        export_settings,
+        for_pointcloud=True
+    )
+
+    # Add COLOR_0 attribute if vertex colors are used
+    if vc_infos:
+        custom_attributes['COLOR_0'] = {
+            'data': __get_color_attribute_data(blender_pointcloud.attributes[vc_infos[0]['color']], blender_pointcloud),
+            'data_type': gltf2_blender_conversion.get_data_type('FLOAT_COLOR'),
+            'component_type': gltf2_blender_conversion.get_component_type('FLOAT_COLOR')
+        }
+
+    # And now, create the primitive infos
     primitives.append({
         'attributes': custom_attributes,
         'mode': 0,  # POINTS
@@ -96,3 +127,11 @@ def __get_custom_attributes(blender_pointcloud, export_settings):
             'component_type': gltf2_blender_conversion.get_component_type(attribute.data_type)
         }
     return custom_attributes
+
+
+def __get_color_attribute_data(attr, blender_data):
+
+    colors = np.empty(len(blender_data.points) * 4, dtype=np.float32)
+    attr.data.foreach_get('color', colors)
+
+    return colors.reshape(-1, 4)

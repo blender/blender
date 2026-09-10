@@ -2,8 +2,8 @@
  *
  * SPDX-License-Identifier: GPL-2.0-or-later */
 
-#include "gpu_shader_math_matrix_construct_lib.glsl"
-#include "gpu_shader_math_rotation_conversion_lib.glsl"
+#include "gpu_shader_math_matrix_construct.bsl.hh"
+#include "gpu_shader_math_rotation_conversion.bsl.hh"
 
 /* --------------------------------------------------------------------
  * Float to other.

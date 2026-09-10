@@ -7,7 +7,7 @@ bl_info = {
     # This is now displayed as the maintainer, so show the foundation.
     # "author": "Julien Duroure, Scurest, Norbert Nopper, Urs Hanselmann, Moritz Becher, Benjamin Schmithüsen, Jim Eckerlein", # Original Authors
     'author': "Blender Foundation, Khronos Group",
-    "version": (5, 3, 22),
+    "version": (5, 3, 27),
     'blender': (5, 3, 0),
     'location': 'File > Import-Export',
     'description': 'Import-Export as glTF 2.0',
@@ -607,6 +607,12 @@ class ExportGLTF2_Base(ConvertGLTF2_Base):
         default=False,
     )
 
+    export_pointclouds: BoolProperty(
+        name='Point Clouds',
+        description='Export point clouds',
+        default=True
+    )
+
     export_cameras: BoolProperty(
         name='Cameras',
         description='Export cameras',
@@ -1168,6 +1174,7 @@ class ExportGLTF2_Base(ConvertGLTF2_Base):
         export_settings['gltf_tangents'] = self.export_tangents and self.export_normals
         export_settings['gltf_loose_edges'] = self.use_mesh_edges
         export_settings['gltf_loose_points'] = self.use_mesh_vertices
+        export_settings['gltf_pointclouds'] = self.export_pointclouds
 
         if is_draco_available():
             export_settings['gltf_draco_mesh_compression'] = self.export_draco_mesh_compression_enable
@@ -1498,6 +1505,7 @@ def export_panel_data(layout, operator):
     if body:
         export_panel_data_scene_graph(body, operator)
         export_panel_data_mesh(body, operator)
+        export_panel_data_pointclouds(body, operator)
         export_panel_data_material(body, operator)
         export_panel_data_shapekeys(body, operator)
         export_panel_data_armature(body, operator)
@@ -1560,6 +1568,15 @@ def export_panel_data_mesh(layout, operator):
             row = sub_body.row()
             row.active = operator.export_vertex_color != "NONE"
             row.prop(operator, 'export_active_vertex_color_when_no_material')
+
+
+def export_panel_data_pointclouds(layout, operator):
+    header, body = layout.panel("GLTF_export_data_pointclouds", default_closed=True)
+    header.use_property_split = False
+    header.prop(operator, "export_pointclouds", text="")
+    header.label(text="Point Clouds")
+    if body:
+        pass
 
 
 def export_panel_data_material(layout, operator):

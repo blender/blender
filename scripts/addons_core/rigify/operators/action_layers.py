@@ -513,7 +513,7 @@ class DATA_PT_rigify_actions(Panel):
         row.prop_search(active_slot, trigger_prop, metarig.data, 'rigify_action_slots', icon=icon)
 
         if not trigger:
-            row = layout.split(factor=0.4)
+            row = layout.split(factor=layout.property_split_factor)
             row.separator()
             row.alert = True
             row.label(text="Action not in list", icon='STATUS_ERROR')
@@ -552,7 +552,7 @@ class DATA_PT_rigify_actions(Panel):
             row.alert = not subtarget_exists
 
             if slot.subtarget and not subtarget_exists:
-                row = layout.split(factor=0.4)
+                row = layout.split(factor=layout.property_split_factor)
                 row.column()
                 row.alert = True
                 text = rpt_("Bone not found: {:s}").format(slot.subtarget)
@@ -573,7 +573,7 @@ class DATA_PT_rigify_actions(Panel):
             if slot.symmetrical and not flipped_subtarget_exists:
                 row.alert = True
 
-                row = layout.split(factor=0.4)
+                row = layout.split(factor=layout.property_split_factor)
                 row.column()
                 row.alert = True
                 text = rpt_("Bone not found: {:s}").format(flipped_subtarget)
@@ -595,7 +595,7 @@ class DATA_PT_rigify_actions(Panel):
         """
         layout = self.layout
 
-        split = layout.split(factor=0.4)
+        split = layout.split(factor=layout.property_split_factor)
         heading = split.row()
         heading.alignment = 'RIGHT'
         heading.label(text="Status:")

@@ -12,8 +12,8 @@
 #include "eevee_defines.hh"
 #include "eevee_utility_tx.bsl.hh"
 #include "gpu_shader_compat.hh"
-#include "gpu_shader_math_base_lib.glsl"
-#include "gpu_shader_utildefines_lib.glsl"
+#include "gpu_shader_math_base.bsl.hh"
+#include "gpu_shader_utildefines.bsl.hh"
 
 namespace eevee::lut {
 

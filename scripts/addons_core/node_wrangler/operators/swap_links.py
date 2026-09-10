@@ -9,7 +9,6 @@ from ..utils.nodes import (
     NWBase,
     nw_check,
     nw_check_selected,
-    get_nodes_links,
     force_update,
 )
 
@@ -27,7 +26,8 @@ class NODE_OT_swap_links(Operator, NWBase):
         return nw_check(cls, context) and nw_check_selected(cls, context, max=2)
 
     def execute(self, context):
-        _nodes, links = get_nodes_links(context)
+        tree = context.space_data.edit_tree
+        links = tree.links
         selected_nodes = context.selected_nodes
         n1 = selected_nodes[0]
 

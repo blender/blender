@@ -23,10 +23,10 @@
 #include "eevee_uniform.bsl.hh"
 #include "eevee_utility_tx.bsl.hh"
 #include "gpu_shader_codegen_lib.glsl"
-#include "gpu_shader_math_base_lib.glsl"
-#include "gpu_shader_math_safe_lib.glsl"
-#include "gpu_shader_math_vector_reduce_lib.glsl"
-#include "gpu_shader_utildefines_lib.glsl"
+#include "gpu_shader_math_base.bsl.hh"
+#include "gpu_shader_math_safe.bsl.hh"
+#include "gpu_shader_math_vector_reduce.bsl.hh"
+#include "gpu_shader_utildefines.bsl.hh"
 
 /* Global thickness because it is needed for closure_to_rgba. */
 Thickness g_thickness;
@@ -985,11 +985,11 @@ void node_shadow_raycast_impl([[maybe_unused]] const int light_index,
                               float4 &color)
 {
   /* clang-format off */ /* Multi-line macros would break line count. */
-  [[resource_table, maybe_unused]] const eevee::LightRenderData &lrd = resource_table_get(eevee::LightRenderData);
-  [[resource_table, maybe_unused]] eevee::ShadowRenderData &srd = resource_table_get(eevee::ShadowRenderData);
+  [[resource_table]] [[maybe_unused]] const eevee::LightRenderData &lrd = resource_table_get(eevee::LightRenderData);
+  [[resource_table]] [[maybe_unused]] eevee::ShadowRenderData &srd = resource_table_get(eevee::ShadowRenderData);
   /* clang-format on */
-  [[resource_table, maybe_unused]] draw::Infos &infos = resource_table_get(draw::Infos);
-  [[resource_table, maybe_unused]] eevee::Uniform &uni = resource_table_get(eevee::Uniform);
+  [[resource_table]] [[maybe_unused]] draw::Infos &infos = resource_table_get(draw::Infos);
+  [[resource_table]] [[maybe_unused]] eevee::Uniform &uni = resource_table_get(eevee::Uniform);
 
   color = float4(1.0f);
 

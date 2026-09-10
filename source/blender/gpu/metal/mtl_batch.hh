@@ -91,13 +91,10 @@ class MTLBatch : public Batch {
 
   void draw(int v_first, int v_count, int i_first, int i_count) override;
   void draw_indirect(StorageBuf *indirect_buf, intptr_t offset) override;
-  void multi_draw_indirect(StorageBuf * /*indirect_buf*/,
-                           int /*count*/,
-                           intptr_t /*offset*/,
-                           intptr_t /*stride*/) override
-  {
-    /* TODO(Metal): Support indirect draw commands. */
-  }
+  void multi_draw_indirect(StorageBuf *indirect_buf,
+                           int count,
+                           intptr_t offset,
+                           intptr_t stride) override;
 
   /* Returns an initialized RenderComandEncoder for drawing if all is good.
    * Otherwise, nil. */
@@ -121,6 +118,10 @@ class MTLBatch : public Batch {
  private:
   void draw_advanced(int v_first, int v_count, int i_first, int i_count);
   void draw_advanced_indirect(StorageBuf *indirect_buf, intptr_t offset);
+  void draw_advanced_indirect_internal(StorageBuf *indirect_buf,
+                                       int count,
+                                       intptr_t offset,
+                                       intptr_t stride);
 
   VertBufBinding prepare_vertex_binding(MTLVertBuf *verts,
                                         MTLRenderPipelineStateDescriptor &desc,

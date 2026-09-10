@@ -13,6 +13,7 @@ from bpy.app.translations import (
 from . import interface
 
 from .utils.constants import nice_hotkey_name
+from dataclasses import dataclass
 
 
 # Principled prefs
@@ -138,19 +139,17 @@ class NWNodeWrangler(bpy.types.AddonPreferences):
             col.separator()
 
             for hotkey in kmi_defs:
-                if hotkey[7]:
-                    hotkey_name = hotkey[7]
-
+                if hotkey_name := hotkey.label:
                     if (self.hotkey_list_filter.lower() in hotkey_name.lower()
                             or self.hotkey_list_filter.lower() in iface_(hotkey_name).lower()):
                         row = col.row(align=True)
                         row.label(text=hotkey_name)
-                        keystr = iface_(nice_hotkey_name(hotkey[1]), i18n_contexts.ui_events_keymaps)
-                        if hotkey[4]:
+                        keystr = iface_(nice_hotkey_name(hotkey.key), i18n_contexts.ui_events_keymaps)
+                        if hotkey.shift:
                             keystr = iface_("Shift", i18n_contexts.ui_events_keymaps) + " " + keystr
-                        if hotkey[5]:
+                        if hotkey.alt:
                             keystr = iface_("Alt", i18n_contexts.ui_events_keymaps) + " " + keystr
-                        if hotkey[3]:
+                        if hotkey.ctrl:
                             keystr = iface_("Ctrl", i18n_contexts.ui_events_keymaps) + " " + keystr
                         row.label(text=keystr, translate=False)
 
@@ -172,209 +171,213 @@ class NWNodeWrangler(bpy.types.AddonPreferences):
 #
 #  REGISTER/UNREGISTER CLASSES AND KEYMAP ITEMS
 #
+@dataclass(frozen=True, slots=True)
+class Hotkey:
+    bl_idname: str
+    label: str
+    key: str = 'NONE'
+    input_mode: str = 'PRESS'
+
+    ctrl: bool = False
+    shift: bool = False
+    alt: bool = False
+    props: dict = ()
+
+
 addon_keymaps = []
 # kmi_defs entry: (identifier, key, action, CTRL, SHIFT, ALT, props, nice name)
 # props entry: (property name, property value)
 kmi_defs = (
     # MERGE NODES
     # NWMergeNodes with Ctrl (AUTO).
-    ("node.nw_merge_nodes", 'NUMPAD_0', 'PRESS', True, False, False,
-        (('mode', 'MIX'), ('merge_type', 'AUTO'),), n_("Merge Nodes (Automatic)")),
-    ("node.nw_merge_nodes", 'ZERO', 'PRESS', True, False, False,
-        (('mode', 'MIX'), ('merge_type', 'AUTO'),), n_("Merge Nodes (Automatic)")),
-    ("node.nw_merge_nodes", 'NUMPAD_PLUS', 'PRESS', True, False, False,
-        (('mode', 'ADD'), ('merge_type', 'AUTO'),), n_("Merge Nodes (Add)")),
-    ("node.nw_merge_nodes", 'EQUAL', 'PRESS', True, False, False,
-        (('mode', 'ADD'), ('merge_type', 'AUTO'),), n_("Merge Nodes (Add)")),
-    ("node.nw_merge_nodes", 'NUMPAD_ASTERIX', 'PRESS', True, False, False,
-        (('mode', 'MULTIPLY'), ('merge_type', 'AUTO'),), n_("Merge Nodes (Multiply)")),
-    ("node.nw_merge_nodes", 'EIGHT', 'PRESS', True, False, False,
-        (('mode', 'MULTIPLY'), ('merge_type', 'AUTO'),), n_("Merge Nodes (Multiply)")),
-    ("node.nw_merge_nodes", 'NUMPAD_MINUS', 'PRESS', True, False, False,
-        (('mode', 'SUBTRACT'), ('merge_type', 'AUTO'),), n_("Merge Nodes (Subtract)")),
-    ("node.nw_merge_nodes", 'MINUS', 'PRESS', True, False, False,
-        (('mode', 'SUBTRACT'), ('merge_type', 'AUTO'),), n_("Merge Nodes (Subtract)")),
-    ("node.nw_merge_nodes", 'NUMPAD_SLASH', 'PRESS', True, False, False,
-        (('mode', 'DIVIDE'), ('merge_type', 'AUTO'),), n_("Merge Nodes (Divide)")),
-    ("node.nw_merge_nodes", 'SLASH', 'PRESS', True, False, False,
-        (('mode', 'DIVIDE'), ('merge_type', 'AUTO'),), n_("Merge Nodes (Divide)")),
-    ("node.nw_merge_nodes", 'COMMA', 'PRESS', True, False, False,
-        (('mode', 'LESS_THAN'), ('merge_type', 'MATH'),), n_("Merge Nodes (Less Than)")),
-    ("node.nw_merge_nodes", 'PERIOD', 'PRESS', True, False, False,
-        (('mode', 'GREATER_THAN'), ('merge_type', 'MATH'),), n_("Merge Nodes (Greater Than)")),
-    ("node.nw_merge_nodes", 'NUMPAD_PERIOD', 'PRESS', True, False, False,
-        (('mode', 'MIX'), ('merge_type', 'DEPTH_COMBINE'),), n_("Merge Nodes (Depth Combine)")),
+    Hotkey("node.nw_merge_nodes", n_("Merge Nodes (Automatic)"), key='NUMPAD_0',
+           ctrl=True, props=(('mode', 'MIX'), ('merge_type', 'AUTO'),)),
+    Hotkey("node.nw_merge_nodes", n_("Merge Nodes (Automatic)"), key='ZERO',
+           ctrl=True, props=(('mode', 'MIX'), ('merge_type', 'AUTO'),)),
+    Hotkey("node.nw_merge_nodes", n_("Merge Nodes (Add)"), key='NUMPAD_PLUS',
+           ctrl=True, props=(('mode', 'ADD'), ('merge_type', 'AUTO'),)),
+    Hotkey("node.nw_merge_nodes", n_("Merge Nodes (Add)"), key='EQUAL',
+           ctrl=True, props=(('mode', 'ADD'), ('merge_type', 'AUTO'),)),
+    Hotkey("node.nw_merge_nodes", n_("Merge Nodes (Multiply)"), key='NUMPAD_ASTERIX',
+           ctrl=True, props=(('mode', 'MULTIPLY'), ('merge_type', 'AUTO'),)),
+    Hotkey("node.nw_merge_nodes", n_("Merge Nodes (Multiply)"), key='EIGHT',
+           ctrl=True, props=(('mode', 'MULTIPLY'), ('merge_type', 'AUTO'),)),
+    Hotkey("node.nw_merge_nodes", n_("Merge Nodes (Subtract)"), key='NUMPAD_MINUS',
+           ctrl=True, props=(('mode', 'SUBTRACT'), ('merge_type', 'AUTO'),)),
+    Hotkey("node.nw_merge_nodes", n_("Merge Nodes (Subtract)"), key='MINUS',
+           ctrl=True, props=(('mode', 'SUBTRACT'), ('merge_type', 'AUTO'),)),
+    Hotkey("node.nw_merge_nodes", n_("Merge Nodes (Divide)"), key='NUMPAD_SLASH',
+           ctrl=True, props=(('mode', 'DIVIDE'), ('merge_type', 'AUTO'),)),
+    Hotkey("node.nw_merge_nodes", n_("Merge Nodes (Divide)"), key='SLASH',
+           ctrl=True, props=(('mode', 'DIVIDE'), ('merge_type', 'AUTO'),)),
+    Hotkey("node.nw_merge_nodes", n_("Merge Nodes (Less Than)"), key='COMMA',
+           ctrl=True, props=(('mode', 'LESS_THAN'), ('merge_type', 'MATH'),)),
+    Hotkey("node.nw_merge_nodes", n_("Merge Nodes (Greater Than)"), key='PERIOD',
+           ctrl=True, props=(('mode', 'GREATER_THAN'), ('merge_type', 'MATH'),)),
+    Hotkey("node.nw_merge_nodes", n_("Merge Nodes (Depth Combine)"), key='NUMPAD_PERIOD',
+           ctrl=True, props=(('mode', 'MIX'), ('merge_type', 'DEPTH_COMBINE'),)),
     # NWMergeNodes with Ctrl Alt (MIX or ALPHAOVER)
-    ("node.nw_merge_nodes", 'NUMPAD_0', 'PRESS', True, False, True,
-        (('mode', 'MIX'), ('merge_type', 'ALPHAOVER'),), n_("Merge Nodes (Alpha Over)")),
-    ("node.nw_merge_nodes", 'ZERO', 'PRESS', True, False, True,
-        (('mode', 'MIX'), ('merge_type', 'ALPHAOVER'),), n_("Merge Nodes (Alpha Over)")),
-    ("node.nw_merge_nodes", 'NUMPAD_PLUS', 'PRESS', True, False, True,
-        (('mode', 'ADD'), ('merge_type', 'MIX'),), n_("Merge Nodes (Color, Add)")),
-    ("node.nw_merge_nodes", 'EQUAL', 'PRESS', True, False, True,
-        (('mode', 'ADD'), ('merge_type', 'MIX'),), n_("Merge Nodes (Color, Add)")),
-    ("node.nw_merge_nodes", 'NUMPAD_ASTERIX', 'PRESS', True, False, True,
-        (('mode', 'MULTIPLY'), ('merge_type', 'MIX'),), n_("Merge Nodes (Color, Multiply)")),
-    ("node.nw_merge_nodes", 'EIGHT', 'PRESS', True, False, True,
-        (('mode', 'MULTIPLY'), ('merge_type', 'MIX'),), n_("Merge Nodes (Color, Multiply)")),
-    ("node.nw_merge_nodes", 'NUMPAD_MINUS', 'PRESS', True, False, True,
-        (('mode', 'SUBTRACT'), ('merge_type', 'MIX'),), n_("Merge Nodes (Color, Subtract)")),
-    ("node.nw_merge_nodes", 'MINUS', 'PRESS', True, False, True,
-        (('mode', 'SUBTRACT'), ('merge_type', 'MIX'),), n_("Merge Nodes (Color, Subtract)")),
-    ("node.nw_merge_nodes", 'NUMPAD_SLASH', 'PRESS', True, False, True,
-        (('mode', 'DIVIDE'), ('merge_type', 'MIX'),), n_("Merge Nodes (Color, Divide)")),
-    ("node.nw_merge_nodes", 'SLASH', 'PRESS', True, False, True,
-        (('mode', 'DIVIDE'), ('merge_type', 'MIX'),), n_("Merge Nodes (Color, Divide)")),
+    Hotkey("node.nw_merge_nodes", n_("Merge Nodes (Alpha Over)"), key='NUMPAD_0',
+           ctrl=True, alt=True, props=(('mode', 'MIX'), ('merge_type', 'ALPHAOVER'),)),
+    Hotkey("node.nw_merge_nodes", n_("Merge Nodes (Alpha Over)"), key='ZERO',
+           ctrl=True, alt=True, props=(('mode', 'MIX'), ('merge_type', 'ALPHAOVER'),)),
+    Hotkey("node.nw_merge_nodes", n_("Merge Nodes (Color, Add)"), key='NUMPAD_PLUS',
+           ctrl=True, alt=True, props=(('mode', 'ADD'), ('merge_type', 'MIX'),)),
+    Hotkey("node.nw_merge_nodes", n_("Merge Nodes (Color, Add)"), key='EQUAL',
+           ctrl=True, alt=True, props=(('mode', 'ADD'), ('merge_type', 'MIX'),)),
+    Hotkey("node.nw_merge_nodes", n_("Merge Nodes (Color, Multiply)"), key='NUMPAD_ASTERIX',
+           ctrl=True, alt=True, props=(('mode', 'MULTIPLY'), ('merge_type', 'MIX'),)),
+    Hotkey("node.nw_merge_nodes", n_("Merge Nodes (Color, Multiply)"), key='EIGHT',
+           ctrl=True, alt=True, props=(('mode', 'MULTIPLY'), ('merge_type', 'MIX'),)),
+    Hotkey("node.nw_merge_nodes", n_("Merge Nodes (Color, Subtract)"), key='NUMPAD_MINUS',
+           ctrl=True, alt=True, props=(('mode', 'SUBTRACT'), ('merge_type', 'MIX'),)),
+    Hotkey("node.nw_merge_nodes", n_("Merge Nodes (Color, Subtract)"), key='MINUS',
+           ctrl=True, alt=True, props=(('mode', 'SUBTRACT'), ('merge_type', 'MIX'),)),
+    Hotkey("node.nw_merge_nodes", n_("Merge Nodes (Color, Divide)"), key='NUMPAD_SLASH',
+           ctrl=True, alt=True, props=(('mode', 'DIVIDE'), ('merge_type', 'MIX'),)),
+    Hotkey("node.nw_merge_nodes", n_("Merge Nodes (Color, Divide)"), key='SLASH',
+           ctrl=True, alt=True, props=(('mode', 'DIVIDE'), ('merge_type', 'MIX'),)),
     # NWMergeNodes with Ctrl Shift (MATH)
-    ("node.nw_merge_nodes", 'NUMPAD_PLUS', 'PRESS', True, True, False,
-        (('mode', 'ADD'), ('merge_type', 'MATH'),), n_("Merge Nodes (Math, Add)")),
-    ("node.nw_merge_nodes", 'EQUAL', 'PRESS', True, True, False,
-        (('mode', 'ADD'), ('merge_type', 'MATH'),), n_("Merge Nodes (Math, Add)")),
-    ("node.nw_merge_nodes", 'NUMPAD_ASTERIX', 'PRESS', True, True, False,
-        (('mode', 'MULTIPLY'), ('merge_type', 'MATH'),), n_("Merge Nodes (Math, Multiply)")),
-    ("node.nw_merge_nodes", 'EIGHT', 'PRESS', True, True, False,
-        (('mode', 'MULTIPLY'), ('merge_type', 'MATH'),), n_("Merge Nodes (Math, Multiply)")),
-    ("node.nw_merge_nodes", 'NUMPAD_MINUS', 'PRESS', True, True, False,
-        (('mode', 'SUBTRACT'), ('merge_type', 'MATH'),), n_("Merge Nodes (Math, Subtract)")),
-    ("node.nw_merge_nodes", 'MINUS', 'PRESS', True, True, False,
-        (('mode', 'SUBTRACT'), ('merge_type', 'MATH'),), n_("Merge Nodes (Math, Subtract)")),
-    ("node.nw_merge_nodes", 'NUMPAD_SLASH', 'PRESS', True, True, False,
-        (('mode', 'DIVIDE'), ('merge_type', 'MATH'),), n_("Merge Nodes (Math, Divide)")),
-    ("node.nw_merge_nodes", 'SLASH', 'PRESS', True, True, False,
-        (('mode', 'DIVIDE'), ('merge_type', 'MATH'),), n_("Merge Nodes (Math, Divide)")),
-    ("node.nw_merge_nodes", 'COMMA', 'PRESS', True, True, False,
-        (('mode', 'LESS_THAN'), ('merge_type', 'MATH'),), n_("Merge Nodes (Math, Less than)")),
-    ("node.nw_merge_nodes", 'PERIOD', 'PRESS', True, True, False,
-        (('mode', 'GREATER_THAN'), ('merge_type', 'MATH'),), n_("Merge Nodes (Math, Greater than)")),
+    Hotkey("node.nw_merge_nodes", n_("Merge Nodes (Math, Add)"), key='NUMPAD_PLUS',
+           ctrl=True, shift=True, props=(('mode', 'ADD'), ('merge_type', 'MATH'),)),
+    Hotkey("node.nw_merge_nodes", n_("Merge Nodes (Math, Add)"), key='EQUAL',
+           ctrl=True, shift=True, props=(('mode', 'ADD'), ('merge_type', 'MATH'),)),
+    Hotkey("node.nw_merge_nodes", n_("Merge Nodes (Math, Multiply)"), key='NUMPAD_ASTERIX',
+           ctrl=True, shift=True, props=(('mode', 'MULTIPLY'), ('merge_type', 'MATH'),)),
+    Hotkey("node.nw_merge_nodes", n_("Merge Nodes (Math, Multiply)"), key='EIGHT',
+           ctrl=True, shift=True, props=(('mode', 'MULTIPLY'), ('merge_type', 'MATH'),)),
+    Hotkey("node.nw_merge_nodes", n_("Merge Nodes (Math, Subtract)"), key='NUMPAD_MINUS',
+           ctrl=True, shift=True, props=(('mode', 'SUBTRACT'), ('merge_type', 'MATH'),)),
+    Hotkey("node.nw_merge_nodes", n_("Merge Nodes (Math, Subtract)"), key='MINUS',
+           ctrl=True, shift=True, props=(('mode', 'SUBTRACT'), ('merge_type', 'MATH'),)),
+    Hotkey("node.nw_merge_nodes", n_("Merge Nodes (Math, Divide)"), key='NUMPAD_SLASH',
+           ctrl=True, shift=True, props=(('mode', 'DIVIDE'), ('merge_type', 'MATH'),)),
+    Hotkey("node.nw_merge_nodes", n_("Merge Nodes (Math, Divide)"), key='SLASH',
+           ctrl=True, shift=True, props=(('mode', 'DIVIDE'), ('merge_type', 'MATH'),)),
+    Hotkey("node.nw_merge_nodes", n_("Merge Nodes (Math, Less than)"), key='COMMA',
+           ctrl=True, shift=True, props=(('mode', 'LESS_THAN'), ('merge_type', 'MATH'),)),
+    Hotkey("node.nw_merge_nodes", n_("Merge Nodes (Math, Greater than)"), key='PERIOD',
+           ctrl=True, shift=True, props=(('mode', 'GREATER_THAN'), ('merge_type', 'MATH'),)),
     # BATCH CHANGE NODES
     # NWBatchChangeNodes with Alt
-    ("node.nw_batch_change", 'NUMPAD_0', 'PRESS', False, False, True,
-        (('blend_type', 'MIX'), ('operation', 'CURRENT'),), n_("Batch Change Blend Type (Mix)")),
-    ("node.nw_batch_change", 'ZERO', 'PRESS', False, False, True,
-        (('blend_type', 'MIX'), ('operation', 'CURRENT'),), n_("Batch Change Blend Type (Mix)")),
-    ("node.nw_batch_change", 'NUMPAD_PLUS', 'PRESS', False, False, True,
-        (('blend_type', 'ADD'), ('operation', 'ADD'),), n_("Batch Change Blend Type (Add)")),
-    ("node.nw_batch_change", 'EQUAL', 'PRESS', False, False, True,
-        (('blend_type', 'ADD'), ('operation', 'ADD'),), n_("Batch Change Blend Type (Add)")),
-    ("node.nw_batch_change", 'NUMPAD_ASTERIX', 'PRESS', False, False, True,
-        (('blend_type', 'MULTIPLY'), ('operation', 'MULTIPLY'),), n_("Batch Change Blend Type (Multiply)")),
-    ("node.nw_batch_change", 'EIGHT', 'PRESS', False, False, True,
-        (('blend_type', 'MULTIPLY'), ('operation', 'MULTIPLY'),), n_("Batch Change Blend Type (Multiply)")),
-    ("node.nw_batch_change", 'NUMPAD_MINUS', 'PRESS', False, False, True,
-        (('blend_type', 'SUBTRACT'), ('operation', 'SUBTRACT'),), n_("Batch Change Blend Type (Subtract)")),
-    ("node.nw_batch_change", 'MINUS', 'PRESS', False, False, True,
-        (('blend_type', 'SUBTRACT'), ('operation', 'SUBTRACT'),), n_("Batch Change Blend Type (Subtract)")),
-    ("node.nw_batch_change", 'NUMPAD_SLASH', 'PRESS', False, False, True,
-        (('blend_type', 'DIVIDE'), ('operation', 'DIVIDE'),), n_("Batch Change Blend Type (Divide)")),
-    ("node.nw_batch_change", 'SLASH', 'PRESS', False, False, True,
-        (('blend_type', 'DIVIDE'), ('operation', 'DIVIDE'),), n_("Batch Change Blend Type (Divide)")),
-    ("node.nw_batch_change", 'COMMA', 'PRESS', False, False, True,
-        (('blend_type', 'CURRENT'), ('operation', 'LESS_THAN'),), n_("Batch Change Blend Type (Current)")),
-    ("node.nw_batch_change", 'PERIOD', 'PRESS', False, False, True,
-        (('blend_type', 'CURRENT'), ('operation', 'GREATER_THAN'),), n_("Batch Change Blend Type (Current)")),
-    ("node.nw_batch_change", 'DOWN_ARROW', 'PRESS', False, False, True,
-        (('blend_type', 'NEXT'), ('operation', 'NEXT'),), n_("Batch Change Blend Type (Next)")),
-    ("node.nw_batch_change", 'UP_ARROW', 'PRESS', False, False, True,
-        (('blend_type', 'PREV'), ('operation', 'PREV'),), n_("Batch Change Blend Type (Previous)")),
+    Hotkey("node.nw_batch_change", n_("Batch Change Blend Type (Mix)"), key='NUMPAD_0',
+           alt=True, props=(('blend_type', 'MIX'), ('operation', 'CURRENT'),)),
+    Hotkey("node.nw_batch_change", n_("Batch Change Blend Type (Mix)"), key='ZERO',
+           alt=True, props=(('blend_type', 'MIX'), ('operation', 'CURRENT'),)),
+    Hotkey("node.nw_batch_change", n_("Batch Change Blend Type (Add)"), key='NUMPAD_PLUS',
+           alt=True, props=(('blend_type', 'ADD'), ('operation', 'ADD'),)),
+    Hotkey("node.nw_batch_change", n_("Batch Change Blend Type (Add)"), key='EQUAL',
+           alt=True, props=(('blend_type', 'ADD'), ('operation', 'ADD'),)),
+    Hotkey("node.nw_batch_change", n_("Batch Change Blend Type (Multiply)"), key='NUMPAD_ASTERIX',
+           alt=True, props=(('blend_type', 'MULTIPLY'), ('operation', 'MULTIPLY'),)),
+    Hotkey("node.nw_batch_change", n_("Batch Change Blend Type (Multiply)"), key='EIGHT',
+           alt=True, props=(('blend_type', 'MULTIPLY'), ('operation', 'MULTIPLY'),)),
+    Hotkey("node.nw_batch_change", n_("Batch Change Blend Type (Subtract)"), key='NUMPAD_MINUS',
+           alt=True, props=(('blend_type', 'SUBTRACT'), ('operation', 'SUBTRACT'),)),
+    Hotkey("node.nw_batch_change", n_("Batch Change Blend Type (Subtract)"), key='MINUS',
+           alt=True, props=(('blend_type', 'SUBTRACT'), ('operation', 'SUBTRACT'),)),
+    Hotkey("node.nw_batch_change", n_("Batch Change Blend Type (Divide)"), key='NUMPAD_SLASH',
+           alt=True, props=(('blend_type', 'DIVIDE'), ('operation', 'DIVIDE'),)),
+    Hotkey("node.nw_batch_change", n_("Batch Change Blend Type (Divide)"), key='SLASH',
+           alt=True, props=(('blend_type', 'DIVIDE'), ('operation', 'DIVIDE'),)),
+    Hotkey("node.nw_batch_change", n_("Batch Change Blend Type (Current)"), key='COMMA',
+           alt=True, props=(('blend_type', 'CURRENT'), ('operation', 'LESS_THAN'),)),
+    Hotkey("node.nw_batch_change", n_("Batch Change Blend Type (Current)"), key='PERIOD',
+           alt=True, props=(('blend_type', 'CURRENT'), ('operation', 'GREATER_THAN'),)),
+    Hotkey("node.nw_batch_change", n_("Batch Change Blend Type (Next)"), key='DOWN_ARROW',
+           alt=True, props=(('blend_type', 'NEXT'), ('operation', 'NEXT'),)),
+    Hotkey("node.nw_batch_change", n_("Batch Change Blend Type (Previous)"), key='UP_ARROW',
+           alt=True, props=(('blend_type', 'PREV'), ('operation', 'PREV'),)),
     # LINK ACTIVE TO SELECTED
     # Don't use names, don't replace links (K)
-    ("node.nw_link_active_to_selected", 'K', 'PRESS', False, False, False,
-        (('replace', False), ('use_node_name', False), ('use_outputs_names', False),),
-        n_("Link Active to Selected (Don't Replace Links)")),
+    Hotkey("node.nw_link_active_to_selected", n_("Link Active to Selected (Don't Replace Links)"),
+           key='K', props=(('replace', False), ('use_node_name', False), ('use_outputs_names', False),)),
     # Don't use names, replace links (Shift K)
-    ("node.nw_link_active_to_selected", 'K', 'PRESS', False, True, False,
-        (('replace', True), ('use_node_name', False), ('use_outputs_names', False),),
-        n_("Link Active to Selected (Replace Links)")),
+    Hotkey("node.nw_link_active_to_selected", n_("Link Active to Selected (Replace Links)"), key='K',
+           shift=True, props=(('replace', True), ('use_node_name', False), ('use_outputs_names', False),)),
     # Use node name, don't replace links (')
-    ("node.nw_link_active_to_selected", 'QUOTE', 'PRESS', False, False, False,
-        (('replace', False), ('use_node_name', True), ('use_outputs_names', False),),
-        n_("Link Active to Selected (Don't Replace Links, Node Names)")),
+    Hotkey("node.nw_link_active_to_selected", n_("Link Active to Selected (Don't Replace Links, Node Names)"),
+           key='QUOTE', props=(('replace', False), ('use_node_name', True), ('use_outputs_names', False),)),
     # Use node name, replace links (Shift ')
-    ("node.nw_link_active_to_selected", 'QUOTE', 'PRESS', False, True, False,
-        (('replace', True), ('use_node_name', True), ('use_outputs_names', False),),
-        n_("Link Active to Selected (Replace Links, Node Names)")),
+    Hotkey("node.nw_link_active_to_selected", n_("Link Active to Selected (Replace Links, Node Names)"),
+           key='QUOTE', shift=True, props=(('replace', True), ('use_node_name', True), ('use_outputs_names', False),)),
     # Don't use names, don't replace links (;)
-    ("node.nw_link_active_to_selected", 'SEMI_COLON', 'PRESS', False, False, False,
-        (('replace', False), ('use_node_name', False), ('use_outputs_names', True),),
-        n_("Link Active to Selected (Don't Replace Links, Output Names)")),
+    Hotkey("node.nw_link_active_to_selected", n_("Link Active to Selected (Don't Replace Links, Output Names)"),
+           key='SEMI_COLON', props=(('replace', False), ('use_node_name', False), ('use_outputs_names', True),)),
     # Don't use names, replace links (')
-    ("node.nw_link_active_to_selected", 'SEMI_COLON', 'PRESS', False, True, False,
-        (('replace', True), ('use_node_name', False), ('use_outputs_names', True),),
-        n_("Link Active to Selected (Replace Links, Output Names)")),
+    Hotkey("node.nw_link_active_to_selected", n_("Link Active to Selected (Replace Links, Output Names)"),
+           key='SEMI_COLON', shift=True, props=(('replace', True), ('use_node_name', False), ('use_outputs_names', True),)),
     # CHANGE MIX FACTOR
-    ("node.nw_factor", 'LEFT_ARROW', 'PRESS', False,
-     False, True, (('option', -0.1),), n_("Reduce Mix Factor by 0.1")),
-    ("node.nw_factor", 'RIGHT_ARROW', 'PRESS', False,
-     False, True, (('option', 0.1),), n_("Increase Mix Factor by 0.1")),
-    ("node.nw_factor", 'LEFT_ARROW', 'PRESS', False,
-     True, True, (('option', -0.01),), n_("Reduce Mix Factor by 0.01")),
-    ("node.nw_factor", 'RIGHT_ARROW', 'PRESS', False,
-     True, True, (('option', 0.01),), n_("Increase Mix Factor by 0.01")),
-    ("node.nw_factor", 'LEFT_ARROW', 'PRESS',
-     True, True, True, (('option', 0.0),), n_("Set Mix Factor to 0.0")),
-    ("node.nw_factor", 'RIGHT_ARROW', 'PRESS',
-     True, True, True, (('option', 1.0),), n_("Set Mix Factor to 1.0")),
-    ("node.nw_factor", 'NUMPAD_0', 'PRESS',
-     True, True, True, (('option', 0.0),), n_("Set Mix Factor to 0.0")),
-    ("node.nw_factor", 'ZERO', 'PRESS', True, True, True, (('option', 0.0),), n_("Set Mix Factor to 0.0")),
-    ("node.nw_factor", 'NUMPAD_1', 'PRESS', True, True, True, (('option', 1.0),), n_("Mix Factor to 1.0")),
-    ("node.nw_factor", 'ONE', 'PRESS', True, True, True, (('option', 1.0),), n_("Set Mix Factor to 1.0")),
+    Hotkey("node.nw_factor", n_("Reduce Mix Factor by 0.1"), key='LEFT_ARROW', alt=True, props=(('option', -0.1),)),
+    Hotkey("node.nw_factor", n_("Increase Mix Factor by 0.1"), key='RIGHT_ARROW', alt=True, props=(('option', 0.1),)),
+    Hotkey("node.nw_factor", n_("Reduce Mix Factor by 0.01"),
+           key='LEFT_ARROW', shift=True, alt=True, props=(('option', -0.01),)),
+    Hotkey("node.nw_factor", n_("Increase Mix Factor by 0.01"),
+           key='RIGHT_ARROW', shift=True, alt=True, props=(('option', 0.01),)),
+    Hotkey("node.nw_factor", n_("Set Mix Factor to 0.0"), key='LEFT_ARROW',
+           ctrl=True, shift=True, alt=True, props=(('option', 0.0),)),
+    Hotkey("node.nw_factor", n_("Set Mix Factor to 1.0"), key='RIGHT_ARROW',
+           ctrl=True, shift=True, alt=True, props=(('option', 1.0),)),
+    Hotkey("node.nw_factor", n_("Set Mix Factor to 0.0"), key='NUMPAD_0',
+           ctrl=True, shift=True, alt=True, props=(('option', 0.0),)),
+    Hotkey("node.nw_factor", n_("Set Mix Factor to 0.0"), key='ZERO',
+           ctrl=True, shift=True, alt=True, props=(('option', 0.0),)),
+    Hotkey("node.nw_factor", n_("Mix Factor to 1.0"), key='NUMPAD_1',
+           ctrl=True, shift=True, alt=True, props=(('option', 1.0),)),
+    Hotkey("node.nw_factor", n_("Set Mix Factor to 1.0"), key='ONE',
+           ctrl=True, shift=True, alt=True, props=(('option', 1.0),)),
     # CLEAR LABEL (Alt L)
-    ("node.nw_clear_label", 'L', 'PRESS', False, False, True, (('option', False),), n_("Clear Node Labels")),
+    Hotkey("node.nw_clear_label", n_("Clear Node Labels"), key='L', alt=True, props=(('option', False),)),
     # MODIFY LABEL (Alt Shift L)
-    ("node.nw_modify_labels", 'L', 'PRESS', False, True, True, None, n_("Modify Node Labels")),
+    Hotkey("node.nw_modify_labels", n_("Modify Node Labels"), key='L', shift=True, alt=True),
     # Copy Label from active to selected
-    ("node.nw_copy_label", 'V', 'PRESS', False, True, False,
-     (('option', 'FROM_ACTIVE'),), n_("Copy label from active to selected")),
+    Hotkey("node.nw_copy_label", n_("Copy label from active to selected"),
+           key='V', shift=True, props=(('option', 'FROM_ACTIVE'),)),
     # DETACH OUTPUTS (Alt Shift D)
-    ("node.nw_detach_outputs", 'D', 'PRESS', False, True, True, None, n_("Detach Outputs")),
+    Hotkey("node.nw_detach_outputs", n_("Detach Outputs"), key='D', shift=True, alt=True),
     # LINK TO OUTPUT NODE (O)
-    ("node.nw_link_out", 'O', 'PRESS', False, False, False, None, n_("Link to Output Node")),
+    Hotkey("node.nw_link_out", n_("Link to Output Node"), key='O'),
     # SELECT PARENT/CHILDREN
     # Select Children
-    ("node.nw_select_parent_child", 'RIGHT_BRACKET', 'PRESS',
-     False, False, False, (('option', 'CHILD'),), n_("Select Children")),
+    Hotkey("node.nw_select_parent_child", n_("Select Children"), key='RIGHT_BRACKET', props=(('option', 'CHILD'),)),
     # Select Parent
-    ("node.nw_select_parent_child", 'LEFT_BRACKET', 'PRESS',
-     False, False, False, (('option', 'PARENT'),), n_("Select Parent")),
+    Hotkey("node.nw_select_parent_child", n_("Select Parent"), key='LEFT_BRACKET', props=(('option', 'PARENT'),)),
     # Add Texture Setup
-    ("node.nw_add_texture", 'T', 'PRESS', True, False, False, None, n_("Add Texture Setup")),
+    Hotkey("node.nw_add_texture", n_("Add Texture Setup"), key='T', ctrl=True),
     # Add Principled BSDF Texture Setup
-    ("node.nw_add_textures_for_principled", 'T', 'PRESS', True, True, False, None, n_("Add Principled Texture Setup")),
+    Hotkey("node.nw_add_textures_for_principled", n_("Add Principled Texture Setup"), key='T', ctrl=True, shift=True),
     # Reset backdrop
-    ("node.nw_bg_reset", 'Z', 'PRESS', False, False, False, None, n_("Reset Backdrop Image Zoom")),
+    Hotkey("node.nw_bg_reset", n_("Reset Backdrop Image Zoom"), key='Z'),
     # Delete unused
-    ("node.nw_del_unused", 'X', 'PRESS', False, False, True, None, n_("Delete Unused Nodes")),
+    Hotkey("node.nw_del_unused", n_("Delete Unused Nodes"), key='X', alt=True),
     # Frame Selected
-    ('node.join', 'P', 'PRESS', False, True, False, None, n_("Frame Selected Nodes")),
+    Hotkey('node.join', n_("Frame Selected Nodes"), key='P', shift=True),
     # Swap Links
-    ("node.nw_swap_links", 'S', 'PRESS', False, False, True, None, n_("Swap Links")),
+    Hotkey("node.nw_swap_links", n_("Swap Links"), key='S', alt=True),
     # Reload Images
-    ("node.nw_reload_images", 'R', 'PRESS', False, False, True, None, n_("Reload Images")),
+    Hotkey("node.nw_reload_images", n_("Reload Images"), key='R', alt=True),
     # Lazy Mix
-    ("node.nw_lazy_mix", 'RIGHTMOUSE', 'PRESS', True, True, False, None, n_("Lazy Mix")),
+    Hotkey("node.nw_lazy_mix", n_("Lazy Mix"), key='RIGHTMOUSE', ctrl=True, shift=True),
     # Lazy Connect
-    ("node.nw_lazy_connect", 'RIGHTMOUSE', 'PRESS', False, False, True, (('with_menu', False),), n_("Lazy Connect")),
+    Hotkey("node.nw_lazy_connect", n_("Lazy Connect"), key='RIGHTMOUSE', alt=True, props=(('with_menu', False),)),
     # Lazy Connect with Menu
-    ("node.nw_lazy_connect", 'RIGHTMOUSE', 'PRESS', False,
-     True, True, (('with_menu', True),), n_("Lazy Connect with Socket Menu")),
+    Hotkey("node.nw_lazy_connect", n_("Lazy Connect with Socket Menu"),
+           key='RIGHTMOUSE', shift=True, alt=True, props=(('with_menu', True),)),
     # Align Nodes
-    ("node.nw_align_nodes", 'EQUAL', 'PRESS', False, True,
-     False, None, n_("Align Nodes")),
+    Hotkey("node.nw_align_nodes", n_("Align Nodes"), key='EQUAL', shift=True),
     # Reset Nodes (Back Space)
-    ("node.nw_reset_nodes", 'BACK_SPACE', 'PRESS', False, False,
-     False, None, n_("Reset Nodes")),
+    Hotkey("node.nw_reset_nodes", n_("Reset Nodes"), key='BACK_SPACE'),
     # MENUS
-    ('wm.call_menu', 'W', 'PRESS', False, True, False,
-     (('name', interface.NodeWranglerMenu.bl_idname),), n_("Node Wrangler (Menu)")),
-    ('wm.call_menu', 'SLASH', 'PRESS', False, False, False,
-     (('name', interface.NWAddReroutesMenu.bl_idname),), n_("Add Reroutes (Menu)")),
-    ('wm.call_menu', 'NUMPAD_SLASH', 'PRESS', False, False, False,
-     (('name', interface.NWAddReroutesMenu.bl_idname),), n_("Add Reroutes (Menu)")),
-    ('wm.call_menu', 'BACK_SLASH', 'PRESS', False, False, False,
-     (('name', interface.NWLinkActiveToSelectedMenu.bl_idname),), n_("Link Active to Selected (Menu)")),
-    ('wm.call_menu', 'C', 'PRESS', False, True, False,
-     (('name', interface.NWCopyToSelectedMenu.bl_idname),), n_("Copy to Selected (Menu)")),
+    Hotkey('wm.call_menu', n_("Node Wrangler (Menu)"), key='W', shift=True,
+           props=(('name', interface.NodeWranglerMenu.bl_idname),)),
+    Hotkey('wm.call_menu', n_("Add Reroutes (Menu)"), key='SLASH',
+           props=(('name', interface.NWAddReroutesMenu.bl_idname),)),
+    Hotkey('wm.call_menu', n_("Add Reroutes (Menu)"), key='NUMPAD_SLASH',
+           props=(('name', interface.NWAddReroutesMenu.bl_idname),)),
+    Hotkey('wm.call_menu', n_("Link Active to Selected (Menu)"), key='BACK_SLASH',
+           props=(('name', interface.NWLinkActiveToSelectedMenu.bl_idname),)),
+    Hotkey('wm.call_menu', n_("Copy to Selected (Menu)"), key='C', shift=True,
+           props=(('name', interface.NWCopyToSelectedMenu.bl_idname),)),
 )
 
 classes = (
@@ -392,11 +395,16 @@ def register():
     kc = bpy.context.window_manager.keyconfigs.addon
     if kc:
         km = kc.keymaps.new(name='Node Editor', space_type="NODE_EDITOR")
-        for (identifier, key, action, CTRL, SHIFT, ALT, props, nicename) in kmi_defs:
-            kmi = km.keymap_items.new(identifier, key, action, ctrl=CTRL, shift=SHIFT, alt=ALT)
-            if props:
-                for prop, value in props:
-                    setattr(kmi.properties, prop, value)
+        for hotkey in kmi_defs:
+            kmi = km.keymap_items.new(
+                hotkey.bl_idname,
+                hotkey.key,
+                hotkey.input_mode,
+                ctrl=hotkey.ctrl,
+                shift=hotkey.shift,
+                alt=hotkey.alt)
+            for prop, value in hotkey.props:
+                setattr(kmi.properties, prop, value)
             addon_keymaps.append((km, kmi))
 
 

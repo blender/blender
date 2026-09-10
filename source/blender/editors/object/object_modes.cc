@@ -599,7 +599,7 @@ static wmOperatorStatus object_transfer_mode_invoke(bContext *C,
   ED_outliner_select_sync_from_object_tag(C);
 
   WM_toolsystem_update_from_context_view3d(C);
-  if (mode_src & OB_MODE_ALL_PAINT) {
+  if (mode_src & OB_MODE_ALL_PAINT_MESH) {
     Paint *paint = BKE_paint_get_active_from_context(C);
     object_transfer_mode_reposition_view_pivot(region, paint, event->mval);
   }

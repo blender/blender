@@ -1496,7 +1496,7 @@ int getTransformOrientation_ex(const Main &bmain,
     /* We need the one selected object, if its not active. */
     if (ob != nullptr) {
       bool ok = false;
-      if (activeOnly || (ob->mode & (OB_MODE_ALL_PAINT | OB_MODE_PARTICLE_EDIT))) {
+      if (activeOnly || (ob->mode & (OB_MODE_ALL_PAINT_MESH | OB_MODE_PARTICLE_EDIT))) {
         /* Ignore selection state. */
         ok = true;
       }

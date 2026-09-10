@@ -135,7 +135,6 @@ static void calc_faces(const Depsgraph &depsgraph,
                        const Span<float3> persistent_base_normals,
                        Object &object,
                        bke::pbvh::MeshNode &node,
-                       LocalData &tls,
                        MutableSpan<float> layer_displacement_factor,
                        const PositionDeformData &position_data)
 {
@@ -144,18 +143,17 @@ static void calc_faces(const Depsgraph &depsgraph,
 
   const Span<int> verts = node.verts();
   const OrigPositionData orig_data = orig_position_data_get_mesh(object, node);
-  const MutableSpan positions = gather_data_mesh(position_data.eval, verts, tls.positions);
+  Array<float3, bke::pbvh::MESH_LEAF_LIMIT> positions(verts.size());
+  gather_data_mesh<float3>(position_data.eval, verts, positions);
 
-  tls.factors.resize(verts.size());
-  const MutableSpan<float> factors = tls.factors;
+  Array<float, bke::pbvh::MESH_LEAF_LIMIT> factors(verts.size());
   fill_factor_from_hide_and_mask(attribute_data.hide_vert, attribute_data.mask, verts, factors);
   filter_region_clip_factors(ss, positions, factors);
   if (brush.flag & BRUSH_FRONTFACE) {
     calc_front_face(cache.view_normal_symm, vert_normals, verts, factors);
   }
 
-  tls.distances.resize(verts.size());
-  const MutableSpan<float> distances = tls.distances;
+  Array<float, bke::pbvh::MESH_LEAF_LIMIT> distances(verts.size());
   calc_brush_distances(
       ss, orig_data.positions, eBrushFalloffShape(brush.falloff_shape), distances);
   filter_distances_with_radius(cache.radius, distances, factors);
@@ -166,38 +164,33 @@ static void calc_faces(const Depsgraph &depsgraph,
 
   calc_brush_texture_factors(ss, brush, positions, factors);
 
-  if (attribute_data.mask.is_empty()) {
-    tls.masks.clear();
+  Array<float, bke::pbvh::MESH_LEAF_LIMIT> masks(attribute_data.mask.is_empty() ? 0 :
+                                                                                  verts.size());
+  if (!attribute_data.mask.is_empty()) {
+    gather_data_mesh<float>(attribute_data.mask, verts, masks);
   }
-  else {
-    tls.masks.resize(verts.size());
-    gather_data_mesh(attribute_data.mask, verts, tls.masks.as_mutable_span());
-  }
-  const MutableSpan<float> masks = tls.masks;
 
-  tls.displacement_factors.resize(verts.size());
-  const MutableSpan<float> displacement_factors = tls.displacement_factors;
-  gather_data_mesh(layer_displacement_factor.as_span(), verts, displacement_factors);
+  Array<float, bke::pbvh::MESH_LEAF_LIMIT> displacement_factors(verts.size());
+  gather_data_mesh<float>(layer_displacement_factor.as_span(), verts, displacement_factors);
 
   if (use_persistent_base) {
     if (cache.toggle_settings.invert) {
-      reset_displacement_factors(displacement_factors, tls.factors, cache.bstrength);
+      reset_displacement_factors(displacement_factors, factors, cache.bstrength);
     }
     else {
-      offset_displacement_factors(displacement_factors, tls.factors, cache.bstrength);
+      offset_displacement_factors(displacement_factors, factors, cache.bstrength);
     }
     clamp_displacement_factors(displacement_factors, masks);
 
     scatter_data_mesh(displacement_factors.as_span(), verts, layer_displacement_factor);
 
-    tls.translations.resize(verts.size());
-    const MutableSpan<float3> translations = tls.translations;
+    Array<float3, bke::pbvh::MESH_LEAF_LIMIT> translations(verts.size());
     calc_translations(persistent_base_positions,
                       persistent_base_normals,
                       verts,
                       positions,
                       displacement_factors,
-                      tls.factors,
+                      factors,
                       brush.height,
                       translations);
 
@@ -205,18 +198,17 @@ static void calc_faces(const Depsgraph &depsgraph,
     position_data.deform(translations, verts);
   }
   else {
-    offset_displacement_factors(displacement_factors, tls.factors, cache.bstrength);
+    offset_displacement_factors(displacement_factors, factors, cache.bstrength);
     clamp_displacement_factors(displacement_factors, masks);
 
     scatter_data_mesh(displacement_factors.as_span(), verts, layer_displacement_factor);
 
-    tls.translations.resize(verts.size());
-    const MutableSpan<float3> translations = tls.translations;
+    Array<float3, bke::pbvh::MESH_LEAF_LIMIT> translations(verts.size());
     calc_translations(orig_data.positions,
                       orig_data.normals,
                       positions,
                       displacement_factors,
-                      tls.factors,
+                      factors,
                       brush.height,
                       translations);
 
@@ -438,7 +430,6 @@ void do_layer_brush(const Depsgraph &depsgraph,
       MutableSpan<bke::pbvh::MeshNode> nodes = pbvh.nodes<bke::pbvh::MeshNode>();
       node_mask.foreach_index(
           [&](const int i) {
-            LocalData &tls = all_tls.local();
             calc_faces(depsgraph,
                        sd,
                        brush,
@@ -449,7 +440,6 @@ void do_layer_brush(const Depsgraph &depsgraph,
                        persistent_normal,
                        object,
                        nodes[i],
-                       tls,
                        displacement,
                        position_data);
             bke::pbvh::update_node_bounds_mesh(position_data.eval, nodes[i]);

@@ -6431,12 +6431,23 @@ void BKE_constraints_active_set(ListBaseT<bConstraint> *list, bConstraint *con)
 
 bool BKE_constraint_has_influence(const bConstraint *con)
 {
-  if (con->flag & (CONSTRAINT_DISABLE | CONSTRAINT_OFF)) {
+  if (con->flag & CONSTRAINT_OFF) {
     return false;
   }
   if (con->enforce == 0.0f) {
     return false;
   }
+  if (con->flag & CONSTRAINT_DISABLE) {
+    if (con->type != CONSTRAINT_TYPE_KINEMATIC) {
+      return false;
+    }
+    /* Targetless/Auto IK constraints still need to be considered "active". */
+    bKinematicConstraint *data = static_cast<bKinematicConstraint *>(con->data);
+    if ((data->flag & (CONSTRAINT_IK_AUTO | CONSTRAINT_IK_TEMP)) == 0) {
+      return false;
+    }
+  }
+
   return true;
 }
 

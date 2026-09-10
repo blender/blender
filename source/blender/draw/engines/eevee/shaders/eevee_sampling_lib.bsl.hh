@@ -10,9 +10,9 @@
  */
 
 #include "eevee_sampling_shared.hh"
-#include "gpu_shader_math_base_lib.glsl"
-#include "gpu_shader_math_constants_lib.glsl"
-#include "gpu_shader_math_safe_lib.glsl"
+#include "gpu_shader_math_base.bsl.hh"
+#include "gpu_shader_math_constants.bsl.hh"
+#include "gpu_shader_math_safe.bsl.hh"
 
 /* -------------------------------------------------------------------- */
 /** \name Sampling data.

@@ -1109,14 +1109,24 @@ def _extensions_enabled():
 
 
 def _extensions_enabled_from_repo_directory_and_pkg_id_sequence(repo_directory_and_pkg_id_sequence):
-    # Calculate which extensions are pending to be enabled,
+    # Calculate which add-ons are pending to be enabled,
     # needed so wheels for extensions can be extracted before any add-on using them is enabled.
+    # Other types are skipped so the result can be compared with `_extensions_enabled`.
+    repo_cache_store = repo_cache_store_ensure()
     extensions_enabled_pending = set()
     repo_directory_to_module_map = _extension_repos_directory_to_module_map()
     for repo_directory, pkg_id_sequence in repo_directory_and_pkg_id_sequence:
         repo_module = repo_directory_to_module_map[repo_directory]
+        pkg_manifest_local = next(iter(repo_cache_store.pkg_manifest_from_local_ensure(
+            error_fn=print,
+            directory_subset={repo_directory},
+        )), None)
+        if pkg_manifest_local is None:
+            continue
         for pkg_id in pkg_id_sequence:
-            extensions_enabled_pending.add((repo_module, pkg_id))
+            item_local = pkg_manifest_local.get(pkg_id)
+            if item_local is not None and item_local.type == "add-on":
+                extensions_enabled_pending.add((repo_module, pkg_id))
     return extensions_enabled_pending
 
 

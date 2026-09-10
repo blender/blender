@@ -143,47 +143,6 @@ bool GPU_vulkan_is_supported_driver(VkPhysicalDevice vk_physical_device)
 static Vector<StringRefNull> missing_capabilities_get(VkPhysicalDevice vk_physical_device)
 {
   Vector<StringRefNull> missing_capabilities;
-  /* Check device features. */
-  VkPhysicalDeviceVulkan12Features features_12 = {
-      VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_VULKAN_1_2_FEATURES};
-  VkPhysicalDeviceVulkan11Features features_11 = {
-      VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_VULKAN_1_1_FEATURES, &features_12};
-  VkPhysicalDeviceFeatures2 features = {VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_FEATURES_2,
-                                        &features_11};
-
-  vkGetPhysicalDeviceFeatures2(vk_physical_device, &features);
-
-#ifndef __APPLE__
-  /* Features currently not supported by Mesa KosmicKrisp. */
-  if (features.features.geometryShader == VK_FALSE) {
-    missing_capabilities.append("geometry shaders");
-  }
-#endif
-  if (features.features.multiViewport == VK_FALSE) {
-    missing_capabilities.append("multi viewport");
-  }
-  if (features.features.fragmentStoresAndAtomics == VK_FALSE) {
-    missing_capabilities.append("fragment stores and atomics");
-  }
-
-  if (features.features.dualSrcBlend == VK_FALSE) {
-    missing_capabilities.append("dual source blending");
-  }
-  if (features.features.imageCubeArray == VK_FALSE) {
-    missing_capabilities.append("image cube array");
-  }
-  if (features.features.drawIndirectFirstInstance == VK_FALSE) {
-    missing_capabilities.append("draw indirect first instance");
-  }
-  if (features_11.shaderDrawParameters == VK_FALSE) {
-    missing_capabilities.append("shader draw parameters");
-  }
-  if (features_12.timelineSemaphore == VK_FALSE) {
-    missing_capabilities.append("timeline semaphores");
-  }
-  if (features_12.bufferDeviceAddress == VK_FALSE) {
-    missing_capabilities.append("buffer device address");
-  }
 
   /* Check device extensions. */
   uint32_t vk_extension_count;
@@ -203,6 +162,42 @@ static Vector<StringRefNull> missing_capabilities_get(VkPhysicalDevice vk_physic
   if (!extensions.contains(VK_KHR_DYNAMIC_RENDERING_EXTENSION_NAME)) {
     missing_capabilities.append(VK_KHR_DYNAMIC_RENDERING_EXTENSION_NAME);
   }
+  if (!extensions.contains(VK_KHR_TIMELINE_SEMAPHORE_EXTENSION_NAME)) {
+    missing_capabilities.append(VK_KHR_TIMELINE_SEMAPHORE_EXTENSION_NAME);
+  }
+  if (!extensions.contains(VK_KHR_BUFFER_DEVICE_ADDRESS_EXTENSION_NAME)) {
+    missing_capabilities.append(VK_KHR_BUFFER_DEVICE_ADDRESS_EXTENSION_NAME);
+  }
+  if (!extensions.contains(VK_KHR_SEPARATE_DEPTH_STENCIL_LAYOUTS_EXTENSION_NAME)) {
+    missing_capabilities.append(VK_KHR_SEPARATE_DEPTH_STENCIL_LAYOUTS_EXTENSION_NAME);
+  }
+
+  /* Check device features. */
+  VkPhysicalDeviceFeatures2 features = {VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_FEATURES_2};
+  vkGetPhysicalDeviceFeatures2(vk_physical_device, &features);
+
+#ifndef __APPLE__
+  /* Features currently not supported by Mesa KosmicKrisp. */
+  if (features.features.geometryShader == VK_FALSE) {
+    missing_capabilities.append("geometry shaders");
+  }
+#endif
+  if (features.features.multiViewport == VK_FALSE) {
+    missing_capabilities.append("multi viewport");
+  }
+  if (features.features.fragmentStoresAndAtomics == VK_FALSE) {
+    missing_capabilities.append("fragment stores and atomics");
+  }
+  if (features.features.dualSrcBlend == VK_FALSE) {
+    missing_capabilities.append("dual source blending");
+  }
+  if (features.features.imageCubeArray == VK_FALSE) {
+    missing_capabilities.append("image cube array");
+  }
+  if (features.features.drawIndirectFirstInstance == VK_FALSE) {
+    missing_capabilities.append("draw indirect first instance");
+  }
+
   return missing_capabilities;
 }
 
@@ -244,13 +239,13 @@ static bool vk_instance_create_for_platform_checks(VkInstance *r_instance)
     return false;
   }
 
-  /* Initialize an vulkan 1.2 instance. */
+  /* Initialize an vulkan 1.1 instance. */
   VkApplicationInfo vk_application_info = {VK_STRUCTURE_TYPE_APPLICATION_INFO};
   vk_application_info.pApplicationName = "Blender";
   vk_application_info.applicationVersion = VK_MAKE_VERSION(1, 0, 0);
   vk_application_info.pEngineName = "Blender";
   vk_application_info.engineVersion = VK_MAKE_VERSION(1, 0, 0);
-  vk_application_info.apiVersion = VK_API_VERSION_1_2;
+  vk_application_info.apiVersion = VK_API_VERSION_1_1;
 
   VkInstanceCreateInfo vk_instance_info = {VK_STRUCTURE_TYPE_INSTANCE_CREATE_INFO};
   vk_instance_info.pApplicationInfo = &vk_application_info;
@@ -267,7 +262,7 @@ bool VKBackend::is_supported()
 
   VkInstance vk_instance = VK_NULL_HANDLE;
   if (!vk_instance_create_for_platform_checks(&vk_instance)) {
-    CLOG_WARN(&LOG, "Unable to initialize a Vulkan 1.2 instance.");
+    CLOG_WARN(&LOG, "Unable to initialize a Vulkan 1.1 instance.");
     return false;
   }
   volkLoadInstanceOnly(vk_instance);
@@ -510,8 +505,7 @@ void VKBackend::detect_workarounds(VKDevice &device)
 
     /* Force workarounds and disable extensions. */
     workarounds.not_aligned_pixel_formats = true;
-    extensions.shader_output_layer = false;
-    extensions.shader_output_viewport_index = false;
+    extensions.shader_viewport_index_layer = false;
     extensions.fragment_shader_barycentric = false;
     extensions.dynamic_rendering_local_read = false;
     extensions.dynamic_rendering_unused_attachments = false;
@@ -521,6 +515,7 @@ void VKBackend::detect_workarounds(VKDevice &device)
     extensions.extended_dynamic_state = false;
     extensions.multi_draw_indirect = false;
     extensions.provoking_vertex = false;
+    extensions.spirv_1_4 = false;
     GCaps.ray_query_support = false;
     GCaps.stencil_export_support = false;
     GCaps.texture_pool_workaround = true;
@@ -535,10 +530,9 @@ void VKBackend::detect_workarounds(VKDevice &device)
     GCaps.texture_pool_workaround = true;
   }
 
-  extensions.shader_output_layer =
-      device.physical_device_vulkan_12_features_get().shaderOutputLayer;
-  extensions.shader_output_viewport_index =
-      device.physical_device_vulkan_12_features_get().shaderOutputViewportIndex;
+  extensions.shader_viewport_index_layer = device.supports_extension(
+      VK_EXT_SHADER_VIEWPORT_INDEX_LAYER_EXTENSION_NAME);
+  extensions.spirv_1_4 = device.supports_extension(VK_KHR_SPIRV_1_4_EXTENSION_NAME);
   extensions.wide_lines = device.physical_device_features_get().wideLines;
   extensions.fragment_shader_barycentric = device.supports_extension(
       VK_KHR_FRAGMENT_SHADER_BARYCENTRIC_EXTENSION_NAME);

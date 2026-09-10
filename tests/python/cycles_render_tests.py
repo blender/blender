@@ -102,16 +102,6 @@ BLOCKLIST_METAL_RT = [
     'hair_linear_close_up.blend',
 ]
 
-if platform.system() == "Darwin":
-    version, _, _ = platform.mac_ver()
-    major_version = version.split(".")[0]
-    if int(major_version) < 13:
-        BLOCKLIST_METAL += [
-            # MNEE only works on Metal with macOS >= 13
-            "underwater_caustics.blend",
-        ]
-
-
 BLOCKLIST_HIPRT = [
     # Light leaking fireflies due to HIP-RT intersection precision issue.
     "normal_mapping_light_leak.blend",

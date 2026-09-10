@@ -68,7 +68,6 @@ static void calc_faces(const Depsgraph &depsgraph,
                        const bke::pbvh::MeshNode &node,
                        Object &object,
                        const Span<bool> hide_vert,
-                       LocalData &tls,
                        const MutableSpan<float> mask)
 {
   SculptSession &ss = *object.runtime->sculpt_session;
@@ -76,16 +75,14 @@ static void calc_faces(const Depsgraph &depsgraph,
 
   const Span<int> verts = node.verts();
 
-  tls.factors.resize(verts.size());
-  const MutableSpan<float> factors = tls.factors;
+  Array<float, bke::pbvh::MESH_LEAF_LIMIT> factors(verts.size());
   fill_factor_from_hide(hide_vert, verts, factors);
   filter_region_clip_factors(ss, positions, verts, factors);
   if (brush.flag & BRUSH_FRONTFACE) {
     calc_front_face(cache.view_normal_symm, vert_normals, verts, factors);
   }
 
-  tls.distances.resize(verts.size());
-  const MutableSpan<float> distances = tls.distances;
+  Array<float, bke::pbvh::MESH_LEAF_LIMIT> distances(verts.size());
   calc_brush_distances(ss, positions, verts, eBrushFalloffShape(brush.falloff_shape), distances);
   filter_distances_with_radius(cache.radius, distances, factors);
   apply_hardness_to_distances(cache, distances);
@@ -95,12 +92,10 @@ static void calc_faces(const Depsgraph &depsgraph,
 
   calc_brush_texture_factors(ss, brush, positions, verts, factors);
 
-  tls.new_masks.resize(verts.size());
-  const MutableSpan<float> new_masks = tls.new_masks;
-  gather_data_mesh(mask.as_span(), verts, new_masks);
+  Array<float, bke::pbvh::MESH_LEAF_LIMIT> new_masks(verts.size());
+  gather_data_mesh<float>(mask.as_span(), verts, new_masks);
 
-  tls.current_masks = tls.new_masks;
-  const MutableSpan<float> current_masks = tls.current_masks;
+  Array<float, bke::pbvh::MESH_LEAF_LIMIT> current_masks = new_masks;
   if (strength > 0.0f) {
     mask::invert_mask(current_masks);
   }
@@ -235,7 +230,6 @@ void do_mask_brush(const Depsgraph &depsgraph,
 
       node_mask.foreach_index(
           [&](const int i) {
-            LocalData &tls = all_tls.local();
             calc_faces(depsgraph,
                        brush,
                        bstrength,
@@ -244,7 +238,6 @@ void do_mask_brush(const Depsgraph &depsgraph,
                        nodes[i],
                        object,
                        hide_vert,
-                       tls,
                        mask.span);
             bke::pbvh::node_update_mask_mesh(mask.span, nodes[i]);
           },

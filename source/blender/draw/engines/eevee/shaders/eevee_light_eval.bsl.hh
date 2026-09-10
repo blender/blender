@@ -10,7 +10,7 @@
 #include "eevee_shadow.bsl.hh"
 #include "eevee_shadow_tracing.bsl.hh"
 #include "eevee_thickness_lib.bsl.hh"
-#include "gpu_shader_utildefines_lib.glsl"
+#include "gpu_shader_utildefines.bsl.hh"
 
 #if !defined(SRT_CONSTANT_light_closure_eval_count_reflect)
 #  define SRT_CONSTANT_light_closure_eval_count_reflect 0

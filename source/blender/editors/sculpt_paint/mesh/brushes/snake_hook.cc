@@ -170,7 +170,6 @@ static void calc_faces(const Depsgraph &depsgraph,
                        const Span<float3> vert_normals,
                        const MeshAttributeData &attribute_data,
                        bke::pbvh::MeshNode &node,
-                       LocalData &tls,
                        const PositionDeformData &position_data)
 {
   SculptSession &ss = *object.runtime->sculpt_session;
@@ -178,10 +177,10 @@ static void calc_faces(const Depsgraph &depsgraph,
   const bool do_elastic = brush.snake_hook_deform_type == BRUSH_SNAKE_HOOK_DEFORM_ELASTIC;
 
   const Span<int> verts = node.verts();
-  const MutableSpan positions = gather_data_mesh(position_data.eval, verts, tls.positions);
+  Array<float3, bke::pbvh::MESH_LEAF_LIMIT> positions(verts.size());
+  gather_data_mesh(position_data.eval, verts, positions.as_mutable_span());
 
-  tls.factors.resize(verts.size());
-  const MutableSpan<float> factors = tls.factors;
+  Array<float, bke::pbvh::MESH_LEAF_LIMIT> factors(verts.size());
 
   if (do_elastic) {
     factors.fill(1.0f);
@@ -193,8 +192,7 @@ static void calc_faces(const Depsgraph &depsgraph,
       calc_front_face(cache.view_normal_symm, vert_normals, verts, factors);
     }
 
-    tls.distances.resize(verts.size());
-    const MutableSpan<float> distances = tls.distances;
+    Array<float, bke::pbvh::MESH_LEAF_LIMIT> distances(verts.size());
     calc_brush_distances(ss, positions, eBrushFalloffShape(brush.falloff_shape), distances);
     filter_distances_with_radius(cache.radius, distances, factors);
     apply_hardness_to_distances(cache, distances);
@@ -205,8 +203,7 @@ static void calc_faces(const Depsgraph &depsgraph,
     scale_factors(factors, cache.bstrength);
   }
 
-  tls.translations.resize(verts.size());
-  const MutableSpan<float3> translations = tls.translations;
+  Array<float3, bke::pbvh::MESH_LEAF_LIMIT> translations(verts.size());
 
   translations_from_offset_and_factors(grab_delta, factors, translations);
 
@@ -384,7 +381,6 @@ void do_snake_hook_brush(const Depsgraph &depsgraph,
       MutableSpan<bke::pbvh::MeshNode> nodes = pbvh.nodes<bke::pbvh::MeshNode>();
       node_mask.foreach_index(
           [&](const int i) {
-            LocalData &tls = all_tls.local();
             calc_faces(depsgraph,
                        sd,
                        object,
@@ -394,7 +390,6 @@ void do_snake_hook_brush(const Depsgraph &depsgraph,
                        vert_normals,
                        attribute_data,
                        nodes[i],
-                       tls,
                        position_data);
             bke::pbvh::update_node_bounds_mesh(position_data.eval, nodes[i]);
           },

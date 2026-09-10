@@ -14,9 +14,9 @@
 #include "eevee_depth_of_field_lib.bsl.hh"
 #include "eevee_reverse_z_lib.bsl.hh"
 #include "eevee_sampling_lib.bsl.hh"
-#include "gpu_shader_debug_gradients_lib.glsl"
-#include "gpu_shader_math_angle_lib.glsl"
-#include "gpu_shader_math_matrix_construct_lib.glsl"
+#include "gpu_shader_debug_gradients.bsl.hh"
+#include "gpu_shader_math_angle.bsl.hh"
+#include "gpu_shader_math_matrix_construct.bsl.hh"
 
 /* -------------------------------------------------------------------- */
 /** \name Options.

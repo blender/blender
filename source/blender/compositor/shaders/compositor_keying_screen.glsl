@@ -6,7 +6,7 @@
 
 COMPUTE_SHADER_CREATE_INFO(compositor_keying_screen)
 
-#include "gpu_shader_math_base_lib.glsl"
+#include "gpu_shader_math_base.bsl.hh"
 
 shared float2 cached_marker_positions[gl_WorkGroupSize.x * gl_WorkGroupSize.y];
 shared float4 cached_marker_colors[gl_WorkGroupSize.x * gl_WorkGroupSize.y];

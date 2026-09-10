@@ -394,7 +394,7 @@ class SequencerFileHandlerBase:
     def poll_drop(cls, context):
         return (
             (context.region is not None) and
-            (context.region.type == 'WINDOW') and
+            (context.region.type in {'WINDOW', 'PREVIEW'}) and
             (context.area is not None) and
             (context.area.ui_type == 'SEQUENCE_EDITOR')
         )

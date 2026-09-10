@@ -14,7 +14,7 @@
 COMPUTE_SHADER_CREATE_INFO(draw_curves_evaluate_length_intercept)
 
 #include "gpu_shader_attribute_load_lib.glsl"
-#include "gpu_shader_math_base_lib.glsl"
+#include "gpu_shader_math_base.bsl.hh"
 #include "gpu_shader_offset_indices_lib.glsl"
 
 /* Run on the evaluated position and compute the intercept time with the curve and the total curve

@@ -15,11 +15,7 @@
   - attr 'sharp_face' BOOLEAN FACE
     - 1 
 
-- Mesh 'FaceAllVertsDup_BecomesOneOverlappingFaceUsingAllVerts' vtx:8 face:1 loop:8 edge:8
-    - 1 2 3 7 6 5 4 0 
-    - 0/1 1/2 2/3 3/7 6/7 5/6 4/5 0/4 
-  - attr 'material_index' INT FACE
-    - 0 
+- Mesh 'FaceAllVertsDup_CancelsOut' vtx:8 face:0 loop:0 edge:0
   - attr 'position' FLOAT_VECTOR POINT
     - (3.000, 0.000, 3.000)
     - (3.000, 0.000, 7.000)
@@ -28,8 +24,6 @@
     - (4.000, 0.000, 6.000)
     - (6.000, 0.000, 6.000)
     - (6.000, 0.000, 4.000)
-  - attr 'sharp_face' BOOLEAN FACE
-    - 1 
 
 - Mesh 'FaceJustTwoVerts_IsSkipped' vtx:2 face:0 loop:0 edge:0
   - attr 'position' FLOAT_VECTOR POINT
@@ -62,8 +56,8 @@
     - 1 
 
 - Mesh 'FaceWithHole_BecomesTwoFacesFormingAHole' vtx:8 face:2 loop:12 edge:10
-    - 1 2 5 4 0 ... 7 6 5 2 3 
-    - 0/1 1/2 2/5 4/5 0/4 0/3 4/7 6/7 5/6 2/3 
+    - 1 2 7 6 5 ... 0 4 7 2 3 
+    - 0/1 1/2 2/7 6/7 5/6 4/5 0/4 0/3 4/7 2/3 
   - attr 'material_index' INT FACE
     - 0 0 
   - attr 'position' FLOAT_VECTOR POINT
@@ -82,7 +76,7 @@
   - pos 0.000, 0.000, 0.000
   - rot 1.571, 0.000, 0.000 (XYZ)
   - scl 1.000, 1.000, 1.000
-- Obj 'FaceAllVertsDup_BecomesOneOverlappingFaceUsingAllVerts' MESH data:'FaceAllVertsDup_BecomesOneOverlappingFaceUsingAllVerts'
+- Obj 'FaceAllVertsDup_CancelsOut' MESH data:'FaceAllVertsDup_CancelsOut'
   - pos 0.000, 0.000, 0.000
   - rot 1.571, 0.000, 0.000 (XYZ)
   - scl 1.000, 1.000, 1.000

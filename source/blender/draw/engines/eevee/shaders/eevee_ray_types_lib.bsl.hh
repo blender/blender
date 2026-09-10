@@ -6,8 +6,8 @@
 
 #include "draw_math_geom_lib.glsl"
 #include "draw_shader_shared.hh"
-#include "gpu_shader_math_safe_lib.glsl"
-#include "gpu_shader_ray_lib.glsl"
+#include "gpu_shader_math_safe.bsl.hh"
+#include "gpu_shader_ray.bsl.hh"
 
 #if 0
 /* Screen-space ray ([0..1] "uv" range) where direction is normalize to be as small as one

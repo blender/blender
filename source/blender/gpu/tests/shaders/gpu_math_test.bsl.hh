@@ -13,18 +13,18 @@
 
 #include "gpu_shader_test_lib.bsl.hh"
 
-#include "gpu_shader_math_axis_angle_lib.glsl"
-#include "gpu_shader_math_euler_lib.glsl"
-#include "gpu_shader_math_matrix_adjoint_lib.glsl"
-#include "gpu_shader_math_matrix_construct_lib.glsl"
-#include "gpu_shader_math_matrix_interpolate_lib.glsl"
-#include "gpu_shader_math_matrix_lib.glsl"
-#include "gpu_shader_math_matrix_normalize_lib.glsl"
-#include "gpu_shader_math_matrix_projection_lib.glsl"
-#include "gpu_shader_math_matrix_transform_lib.glsl"
-#include "gpu_shader_math_quaternion_lib.glsl"
-#include "gpu_shader_math_rotation_conversion_lib.glsl"
-#include "gpu_shader_math_rotation_lib.glsl"
+#include "gpu_shader_math_axis_angle.bsl.hh"
+#include "gpu_shader_math_euler.bsl.hh"
+#include "gpu_shader_math_matrix.bsl.hh"
+#include "gpu_shader_math_matrix_adjoint.bsl.hh"
+#include "gpu_shader_math_matrix_construct.bsl.hh"
+#include "gpu_shader_math_matrix_interpolate.bsl.hh"
+#include "gpu_shader_math_matrix_normalize.bsl.hh"
+#include "gpu_shader_math_matrix_projection.bsl.hh"
+#include "gpu_shader_math_matrix_transform.bsl.hh"
+#include "gpu_shader_math_quaternion.bsl.hh"
+#include "gpu_shader_math_rotation.bsl.hh"
+#include "gpu_shader_math_rotation_conversion.bsl.hh"
 
 [[compute, local_size(1)]]
 void gpu_math_test_main([[resource_table]] const ShaderTestOutput & /*srt*/)

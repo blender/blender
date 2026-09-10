@@ -359,8 +359,6 @@ DRAW_TEST(draw_resource_id_gen)
 
 static void test_draw_visibility()
 {
-  GTEST_SKIP() << "This test needs to be reviewed. It should check visibility checks, but all "
-                  "resource handles are visible.";
   GPU_render_begin();
   Texture color_attachment;
   Framebuffer framebuffer;
@@ -381,7 +379,7 @@ static void test_draw_visibility()
 
   drw.begin_sync();                                   /* Default {0} always visible. */
   drw.resource_handle(obmat_1);                       /* No bounds, always visible. */
-  drw.resource_handle(obmat_1, float3(3), float3(1)); /* Out of view. */
+  drw.resource_handle(obmat_1, float3(7), float3(1)); /* Out of view. */
   drw.resource_handle(obmat_2, float3(0), float3(1)); /* Inside view. */
   drw.end_sync();
 

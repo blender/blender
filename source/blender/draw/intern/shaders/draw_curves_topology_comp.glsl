@@ -15,7 +15,7 @@ COMPUTE_SHADER_CREATE_INFO(draw_curves_topology)
 
 #include "gpu_shader_attribute_load_lib.glsl"
 #include "gpu_shader_offset_indices_lib.glsl"
-#include "gpu_shader_utildefines_lib.glsl"
+#include "gpu_shader_utildefines.bsl.hh"
 
 void main()
 {

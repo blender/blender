@@ -148,7 +148,7 @@ def __gather_cache_primitives(
 
     if type(blender_data).__name__ == "PointCloud":
         # Point clouds
-        blender_primitives = pointcloud.gather_point_cloud(blender_data, export_settings)
+        blender_primitives = pointcloud.gather_point_cloud(blender_data, materials, export_settings)
         additional_materials_udim = [None] * len(blender_primitives)
         shared_attributes = None
 

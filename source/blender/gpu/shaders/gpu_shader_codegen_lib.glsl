@@ -5,8 +5,8 @@
 #pragma once
 
 #include "gpu_shader_compat.hh"
-#include "gpu_shader_math_vector_compare_lib.glsl"
-#include "gpu_shader_math_vector_reduce_lib.glsl"
+#include "gpu_shader_math_vector_compare.bsl.hh"
+#include "gpu_shader_math_vector_reduce.bsl.hh"
 
 float3 calc_barycentric_distances(float3 pos0, float3 pos1, float3 pos2)
 {

@@ -1670,19 +1670,19 @@ class SEQUENCER_PT_cache_view_settings(SequencerButtonsPanel, Panel):
             col = layout.box()
             col = col.column(align=True)
 
-            split = col.split(factor=0.4, align=True)
+            split = col.split(factor=col.property_split_factor, align=True)
             split.alignment = 'RIGHT'
             split.label(text="Current Cache Size")
             split.alignment = 'LEFT'
             split.label(text=iface_("{:d} MB").format(cache_raw_size + cache_final_size), translate=False)
 
-            split = col.split(factor=0.4, align=True)
+            split = col.split(factor=col.property_split_factor, align=True)
             split.alignment = 'RIGHT'
             split.label(text="Raw")
             split.alignment = 'LEFT'
             split.label(text=iface_("{:d} MB").format(cache_raw_size), translate=False)
 
-            split = col.split(factor=0.4, align=True)
+            split = col.split(factor=col.property_split_factor, align=True)
             split.alignment = 'RIGHT'
             split.label(text="Final")
             split.alignment = 'LEFT'

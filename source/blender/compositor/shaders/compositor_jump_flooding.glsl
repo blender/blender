@@ -21,8 +21,8 @@ COMPUTE_SHADER_CREATE_INFO(compositor_jump_flooding)
 
 #include "gpu_shader_compositor_jump_flooding_lib.glsl"
 #include "gpu_shader_compositor_texture_utilities.glsl"
-#include "gpu_shader_math_vector_lib.glsl"
-#include "gpu_shader_utildefines_lib.glsl"
+#include "gpu_shader_math_vector.bsl.hh"
+#include "gpu_shader_utildefines.bsl.hh"
 
 void main()
 {

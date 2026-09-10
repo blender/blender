@@ -4,7 +4,7 @@
 
 #pragma once
 
-#include "gpu_shader_utildefines_lib.glsl"
+#include "gpu_shader_utildefines.bsl.hh"
 
 namespace occupancy {
 
