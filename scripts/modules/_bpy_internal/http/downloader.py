@@ -1878,7 +1878,12 @@ def _cleanup_main_file_attribute() -> Generator[None]:
     # that will cause problems. Python dunder variables like this can
     # trigger all kinds of unknown magics, so they should be left alone
     # as much as possible.
-    main_module_file: str = getattr(main_module, '__file__', '') or ''
+    try:
+        main_module_file: str = getattr(main_module, '__file__')
+    except AttributeError:
+        # No __main__.__file__ is fine.
+        yield
+        return
 
     # Blender text datablocks don't exist on disk, and also in some Python
     # invocations from the C++ code there is a non-path string in the `__file__`
