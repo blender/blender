@@ -138,6 +138,7 @@ class AbstractTreeView : public AbstractView, public TreeViewItemContainer {
   float height_scale_ = 1.0;
   /* Defines the padding between items. */
   int row_padding_ = style_get_dpi()->buttonspacey;
+  float indent_scale_ = 1.0;
 
   /**
    * The total number of items in the tree during the last redraw.
@@ -195,6 +196,7 @@ class AbstractTreeView : public AbstractView, public TreeViewItemContainer {
    * Set the base row height. This will be scaled with row_scale_y() to give the final height.
    */
   void set_row_height(int height);
+  int row_height() const;
   /**
    * Set a scale factor for the height of each row. This scale will be applied on top of UI scale.
    */
@@ -206,6 +208,8 @@ class AbstractTreeView : public AbstractView, public TreeViewItemContainer {
    * Values should have scaling applied already.
    */
   void set_row_padding(int padding);
+  void set_indent_scale(float scale);
+  float indent_scale() const;
   float row_scale_y() const;
   /* The height for each row without padding between rows. */
   int unpadded_item_height() const;

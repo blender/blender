@@ -216,6 +216,8 @@ class DOPESHEET_HT_header(Header):
         DOPESHEET_MT_editor_menus.draw_collapsible(context, layout)
         DOPESHEET_HT_editor_buttons.draw_header(context, layout)
 
+        layout.prop(st, "test_float")
+
 
 # Header for "normal" dopesheet editor modes (e.g. Dope Sheet, Action, Shape Keys, etc.)
 class DOPESHEET_HT_editor_buttons:

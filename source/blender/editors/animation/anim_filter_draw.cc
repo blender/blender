@@ -258,6 +258,7 @@ void draw_channel_tree(const bContext &C, SummaryChannel &root, View2D & /* v2d 
   tree_view->set_row_height(UI_UNIT_Y);
   tree_view->set_row_scale_y(ANIM_UI_get_channel_scale_factor());
   tree_view->set_row_padding(ANIM_UI_get_channel_skip());
+  tree_view->set_indent_scale(0.5);
   ui::TreeViewBuilder::build_tree_view(C, *tree_view, layout, /*add_box=*/false);
 
   ui::block_layout_resolve(block);

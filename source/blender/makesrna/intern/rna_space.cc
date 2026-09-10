@@ -7407,6 +7407,13 @@ static void rna_def_space_dopesheet(BlenderRNA *brna)
       prop, NC_SPACE | ND_SPACE_DOPESHEET, "rna_SpaceDopeSheetEditor_mode_update");
 
   /* display */
+  /* TODO just for testing, remove after use. */
+  prop = RNA_def_property(srna, "test_float", PROP_FLOAT, PROP_NONE);
+  RNA_def_property_float_sdna(prop, nullptr, "timeslide");
+  RNA_def_property_ui_range(prop, 0, 2, 0.1, 3);
+  RNA_def_property_flag(prop, PROP_CONTEXT_UPDATE);
+  RNA_def_property_update(prop, NC_SPACE | ND_SPACE_DOPESHEET, nullptr);
+
   prop = RNA_def_property(srna, "show_seconds", PROP_BOOLEAN, PROP_NONE);
   RNA_def_property_boolean_sdna(prop, nullptr, "flag", SACTION_DRAWTIME);
   RNA_def_property_ui_text(prop, "Use Timecode", "Show timing as a timecode instead of frames");

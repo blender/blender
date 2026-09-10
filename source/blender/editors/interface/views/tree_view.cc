@@ -27,6 +27,7 @@
 namespace blender::ui {
 
 #define UI_TREEVIEW_INDENT short(0.7f * UI_UNIT_X)
+#define UI_CHEVRON_WIDTH UI_TREEVIEW_INDENT
 #define MIN_ROWS 4
 
 /* ---------------------------------------------------------------------- */
@@ -312,8 +313,6 @@ void AbstractTreeView::get_hierarchy_lines(const TreeViewOrItem &parent,
     }
 
     /* Draw a hierarchy line for the descendants of this item. */
-
-    const AbstractTreeViewItem *first_descendant = item->children_.first().get();
     const int descendant_count = count_visible_descendants(*item);
 
     const int first_descendant_index = item_index + 1;
@@ -336,9 +335,7 @@ void AbstractTreeView::get_hierarchy_lines(const TreeViewOrItem &parent,
       }
     }
 
-    const int x = ((first_descendant->indent_width() + uiLayoutListItemPaddingWidth() -
-                    (0.5f * UI_ICON_SIZE) + U.pixelsize + UI_SCALE_FAC) /
-                   aspect);
+    const int x = item->indent_width() + 0.5 * UI_CHEVRON_WIDTH + uiLayoutListItemPaddingWidth();
     const int ymax = std::max(0, first_descendant_index - scroll_ofs) * padded_item_height() /
                      aspect;
     const int ymin = std::min(max_visible_row_count, last_descendant_index + 1 - scroll_ofs) *
@@ -362,6 +359,11 @@ void AbstractTreeView::set_row_height(int height)
   row_height_ = height;
 }
 
+int AbstractTreeView::row_height() const
+{
+  return row_height_;
+}
+
 void AbstractTreeView::set_row_scale_y(float scale)
 {
   height_scale_ = scale;
@@ -370,6 +372,16 @@ void AbstractTreeView::set_row_scale_y(float scale)
 void AbstractTreeView::set_row_padding(int padding)
 {
   row_padding_ = padding;
+}
+
+void AbstractTreeView::set_indent_scale(float scale)
+{
+  indent_scale_ = scale;
+}
+
+float AbstractTreeView::indent_scale() const
+{
+  return indent_scale_;
 }
 
 float AbstractTreeView::row_scale_y() const
@@ -653,7 +665,7 @@ void AbstractTreeViewItem::add_treerow_button(Block &block)
 
 int AbstractTreeViewItem::indent_width() const
 {
-  return this->count_parents() * UI_TREEVIEW_INDENT;
+  return this->count_parents() * UI_TREEVIEW_INDENT * this->get_tree_view().indent_scale();
 }
 
 void AbstractTreeViewItem::add_indent(Layout &row) const
@@ -711,8 +723,8 @@ void AbstractTreeViewItem::add_collapse_chevron(Block &block) const
                              icon,
                              0,
                              0,
-                             UI_TREEVIEW_INDENT,
-                             this->get_tree_view().unpadded_item_height(),
+                             UI_CHEVRON_WIDTH,
+                             this->get_tree_view().row_height(),
                              nullptr,
                              0,
                              0,
