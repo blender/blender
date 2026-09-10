@@ -1,0 +1,33 @@
+Lower the cmake version so we can easily built it on rocky8.
+
+diff --git a/CMakeLists.txt b/CMakeLists.txt
+index 0b39b8a7ced..c44b9bd1b53 100644
+--- a/CMakeLists.txt
++++ b/CMakeLists.txt
+@@ -1,4 +1,4 @@
+-cmake_minimum_required(VERSION 3.27)
++cmake_minimum_required(VERSION 3.26)
+ 
+ project(usd)
+ 
+diff --git a/extras/usd/examples/workDispatchExample/CMakeLists.txt b/extras/usd/examples/workDispatchExample/CMakeLists.txt
+index 4a63cfd9be1..eb02d268779 100644
+--- a/extras/usd/examples/workDispatchExample/CMakeLists.txt
++++ b/extras/usd/examples/workDispatchExample/CMakeLists.txt
+@@ -1,4 +1,4 @@
+-cmake_minimum_required(VERSION 3.27)
++cmake_minimum_required(VERSION 3.26)
+ 
+ project(workDispatchExample
+     LANGUAGES CXX
+diff --git a/extras/usd/examples/workTaskflowExample/CMakeLists.txt b/extras/usd/examples/workTaskflowExample/CMakeLists.txt
+index a115b106fc0..0e13125e8ef 100644
+--- a/extras/usd/examples/workTaskflowExample/CMakeLists.txt
++++ b/extras/usd/examples/workTaskflowExample/CMakeLists.txt
+@@ -1,4 +1,4 @@
+-cmake_minimum_required(VERSION 3.27)
++cmake_minimum_required(VERSION 3.26)
+ 
+ project(workTaskflowExample
+     LANGUAGES CXX
+

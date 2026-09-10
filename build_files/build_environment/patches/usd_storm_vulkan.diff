@@ -1,18 +1,22 @@
 diff --git a/pxr/imaging/hdSt/renderDelegate.cpp b/pxr/imaging/hdSt/renderDelegate.cpp
-index d430b824c..2cae24678 100644
+index 7984f2b8f..0c716bf81 100644
 --- a/pxr/imaging/hdSt/renderDelegate.cpp
 +++ b/pxr/imaging/hdSt/renderDelegate.cpp
-@@ -567,13 +567,10 @@ bool
- HdStRenderDelegate::IsSupported(
-     HdRendererCreateArgs const& rendererCreateArgs)
+@@ -642,17 +642,10 @@ HdStRenderDelegate::IsSupported(
+     const HdRendererCreateArgsSchema &rendererCreateArgs,
+     std::string * const reasonWhyNot)
  {
--    if (rendererCreateArgs.hgi) {
--        return rendererCreateArgs.hgi->IsBackendSupported();
+-    if (const char * const result =
+-                _NullOrReasonWhyNotSupported(rendererCreateArgs)) {
+-        TF_DEBUG(HD_RENDERER_PLUGIN).Msg(
+-            "Storm renderer not supported: %s.\n", result);
+-        if (reasonWhyNot) {
+-            *reasonWhyNot = result;
+-        }
+-        return false;
+-    } else {
+-        return true;
 -    }
--
--    // If invalid Hgi instance is provided, check support for platform default
--    // Hgi.
--    return Hgi::IsSupported();
 +    // BLENDER: This doesn't take into account the backend, and fails for Vulkan
 +    // because it defaults to OpenGL. Instead assume Blender already succeeded
 +    // creating a relevant GPU device before using Storm.

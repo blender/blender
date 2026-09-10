@@ -1,17 +1,3 @@
-diff --git a/cmake/defaults/msvcdefaults.cmake b/cmake/defaults/msvcdefaults.cmake
-index 188684bd9..eca6859f9 100644
---- a/cmake/defaults/msvcdefaults.cmake
-+++ b/cmake/defaults/msvcdefaults.cmake
-@@ -124,9 +124,6 @@ _add_define("WIN32_LEAN_AND_MEAN")
- # for all translation units.
- set(_PXR_CXX_FLAGS "${_PXR_CXX_FLAGS} /bigobj")
- 
--# Enable PDB generation.
--set(_PXR_CXX_FLAGS "${_PXR_CXX_FLAGS} /Zi")
--
- # Enable multiprocessor builds.
- set(_PXR_CXX_FLAGS "${_PXR_CXX_FLAGS} /MP")
- set(_PXR_CXX_FLAGS "${_PXR_CXX_FLAGS} /Gm-")
 diff --git a/cmake/macros/Private.cmake b/cmake/macros/Private.cmake
 index e2dccb075..fc71099ce 100644
 --- a/cmake/macros/Private.cmake

@@ -156,14 +156,8 @@ ExternalProject_Add(external_usd
       ${BUILD_DIR}/usd/src/external_usd <
       ${PATCH_DIR}/usd_vulkan_headless_3931.diff &&
     ${PATCH_CMD} -p 1 -d
-      ${BUILD_DIR}/usd/src/external_usd 
-     -i ${PATCH_DIR}/usd_f595276c1ac231bb0bc632697f398a681a963e3f.diff &&
-    ${PATCH_CMD} -p 1 -d
-      ${BUILD_DIR}/usd/src/external_usd  
-     -i ${PATCH_DIR}/usd_a609a89a750f1c70f5bfd61bb418d5a09eaa6585.diff &&
-    ${PATCH_CMD} -p 1 -d
-      ${BUILD_DIR}/usd/src/external_usd  
-     -i ${PATCH_DIR}/usd_5744a98789c934e8810058b0f21d22f344df28b0.diff
+      ${BUILD_DIR}/usd/src/external_usd <
+      ${PATCH_DIR}/usd_cmake_version.diff
 
   CMAKE_ARGS
     -DCMAKE_INSTALL_PREFIX=${LIBDIR}/usd
