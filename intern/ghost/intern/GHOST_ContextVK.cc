@@ -1919,6 +1919,7 @@ GHOST_TSuccess GHOST_ContextVK::initializeDrawingContext()
     required_device_extensions.append(VK_KHR_BUFFER_DEVICE_ADDRESS_EXTENSION_NAME);
     required_device_extensions.append(VK_KHR_DEPTH_STENCIL_RESOLVE_EXTENSION_NAME);
     required_device_extensions.append(VK_KHR_CREATE_RENDERPASS_2_EXTENSION_NAME);
+    required_device_extensions.append(VK_KHR_SEPARATE_DEPTH_STENCIL_LAYOUTS_EXTENSION_NAME);
     optional_device_extensions.append(VK_KHR_DYNAMIC_RENDERING_LOCAL_READ_EXTENSION_NAME);
     optional_device_extensions.append(VK_EXT_DYNAMIC_RENDERING_UNUSED_ATTACHMENTS_EXTENSION_NAME);
     optional_device_extensions.append(VK_EXT_SHADER_STENCIL_EXPORT_EXTENSION_NAME);
