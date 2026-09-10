@@ -6,6 +6,8 @@
 #include "BKE_gtest_base.hh"
 #include "BKE_main.hh"
 
+#include "BLI_path_utils.hh"
+
 #include "testing/testing.h"
 
 namespace blender::bke::tests {
@@ -95,6 +97,46 @@ TEST_F(BlenderProjectTest, blender_project_name_and_path_test)
     project->set_root_path("/path/to/way/cooler/project");
     EXPECT_EQ(project->get_root_path(), "/path/to/way/cooler/project");
   });
+}
+
+/* Test making paths inside the project relative, in path template form. */
+TEST_F(BlenderProjectTest, blender_project_path_make_relative_test)
+{
+#ifdef WIN32
+  const std::string root = "C:\\path\\to\\my\\project";
+#else
+  const std::string root = "/path/to/my/project";
+#endif
+
+  /* Trailing separator on the root path should make no difference. */
+  for (const char *root_suffix : {"", SEP_STR}) {
+    BKE_blender_project_init("My Project", root + root_suffix);
+
+    BKE_blender_project_read_callback(bmain, [&](const BlenderProject *project) {
+      ASSERT_NE(project, nullptr);
+
+      EXPECT_EQ(BKE_blender_project_path_make_relative(root, false, *project), "{project_root}");
+      EXPECT_EQ(BKE_blender_project_path_make_relative(root + SEP_STR, false, *project),
+                "{project_root}");
+
+      EXPECT_EQ(BKE_blender_project_path_make_relative(root + SEP_STR "assets", false, *project),
+                "{project_root}/assets");
+      EXPECT_EQ(BKE_blender_project_path_make_relative(
+                    root + SEP_STR "as{s}ets" SEP_STR, false, *project),
+                "{project_root}/as{{s}}ets/");
+
+      /* Unchanged: different project, blend relative, regular relative, already templated. */
+      EXPECT_EQ(BKE_blender_project_path_make_relative(root + "_final_final", false, *project),
+                root + "_final_final");
+      EXPECT_EQ(BKE_blender_project_path_make_relative("//as{s}ets", false, *project),
+                "//as{{s}}ets");
+      EXPECT_EQ(BKE_blender_project_path_make_relative("as{s}ets", true, *project), "as{s}ets");
+      EXPECT_EQ(BKE_blender_project_path_make_relative("{project_root}/assets", true, *project),
+                "{project_root}/assets");
+    });
+  }
+
+  BKE_blender_project_clear();
 }
 
 /* Check the basics of creating new variables. */
