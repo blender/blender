@@ -45,6 +45,7 @@ enum class ChannelTagType {
   /* While this is technically an ID, it is embedded and thus can't be
    re-used so it can never be shared between meshes. */
   SHAPE_KEY,
+  GREASEPENCIL_GROUP,
 };
 
 using ParsedSourcePath = blender::ParsedRNAPath<6>;
@@ -129,7 +130,7 @@ class ChannelTagStack {
     return nullptr;
   }
 
-  Set<ChannelTag> as_set() const
+  Span<ChannelTag> snapshot() const
   {
     return {tags_};
   };
@@ -180,7 +181,7 @@ struct KeyPoint {
 
 class ChannelTagSet {
  private:
-  Set<ChannelTag> tags_;
+  Vector<ChannelTag> tags_;
 
  public:
   ChannelTagSet() = default;
@@ -189,21 +190,23 @@ class ChannelTagSet {
   ChannelTagSet &operator=(const ChannelTagSet &) = default;
   ChannelTagSet &operator=(ChannelTagSet &&) = default;
 
-  void set(const Set<ChannelTag> &tags)
+  void set(const Span<ChannelTag> tags)
   {
     this->tags_ = tags;
-  }
-  void set(Set<ChannelTag> &&tags)
-  {
-    this->tags_ = std::move(tags);
   }
 
   void update_intersect(const ChannelTagSet &other)
   {
-    this->tags_.update_intersect(other.tags_);
+    /* Remove all tags that 'other' doesn't have. */
+    for (int i = tags_.size() - 1; i >= 0; i--) {
+      if (other.tags_.contains(tags_[i])) {
+        continue;
+      }
+      tags_.remove(i);
+    }
   }
 
-  const Set<ChannelTag> &all() const
+  Span<ChannelTag> all() const
   {
     return this->tags_;
   }
@@ -283,6 +286,7 @@ struct SAction_AnimationChannelState {
 std::ostream &operator<<(std::ostream &stream, ChannelTagType type);
 std::ostream &operator<<(std::ostream &stream, const ChannelTag &tag);
 std::ostream &operator<<(std::ostream &stream, const ChannelTagSet &tagset);
+std::ostream &operator<<(std::ostream &stream, const ChannelTagStack &tagstack);
 std::ostream &operator<<(std::ostream &stream, const ParsedSourcePath &rna_path);
 
 enum class SelectionMode {
@@ -507,9 +511,7 @@ class FCurveChannel : public DataChannel {
 
 class GreasePencilChannel : public DataChannel {
  public:
-  GreasePencilChannel(GreasePencil &containing_gp,
-                      GreasePencilLayer &gp_layer,
-                      ParsedSourcePath source_rna_path);
+  GreasePencilChannel(const PointerRNA &gp_layer_ptr, ParsedSourcePath source_rna_path);
 
   bool is_selected() const override;
   void set_selected(bool is_selected) override;

@@ -141,6 +141,7 @@ ed::animfilter::ChannelArena get_summary_tree(const bContext &C)
   group_channels(arena,
                  {
                      ChannelTagType::ID,
+                     ChannelTagType::GREASEPENCIL_GROUP,
                      ChannelTagType::ACTION,
                      ChannelTagType::ACTION_SLOT,
                      ChannelTagType::FCURVE_GROUP,

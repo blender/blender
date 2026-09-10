@@ -2,6 +2,7 @@
  *
  * SPDX-License-Identifier: GPL-2.0-or-later */
 
+#include <algorithm>
 #include <ostream>
 #include <string>
 
@@ -83,6 +84,9 @@ std::ostream &operator<<(std::ostream &stream, const ChannelTagType type)
     case ChannelTagType::SHAPE_KEY:
       stream << "SHAPE_KEY";
       break;
+    case ChannelTagType::GREASEPENCIL_GROUP:
+      stream << "GREASEPENCIL_GROUP";
+      break;
   }
   return stream;
 }
@@ -98,6 +102,21 @@ std::ostream &operator<<(std::ostream &stream, const ChannelTagSet &tagset)
   stream << "[";
   bool is_first = true;
   for (const ChannelTag &tag : tagset.all()) {
+    if (!is_first) {
+      stream << "; ";
+    }
+    is_first = false;
+    stream << tag;
+  }
+  stream << "]";
+  return stream;
+}
+
+std::ostream &operator<<(std::ostream &stream, const ChannelTagStack &tagstack)
+{
+  stream << "[";
+  bool is_first = true;
+  for (const ChannelTag &tag : tagstack.snapshot()) {
     if (!is_first) {
       stream << "; ";
     }
@@ -685,12 +704,13 @@ const ID *FCurveChannel::find_animated_id_from_tags() const
 
 /* ===== GreasePencil Channel ===== */
 
-GreasePencilChannel::GreasePencilChannel(GreasePencil &containing_gp,
-                                         GreasePencilLayer &gp_layer,
+GreasePencilChannel::GreasePencilChannel(const PointerRNA &gp_layer_ptr,
                                          const ParsedSourcePath source_rna_path)
-    : DataChannel(gp_layer.wrap().name(), DataChannelType::GREASE_PENCIL, source_rna_path)
+    : DataChannel(gp_layer_ptr.data_as<GreasePencilLayer>()->wrap().name(),
+                  DataChannelType::GREASE_PENCIL,
+                  source_rna_path)
 {
-  this->source_ = RNA_pointer_create_discrete(&containing_gp.id, RNA_GreasePencilLayer, &gp_layer);
+  this->source_ = gp_layer_ptr;
 }
 
 void GreasePencilChannel::gather_channeldata()

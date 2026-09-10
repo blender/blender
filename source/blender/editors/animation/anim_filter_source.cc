@@ -2,6 +2,7 @@
  *
  * SPDX-License-Identifier: GPL-2.0-or-later */
 
+#include "BLI_function_ref.hh"
 #include "anim_filter_source_intern.hh"
 
 #include "BLI_listbase.hh"
@@ -34,6 +35,7 @@
 
 #include "ED_anim_filter.hh"
 
+#include <deque>
 #include <optional>
 
 namespace blender::ed::animfilter {
@@ -81,6 +83,9 @@ static void channels_for_channelbag(const PointerRNA &channelbag_ptr,
     FCurve *fcu = channelbag.fcurve(fcurve_index);
 
     if (fcu->grp) {
+      std::cout << "\033[95m" << __func__ << "\033[0m: creating pointer for FCurve group "
+                << fcu->grp->name << "\n";
+      std::cout.flush();
       PointerRNA group_pointer = RNA_pointer_create_with_parent(
           channelbag_ptr, RNA_ActionGroup, fcu->grp);
       rna_path_items.append(rna_path::Member{UString("groups")});
@@ -124,10 +129,13 @@ static void channels_for_channelbag(const PointerRNA &channelbag_ptr,
                  fcu->rna_path_parsed().slice(0, 3)});
     }
     if (!skip_fcurve) {
+      std::cout << "\033[95m" << __func__ << "\033[0m: creating pointer for FCurve "
+                << fcu->rna_path() << "[" << fcu->array_index << "]" << "\n";
+      std::cout.flush();
       PointerRNA fcurve_ptr = RNA_pointer_create_with_parent(channelbag_ptr, RNA_FCurve, fcu);
       FCurveChannel *channel = arena.allocate_data_channel<FCurveChannel>(
           fcurve_ptr, ParsedRNAPathRef(rna_path_items));
-      channel->tags().set(tags.as_set());
+      channel->tags().set(tags.snapshot());
     }
 
     /* Pop the FCurve off the RNA path. */
@@ -261,19 +269,73 @@ static void collect_channels_for_id(ID *animated_id,
   tags.pop();
 }
 
+struct GreasePencilCollector {
+  ChannelTagStack &tags;
+  ChannelArena &arena;
+  const PointerRNA gp_id_ptr;
+  Vector<rna_path::Item> &layer_rna_path_items;
+  Vector<rna_path::Item> &group_rna_path_items;
+
+  void visit(bke::greasepencil::TreeNode &node)
+  {
+    if (node.is_layer()) {
+      GreasePencilLayer &gp_layer = node.as_layer();
+      PointerRNA gp_layer_ptr = RNA_pointer_create_with_parent(
+          gp_id_ptr, RNA_GreasePencilLayer, &gp_layer);
+      layer_rna_path_items[1] = rna_path::LookupKey{UString(node.name())};
+
+      GreasePencilChannel *gp_channel = arena.allocate_data_channel<GreasePencilChannel>(
+          gp_layer_ptr, ParsedRNAPathRef(layer_rna_path_items));
+      gp_channel->tags().set(tags.snapshot());
+      return;
+    }
+
+    BLI_assert(node.is_group());
+    BLI_assert_msg(node.parent_group() != nullptr,
+                   "The root node of the grease pencil layer tree should not be visited");
+
+    bke::greasepencil::LayerGroup &gp_group = node.as_group();
+
+    /* Push the GP group. */
+    PointerRNA gp_group_ptr = RNA_pointer_create_with_parent(
+        gp_id_ptr, RNA_GreasePencilLayerGroup, &gp_group);
+    group_rna_path_items[1] = rna_path::LookupKey{UString(gp_group.name())};
+    tags.push({ChannelTagType::GREASEPENCIL_GROUP,
+               gp_group.name(),
+               gp_group_ptr,
+               ParsedRNAPathRef(group_rna_path_items)});
+
+    /* Visit children. */
+    for (GreasePencilLayerTreeNode &child : gp_group.children.items_reversed()) {
+      this->visit(child.wrap());
+    }
+
+    /* Pop the GP group. */
+    tags.pop();
+  }
+};
+
 static void collect_channels_for_grease_pencil(GreasePencil &gp, ChannelArena &arena)
 {
   ChannelTagStack tags;
-  PointerRNA gp_id_ptr = RNA_pointer_create_discrete(
-      &gp.id, ID_code_to_RNA_type(gp.id.id_type()), &gp);
-
+  const PointerRNA gp_id_ptr = RNA_id_pointer_create(&gp.id);
   tags.push({ChannelTagType::ID, gp.id.name + 2, gp_id_ptr, ParsedRNAPathRef()});
-  for (bke::greasepencil::Layer *layer : gp.layers_for_write()) {
-    /* TODO: what is the parsed source path for gp. */
-    GreasePencilChannel *gp_channel = arena.allocate_data_channel<GreasePencilChannel>(
-        gp, *layer, ParsedSourcePath());
-    gp_channel->tags().set(tags.as_set());
+
+  Vector<rna_path::Item> layer_rna_path_items = {rna_path::Member{UString("layers")}};
+  Vector<rna_path::Item> group_rna_path_items = {rna_path::Member{UString("layer_groups")}};
+  layer_rna_path_items.resize(2);
+  group_rna_path_items.resize(2);
+
+  GreasePencilCollector collector = {
+      tags, arena, gp_id_ptr, layer_rna_path_items, group_rna_path_items};
+
+  /* The root node of the tree doesn't represent any animatable data, so don't visit it, just use
+   * it to get to its children. */
+  for (GreasePencilLayerTreeNode &child : gp.root_group().children.items_reversed()) {
+    collector.visit(child.wrap());
   }
+
+  /* Pop the GP ID. */
   tags.pop();
 }
 
