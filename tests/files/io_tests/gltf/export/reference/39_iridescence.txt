@@ -228,8 +228,8 @@ None
     },
     {
       "mimeType": "image/png",
-      "name": "Untitled",
-      "uri": "Untitled-1.png"
+      "name": "Untitled.001",
+      "uri": "Untitled.001.png"
     }
   ],
   "accessors": [

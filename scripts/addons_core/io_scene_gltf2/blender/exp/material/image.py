@@ -195,6 +195,11 @@ def __gather_name(export_image, use_tile, export_settings):
         names = []
         for img in imgs:
             name, extension = os.path.splitext(img.name)
+            # img.name is a datablock name, not a filename, so only strip a
+            # genuine image extension. Otherwise names like "Image.001" lose
+            # their suffix and collide with "Image" (#2691).
+            if extension.lower() not in ['.png', '.jpg', '.jpeg', '.webp']:
+                name = img.name
             names.append(name)
         name = '-'.join(names)
         return name or 'Image'
