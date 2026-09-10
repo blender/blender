@@ -1848,6 +1848,15 @@ if(WITH_UI_TESTS)
     )
   endforeach()
   unset(_ui_tests)
+
+  # test_open_editor_types opens many areas, each needing its own GLContext.
+  # The number of available context is limit by driver and not queryable.
+  if(WITH_OPENGL_BACKEND)
+    set_tests_properties(
+      ui_opengl_test_editor_types.test_open_editor_types
+      PROPERTIES DISABLED TRUE
+    )
+  endif()
 endif()
 
 
