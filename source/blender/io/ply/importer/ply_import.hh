@@ -11,6 +11,8 @@
 #include "IO_ply.hh"
 #include "ply_data.hh"
 
+#include "BKE_geometry_set.hh"
+
 namespace blender {
 
 struct bContext;
@@ -26,6 +28,7 @@ class PlyReadBuffer;
 
 Mesh *import_mesh(const PLYImportParams &import_params);
 PointCloud *import_point_cloud(const PLYImportParams &import_params);
+bke::GeometrySet import_geometry_set(const PLYImportParams &import_params);
 
 /* Main import function used from within Blender. */
 void importer_main(bContext *C, const PLYImportParams &import_params);

@@ -10,6 +10,8 @@
 
 #include "BLI_path_utils.hh"
 
+#include "BKE_geometry_set.hh"
+
 #include "DEG_depsgraph.hh"
 
 #include "DNA_ID.h"
@@ -80,5 +82,12 @@ void PLY_import(bContext *C, const PLYImportParams &params);
 
 Mesh *PLY_import_mesh(const PLYImportParams &params);
 PointCloud *PLY_import_point_cloud(const PLYImportParams &params);
+
+/* If the file is detected to be representing a gaussian splat the result is a point cloud object
+ * with the type set to "3D Gaussian Splat".
+ * For other files returns mesh stored in the geometry set.
+ *
+ * Upon error returns an empty geometry set. Errors are reported to `params.reports`. */
+bke::GeometrySet PLY_import_geometry_set(const PLYImportParams &params);
 
 }  // namespace blender

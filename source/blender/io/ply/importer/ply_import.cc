@@ -7,6 +7,7 @@
  */
 
 #include <array>
+#include <string>
 
 #include "BKE_context.hh"
 #include "BKE_layer.hh"
@@ -174,7 +175,7 @@ const char *read_header(PlyReadBuffer &file, PlyHeader &r_header)
 }
 
 static std::unique_ptr<PlyData> read_ply_to_data(const PLYImportParams &import_params,
-                                                 const char *ob_name)
+                                                 const StringRefNull ob_name)
 {
   /* Parse header. */
   PlyReadBuffer file(import_params.filepath, 64 * 1024);
@@ -182,25 +183,26 @@ static std::unique_ptr<PlyData> read_ply_to_data(const PLYImportParams &import_p
   PlyHeader header;
   const char *err = read_header(file, header);
   if (err != nullptr) {
-    CLOG_ERROR(&LOG, "PLY Importer: %s: %s", ob_name, err);
-    BKE_reportf(import_params.reports, RPT_ERROR, "PLY Importer: %s: %s", ob_name, err);
+    CLOG_ERROR(&LOG, "PLY Importer: %s: %s", ob_name.c_str(), err);
+    BKE_reportf(import_params.reports, RPT_ERROR, "PLY Importer: %s: %s", ob_name.c_str(), err);
     return nullptr;
   }
 
   /* Parse actual file data. */
   std::unique_ptr<PlyData> data = import_ply_data(file, header);
   if (data == nullptr) {
-    CLOG_ERROR(&LOG, "PLY Importer: failed importing %s, unknown error", ob_name);
+    CLOG_ERROR(&LOG, "PLY Importer: failed importing %s, unknown error", ob_name.c_str());
     BKE_report(import_params.reports, RPT_ERROR, "PLY Importer: failed importing, unknown error");
     return nullptr;
   }
   if (!data->error.empty()) {
-    CLOG_ERROR(&LOG, "PLY Importer: failed importing %s: %s", ob_name, data->error.c_str());
+    CLOG_ERROR(
+        &LOG, "PLY Importer: failed importing %s: %s", ob_name.c_str(), data->error.c_str());
     BKE_report(import_params.reports, RPT_ERROR, "PLY Importer: failed importing, unknown error");
     return nullptr;
   }
   if (data->vertices.is_empty()) {
-    CLOG_ERROR(&LOG, "PLY Importer: file %s contains no vertices", ob_name);
+    CLOG_ERROR(&LOG, "PLY Importer: file %s contains no vertices", ob_name.c_str());
     BKE_report(import_params.reports, RPT_ERROR, "PLY Importer: failed importing, no vertices");
     return nullptr;
   }
@@ -244,20 +246,24 @@ static bool is_data_gaussian_splat(const PlyData &data)
     }
   }
 
-  // TODO(sergey): Check the f_rest_<i> attributes are consistent?
+  /* TODO(sergey): Check the f_rest_<i> attributes are consistent? */
 
   return true;
 }
 
+/* File base name used for object and object-data. */
+static std::string get_datablock_name(const StringRefNull filepath)
+{
+  char datablock_name[FILE_MAX];
+  STRNCPY(datablock_name, BLI_path_basename(filepath.c_str()));
+  BLI_path_extension_strip(datablock_name);
+  return std::string(datablock_name);
+}
+
 Mesh *import_mesh(const PLYImportParams &import_params)
 {
-  /* File base name used for both mesh and object. */
-  char ob_name[FILE_MAX];
-  STRNCPY(ob_name, BLI_path_basename(import_params.filepath));
-  BLI_path_extension_strip(ob_name);
-
-  /* Stuff ply data into the mesh. */
-  std::unique_ptr<PlyData> data = read_ply_to_data(import_params, ob_name);
+  std::unique_ptr<PlyData> data = read_ply_to_data(import_params,
+                                                   get_datablock_name(import_params.filepath));
   if (!data) {
     return nullptr;
   }
@@ -266,13 +272,8 @@ Mesh *import_mesh(const PLYImportParams &import_params)
 
 PointCloud *import_point_cloud(const PLYImportParams &import_params)
 {
-  /* File base name used for both mesh and object. */
-  char ob_name[FILE_MAX];
-  STRNCPY(ob_name, BLI_path_basename(import_params.filepath));
-  BLI_path_extension_strip(ob_name);
-
-  /* Stuff ply data into the mesh. */
-  std::unique_ptr<PlyData> data = read_ply_to_data(import_params, ob_name);
+  std::unique_ptr<PlyData> data = read_ply_to_data(import_params,
+                                                   get_datablock_name(import_params.filepath));
   if (!data) {
     return nullptr;
   }
@@ -280,6 +281,21 @@ PointCloud *import_point_cloud(const PLYImportParams &import_params)
     return nullptr;
   }
   return convert_gsplat_ply_to_point_cloud(*data, import_params);
+}
+
+bke::GeometrySet import_geometry_set(const PLYImportParams &import_params)
+{
+  std::unique_ptr<PlyData> data = read_ply_to_data(import_params,
+                                                   get_datablock_name(import_params.filepath));
+  if (!data) {
+    return bke::GeometrySet();
+  }
+  if (is_data_gaussian_splat(*data)) {
+    PointCloud *point_cloud = convert_gsplat_ply_to_point_cloud(*data, import_params);
+    return bke::GeometrySet::from_pointcloud(point_cloud);
+  }
+  Mesh *mesh = convert_ply_to_mesh(*data, import_params);
+  return bke::GeometrySet::from_mesh(mesh);
 }
 
 void importer_main(bContext *C, const PLYImportParams &import_params)
@@ -295,13 +311,9 @@ void importer_main(Main *bmain,
                    ViewLayer *view_layer,
                    const PLYImportParams &import_params)
 {
-  /* File base name used for both mesh and object. */
-  char ob_name[FILE_MAX];
-  STRNCPY(ob_name, BLI_path_basename(import_params.filepath));
-  BLI_path_extension_strip(ob_name);
+  const std::string datablock_name = get_datablock_name(import_params.filepath);
 
-  /* Stuff ply data into the mesh. */
-  std::unique_ptr<PlyData> data = read_ply_to_data(import_params, ob_name);
+  std::unique_ptr<PlyData> data = read_ply_to_data(import_params, datablock_name);
   if (!data) {
     return;
   }
@@ -315,7 +327,7 @@ void importer_main(Main *bmain,
     if (!point_cloud) {
       return;
     }
-    PointCloud *point_cloud_in_main = BKE_pointcloud_add(bmain, ob_name);
+    PointCloud *point_cloud_in_main = BKE_pointcloud_add(bmain, datablock_name.c_str());
     ob_type = OB_POINTCLOUD;
     ob_data = id_cast<ID *>(point_cloud_in_main);
     BKE_pointcloud_nomain_to_pointcloud(point_cloud, point_cloud_in_main);
@@ -326,9 +338,9 @@ void importer_main(Main *bmain,
       return;
     }
     ob_type = OB_MESH;
-    mesh_in_main = BKE_mesh_add(bmain, ob_name);
+    mesh_in_main = BKE_mesh_add(bmain, datablock_name.c_str());
     ob_data = id_cast<ID *>(mesh_in_main);
-    /* Delay conversion of mesh to mesh_in_main until the object is know. */
+    /* Delay conversion of mesh to mesh_in_main until the object is known. */
   }
 
   BLI_assert(ob_data);
@@ -343,7 +355,7 @@ void importer_main(Main *bmain,
                "Could not find an editable collection in current scene, imported data will not be "
                "instantiated");
   }
-  Object *obj = BKE_object_add_only_object(bmain, ob_type, ob_name);
+  Object *obj = BKE_object_add_only_object(bmain, ob_type, datablock_name.c_str());
   obj->data = ob_data;
   BKE_collection_object_add(bmain, lc->collection, obj);
   BKE_view_layer_synced_ensure(*bmain, scene, view_layer);
@@ -385,5 +397,6 @@ void importer_main(Main *bmain,
   DEG_id_tag_update(&scene->id, ID_RECALC_BASE_FLAGS);
   DEG_relations_tag_update(bmain);
 }
+
 }  // namespace io::ply
 }  // namespace blender
