@@ -654,6 +654,9 @@ class NODE_MT_gn_point_base(node_add_menu.NodeMenu):
         layout.separator()
         self.node_operator(layout, "GeometryNodeSetPointRadius")
 
+        layout.separator()
+        self.node_operator(layout, "GeometryNodePointsSetType")
+
         self.draw_assets_for_catalog(layout, self.bl_label)
 
 
