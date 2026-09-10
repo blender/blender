@@ -28,8 +28,8 @@ static void node_declare(NodeDeclarationBuilder &b)
       .description("Point cloud to change the type of");
   b.add_output<decl::Geometry>("Points"_ustr).propagate_all_geometry().align_with_previous();
   b.add_input<decl::Menu>("Type"_ustr)
-    .static_items(rna_enum_pointcloud_type_items)
-    .optional_label();
+      .static_items(rna_enum_pointcloud_type_items)
+      .optional_label();
 }
 
 static void node_geo_exec(GeoNodeExecParams params)
