@@ -82,7 +82,12 @@ def gather_image(
 
 
 def __gather_original_uri(original_uri, library, export_settings):
-    path_to_image = bpy.path.abspath(original_uri, library=library)
+    # Issue #2492: bpy.path.abspath() can return an absolute path that still
+    # contains relative segments (e.g. '..' through a non-existent directory),
+    # which makes the os.path.exists() check below fail and silently drops the
+    # texture from the export. normpath() collapses those segments without
+    # resolving symlinks, keeping the relpath() against gltf_filedirectory stable.
+    path_to_image = os.path.normpath(bpy.path.abspath(original_uri, library=library))
 
     if not os.path.exists(path_to_image):
         return None
