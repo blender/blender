@@ -1029,6 +1029,10 @@ class NODE_PT_overlay(Panel):
             subcol = col.column(align=True)
             subcol.active = overlay.show_render_size and snode.show_backdrop
 
+            subcol = col.column()
+            subcol.prop(overlay, "show_text_info")
+            subcol.active = snode.show_backdrop
+
             row = subcol.row(align=True)
             row.prop(overlay, "show_render_size", text="Render Region")
             row.prop(overlay, "passepartout_alpha", text="Passepartout")
