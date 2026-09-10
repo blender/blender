@@ -11,6 +11,7 @@
 #include "BLT_translation.hh"
 
 #include "DNA_ID.h"
+#include "DNA_action_types.h"
 #include "DNA_userdef_types.h"
 
 #include "RNA_access.hh"
@@ -90,32 +91,28 @@ static int icon_from_rna_pointer(const PointerRNA &ptr)
 }
 
 class ChannelItem : public ui::AbstractTreeViewItem {
+  /* Keeping a reference to the short-lived AnimationChannel is fine, because the ChannelItem is
+   * short-lived as well. Only specific properties are carried over between draw calls (see
+   * #AbstractTreeViewItem::update_from_old().
+   *
+   * The correctness does depend on the channels being stored on the runtime data of the space
+   * until the next redraw. */
+  AnimationChannel &channel_;
+
+  /* Cached locally just for convenience. */
   PointerRNA source_;
-  std::string label_;
-  bool is_selected_;
-  bool is_datachannel_;
-  ChannelIdentifier channel_identifier_;
-  const SAction_AnimationChannelState *initial_state_;
 
  public:
-  ChannelItem(AnimationChannel &channel,
-              ChannelIdentifier channel_identifier,
-              const SAction_AnimationChannelState *initial_state)
-      : source_(channel.source()),
-        label_(channel.label()),
-        is_selected_(channel.is_selected()),
-        is_datachannel_(channel.type() == AnimationChannelType::DATA),
-        channel_identifier_(channel_identifier),
-        initial_state_(initial_state)
+  ChannelItem(AnimationChannel &channel) : channel_(channel), source_(channel.source())
   {
     this->set_selected(channel.is_selected());
   }
 
   void build_row(ui::Layout &layout) override
   {
-    layout.label(this->label_, icon_from_rna_pointer(this->source_));
+    layout.label(channel_.label(), icon_from_rna_pointer(channel_.source()));
 
-    if (is_datachannel_) {
+    if (channel_.type() == AnimationChannelType::DATA) {
       /* TODO make this work for GP. ideally we'd have access to the channel here still so we don't
        * need to if/else through RNA types. */
       if (source_.type == RNA_FCurve) {
@@ -136,13 +133,9 @@ class ChannelItem : public ui::AbstractTreeViewItem {
     }
 
     /* Store the expanded/collapsed state. */
-    // std::cerr << "\033[95m" << __func__ << "\033[0m: "
-    //           << (is_collapsed ? "\033[94mcollapsed\033[0m" : "\033[96mexpanded\033[0m ")
-    //           << " for " << channel_identifier_ << "\n";
-    SAction_AnimationChannelState &channel_state =
-        saction->runtime->channel_states.lookup_or_add_default(channel_identifier_);
+    SAction_AnimationChannelState &channel_state = saction->runtime->channel_state_for_update(
+        channel_.identifier());
     channel_state.is_collapsed = is_collapsed;
-    channel_state.last_used = saction->runtime->last_used;
 
     /* Trigger redrawing of the keys. */
     WM_event_add_notifier(&C, NC_ANIMATION | ND_ANIMCHAN | NA_EDITED, nullptr);
@@ -150,10 +143,11 @@ class ChannelItem : public ui::AbstractTreeViewItem {
 
   std::optional<bool> should_be_collapsed() const override
   {
-    if (!this->initial_state_) {
-      return {};
+    if (channel_.type() != AnimationChannelType::SUMMARY) {
+      return {}; /* Only summary channels have a way to collapse/expand them. */
     }
-    return this->initial_state_->is_collapsed;
+    const SummaryChannel &summary = dynamic_cast<const SummaryChannel &>(channel_);
+    return summary.is_collapsed();
   }
 
  protected:
@@ -192,14 +186,12 @@ class ChannelItem : public ui::AbstractTreeViewItem {
 
 class ChannelTreeView : public ui::AbstractTreeView {
   SummaryChannel &root_;
-  Map<ed::animfilter::ChannelIdentifier, SAction_AnimationChannelState> &channel_states_;
 
   void add_channel_recursive(TreeViewItemContainer &container, AnimationChannel &channel)
   {
     /* Create the tree item for the channel. */
     const ChannelIdentifier chan_ident = channel.identifier();
-    ChannelItem &item = container.add_tree_item<ChannelItem>(
-        channel, chan_ident, channel_states_.lookup_ptr(chan_ident));
+    ChannelItem &item = container.add_tree_item<ChannelItem>(channel);
     item.uncollapse_by_default();
 
     /* Set the color based on the channel type. */
@@ -220,12 +212,7 @@ class ChannelTreeView : public ui::AbstractTreeView {
   }
 
  public:
-  ChannelTreeView(
-      SummaryChannel &root,
-      Map<ed::animfilter::ChannelIdentifier, SAction_AnimationChannelState> &channel_states)
-      : root_(root), channel_states_(channel_states)
-  {
-  }
+  ChannelTreeView(SummaryChannel &root) : root_(root) {}
 
   void build_tree() override
   {
@@ -251,9 +238,7 @@ void draw_channel_tree(const bContext &C, SummaryChannel &root, View2D & /* v2d 
   BLI_assert_msg(saction, "expecting to be called for a Dope Sheet");
 
   ui::AbstractTreeView *tree_view = ui::block_add_view(
-      *block,
-      "channel_tree",
-      std::make_unique<ChannelTreeView>(root, saction->runtime->channel_states));
+      *block, "channel_tree", std::make_unique<ChannelTreeView>(root));
   /* Just making it explicit that this is the row height we use as a base. */
   tree_view->set_row_height(UI_UNIT_Y);
   tree_view->set_row_scale_y(ANIM_UI_get_channel_scale_factor());

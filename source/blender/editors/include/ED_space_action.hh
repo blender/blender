@@ -31,13 +31,19 @@ struct SpaceAction_Runtime {
 
   /* TODO: the identifiers contain ID pointers, which should be reported to Blender for handling ID
    * remapping. */
-  Map<ed::animfilter::ChannelIdentifier, ed::animfilter::SAction_AnimationChannelState>
-      channel_states;
+  ed::animfilter::ChannelUIStateMap channel_states;
 
   /** A counter that is incremented every time the channel states above are used. */
   uint32_t last_used = 0;
 
   std::optional<ed::animfilter::ChannelArena> channel_arena;
+
+  /**
+   * Ensures there is an entry for this channel in the UI state map, returning that entry so it can
+   * be updated. This also sets the entry's `last_used` field to #last_used.
+   */
+  ed::animfilter::SAction_AnimationChannelState &channel_state_for_update(
+      const ed::animfilter::ChannelIdentifier &channel_key);
 };
 
 namespace ed::action {

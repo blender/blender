@@ -335,16 +335,36 @@ void SummaryChannel::change_selection(const SelectionMode mode, const Bounds<flo
   }
 }
 
-void SummaryChannel::update_from_ui_state(const SAction_AnimationChannelState &ui_state)
+void SummaryChannel::ui_state_map_set(ChannelUIStateMap *ui_state_map)
 {
-  // std::cerr << "\033[95m" << __func__ << "\033[0m: "
-  //           << (ui_state.is_collapsed ? "\033[94mcollapsed\033[0m" : "\033[96mexpanded\033[0m ")
-  //           << " for " << this->identifier() << "\n";
-  this->is_collapsed_ = ui_state.is_collapsed;
+  this->ui_state_map_ = ui_state_map;
+}
+
+void SummaryChannel::ui_state_ensure()
+{
+  if (this->is_ui_state_map_used_ || !this->ui_state_map_) {
+    /* The internal properties have already been updated for the UI state. */
+    /* Also having no UI state to read from is fine, it'll just mean using the defaults. */
+    return;
+  }
+  this->is_ui_state_map_used_ = true;
+
+  const SAction_AnimationChannelState *ui_state = this->ui_state_map_->lookup_ptr(
+      this->identifier());
+  if (!ui_state) {
+    /* No UI state stored, so just use the defaults. */
+    return;
+  }
+
+  /* Update properties from the found UI state. */
+  this->is_collapsed_ = ui_state->is_collapsed;
 }
 
 bool SummaryChannel::is_collapsed() const
 {
+  /* Cast away constness so that the UI state can be loaded if necessary. */
+  const_cast<SummaryChannel *>(this)->ui_state_ensure();
+
   if (!this->is_collapsed_.has_value()) {
     /* TODO: let the channel determine its default state based on its source type. */
     return false;

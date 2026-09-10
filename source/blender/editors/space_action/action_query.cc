@@ -159,18 +159,8 @@ ed::animfilter::ChannelArena get_summary_tree(const bContext &C)
     saction->runtime->last_used++;
 
     /* Update the channels with the previously-stored UI state. */
-
     for (SummaryChannel *summary : arena.summary_channels) {
-      const ChannelIdentifier chan_ident = summary->identifier();
-
-      /* TODO: instead of updating directly, do it on demand. That'll prevent doing this map lookup
-       * for ALL channels, and defer it to run only where necessary. */
-      SAction_AnimationChannelState *ui_state = saction->runtime->channel_states.lookup_ptr(
-          chan_ident);
-      if (ui_state) {
-        ui_state->last_used = saction->runtime->last_used;
-        summary->update_from_ui_state(*ui_state);
-      }
+      summary->ui_state_map_set(&saction->runtime->channel_states);
     }
   }
   return arena;

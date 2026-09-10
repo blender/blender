@@ -210,8 +210,8 @@ static ed::animfilter::ChannelArena &space_action_channel_arena(const bContext &
   return *runtime->channel_arena;
 }
 
-/** Clean up any cached data that was built during drawing of regions. */
-static void action_draw_post(const bContext * /*C*/, ScrArea *area)
+/** Clean up any cached data that was built during the previous drawing of regions. */
+static void action_draw_pre(const bContext * /*C*/, ScrArea *area)
 {
   SpaceAction *saction = area->spacedata.first_as<SpaceAction>();
   saction->runtime->channel_arena.reset();
@@ -1044,6 +1044,15 @@ static void action_space_blend_write(BlendWriter *writer, SpaceLink *sl)
   saction->runtime = temp;
 }
 
+ed::animfilter::SAction_AnimationChannelState &SpaceAction_Runtime::channel_state_for_update(
+    const ed::animfilter::ChannelIdentifier &channel_key)
+{
+  ed::animfilter::SAction_AnimationChannelState &channel_state =
+      this->channel_states.lookup_or_add_default(channel_key);
+  channel_state.last_used = this->last_used;
+  return channel_state;
+}
+
 void ED_spacetype_action()
 {
   std::unique_ptr<SpaceType> st = std::make_unique<SpaceType>();
@@ -1060,7 +1069,7 @@ void ED_spacetype_action()
   st->keymap = action_keymap;
   st->listener = action_listener;
   st->refresh = action_refresh;
-  st->draw_post = action_draw_post;
+  st->draw_pre = action_draw_pre;
   st->id_remap = action_id_remap;
   st->foreach_id = action_foreach_id;
   st->space_subtype_item_extend = action_space_subtype_item_extend;

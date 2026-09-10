@@ -387,10 +387,19 @@ class AnimationChannel {
   virtual void gather_channeldata() = 0;
 };
 
+using ChannelUIStateMap =
+    Map<ed::animfilter::ChannelIdentifier, ed::animfilter::SAction_AnimationChannelState>;
+
 /* This is the class responsible for generating the tree structure. Each channel only tracks its
  * children, which allows us to generate multiple summary trees for the same data channels. */
 class SummaryChannel final : public AnimationChannel {
   Vector<AnimationChannel *> children_;
+
+  /**
+   * Pointer to the space's UI state map. This is used to lazily look up this channel's UI state.
+   */
+  ChannelUIStateMap *ui_state_map_ = nullptr;
+  bool is_ui_state_map_used_ = false;
 
   /** Collapsed/expanded state, if known. */
   std::optional<bool> is_collapsed_ = {};
@@ -419,11 +428,19 @@ class SummaryChannel final : public AnimationChannel {
 
   void change_selection(SelectionMode mode, Bounds<float> range = {-INFINITY, INFINITY}) override;
 
-  void update_from_ui_state(const SAction_AnimationChannelState &ui_state);
+  /** Let the channel know where to find its UI state. */
+  void ui_state_map_set(ChannelUIStateMap *ui_state_map);
+  /**
+   * Return the collapsed/expanded state.
+   * \note this is not thread-safe, as it can lazily load the UI state.
+   */
   bool is_collapsed() const;
 
  protected:
   void gather_channeldata() override;
+
+  /** Update the properties of this channel from the UI state. */
+  void ui_state_ensure();
 };
 
 enum DataChannelFlags {
