@@ -17,8 +17,96 @@ static ed::animfilter::CollectionFilters get_filters(SpaceAction &saction)
 {
   using namespace ed::animfilter;
   CollectionFilters filters;
-  if (saction.ads.filterflag & ADS_FILTER_ONLYSEL) {
-    filters.only_selected = true;
+  filters.only_selected = saction.ads.filterflag & ADS_FILTER_ONLYSEL;
+  filters.show_hidden = saction.ads.filterflag & ADS_FILTER_INCL_HIDDEN;
+  /* TODO: implement. See `fcurve_has_errors`. */
+  filters.only_errors = saction.ads.filterflag & ADS_FILTER_ONLY_ERRORS;
+
+  /* This is not nice but we have to keep for backwards compatibility. In the future it would be
+   * good to store the ID type bit directly on the dopesheet. */
+  if (saction.ads.filterflag & ADS_FILTER_NOSHAPEKEYS) {
+    filters.id_type_blocklist.add(ID_KE);
+  }
+  if (saction.ads.filterflag & ADS_FILTER_NOMESH) {
+    filters.id_type_blocklist.add(ID_ME);
+  }
+  if (saction.ads.filterflag & ADS_FILTER_NOOBJ) {
+    filters.id_type_blocklist.add(ID_OB);
+  }
+  if (saction.ads.filterflag & ADS_FILTER_NOLAT) {
+    filters.id_type_blocklist.add(ID_LT);
+  }
+  if (saction.ads.filterflag & ADS_FILTER_NOCAM) {
+    filters.id_type_blocklist.add(ID_CA);
+  }
+  if (saction.ads.filterflag & ADS_FILTER_NOMAT) {
+    filters.id_type_blocklist.add(ID_MA);
+  }
+  if (saction.ads.filterflag & ADS_FILTER_NOLAM) {
+    filters.id_type_blocklist.add(ID_LA);
+  }
+  if (saction.ads.filterflag & ADS_FILTER_NOCUR) {
+    filters.id_type_blocklist.add(ID_CV);
+  }
+  if (saction.ads.filterflag & ADS_FILTER_NOWOR) {
+    filters.id_type_blocklist.add(ID_WO);
+  }
+  if (saction.ads.filterflag & ADS_FILTER_NOSCE) {
+    filters.id_type_blocklist.add(ID_SCE);
+  }
+  if (saction.ads.filterflag & ADS_FILTER_NOPART) {
+    filters.id_type_blocklist.add(ID_PA);
+  }
+  if (saction.ads.filterflag & ADS_FILTER_NOMBA) {
+    filters.id_type_blocklist.add(ID_MB);
+  }
+  if (saction.ads.filterflag & ADS_FILTER_NOARM) {
+    filters.id_type_blocklist.add(ID_AR);
+  }
+  if (saction.ads.filterflag & ADS_FILTER_NONTREE) {
+    filters.id_type_blocklist.add(ID_NT);
+  }
+  if (saction.ads.filterflag & ADS_FILTER_NOTEX) {
+    filters.id_type_blocklist.add(ID_TE);
+  }
+  if (saction.ads.filterflag & ADS_FILTER_NOSPK) {
+    filters.id_type_blocklist.add(ID_SPK);
+  }
+  if (saction.ads.filterflag & ADS_FILTER_NOLINESTYLE) {
+    filters.id_type_blocklist.add(ID_LS);
+  }
+  if (saction.ads.filterflag & ADS_FILTER_NOMODIFIERS) {
+    /* TODO Not sure how that worked. */
+    // filters.id_type_blocklist.add(ID_MA);
+  }
+  if (saction.ads.filterflag & ADS_FILTER_NOGPENCIL) {
+    filters.id_type_blocklist.add(ID_GP);
+  }
+  /* Ignoring ADS_FILTER_NLA_NOACT since we don't support the NLA here.  */
+
+  /* NOTE: checking `filterflag2` from here on! */
+  if (saction.ads.filterflag2 & ADS_FILTER_NOCACHEFILES) {
+    filters.id_type_blocklist.add(ID_CF);
+  }
+  if (saction.ads.filterflag2 & ADS_FILTER_NOMOVIECLIPS) {
+    filters.id_type_blocklist.add(ID_MC);
+  }
+  if (saction.ads.filterflag2 & ADS_FILTER_NOHAIR) {
+    /* TODO hair has no ID type? */
+    // filters.id_type_blocklist.add();
+  }
+  if (saction.ads.filterflag2 & ADS_FILTER_NOPOINTCLOUD) {
+    filters.id_type_blocklist.add(ID_PT);
+  }
+  if (saction.ads.filterflag2 & ADS_FILTER_NOVOLUME) {
+    filters.id_type_blocklist.add(ID_VO);
+  }
+  if (saction.ads.filterflag2 & ADS_FILTER_DRIVER_FALLBACK_AS_ERROR) {
+    /* TODO check in legacy system how that worked. */
+    // filters.id_type_blocklist.add(ID_CF);
+  }
+  if (saction.ads.filterflag2 & ADS_FILTER_NOLIGHTPROBE) {
+    filters.id_type_blocklist.add(ID_LP);
   }
   return filters;
 }

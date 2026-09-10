@@ -578,7 +578,9 @@ class ChannelArena {
 };
 
 struct CollectionFilters {
-  bool only_selected;
+  bool only_selected = true;
+  bool show_hidden = false;
+  bool only_errors = false;
 
   /* Limit the returned data to only channels of the given type.
    * If empty, all channel types are returned. */

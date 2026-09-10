@@ -4,6 +4,7 @@
 
 #include "anim_filter_source_intern.hh"
 
+#include "BLI_listbase.hh"
 #include "BLI_span.hh"
 
 #include "DNA_ID.h"
@@ -22,6 +23,7 @@
 #include "BKE_anim_data.hh"
 #include "BKE_context.hh"
 #include "BKE_grease_pencil.hh"
+#include "BKE_main.hh"
 #include "BKE_material.hh"
 #include "BKE_pose.hh"
 
@@ -105,7 +107,9 @@ static void channels_for_channelbag(const PointerRNA &channelbag_ptr,
       bArmature *armature = id_cast<bArmature *>(object->data);
       /* We have to check for visibility here. This is not as nice as with objects where we can
        * just skip the object entirely since bones are not the owner of their animation. */
-      if (!animrig::bone_is_visible(armature, {pose_bone, pose_bone->bone_get(*object)})) {
+      if (!collection_filters.show_hidden &&
+          !animrig::bone_is_visible(armature, {pose_bone, pose_bone->bone_get(*object)}))
+      {
         skip_fcurve = true;
       }
       if (collection_filters.only_selected &&
@@ -291,7 +295,9 @@ void collection_channels_for_object(Object &obj,
   if (obj.data) {
     switch (obj.type) {
       case OB_GREASE_PENCIL:
-        collect_channels_for_grease_pencil(*id_cast<GreasePencil *>(obj.data), arena);
+        if (!collection_filters.id_type_blocklist.contains(ID_GP)) {
+          collect_channels_for_grease_pencil(*id_cast<GreasePencil *>(obj.data), arena);
+        }
         break;
 
       case OB_MESH: {
@@ -321,8 +327,16 @@ void collect_animation_channels(const bContext &C,
   if (collection_filters.only_selected) {
     CTX_data_selected_objects(&C, &objects);
   }
+  /* Show *all* objects. */
+  else if (collection_filters.show_hidden) {
+    /* We can check this after `only_selected` because selected objects have to be visible. */
+    Main *bmain = CTX_data_main(&C);
+    for (Object &obj : bmain->objects) {
+      objects.append(RNA_id_pointer_create(&obj.id));
+    }
+  }
   else {
-    /* TODO review if this is the correct list. */
+    /* Show all visible. */
     CTX_data_visible_objects(&C, &objects);
   }
 
