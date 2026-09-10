@@ -175,15 +175,27 @@ class VExportTree:
                     blender_children,
                     is_collection=True)
             else:
-                # Scene / classic export
-                self.recursive_node_traverse(
-                    blender_scene.collection,
-                    None,
-                    None,
-                    Matrix.Identity(4),
-                    False,
-                    blender_children,
-                    is_collection=True)
+                # If user limits export to active collection
+                if self.export_settings['gltf_active_collection']:
+                    active_collection = bpy.context.view_layer.active_layer_collection.collection
+                    self.recursive_node_traverse(
+                        active_collection,
+                        None,
+                        None,
+                        Matrix.Identity(4),
+                        False,
+                        blender_children,
+                        is_collection=True)
+                else:
+                    # Scene / classic export
+                    self.recursive_node_traverse(
+                        blender_scene.collection,
+                        None,
+                        None,
+                        Matrix.Identity(4),
+                        False,
+                        blender_children,
+                        is_collection=True)
 
     def recursive_node_traverse(
             self,
