@@ -11,7 +11,7 @@ VERTEX_SHADER_CREATE_INFO(overlay_outline_prepass_pointcloud)
 #include "draw_pointcloud_lib.glsl"
 #include "draw_view_clipping_lib.glsl"
 #include "draw_view_lib.glsl"
-#include "gpu_shader_utildefines_lib.glsl"
+#include "gpu_shader_utildefines.bsl.hh"
 
 uint outline_colorid_get()
 {

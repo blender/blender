@@ -2,7 +2,7 @@
  *
  * SPDX-License-Identifier: GPL-2.0-or-later */
 
-#include "gpu_shader_math_matrix_construct_lib.glsl"
+#include "gpu_shader_math_matrix_construct.bsl.hh"
 
 #define CMP_NODE_COLOR_BALANCE_LGG 0
 #define CMP_NODE_COLOR_BALANCE_ASC_CDL 1

@@ -1116,7 +1116,10 @@ wmOperatorStatus WM_operator_props_dialog_popup(
     bool show_icon = false);
 
 wmOperatorStatus WM_operator_redo_popup(bContext *C, wmOperator *op);
-wmOperatorStatus WM_operator_ui_popup(bContext *C, wmOperator *op, int width);
+/**
+ * \param auto_keymap: Assign accelerator keys to buttons.
+ */
+wmOperatorStatus WM_operator_ui_popup(bContext *C, wmOperator *op, int width, bool auto_keymap);
 
 /**
  * Can't be used as an invoke directly, needs message arg (can be NULL).

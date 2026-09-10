@@ -967,14 +967,16 @@ static void sequencer_dropboxes_add_to_lb(ListBaseT<wmDropBox> *lb)
   drop->on_exit = sequencer_drop_on_exit;
 }
 
-static bool image_drop_preview_poll(bContext * /*C*/, wmDrag *drag, const wmEvent * /*event*/)
+static bool image_drop_preview_poll(bContext *C, wmDrag *drag, const wmEvent * /*event*/)
 {
-  return is_image(drag);
+  return is_image(drag) && (drag->type != WM_DRAG_PATH ||
+                            test_single_file_handler_poll(C, drag, "SEQUENCER_FH_image_strip"));
 }
 
-static bool movie_drop_preview_poll(bContext * /*C*/, wmDrag *drag, const wmEvent * /*event*/)
+static bool movie_drop_preview_poll(bContext *C, wmDrag *drag, const wmEvent * /*event*/)
 {
-  return is_movie(drag);
+  return is_movie(drag) && (drag->type != WM_DRAG_PATH ||
+                            test_single_file_handler_poll(C, drag, "SEQUENCER_FH_movie_strip"));
 }
 
 static bool movieclip_drop_preview_poll(bContext * /*C*/, wmDrag *drag, const wmEvent * /*event*/)
@@ -998,9 +1000,10 @@ static bool mask_drop_preview_poll(bContext * /*C*/, wmDrag *drag, const wmEvent
   return WM_drag_is_ID_type(drag, ID_MSK);
 }
 
-static bool text_drop_preview_poll(bContext * /*C*/, wmDrag *drag, const wmEvent * /*event*/)
+static bool text_drop_preview_poll(bContext *C, wmDrag *drag, const wmEvent * /*event*/)
 {
-  return is_text(drag);
+  return is_text(drag) && (drag->type != WM_DRAG_PATH ||
+                           test_single_file_handler_poll(C, drag, "SEQUENCER_FH_text_strip"));
 }
 
 static bool color_drop_preview_poll(bContext * /*C*/, wmDrag *drag, const wmEvent * /*event*/)
@@ -1008,9 +1011,10 @@ static bool color_drop_preview_poll(bContext * /*C*/, wmDrag *drag, const wmEven
   return drag->type == WM_DRAG_COLOR;
 }
 
-static bool sound_drop_preview_poll(bContext * /*C*/, wmDrag *drag, const wmEvent * /*event*/)
+static bool sound_drop_preview_poll(bContext *C, wmDrag *drag, const wmEvent * /*event*/)
 {
-  return is_sound(drag);
+  return is_sound(drag) && (drag->type != WM_DRAG_PATH ||
+                            test_single_file_handler_poll(C, drag, "SEQUENCER_FH_sound_strip"));
 }
 
 static void sequencer_preview_dropboxes_add_to_lb(ListBaseT<wmDropBox> *lb)

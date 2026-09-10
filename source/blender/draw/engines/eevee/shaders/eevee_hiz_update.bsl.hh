@@ -21,8 +21,8 @@
 
 #include "eevee_defines.hh"
 #include "eevee_reverse_z_lib.bsl.hh"
-#include "gpu_shader_math_vector_lib.glsl"
-#include "gpu_shader_math_vector_reduce_lib.glsl"
+#include "gpu_shader_math_vector.bsl.hh"
+#include "gpu_shader_math_vector_reduce.bsl.hh"
 
 namespace eevee::hiz {
 

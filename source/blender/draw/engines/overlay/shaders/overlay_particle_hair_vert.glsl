@@ -14,8 +14,8 @@ VERTEX_SHADER_CREATE_INFO(overlay_particle_hair)
 #include "draw_object_infos_lib.glsl"
 #include "draw_view_clipping_lib.glsl"
 #include "draw_view_lib.glsl"
-#include "gpu_shader_math_base_lib.glsl"
-#include "gpu_shader_utildefines_lib.glsl"
+#include "gpu_shader_math_base.bsl.hh"
+#include "gpu_shader_utildefines.bsl.hh"
 #include "overlay_common_lib.glsl"
 #include "select_lib.glsl"
 

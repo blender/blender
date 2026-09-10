@@ -18,7 +18,7 @@
 #include "eevee_shadow.bsl.hh"
 #include "eevee_volume_lib.bsl.hh"
 #include "eevee_volume_shared.hh"
-#include "gpu_shader_fullscreen_lib.glsl"
+#include "gpu_shader_fullscreen.bsl.hh"
 
 namespace eevee::volume {
 

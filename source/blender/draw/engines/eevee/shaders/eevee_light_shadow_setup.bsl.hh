@@ -8,10 +8,10 @@
 #include "eevee_sampling_lib.bsl.hh"
 #include "eevee_shadow_shared.hh"
 #include "eevee_uniform.bsl.hh"
-#include "gpu_shader_math_fast_lib.glsl"
-#include "gpu_shader_math_matrix_construct_lib.glsl"
-#include "gpu_shader_math_matrix_lib.glsl"
-#include "gpu_shader_math_matrix_projection_lib.glsl"
+#include "gpu_shader_math_fast.bsl.hh"
+#include "gpu_shader_math_matrix.bsl.hh"
+#include "gpu_shader_math_matrix_construct.bsl.hh"
+#include "gpu_shader_math_matrix_projection.bsl.hh"
 
 namespace eevee::light {
 

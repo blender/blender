@@ -6,7 +6,7 @@
 
 VERTEX_SHADER_CREATE_INFO(gpencil_fx_common)
 
-#include "gpu_shader_fullscreen_lib.glsl"
+#include "gpu_shader_fullscreen.bsl.hh"
 
 void main()
 {

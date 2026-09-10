@@ -77,14 +77,7 @@ void device_metal_info(vector<DeviceInfo> &devices)
 #  endif
 
     info.has_nanovdb = true;
-
-    /* MNEE caused "Compute function exceeds available temporary registers" in macOS < 13 due to a
-     * bug in spill buffer allocation sizing. */
-    info.has_mnee_ = false;
-    if (@available(macos 13.0, *)) {
-      info.has_mnee_ = true;
-    }
-
+    info.has_mnee_ = true;
     info.use_hardware_raytracing = false;
 
     /* MetalRT now uses features exposed in Xcode versions corresponding to macOS 14+, so don't

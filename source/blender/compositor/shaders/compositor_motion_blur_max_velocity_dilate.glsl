@@ -11,8 +11,8 @@ COMPUTE_SHADER_CREATE_INFO(compositor_motion_blur_max_velocity_dilate)
 
 #include "gpu_shader_compositor_motion_blur_lib.glsl"
 #include "gpu_shader_compositor_texture_utilities.glsl"
-#include "gpu_shader_math_base_lib.glsl"
-#include "gpu_shader_math_constants_lib.glsl"
+#include "gpu_shader_math_base.bsl.hh"
+#include "gpu_shader_math_constants.bsl.hh"
 
 struct MotionRect {
   int2 bottom_left;

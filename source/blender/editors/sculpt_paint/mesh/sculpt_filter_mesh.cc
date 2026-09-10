@@ -361,12 +361,11 @@ static void calc_smooth_filter(const Depsgraph &depsgraph,
           [&](const int i) {
             LocalData &tls = all_tls.local();
             const Span<int> verts = nodes[i].verts();
-            const Span<float3> positions = gather_data_mesh(
-                position_data.eval, verts, tls.positions);
+            Array<float3, bke::pbvh::MESH_LEAF_LIMIT> positions(verts.size());
+            gather_data_mesh(position_data.eval, verts, positions.as_mutable_span());
             const OrigPositionData orig_data = orig_position_data_get_mesh(object, nodes[i]);
 
-            tls.factors.resize(verts.size());
-            const MutableSpan<float> factors = tls.factors;
+            Array<float, bke::pbvh::MESH_LEAF_LIMIT> factors(verts.size());
             fill_factor_from_hide_and_mask(
                 attribute_data.hide_vert, attribute_data.mask, verts, factors);
             auto_mask::calc_vert_factors(
@@ -385,13 +384,11 @@ static void calc_smooth_filter(const Depsgraph &depsgraph,
                 tls.neighbor_offsets,
                 tls.neighbor_data);
 
-            tls.new_positions.resize(verts.size());
-            const MutableSpan<float3> new_positions = tls.new_positions;
+            Array<float3, bke::pbvh::MESH_LEAF_LIMIT> new_positions(verts.size());
             smooth::neighbor_data_average_mesh_check_loose(
-                position_data.eval, verts, neighbors, new_positions);
+                position_data.eval, verts, neighbors, new_positions.as_mutable_span());
 
-            tls.translations.resize(verts.size());
-            const MutableSpan<float3> translations = tls.translations;
+            Array<float3, bke::pbvh::MESH_LEAF_LIMIT> translations(verts.size());
             if (use_original_position) {
               translations_from_new_positions(new_positions, orig_data.positions, translations);
             }

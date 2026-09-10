@@ -12,8 +12,8 @@
  * This should ultimately be rewritten inside a gpu_shader lib with higher quality standard.
  */
 
-#include "gpu_shader_math_vector_lib.glsl"
-#include "gpu_shader_math_vector_reduce_lib.glsl"
+#include "gpu_shader_math_vector.bsl.hh"
+#include "gpu_shader_math_vector_reduce.bsl.hh"
 
 /* ---------------------------------------------------------------------- */
 /** \name Math intersection & projection functions.

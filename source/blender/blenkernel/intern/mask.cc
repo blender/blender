@@ -210,6 +210,7 @@ IDTypeInfo IDType_ID_MSK = {
     .foreach_cache = nullptr,
     .foreach_path = nullptr,
     .foreach_working_space_color = nullptr,
+    .foreach_asset_weak_reference = nullptr,
     .owner_pointer_get = nullptr,
 
     .blend_write = mask_blend_write,

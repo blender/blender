@@ -9,7 +9,7 @@
  */
 
 #include "draw_debug_infos.hh"
-#include "gpu_shader_math_constants_lib.glsl"
+#include "gpu_shader_math_constants.bsl.hh"
 
 FRAGMENT_SHADER_CREATE_INFO(draw_debug_draw_display)
 

@@ -1191,25 +1191,17 @@ static void do_wpaint_brush_blur(const Depsgraph &depsgraph,
     select_vert = *attributes.lookup<bool>(".select_vert", bke::AttrDomain::Point);
   }
 
-  struct LocalData {
-    Vector<float> factors;
-    Vector<float> distances;
-  };
-  threading::EnumerableThreadSpecific<LocalData> all_tls;
   parallel_nodes_loop_with_mirror_check(mesh, node_mask, [&](const IndexRange range) {
-    LocalData &tls = all_tls.local();
     node_mask.slice(range).foreach_index([&](const int i) {
       const Span<int> verts = nodes[i].verts();
-      tls.factors.resize(verts.size());
-      const MutableSpan<float> factors = tls.factors;
+      Array<float, bke::pbvh::MESH_LEAF_LIMIT> factors(verts.size());
       fill_factor_from_hide(hide_vert, verts, factors);
       filter_region_clip_factors(ss, vert_positions, verts, factors);
       if (!select_vert.is_empty()) {
         filter_factors_with_selection(select_vert, verts, factors);
       }
 
-      tls.distances.resize(verts.size());
-      const MutableSpan<float> distances = tls.distances;
+      Array<float, bke::pbvh::MESH_LEAF_LIMIT> distances(verts.size());
       calc_brush_distances(
           ss, vert_positions, verts, eBrushFalloffShape(brush.falloff_shape), distances);
       filter_distances_with_radius(cache.radius, distances, factors);
@@ -1311,25 +1303,17 @@ static void do_wpaint_brush_smear(const Depsgraph &depsgraph,
   const float *sculpt_normal_frontface = brush_frontface_normal_from_falloff_shape(
       ss, brush.falloff_shape);
 
-  struct LocalData {
-    Vector<float> factors;
-    Vector<float> distances;
-  };
-  threading::EnumerableThreadSpecific<LocalData> all_tls;
   parallel_nodes_loop_with_mirror_check(mesh, node_mask, [&](const IndexRange range) {
-    LocalData &tls = all_tls.local();
     node_mask.slice(range).foreach_index([&](const int i) {
       const Span<int> verts = nodes[i].verts();
-      tls.factors.resize(verts.size());
-      const MutableSpan<float> factors = tls.factors;
+      Array<float, bke::pbvh::MESH_LEAF_LIMIT> factors(verts.size());
       fill_factor_from_hide(hide_vert, verts, factors);
       filter_region_clip_factors(ss, vert_positions, verts, factors);
       if (!select_vert.is_empty()) {
         filter_factors_with_selection(select_vert, verts, factors);
       }
 
-      tls.distances.resize(verts.size());
-      const MutableSpan<float> distances = tls.distances;
+      Array<float, bke::pbvh::MESH_LEAF_LIMIT> distances(verts.size());
       calc_brush_distances(
           ss, vert_positions, verts, eBrushFalloffShape(brush.falloff_shape), distances);
       filter_distances_with_radius(cache.radius, distances, factors);
@@ -1428,35 +1412,25 @@ static void do_wpaint_brush_draw(const Depsgraph &depsgraph,
     select_vert = *attributes.lookup<bool>(".select_vert", bke::AttrDomain::Point);
   }
 
-  struct LocalData {
-    Vector<float> factors;
-    Vector<float> automask_factors;
-    Vector<float> distances;
-  };
-  threading::EnumerableThreadSpecific<LocalData> all_tls;
   parallel_nodes_loop_with_mirror_check(mesh, node_mask, [&](const IndexRange range) {
-    LocalData &tls = all_tls.local();
     node_mask.slice(range).foreach_index([&](const int i) {
       const Span<int> verts = nodes[i].verts();
-      tls.factors.resize(verts.size());
-      const MutableSpan<float> factors = tls.factors;
+      Array<float, bke::pbvh::MESH_LEAF_LIMIT> factors(verts.size());
       fill_factor_from_hide(hide_vert, verts, factors);
       filter_region_clip_factors(ss, vert_positions, verts, factors);
       if (!select_vert.is_empty()) {
         filter_factors_with_selection(select_vert, verts, factors);
       }
 
-      tls.distances.resize(verts.size());
-      const MutableSpan<float> distances = tls.distances;
+      Array<float, bke::pbvh::MESH_LEAF_LIMIT> distances(verts.size());
       calc_brush_distances(
           ss, vert_positions, verts, eBrushFalloffShape(brush.falloff_shape), distances);
       filter_distances_with_radius(cache.radius, distances, factors);
       calc_brush_strength_factors(cache, brush, distances, factors);
 
-      MutableSpan<float> automask_factors;
+      Array<float, bke::pbvh::MESH_LEAF_LIMIT> automask_factors;
       if (cache.automasking) {
-        tls.automask_factors.resize(verts.size());
-        automask_factors = tls.automask_factors;
+        automask_factors.reinitialize(verts.size());
         automask_factors.fill(1.0f);
         auto_mask::calc_vert_factors(
             depsgraph, ob, *cache.automasking, nodes[i], verts, automask_factors);
@@ -1521,29 +1495,21 @@ static float calculate_average_weight(const Depsgraph &depsgraph,
     select_vert = *attributes.lookup<bool>(".select_vert", bke::AttrDomain::Point);
   }
 
-  struct LocalData {
-    Vector<float> factors;
-    Vector<float> distances;
-  };
-  threading::EnumerableThreadSpecific<LocalData> all_tls;
   const WPaintAverageAccum value = threading::parallel_reduce(
       node_mask.index_range(),
       1,
       WPaintAverageAccum{},
       [&](const IndexRange range, WPaintAverageAccum accum) {
-        LocalData &tls = all_tls.local();
         node_mask.slice(range).foreach_index([&](const int i) {
           const Span<int> verts = nodes[i].verts();
-          tls.factors.resize(verts.size());
-          const MutableSpan<float> factors = tls.factors;
+          Array<float, bke::pbvh::MESH_LEAF_LIMIT> factors(verts.size());
           fill_factor_from_hide(hide_vert, verts, factors);
           filter_region_clip_factors(ss, vert_positions, verts, factors);
           if (!select_vert.is_empty()) {
             filter_factors_with_selection(select_vert, verts, factors);
           }
 
-          tls.distances.resize(verts.size());
-          const MutableSpan<float> distances = tls.distances;
+          Array<float, bke::pbvh::MESH_LEAF_LIMIT> distances(verts.size());
           calc_brush_distances(
               ss, vert_positions, verts, eBrushFalloffShape(brush.falloff_shape), distances);
           filter_distances_with_radius(cache.radius, distances, factors);
@@ -1810,7 +1776,7 @@ void WeightPaintStroke::update_step(wmOperator * /*op*/, const StrokeStep &strok
   StrokeCache &cache = *ss.cache;
 
   vwpaint::update_cache_variants(
-      *this->depsgraph, *vc, wp, PaintMode::Invalid, *ob, *this->base_, stroke_step);
+      *this->depsgraph, *vc, wp, this->paint_mode, *ob, *this->base_, stroke_step);
 
   const float brush_alpha_value = BKE_brush_alpha_get(&wp.paint, &brush);
 

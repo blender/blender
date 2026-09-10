@@ -64,11 +64,28 @@ class ScopedNodeGroupTimer {
   }
 };
 
+/* Get the results associated with sockets in the node group prior to its evaluation. */
+static Result *get_node_group_result_for_socket(NodeGroupOperation &operation,
+                                                const bNodeSocket &socket)
+{
+  if (socket.owner_node().is_group_input()) {
+    return &operation.get_input(socket.identifier);
+  }
+  if (socket.owner_node().is_group_output()) {
+    return &operation.get_result(socket.identifier);
+  }
+  return nullptr;
+}
+
 void NodeGroupOperation::execute()
 {
   const ScopedNodeGroupTimer node_group_timer{compute_context_,
                                               this->context().nodes_evaluation_log()};
-  const Schedule schedule = compute_schedule(*this);
+  auto socket_result_fn = [&](const bNodeSocket &socket) {
+    return get_node_group_result_for_socket(*this, socket);
+  };
+  const Schedule schedule = compute_schedule(
+      this->context(), this->node_group(), compute_context_, socket_result_fn);
   NodeTreeEvaluator node_tree_evaluator(this->context(), schedule, *this, compute_context_);
   node_tree_evaluator.evaluate();
 
@@ -81,11 +98,6 @@ void NodeGroupOperation::execute()
 const bNodeTree &NodeGroupOperation::node_group() const
 {
   return node_group_;
-}
-
-const ComputeContext &NodeGroupOperation::compute_context() const
-{
-  return compute_context_;
 }
 
 }  // namespace blender::compositor

@@ -25,6 +25,7 @@ void node_output_material_displacement(float3 displacement, float3 &out_displace
 [[node]]
 void node_output_material_thickness(float thickness, float &out_thickness)
 {
+  /* TODO(fclem): EEVEE implementation leaking. */
   const ObjectMatrices obj = object_matrices_get();
 
   float3 ob_scale;

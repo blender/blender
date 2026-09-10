@@ -831,7 +831,7 @@ static void image_main_region_draw(const bContext *C, ARegion *region)
     int viewer_size_x, viewer_size_y;
     ED_space_image_get_size(sima, &viewer_size_x, &viewer_size_y);
 
-    ED_region_image_overlay_info_text_draw(
+    ED_region_overlay_info_text_draw(
         render_size_x, render_size_y, viewer_size_x, viewer_size_y, xoffset, yoffset);
   }
 

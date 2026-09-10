@@ -20,8 +20,8 @@
 #include "eevee_reverse_z_lib.bsl.hh"
 #include "eevee_thickness_lib.bsl.hh"
 #include "gpu_shader_codegen_lib.glsl"
-#include "gpu_shader_math_fast_lib.glsl"
-#include "gpu_shader_math_matrix_transform_lib.glsl"
+#include "gpu_shader_math_fast.bsl.hh"
+#include "gpu_shader_math_matrix_transform.bsl.hh"
 
 /* Inputs expected to be in view-space. */
 void raytrace_clip_ray_to_near_plane(ViewMatrices view, Ray &ray)

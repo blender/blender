@@ -43,13 +43,16 @@ enum eDrawType : char {
   OB_RENDER = 6,
 };
 
-/** Any mode where the brush system is used. */
-#define OB_MODE_ALL_PAINT \
+#define OB_MODE_ALL_PAINT_MESH \
   (OB_MODE_SCULPT | OB_MODE_VERTEX_PAINT | OB_MODE_WEIGHT_PAINT | OB_MODE_TEXTURE_PAINT)
 
 #define OB_MODE_ALL_PAINT_GPENCIL \
   (OB_MODE_PAINT_GREASE_PENCIL | OB_MODE_SCULPT_GREASE_PENCIL | OB_MODE_WEIGHT_GREASE_PENCIL | \
    OB_MODE_VERTEX_GREASE_PENCIL)
+
+/** Any mode where the brush system is used. */
+#define OB_MODE_ALL_PAINT \
+  (OB_MODE_ALL_PAINT_MESH | OB_MODE_ALL_PAINT_GPENCIL | OB_MODE_SCULPT_CURVES)
 
 /**
  * Any mode that uses object.runtime->sculpt_session.

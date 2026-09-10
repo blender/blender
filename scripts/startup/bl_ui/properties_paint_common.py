@@ -1598,7 +1598,7 @@ def draw_mesh_automasking_settings(layout, settings, *, topbar=False, use_face_s
         else:
             col = parent.column()
             col.use_property_split = False
-            split = col.split(factor=0.4)
+            split = col.split(factor=col.property_split_factor)
             col = split.column()
             split.prop(settings, "boundary_edges_propagation_steps")
 

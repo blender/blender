@@ -17,7 +17,7 @@
 #include "eevee_lightprobe_shared.hh"
 #include "eevee_nodetree_frag_lib.glsl"
 #include "eevee_surf_common.bsl.hh"
-#include "gpu_shader_math_vector_lib.glsl"
+#include "gpu_shader_math_vector.bsl.hh"
 
 float4 closure_to_rgba_capture(Closure /*cl*/)
 {

@@ -354,6 +354,7 @@ class WindowManager(_types.ID):
             ui_units_x=0,
             keymap=None,
             from_active_button=False,
+            auto_keymap=False,
     ):
         """
         Display a popover populated by *draw_func*.
@@ -366,11 +367,15 @@ class WindowManager(_types.ID):
         :type keymap: :class:`KeyMap` | None
         :param from_active_button: Anchor the popover to the active button.
         :type from_active_button: bool
+        :param auto_keymap: Assign accelerator keys to buttons,
+           shown as underlined characters.
+        :type auto_keymap: bool
         """
         import bpy
         popup = self.popover_begin__internal(
             ui_units_x=ui_units_x,
             from_active_button=from_active_button,
+            auto_keymap=auto_keymap,
         )
 
         try:

@@ -967,7 +967,11 @@ wmOperatorStatus popover_panel_invoke(
  * \param from_active_button: Use the active button for positioning,
  * use when the popover is activated from an operator instead of directly from the button.
  */
-Popover *popover_begin(bContext *C, int ui_menu_width, bool from_active_button) ATTR_NONNULL(1);
+/**
+ * \param use_numselect: Assign accelerator keys to buttons.
+ */
+Popover *popover_begin(bContext *C, int ui_menu_width, bool from_active_button, bool use_numselect)
+    ATTR_NONNULL(1);
 /**
  * Set the whole structure to work.
  */

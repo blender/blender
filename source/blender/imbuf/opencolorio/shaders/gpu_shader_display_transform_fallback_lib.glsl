@@ -7,7 +7,7 @@
 /* -------------------------------------------------------------------- */
 /** \name Hardcoded color space conversion for fallback implementation
  *
- * NOTE: It is tempting to include gpu_shader_common_color_utils.glsl, but it should not be done
+ * NOTE: It is tempting to include gpu_shader_common_color_utils.bsl.hh, but it should not be done
  * here as that header is intended to be used from the node shaders, and the source processor does
  * much more than simply including the file (it also follows some implicit dependencies that is
  * undesired here, and might break since we do not use node shaders here).

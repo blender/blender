@@ -5,8 +5,8 @@
 #pragma once
 
 #include "draw_view_lib.glsl"
-#include "gpu_shader_math_base_lib.glsl"
-#include "gpu_shader_math_constants_lib.glsl"
+#include "gpu_shader_math_base.bsl.hh"
+#include "gpu_shader_math_constants.bsl.hh"
 
 /* Wire Color Types, matching eV3DShadingColorType. */
 #define V3D_SHADING_SINGLE_COLOR 2

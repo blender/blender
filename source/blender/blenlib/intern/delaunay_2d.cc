@@ -38,21 +38,6 @@ using namespace blender::math;
  */
 static constexpr bool USE_POW10_FACE_EDGE_OFFSET_ROUND_UP = false;
 
-/**
- * Address a fairly rare situation where a face loops back on itself (with even-odd filling)
- *
- * De-duplicate polygon-boundary count increments per input face so a face that walks the same
- * directed edge more than once contributes one parity flip.
- * Disconnected input faces still accumulate independently.
- * Without this, `EvenOddSelfDoubledPolygonWithHole` test has the entire face cancel out.
- *
- * NOTE(@ideasman42) that this case is so rare that we could arguably drop support for it entirely.
- * Faces that perform doubling up on themselves in SVG's will create a hollow shape.
- * It could even be considered correct not to show a face.
- * Use this define to keep behavior from Blender 5.1 and older.
- */
-static constexpr bool USE_FACE_ORDERED_EDGE_DEDUPE = true;
-
 /* Throughout this file, template argument T will be an
  * arithmetic-like type, like float, double, or mpq_class. */
 
@@ -2413,20 +2398,10 @@ int add_face_constraints(CDT_state<T> *cdt_state,
        std::numeric_limits<uint32_t>::max() / cdt_state->face_edge_offset > input_faces.size()));
   int faces_added = 0;
 
-  /* Only allow duplicate edges with even-odd holes (which historically supported this). */
-  const bool use_face_ordered_edge_dedupe = output_uses_evenodd_holes(output_type) ?
-
-                                                USE_FACE_ORDERED_EDGE_DEDUPE :
-                                                false;
-  VectorSet<int2> face_edges_seen;
-
   /* A later optimization will skip propagating face_ids if `need_orig_face_ids` is `false`,
    * or will use a CW test to skip CW edges if `skip_cw_ids` is `true`. */
   const bool need_orig_face_ids = (cdt_state->needed_ids & CDT_ORIG_FACES) ||
-                                  ELEM(output_type,
-                                       CDT_CONSTRAINTS_VALID_BMESH,
-                                       CDT_CONSTRAINTS_VALID_BMESH_WITH_HOLES,
-                                       CDT_CONSTRAINTS_VALID_BMESH_WITH_HOLES_NONZERO);
+                                  output_type == CDT_CONSTRAINTS_VALID_BMESH;
   const bool skip_cw_ids = need_orig_face_ids && !(cdt_state->needed_ids & CDT_CW_ORIG_FACES) &&
                            !ELEM(output_type,
                                  CDT_CONSTRAINTS_VALID_BMESH,
@@ -2438,10 +2413,6 @@ int add_face_constraints(CDT_state<T> *cdt_state,
     if (face.size() <= 2) {
       /* Ignore faces with fewer than 3 vertices. */
       continue;
-    }
-    if (use_face_ordered_edge_dedupe) {
-      face_edges_seen.clear_and_keep_capacity();
-      face_edges_seen.reserve(face.size());
     }
     /* If need face ids, then need to know orientation of boundary. */
     double signed_area = 0.0;
@@ -2478,9 +2449,8 @@ int add_face_constraints(CDT_state<T> *cdt_state,
           face_symedge0 = &face_edge->symedges[1];
           BLI_assert(face_symedge0->vert == v1);
         }
-        /* Per-edge: count polygon boundaries
-         * (deduplicated per face when #USE_FACE_ORDERED_EDGE_DEDUPE)
-         * for even-odd, accumulate signed winding for non-zero.
+        /* Per-edge: count polygon boundaries for even-odd,
+         * accumulate signed winding for non-zero.
          * Mechanism documented on the maps themselves. */
         if (cdt_state->polygon_boundary_count_map || need_winding) {
           CDTVert<T> *curr_vert = v1;
@@ -2498,13 +2468,7 @@ int add_face_constraints(CDT_state<T> *cdt_state,
               winding_delta = -1;
             }
             if (cdt_state->polygon_boundary_count_map) {
-              const bool use_edge = use_face_ordered_edge_dedupe ?
-                                        face_edges_seen.add(
-                                            int2(curr_vert->index, next_vert->index)) :
-                                        true;
-              if (use_edge) {
-                cdt_state->polygon_boundary_count_map->lookup_or_add_default(e) += 1;
-              }
+              cdt_state->polygon_boundary_count_map->lookup_or_add_default(e) += 1;
             }
             if (need_winding) {
               cdt_state->edge_winding_map->lookup_or_add_default(e) += winding_delta;
@@ -2519,8 +2483,8 @@ int add_face_constraints(CDT_state<T> *cdt_state,
     if (face_symedge0 != nullptr) {
       /* We need to propagate face ids to all faces that represent #f, if #needed_ids has
        * `CDT_ORIG_FACES`. Even if #needed_ids doesn't specify that, we need to propagate at least
-       * the fact that the face ids set would be non-empty if the output type is one of the ones
-       * making valid BMesh faces.
+       * the fact that the face ids set would be non-empty for #CDT_CONSTRAINTS_VALID_BMESH
+       * (the with-holes outputs use the hole status instead).
        * However we don't need this for hole-making faces (i.e., CW or mostly-CW ones), usually.
        * Only if the user added CDT_CW_ORIG_FACES to needed_ids will we flood-fill such faces.
        */
@@ -2590,7 +2554,7 @@ template<typename T> void remove_non_constraint_edges(CDT_state<T> *cdt_state)
 
 /*
  * Remove the non-constraint edges, but leave enough of them so that all of the
- * faces that would be #BMesh faces (that is, the faces that have some input representative)
+ * faces that would be #BMesh faces (see the `use_hole_status` argument)
  * are valid: they can't have holes, they can't have repeated vertices, and they can't have
  * repeated edges.
  *
@@ -2629,7 +2593,16 @@ template<typename T> struct EdgeToSort {
   }
 };
 
-template<typename T> void remove_non_constraint_edges_leave_valid_bmesh(CDT_state<T> *cdt_state)
+/**
+ * \param use_hole_status: Use the hole status instead of original face ids to decide
+ * which faces must remain valid.
+ * Face ids aren't reliable for outputs with holes, #add_face_ids labels the outside of
+ * CW faces (which the hole rules accept) and only one region of self-touching faces.
+ * Requires hole detection to have run.
+ */
+template<typename T>
+void remove_non_constraint_edges_leave_valid_bmesh(CDT_state<T> *cdt_state,
+                                                   const bool use_hole_status)
 {
   PRF_scope(ProfileCategory::Core);
   CDTArrangement<T> *cdt = &cdt_state->cdt;
@@ -2651,8 +2624,24 @@ template<typename T> void remove_non_constraint_edges_leave_valid_bmesh(CDT_stat
     }
   }
   std::ranges::sort(dissolvable_edges, [](const EdgeToSort<T> &a, const EdgeToSort<T> &b) -> bool {
-    return (a.len_squared < b.len_squared);
+    if (a.len_squared != b.len_squared) {
+      return a.len_squared < b.len_squared;
+    }
+    /* Tie-break on the vertices, `std::ranges::sort` isn't stable so without this
+     * equal length edges dissolve in a platform dependent order.
+     * Order the pair so the result doesn't depend on the direction the edge was created. */
+    const auto edge_verts_fn = [](const CDTEdge<T> *e) -> int2 {
+      const int v0 = e->symedges[0].vert->index;
+      const int v1 = e->symedges[1].vert->index;
+      return (v0 < v1) ? int2(v0, v1) : int2(v1, v0);
+    };
+    const int2 a_verts = edge_verts_fn(a.e);
+    const int2 b_verts = edge_verts_fn(b.e);
+    return (a_verts.x != b_verts.x) ? (a_verts.x < b_verts.x) : (a_verts.y < b_verts.y);
   });
+  const auto is_output_face_fn = [use_hole_status](const CDTFace<T> *f) {
+    return use_hole_status ? !f->hole : !f->input_ids.is_empty();
+  };
   for (EdgeToSort<T> &ets : dissolvable_edges) {
     CDTEdge<T> *e = ets.e;
     SymEdge<T> *se = &e->symedges[0];
@@ -2660,7 +2649,7 @@ template<typename T> void remove_non_constraint_edges_leave_valid_bmesh(CDT_stat
     CDTFace<T> *fleft = se->face;
     CDTFace<T> *fright = sym(se)->face;
     if (fleft != cdt->outer_face && fright != cdt->outer_face &&
-        (fleft->input_ids.size() > 0 || fright->input_ids.size() > 0))
+        (is_output_face_fn(fleft) || is_output_face_fn(fright)))
     {
       /* Is there another #SymEdge with same left and right faces?
        * Or is there a vertex not part of e touching the same left and right faces? */
@@ -3228,7 +3217,7 @@ void prepare_cdt_for_output(CDT_state<T> *cdt_state, const CDT_output_type outpu
     remove_non_constraint_edges(cdt_state);
   }
   else if (output_type == CDT_CONSTRAINTS_VALID_BMESH) {
-    remove_non_constraint_edges_leave_valid_bmesh(cdt_state);
+    remove_non_constraint_edges_leave_valid_bmesh(cdt_state, false);
   }
   else if (output_type == CDT_INSIDE) {
     remove_outer_edges_until_constraints(cdt_state);
@@ -3242,7 +3231,7 @@ void prepare_cdt_for_output(CDT_state<T> *cdt_state, const CDT_output_type outpu
                 CDT_CONSTRAINTS_VALID_BMESH_WITH_HOLES_NONZERO))
   {
     remove_outer_edges_until_constraints(cdt_state);
-    remove_non_constraint_edges_leave_valid_bmesh(cdt_state);
+    remove_non_constraint_edges_leave_valid_bmesh(cdt_state, true);
     remove_faces_in_holes(cdt_state);
   }
 }

@@ -519,9 +519,11 @@ struct ID {
   void *py_instance = nullptr;
 
   /**
-   * Weak reference to an ID in a given library file, used to allow re-using already appended data
-   * in some cases, instead of appending it again.
-   *
+   * Weak reference to an ID in a given library file, used for two purposes:
+   * - Allow re-using already appended data in some cases, instead of appending
+   *   it again.
+   * - Store the original name and library for linked editable assets, that
+   *   might get renamed locally.
    * May be NULL.
    */
   struct LibraryWeakReference *library_weak_reference = nullptr;

@@ -6,7 +6,7 @@
 
 COMPUTE_SHADER_CREATE_INFO(compositor_keying_replace_chroma)
 
-#include "gpu_shader_common_color_utils.glsl"
+#include "gpu_shader_common_color_utils.bsl.hh"
 #include "gpu_shader_compositor_texture_utilities.glsl"
 
 void main()

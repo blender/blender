@@ -2,7 +2,7 @@
  *
  * SPDX-License-Identifier: GPL-2.0-or-later */
 
-#include "gpu_shader_common_color_utils.glsl"
+#include "gpu_shader_common_color_utils.bsl.hh"
 
 [[node]]
 void color_to_luminance(float4 color, float3 luminance_coefficients, float &result)

@@ -10,7 +10,7 @@
 
 #include "eevee_subsurface_shared.hh"
 #include "eevee_utility_tx.bsl.hh"
-#include "gpu_shader_utildefines_lib.glsl"
+#include "gpu_shader_utildefines.bsl.hh"
 
 float subsurface_transmittance_profile([[resource_table]] const UtilityTexture &util_tx, float u)
 {

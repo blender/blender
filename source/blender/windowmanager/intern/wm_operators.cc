@@ -747,8 +747,9 @@ std::optional<std::string> WM_prop_pystring_assign(bContext *C,
 
 PointerRNA WM_operator_properties_create_ptr(wmOperatorType *ot)
 {
+  wmWindowManager *wm = G_MAIN->wm.first();
   /* Set the ID so the context can be accessed: see #STRUCT_NO_CONTEXT_WITHOUT_OWNER_ID. */
-  return RNA_pointer_create_discrete(&G_MAIN->wm.first()->id, ot->srna, nullptr);
+  return RNA_pointer_create_discrete(wm ? &wm->id : nullptr, ot->srna, nullptr);
 }
 
 PointerRNA WM_operator_properties_create(const char *opstring)
@@ -758,8 +759,9 @@ PointerRNA WM_operator_properties_create(const char *opstring)
   if (ot) {
     return WM_operator_properties_create_ptr(ot);
   }
+  wmWindowManager *wm = G_MAIN->wm.first();
   /* Set the ID so the context can be accessed: see #STRUCT_NO_CONTEXT_WITHOUT_OWNER_ID. */
-  return RNA_pointer_create_discrete(&G_MAIN->wm.first()->id, RNA_OperatorProperties, nullptr);
+  return RNA_pointer_create_discrete(wm ? &wm->id : nullptr, RNA_OperatorProperties, nullptr);
 }
 
 void WM_operator_properties_alloc(PointerRNA **ptr, IDProperty **properties, const char *opstring)
@@ -1315,8 +1317,9 @@ IDProperty *WM_operator_last_properties_ensure_idprops(wmOperatorType *ot)
 
 void WM_operator_last_properties_ensure(wmOperatorType *ot, PointerRNA *ptr)
 {
+  wmWindowManager *wm = G_MAIN->wm.first();
   IDProperty *props = WM_operator_last_properties_ensure_idprops(ot);
-  *ptr = RNA_pointer_create_discrete(&G_MAIN->wm.first()->id, ot->srna, props);
+  *ptr = RNA_pointer_create_discrete(wm ? &wm->id : nullptr, ot->srna, props);
 }
 
 ID *WM_operator_drop_load_path(bContext *C, wmOperator *op, const short idcode)
@@ -1479,6 +1482,8 @@ struct wmOpPopUp {
   wmPopupPosition position;
   bool cancel_default;
   bool mouse_move_quit;
+  /** Assign accelerator keys to buttons (#ui::BLOCK_NUMSELECT). */
+  bool use_numselect;
   bool include_properties;
 };
 
@@ -1695,6 +1700,9 @@ static ui::Block *wm_operator_ui_create(bContext *C, ARegion *region, void *user
   ui::Block *block = block_begin(C, region, __func__, ui::EmbossType::Emboss);
   block_flag_disable(block, ui::BLOCK_LOOP);
   block_flag_enable(block, ui::BLOCK_KEEP_OPEN | ui::BLOCK_MOVEMOUSE_QUIT | ui::BLOCK_POPUP);
+  if (data->use_numselect) {
+    block_flag_enable(block, ui::BLOCK_NUMSELECT);
+  }
   block_theme_style_set(block, ui::BLOCK_THEME_STYLE_REGULAR);
 
   popup_dummy_panel_set(region, block, op->idname);
@@ -1775,11 +1783,15 @@ wmOperatorStatus WM_operator_confirm_ex(bContext *C,
   return OPERATOR_RUNNING_MODAL;
 }
 
-wmOperatorStatus WM_operator_ui_popup(bContext *C, wmOperator *op, int width)
+wmOperatorStatus WM_operator_ui_popup(bContext *C,
+                                      wmOperator *op,
+                                      int width,
+                                      const bool use_numselect)
 {
   wmOpPopUp *data = MEM_new<wmOpPopUp>(__func__);
   data->op = op;
   data->width = width * UI_SCALE_FAC;
+  data->use_numselect = use_numselect;
   data->free_op = true; /* If this runs and gets registered we may want not to free it. */
   popup_block_ex(C, wm_operator_ui_create, nullptr, wm_operator_ui_popup_cancel, data, op);
   return OPERATOR_RUNNING_MODAL;
@@ -2296,9 +2308,9 @@ static wmOperatorStatus wm_call_panel_exec(bContext *C, wmOperator *op)
   char idname[BKE_ST_MAXNAME];
   RNA_string_get(op->ptr, "name", idname);
   const bool keep_open = RNA_boolean_get(op->ptr, "keep_open");
-  const bool auto_keymap = RNA_boolean_get(op->ptr, "auto_keymap");
+  const bool use_numselect = RNA_boolean_get(op->ptr, "auto_keymap");
 
-  return ui::popover_panel_invoke(C, idname, keep_open, auto_keymap, op->reports);
+  return ui::popover_panel_invoke(C, idname, keep_open, use_numselect, op->reports);
 }
 
 static std::string wm_call_panel_get_name(wmOperatorType *ot, PointerRNA *ptr)

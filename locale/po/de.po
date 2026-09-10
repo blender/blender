@@ -1,9 +1,9 @@
 
 msgid ""
 msgstr ""
-"Project-Id-Version: Blender 5.3.0 Alpha (b'32296898e057')\n"
+"Project-Id-Version: Blender 5.3.0 Alpha (b'f5df8c32f99b')\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-08-31 07:41+0000\n"
+"POT-Creation-Date: 2026-09-07 07:47+0000\n"
 "PO-Revision-Date: 2026-08-25 20:13+0000\n"
 "Last-Translator: \"Mattis V.\" <mattis@users.noreply.translate.blender.org>\n"
 "Language-Team: German <https://translate.blender.org/projects/blender-ui/ui/de/>\n"
@@ -19296,20 +19296,16 @@ msgid "Material slot name"
 msgstr "Materialsteckplatzname"
 
 
-msgid "Snap"
-msgstr "Einrasten"
+msgid "Select More/Less"
+msgstr "Mehr/weniger anzeigen"
 
 
-msgid "Proportional Editing Falloff"
-msgstr "Proportionaler Bearbeitungsabfall"
+msgid "Instances"
+msgstr "Instanzen"
 
 
 msgid "Read"
 msgstr "Lesen"
-
-
-msgid "Mask Edit"
-msgstr "Maskenbearbeitung"
 
 
 msgid "Sample"
@@ -19324,60 +19320,16 @@ msgid "Primitives"
 msgstr "Grundkörper"
 
 
-msgid "Vertex Group Locks"
-msgstr "Punktgruppen sperren"
-
-
-msgid "Instances"
-msgstr "Instanzen"
-
-
 msgid "Import"
 msgstr "Importieren"
 
 
-msgid "Mirror"
-msgstr "Spiegeln"
-
-
-msgid "Local View"
-msgstr "Lokale Ansicht"
+msgid "Select Loops"
+msgstr "Schleifen auswählen"
 
 
 msgid "Viewpoint"
 msgstr "Ansicht"
-
-
-msgid "Navigation"
-msgstr "Navigation"
-
-
-msgid "Align View"
-msgstr "Ansicht ausrichten"
-
-
-msgid "Align View to Active"
-msgstr "Ansicht auf Aktiv ausrichten"
-
-
-msgid "View Regions"
-msgstr "Vierfenster Ansicht"
-
-
-msgid "Select More/Less"
-msgstr "Mehr/weniger anzeigen"
-
-
-msgid "Math"
-msgstr "Mathe"
-
-
-msgid "UV"
-msgstr "UV"
-
-
-msgid "Select Similar"
-msgstr "Ähnliche auswählen"
 
 
 msgid "Select All by Trait"
@@ -19388,84 +19340,96 @@ msgid "Select Linked"
 msgstr "Verknüpfte auswählen"
 
 
-msgid "Select Loops"
-msgstr "Schleifen auswählen"
+msgid "Select Similar"
+msgstr "Ähnliche auswählen"
 
 
-msgid "Assign Material"
-msgstr "Material zuweisen"
+msgid "Math"
+msgstr "Mathe"
 
 
-msgid "Metaball"
-msgstr "Metaball"
+msgid "Align View to Active"
+msgstr "Ansicht auf Aktiv ausrichten"
 
 
-msgid "Light"
-msgstr "Licht"
+msgid "UV"
+msgstr "UV"
 
 
-msgid "Light Probe"
-msgstr "Lichtsonde"
+msgid "View Regions"
+msgstr "Vierfenster Ansicht"
 
 
-msgid "Add Image"
-msgstr "Bild hinzufügen"
+msgid "Navigation"
+msgstr "Navigation"
 
 
-msgid "Relations"
-msgstr "Beziehungen"
+msgid "Align View"
+msgstr "Ansicht ausrichten"
 
 
-msgid "Rigid Body"
-msgstr "Rigid Body"
+msgid "Local View"
+msgstr "Lokale Ansicht"
 
 
-msgid "Apply"
-msgstr "Anwenden"
+msgid "Snap"
+msgstr "Einrasten"
 
 
-msgid "Track"
-msgstr "Spur"
+msgid "Mirror"
+msgstr "Spiegeln"
 
 
-msgid "Quick Effects"
-msgstr "Schnelle Effekte"
+msgid "Vertex Group Locks"
+msgstr "Punktgruppen sperren"
 
 
-msgid "Show/Hide"
-msgstr "Zeigen/Verbergen"
+msgid "Mask Edit"
+msgstr "Maskenbearbeitung"
 
 
-msgid "Linked"
-msgstr "Verknüpft"
+msgid "Proportional Editing Falloff"
+msgstr "Proportionaler Bearbeitungsabfall"
+
+
+msgid "Pivot Point"
+msgstr "Drehpunkt"
 
 
 msgid "Clean Up"
 msgstr "Aufräumen"
 
 
+msgid "Show/Hide"
+msgstr "Zeigen/Verbergen"
+
+
+msgid "Names"
+msgstr "Namen"
+
+
+msgid "Linked"
+msgstr "Verknüpft"
+
+
 msgid "Layout"
 msgstr "Layout"
 
 
-msgid "Asset"
-msgstr "Asset"
+msgid "Metaball"
+msgstr "Metaball"
 
 
-msgid "Make Single User"
-msgstr "Einfachen Benutzer erzeugen"
+msgid "Kerning"
+msgstr "Kerning"
 
 
-msgid "Convert"
-msgstr "Konvertieren"
+msgid "Special Characters"
+msgstr "Sonderzeichen"
 
 
-msgid "Hooks"
-msgstr "Haken"
-
-
-msgid "Random Mask"
-msgstr "Zufällige Maske"
+msgid "Merge"
+msgstr "Zusammenführen"
 
 
 msgid "Keying"
@@ -19476,52 +19440,88 @@ msgid "Tracking"
 msgstr "Verfolgen"
 
 
-msgid "Clear Transform"
-msgstr "Transformation löschen"
-
-
-msgid "In-Betweens"
-msgstr "Dazwischen"
-
-
-msgid "Names"
-msgstr "Namen"
-
-
-msgid "Toggle Bone Options"
-msgstr "Knochen-Optionen umschalten"
-
-
-msgid "Enable Bone Options"
-msgstr "Knochen-Optionen einschalten"
-
-
-msgid "Disable Bone Options"
-msgstr "Knochen-Optionen ausschalten"
+msgid "Face Data"
+msgstr "Flächendaten"
 
 
 msgid "Mesh Select Mode"
 msgstr "Maschenauswahlmodus"
 
 
-msgid "Face Data"
-msgstr "Flächendaten"
+msgid "Disable Bone Options"
+msgstr "Knochen-Optionen ausschalten"
 
 
-msgid "Merge"
-msgstr "Zusammenführen"
+msgid "Enable Bone Options"
+msgstr "Knochen-Optionen einschalten"
 
 
-msgid "Pivot Point"
-msgstr "Drehpunkt"
+msgid "Toggle Bone Options"
+msgstr "Knochen-Optionen umschalten"
 
 
-msgid "Special Characters"
-msgstr "Sonderzeichen"
+msgid "Apply"
+msgstr "Anwenden"
 
 
-msgid "Kerning"
-msgstr "Kerning"
+msgid "In-Betweens"
+msgstr "Dazwischen"
+
+
+msgid "Clear Transform"
+msgstr "Transformation löschen"
+
+
+msgid "Random Mask"
+msgstr "Zufällige Maske"
+
+
+msgid "Hooks"
+msgstr "Haken"
+
+
+msgid "Make Single User"
+msgstr "Einfachen Benutzer erzeugen"
+
+
+msgid "Convert"
+msgstr "Konvertieren"
+
+
+msgid "Asset"
+msgstr "Asset"
+
+
+msgid "Quick Effects"
+msgstr "Schnelle Effekte"
+
+
+msgid "Track"
+msgstr "Spur"
+
+
+msgid "Rigid Body"
+msgstr "Rigid Body"
+
+
+msgid "Add Image"
+msgstr "Bild hinzufügen"
+
+
+msgid "Relations"
+msgstr "Beziehungen"
+
+
+msgid "Light Probe"
+msgstr "Lichtsonde"
+
+
+msgid "Assign Material"
+msgstr "Material zuweisen"
+
+
+msgid "Light"
+msgstr "Licht"
 
 
 msgid "Assets"
@@ -36747,6 +36747,10 @@ msgid "Deselect All"
 msgstr "Alles abwählen"
 
 
+msgid "Add a text strip to the sequencer"
+msgstr "Textstreifen zum Sequenzer hinzufügen"
+
+
 msgctxt "Operator"
 msgid "Unlock Strips"
 msgstr "Streifen entsperren"
@@ -39327,20 +39331,32 @@ msgid "Active Palette Color"
 msgstr "Aktive Farbpalette"
 
 
-msgid "Active Tool"
-msgstr "Aktives Werkzeug"
+msgid "Guides"
+msgstr "Hilfslinien"
 
 
-msgid "View Lock"
-msgstr "Ansicht sperren"
+msgid "Drawing Plane"
+msgstr "Malfläche"
 
 
-msgid "Shadow Settings"
-msgstr "Schatteneinstellungen"
+msgid "Transform Orientations"
+msgstr "Transformationsausrichtung"
 
 
-msgid "SSAO Settings"
-msgstr "SSAO Einstellungen"
+msgid "Curve Edit Mode"
+msgstr "Kurven-Bearbeitungsmodus"
+
+
+msgid "Measurement"
+msgstr "Messung"
+
+
+msgid "Mesh Edit Mode"
+msgstr "Maschenbearbeitungsmodus"
+
+
+msgid "Motion Tracking"
+msgstr "Bewegungsverfolgung"
 
 
 msgid "Cavity"
@@ -39355,52 +39371,40 @@ msgid "Overlays"
 msgstr "Überlagerungen"
 
 
-msgid "Guides"
-msgstr "Hilfslinien"
+msgid "SSAO Settings"
+msgstr "SSAO Einstellungen"
 
 
-msgid "Motion Tracking"
-msgstr "Bewegungsverfolgung"
+msgid "Shadow Settings"
+msgstr "Schatteneinstellungen"
 
 
-msgid "Mesh Edit Mode"
-msgstr "Maschenbearbeitungsmodus"
+msgid "Active Tool"
+msgstr "Aktives Werkzeug"
 
 
-msgid "Measurement"
-msgstr "Messung"
+msgid "View Lock"
+msgstr "Ansicht sperren"
 
 
-msgid "Curve Edit Mode"
-msgstr "Kurven-Bearbeitungsmodus"
-
-
-msgid "Transform Orientations"
-msgstr "Transformationsausrichtung"
-
-
-msgid "Drawing Plane"
-msgstr "Malfläche"
-
-
-msgid "Quad View"
-msgstr "Vierfenster-Ansicht"
-
-
-msgid "Onion Skin"
-msgstr "Zwiebelhaut"
-
-
-msgid "Stereoscopy"
-msgstr "Stereoskopie"
+msgid "VR"
+msgstr "VR"
 
 
 msgid "Auto-Masking"
 msgstr "Automatisches Maskieren"
 
 
-msgid "VR"
-msgstr "VR"
+msgid "Stereoscopy"
+msgstr "Stereoskopie"
+
+
+msgid "Onion Skin"
+msgstr "Zwiebelhaut"
+
+
+msgid "Quad View"
+msgstr "Vierfenster-Ansicht"
 
 
 msgid "Chain Scaling"
@@ -42962,6 +42966,10 @@ msgid "Region height"
 msgstr "Regionhöhe"
 
 
+msgid "Live search filtering string"
+msgstr "Suchfilter-Zeichenkette"
+
+
 msgid "View2D"
 msgstr "2D anschauen"
 
@@ -45320,10 +45328,6 @@ msgid "Show only selectable objects"
 msgstr "Nur selektierbare Objekte anzeigen"
 
 
-msgid "Live search filtering string"
-msgstr "Suchfilter-Zeichenkette"
-
-
 msgid "Hierarchies"
 msgstr "Hierarchieen"
 
@@ -45472,16 +45476,16 @@ msgid "Active Tool and Workspace settings"
 msgstr "Aktive Werkzeug- und Arbeitsbereichseinstellungen"
 
 
-msgid "Scene Properties"
-msgstr "Szeneneigenschaften"
-
-
 msgid "Render Properties"
 msgstr "Rendereigenschaften"
 
 
 msgid "Output Properties"
 msgstr "Ausgabeeigenschaften"
+
+
+msgid "Scene Properties"
+msgstr "Szeneneigenschaften"
 
 
 msgid "View Layer Properties"
@@ -51598,12 +51602,12 @@ msgid "All View Layers"
 msgstr "Alle Ebenen anzeigen"
 
 
-msgid "Object Contents"
-msgstr "Objektinhalt"
-
-
 msgid "Object Children"
 msgstr "Objekt Kinder"
+
+
+msgid "Object Contents"
+msgstr "Objektinhalt"
 
 
 msgctxt "Operator"
@@ -51701,6 +51705,11 @@ msgstr "Springe zum nächsten Streifen (Zentrum)"
 
 
 msgctxt "Operator"
+msgid "Text"
+msgstr "Text"
+
+
+msgctxt "Operator"
 msgid "Fade"
 msgstr "Fading"
 
@@ -51793,23 +51802,8 @@ msgstr "Griff"
 
 
 msgctxt "Operator"
-msgid "Clip..."
-msgstr "Clip..."
-
-
-msgctxt "Operator"
-msgid "Mask..."
-msgstr "Maske..."
-
-
-msgctxt "Operator"
 msgid "Color"
 msgstr "Farbe"
-
-
-msgctxt "Operator"
-msgid "Text"
-msgstr "Text"
 
 
 msgctxt "Operator"
@@ -51864,11 +51858,6 @@ msgstr "Ausblendung löschen"
 
 msgid "Resolutions"
 msgstr "Auflösung"
-
-
-msgctxt "Operator"
-msgid "Clip"
-msgstr "Clip"
 
 
 msgctxt "Operator"
@@ -56581,10 +56570,6 @@ msgid "Add a color strip to the sequencer"
 msgstr "Farbstreifeneffekt zum Sequenzer hinzufügen"
 
 
-msgid "Add a text strip to the sequencer"
-msgstr "Textstreifen zum Sequenzer hinzufügen"
-
-
 msgid "Add a color mix effect strip to the sequencer"
 msgstr "Farbmixeffekt zum Sequenzer hinzufügen"
 
@@ -57928,12 +57913,12 @@ msgid "BSDF"
 msgstr "BSDF"
 
 
-msgid "IOR"
-msgstr "Brechungsindex"
-
-
 msgid "Anisotropy"
 msgstr "Anisotropisch"
+
+
+msgid "IOR"
+msgstr "Brechungsindex"
 
 
 msgid "RoughnessU"

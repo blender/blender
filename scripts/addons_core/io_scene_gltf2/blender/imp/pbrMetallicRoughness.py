@@ -816,8 +816,10 @@ def base_color(
 
     # Vertex Color
     if mh.vertex_color:
-        node = mh.node_tree.nodes.new('ShaderNodeVertexColor')
-        # Do not set the layer name, so rendered one will be used (At import => The first one)
+        node = mh.node_tree.nodes.new('ShaderNodeAttribute')
+        # Point Cloud does not have active vertex color, so we have to fill the attribute name
+        name = 'Color' if int(mh.vertex_color[6:7]) == 0 else 'Color.%03d' % int(mh.vertex_color[6:7])
+        node.attribute_name = name
         node.location = x - 250, y - 240
         # Outputs
         mh.node_tree.links.new(vcolor_color_socket, node.outputs['Color'])

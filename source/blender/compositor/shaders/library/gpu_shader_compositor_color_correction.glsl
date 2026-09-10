@@ -2,9 +2,9 @@
  *
  * SPDX-License-Identifier: GPL-2.0-or-later */
 
-#include "gpu_shader_common_color_utils.glsl"
-#include "gpu_shader_math_vector_lib.glsl"
-#include "gpu_shader_math_vector_safe_lib.glsl"
+#include "gpu_shader_common_color_utils.bsl.hh"
+#include "gpu_shader_math_vector.bsl.hh"
+#include "gpu_shader_math_vector_safe.bsl.hh"
 
 [[node]]
 void node_composite_color_correction(float4 color,

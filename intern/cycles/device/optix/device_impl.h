@@ -110,6 +110,8 @@ class OptiXDevice : public CUDADevice {
   vector<OptixModule> osl_modules;
   vector<OptixProgramGroup> osl_groups;
   OptixModule osl_camera_module = nullptr;
+  OptixModule osl_shadow_module = nullptr;
+  OptixModule osl_shadow_curve_module = nullptr;
   OptixModule osl_volume_module = nullptr;
   device_vector<uint8_t> osl_colorsystem;
 #  endif

@@ -7,7 +7,7 @@
 COMPUTE_SHADER_CREATE_INFO(compositor_morphological_distance_dilate)
 
 #include "gpu_shader_compositor_texture_utilities.glsl"
-#include "gpu_shader_utildefines_lib.glsl"
+#include "gpu_shader_utildefines.bsl.hh"
 
 void main()
 {

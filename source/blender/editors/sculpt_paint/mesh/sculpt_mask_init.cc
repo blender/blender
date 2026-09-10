@@ -62,12 +62,11 @@ void write_mask_mesh(const Depsgraph &depsgraph,
   if (!mask) {
     return;
   }
-  threading::EnumerableThreadSpecific<Vector<int>> all_index_data;
   bke::pbvh::Tree &pbvh = *bke::object::pbvh_get(object);
   MutableSpan<bke::pbvh::MeshNode> nodes = pbvh.nodes<bke::pbvh::MeshNode>();
   node_mask.foreach_index(
       [&](const int i) {
-        Vector<int> &index_data = all_index_data.local();
+        Vector<int, bke::pbvh::MESH_LEAF_LIMIT> index_data;
         write_fn(mask.span, hide::node_visible_verts(nodes[i], hide_vert, index_data));
         bke::pbvh::node_update_mask_mesh(mask.span, nodes[i]);
       },

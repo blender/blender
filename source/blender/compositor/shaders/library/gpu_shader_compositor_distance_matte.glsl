@@ -2,8 +2,8 @@
  *
  * SPDX-License-Identifier: GPL-2.0-or-later */
 
-#include "gpu_shader_common_color_utils.glsl"
-#include "gpu_shader_math_safe_lib.glsl"
+#include "gpu_shader_common_color_utils.bsl.hh"
+#include "gpu_shader_math_safe.bsl.hh"
 
 #define CMP_NODE_DISTANCE_MATTE_COLOR_SPACE_RGBA 0
 #define CMP_NODE_DISTANCE_MATTE_COLOR_SPACE_YCCA 1

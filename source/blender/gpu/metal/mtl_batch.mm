@@ -553,6 +553,24 @@ void MTLBatch::draw_advanced(int v_first, int v_count, int i_first, int i_count)
 
 void MTLBatch::draw_advanced_indirect(StorageBuf *indirect_buf, intptr_t offset)
 {
+  this->draw_advanced_indirect_internal(indirect_buf, 1, offset, 0);
+}
+
+void MTLBatch::multi_draw_indirect(StorageBuf *indirect_buf,
+                                   int count,
+                                   intptr_t offset,
+                                   intptr_t stride)
+{
+  this->draw_advanced_indirect_internal(indirect_buf, count, offset, stride);
+}
+
+void MTLBatch::draw_advanced_indirect_internal(StorageBuf *indirect_buf,
+                                               int count,
+                                               intptr_t offset,
+                                               intptr_t stride)
+{
+  BLI_assert(count > 0);
+
   /* Setup RenderPipelineState for batch. */
   MTLContext *ctx = MTLContext::get();
   id<MTLRenderCommandEncoder> rec = this->bind();
@@ -592,47 +610,54 @@ void MTLBatch::draw_advanced_indirect(StorageBuf *indirect_buf, intptr_t offset)
     return;
   }
 
-  if (mtl_elem == nullptr) {
-    /* Set depth stencil state (TODO: Move it back upstream, is legacy of depth bias). */
-    ctx->ensure_depth_stencil_state();
-
-    /* Issue draw call. */
-    [rec drawPrimitives:mtl_prim_type indirectBuffer:mtl_indirect_buf indirectBufferOffset:offset];
-    ctx->main_command_buffer.register_draw_counters(1);
-  }
-  else {
-    /* Fetch index buffer. May return an index buffer of a differing format,
-     * if index buffer optimization is used. In these cases, final_prim_type and
-     * index_count get updated with the new properties. */
-    MTLIndexType index_type = MTLIndexBuf::gpu_index_type_to_metal(mtl_elem->index_type_);
-    GPUPrimType final_prim_type = this->prim_type;
+  /* Resolve the index buffer (and any primitive type change from index optimization) once.
+   * The indirect command encodes the per-command index count and first-index, so all commands
+   * of the batch share the same index buffer. */
+  MTLIndexType index_type;
+  GPUPrimType final_prim_type = this->prim_type;
+  id<MTLBuffer> index_buffer = nil;
+  if (mtl_elem != nullptr) {
     uint index_count = 0;
+
+    index_type = MTLIndexBuf::gpu_index_type_to_metal(mtl_elem->index_type_);
 
     /* Disable index optimization for indirect draws. */
     mtl_elem->flag_can_optimize(false);
 
-    id<MTLBuffer> index_buffer = mtl_elem->get_index_buffer(final_prim_type, index_count);
+    index_buffer = mtl_elem->get_index_buffer(final_prim_type, index_count);
     mtl_prim_type = gpu_prim_type_to_metal(final_prim_type);
     BLI_assert(index_buffer != nil);
 
-    if (index_buffer != nil) {
+    if (index_buffer == nil) {
+      BLI_assert_msg(false, "Index buffer does not have backing Metal buffer");
 
-      /* Set depth stencil state (TODO: Move it back upstream, is legacy of depth bias). */
-      ctx->ensure_depth_stencil_state();
+      /* End of draw. */
+      this->unbind(rec);
+      return;
+    }
+  }
 
-      /* Issue draw call. */
+  /* Set depth stencil state (TODO: Move it back upstream, is legacy of depth bias). */
+  ctx->ensure_depth_stencil_state();
+
+  /* Issue one indirect draw per command. */
+  for (int i = 0; i < count; i++) {
+    intptr_t cmd_offset = offset + i * stride;
+    if (mtl_elem == nullptr) {
+      [rec drawPrimitives:mtl_prim_type
+                indirectBuffer:mtl_indirect_buf
+          indirectBufferOffset:cmd_offset];
+    }
+    else {
       [rec drawIndexedPrimitives:mtl_prim_type
                        indexType:index_type
                      indexBuffer:index_buffer
                indexBufferOffset:0
                   indirectBuffer:mtl_indirect_buf
-            indirectBufferOffset:offset];
-      ctx->main_command_buffer.register_draw_counters(1);
-    }
-    else {
-      BLI_assert_msg(false, "Index buffer does not have backing Metal buffer");
+            indirectBufferOffset:cmd_offset];
     }
   }
+  ctx->main_command_buffer.register_draw_counters(count);
 
   /* End of draw. */
   this->unbind(rec);

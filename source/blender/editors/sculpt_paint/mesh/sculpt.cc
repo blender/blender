@@ -1463,7 +1463,6 @@ static void calc_area_normal_and_center_node_mesh(const Object &object,
                                                   const Brush &brush,
                                                   const AverageDataFlags flag,
                                                   const bke::pbvh::MeshNode &node,
-                                                  SampleLocalData &tls,
                                                   AreaNormalCenterData &anctd)
 {
   PRF_scope(ProfileCategory::Editor);
@@ -1479,6 +1478,8 @@ static void calc_area_normal_and_center_node_mesh(const Object &object,
 
   const Span<int> verts = node.verts();
 
+  Array<float, bke::pbvh::MESH_LEAF_LIMIT> distances_sq(verts.size());
+
   if (ss.cache && !ss.cache->accum) {
     if (const std::optional<OrigPositionData> orig_data = orig_position_data_lookup_mesh(object,
                                                                                          node))
@@ -1486,8 +1487,6 @@ static void calc_area_normal_and_center_node_mesh(const Object &object,
       const Span<float3> orig_positions = orig_data->positions;
       const Span<float3> orig_normals = orig_data->normals;
 
-      tls.distances.reinitialize(verts.size());
-      const MutableSpan<float> distances_sq = tls.distances;
       calc_brush_distances_squared(
           ss, orig_positions, eBrushFalloffShape(brush.falloff_shape), distances_sq);
 
@@ -1518,8 +1517,6 @@ static void calc_area_normal_and_center_node_mesh(const Object &object,
     }
   }
 
-  tls.distances.reinitialize(verts.size());
-  const MutableSpan<float> distances_sq = tls.distances;
   calc_brush_distances_squared(
       ss, vert_positions, verts, eBrushFalloffShape(brush.falloff_shape), distances_sq);
 
@@ -1852,7 +1849,6 @@ void calc_area_center(const Depsgraph &depsgraph,
           1,
           AreaNormalCenterData{},
           [&](const IndexRange range, AreaNormalCenterData anctd) {
-            SampleLocalData &tls = all_tls.local();
             node_mask.slice(range).foreach_index([&](const int i) {
               calc_area_normal_and_center_node_mesh(ob,
                                                     vert_positions,
@@ -1861,7 +1857,6 @@ void calc_area_center(const Depsgraph &depsgraph,
                                                     brush,
                                                     AverageDataFlags::Position,
                                                     nodes[i],
-                                                    tls,
                                                     anctd);
             });
             return anctd;
@@ -1953,7 +1948,6 @@ std::optional<float3> calc_area_normal(const Depsgraph &depsgraph,
           1,
           AreaNormalCenterData{},
           [&](const IndexRange range, AreaNormalCenterData anctd) {
-            SampleLocalData &tls = all_tls.local();
             node_mask.slice(range).foreach_index([&](const int i) {
               calc_area_normal_and_center_node_mesh(ob,
                                                     vert_positions,
@@ -1962,7 +1956,6 @@ std::optional<float3> calc_area_normal(const Depsgraph &depsgraph,
                                                     brush,
                                                     AverageDataFlags::Normal,
                                                     nodes[i],
-                                                    tls,
                                                     anctd);
             });
             return anctd;
@@ -2151,7 +2144,6 @@ void calc_area_normal_and_center(const Depsgraph &depsgraph,
           1,
           AreaNormalCenterData{},
           [&](const IndexRange range, AreaNormalCenterData anctd) {
-            SampleLocalData &tls = all_tls.local();
             node_mask.slice(range).foreach_index([&](const int i) {
               calc_area_normal_and_center_node_mesh(ob,
                                                     vert_positions,
@@ -2160,7 +2152,6 @@ void calc_area_normal_and_center(const Depsgraph &depsgraph,
                                                     brush,
                                                     AverageDataFlags::All,
                                                     nodes[i],
-                                                    tls,
                                                     anctd);
             });
             return anctd;
@@ -6758,33 +6749,10 @@ void calc_factors_common_mesh_indexed(const Depsgraph &depsgraph,
                                       const Span<float3> vert_positions,
                                       const Span<float3> vert_normals,
                                       const bke::pbvh::MeshNode &node,
-                                      Vector<float> &r_factors,
-                                      Vector<float> &r_distances)
-{
-  const Span<int> verts = node.verts();
-  r_factors.resize(verts.size());
-  r_distances.resize(verts.size());
-
-  calc_factors_common_mesh_indexed(depsgraph,
-                                   brush,
-                                   object,
-                                   attribute_data,
-                                   vert_positions,
-                                   vert_normals,
-                                   node,
-                                   r_factors.as_mutable_span(),
-                                   r_distances.as_mutable_span());
-}
-void calc_factors_common_mesh_indexed(const Depsgraph &depsgraph,
-                                      const Brush &brush,
-                                      const Object &object,
-                                      const MeshAttributeData &attribute_data,
-                                      const Span<float3> vert_positions,
-                                      const Span<float3> vert_normals,
-                                      const bke::pbvh::MeshNode &node,
                                       const MutableSpan<float> factors,
                                       const MutableSpan<float> distances)
 {
+  PRF_scope(ProfileCategory::Editor);
   const SculptSession &ss = *object.runtime->sculpt_session;
   const StrokeCache &cache = *ss.cache;
 
@@ -6814,8 +6782,8 @@ void calc_factors_common_mesh(const Depsgraph &depsgraph,
                               const Span<float3> positions,
                               const Span<float3> vert_normals,
                               const bke::pbvh::MeshNode &node,
-                              Vector<float> &r_factors,
-                              Vector<float> &r_distances)
+                              const MutableSpan<float> factors,
+                              const MutableSpan<float> distances)
 {
   PRF_scope(ProfileCategory::Editor);
   const SculptSession &ss = *object.runtime->sculpt_session;
@@ -6823,16 +6791,12 @@ void calc_factors_common_mesh(const Depsgraph &depsgraph,
 
   const Span<int> verts = node.verts();
 
-  r_factors.resize(verts.size());
-  const MutableSpan<float> factors = r_factors;
   fill_factor_from_hide_and_mask(attribute_data.hide_vert, attribute_data.mask, verts, factors);
   filter_region_clip_factors(ss, positions, factors);
   if (brush.flag & BRUSH_FRONTFACE) {
     calc_front_face(cache.view_normal_symm, vert_normals, verts, factors);
   }
 
-  r_distances.resize(verts.size());
-  const MutableSpan<float> distances = r_distances;
   calc_brush_distances(ss, positions, eBrushFalloffShape(brush.falloff_shape), distances);
   filter_distances_with_radius(cache.radius, distances, factors);
   apply_hardness_to_distances(cache, distances);
@@ -6841,86 +6805,6 @@ void calc_factors_common_mesh(const Depsgraph &depsgraph,
   auto_mask::calc_vert_factors(depsgraph, object, cache.automasking.get(), node, verts, factors);
 
   calc_brush_texture_factors(ss, brush, positions, factors);
-}
-
-void calc_cube_tip_factors_common_mesh_indexed(const Depsgraph &depsgraph,
-                                               const Brush &brush,
-                                               const Object &object,
-                                               const float4x4 &mat,
-                                               const MeshAttributeData &attribute_data,
-                                               const Span<float3> vert_positions,
-                                               const Span<float3> vert_normals,
-                                               const bke::pbvh::MeshNode &node,
-                                               Vector<float> &r_factors,
-                                               Vector<float> &r_distances)
-{
-  const Span<int> verts = node.verts();
-  r_factors.resize(verts.size());
-  r_distances.resize(verts.size());
-
-  calc_cube_tip_factors_common_mesh_indexed(depsgraph,
-                                            brush,
-                                            object,
-                                            mat,
-                                            attribute_data,
-                                            vert_positions,
-                                            vert_normals,
-                                            node,
-                                            r_factors.as_mutable_span(),
-                                            r_distances.as_mutable_span());
-}
-
-void calc_cube_tip_factors_common_mesh_indexed(const Depsgraph &depsgraph,
-                                               const Brush &brush,
-                                               const Object &object,
-                                               const float4x4 &mat,
-                                               const MeshAttributeData &attribute_data,
-                                               Span<float3> vert_positions,
-                                               Span<float3> vert_normals,
-                                               const bke::pbvh::MeshNode &node,
-                                               MutableSpan<float> factors,
-                                               MutableSpan<float> distances)
-{
-  const SculptSession &ss = *object.runtime->sculpt_session;
-  const StrokeCache &cache = *ss.cache;
-
-  const Span<int> verts = node.verts();
-  /* Fill initial factors from hide and mask, and apply front face culling and region clipping.
-   */
-  fill_factor_from_hide_and_mask(attribute_data.hide_vert, attribute_data.mask, verts, factors);
-  filter_region_clip_factors(ss, vert_positions, verts, factors);
-  if (brush.flag & BRUSH_FRONTFACE) {
-    calc_front_face(cache.view_normal_symm, vert_normals, verts, factors);
-  }
-
-  /* Calculate local positions. */
-  Vector<float3> local_positions_storage(verts.size());
-  MutableSpan<float3> local_positions = local_positions_storage;
-  calc_local_positions(vert_positions,
-                       verts,
-                       mat,
-                       cache.location_symm,
-                       cache.view_normal_symm,
-                       eBrushFalloffShape(brush.falloff_shape),
-                       local_positions);
-
-  /* Find the cube distance. */
-  calc_brush_cube_distances<float3>(brush, local_positions, distances);
-
-  /* The radius is already applied to the local positions, so use a radius of 1.0 here. */
-  filter_distances_with_radius(1.0f, distances, factors);
-  apply_hardness_to_distances(1.0f, cache.hardness, distances);
-
-  /* Apply falloff curve. */
-  BKE_brush_calc_curve_factors(eBrushCurvePreset(brush.curve_distance_falloff_preset),
-                               brush.curve_distance_falloff,
-                               distances,
-                               1.0f,
-                               factors);
-
-  auto_mask::calc_vert_factors(depsgraph, object, cache.automasking.get(), node, verts, factors);
-
-  calc_brush_texture_factors(ss, brush, vert_positions, verts, factors);
 }
 
 void calc_factors_common_grids(const Depsgraph &depsgraph,
@@ -7102,16 +6986,14 @@ void calc_factors_common_from_orig_data_mesh(const Depsgraph &depsgraph,
                                              const Span<float3> positions,
                                              const Span<float3> normals,
                                              const bke::pbvh::MeshNode &node,
-                                             Vector<float> &r_factors,
-                                             Vector<float> &r_distances)
+                                             const MutableSpan<float> factors,
+                                             const MutableSpan<float> distances)
 {
   const SculptSession &ss = *object.runtime->sculpt_session;
   const StrokeCache &cache = *ss.cache;
 
   const Span<int> verts = node.verts();
 
-  r_factors.resize(verts.size());
-  const MutableSpan<float> factors = r_factors;
   fill_factor_from_hide_and_mask(attribute_data.hide_vert, attribute_data.mask, verts, factors);
   filter_region_clip_factors(ss, positions, factors);
 
@@ -7119,8 +7001,6 @@ void calc_factors_common_from_orig_data_mesh(const Depsgraph &depsgraph,
     calc_front_face(cache.view_normal_symm, normals, factors);
   }
 
-  r_distances.resize(verts.size());
-  const MutableSpan<float> distances = r_distances;
   calc_brush_distances(ss, positions, eBrushFalloffShape(brush.falloff_shape), distances);
   filter_distances_with_radius(cache.radius, distances, factors);
   apply_hardness_to_distances(cache, distances);

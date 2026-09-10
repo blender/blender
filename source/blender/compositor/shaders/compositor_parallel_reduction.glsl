@@ -8,8 +8,8 @@ COMPUTE_SHADER_CREATE_INFO(compositor_parallel_reduction_shared)
 COMPUTE_SHADER_CREATE_INFO(compositor_parallel_reduction_output_float4)
 
 #include "gpu_shader_compositor_texture_utilities.glsl"
-#include "gpu_shader_math_base_lib.glsl"
-#include "gpu_shader_utildefines_lib.glsl"
+#include "gpu_shader_math_base.bsl.hh"
+#include "gpu_shader_utildefines.bsl.hh"
 
 /* Texture Loading Utilities.
  *

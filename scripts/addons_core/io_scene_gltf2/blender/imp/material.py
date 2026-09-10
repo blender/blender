@@ -35,8 +35,11 @@ class BlenderMaterial():
             mat.node_tree.links.new(shader_node.outputs[0], output_node.inputs[0])
             if vertex_color:
                 # Add vertex color node
-                vertex_color_node = mat.node_tree.nodes.new(type='ShaderNodeVertexColor')
+                vertex_color_node = mat.node_tree.nodes.new(type='ShaderNodeAttribute')
                 vertex_color_node.location = (-400, 0)
+                # point cloud does not have active vertex color, so we have to fill the attribute name
+                name = 'Color' if int(vertex_color[6:7]) == 0 else 'Color.%03d' % int(vertex_color[6:7])
+                vertex_color_node.attribute_name = name
                 mat.node_tree.links.new(vertex_color_node.outputs[0], shader_node.inputs[0])
             return mat.name
 

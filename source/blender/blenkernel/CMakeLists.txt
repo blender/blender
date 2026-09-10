@@ -778,6 +778,7 @@ if(WITH_GTESTS)
     intern/bake_items_serialize_test.cc
     intern/bpath_test.cc
     intern/brush_test.cc
+    intern/blender_project_test.cc
     intern/cryptomatte_test.cc
     intern/curves_geometry_test.cc
     intern/deform_test.cc

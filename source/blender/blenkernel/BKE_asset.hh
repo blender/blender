@@ -9,6 +9,7 @@
 #pragma once
 
 #include "BLI_compiler_attrs.hh"
+#include "BLI_function_ref.hh"
 
 #include "DNA_asset_types.h"
 
@@ -21,6 +22,7 @@ struct BlendDataReader;
 struct BlendWriter;
 struct ID;
 struct IDProperty;
+struct Main;
 struct PreviewImage;
 
 using PreSaveFn = void (*)(void *asset_ptr, AssetMetaData *asset_data);
@@ -85,6 +87,9 @@ void BKE_asset_metadata_read(BlendDataReader *reader, AssetMetaData *asset_data)
 
 void BKE_asset_weak_reference_write(BlendWriter *writer, const AssetWeakReference *weak_ref);
 void BKE_asset_weak_reference_read(BlendDataReader *reader, AssetWeakReference *weak_ref);
+
+void BKE_asset_weak_reference_foreach_main(Main &bmain,
+                                           FunctionRef<void(AssetWeakReference &weak_ref)> fn);
 
 void BKE_asset_catalog_path_list_free(ListBaseT<AssetCatalogPathLink> &catalog_path_list);
 ListBaseT<AssetCatalogPathLink> BKE_asset_catalog_path_list_duplicate(

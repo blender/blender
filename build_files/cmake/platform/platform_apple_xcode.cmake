@@ -156,9 +156,9 @@ endif()
 unset(OSX_SDKROOT)
 
 
-# This is our minimum target, if you use higher sdk, weak linking happens
-# Mainly required because of Metal drivers.
-set(OSX_MIN_DEPLOYMENT_TARGET 11.2)
+# Minimum macOS deployment target.
+# APIs from newer SDK versions require availability checks.
+set(OSX_MIN_DEPLOYMENT_TARGET 13.0)
 
 set(CMAKE_OSX_DEPLOYMENT_TARGET "${OSX_MIN_DEPLOYMENT_TARGET}" CACHE STRING "" FORCE)
 

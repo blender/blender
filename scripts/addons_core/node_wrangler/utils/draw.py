@@ -7,7 +7,7 @@ import gpu
 from gpu_extras.batch import batch_for_shader
 from math import cos, sin, pi
 
-from .nodes import get_nodes_links, prefs_line_width, abs_node_location, dpi_fac
+from .nodes import prefs_line_width, abs_node_location, dpi_fac
 
 
 def draw_line(x1, y1, x2, y2, size, colour=(1.0, 1.0, 1.0, 0.7)):
@@ -172,7 +172,8 @@ def draw_callback_nodeoutline(self, context, mode):
     if self.mouse_path:
         gpu.state.blend_set('ALPHA')
 
-        nodes, _links = get_nodes_links(context)
+        tree = context.space_data.edit_tree
+        nodes = tree.nodes
 
         if mode == "LINK":
             col_outer = (1.0, 0.2, 0.2, 0.4)

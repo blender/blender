@@ -13,9 +13,9 @@
 #pragma once
 
 #include "gpu_shader_compat.hh"
-#include "gpu_shader_fullscreen_lib.glsl"
-#include "gpu_shader_math_constants_lib.glsl"
-#include "gpu_shader_math_vector_compare_lib.glsl"
+#include "gpu_shader_fullscreen.bsl.hh"
+#include "gpu_shader_math_constants.bsl.hh"
+#include "gpu_shader_math_vector_compare.bsl.hh"
 #include "infos/overlay_common_infos.hh"
 #include "overlay_common_lib.glsl"
 #include "overlay_shader_shared.hh"

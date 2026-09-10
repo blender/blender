@@ -841,7 +841,8 @@ MainLibraryWeakReferenceMap *BKE_main_library_weak_reference_create(Main *bmain)
     BLI_assert(BKE_idtype_idcode_is_linkable(id_iter->id_type()));
 
     FOREACH_MAIN_LISTBASE_ID_BEGIN (lb, id_iter) {
-      if (id_iter->library_weak_reference == nullptr) {
+      /* Only local IDs can be reused, not linked editable assets. */
+      if (id_iter->library_weak_reference == nullptr || ID_IS_LINKED(id_iter)) {
         continue;
       }
       const LibWeakRefKey key{id_iter->library_weak_reference->library_filepath,
@@ -944,6 +945,9 @@ ID *BKE_main_library_weak_reference_find(Main *bmain,
 
   ListBaseT<ID> *id_list = which_libbase(bmain, GS(library_id_name));
   for (ID &existing_id : *id_list) {
+    if (ID_IS_LINKED(&existing_id)) {
+      continue;
+    }
     if (!(existing_id.library_weak_reference &&
           STREQ(existing_id.library_weak_reference->library_id_name, library_id_name)))
     {

@@ -88,7 +88,6 @@ static void calc_faces(const Depsgraph &depsgraph,
                        const MeshAttributeData &attribute_data,
                        const bke::pbvh::MeshNode &node,
                        Object &object,
-                       LocalData &tls,
                        const PositionDeformData &position_data)
 {
   SculptSession &ss = *object.runtime->sculpt_session;
@@ -96,16 +95,14 @@ static void calc_faces(const Depsgraph &depsgraph,
 
   const Span<int> verts = node.verts();
 
-  tls.factors.resize(verts.size());
-  const MutableSpan<float> factors = tls.factors;
+  Array<float, bke::pbvh::MESH_LEAF_LIMIT> factors(verts.size());
   fill_factor_from_hide_and_mask(attribute_data.hide_vert, attribute_data.mask, verts, factors);
   filter_region_clip_factors(ss, position_data.eval, verts, factors);
   if (brush.flag & BRUSH_FRONTFACE) {
     calc_front_face(cache.view_normal_symm, vert_normals, verts, factors);
   }
 
-  tls.distances.resize(verts.size());
-  const MutableSpan<float> distances = tls.distances;
+  Array<float, bke::pbvh::MESH_LEAF_LIMIT> distances(verts.size());
   calc_brush_distances(
       ss, position_data.eval, verts, eBrushFalloffShape(brush.falloff_shape), distances);
   filter_distances_with_radius(cache.radius, distances, factors);
@@ -114,8 +111,7 @@ static void calc_faces(const Depsgraph &depsgraph,
 
   auto_mask::calc_vert_factors(depsgraph, object, cache.automasking.get(), node, verts, factors);
 
-  tls.translations.resize(verts.size());
-  const MutableSpan<float3> translations = tls.translations;
+  Array<float3, bke::pbvh::MESH_LEAF_LIMIT> translations(verts.size());
   calc_brush_texture_colors(ss, brush, position_data.eval, verts, translations);
   scale_translations(translations, factors);
   for (const int i : verts.index_range()) {
@@ -232,7 +228,6 @@ void do_draw_vector_displacement_brush(const Depsgraph &depsgraph,
       const MeshAttributeData attribute_data(mesh);
       node_mask.foreach_index(
           [&](const int i) {
-            LocalData &tls = all_tls.local();
             calc_faces(depsgraph,
                        sd,
                        brush,
@@ -240,7 +235,6 @@ void do_draw_vector_displacement_brush(const Depsgraph &depsgraph,
                        attribute_data,
                        nodes[i],
                        object,
-                       tls,
                        position_data);
             bke::pbvh::update_node_bounds_mesh(position_data.eval, nodes[i]);
           },

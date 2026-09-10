@@ -24,9 +24,9 @@
 
 #include "eevee_thickness_lib.bsl.hh"
 #include "gpu_shader_codegen_lib.glsl"
-#include "gpu_shader_math_vector_lib.glsl"
-#include "gpu_shader_math_vector_reduce_lib.glsl"
-#include "gpu_shader_utildefines_lib.glsl"
+#include "gpu_shader_math_vector.bsl.hh"
+#include "gpu_shader_math_vector_reduce.bsl.hh"
+#include "gpu_shader_utildefines.bsl.hh"
 
 enum UsedLayerFlag : uchar {
   /* Data 0 is always used. */

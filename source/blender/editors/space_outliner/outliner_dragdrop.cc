@@ -366,7 +366,7 @@ static bool parent_drop_poll(bContext *C, wmDrag *drag, const wmEvent *event)
   }
 
   if (!allow_parenting_without_modifier_key(space_outliner)) {
-    if (event->modifier != KM_SHIFT) {
+    if ((event->modifier & (KM_SHIFT | KM_CTRL)) != KM_SHIFT) {
       return false;
     }
   }
@@ -1282,7 +1282,7 @@ static std::string collection_drop_tooltip(bContext *C,
 
   CollectionDrop data;
   if (event && collection_drop_init(C, drag, xy, &data)) {
-    const bool is_link = !data.from || (event->modifier == KM_CTRL);
+    const bool is_link = !data.from || ((event->modifier & (KM_SHIFT | KM_CTRL)) == KM_CTRL);
 
     /* Test if we are moving within same parent collection. */
     bool same_level = false;
@@ -1329,8 +1329,8 @@ static std::string collection_drop_tooltip(bContext *C,
             return TIP_("Move parent object inside collection");
           }
           return TIP_(
-              "Move inside collection (Ctrl to link, Shift to parent,\n Ctrl + Shift to move "
-              "only parent)");
+              "Move inside collection (Ctrl to link, Shift to parent, "
+              "Ctrl + Shift to move only parent)");
         }
         return TIP_("Move inside collection (Ctrl to link)");
       }
@@ -1398,7 +1398,7 @@ static wmOperatorStatus collection_drop_invoke(bContext *C,
 
   for (wmDragID &drag_id : drag->ids) {
     /* Ctrl enables linking, so we don't need a from collection then. */
-    Collection *from = (event->modifier == KM_CTRL) ?
+    Collection *from = ((event->modifier & (KM_SHIFT | KM_CTRL)) == KM_CTRL) ?
                            nullptr :
                            collection_parent_from_ID(drag_id.from_parent);
 

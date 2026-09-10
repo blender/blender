@@ -1,9 +1,9 @@
 
 msgid ""
 msgstr ""
-"Project-Id-Version: Blender 5.3.0 Alpha (b'32296898e057')\n"
+"Project-Id-Version: Blender 5.3.0 Alpha (b'f5df8c32f99b')\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-08-31 07:41+0000\n"
+"POT-Creation-Date: 2026-09-07 07:47+0000\n"
 "PO-Revision-Date: 2026-04-06 09:16+0000\n"
 "Last-Translator: Leevi Oksanen <laavi.oksanen@gmail.com>\n"
 "Language-Team: Finnish <https://translate.blender.org/projects/blender-ui/ui/fi/>\n"
@@ -7120,6 +7120,14 @@ msgid "ID Type"
 msgstr "ID-tyyppi"
 
 
+msgid "Select More/Less"
+msgstr "Valitse enemmän/vähemmän"
+
+
+msgid "Instances"
+msgstr "Instanssit"
+
+
 msgid "Read"
 msgstr "Lue"
 
@@ -7128,24 +7136,24 @@ msgid "Write"
 msgstr "Kirjoita"
 
 
-msgid "Instances"
-msgstr "Instanssit"
-
-
 msgid "Import"
 msgstr "Tuo"
 
 
-msgid "UV Mapping"
-msgstr "UV-kartoittaminen"
+msgid "Select Loops"
+msgstr "Valitse silmukat"
+
+
+msgid "Select All by Trait"
+msgstr "Valitse kaikki piirteen mukaan"
 
 
 msgid "Utilities"
 msgstr "Työkalut"
 
 
-msgid "Select More/Less"
-msgstr "Valitse enemmän/vähemmän"
+msgid "Select Similar"
+msgstr "Valitse samankaltainen"
 
 
 msgid "Math"
@@ -7156,60 +7164,52 @@ msgid "UV"
 msgstr "UV"
 
 
-msgid "Select Similar"
-msgstr "Valitse samankaltainen"
-
-
-msgid "Select All by Trait"
-msgstr "Valitse kaikki piirteen mukaan"
-
-
-msgid "Select Loops"
-msgstr "Valitse silmukat"
-
-
-msgid "Metaball"
-msgstr "Metapallo"
-
-
-msgid "Light"
-msgstr "Valo"
-
-
-msgid "Light Probe"
-msgstr "Valoluotain"
-
-
-msgid "Add Image"
-msgstr "Lisää kuva"
-
-
-msgid "Track"
-msgstr "Raide"
+msgid "UV Mapping"
+msgstr "UV-kartoittaminen"
 
 
 msgid "Show/Hide"
 msgstr "Näytä/Piilota"
 
 
+msgid "Names"
+msgstr "Nimet"
+
+
 msgid "Linked"
 msgstr "Linkitetyt"
 
 
-msgid "Hooks"
-msgstr "Koukut"
+msgid "Metaball"
+msgstr "Metapallo"
+
+
+msgid "Mesh Select Mode"
+msgstr "Muodon valintatila"
 
 
 msgid "Random Mask"
 msgstr "Satunnainen maski"
 
 
-msgid "Names"
-msgstr "Nimet"
+msgid "Hooks"
+msgstr "Koukut"
 
 
-msgid "Mesh Select Mode"
-msgstr "Muodon valintatila"
+msgid "Track"
+msgstr "Raide"
+
+
+msgid "Add Image"
+msgstr "Lisää kuva"
+
+
+msgid "Light Probe"
+msgstr "Valoluotain"
+
+
+msgid "Light"
+msgstr "Valo"
 
 
 msgid "Basic"
@@ -9418,10 +9418,6 @@ msgid "Lighting Mode"
 msgstr "Valotustila"
 
 
-msgid "No export"
-msgstr "Ei vientiä"
-
-
 msgid "General"
 msgstr "Yleinen"
 
@@ -10462,10 +10458,6 @@ msgid "Tool"
 msgstr "Työkalu"
 
 
-msgid "Scene Properties"
-msgstr "Kohtauksen ominaisuudet"
-
-
 msgctxt "ID"
 msgid "Render"
 msgstr "Renderöi"
@@ -10482,6 +10474,10 @@ msgstr "Tuloste"
 
 msgid "Output Properties"
 msgstr "Tulosteen ominaisuudet"
+
+
+msgid "Scene Properties"
+msgstr "Kohtauksen ominaisuudet"
 
 
 msgid "World Properties"
@@ -13085,23 +13081,18 @@ msgid "Empties"
 msgstr "Tyhjät"
 
 
+msgctxt "Operator"
+msgid "Text"
+msgstr "Teksti"
+
+
 msgid "Raw"
 msgstr "Raaka"
 
 
 msgctxt "Operator"
-msgid "Mask..."
-msgstr "Maski..."
-
-
-msgctxt "Operator"
 msgid "Color"
 msgstr "Väri"
-
-
-msgctxt "Operator"
-msgid "Text"
-msgstr "Teksti"
 
 
 msgid "Workbench"
@@ -16136,12 +16127,12 @@ msgid "BSDF"
 msgstr "BSDF"
 
 
-msgid "IOR"
-msgstr "IOR"
-
-
 msgid "Anisotropy"
 msgstr "Anisotropia"
+
+
+msgid "IOR"
+msgstr "IOR"
 
 
 msgid "RoughnessU"

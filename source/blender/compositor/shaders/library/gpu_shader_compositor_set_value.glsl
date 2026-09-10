@@ -2,7 +2,7 @@
  *
  * SPDX-License-Identifier: GPL-2.0-or-later */
 
-#include "gpu_shader_math_matrix_construct_lib.glsl"
+#include "gpu_shader_math_matrix_construct.bsl.hh"
 
 [[node]]
 void set_float(float input_value, float &output_value)
@@ -29,12 +29,6 @@ void set_float4(float4 input_value, float4 &output_value)
 }
 
 [[node]]
-void set_int(int input_value, int &output_value)
-{
-  output_value = input_value;
-}
-
-[[node]]
 void set_int2(int2 input_value, int2 &output_value)
 {
   output_value = input_value;
@@ -48,12 +42,6 @@ void set_int3(int3 input_value, int3 &output_value)
 
 [[node]]
 void set_int4(int4 input_value, int4 &output_value)
-{
-  output_value = input_value;
-}
-
-[[node]]
-void set_bool(bool input_value, bool &output_value)
 {
   output_value = input_value;
 }

@@ -70,7 +70,7 @@ template<typename T> [[nodiscard]] inline std::optional<Bounds<T>> min_max(const
   if (values.is_empty()) {
     return std::nullopt;
   }
-  PRF_scope_with_name("bounds::min_max_with_radii", ProfileCategory::Default);
+  PRF_scope_with_name("bounds::min_max", ProfileCategory::Default);
   const Bounds<T> init{values.first(), values.first()};
   return threading::parallel_reduce(
       values.index_range(),
@@ -96,7 +96,7 @@ template<typename T>
     /* To avoid mask slice/lookup. */
     return min_max(values);
   }
-  PRF_scope_with_name("bounds::min_max_with_radii", ProfileCategory::Default);
+  PRF_scope_with_name("bounds::min_max", ProfileCategory::Default);
   const Bounds<T> init{values[mask.first()], values[mask.first()]};
   return threading::parallel_reduce(
       mask.index_range().drop_front(1),

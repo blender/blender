@@ -6,7 +6,7 @@
 
 COMPUTE_SHADER_CREATE_INFO(compositor_sample_pixel)
 
-#include "gpu_shader_bicubic_sampler_lib.glsl"
+#include "gpu_shader_bicubic_sampler.bsl.hh"
 #include "gpu_shader_compositor_texture_utilities.glsl"
 
 void main()

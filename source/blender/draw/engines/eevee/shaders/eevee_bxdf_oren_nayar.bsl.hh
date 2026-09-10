@@ -6,7 +6,7 @@
 
 #include "eevee_bxdf_types.bsl.hh"
 #include "eevee_ltc_lut_lib.bsl.hh"
-#include "gpu_shader_ray_lib.glsl"
+#include "gpu_shader_ray.bsl.hh"
 
 /* -------------------------------------------------------------------- */
 /** \name Oren Nayar BSDF

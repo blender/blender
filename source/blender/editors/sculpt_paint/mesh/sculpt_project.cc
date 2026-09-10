@@ -57,8 +57,10 @@ static void apply_projection_mesh(const Sculpt &sd,
   SculptSession &ss = *object.runtime->sculpt_session;
 
   const Span<int> verts = node.verts();
-  const MutableSpan positions = gather_data_mesh(position_data.eval, verts, tls.positions);
-  const MutableSpan normals = gather_data_mesh(vert_normals, verts, tls.normals);
+  Array<float3, bke::pbvh::MESH_LEAF_LIMIT> positions(verts.size());
+  gather_data_mesh(position_data.eval, verts, positions.as_mutable_span());
+  Array<float3, bke::pbvh::MESH_LEAF_LIMIT> normals(verts.size());
+  gather_data_mesh(vert_normals, verts, normals.as_mutable_span());
 
   tls.factors.resize(verts.size());
   const MutableSpan<float> factors = tls.factors;

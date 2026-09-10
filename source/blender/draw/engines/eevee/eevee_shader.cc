@@ -1340,6 +1340,7 @@ void ShaderModule::material_create_info_amend(GPUMaterial *gpumat, GPUCodegenOut
   generated_resource_header += "\n";
 
   info.generated_sources.append({"eevee_nodetree_type_lib.glsl", {}, generated_resource_header});
+  info.generated_sources.append({"gpu_shader_material_interface.bsl.hh", {}, ""});
 
   {
     const bool use_vertex_displacement = !codegen.displacement.empty() &&

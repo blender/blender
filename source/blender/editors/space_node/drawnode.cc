@@ -1312,7 +1312,7 @@ static void std_node_socket_draw(
         layout->prop(ptr, "default_value", DEFAULT_FLAGS, "", ICON_NONE);
       }
       else {
-        ui::Layout *row = &layout->split(0.4f, false);
+        ui::Layout *row = &layout->split(ui::Layout::PROPERTY_SPLIT_FACTOR, false);
         ui::Layout *label_layout = &row->column(true);
         label_layout->label(label, ICON_NONE);
         ui::Layout *color_layout = &row->column(true);
@@ -1332,7 +1332,7 @@ static void std_node_socket_draw(
           node_geometry_add_attribute_search_button(*C, *node, *ptr, *layout, label);
         }
         else {
-          ui::Layout *row = &layout->split(0.4f, false);
+          ui::Layout *row = &layout->split(ui::Layout::PROPERTY_SPLIT_FACTOR, false);
           row->label(label, ICON_NONE);
           node_geometry_add_attribute_search_button(*C, *node, *ptr, *row);
         }
@@ -1342,7 +1342,7 @@ static void std_node_socket_draw(
           node_geometry_add_layer_search_button(*C, *node, *ptr, *layout, label);
         }
         else {
-          ui::Layout *row = &layout->split(0.4f, false);
+          ui::Layout *row = &layout->split(ui::Layout::PROPERTY_SPLIT_FACTOR, false);
           row->label(label, ICON_NONE);
           node_geometry_add_layer_search_button(*C, *node, *ptr, *row);
         }
@@ -1352,7 +1352,7 @@ static void std_node_socket_draw(
           node_geometry_add_volume_grid_search_button(*C, *node, *ptr, *layout, label);
         }
         else {
-          ui::Layout *row = &layout->split(0.4f, false);
+          ui::Layout *row = &layout->split(ui::Layout::PROPERTY_SPLIT_FACTOR, false);
           row->label(label, ICON_NONE);
           node_geometry_add_volume_grid_search_button(*C, *node, *ptr, *row);
         }
@@ -1362,7 +1362,7 @@ static void std_node_socket_draw(
           node_bundle_type_add_string_search_button(*C, *node, *ptr, *layout, label);
         }
         else {
-          ui::Layout *row = &layout->split(0.4f, false);
+          ui::Layout *row = &layout->split(ui::Layout::PROPERTY_SPLIT_FACTOR, false);
           row->label(label, ICON_NONE);
           node_bundle_type_add_string_search_button(*C, *node, *ptr, *row);
         }
@@ -1379,7 +1379,7 @@ static void std_node_socket_draw(
                        label);
         }
         else {
-          ui::Layout *row = &layout->split(0.4f, false);
+          ui::Layout *row = &layout->split(ui::Layout::PROPERTY_SPLIT_FACTOR, false);
           row->label(label, ICON_NONE);
           row->prop(ptr, "default_value", DEFAULT_FLAGS, "", ICON_NONE);
         }
@@ -1391,7 +1391,7 @@ static void std_node_socket_draw(
           sock->default_value_typed<bNodeSocketValueMenu>();
       if (default_value->enum_items) {
         if (default_value->enum_items->items.is_empty()) {
-          ui::Layout *row = &layout->split(0.4f, false);
+          ui::Layout *row = &layout->split(ui::Layout::PROPERTY_SPLIT_FACTOR, false);
           row->label(label, ICON_NONE);
           row->label(IFACE_("No Items"), ICON_NONE);
         }
@@ -1411,7 +1411,7 @@ static void std_node_socket_draw(
             }
           }
           else {
-            ui::Layout &row = layout->split(0.4f, false);
+            ui::Layout &row = layout->split(ui::Layout::PROPERTY_SPLIT_FACTOR, false);
             row.label(label, ICON_NONE);
             if (expanded) {
               /* Use a single space for the name to work around a bug. Also see

@@ -2,8 +2,8 @@
  *
  * SPDX-License-Identifier: GPL-2.0-or-later */
 
-#include "gpu_shader_math_vector_safe_lib.glsl"
-#include "gpu_shader_utildefines_lib.glsl"
+#include "gpu_shader_math_vector_safe.bsl.hh"
+#include "gpu_shader_utildefines.bsl.hh"
 
 [[node]]
 void node_eevee_specular(float4 diffuse,
@@ -39,6 +39,7 @@ void node_eevee_specular(float4 diffuse,
 
   float alpha = (1.0f - transp) * weight;
 
+  /* TODO(fclem): EEVEE implementation leaking. */
   [[resource_table]] UtilityTexture &util_tx = resource_table_get(UtilityTexture);
 
   ClosureDiffuse diffuse_data;

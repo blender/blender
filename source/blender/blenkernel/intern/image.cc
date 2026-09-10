@@ -507,6 +507,7 @@ IDTypeInfo IDType_ID_IM = {
     .foreach_cache = image_foreach_cache,
     .foreach_path = image_foreach_path,
     .foreach_working_space_color = nullptr,
+    .foreach_asset_weak_reference = nullptr,
     .owner_pointer_get = nullptr,
 
     .blend_write = image_blend_write,

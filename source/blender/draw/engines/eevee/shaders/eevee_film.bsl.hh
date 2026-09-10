@@ -16,11 +16,11 @@
 #include "eevee_sampling_lib.bsl.hh"
 #include "eevee_uniform.bsl.hh"
 #include "eevee_velocity.bsl.hh"
-#include "gpu_shader_fullscreen_lib.glsl"
-#include "gpu_shader_math_safe_lib.glsl"
-#include "gpu_shader_math_vector_compare_lib.glsl"
-#include "gpu_shader_math_vector_lib.glsl"
-#include "gpu_shader_math_vector_safe_lib.glsl"
+#include "gpu_shader_fullscreen.bsl.hh"
+#include "gpu_shader_math_safe.bsl.hh"
+#include "gpu_shader_math_vector.bsl.hh"
+#include "gpu_shader_math_vector_compare.bsl.hh"
+#include "gpu_shader_math_vector_safe.bsl.hh"
 
 namespace eevee::film {
 

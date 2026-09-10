@@ -180,6 +180,13 @@ static bool paint_brush_type_require_location(const Brush &brush, const PaintMod
 static bool paint_stroke_use_scene_spacing(const Brush &brush, const PaintMode mode)
 {
   switch (mode) {
+    case PaintMode::Texture3D:
+      if (!USER_EXPERIMENTAL_TEST(&U, use_3d_texture_paint) ||
+          !bke::brush::implements_3d_texture_paint(brush))
+      {
+        return false;
+      }
+      return brush.flag & BRUSH_SCENE_SPACING;
     case PaintMode::Sculpt:
       return brush.flag & BRUSH_SCENE_SPACING;
     default:

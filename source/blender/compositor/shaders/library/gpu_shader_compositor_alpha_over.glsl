@@ -2,9 +2,9 @@
  *
  * SPDX-License-Identifier: GPL-2.0-or-later */
 
-#include "gpu_shader_math_base_lib.glsl"
-#include "gpu_shader_math_vector_lib.glsl"
-#include "gpu_shader_math_vector_safe_lib.glsl"
+#include "gpu_shader_math_base.bsl.hh"
+#include "gpu_shader_math_vector.bsl.hh"
+#include "gpu_shader_math_vector_safe.bsl.hh"
 
 #define CMP_NODE_ALPHA_OVER_OPERATION_TYPE_OVER 0
 #define CMP_NODE_ALPHA_OVER_OPERATION_TYPE_DISJOINT_OVER 1

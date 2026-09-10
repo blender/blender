@@ -10,7 +10,7 @@
 #include "eevee_sampling_lib.bsl.hh"
 #include "eevee_uniform.bsl.hh"
 #include "gpu_shader_codegen_lib.glsl"
-#include "gpu_shader_math_matrix_construct_lib.glsl"
+#include "gpu_shader_math_matrix_construct.bsl.hh"
 
 namespace eevee {
 

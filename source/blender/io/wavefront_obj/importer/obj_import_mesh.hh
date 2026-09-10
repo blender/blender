@@ -76,7 +76,7 @@ class MeshFromGeometry : NonMovable, NonCopyable {
                         eOBJMtlNameCollisionMode mtl_name_collision_mode);
   void create_normals(Mesh *mesh);
   void create_colors(Mesh *mesh);
-  void create_vertex_groups(Object *obj);
+  void create_vertex_groups(Mesh *mesh);
 
   bool has_normals() const;
 };

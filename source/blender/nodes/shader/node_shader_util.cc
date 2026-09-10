@@ -11,6 +11,7 @@
 #include "DNA_node_types.h"
 #include "DNA_space_types.h"
 
+#include "BLI_math_rotation_c.hh"
 #include "BLI_math_vector_c.hh"
 #include "BLI_string.hh"
 
@@ -136,41 +137,153 @@ static void nodestack_get_vec(float *in, short type_in, bNodeStack *ns)
 {
   const float *from = ns->vec;
 
-  if (type_in == SOCK_FLOAT) {
-    if (ns->sockettype == SOCK_FLOAT) {
-      *in = *from;
+  switch (type_in) {
+    case SOCK_FLOAT:
+    case SOCK_INT: {
+      switch (ns->sockettype) {
+        case SOCK_FLOAT:
+        case SOCK_INT:
+        case SOCK_BOOLEAN:
+          *in = from[0];
+          break;
+        case SOCK_RGBA:
+          *in = IMB_colormanagement_get_luminance(from);
+          break;
+        case SOCK_VECTOR:
+          *in = (from[0] + from[1] + from[2]) / 3.0f;
+          break;
+        case SOCK_ROTATION:
+          *in = (from[0] + from[1] + from[2] + from[3]) / 4.0f;
+          break;
+        case SOCK_SHADER:
+        case SOCK_STRING:
+        case SOCK_MENU:
+        case SOCK_BUNDLE:
+        case SOCK_CLOSURE:
+          break;
+        default:
+          BLI_assert_unreachable();
+          break;
+      }
+      break;
     }
-    else {
-      *in = (from[0] + from[1] + from[2]) / 3.0f;
+    case SOCK_BOOLEAN: {
+      switch (ns->sockettype) {
+        case SOCK_FLOAT:
+        case SOCK_INT:
+        case SOCK_BOOLEAN:
+          *in = from[0];
+          break;
+        case SOCK_RGBA:
+          *in = IMB_colormanagement_get_luminance(from);
+          break;
+        case SOCK_VECTOR:
+          *in = !is_zero_v3(from);
+          break;
+        case SOCK_ROTATION:
+          *in = !is_zero_v4(from);
+          break;
+        case SOCK_SHADER:
+        case SOCK_STRING:
+        case SOCK_MENU:
+        case SOCK_BUNDLE:
+        case SOCK_CLOSURE:
+          break;
+        default:
+          BLI_assert_unreachable();
+          break;
+      }
+      break;
     }
-  }
-  else if (type_in == SOCK_VECTOR) {
-    if (ns->sockettype == SOCK_FLOAT) {
-      in[0] = from[0];
-      in[1] = from[0];
-      in[2] = from[0];
+    case SOCK_VECTOR: {
+      switch (ns->sockettype) {
+        case SOCK_FLOAT:
+        case SOCK_INT:
+        case SOCK_BOOLEAN:
+          copy_v4_fl(in, from[0]);
+          break;
+        case SOCK_VECTOR:
+        case SOCK_RGBA:
+        case SOCK_ROTATION:
+          copy_v4_v4(in, from);
+          break;
+        case SOCK_SHADER:
+        case SOCK_STRING:
+        case SOCK_MENU:
+        case SOCK_BUNDLE:
+        case SOCK_CLOSURE:
+          break;
+        default:
+          BLI_assert_unreachable();
+          break;
+      }
+      break;
     }
-    else {
-      copy_v3_v3(in, from);
+    case SOCK_RGBA: {
+      switch (ns->sockettype) {
+        case SOCK_FLOAT:
+        case SOCK_INT:
+        case SOCK_BOOLEAN:
+          copy_v3_fl(in, from[0]);
+          in[3] = 1.0f;
+          break;
+        case SOCK_VECTOR:
+          copy_v3_v3(in, from);
+          in[3] = 1.0f;
+          break;
+        case SOCK_RGBA:
+        case SOCK_ROTATION:
+          copy_v4_v4(in, from);
+          break;
+        case SOCK_SHADER:
+        case SOCK_STRING:
+        case SOCK_MENU:
+        case SOCK_BUNDLE:
+        case SOCK_CLOSURE:
+          break;
+        default:
+          BLI_assert_unreachable();
+          break;
+      }
+      break;
     }
-  }
-  else if (type_in == SOCK_ROTATION) {
-    copy_v4_v4(in, from);
-  }
-  else { /* type_in==SOCK_RGBA */
-    if (ns->sockettype == SOCK_RGBA) {
-      copy_v4_v4(in, from);
+    case SOCK_ROTATION: {
+      switch (ns->sockettype) {
+        case SOCK_FLOAT:
+        case SOCK_INT:
+        case SOCK_BOOLEAN: {
+          const float eul[3] = {from[0], from[0], from[0]};
+          eul_to_quat(in, eul);
+          break;
+        }
+        case SOCK_VECTOR:
+          eul_to_quat(in, from);
+          break;
+        case SOCK_RGBA:
+        case SOCK_ROTATION:
+          copy_v4_v4(in, from);
+          break;
+        case SOCK_SHADER:
+        case SOCK_STRING:
+        case SOCK_MENU:
+        case SOCK_BUNDLE:
+        case SOCK_CLOSURE:
+          break;
+        default:
+          BLI_assert_unreachable();
+          break;
+      }
+      break;
     }
-    else if (ns->sockettype == SOCK_FLOAT) {
-      in[0] = from[0];
-      in[1] = from[0];
-      in[2] = from[0];
-      in[3] = 1.0f;
-    }
-    else {
-      copy_v3_v3(in, from);
-      in[3] = 1.0f;
-    }
+    case SOCK_SHADER:
+    case SOCK_STRING:
+    case SOCK_MENU:
+    case SOCK_BUNDLE:
+    case SOCK_CLOSURE:
+      break;
+    default:
+      BLI_assert_unreachable();
+      break;
   }
 }
 
@@ -197,10 +310,16 @@ void node_gpu_stack_from_data(GPUNodeStack *gs, bNodeSocket *socket, bNodeStack 
 
     switch (socket->type) {
       case SOCK_FLOAT:
-      case SOCK_INT:     /* HACK: Support as float. */
-      case SOCK_BOOLEAN: /* HACK: Support as float. */
         gs->type = GPU_FLOAT;
         gs->value = vec.x;
+        break;
+      case SOCK_INT:
+        gs->type = GPU_INT;
+        gs->value = int(vec.x);
+        break;
+      case SOCK_BOOLEAN:
+        gs->type = GPU_BOOL;
+        gs->value = vec.x > 0.0f;
         break;
       case SOCK_VECTOR:
         switch (socket->default_value_typed<bNodeSocketValueVector>()->dimensions) {
@@ -252,6 +371,12 @@ void node_data_from_gpu_stack(bNodeStack *ns, GPUNodeStack *gs)
   switch (gs->type) {
     case GPU_FLOAT:
       vec.x = std::get<float>(gs->value);
+      break;
+    case GPU_INT:
+      vec.x = float(std::get<int>(gs->value));
+      break;
+    case GPU_BOOL:
+      vec.x = float(std::get<bool>(gs->value));
       break;
     case GPU_VEC2:
       vec = float4(std::get<float2>(gs->value), 0.0f, 0.0f);

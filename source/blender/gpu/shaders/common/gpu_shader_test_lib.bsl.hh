@@ -5,8 +5,8 @@
 #pragma once
 
 #include "gpu_shader_compat.hh"
-#include "gpu_shader_math_base_lib.glsl"
-#include "gpu_shader_math_vector_compare_lib.glsl"
+#include "gpu_shader_math_base.bsl.hh"           /* IWYU pragma: export */
+#include "gpu_shader_math_vector_compare.bsl.hh" /* IWYU pragma: export */
 
 #include "GPU_shader_shared.hh"
 

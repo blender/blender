@@ -2542,6 +2542,10 @@ void ED_region_floating_init(ARegion *region)
 
 void ED_region_cursor_set(wmWindow *win, ScrArea *area, ARegion *region)
 {
+  if (region && region->runtime->type->do_lock) {
+    return;
+  }
+
   if (region != nullptr) {
     if ((region->runtime->gizmo_map != nullptr) &&
         WM_gizmomap_cursor_set(region->runtime->gizmo_map, win))

@@ -343,7 +343,7 @@ class DATA_PT_rigify_collection_list(bpy.types.Panel):
             col.operator("armature.collection_move", icon='TRIA_DOWN', text="").direction = 'DOWN'
 
         row = layout.row()
-        split = row.split(factor=0.4)
+        split = row.split(factor=row.property_split_factor)
         split.label(text="")
         split.operator(operator='armature.rigify_validate_layers')
 
@@ -871,7 +871,7 @@ class DATA_PT_rigify_color_sets(bpy.types.Panel):
         col.menu("DATA_MT_rigify_color_sets_context_menu", icon='DOWNARROW_HLT', text="")
 
         row = layout.row()
-        split = row.split(factor=0.4)
+        split = row.split(factor=row.property_split_factor)
         split.label(text="Bone Theme:")
         split.prop(armature, 'rigify_theme_to_add', text="")
         op = row.operator("armature.rigify_color_set_add_theme", text="Add From Theme")

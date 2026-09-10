@@ -44,9 +44,6 @@ class NodeGroupOperation : public Operation {
 
   /* An accessors for node_group_. */
   const bNodeTree &node_group() const;
-
-  /* An accessors for compute_context_. */
-  const ComputeContext &compute_context() const;
 };
 
 }  // namespace blender::compositor

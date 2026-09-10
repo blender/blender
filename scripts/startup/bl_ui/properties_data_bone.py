@@ -177,7 +177,7 @@ class BONE_PT_curved(BoneButtonsPanel, Panel):
 
         row = col.row(align=True)
         row.use_property_split = False
-        split = row.split(factor=0.4)
+        split = row.split(factor=row.property_split_factor)
         split.alignment = 'RIGHT'
         split.label(text="Scale")
         split2 = split.split(factor=0.7)
@@ -197,7 +197,7 @@ class BONE_PT_curved(BoneButtonsPanel, Panel):
 
         row = col.row(align=True)
         row.use_property_split = False
-        split = row.split(factor=0.4)
+        split = row.split(factor=row.property_split_factor)
         split.alignment = 'RIGHT'
         split.label(text="Scale")
         split2 = split.split(factor=0.7)

@@ -9,8 +9,8 @@
 #include "eevee_reverse_z_lib.bsl.hh"
 #include "eevee_sampling_lib.bsl.hh"
 #include "eevee_velocity.bsl.hh"
-#include "gpu_shader_math_vector_safe_lib.glsl"
-#include "gpu_shader_utildefines_lib.glsl"
+#include "gpu_shader_math_vector_safe.bsl.hh"
+#include "gpu_shader_utildefines.bsl.hh"
 
 namespace eevee::motion_blur {
 

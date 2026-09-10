@@ -1019,7 +1019,7 @@ static TransConvertTypeInfo *convert_type_get(const TransInfo *t, Object **r_obj
   {
     return &TransConvertType_Particle;
   }
-  if (ob && ((ob->mode & OB_MODE_ALL_PAINT) || (ob->mode & OB_MODE_SCULPT_CURVES))) {
+  if (ob && ((ob->mode & OB_MODE_ALL_PAINT_MESH) || (ob->mode & OB_MODE_SCULPT_CURVES))) {
     if ((t->options & CTX_PAINT_CURVE) && !ELEM(t->mode, TFM_SHEAR, TFM_SHRINKFATTEN)) {
       return &TransConvertType_PaintCurve;
     }

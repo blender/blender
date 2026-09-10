@@ -440,10 +440,9 @@ static void fill_mask_mesh(const Depsgraph &depsgraph,
 
   Array<bool> node_changed(node_mask.min_array_size(), false);
 
-  threading::EnumerableThreadSpecific<Vector<int>> all_index_data;
   node_mask.foreach_index(
       [&](const int i) {
-        Vector<int> &index_data = all_index_data.local();
+        Vector<int, bke::pbvh::MESH_LEAF_LIMIT> index_data;
         const Span<int> verts = hide::node_visible_verts(nodes[i], hide_vert, index_data);
         if (std::all_of(verts.begin(), verts.end(), [&](int i) { return mask.span[i] == value; }))
         {

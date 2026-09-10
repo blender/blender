@@ -156,15 +156,13 @@ static void color_filter_task(const Depsgraph &depsgraph,
 
   const Span<int> verts = node.verts();
 
-  tls.factors.resize(verts.size());
-  const MutableSpan<float> factors = tls.factors;
+  Array<float, bke::pbvh::MESH_LEAF_LIMIT> factors(verts.size());
   fill_factor_from_hide_and_mask(attribute_data.hide_vert, attribute_data.mask, verts, factors);
   auto_mask::calc_vert_factors(
       depsgraph, ob, ss.filter_cache->automasking.get(), node, verts, factors);
   scale_factors(factors, filter_strength);
 
-  tls.new_colors.resize(verts.size());
-  const MutableSpan<float4> new_colors = tls.new_colors;
+  Array<float4, bke::pbvh::MESH_LEAF_LIMIT> new_colors(verts.size());
 
   /* Copy alpha. */
   for (const int i : verts.index_range()) {
@@ -281,8 +279,7 @@ static void color_filter_task(const Depsgraph &depsgraph,
     case FilterType::Smooth: {
       clamp_factors(factors, -1.0f, 1.0f);
 
-      tls.colors.resize(verts.size());
-      const MutableSpan<float4> colors = tls.colors;
+      Array<float4, bke::pbvh::MESH_LEAF_LIMIT> colors(verts.size());
       for (const int i : verts.index_range()) {
         colors[i] = color_vert_get(faces,
                                    corner_verts,
@@ -300,8 +297,7 @@ static void color_filter_task(const Depsgraph &depsgraph,
                                                              tls.neighbor_offsets,
                                                              tls.neighbor_data);
 
-      tls.average_colors.resize(verts.size());
-      const MutableSpan<float4> average_colors = tls.average_colors;
+      Array<float4, bke::pbvh::MESH_LEAF_LIMIT> average_colors(verts.size());
       smooth::neighbor_color_average(faces,
                                      corner_verts,
                                      vert_to_face_map,
@@ -401,10 +397,9 @@ static void sculpt_color_presmooth_init(const Mesh &mesh, Object &object)
                                                                  tls.neighbor_offsets,
                                                                  tls.neighbor_data);
 
-          tls.averaged_colors.resize(verts.size());
-          const MutableSpan<float4> averaged_colors = tls.averaged_colors;
+          Array<float4, bke::pbvh::MESH_LEAF_LIMIT> averaged_colors(verts.size());
           smooth::neighbor_data_average_mesh(
-              pre_smoothed_color.as_span(), neighbors, averaged_colors);
+              pre_smoothed_color.as_span(), neighbors, averaged_colors.as_mutable_span());
 
           for (const int i : verts.index_range()) {
             pre_smoothed_color[verts[i]] = math::interpolate(

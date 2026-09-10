@@ -887,7 +887,8 @@ static bool outliner_element_visible_get(const Main &bmain,
       return false;
     }
     const eTreeStoreElemType type = eTreeStoreElemType(TREESTORE(te)->type);
-    if (type == TSE_SOME_ID && te->idcode != ID_OB) {
+    const Object *parent_ob = id_cast<Object *>(TREESTORE(te->parent)->id);
+    if (type == TSE_SOME_ID && (TREESTORE(te)->id == parent_ob->data)) {
       if (exclude_filter & SO_FILTER_NO_OB_DATA) {
         return false;
       }

@@ -6,7 +6,7 @@
 
 COMPUTE_SHADER_CREATE_INFO(compositor_radial_lens_distortion)
 
-#include "gpu_shader_common_hash.glsl"
+#include "gpu_shader_common_hash.bsl.hh"
 #include "gpu_shader_compositor_texture_utilities.glsl"
 
 /* A model that approximates lens distortion parameterized by a distortion parameter and dependent

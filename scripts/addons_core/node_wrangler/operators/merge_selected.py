@@ -18,7 +18,6 @@ from ..utils.nodes import (
     nw_check,
     nw_check_selected,
     nw_check_space_type,
-    get_nodes_links,
     get_first_enabled_output,
 )
 
@@ -154,7 +153,10 @@ class NODE_OT_merge_selected(Operator, NWBase):
             node_type = 'ShaderNode'
         elif tree_type == 'TEXTURE':
             node_type = 'TextureNode'
-        nodes, links = get_nodes_links(context)
+
+        tree = context.space_data.edit_tree
+        nodes = tree.nodes
+        links = tree.links
         mode = self.mode
         merge_type = self.merge_type
         # Prevent trying to add Depth Combine in not 'COMPOSITING' node tree.

@@ -376,11 +376,12 @@ GPUNodeLink *GPU_uniform(const GPUNodeStack &stack)
 static const char *gpu_uniform_set_function_from_type(eNodeSocketDatatype type)
 {
   switch (type) {
-    /* For now INT & BOOL are supported as float. */
-    case SOCK_INT:
     case SOCK_FLOAT:
-    case SOCK_BOOLEAN:
       return "set_value";
+    case SOCK_INT:
+      return "set_int";
+    case SOCK_BOOLEAN:
+      return "set_bool";
     case SOCK_VECTOR:
       return "set_rgb";
     case SOCK_RGBA:
@@ -417,7 +418,7 @@ static GPUNodeLink *gpu_uniformbuffer_link(GPUMaterial *mat,
     return nullptr;
   }
 
-  if (!ELEM(socket->type, SOCK_INT, SOCK_FLOAT, SOCK_VECTOR, SOCK_RGBA)) {
+  if (!ELEM(socket->type, SOCK_BOOLEAN, SOCK_INT, SOCK_FLOAT, SOCK_VECTOR, SOCK_RGBA)) {
     return nullptr;
   }
 

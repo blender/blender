@@ -1709,7 +1709,7 @@ void blo_do_versions_250(FileData *fd, Library * /*lib*/, Main *bmain)
   if (!MAIN_VERSION_FILE_ATLEAST(bmain, 255, 1)) {
     for (Brush &br : bmain->brushes) {
       if (br.ob_mode == 0) {
-        br.ob_mode = OB_MODE_ALL_PAINT;
+        br.ob_mode = OB_MODE_ALL_PAINT_MESH;
       }
     }
 

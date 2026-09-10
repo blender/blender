@@ -87,9 +87,6 @@ MetalDevice::MetalDevice(const DeviceInfo &info, Stats &stats, Profiler &profile
     mtlDevice = usable_devices[mtlDevId];
     metal_printf("Creating new Cycles Metal device: %s", info.description.c_str());
 
-    /* Ensure that back-compatibility helpers for getting gpuAddress & gpuResourceID are set up. */
-    metal_gpu_address_helper_init(mtlDevice);
-
     /* Enable increased concurrent shader compiler limit.
      * This is also done by MTLContext::MTLContext, but only in GUI mode. */
     if (@available(macOS 13.3, *)) {
@@ -366,9 +363,6 @@ string MetalDevice::preprocess_source(MetalPipelineType pso_type,
 #  endif
 
   global_defines += "#define __KERNEL_METAL_APPLE__\n";
-  if (@available(macos 12.0, *)) {
-    global_defines += "#define __METAL_FUNCTION_CONSTANTS_64BIT__\n";
-  }
   if (@available(macos 14.0, *)) {
     /* Use Program Scope Global Built-ins, when available. */
     global_defines += "#define __METAL_GLOBAL_BUILTINS__\n";
@@ -380,10 +374,6 @@ string MetalDevice::preprocess_source(MetalPipelineType pso_type,
     global_defines += "#define WITH_NANOVDB\n";
   }
 #  endif
-
-  NSProcessInfo *processInfo = [NSProcessInfo processInfo];
-  NSOperatingSystemVersion macos_ver = [processInfo operatingSystemVersion];
-  global_defines += "#define __KERNEL_METAL_MACOS__ " + to_string(macos_ver.majorVersion) + "\n";
 
 #  if TARGET_CPU_ARM64
   global_defines += "#define __KERNEL_METAL_TARGET_CPU_ARM64__\n";
@@ -571,14 +561,7 @@ void MetalDevice::compile_and_load(const int device_id, MetalPipelineType pso_ty
     MTLCompileOptions *options = [[MTLCompileOptions alloc] init];
 
     options.fastMathEnabled = YES;
-    if (@available(macos 12.0, *)) {
-      options.languageVersion = MTLLanguageVersion2_4;
-    }
-#  if defined(MAC_OS_VERSION_13_0)
-    if (@available(macos 13.0, *)) {
-      options.languageVersion = MTLLanguageVersion3_0;
-    }
-#  endif
+    options.languageVersion = MTLLanguageVersion3_0;
 #  if defined(MAC_OS_VERSION_14_0)
     if (@available(macos 14.0, *)) {
       options.languageVersion = MTLLanguageVersion3_1;
@@ -1034,9 +1017,7 @@ void MetalDevice::const_copy_to(const char *name, void *host, const size_t size)
       if (mmem[i]) {
         mmem[i]->pointer_index = pointer_index + i;
         if (mmem[i]->mtlBuffer) {
-          if (@available(macOS 13.0, *)) {
-            addresses[i] = metal_gpuAddress(mmem[i]->mtlBuffer);
-          }
+          addresses[i] = mmem[i]->mtlBuffer.gpuAddress;
         }
       }
     }

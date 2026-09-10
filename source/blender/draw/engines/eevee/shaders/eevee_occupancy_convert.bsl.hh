@@ -8,7 +8,7 @@
 
 #include "eevee_occupancy_lib.bsl.hh"
 #include "eevee_uniform.bsl.hh"
-#include "gpu_shader_fullscreen_lib.glsl"
+#include "gpu_shader_fullscreen.bsl.hh"
 
 namespace eevee::volume::occupancy {
 

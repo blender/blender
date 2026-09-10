@@ -2,7 +2,7 @@
  *
  * SPDX-License-Identifier: GPL-2.0-or-later */
 
-#include "gpu_shader_math_matrix_transform_lib.glsl"
+#include "gpu_shader_math_matrix_transform.bsl.hh"
 
 [[node]]
 void node_function_project_point(const float3 point,

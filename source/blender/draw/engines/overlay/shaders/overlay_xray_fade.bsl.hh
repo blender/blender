@@ -13,7 +13,7 @@
 #pragma once
 
 #include "gpu_shader_compat.hh"
-#include "gpu_shader_fullscreen_lib.glsl"
+#include "gpu_shader_fullscreen.bsl.hh"
 #include "infos/overlay_common_infos.hh"
 
 namespace overlay::xray_fade {

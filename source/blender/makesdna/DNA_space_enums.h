@@ -905,6 +905,7 @@ enum eSpaceNodeOverlay_Flag : int {
    */
   SN_OVERLAY_SHOW_REROUTE_AUTO_LABELS = (1 << 7),
   SN_OVERLAY_SHOW_RENDER_REGION = (1 << 8),
+  SN_OVERLAY_SHOW_TEXT_INFO = (1 << 9),
 };
 ENUM_OPERATORS(eSpaceNodeOverlay_Flag)
 

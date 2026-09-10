@@ -903,7 +903,7 @@ static int gizmo_3d_foreach_selected(const bContext *C,
       }
     }
   }
-  else if (ob && (ob->mode & OB_MODE_ALL_PAINT)) {
+  else if (ob && (ob->mode & OB_MODE_ALL_PAINT_MESH)) {
     if (ob->mode & OB_MODE_SCULPT) {
       totsel = 1;
       run_coord_with_matrix(

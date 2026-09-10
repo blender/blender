@@ -228,8 +228,10 @@ ccl_device void osl_closure_refraction_setup(KernelGlobals kg,
     return;
   }
 
+  const bool backfacing = (sd->runtime_flag & SR_BACKFACING);
+
   bsdf->N = maybe_ensure_valid_specular_reflection(sd, safe_normalize_fallback(closure->N, sd->N));
-  bsdf->ior = closure->ior;
+  bsdf->ior = backfacing ? 1.0f / closure->ior : closure->ior;
   bsdf->alpha_x = bsdf->alpha_y = 0.0f;
 
   sd->runtime_flag |= bsdf_microfacet_ggx_refraction_setup(bsdf);
@@ -324,10 +326,12 @@ ccl_device void osl_closure_dielectric_bsdf_setup(KernelGlobals kg,
     return;
   }
 
+  const bool backfacing = (sd->runtime_flag & SR_BACKFACING);
+
   bsdf->N = maybe_ensure_valid_specular_reflection(sd, safe_normalize_fallback(closure->N, sd->N));
   bsdf->alpha_x = closure->alpha_x;
   bsdf->alpha_y = closure->alpha_y;
-  bsdf->ior = closure->ior;
+  bsdf->ior = backfacing ? 1.0f / closure->ior : closure->ior;
   bsdf->T = closure->T;
 
   const bool beckmann = closure->distribution == make_string("beckmann", 14712237670914973463ull);
@@ -336,6 +340,9 @@ ccl_device void osl_closure_dielectric_bsdf_setup(KernelGlobals kg,
   fresnel->thin_film = {closure->thinfilm_thickness, closure->thinfilm_ior};
   fresnel->tint = {rgb_to_spectrum(closure->reflection_tint),
                    rgb_to_spectrum(closure->transmission_tint)};
+  if (backfacing) {
+    adjust_thin_film_ior_at_backface(fresnel->thin_film.ior, bsdf->ior);
+  }
   bsdf_dielectric_tint_setup(kg, bsdf, sd, fresnel, beckmann, multiggx);
 
   if (layer_albedo != nullptr) {
@@ -432,6 +439,8 @@ ccl_device void osl_closure_generalized_schlick_bsdf_setup(
     return;
   }
 
+  const bool backfacing = (sd->runtime_flag & SR_BACKFACING);
+
   bsdf->N = maybe_ensure_valid_specular_reflection(sd, safe_normalize_fallback(closure->N, sd->N));
   bsdf->alpha_x = closure->alpha_x;
   bsdf->alpha_y = closure->alpha_y;
@@ -442,10 +451,12 @@ ccl_device void osl_closure_generalized_schlick_bsdf_setup(
      * to the F0...F90 range, this allows us to use the real IOR.
      * Computing it back from F0 might give a different result in case of specular
      * tinting. */
-    bsdf->ior = bsdf_glass_ior(sd, -closure->exponent, closure->inv_abbe);
+    const float ior = backfacing ? 1.0f / -closure->exponent : -closure->exponent;
+    bsdf->ior = bsdf_glass_ior(sd, ior, closure->inv_abbe);
   }
   else {
-    bsdf->ior = ior_from_F0(average(closure->f0));
+    const float ior = ior_from_F0(average(closure->f0));
+    bsdf->ior = backfacing ? 1.0f / ior : ior;
   }
 
   bool preserve_energy = false;
@@ -491,6 +502,9 @@ ccl_device void osl_closure_generalized_schlick_bsdf_setup(
   fresnel->exponent = closure->exponent;
   fresnel->thin_film.thickness = closure->thinfilm_thickness;
   fresnel->thin_film.ior = closure->thinfilm_ior;
+  if (backfacing) {
+    adjust_thin_film_ior_at_backface(fresnel->thin_film.ior, bsdf->ior);
+  }
   bsdf_microfacet_setup_fresnel_generalized_schlick(kg, bsdf, sd->wi, fresnel, preserve_energy);
 
   if (layer_albedo != nullptr) {
@@ -601,10 +615,12 @@ ccl_device void osl_closure_microfacet_setup(KernelGlobals kg,
     return;
   }
 
+  const bool backfacing = (sd->runtime_flag & SR_BACKFACING);
+
   bsdf->N = maybe_ensure_valid_specular_reflection(sd, safe_normalize_fallback(closure->N, sd->N));
   bsdf->alpha_x = closure->alpha_x;
   bsdf->alpha_y = closure->alpha_y;
-  bsdf->ior = closure->ior;
+  bsdf->ior = backfacing ? 1.0f / closure->ior : closure->ior;
   bsdf->T = closure->T;
 
   /* Beckmann */
@@ -726,10 +742,12 @@ ccl_device void osl_closure_microfacet_multi_ggx_glass_setup(
     return;
   }
 
+  const bool backfacing = (sd->runtime_flag & SR_BACKFACING);
+
   bsdf->N = maybe_ensure_valid_specular_reflection(sd, safe_normalize_fallback(closure->N, sd->N));
   bsdf->alpha_x = closure->alpha_x;
   bsdf->alpha_y = bsdf->alpha_x;
-  bsdf->ior = closure->ior;
+  bsdf->ior = backfacing ? 1.0f / closure->ior : closure->ior;
 
   bsdf->T = zero_float3();
 

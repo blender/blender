@@ -315,7 +315,7 @@ Tree Tree::from_mesh(const Mesh &mesh)
     return pbvh;
   }
 
-  constexpr int leaf_limit = 2500;
+  constexpr int leaf_limit = MESH_LEAF_LIMIT;
   static_assert(leaf_limit < std::numeric_limits<MeshNode::LocalVertMapIndexT>::max());
 
   Array<float3> face_centers(faces.size());

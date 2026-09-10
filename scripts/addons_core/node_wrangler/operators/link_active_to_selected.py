@@ -14,7 +14,6 @@ from ..utils.nodes import (
     nw_check,
     nw_check_active,
     nw_check_selected,
-    get_nodes_links,
 )
 
 
@@ -37,7 +36,8 @@ class NODE_OT_link_active_to_selected(Operator, NWBase):
                 and nw_check_selected(cls, context, min=2))
 
     def execute(self, context):
-        nodes, _links = get_nodes_links(context)
+        tree = context.space_data.edit_tree
+        nodes = tree.nodes
         replace = self.replace
         use_node_name = self.use_node_name
         use_outputs_names = self.use_outputs_names

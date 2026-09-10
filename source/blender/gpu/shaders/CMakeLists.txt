@@ -13,6 +13,7 @@ set(INC_GLSL
   common
   infos
   compat
+  nodes
 )
 
 set(SRC_BSL

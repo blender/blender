@@ -12,8 +12,8 @@ SHADER_LIBRARY_CREATE_INFO(draw_modelmat)
 #include "draw_model_lib.glsl"
 #include "draw_view_clipping_lib.glsl"
 #include "draw_view_lib.glsl"
-#include "gpu_shader_math_vector_lib.glsl"
-#include "gpu_shader_utildefines_lib.glsl"
+#include "gpu_shader_math_vector.bsl.hh"
+#include "gpu_shader_utildefines.bsl.hh"
 #include "overlay_common_lib.glsl"
 #include "overlay_edit_mesh_common_lib.glsl"
 

@@ -217,6 +217,8 @@ enum class Type {
   BMesh,
 };
 
+static constexpr int MESH_LEAF_LIMIT = 2500;
+
 /**
  * \todo Most data is public but should either be removed or become private in the future.
  * The "_" suffix means that fields shouldn't be used by consumers of the `bke::pbvh` API.

@@ -6,7 +6,7 @@
 
 #include "eevee_defines.hh"
 #include "eevee_lightprobe_shared.hh"
-#include "gpu_shader_utildefines_lib.glsl"
+#include "gpu_shader_utildefines.bsl.hh"
 
 namespace eevee::lightprobe::plane {
 

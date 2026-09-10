@@ -62,7 +62,7 @@ shader node_principled_bsdf(string distribution = "multi_ggx",
 
   float alpha_x = r2, alpha_y = r2;
 
-  int is_backfacing = !ThinWall && backfacing();
+  int is_backfacing = backfacing();
 
   /* Handle anisotropy. */
   vector T = Tangent;
@@ -119,7 +119,12 @@ shader node_principled_bsdf(string distribution = "multi_ggx",
       /* Apply specular tint */
       color F0 = f0 * specular_tint;
       color F90 = color(1.0);
-
+      /* NOTE: Since this is a layer over an opaque slab, no IOR inversion needs to be done.
+       * Since `generalized_schlick_bsdf` does implicit IOR inversion we need to counter it by
+       * pre-inverting the IOR on backfacing. Ideally we would solve this implicitly by adding a
+       * double-sided or opaque flag to the material. */
+      float thinfilm_ior = is_backfacing ? ThinFilmIOR / eta : ThinFilmIOR;
+      eta = is_backfacing ? 1.0 / eta : eta;
       BSDF = layer(generalized_schlick_bsdf(Normal,
                                             T,
                                             color(1.0),
@@ -133,15 +138,13 @@ shader node_principled_bsdf(string distribution = "multi_ggx",
                                             "thinfilm_thickness",
                                             ThinFilmThickness,
                                             "thinfilm_ior",
-                                            ThinFilmIOR),
+                                            thinfilm_ior),
                    BSDF);
     }
   }
 
   if (metallic < 1.0 && TransmissionWeight > CLOSURE_WEIGHT_CUTOFF) {
     float eta = max(IOR, 1e-5);
-    float thinfilm_ior = is_backfacing ? ThinFilmIOR / eta : ThinFilmIOR;
-    eta = is_backfacing ? 1.0 / eta : eta;
     if (ThinWall) {
       closure color ThinGlassBSDF = thin_glass(Normal,
                                                vector(0.0),
@@ -150,7 +153,7 @@ shader node_principled_bsdf(string distribution = "multi_ggx",
                                                eta,
                                                r2,
                                                ThinFilmThickness,
-                                               thinfilm_ior);
+                                               ThinFilmIOR);
       BSDF = mix(ThinGlassBSDF, BSDF, 1.0 - transmission);
     }
     else {
@@ -172,7 +175,7 @@ shader node_principled_bsdf(string distribution = "multi_ggx",
                                                                 "thinfilm_thickness",
                                                                 ThinFilmThickness,
                                                                 "thinfilm_ior",
-                                                                thinfilm_ior,
+                                                                ThinFilmIOR,
                                                                 "inv_abbe",
                                                                 inv_abbe);
       BSDF = mix(TransmissionBSDF, BSDF, 1.0 - transmission);

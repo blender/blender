@@ -11,9 +11,9 @@
 #include "eevee_light_iter.bsl.hh"
 #include "eevee_light_lib.bsl.hh"
 #include "eevee_light_shared.hh"
-#include "gpu_shader_debug_gradients_lib.glsl"
-#include "gpu_shader_fullscreen_lib.glsl"
-#include "gpu_shader_math_matrix_transform_lib.glsl"
+#include "gpu_shader_debug_gradients.bsl.hh"
+#include "gpu_shader_fullscreen.bsl.hh"
+#include "gpu_shader_math_matrix_transform.bsl.hh"
 
 namespace eevee::light::culling {
 

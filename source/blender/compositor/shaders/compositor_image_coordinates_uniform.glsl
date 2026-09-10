@@ -6,7 +6,7 @@
 
 COMPUTE_SHADER_CREATE_INFO(compositor_image_coordinates_uniform)
 
-#include "gpu_shader_math_vector_reduce_lib.glsl"
+#include "gpu_shader_math_vector_reduce.bsl.hh"
 
 void main()
 {

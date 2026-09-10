@@ -5,8 +5,8 @@
 #pragma once
 
 #include "draw_view_lib.glsl"
-#include "gpu_shader_fullscreen_lib.glsl"
-#include "gpu_shader_utildefines_lib.glsl"
+#include "gpu_shader_fullscreen.bsl.hh"
+#include "gpu_shader_utildefines.bsl.hh"
 #include "workbench_common.bsl.hh"
 #include "workbench_shader_shared.hh"
 

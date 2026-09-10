@@ -9,7 +9,7 @@
 #include "eevee_shadow_tilemap_lib.bsl.hh"
 #include "eevee_uniform.bsl.hh"
 #include "eevee_utility_tx.bsl.hh"
-#include "gpu_shader_utildefines_lib.glsl"
+#include "gpu_shader_utildefines.bsl.hh"
 
 namespace eevee {
 

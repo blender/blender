@@ -950,14 +950,12 @@ static void text_info_row(const char *text,
   BLF_disable(font_id, BLF_SHADOW);
 }
 
-void ED_region_image_overlay_info_text_draw(const int render_size_x,
-                                            const int render_size_y,
-
-                                            const int viewer_size_x,
-                                            const int viewer_size_y,
-
-                                            const int draw_offset_x,
-                                            const int draw_offset_y)
+void ED_region_overlay_info_text_draw(const int render_size_x,
+                                      const int render_size_y,
+                                      const int viewer_size_x,
+                                      const int viewer_size_y,
+                                      const int draw_offset_x,
+                                      const int draw_offset_y)
 {
   BLF_set_default();
   const int font_id = BLF_default();

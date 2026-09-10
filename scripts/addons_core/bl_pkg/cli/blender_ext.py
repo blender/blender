@@ -3215,7 +3215,7 @@ def generic_arg_package_valid_tags(subparse: argparse.ArgumentParser) -> None:
             "The contents must be a dictionary of lists where the ``key`` matches the extension type.\n"
             "\n"
             "For example:\n"
-            "   ``{\"add-ons\": [\"Example\", \"Another\"], \"theme\": [\"Other\", \"Tags\"]}``\n"
+            "   ``{\"add-on\": [\"Example\", \"Another\"], \"theme\": [\"Other\", \"Tags\"]}``\n"
             "\n"
             "To disable validating tags, pass in an empty path ``--valid-tags=\"\"``."
         ),

@@ -977,9 +977,7 @@ void MTLVertexCommandEncoder::set_sampler(id<MTLSamplerState> sampler_state, int
 void MTLVertexCommandEncoder::set_acceleration_structure(id<MTLAccelerationStructure> accel,
                                                          int index)
 {
-  if (@available(macOS 12.0, *)) {
-    [enc setVertexAccelerationStructure:accel atBufferIndex:index];
-  }
+  [enc setVertexAccelerationStructure:accel atBufferIndex:index];
 }
 void MTLVertexCommandEncoder::use_resource(id<MTLResource> resource, MTLResourceUsage usage)
 {
@@ -1009,9 +1007,7 @@ void MTLFragmentCommandEncoder::set_sampler(id<MTLSamplerState> sampler_state, i
 void MTLFragmentCommandEncoder::set_acceleration_structure(id<MTLAccelerationStructure> accel,
                                                            int index)
 {
-  if (@available(macOS 12.0, *)) {
-    [enc setFragmentAccelerationStructure:accel atBufferIndex:index];
-  }
+  [enc setFragmentAccelerationStructure:accel atBufferIndex:index];
 }
 void MTLFragmentCommandEncoder::use_resource(id<MTLResource> resource, MTLResourceUsage usage)
 {

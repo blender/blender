@@ -5,7 +5,7 @@
 /* The algorithm is by Werner D. Streidt, extracted of OpenCV demhist.c:
  *   http://visca.com/ffactory/archives/5-99/msg00021.html */
 
-#include "gpu_shader_common_color_utils.glsl"
+#include "gpu_shader_common_color_utils.bsl.hh"
 
 #define FLT_EPSILON 1.192092896e-07F
 

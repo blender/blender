@@ -7,9 +7,9 @@
 #include "draw_shape_lib.glsl"
 #include "eevee_light_shared.hh"
 #include "eevee_shadow_shared.hh"
-#include "gpu_shader_math_constants_lib.glsl"
-#include "gpu_shader_math_vector_reduce_lib.glsl"
-#include "gpu_shader_utildefines_lib.glsl"
+#include "gpu_shader_math_constants.bsl.hh"
+#include "gpu_shader_math_vector_reduce.bsl.hh"
+#include "gpu_shader_utildefines.bsl.hh"
 
 /**
  * Select the smallest viewport that can contain the given rectangle of tiles to render.

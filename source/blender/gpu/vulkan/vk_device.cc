@@ -294,16 +294,13 @@ shader::GeneratedSource VKDevice::extensions_define(StringRefNull stage_define,
   std::stringstream ss;
 
   ss << "#version " << glsl_patch_version_get(use_ray_query) << "\n";
-  {
-    /* Required extension. */
-    ss << "#extension GL_ARB_shader_draw_parameters : enable\n";
-    ss << "#define GPU_ARB_shader_draw_parameters\n";
-    ss << "#define gpu_BaseInstance (gl_BaseInstanceARB)\n";
-  }
   ss << "#define GPU_ARB_clip_control\n";
   ss << "#define GPU_ARB_derivative_control\n";
 
   ss << "#define gl_VertexID gl_VertexIndex\n";
+  /* usage of gpu_BaseInstance is deprecated to support more Android devices. Prefer to use
+   * gpu_InstanceIndex. */
+  ss << "#define gpu_BaseInstance (0)\n";
   ss << "#define gpu_InstanceIndex (gl_InstanceIndex)\n";
   ss << "#define gl_InstanceID (gpu_InstanceIndex)\n";
 

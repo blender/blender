@@ -11,10 +11,10 @@
 #include "draw_model_lib.glsl"
 #include "draw_object_infos_lib.glsl"
 #include "draw_view_lib.glsl"
-#include "gpu_shader_math_constants_lib.glsl"
-#include "gpu_shader_math_vector_compare_lib.glsl"
-#include "gpu_shader_math_vector_reduce_lib.glsl"
-#include "gpu_shader_math_vector_safe_lib.glsl"
+#include "gpu_shader_math_constants.bsl.hh"
+#include "gpu_shader_math_vector_compare.bsl.hh"
+#include "gpu_shader_math_vector_reduce.bsl.hh"
+#include "gpu_shader_math_vector_safe.bsl.hh"
 
 namespace workbench::volume {
 

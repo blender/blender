@@ -702,7 +702,7 @@ class STRIP_PT_scene_sound(StripButtonsPanel, Panel):
         col = layout.column()
 
         col.use_property_decorate = True
-        split = col.split(factor=0.4)
+        split = col.split(factor=col.property_split_factor)
         split.alignment = 'RIGHT'
         split.label(text="Strip Volume", text_ctxt=i18n_contexts.id_sound)
         split.prop(strip, "volume", text="")
@@ -922,7 +922,7 @@ class STRIP_PT_adjust_sound(StripButtonsPanel, Panel):
             layout.use_property_split = True
             col = layout.column()
 
-            split = col.split(factor=0.4)
+            split = col.split(factor=col.property_split_factor)
             split.alignment = 'RIGHT'
             split.label(text="Volume", text_ctxt=i18n_contexts.id_sound)
             split.prop(strip, "volume", text="")
@@ -931,7 +931,7 @@ class STRIP_PT_adjust_sound(StripButtonsPanel, Panel):
             layout.use_property_split = False
             col = layout.column()
 
-            split = col.split(factor=0.4)
+            split = col.split(factor=col.property_split_factor)
             split.label(text="")
             split.prop(sound, "use_mono")
 
@@ -942,14 +942,14 @@ class STRIP_PT_adjust_sound(StripButtonsPanel, Panel):
             pan_enabled = sound.use_mono and audio_channels != 'MONO'
             pan_text = "{:.2f}°".format(strip.pan * 90.0)
 
-            split = col.split(factor=0.4)
+            split = col.split(factor=col.property_split_factor)
             split.alignment = 'RIGHT'
             split.label(text="Pan", text_ctxt=i18n_contexts.id_sound)
             split.prop(strip, "pan", text="")
             split.enabled = pan_enabled
 
             if audio_channels not in {'MONO', 'STEREO'}:
-                split = col.split(factor=0.4)
+                split = col.split(factor=col.property_split_factor)
                 split.alignment = 'RIGHT'
                 split.label(text="Pan Angle")
                 split.enabled = pan_enabled
@@ -962,11 +962,11 @@ class STRIP_PT_adjust_sound(StripButtonsPanel, Panel):
             layout.use_property_split = False
             col = layout.column()
 
-            split = col.split(factor=0.4)
+            split = col.split(factor=col.property_split_factor)
             split.label(text="")
             split.prop(strip, "pitch_correction")
 
-            split = col.split(factor=0.4)
+            split = col.split(factor=col.property_split_factor)
             split.label(text="")
             split.prop(strip, "show_waveform")
 

@@ -7,9 +7,9 @@
 #include "eevee_bxdf_types.bsl.hh"
 #include "eevee_utility_tx.bsl.hh"
 #include "gpu_shader_compat.hh"
-#include "gpu_shader_math_matrix_construct_lib.glsl"
-#include "gpu_shader_math_vector_lib.glsl"
-#include "gpu_shader_utildefines_lib.glsl"
+#include "gpu_shader_math_matrix_construct.bsl.hh"
+#include "gpu_shader_math_vector.bsl.hh"
+#include "gpu_shader_utildefines.bsl.hh"
 
 namespace eevee {
 

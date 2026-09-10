@@ -8,7 +8,7 @@
 #include "draw_view.bsl.hh"
 #include "eevee_lightprobe_sphere.bsl.hh"
 #include "eevee_surfel.bsl.hh"
-#include "gpu_shader_utildefines_lib.glsl"
+#include "gpu_shader_utildefines.bsl.hh"
 
 namespace eevee::surfel {
 
