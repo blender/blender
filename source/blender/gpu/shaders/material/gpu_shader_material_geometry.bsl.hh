@@ -5,7 +5,7 @@
 #pragma once
 
 #include "gpu_shader_material_interface.bsl.hh"
-#include "gpu_shader_material_tangent.glsl"
+#include "gpu_shader_material_tangent.bsl.hh"
 
 [[node]]
 void node_geometry(float3 orco_attr,

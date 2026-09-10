@@ -2,8 +2,15 @@
  *
  * SPDX-License-Identifier: GPL-2.0-or-later */
 
+#pragma once
+
+#include "gpu_shader_material_interface.bsl.hh"
+
 [[node]]
-void node_output_aov(float4 color, float value, float hash, Closure &dummy)
+void node_output_aov([[maybe_unused]] float4 color,
+                     [[maybe_unused]] float value,
+                     [[maybe_unused]] float hash,
+                     [[maybe_unused]] Closure &dummy)
 {
 #ifdef GPU_FRAGMENT_SHADER
 #  ifdef OBINFO_LIB

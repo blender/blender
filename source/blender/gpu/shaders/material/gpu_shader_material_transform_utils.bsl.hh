@@ -4,6 +4,10 @@
 
 /* Requires all common matrices declared. */
 
+#pragma once
+
+#include "gpu_shader_material_interface.bsl.hh"
+
 [[node]]
 void normal_transform_object_to_world(float3 vin, float3 &vout)
 {

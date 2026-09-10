@@ -2,7 +2,9 @@
  *
  * SPDX-License-Identifier: GPL-2.0-or-later */
 
-#include "gpu_shader_material_transform_utils.glsl"
+#pragma once
+
+#include "gpu_shader_material_transform_utils.bsl.hh"
 
 [[node]]
 void tangent_orco_x(float3 orco_in, float3 &orco_out)

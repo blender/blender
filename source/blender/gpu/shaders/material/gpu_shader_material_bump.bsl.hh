@@ -2,6 +2,10 @@
  *
  * SPDX-License-Identifier: GPL-2.0-or-later */
 
+#pragma once
+
+#include "gpu_shader_codegen_lib.glsl"
+
 [[node]]
 void differentiate_texco(float3 v, float3 &df)
 {
@@ -18,12 +22,12 @@ void differentiate_texco(float4 v, float3 &df)
 }
 
 [[node]]
-void node_bump(float strength,
+void node_bump([[maybe_unused]] float strength,
                float dist,
-               float filter_width,
-               float height,
+               [[maybe_unused]] float filter_width,
+               [[maybe_unused]] float height,
                float3 N,
-               float2 height_xy,
+               [[maybe_unused]] float2 height_xy,
                float invert,
                float3 &result)
 {
