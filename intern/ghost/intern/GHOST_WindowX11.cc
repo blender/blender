@@ -1230,7 +1230,7 @@ GHOST_Context *GHOST_WindowX11::newDrawingContext(GHOST_TDrawingContextType type
                                                    nullptr,
                                                    nullptr,
                                                    1,
-                                                   2,
+                                                   1,
                                                    preferred_device_,
                                                    &hdr_info_);
       if (context->initializeDrawingContext()) {
