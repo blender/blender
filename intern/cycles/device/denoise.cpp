@@ -13,6 +13,8 @@ const char *denoiserTypeToHumanReadable(DenoiserType type)
       return "OptiX";
     case DENOISER_OPENIMAGEDENOISE:
       return "OpenImageDenoise";
+    case DENOISER_DLSS:
+      return "DLSS";
 
     case DENOISER_NUM:
     case DENOISER_NONE:
@@ -29,7 +31,8 @@ const NodeEnum *DenoiseParams::get_type_enum()
 
   if (type_enum.empty()) {
     type_enum.insert("optix", DENOISER_OPTIX);
-    type_enum.insert("openimageio", DENOISER_OPENIMAGEDENOISE);
+    type_enum.insert("openimagedenoise", DENOISER_OPENIMAGEDENOISE);
+    type_enum.insert("dlss", DENOISER_DLSS);
   }
 
   return &type_enum;

@@ -30,7 +30,7 @@ struct DeviceKernelArguments {
     HIPRT_GLOBAL_STACK,
   };
 
-  static const int MAX_ARGS = 19;
+  static const int MAX_ARGS = 23;
   Type types[MAX_ARGS];
   void *values[MAX_ARGS];
   size_t sizes[MAX_ARGS];
