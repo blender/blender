@@ -215,8 +215,7 @@ enum eNode_Flag : int {
   NODE_MUTED = 1 << 9,
   // NODE_CUSTOM_NAME = 1 << 10, /* Deprecated, dirty. */
   // NODE_CONST_OUTPUT = 1 << 11, /* Deprecated, dirty. */
-  /** Node is always behind others. */
-  NODE_BACKGROUND = 1 << 12,
+  // NODE_BACKGROUND = 1 << 12, /* Deprecated, dirty. */
   /** Automatic flag for nodes included in transforms */
   // NODE_TRANSFORM = 1 << 13, /* Deprecated, dirty. */
 

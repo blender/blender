@@ -238,11 +238,10 @@ static bool compare_node_depth(const bNode *a, const bNode *b)
     }
   }
 
-  /* One of the nodes is in the background and the other not. */
-  if ((a->flag & NODE_BACKGROUND) && !(b->flag & NODE_BACKGROUND)) {
+  if (a->is_frame() && !b->is_frame()) {
     return true;
   }
-  if ((b->flag & NODE_BACKGROUND) && !(a->flag & NODE_BACKGROUND)) {
+  if (b->is_frame() && !a->is_frame()) {
     return false;
   }
 
@@ -4242,7 +4241,7 @@ static void node_draw_zones_and_frames(const ARegion &region,
     draw_order.append(zones->zones[zone_i]);
   }
   for (const bNode *node : ntree.all_nodes()) {
-    if (node->flag & NODE_BACKGROUND) {
+    if (node->is_frame()) {
       draw_order.append(node);
     }
   }
@@ -4558,8 +4557,8 @@ static void node_draw_nodetree(const bContext &C,
   /* Draw foreground nodes, last nodes in front. */
   for (const int i : nodes.index_range()) {
     bNode &node = *nodes[i];
-    if (node.flag & NODE_BACKGROUND) {
-      /* Background nodes are drawn before mixed with zones already. */
+    if (node.is_frame()) {
+      /* Those nodes are drawn before already. */
       continue;
     }
 
