@@ -1145,8 +1145,9 @@ static const char *view3d_get_name(View3D *v3d, RegionView3D *rv3d)
 static void draw_viewport_name(ARegion *region, View3D *v3d, int xoffset, int *yoffset)
 {
   RegionView3D *rv3d = static_cast<RegionView3D *>(region->regiondata);
-  std::string name = view3d_get_name(v3d, rv3d);
-  Vector<std::string> name_array;
+  /* Append text directly, the inline buffer avoids allocating in practice. */
+  fmt::memory_buffer name;
+  name.append(StringRef(view3d_get_name(v3d, rv3d)));
 
   if (RV3D_VIEW_IS_AXIS(rv3d->view) && (rv3d->view_axis_roll != RV3D_VIEW_AXIS_ROLL_0)) {
     const char *axis_roll;
@@ -1161,16 +1162,16 @@ static void draw_viewport_name(ARegion *region, View3D *v3d, int xoffset, int *y
         axis_roll = " -90\xC2\xB0";
         break;
     }
-    name_array.append(axis_roll);
+    name.append(StringRef(axis_roll));
   }
 
   if (v3d->localvd) {
-    name_array.append(IFACE_(" (Local)"));
+    name.append(StringRef(IFACE_(" (Local)")));
   }
 
   /* Indicate that clipping region is enabled. */
   if (RV3D_CLIPPING_ENABLED(v3d, rv3d)) {
-    name_array.append(IFACE_(" (Clipped)"));
+    name.append(StringRef(IFACE_(" (Clipped)")));
   }
 
   /* Indicate that the view is flipped. */
@@ -1179,38 +1180,33 @@ static void draw_viewport_name(ARegion *region, View3D *v3d, int xoffset, int *y
 
     switch (flip_roll) {
       case eRegionView3D_ViewFlipRoll::FlipOther:
-        name_array.append(IFACE_(" (Flipped) (Rolled)"));
+        name.append(StringRef(IFACE_(" (Flipped) (Rolled)")));
         break;
       case eRegionView3D_ViewFlipRoll::FlipX:
-        name_array.append(IFACE_(" (Flipped X)"));
+        name.append(StringRef(IFACE_(" (Flipped X)")));
         break;
       case eRegionView3D_ViewFlipRoll::FlipY:
-        name_array.append(IFACE_(" (Flipped Y)"));
+        name.append(StringRef(IFACE_(" (Flipped Y)")));
         break;
       case eRegionView3D_ViewFlipRoll::Roll0:
         break;
       case eRegionView3D_ViewFlipRoll::Roll90:
-        name_array.append(IFACE_(" (90\xC2\xB0)"));
+        name.append(StringRef(IFACE_(" (90\xC2\xB0)")));
         break;
       case eRegionView3D_ViewFlipRoll::Roll180:
-        name_array.append(IFACE_(" (180\xC2\xB0)"));
+        name.append(StringRef(IFACE_(" (180\xC2\xB0)")));
         break;
       case eRegionView3D_ViewFlipRoll::Roll270:
-        name_array.append(IFACE_(" (-90\xC2\xB0)"));
+        name.append(StringRef(IFACE_(" (-90\xC2\xB0)")));
         break;
       case eRegionView3D_ViewFlipRoll::RollOther:
-        name_array.append(IFACE_(" (Rolled)"));
+        name.append(StringRef(IFACE_(" (Rolled)")));
         break;
     }
   }
 
-  if (!name_array.is_empty()) {
-    for (const std::string &text : name_array) {
-      name.append(text);
-    }
-  }
   *yoffset -= VIEW3D_OVERLAY_LINEHEIGHT;
-  BLF_draw_default(xoffset, *yoffset, 0.0f, name.c_str(), name.size());
+  BLF_draw_default(xoffset, *yoffset, 0.0f, name.data(), name.size());
 }
 
 static bool is_grease_pencil_with_layer_keyframe(const Object &ob)
