@@ -21,7 +21,8 @@ set(FFMPEG_CFLAGS "\
 -I${temp_LIBDIR}/x264/include \
 -I${temp_LIBDIR}/zlib/include \
 -I${temp_LIBDIR}/aom/include \
--I${temp_LIBDIR}/x265/include"
+-I${temp_LIBDIR}/x265/include \
+-I${temp_LIBDIR}/vulkan_headers/include"
 )
 set(FFMPEG_LDFLAGS "\
 ${LIBDIR_FLAG}${temp_LIBDIR}/lame/lib \
@@ -147,11 +148,13 @@ if(APPLE)
     ${FFMPEG_EXTRA_FLAGS}
     --target-os=darwin
     --enable-videotoolbox
+    --disable-vulkan
   )
 else()
   set(FFMPEG_EXTRA_FLAGS
     ${FFMPEG_EXTRA_FLAGS}
     --disable-videotoolbox
+    --enable-vulkan
   )
 endif()
 
@@ -247,6 +250,7 @@ add_dependencies(
   external_aom
   external_sndfile
   external_flac
+  external_vulkan_headers
 )
 if(WIN32)
   add_dependencies(
