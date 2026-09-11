@@ -1325,6 +1325,7 @@ void ShadowModule::render(View &view, int2 extent)
     GPU_debug_group_begin("Shadow");
     {
       GPU_uniformbuf_clear_to_zero(shadow_multi_view_.matrices_ubo_get());
+      GPU_storagebuf_clear(render_map_buf_, 0xFFFFFFFFu);
 
       run_tagging_ = (loop_count == 0);
 

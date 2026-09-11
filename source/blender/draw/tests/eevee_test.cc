@@ -889,7 +889,7 @@ static void test_eevee_shadow_finalize()
   StorageArrayBuffer<uint, SHADOW_RENDER_MAP_SIZE> render_map_buf = {"render_map_buf"};
   StorageArrayBuffer<uint, SHADOW_VIEW_MAX> viewport_index_buf = {"viewport_index_buf"};
 
-  render_map_buf.clear_to_zero();
+  GPU_storagebuf_clear(render_map_buf, 0xFFFFFFFFu);
   clear_dispatch_buf.clear_to_zero();
 
   gpu::Shader *sh = GPU_shader_create_from_info_name("eevee_shadow_tilemap_finalize");
@@ -998,7 +998,7 @@ static void test_eevee_shadow_finalize()
     auto stringify_view = [](Span<uint> data) -> std::string {
       std::string result;
       for (auto x : data) {
-        result += (x == 0u) ? '-' : ((x == 0xFFFFFFFFu) ? 'x' : '0' + (x % 10));
+        result += (x == 0u) ? 'x' : ((x == 0xFFFFFFFFu) ? '-' : '0' + (x % 10));
       }
       return result;
     };
@@ -1073,10 +1073,10 @@ static void test_eevee_shadow_finalize()
         "--------------------------------";
 
     StringRefNull expected_view2 =
-        "4xxx----------------------------"
-        "xxxx----------------------------"
-        "8xxx----------------------------"
-        "xxxx----------------------------"
+        "4-------------------------------"
+        "--------------------------------"
+        "8-------------------------------"
+        "--------------------------------"
         "--------------------------------"
         "--------------------------------"
         "--------------------------------"
@@ -1141,22 +1141,22 @@ static void test_eevee_shadow_finalize()
         "--------------------------------";
 
     StringRefNull expected_view4 =
-        "xxxxxxx7xxxxxxxx----------------"
-        "xxxxxxxxxxxxxxxx----------------"
-        "xxxxxxxxxxxxxxxx----------------"
-        "xxxxxxxxxxxxxxxx----------------"
-        "xxxxxxxxxxxxxxxx----------------"
-        "xxxxxxxxxxxxxxxx----------------"
-        "xxxxxxxxxxxxxxxx----------------"
-        "xxxxxxxxxxxxxxxx----------------"
-        "xxxxxxxxxxxxxxxx----------------"
-        "xxxxxxxxxxxxxxxx----------------"
-        "xxxxxxxxxxxxxxxx----------------"
-        "xxxxxxxxxxxxxxxx----------------"
-        "xxxxxxxxxxxxxxxx----------------"
-        "xxxxxxxxxxxxxxxx----------------"
-        "xxxxxxxxxxxxxxxx----------------"
-        "9xxxxxxxxxxxxxxx----------------"
+        "-------7------------------------"
+        "--------------------------------"
+        "--------------------------------"
+        "--------------------------------"
+        "--------------------------------"
+        "--------------------------------"
+        "--------------------------------"
+        "--------------------------------"
+        "--------------------------------"
+        "--------------------------------"
+        "--------------------------------"
+        "--------------------------------"
+        "--------------------------------"
+        "--------------------------------"
+        "--------------------------------"
+        "9-------------------------------"
         "--------------------------------"
         "--------------------------------"
         "--------------------------------"
