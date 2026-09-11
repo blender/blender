@@ -12136,9 +12136,13 @@ static int handle_menu_event(bContext *C,
         menu->menuretval = RETURN_CANCEL;
       }
       else if (ELEM(event->type, EVT_RETKEY, EVT_PADENTER) && event->val == KM_PRESS) {
+        Button *but_active = region_find_active_but(region);
         Button *but_default = region_find_first_but_test_flag(
             region, BUT_ACTIVE_DEFAULT, UI_HIDDEN);
-        if ((but_default != nullptr) && (but_default->active == nullptr)) {
+        if (but_active && menu->keynav_state.is_keynav) {
+          /* Key-navigation activates the button navigated onto, not the default. */
+        }
+        else if ((but_default != nullptr) && (but_default->active == nullptr)) {
           if (but_default->type == ButtonType::But) {
             button_execute(C, region, but_default);
             retval = WM_UI_HANDLER_BREAK;
@@ -12147,14 +12151,10 @@ static int handle_menu_event(bContext *C,
             handle_button_activate_by_type(C, region, but_default);
           }
         }
-        else {
-          Button *but_active = region_find_active_but(region);
-
-          /* enter will always close this block, we let the event
-           * get handled by the button if it is activated, otherwise we cancel */
-          if (but_active == nullptr) {
-            menu->menuretval = RETURN_CANCEL | RETURN_POPUP_OK;
-          }
+        /* enter will always close this block, we let the event
+         * get handled by the button if it is activated, otherwise we cancel */
+        else if (but_active == nullptr) {
+          menu->menuretval = RETURN_CANCEL | RETURN_POPUP_OK;
         }
       }
 #ifdef USE_DRAG_POPUP
