@@ -609,7 +609,7 @@ struct CollectionFilters {
 
   /* Limit the returned data to only channels of the given type.
    * If empty, all channel types are returned. */
-  Set<AnimationChannelType> channel_type_whitelist;
+  Set<AnimationChannelType> channel_type_allowlist;
   /* Any id types put here will be ignored in the channel collection process. */
   Set<ID_Type> id_type_blocklist;
 };
