@@ -420,6 +420,12 @@ struct Layout : public Item, NonCopyable, NonMovable {
                        int max_lines = 0);
 
   /**
+   * Renders the given text rendered as markdown. Only a subset of markdown is supported:
+   * Bold, italic, code, links, lists, headers, quotes, horizontal rules.
+   */
+  void label_markdown(StringRef text);
+
+  /**
    * Adds link item, displays a url that can be clicked in the layout.
    */
   void link(StringRef url, StringRef name, int icon);

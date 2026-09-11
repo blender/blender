@@ -614,6 +614,16 @@ static void rna_layout_label_multiline(Layout *layout,
   layout->label_multiline(text.value_or(""), icon, ui::FontStyleAlign(alignment), max_lines);
 }
 
+static void rna_layout_label_markdown(Layout *layout,
+                                      const char *name,
+                                      const char *text_ctxt,
+                                      bool translate)
+{
+  std::optional<StringRefNull> text = rna_translate_ui_text(
+      name, text_ctxt, nullptr, nullptr, translate);
+  layout->label_markdown(text.value_or(""));
+}
+
 static void rna_layout_link(Layout *layout,
                             const char *url,
                             const char *name,
@@ -1822,6 +1832,13 @@ void RNA_api_ui_layout(StructRNA *srna)
   parm = RNA_def_property(func, "max_lines", PROP_INT, PROP_UNSIGNED);
   RNA_def_property_range(parm, 0, INT_MAX);
   RNA_def_property_ui_text(parm, "", "Maximum number of lines to display, 0 means all");
+
+  func = RNA_def_function(srna, "label_markdown", "rna_layout_label_markdown");
+  RNA_def_function_ui_description(
+      func,
+      "Displays markdown-formatted text in the layout. Only a subset of markdown is supported "
+      "including headers, lists, bold/italic/code text, links, quotes, horizontal rules.");
+  api_ui_item_common_text(func);
 
   func = RNA_def_function(srna, "link", "rna_layout_link");
   RNA_def_function_ui_description(func, "Item. Displays a url that can be clicked in the layout.");
