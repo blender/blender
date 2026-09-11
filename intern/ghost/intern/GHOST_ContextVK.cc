@@ -1010,6 +1010,18 @@ GHOST_TSuccess GHOST_ContextVK::swapBufferAcquire()
     recreateSwapchain(use_hdr_swapchain);
   }
   else {
+#if defined(WITH_GHOST_SDL) && defined(__ANDROID__)
+    /* Android can resize the window without reporting an out-of-date swapchain. Recreate the
+     * swapchain if the render extent and window size do not match. */
+    int win_width = 0, win_height = 0;
+    if (sdl_window_ && SDL_GetWindowSizeInPixels(sdl_window_, &win_width, &win_height)) {
+      if (render_extent_.width != uint32_t(win_width) ||
+          render_extent_.height != uint32_t(win_height))
+      {
+        recreateSwapchain(use_hdr_swapchain);
+      }
+    }
+#endif
 #ifdef WITH_GHOST_WAYLAND
     /* Wayland doesn't provide a WSI with windowing capabilities, therefore cannot detect whether
      * the swap-chain needs to be recreated. But as a side effect we can recreate the swap-chain
@@ -1187,6 +1199,12 @@ GHOST_TSuccess GHOST_ContextVK::swapBufferRelease()
   }
   acquired_swapchain_image_index_.reset();
 
+#ifdef __ANDROID__
+  /* Android reports SUBOPTIMAL during device orientation changes. */
+  if (present_result == VK_SUBOPTIMAL_KHR) {
+    return GHOST_kSuccess;
+  }
+#endif
   if (ELEM(present_result, VK_ERROR_OUT_OF_DATE_KHR, VK_SUBOPTIMAL_KHR)) {
     recreateSwapchain(use_hdr_swapchain);
     return GHOST_kSuccess;
@@ -1604,7 +1622,12 @@ GHOST_TSuccess GHOST_ContextVK::recreateSwapchain(bool use_hdr_swapchain)
   create_info.imageArrayLayers = 1;
   create_info.imageUsage = VK_IMAGE_USAGE_TRANSFER_DST_BIT |
                            (use_hdr_swapchain ? VK_IMAGE_USAGE_STORAGE_BIT : 0);
+#ifdef __ANDROID__
+  /* Informs the Android compositor to handle image rotation as Blender doesn't pre-rotate. */
+  create_info.preTransform = VK_SURFACE_TRANSFORM_IDENTITY_BIT_KHR;
+#else
   create_info.preTransform = capabilities.currentTransform;
+#endif
   /* Alpha lets the compositor blend the surface against the desktop, needed by CSD for rounded
    * window corners. Not all surfaces support it, so fall back to opaque in those cases. The caller
    * handles the lack of transparency by drawing square corners, see #GHOST_Context::hasAlpha. */
