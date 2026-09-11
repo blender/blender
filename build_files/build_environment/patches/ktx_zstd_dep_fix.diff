@@ -1,5 +1,5 @@
---- KTX-Software-4.4.2\CMakeLists.txt	2025-10-04 01:06:54.000000000 -0700
-+++ external_ktx\CMakeLists.txt	2026-09-09 10:34:26.276917400 -0700
+--- KTX-Software-4.4.2/CMakeLists.txt	2025-10-04 01:06:54.000000000 -0700
++++ external_ktx/CMakeLists.txt	2026-09-09 10:34:26.276917400 -0700
 @@ -389,7 +389,6 @@
      external/basisu/transcoder/basisu_transcoder.cpp
      external/basisu/transcoder/basisu_transcoder.h
