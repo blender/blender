@@ -262,7 +262,9 @@ class RuntimeToBakeValue {
     }
     if (list_cpp_type.is<nodes::BundlePtr>()) {
       list.typed<nodes::BundlePtr>().foreach_for_write([&](nodes::BundlePtr &bundle_ptr) {
-        this->runtime_to_bake__Bundle(bundle_ptr.ensure_mutable_inplace());
+        if (bundle_ptr) {
+          this->runtime_to_bake__Bundle(bundle_ptr.ensure_mutable_inplace());
+        }
       });
       return true;
     }
@@ -611,7 +613,9 @@ class BakeToRuntimeValue {
     }
     else if (list_cpp_type.is<nodes::BundlePtr>()) {
       list.typed<nodes::BundlePtr>().foreach_for_write([&](nodes::BundlePtr &bundle_ptr) {
-        this->bake_to_runtime__Bundle(bundle_ptr.ensure_mutable_inplace());
+        if (bundle_ptr) {
+          this->bake_to_runtime__Bundle(bundle_ptr.ensure_mutable_inplace());
+        }
       });
     }
   }
