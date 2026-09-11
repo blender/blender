@@ -127,7 +127,7 @@ static int node_copy_local(bNodeTree &from_tree,
   for (bNodeLink &link : from_tree.links) {
     BLI_assert(link.tonode);
     BLI_assert(link.fromnode);
-    if (link.tonode->flag & NODE_SELECT && link.fromnode->flag & NODE_SELECT) {
+    if (link.tonode->is_selected() && link.fromnode->is_selected()) {
       if (!node_map.contains(link.tonode) || !node_map.contains(link.fromnode)) {
         /* If copying a node fails, skip copying their links. */
         continue;

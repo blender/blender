@@ -2082,7 +2082,7 @@ static wmOperatorStatus detach_links_exec(bContext *C, wmOperator * /*op*/)
   ED_preview_kill_jobs(CTX_wm_manager(C), CTX_data_main(C));
 
   for (bNode *node : ntree.all_nodes()) {
-    if (node->flag & SELECT) {
+    if (node->is_selected()) {
       bke::node_internal_relink(ntree, *node);
     }
   }
@@ -2124,7 +2124,7 @@ static wmOperatorStatus node_parent_set_exec(bContext *C, wmOperator * /*op*/)
     if (node == frame) {
       continue;
     }
-    if (node->flag & NODE_SELECT) {
+    if (node->is_selected()) {
       bke::node_detach_node(ntree, *node);
       bke::node_attach_node(ntree, *node, *frame);
     }
@@ -2422,7 +2422,7 @@ static bNode *node_find_frame_to_attach(ARegion &region, bNodeTree &ntree, const
 
   for (bNode *frame : tree_draw_order_calc_nodes_reversed(ntree)) {
     /* skip selected, those are the nodes we want to attach */
-    if (!frame->is_frame() || (frame->flag & NODE_SELECT)) {
+    if (!frame->is_frame() || frame->is_selected()) {
       continue;
     }
     if (BLI_rctf_isect_pt_v(&frame->runtime->draw_bounds, cursor)) {
@@ -2467,7 +2467,7 @@ static wmOperatorStatus node_attach_invoke(bContext *C, wmOperator * /*op*/, con
   bool changed = false;
 
   for (bNode *node : tree_draw_order_calc_nodes_reversed(*snode.edittree)) {
-    if (!(node->flag & NODE_SELECT)) {
+    if (!node->is_selected()) {
       continue;
     }
     if (!can_attach_node_to_frame(*node, *frame)) {
@@ -2525,13 +2525,13 @@ static void node_detach_recursive(bNodeTree &ntree,
     if (detach_states[node->parent->index()].descendent) {
       detach_states[node->index()].descendent = true;
     }
-    else if (node->flag & NODE_SELECT) {
+    else if (node->is_selected()) {
       /* If parent is not a descendant of a selected node, detach. */
       bke::node_detach_node(ntree, *node);
       detach_states[node->index()].descendent = true;
     }
   }
-  else if (node->flag & NODE_SELECT) {
+  else if (node->is_selected()) {
     detach_states[node->index()].descendent = true;
   }
 }
@@ -2583,7 +2583,7 @@ static bNode *get_selected_node_for_insertion(bNodeTree &node_tree)
   bNode *selected_node = nullptr;
   int selected_node_count = 0;
   for (bNode *node : node_tree.all_nodes()) {
-    if (node->flag & SELECT) {
+    if (node->is_selected()) {
       selected_node = node;
       selected_node_count++;
     }
@@ -2718,7 +2718,7 @@ void node_insert_on_frame_flag_set(SpaceNode &snode, ARegion &region, const int2
     return;
   }
   for (const bNode *node : snode.edittree->all_nodes()) {
-    if (!(node->flag & NODE_SELECT)) {
+    if (!node->is_selected()) {
       continue;
     }
     if (!can_attach_node_to_frame(*node, *frame)) {

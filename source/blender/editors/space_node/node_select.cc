@@ -309,10 +309,10 @@ void node_select_paired(bNodeTree &node_tree)
   for (const bke::bNodeZoneType *zone_type : bke::all_zone_types()) {
     for (bNode *input_node : node_tree.nodes_by_type(zone_type->input_idname)) {
       if (bNode *output_node = zone_type->get_corresponding_output(node_tree, *input_node)) {
-        if (input_node->flag & NODE_SELECT) {
+        if (input_node->is_selected()) {
           output_node->flag |= NODE_SELECT;
         }
-        if (output_node->flag & NODE_SELECT) {
+        if (output_node->is_selected()) {
           input_node->flag |= NODE_SELECT;
         }
       }
@@ -324,7 +324,7 @@ VectorSet<bNode *> get_selected_nodes(bNodeTree &node_tree)
 {
   VectorSet<bNode *> selected_nodes;
   for (bNode *node : node_tree.all_nodes()) {
-    if (node->flag & NODE_SELECT) {
+    if (node->is_selected()) {
       selected_nodes.add(node);
     }
   }
@@ -343,7 +343,7 @@ static bool node_select_grouped_type(bNodeTree &node_tree, bNode &node_act)
 {
   bool changed = false;
   for (bNode *node : node_tree.all_nodes()) {
-    if ((node->flag & SELECT) == 0) {
+    if (!node->is_selected()) {
       if (node->type_legacy == node_act.type_legacy) {
         bke::node_set_selected(*node, true);
         changed = true;
@@ -357,7 +357,7 @@ static bool node_select_grouped_color(bNodeTree &node_tree, bNode &node_act)
 {
   bool changed = false;
   for (bNode *node : node_tree.all_nodes()) {
-    if ((node->flag & SELECT) == 0) {
+    if (!node->is_selected()) {
       if (compare_v3v3(node->color, node_act.color, 0.005f)) {
         bke::node_set_selected(*node, true);
         changed = true;
@@ -384,7 +384,7 @@ static bool node_select_grouped_name(bNodeTree &node_tree, bNode &node_act, cons
   }
 
   for (bNode *node : node_tree.all_nodes()) {
-    if (node->flag & SELECT) {
+    if (node->is_selected()) {
       continue;
     }
     pref_len_curr = BLI_str_partition_ex_utf8(
@@ -631,7 +631,7 @@ static bool node_mouse_select(bContext *C,
     if (sock) {
       node = &sock->owner_node();
       found = true;
-      node_was_selected = node->flag & SELECT;
+      node_was_selected = node->is_selected();
 
       /* NOTE: SOCK_IN does not take into account the extend case...
        * This feature is not really used anyway currently? */
@@ -643,7 +643,7 @@ static bool node_mouse_select(bContext *C,
       if (sock) {
         node = &sock->owner_node();
         found = true;
-        node_was_selected = node->flag & SELECT;
+        node_was_selected = node->is_selected();
 
         if (sock->flag & SELECT) {
           if (extend) {
@@ -684,10 +684,10 @@ static bool node_mouse_select(bContext *C,
     /* Find the closest visible node. */
     node = node_under_mouse_get(snode, cursor);
     found = (node != nullptr);
-    node_was_selected = node && (node->flag & SELECT);
+    node_was_selected = node && node->is_selected();
 
     if (params.sel_op == SEL_OP_SET) {
-      if ((found && params.select_passthrough) && (node->flag & SELECT)) {
+      if ((found && params.select_passthrough) && node->is_selected()) {
         found = false;
       }
       else if (found || params.deselect_all) {
@@ -706,7 +706,7 @@ static bool node_mouse_select(bContext *C,
           break;
         case SEL_OP_XOR: {
           /* Check active so clicking on an inactive node activates it. */
-          bool is_selected = (node->flag & NODE_SELECT) && (node->flag & NODE_ACTIVE);
+          bool is_selected = node->is_selected() && (node->flag & NODE_ACTIVE);
           bke::node_set_selected(*node, !is_selected);
           break;
         }
@@ -1065,7 +1065,7 @@ static bool do_lasso_select_node(bContext *C, const Span<int2> mcoords, eSelectO
   BLI_lasso_boundbox(&rect, mcoords);
 
   for (bNode *node : node_tree.all_nodes()) {
-    if (select && (node->flag & NODE_SELECT)) {
+    if (select && node->is_selected()) {
       continue;
     }
 
@@ -1164,7 +1164,7 @@ void NODE_OT_select_lasso(wmOperatorType *ot)
 static bool any_node_selected(const bNodeTree &node_tree)
 {
   for (const bNode *node : node_tree.all_nodes()) {
-    if (node->flag & NODE_SELECT) {
+    if (node->is_selected()) {
       return true;
     }
   }
@@ -1199,7 +1199,7 @@ static wmOperatorStatus node_select_all_exec(bContext *C, wmOperator *op)
       break;
     case SEL_INVERT:
       for (bNode *node : node_tree.all_nodes()) {
-        bke::node_set_selected(*node, !(node->flag & SELECT));
+        bke::node_set_selected(*node, !node->is_selected());
       }
       break;
   }

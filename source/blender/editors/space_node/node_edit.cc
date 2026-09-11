@@ -692,12 +692,12 @@ void NODE_OT_resize(wmOperatorType *ot)
 bool node_has_hidden_sockets(bNode *node)
 {
   for (bNodeSocket &sock : node->inputs) {
-    if (sock.flag & SOCK_HIDDEN) {
+    if (sock.is_user_hidden()) {
       return true;
     }
   }
   for (bNodeSocket &sock : node->outputs) {
-    if (sock.flag & SOCK_HIDDEN) {
+    if (sock.is_user_hidden()) {
       return true;
     }
   }
@@ -932,7 +932,7 @@ static void node_duplicate_reparent_recursive(bNodeTree *ntree,
 
   /* Find first selected parent. */
   for (parent = node->parent; parent; parent = parent->parent) {
-    if (parent->flag & SELECT) {
+    if (parent->is_selected()) {
       if (!(parent->flag & NODE_TEST)) {
         node_duplicate_reparent_recursive(ntree, node_map, parent);
       }
@@ -1016,8 +1016,8 @@ static wmOperatorStatus node_duplicate_exec(bContext *C, wmOperator *op)
   for (bNodeLink &link : ntree->links) {
     /* This creates new links between copied nodes. If keep_inputs is set, also copies input links
      * from unselected (when fromnode is null)! */
-    if (link.tonode && (link.tonode->flag & NODE_SELECT) &&
-        (keep_inputs || (link.fromnode && (link.fromnode->flag & NODE_SELECT))))
+    if (link.tonode && link.tonode->is_selected() &&
+        (keep_inputs || (link.fromnode && link.fromnode->is_selected())))
     {
       bNodeLink *newlink = MEM_new<bNodeLink>("bNodeLink");
       newlink->flag = link.flag;
@@ -1028,7 +1028,7 @@ static wmOperatorStatus node_duplicate_exec(bContext *C, wmOperator *op)
         newlink->multi_input_sort_id = link.multi_input_sort_id;
       }
 
-      if (link.fromnode && (link.fromnode->flag & NODE_SELECT)) {
+      if (link.fromnode && link.fromnode->is_selected()) {
         newlink->fromnode = node_map.lookup(link.fromnode);
         newlink->fromsock = socket_map.lookup(link.fromsock);
       }
@@ -1244,7 +1244,7 @@ static void node_flag_toggle_exec(SpaceNode *snode,
   int tot_eq = 0, tot_neq = 0;
 
   for (bNode *node : snode->edittree->all_nodes()) {
-    if (node->flag & SELECT) {
+    if (node->is_selected()) {
 
       if (toggle_flag == NODE_PREVIEW && !node_is_previewable(*snode, *snode->edittree, *node)) {
         continue;
@@ -1264,7 +1264,7 @@ static void node_flag_toggle_exec(SpaceNode *snode,
     }
   }
   for (bNode *node : snode->edittree->all_nodes()) {
-    if (node->flag & SELECT) {
+    if (node->is_selected()) {
 
       if (toggle_flag == NODE_PREVIEW && !node_is_previewable(*snode, *snode->edittree, *node)) {
         continue;
@@ -1589,7 +1589,7 @@ static wmOperatorStatus node_socket_toggle_exec(bContext *C, wmOperator * /*op*/
   /* Toggle for all selected nodes */
   bool hidden = false;
   for (bNode *node : snode->edittree->all_nodes()) {
-    if (node->flag & SELECT) {
+    if (node->is_selected()) {
       if (node_has_hidden_sockets(node)) {
         hidden = true;
         break;
@@ -1598,7 +1598,7 @@ static wmOperatorStatus node_socket_toggle_exec(bContext *C, wmOperator * /*op*/
   }
 
   for (bNode *node : snode->edittree->all_nodes()) {
-    if (node->flag & SELECT) {
+    if (node->is_selected()) {
       node_set_hidden_sockets(node, !hidden);
     }
   }
@@ -1641,7 +1641,7 @@ static wmOperatorStatus node_mute_exec(bContext *C, wmOperator * /*op*/)
   ED_preview_kill_jobs(CTX_wm_manager(C), bmain);
 
   for (bNode *node : snode->edittree->all_nodes()) {
-    if ((node->flag & SELECT) && !node->typeinfo->no_muting) {
+    if (node->is_selected() && !node->typeinfo->no_muting) {
       node->flag ^= NODE_MUTED;
       BKE_ntree_update_tag_node_mute(snode->edittree, node);
     }
@@ -1685,14 +1685,14 @@ static wmOperatorStatus node_delete_exec(bContext *C, wmOperator * /*op*/)
 
   /* Ensure child nodes propagate upwards through nested frames, when their parent is deleted. */
   for (bNode *node : snode->edittree->all_nodes()) {
-    if (node->flag & SELECT) {
+    if (node->is_selected()) {
       /* This node can be skipped, because it will be deleted anyway. */
       continue;
     }
 
     /* Set the parent of the node to the lowest frame that is not going to be deleted. */
     for (bNode *parent = node->parent; parent; parent = parent->parent) {
-      if ((parent->flag & SELECT) == 0) {
+      if (!parent->is_selected()) {
         node->parent = parent;
         break;
       }
@@ -1700,7 +1700,7 @@ static wmOperatorStatus node_delete_exec(bContext *C, wmOperator * /*op*/)
   }
 
   for (bNode &node : snode->edittree->nodes.items_mutable()) {
-    if (node.flag & SELECT) {
+    if (node.is_selected()) {
       bke::node_remove_node(bmain, *snode->edittree, node, true);
     }
   }
@@ -1746,7 +1746,7 @@ static wmOperatorStatus node_delete_reconnect_exec(bContext *C, wmOperator * /*o
   node_select_paired(*snode->edittree);
 
   for (bNode &node : snode->edittree->nodes.items_mutable()) {
-    if (node.flag & SELECT) {
+    if (node.is_selected()) {
       bke::node_internal_relink(*snode->edittree, node);
       bke::node_remove_node(bmain, *snode->edittree, node, true);
 
@@ -1795,7 +1795,7 @@ static wmOperatorStatus node_copy_color_exec(bContext *C, wmOperator * /*op*/)
   }
 
   for (bNode *node : ntree.all_nodes()) {
-    if (node->flag & NODE_SELECT && node != active_node) {
+    if (node->is_selected() && node != active_node) {
       if (active_node->flag & NODE_CUSTOM_COLOR) {
         node->flag |= NODE_CUSTOM_COLOR;
         copy_v3_v3(node->color, active_node->color);

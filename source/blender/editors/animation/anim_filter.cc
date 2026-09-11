@@ -1110,7 +1110,7 @@ static bool skip_fcurve_selected_data(bAnimContext *ac,
       /* Can only add this F-Curve if it is selected. */
       if (node) {
         if (ac->filters.flag & ADS_FILTER_ONLYSEL) {
-          if ((node->flag & NODE_SELECT) == 0) {
+          if (!node->is_selected()) {
             return true;
           }
         }
@@ -2528,7 +2528,7 @@ static size_t animdata_filter_ds_nodetree(bAnimContext *ac,
   for (bNode *node : ntree->all_nodes()) {
     if (node->is_group()) {
       if (node->id) {
-        if ((ac->filters.flag & ADS_FILTER_ONLYSEL) && (node->flag & NODE_SELECT) == 0) {
+        if ((ac->filters.flag & ADS_FILTER_ONLYSEL) && !node->is_selected()) {
           continue;
         }
         /* Recurse into the node group */

@@ -881,6 +881,11 @@ inline bool bNode::is_muted() const
   return this->flag & NODE_MUTED;
 }
 
+inline bool bNode::is_selected() const
+{
+  return this->flag & NODE_SELECT;
+}
+
 inline bool bNode::is_reroute() const
 {
   return this->type_legacy == NODE_REROUTE;

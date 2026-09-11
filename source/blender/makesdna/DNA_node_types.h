@@ -1748,6 +1748,7 @@ struct bNode {
   int index() const;
   StringRefNull label_or_name() const;
   bool is_muted() const;
+  bool is_selected() const;
   bool is_reroute() const;
   bool is_frame() const;
   bool is_group() const;

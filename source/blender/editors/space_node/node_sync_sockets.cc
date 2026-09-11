@@ -55,7 +55,7 @@ static Vector<bNode *> get_nodes_to_sync(bContext &C, PointerRNA *ptr)
       }
     }
     else {
-      if (!(node->flag & NODE_SELECT)) {
+      if (!node->is_selected()) {
         continue;
       }
     }
