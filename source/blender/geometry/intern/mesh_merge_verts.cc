@@ -1309,67 +1309,75 @@ static GroupedSpan<int> merge_groups_create(const Span<int> src_to_target,
 }
 
 /**
- * Build the map from each element of the result to the source elements it's created from, and the
- * map from each source element to its index in the result.
+ * The elements that are kept in the result. In other words, the merge targets and also the "out of
+ * context" elements.
+ */
+static IndexMask merge_survivors(const Span<int> src_to_target, IndexMaskMemory &memory)
+{
+  return IndexMask::from_predicate(
+      src_to_target.index_range(), memory, [&](const int i) { return src_to_target[i] == i; });
+}
+
+/**
+ * Build a map from each element in the result to the source elements it's created from.
  *
  * \param src_to_target: The target element each element merges into.
  * \param kept: The elements that aren't removed entirely (see #merge_groups_create).
- * \param dst_num: The number of elements in the result.
+ * \param survivors: The elements kept in the result (see #merge_survivors).
  * \param do_mix_data: Build maps for mixing attribute values from all of an elements source
  * elements. Otherwise just the value for the target element is used.
  */
-static GroupedSpan<int> merge_customdata_all(const Span<int> src_to_target,
+static GroupedSpan<int> merge_dst_to_src_map(const Span<int> src_to_target,
                                              const IndexMask &kept,
-                                             const int dst_num,
+                                             const IndexMask &survivors,
                                              const bool do_mix_data,
-                                             Vector<int> &r_src_index_offsets,
-                                             Array<int> &r_src_index_data,
-                                             Array<int> &r_src_to_dst)
+                                             Array<int> &r_offsets,
+                                             Array<int> &r_indices)
 {
   PRF_scope(ProfileCategory::Default);
-  r_src_to_dst.reinitialize(src_to_target.size());
-  r_src_index_offsets.reserve(dst_num + 1);
-
-  if (do_mix_data) {
-    Array<int> group_offsets_by_src;
-    merge_groups_create(src_to_target, kept, group_offsets_by_src, r_src_index_data);
-
-    /* The groups are laid out in ascending order of the element they merge into, and elements that
-     * aren't kept have empty groups. So dropping the empty groups compresses the offsets into
-     * exactly the result order, and the group indices are already the result's source indices. */
-    for (const int i : src_to_target.index_range()) {
-      if (src_to_target[i] == i) {
-        r_src_to_dst[i] = r_src_index_offsets.size();
-        r_src_index_offsets.append_unchecked(group_offsets_by_src[i]);
-      }
-    }
-  }
-  else {
-    r_src_index_data.reinitialize(dst_num);
-    for (const int i : src_to_target.index_range()) {
-      if (src_to_target[i] == i) {
-        const int dst_index = r_src_index_offsets.size();
-        r_src_to_dst[i] = dst_index;
-        r_src_index_offsets.append_unchecked(dst_index);
-        r_src_index_data[dst_index] = i;
-      }
-    }
+  if (!do_mix_data) {
+    r_indices.reinitialize(survivors.size());
+    survivors.to_indices(r_indices.as_mutable_span());
+    r_offsets.reinitialize(survivors.size() + 1);
+    array_utils::fill_index_range(r_offsets.as_mutable_span());
+    return {OffsetIndices<int>(r_offsets), r_indices};
   }
 
-  BLI_assert(r_src_index_offsets.size() == dst_num);
-  r_src_index_offsets.append_unchecked(r_src_index_data.size());
+  Array<int> group_offsets_by_src;
+  merge_groups_create(src_to_target, kept, group_offsets_by_src, r_indices);
+
+  /* The groups are laid out in ascending order of the element they merge into, and elements that
+   * aren't kept have empty groups. So dropping the empty groups compresses the offsets into
+   * exactly the result order, and the group indices are already the result's source indices. */
+  r_offsets.reinitialize(survivors.size() + 1);
+  /* #gather_selected_offsets leaves the array untouched when there is nothing to gather. */
+  r_offsets.last() = 0;
+  offset_indices::gather_selected_offsets(
+      OffsetIndices<int>(group_offsets_by_src), survivors, r_offsets);
+  return {OffsetIndices<int>(r_offsets), r_indices};
+}
+
+/**
+ * Build a map from each source element to the element it becomes in the result. Values for
+ * elements removed entirely (collapsed edges) are left uninitialized.
+ */
+static Array<int> merge_src_to_dst_map(const Span<int> src_to_target, const IndexMask &survivors)
+{
+  PRF_scope(ProfileCategory::Default);
+  Array<int> src_to_dst(src_to_target.size());
+  survivors.foreach_index_optimized<int>(
+      [&](const int src, const int dst) { src_to_dst[src] = dst; }, exec_mode::grain_size(4096));
 
   threading::parallel_for(src_to_target.index_range(), 4096, [&](const IndexRange range) {
     for (const int i : range) {
       const int elem_target = src_to_target[i];
       if (elem_target != i) {
         /* Collapsed elements have no target. Any value will do, it's never read. */
-        r_src_to_dst[i] = elem_target >= 0 ? r_src_to_dst[elem_target] : 0;
+        src_to_dst[i] = elem_target >= 0 ? src_to_dst[elem_target] : 0;
       }
     }
   });
-
-  return {OffsetIndices<int>(r_src_index_offsets), r_src_index_data};
+  return src_to_dst;
 }
 
 /** \} */
@@ -1485,65 +1493,73 @@ static Mesh *create_merged_mesh(const Mesh &mesh,
 
   /* Vertices. */
 
-  Array<int> vert_src_to_dst;
-  Vector<int> vert_src_index_offset_data;
-  Array<int> vert_src_index_data;
-  const GroupedSpan<int> dst_to_src_verts = merge_customdata_all(vert_src_to_target,
-                                                                 IndexMask(src_verts_num),
-                                                                 dst_verts_num,
-                                                                 do_mix_data,
-                                                                 vert_src_index_offset_data,
-                                                                 vert_src_index_data,
-                                                                 vert_src_to_dst);
+  IndexMaskMemory mask_memory;
+  const IndexMask vert_survivors = merge_survivors(vert_src_to_target, mask_memory);
+  BLI_assert(vert_survivors.size() == dst_verts_num);
+
+  const Array<int> vert_src_to_dst = merge_src_to_dst_map(vert_src_to_target, vert_survivors);
+
+  Array<int> vert_dst_to_src_offsets;
+  Array<int> vert_dst_to_src_indices;
+  const GroupedSpan<int> vert_dst_to_src = merge_dst_to_src_map(vert_src_to_target,
+                                                                IndexMask(src_verts_num),
+                                                                vert_survivors,
+                                                                do_mix_data,
+                                                                vert_dst_to_src_offsets,
+                                                                vert_dst_to_src_indices);
 
   mix_attributes(src_attributes,
-                 dst_to_src_verts,
+                 vert_dst_to_src,
                  bke::AttrDomain::Point,
                  get_vertex_group_names(mesh),
                  dst_attributes);
-  mix_vertex_groups(mesh, dst_to_src_verts, *result);
+  mix_vertex_groups(mesh, vert_dst_to_src, *result);
   if (CustomData_has_layer(&mesh.vert_data, CD_ORIGINDEX)) {
     const Span src(static_cast<const int *>(CustomData_get_layer(&mesh.vert_data, CD_ORIGINDEX)),
                    mesh.verts_num);
     MutableSpan dst(static_cast<int *>(CustomData_add_layer(
                         &result->vert_data, CD_ORIGINDEX, CD_CONSTRUCT, result->verts_num)),
                     result->verts_num);
-    copy_first_from_src(src, dst_to_src_verts, dst);
+    copy_first_from_src(src, vert_dst_to_src, dst);
   }
+
   /* Edges. */
 
   /* Collapsed edges have no target, so they can't be part of any group. */
-  IndexMaskMemory edge_mask_memory;
   const IndexMask kept_edges = IndexMask::from_predicate(
-      IndexMask(src_edges_num), edge_mask_memory, [&](const int edge) {
+      IndexMask(src_edges_num), mask_memory, [&](const int edge) {
         return weld_mesh.edge_src_to_target[edge] != ELEM_COLLAPSED;
       });
 
-  Array<int> edge_src_to_dst;
-  Vector<int> edge_src_index_offset_data;
-  Array<int> edge_src_index_data;
-  const GroupedSpan<int> dst_to_src_edges = merge_customdata_all(weld_mesh.edge_src_to_target,
-                                                                 kept_edges,
-                                                                 dst_edges_num,
-                                                                 do_mix_data,
-                                                                 edge_src_index_offset_data,
-                                                                 edge_src_index_data,
-                                                                 edge_src_to_dst);
+  const IndexMask edge_survivors = merge_survivors(weld_mesh.edge_src_to_target, mask_memory);
+  BLI_assert(edge_survivors.size() == dst_edges_num);
+
+  const Array<int> edge_src_to_dst = merge_src_to_dst_map(weld_mesh.edge_src_to_target,
+                                                          edge_survivors);
+
+  Array<int> edge_dst_to_src_offsets;
+  Array<int> edge_dst_to_src_indices;
+  const GroupedSpan<int> edge_dst_to_src = merge_dst_to_src_map(weld_mesh.edge_src_to_target,
+                                                                kept_edges,
+                                                                edge_survivors,
+                                                                do_mix_data,
+                                                                edge_dst_to_src_offsets,
+                                                                edge_dst_to_src_indices);
 
   mix_attributes(
-      src_attributes, dst_to_src_edges, bke::AttrDomain::Edge, {".edge_verts"}, dst_attributes);
+      src_attributes, edge_dst_to_src, bke::AttrDomain::Edge, {".edge_verts"}, dst_attributes);
   if (CustomData_has_layer(&mesh.edge_data, CD_ORIGINDEX)) {
     const Span src(static_cast<const int *>(CustomData_get_layer(&mesh.edge_data, CD_ORIGINDEX)),
                    mesh.edges_num);
     MutableSpan dst(static_cast<int *>(CustomData_add_layer(
                         &result->edge_data, CD_ORIGINDEX, CD_CONSTRUCT, result->edges_num)),
                     result->edges_num);
-    copy_first_from_src(src, dst_to_src_edges, dst);
+    copy_first_from_src(src, edge_dst_to_src, dst);
   }
 
   threading::parallel_for(dst_edges.index_range(), 2048, [&](const IndexRange range) {
     for (const int dst_edge_index : range) {
-      const int src_edge_index = dst_to_src_edges[dst_edge_index].first();
+      const int src_edge_index = edge_dst_to_src[dst_edge_index].first();
       const int2 src_edge = src_edges[src_edge_index];
       dst_edges[dst_edge_index] = int2(vert_src_to_dst[src_edge[0]], vert_src_to_dst[src_edge[1]]);
     }
