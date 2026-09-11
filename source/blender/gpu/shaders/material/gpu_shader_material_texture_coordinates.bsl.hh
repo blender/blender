@@ -2,7 +2,9 @@
  *
  * SPDX-License-Identifier: GPL-2.0-or-later */
 
-#include "gpu_shader_material_transform_utils.glsl"
+#pragma once
+
+#include "gpu_shader_material_transform_utils.bsl.hh"
 
 [[node]]
 void node_tex_coord_position(float3 &out_pos)

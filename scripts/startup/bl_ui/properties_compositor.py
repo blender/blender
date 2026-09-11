@@ -9,7 +9,7 @@ from bpy.types import (
 
 
 class SCENE_MT_add_compositor_effect(Menu):
-    bl_label = "Add Effect"
+    bl_label = "Add Scene Effect"
     bl_options = {'SEARCH_ON_KEY_PRESS'}
 
     def draw(self, context):
@@ -28,25 +28,25 @@ class SCENE_MT_add_compositor_effect(Menu):
 
         layout.menu_contents("SCENE_MT_add_compositor_effect_root_catalogs")
         layout.separator()
-        layout.operator("scene.add_compositor_effect", text="Effect", icon='NODE_COMPOSITING')
+        layout.operator("scene.add_compositor_effect", text="Scene Effect", icon='NODE_COMPOSITING')
 
 
 class SCENE_PT_compositor_effects(Panel):
     bl_space_type = 'PROPERTIES'
     bl_region_type = 'WINDOW'
     bl_context = "compositor"
-    bl_label = "Effects"
+    bl_label = "Scene Effects"
     bl_options = {'HIDE_HEADER'}
 
     def draw(self, context):
         layout = self.layout
-        layout.operator("wm.call_menu", text="Add Effect", icon='ADD').name = "SCENE_MT_add_compositor_effect"
+        layout.operator("wm.call_menu", text="Add Scene Effect", icon='ADD').name = "SCENE_MT_add_compositor_effect"
         layout.template_scene_compositor_effects()
 
 
 class SCENE_OT_add_compositor_effect_menu(Operator):
     bl_idname = "scene.add_compositor_effect_menu"
-    bl_label = "Add Scene Compositor Effect Menu"
+    bl_label = "Add Compositor Effect Menu"
 
     @classmethod
     def poll(cls, context):

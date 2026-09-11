@@ -12,6 +12,7 @@
 #include "BKE_context.hh"
 #include "BKE_global.hh"
 #include "BKE_gpencil_legacy.h"
+#include "BKE_library.hh"
 #include "BKE_paint.hh"
 #include "BKE_paint_types.hh"
 
@@ -47,10 +48,13 @@ static bool brush_cursor_poll(bContext *C)
 static bool paintmode_toggle_poll(bContext *C)
 {
   Object *ob = CTX_data_active_object(C);
-  if ((ob) && ob->type == OB_GREASE_PENCIL) {
-    return ob->data != nullptr;
+  if (ob == nullptr || ob->type != OB_GREASE_PENCIL) {
+    return false;
   }
-  return false;
+  if (!ob->data || !ID_IS_EDITABLE(ob->data)) {
+    return false;
+  }
+  return true;
 }
 
 static wmOperatorStatus paintmode_toggle_exec(bContext *C, wmOperator *op)
@@ -144,13 +148,13 @@ static void GREASE_PENCIL_OT_paintmode_toggle(wmOperatorType *ot)
 static bool sculptmode_toggle_poll(bContext *C)
 {
   Object *ob = CTX_data_active_object(C);
-  if (ob == nullptr) {
+  if (ob == nullptr || ob->type != OB_GREASE_PENCIL) {
     return false;
   }
-  if (ob->type == OB_GREASE_PENCIL) {
-    return ob->data != nullptr;
+  if (!ob->data || !ID_IS_EDITABLE(ob->data)) {
+    return false;
   }
-  return false;
+  return true;
 }
 
 static bool sculpt_poll_view3d(bContext *C)
@@ -249,10 +253,13 @@ static bool grease_pencil_poll_weight_cursor(bContext *C)
 static bool weightmode_toggle_poll(bContext *C)
 {
   Object *ob = CTX_data_active_object(C);
-  if ((ob) && ob->type == OB_GREASE_PENCIL) {
-    return ob->data != nullptr;
+  if (ob == nullptr || ob->type != OB_GREASE_PENCIL) {
+    return false;
   }
-  return false;
+  if (!ob->data || !ID_IS_EDITABLE(ob->data)) {
+    return false;
+  }
+  return true;
 }
 
 static wmOperatorStatus weightmode_toggle_exec(bContext *C, wmOperator *op)
@@ -344,10 +351,13 @@ static bool grease_pencil_poll_vertex_cursor(bContext *C)
 static bool vertexmode_toggle_poll(bContext *C)
 {
   Object *ob = CTX_data_active_object(C);
-  if ((ob) && ob->type == OB_GREASE_PENCIL) {
-    return ob->data != nullptr;
+  if (ob == nullptr || ob->type != OB_GREASE_PENCIL) {
+    return false;
   }
-  return false;
+  if (!ob->data || !ID_IS_EDITABLE(ob->data)) {
+    return false;
+  }
+  return true;
 }
 
 static wmOperatorStatus vertexmode_toggle_exec(bContext *C, wmOperator *op)

@@ -574,13 +574,17 @@ def gather_skin(vnode, export_settings):
         return None
 
     # Prevent infinite recursive error. A data can't have an Armature modifier
-    # and be bone parented to a bone of this armature
+    # and be bone parented to a bone of this armature, directly or through an
+    # ancestor. Otherwise the skin's joint becomes an ancestor of this node in
+    # the exported hierarchy, forming a cycle (skin -> joint -> ... -> node).
     # In that case, ignore the armature modifier, keep only the bone parenting
-    if blender_object.parent is not None \
-            and blender_object.parent_type == 'BONE' \
-            and blender_object.parent.name == modifiers["ARMATURE"].object.name:
-
-        return None
+    ancestor = blender_object
+    while ancestor is not None:
+        if ancestor.parent is not None \
+                and ancestor.parent_type == 'BONE' \
+                and ancestor.parent.name == modifiers["ARMATURE"].object.name:
+            return None
+        ancestor = ancestor.parent
 
     # glTF Skins and mesh must be in the same glTF node, which is different from how blender handles armatures
     return gltf2_blender_gather_skins.gather_skin(export_settings['vtree'].nodes[vnode].armature, export_settings)

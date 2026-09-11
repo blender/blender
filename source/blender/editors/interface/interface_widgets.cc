@@ -41,6 +41,7 @@
 #include "UI_view2d.hh"
 
 #include "buttons/interface_label.hh"
+#include "buttons/interface_label_markdown.hh"
 #include "buttons/interface_textbox.hh"
 #include "interface_intern.hh"
 
@@ -3210,6 +3211,9 @@ static void widget_draw_text_icon(const uiFontStyle *fstyle,
   /* Text-box wraps content in lines, skip clipping text.  */
   if (but->type == ButtonType::TextBox) {
   }
+  else if (button_label_is_markdown(but) || button_label_is_multiline(but)) {
+    /* Multi-line and markdown labels manage their own wrapping. */
+  }
   else if (but->text_direction != TextDirection::Default) {
     /* Do not clip vertical text.  */
   }
@@ -3239,6 +3243,9 @@ static void widget_draw_text_icon(const uiFontStyle *fstyle,
   }
   else if (button_label_is_multiline(but)) {
     widget_draw_multiline_text(fstyle, wcol, but, rect);
+  }
+  else if (button_label_is_markdown(but)) {
+    label_markdown_draw(static_cast<const ButtonLabel *>(but), wcol->text, rect);
   }
   else if (but->type == ButtonType::TextBox) {
     widget_draw_textbox(fstyle, wcol, but, rect);

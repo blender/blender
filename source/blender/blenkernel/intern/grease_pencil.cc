@@ -2909,7 +2909,7 @@ static Material *grease_pencil_object_material_ensure_from_brush_pinned(Main *bm
 {
   Material *ma = (brush->gpencil_settings) ? brush->gpencil_settings->material : nullptr;
 
-  if (ma) {
+  if (ma && BKE_object_material_index_get(ob, ma) < 0) {
     /* Ensure we assign a local datablock if this is an editable asset. */
     ma = reinterpret_cast<Material *>(bke::asset_edit_id_ensure_local(*bmain, ma->id));
   }

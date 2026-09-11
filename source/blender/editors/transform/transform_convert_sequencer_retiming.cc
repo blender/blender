@@ -117,6 +117,9 @@ static void create_trans_seq_clamp_data(TransInfo *t,
   /* Prevent snaps and change in `values` past `offset_clamp` for all transformed retiming keys. */
   BLI_rcti_init(&ts->offset_clamp, INT_MIN, INT_MAX, 0, 0);
 
+  /* Disable axis constraints, retiming keys can only be moved horizontally. */
+  t->flag |= T_NO_CONSTRAINT;
+
   for (auto item : selection.items()) {
     SeqRetimingKey *key = item.key;
 

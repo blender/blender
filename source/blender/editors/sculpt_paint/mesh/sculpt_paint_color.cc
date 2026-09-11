@@ -441,7 +441,8 @@ static void do_paint_brush_task(const Depsgraph &depsgraph,
 
   const Span<float4> orig_colors = orig_color_data_get_mesh(object, node);
 
-  MutableSpan<float4> color_buffer = gather_data_mesh(mix_colors.as_span(), verts, tls.mix_colors);
+  Array<float4, bke::pbvh::MESH_LEAF_LIMIT> color_buffer(verts.size());
+  gather_data_mesh(mix_colors.as_span(), verts, color_buffer.as_mutable_span());
 
   if (brush.flag & BRUSH_USE_GRADIENT) {
     switch (brush.gradient_stroke_mode) {

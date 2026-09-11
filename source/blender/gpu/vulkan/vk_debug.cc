@@ -258,10 +258,12 @@ messenger_callback(VkDebugUtilsMessageSeverityFlagBitsEXT message_severity,
 
 void VKDebuggingTools::init_messenger(VkInstance vk_instance)
 {
+  if (!(G.debug & G_DEBUG_GPU)) {
+    return;
+  }
   if (vk_debug_utils_messenger != VK_NULL_HANDLE) {
     return;
   }
-
   if (!volk::vkCreateDebugUtilsMessengerEXT) {
     return;
   }

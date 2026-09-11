@@ -25,6 +25,8 @@ bool use_optix_denoiser(Device *denoiser_device, const DenoiseParams &params);
 
 bool use_gpu_oidn_denoiser(Device *denoiser_device, const DenoiseParams &params);
 
+bool use_dlss_denoiser(Device *denoiser_device, const DenoiseParams &params);
+
 DenoiseParams get_effective_denoise_params(Device *denoiser_device,
                                            Device *cpu_fallback_device,
                                            const DenoiseParams &params,
@@ -57,6 +59,8 @@ class Denoiser {
 
   void set_params(const DenoiseParams &params);
   const DenoiseParams &get_params() const;
+
+  static bool is_device_supported(DenoiserType type, const DeviceInfo &denoise_device_info);
 
   /* Recommended type for viewport denoising. */
   static DenoiserType automatic_viewport_denoiser_type(const DeviceInfo &denoise_device_info);

@@ -7,7 +7,7 @@ bl_info = {
     # This is now displayed as the maintainer, so show the foundation.
     # "author": "Julien Duroure, Scurest, Norbert Nopper, Urs Hanselmann, Moritz Becher, Benjamin Schmithüsen, Jim Eckerlein", # Original Authors
     'author': "Blender Foundation, Khronos Group",
-    "version": (5, 3, 24),
+    "version": (5, 3, 32),
     'blender': (5, 3, 0),
     'location': 'File > Import-Export',
     'description': 'Import-Export as glTF 2.0',
@@ -1915,7 +1915,7 @@ class ImportGLTF2(Operator, ConvertGLTF2_Base, ImportHelper):
     """Load a glTF 2.0 file"""
     bl_idname = 'import_scene.gltf'
     bl_label = 'Import glTF 2.0'
-    bl_options = {'REGISTER', 'UNDO'}
+    bl_options = {'REGISTER', 'UNDO', 'PRESET'}
 
     filter_glob: StringProperty(default="*.glb;*.gltf", options={'HIDDEN'})
 

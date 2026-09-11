@@ -1911,6 +1911,7 @@ bool supports_scene_size(const PaintMode paint_mode, const Brush &brush)
       return true;
     case PaintMode::Vertex:
     case PaintMode::Weight:
+      return false;
     case PaintMode::Texture3D:
       if (!USER_EXPERIMENTAL_TEST(&U, use_3d_texture_paint)) {
         return false;

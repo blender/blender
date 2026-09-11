@@ -250,6 +250,15 @@ add_blender_test(
   --python ${CMAKE_CURRENT_LIST_DIR}/bl_disk_file_hash_service_test.py
 )
 
+# Blender is launched by the script so each test controls the command-line arguments & preferences
+# `add_blender_test` hard-codes these arguments which isn't compatible with the tests,
+# see `TEST_BLENDER_EXE_PARAMS`.
+add_python_test(
+  script_blend_autoexec_cli
+  ${CMAKE_CURRENT_LIST_DIR}/bl_blend_autoexec_cli.py
+  --blender "${TEST_BLENDER_EXE}"
+)
+
 # test running operators doesn't segfault under various conditions
 if(WITH_TESTS_EXPERIMENTAL)
   add_blender_test(
@@ -1837,6 +1846,13 @@ if(WITH_UI_TESTS)
     test_tool_activation.node_editor
     test_tool_activation.sequencer
     test_preferences_draw_all.test_preferences_draw_all
+    test_blend_autoexec.pref_enabled_drop_blend_file_untrusted
+    test_blend_autoexec.pref_enabled_drop_blend_file_trusted
+    test_blend_autoexec.pref_enabled_open_file_selector_trusted
+    test_blend_autoexec.pref_enabled_open_file_selector_untrusted
+    test_blend_autoexec.pref_disabled_open_file_selector
+    test_blend_autoexec.pref_disabled_drop_blend_file
+    test_blend_autoexec.pref_disabled_drop_blend_file_trusted_source
   )
   foreach(ui_test ${_ui_tests})
     add_blender_test_ui(
@@ -1848,6 +1864,15 @@ if(WITH_UI_TESTS)
     )
   endforeach()
   unset(_ui_tests)
+
+  # test_open_editor_types opens many areas, each needing its own GLContext.
+  # The number of available context is limit by driver and not queryable.
+  if(WITH_OPENGL_BACKEND)
+    set_tests_properties(
+      ui_opengl_test_editor_types.test_open_editor_types
+      PROPERTIES DISABLED TRUE
+    )
+  endif()
 endif()
 
 

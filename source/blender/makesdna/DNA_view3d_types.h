@@ -97,6 +97,11 @@ enum eRegionView3D_Flag : short {
    */
   RV3D_ZOFFSET_DISABLED = 1 << 6,
   RV3D_WAS_CAMOB = 1 << 7,
+  /**
+   * Flip the view horizontally (along the local X axis).
+   * Only applies when in a camera view.
+   */
+  RV3D_FLIP_X = 1 << 8,
 };
 ENUM_OPERATORS(eRegionView3D_Flag)
 

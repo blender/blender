@@ -193,6 +193,7 @@ static wmOperatorStatus view3d_center_camera_exec(bContext *C, wmOperator * /*op
 
   rv3d->camdx = rv3d->camdy = 0.0f;
   rv3d->camroll = 0.0f;
+  rv3d->rflag &= ~RV3D_FLIP_X;
 
   const rctf viewborder = BKE_camera_view_border(
       scene, depsgraph, v3d, rv3d, region->winx, region->winy, true, true, false);
@@ -295,6 +296,13 @@ static wmOperatorStatus render_border_exec(bContext *C, wmOperator *op)
   border.ymin = float(rect.ymin);
   border.xmax = float(rect.xmax);
   border.ymax = float(rect.ymax);
+
+  /* Apply flip. */
+  if (rv3d->persp == RV3D_CAMOB && (rv3d->rflag & RV3D_FLIP_X) != 0) {
+    std::swap(border.xmin, border.xmax);
+    border.xmin = region->winx - border.xmin;
+    border.xmax = region->winx - border.xmax;
+  }
 
   /* Remove the roll to put the border in view border space, expanding to fully cover the box. */
   if (rv3d->persp == RV3D_CAMOB && rv3d->camroll != 0.0f) {
@@ -551,6 +559,66 @@ void VIEW3D_OT_view_roll_set(wmOperatorType *ot)
 
   /* properties */
   ot->prop = RNA_def_float(ot->srna, "angle", 0, -FLT_MAX, FLT_MAX, "Roll", "", -FLT_MAX, FLT_MAX);
+  RNA_def_property_flag(ot->prop, PROP_SKIP_SAVE);
+}
+
+/** \} */
+
+/* -------------------------------------------------------------------- */
+/** \name Flip View Operator
+ *
+ * Flips the view either horizontally or vertically.
+ * \{ */
+
+enum class FlipDirection : int8_t {
+  Horizontal = 0,
+  Vertical = 1,
+};
+
+static const EnumPropertyItem prop_flip_directions[] = {
+    {int(FlipDirection::Horizontal), "HORIZONTAL", 0, "Horizontal", ""},
+    {int(FlipDirection::Vertical), "VERTICAL", 0, "Vertical", ""},
+    {0, nullptr, 0, nullptr, nullptr},
+};
+
+static wmOperatorStatus view3d_flip_view_exec(bContext *C, wmOperator *op)
+{
+  View3D *v3d;
+  ARegion *region;
+
+  const FlipDirection direction = FlipDirection(RNA_enum_get(op->ptr, "direction"));
+
+  ED_view3d_context_user_region(C, &v3d, &region);
+  ED_view3d_smooth_view_force_finish(C, v3d, region);
+
+  RegionView3D *rv3d = static_cast<RegionView3D *>(region->regiondata);
+
+  rv3d->rflag ^= RV3D_FLIP_X;
+
+  if (direction == FlipDirection::Vertical) {
+    rv3d->camroll = angle_wrap_rad(rv3d->camroll + M_PI);
+  }
+
+  ED_region_tag_redraw(region);
+
+  return OPERATOR_FINISHED;
+}
+
+void VIEW3D_OT_view_flip(wmOperatorType *ot)
+{
+  ot->name = "Flip View";
+  ot->description = "Flip the camera view along the given direction";
+  ot->idname = "VIEW3D_OT_view_flip";
+
+  ot->exec = view3d_flip_view_exec;
+  ot->poll = view3d_camera_user_poll;
+
+  ot->prop = RNA_def_enum(ot->srna,
+                          "direction",
+                          prop_flip_directions,
+                          int(FlipDirection::Horizontal),
+                          "Flip Direction",
+                          "");
   RNA_def_property_flag(ot->prop, PROP_SKIP_SAVE);
 }
 

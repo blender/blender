@@ -30,9 +30,7 @@ class Origins : Overlay {
 
   void begin_sync(Resources & /*res*/, const State &state) final
   {
-    const bool is_paint_mode = (state.object_mode &
-                                (OB_MODE_ALL_PAINT | OB_MODE_ALL_PAINT_GPENCIL |
-                                 OB_MODE_SCULPT_CURVES)) != 0;
+    const bool is_paint_mode = (state.object_mode & (OB_MODE_ALL_PAINT)) != 0;
     enabled_ = state.is_space_v3d() && !is_paint_mode && state.show_object_origins();
     point_buf_.clear();
   }

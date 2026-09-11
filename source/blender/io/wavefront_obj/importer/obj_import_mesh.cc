@@ -11,6 +11,7 @@
 #include "DNA_customdata_types.h"
 #include "DNA_material_types.h"
 #include "DNA_meshdata_types.h"
+#include "DNA_object_types.h"
 
 #include "BKE_attribute.h"
 #include "BKE_attribute.hh"
@@ -20,8 +21,8 @@
 #include "BKE_mesh.hh"
 #include "BKE_node_tree_update.hh"
 #include "BKE_object.hh"
-#include "BKE_object_deform.h"
 
+#include "BLI_listbase.hh"
 #include "BLI_math_vector_c.hh"
 #include "BLI_set.hh"
 
@@ -70,6 +71,7 @@ Mesh *MeshFromGeometry::create_mesh(const OBJImportParams &import_params)
   this->create_uv_verts(mesh);
   this->create_normals(mesh);
   this->create_colors(mesh);
+  this->create_vertex_groups(mesh);
 
   if (import_params.validate_meshes || mesh_geometry_.has_invalid_faces_) {
     bool verbose_validate = false;
@@ -113,9 +115,6 @@ Object *MeshFromGeometry::create_mesh_object(
   BKE_mesh_nomain_to_mesh(mesh, id_cast<Mesh *>(obj->data), obj);
 
   transform_object(obj, import_params);
-
-  /* NOTE: vertex groups have to be created after final mesh is assigned to the object. */
-  this->create_vertex_groups(obj);
 
   return obj;
 }
@@ -296,14 +295,15 @@ void MeshFromGeometry::create_faces(Mesh *mesh, bool use_vertex_groups)
   sharp_faces.finish();
 }
 
-void MeshFromGeometry::create_vertex_groups(Object *obj)
+void MeshFromGeometry::create_vertex_groups(Mesh *mesh)
 {
-  Mesh *mesh = id_cast<Mesh *>(obj->data);
   if (mesh->deform_verts().is_empty()) {
     return;
   }
   for (const std::string &name : mesh_geometry_.group_order_) {
-    BKE_object_defgroup_add_name(obj, name.data());
+    bDeformGroup *defgroup = MEM_new<bDeformGroup>(__func__);
+    StringRef(name).copy_utf8_truncated(defgroup->name);
+    BLI_addtail(&mesh->vertex_group_names, defgroup);
   }
 }
 

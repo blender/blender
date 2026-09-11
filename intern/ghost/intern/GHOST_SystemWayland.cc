@@ -10044,7 +10044,7 @@ GHOST_IContext *GHOST_SystemWayland::createOffscreenContext(GHOST_GPUSettings gp
                                                    display_->wl.display,
                                                    nullptr,
                                                    1,
-                                                   2,
+                                                   1,
                                                    gpu_settings.preferred_device);
 
       if (context->initializeDrawingContext()) {

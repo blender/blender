@@ -1998,7 +1998,6 @@ endif()
 # -----------------------------------------------------------------------------
 # Setup link libraries
 
-add_dependencies(blender ${MAKESDNA_DEPENDENCY})
 target_link_libraries(blender PRIVATE ${LIB})
 unset(LIB)
 

@@ -1029,7 +1029,7 @@ bool Instance::object_is_selected(const ObjectRef &ob_ref)
 bool Instance::object_is_paint_mode(const Object *object)
 {
   return (object == state.object_active) &&
-         (state.object_mode & (OB_MODE_ALL_PAINT | OB_MODE_ALL_PAINT_GPENCIL));
+         (state.object_mode & (OB_MODE_ALL_PAINT_MESH | OB_MODE_ALL_PAINT_GPENCIL));
 }
 
 bool Instance::object_is_sculpt_mode(const ObjectRef &ob_ref)

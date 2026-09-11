@@ -82,7 +82,12 @@ def gather_image(
 
 
 def __gather_original_uri(original_uri, library, export_settings):
-    path_to_image = bpy.path.abspath(original_uri, library=library)
+    # Issue #2492: bpy.path.abspath() can return an absolute path that still
+    # contains relative segments (e.g. '..' through a non-existent directory),
+    # which makes the os.path.exists() check below fail and silently drops the
+    # texture from the export. normpath() collapses those segments without
+    # resolving symlinks, keeping the relpath() against gltf_filedirectory stable.
+    path_to_image = os.path.normpath(bpy.path.abspath(original_uri, library=library))
 
     if not os.path.exists(path_to_image):
         return None
@@ -195,6 +200,11 @@ def __gather_name(export_image, use_tile, export_settings):
         names = []
         for img in imgs:
             name, extension = os.path.splitext(img.name)
+            # img.name is a datablock name, not a filename, so only strip a
+            # genuine image extension. Otherwise names like "Image.001" lose
+            # their suffix and collide with "Image" (#2691).
+            if extension.lower() not in ['.png', '.jpg', '.jpeg', '.webp']:
+                name = img.name
             names.append(name)
         name = '-'.join(names)
         return name or 'Image'

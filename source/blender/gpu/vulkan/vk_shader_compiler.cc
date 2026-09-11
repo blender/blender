@@ -59,7 +59,15 @@ static std::optional<std::string> cache_dir_get()
 struct SPIRVSidecar {
   /** Size of the SPIRV binary. */
   uint64_t spirv_size;
+  /** SPIR-V version. */
+  uint32_t spirv_version;
 };
+
+static uint32_t spirv_target_version_get()
+{
+  const VKDevice &device = VKBackend::get().device;
+  return device.extensions_get().spirv_1_4 ? shaderc_spirv_version_1_4 : shaderc_spirv_version_1_3;
+}
 
 static bool read_spirv_from_disk(VKShaderModule &shader_module, StringRef hash_extra)
 {
@@ -91,6 +99,16 @@ static bool read_spirv_from_disk(VKShaderModule &shader_module, StringRef hash_e
   }
   sidecar_file.seekg(0, std::ios::beg);
   sidecar_file.read(reinterpret_cast<char *>(&sidecar), sizeof(sidecar));
+
+  if (sidecar.spirv_version != spirv_target_version_get()) {
+    CLOG_TRACE(
+        &LOG,
+        "Recompiling SPIR-V cache entry for %s. Cached SPIR-V version %08x, but %08x requested.",
+        spirv_path.c_str(),
+        sidecar.spirv_version,
+        spirv_target_version_get());
+    return false;
+  }
 
   /* Read spirv binary. */
   fstream spirv_file(spirv_path, std::ios::binary | std::ios::in | std::ios::ate);
@@ -126,7 +144,9 @@ static void write_spirv_to_disk(VKShaderModule &shader_module)
   spirv_file.write(reinterpret_cast<const char *>(shader_module.spirv_binary.data()), size);
 
   /* Write the sidecar */
-  SPIRVSidecar sidecar = {size};
+  SPIRVSidecar sidecar;
+  sidecar.spirv_size = size;
+  sidecar.spirv_version = spirv_target_version_get();
   std::string sidecar_path = (*cache_dir_get()) + SEP_STR + shader_module.sources_hash +
                              ".sidecar.bin";
   fstream sidecar_file(sidecar_path, std::ios::binary | std::ios::out);
@@ -339,7 +359,13 @@ static bool compile_ex(shaderc::Compiler &compiler,
 
   shaderc::CompileOptions options;
   bool do_optimize = true;
-  options.SetTargetEnvironment(shaderc_target_env_vulkan, shaderc_env_version_vulkan_1_2);
+  if (VKBackend::get().device.extensions_get().spirv_1_4) {
+    options.SetTargetEnvironment(shaderc_target_env_vulkan, shaderc_env_version_vulkan_1_2);
+    options.SetTargetSpirv(shaderc_spirv_version_1_4);
+  }
+  else {
+    options.SetTargetEnvironment(shaderc_target_env_vulkan, shaderc_env_version_vulkan_1_1);
+  }
   if (G.debug & G_DEBUG_GPU_RENDERDOC) {
     do_optimize = false;
   }
