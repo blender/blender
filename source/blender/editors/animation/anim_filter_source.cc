@@ -83,9 +83,6 @@ static void channels_for_channelbag(const PointerRNA &channelbag_ptr,
     FCurve *fcu = channelbag.fcurve(fcurve_index);
 
     if (fcu->grp) {
-      std::cout << "\033[95m" << __func__ << "\033[0m: creating pointer for FCurve group "
-                << fcu->grp->name << "\n";
-      std::cout.flush();
       PointerRNA group_pointer = RNA_pointer_create_with_parent(
           channelbag_ptr, RNA_ActionGroup, fcu->grp);
       rna_path_items.append(rna_path::Member{UString("groups")});
@@ -129,9 +126,6 @@ static void channels_for_channelbag(const PointerRNA &channelbag_ptr,
                  fcu->rna_path_parsed().slice(0, 3)});
     }
     if (!skip_fcurve) {
-      std::cout << "\033[95m" << __func__ << "\033[0m: creating pointer for FCurve "
-                << fcu->rna_path() << "[" << fcu->array_index << "]" << "\n";
-      std::cout.flush();
       PointerRNA fcurve_ptr = RNA_pointer_create_with_parent(channelbag_ptr, RNA_FCurve, fcu);
       FCurveChannel *channel = arena.allocate_data_channel<FCurveChannel>(
           fcurve_ptr, ParsedRNAPathRef(rna_path_items));
