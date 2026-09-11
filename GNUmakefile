@@ -196,7 +196,7 @@ BLENDER_DIR:=$(shell pwd -P)
 BUILD_TYPE:=Release
 BLENDER_IS_PYTHON_MODULE:=
 
-CMAKE_CONFIG_ARGS_OVERRIDES:=
+CMAKE_CONFIG_ENV:=
 
 # Android cross-compilation.
 ifneq "$(findstring android, $(MAKECMDGOALS))" ""
@@ -206,9 +206,8 @@ ifneq "$(findstring android, $(MAKECMDGOALS))" ""
 
 	# The pre-defined CMake config/cache files loaded by this Makefile are loaded *before* the Android toolchain file,
 	# which is only loaded on the first project() call. As such, these files cannot use the `ANDROID` variable.
-	# Provide an alternative `TARGET_ANDROID` variable for these config targets to use.
-	CMAKE_CONFIG_ARGS_OVERRIDES:=$(CMAKE_CONFIG_ARGS_OVERRIDES) \
-								 -DTARGET_ANDROID=ON
+	# Provide an alternative environment variable for configuration scripts to use.
+	CMAKE_CONFIG_ENV:=BLENDER_TARGET_ANDROID=ON
 
 	# Use our own Android CMake toolchain file wrapper.
 	ANDROID_TOOLCHAIN_FILE:=$(BLENDER_DIR)/build_files/cmake/platform/platform_android_toolchain.cmake
@@ -359,12 +358,6 @@ ifneq "$(filter ccache, $(MAKECMDGOALS))" ""
 	CMAKE_CONFIG_ARGS:=-DWITH_COMPILER_CCACHE=YES $(CMAKE_CONFIG_ARGS)
 endif
 
-# Apply CMake config overrides that targets may have set.
-# These arguments are prepended to the computed CONFIG_ARGS, and can thus set variables
-# used by the initial config cache files targets above. (CMake -D/-C arguments order matters).
-CMAKE_CONFIG_ARGS:=$(CMAKE_CONFIG_ARGS_OVERRIDES) $(CMAKE_CONFIG_ARGS)
-
-
 # -----------------------------------------------------------------------------
 # Build tool
 #
@@ -425,7 +418,8 @@ endif
 # Macro for configuring cmake
 #
 
-CMAKE_CONFIG = cmake $(CMAKE_CONFIG_ARGS) \
+CMAKE_COMMAND = $(CMAKE_CONFIG_ENV) cmake
+CMAKE_CONFIG = $(CMAKE_COMMAND) $(CMAKE_CONFIG_ARGS) \
 					 $(CMAKE_CROSSCOMPILE_CONFIG_ARGS) \
                      -S"$(BLENDER_DIR)" \
                      -B"$(BUILD_DIR)" \
@@ -438,10 +432,11 @@ CMAKE_CONFIG = cmake $(CMAKE_CONFIG_ARGS) \
 
 # X11 specific.
 ifdef DISPLAY
-	CMAKE_CONFIG_TOOL = cmake-gui
+	CMAKE_CONFIG_TOOL_NAME = cmake-gui
 else
-	CMAKE_CONFIG_TOOL = ccmake
+	CMAKE_CONFIG_TOOL_NAME = ccmake
 endif
+CMAKE_CONFIG_TOOL = $(CMAKE_CONFIG_ENV) $(CMAKE_CONFIG_TOOL_NAME)
 
 
 # -----------------------------------------------------------------------------
@@ -504,7 +499,7 @@ deps: .FORCE
 	@echo
 	@echo Configuring dependencies in \"$(DEPS_BUILD_DIR)\", install to \"$(DEPS_INSTALL_DIR)\"
 
-	@cmake $(CMAKE_DEPS_CROSSCOMPILE_CONFIG_ARGS) \
+	@$(CMAKE_COMMAND) $(CMAKE_DEPS_CROSSCOMPILE_CONFIG_ARGS) \
 	       -S"$(DEPS_SOURCE_DIR)" \
 	       -B"$(DEPS_BUILD_DIR)" \
 	       -DHARVEST_TARGET=$(DEPS_INSTALL_DIR)
@@ -569,7 +564,7 @@ project_qtcreator: .FORCE
 	$(PYTHON) tools/utils_ide/cmake_qtcreator_project.py --build-dir "$(BUILD_DIR)"
 
 project_eclipse: .FORCE
-	cmake -G"Eclipse CDT4 - Unix Makefiles" -S"$(BLENDER_DIR)" -B"$(BUILD_DIR)"
+	$(CMAKE_COMMAND) -G"Eclipse CDT4 - Unix Makefiles" -S"$(BLENDER_DIR)" -B"$(BUILD_DIR)"
 
 
 # -----------------------------------------------------------------------------
@@ -682,7 +677,7 @@ source_archive: .FORCE
 	@$(PYTHON) ./build_files/utils/make_source_archive.py
 
 source_archive_complete: .FORCE
-	@cmake \
+	@$(CMAKE_COMMAND) \
 	    -S "$(BLENDER_DIR)/build_files/build_environment" -B"$(BUILD_DIR)/source_archive" \
 	    -DCMAKE_BUILD_TYPE_INIT:STRING=$(BUILD_TYPE) -DPACKAGE_USE_UPSTREAM_SOURCES=OFF -DPACKAGE_DOWNLOAD_ONLY=ON
 # This assumes the CMake build_environment `PACKAGE_DIR` variable wasn't modified:
