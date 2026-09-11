@@ -1846,6 +1846,13 @@ if(WITH_UI_TESTS)
     test_tool_activation.node_editor
     test_tool_activation.sequencer
     test_preferences_draw_all.test_preferences_draw_all
+    test_blend_autoexec.pref_enabled_drop_blend_file_untrusted
+    test_blend_autoexec.pref_enabled_drop_blend_file_trusted
+    test_blend_autoexec.pref_enabled_open_file_selector_trusted
+    test_blend_autoexec.pref_enabled_open_file_selector_untrusted
+    test_blend_autoexec.pref_disabled_open_file_selector
+    test_blend_autoexec.pref_disabled_drop_blend_file
+    test_blend_autoexec.pref_disabled_drop_blend_file_trusted_source
   )
   foreach(ui_test ${_ui_tests})
     add_blender_test_ui(
