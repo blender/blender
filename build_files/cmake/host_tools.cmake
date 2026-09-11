@@ -82,11 +82,15 @@ if(CMAKE_CROSSCOMPILING)
   set(SHADER_TOOL_EXECUTABLE  ${HOST_TOOLS_BIN_DIR}/shader_tool)
   set(MSGFMT_EXECUTABLE       ${HOST_TOOLS_BIN_DIR}/msgfmt)
 
-  set(MAKESDNA_DEPENDENCY     host_tools)
-  set(MAKESRNA_DEPENDENCY     host_tools)
-  set(DATATOC_DEPENDENCY      host_tools)
-  set(SHADER_TOOL_DEPENDENCY  host_tools)
-  set(MSGFMT_DEPENDENCY       host_tools)
+  # For code generation tools, depend on both:
+  #   - `host_tools`, which provides *ordering* only, ensuring host tools are rebuilt before custom command tool generation targets.
+  #   - The actual tool executable, ensuring the tool is re-executed (and re-generates its files) if it was rebuilt.
+  # Only depending on `host_tools` ensure tools are rebuilt first but doesn't cause them to be re-executed on changes.
+  set(MAKESDNA_DEPENDENCY     host_tools ${MAKESDNA_EXECUTABLE})
+  set(MAKESRNA_DEPENDENCY     host_tools ${MAKESRNA_EXECUTABLE})
+  set(DATATOC_DEPENDENCY      host_tools ${DATATOC_EXECUTABLE})
+  set(SHADER_TOOL_DEPENDENCY  host_tools ${SHADER_TOOL_EXECUTABLE})
+  set(MSGFMT_DEPENDENCY       host_tools ${MSGFMT_EXECUTABLE})
 else()
   set(MAKESDNA_EXECUTABLE     "$<TARGET_FILE:makesdna>")
   set(MAKESRNA_EXECUTABLE     "$<TARGET_FILE:makesrna>")
