@@ -409,7 +409,7 @@ void SummaryChannel::gather_channeldata()
 
       has_data = true;
       const KeyPoint &child_keypoint = child_keypoints[keypoint_index];
-      const int frame_before_merge = next_keypoint.frame;
+      const float frame_before_merge = next_keypoint.frame;
       next_keypoint.merge(child_keypoint);
       if (child_keypoint.frame > next_keypoint.frame) {
         continue;
