@@ -88,11 +88,6 @@ struct WeldFace {
 };
 
 struct WeldMesh {
-  /* These vectors indicate the index of elements that will participate in the creation of groups.
-   * These groups are used in customdata interpolation (`do_mix_data`). */
-  Vector<int> double_verts;
-  Vector<int> double_edges;
-
   /* Group of edges to be merged. */
   Array<int> edge_src_to_target;
   Span<int> vert_src_to_target;
@@ -305,31 +300,22 @@ static void weld_assert_face_no_vert_repetition(const WeldFace *weld_face,
  * \{ */
 
 /**
- * Build the context weld vertices.
+ * Callers mark merge targets only implicitly: a target's own value stays #OUT_OF_CONTEXT, and the
+ * only sign that it's a target is that another vertex points to it, making it indistinguishable
+ * from a vertex that isn't part of the merge at all.
  *
- * \return array with the context weld vertices.
+ * Store each target's own index in its slot instead, so the two cases can be told apart with a
+ * single lookup. Afterwards #OUT_OF_CONTEXT means "not part of the merge" and nothing else.
  */
-static Vector<int> weld_verts_build(MutableSpan<int> vert_src_to_target,
-                                    const int removed_verts_num)
+static void mark_merge_targets(MutableSpan<int> vert_src_to_target)
 {
-  Vector<int> weld_verts;
-  weld_verts.reserve(std::min<int>(2 * removed_verts_num, vert_src_to_target.size()));
-
   for (const int i : vert_src_to_target.index_range()) {
-    if (vert_src_to_target[i] != OUT_OF_CONTEXT) {
-      const int vert_target = vert_src_to_target[i];
-      weld_verts.append(i);
-
-      if (vert_src_to_target[vert_target] != vert_target) {
-        /* The target vertex is also part of the context and needs to be referenced.
-         * #vert_src_to_target could already indicate this from the beginning, but for better
-         * compatibility, it is done here as well. */
-        vert_src_to_target[vert_target] = vert_target;
-        weld_verts.append(vert_target);
-      }
+    const int vert_target = vert_src_to_target[i];
+    /* Some callers already build the map this way, so skip targets that are already marked. */
+    if (vert_target != OUT_OF_CONTEXT && vert_src_to_target[vert_target] != vert_target) {
+      vert_src_to_target[vert_target] = vert_target;
     }
   }
-  return weld_verts;
 }
 
 /** \} */
@@ -1259,7 +1245,6 @@ static void weld_face_find_doubles(const Span<int> corner_verts,
 static void weld_mesh_context_create(const Mesh &mesh,
                                      MutableSpan<int> vert_src_to_target,
                                      const int removed_verts_num,
-                                     const bool get_doubles,
                                      WeldMesh *r_weld_mesh)
 {
   PRF_scope(ProfileCategory::Default);
@@ -1268,7 +1253,7 @@ static void weld_mesh_context_create(const Mesh &mesh,
   const Span<int> corner_verts = mesh.corner_verts();
   const Span<int> corner_edges = mesh.corner_edges();
 
-  Vector<int> weld_verts = weld_verts_build(vert_src_to_target, removed_verts_num);
+  mark_merge_targets(vert_src_to_target);
   r_weld_mesh->removed_verts_num = removed_verts_num;
 
   r_weld_mesh->edge_src_to_target.reinitialize(edges.size());
@@ -1299,16 +1284,6 @@ static void weld_mesh_context_create(const Mesh &mesh,
                                                  r_weld_mesh);
 
   weld_face_find_doubles(corner_verts, corner_edges, edges.size(), r_weld_mesh);
-
-  if (get_doubles) {
-    r_weld_mesh->double_verts = std::move(weld_verts);
-    r_weld_mesh->double_edges.reserve(weld_edges.size());
-    for (WeldEdge &weld_edge : weld_edges) {
-      if (r_weld_mesh->edge_src_to_target[weld_edge.edge_src] >= 0) {
-        r_weld_mesh->double_edges.append(weld_edge.edge_src);
-      }
-    }
-  }
 }
 
 /** \} */
@@ -1324,26 +1299,21 @@ static void weld_mesh_context_create(const Mesh &mesh,
  *
  * \param src_to_target: Map that defines the source and target elements. The source elements will
  * be merged into the target. Each target corresponds to a group.
- * \param double_elems: Source and target elements in `src_to_target`. For quick access.
  *
- * \return r_groups_map: Map that points out the group of elements that an element belongs to.
+ * \return r_groups_offsets: Array that indicates where each element group starts in the buffer.
  * \return r_groups_buffer: Buffer containing the indices of all elements that merge.
- * \return r_groups_offs: Array that indicates where each element group starts in the buffer.
  */
 static void merge_groups_create(Span<int> src_to_target,
-                                Span<int> double_elems,
                                 MutableSpan<int> r_groups_offsets,
                                 Array<int> &r_groups_buffer)
 {
   BLI_assert(r_groups_offsets.size() == src_to_target.size() + 1);
   r_groups_offsets.fill(0);
 
-  /* TODO: Check using #array_utils::count_indices instead. At the moment it cannot be used
-   * because `src_to_target` has negative values and `double_elems` (which indicates only the
-   * indexes to be read) is not used. */
-  for (const int elem_src : double_elems) {
-    const int elem_target = src_to_target[elem_src];
-    r_groups_offsets[elem_target]++;
+  for (const int elem_target : src_to_target) {
+    if (elem_target >= 0) {
+      r_groups_offsets[elem_target]++;
+    }
   }
 
   int offset = 0;
@@ -1354,13 +1324,14 @@ static void merge_groups_create(Span<int> src_to_target,
   r_groups_offsets.last() = offset;
 
   r_groups_buffer.reinitialize(offset);
-  BLI_assert(r_groups_buffer.size() == double_elems.size());
 
-  /* Use a reverse for loop to ensure that indices are assigned in ascending order. */
-  for (int i = double_elems.size(); i--;) {
-    const int elem_src = double_elems[i];
+  /* Use a reverse for loop to ensure that indices are assigned in ascending order, so that the
+   * target element is the first of its own group. */
+  for (int elem_src = src_to_target.size(); elem_src--;) {
     const int elem_target = src_to_target[elem_src];
-    r_groups_buffer[--r_groups_offsets[elem_target]] = elem_src;
+    if (elem_target >= 0) {
+      r_groups_buffer[--r_groups_offsets[elem_target]] = elem_src;
+    }
   }
 }
 
@@ -1369,14 +1340,12 @@ static void merge_groups_create(Span<int> src_to_target,
  *
  * \param src_to_target: Map that defines the source and target elements. The source elements will
  * be merged into the target. Each target corresponds to a group.
- * \param double_elems: Source and target elements in `src_to_target`. For quick access.
  * \param do_mix_data: If true the target element will have the custom data interpolated with all
  *                     sources pointing to it.
  *
  * \return r_src_to_dst: Array indicating the new indices of the elements.
  */
 static void merge_customdata_all(Span<int> src_to_target,
-                                 Span<int> double_elems,
                                  const int dst_num,
                                  const bool do_mix_data,
                                  Vector<int> &r_src_index_offsets,
@@ -1396,7 +1365,7 @@ static void merge_customdata_all(Span<int> src_to_target,
     /* Be careful when setting values to this array as it uses the same buffer as `r_src_to_dst`.
      */
     groups_offs_ = r_src_to_dst;
-    merge_groups_create(src_to_target, double_elems, groups_offs_, groups_buffer);
+    merge_groups_create(src_to_target, groups_offs_, groups_buffer);
   }
   else {
     r_src_to_dst.reinitialize(src_num);
@@ -1557,8 +1526,7 @@ static Mesh *create_merged_mesh(const Mesh &mesh,
   const int src_edges_num = mesh.edges_num;
 
   WeldMesh weld_mesh;
-  weld_mesh_context_create(
-      mesh, vert_src_to_target, removed_vertex_count, do_mix_data, &weld_mesh);
+  weld_mesh_context_create(mesh, vert_src_to_target, removed_vertex_count, &weld_mesh);
 
   const int dst_verts_num = src_verts_num - weld_mesh.removed_verts_num;
   const int dst_edges_num = src_edges_num - weld_mesh.removed_edges_num;
@@ -1580,7 +1548,6 @@ static Mesh *create_merged_mesh(const Mesh &mesh,
   Vector<int> vert_src_index_offset_data;
   Vector<int> vert_src_index_data;
   merge_customdata_all(vert_src_to_target,
-                       weld_mesh.double_verts,
                        dst_verts_num,
                        do_mix_data,
                        vert_src_index_offset_data,
@@ -1609,7 +1576,6 @@ static Mesh *create_merged_mesh(const Mesh &mesh,
   Vector<int> edge_src_index_offset_data;
   Vector<int> edge_src_index_data;
   merge_customdata_all(weld_mesh.edge_src_to_target,
-                       weld_mesh.double_edges,
                        dst_edges_num,
                        do_mix_data,
                        edge_src_index_offset_data,
