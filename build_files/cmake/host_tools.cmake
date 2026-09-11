@@ -19,16 +19,15 @@ if(CMAKE_CROSSCOMPILING)
   set(HOST_TOOLS_BUILD_DIR ${CMAKE_BINARY_DIR}/host_tools)
   set(HOST_TOOLS_BIN_DIR ${HOST_TOOLS_BUILD_DIR}/bin)
 
-  # Forward every WITH_* cache variable so the host build's preprocessor
-  # state matches the target build's.
-  get_cmake_property(_host_tools_all_cache_vars CACHE_VARIABLES)
+  # Forward every WITH_* variables so the host_tools build options match the target build.
+  get_cmake_property(_target_build_all_vars VARIABLES)
   set(_host_tools_forwarded_args "")
-  foreach(_v IN LISTS _host_tools_all_cache_vars)
+  foreach(_v IN LISTS _target_build_all_vars)
     if(_v MATCHES "^WITH_")
       list(APPEND _host_tools_forwarded_args "-D${_v}=${${_v}}")
     endif()
   endforeach()
-  unset(_host_tools_all_cache_vars)
+  unset(_target_build_all_vars)
 
   set(_host_tools_targets
     --target makesdna
