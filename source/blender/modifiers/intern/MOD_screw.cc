@@ -12,6 +12,7 @@
 
 #include "BLI_utildefines.hh"
 
+#include "BLI_array_utils.hh"
 #include "BLI_bitmap.hh"
 #include "BLI_math_geom_c.hh"
 #include "BLI_math_matrix_c.hh"
@@ -155,7 +156,8 @@ static Mesh *mesh_remove_doubles_on_axis(Mesh *result,
   if (tot_doubles != 0) {
     uint tot = totvert * step_tot;
     int *full_doubles_map = MEM_new_array_uninitialized<int>(tot, __func__);
-    std::fill_n(full_doubles_map, int(tot), -1);
+    /* Vertices that aren't merged point at themselves, as #geometry::mesh_merge_verts expects. */
+    array_utils::fill_index_range(MutableSpan<int>{full_doubles_map, int64_t(tot)});
 
     uint tot_doubles_left = tot_doubles;
     for (uint i = 0; i < totvert; i += 1) {
@@ -177,7 +179,7 @@ static Mesh *mesh_remove_doubles_on_axis(Mesh *result,
     /* TODO(mano-wii): Polygons with all vertices merged are the ones that form duplicates.
      * Therefore the duplicate face test can be skipped. */
     result = geometry::mesh_merge_verts(*tmp,
-                                        MutableSpan<int>{full_doubles_map, result->verts_num},
+                                        Span<int>{full_doubles_map, result->verts_num},
                                         int(tot_doubles * (step_tot - 1)),
                                         false);
 

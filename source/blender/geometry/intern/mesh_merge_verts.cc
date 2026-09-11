@@ -18,6 +18,7 @@
 #include "BLI_listbase.hh"
 #include "BLI_math_vector_c.hh"
 #include "BLI_offset_indices.hh"
+#include "BLI_task.hh"
 #include "BLI_vector.hh"
 
 #include "BKE_attribute.hh"
@@ -157,7 +158,7 @@ static void weld_assert_removed_edges_num(Span<int> edge_src_to_target,
 {
   int kills = 0;
   for (const int edge_src : edge_src_to_target.index_range()) {
-    if (!ELEM(edge_src_to_target[edge_src], edge_src, OUT_OF_CONTEXT)) {
+    if (edge_src_to_target[edge_src] != edge_src) {
       kills++;
     }
   }
@@ -300,22 +301,24 @@ static void weld_assert_face_no_vert_repetition(const WeldFace *weld_face,
  * \{ */
 
 /**
- * Callers mark merge targets only implicitly: a target's own value stays #OUT_OF_CONTEXT, and the
- * only sign that it's a target is that another vertex points to it, making it indistinguishable
- * from a vertex that isn't part of the merge at all.
- *
- * Store each target's own index in its slot instead, so the two cases can be told apart with a
- * single lookup. Afterwards #OUT_OF_CONTEXT means "not part of the merge" and nothing else.
+ * The maps from source elements to their merge targets store the element each element merges into,
+ * with un-merged elements pointing at themselves. This replaces those self-referencing
+ * single-groups with the #OUT_OF_CONTEXT value so the topology collapsing code can skip work for
+ * them more easily.
  */
-static void mark_merge_targets(MutableSpan<int> vert_src_to_target)
+static Array<int> vert_src_to_target_with_context(const Span<int> vert_src_to_target)
 {
-  for (const int i : vert_src_to_target.index_range()) {
-    const int vert_target = vert_src_to_target[i];
-    /* Some callers already build the map this way, so skip targets that are already marked. */
-    if (vert_target != OUT_OF_CONTEXT && vert_src_to_target[vert_target] != vert_target) {
-      vert_src_to_target[vert_target] = vert_target;
+  Array<int> result(vert_src_to_target.size(), OUT_OF_CONTEXT);
+  for (const int vert : vert_src_to_target.index_range()) {
+    const int vert_target = vert_src_to_target[vert];
+    if (vert_target != vert) {
+      BLI_assert(vert_src_to_target[vert_target] == vert_target);
+      result[vert] = vert_target;
+      /* The target is affected by the merge too. */
+      result[vert_target] = vert_target;
     }
   }
+  return result;
 }
 
 /** \} */
@@ -347,7 +350,7 @@ static Vector<WeldEdge> weld_edges_build_and_find_collapsed(Span<int2> edges,
     int vert_target_1 = vert_src_to_target[vert_1];
     int vert_target_2 = vert_src_to_target[vert_2];
     if (vert_target_1 == OUT_OF_CONTEXT && vert_target_2 == OUT_OF_CONTEXT) {
-      r_edge_src_to_target[i] = OUT_OF_CONTEXT;
+      r_edge_src_to_target[i] = i;
       continue;
     }
 
@@ -423,7 +426,6 @@ static void weld_edge_find_doubles(Span<WeldEdge> weld_edges,
 
   for (const int i : weld_edges.index_range()) {
     const WeldEdge &weld_edge = weld_edges[i];
-    BLI_assert(r_edge_src_to_target[weld_edge.edge_src] != OUT_OF_CONTEXT);
     if (r_edge_src_to_target[weld_edge.edge_src] != weld_edge.edge_src) {
       /* Already a duplicate. */
       continue;
@@ -440,16 +442,13 @@ static void weld_edge_find_doubles(Span<WeldEdge> weld_edges,
 
     int edge_src = weld_edge.edge_src;
     if (edges_num_a <= 1 || edges_num_b <= 1) {
-      /* This edge would form a group with only one element.
-       * For better performance, mark these edges and avoid forming these groups. */
-      r_edge_src_to_target[edge_src] = OUT_OF_CONTEXT;
+      /* No other edge can share both of this edge's vertices, so it survives on its own. */
       continue;
     }
 
     int *edges_ctx_a = &vert_to_edges_indices[link_a];
     int *edges_ctx_b = &vert_to_edges_indices[link_b];
 
-    const int prev_removed_double_edges_num = removed_double_edges_num;
     for (; edges_num_a--; edges_ctx_a++) {
       int edge_ctx_a = *edges_ctx_a;
       if (edge_ctx_a == i) {
@@ -472,11 +471,6 @@ static void weld_edge_find_doubles(Span<WeldEdge> weld_edges,
         r_edge_src_to_target[we_b.edge_src] = edge_src;
         removed_double_edges_num++;
       }
-    }
-    if (prev_removed_double_edges_num == removed_double_edges_num) {
-      /* This edge would form a group with only one element.
-       * For better performance, mark these edges and avoid forming these groups. */
-      r_edge_src_to_target[edge_src] = OUT_OF_CONTEXT;
     }
   }
 
@@ -631,14 +625,10 @@ static void weld_face_corner_ctx_alloc(const OffsetIndices<int> faces,
       }
 
       if (is_vert_ctx || is_vert_next_ctx) {
-        int edge = corner_edges[corner_src];
-        int edge_target = edge_src_to_target[edge];
-        bool is_edge_ctx = edge_target != OUT_OF_CONTEXT;
-
         weld_corners.increase_size_by_unchecked(1);
         WeldCorner &weld_corner = weld_corners.last();
         weld_corner.vert = is_vert_ctx ? vert_target : vert;
-        weld_corner.edge = is_edge_ctx ? edge_target : edge;
+        weld_corner.edge = edge_src_to_target[corner_edges[corner_src]];
         weld_corner.corner_src = corner_src;
         weld_corner.corner_next = corner_next;
 
@@ -1242,8 +1232,12 @@ static void weld_face_find_doubles(const Span<int> corner_verts,
 /** \name Mesh API
  * \{ */
 
+/**
+ * \param vert_src_to_target: The vertex map result map, but with vertices that aren't involved in
+ * the merge set to #OUT_OF_CONTEXT (see #vert_src_to_target_with_context).
+ */
 static void weld_mesh_context_create(const Mesh &mesh,
-                                     MutableSpan<int> vert_src_to_target,
+                                     const Span<int> vert_src_to_target,
                                      const int removed_verts_num,
                                      WeldMesh *r_weld_mesh)
 {
@@ -1253,7 +1247,6 @@ static void weld_mesh_context_create(const Mesh &mesh,
   const Span<int> corner_verts = mesh.corner_verts();
   const Span<int> corner_edges = mesh.corner_edges();
 
-  mark_merge_targets(vert_src_to_target);
   r_weld_mesh->removed_verts_num = removed_verts_num;
 
   r_weld_mesh->edge_src_to_target.reinitialize(edges.size());
@@ -1293,144 +1286,90 @@ static void weld_mesh_context_create(const Mesh &mesh,
  * \{ */
 
 /**
- * \brief Create groups to merge.
+ * Group the source elements by the element they merge into.
  *
- * This function creates groups for merging elements based on the provided `src_to_target`.
- *
- * \param src_to_target: Map that defines the source and target elements. The source elements will
- * be merged into the target. Each target corresponds to a group.
- *
- * \return r_groups_offsets: Array that indicates where each element group starts in the buffer.
- * \return r_groups_buffer: Buffer containing the indices of all elements that merge.
+ * \param src_to_target: For each element, the element it merges into. Elements that don't merge
+ * into anything else point at themselves.
+ * \param kept: The elements that survive as part of some group. Everything outside of this mask is
+ * removed entirely rather than merged (collapsed edges).
  */
-static void merge_groups_create(Span<int> src_to_target,
-                                MutableSpan<int> r_groups_offsets,
-                                Array<int> &r_groups_buffer)
+static GroupedSpan<int> merge_groups_create(const Span<int> src_to_target,
+                                            const IndexMask &kept,
+                                            Array<int> &r_group_offsets,
+                                            Array<int> &r_group_indices)
 {
-  BLI_assert(r_groups_offsets.size() == src_to_target.size() + 1);
-  r_groups_offsets.fill(0);
-
-  for (const int elem_target : src_to_target) {
-    if (elem_target >= 0) {
-      r_groups_offsets[elem_target]++;
-    }
+  if (kept.size() == src_to_target.size()) {
+    return offset_indices::build_groups_from_indices(
+        src_to_target, src_to_target.size(), r_group_offsets, r_group_indices);
   }
-
-  int offset = 0;
-  for (const int i : src_to_target.index_range()) {
-    offset += r_groups_offsets[i];
-    r_groups_offsets[i] = offset;
-  }
-  r_groups_offsets.last() = offset;
-
-  r_groups_buffer.reinitialize(offset);
-
-  /* Use a reverse for loop to ensure that indices are assigned in ascending order, so that the
-   * target element is the first of its own group. */
-  for (int elem_src = src_to_target.size(); elem_src--;) {
-    const int elem_target = src_to_target[elem_src];
-    if (elem_target >= 0) {
-      r_groups_buffer[--r_groups_offsets[elem_target]] = elem_src;
-    }
-  }
+  Array<int> kept_src_to_target(kept.size());
+  array_utils::gather(src_to_target, kept, kept_src_to_target.as_mutable_span());
+  return offset_indices::build_groups_from_indices(
+      kept_src_to_target, src_to_target.size(), r_group_offsets, r_group_indices, kept);
 }
 
 /**
- * To indicate the new indices `r_src_to_dst` is created.
+ * Build the map from each element of the result to the source elements it's created from, and the
+ * map from each source element to its index in the result.
  *
- * \param src_to_target: Map that defines the source and target elements. The source elements will
- * be merged into the target. Each target corresponds to a group.
- * \param do_mix_data: If true the target element will have the custom data interpolated with all
- *                     sources pointing to it.
- *
- * \return r_src_to_dst: Array indicating the new indices of the elements.
+ * \param src_to_target: The target element each element merges into.
+ * \param kept: The elements that aren't removed entirely (see #merge_groups_create).
+ * \param dst_num: The number of elements in the result.
+ * \param do_mix_data: Build maps for mixing attribute values from all of an elements source
+ * elements. Otherwise just the value for the target element is used.
  */
-static void merge_customdata_all(Span<int> src_to_target,
-                                 const int dst_num,
-                                 const bool do_mix_data,
-                                 Vector<int> &r_src_index_offsets,
-                                 Vector<int> &r_src_index_data,
-                                 Array<int> &r_src_to_dst)
+static GroupedSpan<int> merge_customdata_all(const Span<int> src_to_target,
+                                             const IndexMask &kept,
+                                             const int dst_num,
+                                             const bool do_mix_data,
+                                             Vector<int> &r_src_index_offsets,
+                                             Array<int> &r_src_index_data,
+                                             Array<int> &r_src_to_dst)
 {
   PRF_scope(ProfileCategory::Default);
-  const int src_num = src_to_target.size();
+  r_src_to_dst.reinitialize(src_to_target.size());
   r_src_index_offsets.reserve(dst_num + 1);
-  r_src_index_data.reserve(src_num);
 
-  MutableSpan<int> groups_offs_;
-  Array<int> groups_buffer;
   if (do_mix_data) {
-    r_src_to_dst.reinitialize(src_num + 1);
+    Array<int> group_offsets_by_src;
+    merge_groups_create(src_to_target, kept, group_offsets_by_src, r_src_index_data);
 
-    /* Be careful when setting values to this array as it uses the same buffer as `r_src_to_dst`.
-     */
-    groups_offs_ = r_src_to_dst;
-    merge_groups_create(src_to_target, groups_offs_, groups_buffer);
+    /* The groups are laid out in ascending order of the element they merge into, and elements that
+     * aren't kept have empty groups. So dropping the empty groups compresses the offsets into
+     * exactly the result order, and the group indices are already the result's source indices. */
+    for (const int i : src_to_target.index_range()) {
+      if (src_to_target[i] == i) {
+        r_src_to_dst[i] = r_src_index_offsets.size();
+        r_src_index_offsets.append_unchecked(group_offsets_by_src[i]);
+      }
+    }
   }
   else {
-    r_src_to_dst.reinitialize(src_num);
-  }
-  OffsetIndices<int> groups_offs(groups_offs_);
-
-  bool finalize_map = false;
-  int dst_index = 0;
-  for (int i = 0; i < src_num; i++) {
-    while (i < src_num && src_to_target[i] == OUT_OF_CONTEXT) {
-      r_src_to_dst[i] = dst_index;
-      r_src_index_offsets.append_unchecked(r_src_index_data.size());
-      r_src_index_data.append(i);
-      dst_index++;
-      i++;
-    }
-
-    if (i == src_num) {
-      break;
-    }
-    if (src_to_target[i] == i) {
-      if (do_mix_data) {
-        r_src_index_offsets.append_unchecked(r_src_index_data.size());
-        r_src_index_data.extend(groups_buffer.as_span().slice(groups_offs[i]));
-      }
-      else {
-        r_src_index_offsets.append_unchecked(r_src_index_data.size());
-        r_src_index_data.append(i);
-      }
-      r_src_to_dst[i] = dst_index;
-      dst_index++;
-    }
-    else if (src_to_target[i] == ELEM_COLLAPSED) {
-      /* Any value will do. This field must not be accessed anymore. */
-      r_src_to_dst[i] = 0;
-    }
-    else {
-      const int elem_target = src_to_target[i];
-      BLI_assert(elem_target != OUT_OF_CONTEXT);
-      BLI_assert(src_to_target[elem_target] == elem_target);
-      if (elem_target < i) {
-        r_src_to_dst[i] = r_src_to_dst[elem_target];
-        BLI_assert(r_src_to_dst[i] < dst_num);
-      }
-      else {
-        /* Mark as negative to set at the end. */
-        r_src_to_dst[i] = -elem_target;
-        finalize_map = true;
+    r_src_index_data.reinitialize(dst_num);
+    for (const int i : src_to_target.index_range()) {
+      if (src_to_target[i] == i) {
+        const int dst_index = r_src_index_offsets.size();
+        r_src_to_dst[i] = dst_index;
+        r_src_index_offsets.append_unchecked(dst_index);
+        r_src_index_data[dst_index] = i;
       }
     }
   }
 
-  if (finalize_map) {
-    for (const int i : r_src_to_dst.index_range()) {
-      if (r_src_to_dst[i] < 0) {
-        r_src_to_dst[i] = r_src_to_dst[-r_src_to_dst[i]];
-        BLI_assert(r_src_to_dst[i] < dst_num);
-      }
-      BLI_assert(r_src_to_dst[i] >= 0);
-    }
-  }
-
+  BLI_assert(r_src_index_offsets.size() == dst_num);
   r_src_index_offsets.append_unchecked(r_src_index_data.size());
 
-  BLI_assert(dst_index == dst_num);
+  threading::parallel_for(src_to_target.index_range(), 4096, [&](const IndexRange range) {
+    for (const int i : range) {
+      const int elem_target = src_to_target[i];
+      if (elem_target != i) {
+        /* Collapsed elements have no target. Any value will do, it's never read. */
+        r_src_to_dst[i] = elem_target >= 0 ? r_src_to_dst[elem_target] : 0;
+      }
+    }
+  });
+
+  return {OffsetIndices<int>(r_src_index_offsets), r_src_index_data};
 }
 
 /** \} */
@@ -1508,7 +1447,7 @@ static Set<StringRef> get_vertex_group_names(const Mesh &mesh)
 }
 
 static Mesh *create_merged_mesh(const Mesh &mesh,
-                                MutableSpan<int> vert_src_to_target,
+                                const Span<int> vert_src_to_target,
                                 const int removed_vertex_count,
                                 const bool do_mix_data)
 {
@@ -1525,8 +1464,10 @@ static Mesh *create_merged_mesh(const Mesh &mesh,
   const int src_verts_num = mesh.verts_num;
   const int src_edges_num = mesh.edges_num;
 
+  const Array<int> vert_src_to_target_ctx = vert_src_to_target_with_context(vert_src_to_target);
+
   WeldMesh weld_mesh;
-  weld_mesh_context_create(mesh, vert_src_to_target, removed_vertex_count, &weld_mesh);
+  weld_mesh_context_create(mesh, vert_src_to_target_ctx, removed_vertex_count, &weld_mesh);
 
   const int dst_verts_num = src_verts_num - weld_mesh.removed_verts_num;
   const int dst_edges_num = src_edges_num - weld_mesh.removed_edges_num;
@@ -1546,15 +1487,14 @@ static Mesh *create_merged_mesh(const Mesh &mesh,
 
   Array<int> vert_src_to_dst;
   Vector<int> vert_src_index_offset_data;
-  Vector<int> vert_src_index_data;
-  merge_customdata_all(vert_src_to_target,
-                       dst_verts_num,
-                       do_mix_data,
-                       vert_src_index_offset_data,
-                       vert_src_index_data,
-                       vert_src_to_dst);
-  const GroupedSpan<int> dst_to_src_verts(OffsetIndices<int>(vert_src_index_offset_data),
-                                          vert_src_index_data);
+  Array<int> vert_src_index_data;
+  const GroupedSpan<int> dst_to_src_verts = merge_customdata_all(vert_src_to_target,
+                                                                 IndexMask(src_verts_num),
+                                                                 dst_verts_num,
+                                                                 do_mix_data,
+                                                                 vert_src_index_offset_data,
+                                                                 vert_src_index_data,
+                                                                 vert_src_to_dst);
 
   mix_attributes(src_attributes,
                  dst_to_src_verts,
@@ -1572,17 +1512,23 @@ static Mesh *create_merged_mesh(const Mesh &mesh,
   }
   /* Edges. */
 
+  /* Collapsed edges have no target, so they can't be part of any group. */
+  IndexMaskMemory edge_mask_memory;
+  const IndexMask kept_edges = IndexMask::from_predicate(
+      IndexMask(src_edges_num), edge_mask_memory, [&](const int edge) {
+        return weld_mesh.edge_src_to_target[edge] != ELEM_COLLAPSED;
+      });
+
   Array<int> edge_src_to_dst;
   Vector<int> edge_src_index_offset_data;
-  Vector<int> edge_src_index_data;
-  merge_customdata_all(weld_mesh.edge_src_to_target,
-                       dst_edges_num,
-                       do_mix_data,
-                       edge_src_index_offset_data,
-                       edge_src_index_data,
-                       edge_src_to_dst);
-  const GroupedSpan<int> dst_to_src_edges(OffsetIndices<int>(edge_src_index_offset_data),
-                                          edge_src_index_data);
+  Array<int> edge_src_index_data;
+  const GroupedSpan<int> dst_to_src_edges = merge_customdata_all(weld_mesh.edge_src_to_target,
+                                                                 kept_edges,
+                                                                 dst_edges_num,
+                                                                 do_mix_data,
+                                                                 edge_src_index_offset_data,
+                                                                 edge_src_index_data,
+                                                                 edge_src_to_dst);
 
   mix_attributes(
       src_attributes, dst_to_src_edges, bke::AttrDomain::Edge, {".edge_verts"}, dst_attributes);
@@ -1805,6 +1751,15 @@ std::optional<Mesh *> mesh_merge_by_distance_all(const Mesh &mesh,
     return std::nullopt;
   }
 
+  /* The KD-tree leaves vertices that aren't merged at -1. */
+  threading::parallel_for(vert_src_to_target.index_range(), 4096, [&](const IndexRange range) {
+    for (const int vert : range) {
+      if (vert_src_to_target[vert] == OUT_OF_CONTEXT) {
+        vert_src_to_target[vert] = vert;
+      }
+    }
+  });
+
   return create_merged_mesh(mesh, vert_src_to_target, removed_verts_num, true);
 }
 
@@ -1825,7 +1780,7 @@ std::optional<Mesh *> mesh_merge_by_distance_connected(const Mesh &mesh,
 
   /* From the source index of the vertex.
    * This indicates which vert it is or is going to be merged. */
-  Array<int> vert_src_to_target(mesh.verts_num, OUT_OF_CONTEXT);
+  Array<int> vert_src_to_target(mesh.verts_num);
 
   Array<WeldVertexCluster> vert_clusters(mesh.verts_num);
 
@@ -1882,28 +1837,24 @@ std::optional<Mesh *> mesh_merge_by_distance_connected(const Mesh &mesh,
     return std::nullopt;
   }
 
+  /* Collapse chains built above, since chained mappings aren't supported. */
   for (const int i : IndexRange(mesh.verts_num)) {
-    if (i == vert_src_to_target[i]) {
-      vert_src_to_target[i] = OUT_OF_CONTEXT;
+    int vert = i;
+    while (vert != vert_src_to_target[vert]) {
+      vert = vert_src_to_target[vert];
     }
-    else {
-      int vert = i;
-      while ((vert != vert_src_to_target[vert]) && (vert_src_to_target[vert] != OUT_OF_CONTEXT)) {
-        vert = vert_src_to_target[vert];
-      }
-      vert_src_to_target[vert] = vert;
-      vert_src_to_target[i] = vert;
-    }
+    vert_src_to_target[i] = vert;
   }
 
   return create_merged_mesh(mesh, vert_src_to_target, removed_verts_num, true);
 }
 
 Mesh *mesh_merge_verts(const Mesh &mesh,
-                       MutableSpan<int> vert_src_to_target,
-                       int removed_verts_num,
+                       const Span<int> vert_src_to_target,
+                       const int removed_verts_num,
                        const bool do_mix_data)
 {
+  BLI_assert(vert_src_to_target.size() == mesh.verts_num);
   return create_merged_mesh(mesh, vert_src_to_target, removed_verts_num, do_mix_data);
 }
 
@@ -1914,12 +1865,10 @@ Mesh *mesh_merge_verts(const Mesh &mesh,
                        const Span<int> merge_ids,
                        const bke::AttributeFilter & /*attribute_filter*/)
 {
-  Array<int> vert_src_to_target(mesh.verts_num, OUT_OF_CONTEXT);
-
   VectorSet<int> group_indices;
   selection.foreach_index_optimized<int>([&](const int i) { group_indices.add(merge_ids[i]); });
 
-  Array<int> dst_vert_by_group(mesh.verts_num, -1);
+  Array<int> dst_vert_by_group(group_indices.size(), -1);
   selection.foreach_index_optimized<int>([&](const int i) {
     const int group_i = group_indices.index_of(merge_ids[i]);
     if (dst_vert_by_group[group_i] == -1) {
@@ -1927,6 +1876,8 @@ Mesh *mesh_merge_verts(const Mesh &mesh,
     }
   });
 
+  Array<int> vert_src_to_target(mesh.verts_num);
+  array_utils::fill_index_range(vert_src_to_target.as_mutable_span());
   selection.foreach_index_optimized<int>(
       [&](const int i) {
         const int group_i = group_indices.index_of(merge_ids[i]);

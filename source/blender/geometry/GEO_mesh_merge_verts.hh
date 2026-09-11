@@ -47,20 +47,20 @@ std::optional<Mesh *> mesh_merge_by_distance_connected(const Mesh &mesh,
 /**
  * Merge vertices into target vertices targets.
  *
- * \param vert_src_to_target: Maps each vertex to the vertex it merges into. A value of -1
- * indicates that the vertex is either a target or isn't merged at all, and is to be kept. The
- * array is aligned with `mesh.verts_num`.
+ * \param vert_src_to_target: Maps each vertex to the vertex it merges into. Vertices that don't
+ * merge into another vertex point at themselves. The array is aligned with `mesh.verts_num`.
  * \warning \a vert_src_to_target must **not** contain any chained mapping (v1 -> v2 -> v3 etc.),
- * this is not supported and will likely generate corrupted geometry.
+ * this is not supported and will likely generate corrupted geometry. In other words,
+ * `vert_src_to_target[vert_src_to_target[vert]]` must always equal `vert_src_to_target[vert]`.
  *
- * \param removed_verts_num: The number of non '-1' values in `vert_src_to_target`, in other words
- * the number of vertices removed by the merge (not the size of the array).
+ * \param removed_verts_num: The number of vertices that merge into a different vertex, in other
+ * words the number of vertices removed by the merge (not the size of the array).
  * \param do_mix_data: If true, each group of merged vertices (the sources with the same target,
  * plus the target vertex) will have their custom data interpolated into the resulting vertex. If
  * false, only the custom data of the target vertex will remain.
  */
 Mesh *mesh_merge_verts(const Mesh &mesh,
-                       MutableSpan<int> vert_src_to_target,
+                       Span<int> vert_src_to_target,
                        int removed_verts_num,
                        bool do_mix_data);
 

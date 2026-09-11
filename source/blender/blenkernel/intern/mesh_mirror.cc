@@ -247,41 +247,24 @@ Mesh *BKE_mesh_mirror_apply_mirror_on_axis_for_modifier(MirrorModifierData *mmd,
        * we cannot enforce that behavior on existing modifiers, in which case we keep using the
        * old, incorrect behavior of merging the source vertex into its copy.
        */
-      if (use_correct_order_on_merge) {
-        if (len_squared_v3v3(positions[vert_index_prev], positions[vert_index]) < tolerance_sq)
-            [[unlikely]]
-        {
-          *vtmap_b = i;
-          (*r_vert_merge_map_len)++;
+      const bool merge = len_squared_v3v3(positions[vert_index_prev], positions[vert_index]) <
+                         tolerance_sq;
+      if (merge) [[unlikely]] {
+        (*r_vert_merge_map_len)++;
 
-          /* average location */
-          mid_v3_v3v3(positions[vert_index], positions[vert_index_prev], positions[vert_index]);
-          copy_v3_v3(positions[vert_index_prev], positions[vert_index]);
-        }
-        else {
-          *vtmap_b = -1;
-        }
+        /* average location */
+        mid_v3_v3v3(positions[vert_index], positions[vert_index_prev], positions[vert_index]);
+        copy_v3_v3(positions[vert_index_prev], positions[vert_index]);
 
+        const int target = use_correct_order_on_merge ? vert_index_prev : vert_index;
+        *vtmap_a = target;
         /* Fill here to avoid 2x loops. */
-        *vtmap_a = -1;
+        *vtmap_b = target;
       }
       else {
-        if (len_squared_v3v3(positions[vert_index_prev], positions[vert_index]) < tolerance_sq)
-            [[unlikely]]
-        {
-          *vtmap_a = src_verts_num + i;
-          (*r_vert_merge_map_len)++;
-
-          /* average location */
-          mid_v3_v3v3(positions[vert_index], positions[vert_index_prev], positions[vert_index]);
-          copy_v3_v3(positions[vert_index_prev], positions[vert_index]);
-        }
-        else {
-          *vtmap_a = -1;
-        }
-
-        /* Fill here to avoid 2x loops. */
-        *vtmap_b = -1;
+        /* Vertices that aren't merged point at themselves. */
+        *vtmap_a = vert_index_prev;
+        *vtmap_b = vert_index;
       }
 
       vtmap_a++;
@@ -439,13 +422,13 @@ Mesh *BKE_mesh_mirror_apply_mirror_on_axis_for_modifier(MirrorModifierData *mmd,
       if (flip_map) {
         for (int i = 0; i < src_verts_num; dvert++, i++) {
           /* merged vertices get both groups, others get flipped */
+          /* A vertex that isn't merged points at itself. */
           if (use_correct_order_on_merge && do_vtargetmap &&
-              ((*r_vert_merge_map)[i + src_verts_num] != -1))
+              ((*r_vert_merge_map)[i + src_verts_num] != i + src_verts_num))
           {
             BKE_defvert_flip_merged(dvert - src_verts_num, flip_map, flip_map_len);
           }
-          else if (!use_correct_order_on_merge && do_vtargetmap && ((*r_vert_merge_map)[i] != -1))
-          {
+          else if (!use_correct_order_on_merge && do_vtargetmap && ((*r_vert_merge_map)[i] != i)) {
             BKE_defvert_flip_merged(dvert, flip_map, flip_map_len);
           }
           else {
