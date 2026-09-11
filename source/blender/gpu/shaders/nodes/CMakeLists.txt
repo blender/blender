@@ -12,10 +12,10 @@ set(INC_GLSL
   # For variadic macros
   ../../../blenlib
 
-  ../material
   ../common
-  ../infos
   ../compat
+  ../infos
+  ../material
 )
 
 set(SRC_BSL
