@@ -61,6 +61,11 @@ class BlenderCamera {
   float2 offset = zero_float2();
   float zoom = 1.0f;
 
+  /** 3D viewport camera view roll. */
+  float roll = 0.0f;
+  /** 3D viewport camera view horizontal flip. */
+  bool is_flipped_x = false;
+
   float2 pixelaspect = one_float2();
 
   bool use_aspect_override = false;
@@ -471,10 +476,12 @@ static void blender_camera_viewplane(BlenderCamera *bcam,
   }
   else {
     /* Account for camera shift and 3d camera view offset. */
-    const float2 dv = 2.0f * (aspectratio * bcam->shift + bcam->offset * aspect * 2.0f);
+    const float2 shift = 2.0f * (aspectratio * bcam->shift + bcam->offset * aspect * 2.0f);
+    const blender::float2 dv = blender::BKE_camera_viewplane_offset_transform(
+        bcam->roll, bcam->is_flipped_x, blender::float2(shift.x, shift.y));
 
     /* Set viewplane for perspective or orthographic camera. */
-    viewplane = (BoundBox2D(aspect) * bcam->zoom).offset(dv);
+    viewplane = (BoundBox2D(aspect) * bcam->zoom).offset(make_float2(dv.x, dv.y));
   }
 }
 
@@ -1001,6 +1008,8 @@ static void blender_camera_from_view(BlenderCamera *bcam,
 
         /* offset */
         bcam->offset = make_float2(b_rv3d->camdx, b_rv3d->camdy);
+        bcam->roll = b_rv3d->camroll;
+        bcam->is_flipped_x = (b_rv3d->rflag & blender::RV3D_FLIP_X) != 0;
 
         /* Zoom to fit the camera frame. */
         const float frame_fit = blender_camera_frame_fit(bcam, width, height);

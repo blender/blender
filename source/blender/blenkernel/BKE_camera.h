@@ -53,6 +53,7 @@ float2 BKE_camera_frame_size(float winx, float winy, float frame_aspect);
 struct CameraParams {
   /* lens */
   bool is_ortho = false;
+  bool is_flipped_x = false;
   float lens = 0.0f;
   float ortho_scale = 1.0f;
   float zoom = 1.0f;
@@ -111,6 +112,10 @@ void BKE_camera_params_compute_viewplane(
  * Crop `viewplane` given the current resolution and a pixel region inside the view plane.
  */
 void BKE_camera_params_crop_viewplane(rctf *viewplane, int winx, int winy, const rcti *region);
+/**
+ * Apply the camera view roll and flip to the camera view offset.
+ */
+float2 BKE_camera_viewplane_offset_transform(float roll, bool is_flipped_x, float2 offset);
 /**
  * View-plane is assumed to be already computed.
  */

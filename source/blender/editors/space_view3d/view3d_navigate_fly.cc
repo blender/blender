@@ -823,6 +823,11 @@ static int flyApply(bContext *C, FlyInfo *fly, bool is_confirm)
   moffset[0] = float(fly->mval[0] - fly->center_mval[0]);
   moffset[1] = float(fly->mval[1] - fly->center_mval[1]);
 
+  if (rv3d->persp == RV3D_CAMOB && (rv3d->rflag & RV3D_FLIP_X) != 0) {
+    moffset[0] = -moffset[0];
+    moffset[1] = -moffset[1];
+  }
+
   /* Enforce a view margin. */
   if (moffset[0] > xmargin) {
     moffset[0] -= xmargin;
