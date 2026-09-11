@@ -182,6 +182,7 @@ struct KeyPoint {
 class ChannelTagSet {
  private:
   Vector<ChannelTag> tags_;
+  Vector<bool> used_for_grouping_;
 
  public:
   ChannelTagSet() = default;
@@ -190,54 +191,45 @@ class ChannelTagSet {
   ChannelTagSet &operator=(const ChannelTagSet &) = default;
   ChannelTagSet &operator=(ChannelTagSet &&) = default;
 
-  void set(const Span<ChannelTag> tags)
-  {
-    this->tags_ = tags;
-  }
+  void set(const Span<ChannelTag> tags);
+  void update_intersect(const ChannelTagSet &other);
 
-  void update_intersect(const ChannelTagSet &other)
-  {
-    /* Remove all tags that 'other' doesn't have. */
-    for (int i = tags_.size() - 1; i >= 0; i--) {
-      if (other.tags_.contains(tags_[i])) {
-        continue;
-      }
-      tags_.remove(i);
-    }
-  }
+  Span<ChannelTag> all() const;
+  bool is_empty() const;
 
-  Span<ChannelTag> all() const
-  {
-    return this->tags_;
-  }
+  const ChannelTag *first_by_type(const ChannelTagType tag_type) const;
+  ChannelTag *first_by_type(const ChannelTagType tag_type);
+  Span<const ChannelTag> by_type(const ChannelTagType tag_type) const;
+  Span<ChannelTag> by_type(const ChannelTagType tag_type);
 
-  bool is_empty() const
-  {
-    return this->tags_.is_empty();
-  }
+  /**
+   * Return the first not-yet-returned tag with the given tag type.
+   * The returned boolean indicates whether there is a subsequent tag of the same type.
+   *
+   * So in a case of tags [A1, L1, L2, L3, G1], calling this function for tag type 'L' will first
+   * return (L1, true), the subsequent call will return (L2, true), followed by (L3, false).
+   *
+   * \see reset_bookkeeping()
+   */
+  std::pair<const ChannelTag *, bool> by_type_for_grouping(const ChannelTagType tag_type);
 
-  const ChannelTag *by_type(const ChannelTagType tag_type) const
-  {
-    /* TODO store in map so we don't have to search here. */
-    for (const ChannelTag &tag : this->tags_) {
-      if (tag.tag_type() == tag_type) {
-        return &tag;
-      }
-    }
-    return nullptr;
-  }
-  ChannelTag *by_type(const ChannelTagType tag_type)
-  {
-    return const_cast<ChannelTag *>(const_cast<const ChannelTagSet *>(this)->by_type(tag_type));
-  }
+  /**
+   * Reset the bookkeeping of which tag has been used for grouping.
+   *
+   * This is implicitly called by #set() and #update_intersect().
+   */
+  void reset_bookkeeping();
+
+ private:
+  const ChannelTagSet &const_this() const;
 };
 
 /**
  * Identifier for an AnimationChannel.
  *
  * Data is copied into the identifier, because these identifiers are designed to out-live the
- * channels they identify. This copying should be fast, as it just consists of a pointer an a bunch
- * of UString instances.
+ * channels they identify. This copying should be fast, as it just consists of a pointer an a
+ * bunch of UString instances.
  */
 class ChannelIdentifier {
  public:
@@ -310,8 +302,8 @@ class AnimationChannel {
   std::optional<ParsedSourcePath> source_rna_path_;
 
   Vector<KeyPoint> datapoints_;
-  /* Higher numbers will be sorted before lower numbers. In case the values are equal a fallback is
-   * used. */
+  /* Higher numbers will be sorted before lower numbers. In case the values are equal a fallback
+   * is used. */
   int sorting_priority_ = 0;
 
   /**
@@ -603,8 +595,8 @@ struct CollectionFilters {
   bool only_errors = false;
   /**
    * Skip any IDs that an object modifier points to.
-   * See the comment on ADS_FILTER_NOMODIFIERS. I (christoph) don't think this is a useful setting,
-   * but it is kept for backwards compatibility. */
+   * See the comment on ADS_FILTER_NOMODIFIERS. I (christoph) don't think this is a useful
+   * setting, but it is kept for backwards compatibility. */
   bool ignore_modifier_ids = false;
 
   /* Limit the returned data to only channels of the given type.
@@ -633,8 +625,8 @@ void collect_animation_channels(const bContext &C,
  *
  * \param tag_order: determines in which order the groups should be created. Items early in
  * the list are parents to items later in the list.
- * \param use_minimal_grouping: If true, group creation is skipped if it would move all chilren to
- * a subgroup.
+ * \param use_minimal_grouping: If true, group creation is skipped if it would move all chilren
+ * to a subgroup.
  */
 void group_channels(ChannelArena &arena,
                     Span<ChannelTagType> tag_order,

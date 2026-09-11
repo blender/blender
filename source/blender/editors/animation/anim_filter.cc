@@ -4219,58 +4219,66 @@ void group_channels(ChannelArena &arena,
    * summaries. */
   Vector<SummaryChannel *> potentially_splittable_summaries = {root};
   for (const ChannelTagType tag_type : tag_order) {
-    Vector<SummaryChannel *> completely_split;
-    Vector<SummaryChannel *> new_summaries;
+    bool has_more_tags_of_this_type = false;
+    do {
+      has_more_tags_of_this_type = false;
 
-    for (SummaryChannel *summary : potentially_splittable_summaries) {
-      int data_channel_count = 0;
+      Vector<SummaryChannel *> completely_split;
+      Vector<SummaryChannel *> new_summaries;
 
-      Map<ChannelTag, Vector<DataChannel *>> potential_tags;
-      for (AnimationChannel *child : summary->children()) {
-        if (child->type() != AnimationChannelType::DATA) {
+      for (SummaryChannel *summary : potentially_splittable_summaries) {
+        int data_channel_count = 0;
+
+        Map<ChannelTag, Vector<DataChannel *>> potential_tags;
+        for (AnimationChannel *child : summary->children()) {
+          if (child->type() != AnimationChannelType::DATA) {
+            continue;
+          }
+          data_channel_count++;
+          DataChannel *data_channel = reinterpret_cast<DataChannel *>(child);
+
+          const auto [tag,
+                      should_visit_again] = data_channel->tags().by_type_for_grouping(tag_type);
+          has_more_tags_of_this_type |= should_visit_again;
+          if (tag) {
+            potential_tags.lookup_or_add_default(*tag).append(data_channel);
+          }
+        }
+
+        if (data_channel_count == 0) {
+          completely_split.append(summary);
           continue;
         }
-        data_channel_count++;
-        DataChannel *data_channel = reinterpret_cast<DataChannel *>(child);
-        const ChannelTag *tag = data_channel->tags().by_type(tag_type);
-        if (tag) {
-          potential_tags.lookup_or_add_default(*tag).append(data_channel);
+
+        if (potential_tags.is_empty()) {
+          /* No child channel contains the current tag. */
+          continue;
+        }
+
+        if (use_minimal_grouping && potential_tags.size() == 1) {
+          /* Cannot split group further with this group type. */
+          continue;
+        }
+
+        for (const auto &[tag, tag_channels] : potential_tags.items()) {
+          SummaryChannel *new_summary = arena.allocate_summary_channel(
+              tag.label(), tag.source_data(), tag.source_rna_path(), tag.sort_priority());
+          for (DataChannel *child : tag_channels) {
+            summary->remove_child(*child);
+            new_summary->add_child(*child);
+          }
+          summary->add_child(*new_summary);
+          new_summaries.append(new_summary);
         }
       }
 
-      if (data_channel_count == 0) {
-        completely_split.append(summary);
-        continue;
+      potentially_splittable_summaries.extend(new_summaries);
+      for (SummaryChannel *summary : completely_split) {
+        /* We don't care in which order the summaries are processed since they don't influence each
+         * other. */
+        potentially_splittable_summaries.remove_first_occurrence_and_reorder(summary);
       }
-
-      if (potential_tags.is_empty()) {
-        /* No child channel contains the current tag. */
-        continue;
-      }
-
-      if (use_minimal_grouping && potential_tags.size() == 1) {
-        /* Cannot split group further with this group type. */
-        continue;
-      }
-
-      for (const auto &[tag, tag_channels] : potential_tags.items()) {
-        SummaryChannel *new_summary = arena.allocate_summary_channel(
-            tag.label(), tag.source_data(), tag.source_rna_path(), tag.sort_priority());
-        for (DataChannel *child : tag_channels) {
-          summary->remove_child(*child);
-          new_summary->add_child(*child);
-        }
-        summary->add_child(*new_summary);
-        new_summaries.append(new_summary);
-      }
-    }
-
-    potentially_splittable_summaries.extend(new_summaries);
-    for (SummaryChannel *summary : completely_split) {
-      /* We don't care in which order the summaries are processed since they don't influence each
-       * other. */
-      potentially_splittable_summaries.remove_first_occurrence_and_reorder(summary);
-    }
+    } while (has_more_tags_of_this_type);
   }
 
   for (SummaryChannel *channel : arena.summary_channels) {

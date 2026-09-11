@@ -695,7 +695,7 @@ StringRef FCurveChannel::label() const
 
 const ID *FCurveChannel::find_animated_id_from_tags() const
 {
-  const ChannelTag *id_tag = this->tags().by_type(ChannelTagType::ID);
+  const ChannelTag *id_tag = this->tags().first_by_type(ChannelTagType::ID);
   if (!id_tag) {
     return nullptr;
   }
@@ -782,6 +782,166 @@ void GreasePencilChannel::set_selected(const bool is_selected)
   GreasePencilLayer *gp_layer = this->get_source<GreasePencilLayer>();
   bke::greasepencil::Layer &layer = gp_layer->wrap();
   layer.set_selected(is_selected);
+}
+
+/* ===== ChannelTagSet ======= */
+
+void ChannelTagSet::set(const Span<ChannelTag> tags)
+{
+  this->tags_ = tags;
+  this->reset_bookkeeping();
+}
+
+void ChannelTagSet::update_intersect(const ChannelTagSet &other)
+{
+  /* Remove all tags that 'other' doesn't have. */
+  for (int i = tags_.size() - 1; i >= 0; i--) {
+    if (other.tags_.contains(tags_[i])) {
+      continue;
+    }
+    tags_.remove(i);
+  }
+  this->reset_bookkeeping();
+}
+
+Span<ChannelTag> ChannelTagSet::all() const
+{
+  return this->tags_;
+}
+
+bool ChannelTagSet::is_empty() const
+{
+  return this->tags_.is_empty();
+}
+
+const ChannelTagSet &ChannelTagSet::const_this() const
+{
+  return *this;
+}
+
+const ChannelTag *ChannelTagSet::first_by_type(const ChannelTagType tag_type) const
+{
+  /* TODO store in map so we don't have to search here. */
+  for (const ChannelTag &tag : this->tags_) {
+    if (tag.tag_type() == tag_type) {
+      return &tag;
+    }
+  }
+  return nullptr;
+}
+
+ChannelTag *ChannelTagSet::first_by_type(const ChannelTagType tag_type)
+{
+  /* Defer to the const version, then cast the constness away. */
+  return const_cast<ChannelTag *>(const_this().first_by_type(tag_type));
+}
+
+Span<const ChannelTag> ChannelTagSet::by_type(const ChannelTagType tag_type) const
+{
+  /* Find the first tag of the given type. */
+  int found_tag_index = -1;
+  const ChannelTag *found_tag = nullptr;
+
+  for (const int tag_index : this->tags_.index_range()) {
+    found_tag = &this->tags_[tag_index];
+    if (found_tag->tag_type() != tag_type) {
+      continue;
+    }
+    found_tag_index = tag_index;
+    break;
+  }
+
+  if (found_tag_index < 0) {
+    BLI_assert(!found_tag);
+    /* No tag of this type found. */
+    return {};
+  }
+  BLI_assert(found_tag);
+
+  /* Find the last tag of the given type. */
+  for (int tag_index = found_tag_index + 1; tag_index < this->tags_.size(); tag_index++) {
+    const ChannelTag &tag = this->tags_[tag_index];
+    if (tag.tag_type() != tag_type) {
+      /* Found a subsequent tag of another type, we've exhausted the tags of this type. */
+      return Span<const ChannelTag>(found_tag, tag_index - found_tag_index + 1);
+    }
+  }
+
+  return Span<const ChannelTag>(found_tag, this->tags_.size() - found_tag_index);
+}
+
+Span<ChannelTag> ChannelTagSet::by_type(const ChannelTagType tag_type)
+{
+  /* Defer to the const version, then cast the constness away. */
+  Span<const ChannelTag> found = const_this().by_type(tag_type);
+  return Span<ChannelTag>(const_cast<ChannelTag *>(found.data()), found.size());
+}
+
+/**
+ * Return the first not-yet-returned tag with the given tag type.
+ * The returned boolean indicates whether there is a subsequent tag of the same type.
+ *
+ * So in a case of tags [A1, L1, L2, L3, G1], calling this function for tag type 'L' will first
+ * return (L1, true), the subsequent call will return (L2, true), followed by (L3, false).
+ *
+ * \see reset_bookkeeping()
+ */
+std::pair<const ChannelTag *, bool> ChannelTagSet::by_type_for_grouping(
+    const ChannelTagType tag_type)
+{
+  /* Find the first tag of the given type. */
+  int found_tag_index = -1;
+  for (const int tag_index : this->tags_.index_range()) {
+    const ChannelTag &tag = this->tags_[tag_index];
+    if (tag.tag_type() != tag_type) {
+      continue;
+    }
+    found_tag_index = tag_index;
+    break;
+  }
+
+  if (found_tag_index < 0) {
+    /* No tag of this type found. */
+    return {};
+  }
+
+  /* Found the first tag of the right type, now find the first tag (if there's any left) that
+   * hasn't been used for grouping yet. */
+  for (int tag_index = found_tag_index; tag_index < this->tags_.size(); tag_index++) {
+    const ChannelTag &tag = this->tags_[tag_index];
+    if (tag.tag_type() != tag_type) {
+      /* Found a subsequent tag of another type, we've exhausted the tags of this type. */
+      return {};
+    }
+
+    if (this->used_for_grouping_[tag_index]) {
+      /* This one has been used already, go to the next one. */
+      continue;
+    }
+    this->used_for_grouping_[tag_index] = true;
+
+    /* Found it! Now let's see if the next tag is also usable. This is basically the same check
+     * as the one above, except for the consequences of a mis-match. Here 'mismatching tag
+     * type' and 'already being used for grouping' have the same conclusion: 'not usable',
+     * whereas above these need to be handled separately. */
+    const bool has_usable_successor = tag_index + 1 < this->tags_.size() &&
+                                      !this->used_for_grouping_[tag_index + 1] &&
+                                      this->tags_[tag_index + 1].tag_type() == tag_type;
+    return {&tag, has_usable_successor};
+  }
+
+  return {};
+}
+
+/**
+ * Reset the bookkeeping of which tag has been used for grouping.
+ *
+ * This is implicitly called by #set() and #update_intersect().
+ */
+void ChannelTagSet::reset_bookkeeping()
+{
+  used_for_grouping_.resize(tags_.size());
+  used_for_grouping_.fill(false);
 }
 
 }  // namespace blender::ed::animfilter
