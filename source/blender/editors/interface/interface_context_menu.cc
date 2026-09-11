@@ -1306,12 +1306,18 @@ bool popup_context_menu_for_button(bContext *C, Button *but, const wmEvent *even
 
   /* perhaps we should move this into (G.debug & G_DEBUG) - campbell */
   if (U.flag & USER_DEVELOPER_UI) {
-    if (block_is_menu(but->block) == false) {
-      layout.op("UI_OT_editsource",
-                std::nullopt,
-                ICON_NONE,
-                wm::OpCallContext::InvokeDefault,
-                UI_ITEM_NONE);
+    if (!block_is_menu(but->block) || (but->block->handle && but->block->handle->can_refresh)) {
+      Layout &sub = layout.column(true);
+      if (but->block->handle) {
+        PointerRNA region_ptr = RNA_pointer_create_discrete(
+            id_cast<ID *>(CTX_wm_screen(C)), RNA_Region, but->block->handle->region);
+        sub.context_ptr_set("popup_region", &region_ptr);
+      }
+      sub.op("UI_OT_editsource",
+             std::nullopt,
+             ICON_NONE,
+             wm::OpCallContext::InvokeDefault,
+             UI_ITEM_NONE);
     }
   }
 
