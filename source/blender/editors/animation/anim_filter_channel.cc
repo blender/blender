@@ -488,7 +488,7 @@ static bool animation_channel_compare_function(const AnimationChannel *channel_a
 
 void SummaryChannel::sort_children()
 {
-  std::sort(this->children_.begin(), this->children_.end(), animation_channel_compare_function);
+  std::ranges::sort(this->children_, animation_channel_compare_function);
 }
 
 bool SummaryChannel::is_selected() const
