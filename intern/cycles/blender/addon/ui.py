@@ -224,7 +224,9 @@ class CYCLES_RENDER_PT_sampling_viewport(CyclesButtonsPanel, Panel):
         scene = context.scene
         cscene = scene.cycles
 
-        layout.active = not (cscene.use_preview_denoising and cscene.preview_denoiser == 'DLSS')
+        layout.active = not (cscene.use_preview_denoising and
+                             cscene.preview_denoiser == 'DLSS' and
+                             has_dlss_gpu_devices(context))
 
         layout.use_property_split = True
         layout.use_property_decorate = False
