@@ -109,8 +109,8 @@ static void update_internal_link_inputs(const bNodeTree &ntree)
     for (bNodeSocket *socket : node->runtime->outputs) {
       socket->runtime->internal_link_input = nullptr;
     }
-    for (bNodeLink &link : node->runtime->internal_links) {
-      link.tosock->runtime->internal_link_input = link.fromsock;
+    for (bNodeInternalLink &link : node->runtime->internal_links) {
+      link.out->runtime->internal_link_input = link.in;
     }
   }
 }

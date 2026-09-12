@@ -4014,8 +4014,8 @@ void node_remove_socket_ex(bNodeTree &ntree, bNode &node, bNodeSocket &sock, con
   }
 
   for (const int64_t i : node.runtime->internal_links.index_range()) {
-    const bNodeLink &link = node.runtime->internal_links[i];
-    if (link.fromsock == &sock || link.tosock == &sock) {
+    const bNodeInternalLink &link = node.runtime->internal_links[i];
+    if (link.in == &sock || link.out == &sock) {
       node.runtime->internal_links.remove_and_reorder(i);
       BKE_ntree_update_tag_node_internal_link(&ntree, &node);
       break;
@@ -4373,11 +4373,9 @@ bNode *node_copy_with_mapping(bNodeTree *dst_tree,
       MEM_dupalloc(node_src.panel_states_array));
 
   node_dst->runtime->internal_links = node_src.runtime->internal_links;
-  for (bNodeLink &dst_link : node_dst->runtime->internal_links) {
-    dst_link.fromnode = node_dst;
-    dst_link.tonode = node_dst;
-    dst_link.fromsock = socket_map.lookup(dst_link.fromsock);
-    dst_link.tosock = socket_map.lookup(dst_link.tosock);
+  for (bNodeInternalLink &dst_link : node_dst->runtime->internal_links) {
+    dst_link.in = socket_map.lookup(dst_link.in);
+    dst_link.out = socket_map.lookup(dst_link.out);
   }
 
   if ((flag & LIB_ID_CREATE_NO_USER_REFCOUNT) == 0) {
@@ -4801,11 +4799,6 @@ static void adjust_multi_input_indices_after_removed_link(bNodeTree *ntree,
 
 void node_internal_relink(bNodeTree &ntree, bNode &node)
 {
-  /* store link pointers in output sockets, for efficient lookup */
-  for (bNodeLink &link : node.runtime->internal_links) {
-    link.tosock->link = &link;
-  }
-
   Vector<bNodeLink *> duplicate_links_to_remove;
 
   /* redirect downstream links */
@@ -4815,8 +4808,14 @@ void node_internal_relink(bNodeTree &ntree, bNode &node)
       continue;
     }
 
-    bNodeLink *internal_link = link.fromsock->link;
-    bNodeLink *fromlink = internal_link ? internal_link->fromsock->link : nullptr;
+    const bNodeSocket *internal_input = nullptr;
+    for (const bNodeInternalLink &internal_link : node.runtime->internal_links) {
+      if (internal_link.out == link.fromsock) {
+        internal_input = internal_link.in;
+        break;
+      }
+    }
+    bNodeLink *fromlink = internal_input ? internal_input->link : nullptr;
 
     if (fromlink == nullptr) {
       if (link.tosock->is_multi_input()) {
@@ -5582,12 +5581,6 @@ float2 node_dimensions_get(const bNode &node)
 void node_tag_update_id(bNode &node)
 {
   node.runtime->update |= NODE_UPDATE_ID;
-}
-
-void node_internal_links(bNode &node, bNodeLink **r_links, int *r_len)
-{
-  *r_links = node.runtime->internal_links.data();
-  *r_len = node.runtime->internal_links.size();
 }
 
 /* Node Instance Hash */

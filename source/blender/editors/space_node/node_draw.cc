@@ -1438,7 +1438,21 @@ static void node_draw_mute_line(const bContext &C,
 {
   GPU_blend(GPU_BLEND_ALPHA);
 
-  for (const bNodeLink &link : node.internal_links()) {
+  for (const bNodeInternalLink &internal_link : node.internal_links()) {
+    bNodeLink link{};
+    link.fromnode = const_cast<bNode *>(&node);
+    link.tonode = const_cast<bNode *>(&node);
+    link.fromsock = internal_link.in;
+    link.tosock = internal_link.out;
+    link.flag |= NODE_LINK_VALID;
+    if (internal_link.in->is_multi_input()) {
+      for (const bNodeLink *connected_link : internal_link.in->directly_linked_links()) {
+        if (!connected_link->fromnode->is_dangling_reroute()) {
+          link.multi_input_sort_id = connected_link->multi_input_sort_id;
+          break;
+        }
+      }
+    }
     if (!bke::node_link_is_hidden(link)) {
       node_draw_link_bezier(C, v2d, snode, link, TH_WIRE_INNER, TH_WIRE_INNER, TH_WIRE, false);
     }

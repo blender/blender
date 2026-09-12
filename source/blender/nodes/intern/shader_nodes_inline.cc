@@ -661,9 +661,9 @@ class ShaderNodesInliner {
   [[nodiscard]] bool handle_output_socket__internal_links(const SocketInContext &socket)
   {
     const NodeInContext node = socket.owner_node();
-    for (const bNodeLink &internal_link : node->internal_links()) {
-      if (internal_link.tosock == socket.socket) {
-        const SocketInContext src_socket = {socket.context, internal_link.fromsock};
+    for (const bNodeInternalLink &internal_link : node->internal_links()) {
+      if (internal_link.out == socket.socket) {
+        const SocketInContext src_socket = {socket.context, internal_link.in};
         if (src_socket->is_multi_input()) {
           const bNodeLink *src_link = nullptr;
           for (const bNodeLink *link : src_socket->directly_linked_links()) {
@@ -684,10 +684,10 @@ class ShaderNodesInliner {
         if (const SocketValue *value = value_by_socket_.lookup_ptr(src_socket)) {
           /* Pass the value of the internally linked input socket, with an implicit conversion if
            * necessary. */
-          this->store_socket_value(
-              socket,
-              this->handle_implicit_conversion(
-                  *value, *internal_link.fromsock->typeinfo, *internal_link.tosock->typeinfo));
+          this->store_socket_value(socket,
+                                   this->handle_implicit_conversion(*value,
+                                                                    *internal_link.in->typeinfo,
+                                                                    *internal_link.out->typeinfo));
           return true;
         }
         this->schedule_socket(src_socket);

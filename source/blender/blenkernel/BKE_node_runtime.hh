@@ -34,6 +34,13 @@ struct bNode;
 struct bNodeSocket;
 struct bNodeTree;
 
+struct bNodeInternalLink {
+  bNodeSocket *in = nullptr;
+  bNodeSocket *out = nullptr;
+
+  friend bool operator==(const bNodeInternalLink &a, const bNodeInternalLink &b) = default;
+};
+
 namespace nodes {
 struct EvalDependencies;
 struct GeneratedTreeSrnaData;
@@ -388,7 +395,7 @@ class bNodeRuntime : NonCopyable, NonMovable {
   float anim_ofsx;
 
   /** List of cached internal links (input to output), for muted nodes and operators. */
-  Vector<bNodeLink> internal_links;
+  Vector<bNodeInternalLink> internal_links;
 
   /** Eagerly maintained cache of the node's index in the tree. */
   int index_in_tree = -1;
@@ -926,7 +933,7 @@ inline bool bNode::is_type(const UString query_idname) const
   return this->typeinfo->is_type(query_idname);
 }
 
-inline Span<bNodeLink> bNode::internal_links() const
+inline Span<bNodeInternalLink> bNode::internal_links() const
 {
   return this->runtime->internal_links;
 }

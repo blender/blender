@@ -78,31 +78,19 @@ static void node_init_input_index(bNodeSocket *sock, int *index)
   }
 }
 
-static void node_init_output_index_muted(bNodeSocket *sock,
-                                         int *index,
-                                         const MutableSpan<bNodeLink> internal_links)
+static void node_init_output_index_muted(bNodeSocket *sock, int *index)
 {
-  const bNodeLink *link;
-  /* copy the stack index from internally connected input to skip the node */
-  for (bNodeLink &iter_link : internal_links) {
-    if (iter_link.tosock == sock) {
-      sock->stack_index = iter_link.fromsock->stack_index;
-      /* set the link pointer to indicate that this socket
-       * should not overwrite the stack value!
-       */
-      sock->link = &iter_link;
-      link = &iter_link;
-      break;
-    }
+  /* Copy the stack index from the internally connected input to skip the node. */
+  if (const bNodeSocket *internal_input = sock->runtime->internal_link_input) {
+    sock->stack_index = internal_input->stack_index;
+    return;
   }
-  /* if not internally connected, assign a new stack index anyway to avoid bad stack access */
-  if (!link) {
-    if (node_exec_socket_use_stack(sock)) {
-      sock->stack_index = (*index)++;
-    }
-    else {
-      sock->stack_index = -1;
-    }
+  /* If not internally connected, assign a new stack index anyway to avoid bad stack access. */
+  if (node_exec_socket_use_stack(sock)) {
+    sock->stack_index = (*index)++;
+  }
+  else {
+    sock->stack_index = -1;
   }
 }
 
@@ -126,6 +114,10 @@ static bNodeStack *setup_stack(bNodeStack *stack, bNodeTree *ntree, bNode *node,
 
   /* don't mess with remote socket stacks, these are initialized by other nodes! */
   if (sock->link && !(sock->link->flag & NODE_LINK_MUTED)) {
+    return ns;
+  }
+  /* Outputs of muted nodes forward the internally linked input's stack value. */
+  if (sock->runtime->internal_link_input != nullptr) {
     return ns;
   }
 
@@ -231,7 +223,7 @@ bNodeTreeExec *ntree_exec_begin(bNodeExecContext *context,
 
     if (node->is_muted() || node->is_reroute()) {
       for (bNodeSocket &sock : node->outputs) {
-        node_init_output_index_muted(&sock, &index, node->runtime->internal_links);
+        node_init_output_index_muted(&sock, &index);
       }
     }
     else {
