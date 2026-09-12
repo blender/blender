@@ -35,6 +35,7 @@
 #include "IMB_colormanagement.hh"
 #include "IMB_imbuf.hh"
 
+#include "BKE_attribute.hh"
 #include "BKE_brush.hh"
 #include "BKE_image_wrappers.hh"
 #include "BKE_object_types.hh"
@@ -199,6 +200,19 @@ static BitVector<> init_uv_primitives_brush_test(SculptSession &ss,
         isect_aabb_aabb_v3(brush_bounds.min, brush_bounds.max, tri_bounds.min, tri_bounds.max));
   }
   return brush_test;
+}
+
+static void apply_selection_filter(const Span<int> corner_tri_faces,
+                                   const Span<int> tri_indices,
+                                   const Span<bool> select_poly,
+                                   BitVector<> &brush_test)
+{
+  BLI_assert(tri_indices.size() == brush_test.size());
+
+  for (const int i : tri_indices.index_range()) {
+    const bool current = brush_test[i];
+    brush_test[i].set(current && select_poly[corner_tri_faces[tri_indices[i]]]);
+  }
 }
 
 /** Cached settings for faster paint blending. */
@@ -471,6 +485,8 @@ static void do_paint_pixels(const Paint &paint,
                             Span<float3> positions_eval,
                             Span<int> corner_verts,
                             Span<int3> corner_tris,
+                            Span<int> corner_tri_faces,
+                            Span<bool> select_poly,
                             ImageData &image_data,
                             bke::pbvh::Node & /*node*/,
                             PixelNode &pixel_node)
@@ -480,6 +496,12 @@ static void do_paint_pixels(const Paint &paint,
   const StrokeCache &cache = *ss.cache;
   BitVector<> brush_test = init_uv_primitives_brush_test(
       ss, corner_verts, corner_tris, pixel_node.uv_primitives.tri_indices, positions_eval);
+
+  if (!select_poly.is_empty()) {
+    BLI_assert(!corner_tri_faces.is_empty());
+    apply_selection_filter(
+        corner_tri_faces, pixel_node.uv_primitives.tri_indices, select_poly, brush_test);
+  }
 
   const PaintBlendSettings blend_settings(paint, brush, ss.cache->toggle_settings.invert);
 
@@ -767,6 +789,15 @@ void do_3d_image_paint_brush(const Depsgraph &depsgraph,
   const Span<int> corner_verts = mesh.corner_verts();
   const Span<int3> corner_tris = mesh.corner_tris();
 
+  const bool use_face_sel = (mesh.editflag & ME_EDIT_PAINT_FACE_SEL) != 0;
+  VArraySpan<bool> select_poly;
+  Span<int> corner_tri_faces;
+  if (use_face_sel) {
+    const bke::AttributeAccessor attributes = mesh.attributes();
+    select_poly = *attributes.lookup<bool>(".select_poly", bke::AttrDomain::Face);
+    corner_tri_faces = mesh.corner_tri_faces();
+  }
+
   node_mask.foreach_index(
       [&](const int i) {
         do_paint_pixels(paint,
@@ -775,6 +806,8 @@ void do_3d_image_paint_brush(const Depsgraph &depsgraph,
                         positions,
                         corner_verts,
                         corner_tris,
+                        corner_tri_faces,
+                        select_poly,
                         image_data,
                         nodes[i],
                         pixel_nodes[i]);
