@@ -734,63 +734,57 @@ static bool path_relative_to_impl(char *path,
   }
 #endif
 
-  BLI_string_replace_char(base_path + BLI_path_unc_prefix_len(base_path), '\\', '/');
-  BLI_string_replace_char(path + BLI_path_unc_prefix_len(path), '\\', '/');
+  /* #BLI_path_normalize requires native slashes. */
+  BLI_string_replace_char(base_path + BLI_path_unc_prefix_len(base_path), ALTSEP, SEP);
+  BLI_string_replace_char(path + BLI_path_unc_prefix_len(path), ALTSEP, SEP);
 
-  /* Remove `/./` which confuse the following slash counting. */
+  /* Removes `/./` and `/../` which confuse the following slash counting. */
   BLI_path_normalize(path);
   BLI_path_normalize(base_path);
+
+  /* Use forward slashes as assumed by the comparison below. */
+  BLI_path_slash_forward_from_native(base_path);
+  BLI_path_slash_forward_from_native(path);
 
   /* The last slash in the path indicates where the path part ends. */
   base_dir_end = BLI_path_slash_rfind(base_path);
 
   if (base_dir_end) {
+    /* Only use the directory part of the base path, including the trailing slash. */
+    base_path[base_dir_end - base_path + 1] = '\0';
+
     /* Find the prefix of the filename that is equal for both filenames.
-     * This is replaced by the two slashes at the beginning. */
-    const char *base_iter = base_path;
-    const char *path_iter = path;
-
+     * Only entire components between slashes match. */
+    int base_offset = 0;
+    int path_offset = 0;
+    int i = 0;
 #ifdef WIN32
-    while (tolower(*base_iter) == tolower(*path_iter))
+    while ((base_path[i] != '\0') && tolower(base_path[i]) == tolower(path[i])) {
 #else
-    while (*base_iter == *path_iter)
+    while ((base_path[i] != '\0') && base_path[i] == path[i]) {
 #endif
-    {
-      base_iter++;
-      path_iter++;
-
-      /* Don't search beyond the end of the string in the rare case they match. */
-      if ((*base_iter == '\0') || (*path_iter == '\0')) {
-        break;
+      i++;
+      if (base_path[i - 1] == '/') {
+        base_offset = path_offset = i;
       }
     }
 
-    /* We might have passed the slash when the beginning of a dir matches
-     * so we rewind. Only check on the actual filename. */
-    if (*path_iter != '/') {
-      while ((path_iter >= path) && (*path_iter != '/')) {
-        path_iter--;
-        base_iter--;
-      }
+    if ((path[i] == '\0') && (base_path[i] == '/')) {
+      /* The path is the base directory itself, or one of its parents. */
+      base_offset = i + 1;
+      path_offset = i;
     }
-    else if (*base_iter != '/') {
-      while ((base_iter >= base_path) && (*base_iter != '/')) {
-        base_iter--;
-        path_iter--;
-      }
+
+    if (base_offset == 0) {
+      /* No common root. */
+      return false;
     }
 
     char result[FILE_MAX] = "//";
     char *result_iter = result + (blend_relative ? 2 : 0);
 
-    /* `base_iter` now points to the slash that is at the beginning of the part
-     * where the path is different from the relative path.
-     * We count the number of directories we need to go up in the
-     * hierarchy to arrive at the common prefix of the path. */
-    if (base_iter < base_path) {
-      base_iter = base_path;
-    }
-    while (base_iter && base_iter < base_dir_end) {
+    /* Walk up one directory for every component left in the base directory. */
+    for (const char *base_iter = base_path + base_offset; *base_iter; base_iter++) {
       if (*base_iter == '/') {
         if (!walk_up) {
           return false;
@@ -798,12 +792,10 @@ static bool path_relative_to_impl(char *path,
         result_iter += BLI_strncpy_rlen(
             result_iter, "../", sizeof(result) - (result_iter - result));
       }
-      base_iter++;
     }
 
-    /* Don't copy the slash at the beginning. */
     result_iter += BLI_strncpy_rlen(
-        result_iter, path_iter + 1, sizeof(result) - (result_iter - result));
+        result_iter, path + path_offset, sizeof(result) - (result_iter - result));
     UNUSED_VARS(result_iter);
 
 #ifdef WIN32
@@ -1929,35 +1921,8 @@ bool BLI_path_name_at_index(const char *__restrict path,
 
 bool BLI_path_contains(const char *container_path, const char *containee_path)
 {
-  char container_native[PATH_MAX];
-  char containee_native[PATH_MAX];
-
-  /* Keep space for a trailing slash. If the path is truncated by this, the containee path is
-   * longer than #PATH_MAX and the result is ill-defined. */
-  BLI_strncpy(container_native, container_path, PATH_MAX - 1);
-  STRNCPY(containee_native, containee_path);
-
-  BLI_path_slash_native(container_native);
-  BLI_path_slash_native(containee_native);
-
-  BLI_path_normalize(container_native);
-  BLI_path_normalize(containee_native);
-
-#ifdef WIN32
-  BLI_str_tolower_ascii(container_native, PATH_MAX);
-  BLI_str_tolower_ascii(containee_native, PATH_MAX);
-#endif
-
-  if (STREQ(container_native, containee_native)) {
-    /* The paths are equal, they contain each other. */
-    return true;
-  }
-
-  /* Add a trailing slash to prevent same-prefix directories from matching.
-   * e.g. `/some/path` doesn't contain `/some/path_lib`. */
-  BLI_path_slash_ensure(container_native, sizeof(container_native));
-
-  return BLI_str_startswith(containee_native, container_native);
+  const bool walk_up = false;
+  return BLI_path_relative_to(containee_path, container_path, walk_up, nullptr, 0);
 }
 
 bool BLI_path_relative_to(const char *path,
