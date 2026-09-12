@@ -688,8 +688,8 @@ static bool path_relative_to_impl(char *path,
   /* A `basepath` starting with `//` will be made relative multiple times. */
   BLI_assert_msg(!BLI_path_is_rel(basepath), "The 'basepath' cannot start with '//'!");
 
-  const char *lslash;
-  char temp[FILE_MAX];
+  const char *base_dir_end;
+  char base_path[FILE_MAX];
 
   /* If path is already relative, bail out. */
   if (BLI_path_is_rel(path)) {
@@ -701,111 +701,115 @@ static bool path_relative_to_impl(char *path,
     return false;
   }
 
-  STRNCPY(temp, basepath);
+  STRNCPY(base_path, basepath);
 
 #ifdef WIN32
   if (BLI_strnlen(path, 3) > 2) {
     bool is_unc = BLI_path_is_unc(path);
 
     /* Ensure paths are both UNC paths or are both drives. */
-    if (BLI_path_is_unc(temp) != is_unc) {
+    if (BLI_path_is_unc(base_path) != is_unc) {
       return false;
     }
 
     /* Ensure both UNC paths are on the same share. */
     if (is_unc) {
-      int off;
-      int slash = 0;
-      for (off = 0; temp[off] && slash < 4; off++) {
-        if (temp[off] != path[off]) {
+      int offset;
+      int num_slashes = 0;
+      for (offset = 0; base_path[offset] && num_slashes < 4; offset++) {
+        if (base_path[offset] != path[offset]) {
           return false;
         }
 
-        if (temp[off] == '\\') {
-          slash++;
+        if (base_path[offset] == '\\') {
+          num_slashes++;
         }
       }
     }
-    else if ((temp[1] == ':' && path[1] == ':') && (tolower(temp[0]) != tolower(path[0]))) {
+    else if ((base_path[1] == ':' && path[1] == ':') &&
+             (tolower(base_path[0]) != tolower(path[0])))
+    {
       return false;
     }
   }
 #endif
 
-  BLI_string_replace_char(temp + BLI_path_unc_prefix_len(temp), '\\', '/');
+  BLI_string_replace_char(base_path + BLI_path_unc_prefix_len(base_path), '\\', '/');
   BLI_string_replace_char(path + BLI_path_unc_prefix_len(path), '\\', '/');
 
   /* Remove `/./` which confuse the following slash counting. */
   BLI_path_normalize(path);
-  BLI_path_normalize(temp);
+  BLI_path_normalize(base_path);
 
   /* The last slash in the path indicates where the path part ends. */
-  lslash = BLI_path_slash_rfind(temp);
+  base_dir_end = BLI_path_slash_rfind(base_path);
 
-  if (lslash) {
+  if (base_dir_end) {
     /* Find the prefix of the filename that is equal for both filenames.
      * This is replaced by the two slashes at the beginning. */
-    const char *p = temp;
-    const char *q = path;
+    const char *base_iter = base_path;
+    const char *path_iter = path;
 
 #ifdef WIN32
-    while (tolower(*p) == tolower(*q))
+    while (tolower(*base_iter) == tolower(*path_iter))
 #else
-    while (*p == *q)
+    while (*base_iter == *path_iter)
 #endif
     {
-      p++;
-      q++;
+      base_iter++;
+      path_iter++;
 
       /* Don't search beyond the end of the string in the rare case they match. */
-      if ((*p == '\0') || (*q == '\0')) {
+      if ((*base_iter == '\0') || (*path_iter == '\0')) {
         break;
       }
     }
 
     /* We might have passed the slash when the beginning of a dir matches
      * so we rewind. Only check on the actual filename. */
-    if (*q != '/') {
-      while ((q >= path) && (*q != '/')) {
-        q--;
-        p--;
+    if (*path_iter != '/') {
+      while ((path_iter >= path) && (*path_iter != '/')) {
+        path_iter--;
+        base_iter--;
       }
     }
-    else if (*p != '/') {
-      while ((p >= temp) && (*p != '/')) {
-        p--;
-        q--;
+    else if (*base_iter != '/') {
+      while ((base_iter >= base_path) && (*base_iter != '/')) {
+        base_iter--;
+        path_iter--;
       }
     }
 
-    char res[FILE_MAX] = "//";
-    char *r = res + (blend_relative ? 2 : 0);
+    char result[FILE_MAX] = "//";
+    char *result_iter = result + (blend_relative ? 2 : 0);
 
-    /* `p` now points to the slash that is at the beginning of the part
+    /* `base_iter` now points to the slash that is at the beginning of the part
      * where the path is different from the relative path.
      * We count the number of directories we need to go up in the
      * hierarchy to arrive at the common prefix of the path. */
-    if (p < temp) {
-      p = temp;
+    if (base_iter < base_path) {
+      base_iter = base_path;
     }
-    while (p && p < lslash) {
-      if (*p == '/') {
+    while (base_iter && base_iter < base_dir_end) {
+      if (*base_iter == '/') {
         if (!walk_up) {
           return false;
         }
-        r += BLI_strncpy_rlen(r, "../", sizeof(res) - (r - res));
+        result_iter += BLI_strncpy_rlen(
+            result_iter, "../", sizeof(result) - (result_iter - result));
       }
-      p++;
+      base_iter++;
     }
 
     /* Don't copy the slash at the beginning. */
-    r += BLI_strncpy_rlen(r, q + 1, sizeof(res) - (r - res));
-    UNUSED_VARS(r);
+    result_iter += BLI_strncpy_rlen(
+        result_iter, path_iter + 1, sizeof(result) - (result_iter - result));
+    UNUSED_VARS(result_iter);
 
 #ifdef WIN32
-    BLI_string_replace_char(res + (blend_relative ? 2 : 0), '/', '\\');
+    BLI_string_replace_char(result + (blend_relative ? 2 : 0), '/', '\\');
 #endif
-    BLI_strncpy(path, res, path_maxncpy);
+    BLI_strncpy(path, result, path_maxncpy);
     return true;
   }
 
