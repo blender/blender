@@ -120,7 +120,7 @@ static void calc_faces(const Depsgraph &depsgraph,
         depsgraph, object, faces, corner_verts, *cache.automasking, node, face_indices, factors);
   }
 
-  calc_brush_texture_factors(ss, brush, face_centers, factors);
+  calc_brush_texture_factors(PaintMode::Sculpt, ss, brush, face_centers, factors);
   scale_factors(factors, strength);
 
   apply_face_set(face_set_id, face_indices, factors, face_sets);
@@ -202,7 +202,7 @@ static void calc_grids(const Depsgraph &depsgraph,
 
   auto_mask::calc_grids_factors(depsgraph, object, cache.automasking.get(), node, grids, factors);
 
-  calc_brush_texture_factors(ss, brush, positions, factors);
+  calc_brush_texture_factors(PaintMode::Sculpt, ss, brush, positions, factors);
   scale_factors(factors, strength);
 
   tls.face_indices.resize(positions.size());
@@ -294,7 +294,7 @@ static void calc_bmesh(Object &object,
   apply_hardness_to_distances(cache, distances);
   calc_brush_strength_factors(cache, brush, distances, factors);
 
-  calc_brush_texture_factors(ss, brush, positions, factors);
+  calc_brush_texture_factors(PaintMode::Sculpt, ss, brush, positions, factors);
   scale_factors(factors, strength);
 
   apply_face_set(face_set_id, faces, factors, cd_offset);

@@ -966,17 +966,17 @@ void BKE_brush_curve_preset(Brush *b, eCurveMappingPreset preset)
   BKE_brush_tag_unsaved_changes(b);
 }
 
-const MTex *BKE_brush_mask_texture_get(const Brush *brush, const eObjectMode object_mode)
+const MTex *BKE_brush_mask_texture_get(const Brush *brush, const PaintMode paint_mode)
 {
-  if (object_mode == OB_MODE_SCULPT) {
+  if (ELEM(paint_mode, PaintMode::Sculpt, PaintMode::Vertex)) {
     return &brush->mtex;
   }
   return &brush->mask_mtex;
 }
 
-const MTex *BKE_brush_color_texture_get(const Brush *brush, const eObjectMode object_mode)
+const MTex *BKE_brush_color_texture_get(const Brush *brush, const PaintMode paint_mode)
 {
-  if (object_mode == OB_MODE_SCULPT) {
+  if (ELEM(paint_mode, PaintMode::Sculpt, PaintMode::Vertex)) {
     return &brush->mask_mtex;
   }
   return &brush->mtex;

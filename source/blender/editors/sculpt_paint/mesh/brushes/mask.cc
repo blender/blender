@@ -90,7 +90,7 @@ static void calc_faces(const Depsgraph &depsgraph,
 
   auto_mask::calc_vert_factors(depsgraph, object, cache.automasking.get(), node, verts, factors);
 
-  calc_brush_texture_factors(ss, brush, positions, verts, factors);
+  calc_brush_texture_factors(PaintMode::Sculpt, ss, brush, positions, verts, factors);
 
   Array<float, bke::pbvh::MESH_LEAF_LIMIT> new_masks(verts.size());
   gather_data_mesh<float>(mask.as_span(), verts, new_masks);
@@ -136,7 +136,7 @@ static void calc_grids(const Depsgraph &depsgraph,
 
   auto_mask::calc_grids_factors(depsgraph, object, cache.automasking.get(), node, grids, factors);
 
-  calc_brush_texture_factors(ss, brush, positions, factors);
+  calc_brush_texture_factors(PaintMode::Sculpt, ss, brush, positions, factors);
 
   tls.new_masks.resize(positions.size());
   const MutableSpan<float> new_masks = tls.new_masks;
@@ -184,7 +184,7 @@ static void calc_bmesh(const Depsgraph &depsgraph,
 
   auto_mask::calc_vert_factors(depsgraph, object, cache.automasking.get(), node, verts, factors);
 
-  calc_brush_texture_factors(ss, brush, positions, factors);
+  calc_brush_texture_factors(PaintMode::Sculpt, ss, brush, positions, factors);
 
   tls.new_masks.resize(verts.size());
   const MutableSpan<float> new_masks = tls.new_masks;

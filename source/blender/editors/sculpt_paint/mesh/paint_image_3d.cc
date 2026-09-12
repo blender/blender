@@ -580,7 +580,8 @@ static void do_paint_pixels(const Paint &paint,
             filter_distances_with_radius(cache.radius, tri_distances, tri_factors);
             apply_hardness_to_distances(cache, tri_distances);
             calc_brush_strength_factors(cache, brush, tri_distances, tri_factors);
-            calc_brush_texture_factors(ss, brush, tri_positions, tri_factors);
+            calc_brush_texture_factors(
+                PaintMode::Texture3D, ss, brush, tri_positions, tri_factors);
             scale_factors(tri_factors, cache.bstrength);
 
             /* Track which subset of the run has non-zero factors. */
