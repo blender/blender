@@ -131,12 +131,15 @@ static const char *shortcut_get_operator_property(bContext *C, Button *but, IDPr
       return "WM_OT_context_toggle";
     }
     if (rnaprop_type == PROP_ENUM) {
-      /* Enum */
-      *r_prop = shortcut_property_from_rna(C, but);
+      /* `is_enum_menu` is true for expanded enum properties. It's to add shortcut to individual
+       * enum item, see: !163600 */
+      const bool is_enum_menu = but->type == ButtonType::Menu;
+      *r_prop = is_enum_menu ? shortcut_property_from_rna(C, but) :
+                               shortcut_property_from_rna_for_enum(C, but, but);
       if (*r_prop == nullptr) {
         return nullptr;
       }
-      return "WM_OT_context_menu_enum";
+      return is_enum_menu ? "WM_OT_context_menu_enum" : "WM_OT_context_set_enum";
     }
   }
 
