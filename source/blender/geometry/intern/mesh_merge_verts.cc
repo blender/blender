@@ -1766,6 +1766,18 @@ static Mesh *create_merged_mesh(const Mesh &mesh,
         Span(src, mesh.corners_num), dst_to_src_corners, MutableSpan(dst, result->corners_num));
   }
 
+  for (const eCustomDataType type : {CD_MDISPS, CD_GRID_PAINT_MASK}) {
+    if (!CustomData_has_layer(&mesh.corner_data, type)) {
+      continue;
+    }
+    CustomData_add_layer(&result->corner_data, type, CD_CONSTRUCT, result->corners_num);
+    for (const int dst_corner : IndexRange(result->corners_num)) {
+      const int src_corner = dst_to_src_corners[dst_corner].first();
+      CustomData_copy_layer_type_data(
+          &mesh.corner_data, &result->corner_data, type, src_corner, dst_corner, 1);
+    }
+  }
+
   debug_randomize_mesh_order(result);
 
   return result;
