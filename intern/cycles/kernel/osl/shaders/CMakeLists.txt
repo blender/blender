@@ -10,6 +10,7 @@ set(SRC_OSL
   node_attribute.osl
   node_background.osl
   node_bevel.osl
+  node_boolean_math.osl
   node_brick_texture.osl
   node_brightness.osl
   node_bump.osl

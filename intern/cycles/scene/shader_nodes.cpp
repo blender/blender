@@ -31,6 +31,7 @@
 #include "util/transform.h"
 
 #include "kernel/closure/bsdf_microfacet.h"
+#include "kernel/svm/boolean_math.h"
 #include "kernel/svm/color_util.h"
 #include "kernel/svm/mapping_util.h"
 #include "kernel/svm/math_util.h"
@@ -7034,6 +7035,61 @@ void MathNode::compile(OSLCompiler &compiler)
 {
   compiler.parameter(this, "math_type");
   compiler.add(this, "node_math");
+}
+
+/* Boolean Math */
+
+NODE_DEFINE(BooleanMathNode)
+{
+  NodeType *type = NodeType::add("boolean_math", create, NodeType::SHADER);
+
+  static NodeEnum type_enum;
+  type_enum.insert("and", NODE_BOOLEAN_MATH_AND);
+  type_enum.insert("or", NODE_BOOLEAN_MATH_OR);
+  type_enum.insert("not", NODE_BOOLEAN_MATH_NOT);
+  type_enum.insert("nand", NODE_BOOLEAN_MATH_NAND);
+  type_enum.insert("nor", NODE_BOOLEAN_MATH_NOR);
+  type_enum.insert("xnor", NODE_BOOLEAN_MATH_XNOR);
+  type_enum.insert("xor", NODE_BOOLEAN_MATH_XOR);
+  type_enum.insert("imply", NODE_BOOLEAN_MATH_IMPLY);
+  type_enum.insert("nimply", NODE_BOOLEAN_MATH_NIMPLY);
+  SOCKET_ENUM(math_type, "Type", type_enum, NODE_BOOLEAN_MATH_AND);
+
+  SOCKET_IN_INT(boolean1, "Boolean1", 0);
+  SOCKET_IN_INT(boolean2, "Boolean2", 0);
+
+  SOCKET_OUT_INT(boolean, "Boolean");
+
+  return type;
+}
+
+BooleanMathNode::BooleanMathNode() : ShaderNode(get_node_type()) {}
+
+void BooleanMathNode::constant_fold(const ConstantFolder &folder)
+{
+  /* In the future this could constant fold for e.g. the AND operation when the first input is
+   * false, even if the second input is not constant.*/
+  if (folder.all_inputs_constant()) {
+    folder.make_constant(svm_boolean_math(math_type, boolean1, boolean2));
+  }
+}
+
+void BooleanMathNode::compile(SVMCompiler &compiler)
+{
+  compiler.add_node(this,
+                    NODE_BOOLEAN_MATH,
+                    SVMNodeBooleanMath{
+                        .math_type = math_type,
+                        .value1 = compiler.input_int("Boolean1"),
+                        .value2 = compiler.input_int("Boolean2"),
+                        .result_offset = compiler.output("Boolean"),
+                    });
+}
+
+void BooleanMathNode::compile(OSLCompiler &compiler)
+{
+  compiler.parameter(this, "math_type");
+  compiler.add(this, "node_boolean_math");
 }
 
 /* VectorMath */

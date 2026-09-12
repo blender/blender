@@ -56,6 +56,7 @@ set(SRC_KERNEL_SVM_HEADERS
   svm/attribute.h
   svm/bevel.h
   svm/blackbody.h
+  svm/boolean_math.h
   svm/bump.h
   svm/camera.h
   svm/clamp.h

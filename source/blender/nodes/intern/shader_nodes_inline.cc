@@ -1446,18 +1446,13 @@ class ShaderNodesInliner {
       return;
     }
 
-    /* Convert the condition to either 0 or 1 so that it can be used as factor input without
-     * accidentally mixing between the two input values. */
-    bNode &to_bool_math_node = *this->add_node("ShaderNodeMath"_ustr);
-    to_bool_math_node.custom1 = NODE_MATH_GREATER_THAN;
-    bNodeSocket &to_bool_in_1 = *to_bool_math_node.inputs.first();
-    bNodeSocket &to_bool_in_2 = *to_bool_in_1.next;
-    bNodeSocket &to_bool_out = *to_bool_math_node.outputs.first();
-    this->set_input_socket_value(node, to_bool_math_node, to_bool_in_1, *switch_input_value);
-    static_cast<bNodeSocketValueFloat *>(to_bool_in_2.default_value)->value = 0.0f;
-
     const MixNodeInfo mix = this->create_mix_node(*internal_mix_type);
-    bke::node_add_link(dst_tree_, to_bool_math_node, to_bool_out, *mix.node, *mix.factor_in);
+    this->set_input_socket_value(node,
+                                 *mix.node,
+                                 *mix.factor_in,
+                                 this->handle_implicit_conversion(*switch_input_value,
+                                                                  *switch_input->typeinfo,
+                                                                  *mix.factor_in->typeinfo));
 
     const SocketInContext false_input = node.input_socket(1);
     const SocketInContext true_input = node.input_socket(2);
@@ -1691,6 +1686,15 @@ class ShaderNodesInliner {
       return src_value;
     }
     if (std::get_if<LinkedSocketValue>(&src_value.value)) {
+      if (to_socket_type.type == SOCK_BOOLEAN) {
+        if (ELEM(from_socket_type.type, SOCK_FLOAT, SOCK_INT, SOCK_RGBA)) {
+          /* The same to-bool conversion happens to work for integer and color sockets too. */
+          return {this->insert_float_to_bool_conversion(src_value)};
+        }
+        if (from_socket_type.type == SOCK_VECTOR) {
+          return {this->insert_vector_to_bool_conversion(src_value)};
+        }
+      }
       return src_value;
     }
     if (std::get_if<DanglingValue>(&src_value.value)) {
@@ -1733,6 +1737,35 @@ class ShaderNodesInliner {
     }
 
     return SocketValue{FallbackValue{}};
+  }
+
+  /**
+   * By convention the float->bool conversion uses x > 0. Also see #float_to_bool.
+   * This is done explicitly by the inliner because the individual render engines don't necessarily
+   * support booleans natively and thus also don't do the conversion explicitly.
+   */
+  LinkedSocketValue insert_float_to_bool_conversion(const SocketValue &src_value)
+  {
+    bNode &math_node = *this->add_node("ShaderNodeMath"_ustr);
+    math_node.custom1 = NODE_MATH_GREATER_THAN;
+    bNodeSocket &value_in = *math_node.inputs.first();
+    bNodeSocket &threshold_in = *value_in.next;
+    bNodeSocket &value_out = *math_node.outputs.first();
+    this->set_input_socket_value({}, math_node, value_in, src_value);
+    static_cast<bNodeSocketValueFloat *>(threshold_in.default_value)->value = 0.0f;
+    return {&math_node, &value_out};
+  }
+
+  /** This mimics #float3_to_bool. */
+  LinkedSocketValue insert_vector_to_bool_conversion(const SocketValue &src_value)
+  {
+    bNode &length_node = *this->add_node("ShaderNodeVectorMath"_ustr);
+    length_node.custom1 = NODE_VECTOR_MATH_LENGTH;
+    length_node.typeinfo->updatefunc(&dst_tree_, &length_node);
+    bNodeSocket &vector_in = *length_node.inputs.first();
+    bNodeSocket &length_out = *bke::node_find_socket(length_node, SOCK_OUT, "Value"_ustr);
+    this->set_input_socket_value({}, length_node, vector_in, src_value);
+    return this->insert_float_to_bool_conversion({LinkedSocketValue{&length_node, &length_out}});
   }
 
   void set_input_socket_value(const NodeInContext &original_node,
