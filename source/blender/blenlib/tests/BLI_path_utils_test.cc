@@ -1732,6 +1732,67 @@ TEST(path_utils, Contains_Windows_case_insensitive)
 /** \} */
 
 /* -------------------------------------------------------------------- */
+/** \name Tests for: #BLI_path_relative_to
+ * \{ */
+
+TEST(path_utils, RelativeTo)
+{
+  char relative[FILE_MAX];
+
+  EXPECT_TRUE(
+      BLI_path_relative_to("/some/path/inside", "/some/path", false, relative, sizeof(relative)));
+  EXPECT_STREQ(relative, "inside");
+
+  EXPECT_TRUE(
+      BLI_path_relative_to("/some/path/in/side", "/some/path/", false, relative, sizeof(relative)))
+      << "Trailing slash on base makes no difference";
+  EXPECT_STREQ(relative, "in" SEP_STR "side");
+
+  EXPECT_TRUE(BLI_path_relative_to(
+      "/some/path/../path/inside", "/some/path", false, relative, sizeof(relative)));
+  EXPECT_STREQ(relative, "inside") << "Relative path is normalized";
+
+  STRNCPY(relative, "uninitialized");
+  EXPECT_FALSE(
+      BLI_path_relative_to("/some/path_library", "/some/path", false, relative, sizeof(relative)));
+  EXPECT_STREQ(relative, "");
+
+  STRNCPY(relative, "uninitialized");
+  EXPECT_FALSE(
+      BLI_path_relative_to("/some/outside", "/some/path", false, relative, sizeof(relative)));
+  EXPECT_STREQ(relative, "");
+
+#ifdef WIN32
+  /* Case insensitive on Windows only. */
+  EXPECT_TRUE(BLI_path_relative_to(
+      "c:\\SOME\\path\\InSide", "C:\\some\\path", false, relative, sizeof(relative)));
+  EXPECT_STREQ(relative, "InSide") << "Case insensitive on Windows";
+#endif
+}
+
+TEST(path_utils, RelativeTo_walk_up)
+{
+  char relative[FILE_MAX];
+
+  EXPECT_TRUE(
+      BLI_path_relative_to("/some/path/inside", "/some/path", true, relative, sizeof(relative)));
+  EXPECT_STREQ(relative, "inside");
+
+  EXPECT_TRUE(
+      BLI_path_relative_to("/some/outside", "/some/path", true, relative, sizeof(relative)));
+  EXPECT_STREQ(relative, ".." SEP_STR "outside");
+
+  EXPECT_TRUE(
+      BLI_path_relative_to("/some/path_library", "/some/path", true, relative, sizeof(relative)));
+  EXPECT_STREQ(relative, ".." SEP_STR "path_library") << "Sibling path";
+
+  EXPECT_TRUE(BLI_path_relative_to("/a/b/c/d", "/a/x/y", true, relative, sizeof(relative)));
+  EXPECT_STREQ(relative, ".." SEP_STR ".." SEP_STR "b" SEP_STR "c" SEP_STR "d");
+}
+
+/** \} */
+
+/* -------------------------------------------------------------------- */
 /** \name Tests for: #BLI_path_has_hidden_component
  * \{ */
 
