@@ -101,6 +101,24 @@ static VectorSet<StringRefNull> &g_all_view_names()
   return g_all_view_names_;
 }
 
+struct ColorManagedConfigPath {
+  /* Absolute file path or URI. */
+  std::string path;
+  ColorManagedConfigSource source = ColorManagedConfigSource::Fallback;
+
+  friend bool operator==(const ColorManagedConfigPath &a, const ColorManagedConfigPath &b)
+  {
+    return a.source == b.source && a.path == b.path;
+  }
+};
+
+/* The active config. */
+static ColorManagedConfigPath &g_config_active()
+{
+  static ColorManagedConfigPath g_config_active_;
+  return g_config_active_;
+}
+
 #define DISPLAY_BUFFER_CHANNELS 4
 
 /* ** list of all supported color spaces, displays and views */
@@ -310,6 +328,7 @@ static void colormanage_free_config()
 {
   g_config() = nullptr;
   g_all_view_names().clear();
+  g_config_active() = {};
 }
 
 static void colormanage_set_ocio_env(const char *filepath,
@@ -360,7 +379,7 @@ void colormanagement_init()
     }
   }
 
-  /* Then try bundled configuration file. */
+  /* Then try Blender configuration file. */
   if (g_config() == nullptr) {
     const std::optional<std::string> configdir = BKE_appdir_folder_id(BLENDER_DATAFILES,
                                                                       "colormanagement");
@@ -376,7 +395,7 @@ void colormanagement_init()
       if (g_config() != nullptr) {
         ok = colormanage_load_config(*g_config());
         if (!ok) {
-          CLOG_ERROR(&LOG, "Failed to load bundled config");
+          CLOG_ERROR(&LOG, "Failed to load Blender config");
           colormanage_free_config();
         }
       }
@@ -403,6 +422,16 @@ void colormanagement_exit()
   global_color_picking_state = GlobalColorPickingState();
 
   colormanage_free_config();
+}
+
+StringRefNull IMB_colormanagement_config_path_get()
+{
+  return g_config_active().path;
+}
+
+ColorManagedConfigSource IMB_colormanagement_config_source_get()
+{
+  return g_config_active().source;
 }
 
 /** \} */
@@ -433,6 +462,9 @@ bool IMB_colormanagement_switch_config(const char *filepath)
 
   /* Load roles, matrices and view names from the new configuration. */
   colormanage_load_config(*g_config());
+
+  /* The `OCIO` environment variable now points to this config. */
+  g_config_active() = {filepath, ColorManagedConfigSource::EnvOCIO};
 
   CLOG_INFO_NOCHECK(&LOG, "Switched OpenColorIO config to '%s'", filepath);
   return true;
