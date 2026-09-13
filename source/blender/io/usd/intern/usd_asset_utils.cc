@@ -20,7 +20,6 @@
 #include "BLI_fileops.hh"
 #include "BLI_path_utils.hh"
 #include "BLI_string.hh"
-#include "BLI_string_utils.hh"
 
 #include "WM_api.hh"
 
@@ -556,14 +555,16 @@ std::string get_relative_path(const std::string &path, const std::string &anchor
 
   if (BLI_is_file(path.c_str()) && BLI_is_file(anchor.c_str())) {
     /* Treat the paths as standard files. */
+    char anchor_dir[FILE_MAX];
+    BLI_path_split_dir_part(anchor.c_str(), anchor_dir, sizeof(anchor_dir));
+
+    const bool walk_up = true;
     char rel_path[FILE_MAX];
-    STRNCPY(rel_path, path.c_str());
-    BLI_path_rel(rel_path, anchor.c_str());
-    if (!BLI_path_is_rel(rel_path)) {
+    if (!BLI_path_relative_to(path.c_str(), anchor_dir, walk_up, rel_path, sizeof(rel_path))) {
       return path;
     }
-    BLI_string_replace_char(rel_path, '\\', '/');
-    return rel_path + 2;
+    BLI_path_slash_forward_from_native(rel_path);
+    return rel_path;
   }
 
   /* If we got here, the paths may be URIs or files on the file system. */
@@ -612,17 +613,17 @@ std::string get_relative_path(const std::string &path, const std::string &anchor
     return path;
   }
 
+  const bool walk_up = true;
   char result_path[FILE_MAX];
-  STRNCPY(result_path, resolved_path.c_str());
-  BLI_path_rel(result_path, anchor_parent_dir);
-
-  if (BLI_path_is_rel(result_path)) {
-    /* Strip the Blender relative path marker, and set paths to Unix-style. */
-    BLI_string_replace_char(result_path, '\\', '/');
-    return std::string(result_path + 2);
+  if (!BLI_path_relative_to(
+          resolved_path.c_str(), anchor_parent_dir, walk_up, result_path, sizeof(result_path)))
+  {
+    return path;
   }
 
-  return path;
+  /* Set paths to Unix-style. */
+  BLI_path_slash_forward_from_native(result_path);
+  return std::string(result_path);
 }
 
 void USD_path_abs(char *path, const char *basepath, bool for_import)
