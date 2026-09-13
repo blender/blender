@@ -1338,7 +1338,7 @@ ID *WM_operator_drop_load_path(bContext *C, wmOperator *op, const short idcode)
     errno = 0;
 
     if (idcode == ID_IM) {
-      id = reinterpret_cast<ID *>(BKE_image_load_exists(bmain, filepath, &exists));
+      id = reinterpret_cast<ID *>(BKE_image_load_exists(bmain, filepath, true, &exists));
     }
     else {
       BLI_assert_unreachable();
