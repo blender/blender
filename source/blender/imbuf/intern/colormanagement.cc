@@ -12,6 +12,7 @@
 
 #include <cmath>
 #include <cstring>
+#include <optional>
 #include <string>
 
 #include "DNA_ID.h"
@@ -86,8 +87,6 @@ static void processor_transform_apply_threaded(uchar *byte_buffer,
                                                ColormanageProcessor *cm_processor,
                                                bool predivide);
 
-static bool g_config_is_custom = false;
-
 /* Lazily init inside function so it gets destructed before guardedalloc leak check. */
 static std::unique_ptr<ocio::Config> &g_config()
 {
@@ -117,6 +116,25 @@ static ColorManagedConfigPath &g_config_active()
 {
   static ColorManagedConfigPath g_config_active_;
   return g_config_active_;
+}
+
+/* The config that was requested, possibly not active if failed to load. */
+static Vector<ColorManagedConfigPath> &g_config_requested()
+{
+  static Vector<ColorManagedConfigPath> g_config_requested_;
+  return g_config_requested_;
+}
+
+/* Environment variables at startup, as we modify these ourselves and need them
+ * for determining the appropriate config to load when opening a project. */
+struct ColorManagedStartupEnv {
+  std::optional<std::string> blender_ocio;
+  std::optional<std::string> ocio;
+};
+static ColorManagedStartupEnv &g_startup_env()
+{
+  static ColorManagedStartupEnv g_startup_env_;
+  return g_startup_env_;
 }
 
 #define DISPLAY_BUFFER_CHANNELS 4
@@ -240,6 +258,12 @@ static void colormanage_update_matrices(const ocio::Config &config)
       colorspace::scene_linear_to_rec709, float3x3::identity(), 0.0001f);
 }
 
+static void colormanage_clear_config()
+{
+  global_color_picking_state = GlobalColorPickingState();
+  g_all_view_names().clear();
+}
+
 /**
  * Load roles, view names and matrices from the config into the global state.
  * With #validate_only, only check the config is usable and leave global state untouched.
@@ -298,6 +322,8 @@ static bool colormanage_load_config(const ocio::Config &config, const bool valid
     return ok;
   }
 
+  colormanage_clear_config();
+
   STRNCPY(global_role_data, role_data);
   STRNCPY(global_role_scene_linear, role_scene_linear);
   STRNCPY(global_role_color_picking, role_color_picking);
@@ -326,8 +352,8 @@ static bool colormanage_load_config(const ocio::Config &config, const bool valid
 
 static void colormanage_free_config()
 {
+  colormanage_clear_config();
   g_config() = nullptr;
-  g_all_view_names().clear();
   g_config_active() = {};
 }
 
@@ -351,67 +377,128 @@ static void colormanage_restore_ocio_env(const std::optional<std::string> &old_o
   BLI_setenv("OCIO", old_ocio_env.has_value() ? old_ocio_env->c_str() : nullptr);
 }
 
+static Vector<ColorManagedConfigPath> colormanage_config_candidates_get()
+{
+  Vector<ColorManagedConfigPath> candidates;
+
+  const ColorManagedStartupEnv &env = g_startup_env();
+  if (env.blender_ocio.has_value()) {
+    if (!env.blender_ocio->empty()) {
+      candidates.append({*env.blender_ocio, ColorManagedConfigSource::EnvBlenderOCIO});
+    }
+  }
+  else if (env.ocio.has_value() && !env.ocio->empty()) {
+    candidates.append({*env.ocio, ColorManagedConfigSource::EnvOCIO});
+  }
+
+  /* Blender config. */
+  const std::optional<std::string> configdir = BKE_appdir_folder_id(BLENDER_DATAFILES,
+                                                                    "colormanagement");
+  if (configdir.has_value()) {
+    char configfile[FILE_MAX];
+    BLI_path_join(configfile, sizeof(configfile), configdir->c_str(), BCM_CONFIG_FILE);
+    candidates.append({configfile, ColorManagedConfigSource::Blender});
+  }
+
+  /* Fallback config. */
+  candidates.append({"", ColorManagedConfigSource::Fallback});
+
+  return candidates;
+}
+
+static const char *colormanage_config_source_identifier(const ColorManagedConfigSource source)
+{
+  switch (source) {
+    case ColorManagedConfigSource::EnvBlenderOCIO:
+      return "BLENDER_OCIO";
+    case ColorManagedConfigSource::EnvOCIO:
+      return "OCIO";
+    case ColorManagedConfigSource::Blender:
+      return "Blender";
+    case ColorManagedConfigSource::Fallback:
+      return "fallback";
+  }
+
+  BLI_assert_unreachable();
+  return "";
+}
+
+static void colormanage_config_load_candidates(const Span<ColorManagedConfigPath> candidates)
+{
+  g_config_requested() = candidates;
+
+  for (const ColorManagedConfigPath &candidate : candidates) {
+    /* Already active? */
+    if (g_config() && g_config_active() == candidate) {
+      break;
+    }
+
+    const bool is_fallback = candidate.source == ColorManagedConfigSource::Fallback;
+
+    /* Load the config. */
+    std::unique_ptr<ocio::Config> config;
+    std::optional<std::string> old_ocio_env;
+    if (is_fallback) {
+      config = ocio::Config::create_fallback();
+    }
+    else {
+      BLI_assert(!candidate.path.empty());
+      colormanage_set_ocio_env(candidate.path.c_str(), old_ocio_env);
+      config = ocio::Config::create_from_environment();
+    }
+
+    /* Validate without touching global state, so a failed candidate leaves the active
+     * config as is. Fallback is always accepted, should never fail in practice. */
+    const auto validate = [&](const ocio::Config &new_config) {
+      return colormanage_load_config(new_config, true) || is_fallback;
+    };
+
+    bool loaded = false;
+    if (config && g_config()) {
+      loaded = g_config()->switch_to(*config, validate);
+    }
+    else if (config && validate(*config)) {
+      g_config() = std::move(config);
+      loaded = true;
+    }
+
+    if (loaded) {
+      /* Load roles, matrices and view names from the new configuration. */
+      colormanage_load_config(*g_config());
+      g_config_active() = candidate;
+      break;
+    }
+
+    colormanage_restore_ocio_env(old_ocio_env);
+
+    CLOG_ERROR(&LOG,
+               "Failed to load config from %s: %s",
+               colormanage_config_source_identifier(candidate.source),
+               candidate.path.c_str());
+  }
+
+  if (g_config_active().source == ColorManagedConfigSource::Blender) {
+    CLOG_INFO(&LOG, "Using Blender config: \"%s\"", g_config_active().path.c_str());
+  }
+  else {
+    CLOG_INFO_NOCHECK(&LOG,
+                      "Using config from %s: \"%s\"",
+                      colormanage_config_source_identifier(g_config_active().source),
+                      g_config_active().path.c_str());
+  }
+}
+
 void colormanagement_init()
 {
-  /* Handle Blender specific override. */
-  const char *blender_ocio_env = BLI_getenv("BLENDER_OCIO");
-  if (blender_ocio_env) {
-    BLI_setenv("OCIO", blender_ocio_env);
+  /* Remember the environment before loading overwrites it. */
+  if (const char *env = BLI_getenv("BLENDER_OCIO")) {
+    g_startup_env().blender_ocio = env;
+  }
+  if (const char *env = BLI_getenv("OCIO")) {
+    g_startup_env().ocio = env;
   }
 
-  /* First try config from environment variable. */
-  const char *ocio_env = BLI_getenv("OCIO");
-
-  if (ocio_env && ocio_env[0] != '\0') {
-    g_config() = ocio::Config::create_from_environment();
-    if (g_config() != nullptr) {
-      CLOG_INFO_NOCHECK(
-          &LOG, "Using %s=%s", (blender_ocio_env) ? "BLENDER_OCIO" : "OCIO", ocio_env);
-      const bool ok = colormanage_load_config(*g_config());
-
-      if (ok) {
-        g_config_is_custom = true;
-      }
-      else {
-        CLOG_ERROR(&LOG, "Failed to load config from environment");
-        colormanage_free_config();
-      }
-    }
-  }
-
-  /* Then try Blender configuration file. */
-  if (g_config() == nullptr) {
-    const std::optional<std::string> configdir = BKE_appdir_folder_id(BLENDER_DATAFILES,
-                                                                      "colormanagement");
-    if (configdir.has_value()) {
-      char configfile[FILE_MAX];
-      BLI_path_join(configfile, sizeof(configfile), configdir->c_str(), BCM_CONFIG_FILE);
-
-      std::optional<std::string> old_ocio_env;
-      colormanage_set_ocio_env(configfile, old_ocio_env);
-      g_config() = ocio::Config::create_from_environment();
-
-      bool ok = false;
-      if (g_config() != nullptr) {
-        ok = colormanage_load_config(*g_config());
-        if (!ok) {
-          CLOG_ERROR(&LOG, "Failed to load Blender config");
-          colormanage_free_config();
-        }
-      }
-
-      if (!ok) {
-        colormanage_restore_ocio_env(old_ocio_env);
-      }
-    }
-  }
-
-  /* Then use fallback. */
-  if (g_config() == nullptr) {
-    CLOG_STR_INFO_NOCHECK(&LOG, "Using fallback mode for management");
-    g_config() = ocio::Config::create_fallback();
-    colormanage_load_config(*g_config());
-  }
+  colormanage_config_load_candidates(colormanage_config_candidates_get());
 
   BLI_init_srgb_conversion();
 }
@@ -419,8 +506,6 @@ void colormanagement_init()
 void colormanagement_exit()
 {
   global_gpu_state.reset();
-  global_color_picking_state = GlobalColorPickingState();
-
   colormanage_free_config();
 }
 
@@ -455,10 +540,6 @@ bool IMB_colormanagement_switch_config(const char *filepath)
     colormanage_restore_ocio_env(old_ocio_env);
     return false;
   }
-
-  /* Reset cached state that depends on the configuration. */
-  global_color_picking_state = GlobalColorPickingState();
-  g_all_view_names().clear();
 
   /* Load roles, matrices and view names from the new configuration. */
   colormanage_load_config(*g_config());
@@ -3430,7 +3511,10 @@ void IMB_colormanagement_working_space_init_startup(Main *bmain)
 {
   /* If using the default config, keep the one saved in the startup blend.
    * If using the non-default OCIO config, assume we want the working space from that config. */
-  if (math::is_zero(bmain->colorspace.scene_linear_to_xyz) || g_config_is_custom) {
+  const bool is_custom_config = !ELEM(g_config_active().source,
+                                      ColorManagedConfigSource::Blender,
+                                      ColorManagedConfigSource::Fallback);
+  if (math::is_zero(bmain->colorspace.scene_linear_to_xyz) || is_custom_config) {
     IMB_colormanagement_working_space_init_default(bmain);
   }
 }
