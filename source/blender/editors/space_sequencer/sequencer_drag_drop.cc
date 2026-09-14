@@ -719,11 +719,13 @@ static void sequencer_dropboxes_add_to_lb(ListBaseT<wmDropBox> *lb)
   drop->on_exit = sequencer_drop_on_exit;
 }
 
-static bool image_drop_preview_poll(bContext * /*C*/, wmDrag *drag, const wmEvent * /*event*/)
+static bool image_drop_preview_poll(bContext *C, wmDrag *drag, const wmEvent * /*event*/)
 {
   if (drag->type == WM_DRAG_PATH) {
     const eFileSel_File_Types file_type = eFileSel_File_Types(WM_drag_get_path_file_type(drag));
-    if (file_type == FILE_TYPE_IMAGE) {
+    if (file_type == FILE_TYPE_IMAGE &&
+        test_single_file_handler_poll(C, drag, "SEQUENCER_FH_image_strip"))
+    {
       return true;
     }
   }
@@ -731,11 +733,13 @@ static bool image_drop_preview_poll(bContext * /*C*/, wmDrag *drag, const wmEven
   return WM_drag_is_ID_type(drag, ID_IM);
 }
 
-static bool movie_drop_preview_poll(bContext * /*C*/, wmDrag *drag, const wmEvent * /*event*/)
+static bool movie_drop_preview_poll(bContext *C, wmDrag *drag, const wmEvent * /*event*/)
 {
   if (drag->type == WM_DRAG_PATH) {
     const eFileSel_File_Types file_type = eFileSel_File_Types(WM_drag_get_path_file_type(drag));
-    if (file_type == FILE_TYPE_MOVIE) {
+    if (file_type == FILE_TYPE_MOVIE &&
+        test_single_file_handler_poll(C, drag, "SEQUENCER_FH_movie_strip"))
+    {
       return true;
     }
   }
@@ -743,11 +747,13 @@ static bool movie_drop_preview_poll(bContext * /*C*/, wmDrag *drag, const wmEven
   return WM_drag_is_ID_type(drag, ID_MC);
 }
 
-static bool sound_drop_preview_poll(bContext * /*C*/, wmDrag *drag, const wmEvent * /*event*/)
+static bool sound_drop_preview_poll(bContext *C, wmDrag *drag, const wmEvent * /*event*/)
 {
   if (drag->type == WM_DRAG_PATH) {
     const eFileSel_File_Types file_type = eFileSel_File_Types(WM_drag_get_path_file_type(drag));
-    if (file_type == FILE_TYPE_SOUND) {
+    if (file_type == FILE_TYPE_SOUND &&
+        test_single_file_handler_poll(C, drag, "SEQUENCER_FH_sound_strip"))
+    {
       return true;
     }
   }
