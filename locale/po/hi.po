@@ -1,9 +1,9 @@
 
 msgid ""
 msgstr ""
-"Project-Id-Version: Blender 5.3.0 Alpha (b'f5df8c32f99b')\n"
+"Project-Id-Version: Blender 5.3.0 Alpha (b'2cef5b8c951a')\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-09-07 07:47+0000\n"
+"POT-Creation-Date: 2026-09-14 07:47+0000\n"
 "PO-Revision-Date: 2025-12-04 22:18+0000\n"
 "Last-Translator: Jackson Zheng <business.jackson.zheng@gmail.com>\n"
 "Language-Team: Hindi <https://translate.blender.org/projects/blender-ui/ui/hi/>\n"
@@ -2586,6 +2586,14 @@ msgid "Placement"
 msgstr "नियोजन"
 
 
+msgid "Show/Hide"
+msgstr "छुपाएँ / दिखाएँ"
+
+
+msgid "Snap"
+msgstr "स्नैप"
+
+
 msgid "Import"
 msgstr "आयात करें"
 
@@ -2598,68 +2606,60 @@ msgid "UV"
 msgstr "यूवी"
 
 
-msgid "Snap"
-msgstr "स्नैप"
-
-
-msgid "Bone Roll"
-msgstr "हड्डी पंजी"
-
-
 msgid "Mirror"
 msgstr "दर्पण"
 
 
-msgid "Show/Hide"
-msgstr "छुपाएँ / दिखाएँ"
-
-
-msgid "Names"
-msgstr "नाम"
-
-
-msgid "Merge"
-msgstr "विलय करें"
-
-
-msgid "Keying"
-msgstr "कुंजीयन"
-
-
-msgid "Enable Bone Options"
-msgstr "हड्डी विकल्प को सक्षम करें"
-
-
-msgid "Toggle Bone Options"
-msgstr "हड्डी विकल्प बंद/बुझ"
-
-
-msgid "Apply"
-msgstr "लागू करें"
-
-
-msgid "Hooks"
-msgstr "खूँटी"
-
-
-msgid "Make Single User"
-msgstr "एकल प्रयोक्ता बनाएँ"
-
-
-msgid "Quick Effects"
-msgstr "त्वरित प्रभाव"
-
-
-msgid "Track"
-msgstr "ट्रैक"
+msgid "Light"
+msgstr "प्रकाश"
 
 
 msgid "Rigid Body"
 msgstr "कठोर-पदार्थ"
 
 
-msgid "Light"
-msgstr "प्रकाश"
+msgid "Apply"
+msgstr "लागू करें"
+
+
+msgid "Track"
+msgstr "ट्रैक"
+
+
+msgid "Quick Effects"
+msgstr "त्वरित प्रभाव"
+
+
+msgid "Keying"
+msgstr "कुंजीयन"
+
+
+msgid "Make Single User"
+msgstr "एकल प्रयोक्ता बनाएँ"
+
+
+msgid "Hooks"
+msgstr "खूँटी"
+
+
+msgid "Names"
+msgstr "नाम"
+
+
+msgid "Toggle Bone Options"
+msgstr "हड्डी विकल्प बंद/बुझ"
+
+
+msgid "Enable Bone Options"
+msgstr "हड्डी विकल्प को सक्षम करें"
+
+
+msgid "Merge"
+msgstr "विलय करें"
+
+
+msgid "Bone Roll"
+msgstr "हड्डी पंजी"
 
 
 msgid "Basic"
@@ -4298,12 +4298,12 @@ msgid "Wrap"
 msgstr "आच्छादन"
 
 
-msgid "Open a Blender file"
-msgstr "एक ब्लेंडर संचिका खोलें"
-
-
 msgid "Trusted Source"
 msgstr "विश्वसनीय स्रोत"
+
+
+msgid "Open a Blender file"
+msgstr "एक ब्लेंडर संचिका खोलें"
 
 
 msgid "Context"
@@ -4414,12 +4414,12 @@ msgid "Lock Y"
 msgstr "तालाबंदी y"
 
 
-msgid "Transform Orientations"
-msgstr "दिक् विन्यास संरचनांतरण"
-
-
 msgid "Motion Tracking"
 msgstr "गति मार्गन"
+
+
+msgid "Transform Orientations"
+msgstr "दिक् विन्यास संरचनांतरण"
 
 
 msgid "Predefined tracking camera intrinsics"

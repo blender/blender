@@ -1,9 +1,9 @@
 
 msgid ""
 msgstr ""
-"Project-Id-Version: Blender 5.3.0 Alpha (b'f5df8c32f99b')\n"
+"Project-Id-Version: Blender 5.3.0 Alpha (b'2cef5b8c951a')\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-09-07 07:47+0000\n"
+"POT-Creation-Date: 2026-09-14 07:47+0000\n"
 "PO-Revision-Date: 2025-12-01 09:17+0000\n"
 "Last-Translator: Matt Mitacek <mattmitacek@gmail.com>\n"
 "Language-Team: Czech <https://translate.blender.org/projects/blender-ui/ui/cs/>\n"
@@ -13811,8 +13811,28 @@ msgid "Material slot name"
 msgstr "Název okénka materiálu"
 
 
+msgid "Show/Hide"
+msgstr "Zobrazit/skrýt"
+
+
+msgid "Clean Up"
+msgstr "Vyčistit"
+
+
+msgid "Pivot Point"
+msgstr "Bod pro pivot"
+
+
+msgid "Snap"
+msgstr "Přichytit"
+
+
 msgid "Instances"
 msgstr "Instance"
+
+
+msgid "Proportional Editing Falloff"
+msgstr "Způsob útlumu"
 
 
 msgid "Import"
@@ -13823,20 +13843,12 @@ msgid "Utilities"
 msgstr "Nástroje"
 
 
-msgid "Select Linked"
-msgstr "Vybrat Propojené"
-
-
 msgid "Math"
 msgstr "Matematika"
 
 
-msgid "Navigation"
-msgstr "Navigace"
-
-
-msgid "Align View"
-msgstr "Zarovnat pohled"
+msgid "Mirror"
+msgstr "Zrcadlit"
 
 
 msgid "UV Mapping"
@@ -13847,36 +13859,28 @@ msgid "Local View"
 msgstr "Lokální pohled"
 
 
-msgid "Snap"
-msgstr "Přichytit"
+msgid "Navigation"
+msgstr "Navigace"
 
 
-msgid "Bone Roll"
-msgstr "Kost"
+msgid "Align View"
+msgstr "Zarovnat pohled"
 
 
-msgid "Mirror"
-msgstr "Zrcadlit"
+msgid "Select Linked"
+msgstr "Vybrat Propojené"
 
 
-msgid "Proportional Editing Falloff"
-msgstr "Způsob útlumu"
+msgid "Assign Material"
+msgstr "Přiřadit Materiál"
 
 
-msgid "Pivot Point"
-msgstr "Bod pro pivot"
+msgid "Metaball"
+msgstr "Meta objekt"
 
 
-msgid "Clean Up"
-msgstr "Vyčistit"
-
-
-msgid "Show/Hide"
-msgstr "Zobrazit/skrýt"
-
-
-msgid "Names"
-msgstr "Názvy"
+msgid "Light"
+msgstr "Světlo"
 
 
 msgid "Linked"
@@ -13887,76 +13891,72 @@ msgid "Layout"
 msgstr "Rozložení"
 
 
-msgid "Metaball"
-msgstr "Meta objekt"
-
-
-msgid "Special Characters"
-msgstr "Speciální Znaky"
-
-
-msgid "Merge"
-msgstr "Sloučit"
-
-
-msgid "Keying"
-msgstr "Klíčovací sestava"
-
-
-msgid "Tracking"
-msgstr "Sledování"
-
-
-msgid "Face Data"
-msgstr "Data Ploch"
-
-
-msgid "Mesh Select Mode"
-msgstr "Síťový mód výběru"
-
-
-msgid "Apply"
-msgstr "Použít"
-
-
-msgid "Propagate"
-msgstr "Vložit"
-
-
-msgid "Clear Transform"
-msgstr "Vyčistit transformaci"
-
-
-msgid "Hooks"
-msgstr "Háky"
-
-
-msgid "Make Single User"
-msgstr "Přivlastnit"
-
-
-msgid "Quick Effects"
-msgstr "Rychlé Efekty"
-
-
-msgid "Track"
-msgstr "Sledování"
+msgid "Relations"
+msgstr "Vztahy"
 
 
 msgid "Rigid Body"
 msgstr "Tuhé Těleso"
 
 
-msgid "Relations"
-msgstr "Vztahy"
+msgid "Apply"
+msgstr "Použít"
 
 
-msgid "Assign Material"
-msgstr "Přiřadit Materiál"
+msgid "Track"
+msgstr "Sledování"
 
 
-msgid "Light"
-msgstr "Světlo"
+msgid "Quick Effects"
+msgstr "Rychlé Efekty"
+
+
+msgid "Keying"
+msgstr "Klíčovací sestava"
+
+
+msgid "Make Single User"
+msgstr "Přivlastnit"
+
+
+msgid "Tracking"
+msgstr "Sledování"
+
+
+msgid "Hooks"
+msgstr "Háky"
+
+
+msgid "Clear Transform"
+msgstr "Vyčistit transformaci"
+
+
+msgid "Propagate"
+msgstr "Vložit"
+
+
+msgid "Names"
+msgstr "Názvy"
+
+
+msgid "Mesh Select Mode"
+msgstr "Síťový mód výběru"
+
+
+msgid "Face Data"
+msgstr "Data Ploch"
+
+
+msgid "Merge"
+msgstr "Sloučit"
+
+
+msgid "Special Characters"
+msgstr "Speciální Znaky"
+
+
+msgid "Bone Roll"
+msgstr "Kost"
 
 
 msgid "Basic"
@@ -30268,28 +30268,20 @@ msgid "Restrict"
 msgstr "Omezit"
 
 
-msgid "Guides"
-msgstr "Vodítka"
+msgid "Active Tool"
+msgstr "Aktivní nástroj"
 
 
-msgid "Transform Orientations"
-msgstr "Orientace transformací"
+msgid "View Lock"
+msgstr "Zámek zobrazení"
 
 
-msgid "Curve Edit Mode"
-msgstr "Editační Režim Křivky"
+msgid "Shadow Settings"
+msgstr "Nastavení Stínů"
 
 
-msgid "Measurement"
-msgstr "Měření"
-
-
-msgid "Mesh Edit Mode"
-msgstr "Editační Režim Sítě"
-
-
-msgid "Motion Tracking"
-msgstr "Sledování Pohybu"
+msgid "SSAO Settings"
+msgstr "Nastavení SSAO"
 
 
 msgid "Cavity"
@@ -30300,28 +30292,36 @@ msgid "Overlays"
 msgstr "Překrytí"
 
 
-msgid "SSAO Settings"
-msgstr "Nastavení SSAO"
+msgid "Guides"
+msgstr "Vodítka"
 
 
-msgid "Shadow Settings"
-msgstr "Nastavení Stínů"
+msgid "Motion Tracking"
+msgstr "Sledování Pohybu"
 
 
-msgid "Active Tool"
-msgstr "Aktivní nástroj"
+msgid "Mesh Edit Mode"
+msgstr "Editační Režim Sítě"
 
 
-msgid "View Lock"
-msgstr "Zámek zobrazení"
+msgid "Measurement"
+msgstr "Měření"
 
 
-msgid "Auto-Masking"
-msgstr "Auto-Maska"
+msgid "Curve Edit Mode"
+msgstr "Editační Režim Křivky"
+
+
+msgid "Transform Orientations"
+msgstr "Orientace transformací"
 
 
 msgid "Stereoscopy"
 msgstr "Stereoskopie"
+
+
+msgid "Auto-Masking"
+msgstr "Auto-Maska"
 
 
 msgid "Chain Scaling"

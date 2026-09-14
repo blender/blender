@@ -1,9 +1,9 @@
 
 msgid ""
 msgstr ""
-"Project-Id-Version: Blender 5.3.0 Alpha (b'f5df8c32f99b')\n"
+"Project-Id-Version: Blender 5.3.0 Alpha (b'2cef5b8c951a')\n"
 "Report-Msgid-Bugs-To: Leandro Paganelli <leandrobp@fastmail.com>\n"
-"POT-Creation-Date: 2026-09-07 07:47+0000\n"
+"POT-Creation-Date: 2026-09-14 07:47+0000\n"
 "PO-Revision-Date: 2026-04-13 10:12+0000\n"
 "Last-Translator: Gilberto Rodrigues <gilbertorodrigues@outlook.com>\n"
 "Language-Team: Portuguese (Brazil) <https://translate.blender.org/projects/blender-ui/ui/pt_BR/>\n"
@@ -21152,60 +21152,44 @@ msgid "Material slot name"
 msgstr "Nome do compartimento do material."
 
 
-msgid "Select More/Less"
-msgstr "Selecionar mais ou menos"
+msgid "Show/Hide"
+msgstr "Mostrar ou ocultar"
+
+
+msgid "Clean Up"
+msgstr "Limpeza"
+
+
+msgid "Pivot Point"
+msgstr "Pontos de pivô"
+
+
+msgid "Snap"
+msgstr "Atrair"
 
 
 msgid "Instances"
 msgstr "Instâncias"
 
 
+msgid "Proportional Editing Falloff"
+msgstr "Tipo de decaimento para edição proporcional"
+
+
 msgid "Import"
 msgstr "Importar"
-
-
-msgid "Select Loops"
-msgstr "Selecionar anéis"
-
-
-msgid "Viewpoint"
-msgstr "Ponto de visualização"
-
-
-msgid "Select All by Trait"
-msgstr "Selecionar todos por características..."
-
-
-msgid "Select Linked"
-msgstr "Selecionar vinculados(as)"
-
-
-msgid "Select Similar"
-msgstr "Selecionar por similaridades"
 
 
 msgid "Math"
 msgstr "Matemática"
 
 
-msgid "Align View to Active"
-msgstr "Alinhar vista para o ativo"
-
-
 msgid "UV"
 msgstr "UV"
 
 
-msgid "View Regions"
-msgstr "Visualizar Regiões"
-
-
-msgid "Navigation"
-msgstr "Navegação"
-
-
-msgid "Align View"
-msgstr "Alinhar visualização"
+msgid "Mirror"
+msgstr "Espelhar"
 
 
 msgid "UV Mapping"
@@ -21216,36 +21200,56 @@ msgid "Local View"
 msgstr "Visão local"
 
 
-msgid "Snap"
-msgstr "Atrair"
+msgid "Viewpoint"
+msgstr "Ponto de visualização"
 
 
-msgid "Bone Roll"
-msgstr "Rolagem dos ossos"
+msgid "Navigation"
+msgstr "Navegação"
 
 
-msgid "Mirror"
-msgstr "Espelhar"
+msgid "Align View"
+msgstr "Alinhar visualização"
 
 
-msgid "Proportional Editing Falloff"
-msgstr "Tipo de decaimento para edição proporcional"
+msgid "Align View to Active"
+msgstr "Alinhar vista para o ativo"
 
 
-msgid "Pivot Point"
-msgstr "Pontos de pivô"
+msgid "View Regions"
+msgstr "Visualizar Regiões"
 
 
-msgid "Clean Up"
-msgstr "Limpeza"
+msgid "Select More/Less"
+msgstr "Selecionar mais ou menos"
 
 
-msgid "Show/Hide"
-msgstr "Mostrar ou ocultar"
+msgid "Select Similar"
+msgstr "Selecionar por similaridades"
 
 
-msgid "Names"
-msgstr "Nomes"
+msgid "Select All by Trait"
+msgstr "Selecionar todos por características..."
+
+
+msgid "Select Linked"
+msgstr "Selecionar vinculados(as)"
+
+
+msgid "Select Loops"
+msgstr "Selecionar anéis"
+
+
+msgid "Metaball"
+msgstr "Meta-esfera"
+
+
+msgid "Light"
+msgstr "Luz"
+
+
+msgid "Light Probe"
+msgstr "Sonda de Luz"
 
 
 msgid "Linked"
@@ -21256,90 +21260,6 @@ msgid "Layout"
 msgstr "Organizar"
 
 
-msgid "Metaball"
-msgstr "Meta-esfera"
-
-
-msgid "Special Characters"
-msgstr "Caracteres especiais"
-
-
-msgid "Merge"
-msgstr "Fundir"
-
-
-msgid "Keying"
-msgstr "Inserção de chaves"
-
-
-msgid "Tracking"
-msgstr "Rastreamento"
-
-
-msgid "Face Data"
-msgstr "Dados das faces"
-
-
-msgid "Mesh Select Mode"
-msgstr "Modo de seleção de malhas"
-
-
-msgid "Disable Bone Options"
-msgstr "Desabilitar as opções de ossos"
-
-
-msgid "Enable Bone Options"
-msgstr "Habilitar opções de ossos"
-
-
-msgid "Toggle Bone Options"
-msgstr "Alternar opções de ossos"
-
-
-msgid "Apply"
-msgstr "Aplicar"
-
-
-msgid "Propagate"
-msgstr "Propagar"
-
-
-msgid "In-Betweens"
-msgstr "Entre as continuidades"
-
-
-msgid "Clear Transform"
-msgstr "Limpar transformações"
-
-
-msgid "Random Mask"
-msgstr "Máscara Aleatória"
-
-
-msgid "Hooks"
-msgstr "Ganchos"
-
-
-msgid "Make Single User"
-msgstr "Tornar usuário único"
-
-
-msgid "Convert"
-msgstr "Converter"
-
-
-msgid "Quick Effects"
-msgstr "Efeitos instantâneos"
-
-
-msgid "Track"
-msgstr "Rastrear"
-
-
-msgid "Rigid Body"
-msgstr "Corpo rígido"
-
-
 msgid "Add Image"
 msgstr "Adicionar Imagem"
 
@@ -21348,12 +21268,92 @@ msgid "Relations"
 msgstr "Relações"
 
 
-msgid "Light Probe"
-msgstr "Sonda de Luz"
+msgid "Rigid Body"
+msgstr "Corpo rígido"
 
 
-msgid "Light"
-msgstr "Luz"
+msgid "Apply"
+msgstr "Aplicar"
+
+
+msgid "Track"
+msgstr "Rastrear"
+
+
+msgid "Quick Effects"
+msgstr "Efeitos instantâneos"
+
+
+msgid "Keying"
+msgstr "Inserção de chaves"
+
+
+msgid "Make Single User"
+msgstr "Tornar usuário único"
+
+
+msgid "Tracking"
+msgstr "Rastreamento"
+
+
+msgid "Convert"
+msgstr "Converter"
+
+
+msgid "Hooks"
+msgstr "Ganchos"
+
+
+msgid "Random Mask"
+msgstr "Máscara Aleatória"
+
+
+msgid "Clear Transform"
+msgstr "Limpar transformações"
+
+
+msgid "In-Betweens"
+msgstr "Entre as continuidades"
+
+
+msgid "Propagate"
+msgstr "Propagar"
+
+
+msgid "Names"
+msgstr "Nomes"
+
+
+msgid "Toggle Bone Options"
+msgstr "Alternar opções de ossos"
+
+
+msgid "Enable Bone Options"
+msgstr "Habilitar opções de ossos"
+
+
+msgid "Disable Bone Options"
+msgstr "Desabilitar as opções de ossos"
+
+
+msgid "Mesh Select Mode"
+msgstr "Modo de seleção de malhas"
+
+
+msgid "Face Data"
+msgstr "Dados das faces"
+
+
+msgid "Merge"
+msgstr "Fundir"
+
+
+msgid "Special Characters"
+msgstr "Caracteres especiais"
+
+
+msgid "Bone Roll"
+msgstr "Rolagem dos ossos"
 
 
 msgid "Basic"
@@ -46759,6 +46759,14 @@ msgid "View a context based online manual in a web browser"
 msgstr "Permite visualizar um manual contextual disponível online em um navegador de internet."
 
 
+msgid "Trusted Source"
+msgstr "Fonte confiável"
+
+
+msgid "Allow .blend file to execute scripts automatically, default available from system preferences"
+msgstr "Permite que o arquivo .blend execute scripts automaticamente, padrão disponível a partir das preferências de sistema."
+
+
 msgctxt "Operator"
 msgid "Export to PDF"
 msgstr "Exportar para PDF"
@@ -46844,14 +46852,6 @@ msgstr "Carregar interface de usuário"
 
 msgid "Load user interface setup in the .blend file"
 msgstr "Carrega a configuração de interface de usuário no arquivo .blend."
-
-
-msgid "Trusted Source"
-msgstr "Fonte confiável"
-
-
-msgid "Allow .blend file to execute scripts automatically, default available from system preferences"
-msgstr "Permite que o arquivo .blend execute scripts automaticamente, padrão disponível a partir das preferências de sistema."
 
 
 msgctxt "Operator"
@@ -47873,24 +47873,24 @@ msgid "Active Palette Color"
 msgstr "Cor ativa da paleta"
 
 
-msgid "Transform Orientations"
-msgstr "Orientações de transformação"
+msgid "Render Pass"
+msgstr "Passo de renderização"
 
 
 msgid "Motion Tracking"
 msgstr "Captura de movimentos"
 
 
-msgid "Render Pass"
-msgstr "Passo de renderização"
-
-
-msgid "Stereoscopy"
-msgstr "Estereoscopia"
+msgid "Transform Orientations"
+msgstr "Orientações de transformação"
 
 
 msgid "Quad View"
 msgstr "Exibição Quadrante"
+
+
+msgid "Stereoscopy"
+msgstr "Estereoscopia"
 
 
 msgid "Bone Constraints"
@@ -59032,6 +59032,10 @@ msgid "Blender Website"
 msgstr "Site do Blender"
 
 
+msgid "Trusted Source [Untrusted Path]"
+msgstr "Fonte confiável [Caminho não garantido]"
+
+
 msgctxt "Operator"
 msgid "Link..."
 msgstr "Vincular..."
@@ -67095,10 +67099,6 @@ msgstr "Visualização de arquivos do Blender"
 
 msgid "Missing 'window' in context"
 msgstr "Faltando \"janela\" no contexto."
-
-
-msgid "Trusted Source [Untrusted Path]"
-msgstr "Fonte confiável [Caminho não garantido]"
 
 
 msgid "Don't Save"

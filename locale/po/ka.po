@@ -1,9 +1,9 @@
 
 msgid ""
 msgstr ""
-"Project-Id-Version: Blender 5.3.0 Alpha (b'f5df8c32f99b')\n"
+"Project-Id-Version: Blender 5.3.0 Alpha (b'2cef5b8c951a')\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-09-07 07:47+0000\n"
+"POT-Creation-Date: 2026-09-14 07:47+0000\n"
 "PO-Revision-Date: 2026-08-29 09:53+0000\n"
 "Last-Translator: Tamar <TamMebonia@gmail.com>\n"
 "Language-Team: Georgian <https://translate.blender.org/projects/blender-ui/ui/ka/>\n"
@@ -19161,10 +19161,6 @@ msgid "Library Weak Reference"
 msgstr "სუსტი მითითება ბიბლიოთეკაზე"
 
 
-msgid "Weak reference to a data-block in another library .blend file (used to re-use already appended data instead of appending new copies)"
-msgstr "სუსტი მითითება მონაცემთა ბლოკზე სხვა ბიბლიოთეკის .blend ფაილში (გამოყენებული უკვე მიმაგრებული მონაცემების ხელახალი მოხმარებისთვის ახალი ასლების მიმაგრების ნაცვლად)"
-
-
 msgid "Unique data-block ID name (within a same type and library)"
 msgstr "მონაცემთა ბლოკის უნიკალური ID სახელი (იმავე ტიპისა და ბიბლიოთეკის ფარგლებში)"
 
@@ -35926,18 +35922,6 @@ msgid "Editor menu containing buttons"
 msgstr "რედაქტორის მენიუ, რომელიც ღილაკებს შეიცავს"
 
 
-msgid "Select More/Less"
-msgstr "მეტის/ნაკლების მონიშვნა"
-
-
-msgid "Gizmo"
-msgstr "გიზმო"
-
-
-msgid "Instances"
-msgstr "ინსტანციები"
-
-
 msgid "Read"
 msgstr "წაკითხვა"
 
@@ -35946,72 +35930,84 @@ msgid "Sample"
 msgstr "ნიმუშის აღება"
 
 
+msgid "Show/Hide"
+msgstr "ჩვენება/დამალვა"
+
+
 msgid "Write"
 msgstr "წერა"
+
+
+msgid "Clean Up"
+msgstr "გასუფთავება"
 
 
 msgid "Primitives"
 msgstr "პრიმიტივები"
 
 
+msgid "Pivot Point"
+msgstr "ბრუნვის ცენტრი"
+
+
+msgid "Gizmo"
+msgstr "გიზმო"
+
+
+msgid "Snap"
+msgstr "მიკვრა"
+
+
+msgid "Instances"
+msgstr "ინსტანციები"
+
+
+msgid "Proportional Editing Falloff"
+msgstr "პროპორციული რედაქტირების მილევა"
+
+
+msgid "Mask Edit"
+msgstr "ნიღბის რედაქტირება"
+
+
+msgid "Automasking"
+msgstr "ავტომატური შენიღბვა"
+
+
+msgid "Face Sets Edit"
+msgstr "წახნაგების ნაკრებთა რედაქტირება"
+
+
+msgid "Vertex Group Locks"
+msgstr "წვეროთა ჯგუფების ბლოკები"
+
+
 msgid "Import"
 msgstr "იმპორტი"
-
-
-msgid "Select Loops"
-msgstr "მარყუჟების მონიშვნა"
-
-
-msgid "Viewpoint"
-msgstr "თვალთახედვა"
 
 
 msgid "Render Preview"
 msgstr "რენდერის გადახედვა"
 
 
-msgid "Select All by Trait"
-msgstr "ყველას მონიშვნა თვისებით"
-
-
 msgid "Utilities"
 msgstr "უტილიტები"
-
-
-msgid "Select Linked"
-msgstr "დაკავშირებულის მონიშვნა"
 
 
 msgid "Deprecated"
 msgstr "არარეკომენდირებული"
 
 
-msgid "Select Similar"
-msgstr "მსგავსის მონიშვნა"
-
-
 msgid "Math"
 msgstr "მათემატიკა"
-
-
-msgid "Align View to Active"
-msgstr "ხედის მისადაგება აქტიურზე"
 
 
 msgid "UV"
 msgstr "UV"
 
 
-msgid "View Regions"
-msgstr "ხედის მონაკვეთები"
-
-
-msgid "Navigation"
-msgstr "ნავიგაცია"
-
-
-msgid "Align View"
-msgstr "ხედის მისადაგება"
+msgid "Mirror"
+msgstr "გასარკისებურება"
 
 
 msgid "UV Mapping"
@@ -36022,52 +36018,60 @@ msgid "Local View"
 msgstr "ლოკალური ხედი"
 
 
-msgid "Snap"
-msgstr "მიკვრა"
+msgid "Viewpoint"
+msgstr "თვალთახედვა"
 
 
-msgid "Bone Roll"
-msgstr "ძვლის ტრიალი"
+msgid "Navigation"
+msgstr "ნავიგაცია"
 
 
-msgid "Mirror"
-msgstr "გასარკისებურება"
+msgid "Align View"
+msgstr "ხედის მისადაგება"
 
 
-msgid "Automasking"
-msgstr "ავტომატური შენიღბვა"
+msgid "Align View to Active"
+msgstr "ხედის მისადაგება აქტიურზე"
 
 
-msgid "Vertex Group Locks"
-msgstr "წვეროთა ჯგუფების ბლოკები"
+msgid "View Regions"
+msgstr "ხედის მონაკვეთები"
 
 
-msgid "Face Sets Edit"
-msgstr "წახნაგების ნაკრებთა რედაქტირება"
+msgid "Select More/Less"
+msgstr "მეტის/ნაკლების მონიშვნა"
 
 
-msgid "Mask Edit"
-msgstr "ნიღბის რედაქტირება"
+msgid "Select Similar"
+msgstr "მსგავსის მონიშვნა"
 
 
-msgid "Proportional Editing Falloff"
-msgstr "პროპორციული რედაქტირების მილევა"
+msgid "Select All by Trait"
+msgstr "ყველას მონიშვნა თვისებით"
 
 
-msgid "Pivot Point"
-msgstr "ბრუნვის ცენტრი"
+msgid "Select Linked"
+msgstr "დაკავშირებულის მონიშვნა"
 
 
-msgid "Clean Up"
-msgstr "გასუფთავება"
+msgid "Select Loops"
+msgstr "მარყუჟების მონიშვნა"
 
 
-msgid "Show/Hide"
-msgstr "ჩვენება/დამალვა"
+msgid "Assign Material"
+msgstr "მასალის მიკუთვნება"
 
 
-msgid "Names"
-msgstr "სახელები"
+msgid "Metaball"
+msgstr "მეტაბურთი"
+
+
+msgid "Light"
+msgstr "სინათლე"
+
+
+msgid "Light Probe"
+msgstr "სინათლის ზონდი"
 
 
 msgid "Linked"
@@ -36078,108 +36082,48 @@ msgid "Layout"
 msgstr "განლაგება"
 
 
-msgid "Metaball"
-msgstr "მეტაბურთი"
+msgid "Add Image"
+msgstr "გამოსახულების დამატება"
 
 
-msgid "Kerning"
-msgstr "ასოთშორისი ინტერვალი"
+msgid "Relations"
+msgstr "ურთიერთდამოკიდებულებები"
 
 
-msgid "Special Characters"
-msgstr "სპეციალური ასონიშნები"
-
-
-msgid "Adjust"
-msgstr "რეგულირება"
-
-
-msgid "Merge"
-msgstr "შერწყმა"
-
-
-msgid "Bone Collections"
-msgstr "ძვლების კოლექციები"
-
-
-msgid "Keying"
-msgstr "ამოჭრა"
-
-
-msgid "Tracking"
-msgstr "თვალის დევნება"
-
-
-msgid "Set Face Strength"
-msgstr "წახნაგების სიძლიერის დაყენება"
-
-
-msgid "Select by Face Strength"
-msgstr "მონიშვნა წახნაგების სიძლიერის მიხედვით"
-
-
-msgid "Face Data"
-msgstr "წახნაგების მონაცემები"
-
-
-msgid "Creative"
-msgstr "კრეატიული"
-
-
-msgid "Mesh Select Mode"
-msgstr "მეშის მონიშვნის რეჟიმი"
-
-
-msgid "Disable Bone Options"
-msgstr "ძვლის ვარიანტების გათიშვა"
-
-
-msgid "Enable Bone Options"
-msgstr "ძვლის ვარიანტების ჩართვა"
-
-
-msgid "Toggle Bone Options"
-msgstr "ძვლის პარამეტრების ვარიანტები"
+msgid "Rigid Body"
+msgstr "უდრეკი სხეული"
 
 
 msgid "Apply"
 msgstr "გამოყენება"
 
 
-msgid "Propagate"
-msgstr "გავრცელება"
+msgid "Track"
+msgstr "თვალის დევნება"
 
 
-msgid "In-Betweens"
-msgstr "შუალები"
+msgid "Adjust"
+msgstr "რეგულირება"
 
 
-msgid "Clear Transform"
-msgstr "გარდაქმნის გასუფთავება"
+msgid "Quick Effects"
+msgstr "სწრაფი ეფექტები"
 
 
-msgid "Random Mask"
-msgstr "შემთხვევითი ნიღაბი"
+msgid "Keying"
+msgstr "ამოჭრა"
 
 
-msgid "Sculpt Set Pivot"
-msgstr "საძერწი ნაკრების ბრუნვის ცენტრი"
-
-
-msgid "Face Sets Init"
-msgstr "წახნაგთა ნაკრების ინიციალიზაცია"
-
-
-msgid "Trim/Add"
-msgstr "მოკრეჭა/დამატება"
-
-
-msgid "Hooks"
-msgstr "კაუჭები"
+msgid "Asset"
+msgstr "აქტივი"
 
 
 msgid "Make Single User"
 msgstr "ცალ მომხმარებლად ქცევა"
+
+
+msgid "Tracking"
+msgstr "თვალის დევნება"
 
 
 msgid "Convert"
@@ -36190,40 +36134,92 @@ msgid "Link/Transfer Data"
 msgstr "მონაცემების ბმულით დაკავშირება/გადატანა"
 
 
-msgid "Asset"
-msgstr "აქტივი"
+msgid "Hooks"
+msgstr "კაუჭები"
 
 
-msgid "Quick Effects"
-msgstr "სწრაფი ეფექტები"
+msgid "Creative"
+msgstr "კრეატიული"
 
 
-msgid "Track"
-msgstr "თვალის დევნება"
+msgid "Trim/Add"
+msgstr "მოკრეჭა/დამატება"
 
 
-msgid "Rigid Body"
-msgstr "უდრეკი სხეული"
+msgid "Sculpt Set Pivot"
+msgstr "საძერწი ნაკრების ბრუნვის ცენტრი"
 
 
-msgid "Add Image"
-msgstr "გამოსახულების დამატება"
+msgid "Face Sets Init"
+msgstr "წახნაგთა ნაკრების ინიციალიზაცია"
 
 
-msgid "Relations"
-msgstr "ურთიერთდამოკიდებულებები"
+msgid "Random Mask"
+msgstr "შემთხვევითი ნიღაბი"
 
 
-msgid "Light Probe"
-msgstr "სინათლის ზონდი"
+msgid "Clear Transform"
+msgstr "გარდაქმნის გასუფთავება"
 
 
-msgid "Assign Material"
-msgstr "მასალის მიკუთვნება"
+msgid "In-Betweens"
+msgstr "შუალები"
 
 
-msgid "Light"
-msgstr "სინათლე"
+msgid "Propagate"
+msgstr "გავრცელება"
+
+
+msgid "Bone Collections"
+msgstr "ძვლების კოლექციები"
+
+
+msgid "Names"
+msgstr "სახელები"
+
+
+msgid "Toggle Bone Options"
+msgstr "ძვლის პარამეტრების ვარიანტები"
+
+
+msgid "Enable Bone Options"
+msgstr "ძვლის ვარიანტების ჩართვა"
+
+
+msgid "Disable Bone Options"
+msgstr "ძვლის ვარიანტების გათიშვა"
+
+
+msgid "Mesh Select Mode"
+msgstr "მეშის მონიშვნის რეჟიმი"
+
+
+msgid "Face Data"
+msgstr "წახნაგების მონაცემები"
+
+
+msgid "Select by Face Strength"
+msgstr "მონიშვნა წახნაგების სიძლიერის მიხედვით"
+
+
+msgid "Set Face Strength"
+msgstr "წახნაგების სიძლიერის დაყენება"
+
+
+msgid "Merge"
+msgstr "შერწყმა"
+
+
+msgid "Special Characters"
+msgstr "სპეციალური ასონიშნები"
+
+
+msgid "Kerning"
+msgstr "ასოთშორისი ინტერვალი"
+
+
+msgid "Bone Roll"
+msgstr "ძვლის ტრიალი"
 
 
 msgid "Keyframe Insert Pie"
@@ -53547,6 +53543,14 @@ msgstr "კვანძის შენატანები"
 
 msgid "Collection of Node Sockets"
 msgstr "კვანძის ბუდეების კოლექცია"
+
+
+msgid "From Socket"
+msgstr "ბუდიდან"
+
+
+msgid "To Socket"
+msgstr "ბუდეში"
 
 
 msgid "Socket Template"
@@ -71457,6 +71461,26 @@ msgid "Allow edge ring selection to step over n-gons with an even number of side
 msgstr "დაუშვი წიბოთა რგოლების მონიშვნის მიერ ლუწი რაოდენობის გვერდების მქონე n-კუთხედებზე გადაბიჯება"
 
 
+msgid "Face Loop Delimit"
+msgstr "წახნაგების მარყუჟის დელიმიტირება"
+
+
+msgid "Delimit face loop selection"
+msgstr "შეზღუდე წახნაგთა მარყუჟების მონიშვნა"
+
+
+msgid "Delimit face loop selection at seams"
+msgstr "შეზღუდე წახნაგთა მარყუჟების მონიშვნა ნაკერებთან"
+
+
+msgid "Delimit face loop selection at sharp edges"
+msgstr "შეზღუდე წახნაგთა მარყუჟების მონიშვნა მკვეთრ წიბოებთან"
+
+
+msgid "Delimit face loop selection at material boundaries"
+msgstr "შეზღუდე წახნაგთა მარყუჟების მონიშვნა მასალების საზღვრებთან"
+
+
 msgid "Remove from the selection"
 msgstr "მოაშორე მონიშვნიდან"
 
@@ -72066,26 +72090,6 @@ msgstr "გარეთა კუთხეები"
 
 msgid "Stop boundary selection at vertices with two edges when they share a face that is not an n-gon"
 msgstr "შეაჩერე ზღუდის მონიშვნა ორ წიბოსთან დაკავშირებულ წვეროებთან, როცა მათ აქვთ საზიარო წახნაგი, რომელიც n-კუთხედი არაა"
-
-
-msgid "Face Loop Delimit"
-msgstr "წახნაგების მარყუჟის დელიმიტირება"
-
-
-msgid "Delimit face loop selection"
-msgstr "შეზღუდე წახნაგთა მარყუჟების მონიშვნა"
-
-
-msgid "Delimit face loop selection at seams"
-msgstr "შეზღუდე წახნაგთა მარყუჟების მონიშვნა ნაკერებთან"
-
-
-msgid "Delimit face loop selection at sharp edges"
-msgstr "შეზღუდე წახნაგთა მარყუჟების მონიშვნა მკვეთრ წიბოებთან"
-
-
-msgid "Delimit face loop selection at material boundaries"
-msgstr "შეზღუდე წახნაგთა მარყუჟების მონიშვნა მასალების საზღვრებთან"
 
 
 msgctxt "Operator"
@@ -75250,10 +75254,6 @@ msgstr "კვანძიდან"
 
 msgid "From node linked to selected node"
 msgstr "კვანძიდან დაკავშირებული მონიშნულ კვანძთან"
-
-
-msgid "From Socket"
-msgstr "ბუდიდან"
 
 
 msgid "From socket linked to selected node"
@@ -91541,6 +91541,14 @@ msgid "View a context based online manual in a web browser"
 msgstr "დაათვალიერე კონტექსტზე დაფუძნებული ონლაინ სახელმძღვანელო ვებ ბრაუზერში"
 
 
+msgid "Trusted Source"
+msgstr "სანდო წყარო"
+
+
+msgid "Allow .blend file to execute scripts automatically, default available from system preferences"
+msgstr "ნება დართე .blend ფაილს, სკრიპტები ავტომატურად გაუშვას, ნაგულისხმები ხელმისაწვდომია სისტემის სასურველ პარამეტრებში"
+
+
 msgctxt "Operator"
 msgid "Drop to Import File"
 msgstr "ფაილის ჩაგდება იმპორტირებისთვის"
@@ -92005,14 +92013,6 @@ msgstr "ჩატვირთე მომხმარებლის ინტ�
 
 msgid "State"
 msgstr "მდგომარეობა"
-
-
-msgid "Trusted Source"
-msgstr "სანდო წყარო"
-
-
-msgid "Allow .blend file to execute scripts automatically, default available from system preferences"
-msgstr "ნება დართე .blend ფაილს, სკრიპტები ავტომატურად გაუშვას, ნაგულისხმები ხელმისაწვდომია სისტემის სასურველ პარამეტრებში"
 
 
 msgctxt "Operator"
@@ -94663,44 +94663,24 @@ msgid "Panel containing UI elements"
 msgstr "პანელი, რომელიც UI-ს ელემენტებს შეიცავს"
 
 
-msgid "Guides"
-msgstr "ნიშნულები"
+msgid "Active Tool"
+msgstr "აქტიური ხელსაწყო"
 
 
-msgid "Drawing Plane"
-msgstr "სახატავი სიბრტყე"
+msgid "View Lock"
+msgstr "ხედის დაბლოკვა"
 
 
-msgid "Stroke Placement"
-msgstr "მონასმის განთავსება"
+msgid "Selectability & Visibility"
+msgstr "მონიშვნადობა და ხილულობა"
 
 
-msgid "Transform Orientations"
-msgstr "გარდაქმნების ორიენტაციები"
+msgid "Shadow Settings"
+msgstr "ჩრდილის ანაწყობები"
 
 
-msgid "Viewer Node"
-msgstr "მაჩვენებლის კვანძი"
-
-
-msgid "Curves Edit Mode"
-msgstr "წირების რედაქტირების რეჟიმი"
-
-
-msgid "Curve Edit Mode"
-msgstr "წირის რედაქტირების რეჟიმი"
-
-
-msgid "Measurement"
-msgstr "გაზომვა"
-
-
-msgid "Mesh Edit Mode"
-msgstr "მეშის რედაქტირების რეჟიმი"
-
-
-msgid "Motion Tracking"
-msgstr "მოძრაობაზე თვალის დევნება"
+msgid "SSAO Settings"
+msgstr "SSAO ანაწყობები"
 
 
 msgid "Cavity"
@@ -94715,12 +94695,32 @@ msgid "Overlays"
 msgstr "გადაფარებები"
 
 
-msgid "SSAO Settings"
-msgstr "SSAO ანაწყობები"
+msgid "Guides"
+msgstr "ნიშნულები"
 
 
-msgid "Shadow Settings"
-msgstr "ჩრდილის ანაწყობები"
+msgid "Viewer Node"
+msgstr "მაჩვენებლის კვანძი"
+
+
+msgid "Motion Tracking"
+msgstr "მოძრაობაზე თვალის დევნება"
+
+
+msgid "Mesh Edit Mode"
+msgstr "მეშის რედაქტირების რეჟიმი"
+
+
+msgid "Measurement"
+msgstr "გაზომვა"
+
+
+msgid "Curve Edit Mode"
+msgstr "წირის რედაქტირების რეჟიმი"
+
+
+msgid "Curves Edit Mode"
+msgstr "წირების რედაქტირების რეჟიმი"
 
 
 msgid "glTF Variants"
@@ -94731,16 +94731,32 @@ msgid "glTF Material Variants"
 msgstr "glTF მასალის ნაირსახეობები"
 
 
-msgid "Selectability & Visibility"
-msgstr "მონიშვნადობა და ხილულობა"
+msgid "Transform Orientations"
+msgstr "გარდაქმნების ორიენტაციები"
 
 
-msgid "Active Tool"
-msgstr "აქტიური ხელსაწყო"
+msgid "Stroke Placement"
+msgstr "მონასმის განთავსება"
 
 
-msgid "View Lock"
-msgstr "ხედის დაბლოკვა"
+msgid "Drawing Plane"
+msgstr "სახატავი სიბრტყე"
+
+
+msgid "Grease Pencil Options"
+msgstr "გრიზ ფენსილის ვარიანტები"
+
+
+msgid "Quad View"
+msgstr "ოთხმაგი ხედი"
+
+
+msgid "Onion Skin"
+msgstr "კალკი"
+
+
+msgid "Stereoscopy"
+msgstr "სტერეოსკოპია"
 
 
 msgid "glTF"
@@ -94751,52 +94767,36 @@ msgid "glTF Animations"
 msgstr "glTF ანიმაციები"
 
 
-msgid "VR"
-msgstr "ვ.რ."
-
-
-msgid "VR Info"
-msgstr "ვ.რ.-ის ინფო"
-
-
-msgid "Viewport Debug"
-msgstr "სარკმლის ხარვეზების აღმოფხვრა"
-
-
-msgid "Curves Grow/Shrink Scaling"
-msgstr "წირების ზრდა/კუმშვა მასშტაბირებით"
-
-
-msgid "Curves Sculpt Parameter Falloff"
-msgstr "წირების ძერწვის პარამეტრის მილევა"
-
-
-msgid "Curves Sculpt Add Curve Options"
-msgstr "წირების ძერწვაში წირის დამატების ვარიანტები"
+msgid "Multi Frame"
+msgstr "მრავალკადრიანი"
 
 
 msgid "Auto-Masking"
 msgstr "ავტომატური შენიღბვა"
 
 
-msgid "Multi Frame"
-msgstr "მრავალკადრიანი"
+msgid "Curves Sculpt Add Curve Options"
+msgstr "წირების ძერწვაში წირის დამატების ვარიანტები"
 
 
-msgid "Stereoscopy"
-msgstr "სტერეოსკოპია"
+msgid "Curves Sculpt Parameter Falloff"
+msgstr "წირების ძერწვის პარამეტრის მილევა"
 
 
-msgid "Onion Skin"
-msgstr "კალკი"
+msgid "Curves Grow/Shrink Scaling"
+msgstr "წირების ზრდა/კუმშვა მასშტაბირებით"
 
 
-msgid "Quad View"
-msgstr "ოთხმაგი ხედი"
+msgid "Viewport Debug"
+msgstr "სარკმლის ხარვეზების აღმოფხვრა"
 
 
-msgid "Grease Pencil Options"
-msgstr "გრიზ ფენსილის ვარიანტები"
+msgid "VR"
+msgstr "ვ.რ."
+
+
+msgid "VR Info"
+msgstr "ვ.რ.-ის ინფო"
 
 
 msgid "Import Settings"
@@ -107589,10 +107589,6 @@ msgstr "მიკროასლის სტილი"
 
 msgid "How thumbnails are displayed"
 msgstr "როგორ გამოისახება მიკროასლები"
-
-
-msgid "Do not show strip thumbnails"
-msgstr "არ აჩვენო ლენტის მიკროასლები"
 
 
 msgid "Strip Ends"
@@ -124230,10 +124226,6 @@ msgid "Deleted 1 node"
 msgstr "წაიშალა 1 კვანძი"
 
 
-msgid "To Socket"
-msgstr "ბუდეში"
-
-
 msgid "Active editor should be a node editor for the operator to run"
 msgstr "იმისათვის, რომ ოპერატორი გაეშვას, აქტიური რედაქტორი კვანძთა რედაქტორი უნდა იყოს"
 
@@ -126474,6 +126466,10 @@ msgstr "Blender-ის მაღაზია"
 msgctxt "Operator"
 msgid "Blender Website"
 msgstr "Blender-ის ვებსაიტი"
+
+
+msgid "Trusted Source [Untrusted Path]"
+msgstr "სანდო წყარო [არასანდო მისამართი]"
 
 
 msgctxt "Operator"
@@ -158589,10 +158585,6 @@ msgstr ""
 
 msgid "To make changes to Preferences permanent, use \"Save Preferences\"."
 msgstr "იმისათვის, რომ სასურველ პარამეტრებში შეტანილი ცვლილებები სამუდამო გახდეს, გამოიყენე \"შეინახე სასურველი პარამეტრები\"."
-
-
-msgid "Trusted Source [Untrusted Path]"
-msgstr "სანდო წყარო [არასანდო მისამართი]"
 
 
 msgid "Any unsaved changes will be lost."
