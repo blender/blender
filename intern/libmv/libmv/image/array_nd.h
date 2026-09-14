@@ -88,7 +88,7 @@ class ArrayND : public BaseArray {
   /// Create an array of shape s.
   void Resize(const Index& new_shape) {
     if (data_ != NULL && shape_ == new_shape) {
-      // Don't bother realloacting if the shapes match.
+      // Don't bother reallocating if the shapes match.
       return;
     }
     shape_.Reset(new_shape);
@@ -402,7 +402,7 @@ void MultiplyElements(const AArrayType& a, const BArrayType& b, CArrayType* c) {
   assert(a.Shape() == b.Shape());
   c->ResizeLike(a);
 
-  // To perform the multiplcation, a "current" index into the N-dimensions of
+  // To perform the multiplication, a "current" index into the N-dimensions of
   // the A and B matrix specifies which elements are being multiplied.
   typename CArrayType::Index index;
 

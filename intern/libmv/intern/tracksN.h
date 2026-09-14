@@ -2,7 +2,7 @@
  *
  * SPDX-License-Identifier: GPL-2.0-or-later */
 
-// TODO(serrgey): For the time being we're converting simple pipeline
+// TODO(sergey): For the time being we're converting simple pipeline
 // to an autotrack pipeline we call it tracks.
 // Once we've done with porting we remove N.
 

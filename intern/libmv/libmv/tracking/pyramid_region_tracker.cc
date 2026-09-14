@@ -52,7 +52,7 @@ bool PyramidRegionTracker::Track(const FloatImage& image1,
 
   // Create all the levels of the pyramid, since tracking has to happen from
   // the coarsest to finest levels, which means holding on to all levels of the
-  // pyraid at once.
+  // pyramid at once.
   std::vector<FloatImage> pyramid1(num_levels_);
   std::vector<FloatImage> pyramid2(num_levels_);
   MakePyramid(image1, num_levels_, &pyramid1);

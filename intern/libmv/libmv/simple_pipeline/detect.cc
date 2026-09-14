@@ -276,7 +276,7 @@ void DetectMORAVEC(const FloatImage& grayscale_image,
         //
         // Score calculation above uses top left corner of the
         // patch as the origin, here we need to convert this value
-        // to a pattrn center by adding 8 pixels.
+        // to a pattern center by adding 8 pixels.
         detected_features->push_back(
             Feature((float)x + 8.0f, (float)y + 8.0f, (float)s, 16.0f));
       }

@@ -88,7 +88,7 @@ void EuclideanBundle(const Tracks& tracks,
     For example it is useful to keep camera translations constant
     when bundling tripod motions.
 
-    If evaluaiton is not null, different evaluation statistics is filled in
+    If evaluation is not null, different evaluation statistics is filled in
     there, plus all the requested additional information (like jacobian) is
     also calculating there. Also see comments for BundleEvaluation.
 

@@ -42,7 +42,7 @@ namespace libmv {
     \sa Tracks
 */
 // TODO(sergey): Consider using comment for every member separately
-//               instead of having one giantic comment block.
+//               instead of having one gigantic comment block.
 struct Marker {
   int image;
   int track;
