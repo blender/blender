@@ -73,6 +73,16 @@ Files named `invalid_pointcache_*.blend` with a point cache baked for frames 1 t
 `blendcache_invalid_pointcache_*` directory. The frame 2 `.bphys` file is corrupt, and the
 file is saved at frame 2 so opening it reads the corrupt frame.
 
+`invalid_pointcache_particle_bad_index.blend`
+---------------------------------------------
+
+A particle cache with a negative particle index, passing the upper bound check (crash).
+
+`invalid_pointcache_softbody_index_out_of_range.blend`
+------------------------------------------------------
+
+A soft body cache with an out-of-range point index (buffer overflow).
+
 `invalid_pointcache_totpoint_overflow.blend`
 --------------------------------------------
 
