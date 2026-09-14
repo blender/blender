@@ -620,7 +620,7 @@ ccl_device Spectrum bsdf_microfacet_estimate_albedo(KernelGlobals kg,
   FresnelCoeff coeff(eval_reflection, eval_transmission);
 
   /* Use lookup tables for generalized Schlick reflection, otherwise assume smooth surface.
-   * Note that even if the reflectance or tranmissitance would evaluate to zero for
+   * Note that even if the reflectance or transmittance would evaluate to zero for
    * #microfacet_fresnel, we still compute it because this contributes to albedo passes. */
   if (bsdf->fresnel_type == MicrofacetFresnel::GENERALIZED_SCHLICK) {
     ccl_private FresnelGeneralizedSchlick *fresnel = (ccl_private FresnelGeneralizedSchlick *)

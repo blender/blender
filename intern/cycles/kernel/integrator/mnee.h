@@ -220,7 +220,7 @@ ccl_device_inline void mnee_setup_manifold_vertex(KernelGlobals kg,
   /* Manifold vertex position. */
   vtx->p = sd_vtx->P;
 
-  /* Initialize constraint and its derivates. */
+  /* Initialize constraint and its derivatives. */
   vtx->a = vtx->c = zero_float4();
   vtx->b = make_float4(1.f, 0.f, 0.f, 1.f);
   vtx->constraint = zero_float2();

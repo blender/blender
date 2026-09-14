@@ -152,7 +152,7 @@ enum_volume_sampling = (
      "Use equiangular sampling, best for volumes with low density with light inside or near the volume"),
     ('MULTIPLE_IMPORTANCE',
      "Multiple Importance",
-     "Combine distance and equi-angular sampling for volumes where neither method is ideal"),
+     "Combine distance and equiangular sampling for volumes where neither method is ideal"),
 )
 
 enum_volume_interpolation = (
