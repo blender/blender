@@ -1159,7 +1159,8 @@ static void collection_importer_menu_draw(const bContext * /*C*/, Menu *menu)
   bool at_least_one = false;
   for (const auto &fh : bke::file_handlers()) {
     if (STREQ(fh->idname, "IO_FH_usd") && WM_operatortype_find(fh->import_operator, true)) {
-      PointerRNA op_ptr = layout.op("COLLECTION_OT_importer_add", fh->label, ICON_NONE);
+      PointerRNA op_ptr = layout.op(
+          "COLLECTION_OT_importer_add", fh->label_with_extensions(), ICON_NONE);
       RNA_string_set(&op_ptr, "name", fh->idname);
       at_least_one = true;
     }
@@ -1178,7 +1179,8 @@ static void collection_exporter_menu_draw(const bContext * /*C*/, Menu *menu)
   bool at_least_one = false;
   for (const auto &fh : bke::file_handlers()) {
     if (WM_operatortype_find(fh->export_operator, true)) {
-      PointerRNA op_ptr = layout.op("COLLECTION_OT_exporter_add", fh->label, ICON_NONE);
+      PointerRNA op_ptr = layout.op(
+          "COLLECTION_OT_exporter_add", fh->label_with_extensions(), ICON_NONE);
       RNA_string_set(&op_ptr, "name", fh->idname);
       at_least_one = true;
     }
