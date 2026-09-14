@@ -3025,7 +3025,7 @@ Exhibit B - "Incompatible With Secondary Licenses" Notice
 
 </details>
 
-## [Public Domain](https://spdx.org/licenses/CC0-1.0.html)
+## Public Domain
 
 Public domain projects have no specific license or requirements in regards to copyright enforcement.
 
