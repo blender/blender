@@ -331,7 +331,7 @@ static void ptcache_particle_read(
   BoidParticle *boid;
   float timestep = 0.04f * psys->part->timetweak;
 
-  if (index >= psys->totpart) {
+  if (index < 0 || index >= psys->totpart) {
     return;
   }
 
@@ -404,7 +404,7 @@ static void ptcache_particle_interpolate(int index,
   ParticleKey keys[4];
   float dfra, timestep = 0.04f * psys->part->timetweak;
 
-  if (index >= psys->totpart) {
+  if (index < 0 || index >= psys->totpart) {
     return;
   }
 
@@ -545,8 +545,7 @@ static void ptcache_particle_extra_read(void *psys_v, PTCacheMem *pm, float /*cf
         int springs_num = 0;
         for (uint i = 0; i < extra->totdata; i++) {
           const ParticleSpring &spring = psys->fluid_springs[i];
-          if (uint(spring.particle_index[0]) < totpart && uint(spring.particle_index[1]) < totpart)
-          {
+          if (spring.particle_index[0] < totpart && spring.particle_index[1] < totpart) {
             psys->fluid_springs[springs_num++] = spring;
           }
         }
@@ -2170,11 +2169,16 @@ static int ptcache_read(PTCacheID *pid, int cfra)
       }
     }
 
+    /* Ignore stored indices if this cache type does not use them, to
+     * guard against unchecked use of them for corrupt files. */
+    const bool use_index = (pm->data_types & (1 << BPHYS_DATA_INDEX)) &&
+                           (pid->data_types & (1 << BPHYS_DATA_INDEX));
+
     void *cur[BPHYS_TOT_DATA];
     BKE_ptcache_mem_pointers_init(pm, cur);
 
     for (i = 0; i < totpoint; i++) {
-      if (pm->data_types & (1 << BPHYS_DATA_INDEX)) {
+      if (use_index) {
         index = static_cast<int *>(cur[BPHYS_DATA_INDEX]);
       }
 
@@ -2227,11 +2231,16 @@ static int ptcache_interpolate(PTCacheID *pid, float cfra, int cfra1, int cfra2)
       }
     }
 
+    /* Ignore stored indices if this cache type does not use them, to
+     * guard against unchecked use of them for corrupt files. */
+    const bool use_index = (pm->data_types & (1 << BPHYS_DATA_INDEX)) &&
+                           (pid->data_types & (1 << BPHYS_DATA_INDEX));
+
     void *cur[BPHYS_TOT_DATA];
     BKE_ptcache_mem_pointers_init(pm, cur);
 
     for (i = 0; i < totpoint; i++) {
-      if (pm->data_types & (1 << BPHYS_DATA_INDEX)) {
+      if (use_index) {
         index = static_cast<int *>(cur[BPHYS_DATA_INDEX]);
       }
 
@@ -3830,6 +3839,10 @@ static void direct_link_pointcache_mem(BlendDataReader *reader, PTCacheMem *pm)
   bool ok = true;
   for (int i = 0; i < BPHYS_TOT_DATA; i++) {
     if (pm->data[i] == nullptr) {
+      /* Corrupt file missing the array for a stored data type. */
+      if (pm->data_types & (1 << i)) {
+        ok = false;
+      }
       continue;
     }
 
