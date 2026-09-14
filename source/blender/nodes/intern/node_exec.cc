@@ -117,7 +117,10 @@ static bNodeStack *setup_stack(bNodeStack *stack, bNodeTree *ntree, bNode *node,
     return ns;
   }
   /* Outputs of muted nodes forward the internally linked input's stack value. */
-  if (sock->runtime->internal_link_input != nullptr) {
+  if (node->is_muted() && sock->runtime->internal_link_input != nullptr) {
+    return ns;
+  }
+  if (sock->is_output() && node->is_reroute()) {
     return ns;
   }
 
