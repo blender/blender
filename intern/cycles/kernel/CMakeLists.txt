@@ -85,6 +85,7 @@ set(SRC_KERNEL_SVM_HEADERS
   svm/mapping_util.h
   svm/math.h
   svm/math_util.h
+  svm/integer_math.h
   svm/mix.h
   svm/node_types.h
   svm/node_types_template.h

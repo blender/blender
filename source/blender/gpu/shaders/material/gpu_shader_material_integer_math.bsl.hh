@@ -9,8 +9,7 @@
 int divide_floor(int a, int b)
 {
   int d = a / b;
-  int r = a % b;
-  return (r != 0) ? (d - int((a < 0) != (b < 0))) : d;
+  return (a != d * b) ? (d - int((a < 0) != (b < 0))) : d;
 }
 
 int euclid_gcd(int a, int b)
@@ -55,16 +54,35 @@ void integer_math_multiply_add(int a, int b, int c, int &result)
   result = a * b + c;
 }
 
+int integer_power(int base, int exponent)
+{
+  if (exponent < 0) {
+    if (base == 1 || base == -1) {
+      return (base < 0 && (exponent & 1) != 0) ? -1 : 1;
+    }
+    return 0;
+  }
+  int result = 1;
+  while (exponent != 0) {
+    if ((exponent & 1) != 0) {
+      result *= base;
+    }
+    exponent >>= 1;
+    base *= base;
+  }
+  return result;
+}
+
 [[node]]
 void integer_math_power(int base, int exponent, int /*c*/, int &result)
 {
-  result = int(pow(float(base), float(exponent)));
+  result = integer_power(base, exponent);
 }
 
 [[node]]
 void integer_math_floored_modulo(int a, int b, int /*c*/, int &result)
 {
-  result = (b != 0) ? (((a % b) + b) % b) : 0;
+  result = (b != 0) ? (a - divide_floor(a, b) * b) : 0;
 }
 
 [[node]]
@@ -138,5 +156,6 @@ void integer_math_divide_round(int a, int b, int /*c*/, int &result)
 [[node]]
 void integer_math_modulo(int a, int b, int /*c*/, int &result)
 {
-  result = (b != 0) ? (a % b) : 0;
+  /* Can't use `%` as it is undefined for negative b on the GPU.*/
+  result = (b != 0) ? a - (a / b) * b : 0;
 }

@@ -54,6 +54,7 @@
 #include "kernel/svm/hsv.h"
 #include "kernel/svm/ies.h"
 #include "kernel/svm/image.h"
+#include "kernel/svm/integer_math.h"
 #include "kernel/svm/invert.h"
 #include "kernel/svm/light_path.h"
 #include "kernel/svm/magic.h"
@@ -368,6 +369,9 @@ ccl_device void svm_eval_nodes(KernelGlobals kg,
       break;
       SVM_CASE(NODE_BOOLEAN_MATH)
       svm_node_boolean_math(stack, svm_node_get<SVMNodeBooleanMath>(kg, &offset));
+      break;
+      SVM_CASE(NODE_INTEGER_MATH)
+      svm_node_integer_math(stack, svm_node_get<SVMNodeIntegerMath>(kg, &offset));
       break;
       SVM_CASE(NODE_VECTOR_MATH)
       svm_node_vector_math<float3>(stack, svm_node_get<SVMNodeVectorMath>(kg, &offset));
