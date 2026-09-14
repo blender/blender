@@ -1233,7 +1233,7 @@ static void node_swap_links(bNodeLinkDrag &nldrag, bNodeTree &ntree)
   bNode *start_node = nldrag.start_node;
 
   if (linked_socket.is_input()) {
-    for (bNodeLink &link : ntree.links) {
+    for (bNodeLink &link : ntree.links.items_mutable()) {
       if (link.tosock != &linked_socket) {
         continue;
       }
@@ -1248,7 +1248,7 @@ static void node_swap_links(bNodeLinkDrag &nldrag, bNodeTree &ntree)
     }
   }
   else {
-    for (bNodeLink &link : ntree.links) {
+    for (bNodeLink &link : ntree.links.items_mutable()) {
       if (link.fromsock != &linked_socket) {
         continue;
       }
