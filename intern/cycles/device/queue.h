@@ -4,6 +4,8 @@
 
 #pragma once
 
+#include <climits>
+
 #include "device/kernel.h"
 
 #include "device/graphics_interop.h"
@@ -81,6 +83,21 @@ struct DeviceKernelArguments {
   }
 };
 
+/* Parameters for choosing the number of concurrent integrator states,
+ * to balance performance and fitting in available memory. */
+struct ConcurrentStatesParams {
+  /* Default number of states estimated from number of processors. */
+  int baseline = 0;
+  /* Minimum and maximum number of states. */
+  int min = 65536;
+  int max = INT_MAX;
+
+  /* Percentage of free memory (minus reserve) to use when growing beyond the baseline. */
+  int grow_percent = 50;
+  /* Percentage of total memory to always keep free for later allocations. */
+  int reserve_percent = 10;
+};
+
 /* Abstraction of a command queue for a device.
  * Provides API to schedule kernel execution in a specific queue with minimal possible overhead
  * from driver side.
@@ -92,12 +109,7 @@ class DeviceQueue {
 
   /* Number of concurrent states to process for integrator,
    * based on number of cores and/or available memory. */
-  virtual int num_concurrent_states(const size_t state_size) const = 0;
-
-  /* Number of states which keeps the device occupied with work without losing performance.
-   * The renderer will add more work (when available) when number of active paths falls below this
-   * value. */
-  virtual int num_concurrent_busy_states(const size_t state_size) const = 0;
+  virtual int num_concurrent_states(const size_t state_size) const;
 
   /* Number of partitions of sorted shaders, that improves memory locality of
    * integrator state fetch at the cost of decreased coherence for shader kernel execution. */
@@ -178,6 +190,9 @@ class DeviceQueue {
  protected:
   /* Hide construction so that allocation via `Device` API is enforced. */
   explicit DeviceQueue(Device *device);
+
+  virtual ConcurrentStatesParams concurrent_states_params() const = 0;
+  virtual void get_memory_info(size_t &total, size_t &free) const = 0;
 
   /* Implementations call these from the corresponding methods to generate debugging logs. */
   void debug_init_execution();

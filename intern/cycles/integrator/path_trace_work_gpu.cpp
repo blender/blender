@@ -134,7 +134,12 @@ void PathTraceWorkGPU::alloc_integrator_soa()
     const size_t single_state_size = estimate_single_state_size(kernel_features);
 
     max_num_paths_ = queue_->num_concurrent_states(single_state_size);
-    min_num_active_main_paths_ = queue_->num_concurrent_busy_states(single_state_size);
+
+    /* A 1:4 busy:total ratio was found to give good performance, independent of the
+     * total state count. This is the number of states which keeps the device occupied
+     * with work without losing performance. The renderer will add more work (when
+     * available) when the number of active paths falls below this value. */
+    min_num_active_main_paths_ = max_num_paths_ / 4;
 
     /* Limit number of active paths to the half of the overall state. This is due to the logic in
      * the path compaction which relies on the fact that regeneration does not happen sooner than

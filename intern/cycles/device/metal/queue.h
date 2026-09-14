@@ -28,8 +28,6 @@ class MetalDeviceQueue : public DeviceQueue {
   MetalDeviceQueue(MetalDevice *device);
   ~MetalDeviceQueue() override;
 
-  int num_concurrent_states(const size_t /*state_size*/) const override;
-  int num_concurrent_busy_states(const size_t /*state_size*/) const override;
   int num_sort_partitions(int max_num_paths, uint max_scene_shaders) const override;
   bool supports_local_atomic_sort() const override;
 
@@ -62,6 +60,9 @@ class MetalDeviceQueue : public DeviceQueue {
   id<MTLBlitCommandEncoder> get_blit_encoder();
 
   MetalDevice *metal_device_;
+
+  ConcurrentStatesParams concurrent_states_params() const override;
+  void get_memory_info(size_t &total, size_t &free) const override;
 
   API_AVAILABLE(macos(11.0), ios(14.0))
   MTLCommandBufferDescriptor *command_buffer_desc_ = nullptr;
