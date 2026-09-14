@@ -36,6 +36,9 @@ static void gather_positions_from_component(const GeometryComponent &component,
     return;
   }
   const VArray<float3> positions = *component.attributes()->lookup<float3>("position");
+  if (!positions) {
+    return;
+  }
   r_positions.resize(r_positions.size() + positions.size());
   positions.materialize(r_positions.as_mutable_span().take_back(positions.size()));
 }
