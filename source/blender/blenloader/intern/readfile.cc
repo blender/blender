@@ -3597,7 +3597,9 @@ BHead *blo_read_asset_data_block(FileData *fd, BHead *bhead, AssetMetaData **r_a
 
   BlendDataReader reader = {fd};
   BLO_read_struct(&reader, AssetMetaData, r_asset_data);
-  BKE_asset_metadata_read(&reader, *r_asset_data);
+  if (*r_asset_data) {
+    BKE_asset_metadata_read(&reader, *r_asset_data);
+  }
 
   oldnewmap_clear(fd->datamap);
 

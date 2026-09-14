@@ -76,3 +76,9 @@ Saves of a simple scene, or of a file linking a collection from a library, with 
 
 The `TEST` thumbnail block is too short, has zero width or height, or is larger than the maximum size.
 Extracting the thumbnail with `blender-thumbnailer` overflowed the image size (crash).
+
+`invalid_preview_rect_struct_type.blend`
+----------------------------------------
+
+An object preview's pixel block has struct type `ListBase`.
+Loading the preview from the file browser read it as pixels (buffer overflow).
