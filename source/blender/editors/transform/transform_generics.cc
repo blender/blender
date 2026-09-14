@@ -156,7 +156,7 @@ void initTransInfo(bContext *C, TransInfo *t, wmOperator *op, const wmEvent *eve
   t->flag = eTFlag(0);
 
   if (obact && !(t->options & (CTX_CURSOR | CTX_TEXTURE_SPACE)) &&
-      ELEM(object_mode, OB_MODE_EDIT, OB_MODE_EDIT_GPENCIL_LEGACY))
+      ELEM(object_mode, OB_MODE_EDIT, OB_MODE_PAINT_GREASE_PENCIL, OB_MODE_EDIT_GPENCIL_LEGACY))
   {
     t->obedit_type = obact->type;
   }
@@ -230,7 +230,8 @@ void initTransInfo(bContext *C, TransInfo *t, wmOperator *op, const wmEvent *eve
   }
 
   /* Grease Pencil editing context. */
-  if (t->obedit_type == OB_GREASE_PENCIL && object_mode == OB_MODE_EDIT &&
+  if (t->obedit_type == OB_GREASE_PENCIL &&
+      (object_mode == OB_MODE_EDIT || object_mode == OB_MODE_PAINT_GREASE_PENCIL) &&
       ((area == nullptr) || (area->spacetype == SPACE_VIEW3D)))
   {
     t->options |= CTX_GPENCIL_STROKES;

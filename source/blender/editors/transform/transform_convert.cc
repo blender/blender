@@ -861,7 +861,7 @@ static void init_TransDataContainers(TransInfo *t, Object *obact, Span<Object *>
                                 0;
       }
 
-      if (object_mode & OB_MODE_EDIT) {
+      if (object_mode & OB_MODE_EDIT || object_mode & OB_MODE_PAINT_GREASE_PENCIL) {
         tc->obedit = objects[i];
         /* Check needed for UVs. */
         if ((t->flag & T_2D_EDIT) == 0) {
