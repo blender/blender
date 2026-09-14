@@ -28,6 +28,14 @@
 
 GHOST_SystemSDL::GHOST_SystemSDL() : GHOST_System()
 {
+  /* SDL's pen mouse emulation updates the state read by getCursorPosition() and getButtons().
+   * Keep it enabled for those queries, but discard its mouse events since we handle pen events
+   * directly. Disable pen touch emulation to avoid duplicate input. */
+  if (!SDL_SetHintWithPriority(SDL_HINT_PEN_MOUSE_EVENTS, "1", SDL_HINT_OVERRIDE) ||
+      !SDL_SetHintWithPriority(SDL_HINT_PEN_TOUCH_EVENTS, "0", SDL_HINT_OVERRIDE))
+  {
+    throw std::runtime_error(SDL_GetError());
+  }
   if (!SDL_Init(SDL_INIT_VIDEO)) {
     throw std::runtime_error(SDL_GetError());
   }
@@ -496,6 +504,110 @@ static SDL_Window *SDL_GetWindowFromID_fallback(SDL_WindowID id)
   return sdl_win;
 }
 
+void GHOST_SystemSDL::processPenEvent(const SDL_Event &sdl_event)
+{
+  GHOST_TabletData &tablet = pen_tablet_data_;
+
+  /* Proximity events do not always have an associated window. */
+  if (sdl_event.type == SDL_EVENT_PEN_PROXIMITY_IN ||
+      sdl_event.type == SDL_EVENT_PEN_PROXIMITY_OUT)
+  {
+    tablet = {};
+    return;
+  }
+
+  SDL_Window *sdl_win = SDL_GetWindowFromEvent(&sdl_event);
+  GHOST_WindowSDL *window = findGhostWindow(sdl_win);
+  if (window == nullptr) {
+    return;
+  }
+
+  int x_win, y_win;
+  SDL_GetWindowPosition(sdl_win, &x_win, &y_win);
+
+  auto push_cursor = [&](const auto &event) {
+    pushEvent(std::make_unique<GHOST_EventCursor>(SDL_NS_TO_MS(event.timestamp),
+                                                  GHOST_kEventCursorMove,
+                                                  window,
+                                                  int32_t(event.x) + x_win,
+                                                  int32_t(event.y) + y_win,
+                                                  tablet));
+  };
+
+  switch (sdl_event.type) {
+    case SDL_EVENT_PEN_AXIS: {
+      const SDL_PenAxisEvent &event = sdl_event.paxis;
+      switch (event.axis) {
+        case SDL_PEN_AXIS_PRESSURE:
+          tablet.Pressure = std::clamp(event.value, 0.0f, 1.0f);
+          break;
+        case SDL_PEN_AXIS_XTILT:
+          tablet.Xtilt = std::clamp(event.value / 90.0f, -1.0f, 1.0f);
+          break;
+        case SDL_PEN_AXIS_YTILT:
+          tablet.Ytilt = std::clamp(event.value / 90.0f, -1.0f, 1.0f);
+          break;
+        default:
+          return;
+      }
+      tablet.Active = (event.pen_state & SDL_PEN_INPUT_ERASER_TIP) ? GHOST_kTabletModeEraser :
+                                                                     GHOST_kTabletModeStylus;
+      /* Pressure and tilt can change without cursor motion. */
+      push_cursor(event);
+      break;
+    }
+    case SDL_EVENT_PEN_MOTION: {
+      const SDL_PenMotionEvent &event = sdl_event.pmotion;
+      tablet.Active = (event.pen_state & SDL_PEN_INPUT_ERASER_TIP) ? GHOST_kTabletModeEraser :
+                                                                     GHOST_kTabletModeStylus;
+      push_cursor(event);
+      break;
+    }
+    case SDL_EVENT_PEN_DOWN:
+    case SDL_EVENT_PEN_UP: {
+      const SDL_PenTouchEvent &event = sdl_event.ptouch;
+      tablet.Active = event.eraser ? GHOST_kTabletModeEraser : GHOST_kTabletModeStylus;
+      if (!event.down) {
+        tablet.Pressure = 0.0f;
+      }
+      /* Update the cursor before the button event, which has no coordinates of its own. */
+      push_cursor(event);
+      pushEvent(std::make_unique<GHOST_EventButton>(SDL_NS_TO_MS(event.timestamp),
+                                                    event.down ? GHOST_kEventButtonDown :
+                                                                 GHOST_kEventButtonUp,
+                                                    window,
+                                                    GHOST_kButtonMaskLeft,
+                                                    tablet));
+      break;
+    }
+    case SDL_EVENT_PEN_BUTTON_DOWN:
+    case SDL_EVENT_PEN_BUTTON_UP: {
+      const SDL_PenButtonEvent &event = sdl_event.pbutton;
+      /* Match SDL's pen mouse emulation. Button zero is reserved for the pen tip. */
+      static constexpr GHOST_TButton buttons[] = {
+          GHOST_kButtonMaskLeft,
+          GHOST_kButtonMaskRight,
+          GHOST_kButtonMaskMiddle,
+          GHOST_kButtonMaskButton4,
+          GHOST_kButtonMaskButton5,
+      };
+      if (event.button == 0 || event.button >= std::size(buttons)) {
+        break;
+      }
+      tablet.Active = (event.pen_state & SDL_PEN_INPUT_ERASER_TIP) ? GHOST_kTabletModeEraser :
+                                                                     GHOST_kTabletModeStylus;
+      push_cursor(event);
+      pushEvent(std::make_unique<GHOST_EventButton>(SDL_NS_TO_MS(event.timestamp),
+                                                    event.down ? GHOST_kEventButtonDown :
+                                                                 GHOST_kEventButtonUp,
+                                                    window,
+                                                    buttons[event.button],
+                                                    tablet));
+      break;
+    }
+  }
+}
+
 void GHOST_SystemSDL::processEvent(SDL_Event *sdl_event)
 {
   std::unique_ptr<GHOST_Event> g_event = nullptr;
@@ -562,6 +674,9 @@ void GHOST_SystemSDL::processEvent(SDL_Event *sdl_event)
 
     case SDL_EVENT_MOUSE_MOTION: {
       const SDL_MouseMotionEvent &sdl_sub_evt = sdl_event->motion;
+      if (sdl_sub_evt.which == SDL_PEN_MOUSEID) {
+        break;
+      }
       const uint64_t event_ms = SDL_NS_TO_MS(sdl_sub_evt.timestamp);
       SDL_Window *sdl_win = SDL_GetWindowFromID_fallback(sdl_sub_evt.windowID);
       GHOST_WindowSDL *window = findGhostWindow(sdl_win);
@@ -629,6 +744,9 @@ void GHOST_SystemSDL::processEvent(SDL_Event *sdl_event)
     case SDL_EVENT_MOUSE_BUTTON_UP:
     case SDL_EVENT_MOUSE_BUTTON_DOWN: {
       const SDL_MouseButtonEvent &sdl_sub_evt = sdl_event->button;
+      if (sdl_sub_evt.which == SDL_PEN_MOUSEID) {
+        break;
+      }
       const uint64_t event_ms = SDL_NS_TO_MS(sdl_sub_evt.timestamp);
       GHOST_TButton gbmask = GHOST_kButtonMaskLeft;
       GHOST_TEventType type = sdl_sub_evt.down ? GHOST_kEventButtonDown : GHOST_kEventButtonUp;
@@ -678,6 +796,16 @@ void GHOST_SystemSDL::processEvent(SDL_Event *sdl_event)
       }
       break;
     }
+    case SDL_EVENT_PEN_PROXIMITY_IN:
+    case SDL_EVENT_PEN_PROXIMITY_OUT:
+    case SDL_EVENT_PEN_DOWN:
+    case SDL_EVENT_PEN_UP:
+    case SDL_EVENT_PEN_MOTION:
+    case SDL_EVENT_PEN_BUTTON_DOWN:
+    case SDL_EVENT_PEN_BUTTON_UP:
+    case SDL_EVENT_PEN_AXIS:
+      processPenEvent(*sdl_event);
+      break;
     case SDL_EVENT_KEY_DOWN:
     case SDL_EVENT_KEY_UP: {
       const SDL_KeyboardEvent &sdl_sub_evt = sdl_event->key;

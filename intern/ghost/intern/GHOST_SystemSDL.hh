@@ -85,6 +85,9 @@ class GHOST_SystemSDL : public GHOST_System {
   bool generateWindowExposeEvents();
 
   void processEvent(SDL_Event *sdl_event);
+  void processPenEvent(const SDL_Event &sdl_event);
+
+  GHOST_TabletData pen_tablet_data_ = {};
 
   /** The vector of windows that need to be updated. */
   std::vector<GHOST_WindowSDL *> dirty_windows_;
