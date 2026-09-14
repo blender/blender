@@ -42,8 +42,7 @@ GHOST_SystemSDL::GHOST_SystemSDL() : GHOST_System()
 
 #ifdef WITH_VULKAN_BACKEND
   vulkan_surface_recreation_event_ = SDL_RegisterEvents(1);
-  if (vulkan_surface_recreation_event_ == 0 ||
-      !SDL_AddEventWatch(vulkanLifecycleEventWatch, this))
+  if (vulkan_surface_recreation_event_ == 0 || !SDL_AddEventWatch(vulkanLifecycleEventWatch, this))
   {
     throw std::runtime_error(SDL_GetError());
   }

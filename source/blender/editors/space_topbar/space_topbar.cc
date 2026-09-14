@@ -52,7 +52,8 @@ static SpaceLink *topbar_create(const ScrArea * /*area*/, const Scene * /*scene*
   region = BKE_area_region_new();
   BLI_addtail(&stopbar->regionbase, region);
   region->regiontype = RGN_TYPE_HEADER;
-  region->alignment = RGN_ALIGN_BOTTOM;  /* Align the header at the bottom to allow for safe-area padding above it. */
+  region->alignment = RGN_ALIGN_BOTTOM; /* Align the header at the bottom to allow for safe-area
+                                           padding above it. */
   region = BKE_area_region_new();
   BLI_addtail(&stopbar->regionbase, region);
   region->regiontype = RGN_TYPE_HEADER;
