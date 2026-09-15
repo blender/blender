@@ -260,6 +260,10 @@ bool DLSSDenoiser::denoise_create_if_needed(DenoiseContext &context)
   /* Normals and roughness are packed into one texture in 'denoise_filter_guiding_preprocess'. */
   params->Set(NVSDK_NGX_Parameter_DLSS_Roughness_Mode, NVSDK_NGX_DLSS_Roughness_Mode_Packed);
 
+  /* Free internal resources immediately on release instead of doing delayed destruction. This is
+   * safe to do since the denoiser queue is synchronized before release above. */
+  params->Set(NVSDK_NGX_Parameter_FreeMemOnReleaseFeature, 1);
+
   const NVSDK_NGX_Result result = NVSDK_NGX_CUDA_CreateFeature1(
       ngx_device_, NVSDK_NGX_Feature_RayReconstruction, params, &handle_);
 
