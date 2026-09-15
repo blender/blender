@@ -346,11 +346,12 @@ TEST_F(AnimChannelTest, group_channels)
 
   /* All F-Curves are on the same Action & Layer, so these tags should bubble all the way to the
    * root summary channel. */
-  EXPECT_EQ(root->tags().by_type(ChannelTagType::ACTION)->source_data().data_as<Action>(),
+  EXPECT_EQ(root->tags().first_by_type(ChannelTagType::ACTION)->source_data().data_as<Action>(),
             this->action)
       << root->tags();
-  EXPECT_EQ(root->tags().by_type(ChannelTagType::ACTION_LAYER)->source_data().data_as<Layer>(),
-            &action_layer)
+  EXPECT_EQ(
+      root->tags().first_by_type(ChannelTagType::ACTION_LAYER)->source_data().data_as<Layer>(),
+      &action_layer)
       << root->tags();
 }
 
