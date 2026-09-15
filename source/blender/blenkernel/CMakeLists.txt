@@ -324,6 +324,7 @@ set(SRC
   BKE_anim_path.h
   BKE_anim_visualization.h
   BKE_animsys.hh
+  BKE_annotations.h
   BKE_anonymous_attribute_id.hh
   BKE_anonymous_attribute_make.hh
   BKE_appdir.hh
@@ -413,7 +414,6 @@ set(SRC
   BKE_geometry_set.hh
   BKE_geometry_set_instances.hh
   BKE_global.hh
-  BKE_gpencil_legacy.h
   BKE_gpencil_geom_legacy.h
   BKE_gpencil_modifier_legacy.h
   BKE_grease_pencil.h

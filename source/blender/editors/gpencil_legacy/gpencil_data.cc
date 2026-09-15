@@ -21,10 +21,10 @@
 
 #include "BKE_anim_data.hh"
 #include "BKE_animsys.hh"
+#include "BKE_annotations.h"
 #include "BKE_brush.hh"
 #include "BKE_context.hh"
 #include "BKE_fcurve_driver.h"
-#include "BKE_gpencil_legacy.h"
 #include "BKE_lib_id.hh"
 #include "BKE_main.hh"
 #include "BKE_material.hh"

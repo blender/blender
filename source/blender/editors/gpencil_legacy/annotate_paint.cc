@@ -21,11 +21,11 @@
 
 #include "BLT_translation.hh"
 
+#include "BKE_annotations.h"
 #include "BKE_callbacks.hh"
 #include "BKE_camera.h"
 #include "BKE_context.hh"
 #include "BKE_gpencil_geom_legacy.h"
-#include "BKE_gpencil_legacy.h"
 #include "BKE_report.hh"
 #include "BKE_screen.hh"
 #include "BKE_tracking.hh"

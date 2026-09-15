@@ -27,12 +27,12 @@
 
 #include "MEM_guardedalloc.h"
 
+#include "BKE_annotations.h"
 #include "BKE_asset.hh"
 #include "BKE_compositor.hh"
 #include "BKE_compute_context_cache.hh"
 #include "BKE_compute_contexts.hh"
 #include "BKE_context.hh"
-#include "BKE_gpencil_legacy.h"
 #include "BKE_idprop.hh"
 #include "BKE_lib_id.hh"
 #include "BKE_lib_query.hh"

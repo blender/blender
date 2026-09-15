@@ -31,9 +31,9 @@
 #  include "BLI_string_utils.hh"
 
 #  include "BKE_animsys.hh"
+#  include "BKE_annotations.h"
 #  include "BKE_global.hh"
 #  include "BKE_gpencil_geom_legacy.h"
-#  include "BKE_gpencil_legacy.h"
 #  include "BKE_icons.hh"
 #  include "BKE_report.hh"
 

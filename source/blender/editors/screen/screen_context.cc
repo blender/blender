@@ -27,9 +27,9 @@
 #include "BLI_utildefines.hh"
 
 #include "BKE_action.hh"
+#include "BKE_annotations.h"
 #include "BKE_armature.hh"
 #include "BKE_context.hh"
-#include "BKE_gpencil_legacy.h"
 #include "BKE_layer.hh"
 #include "BKE_library.hh"
 #include "BKE_object.hh"

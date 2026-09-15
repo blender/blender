@@ -20,8 +20,8 @@
 #include "DNA_scene_types.h"
 #include "DNA_screen_types.h"
 
+#include "BKE_annotations.h"
 #include "BKE_context.hh"
-#include "BKE_gpencil_legacy.h"
 #include "BKE_lib_id.hh"
 #include "BKE_paint.hh"
 #include "BKE_report.hh"

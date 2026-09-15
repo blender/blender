@@ -22,8 +22,8 @@
 #include "DNA_mesh_types.h"
 #include "DNA_meshdata_types.h"
 
+#include "BKE_annotations.h"
 #include "BKE_gpencil_geom_legacy.h"
-#include "BKE_gpencil_legacy.h"
 
 namespace blender {
 

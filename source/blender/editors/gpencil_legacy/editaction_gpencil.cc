@@ -20,7 +20,7 @@
 #include "DNA_gpencil_legacy_types.h"
 #include "DNA_scene_types.h"
 
-#include "BKE_gpencil_legacy.h"
+#include "BKE_annotations.h"
 
 #include "ED_anim_api.hh"
 #include "ED_gpencil_legacy.hh"

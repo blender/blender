@@ -31,10 +31,10 @@
 #include "RNA_enum_types.hh"
 
 #include "BKE_animsys.hh"
+#include "BKE_annotations.h"
 #include "BKE_context.hh"
 #include "BKE_fcurve.hh"
 #include "BKE_global.hh"
-#include "BKE_gpencil_legacy.h"
 #include "BKE_grease_pencil.hh"
 #include "BKE_nla.hh"
 #include "BKE_report.hh"

@@ -36,11 +36,11 @@
 
 #include "BKE_action.hh"
 #include "BKE_anim_data.hh"
+#include "BKE_annotations.h"
 #include "BKE_brush.hh"
 #include "BKE_collection.hh"
 #include "BKE_colortools.hh"
 #include "BKE_deform.hh"
-#include "BKE_gpencil_legacy.h"
 #include "BKE_icons.hh"
 #include "BKE_idtype.hh"
 #include "BKE_image.hh"
