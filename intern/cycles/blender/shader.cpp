@@ -1339,6 +1339,7 @@ static void add_nodes(Scene *scene,
                       blender::RenderEngine &b_engine,
                       blender::Main &b_data,
                       blender::Scene &b_scene,
+                      blender::Depsgraph &b_depsgraph,
                       ShaderGraph *graph,
                       blender::bNodeTree &b_ntree,
                       const ProxyMap &proxy_input_map,
@@ -1348,6 +1349,7 @@ static void add_nodes_inlined(Scene *scene,
                               blender::RenderEngine &b_engine,
                               blender::Main &b_data,
                               blender::Scene &b_scene,
+                              blender::Depsgraph &b_depsgraph,
                               ShaderGraph *graph,
                               blender::bNodeTree &b_ntree,
                               const ProxyMap &proxy_input_map,
@@ -1424,6 +1426,7 @@ static void add_nodes_inlined(Scene *scene,
                   b_engine,
                   b_data,
                   b_scene,
+                  b_depsgraph,
                   graph,
                   *b_group_ntree,
                   group_proxy_input_map,
@@ -1535,10 +1538,28 @@ static void add_nodes_inlined(Scene *scene,
   }
 }
 
+static void store_shader_node_errors(
+    blender::Depsgraph &b_depsgraph,
+    const blender::Span<blender::nodes::InlineShaderNodeTreeParams::ErrorMessage> errors)
+{
+  if (!DEG_is_active(&b_depsgraph)) {
+    return;
+  }
+  for (const blender::nodes::InlineShaderNodeTreeParams::ErrorMessage &error : errors) {
+    const blender::bNodeTree &tree = error.node->owner_tree();
+    if (const blender::bNodeTree *tree_orig = DEG_get_original(&tree)) {
+      std::lock_guard lock(tree_orig->runtime->shader_node_errors_mutex);
+      tree_orig->runtime->shader_node_errors.lookup_or_add_default(error.node->identifier)
+          .add({error.type, error.message});
+    }
+  }
+}
+
 static void add_nodes(Scene *scene,
                       blender::RenderEngine &b_engine,
                       blender::Main &b_data,
                       blender::Scene &b_scene,
+                      blender::Depsgraph &b_depsgraph,
                       ShaderGraph *graph,
                       blender::bNodeTree &b_ntree,
                       const ProxyMap &proxy_input_map,
@@ -1551,8 +1572,17 @@ static void add_nodes(Scene *scene,
   inline_params.target_engine_ = blender::SHD_OUTPUT_CYCLES;
   blender::nodes::inline_shader_node_tree(b_ntree, *localtree, inline_params);
 
-  add_nodes_inlined(
-      scene, b_engine, b_data, b_scene, graph, *localtree, proxy_input_map, proxy_output_map);
+  store_shader_node_errors(b_depsgraph, inline_params.r_error_messages);
+
+  add_nodes_inlined(scene,
+                    b_engine,
+                    b_data,
+                    b_scene,
+                    b_depsgraph,
+                    graph,
+                    *localtree,
+                    proxy_input_map,
+                    proxy_output_map);
 
   BKE_id_free(nullptr, &localtree->id);
 }
@@ -1561,11 +1591,20 @@ static void add_nodes(Scene *scene,
                       blender::RenderEngine &b_engine,
                       blender::Main &b_data,
                       blender::Scene &b_scene,
+                      blender::Depsgraph &b_depsgraph,
                       ShaderGraph *graph,
                       blender::bNodeTree &b_ntree)
 {
   static const ProxyMap empty_proxy_map;
-  add_nodes(scene, b_engine, b_data, b_scene, graph, b_ntree, empty_proxy_map, empty_proxy_map);
+  add_nodes(scene,
+            b_engine,
+            b_data,
+            b_scene,
+            b_depsgraph,
+            graph,
+            b_ntree,
+            empty_proxy_map,
+            empty_proxy_map);
 }
 
 /* Look up and constant fold all references to View Layer attributes. */
@@ -1708,7 +1747,7 @@ void BlenderSync::sync_materials(blender::Depsgraph &b_depsgraph,
 
       /* create nodes */
       if (b_mat.nodetree) {
-        add_nodes(scene, *b_engine, *b_data, *b_scene, graph.get(), *b_mat.nodetree);
+        add_nodes(scene, *b_engine, *b_data, *b_scene, b_depsgraph, graph.get(), *b_mat.nodetree);
       }
       else {
         DiffuseBsdfNode *diffuse = graph->create_node<DiffuseBsdfNode>();
@@ -1796,7 +1835,7 @@ void BlenderSync::sync_world(blender::Depsgraph &b_depsgraph,
 
     /* create nodes */
     if (new_viewport_parameters.use_scene_world && b_world && b_world->nodetree) {
-      add_nodes(scene, *b_engine, *b_data, *b_scene, graph.get(), *b_world->nodetree);
+      add_nodes(scene, *b_engine, *b_data, *b_scene, b_depsgraph, graph.get(), *b_world->nodetree);
 
       /* volume */
       blender::PointerRNA world_rna_ptr = RNA_id_pointer_create(&b_world->id);
@@ -1969,7 +2008,8 @@ void BlenderSync::sync_lights(blender::Depsgraph &b_depsgraph, bool update_all, 
       if (b_light.nodetree) {
         shader->name = BKE_id_name(b_light.id);
 
-        add_nodes(scene, *b_engine, *b_data, *b_scene, graph.get(), *b_light.nodetree);
+        add_nodes(
+            scene, *b_engine, *b_data, *b_scene, b_depsgraph, graph.get(), *b_light.nodetree);
       }
       else {
         EmissionNode *emission = graph->create_node<EmissionNode>();
