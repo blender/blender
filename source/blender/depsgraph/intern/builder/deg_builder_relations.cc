@@ -787,7 +787,7 @@ void DepsgraphRelationBuilder::build_object(Object *object)
   if (object->greasepencil_modifiers.first() != nullptr) {
     BuilderWalkUserData data;
     data.builder = this;
-    BKE_gpencil_modifiers_foreach_ID_link(object, modifier_walk, &data);
+    BKE_grease_pencil_modifiers_foreach_ID_link(object, modifier_walk, &data);
   }
 
   /* Shader FX. */

@@ -31,12 +31,12 @@ typedef void (*GreasePencilIDWalkFunc)(void *user_data,
  * \param md: Modifier data.
  * \param flag: Flags.
  */
-void BKE_gpencil_modifier_free_ex(struct GpencilModifierData *md, int flag);
+void BKE_grease_pencil_modifier_free_ex(struct GpencilModifierData *md, int flag);
 /**
  * Free grease pencil modifier data
  * \param md: Modifier data.
  */
-void BKE_gpencil_modifier_free(struct GpencilModifierData *md);
+void BKE_grease_pencil_modifier_free(struct GpencilModifierData *md);
 
 /**
  * Link grease pencil modifier related IDs.
@@ -44,12 +44,12 @@ void BKE_gpencil_modifier_free(struct GpencilModifierData *md);
  * \param walk: Walk option.
  * \param user_data: User data.
  */
-void BKE_gpencil_modifiers_foreach_ID_link(struct Object *ob,
-                                           GreasePencilIDWalkFunc walk,
-                                           void *user_data);
+void BKE_grease_pencil_modifiers_foreach_ID_link(struct Object *ob,
+                                                 GreasePencilIDWalkFunc walk,
+                                                 void *user_data);
 
-void BKE_gpencil_modifier_blend_read_data(struct BlendDataReader *reader,
-                                          ListBaseT<GpencilModifierData> *lb,
-                                          struct Object *ob);
+void BKE_grease_pencil_modifier_blend_read_data(struct BlendDataReader *reader,
+                                                ListBaseT<GpencilModifierData> *lb,
+                                                struct Object *ob);
 
 }  // namespace blender

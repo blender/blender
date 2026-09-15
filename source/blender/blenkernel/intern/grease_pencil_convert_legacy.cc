@@ -2882,7 +2882,7 @@ static void legacy_object_modifiers(ConversionData &conversion_data, Object &obj
         break;
     }
 
-    BKE_gpencil_modifier_free_ex(gpd_md, 0);
+    BKE_grease_pencil_modifier_free_ex(gpd_md, 0);
   }
 }
 

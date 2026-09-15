@@ -362,7 +362,7 @@ static void modifier_free_data_id_us_cb(void * /*user_data*/,
   }
 }
 
-void BKE_gpencil_modifier_free_ex(GpencilModifierData *md, const int flag)
+void BKE_grease_pencil_modifier_free_ex(GpencilModifierData *md, const int flag)
 {
   if ((flag & LIB_ID_CREATE_NO_USER_REFCOUNT) == 0) {
     gpencil_modifier_foreach_ID_link(md, nullptr, modifier_free_data_id_us_cb, nullptr);
@@ -376,14 +376,14 @@ void BKE_gpencil_modifier_free_ex(GpencilModifierData *md, const int flag)
   MEM_delete(md);
 }
 
-void BKE_gpencil_modifier_free(GpencilModifierData *md)
+void BKE_grease_pencil_modifier_free(GpencilModifierData *md)
 {
-  BKE_gpencil_modifier_free_ex(md, 0);
+  BKE_grease_pencil_modifier_free_ex(md, 0);
 }
 
-void BKE_gpencil_modifiers_foreach_ID_link(Object *ob,
-                                           GreasePencilIDWalkFunc walk,
-                                           void *user_data)
+void BKE_grease_pencil_modifiers_foreach_ID_link(Object *ob,
+                                                 GreasePencilIDWalkFunc walk,
+                                                 void *user_data)
 {
   GpencilModifierData *md = ob->greasepencil_modifiers.first();
 
@@ -392,9 +392,9 @@ void BKE_gpencil_modifiers_foreach_ID_link(Object *ob,
   }
 }
 
-void BKE_gpencil_modifier_blend_read_data(BlendDataReader *reader,
-                                          ListBaseT<GpencilModifierData> *lb,
-                                          Object *ob)
+void BKE_grease_pencil_modifier_blend_read_data(BlendDataReader *reader,
+                                                ListBaseT<GpencilModifierData> *lb,
+                                                Object *ob)
 {
   BLO_read_struct_list(reader, GpencilModifierData, lb);
 
