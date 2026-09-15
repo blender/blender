@@ -121,6 +121,9 @@ class TOPBAR_MT_editor_menus(Menu):
 
         layout.menu("TOPBAR_MT_render")
 
+        if bpy.data.project:
+            layout.menu("TOPBAR_MT_project")
+
         layout.menu("TOPBAR_MT_window")
         layout.menu("TOPBAR_MT_help")
 
@@ -344,10 +347,6 @@ class TOPBAR_MT_file_project(Menu):
 
         layout.operator("project.new_project", text="New Project...", icon='ADD')
         layout.operator("project.open_blend_in_project", icon='FILE_FOLDER')
-
-        layout.separator()
-
-        layout.operator("screen.project_setup_show", text="Project Settings...", icon='PREFERENCES')
 
 
 # Include technical operators here which would otherwise have no way for users to access.
@@ -586,6 +585,15 @@ class TOPBAR_MT_edit(Menu):
         layout.separator()
 
         layout.operator("screen.userpref_show", text="Preferences...", icon='PREFERENCES')
+
+
+class TOPBAR_MT_project(Menu):
+    bl_label = "Project"
+
+    def draw(self, _context):
+        layout = self.layout
+
+        layout.operator("screen.project_setup_show", text="Settings...", icon='PREFERENCES')
 
 
 class TOPBAR_MT_window(Menu):
@@ -899,6 +907,7 @@ classes = (
     TOPBAR_MT_file_previews,
     TOPBAR_MT_edit,
     TOPBAR_MT_render,
+    TOPBAR_MT_project,
     TOPBAR_MT_window,
     TOPBAR_MT_help,
     TOPBAR_PT_tool_fallback,
