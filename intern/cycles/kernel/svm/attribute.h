@@ -68,6 +68,7 @@ template<typename Float3Type>
 ccl_device_inline Float3Type
 svm_node_attr_surface_eval(KernelGlobals kg,
                            ccl_private ShaderData *sd,
+                           ccl_private float *ccl_restrict stack,
                            const ccl_global SVMNodeAttr &ccl_restrict node,
                            const NodeAttributeOutputType type,
                            const AttributeDescriptor desc)
@@ -95,6 +96,13 @@ svm_node_attr_surface_eval(KernelGlobals kg,
     Float3Type f = shading_position<Float3Type>(sd);
     object_inverse_position_transform_if_object(kg, sd, &f);
     return f;
+  }
+
+  if (!is_attribute_found(desc)) {
+    if (type == NODE_ATTR_OUTPUT_FLOAT_ALPHA) {
+      return make_float3(FloatType(stack_load(stack, node.missing_alpha)));
+    }
+    return Float3Type(stack_load(stack, node.missing));
   }
 
   /* Surface attribute fetch with output type conversion. */
@@ -199,7 +207,7 @@ ccl_device_noinline void svm_node_attr_surface(KernelGlobals kg,
   NodeAttributeOutputType type = NODE_ATTR_OUTPUT_FLOAT;
   const AttributeDescriptor desc = svm_node_attr_init(kg, sd, node, &type);
 
-  float3 data = svm_node_attr_surface_eval<float3>(kg, sd, node, type, desc);
+  float3 data = svm_node_attr_surface_eval<float3>(kg, sd, stack, node, type, desc);
   svm_node_attr_store(type, stack, node.out_offset, data);
 }
 
@@ -214,7 +222,7 @@ ccl_device_noinline void svm_node_attr_derivative(KernelGlobals kg,
   NodeAttributeOutputType type = NODE_ATTR_OUTPUT_FLOAT;
   const AttributeDescriptor desc = svm_node_attr_init(kg, sd, node, &type);
 
-  dual3 data = svm_node_attr_surface_eval<dual3>(kg, sd, node, type, desc);
+  dual3 data = svm_node_attr_surface_eval<dual3>(kg, sd, stack, node, type, desc);
   if (node.bump_offset == NODE_BUMP_OFFSET_DX) {
     data.val += data.dx * node.bump_filter_width;
   }
@@ -241,6 +249,21 @@ ccl_device_noinline void svm_node_attr_volume(KernelGlobals kg,
 
   NodeAttributeOutputType type = NODE_ATTR_OUTPUT_FLOAT;
   const AttributeDescriptor desc = svm_node_attr_init(kg, sd, node, &type);
+  if (!is_attribute_found(desc)) {
+    if (type == NODE_ATTR_OUTPUT_FLOAT) {
+      const float3 missing = stack_load(stack, node.missing);
+      stack_store_float(stack, node.out_offset, average(missing));
+    }
+    else if (type == NODE_ATTR_OUTPUT_FLOAT3) {
+      const float3 missing = stack_load(stack, node.missing);
+      stack_store_float3(stack, node.out_offset, missing);
+    }
+    else {
+      const float f = stack_load(stack, node.missing_alpha);
+      stack_store_float(stack, node.out_offset, f);
+    }
+    return;
+  }
 
   const bool stochastic_sample = __float_as_uint(node.bump_filter_width);
   const float4 value = volume_attribute_float4(kg, sd, desc, stochastic_sample);

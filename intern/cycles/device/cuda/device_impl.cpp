@@ -9,6 +9,11 @@
 #  include <cstring>
 #  include <iomanip>
 
+#  ifdef WITH_OSL
+#    include <OSL/oslversion.h>
+#    include <OpenImageIO/oiioversion.h>
+#  endif
+
 #  include "device/cuda/device_impl.h"
 
 #  include "util/debug.h"
@@ -240,6 +245,11 @@ string CUDADevice::compile_kernel_get_common_cflags(const uint64_t kernel_featur
 
 #  ifdef WITH_NANOVDB
   cflags += " -DWITH_NANOVDB";
+#  endif
+
+#  ifdef WITH_OSL
+  cflags += string_printf(
+      " -DOSL_LIBRARY_VERSION_CODE=%d -DOIIO_VERSION=%d", OSL_LIBRARY_VERSION_CODE, OIIO_VERSION);
 #  endif
 
 #  ifdef WITH_CYCLES_DEBUG

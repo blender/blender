@@ -6,6 +6,7 @@
 
 #if !defined(__KERNEL_GPU__)
 #  include <OSL/oslversion.h>
+#  include <OpenImageIO/oiioversion.h>
 #endif
 
 #include "kernel/types.h"
@@ -144,7 +145,77 @@ struct ShaderGlobals {
 
 struct OSLNoiseOptions {};
 
-struct OSLTextureOptions {};
+/* This is copied out of OSL's TextureOpt struct, and it differs between versions.
+ * Currently only missingcolor, sblur and tblur are used in Cycles code. */
+
+#ifndef OIIO_VERSION
+#  error "OIIO_VERSION must be defined to select the matching OSL TextureOpt layout"
+#endif
+
+#if OIIO_VERSION >= 30000
+struct OSLTextureOptions {
+  int firstchannel = 0;
+  int subimage = 0;
+  DeviceString /* ustring */ subimagename;
+  uint8_t /* Wrap */ swrap = 0;            /* Wrap::Default; */
+  uint8_t /* Wrap */ twrap = 0;            /* Wrap::Default; */
+  uint8_t /* Wrap */ rwrap = 0;            /* Wrap::Default; */
+  uint8_t /* MipMode */ mipmode = 0;       /* MipMode::Default; */
+  uint8_t /* InterpMode */ interpmode = 3; /* InterpMode::SmartBicubic; */
+  bool conservative_filter = true;
+  uint16_t anisotropic = 32;
+  float sblur = 0, tblur = 0, rblur = 0;
+  float swidth = 1, twidth = 1;
+  float rwidth = 1;
+  float fill = 0;
+  const float *missingcolor = nullptr;
+  float rnd = -1;
+  int colortransformid = 0;
+  int envlayout = 0; /* private */
+};
+#else
+struct OSLTextureOptions {
+  int firstchannel;
+  int subimage;
+  DeviceString /* ustring */ subimagename;
+  int /* Wrap */ swrap;
+  int /* Wrap */ twrap;
+  int /* MipMode */ mipmode;
+  int /* InterpMode */ interpmode;
+  int anisotropic;
+  bool conservative_filter;
+  float sblur, tblur;
+  float swidth, twidth;
+  float fill;
+  const float *missingcolor;
+  float time;
+  union {
+    float bias;
+    float rnd;
+  };
+  int samples;
+  int /* Wrap */ rwrap;
+  float rblur;
+  float rwidth;
+  int colortransformid;
+};
+#endif
+#ifndef __KERNEL_GPU__
+static_assert(sizeof(OSLTextureOptions) == sizeof(OSL::TextureOpt),
+              "OSLTextureOptions size mismatch.");
+static_assert(sizeof(OSLTextureOptions::sblur) == sizeof(OSL::TextureOpt::sblur),
+              "OSLTextureOptions::sblur size mismatch.");
+static_assert(sizeof(OSLTextureOptions::tblur) == sizeof(OSL::TextureOpt::tblur),
+              "OSLTextureOptions::tblur size mismatch.");
+static_assert(sizeof(OSLTextureOptions::missingcolor) == sizeof(OSL::TextureOpt::missingcolor),
+              "OSLTextureOptions::missingcolor size mismatch.");
+static_assert(offsetof(OSLTextureOptions, sblur) == offsetof(OSL::TextureOpt, sblur),
+              "OSLTextureOptions::sblur offsetof mismatch.");
+static_assert(offsetof(OSLTextureOptions, tblur) == offsetof(OSL::TextureOpt, tblur),
+              "OSLTextureOptions::tblur offsetof mismatch.");
+static_assert(offsetof(OSLTextureOptions, missingcolor) == offsetof(OSL::TextureOpt, missingcolor),
+              "OSLTextureOptions::missingcolor offsetof mismatch.");
+#endif
 
 /* Note: starting from 1 instead of 0 so that the encoded handle is never a null pointer
  * the OSL will interpret as an invalid handle. */
