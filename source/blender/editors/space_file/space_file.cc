@@ -1010,7 +1010,9 @@ static void file_space_blend_write(BlendWriter *writer, SpaceLink *sl)
 {
   SpaceFile *sfile = reinterpret_cast<SpaceFile *>(sl);
 
-  writer->write_struct_cast<SpaceFile>(sl);
+  writer->write_struct_cast<SpaceFile>(sl, [](BlendStructWriter<SpaceFile> &struct_writer) {
+    struct_writer.shallow_data.runtime = nullptr;
+  });
   if (sfile->params) {
     writer->write_struct(sfile->params);
   }

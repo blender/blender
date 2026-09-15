@@ -393,7 +393,7 @@ static void mesh_blend_write(BlendWriter *writer, ID *id, const void *id_address
 
   writer->generated_pointer_tag(mesh->attribute_storage.dna_attributes);
 
-  writer->write_id_struct(id_address, mesh, [](BlendStructWriter &struct_writer) {
+  writer->write_id_struct(id_address, mesh, [](BlendStructWriter<Mesh> &struct_writer) {
     struct_writer.generated_ptr(offsetof(Mesh, attribute_storage.dna_attributes));
   });
   BKE_id_blend_write(writer, &mesh->id);

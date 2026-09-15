@@ -1635,28 +1635,29 @@ static void panel_register(ARegionType *region_type)
 
 static void blend_write(BlendWriter *writer, const ID *id_owner, const ModifierData *md)
 {
-  SurfaceDeformModifierData smd = *reinterpret_cast<const SurfaceDeformModifierData *>(md);
+  const SurfaceDeformModifierData *smd = reinterpret_cast<const SurfaceDeformModifierData *>(md);
   const bool is_undo = writer->is_undo();
-
-  if (ID_IS_OVERRIDE_LIBRARY(id_owner) && !is_undo) {
+  const bool without_bind_data = ID_IS_OVERRIDE_LIBRARY(id_owner) && !is_undo &&
+                                 (md->flag & eModifierFlag_OverrideLibrary_Local) == 0;
+  if (without_bind_data) {
+    /* Modifier coming from linked data cannot be bound from an override, so we can remove all
+     * binding data, can save a significant amount of memory. */
     BLI_assert(!ID_IS_LINKED(id_owner));
-    const bool is_local = (md->flag & eModifierFlag_OverrideLibrary_Local) != 0;
-    if (!is_local) {
-      /* Modifier coming from linked data cannot be bound from an override, so we can remove all
-       * binding data, can save a significant amount of memory. */
-      smd.bind_verts_num = 0;
-      smd.verts = nullptr;
-      smd.verts_sharing_info = nullptr;
-    }
+    writer->write_struct(smd, [](BlendStructWriter<SurfaceDeformModifierData> &struct_writer) {
+      struct_writer.shallow_data.bind_verts_num = 0;
+      struct_writer.shallow_data.verts = nullptr;
+      struct_writer.shallow_data.verts_sharing_info = nullptr;
+    });
+    return;
   }
 
-  if (smd.verts != nullptr) {
+  if (smd->verts != nullptr) {
     writer->write_shared(
-        smd.verts, sizeof(SDefVert) * smd.bind_verts_num, smd.verts_sharing_info, [&]() {
-          SDefVert *bind_verts = smd.verts;
-          writer->write_struct_array(smd.bind_verts_num, bind_verts);
+        smd->verts, sizeof(SDefVert) * smd->bind_verts_num, smd->verts_sharing_info, [&]() {
+          const SDefVert *bind_verts = smd->verts;
+          writer->write_struct_array(smd->bind_verts_num, bind_verts);
 
-          for (int i = 0; i < smd.bind_verts_num; i++) {
+          for (int i = 0; i < smd->bind_verts_num; i++) {
             writer->write_struct_array(bind_verts[i].binds_num, bind_verts[i].binds);
 
             if (bind_verts[i].binds) {
@@ -1680,7 +1681,7 @@ static void blend_write(BlendWriter *writer, const ID *id_owner, const ModifierD
         });
   }
 
-  writer->write_struct_at_address(md, &smd);
+  writer->write_struct(smd);
 }
 
 static void blend_read(BlendDataReader *reader, ModifierData *md)
