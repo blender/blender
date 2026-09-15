@@ -134,11 +134,11 @@ set(SRC
   intern/geometry_set.cc
   intern/geometry_set_instances.cc
   intern/gpencil_geom_legacy.cc
-  intern/gpencil_modifier_legacy.cc
   intern/grease_pencil.cc
   intern/grease_pencil_attributes.cc
   intern/grease_pencil_convert_legacy.cc
   intern/grease_pencil_fills.cc
+  intern/grease_pencil_modifiers.cc
   intern/grease_pencil_vertex_groups.cc
   intern/gtest_setup.cc
   intern/icons.cc
@@ -415,11 +415,11 @@ set(SRC
   BKE_geometry_set_instances.hh
   BKE_global.hh
   BKE_gpencil_geom_legacy.h
-  BKE_gpencil_modifier_legacy.h
   BKE_grease_pencil.h
   BKE_grease_pencil.hh
   BKE_grease_pencil_fills.hh
   BKE_grease_pencil_legacy_convert.hh
+  BKE_grease_pencil_modifiers.h
   BKE_grease_pencil_vertex_groups.hh
   BKE_gtest_base.hh
   BKE_gtest_setup.hh
