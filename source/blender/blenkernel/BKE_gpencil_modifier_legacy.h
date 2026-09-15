@@ -7,7 +7,7 @@
  * \ingroup bke
  */
 
-#include "DNA_gpencil_modifier_types.h" /* Needed for all enum type definitions. */
+#include "DNA_grease_pencil_modifier_types.h" /* Needed for all enum type definitions. */
 #include "DNA_listBase.h"
 
 #include "BKE_lib_query.hh" /* For LibraryForeachIDCallbackFlag enum. */
