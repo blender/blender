@@ -1,0 +1,38 @@
+diff --git a/clang/lib/CodeGen/CGRecordLayoutBuilder.cpp b/clang/lib/CodeGen/CGRecordLayoutBuilder.cpp
+index e9205c68c..4cd24822a 100644
+--- a/clang/lib/CodeGen/CGRecordLayoutBuilder.cpp
++++ b/clang/lib/CodeGen/CGRecordLayoutBuilder.cpp
+@@ -410,7 +410,11 @@ RecordDecl::field_iterator
+ CGRecordLowering::accumulateBitFields(bool isNonVirtualBaseType,
+                                       RecordDecl::field_iterator Field,
+                                       RecordDecl::field_iterator FieldEnd) {
+-  if (isDiscreteBitFieldABI()) {
++  // BACKPORT(#23007)
++  // If fine-grained-bitfield-accesses is enabled, we do not want to
++  // do the contiguous collection of bitfields.
++  if (isDiscreteBitFieldABI() &&
++      !Types.getCodeGenOpts().FineGrainedBitfieldAccesses) {
+     // Run stores the first element of the current run of bitfields. FieldEnd is
+     // used as a special value to note that we don't have a current run. A
+     // bitfield run is a contiguous collection of bitfields that can be stored
+@@ -517,7 +521,8 @@ CGRecordLowering::accumulateBitFields(bool isNonVirtualBaseType,
+   // include padding when we've advanced to a subsequent bitfield run.
+   RecordDecl::field_iterator Begin = FieldEnd;
+   CharUnits BeginOffset;
+-  uint64_t BitSizeSinceBegin;
++  // BACKPORT(#23007)
++  uint64_t BitSizeSinceBegin = 0;
+
+   // The (non-inclusive) end of the largest acceptable access unit we've found
+   // since Begin. If this is Begin, we're gathering the initial set of bitfields
+@@ -526,7 +531,9 @@ CGRecordLowering::accumulateBitFields(bool isNonVirtualBaseType,
+   // available padding characters.
+   RecordDecl::field_iterator BestEnd = Begin;
+   CharUnits BestEndOffset;
+-  bool BestClipped; // Whether the representation must be in a byte array.
++  // BACKPORT(#23007)
++  // Whether the representation must be in a byte array.
++  bool BestClipped = false;
+
+   for (;;) {
+     // AtAlignedBoundary is true iff Field is the (potential) start of a new

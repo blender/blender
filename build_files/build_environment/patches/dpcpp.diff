@@ -1,72 +1,48 @@
 diff --git a/libdevice/cmake/modules/SYCLLibdevice.cmake b/libdevice/cmake/modules/SYCLLibdevice.cmake
-index 2f0cef3a2..eb64a812e 100644
+index 4f7d06e66..c7b8eef17 100644
 --- a/libdevice/cmake/modules/SYCLLibdevice.cmake
 +++ b/libdevice/cmake/modules/SYCLLibdevice.cmake
-@@ -64,7 +64,7 @@ if (WIN32)
+@@ -17,6 +17,10 @@ else()
+   set(bc_dir "lib${LLVM_LIBDIR_SUFFIX}/dpcpp-${DPCPP_VERSION_MAJOR}/sycl")
+   set(install_dest_bc ${bc_dir})
+   set(bc_binary_dir "${CMAKE_BINARY_DIR}/${bc_dir}")
++  # The nested lib/dpcpp-<major>/sycl directory is not created by any target,
++  # and clang does not create output directories itself. Create it at configure
++  # time, matching how obj_binary_dir/libdevice is handled below.
++  file(MAKE_DIRECTORY ${bc_binary_dir})
+ endif()
+
+ string(CONCAT sycl_targets_opt
+@@ -74,7 +78,7 @@ if (WIN32)
    list(APPEND compile_opts -D_ALLOW_ITERATOR_DEBUG_LEVEL_MISMATCH)
  endif()
 
 -add_custom_target(libsycldevice)
 +add_custom_target(libsycldevice ALL)
 
- set(filetypes obj obj-new-offload spv bc)
- set(filetypes_no_spv obj obj-new-offload bc)
-diff --git a/opencl/CMakeLists.txt b/opencl/CMakeLists.txt
-index 6c771c709..1e840ebfe 100644
---- a/opencl/CMakeLists.txt
-+++ b/opencl/CMakeLists.txt
-@@ -11,6 +11,11 @@ if (MSVC)
-   )
- endif()
+ set(filetypes bc)
 
-+# Blender code below is determined to use FetchContent_Declare
-+# temporarily allow it (but feed it our downloaded tarball
-+# in the OpenCL_HEADERS variable
-+set(FETCHCONTENT_FULLY_DISCONNECTED OFF)
-+
- # Repo URLs
+@@ -149,6 +153,7 @@ function(compile_lib_ext filename)
 
- set(OCL_HEADERS_REPO
-@@ -77,5 +82,6 @@ endif()
+   add_custom_command(
+     OUTPUT ${devicelib-file}
++    COMMAND ${CMAKE_COMMAND} -E make_directory ${${ARG_FILETYPE}_binary_dir}
+     COMMAND ${clang_exe} -I ${PROJECT_BINARY_DIR}/include
+             ${ARG_OPTS}
+             ${CMAKE_CURRENT_SOURCE_DIR}/${ARG_SRC} -o ${devicelib-file}
+@@ -717,6 +722,7 @@ function(add_lib_imf name)
 
- FetchContent_MakeAvailable(ocl-icd)
- add_library(OpenCL-ICD ALIAS OpenCL)
-+set(FETCHCONTENT_FULLY_DISCONNECTED ON)
-
- add_subdirectory(opencl-aot)
-diff --git a/sycl/cmake/modules/FetchUnifiedRuntime.cmake b/sycl/cmake/modules/FetchUnifiedRuntime.cmake
-index 33368f2b9..9b95ec123 100644
---- a/sycl/cmake/modules/FetchUnifiedRuntime.cmake
-+++ b/sycl/cmake/modules/FetchUnifiedRuntime.cmake
-@@ -92,8 +92,12 @@ if(IS_DIRECTORY "${UR_INTREE_SOURCE_DIR}")
-   # to link statically on windows
-   if(WIN32)
-     set(UMF_BUILD_SHARED_LIBRARY OFF CACHE INTERNAL "Build UMF shared library")
--    set(UMF_LINK_HWLOC_STATICALLY ON CACHE INTERNAL "static HWLOC")
-   endif()
-+  # hwloc is disabled and not linked statically - Blender does not need
-+  # NUMA-aware memory placement. This avoids pulling in hwloc as an
-+  # additional build dependency.
-+  set(UMF_LINK_HWLOC_STATICALLY OFF CACHE INTERNAL "static HWLOC")
-+  set(UMF_DISABLE_HWLOC ${SYCL_UMF_DISABLE_HWLOC} CACHE INTERNAL "Disable hwloc for UMF")
-   add_subdirectory(${UNIFIED_RUNTIME_SOURCE_DIR} ${UR_INTREE_BINARY_DIR})
- elseif(SYCL_UR_USE_FETCH_CONTENT)
-   include(FetchContent)
-@@ -149,8 +153,12 @@ elseif(SYCL_UR_USE_FETCH_CONTENT)
-   # to link statically on windows
-   if(WIN32)
-     set(UMF_BUILD_SHARED_LIBRARY OFF CACHE INTERNAL "Build UMF shared library")
--    set(UMF_LINK_HWLOC_STATICALLY ON CACHE INTERNAL "static HWLOC")
-   endif()
-+  # hwloc is disabled and not linked statically - Blender does not need
-+  # NUMA-aware memory placement. This avoids pulling in hwloc as an
-+  # additional build dependency.
-+  set(UMF_LINK_HWLOC_STATICALLY OFF CACHE INTERNAL "static HWLOC")
-+  set(UMF_DISABLE_HWLOC ${SYCL_UMF_DISABLE_HWLOC} CACHE INTERNAL "Disable hwloc for UMF")
-
-   fetch_adapter_source(level_zero
-     ${UNIFIED_RUNTIME_REPO}
-@@ -327,6 +335,31 @@ if(CMAKE_SYSTEM_NAME STREQUAL Windows)
+   add_custom_command(
+     OUTPUT ${ARG_DIR}/${name}.${${ARG_FTYPE}-suffix}
++    COMMAND ${CMAKE_COMMAND} -E make_directory ${ARG_DIR}
+     COMMAND ${clang_exe} ${compile_opts} ${ARG_EXTRA_OPTS}
+             -I ${CMAKE_CURRENT_SOURCE_DIR}/imf
+             ${imf_${ARG_DTYPE}_fallback_src}
+diff --git a/sycl/cmake/modules/BuildUnifiedRuntime.cmake b/sycl/cmake/modules/BuildUnifiedRuntime.cmake
+index 646ca364a..566d4a082 100644
+--- a/sycl/cmake/modules/BuildUnifiedRuntime.cmake
++++ b/sycl/cmake/modules/BuildUnifiedRuntime.cmake
+@@ -193,6 +193,43 @@ if(CMAKE_SYSTEM_NAME STREQUAL Windows)
    set(URD_BINARY_DIR ${CMAKE_BINARY_DIR}/unified-runtimed)
    set(URD_INSTALL_DIR ${URD_BINARY_DIR}/install)
 
@@ -94,12 +70,27 @@ index 33368f2b9..9b95ec123 100644
 +  if(NOT DEFINED FETCHCONTENT_SOURCE_DIR_UNIFIED-MEMORY-FRAMEWORK)
 +    message(FATAL_ERROR "FETCHCONTENT_SOURCE_DIR_UNIFIED-MEMORY-FRAMEWORK is not defined. Cannot forward to unified-runtimed sub-build.")
 +  endif()
++  if(NOT DEFINED FETCHCONTENT_SOURCE_DIR_HWLOC_TARG)
++    message(FATAL_ERROR "FETCHCONTENT_SOURCE_DIR_HWLOC_TARG is not defined. Cannot forward to unified-runtimed sub-build.")
++  endif()
++  if(NOT DEFINED CMAKE_PREFIX_PATH)
++    message(FATAL_ERROR "CMAKE_PREFIX_PATH is not defined. Cannot forward to unified-runtimed sub-build.")
++  endif()
++  if(NOT DEFINED XPTIFW_PARALLEL_HASHMAP_HEADERS)
++    message(FATAL_ERROR "XPTIFW_PARALLEL_HASHMAP_HEADERS is not defined. Cannot forward to unified-runtimed sub-build.")
++  endif()
++  if(NOT DEFINED PHMAP_LOC)
++    message(FATAL_ERROR "PHMAP_LOC is not defined. Cannot forward to unified-runtimed sub-build.")
++  endif()
 +
    # This creates a subbuild which can be used in dependencies with the
    # unified-runtimed target. It invokes the install-unified-runtime-libraries
    # target to install the UR runtime libraries.
-@@ -364,6 +397,24 @@ if(CMAKE_SYSTEM_NAME STREQUAL Windows)
-       -DSYCL_EMHASH_DIR:STRING=${SYCL_EMHASH_DIR}
+@@ -226,9 +263,29 @@ if(CMAKE_SYSTEM_NAME STREQUAL Windows)
+       -DUMF_BUILD_EXAMPLES:BOOL=${UMF_BUILD_EXAMPLES}
+       -DUMF_BUILD_SHARED_LIBRARY:BOOL=${UMF_BUILD_SHARED_LIBRARY}
+       -DUMF_LINK_HWLOC_STATICALLY:BOOL=${UMF_LINK_HWLOC_STATICALLY}
+-      -DUMF_DISABLE_HWLOC:BOOL=${UMF_DISABLE_HWLOC}
        # Enable d suffix in UMF
        -DUMF_USE_DEBUG_POSTFIX:BOOL=ON
 +      # Prevent network access during the debug sub-build. ExternalProject_Add
@@ -119,178 +110,34 @@ index 33368f2b9..9b95ec123 100644
 +      -DLEVEL_ZERO_INCLUDE_DIR:STRING=${LEVEL_ZERO_INCLUDE_DIR}
 +      -DUR_COMPUTE_RUNTIME_FETCH_REPO:BOOL=OFF
 +      -DFETCHCONTENT_SOURCE_DIR_UNIFIED-MEMORY-FRAMEWORK:STRING=${FETCHCONTENT_SOURCE_DIR_UNIFIED-MEMORY-FRAMEWORK}
-+      -DUMF_LEVEL_ZERO_INCLUDE_DIR:STRING=${LEVEL_ZERO_INCLUDE_DIR}
++      -DFETCHCONTENT_SOURCE_DIR_HWLOC_TARG:STRING=${FETCHCONTENT_SOURCE_DIR_HWLOC_TARG}
++      -DCMAKE_PREFIX_PATH:STRING=${CMAKE_PREFIX_PATH}
++      -DXPTIFW_PARALLEL_HASHMAP_HEADERS:STRING=${XPTIFW_PARALLEL_HASHMAP_HEADERS}
++      -DPHMAP_LOC:STRING=${PHMAP_LOC}
    )
 
    # Copy the debug UR runtime libraries to <build>/bin & <build>/lib for use in
-diff --git a/sycl/source/detail/kernel_bundle_impl.hpp b/sycl/source/detail/kernel_bundle_impl.hpp
-index 932805444..9cd8f1a21 100644
---- a/sycl/source/detail/kernel_bundle_impl.hpp
-+++ b/sycl/source/detail/kernel_bundle_impl.hpp
-@@ -27,6 +27,7 @@
- #include <cstdint>
- #include <cstring>
- #include <memory>
-+#include <sstream>
- #include <unordered_set>
- #include <vector>
-
-diff --git a/sycl/source/detail/kernel_name_based_cache_t.hpp b/sycl/source/detail/kernel_name_based_cache_t.hpp
-index ef92112dc..17923815e 100644
---- a/sycl/source/detail/kernel_name_based_cache_t.hpp
-+++ b/sycl/source/detail/kernel_name_based_cache_t.hpp
-@@ -9,7 +9,7 @@
-
- #include <detail/hashers.hpp>
- #include <detail/kernel_arg_mask.hpp>
--#include <emhash/hash_table8.hpp>
-+#include <hash_table8.hpp>
- #include <sycl/detail/spinlock.hpp>
- #include <sycl/detail/ur.hpp>
-
-diff --git a/sycl/source/detail/unordered_multimap.hpp b/sycl/source/detail/unordered_multimap.hpp
-index 4d495ed06..e96d71870 100644
---- a/sycl/source/detail/unordered_multimap.hpp
-+++ b/sycl/source/detail/unordered_multimap.hpp
-@@ -7,7 +7,7 @@
- //===--------------------------------------------------------------===//
- #pragma once
- #include <detail/hashers.hpp>
--#include <emhash/hash_table8.hpp>
-+#include <hash_table8.hpp>
-
- #include <utility>
- #include <vector>
 diff --git a/unified-runtime/cmake/FetchLevelZero.cmake b/unified-runtime/cmake/FetchLevelZero.cmake
-index cf1ca5e82..65b6750c6 100644
+index b9f747b59..ecfe854ce 100644
 --- a/unified-runtime/cmake/FetchLevelZero.cmake
 +++ b/unified-runtime/cmake/FetchLevelZero.cmake
-@@ -132,19 +132,15 @@ elseif (UR_COMPUTE_RUNTIME_FETCH_REPO)
-
-     set(COMPUTE_RUNTIME_LEVEL_ZERO_INCLUDE "${exp-headers_SOURCE_DIR}")
-     set(COMPUTE_RUNTIME_REPO_PATH "${exp-headers_SOURCE_DIR}/../..")
--
--# When UR_COMPUTE_RUNTIME_FETCH_REPO is OFF, use UR_COMPUTE_RUNTIME_REPO as repo.
--else()
--
--    # Check if UR_COMPUTE_RUNTIME_REPO is set. Throw if not.
--    if (UR_COMPUTE_RUNTIME_REPO STREQUAL "")
--        message(FATAL_ERROR "UR_COMPUTE_RUNTIME_FETCH_REPO is set to OFF but UR_COMPUTE_RUNTIME_REPO is not set. Please set it to the compute runtime repo.")
--    endif()
--
--    set(COMPUTE_RUNTIME_LEVEL_ZERO_INCLUDE "${UR_COMPUTE_RUNTIME_REPO}/level_zero/include")
--    set(COMPUTE_RUNTIME_REPO_PATH "${UR_COMPUTE_RUNTIME_REPO}")
- endif()
-
-+# Compute Runtime is decoupled to avoid pulling in a large unnecessary
-+# dependency. It bundles its own copy of Level Zero headers, but Blender
-+# uses the official Level Zero SDK instead. If future UR code requires
-+# Compute Runtime-specific headers, this will need revisiting.
-+set(COMPUTE_RUNTIME_LEVEL_ZERO_INCLUDE "")
-+set(COMPUTE_RUNTIME_REPO_PATH "")
-+
- message(STATUS "Using Level Zero include headers from ${COMPUTE_RUNTIME_LEVEL_ZERO_INCLUDE}")
-
- add_library(ComputeRuntimeLevelZero-Headers INTERFACE)
-diff --git a/unified-runtime/source/adapters/level_zero/common.hpp b/unified-runtime/source/adapters/level_zero/common.hpp
-index d39f2dcd2..cf2978665 100644
---- a/unified-runtime/source/adapters/level_zero/common.hpp
-+++ b/unified-runtime/source/adapters/level_zero/common.hpp
-@@ -31,7 +31,9 @@
- #include <ze_api.h>
- #include <zes_api.h>
-
--#include <level_zero/ze_intel_gpu.h>
-+// ze_intel_gpu.h is removed because it comes from Compute Runtime, which
-+// Blender does not depend on. We use the official Level Zero SDK headers
-+// instead. Symbols from this header are guarded or backported where needed.
- #include <umf_pools/disjoint_pool_config_parser.hpp>
-
- #include "common/ur_ref_count.hpp"
-diff --git a/unified-runtime/source/common/CMakeLists.txt b/unified-runtime/source/common/CMakeLists.txt
-index b7a5abac1..984a52ada 100644
---- a/unified-runtime/source/common/CMakeLists.txt
-+++ b/unified-runtime/source/common/CMakeLists.txt
-@@ -36,7 +36,10 @@ target_include_directories(ur_common PUBLIC
-     $<BUILD_INTERFACE:${PROJECT_SOURCE_DIR}/include>
+@@ -150,6 +150,7 @@ message(STATUS "Level Zero Adapter: Using Level Zero headers from ${COMPUTE_RUNT
+ target_include_directories(ComputeRuntimeLevelZero-Headers
+     INTERFACE "$<BUILD_INTERFACE:${COMPUTE_RUNTIME_LEVEL_ZERO_INCLUDE}>"
+               "$<BUILD_INTERFACE:${COMPUTE_RUNTIME_REPO_PATH}>"
++              "$<BUILD_INTERFACE:${LEVEL_ZERO_INCLUDE_DIR}/..>"
+               "$<INSTALL_INTERFACE:${LEVEL_ZERO_TARGET_INCLUDE_DIR}>"
  )
 
--message(STATUS "Download Unified Memory Framework from github.com")
-+if(NOT DEFINED FETCHCONTENT_SOURCE_DIR_UNIFIED-MEMORY-FRAMEWORK AND NOT FETCHCONTENT_FULLY_DISCONNECTED)
-+  message(STATUS "Download Unified Memory Framework from github.com")
-+endif()
-+
- if (NOT DEFINED UMF_REPO)
-     set(UMF_REPO "https://github.com/oneapi-src/unified-memory-framework.git")
- endif()
-@@ -49,7 +52,9 @@ if (NOT DEFINED UMF_TAG)
-     set(UMF_TAG v1.0.0-rc2)
- endif()
-
--message(STATUS "Will fetch Unified Memory Framework from ${UMF_REPO}")
-+if(NOT DEFINED FETCHCONTENT_SOURCE_DIR_UNIFIED-MEMORY-FRAMEWORK AND NOT FETCHCONTENT_FULLY_DISCONNECTED)
-+  message(STATUS "Will fetch Unified Memory Framework from ${UMF_REPO}")
-+endif()
-
- include(FetchContent)
- FetchContent_Declare(unified-memory-framework
-diff --git a/xptifw/include/xpti_string_table.hpp b/xptifw/include/xpti_string_table.hpp
-index bd48df019..5106e7eb8 100644
---- a/xptifw/include/xpti_string_table.hpp
-+++ b/xptifw/include/xpti_string_table.hpp
-@@ -7,7 +7,7 @@
-
- #include "parallel_hashmap/phmap.h"
- #include "xpti/xpti_data_types.h"
--#include <emhash/hash_table7.hpp>
-+#include <hash_table7.hpp>
-
- #include <atomic>
- #include <shared_mutex>
 diff --git a/xptifw/src/CMakeLists.txt b/xptifw/src/CMakeLists.txt
-index de2274129..61378929c 100644
+index c8a126283..875568091 100644
 --- a/xptifw/src/CMakeLists.txt
 +++ b/xptifw/src/CMakeLists.txt
-@@ -8,17 +8,19 @@ if (NOT SYCL_EMHASH_DIR)
-   include(FetchEmhash)
- endif()
+@@ -69,6 +69,7 @@ function(add_xpti_library LIB_NAME)
+     $<INSTALL_INTERFACE:${CMAKE_INSTALL_INCLUDEDIR}>
+     PRIVATE
+     $<BUILD_INTERFACE:${XPTIFW_PARALLEL_HASHMAP_HEADERS}>
++    $<BUILD_INTERFACE:${XPTIFW_PARALLEL_HASHMAP_HEADERS}/..>
+   )
 
--set(PARALLEL_HASHMAP_REPO https://github.com/greg7mdp/parallel-hashmap.git)
--message(STATUS "Will fetch parallel-hashmap from ${PARALLEL_HASHMAP_REPO}")
--FetchContent_Declare(parallel-hashmap
--  GIT_REPOSITORY    ${PARALLEL_HASHMAP_REPO}
--  GIT_TAG           8a889d3699b3c09ade435641fb034427f3fd12b6
--)
--
--FetchContent_GetProperties(parallel-hashmap)
--FetchContent_MakeAvailable(parallel-hashmap)
-+# XPTIFW_PARALLEL_HASHMAP_HEADERS is already set from from Blender's build system.
-+if(NOT XPTIFW_PARALLEL_HASHMAP_HEADERS)
-+  set(PARALLEL_HASHMAP_REPO https://github.com/greg7mdp/parallel-hashmap.git)
-+  message(STATUS "Will fetch parallel-hashmap from ${PARALLEL_HASHMAP_REPO}")
-+  FetchContent_Declare(parallel-hashmap
-+    GIT_REPOSITORY    ${PARALLEL_HASHMAP_REPO}
-+    GIT_TAG           8a889d3699b3c09ade435641fb034427f3fd12b6
-+  )
-
--set(XPTIFW_PARALLEL_HASHMAP_HEADERS "${parallel-hashmap_SOURCE_DIR}")
-+  FetchContent_GetProperties(parallel-hashmap)
-+  FetchContent_MakeAvailable(parallel-hashmap)
-+  set(XPTIFW_PARALLEL_HASHMAP_HEADERS "${parallel-hashmap_SOURCE_DIR}")
-+endif()
-
- file(GLOB SOURCES *.cpp)
-
-diff --git a/xptifw/src/xpti_trace_framework.cpp b/xptifw/src/xpti_trace_framework.cpp
-index 001b806d8..8c46de805 100644
---- a/xptifw/src/xpti_trace_framework.cpp
-+++ b/xptifw/src/xpti_trace_framework.cpp
-@@ -19,7 +19,7 @@
- #include "xpti_int64_hash_table.hpp"
- #include "xpti_object_table.hpp"
- #include "xpti_string_table.hpp"
--#include <emhash/hash_table7.hpp>
-+#include <hash_table7.hpp>
-
- #include <algorithm>
- #include <array>
+   add_dependencies(${LIB_NAME} xpti)

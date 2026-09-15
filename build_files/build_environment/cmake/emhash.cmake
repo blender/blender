@@ -13,10 +13,6 @@ ExternalProject_Add(external_emhash
   PREFIX ${BUILD_DIR}/emhash
   CMAKE_GENERATOR ${PLATFORM_ALT_GENERATOR}
 
-  PATCH_COMMAND ${PATCH_CMD} -p 1 -d
-    ${BUILD_DIR}/emhash/src/external_emhash <
-    ${PATCH_DIR}/emhash.diff
-
   CMAKE_ARGS
     -DCMAKE_INSTALL_PREFIX=${LIBDIR}/emhash
     ${DEFAULT_CMAKE_FLAGS}
