@@ -1026,7 +1026,8 @@ static void namebutton_fn(bContext *C, TreeStoreElem *tselem, const char *oldnam
 struct RestrictProperties {
   bool initialized;
 
-  PropertyRNA *object_hide_viewport, *object_hide_select, *object_hide_render;
+  PropertyRNA *object_hide_viewport, *object_hide_select, *object_hide_render, *object_holdout,
+      *object_indirect_only;
   PropertyRNA *base_hide_viewport;
   PropertyRNA *collection_hide_viewport, *collection_hide_select, *collection_hide_render;
   PropertyRNA *layer_collection_exclude, *layer_collection_holdout,
@@ -1043,6 +1044,8 @@ struct RestrictPropertiesActive {
   bool object_hide_select;
   bool object_hide_render;
   bool base_hide_viewport;
+  bool object_holdout;
+  bool object_indirect_only;
   bool collection_hide_viewport;
   bool collection_hide_select;
   bool collection_hide_render;
@@ -1100,15 +1103,11 @@ static void outliner_restrict_properties_enable_layer_collection_set(
     RestrictProperties *props,
     RestrictPropertiesActive *props_active)
 {
+  /* Inherit from parent. */
+  props_active->layer_collection_holdout = props_active->object_holdout;
+  props_active->layer_collection_indirect_only = props_active->object_indirect_only;
+
   outliner_restrict_properties_enable_collection_set(collection_ptr, props, props_active);
-
-  if (props_active->layer_collection_holdout) {
-    props_active->layer_collection_holdout = RNA_property_boolean_get(
-        layer_collection_ptr, props->layer_collection_holdout);
-  }
-
-  props_active->layer_collection_indirect_only = RNA_property_boolean_get(
-      layer_collection_ptr, props->layer_collection_indirect_only);
 
   if (props_active->layer_collection_hide_viewport) {
     props_active->layer_collection_hide_viewport = !RNA_property_boolean_get(
@@ -1134,6 +1133,21 @@ static void outliner_restrict_properties_enable_layer_collection_set(
       props_active->layer_collection_indirect_only = false;
     }
   }
+
+  /* Gray out properties overriden by parent collection. */
+  const bool holdout = RNA_property_boolean_get(layer_collection_ptr,
+                                                props->layer_collection_holdout);
+  const bool indirect_only = RNA_property_boolean_get(layer_collection_ptr,
+                                                      props->layer_collection_indirect_only);
+
+  if (holdout) {
+    /* Indirect only has no effect in rendering when holdout is enabled. */
+    props_active->layer_collection_indirect_only = false;
+  }
+
+  props_active->object_holdout = props_active->layer_collection_holdout && !holdout;
+  props_active->object_indirect_only = props_active->layer_collection_indirect_only &&
+                                       !indirect_only;
 }
 
 static bool outliner_restrict_properties_collection_set(Scene *scene,
@@ -1186,6 +1200,8 @@ static void outliner_draw_restrictbuts(ui::Block *block,
     props.object_hide_viewport = RNA_struct_type_find_property(RNA_Object, "hide_viewport");
     props.object_hide_select = RNA_struct_type_find_property(RNA_Object, "hide_select");
     props.object_hide_render = RNA_struct_type_find_property(RNA_Object, "hide_render");
+    props.object_holdout = RNA_struct_type_find_property(RNA_Object, "is_holdout");
+    props.object_indirect_only = RNA_struct_type_find_property(RNA_Object, "visible_camera");
     props.base_hide_viewport = RNA_struct_type_find_property(RNA_ObjectBase, "hide_viewport");
     props.collection_hide_viewport = RNA_struct_type_find_property(RNA_Collection,
                                                                    "hide_viewport");
@@ -1383,6 +1399,59 @@ static void outliner_draw_restrictbuts(ui::Block *block,
           button_flag_enable(bt, ui::BUT_DRAG_LOCK);
           if (!props_active.object_hide_render) {
             button_flag_enable(bt, ui::BUT_INACTIVE);
+          }
+        }
+
+        if (space_outliner->outlinevis == SO_VIEW_LAYER) {
+          if (space_outliner->show_restrict_flags & SO_RESTRICT_HOLDOUT) {
+            bt = uiDefIconButR_prop(block,
+                                    ui::ButtonType::IconToggle,
+                                    ICON_NONE,
+                                    int(region->v2d.cur.xmax - restrict_offsets.holdout),
+                                    te.ys,
+                                    UI_UNIT_X,
+                                    UI_UNIT_Y,
+                                    &ptr,
+                                    props.object_holdout,
+                                    -1,
+                                    0,
+                                    0,
+                                    TIP_("Render object as holdout\n"
+                                         " \u2022 Shift to set children"));
+            button_func_set(
+                bt, outliner__object_set_flag_recursive_fn, ob, const_cast<char *>("is_holdout"));
+            button_flag_enable(bt, ui::BUT_DRAG_LOCK);
+            if (!props_active.object_holdout) {
+              button_flag_enable(bt, ui::BUT_INACTIVE);
+            }
+          }
+          if (space_outliner->show_restrict_flags & SO_RESTRICT_INDIRECT_ONLY) {
+            if (OB_TYPE_IS_GEOMETRY(ob->type) && ob->type != OB_GREASE_PENCIL) {
+              bt = uiDefIconButR_prop(block,
+                                      ui::ButtonType::IconToggleN,
+                                      ICON_NONE,
+                                      int(region->v2d.cur.xmax - restrict_offsets.indirect_only),
+                                      te.ys,
+                                      UI_UNIT_X,
+                                      UI_UNIT_Y,
+                                      &ptr,
+                                      props.object_indirect_only,
+                                      -1,
+                                      0,
+                                      0,
+                                      TIP_("Object will contribute indirectly as shadows\n"
+                                           " \u2022 Shift to set children"));
+              button_func_set(bt,
+                              outliner__object_set_flag_recursive_fn,
+                              ob,
+                              const_cast<char *>("visible_camera"));
+              button_flag_enable(bt, ui::BUT_DRAG_LOCK);
+              if (!props_active.object_indirect_only ||
+                  RNA_property_boolean_get(&ptr, props.object_holdout))
+              {
+                button_flag_enable(bt, ui::BUT_INACTIVE);
+              }
+            }
           }
         }
       }
@@ -1728,9 +1797,7 @@ static void outliner_draw_restrictbuts(ui::Block *block,
                               layer_collection,
                               const_cast<char *>("indirect_only"));
               button_flag_enable(bt, ui::BUT_DRAG_LOCK);
-              if (props_active.layer_collection_holdout ||
-                  !props_active.layer_collection_indirect_only)
-              {
+              if (!props_active.layer_collection_indirect_only) {
                 button_flag_enable(bt, ui::BUT_INACTIVE);
               }
             }

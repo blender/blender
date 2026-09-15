@@ -1498,7 +1498,7 @@ class CYCLES_OBJECT_PT_visibility(CyclesButtonsPanel, Panel):
         if has_geometry_visibility(ob):
             col = layout.column(heading="Mask")
             col.prop(ob, "is_shadow_catcher")
-            col.prop(ob, "is_holdout")
+            col.prop(ob, "is_holdout", toggle=False)
 
 
 class CYCLES_OBJECT_PT_visibility_ray_visibility(CyclesButtonsPanel, Panel):
@@ -1520,7 +1520,7 @@ class CYCLES_OBJECT_PT_visibility_ray_visibility(CyclesButtonsPanel, Panel):
         ob = context.object
 
         col = layout.column()
-        col.prop(ob, "visible_camera", text="Camera")
+        col.prop(ob, "visible_camera", text="Camera", toggle=False)
         col.prop(ob, "visible_diffuse", text="Diffuse")
         col.prop(ob, "visible_glossy", text="Glossy")
         col.prop(ob, "visible_transmission", text="Transmission")
