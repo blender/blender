@@ -21,7 +21,8 @@ namespace blender {
 struct GPUMaterial;
 namespace draw {
 struct MeshBatchCache;
-};
+class View;
+};  // namespace draw
 namespace gpu {
 class Batch;
 class BottomLevelAS;
@@ -76,6 +77,10 @@ void DRW_pointcloud_batch_cache_dirty_tag(PointCloud *pointcloud, int mode);
 void DRW_pointcloud_batch_cache_validate(PointCloud *pointcloud);
 void DRW_pointcloud_batch_cache_free(PointCloud *pointcloud);
 
+void DRW_gsplat_batch_cache_dirty_tag(PointCloud *pointcloud, int mode);
+void DRW_gsplat_batch_cache_validate(PointCloud *pointcloud);
+void DRW_gsplat_batch_cache_free(PointCloud *pointcloud);
+
 void DRW_volume_batch_cache_dirty_tag(Volume *volume, int mode);
 void DRW_volume_batch_cache_validate(Volume *volume);
 void DRW_volume_batch_cache_free(Volume *volume);
@@ -99,6 +104,7 @@ void DRW_batch_cache_free_old(Object *ob, int ctime);
 void DRW_mesh_batch_cache_free_old(Mesh *mesh, int ctime);
 void DRW_curves_batch_cache_free_old(Curves *curves, int ctime);
 void DRW_pointcloud_batch_cache_free_old(PointCloud *pointcloud, int ctime);
+void DRW_gsplat_batch_cache_free_old(PointCloud *pointcloud, int ctime);
 
 /** \} */
 
@@ -166,9 +172,21 @@ gpu::VertBuf *DRW_pointcloud_position_and_radius_buffer_get(Object *ob);
 
 gpu::VertBuf **DRW_pointcloud_evaluated_attribute(PointCloud *pointcloud, StringRef name);
 gpu::Batch *DRW_pointcloud_batch_cache_get_dots(Object *ob);
-gpu::Batch *DRW_pointcloud_batch_cache_get_edit_dots(PointCloud *pointcloud);
+gpu::Batch *DRW_pointcloud_batch_cache_get_edit_dots(Object *ob);
 
 void DRW_pointcloud_batch_cache_create_requested(Object *ob);
+
+/** \} */
+
+/* -------------------------------------------------------------------- */
+/** \name GSplat
+ * \{ */
+
+gpu::VertBuf **DRW_gsplat_evaluated_attribute(PointCloud *pointcloud, StringRef name);
+gpu::Batch *DRW_gsplat_batch_cache_get_dots(Object *ob);
+gpu::Batch *DRW_gsplat_batch_cache_get_edit_dots(Object *ob);
+
+void DRW_gsplat_batch_cache_create_requested(Object *ob);
 
 /** \} */
 

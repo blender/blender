@@ -16,6 +16,8 @@
 #include "infos/eevee_geom_infos.hh"
 #include "infos/eevee_nodetree_infos.hh"
 
+#include "draw_gsplat_lib.bsl.hh" /* IWYU pragma: export. For nodetree functions. */
+
 #include "eevee_nodetree_frag_lib.glsl"
 #include "eevee_sampling_lib.bsl.hh"
 #include "eevee_shadow_shared.hh"
@@ -66,12 +68,13 @@ void surf_shadow([[resource_table]] PipelineConstants &pipe,
     init_globals(uni, view, front_face);
 
     nodetree_surface(0.0f);
+    gsplat_transmittance();
 
     float noise_offset = sampling.rng_1D_get(SAMPLING_TRANSPARENCY);
-    float random_threshold = pcg4d(float4(g_data.P, noise_offset)).x;
-
+    float threshold = pcg4d(float4(g_data.P, noise_offset)).x;
     float transparency = average(g_transmittance);
-    if (transparency > random_threshold) {
+
+    if (transparency > threshold) {
       gpu_discard_fragment();
       return;
     }

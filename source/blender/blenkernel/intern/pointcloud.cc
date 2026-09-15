@@ -82,7 +82,8 @@ static void pointcloud_copy_data(Main * /*bmain*/,
         *pointcloud_src->runtime->bake_materials);
   }
 
-  pointcloud_dst->batch_cache = nullptr;
+  pointcloud_dst->pointcloud_batch_cache = nullptr;
+  pointcloud_dst->gsplat_batch_cache = nullptr;
 }
 
 static void pointcloud_free_data(ID *id)
@@ -461,18 +462,26 @@ void PointCloud::tag_radii_changed()
 
 void (*BKE_pointcloud_batch_cache_dirty_tag_cb)(PointCloud *pointcloud, int mode) = nullptr;
 void (*BKE_pointcloud_batch_cache_free_cb)(PointCloud *pointcloud) = nullptr;
+void (*BKE_gsplat_batch_cache_dirty_tag_cb)(PointCloud *pointcloud, int mode) = nullptr;
+void (*BKE_gsplat_batch_cache_free_cb)(PointCloud *pointcloud) = nullptr;
 
 void BKE_pointcloud_batch_cache_dirty_tag(PointCloud *pointcloud, int mode)
 {
-  if (pointcloud->batch_cache) {
+  if (pointcloud->pointcloud_batch_cache) {
     BKE_pointcloud_batch_cache_dirty_tag_cb(pointcloud, mode);
+  }
+  if (pointcloud->gsplat_batch_cache) {
+    BKE_gsplat_batch_cache_dirty_tag_cb(pointcloud, mode);
   }
 }
 
 void BKE_pointcloud_batch_cache_free(PointCloud *pointcloud)
 {
-  if (pointcloud->batch_cache) {
+  if (pointcloud->pointcloud_batch_cache) {
     BKE_pointcloud_batch_cache_free_cb(pointcloud);
+  }
+  if (pointcloud->gsplat_batch_cache) {
+    BKE_gsplat_batch_cache_free_cb(pointcloud);
   }
 }
 

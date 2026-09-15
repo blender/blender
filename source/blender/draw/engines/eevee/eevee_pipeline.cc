@@ -1724,9 +1724,15 @@ void CapturePipeline::sync()
   surface_ps_.bind_resources(inst_.uniform_data);
 }
 
-PassMain::Sub *CapturePipeline::surface_material_add(blender::Material *blender_mat,
+PassMain::Sub *CapturePipeline::surface_material_add(Object *ob,
+                                                     blender::Material *blender_mat,
                                                      GPUMaterial *gpumat)
 {
+  if (pointcloud_is_gsplat(ob)) {
+    /* GSplat objects are not currently supported by volume probe captures, so we do not sync. */
+    return nullptr;
+  }
+
   PassMain::Sub &sub_pass = surface_ps_.sub(GPU_material_get_name(gpumat));
   GPUPass *gpupass = GPU_material_get_pass(gpumat);
   sub_pass.shader_set(GPU_pass_shader_get(gpupass));

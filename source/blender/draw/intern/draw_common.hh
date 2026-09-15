@@ -62,12 +62,26 @@ gpu::Batch *curves_sub_pass_setup(PassSimple::Sub &ps,
 /* Point cloud. */
 
 gpu::Batch *pointcloud_sub_pass_setup(PassMain::Sub &sub_ps,
-                                      Object *object,
+                                      const ObjectRef &ob_ref,
+                                      const ResourceHandleRange &res_handle,
                                       GPUMaterial *gpu_material = nullptr);
 
 gpu::Batch *pointcloud_sub_pass_setup(PassSimple::Sub &sub_ps,
-                                      Object *object,
+                                      const ObjectRef &ob_ref,
+                                      const ResourceHandleRange &res_handle,
                                       GPUMaterial *gpu_material = nullptr);
+
+/* GSplats. */
+
+gpu::Batch *gsplat_sub_pass_setup(PassMain::Sub &sub_ps,
+                                  const ObjectRef &ob_ref,
+                                  const ResourceHandleRange &res_handle,
+                                  GPUMaterial *gpu_material = nullptr);
+
+gpu::Batch *gsplat_sub_pass_setup(PassSimple::Sub &sub_ps,
+                                  const ObjectRef &ob_ref,
+                                  const ResourceHandleRange &res_handle,
+                                  GPUMaterial *gpu_material = nullptr);
 
 /** Volume. */
 

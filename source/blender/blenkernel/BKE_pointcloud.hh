@@ -90,6 +90,8 @@ void BKE_pointcloud_batch_cache_free(PointCloud *pointcloud);
 
 extern void (*BKE_pointcloud_batch_cache_dirty_tag_cb)(PointCloud *pointcloud, int mode);
 extern void (*BKE_pointcloud_batch_cache_free_cb)(PointCloud *pointcloud);
+extern void (*BKE_gsplat_batch_cache_dirty_tag_cb)(PointCloud *pointcloud, int mode);
+extern void (*BKE_gsplat_batch_cache_free_cb)(PointCloud *pointcloud);
 
 namespace bke {
 struct AttributeAccessorFunctions;
