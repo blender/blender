@@ -28,9 +28,7 @@ set(SRC
   COM_conversion_operation.hh
   COM_derived_resources.hh
   COM_domain.hh
-  COM_group_input_node_operation.hh
   COM_group_node_operation.hh
-  COM_group_output_node_operation.hh
   COM_implicit_input_operation.hh
   COM_input_descriptor.hh
   COM_meta_data.hh
@@ -38,6 +36,8 @@ set(SRC
   COM_node_group_operation.hh
   COM_node_operation.hh
   COM_node_tree_evaluator.hh
+  COM_node_tree_input_node_operation.hh
+  COM_node_tree_output_node_operation.hh
   COM_operation.hh
   COM_pixel_operation.hh
   COM_realize_on_domain_operation.hh
@@ -57,15 +57,15 @@ set(SRC
   intern/context.cc
   intern/conversion_operation.cc
   intern/domain.cc
-  intern/group_input_node_operation.cc
   intern/group_node_operation.cc
-  intern/group_output_node_operation.cc
   intern/implicit_input_operation.cc
   intern/meta_data.cc
   intern/multi_function_procedure_operation.cc
   intern/node_group_operation.cc
   intern/node_operation.cc
   intern/node_tree_evaluator.cc
+  intern/node_tree_input_node_operation.cc
+  intern/node_tree_output_node_operation.cc
   intern/operation.cc
   intern/pixel_operation.cc
   intern/realize_on_domain_operation.cc

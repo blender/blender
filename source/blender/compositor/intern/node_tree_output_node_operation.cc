@@ -8,22 +8,22 @@
 #include "BKE_node_runtime.hh"
 
 #include "COM_context.hh"
-#include "COM_group_output_node_operation.hh"
 #include "COM_node_operation.hh"
+#include "COM_node_tree_output_node_operation.hh"
 #include "COM_utilities.hh"
 
 namespace blender::compositor {
 
-/* A node operation representing a group output node that for each of its inputs gets the input
+/* A node operation representing a node tree output node that for each of its inputs gets the input
  * and shares its data with the result of the node group operation it represents with the same
- * identifier. */
-class GroupOutputNodeOperation : public NodeOperation {
+ * identifier. Node tree output nodes include group output and zone output nodes. */
+class NodeTreeOutputNodeOperation : public NodeOperation {
  private:
-  Operation &node_group_operation_;
+  Operation &operation_;
 
  public:
-  GroupOutputNodeOperation(Context &context, const bNode &node, Operation &node_group_operation)
-      : NodeOperation(context, node), node_group_operation_(node_group_operation)
+  NodeTreeOutputNodeOperation(Context &context, const bNode &node, Operation &operation)
+      : NodeOperation(context, node), operation_(operation)
   {
     for (const bNodeSocket *input : node.input_sockets()) {
       if (!is_socket_available(input)) {
@@ -47,21 +47,20 @@ class GroupOutputNodeOperation : public NodeOperation {
         continue;
       }
 
-      Result &node_group_operation_result = node_group_operation_.get_result(
-          input_socket->identifier);
-      if (node_group_operation_result.should_compute()) {
+      Result &operation_result = operation_.get_result(input_socket->identifier);
+      if (operation_result.should_compute()) {
         const Result &input_result = this->get_input(input_socket->identifier);
-        node_group_operation_result.share_data(input_result);
+        operation_result.share_data(input_result);
       }
     }
   }
 };
 
-NodeOperation *get_group_output_node_operation(Context &context,
-                                               const bNode &node,
-                                               Operation &node_group_operation)
+NodeOperation *get_node_tree_output_node_operation(Context &context,
+                                                   const bNode &node,
+                                                   Operation &operation)
 {
-  return new GroupOutputNodeOperation(context, node, node_group_operation);
+  return new NodeTreeOutputNodeOperation(context, node, operation);
 }
 
 }  // namespace blender::compositor

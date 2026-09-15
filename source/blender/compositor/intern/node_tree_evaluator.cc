@@ -17,14 +17,14 @@
 
 #include "COM_context.hh"
 #include "COM_domain.hh"
-#include "COM_group_input_node_operation.hh"
 #include "COM_group_node_operation.hh"
-#include "COM_group_output_node_operation.hh"
 #include "COM_implicit_input_operation.hh"
 #include "COM_input_descriptor.hh"
 #include "COM_multi_function_procedure_operation.hh"
 #include "COM_node_operation.hh"
 #include "COM_node_tree_evaluator.hh"
+#include "COM_node_tree_input_node_operation.hh"
+#include "COM_node_tree_output_node_operation.hh"
 #include "COM_pixel_operation.hh"
 #include "COM_result.hh"
 #include "COM_scheduler.hh"
@@ -124,11 +124,11 @@ NodeOperation *NodeTreeEvaluator::create_node_operation(const bNode &node)
   }
 
   if (node.is_group_output()) {
-    return get_group_output_node_operation(this->context(), node, this->operation());
+    return get_node_tree_output_node_operation(this->context(), node, this->operation());
   }
 
   if (node.is_group_input()) {
-    return get_group_input_node_operation(this->context(), node, this->operation());
+    return get_node_tree_input_node_operation(this->context(), node, this->operation());
   }
 
   return node.typeinfo->get_compositor_operation(this->context(), node);
