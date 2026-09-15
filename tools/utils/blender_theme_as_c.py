@@ -156,7 +156,7 @@ def theme_data(userpref_filename):
     dna_rename_defs(blend)
     u = next((c for c in blend.blocks if c.code == b'USER'), None)
     # theme_type = b.sdna_index_from_id[b'bTheme']
-    t = u.get_pointer((b'themes', b'first'))
+    t = u.get_pointer((b'themes', b'first_'))
     t.refine_type(b'bTheme')
     return blend, t
 
