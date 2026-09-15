@@ -538,7 +538,6 @@ static void contarget_get_mesh_mat(Object *ob, const char *substring, float mat[
    * ensures we build with CD_MDEFORMVERT layer
    */
   const Mesh *mesh_eval = BKE_object_get_evaluated_mesh(ob);
-  BMEditMesh *em = BKE_editmesh_from_object(ob);
   float plane[3];
   float imat[3][3], tmat[3][3];
   const int defgroup = BKE_object_defgroup_name_index(ob, substring);
@@ -554,14 +553,14 @@ static void contarget_get_mesh_mat(Object *ob, const char *substring, float mat[
   float vec[3] = {0.0f, 0.0f, 0.0f};
   float normal[3] = {0.0f, 0.0f, 0.0f};
   float weightsum = 0.0f;
-  if (em) {
-    if (CustomData_has_layer(&em->bm->vdata, CD_MDEFORMVERT)) {
+  if (const BMesh *bm = BKE_editmesh_bmesh_get(ob)) {
+    if (CustomData_has_layer(&bm->vdata, CD_MDEFORMVERT)) {
       BMVert *v;
       BMIter iter;
 
-      BM_ITER_MESH (v, &iter, em->bm, BM_VERTS_OF_MESH) {
+      BM_ITER_MESH (v, &iter, const_cast<BMesh *>(bm), BM_VERTS_OF_MESH) {
         MDeformVert *dv = static_cast<MDeformVert *>(
-            CustomData_bmesh_get(&em->bm->vdata, v->head.data, CD_MDEFORMVERT));
+            CustomData_bmesh_get(&bm->vdata, v->head.data, CD_MDEFORMVERT));
         MDeformWeight *dw = BKE_defvert_find_index(dv, defgroup);
 
         if (dw && dw->weight > 0.0f) {

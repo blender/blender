@@ -491,7 +491,7 @@ static void uv_sculpt_stroke_apply(bContext *C,
                                    Object *obedit)
 {
   ARegion *region = CTX_wm_region(C);
-  BMEditMesh *em = BKE_editmesh_from_object(obedit);
+  BMesh *bm = BKE_editmesh_bmesh_get_for_write(obedit);
   UvSculptData *sculptdata = static_cast<UvSculptData *>(op->customdata);
   eBrushUVSculptTool tool = eBrushUVSculptTool(sculptdata->tool);
   int invert = sculptdata->invert ? -1 : 1;
@@ -514,7 +514,7 @@ static void uv_sculpt_stroke_apply(bContext *C,
   /* We will compare squares to save some computation */
   const float radius_sq = radius * radius;
 
-  const int cd_loop_uv_offset = CustomData_get_offset(&em->bm->ldata, CD_PROP_FLOAT2);
+  const int cd_loop_uv_offset = CustomData_get_offset(&bm->ldata, CD_PROP_FLOAT2);
 
   switch (tool) {
     case UV_SCULPT_BRUSH_TYPE_PINCH: {
@@ -662,8 +662,7 @@ static UvSculptData *uv_sculpt_stroke_init(bContext *C, wmOperator *op, const wm
   Object *obedit = CTX_data_edit_object(C);
   ToolSettings *ts = scene->toolsettings;
   UvSculptData *data = MEM_new_zeroed<UvSculptData>(__func__);
-  BMEditMesh *em = BKE_editmesh_from_object(obedit);
-  BMesh *bm = em->bm;
+  BMesh *bm = BKE_editmesh_bmesh_get_for_write(obedit);
 
   op->customdata = data;
 
@@ -751,7 +750,7 @@ static UvSculptData *uv_sculpt_stroke_init(bContext *C, wmOperator *op, const wm
   /* Index for the UvElements. */
   int counter = -1;
 
-  const BMUVOffsets offsets = BM_uv_map_offsets_get(em->bm);
+  const BMUVOffsets offsets = BM_uv_map_offsets_get(bm);
   /* initialize the unique UVs */
   for (int i = 0; i < bm->totvert; i++) {
     UvElement *element = data->elementMap->vertex[i];
@@ -784,7 +783,7 @@ static UvSculptData *uv_sculpt_stroke_init(bContext *C, wmOperator *op, const wm
 
   /* Now, on to generate our uv connectivity data */
   counter = 0;
-  BM_ITER_MESH (efa, &iter, em->bm, BM_FACES_OF_MESH) {
+  BM_ITER_MESH (efa, &iter, bm, BM_FACES_OF_MESH) {
     BM_ITER_ELEM (l, &liter, efa, BM_LOOPS_OF_FACE) {
       int itmp1 = uv_element_offset_from_face_get(
           data->elementMap, l, island_index, do_island_optimization);

@@ -52,21 +52,21 @@ static wmOperatorStatus edbm_relax_edge_loops_exec(bContext *C, wmOperator *op)
   bool has_faces_selected = false;
 
   for (Object *obedit : objects) {
-    BMEditMesh *em = BKE_editmesh_from_object(obedit);
-    if (em->bm->totedgesel > 0) {
+    BMesh *bm = BKE_editmesh_bmesh_get_for_write(obedit);
+    if (bm->totedgesel > 0) {
       has_edges_selected = true;
     }
 
-    if (em->bm->totfacesel > 0) {
+    if (bm->totfacesel > 0) {
       has_faces_selected = true;
       continue;
     }
 
-    if (em->bm->totedgesel < 2) {
+    if (bm->totedgesel < 2) {
       continue;
     }
 
-    if (!EDBM_op_callf(em,
+    if (!EDBM_op_callf(bm,
                        op,
                        "relax_edge_loops geom=%he interpolation=%i iterations=%i even_spacing=%b",
                        BM_ELEM_SELECT,

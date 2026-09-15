@@ -1176,8 +1176,8 @@ static bool bake_targets_output_vertex_colors(BakeTargets *targets, Object *ob)
   Mesh *mesh = id_cast<Mesh *>(ob->data);
   const StringRef attr_name = mesh->active_color_attribute;
   const bke::AttrDomain domain = [&]() {
-    if (BMEditMesh *em = mesh->runtime->edit_mesh.get()) {
-      return BM_data_layer_lookup(*em->bm, attr_name).domain;
+    if (BMesh *bm = BKE_editmesh_bmesh_get_for_write(mesh)) {
+      return BM_data_layer_lookup(*bm, attr_name).domain;
     }
     bke::AttributeAccessor attributes = mesh->attributes();
     return attributes.lookup_meta_data(attr_name)->domain;
@@ -1210,12 +1210,12 @@ static bool bake_targets_output_vertex_colors(BakeTargets *targets, Object *ob)
       }
     }
 
-    if (BMEditMesh *em = mesh->runtime->edit_mesh.get()) {
-      const BMDataLayerLookup attr = BM_data_layer_lookup(*em->bm, attr_name);
+    if (BMesh *bm = BKE_editmesh_bmesh_get_for_write(mesh)) {
+      const BMDataLayerLookup attr = BM_data_layer_lookup(*bm, attr_name);
       BMVert *v;
       BMIter viter;
       int i = 0;
-      BM_ITER_MESH (v, &viter, em->bm, BM_VERTS_OF_MESH) {
+      BM_ITER_MESH (v, &viter, bm, BM_VERTS_OF_MESH) {
         void *data = BM_ELEM_CD_GET_VOID_P(v, attr.offset);
         if (attr.type == bke::AttrType::ColorFloat) {
           memcpy(data, &mcol[i], sizeof(MPropCol));
@@ -1245,12 +1245,12 @@ static bool bake_targets_output_vertex_colors(BakeTargets *targets, Object *ob)
     MEM_SAFE_DELETE(num_loops_for_vertex);
   }
   else if (domain == bke::AttrDomain::Corner) {
-    if (BMEditMesh *em = mesh->runtime->edit_mesh.get()) {
-      const BMDataLayerLookup attr = BM_data_layer_lookup(*em->bm, attr_name);
+    if (BMesh *bm = BKE_editmesh_bmesh_get_for_write(mesh)) {
+      const BMDataLayerLookup attr = BM_data_layer_lookup(*bm, attr_name);
       BMFace *f;
       BMIter fiter;
       int i = 0;
-      BM_ITER_MESH (f, &fiter, em->bm, BM_FACES_OF_MESH) {
+      BM_ITER_MESH (f, &fiter, bm, BM_FACES_OF_MESH) {
         BMLoop *l;
         BMIter liter;
         BM_ITER_ELEM (l, &liter, f, BM_LOOPS_OF_FACE) {

@@ -117,14 +117,13 @@ static void reset_uvs_mesh(const IndexRange face, MutableSpan<float2> uv_map)
 
 static void reset_uv_map(Mesh *mesh, const StringRef name)
 {
-  if (BMEditMesh *em = mesh->runtime->edit_mesh.get()) {
-    const int cd_loop_uv_offset = CustomData_get_offset_named(
-        &em->bm->ldata, CD_PROP_FLOAT2, name);
+  if (BMesh *bm = BKE_editmesh_bmesh_get_for_write(mesh)) {
+    const int cd_loop_uv_offset = CustomData_get_offset_named(&bm->ldata, CD_PROP_FLOAT2, name);
     BLI_assert(cd_loop_uv_offset >= 0);
 
     BMFace *efa;
     BMIter iter;
-    BM_ITER_MESH (efa, &iter, em->bm, BM_FACES_OF_MESH) {
+    BM_ITER_MESH (efa, &iter, bm, BM_FACES_OF_MESH) {
       if (!BM_elem_flag_test(efa, BM_ELEM_SELECT)) {
         continue;
       }
@@ -167,19 +166,19 @@ int ED_mesh_uv_add(
   const std::string unique_name = BKE_attribute_calc_unique_name(owner, name);
   bool is_init = false;
 
-  if (BMEditMesh *em = mesh->runtime->edit_mesh.get()) {
-    layernum_dst = CustomData_number_of_layers(&em->bm->ldata, CD_PROP_FLOAT2);
+  if (BMesh *bm = BKE_editmesh_bmesh_get_for_write(mesh)) {
+    layernum_dst = CustomData_number_of_layers(&bm->ldata, CD_PROP_FLOAT2);
     if (layernum_dst >= MAX_MTFACE) {
       BKE_reportf(reports, RPT_WARNING, "Cannot add more than %i UV maps", MAX_MTFACE);
       return -1;
     }
 
-    BM_data_layer_add_named(em->bm, &em->bm->ldata, CD_PROP_FLOAT2, unique_name.c_str());
-    BM_uv_map_attr_pin_ensure_for_all_layers(em->bm);
+    BM_data_layer_add_named(bm, &bm->ldata, CD_PROP_FLOAT2, unique_name.c_str());
+    BM_uv_map_attr_pin_ensure_for_all_layers(bm);
     /* copy data from active UV */
     if (layernum_dst && do_init) {
-      const int layernum_src = CustomData_get_active_layer(&em->bm->ldata, CD_PROP_FLOAT2);
-      BM_data_layer_copy(em->bm, &em->bm->ldata, CD_PROP_FLOAT2, layernum_src, layernum_dst);
+      const int layernum_src = CustomData_get_active_layer(&bm->ldata, CD_PROP_FLOAT2);
+      BM_data_layer_copy(bm, &bm->ldata, CD_PROP_FLOAT2, layernum_src, layernum_dst);
 
       is_init = true;
     }
@@ -256,8 +255,8 @@ bke::AttributeWriter<bool> ED_mesh_uv_map_pin_layer_ensure(Mesh *mesh, const int
 
 void ED_mesh_uv_ensure(Mesh *mesh, const char *name)
 {
-  if (BMEditMesh *em = mesh->runtime->edit_mesh.get()) {
-    int layernum_dst = CustomData_number_of_layers(&em->bm->ldata, CD_PROP_FLOAT2);
+  if (BMesh *bm = BKE_editmesh_bmesh_get_for_write(mesh)) {
+    int layernum_dst = CustomData_number_of_layers(&bm->ldata, CD_PROP_FLOAT2);
     if (layernum_dst == 0) {
       ED_mesh_uv_add(mesh, name, true, true, nullptr);
     }
@@ -290,17 +289,16 @@ std::string ED_mesh_color_add(Mesh *mesh,
   std::string new_name = BKE_attribute_calc_unique_name(owner, name);
 
   const StringRef active_name = mesh->active_color_attribute;
-  if (const BMEditMesh *em = mesh->runtime->edit_mesh.get()) {
-    BM_data_layer_add_named(em->bm, &em->bm->ldata, CD_PROP_BYTE_COLOR, new_name);
+  if (BMesh *bm = BKE_editmesh_bmesh_get_for_write(mesh)) {
+    BM_data_layer_add_named(bm, &bm->ldata, CD_PROP_BYTE_COLOR, new_name);
     if (do_init) {
-      const BMDataLayerLookup active_attr = BM_data_layer_lookup(*em->bm, active_name);
+      const BMDataLayerLookup active_attr = BM_data_layer_lookup(*bm, active_name);
       if (active_attr.type == bke::AttrType::ColorByte &&
           active_attr.domain == bke::AttrDomain::Corner)
       {
-        BMesh &bm = *em->bm;
-        const int src_i = CustomData_get_named_layer(&bm.ldata, CD_PROP_BYTE_COLOR, active_name);
-        const int dst_i = CustomData_get_named_layer(&bm.ldata, CD_PROP_BYTE_COLOR, new_name);
-        BM_data_layer_copy(&bm, &bm.ldata, CD_PROP_BYTE_COLOR, src_i, dst_i);
+        const int src_i = CustomData_get_named_layer(&bm->ldata, CD_PROP_BYTE_COLOR, active_name);
+        const int dst_i = CustomData_get_named_layer(&bm->ldata, CD_PROP_BYTE_COLOR, new_name);
+        BM_data_layer_copy(bm, &bm->ldata, CD_PROP_BYTE_COLOR, src_i, dst_i);
       }
     }
   }
@@ -378,9 +376,8 @@ static bool uv_texture_remove_poll(bContext *C)
   Object *ob = ed::object::context_object(C);
   Mesh *mesh = id_cast<Mesh *>(ob->data);
   const StringRef active_name = mesh->active_uv_map_name();
-  if (mesh->runtime->edit_mesh) {
-    const BMesh &bm = *mesh->runtime->edit_mesh->bm;
-    if (!CustomData_has_layer_named(&bm.ldata, CD_PROP_FLOAT2, active_name)) {
+  if (const BMesh *bm = BKE_editmesh_bmesh_get_for_write(mesh)) {
+    if (!CustomData_has_layer_named(&bm->ldata, CD_PROP_FLOAT2, active_name)) {
       return false;
     }
   }
@@ -480,11 +477,11 @@ static bool mesh_customdata_mask_clear_poll(bContext *C)
   if (!ID_IS_EDITABLE(mesh) || ID_IS_OVERRIDE_LIBRARY(mesh)) {
     return false;
   }
-  if (BMEditMesh *em = mesh->runtime->edit_mesh.get()) {
-    if (CustomData_has_layer_named(&em->bm->vdata, CD_PROP_FLOAT, ".sculpt_mask")) {
+  if (BMesh *bm = BKE_editmesh_bmesh_get_for_write(mesh)) {
+    if (CustomData_has_layer_named(&bm->vdata, CD_PROP_FLOAT, ".sculpt_mask")) {
       return true;
     }
-    if (CustomData_has_layer(&em->bm->ldata, CD_GRID_PAINT_MASK)) {
+    if (CustomData_has_layer(&bm->ldata, CD_GRID_PAINT_MASK)) {
       return true;
     }
     return false;
@@ -502,9 +499,9 @@ static wmOperatorStatus mesh_customdata_mask_clear_exec(bContext *C, wmOperator 
 {
   Object *object = ed::object::context_object(C);
   Mesh *mesh = id_cast<Mesh *>(object->data);
-  if (BMEditMesh *em = mesh->runtime->edit_mesh.get()) {
-    const bool removed_a = CustomData_free_layer_named(&em->bm->vdata, ".sculpt_mask");
-    const bool removed_b = CustomData_free_layers(&em->bm->ldata, CD_GRID_PAINT_MASK);
+  if (BMesh *bm = BKE_editmesh_bmesh_get_for_write(mesh)) {
+    const bool removed_a = CustomData_free_layer_named(&bm->vdata, ".sculpt_mask");
+    const bool removed_b = CustomData_free_layers(&bm->ldata, CD_GRID_PAINT_MASK);
     if (!(removed_a || removed_b)) {
       return OPERATOR_CANCELLED;
     }
@@ -533,8 +530,8 @@ static bool mesh_customdata_face_sets_clear_poll(bContext *C)
     return false;
   }
 
-  if (BMEditMesh *em = mesh->runtime->edit_mesh.get()) {
-    return CustomData_has_layer_named(&em->bm->pdata, CD_PROP_INT32, ".sculpt_face_set");
+  if (BMesh *bm = BKE_editmesh_bmesh_get_for_write(mesh)) {
+    return CustomData_has_layer_named(&bm->pdata, CD_PROP_INT32, ".sculpt_face_set");
   }
 
   return mesh->attributes().contains(".sculpt_face_set");
@@ -546,8 +543,8 @@ static wmOperatorStatus mesh_customdata_face_sets_clear_exec(bContext *C, wmOper
   Mesh *mesh = id_cast<Mesh *>(object->data);
 
   bool changed = false;
-  if (BMEditMesh *em = mesh->runtime->edit_mesh.get()) {
-    changed = CustomData_free_layer_named(&em->bm->pdata, ".sculpt_face_set");
+  if (BMesh *bm = BKE_editmesh_bmesh_get_for_write(mesh)) {
+    changed = CustomData_free_layer_named(&bm->pdata, ".sculpt_face_set");
   }
   else {
     changed = mesh->attributes_for_write().remove(".sculpt_face_set");
@@ -605,8 +602,8 @@ static SkinState mesh_customdata_skin_state(bContext *C)
   if (!ID_IS_EDITABLE(mesh) || ID_IS_OVERRIDE_LIBRARY(mesh)) {
     return SkinState::Invalid;
   }
-  if (BMEditMesh *em = mesh->runtime->edit_mesh.get()) {
-    return CustomData_has_layer_named(&em->bm->vdata, CD_PROP_FLOAT2, "skin_modifier_radius") ?
+  if (BMesh *bm = BKE_editmesh_bmesh_get_for_write(mesh)) {
+    return CustomData_has_layer_named(&bm->vdata, CD_PROP_FLOAT2, "skin_modifier_radius") ?
                SkinState::HasSkin :
                SkinState::NoSkin;
   }
@@ -653,13 +650,13 @@ static wmOperatorStatus mesh_customdata_skin_clear_exec(bContext *C, wmOperator 
 {
   Object *object = ed::object::context_object(C);
   Mesh *mesh = id_cast<Mesh *>(object->data);
-  if (BMEditMesh *em = mesh->runtime->edit_mesh.get()) {
-    if (!CustomData_has_layer_named(&em->bm->vdata, CD_PROP_FLOAT2, "skin_modifier_radius")) {
+  if (BMesh *bm = BKE_editmesh_bmesh_get_for_write(mesh)) {
+    if (!CustomData_has_layer_named(&bm->vdata, CD_PROP_FLOAT2, "skin_modifier_radius")) {
       return OPERATOR_CANCELLED;
     }
-    BM_data_layer_free_named(em->bm, &em->bm->vdata, "skin_modifier_radius");
-    BM_data_layer_free_named(em->bm, &em->bm->vdata, "skin_modifier_root");
-    BM_data_layer_free_named(em->bm, &em->bm->vdata, "skin_modifier_loose");
+    BM_data_layer_free_named(bm, &bm->vdata, "skin_modifier_radius");
+    BM_data_layer_free_named(bm, &bm->vdata, "skin_modifier_root");
+    BM_data_layer_free_named(bm, &bm->vdata, "skin_modifier_loose");
   }
   else {
     if (!mesh->attributes_for_write().remove("skin_modifier_radius")) {
@@ -689,11 +686,11 @@ static wmOperatorStatus mesh_customdata_custom_splitnormals_add_exec(bContext *C
                                                                      wmOperator * /*op*/)
 {
   Mesh *mesh = ED_mesh_context(C);
-  if (BMEditMesh *em = mesh->runtime->edit_mesh.get()) {
-    if (BM_data_layer_lookup(*em->bm, "custom_normal")) {
+  if (BMesh *bm = BKE_editmesh_bmesh_get_for_write(mesh)) {
+    if (BM_data_layer_lookup(*bm, "custom_normal")) {
       return OPERATOR_CANCELLED;
     }
-    BM_data_layer_ensure_named(em->bm, &em->bm->ldata, CD_PROP_INT16_2D, "custom_normal");
+    BM_data_layer_ensure_named(bm, &bm->ldata, CD_PROP_INT16_2D, "custom_normal");
   }
   else {
     bke::MutableAttributeAccessor attributes = mesh->attributes_for_write();
@@ -725,14 +722,13 @@ static wmOperatorStatus mesh_customdata_custom_splitnormals_clear_exec(bContext 
                                                                        wmOperator * /*op*/)
 {
   Mesh *mesh = ED_mesh_context(C);
-  if (BMEditMesh *em = mesh->runtime->edit_mesh.get()) {
-    BMesh &bm = *em->bm;
-    if (!CustomData_has_layer_named(&bm.ldata, CD_PROP_INT16_2D, "custom_normal")) {
+  if (BMesh *bm = BKE_editmesh_bmesh_get_for_write(mesh)) {
+    if (!CustomData_has_layer_named(&bm->ldata, CD_PROP_INT16_2D, "custom_normal")) {
       return OPERATOR_CANCELLED;
     }
-    BM_data_layer_free_named(&bm, &bm.ldata, "custom_normal");
-    if (bm.lnor_spacearr) {
-      BKE_lnor_spacearr_clear(bm.lnor_spacearr);
+    BM_data_layer_free_named(bm, &bm->ldata, "custom_normal");
+    if (bm->lnor_spacearr) {
+      BKE_lnor_spacearr_clear(bm->lnor_spacearr);
     }
   }
   else {
@@ -1062,9 +1058,9 @@ void ED_mesh_report_mirror(ReportList &reports, int totmirr, int totfail)
 
 KeyBlock *ED_mesh_get_edit_shape_key(const Mesh *me)
 {
-  BLI_assert(me->runtime->edit_mesh && me->runtime->edit_mesh->bm);
-
-  return BKE_keyblock_find_by_index(me->key, me->runtime->edit_mesh->bm->shapenr - 1);
+  const BMesh *bm = BKE_editmesh_bmesh_get(me);
+  BLI_assert(me->runtime->edit_mesh && bm);
+  return BKE_keyblock_find_by_index(me->key, bm->shapenr - 1);
 }
 
 Mesh *ED_mesh_context(bContext *C)

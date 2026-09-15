@@ -1718,9 +1718,8 @@ static bool fill_texpaint_slots_cb(bNodeTree * /*nodetree*/, bNode *node, void *
       slot->attribute_name = storage->name;
       if (storage->type == SHD_ATTRIBUTE_GEOMETRY) {
         const Mesh *mesh = id_cast<const Mesh *>(fill_data->ob->data);
-        if (mesh->runtime->edit_mesh) {
-          const BMDataLayerLookup attr = BM_data_layer_lookup(*mesh->runtime->edit_mesh->bm,
-                                                              storage->name);
+        if (const BMesh *bm = BKE_editmesh_bmesh_get(mesh)) {
+          const BMDataLayerLookup attr = BM_data_layer_lookup(*bm, storage->name);
           slot->valid = attr && bke::mesh::is_color_attribute({attr.domain, attr.type});
         }
         else {

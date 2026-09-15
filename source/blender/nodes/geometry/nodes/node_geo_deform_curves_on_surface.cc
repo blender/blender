@@ -248,8 +248,8 @@ static void node_geo_exec(GeoNodeExecParams params)
   Object *surface_ob_orig = DEG_get_original(surface_ob_eval);
   Mesh &surface_object_data = *id_cast<Mesh *>(surface_ob_orig->data);
 
-  if (BMEditMesh *em = surface_object_data.runtime->edit_mesh.get()) {
-    surface_mesh_orig = BKE_mesh_from_bmesh_for_eval_nomain(em->bm, nullptr, &surface_object_data);
+  if (BMesh *bm = BKE_editmesh_bmesh_get_for_write(&surface_object_data)) {
+    surface_mesh_orig = BKE_mesh_from_bmesh_for_eval_nomain(bm, nullptr, &surface_object_data);
     free_suface_mesh_orig = true;
   }
   else {

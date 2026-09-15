@@ -59,8 +59,7 @@ static wmOperatorStatus edbm_screw_exec(bContext *C, wmOperator *op)
       *bmain, scene, view_layer, CTX_wm_view3d(C));
 
   for (Object *obedit : objects) {
-    BMEditMesh *em = BKE_editmesh_from_object(obedit);
-    BMesh *bm = em->bm;
+    BMesh *bm = BKE_editmesh_bmesh_get_for_write(obedit);
 
     if (bm->totvertsel < 2) {
       if (bm->totvertsel == 0) {
@@ -78,7 +77,7 @@ static wmOperatorStatus edbm_screw_exec(bContext *C, wmOperator *op)
     v1 = nullptr;
     v2 = nullptr;
 
-    BM_ITER_MESH (eve, &iter, em->bm, BM_VERTS_OF_MESH) {
+    BM_ITER_MESH (eve, &iter, bm, BM_VERTS_OF_MESH) {
       valence = 0;
       BM_ITER_ELEM (eed, &eiter, eve, BM_EDGES_OF_VERT) {
         if (BM_elem_flag_test(eed, BM_ELEM_SELECT)) {
@@ -119,7 +118,7 @@ static wmOperatorStatus edbm_screw_exec(bContext *C, wmOperator *op)
 
     BMOperator spinop;
     if (!EDBM_op_init(
-            em,
+            bm,
             &spinop,
             op,
             "spin geom=%hvef cent=%v axis=%v dvec=%v steps=%i angle=%f space=%m4 use_duplicate=%b",
@@ -136,11 +135,11 @@ static wmOperatorStatus edbm_screw_exec(bContext *C, wmOperator *op)
     }
 
     BMO_op_exec(bm, &spinop);
-    EDBM_flag_disable_all(em, BM_ELEM_SELECT);
+    EDBM_flag_disable_all(bm, BM_ELEM_SELECT);
     BMO_slot_buffer_hflag_enable(
         bm, spinop.slots_out, "geom_last.out", BM_ALL_NOLOOP, BM_ELEM_SELECT, true);
 
-    if (!EDBM_op_finish(em, &spinop, op, true)) {
+    if (!EDBM_op_finish(bm, &spinop, op, true)) {
       continue;
     }
 

@@ -266,7 +266,7 @@ static void deformVerts_do(HookModifierData *hmd,
                            const ModifierEvalContext * /*ctx*/,
                            Object *ob,
                            Mesh *mesh,
-                           const BMEditMesh *em,
+                           const BMesh *bm,
                            MutableSpan<float3> positions)
 {
   Object *ob_target = hmd->object;
@@ -294,8 +294,8 @@ static void deformVerts_do(HookModifierData *hmd,
 
   if (hd.defgrp_index != -1) {
     /* Edit-mesh. */
-    if (em != nullptr) {
-      cd_dvert_offset = CustomData_get_offset(&em->bm->vdata, CD_MDEFORMVERT);
+    if (bm != nullptr) {
+      cd_dvert_offset = CustomData_get_offset(&bm->vdata, CD_MDEFORMVERT);
       if (cd_dvert_offset == -1) {
         hd.defgrp_index = -1;
       }
@@ -375,12 +375,12 @@ static void deformVerts_do(HookModifierData *hmd,
       MEM_delete(indexar_used);
     }
     else { /* missing mesh or ORIGINDEX */
-      if ((em != nullptr) && (hd.defgrp_index != -1)) {
-        BLI_assert(em->bm->totvert == positions.size());
+      if ((bm != nullptr) && (hd.defgrp_index != -1)) {
+        BLI_assert(bm->totvert == positions.size());
         BLI_bitmap *indexar_used = hook_index_array_to_bitmap(hmd, positions.size());
         BMIter iter;
         BMVert *v;
-        BM_ITER_MESH_INDEX (v, &iter, em->bm, BM_VERTS_OF_MESH, i) {
+        BM_ITER_MESH_INDEX (v, &iter, const_cast<BMesh *>(bm), BM_VERTS_OF_MESH, i) {
           if (BLI_BITMAP_TEST(indexar_used, i)) {
             const MDeformVert *dv = static_cast<const MDeformVert *>(
                 BM_ELEM_CD_GET_VOID_P(v, cd_dvert_offset));
@@ -400,11 +400,11 @@ static void deformVerts_do(HookModifierData *hmd,
     }
   }
   else if (hd.defgrp_index != -1) { /* vertex group hook */
-    if (em != nullptr) {
-      BLI_assert(em->bm->totvert == positions.size());
+    if (bm != nullptr) {
+      BLI_assert(bm->totvert == positions.size());
       BMIter iter;
       BMVert *v;
-      BM_ITER_MESH_INDEX (v, &iter, em->bm, BM_VERTS_OF_MESH, i) {
+      BM_ITER_MESH_INDEX (v, &iter, const_cast<BMesh *>(bm), BM_VERTS_OF_MESH, i) {
         const MDeformVert *dv = static_cast<const MDeformVert *>(
             BM_ELEM_CD_GET_VOID_P(v, cd_dvert_offset));
         hook_co_apply(&hd, i, dv);
@@ -430,7 +430,7 @@ static void deform_verts(ModifierData *md,
 
 static void deform_verts_EM(ModifierData *md,
                             const ModifierEvalContext *ctx,
-                            const BMEditMesh *em,
+                            const BMEditMesh * /*em*/,
                             Mesh *mesh,
                             MutableSpan<float3> positions)
 {
@@ -440,7 +440,9 @@ static void deform_verts_EM(ModifierData *md,
                  ctx,
                  ctx->object,
                  mesh,
-                 mesh->runtime->wrapper_type == ME_WRAPPER_TYPE_BMESH ? em : nullptr,
+                 mesh->runtime->wrapper_type == ME_WRAPPER_TYPE_BMESH ?
+                     BKE_editmesh_bmesh_get(mesh) :
+                     nullptr,
                  positions);
 }
 

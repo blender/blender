@@ -53,7 +53,6 @@ void mesh_get_mapped_verts_coords(const Mesh *mesh_eval, MutableSpan<float3> r_c
 const Mesh *editbmesh_get_eval_cage(Depsgraph *depsgraph,
                                     const Scene *scene,
                                     Object *obedit,
-                                    BMEditMesh *em,
                                     const CustomData_MeshMasks *dataMask);
 const Mesh *editbmesh_get_eval_cage_from_orig(Depsgraph *depsgraph,
                                               const Scene *scene,

@@ -166,15 +166,16 @@ static void *editmesh_partial_update_begin_fn(bContext * /*C*/,
     return nullptr;
   }
 
-  BMEditMesh *em = static_cast<BMEditMesh *>(arg1);
+  Object *ob = static_cast<Object *>(arg1);
+  BMesh *bm = BKE_editmesh_bmesh_get_for_write(ob);
 
   int verts_mask_count = 0;
   BMIter iter;
   BMVert *eve;
   int i;
 
-  BitVector<> verts_mask(em->bm->totvert);
-  BM_ITER_MESH_INDEX (eve, &iter, em->bm, BM_VERTS_OF_MESH, i) {
+  BitVector<> verts_mask(bm->totvert);
+  BM_ITER_MESH_INDEX (eve, &iter, bm, BM_VERTS_OF_MESH, i) {
     if (!BM_elem_flag_test(eve, BM_ELEM_SELECT)) {
       continue;
     }
@@ -186,7 +187,7 @@ static void *editmesh_partial_update_begin_fn(bContext * /*C*/,
   update_params.do_tessellate = true;
   update_params.do_normals = true;
   BMPartialUpdate *bmpinfo = BM_mesh_partial_create_from_verts_group_single(
-      *em->bm, update_params, verts_mask, verts_mask_count);
+      *bm, update_params, verts_mask, verts_mask_count);
 
   return bmpinfo;
 }
@@ -220,9 +221,11 @@ static void editmesh_partial_update_update_fn(bContext *C,
   }
   tfp->tag_for_update = false;
 
-  BMEditMesh *em = static_cast<BMEditMesh *>(arg1);
+  Object *ob = static_cast<Object *>(arg1);
+  BMEditMesh *em = BKE_editmesh_from_object(ob);
 
-  BKE_editmesh_looptris_and_normals_calc_with_partial(em, bmpinfo);
+  BKE_editmesh_looptris_and_normals_calc_with_partial(
+      em, BKE_editmesh_bmesh_get_for_write(ob), bmpinfo);
 }
 
 /** \} */
@@ -738,8 +741,7 @@ static void v3d_editvertex_buts(
   if (ob->type == OB_MESH) {
     TransformMedian_Mesh *median = &median_basis.mesh;
     Mesh *mesh = id_cast<Mesh *>(ob->data);
-    BMEditMesh *em = mesh->runtime->edit_mesh.get();
-    BMesh *bm = em->bm;
+    BMesh *bm = BKE_editmesh_bmesh_get_for_write(mesh);
     BMVert *eve;
     BMEdge *eed;
     BMIter iter;
@@ -1419,12 +1421,12 @@ static void v3d_editvertex_buts(
 
     if (ob->type == OB_MESH) {
       Mesh *mesh = id_cast<Mesh *>(ob->data);
-      if (BMEditMesh *em = mesh->runtime->edit_mesh.get()) {
+      if (mesh->runtime->edit_mesh) {
         ui::BlockInteraction_CallbackData callback_data{};
         callback_data.begin_fn = editmesh_partial_update_begin_fn;
         callback_data.end_fn = editmesh_partial_update_end_fn;
         callback_data.update_fn = editmesh_partial_update_update_fn;
-        callback_data.arg1 = em;
+        callback_data.arg1 = ob;
         block_interaction_set(block, &callback_data);
       }
     }
@@ -1460,8 +1462,7 @@ static void v3d_editvertex_buts(
     {
       const TransformMedian_Mesh *median = &median_basis.mesh, *ve_median = &ve_median_basis.mesh;
       Mesh *mesh = id_cast<Mesh *>(ob->data);
-      BMEditMesh *em = mesh->runtime->edit_mesh.get();
-      BMesh *bm = em->bm;
+      BMesh *bm = BKE_editmesh_bmesh_get_for_write(mesh);
       BMIter iter;
       BMVert *eve;
       BMEdge *eed;

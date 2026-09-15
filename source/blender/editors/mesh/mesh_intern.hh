@@ -21,6 +21,7 @@ namespace blender {
 
 struct bContext;
 struct BMEditMesh;
+struct BMesh;
 struct BMEdge;
 struct BMElem;
 struct BMFace;
@@ -46,15 +47,15 @@ struct ViewLayer;
  * the BMEditMesh structure. */
 
 /** Calls a bmesh op, reporting errors to the user, etc. */
-bool EDBM_op_callf(BMEditMesh *em, wmOperator *op, const char *fmt, ...);
-bool EDBM_op_call_and_selectf(BMEditMesh *em,
+bool EDBM_op_callf(BMesh *bm, wmOperator *op, const char *fmt, ...);
+bool EDBM_op_call_and_selectf(BMesh *bm,
                               wmOperator *op,
                               const char *select_slot_out,
                               bool select_extend,
                               const char *fmt,
                               ...);
 /** A `va_list` version of #EDBM_op_call_and_selectf. */
-bool EDBM_op_vcall_and_selectf(BMEditMesh *em,
+bool EDBM_op_vcall_and_selectf(BMesh *bm,
                                wmOperator *op,
                                const char *select_slot_out,
                                bool select_extend,
@@ -63,7 +64,7 @@ bool EDBM_op_vcall_and_selectf(BMEditMesh *em,
 /**
  * Same as above, but doesn't report errors.
  */
-bool EDBM_op_call_silentf(BMEditMesh *em, const char *fmt, ...);
+bool EDBM_op_call_silentf(BMesh *bm, const char *fmt, ...);
 
 /**
  * These next two functions are the split version of EDBM_op_callf, so you can
@@ -71,7 +72,7 @@ bool EDBM_op_call_silentf(BMEditMesh *em, const char *fmt, ...);
  *
  * execute the operator with #BMO_op_exec.
  */
-bool EDBM_op_init(BMEditMesh *em, BMOperator *bmop, wmOperator *op, const char *fmt, ...);
+bool EDBM_op_init(BMesh *bm, BMOperator *bmop, wmOperator *op, const char *fmt, ...);
 
 /**
  * Cleans up after a bmesh operator.
@@ -80,9 +81,9 @@ bool EDBM_op_init(BMEditMesh *em, BMOperator *bmop, wmOperator *op, const char *
  * - False on error (the mesh must not be changed).
  * - True on success, executes and finishes a #BMesh operator.
  */
-bool EDBM_op_finish(BMEditMesh *em, BMOperator *bmop, wmOperator *op, bool do_report);
+bool EDBM_op_finish(BMesh *bm, BMOperator *bmop, wmOperator *op, bool do_report);
 
-void EDBM_stats_update(BMEditMesh *em);
+void EDBM_stats_update(BMesh *bm);
 
 /**
  * Poll call for mesh operators requiring a view3d context.
@@ -96,8 +97,8 @@ BMElem *EDBM_elem_from_selectmode(BMEditMesh *em, BMVert *eve, BMEdge *eed, BMFa
  *
  * Intended for use with operators.
  */
-int EDBM_elem_to_index_any(BMEditMesh *em, BMElem *ele);
-BMElem *EDBM_elem_from_index_any(BMEditMesh *em, uint index);
+int EDBM_elem_to_index_any(BMesh *bm, BMElem *ele);
+BMElem *EDBM_elem_from_index_any(BMesh *bm, uint index);
 
 int EDBM_elem_to_index_any_multi(const Main &bmain,
                                  const Scene *scene,

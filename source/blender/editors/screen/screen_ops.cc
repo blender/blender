@@ -794,17 +794,21 @@ bool ED_operator_uvedit_space_image(bContext *C)
 bool ED_operator_uvmap(bContext *C)
 {
   Object *obedit = CTX_data_edit_object(C);
-  BMEditMesh *em = nullptr;
-
-  if (obedit && obedit->type == OB_MESH) {
-    em = BKE_editmesh_from_object(obedit);
+  if (!obedit) {
+    return false;
   }
-
-  if (em && (em->bm->totface)) {
-    return true;
+  if (obedit->type != OB_MESH) {
+    return false;
   }
-
-  return false;
+  BMEditMesh *em = BKE_editmesh_from_object(obedit);
+  if (!em) {
+    return false;
+  }
+  const BMesh *bm = BKE_editmesh_bmesh_get(obedit);
+  if (bm->totface == 0) {
+    return false;
+  }
+  return true;
 }
 
 bool ED_operator_editsurfcurve(bContext *C)

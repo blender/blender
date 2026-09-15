@@ -1965,9 +1965,8 @@ static void fill_mesh_color(Mesh &mesh,
                             const bool affect_alpha,
                             const bool only_visible = false)
 {
-  if (BMEditMesh *em = mesh.runtime->edit_mesh.get()) {
-    BMesh *bm = em->bm;
-    const BMDataLayerLookup attr = BM_data_layer_lookup(*mesh.runtime->edit_mesh->bm, name);
+  if (BMesh *bm = BKE_editmesh_bmesh_get_for_write(&mesh)) {
+    const BMDataLayerLookup attr = BM_data_layer_lookup(*bm, name);
     if (attr.type == bke::AttrType::ColorFloat) {
       fill_bm_face_or_corner_attribute<ColorPaint4f>(
           *bm, color, attr.domain, attr.offset, use_vert_sel, only_visible);

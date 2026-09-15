@@ -310,7 +310,7 @@ static void MESH_GGT_add_bounds(wmGizmoGroupType *gzgt)
 static wmOperatorStatus add_primitive_cube_gizmo_exec(bContext *C, wmOperator *op)
 {
   Object *obedit = CTX_data_edit_object(C);
-  BMEditMesh *em = BKE_editmesh_from_object(obedit);
+  BMesh *bm = BKE_editmesh_bmesh_get_for_write(obedit);
   float matrix[4][4];
 
   /* Get the matrix that defines the cube bounds (as set by the gizmo cage). */
@@ -333,7 +333,7 @@ static wmOperatorStatus add_primitive_cube_gizmo_exec(bContext *C, wmOperator *o
     ED_mesh_uv_ensure(id_cast<Mesh *>(obedit->data), nullptr);
   }
 
-  if (!EDBM_op_call_and_selectf(em,
+  if (!EDBM_op_call_and_selectf(bm,
                                 op,
                                 "verts.out",
                                 false,
@@ -345,9 +345,9 @@ static wmOperatorStatus add_primitive_cube_gizmo_exec(bContext *C, wmOperator *o
     return OPERATOR_CANCELLED;
   }
 
-  EDBM_selectmode_flush_ex(em, SCE_SELECT_VERTEX);
+  EDBM_selectmode_flush_ex(bm, SCE_SELECT_VERTEX);
   /* TODO(@ideasman42): maintain UV sync for newly created data. */
-  EDBM_uvselect_clear(em);
+  EDBM_uvselect_clear(bm);
 
   EDBMUpdate_Params params{};
   params.calc_looptris = true;

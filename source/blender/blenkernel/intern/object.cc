@@ -3251,9 +3251,8 @@ static void give_parvert(const Object *par, int nr, float vec[3], const bool use
   zero_v3(vec);
 
   if (par->type == OB_MESH) {
-    const Mesh *mesh = id_cast<const Mesh *>(par->data);
-    const BMEditMesh *em = mesh->runtime->edit_mesh.get();
-    const Mesh *mesh_eval = (em) ? BKE_object_get_editmesh_eval_final(par) :
+    const BMesh *bm = BKE_editmesh_bmesh_get(par);
+    const Mesh *mesh_eval = (bm) ? BKE_object_get_editmesh_eval_final(par) :
                                    BKE_object_get_evaluated_mesh(par);
 
     if (mesh_eval) {
@@ -3261,17 +3260,17 @@ static void give_parvert(const Object *par, int nr, float vec[3], const bool use
       int count = 0;
       int numVerts = mesh_eval->verts_num;
 
-      if (em && mesh_eval->runtime->wrapper_type == ME_WRAPPER_TYPE_BMESH) {
-        numVerts = em->bm->totvert;
-        if (em->bm->elem_table_dirty & BM_VERT) {
+      if (bm && mesh_eval->runtime->wrapper_type == ME_WRAPPER_TYPE_BMESH) {
+        numVerts = bm->totvert;
+        if (bm->elem_table_dirty & BM_VERT) {
 #ifdef VPARENT_THREADING_HACK
           std::scoped_lock lock(vparent_lock);
-          if (em->bm->elem_table_dirty & BM_VERT) {
-            BM_mesh_elem_table_ensure(em->bm, BM_VERT);
+          if (bm->elem_table_dirty & BM_VERT) {
+            BM_mesh_elem_table_ensure(const_cast<BMesh *>(bm), BM_VERT);
           }
 #else
           BLI_assert_msg(0, "Not safe for threading");
-          BM_mesh_elem_table_ensure(em->bm, BM_VERT);
+          BM_mesh_elem_table_ensure(const_cast<BMesh *>(bm), BM_VERT);
 #endif
         }
         if (nr < numVerts) {
@@ -3281,7 +3280,7 @@ static void give_parvert(const Object *par, int nr, float vec[3], const bool use
             add_v3_v3(vec, mesh_eval->runtime->edit_data->vert_positions[nr]);
           }
           else {
-            const BMVert *v = BM_vert_at_index(em->bm, nr);
+            const BMVert *v = BM_vert_at_index(const_cast<BMesh *>(bm), nr);
             add_v3_v3(vec, v->co);
           }
           count++;

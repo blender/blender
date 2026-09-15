@@ -536,16 +536,16 @@ static char *key_block_get_data(Key *key, KeyBlock *actkb, KeyBlock *kb, char **
     if (GS(key->from->name) == ID_ME) {
 
       Mesh *mesh = id_cast<Mesh *>(key->from);
+      const BMesh *bm = BKE_editmesh_bmesh_get(mesh);
 
-      if (mesh->runtime->edit_mesh && mesh->runtime->edit_mesh->bm->totvert == kb->totelem) {
+      if (mesh->runtime->edit_mesh && bm->totvert == kb->totelem) {
         int a = 0;
         float (*co)[3];
-        co = MEM_new_array_uninitialized<float[3]>(size_t(mesh->runtime->edit_mesh->bm->totvert),
-                                                   "key_block_get_data");
+        co = MEM_new_array_uninitialized<float[3]>(size_t(bm->totvert), "key_block_get_data");
 
         BMVert *eve;
         BMIter iter;
-        BM_ITER_MESH (eve, &iter, mesh->runtime->edit_mesh->bm, BM_VERTS_OF_MESH) {
+        BM_ITER_MESH (eve, &iter, const_cast<BMesh *>(bm), BM_VERTS_OF_MESH) {
           copy_v3_v3(co[a], eve->co);
           a++;
         }
@@ -799,14 +799,15 @@ static float *get_weights_array(Object *ob, const char *vgroup, WeightsArrayCach
   int totvert = 0;
 
   /* Gather dvert and totvert. */
-  BMEditMesh *em = nullptr;
+  const BMesh *bm = nullptr;
   if (ob->type == OB_MESH) {
     Mesh *mesh = id_cast<Mesh *>(ob->data);
     dvert = mesh->deform_verts().data();
     totvert = mesh->verts_num;
 
-    if (mesh->runtime->edit_mesh && mesh->runtime->edit_mesh->bm->totvert == totvert) {
-      em = mesh->runtime->edit_mesh.get();
+    const BMesh *bm_test = BKE_editmesh_bmesh_get(mesh);
+    if (bm_test && bm_test->totvert == totvert) {
+      bm = bm_test;
     }
   }
   else if (ob->type == OB_LATTICE) {
@@ -839,12 +840,12 @@ static float *get_weights_array(Object *ob, const char *vgroup, WeightsArrayCach
 
     weights = MEM_new_array_uninitialized<float>(size_t(totvert), "weights");
 
-    if (em) {
+    if (bm) {
       int i;
-      const int cd_dvert_offset = CustomData_get_offset(&em->bm->vdata, CD_MDEFORMVERT);
+      const int cd_dvert_offset = CustomData_get_offset(&bm->vdata, CD_MDEFORMVERT);
       BMIter iter;
       BMVert *eve;
-      BM_ITER_MESH_INDEX (eve, &iter, em->bm, BM_VERTS_OF_MESH, i) {
+      BM_ITER_MESH_INDEX (eve, &iter, const_cast<BMesh *>(bm), BM_VERTS_OF_MESH, i) {
         dvert = static_cast<const MDeformVert *>(BM_ELEM_CD_GET_VOID_P(eve, cd_dvert_offset));
         weights[i] = BKE_defvert_find_weight(dvert, defgrp_index);
       }

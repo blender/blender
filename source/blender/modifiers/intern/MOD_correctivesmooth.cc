@@ -26,6 +26,7 @@
 
 #include "BKE_deform.hh"
 #include "BKE_editmesh.hh"
+#include "BKE_mesh_wrapper.hh"
 
 #include "UI_interface_layout.hh"
 #include "UI_resources.hh"
@@ -628,7 +629,7 @@ static void correctivesmooth_modifier_do(ModifierData *md,
       goto error;
     }
     else {
-      const int me_numVerts = (em) ? em->bm->totvert : (id_cast<Mesh *>(ob->data))->verts_num;
+      const int me_numVerts = BKE_mesh_wrapper_vert_len(mesh);
 
       if (me_numVerts != vertexCos.size()) {
         BKE_modifier_set_error(ob,
@@ -657,7 +658,8 @@ static void correctivesmooth_modifier_do(ModifierData *md,
     }
     else {
       if (em) {
-        rest_coords_alloc = BKE_editmesh_vert_coords_alloc_orco(em);
+        const BMesh *bm = BKE_editmesh_bmesh_get(mesh);
+        rest_coords_alloc = BKE_editmesh_vert_coords_alloc_orco(bm);
         rest_coords = rest_coords_alloc;
       }
       else {
