@@ -63,6 +63,7 @@
 #undef DNA_GENFILE_VERSIONING_MACROS
 
 #include "BKE_anim_data.hh"
+#include "BKE_annotations_geom.h"
 #include "BKE_blender.hh"
 #include "BKE_collection.hh"
 #include "BKE_colortools.hh"
@@ -72,7 +73,6 @@
 #include "BKE_fcurve.hh"
 #include "BKE_fcurve_driver.h"
 #include "BKE_freestyle.h"
-#include "BKE_gpencil_geom_legacy.h"
 #include "BKE_idprop.hh"
 #include "BKE_key.hh"
 #include "BKE_layer.hh"
