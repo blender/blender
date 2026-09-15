@@ -1238,7 +1238,7 @@ std::array<const char *, 4> ED_view3d_buttons_contexts(const bContext *C)
       ARRAY_SET_ITEMS(contexts, ".grease_pencil_paint");
       break;
     case CTX_MODE_SCULPT_GREASE_PENCIL:
-      ARRAY_SET_ITEMS(contexts, ".paint_common", ".grease_pencil_sculpt");
+      ARRAY_SET_ITEMS(contexts, ".grease_pencil_sculpt");
       break;
     case CTX_MODE_WEIGHT_GREASE_PENCIL:
       ARRAY_SET_ITEMS(contexts, ".greasepencil_weight");
