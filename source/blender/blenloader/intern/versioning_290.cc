@@ -581,7 +581,7 @@ void do_versions_after_linking_290(FileData * /*fd*/, Main *bmain)
         for (bGPDlayer &gpl : gpd->layers) {
           bGPDframe *gpf = gpl.frames.first();
           if (gpf && gpf->framenum > scene->r.sfra) {
-            bGPDframe *gpf_dup = BKE_gpencil_frame_duplicate(gpf, true);
+            bGPDframe *gpf_dup = BKE_annotations_frame_duplicate(gpf, true);
             gpf_dup->framenum = scene->r.sfra;
             BLI_addhead(&gpl.frames, gpf_dup);
           }

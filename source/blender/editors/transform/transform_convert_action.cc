@@ -1154,13 +1154,13 @@ static void posttrans_gpd_clean(bGPdata *gpd)
     bGPDframe *gpf, *gpfn;
     bool is_double = false;
 
-    BKE_gpencil_layer_frames_sort(&gpl, &is_double);
+    BKE_annotations_layer_frames_sort(&gpl, &is_double);
 
     if (is_double) {
       for (gpf = gpl.frames.first(); gpf; gpf = gpfn) {
         gpfn = gpf->next;
         if (gpfn && gpf->framenum == gpfn->framenum) {
-          BKE_gpencil_layer_frame_delete(&gpl, gpf);
+          BKE_annotations_layer_frame_delete(&gpl, gpf);
         }
       }
     }

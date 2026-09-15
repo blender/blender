@@ -17,6 +17,7 @@
 #include "BKE_attribute_storage.hh"
 #include "BKE_attribute_storage_blend_write.hh"
 #include "BKE_bake_data_block_id.hh"
+#include "BKE_brush.hh"
 #include "BKE_curves.hh"
 #include "BKE_customdata.hh"
 #include "BKE_deform.hh"
@@ -33,6 +34,7 @@
 #include "BKE_modifier.hh"
 #include "BKE_object.hh"
 #include "BKE_object_types.hh"
+#include "BKE_paint.hh"
 
 #include "BLI_array_utils.hh"
 #include "BLI_bounds.hh"
@@ -41,6 +43,7 @@
 #include "BLI_enumerable_thread_specific.hh"
 #include "BLI_listbase.hh"
 #include "BLI_map.hh"
+#include "BLI_math_color_c.hh"
 #include "BLI_math_euler_types.hh"
 #include "BLI_math_geom_c.hh"
 #include "BLI_math_matrix.hh"
@@ -75,6 +78,8 @@
 
 #include "DEG_depsgraph.hh"
 #include "DEG_depsgraph_query.hh"
+
+#include "IMB_colormanagement.hh"
 
 #include "RNA_access.hh"
 #include "RNA_path.hh"
@@ -3040,6 +3045,79 @@ bool BKE_grease_pencil_material_index_used(GreasePencil *grease_pencil, int inde
     }
   }
   return false;
+}
+
+void BKE_grease_pencil_brush_material_set(Brush *brush, Material *ma)
+{
+  BLI_assert(brush);
+  BLI_assert(brush->gpencil_settings);
+  if (brush->gpencil_settings->material != ma) {
+    if (brush->gpencil_settings->material) {
+      id_us_min(&brush->gpencil_settings->material->id);
+    }
+    if (ma) {
+      id_us_plus(&ma->id);
+    }
+    brush->gpencil_settings->material = ma;
+    BKE_brush_tag_unsaved_changes(brush);
+  }
+}
+
+/** \} */
+
+/* ------------------------------------------------------------------- */
+/** \name Grease Pencil palette functions
+ * \{ */
+
+void BKE_grease_pencil_palette_ensure(Main *bmain, Scene *scene)
+{
+  const char *hexcol[] = {
+      "FFFFFF", "F2F2F2", "E6E6E6", "D9D9D9", "CCCCCC", "BFBFBF", "B2B2B2", "A6A6A6", "999999",
+      "8C8C8C", "808080", "737373", "666666", "595959", "4C4C4C", "404040", "333333", "262626",
+      "1A1A1A", "000000", "F2FC24", "FFEA00", "FEA711", "FE8B68", "FB3B02", "FE3521", "D00000",
+      "A81F3D", "780422", "2B0000", "F1E2C5", "FEE4B3", "FEDABB", "FEC28E", "D88F57", "BD6340",
+      "A2402B", "63352D", "6B2833", "34120C", "E7CB8F", "D1B38B", "C1B17F", "D7980B", "FFB100",
+      "FE8B00", "FF6A00", "B74100", "5F3E1D", "3B2300", "FECADA", "FE65CB", "FE1392", "DD3062",
+      "C04A6D", "891688", "4D2689", "441521", "2C1139", "241422", "FFFF7D", "FFFF00", "FF7F00",
+      "FF7D7D", "FF7DFF", "FF00FE", "FF007F", "FF0000", "7F0000", "0A0A00", "F6FDFF", "E9F7FF",
+      "CFE6FE", "AAC7FE", "77B3FE", "1E74FD", "0046AA", "2F4476", "003052", "0E0E25", "EEF5F0",
+      "D6E5DE", "ACD8B9", "6CADC6", "42A9AF", "007F7F", "49675C", "2E4E4E", "1D3239", "0F1C21",
+      "D8FFF4", "B8F4F5", "AECCB5", "76C578", "358757", "409B68", "468768", "1F512B", "2A3C37",
+      "122E1D", "EFFFC9", "E6F385", "BCF51C", "D4DC18", "82D322", "5C7F00", "59932B", "297F00",
+      "004320", "1C3322", "00FF7F", "00FF00", "7DFF7D", "7DFFFF", "00FFFF", "7D7DFF", "7F00FF",
+      "0000FF", "3F007F", "00007F"};
+
+  ToolSettings *ts = scene->toolsettings;
+  if (ts->gp_paint->paint.palette != nullptr) {
+    return;
+  }
+
+  /* Try to find the default palette. */
+  const char *palette_id = "Palette";
+  Palette *palette = static_cast<Palette *>(
+      BLI_findstring(&bmain->palettes, palette_id, offsetof(ID, name) + 2));
+
+  if (palette == nullptr) {
+    /* Fall back to the first palette. */
+    palette = bmain->palettes.first();
+  }
+
+  if (palette == nullptr) {
+    /* Fall back to creating a palette. */
+    palette = BKE_palette_add(bmain, palette_id);
+    id_us_min(&palette->id);
+
+    /* Create Colors. */
+    for (int i = 0; i < ARRAY_SIZE(hexcol); i++) {
+      PaletteColor *palcol = BKE_palette_color_add(palette);
+      hex_to_rgb(hexcol[i], palcol->color, palcol->color + 1, palcol->color + 2);
+      IMB_colormanagement_srgb_to_scene_linear_v3(palcol->color, palcol->color);
+    }
+  }
+
+  BLI_assert(palette != nullptr);
+  BKE_paint_palette_set(&ts->gp_paint->paint, palette);
+  BKE_paint_palette_set(&ts->gp_vertexpaint->paint, palette);
 }
 
 /** \} */

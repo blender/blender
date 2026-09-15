@@ -33,104 +33,85 @@ struct bGPDstroke;
 struct bGPdata;
 struct bGPDpalette;
 
-#define GPENCIL_SIMPLIFY(scene) \
-  ((scene->r.mode & R_SIMPLIFY) && (scene->r.simplify_gpencil & SIMPLIFY_GPENCIL_ENABLE))
-#define GPENCIL_SIMPLIFY_ONPLAY(playing) \
-  (((playing == true) && (scene->r.simplify_gpencil & SIMPLIFY_GPENCIL_ON_PLAY)) || \
-   ((scene->r.simplify_gpencil & SIMPLIFY_GPENCIL_ON_PLAY) == 0))
-#define GPENCIL_SIMPLIFY_FILL(scene, playing) \
-  ((GPENCIL_SIMPLIFY_ONPLAY(playing) && GPENCIL_SIMPLIFY(scene) && \
-    (scene->r.simplify_gpencil & SIMPLIFY_GPENCIL_FILL)))
-#define GPENCIL_SIMPLIFY_FX(scene, playing) \
-  ((GPENCIL_SIMPLIFY_ONPLAY(playing) && GPENCIL_SIMPLIFY(scene) && \
-    (scene->r.simplify_gpencil & SIMPLIFY_GPENCIL_FX)))
-#define GPENCIL_SIMPLIFY_TINT(scene) \
-  (GPENCIL_SIMPLIFY(scene) && (scene->r.simplify_gpencil & SIMPLIFY_GPENCIL_TINT))
-#define GPENCIL_SIMPLIFY_AA(scene) \
-  (GPENCIL_SIMPLIFY(scene) && (scene->r.simplify_gpencil & SIMPLIFY_GPENCIL_AA))
-
-/* Vertex Color macros. */
-#define GPENCIL_USE_VERTEX_COLOR(toolsettings) \
-  (((toolsettings)->gp_paint->mode == GPPAINT_FLAG_USE_VERTEXCOLOR))
-
-/* ------------ Grease-Pencil API ------------------ */
+/* ------------ Annotation API ------------------ */
 
 /* clean vertex groups weights */
-void BKE_gpencil_free_point_weights(struct MDeformVert *dvert);
-void BKE_gpencil_free_stroke_weights(struct bGPDstroke *gps);
-void BKE_gpencil_free_stroke_editcurve(struct bGPDstroke *gps);
+void BKE_annotations_free_point_weights(struct MDeformVert *dvert);
+void BKE_annotations_free_stroke_weights(struct bGPDstroke *gps);
+void BKE_annotations_free_stroke_editcurve(struct bGPDstroke *gps);
 /** Free stroke, doesn't unlink from any #ListBase. */
-void BKE_gpencil_free_stroke(struct bGPDstroke *gps);
-/** Free strokes belonging to a gp-frame. */
-bool BKE_gpencil_free_strokes(struct bGPDframe *gpf);
-/** Free all of a gp-layer's frames. */
-void BKE_gpencil_free_frames(struct bGPDlayer *gpl);
-/** Free all of the gp-layers for a viewport (list should be `&gpd->layers` or so). */
-void BKE_gpencil_free_layers(ListBaseT<bGPDlayer> *list);
+void BKE_annotations_free_stroke(struct bGPDstroke *gps);
+/** Free strokes belonging to an annotation frame. */
+bool BKE_annotations_free_strokes(struct bGPDframe *gpf);
+/** Free all of an annotation layer's frames. */
+void BKE_annotations_free_frames(struct bGPDlayer *gpl);
+/** Free all of the annotation layers for a viewport (list should be `&gpd->layers` or so). */
+void BKE_annotations_free_layers(ListBaseT<bGPDlayer> *list);
 /** Free all of the palettes & colors (list should be `&gpd->palettes` or so). */
-void BKE_gpencil_free_legacy_palette_data(ListBaseT<bGPDpalette> *list);
-/** Free (or release) any data used by this grease pencil (does not free the gpencil itself). */
-void BKE_gpencil_free_data(struct bGPdata *gpd, bool free_all);
-void BKE_gpencil_free_layer_masks(struct bGPDlayer *gpl);
+void BKE_annotations_free_legacy_palette_data(ListBaseT<bGPDpalette> *list);
+/** Free (or release) any data used by this annotation (does not free the annotation itself). */
+void BKE_annotations_free_data(struct bGPdata *gpd, bool free_all);
+void BKE_annotations_free_layer_masks(struct bGPDlayer *gpl);
 /**
  * Tag data-block for depsgraph update.
  * Wrapper to avoid include Depsgraph tag functions in other modules.
- * \param gpd: Grease pencil data-block.
+ * \param gpd: Annotation data-block.
  */
-void BKE_gpencil_tag(struct bGPdata *gpd);
+void BKE_annotations_tag(struct bGPdata *gpd);
 
 /**
  * Add a new gp-frame to the given layer.
- * \param gpl: Grease pencil layer
+ * \param gpl: Annotation layer
  * \param cframe: Frame number
  * \return Pointer to new frame
  */
-struct bGPDframe *BKE_gpencil_frame_addnew(struct bGPDlayer *gpl, int cframe);
+struct bGPDframe *BKE_annotations_frame_addnew(struct bGPDlayer *gpl, int cframe);
 /**
  * Add a copy of the active gp-frame to the given layer.
- * \param gpl: Grease pencil layer
+ * \param gpl: Annotation layer
  * \param cframe: Frame number
  * \return Pointer to new frame
  */
-struct bGPDframe *BKE_gpencil_frame_addcopy(struct bGPDlayer *gpl, int cframe);
+struct bGPDframe *BKE_annotations_frame_addcopy(struct bGPDlayer *gpl, int cframe);
 /**
  * Add a new gp-layer and make it the active layer.
- * \param gpd: Grease pencil data-block
+ * \param gpd: Annotation data-block
  * \param name: Name of the layer
  * \param setactive: Set as active
  * \param add_to_header: Used to force the layer added at header
  * \return Pointer to new layer
  */
-struct bGPDlayer *BKE_gpencil_layer_addnew(struct bGPdata *gpd,
-                                           const char *name,
-                                           bool setactive,
-                                           bool add_to_header);
+struct bGPDlayer *BKE_annotations_layer_addnew(struct bGPdata *gpd,
+                                               const char *name,
+                                               bool setactive,
+                                               bool add_to_header);
 /**
- * Add a new grease pencil data-block.
+ * Add a new annotation data-block.
  * \param bmain: Main pointer
  * \param name: Name of the datablock
  * \return Pointer to new data-block
  */
-struct bGPdata *BKE_gpencil_data_addnew(struct Main *bmain, const char name[]);
+struct bGPdata *BKE_annotations_data_addnew(struct Main *bmain, const char name[]);
 
 /**
- * Make a copy of a given gpencil frame.
- * \param gpf_src: Source grease pencil frame
+ * Make a copy of a given annotation frame.
+ * \param gpf_src: Source annotation frame
  * \return Pointer to new frame
  */
-struct bGPDframe *BKE_gpencil_frame_duplicate(const struct bGPDframe *gpf_src, bool dup_strokes);
+struct bGPDframe *BKE_annotations_frame_duplicate(const struct bGPDframe *gpf_src,
+                                                  bool dup_strokes);
 /**
- * Make a copy of a given gpencil layer.
- * \param gpl_src: Source grease pencil layer
+ * Make a copy of a given annotation layer.
+ * \param gpl_src: Source annotation layer
  * \return Pointer to new layer
  */
-struct bGPDlayer *BKE_gpencil_layer_duplicate(const struct bGPDlayer *gpl_src,
-                                              bool dup_frames,
-                                              bool dup_strokes);
+struct bGPDlayer *BKE_annotations_layer_duplicate(const struct bGPDlayer *gpl_src,
+                                                  bool dup_frames,
+                                                  bool dup_strokes);
 
 /**
  * Make a copy of a given grease-pencil stroke.
- * \param gps_src: Source grease pencil strokes.
+ * \param gps_src: Source annotation strokes.
  * \param dup_points: Duplicate points data.
  * \param dup_curve: Duplicate curve data.
  * \return Pointer to new stroke.
@@ -140,26 +121,24 @@ struct bGPDstroke *BKE_gpencil_stroke_duplicate(struct bGPDstroke *gps_src,
                                                 bool dup_curve);
 
 /**
- * Make a copy of a given gpencil data-block.
+ * Make a copy of a given annotation data-block.
  *
  * XXX: Should this be deprecated?
  */
-struct bGPdata *BKE_gpencil_data_duplicate(struct Main *bmain,
-                                           const struct bGPdata *gpd,
-                                           bool internal_copy);
+struct bGPdata *BKE_annotations_data_duplicate(struct Main *bmain,
+                                               const struct bGPdata *gpd,
+                                               bool internal_copy);
 
-/* Stroke and Fill - Alpha Visibility Threshold */
-#define GPENCIL_ALPHA_OPACITY_THRESH 0.001f
 #define GPENCIL_STRENGTH_MIN 0.003f
 
 /**
  * Check if the given layer is able to be edited or not.
- * \param gpl: Grease pencil layer
+ * \param gpl: Annotation layer
  * \return True if layer is editable
  */
-bool BKE_gpencil_layer_is_editable(const struct bGPDlayer *gpl);
+bool BKE_annotations_layer_is_editable(const struct bGPDlayer *gpl);
 
-/* How gpencil_layer_getframe() should behave when there
+/* How annotations_layer_getframe() should behave when there
  * is no existing GP-Frame on the frame requested.
  */
 enum eGP_GetFrame_Mode {
@@ -177,84 +156,69 @@ enum eGP_GetFrame_Mode {
  * - this sets the layer's `actframe` var (if allowed to)
  * - extension beyond range (if first gp-frame is after all frame in interest and cannot add)
  *
- * \param gpl: Grease pencil layer
+ * \param gpl: Annotation layer
  * \param cframe: Frame number
  * \param addnew: Add option
  * \return Pointer to new frame
  */
-struct bGPDframe *BKE_gpencil_layer_frame_get(struct bGPDlayer *gpl,
-                                              int cframe,
-                                              eGP_GetFrame_Mode addnew);
+struct bGPDframe *BKE_annotations_layer_frame_get(struct bGPDlayer *gpl,
+                                                  int cframe,
+                                                  eGP_GetFrame_Mode addnew);
 /**
  * Look up the gp-frame on the requested frame number, but don't add a new one.
- * \param gpl: Grease pencil layer
+ * \param gpl: Annotation layer
  * \param cframe: Frame number
  * \return Pointer to frame
  */
-struct bGPDframe *BKE_gpencil_layer_frame_find(struct bGPDlayer *gpl, int cframe);
+struct bGPDframe *BKE_annotations_layer_frame_find(struct bGPDlayer *gpl, int cframe);
 /**
  * Delete the given frame from a layer.
- * \param gpl: Grease pencil layer
- * \param gpf: Grease pencil frame
+ * \param gpl: Annotation layer
+ * \param gpf: Annotation frame
  * \return True if delete was done
  */
-bool BKE_gpencil_layer_frame_delete(struct bGPDlayer *gpl, struct bGPDframe *gpf);
+bool BKE_annotations_layer_frame_delete(struct bGPDlayer *gpl, struct bGPDframe *gpf);
 
 /**
  * Get layer by name
- * \param gpd: Grease pencil data-block
+ * \param gpd: Annotation data-block
  * \param name: Layer name
  * \return Pointer to layer
  */
-struct bGPDlayer *BKE_gpencil_layer_named_get(struct bGPdata *gpd, const char *name);
+struct bGPDlayer *BKE_annotations_layer_named_get(struct bGPdata *gpd, const char *name);
 /**
- * Get the active grease pencil layer for editing.
- * \param gpd: Grease pencil data-block
+ * Get the active annotation layer for editing.
+ * \param gpd: Annotation data-block
  * \return Pointer to layer
  */
-struct bGPDlayer *BKE_gpencil_layer_active_get(struct bGPdata *gpd);
+struct bGPDlayer *BKE_annotations_layer_active_get(struct bGPdata *gpd);
 /**
- * Set active grease pencil layer.
- * \param gpd: Grease pencil data-block
- * \param active: Grease pencil layer to set as active
+ * Set active annotation layer.
+ * \param gpd: Annotation data-block
+ * \param active: Annotation layer to set as active
  */
-void BKE_gpencil_layer_active_set(struct bGPdata *gpd, struct bGPDlayer *active);
+void BKE_annotations_layer_active_set(struct bGPdata *gpd, struct bGPDlayer *active);
 /**
- * Delete grease pencil layer.
- * \param gpd: Grease pencil data-block
- * \param gpl: Grease pencil layer
+ * Delete annotation layer.
+ * \param gpd: Annotation data-block
+ * \param gpl: Annotation layer
  */
-void BKE_gpencil_layer_delete(struct bGPdata *gpd, struct bGPDlayer *gpl);
+void BKE_annotations_layer_delete(struct bGPdata *gpd, struct bGPDlayer *gpl);
 /**
- * Sort grease pencil frames.
- * \param gpl: Grease pencil layer
+ * Sort annotation frames.
+ * \param gpl: Annotation layer
  * \param r_has_duplicate_frames: Duplicated frames flag
  */
-void BKE_gpencil_layer_frames_sort(struct bGPDlayer *gpl, bool *r_has_duplicate_frames);
-
-/* Brush */
-/**
- * Set grease pencil brush material.
- * \param brush: Brush
- * \param material: Material
- */
-void BKE_gpencil_brush_material_set(struct Brush *brush, struct Material *material);
+void BKE_annotations_layer_frames_sort(struct bGPDlayer *gpl, bool *r_has_duplicate_frames);
 
 /* vertex groups */
 /**
- * Make a copy of a given gpencil weights.
- * \param gps_src: Source grease pencil stroke
- * \param gps_dst: Destination grease pencil stroke
+ * Make a copy of a given annotation weights.
+ * \param gps_src: Source annotation stroke
+ * \param gps_dst: Destination annotation stroke
  */
 void BKE_gpencil_stroke_weights_duplicate(struct bGPDstroke *gps_src, struct bGPDstroke *gps_dst);
 
-/**
- * Create a default palette.
- * \param bmain: Main pointer
- * \param scene: Scene
- */
-void BKE_gpencil_palette_ensure(struct Main *bmain, struct Scene *scene);
-
-void BKE_gpencil_blend_read_data(struct BlendDataReader *reader, struct bGPdata *gpd);
+void BKE_annotations_blend_read_data(struct BlendDataReader *reader, struct bGPdata *gpd);
 
 }  // namespace blender

@@ -332,11 +332,11 @@ static void gpencil_stroke_join_islands(bGPdata *gpd,
 
   /* remove first stroke */
   BLI_remlink(&gpf->strokes, gps_first);
-  BKE_gpencil_free_stroke(gps_first);
+  BKE_annotations_free_stroke(gps_first);
 
   /* remove last stroke */
   BLI_remlink(&gpf->strokes, gps_last);
-  BKE_gpencil_free_stroke(gps_last);
+  BKE_annotations_free_stroke(gps_last);
 }
 
 bGPDstroke *BKE_gpencil_stroke_delete_tagged_points(bGPdata *gpd,
@@ -477,7 +477,7 @@ bGPDstroke *BKE_gpencil_stroke_delete_tagged_points(bGPdata *gpd,
         if (gps_first == new_stroke) {
           gps_first = nullptr;
         }
-        BKE_gpencil_free_stroke(new_stroke);
+        BKE_annotations_free_stroke(new_stroke);
       }
       else {
         /* Calc geometry data. */
@@ -502,7 +502,7 @@ bGPDstroke *BKE_gpencil_stroke_delete_tagged_points(bGPdata *gpd,
 
   /* Delete the old stroke */
   BLI_remlink(&gpf->strokes, gps);
-  BKE_gpencil_free_stroke(gps);
+  BKE_annotations_free_stroke(gps);
 
   return new_stroke;
 }

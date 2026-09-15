@@ -371,7 +371,7 @@ void ANIM_animdata_update(bAnimContext *ac, ListBaseT<bAnimListElem> *anim_data)
       if (ale.update & ANIM_UPDATE_ORDER) {
         ale.update &= ~ANIM_UPDATE_ORDER;
         if (gpl) {
-          BKE_gpencil_layer_frames_sort(gpl, nullptr);
+          BKE_annotations_layer_frames_sort(gpl, nullptr);
         }
       }
 

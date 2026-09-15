@@ -1740,7 +1740,7 @@ static void node_space_blend_read_data(BlendDataReader *reader, SpaceLink *sl)
 
   if (snode->gpd) {
     BLO_read_struct(reader, bGPdata, &snode->gpd);
-    BKE_gpencil_blend_read_data(reader, snode->gpd);
+    BKE_annotations_blend_read_data(reader, snode->gpd);
   }
 
   BLO_read_struct_list(reader, bNodeTreePath, &snode->treepath);

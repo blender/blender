@@ -755,7 +755,6 @@ static const EnumPropertyItem eevee_resolution_scale_items[] = {
 #  include "BKE_editmesh.hh"
 #  include "BKE_freestyle.h"
 #  include "BKE_global.hh"
-#  include "BKE_gpencil_legacy.h"
 #  include "BKE_idprop.hh"
 #  include "BKE_image.hh"
 #  include "BKE_image_format.hh"

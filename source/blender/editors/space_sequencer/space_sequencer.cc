@@ -205,7 +205,7 @@ static void sequencer_free(SpaceLink *sl)
 
 #if 0
   if (sseq->gpd) {
-    BKE_gpencil_free_data(sseq->gpd);
+    BKE_annotations_free_data(sseq->gpd);
   }
 #endif
 }
@@ -1185,7 +1185,7 @@ static void sequencer_space_blend_read_data(BlendDataReader * /*reader*/, SpaceL
 #if 0
   if (sseq->gpd) {
     sseq->gpd = newdataadr(fd, sseq->gpd);
-    BKE_gpencil_blend_read_data(fd, sseq->gpd);
+    BKE_annotations_blend_read_data(fd, sseq->gpd);
   }
 #endif
 }

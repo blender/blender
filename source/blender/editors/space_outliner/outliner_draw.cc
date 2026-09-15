@@ -923,7 +923,7 @@ static void namebutton_fn(bContext *C, TreeStoreElem *tselem, const char *oldnam
           bGPDlayer *gpl = static_cast<bGPDlayer *>(te->directdata);
 
           /* always make layer active */
-          BKE_gpencil_layer_active_set(gpd, gpl);
+          BKE_annotations_layer_active_set(gpd, gpl);
 
           /* XXX: name needs translation stuff. */
           BLI_uniquename(

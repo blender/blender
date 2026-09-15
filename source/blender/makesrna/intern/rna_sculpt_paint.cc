@@ -109,7 +109,6 @@ const EnumPropertyItem rna_enum_symmetrize_direction_items[] = {
 #  include "BKE_collection.hh"
 #  include "BKE_colortools.hh"
 #  include "BKE_context.hh"
-#  include "BKE_gpencil_legacy.h"
 #  include "BKE_layer.hh"
 #  include "BKE_material.hh"
 #  include "BKE_object.hh"

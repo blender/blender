@@ -48,7 +48,7 @@
 #include "BKE_colortools.hh"
 #include "BKE_curveprofile.h"
 #include "BKE_customdata.hh"
-#include "BKE_gpencil_legacy.h"
+#include "BKE_grease_pencil.hh"
 #include "BKE_idprop.hh"
 #include "BKE_layer.hh"
 #include "BKE_lib_id.hh"
@@ -689,7 +689,7 @@ void BLO_update_defaults_startup_blend(Main *bmain, const char *app_template)
 
       /* Ensure Palette by default. */
       if (ts->gp_paint) {
-        BKE_gpencil_palette_ensure(bmain, &scene);
+        BKE_grease_pencil_palette_ensure(bmain, &scene);
       }
     }
 

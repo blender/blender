@@ -62,10 +62,10 @@
 namespace blender {
 
 /* -------------------------------------------------------------------- */
-/** \name Grease Pencil Data Block
+/** \name Annotations Data Block
  * \{ */
 
-static CLG_LogRef LOG = {"geom.gpencil"};
+static CLG_LogRef LOG = {"geom.annotations"};
 
 static void greasepencil_copy_data(Main * /*bmain*/,
                                    std::optional<Library *> /*owner_library*/,
@@ -89,7 +89,7 @@ static void greasepencil_copy_data(Main * /*bmain*/,
     /* make a copy of source layer and its data */
 
     /* TODO: here too could add unused flags... */
-    bGPDlayer *gpl_dst = BKE_gpencil_layer_duplicate(&gpl_src, true, true);
+    bGPDlayer *gpl_dst = BKE_annotations_layer_duplicate(&gpl_src, true, true);
 
     /* Apply local layer transform to all frames. Calc the active frame is not enough
      * because onion skin can use more frames. This is more slow but required here. */
@@ -125,18 +125,18 @@ static void greasepencil_free_data(ID *id)
 {
   /* Really not ideal, but for now will do... In theory custom behaviors like not freeing cache
    * should be handled through specific API, and not be part of the generic one. */
-  BKE_gpencil_free_data(id_cast<bGPdata *>(id), true);
+  BKE_annotations_free_data(id_cast<bGPdata *>(id), true);
 }
 
 static void greasepencil_foreach_id(ID *id, LibraryForeachIDData *data)
 {
-  bGPdata *gpencil = id_cast<bGPdata *>(id);
+  bGPdata *annotations = id_cast<bGPdata *>(id);
   /* materials */
-  for (int i = 0; i < gpencil->totcol; i++) {
-    BKE_LIB_FOREACHID_PROCESS_IDSUPER(data, gpencil->mat[i], IDWALK_CB_USER);
+  for (int i = 0; i < annotations->totcol; i++) {
+    BKE_LIB_FOREACHID_PROCESS_IDSUPER(data, annotations->mat[i], IDWALK_CB_USER);
   }
 
-  for (bGPDlayer &gplayer : gpencil->layers) {
+  for (bGPDlayer &gplayer : annotations->layers) {
     BKE_LIB_FOREACHID_PROCESS_IDSUPER(data, gplayer.parent, IDWALK_CB_NOP);
   }
 }
@@ -184,14 +184,14 @@ static void greasepencil_blend_write(BlendWriter *writer, ID *id, const void *id
   }
 }
 
-void BKE_gpencil_blend_read_data(BlendDataReader *reader, bGPdata *gpd)
+void BKE_annotations_blend_read_data(BlendDataReader *reader, bGPdata *gpd)
 {
   /* We must firstly have some grease-pencil data to link! */
   if (gpd == nullptr) {
     return;
   }
 
-  /* Ensure full object-mode for linked grease pencil. */
+  /* Ensure full object-mode for linked annotations. */
   if (ID_IS_LINKED(gpd)) {
     gpd->flag &= ~GP_DATA_STROKE_PAINTMODE;
     gpd->flag &= ~GP_DATA_STROKE_EDITMODE;
@@ -263,7 +263,7 @@ void BKE_gpencil_blend_read_data(BlendDataReader *reader, bGPdata *gpd)
 static void greasepencil_blend_read_data(BlendDataReader *reader, ID *id)
 {
   bGPdata *gpd = id_cast<bGPdata *>(id);
-  BKE_gpencil_blend_read_data(reader, gpd);
+  BKE_annotations_blend_read_data(reader, gpd);
 }
 
 IDTypeInfo IDType_ID_GD_LEGACY = {
@@ -301,7 +301,7 @@ IDTypeInfo IDType_ID_GD_LEGACY = {
 /* ************************************************** */
 /* Memory Management */
 
-void BKE_gpencil_free_point_weights(MDeformVert *dvert)
+void BKE_annotations_free_point_weights(MDeformVert *dvert)
 {
   if (dvert == nullptr) {
     return;
@@ -309,7 +309,7 @@ void BKE_gpencil_free_point_weights(MDeformVert *dvert)
   MEM_SAFE_DELETE(dvert->dw);
 }
 
-void BKE_gpencil_free_stroke_weights(bGPDstroke *gps)
+void BKE_annotations_free_stroke_weights(bGPDstroke *gps)
 {
   if (gps == nullptr) {
     return;
@@ -321,11 +321,11 @@ void BKE_gpencil_free_stroke_weights(bGPDstroke *gps)
 
   for (int i = 0; i < gps->totpoints; i++) {
     MDeformVert *dvert = &gps->dvert[i];
-    BKE_gpencil_free_point_weights(dvert);
+    BKE_annotations_free_point_weights(dvert);
   }
 }
 
-void BKE_gpencil_free_stroke_editcurve(bGPDstroke *gps)
+void BKE_annotations_free_stroke_editcurve(bGPDstroke *gps)
 {
   if (gps == nullptr) {
     return;
@@ -339,7 +339,7 @@ void BKE_gpencil_free_stroke_editcurve(bGPDstroke *gps)
   gps->editcurve = nullptr;
 }
 
-void BKE_gpencil_free_stroke(bGPDstroke *gps)
+void BKE_annotations_free_stroke(bGPDstroke *gps)
 {
   if (gps == nullptr) {
     return;
@@ -349,33 +349,33 @@ void BKE_gpencil_free_stroke(bGPDstroke *gps)
     MEM_delete(gps->points);
   }
   if (gps->dvert) {
-    BKE_gpencil_free_stroke_weights(gps);
+    BKE_annotations_free_stroke_weights(gps);
     MEM_delete(gps->dvert);
   }
   if (gps->triangles) {
     MEM_delete(gps->triangles);
   }
   if (gps->editcurve != nullptr) {
-    BKE_gpencil_free_stroke_editcurve(gps);
+    BKE_annotations_free_stroke_editcurve(gps);
   }
 
   MEM_delete(gps);
 }
 
-bool BKE_gpencil_free_strokes(bGPDframe *gpf)
+bool BKE_annotations_free_strokes(bGPDframe *gpf)
 {
   bool changed = (gpf->strokes.is_empty() == false);
 
   /* free strokes */
   for (bGPDstroke &gps : gpf->strokes.items_mutable()) {
-    BKE_gpencil_free_stroke(&gps);
+    BKE_annotations_free_stroke(&gps);
   }
   gpf->strokes.clear_no_delete();
 
   return changed;
 }
 
-void BKE_gpencil_free_frames(bGPDlayer *gpl)
+void BKE_annotations_free_frames(bGPDlayer *gpl)
 {
   bGPDframe *gpf_next;
 
@@ -389,13 +389,13 @@ void BKE_gpencil_free_frames(bGPDlayer *gpl)
     gpf_next = gpf->next;
 
     /* free strokes and their associated memory */
-    BKE_gpencil_free_strokes(gpf);
+    BKE_annotations_free_strokes(gpf);
     BLI_freelinkN(&gpl->frames, gpf);
   }
   gpl->actframe = nullptr;
 }
 
-void BKE_gpencil_free_layer_masks(bGPDlayer *gpl)
+void BKE_annotations_free_layer_masks(bGPDlayer *gpl)
 {
   /* Free masks. */
   bGPDlayer_Mask *mask_next = nullptr;
@@ -404,7 +404,7 @@ void BKE_gpencil_free_layer_masks(bGPDlayer *gpl)
     BLI_freelinkN(&gpl->mask_layers, mask);
   }
 }
-void BKE_gpencil_free_layers(ListBaseT<bGPDlayer> *list)
+void BKE_annotations_free_layers(ListBaseT<bGPDlayer> *list)
 {
   bGPDlayer *gpl_next;
 
@@ -418,16 +418,16 @@ void BKE_gpencil_free_layers(ListBaseT<bGPDlayer> *list)
     gpl_next = gpl->next;
 
     /* free layers and their data */
-    BKE_gpencil_free_frames(gpl);
+    BKE_annotations_free_frames(gpl);
 
     /* Free masks. */
-    BKE_gpencil_free_layer_masks(gpl);
+    BKE_annotations_free_layer_masks(gpl);
 
     BLI_freelinkN(list, gpl);
   }
 }
 
-void BKE_gpencil_free_legacy_palette_data(ListBaseT<bGPDpalette> *list)
+void BKE_annotations_free_legacy_palette_data(ListBaseT<bGPDpalette> *list)
 {
   for (bGPDpalette &palette : list->items_mutable()) {
     palette.colors.free_no_destruct();
@@ -436,11 +436,11 @@ void BKE_gpencil_free_legacy_palette_data(ListBaseT<bGPDpalette> *list)
   list->clear_no_delete();
 }
 
-void BKE_gpencil_free_data(bGPdata *gpd, bool /*free_all*/)
+void BKE_annotations_free_data(bGPdata *gpd, bool /*free_all*/)
 {
   /* free layers */
-  BKE_gpencil_free_layers(&gpd->layers);
-  BKE_gpencil_free_legacy_palette_data(&gpd->palettes);
+  BKE_annotations_free_layers(&gpd->layers);
+  BKE_annotations_free_legacy_palette_data(&gpd->palettes);
 
   /* materials */
   MEM_SAFE_DELETE(gpd->mat);
@@ -448,7 +448,7 @@ void BKE_gpencil_free_data(bGPdata *gpd, bool /*free_all*/)
   gpd->vertex_group_names.free_no_destruct();
 }
 
-void BKE_gpencil_tag(bGPdata *gpd)
+void BKE_annotations_tag(bGPdata *gpd)
 {
   DEG_id_tag_update(&gpd->id, ID_RECALC_TRANSFORM | ID_RECALC_GEOMETRY);
 }
@@ -456,7 +456,7 @@ void BKE_gpencil_tag(bGPdata *gpd)
 /* ************************************************** */
 /* Container Creation */
 
-bGPDframe *BKE_gpencil_frame_addnew(bGPDlayer *gpl, int cframe)
+bGPDframe *BKE_annotations_frame_addnew(bGPDlayer *gpl, int cframe)
 {
   bGPDframe *gpf = nullptr, *gf = nullptr;
   short state = 0;
@@ -509,7 +509,7 @@ bGPDframe *BKE_gpencil_frame_addnew(bGPDlayer *gpl, int cframe)
   return gpf;
 }
 
-bGPDframe *BKE_gpencil_frame_addcopy(bGPDlayer *gpl, int cframe)
+bGPDframe *BKE_annotations_frame_addcopy(bGPDlayer *gpl, int cframe)
 {
   bGPDframe *new_frame;
   bool found = false;
@@ -521,11 +521,11 @@ bGPDframe *BKE_gpencil_frame_addcopy(bGPDlayer *gpl, int cframe)
   }
   if (gpl->actframe == nullptr) {
     /* no active frame, so just create a new one from scratch */
-    return BKE_gpencil_frame_addnew(gpl, cframe);
+    return BKE_annotations_frame_addnew(gpl, cframe);
   }
 
   /* Create a copy of the frame */
-  new_frame = BKE_gpencil_frame_duplicate(gpl->actframe, true);
+  new_frame = BKE_annotations_frame_duplicate(gpl->actframe, true);
 
   /* Find frame to insert it before */
   for (bGPDframe &gpf : gpl->frames) {
@@ -540,7 +540,7 @@ bGPDframe *BKE_gpencil_frame_addcopy(bGPDlayer *gpl, int cframe)
       /* This only happens when we're editing with frame-lock on.
        * - Delete the new frame and don't do anything else here.
        */
-      BKE_gpencil_free_strokes(new_frame);
+      BKE_annotations_free_strokes(new_frame);
       MEM_delete(new_frame);
       new_frame = nullptr;
 
@@ -563,10 +563,10 @@ bGPDframe *BKE_gpencil_frame_addcopy(bGPDlayer *gpl, int cframe)
   return new_frame;
 }
 
-bGPDlayer *BKE_gpencil_layer_addnew(bGPdata *gpd,
-                                    const char *name,
-                                    const bool setactive,
-                                    const bool add_to_header)
+bGPDlayer *BKE_annotations_layer_addnew(bGPdata *gpd,
+                                        const char *name,
+                                        const bool setactive,
+                                        const bool add_to_header)
 {
   bGPDlayer *gpl = nullptr;
   bGPDlayer *gpl_active = nullptr;
@@ -579,7 +579,7 @@ bGPDlayer *BKE_gpencil_layer_addnew(bGPdata *gpd,
   /* allocate memory for frame and add to end of list */
   gpl = MEM_new<bGPDlayer>("bGPDlayer");
 
-  gpl_active = BKE_gpencil_layer_active_get(gpd);
+  gpl_active = BKE_annotations_layer_active_get(gpd);
 
   /* Add to data-block. */
   if (add_to_header) {
@@ -640,14 +640,14 @@ bGPDlayer *BKE_gpencil_layer_addnew(bGPdata *gpd,
 
   /* make this one the active one */
   if (setactive) {
-    BKE_gpencil_layer_active_set(gpd, gpl);
+    BKE_annotations_layer_active_set(gpd, gpl);
   }
 
   /* return layer */
   return gpl;
 }
 
-bGPdata *BKE_gpencil_data_addnew(Main *bmain, const char name[])
+bGPdata *BKE_annotations_data_addnew(Main *bmain, const char name[])
 {
   bGPdata *gpd;
 
@@ -741,7 +741,7 @@ bGPDstroke *BKE_gpencil_stroke_duplicate(bGPDstroke *gps_src,
   return gps_dst;
 }
 
-bGPDframe *BKE_gpencil_frame_duplicate(const bGPDframe *gpf_src, const bool dup_strokes)
+bGPDframe *BKE_annotations_frame_duplicate(const bGPDframe *gpf_src, const bool dup_strokes)
 {
   bGPDstroke *gps_dst = nullptr;
   bGPDframe *gpf_dst;
@@ -769,9 +769,9 @@ bGPDframe *BKE_gpencil_frame_duplicate(const bGPDframe *gpf_src, const bool dup_
   return gpf_dst;
 }
 
-bGPDlayer *BKE_gpencil_layer_duplicate(const bGPDlayer *gpl_src,
-                                       const bool dup_frames,
-                                       const bool dup_strokes)
+bGPDlayer *BKE_annotations_layer_duplicate(const bGPDlayer *gpl_src,
+                                           const bool dup_frames,
+                                           const bool dup_strokes)
 {
   bGPDframe *gpf_dst;
   bGPDlayer *gpl_dst;
@@ -790,7 +790,7 @@ bGPDlayer *BKE_gpencil_layer_duplicate(const bGPDlayer *gpl_src,
   if (dup_frames) {
     for (bGPDframe &gpf_src : gpl_src->frames) {
       /* make a copy of source frame */
-      gpf_dst = BKE_gpencil_frame_duplicate(&gpf_src, dup_strokes);
+      gpf_dst = BKE_annotations_frame_duplicate(&gpf_src, dup_strokes);
       BLI_addtail(&gpl_dst->frames, gpf_dst);
 
       /* if source frame was the current layer's 'active' frame, reassign that too */
@@ -804,7 +804,7 @@ bGPDlayer *BKE_gpencil_layer_duplicate(const bGPDlayer *gpl_src,
   return gpl_dst;
 }
 
-bGPdata *BKE_gpencil_data_duplicate(Main *bmain, const bGPdata *gpd_src, bool internal_copy)
+bGPdata *BKE_annotations_data_duplicate(Main *bmain, const bGPdata *gpd_src, bool internal_copy)
 {
   bGPdata *gpd_dst;
 
@@ -836,7 +836,7 @@ bGPdata *BKE_gpencil_data_duplicate(Main *bmain, const bGPdata *gpd_src, bool in
 /* ************************************************** */
 /* GP Layer API */
 
-bool BKE_gpencil_layer_is_editable(const bGPDlayer *gpl)
+bool BKE_annotations_layer_is_editable(const bGPDlayer *gpl)
 {
   /* Sanity check */
   if (gpl == nullptr) {
@@ -852,7 +852,7 @@ bool BKE_gpencil_layer_is_editable(const bGPDlayer *gpl)
   return false;
 }
 
-bGPDframe *BKE_gpencil_layer_frame_find(bGPDlayer *gpl, int cframe)
+bGPDframe *BKE_annotations_layer_frame_find(bGPDlayer *gpl, int cframe)
 {
   /* Search in reverse order, since this is often used for playback/adding,
    * where it's less likely that we're interested in the earlier frames
@@ -866,7 +866,7 @@ bGPDframe *BKE_gpencil_layer_frame_find(bGPDlayer *gpl, int cframe)
   return nullptr;
 }
 
-bGPDframe *BKE_gpencil_layer_frame_get(bGPDlayer *gpl, int cframe, eGP_GetFrame_Mode addnew)
+bGPDframe *BKE_annotations_layer_frame_get(bGPDlayer *gpl, int cframe, eGP_GetFrame_Mode addnew)
 {
   bGPDframe *gpf = nullptr;
   bool found = false;
@@ -912,13 +912,13 @@ bGPDframe *BKE_gpencil_layer_frame_get(bGPDlayer *gpl, int cframe, eGP_GetFrame_
           gpl->actframe = gpf;
         }
         else if (addnew == GP_GETFRAME_ADD_COPY) {
-          /* The #BKE_gpencil_frame_addcopy function copies the active frame of gpl,
+          /* The #BKE_annotations_frame_addcopy function copies the active frame of gpl,
            * so we need to set the active frame before copying. */
           gpl->actframe = gpf;
-          gpl->actframe = BKE_gpencil_frame_addcopy(gpl, cframe);
+          gpl->actframe = BKE_annotations_frame_addcopy(gpl, cframe);
         }
         else {
-          gpl->actframe = BKE_gpencil_frame_addnew(gpl, cframe);
+          gpl->actframe = BKE_annotations_frame_addnew(gpl, cframe);
         }
       }
       else if (found) {
@@ -942,13 +942,13 @@ bGPDframe *BKE_gpencil_layer_frame_get(bGPDlayer *gpl, int cframe, eGP_GetFrame_
           gpl->actframe = gpf;
         }
         else if (addnew == GP_GETFRAME_ADD_COPY) {
-          /* The #BKE_gpencil_frame_addcopy function copies the active frame of gpl;
+          /* The #BKE_annotations_frame_addcopy function copies the active frame of gpl;
            * so we need to set the active frame before copying. */
           gpl->actframe = gpf;
-          gpl->actframe = BKE_gpencil_frame_addcopy(gpl, cframe);
+          gpl->actframe = BKE_annotations_frame_addcopy(gpl, cframe);
         }
         else {
-          gpl->actframe = BKE_gpencil_frame_addnew(gpl, cframe);
+          gpl->actframe = BKE_annotations_frame_addnew(gpl, cframe);
         }
       }
       else if (found) {
@@ -989,7 +989,7 @@ bGPDframe *BKE_gpencil_layer_frame_get(bGPDlayer *gpl, int cframe, eGP_GetFrame_
         gpl->actframe = gpf;
       }
       else {
-        gpl->actframe = BKE_gpencil_frame_addnew(gpl, cframe);
+        gpl->actframe = BKE_annotations_frame_addnew(gpl, cframe);
       }
     }
     else if (found) {
@@ -1010,7 +1010,7 @@ bGPDframe *BKE_gpencil_layer_frame_get(bGPDlayer *gpl, int cframe, eGP_GetFrame_
   else {
     /* currently no frames (add if allowed to) */
     if (addnew) {
-      gpl->actframe = BKE_gpencil_frame_addnew(gpl, cframe);
+      gpl->actframe = BKE_annotations_frame_addnew(gpl, cframe);
     }
     else {
       /* don't do anything... this may be when no frames yet! */
@@ -1029,7 +1029,7 @@ bGPDframe *BKE_gpencil_layer_frame_get(bGPDlayer *gpl, int cframe, eGP_GetFrame_
   return gpl->actframe;
 }
 
-bool BKE_gpencil_layer_frame_delete(bGPDlayer *gpl, bGPDframe *gpf)
+bool BKE_annotations_layer_frame_delete(bGPDlayer *gpl, bGPDframe *gpf)
 {
   bool changed = false;
 
@@ -1046,13 +1046,13 @@ bool BKE_gpencil_layer_frame_delete(bGPDlayer *gpl, bGPDframe *gpf)
   }
 
   /* free the frame and its data */
-  changed = BKE_gpencil_free_strokes(gpf);
+  changed = BKE_annotations_free_strokes(gpf);
   BLI_freelinkN(&gpl->frames, gpf);
 
   return changed;
 }
 
-bGPDlayer *BKE_gpencil_layer_named_get(bGPdata *gpd, const char *name)
+bGPDlayer *BKE_annotations_layer_named_get(bGPdata *gpd, const char *name)
 {
   if (name[0] == '\0') {
     return nullptr;
@@ -1060,7 +1060,7 @@ bGPDlayer *BKE_gpencil_layer_named_get(bGPdata *gpd, const char *name)
   return static_cast<bGPDlayer *>(BLI_findstring(&gpd->layers, name, offsetof(bGPDlayer, info)));
 }
 
-static int gpencil_cb_cmp_frame(void *thunk, const void *a, const void *b)
+static int annotations_cb_cmp_frame(void *thunk, const void *a, const void *b)
 {
   const bGPDframe *frame_a = static_cast<const bGPDframe *>(a);
   const bGPDframe *frame_b = static_cast<const bGPDframe *>(b);
@@ -1081,12 +1081,12 @@ static int gpencil_cb_cmp_frame(void *thunk, const void *a, const void *b)
   return 0;
 }
 
-void BKE_gpencil_layer_frames_sort(bGPDlayer *gpl, bool *r_has_duplicate_frames)
+void BKE_annotations_layer_frames_sort(bGPDlayer *gpl, bool *r_has_duplicate_frames)
 {
-  BLI_listbase_sort_r(&gpl->frames, gpencil_cb_cmp_frame, r_has_duplicate_frames);
+  BLI_listbase_sort_r(&gpl->frames, annotations_cb_cmp_frame, r_has_duplicate_frames);
 }
 
-bGPDlayer *BKE_gpencil_layer_active_get(bGPdata *gpd)
+bGPDlayer *BKE_annotations_layer_active_get(bGPdata *gpd)
 {
   /* error checking */
   if (ELEM(nullptr, gpd, gpd->layers.first())) {
@@ -1104,7 +1104,7 @@ bGPDlayer *BKE_gpencil_layer_active_get(bGPdata *gpd)
   return nullptr;
 }
 
-void BKE_gpencil_layer_active_set(bGPdata *gpd, bGPDlayer *active)
+void BKE_annotations_layer_active_set(bGPdata *gpd, bGPDlayer *active)
 {
   /* error checking */
   if (ELEM(nullptr, gpd, gpd->layers.first(), active)) {
@@ -1126,7 +1126,7 @@ void BKE_gpencil_layer_active_set(bGPdata *gpd, bGPDlayer *active)
   }
 }
 
-void BKE_gpencil_layer_delete(bGPdata *gpd, bGPDlayer *gpl)
+void BKE_annotations_layer_delete(bGPdata *gpd, bGPDlayer *gpl)
 {
   /* error checking */
   if (ELEM(nullptr, gpd, gpl)) {
@@ -1134,82 +1134,15 @@ void BKE_gpencil_layer_delete(bGPdata *gpd, bGPDlayer *gpl)
   }
 
   /* free layer */
-  BKE_gpencil_free_frames(gpl);
+  BKE_annotations_free_frames(gpl);
 
   /* Free Masks. */
-  BKE_gpencil_free_layer_masks(gpl);
+  BKE_annotations_free_layer_masks(gpl);
 
   /* free icon providing preview of icon color */
   BKE_icon_delete(gpl->runtime.icon_id);
 
   BLI_freelinkN(&gpd->layers, gpl);
-}
-
-void BKE_gpencil_brush_material_set(Brush *brush, Material *ma)
-{
-  BLI_assert(brush);
-  BLI_assert(brush->gpencil_settings);
-  if (brush->gpencil_settings->material != ma) {
-    if (brush->gpencil_settings->material) {
-      id_us_min(&brush->gpencil_settings->material->id);
-    }
-    if (ma) {
-      id_us_plus(&ma->id);
-    }
-    brush->gpencil_settings->material = ma;
-    BKE_brush_tag_unsaved_changes(brush);
-  }
-}
-
-void BKE_gpencil_palette_ensure(Main *bmain, Scene *scene)
-{
-  const char *hexcol[] = {
-      "FFFFFF", "F2F2F2", "E6E6E6", "D9D9D9", "CCCCCC", "BFBFBF", "B2B2B2", "A6A6A6", "999999",
-      "8C8C8C", "808080", "737373", "666666", "595959", "4C4C4C", "404040", "333333", "262626",
-      "1A1A1A", "000000", "F2FC24", "FFEA00", "FEA711", "FE8B68", "FB3B02", "FE3521", "D00000",
-      "A81F3D", "780422", "2B0000", "F1E2C5", "FEE4B3", "FEDABB", "FEC28E", "D88F57", "BD6340",
-      "A2402B", "63352D", "6B2833", "34120C", "E7CB8F", "D1B38B", "C1B17F", "D7980B", "FFB100",
-      "FE8B00", "FF6A00", "B74100", "5F3E1D", "3B2300", "FECADA", "FE65CB", "FE1392", "DD3062",
-      "C04A6D", "891688", "4D2689", "441521", "2C1139", "241422", "FFFF7D", "FFFF00", "FF7F00",
-      "FF7D7D", "FF7DFF", "FF00FE", "FF007F", "FF0000", "7F0000", "0A0A00", "F6FDFF", "E9F7FF",
-      "CFE6FE", "AAC7FE", "77B3FE", "1E74FD", "0046AA", "2F4476", "003052", "0E0E25", "EEF5F0",
-      "D6E5DE", "ACD8B9", "6CADC6", "42A9AF", "007F7F", "49675C", "2E4E4E", "1D3239", "0F1C21",
-      "D8FFF4", "B8F4F5", "AECCB5", "76C578", "358757", "409B68", "468768", "1F512B", "2A3C37",
-      "122E1D", "EFFFC9", "E6F385", "BCF51C", "D4DC18", "82D322", "5C7F00", "59932B", "297F00",
-      "004320", "1C3322", "00FF7F", "00FF00", "7DFF7D", "7DFFFF", "00FFFF", "7D7DFF", "7F00FF",
-      "0000FF", "3F007F", "00007F"};
-
-  ToolSettings *ts = scene->toolsettings;
-  if (ts->gp_paint->paint.palette != nullptr) {
-    return;
-  }
-
-  /* Try to find the default palette. */
-  const char *palette_id = "Palette";
-  Palette *palette = static_cast<Palette *>(
-      BLI_findstring(&bmain->palettes, palette_id, offsetof(ID, name) + 2));
-
-  if (palette == nullptr) {
-    /* Fall back to the first palette. */
-    palette = bmain->palettes.first();
-  }
-
-  if (palette == nullptr) {
-    /* Fall back to creating a palette. */
-    palette = BKE_palette_add(bmain, palette_id);
-    id_us_min(&palette->id);
-
-    /* Create Colors. */
-    for (int i = 0; i < ARRAY_SIZE(hexcol); i++) {
-      PaletteColor *palcol = BKE_palette_color_add(palette);
-      hex_to_rgb(hexcol[i], palcol->color, palcol->color + 1, palcol->color + 2);
-      IMB_colormanagement_srgb_to_scene_linear_v3(palcol->color, palcol->color);
-    }
-  }
-
-  BLI_assert(palette != nullptr);
-  BKE_paint_palette_set(&ts->gp_paint->paint, palette);
-  BKE_paint_palette_set(&ts->gp_vertexpaint->paint, palette);
 }
 
 /** \} */

@@ -1061,7 +1061,7 @@ static void annotation_free_stroke(bGPDframe *gpf, bGPDstroke *gps)
   }
 
   if (gps->dvert) {
-    BKE_gpencil_free_stroke_weights(gps);
+    BKE_annotations_free_stroke_weights(gps);
     MEM_delete(gps->dvert);
   }
 
@@ -1389,7 +1389,7 @@ static bool annotation_session_initdata(bContext *C, tGPsdata *p)
 
   /* if no existing GPencil block exists, add one */
   if (*gpd_ptr == nullptr) {
-    bGPdata *gpd = BKE_gpencil_data_addnew(bmain, "Annotations");
+    bGPdata *gpd = BKE_annotations_data_addnew(bmain, "Annotations");
     *gpd_ptr = gpd;
 
     /* mark datablock as being used for annotations */
@@ -1514,11 +1514,11 @@ static void annotation_paint_initstroke(tGPsdata *p,
   BKE_callback_exec_id_depsgraph(p->bmain, &p->gpd->id, p->depsgraph, BKE_CB_EVT_ANNOTATION_PRE);
 
   /* get active layer (or add a new one if non-existent) */
-  p->gpl = BKE_gpencil_layer_active_get(p->gpd);
+  p->gpl = BKE_annotations_layer_active_get(p->gpd);
   if (p->gpl == nullptr) {
     /* tag for annotations */
     p->gpd->flag |= GP_DATA_ANNOTATIONS;
-    p->gpl = BKE_gpencil_layer_addnew(p->gpd, DATA_("Note"), true, false);
+    p->gpl = BKE_annotations_layer_addnew(p->gpd, DATA_("Note"), true, false);
 
     if (p->custom_color[3]) {
       copy_v3_v3(p->gpl->color, p->custom_color);
@@ -1539,7 +1539,7 @@ static void annotation_paint_initstroke(tGPsdata *p,
      */
     bool has_layer_to_erase = false;
 
-    if (BKE_gpencil_layer_is_editable(p->gpl)) {
+    if (BKE_annotations_layer_is_editable(p->gpl)) {
       /* Ensure that there's stuff to erase here (not including selection mask below)... */
       if (p->gpl->actframe && p->gpl->actframe->strokes.first_) {
         has_layer_to_erase = true;
@@ -1566,7 +1566,8 @@ static void annotation_paint_initstroke(tGPsdata *p,
       add_frame_mode = GP_GETFRAME_ADD_NEW;
     }
 
-    p->gpf = BKE_gpencil_layer_frame_get(p->gpl, scene->r.cfra, eGP_GetFrame_Mode(add_frame_mode));
+    p->gpf = BKE_annotations_layer_frame_get(
+        p->gpl, scene->r.cfra, eGP_GetFrame_Mode(add_frame_mode));
 
     if (p->gpf == nullptr) {
       p->status = GP_STATUS_ERROR;

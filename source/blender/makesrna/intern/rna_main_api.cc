@@ -807,7 +807,7 @@ static bGPdata *rna_Main_annotations_new(Main *bmain, const char *name)
   char safe_name[MAX_ID_NAME - 2];
   rna_idname_validate(name, safe_name);
 
-  bGPdata *gpd = BKE_gpencil_data_addnew(bmain, safe_name);
+  bGPdata *gpd = BKE_annotations_data_addnew(bmain, safe_name);
   id_us_min(&gpd->id);
 
   WM_main_add_notifier(NC_ID | NA_ADDED, nullptr);

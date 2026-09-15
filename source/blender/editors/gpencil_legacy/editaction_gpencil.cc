@@ -161,7 +161,7 @@ void ED_gpencil_select_frame(bGPDlayer *gpl, int selx, short select_mode)
     return;
   }
 
-  gpf = BKE_gpencil_layer_frame_find(gpl, selx);
+  gpf = BKE_annotations_layer_frame_find(gpl, selx);
 
   if (gpf) {
     gpencil_frame_select(gpf, select_mode);
@@ -221,8 +221,8 @@ void ED_gpencil_set_active_channel(bGPdata *gpd, bGPDlayer *gpl)
   gpl->flag |= GP_LAYER_SELECT;
 
   /* Update other layer status. */
-  if (BKE_gpencil_layer_active_get(gpd) != gpl) {
-    BKE_gpencil_layer_active_set(gpd, gpl);
+  if (BKE_annotations_layer_active_get(gpd) != gpl) {
+    BKE_annotations_layer_active_set(gpd, gpl);
     WM_main_add_notifier(NC_GPENCIL | ND_DATA | NA_EDITED, nullptr);
   }
 }
@@ -242,7 +242,7 @@ bool ED_gpencil_layer_frames_delete(bGPDlayer *gpl)
   /* check for frames to delete */
   for (bGPDframe &gpf : gpl->frames.items_mutable()) {
     if (gpf.flag & GP_FRAME_SELECT) {
-      BKE_gpencil_layer_frame_delete(gpl, &gpf);
+      BKE_annotations_layer_frame_delete(gpl, &gpf);
       changed = true;
     }
   }
@@ -265,7 +265,7 @@ void ED_gpencil_layer_frames_duplicate(bGPDlayer *gpl)
       bGPDframe *gpfd;
 
       /* duplicate frame, and deselect self */
-      gpfd = BKE_gpencil_frame_duplicate(&gpf, true);
+      gpfd = BKE_annotations_frame_duplicate(&gpf, true);
       gpf.flag &= ~GP_FRAME_SELECT;
 
       BLI_insertlinkafter(&gpl->frames, &gpf, gpfd);
@@ -306,7 +306,7 @@ static int gpencil_anim_copy_cfra = 0;
 
 void ED_gpencil_anim_copybuf_free()
 {
-  BKE_gpencil_free_layers(&gpencil_anim_copybuf);
+  BKE_annotations_free_layers(&gpencil_anim_copybuf);
   gpencil_anim_copybuf.clear_no_delete();
 
   gpencil_anim_copy_firstframe = 999999999;
@@ -344,7 +344,7 @@ bool ED_gpencil_anim_copybuf_copy(bAnimContext *ac)
       /* if frame is selected, make duplicate it and its strokes */
       if (gpf.flag & GP_FRAME_SELECT) {
         /* make a copy of this frame */
-        bGPDframe *new_frame = BKE_gpencil_frame_duplicate(&gpf, true);
+        bGPDframe *new_frame = BKE_annotations_frame_duplicate(&gpf, true);
         BLI_addtail(&copied_frames, new_frame);
 
         /* extend extents for keyframes encountered */
@@ -452,7 +452,7 @@ bool ED_gpencil_anim_copybuf_paste(bAnimContext *ac, const short offset_mode)
       gpfs.framenum += offset;
 
       /* get frame to copy data into (if no frame returned, then just ignore) */
-      gpf = BKE_gpencil_layer_frame_get(gpld, gpfs.framenum, GP_GETFRAME_ADD_NEW);
+      gpf = BKE_annotations_layer_frame_get(gpld, gpfs.framenum, GP_GETFRAME_ADD_NEW);
       if (gpf) {
         /* Ensure to use same keyframe type. */
         gpf->key_type = gpfs.key_type;
@@ -474,7 +474,7 @@ bool ED_gpencil_anim_copybuf_paste(bAnimContext *ac, const short offset_mode)
 
         /* if no strokes (i.e. new frame) added, free gpf */
         if (gpf->strokes.is_empty()) {
-          BKE_gpencil_layer_frame_delete(gpld, gpf);
+          BKE_annotations_layer_frame_delete(gpld, gpf);
         }
       }
 
