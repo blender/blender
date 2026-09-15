@@ -574,7 +574,7 @@ ccl_device bool attribute_bump_map_normal(KernelGlobals kg,
         kg, Ng, sd->object, sd->object_flag, sd->prim, sd->u, sd->v, sd->du, sd->dv, f.dx, f.dy);
   }
   else {
-    assert(sd->type & PRIMITIVE_MOTION_TRIANGLE);
+    kernel_assert(sd->type & PRIMITIVE_MOTION_TRIANGLE);
     f.val = motion_triangle_smooth_normal(
         kg, Ng, sd->object, sd->prim, sd->time, sd->u, sd->v, sd->du, sd->dv, f.dx, f.dy);
   }

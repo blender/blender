@@ -396,7 +396,7 @@ ccl_device float4 kernel_image_interp(KernelGlobals kg,
     case IMAGE_DATA_TYPE_FLOAT4:
       return ImageInterpolator<float4>::interp(*info, xy.x, xy.y);
     default:
-      assert(0);
+      kernel_assert(0);
       return missing_rgba;
   }
 }

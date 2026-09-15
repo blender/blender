@@ -238,13 +238,13 @@ ccl_device_forceinline void integrator_path_terminate(KernelGlobals kg,
 ccl_device_forceinline void integrator_path_cache_miss(IntegratorState /*state*/,
                                                        const DeviceKernel /*current_kernel*/)
 {
-  assert(!"CPU kernel does not use texture cache miss mechanism");
+  kernel_assert(!"CPU kernel does not use texture cache miss mechanism");
 }
 
 ccl_device_forceinline void integrator_path_cache_miss_sorted(
     IntegratorState /*state*/, const DeviceKernel /*current_kernel*/)
 {
-  assert(!"CPU kernel does not use texture cache miss mechanism");
+  kernel_assert(!"CPU kernel does not use texture cache miss mechanism");
 }
 
 ccl_device_forceinline void integrator_path_next_sorted(KernelGlobals /*kg*/,
@@ -294,7 +294,7 @@ ccl_device_forceinline void integrator_shadow_path_terminate(IntegratorShadowSta
 ccl_device_forceinline void integrator_shadow_path_cache_miss(
     IntegratorShadowState /*state*/, const DeviceKernel /*current_kernel*/)
 {
-  assert(!"CPU kernel does not use texture cache miss mechanism");
+  kernel_assert(!"CPU kernel does not use texture cache miss mechanism");
 }
 
 #endif

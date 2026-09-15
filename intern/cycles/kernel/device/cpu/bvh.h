@@ -201,7 +201,7 @@ ccl_device_forceinline void kernel_embree_filter_intersection_func_impl(
     const RTCFilterFunctionNArguments *args)
 {
   /* Current implementation in Cycles assumes only single-ray intersection queries. */
-  assert(args->N == 1);
+  kernel_assert(args->N == 1);
 
   RTCHit *hit = (RTCHit *)args->hit;
   CCLFirstHitContext *ctx = (CCLFirstHitContext *)(args->context);
@@ -234,7 +234,7 @@ ccl_device_forceinline void kernel_embree_filter_occluded_shadow_all_func_impl(
     const RTCFilterFunctionNArguments *args)
 {
   /* Current implementation in Cycles assumes only single-ray intersection queries. */
-  assert(args->N == 1);
+  kernel_assert(args->N == 1);
 
   const RTCRay *ray = (RTCRay *)args->ray;
   const RTCHit *hit = (RTCHit *)args->hit;
@@ -264,7 +264,7 @@ ccl_device_forceinline void kernel_embree_filter_occluded_local_func_impl(
     const RTCFilterFunctionNArguments *args)
 {
   /* Current implementation in Cycles assumes only single-ray intersection queries. */
-  assert(args->N == 1);
+  kernel_assert(args->N == 1);
 
   const RTCRay *ray = (RTCRay *)args->ray;
   RTCHit *hit = (RTCHit *)args->hit;
@@ -357,7 +357,7 @@ ccl_device_forceinline void kernel_embree_filter_occluded_volume_all_func_impl(
     const RTCFilterFunctionNArguments *args)
 {
   /* Current implementation in Cycles assumes only single-ray intersection queries. */
-  assert(args->N == 1);
+  kernel_assert(args->N == 1);
 
   const RTCRay *ray = (RTCRay *)args->ray;
   RTCHit *hit = (RTCHit *)args->hit;
