@@ -82,6 +82,9 @@ CCL_NAMESPACE_BEGIN
 /* Light tree. */
 #define KERNEL_FEATURE_LIGHT_TREE (1ULL << 31ULL)
 
+/* Gaussian splats. */
+#define KERNEL_FEATURE_GSPLATS (1ULL << 32ULL)
+
 /* Shader node feature mask, to specialize shader evaluation for kernels. */
 
 #define KERNEL_FEATURE_NODE_MASK_SURFACE_LIGHT \
@@ -131,6 +134,7 @@ CCL_NAMESPACE_BEGIN
 #define __SHADER_RAYTRACE__
 #define __SHADOW_CATCHER__
 #define __SHADOW_LINKING__
+#define __GSPLATS__
 #define __SUBSURFACE__
 #define __TRANSPARENT_SHADOWS__
 #define __VOLUME__
@@ -207,6 +211,9 @@ CCL_NAMESPACE_BEGIN
 #  endif
 #  if !(__KERNEL_FEATURES__ & KERNEL_FEATURE_SHADOW_LINKING)
 #    undef __SHADOW_LINKING__
+#  endif
+#  if !(__KERNEL_FEATURES__ & KERNEL_FEATURE_GSPLATS)
+#    undef __GSPLATS__
 #  endif
 #endif
 

@@ -532,6 +532,16 @@ const char *Attribute::standard_name(AttributeStandard std)
       return "random_per_island";
     case ATTR_STD_SHADOW_TRANSPARENCY:
       return "shadow_transparency";
+    case ATTR_STD_GSPLAT_RADIANCE_BASE:
+      return "radiance:base";
+    case ATTR_STD_GSPLAT_RADIANCE_SPHERICAL_HARMONICS_REST:
+      return "radiance:sh";
+    case ATTR_STD_GSPLAT_RADIANCE:
+      return "radiance";
+    case ATTR_STD_GSPLAT_SCALE:
+      return "scale";
+    case ATTR_STD_GSPLAT_ROTATION:
+      return "rotation";
     case ATTR_STD_NOT_FOUND:
     case ATTR_STD_NONE:
     case ATTR_STD_NUM:
@@ -827,6 +837,26 @@ static bool standard_type_element(const Geometry *geometry,
       case ATTR_STD_GENERATED_TRANSFORM:
         type = TypeMatrix;
         element = ATTR_ELEMENT_MESH;
+        return true;
+      case ATTR_STD_GSPLAT_RADIANCE_BASE:
+        type = TypeFloat4;
+        element = ATTR_ELEMENT_VERTEX;
+        return true;
+      case ATTR_STD_GSPLAT_RADIANCE_SPHERICAL_HARMONICS_REST:
+        type = TypePackedSphericalHarmonicsRest;
+        element = ATTR_ELEMENT_VERTEX;
+        return true;
+      case ATTR_STD_GSPLAT_RADIANCE:
+        type = TypeRGBA;
+        element = ATTR_ELEMENT_VERTEX;
+        return true;
+      case ATTR_STD_GSPLAT_SCALE:
+        type = TypeVector;
+        element = ATTR_ELEMENT_VERTEX;
+        return true;
+      case ATTR_STD_GSPLAT_ROTATION:
+        type = TypeQuaternion;
+        element = ATTR_ELEMENT_VERTEX;
         return true;
       default:
         return false;

@@ -7,6 +7,7 @@
 #include "kernel/globals.h"
 
 #include "kernel/geom/attribute.h"
+#include "kernel/geom/gsplat.h"
 #include "kernel/geom/object.h"
 #include "kernel/geom/primitive.h"
 #include "kernel/geom/volume.h"
@@ -74,6 +75,16 @@ svm_node_attr_surface_eval(KernelGlobals kg,
                            const AttributeDescriptor desc)
 {
   using FloatType = dual_scalar_t<Float3Type>;
+
+#if defined(__GSPLATS__)
+  if (sd->type & PRIMITIVE_GSPLAT && node.attr == ATTR_STD_GSPLAT_RADIANCE) {
+    if (type == NODE_ATTR_OUTPUT_FLOAT_ALPHA) {
+      return make_float3(FloatType(1.0f));
+    }
+    const float3 radiance = gsplat_radiance(kg, *sd);
+    return Float3Type(radiance);
+  }
+#endif
 
   /* Spherical harmonics attribute can not be currently accessed.
    * It is stored as PackedSphericalHarmonics that does not have a float or float3 representation.

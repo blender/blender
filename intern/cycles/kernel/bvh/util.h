@@ -137,7 +137,7 @@ ccl_device_forceinline int intersection_get_shader_flags(KernelGlobals kg,
     shader = kernel_data_fetch(tri_shader, prim);
   }
 #ifdef __POINTCLOUD__
-  else if (type & PRIMITIVE_POINT) {
+  else if (type & PRIMITIVE_ANY_POINT) {
     shader = kernel_data_fetch(points_shader, prim);
   }
 #endif
@@ -160,7 +160,7 @@ ccl_device_forceinline int intersection_get_shader_from_isect_prim(KernelGlobals
     shader = kernel_data_fetch(tri_shader, prim);
   }
 #ifdef __POINTCLOUD__
-  else if (isect_type & PRIMITIVE_POINT) {
+  else if (isect_type & PRIMITIVE_ANY_POINT) {
     shader = kernel_data_fetch(points_shader, prim);
   }
 #endif

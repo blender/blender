@@ -255,7 +255,12 @@ void BVHEmbree::add_object(Object *ob, const int i)
   else if (geom->is_pointcloud()) {
     PointCloud *pointcloud = static_cast<PointCloud *>(geom);
     if (pointcloud->num_points() > 0) {
-      add_points(ob, pointcloud, i);
+      if (pointcloud->primitive_type() & PRIMITIVE_POINT) {
+        add_points(ob, pointcloud, i);
+      }
+      else {
+        add_gsplats(ob, pointcloud, i);
+      }
     }
   }
 }
@@ -610,6 +615,8 @@ void BVHEmbree::set_point_vertex_buffer(RTCGeometry geom_id,
 
 void BVHEmbree::add_points(const Object *ob, const PointCloud *pointcloud, const int i)
 {
+  assert(pointcloud->primitive_type() & PRIMITIVE_POINT);
+
   size_t num_motion_steps = 1;
   if (pointcloud->has_motion_blur()) {
     const Attribute *attr_P = pointcloud->attributes.find(ATTR_STD_POSITION);
@@ -629,6 +636,63 @@ void BVHEmbree::add_points(const Object *ob, const PointCloud *pointcloud, const
 
   rtcSetGeometryMask(geom_id, ob->visibility_for_tracing());
   rtcSetGeometryEnableFilterFunctionFromArguments(geom_id, true);
+
+  rtcCommitGeometry(geom_id);
+  rtcAttachGeometryByID(scene, geom_id, i * 2);
+  rtcReleaseGeometry(geom_id);
+}
+
+static void gsplat_bounds_func(const RTCBoundsFunctionArguments *args)
+{
+  const auto *pointcloud = reinterpret_cast<const PointCloud *>(args->geometryUserPtr);
+
+  /* TODO(sergey): Somehow avoid attribute lookup on every gsplat. */
+  const Attribute *attr_P = pointcloud->attributes.find(ATTR_STD_POSITION);
+  const Attribute *attr_R = pointcloud->attributes.find(ATTR_STD_RADIUS);
+
+  size_t num_motion_steps = 1;
+  if (pointcloud->has_motion_blur()) {
+    if (attr_P->has_motion()) {
+      num_motion_steps = pointcloud->get_motion_steps();
+    }
+  }
+
+  const packed_float3 point = attr_P->data_at_time_step<packed_float3>(
+      args->timeStep, num_motion_steps)[args->primID];
+  const float radius = attr_R->data_at_time_step<float>(args->timeStep,
+                                                        num_motion_steps)[args->primID];
+
+  RTCBounds *bounds_o = args->bounds_o;
+  bounds_o->lower_x = point.x - radius;
+  bounds_o->lower_y = point.y - radius;
+  bounds_o->lower_z = point.z - radius;
+  bounds_o->upper_x = point.x + radius;
+  bounds_o->upper_y = point.y + radius;
+  bounds_o->upper_z = point.z + radius;
+}
+
+void BVHEmbree::add_gsplats(const Object *ob, const PointCloud *pointcloud, const int i)
+{
+  assert(pointcloud->primitive_type() & PRIMITIVE_GSPLAT);
+
+  size_t num_motion_steps = 1;
+  if (pointcloud->has_motion_blur()) {
+    const Attribute *attr_P = pointcloud->attributes.find(ATTR_STD_POSITION);
+    if (attr_P->has_motion()) {
+      num_motion_steps = pointcloud->get_motion_steps();
+    }
+  }
+
+  RTCGeometry geom_id = rtcNewGeometry(rtc_device, RTC_GEOMETRY_TYPE_USER);
+
+  rtcSetGeometryBuildQuality(geom_id, build_quality);
+
+  rtcSetGeometryUserData(geom_id, const_cast<PointCloud *>(pointcloud));
+  rtcSetGeometryMask(geom_id, ob->visibility_for_tracing());
+
+  rtcSetGeometryUserPrimitiveCount(geom_id, pointcloud->num_points());
+  rtcSetGeometryTimeStepCount(geom_id, num_motion_steps);
+  rtcSetGeometryBoundsFunction(geom_id, gsplat_bounds_func, nullptr);
 
   rtcCommitGeometry(geom_id);
   rtcAttachGeometryByID(scene, geom_id, i * 2);
@@ -735,10 +799,18 @@ void BVHEmbree::refit(Progress &progress)
         }
       }
       else if (geom->is_pointcloud()) {
-        PointCloud *pointcloud = static_cast<PointCloud *>(geom);
+        const PointCloud *pointcloud = static_cast<const PointCloud *>(geom);
         if (pointcloud->num_points() > 0) {
           RTCGeometry geom = rtcGetGeometry(scene, geom_id);
-          set_point_vertex_buffer(geom, pointcloud, true);
+          if (pointcloud->primitive_type() & PRIMITIVE_POINT) {
+            set_point_vertex_buffer(geom, pointcloud, true);
+          }
+          else {
+            assert(pointcloud->primitive_type() & PRIMITIVE_GSPLAT);
+            rtcSetGeometryUserData(geom, const_cast<PointCloud *>(pointcloud));
+            rtcSetGeometryUserPrimitiveCount(geom, pointcloud->num_points());
+            rtcSetGeometryBoundsFunction(geom, gsplat_bounds_func, nullptr);
+          }
           rtcCommitGeometry(geom);
         }
       }
