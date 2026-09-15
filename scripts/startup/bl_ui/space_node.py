@@ -849,7 +849,7 @@ class NODE_PT_active_node_generic(Panel):
         col.prop(node, "show_options")
         col.prop(node, "mute")
 
-        if tree.type in ('GEOMETRY', 'COMPOSITING'):
+        if tree.type in ('GEOMETRY', 'COMPOSITING', 'SHADER'):
             layout.prop(node, "warning_propagation", text="Propagate")
 
 
