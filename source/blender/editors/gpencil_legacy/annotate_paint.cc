@@ -1185,7 +1185,7 @@ static void stroke_join_islands(bGPdata *gpd,
   /* add new stroke at head */
   BLI_addhead(&gpf->strokes, join_stroke);
   /* Calc geometry data. */
-  BKE_gpencil_legacy_stroke_geometry_update(gpd, join_stroke);
+  BKE_annotation_stroke_geometry_update(gpd, join_stroke);
 
   /* remove first stroke */
   BLI_remlink(&gpf->strokes, gps_first);
@@ -1338,7 +1338,7 @@ static bGPDstroke *stroke_delete_tagged_points(bGPdata *gpd,
       }
       else {
         /* Calc geometry data. */
-        BKE_gpencil_legacy_stroke_geometry_update(gpd, new_stroke);
+        BKE_annotation_stroke_geometry_update(gpd, new_stroke);
 
         if (next_stroke) {
           BLI_insertlinkbefore(&gpf->strokes, next_stroke, new_stroke);

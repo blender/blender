@@ -223,7 +223,7 @@ void stroke_uv_update(bGPDstroke *gps)
   }
 }
 
-void BKE_gpencil_legacy_stroke_geometry_update(bGPdata * /*gpd*/, bGPDstroke *gps)
+void BKE_annotation_stroke_geometry_update(bGPdata * /*gpd*/, bGPDstroke *gps)
 {
   if (gps == nullptr) {
     return;

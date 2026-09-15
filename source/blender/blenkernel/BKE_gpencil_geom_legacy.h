@@ -17,9 +17,9 @@ struct bGPdata;
 
 /**
  * Recalc all internal geometry data for the stroke
- * \param gpd: Legacy Grease pencil data-block
- * \param gps: Legacy Grease pencil stroke
+ * \param gpd: Annotation data-block
+ * \param gps: Annotation stroke
  */
-void BKE_gpencil_legacy_stroke_geometry_update(struct bGPdata *gpd, struct bGPDstroke *gps);
+void BKE_annotation_stroke_geometry_update(struct bGPdata *gpd, struct bGPDstroke *gps);
 
 }  // namespace blender
