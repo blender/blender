@@ -628,7 +628,7 @@ static void find_nearest_edge__doClosest(void *user_data,
     dist_test_bias += FIND_NEAR_SELECT_BIAS;
   }
 
-  if (data->vc.rv3d->rflag & RV3D_CLIPPING) {
+  if ((data->vc.rv3d->rflag & RV3D_CLIPPING) && (data->vc.rv3d->clipbb != nullptr)) {
     float vec[3];
 
     interp_v3_v3v3(vec, eed->v1->co, eed->v2->co, fac);
