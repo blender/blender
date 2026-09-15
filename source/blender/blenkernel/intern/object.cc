@@ -87,7 +87,6 @@
 #include "BKE_geometry_set.hh"
 #include "BKE_geometry_set_instances.hh"
 #include "BKE_global.hh"
-#include "BKE_gpencil_geom_legacy.h"
 #include "BKE_grease_pencil.hh"
 #include "BKE_grease_pencil_modifiers.h"
 #include "BKE_idprop.hh"
