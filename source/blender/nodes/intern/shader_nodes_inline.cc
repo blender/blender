@@ -930,7 +930,7 @@ class ShaderNodesInliner {
 
     if (socket->index() == 0) {
       /* The first output is the current iteration index. */
-      this->store_socket_value(socket, {PrimitiveSocketValue{iteration}});
+      this->store_socket_value_primitive(socket, iteration);
       return;
     }
 
@@ -1212,7 +1212,7 @@ class ShaderNodesInliner {
     }
     /* Set the value of the mask output. */
     const bool is_selected = selected_index == socket->index() - 1;
-    this->store_socket_value(socket, {PrimitiveSocketValue{is_selected}});
+    this->store_socket_value_primitive(socket, is_selected);
   }
 
   struct MixNodeInfo {
@@ -1524,126 +1524,149 @@ class ShaderNodesInliner {
       this->store_socket_value_fallback(socket);
       return;
     }
-    if (node->is_type("FunctionNodeBooleanMath"_ustr)) {
-      if (this->boolean_math_short_circuit_try(socket)) {
-        return;
-      }
+    if (this->try_short_circuit(node)) {
+      return;
     }
     /* The node can't be constant-folded. So copy it to the destination tree instead. */
     this->handle_output_socket__eval_copy_node(*node, node.context, node.context);
   }
 
-  [[nodiscard]] bool boolean_math_short_circuit_try(const SocketInContext &output_socket)
+  [[nodiscard]] bool try_short_circuit(const NodeInContext &node)
   {
-    const NodeInContext node = output_socket.owner_node();
-    const auto op = NodeBooleanMathOperation(node->custom1);
-    const bke::bNodeSocketType &bool_type = *output_socket->typeinfo;
-
-    auto try_get_primitive_bool = [&](const SocketValue &value) -> std::optional<bool> {
-      if (const std::optional<PrimitiveSocketValue> primitive = value.to_primitive(bool_type)) {
-        return std::get<bool>(primitive->value);
-      }
-      return std::nullopt;
-    };
-
-    Vector<SocketValue> values;
-    Vector<std::optional<bool>> primitives;
-    for (const bNodeSocket *input_socket : node->input_sockets()) {
-      if (this->socket_is_ignored(*input_socket)) {
-        continue;
-      }
-      const SocketValue &value = value_by_socket_.lookup({node.context, input_socket});
-      values.append(value);
-      primitives.append(try_get_primitive_bool(value));
+    if (node->is_type("FunctionNodeBooleanMath"_ustr)) {
+      return this->try_short_circuit__boolean_math(node);
     }
+    if (node->is_type("ShaderNodeMath"_ustr)) {
+      return this->try_short_circuit__float_math(node);
+    }
+    if (node->is_type("FunctionNodeIntegerMath"_ustr)) {
+      return this->try_short_circuit__integer_math(node);
+    }
+    if (node->is_type("ShaderNodeVectorMath"_ustr)) {
+      return this->try_short_circuit__vector_math(node);
+    }
+    if (node->is_type("ShaderNodeMixShader"_ustr)) {
+      return this->try_short_circuit__mix_shader(node);
+    }
+    return false;
+  }
+
+  [[nodiscard]] bool try_short_circuit__boolean_math(const NodeInContext &node)
+  {
+    const auto op = NodeBooleanMathOperation(node->custom1);
+    const SocketInContext output_socket = node.output_socket(0);
 
     switch (op) {
       case NODE_BOOLEAN_MATH_AND: {
-        if (primitives[0] == false || primitives[1] == false) {
-          this->store_socket_value(output_socket, {PrimitiveSocketValue{false}});
+        const std::optional<bool> a = this->try_get_input<bool>(node, "Boolean"_ustr);
+        const std::optional<bool> b = this->try_get_input<bool>(node, "Boolean_001"_ustr);
+        if (a == false || b == false) {
+          this->store_socket_value_primitive(output_socket, false);
           return true;
         }
-        if (primitives[0] == true) {
-          this->store_socket_value(output_socket, values[1]);
+        if (a == true) {
+          this->store_socket_value(output_socket, this->get_input_value(node, "Boolean_001"_ustr));
           return true;
         }
-        if (primitives[1] == true) {
-          this->store_socket_value(output_socket, values[0]);
+        if (b == true) {
+          this->store_socket_value(output_socket, this->get_input_value(node, "Boolean"_ustr));
           return true;
         }
         break;
       }
       case NODE_BOOLEAN_MATH_OR: {
-        if (primitives[0] == true || primitives[1] == true) {
-          this->store_socket_value(output_socket, {PrimitiveSocketValue{true}});
+        const std::optional<bool> a = this->try_get_input<bool>(node, "Boolean"_ustr);
+        const std::optional<bool> b = this->try_get_input<bool>(node, "Boolean_001"_ustr);
+        if (a == true || b == true) {
+          this->store_socket_value_primitive(output_socket, true);
           return true;
         }
-        if (primitives[0] == false) {
-          this->store_socket_value(output_socket, values[1]);
+        if (a == false) {
+          this->store_socket_value(output_socket, this->get_input_value(node, "Boolean_001"_ustr));
           return true;
         }
-        if (primitives[1] == false) {
-          this->store_socket_value(output_socket, values[0]);
+        if (b == false) {
+          this->store_socket_value(output_socket, this->get_input_value(node, "Boolean"_ustr));
           return true;
         }
         break;
       }
       case NODE_BOOLEAN_MATH_NAND: {
-        if (primitives[0] == false || primitives[1] == false) {
-          this->store_socket_value(output_socket, {PrimitiveSocketValue{true}});
+        const std::optional<bool> a = this->try_get_input<bool>(node, "Boolean"_ustr);
+        const std::optional<bool> b = this->try_get_input<bool>(node, "Boolean_001"_ustr);
+        if (a == false || b == false) {
+          this->store_socket_value_primitive(output_socket, true);
           return true;
         }
-        if (primitives[0] == true) {
-          this->store_socket_value(output_socket, this->invert_bool_value(node, values[1]));
+        if (a == true) {
+          this->store_socket_value(
+              output_socket,
+              this->invert_bool_value(node, this->get_input_value(node, "Boolean_001"_ustr)));
           return true;
         }
-        if (primitives[1] == true) {
-          this->store_socket_value(output_socket, this->invert_bool_value(node, values[0]));
+        if (b == true) {
+          this->store_socket_value(
+              output_socket,
+              this->invert_bool_value(node, this->get_input_value(node, "Boolean"_ustr)));
           return true;
         }
         break;
       }
       case NODE_BOOLEAN_MATH_NOR: {
-        if (primitives[0] == true || primitives[1] == true) {
-          this->store_socket_value(output_socket, {PrimitiveSocketValue{false}});
+        const std::optional<bool> a = this->try_get_input<bool>(node, "Boolean"_ustr);
+        const std::optional<bool> b = this->try_get_input<bool>(node, "Boolean_001"_ustr);
+        if (a == true || b == true) {
+          this->store_socket_value_primitive(output_socket, false);
           return true;
         }
-        if (primitives[0] == false) {
-          this->store_socket_value(output_socket, this->invert_bool_value(node, values[1]));
+        if (a == false) {
+          this->store_socket_value(
+              output_socket,
+              this->invert_bool_value(node, this->get_input_value(node, "Boolean_001"_ustr)));
           return true;
         }
-        if (primitives[1] == false) {
-          this->store_socket_value(output_socket, this->invert_bool_value(node, values[0]));
+        if (b == false) {
+          this->store_socket_value(
+              output_socket,
+              this->invert_bool_value(node, this->get_input_value(node, "Boolean"_ustr)));
           return true;
         }
         break;
       }
       case NODE_BOOLEAN_MATH_IMPLY: {
-        if (primitives[0] == false || primitives[1] == true) {
-          this->store_socket_value(output_socket, {PrimitiveSocketValue{true}});
+        const std::optional<bool> a = this->try_get_input<bool>(node, "Boolean"_ustr);
+        const std::optional<bool> b = this->try_get_input<bool>(node, "Boolean_001"_ustr);
+        if (a == false || b == true) {
+          this->store_socket_value_primitive(output_socket, true);
           return true;
         }
-        if (primitives[0] == true) {
-          this->store_socket_value(output_socket, values[1]);
+        if (a == true) {
+          this->store_socket_value(output_socket, this->get_input_value(node, "Boolean_001"_ustr));
           return true;
         }
-        if (primitives[1] == false) {
-          this->store_socket_value(output_socket, this->invert_bool_value(node, values[0]));
+        if (b == false) {
+          this->store_socket_value(
+              output_socket,
+              this->invert_bool_value(node, this->get_input_value(node, "Boolean"_ustr)));
           return true;
         }
         break;
       }
       case NODE_BOOLEAN_MATH_NIMPLY: {
-        if (primitives[0] == false || primitives[1] == true) {
-          this->store_socket_value(output_socket, {PrimitiveSocketValue{false}});
+        const std::optional<bool> a = this->try_get_input<bool>(node, "Boolean"_ustr);
+        const std::optional<bool> b = this->try_get_input<bool>(node, "Boolean_001"_ustr);
+        if (a == false || b == true) {
+          this->store_socket_value_primitive(output_socket, false);
           return true;
         }
-        if (primitives[0] == true) {
-          this->store_socket_value(output_socket, this->invert_bool_value(node, values[1]));
+        if (a == true) {
+          this->store_socket_value(
+              output_socket,
+              this->invert_bool_value(node, this->get_input_value(node, "Boolean_001"_ustr)));
           return true;
         }
-        if (primitives[1] == false) {
-          this->store_socket_value(output_socket, values[0]);
+        if (b == false) {
+          this->store_socket_value(output_socket, this->get_input_value(node, "Boolean"_ustr));
           return true;
         }
         break;
@@ -1667,6 +1690,139 @@ class ShaderNodesInliner {
     not_node->custom1 = NODE_BOOLEAN_MATH_NOT;
     this->set_input_socket_value(node, *not_node, *not_node->inputs.first(), value);
     return {LinkedSocketValue{not_node, not_node->outputs.first()}};
+  }
+
+  [[nodiscard]] bool try_short_circuit__float_math(const NodeInContext &node)
+  {
+    const SocketInContext output_socket = node.output_socket(0);
+    const auto op = NodeMathOperation(node->custom1);
+
+    switch (op) {
+      case NODE_MATH_MULTIPLY:
+      case NODE_MATH_DIVIDE: {
+        const std::optional<float> a = this->try_get_input<float>(node, "Value"_ustr);
+        const std::optional<float> b = this->try_get_input<float>(node, "Value_001"_ustr);
+        if (a == 0.0f || b == 0.0f) {
+          this->store_socket_value_primitive(output_socket, 0.0f);
+          return true;
+        }
+        break;
+      }
+      default:
+        break;
+    }
+
+    return false;
+  }
+
+  [[nodiscard]] bool try_short_circuit__integer_math(const NodeInContext &node)
+  {
+    const SocketInContext output_socket = node.output_socket(0);
+    const auto op = NodeIntegerMathOperation(node->custom1);
+
+    switch (op) {
+      case NODE_INTEGER_MATH_MULTIPLY:
+      case NODE_INTEGER_MATH_DIVIDE: {
+        const std::optional<int> a = this->try_get_input<int>(node, "Value"_ustr);
+        const std::optional<int> b = this->try_get_input<int>(node, "Value_001"_ustr);
+        if (a == 0 || b == 0) {
+          this->store_socket_value_primitive(output_socket, 0);
+          return true;
+        }
+        break;
+      }
+      default:
+        break;
+    }
+
+    return false;
+  }
+
+  [[nodiscard]] bool try_short_circuit__vector_math(const NodeInContext &node)
+  {
+    const auto op = NodeVectorMathOperation(node->custom1);
+
+    auto output_socket = [&](const UString identifier) -> SocketInContext {
+      return {node.context, node->output_by_identifier(identifier)};
+    };
+
+    switch (op) {
+      case NODE_VECTOR_MATH_MULTIPLY:
+      case NODE_VECTOR_MATH_DIVIDE:
+      case NODE_VECTOR_MATH_CROSS_PRODUCT: {
+        const std::optional<float3> a = this->try_get_input<float3>(node, "Vector"_ustr);
+        const std::optional<float3> b = this->try_get_input<float3>(node, "Vector_001"_ustr);
+        if (a == float3(0.0f) || b == float3(0.0f)) {
+          this->store_socket_value_primitive(output_socket("Vector"_ustr), float3(0.0f));
+          return true;
+        }
+        break;
+      }
+      case NODE_VECTOR_MATH_DOT_PRODUCT: {
+        const std::optional<float3> a = this->try_get_input<float3>(node, "Vector"_ustr);
+        const std::optional<float3> b = this->try_get_input<float3>(node, "Vector_001"_ustr);
+        if (a == float3(0.0f) || b == float3(0.0f)) {
+          this->store_socket_value_primitive(output_socket("Value"_ustr), 0.0f);
+          return true;
+        }
+        break;
+      }
+      case NODE_VECTOR_MATH_SCALE: {
+        const std::optional<float3> a = this->try_get_input<float3>(node, "Vector"_ustr);
+        const std::optional<float> scale = this->try_get_input<float>(node, "Scale"_ustr);
+        if (a == float3(0.0f) || scale == 0.0f) {
+          this->store_socket_value_primitive(output_socket("Vector"_ustr), float3(0.0f));
+          return true;
+        }
+        break;
+      }
+      default:
+        break;
+    }
+
+    return false;
+  }
+
+  [[nodiscard]] bool try_short_circuit__mix_shader(const NodeInContext &node)
+  {
+    const SocketInContext output_socket = node.output_socket(0);
+    const std::optional<float> factor = this->try_get_input<float>(node, "Fac"_ustr);
+    if (factor == 0.0f) {
+      this->store_socket_value(output_socket, this->get_input_value(node, "Shader"_ustr));
+      return true;
+    }
+    if (factor == 1.0f) {
+      this->store_socket_value(output_socket, this->get_input_value(node, "Shader_001"_ustr));
+      return true;
+    }
+    return false;
+  }
+
+  template<typename T>
+  std::optional<T> try_get_input(const NodeInContext &node, const bNodeSocket &socket)
+  {
+    const SocketValue &value = this->get_input_value(node, socket);
+    if (const std::optional<PrimitiveSocketValue> primitive = value.to_primitive(*socket.typeinfo))
+    {
+      return std::get<T>(primitive->value);
+    }
+    return std::nullopt;
+  }
+
+  template<typename T>
+  std::optional<T> try_get_input(const NodeInContext &node, const UString identifier)
+  {
+    return this->try_get_input<T>(node, *node->input_by_identifier(identifier));
+  }
+
+  SocketValue get_input_value(const NodeInContext &node, const bNodeSocket &socket)
+  {
+    return value_by_socket_.lookup({node.context, &socket});
+  }
+
+  SocketValue get_input_value(const NodeInContext &node, const UString identifier)
+  {
+    return this->get_input_value(node, *node->input_by_identifier(identifier));
   }
 
   /**
@@ -2140,6 +2296,11 @@ class ShaderNodesInliner {
       return;
     }
     this->schedule_socket(origin);
+  }
+
+  template<typename T> void store_socket_value_primitive(const SocketInContext &socket, T value)
+  {
+    value_by_socket_.add_new(socket, {PrimitiveSocketValue{value}});
   }
 
   void store_socket_value(const SocketInContext &socket, SocketValue value)
