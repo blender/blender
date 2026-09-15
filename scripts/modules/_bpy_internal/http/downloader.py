@@ -1565,7 +1565,7 @@ class MetadataProviderFilesystem(MetadataProvider):
             # need to do a conditional download of a zero-bytes file. It is more
             # likely that something went wrong and a file got truncated.
             #
-            # And even if the file is of the correct size, non-conditinally
+            # And even if the file is of the correct size, non-conditionally
             # doing the same request for the empty file will require less data
             # than including the headers necessary for a conditional download.
             return False
