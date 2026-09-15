@@ -40,6 +40,7 @@
 #include "eevee_gbuffer_types.bsl.hh"                /* IWYU pragma: export */
 #include "eevee_gbuffer_write.bsl.hh"                /* IWYU pragma: export */
 #include "eevee_geom_curves.bsl.hh"                  /* IWYU pragma: export */
+#include "eevee_geom_gsplat.bsl.hh"                  /* IWYU pragma: export */
 #include "eevee_geom_mesh.bsl.hh"                    /* IWYU pragma: export */
 #include "eevee_geom_pointcloud.bsl.hh"              /* IWYU pragma: export */
 #include "eevee_geom_types_lib.bsl.hh"               /* IWYU pragma: export */
@@ -105,7 +106,6 @@
 #include "eevee_shadow_tilemap_lib.bsl.hh"           /* IWYU pragma: export */
 #include "eevee_shadow_tracing.bsl.hh"               /* IWYU pragma: export */
 #include "eevee_shadow_visibility.bsl.hh"            /* IWYU pragma: export */
-#include "eevee_spherical_harmonics.bsl.hh"          /* IWYU pragma: export */
 #include "eevee_subsurface.bsl.hh"                   /* IWYU pragma: export */
 #include "eevee_subsurface_lib.bsl.hh"               /* IWYU pragma: export */
 #include "eevee_surf_capture.bsl.hh"                 /* IWYU pragma: export */

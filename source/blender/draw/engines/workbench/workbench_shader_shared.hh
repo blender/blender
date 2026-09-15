@@ -48,8 +48,8 @@ struct [[host_shared]] WorldData {
 
   int matcap_orientation;
   bool32_t use_specular;
+  bool32_t xray_mode;
   float xray_alpha;
-  int _pad1;
 
   float4 background_color;
 };

@@ -783,9 +783,10 @@ float derivative_scale_get()
  *
  * \{ */
 
-/* Point clouds and curves are not compatible with volume grids.
+/* Point clouds and curves and splats are not compatible with volume grids.
  * They will fall back to their own attributes loading. */
-#if defined(MAT_VOLUME) && !defined(MAT_GEOM_CURVES) && !defined(MAT_GEOM_POINTCLOUD)
+#if defined(MAT_VOLUME) && !defined(MAT_GEOM_CURVES) && !defined(MAT_GEOM_POINTCLOUD) && \
+    !defined(MAT_GEOM_GSPLAT)
 #  if defined(VOLUME_INFO_LIB) && !defined(MAT_GEOM_WORLD)
 /* We could just check for GRID_ATTRIBUTES but this avoids for header dependency. */
 #    define GRID_ATTRIBUTES_LOAD_POST
@@ -812,6 +813,42 @@ float4 attr_load_color_post(float4 attr)
 }
 
 #undef GRID_ATTRIBUTES_LOAD_POST
+
+/** \} */
+
+/* -------------------------------------------------------------------- */
+/** \name GSplat Attributes
+ *
+ * GSplats override the radiance attribute, unpacking packed data from a float2. Additionally,
+ * it applies its own alpha on top of existing transparency.
+ *
+ * \{ */
+
+void gsplat_transmittance(/* float &transparency */)
+{
+#ifdef MAT_GEOM_GSPLAT
+  float alpha = draw::gsplat::evaluate_gaussian(gsplat_interp.billboard_co,
+                                                gsplat_interp_flat.opacity);
+  alpha = saturate(alpha * (256.0f / 255.0f));
+  g_transmittance = float3(1.0f) - alpha * (float3(1.0f) - g_transmittance);
+#endif
+}
+
+#if defined(MAT_GEOM_GSPLAT) && !defined(MAT_VOLUME)
+#  define GSPLAT_ATTRIBUTES_LOAD_POST
+#endif
+
+float4 attr_load_radiance_post(float4 attr)
+{
+#ifdef GSPLAT_ATTRIBUTES_LOAD_POST
+  /* Radiance is packed as 2xfp16, unpack it from this representation. */
+  uint2 data = floatBitsToUint(attr.xy);
+  return float4(unpackHalf2x16(data.x), unpackHalf2x16(data.y));
+#endif
+  return attr;
+}
+
+#undef GSPLAT_ATTRIBUTES_LOAD_POST
 
 /** \} */
 

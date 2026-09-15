@@ -16,6 +16,7 @@
 
 #include "BLI_bounds_types.hh"
 #include "BLI_enum_flags.hh"
+#include "BLI_math_quaternion_types.hh"
 #include "BLI_math_vector_types.hh"
 #include "BLI_memory_counter_fwd.hh"
 #include "BLI_span.hh"
@@ -35,7 +36,8 @@ class Tree;
 
 namespace draw {
 struct PointCloudBatchCache;
-}
+struct GSplatBatchCache;
+}  // namespace draw
 
 /** #PointCloud.flag */
 enum ePointCloud_Flag : int {
@@ -105,8 +107,9 @@ struct PointCloud {
 
   bke::PointCloudRuntime *runtime = nullptr;
 
-  /* Draw Cache */
-  draw::PointCloudBatchCache *batch_cache = nullptr;
+  /* Draw Caches */
+  draw::PointCloudBatchCache *pointcloud_batch_cache = nullptr;
+  draw::GSplatBatchCache *gsplat_batch_cache = nullptr;
 };
 
 /* Only one material supported currently. */

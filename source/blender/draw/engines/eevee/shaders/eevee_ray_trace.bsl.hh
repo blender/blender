@@ -13,8 +13,8 @@
 #include "eevee_ray_trace_screen_lib.bsl.hh"
 #include "eevee_reverse_z_lib.bsl.hh"
 #include "eevee_sampling_lib.bsl.hh"
-#include "eevee_spherical_harmonics.bsl.hh"
 #include "eevee_uniform.bsl.hh"
+#include "gpu_shader_math_spherical_harmonics.bsl.hh"
 
 namespace eevee::raytrace {
 

@@ -744,7 +744,9 @@ class CapturePipeline {
  public:
   CapturePipeline(Instance &inst) : inst_(inst) {};
 
-  PassMain::Sub *surface_material_add(blender::Material *blender_mat, GPUMaterial *gpumat);
+  PassMain::Sub *surface_material_add(Object *ob,
+                                      blender::Material *blender_mat,
+                                      GPUMaterial *gpumat);
 
   void sync();
   void render(View &view);
@@ -945,7 +947,7 @@ class PipelineModule {
       case MAT_PIPE_SHADOW:
         return shadow.surface_material_add(blender_mat, gpumat);
       case MAT_PIPE_CAPTURE:
-        return capture.surface_material_add(blender_mat, gpumat);
+        return capture.surface_material_add(ob, blender_mat, gpumat);
 
       case MAT_PIPE_VOLUME_OCCUPANCY:
       case MAT_PIPE_VOLUME_MATERIAL:

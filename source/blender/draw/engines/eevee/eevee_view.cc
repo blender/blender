@@ -17,6 +17,8 @@
 
 #include "DRW_render.hh"
 
+#include "draw_common.hh"
+
 #include "GPU_debug.hh"
 
 #include "eevee_instance.hh"
@@ -87,6 +89,9 @@ void ShadingView::render()
 
   /* Needs to be before anything else because it query its own gbuffer. */
   inst_.planar_probes.set_view(render_view_, extent_);
+
+  /* Hand off gsplat compute workload for the current view before draws. */
+  DRW_gsplat_ensure_radiance(*inst_.manager, render_view_);
 
   RenderBuffers &rbufs = inst_.render_buffers;
   rbufs.acquire(extent_);
@@ -394,6 +399,9 @@ void CaptureView::render_probes()
                                                       update_info->clipping_distances.x,
                                                       update_info->clipping_distances.y);
       view.sync(view_m4, win_m4);
+
+      /* Hand off gsplat compute workload for the capture before draws. */
+      DRW_gsplat_ensure_radiance(*inst_.manager, view);
 
       inst_.shadows.set_view(view, extent);
       inst_.volume.set_view(view, extent);

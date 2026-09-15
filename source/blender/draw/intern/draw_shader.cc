@@ -107,6 +107,11 @@ class ShaderCache {
   gpu::StaticShader curves_evaluate_float2 = {"draw_curves_interpolate_float2_attribute"};
   gpu::StaticShader curves_evaluate_float = {"draw_curves_interpolate_float_attribute"};
   gpu::StaticShader curves_evaluate_length_intercept = {"draw_curves_evaluate_length_intercept"};
+
+  gpu::StaticShader gsplat_compute_ellipses = {"draw_gsplat_compute_ellipses"};
+  gpu::StaticShader gsplat_compute_radiance = {"draw_gsplat_compute_radiance"};
+  gpu::StaticShader gsplat_compute_ellipses_radiance = {"draw_gsplat_compute_ellipses_radiance"};
+
   gpu::StaticShader debug_draw_display = {"draw_debug_draw_display"};
   gpu::StaticShader draw_visibility_compute = {"draw_visibility_compute"};
   gpu::StaticShader draw_view_finalize = {"draw_view_finalize"};
@@ -177,6 +182,20 @@ gpu::Shader *DRW_shader_curves_refine_get(draw::CurvesEvalShader type)
       return ShaderCache::get().curves_evaluate_float.get();
     case draw::CURVES_EVAL_LENGTH_INTERCEPT:
       return ShaderCache::get().curves_evaluate_length_intercept.get();
+  }
+  BLI_assert_unreachable();
+  return nullptr;
+}
+
+gpu::Shader *DRW_shader_gsplat_compute_get(draw::GSplatEvalShader type)
+{
+  switch (type) {
+    case draw::GSplatEvalShader::Ellipses:
+      return ShaderCache::get().gsplat_compute_ellipses.get();
+    case draw::GSplatEvalShader::Radiance:
+      return ShaderCache::get().gsplat_compute_radiance.get();
+    case draw::GSplatEvalShader::EllipsesRadiance:
+      return ShaderCache::get().gsplat_compute_ellipses_radiance.get();
   }
   BLI_assert_unreachable();
   return nullptr;

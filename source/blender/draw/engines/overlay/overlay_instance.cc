@@ -13,6 +13,7 @@
 
 #include "BKE_paint.hh"
 
+#include "draw_common_c.hh"
 #include "draw_debug.hh"
 #include "overlay_instance.hh"
 
@@ -486,6 +487,7 @@ void Instance::begin_sync()
     layer.force_fields.begin_sync(resources, state);
     layer.fluids.begin_sync(resources, state);
     layer.grease_pencil.begin_sync(resources, state);
+    layer.gsplats.begin_sync(resources, state);
     layer.lattices.begin_sync(resources, state);
     layer.lights.begin_sync(resources, state);
     layer.light_probes.begin_sync(resources, state);
@@ -600,9 +602,15 @@ void Instance::object_sync(ObjectRef &ob_ref, Manager &manager)
       case OB_MBALL:
         layer.metaballs.edit_object_sync(manager, ob_ref, resources, state);
         break;
-      case OB_POINTCLOUD:
-        layer.pointclouds.edit_object_sync(manager, ob_ref, resources, state);
-        break;
+      case OB_POINTCLOUD: {
+        PointCloud &pointcloud = DRW_object_get_data_for_drawing<PointCloud>(*ob_ref.object);
+        if (pointcloud.type == PointCloudType::GSplat) {
+          layer.gsplats.edit_object_sync(manager, ob_ref, resources, state);
+        }
+        else {
+          layer.pointclouds.edit_object_sync(manager, ob_ref, resources, state);
+        }
+      } break;
       case OB_FONT:
         layer.text.edit_object_sync(manager, ob_ref, resources, state);
         break;
@@ -755,6 +763,10 @@ void Instance::draw(Manager &manager)
   outline.flat_objects_pass_sync(manager, view, resources, state);
   GreasePencil::compute_depth_planes(manager, view, resources, state);
 
+  /* Hand off gsplat compute workload before draws. */
+  /* TODO(not_mark): Disabled compute pass for now, due to incompatibility with instancing. */
+  /* DRW_gsplat_ensure_ellipses(manager, view); */
+
   /* Pre-Draw: Run the compute steps of all passes up-front
    * to avoid constant GPU compute/raster context switching. */
   {
@@ -767,6 +779,7 @@ void Instance::draw(Manager &manager)
       layer.facing.pre_draw(manager, view);
       layer.fade.pre_draw(manager, view);
       layer.lattices.pre_draw(manager, view);
+      layer.gsplats.pre_draw(manager, view);
       layer.light_probes.pre_draw(manager, view);
       layer.particles.pre_draw(manager, view);
       layer.pointclouds.pre_draw(manager, view);
@@ -861,6 +874,7 @@ void Instance::draw_v3d(Manager &manager, View &view)
     layer.empties.draw_line(framebuffer, manager, view);
     layer.axes.draw_line(framebuffer, manager, view);
     layer.force_fields.draw_line(framebuffer, manager, view);
+    layer.gsplats.draw_line(framebuffer, manager, view);
     layer.lights.draw_line(framebuffer, manager, view);
     layer.light_probes.draw_line(framebuffer, manager, view);
     layer.speakers.draw_line(framebuffer, manager, view);

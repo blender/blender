@@ -106,6 +106,9 @@ static int node_shader_gpu_attribute(GPUMaterial *mat,
       else if (STREQ(attr->name, "temperature")) {
         GPU_link(mat, "node_attribute_temperature", cd_attr, &cd_attr);
       }
+      else if (STREQ(attr->name, "radiance")) {
+        GPU_link(mat, "node_attribute_radiance", cd_attr, &cd_attr);
+      }
       break;
     }
     case SHD_ATTRIBUTE_VIEW_LAYER: {

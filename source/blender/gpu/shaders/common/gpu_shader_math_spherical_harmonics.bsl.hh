@@ -10,8 +10,8 @@
 /* -------------------------------------------------------------------- */
 /** \name Spherical Harmonics Functions
  *
- * `L` denote the row and `M` the column in the spherical harmonics table (1).
- * `p` denote positive column and `n` negative ones.
+ * `L` denotes the row and `M` the column in the spherical harmonics table (1).
+ * `p` denotes positive column and `n` negative ones.
  *
  * Use precomputed constants to avoid constant folding differences across compilers.
  * Note that (2) doesn't use Condon-Shortley phase whereas our implementation does.
@@ -62,6 +62,35 @@ float L2_Mp1_coef(float3 v)
 float L2_Mp2_coef(float3 v)
 {
   return 0.546274215f * (v.x * v.x - v.y * v.y);
+}
+
+float L3_Mn3_coef(float3 v)
+{
+  return -0.590043589f * v.y * (3.0f * v.x * v.x - v.y * v.y);
+}
+float L3_Mn2_coef(float3 v)
+{
+  return 2.890611442f * (v.y * v.x * v.z);
+}
+float L3_Mn1_coef(float3 v)
+{
+  return -0.457045799f * v.y * (-1.0f + 5.0f * v.z * v.z);
+}
+float L3_M0_coef(float3 v)
+{
+  return 0.373176332f * v.z * (5.0f * v.z * v.z - 3.0f);
+}
+float L3_Mp1_coef(float3 v)
+{
+  return -0.457045799f * v.x * (-1.0f + 5.0f * v.z * v.z);
+}
+float L3_Mp2_coef(float3 v)
+{
+  return 1.445305721f * v.z * (v.x * v.x - v.y * v.y);
+}
+float L3_Mp3_coef(float3 v)
+{
+  return -0.5900435899f * v.x * (v.x * v.x - 3.0f * v.y * v.y);
 }
 
 template<typename T> struct BandL0 {
@@ -212,10 +241,80 @@ template<typename T> struct BandL2 {
   }
 };
 
+template<typename T> struct BandL3 {
+  T Mn3, Mn2, Mn1, M0, Mp1, Mp2, Mp3;
+
+  void encode_signal_sample(float3 direction, T amplitude)
+  {
+    Mn3 += L3_Mn3_coef(direction) * amplitude;
+    Mn2 += L3_Mn2_coef(direction) * amplitude;
+    Mn1 += L3_Mn1_coef(direction) * amplitude;
+    M0 += L3_M0_coef(direction) * amplitude;
+    Mp1 += L3_Mp1_coef(direction) * amplitude;
+    Mp2 += L3_Mp2_coef(direction) * amplitude;
+    Mp3 += L3_Mp3_coef(direction) * amplitude;
+  }
+
+  T evaluate(float3 direction) const
+  {
+    return L3_Mn3_coef(direction) * Mn3 + L3_Mn2_coef(direction) * Mn2 +
+           L3_Mn1_coef(direction) * Mn1 + L3_M0_coef(direction) * M0 +
+           L3_Mp1_coef(direction) * Mp1 + L3_Mp2_coef(direction) * Mp2 +
+           L3_Mp3_coef(direction) * Mp3;
+  }
+
+  static BandL3 madd(BandL3 a, float b, BandL3 c)
+  {
+    BandL3 result;
+    result.Mn3 = a.Mn3 * b + c.Mn3;
+    result.Mn2 = a.Mn2 * b + c.Mn2;
+    result.Mn1 = a.Mn1 * b + c.Mn1;
+    result.M0 = a.M0 * b + c.M0;
+    result.Mp1 = a.Mp1 * b + c.Mp1;
+    result.Mp2 = a.Mp2 * b + c.Mp2;
+    result.Mp3 = a.Mp3 * b + c.Mp3;
+    return result;
+  }
+
+  static BandL3 mul(BandL3 a, float b)
+  {
+    BandL3 result;
+    result.Mn3 = a.Mn3 * b;
+    result.Mn2 = a.Mn2 * b;
+    result.Mn1 = a.Mn1 * b;
+    result.M0 = a.M0 * b;
+    result.Mp1 = a.Mp1 * b;
+    result.Mp2 = a.Mp2 * b;
+    result.Mp3 = a.Mp3 * b;
+    return result;
+  }
+
+  static BandL3 add(BandL3 a, BandL3 b)
+  {
+    BandL3 result;
+    result.Mn3 = a.Mn3 + b.Mn3;
+    result.Mn2 = a.Mn2 + b.Mn2;
+    result.Mn1 = a.Mn1 + b.Mn1;
+    result.M0 = a.M0 + b.M0;
+    result.Mp1 = a.Mp1 + b.Mp1;
+    result.Mp2 = a.Mp2 + b.Mp2;
+    result.Mp3 = a.Mp3 + b.Mp3;
+    return result;
+  }
+};
+
 template struct BandL0<float>;
+template struct BandL0<float3>;
 template struct BandL0<float4>;
 template struct BandL1<float>;
+template struct BandL1<float3>;
 template struct BandL1<float4>;
+template struct BandL2<float>;
+template struct BandL2<float3>;
+template struct BandL2<float4>;
+template struct BandL3<float>;
+template struct BandL3<float3>;
+template struct BandL3<float4>;
 
 }  // namespace spherical_harmonics
 
