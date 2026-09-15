@@ -559,6 +559,7 @@ void MTLBackend::capabilities_init(MTLContext *ctx)
   /* Feature support */
   GCaps.mem_stats_support = false;
   GCaps.hdr_viewport_support = true;
+  GCaps.multi_viewport_support = true;
 
   GCaps.geometry_shader_support = false;
 

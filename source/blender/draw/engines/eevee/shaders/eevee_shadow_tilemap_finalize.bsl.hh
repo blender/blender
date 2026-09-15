@@ -39,6 +39,8 @@ struct TilemapFinalize {
   [[storage(6, read)]] const ShadowTileMapClip (&tilemaps_clip_buf)[];
   [[image(0, write, UINT_32)]] uimage2D tilemaps_img;
 
+  [[push_constant]] bool use_multi_viewport;
+
   [[shared]] int rect_min_x;
   [[shared]] int rect_min_y;
   [[shared]] int rect_max_x;
@@ -98,6 +100,7 @@ void tilemap_finalize_main([[resource_table]] TilemapFinalize &srt,
     int2 rect_max = int2(srt.rect_max_x, srt.rect_max_y);
 
     int viewport_index = viewport_select(rect_max - rect_min);
+    viewport_index = srt.use_multi_viewport ? viewport_index : SHADOW_TILEMAP_LOD;
     int2 viewport_size = shadow_viewport_size_get(uint(viewport_index));
 
     /* Issue one view if there is an update in the LOD. */

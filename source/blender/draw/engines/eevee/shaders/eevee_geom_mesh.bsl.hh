@@ -41,8 +41,7 @@ struct GeomMeshVertIn {
     [[base_instance]] const int /*base_inst*/, /* Used by model_lib. */
     [[vertex_id]] const int vert_id,
     [[position]] float4 &out_position,
-    /* Note: Removed if not needed. Otherwise, can generate geometry shader fallback. */
-    [[viewport_index, condition(is_shadow_pipe)]] int &out_viewport)
+    [[viewport_index, condition(is_shadow_pipe &&use_multi_viewport)]] int &out_viewport)
 {
   draw::ID id = res_id.get(inst_index);
   uint view_id = 0;
@@ -61,7 +60,9 @@ struct GeomMeshVertIn {
     auto &shadow_iface = interface_get(eevee_shadow_iface_info, shadow_iface);
 
     shadow_iface.shadow_view_id = int(view_id);
-    out_viewport = int(shadow.render_view_buf[view_id].viewport_index);
+    if (pipe.use_multi_viewport) [[static_branch]] {
+      out_viewport = int(shadow.render_view_buf[view_id].viewport_index);
+    }
   }
 
   init_interface(id.raw_id);

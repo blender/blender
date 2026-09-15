@@ -651,6 +651,7 @@ void GLBackend::capabilities_init()
                             epoxy_has_gl_extension("GL_ATI_meminfo");
   GCaps.geometry_shader_support = true;
   GCaps.hdr_viewport_support = false;
+  GCaps.multi_viewport_support = true;
   GCaps.vertex_pipeline_stores_and_atomics_support = true;
 
   GCaps.srgb_write_view_support = true;

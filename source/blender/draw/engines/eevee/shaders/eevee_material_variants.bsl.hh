@@ -73,9 +73,9 @@ PipelineGraphic eevee_surface_occupancy_mesh(      geom_mesh,       surf_occupan
 PipelineGraphic eevee_surface_occupancy_pointcloud(geom_pointcloud, surf_occupancy,   PipelineConstants{.use_velocity = false, .use_transparency = false, .use_clip_plane = false, .use_sss = true, .is_shadow_pipe = false, .closure_bin_count = 3});
 PipelineGraphic eevee_surface_occupancy_volume(    geom_volume,     surf_occupancy,   PipelineConstants{.use_velocity = false, .use_transparency = false, .use_clip_plane = false, .use_sss = true, .is_shadow_pipe = false, .closure_bin_count = 3});
 //PipelineGraphic eevee_surface_shadow_world(      geom_world,      surf_shadow); /* N/A */
-PipelineGraphic eevee_surface_shadow_curves(       geom_curves,     surf_shadow,      PipelineConstants{.use_velocity = false, .use_transparency = false, .use_clip_plane = false, .use_sss = true, .is_shadow_pipe = true,  .closure_bin_count = 3});
-PipelineGraphic eevee_surface_shadow_mesh(         geom_mesh,       surf_shadow,      PipelineConstants{.use_velocity = false, .use_transparency = false, .use_clip_plane = false, .use_sss = true, .is_shadow_pipe = true,  .closure_bin_count = 3});
-PipelineGraphic eevee_surface_shadow_pointcloud(   geom_pointcloud, surf_shadow,      PipelineConstants{.use_velocity = false, .use_transparency = false, .use_clip_plane = false, .use_sss = true, .is_shadow_pipe = true,  .closure_bin_count = 3});
+PipelineGraphic eevee_surface_shadow_curves(       geom_curves,     surf_shadow,      PipelineConstants{.use_velocity = false, .use_transparency = false, .use_clip_plane = false, .use_sss = true, .is_shadow_pipe = true,  .use_multi_viewport = true, .closure_bin_count = 3});
+PipelineGraphic eevee_surface_shadow_mesh(         geom_mesh,       surf_shadow,      PipelineConstants{.use_velocity = false, .use_transparency = false, .use_clip_plane = false, .use_sss = true, .is_shadow_pipe = true,  .use_multi_viewport = true, .closure_bin_count = 3});
+PipelineGraphic eevee_surface_shadow_pointcloud(   geom_pointcloud, surf_shadow,      PipelineConstants{.use_velocity = false, .use_transparency = false, .use_clip_plane = false, .use_sss = true, .is_shadow_pipe = true,  .use_multi_viewport = true, .closure_bin_count = 3});
 //PipelineGraphic eevee_surface_shadow_volume(     geom_volume,     surf_shadow); /* N/A */
 /* clang-format on */
 
