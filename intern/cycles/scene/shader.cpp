@@ -540,6 +540,7 @@ void ShaderManager::device_update_pre(Device * /*device*/,
   assert(scene->default_light->reference_count() != 0);
   assert(scene->default_background->reference_count() != 0);
   assert(scene->default_empty->reference_count() != 0);
+  assert(scene->default_gsplat->reference_count() != 0);
 
   /* Preprocess shader graph. */
   bool has_volumes = false;
@@ -837,6 +838,25 @@ void ShaderManager::add_default(Scene *scene)
     shader->set_graph(std::move(graph));
     shader->reference();
     scene->default_empty = shader;
+    shader->tag_update(scene);
+  }
+
+  /* Default Gaussian splat. */
+  {
+    unique_ptr<ShaderGraph> graph = make_unique<ShaderGraph>();
+
+    AttributeNode *attribute = graph->create_node<AttributeNode>();
+    attribute->set_attribute(ustring("radiance"));
+    EmissionNode *emission = graph->create_node<EmissionNode>();
+    emission->set_strength(1.0f);
+    graph->connect(attribute->output("Color"), emission->input("Color"));
+    graph->connect(emission->output("Emission"), graph->output()->input("Surface"));
+
+    Shader *shader = scene->create_node<Shader>();
+    shader->name = "default_gsplat";
+    shader->set_graph(std::move(graph));
+    shader->reference();
+    scene->default_gsplat = shader;
     shader->tag_update(scene);
   }
 }

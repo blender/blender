@@ -82,6 +82,7 @@ BLOCKLIST = [
     "image_mipmap_world_sun.blend",
 
     ### Cycles only tests go here ###
+    "gsplat.*.blend",
 ]
 
 BLOCKLIST_METAL = [

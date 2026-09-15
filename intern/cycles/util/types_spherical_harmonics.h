@@ -20,7 +20,7 @@ CCL_NAMESPACE_BEGIN
  * The spherical harmonics for band=0 is stored as a separate attribute. Such division allows for
  * slightly better packing with opacity, and also allows to have higher bands optional.
  *
- * The naming is inspired by the storage of gaussians splats in the PLY format, where the band=0
+ * The naming is inspired by the storage of Gaussians splats in the PLY format, where the band=0
  * is stored as f_dc, and the higher bands are stored as f_rest.
  *
  * The values are quantized to 8 bit.

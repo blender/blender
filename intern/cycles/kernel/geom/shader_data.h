@@ -84,7 +84,7 @@ ccl_device_inline
   else
 #endif
 #ifdef __POINTCLOUD__
-      if (sd->type & PRIMITIVE_POINT)
+      if (sd->type & PRIMITIVE_ANY_POINT)
   {
     /* point */
     point_shader_setup(kg, sd, isect, ray);

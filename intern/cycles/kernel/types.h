@@ -703,20 +703,24 @@ enum PrimitiveType {
   PRIMITIVE_POINT = (1 << 3),
   PRIMITIVE_VOLUME = (1 << 4),
   PRIMITIVE_LAMP = (1 << 5),
+  PRIMITIVE_GSPLAT = (1 << 6),
 
-  PRIMITIVE_MOTION = (1 << 6),
+  PRIMITIVE_MOTION = (1 << 7),
   PRIMITIVE_MOTION_TRIANGLE = (PRIMITIVE_TRIANGLE | PRIMITIVE_MOTION),
   PRIMITIVE_MOTION_CURVE_THICK = (PRIMITIVE_CURVE_THICK | PRIMITIVE_MOTION),
   PRIMITIVE_MOTION_CURVE_RIBBON = (PRIMITIVE_CURVE_RIBBON | PRIMITIVE_MOTION),
   PRIMITIVE_MOTION_CURVE_THICK_LINEAR = (PRIMITIVE_CURVE_THICK_LINEAR | PRIMITIVE_MOTION),
   PRIMITIVE_MOTION_POINT = (PRIMITIVE_POINT | PRIMITIVE_MOTION),
+  PRIMITIVE_MOTION_GSPLAT = (PRIMITIVE_GSPLAT | PRIMITIVE_MOTION),
 
   PRIMITIVE_CURVE = (PRIMITIVE_CURVE_THICK | PRIMITIVE_CURVE_RIBBON),
 
   PRIMITIVE_ALL = (PRIMITIVE_TRIANGLE | PRIMITIVE_CURVE | PRIMITIVE_POINT | PRIMITIVE_VOLUME |
-                   PRIMITIVE_LAMP | PRIMITIVE_MOTION),
+                   PRIMITIVE_LAMP | PRIMITIVE_GSPLAT | PRIMITIVE_MOTION),
 
-  PRIMITIVE_NUM_SHAPES = 6,
+  PRIMITIVE_ANY_POINT = (PRIMITIVE_POINT | PRIMITIVE_GSPLAT),
+
+  PRIMITIVE_NUM_SHAPES = 7,
   PRIMITIVE_NUM_BITS = PRIMITIVE_NUM_SHAPES + 1, /* All shapes + motion bit. */
   PRIMITIVE_NUM = PRIMITIVE_NUM_SHAPES * 2,      /* With and without motion. */
 };
@@ -811,6 +815,12 @@ enum AttributeStandard : int {
   ATTR_STD_POINTINESS,
   ATTR_STD_RANDOM_PER_ISLAND,
   ATTR_STD_SHADOW_TRANSPARENCY,
+  ATTR_STD_GSPLAT_RADIANCE_BASE,
+  ATTR_STD_GSPLAT_RADIANCE_SPHERICAL_HARMONICS_REST,
+  ATTR_STD_GSPLAT_RADIANCE,
+  ATTR_STD_GSPLAT_ROTATION,
+  ATTR_STD_GSPLAT_SCALE,
+
   ATTR_STD_NUM,
 
   ATTR_STD_NOT_FOUND = -0x7fffffff
@@ -1460,6 +1470,17 @@ struct KernelObject {
 
       int normal_offset;
     } mesh_volume;
+
+    /* Information about Gaussian splat objects. */
+    struct {
+      /* Offset for the attributes.
+       * The least significant bit denotes whether the attribute has motion. */
+      int scale_offset_and_flag;
+      int rotation_offset_and_flag;
+      int radiance_base_offset_and_flag;
+
+      int radiance_spherical_harmonics_rest_offset;
+    } gsplat;
   };
 
   float cryptomatte_object;
