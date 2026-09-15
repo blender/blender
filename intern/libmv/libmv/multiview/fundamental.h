@@ -57,7 +57,7 @@ void EnforceFundamentalRank2Constraint(Mat3* F);
 void NormalizeFundamental(const Mat3& F, Mat3* F_normalized);
 
 /**
- * Approximate squared reprojection errror.
+ * Approximate squared reprojection error.
  *
  * See page 287 of HZ equation 11.9. This avoids triangulating the point,
  * relying only on the entries in F.

@@ -580,6 +580,9 @@ static PointCloud *create_points_poisson_disk(const Mesh &mesh,
                                               const bke::AttributeFilter &attribute_filter,
                                               const bool use_legacy_normal)
 {
+  if (density_max <= 0.0f) {
+    return nullptr;
+  }
   Array<int> count_data;
   const OffsetIndices<int> points_by_tri = calc_tri_point_offsets(
       mesh, density_max, seed, count_data);

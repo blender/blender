@@ -162,7 +162,7 @@ static void calc_faces(const Depsgraph &depsgraph,
 
   auto_mask::calc_vert_factors(depsgraph, object, cache.automasking.get(), node, verts, factors);
 
-  calc_brush_texture_factors(ss, brush, positions, factors);
+  calc_brush_texture_factors(PaintMode::Sculpt, ss, brush, positions, factors);
 
   Array<float, bke::pbvh::MESH_LEAF_LIMIT> masks(attribute_data.mask.is_empty() ? 0 :
                                                                                   verts.size());
@@ -254,7 +254,7 @@ static void calc_grids(const Depsgraph &depsgraph,
 
   auto_mask::calc_grids_factors(depsgraph, object, cache.automasking.get(), node, grids, factors);
 
-  calc_brush_texture_factors(ss, brush, positions, factors);
+  calc_brush_texture_factors(PaintMode::Sculpt, ss, brush, positions, factors);
 
   if (subdiv_ccg.masks.is_empty()) {
     tls.masks.clear();
@@ -352,7 +352,7 @@ static void calc_bmesh(const Depsgraph &depsgraph,
 
   auto_mask::calc_vert_factors(depsgraph, object, cache.automasking.get(), node, verts, factors);
 
-  calc_brush_texture_factors(ss, brush, positions, factors);
+  calc_brush_texture_factors(PaintMode::Sculpt, ss, brush, positions, factors);
 
   const MutableSpan<float> displacement_factors = gather_data_bmesh(
       layer_displacement_factor.as_span(), verts, tls.displacement_factors);

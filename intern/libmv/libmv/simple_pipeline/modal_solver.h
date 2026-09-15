@@ -32,8 +32,8 @@ namespace libmv {
     only camera motion itself. Bundles are not reconstructing properly, they're
     just getting projected onto sphere.
 
-    Markers from tracks object would be used for recosntruction, and algorithm
-    assumes thir's positions are undistorted already and they're in nnormalized
+    Markers from tracks object would be used for reconstruction, and algorithm
+    assumes their positions are undistorted already and they're in normalized
     space.
 
     Reconstructed cameras and projected bundles would be added to reconstruction

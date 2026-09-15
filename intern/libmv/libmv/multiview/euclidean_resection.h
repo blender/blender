@@ -61,7 +61,7 @@ bool EuclideanResection(const Mat2X& x_camera,
  * from 4 or more 3D points and their images.
  *
  * \param x_image   Image points in non-normalized image coordinates. The
- *                  coordates are laid out one per row. The matrix can be Nx2
+ *                  coordinates are laid out one per row. The matrix can be Nx2
  *                  or Nx3 for euclidean or homogenous 2D coordinates.
  * \param X_world   3D points in the world coordinate system
  * \param K         Intrinsic parameters camera matrix

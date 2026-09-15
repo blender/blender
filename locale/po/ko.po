@@ -1,9 +1,9 @@
 
 msgid ""
 msgstr ""
-"Project-Id-Version: Blender 5.3.0 Alpha (b'f5df8c32f99b')\n"
+"Project-Id-Version: Blender 5.3.0 Alpha (b'2cef5b8c951a')\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-09-07 07:47+0000\n"
+"POT-Creation-Date: 2026-09-14 07:47+0000\n"
 "PO-Revision-Date: 2026-09-06 05:02+0000\n"
 "Last-Translator: Benjamin Anshin <benanshin@gmail.com>\n"
 "Language-Team: Korean <https://translate.blender.org/projects/blender-ui/ui/ko/>\n"
@@ -18676,10 +18676,6 @@ msgid "Library Weak Reference"
 msgstr "라이브러리 약한 참조"
 
 
-msgid "Weak reference to a data-block in another library .blend file (used to re-use already appended data instead of appending new copies)"
-msgstr "다른 라이브러리 .블렌딩 파일의 데이터 블록에 대한 약한 참조(새 복사본을 추가하는 대신 이미 추가한 데이터를 재사용하는 데 사용)"
-
-
 msgid "Unique data-block ID name (within a same type and library)"
 msgstr "고유 데이터 블록 ID 이름(동일한 유형 및 라이브러리 내)"
 
@@ -35027,18 +35023,6 @@ msgid "Editor menu containing buttons"
 msgstr "버튼이 포함된 에디터 메뉴"
 
 
-msgid "Select More/Less"
-msgstr "선택 증가/감소"
-
-
-msgid "Gizmo"
-msgstr "기즈모"
-
-
-msgid "Instances"
-msgstr "인스턴스"
-
-
 msgid "Read"
 msgstr "읽기"
 
@@ -35047,72 +35031,84 @@ msgid "Sample"
 msgstr "샘플"
 
 
+msgid "Show/Hide"
+msgstr "표시/숨기기"
+
+
 msgid "Write"
 msgstr "쓰기"
+
+
+msgid "Clean Up"
+msgstr "정리"
 
 
 msgid "Primitives"
 msgstr "프리미티브"
 
 
+msgid "Pivot Point"
+msgstr "피벗 포인트"
+
+
+msgid "Gizmo"
+msgstr "기즈모"
+
+
+msgid "Snap"
+msgstr "스냅"
+
+
+msgid "Instances"
+msgstr "인스턴스"
+
+
+msgid "Proportional Editing Falloff"
+msgstr "비례 편집 감소"
+
+
+msgid "Mask Edit"
+msgstr "마스크 편집"
+
+
+msgid "Automasking"
+msgstr "오토마스킹"
+
+
+msgid "Face Sets Edit"
+msgstr "페이스 세트 편집"
+
+
+msgid "Vertex Group Locks"
+msgstr "버텍스 그룹 잠금"
+
+
 msgid "Import"
 msgstr "가져오기"
-
-
-msgid "Select Loops"
-msgstr "루프를 선택"
-
-
-msgid "Viewpoint"
-msgstr "뷰포트"
 
 
 msgid "Render Preview"
 msgstr "렌더링 미리보기"
 
 
-msgid "Select All by Trait"
-msgstr "형질로 모두 선택"
-
-
 msgid "Utilities"
 msgstr "유틸리티"
-
-
-msgid "Select Linked"
-msgstr "연결된 선택"
 
 
 msgid "Deprecated"
 msgstr "사용 중단"
 
 
-msgid "Select Similar"
-msgstr "유사한 선택"
-
-
 msgid "Math"
 msgstr "수학"
-
-
-msgid "Align View to Active"
-msgstr "뷰를 활성에 정렬"
 
 
 msgid "UV"
 msgstr "UV"
 
 
-msgid "View Regions"
-msgstr "뷰 지역"
-
-
-msgid "Navigation"
-msgstr "네비게이션"
-
-
-msgid "Align View"
-msgstr "뷰를 정렬"
+msgid "Mirror"
+msgstr "미러"
 
 
 msgid "UV Mapping"
@@ -35123,52 +35119,60 @@ msgid "Local View"
 msgstr "로컬 뷰"
 
 
-msgid "Snap"
-msgstr "스냅"
+msgid "Viewpoint"
+msgstr "뷰포트"
 
 
-msgid "Bone Roll"
-msgstr "뼈대 롤"
+msgid "Navigation"
+msgstr "네비게이션"
 
 
-msgid "Mirror"
-msgstr "미러"
+msgid "Align View"
+msgstr "뷰를 정렬"
 
 
-msgid "Automasking"
-msgstr "오토마스킹"
+msgid "Align View to Active"
+msgstr "뷰를 활성에 정렬"
 
 
-msgid "Vertex Group Locks"
-msgstr "버텍스 그룹 잠금"
+msgid "View Regions"
+msgstr "뷰 지역"
 
 
-msgid "Face Sets Edit"
-msgstr "페이스 세트 편집"
+msgid "Select More/Less"
+msgstr "선택 증가/감소"
 
 
-msgid "Mask Edit"
-msgstr "마스크 편집"
+msgid "Select Similar"
+msgstr "유사한 선택"
 
 
-msgid "Proportional Editing Falloff"
-msgstr "비례 편집 감소"
+msgid "Select All by Trait"
+msgstr "형질로 모두 선택"
 
 
-msgid "Pivot Point"
-msgstr "피벗 포인트"
+msgid "Select Linked"
+msgstr "연결된 선택"
 
 
-msgid "Clean Up"
-msgstr "정리"
+msgid "Select Loops"
+msgstr "루프를 선택"
 
 
-msgid "Show/Hide"
-msgstr "표시/숨기기"
+msgid "Assign Material"
+msgstr "머티리얼을 할당"
 
 
-msgid "Names"
-msgstr "이름"
+msgid "Metaball"
+msgstr "메타볼"
+
+
+msgid "Light"
+msgstr "라이트"
+
+
+msgid "Light Probe"
+msgstr "라이트 프로브"
 
 
 msgid "Linked"
@@ -35179,108 +35183,48 @@ msgid "Layout"
 msgstr "레이아웃"
 
 
-msgid "Metaball"
-msgstr "메타볼"
+msgid "Add Image"
+msgstr "이미지를 추가"
 
 
-msgid "Kerning"
-msgstr "자간"
+msgid "Relations"
+msgstr "관계"
 
 
-msgid "Special Characters"
-msgstr "특수 문자"
-
-
-msgid "Adjust"
-msgstr "조정"
-
-
-msgid "Merge"
-msgstr "병합"
-
-
-msgid "Bone Collections"
-msgstr "뼈대 컬렉션"
-
-
-msgid "Keying"
-msgstr "키잉"
-
-
-msgid "Tracking"
-msgstr "트래킹"
-
-
-msgid "Set Face Strength"
-msgstr "페이스 강도를 설정"
-
-
-msgid "Select by Face Strength"
-msgstr "페이스 강도로 선택"
-
-
-msgid "Face Data"
-msgstr "페이스 데이터"
-
-
-msgid "Creative"
-msgstr "크리에이티브"
-
-
-msgid "Mesh Select Mode"
-msgstr "메시 선택 모드"
-
-
-msgid "Disable Bone Options"
-msgstr "뼈대 옵션을 사용 중지"
-
-
-msgid "Enable Bone Options"
-msgstr "뼈대 옵션을 사용"
-
-
-msgid "Toggle Bone Options"
-msgstr "뼈대 옵션을 토글"
+msgid "Rigid Body"
+msgstr "리지드 바디"
 
 
 msgid "Apply"
 msgstr "적용"
 
 
-msgid "Propagate"
-msgstr "전파"
+msgid "Track"
+msgstr "트랙"
 
 
-msgid "In-Betweens"
-msgstr "사이에서"
+msgid "Adjust"
+msgstr "조정"
 
 
-msgid "Clear Transform"
-msgstr "변환을 지우기"
+msgid "Quick Effects"
+msgstr "빠른 이펙트"
 
 
-msgid "Random Mask"
-msgstr "랜덤 마스크"
+msgid "Keying"
+msgstr "키잉"
 
 
-msgid "Sculpt Set Pivot"
-msgstr "스컬프트 설정 피벗"
-
-
-msgid "Face Sets Init"
-msgstr "페이스 세트 초기화"
-
-
-msgid "Trim/Add"
-msgstr "트림/추가"
-
-
-msgid "Hooks"
-msgstr "후크"
+msgid "Asset"
+msgstr "에셋"
 
 
 msgid "Make Single User"
 msgstr "싱글 유저를 만들기"
+
+
+msgid "Tracking"
+msgstr "트래킹"
 
 
 msgid "Convert"
@@ -35291,40 +35235,92 @@ msgid "Link/Transfer Data"
 msgstr "데이터 연결/전송"
 
 
-msgid "Asset"
-msgstr "에셋"
+msgid "Hooks"
+msgstr "후크"
 
 
-msgid "Quick Effects"
-msgstr "빠른 이펙트"
+msgid "Creative"
+msgstr "크리에이티브"
 
 
-msgid "Track"
-msgstr "트랙"
+msgid "Trim/Add"
+msgstr "트림/추가"
 
 
-msgid "Rigid Body"
-msgstr "리지드 바디"
+msgid "Sculpt Set Pivot"
+msgstr "스컬프트 설정 피벗"
 
 
-msgid "Add Image"
-msgstr "이미지를 추가"
+msgid "Face Sets Init"
+msgstr "페이스 세트 초기화"
 
 
-msgid "Relations"
-msgstr "관계"
+msgid "Random Mask"
+msgstr "랜덤 마스크"
 
 
-msgid "Light Probe"
-msgstr "라이트 프로브"
+msgid "Clear Transform"
+msgstr "변환을 지우기"
 
 
-msgid "Assign Material"
-msgstr "머티리얼을 할당"
+msgid "In-Betweens"
+msgstr "사이에서"
 
 
-msgid "Light"
-msgstr "라이트"
+msgid "Propagate"
+msgstr "전파"
+
+
+msgid "Bone Collections"
+msgstr "뼈대 컬렉션"
+
+
+msgid "Names"
+msgstr "이름"
+
+
+msgid "Toggle Bone Options"
+msgstr "뼈대 옵션을 토글"
+
+
+msgid "Enable Bone Options"
+msgstr "뼈대 옵션을 사용"
+
+
+msgid "Disable Bone Options"
+msgstr "뼈대 옵션을 사용 중지"
+
+
+msgid "Mesh Select Mode"
+msgstr "메시 선택 모드"
+
+
+msgid "Face Data"
+msgstr "페이스 데이터"
+
+
+msgid "Select by Face Strength"
+msgstr "페이스 강도로 선택"
+
+
+msgid "Set Face Strength"
+msgstr "페이스 강도를 설정"
+
+
+msgid "Merge"
+msgstr "병합"
+
+
+msgid "Special Characters"
+msgstr "특수 문자"
+
+
+msgid "Kerning"
+msgstr "자간"
+
+
+msgid "Bone Roll"
+msgstr "뼈대 롤"
 
 
 msgid "Keyframe Insert Pie"
@@ -51955,6 +51951,14 @@ msgstr "노드 입력"
 
 msgid "Collection of Node Sockets"
 msgstr "노드 소켓의 컬렉션"
+
+
+msgid "From Socket"
+msgstr "소켓에서"
+
+
+msgid "To Socket"
+msgstr "소켓으로"
 
 
 msgid "Socket Template"
@@ -72187,10 +72191,6 @@ msgid "From node linked to selected node"
 msgstr "선택한 노드에 연결된 노드에서"
 
 
-msgid "From Socket"
-msgstr "소켓에서"
-
-
 msgid "From socket linked to selected node"
 msgstr "선택한 노드에 연결된 소켓에서"
 
@@ -87514,6 +87514,14 @@ msgid "View a context based online manual in a web browser"
 msgstr "웹 브라우저에서 컨텍스트 기반 온라인 매뉴얼을 보기"
 
 
+msgid "Trusted Source"
+msgstr "신뢰된 소스"
+
+
+msgid "Allow .blend file to execute scripts automatically, default available from system preferences"
+msgstr ".blend 파일이 자동으로 스크립트를 실행하도록 허용, 기본값은 시스템 환경 설정에서 사용 가능합니다"
+
+
 msgctxt "Operator"
 msgid "Drop to Import File"
 msgstr "끌어다 놓기 파일 가져오기"
@@ -87970,14 +87978,6 @@ msgstr ".blend 파일에서 사용자 인터페이스 설정을 불러오기"
 
 msgid "State"
 msgstr "상태"
-
-
-msgid "Trusted Source"
-msgstr "신뢰된 소스"
-
-
-msgid "Allow .blend file to execute scripts automatically, default available from system preferences"
-msgstr ".blend 파일이 자동으로 스크립트를 실행하도록 허용, 기본값은 시스템 환경 설정에서 사용 가능합니다"
 
 
 msgctxt "Operator"
@@ -90547,44 +90547,24 @@ msgid "Panel containing UI elements"
 msgstr "UI 요소가 포함된 패널"
 
 
-msgid "Guides"
-msgstr "가이드"
+msgid "Active Tool"
+msgstr "활성 도구"
 
 
-msgid "Drawing Plane"
-msgstr "드로잉 평면"
+msgid "View Lock"
+msgstr "뷰 잠금"
 
 
-msgid "Stroke Placement"
-msgstr "스트로크 배치"
+msgid "Selectability & Visibility"
+msgstr "선택성 및 가시성"
 
 
-msgid "Transform Orientations"
-msgstr "변환 오리엔테이션"
+msgid "Shadow Settings"
+msgstr "섀도우 설정"
 
 
-msgid "Viewer Node"
-msgstr "뷰어 노드"
-
-
-msgid "Curves Edit Mode"
-msgstr "커브 편집 모드"
-
-
-msgid "Curve Edit Mode"
-msgstr "커브 에디트 모드"
-
-
-msgid "Measurement"
-msgstr "측정"
-
-
-msgid "Mesh Edit Mode"
-msgstr "메시 에디트 모드"
-
-
-msgid "Motion Tracking"
-msgstr "모션 트래킹"
+msgid "SSAO Settings"
+msgstr "SSAO 설정"
 
 
 msgid "Cavity"
@@ -90599,12 +90579,32 @@ msgid "Overlays"
 msgstr "오버레이"
 
 
-msgid "SSAO Settings"
-msgstr "SSAO 설정"
+msgid "Guides"
+msgstr "가이드"
 
 
-msgid "Shadow Settings"
-msgstr "섀도우 설정"
+msgid "Viewer Node"
+msgstr "뷰어 노드"
+
+
+msgid "Motion Tracking"
+msgstr "모션 트래킹"
+
+
+msgid "Mesh Edit Mode"
+msgstr "메시 에디트 모드"
+
+
+msgid "Measurement"
+msgstr "측정"
+
+
+msgid "Curve Edit Mode"
+msgstr "커브 에디트 모드"
+
+
+msgid "Curves Edit Mode"
+msgstr "커브 편집 모드"
 
 
 msgid "glTF Variants"
@@ -90615,16 +90615,32 @@ msgid "glTF Material Variants"
 msgstr "glTF 머티리얼 배리언트"
 
 
-msgid "Selectability & Visibility"
-msgstr "선택성 및 가시성"
+msgid "Transform Orientations"
+msgstr "변환 오리엔테이션"
 
 
-msgid "Active Tool"
-msgstr "활성 도구"
+msgid "Stroke Placement"
+msgstr "스트로크 배치"
 
 
-msgid "View Lock"
-msgstr "뷰 잠금"
+msgid "Drawing Plane"
+msgstr "드로잉 평면"
+
+
+msgid "Grease Pencil Options"
+msgstr "그리스 펜슬 옵션"
+
+
+msgid "Quad View"
+msgstr "쿼드 뷰"
+
+
+msgid "Onion Skin"
+msgstr "어니언 스킨"
+
+
+msgid "Stereoscopy"
+msgstr "입체 영상"
 
 
 msgid "glTF"
@@ -90635,52 +90651,36 @@ msgid "glTF Animations"
 msgstr "glTF 애니메이션"
 
 
-msgid "VR"
-msgstr "VR"
-
-
-msgid "VR Info"
-msgstr "VR 정보"
-
-
-msgid "Viewport Debug"
-msgstr "뷰포트 디버그"
-
-
-msgid "Curves Grow/Shrink Scaling"
-msgstr "커브 성장/축소 스케일링"
-
-
-msgid "Curves Sculpt Parameter Falloff"
-msgstr "커브 스컬프트 매개변수 폴오프"
-
-
-msgid "Curves Sculpt Add Curve Options"
-msgstr "커브 스컬프트 커브 옵션 추가"
+msgid "Multi Frame"
+msgstr "다중 프레임"
 
 
 msgid "Auto-Masking"
 msgstr "자동 마스킹"
 
 
-msgid "Multi Frame"
-msgstr "다중 프레임"
+msgid "Curves Sculpt Add Curve Options"
+msgstr "커브 스컬프트 커브 옵션 추가"
 
 
-msgid "Stereoscopy"
-msgstr "입체 영상"
+msgid "Curves Sculpt Parameter Falloff"
+msgstr "커브 스컬프트 매개변수 폴오프"
 
 
-msgid "Onion Skin"
-msgstr "어니언 스킨"
+msgid "Curves Grow/Shrink Scaling"
+msgstr "커브 성장/축소 스케일링"
 
 
-msgid "Quad View"
-msgstr "쿼드 뷰"
+msgid "Viewport Debug"
+msgstr "뷰포트 디버그"
 
 
-msgid "Grease Pencil Options"
-msgstr "그리스 펜슬 옵션"
+msgid "VR"
+msgstr "VR"
+
+
+msgid "VR Info"
+msgstr "VR 정보"
 
 
 msgid "Import Settings"
@@ -118143,10 +118143,6 @@ msgid "Deleted 1 node"
 msgstr "노드 1개 삭제"
 
 
-msgid "To Socket"
-msgstr "소켓으로"
-
-
 msgid "No images found to reload in this node tree"
 msgstr "이 노드 트리에서 다시 로드할 이미지가 없음"
 
@@ -120061,6 +120057,10 @@ msgstr "Blender 스토어"
 msgctxt "Operator"
 msgid "Blender Website"
 msgstr "Blender 웹사이트"
+
+
+msgid "Trusted Source [Untrusted Path]"
+msgstr "신뢰할 수 있는 출처 [신뢰하지 않은 경로]"
 
 
 msgctxt "Operator"
@@ -148805,10 +148805,6 @@ msgstr ""
 
 msgid "To make changes to Preferences permanent, use \"Save Preferences\"."
 msgstr "변경 사항을 영구적으로 저장하려면 \"선호도 저장\"을 사용함."
-
-
-msgid "Trusted Source [Untrusted Path]"
-msgstr "신뢰할 수 있는 출처 [신뢰하지 않은 경로]"
 
 
 msgid "Any unsaved changes will be lost."

@@ -1288,7 +1288,7 @@ static void rna_Scene_compositing_node_group_set(PointerRNA *scene_ptr,
 
   SceneCompositorEffect *effect = bke::compositor::get_active_effect(*scene);
   if (!effect) {
-    effect = &bke::compositor::new_effect(*scene, "Effect");
+    effect = &bke::compositor::new_effect(*scene, "Scene Effect");
   }
 
   if (effect->node_group) {
@@ -9045,13 +9045,13 @@ static void rna_def_compositor_effect_nodes_properties(BlenderRNA *brna)
   StructRNA *srna;
 
   srna = RNA_def_struct(brna, "SceneCompositorEffectProperties", nullptr);
-  RNA_def_struct_ui_text(srna, "Scene Compositor Effect Properties", "");
+  RNA_def_struct_ui_text(srna, "Scene Effect Properties", "");
   RNA_def_struct_refine_func(srna, "rna_SceneCompositorEffectProperties_refine");
   RNA_def_struct_system_idprops_func(srna, "rna_SceneCompositorEffect_idprops");
   RNA_def_struct_path_func(srna, "rna_SceneCompositorEffectProperties_path");
 
   srna = RNA_def_struct(brna, "SceneCompositorEffectPropertiesEmpty", nullptr);
-  RNA_def_struct_ui_text(srna, "Scene Compositor Effect Empty Properties", "");
+  RNA_def_struct_ui_text(srna, "Scene Effect Empty Properties", "");
   RNA_def_struct_system_idprops_func(srna, "rna_SceneCompositorEffect_idprops");
   RNA_def_struct_path_func(srna, "rna_SceneCompositorEffectProperties_path");
 }
@@ -9063,7 +9063,7 @@ static void rna_def_compositor_effect(BlenderRNA *brna)
 
   srna = RNA_def_struct(brna, "SceneCompositorEffect", nullptr);
   RNA_def_struct_sdna(srna, "SceneCompositorEffect");
-  RNA_def_struct_ui_text(srna, "Scene Compositor Effect", "Compositor effect for scene");
+  RNA_def_struct_ui_text(srna, "Scene Effect", "Compositor effect for scene");
   RNA_def_struct_ui_icon(srna, ICON_NODE_COMPOSITING);
   RNA_def_struct_path_func(srna, "rna_SceneCompositorEffect_path");
 
@@ -9141,8 +9141,7 @@ static void rna_def_compositor_effects(BlenderRNA *brna, PropertyRNA *cprop)
   RNA_def_property_srna(cprop, "SceneCompositorEffects");
   srna = RNA_def_struct(brna, "SceneCompositorEffects", nullptr);
   RNA_def_struct_sdna(srna, "Scene");
-  RNA_def_struct_ui_text(
-      srna, "Scene Compositor Effects", "Collection of scene compositor effects");
+  RNA_def_struct_ui_text(srna, "Scene Effects", "Collection of scene effects");
 
   /* add effect */
   func = RNA_def_function(srna, "new", "rna_SceneCompositorEffects_new");
@@ -9533,7 +9532,7 @@ void RNA_def_scene(BlenderRNA *brna)
 
   prop = RNA_def_property(srna, "compositor_effects", PROP_COLLECTION, PROP_NONE);
   RNA_def_property_struct_type(prop, "SceneCompositorEffect");
-  RNA_def_property_ui_text(prop, "Compositor Effects", "Compositor effects for this scene");
+  RNA_def_property_ui_text(prop, "Scene Effects", "Compositor effects for this scene");
   rna_def_compositor_effects(brna, prop);
 
   /* Nodes (Compositing) */

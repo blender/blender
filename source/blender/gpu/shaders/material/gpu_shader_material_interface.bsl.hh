@@ -20,6 +20,25 @@ struct Closure {};
   { \
   }
 
+enum eObjectInfoFlag : uint32_t {
+  OBJECT_SELECTED = (1u << 0u),
+  OBJECT_FROM_DUPLI = (1u << 1u),
+  OBJECT_FROM_SET = (1u << 2u),
+  OBJECT_ACTIVE = (1u << 3u),
+  OBJECT_NEGATIVE_SCALE = (1u << 4u),
+  OBJECT_HOLDOUT = (1u << 5u),
+  /* Implies all objects that match the current active object's mode and able to be edited
+   * simultaneously. Currently only applicable for edit mode. */
+  OBJECT_ACTIVE_EDIT_MODE = (1u << 6u),
+  /* Avoid skipped info to change culling. */
+  OBJECT_NO_INFO = ~OBJECT_HOLDOUT
+};
+
+#define RAY_TYPE_CAMERA 0
+#define RAY_TYPE_SHADOW 1
+#define RAY_TYPE_DIFFUSE 2
+#define RAY_TYPE_GLOSSY 3
+
 /* Should eventually carry the needed resource tables. */
 // struct KernelGlobals {
 
@@ -299,6 +318,63 @@ float texture_lod_bias_get()
 float derivative_scale_get()
 {
   return 1.0;
+}
+
+/* AOV Output. */
+
+void output_aov(int2 /*texel*/,
+                float4 /*color*/,
+                float /*value*/,
+                uint /*hash*/,
+                float /*holdout*/,
+                eObjectInfoFlag /*ob_flag*/)
+{
+}
+
+/* Matrices. */
+
+struct ObjectMatrices {
+  float4x4 model;
+  float4x4 model_inverse;
+};
+
+struct ObjectInfos {
+  /** Uploaded as center + size. Converted to mul+bias to local coord. */
+  packed_float3 orco_add;
+  uint object_attrs_offset;
+  packed_float3 orco_mul;
+  uint object_attrs_len;
+
+  float4 ob_color;
+  uint index;
+  /** Used for Light Linking in EEVEE */
+  uint light_and_shadow_set_membership;
+  float random;
+  eObjectInfoFlag flag;
+  float shadow_terminator_normal_offset;
+  float shadow_terminator_geometry_offset;
+};
+
+struct ViewMatrices {
+  float4x4 viewmat;
+  float4x4 viewinv;
+  float4x4 winmat;
+  float4x4 wininv;
+};
+
+ObjectMatrices object_matrices_get()
+{
+  return {};
+}
+
+ObjectInfos object_infos_get()
+{
+  return {};
+}
+
+ViewMatrices view_matrices_get()
+{
+  return {};
 }
 
 //}; // KernelGlobals

@@ -250,13 +250,11 @@ void rendermap_finalize_main([[resource_table]] RendermapFinalize &srt,
     int lod_res = SHADOW_TILEMAP_RES >> lod;
     int2 relative_tile_co = (viewport_tile_co + lod_res) % lod_res;
     if (all(lessThan(relative_tile_co, viewport_size))) {
-      bool do_page_render = tile.is_used && tile.do_update;
-      uint page_packed = shadow_page_pack(tile.page);
-      /* Add page to render map. */
-      int render_page_index = shadow_render_page_index_get(view_index, relative_tile_co);
-      srt.render_map_buf[render_page_index] = do_page_render ? page_packed : 0xFFFFFFFFu;
-
-      if (do_page_render) {
+      if (tile.is_used && tile.do_update) {
+        uint page_packed = shadow_page_pack(tile.page);
+        /* Add page to render map. */
+        int render_page_index = shadow_render_page_index_get(view_index, relative_tile_co);
+        srt.render_map_buf[render_page_index] = page_packed;
         /* Add page to clear dispatch. */
         uint page_index = atomicAdd(srt.clear_dispatch_buf.num_groups_z, 1u);
         /* Add page to tile processing. */
@@ -264,7 +262,7 @@ void rendermap_finalize_main([[resource_table]] RendermapFinalize &srt,
         /* Add page mapping for indexing the page position in atlas and in the frame-buffer. */
         srt.dst_coord_buf[page_index] = page_packed;
         srt.src_coord_buf[page_index] = packUvec4x8(
-            uint4(int4(relative_tile_co.x, relative_tile_co.y, view_index, 0)));
+            uint4(relative_tile_co.x, relative_tile_co.y, view_index, 0));
         /* Tag tile as rendered. Should be safe since only one thread is reading and writing. */
         srt.tiles_buf[tile_index] |= SHADOW_IS_RENDERED;
         /* Statistics. */

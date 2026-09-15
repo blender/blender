@@ -39,6 +39,8 @@ class bNodeTreeRuntime;
 class bNodeRuntime;
 class bNodeSocketRuntime;
 }  // namespace bke
+
+struct bNodeInternalLink;
 namespace bke {
 class bNodeTreeZones;
 class bNodeTreeZone;
@@ -215,8 +217,7 @@ enum eNode_Flag : int {
   NODE_MUTED = 1 << 9,
   // NODE_CUSTOM_NAME = 1 << 10, /* Deprecated, dirty. */
   // NODE_CONST_OUTPUT = 1 << 11, /* Deprecated, dirty. */
-  /** Node is always behind others. */
-  NODE_BACKGROUND = 1 << 12,
+  // NODE_BACKGROUND = 1 << 12, /* Deprecated, dirty. */
   /** Automatic flag for nodes included in transforms */
   // NODE_TRANSFORM = 1 << 13, /* Deprecated, dirty. */
 
@@ -1749,6 +1750,7 @@ struct bNode {
   int index() const;
   StringRefNull label_or_name() const;
   bool is_muted() const;
+  bool is_selected() const;
   bool is_reroute() const;
   bool is_frame() const;
   bool is_group() const;
@@ -1768,7 +1770,7 @@ struct bNode {
 
   const nodes::NodeDeclaration *declaration() const;
   /** A span containing all internal links when the node is muted. */
-  Span<bNodeLink> internal_links() const;
+  Span<bNodeInternalLink> internal_links() const;
 
   /* This node is reroute which is not logically connected to any source of value. */
   bool is_dangling_reroute() const;

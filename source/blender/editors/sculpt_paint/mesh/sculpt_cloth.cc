@@ -827,7 +827,7 @@ static void calc_forces_mesh(const Depsgraph &depsgraph,
   const auto_mask::Cache *automask = auto_mask::active_cache_get(ss);
   auto_mask::calc_vert_factors(depsgraph, ob, automask, node, verts, factors);
 
-  calc_brush_texture_factors(ss, brush, current_positions, factors);
+  calc_brush_texture_factors(PaintMode::Sculpt, ss, brush, current_positions, factors);
 
   scale_factors(factors, cache.bstrength);
 
@@ -938,7 +938,7 @@ static void calc_forces_grids(const Depsgraph &depsgraph,
   const auto_mask::Cache *automask = auto_mask::active_cache_get(ss);
   auto_mask::calc_grids_factors(depsgraph, ob, automask, node, grids, factors);
 
-  calc_brush_texture_factors(ss, brush, current_positions, factors);
+  calc_brush_texture_factors(PaintMode::Sculpt, ss, brush, current_positions, factors);
 
   scale_factors(factors, cache.bstrength);
 
@@ -1047,7 +1047,7 @@ static void calc_forces_bmesh(const Depsgraph &depsgraph,
   const auto_mask::Cache *automask = auto_mask::active_cache_get(ss);
   auto_mask::calc_vert_factors(depsgraph, ob, automask, node, bm_verts, factors);
 
-  calc_brush_texture_factors(ss, brush, current_positions, factors);
+  calc_brush_texture_factors(PaintMode::Sculpt, ss, brush, current_positions, factors);
 
   scale_factors(factors, cache.bstrength);
 

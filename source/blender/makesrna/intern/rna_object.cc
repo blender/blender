@@ -2915,6 +2915,7 @@ static void rna_def_object_visibility(StructRNA *srna)
   prop = RNA_def_property(srna, "visible_camera", PROP_BOOLEAN, PROP_NONE);
   RNA_def_property_boolean_negative_sdna(prop, nullptr, "visibility_flag", OB_HIDE_CAMERA);
   RNA_def_property_ui_text(prop, "Camera Visibility", "Object visibility to camera rays");
+  RNA_def_property_ui_icon(prop, ICON_INDIRECT_ONLY_OFF, 1);
   RNA_def_property_update(prop, NC_OBJECT | ND_DRAW, "rna_Object_internal_update_draw");
 
   prop = RNA_def_property(srna, "visible_diffuse", PROP_BOOLEAN, PROP_NONE);
@@ -2952,6 +2953,7 @@ static void rna_def_object_visibility(StructRNA *srna)
       "Holdout",
       "Render objects as a holdout or matte, creating a hole in the image with zero alpha, to "
       "fill out in compositing with real footage or another render");
+  RNA_def_property_ui_icon(prop, ICON_HOLDOUT_OFF, 1);
   RNA_def_property_update(prop, NC_OBJECT | ND_DRAW, "rna_Object_hide_update");
 
   prop = RNA_def_property(srna, "is_shadow_catcher", PROP_BOOLEAN, PROP_NONE);

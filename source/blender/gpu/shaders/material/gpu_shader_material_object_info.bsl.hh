@@ -2,6 +2,10 @@
  *
  * SPDX-License-Identifier: GPL-2.0-or-later */
 
+#pragma once
+
+#include "gpu_shader_material_interface.bsl.hh"
+
 [[node]]
 void node_object_info(float mat_index,
                       float3 &location,

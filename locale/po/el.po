@@ -1,18 +1,22 @@
 
 msgid ""
 msgstr ""
-"Project-Id-Version: Blender 5.3.0 Alpha (b'f5df8c32f99b')\n"
+"Project-Id-Version: Blender 5.3.0 Alpha (b'2cef5b8c951a')\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-09-07 07:47+0000\n"
-"PO-Revision-Date: 2025-07-23 15:19+0000\n"
-"Last-Translator: Anonymous <noreply@weblate.org>\n"
+"POT-Creation-Date: 2026-09-14 07:47+0000\n"
+"PO-Revision-Date: 2026-09-10 15:30+0000\n"
+"Last-Translator: Marios1Gr <mariosvas2@gmail.com>\n"
 "Language-Team: Greek <https://translate.blender.org/projects/blender-ui/ui/el/>\n"
 "Language: el\n"
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8bit\n"
 "Plural-Forms: nplurals=2; plural=n != 1;\n"
-"X-Generator: Weblate 5.12.1"
+"X-Generator: Weblate 2026.6.1"
+
+
+msgid "Valid"
+msgstr "Έγκυρο"
 
 
 msgid "Name"
@@ -27,16 +31,402 @@ msgid "Color"
 msgstr "Χρώμα"
 
 
+msgid "Value"
+msgstr "Τιμή"
+
+
+msgid "Slot"
+msgstr "Θέση"
+
+
+msgid "Color Set"
+msgstr "Σέτ χρωμάτων"
+
+
+msgid "Custom color set to use"
+msgstr "Προσαρμοσμένο σετ χρωμάτων προς χρήση"
+
+
+msgid "Default Colors"
+msgstr "Αρχικά Χρώματα"
+
+
+msgid "01 - Theme Color Set"
+msgstr "01 - Σετ Χρωμάτων Θέματος"
+
+
+msgid "02 - Theme Color Set"
+msgstr "02 - Σετ Χρωμάτων Θέματος"
+
+
+msgid "03 - Theme Color Set"
+msgstr "03 - Σετ Χρωμάτων Θέματος"
+
+
+msgid "04 - Theme Color Set"
+msgstr "04 - Σετ Χρωμάτων Θέματος"
+
+
+msgid "05 - Theme Color Set"
+msgstr "05 - Σετ Χρωμάτων Θέματος"
+
+
+msgid "06 - Theme Color Set"
+msgstr "06 - Σετ Χρωμάτων Θέματος"
+
+
+msgid "07 - Theme Color Set"
+msgstr "07 - Σετ Χρωμάτων Θέματος"
+
+
+msgid "08 - Theme Color Set"
+msgstr "08 - Σετ Χρωμάτων Θέματος"
+
+
+msgid "09 - Theme Color Set"
+msgstr "09 - Σετ Χρωμάτων Θέματος"
+
+
+msgid "10 - Theme Color Set"
+msgstr "10 - Σετ Χρωμάτων Θέματος"
+
+
+msgid "11 - Theme Color Set"
+msgstr "11 - Σετ Χρωμάτων Θέματος"
+
+
+msgid "12 - Theme Color Set"
+msgstr "12 - Σετ Χρωμάτων Θέματος"
+
+
+msgid "13 - Theme Color Set"
+msgstr "13 - Σετ Χρωμάτων Θέματος"
+
+
+msgid "14 - Theme Color Set"
+msgstr "14 - Σετ Χρωμάτων Θέματος"
+
+
+msgid "15 - Theme Color Set"
+msgstr "15 - Σετ Χρωμάτων Θέματος"
+
+
+msgid "16 - Theme Color Set"
+msgstr "16 - Σετ Χρωμάτων Θέματος"
+
+
+msgid "17 - Theme Color Set"
+msgstr "17 - Σετ Χρωμάτων Θέματος"
+
+
+msgid "18 - Theme Color Set"
+msgstr "18 - Σετ Χρωμάτων Θέματος"
+
+
+msgid "19 - Theme Color Set"
+msgstr "19 - Σετ Χρωμάτων Θέματος"
+
+
+msgid "20 - Theme Color Set"
+msgstr "20 - Σετ Χρωμάτων Θέματος"
+
+
+msgid "Custom Color Set"
+msgstr "Προσαρμοσμένο Σετ Χρωμάτων"
+
+
+msgid "Colors"
+msgstr "Χρώματα"
+
+
+msgid "Copy of the colors associated with the group's color set"
+msgstr "Αντίγραφο των χρωμάτων που έχουν σχέση με το σετ χρωμάτων της ομάδας"
+
+
+msgid "Color set is user-defined instead of a fixed theme color set"
+msgstr "Το σετ χρωμάτων είναι καθορισμένο από τον χρήστη αντί να είναι σταθερό"
+
+
+msgid "Lock"
+msgstr "Κλείδωμα"
+
+
+msgid "Action group is locked"
+msgstr "Η ομάδα ενεργειών είναι κλειδωμένη"
+
+
 msgid "Mute"
 msgstr "Σίγαση"
+
+
+msgid "Action group is muted"
+msgstr "Η ομάδα ενεργειών είναι σε σίγαση"
 
 
 msgid "Select"
 msgstr "Επιλογή"
 
 
+msgid "Action group is selected"
+msgstr "Η ομάδα ενεργειών είναι επιλεγμένη"
+
+
+msgid "Expanded"
+msgstr "Έχει επεκταθεί"
+
+
+msgid "Action group is expanded except in graph editor"
+msgstr "Η ομάδα ενεργειών έχει επεκταθεί εκτός από τον επεξεργαστή γραφημάτων"
+
+
+msgid "Expanded in Graph Editor"
+msgstr "Έχει επεκταθεί στον Επεξεργαστή Γραφημάτων"
+
+
+msgid "Action group is expanded in graph editor"
+msgstr "Η ομάδα ενεργειών έχει επεκταθεί στον επεξεργαστή γραφημάτων"
+
+
+msgid "Pin in Graph Editor"
+msgstr "Πινέζα στον Επεξεργαστή Γραφημάτων"
+
+
+msgid "Action slot"
+msgstr "Θέση ενεργειών"
+
+
+msgid "Identifier for a set of channels in this Action, that can be used by a data-block to specify what it gets animated by"
+msgstr "Αναγνωριστικό για μία όμαδα καναλιών σε αυτήν την Ενέργεια, το οποίο μπορεί να χρησιμοποιηθεί από ένα μπλοκ-δεδομένων για να προσδιορίσει από τι κινησιοδοτείται"
+
+
+msgid "Active"
+msgstr "Ενεργό"
+
+
+msgid "Whether this is the active slot, can be set by assigning to action.slots.active"
+msgstr "Το αν αυτή είναι η ενεργή θέση μπορεί να οριστεί αναθέτοντας στο action.slots.active"
+
+
+msgid "Slot Identifier"
+msgstr "Αναγνωριστικό Θέσης"
+
+
+msgid "Used when connecting an Action to a data-block, to find the correct slot handle. This is the display name, prefixed by two characters determined by the slot's ID type"
+msgstr "Χρησιμοποιείται καθώς μία Ενέργεια συνδέεται με ένα μπλοκ δεδομένων για να βρεθεί το σωστό αναγνωριστικό θέσης. Αυτό είναι το όνομα απεικόνισης με πρόθεμα δύο χαρακτήρες οι οποίοι καθορίζονται από τον τύπο ID της θέσης"
+
+
+msgid "Slot Display Name"
+msgstr "Όνομα Απεικόνισης Θέσης"
+
+
+msgid "Selection state of the slot"
+msgstr "Κατάσταση επιλογής της θέσης"
+
+
+msgctxt "ID"
+msgid "Target ID Type"
+msgstr "Τύπος ID του Στόχου"
+
+
+msgctxt "ID"
+msgid "Action"
+msgstr "Ενέργεια"
+
+
+msgctxt "ID"
+msgid "Armature"
+msgstr "Σκελετός"
+
+
+msgctxt "ID"
+msgid "Brush"
+msgstr "Βούρτσα"
+
+
+msgctxt "ID"
+msgid "Cache File"
+msgstr "Αρχείο Κρυφής Μνήμης"
+
+
+msgctxt "ID"
+msgid "Camera"
+msgstr "Κάμερα"
+
+
+msgctxt "ID"
+msgid "Collection"
+msgstr "Συλλογή"
+
+
+msgctxt "ID"
+msgid "Curve"
+msgstr "Καμπύλη"
+
+
+msgctxt "ID"
+msgid "Curves"
+msgstr "Καμπύλες"
+
+
+msgctxt "ID"
+msgid "Font"
+msgstr "Γραμματοσειρά"
+
+
+msgctxt "ID"
+msgid "Image"
+msgstr "Εικόνα"
+
+
+msgctxt "ID"
+msgid "Key"
+msgstr "Κλειδί"
+
+
+msgctxt "ID"
+msgid "Lattice"
+msgstr "Πλέγμα"
+
+
+msgctxt "ID"
+msgid "Library"
+msgstr "Βιβλιοθήκη"
+
+
+msgctxt "ID"
+msgid "Light"
+msgstr "Φως"
+
+
+msgctxt "ID"
+msgid "Line Style"
+msgstr "Στυλ Γραμμής"
+
+
+msgctxt "ID"
+msgid "Mask"
+msgstr "Μάσκα"
+
+
+msgctxt "ID"
+msgid "Material"
+msgstr "Υλικό"
+
+
+msgctxt "ID"
+msgid "Mesh"
+msgstr "Πλέγμα"
+
+
+msgctxt "ID"
+msgid "Movie Clip"
+msgstr "Απόσπασμα Ταινίας"
+
+
+msgctxt "ID"
+msgid "Node Tree"
+msgstr "Δένδρο Κόμβων"
+
+
+msgctxt "ID"
+msgid "Object"
+msgstr "Αντικείμενο"
+
+
+msgctxt "ID"
+msgid "Palette"
+msgstr "Παλέτα"
+
+
+msgctxt "ID"
+msgid "Particle"
+msgstr "Σωματίδιο"
+
+
+msgctxt "ID"
+msgid "Scene"
+msgstr "Σκηνή"
+
+
+msgctxt "ID"
+msgid "Screen"
+msgstr "Οθόνη"
+
+
+msgctxt "ID"
+msgid "Sound"
+msgstr "Ήχος"
+
+
+msgctxt "ID"
+msgid "Speaker"
+msgstr "Ηχείο"
+
+
+msgctxt "ID"
+msgid "Text"
+msgstr "Κείμενο"
+
+
+msgctxt "ID"
+msgid "Texture"
+msgstr "Υφή"
+
+
+msgctxt "ID"
+msgid "Window Manager"
+msgstr "Διαχειριστής Παραθύρων"
+
+
+msgctxt "ID"
+msgid "Workspace"
+msgstr "Χώρος Εργασίας"
+
+
+msgctxt "ID"
+msgid "World"
+msgstr "Κόσμος"
+
+
+msgctxt "ID"
+msgid "Unspecified"
+msgstr "Απροσδιόριστο"
+
+
+msgid "Not yet specified. When this slot is first assigned to a data-block, this will be set to the type of that data-block"
+msgstr "Δεν έχει προσδιοριστεί ακόμη. Όταν αυτή η θέση αναθετηθεί σε ένα μπλοκ δεδομένων αυτό θα τεθεί στον τύπο αυτού του μπλοκ δεδομένων"
+
+
+msgid "Action Slots"
+msgstr "Θέσεις Ενεργειών"
+
+
+msgid "Collection of action slots"
+msgstr "Συλλογή θέσεων ενεργειών"
+
+
+msgid "Active Slot"
+msgstr "Ενεργή θέση"
+
+
+msgid "Active slot for this action"
+msgstr "Ενεργή θέση για αυτήν την ενέργεια"
+
+
+msgid "Kernel Optimization"
+msgstr "Βελτιστοποίηση Πυρήνα"
+
+
+msgid "Off"
+msgstr "Απενεργοποιημένο"
+
+
 msgid "On"
 msgstr "Ενεργό"
+
+
+msgid "Auto"
+msgstr "Αυτόματο"
 
 
 msgid "Always"
@@ -63,12 +453,48 @@ msgid "Hold"
 msgstr "Κράτα"
 
 
+msgid "Slots"
+msgstr "Θέσεις"
+
+
+msgid "Drivers"
+msgstr "Οδηγοί"
+
+
 msgid "End Frame"
 msgstr "Τελευταίο Καρέ"
 
 
 msgid "Start Frame"
 msgstr "Καρέ εκκίνησης"
+
+
+msgid "All Keys"
+msgstr "Όλα τα Κλειδιά"
+
+
+msgid "Selected Keys"
+msgstr "Επιλεγμένα Κλειδιά"
+
+
+msgid "Scene Frame Range"
+msgstr "Εύρος Καρέ Σκηνής"
+
+
+msgid "The entire Scene / Preview range"
+msgstr "Όλη η Σκηνή / Εύρος προεπισκόπισης"
+
+
+msgid "Highlight Keyframes"
+msgstr "Επισήμανση Καρέ κλειδιών"
+
+
+msgid "Frame Number"
+msgstr "Αριθμός Καρέ"
+
+
+msgid "Active Frame"
+msgstr "Ενεργό Καρέ"
 
 
 msgid "Hide"
@@ -79,12 +505,124 @@ msgid "Info"
 msgstr "Πληροφ"
 
 
+msgid "Locked"
+msgstr "Κλειδωμένο"
+
+
+msgid "Frame Locked"
+msgstr "Καρέ Κλειδωμένο"
+
+
+msgid "Thickness"
+msgstr "Πάχος"
+
+
+msgid "Default"
+msgstr "Προεπιλεγμένο"
+
+
+msgid "3D Space"
+msgstr "Τρισδιάστατος Χώρος"
+
+
+msgid "2D Space"
+msgstr "Δισδιάστατος Χώρος"
+
+
+msgid "2D Image"
+msgstr "Δισδιάστατη Εικόνα"
+
+
+msgid "Coordinates"
+msgstr "Συντεταγμένες"
+
+
+msgid "Height"
+msgstr "Ύψος"
+
+
+msgid "Area height"
+msgstr "Ύψος περιοχής"
+
+
+msgid "Editor Type"
+msgstr "Τύπος Επεξεργαστή"
+
+
 msgid "Empty"
 msgstr "Κενό"
 
 
+msgid "Node Editor"
+msgstr "Επεξεργαστής Κόμβων"
+
+
+msgid "Text Editor"
+msgstr "Επεξεργαστής Κειμένου"
+
+
+msgid "Properties"
+msgstr "Ιδιότητες"
+
+
+msgid "Preferences"
+msgstr "Προτιμήσεις"
+
+
+msgid "Width"
+msgstr "Πλάτος"
+
+
+msgid "Area width"
+msgstr "Πλάτος Περιοχής"
+
+
+msgid "X Position"
+msgstr "Θέση X"
+
+
+msgid "Y Position"
+msgstr "Θέση Y"
+
+
+msgid "Armature Bones"
+msgstr "Οστά Σκελετού"
+
+
+msgid "Collection of armature bones"
+msgstr "Συλλογή Οστών Σκελετού"
+
+
 msgid "Active Bone"
 msgstr "Ενεργό Οστό"
+
+
+msgid "Armature's active bone"
+msgstr "Ενεργό οστό σκελετού"
+
+
+msgid "Library Type"
+msgstr "Τύπος Βιβλιοθήκης"
+
+
+msgid "All Libraries"
+msgstr "Όλες οι Βιβλιοθήκες"
+
+
+msgid "Current File"
+msgstr "Τρέχων Αρχείο"
+
+
+msgid "Copyright"
+msgstr "Πνευματικά δικαιώματα"
+
+
+msgid "Description"
+msgstr "Περιγραφή"
+
+
+msgid "License"
+msgstr "Άδεια"
 
 
 msgid "Link"
@@ -93,6 +631,38 @@ msgstr "Σύνδεση"
 
 msgid "Append"
 msgstr "Συγχώνευση"
+
+
+msgid "Full Library Path"
+msgstr "Πλήρης Διαδρομή Βιβλιοθήκης"
+
+
+msgid "Full Path"
+msgstr "Πλήρης Διαδρομή"
+
+
+msgid "ID Name"
+msgstr "Όνομα ID"
+
+
+msgid "Actions"
+msgstr "Ενέργειες"
+
+
+msgid "Armatures"
+msgstr "Σκελετοί"
+
+
+msgid "Brushes"
+msgstr "Βούρτσες"
+
+
+msgid "Cache Files"
+msgstr "Αρχεία Κρυφής Μνήμης"
+
+
+msgid "Cameras"
+msgstr "Κάμερες"
 
 
 msgid "Point"
@@ -152,7 +722,7 @@ msgstr "Παραμόρφωση"
 
 
 msgid "Mode"
-msgstr "Κατάσταση"
+msgstr "Λειτουργία"
 
 
 msgid "All"
@@ -431,6 +1001,10 @@ msgid "Edit"
 msgstr "Επεξεργασία"
 
 
+msgid "Tool"
+msgstr "Εργαλείο"
+
+
 msgid "Mesh"
 msgstr "Πολύγωνα"
 
@@ -495,6 +1069,10 @@ msgid "IK Solver"
 msgstr "Επιλυτής ΙΚ"
 
 
+msgid "Simulation"
+msgstr "Προσομοίωση"
+
+
 msgid "Black"
 msgstr "Μάυρο"
 
@@ -523,52 +1101,52 @@ msgid "Screen"
 msgstr "Οθόνη"
 
 
-msgid "Import"
-msgstr "Εισαγωγή"
-
-
-msgid "Select Linked"
-msgstr "Επιλογή Συνδεδεμένων"
-
-
 msgid "Snap"
 msgstr "Προσκόλληση"
+
+
+msgid "Import"
+msgstr "Εισαγωγή"
 
 
 msgid "Mirror"
 msgstr "Καθρέφτισμα"
 
 
-msgid "Linked"
-msgstr "Συνδεδεμένο/α"
+msgid "Select Linked"
+msgstr "Επιλογή Συνδεδεμένων"
 
 
 msgid "Metaball"
 msgstr "Μετα-σφαίρα"
 
 
-msgid "Merge"
-msgstr "Συγχώνευση"
+msgid "Light"
+msgstr "Φως"
 
 
-msgid "Apply"
-msgstr "Εφαρμογή"
-
-
-msgid "Make Single User"
-msgstr "Ορισμός Ενός Χρήστη"
-
-
-msgid "Track"
-msgstr "Ανίχνευση"
+msgid "Linked"
+msgstr "Συνδεδεμένο/α"
 
 
 msgid "Rigid Body"
 msgstr "Rigid Body"
 
 
-msgid "Light"
-msgstr "Φως"
+msgid "Apply"
+msgstr "Εφαρμογή"
+
+
+msgid "Track"
+msgstr "Ανίχνευση"
+
+
+msgid "Make Single User"
+msgstr "Ορισμός Ενός Χρήστη"
+
+
+msgid "Merge"
+msgstr "Συγχώνευση"
 
 
 msgid "Cache"
@@ -582,6 +1160,10 @@ msgstr "Κλειδί"
 msgctxt "Operator"
 msgid "Mirror"
 msgstr "Καθρέφτισμα"
+
+
+msgid "Node"
+msgstr "Κόμβος"
 
 
 msgid "System"
@@ -606,6 +1188,10 @@ msgstr "Απότομο"
 
 msgid "Ball"
 msgstr "Σφαίρα"
+
+
+msgid "Array"
+msgstr "Πίνακας Στοιχείων"
 
 
 msgid "Screw"

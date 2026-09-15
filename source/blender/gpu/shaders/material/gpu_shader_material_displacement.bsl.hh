@@ -2,7 +2,9 @@
  *
  * SPDX-License-Identifier: GPL-2.0-or-later */
 
-#include "gpu_shader_material_transform_utils.glsl"
+#pragma once
+
+#include "gpu_shader_material_transform_utils.bsl.hh"
 
 [[node]]
 void node_displacement_object(float height, float midlevel, float scale, float3 N, float3 &result)

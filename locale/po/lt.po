@@ -1,9 +1,9 @@
 
 msgid ""
 msgstr ""
-"Project-Id-Version: Blender 5.3.0 Alpha (b'f5df8c32f99b')\n"
+"Project-Id-Version: Blender 5.3.0 Alpha (b'2cef5b8c951a')\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-09-07 07:47+0000\n"
+"POT-Creation-Date: 2026-09-14 07:47+0000\n"
 "PO-Revision-Date: 2025-07-23 15:18+0000\n"
 "Last-Translator: Aras Pranckevičius <aras@nesnausk.org>\n"
 "Language-Team: Lithuanian <https://translate.blender.org/projects/blender-ui/ui/lt/>\n"
@@ -3069,12 +3069,12 @@ msgid "Dots"
 msgstr "Taškai"
 
 
-msgid "Import"
-msgstr "Importuoti"
-
-
 msgid "Show/Hide"
 msgstr "Rodyti/Slėpti"
+
+
+msgid "Import"
+msgstr "Importuoti"
 
 
 msgid "Layout"

@@ -311,6 +311,8 @@ option(WITH_MANIFOLD "Enable features depending on Manifold (Fast Robust Boolean
 
 option(WITH_OPENIMAGEDENOISE "Enable the OpenImageDenoise compositing node" ON)
 
+option(WITH_DLSS "Enable NVIDIA DLSS Ray Reconstruction support" OFF)
+
 option(WITH_OPENSUBDIV "Enable OpenSubdiv for surface subdivision" ON)
 
 option(WITH_POTRACE "Enable features relying on Potrace" ON)

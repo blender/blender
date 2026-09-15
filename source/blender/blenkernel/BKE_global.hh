@@ -108,6 +108,7 @@ struct Global {
    *   *   3001: Enable additional Fluid modifier (Mantaflow) options (02/2020).
    *   *   4000: Line Art state output and debugging logs (03/2021).
    *   *   4001: Mesh topology information in the spreadsheet (01/2022).
+   *   *   4002: Enable markdown dev UI (08/2026).
    *   * 16384 and above: Reserved for python (add-ons) usage.
    */
   short debug_value;

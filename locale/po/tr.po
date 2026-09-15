@@ -1,9 +1,9 @@
 
 msgid ""
 msgstr ""
-"Project-Id-Version: Blender 5.3.0 Alpha (b'f5df8c32f99b')\n"
+"Project-Id-Version: Blender 5.3.0 Alpha (b'2cef5b8c951a')\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-09-07 07:47+0000\n"
+"POT-Creation-Date: 2026-09-14 07:47+0000\n"
 "PO-Revision-Date: 2025-07-23 15:31+0000\n"
 "Last-Translator: VertexSelection <amacsizk2021@gmail.com>\n"
 "Language-Team: Turkish <https://translate.blender.org/projects/blender-ui/ui/tr/>\n"
@@ -28703,14 +28703,6 @@ msgid "Editor menu containing buttons"
 msgstr "Düğmeler içeren düzenleyici menüsü"
 
 
-msgid "Select More/Less"
-msgstr "Daha Fazla/Daha Az Seç"
-
-
-msgid "Instances"
-msgstr "Örnekler"
-
-
 msgid "Read"
 msgstr "Okumak"
 
@@ -28719,68 +28711,76 @@ msgid "Sample"
 msgstr "Örnek"
 
 
+msgid "Show/Hide"
+msgstr "Göster/Gizle"
+
+
 msgid "Write"
 msgstr "Yazmak"
+
+
+msgid "Clean Up"
+msgstr "Temizle"
 
 
 msgid "Primitives"
 msgstr "İlkel"
 
 
+msgid "Pivot Point"
+msgstr "Pivot Noktası"
+
+
+msgid "Snap"
+msgstr "Yakala"
+
+
+msgid "Instances"
+msgstr "Örnekler"
+
+
+msgid "Proportional Editing Falloff"
+msgstr "Orantılı Düzenleme Düşüşü"
+
+
+msgid "Mask Edit"
+msgstr "Maske Düzenleme"
+
+
+msgid "Automasking"
+msgstr "Otomatik maskeleme"
+
+
+msgid "Face Sets Edit"
+msgstr "Yüz Setleri Düzenle"
+
+
+msgid "Vertex Group Locks"
+msgstr "Vertex Grup Kilitleri"
+
+
 msgid "Import"
 msgstr "İçe Aktar"
-
-
-msgid "Select Loops"
-msgstr "Döngüleri Seç"
-
-
-msgid "Viewpoint"
-msgstr "Bakış açısı"
-
-
-msgid "Select All by Trait"
-msgstr "Özelliğe Göre Tümünü Seç"
 
 
 msgid "Utilities"
 msgstr "Kamu hizmetleri"
 
 
-msgid "Select Linked"
-msgstr "Bağlantılıyı Seç"
-
-
 msgid "Deprecated"
 msgstr "Kullanım dışı bırakıldı"
-
-
-msgid "Select Similar"
-msgstr "Benzerini Seç"
 
 
 msgid "Math"
 msgstr "Matematik"
 
 
-msgid "Align View to Active"
-msgstr "Görünümü Etkin Olarak Hizala"
-
-
 msgid "UV"
 msgstr "UV"
 
 
-msgid "View Regions"
-msgstr "Bölgeleri Görüntüle"
-
-
-msgid "Navigation"
-msgstr "Navigasyon"
-
-
-msgid "Align View"
-msgstr "Görünümü hizala"
+msgid "Mirror"
+msgstr "Yansıtma"
 
 
 msgid "UV Mapping"
@@ -28791,52 +28791,60 @@ msgid "Local View"
 msgstr "Yerel Görünüm"
 
 
-msgid "Snap"
-msgstr "Yakala"
+msgid "Viewpoint"
+msgstr "Bakış açısı"
 
 
-msgid "Bone Roll"
-msgstr "Kemik Rulosu"
+msgid "Navigation"
+msgstr "Navigasyon"
 
 
-msgid "Mirror"
-msgstr "Yansıtma"
+msgid "Align View"
+msgstr "Görünümü hizala"
 
 
-msgid "Automasking"
-msgstr "Otomatik maskeleme"
+msgid "Align View to Active"
+msgstr "Görünümü Etkin Olarak Hizala"
 
 
-msgid "Vertex Group Locks"
-msgstr "Vertex Grup Kilitleri"
+msgid "View Regions"
+msgstr "Bölgeleri Görüntüle"
 
 
-msgid "Face Sets Edit"
-msgstr "Yüz Setleri Düzenle"
+msgid "Select More/Less"
+msgstr "Daha Fazla/Daha Az Seç"
 
 
-msgid "Mask Edit"
-msgstr "Maske Düzenleme"
+msgid "Select Similar"
+msgstr "Benzerini Seç"
 
 
-msgid "Proportional Editing Falloff"
-msgstr "Orantılı Düzenleme Düşüşü"
+msgid "Select All by Trait"
+msgstr "Özelliğe Göre Tümünü Seç"
 
 
-msgid "Pivot Point"
-msgstr "Pivot Noktası"
+msgid "Select Linked"
+msgstr "Bağlantılıyı Seç"
 
 
-msgid "Clean Up"
-msgstr "Temizle"
+msgid "Select Loops"
+msgstr "Döngüleri Seç"
 
 
-msgid "Show/Hide"
-msgstr "Göster/Gizle"
+msgid "Assign Material"
+msgstr "Malzeme Atamak"
 
 
-msgid "Names"
-msgstr "Adlar"
+msgid "Metaball"
+msgstr "Metabol"
+
+
+msgid "Light"
+msgstr "Işık"
+
+
+msgid "Light Probe"
+msgstr "Işık Sondası"
 
 
 msgid "Linked"
@@ -28847,104 +28855,48 @@ msgid "Layout"
 msgstr "Yerleşim"
 
 
-msgid "Metaball"
-msgstr "Metabol"
+msgid "Add Image"
+msgstr "Resim Ekle"
 
 
-msgid "Kerning"
-msgstr "Harf aralığı"
+msgid "Relations"
+msgstr "İlişkiler"
 
 
-msgid "Special Characters"
-msgstr "Özel Karakterler"
-
-
-msgid "Adjust"
-msgstr "Ayarlamak"
-
-
-msgid "Merge"
-msgstr "Birleştir"
-
-
-msgid "Bone Collections"
-msgstr "Kemik Koleksiyonları"
-
-
-msgid "Keying"
-msgstr "Anahtarlama"
-
-
-msgid "Tracking"
-msgstr "Takip"
-
-
-msgid "Set Face Strength"
-msgstr "Yüz Gücünü Ayarla"
-
-
-msgid "Select by Face Strength"
-msgstr "Yüz Gücüne Göre Seç"
-
-
-msgid "Face Data"
-msgstr "Yüz Verileri"
-
-
-msgid "Mesh Select Mode"
-msgstr "Örgü Seçim Kipi"
-
-
-msgid "Disable Bone Options"
-msgstr "Kemik Seçeneklerini Devre Dışı Bırak"
-
-
-msgid "Enable Bone Options"
-msgstr "Kemik Seçeneklerini Etkinleştir"
-
-
-msgid "Toggle Bone Options"
-msgstr "Kemik Seçeneklerini Değiştir"
+msgid "Rigid Body"
+msgstr "Sert Gövde"
 
 
 msgid "Apply"
 msgstr "Uygula"
 
 
-msgid "Propagate"
-msgstr "Yaymak"
+msgid "Track"
+msgstr "İzlemek"
 
 
-msgid "In-Betweens"
-msgstr "Arada Kalanlar"
+msgid "Adjust"
+msgstr "Ayarlamak"
 
 
-msgid "Clear Transform"
-msgstr "Temizle Dönüşüm"
+msgid "Quick Effects"
+msgstr "Hızlı Etkiler"
 
 
-msgid "Random Mask"
-msgstr "Rastgele Maske"
+msgid "Keying"
+msgstr "Anahtarlama"
 
 
-msgid "Sculpt Set Pivot"
-msgstr "Heykel Seti Pivot"
-
-
-msgid "Face Sets Init"
-msgstr "Yüz Setleri Başlatma"
-
-
-msgid "Trim/Add"
-msgstr "Kırp/Ekle"
-
-
-msgid "Hooks"
-msgstr "Kancalar"
+msgid "Asset"
+msgstr "Varlık"
 
 
 msgid "Make Single User"
 msgstr "Tek Kullanıcı Yap"
+
+
+msgid "Tracking"
+msgstr "Takip"
 
 
 msgid "Convert"
@@ -28955,40 +28907,88 @@ msgid "Link/Transfer Data"
 msgstr "Veriyi Bağlantıla/Aktar"
 
 
-msgid "Asset"
-msgstr "Varlık"
+msgid "Hooks"
+msgstr "Kancalar"
 
 
-msgid "Quick Effects"
-msgstr "Hızlı Etkiler"
+msgid "Trim/Add"
+msgstr "Kırp/Ekle"
 
 
-msgid "Track"
-msgstr "İzlemek"
+msgid "Sculpt Set Pivot"
+msgstr "Heykel Seti Pivot"
 
 
-msgid "Rigid Body"
-msgstr "Sert Gövde"
+msgid "Face Sets Init"
+msgstr "Yüz Setleri Başlatma"
 
 
-msgid "Add Image"
-msgstr "Resim Ekle"
+msgid "Random Mask"
+msgstr "Rastgele Maske"
 
 
-msgid "Relations"
-msgstr "İlişkiler"
+msgid "Clear Transform"
+msgstr "Temizle Dönüşüm"
 
 
-msgid "Light Probe"
-msgstr "Işık Sondası"
+msgid "In-Betweens"
+msgstr "Arada Kalanlar"
 
 
-msgid "Assign Material"
-msgstr "Malzeme Atamak"
+msgid "Propagate"
+msgstr "Yaymak"
 
 
-msgid "Light"
-msgstr "Işık"
+msgid "Bone Collections"
+msgstr "Kemik Koleksiyonları"
+
+
+msgid "Names"
+msgstr "Adlar"
+
+
+msgid "Toggle Bone Options"
+msgstr "Kemik Seçeneklerini Değiştir"
+
+
+msgid "Enable Bone Options"
+msgstr "Kemik Seçeneklerini Etkinleştir"
+
+
+msgid "Disable Bone Options"
+msgstr "Kemik Seçeneklerini Devre Dışı Bırak"
+
+
+msgid "Mesh Select Mode"
+msgstr "Örgü Seçim Kipi"
+
+
+msgid "Face Data"
+msgstr "Yüz Verileri"
+
+
+msgid "Select by Face Strength"
+msgstr "Yüz Gücüne Göre Seç"
+
+
+msgid "Set Face Strength"
+msgstr "Yüz Gücünü Ayarla"
+
+
+msgid "Merge"
+msgstr "Birleştir"
+
+
+msgid "Special Characters"
+msgstr "Özel Karakterler"
+
+
+msgid "Kerning"
+msgstr "Harf aralığı"
+
+
+msgid "Bone Roll"
+msgstr "Kemik Rulosu"
 
 
 msgid "Keyframe Insert Pie"
@@ -42394,6 +42394,14 @@ msgstr "Düğüm Girişleri"
 
 msgid "Collection of Node Sockets"
 msgstr "Düğüm Soketleri Koleksiyonu"
+
+
+msgid "From Socket"
+msgstr "Soketten"
+
+
+msgid "To Socket"
+msgstr "Sokete takmak için"
 
 
 msgid "Socket Template"
@@ -59921,10 +59929,6 @@ msgid "From node linked to selected node"
 msgstr "Seçilen düğüme bağlı düğümden"
 
 
-msgid "From Socket"
-msgstr "Soketten"
-
-
 msgid "From socket linked to selected node"
 msgstr "Seçili düğüme bağlı soketten"
 
@@ -73000,6 +73004,14 @@ msgid "View a context based online manual in a web browser"
 msgstr "Bağlam tabanlı bir çevrimiçi kılavuzu web tarayıcısında görüntüleyin"
 
 
+msgid "Trusted Source"
+msgstr "Güvenilir Kaynak"
+
+
+msgid "Allow .blend file to execute scripts automatically, default available from system preferences"
+msgstr ".blend dosyasının komut dosyalarını otomatik olarak yürütmesine izin verin, varsayılan olarak sistem tercihlerinden erişilebilir"
+
+
 msgctxt "Operator"
 msgid "Drop to Import File"
 msgstr "Dosyayı İçe Aktarmak İçin Bırak"
@@ -73344,14 +73356,6 @@ msgstr "Kullanıcı arayüzü kurulumunu .blend dosyasına yükleyin"
 
 msgid "State"
 msgstr "Durum"
-
-
-msgid "Trusted Source"
-msgstr "Güvenilir Kaynak"
-
-
-msgid "Allow .blend file to execute scripts automatically, default available from system preferences"
-msgstr ".blend dosyasının komut dosyalarını otomatik olarak yürütmesine izin verin, varsayılan olarak sistem tercihlerinden erişilebilir"
 
 
 msgctxt "Operator"
@@ -75348,40 +75352,24 @@ msgid "Panel containing UI elements"
 msgstr "UI öğelerini içeren panel"
 
 
-msgid "Guides"
-msgstr "Rehberler"
+msgid "Active Tool"
+msgstr "Etkin Araç"
 
 
-msgid "Drawing Plane"
-msgstr "Çizim düzlemi"
+msgid "View Lock"
+msgstr "Görünüm Kilidi"
 
 
-msgid "Stroke Placement"
-msgstr "İnme Yerleşimi"
+msgid "Selectability & Visibility"
+msgstr "Seçilebilirlik ve Görünürlük"
 
 
-msgid "Transform Orientations"
-msgstr "Dönüştürme Yönlendirmeleri"
+msgid "Shadow Settings"
+msgstr "Gölge Ayarları"
 
 
-msgid "Viewer Node"
-msgstr "Görüntüleyici Düğümü"
-
-
-msgid "Curve Edit Mode"
-msgstr "Eğri Düzenleme Modu"
-
-
-msgid "Measurement"
-msgstr "Ölçüm"
-
-
-msgid "Mesh Edit Mode"
-msgstr "Mesh Düzenleme Modu"
-
-
-msgid "Motion Tracking"
-msgstr "Hareket İzleme"
+msgid "SSAO Settings"
+msgstr "SSAO Ayarları"
 
 
 msgid "Cavity"
@@ -75396,12 +75384,28 @@ msgid "Overlays"
 msgstr "Kaplamalar"
 
 
-msgid "SSAO Settings"
-msgstr "SSAO Ayarları"
+msgid "Guides"
+msgstr "Rehberler"
 
 
-msgid "Shadow Settings"
-msgstr "Gölge Ayarları"
+msgid "Viewer Node"
+msgstr "Görüntüleyici Düğümü"
+
+
+msgid "Motion Tracking"
+msgstr "Hareket İzleme"
+
+
+msgid "Mesh Edit Mode"
+msgstr "Mesh Düzenleme Modu"
+
+
+msgid "Measurement"
+msgstr "Ölçüm"
+
+
+msgid "Curve Edit Mode"
+msgstr "Eğri Düzenleme Modu"
 
 
 msgid "glTF Variants"
@@ -75412,16 +75416,52 @@ msgid "glTF Material Variants"
 msgstr "glTF Malzeme Varyantları"
 
 
-msgid "Selectability & Visibility"
-msgstr "Seçilebilirlik ve Görünürlük"
+msgid "Transform Orientations"
+msgstr "Dönüştürme Yönlendirmeleri"
 
 
-msgid "Active Tool"
-msgstr "Etkin Araç"
+msgid "Stroke Placement"
+msgstr "İnme Yerleşimi"
 
 
-msgid "View Lock"
-msgstr "Görünüm Kilidi"
+msgid "Drawing Plane"
+msgstr "Çizim düzlemi"
+
+
+msgid "Quad View"
+msgstr "Dörtlü Görünüm"
+
+
+msgid "Onion Skin"
+msgstr "Soğan Kabuğu"
+
+
+msgid "Stereoscopy"
+msgstr "Stereoskopi"
+
+
+msgid "Multi Frame"
+msgstr "Çoklu Çerçeve"
+
+
+msgid "Auto-Masking"
+msgstr "Otomatik Maskeleme"
+
+
+msgid "Curves Sculpt Add Curve Options"
+msgstr "Eğriler Heykel Eğri Seçenekleri Ekle"
+
+
+msgid "Curves Sculpt Parameter Falloff"
+msgstr "Eğriler Şekil Parametresi Düşüşü"
+
+
+msgid "Curves Grow/Shrink Scaling"
+msgstr "Eğriler Büyüyor/Küçülüyor Ölçekleme"
+
+
+msgid "Viewport Debug"
+msgstr "Görüş Alanı Hata Ayıklaması"
 
 
 msgid "VR"
@@ -75430,42 +75470,6 @@ msgstr "Sanal Gerçeklik"
 
 msgid "VR Info"
 msgstr "VR Bilgisi"
-
-
-msgid "Viewport Debug"
-msgstr "Görüş Alanı Hata Ayıklaması"
-
-
-msgid "Curves Grow/Shrink Scaling"
-msgstr "Eğriler Büyüyor/Küçülüyor Ölçekleme"
-
-
-msgid "Curves Sculpt Parameter Falloff"
-msgstr "Eğriler Şekil Parametresi Düşüşü"
-
-
-msgid "Curves Sculpt Add Curve Options"
-msgstr "Eğriler Heykel Eğri Seçenekleri Ekle"
-
-
-msgid "Auto-Masking"
-msgstr "Otomatik Maskeleme"
-
-
-msgid "Multi Frame"
-msgstr "Çoklu Çerçeve"
-
-
-msgid "Stereoscopy"
-msgstr "Stereoskopi"
-
-
-msgid "Onion Skin"
-msgstr "Soğan Kabuğu"
-
-
-msgid "Quad View"
-msgstr "Dörtlü Görünüm"
 
 
 msgid "Chain Scaling"
@@ -98101,10 +98105,6 @@ msgid "Deleted 1 node"
 msgstr "1 düğüm silindi"
 
 
-msgid "To Socket"
-msgstr "Sokete takmak için"
-
-
 msgid "No images found to reload in this node tree"
 msgstr "Bu düğüm ağacında yeniden yüklenecek görüntü bulunamadı"
 
@@ -99518,6 +99518,10 @@ msgstr "Blender Mağazası"
 msgctxt "Operator"
 msgid "Blender Website"
 msgstr "Blender Web Sitesi"
+
+
+msgid "Trusted Source [Untrusted Path]"
+msgstr "Güvenilir Kaynak [Güvenilmeyen Yol]"
 
 
 msgctxt "Operator"
@@ -119835,10 +119839,6 @@ msgstr "Fabrika Varsayılan Başlangıç Dosyasını ve Tercihleri Yükle"
 
 msgid "To make changes to Preferences permanent, use \"Save Preferences\"."
 msgstr "Tercihlerde yaptığınız değişiklikleri kalıcı hale getirmek için \"Tercihleri Kaydet\"i kullanın."
-
-
-msgid "Trusted Source [Untrusted Path]"
-msgstr "Güvenilir Kaynak [Güvenilmeyen Yol]"
 
 
 msgid "Any unsaved changes will be lost."

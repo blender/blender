@@ -188,13 +188,13 @@ class CameraIntrinsics {
   virtual void Pack(PackedIntrinsics* packed_intrinsics) const;
   virtual void Unpack(const PackedIntrinsics& packed_intrinsics);
 
-  // Distort an image using the current camera instrinsics
+  // Distort an image using the current camera intrinsics
   //
   // The distorted image is computed in output_buffer using samples from
   // input_buffer. Both buffers should be width x height x channels sized.
   //
   // Overscan is a percentage value of how much overcan the image have.
-  // For example overscal value of 0.2 means 20% of overscan in the
+  // For example overscan value of 0.2 means 20% of overscan in the
   // buffers.
   //
   // Overscan is usually used in cases when one need to distort an image
@@ -217,13 +217,13 @@ class CameraIntrinsics {
                      int channels,
                      PixelType* output_buffer);
 
-  // Undistort an image using the current camera instrinsics
+  // Undistort an image using the current camera intrinsics
   //
   // The undistorted image is computed in output_buffer using samples from
   // input_buffer. Both buffers should be width x height x channels sized.
   //
   // Overscan is a percentage value of how much overcan the image have.
-  // For example overscal value of 0.2 means 20% of overscan in the
+  // For example overscan value of 0.2 means 20% of overscan in the
   // buffers.
   //
   // Overscan is usually used in cases when one need to distort an image
@@ -293,10 +293,10 @@ class PolynomialCameraIntrinsics : public CameraIntrinsics {
   double p1() const { return parameters_[OFFSET_P1]; }
   double p2() const { return parameters_[OFFSET_P2]; }
 
-  // Set radial distortion coeffcients.
+  // Set radial distortion coefficients.
   void SetRadialDistortion(double k1, double k2, double k3);
 
-  // Set tangential distortion coeffcients.
+  // Set tangential distortion coefficients.
   void SetTangentialDistortion(double p1, double p2);
 
   // Apply camera intrinsics to the normalized point to get image coordinates.
@@ -352,7 +352,7 @@ class DivisionCameraIntrinsics : public CameraIntrinsics {
   double k1() const { return parameters_[OFFSET_K1]; }
   double k2() const { return parameters_[OFFSET_K2]; }
 
-  // Set radial distortion coeffcients.
+  // Set radial distortion coefficients.
   void SetDistortion(double k1, double k2);
 
   // Apply camera intrinsics to the normalized point to get image coordinates.
@@ -409,10 +409,10 @@ class NukeCameraIntrinsics : public CameraIntrinsics {
   double p1() const { return parameters_[OFFSET_P1]; }
   double p2() const { return parameters_[OFFSET_P2]; }
 
-  // Set radial distortion coeffcients.
+  // Set radial distortion coefficients.
   void SetRadialDistortion(double k1, double k2);
 
-  // Set tangential distortion coeffcients.
+  // Set tangential distortion coefficients.
   void SetTangentialDistortion(double p1, double p2);
 
   // Apply camera intrinsics to the normalized point to get image coordinates.
@@ -473,10 +473,10 @@ class BrownCameraIntrinsics : public CameraIntrinsics {
   double p1() const { return parameters_[OFFSET_P1]; }
   double p2() const { return parameters_[OFFSET_P2]; }
 
-  // Set radial distortion coeffcients.
+  // Set radial distortion coefficients.
   void SetRadialDistortion(double k1, double k2, double k3, double k4);
 
-  // Set tangential distortion coeffcients.
+  // Set tangential distortion coefficients.
   void SetTangentialDistortion(double p1, double p2);
 
   // Apply camera intrinsics to the normalized point to get image coordinates.

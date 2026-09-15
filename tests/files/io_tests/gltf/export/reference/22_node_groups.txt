@@ -284,7 +284,7 @@ None
     },
     {
       "sampler": 0,
-      "source": 0
+      "source": 1
     },
     {
       "sampler": 0,
@@ -292,7 +292,7 @@ None
     },
     {
       "sampler": 0,
-      "source": 0
+      "source": 1
     }
   ],
   "images": [
@@ -300,6 +300,11 @@ None
       "mimeType": "image/png",
       "name": "Untitled",
       "uri": "Untitled.png"
+    },
+    {
+      "mimeType": "image/png",
+      "name": "Untitled.001",
+      "uri": "Untitled.001.png"
     }
   ],
   "accessors": [

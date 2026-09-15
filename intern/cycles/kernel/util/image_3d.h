@@ -35,7 +35,7 @@ ccl_device_forceinline void fill_cubic_weights(float3 w[4], float3 t)
 }
 
 /* -------------------------------------------------------------------- */
-/** Return the sample position for stochastical one-tap sampling.
+/** Return the sample position for stochastic one-tap sampling.
  * From "Stochastic Texture Filtering": https://arxiv.org/abs/2305.05810
  * \{ */
 ccl_device_inline float3 interp_tricubic_stochastic(const float3 P, ccl_private float3 &rand)

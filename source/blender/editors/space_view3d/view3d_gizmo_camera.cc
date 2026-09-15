@@ -445,6 +445,7 @@ struct CameraViewWidgetGroup {
     rctf *edit_border;
     rctf view_border;
     float roll;
+    bool flipped_x;
   } state;
 };
 
@@ -560,6 +561,7 @@ static void WIDGETGROUP_camera_view_draw_prepare(const bContext *C, wmGizmoGroup
     viewgroup->state.view_border = BKE_camera_view_border(
         scene, depsgraph, v3d, rv3d, region->winx, region->winy, false, false, true);
     viewgroup->state.roll = rv3d->camroll;
+    viewgroup->state.flipped_x = (rv3d->rflag & RV3D_FLIP_X) != 0;
   }
   else {
     rctf rect{};
@@ -568,6 +570,8 @@ static void WIDGETGROUP_camera_view_draw_prepare(const bContext *C, wmGizmoGroup
     rect.xmax = region->winx;
     rect.ymax = region->winy;
     viewgroup->state.view_border = rect;
+    viewgroup->state.roll = 0.0f;
+    viewgroup->state.flipped_x = false;
   }
 
   wmGizmo *gz = viewgroup->border;
@@ -577,8 +581,8 @@ static void WIDGETGROUP_camera_view_draw_prepare(const bContext *C, wmGizmoGroup
   gz->matrix_space[3][0] = viewgroup->state.view_border.xmin;
   gz->matrix_space[3][1] = viewgroup->state.view_border.ymin;
 
-  /* Apply roll. */
-  if (viewgroup->state.roll != 0.0f) {
+  /* Apply roll and flip. */
+  if (viewgroup->state.roll != 0.0f || viewgroup->state.flipped_x) {
     const int center_x = region->winx / 2;
     const int center_y = region->winy / 2;
     gz->matrix_space[3][0] -= center_x;
@@ -586,6 +590,12 @@ static void WIDGETGROUP_camera_view_draw_prepare(const bContext *C, wmGizmoGroup
 
     transpose_m4(gz->matrix_space);
     rotate_m4(gz->matrix_space, 'Z', -viewgroup->state.roll);
+
+    /* Apply flip. */
+    if (viewgroup->state.flipped_x) {
+      negate_v4(gz->matrix_space[0]);
+    }
+
     transpose_m4(gz->matrix_space);
 
     gz->matrix_space[3][0] += center_x;
@@ -616,10 +626,13 @@ static void WIDGETGROUP_camera_view_refresh(const bContext *C, wmGizmoGroup *gzg
       viewgroup->state.edit_border = &scene->r.border;
       viewgroup->is_camera = true;
       viewgroup->state.roll = rv3d->camroll;
+      viewgroup->state.flipped_x = (rv3d->rflag & RV3D_FLIP_X) != 0;
     }
     else {
       viewgroup->state.edit_border = &v3d->render_border;
       viewgroup->is_camera = false;
+      viewgroup->state.roll = 0.0f;
+      viewgroup->state.flipped_x = false;
     }
 
     wmGizmoPropertyFnParams params{};

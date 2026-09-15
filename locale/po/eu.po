@@ -1,9 +1,9 @@
 
 msgid ""
 msgstr ""
-"Project-Id-Version: Blender 5.3.0 Alpha (b'f5df8c32f99b')\n"
+"Project-Id-Version: Blender 5.3.0 Alpha (b'2cef5b8c951a')\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-09-07 07:47+0000\n"
+"POT-Creation-Date: 2026-09-14 07:47+0000\n"
 "PO-Revision-Date: 2025-07-23 15:13+0000\n"
 "Last-Translator: Anonymous <noreply@weblate.org>\n"
 "Language-Team: Basque <https://translate.blender.org/projects/blender-ui/ui/eu/>\n"
@@ -553,16 +553,16 @@ msgid "Min Angle"
 msgstr "Angelu Minimoa"
 
 
+msgid "Show/Hide"
+msgstr "Erakutsi/Ezkutatu"
+
+
 msgid "Import"
 msgstr "Inportatu"
 
 
 msgid "UV"
 msgstr "UV"
-
-
-msgid "Show/Hide"
-msgstr "Erakutsi/Ezkutatu"
 
 
 msgid "Relations"

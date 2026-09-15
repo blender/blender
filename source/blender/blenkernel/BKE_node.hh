@@ -752,7 +752,6 @@ void node_remove_node(
 
 float2 node_dimensions_get(const bNode &node);
 void node_tag_update_id(bNode &node);
-void node_internal_links(bNode &node, bNodeLink **r_links, int *r_len);
 
 /**
  * Also used via RNA API, so we check for proper input output direction.

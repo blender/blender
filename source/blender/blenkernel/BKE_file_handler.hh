@@ -55,6 +55,11 @@ struct FileHandlerType {
    * Generate a default file name for use with this file handler.
    */
   std::string get_default_filename(StringRefNull name);
+
+  /**
+   * Return `label` with the supported file extensions appended, e.g. "Alembic (.abc)".
+   */
+  std::string label_with_extensions() const;
 };
 
 /**

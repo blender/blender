@@ -384,24 +384,32 @@ class TOPBAR_MT_file_import(Menu):
     bl_owner_use_filter = False
 
     def draw(self, _context):
+        FileHandler = bpy.types.FileHandler
         if bpy.app.build_options.alembic:
-            self.layout.operator("wm.alembic_import", text="Alembic (.abc)")
+            self.layout.operator(
+                "wm.alembic_import", text=FileHandler.label_with_extensions("IO_FH_alembic"))
         if bpy.app.build_options.usd:
             self.layout.operator(
-                "wm.usd_import", text="Universal Scene Description (.usd*)")
+                "wm.usd_import", text=FileHandler.label_with_extensions("IO_FH_usd"))
 
         if bpy.app.build_options.io_gpencil:
-            self.layout.operator("wm.grease_pencil_import_svg", text="SVG as Grease Pencil")
+            self.layout.operator(
+                "wm.grease_pencil_import_svg",
+                text=FileHandler.label_with_extensions("IO_FH_grease_pencil_svg"))
 
         if bpy.app.build_options.io_wavefront_obj:
-            self.layout.operator("wm.obj_import", text="Wavefront (.obj)")
+            self.layout.operator(
+                "wm.obj_import", text=FileHandler.label_with_extensions("IO_FH_obj"))
         if bpy.app.build_options.io_ply:
-            self.layout.operator("wm.ply_import", text="Stanford PLY (.ply)")
+            self.layout.operator(
+                "wm.ply_import", text=FileHandler.label_with_extensions("IO_FH_ply"))
         if bpy.app.build_options.io_stl:
-            self.layout.operator("wm.stl_import", text="STL (.stl)")
+            self.layout.operator(
+                "wm.stl_import", text=FileHandler.label_with_extensions("IO_FH_stl"))
 
         if bpy.app.build_options.io_fbx:
-            self.layout.operator("wm.fbx_import", text="FBX (.fbx)")
+            self.layout.operator(
+                "wm.fbx_import", text=FileHandler.label_with_extensions("IO_FH_fbx"))
 
 
 class TOPBAR_MT_file_export(Menu):
@@ -410,6 +418,8 @@ class TOPBAR_MT_file_export(Menu):
     bl_owner_use_filter = False
 
     def draw(self, context):
+        FileHandler = bpy.types.FileHandler
+
         row = self.layout.row()
         row.operator("wm.collection_export_all")
         row.enabled = context.view_layer.has_export_collections
@@ -417,10 +427,11 @@ class TOPBAR_MT_file_export(Menu):
         self.layout.separator()
 
         if bpy.app.build_options.alembic:
-            self.layout.operator("wm.alembic_export", text="Alembic (.abc)")
+            self.layout.operator(
+                "wm.alembic_export", text=FileHandler.label_with_extensions("IO_FH_alembic"))
         if bpy.app.build_options.usd:
             self.layout.operator(
-                "wm.usd_export", text="Universal Scene Description (.usd*)")
+                "wm.usd_export", text=FileHandler.label_with_extensions("IO_FH_usd"))
 
         if bpy.app.build_options.io_gpencil:
             # PUGIXML library dependency.
@@ -431,11 +442,14 @@ class TOPBAR_MT_file_export(Menu):
                 self.layout.operator("wm.grease_pencil_export_pdf", text="Grease Pencil as PDF")
 
         if bpy.app.build_options.io_wavefront_obj:
-            self.layout.operator("wm.obj_export", text="Wavefront (.obj)")
+            self.layout.operator(
+                "wm.obj_export", text=FileHandler.label_with_extensions("IO_FH_obj"))
         if bpy.app.build_options.io_ply:
-            self.layout.operator("wm.ply_export", text="Stanford PLY (.ply)")
+            self.layout.operator(
+                "wm.ply_export", text=FileHandler.label_with_extensions("IO_FH_ply"))
         if bpy.app.build_options.io_stl:
-            self.layout.operator("wm.stl_export", text="STL (.stl)")
+            self.layout.operator(
+                "wm.stl_export", text=FileHandler.label_with_extensions("IO_FH_stl"))
 
 
 class TOPBAR_MT_file_external_data(Menu):

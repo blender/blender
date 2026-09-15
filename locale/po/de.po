@@ -1,9 +1,9 @@
 
 msgid ""
 msgstr ""
-"Project-Id-Version: Blender 5.3.0 Alpha (b'f5df8c32f99b')\n"
+"Project-Id-Version: Blender 5.3.0 Alpha (b'2cef5b8c951a')\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-09-07 07:47+0000\n"
+"POT-Creation-Date: 2026-09-14 07:47+0000\n"
 "PO-Revision-Date: 2026-08-25 20:13+0000\n"
 "Last-Translator: \"Mattis V.\" <mattis@users.noreply.translate.blender.org>\n"
 "Language-Team: German <https://translate.blender.org/projects/blender-ui/ui/de/>\n"
@@ -19296,14 +19296,6 @@ msgid "Material slot name"
 msgstr "Materialsteckplatzname"
 
 
-msgid "Select More/Less"
-msgstr "Mehr/weniger anzeigen"
-
-
-msgid "Instances"
-msgstr "Instanzen"
-
-
 msgid "Read"
 msgstr "Lesen"
 
@@ -19312,52 +19304,68 @@ msgid "Sample"
 msgstr "Beispiel"
 
 
+msgid "Show/Hide"
+msgstr "Zeigen/Verbergen"
+
+
 msgid "Write"
 msgstr "Schreiben"
+
+
+msgid "Clean Up"
+msgstr "Aufräumen"
 
 
 msgid "Primitives"
 msgstr "Grundkörper"
 
 
+msgid "Pivot Point"
+msgstr "Drehpunkt"
+
+
+msgid "Snap"
+msgstr "Einrasten"
+
+
+msgid "Instances"
+msgstr "Instanzen"
+
+
+msgid "Proportional Editing Falloff"
+msgstr "Proportionaler Bearbeitungsabfall"
+
+
+msgid "Mask Edit"
+msgstr "Maskenbearbeitung"
+
+
+msgid "Vertex Group Locks"
+msgstr "Punktgruppen sperren"
+
+
 msgid "Import"
 msgstr "Importieren"
-
-
-msgid "Select Loops"
-msgstr "Schleifen auswählen"
-
-
-msgid "Viewpoint"
-msgstr "Ansicht"
-
-
-msgid "Select All by Trait"
-msgstr "Alles nach Merkmal auswählen"
-
-
-msgid "Select Linked"
-msgstr "Verknüpfte auswählen"
-
-
-msgid "Select Similar"
-msgstr "Ähnliche auswählen"
 
 
 msgid "Math"
 msgstr "Mathe"
 
 
-msgid "Align View to Active"
-msgstr "Ansicht auf Aktiv ausrichten"
-
-
 msgid "UV"
 msgstr "UV"
 
 
-msgid "View Regions"
-msgstr "Vierfenster Ansicht"
+msgid "Mirror"
+msgstr "Spiegeln"
+
+
+msgid "Local View"
+msgstr "Lokale Ansicht"
+
+
+msgid "Viewpoint"
+msgstr "Ansicht"
 
 
 msgid "Navigation"
@@ -19368,44 +19376,48 @@ msgid "Align View"
 msgstr "Ansicht ausrichten"
 
 
-msgid "Local View"
-msgstr "Lokale Ansicht"
+msgid "Align View to Active"
+msgstr "Ansicht auf Aktiv ausrichten"
 
 
-msgid "Snap"
-msgstr "Einrasten"
+msgid "View Regions"
+msgstr "Vierfenster Ansicht"
 
 
-msgid "Mirror"
-msgstr "Spiegeln"
+msgid "Select More/Less"
+msgstr "Mehr/weniger anzeigen"
 
 
-msgid "Vertex Group Locks"
-msgstr "Punktgruppen sperren"
+msgid "Select Similar"
+msgstr "Ähnliche auswählen"
 
 
-msgid "Mask Edit"
-msgstr "Maskenbearbeitung"
+msgid "Select All by Trait"
+msgstr "Alles nach Merkmal auswählen"
 
 
-msgid "Proportional Editing Falloff"
-msgstr "Proportionaler Bearbeitungsabfall"
+msgid "Select Linked"
+msgstr "Verknüpfte auswählen"
 
 
-msgid "Pivot Point"
-msgstr "Drehpunkt"
+msgid "Select Loops"
+msgstr "Schleifen auswählen"
 
 
-msgid "Clean Up"
-msgstr "Aufräumen"
+msgid "Assign Material"
+msgstr "Material zuweisen"
 
 
-msgid "Show/Hide"
-msgstr "Zeigen/Verbergen"
+msgid "Metaball"
+msgstr "Metaball"
 
 
-msgid "Names"
-msgstr "Namen"
+msgid "Light"
+msgstr "Licht"
+
+
+msgid "Light Probe"
+msgstr "Lichtsonde"
 
 
 msgid "Linked"
@@ -19416,94 +19428,6 @@ msgid "Layout"
 msgstr "Layout"
 
 
-msgid "Metaball"
-msgstr "Metaball"
-
-
-msgid "Kerning"
-msgstr "Kerning"
-
-
-msgid "Special Characters"
-msgstr "Sonderzeichen"
-
-
-msgid "Merge"
-msgstr "Zusammenführen"
-
-
-msgid "Keying"
-msgstr "Schlüsselbilder"
-
-
-msgid "Tracking"
-msgstr "Verfolgen"
-
-
-msgid "Face Data"
-msgstr "Flächendaten"
-
-
-msgid "Mesh Select Mode"
-msgstr "Maschenauswahlmodus"
-
-
-msgid "Disable Bone Options"
-msgstr "Knochen-Optionen ausschalten"
-
-
-msgid "Enable Bone Options"
-msgstr "Knochen-Optionen einschalten"
-
-
-msgid "Toggle Bone Options"
-msgstr "Knochen-Optionen umschalten"
-
-
-msgid "Apply"
-msgstr "Anwenden"
-
-
-msgid "In-Betweens"
-msgstr "Dazwischen"
-
-
-msgid "Clear Transform"
-msgstr "Transformation löschen"
-
-
-msgid "Random Mask"
-msgstr "Zufällige Maske"
-
-
-msgid "Hooks"
-msgstr "Haken"
-
-
-msgid "Make Single User"
-msgstr "Einfachen Benutzer erzeugen"
-
-
-msgid "Convert"
-msgstr "Konvertieren"
-
-
-msgid "Asset"
-msgstr "Asset"
-
-
-msgid "Quick Effects"
-msgstr "Schnelle Effekte"
-
-
-msgid "Track"
-msgstr "Spur"
-
-
-msgid "Rigid Body"
-msgstr "Rigid Body"
-
-
 msgid "Add Image"
 msgstr "Bild hinzufügen"
 
@@ -19512,16 +19436,92 @@ msgid "Relations"
 msgstr "Beziehungen"
 
 
-msgid "Light Probe"
-msgstr "Lichtsonde"
+msgid "Rigid Body"
+msgstr "Rigid Body"
 
 
-msgid "Assign Material"
-msgstr "Material zuweisen"
+msgid "Apply"
+msgstr "Anwenden"
 
 
-msgid "Light"
-msgstr "Licht"
+msgid "Track"
+msgstr "Spur"
+
+
+msgid "Quick Effects"
+msgstr "Schnelle Effekte"
+
+
+msgid "Keying"
+msgstr "Schlüsselbilder"
+
+
+msgid "Asset"
+msgstr "Asset"
+
+
+msgid "Make Single User"
+msgstr "Einfachen Benutzer erzeugen"
+
+
+msgid "Tracking"
+msgstr "Verfolgen"
+
+
+msgid "Convert"
+msgstr "Konvertieren"
+
+
+msgid "Hooks"
+msgstr "Haken"
+
+
+msgid "Random Mask"
+msgstr "Zufällige Maske"
+
+
+msgid "Clear Transform"
+msgstr "Transformation löschen"
+
+
+msgid "In-Betweens"
+msgstr "Dazwischen"
+
+
+msgid "Names"
+msgstr "Namen"
+
+
+msgid "Toggle Bone Options"
+msgstr "Knochen-Optionen umschalten"
+
+
+msgid "Enable Bone Options"
+msgstr "Knochen-Optionen einschalten"
+
+
+msgid "Disable Bone Options"
+msgstr "Knochen-Optionen ausschalten"
+
+
+msgid "Mesh Select Mode"
+msgstr "Maschenauswahlmodus"
+
+
+msgid "Face Data"
+msgstr "Flächendaten"
+
+
+msgid "Merge"
+msgstr "Zusammenführen"
+
+
+msgid "Special Characters"
+msgstr "Sonderzeichen"
+
+
+msgid "Kerning"
+msgstr "Kerning"
 
 
 msgid "Assets"
@@ -38485,6 +38485,14 @@ msgid "View Online Manual"
 msgstr "Online-Handbuch anzeigen"
 
 
+msgid "Trusted Source"
+msgstr "Vertrauenswürdige Quelle"
+
+
+msgid "Allow .blend file to execute scripts automatically, default available from system preferences"
+msgstr "Automatische Ausführung von Skripten in .blend-Datei erlauben, Standard verfügbar in Systemeinstellungen"
+
+
 msgctxt "Operator"
 msgid "Export to PDF"
 msgstr "Export zu PDF"
@@ -38603,14 +38611,6 @@ msgstr "Benutzeroberflächeneinstellungen in .blend-Datei laden"
 
 msgid "State"
 msgstr "Zustand"
-
-
-msgid "Trusted Source"
-msgstr "Vertrauenswürdige Quelle"
-
-
-msgid "Allow .blend file to execute scripts automatically, default available from system preferences"
-msgstr "Automatische Ausführung von Skripten in .blend-Datei erlauben, Standard verfügbar in Systemeinstellungen"
 
 
 msgctxt "Operator"
@@ -39331,32 +39331,20 @@ msgid "Active Palette Color"
 msgstr "Aktive Farbpalette"
 
 
-msgid "Guides"
-msgstr "Hilfslinien"
+msgid "Active Tool"
+msgstr "Aktives Werkzeug"
 
 
-msgid "Drawing Plane"
-msgstr "Malfläche"
+msgid "View Lock"
+msgstr "Ansicht sperren"
 
 
-msgid "Transform Orientations"
-msgstr "Transformationsausrichtung"
+msgid "Shadow Settings"
+msgstr "Schatteneinstellungen"
 
 
-msgid "Curve Edit Mode"
-msgstr "Kurven-Bearbeitungsmodus"
-
-
-msgid "Measurement"
-msgstr "Messung"
-
-
-msgid "Mesh Edit Mode"
-msgstr "Maschenbearbeitungsmodus"
-
-
-msgid "Motion Tracking"
-msgstr "Bewegungsverfolgung"
+msgid "SSAO Settings"
+msgstr "SSAO Einstellungen"
 
 
 msgid "Cavity"
@@ -39371,40 +39359,52 @@ msgid "Overlays"
 msgstr "Überlagerungen"
 
 
-msgid "SSAO Settings"
-msgstr "SSAO Einstellungen"
+msgid "Guides"
+msgstr "Hilfslinien"
 
 
-msgid "Shadow Settings"
-msgstr "Schatteneinstellungen"
+msgid "Motion Tracking"
+msgstr "Bewegungsverfolgung"
 
 
-msgid "Active Tool"
-msgstr "Aktives Werkzeug"
+msgid "Mesh Edit Mode"
+msgstr "Maschenbearbeitungsmodus"
 
 
-msgid "View Lock"
-msgstr "Ansicht sperren"
+msgid "Measurement"
+msgstr "Messung"
 
 
-msgid "VR"
-msgstr "VR"
+msgid "Curve Edit Mode"
+msgstr "Kurven-Bearbeitungsmodus"
 
 
-msgid "Auto-Masking"
-msgstr "Automatisches Maskieren"
+msgid "Transform Orientations"
+msgstr "Transformationsausrichtung"
 
 
-msgid "Stereoscopy"
-msgstr "Stereoskopie"
+msgid "Drawing Plane"
+msgstr "Malfläche"
+
+
+msgid "Quad View"
+msgstr "Vierfenster-Ansicht"
 
 
 msgid "Onion Skin"
 msgstr "Zwiebelhaut"
 
 
-msgid "Quad View"
-msgstr "Vierfenster-Ansicht"
+msgid "Stereoscopy"
+msgstr "Stereoskopie"
+
+
+msgid "Auto-Masking"
+msgstr "Automatisches Maskieren"
+
+
+msgid "VR"
+msgstr "VR"
 
 
 msgid "Chain Scaling"
@@ -49403,6 +49403,10 @@ msgid "Blender Website"
 msgstr "Blender Website"
 
 
+msgid "Trusted Source [Untrusted Path]"
+msgstr "Vertrauenswürdige Quelle [Nichtvertrauenswürdiger Pfad]"
+
+
 msgctxt "Operator"
 msgid "Link..."
 msgstr "Link..."
@@ -58267,10 +58271,6 @@ msgstr "Fehler beim Öffnen der Datei im Browser!"
 
 msgid "Missing 'window' in context"
 msgstr "Fehlendes 'Fenster' im Kontext"
-
-
-msgid "Trusted Source [Untrusted Path]"
-msgstr "Vertrauenswürdige Quelle [Nichtvertrauenswürdiger Pfad]"
 
 
 msgid "Allow Execution"

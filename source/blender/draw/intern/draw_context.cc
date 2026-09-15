@@ -1140,9 +1140,14 @@ static void drw_render_border_mask(const DRWContext &ctx)
     return;
   }
 
+  float roll_angle = rv3d->camroll;
+  if ((rv3d->rflag & RV3D_FLIP_X) != 0) {
+    roll_angle = -roll_angle;
+  }
+
   /* Compute corners of the render border. */
   const float2 pivot = ctx.size * 0.5f;
-  const float2x2 roll = math::from_rotation<float2x2>(math::AngleRadian(rv3d->camroll));
+  const float2x2 roll = math::from_rotation<float2x2>(math::AngleRadian(roll_angle));
   const float2 corner[4] = {
       pivot + roll * (float2(unrolled_border.xmin, unrolled_border.ymin) - pivot),
       pivot + roll * (float2(unrolled_border.xmax, unrolled_border.ymin) - pivot),

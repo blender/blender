@@ -312,6 +312,58 @@ def cmd_reset(env: api.TestEnvironment, argv: list):
             shutil.rmtree(config.logs_dir)
 
 
+def cmd_build(env: api.TestEnvironment, argv: list):
+    # Build all revisions, skipping the ones that are already up to date.
+    parser = argparse.ArgumentParser()
+    parser.add_argument('config', nargs='?', default=None)
+    parser.add_argument(
+        '--no-submodules',
+        action='store_true',
+        help="Skip updating submodules when checking out revisions. Useful when testing performance regressions for library changes.")
+    args = parser.parse_args(argv)
+
+    update_submodules = not args.no_submodules
+
+    configs = env.get_configs(args.config)
+    for config in configs:
+        if config.benchmark_type != "comparison":
+            print(f"{config.name}: build not supported, this command can only be used with comparison benchmarks")
+            continue
+
+        # Collect revisions that need building: entries without a pre-built executable.
+        revisions = {}
+        for entry in config.queue.entries:
+            if len(entry.executable) == 0 and entry.revision not in revisions:
+                revisions[entry.revision] = entry.git_hash
+
+        if not revisions:
+            continue
+
+        print(config.name.upper())
+        for revision in sorted(revisions.keys()):
+            git_hash = revisions[revision]
+            install_dir = config.builds_dir / revision
+
+            logname = revision + '_build'
+            env.set_log_file(config.logs_dir / (logname + '.log'), clear=True)
+            print(f"{revision} building")
+            env.echo_output = True
+            try:
+                ok = env.build(git_hash, install_dir, update_submodules)
+            except SystemExit:
+                # e.g. build directory not initialized, treat as a failed build.
+                ok = False
+            finally:
+                env.echo_output = False
+                env.unset_log_file()
+
+            if ok:
+                print(f"{revision} done")
+            else:
+                print(f"{revision} failed")
+                sys.exit(1)
+
+
 def cmd_run(env: api.TestEnvironment, argv: list, update_only: bool):
     # Run tests.
     parser = argparse.ArgumentParser()
@@ -489,6 +541,7 @@ def main():
              '  \n'
              '  run [<config>] [<test>]              Execute all tests in configuration\n'
              '  update [<config>] [<test>]           Execute only queued and outdated tests\n'
+             '  build [<config>]                     Build revisions (skips the up to date ones)\n'
              '  reset [<config>] [<test>]            Clear tests results in configuration\n'
              '  status [<config>] [<test>]           List configurations and their tests\n'
              '  \n'
@@ -532,6 +585,8 @@ def main():
         cmd_run(env, argv, update_only=False)
     elif args.command == 'update':
         cmd_run(env, argv, update_only=True)
+    elif args.command == 'build':
+        cmd_build(env, argv)
     elif args.command == 'reset':
         cmd_reset(env, argv)
     elif args.command == 'bisect':

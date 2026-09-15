@@ -801,12 +801,13 @@ const float *brush_frontface_normal_from_falloff_shape(const SculptSession &ss,
 void cube_tip_init(const Sculpt &sd, const Object &ob, const Brush &brush, float mat[4][4]);
 
 /** Sample the brush's texture value. */
-void sculpt_apply_texture(const SculptSession &ss,
-                          const Brush &brush,
-                          const float brush_point[3],
-                          int thread_id,
-                          float *r_value,
-                          float4 &r_rgba);
+void apply_brush_texture(PaintMode paint_mode,
+                         const SculptSession &ss,
+                         const Brush &brush,
+                         const float brush_point[3],
+                         int thread_id,
+                         float *r_value,
+                         float4 &r_rgba);
 
 /**
  * Calculates the vertex offset for a single vertex depending on the brush setting rgb as vector

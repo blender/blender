@@ -1,9 +1,9 @@
 
 msgid ""
 msgstr ""
-"Project-Id-Version: Blender 5.3.0 Alpha (b'f5df8c32f99b')\n"
+"Project-Id-Version: Blender 5.3.0 Alpha (b'2cef5b8c951a')\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-09-07 07:47+0000\n"
+"POT-Creation-Date: 2026-09-14 07:47+0000\n"
 "PO-Revision-Date: 2026-06-02 05:12+0000\n"
 "Last-Translator: Fadli Birdie Zeinda <justbirdie00@gmail.com>\n"
 "Language-Team: Indonesian <https://translate.blender.org/projects/blender-ui/ui/id/>\n"
@@ -15676,16 +15676,20 @@ msgid "Use Material Mask"
 msgstr "Gunakan Masker Bahan"
 
 
+msgid "Sample"
+msgstr "Sampel"
+
+
 msgid "Gizmo"
 msgstr "Gizmo"
 
 
+msgid "Snap"
+msgstr "Jepret"
+
+
 msgid "Instances"
 msgstr "Contoh-contoh"
-
-
-msgid "Sample"
-msgstr "Sampel"
 
 
 msgid "Import"
@@ -15696,10 +15700,6 @@ msgid "Utilities"
 msgstr "Utilitas"
 
 
-msgid "Select Linked"
-msgstr "Seleksi yang Terhubung"
-
-
 msgid "Math"
 msgstr "Matematika"
 
@@ -15708,20 +15708,32 @@ msgid "UV"
 msgstr "UV"
 
 
-msgid "Navigation"
-msgstr "Navigasi"
-
-
-msgid "Snap"
-msgstr "Jepret"
-
-
 msgid "Mirror"
 msgstr "Cermin"
 
 
-msgid "Names"
-msgstr "Nama"
+msgid "Navigation"
+msgstr "Navigasi"
+
+
+msgid "Select Linked"
+msgstr "Seleksi yang Terhubung"
+
+
+msgid "Assign Material"
+msgstr "Tugaskan Bahan"
+
+
+msgid "Metaball"
+msgstr "Metabola"
+
+
+msgid "Light"
+msgstr "Cahaya"
+
+
+msgid "Light Probe"
+msgstr "Probe Cahaya"
 
 
 msgid "Linked"
@@ -15732,48 +15744,36 @@ msgid "Layout"
 msgstr "Tata Letak"
 
 
-msgid "Metaball"
-msgstr "Metabola"
-
-
-msgid "Merge"
-msgstr "Menggabungkan"
-
-
-msgid "Tracking"
-msgstr "Pelacakan"
+msgid "Add Image"
+msgstr "Tambah Gambar"
 
 
 msgid "Apply"
 msgstr "Tetapkan"
 
 
-msgid "Hooks"
-msgstr "Kait"
+msgid "Track"
+msgstr "Lacak"
 
 
 msgid "Asset"
 msgstr "Aset"
 
 
-msgid "Track"
-msgstr "Lacak"
+msgid "Tracking"
+msgstr "Pelacakan"
 
 
-msgid "Add Image"
-msgstr "Tambah Gambar"
+msgid "Hooks"
+msgstr "Kait"
 
 
-msgid "Light Probe"
-msgstr "Probe Cahaya"
+msgid "Names"
+msgstr "Nama"
 
 
-msgid "Assign Material"
-msgstr "Tugaskan Bahan"
-
-
-msgid "Light"
-msgstr "Cahaya"
+msgid "Merge"
+msgstr "Menggabungkan"
 
 
 msgid "Animals"

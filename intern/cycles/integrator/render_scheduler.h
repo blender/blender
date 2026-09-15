@@ -249,6 +249,9 @@ class RenderScheduler {
    * unit. */
   bool is_denoise_active_during_update() const;
 
+  /* Check whether a real-time denoiser like DLSS is active. */
+  bool is_denoiser_interactive() const;
+
   /* Heuristic which aims to give perceptually pleasant update of display interval in a way that at
    * lower samples and near the beginning of rendering, updates happen more often, but with higher
    * number of samples and later in the render, updates happen less often but device occupancy

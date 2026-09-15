@@ -1679,6 +1679,14 @@ static StructRNA *rna_FileHandler_refine(PointerRNA *file_handler_ptr)
              RNA_FileHandler;
 }
 
+static void rna_FileHandler_label_with_extensions(const char *idname, char *result)
+{
+  const bke::FileHandlerType *file_handler = bke::file_handler_find(idname);
+  BLI_strncpy(result,
+              file_handler ? file_handler->label_with_extensions().c_str() : "",
+              FH_MAX_FILE_EXTENSIONS_STR + OP_MAX_TYPENAME + 3);
+}
+
 }  // namespace blender
 
 #else /* RNA_RUNTIME */
@@ -2612,6 +2620,17 @@ static void rna_def_file_handler(BlenderRNA *brna)
   RNA_def_function_return(func, RNA_def_boolean(func, "is_usable", false, "", ""));
   parm = RNA_def_pointer(func, "context", "Context", "", "The context");
   RNA_def_parameter_flags(parm, PropertyFlag(0), PARM_REQUIRED);
+
+  func = RNA_def_function(srna, "label_with_extensions", "rna_FileHandler_label_with_extensions");
+  RNA_def_function_ui_description(
+      func, "Return the label of the file handler with the given ID, with its file extensions");
+  RNA_def_function_flag(func, FUNC_NO_SELF);
+  parm = RNA_def_string(func, "idname", nullptr, sizeof(bke::FileHandlerType::idname), "", "");
+  RNA_def_parameter_flags(parm, PropertyFlag(0), PARM_REQUIRED);
+  parm = RNA_def_string(
+      func, "result", nullptr, FH_MAX_FILE_EXTENSIONS_STR + OP_MAX_TYPENAME + 3, "result", "");
+  RNA_def_parameter_flags(parm, PROP_THICK_WRAP, ParameterFlag(0));
+  RNA_def_function_output(func, parm);
 }
 
 static void rna_def_layout_panel_state(BlenderRNA *brna)

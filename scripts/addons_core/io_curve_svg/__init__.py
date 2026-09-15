@@ -84,7 +84,9 @@ class IO_FH_svg_as_curves(bpy.types.FileHandler):
 
 
 def menu_func_import(self, context):
-    self.layout.operator(ImportSVG.bl_idname, text="SVG as Curves (.svg)")
+    self.layout.operator(
+        ImportSVG.bl_idname,
+        text=bpy.types.FileHandler.label_with_extensions("IO_FH_svg_as_curves"))
 
 
 classes = [

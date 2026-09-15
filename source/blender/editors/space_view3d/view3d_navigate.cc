@@ -99,6 +99,7 @@ void ViewOpsData::state_backup()
   this->init.camdy = rv3d->camdy;
   this->init.camzoom = rv3d->camzoom;
   this->init.camroll = rv3d->camroll;
+  this->init.cam_flip_x = (rv3d->rflag & RV3D_FLIP_X) != 0;
   this->init.dist = rv3d->dist;
   copy_qt_qt(this->init.quat, rv3d->viewquat);
 
@@ -162,6 +163,14 @@ void ViewOpsData::state_restore()
     /* Note this does not remove auto-keys on locked cameras. */
     copy_qt_qt(this->rv3d->viewquat, this->init.quat);
     this->rv3d->camroll = this->init.camroll;
+  }
+
+  /* FLIP. */
+  {
+    this->rv3d->rflag &= ~RV3D_FLIP_X;
+    if (this->init.cam_flip_x) {
+      this->rv3d->rflag |= RV3D_FLIP_X;
+    }
   }
 
   /* ROTATE. */
@@ -382,6 +391,10 @@ void ViewOpsData::init_navigation(bContext *C,
   this->reverse = 1.0f;
   if (rv3d->persmat[2][1] < 0.0f) {
     this->reverse = -1.0f;
+  }
+
+  if (rv3d->persp == RV3D_CAMOB && (rv3d->rflag & RV3D_FLIP_X) != 0) {
+    this->reverse *= -1.0f;
   }
 
   this->viewops_flag = viewops_flag;

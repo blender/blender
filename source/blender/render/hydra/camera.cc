@@ -95,6 +95,12 @@ static pxr::GfCamera gf_camera(const CameraParams &params,
   pxr::GfVec2f lens_shift = pxr::GfVec2f(params.shiftx, params.shifty) / frame_fit;
   lens_shift = pxr::GfCompDiv(lens_shift, sensor_scale);
   lens_shift += pxr::GfVec2f(params.offsetx, params.offsety);
+
+  /* Apply camera roll and flip in pixel units. */
+  float2 shift(lens_shift[0] * res[0], lens_shift[1] * res[1]);
+  shift = BKE_camera_viewplane_offset_transform(params.roll, params.is_flipped_x, shift);
+  lens_shift = pxr::GfVec2f(shift.x / res[0], shift.y / res[1]);
+
   lens_shift += b_pos + b_size * 0.5f - pxr::GfVec2f(0.5f);
   lens_shift = pxr::GfCompDiv(lens_shift, b_size);
   camera.SetHorizontalApertureOffset(lens_shift[0] * aperture[0]);

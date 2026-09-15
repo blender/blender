@@ -16,6 +16,7 @@ def import_user_extensions(hook_name, gltf, *args):
             try:
                 hook(*args, gltf)
             except Exception as e:
+                import traceback
                 if getattr(extension, 'is_critical', False):
                     gltf.log.error(
                         "Critical extension hook " +
@@ -25,7 +26,9 @@ def import_user_extensions(hook_name, gltf, *args):
                         ": " +
                         str(e),
                         popup=True)
+                    traceback.print_exc()
                     raise RuntimeError("Import aborted due to critical extension failure") from e
                 else:
                     gltf.log.error(hook_name, "fails on", extension)
                     gltf.log.error(str(e))
+                    traceback.print_exc()

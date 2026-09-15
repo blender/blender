@@ -1,10 +1,10 @@
 
 msgid ""
 msgstr ""
-"Project-Id-Version: Blender 5.3.0 Alpha (b'f5df8c32f99b')\n"
+"Project-Id-Version: Blender 5.3.0 Alpha (b'2cef5b8c951a')\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-09-07 07:47+0000\n"
-"PO-Revision-Date: 2026-09-05 05:34+0000\n"
+"POT-Creation-Date: 2026-09-14 07:47+0000\n"
+"PO-Revision-Date: 2026-09-11 10:37+0000\n"
 "Last-Translator: Gabriel Gazzán <gabcorreo@gmail.com>\n"
 "Language-Team: Spanish <https://translate.blender.org/projects/blender-ui/ui/es/>\n"
 "Language: es\n"
@@ -15315,11 +15315,15 @@ msgstr "Clip de imagen"
 
 
 msgid "Movie strip"
-msgstr "Clip de película"
+msgstr "Clip de video"
 
 
 msgid "Sound strip"
 msgstr "Clip de sonido"
+
+
+msgid "Text strip"
+msgstr "Clip de texto"
 
 
 msgid "Add camera background image"
@@ -19385,10 +19389,6 @@ msgstr "Archivo de biblioteca desde donde está referenciado el bloque de datos"
 
 msgid "Library Weak Reference"
 msgstr "Referencia débil a biblioteca"
-
-
-msgid "Weak reference to a data-block in another library .blend file (used to re-use already appended data instead of appending new copies)"
-msgstr "Referencia débil a un bloque de datos en el archivo .blend de otra biblioteca (usado para reutilizar datos ya anexados, en vez de volver a anexar nuevas copias de los mismos)"
 
 
 msgid "Unique data-block ID name (within a same type and library)"
@@ -29073,10 +29073,6 @@ msgid "Returns and sets the node group of the active scene compositor effect. Cr
 msgstr "Permite obtener y definir el grupo de nodos del efecto activo de Nodos de composición de la escena. Creará uno, en caso de que no existiera"
 
 
-msgid "Compositor Effects"
-msgstr "Efectos de composición"
-
-
 msgid "Compositor effects for this scene"
 msgstr "Efectos de composición de esta escena"
 
@@ -36200,18 +36196,6 @@ msgid "Editor menu containing buttons"
 msgstr "Menú del editor que contiene botones"
 
 
-msgid "Select More/Less"
-msgstr "Seleccionar más / menos"
-
-
-msgid "Gizmo"
-msgstr "Manipulador"
-
-
-msgid "Instances"
-msgstr "Instancias"
-
-
 msgid "Read"
 msgstr "Lectura"
 
@@ -36220,72 +36204,84 @@ msgid "Sample"
 msgstr "Muestreo"
 
 
+msgid "Show/Hide"
+msgstr "Mostrar / Ocultar"
+
+
 msgid "Write"
 msgstr "Escritura"
+
+
+msgid "Clean Up"
+msgstr "Limpiar"
 
 
 msgid "Primitives"
 msgstr "Primitivas"
 
 
+msgid "Pivot Point"
+msgstr "Punto de pivote"
+
+
+msgid "Gizmo"
+msgstr "Manipulador"
+
+
+msgid "Snap"
+msgstr "Adherir"
+
+
+msgid "Instances"
+msgstr "Instancias"
+
+
+msgid "Proportional Editing Falloff"
+msgstr "Decaimiento de edición proporcional"
+
+
+msgid "Mask Edit"
+msgstr "Edición de máscara"
+
+
+msgid "Automasking"
+msgstr "Autoenmascarar"
+
+
+msgid "Face Sets Edit"
+msgstr "Edición de conjuntos de caras"
+
+
+msgid "Vertex Group Locks"
+msgstr "Bloqueos de grupo de vértices"
+
+
 msgid "Import"
 msgstr "Importar"
-
-
-msgid "Select Loops"
-msgstr "Seleccionar bucles"
-
-
-msgid "Viewpoint"
-msgstr "Punto de vista"
 
 
 msgid "Render Preview"
 msgstr "Procesar previsualización"
 
 
-msgid "Select All by Trait"
-msgstr "Seleccionar por condición"
-
-
 msgid "Utilities"
 msgstr "Utilitarios"
-
-
-msgid "Select Linked"
-msgstr "Seleccionar vinculado"
 
 
 msgid "Deprecated"
 msgstr "Obsoleto"
 
 
-msgid "Select Similar"
-msgstr "Seleccionar similar"
-
-
 msgid "Math"
 msgstr "Operar"
-
-
-msgid "Align View to Active"
-msgstr "Alinear vista al activo"
 
 
 msgid "UV"
 msgstr "UV"
 
 
-msgid "View Regions"
-msgstr "Regiones de la vista"
-
-
-msgid "Navigation"
-msgstr "Navegación"
-
-
-msgid "Align View"
-msgstr "Alinear vista"
+msgid "Mirror"
+msgstr "Simetrizar"
 
 
 msgid "UV Mapping"
@@ -36296,52 +36292,60 @@ msgid "Local View"
 msgstr "Vista local"
 
 
-msgid "Snap"
-msgstr "Adherir"
+msgid "Viewpoint"
+msgstr "Punto de vista"
 
 
-msgid "Bone Roll"
-msgstr "Giro de huesos"
+msgid "Navigation"
+msgstr "Navegación"
 
 
-msgid "Mirror"
-msgstr "Simetrizar"
+msgid "Align View"
+msgstr "Alinear vista"
 
 
-msgid "Automasking"
-msgstr "Autoenmascarar"
+msgid "Align View to Active"
+msgstr "Alinear vista al activo"
 
 
-msgid "Vertex Group Locks"
-msgstr "Bloqueos de grupo de vértices"
+msgid "View Regions"
+msgstr "Regiones de la vista"
 
 
-msgid "Face Sets Edit"
-msgstr "Edición de conjuntos de caras"
+msgid "Select More/Less"
+msgstr "Seleccionar más / menos"
 
 
-msgid "Mask Edit"
-msgstr "Edición de máscara"
+msgid "Select Similar"
+msgstr "Seleccionar similar"
 
 
-msgid "Proportional Editing Falloff"
-msgstr "Decaimiento de edición proporcional"
+msgid "Select All by Trait"
+msgstr "Seleccionar por condición"
 
 
-msgid "Pivot Point"
-msgstr "Punto de pivote"
+msgid "Select Linked"
+msgstr "Seleccionar vinculado"
 
 
-msgid "Clean Up"
-msgstr "Limpiar"
+msgid "Select Loops"
+msgstr "Seleccionar bucles"
 
 
-msgid "Show/Hide"
-msgstr "Mostrar / Ocultar"
+msgid "Assign Material"
+msgstr "Asignar material"
 
 
-msgid "Names"
-msgstr "Nombres"
+msgid "Metaball"
+msgstr "Metabola"
+
+
+msgid "Light"
+msgstr "Luz"
+
+
+msgid "Light Probe"
+msgstr "Sonda de luz"
 
 
 msgid "Linked"
@@ -36352,108 +36356,48 @@ msgid "Layout"
 msgstr "Organizar"
 
 
-msgid "Metaball"
-msgstr "Metabola"
+msgid "Add Image"
+msgstr "Agregar imagen"
 
 
-msgid "Kerning"
-msgstr "Espaciado"
+msgid "Relations"
+msgstr "Relaciones"
 
 
-msgid "Special Characters"
-msgstr "Caracteres especiales"
-
-
-msgid "Adjust"
-msgstr "Ajustar"
-
-
-msgid "Merge"
-msgstr "Fusionar"
-
-
-msgid "Bone Collections"
-msgstr "Colecciones de huesos"
-
-
-msgid "Keying"
-msgstr "Recortar"
-
-
-msgid "Tracking"
-msgstr "Rastreo"
-
-
-msgid "Set Face Strength"
-msgstr "Definir intensidad de caras"
-
-
-msgid "Select by Face Strength"
-msgstr "Seleccionar por intensidad de caras"
-
-
-msgid "Face Data"
-msgstr "Datos de caras"
-
-
-msgid "Creative"
-msgstr "Creatividad"
-
-
-msgid "Mesh Select Mode"
-msgstr "Modo de selección de mallas"
-
-
-msgid "Disable Bone Options"
-msgstr "Deshabilitar opciones huesos"
-
-
-msgid "Enable Bone Options"
-msgstr "Habilitar opciones huesos"
-
-
-msgid "Toggle Bone Options"
-msgstr "Alternar opciones de huesos"
+msgid "Rigid Body"
+msgstr "Cuerpo rígido"
 
 
 msgid "Apply"
 msgstr "Aplicar"
 
 
-msgid "Propagate"
-msgstr "Propagar"
+msgid "Track"
+msgstr "Rastrear"
 
 
-msgid "In-Betweens"
-msgstr "Intermedios"
+msgid "Adjust"
+msgstr "Ajustar"
 
 
-msgid "Clear Transform"
-msgstr "Restablecer transformación"
+msgid "Quick Effects"
+msgstr "Efectos rápidos"
 
 
-msgid "Random Mask"
-msgstr "Máscara aleatoria"
+msgid "Keying"
+msgstr "Recortar"
 
 
-msgid "Sculpt Set Pivot"
-msgstr "Esculpido definir pivote"
-
-
-msgid "Face Sets Init"
-msgstr "Inicialización de conjuntos de caras"
-
-
-msgid "Trim/Add"
-msgstr "Recortar / Agregar"
-
-
-msgid "Hooks"
-msgstr "Asignar gancho"
+msgid "Asset"
+msgstr "Recurso"
 
 
 msgid "Make Single User"
 msgstr "Hacer de único usuario"
+
+
+msgid "Tracking"
+msgstr "Rastreo"
 
 
 msgid "Convert"
@@ -36464,40 +36408,92 @@ msgid "Link/Transfer Data"
 msgstr "Vincular / Transferir datos"
 
 
-msgid "Asset"
-msgstr "Recurso"
+msgid "Hooks"
+msgstr "Asignar gancho"
 
 
-msgid "Quick Effects"
-msgstr "Efectos rápidos"
+msgid "Creative"
+msgstr "Creatividad"
 
 
-msgid "Track"
-msgstr "Rastrear"
+msgid "Trim/Add"
+msgstr "Recortar / Agregar"
 
 
-msgid "Rigid Body"
-msgstr "Cuerpo rígido"
+msgid "Sculpt Set Pivot"
+msgstr "Esculpido definir pivote"
 
 
-msgid "Add Image"
-msgstr "Agregar imagen"
+msgid "Face Sets Init"
+msgstr "Inicialización de conjuntos de caras"
 
 
-msgid "Relations"
-msgstr "Relaciones"
+msgid "Random Mask"
+msgstr "Máscara aleatoria"
 
 
-msgid "Light Probe"
-msgstr "Sonda de luz"
+msgid "Clear Transform"
+msgstr "Restablecer transformación"
 
 
-msgid "Assign Material"
-msgstr "Asignar material"
+msgid "In-Betweens"
+msgstr "Intermedios"
 
 
-msgid "Light"
-msgstr "Luz"
+msgid "Propagate"
+msgstr "Propagar"
+
+
+msgid "Bone Collections"
+msgstr "Colecciones de huesos"
+
+
+msgid "Names"
+msgstr "Nombres"
+
+
+msgid "Toggle Bone Options"
+msgstr "Alternar opciones de huesos"
+
+
+msgid "Enable Bone Options"
+msgstr "Habilitar opciones huesos"
+
+
+msgid "Disable Bone Options"
+msgstr "Deshabilitar opciones huesos"
+
+
+msgid "Mesh Select Mode"
+msgstr "Modo de selección de mallas"
+
+
+msgid "Face Data"
+msgstr "Datos de caras"
+
+
+msgid "Select by Face Strength"
+msgstr "Seleccionar por intensidad de caras"
+
+
+msgid "Set Face Strength"
+msgstr "Definir intensidad de caras"
+
+
+msgid "Merge"
+msgstr "Fusionar"
+
+
+msgid "Special Characters"
+msgstr "Caracteres especiales"
+
+
+msgid "Kerning"
+msgstr "Espaciado"
+
+
+msgid "Bone Roll"
+msgstr "Giro de huesos"
 
 
 msgid "Keyframe Insert Pie"
@@ -36879,10 +36875,6 @@ msgstr "Especiales de conjuntos de líneas"
 
 msgid "Pixel Density Presets"
 msgstr "Preajustes de densidad de píxeles"
-
-
-msgid "Add Effect"
-msgstr "Agregar efecto"
 
 
 msgid "Effect Strip"
@@ -51373,6 +51365,10 @@ msgid "The attribute is associated with the View Layer, Scene or World that is b
 msgstr "El atributo se encontrará asociado a la capa de visualización, escena o entorno que estén siendo procesados"
 
 
+msgid "The attribute is associated with the Light that is being rendered"
+msgstr "El atributo está asociado con la luz que está siendo procesada"
+
+
 msgid "Background"
 msgstr "Fondo"
 
@@ -51849,12 +51845,48 @@ msgstr ""
 "Usado típicamente para superponer sombreadores en capa con el nodo Mezclar sombreadores"
 
 
+msgid "Light Accumulation"
+msgstr "Acumulación de luz"
+
+
+msgid ""
+"Adds the result of all the evaluated lights and stores each input into its respective Compositing Pass.\n"
+"The combined result is computed as (Diffuse Light * Diffuse Color) + (Glossy Light * Glossy Color)"
+msgstr ""
+"Agrega el resultado de todas las luces evaluadas y almacena cada entrada en su respectiva pasada de composición.\n"
+"El resultado combinado se calcula como (Luz difusa × Color de difusión) + (Luz reflejada × Color de reflectividad)"
+
+
+msgid "Light Evaluation"
+msgstr "Evaluación de luz"
+
+
+msgid "Defines parametrization of the light evaluation"
+msgstr "Define la parametrización de la evaluación de la luz"
+
+
 msgid "Light Falloff"
 msgstr "Decaimiento de luz"
 
 
 msgid "Manipulate how light intensity decreases over distance. Typically used for non-physically-based effects; in reality light always falls off quadratically"
 msgstr "Manipula cómo disminuye la intensidad de la luz con la distancia. Usado típicamente para efectos no basados en principios físicos; en la realidad la luz siempre decae de forma cuadrática"
+
+
+msgid "Light Info"
+msgstr "Información de luz"
+
+
+msgid "Exposes physical properties of the light being evaluated and computes basic information relative to the evaluation position"
+msgstr "Expone las propiedades físicas de la luz que está siendo evaluada y calcula información básica relativa a la posición de evaluación"
+
+
+msgid "Light Iter Internal Input"
+msgstr "Iter luz entrada interna"
+
+
+msgid "Light Iter Internal Output"
+msgstr "Iter luz salida interna"
 
 
 msgid "Light Path"
@@ -52566,6 +52598,10 @@ msgid ""
 msgstr ""
 "Convierte un efecto de procesamiento (como luz y sombras) en un color. Usado típicamente en procesamiento no fotorrealista, para aplicar efectos adicionales al producto de sombreadores BSDF.\n"
 "Nota: sólo soportado para EEVEE"
+
+
+msgid "Shadow Raycast"
+msgstr "Proyectar rayos de sombra"
 
 
 msgid "Squeeze Value (Legacy)"
@@ -53863,6 +53899,14 @@ msgstr "Entradas de nodo"
 
 msgid "Collection of Node Sockets"
 msgstr "Colección de conectores de nodo"
+
+
+msgid "From Socket"
+msgstr "Desde conector"
+
+
+msgid "To Socket"
+msgstr "A conector"
 
 
 msgid "Socket Template"
@@ -57207,11 +57251,6 @@ msgstr "Transferir anim FK a IK"
 msgctxt "Operator"
 msgid "Transfer IK anim to FK"
 msgstr "Transferir anim IK a FK"
-
-
-msgctxt "Operator"
-msgid "Add Scene Compositor Effect Menu"
-msgstr "Agregar menú de efecto composición de escena"
 
 
 msgid "Add the data paths to the Freestyle Edge Mark property of selected edges to the active keying set"
@@ -64868,6 +64907,10 @@ msgid "Export minimal materials as defined in Viewport display properties"
 msgstr "Exportar materiales mínimos, tal como estuvieran definidos en las propiedades de visualización de la Vista 3D"
 
 
+msgid "No Export"
+msgstr "No exportar"
+
+
 msgid "Do not export materials, and combine mesh primitive groups, losing material slot information"
 msgstr "No exportar materiales y combinar los grupos de primitivas de mallas, perdiendo la información de los contenedores de materiales"
 
@@ -71835,6 +71878,26 @@ msgid "Allow edge ring selection to step over n-gons with an even number of side
 msgstr "Permite que la selección del anillo de bordes atraviese enégonos con una cantidad par de lados"
 
 
+msgid "Face Loop Delimit"
+msgstr "Delimitar bucle de caras"
+
+
+msgid "Delimit face loop selection"
+msgstr "Delimita la selección de bucles de caras"
+
+
+msgid "Delimit face loop selection at seams"
+msgstr "Delimita la selección de bucles de caras en las costuras"
+
+
+msgid "Delimit face loop selection at sharp edges"
+msgstr "Delimita la selección de bucles de caras en los bordes definidos"
+
+
+msgid "Delimit face loop selection at material boundaries"
+msgstr "Delimita la selección de bucles de caras en los límites de los materiales"
+
+
 msgid "Remove from the selection"
 msgstr "Eliminar de la selección"
 
@@ -72446,26 +72509,6 @@ msgid "Stop boundary selection at vertices with two edges when they share a face
 msgstr "Detiene la selección de límites en vértices con dos bordes conectados, cuando compartan una cara que no sea un enégono"
 
 
-msgid "Face Loop Delimit"
-msgstr "Delimitar bucle de caras"
-
-
-msgid "Delimit face loop selection"
-msgstr "Delimita la selección de bucles de caras"
-
-
-msgid "Delimit face loop selection at seams"
-msgstr "Delimita la selección de bucles de caras en las costuras"
-
-
-msgid "Delimit face loop selection at sharp edges"
-msgstr "Delimita la selección de bucles de caras en los bordes definidos"
-
-
-msgid "Delimit face loop selection at material boundaries"
-msgstr "Delimita la selección de bucles de caras en los límites de los materiales"
-
-
 msgctxt "Operator"
 msgid "Select Loop Inner-Region"
 msgstr "Seleccionar región interior de un bucle"
@@ -73042,6 +73085,35 @@ msgstr "Agregar plano"
 
 msgid "Construct a filled planar mesh with 4 vertices"
 msgstr "Crea una malla plana de 4 vértices"
+
+
+msgctxt "Operator"
+msgid "Add Quad Sphere"
+msgstr "Agregar esfera cuadrangular"
+
+
+msgid "Construct a spherical mesh from a subdivided cube, consisting entirely of four-sided faces"
+msgstr "Crea una malla esférica a partir de un cubo subdividido, consistente únicamente en caras de cuatro lados"
+
+
+msgid "Mapping from the cube onto the sphere"
+msgstr "Mapeo desde el cubo hacia la esfera"
+
+
+msgid "Even Area"
+msgstr "Área uniforme"
+
+
+msgid "Distribute the area evenly between faces"
+msgstr "Distribuir el área de manera uniforme entre las caras"
+
+
+msgid "Even Angle"
+msgstr "Ángulos uniformes"
+
+
+msgid "Distribute vertices at an even angle, spacing each axis as an exact circle"
+msgstr "Distribuir los vértices en ángulos uniformes, espaciando cada eje como un círculo perfecto"
 
 
 msgid "Exterior Radius"
@@ -75137,14 +75209,6 @@ msgid "Duplicate the currently assigned compositing node group."
 msgstr "Duplicar el grupo de nodos de composición actualmente asignado."
 
 
-msgid "Duplicate Compositor Effect Node Group"
-msgstr "Duplicar grupo de nodos del efecto de composición"
-
-
-msgid "Duplicate the active scene compositor effect node group and assign the new node group to the effect"
-msgstr "Duplica el grupo de nodos del efecto de composición activo de la escena y asigna el grupo duplicado al efecto"
-
-
 msgid "Duplicate selected nodes and move them"
 msgstr "Duplica los nodos seleccionados y permite moverlos"
 
@@ -75640,10 +75704,6 @@ msgstr "Desde el nodo"
 
 msgid "From node linked to selected node"
 msgstr "Desde el nodo conectado al nodo seleccionado"
-
-
-msgid "From Socket"
-msgstr "Desde conector"
 
 
 msgid "From socket linked to selected node"
@@ -83431,24 +83491,6 @@ msgstr "Transfiere la animación de cinemática inversa a los huesos de cinemát
 
 
 msgctxt "Operator"
-msgid "Add Scene Compositor Effect"
-msgstr "Agregar efecto de composición a escena"
-
-
-msgid "Add a scene compositor effect to the scene"
-msgstr "Agrega un efecto de composición a la escena"
-
-
-msgctxt "Operator"
-msgid "Add Scene Compositor Effect Node Group Asset"
-msgstr "Agregar efecto de composición a escena desde recurso"
-
-
-msgid "Add a scene compositor effect to the scene with a node group asset"
-msgstr "Agrega un efecto de composición a la escena usando un recurso de grupo de nodos"
-
-
-msgctxt "Operator"
 msgid "Delete Scene"
 msgstr "Borrar escena"
 
@@ -83466,22 +83508,8 @@ msgid "Import scene and set it as the active one in the window"
 msgstr "Importa la escena y la convierte en la escena activa en la ventana"
 
 
-msgctxt "Operator"
-msgid "Duplicate Scene Compositor Effect"
-msgstr "Duplicar efecto de composición a escena"
-
-
-msgid "Duplicate the active or the given scene compositor effect"
-msgstr "Duplica el efecto de composición de la escena activo o el indicado"
-
-
 msgid "Name of the effect to duplicate. If empty duplicate the active effect"
 msgstr "Nombre del efecto a duplicar. En caso de estar vacío, se duplicará el efecto activo"
-
-
-msgctxt "Operator"
-msgid "Duplicate Compositor Effect Node Group"
-msgstr "Duplicar grupo de nodos de efecto de composición"
 
 
 msgctxt "Operator"
@@ -83667,15 +83695,6 @@ msgid "Add a line thickness modifier to the line style associated with the activ
 msgstr "Agrega un modificador de grosor de línea al estilo de línea asociado al conjunto de líneas activo"
 
 
-msgctxt "Operator"
-msgid "Move Active Scene Compositor Effect to Index"
-msgstr "Mover efecto de composición activo de escena a identificador"
-
-
-msgid "Change the scene compositor effect's index in the stack so it evaluates after the set number of others"
-msgstr "Cambia el identificador del efecto de composición de escena en la lista, para que sea evaluado luego de los otros"
-
-
 msgid "Name of the effect to edit"
 msgstr "Nombre del efecto a editar"
 
@@ -83730,15 +83749,6 @@ msgid "Make a full copy of the current scene"
 msgstr "Hacer una copia completa de la escena actual"
 
 
-msgctxt "Operator"
-msgid "New Scene Compositor Effect Node Group"
-msgstr "Nuevo grupo de nodos de composición de escena"
-
-
-msgid "Create a new compositor node group and assign it to the active scene compositor effect"
-msgstr "Crea un nuevo grupo de nodos de composición y lo asigna al efecto de composición de escena activo"
-
-
 msgid "Add new scene by type in the sequence editor and assign to active strip"
 msgstr "Agrega una nueva escena por tipo en el editor de video y la asigna al clip activo"
 
@@ -83764,15 +83774,6 @@ msgid "Add new scene to be used by the sequencer"
 msgstr "Agrega una nueva escena para ser usada por el editor de video"
 
 
-msgctxt "Operator"
-msgid "Remove Scene Compositor Effect"
-msgstr "Eliminar efecto de composición de escena"
-
-
-msgid "Remove a scene compositor effect from the scene"
-msgstr "Elimina un efecto de composición de la escena"
-
-
 msgid "Name of the effect to remove"
 msgstr "Nombre del efecto a eliminar"
 
@@ -83793,15 +83794,6 @@ msgstr "Eliminar vista de procesamiento"
 
 msgid "Remove the selected render view"
 msgstr "Elimina la vista de procesamiento seleccionada"
-
-
-msgctxt "Operator"
-msgid "Set Active Scene Compositor Effect"
-msgstr "Definir efecto de composición de escena activo"
-
-
-msgid "Set the given scene compositor effect as the active one"
-msgstr "Permite establecer el efecto de composición de escena indicado como el activo"
 
 
 msgid "Name of the strip effect to edit"
@@ -86116,7 +86108,7 @@ msgstr "Definir reemplazos para clips seleccionados"
 
 
 msgid "Enable selected proxies on all selected Movie and Image strips"
-msgstr "Habilita los reemplazos seleccionados en todos los clips de película e imagen seleccionados"
+msgstr "Habilita los reemplazos seleccionados en todos los clips de video e imagen seleccionados"
 
 
 msgid "Overwrite existing proxy files"
@@ -87334,8 +87326,17 @@ msgid "Select all characters"
 msgstr "Seleccionar todos los caracteres"
 
 
+msgctxt "Operator"
+msgid "Add Text Strip"
+msgstr "Agregar clip de texto"
+
+
 msgid "Add a text strip to the sequencer"
 msgstr "Agrega un clip de texto a la línea de tiempo"
+
+
+msgid "Initialize the strip with this text"
+msgstr "Inicializar el clip con este texto"
 
 
 msgctxt "Operator"
@@ -88972,6 +88973,24 @@ msgstr "Elimina una operación de redefinición"
 
 msgid "Reset to default values all elements of the array"
 msgstr "Restablecer todos los elementos del vector a sus valores predefinidos"
+
+
+msgctxt "Operator"
+msgid "Clear and Hide Filter"
+msgstr "Limpiar y ocultar filtro"
+
+
+msgid "Clear and hide the region search filter"
+msgstr "Limpia y oculta el filtro de búsqueda de la región"
+
+
+msgctxt "Operator"
+msgid "Show Filter"
+msgstr "Mostrar filtro"
+
+
+msgid "Shows and starts entering region filter text"
+msgstr "Muestra y permite comenzar a introducir texto en el filtro de búsqueda"
 
 
 msgctxt "Operator"
@@ -90774,6 +90793,10 @@ msgid "ICO Sphere"
 msgstr "Esfera geodésica"
 
 
+msgid "Quad Sphere"
+msgstr "Esfera cuadrangular"
+
+
 msgid "Toggle display of selected object(s) separately and centered in view"
 msgstr "Permite aislar los objetos seleccionados, centrándolos en la vista"
 
@@ -91920,6 +91943,14 @@ msgid "Call Panel"
 msgstr "Llamar panel"
 
 
+msgid "Auto Keymap"
+msgstr "Mapa de teclado autom."
+
+
+msgid "Assign accelerator keys to buttons, shown as underlined characters"
+msgstr "Asigna teclas aceleradoras a botones, mostradas como caracteres subrayados"
+
+
 msgid "Keep Open"
 msgstr "Mantener abierto"
 
@@ -92054,6 +92085,14 @@ msgstr "Ver el manual en línea"
 
 msgid "View a context based online manual in a web browser"
 msgstr "Ver el manual en línea"
+
+
+msgid "Trusted Source"
+msgstr "Origen confiable"
+
+
+msgid "Allow .blend file to execute scripts automatically, default available from system preferences"
+msgstr "Permite al archivo .blend ejecutar scripts automáticamente (valor predefinido disponible en las Preferencias de usuario)"
 
 
 msgctxt "Operator"
@@ -92520,14 +92559,6 @@ msgstr "Carga la configuración de la interfaz del archivo .blend"
 
 msgid "State"
 msgstr "Estado"
-
-
-msgid "Trusted Source"
-msgstr "Origen confiable"
-
-
-msgid "Allow .blend file to execute scripts automatically, default available from system preferences"
-msgstr "Permite al archivo .blend ejecutar scripts automáticamente (valor predefinido disponible en las Preferencias de usuario)"
 
 
 msgctxt "Operator"
@@ -95178,44 +95209,24 @@ msgid "Panel containing UI elements"
 msgstr "Panel que contiene elementos de la interfaz"
 
 
-msgid "Guides"
-msgstr "Guías"
+msgid "Active Tool"
+msgstr "Herramienta activa"
 
 
-msgid "Drawing Plane"
-msgstr "Plano de dibujo"
+msgid "View Lock"
+msgstr "Fijar vista"
 
 
-msgid "Stroke Placement"
-msgstr "Ubicación del trazo"
+msgid "Selectability & Visibility"
+msgstr "Seleccionabilidad y visibilidad"
 
 
-msgid "Transform Orientations"
-msgstr "Orientación de transformación"
+msgid "Shadow Settings"
+msgstr "Opciones de sombras"
 
 
-msgid "Viewer Node"
-msgstr "Nodo Visor"
-
-
-msgid "Curves Edit Mode"
-msgstr "Modo edición de curvas"
-
-
-msgid "Curve Edit Mode"
-msgstr "Modo edición de curvas"
-
-
-msgid "Measurement"
-msgstr "Medición"
-
-
-msgid "Mesh Edit Mode"
-msgstr "Modo edición de mallas"
-
-
-msgid "Motion Tracking"
-msgstr "Rastreo de movimiento"
+msgid "SSAO Settings"
+msgstr "Opciones OAEP"
 
 
 msgid "Cavity"
@@ -95230,12 +95241,32 @@ msgid "Overlays"
 msgstr "Sobreimpresos"
 
 
-msgid "SSAO Settings"
-msgstr "Opciones OAEP"
+msgid "Guides"
+msgstr "Guías"
 
 
-msgid "Shadow Settings"
-msgstr "Opciones de sombras"
+msgid "Viewer Node"
+msgstr "Nodo Visor"
+
+
+msgid "Motion Tracking"
+msgstr "Rastreo de movimiento"
+
+
+msgid "Mesh Edit Mode"
+msgstr "Modo edición de mallas"
+
+
+msgid "Measurement"
+msgstr "Medición"
+
+
+msgid "Curve Edit Mode"
+msgstr "Modo edición de curvas"
+
+
+msgid "Curves Edit Mode"
+msgstr "Modo edición de curvas"
 
 
 msgid "glTF Variants"
@@ -95246,16 +95277,32 @@ msgid "glTF Material Variants"
 msgstr "Variantes de material glTF"
 
 
-msgid "Selectability & Visibility"
-msgstr "Seleccionabilidad y visibilidad"
+msgid "Transform Orientations"
+msgstr "Orientación de transformación"
 
 
-msgid "Active Tool"
-msgstr "Herramienta activa"
+msgid "Stroke Placement"
+msgstr "Ubicación del trazo"
 
 
-msgid "View Lock"
-msgstr "Fijar vista"
+msgid "Drawing Plane"
+msgstr "Plano de dibujo"
+
+
+msgid "Grease Pencil Options"
+msgstr "Opciones de Grease Pencil"
+
+
+msgid "Quad View"
+msgstr "Vista cuádruple"
+
+
+msgid "Onion Skin"
+msgstr "Piel de cebolla"
+
+
+msgid "Stereoscopy"
+msgstr "Estereoscopía"
 
 
 msgid "glTF"
@@ -95266,52 +95313,36 @@ msgid "glTF Animations"
 msgstr "Animaciones glTF"
 
 
-msgid "VR"
-msgstr "RV"
-
-
-msgid "VR Info"
-msgstr "Info de RV"
-
-
-msgid "Viewport Debug"
-msgstr "Depurar Vista 3D"
-
-
-msgid "Curves Grow/Shrink Scaling"
-msgstr "Escala expandir/contraer curvas"
-
-
-msgid "Curves Sculpt Parameter Falloff"
-msgstr "Decaimiento parámetro esculpido de curvas"
-
-
-msgid "Curves Sculpt Add Curve Options"
-msgstr "Opciones adición de curvas (esculpido de curvas)"
+msgid "Multi Frame"
+msgstr "Multifotograma"
 
 
 msgid "Auto-Masking"
 msgstr "Autoenmascarar"
 
 
-msgid "Multi Frame"
-msgstr "Multifotograma"
+msgid "Curves Sculpt Add Curve Options"
+msgstr "Opciones adición de curvas (esculpido de curvas)"
 
 
-msgid "Stereoscopy"
-msgstr "Estereoscopía"
+msgid "Curves Sculpt Parameter Falloff"
+msgstr "Decaimiento parámetro esculpido de curvas"
 
 
-msgid "Onion Skin"
-msgstr "Piel de cebolla"
+msgid "Curves Grow/Shrink Scaling"
+msgstr "Escala expandir/contraer curvas"
 
 
-msgid "Quad View"
-msgstr "Vista cuádruple"
+msgid "Viewport Debug"
+msgstr "Depurar Vista 3D"
 
 
-msgid "Grease Pencil Options"
-msgstr "Opciones de Grease Pencil"
+msgid "VR"
+msgstr "RV"
+
+
+msgid "VR Info"
+msgstr "Info de RV"
 
 
 msgid "Import Settings"
@@ -96364,6 +96395,10 @@ msgstr "Al duplicar copiar"
 
 msgid "New Objects"
 msgstr "Nuevos objetos"
+
+
+msgid "New Strips"
+msgstr "Nuevos clips"
 
 
 msgid "New Features"
@@ -98449,11 +98484,19 @@ msgstr "Tamaño de visualización del objeto vacío, cuando se crean nuevas inst
 
 
 msgid "Connect Movie Strips by Default"
-msgstr "Conectar nuevos clips de película"
+msgstr "Conectar videos de forma predefinida"
 
 
 msgid "Connect newly added movie strips by default if they have multiple channels"
-msgstr "Conectar de forma predefinida los clips de película agregados, cuando tengan múltiples canales"
+msgstr "Conectar de forma predefinida los clips de video agregados, cuando tengan múltiples canales"
+
+
+msgid "Default Strip Length"
+msgstr "Longitud predefinida de clips"
+
+
+msgid "Duration of newly added strips that have no inherent length, such as color, text and image strips"
+msgstr "Duración de los nuevos clips agregados que no contengan una longitud propia, tales como los de color, texto o imágenes"
 
 
 msgid "New Curve Smoothing Mode"
@@ -98899,6 +98942,14 @@ msgstr "Información de depuración de recursos"
 
 msgid "Enable some extra fields in the Asset Browser to aid in debugging"
 msgstr "Habilita algunos campos adicionales en el Explorador de recursos para ayudar con la depuración"
+
+
+msgid "3D Texture Paint"
+msgstr "Pintar Texturas en 3D"
+
+
+msgid "Use experimental 3D texture painting"
+msgstr "Usar pintura de texturas en 3D (experimental)"
 
 
 msgid "All Linked Data Direct"
@@ -100196,7 +100247,7 @@ msgstr "Establecer reemplazos manualmente"
 
 
 msgid "Build proxies for added movie and image strips in each preview size"
-msgstr "Crear reemplazos al agregar clips de película e imagen, en cada tamaño de previsualización"
+msgstr "Crear reemplazos al agregar clips de video e imagen, en cada tamaño de previsualización"
 
 
 msgid "Shader Compilation Method"
@@ -100683,8 +100734,16 @@ msgid "Catalan - Català"
 msgstr "Catalán - Català"
 
 
+msgid "Locale code: ca_AD. Translation progress: 100%"
+msgstr "Código de localización: ca_AD. Progreso de la traducción: 100%"
+
+
 msgid "Chinese (Simplified) - 简体中文"
 msgstr "Chino (simplificado) - 简体中文"
+
+
+msgid "Locale code: zh_HANS. Translation progress: 100%"
+msgstr "Código de localización: zh_HANS. Progreso de la traducción: 100%"
 
 
 msgid "Chinese (Traditional) - 繁體中文"
@@ -100729,6 +100788,10 @@ msgstr "Código de localización: nl_NL. Progreso de la traducción: 8%"
 
 msgid "English (UK)"
 msgstr "Inglés (Reino Unido) - English (UK)"
+
+
+msgid "Locale code: en_GB. Translation progress: 93%"
+msgstr "Código de localización: en_GB. Progreso de la traducción: 94%"
 
 
 msgid "English (US)"
@@ -100887,10 +100950,6 @@ msgid "Polish - Polski"
 msgstr "Polaco - Polski"
 
 
-msgid "Locale code: pl_PL. Translation progress: 99%"
-msgstr "Código de localización: pl_PL. Progreso de la traducción: 100%"
-
-
 msgid "Portuguese (Brazil) - Português brasileiro"
 msgstr "Portugués (Brasil) - Português (Brazil)"
 
@@ -100919,6 +100978,10 @@ msgid "Russian - Русский"
 msgstr "Ruso - Русский"
 
 
+msgid "Locale code: ru_RU. Translation progress: 100%"
+msgstr "Código de localización: ru_RU. Progreso de la traducción: 100%"
+
+
 msgid "Serbian (Cyrillic) - Српски"
 msgstr "Serbio (cirílico) - Српски"
 
@@ -100939,12 +101002,24 @@ msgid "Slovak - Slovenčina"
 msgstr "Eslovaco - Slovenčina"
 
 
+msgid "Locale code: sk_SK. Translation progress: 100%"
+msgstr "Código de localización: sk_SK. Progreso de la traducción: 100%"
+
+
 msgid "Slovenian - Slovenščina"
 msgstr "Esloveno - Slovenščina"
 
 
+msgid "Locale code: sl. Translation progress: 53%"
+msgstr "Código de localización: sl. Progreso de la traducción: 53%"
+
+
 msgid "Spanish - Español"
 msgstr "Español"
+
+
+msgid "Locale code: es. Translation progress: 100%"
+msgstr "Código de localización: es. Progreso de la traducción: 100%"
 
 
 msgid "Swahili - Kiswahili"
@@ -107239,10 +107314,6 @@ msgid "How much the spring has to be stretched/compressed in order to change its
 msgstr "Cuánto tiene que ser estirado o comprimido el tensor para que varíe su longitud de reposo"
 
 
-msgid "Scene Compositor Effect"
-msgstr "Efecto de composición de escena"
-
-
 msgid "Compositor effect for scene"
 msgstr "Efecto de composición de la escena"
 
@@ -107269,22 +107340,6 @@ msgstr "Mostrar el efecto expandido"
 
 msgid "Show Node Group Selector"
 msgstr "Mostrar selector de grupo de nodos"
-
-
-msgid "Scene Compositor Effect Properties"
-msgstr "Propiedades efecto composición de escena"
-
-
-msgid "Scene Compositor Effect Empty Properties"
-msgstr "Propiedades vacías efecto composición de escena"
-
-
-msgid "Scene Compositor Effects"
-msgstr "Efectos de composición de escena"
-
-
-msgid "Collection of scene compositor effects"
-msgstr "Colección de efectos de composición de escena"
 
 
 msgid "Active Effect"
@@ -108304,10 +108359,6 @@ msgstr "Estilo de miniaturas"
 
 msgid "How thumbnails are displayed"
 msgstr "Cómo se mostrarán las miniaturas"
-
-
-msgid "Do not show strip thumbnails"
-msgstr "No mostrar miniaturas en los clips"
 
 
 msgid "Strip Ends"
@@ -110542,6 +110593,14 @@ msgid "Indirect only"
 msgstr "Sólo indirecta"
 
 
+msgid "Show Bone Collections"
+msgstr "Mostrar colecciones de huesos"
+
+
+msgid "Show armature bone collections"
+msgstr "Muestra las colecciones de huesos de esqueletos"
+
+
 msgid "Case Sensitive Matches Only"
 msgstr "Sólo coincidencias con may/min"
 
@@ -110574,6 +110633,14 @@ msgid "Only use complete matches of search string"
 msgstr "Sólo muestra coincidencias completas del texto a buscar"
 
 
+msgid "Show Grease Pencil Effects"
+msgstr "Mostrar efectos de Grease Pencil"
+
+
+msgid "Show grease pencil effects"
+msgstr "Muestra los efectos de Grease Pencil"
+
+
 msgid "Show only data-blocks of one type"
 msgstr "Mostrar sólo bloques de datos de un único tipo"
 
@@ -110594,6 +110661,10 @@ msgid "Show objects"
 msgstr "Mostrar objetos"
 
 
+msgid "Show Animation Data"
+msgstr "Mostrar datos de animación"
+
+
 msgid "Show Armatures"
 msgstr "Mostrar esqueletos"
 
@@ -110610,12 +110681,28 @@ msgid "Show camera objects"
 msgstr "Mostrar cámaras"
 
 
+msgid "Show Object Constraints"
+msgstr "Mostrar restricciones de objetos"
+
+
+msgid "Show object constraints"
+msgstr "Muestra las restricciones de objetos"
+
+
 msgid "Show Object Contents"
 msgstr "Mostrar contenido de objetos"
 
 
 msgid "Show what is inside the objects elements"
 msgstr "Mostrar lo que se encuentra dentro de los elementos del objeto"
+
+
+msgid "Show Object Data"
+msgstr "Mostrar datos de objetos"
+
+
+msgid "Show object data"
+msgstr "Muestra los datos de objetos"
 
 
 msgid "Show Empties"
@@ -110642,6 +110729,14 @@ msgid "Show light objects"
 msgstr "Mostrar luces"
 
 
+msgid "Show Object Materials"
+msgstr "Mostrar materiales de objetos"
+
+
+msgid "Show object materials"
+msgstr "Muestra los materiales de objetos"
+
+
 msgid "Show Meshes"
 msgstr "Mostrar mallas"
 
@@ -110650,12 +110745,44 @@ msgid "Show mesh objects"
 msgstr "Mostrar mallas"
 
 
+msgid "Show Object Modifiers"
+msgstr "Mostrar modificadores de objetos"
+
+
+msgid "Show object modifiers"
+msgstr "Muestra los modificadores de objetos"
+
+
 msgid "Show Other Objects"
 msgstr "Mostrar otros objetos"
 
 
 msgid "Show curves, lattices, light probes, fonts, ..."
 msgstr "Mostrar curvas, jaulas, sondas de luz, tipografías, ..."
+
+
+msgid "Show Object Shape Keys"
+msgstr "Mostrar formas clave de objetos"
+
+
+msgid "Show object shape keys"
+msgstr "Muestra las formas clave de objetos"
+
+
+msgid "Show Object Vertex Groups"
+msgstr "Mostrar grupos de vértices de objetos"
+
+
+msgid "Show object vertex groups"
+msgstr "Muestra los grupos de vértices de objetos"
+
+
+msgid "Show Pose Bones"
+msgstr "Mostrar huesos de pose"
+
+
+msgid "Show pose bones of armatures"
+msgstr "Muestra los huesos de pose de esqueletos"
 
 
 msgid "Show All View Layers"
@@ -125365,10 +125492,6 @@ msgid "Deleted 1 node"
 msgstr "Se borró 1 nodo"
 
 
-msgid "To Socket"
-msgstr "A conector"
-
-
 msgid "Active editor should be a node editor for the operator to run"
 msgstr "El editor activo debe ser un editor de nodos para que el operador pueda ser ejecutado"
 
@@ -127268,6 +127391,10 @@ msgid "Selected blend file is not part of a project."
 msgstr "El archivo .blend seleccionado no forma parte de un proyecto."
 
 
+msgid "Cannot create an asset library with an empty directory path."
+msgstr "No es posible crear una biblioteca de recursos con una ruta de carpeta vacía."
+
+
 msgid "Cannot write project to non-absolute path."
 msgstr "No es posible escribir un proyecto en una ruta que no sea absoluta."
 
@@ -127617,6 +127744,10 @@ msgstr "Tienda de Blender"
 msgctxt "Operator"
 msgid "Blender Website"
 msgstr "Sitio web de Blender"
+
+
+msgid "Trusted Source [Untrusted Path]"
+msgstr "Fuente confiable [ruta no confiable]"
 
 
 msgctxt "Operator"
@@ -128009,11 +128140,6 @@ msgstr "Máscara de colección"
 
 
 msgctxt "Operator"
-msgid "Effect"
-msgstr "Efecto"
-
-
-msgctxt "Operator"
 msgid "Search..."
 msgstr "Buscar..."
 
@@ -128250,6 +128376,10 @@ msgstr "Armónica"
 
 msgid "Pole Merge Angle Start"
 msgstr "Ángulo fundido de polos Inicial"
+
+
+msgid "Panoramic Depth of Field is not supported yet"
+msgstr "Profundidad de campo panorámica no soportada aún"
 
 
 msgid "Focus on Bone"
@@ -131619,6 +131749,10 @@ msgid "Object Contents"
 msgstr "Contenido de objetos"
 
 
+msgid "Grease Pencil Effects"
+msgstr "Efectos de Grease Pencil"
+
+
 msgctxt "Operator"
 msgid "Hide One Level"
 msgstr "Contraer un nivel"
@@ -132868,6 +133002,14 @@ msgid "Preview Resolution"
 msgstr "Resolución de previsualización"
 
 
+msgid "Strip Length"
+msgstr "Longitud del clip"
+
+
+msgid "Connect Movie Strips"
+msgstr "Conectar clips de video"
+
+
 msgid "Sculpt Overlay Color"
 msgstr "Color sobreimpresión esculpido"
 
@@ -133541,6 +133683,11 @@ msgstr "Cubo"
 
 
 msgctxt "Operator"
+msgid "Quad Sphere"
+msgstr "Esfera cuadrangular"
+
+
+msgctxt "Operator"
 msgid "UV Sphere"
 msgstr "Esfera"
 
@@ -133668,6 +133815,11 @@ msgstr "Capturar transformación del objeto a Grease Pencil..."
 msgctxt "Operator"
 msgid "Change Shape"
 msgstr "Cambiar forma de colisión"
+
+
+msgctxt "Operator"
+msgid "Calculate Mass..."
+msgstr "Calcular masa..."
 
 
 msgctxt "Operator"
@@ -136148,11 +136300,6 @@ msgid "collections"
 msgstr "colecciones"
 
 
-msgctxt "Scene"
-msgid "Compositor Effect"
-msgstr "Efecto de composición"
-
-
 msgid "Const"
 msgstr "Restr"
 
@@ -136607,6 +136754,18 @@ msgstr "[Esconder acción]"
 
 msgid "node_groups"
 msgstr "grupos_de_nodos"
+
+
+msgid "Shader To RGB can't evaluate Light Accumulation nodes"
+msgstr "El nodo Sombreador a RVA no es capaz de evaluar nodos Acumulación de luz"
+
+
+msgid "Lighting nodes must be connected to the Light sockets of a Light Accumulation node before reaching the Material Output"
+msgstr "Los nodos de iluminación deberán estar conectados a los conectores de Iluminación de un nodo Acumulación de luz antes de alcanzar al nodo Material de salida"
+
+
+msgid "Lighting nodes can't be connected to the Color sockets of a Light Accumulation node"
+msgstr "Los nodos de iluminación no pueden estar conectados a los conectores de Color de un nodo Acumulación de luz"
 
 
 msgid "Use node groups to reuse the same menu multiple times"
@@ -139492,6 +139651,10 @@ msgid "Grab"
 msgstr "Mover"
 
 
+msgid "Cannot create new material on linked object"
+msgstr "No es posible crear un nuevo material en un objeto vinculado"
+
+
 msgid "Stroke is fully transparent"
 msgstr "El trazo es completamente transparente"
 
@@ -139624,6 +139787,10 @@ msgstr "Copiar vínculo"
 
 msgid "Non-Keyboard Shortcut"
 msgstr "Atajo que no es de teclado"
+
+
+msgid "Search..."
+msgstr "Buscar..."
 
 
 msgid "Pin Panel"
@@ -141226,6 +141393,11 @@ msgstr "Plano subdividido"
 msgctxt "Mesh"
 msgid "Suzanne"
 msgstr "Suzanne"
+
+
+msgctxt "Mesh"
+msgid "Quadsphere"
+msgstr "Esfera_cuadrangular"
 
 
 msgctxt "Mesh"
@@ -146612,6 +146784,10 @@ msgid "Link inside collection"
 msgstr "Vincular dentro de una colección"
 
 
+msgid "Move parent object inside collection"
+msgstr "Mover objeto superior adentro de una colección"
+
+
 msgid "Move inside collection (Ctrl to link)"
 msgstr "Mover dentro de una colección (Ctrl para vincular)"
 
@@ -147604,7 +147780,7 @@ msgstr "Redefinición no habilitada para %s, omitiendo"
 
 
 msgid "Select movie or image strips"
-msgstr "Seleccionar clips de película o imagen"
+msgstr "Seleccionar clips de video o imagen"
 
 
 msgid "Cannot create freeze frame"
@@ -151222,6 +151398,10 @@ msgstr "No fue posible eliminar el módulo de estilo '%s'"
 
 msgid "Could not move layer from index '%d' to '%d'"
 msgstr "No fue posible mover la capa desde el identificador '%d' al '%d'"
+
+
+msgid "Only for side-panels"
+msgstr "Sólo para paneles laterales"
 
 
 msgid "Only supported for \"TEMPORARY\" type regions (pop-ups)"
@@ -158521,6 +158701,10 @@ msgid "AO"
 msgstr "Oclusión ambiental"
 
 
+msgid "LightIndex"
+msgstr "Identificador de luz"
+
+
 msgid "Color of the emitted light"
 msgstr "Color de la luz a ser emitida"
 
@@ -158567,6 +158751,10 @@ msgstr "Grosor de película delgada"
 
 msgid "Thin Film IOR"
 msgstr "IR de película delgada"
+
+
+msgid "Amount of anisotropy for specular reflection. Higher absolute values give elongated highlights along the tangent direction"
+msgstr "Cantidad de anisotropía para la reflexión especular. Valores absolutos mayores producirán brillos estirados en la dirección de la tangente"
 
 
 msgid "Rotates the direction of anisotropy, with 1.0 going full circle"
@@ -159082,6 +159270,60 @@ msgid "Facing"
 msgstr "De frente"
 
 
+msgid "Diffuse Light"
+msgstr "Iluminación difusa"
+
+
+msgid "Glossy Light"
+msgstr "Iluminación reflejada"
+
+
+msgid "Transmission Light"
+msgstr "Iluminación transmitida"
+
+
+msgid "Evaluation position. Surface position by default"
+msgstr "Posición de evaluación. De forma predefinida, la posición de la superficie"
+
+
+msgid "Evaluation normal. Surface normal by default"
+msgstr "Normal de evaluación. De forma predefinida, la normal de la superficie"
+
+
+msgid "Evaluation roughness. Used for reflection factor"
+msgstr "Rugosidad de evaluación. Usada para el factor de reflectividad"
+
+
+msgid "Shading reflection factor, scaled by PI"
+msgstr "Factor de reflectividad del sombreado, escalado por Pi"
+
+
+msgid ""
+"All local lights: Mask to smooth the light cutoff.\n"
+"Spot lights: Cutoff mask and spot attenuation.\n"
+"Sun lights: 1.0"
+msgstr ""
+"Luces locales: Máscara para suavizar el recorte de la luz.\n"
+"Focos: Máscara de recorte y atenuación del foco.\n"
+"Sol: 1.0"
+
+
+msgid ""
+"Local lights: Normalized direction from evaluation position to light position.\n"
+"Sun lights: Sun direction * -1.0"
+msgstr ""
+"Luces locales: Dirección normalizada desde la posición de evaluación hasta la posición de la luz.\n"
+"Sol: Dirección del sol × -1.0"
+
+
+msgid ""
+"Local lights: Distance from evaluation position to light position.\n"
+"Sun lights: 1.0"
+msgstr ""
+"Luces locales: Distancia desde la posición de evaluación hasta la posición de la luz.\n"
+"Sol: 1.0"
+
+
 msgid "Light strength before applying falloff modification"
 msgstr "Intensidad de la luz antes de aplicar la modificación a su decaimiento"
 
@@ -159092,6 +159334,14 @@ msgid ""
 msgstr ""
 "Suavizará la intensidad de la luz cerca de la fuente de emisión.\n"
 "Esto podrá evitar brillos estridentes y reducir el ruido de la iluminación global. 0.0 corresponderá a la ausencia de suavizado; valores mayores producirán un suavizado progresivamente más alto"
+
+
+msgid "Radiant intensity divided by PI"
+msgstr "Intensidad radiante dividida por Pi"
+
+
+msgid "Light position"
+msgstr "Posición luz"
 
 
 msgid "Is Camera Ray"
@@ -159964,10 +160214,6 @@ msgstr ""
 
 msgid "To make changes to Preferences permanent, use \"Save Preferences\"."
 msgstr "Para hacer los cambios en las Preferencias permanentes, usar \"Guardar preferencias\"."
-
-
-msgid "Trusted Source [Untrusted Path]"
-msgstr "Fuente confiable [ruta no confiable]"
 
 
 msgid "Any unsaved changes will be lost."

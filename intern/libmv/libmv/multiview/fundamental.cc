@@ -50,7 +50,7 @@ void ProjectionsFromFundamental(const Mat3& F, Mat34* P1, Mat34* P2) {
   *P2 << CrossProductMatrix(e2) * F, e2;
 }
 
-// Addapted from vgg_F_from_P.
+// Adapted from vgg_F_from_P.
 void FundamentalFromProjections(const Mat34& P1, const Mat34& P2, Mat3* F) {
   Mat X[3];
   Mat Y[3];
@@ -496,7 +496,7 @@ bool EstimateFundamentalFromCorrespondences(
     Mat3* F) {
   // Step 1: Algebraic fundamental estimation.
 
-  // Assume algebraic estiation always succeeds,
+  // Assume algebraic estimation always succeeds,
   NormalizedEightPointSolver(x1, x2, F);
 
   LG << "Estimated matrix after algebraic estimation:\n" << *F;

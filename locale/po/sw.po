@@ -1,9 +1,9 @@
 
 msgid ""
 msgstr ""
-"Project-Id-Version: Blender 5.3.0 Alpha (b'f5df8c32f99b')\n"
+"Project-Id-Version: Blender 5.3.0 Alpha (b'2cef5b8c951a')\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-09-07 07:47+0000\n"
+"POT-Creation-Date: 2026-09-14 07:47+0000\n"
 "PO-Revision-Date: 2025-11-14 10:59+0000\n"
 "Last-Translator: Isaac Gicheha <shwaky3@gmail.com>\n"
 "Language-Team: Swahili <https://translate.blender.org/projects/blender-ui/ui/sw/>\n"
@@ -15223,10 +15223,6 @@ msgid "Library Weak Reference"
 msgstr "Marejeleo Dhaifu ya Maktaba"
 
 
-msgid "Weak reference to a data-block in another library .blend file (used to re-use already appended data instead of appending new copies)"
-msgstr "Marejeleo dhaifu ya kizuizi cha data katika faili nyingine ya .mchanganyiko wa maktaba (inayotumika tena kutumia data iliyoongezwa tayari badala ya kuambatisha nakala mpya)"
-
-
 msgid "Unique data-block ID name (within a same type and library)"
 msgstr "Jina la kipekee la kitambulisho cha kuzuia data (ndani ya aina moja na maktaba)"
 
@@ -28218,10 +28214,6 @@ msgid "Editor menu containing buttons"
 msgstr "Menyu ya mhariri iliyo na vitufe"
 
 
-msgid "Instances"
-msgstr "Matukio"
-
-
 msgid "Read"
 msgstr "Soma"
 
@@ -28230,12 +28222,32 @@ msgid "Sample"
 msgstr "Mfano"
 
 
+msgid "Show/Hide"
+msgstr "Onyesha/Ficha"
+
+
 msgid "Write"
 msgstr "Andika"
 
 
+msgid "Clean Up"
+msgstr "Safisha"
+
+
 msgid "Primitives"
 msgstr "Watu wa kwanza"
+
+
+msgid "Pivot Point"
+msgstr "Egemeo"
+
+
+msgid "Snap"
+msgstr "Picha"
+
+
+msgid "Instances"
+msgstr "Matukio"
 
 
 msgid "Import"
@@ -28246,10 +28258,6 @@ msgid "Utilities"
 msgstr "Huduma"
 
 
-msgid "Select Linked"
-msgstr "Chagua Imeunganishwa"
-
-
 msgid "Deprecated"
 msgstr "Imeacha kutumika"
 
@@ -28258,28 +28266,28 @@ msgid "Math"
 msgstr "Hisabati"
 
 
-msgid "Navigation"
-msgstr "Urambazaji"
-
-
-msgid "Snap"
-msgstr "Picha"
-
-
 msgid "Mirror"
 msgstr "Kioo"
 
 
-msgid "Pivot Point"
-msgstr "Egemeo"
+msgid "Navigation"
+msgstr "Urambazaji"
 
 
-msgid "Clean Up"
-msgstr "Safisha"
+msgid "Select Linked"
+msgstr "Chagua Imeunganishwa"
 
 
-msgid "Show/Hide"
-msgstr "Onyesha/Ficha"
+msgid "Metaball"
+msgstr "Mpira wa miguu"
+
+
+msgid "Light"
+msgstr "Mwanga"
+
+
+msgid "Light Probe"
+msgstr "Uchunguzi wa Mwanga"
 
 
 msgid "Linked"
@@ -28290,44 +28298,32 @@ msgid "Layout"
 msgstr "Mpangilio"
 
 
-msgid "Metaball"
-msgstr "Mpira wa miguu"
+msgid "Apply"
+msgstr "Tumia"
 
 
 msgid "Adjust"
 msgstr "Rekebisha"
 
 
-msgid "Merge"
-msgstr "Unganisha"
-
-
-msgid "Bone Collections"
-msgstr "Mikusanyo ya Mifupa"
-
-
 msgid "Keying"
 msgstr "Kuweka"
-
-
-msgid "Tracking"
-msgstr "Kufuatilia"
-
-
-msgid "Apply"
-msgstr "Tumia"
 
 
 msgid "Asset"
 msgstr "Mali"
 
 
-msgid "Light Probe"
-msgstr "Uchunguzi wa Mwanga"
+msgid "Tracking"
+msgstr "Kufuatilia"
 
 
-msgid "Light"
-msgstr "Mwanga"
+msgid "Bone Collections"
+msgstr "Mikusanyo ya Mifupa"
+
+
+msgid "Merge"
+msgstr "Unganisha"
 
 
 msgid "Keyframe Insert Pie"
@@ -70273,6 +70269,14 @@ msgid "View a context based online manual in a web browser"
 msgstr "Tazama muktadha kulingana na mwongozo wa mtandaoni katika kivinjari cha wavuti"
 
 
+msgid "Trusted Source"
+msgstr "Chanzo Kinachoaminiwa"
+
+
+msgid "Allow .blend file to execute scripts automatically, default available from system preferences"
+msgstr "Ruhusu faili ya .mchanganyiko itekeleze hati kiotomatiki, chaguomsingi inapatikana kutokana na mapendeleo ya mfumo"
+
+
 msgctxt "Operator"
 msgid "Drop to Import File"
 msgstr "Achia Ili Kuingiza Faili"
@@ -70632,14 +70636,6 @@ msgstr "Pakia usanidi wa kiolesura cha mtumiaji katika faili ya .mchanganyiko"
 
 msgid "State"
 msgstr "Jimbo"
-
-
-msgid "Trusted Source"
-msgstr "Chanzo Kinachoaminiwa"
-
-
-msgid "Allow .blend file to execute scripts automatically, default available from system preferences"
-msgstr "Ruhusu faili ya .mchanganyiko itekeleze hati kiotomatiki, chaguomsingi inapatikana kutokana na mapendeleo ya mfumo"
 
 
 msgctxt "Operator"
@@ -72398,76 +72394,76 @@ msgid "Panel containing UI elements"
 msgstr "Paneli iliyo na vipengele vya UI"
 
 
-msgid "Drawing Plane"
-msgstr "Ndege ya Kuchora"
-
-
-msgid "Stroke Placement"
-msgstr "Uwekaji wa Kiharusi"
-
-
-msgid "Transform Orientations"
-msgstr "Badilisha Mielekeo"
-
-
-msgid "Viewer Node"
-msgstr "Njia ya Mtazamaji"
-
-
-msgid "Curve Edit Mode"
-msgstr "Njia ya Kuhariri Curve"
-
-
-msgid "Measurement"
-msgstr "Kipimo"
-
-
-msgid "Mesh Edit Mode"
-msgstr "Njia ya Kuhariri Mesh"
-
-
-msgid "Motion Tracking"
-msgstr "Kufuatilia Mwendo"
-
-
-msgid "SSAO Settings"
-msgstr "Mipangilio ya SSAO"
-
-
-msgid "Shadow Settings"
-msgstr "Mipangilio ya Kivuli"
+msgid "View Lock"
+msgstr "Kufuli ya Tazama"
 
 
 msgid "Selectability & Visibility"
 msgstr "Uteuzi"
 
 
-msgid "View Lock"
-msgstr "Kufuli ya Tazama"
+msgid "Shadow Settings"
+msgstr "Mipangilio ya Kivuli"
 
 
-msgid "Viewport Debug"
-msgstr "Utatuzi wa kituo cha kutazama"
+msgid "SSAO Settings"
+msgstr "Mipangilio ya SSAO"
 
 
-msgid "Curves Sculpt Parameter Falloff"
-msgstr "Curves Sculpt Parameta Falloff"
+msgid "Viewer Node"
+msgstr "Njia ya Mtazamaji"
 
 
-msgid "Curves Sculpt Add Curve Options"
-msgstr "Mchoro wa Mikunjo Ongeza Chaguzi za Mviringo"
+msgid "Motion Tracking"
+msgstr "Kufuatilia Mwendo"
 
 
-msgid "Auto-Masking"
-msgstr "Kufunika Masking Kiotomatiki"
+msgid "Mesh Edit Mode"
+msgstr "Njia ya Kuhariri Mesh"
+
+
+msgid "Measurement"
+msgstr "Kipimo"
+
+
+msgid "Curve Edit Mode"
+msgstr "Njia ya Kuhariri Curve"
+
+
+msgid "Transform Orientations"
+msgstr "Badilisha Mielekeo"
+
+
+msgid "Stroke Placement"
+msgstr "Uwekaji wa Kiharusi"
+
+
+msgid "Drawing Plane"
+msgstr "Ndege ya Kuchora"
+
+
+msgid "Quad View"
+msgstr "Mtazamo wa Quad"
 
 
 msgid "Multi Frame"
 msgstr "Fremu nyingi"
 
 
-msgid "Quad View"
-msgstr "Mtazamo wa Quad"
+msgid "Auto-Masking"
+msgstr "Kufunika Masking Kiotomatiki"
+
+
+msgid "Curves Sculpt Add Curve Options"
+msgstr "Mchoro wa Mikunjo Ongeza Chaguzi za Mviringo"
+
+
+msgid "Curves Sculpt Parameter Falloff"
+msgstr "Curves Sculpt Parameta Falloff"
+
+
+msgid "Viewport Debug"
+msgstr "Utatuzi wa kituo cha kutazama"
 
 
 msgid "Motion Blur"
@@ -92754,6 +92750,10 @@ msgid "Blender Website"
 msgstr "Tovuti ya Blender"
 
 
+msgid "Trusted Source [Untrusted Path]"
+msgstr "Chanzo Kinachoaminika [Njia Isiyoaminika]"
+
+
 msgctxt "Operator"
 msgid "Link..."
 msgstr "Kiungo..."
@@ -110803,10 +110803,6 @@ msgstr "Mwonekano wa Faili ya Mchanganyiko"
 
 msgid "Missing 'window' in context"
 msgstr "'dirisha' halipo katika muktadha"
-
-
-msgid "Trusted Source [Untrusted Path]"
-msgstr "Chanzo Kinachoaminika [Njia Isiyoaminika]"
 
 
 msgid "Allow Execution"

@@ -1292,13 +1292,12 @@ bool VKShader::do_geometry_shader_injection(const shader::ShaderCreateInfo *info
   {
     return true;
   }
-  if (!extensions.shader_output_layer && flag_is_set(builtins, BuiltinBits::LAYER)) {
-    return true;
-  }
-  if (!extensions.shader_output_viewport_index &&
+  if (flag_is_set(builtins, BuiltinBits::LAYER) ||
       flag_is_set(builtins, BuiltinBits::VIEWPORT_INDEX))
   {
-    return true;
+    if (!extensions.shader_viewport_index_layer) {
+      return true;
+    }
   }
   return false;
 }

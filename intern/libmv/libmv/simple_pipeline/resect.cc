@@ -187,7 +187,7 @@ namespace {
 
 // Directly parameterize the projection matrix, P, which is a 12 parameter
 // homogeneous entry. In theory P should be parameterized with only 11
-// parametetrs, but in practice it works fine to let the extra degree of
+// parameters, but in practice it works fine to let the extra degree of
 // freedom drift.
 struct ProjectiveResectCostFunction {
  public:

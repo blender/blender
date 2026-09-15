@@ -2,6 +2,10 @@
  *
  * SPDX-License-Identifier: GPL-2.0-or-later */
 
+#pragma once
+
+#include "gpu_shader_codegen_lib.glsl"
+
 [[node]]
 void differentiate_texco(float3 v, float3 &df)
 {
@@ -18,19 +22,19 @@ void differentiate_texco(float4 v, float3 &df)
 }
 
 [[node]]
-void node_bump(float strength,
-               float dist,
-               float filter_width,
-               float height,
+void node_bump([[maybe_unused]] float strength,
+               [[maybe_unused]] float dist,
+               [[maybe_unused]] float filter_width,
+               [[maybe_unused]] float height,
                float3 N,
-               float2 height_xy,
-               float invert,
+               [[maybe_unused]] float2 height_xy,
+               [[maybe_unused]] float invert,
                float3 &result)
 {
   N = normalize(N);
+#ifdef GPU_FRAGMENT_SHADER
   dist *= FrontFacing ? invert : -invert;
 
-#ifdef GPU_FRAGMENT_SHADER
   float3 dPdx = gpu_dfdx(g_data.P) * derivative_scale_get();
   float3 dPdy = gpu_dfdy(g_data.P) * derivative_scale_get();
 

@@ -212,7 +212,7 @@ static void node_register()
 {
   static bke::bNodeType ntype;
 
-  fn_cmp_node_type_base(&ntype, "FunctionNodeBooleanMath"_ustr, FN_NODE_BOOLEAN_MATH);
+  common_node_type_base(&ntype, "FunctionNodeBooleanMath"_ustr, FN_NODE_BOOLEAN_MATH);
   ntype.ui_name = "Boolean Math";
   ntype.ui_description = "Perform a logical operation on the given boolean inputs";
   ntype.enum_name_legacy = "BOOLEAN_MATH";

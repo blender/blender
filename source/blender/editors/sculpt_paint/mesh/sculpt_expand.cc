@@ -195,7 +195,7 @@ static float falloff_value_vertex_get(const SculptSession &ss,
     return expand_cache.vert_falloff[vert];
   }
   const Brush *brush = expand_cache.brush;
-  const MTex *mtex = BKE_brush_mask_texture_get(brush, OB_MODE_SCULPT);
+  const MTex *mtex = BKE_brush_mask_texture_get(brush, PaintMode::Sculpt);
   if (!mtex->tex) {
     return expand_cache.vert_falloff[vert];
   }
@@ -219,7 +219,7 @@ static float max_vert_falloff_get(const Cache &expand_cache)
     return expand_cache.max_vert_falloff;
   }
 
-  const MTex *mask_tex = BKE_brush_mask_texture_get(expand_cache.brush, OB_MODE_SCULPT);
+  const MTex *mask_tex = BKE_brush_mask_texture_get(expand_cache.brush, PaintMode::Sculpt);
   if (!mask_tex->tex) {
     return expand_cache.max_vert_falloff;
   }
@@ -2521,7 +2521,7 @@ static void sculpt_expand_status(bContext *C, wmOperator *op, Cache *expand_cach
   status.opmodal(IFACE_("Topology Step"), op->type, SCULPT_EXPAND_MODAL_RECURSION_STEP_TOPOLOGY);
 
   if (expand_cache->brush) {
-    const MTex *mask_tex = BKE_brush_mask_texture_get(expand_cache->brush, OB_MODE_SCULPT);
+    const MTex *mask_tex = BKE_brush_mask_texture_get(expand_cache->brush, PaintMode::Sculpt);
     if (mask_tex->tex) {
       status.opmodal({}, op->type, SCULPT_EXPAND_MODAL_TEXTURE_DISTORTION_INCREASE);
       status.opmodal(
@@ -2681,7 +2681,7 @@ static wmOperatorStatus sculpt_expand_modal(bContext *C, wmOperator *op, const w
           break;
         }
         if (expand_cache.texture_distortion_strength == 0.0f) {
-          const MTex *mask_tex = BKE_brush_mask_texture_get(expand_cache.brush, OB_MODE_SCULPT);
+          const MTex *mask_tex = BKE_brush_mask_texture_get(expand_cache.brush, PaintMode::Sculpt);
           if (mask_tex->tex == nullptr) {
             BKE_report(op->reports,
                        RPT_WARNING,

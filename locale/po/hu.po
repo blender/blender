@@ -1,9 +1,9 @@
 
 msgid ""
 msgstr ""
-"Project-Id-Version: Blender 5.3.0 Alpha (b'f5df8c32f99b')\n"
+"Project-Id-Version: Blender 5.3.0 Alpha (b'2cef5b8c951a')\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-09-07 07:47+0000\n"
+"POT-Creation-Date: 2026-09-14 07:47+0000\n"
 "PO-Revision-Date: 2026-03-19 19:12+0000\n"
 "Last-Translator: Tamás Máté <royalpython132@gmail.com>\n"
 "Language-Team: Hungarian <https://translate.blender.org/projects/blender-ui/ui/hu/>\n"
@@ -6602,12 +6602,28 @@ msgid "Use Material Mask"
 msgstr "Anyagmaszk használata"
 
 
+msgid "Show/Hide"
+msgstr "Mutat/Rejt"
+
+
+msgid "Clean Up"
+msgstr "Tisztítás"
+
+
 msgid "Import"
 msgstr "Importálás"
 
 
 msgid "UV"
 msgstr "UV"
+
+
+msgid "Mirror"
+msgstr "Tükrözés"
+
+
+msgid "Local View"
+msgstr "Helyi nézet"
 
 
 msgid "Navigation"
@@ -6618,36 +6634,20 @@ msgid "Align View"
 msgstr "Nézet igazítása"
 
 
-msgid "Local View"
-msgstr "Helyi nézet"
-
-
-msgid "Mirror"
-msgstr "Tükrözés"
-
-
-msgid "Clean Up"
-msgstr "Tisztítás"
-
-
-msgid "Show/Hide"
-msgstr "Mutat/Rejt"
-
-
 msgid "Metaball"
 msgstr "Meta test"
 
 
-msgid "Merge"
-msgstr "Összefésülés"
+msgid "Light"
+msgstr "Fényforrás"
 
 
-msgid "Keying"
-msgstr "Kulcsozás"
+msgid "Relations"
+msgstr "Kapcsolatok"
 
 
-msgid "Tracking"
-msgstr "Követés"
+msgid "Rigid Body"
+msgstr "Szilárd test"
 
 
 msgid "Apply"
@@ -6658,16 +6658,16 @@ msgid "Track"
 msgstr "Nyom"
 
 
-msgid "Rigid Body"
-msgstr "Szilárd test"
+msgid "Keying"
+msgstr "Kulcsozás"
 
 
-msgid "Relations"
-msgstr "Kapcsolatok"
+msgid "Tracking"
+msgstr "Követés"
 
 
-msgid "Light"
-msgstr "Fényforrás"
+msgid "Merge"
+msgstr "Összefésülés"
 
 
 msgctxt "MovieClip"
@@ -12573,6 +12573,14 @@ msgid "Debug Menu"
 msgstr "Hibamegoldó menü"
 
 
+msgid "Trusted Source"
+msgstr "Megbízható forrás"
+
+
+msgid "Allow .blend file to execute scripts automatically, default available from system preferences"
+msgstr "Szkriptek automatikus futtatásának engedélyezése a .blend fájlnak, az alapértelmezés elérhető a rendszerbeállításokból"
+
+
 msgid "Include selected frames"
 msgstr "Kijelölt képkockák bevonása"
 
@@ -12595,14 +12603,6 @@ msgstr "Felhasználói felület beállítások betöltése .blend fájlokban"
 
 msgid "State"
 msgstr "Állapot"
-
-
-msgid "Trusted Source"
-msgstr "Megbízható forrás"
-
-
-msgid "Allow .blend file to execute scripts automatically, default available from system preferences"
-msgstr "Szkriptek automatikus futtatásának engedélyezése a .blend fájlnak, az alapértelmezés elérhető a rendszerbeállításokból"
 
 
 msgid "Set the active operator to its default values"
@@ -12759,12 +12759,12 @@ msgid "Detail Size"
 msgstr "Részlet mérete"
 
 
-msgid "Motion Tracking"
-msgstr "Mozgáskövetés"
-
-
 msgid "Render Pass"
 msgstr "Render vezeték"
+
+
+msgid "Motion Tracking"
+msgstr "Mozgáskövetés"
 
 
 msgid "Chain Scaling"

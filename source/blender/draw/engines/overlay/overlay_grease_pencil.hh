@@ -79,8 +79,12 @@ class GreasePencil : Overlay {
 
     switch (state.object_mode) {
       case OB_MODE_PAINT_GREASE_PENCIL:
-        /* In Draw Mode, show selected strokes when the lasso selection tool is active. */
-        if (state.active_tool && STREQ(state.active_tool->idname, "builtin.select_lasso")) {
+        /* In Draw Mode, show selected strokes when a selection tool is active. */
+        if (state.active_tool && (STREQ(state.active_tool->idname, "builtin.select_lasso") ||
+                                  STREQ(state.active_tool->idname, "builtin.select_circle") ||
+                                  STREQ(state.active_tool->idname, "builtin.select") ||
+                                  STREQ(state.active_tool->idname, "builtin.select_box")))
+        {
           show_lines_ = true;
           skip_unselected_ = true;
         }

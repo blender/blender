@@ -146,8 +146,6 @@ void EDBM_selectmode_flush(BMEditMesh *em);
  */
 void EDBM_select_flush_from_verts(BMEditMesh *em, bool select);
 
-bool EDBM_vert_color_check(BMEditMesh *em);
-
 /**
  * Swap is 0 or 1, if 1 it hides not selected.
  */

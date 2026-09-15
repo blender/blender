@@ -8,10 +8,12 @@
  * Cache open movie readers for reuse across rendered frames.
  * - Readers are keyed by source file path and decode settings, not by strip. So neighboring
  *   strips that use the same media can use the same reader.
+ * - Each rendering thread (e.g. the main render and prefetch) keeps its own readers. Sharing one
+ *   between concurrent renders could make each render re-seek (and re-decode) on every frame.
  * - A reader is reserved after use until the next top-level frame render, so multiple strips using
  *   the same media do not seek one reader back and forth within the same frame.
- * - From the available matching readers, prefer the one closest to the requested source frame,
- *   with a penalty for readers that need to seek backwards.
+ * - From the available matching readers of the current thread, prefer the one closest to the
+ *   requested source frame, with a penalty for readers that need to seek backwards.
  * - Frame-independent queries can reuse any free matching reader. Querying an initialized reader
  *   does not change its decode position. Such queries may temporarily grow the cache beyond its
  *   soft size limit; stale entries are removed when subsequent frames are rendered.

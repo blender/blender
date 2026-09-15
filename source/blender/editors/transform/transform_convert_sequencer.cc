@@ -544,6 +544,14 @@ static void create_trans_seq_clamp_data(TransInfo *t, const Scene *scene)
     ts->offset_clamp.ymin = 0;
     ts->offset_clamp.ymax = 0;
   }
+
+  /* If either axis is locked (min/max offset is zero), then movement is only possible along one
+   * axis, and distinguishing them makes no sense, so just disable both axis constraints. */
+  if ((ts->offset_clamp.xmin == 0 && ts->offset_clamp.xmax == 0) ||
+      (ts->offset_clamp.ymin == 0 && ts->offset_clamp.ymax == 0))
+  {
+    t->flag |= T_NO_CONSTRAINT;
+  }
 }
 
 static void createTransSeqData(bContext *C, TransInfo *t)

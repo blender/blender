@@ -12136,9 +12136,13 @@ static int handle_menu_event(bContext *C,
         menu->menuretval = RETURN_CANCEL;
       }
       else if (ELEM(event->type, EVT_RETKEY, EVT_PADENTER) && event->val == KM_PRESS) {
+        Button *but_active = region_find_active_but(region);
         Button *but_default = region_find_first_but_test_flag(
             region, BUT_ACTIVE_DEFAULT, UI_HIDDEN);
-        if ((but_default != nullptr) && (but_default->active == nullptr)) {
+        if (but_active && menu->keynav_state.is_keynav) {
+          /* Key-navigation activates the button navigated onto, not the default. */
+        }
+        else if ((but_default != nullptr) && (but_default->active == nullptr)) {
           if (but_default->type == ButtonType::But) {
             button_execute(C, region, but_default);
             retval = WM_UI_HANDLER_BREAK;
@@ -12147,14 +12151,10 @@ static int handle_menu_event(bContext *C,
             handle_button_activate_by_type(C, region, but_default);
           }
         }
-        else {
-          Button *but_active = region_find_active_but(region);
-
-          /* enter will always close this block, we let the event
-           * get handled by the button if it is activated, otherwise we cancel */
-          if (but_active == nullptr) {
-            menu->menuretval = RETURN_CANCEL | RETURN_POPUP_OK;
-          }
+        /* enter will always close this block, we let the event
+         * get handled by the button if it is activated, otherwise we cancel */
+        else if (but_active == nullptr) {
+          menu->menuretval = RETURN_CANCEL | RETURN_POPUP_OK;
         }
       }
 #ifdef USE_DRAG_POPUP
@@ -13762,13 +13762,23 @@ std::optional<int2> try_activate_rna_button(bContext *C,
   ED_screen_set_active_region(C, CTX_wm_window(C), xy);
   ScrArea *current_screen = CTX_wm_area(C);
   ARegion *current_region = CTX_wm_region(C);
+  ARegion *current_popup_region = CTX_wm_region_popup(C);
+  const rctf button_rect = button->rect;
+
+  BLI_SCOPED_DEFER([&]() {
+    CTX_wm_area_set(C, current_screen);
+    CTX_wm_region_set(C, current_region);
+    CTX_wm_region_popup_set(C, current_popup_region);
+    /* Restore button position. */
+    button->rect = button_rect;
+  });
 
   CTX_wm_area_set(C, area);
   CTX_wm_region_set(C, region);
+  CTX_wm_region_popup_set(C, nullptr);
   /* Init button active data with state as #BUTTON_STATE_HIGHLIGHT */
   handle_button_activate(C, region, button, BUTTON_ACTIVATE);
 
-  const rctf button_rect = button->rect;
   /* Temporally override button position so its already in view when putting mouse over. */
   BLI_rctf_translate(
       &button->rect, region->v2d.cur.xmin - old_view_xy.x, old_view_xy.y - region->v2d.cur.ymin);
@@ -13819,11 +13829,6 @@ std::optional<int2> try_activate_rna_button(bContext *C,
   {
     button_activate_state(C, button, BUTTON_STATE_WAIT_KEY_EVENT);
   }
-
-  CTX_wm_area_set(C, current_screen);
-  CTX_wm_region_set(C, current_region);
-  /* Restore button position. */
-  button->rect = button_rect;
 
   return int2{int(BLI_rctf_cent_x(&button_view_rect)), int(BLI_rctf_cent_y(&button_view_rect))};
 }

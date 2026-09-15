@@ -1161,14 +1161,15 @@ static void image_abs_path(Main *bmain,
   }
 }
 
-Image *BKE_image_load(Main *bmain, const char *filepath)
+Image *BKE_image_load(Main *bmain, const char *filepath, bool check_open)
 {
-  return BKE_image_load_in_lib(bmain, std::nullopt, filepath);
+  return BKE_image_load_in_lib(bmain, std::nullopt, filepath, check_open);
 }
 
 Image *BKE_image_load_in_lib(Main *bmain,
                              std::optional<Library *> owner_library,
-                             const char *filepath)
+                             const char *filepath,
+                             bool check_open)
 {
   Image *ima;
   int file;
@@ -1179,15 +1180,17 @@ Image *BKE_image_load_in_lib(Main *bmain,
 
   image_abs_path(bmain, owner_lib, filepath, filepath_abs);
 
-  /* exists? */
-  file = BLI_open(filepath_abs, O_BINARY | O_RDONLY, 0);
-  if (file == -1) {
-    if (!BKE_image_tile_filepath_exists(filepath_abs)) {
-      return nullptr;
+  /* Does it exist on the filesystem? */
+  if (check_open) {
+    file = BLI_open(filepath_abs, O_BINARY | O_RDONLY, 0);
+    if (file == -1) {
+      if (!BKE_image_tile_filepath_exists(filepath_abs)) {
+        return nullptr;
+      }
     }
-  }
-  else {
-    close(file);
+    else {
+      close(file);
+    }
   }
 
   ima = image_alloc(
@@ -1203,14 +1206,15 @@ Image *BKE_image_load_in_lib(Main *bmain,
   return ima;
 }
 
-Image *BKE_image_load_exists(Main *bmain, const char *filepath, bool *r_exists)
+Image *BKE_image_load_exists(Main *bmain, const char *filepath, bool check_open, bool *r_exists)
 {
-  return BKE_image_load_exists_in_lib(bmain, std::nullopt, filepath, r_exists);
+  return BKE_image_load_exists_in_lib(bmain, std::nullopt, filepath, check_open, r_exists);
 }
 
 Image *BKE_image_load_exists_in_lib(Main *bmain,
                                     std::optional<Library *> owner_library,
                                     const char *filepath,
+                                    bool check_open,
                                     bool *r_exists)
 {
   Image *ima;
@@ -1250,7 +1254,7 @@ Image *BKE_image_load_exists_in_lib(Main *bmain,
   if (r_exists) {
     *r_exists = false;
   }
-  return BKE_image_load_in_lib(bmain, owner_library, filepath);
+  return BKE_image_load_in_lib(bmain, owner_library, filepath, check_open);
 }
 
 struct ImageFillData {

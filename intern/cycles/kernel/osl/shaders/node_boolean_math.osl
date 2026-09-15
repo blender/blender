@@ -1,0 +1,35 @@
+/* SPDX-FileCopyrightText: 2026 Blender Authors
+ *
+ * SPDX-License-Identifier: Apache-2.0 */
+
+#include "stdcycles.h"
+
+shader node_boolean_math(string math_type = "and",
+                         int Boolean1 = 0,
+                         int Boolean2 = 0,
+                         output int Boolean = 0)
+{
+  int a = Boolean1 > 0;
+  int b = Boolean2 > 0;
+
+  if (math_type == "and")
+    Boolean = a && b;
+  else if (math_type == "or")
+    Boolean = a || b;
+  else if (math_type == "not")
+    Boolean = !a;
+  else if (math_type == "nand")
+    Boolean = !(a && b);
+  else if (math_type == "nor")
+    Boolean = !(a || b);
+  else if (math_type == "xnor")
+    Boolean = a == b;
+  else if (math_type == "xor")
+    Boolean = a != b;
+  else if (math_type == "imply")
+    Boolean = !a || b;
+  else if (math_type == "nimply")
+    Boolean = a && !b;
+  else
+    Boolean = 0;
+}

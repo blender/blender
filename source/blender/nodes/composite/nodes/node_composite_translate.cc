@@ -69,7 +69,11 @@ using namespace blender::compositor;
 
 class TranslateOperation : public NodeOperation {
  public:
-  using NodeOperation::NodeOperation;
+  TranslateOperation(Context &context, const bNode &node) : NodeOperation(context, node)
+  {
+    InputDescriptor &image_descriptor = this->get_input_descriptor("Image");
+    image_descriptor.skip_type_conversion = true;
+  }
 
   void execute() override
   {
@@ -80,6 +84,7 @@ class TranslateOperation : public NodeOperation {
     const float2 translation = float2(x, y);
 
     Result &output = this->get_result("Image");
+    output.set_type(input.type());
     output.share_data(input);
     output.transform(math::from_location<float3x3>(translation));
     output.get_realization_options().interpolation = this->get_interpolation();

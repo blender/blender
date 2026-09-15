@@ -2550,7 +2550,7 @@ GHOST_Context *GHOST_WindowWayland::newDrawingContext(GHOST_TDrawingContextType 
                                                      system_->wl_display_get(),
                                                      window_->backend.vulkan_window_info,
                                                      1,
-                                                     2,
+                                                     1,
                                                      preferred_device_,
                                                      &hdr_info_);
       if (context->initializeDrawingContext()) {

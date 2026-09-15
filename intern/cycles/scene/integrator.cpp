@@ -166,6 +166,7 @@ NODE_DEFINE(Integrator)
   denoiser_type_enum.insert("none", DENOISER_NONE);
   denoiser_type_enum.insert("optix", DENOISER_OPTIX);
   denoiser_type_enum.insert("openimagedenoise", DENOISER_OPENIMAGEDENOISE);
+  denoiser_type_enum.insert("dlss", DENOISER_DLSS);
 
   static NodeEnum denoiser_prefilter_enum;
   denoiser_prefilter_enum.insert("none", DENOISER_PREFILTER_NONE);
@@ -210,6 +211,10 @@ void Integrator::device_update(Device *device, DeviceScene *dscene, Scene *scene
       scene->update_stats->integrator.times.add_entry({"device_update", time});
     }
   });
+
+  if (use_denoise && denoiser_type == DENOISER_DLSS) {
+    use_pixel_jitter = true;
+  }
 
   KernelIntegrator *kintegrator = &dscene->data.integrator;
 

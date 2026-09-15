@@ -162,12 +162,18 @@ const char *device_kernel_as_string(DeviceKernel kernel)
     /* Denoising. */
     case DEVICE_KERNEL_FILTER_GUIDING_PREPROCESS:
       return "filter_guiding_preprocess";
+    case DEVICE_KERNEL_FILTER_GUIDING_PREPROCESS_TO_SURFACE:
+      return "filter_guiding_preprocess_to_surface";
     case DEVICE_KERNEL_FILTER_GUIDING_SET_FAKE_ALBEDO:
       return "filter_guiding_set_fake_albedo";
     case DEVICE_KERNEL_FILTER_COLOR_PREPROCESS:
       return "filter_color_preprocess";
+    case DEVICE_KERNEL_FILTER_COLOR_PREPROCESS_TO_SURFACE:
+      return "filter_color_preprocess_to_surface";
     case DEVICE_KERNEL_FILTER_COLOR_POSTPROCESS:
       return "filter_color_postprocess";
+    case DEVICE_KERNEL_FILTER_COLOR_POSTPROCESS_FROM_SURFACE:
+      return "filter_color_postprocess_from_surface";
     case DEVICE_KERNEL_FILTER_COLOR_FLIP_Y:
       return "filter_color_flip_y";
 

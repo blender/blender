@@ -372,6 +372,9 @@ class RecursiveVisitor {
     if (type.is<nodes::BundlePtr>()) {
       bool need_edit = false;
       list.typed<nodes::BundlePtr>().foreach([&](const nodes::BundlePtr &bundle_ptr) {
+        if (!bundle_ptr) {
+          return;
+        }
         if (!need_edit) {
           need_edit = this->check_Bundle(*bundle_ptr);
         }
@@ -381,6 +384,9 @@ class RecursiveVisitor {
     if (type.is<nodes::ClosurePtr>()) {
       bool need_edit = false;
       list.typed<nodes::ClosurePtr>().foreach([&](const nodes::ClosurePtr &closure_ptr) {
+        if (!closure_ptr) {
+          return;
+        }
         if (!need_edit) {
           need_edit = this->check_Closure(*closure_ptr);
         }

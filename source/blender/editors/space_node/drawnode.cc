@@ -1779,7 +1779,7 @@ void draw_nodespace_back_pix(const bContext &C,
     if (snode.edittree) {
       bNode *node = snode.edittree->nodes.first();
       while (node) {
-        if (node->flag & NODE_SELECT) {
+        if (node->is_selected()) {
           if (node->typeinfo->draw_backdrop) {
             node->typeinfo->draw_backdrop(&snode, ibuf, node, x, y);
           }

@@ -411,10 +411,10 @@ static void view_align_update(Main * /*main*/, Scene * /*scene*/, PointerRNA *pt
   RNA_struct_system_idprops_unset(ptr, "rotation");
 }
 
-void add_unit_props_size(wmOperatorType *ot)
+void add_unit_props_size(wmOperatorType *ot, float default_value)
 {
   RNA_def_float_distance(
-      ot->srna, "size", 2.0f, 0.0, OBJECT_ADD_SIZE_MAXF, "Size", "", 0.001, 100.00);
+      ot->srna, "size", default_value, 0.0, OBJECT_ADD_SIZE_MAXF, "Size", "", 0.001, 100.00);
 }
 
 void add_unit_props_radius_ex(wmOperatorType *ot, float default_value)
@@ -1335,7 +1335,7 @@ static wmOperatorStatus object_add_text_exec(bContext *C, wmOperator *op)
   }
 
   obedit = add_type(C, OB_FONT, nullptr, loc, rot, enter_editmode, local_view_bits);
-  BKE_object_obdata_size_init(obedit, RNA_float_get(op->ptr, "radius"));
+  BKE_object_obdata_size_init(obedit, RNA_float_get(op->ptr, "size"));
 
   return OPERATOR_FINISHED;
 }
@@ -1355,7 +1355,7 @@ void OBJECT_OT_text_add(wmOperatorType *ot)
   ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO;
 
   /* properties */
-  add_unit_props_radius(ot);
+  add_unit_props_size(ot, 1.0f);
   add_generic_props(ot, true);
 }
 

@@ -60,6 +60,29 @@ struct SVMNodeMath {
 static_assert(alignof(SVMNodeMath) <= alignof(uint));
 static_assert(sizeof(SVMNodeMath) % sizeof(uint) == 0);
 
+/* NODE_BOOLEAN_MATH */
+struct SVMNodeBooleanMath {
+  NodeBooleanMathType math_type;
+  SVMInputInt value1;
+  SVMInputInt value2;
+  SVMStackOffset result_offset;
+  uint8_t _pad[3];
+};
+static_assert(alignof(SVMNodeBooleanMath) <= alignof(uint));
+static_assert(sizeof(SVMNodeBooleanMath) % sizeof(uint) == 0);
+
+/* NODE_INTEGER_MATH */
+struct SVMNodeIntegerMath {
+  NodeIntegerMathType math_type;
+  SVMInputInt value1;
+  SVMInputInt value2;
+  SVMInputInt value3;
+  SVMStackOffset result_offset;
+  uint8_t _pad[3];
+};
+static_assert(alignof(SVMNodeIntegerMath) <= alignof(uint));
+static_assert(sizeof(SVMNodeIntegerMath) % sizeof(uint) == 0);
+
 /* NODE_CLAMP */
 struct SVMNodeClamp {
   NodeClampType clamp_type;

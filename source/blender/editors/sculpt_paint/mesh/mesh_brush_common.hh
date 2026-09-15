@@ -373,12 +373,14 @@ void calc_brush_strength_factors(const StrokeCache &cache,
 /**
  * Modify brush influence factors to include sampled texture values.
  */
-void calc_brush_texture_factors(const SculptSession &ss,
+void calc_brush_texture_factors(PaintMode paint_mode,
+                                const SculptSession &ss,
                                 const Brush &brush,
                                 Span<float3> vert_positions,
                                 Span<int> vert,
                                 MutableSpan<float> factors);
-void calc_brush_texture_factors(const SculptSession &ss,
+void calc_brush_texture_factors(PaintMode paint_mode,
+                                const SculptSession &ss,
                                 const Brush &brush,
                                 Span<float3> positions,
                                 MutableSpan<float> factors);

@@ -120,7 +120,7 @@ void KRt_From_P(const Mat34& P, Mat3* Kp, Mat3* Rp, Vec3* tp) {
   // Compute translation.
   Vec p(3);
   p << P(0, 3), P(1, 3), P(2, 3);
-  // TODO(pau) This sould be done by a SolveLinearSystem(A, b, &x) call.
+  // TODO(pau) This should be done by a SolveLinearSystem(A, b, &x) call.
   // TODO(keir) use the eigen LU solver syntax...
   Vec3 t = K.inverse() * p;
 

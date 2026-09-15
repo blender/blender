@@ -584,7 +584,9 @@ void PathTrace::set_denoiser_params(const DenoiseParams &params)
 
     const bool is_cpu_denoising = old_denoiser_params.type == DENOISER_OPENIMAGEDENOISE &&
                                   old_denoiser_params.use_gpu == false;
-    const bool requested_gpu_denoising = effective_denoise_params.type == DENOISER_OPTIX ||
+    const bool always_gpu_denoising = effective_denoise_params.type == DENOISER_DLSS ||
+                                      effective_denoise_params.type == DENOISER_OPTIX;
+    const bool requested_gpu_denoising = always_gpu_denoising ||
                                          (effective_denoise_params.type ==
                                               DENOISER_OPENIMAGEDENOISE &&
                                           effective_denoise_params.use_gpu == true);
@@ -602,7 +604,7 @@ void PathTrace::set_denoiser_params(const DenoiseParams &params)
     /* Optix Denoiser is not supporting CPU devices, so use_gpu option is not
      * shown in the UI and changes in the option value should not be checked. */
     if (old_denoiser_params.type == effective_denoise_params.type &&
-        (is_same_denoising_device_type || effective_denoise_params.type == DENOISER_OPTIX))
+        (is_same_denoising_device_type || always_gpu_denoising))
     {
       denoiser_->set_params(effective_denoise_params);
     }
@@ -949,7 +951,11 @@ void PathTrace::cancel()
 {
   thread_scoped_lock lock(render_cancel_.mutex);
 
-  render_cancel_.is_requested = true;
+  /* Only cancel in the middle of rendering when there is at least one sample in the output.
+   * Otherwise interactivity becomes bad. */
+  if (get_num_samples_in_buffer() > 1) {
+    render_cancel_.is_requested = true;
+  }
 
   while (render_cancel_.is_rendering) {
     render_cancel_.condition.wait(lock);

@@ -33,7 +33,7 @@ namespace {
 // homography matrix.
 // TODO(sergey): Consider using this in all tests since possible homography
 // matrix is not fixed to a single value and different-looking matrices
-// might actually crrespond to the same exact transform.
+// might actually correspond to the same exact transform.
 void CheckHomography2DTransform(const Mat3& H, const Mat& x1, const Mat& x2) {
   for (int i = 0; i < x2.cols(); ++i) {
     Vec3 x2_expected = x2.col(i);

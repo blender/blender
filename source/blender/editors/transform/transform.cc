@@ -109,6 +109,8 @@ void setTransformViewMatrices(TransInfo *t)
     unit_m4(t->persinv);
     t->persp = RV3D_ORTHO;
   }
+
+  SET_FLAG_FROM_TEST(t->flag, is_negative_m4(t->viewmat), T_VIEW_NEGATIVE);
 }
 
 void setTransformViewAspect(TransInfo *t, float r_aspect[3])

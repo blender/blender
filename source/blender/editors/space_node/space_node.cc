@@ -1424,7 +1424,7 @@ static int /*eContextResult*/ node_context(const bContext *C,
   if (CTX_data_equals(member, "selected_nodes")) {
     if (snode->edittree) {
       for (bNode *node : snode->edittree->all_nodes()) {
-        if (node->flag & NODE_SELECT) {
+        if (node->is_selected()) {
           PointerRNA ptr = RNA_pointer_create_id_subdata(snode->edittree->id, RNA_Node, node);
           CTX_data_list_add_ptr(result, &ptr);
         }

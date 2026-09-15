@@ -193,6 +193,15 @@ enum eTFlag {
 
   /** Transform origin. */
   T_ORIGIN = 1 << 27,
+
+  /**
+   * The view matrix is flipped (has a negative determinant),
+   * typically from a flipped camera view.
+   *
+   * In most cases there is no need for special handling however
+   * rotation is reversed for some input calculation, which need to account for this.
+   */
+  T_VIEW_NEGATIVE = 1 << 28,
 };
 ENUM_OPERATORS(eTFlag);
 

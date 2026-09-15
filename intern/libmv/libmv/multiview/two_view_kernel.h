@@ -90,7 +90,7 @@ struct IsotropicNormalizedSolver {
 // error, but can never access the samples themselves.
 //
 // The Kernel objects must follow the following concept so that the robust
-// fitting alogrithm can fit this type of relation:
+// fitting algorithm can fit this type of relation:
 //
 //   1. Kernel::Model
 //   2. Kernel::MINIMUM_SAMPLES

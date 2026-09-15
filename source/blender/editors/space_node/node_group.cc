@@ -320,7 +320,7 @@ static wmOperatorStatus node_group_ungroup_exec(bContext *C, wmOperator * /*op*/
 
   Vector<bNode *> nodes_to_ungroup;
   for (bNode *node : snode->edittree->all_nodes()) {
-    if (node->flag & NODE_SELECT) {
+    if (node->is_selected()) {
       if (node->idname == node_idname) {
         if (node->id != nullptr) {
           nodes_to_ungroup.append(node);

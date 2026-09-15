@@ -47,7 +47,7 @@ static bool Build_Minimal2Point_PolynomialFactor(
   double b1 = xx2.squaredNorm();
   double b2 = yx2.squaredNorm();
 
-  // Build the 3rd degre polynomial in F^2.
+  // Build the 3rd degree polynomial in F^2.
   //
   //   f^6 * p + f^4 * q + f^2* r + s = 0;
   //

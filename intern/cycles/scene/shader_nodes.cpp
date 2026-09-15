@@ -31,7 +31,9 @@
 #include "util/transform.h"
 
 #include "kernel/closure/bsdf_microfacet.h"
+#include "kernel/svm/boolean_math.h"
 #include "kernel/svm/color_util.h"
+#include "kernel/svm/integer_math.h"
 #include "kernel/svm/mapping_util.h"
 #include "kernel/svm/math_util.h"
 #include "kernel/svm/ramp_util.h"
@@ -7034,6 +7036,125 @@ void MathNode::compile(OSLCompiler &compiler)
 {
   compiler.parameter(this, "math_type");
   compiler.add(this, "node_math");
+}
+
+/* Boolean Math */
+
+NODE_DEFINE(BooleanMathNode)
+{
+  NodeType *type = NodeType::add("boolean_math", create, NodeType::SHADER);
+
+  static NodeEnum type_enum;
+  type_enum.insert("and", NODE_BOOLEAN_MATH_AND);
+  type_enum.insert("or", NODE_BOOLEAN_MATH_OR);
+  type_enum.insert("not", NODE_BOOLEAN_MATH_NOT);
+  type_enum.insert("nand", NODE_BOOLEAN_MATH_NAND);
+  type_enum.insert("nor", NODE_BOOLEAN_MATH_NOR);
+  type_enum.insert("xnor", NODE_BOOLEAN_MATH_XNOR);
+  type_enum.insert("xor", NODE_BOOLEAN_MATH_XOR);
+  type_enum.insert("imply", NODE_BOOLEAN_MATH_IMPLY);
+  type_enum.insert("nimply", NODE_BOOLEAN_MATH_NIMPLY);
+  SOCKET_ENUM(math_type, "Type", type_enum, NODE_BOOLEAN_MATH_AND);
+
+  SOCKET_IN_INT(boolean1, "Boolean1", 0);
+  SOCKET_IN_INT(boolean2, "Boolean2", 0);
+
+  SOCKET_OUT_INT(boolean, "Boolean");
+
+  return type;
+}
+
+BooleanMathNode::BooleanMathNode() : ShaderNode(get_node_type()) {}
+
+void BooleanMathNode::constant_fold(const ConstantFolder &folder)
+{
+  /* In the future this could constant fold for e.g. the AND operation when the first input is
+   * false, even if the second input is not constant.*/
+  if (folder.all_inputs_constant()) {
+    folder.make_constant(svm_boolean_math(math_type, boolean1, boolean2));
+  }
+}
+
+void BooleanMathNode::compile(SVMCompiler &compiler)
+{
+  compiler.add_node(this,
+                    NODE_BOOLEAN_MATH,
+                    SVMNodeBooleanMath{
+                        .math_type = math_type,
+                        .value1 = compiler.input_int("Boolean1"),
+                        .value2 = compiler.input_int("Boolean2"),
+                        .result_offset = compiler.output("Boolean"),
+                    });
+}
+
+void BooleanMathNode::compile(OSLCompiler &compiler)
+{
+  compiler.parameter(this, "math_type");
+  compiler.add(this, "node_boolean_math");
+}
+
+/* Integer Math */
+
+NODE_DEFINE(IntegerMathNode)
+{
+  NodeType *type = NodeType::add("integer_math", create, NodeType::SHADER);
+
+  static NodeEnum type_enum;
+  type_enum.insert("add", NODE_INTEGER_MATH_ADD);
+  type_enum.insert("subtract", NODE_INTEGER_MATH_SUBTRACT);
+  type_enum.insert("multiply", NODE_INTEGER_MATH_MULTIPLY);
+  type_enum.insert("divide", NODE_INTEGER_MATH_DIVIDE);
+  type_enum.insert("multiply_add", NODE_INTEGER_MATH_MULTIPLY_ADD);
+  type_enum.insert("power", NODE_INTEGER_MATH_POWER);
+  type_enum.insert("floored_modulo", NODE_INTEGER_MATH_FLOORED_MODULO);
+  type_enum.insert("absolute", NODE_INTEGER_MATH_ABSOLUTE);
+  type_enum.insert("minimum", NODE_INTEGER_MATH_MINIMUM);
+  type_enum.insert("maximum", NODE_INTEGER_MATH_MAXIMUM);
+  type_enum.insert("gcd", NODE_INTEGER_MATH_GCD);
+  type_enum.insert("lcm", NODE_INTEGER_MATH_LCM);
+  type_enum.insert("negate", NODE_INTEGER_MATH_NEGATE);
+  type_enum.insert("sign", NODE_INTEGER_MATH_SIGN);
+  type_enum.insert("divide_floor", NODE_INTEGER_MATH_DIVIDE_FLOOR);
+  type_enum.insert("divide_ceil", NODE_INTEGER_MATH_DIVIDE_CEIL);
+  type_enum.insert("divide_round", NODE_INTEGER_MATH_DIVIDE_ROUND);
+  type_enum.insert("modulo", NODE_INTEGER_MATH_MODULO);
+  SOCKET_ENUM(math_type, "Type", type_enum, NODE_INTEGER_MATH_ADD);
+
+  SOCKET_IN_INT(value1, "Value1", 0);
+  SOCKET_IN_INT(value2, "Value2", 0);
+  SOCKET_IN_INT(value3, "Value3", 0);
+
+  SOCKET_OUT_INT(value, "Value");
+
+  return type;
+}
+
+IntegerMathNode::IntegerMathNode() : ShaderNode(get_node_type()) {}
+
+void IntegerMathNode::constant_fold(const ConstantFolder &folder)
+{
+  if (folder.all_inputs_constant()) {
+    folder.make_constant(svm_integer_math(math_type, value1, value2, value3));
+  }
+}
+
+void IntegerMathNode::compile(SVMCompiler &compiler)
+{
+  compiler.add_node(this,
+                    NODE_INTEGER_MATH,
+                    SVMNodeIntegerMath{
+                        .math_type = math_type,
+                        .value1 = compiler.input_int("Value1"),
+                        .value2 = compiler.input_int("Value2"),
+                        .value3 = compiler.input_int("Value3"),
+                        .result_offset = compiler.output("Value"),
+                    });
+}
+
+void IntegerMathNode::compile(OSLCompiler &compiler)
+{
+  compiler.parameter(this, "math_type");
+  compiler.add(this, "node_integer_math");
 }
 
 /* VectorMath */

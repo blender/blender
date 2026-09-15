@@ -65,7 +65,7 @@ bool RegionIsInBounds(const FloatImage& image1,
 // elements.
 //
 // The function requires size % 16 valid extra elements at the end of both "a"
-// and "b", since the SSE load instructionst will pull in memory past the end
+// and "b", since the SSE load instructions will pull in memory past the end
 // of the arrays if their size is not a multiple of 16.
 inline static __m128i SumOfAbsoluteDifferencesContiguousSSE(
     const unsigned char* a,  // aligned

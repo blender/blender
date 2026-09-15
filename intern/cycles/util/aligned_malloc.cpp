@@ -25,7 +25,7 @@
 #  include <malloc.h>
 #else
 /* Apple's `malloc` is 16-byte aligned, and does not have `malloc.h`, so include
- * `stdilb` instead.
+ * `stdlib` instead.
  */
 #  include <cstdlib>
 #endif

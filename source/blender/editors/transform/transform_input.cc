@@ -76,16 +76,17 @@ static void InputSpringDelta(TransInfo *t, MouseInput *mi, const double mval[2],
 }
 
 /** Callback for #INPUT_TRACKBALL. */
-static void InputTrackBall(TransInfo * /*t*/,
-                           MouseInput *mi,
-                           const double mval[2],
-                           float output[3])
+static void InputTrackBall(TransInfo *t, MouseInput *mi, const double mval[2], float output[3])
 {
   output[0] = float(mi->imval[1] - mval[1]);
   output[1] = float(mval[0] - mi->imval[0]);
 
   output[0] *= mi->factor;
   output[1] *= mi->factor;
+
+  if (t->flag & T_VIEW_NEGATIVE) {
+    negate_v2(output);
+  }
 }
 
 /** Callback for #INPUT_HORIZONTAL_RATIO. */
@@ -176,7 +177,7 @@ struct InputAngle_Data {
 };
 
 /** Callback for #INPUT_ANGLE. */
-static void InputAngle(TransInfo * /*t*/, MouseInput *mi, const double mval[2], float output[3])
+static void InputAngle(TransInfo *t, MouseInput *mi, const double mval[2], float output[3])
 {
   InputAngle_Data *data = static_cast<InputAngle_Data *>(mi->data);
   float dir_prev[2], dir_curr[2], mi_center[2];
@@ -189,6 +190,10 @@ static void InputAngle(TransInfo * /*t*/, MouseInput *mi, const double mval[2], 
     float dphi = angle_normalized_v2v2(dir_prev, dir_curr);
 
     if (cross_v2v2(dir_prev, dir_curr) > 0.0f) {
+      dphi = -dphi;
+    }
+
+    if (t->flag & T_VIEW_NEGATIVE) {
       dphi = -dphi;
     }
 

@@ -186,6 +186,10 @@ static float RotationBetween(TransInfo *t, const float p1[3], const float p2[3])
     mul_m3_v3(mtx, start);
 
     angle = (atan2f(start[1], start[0]) - atan2f(end[1], end[0]));
+
+    if (t->flag & T_VIEW_NEGATIVE) {
+      angle = -angle;
+    }
   }
 
   if (angle > float(M_PI)) {

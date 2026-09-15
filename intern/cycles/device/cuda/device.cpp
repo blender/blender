@@ -10,6 +10,7 @@
 #ifdef WITH_CUDA
 #  include "device/cuda/device_impl.h"
 
+#  include "integrator/denoiser_dlss.h"
 #  include "integrator/denoiser_oidn_gpu.h"  // IWYU pragma: keep
 
 #  include "util/string.h"
@@ -176,6 +177,11 @@ void device_cuda_info(vector<DeviceInfo> &devices)
     if (OIDNDenoiserGPU::is_device_supported(info)) {
 #    endif
       info.denoisers |= DENOISER_OPENIMAGEDENOISE;
+    }
+#  endif
+#  if defined(WITH_DLSS)
+    if (DLSSDenoiser::is_device_supported(info)) {
+      info.denoisers |= DENOISER_DLSS;
     }
 #  endif
 

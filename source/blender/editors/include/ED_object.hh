@@ -331,7 +331,7 @@ float new_primitive_matrix(bContext *C,
  */
 #define OBJECT_ADD_SIZE_MAXF 1.0e12f
 
-void add_unit_props_size(wmOperatorType *ot);
+void add_unit_props_size(wmOperatorType *ot, float default_value = 2.0f);
 void add_unit_props_radius_ex(wmOperatorType *ot, float default_value);
 void add_unit_props_radius(wmOperatorType *ot);
 void add_generic_props(wmOperatorType *ot, bool do_editmode);
