@@ -318,8 +318,8 @@ void SnapData::register_result(SnapObjectContext *sctx,
 
   /* Global space. */
   sctx->ret.loc = math::transform_point(obmat, sctx->ret.loc);
-  const float3x3 normal_transform = math::transpose(math::invert(float3x3(obmat)));
-  sctx->ret.no = math::normalize(math::transform_direction(normal_transform, sctx->ret.no));
+  sctx->ret.no = math::normalize(
+      math::transform_direction_transposed(math::invert(float3x3(obmat)), sctx->ret.no));
 
 #ifndef NDEBUG
   /* Make sure this is only called once. */
@@ -342,8 +342,8 @@ void SnapData::register_result_raycast(SnapObjectContext *sctx,
   const float depth_max = is_in_front ? sctx->ret.ray_depth_max_in_front : sctx->ret.ray_depth_max;
   if (hit->dist <= depth_max) {
     float3 co = math::transform_point(obmat, float3(hit->co));
-    const float3x3 normal_transform = math::transpose(math::invert(float3x3(obmat)));
-    float3 no = math::normalize(math::transform_direction(normal_transform, float3(hit->no)));
+    float3 no = math::normalize(
+        math::transform_direction_transposed(math::invert(float3x3(obmat)), float3(hit->no)));
 
     sctx->ret.loc = co;
     sctx->ret.no = no;
