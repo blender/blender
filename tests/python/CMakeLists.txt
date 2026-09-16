@@ -1849,6 +1849,9 @@ if(WITH_UI_TESTS)
     test_tool_activation.node_editor
     test_tool_activation.sequencer
     test_preferences_draw_all.test_preferences_draw_all
+    test_info_reports.test_info_report_selection_modes
+    test_info_reports.test_info_report_delete
+    test_info_reports.test_info_report_operator_poll
     test_blend_autoexec.pref_enabled_drop_blend_file_untrusted
     test_blend_autoexec.pref_enabled_drop_blend_file_trusted
     test_blend_autoexec.pref_enabled_open_file_selector_trusted
