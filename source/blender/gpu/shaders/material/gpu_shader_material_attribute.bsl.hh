@@ -24,6 +24,12 @@ void node_attribute_temperature(float4 attr, float4 &out_attr)
 }
 
 [[node]]
+void node_attribute_radiance(float4 attr, float4 &out_attr)
+{
+  out_attr = attr_load_radiance_post(attr);
+}
+
+[[node]]
 void node_attribute_density(float4 attr, float &out_attr)
 {
   out_attr = attr.x;

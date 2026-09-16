@@ -78,27 +78,16 @@ struct LightEval {
   [[specialization_constant(6)]] int shadow_ray_step_count;
 
   /* Chaining to next pass. */
-  [[image(2, write, DEFERRED_RADIANCE_FORMAT)]] uimage2D direct_radiance_1_img;
-  [[image(3, write, DEFERRED_RADIANCE_FORMAT)]] uimage2D direct_radiance_2_img;
-  [[image(4, write, DEFERRED_RADIANCE_FORMAT)]] uimage2D direct_radiance_3_img;
+  [[image(2, write, DEFERRED_RADIANCE_FORMAT)]] uimage2DArray direct_radiance_imgs;
   /* Optimized out if use_split_indirect is false. */
-  [[image(5, write, RAYTRACE_RADIANCE_FORMAT)]] image2D indirect_radiance_1_img;
-  [[image(6, write, RAYTRACE_RADIANCE_FORMAT)]] image2D indirect_radiance_2_img;
-  [[image(7, write, RAYTRACE_RADIANCE_FORMAT)]] image2D indirect_radiance_3_img;
+  [[image(3, write, RAYTRACE_RADIANCE_FORMAT)]] image2D indirect_radiance_1_img;
+  [[image(4, write, RAYTRACE_RADIANCE_FORMAT)]] image2D indirect_radiance_2_img;
+  [[image(5, write, RAYTRACE_RADIANCE_FORMAT)]] image2D indirect_radiance_3_img;
 
   void write_radiance_direct(uchar layer_index, int2 texel, float3 radiance)
   {
-    /* TODO(fclem): Layered texture. */
     uint data = rgb9e5_encode(radiance);
-    if (layer_index == 0u) {
-      imageStore(direct_radiance_1_img, texel, uint4(data));
-    }
-    else if (layer_index == 1u) {
-      imageStore(direct_radiance_2_img, texel, uint4(data));
-    }
-    else if (layer_index == 2u) {
-      imageStore(direct_radiance_3_img, texel, uint4(data));
-    }
+    imageStore(direct_radiance_imgs, int3(texel, layer_index), uint4(data));
   }
 
   void write_radiance_indirect(uchar layer_index, int2 texel, float3 radiance)

@@ -88,7 +88,7 @@ struct PointCloudBatchCache {
 
 static PointCloudBatchCache *pointcloud_batch_cache_get(PointCloud &pointcloud)
 {
-  return pointcloud.batch_cache;
+  return pointcloud.pointcloud_batch_cache;
 }
 
 static bool pointcloud_batch_cache_valid(PointCloud &pointcloud)
@@ -110,7 +110,7 @@ static void pointcloud_batch_cache_init(PointCloud &pointcloud)
 
   if (!cache) {
     cache = MEM_new<PointCloudBatchCache>(__func__);
-    pointcloud.batch_cache = cache;
+    pointcloud.pointcloud_batch_cache = cache;
   }
   else {
     cache->eval_cache = {};
@@ -185,8 +185,8 @@ void DRW_pointcloud_batch_cache_validate(PointCloud *pointcloud)
 void DRW_pointcloud_batch_cache_free(PointCloud *pointcloud)
 {
   pointcloud_batch_cache_clear(*pointcloud);
-  MEM_delete(pointcloud->batch_cache);
-  pointcloud->batch_cache = nullptr;
+  MEM_delete(pointcloud->pointcloud_batch_cache);
+  pointcloud->pointcloud_batch_cache = nullptr;
 }
 
 void DRW_pointcloud_batch_cache_free_old(PointCloud *pointcloud, int ctime)
@@ -357,8 +357,11 @@ gpu::Batch *pointcloud_surface_get(PointCloud *pointcloud)
 gpu::Batch *DRW_pointcloud_batch_cache_get_dots(Object *ob)
 {
   PointCloud &pointcloud = DRW_object_get_data_for_drawing<PointCloud>(*ob);
-  PointCloudBatchCache *cache = pointcloud_batch_cache_get(pointcloud);
-  return DRW_batch_request(&cache->eval_cache.dots);
+  if (pointcloud.type == PointCloudType::Points) {
+    PointCloudBatchCache *cache = pointcloud_batch_cache_get(pointcloud);
+    return DRW_batch_request(&cache->eval_cache.dots);
+  }
+  return nullptr;
 }
 
 gpu::VertBuf *DRW_pointcloud_position_and_radius_buffer_get(Object *ob)
@@ -452,10 +455,14 @@ void DRW_pointcloud_batch_cache_create_requested(Object *ob)
   }
 }
 
-gpu::Batch *DRW_pointcloud_batch_cache_get_edit_dots(PointCloud *pointcloud)
+gpu::Batch *DRW_pointcloud_batch_cache_get_edit_dots(Object *ob)
 {
-  PointCloudBatchCache *cache = pointcloud_batch_cache_get(*pointcloud);
-  return DRW_batch_request(&cache->edit_selection);
+  PointCloud &pointcloud = DRW_object_get_data_for_drawing<PointCloud>(*ob);
+  if (pointcloud.type == PointCloudType::Points) {
+    PointCloudBatchCache *cache = pointcloud_batch_cache_get(pointcloud);
+    return DRW_batch_request(&cache->edit_selection);
+  }
+  return nullptr;
 }
 
 /** \} */

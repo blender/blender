@@ -595,6 +595,7 @@ class NODE_MT_gn_input_import_base(node_add_menu.NodeMenu):
         self.node_operator(layout, "GeometryNodeImportCSV", label="CSV (.csv)")
         self.node_operator(layout, "GeometryNodeImportOBJ", label="Wavefront (.obj)")
         self.node_operator(layout, "GeometryNodeImportPLY", label="Stanford PLY (.ply)")
+        self.node_operator(layout, "GeometryNodeImportSPZ", label="SPZ (.spz)")
         self.node_operator(layout, "GeometryNodeImportSTL", label="STL (.stl)")
         self.node_operator(layout, "GeometryNodeImportText", label="Text (.txt)")
         self.node_operator(layout, "GeometryNodeImportVDB", label="OpenVDB (.vdb)")
@@ -652,6 +653,9 @@ class NODE_MT_gn_point_base(node_add_menu.NodeMenu):
 
         layout.separator()
         self.node_operator(layout, "GeometryNodeSetPointRadius")
+
+        layout.separator()
+        self.node_operator(layout, "GeometryNodePointsSetType")
 
         self.draw_assets_for_catalog(layout, self.bl_label)
 

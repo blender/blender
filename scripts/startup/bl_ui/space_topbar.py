@@ -402,6 +402,8 @@ class TOPBAR_MT_file_import(Menu):
         if bpy.app.build_options.io_ply:
             self.layout.operator(
                 "wm.ply_import", text=FileHandler.label_with_extensions("IO_FH_ply"))
+        if bpy.app.build_options.io_spz:
+            self.layout.operator("wm.spz_import", text=FileHandler.label_with_extensions("IO_FH_spz"))
         if bpy.app.build_options.io_stl:
             self.layout.operator(
                 "wm.stl_import", text=FileHandler.label_with_extensions("IO_FH_stl"))

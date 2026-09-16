@@ -202,7 +202,8 @@ ccl_device_noinline bool BVH_FUNCTION_FULL_NAME(BVH)(KernelGlobals kg,
                 break;
               }
 #endif /* BVH_FEATURE(BVH_HAIR) */
-#if BVH_FEATURE(BVH_POINTCLOUD) && defined(__POINTCLOUD__)
+#if BVH_FEATURE(BVH_POINTCLOUD)
+#  if defined(__POINTCLOUD__)
               case PRIMITIVE_POINT:
               case PRIMITIVE_MOTION_POINT: {
                 if ((type & PRIMITIVE_MOTION) && kernel_data.bvh.use_bvh_steps) {
@@ -222,6 +223,28 @@ ccl_device_noinline bool BVH_FUNCTION_FULL_NAME(BVH)(KernelGlobals kg,
                 }
                 break;
               }
+#  endif
+#  if defined(__GSPLATS__)
+              case PRIMITIVE_GSPLAT:
+              case PRIMITIVE_MOTION_GSPLAT: {
+                if ((type & PRIMITIVE_MOTION) && kernel_data.bvh.use_bvh_steps) {
+                  const float2 prim_time = kernel_data_fetch(prim_time, prim_addr);
+                  if (ray->time < prim_time.x || ray->time > prim_time.y) {
+                    break;
+                  }
+                }
+
+                const int point_type = kernel_data_fetch(prim_type, prim_addr);
+                const bool hit = gsplat_intersect(
+                    kg, isect, P, dir, tmin, isect->t, prim_object, prim, ray->time, point_type);
+                if (hit) {
+                  /* shadow ray early termination */
+                  if (visibility & PATH_RAY_VISIBILITY_SHADOW_OPAQUE)
+                    return true;
+                }
+                break;
+              }
+#  endif
 #endif /* BVH_FEATURE(BVH_POINTCLOUD) */
             }
           }

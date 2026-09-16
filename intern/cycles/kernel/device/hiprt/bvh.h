@@ -242,19 +242,17 @@ ccl_device_inline bool point_custom_intersect(const hiprtRay &ray,
     return false;
   }
 
-  const float ray_time = payload->ray_time;
-
   Intersection isect;
-  const bool b_hit = point_intersect(kg,
-                                     &isect,
-                                     ray.origin,
-                                     ray.direction,
-                                     ray.minT,
-                                     ray.maxT,
-                                     object,
-                                     prim,
-                                     ray_time,
-                                     primitive_type);
+  const bool b_hit = point_or_gsplat_intersect(kg,
+                                               &isect,
+                                               ray.origin,
+                                               ray.direction,
+                                               ray.minT,
+                                               ray.maxT,
+                                               object,
+                                               prim,
+                                               payload->ray_time,
+                                               primitive_type);
 
   if (b_hit) {
     hit.uv.x = isect.u;
@@ -329,7 +327,7 @@ ccl_device_inline bool local_intersection_filter(const hiprtRay &ray,
   const int object_id = payload->local_object;
   const uint max_hits = payload->max_hits;
 
-  /* Triangle primitive uses hardware intersection, other primitives  do custom intersection
+  /* Triangle primitive uses hardware intersection, other primitives do custom intersection
    * which does reservoir sampling for intersections. For the custom primitives only check
    * whether we can stop traversal early on. The rest of the checks here only do for the
    * regular triangles. */

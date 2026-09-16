@@ -18,6 +18,7 @@ set(INC
   ../../io/common
   ../../io/csv
   ../../io/ply
+  ../../io/spz
   ../../io/stl
   ../../io/wavefront_obj
   # RNA_prototypes.hh
@@ -138,6 +139,7 @@ set(SRC
   nodes/node_geo_image_texture.cc
   nodes/node_geo_import_csv.cc
   nodes/node_geo_import_obj.cc
+  nodes/node_geo_import_spz.cc
   nodes/node_geo_import_ply.cc
   nodes/node_geo_import_stl.cc
   nodes/node_geo_import_text.cc
@@ -276,6 +278,7 @@ set(SRC
   nodes/node_geo_set_nurbs_order.cc
   nodes/node_geo_set_nurbs_weight.cc
   nodes/node_geo_set_point_radius.cc
+  nodes/node_geo_set_points_type.cc
   nodes/node_geo_set_position.cc
   nodes/node_geo_set_shade_smooth.cc
   nodes/node_geo_set_spline_cyclic.cc
@@ -359,6 +362,14 @@ set(LIB
   PRIVATE bf::dependencies::optional::gmp
   PRIVATE bf::dependencies::optional::bullet
 )
+
+if(WITH_IO_SPZ)
+  list(APPEND LIB
+    PRIVATE bf_io_common
+    PRIVATE bf_io_spz
+  )
+  add_definitions(-DWITH_IO_SPZ)
+endif()
 
 if(WITH_IO_STL)
   list(APPEND LIB

@@ -6,6 +6,8 @@
 
 #include "BKE_node_tree_reference_lifetimes.hh"
 
+#include "BLI_stack.hh"
+
 #include "NOD_node_extra_info.hh"
 #include "NOD_rna_define.hh"
 #include "NOD_socket.hh"
@@ -120,6 +122,49 @@ static NodeOperation *get_compositor_operation(Context &context, const bNode &no
   return new EnableOutputOperation(context, node);
 }
 
+static const bNodeSocket *get_passthrough_socket(const bNodeSocket &query_input)
+{
+  const bNode &node = query_input.owner_node();
+  switch (node.type_legacy) {
+    case GEO_NODE_SWITCH:
+    case GEO_NODE_INDEX_SWITCH:
+    case GEO_NODE_MENU_SWITCH: {
+      if (query_input.index() == 0) {
+        return nullptr;
+      }
+      return &node.output_socket(0);
+    }
+  }
+  return nullptr;
+}
+
+static bool is_linked_to_group_output(const bNodeSocket &value_output_socket)
+{
+  Stack<const bNodeSocket *> outputs_to_check;
+  outputs_to_check.push(&value_output_socket);
+  Set<const bNodeSocket *> visited_sockets;
+
+  while (!outputs_to_check.is_empty()) {
+    const bNodeSocket &output_socket = *outputs_to_check.pop();
+    if (!visited_sockets.add(&output_socket)) {
+      continue;
+    }
+    for (const bNodeSocket *target_socket : output_socket.logically_linked_sockets()) {
+      const bNode &target_node = target_socket->owner_node();
+      if (target_node.is_group_output()) {
+        return true;
+      }
+      const bNodeSocket *passthrough_socket = get_passthrough_socket(*target_socket);
+      if (!passthrough_socket) {
+        continue;
+      }
+      BLI_assert(passthrough_socket->is_output());
+      outputs_to_check.push(passthrough_socket);
+    }
+  }
+  return false;
+}
+
 static void node_extra_info(NodeExtraInfoParams &params)
 {
   params.tree.ensure_topology_cache();
@@ -127,16 +172,13 @@ static void node_extra_info(NodeExtraInfoParams &params)
   if (!output_socket.is_directly_linked()) {
     return;
   }
-  for (const bNodeSocket *target_socket : output_socket.logically_linked_sockets()) {
-    const bNode &target_node = target_socket->owner_node();
-    if (!target_node.is_group_output() && !target_node.is_reroute()) {
-      NodeExtraInfoRow row;
-      row.text = RPT_("Invalid Output Link");
-      row.tooltip = TIP_("This node should be linked to the group output node");
-      row.icon = ICON_STATUS_ERROR;
-      params.rows.append(std::move(row));
-      return;
-    }
+  if (!is_linked_to_group_output(output_socket)) {
+    NodeExtraInfoRow row;
+    row.text = RPT_("Invalid Output Link");
+    row.tooltip = TIP_(
+        "This node should be linked to the group output node, optionally through switch nodes.");
+    row.icon = ICON_STATUS_ERROR;
+    params.rows.append(std::move(row));
   }
 }
 

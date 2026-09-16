@@ -15,6 +15,7 @@
 
 #include "GPU_context.hh"
 #include "GPU_shader.hh"
+#include "GPU_storage_buffer.hh"
 #include "GPU_texture.hh"
 #include "GPU_uniform_buffer.hh"
 
@@ -25,6 +26,7 @@
 #include "../mathutils/mathutils.hh"
 
 #include "gpu_py.hh"
+#include "gpu_py_storagebuffer.hh"
 #include "gpu_py_texture.hh"
 #include "gpu_py_uniformbuffer.hh"
 #include "gpu_py_vertex_format.hh"
@@ -659,6 +661,41 @@ static PyObject *pygpu_shader_uniform_block(BPyGPUShader *self, PyObject *args)
 
 PyDoc_STRVAR(
     /* Wrap. */
+    pygpu_shader_storage_block_doc,
+    ".. method:: storage_block(name, ssbo)\n"
+    "\n"
+    "   Specify the value of a storage buffer object variable for the current GPUShader.\n"
+    "\n"
+    "   :param name: Name of the storage block variable whose SSBO is to be specified.\n"
+    "   :type name: str\n"
+    "   :param ssbo: Storage Buffer to attach.\n"
+    "   :type ssbo: :class:`gpu.types.GPUStorageBuf`\n");
+static PyObject *pygpu_shader_storage_block(BPyGPUShader *self, PyObject *args)
+{
+  const char *name;
+  BPyGPUStorageBuf *py_ssbo;
+  if (!PyArg_ParseTuple(
+          args, "sO!:GPUShader.storage_block", &name, &BPyGPUStorageBuf_Type, &py_ssbo))
+  {
+    return nullptr;
+  }
+
+  int binding = GPU_shader_get_ssbo_binding(self->shader, name);
+  if (binding == -1) {
+    PyErr_SetString(
+        PyExc_BufferError,
+        "GPUShader.storage_block: storage block not found, make sure the name is correct");
+    return nullptr;
+  }
+
+  GPU_shader_bind(self->shader);
+  GPU_storagebuf_bind(py_ssbo->ssbo, binding);
+
+  Py_RETURN_NONE;
+}
+
+PyDoc_STRVAR(
+    /* Wrap. */
     pygpu_shader_attr_from_name_doc,
     ".. method:: attr_from_name(name)\n"
     "\n"
@@ -845,6 +882,10 @@ static PyMethodDef pygpu_shader__tp_methods[] = {
      reinterpret_cast<PyCFunction>(pygpu_shader_uniform_block),
      METH_VARARGS,
      pygpu_shader_uniform_block_doc},
+    {"storage_block",
+     reinterpret_cast<PyCFunction>(pygpu_shader_storage_block),
+     METH_VARARGS,
+     pygpu_shader_storage_block_doc},
     {"attr_from_name",
      reinterpret_cast<PyCFunction>(pygpu_shader_attr_from_name),
      METH_O,

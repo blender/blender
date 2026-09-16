@@ -715,6 +715,21 @@ class SocketUsageInferencerImpl {
         this->disabled_output_task__with_origin_socket(socket, node.input_socket(0));
         break;
       }
+      case GEO_NODE_SWITCH: {
+        this->disabled_output_task__output__generic_switch(
+            socket, switch_node_inference_utils::is_socket_selected__switch);
+        break;
+      }
+      case GEO_NODE_INDEX_SWITCH: {
+        this->disabled_output_task__output__generic_switch(
+            socket, switch_node_inference_utils::is_socket_selected__index_switch);
+        break;
+      }
+      case GEO_NODE_MENU_SWITCH: {
+        this->disabled_output_task__output__generic_switch(
+            socket, switch_node_inference_utils::is_socket_selected__menu_switch);
+        break;
+      }
       default: {
         if (node->is_type("NodeEnableOutput"_ustr)) {
           this->disabled_output_task__output__enable_output_node(socket);
@@ -780,6 +795,46 @@ class SocketUsageInferencerImpl {
     const SocketInContext origin_socket{&group_context,
                                         &group_output_node->input_socket(socket->index())};
     this->disabled_output_task__with_origin_socket(socket, origin_socket);
+  }
+
+  void disabled_output_task__output__generic_switch(
+      const SocketInContext &socket,
+      const FunctionRef<bool(const SocketInContext &socket, const InferenceValue &condition)>
+          is_selected_socket)
+  {
+    const NodeInContext node = socket.owner_node();
+    BLI_assert(node->input_sockets().size() >= 1);
+    BLI_assert(node->output_sockets().size() >= 1);
+
+    if (socket->type == SOCK_CUSTOM && STREQ(socket->idname, "NodeSocketVirtual")) {
+      all_socket_disable_states_.add_new(socket, false);
+      return;
+    }
+    const SocketInContext condition_socket{socket.context,
+                                           get_first_available_bsocket(node->input_sockets())};
+    const InferenceValue condition_value = this->get_socket_value(condition_socket);
+    if (condition_value.is_unknown()) {
+      all_socket_disable_states_.add_new(socket, false);
+      return;
+    }
+    for (const bNodeSocket *input_socket : node->input_sockets()) {
+      if (!input_socket->is_available()) {
+        continue;
+      }
+      if (input_socket->type == SOCK_CUSTOM && STREQ(input_socket->idname, "NodeSocketVirtual")) {
+        continue;
+      }
+      if (input_socket == condition_socket.socket) {
+        continue;
+      }
+      const SocketInContext origin_socket{socket.context, input_socket};
+      const bool is_selected = is_selected_socket(origin_socket, condition_value);
+      if (is_selected) {
+        this->disabled_output_task__with_origin_socket(socket, origin_socket);
+        return;
+      }
+    }
+    all_socket_disable_states_.add_new(socket, false);
   }
 
   void disabled_output_task__output__enable_output_node(const SocketInContext &socket)

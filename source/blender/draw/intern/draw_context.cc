@@ -399,6 +399,7 @@ void DRWData::modules_init()
 {
   using namespace blender::draw;
   DRW_pointcloud_init(this);
+  DRW_gsplat_init(this);
   DRW_curves_init(this);
   DRW_volume_init(this);
 }
@@ -408,6 +409,7 @@ void DRWData::modules_begin_sync()
   using namespace blender::draw;
   DRW_curves_begin_sync(this);
   DRW_smoke_begin_sync(this);
+  DRW_gsplat_begin_sync();
 }
 
 void DRWData::modules_exit()
@@ -422,6 +424,7 @@ void DRW_viewport_data_free(DRWData *drw_data)
   }
   DRW_volume_module_free(drw_data->volume_module);
   DRW_pointcloud_module_free(drw_data->pointcloud_module);
+  DRW_gsplat_module_free(drw_data->gsplat_module);
   DRW_curves_module_free(drw_data->curves_module);
   delete drw_data->default_view;
   MEM_delete(drw_data);
@@ -2444,6 +2447,9 @@ void DRW_module_init()
 
   BKE_pointcloud_batch_cache_dirty_tag_cb = DRW_pointcloud_batch_cache_dirty_tag;
   BKE_pointcloud_batch_cache_free_cb = DRW_pointcloud_batch_cache_free;
+
+  BKE_gsplat_batch_cache_dirty_tag_cb = DRW_gsplat_batch_cache_dirty_tag;
+  BKE_gsplat_batch_cache_free_cb = DRW_gsplat_batch_cache_free;
 
   BKE_volume_batch_cache_dirty_tag_cb = DRW_volume_batch_cache_dirty_tag;
   BKE_volume_batch_cache_free_cb = DRW_volume_batch_cache_free;

@@ -41,7 +41,6 @@ namespace blender::ed::transform {
  * \{ */
 
 struct SeqSlideParams {
-  wmOperator *op;
   bool use_restore_handle_selection;
 };
 
@@ -119,9 +118,8 @@ static void applySeqSlide(TransInfo *t)
 
 static void seq_slide_status(TransInfo *t)
 {
-  SeqSlideParams *ssp = static_cast<SeqSlideParams *>(t->custom.mode.data);
-  wmOperator *op = ssp->op;
-  if (!op || t->data_container_len == 0) {
+  const wmKeyMap *keymap = t->keymap;
+  if (!keymap || t->data_container_len == 0) {
     return;
   }
 
@@ -129,30 +127,31 @@ static void seq_slide_status(TransInfo *t)
       TRANS_DATA_CONTAINER_FIRST_SINGLE(t)->custom.type.data);
 
   WorkspaceStatus status(t->context);
-  status.opmodal(IFACE_("Confirm"), op->type, TFM_MODAL_CONFIRM);
-  status.opmodal(IFACE_("Cancel"), op->type, TFM_MODAL_CANCEL);
-  status.opmodal(IFACE_("Snap"), op->type, TFM_MODAL_SNAP_TOGGLE, t->modifiers & MOD_SNAP);
-  status.opmodal(
-      IFACE_("Snap Invert"), op->type, TFM_MODAL_SNAP_INV_ON, t->modifiers & MOD_SNAP_INVERT);
-  status.opmodal(IFACE_("Precision"), op->type, TFM_MODAL_PRECISION, t->modifiers & MOD_PRECISION);
+  status.modal_keymap(IFACE_("Confirm"), keymap, TFM_MODAL_CONFIRM);
+  status.modal_keymap(IFACE_("Cancel"), keymap, TFM_MODAL_CANCEL);
+  status.modal_keymap(IFACE_("Snap"), keymap, TFM_MODAL_SNAP_TOGGLE, t->modifiers & MOD_SNAP);
+  status.modal_keymap(
+      IFACE_("Snap Invert"), keymap, TFM_MODAL_SNAP_INV_ON, t->modifiers & MOD_SNAP_INVERT);
+  status.modal_keymap(
+      IFACE_("Precision"), keymap, TFM_MODAL_PRECISION, t->modifiers & MOD_PRECISION);
 
   const bool has_constraint = (t->con.mode & CON_APPLY) != 0;
   if ((t->flag & T_NO_CONSTRAINT) == 0) {
-    status.opmodal({}, op->type, TFM_MODAL_AXIS_X, has_constraint && (t->con.mode & CON_AXIS0));
-    status.opmodal(
-        IFACE_("Axis"), op->type, TFM_MODAL_AXIS_Y, has_constraint && (t->con.mode & CON_AXIS1));
+    status.modal_keymap({}, keymap, TFM_MODAL_AXIS_X, has_constraint && (t->con.mode & CON_AXIS0));
+    status.modal_keymap(
+        IFACE_("Axis"), keymap, TFM_MODAL_AXIS_Y, has_constraint && (t->con.mode & CON_AXIS1));
   }
 
   const bool y_locked = ts->offset_clamp.ymin == 0 && ts->offset_clamp.ymax == 0;
   const bool handles_selected = y_locked && t->data_type == &TransConvertType_Sequencer;
   if (has_constraint) {
-    status.opmodal(IFACE_("Clear Constraints"), op->type, TFM_MODAL_CONS_OFF);
+    status.modal_keymap(IFACE_("Clear Constraints"), keymap, TFM_MODAL_CONS_OFF);
   }
   else if (handles_selected) {
-    status.opmodal(IFACE_("Clamp Handles"),
-                   op->type,
-                   TFM_MODAL_STRIP_CLAMP,
-                   t->modifiers & MOD_STRIP_CLAMP_HOLDS);
+    status.modal_keymap(IFACE_("Clamp Handles"),
+                        keymap,
+                        TFM_MODAL_STRIP_CLAMP,
+                        t->modifiers & MOD_STRIP_CLAMP_HOLDS);
   }
 }
 
@@ -161,7 +160,6 @@ static void initSeqSlide(TransInfo *t, wmOperator *op)
   SeqSlideParams *ssp = MEM_new_zeroed<SeqSlideParams>(__func__);
   t->custom.mode.data = ssp;
   t->custom.mode.use_free = true;
-  ssp->op = op;
   PropertyRNA *prop = RNA_struct_find_property(op->ptr, "use_restore_handle_selection");
   if (op != nullptr && prop != nullptr) {
     ssp->use_restore_handle_selection = RNA_property_boolean_get(op->ptr, prop);

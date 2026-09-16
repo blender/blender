@@ -586,9 +586,12 @@ void Scene::update_kernel_features()
       kernel_max_prim_count = max(kernel_max_prim_count, hair->num_segments());
     }
     else if (geom->is_pointcloud()) {
+      const PointCloud *pointcloud = static_cast<const PointCloud *>(geom);
       kernel_features |= KERNEL_FEATURE_POINTCLOUD;
-      kernel_max_prim_count = max(kernel_max_prim_count,
-                                  static_cast<PointCloud *>(geom)->num_points());
+      if (pointcloud->primitive_type() & PRIMITIVE_GSPLAT) {
+        kernel_features |= KERNEL_FEATURE_GSPLATS;
+      }
+      kernel_max_prim_count = max(kernel_max_prim_count, pointcloud->num_points());
     }
     else if (geom->is_mesh()) {
       kernel_max_prim_count = max(kernel_max_prim_count,
@@ -706,6 +709,7 @@ static void log_kernel_features(const uint64_t features)
   LOG_INFO << "Use Portal Node " << string_from_bool(features & KERNEL_FEATURE_NODE_PORTAL);
   LOG_INFO << "Use Light Linking " << string_from_bool(features & KERNEL_FEATURE_LIGHT_LINKING);
   LOG_INFO << "Use Shadow Linking " << string_from_bool(features & KERNEL_FEATURE_SHADOW_LINKING);
+  LOG_INFO << "Use Gaussian Splats " << string_from_bool(features & KERNEL_FEATURE_GSPLATS);
 }
 
 bool Scene::load_kernels(Progress &progress)

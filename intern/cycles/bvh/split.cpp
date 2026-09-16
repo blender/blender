@@ -553,7 +553,7 @@ void BVHSpatialSplit::split_reference(const BVHBuild &builder,
     Hair *hair = static_cast<Hair *>(ob->get_geometry());
     split_curve_reference(ref, hair, dim, pos, left_bounds, right_bounds);
   }
-  else if (ref.prim_type() & PRIMITIVE_POINT) {
+  else if (ref.prim_type() & PRIMITIVE_ANY_POINT) {
     PointCloud *pointcloud = static_cast<PointCloud *>(ob->get_geometry());
     split_point_reference(ref, pointcloud, dim, pos, left_bounds, right_bounds);
   }

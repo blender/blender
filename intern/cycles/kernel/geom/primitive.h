@@ -48,7 +48,7 @@ ccl_device_forceinline T primitive_surface_attribute(KernelGlobals kg,
   }
 #endif
 #ifdef __POINTCLOUD__
-  else if (sd->type & PRIMITIVE_POINT) {
+  else if (sd->type & PRIMITIVE_ANY_POINT) {
     return point_attribute<T>(kg, sd, desc);
   }
 #endif
@@ -150,7 +150,7 @@ template<typename Float3Type>
 ccl_device Float3Type primitive_tangent(KernelGlobals kg, ccl_private ShaderData *sd)
 {
 #if defined(__HAIR__) || defined(__POINTCLOUD__)
-  if (sd->type & (PRIMITIVE_CURVE | PRIMITIVE_POINT)) {
+  if (sd->type & (PRIMITIVE_CURVE | PRIMITIVE_ANY_POINT)) {
 #  ifdef __DPDU__
     return Float3Type(normalize(sd->dPdu));
   }
@@ -201,7 +201,7 @@ ccl_device_inline float3 primitive_motion_position(KernelGlobals kg,
   }
 #endif
 #if defined(__POINTCLOUD__)
-  if (sd->type & PRIMITIVE_POINT) {
+  if (sd->type & PRIMITIVE_ANY_POINT) {
     return make_float3(kernel_data_fetch(points, offset + sd->prim));
   }
 #endif
@@ -219,7 +219,7 @@ ccl_device_forceinline void primitive_motion_data_without_camera(KernelGlobals k
                                                                  ccl_private float3 *motion_post)
 {
 #if defined(__HAIR__) || defined(__POINTCLOUD__)
-  const bool is_curve_or_point = sd->type & (PRIMITIVE_CURVE | PRIMITIVE_POINT);
+  const bool is_curve_or_point = sd->type & (PRIMITIVE_CURVE | PRIMITIVE_ANY_POINT);
   if (is_curve_or_point) {
     *motion_center = make_float3(0.0f, 0.0f, 0.0f);
 
@@ -228,7 +228,7 @@ ccl_device_forceinline void primitive_motion_data_without_camera(KernelGlobals k
       *motion_center = curve_motion_center_location(kg, sd);
 #  endif
     }
-    else if (sd->type & PRIMITIVE_POINT) {
+    else if (sd->type & PRIMITIVE_ANY_POINT) {
 #  if defined(__POINTCLOUD__)
       *motion_center = point_motion_center_location(kg, sd);
 #  endif

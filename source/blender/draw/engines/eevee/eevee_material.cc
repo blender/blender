@@ -353,6 +353,12 @@ blender::Material *MaterialModule::material_from_slot(Object *ob, int slot)
     if (ob->type == OB_VOLUME) {
       return BKE_material_default_volume();
     }
+    if (ob->type == OB_POINTCLOUD) {
+      PointCloud &pointcloud = DRW_object_get_data_for_drawing<PointCloud>(*ob);
+      if (pointcloud.type == PointCloudType::GSplat) {
+        return BKE_material_default_gsplat();
+      }
+    }
     return BKE_material_default_surface();
   }
   return ma;

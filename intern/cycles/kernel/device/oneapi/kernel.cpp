@@ -43,6 +43,9 @@ static RTCFeatureFlags oneapi_embree_features_from_kernel_features(const uint64_
   if (kernel_features & KERNEL_FEATURE_OBJECT_MOTION) {
     feature_flags |= RTC_FEATURE_FLAG_MOTION_BLUR;
   }
+  if (kernel_features & KERNEL_FEATURE_GSPLATS) {
+    feature_flags |= RTC_FEATURE_FLAG_USER_GEOMETRY_CALLBACK_IN_ARGUMENTS;
+  }
 
   return (RTCFeatureFlags)feature_flags;
 }

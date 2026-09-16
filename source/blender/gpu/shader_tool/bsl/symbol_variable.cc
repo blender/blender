@@ -48,7 +48,7 @@ SymbolVariable::SymbolVariable(SymbolScope *parent,
         array_elements = -1;
         break;
       }
-      array_elements *= value_as<int>(result.value);
+      array_elements *= result.value.comp_as<int>(0);
     }
   }
 }
@@ -90,29 +90,66 @@ static std::string to_string_exact(float val)
   return str + "f";
 }
 
+std::string constexpr_to_string(const ConstexprValue &v)
+{
+  const int size = v.values.size();
+  const ConstexprValue::CompType comp_type = v.comp_type();
+  std::string s;
+
+  if (size > 1) {
+    switch (comp_type) {
+      case ConstexprValue::BOOL:
+        s += "bool";
+        break;
+      case ConstexprValue::UINT:
+        s += "uint";
+        break;
+      case ConstexprValue::INT:
+        s += "int";
+        break;
+      case ConstexprValue::FLOAT:
+        s += "float";
+        break;
+    }
+    s += std::to_string(size) + "(";
+  }
+
+  for (int i = 0; i < size; ++i) {
+    switch (comp_type) {
+      case ConstexprValue::BOOL:
+        s += v.values[i] ? "true" : "false";
+        break;
+      case ConstexprValue::UINT:
+        s += std::to_string(v.values[i]) + "u";
+        break;
+      case ConstexprValue::INT:
+        s += std::to_string(int32_t(v.values[i]));
+        break;
+      case ConstexprValue::FLOAT:
+        if (std::isnan(std::bit_cast<float>(v.values[i]))) {
+          s += "uintBitsToFloat(0x7FC00000u)";
+        }
+        else {
+          s += to_string_exact(std::bit_cast<float>(v.values[i]));
+        }
+        break;
+    }
+    if (size > 1 && i < size - 1) {
+      s += ", ";
+    }
+  }
+
+  if (size > 1) {
+    s += ")";
+  }
+
+  return s;
+}
+
 string SymbolVariable::value_str() const
 {
   assert(is_constexpr);
-  return visit(
-      [](auto &&v) -> string {
-        using T = std::decay_t<decltype(v)>;
-        if constexpr (std::is_same_v<T, bool>) {
-          return v ? "true" : "false";
-        }
-        else if constexpr (std::is_unsigned_v<T>) {
-          return to_string(v) + "u";
-        }
-        else if constexpr (std::is_same_v<T, float>) {
-          if (std::isnan(v)) {
-            return "uintBitsToFloat(0x7FC00000u)";
-          }
-          return to_string_exact(v);
-        }
-        else {
-          return to_string(v);
-        }
-      },
-      value);
+  return constexpr_to_string(value);
 }
 
 }  // namespace bsl

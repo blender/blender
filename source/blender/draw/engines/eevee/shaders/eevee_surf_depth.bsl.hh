@@ -10,7 +10,9 @@
 #include "infos/eevee_geom_infos.hh"
 #include "infos/eevee_nodetree_infos.hh"
 
-#include "draw_curves_lib.glsl" /* IWYU pragma: export. For nodetree functions. */
+#include "draw_curves_lib.glsl"   /* IWYU pragma: export. For nodetree functions. */
+#include "draw_gsplat_lib.bsl.hh" /* IWYU pragma: export. For nodetree functions. */
+
 #include "eevee_nodetree_frag_lib.glsl"
 #include "eevee_sampling_lib.bsl.hh"
 #include "eevee_surf_common.bsl.hh"
@@ -70,16 +72,16 @@ void surf_depth([[resource_table]] PipelineConstants &pipe,
 
   if (pipe.use_transparency) [[static_branch]] {
     const ViewMatrices view = views.get(0);
-
     init_globals(uni, view, front_face);
 
     nodetree_surface(0.0f);
+    gsplat_transmittance();
 
     float noise_offset = sampling.rng_1D_get(SAMPLING_TRANSPARENCY);
     float threshold = hashed_transparency::alpha_threshold(
         uni.pipeline_buf.alpha_hash_scale, noise_offset, g_data.P);
-
     float transparency = average(g_transmittance);
+
     if (transparency > threshold) {
       gpu_discard_fragment();
       return;

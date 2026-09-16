@@ -27,6 +27,7 @@ class Outline : Overlay {
   PassMain outline_prepass_ps_ = {"Prepass"};
   PassMain::Sub *prepass_curves_ps_ = nullptr;
   PassMain::Sub *prepass_pointcloud_ps_ = nullptr;
+  PassMain::Sub *prepass_gsplat_ps_ = nullptr;
   PassMain::Sub *prepass_gpencil_ps_ = nullptr;
   PassMain::Sub *prepass_mesh_ps_ = nullptr;
   PassMain::Sub *prepass_volume_ps_ = nullptr;
@@ -80,6 +81,12 @@ class Outline : Overlay {
         sub.shader_set(res.shaders->outline_prepass_pointcloud.get());
         sub.push_constant("is_transform", is_transform);
         prepass_pointcloud_ps_ = &sub;
+      }
+      {
+        auto &sub = pass.sub("GSplat");
+        sub.shader_set(res.shaders->outline_prepass_gsplat.get());
+        sub.push_constant("is_transform", is_transform);
+        prepass_gsplat_ps_ = &sub;
       }
       {
         auto &sub = pass.sub("GreasePencil");
@@ -175,8 +182,11 @@ class Outline : Overlay {
         /* Looks bad in wireframe mode. Could be relaxed if we draw a wireframe of some sort in
          * the future. */
         if (!state.is_wireframe_mode) {
-          geom = pointcloud_sub_pass_setup(*prepass_pointcloud_ps_, ob_ref.object);
-          prepass_pointcloud_ps_->draw(geom, manager.unique_handle(ob_ref));
+          PassMain::Sub *ps = pointcloud_is_gsplat(ob_ref.object) ? prepass_gsplat_ps_ :
+                                                                    prepass_pointcloud_ps_;
+          ResourceHandleRange res_handle = manager.unique_handle(ob_ref);
+          geom = pointcloud_sub_pass_setup(*ps, ob_ref, res_handle);
+          ps->draw(geom, manager.unique_handle(ob_ref));
         }
         break;
       case OB_VOLUME:

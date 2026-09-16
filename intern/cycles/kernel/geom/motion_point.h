@@ -21,21 +21,26 @@ CCL_NAMESPACE_BEGIN
 
 #ifdef __POINTCLOUD__
 
+ccl_device_forceinline int motion_point_offset_for_step(const int num_verts,
+                                                        const int num_steps,
+                                                        int step)
+{
+  const int center_step = (num_steps - 1) / 2;
+  if (step == center_step) {
+    /* Center step: first in the array. */
+    return 0;
+  }
+  /* Non-center step, stored after center with center index skipped. */
+  if (step < center_step) {
+    step++;
+  }
+  return step * num_verts;
+}
+
 ccl_device_inline float4 motion_point_for_step(
     KernelGlobals kg, int offset, const int numverts, const int numsteps, int step, const int prim)
 {
-  const int center_step = (numsteps - 1) / 2;
-  if (step == center_step) {
-    /* Center step: first in the array. */
-  }
-  else {
-    /* Non-center step, stored after center  with center index skipped. */
-    if (step < center_step) {
-      step++;
-    }
-    offset += step * numverts;
-  }
-
+  offset += motion_point_offset_for_step(numverts, numsteps, step);
   return kernel_data_fetch(points, offset + prim);
 }
 

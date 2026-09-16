@@ -66,6 +66,7 @@ class Prepass : Overlay {
   PassMain::Sub *hair_ps_ = nullptr;
   PassMain::Sub *curves_ps_ = nullptr;
   PassMain::Sub *pointcloud_ps_ = nullptr;
+  PassMain::Sub *gsplat_ps_ = nullptr;
   PassMain::Sub *grease_pencil_ps_ = nullptr;
 
   bool use_material_slot_selection_ = false;
@@ -81,6 +82,7 @@ class Prepass : Overlay {
       mesh_ps_ = nullptr;
       curves_ps_ = nullptr;
       pointcloud_ps_ = nullptr;
+      gsplat_ps_ = nullptr;
       return;
     }
 
@@ -120,6 +122,11 @@ class Prepass : Overlay {
       auto &sub = ps_.sub("PointCloud");
       sub.shader_set(res.shaders->depth_pointcloud.get());
       pointcloud_ps_ = &sub;
+    }
+    {
+      auto &sub = ps_.sub("GSplat");
+      sub.shader_set(res.shaders->depth_gsplat.get());
+      gsplat_ps_ = &sub;
     }
     {
       auto &sub = ps_.sub(RE_PASSNAME_GREASE_PENCIL);
@@ -221,6 +228,8 @@ class Prepass : Overlay {
     gpu::Batch *geom_single = nullptr;
     Span<gpu::Batch *> geom_list(&geom_single, 1);
 
+    ResourceHandleRange res_handle = manager.unique_handle(ob_ref);
+
     PassMain::Sub *pass = nullptr;
     switch (ob_ref.object->type) {
       case OB_MESH:
@@ -258,8 +267,8 @@ class Prepass : Overlay {
         }
         break;
       case OB_POINTCLOUD:
-        geom_single = pointcloud_sub_pass_setup(*pointcloud_ps_, ob_ref.object);
-        pass = pointcloud_ps_;
+        pass = pointcloud_is_gsplat(ob_ref.object) ? gsplat_ps_ : pointcloud_ps_;
+        geom_single = pointcloud_sub_pass_setup(*pass, ob_ref, res_handle);
         break;
       case OB_CURVES: {
         const char *error = nullptr;
@@ -289,8 +298,6 @@ class Prepass : Overlay {
     if (pass == nullptr) {
       return;
     }
-
-    ResourceHandleRange res_handle = manager.unique_handle(ob_ref);
 
     for (int material_id : geom_list.index_range()) {
       /* Meshes with more than 16 materials can have nullptr in the geometry list as materials are

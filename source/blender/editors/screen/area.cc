@@ -1109,7 +1109,14 @@ void WorkspaceStatus::opmodal(std::string text,
                               const int propvalue,
                               const bool inverted)
 {
-  wmKeyMap *keymap = WM_keymap_active(wm_, ot->modalkeymap);
+  this->modal_keymap(std::move(text), WM_keymap_active(wm_, ot->modalkeymap), propvalue, inverted);
+}
+
+void WorkspaceStatus::modal_keymap(std::string text,
+                                   const wmKeyMap *keymap,
+                                   const int propvalue,
+                                   const bool inverted)
+{
   if (keymap) {
     const wmKeyMapItem *kmi = WM_modalkeymap_find_propvalue(keymap, propvalue);
     if (kmi) {

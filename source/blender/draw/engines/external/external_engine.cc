@@ -61,11 +61,13 @@ class Prepass {
   PassMain::Sub *mesh_ps_ = nullptr;
   PassMain::Sub *curves_ps_ = nullptr;
   PassMain::Sub *pointcloud_ps_ = nullptr;
+  PassMain::Sub *gsplat_ps_ = nullptr;
 
   /* Reuse overlay shaders. */
   gpu::StaticShader depth_mesh = {"overlay_depth_mesh"};
   gpu::StaticShader depth_curves = {"overlay_depth_curves"};
   gpu::StaticShader depth_pointcloud = {"overlay_depth_pointcloud"};
+  gpu::StaticShader depth_gsplat = {"overlay_depth_gsplat"};
 
   draw::UniformBuffer<float4> dummy_buf;
 
@@ -94,6 +96,11 @@ class Prepass {
       auto &sub = ps_.sub("PointCloud");
       sub.shader_set(depth_pointcloud.get());
       pointcloud_ps_ = &sub;
+    }
+    {
+      auto &sub = ps_.sub("GSplat");
+      sub.shader_set(depth_gsplat.get());
+      gsplat_ps_ = &sub;
     }
   }
 
@@ -154,6 +161,8 @@ class Prepass {
     gpu::Batch *geom_single = nullptr;
     Span<gpu::Batch *> geom_list(&geom_single, 1);
 
+    ResourceHandleRange res_handle = manager.unique_handle(ob_ref);
+
     PassMain::Sub *pass = nullptr;
     switch (ob_ref.object->type) {
       case OB_MESH:
@@ -161,8 +170,8 @@ class Prepass {
         pass = mesh_ps_;
         break;
       case OB_POINTCLOUD:
-        geom_single = pointcloud_sub_pass_setup(*pointcloud_ps_, ob_ref.object);
-        pass = pointcloud_ps_;
+        pass = pointcloud_is_gsplat(ob_ref.object) ? gsplat_ps_ : pointcloud_ps_;
+        geom_single = pointcloud_sub_pass_setup(*pass, ob_ref, res_handle);
         break;
       case OB_CURVES: {
         const char *error = nullptr;
@@ -179,8 +188,6 @@ class Prepass {
     if (pass == nullptr) {
       return;
     }
-
-    ResourceHandleRange res_handle = manager.unique_handle(ob_ref);
 
     for (int material_id : geom_list.index_range()) {
       pass->draw(geom_list[material_id], res_handle);

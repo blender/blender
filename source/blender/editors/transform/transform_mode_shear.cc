@@ -85,7 +85,6 @@ static void transdata_elem_shear(const TransInfo *t,
 
 struct ShearCustomData {
   bool update_status_bar;
-  wmOperator *op;
 };
 
 static void initShear_mouseInputMode(TransInfo *t)
@@ -301,33 +300,29 @@ static void apply_shear(TransInfo *t)
 static void shear_status(TransInfo *t)
 {
   ShearCustomData *custom_data = static_cast<ShearCustomData *>(t->custom.mode.data);
-  if (custom_data->op && custom_data->update_status_bar) {
+  const wmKeyMap *keymap = t->keymap;
+  if (keymap && custom_data->update_status_bar) {
     custom_data->update_status_bar = false;
 
     WorkspaceStatus status(t->context);
 
-    status.opmodal(IFACE_("Confirm"), custom_data->op->type, TFM_MODAL_CONFIRM);
-    status.opmodal(IFACE_("Cancel"), custom_data->op->type, TFM_MODAL_CANCEL);
+    status.modal_keymap(IFACE_("Confirm"), keymap, TFM_MODAL_CONFIRM);
+    status.modal_keymap(IFACE_("Cancel"), keymap, TFM_MODAL_CANCEL);
 
     status.item_bool({}, t->orient_axis_ortho == (t->orient_axis + 1) % 3, ICON_EVENT_X);
     status.item_bool({}, t->orient_axis_ortho == (t->orient_axis + 2) % 3, ICON_EVENT_Y);
     status.item(IFACE_("Shear Axis"), ICON_NONE);
     status.item(IFACE_("Swap Axes"), ICON_MOUSE_MMB);
 
-    status.opmodal(
-        IFACE_("Snap"), custom_data->op->type, TFM_MODAL_SNAP_TOGGLE, t->modifiers & MOD_SNAP);
-    status.opmodal(IFACE_("Snap Invert"),
-                   custom_data->op->type,
-                   TFM_MODAL_SNAP_INV_ON,
-                   t->modifiers & MOD_SNAP_INVERT);
-    status.opmodal(IFACE_("Precision"),
-                   custom_data->op->type,
-                   TFM_MODAL_PRECISION,
-                   t->modifiers & MOD_PRECISION);
+    status.modal_keymap(IFACE_("Snap"), keymap, TFM_MODAL_SNAP_TOGGLE, t->modifiers & MOD_SNAP);
+    status.modal_keymap(
+        IFACE_("Snap Invert"), keymap, TFM_MODAL_SNAP_INV_ON, t->modifiers & MOD_SNAP_INVERT);
+    status.modal_keymap(
+        IFACE_("Precision"), keymap, TFM_MODAL_PRECISION, t->modifiers & MOD_PRECISION);
 
     if (t->proptext[0]) {
-      status.opmodal({}, custom_data->op->type, TFM_MODAL_PROPSIZE_UP);
-      status.opmodal(IFACE_("Proportional Size"), custom_data->op->type, TFM_MODAL_PROPSIZE_DOWN);
+      status.modal_keymap({}, keymap, TFM_MODAL_PROPSIZE_UP);
+      status.modal_keymap(IFACE_("Proportional Size"), keymap, TFM_MODAL_PROPSIZE_DOWN);
     }
   }
 }
@@ -360,7 +355,6 @@ static void initShear(TransInfo *t, wmOperator *op)
   };
 
   custom_data->update_status_bar = true;
-  custom_data->op = op;
 
   const float angle = RNA_float_get(op->ptr, "angle");
   t->values[0] = tanf(angle);
