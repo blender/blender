@@ -211,6 +211,7 @@ class NODE_MT_shader_node_output_base(node_add_menu.NodeMenu):
             poll=world_shader_nodes_poll(context),
         )
         layout.separator()
+        self.node_operator(layout, "NodeEnableOutput")
         self.node_operator_with_searchable_enum(context, layout, "GeometryNodeWarning", "warning_type")
 
         self.draw_assets_for_catalog(layout, self.bl_label)

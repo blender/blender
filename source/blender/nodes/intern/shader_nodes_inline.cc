@@ -663,6 +663,10 @@ class ShaderNodesInliner {
       this->handle_output_socket__warning(socket);
       return;
     }
+    if (node->is_type("NodeEnableOutput"_ustr)) {
+      this->handle_output_socket__enable_output(socket);
+      return;
+    }
     this->handle_output_socket__eval(socket);
   }
 
@@ -1572,6 +1576,59 @@ class ShaderNodesInliner {
       }
     }
     this->forward_value_or_schedule(socket, show_input_socket);
+  }
+
+  void handle_output_socket__enable_output(const SocketInContext &socket)
+  {
+    const NodeInContext node = socket.owner_node();
+    const SocketInContext enable_socket = node.input_socket(0);
+    const SocketInContext value_input_socket = node.input_socket(1);
+
+    const SocketValue *enable_value = value_by_socket_.lookup_ptr(enable_socket);
+    if (!enable_value) {
+      /* Wait until the value is available. */
+      this->schedule_socket(enable_socket);
+      return;
+    }
+    const std::optional<PrimitiveSocketValue> enable_primitive = enable_value->to_primitive(
+        *enable_socket->typeinfo);
+    if (enable_primitive.has_value()) {
+      const bool enable = std::get<bool>(enable_primitive->value);
+      if (enable) {
+        this->forward_value_or_schedule(socket, value_input_socket);
+        return;
+      }
+      this->store_socket_value_fallback(socket);
+      return;
+    }
+    const std::optional<eNodeSocketDatatype> internal_mix_type =
+        this->get_internal_mix_socket_type(value_input_socket->type);
+    if (!internal_mix_type) {
+      this->report_required_constant_input_or_backtrack(
+          node, TIP_("Enable input must be a constant value for this data type"));
+      this->store_socket_value_fallback(socket);
+      return;
+    }
+    const SocketValue *value = value_by_socket_.lookup_ptr(value_input_socket);
+    if (!value) {
+      /* Wait until the value is available. */
+      this->schedule_socket(value_input_socket);
+      return;
+    }
+    const MixNodeInfo mix = this->create_mix_node(*internal_mix_type);
+    this->set_input_socket_value(node,
+                                 *mix.node,
+                                 *mix.factor_in,
+                                 this->handle_implicit_conversion(*enable_value,
+                                                                  *enable_socket->typeinfo,
+                                                                  *mix.factor_in->typeinfo));
+    this->set_input_socket_value(node, *mix.node, *mix.a_in, {FallbackValue{}});
+    this->set_input_socket_value(node,
+                                 *mix.node,
+                                 *mix.b_in,
+                                 this->handle_implicit_conversion(
+                                     *value, *value_input_socket->typeinfo, *mix.b_in->typeinfo));
+    this->store_socket_value(socket, {LinkedSocketValue{mix.node, mix.result_out}});
   }
 
   /**
