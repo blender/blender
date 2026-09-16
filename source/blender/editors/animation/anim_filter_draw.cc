@@ -236,6 +236,7 @@ void draw_channel_tree(const bContext &C, SummaryChannel &root, View2D & /* v2d 
 
   SpaceAction *saction = CTX_wm_space_action(&C);
   BLI_assert_msg(saction, "expecting to be called for a Dope Sheet");
+  UNUSED_VARS_NDEBUG(saction);
 
   ui::AbstractTreeView *tree_view = ui::block_add_view(
       *block, "channel_tree", std::make_unique<ChannelTreeView>(root));
