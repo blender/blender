@@ -615,7 +615,19 @@ static void box_select_action(bContext &C,
 
   if (USER_EXPERIMENTAL_TEST(&U, use_new_animfilter)) {
     /* TODO this could query the cached summary tree from the last draw call. */
-    ed::animfilter::ChannelArena channels = ed::action::get_summary_tree(C);
+    using namespace ed::animfilter;
+    ChannelArena channels = ed::action::get_summary_tree(C);
+    SummaryChannel *root = channels.root();
+    if (root) {
+      const float first_channel = ANIM_UI_get_first_channel_top(v2d);
+      const float channel_step = ANIM_UI_get_channel_step();
+      foreach_expanded(*root, [&](AnimationChannel &channel, const int row_index) {
+        const float row_top = first_channel - row_index * channel_step;
+        if (row_top > rectf.ymin && row_top - channel_step < rectf.ymax) {
+          channel.change_selection(SelectionMode::DO_SELECT, {rectf.xmin, rectf.xmax});
+        }
+      });
+    }
   }
   else {
     /* filter data */
