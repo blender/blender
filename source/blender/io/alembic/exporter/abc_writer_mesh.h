@@ -8,6 +8,7 @@
  */
 
 #include "abc_writer_abstract.h"
+#include "abc_writer_attribute.h"
 #include "intern/abc_customdata.h"
 
 #include <Alembic/AbcGeom/OPolyMesh.h>
@@ -41,6 +42,7 @@ class ABCGenericMeshWriter : public ABCAbstractWriter {
   ModifierData *subsurf_modifier_;
 
   CDStreamConfig m_custom_data_config;
+  std::unique_ptr<AttributeParamMaps> attribute_maps_ = nullptr;
 
  public:
   explicit ABCGenericMeshWriter(const ABCWriterConstructorArgs &args);
@@ -63,10 +65,12 @@ class ABCGenericMeshWriter : public ABCAbstractWriter {
   void write_subd(HierarchyContext &context, Mesh *mesh);
   template<typename Schema> void write_face_sets(Object *object, Mesh *mesh, Schema &schema);
 
-  void write_arb_geo_params(Mesh *mesh);
+  void write_arb_geo_params(Mesh *mesh, const Object &object, const size_t num_geom_samples);
   void get_geo_groups(Object *object,
                       Mesh *mesh,
                       std::map<std::string, std::vector<int32_t>> &geo_groups);
+
+  AttributeParamMaps &get_attribute_param_maps();
 };
 
 /* Writer for Alembic geometry of Blender Mesh objects. */
