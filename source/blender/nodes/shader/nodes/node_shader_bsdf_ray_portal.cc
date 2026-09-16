@@ -35,7 +35,7 @@ static int node_shader_gpu_bsdf_ray_portal(GPUMaterial *mat,
   if (in[0].link || !is_zero_v3(std::get<float4>(in[0].value))) {
     GPU_material_flag_set(mat, GPU_MATFLAG_TRANSPARENT);
   }
-  return GPU_stack_link(mat, node, "node_bsdf_ray_portal", in, out);
+  return GPU_stack_link(mat, node, "node_bsdf_ray_portal", in, out, GPU_shading_data());
 }
 
 NODE_SHADER_MATERIALX_BEGIN

@@ -191,6 +191,10 @@ struct GPUSource {
         return GPU_TEX3D;
       case metadata::Type::Closure:
         return GPU_CLOSURE;
+      case metadata::Type::KernelGlobals:
+        return GPU_KERNEL_GLOBALS;
+      case metadata::Type::ShadingData:
+        return GPU_SHADING_DATA;
     }
     BLI_assert_unreachable();
     return GPU_NONE;

@@ -25,10 +25,12 @@ void node_output_material_displacement(float3 displacement, float3 &out_displace
 }
 
 [[node]]
-void node_output_material_thickness(float thickness, float &out_thickness)
+void node_output_material_thickness(float thickness,
+                                    [[resource_table]] KernelGlobals &kg,
+                                    ShadingData &sd,
+                                    float &out_thickness)
 {
-  /* TODO(fclem): EEVEE implementation leaking. */
-  const ObjectMatrices obj = object_matrices_get();
+  const ObjectMatrices obj = kg.object_matrices_get(sd);
 
   float3 ob_scale;
   ob_scale.x = length(obj.model[0].xyz);

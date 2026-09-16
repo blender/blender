@@ -84,6 +84,8 @@ enum Type : uint64_t {
   sampler2D = hash("sampler2D"),
   sampler3D = hash("sampler3D"),
   Closure = hash("Closure"),
+  KernelGlobals = hash("KernelGlobals"),
+  ShadingData = hash("ShadingData"),
 };
 
 struct ArgumentFormat {

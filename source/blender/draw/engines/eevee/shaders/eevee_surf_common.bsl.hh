@@ -7,7 +7,8 @@
 #include "infos/eevee_geom_infos.hh"
 
 #include "eevee_lightprobe_shared.hh" /* IWYU pragma: export: Needed for resource declaration. */
-#include "eevee_sampling_shared.hh"   /* IWYU pragma: export: Needed for resource declaration. */
+#include "eevee_nodetree_lib.bsl.hh"
+#include "eevee_sampling_shared.hh" /* IWYU pragma: export: Needed for resource declaration. */
 #include "eevee_shadow_shared.hh"
 #include "eevee_uniform.bsl.hh"
 #include "gpu_shader_codegen_lib.glsl"
@@ -33,15 +34,18 @@ float3 barycentric_distances_get()
 }
 #endif
 
-void init_globals_mesh()
+void init_globals_mesh(ShadingData &sd)
 {
 #if defined(USE_BARYCENTRICS) && defined(GPU_FRAGMENT_SHADER) && defined(MAT_GEOM_MESH)
-  g_data.barycentric_coords = gpu_BaryCoord.xy;
-  g_data.barycentric_dists = barycentric_distances_get();
+  sd.barycentric_coords = gpu_BaryCoord.xy;
+  sd.barycentric_dists = barycentric_distances_get();
+#else
+  sd.barycentric_coords = float2(0.0f);
+  sd.barycentric_dists = float3(0.0f);
 #endif
 }
 
-void init_globals_curves(const ViewMatrices view)
+void init_globals_curves(ShadingData &sd, const ViewMatrices view)
 {
   auto &interp = interface_get(eevee_geom_iface_info, interp);
   auto &curve_interp = interface_get(eevee_geom_curves_iface_info, curve_interp);
@@ -49,62 +53,67 @@ void init_globals_curves(const ViewMatrices view)
   /* Shade as a cylinder. */
   float cos_theta = curve_interp.time_width / curve_interp.radius;
   float sin_theta = sin_from_cos(cos_theta);
-  g_data.N = g_data.Ni = normalize(interp.N * sin_theta + curve_interp.binormal * cos_theta);
+  sd.N = sd.Ni = normalize(interp.N * sin_theta + curve_interp.binormal * cos_theta);
 
   /* Costly, but follows cycles per pixel tangent space (not following curve shape). */
-  float3 V = view.world_incident_vector(g_data.P);
-  g_data.curve_T = -curve_interp.tangent;
-  g_data.curve_B = cross(V, g_data.curve_T);
-  g_data.curve_N = safe_normalize(cross(g_data.curve_T, g_data.curve_B));
+  float3 V = view.world_incident_vector(sd.P);
+  sd.curve_T = -curve_interp.tangent;
+  sd.curve_B = cross(V, sd.curve_T);
+  sd.curve_N = safe_normalize(cross(sd.curve_T, sd.curve_B));
 
-  g_data.is_strand = true;
-  g_data.hair_diameter = curve_interp.radius * 2.0;
-  g_data.hair_strand_id = curve_interp_flat.strand_id;
+  sd.is_strand = true;
+  sd.hair_diameter = curve_interp.radius * 2.0;
+  sd.hair_strand_id = curve_interp_flat.strand_id;
 #if defined(USE_BARYCENTRICS) && defined(GPU_FRAGMENT_SHADER)
-  g_data.barycentric_coords.y = fract(curve_interp.point_id);
-  g_data.barycentric_coords.x = 1.0 - g_data.barycentric_coords.y;
+  sd.barycentric_coords.y = fract(curve_interp.point_id);
+  sd.barycentric_coords.x = 1.0 - sd.barycentric_coords.y;
 #endif
 }
 
-void init_globals([[resource_table]] const eevee::Uniform &uni,
-                  const ViewMatrices view,
-                  bool front_face)
+[[nodiscard]] ShadingData init_globals([[resource_table]] const eevee::Uniform &uni,
+                                       const ViewMatrices view,
+                                       bool front_face,
+                                       float4 fragment_co)
 {
   auto &interp = interface_get(eevee_geom_iface_info, interp);
+  ShadingData sd;
   /* Default values. */
-  g_data.P = interp.P;
-  g_data.Ni = interp.N;
-  g_data.N = safe_normalize(interp.N);
-  g_data.Ng = g_data.N;
-  g_data.is_strand = false;
-  g_data.hair_diameter = 0.0f;
-  g_data.hair_strand_id = 0;
+  sd.frag_co = fragment_co;
+  sd.P = interp.P;
+  sd.Ni = interp.N;
+  sd.N = safe_normalize(interp.N);
+  sd.Ng = sd.N;
+  sd.is_strand = false;
+  sd.hair_diameter = 0.0f;
+  sd.hair_strand_id = 0;
 #if defined(MAT_SHADOW)
-  g_data.ray_type = RAY_TYPE_SHADOW;
+  sd.ray_type = RAY_TYPE_SHADOW;
 #elif defined(MAT_CAPTURE)
-  g_data.ray_type = RAY_TYPE_DIFFUSE;
+  sd.ray_type = RAY_TYPE_DIFFUSE;
 #else
-  g_data.ray_type = uni.pipeline_buf.ray_type;
+  sd.ray_type = uni.pipeline_buf.ray_type;
 #endif
-  g_data.ray_depth = 0.0f;
-  g_data.ray_length = distance(g_data.P, view.position());
-  g_data.barycentric_coords = float2(0.0f);
-  g_data.barycentric_dists = float3(0.0f);
+  sd.ray_depth = 0.0f;
+  sd.ray_length = distance(sd.P, view.position());
+  sd.barycentric_coords = float2(0.0f);
+  sd.barycentric_dists = float3(0.0f);
+  sd.thickness = Thickness::zero();
 
-  g_data.N = (front_face) ? g_data.N : -g_data.N;
-  g_data.Ni = (front_face) ? g_data.Ni : -g_data.Ni;
-#ifdef GPU_FRAGMENT_SHADER
-  g_data.Ng = safe_normalize(cross(gpu_dfdx(g_data.P), gpu_dfdy(g_data.P)));
+  sd.N = (front_face) ? sd.N : -sd.N;
+  sd.Ni = (front_face) ? sd.Ni : -sd.Ni;
+#if defined(GPU_FRAGMENT_SHADER) || defined(GLSL_CPP_STUBS)
+  sd.Ng = safe_normalize(cross(gpu_dfdx(sd.P), gpu_dfdy(sd.P)));
   if (uni.pipeline_buf.is_main_view_inverted) {
-    g_data.Ng = -g_data.Ng;
+    sd.Ng = -sd.Ng;
   }
 #endif
 
 #if defined(MAT_GEOM_MESH)
-  init_globals_mesh();
+  init_globals_mesh(sd);
 #elif defined(MAT_GEOM_CURVES)
-  init_globals_curves(view);
+  init_globals_curves(sd, view);
 #endif
+  return sd;
 }
 
 /* Avoid some compiler issue with non set interface parameters. */
