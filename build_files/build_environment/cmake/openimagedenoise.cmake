@@ -19,6 +19,7 @@ else()
   set(OIDN_EXTRA_ARGS
     ${OIDN_EXTRA_ARGS}
     -DOIDN_DEVICE_CPU=ON
+    -DOIDN_DEVICE_CUDA=ON
     -DLEVEL_ZERO_ROOT=${LIBDIR}/level-zero
   )
 
@@ -28,14 +29,8 @@ else()
       ${OIDN_EXTRA_ARGS}
       -DOIDN_DEVICE_SYCL=ON
       -DOIDN_DEVICE_SYCL_AOT=OFF
-      -DOIDN_DEVICE_CUDA=ON
       -DOIDN_DEVICE_HIP=ON)
-  elseif(UNIX)
-    set(OIDN_EXTRA_ARGS
-      ${OIDN_EXTRA_ARGS}
-      -DOIDN_DEVICE_CUDA=ON)
   endif()
-
 
   if(BLENDER_PLATFORM_ARM AND UNIX)
     # Target ARMv8.2-A with dot product and half float.

@@ -17,7 +17,7 @@ if "%WITH_CLANG%"=="1" (
 
 	REM This is required as per https://learn.microsoft.com/en-us/cpp/build/clang-support-msbuild?view=msvc-170#custom_llvm_location
 	REM Which allows any copy of LLVM to be used, not just the one that ships with VS
-	echo ^<Project^> >> %BUILD_DIR%\Directory.build.props
+	echo ^<Project^> > %BUILD_DIR%\Directory.build.props
 	echo   ^<PropertyGroup^> >> %BUILD_DIR%\Directory.build.props
 	echo     ^<LLVMInstallDir^>%LLVM_DIR%^</LLVMInstallDir^> >> %BUILD_DIR%\Directory.build.props
 	echo     ^<LLVMToolsVersion^>%CLANG_VERSION%^</LLVMToolsVersion^> >> %BUILD_DIR%\Directory.build.props
@@ -26,7 +26,7 @@ if "%WITH_CLANG%"=="1" (
 )
 
 if "%WITH_ASAN%"=="1" (
-		set ASAN_CMAKE_ARGS=-DWITH_COMPILER_ASAN=On
+	set ASAN_CMAKE_ARGS=-DWITH_COMPILER_ASAN=On
 )
 
 if "%WITH_PYDEBUG%"=="1" (

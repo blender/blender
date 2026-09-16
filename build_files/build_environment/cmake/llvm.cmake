@@ -24,7 +24,9 @@ if(APPLE)
   set(BUILD_CLANG_TOOLS ON)
 elseif(MSVC AND BLENDER_PLATFORM_ARM)
   set(LLVM_EXTRA_PROJECTS ^^lld)
-else()
+endif()
+
+if(NOT APPLE)
   # NVIDIA PTX for OSL on Windows and Linux.
   set(LLVM_TARGETS ${LLVM_TARGETS}$<SEMICOLON>NVPTX)
 endif()

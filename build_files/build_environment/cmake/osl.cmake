@@ -57,7 +57,7 @@ set(OSL_EXTRA_ARGS
   -Dlibdeflate_DIR=${LIBDIR}/deflate/lib/cmake/libdeflate
 )
 
-if(NOT (APPLE OR BLENDER_PLATFORM_WINDOWS_ARM))
+if(NOT APPLE)
   list(APPEND OSL_EXTRA_ARGS
     -DOSL_USE_OPTIX=ON
     -DCUDA_TARGET_ARCH=sm_50

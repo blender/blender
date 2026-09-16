@@ -38,6 +38,10 @@ function(cuda_add_common_flags cuda_version arch in_flags out_flags)
     set(flags ${flags} -ccbin="${CUDA_HOST_COMPILER}")
   endif()
 
+  if(WIN32 AND CMAKE_C_COMPILER_ID MATCHES "Clang")
+    set(flags ${flags} --force-cl-env-setup)
+  endif()
+
   set(flags ${flags}
     # Helps with compatibility when using recent clang host compiler.
     "-std=c++17"
