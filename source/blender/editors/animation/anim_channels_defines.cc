@@ -5153,17 +5153,17 @@ float ANIM_UI_get_channel_scale_factor()
 
 float ANIM_UI_get_channel_height()
 {
-  return ANIM_UI_get_channel_scale_factor() * UI_UNIT_Y;
+  return floor(ANIM_UI_get_channel_scale_factor() * UI_UNIT_Y);
 }
 
 float ANIM_UI_get_channel_skip()
 {
-  return 0.1f * UI_UNIT_Y;
+  return floor(0.1f * UI_UNIT_Y);
 }
 
 float ANIM_UI_get_first_channel_top(View2D *v2d)
 {
-  return ui::view2d_scale_get_y(v2d) * -UI_TIME_SCRUB_MARGIN_Y - ANIM_UI_get_channel_skip();
+  return floor(ui::view2d_scale_get_y(v2d) * -UI_TIME_SCRUB_MARGIN_Y - ANIM_UI_get_channel_skip());
 }
 
 float ANIM_UI_get_channel_step()

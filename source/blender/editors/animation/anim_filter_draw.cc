@@ -475,9 +475,8 @@ static float draw_key_area_background_recurse(const bContext &C,
 
 void draw_dopesheet_key_area(const bContext &C, SummaryChannel &root, View2D &v2d)
 {
-  /* TODO get step from tree view. Also get expanded collapsed state from tree??*/
   const float channel_step = ANIM_UI_get_channel_step();
-  const float first_channel = ANIM_UI_get_first_channel_top(&v2d);
+  const float first_channel = floor(ANIM_UI_get_first_channel_top(&v2d));
 
   GPUVertFormat *format = immVertexFormat();
   const uint pos = GPU_vertformat_attr_add(format, "pos", gpu::VertAttrType::SFLOAT_32_32);
