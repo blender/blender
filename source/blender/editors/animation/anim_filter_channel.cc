@@ -650,10 +650,10 @@ void FCurveChannel::change_selection(const SelectionMode mode, const Bounds<floa
       break;
     }
     switch (mode) {
-      case SelectionMode::DO_SELECT:
+      case SelectionMode::ADD:
         BEZT_SEL_ALL(&key);
         break;
-      case SelectionMode::DESELECT:
+      case SelectionMode::SUBTRACT:
         BEZT_DESEL_ALL(&key);
         break;
       case SelectionMode::INVERT:
@@ -754,11 +754,11 @@ void GreasePencilChannel::change_selection(const SelectionMode mode, const Bound
       break;
     }
     switch (mode) {
-      case SelectionMode::DO_SELECT:
+      case SelectionMode::ADD:
         gp_frame.flag |= GP_FRAME_SELECTED;
         break;
 
-      case SelectionMode::DESELECT:
+      case SelectionMode::SUBTRACT:
         gp_frame.flag &= ~GP_FRAME_SELECTED;
         break;
 

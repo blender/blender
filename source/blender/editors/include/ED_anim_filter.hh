@@ -283,10 +283,9 @@ std::ostream &operator<<(std::ostream &stream, const ChannelTagStack &tagstack);
 std::ostream &operator<<(std::ostream &stream, const ParsedSourcePath &rna_path);
 
 enum class SelectionMode {
-  /* Slightly awkward because of `#define SELECT 1` */
-  DO_SELECT = 0,
-  DESELECT = 1,
-  INVERT = 3,
+  ADD = 0,
+  SUBTRACT = 1,
+  INVERT = 2,
 };
 
 class AnimationChannel {
