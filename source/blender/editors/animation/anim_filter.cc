@@ -4287,6 +4287,31 @@ void group_channels(ChannelArena &arena,
   gather_tags(*root);
 }
 
+static float foreach_expanded_recursive(AnimationChannel &channel,
+                                        int row_index,
+                                        ForEachChannelCallback callback)
+{
+  callback(channel, row_index);
+  row_index++;
+  if (channel.type() != AnimationChannelType::SUMMARY) {
+    return row_index;
+  }
+
+  SummaryChannel &summary = static_cast<SummaryChannel &>(channel);
+  if (summary.is_collapsed()) {
+    return row_index;
+  }
+  for (AnimationChannel *child : summary.children()) {
+    row_index = foreach_expanded_recursive(*child, row_index, callback);
+  }
+  return row_index;
+}
+
+void foreach_expanded(SummaryChannel &root, ForEachChannelCallback callback)
+{
+  foreach_expanded_recursive(root, 0, callback);
+}
+
 }  // namespace ed::animfilter
 
 }  // namespace blender

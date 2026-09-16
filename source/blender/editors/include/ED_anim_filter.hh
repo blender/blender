@@ -12,6 +12,7 @@
 #include <type_traits>
 
 #include "BLI_bounds.hh"
+#include "BLI_function_ref.hh"
 #include "BLI_linear_allocator.hh"
 #include "BLI_set.hh"
 #include "BLI_vector.hh"
@@ -513,6 +514,9 @@ class GreasePencilChannel : public DataChannel {
   void gather_channeldata() override;
 };
 
+/* The row_index is the depth first number of the row accounting for child channels. */
+using ForEachChannelCallback = FunctionRef<void(AnimationChannel &channel, int row_index)>;
+
 /**
  * Arena Allocator for animation channels.
  *
@@ -638,7 +642,12 @@ void group_channels(ChannelArena &arena,
  */
 void draw_channel_tree(const bContext &C, SummaryChannel &root, View2D &v2d);
 
-void draw_dopesheet_key_area(const bContext &C, SummaryChannel &root, View2D &v2d);
+void draw_dopesheet_key_area(SummaryChannel &root, View2D &v2d);
+
+/**
+ * Iterate all expanded channels and their children.
+ */
+void foreach_expanded(SummaryChannel &root, ForEachChannelCallback callback);
 
 }  // namespace ed::animfilter
 }  // namespace blender

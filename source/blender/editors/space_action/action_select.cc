@@ -600,9 +600,6 @@ static void box_select_action(bContext &C,
                               short mode,
                               const eEditKeyframes_Select selectmode)
 {
-  ListBaseT<bAnimListElem> anim_data = {nullptr, nullptr};
-  bAnimListElem *ale;
-  eAnimFilter_Flags filter;
 
   BoxSelectData sel_data{};
   sel_data.ac = ac;
@@ -617,11 +614,14 @@ static void box_select_action(bContext &C,
   ui::view2d_region_to_view(v2d, rect.xmax, rect.ymax - 2, &rectf.xmax, &rectf.ymax);
 
   if (USER_EXPERIMENTAL_TEST(&U, use_new_animfilter)) {
+    /* TODO this could query the cached summary tree from the last draw call. */
     ed::animfilter::ChannelArena channels = ed::action::get_summary_tree(C);
   }
   else {
     /* filter data */
-    filter = (ANIMFILTER_DATA_VISIBLE | ANIMFILTER_LIST_VISIBLE | ANIMFILTER_LIST_CHANNELS);
+    eAnimFilter_Flags filter = (ANIMFILTER_DATA_VISIBLE | ANIMFILTER_LIST_VISIBLE |
+                                ANIMFILTER_LIST_CHANNELS);
+    ListBaseT<bAnimListElem> anim_data = {nullptr, nullptr};
     ANIM_animdata_filter(ac, &anim_data, filter, ac->data, eAnimCont_Types(ac->datatype));
 
     /* Get beztriple editing/validation functions. */
@@ -641,6 +641,7 @@ static void box_select_action(bContext &C,
     const float channel_step = ANIM_UI_get_channel_step();
 
     /* loop over data, doing box select */
+    bAnimListElem *ale;
     for (ale = anim_data.first(); ale; ale = ale->next, ymax -= channel_step) {
       /* get new vertical minimum extent of channel */
       float ymin = ymax - channel_step;

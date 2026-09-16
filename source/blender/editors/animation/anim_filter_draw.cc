@@ -405,88 +405,49 @@ static void draw_channel_decorations(AnimationChannel &channel,
   }
 }
 
-static float draw_keys_recurse(const bContext &C,
-                               AnimationChannel &channel,
-                               View2D &v2d,
-                               float row_top,
-                               const float channel_step,
-                               const DrawSettings &settings)
+static bool is_channel_visible(const View2D &v2d, const float row_center, const float channel_step)
 {
-  const float channel_y = row_top - channel_step / 2.0;
-  if (channel_y + channel_step > v2d.cur.ymin && channel_y - channel_step < v2d.cur.ymax) {
-    draw_channel_decorations(channel, channel_y, settings, v2d);
-    draw_channel_keys(channel, channel_y, v2d);
-  }
-  row_top -= channel_step;
-
-  if (channel.type() != AnimationChannelType::SUMMARY) {
-    return row_top;
-  }
-
-  /* Get the expanded/collapsed state. */
-  SummaryChannel *summary = dynamic_cast<SummaryChannel *>(&channel);
-  if (summary->is_collapsed()) {
-    return row_top;
-  }
-
-  /* Draw the children. */
-  for (AnimationChannel *child : summary->children()) {
-    row_top = draw_keys_recurse(C, *child, v2d, row_top, channel_step, settings);
-  }
-  return row_top;
+  return row_center + channel_step > v2d.cur.ymin && row_center - channel_step < v2d.cur.ymax;
 }
 
-static float draw_key_area_background_recurse(const bContext &C,
-                                              AnimationChannel &channel,
-                                              View2D &v2d,
-                                              float row_top,
-                                              const float channel_step,
-                                              const uint pos)
-{
-  const float skip = ANIM_UI_get_channel_skip();
-  uchar4 color = channel_color_from_rna_pointer(channel.source());
-  if (channel.type() == AnimationChannelType::DATA) {
-    blender::ui::theme::get_color_4ubv(TH_CHANNEL, color);
-  }
-  immUniformColor4ubv(color);
-  immRectf(pos,
-           v2d.cur.xmin,
-           row_top - skip / 2.0f,
-           v2d.cur.xmax + 0,
-           row_top - channel_step + skip / 2.0);
-
-  row_top -= channel_step;
-  if (channel.type() != AnimationChannelType::SUMMARY) {
-    return row_top;
-  }
-
-  /* Check the collapsed/expanded state. */
-  SummaryChannel *summary = dynamic_cast<SummaryChannel *>(&channel);
-  if (summary->is_collapsed()) {
-    return row_top;
-  }
-
-  /* Draw the children. */
-  for (AnimationChannel *child : summary->children()) {
-    row_top = draw_key_area_background_recurse(C, *child, v2d, row_top, channel_step, pos);
-  }
-  return row_top;
-}
-
-void draw_dopesheet_key_area(const bContext &C, SummaryChannel &root, View2D &v2d)
+void draw_dopesheet_key_area(SummaryChannel &root, View2D &v2d)
 {
   const float channel_step = ANIM_UI_get_channel_step();
+  const float skip = ANIM_UI_get_channel_skip();
   const float first_channel = floor(ANIM_UI_get_first_channel_top(&v2d));
 
   GPUVertFormat *format = immVertexFormat();
   const uint pos = GPU_vertformat_attr_add(format, "pos", gpu::VertAttrType::SFLOAT_32_32);
   immBindBuiltinProgram(GPU_SHADER_3D_UNIFORM_COLOR);
   GPU_blend(GPU_BLEND_ALPHA);
-  draw_key_area_background_recurse(C, root, v2d, first_channel, channel_step, pos);
+  /* Draw backdrops first for each expanded channel. */
+  foreach_expanded(root, [&](AnimationChannel &channel, const int row_index) {
+    uchar4 color = channel_color_from_rna_pointer(channel.source());
+    if (channel.type() == AnimationChannelType::DATA) {
+      blender::ui::theme::get_color_4ubv(TH_CHANNEL, color);
+    }
+    immUniformColor4ubv(color);
+    const float row_top = first_channel - row_index * channel_step;
+    if (is_channel_visible(v2d, row_top - channel_step / 2.0, channel_step)) {
+      immRectf(pos,
+               v2d.cur.xmin,
+               row_top - skip / 2.0f,
+               v2d.cur.xmax + 0,
+               row_top - channel_step + skip / 2.0);
+    }
+  });
   immUnbindProgram();
   GPU_blend(GPU_BLEND_NONE);
+
   DrawSettings settings;
-  draw_keys_recurse(C, root, v2d, first_channel, channel_step, settings);
+  foreach_expanded(root, [&](AnimationChannel &channel, const int row_index) {
+    const float row_top = first_channel - row_index * channel_step;
+    const float row_center = row_top - channel_step / 2.0;
+    if (is_channel_visible(v2d, row_center, channel_step)) {
+      draw_channel_decorations(channel, row_center, settings, v2d);
+      draw_channel_keys(channel, row_center, v2d);
+    }
+  });
 }
 
 }  // namespace blender::ed::animfilter
