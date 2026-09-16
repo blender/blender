@@ -188,7 +188,8 @@ BLI_INLINE RadiancePack pack_radiance(const Array<float3, radiance_coeffs_max> &
  * Collect virtual arrays for existing pointcloud attributes that store the various
  * spherical harmonics coefficients, up to the maximum supported number.
  */
-Vector<VArraySpan<float3>> read_radiance_sh_attributes(const bke::AttributeAccessor &attributes)
+static Vector<VArraySpan<float3>> read_radiance_sh_attributes(
+    const bke::AttributeAccessor &attributes)
 {
   Vector<VArraySpan<float3>> arrays;
   for (uint i = 0; i < (radiance_coeffs_max - 1); ++i) {
