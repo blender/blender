@@ -13,6 +13,7 @@
 
 #include "BLI_array.hh"
 #include "BLI_span.hh"
+#include "BLI_string_ref.hh"
 
 #include "DNA_action_types.h"
 
@@ -85,6 +86,7 @@ class AnimTransformable {
    * be created in the constructor. For structs that are an ID this is an empty string. */
   std::string rna_path_from_id_;
   std::string fcurve_group_name_;
+  StringRefNull name_;
 
   /* We are assuming here that the ground truth of transforms is store in separate loc rot scale
    * and not in a matrix, thus skew is not supported. */
@@ -124,6 +126,11 @@ class AnimTransformable {
   StringRefNull fcurve_group_name() const
   {
     return fcurve_group_name_;
+  }
+
+  StringRefNull name() const
+  {
+    return name_;
   }
 
   template<typename T> T data() const;
