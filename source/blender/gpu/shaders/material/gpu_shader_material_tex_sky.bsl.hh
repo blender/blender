@@ -5,6 +5,7 @@
 #pragma once
 
 #include "gpu_shader_compat.hh"
+#include "gpu_shader_math_base.bsl.hh"
 #include "gpu_shader_math_constants.bsl.hh"
 
 float sky_angle_between(float thetav, float phiv, float theta, float phi)
@@ -19,6 +20,13 @@ float sky_angle_between(float thetav, float phiv, float theta, float phi)
   }
 
   return acos(cospsi);
+}
+
+/* Angle between two unit vectors. Stable at the small angles the Sun disc needs, where
+ * acos(dot()) loses most of its precision. Matches precise_angle() in the Cycles kernel. */
+float sky_precise_angle(float3 a, float3 b)
+{
+  return 2.0f * atan(length(a - b), length(a + b));
 }
 
 float3 sky_spherical_coordinates(float3 dir)
@@ -162,6 +170,9 @@ void node_tex_sky_nishita(float3 co,
                           float3 xyz_to_r,
                           float3 xyz_to_g,
                           float3 xyz_to_b,
+                          float3 sun_pixel_bottom,
+                          float3 sun_pixel_top,
+                          float4 sun_params,
                           sampler2DArray ima,
                           float layer,
                           float4 &color)
@@ -178,6 +189,31 @@ void node_tex_sky_nishita(float3 co,
   y = sqrt(dir_elevation_abs / M_PI_2) * sign(dir_elevation) * 0.5f + 0.5f;
 
   /* Look up color in the precomputed map and convert to RGB. */
+  float3x3 xyz_to_rgb = transpose(float3x3(xyz_to_r, xyz_to_g, xyz_to_b));
   xyz = fade * texture(ima, float3(x, y, layer)).rgb;
-  color = float4(dot(xyz_to_r, xyz), dot(xyz_to_g, xyz), dot(xyz_to_b, xyz), 1.0f);
+  float3 rgb = xyz_to_rgb * xyz;
+
+  /* The Sun disc covers about half a degree, too small to survive baking into the map, so it's
+   * drawn here instead. */
+  float sun_elevation = sun_params.x;
+  float angular_diameter = sun_params.y;
+  float sun_intensity = sun_params.z;
+  float earth_intersection_angle = sun_params.w;
+  if (angular_diameter > 0.0f && dir_elevation > earth_intersection_angle) {
+    float cos_elevation = cos(sun_elevation);
+    float3 sun_dir = float3(
+        -cos_elevation * sin(sun_rotation), cos_elevation * cos(sun_rotation), sin(sun_elevation));
+    float sun_angle = sky_precise_angle(normalize(co), sun_dir);
+    float half_angular = angular_diameter * 0.5f;
+    if (sun_angle < half_angular) {
+      /* Limb darkening, coefficient is 0.6. */
+      float angle_fraction = sun_angle / half_angular;
+      float limb_darkening = 1.0f - 0.6f * (1.0f - sin_from_cos(angle_fraction));
+      float sun_y = ((dir_elevation - sun_elevation) / angular_diameter) + 0.5f;
+      float3 disc = mix(sun_pixel_bottom, sun_pixel_top, sun_y) * sun_intensity * limb_darkening;
+      rgb += xyz_to_rgb * disc;
+    }
+  }
+
+  color = float4(rgb, 1.0f);
 }
