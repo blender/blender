@@ -30,8 +30,10 @@ namespace draw {
 struct GSplatModule;
 struct GSplatBatchCache;
 
-/* Computue passes are categorized. Some renderers only require projection of gaussians,
- * while others also require some or all of the spherical harmonics to be evaluated. */
+/**
+ * Compute passes are categorized. Some renderers only require projection of gaussians,
+ * while others also require some or all of the spherical harmonics to be evaluated.
+ */
 enum class GSplatEvalShader {
   /* Ellipse computation only. */
   Ellipses,
@@ -133,7 +135,7 @@ struct GSplatEvalCache {
   gpu::Batch *edit_dots_get();
   gpu::Batch *surface_get(const PointCloud &pointcloud);
 
-  /* Fill and build all requestedf buffers/batches. */
+  /** Fill and build all requested buffers/batches. */
   void ensure_requested(PointCloud &pointcloud);
 
   /* Safely discard buffers, batches, etc. */

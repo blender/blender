@@ -45,7 +45,7 @@ void bmo_beautify_fill_exec(BMesh *bm, BMOperator *op)
     BM_elem_flag_disable(e, BM_ELEM_TAG);
   }
 
-  /* will over alloc if some edges can't be rotated */
+  /* Will over allocate if some edges can't be rotated. */
   edge_array = MEM_new_array_uninitialized<BMEdge *>(
       size_t(BMO_slot_buffer_len(op->slots_in, "edges")), __func__);
 

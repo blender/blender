@@ -124,7 +124,8 @@ BLI_INLINE uint4 pack_gaussian(const float3 &bounded_mean,
   /* Quantize opacity to `au`, 1x8b. */
   uint au = static_cast<uint>(clamp(opacity, 0.0f, 1.0f) * 255.0f);
   /* Quantize rotation to `ru`: 3x9b.
-   * Note that we shuffle quaternion wxyz to xyzw for consistency inside draw module shaders. */
+   * Note that we shuffle quaternion `wxyz` to `xyzw` for consistency inside draw module shaders.
+   */
   float4 q = math::normalize(float4(rotation.x, rotation.y, rotation.z, rotation.w));
   if (q.w < 0.0f) {
     q = -q;

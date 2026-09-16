@@ -84,7 +84,7 @@ class PointCloud : public Geometry {
   /* BVH */
   void pack(Scene *scene, uint *packed_shader);
 
-  /* Recalculate point radius to to bound Gaussian splats. */
+  /* Recalculate point radius to bound Gaussian splats. */
   void update_gsplat_radii();
 
   NODE_SOCKET_API(RenderAs, render_as)

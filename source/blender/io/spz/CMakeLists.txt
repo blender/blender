@@ -33,7 +33,7 @@ set(LIB
   PRIVATE bf::dna
   PRIVATE bf::depsgraph
   PRIVATE bf_io_common
-  PRIVATE bf::intern::guardedalloc  # Indirect dependnecy of the bf::blenkernel.
+  PRIVATE bf::intern::guardedalloc  # Indirect dependency of the `bf::blenkernel`.
   PRIVATE bf::intern::clog
   PRIVATE bf::dependencies::zlib
   PRIVATE bf::dependencies::zstd

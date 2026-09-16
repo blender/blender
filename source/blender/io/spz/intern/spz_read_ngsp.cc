@@ -332,8 +332,8 @@ PointCloud *read_spz_ngsp_file(FILE *file, ReportList *reports)
   CLOG_DEBUG(&LOG, "SPZ header toc_byte_offset: %u", header.toc_byte_offset);
 
   if (header.flags & SPZ_HEADER_ANTIALIASED) {
-    /* TODO(sergey): Support antialiased data. */
-    CLOG_WARN(&LOG, "SPZ data was trained with antialiasing which is not fully supported");
+    /* TODO(sergey): Support anti-aliased data. */
+    CLOG_WARN(&LOG, "SPZ data was trained with anti-aliasing which is not fully supported");
   }
   if (header.flags & SPZ_HEADER_HAS_EXTENSIONS) {
     /* TODO(sergey): Support extensions. */

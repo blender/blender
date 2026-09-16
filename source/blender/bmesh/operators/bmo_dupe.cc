@@ -386,7 +386,7 @@ void bmo_duplicate_exec(BMesh *bm, BMOperator *op)
   /* First copy the input buffers to output buffers - original data */
   BMO_slot_copy(dupeop, slots_in, "geom", dupeop, slots_out, "geom_orig.out");
 
-  /* Now alloc the new output buffers */
+  /* Now allocation the new output buffers. */
   BMO_slot_buffer_from_enabled_flag(
       bm, dupeop, dupeop->slots_out, "geom.out", BM_ALL_NOLOOP, DUPE_NEW);
 }

@@ -51,7 +51,7 @@ struct MarkdownItemText {
 
 /**
  * Represents a horizontal separator line. The position is determined during the markdown
- * layouting phase.
+ * laying out phase.
  */
 struct MarkdownItemHorizontalRule {
   /** Vertical center of the line in pixels. */
@@ -60,7 +60,7 @@ struct MarkdownItemHorizontalRule {
 
 /**
  * Represents the vertical line drawn next to a quote block. The position is determined during the
- * markdown layouting phase.
+ * markdown laying out phase.
  */
 struct MarkdownItemQuoteLine {
   /** Top position of the bar in pixels. */
@@ -72,7 +72,7 @@ struct MarkdownItemQuoteLine {
 
 /**
  * Represents the background box drawn behind a code block or inline code span. The position is
- * determined during the markdown layouting phase.
+ * determined during the markdown laying out phase.
  */
 struct MarkdownItemCodeBox {
   enum class Kind {
@@ -94,7 +94,7 @@ using MarkdownItem = std::variant<MarkdownItemText,
                                   MarkdownItemCodeBox>;
 
 /**
- * The information that impacts the markdown layouting process. If this changes, the layout
+ * The information that impacts the markdown laying out process. If this changes, the layout
  * generally changes too.
  */
 struct MarkdownLayoutCacheKey {

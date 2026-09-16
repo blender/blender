@@ -106,7 +106,7 @@ static void initShear_mouseInputMode(TransInfo *t)
       }
     }
 
-    /* A flipped view applies to this this orientation,
+    /* A flipped view applies to this orientation,
      * so the input direction must be flipped to match. */
     if (t->flag & T_VIEW_NEGATIVE) {
       dir_flip = !dir_flip;

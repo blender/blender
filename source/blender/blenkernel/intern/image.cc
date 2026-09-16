@@ -1184,7 +1184,7 @@ Image *BKE_image_load_in_lib(Main *bmain,
 
   image_abs_path(bmain, owner_lib, filepath, filepath_abs);
 
-  /* Does it exist on the filesystem? */
+  /* Does it exist on the file-system? */
   if (check_open) {
     file = BLI_open(filepath_abs, O_BINARY | O_RDONLY, 0);
     if (file == -1) {

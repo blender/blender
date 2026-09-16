@@ -1183,7 +1183,7 @@ class MarkdownLayouter {
 
       /* Number of bytes that should be drawn in the current line. */
       int64_t draw_bytes = last_fit_char_i;
-      /* Number of bytes that should be skipped (this skips e.g. whitespace at the line end).*/
+      /* Number of bytes that should be skipped (this skips e.g. white-space at the line end).*/
       int64_t drop_bytes = last_fit_char_i;
       const bool wrap_to_next_line = last_fit_char_i < text.size();
 
