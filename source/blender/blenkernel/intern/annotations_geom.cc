@@ -31,10 +31,10 @@ namespace blender {
 /** \name Stroke 2D Flat & UV Calculation
  * \{ */
 
-void stroke_2d_flat(const bGPDspoint *points,
-                    int totpoints,
-                    float (*points2d)[2],
-                    int *r_direction)
+static void stroke_2d_flat(const bGPDspoint *points,
+                           int totpoints,
+                           float (*points2d)[2],
+                           int *r_direction)
 {
   BLI_assert(totpoints >= 2);
 
@@ -150,7 +150,7 @@ static void gpencil_calc_stroke_fill_uv(const float (*points2d)[2],
 /** \name Stroke Fill Triangulate
  * \{ */
 
-void stroke_fill_triangulate(bGPDstroke *gps)
+static void stroke_fill_triangulate(bGPDstroke *gps)
 {
   BLI_assert(gps->totpoints >= 3);
 
@@ -208,7 +208,7 @@ void stroke_fill_triangulate(bGPDstroke *gps)
   MEM_SAFE_DELETE(uv);
 }
 
-void stroke_uv_update(bGPDstroke *gps)
+static void stroke_uv_update(bGPDstroke *gps)
 {
   if (gps == nullptr || gps->totpoints == 0) {
     return;
