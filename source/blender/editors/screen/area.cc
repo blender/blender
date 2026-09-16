@@ -3050,6 +3050,13 @@ void ED_area_newspace(bContext *C, ScrArea *area, int type, const bool skip_regi
       area->butspacetype_subtype = st->space_subtype_get(area);
     }
     st->space_subtype_set(area, area->butspacetype_subtype);
+
+    /* The sub-type sets the mode which selects the tool. */
+    if ((1 << area->spacetype) & WM_TOOLSYSTEM_SPACE_MASK_MODE_FROM_SPACE) {
+      area->runtime.tool = nullptr;
+      area->runtime.is_tool_set = false;
+      area->flag |= AREA_FLAG_ACTIVE_TOOL_UPDATE;
+    }
   }
 
   /* Whether setting a subtype or not we need to clear this value. Not just unneeded
