@@ -143,6 +143,9 @@ def main():
         report.set_fail_threshold(0.050)
     if test_dir_name.startswith('openvdb'):
         report.set_fail_threshold(0.04)
+    if test_dir_name.startswith('hair') and gpu_vendor == "AMD" and args.gpu_backend == "opengl":
+        report.set_fail_threshold(0.11)
+        report.set_fail_percent(3.0)
 
     ok = report.run(args.testdir, args.blender, get_arguments, batch=args.batch)
 

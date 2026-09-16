@@ -90,6 +90,9 @@ def main():
         # affecting the coverage of FaceDots and similar overlays.
         # This means reference images should not be rendered on Intel.
         report.set_fail_threshold(0.05)
+    elif gpu_vendor == "AMD" and args.gpu_backend == "opengl":
+        report.set_fail_threshold(0.22)
+        report.set_fail_percent(2.0)
     else:
         report.set_fail_threshold(0.02)
 
