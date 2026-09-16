@@ -324,6 +324,192 @@ int func() { return 4; })";
   }
 }
 
+TEST(shader_tool, ConstexprVector)
+{
+  {
+    string input = R"(
+static constexpr float3 i = float3(0, 1.5f, 2u);
+static constexpr int3 j = int3(i + int3(0, 1, 2)) + 1;
+static constexpr float3 k = i + int3(0, 1, 2);
+)";
+    string expect = R"(
+static constexpr float3 i = float3(0.0f, 1.5f, 2.0f);
+static constexpr int3 j = int3(1, 3, 5);
+static constexpr float3 k = float3(0.0f, 2.5f, 4.0f);
+)";
+    auto [output, _, error] = process_test_string(input, Language::BSL);
+    EXPECT_EQ(output, expect);
+    EXPECT_EQ(error, "");
+  }
+  {
+    string input = R"(
+static constexpr int3 j = int3(0, 1, 2) + int2(1);
+)";
+    auto [output, _, error] = process_test_string(input, Language::BSL);
+    EXPECT_EQ(error, "Invalid operands to binary expression ('int3' + 'int2')");
+  }
+  {
+    string input = R"(
+static constexpr int3 j = int3(int2(0), 2);
+)";
+    auto [output, _, error] = process_test_string(input, Language::BSL);
+    EXPECT_EQ(error, "Constexpr variable 'j' must be initialized by a constant expression");
+  }
+  {
+    string input = R"(
+static constexpr int3 j = int3(0, 1, 2) + false;
+)";
+    auto [output, _, error] = process_test_string(input, Language::BSL);
+    EXPECT_EQ(error, "Invalid operands to binary expression ('int3' + 'bool')");
+  }
+  {
+    string input = R"(
+static constexpr int3 j = int2(0);
+)";
+    auto [output, _, error] = process_test_string(input, Language::BSL);
+    EXPECT_EQ(error,
+              "Constexpr variable 'j' must be initialized by a constant expression of type 'int3' "
+              "but got 'int2'");
+  }
+
+  {
+    string input = R"(
+static constexpr float3 a = float3(2.5f);
+static constexpr int4 b = int4(-1);
+)";
+    string expect = R"(
+static constexpr float3 a = float3(2.5f, 2.5f, 2.5f);
+static constexpr int4 b = int4(-1, -1, -1, -1);
+)";
+    auto [output, _, error] = process_test_string(input, Language::BSL);
+    EXPECT_EQ(output, expect);
+    EXPECT_EQ(error, "");
+  }
+
+  {
+    string input = R"(
+static constexpr float3 v = float3(1.0f, 2.0f, 3.0f);
+static constexpr float3 mul_right = v * 2.0f;
+static constexpr float3 mul_left = 2.0f * v;
+static constexpr float3 sub_scalar = 10.0f - v;
+static constexpr float3 div_scalar = v / 2.0f;
+)";
+    string expect = R"(
+static constexpr float3 v = float3(1.0f, 2.0f, 3.0f);
+static constexpr float3 mul_right = float3(2.0f, 4.0f, 6.0f);
+static constexpr float3 mul_left = float3(2.0f, 4.0f, 6.0f);
+static constexpr float3 sub_scalar = float3(9.0f, 8.0f, 7.0f);
+static constexpr float3 div_scalar = float3(0.5f, 1.0f, 1.5f);
+)";
+    auto [output, _, error] = process_test_string(input, Language::BSL);
+    EXPECT_EQ(output, expect);
+    EXPECT_EQ(error, "");
+  }
+
+  {
+    string input = R"(
+static constexpr int3 a = int3(1, -2, 3);
+static constexpr int3 neg = -a;
+static constexpr int3 bit_and = int3(7, 3, 1) & int3(3, 2, 1);
+static constexpr int3 bit_or = int3(4, 2, 0) | int3(1, 1, 0);
+static constexpr int3 shift = int3(1, 2, 4) << int3(1, 2, 0);
+)";
+    string expect = R"(
+static constexpr int3 a = int3(1, -2, 3);
+static constexpr int3 neg = int3(-1, 2, -3);
+static constexpr int3 bit_and = int3(3, 2, 1);
+static constexpr int3 bit_or = int3(5, 3, 0);
+static constexpr int3 shift = int3(2, 8, 4);
+)";
+    auto [output, _, error] = process_test_string(input, Language::BSL);
+    EXPECT_EQ(output, expect);
+    EXPECT_EQ(error, "");
+  }
+
+  {
+    string input = R"(
+static constexpr float3 v1 = float3(1.0f, 2.0f, 3.0f);
+static constexpr float3 v2 = float3(2.0f, 2.0f, 1.0f);
+static constexpr bool3 eq = equal(v1, v2);
+static constexpr bool3 lt = lessThan(v1, v2);
+static constexpr bool3 gte = greaterThanEqual(v1, v2);
+)";
+    string expect = R"(
+static constexpr float3 v1 = float3(1.0f, 2.0f, 3.0f);
+static constexpr float3 v2 = float3(2.0f, 2.0f, 1.0f);
+static constexpr bool3 eq = bool3(false, true, false);
+static constexpr bool3 lt = bool3(true, false, false);
+static constexpr bool3 gte = bool3(false, true, true);
+)";
+    auto [output, _, error] = process_test_string(input, Language::BSL);
+    EXPECT_EQ(output, expect);
+    EXPECT_EQ(error, "");
+  }
+
+#if 0 /* Would be nice to support at some points. */
+  {
+      string input = R"(
+static constexpr float3 a = float3(-1.0f, 2.0f, -5.0f);
+static constexpr float3 b_abs = abs(a);
+static constexpr float3 b_min = min(a, float3(0.0f));
+static constexpr float3 b_clamp = clamp(a, float3(-2.0f), float3(1.0f));
+static constexpr float d = dot(float3(1.0f, 2.0f, 3.0f), float3(4.0f, 5.0f, 6.0f));
+static constexpr float3 c = cross(float3(1, 0, 0), float3(0, 1, 0));
+static constexpr bool is_all = all(bool3(true, true, true));
+static constexpr bool is_any = any(bool3(false, true, false));
+)";
+      string expect = R"(
+static constexpr float3 a = float3(-1.0f, 2.0f, -5.0f);
+static constexpr float3 b_abs = float3(1.0f, 2.0f, 5.0f);
+static constexpr float3 b_min = float3(-1.0f, 0.0f, -5.0f);
+static constexpr float3 b_clamp = float3(-1.0f, 1.0f, -2.0f);
+static constexpr float d = 32.0f;
+static constexpr float3 c = float3(0.0f, 0.0f, 1.0f);
+static constexpr bool is_all = true;
+static constexpr bool is_any = true;
+)";
+      auto [output, _, error] = process_test_string(input, Language::BSL);
+      EXPECT_EQ(output, expect);
+      EXPECT_EQ(error, "");
+    }
+  {
+    string input = R"(
+static constexpr float4 v = float4(1.0f, 2.0f, 3.0f, 4.0f);
+static constexpr float2 s1 = v.xz;
+static constexpr float3 s2 = v.wzy + 1.0f;
+static constexpr float s3 = v.x + v.w;
+)";
+    string expect = R"(
+static constexpr float4 v = float4(1.0f, 2.0f, 3.0f, 4.0f);
+static constexpr float2 s1 = float2(1.0f, 3.0f);
+static constexpr float3 s2 = float3(5.0f, 4.0f, 3.0f);
+static constexpr float s3 = 5.0f;
+)";
+    auto [output, _, error] = process_test_string(input, Language::BSL);
+    EXPECT_EQ(output, expect);
+    EXPECT_EQ(error, "");
+  }
+#endif
+
+  {
+    string input = R"(
+static constexpr int3 v = int3(1, 2, 3) / int3(1, 0, 1);
+)";
+    auto [output, _, error] = process_test_string(input, Language::BSL);
+    EXPECT_EQ(error, "Division by zero during constexpr evaluation");
+  }
+
+  {
+    string input = R"(
+static constexpr int3 j = float3(1.0f, 2.0f, 3.0f);
+)";
+    auto [output, _, error] = process_test_string(input, Language::BSL);
+    EXPECT_EQ(error,
+              "Constexpr variable 'j' must be initialized by a constant expression of type 'int3' "
+              "but got 'float3'");
+  }
+}
+
 TEST(shader_tool, Auto)
 {
   {

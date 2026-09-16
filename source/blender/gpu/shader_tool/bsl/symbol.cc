@@ -50,7 +50,7 @@ struct SymbolParser : NodeErrorHandler {
     SymbolVariable *bitfield_base = nullptr;
 
     /* For enums, the value of the last declaration. */
-    ConstexprValue enum_last_val = -1;
+    ConstexprValue enum_last_val(-1);
 
     if (node.type() == NodeType::FuncDecl || node.type() == NodeType::ClassDecl ||
         node.type() == NodeType::LocalScope)
@@ -511,7 +511,7 @@ struct SymbolParser : NodeErrorHandler {
       }
     }
     else {
-      sym->value = std::visit([](auto &&v) -> ConstexprValue { return v + 1; }, enum_last_val);
+      sym->value = enum_last_val + ConstexprValue(1);
     }
 
     if (scope.variable_emplace(sym)) {
@@ -1045,7 +1045,7 @@ struct SymbolParser : NodeErrorHandler {
           if (!result.is_constexpr()) {
             error(decl, Diag::ExprNotIntegralConstant);
           }
-          int len = value_as<int>(result.value);
+          int len = result.value.comp_as<int>(0);
           if (len > 32) {
             error(decl, Diag::BitFieldSizeTooLarge, to_string(len));
           }
@@ -1183,10 +1183,14 @@ struct SymbolParser : NodeErrorHandler {
                                         SymbolClass *cls,
                                         Declarator decl)
   {
-    if (cls != table.int_cls && cls != table.uint_cls && cls != table.bool_cls &&
-        cls != table.float_cls)
+    if (cls != table.int_cls && cls != table.int2_cls && cls != table.int3_cls &&
+        cls != table.int4_cls && cls != table.uint_cls && cls != table.uint2_cls &&
+        cls != table.uint3_cls && cls != table.uint4_cls && cls != table.bool_cls &&
+        cls != table.bool2_cls && cls != table.bool3_cls && cls != table.bool4_cls &&
+        cls != table.float_cls && cls != table.float2_cls && cls != table.float3_cls &&
+        cls != table.float4_cls)
     {
-      error(decl, Diag::ConstexprVarMustBeIntOrUint);
+      error(decl, Diag::ConstexprVarMustBeValidType);
       return {table.err_cls};
     }
 
@@ -1198,9 +1202,17 @@ struct SymbolParser : NodeErrorHandler {
       result = eval_scalar_initializer_list(scope, cls, list);
     }
 
-    if (!result.is_constexpr()) {
+    if (result.type != cls) {
+      error(decl,
+            Diag::ConstexprVarMustBeInitializedByCorrectType,
+            decl.identifier().str(),
+            cls->original,
+            result.type->original);
+    }
+    else if (!result.is_constexpr()) {
       error(decl, Diag::ConstexprVarMustBeInitializedByConstantExpr, decl.identifier().str());
     }
+
     return result;
   }
 

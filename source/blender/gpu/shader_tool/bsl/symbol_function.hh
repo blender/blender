@@ -37,6 +37,8 @@ struct SymbolFunction : SymbolScope {
   bool is_complete = true;
   /* If true, will allow vector type casting. */
   bool is_builtin = false;
+  /* If true, this builtin function is implemented as constexpr. */
+  bool is_constexpr = false;
   /* True for template specialization and instantiation. */
   bool is_specialization = false;
   /* True for template specialization and instantiation. */

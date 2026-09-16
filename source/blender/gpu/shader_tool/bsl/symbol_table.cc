@@ -108,7 +108,7 @@ Result<StringPair> SymbolTable::mangle_identifier(TemplateArgList args,
       if (!expr_result.is_constexpr()) {
         err = AstNodeException(param, Diag::TemplateParameterNotConstexpr);
       }
-      int val = value_as<int>(expr_result.value);
+      int val = expr_result.value.comp_as<int>(0);
       /* Replace minus sign by underscore. */
       if (arg.type().str() == "bool") {
         result.str += string("T") + (val ? "true" : "false");
@@ -498,34 +498,36 @@ void SymbolTable::register_builtins(LocalScope node)
     }
   }
 
-  auto builtin_function_decl = [&](const BuiltinFunc &fn, bool allow_vector_promotion) {
-    SymbolFunction *sym = fun_arena.alloc(
-        root, tok, fn.return_type, fn.id, SymbolFunction::GLOBAL);
-    sym->is_error = fn.id == err_symbol;
-    sym->is_builtin = allow_vector_promotion;
-    sym->reserve_arguments(fn.arg_types.size());
-    for (SymbolClass *arg : fn.arg_types) {
-      sym->add_argument(arg);
-    }
-    root->function_emplace(sym, true);
-  };
+  auto builtin_function_decl =
+      [&](const BuiltinFunc &fn, bool allow_vector_promotion, bool is_constexpr) {
+        SymbolFunction *sym = fun_arena.alloc(
+            root, tok, fn.return_type, fn.id, SymbolFunction::GLOBAL);
+        sym->is_error = fn.id == err_symbol;
+        sym->is_builtin = allow_vector_promotion;
+        sym->is_constexpr = is_constexpr;
+        sym->reserve_arguments(fn.arg_types.size());
+        for (SymbolClass *arg : fn.arg_types) {
+          sym->add_argument(arg);
+        }
+        root->function_emplace(sym, true);
+      };
 
   const vector<BuiltinFunc> functions = generate_all_builtin_functions();
   /* Builtin functions. */
   for (const auto &f : functions) {
-    builtin_function_decl(f, false);
+    builtin_function_decl(f, false, false);
   }
 
-  root->lookup_function("floatBitsToUint")->is_builtin = true;
-  root->lookup_function("floatBitsToInt")->is_builtin = true;
-  root->lookup_function("uintBitsToFloat")->is_builtin = true;
-  root->lookup_function("intBitsToFloat")->is_builtin = true;
+  const vector<BuiltinFunc> functions_constexpr = generate_all_builtin_constexpr_functions();
+  for (const auto &f : functions_constexpr) {
+    builtin_function_decl(f, false, true);
+  }
 
   const vector<BuiltinType> builtin_types = generate_builtin_types();
 
   const vector<BuiltinFunc> builtin_constructors = generate_all_constructors(builtin_types);
   for (const auto &fn : builtin_constructors) {
-    builtin_function_decl(fn, true);
+    builtin_function_decl(fn, true, true);
   }
 
   image_formats = {
@@ -553,45 +555,45 @@ void SymbolTable::register_builtins(LocalScope node)
 
   std::vector<BuiltinConst> consts = {
       /* Error variable symbol. */
-      {err_symbol, err_symbol, false, 1},
+      {err_symbol, err_symbol, false, ConstexprError(0)},
 
-      {"true", "bool", true, true},
-      {"false", "bool", true, false},
+      {"true", "bool", true, ConstexprValue(true)},
+      {"false", "bool", true, ConstexprValue(false)},
 
       /* WORKAROUND: Should become an entry point argument. */
-      {"gl_FragStencilRefARB", "uint", false, 0},
-      {"gpu_BaryCoord", "float3", false, 0},
+      {"gl_FragStencilRefARB", "uint", false, ConstexprError(0)},
+      {"gpu_BaryCoord", "float3", false, ConstexprError(0)},
 
-      {"FLT_MAX", "float", true, std::bit_cast<float>(0x7F7FFFFFu)},
-      {"FLT_MIN", "float", true, std::bit_cast<float>(0x00800000u)},
-      {"FLT_EPSILON", "float", true, 1.192092896e-07f},
-      {"SHRT_MAX", "float", true, 0x00007FFF},
-      {"INT_MAX", "float", true, 0x7FFFFFFF},
-      {"USHRT_MAX", "float", true, 0x0000FFFFu},
-      {"UINT_MAX", "float", true, 0xFFFFFFFFu},
-      {"NAN_FLT", "float", true, NAN},
-      {"FLT_11_MAX", "float", false, 0},
-      {"FLT_10_MAX", "float", false, 0},
-      {"FLT_11_11_10_MAX", "float3", false, 0},
+      {"FLT_MAX", "float", true, ConstexprValue(std::bit_cast<float>(0x7F7FFFFFu))},
+      {"FLT_MIN", "float", true, ConstexprValue(std::bit_cast<float>(0x00800000u))},
+      {"FLT_EPSILON", "float", true, ConstexprValue(1.192092896e-07f)},
+      {"SHRT_MAX", "float", true, ConstexprValue(0x00007FFF)},
+      {"INT_MAX", "float", true, ConstexprValue(0x7FFFFFFF)},
+      {"USHRT_MAX", "float", true, ConstexprValue(0x0000FFFFu)},
+      {"UINT_MAX", "float", true, ConstexprValue(0xFFFFFFFFu)},
+      {"NAN_FLT", "float", true, ConstexprValue(NAN)},
+      {"FLT_11_MAX", "float", false, ConstexprValue(0)},
+      {"FLT_10_MAX", "float", false, ConstexprValue(0)},
+      {"FLT_11_11_10_MAX", "float3", false, ConstexprValue(0)},
 
-      {"M_PI", "float", true, 3.14159265358979323846f},
-      {"M_TAU", "float", true, 6.28318530717958647692f},
-      {"M_PI_2", "float", true, 1.57079632679489661923f},
-      {"M_PI_4", "float", true, 0.78539816339744830962f},
-      {"M_SQRT2", "float", true, 1.41421356237309504880f},
-      {"M_SQRT1_2", "float", true, 0.70710678118654752440f},
-      {"M_SQRT3", "float", true, 1.73205080756887729352f},
-      {"M_SQRT1_3", "float", true, 0.57735026918962576450f},
-      {"M_1_PI", "float", true, 0.318309886183790671538f},
-      {"M_E", "float", true, 2.7182818284590452354f},
-      {"M_LOG2E", "float", true, 1.4426950408889634074f},
-      {"M_LOG10E", "float", true, 0.43429448190325182765f},
-      {"M_LN2", "float", true, 0.69314718055994530942f},
-      {"M_LN10", "float", true, 2.30258509299404568402f},
+      {"M_PI", "float", true, ConstexprValue(3.14159265358979323846f)},
+      {"M_TAU", "float", true, ConstexprValue(6.28318530717958647692f)},
+      {"M_PI_2", "float", true, ConstexprValue(1.57079632679489661923f)},
+      {"M_PI_4", "float", true, ConstexprValue(0.78539816339744830962f)},
+      {"M_SQRT2", "float", true, ConstexprValue(1.41421356237309504880f)},
+      {"M_SQRT1_2", "float", true, ConstexprValue(0.70710678118654752440f)},
+      {"M_SQRT3", "float", true, ConstexprValue(1.73205080756887729352f)},
+      {"M_SQRT1_3", "float", true, ConstexprValue(0.57735026918962576450f)},
+      {"M_1_PI", "float", true, ConstexprValue(0.318309886183790671538f)},
+      {"M_E", "float", true, ConstexprValue(2.7182818284590452354f)},
+      {"M_LOG2E", "float", true, ConstexprValue(1.4426950408889634074f)},
+      {"M_LOG10E", "float", true, ConstexprValue(0.43429448190325182765f)},
+      {"M_LN2", "float", true, ConstexprValue(0.69314718055994530942f)},
+      {"M_LN10", "float", true, ConstexprValue(2.30258509299404568402f)},
   };
 
   for (auto [value, name] : image_formats) {
-    consts.emplace_back(name, "int", true, value);
+    consts.emplace_back(name, "int", true, ConstexprValue(value));
   }
 
   /* Boolean constants. */
@@ -919,14 +921,6 @@ vector<SymbolTable::BuiltinFunc> SymbolTable::generate_all_builtin_functions()
 
   add_ternary("fma", f_types);
 
-  /* Bit-reinterpretation conversions. */
-  for (size_t i = 0; i < f_types.size(); ++i) {
-    functions.push_back({i_types[i], "floatBitsToInt", {f_types[i]}});
-    functions.push_back({u_types[i], "floatBitsToUint", {f_types[i]}});
-    functions.push_back({f_types[i], "intBitsToFloat", {i_types[i]}});
-    functions.push_back({f_types[i], "uintBitsToFloat", {u_types[i]}});
-  }
-
   /* Matrix conversion functions. */
   functions.push_back({float2x2_cls, "to_float2x2", {float3x3_cls}});
   functions.push_back({float2x2_cls, "to_float2x2", {float4x4_cls}});
@@ -979,17 +973,6 @@ vector<SymbolTable::BuiltinFunc> SymbolTable::generate_all_builtin_functions()
   for (const auto &m : square_mats) {
     functions.push_back({float_cls, "determinant", {m}});
     functions.push_back({m, "inverse", {m}});
-  }
-
-  const vector<string> rel_ops = {
-      "lessThan", "lessThanEqual", "greaterThan", "greaterThanEqual", "equal", "notEqual"};
-
-  for (const auto &op : rel_ops) {
-    for (size_t i = 1; i < f_types.size(); ++i) {
-      functions.push_back({b_types[i], op, {f_types[i], f_types[i]}});
-      functions.push_back({b_types[i], op, {i_types[i], i_types[i]}});
-      functions.push_back({b_types[i], op, {u_types[i], u_types[i]}});
-    }
   }
 
   for (size_t i = 1; i < b_types.size(); ++i) {
@@ -1124,6 +1107,40 @@ vector<SymbolTable::BuiltinFunc> SymbolTable::generate_all_builtin_functions()
         functions.push_back({scalar, "imageAtomicCompSwap", {image, coord_type, scalar, scalar}});
       }
     }
+  }
+
+  return functions;
+}
+
+/* Generates every single legal BSL builtin function dynamically. */
+vector<SymbolTable::BuiltinFunc> SymbolTable::generate_all_builtin_constexpr_functions()
+{
+  /* Start with the error symbol. */
+  vector<BuiltinFunc> functions;
+
+  /* Type definition vectors for vectorized generation */
+  const vector<SymbolClass *> f_types = {float_cls, float2_cls, float3_cls, float4_cls};
+  const vector<SymbolClass *> i_types = {int_cls, int2_cls, int3_cls, int4_cls};
+  const vector<SymbolClass *> u_types = {uint_cls, uint2_cls, uint3_cls, uint4_cls};
+  const vector<SymbolClass *> b_types = {bool_cls, bool2_cls, bool3_cls, bool4_cls};
+
+  const vector<string> rel_ops = {
+      "lessThan", "lessThanEqual", "greaterThan", "greaterThanEqual", "equal", "notEqual"};
+
+  for (const auto &op : rel_ops) {
+    for (size_t i = 1; i < f_types.size(); ++i) {
+      functions.push_back({b_types[i], op, {f_types[i], f_types[i]}});
+      functions.push_back({b_types[i], op, {i_types[i], i_types[i]}});
+      functions.push_back({b_types[i], op, {u_types[i], u_types[i]}});
+    }
+  }
+
+  /* Bit-reinterpretation conversions. */
+  for (size_t i = 0; i < f_types.size(); ++i) {
+    functions.push_back({i_types[i], "floatBitsToInt", {f_types[i]}});
+    functions.push_back({u_types[i], "floatBitsToUint", {f_types[i]}});
+    functions.push_back({f_types[i], "intBitsToFloat", {i_types[i]}});
+    functions.push_back({f_types[i], "uintBitsToFloat", {u_types[i]}});
   }
 
   return functions;
