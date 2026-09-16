@@ -116,4 +116,51 @@ TEST_F(FileHandlerTest, remove)
   EXPECT_EQ(file_handlers()[4].get(), test_file_handlers[5]);
   EXPECT_EQ(file_handlers()[5].get(), test_file_handlers[6]);
 }
+
+static void expect_label_with_extensions(const char *label,
+                                         Vector<std::string> file_extensions,
+                                         const std::string &expected)
+{
+  FileHandlerType file_handler{};
+  STRNCPY(file_handler.label, label);
+  file_handler.file_extensions = std::move(file_extensions);
+  EXPECT_EQ(file_handler.label_with_extensions(), expected);
+}
+
+TEST_F(FileHandlerTest, label_with_extensions)
+{
+  /* No extensions: label is returned unchanged. */
+  expect_label_with_extensions("Wavefront OBJ", {}, "Wavefront OBJ");
+
+  /* Single extension. */
+  expect_label_with_extensions("Wavefront OBJ", {".obj"}, "Wavefront OBJ (.obj)");
+
+  /* No common prefix: joined with '/'. */
+  expect_label_with_extensions("Collada", {".dae", ".zae"}, "Collada (.dae/.zae)");
+
+  /* Common prefix ".ab" has only 2 letters excluding the leading dot: below the 3-letter
+   * threshold required to collapse. */
+  expect_label_with_extensions("Prefix Too Short", {".ab", ".abc"}, "Prefix Too Short (.ab/.abc)");
+
+  /* Common prefix ".ble" has enough letters to collapse, but ".blend" is longer than
+   * `prefix.size() + 1`, so the extensions are not collapsible. */
+  expect_label_with_extensions(
+      "Extension Too Long", {".ble", ".blend"}, "Extension Too Long (.ble/.blend)");
+
+  /* Common prefix has enough letters and no extension exceeds the length limit:
+   * collapses to `<prefix>*`. */
+  expect_label_with_extensions("Universal Scene Description",
+                               {".usd", ".usda", ".usdc"},
+                               "Universal Scene Description (.usd*)");
+
+  /* Common prefix ".abc" has exactly 3 letters excluding the leading dot: the minimum
+   * required to collapse. */
+  expect_label_with_extensions(
+      "Prefix Length Boundary", {".abc", ".abcd"}, "Prefix Length Boundary (.abc*)");
+
+  /* ".foo" and ".fooz" form a collapsible group, ".bar" does not share a prefix with
+   * either and forms its own group. */
+  expect_label_with_extensions(
+      "Multiple Groups", {".foo", ".fooz", ".bar"}, "Multiple Groups (.foo*/.bar)");
+}
 }  // namespace blender::bke::tests

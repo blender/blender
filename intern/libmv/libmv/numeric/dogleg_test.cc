@@ -54,7 +54,7 @@ TEST(Dogleg, SimpleCase) {
 }
 
 // Example 3.2 from [1]; page 11 of the pdf, 20 of the document. This is a
-// tricky problem because of the singluar Jacobian near the origin.
+// tricky problem because of the singular Jacobian near the origin.
 class F32 {
  public:
   typedef Vec2 FMatrixType;

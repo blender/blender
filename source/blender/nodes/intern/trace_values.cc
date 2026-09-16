@@ -96,9 +96,9 @@ static Vector<SocketInContext> find_target_sockets_through_contexts(
     const NodeInContext &node = socket.owner_node();
     if (socket->is_input()) {
       if (node->is_muted()) {
-        for (const bNodeLink &link : node->internal_links()) {
-          if (link.fromsock == socket.socket) {
-            add_if_new({socket.context, link.tosock}, bundle_path);
+        for (const bNodeInternalLink &link : node->internal_links()) {
+          if (link.in == socket.socket) {
+            add_if_new({socket.context, link.out}, bundle_path);
           }
         }
         continue;
@@ -415,9 +415,9 @@ static Vector<SocketInContext> find_origin_sockets_through_contexts(
     }
     else {
       if (node->is_muted()) {
-        for (const bNodeLink &link : node->internal_links()) {
-          if (link.tosock == socket.socket) {
-            add_if_new({socket.context, link.fromsock}, bundle_path);
+        for (const bNodeInternalLink &link : node->internal_links()) {
+          if (link.out == socket.socket) {
+            add_if_new({socket.context, link.in}, bundle_path);
           }
         }
         continue;

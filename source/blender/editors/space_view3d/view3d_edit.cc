@@ -919,7 +919,7 @@ static void calc_local_clipping(float clip_local[6][4],
 
 void ED_view3d_clipping_local(RegionView3D *rv3d, const float mat[4][4])
 {
-  if (rv3d->rflag & RV3D_CLIPPING) {
+  if ((rv3d->rflag & RV3D_CLIPPING) && (rv3d->clipbb != nullptr)) {
     calc_local_clipping(rv3d->clip_local, rv3d->clipbb, mat);
   }
 }

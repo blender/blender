@@ -304,7 +304,7 @@ static PyObject *draw_func(PyObject * /*self*/, PyObject *args)
       pylong_as_voidptr_typesafe(py_space_image));
 
   /* Release GIL, this is required because draw() can indirectly cause
-   * a Python render_stats handler to be run, which can deadlock otheriwse. */
+   * a Python render_stats handler to be run, which can deadlock otherwise. */
   Py_BEGIN_ALLOW_THREADS;
   session->draw(blender::id_cast<blender::bScreen &>(*b_screen), *b_space_image);
   Py_END_ALLOW_THREADS;

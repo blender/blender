@@ -469,7 +469,7 @@ class OBJECT_PT_visibility(ObjectButtonsPanel, Panel):
 
         layout.separator()
         col = layout.column(heading="Mask")
-        col.prop(ob, "is_holdout")
+        col.prop(ob, "is_holdout", toggle=False)
 
 
 def has_geometry_visibility(ob):

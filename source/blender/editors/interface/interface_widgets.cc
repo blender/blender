@@ -4803,6 +4803,7 @@ static void widget_numslider(Button *but,
 
     round_box_edges(&wtb1, roundboxalign_slider, &rect1, rad);
     wtb1.draw_outline = false;
+    wtb1.draw_emboss = false;
     widgetbase_set_uniform_discard_factor(&wtb1, factor_discard);
     widgetbase_draw(&wtb1, wcol);
 
@@ -4816,6 +4817,7 @@ static void widget_numslider(Button *but,
   /* Outline. */
   wtb.draw_outline = true;
   wtb.draw_inner = false;
+  wtb.draw_emboss = false;
   widgetbase_draw(&wtb, wcol);
 
   /* Add space at either side of the button so text aligns with number-buttons

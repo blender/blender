@@ -394,7 +394,7 @@ static EnumPropertyItem rna_enum_gpencil_brush_modes_items[] = {
 #  include "BKE_brush.hh"
 #  include "BKE_colorband.hh"
 #  include "BKE_context.hh"
-#  include "BKE_gpencil_legacy.h"
+#  include "BKE_grease_pencil.hh"
 #  include "BKE_icons.hh"
 #  include "BKE_layer.hh"
 #  include "BKE_material.hh"
@@ -403,6 +403,9 @@ static EnumPropertyItem rna_enum_gpencil_brush_modes_items[] = {
 #  include "BKE_preview_image.hh"
 
 #  include "WM_api.hh"
+
+#  define GPENCIL_USE_VERTEX_COLOR(toolsettings) \
+    (((toolsettings)->gp_paint->mode == GPPAINT_FLAG_USE_VERTEXCOLOR))
 
 namespace blender {
 
@@ -1056,10 +1059,10 @@ static void rna_BrushGpencilSettings_use_material_pin_update(bContext *C, Pointe
 
   if (brush->gpencil_settings->flag & GP_BRUSH_MATERIAL_PINNED) {
     Material *material = BKE_object_material_get(ob, ob->actcol);
-    BKE_gpencil_brush_material_set(brush, material);
+    BKE_grease_pencil_brush_material_set(brush, material);
   }
   else {
-    BKE_gpencil_brush_material_set(brush, nullptr);
+    BKE_grease_pencil_brush_material_set(brush, nullptr);
   }
 
   rna_BrushGpencilSettings_update(CTX_data_main(C), CTX_data_scene(C), ptr);

@@ -1,9 +1,9 @@
 
 msgid ""
 msgstr ""
-"Project-Id-Version: Blender 5.3.0 Alpha (b'f5df8c32f99b')\n"
+"Project-Id-Version: Blender 5.3.0 Alpha (b'2cef5b8c951a')\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-09-07 07:47+0000\n"
+"POT-Creation-Date: 2026-09-14 07:47+0000\n"
 "PO-Revision-Date: 2026-07-08 11:12+0000\n"
 "Last-Translator: Timo Hoetmer <timo@timohoetmer.nl>\n"
 "Language-Team: Dutch <https://translate.blender.org/projects/blender-ui/ui/nl/>\n"
@@ -5760,36 +5760,36 @@ msgid "Dots"
 msgstr "Stippen"
 
 
+msgid "Show/Hide"
+msgstr "Toon/Verberg"
+
+
 msgid "Import"
 msgstr "Importeren"
-
-
-msgid "Select Linked"
-msgstr "Selecteer Aaneengesloten"
-
-
-msgid "Select Similar"
-msgstr "Selecteer Vergelijkbaar"
-
-
-msgid "Navigation"
-msgstr "Navigatie"
-
-
-msgid "Local View"
-msgstr "Lokale Scherm"
 
 
 msgid "Mirror"
 msgstr "Spiegel"
 
 
-msgid "Show/Hide"
-msgstr "Toon/Verberg"
+msgid "Local View"
+msgstr "Lokale Scherm"
 
 
-msgid "Names"
-msgstr "Namen"
+msgid "Navigation"
+msgstr "Navigatie"
+
+
+msgid "Select Similar"
+msgstr "Selecteer Vergelijkbaar"
+
+
+msgid "Select Linked"
+msgstr "Selecteer Aaneengesloten"
+
+
+msgid "Light"
+msgstr "Licht"
 
 
 msgid "Linked"
@@ -5800,26 +5800,6 @@ msgid "Layout"
 msgstr "Indeling"
 
 
-msgid "Clear Transform"
-msgstr "Maak Transformatie Leeg"
-
-
-msgid "Hooks"
-msgstr "Haken"
-
-
-msgid "Convert"
-msgstr "Converteer"
-
-
-msgid "Quick Effects"
-msgstr "Snelle Effecten"
-
-
-msgid "Rigid Body"
-msgstr "Star Lichaam"
-
-
 msgid "Add Image"
 msgstr "Voeg Afbeelding Toe"
 
@@ -5828,8 +5808,28 @@ msgid "Relations"
 msgstr "Relaties"
 
 
-msgid "Light"
-msgstr "Licht"
+msgid "Rigid Body"
+msgstr "Star Lichaam"
+
+
+msgid "Quick Effects"
+msgstr "Snelle Effecten"
+
+
+msgid "Convert"
+msgstr "Converteer"
+
+
+msgid "Hooks"
+msgstr "Haken"
+
+
+msgid "Clear Transform"
+msgstr "Maak Transformatie Leeg"
+
+
+msgid "Names"
+msgstr "Namen"
 
 
 msgctxt "MovieClip"

@@ -709,7 +709,7 @@ void AttributeStorage::blend_write(BlendWriter &writer,
   writer.write_struct_array_by_name("Attribute",
                                     write_data.attributes.size(),
                                     write_data.attributes.data(),
-                                    [](BlendStructWriter &struct_writer) {
+                                    [](BlendStructWriterVoid &struct_writer) {
                                       struct_writer.generated_ptr(
                                           offsetof(blender::Attribute, data));
                                     });

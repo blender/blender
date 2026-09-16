@@ -368,12 +368,17 @@ static void lattice_deform_coords_impl(const Object *ob_lattice,
   const MDeformVert *dvert = nullptr;
   int defgrp_index = -1;
   int cd_dvert_offset = -1;
+  BMesh *bm = nullptr;
 
   if (ob_lattice->type != OB_LATTICE) {
     return;
   }
 
   lattice_deform_data = BKE_lattice_deform_data_create(ob_lattice, ob_target);
+
+  if (em_target != nullptr) {
+    bm = const_cast<BMesh *>(BKE_editmesh_bmesh_get(ob_target));
+  }
 
   /* Check whether to use vertex groups (only possible if ob_target is a Mesh or Lattice).
    * We want either a Mesh/Lattice with no derived data, or derived data with deformverts.
@@ -385,7 +390,7 @@ static void lattice_deform_coords_impl(const Object *ob_lattice,
     if (defgrp_index != -1) {
       /* if there's derived data without deformverts, don't use vgroups */
       if (em_target) {
-        cd_dvert_offset = CustomData_get_offset(&em_target->bm->vdata, CD_MDEFORMVERT);
+        cd_dvert_offset = CustomData_get_offset(&bm->vdata, CD_MDEFORMVERT);
       }
       else if (me_target) {
         dvert = me_target->deform_verts().data();
@@ -411,18 +416,16 @@ static void lattice_deform_coords_impl(const Object *ob_lattice,
   if (em_target != nullptr) {
     /* While this could cause an extra loop over mesh data, in most cases this will
      * have already been properly set. */
-    BM_mesh_elem_index_ensure(em_target->bm, BM_VERT);
+    BM_mesh_elem_index_ensure(bm, BM_VERT);
 
     TaskParallelSettings settings;
     BLI_parallel_mempool_settings_defaults(&settings);
 
     if (cd_dvert_offset != -1) {
-      BLI_task_parallel_mempool(
-          em_target->bm->vpool, &data, lattice_vert_task_editmesh, &settings);
+      BLI_task_parallel_mempool(bm->vpool, &data, lattice_vert_task_editmesh, &settings);
     }
     else {
-      BLI_task_parallel_mempool(
-          em_target->bm->vpool, &data, lattice_vert_task_editmesh_no_dvert, &settings);
+      BLI_task_parallel_mempool(bm->vpool, &data, lattice_vert_task_editmesh_no_dvert, &settings);
     }
   }
   else {

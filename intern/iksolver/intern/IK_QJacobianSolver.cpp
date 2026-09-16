@@ -249,7 +249,7 @@ bool IK_QJacobianSolver::UpdateAngles(double &norm)
 
   // here we check if any angle limits were violated. angles whose clamped
   // position is the same as it was before, are locked immediate. of the
-  // other violation angles the most violating angle is rememberd
+  // other violation angles the most violating angle is remembered
   for (seg = m_segments.begin(); seg != m_segments.end(); seg++) {
     qseg = *seg;
     if (qseg->UpdateAngle(m_jacobian, delta, clamp)) {

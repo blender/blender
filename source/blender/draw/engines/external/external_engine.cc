@@ -214,7 +214,12 @@ class Instance : public DrawEngine {
   void init() final
   {
     draw_ctx = DRW_context_get();
-    do_prepass = DRW_render_check_grease_pencil(draw_ctx->depsgraph, draw_ctx->v3d);
+    const bool engine_provides_depth =
+        draw_ctx->v3d != nullptr &&
+        (ED_view3d_engine_type(draw_ctx->scene, draw_ctx->v3d->shading.type)->flag &
+         RE_WRITE_VIEWPORT_DEPTH);
+    do_prepass = !engine_provides_depth &&
+                 DRW_render_check_grease_pencil(draw_ctx->depsgraph, draw_ctx->v3d);
   }
 
   void begin_sync() final
@@ -237,19 +242,26 @@ class Instance : public DrawEngine {
   {
     RegionView3D *rv3d = draw_ctx->rv3d;
     ARegion *region = draw_ctx->region;
+    RenderEngineType *engine_type = ED_view3d_engine_type(draw_ctx->scene,
+                                                          draw_ctx->v3d->shading.type);
 
-    draw::command::StateSet::set(DRW_STATE_WRITE_COLOR);
+    if (engine_type->flag & RE_WRITE_VIEWPORT_DEPTH) {
+      draw::command::StateSet::set(DRW_STATE_WRITE_COLOR | DRW_STATE_WRITE_DEPTH |
+                                   DRW_STATE_DEPTH_LESS_EQUAL);
+    }
+    else {
+      draw::command::StateSet::set(DRW_STATE_WRITE_COLOR);
+    }
 
     /* The external engine can use the OpenGL rendering API directly, so make sure the state is
-     * already applied. */
+     * already applied.
+     * We should only need this before view_draw, but we do it here for compatibility
+     * (matching previous Blender versions) */
     GPU_apply_state();
 
     /* Create render engine. */
     RenderEngine *render_engine = nullptr;
     if (!rv3d->view_render) {
-      RenderEngineType *engine_type = ED_view3d_engine_type(draw_ctx->scene,
-                                                            draw_ctx->v3d->shading.type);
-
       if (!(engine_type->view_update && engine_type->view_draw)) {
         return;
       }
@@ -273,8 +285,7 @@ class Instance : public DrawEngine {
     ED_region_pixelspace(region);
 
     /* Render result draw. */
-    const RenderEngineType *type = render_engine->type;
-    type->view_draw(render_engine, draw_ctx->evil_C, draw_ctx->depsgraph);
+    engine_type->view_draw(render_engine, draw_ctx->evil_C, draw_ctx->depsgraph);
 
     GPU_matrix_pop();
     GPU_matrix_pop_projection();

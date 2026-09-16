@@ -15,7 +15,7 @@
 
 class GHOST_DropTargetWin32 final : public IDropTarget {
  public:
-  /* IUnknownd implementation.
+  /* IUnknown implementation.
    * Enables clients to get pointers to other interfaces on a given object
    * through the QueryInterface method, and manage the existence of the object
    * through the AddRef and Release methods. All other COM interfaces are

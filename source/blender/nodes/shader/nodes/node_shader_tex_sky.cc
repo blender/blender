@@ -11,8 +11,6 @@
 #include "sky_hosek.h"
 #include "sky_nishita.h"
 
-#include "BKE_context.hh"
-#include "BKE_scene.hh"
 #include "BKE_texture.h"
 
 #include "RNA_access.hh"
@@ -32,7 +30,7 @@ static void node_declare(NodeDeclarationBuilder &b)
   b.add_output<decl::Color>("Color"_ustr).no_muted_links();
 }
 
-static void node_shader_buts_tex_sky(ui::Layout &layout, bContext *C, PointerRNA *ptr)
+static void node_shader_buts_tex_sky(ui::Layout &layout, bContext * /*C*/, PointerRNA *ptr)
 {
   layout.prop(ptr, "sky_type", ui::ITEM_R_SPLIT_EMPTY_NAME, "", ICON_NONE);
 
@@ -46,10 +44,6 @@ static void node_shader_buts_tex_sky(ui::Layout &layout, bContext *C, PointerRNA
     layout.prop(ptr, "ground_albedo", ui::ITEM_R_SPLIT_EMPTY_NAME, std::nullopt, ICON_NONE);
   }
   else {
-    Scene *scene = CTX_data_scene(C);
-    if (BKE_scene_uses_blender_eevee(scene)) {
-      layout.label_multiline(RPT_("Sun disc not available in EEVEE"), ICON_STATUS_ERROR);
-    }
     layout.prop(ptr, "sun_disc", ui::ITEM_R_SPLIT_EMPTY_NAME, std::nullopt, ICON_NONE);
 
     if (RNA_boolean_get(ptr, "sun_disc")) {
@@ -156,7 +150,7 @@ static void sky_precompute_old(SkyModelPreetham *sunsky, const float sun_angles[
   sunsky->radiance[2] /= sky_perez_function(sunsky->config_y, 0, theta);
 }
 
-static void sky_simplify_multiscatter_elevation_rotation(float &sun_elevation, float &sun_rotation)
+static void sky_simplify_elevation_rotation(float &sun_elevation, float &sun_rotation)
 {
   /* Patch Sun position so users are able to animate the daylight cycle while keeping the shading
    * code simple. */
@@ -270,28 +264,32 @@ static int node_shader_gpu_tex_sky(GPUMaterial *mat,
   Array<float> pixels(4 * GPU_SKY_WIDTH * GPU_SKY_HEIGHT);
 
   float sun_rotation = tex->sun_rotation;
+  float sun_elevation = tex->sun_elevation;
+  /* Clamped for numerical precision, as Cycles' get_sun_size() does. The disc's radiance is
+   * divided by its solid angle, which is zero at a size of zero. */
+  const float sun_size = fmaxf(tex->sun_size, 0.0005f);
+  float pixel_bottom[3];
+  float pixel_top[3];
+  sky_simplify_elevation_rotation(sun_elevation, sun_rotation);
   if (tex->sky_model == SHD_SKY_SINGLE_SCATTERING) {
     SKY_single_scattering_precompute_texture(pixels.data(),
                                              4,
                                              GPU_SKY_WIDTH,
                                              GPU_SKY_HEIGHT,
-                                             tex->sun_elevation,
+                                             sun_elevation,
                                              tex->altitude,
                                              tex->air_density,
                                              tex->aerosol_density,
                                              tex->ozone_density);
-
-    /* The multi-scatter case takes care of rotation wrapping in the
-     * sky_simplify_multiscatter_elevation_rotation(). */
-    sun_rotation = fmodf(sun_rotation, 2.0f * M_PI);
-    if (sun_rotation < 0.0f) {
-      sun_rotation += 2.0f * M_PI;
-    }
-    sun_rotation = 2.0f * M_PI - sun_rotation;
+    SKY_single_scattering_precompute_sun(sun_elevation,
+                                         sun_size,
+                                         tex->altitude,
+                                         tex->air_density,
+                                         tex->aerosol_density,
+                                         pixel_bottom,
+                                         pixel_top);
   }
   else {
-    float sun_elevation = tex->sun_elevation;
-    sky_simplify_multiscatter_elevation_rotation(sun_elevation, sun_rotation);
     SKY_multiple_scattering_precompute_texture(pixels.data(),
                                                4,
                                                GPU_SKY_WIDTH,
@@ -301,6 +299,14 @@ static int node_shader_gpu_tex_sky(GPUMaterial *mat,
                                                tex->air_density,
                                                tex->aerosol_density,
                                                tex->ozone_density);
+    SKY_multiple_scattering_precompute_sun(sun_elevation,
+                                           sun_size,
+                                           tex->altitude,
+                                           tex->air_density,
+                                           tex->aerosol_density,
+                                           tex->ozone_density,
+                                           pixel_bottom,
+                                           pixel_top);
   }
 
   XYZ_to_RGB xyz_to_rgb;
@@ -312,6 +318,13 @@ static int node_shader_gpu_tex_sky(GPUMaterial *mat,
                              GPU_SAMPLER_EXTEND_MODE_EXTEND};
   float layer;
   float sky_type = (tex->sky_model == SHD_SKY_SINGLE_SCATTERING) ? 0.0f : 1.0f;
+  /* A negative angular diameter tells the shader the disc is off.
+   * SKY_earth_intersection_angle() returns how far the true horizon dips below the local
+   * horizontal at altitude, so the visible sky reaches that negative elevation. */
+  const float sun_params[4] = {sun_elevation,
+                               tex->sun_disc ? sun_size : -1.0f,
+                               tex->sun_intensity,
+                               -SKY_earth_intersection_angle(tex->altitude)};
   GPUNodeLink *sky_texture = GPU_image_sky(
       mat, GPU_SKY_WIDTH, GPU_SKY_HEIGHT, pixels.data(), &layer, sampler);
   return GPU_stack_link(mat,
@@ -324,6 +337,9 @@ static int node_shader_gpu_tex_sky(GPUMaterial *mat,
                         GPU_uniform(xyz_to_rgb.r),
                         GPU_uniform(xyz_to_rgb.g),
                         GPU_uniform(xyz_to_rgb.b),
+                        GPU_uniform(pixel_bottom),
+                        GPU_uniform(pixel_top),
+                        GPU_uniform(sun_params),
                         sky_texture,
                         GPU_constant(&layer));
 }

@@ -28,7 +28,7 @@
 #include "DNA_effect_types.h"
 #include "DNA_fluid_types.h"
 #include "DNA_gpencil_legacy_types.h"
-#include "DNA_gpencil_modifier_types.h"
+#include "DNA_grease_pencil_modifier_types.h"
 #include "DNA_grease_pencil_types.h"
 #include "DNA_key_types.h"
 #include "DNA_lattice_types.h"
@@ -67,6 +67,7 @@
 #include "BKE_anim_path.h"
 #include "BKE_anim_visualization.h"
 #include "BKE_animsys.hh"
+#include "BKE_annotations.h"
 #include "BKE_armature.hh"
 #include "BKE_asset.hh"
 #include "BKE_bpath.hh"
@@ -86,10 +87,8 @@
 #include "BKE_geometry_set.hh"
 #include "BKE_geometry_set_instances.hh"
 #include "BKE_global.hh"
-#include "BKE_gpencil_geom_legacy.h"
-#include "BKE_gpencil_legacy.h"
-#include "BKE_gpencil_modifier_legacy.h"
 #include "BKE_grease_pencil.hh"
+#include "BKE_grease_pencil_modifiers.h"
 #include "BKE_idprop.hh"
 #include "BKE_idtype.hh"
 #include "BKE_image.hh"
@@ -456,7 +455,7 @@ static void object_foreach_id(ID *id, LibraryForeachIDData *data)
       data, BKE_modifiers_foreach_ID_link(object, library_foreach_modifiersForeachIDLink, data));
   BKE_LIB_FOREACHID_PROCESS_FUNCTION_CALL(
       data,
-      BKE_gpencil_modifiers_foreach_ID_link(
+      BKE_grease_pencil_modifiers_foreach_ID_link(
           object, library_foreach_gpencil_modifiersForeachIDLink, data));
   BKE_LIB_FOREACHID_PROCESS_FUNCTION_CALL(
       data,
@@ -861,7 +860,9 @@ static void object_blend_write(BlendWriter *writer, ID *id, const void *id_addre
     writer->write_struct(ob->lightgroup);
   }
   if (ob->light_linking) {
-    writer->write_struct(ob->light_linking);
+    writer->write_struct(ob->light_linking, [](BlendStructWriter<LightLinking> &struct_writer) {
+      struct_writer.shallow_data.runtime = {};
+    });
   }
 
   if (ob->lightprobe_cache) {
@@ -917,7 +918,7 @@ static void object_blend_read_data(BlendDataReader *reader, ID *id)
 
   /* do it here, below old data gets converted */
   BKE_modifier_blend_read_data(reader, &ob->modifiers, ob);
-  BKE_gpencil_modifier_blend_read_data(reader, &ob->greasepencil_modifiers, ob);
+  BKE_grease_pencil_modifier_blend_read_data(reader, &ob->greasepencil_modifiers, ob);
   BKE_shaderfx_blend_read_data(reader, &ob->shader_fx, ob);
 
   BLO_read_struct_list(reader, PartEff, &ob->effect);
@@ -1344,7 +1345,7 @@ void BKE_object_free_modifiers(Object *ob, const int flag)
   while (GpencilModifierData *gp_md = static_cast<GpencilModifierData *>(
              BLI_pophead(&ob->greasepencil_modifiers)))
   {
-    BKE_gpencil_modifier_free_ex(gp_md, flag);
+    BKE_grease_pencil_modifier_free_ex(gp_md, flag);
   }
   /* Particle modifiers were freed, so free the particle-systems as well. */
   BKE_object_free_particlesystems(ob);
@@ -3249,9 +3250,8 @@ static void give_parvert(const Object *par, int nr, float vec[3], const bool use
   zero_v3(vec);
 
   if (par->type == OB_MESH) {
-    const Mesh *mesh = id_cast<const Mesh *>(par->data);
-    const BMEditMesh *em = mesh->runtime->edit_mesh.get();
-    const Mesh *mesh_eval = (em) ? BKE_object_get_editmesh_eval_final(par) :
+    const BMesh *bm = BKE_editmesh_bmesh_get(par);
+    const Mesh *mesh_eval = (bm) ? BKE_object_get_editmesh_eval_final(par) :
                                    BKE_object_get_evaluated_mesh(par);
 
     if (mesh_eval) {
@@ -3259,17 +3259,17 @@ static void give_parvert(const Object *par, int nr, float vec[3], const bool use
       int count = 0;
       int numVerts = mesh_eval->verts_num;
 
-      if (em && mesh_eval->runtime->wrapper_type == ME_WRAPPER_TYPE_BMESH) {
-        numVerts = em->bm->totvert;
-        if (em->bm->elem_table_dirty & BM_VERT) {
+      if (bm && mesh_eval->runtime->wrapper_type == ME_WRAPPER_TYPE_BMESH) {
+        numVerts = bm->totvert;
+        if (bm->elem_table_dirty & BM_VERT) {
 #ifdef VPARENT_THREADING_HACK
           std::scoped_lock lock(vparent_lock);
-          if (em->bm->elem_table_dirty & BM_VERT) {
-            BM_mesh_elem_table_ensure(em->bm, BM_VERT);
+          if (bm->elem_table_dirty & BM_VERT) {
+            BM_mesh_elem_table_ensure(const_cast<BMesh *>(bm), BM_VERT);
           }
 #else
           BLI_assert_msg(0, "Not safe for threading");
-          BM_mesh_elem_table_ensure(em->bm, BM_VERT);
+          BM_mesh_elem_table_ensure(const_cast<BMesh *>(bm), BM_VERT);
 #endif
         }
         if (nr < numVerts) {
@@ -3279,7 +3279,7 @@ static void give_parvert(const Object *par, int nr, float vec[3], const bool use
             add_v3_v3(vec, mesh_eval->runtime->edit_data->vert_positions[nr]);
           }
           else {
-            const BMVert *v = BM_vert_at_index(em->bm, nr);
+            const BMVert *v = BM_vert_at_index(const_cast<BMesh *>(bm), nr);
             add_v3_v3(vec, v->co);
           }
           count++;

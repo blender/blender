@@ -145,8 +145,8 @@ static bool edbm_inset_init(bContext *C, wmOperator *op, const bool is_modal)
       Object *obedit = objects[ob_index];
       float scale = mat4_to_scale(obedit->object_to_world().ptr());
       opdata->max_obj_scale = max_ff(opdata->max_obj_scale, scale);
-      BMEditMesh *em = BKE_editmesh_from_object(obedit);
-      if (em->bm->totvertsel > 0) {
+      const BMesh *bm = BKE_editmesh_bmesh_get(obedit);
+      if (bm->totvertsel > 0) {
         opdata->ob_store[objects_used_len].ob = obedit;
         objects_used_len++;
       }
@@ -172,8 +172,8 @@ static bool edbm_inset_init(bContext *C, wmOperator *op, const bool is_modal)
 
     for (uint ob_index = 0; ob_index < opdata->ob_store_len; ob_index++) {
       Object *obedit = opdata->ob_store[ob_index].ob;
-      BMEditMesh *em = BKE_editmesh_from_object(obedit);
-      opdata->ob_store[ob_index].mesh_backup = EDBM_redo_state_store(em);
+      BMesh *bm = BKE_editmesh_bmesh_get_for_write(obedit);
+      opdata->ob_store[ob_index].mesh_backup = EDBM_redo_state_store(bm);
     }
 
     opdata->draw_handle_pixel = ED_region_draw_cb_activate(region->runtime->type,
@@ -219,7 +219,8 @@ static void edbm_inset_cancel(bContext *C, wmOperator *op)
     for (uint ob_index = 0; ob_index < opdata->ob_store_len; ob_index++) {
       Object *obedit = opdata->ob_store[ob_index].ob;
       BMEditMesh *em = BKE_editmesh_from_object(obedit);
-      EDBM_redo_state_restore_and_free(&opdata->ob_store[ob_index].mesh_backup, em, true);
+      BMesh *bm = BKE_editmesh_bmesh_get_for_write(obedit);
+      EDBM_redo_state_restore_and_free(&opdata->ob_store[ob_index].mesh_backup, em, bm, true);
       EDBMUpdate_Params params{};
       params.calc_looptris = false;
       params.calc_normals = false;
@@ -257,13 +258,14 @@ static bool edbm_inset_calc(wmOperator *op)
   for (uint ob_index = 0; ob_index < opdata->ob_store_len; ob_index++) {
     Object *obedit = opdata->ob_store[ob_index].ob;
     BMEditMesh *em = BKE_editmesh_from_object(obedit);
+    BMesh *bm = BKE_editmesh_bmesh_get_for_write(obedit);
 
     if (opdata->is_modal) {
-      EDBM_redo_state_restore(&opdata->ob_store[ob_index].mesh_backup, em, false);
+      EDBM_redo_state_restore(&opdata->ob_store[ob_index].mesh_backup, em, bm, false);
     }
 
     if (use_individual) {
-      EDBM_op_init(em,
+      EDBM_op_init(bm,
                    &bmop,
                    op,
                    "inset_individual faces=%hf use_even_offset=%b use_relative_offset=%b "
@@ -277,7 +279,7 @@ static bool edbm_inset_calc(wmOperator *op)
     }
     else {
       EDBM_op_init(
-          em,
+          bm,
           &bmop,
           op,
           "inset_region faces=%hf use_boundary=%b use_even_offset=%b use_relative_offset=%b "
@@ -294,23 +296,22 @@ static bool edbm_inset_calc(wmOperator *op)
 
       if (use_outset) {
         BMO_slot_buffer_from_enabled_hflag(
-            em->bm, &bmop, bmop.slots_in, "faces_exclude", BM_FACE, BM_ELEM_HIDDEN);
+            bm, &bmop, bmop.slots_in, "faces_exclude", BM_FACE, BM_ELEM_HIDDEN);
       }
     }
-    BMO_op_exec(em->bm, &bmop);
+    BMO_op_exec(bm, &bmop);
 
     if (use_select_inset) {
       /* deselect original faces/verts */
-      EDBM_flag_disable_all(em, BM_ELEM_SELECT);
-      BMO_slot_buffer_hflag_enable(
-          em->bm, bmop.slots_out, "faces.out", BM_FACE, BM_ELEM_SELECT, true);
+      EDBM_flag_disable_all(bm, BM_ELEM_SELECT);
+      BMO_slot_buffer_hflag_enable(bm, bmop.slots_out, "faces.out", BM_FACE, BM_ELEM_SELECT, true);
     }
     else {
-      EDBM_flag_disable_all(em, BM_ELEM_SELECT);
-      BMO_slot_buffer_hflag_enable(em->bm, bmop.slots_in, "faces", BM_FACE, BM_ELEM_SELECT, true);
+      EDBM_flag_disable_all(bm, BM_ELEM_SELECT);
+      BMO_slot_buffer_hflag_enable(bm, bmop.slots_in, "faces", BM_FACE, BM_ELEM_SELECT, true);
     }
 
-    if (!EDBM_op_finish(em, &bmop, op, true)) {
+    if (!EDBM_op_finish(bm, &bmop, op, true)) {
       continue;
     }
 

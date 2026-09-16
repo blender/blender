@@ -1335,7 +1335,7 @@ static wmOperatorStatus object_origin_set_exec(bContext *C, wmOperator *op)
   if (obedit) {
     if (obedit->type == OB_MESH) {
       Mesh *mesh = id_cast<Mesh *>(obedit->data);
-      BMEditMesh *em = mesh->runtime->edit_mesh.get();
+      BMesh *bm = BKE_editmesh_bmesh_get_for_write(mesh);
       BMVert *eve;
       BMIter iter;
 
@@ -1348,26 +1348,26 @@ static wmOperatorStatus object_origin_set_exec(bContext *C, wmOperator *op)
         if (around == V3D_AROUND_CENTER_BOUNDS) {
           float min[3], max[3];
           INIT_MINMAX(min, max);
-          BM_ITER_MESH (eve, &iter, em->bm, BM_VERTS_OF_MESH) {
+          BM_ITER_MESH (eve, &iter, bm, BM_VERTS_OF_MESH) {
             minmax_v3v3_v3(min, max, eve->co);
           }
           mid_v3_v3v3(cent, min, max);
         }
         else { /* #V3D_AROUND_CENTER_MEDIAN. */
-          if (em->bm->totvert) {
-            const float total_div = 1.0f / float(em->bm->totvert);
-            BM_ITER_MESH (eve, &iter, em->bm, BM_VERTS_OF_MESH) {
+          if (bm->totvert) {
+            const float total_div = 1.0f / float(bm->totvert);
+            BM_ITER_MESH (eve, &iter, bm, BM_VERTS_OF_MESH) {
               madd_v3_v3fl(cent, eve->co, total_div);
             }
           }
         }
       }
 
-      BM_ITER_MESH (eve, &iter, em->bm, BM_VERTS_OF_MESH) {
+      BM_ITER_MESH (eve, &iter, bm, BM_VERTS_OF_MESH) {
         sub_v3_v3(eve->co, cent);
       }
 
-      EDBM_mesh_normals_update(em);
+      EDBM_mesh_normals_update(bm);
       tot_change++;
       DEG_id_tag_update(&obedit->id, ID_RECALC_GEOMETRY);
     }

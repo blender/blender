@@ -205,7 +205,7 @@ static bool compare_node_depth(const bNode *a, const bNode *b)
 {
   /* These tell if either the node or any of the parent nodes is selected.
    * A selected parent means an unselected node is also in foreground! */
-  bool a_select = (a->flag & NODE_SELECT) != 0, b_select = (b->flag & NODE_SELECT) != 0;
+  bool a_select = a->is_selected(), b_select = b->is_selected();
   bool a_active = (a->flag & NODE_ACTIVE) != 0, b_active = (b->flag & NODE_ACTIVE) != 0;
 
   /* If one is an ancestor of the other. */
@@ -220,7 +220,7 @@ static bool compare_node_depth(const bNode *a, const bNode *b)
     if (parent->flag & NODE_ACTIVE) {
       a_active = true;
     }
-    if (parent->flag & NODE_SELECT) {
+    if (parent->is_selected()) {
       a_select = true;
     }
   }
@@ -233,16 +233,15 @@ static bool compare_node_depth(const bNode *a, const bNode *b)
     if (parent->flag & NODE_ACTIVE) {
       b_active = true;
     }
-    if (parent->flag & NODE_SELECT) {
+    if (parent->is_selected()) {
       b_select = true;
     }
   }
 
-  /* One of the nodes is in the background and the other not. */
-  if ((a->flag & NODE_BACKGROUND) && !(b->flag & NODE_BACKGROUND)) {
+  if (a->is_frame() && !b->is_frame()) {
     return true;
   }
-  if ((b->flag & NODE_BACKGROUND) && !(a->flag & NODE_BACKGROUND)) {
+  if (b->is_frame() && !a->is_frame()) {
     return false;
   }
 
@@ -1439,7 +1438,21 @@ static void node_draw_mute_line(const bContext &C,
 {
   GPU_blend(GPU_BLEND_ALPHA);
 
-  for (const bNodeLink &link : node.internal_links()) {
+  for (const bNodeInternalLink &internal_link : node.internal_links()) {
+    bNodeLink link{};
+    link.fromnode = const_cast<bNode *>(&node);
+    link.tonode = const_cast<bNode *>(&node);
+    link.fromsock = internal_link.in;
+    link.tosock = internal_link.out;
+    link.flag |= NODE_LINK_VALID;
+    if (internal_link.in->is_multi_input()) {
+      for (const bNodeLink *connected_link : internal_link.in->directly_linked_links()) {
+        if (!connected_link->fromnode->is_dangling_reroute()) {
+          link.multi_input_sort_id = connected_link->multi_input_sort_id;
+          break;
+        }
+      }
+    }
     if (!bke::node_link_is_hidden(link)) {
       node_draw_link_bezier(C, v2d, snode, link, TH_WIRE_INNER, TH_WIRE_INNER, TH_WIRE, false);
     }
@@ -1725,7 +1738,7 @@ static void node_draw_node_group_indicator(const SpaceNode &snode,
   }
 
   /* How far it extends down and narrows. */
-  const bool is_selected = node.flag & NODE_SELECT;
+  const bool is_selected = node.is_selected();
   const bool is_collapsed = node.flag & NODE_COLLAPSED;
   const float offset_x = 3.6f * UI_SCALE_FAC;
   const float offset_y = 2.4f * UI_SCALE_FAC;
@@ -2803,7 +2816,7 @@ static ColorTheme4f node_header_color_get(const bNodeTree &ntree,
   }
 
   /* Draw selected nodes fully opaque. */
-  if (node.flag & SELECT) {
+  if (node.is_selected()) {
     color_header.a = 1.0f;
   }
 
@@ -3083,7 +3096,7 @@ static void node_draw_basis(const bContext &C,
   node_add_error_message_button(tree_draw_ctx, ntree, node, block, rct, iconofs);
 
   /* Title. */
-  if (node.flag & SELECT) {
+  if (node.is_selected()) {
     ui::theme::get_color_4fv(TH_SELECT, color);
   }
   else {
@@ -3154,7 +3167,7 @@ static void node_draw_basis(const bContext &C,
     }
 
     /* Draw selected nodes fully opaque. */
-    if (node.flag & SELECT) {
+    if (node.is_selected()) {
       color[3] = 1.0f;
     }
 
@@ -3197,7 +3210,7 @@ static void node_draw_basis(const bContext &C,
         rct.ymax + outline_width,
     };
     float color_outline[4] = {0.0f, 0.0f, 0.0f, 1.0f};
-    if (node.flag & SELECT) {
+    if (node.is_selected()) {
       ui::theme::get_color_4fv((node.flag & NODE_ACTIVE) ? TH_ACTIVE : TH_SELECT, color_outline);
     }
     else if (node_undefined_or_unsupported(ntree, node)) {
@@ -3281,7 +3294,7 @@ static void node_draw_collapsed(const bContext &C,
   }
 
   /* Title. */
-  if (node.flag & SELECT) {
+  if (node.is_selected()) {
     ui::theme::get_color_4fv(TH_SELECT, color);
   }
   else {
@@ -3342,7 +3355,7 @@ static void node_draw_collapsed(const bContext &C,
     /* Color the outline according to active, selected, or undefined status. */
     float color_outline[4];
 
-    if (node.flag & SELECT) {
+    if (node.is_selected()) {
       ui::theme::get_color_4fv((node.flag & NODE_ACTIVE) ? TH_ACTIVE : TH_SELECT, color_outline);
     }
     else if (node_undefined_or_unsupported(ntree, node)) {
@@ -3792,7 +3805,7 @@ static void frame_node_draw_outline(const ARegion &region,
     draw_outline = true;
     ui::theme::get_color_shade_alpha_4fv(TH_ACTIVE, 0, -100, outline_color);
   }
-  else if (node.flag & SELECT) {
+  else if (node.is_selected()) {
     draw_outline = true;
     if (node.flag & NODE_ACTIVE) {
       ui::theme::get_color_shade_alpha_4fv(TH_ACTIVE, 0, -40, outline_color);
@@ -4014,7 +4027,7 @@ static void reroute_node_draw_label(TreeDrawContext &tree_draw_ctx,
 
   button_drawflag_disable(label_but, ui::BUT_TEXT_LEFT);
 
-  if (use_auto_label && !(node.flag & NODE_SELECT)) {
+  if (use_auto_label && !node.is_selected()) {
     button_flag_enable(label_but, ui::BUT_INACTIVE);
   }
 }
@@ -4049,7 +4062,7 @@ static void reroute_node_draw(const bContext &C,
   }
 
   /* Only draw the input socket, since all sockets are at the same location. */
-  const bool selected = node.flag & NODE_SELECT;
+  const bool selected = node.is_selected();
   reroute_node_draw_body(C, snode, ntree, node, block, selected);
 
   block_end_ex(&C,
@@ -4242,7 +4255,7 @@ static void node_draw_zones_and_frames(const ARegion &region,
     draw_order.append(zones->zones[zone_i]);
   }
   for (const bNode *node : ntree.all_nodes()) {
-    if (node->flag & NODE_BACKGROUND) {
+    if (node->is_frame()) {
       draw_order.append(node);
     }
   }
@@ -4558,8 +4571,8 @@ static void node_draw_nodetree(const bContext &C,
   /* Draw foreground nodes, last nodes in front. */
   for (const int i : nodes.index_range()) {
     bNode &node = *nodes[i];
-    if (node.flag & NODE_BACKGROUND) {
-      /* Background nodes are drawn before mixed with zones already. */
+    if (node.is_frame()) {
+      /* Those nodes are drawn before already. */
       continue;
     }
 

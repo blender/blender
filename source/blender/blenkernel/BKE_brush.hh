@@ -151,17 +151,17 @@ float BKE_brush_sample_masktex(
  * Get the mask texture for this given object mode.
  *
  * This is preferred above using mtex/mask_mtex attributes directly as due to legacy these
- * attributes got switched in sculpt mode.
+ * attributes got switched in sculpt mode and subsequently vertex paint.
  */
-const MTex *BKE_brush_mask_texture_get(const Brush *brush, eObjectMode object_mode);
+const MTex *BKE_brush_mask_texture_get(const Brush *brush, PaintMode paint_mode);
 
 /**
  * Get the color texture for this given object mode.
  *
  * This is preferred above using mtex/mask_mtex attributes directly as due to legacy these
- * attributes got switched in sculpt mode.
+ * attributes got switched in sculpt mode and subsequently vertex paint.
  */
-const MTex *BKE_brush_color_texture_get(const Brush *brush, eObjectMode object_mode);
+const MTex *BKE_brush_color_texture_get(const Brush *brush, PaintMode paint_mode);
 
 /**
  * Radial control.

@@ -76,7 +76,6 @@ const EnumPropertyItem rna_enum_ramp_blend_items[] = {
 #  include "BKE_colorband.hh"
 #  include "BKE_context.hh"
 #  include "BKE_editmesh.hh"
-#  include "BKE_gpencil_legacy.h"
 #  include "BKE_grease_pencil.hh"
 #  include "BKE_lib_id.hh"
 #  include "BKE_main.hh"
@@ -96,6 +95,9 @@ const EnumPropertyItem rna_enum_ramp_blend_items[] = {
 #  include "ED_image.hh"
 #  include "ED_node.hh"
 #  include "ED_screen.hh"
+
+/* Stroke and Fill - Alpha Visibility Threshold */
+#  define GPENCIL_ALPHA_OPACITY_THRESH 0.001f
 
 namespace blender {
 

@@ -1,9 +1,9 @@
 
 msgid ""
 msgstr ""
-"Project-Id-Version: Blender 5.3.0 Alpha (b'f5df8c32f99b')\n"
+"Project-Id-Version: Blender 5.3.0 Alpha (b'2cef5b8c951a')\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-09-07 07:47+0000\n"
+"POT-Creation-Date: 2026-09-14 07:47+0000\n"
 "PO-Revision-Date: 2026-07-22 11:12+0000\n"
 "Last-Translator: Gamfid <gamfid@users.noreply.translate.blender.org>\n"
 "Language-Team: Ukrainian <https://translate.blender.org/projects/blender-ui/ui/uk/>\n"
@@ -26360,68 +26360,68 @@ msgid "Material slot name"
 msgstr "Назва гнізда матеріалу"
 
 
-msgid "Select More/Less"
-msgstr "Вибрати більше/менше"
-
-
 msgid "Sample"
 msgstr "Вибірка"
+
+
+msgid "Show/Hide"
+msgstr "Показати/приховати"
+
+
+msgid "Clean Up"
+msgstr "Вичищення"
 
 
 msgid "Primitives"
 msgstr "Примітиви"
 
 
+msgid "Pivot Point"
+msgstr "Точка Опертя"
+
+
+msgid "Snap"
+msgstr "Підхоп"
+
+
+msgid "Proportional Editing Falloff"
+msgstr "Спад Пропорційного Редагування"
+
+
+msgid "Mask Edit"
+msgstr "Редагування Маски"
+
+
+msgid "Automasking"
+msgstr "Автомаскування"
+
+
+msgid "Face Sets Edit"
+msgstr "Редагування Наборів Граней"
+
+
+msgid "Vertex Group Locks"
+msgstr "Блокування Груп Вершин"
+
+
 msgid "Import"
 msgstr "Імпортувати"
-
-
-msgid "Select Loops"
-msgstr "Виділити петлі"
-
-
-msgid "Viewpoint"
-msgstr "Точка зору"
-
-
-msgid "Select All by Trait"
-msgstr "Вибрати все за рисою"
 
 
 msgid "Utilities"
 msgstr "Утиліти"
 
 
-msgid "Select Linked"
-msgstr "Виділити пов'язане"
-
-
-msgid "Select Similar"
-msgstr "Вибрати подібні"
-
-
 msgid "Math"
 msgstr "Математика"
-
-
-msgid "Align View to Active"
-msgstr "Вирівняти Огляд за Активним"
 
 
 msgid "UV"
 msgstr "UV"
 
 
-msgid "View Regions"
-msgstr "Регіони Огляду"
-
-
-msgid "Navigation"
-msgstr "Навігація"
-
-
-msgid "Align View"
-msgstr "Вирівняти Огляд"
+msgid "Mirror"
+msgstr "Дзеркалення"
 
 
 msgid "UV Mapping"
@@ -26432,52 +26432,60 @@ msgid "Local View"
 msgstr "Огляд Локально"
 
 
-msgid "Snap"
-msgstr "Підхоп"
+msgid "Viewpoint"
+msgstr "Точка зору"
 
 
-msgid "Bone Roll"
-msgstr "Прокручення Кістки"
+msgid "Navigation"
+msgstr "Навігація"
 
 
-msgid "Mirror"
-msgstr "Дзеркалення"
+msgid "Align View"
+msgstr "Вирівняти Огляд"
 
 
-msgid "Automasking"
-msgstr "Автомаскування"
+msgid "Align View to Active"
+msgstr "Вирівняти Огляд за Активним"
 
 
-msgid "Vertex Group Locks"
-msgstr "Блокування Груп Вершин"
+msgid "View Regions"
+msgstr "Регіони Огляду"
 
 
-msgid "Face Sets Edit"
-msgstr "Редагування Наборів Граней"
+msgid "Select More/Less"
+msgstr "Вибрати більше/менше"
 
 
-msgid "Mask Edit"
-msgstr "Редагування Маски"
+msgid "Select Similar"
+msgstr "Вибрати подібні"
 
 
-msgid "Proportional Editing Falloff"
-msgstr "Спад Пропорційного Редагування"
+msgid "Select All by Trait"
+msgstr "Вибрати все за рисою"
 
 
-msgid "Pivot Point"
-msgstr "Точка Опертя"
+msgid "Select Linked"
+msgstr "Виділити пов'язане"
 
 
-msgid "Clean Up"
-msgstr "Вичищення"
+msgid "Select Loops"
+msgstr "Виділити петлі"
 
 
-msgid "Show/Hide"
-msgstr "Показати/приховати"
+msgid "Assign Material"
+msgstr "Призначити Матеріал"
 
 
-msgid "Names"
-msgstr "Назви"
+msgid "Metaball"
+msgstr "Метакуля"
+
+
+msgid "Light"
+msgstr "Слабко"
+
+
+msgid "Light Probe"
+msgstr "Проба Освітлення"
 
 
 msgid "Linked"
@@ -26488,88 +26496,44 @@ msgid "Layout"
 msgstr "Розстановка"
 
 
-msgid "Metaball"
-msgstr "Метакуля"
+msgid "Add Image"
+msgstr "Додати Зображення"
 
 
-msgid "Kerning"
-msgstr "Кернінг"
+msgid "Relations"
+msgstr "Зв'язки"
 
 
-msgid "Special Characters"
-msgstr "Спеціальні символи"
-
-
-msgid "Merge"
-msgstr "Об'єднання"
-
-
-msgid "Keying"
-msgstr "Ключування"
-
-
-msgid "Tracking"
-msgstr "Стеження"
-
-
-msgid "Set Face Strength"
-msgstr "Задати Силу Грані"
-
-
-msgid "Select by Face Strength"
-msgstr "Вибрати за Силою Грані"
-
-
-msgid "Face Data"
-msgstr "Дані граней"
-
-
-msgid "Mesh Select Mode"
-msgstr "Режим Вибору Сіті"
-
-
-msgid "Disable Bone Options"
-msgstr "Відключити параметри кісток"
-
-
-msgid "Enable Bone Options"
-msgstr "Увімкнути параметри кісток"
-
-
-msgid "Toggle Bone Options"
-msgstr "Перемкнути параметри кісток"
+msgid "Rigid Body"
+msgstr "Тверде тіло"
 
 
 msgid "Apply"
 msgstr "Застосувати"
 
 
-msgid "Propagate"
-msgstr "Поширити"
+msgid "Track"
+msgstr "Стеження"
 
 
-msgid "In-Betweens"
-msgstr "У проміжках"
+msgid "Quick Effects"
+msgstr "Швидкі ефекти"
 
 
-msgid "Clear Transform"
-msgstr "Зчистити трансформації"
+msgid "Keying"
+msgstr "Ключування"
 
 
-msgid "Sculpt Set Pivot"
-msgstr "Ліплення Задати Опертя"
-
-
-msgid "Face Sets Init"
-msgstr "Ініціація Наборів Граней"
-
-
-msgid "Hooks"
-msgstr "Гачки"
+msgid "Asset"
+msgstr "Актив"
 
 
 msgid "Make Single User"
 msgstr "Зробити однокористувацьким"
+
+
+msgid "Tracking"
+msgstr "Стеження"
 
 
 msgid "Convert"
@@ -26580,40 +26544,76 @@ msgid "Link/Transfer Data"
 msgstr "Пов'язати/Перенести Дані"
 
 
-msgid "Asset"
-msgstr "Актив"
+msgid "Hooks"
+msgstr "Гачки"
 
 
-msgid "Quick Effects"
-msgstr "Швидкі ефекти"
+msgid "Sculpt Set Pivot"
+msgstr "Ліплення Задати Опертя"
 
 
-msgid "Track"
-msgstr "Стеження"
+msgid "Face Sets Init"
+msgstr "Ініціація Наборів Граней"
 
 
-msgid "Rigid Body"
-msgstr "Тверде тіло"
+msgid "Clear Transform"
+msgstr "Зчистити трансформації"
 
 
-msgid "Add Image"
-msgstr "Додати Зображення"
+msgid "In-Betweens"
+msgstr "У проміжках"
 
 
-msgid "Relations"
-msgstr "Зв'язки"
+msgid "Propagate"
+msgstr "Поширити"
 
 
-msgid "Light Probe"
-msgstr "Проба Освітлення"
+msgid "Names"
+msgstr "Назви"
 
 
-msgid "Assign Material"
-msgstr "Призначити Матеріал"
+msgid "Toggle Bone Options"
+msgstr "Перемкнути параметри кісток"
 
 
-msgid "Light"
-msgstr "Слабко"
+msgid "Enable Bone Options"
+msgstr "Увімкнути параметри кісток"
+
+
+msgid "Disable Bone Options"
+msgstr "Відключити параметри кісток"
+
+
+msgid "Mesh Select Mode"
+msgstr "Режим Вибору Сіті"
+
+
+msgid "Face Data"
+msgstr "Дані граней"
+
+
+msgid "Select by Face Strength"
+msgstr "Вибрати за Силою Грані"
+
+
+msgid "Set Face Strength"
+msgstr "Задати Силу Грані"
+
+
+msgid "Merge"
+msgstr "Об'єднання"
+
+
+msgid "Special Characters"
+msgstr "Спеціальні символи"
+
+
+msgid "Kerning"
+msgstr "Кернінг"
+
+
+msgid "Bone Roll"
+msgstr "Прокручення Кістки"
 
 
 msgid "Basic"
@@ -59249,6 +59249,14 @@ msgid "View a context based online manual in a web browser"
 msgstr "Переглянути контекстно-базоване онлайн-керівництво у веб-оглядачі"
 
 
+msgid "Trusted Source"
+msgstr "Надійне джерело"
+
+
+msgid "Allow .blend file to execute scripts automatically, default available from system preferences"
+msgstr "Дозволити .blend-файлу виконувати скрипти автоматично. Стандартне значення можна змінити у налаштуваннях системи"
+
+
 msgid "Scene Unit"
 msgstr "Одиниці сцени"
 
@@ -59335,14 +59343,6 @@ msgstr "Завантажити параметри користувацького
 
 msgid "State"
 msgstr "Стан"
-
-
-msgid "Trusted Source"
-msgstr "Надійне джерело"
-
-
-msgid "Allow .blend file to execute scripts automatically, default available from system preferences"
-msgstr "Дозволити .blend-файлу виконувати скрипти автоматично. Стандартне значення можна змінити у налаштуваннях системи"
 
 
 msgctxt "Operator"
@@ -60612,36 +60612,20 @@ msgid "Panel containing UI elements"
 msgstr "Панель, що містить елементи Інтерфейсу Користувача"
 
 
-msgid "Guides"
-msgstr "Напрямні"
+msgid "Active Tool"
+msgstr "Активний Засіб"
 
 
-msgid "Drawing Plane"
-msgstr "Площина Рисування"
+msgid "View Lock"
+msgstr "Блокувати Огляд"
 
 
-msgid "Stroke Placement"
-msgstr "Розміщення Штриха"
+msgid "Shadow Settings"
+msgstr "Устави Тіні"
 
 
-msgid "Transform Orientations"
-msgstr "Орієнтації Трансформ"
-
-
-msgid "Curve Edit Mode"
-msgstr "Режим Редагування Кривої"
-
-
-msgid "Measurement"
-msgstr "Вимірювання"
-
-
-msgid "Mesh Edit Mode"
-msgstr "Режим Редагування Сіті"
-
-
-msgid "Motion Tracking"
-msgstr "Відстеження руху"
+msgid "SSAO Settings"
+msgstr "Устави Загороди Оточення Простору Екрану"
 
 
 msgid "Cavity"
@@ -60656,44 +60640,60 @@ msgid "Overlays"
 msgstr "Накладки"
 
 
-msgid "SSAO Settings"
-msgstr "Устави Загороди Оточення Простору Екрану"
+msgid "Guides"
+msgstr "Напрямні"
 
 
-msgid "Shadow Settings"
-msgstr "Устави Тіні"
+msgid "Motion Tracking"
+msgstr "Відстеження руху"
 
 
-msgid "Active Tool"
-msgstr "Активний Засіб"
+msgid "Mesh Edit Mode"
+msgstr "Режим Редагування Сіті"
 
 
-msgid "View Lock"
-msgstr "Блокувати Огляд"
+msgid "Measurement"
+msgstr "Вимірювання"
 
 
-msgid "VR"
-msgstr "ВР"
+msgid "Curve Edit Mode"
+msgstr "Режим Редагування Кривої"
 
 
-msgid "Auto-Masking"
-msgstr "Авто-Маскування"
+msgid "Transform Orientations"
+msgstr "Орієнтації Трансформ"
 
 
-msgid "Multi Frame"
-msgstr "Багато Кадр"
+msgid "Stroke Placement"
+msgstr "Розміщення Штриха"
 
 
-msgid "Stereoscopy"
-msgstr "Стереоскопія"
+msgid "Drawing Plane"
+msgstr "Площина Рисування"
+
+
+msgid "Quad View"
+msgstr "Чотирибічний Огляд"
 
 
 msgid "Onion Skin"
 msgstr "Покрив Калькою"
 
 
-msgid "Quad View"
-msgstr "Чотирибічний Огляд"
+msgid "Stereoscopy"
+msgstr "Стереоскопія"
+
+
+msgid "Multi Frame"
+msgstr "Багато Кадр"
+
+
+msgid "Auto-Masking"
+msgstr "Авто-Маскування"
+
+
+msgid "VR"
+msgstr "ВР"
 
 
 msgid "Chain Scaling"
@@ -76497,6 +76497,10 @@ msgid "Blender Website"
 msgstr "Вебсайт Blender'а"
 
 
+msgid "Trusted Source [Untrusted Path]"
+msgstr "Надійне джерело [Ненадійний шлях]"
+
+
 msgctxt "Operator"
 msgid "Link..."
 msgstr "Пов'язання..."
@@ -88167,10 +88171,6 @@ msgstr "Перегляд файлу Blender"
 
 msgid "Missing 'window' in context"
 msgstr "Відсутнє вікно в контексті"
-
-
-msgid "Trusted Source [Untrusted Path]"
-msgstr "Надійне джерело [Ненадійний шлях]"
 
 
 msgid "Allow Execution"

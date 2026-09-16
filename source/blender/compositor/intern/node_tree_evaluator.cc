@@ -17,14 +17,14 @@
 
 #include "COM_context.hh"
 #include "COM_domain.hh"
-#include "COM_group_input_node_operation.hh"
 #include "COM_group_node_operation.hh"
-#include "COM_group_output_node_operation.hh"
 #include "COM_implicit_input_operation.hh"
 #include "COM_input_descriptor.hh"
 #include "COM_multi_function_procedure_operation.hh"
 #include "COM_node_operation.hh"
 #include "COM_node_tree_evaluator.hh"
+#include "COM_node_tree_input_node_operation.hh"
+#include "COM_node_tree_output_node_operation.hh"
 #include "COM_pixel_operation.hh"
 #include "COM_result.hh"
 #include "COM_scheduler.hh"
@@ -69,18 +69,22 @@ void NodeTreeEvaluator::evaluate()
 
 Result &NodeTreeEvaluator::get_result_from_output_socket(const bNodeSocket &output)
 {
-  /* The output belongs to a node that was compiled into a standard node operation, so return a
-   * reference to the result from that operation using the output identifier. */
-  if (node_operations_.contains(&output.owner_node())) {
-    NodeOperation *operation = node_operations_.lookup(&output.owner_node());
-    return operation->get_result(output.identifier);
+  const bNode &node = output.owner_node();
+  /* The output belongs to a node that was compiled into a standard node operation. */
+  NodeOperation *node_operation = node_operations_.lookup_default(&node, nullptr);
+  if (node_operation) {
+    return node_operation->get_result(output.identifier);
   }
 
-  /* Otherwise, the output belongs to a node that was compiled into a pixel operation, so retrieve
-   * the internal identifier of that output and return a reference to the result from that
-   * operation using the retrieved identifier. */
-  PixelOperation *operation = pixel_operations_.lookup(&output.owner_node());
-  return operation->get_result(operation->get_output_identifier_from_output_socket(output));
+  /* The output belongs to a node that was compiled into a pixel operation. */
+  PixelOperation *pixel_operation = pixel_operations_.lookup_default(&node, nullptr);
+  if (pixel_operation) {
+    const StringRef identifier = pixel_operation->get_output_identifier_from_output_socket(output);
+    return pixel_operation->get_result(identifier);
+  }
+
+  BLI_assert_unreachable();
+  return node_operation->get_result(output.identifier);
 }
 
 PixelCompileUnit &NodeTreeEvaluator::pixel_compile_unit()
@@ -91,25 +95,6 @@ PixelCompileUnit &NodeTreeEvaluator::pixel_compile_unit()
 const Schedule &NodeTreeEvaluator::schedule()
 {
   return schedule_;
-}
-
-void NodeTreeEvaluator::evaluate_node(const bNode &node)
-{
-  NodeOperation *operation = this->create_node_operation(node);
-  operation->set_compute_context(compute_context_);
-
-  this->map_node_to_node_operation(node, operation);
-
-  map_node_operation_inputs_to_their_results(node, operation);
-
-  /* This has to be done after input mapping because the method may add Input Single Value
-   * Operations to the operations stream, which needs to be evaluated before the operation itself
-   * is evaluated. */
-  operations_stream_.append(std::unique_ptr<Operation>(operation));
-
-  operation->compute_results_reference_counts(this->schedule());
-
-  operation->evaluate();
 }
 
 NodeOperation *NodeTreeEvaluator::create_node_operation(const bNode &node)
@@ -124,14 +109,49 @@ NodeOperation *NodeTreeEvaluator::create_node_operation(const bNode &node)
   }
 
   if (node.is_group_output()) {
-    return get_group_output_node_operation(this->context(), node, this->operation());
+    return get_node_tree_output_node_operation(this->context(), node, this->operation());
   }
 
   if (node.is_group_input()) {
-    return get_group_input_node_operation(this->context(), node, this->operation());
+    return get_node_tree_input_node_operation(this->context(), node, this->operation());
   }
 
   return node.typeinfo->get_compositor_operation(this->context(), node);
+}
+
+void NodeTreeEvaluator::evaluate_node(const bNode &node)
+{
+  NodeOperation *operation = this->create_node_operation(node);
+  operation->set_compute_context(compute_context_);
+
+  node_operations_.add_new(&node, operation);
+
+  this->map_node_operation_inputs_to_their_results(node, operation);
+
+  operations_stream_.append(std::unique_ptr<Operation>(operation));
+
+  operation->compute_results_reference_counts(this->schedule());
+
+  operation->evaluate();
+}
+
+void NodeTreeEvaluator::map_unlinked_input(const bNodeSocket &input, Operation *operation)
+{
+  const InputDescriptor input_descriptor = input_descriptor_from_input_socket(&input);
+  if (!input_descriptor.implicit_input.has_value()) {
+    SingleValueNodeInputOperation *input_operation = new SingleValueNodeInputOperation(
+        this->context(), input);
+    operations_stream_.append(std::unique_ptr<SingleValueNodeInputOperation>(input_operation));
+    input_operation->evaluate();
+    operation->map_input_to_result(input.identifier, &input_operation->get_result());
+    return;
+  }
+
+  ImplicitInputOperation *input_operation = new ImplicitInputOperation(
+      this->context(), input_descriptor.implicit_input.value());
+  operations_stream_.append(std::unique_ptr<ImplicitInputOperation>(input_operation));
+  input_operation->evaluate();
+  operation->map_input_to_result(input.identifier, &input_operation->get_result());
 }
 
 void NodeTreeEvaluator::map_node_operation_inputs_to_their_results(const bNode &node,
@@ -143,33 +163,15 @@ void NodeTreeEvaluator::map_node_operation_inputs_to_their_results(const bNode &
     }
 
     const bNodeSocket *output = get_output_linked_to_input(*input);
-    if (output && this->schedule().nodes.contains(&output->owner_node()) &&
-        !this->schedule().unneeded_inputs.contains(input))
+    if (!output || !this->schedule().nodes.contains(&output->owner_node()) ||
+        this->schedule().unneeded_inputs.contains(input))
     {
-      /* The input is linked to a node that is part of the schedule. So map the input to the result
-       * we get from the output. */
-      Result &result = this->get_result_from_output_socket(*output);
-      operation->map_input_to_result(input->identifier, &result);
+      this->map_unlinked_input(*input, operation);
       continue;
     }
 
-    const InputDescriptor input_descriptor = input_descriptor_from_input_socket(input);
-    if (!input_descriptor.implicit_input.has_value()) {
-      /* The input is unlinked with no implicit value. So map the input to the result of a newly
-       * created Input Single Value Operation. */
-      SingleValueNodeInputOperation *input_operation = new SingleValueNodeInputOperation(
-          this->context(), *input);
-      operations_stream_.append(std::unique_ptr<SingleValueNodeInputOperation>(input_operation));
-      input_operation->evaluate();
-      operation->map_input_to_result(input->identifier, &input_operation->get_result());
-      continue;
-    }
-
-    ImplicitInputOperation *input_operation = new ImplicitInputOperation(
-        this->context(), input_descriptor.implicit_input.value());
-    operations_stream_.append(std::unique_ptr<ImplicitInputOperation>(input_operation));
-    input_operation->evaluate();
-    operation->map_input_to_result(input->identifier, &input_operation->get_result());
+    Result &result = this->get_result_from_output_socket(*output);
+    operation->map_input_to_result(input->identifier, &result);
   }
 }
 
@@ -223,7 +225,7 @@ void NodeTreeEvaluator::evaluate_pixel_compile_unit()
   PixelOperation *operation = this->create_pixel_operation();
 
   for (const bNode *node : compile_unit) {
-    this->map_node_to_pixel_operation(*node, operation);
+    pixel_operations_.add_new(node, operation);
   }
 
   map_pixel_operation_inputs_to_their_results(operation);
@@ -263,16 +265,6 @@ void NodeTreeEvaluator::map_pixel_operation_inputs_to_their_results(PixelOperati
 
     input_operation->evaluate();
   }
-}
-
-void NodeTreeEvaluator::map_node_to_node_operation(const bNode &node, NodeOperation *operation)
-{
-  node_operations_.add_new(&node, operation);
-}
-
-void NodeTreeEvaluator::map_node_to_pixel_operation(const bNode &node, PixelOperation *operation)
-{
-  pixel_operations_.add_new(&node, operation);
 }
 
 void NodeTreeEvaluator::add_node_to_pixel_compile_unit(const bNode &node)

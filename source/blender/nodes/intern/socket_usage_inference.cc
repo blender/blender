@@ -588,11 +588,11 @@ class SocketUsageInferencerImpl {
   {
     const NodeInContext node = socket.owner_node();
     Vector<const bNodeSocket *> dependent_sockets;
-    for (const bNodeLink &internal_link : node->internal_links()) {
-      if (internal_link.fromsock != socket.socket) {
+    for (const bNodeInternalLink &internal_link : node->internal_links()) {
+      if (internal_link.in != socket.socket) {
         continue;
       }
-      dependent_sockets.append(internal_link.tosock);
+      dependent_sockets.append(internal_link.out);
     }
     this->usage_task__with_dependent_sockets(socket, dependent_sockets, {}, socket.context);
   }
@@ -747,12 +747,11 @@ class SocketUsageInferencerImpl {
   void disabled_output_task__output__muted_node(const SocketInContext &socket)
   {
     const NodeInContext node = socket.owner_node();
-    for (const bNodeLink &internal_link : node->internal_links()) {
-      if (internal_link.tosock != socket.socket) {
+    for (const bNodeInternalLink &internal_link : node->internal_links()) {
+      if (internal_link.out != socket.socket) {
         continue;
       }
-      this->disabled_output_task__with_origin_socket(socket,
-                                                     {socket.context, internal_link.fromsock});
+      this->disabled_output_task__with_origin_socket(socket, {socket.context, internal_link.in});
       return;
     }
     all_socket_disable_states_.add_new(socket, false);

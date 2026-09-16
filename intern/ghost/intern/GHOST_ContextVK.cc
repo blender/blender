@@ -450,7 +450,6 @@ struct GHOST_InstanceVK {
 #ifndef __APPLE__
           !device_vk.features.features.geometryShader ||
 #endif
-          !device_vk.features.features.multiViewport ||
           !device_vk.features.features.fragmentStoresAndAtomics ||
           !device_vk.features.features.imageCubeArray ||
           !device_vk.features.features.dualSrcBlend || !device_vk.features.features.imageCubeArray)
@@ -625,7 +624,7 @@ struct GHOST_InstanceVK {
 #endif
     device_features.vertexPipelineStoresAndAtomics =
         device.features.features.vertexPipelineStoresAndAtomics;
-    device_features.multiViewport = VK_TRUE;
+    device_features.multiViewport = device.features.features.multiViewport;
     device_features.shaderClipDistance = device.features.features.shaderClipDistance;
     device_features.fragmentStoresAndAtomics = VK_TRUE;
 
@@ -1046,7 +1045,7 @@ GHOST_TSuccess GHOST_ContextVK::swapBufferAcquire()
     recreateSwapchain(use_hdr_swapchain);
   }
 
-  /* Acquiree next image, swapchain can be (or become) invalid when minimizing window. */
+  /* Acquire next image, swapchain can be (or become) invalid when minimizing window. */
   uint32_t image_index = 0;
   if (swapchain_ != VK_NULL_HANDLE) {
     /* Some platforms (NVIDIA/Wayland) can receive an out of date swapchain when acquiring the next

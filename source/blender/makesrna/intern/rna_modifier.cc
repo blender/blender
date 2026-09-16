@@ -11,7 +11,7 @@
 #include <cstdlib>
 
 #include "DNA_armature_types.h"
-#include "DNA_gpencil_modifier_types.h"
+#include "DNA_grease_pencil_modifier_types.h"
 #include "DNA_lineart_types.h"
 #include "DNA_modifier_types.h"
 #include "DNA_object_types.h"

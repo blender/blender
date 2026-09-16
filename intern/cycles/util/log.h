@@ -109,7 +109,7 @@ extern LogLevel LOG_LEVEL;
 
 /* Check if logging is enabled, to avoid doing expensive work to compute
  * the logging message. Note that any work to the right of LOG(level) will
- * not be evaulated if logging for that level is disabled. */
+ * not be evaluated if logging for that level is disabled. */
 #define LOG_IS_ON(level) ((level) <= LOG_LEVEL)
 
 /* Check if expression and conditions hold true, failure will exit the program. */

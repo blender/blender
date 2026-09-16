@@ -351,7 +351,6 @@ extern "C" __global__ void __intersection__curve_ribbon()
     optix_intersection_curve(prim, type);
   }
 }
-
 #endif
 
 #ifdef __POINTCLOUD__

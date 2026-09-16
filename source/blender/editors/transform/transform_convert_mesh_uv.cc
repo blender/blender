@@ -257,7 +257,7 @@ static void createTransUVs(bContext *C, TransInfo *t)
 
     TransData *td = nullptr;
     TransData2D *td2d = nullptr;
-    BMEditMesh *em = BKE_editmesh_from_object(tc->obedit);
+    BMesh *bm = BKE_editmesh_bmesh_get_for_write(tc->obedit);
     BMFace *efa;
     BMIter iter, liter;
     UvElementMap *elementmap = nullptr;
@@ -266,7 +266,7 @@ static void createTransUVs(bContext *C, TransInfo *t)
       int co_num;
     } *island_center = nullptr;
     int count = 0, countsel = 0;
-    const BMUVOffsets offsets = BM_uv_map_offsets_get(em->bm);
+    const BMUVOffsets offsets = BM_uv_map_offsets_get(bm);
 
     if (!ED_space_image_show_uvedit(sima, tc->obedit)) {
       continue;
@@ -275,7 +275,7 @@ static void createTransUVs(bContext *C, TransInfo *t)
     /* Count. */
     if (is_island_center) {
       /* Create element map with island information. */
-      elementmap = BM_uv_element_map_create(em->bm, scene, true, false, true, true);
+      elementmap = BM_uv_element_map_create(bm, scene, true, false, true, true);
       if (elementmap == nullptr) {
         continue;
       }
@@ -283,7 +283,7 @@ static void createTransUVs(bContext *C, TransInfo *t)
       island_center = MEM_new_array_zeroed<IslandCenter>(elementmap->total_islands, __func__);
     }
 
-    BM_ITER_MESH (efa, &iter, em->bm, BM_FACES_OF_MESH) {
+    BM_ITER_MESH (efa, &iter, bm, BM_FACES_OF_MESH) {
       BMLoop *l;
 
       if (!uvedit_face_visible_test(scene, efa)) {
@@ -296,7 +296,7 @@ static void createTransUVs(bContext *C, TransInfo *t)
         /* Make sure that the loop element flag is cleared for when we use it in
          * uv_set_connectivity_distance later. */
         BM_elem_flag_disable(l, BM_ELEM_TAG);
-        if (uvedit_uv_select_test(scene, em->bm, l, offsets)) {
+        if (uvedit_uv_select_test(scene, bm, l, offsets)) {
           countsel++;
 
           if (island_center) {
@@ -346,12 +346,12 @@ static void createTransUVs(bContext *C, TransInfo *t)
     td2d = tc->data_2d;
 
     if (is_prop_connected) {
-      prop_dists = MEM_new_array_zeroed<float>(em->bm->totloop, "TransObPropDists(UV Editing)");
+      prop_dists = MEM_new_array_zeroed<float>(bm->totloop, "TransObPropDists(UV Editing)");
 
-      uv_set_connectivity_distance(t->settings, em->bm, prop_dists, t->aspect);
+      uv_set_connectivity_distance(t->settings, bm, prop_dists, t->aspect);
     }
 
-    BM_ITER_MESH (efa, &iter, em->bm, BM_FACES_OF_MESH) {
+    BM_ITER_MESH (efa, &iter, bm, BM_FACES_OF_MESH) {
       BMLoop *l;
 
       if (!BM_elem_flag_test(efa, BM_ELEM_TAG)) {
@@ -359,7 +359,7 @@ static void createTransUVs(bContext *C, TransInfo *t)
       }
 
       BM_ITER_ELEM (l, &liter, efa, BM_LOOPS_OF_FACE) {
-        const bool selected = uvedit_uv_select_test(scene, em->bm, l, offsets);
+        const bool selected = uvedit_uv_select_test(scene, bm, l, offsets);
         float (*luv)[2];
         const float *center = nullptr;
         float prop_distance = FLT_MAX;
@@ -635,9 +635,7 @@ static UVGroups *mesh_uv_groups_get(TransDataContainer *tc, BMesh *bm, const BMU
 Array<TransDataVertSlideVert> transform_mesh_uv_vert_slide_data_create(
     const TransInfo *t, TransDataContainer *tc, Vector<float3> &r_loc_dst_buffer)
 {
-
-  BMEditMesh *em = BKE_editmesh_from_object(tc->obedit);
-  BMesh *bm = em->bm;
+  BMesh *bm = BKE_editmesh_bmesh_get_for_write(tc->obedit);
   const BMUVOffsets offsets = BM_uv_map_offsets_get(bm);
 
   UVGroups *uv_groups = mesh_uv_groups_get(tc, bm, offsets);
@@ -822,8 +820,7 @@ Array<TransDataEdgeSlideVert> transform_mesh_uv_edge_slide_data_create(const Tra
                                                                        int *r_group_len)
 {
   Array<TransDataEdgeSlideVert> sv_array;
-  BMEditMesh *em = BKE_editmesh_from_object(tc->obedit);
-  BMesh *bm = em->bm;
+  BMesh *bm = BKE_editmesh_bmesh_get_for_write(tc->obedit);
   const BMUVOffsets offsets = BM_uv_map_offsets_get(bm);
 
   const bool check_edge = ED_uvedit_select_mode_get(t->scene) == UV_SELECT_EDGE;

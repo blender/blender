@@ -648,13 +648,13 @@ class LazyFunctionForMutedNode : public LazyFunction {
 
     input_by_output_index_.reinitialize(node.output_sockets().size());
     input_by_output_index_.fill(nullptr);
-    for (const bNodeLink &internal_link : node.internal_links()) {
-      const int input_i = r_lf_index_by_bsocket[internal_link.fromsock->index_in_tree()];
-      const int output_i = r_lf_index_by_bsocket[internal_link.tosock->index_in_tree()];
+    for (const bNodeInternalLink &internal_link : node.internal_links()) {
+      const int input_i = r_lf_index_by_bsocket[internal_link.in->index_in_tree()];
+      const int output_i = r_lf_index_by_bsocket[internal_link.out->index_in_tree()];
       if (ELEM(-1, input_i, output_i)) {
         continue;
       }
-      input_by_output_index_[internal_link.tosock->index()] = internal_link.fromsock;
+      input_by_output_index_[internal_link.out->index()] = internal_link.in;
       inputs_[input_i].usage = lf::ValueUsage::Maybe;
     }
   }
@@ -3022,8 +3022,8 @@ struct GeometryNodesLazyFunctionBuilder {
   {
     /* Find all outputs that use a specific input. */
     MultiValueMap<const bNodeSocket *, const bNodeSocket *> outputs_by_input;
-    for (const bNodeLink &blink : bnode.internal_links()) {
-      outputs_by_input.add(blink.fromsock, blink.tosock);
+    for (const bNodeInternalLink &blink : bnode.internal_links()) {
+      outputs_by_input.add(blink.in, blink.out);
     }
     for (const auto item : outputs_by_input.items()) {
       const bNodeSocket &input_bsocket = *item.key;

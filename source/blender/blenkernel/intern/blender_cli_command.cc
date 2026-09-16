@@ -127,7 +127,7 @@ int BKE_blender_cli_command_exec(bContext *C, const char *id, const int argc, co
 {
   CommandHandler *cmd = blender_cli_command_lookup(id);
   if (cmd == nullptr) {
-    std::cerr << "Unrecognized command: \"" << id << "\"" << std::endl;
+    std::cerr << "Unrecognized command: \"" << id << "\" (see 'help')" << std::endl;
     return EXIT_FAILURE;
   }
   if (cmd->is_duplicate) {

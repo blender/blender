@@ -1908,7 +1908,8 @@ class ExportGLTF2(bpy.types.Operator, ExportGLTF2_Base, ExportHelper):
 
 
 def menu_func_export(self, context):
-    self.layout.operator(ExportGLTF2.bl_idname, text='glTF 2.0 (.glb/.gltf)')
+    self.layout.operator(
+        ExportGLTF2.bl_idname, text=bpy.types.FileHandler.label_with_extensions('IO_FH_gltf2'))
 
 
 class ImportGLTF2(Operator, ConvertGLTF2_Base, ImportHelper):
@@ -2277,7 +2278,7 @@ class IO_FH_gltf2(bpy.types.FileHandler):
 
 
 def menu_func_import(self, context):
-    self.layout.operator(ImportGLTF2.bl_idname, text='glTF 2.0 (.glb/.gltf)')
+    self.layout.operator(ImportGLTF2.bl_idname, text=bpy.types.FileHandler.label_with_extensions("IO_FH_gltf2"))
 
 
 classes = (

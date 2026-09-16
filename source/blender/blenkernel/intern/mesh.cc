@@ -393,7 +393,7 @@ static void mesh_blend_write(BlendWriter *writer, ID *id, const void *id_address
 
   writer->generated_pointer_tag(mesh->attribute_storage.dna_attributes);
 
-  writer->write_id_struct(id_address, mesh, [](BlendStructWriter &struct_writer) {
+  writer->write_id_struct(id_address, mesh, [](BlendStructWriter<Mesh> &struct_writer) {
     struct_writer.generated_ptr(offsetof(Mesh, attribute_storage.dna_attributes));
   });
   BKE_id_blend_write(writer, &mesh->id);
@@ -541,9 +541,7 @@ bool BKE_mesh_attribute_required(const StringRef name)
 void BKE_mesh_ensure_skin_customdata(Mesh *mesh)
 {
   using namespace bke;
-  BMesh *bm = mesh->runtime->edit_mesh ? mesh->runtime->edit_mesh->bm : nullptr;
-
-  if (bm) {
+  if (BMesh *bm = BKE_editmesh_bmesh_get_for_write(mesh)) {
     if (!CustomData_has_layer_named(&bm->vdata, CD_PROP_FLOAT2, "skin_modifier_radius")) {
       BM_data_layer_add_named(bm, &bm->vdata, CD_PROP_FLOAT2, "skin_modifier_radius");
       const int offset = CustomData_get_offset_named(
@@ -585,9 +583,8 @@ void BKE_mesh_ensure_skin_customdata(Mesh *mesh)
 
 bool BKE_mesh_has_custom_loop_normals(Mesh *mesh)
 {
-  if (mesh->runtime->edit_mesh) {
-    return CustomData_has_layer_named(
-        &mesh->runtime->edit_mesh->bm->ldata, CD_PROP_INT16_2D, "custom_normal");
+  if (BMesh *bm = BKE_editmesh_bmesh_get_for_write(mesh)) {
+    return CustomData_has_layer_named(&bm->ldata, CD_PROP_INT16_2D, "custom_normal");
   }
 
   return mesh->attributes().contains("custom_normal");
@@ -1317,8 +1314,8 @@ VectorSet<StringRefNull> Mesh::uv_map_names() const
 
 StringRefNull Mesh::active_uv_map_name() const
 {
-  if (BMEditMesh *em = this->runtime->edit_mesh.get()) {
-    const char *name = CustomData_get_active_layer_name(&em->bm->ldata, CD_PROP_FLOAT2);
+  if (const BMesh *bm = BKE_editmesh_bmesh_get(this)) {
+    const char *name = CustomData_get_active_layer_name(&bm->ldata, CD_PROP_FLOAT2);
     return name ? name : "";
   }
   return this->active_uv_map_attribute ? this->active_uv_map_attribute : "";
@@ -1326,8 +1323,8 @@ StringRefNull Mesh::active_uv_map_name() const
 
 StringRefNull Mesh::default_uv_map_name() const
 {
-  if (BMEditMesh *em = this->runtime->edit_mesh.get()) {
-    const char *name = CustomData_get_render_layer_name(&em->bm->ldata, CD_PROP_FLOAT2);
+  if (const BMesh *bm = BKE_editmesh_bmesh_get(this)) {
+    const char *name = CustomData_get_render_layer_name(&bm->ldata, CD_PROP_FLOAT2);
     return name ? name : "";
   }
   return this->default_uv_map_attribute ? this->default_uv_map_attribute : "";
@@ -1348,12 +1345,12 @@ void Mesh::uv_maps_active_set(const StringRef name)
   if (!name.is_empty()) {
     this->active_uv_map_attribute = BLI_strdupn(name.data(), name.size());
   }
-  if (BMEditMesh *em = this->runtime->edit_mesh.get()) {
-    int index = CustomData_get_named_layer_index(&em->bm->ldata, CD_PROP_FLOAT2, name);
+  if (BMesh *bm = BKE_editmesh_bmesh_get_for_write(this)) {
+    int index = CustomData_get_named_layer_index(&bm->ldata, CD_PROP_FLOAT2, name);
     if (index == -1) {
-      index = CustomData_get_layer_index(&em->bm->ldata, CD_PROP_FLOAT2);
+      index = CustomData_get_layer_index(&bm->ldata, CD_PROP_FLOAT2);
     }
-    CustomData_set_layer_active_index(&em->bm->ldata, CD_PROP_FLOAT2, index);
+    CustomData_set_layer_active_index(&bm->ldata, CD_PROP_FLOAT2, index);
   }
 }
 
@@ -1363,12 +1360,12 @@ void Mesh::uv_maps_default_set(const StringRef name)
   if (!name.is_empty()) {
     this->default_uv_map_attribute = BLI_strdupn(name.data(), name.size());
   }
-  if (BMEditMesh *em = this->runtime->edit_mesh.get()) {
-    int index = CustomData_get_named_layer_index(&em->bm->ldata, CD_PROP_FLOAT2, name);
+  if (BMesh *bm = BKE_editmesh_bmesh_get_for_write(this)) {
+    int index = CustomData_get_named_layer_index(&bm->ldata, CD_PROP_FLOAT2, name);
     if (index == -1) {
-      index = CustomData_get_layer_index(&em->bm->ldata, CD_PROP_FLOAT2);
+      index = CustomData_get_layer_index(&bm->ldata, CD_PROP_FLOAT2);
     }
-    CustomData_set_layer_render_index(&em->bm->ldata, CD_PROP_FLOAT2, index);
+    CustomData_set_layer_render_index(&bm->ldata, CD_PROP_FLOAT2, index);
   }
 }
 
@@ -1869,11 +1866,11 @@ void BKE_mesh_material_remap(Mesh *mesh, const uint *remap, uint remap_len)
   } \
   ((void)0)
 
-  if (BMEditMesh *em = mesh->runtime->edit_mesh.get()) {
+  if (BMesh *bm = BKE_editmesh_bmesh_get_for_write(mesh)) {
     BMIter iter;
     BMFace *efa;
 
-    BM_ITER_MESH (efa, &iter, em->bm, BM_FACES_OF_MESH) {
+    BM_ITER_MESH (efa, &iter, bm, BM_FACES_OF_MESH) {
       MAT_NR_REMAP(efa->mat_nr);
     }
   }
@@ -1947,8 +1944,8 @@ std::optional<Bounds<float3>> Mesh::bounds_min_max() const
   this->runtime->bounds_cache.ensure([&](Bounds<float3> &r_bounds) {
     switch (this->runtime->wrapper_type) {
       case ME_WRAPPER_TYPE_BMESH:
-        r_bounds = *BKE_editmesh_cache_calc_minmax(*this->runtime->edit_mesh,
-                                                   *this->runtime->edit_data);
+        r_bounds = *BKE_editmesh_cache_calc_minmax(
+            *const_cast<BMesh *>(BKE_editmesh_bmesh_get(this)), *this->runtime->edit_data);
         break;
       case ME_WRAPPER_TYPE_MDATA:
       case ME_WRAPPER_TYPE_SUBD:
@@ -1966,15 +1963,14 @@ void Mesh::bounds_set_eager(const Bounds<float3> &bounds)
 
 static bool use_bmesh_material_indices(const Mesh &mesh)
 {
-  return mesh.runtime->wrapper_type == ME_WRAPPER_TYPE_BMESH && mesh.runtime->edit_mesh &&
-         mesh.runtime->edit_mesh->bm;
+  return mesh.runtime->wrapper_type == ME_WRAPPER_TYPE_BMESH && BKE_editmesh_bmesh_get(&mesh);
 }
 
 std::optional<int> Mesh::material_index_max() const
 {
   this->runtime->max_material_index.ensure([&](std::optional<int> &value) {
     if (use_bmesh_material_indices(*this)) {
-      BMesh *bm = this->runtime->edit_mesh->bm;
+      const BMesh *bm = BKE_editmesh_bmesh_get(this);
       if (bm->totface == 0) {
         value = std::nullopt;
         return;
@@ -1982,7 +1978,7 @@ std::optional<int> Mesh::material_index_max() const
       int max_material_index = 0;
       BMFace *efa;
       BMIter iter;
-      BM_ITER_MESH (efa, &iter, bm, BM_FACES_OF_MESH) {
+      BM_ITER_MESH (efa, &iter, const_cast<BMesh *>(bm), BM_FACES_OF_MESH) {
         max_material_index = std::max<int>(max_material_index, efa->mat_nr);
       }
       value = max_material_index;
@@ -2017,10 +2013,10 @@ const VectorSet<int> &Mesh::material_indices_used() const
     /* Find used indices in parallel and then create the vector set in the end. */
     Array<bool> used_indices(max_material_index + 1, false);
     if (use_bmesh_material_indices(*this)) {
-      BMesh *bm = this->runtime->edit_mesh->bm;
+      const BMesh *bm = BKE_editmesh_bmesh_get(this);
       BMFace *efa;
       BMIter iter;
-      BM_ITER_MESH (efa, &iter, bm, BM_FACES_OF_MESH) {
+      BM_ITER_MESH (efa, &iter, const_cast<BMesh *>(bm), BM_FACES_OF_MESH) {
         used_indices[clamp_material_index(efa->mat_nr)] = true;
       }
     }
@@ -2236,8 +2232,7 @@ void BKE_mesh_mselect_active_set(Mesh *mesh, int index, eMSelect_Type type)
 void BKE_mesh_count_selected_items(const Mesh *mesh, int r_count[3])
 {
   r_count[0] = r_count[1] = r_count[2] = 0;
-  if (mesh->runtime->edit_mesh) {
-    BMesh *bm = mesh->runtime->edit_mesh->bm;
+  if (const BMesh *bm = BKE_editmesh_bmesh_get(mesh)) {
     r_count[0] = bm->totvertsel;
     r_count[1] = bm->totedgesel;
     r_count[2] = bm->totfacesel;

@@ -75,9 +75,8 @@ static void statvis_calc_overhang(const MeshRenderData &mr,
   normalize_v3(dir);
 
   if (mr.extract_type == MeshExtractType::BMesh) {
-    BMEditMesh *em = mr.edit_bmesh;
     BMIter iter;
-    BMesh *bm = em->bm;
+    BMesh *bm = mr.bm;
     BMFace *f;
     int l_index = 0;
     BM_ITER_MESH (f, &iter, bm, BM_FACES_OF_MESH) {
@@ -154,10 +153,10 @@ static void statvis_calc_thickness(const MeshRenderData &mr,
 
   if (mr.extract_type == MeshExtractType::BMesh) {
     BMEditMesh *em = mr.edit_bmesh;
-    BMesh *bm = em->bm;
+    BMesh *bm = mr.bm;
     BM_mesh_elem_index_ensure(bm, BM_FACE);
 
-    BMBVHTree *bmtree = BKE_bmbvh_new_from_editmesh(em, 0, nullptr, false);
+    BMBVHTree *bmtree = BKE_bmbvh_new_from_editmesh(em, bm, 0, nullptr, false);
     const Span<std::array<BMLoop *, 3>> looptris = em->looptris;
     for (int i = 0; i < mr.corner_tris_num; i++) {
       const BMLoop *const *ltri = looptris[i].data();
@@ -295,11 +294,11 @@ static void statvis_calc_intersect(const MeshRenderData &mr, MutableSpan<float> 
   if (mr.extract_type == MeshExtractType::BMesh) {
     BMEditMesh *em = mr.edit_bmesh;
     uint overlap_len;
-    BMesh *bm = em->bm;
+    BMesh *bm = mr.bm;
 
     BM_mesh_elem_index_ensure(bm, BM_FACE);
 
-    BMBVHTree *bmtree = BKE_bmbvh_new_from_editmesh(em, 0, nullptr, false);
+    BMBVHTree *bmtree = BKE_bmbvh_new_from_editmesh(em, bm, 0, nullptr, false);
     BVHTreeOverlap *overlap = BKE_bmbvh_overlap_self(bmtree, &overlap_len);
 
     if (overlap) {
@@ -376,9 +375,8 @@ static void statvis_calc_distort(const MeshRenderData &mr, MutableSpan<float> r_
   const float minmax_irange = 1.0f / (max - min);
 
   if (mr.extract_type == MeshExtractType::BMesh) {
-    BMEditMesh *em = mr.edit_bmesh;
     BMIter iter;
-    BMesh *bm = em->bm;
+    BMesh *bm = mr.bm;
     BMFace *f;
 
     int l_index = 0;
@@ -483,9 +481,8 @@ static void statvis_calc_sharp(const MeshRenderData &mr, MutableSpan<float> r_sh
   std::fill_n(vert_angles, mr.verts_num, -M_PI);
 
   if (mr.extract_type == MeshExtractType::BMesh) {
-    BMEditMesh *em = mr.edit_bmesh;
     BMIter iter;
-    BMesh *bm = em->bm;
+    BMesh *bm = mr.bm;
     BMFace *efa;
     BMEdge *e;
     /* first assign float values to verts */

@@ -846,9 +846,15 @@ static Mesh *arrayModifier_doArray(ArrayModifierData *amd,
       }
     }
     if (tot_doubles > 0) {
+      /* Vertex merging expects un-merged vertices to point at themselves rather than being -1. */
+      for (i = 0; i < result_nverts; i++) {
+        if (full_doubles_map[i] == -1) {
+          full_doubles_map[i] = i;
+        }
+      }
       Mesh *tmp = result;
       result = geometry::mesh_merge_verts(
-          *tmp, MutableSpan<int>{full_doubles_map, result->verts_num}, tot_doubles, false);
+          *tmp, Span<int>{full_doubles_map, result->verts_num}, tot_doubles, false);
       BKE_id_free(nullptr, tmp);
     }
     MEM_delete(full_doubles_map);

@@ -849,7 +849,7 @@ PyDoc_STRVAR(
     ":class:`bpy.types.BlendDataPathMeta`], str|None]\n"
     "   :param subset: When given, only these data-blocks and their used file paths "
     "will be visited.\n"
-    "   :type subset: set[str] | None\n"
+    "   :type subset: set[:class:`bpy.types.ID`] | None\n"
     "   :param visit_types: When given, only visit data-blocks of these types. Ignored if "
     "``subset`` is also given.\n"
     "   :type visit_types: set[str] | None\n"

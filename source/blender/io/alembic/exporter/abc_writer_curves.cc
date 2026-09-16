@@ -19,6 +19,7 @@
 #include "DNA_curve_types.h"
 #include "DNA_object_types.h"
 
+#include "BKE_anonymous_attribute_id.hh"
 #include "BKE_curve_legacy_convert.hh"
 #include "BKE_curve_to_mesh.hh"
 #include "BKE_curves.hh"
@@ -46,6 +47,31 @@ static inline Imath::V3f to_yup_V3f(float3 v)
   Imath::V3f p;
   copy_yup_from_zup(p.getValue(), v);
   return p;
+}
+
+/* Excluded attributes are those which are handled through native Alembic concepts
+ * and should not be exported as generic attributes. */
+static bool is_excluded_attr(StringRefNull name)
+{
+  static const Set<StringRefNull> excluded_attrs = {
+      "position",
+      "radius",
+      "resolution",
+      "id",
+      "cyclic",
+      "curve_type",
+      "normal_mode",
+      "handle_left",
+      "handle_right",
+      "handle_type_left",
+      "handle_type_right",
+      "knots_mode",
+      "nurbs_order",
+      "nurbs_weight",
+      "velocity",
+  };
+
+  return excluded_attrs.contains(name);
 }
 
 ABCCurveWriter::ABCCurveWriter(const ABCWriterConstructorArgs &args) : ABCAbstractWriter(args) {}
@@ -259,6 +285,52 @@ void ABCCurveWriter::do_write(HierarchyContext &context)
   update_bounding_box(context.object);
   sample.setSelfBounds(bounding_box_);
   abc_curve_schema_.set(sample);
+
+  write_arb_geo_params(curves, *context.object, abc_curve_schema_.getNumSamples());
+}
+
+void ABCCurveWriter::write_arb_geo_params(const bke::CurvesGeometry &curves,
+                                          const Object &object,
+                                          const size_t num_geom_samples)
+{
+  Alembic::Abc::OCompoundProperty arb_geom_params = abc_curve_schema_.getArbGeomParams();
+
+  const bke::AttributeAccessor attributes = curves.attributes();
+
+  attributes.foreach_attribute([&](const bke::AttributeIter &iter) {
+    /* Skip "internal" Blender properties and attributes dealt with elsewhere. */
+    if (iter.name[0] == '.' || bke::attribute_name_is_anonymous(iter.name) ||
+        is_excluded_attr(iter.name))
+    {
+      return;
+    }
+
+    AttributeParamMaps &param_maps = get_attribute_param_maps();
+    /* Pass num_geom_samples - 1 so we write empty samples up until this frame. */
+    BLI_assert(num_geom_samples >= 1);
+    create_geom_param_for_attribute(arb_geom_params,
+                                    param_maps,
+                                    iter,
+                                    timesample_index(),
+                                    {},
+                                    BKE_id_name(object.id),
+                                    num_geom_samples - 1);
+  });
+
+  if (attribute_maps_) {
+    /* If an attribute was missing this frame, write empty samples for it.
+     * This is mostly to ensure that attributes have the same number of samples as the geometry
+     * data if some disappear midway in the animation and never come back. */
+    attribute_maps_->write_empty_samples(num_geom_samples);
+  }
+}
+
+AttributeParamMaps &ABCCurveWriter::get_attribute_param_maps()
+{
+  if (!attribute_maps_) {
+    attribute_maps_ = std::make_unique<AttributeParamMaps>();
+  }
+  return *attribute_maps_.get();
 }
 
 ABCCurveMeshWriter::ABCCurveMeshWriter(const ABCWriterConstructorArgs &args)

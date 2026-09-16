@@ -44,7 +44,7 @@ inline unsigned char RGB2GRAY<unsigned char>(const unsigned char r,
 
 template <class ImageIn, class ImageOut>
 void Rgb2Gray(const ImageIn& imaIn, ImageOut* imaOut) {
-  // It is all fine to cnvert RGBA image here as well,
+  // It is all fine to convert RGBA image here as well,
   // all the additional channels will be nicely ignored.
   assert(imaIn.Depth() >= 3);
 

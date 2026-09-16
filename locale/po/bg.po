@@ -1,9 +1,9 @@
 
 msgid ""
 msgstr ""
-"Project-Id-Version: Blender 5.3.0 Alpha (b'f5df8c32f99b')\n"
+"Project-Id-Version: Blender 5.3.0 Alpha (b'2cef5b8c951a')\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-09-07 07:47+0000\n"
+"POT-Creation-Date: 2026-09-14 07:47+0000\n"
 "PO-Revision-Date: 2025-07-23 15:34+0000\n"
 "Last-Translator: Just Adam <adam.abbas2009@gmail.com>\n"
 "Language-Team: Bulgarian <https://translate.blender.org/projects/blender-ui/ui/bg/>\n"
@@ -1156,32 +1156,32 @@ msgid "UV Mapping"
 msgstr "UV Картиране"
 
 
-msgid "Merge"
-msgstr "Слей"
-
-
-msgid "Apply"
-msgstr "Прилагане"
-
-
-msgid "In-Betweens"
-msgstr "Междинни Кадри"
-
-
-msgid "Hooks"
-msgstr "Куки"
-
-
-msgid "Make Single User"
-msgstr "Направи с Единствен Потребител"
+msgid "Light"
+msgstr "Светлина"
 
 
 msgid "Rigid Body"
 msgstr "Твърдо тяло"
 
 
-msgid "Light"
-msgstr "Светлина"
+msgid "Apply"
+msgstr "Прилагане"
+
+
+msgid "Make Single User"
+msgstr "Направи с Единствен Потребител"
+
+
+msgid "Hooks"
+msgstr "Куки"
+
+
+msgid "In-Betweens"
+msgstr "Междинни Кадри"
+
+
+msgid "Merge"
+msgstr "Слей"
 
 
 msgid "Cache"
@@ -1941,6 +1941,10 @@ msgid "Doc ID"
 msgstr "Doc ID"
 
 
+msgid "Trusted Source"
+msgstr "Надежден Източник"
+
+
 msgctxt "Operator"
 msgid "Memory Statistics"
 msgstr "Статистики на Паметта"
@@ -1952,10 +1956,6 @@ msgstr "Принтирай статистиката на паметта в ко�
 
 msgid "Open a Blender file"
 msgstr "Отваряне на Blender файл"
-
-
-msgid "Trusted Source"
-msgstr "Надежден Източник"
 
 
 msgctxt "Operator"

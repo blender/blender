@@ -28,6 +28,7 @@
 #include "BKE_global.hh"
 #include "BKE_node.hh"
 #include "BKE_node_legacy_types.hh"
+#include "BKE_node_runtime.hh"
 
 #include "RNA_define.hh"
 #include "RNA_enum_types.hh"
@@ -2664,10 +2665,25 @@ static void rna_Node_parent_set(PointerRNA *ptr, PointerRNA value, ReportList * 
 static void rna_Node_internal_links_begin(CollectionPropertyIterator *iter, PointerRNA *ptr)
 {
   bNode *node = ptr->data_as<bNode>();
-  bNodeLink *begin;
-  int len;
-  bke::node_internal_links(*node, &begin, &len);
-  rna_iterator_array_begin(iter, ptr, begin, sizeof(bNodeLink), len, false, nullptr);
+  rna_iterator_array_begin(iter,
+                           ptr,
+                           node->runtime->internal_links.data(),
+                           sizeof(bNodeInternalLink),
+                           node->runtime->internal_links.size(),
+                           false,
+                           nullptr);
+}
+
+static PointerRNA rna_NodeInternalLink_from_socket_get(PointerRNA *ptr)
+{
+  bNodeInternalLink *link = static_cast<bNodeInternalLink *>(ptr->data);
+  return RNA_pointer_create_id_subdata(*ptr->owner_id, RNA_NodeSocket, link->in);
+}
+
+static PointerRNA rna_NodeInternalLink_to_socket_get(PointerRNA *ptr)
+{
+  bNodeInternalLink *link = static_cast<bNodeInternalLink *>(ptr->data);
+  return RNA_pointer_create_id_subdata(*ptr->owner_id, RNA_NodeSocket, link->out);
 }
 
 /**
@@ -9804,7 +9820,7 @@ static void rna_def_node(BlenderRNA *brna)
                                     nullptr,
                                     nullptr,
                                     nullptr);
-  RNA_def_property_struct_type(prop, "NodeLink");
+  RNA_def_property_struct_type(prop, "NodeInternalLink");
   RNA_def_property_ui_text(
       prop, "Internal Links", "Internal input-to-output connections for muting");
 
@@ -10070,6 +10086,35 @@ static void rna_def_node(BlenderRNA *brna)
   RNA_def_parameter_flags(parm, PROP_DYNAMIC, ParameterFlag(0));
   RNA_def_parameter_clear_flags(parm, PROP_NEVER_NULL, ParameterFlag(0));
   RNA_def_function_output(func, parm);
+}
+
+static void rna_def_node_internal_link(BlenderRNA *brna)
+{
+  StructRNA *srna;
+  PropertyRNA *prop;
+
+  srna = RNA_def_struct(brna, "NodeInternalLink", nullptr);
+  RNA_def_struct_ui_text(srna,
+                         "Node Internal Link",
+                         "Internal link used by muted nodes to connect input to output sockets");
+
+  prop = RNA_def_property(srna, "from_socket", PROP_POINTER, PROP_NONE);
+  RNA_def_property_struct_type(prop, "NodeSocket");
+  RNA_def_property_clear_flag(prop, PROP_EDITABLE);
+  RNA_def_property_flag(prop, PROP_PTR_NO_OWNERSHIP);
+  RNA_def_property_override_flag(prop, PROPOVERRIDE_NO_COMPARISON);
+  RNA_def_property_pointer_funcs(
+      prop, "rna_NodeInternalLink_from_socket_get", nullptr, nullptr, nullptr);
+  RNA_def_property_ui_text(prop, "From Socket", "");
+
+  prop = RNA_def_property(srna, "to_socket", PROP_POINTER, PROP_NONE);
+  RNA_def_property_struct_type(prop, "NodeSocket");
+  RNA_def_property_clear_flag(prop, PROP_EDITABLE);
+  RNA_def_property_flag(prop, PROP_PTR_NO_OWNERSHIP);
+  RNA_def_property_override_flag(prop, PROPOVERRIDE_NO_COMPARISON);
+  RNA_def_property_pointer_funcs(
+      prop, "rna_NodeInternalLink_to_socket_get", nullptr, nullptr, nullptr);
+  RNA_def_property_ui_text(prop, "To Socket", "");
 }
 
 static void rna_def_node_link(BlenderRNA *brna)
@@ -11298,6 +11343,7 @@ void RNA_def_nodetree(BlenderRNA *brna)
 {
   rna_def_node_panel_state(brna);
   rna_def_node(brna);
+  rna_def_node_internal_link(brna);
   rna_def_node_link(brna);
 
   rna_def_internal_node(brna);

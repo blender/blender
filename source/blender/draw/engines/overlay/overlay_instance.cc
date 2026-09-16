@@ -72,15 +72,18 @@ void Instance::init()
 
     const bool viewport_uses_workbench = state.v3d->shading.type <= OB_SOLID ||
                                          BKE_scene_uses_blender_workbench(state.scene);
-    const bool viewport_uses_eevee = STREQ(
-        ED_view3d_engine_type(state.scene, state.v3d->shading.type)->idname,
-        RE_engine_id_BLENDER_EEVEE);
+    const RenderEngineType *engine_type = ED_view3d_engine_type(state.scene,
+                                                                state.v3d->shading.type);
+    const bool viewport_uses_eevee = STREQ(engine_type->idname, RE_engine_id_BLENDER_EEVEE);
+    const bool viewport_engine_provides_depth = engine_type->flag & RE_WRITE_VIEWPORT_DEPTH;
     const bool use_resolution_scaling = BKE_render_preview_pixel_size(&state.scene->r) != 1;
     /* Only workbench ensures the depth buffer is matching overlays.
-     * Force depth prepass for other render engines.
+     * Force depth prepass for other render engines,
+     * unless they declared their depth information should be used.
      * EEVEE is an exception (if not using mixed resolution) to avoid a significant overhead. */
     state.is_render_depth_available = viewport_uses_workbench ||
-                                      (viewport_uses_eevee && !use_resolution_scaling);
+                                      (viewport_uses_eevee && !use_resolution_scaling) ||
+                                      viewport_engine_provides_depth;
 
     /* For depth only drawing, no other render engine is expected. Except for Grease Pencil which
      * outputs valid depth. Otherwise depth is cleared and is valid. */

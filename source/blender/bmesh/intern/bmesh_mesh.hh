@@ -209,8 +209,8 @@ extern const BMAllocTemplate bm_mesh_chunksize_default;
 void BM_mesh_vert_normals_get(BMesh *bm, MutableSpan<float3> normals);
 
 /* Vertex coords access. */
-void BM_mesh_vert_coords_get(BMesh *bm, MutableSpan<float3> positions);
-Array<float3> BM_mesh_vert_coords_alloc(BMesh *bm);
+void BM_mesh_vert_coords_get(const BMesh *bm, MutableSpan<float3> positions);
+Array<float3> BM_mesh_vert_coords_alloc(const BMesh *bm);
 void BM_mesh_vert_coords_apply(BMesh *bm, Span<float3> vert_coords);
 void BM_mesh_vert_coords_apply_with_mat4(BMesh *bm,
                                          Span<float3> vert_coords,

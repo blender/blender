@@ -572,7 +572,6 @@ static void armature_deform_editmesh(const Object &ob_arm,
                                      const int deformflag,
                                      const std::optional<Span<float3>> vert_coords_prev,
                                      StringRefNull defgrp_name,
-                                     const BMEditMesh &em_target,
                                      const int cd_dvert_offset)
 {
   ArmatureDeformParams deform_params = get_armature_deform_params(ob_arm,
@@ -590,20 +589,20 @@ static void armature_deform_editmesh(const Object &ob_arm,
   data.cd_dvert_offset = cd_dvert_offset;
   data.deform_params = std::move(deform_params);
 
+  BMesh *bm = const_cast<BMesh *>(BKE_editmesh_bmesh_get(&ob_target));
+
   /* While this could cause an extra loop over mesh data, in most cases this will
    * have already been properly set. */
-  BM_mesh_elem_index_ensure(em_target.bm, BM_VERT);
+  BM_mesh_elem_index_ensure(bm, BM_VERT);
 
   TaskParallelSettings settings;
   BLI_parallel_mempool_settings_defaults(&settings);
 
   if (data.deform_params.use_dverts) {
-    BLI_task_parallel_mempool(
-        em_target.bm->vpool, &data, armature_vert_task_editmesh<true>, &settings);
+    BLI_task_parallel_mempool(bm->vpool, &data, armature_vert_task_editmesh<true>, &settings);
   }
   else {
-    BLI_task_parallel_mempool(
-        em_target.bm->vpool, &data, armature_vert_task_editmesh<false>, &settings);
+    BLI_task_parallel_mempool(bm->vpool, &data, armature_vert_task_editmesh<false>, &settings);
   }
 }
 
@@ -720,8 +719,7 @@ void BKE_armature_deform_coords_with_editmesh(
     std::optional<Span<float3>> vert_coords_prev,
     std::optional<MutableSpan<float3x3>> vert_deform_mats,
     int deformflag,
-    StringRefNull defgrp_name,
-    const BMEditMesh &em_target)
+    StringRefNull defgrp_name)
 {
   if (!bke::verify_armature_deform_valid(ob_arm)) {
     return;
@@ -729,7 +727,8 @@ void BKE_armature_deform_coords_with_editmesh(
 
   const ListBaseT<bDeformGroup> *defbase = BKE_id_defgroup_list_get(
       static_cast<const ID *>(ob_target.data));
-  const int cd_dvert_offset = CustomData_get_offset(&em_target.bm->vdata, CD_MDEFORMVERT);
+  const BMesh *bm = BKE_editmesh_bmesh_get(&ob_target);
+  const int cd_dvert_offset = CustomData_get_offset(&bm->vdata, CD_MDEFORMVERT);
   bke::armature_deform_editmesh(ob_arm,
                                 ob_target,
                                 defbase,
@@ -738,7 +737,6 @@ void BKE_armature_deform_coords_with_editmesh(
                                 deformflag,
                                 vert_coords_prev,
                                 defgrp_name,
-                                em_target,
                                 cd_dvert_offset);
 }
 

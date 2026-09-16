@@ -31,10 +31,10 @@
 #include "RNA_enum_types.hh"
 
 #include "BKE_animsys.hh"
+#include "BKE_annotations.h"
 #include "BKE_context.hh"
 #include "BKE_fcurve.hh"
 #include "BKE_global.hh"
-#include "BKE_gpencil_legacy.h"
 #include "BKE_grease_pencil.hh"
 #include "BKE_nla.hh"
 #include "BKE_report.hh"
@@ -809,10 +809,10 @@ static void insert_gpencil_key(bAnimContext *ac,
   Scene *scene = ac->scene;
   bGPdata *gpd = id_cast<bGPdata *>(ale->id);
   bGPDlayer *gpl = static_cast<bGPDlayer *>(ale->data);
-  BKE_gpencil_layer_frame_get(gpl, scene->r.cfra, add_frame_mode);
+  BKE_annotations_layer_frame_get(gpl, scene->r.cfra, add_frame_mode);
   /* Check if the gpd changes to tag only once. */
   if (gpd != *gpd_old) {
-    BKE_gpencil_tag(gpd);
+    BKE_annotations_tag(gpd);
     *gpd_old = gpd;
   }
 }

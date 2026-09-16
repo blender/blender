@@ -422,9 +422,9 @@ static bool pass_left_to_right(const bNodeTree &tree,
       }
     }
     if (node->is_muted()) {
-      for (const bNodeLink &link : node->internal_links()) {
-        const bNodeSocket &input_socket = *link.fromsock;
-        const bNodeSocket &output_socket = *link.tosock;
+      for (const bNodeInternalLink &link : node->internal_links()) {
+        const bNodeSocket &input_socket = *link.in;
+        const bNodeSocket &output_socket = *link.out;
         if (!input_socket.is_available() || !output_socket.is_available()) {
           continue;
         }
@@ -724,9 +724,9 @@ static bool pass_right_to_left(const bNodeTree &tree,
       }
     }
     if (node->is_muted()) {
-      for (const bNodeLink &link : node->internal_links()) {
-        const bNodeSocket &input_socket = *link.fromsock;
-        const bNodeSocket &output_socket = *link.tosock;
+      for (const bNodeInternalLink &link : node->internal_links()) {
+        const bNodeSocket &input_socket = *link.in;
+        const bNodeSocket &output_socket = *link.out;
         if (!input_socket.is_available() || !output_socket.is_available()) {
           continue;
         }

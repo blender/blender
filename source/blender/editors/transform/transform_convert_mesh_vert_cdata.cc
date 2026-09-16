@@ -59,7 +59,7 @@ static void createTransMeshVertCData(bContext * /*C*/, TransInfo *t)
   BLI_assert(ELEM(t->mode, TFM_BWEIGHT, TFM_VERT_CREASE));
   FOREACH_TRANS_DATA_CONTAINER (t, tc) {
     BMEditMesh *em = BKE_editmesh_from_object(tc->obedit);
-    BMesh *bm = em->bm;
+    BMesh *bm = BKE_editmesh_bmesh_get_for_write(tc->obedit);
     BMVert *eve;
     BMIter iter;
     float mtx[3][3], smtx[3][3];
@@ -121,7 +121,7 @@ static void createTransMeshVertCData(bContext * /*C*/, TransInfo *t)
       const bool calc_island_axismtx = false;
 
       transform_convert_mesh_islands_calc(
-          em, calc_single_islands, calc_island_center, calc_island_axismtx, &island_data);
+          em, bm, calc_single_islands, calc_island_center, calc_island_axismtx, &island_data);
     }
 
     copy_m3_m4(mtx, tc->obedit->object_to_world().ptr());
@@ -138,11 +138,11 @@ static void createTransMeshVertCData(bContext * /*C*/, TransInfo *t)
       if (is_island_center) {
         dists_index = MEM_new_array_uninitialized<int>(bm->totvert, __func__);
       }
-      transform_convert_mesh_connectivity_distance(em->bm, mtx, dists, dists_index);
+      transform_convert_mesh_connectivity_distance(bm, mtx, dists, dists_index);
     }
 
     /* Detect CrazySpace [tm]. */
-    transform_convert_mesh_crazyspace_detect(t, tc, em, &crazyspace_data);
+    transform_convert_mesh_crazyspace_detect(t, tc, &crazyspace_data);
 
     /* Create TransData. */
     BLI_assert(data_len >= 1);

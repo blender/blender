@@ -1478,15 +1478,6 @@ def brush_settings_advanced(layout, context, settings, brush, popover=False):
         if capabilities.has_color and popover:
             draw_color_jitter_panel(container, context, brush)
 
-    elif mode == 'SCULPT_GREASE_PENCIL':
-        gp_settings = brush.gpencil_settings
-
-        col = container.column(heading="Affect", align=True)
-        col.prop(gp_settings, "use_edit_position", text="Position")
-        col.prop(gp_settings, "use_edit_strength", text="Strength", text_ctxt=i18n_contexts.id_gpencil)
-        col.prop(gp_settings, "use_edit_thickness", text="Thickness")
-        col.prop(gp_settings, "use_edit_uv", text="UV")
-
     # 3D and 2D Texture Paint.
     elif mode in {'PAINT_TEXTURE', 'PAINT_2D'}:
         container.prop(brush, "image_brush_type")
@@ -2012,6 +2003,31 @@ def brush_basic_grease_pencil_paint_settings(layout, context, brush, props, *, c
         layout.prop(gp_settings, "use_active_layer_only")
 
 
+def brush_basic_grease_pencil_sculpt_settings(layout, context, brush, *, compact=False):
+    UnifiedPaintPanel.prop_unified(
+        layout,
+        context,
+        brush,
+        "size",
+        pressure_name="use_pressure_size",
+        unified_name="use_unified_size",
+        text="Size",
+        slider=True,
+        header=compact,
+    )
+
+    UnifiedPaintPanel.prop_unified(
+        layout,
+        context,
+        brush,
+        "strength",
+        pressure_name="use_pressure_strength",
+        unified_name="use_unified_strength",
+        text="Strength",
+        header=compact,
+    )
+
+
 def brush_basic_grease_pencil_weight_settings(layout, context, brush, *, compact=False):
     UnifiedPaintPanel.prop_unified(
         layout,
@@ -2025,14 +2041,12 @@ def brush_basic_grease_pencil_weight_settings(layout, context, brush, *, compact
         header=compact,
     )
 
-    capabilities = brush.sculpt_capabilities
-    pressure_name = "use_pressure_strength" if capabilities.has_strength_pressure else None
     UnifiedPaintPanel.prop_unified(
         layout,
         context,
         brush,
         "strength",
-        pressure_name=pressure_name,
+        pressure_name="use_pressure_strength",
         unified_name="use_unified_strength",
         text="Strength",
         header=compact,

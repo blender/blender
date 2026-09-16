@@ -15,8 +15,8 @@
 #include "BLI_string_utf8.hh"
 #include "BLI_utildefines.hh"
 
+#include "BKE_annotations.h"
 #include "BKE_context.hh"
-#include "BKE_gpencil_legacy.h"
 #include "BKE_layer.hh"
 #include "BKE_report.hh"
 #include "BKE_scene.hh"
@@ -517,7 +517,7 @@ static void view3d_ruler_gpencil_ensure(bContext *C)
   Main *bmain = CTX_data_main(C);
   Scene *scene = CTX_data_scene(C);
   if (scene->gpd == nullptr) {
-    scene->gpd = BKE_gpencil_data_addnew(bmain, "Annotations");
+    scene->gpd = BKE_annotations_data_addnew(bmain, "Annotations");
     DEG_id_tag_update_ex(bmain, &scene->id, ID_RECALC_SYNC_TO_EVAL);
     DEG_relations_tag_update(bmain);
   }
@@ -541,14 +541,14 @@ static bool view3d_ruler_to_gpencil(bContext *C, wmGizmoGroup *gzgroup)
 
   gpl = view3d_ruler_layer_get(gpd);
   if (gpl == nullptr) {
-    gpl = BKE_gpencil_layer_addnew(gpd, ruler_name, false, false);
+    gpl = BKE_annotations_layer_addnew(gpd, ruler_name, false, false);
     copy_v4_v4(gpl->color, U.gpencil_new_layer_col);
     gpl->thickness = 1;
     gpl->flag |= GP_LAYER_HIDE | GP_LAYER_IS_RULER;
   }
 
-  gpf = BKE_gpencil_layer_frame_get(gpl, scene->r.cfra, GP_GETFRAME_ADD_NEW);
-  BKE_gpencil_free_strokes(gpf);
+  gpf = BKE_annotations_layer_frame_get(gpl, scene->r.cfra, GP_GETFRAME_ADD_NEW);
+  BKE_annotations_free_strokes(gpf);
 
   for (ruler_item = gzgroup_ruler_item_first_get(gzgroup); ruler_item;
        ruler_item = reinterpret_cast<RulerItem *>(ruler_item->gz.next))
@@ -602,7 +602,7 @@ static bool view3d_ruler_from_gpencil(const bContext *C, wmGizmoGroup *gzgroup)
     gpl = view3d_ruler_layer_get(scene->gpd);
     if (gpl) {
       bGPDframe *gpf;
-      gpf = BKE_gpencil_layer_frame_get(gpl, scene->r.cfra, GP_GETFRAME_USE_PREV);
+      gpf = BKE_annotations_layer_frame_get(gpl, scene->r.cfra, GP_GETFRAME_USE_PREV);
       if (gpf) {
         for (bGPDstroke &gps : gpf->strokes) {
           bGPDspoint *pt = gps.points;

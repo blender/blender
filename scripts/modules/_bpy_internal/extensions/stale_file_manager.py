@@ -153,7 +153,7 @@ class StaleFiles:
                 # One could be forgiven for thinking they must never be the same since `path`
                 # is known not be an empty string, one would be mistaken!
                 # WIN32 which considers `C:\path\` the same as `C:\path\. ` to be the same.
-                # Therefor, literal lines containing any combination of trailing full-stop
+                # Therefore, literal lines containing any combination of trailing full-stop
                 # or space characters would be considered files that cannot be removed.
                 # While this should never under normal conditions happen,
                 # guarantee that stale file removal *never* removes anything it should not,

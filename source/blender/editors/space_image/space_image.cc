@@ -1317,7 +1317,7 @@ static void image_space_blend_read_data(BlendDataReader * /*reader*/, SpaceLink 
 #if 0
   sima->gpd = newdataadr(fd, sima->gpd);
   if (sima->gpd) {
-    BKE_gpencil_blend_read_data(fd, sima->gpd);
+    BKE_annotations_blend_read_data(fd, sima->gpd);
   }
 #endif
 }

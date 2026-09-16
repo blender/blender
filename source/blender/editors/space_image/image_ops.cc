@@ -1380,7 +1380,7 @@ static Image *image_open_single(Main *bmain,
   Image *ima = nullptr;
 
   errno = 0;
-  ima = BKE_image_load_exists_in_lib(bmain, owner_library, range->filepath, &exists);
+  ima = BKE_image_load_exists_in_lib(bmain, owner_library, range->filepath, true, &exists);
 
   if (!ima) {
     BKE_reportf(op->reports,

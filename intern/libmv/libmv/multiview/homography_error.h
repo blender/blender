@@ -42,7 +42,7 @@ struct AsymmetricError {
    * where Psi is the function that transforms homogeneous to euclidean coords.
    *
    * \param[in]  H The 3x3 homography matrix.
-   * The estimated homography should approximatelly hold the condition y = H x.
+   * The estimated homography should approximately hold the condition y = H x.
    * \param[in]  x1  A set of 2D points (2xN or 3xN matrix of column vectors).
    * \param[in]  x2  A set of 2D points (2xN or 3xN matrix of column vectors).
    * \param[out] dx  A 2xN matrix of column vectors of residuals errors
@@ -70,7 +70,7 @@ struct AsymmetricError {
    * where Psi is the function that transforms homogeneous to euclidean coords.
    *
    * \param[in]  H The 3x3 homography matrix.
-   * The estimated homography should approximatelly hold the condition y = H x.
+   * The estimated homography should approximately hold the condition y = H x.
    * \param[in]  x1 A 2D point (vector of size 2 or 3 (euclidean/homogeneous))
    * \param[in]  x2 A 2D point (vector of size 2 or 3 (euclidean/homogeneous))
    * \param[out] dx  A vector of size 2 of the residual error
@@ -96,7 +96,7 @@ struct AsymmetricError {
    * where Psi is the function that transforms homogeneous to euclidean coords.
    *
    * \param[in]  H The 3x3 homography matrix.
-   * The estimated homography should approximatelly hold the condition y = H x.
+   * The estimated homography should approximately hold the condition y = H x.
    * \param[in]  x1  A set of 2D points (2xN or 3xN matrix of column vectors).
    * \param[in]  x2  A set of 2D points (2xN or 3xN matrix of column vectors).
    * \return  The squared norm of the asymmetric residuals errors
@@ -112,7 +112,7 @@ struct AsymmetricError {
    * where Psi is the function that transforms homogeneous to euclidean coords.
    *
    * \param[in]  H The 3x3 homography matrix.
-   * The estimated homography should approximatelly hold the condition y = H x.
+   * The estimated homography should approximately hold the condition y = H x.
    * \param[in]  x1 A 2D point (vector of size 2 or 3 (euclidean/homogeneous))
    * \param[in]  x2 A 2D point (vector of size 2 or 3 (euclidean/homogeneous))
    * \return  The squared norm of the asymmetric residual error
@@ -139,7 +139,7 @@ struct SymmetricError {
    * where Psi is the function that transforms homogeneous to euclidean coords.
    *
    * \param[in]  H The 3x3 homography matrix.
-   * The estimated homography should approximatelly hold the condition y = H x.
+   * The estimated homography should approximately hold the condition y = H x.
    * \param[in]  x1 A 2D point (vector of size 2 or 3 (euclidean/homogeneous))
    * \param[in]  x2 A 2D point (vector of size 2 or 3 (euclidean/homogeneous))
    * \return  The squared norm of the symmetric residuals errors
@@ -168,7 +168,7 @@ struct AlgebraicError {
    *   [x2] * H * x1  where [x2] is the skew matrix of x2.
    *
    * \param[in]  H The 3x3 homography matrix.
-   * The estimated homography should approximatelly hold the condition y = H x.
+   * The estimated homography should approximately hold the condition y = H x.
    * \param[in]  x1  A set of 2D points (2xN or 3xN matrix of column vectors).
    * \param[in]  x2  A set of 2D points (2xN or 3xN matrix of column vectors).
    * \param[out] dx  A 3xN matrix of column vectors of residuals errors
@@ -187,7 +187,7 @@ struct AlgebraicError {
    *   [x2] * H * x1  where [x2] is the skew matrix of x2.
    *
    * \param[in]  H The 3x3 homography matrix.
-   * The estimated homography should approximatelly hold the condition y = H x.
+   * The estimated homography should approximately hold the condition y = H x.
    * \param[in]  x1 A 2D point (vector of size 2 or 3 (euclidean/homogeneous))
    * \param[in]  x2 A 2D point (vector of size 2 or 3 (euclidean/homogeneous))
    * \param[out] dx  A vector of size 3 of the residual error
@@ -213,7 +213,7 @@ struct AlgebraicError {
    *   [x2] * H * x1  where [x2] is the skew matrix of x2.
    *
    * \param[in]  H The 3x3 homography matrix.
-   * The estimated homography should approximatelly hold the condition y = H x.
+   * The estimated homography should approximately hold the condition y = H x.
    * \param[in]  x1 A set of 2D points (2xN or 3xN matrix of column vectors).
    * \param[in]  x2 A set of 2D points (2xN or 3xN matrix of column vectors).
    * \return  The squared norm of the asymmetric residuals errors
@@ -229,7 +229,7 @@ struct AlgebraicError {
    * [x2] * H * x1  where [x2] is the skew matrix of x2.
    *
    * \param[in]  H The 3x3 homography matrix.
-   * The estimated homography should approximatelly hold the condition y = H x.
+   * The estimated homography should approximately hold the condition y = H x.
    * \param[in]  x1 A 2D point (vector of size 2 or 3 (euclidean/homogeneous))
    * \param[in]  x2 A 2D point (vector of size 2 or 3 (euclidean/homogeneous))
    * \return  The squared norm of the asymmetric residual error

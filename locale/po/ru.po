@@ -1,10 +1,10 @@
 
 msgid ""
 msgstr ""
-"Project-Id-Version: Blender 5.3.0 Alpha (b'f5df8c32f99b')\n"
+"Project-Id-Version: Blender 5.3.0 Alpha (b'2cef5b8c951a')\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-09-07 07:47+0000\n"
-"PO-Revision-Date: 2026-09-04 19:29+0000\n"
+"POT-Creation-Date: 2026-09-14 07:47+0000\n"
+"PO-Revision-Date: 2026-09-12 23:05+0000\n"
 "Last-Translator: Alexandr Fatih <radix83@rambler.ru>\n"
 "Language-Team: Russian <https://translate.blender.org/projects/blender-ui/ui/ru/>\n"
 "Language: ru\n"
@@ -15322,6 +15322,10 @@ msgid "Sound strip"
 msgstr "Звуковая дорожка"
 
 
+msgid "Text strip"
+msgstr "Текстовая дорожка"
+
+
 msgid "Add camera background image"
 msgstr "Добавить фоновое изображение камеры"
 
@@ -19385,10 +19389,6 @@ msgstr "Библиотечный файл, на который ссылаетс�
 
 msgid "Library Weak Reference"
 msgstr "Слабая ссылка на библиотеку"
-
-
-msgid "Weak reference to a data-block in another library .blend file (used to re-use already appended data instead of appending new copies)"
-msgstr "Слабая ссылка на блок данных в другом .blend-файле библиотеки (используется для повторного использования уже добавленных данных вместо добавления новых копий)"
 
 
 msgid "Unique data-block ID name (within a same type and library)"
@@ -29073,10 +29073,6 @@ msgid "Returns and sets the node group of the active scene compositor effect. Cr
 msgstr "Возвращает и задаёт группу нод эффекта композитора активной сцены. Создаёт новый эффект, если его ещё нет"
 
 
-msgid "Compositor Effects"
-msgstr "Эффекты композитора"
-
-
 msgid "Compositor effects for this scene"
 msgstr "Эффекты композитора для этой сцены"
 
@@ -34849,7 +34845,7 @@ msgstr "Используемый атрибут материала"
 
 
 msgid "Line Color Red"
-msgstr "Диффузный красный цвет"
+msgstr "Красный цвет линий"
 
 
 msgid "Line Color Green"
@@ -34865,7 +34861,7 @@ msgstr "Прозрачность цвета линий"
 
 
 msgid "Diffuse Color Red"
-msgstr "Красный цвет линий"
+msgstr "Диффузный красный цвет"
 
 
 msgid "Diffuse Color Green"
@@ -36200,18 +36196,6 @@ msgid "Editor menu containing buttons"
 msgstr "Меню редактора, содержащее кнопки"
 
 
-msgid "Select More/Less"
-msgstr "Выделить больше/меньше"
-
-
-msgid "Gizmo"
-msgstr "Гизмо"
-
-
-msgid "Instances"
-msgstr "Экземпляры"
-
-
 msgid "Read"
 msgstr "Прочитать"
 
@@ -36220,72 +36204,84 @@ msgid "Sample"
 msgstr "Сэмплировать"
 
 
+msgid "Show/Hide"
+msgstr "Показать/скрыть"
+
+
 msgid "Write"
 msgstr "Записать"
+
+
+msgid "Clean Up"
+msgstr "Привести в порядок"
 
 
 msgid "Primitives"
 msgstr "Примитивы"
 
 
+msgid "Pivot Point"
+msgstr "Центр трансформации"
+
+
+msgid "Gizmo"
+msgstr "Гизмо"
+
+
+msgid "Snap"
+msgstr "Привязка"
+
+
+msgid "Instances"
+msgstr "Экземпляры"
+
+
+msgid "Proportional Editing Falloff"
+msgstr "Спад пропорционального редактирования"
+
+
+msgid "Mask Edit"
+msgstr "Редактировать маску"
+
+
+msgid "Automasking"
+msgstr "Автомаски́рование"
+
+
+msgid "Face Sets Edit"
+msgstr "Редактировать наборы граней"
+
+
+msgid "Vertex Group Locks"
+msgstr "Блокировки групп вершин"
+
+
 msgid "Import"
 msgstr "Импортировать"
-
-
-msgid "Select Loops"
-msgstr "Выделить петли"
-
-
-msgid "Viewpoint"
-msgstr "Точка обзора"
 
 
 msgid "Render Preview"
 msgstr "Превью рендера"
 
 
-msgid "Select All by Trait"
-msgstr "Выделить всё по признаку"
-
-
 msgid "Utilities"
 msgstr "Утилиты"
-
-
-msgid "Select Linked"
-msgstr "Выделить связанные"
 
 
 msgid "Deprecated"
 msgstr "Устаревшие"
 
 
-msgid "Select Similar"
-msgstr "Выделить по схожести"
-
-
 msgid "Math"
 msgstr "Математика"
-
-
-msgid "Align View to Active"
-msgstr "Выровнять вид по активному"
 
 
 msgid "UV"
 msgstr "UV"
 
 
-msgid "View Regions"
-msgstr "Области обзора"
-
-
-msgid "Navigation"
-msgstr "Навигация"
-
-
-msgid "Align View"
-msgstr "Выровнять вид"
+msgid "Mirror"
+msgstr "Зеркало"
 
 
 msgid "UV Mapping"
@@ -36296,52 +36292,60 @@ msgid "Local View"
 msgstr "Локальный вид"
 
 
-msgid "Snap"
-msgstr "Привязка"
+msgid "Viewpoint"
+msgstr "Точка обзора"
 
 
-msgid "Bone Roll"
-msgstr "Крен кости"
+msgid "Navigation"
+msgstr "Навигация"
 
 
-msgid "Mirror"
-msgstr "Зеркало"
+msgid "Align View"
+msgstr "Выровнять вид"
 
 
-msgid "Automasking"
-msgstr "Автомаски́рование"
+msgid "Align View to Active"
+msgstr "Выровнять вид по активному"
 
 
-msgid "Vertex Group Locks"
-msgstr "Блокировки групп вершин"
+msgid "View Regions"
+msgstr "Области обзора"
 
 
-msgid "Face Sets Edit"
-msgstr "Редактировать наборы граней"
+msgid "Select More/Less"
+msgstr "Выделить больше/меньше"
 
 
-msgid "Mask Edit"
-msgstr "Редактировать маску"
+msgid "Select Similar"
+msgstr "Выделить по схожести"
 
 
-msgid "Proportional Editing Falloff"
-msgstr "Спад пропорционального редактирования"
+msgid "Select All by Trait"
+msgstr "Выделить всё по признаку"
 
 
-msgid "Pivot Point"
-msgstr "Центр трансформации"
+msgid "Select Linked"
+msgstr "Выделить связанные"
 
 
-msgid "Clean Up"
-msgstr "Привести в порядок"
+msgid "Select Loops"
+msgstr "Выделить петли"
 
 
-msgid "Show/Hide"
-msgstr "Показать/скрыть"
+msgid "Assign Material"
+msgstr "Назначить материал"
 
 
-msgid "Names"
-msgstr "Имена"
+msgid "Metaball"
+msgstr "Метасфера"
+
+
+msgid "Light"
+msgstr "Свет"
+
+
+msgid "Light Probe"
+msgstr "Зонд освещения"
 
 
 msgid "Linked"
@@ -36352,108 +36356,48 @@ msgid "Layout"
 msgstr "Разметка"
 
 
-msgid "Metaball"
-msgstr "Метасфера"
+msgid "Add Image"
+msgstr "Добавить изображение"
 
 
-msgid "Kerning"
-msgstr "Кернинг"
+msgid "Relations"
+msgstr "Отношения"
 
 
-msgid "Special Characters"
-msgstr "Специальные символы"
-
-
-msgid "Adjust"
-msgstr "Коррекция"
-
-
-msgid "Merge"
-msgstr "Объединить"
-
-
-msgid "Bone Collections"
-msgstr "Коллекции костей"
-
-
-msgid "Keying"
-msgstr "Кеинг"
-
-
-msgid "Tracking"
-msgstr "Трекинг"
-
-
-msgid "Set Face Strength"
-msgstr "Установить твёрдость грани"
-
-
-msgid "Select by Face Strength"
-msgstr "Выделить по твёрдости грани"
-
-
-msgid "Face Data"
-msgstr "Данные граней"
-
-
-msgid "Creative"
-msgstr "Художественные"
-
-
-msgid "Mesh Select Mode"
-msgstr "Режим выделения меша"
-
-
-msgid "Disable Bone Options"
-msgstr "Отключить параметры костей"
-
-
-msgid "Enable Bone Options"
-msgstr "Включить параметры костей"
-
-
-msgid "Toggle Bone Options"
-msgstr "Переключить опции костей"
+msgid "Rigid Body"
+msgstr "Твёрдое тело"
 
 
 msgid "Apply"
 msgstr "Применить"
 
 
-msgid "Propagate"
-msgstr "Распространение"
+msgid "Track"
+msgstr "Отслеживание"
 
 
-msgid "In-Betweens"
-msgstr "Промежуточные"
+msgid "Adjust"
+msgstr "Коррекция"
 
 
-msgid "Clear Transform"
-msgstr "Очистить трансформацию"
+msgid "Quick Effects"
+msgstr "Быстрые эффекты"
 
 
-msgid "Random Mask"
-msgstr "Случайная маска"
+msgid "Keying"
+msgstr "Кеинг"
 
 
-msgid "Sculpt Set Pivot"
-msgstr "Установить центр трансформации скульптинга"
-
-
-msgid "Face Sets Init"
-msgstr "Инициализация наборов граней"
-
-
-msgid "Trim/Add"
-msgstr "Обрезать/Добавить"
-
-
-msgid "Hooks"
-msgstr "Крюки"
+msgid "Asset"
+msgstr "Ассет"
 
 
 msgid "Make Single User"
 msgstr "Для одного пользователя"
+
+
+msgid "Tracking"
+msgstr "Трекинг"
 
 
 msgid "Convert"
@@ -36464,40 +36408,92 @@ msgid "Link/Transfer Data"
 msgstr "Связать/передать данные"
 
 
-msgid "Asset"
-msgstr "Ассет"
+msgid "Hooks"
+msgstr "Крюки"
 
 
-msgid "Quick Effects"
-msgstr "Быстрые эффекты"
+msgid "Creative"
+msgstr "Художественные"
 
 
-msgid "Track"
-msgstr "Отслеживание"
+msgid "Trim/Add"
+msgstr "Обрезать/Добавить"
 
 
-msgid "Rigid Body"
-msgstr "Твёрдое тело"
+msgid "Sculpt Set Pivot"
+msgstr "Установить центр трансформации скульптинга"
 
 
-msgid "Add Image"
-msgstr "Добавить изображение"
+msgid "Face Sets Init"
+msgstr "Инициализация наборов граней"
 
 
-msgid "Relations"
-msgstr "Отношения"
+msgid "Random Mask"
+msgstr "Случайная маска"
 
 
-msgid "Light Probe"
-msgstr "Зонд освещения"
+msgid "Clear Transform"
+msgstr "Очистить трансформацию"
 
 
-msgid "Assign Material"
-msgstr "Назначить материал"
+msgid "In-Betweens"
+msgstr "Промежуточные"
 
 
-msgid "Light"
-msgstr "Свет"
+msgid "Propagate"
+msgstr "Распространение"
+
+
+msgid "Bone Collections"
+msgstr "Коллекции костей"
+
+
+msgid "Names"
+msgstr "Имена"
+
+
+msgid "Toggle Bone Options"
+msgstr "Переключить опции костей"
+
+
+msgid "Enable Bone Options"
+msgstr "Включить параметры костей"
+
+
+msgid "Disable Bone Options"
+msgstr "Отключить параметры костей"
+
+
+msgid "Mesh Select Mode"
+msgstr "Режим выделения меша"
+
+
+msgid "Face Data"
+msgstr "Данные граней"
+
+
+msgid "Select by Face Strength"
+msgstr "Выделить по твёрдости грани"
+
+
+msgid "Set Face Strength"
+msgstr "Установить твёрдость грани"
+
+
+msgid "Merge"
+msgstr "Объединить"
+
+
+msgid "Special Characters"
+msgstr "Специальные символы"
+
+
+msgid "Kerning"
+msgstr "Кернинг"
+
+
+msgid "Bone Roll"
+msgstr "Крен кости"
 
 
 msgid "Keyframe Insert Pie"
@@ -36879,10 +36875,6 @@ msgstr "Инструменты набора линий"
 
 msgid "Pixel Density Presets"
 msgstr "Пресеты плотности пикселей"
-
-
-msgid "Add Effect"
-msgstr "Добавить эффект"
 
 
 msgid "Effect Strip"
@@ -43641,7 +43633,7 @@ msgstr "Количество подразделений, выполняемых 
 
 
 msgid "Skip displaying interior subdivided edges"
-msgstr "Пропустить отображение внутренних подразделенных рёбер"
+msgstr "Пропустить отображение внутренних подразделённых рёбер"
 
 
 msgid "Create a smooth curved surface using the Catmull-Clark subdivision scheme"
@@ -51358,7 +51350,7 @@ msgstr "Атрибут связан с геометрией объекта, и �
 
 
 msgid "The attribute is associated with the object or mesh data-block itself, and its value is uniform"
-msgstr "Атрибут связан с самим объектом или блоком данных меша, и его значение является равномерным"
+msgstr "Атрибут связан с самим блоком данных объекта или меша, а его значение является равномерным"
 
 
 msgid "Instancer"
@@ -51849,12 +51841,36 @@ msgstr ""
 "Обычно используется для наложения шейдеров с помощью ноды Mix Shader"
 
 
+msgid "Light Accumulation"
+msgstr "Накопление света"
+
+
+msgid ""
+"Adds the result of all the evaluated lights and stores each input into its respective Compositing Pass.\n"
+"The combined result is computed as (Diffuse Light * Diffuse Color) + (Glossy Light * Glossy Color)"
+msgstr ""
+"Суммирует результат всех рассчитанных источников света и записывает каждый вход в соответствующий проход композитинга.\n"
+"Объединённый результат вычисляется как (Рассеянный свет * Рассеянный цвет) + (Глянцевый свет * Цвет блеска)"
+
+
+msgid "Light Evaluation"
+msgstr "Вычисление света"
+
+
+msgid "Defines parametrization of the light evaluation"
+msgstr "Задаёт параметризацию расчёта освещения"
+
+
 msgid "Light Falloff"
 msgstr "Спад света"
 
 
 msgid "Manipulate how light intensity decreases over distance. Typically used for non-physically-based effects; in reality light always falls off quadratically"
 msgstr "Управляет тем, как интенсивность света уменьшается с расстоянием. Обычно используется для физически не точных эффектов; в реальности свет всегда падает квадратично"
+
+
+msgid "Light Info"
+msgstr "Информация о свете"
 
 
 msgid "Light Path"
@@ -53015,7 +53031,7 @@ msgstr "Солнечный диск"
 
 
 msgid "Include the sun itself in the output"
-msgstr "Включить само \"Cолнце\" в вывод"
+msgstr "Включить само солнце в вывод"
 
 
 msgid "Sun Elevation"
@@ -53863,6 +53879,14 @@ msgstr "Входы ноды"
 
 msgid "Collection of Node Sockets"
 msgstr "Коллекция входов ноды"
+
+
+msgid "From Socket"
+msgstr "Из сокета"
+
+
+msgid "To Socket"
+msgstr "К сокету"
 
 
 msgid "Socket Template"
@@ -57207,11 +57231,6 @@ msgstr "Перенос анимации FK на IK"
 msgctxt "Operator"
 msgid "Transfer IK anim to FK"
 msgstr "Перенос анимации IK на FK"
-
-
-msgctxt "Operator"
-msgid "Add Scene Compositor Effect Menu"
-msgstr "Меню добавления эффекта композитора сцены"
 
 
 msgid "Add the data paths to the Freestyle Edge Mark property of selected edges to the active keying set"
@@ -71835,6 +71854,26 @@ msgid "Allow edge ring selection to step over n-gons with an even number of side
 msgstr "Разрешать выделению колец рёбер проходить по n-угольникам с чётным числом сторон"
 
 
+msgid "Face Loop Delimit"
+msgstr "Разграничить петли граней"
+
+
+msgid "Delimit face loop selection"
+msgstr "Разграничить выделение петель граней"
+
+
+msgid "Delimit face loop selection at seams"
+msgstr "Разграничить выделение петель граней по швам"
+
+
+msgid "Delimit face loop selection at sharp edges"
+msgstr "Разграничить выделение петель граней по острым рёбрам"
+
+
+msgid "Delimit face loop selection at material boundaries"
+msgstr "Разграничить выделение петель граней по границам материалов"
+
+
 msgid "Remove from the selection"
 msgstr "Удалить из выделения"
 
@@ -72446,26 +72485,6 @@ msgid "Stop boundary selection at vertices with two edges when they share a face
 msgstr "Останавливать выделение границ на вершинах с двумя рёбрами, если они имеют общую грань, не являющуюся n-угольником"
 
 
-msgid "Face Loop Delimit"
-msgstr "Разграничить петли граней"
-
-
-msgid "Delimit face loop selection"
-msgstr "Разграничить выделение петель граней"
-
-
-msgid "Delimit face loop selection at seams"
-msgstr "Разграничить выделение петель граней по швам"
-
-
-msgid "Delimit face loop selection at sharp edges"
-msgstr "Разграничить выделение петель граней по острым рёбрам"
-
-
-msgid "Delimit face loop selection at material boundaries"
-msgstr "Разграничить выделение петель граней по границам материалов"
-
-
 msgctxt "Operator"
 msgid "Select Loop Inner-Region"
 msgstr "Выделить область внутри петли"
@@ -73042,6 +73061,11 @@ msgstr "Добавить плоскость"
 
 msgid "Construct a filled planar mesh with 4 vertices"
 msgstr "Создать плоскость с гранью и 4 вершинами"
+
+
+msgctxt "Operator"
+msgid "Add Quad Sphere"
+msgstr "Добавить квад-сферу"
 
 
 msgid "Exterior Radius"
@@ -75137,14 +75161,6 @@ msgid "Duplicate the currently assigned compositing node group."
 msgstr "Дублировать текущую назначенную группу нод компо́зитинга."
 
 
-msgid "Duplicate Compositor Effect Node Group"
-msgstr "Дублировать группу нод эффекта композитора"
-
-
-msgid "Duplicate the active scene compositor effect node group and assign the new node group to the effect"
-msgstr "Дублировать группу нод эффекта композитора активной сцены и назначить новую группу этому эффекту"
-
-
 msgid "Duplicate selected nodes and move them"
 msgstr "Дублировать выделенные ноды и переместить их"
 
@@ -75640,10 +75656,6 @@ msgstr "От ноды"
 
 msgid "From node linked to selected node"
 msgstr "От ноды, связанной с выделенной нодой"
-
-
-msgid "From Socket"
-msgstr "Из сокета"
 
 
 msgid "From socket linked to selected node"
@@ -78186,7 +78198,7 @@ msgstr "   С автоматическими весами"
 
 
 msgid "   With Envelope Weights"
-msgstr "   С весами обёртки"
+msgstr "   С весами оболочки"
 
 
 msgid "Bone Relative"
@@ -83431,24 +83443,6 @@ msgstr "Перенос анимации IK на кости FK"
 
 
 msgctxt "Operator"
-msgid "Add Scene Compositor Effect"
-msgstr "Добавить эффект композитора сцены"
-
-
-msgid "Add a scene compositor effect to the scene"
-msgstr "Добавить эффект композитора сцены в сцену"
-
-
-msgctxt "Operator"
-msgid "Add Scene Compositor Effect Node Group Asset"
-msgstr "Добавить ассет группы нод эффекта композитора сцены"
-
-
-msgid "Add a scene compositor effect to the scene with a node group asset"
-msgstr "Добавить в сцену эффект композитора сцены с использованием ассета группы нод"
-
-
-msgctxt "Operator"
 msgid "Delete Scene"
 msgstr "Удалить сцену"
 
@@ -83466,22 +83460,8 @@ msgid "Import scene and set it as the active one in the window"
 msgstr "Импортировать сцену и установить её в окне в качестве активной сцены"
 
 
-msgctxt "Operator"
-msgid "Duplicate Scene Compositor Effect"
-msgstr "Дублировать эффект композитора сцены"
-
-
-msgid "Duplicate the active or the given scene compositor effect"
-msgstr "Дублировать активный либо заданный эффект композитора сцены"
-
-
 msgid "Name of the effect to duplicate. If empty duplicate the active effect"
 msgstr "Название эффекта, который следует дублировать . Если не задано, – дублировать активный эффект"
-
-
-msgctxt "Operator"
-msgid "Duplicate Compositor Effect Node Group"
-msgstr "Дублировать группу нод эффекта композитора"
 
 
 msgctxt "Operator"
@@ -83667,15 +83647,6 @@ msgid "Add a line thickness modifier to the line style associated with the activ
 msgstr "Добавить модификатор толщины штрихов в стиль линий, связанный с активным набором линий"
 
 
-msgctxt "Operator"
-msgid "Move Active Scene Compositor Effect to Index"
-msgstr "Переместить активный эффект композитора сцены по индексу"
-
-
-msgid "Change the scene compositor effect's index in the stack so it evaluates after the set number of others"
-msgstr "Изменить индекс эффекта композитора сцены в стеке, чтобы он вычислялся после заданного количества других эффектов"
-
-
 msgid "Name of the effect to edit"
 msgstr "Название эффекта для редактирования"
 
@@ -83730,15 +83701,6 @@ msgid "Make a full copy of the current scene"
 msgstr "Создать полную копию текущей сцены"
 
 
-msgctxt "Operator"
-msgid "New Scene Compositor Effect Node Group"
-msgstr "Новая группа нод эффекта композитора сцены"
-
-
-msgid "Create a new compositor node group and assign it to the active scene compositor effect"
-msgstr "Создать новую группу нод композитора и назначить её текущему эффекту композитора активной сцены"
-
-
 msgid "Add new scene by type in the sequence editor and assign to active strip"
 msgstr "Добавить новую сцену по типу в редакторе секвенций и назначить её активной дорожке"
 
@@ -83764,15 +83726,6 @@ msgid "Add new scene to be used by the sequencer"
 msgstr "Добавить новую сцену, которая будет использоваться секвенсором"
 
 
-msgctxt "Operator"
-msgid "Remove Scene Compositor Effect"
-msgstr "Удалить эффект композитора сцены"
-
-
-msgid "Remove a scene compositor effect from the scene"
-msgstr "Удалить эффект композитора сцены из сцены"
-
-
 msgid "Name of the effect to remove"
 msgstr "Название удаляемого эффекта"
 
@@ -83793,15 +83746,6 @@ msgstr "Удалить вид рендера"
 
 msgid "Remove the selected render view"
 msgstr "Удалить выбранный вид рендера"
-
-
-msgctxt "Operator"
-msgid "Set Active Scene Compositor Effect"
-msgstr "Установить активный эффект композитора сцены"
-
-
-msgid "Set the given scene compositor effect as the active one"
-msgstr "Сделать указанный эффект композитора сцены активным"
 
 
 msgid "Name of the strip effect to edit"
@@ -87334,8 +87278,17 @@ msgid "Select all characters"
 msgstr "Выделить все символы"
 
 
+msgctxt "Operator"
+msgid "Add Text Strip"
+msgstr "Добавить текстовую дорожку"
+
+
 msgid "Add a text strip to the sequencer"
 msgstr "Добавить в секвенсор текстовую дорожку"
+
+
+msgid "Initialize the strip with this text"
+msgstr "Инициализировать дорожку этим текстом"
 
 
 msgctxt "Operator"
@@ -88972,6 +88925,15 @@ msgstr "Удалить операцию переопределения"
 
 msgid "Reset to default values all elements of the array"
 msgstr "Сбросить все элементы массива на значения по умолчанию"
+
+
+msgctxt "Operator"
+msgid "Clear and Hide Filter"
+msgstr "Очистить и скрыть фильтр"
+
+
+msgid "Clear and hide the region search filter"
+msgstr "Очистить и скрыть фильтр поиска по области"
 
 
 msgctxt "Operator"
@@ -90774,6 +90736,10 @@ msgid "ICO Sphere"
 msgstr "Икосфера"
 
 
+msgid "Quad Sphere"
+msgstr "Квад-сфера"
+
+
 msgid "Toggle display of selected object(s) separately and centered in view"
 msgstr "Переключить отдельное отображение выделенных объектов с центрированием по виду"
 
@@ -92056,6 +92022,14 @@ msgid "View a context based online manual in a web browser"
 msgstr "Открыть связанную страницу онлайн-руководства в веб-браузере"
 
 
+msgid "Trusted Source"
+msgstr "Надёжный источник"
+
+
+msgid "Allow .blend file to execute scripts automatically, default available from system preferences"
+msgstr "Разрешить автоматическое исполнение скриптов в файле .blend. Значение по умолчанию можно изменить в настройках программы"
+
+
 msgctxt "Operator"
 msgid "Drop to Import File"
 msgstr "Перетащить для импорта файла"
@@ -92520,14 +92494,6 @@ msgstr "Загрузить настройки интерфейса из .blend �
 
 msgid "State"
 msgstr "Состояние"
-
-
-msgid "Trusted Source"
-msgstr "Надёжный источник"
-
-
-msgid "Allow .blend file to execute scripts automatically, default available from system preferences"
-msgstr "Разрешить автоматическое исполнение скриптов в файле .blend. Значение по умолчанию можно изменить в настройках программы"
 
 
 msgctxt "Operator"
@@ -95178,44 +95144,24 @@ msgid "Panel containing UI elements"
 msgstr "Панель содержит элементы интерфейса"
 
 
-msgid "Guides"
-msgstr "Направляющие"
+msgid "Active Tool"
+msgstr "Активный инструмент"
 
 
-msgid "Drawing Plane"
-msgstr "Плоскость рисования"
+msgid "View Lock"
+msgstr "Блокировка вида"
 
 
-msgid "Stroke Placement"
-msgstr "Расположение штрихов"
+msgid "Selectability & Visibility"
+msgstr "Выделение и видимость"
 
 
-msgid "Transform Orientations"
-msgstr "Ориентации трансформации"
+msgid "Shadow Settings"
+msgstr "Настройки тени"
 
 
-msgid "Viewer Node"
-msgstr "Нода предпросмотра"
-
-
-msgid "Curves Edit Mode"
-msgstr "Режим редактирования кривых"
-
-
-msgid "Curve Edit Mode"
-msgstr "Режим редактирования кривой"
-
-
-msgid "Measurement"
-msgstr "Измерение"
-
-
-msgid "Mesh Edit Mode"
-msgstr "Режим редактирования меша"
-
-
-msgid "Motion Tracking"
-msgstr "Отслеживание движения"
+msgid "SSAO Settings"
+msgstr "Настройки SSAO"
 
 
 msgid "Cavity"
@@ -95230,12 +95176,32 @@ msgid "Overlays"
 msgstr "Наложения"
 
 
-msgid "SSAO Settings"
-msgstr "Настройки SSAO"
+msgid "Guides"
+msgstr "Направляющие"
 
 
-msgid "Shadow Settings"
-msgstr "Настройки тени"
+msgid "Viewer Node"
+msgstr "Нода предпросмотра"
+
+
+msgid "Motion Tracking"
+msgstr "Отслеживание движения"
+
+
+msgid "Mesh Edit Mode"
+msgstr "Режим редактирования меша"
+
+
+msgid "Measurement"
+msgstr "Измерение"
+
+
+msgid "Curve Edit Mode"
+msgstr "Режим редактирования кривой"
+
+
+msgid "Curves Edit Mode"
+msgstr "Режим редактирования кривых"
 
 
 msgid "glTF Variants"
@@ -95246,16 +95212,32 @@ msgid "glTF Material Variants"
 msgstr "Варианты материалов glTF"
 
 
-msgid "Selectability & Visibility"
-msgstr "Выделение и видимость"
+msgid "Transform Orientations"
+msgstr "Ориентации трансформации"
 
 
-msgid "Active Tool"
-msgstr "Активный инструмент"
+msgid "Stroke Placement"
+msgstr "Расположение штрихов"
 
 
-msgid "View Lock"
-msgstr "Блокировка вида"
+msgid "Drawing Plane"
+msgstr "Плоскость рисования"
+
+
+msgid "Grease Pencil Options"
+msgstr "Опции Grease Pencil"
+
+
+msgid "Quad View"
+msgstr "4-х Видовой просмотр"
+
+
+msgid "Onion Skin"
+msgstr "Калькирование"
+
+
+msgid "Stereoscopy"
+msgstr "Стереоскопия"
 
 
 msgid "glTF"
@@ -95266,52 +95248,36 @@ msgid "glTF Animations"
 msgstr "Анимации glTF"
 
 
-msgid "VR"
-msgstr "VR"
-
-
-msgid "VR Info"
-msgstr "Информация о VR"
-
-
-msgid "Viewport Debug"
-msgstr "Отладка вьюпорта"
-
-
-msgid "Curves Grow/Shrink Scaling"
-msgstr "Масштабирование кривых: увеличить/уменьшить"
-
-
-msgid "Curves Sculpt Parameter Falloff"
-msgstr "Скульптинг кривых - Параметр спада"
-
-
-msgid "Curves Sculpt Add Curve Options"
-msgstr "Скульптинг кривых - Параметры добавления кривых"
+msgid "Multi Frame"
+msgstr "Мультикадр"
 
 
 msgid "Auto-Masking"
 msgstr "Авто-маски́рование"
 
 
-msgid "Multi Frame"
-msgstr "Мультикадр"
+msgid "Curves Sculpt Add Curve Options"
+msgstr "Скульптинг кривых - Параметры добавления кривых"
 
 
-msgid "Stereoscopy"
-msgstr "Стереоскопия"
+msgid "Curves Sculpt Parameter Falloff"
+msgstr "Скульптинг кривых - Параметр спада"
 
 
-msgid "Onion Skin"
-msgstr "Калькирование"
+msgid "Curves Grow/Shrink Scaling"
+msgstr "Масштабирование кривых: увеличить/уменьшить"
 
 
-msgid "Quad View"
-msgstr "4-х Видовой просмотр"
+msgid "Viewport Debug"
+msgstr "Отладка вьюпорта"
 
 
-msgid "Grease Pencil Options"
-msgstr "Опции Grease Pencil"
+msgid "VR"
+msgstr "VR"
+
+
+msgid "VR Info"
+msgstr "Информация о VR"
 
 
 msgid "Import Settings"
@@ -100683,8 +100649,16 @@ msgid "Catalan - Català"
 msgstr "Каталонский - Català"
 
 
+msgid "Locale code: ca_AD. Translation progress: 100%"
+msgstr "Код локали: ca_AD. Прогресс перевода: 100%"
+
+
 msgid "Chinese (Simplified) - 简体中文"
 msgstr "Китайский (упрощённый) - 简体中文"
+
+
+msgid "Locale code: zh_HANS. Translation progress: 100%"
+msgstr "Код локали: zh_HANS. Прогресс перевода: 100%"
 
 
 msgid "Chinese (Traditional) - 繁體中文"
@@ -100729,6 +100703,10 @@ msgstr "Код локали: nl_NL. Прогресс перевода: 7%"
 
 msgid "English (UK)"
 msgstr "Английский (Великобритания) - English (UK)"
+
+
+msgid "Locale code: en_GB. Translation progress: 93%"
+msgstr "Код локали: en_GB. Прогресс перевода: 93%"
 
 
 msgid "English (US)"
@@ -100887,10 +100865,6 @@ msgid "Polish - Polski"
 msgstr "Польский - Polski"
 
 
-msgid "Locale code: pl_PL. Translation progress: 99%"
-msgstr "Код локали: pl_PL. Прогресс перевода: 99%"
-
-
 msgid "Portuguese (Brazil) - Português brasileiro"
 msgstr "Португальский (Бразилия) - Português Brasileiro"
 
@@ -100919,6 +100893,10 @@ msgid "Russian - Русский"
 msgstr "Русский - Русский"
 
 
+msgid "Locale code: ru_RU. Translation progress: 100%"
+msgstr "Код локали: ru_RU. Прогресс перевода: 100%"
+
+
 msgid "Serbian (Cyrillic) - Српски"
 msgstr "Сербский (кириллица) - Српски"
 
@@ -100939,12 +100917,24 @@ msgid "Slovak - Slovenčina"
 msgstr "Словацкий - Slovenčina"
 
 
+msgid "Locale code: sk_SK. Translation progress: 100%"
+msgstr "Код локали: sk_SK. Прогресс перевода: 100%"
+
+
 msgid "Slovenian - Slovenščina"
 msgstr "Словенский - Slovenščina"
 
 
+msgid "Locale code: sl. Translation progress: 53%"
+msgstr "Код локали: sl. Прогресс перевода: 53%"
+
+
 msgid "Spanish - Español"
 msgstr "Испанский - Español"
+
+
+msgid "Locale code: es. Translation progress: 100%"
+msgstr "Код локали: es. Прогресс перевода: 100%"
 
 
 msgid "Swahili - Kiswahili"
@@ -107239,10 +107229,6 @@ msgid "How much the spring has to be stretched/compressed in order to change its
 msgstr "Насколько должна быть растянута/сжата пружина, чтобы изменить её длину покоя"
 
 
-msgid "Scene Compositor Effect"
-msgstr "Эффект композитора сцены"
-
-
 msgid "Compositor effect for scene"
 msgstr "Эффект композитора для сцены"
 
@@ -107269,22 +107255,6 @@ msgstr "Показывать эффект развёрнутым"
 
 msgid "Show Node Group Selector"
 msgstr "Показать селектор группы нод"
-
-
-msgid "Scene Compositor Effect Properties"
-msgstr "Свойства эффекта композитора сцены"
-
-
-msgid "Scene Compositor Effect Empty Properties"
-msgstr "Пустые свойства эффекта композитора сцены"
-
-
-msgid "Scene Compositor Effects"
-msgstr "Эффекты композитора сцены"
-
-
-msgid "Collection of scene compositor effects"
-msgstr "Коллекция эффектов композитора сцены"
 
 
 msgid "Active Effect"
@@ -108304,10 +108274,6 @@ msgstr "Стиль миниатюр"
 
 msgid "How thumbnails are displayed"
 msgstr "Как отображаются миниатюры"
-
-
-msgid "Do not show strip thumbnails"
-msgstr "Не отображать миниатюры дорожек"
 
 
 msgid "Strip Ends"
@@ -110572,6 +110538,10 @@ msgstr "Только полные слова"
 
 msgid "Only use complete matches of search string"
 msgstr "Только полные совпадения со строкой поиска"
+
+
+msgid "Show grease pencil effects"
+msgstr "Показывать эффекты Grease Pencil"
 
 
 msgid "Show only data-blocks of one type"
@@ -118632,7 +118602,7 @@ msgstr "С прозрачностью"
 
 msgctxt "Render Layer"
 msgid "Diffuse Light"
-msgstr "Рассеянный свет"
+msgstr "Диффузный свет"
 
 
 msgctxt "Render Layer"
@@ -125365,10 +125335,6 @@ msgid "Deleted 1 node"
 msgstr "Удалена 1 нода"
 
 
-msgid "To Socket"
-msgstr "К сокету"
-
-
 msgid "Active editor should be a node editor for the operator to run"
 msgstr "Для запуска оператора активным редактором должен быть нодовый редактор"
 
@@ -127619,6 +127585,10 @@ msgid "Blender Website"
 msgstr "Официальный сайт Blender"
 
 
+msgid "Trusted Source [Untrusted Path]"
+msgstr "Надёжный источник [Ненадёжный путь]"
+
+
 msgctxt "Operator"
 msgid "Link..."
 msgstr "Связать…"
@@ -128006,11 +127976,6 @@ msgstr "До кадра"
 
 msgid "Collection Mask"
 msgstr "Маска для коллекции"
-
-
-msgctxt "Operator"
-msgid "Effect"
-msgstr "Эффект"
 
 
 msgctxt "Operator"
@@ -131619,6 +131584,10 @@ msgid "Object Contents"
 msgstr "Содержимое объектов"
 
 
+msgid "Grease Pencil Effects"
+msgstr "Эффекты Grease Pencil"
+
+
 msgctxt "Operator"
 msgid "Hide One Level"
 msgstr "Скрыть один уровень"
@@ -133541,6 +133510,11 @@ msgstr "Куб"
 
 
 msgctxt "Operator"
+msgid "Quad Sphere"
+msgstr "Квад-сфера"
+
+
+msgctxt "Operator"
 msgid "UV Sphere"
 msgstr "UV-Сфера"
 
@@ -133668,6 +133642,11 @@ msgstr "Запечь трансформацию объекта для Grease Pen
 msgctxt "Operator"
 msgid "Change Shape"
 msgstr "Изменить форму"
+
+
+msgctxt "Operator"
+msgid "Calculate Mass..."
+msgstr "Рассчитать массу..."
 
 
 msgctxt "Operator"
@@ -136148,11 +136127,6 @@ msgid "collections"
 msgstr "коллекции"
 
 
-msgctxt "Scene"
-msgid "Compositor Effect"
-msgstr "Эффект композитора"
-
-
 msgid "Const"
 msgstr "Ограничение"
 
@@ -136650,7 +136624,7 @@ msgstr "Потеряны данные объекта %s"
 
 
 msgid "Surf"
-msgstr "Сёрф"
+msgstr "Поверхн."
 
 
 msgid "Mball"
@@ -139063,32 +139037,32 @@ msgstr "ТраекторияNurbs"
 
 msgctxt "Curve"
 msgid "SurfCurve"
-msgstr "СёрфКривая"
+msgstr "Поверхн. кривая"
 
 
 msgctxt "Curve"
 msgid "SurfCircle"
-msgstr "СёрфОкружность"
+msgstr "Поверхн. окружность"
 
 
 msgctxt "Curve"
 msgid "SurfPatch"
-msgstr "УчастокПоверхности"
+msgstr "Поверхн. участок"
 
 
 msgctxt "Curve"
 msgid "SurfCylinder"
-msgstr "Пов-тьЦилиндр"
+msgstr "Поверхн. цилиндр"
 
 
 msgctxt "Curve"
 msgid "SurfSphere"
-msgstr "СёрфСфера"
+msgstr "Поверхн. сфера"
 
 
 msgctxt "Curve"
 msgid "SurfTorus"
-msgstr "СёрфТор"
+msgstr "Поверхн. тор"
 
 
 msgctxt "Curve"
@@ -139229,7 +139203,7 @@ msgstr "Операция не может быть выполнена в режи
 
 
 msgid "Non-Assets"
-msgstr "Не-Ассеты"
+msgstr "Не-ассеты"
 
 
 msgid "Operator is already registered"
@@ -139624,6 +139598,10 @@ msgstr "Копировать ссылку"
 
 msgid "Non-Keyboard Shortcut"
 msgstr "Не клавиатурное сочетание клавиш"
+
+
+msgid "Search..."
+msgstr "Поиск..."
 
 
 msgid "Pin Panel"
@@ -141226,6 +141204,11 @@ msgstr "Сетка"
 msgctxt "Mesh"
 msgid "Suzanne"
 msgstr "Сюзанна"
+
+
+msgctxt "Mesh"
+msgid "Quadsphere"
+msgstr "Квад-сфера"
 
 
 msgctxt "Mesh"
@@ -159082,6 +159065,18 @@ msgid "Facing"
 msgstr "Направление"
 
 
+msgid "Diffuse Light"
+msgstr "Диффузный свет"
+
+
+msgid "Glossy Light"
+msgstr "Глянцевый свет"
+
+
+msgid "Transmission Light"
+msgstr "Пропускаемый свет"
+
+
 msgid "Light strength before applying falloff modification"
 msgstr "Сила света перед применением модификации спада"
 
@@ -159964,10 +159959,6 @@ msgstr ""
 
 msgid "To make changes to Preferences permanent, use \"Save Preferences\"."
 msgstr "Чтобы сделать изменения в настройках постоянными, используйте \"сохранение настроек\"."
-
-
-msgid "Trusted Source [Untrusted Path]"
-msgstr "Надёжный источник [Ненадёжный путь]"
 
 
 msgid "Any unsaved changes will be lost."

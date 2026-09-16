@@ -1430,12 +1430,19 @@ static wmOperatorStatus replace_action_exec(bContext *C, wmOperator *op)
   bAction *new_action = reinterpret_cast<bAction *>(
       BKE_libblock_find_session_uid(bmain, ID_AC, new_session_uid));
 
-  if (!old_action || !new_action || old_action == new_action) {
+  if (!old_action || !new_action) {
     BKE_reportf(op->reports,
                 RPT_ERROR_INVALID_INPUT,
                 "Invalid old/new Action pair ('%s' / '%s')",
-                old_action ? old_action->id.name : "Invalid UID",
-                new_action ? new_action->id.name : "Invalid UID");
+                old_action ? old_action->id.name + 2 : "Invalid UID",
+                new_action ? new_action->id.name + 2 : "Invalid UID");
+    return OPERATOR_CANCELLED;
+  }
+  if (old_action == new_action) {
+    BKE_reportf(op->reports,
+                RPT_ERROR_INVALID_INPUT,
+                "Cannot replace Action with itself ('%s')",
+                old_action->id.name + 2);
     return OPERATOR_CANCELLED;
   }
 

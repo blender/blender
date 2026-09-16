@@ -36,8 +36,8 @@
 #include "DNA_freestyle_types.h"
 #include "DNA_genfile.h"
 #include "DNA_gpencil_legacy_types.h"
-#include "DNA_gpencil_modifier_types.h"
 #include "DNA_gpu_types.h"
+#include "DNA_grease_pencil_modifier_types.h"
 #include "DNA_key_types.h"
 #include "DNA_layer_types.h"
 #include "DNA_light_types.h"
@@ -63,6 +63,7 @@
 #undef DNA_GENFILE_VERSIONING_MACROS
 
 #include "BKE_anim_data.hh"
+#include "BKE_annotations_geom.h"
 #include "BKE_blender.hh"
 #include "BKE_collection.hh"
 #include "BKE_colortools.hh"
@@ -72,7 +73,6 @@
 #include "BKE_fcurve.hh"
 #include "BKE_fcurve_driver.h"
 #include "BKE_freestyle.h"
-#include "BKE_gpencil_geom_legacy.h"
 #include "BKE_idprop.hh"
 #include "BKE_key.hh"
 #include "BKE_layer.hh"
@@ -6063,7 +6063,7 @@ void blo_do_versions_280(FileData *fd, Library * /*lib*/, Main *bmain)
               gps.fill_opacity_fac = 1.0f;
 
               /* Calc geometry data because in old versions this data was not saved. */
-              BKE_gpencil_stroke_geometry_update(&gpd, &gps);
+              BKE_annotation_stroke_geometry_update(&gpd, &gps);
 
               srgb_to_linearrgb_v4(gps.vert_color_fill, gps.vert_color_fill);
               int i;

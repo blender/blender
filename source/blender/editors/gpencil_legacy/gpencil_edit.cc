@@ -20,8 +20,8 @@
 #include "DNA_scene_types.h"
 #include "DNA_screen_types.h"
 
+#include "BKE_annotations.h"
 #include "BKE_context.hh"
-#include "BKE_gpencil_legacy.h"
 #include "BKE_lib_id.hh"
 #include "BKE_paint.hh"
 #include "BKE_report.hh"
@@ -56,7 +56,7 @@ namespace blender {
 static bool annotation_actframe_delete_poll(bContext *C)
 {
   bGPdata *gpd = ED_annotation_data_get_active(C);
-  bGPDlayer *gpl = BKE_gpencil_layer_active_get(gpd);
+  bGPDlayer *gpl = BKE_annotations_layer_active_get(gpd);
 
   /* only if there's an active layer with an active frame */
   return (gpl && gpl->actframe);
@@ -66,11 +66,11 @@ static bool annotation_actframe_delete_poll(bContext *C)
 static wmOperatorStatus gpencil_actframe_delete_exec(bContext *C, wmOperator *op)
 {
   bGPdata *gpd = ED_annotation_data_get_active(C);
-  bGPDlayer *gpl = BKE_gpencil_layer_active_get(gpd);
+  bGPDlayer *gpl = BKE_annotations_layer_active_get(gpd);
 
   Scene *scene = CTX_data_scene(C);
 
-  bGPDframe *gpf = BKE_gpencil_layer_frame_get(gpl, scene->r.cfra, GP_GETFRAME_USE_PREV);
+  bGPDframe *gpf = BKE_annotations_layer_frame_get(gpl, scene->r.cfra, GP_GETFRAME_USE_PREV);
 
   /* if there's no existing Grease-Pencil data there, add some */
   if (gpd == nullptr) {
@@ -83,7 +83,7 @@ static wmOperatorStatus gpencil_actframe_delete_exec(bContext *C, wmOperator *op
   }
 
   /* delete it... */
-  BKE_gpencil_layer_frame_delete(gpl, gpf);
+  BKE_annotations_layer_frame_delete(gpl, gpf);
 
   /* notifiers */
   DEG_id_tag_update(&gpd->id, ID_RECALC_TRANSFORM | ID_RECALC_GEOMETRY);

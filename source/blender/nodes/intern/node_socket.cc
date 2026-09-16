@@ -265,12 +265,12 @@ static void refresh_node_socket(bNodeTree &ntree,
             link.tosock = new_socket;
           }
         }
-        for (bNodeLink &internal_link : node.runtime->internal_links) {
-          if (internal_link.fromsock == old_socket_with_same_identifier) {
-            internal_link.fromsock = new_socket;
+        for (bNodeInternalLink &internal_link : node.runtime->internal_links) {
+          if (internal_link.in == old_socket_with_same_identifier) {
+            internal_link.in = new_socket;
           }
-          else if (internal_link.tosock == old_socket_with_same_identifier) {
-            internal_link.tosock = new_socket;
+          else if (internal_link.out == old_socket_with_same_identifier) {
+            internal_link.out = new_socket;
           }
         }
       }

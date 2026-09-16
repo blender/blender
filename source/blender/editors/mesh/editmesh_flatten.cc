@@ -55,7 +55,7 @@ static wmOperatorStatus edbm_flatten_exec(bContext *C, wmOperator *op)
   RegionView3D *rv3d = method == FLATTEN_VIEW ? CTX_wm_region_view3d(C) : nullptr;
 
   for (Object *obedit : objects) {
-    BMEditMesh *em = BKE_editmesh_from_object(obedit);
+    BMesh *bm = BKE_editmesh_bmesh_get_for_write(obedit);
 
     float view_normal[3] = {0.0f, 0.0f, 1.0f};
     if (rv3d) {
@@ -65,7 +65,7 @@ static wmOperatorStatus edbm_flatten_exec(bContext *C, wmOperator *op)
     }
 
     if (!EDBM_op_callf(
-            em,
+            bm,
             op,
             "flatten geom=%hvef factor=%f method=%i view_normal=%v lock_x=%b lock_y=%b lock_z=%b",
             BM_ELEM_SELECT,

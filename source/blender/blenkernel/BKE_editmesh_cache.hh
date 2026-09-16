@@ -17,6 +17,7 @@
 namespace blender {
 
 struct BMEditMesh;
+struct BMesh;
 
 namespace bke {
 
@@ -46,12 +47,12 @@ struct EditMeshData {
 
 }  // namespace bke
 
-Span<float3> BKE_editmesh_cache_ensure_face_normals(BMEditMesh &em, bke::EditMeshData &emd);
-Span<float3> BKE_editmesh_cache_ensure_vert_normals(BMEditMesh &em, bke::EditMeshData &emd);
+Span<float3> BKE_editmesh_cache_ensure_face_normals(BMesh &bm, bke::EditMeshData &emd);
+Span<float3> BKE_editmesh_cache_ensure_vert_normals(BMesh &bm, bke::EditMeshData &emd);
 
-Span<float3> BKE_editmesh_cache_ensure_face_centers(BMEditMesh &em, bke::EditMeshData &emd);
+Span<float3> BKE_editmesh_cache_ensure_face_centers(BMesh &bm, bke::EditMeshData &emd);
 
-std::optional<Bounds<float3>> BKE_editmesh_cache_calc_minmax(const BMEditMesh &em,
+std::optional<Bounds<float3>> BKE_editmesh_cache_calc_minmax(BMesh &bm,
                                                              const bke::EditMeshData &emd);
 
 }  // namespace blender

@@ -295,6 +295,8 @@ void CaptureView::render_world()
   GPU_debug_group_begin("World.Capture");
 
   if (update_info->do_render) {
+    inst_.sphere_probes.ensure_cubemap_render_target(update_info->cube_target_extent);
+
     auto render_cubemap = [&](RayPipelineType ray_type) {
       if (assign_if_different(inst_.pipelines.data.ray_type, ray_type)) {
         inst_.uniform_data.pipeline.push_update();
@@ -337,6 +339,8 @@ void CaptureView::render_world()
     inst_.volume_probes.update_world_irradiance();
   }
 
+  inst_.sphere_probes.release_render_target();
+
   if (assign_if_different(inst_.pipelines.data.ray_type, RAY_TYPE_CAMERA)) {
     inst_.uniform_data.pipeline.push_update();
   }
@@ -356,6 +360,8 @@ void CaptureView::render_probes()
 
   while (const auto update_info = inst_.sphere_probes.probe_update_info_pop()) {
     GPU_debug_group_begin("Probe.Capture");
+
+    inst_.sphere_probes.ensure_cubemap_render_target(update_info->cube_target_extent);
 
     if (assign_if_different(inst_.pipelines.data.ray_type, RAY_TYPE_GLOSSY)) {
       inst_.uniform_data.pipeline.push_update();
@@ -421,6 +427,8 @@ void CaptureView::render_probes()
     GPU_debug_group_end();
     inst_.sphere_probes.remap_to_octahedral_projection(update_info->atlas_coord, true, false);
   }
+
+  inst_.sphere_probes.release_render_target();
 
   if (assign_if_different(inst_.pipelines.data.ray_type, RAY_TYPE_CAMERA)) {
     inst_.uniform_data.pipeline.push_update();

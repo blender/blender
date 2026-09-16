@@ -56,18 +56,18 @@ static const int multires_side_tot[] = {
 
 void multires_customdata_delete(Mesh *mesh)
 {
-  if (BMEditMesh *em = mesh->runtime->edit_mesh.get()) {
+  if (BMesh *bm = BKE_editmesh_bmesh_get_for_write(mesh)) {
     /* CustomData_external_remove is used here only to mark layer
      * as non-external for further freeing, so zero element count
-     * looks safer than `em->bm->totface`. */
-    CustomData_external_remove(&em->bm->ldata, &mesh->id, CD_MDISPS, 0);
+     * looks safer than `bm->totface`. */
+    CustomData_external_remove(&bm->ldata, &mesh->id, CD_MDISPS, 0);
 
-    if (CustomData_has_layer(&em->bm->ldata, CD_MDISPS)) {
-      BM_data_layer_free(em->bm, &em->bm->ldata, CD_MDISPS);
+    if (CustomData_has_layer(&bm->ldata, CD_MDISPS)) {
+      BM_data_layer_free(bm, &bm->ldata, CD_MDISPS);
     }
 
-    if (CustomData_has_layer(&em->bm->ldata, CD_GRID_PAINT_MASK)) {
-      BM_data_layer_free(em->bm, &em->bm->ldata, CD_GRID_PAINT_MASK);
+    if (CustomData_has_layer(&bm->ldata, CD_GRID_PAINT_MASK)) {
+      BM_data_layer_free(bm, &bm->ldata, CD_GRID_PAINT_MASK);
     }
   }
   else {
@@ -391,8 +391,8 @@ void multiresModifier_set_levels_from_disps(MultiresModifierData *mmd, Object *o
   Mesh *mesh = id_cast<Mesh *>(ob->data);
   const MDisps *mdisp;
 
-  if (BMEditMesh *em = mesh->runtime->edit_mesh.get()) {
-    mdisp = static_cast<const MDisps *>(CustomData_get_layer(&em->bm->ldata, CD_MDISPS));
+  if (const BMesh *bm = BKE_editmesh_bmesh_get(mesh)) {
+    mdisp = static_cast<const MDisps *>(CustomData_get_layer(&bm->ldata, CD_MDISPS));
   }
   else {
     mdisp = static_cast<const MDisps *>(CustomData_get_layer(&mesh->corner_data, CD_MDISPS));

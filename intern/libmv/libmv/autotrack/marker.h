@@ -46,7 +46,7 @@ struct Marker {
   // always, the same as the center of the patch.
   Vec2f center;
 
-  // A frame-realtive quad defining the part of the image the marker covers.
+  // A frame-relative quad defining the part of the image the marker covers.
   // For reference markers, the pixels in the patch are the tracking pattern.
   Quad2Df patch;
 

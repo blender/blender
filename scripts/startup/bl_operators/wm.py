@@ -3714,6 +3714,7 @@ class WM_OT_drop_blend_file(Operator):
     use_scripts: BoolProperty(
         name="Trusted Source",
         options={'SKIP_SAVE'},
+        description="Allow .blend file to execute scripts automatically, default available from system preferences"
     )
 
     @classmethod

@@ -51,6 +51,8 @@ def main() -> int:
             issue = "#124452"
         elif version.startswith("4.5."):
             issue = "#141871"
+        elif version.startswith("5.2."):
+            issue = "#161229"
         else:
             raise ValueError("Specify --issue or update script to include issue number for this version")
 

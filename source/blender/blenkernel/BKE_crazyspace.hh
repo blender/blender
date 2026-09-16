@@ -14,6 +14,7 @@
 
 namespace blender {
 
+struct BMesh;
 struct BMEditMesh;
 struct Depsgraph;
 struct Mesh;
@@ -75,11 +76,8 @@ GeometryDeformation get_evaluated_grease_pencil_drawing_deformation(
  * Disable subdivision-surface temporal, get mapped coordinates, and enable it.
  */
 Array<float3> BKE_crazyspace_get_mapped_editverts(Depsgraph *depsgraph, Object *obedit);
-void BKE_crazyspace_set_quats_editmesh(BMEditMesh *em,
-                                       Span<float3> origcos,
-                                       Span<float3> mappedcos,
-                                       float (*quats)[4],
-                                       bool use_select);
+void BKE_crazyspace_set_quats_editmesh(
+    BMesh *bm, Span<float3> origcos, Span<float3> mappedcos, float (*quats)[4], bool use_select);
 void BKE_crazyspace_set_quats_mesh(Mesh *mesh,
                                    Span<float3> origcos,
                                    Span<float3> mappedcos,

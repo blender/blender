@@ -19,6 +19,8 @@ WARMUP_FRAMES = 10
 SHADER_FALLBACK_SECONDS = 60
 RECORD_PLAYBACK_ITER = 3
 MIN_NUM_FRAMES_TOTAL = 250
+MIN_RECORDING_TIME_SECONDS = 20
+MAX_RECORDING_TIME_SECONDS = 60  # still finishes last iteration
 LOG_KEY = "ANIMATION_PERFORMANCE: "
 
 
@@ -84,13 +86,13 @@ def frame_change_handler(scene):
         if hasattr(bpy.app, 'is_job_running') and bpy.app.is_job_running("SHADER_COMPILATION"):
             record_stage = RecordStage.WAIT_SHADERS
         elif time.perf_counter() - start_warmup_time > WARMUP_SECONDS and warmup_frame > WARMUP_FRAMES:
-            start_record_time = time.perf_counter()
             playback_iteration = 0
             num_frames = 0
             scene = bpy.context.scene
             frame_set_mode = True
             scene.frame_set(scene.frame_start)
             frame_set_mode = False
+            start_record_time = time.perf_counter()
             record_stage = RecordStage.RECORD
 
     elif record_stage == RecordStage.RECORD:
@@ -99,8 +101,18 @@ def frame_change_handler(scene):
         num_frames += 1
         if scene.frame_current == scene.frame_end:
             playback_iteration += 1
+            reached_new_playback_iteration = True
+        else:
+            reached_new_playback_iteration = False
 
-        if playback_iteration >= RECORD_PLAYBACK_ITER and num_frames >= MIN_NUM_FRAMES_TOTAL:
+        elapsed_seconds = current_time - start_record_time
+        reached_min_recording_time = elapsed_seconds >= MIN_RECORDING_TIME_SECONDS
+
+        # Make sure that the playback iteration is finished even when the minimum recording time
+        # has been reached.
+        if (playback_iteration >= RECORD_PLAYBACK_ITER and num_frames >= MIN_NUM_FRAMES_TOTAL and
+            reached_new_playback_iteration and reached_min_recording_time) \
+                or (reached_new_playback_iteration and elapsed_seconds >= MAX_RECORDING_TIME_SECONDS):
             stop_record_time = current_time
             record_stage = RecordStage.FINISHED
 

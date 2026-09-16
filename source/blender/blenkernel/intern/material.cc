@@ -220,9 +220,9 @@ static void material_blend_write(BlendWriter *writer, ID *id, const void *id_add
   /* nodetree is integral part of material, no libdata */
   if (ma->nodetree) {
     BLO_Write_IDBuffer temp_embedded_id_buffer{ma->nodetree->id, writer};
-    writer->write_struct_at_address_cast<bNodeTree>(ma->nodetree, temp_embedded_id_buffer.get());
-    bke::node_tree_blend_write(writer,
-                               reinterpret_cast<bNodeTree *>(temp_embedded_id_buffer.get()));
+    bNodeTree *temp_ntree = reinterpret_cast<bNodeTree *>(temp_embedded_id_buffer.get());
+    writer->write_embedded_id_struct(ma->nodetree, temp_ntree);
+    bke::node_tree_blend_write(writer, temp_ntree);
   }
 
   BKE_previewimg_blend_write(writer, ma->preview);
@@ -1718,9 +1718,8 @@ static bool fill_texpaint_slots_cb(bNodeTree * /*nodetree*/, bNode *node, void *
       slot->attribute_name = storage->name;
       if (storage->type == SHD_ATTRIBUTE_GEOMETRY) {
         const Mesh *mesh = id_cast<const Mesh *>(fill_data->ob->data);
-        if (mesh->runtime->edit_mesh) {
-          const BMDataLayerLookup attr = BM_data_layer_lookup(*mesh->runtime->edit_mesh->bm,
-                                                              storage->name);
+        if (const BMesh *bm = BKE_editmesh_bmesh_get(mesh)) {
+          const BMDataLayerLookup attr = BM_data_layer_lookup(*bm, storage->name);
           slot->valid = attr && bke::mesh::is_color_attribute({attr.domain, attr.type});
         }
         else {
