@@ -55,7 +55,13 @@ ExternalProject_Add(external_opentimelineio
 )
 
 if(WIN32)
-  # TODO
+  ExternalProject_Add_Step(external_opentimelineio after_install
+    COMMAND
+      ${CMAKE_COMMAND} -E copy_directory
+      ${LIBDIR}/opentimelineio/
+      ${HARVEST_TARGET}/opentimelineio/
+    DEPENDEES install
+  )
 else()
   harvest(external_opentimelineio opentimelineio/include opentimelineio/include "*.h")
   # Cmake files first because harvest_rpath_lib edits them.
