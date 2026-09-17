@@ -722,9 +722,14 @@ static wmOperatorStatus actkeys_box_select_exec(bContext *C, wmOperator *op)
 
   const eSelectOp sel_op = eSelectOp(RNA_enum_get(op->ptr, "mode"));
   /* get settings from operator */
-  rcti rect;
-  WM_operator_properties_border_to_rcti(op, &rect);
+
   if (USER_EXPERIMENTAL_TEST(&U, use_new_animfilter)) {
+    rctf rect;
+    WM_operator_properties_border_to_rctf(op, &rect);
+    /* Note that a lack of ANIM_UI_get_key_size padding to the rctf x-axis means that the box *has
+     * to* overlap the frame of the key, not just the shape. That is consistent with the behavior
+     * of the previous selection code. */
+
     /* TODO this could query the cached summary tree from the last draw call. */
     using namespace ed::animfilter;
     ChannelArena channels = ed::action::get_summary_tree(*C);
@@ -742,8 +747,7 @@ static wmOperatorStatus actkeys_box_select_exec(bContext *C, wmOperator *op)
 
       /* Convert mouse coordinates to frame ranges and channel
        * coordinates corrected for view pan/zoom. */
-      ui::view2d_region_to_view(v2d, rect.xmin, rect.ymin + 2, &rectf.xmin, &rectf.ymin);
-      ui::view2d_region_to_view(v2d, rect.xmax, rect.ymax - 2, &rectf.xmax, &rectf.ymax);
+      ui::view2d_region_to_view_rctf(v2d, &rect, &rectf);
       const float first_channel = ANIM_UI_get_first_channel_top(v2d);
       const float channel_step = ANIM_UI_get_channel_step();
       foreach_expanded(*root, [&](AnimationChannel &channel, const int row_index) {
@@ -755,6 +759,8 @@ static wmOperatorStatus actkeys_box_select_exec(bContext *C, wmOperator *op)
     }
   }
   else {
+    rcti rect;
+    WM_operator_properties_border_to_rcti(op, &rect);
     const eEditKeyframes_Select selectmode = (sel_op != SEL_OP_SUB) ? SELECT_ADD : SELECT_SUBTRACT;
     if (SEL_OP_USE_PRE_DESELECT(sel_op)) {
       deselect_action_keys(&ac, 1, SELECT_SUBTRACT);

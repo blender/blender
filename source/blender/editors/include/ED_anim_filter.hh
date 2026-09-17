@@ -382,7 +382,7 @@ class AnimationChannel {
                                 Bounds<float> range = {-INFINITY, INFINITY}) = 0;
 
   /**
-   * Return the frame of the closest datapoint or std::nullopt if no datapoint is in the given
+   * Return the closest datapoint or a nullptr if no datapoint is in the given
    * range.
    */
   const KeyPoint *closest_datapoint(float frame, Bounds<float> range = {-INFINITY, INFINITY});
