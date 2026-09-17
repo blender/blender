@@ -154,28 +154,28 @@ static void applyShrinkFatten(TransInfo *t)
 
 static void shrink_fatten_status(TransInfo *t)
 {
+  if (t->keymap == nullptr) {
+    return;
+  }
+  const wmKeyMap &keymap = *t->keymap;
+
   ShrinkFattenCustomData *custom_data = static_cast<ShrinkFattenCustomData *>(t->custom.mode.data);
-  const wmKeyMap *keymap = t->keymap;
-  if (keymap) {
-    WorkspaceStatus status(t->context);
+  WorkspaceStatus status(t->context);
 
-    status.modal_keymap(IFACE_("Confirm"), keymap, TFM_MODAL_CONFIRM);
-    status.modal_keymap(IFACE_("Cancel"), keymap, TFM_MODAL_CANCEL);
-    status.modal_keymap(IFACE_("Snap"), keymap, TFM_MODAL_SNAP_TOGGLE, t->modifiers & MOD_SNAP);
-    status.modal_keymap(
-        IFACE_("Snap Invert"), keymap, TFM_MODAL_SNAP_INV_ON, t->modifiers & MOD_SNAP_INVERT);
-    status.modal_keymap(
-        IFACE_("Precision"), keymap, TFM_MODAL_PRECISION, t->modifiers & MOD_PRECISION);
-    status.modal_keymap(IFACE_("Even Thickness"),
-                        keymap,
-                        TFM_MODAL_RESIZE,
-                        custom_data->mode == EVEN_THICKNESS_ON);
-    status.item(IFACE_("Even Thickness Invert"), ICON_EVENT_ALT);
+  status.modal_keymap(IFACE_("Confirm"), keymap, TFM_MODAL_CONFIRM);
+  status.modal_keymap(IFACE_("Cancel"), keymap, TFM_MODAL_CANCEL);
+  status.modal_keymap(IFACE_("Snap"), keymap, TFM_MODAL_SNAP_TOGGLE, t->modifiers & MOD_SNAP);
+  status.modal_keymap(
+      IFACE_("Snap Invert"), keymap, TFM_MODAL_SNAP_INV_ON, t->modifiers & MOD_SNAP_INVERT);
+  status.modal_keymap(
+      IFACE_("Precision"), keymap, TFM_MODAL_PRECISION, t->modifiers & MOD_PRECISION);
+  status.modal_keymap(
+      IFACE_("Even Thickness"), keymap, TFM_MODAL_RESIZE, custom_data->mode == EVEN_THICKNESS_ON);
+  status.item(IFACE_("Even Thickness Invert"), ICON_EVENT_ALT);
 
-    if (t->proptext[0]) {
-      status.modal_keymap({}, keymap, TFM_MODAL_PROPSIZE_UP);
-      status.modal_keymap(IFACE_("Proportional Size"), keymap, TFM_MODAL_PROPSIZE_DOWN);
-    }
+  if (t->proptext[0]) {
+    status.modal_keymap({}, keymap, TFM_MODAL_PROPSIZE_UP);
+    status.modal_keymap(IFACE_("Proportional Size"), keymap, TFM_MODAL_PROPSIZE_DOWN);
   }
 }
 

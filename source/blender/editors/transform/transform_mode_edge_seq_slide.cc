@@ -118,8 +118,12 @@ static void applySeqSlide(TransInfo *t)
 
 static void seq_slide_status(TransInfo *t)
 {
-  const wmKeyMap *keymap = t->keymap;
-  if (!keymap || t->data_container_len == 0) {
+  if (t->keymap == nullptr) {
+    return;
+  }
+  const wmKeyMap &keymap = *t->keymap;
+
+  if (t->data_container_len == 0) {
     return;
   }
 
