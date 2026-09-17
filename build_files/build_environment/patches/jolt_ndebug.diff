@@ -1,0 +1,21 @@
+Don't define "NDEBUG" for all targets that uses jolt, instead use the jolt specific
+"JPH_NO_DEBUG" flag.
+
+Without this, we would get segfaults in Blender as some parts of Blender would then potentially be compiled with "NDEBUG" and other would not leading to type defs not being consistent.
+
+diff --git a/Jolt/Jolt.cmake b/Jolt/Jolt.cmake
+index c7ea8cfd..8a268777 100644
+--- a/Jolt/Jolt.cmake
++++ b/Jolt/Jolt.cmake
+@@ -830,8 +830,8 @@ else()
+ 	target_precompile_headers(Jolt PRIVATE "$<$<NOT:$<CONFIG:ReleaseCoverage>>:${JOLT_PHYSICS_ROOT}/Jolt.h>")
+ endif()
+ 
+-# Set the NDEBUG define for release builds
+-target_compile_definitions(Jolt PUBLIC "$<$<CONFIG:Release,Distribution,ReleaseASAN,ReleaseUBSAN,ReleaseTSAN,ReleaseCoverage>:NDEBUG>")
++# Set the JPH_NO_DEBUG define for release builds
++target_compile_definitions(Jolt PUBLIC "$<$<CONFIG:Release,Distribution,ReleaseASAN,ReleaseUBSAN,ReleaseTSAN,ReleaseCoverage>:JPH_NO_DEBUG>")
+ 
+ # ASAN and TSAN should use the default allocators
+ target_compile_definitions(Jolt PUBLIC "$<$<CONFIG:ReleaseASAN,ReleaseTSAN>:JPH_DISABLE_TEMP_ALLOCATOR;JPH_DISABLE_CUSTOM_ALLOCATOR>")
+

@@ -44,6 +44,11 @@ ExternalProject_Add(external_jolt
   CMAKE_GENERATOR ${PLATFORM_ALT_GENERATOR}
   SOURCE_SUBDIR Build
 
+  PATCH_COMMAND
+    ${PATCH_CMD} -p 1 -d
+      ${BUILD_DIR}/jolt/src/external_jolt <
+      ${PATCH_DIR}/jolt_ndebug.diff
+
   CMAKE_ARGS
     -DCMAKE_INSTALL_PREFIX=${LIBDIR}/jolt
     ${DEFAULT_CMAKE_FLAGS}
