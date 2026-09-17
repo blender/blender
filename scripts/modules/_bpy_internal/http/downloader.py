@@ -36,17 +36,12 @@ import multiprocessing.connection
 import multiprocessing.process
 import os
 import sys
+import threading
 import time
 import zlib  # For streaming gzip decompression.
 from collections.abc import Callable, Generator
 from pathlib import Path
 from typing import Protocol, TypeAlias, Any, override
-
-# To work around this error:
-# mypy   : Variable "multiprocessing.Event" is not valid as a type
-#          note: See https://mypy.readthedocs.io/en/stable/common_issues.html#variables-vs-type-aliases
-# Pylance: Variable not allowed in type expression
-from multiprocessing.synchronize import Event as EventClass
 
 import cattrs
 import cattrs.preconf.json
@@ -516,10 +511,10 @@ class BackgroundDownloader:
 
     _reporters: list[DownloadReporter]
     _options: DownloaderOptions
-    _downloader_process: multiprocessing.process.BaseProcess | None
+    _downloader_process: multiprocessing.process.BaseProcess | threading.Thread | None
 
-    _shutdown_event: EventClass
-    _shutdown_complete_event: EventClass
+    _shutdown_event: threading.Event
+    _shutdown_complete_event: threading.Event
 
     _cancelled_awaiting_report: set[RequestDescription]
     """Requests that were cancelled, but whose terminal report has not arrived yet.
@@ -551,8 +546,8 @@ class BackgroundDownloader:
         self._queueing_reporter = QueueingReporter()
         self._options = options
 
-        self._shutdown_event = _mp_context.Event()
-        self._shutdown_complete_event = _mp_context.Event()
+        self._shutdown_event = threading.Event()
+        self._shutdown_complete_event = threading.Event()
 
         self._reporters = [self]
         self._downloader_process = None
@@ -661,7 +656,10 @@ class BackgroundDownloader:
         my_side, subprocess_side = _mp_context.Pipe(duplex=True)
         self._connection = my_side
 
-        self._downloader_process = _mp_context.Process(
+        # Android lacks multiprocessing support and cannot spawn the bundled Python executable. Run the download worker
+        # in a thread instead, keeping reports and callbacks on the main thread through the existing pipe.
+        worker_type = threading.Thread if hasattr(sys, "getandroidapilevel") else _mp_context.Process
+        self._downloader_process = worker_type(
             name="BackgroundDownloader",
             target=_download_queued_items,
             args=(
@@ -670,9 +668,12 @@ class BackgroundDownloader:
             ),
             daemon=True,
         )
-        self._logger.info("starting downloader process")
-        with _cleanup_main_file_attribute():
+        self._logger.info("starting downloader worker")
+        if isinstance(self._downloader_process, threading.Thread):
             self._downloader_process.start()
+        else:
+            with _cleanup_main_file_attribute():
+                self._downloader_process.start()
 
     @property
     def is_shutdown_requested(self) -> bool:
