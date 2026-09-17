@@ -715,6 +715,10 @@ static SlotAllocator add_pipeline_create_info(gpu::shader::ShaderCreateInfo &inf
   info.compilation_constant(
       gpu::shader::Type::bool_t, "use_clip_plane", pipeline_type == MAT_PIPE_PREPASS_PLANAR);
   info.compilation_constant(gpu::shader::Type::bool_t, "use_ambient_occlusion", use_ao_node);
+  info.compilation_constant(gpu::shader::Type::bool_t,
+                            "use_forward_lighting",
+                            (pipeline_type == MAT_PIPE_FORWARD) ||
+                                ((pipeline_type == MAT_PIPE_DEFERRED) && use_shader_to_rgba));
 
   StringRefNull pipeline_info_name;
   StringRefNull additional_info_name;

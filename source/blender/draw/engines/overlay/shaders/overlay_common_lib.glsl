@@ -102,6 +102,7 @@ float get_homogenous_z_offset(float4x4 winmat, float vs_z, float hs_w, float vs_
   }
 }
 
+#if defined(DRAW_VIEW_CREATE_INFO)
 float mul_project_m4_v3_zfac(float pixel_fac, float3 co)
 {
   float3 vP = drw_point_world_to_view(co).xyz;
@@ -109,3 +110,4 @@ float mul_project_m4_v3_zfac(float pixel_fac, float3 co)
   return pixel_fac *
          (winmat[0][3] * vP.x + winmat[1][3] * vP.y + winmat[2][3] * vP.z + winmat[3][3]);
 }
+#endif

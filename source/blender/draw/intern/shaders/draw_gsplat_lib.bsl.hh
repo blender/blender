@@ -260,8 +260,8 @@ struct AxisTuple {
   {
     /* NOTE(not_mark): do not reduce packing size further; already causes jittering on zoom. */
     float axis_0_dir = /* 10 bits */ float(data & 0x3FFu) / 1023.0f;
-    float axis_0_len = /* 11 bits */ float((data >> 10u) & 0x7FF) / 2047.0f;
-    float axis_1_len = /* 11 bits */ float((data >> 21u) & 0x7FF) / 2047.0f;
+    float axis_0_len = /* 11 bits */ float((data >> 10u) & 0x7FFu) / 2047.0f;
+    float axis_1_len = /* 11 bits */ float((data >> 21u) & 0x7FFu) / 2047.0f;
 
     constexpr float max_axis_size = 1024.0f;
     const float2 axis = normalize(float2(axis_0_dir, cos_from_sin(axis_0_dir)));
