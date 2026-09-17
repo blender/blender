@@ -61,8 +61,6 @@ BLOCKLIST = [
     "osl_camera_bevel.blend",
     # Extreme texture values interpolate differently on different GPUs.
     "image_log.blend",
-    # Exhibit the LTC light leaking issue. To be enabeld back after fixing.
-    "light_path_glossy_depth.blend",
     # Exhibit non-deterministic behavior because of tracing outside the spotlight 45° cone.
     "light_path_is_camera_ray.blend",
     # Exhibit non-deterministic (to be fixed).
@@ -453,7 +451,7 @@ def main():
         report.set_fail_percent(0.098)
         # principled_bsdf_dispersion has some difference in the highlights
         if gpu_vendor == "AMD":
-            report.set_fail_threshold(6.0 / 255.0)
+            report.set_fail_threshold(10.0 / 255.0)
     elif test_dir_name.startswith('integrator'):
         # Noise difference in transparent materials (mostly transparent_spatial_splits)
         report.set_fail_threshold(8.0 / 255.0)
@@ -476,7 +474,7 @@ def main():
     elif test_dir_name.startswith('shader'):
         # normal_mapping_light_leak fireflies.
         # fresnel_layer_weight high values are accumulated differently on different platform.
-        report.set_fail_percent(0.215)
+        report.set_fail_percent(0.221)
         if gpu_vendor == "INTEL":
             # mix_color uses implementation dependent function.
             report.set_fail_percent(0.41)

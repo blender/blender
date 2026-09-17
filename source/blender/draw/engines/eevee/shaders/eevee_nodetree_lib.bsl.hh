@@ -1109,7 +1109,7 @@ void node_light_evaluation_common_impl([[resource_table]] KernelGlobals &kg,
 
   LightData light = lrd.light_buf[light_index];
   const bool is_directional = (light.type == LIGHT_SUN) || (light.type == LIGHT_SUN_ORTHO);
-  LightVector lv = light_vector_get(light, is_directional, position);
+  LightVector lv = LightVector::get(light, is_directional, position);
 
   direction = lv.L;
   distance = lv.dist;
@@ -1130,8 +1130,8 @@ void node_light_evaluation_impl([[resource_table]] KernelGlobals &kg,
 
   LightData light = lrd.light_buf[light_index];
   const bool is_directional = (light.type == LIGHT_SUN) || (light.type == LIGHT_SUN_ORTHO);
-  LightVector lv = light_vector_get(light, is_directional, position);
-  LightVertices light_shape_vertices = light_shape_corners(light, lv);
+  LightVector lv = LightVector::get(light, is_directional, position);
+  LightShape light_shape_vertices = LightShape::get(light, lv);
 
   const ViewMatrices view = kg.view_matrices_get(sd);
   const float3 V = view.world_incident_vector(position);
@@ -1147,7 +1147,7 @@ void node_light_evaluation_impl([[resource_table]] KernelGlobals &kg,
   }
   float3x3 T = from_incident_vector(normal, V);
   ltc_data.Minv = ltc_data.Minv * transpose(T);
-  factor = light_ltc(util_tx.utility_tx, light, ltc_data, lv, light_shape_vertices);
+  factor = eevee::ltc::evaluate(util_tx.utility_tx, light, light_shape_vertices, lv, ltc_data);
 
   const bool is_transmission = false; /* TODO: Expose? */
   factor *= light_attenuation_facing(light, lv.L, lv.dist, normal, is_transmission);
