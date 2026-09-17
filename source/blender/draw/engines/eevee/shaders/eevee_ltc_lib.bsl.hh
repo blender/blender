@@ -13,10 +13,12 @@
 
 #include "eevee_bxdf_types.bsl.hh"
 #include "eevee_defines.hh"
+#include "eevee_light_lib.bsl.hh"
 #include "eevee_ltc_lut_lib.bsl.hh"
 #include "gpu_shader_compat.hh"
 #include "gpu_shader_math_constants.bsl.hh"
 #include "gpu_shader_math_matrix_construct.bsl.hh"
+#include "gpu_shader_math_safe.bsl.hh"
 #include "gpu_shader_utildefines.bsl.hh" /* IWYU pragma: export. FLT_MAX */
 
 namespace eevee::ltc {
@@ -133,8 +135,14 @@ float3 solve_cubic(float4 coefs)
   return root;
 }
 
-/* from Real-Time Area Lighting: a Journey from Research to Production
- * Stephen Hill and Eric Heitz */
+/**
+ * Approximate edge integral as part of a polygon area integral over a cosine (hemi)sphere.
+
+ * 1. This dates back to Lambert, see: [Geometric Derivation of the Irradiance of  Polygonal
+ *    Lights](https://hal.science/hal-01458129/document).
+ * 2. This is a fitting that avoids precision issues, see: [Real-Time Area Lighting: a Journey from
+ *    Research to Production](https://advances.realtimerendering.com/s2016/s2016_ltc_rnd.pdf)
+ */
 float3 edge_integral_vec(float3 v1, float3 v2)
 {
   float x = dot(v1, v2);
@@ -149,18 +157,69 @@ float3 edge_integral_vec(float3 v1, float3 v2)
   return cross(v1, v2) * theta_sintheta;
 }
 
+/**
+ * Upper parabolic curve of the form `x/(1+x)`, going through `y_1` at `x=1`,
+ * with `scale` determining the curve shape.
+ */
+float upper_parabole(float x, float scale, float y_1)
+{
+  x = saturate(x / y_1);
+  return saturate((x * scale + x) / (scale + x));
+}
+
+/**
+ * Get the 3rd column of the inverse of 3x3 matrix M^{-1}, normalized. We can avoid
+ * computing the reciprocal determinant as we need a unit vector.
+ */
+float3 dominant_bxdf_direction(float3x3 Minv)
+{
+  float3 adjoint_z = float3(+(Minv[1][0] * Minv[2][1] - Minv[2][0] * Minv[1][1]),
+                            -(Minv[0][0] * Minv[2][1] - Minv[2][0] * Minv[0][1]),
+                            +(Minv[0][0] * Minv[1][1] - Minv[1][0] * Minv[0][1]));
+  return normalize(adjoint_z);
+}
+
+/**
+ * Fitted function to attenuation light leakage caused by the sphere integral approximation.
+ */
+float form_factor_attenuation(LightShape shape, LTCData ltc_data, float3 L)
+{
+  /* First, find an approximate dominant BxDF direction D. Then, find a vector T on the light
+   * plane, coplanar with D and L, i.e. T = cross(cross(L, D), shape.N). */
+  float3 D = dominant_bxdf_direction(ltc_data.Minv);
+  float3 T = normalize(D * dot(L, shape.N) - L * dot(D, shape.N));
+
+  /* Find t where D intersects the line L + t*T. */
+  float TD = dot(T, D);
+  float t = safe_divide(dot(D, L) * TD - dot(T, L), 1.0f - square(TD));
+
+  if (t > 0.0 && t < shape.disk_radius_projected) {
+    /* If t lies within the disk radius on the positive side, we do not attenuate. */
+    return 1.0;
+  }
+  /* Otherwise, restrict t to within on the disk radius. */
+  t = min(abs(t), shape.disk_radius_projected);
+
+  /* Compute L + t*T and warp it into LTC space. This disk point bounds the light shape in LTC
+   * space, so we can use its z-component to safely fit an attenuation factor. */
+  float attenuation = saturate(normalize(ltc_data.Minv * (L + t * T)).z);
+  attenuation = upper_parabole(attenuation, 0.15f, 0.5f);
+  attenuation += (1.0f - attenuation) * ltc_data.attenuation_factor;
+
+  return attenuation;
+}
 }  // namespace detail
 
 /**
  * Evaluate contribution of rectangle light.
  */
-float evaluate_quad(sampler2DArray util_tx, LTCData ltc_data, float3 corners[4])
+float evaluate_quad(sampler2DArray util_tx, LightShape shape, LightVector lv, LTCData ltc_data)
 {
   /* Transform the quad corners into LTC space, and project on to sphere. */
-  float3 V[4] = {normalize(ltc_data.Minv * corners[0]),
-                 normalize(ltc_data.Minv * corners[1]),
-                 normalize(ltc_data.Minv * corners[2]),
-                 normalize(ltc_data.Minv * corners[3])};
+  float3 V[4] = {normalize(ltc_data.Minv * shape.v[0]),
+                 normalize(ltc_data.Minv * shape.v[1]),
+                 normalize(ltc_data.Minv * shape.v[2]),
+                 normalize(ltc_data.Minv * shape.v[3])};
 
   /* Approximation using a sphere with the same form factor as the unclipped quad.
    * Finding a clipped sphere's form factor is easier than clipping the quad. */
@@ -178,7 +237,9 @@ float evaluate_quad(sampler2DArray util_tx, LTCData ltc_data, float3 corners[4])
 
   switch (ltc_data.form_factor_type) {
     case LTCFormFactorType::OneSidedCosineSphereClipped:
-      /* TODO(not_mark): apply attenuation here as LTC bleed fix. */
+      /* The clipped sphere approximation causes light leakage for low roughness;
+       * we attenuate with a fitted function that removes some energy below the horizon. */
+      form_factor *= detail::form_factor_attenuation(shape, ltc_data, lv.L);
       form_factor *= detail::diffuse_sphere_integral(util_tx, avg_dir_z, form_factor);
       break;
     default: /* LTCFormFactorType::TwoSidedCosineSphere */
@@ -194,12 +255,12 @@ float evaluate_quad(sampler2DArray util_tx, LTCData ltc_data, float3 corners[4])
  *
  * disk_points are WS vectors from the shading point to the disk "bounding domain".
  */
-float evaluate_disk(sampler2DArray util_tx, LTCData ltc_data, float3 disk_points[4])
+float evaluate_disk(sampler2DArray util_tx, LightShape shape, LightVector lv, LTCData ltc_data)
 {
   /* Intermediate step: init ellipse. */
-  float3 C = 0.5f * (disk_points[0] + disk_points[2]);
-  float3 V1 = 0.5f * (disk_points[1] - disk_points[2]);
-  float3 V2 = 0.5f * (disk_points[1] - disk_points[0]);
+  float3 C = 0.5f * (shape.v[0] + shape.v[2]);
+  float3 V1 = 0.5f * (shape.v[1] - shape.v[2]);
+  float3 V2 = 0.5f * (shape.v[1] - shape.v[0]);
 
   /* Transform ellipse into LTC space. */
   C = ltc_data.Minv * C;
@@ -294,7 +355,9 @@ float evaluate_disk(sampler2DArray util_tx, LTCData ltc_data, float3 disk_points
 
   switch (ltc_data.form_factor_type) {
     case LTCFormFactorType::OneSidedCosineSphereClipped:
-      /* TODO(not_mark): apply attenuation here as LTC bleed fix. */
+      /* The clipped sphere approximation causes light leakage for low roughness;
+       * we attenuate with a fitted function that removes some energy below the horizon. */
+      form_factor *= detail::form_factor_attenuation(shape, ltc_data, lv.L);
       form_factor *= detail::diffuse_sphere_integral(util_tx, avg_dir.z, form_factor);
       break;
     default: /* LTCFormFactorType::TwoSidedCosineSphere */
@@ -303,6 +366,24 @@ float evaluate_disk(sampler2DArray util_tx, LTCData ltc_data, float3 disk_points
   }
 
   return form_factor;
+}
+
+/**
+ * Perform LTC evaluation, returning the form factor of the light's shape to the shading point.
+ * When multiplied by emission, this approximates the light's contributed irradiance.
+ */
+float evaluate(
+    sampler2DArray util_tx, LightData light, LightShape shape, LightVector lv, LTCData ltc_data)
+{
+  if (is_sphere_light(light.type) && lv.dist < light.local().local.shape_radius) {
+    /* Inside the sphere light, integrate over the hemisphere. */
+    return 1.0f;
+  }
+
+  if (light.type == LIGHT_RECT) {
+    return evaluate_quad(util_tx, shape, lv, ltc_data);
+  }
+  return evaluate_disk(util_tx, shape, lv, ltc_data);
 }
 
 }  // namespace eevee::ltc

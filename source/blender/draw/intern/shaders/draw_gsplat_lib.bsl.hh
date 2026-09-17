@@ -163,7 +163,7 @@ float unpack_gaussian_opacity(uint4 pack)
 }
 
 /**
- * Helper methhods to slice 3-tuples (xyz) of 8b values from uint4
+ * Helper methods to slice 3-tuples (xyz) of 8b values from uint4
  * packed data ([xyzx][yzxy][zxyz][xyzx][yzxy]...).
  */
 uint3 slice_tuple_xyzn(uint t)
@@ -638,7 +638,7 @@ struct ShapeResource {
 };
 
 /**
- * Gaussian alpha, following eq. 2 in [3dgs2023] it is multipled by data opacity.
+ * Gaussian alpha, following eq. 2 in [3dgs2023] it is multiplied by data opacity.
  */
 float evaluate_gaussian(float2 x_min_mu, float opacity)
 {

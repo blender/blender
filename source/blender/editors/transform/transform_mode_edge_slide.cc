@@ -818,11 +818,12 @@ static void applyEdgeSlide(TransInfo *t)
 
 static void edge_slide_status(TransInfo *t)
 {
-  EdgeSlideParams *slp = static_cast<EdgeSlideParams *>(t->custom.mode.data);
-  const wmKeyMap *keymap = t->keymap;
-  if (!keymap) {
+  if (t->keymap == nullptr) {
     return;
   }
+  const wmKeyMap &keymap = *t->keymap;
+
+  EdgeSlideParams *slp = static_cast<EdgeSlideParams *>(t->custom.mode.data);
   if (!slp->update_status_bar) {
     return;
   }

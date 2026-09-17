@@ -41,7 +41,12 @@ static int node_shader_gpu_output_material(GPUMaterial *mat,
     GPU_material_output_displacement(mat, outlink_displacement);
   }
   if (in[3].link) {
-    GPU_link(mat, "node_output_material_thickness", in[3].link, &outlink_thickness);
+    GPU_link(mat,
+             "node_output_material_thickness",
+             in[3].link,
+             GPU_kernel_globals(),
+             GPU_shading_data(),
+             &outlink_thickness);
     GPU_material_output_thickness(mat, outlink_thickness);
   }
   return true;

@@ -574,11 +574,12 @@ static void applyVertSlide(TransInfo *t)
 
 static void vert_slide_status(TransInfo *t)
 {
-  VertSlideParams *slp = static_cast<VertSlideParams *>(t->custom.mode.data);
-  const wmKeyMap *keymap = t->keymap;
-  if (!keymap) {
+  if (t->keymap == nullptr) {
     return;
   }
+  const wmKeyMap &keymap = *t->keymap;
+
+  VertSlideParams *slp = static_cast<VertSlideParams *>(t->custom.mode.data);
   if (!slp->update_status_bar) {
     return;
   }

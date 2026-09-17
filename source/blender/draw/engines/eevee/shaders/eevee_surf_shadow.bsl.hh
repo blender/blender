@@ -24,10 +24,12 @@
 #include "eevee_shadow_tilemap_lib.bsl.hh"
 #include "eevee_surf_common.bsl.hh"
 
-float4 closure_to_rgba_shadow(Closure /*cl*/)
+float4 closure_to_rgba_shadow([[resource_table]] KernelGlobals &kg,
+                              ShadingData &sd,
+                              Closure /*cl*/)
 {
-  float3 transmittance = g_transmittance;
-  closure_weights_reset(0.0f);
+  float3 transmittance = sd.transmittance;
+  closure_weights_reset(kg, sd, 0.0f);
   return float4(0.0f, 0.0f, 0.0f, saturate(1.0f - average(transmittance)));
 }
 
@@ -43,7 +45,8 @@ struct SurfShadow {
 };
 
 [[fragment]] [[texture_atomic]]
-void surf_shadow([[resource_table]] PipelineConstants &pipe,
+void surf_shadow([[resource_table]] KernelGlobals &kg,
+                 [[resource_table]] PipelineConstants &pipe,
                  [[resource_table]] SurfShadow &srt,
                  [[resource_table]] const Uniform &uni,
                  [[resource_table]] const draw::View &views,
@@ -65,16 +68,16 @@ void surf_shadow([[resource_table]] PipelineConstants &pipe,
 
   if (pipe.use_transparency) [[static_branch]] {
     const ViewMatrices view = views.get(shadow_iface.shadow_view_id);
-    init_globals(uni, view, front_face);
+    ShadingData sd = init_globals(uni, view, front_face, frag_co);
 
-    nodetree_surface(0.0f);
-    gsplat_transmittance();
+    nodetree_surface(kg, sd, 0.0f);
+    sd.transmittance = gsplat_transmittance(sd.transmittance);
 
     float noise_offset = sampling.rng_1D_get(SAMPLING_TRANSPARENCY);
-    float threshold = pcg4d(float4(g_data.P, noise_offset)).x;
-    float transparency = average(g_transmittance);
+    float random_threshold = pcg4d(float4(sd.P, noise_offset)).x;
 
-    if (transparency > threshold) {
+    float transparency = average(sd.transmittance);
+    if (transparency > random_threshold) {
       gpu_discard_fragment();
       return;
     }

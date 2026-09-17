@@ -138,7 +138,7 @@ static int node_shader_gpu_volume_coefficients(GPUMaterial *mat,
   if (in[SOCK_ABSORPTION_COEFFICIENTS_ID].socket_not_black()) {
     GPU_material_flag_set(mat, GPU_MATFLAG_VOLUME_ABSORPTION);
   }
-  return GPU_stack_link(mat, node, "node_volume_coefficients", in, out);
+  return GPU_stack_link(mat, node, "node_volume_coefficients", in, out, GPU_shading_data());
 }
 
 #undef SOCK_WEIGHT_ID

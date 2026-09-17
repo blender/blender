@@ -25,8 +25,8 @@
 #include "CLG_log.h"
 
 #include "IO_gsplat.hh"
-#include "IO_validate.hh"
 
+#include "spz_header.hh"
 #include "spz_read_common.hh"
 
 namespace blender::io::spz {
@@ -34,17 +34,6 @@ namespace blender::io::spz {
 static CLG_LogRef LOG = {"io.spz"};
 
 namespace {
-
-struct PackedGaussiansHeader {
-  uint32_t magic;
-  uint32_t version;
-  uint32_t num_points;
-  uint8_t sh_degree;
-  uint8_t fractional_bits;
-  uint8_t flags;
-  uint8_t reserved;
-};
-static_assert(sizeof(PackedGaussiansHeader) == 16);
 
 /* Helper class that takes care of reading data from FILE in chunks. */
 class BufferedFileReader {
@@ -152,12 +141,8 @@ PointCloud *read_spz_gzip_compressed_file(FILE *file, ReportList *reports)
   CLOG_DEBUG(&LOG, "SPZ header magic: 0x%X", header.magic);
   CLOG_DEBUG(&LOG, "SPZ header version: %u", header.version);
 
-  if (header.magic != SPZ_HEADER_MAGIC) {
-    BKE_reportf(reports, RPT_ERROR, "SPZ Read: Unexpected SPZ header magic 0x%X", header.magic);
-    return nullptr;
-  }
-  if (header.version != 2 && header.version != 3) {
-    BKE_reportf(reports, RPT_ERROR, "SPZ Read: Unsupported SPZ version %u", header.version);
+  if (const std::optional<std::string> error = check_header_for_errors(header)) {
+    BKE_reportf(reports, RPT_ERROR, "SPZ Read: %s", error->c_str());
     return nullptr;
   }
 
@@ -167,17 +152,12 @@ PointCloud *read_spz_gzip_compressed_file(FILE *file, ReportList *reports)
   CLOG_DEBUG(&LOG, "SPZ header flags: %d", header.flags);
 
   if (header.flags & SPZ_HEADER_ANTIALIASED) {
-    /* TODO(sergey): Support antialiased data. */
-    CLOG_WARN(&LOG, "SPZ data was trained with antialiasing which is not fully supported");
+    /* TODO(sergey): Support anti-aliased data. */
+    CLOG_WARN(&LOG, "SPZ data was trained with anti-aliasing which is not fully supported");
   }
   if (header.flags & SPZ_HEADER_HAS_EXTENSIONS) {
     /* TODO(sergey): Support extensions. */
     CLOG_WARN(&LOG, "SPZ file contains extensions that are not yet supported");
-  }
-
-  if (!validate::size_fits_in_int(header.num_points)) {
-    BKE_report(reports, RPT_ERROR, "SPZ Read: Too many points");
-    return nullptr;
   }
 
   PointCloud *point_cloud = BKE_pointcloud_new_nomain(PointCloudType::GSplat, header.num_points);

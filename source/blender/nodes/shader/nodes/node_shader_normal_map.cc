@@ -112,7 +112,7 @@ static int gpu_shader_normal_map(GPUMaterial *mat,
                                   "input_normal_original";
 
   GPUNodeLink *input_normal;
-  GPU_link(mat, input_fn_name, &input_normal);
+  GPU_link(mat, input_fn_name, GPU_shading_data(), &input_normal);
 
   switch (nm->space) {
     case SHD_SPACE_TANGENT:
@@ -125,11 +125,18 @@ static int gpu_shader_normal_map(GPUMaterial *mat,
                strength,
                newnormal,
                input_normal,
+               GPU_kernel_globals(),
+               GPU_shading_data(),
                &out[0].link);
       return true;
     case SHD_SPACE_OBJECT:
     case SHD_SPACE_BLENDER_OBJECT:
-      GPU_link(mat, "normal_transform_object_to_world", newnormal, &newnormal);
+      GPU_link(mat,
+               "normal_transform_object_to_world",
+               newnormal,
+               GPU_kernel_globals(),
+               GPU_shading_data(),
+               &newnormal);
       break;
     case SHD_SPACE_WORLD:
     case SHD_SPACE_BLENDER_WORLD:
@@ -138,7 +145,7 @@ static int gpu_shader_normal_map(GPUMaterial *mat,
   }
 
   /* Final step - mix and apply strength for all other than tangent space. */
-  GPU_link(mat, "node_normal_map_mix", strength, newnormal, &out[0].link);
+  GPU_link(mat, "node_normal_map_mix", strength, newnormal, GPU_shading_data(), &out[0].link);
 
   return true;
 }

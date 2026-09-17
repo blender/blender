@@ -24,21 +24,23 @@
 #include "eevee_occupancy_lib.bsl.hh"
 #include "eevee_sampling_lib.bsl.hh"
 
-GlobalData init_globals(const ViewMatrices view, float3 wP)
+[[nodiscard]] ShadingData init_globals(const ViewMatrices view, float3 wP)
 {
-  GlobalData surf;
-  surf.P = wP;
-  surf.N = float3(0.0f);
-  surf.Ng = float3(0.0f);
-  surf.is_strand = false;
-  surf.hair_diameter = 0.0f;
-  surf.hair_strand_id = 0;
-  surf.barycentric_coords = float2(0.0f);
-  surf.barycentric_dists = float3(0.0f);
-  surf.ray_type = RAY_TYPE_CAMERA;
-  surf.ray_depth = 0.0f;
-  surf.ray_length = distance(surf.P, view.position());
-  return surf;
+  ShadingData sd;
+  sd.frag_co = float4(0);
+  sd.P = wP;
+  sd.N = float3(0.0f);
+  sd.Ng = float3(0.0f);
+  sd.is_strand = false;
+  sd.hair_diameter = 0.0f;
+  sd.hair_strand_id = 0;
+  sd.barycentric_coords = float2(0.0f);
+  sd.barycentric_dists = float3(0.0f);
+  sd.ray_type = RAY_TYPE_CAMERA;
+  sd.ray_depth = 0.0f;
+  sd.ray_length = distance(sd.P, view.position());
+  sd.thickness = Thickness::zero();
+  return sd;
 }
 
 namespace eevee {
@@ -96,7 +98,8 @@ struct SurfVolume {
     imageStoreFast(out_phase_weight_img, froxel, phase.yyyy);
   }
 
-  VolumeProperties eval_froxel([[resource_table]] const Uniform &uni,
+  VolumeProperties eval_froxel([[resource_table]] KernelGlobals &kg,
+                               [[resource_table]] const Uniform &uni,
                                const ViewMatrices view,
                                const ObjectMatrices obj,
                                const ObjectInfos ob_infos,
@@ -112,29 +115,31 @@ struct SurfVolume {
     /* Compute Original Coordinate (ORCO). */
     float3 lP_orco = lP * ob_infos.orco_mul + ob_infos.orco_add;
 
-    g_data = init_globals(view, wP);
+    ShadingData sd = init_globals(view, wP);
     attrib_load(VolumePoint{lP, lP_orco});
-    nodetree_volume();
+
+    nodetree_volume(kg, sd);
 
     if (is_volume_object) [[static_branch]] {
       const auto &drw_volume = buffer_get(draw_volume_infos, drw_volume);
-      g_volume_scattering *= drw_volume.density_scale;
-      g_volume_absorption *= drw_volume.density_scale;
-      g_emission *= drw_volume.density_scale;
+      sd.volume_scattering *= drw_volume.density_scale;
+      sd.volume_absorption *= drw_volume.density_scale;
+      sd.emission *= drw_volume.density_scale;
     }
 
     VolumeProperties prop;
-    prop.scattering = g_volume_scattering;
-    prop.absorption = g_volume_absorption;
-    prop.emission = g_emission;
-    prop.anisotropy = g_volume_anisotropy;
+    prop.scattering = sd.volume_scattering;
+    prop.absorption = sd.volume_absorption;
+    prop.emission = sd.emission;
+    prop.anisotropy = sd.volume_anisotropy;
     return prop;
   }
 };
 
 /* Note: Only the front fragments have to be invoked. */
 [[fragment]] [[early_fragment_tests]] [[texture_atomic]]
-void surf_volume([[resource_table]] PipelineConstants & /*pipe*/,
+void surf_volume([[resource_table]] KernelGlobals &kg,
+                 [[resource_table]] PipelineConstants & /*pipe*/,
                  [[resource_table]] SurfVolume &srt,
                  [[resource_table]] const Uniform &uni,
                  [[resource_table]] const draw::Model &models,
@@ -161,7 +166,7 @@ void surf_volume([[resource_table]] PipelineConstants & /*pipe*/,
   if (srt.is_homogenous) [[static_branch]] {
     /* Homogenous volumes only evaluate properties at volume entrance and write the same values for
      * each froxel. */
-    prop = srt.eval_froxel(uni, view, obj, ob_infos, froxel, jitter);
+    prop = srt.eval_froxel(kg, uni, view, obj, ob_infos, froxel, jitter);
   }
 
   occupancy::Bits occupancy;
@@ -189,7 +194,7 @@ void surf_volume([[resource_table]] PipelineConstants & /*pipe*/,
 
       if (!srt.is_homogenous) [[static_branch]] {
         /* Heterogeneous volumes evaluate properties at every froxel position. */
-        prop = srt.eval_froxel(uni, view, obj, ob_infos, froxel, jitter);
+        prop = srt.eval_froxel(kg, uni, view, obj, ob_infos, froxel, jitter);
       }
       srt.write_froxel(froxel, prop);
     }

@@ -148,7 +148,8 @@ static int node_shader_gpu_volume_principled(GPUMaterial *mat,
                         color,
                         temperature,
                         spectrummap,
-                        GPU_constant(&layer));
+                        GPU_constant(&layer),
+                        GPU_shading_data());
 }
 
 #undef SOCK_COLOR_ID

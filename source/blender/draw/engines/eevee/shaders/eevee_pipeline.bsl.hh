@@ -11,11 +11,15 @@ namespace eevee {
 
 struct PipelineConstants {
   [[compilation_constant]] bool use_lighting_nodes;
+  [[compilation_constant]] bool use_ambient_occlusion;
   [[compilation_constant]] bool use_velocity;
   [[compilation_constant]] bool use_transparency;
   [[compilation_constant]] bool use_clip_plane;
   [[compilation_constant]] bool use_sss;
+  [[compilation_constant]] bool use_aov_output;
   [[compilation_constant]] bool is_shadow_pipe;
+  [[compilation_constant]] bool is_occupancy_pipe;
+  [[compilation_constant]] bool use_forward_lighting;
   [[compilation_constant]] bool use_multi_viewport;
   [[compilation_constant]] int closure_bin_count;
 };

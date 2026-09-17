@@ -16,8 +16,8 @@ set(INC_GLSL
   ../../../../gpu/intern
   ../../../../gpu/shaders
   ../../../../gpu/shaders/common
-  ../../../../gpu/shaders/infos
   ../../../../gpu/shaders/compat
+  ../../../../gpu/shaders/infos
 )
 
 set(SRC_BSL

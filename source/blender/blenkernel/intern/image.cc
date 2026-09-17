@@ -470,15 +470,17 @@ static void image_blend_read_data(BlendDataReader *reader, ID *id)
   ima->runtime = MEM_new<bke::ImageRuntime>(__func__);
 }
 
-static void image_blend_read_after_liblink(BlendLibReader * /*reader*/, ID *id)
+static void image_blend_read_after_liblink(BlendLibReader *reader, ID *id)
 {
   Image *ima = reinterpret_cast<Image *>(id);
 
-  BKE_image_populate_cache_from_autosave(ima);
-  BLI_assert_msg(!(ima->flag & IMA_AUTOSAVE_TEMPPACK),
-                 "An image should never be marked as temporary packed after loading");
-  BLI_assert_msg(BLI_listbase_count(&ima->autosave_packedfiles) == 0,
-                 "An image should never have autosave data after loading");
+  if (!BLO_read_lib_is_undo(reader)) {
+    BKE_image_populate_cache_from_autosave(ima);
+    BLI_assert_msg(!(ima->flag & IMA_AUTOSAVE_TEMPPACK),
+                   "An image should never be marked as temporary packed after loading");
+    BLI_assert_msg(BLI_listbase_count(&ima->autosave_packedfiles) == 0,
+                   "An image should never have autosave data after loading");
+  }
 
   /* Images have some kind of 'main' cache, when null we should also clear all others. */
   /* Needs to be done *after* cache pointers are restored (call to
@@ -1182,7 +1184,7 @@ Image *BKE_image_load_in_lib(Main *bmain,
 
   image_abs_path(bmain, owner_lib, filepath, filepath_abs);
 
-  /* Does it exist on the filesystem? */
+  /* Does it exist on the file-system? */
   if (check_open) {
     file = BLI_open(filepath_abs, O_BINARY | O_RDONLY, 0);
     if (file == -1) {

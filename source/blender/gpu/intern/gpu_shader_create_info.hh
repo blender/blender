@@ -373,6 +373,8 @@ static inline Type to_type(const GPUType type)
     case GPU_TEX3D:
     case GPU_CLOSURE:
     case GPU_ATTR:
+    case GPU_KERNEL_GLOBALS:
+    case GPU_SHADING_DATA:
       break;
   }
 

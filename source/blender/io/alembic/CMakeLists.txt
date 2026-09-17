@@ -29,11 +29,11 @@ set(SRC
   intern/alembic_capi.cc
 
   exporter/abc_archive.cc
-  exporter/abc_writer_attribute.cc
   exporter/abc_custom_props.cc
   exporter/abc_export_capi.cc
   exporter/abc_hierarchy_iterator.cc
   exporter/abc_writer_abstract.cc
+  exporter/abc_writer_attribute.cc
   exporter/abc_writer_camera.cc
   exporter/abc_writer_curves.cc
   exporter/abc_writer_hair.cc

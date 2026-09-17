@@ -31,8 +31,8 @@ void node_tangentmap(float4 attr_tangent, float3 &tangent)
 }
 
 [[node]]
-void node_tangent(float3 orco, float3 &T)
+void node_tangent(float3 orco, [[resource_table]] KernelGlobals &kg, ShadingData &sd, float3 &T)
 {
-  direction_transform_object_to_world(orco, T);
-  T = cross(g_data.N, normalize(cross(T, g_data.N)));
+  direction_transform_object_to_world(orco, kg, sd, T);
+  T = cross(sd.N, normalize(cross(T, sd.N)));
 }

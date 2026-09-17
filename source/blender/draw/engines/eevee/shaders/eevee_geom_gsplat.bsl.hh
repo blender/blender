@@ -123,11 +123,11 @@ struct GeomGSplat {
   /* Compute Original Coordinate (ORCO). */
   float3 lP_orco = gs.mean * ob_infos.orco_mul + ob_infos.orco_add;
 
-  init_globals(uni, view, true);
+  [[maybe_unused]] ShadingData sd = init_globals(uni, view, true, float4(0));
   attrib_load(PointCloudPoint{gs.mean, int(gs.id), lP_orco});
 
   /* NOTE(not_mark) What does displacement even mean on a gsplat :S */
-  /* interp.P += nodetree_displacement(); */
+  /* interp.P += nodetree_displacement(kg, sd); */
 
   if (pipe.use_clip_plane) [[static_branch]] {
     auto &clip_interp = interface_get(eevee_clip_plane, clip_interp);

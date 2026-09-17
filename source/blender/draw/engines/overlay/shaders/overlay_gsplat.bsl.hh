@@ -544,7 +544,7 @@ PipelineGraphic viewer_attribute_gsplat(viewer_attribute::vert, viewer_attribute
 PipelineGraphic viewer_attribute_gsplat_clipped(viewer_attribute::vert, viewer_attribute::frag, PipelineResources{.use_clipping = true, .selectable = false});
 
 PipelineGraphic edit_gsplat(edit_vert::vert, edit_vert::frag, PipelineResources{.use_clipping = false, .selectable = false});
-PipelineGraphic edit_gsplat_clipped(edit_vert::vert, edit_vert::frag, PipelineResources{.use_clipping = true, .selectable = false}); /* so anyways */
+PipelineGraphic edit_gsplat_clipped(edit_vert::vert, edit_vert::frag, PipelineResources{.use_clipping = true, .selectable = false}); /* So anyway. */
 
 PipelineGraphic depth_gsplat(depth_only::vert, depth_only::frag, PipelineResources{.use_clipping = false, .selectable = false});
 PipelineGraphic depth_gsplat_selectable(depth_only::vert, depth_only::frag, PipelineResources{.use_clipping = false, .selectable = true});

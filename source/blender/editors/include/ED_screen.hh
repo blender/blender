@@ -558,7 +558,7 @@ class WorkspaceStatus {
    *   [V] X-Ray
    */
   void modal_keymap(std::string text,
-                    const wmKeyMap *keymap,
+                    const wmKeyMap &keymap,
                     int propvalue,
                     bool inverted = false);
 };

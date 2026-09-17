@@ -1174,6 +1174,11 @@ void SourceProcessor::parse_library_functions(Parser &parser)
             qualifier = "out";
           }
 
+          if (type == "ShadingData" || type == "KernelGlobals") {
+            /* They are technically inout, but we declare them at the end of the input list. */
+            qualifier = "in";
+          }
+
           fn.arguments.emplace_back(
               ArgumentFormat{metadata::Qualifier(hash(qualifier)), metadata::Type(hash(type))});
         });

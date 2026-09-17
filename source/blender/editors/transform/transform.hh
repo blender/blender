@@ -974,7 +974,7 @@ struct TransInfo {
   ToolSettings *settings;
   wmTimer *animtimer;
   /** Needed so we can perform a look up for header text. */
-  wmKeyMap *keymap;
+  const wmKeyMap *keymap;
   /** Assign from the operator, or can be NULL. */
   ReportList *reports;
   /** Current mouse position. */

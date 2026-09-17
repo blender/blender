@@ -106,7 +106,7 @@ static void initShear_mouseInputMode(TransInfo *t)
       }
     }
 
-    /* A flipped view applies to this this orientation,
+    /* A flipped view applies to this orientation,
      * so the input direction must be flipped to match. */
     if (t->flag & T_VIEW_NEGATIVE) {
       dir_flip = !dir_flip;
@@ -299,31 +299,36 @@ static void apply_shear(TransInfo *t)
 
 static void shear_status(TransInfo *t)
 {
+  if (t->keymap == nullptr) {
+    return;
+  }
+  const wmKeyMap &keymap = *t->keymap;
+
   ShearCustomData *custom_data = static_cast<ShearCustomData *>(t->custom.mode.data);
-  const wmKeyMap *keymap = t->keymap;
-  if (keymap && custom_data->update_status_bar) {
-    custom_data->update_status_bar = false;
+  if (!custom_data->update_status_bar) {
+    return;
+  }
+  custom_data->update_status_bar = false;
 
-    WorkspaceStatus status(t->context);
+  WorkspaceStatus status(t->context);
 
-    status.modal_keymap(IFACE_("Confirm"), keymap, TFM_MODAL_CONFIRM);
-    status.modal_keymap(IFACE_("Cancel"), keymap, TFM_MODAL_CANCEL);
+  status.modal_keymap(IFACE_("Confirm"), keymap, TFM_MODAL_CONFIRM);
+  status.modal_keymap(IFACE_("Cancel"), keymap, TFM_MODAL_CANCEL);
 
-    status.item_bool({}, t->orient_axis_ortho == (t->orient_axis + 1) % 3, ICON_EVENT_X);
-    status.item_bool({}, t->orient_axis_ortho == (t->orient_axis + 2) % 3, ICON_EVENT_Y);
-    status.item(IFACE_("Shear Axis"), ICON_NONE);
-    status.item(IFACE_("Swap Axes"), ICON_MOUSE_MMB);
+  status.item_bool({}, t->orient_axis_ortho == (t->orient_axis + 1) % 3, ICON_EVENT_X);
+  status.item_bool({}, t->orient_axis_ortho == (t->orient_axis + 2) % 3, ICON_EVENT_Y);
+  status.item(IFACE_("Shear Axis"), ICON_NONE);
+  status.item(IFACE_("Swap Axes"), ICON_MOUSE_MMB);
 
-    status.modal_keymap(IFACE_("Snap"), keymap, TFM_MODAL_SNAP_TOGGLE, t->modifiers & MOD_SNAP);
-    status.modal_keymap(
-        IFACE_("Snap Invert"), keymap, TFM_MODAL_SNAP_INV_ON, t->modifiers & MOD_SNAP_INVERT);
-    status.modal_keymap(
-        IFACE_("Precision"), keymap, TFM_MODAL_PRECISION, t->modifiers & MOD_PRECISION);
+  status.modal_keymap(IFACE_("Snap"), keymap, TFM_MODAL_SNAP_TOGGLE, t->modifiers & MOD_SNAP);
+  status.modal_keymap(
+      IFACE_("Snap Invert"), keymap, TFM_MODAL_SNAP_INV_ON, t->modifiers & MOD_SNAP_INVERT);
+  status.modal_keymap(
+      IFACE_("Precision"), keymap, TFM_MODAL_PRECISION, t->modifiers & MOD_PRECISION);
 
-    if (t->proptext[0]) {
-      status.modal_keymap({}, keymap, TFM_MODAL_PROPSIZE_UP);
-      status.modal_keymap(IFACE_("Proportional Size"), keymap, TFM_MODAL_PROPSIZE_DOWN);
-    }
+  if (t->proptext[0]) {
+    status.modal_keymap({}, keymap, TFM_MODAL_PROPSIZE_UP);
+    status.modal_keymap(IFACE_("Proportional Size"), keymap, TFM_MODAL_PROPSIZE_DOWN);
   }
 }
 

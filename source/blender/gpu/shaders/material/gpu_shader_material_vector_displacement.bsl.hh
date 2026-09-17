@@ -8,26 +8,36 @@
 #include "gpu_shader_math_vector_safe.bsl.hh"
 
 [[node]]
-void node_vector_displacement_tangent(
-    float4 vector, float midlevel, float scale, float4 T, float3 &result)
+void node_vector_displacement_tangent(float4 vector,
+                                      float midlevel,
+                                      float scale,
+                                      float4 T,
+                                      [[resource_table]] KernelGlobals &kg,
+                                      const ShadingData &sd,
+                                      float3 &result)
 {
   float3 oN, oT, oB;
-  normal_transform_world_to_object(g_data.N, oN);
-  normal_transform_world_to_object(T.xyz, oT);
+  normal_transform_world_to_object(sd.N, kg, sd, oN);
+  normal_transform_world_to_object(T.xyz, kg, sd, oT);
   oN = normalize(oN);
   oT = normalize(oT);
   oB = T.w * safe_normalize(cross(oN, oT));
 
   float3 disp = (vector.xyz - midlevel) * scale;
   disp = disp.x * oT + disp.y * oN + disp.z * oB;
-  direction_transform_object_to_world(disp, result);
+  direction_transform_object_to_world(disp, kg, sd, result);
 }
 
 [[node]]
-void node_vector_displacement_object(float4 vector, float midlevel, float scale, float3 &result)
+void node_vector_displacement_object(float4 vector,
+                                     float midlevel,
+                                     float scale,
+                                     [[resource_table]] KernelGlobals &kg,
+                                     const ShadingData &sd,
+                                     float3 &result)
 {
   float3 disp = (vector.xyz - midlevel) * scale;
-  direction_transform_object_to_world(disp, result);
+  direction_transform_object_to_world(disp, kg, sd, result);
 }
 
 [[node]]

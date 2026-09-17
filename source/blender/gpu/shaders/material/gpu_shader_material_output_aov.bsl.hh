@@ -7,21 +7,18 @@
 #include "gpu_shader_material_interface.bsl.hh"
 
 [[node]]
-void node_output_aov([[maybe_unused]] float4 color,
-                     [[maybe_unused]] float value,
-                     [[maybe_unused]] float hash,
-                     [[maybe_unused]] Closure &dummy)
+void node_output_aov(float4 color,
+                     float value,
+                     float hash,
+                     [[resource_table]] KernelGlobals &kg,
+                     const ShadingData &sd,
+                     Closure & /*dummy*/)
 {
-#ifdef GPU_FRAGMENT_SHADER
-#  ifdef OBINFO_LIB
-  output_aov(int2(gl_FragCoord.xy),
+  output_aov(kg,
+             int2(sd.frag_co.xy),
              color,
              value,
              floatBitsToUint(hash),
-             g_holdout,
-             object_infos_get().flag);
-#  else
-  output_aov(int2(gl_FragCoord.xy), color, value, floatBitsToUint(hash), 0.0f, 0u);
-#  endif
-#endif
+             sd.holdout, /* TODO(fclem): This is not supposed to be read. */
+             kg.object_infos_get(sd).flag);
 }

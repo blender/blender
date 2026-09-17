@@ -1020,7 +1020,7 @@ PyDoc_STRVAR(
     ".. function:: unbind()\n"
     "\n"
     "   Unbind the bound shader object.\n");
-static PyObject *pygpu_shader_unbind(BPyGPUShader * /*self*/)
+static PyObject *pygpu_shader_unbind(PyObject * /*self*/)
 {
   GPU_shader_unbind();
   Py_RETURN_NONE;

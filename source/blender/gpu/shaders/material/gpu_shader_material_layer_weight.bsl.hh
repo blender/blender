@@ -8,13 +8,18 @@
 #include "gpu_shader_material_interface.bsl.hh"
 
 [[node]]
-void node_layer_weight(float blend, float3 N, float &fresnel, float &facing)
+void node_layer_weight(float blend,
+                       float3 N,
+                       [[resource_table]] KernelGlobals &kg,
+                       ShadingData &sd,
+                       float &fresnel,
+                       float &facing)
 {
   N = normalize(N);
 
   /* fresnel */
   float eta = max(1.0f - blend, 0.00001f);
-  float3 V = coordinate_incoming(g_data.P);
+  float3 V = coordinate_impl(kg, sd, sd.P, sd.N).incoming;
 
   fresnel = fresnel_dielectric(V, N, (FrontFacing) ? 1.0f / eta : eta);
 

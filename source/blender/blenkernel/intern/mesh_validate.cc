@@ -64,7 +64,7 @@ class ErrorMessages {
     if (!verbose_) {
       return;
     }
-    this->add(fmt::format(fmt::runtime(fmt), args...));
+    this->add(fmt::format(fmt, std::forward<T>(args)...));
   }
 };
 

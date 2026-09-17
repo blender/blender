@@ -23,6 +23,7 @@
 #include "eevee_shadow_tilemap_lib.bsl.hh"
 #include "gpu_shader_debug_gradients.bsl.hh"
 #include "gpu_shader_fullscreen.bsl.hh"
+#include "gpu_shader_math_matrix_construct.bsl.hh"
 #include "gpu_shader_math_vector_compare.bsl.hh"
 
 namespace eevee {

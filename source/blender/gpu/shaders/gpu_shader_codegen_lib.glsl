@@ -251,34 +251,6 @@ ClosureThinRefraction to_closure_thin_refraction(ClosureUndetermined cl)
   return closure;
 }
 
-struct GlobalData {
-  /** World position. */
-  packed_float3 P;
-  /** Surface Normal. Normalized, overridden by bump displacement. */
-  packed_float3 N;
-  /** Raw interpolated normal (non-normalized) data. */
-  packed_float3 Ni;
-  /** Geometric Normal. */
-  packed_float3 Ng;
-  /** Curve Tangent Space. */
-  packed_float3 curve_T, curve_B, curve_N;
-  /** Barycentric coordinates. */
-  packed_float2 barycentric_coords;
-  packed_float3 barycentric_dists;
-  /** Hair thickness in world space. */
-  float hair_diameter;
-  /** Index of the strand for per strand effects. */
-  int hair_strand_id;
-  /** Ray properties (approximation). */
-  float ray_depth;
-  float ray_length;
-  uchar ray_type;
-  /** Is hair. */
-  bool is_strand;
-};
-
-GlobalData g_data;
-
 #ifndef GPU_FRAGMENT_SHADER
 /* Stubs. */
 
@@ -297,8 +269,8 @@ void dF_branch(float fn, float2 &result)
 {
   /* NOTE: this function is currently unused, once it is used we need to check if
    * `g_derivative_filter_width` needs to be applied. */
-  result.x = gpu_dfdx(fn) * derivative_scale_get();
-  result.y = gpu_dfdy(fn) * derivative_scale_get();
+  result.x = gpu_dfdx(fn) * derivative_scale_get(kg);
+  result.y = gpu_dfdy(fn) * derivative_scale_get(kg);
 }
 
 #else
@@ -321,7 +293,7 @@ float3 dF_impl(float3 v)
 
 #  define dF_branch(fn, filter_width, result) \
     if (true) { \
-      g_derivative_filter_width = filter_width * derivative_scale_get(); \
+      g_derivative_filter_width = filter_width * derivative_scale_get(kg); \
       g_derivative_flag = 1; \
       result.x = (fn); \
       g_derivative_flag = -1; \
@@ -333,7 +305,7 @@ float3 dF_impl(float3 v)
 /* Used when the non-offset value is already computed elsewhere */
 #  define dF_branch_incomplete(fn, filter_width, result) \
     if (true) { \
-      g_derivative_filter_width = filter_width * derivative_scale_get(); \
+      g_derivative_filter_width = filter_width * derivative_scale_get(kg); \
       g_derivative_flag = 1; \
       result.x = (fn); \
       g_derivative_flag = -1; \

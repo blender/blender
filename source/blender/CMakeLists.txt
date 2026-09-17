@@ -36,8 +36,8 @@ set(SRC_DNA_INC
   ${CMAKE_CURRENT_SOURCE_DIR}/makesdna/DNA_genfile.h
   ${CMAKE_CURRENT_SOURCE_DIR}/makesdna/DNA_gpencil_legacy_types.h
   ${CMAKE_CURRENT_SOURCE_DIR}/makesdna/DNA_gpu_types.h
-  ${CMAKE_CURRENT_SOURCE_DIR}/makesdna/DNA_grease_pencil_types.h
   ${CMAKE_CURRENT_SOURCE_DIR}/makesdna/DNA_grease_pencil_modifier_types.h
+  ${CMAKE_CURRENT_SOURCE_DIR}/makesdna/DNA_grease_pencil_types.h
   ${CMAKE_CURRENT_SOURCE_DIR}/makesdna/DNA_image_enums.h
   ${CMAKE_CURRENT_SOURCE_DIR}/makesdna/DNA_image_types.h
   ${CMAKE_CURRENT_SOURCE_DIR}/makesdna/DNA_key_types.h

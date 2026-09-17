@@ -27,6 +27,7 @@ struct GeomMeshVertIn {
 };
 
 [[vertex]] [[clip_control]] void geom_mesh(
+    [[resource_table]] KernelGlobals &kg,
     [[resource_table]] const PipelineConstants &pipe,
     [[resource_table]] const GeomMesh & /*srt*/,
     [[resource_table]] const Uniform &uni,
@@ -89,10 +90,10 @@ struct GeomMeshVertIn {
   /* Compute Original Coordinate (ORCO). */
   float3 lP_orco = vert_in.pos * ob_infos.orco_mul + ob_infos.orco_add;
 
-  init_globals(uni, view, true);
+  ShadingData sd = init_globals(uni, view, true, float4(0));
   attrib_load(MeshVertex{vert_in.pos, to_float3x3(obj.model_inverse), lP_orco});
 
-  interp.P += nodetree_displacement();
+  interp.P += nodetree_displacement(kg, sd);
 
   if (pipe.use_clip_plane) [[static_branch]] {
     auto &clip_interp = interface_get(eevee_clip_plane, clip_interp);

@@ -124,7 +124,8 @@ BLI_INLINE uint4 pack_gaussian(const float3 &bounded_mean,
   /* Quantize opacity to `au`, 1x8b. */
   uint au = static_cast<uint>(clamp(opacity, 0.0f, 1.0f) * 255.0f);
   /* Quantize rotation to `ru`: 3x9b.
-   * Note that we shuffle quaternion wxyz to xyzw for consistency inside draw module shaders. */
+   * Note that we shuffle quaternion `wxyz` to `xyzw` for consistency inside draw module shaders.
+   */
   float4 q = math::normalize(float4(rotation.x, rotation.y, rotation.z, rotation.w));
   if (q.w < 0.0f) {
     q = -q;
@@ -188,7 +189,8 @@ BLI_INLINE RadiancePack pack_radiance(const Array<float3, radiance_coeffs_max> &
  * Collect virtual arrays for existing pointcloud attributes that store the various
  * spherical harmonics coefficients, up to the maximum supported number.
  */
-Vector<VArraySpan<float3>> read_radiance_sh_attributes(const bke::AttributeAccessor &attributes)
+static Vector<VArraySpan<float3>> read_radiance_sh_attributes(
+    const bke::AttributeAccessor &attributes)
 {
   Vector<VArraySpan<float3>> arrays;
   for (uint i = 0; i < (radiance_coeffs_max - 1); ++i) {

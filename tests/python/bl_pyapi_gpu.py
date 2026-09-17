@@ -79,6 +79,7 @@ class TestGpuStorageBuf(unittest.TestCase):
         shader.bind()
         shader.storage_block("data", ssbo)
         gpu.compute.dispatch(shader, 1, 1, 1)
+        gpu.shader.unbind()
 
         self.assertEqual(struct.unpack("4f", bytes(ssbo.read())), (2.0, 4.0, 6.0, 8.0))
 
@@ -119,6 +120,7 @@ class TestGpuStorageBuf(unittest.TestCase):
         shader.bind()
         shader.storage_block("items", ssbo)
         gpu.compute.dispatch(shader, 1, 1, 1)
+        gpu.shader.unbind()
 
         result = bytes(ssbo.read())
         for i, (x, y, z, w, weight) in enumerate(items):

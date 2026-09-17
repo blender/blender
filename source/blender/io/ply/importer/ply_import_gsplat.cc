@@ -12,6 +12,7 @@
 #include "BLI_vector.hh"
 
 #include "BKE_pointcloud.hh"
+#include "BKE_report.hh"
 
 #include "IO_gsplat.hh"
 #include "IO_validate.hh"
@@ -29,14 +30,15 @@ static std::optional<Span<float>> find_custom_attribute(const PlyData &data,
   return std::nullopt;
 }
 
+/* Spherical harmonics up to degree 4 are supported, matching SH_MAX_DEGREE of the SPZ library.
+ * This corresponds to 24 coefficients per channel, or 72 f_rest_<i> properties. */
+constexpr int MAX_SH_DEGREE = 4;
+constexpr int MAX_REST_ATTRIBUTES = 24 * 3;
+
 /* Get f_rest_<i> attributes from the PLY data.
  * The result is indexed by <i>. */
 static Vector<Span<float>> get_rest_custom_attributes(const PlyData &data)
 {
-  /* Matches SPZ 3.0.0 which defines SH_MAX_COEFFS as 24 (corresponding to the maximum SH degrees
-   * of 4). */
-  constexpr int MAX_REST_ATTRIBUTES = 72;
-
   Vector<Span<float>> result;
   for (int i = 0; i < MAX_REST_ATTRIBUTES; i++) {
     std::optional<Span<float>> attr = find_custom_attribute(data, "f_rest_" + std::to_string(i));
@@ -119,11 +121,47 @@ PointCloud *convert_gsplat_ply_to_point_cloud(const PlyData &data, const PLYImpo
 
   point_cloud->positions_for_write().copy_from(data.vertices);
 
-  /* f_rest_<i> */
+  /* f_rest_<i>
+   *
+   * The f_rest layout is channel-major: all per-channel coefficients of R first, then all of G,
+   * then all of B. The offset between channels is therefore the file's own per-channel count,
+   * independent of how many of those coefficients end up imported. */
   const Vector<Span<float>> f_rest = get_rest_custom_attributes(data);
-  const int sh_degree = (f_rest.size() % 3 == 0) ?
-                            gsplat::degree_for_dimension(f_rest.size() / 3) :
-                            0;
+  int num_file_coefficients = int(f_rest.size() / 3);
+  int sh_degree = 0;
+
+  if (f_rest.size() == MAX_REST_ATTRIBUTES &&
+      find_custom_attribute(data, "f_rest_" + std::to_string(MAX_REST_ATTRIBUTES)))
+  {
+    /* More coefficients than the maximum supported degree: the channel offsets of such a file do
+     * not line up with any supported layout, so no coefficients can be imported. */
+    BKE_reportf(params.reports,
+                RPT_WARNING,
+                "PLY Importer: Spherical harmonics degree above the supported %d, spherical "
+                "harmonics are not imported",
+                MAX_SH_DEGREE);
+    num_file_coefficients = 0;
+  }
+  else if (f_rest.size() % 3 != 0) {
+    BKE_reportf(params.reports,
+                RPT_WARNING,
+                "PLY Importer: Unexpected number of f_rest properties %d, spherical harmonics "
+                "are not imported",
+                int(f_rest.size()));
+    num_file_coefficients = 0;
+  }
+  else {
+    sh_degree = gsplat::degree_for_dimension(num_file_coefficients);
+    if (gsplat::dimension_for_degree(sh_degree) != num_file_coefficients) {
+      BKE_reportf(params.reports,
+                  RPT_WARNING,
+                  "PLY Importer: Incomplete spherical harmonics band, importing %d of %d "
+                  "coefficients",
+                  gsplat::dimension_for_degree(sh_degree),
+                  num_file_coefficients);
+    }
+  }
+
   const int num_sh_dimensions = gsplat::dimension_for_degree(sh_degree);
 
   gsplat::GsplatMutableAttributeAccessor accessor(*point_cloud, sh_degree);
@@ -143,8 +181,8 @@ PointCloud *convert_gsplat_ply_to_point_cloud(const PlyData &data, const PLYImpo
 
     for (int dimension = 0; dimension < num_sh_dimensions; dimension++) {
       sh_attrs[dimension][i] = float3(f_rest[dimension][i],
-                                      f_rest[dimension + num_sh_dimensions][i],
-                                      f_rest[dimension + 2 * num_sh_dimensions][i]);
+                                      f_rest[dimension + num_file_coefficients][i],
+                                      f_rest[dimension + 2 * num_file_coefficients][i]);
     }
   }
 

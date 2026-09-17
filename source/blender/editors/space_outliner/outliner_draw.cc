@@ -1134,7 +1134,7 @@ static void outliner_restrict_properties_enable_layer_collection_set(
     }
   }
 
-  /* Gray out properties overriden by parent collection. */
+  /* Gray out properties overridden by parent collection. */
   const bool holdout = RNA_property_boolean_get(layer_collection_ptr,
                                                 props->layer_collection_holdout);
   const bool indirect_only = RNA_property_boolean_get(layer_collection_ptr,

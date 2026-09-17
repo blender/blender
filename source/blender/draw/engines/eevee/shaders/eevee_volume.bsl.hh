@@ -158,7 +158,7 @@ struct LightEvalCtx {
       return float3(0);
     }
 
-    LightVector lv = light_shape_vector_get(light, is_directional, P);
+    LightVector lv = LightVector::get_shape_closest(light, is_directional, P);
 
     float attenuation = light_attenuation_volume(light, is_directional, lv);
     if (attenuation < LIGHT_ATTENUATION_THRESHOLD) {

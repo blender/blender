@@ -39,7 +39,7 @@ static int gpu_shader_bevel(GPUMaterial *mat,
                             GPUNodeStack *out)
 {
   if (!in[1].link) {
-    GPU_link(mat, "world_normals_get", &in[1].link);
+    GPU_link(mat, "world_normals_get", GPU_shading_data(), &in[1].link);
   }
 
   return GPU_stack_link(mat, node, "node_bevel", in, out);
