@@ -572,6 +572,7 @@ void NODE_OT_delete_reconnect(wmOperatorType *ot);
 void NODE_OT_resize(wmOperatorType *ot);
 
 void NODE_OT_mute_toggle(wmOperatorType *ot);
+void NODE_OT_comment_edit(wmOperatorType *ot);
 void NODE_OT_collapse_toggle(wmOperatorType *ot);
 void NODE_OT_hide_socket_toggle(wmOperatorType *ot);
 void NODE_OT_preview_toggle(wmOperatorType *ot);

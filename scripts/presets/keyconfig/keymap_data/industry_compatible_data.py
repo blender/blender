@@ -1197,6 +1197,7 @@ def km_node_editor(params):
          {"properties": [("prev", False)]}),
         ("node.select_same_type_step", {"type": 'LEFT_BRACKET', "value": 'PRESS', "shift": True},
          {"properties": [("prev", True)]}),
+        ("node.comment_edit", {"type": 'LEFTMOUSE', "value": 'DOUBLE_CLICK'}, None),
         ("node.find_node", {"type": 'F', "value": 'PRESS', "ctrl": True}, None),
         ("node.group_make", {"type": 'G', "value": 'PRESS', "ctrl": True}, None),
         ("node.group_ungroup", {"type": 'G', "value": 'PRESS', "ctrl": True, "alt": True}, None),

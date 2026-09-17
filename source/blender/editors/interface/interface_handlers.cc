@@ -5129,8 +5129,10 @@ static int do_but_BUT(bContext *C, Button *but, HandleButtonData *data, const wm
     }
   }
 #endif
-  if (button_draw_as_link(but) && !data->changed_cursor) {
-    WM_cursor_set(data->window, WM_CURSOR_HAND_POINT);
+  if (button_draw_as_link(but)) {
+    if (data->window->cursor != WM_CURSOR_HAND_POINT) {
+      WM_cursor_modal_set(data->window, WM_CURSOR_HAND_POINT);
+    }
     data->changed_cursor = true;
   }
   if (button_opens_link(but) && !data->changed_wokspace_status) {
@@ -9842,7 +9844,7 @@ static void button_activate_exit(
 #endif
 
   if (data->changed_cursor) {
-    if (but->type == ButtonType::TextBox) {
+    if (but->type == ButtonType::TextBox || button_draw_as_link(but)) {
       WM_cursor_modal_restore(win);
     }
     WM_cursor_set(win, WM_CURSOR_DEFAULT);
@@ -13423,7 +13425,7 @@ static Button *block_find_rna_text_button(Block &block,
                                           const char *rna_prop_id)
 {
   for (Button &but : block.buttons()) {
-    if (but.type == ButtonType::Text) {
+    if (ELEM(but.type, ButtonType::Text, ButtonType::TextBox)) {
       if (but.rnaprop && but.rnapoin.data == rna_poin_data) {
         if (STREQ(RNA_property_identifier(but.rnaprop), rna_prop_id)) {
           return &but;

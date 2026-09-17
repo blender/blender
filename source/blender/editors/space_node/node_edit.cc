@@ -1670,6 +1670,68 @@ void NODE_OT_mute_toggle(wmOperatorType *ot)
 /** \} */
 
 /* -------------------------------------------------------------------- */
+/** \name Comment Edit Operator
+ * \{ */
+
+static wmOperatorStatus node_comment_edit_invoke(bContext *C, wmOperator *op, const wmEvent *event)
+{
+  SpaceNode &snode = *CTX_wm_space_node(C);
+  ARegion &region = *CTX_wm_region(C);
+  const bool use_active = RNA_boolean_get(op->ptr, "use_active");
+
+  bNode *node;
+  if (use_active) {
+    node = bke::node_get_active(*snode.edittree);
+  }
+  else {
+    /* Don't interfere when the mouse is interacting with some button.  */
+    if (ISMOUSE_BUTTON(event->type) && ui::but_find_mouse_over(&region, event)) {
+      return OPERATOR_PASS_THROUGH | OPERATOR_CANCELLED;
+    }
+
+    float2 cursor;
+    ui::view2d_region_to_view(&region.v2d, event->mval[0], event->mval[1], &cursor.x, &cursor.y);
+    node = node_under_mouse_get(snode, cursor);
+  }
+
+  if (!node || !node->is_type("NodeComment"_ustr)) {
+    return OPERATOR_PASS_THROUGH;
+  }
+
+  NodeComment &storage = *static_cast<NodeComment *>(node->storage);
+  if (bool(storage.flag & NodeCommentFlag::Edit)) {
+    return OPERATOR_PASS_THROUGH;
+  }
+
+  storage.flag |= NodeCommentFlag::Edit;
+  WM_event_add_notifier(C, NC_NODE | NA_EDITED, nullptr);
+  WM_event_add_notifier(C, NC_NODE | ND_DISPLAY, nullptr);
+  return OPERATOR_FINISHED;
+}
+
+void NODE_OT_comment_edit(wmOperatorType *ot)
+{
+  ot->name = "Edit Comment";
+  ot->description = "Enter edit mode for the comment node under the cursor";
+  ot->idname = "NODE_OT_comment_edit";
+
+  ot->invoke = node_comment_edit_invoke;
+  ot->poll = ED_operator_node_editable;
+
+  ot->flag = OPTYPE_REGISTER;
+
+  PropertyRNA *prop = RNA_def_boolean(ot->srna,
+                                      "use_active",
+                                      false,
+                                      "Use Active",
+                                      "Edit the active comment node, rather than the one under "
+                                      "the cursor");
+  RNA_def_property_flag(prop, PROP_SKIP_SAVE | PROP_HIDDEN);
+}
+
+/** \} */
+
+/* -------------------------------------------------------------------- */
 /** \name Node Delete Operator
  * \{ */
 

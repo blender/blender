@@ -28,6 +28,8 @@
 
 #include "BLT_translation.hh"
 
+#include "BLO_read_write.hh"
+
 #include "BKE_context.hh"
 #include "BKE_node.hh"
 #include "BKE_node_runtime.hh"
@@ -1201,6 +1203,70 @@ void register_node_type_group_output()
   ntype->no_muting = true;
 
   bke::node_register_type(*ntype);
+}
+
+static void node_comment_init(bNodeTree * /*tree*/, bNode *node)
+{
+  NodeComment *data = MEM_new<NodeComment>(__func__);
+  data->text = BLI_strdup("## Comment");
+  data->textbox_state_node.visible_lines = 5;
+  data->textbox_state_panel.visible_lines = 5;
+  node->storage = data;
+}
+
+static void node_comment_free(bNode *node)
+{
+  NodeComment *storage = static_cast<NodeComment *>(node->storage);
+  MEM_delete(storage->text);
+  MEM_delete(storage);
+}
+
+static void node_comment_copy(bNodeTree * /*dest_ntree*/, bNode *dst_node, const bNode *src_node)
+{
+  const NodeComment &src_data = *static_cast<NodeComment *>(src_node->storage);
+  NodeComment *dst_data = MEM_new<NodeComment>(__func__, src_data);
+  dst_data->text = BLI_strdup_null(src_data.text);
+  dst_node->storage = dst_data;
+}
+
+static void node_comment_layout_ex(ui::Layout &layout, bContext * /*C*/, PointerRNA *ptr)
+{
+  bNode &node = *ptr->data_as<bNode>();
+  NodeComment &storage = *static_cast<NodeComment *>(node.storage);
+  layout.textbox_with_state(ptr, "text", &storage.textbox_state_panel);
+}
+
+static void node_comment_blend_write(const bNodeTree & /*ntree*/,
+                                     const bNode &node,
+                                     BlendWriter &writer)
+{
+  const NodeComment &data = *static_cast<NodeComment *>(node.storage);
+  writer.write_string(data.text);
+}
+
+static void node_comment_blend_read(bNodeTree & /*ntree*/, bNode &node, BlendDataReader &reader)
+{
+  NodeComment *data = static_cast<NodeComment *>(node.storage);
+  BLO_read_string(&reader, &data->text);
+  data->flag &= ~NodeCommentFlag::Edit;
+}
+
+void register_node_type_comment()
+{
+  static bke::bNodeType ntype;
+  bke::node_type_base(ntype, "NodeComment"_ustr);
+  ntype.ui_name = "Comment";
+  ntype.ui_description = "Add explanations to the node group";
+  ntype.nclass = NODE_CLASS_INTERFACE;
+  ntype.draw_buttons_ex = node_comment_layout_ex;
+  ntype.initfunc = node_comment_init;
+  ntype.maxwidth = FLT_MAX;
+  ntype.no_muting = true;
+  ntype.default_width = bke::NodeWidth::_200;
+  ntype.blend_write_storage_content = node_comment_blend_write;
+  ntype.blend_data_read_storage_content = node_comment_blend_read;
+  bke::node_type_storage(ntype, "NodeComment", node_comment_free, node_comment_copy);
+  bke::node_register_type(ntype);
 }
 
 /** \} */
