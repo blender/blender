@@ -22,15 +22,6 @@
 
 namespace blender::io::spz {
 
-/* Magic number in the file header for the tile identification. Common for all format versions.
- * It is bytes N, G, S, P in the file order. */
-constexpr uint32_t SPZ_HEADER_MAGIC = 0x5053474e;
-
-enum HeaderFlag {
-  SPZ_HEADER_ANTIALIASED = 0x01,
-  SPZ_HEADER_HAS_EXTENSIONS = 0x02,
-};
-
 namespace internal {
 
 template<class ReaderType>
