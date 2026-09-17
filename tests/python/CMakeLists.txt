@@ -1855,6 +1855,7 @@ if(WITH_UI_TESTS)
     test_tool_activation.image_editor
     test_tool_activation.node_editor
     test_tool_activation.sequencer
+    test_modifiers_constraints_draw.modifiers_constraints_draw
     test_preferences_draw_all.test_preferences_draw_all
     test_info_reports.test_info_report_selection_modes
     test_info_reports.test_info_report_delete
