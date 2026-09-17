@@ -35,7 +35,8 @@ PyDoc_STRVAR(
     "   .. note:: The preference to enable automatic script execution is not checked,\n"
     "      see :class:`bpy.types.PreferencesFilePaths.use_scripts_auto_execute`.\n"
     "\n"
-    "   :param path: The directory to check, expected to end with a path separator.\n"
+    "   :param path: The directory to check, expected to end with a path separator,\n"
+    "      must not be empty.\n"
     "   :type path: str | bytes\n"
     "   :param canonicalize: Resolve the path first,\n"
     "      disable when it's known to be resolved.\n"
@@ -73,11 +74,18 @@ static PyObject *bpy_path_is_autoexec(PyObject * /*self*/, PyObject *args, PyObj
     return nullptr;
   }
 
-  const bool is_autoexec = !BKE_autoexec_match_unchecked(
-      path_data.value, canonicalize, strip_filename);
-  Py_XDECREF(path_data.value_coerce);
+  PyObject *result = nullptr;
+  if (path_data.value_len == 0) [[unlikely]] {
+    PyErr_SetString(PyExc_ValueError, "is_autoexec: path must not be empty");
+  }
+  else {
+    const bool is_autoexec = !BKE_autoexec_match_unchecked(
+        path_data.value, canonicalize, strip_filename);
+    result = PyBool_FromLong(is_autoexec);
+  }
 
-  return PyBool_FromLong(is_autoexec);
+  Py_XDECREF(path_data.value_coerce);
+  return result;
 }
 
 static PyMethodDef _bpy_path_methods[] = {
