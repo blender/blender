@@ -12,6 +12,7 @@
 #pragma once
 
 #include "BLI_array.hh"
+#include "BLI_math_matrix_types.hh"
 #include "BLI_span.hh"
 #include "BLI_string_ref.hh"
 
@@ -22,18 +23,22 @@
 namespace blender {
 
 struct bPoseChannel;
+struct bContext;
 struct ID;
+struct Depsgraph;
 
 namespace ed {
 
 /**
  * Used to limit the modification of properties to certain axes.
  */
-enum AxisMutable : int8_t {
+enum AxisMutable : uint8_t {
   AXIS_MUTABLE_X = 1 << 0,
   AXIS_MUTABLE_Y = 1 << 1,
   AXIS_MUTABLE_Z = 1 << 2,
-  AXIS_MUTABLE_ALL = AXIS_MUTABLE_X | AXIS_MUTABLE_Y | AXIS_MUTABLE_Z,
+  /* All bits set to 1 so support generic properties larger than 3. Note that this doesn't
+     mean the W axis is supported. See AnimTransformable::set_property. */
+  AXIS_MUTABLE_ALL = (1 << 8) - 1,
   /* There is currently no support for a W axis. This was already the case when porting this enum
    * from the pose slide code. */
 };
@@ -142,14 +147,14 @@ class AnimTransformable {
    * Returns a string to the given property type.
    */
   std::string rna_path_to_property(PropertyType prop_type) const;
-  std::string rna_path_to_rotation(const eRotationModes rotation_mode) const;
-  std::string rna_path_to_rotation_mode() const;
   /**
    * Generic function that returns an rna path to the transformable for the property with the given
    * name. Note that the resulting string doesn't need to be a valid and existing RNA path. It is
    * up to the caller to pass the correct string for that.
    */
   std::string rna_path_to_property(const StringRef property_name) const;
+  std::string rna_path_to_rotation(eRotationModes rotation_mode) const;
+  std::string rna_path_to_rotation_mode() const;
 
   /**
    * Returns a copy of the rotation in the mode the transformable is currently in.
@@ -215,6 +220,16 @@ class AnimTransformable {
                          float target,
                          float factor,
                          AxisMutable axis_flag);
+
+  /**
+   * Returns the evaluated world space matrix.
+   */
+  float4x4 get_world_space(const Depsgraph &depsgraph) const;
+
+  /**
+   * Converts the given world space matrix into local space using the evaluated depsgraph.
+   */
+  float4x4 world_to_local(const Depsgraph &depsgraph, const float4x4 &world_matrix) const;
 };
 
 /**
@@ -235,6 +250,11 @@ Rotation rotation_interpolated(const Rotation &a, const Rotation &b, float facto
  * spans are the same length. With the factor at `0` the values will match `a`.
  */
 Array<float> property_interpolated(Span<float> a, Span<float> b, float factor);
+
+/**
+ * Returns all selected transformables based on the current mode.
+ */
+Vector<AnimTransformable> selected_transformables_from_context(bContext &C);
 
 }  // namespace ed
 }  // namespace blender

@@ -3149,6 +3149,35 @@ void BKE_object_matrix_local_get(Object *ob, float r_mat[4][4])
   }
 }
 
+float4x4 BKE_object_delta_matrix_get(const Object &obj)
+{
+  float delta_matrix[4][4];
+  float scale_mat[3][3];
+  float rotation_mat[3][3];
+  size_to_mat3(scale_mat, obj.dscale);
+  switch (obj.rotmode) {
+    case ROT_MODE_AXISANGLE:
+      axis_angle_to_mat3(rotation_mat, obj.drotAxis, obj.drotAngle);
+      break;
+    case ROT_MODE_QUAT: {
+      float normalized_dquat[4];
+      normalize_qt_qt(normalized_dquat, obj.dquat);
+      quat_to_mat3(rotation_mat, normalized_dquat);
+      break;
+    }
+    default:
+      BLI_assert(obj.rotmode >= ROT_MODE_EUL);
+      eulO_to_mat3(rotation_mat, obj.drot, obj.rotmode);
+      break;
+  }
+
+  float mat[3][3];
+  mul_m3_m3m3(mat, rotation_mat, scale_mat);
+  copy_m4_m3(delta_matrix, mat);
+  copy_v3_v3(delta_matrix[3], obj.dloc);
+  return float4x4(delta_matrix);
+}
+
 /**
  * \return success if \a mat is set.
  */

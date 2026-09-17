@@ -8,15 +8,26 @@
 
 #include <fmt/format.h>
 
+#include "BLI_math_matrix.hh"
+#include "BLI_math_matrix_c.hh"
 #include "BLI_math_rotation_c.hh"
+#include "BLI_math_vector_c.hh"
 #include "BLI_string.hh"
 
+#include "DNA_action_types.h"
 #include "DNA_object_types.h"
+
+#include "BKE_action.hh"
+#include "BKE_armature.hh"
+#include "BKE_context.hh"
+#include "BKE_object.hh"
 
 #include "ANIM_rna.hh"
 
 #include "RNA_access.hh"
 #include "RNA_prototypes.hh"
+
+#include "DEG_depsgraph_query.hh"
 
 #include "ED_anim_transformable.hh"
 
@@ -97,6 +108,33 @@ Array<float> property_interpolated(const Span<float> a, const Span<float> b, con
     interpolated[i] = interpf(b[i], a[i], factor);
   }
   return interpolated;
+}
+
+Vector<ed::AnimTransformable> selected_transformables_from_context(bContext &C)
+{
+  Vector<ed::AnimTransformable> transformables;
+  Vector<PointerRNA> pointers;
+  switch (CTX_data_mode_enum(&C)) {
+    case CTX_MODE_OBJECT: {
+      CTX_data_selected_objects(&C, &pointers);
+      for (PointerRNA &ptr : pointers) {
+        transformables.append(ed::AnimTransformable(*id_cast<Object *>(ptr.owner_id)));
+      }
+      break;
+    }
+    case CTX_MODE_POSE: {
+      CTX_data_selected_pose_bones(&C, &pointers);
+      for (PointerRNA &ptr : pointers) {
+        transformables.append(
+            {*id_cast<Object *>(ptr.owner_id), *static_cast<bPoseChannel *>(ptr.data)});
+      }
+      break;
+    }
+
+    default:
+      break;
+  }
+  return transformables;
 }
 
 /* Since there can be more than one representation of rotation data, they are stored in an array.
@@ -281,6 +319,12 @@ template<> bPoseChannel *AnimTransformable::data<bPoseChannel *>() const
   return static_cast<bPoseChannel *>(data_);
 }
 
+template<> Object *AnimTransformable::data<Object *>() const
+{
+  BLI_assert(type_ == Type::OBJECT);
+  return static_cast<Object *>(data_);
+}
+
 StringRefNull AnimTransformable::rna_path() const
 {
   return rna_path_from_id_;
@@ -305,6 +349,14 @@ std::string AnimTransformable::rna_path_to_property(const PropertyType prop_type
   return this->rna_path_to_property(property_name);
 }
 
+std::string AnimTransformable::rna_path_to_property(const StringRef property_name) const
+{
+  if (rna_path_from_id_.empty()) {
+    return property_name;
+  }
+  return fmt::format("{}.{}", rna_path_from_id_, property_name);
+}
+
 std::string AnimTransformable::rna_path_to_rotation(const eRotationModes rotation_mode) const
 {
   StringRefNull property_name = blender::animrig::get_rotation_mode_path(rotation_mode);
@@ -314,14 +366,6 @@ std::string AnimTransformable::rna_path_to_rotation(const eRotationModes rotatio
 std::string AnimTransformable::rna_path_to_rotation_mode() const
 {
   return this->rna_path_to_property("rotation_mode");
-}
-
-std::string AnimTransformable::rna_path_to_property(const StringRef property_name) const
-{
-  if (rna_path_from_id_.empty()) {
-    return property_name;
-  }
-  return fmt::format("{}.{}", rna_path_from_id_, property_name);
 }
 
 TransformFloats AnimTransformable::get_property(const PropertyType prop_type) const
@@ -353,6 +397,7 @@ void AnimTransformable::set_property(const PropertyType prop_type,
 
     case PropertyType::ROTATION: {
       const TransformFloatPtrs *rotation_array = get_rotation_array_from_mode(*rotation_mode_);
+      BLI_assert(rotation_array->size() == values.size());
       if (rotation_array->size() > values.size()) {
         /* Trying to set a rotation with different mode. Use `set_rotation` instead. */
         BLI_assert_unreachable();
@@ -547,6 +592,68 @@ void AnimTransformable::blend_rotation_to(const Rotation &target,
   for (const int i : result.index_range()) {
     *(*rotations_array)[i] = result[i];
   }
+}
+
+float4x4 AnimTransformable::get_world_space(const Depsgraph &depsgraph) const
+{
+  ID *evaluated_id = DEG_get_evaluated_id(&depsgraph, this->owner_id_);
+  BLI_assert(evaluated_id);
+  switch (this->type_) {
+    case AnimTransformable::Type::POSE_BONE: {
+      Object *ob_eval = id_cast<Object *>(evaluated_id);
+      bPoseChannel *pose_bone_eval = BKE_pose_channel_find_name(ob_eval->pose, this->name_.data());
+      if (!pose_bone_eval) {
+        BLI_assert_unreachable();
+        break;
+      }
+      return ob_eval->object_to_world() * float4x4(pose_bone_eval->pose_mat);
+    }
+    case AnimTransformable::Type::OBJECT: {
+      Object *ob_eval = id_cast<Object *>(evaluated_id);
+      return ob_eval->object_to_world();
+    }
+  }
+
+  BLI_assert_unreachable();
+  return float4x4::identity();
+}
+
+float4x4 AnimTransformable::world_to_local(const Depsgraph &depsgraph,
+                                           const float4x4 &world_matrix) const
+{
+  ID *evaluated_id = DEG_get_evaluated_id(&depsgraph, this->owner_id_);
+  BLI_assert(evaluated_id);
+  switch (this->type_) {
+    case AnimTransformable::Type::POSE_BONE: {
+      Object *ob_eval = id_cast<Object *>(evaluated_id);
+      bPoseChannel *pose_bone_eval = BKE_pose_channel_find_name(ob_eval->pose, this->name_.data());
+      if (!pose_bone_eval) {
+        BLI_assert_unreachable();
+        break;
+      }
+      Bone *bone = pose_bone_eval->bone_get(*ob_eval);
+      float4x4 object_local = ob_eval->world_to_object() * world_matrix;
+      float4x4 bone_local = float4x4::identity();
+      /* The function docstring tells me I (Christoph) cannot use this function the way I am using
+       * it here. But it works. Either I am missing an edge case, or the description is wrong. */
+      BKE_armature_mat_pose_to_bone({pose_bone_eval, bone}, object_local.ptr(), bone_local.ptr());
+      return bone_local;
+    }
+
+    case AnimTransformable::Type::OBJECT: {
+      Object *ob_eval = id_cast<Object *>(evaluated_id);
+      float4x4 parent_matrix = float4x4::identity();
+      if (ob_eval->parent) {
+        parent_matrix = ob_eval->parent->world_to_object();
+      }
+
+      float4x4 delta_matrix = BKE_object_delta_matrix_get(*ob_eval);
+      return parent_matrix * math::invert(delta_matrix) * world_matrix;
+    }
+  }
+
+  BLI_assert_unreachable();
+  return float4x4::identity();
 }
 
 }  // namespace blender::ed
