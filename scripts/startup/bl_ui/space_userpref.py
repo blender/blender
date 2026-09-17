@@ -1766,14 +1766,25 @@ class USERPREF_PT_file_paths_development(FilePathsPanel, Panel):
 
 
 class USERPREF_PT_saveload_autorun(FilePathsPanel, Panel):
-    bl_label = "Auto Run Python Scripts"
+    # Drawn with the checkbox so the command line override can follow it.
+    bl_label = ""
     bl_parent_id = "USERPREF_PT_saveload_blend"
 
     def draw_header(self, context):
+        layout = self.layout
         prefs = context.preferences
         paths = prefs.filepaths
 
-        self.layout.prop(paths, "use_scripts_auto_execute", text="")
+        text = iface_("Auto Run Python Scripts")
+
+        if bpy.app.autoexec_override:
+            if bpy.app.autoexec:
+                text_warn = iface_("enabled on startup, overriding the preference")
+            else:
+                text_warn = iface_("disabled on startup, overriding the preference")
+            text = "{:s} ({:s})".format(text, text_warn)
+
+        layout.prop(paths, "use_scripts_auto_execute", text=text, translate=False)
 
     def draw(self, context):
         layout = self.layout

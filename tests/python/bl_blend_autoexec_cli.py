@@ -180,9 +180,12 @@ def blender_state_print():
     sys.stdout.write("{:s}{:s}\n".format(STATE_PREFIX, json.dumps({
         "filepath": filepath,
         "autoexec": bpy.app.autoexec,
+        "autoexec_override": bpy.app.autoexec_override,
         "autoexec_fail": bpy.app.autoexec_fail,
         "autoexec_fail_message": bpy.app.autoexec_fail_message,
         "scene_name": bpy.data.scenes[0].name,
+        # The default for "Trusted Source" when opening this file interactively.
+        "trust_source": bpy.path.is_autoexec(filepath, skip_overrides=False, canonicalize=True, strip_filename=True),
     })))
     # Flush so the line isn't held in the buffer while Blender's own output is written.
     sys.stdout.flush()
@@ -322,6 +325,10 @@ class TestAutoExecCLI(unittest.TestCase):
         )
         self.assertEqual(len(states), 1, message)
         self.assert_blend_file_state(states[0], filename, is_trusted=is_trusted, message=message)
+        # Opening the same file interactively must default to the same trust.
+        self.assertEqual(states[0]["trust_source"], is_trusted, message)
+        is_override = any(arg in {"--enable-autoexec", "--disable-autoexec"} for arg in args)
+        self.assertEqual(states[0]["autoexec_override"], is_override, message)
 
     # -------------------------------------------------------------------------
     # Tests with Auto-Execution Preference "Enabled"

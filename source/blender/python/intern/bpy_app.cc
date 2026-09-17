@@ -366,6 +366,13 @@ PyDoc_STRVAR(
     ":type: bool\n");
 PyDoc_STRVAR(
     /* Wrap. */
+    bpy_app_autoexec_override_doc,
+    "Boolean, True when the auto-execution preference is overridden by the command line "
+    "(read-only).\n"
+    "\n"
+    ":type: bool\n");
+PyDoc_STRVAR(
+    /* Wrap. */
     bpy_app_autoexec_fail_doc,
     "Boolean, True when auto-execution of scripts failed (read-only).\n"
     "\n"
@@ -691,6 +698,11 @@ static PyGetSetDef bpy_app_getsets[] = {
      nullptr,
      bpy_app_autoexec_doc,
      reinterpret_cast<void *>(G_FLAG_SCRIPT_AUTOEXEC)},
+    {"autoexec_override",
+     bpy_app_global_flag_get,
+     nullptr,
+     bpy_app_autoexec_override_doc,
+     reinterpret_cast<void *>(G_FLAG_SCRIPT_OVERRIDE_PREF)},
     {"autoexec_fail",
      bpy_app_global_flag_get,
      nullptr,
