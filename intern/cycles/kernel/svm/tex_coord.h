@@ -189,6 +189,15 @@ ccl_device_noinline int svm_node_tex_coord(KernelGlobals kg,
   return offset;
 }
 
+ccl_device_inline int svm_node_tex_coord_skip(const ccl_global SVMNodeTexCoord &ccl_restrict node,
+                                              int offset)
+{
+  if (node.texco_type == NODE_TEXCO_OBJECT_WITH_TRANSFORM) {
+    offset += sizeof(PackedTransform) / sizeof(uint);
+  }
+  return offset;
+}
+
 ccl_device_noinline int svm_node_tex_coord_derivative(
     KernelGlobals kg,
     ccl_private ShaderData *sd,
