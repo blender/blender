@@ -139,8 +139,8 @@ set(SRC
   nodes/node_geo_image_texture.cc
   nodes/node_geo_import_csv.cc
   nodes/node_geo_import_obj.cc
-  nodes/node_geo_import_spz.cc
   nodes/node_geo_import_ply.cc
+  nodes/node_geo_import_spz.cc
   nodes/node_geo_import_stl.cc
   nodes/node_geo_import_text.cc
   nodes/node_geo_import_vdb.cc

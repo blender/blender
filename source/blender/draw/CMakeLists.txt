@@ -61,8 +61,8 @@ set(SRC
   intern/draw_cache_impl_curve.cc
   intern/draw_cache_impl_curves.cc
   intern/draw_cache_impl_grease_pencil.cc
-  intern/draw_cache_impl_lattice.cc
   intern/draw_cache_impl_gsplat.cc
+  intern/draw_cache_impl_lattice.cc
   intern/draw_cache_impl_mesh.cc
   intern/draw_cache_impl_particles.cc
   intern/draw_cache_impl_pointcloud.cc
@@ -401,8 +401,8 @@ set(GLSL_SRC
   engines/eevee/shaders/eevee_gbuffer_types.bsl.hh
   engines/eevee/shaders/eevee_gbuffer_write.bsl.hh
   engines/eevee/shaders/eevee_geom_curves.bsl.hh
-  engines/eevee/shaders/eevee_geom_mesh.bsl.hh
   engines/eevee/shaders/eevee_geom_gsplat.bsl.hh
+  engines/eevee/shaders/eevee_geom_mesh.bsl.hh
   engines/eevee/shaders/eevee_geom_pointcloud.bsl.hh
   engines/eevee/shaders/eevee_geom_types_lib.bsl.hh
   engines/eevee/shaders/eevee_geom_volume.bsl.hh
@@ -577,8 +577,8 @@ set(GLSL_SRC
   intern/shaders/draw_debug_draw_display_frag.glsl
   intern/shaders/draw_debug_draw_display_vert.glsl
   intern/shaders/draw_grease_pencil_lib.glsl
-  intern/shaders/draw_gsplat_lib.bsl.hh
   intern/shaders/draw_gsplat.bsl.hh
+  intern/shaders/draw_gsplat_lib.bsl.hh
   intern/shaders/draw_intersect_lib.glsl
   intern/shaders/draw_math_geom_lib.glsl
   intern/shaders/draw_model_lib.glsl
