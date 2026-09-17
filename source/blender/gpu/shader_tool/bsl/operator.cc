@@ -200,6 +200,9 @@ ClassId unary_prefix_operator_return_type(TokenType op, SymbolClass *rhs)
     return ClassId::Invalid;
   }
 
+  if (r & CLASS_MAT && op == lexit::Minus) {
+    return rhs->builtin_class;
+  }
   if (o & OP_BOOL) {
     return (r == ClassId::bool_t) ? ClassId::bool_t : ClassId::Invalid;
   }
@@ -488,21 +491,21 @@ SymbolClass *SymbolTable::make_type(SymbolClass *base, int size) const
 vector<SymbolTable::BuiltinType> SymbolTable::generate_builtin_types()
 {
   vector<BuiltinType> types{
-      {char_cls, char_cls},    {short_cls, short_cls},    {int_cls, int_cls},
-      {uchar_cls, uchar_cls},  {ushort_cls, ushort_cls},  {uint_cls, uint_cls},
-      {half_cls, half_cls},    {float_cls, float_cls},
+      {bool_cls, bool_cls},  {char_cls, char_cls},    {short_cls, short_cls},
+      {int_cls, int_cls},    {uchar_cls, uchar_cls},  {ushort_cls, ushort_cls},
+      {uint_cls, uint_cls},  {half_cls, half_cls},    {float_cls, float_cls},
 
-      {char2_cls, char_cls},   {short2_cls, short_cls},   {int2_cls, int_cls},
-      {uchar2_cls, uchar_cls}, {ushort2_cls, ushort_cls}, {uint2_cls, uint_cls},
-      {half2_cls, half_cls},   {float2_cls, float_cls},
+      {bool2_cls, bool_cls}, {char2_cls, char_cls},   {short2_cls, short_cls},
+      {int2_cls, int_cls},   {uchar2_cls, uchar_cls}, {ushort2_cls, ushort_cls},
+      {uint2_cls, uint_cls}, {half2_cls, half_cls},   {float2_cls, float_cls},
 
-      {char3_cls, char_cls},   {short3_cls, short_cls},   {int3_cls, int_cls},
-      {uchar3_cls, uchar_cls}, {ushort3_cls, ushort_cls}, {uint3_cls, uint_cls},
-      {half3_cls, half_cls},   {float3_cls, float_cls},
+      {bool3_cls, bool_cls}, {char3_cls, char_cls},   {short3_cls, short_cls},
+      {int3_cls, int_cls},   {uchar3_cls, uchar_cls}, {ushort3_cls, ushort_cls},
+      {uint3_cls, uint_cls}, {half3_cls, half_cls},   {float3_cls, float_cls},
 
-      {char4_cls, char_cls},   {short4_cls, short_cls},   {int4_cls, int_cls},
-      {uchar4_cls, uchar_cls}, {ushort4_cls, ushort_cls}, {uint4_cls, uint_cls},
-      {half4_cls, half_cls},   {float4_cls, float_cls},
+      {bool4_cls, bool_cls}, {char4_cls, char_cls},   {short4_cls, short_cls},
+      {int4_cls, int_cls},   {uchar4_cls, uchar_cls}, {ushort4_cls, ushort_cls},
+      {uint4_cls, uint_cls}, {half4_cls, half_cls},   {float4_cls, float_cls},
   };
   return types;
 }

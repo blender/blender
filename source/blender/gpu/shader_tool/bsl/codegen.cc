@@ -1287,7 +1287,7 @@ struct CodegenContext : NodeErrorHandler {
     string members;
     for (int i = 0; i < cls.size; i += 16) {
       int member_size = min(16, cls.size - i);
-      SymbolClass *type = cls.root_scope()->lookup_class(size_to_float_vec_type_str(member_size));
+      SymbolClass *type = table.root->lookup_class(size_to_float_vec_type_str(member_size));
       members += "r._" + to_string(i / 16) + "=" + default_value(*type) + ";";
     }
     return members;
@@ -2576,10 +2576,6 @@ struct CodegenContext : NodeErrorHandler {
       error(id, Diag::UnknownVariable, string(id.str()));
       builder << id;
       return var;
-    }
-
-    if (var->is_constexpr && var->array_dimensions > 0) {
-      error(id, Diag::ConstexprVarMustNotBeArray);
     }
 
     /* Note we only resolve static variable. */

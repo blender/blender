@@ -36,12 +36,14 @@ struct SymbolFunction : SymbolScope {
   /* False if this is a template root and is not a symbol to match on. */
   bool is_complete = true;
   /* If true, will allow vector type casting. */
+  bool allow_vector_promotion = false;
+  /* If true, is part of language builtin functions. */
   bool is_builtin = false;
   /* If true, this builtin function is implemented as constexpr. */
   bool is_constexpr = false;
   /* True for template specialization and instantiation. */
   bool is_specialization = false;
-  /* True for template specialization and instantiation. */
+  /* True for force-inlined functions. */
   bool is_inline = false;
 
   /* Identifier of the temporary return variable.

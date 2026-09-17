@@ -29,10 +29,10 @@ ResultPair<T *, string> SymbolTemplate<T>::lookup_inst(TemplateParamList list,
 
   if (err) {
     if constexpr (is_same_v<T, SymbolFunction>) {
-      return {scope.root_scope()->lookup_function(SymbolTable::err_symbol), full_id, err};
+      return {table.root->lookup_function(SymbolTable::err_symbol), full_id, err};
     }
     else {
-      return {scope.root_scope()->lookup_class(SymbolTable::err_symbol), full_id, err};
+      return {table.root->lookup_class(SymbolTable::err_symbol), full_id, err};
     }
   }
   return {it->second, full_id, err};
@@ -102,12 +102,12 @@ Result<T *> SymbolTemplate<T>::lookup_adl(const SymbolTable &symbols,
                                           const SymbolScope &scope) const
 {
   if constexpr (is_same_v<T, SymbolClass>) {
-    return {scope.root_scope()->lookup_class(SymbolTable::err_symbol),
+    return {symbols.root->lookup_class(SymbolTable::err_symbol),
             AstNodeException(list, Diag::CompilerErrorADLOnTypesNotAllowed)};
   }
   else {
     if (!is_adl_possible()) {
-      return {scope.root_scope()->lookup_function(SymbolTable::err_symbol),
+      return {symbols.root->lookup_function(SymbolTable::err_symbol),
               AstNodeException(list.prev(), Diag::TemplateMissingExplicitArguments)};
     }
     auto [mangled, err] = symbols.mangle_identifier(*this, list, scope);
@@ -120,7 +120,7 @@ Result<T *> SymbolTemplate<T>::lookup_adl(const SymbolTable &symbols,
     }
 
     if (err) {
-      return {scope.root_scope()->lookup_function(SymbolTable::err_symbol), err};
+      return {symbols.root->lookup_function(SymbolTable::err_symbol), err};
     }
     return {it->second, err};
   }

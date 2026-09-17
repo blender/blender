@@ -754,6 +754,20 @@ float2 bsdf_lut([[resource_table]] KernelGlobals &kg,
   return float2(reflectance.r, transmittance.r);
 }
 
+float3 brdf_lut([[resource_table]] KernelGlobals &kg,
+                float3 F0,
+                float3 F90,
+                float cos_theta,
+                float roughness,
+                bool do_multiscatter)
+{
+  eevee::lut::GGXBrdfData lut = eevee::lut::GGXBrdfData::sample_utility_tx(
+      kg.util_tx, cos_theta, roughness);
+
+  return do_multiscatter ? F_brdf_multi_scatter(F0, F90, lut) :
+                           F_brdf_single_scatter(F0, F90, lut);
+}
+
 /* -------------------------------------------------------------------- */
 /** \name Fragment Displacement
  *

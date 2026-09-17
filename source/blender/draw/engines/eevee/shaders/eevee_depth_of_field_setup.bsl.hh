@@ -210,7 +210,7 @@ struct Resources {
   DofSample spatial_filtering(uint3 local_id) const
   {
     /* Plus (+) shape offsets. */
-    constexpr int2 plus_offsets[4] = int2_array(int2(-1, 0), int2(0, -1), int2(1, 0), int2(0, 1));
+    constexpr int2 plus_offsets[4] = {int2(-1, 0), int2(0, -1), int2(1, 0), int2(0, 1)};
     DofSample center = fetch_input_sample(int2(0), local_id);
     DofSample accum{float4(0.0f), 0.0f};
     float accum_weight = 0.0f;
@@ -239,7 +239,7 @@ struct Resources {
   DofNeighborhoodMinMax neighbor_boundbox(uint3 local_id) const
   {
     /* Plus (+) shape offsets. */
-    constexpr int2 plus_offsets[4] = int2_array(int2(-1, 0), int2(0, -1), int2(1, 0), int2(0, 1));
+    constexpr int2 plus_offsets[4] = {int2(-1, 0), int2(0, -1), int2(1, 0), int2(0, 1)};
     /**
      * Simple bounding box calculation in YCoCg as described in:
      * "High Quality Temporal Supersampling" by Brian Karis at SIGGRAPH 2014
@@ -257,7 +257,7 @@ struct Resources {
      * Round bbox shape by averaging 2 different min/max from 2 different neighborhood. */
     DofSample min_c_3x3 = min_c;
     DofSample max_c_3x3 = max_c;
-    constexpr int2 corners[4] = int2_array(int2(-1, -1), int2(1, -1), int2(-1, 1), int2(1, 1));
+    constexpr int2 corners[4] = {int2(-1, -1), int2(1, -1), int2(-1, 1), int2(1, 1)};
     for (int i = 0; i < 4; i++) {
       DofSample samp = fetch_input_sample(corners[i], local_id);
       min_c_3x3.color = min(min_c_3x3.color, samp.color);
@@ -282,7 +282,7 @@ struct Resources {
      * Dilate velocity by using the nearest pixel in a cross pattern.
      * "High Quality Temporal Supersampling" by Brian Karis at SIGGRAPH 2014 (Slide 27)
      */
-    constexpr int2 corners[4] = int2_array(int2(-2, -2), int2(2, -2), int2(-2, 2), int2(2, 2));
+    constexpr int2 corners[4] = {int2(-2, -2), int2(2, -2), int2(-2, 2), int2(2, 2)};
     float min_depth = fetch_half_depth(int2(0), local_id);
     int2 nearest_texel = int2(0);
     for (int i = 0; i < 4; i++) {
