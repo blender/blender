@@ -212,6 +212,9 @@ void initTransInfo(bContext *C, TransInfo *t, wmOperator *op, const wmEvent *eve
   /* If there's an event, we're modal. */
   if (event) {
     t->flag |= T_MODAL;
+
+    /* Keymap for shortcut header prints. */
+    t->keymap = WM_keymap_active(CTX_wm_manager(C), op->type->modalkeymap);
   }
 
   /* Crease needs edge flag. */
@@ -685,7 +688,7 @@ void initTransInfo(bContext *C, TransInfo *t, wmOperator *op, const wmEvent *eve
     t->flag |= T_NO_CURSOR_WRAP;
   }
 
-  if (op && (t->flag & T_MODAL) &&
+  if ((t->flag & T_MODAL) && (t->keymap != nullptr) &&
       ELEM(t->mode,
            TFM_TRANSLATION,
            TFM_RESIZE,
@@ -694,10 +697,8 @@ void initTransInfo(bContext *C, TransInfo *t, wmOperator *op, const wmEvent *eve
            TFM_EDGE_SLIDE,
            TFM_VERT_SLIDE))
   {
-    wmWindowManager *wm = CTX_wm_manager(C);
-    wmKeyMap *keymap = WM_keymap_active(wm, op->type->modalkeymap);
     const wmKeyMapItem *kmi_passthrough = nullptr;
-    for (const wmKeyMapItem &kmi : keymap->items) {
+    for (const wmKeyMapItem &kmi : t->keymap->items) {
       if (kmi.flag & KMI_INACTIVE) {
         continue;
       }

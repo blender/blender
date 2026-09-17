@@ -2136,9 +2136,6 @@ bool initTransform(bContext *C, TransInfo *t, wmOperator *op, const wmEvent *eve
   }
 
   if (event) {
-    /* Keymap for shortcut header prints. */
-    t->keymap = WM_keymap_active(CTX_wm_manager(C), op->type->modalkeymap);
-
     /* Stupid code to have Ctrl-Click on gizmo work ok.
      *
      * Do this only for translation/rotation/resize because only these
