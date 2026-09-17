@@ -7,7 +7,7 @@
  */
 
 #include "BLI_array_utils.hh"
-#include "BLI_kdtree.hh"
+#include "BLI_kdtree_new.hh"
 #include "BLI_offset_indices.hh"
 #include "BLI_task.hh"
 
@@ -93,14 +93,9 @@ PointCloud *point_merge_by_distance(const PointCloud &src_points,
                                     const IndexMask &selection,
                                     const bke::AttributeFilter &attribute_filter)
 {
-  const Span<float3> positions = src_points.positions();
-  KDTree<float3> *tree = kdtree_new<float3>(selection.size());
-  selection.foreach_index_optimized<int64_t>(
-      [&](const int64_t i) { kdtree_insert<float3>(tree, i, positions[i]); });
-  kdtree_balance<float3>(tree);
+  KDTreeNew<float3> tree(src_points.positions(), selection);
   Array<int> root_indices(src_points.totpoint, -1);
-  kdtree_calc_duplicates_fast<float3>(tree, merge_distance, false, root_indices.data());
-  kdtree_free<float3>(tree);
+  kdtree::calc_duplicates(tree, merge_distance, root_indices);
   threading::parallel_for(root_indices.index_range(), 1024, [&](const IndexRange range) {
     for (const int i : range) {
       if (root_indices[i] == -1) {
