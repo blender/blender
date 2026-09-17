@@ -4278,15 +4278,8 @@ static void brush_delta_update(const Depsgraph &depsgraph,
   rake_data_update(&cache->rake_data, grab_location);
 }
 
-static void cache_paint_invariants_update(StrokeCache &cache, const Brush &brush)
+static void cache_paint_brush_variants_update(StrokeCache &cache, const Brush &brush)
 {
-  cache.hardness = brush.hardness;
-  if (bke::brush::supports_hardness_pressure(brush) &&
-      brush.paint_flags & BRUSH_PAINT_HARDNESS_PRESSURE)
-  {
-    cache.hardness *= BKE_curvemapping_evaluateF(brush.curve_hardness, 0, cache.pressure);
-  }
-
   cache.paint_brush.flow = brush.flow;
   if (brush.paint_flags & BRUSH_PAINT_FLOW_PRESSURE) {
     cache.paint_brush.flow *= brush.paint_flags & BRUSH_PAINT_FLOW_PRESSURE_INVERT ?
@@ -5643,10 +5636,14 @@ static void stroke_cache_update(ViewContext &vc,
     cache.radius = cache.initial_radius;
     cache.dyntopo_pixel_radius = paint_runtime.initial_pixel_radius;
   }
-
   cache.radius_squared = cache.radius * cache.radius;
 
-  cache_paint_invariants_update(cache, brush);
+  cache.hardness = brush.hardness;
+  if (bke::brush::supports_hardness_pressure(brush) && brush.flag & BRUSH_HARDNESS_PRESSURE) {
+    cache.hardness *= BKE_curvemapping_evaluateF(brush.curve_hardness, 0, cache.pressure);
+  }
+
+  cache_paint_brush_variants_update(cache, brush);
 
   if (brush.stroke_method == BRUSH_STROKE_ANCHORED) {
     /* True location has been calculated as part of the stroke system already here. */
