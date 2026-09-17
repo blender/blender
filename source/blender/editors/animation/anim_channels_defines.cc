@@ -5151,6 +5151,11 @@ float ANIM_UI_get_channel_scale_factor()
   return 0.8f * ANIM_UI_get_keyframe_scale_factor();
 }
 
+float ANIM_UI_get_key_size()
+{
+  return UI_UNIT_Y * 0.5;
+}
+
 float ANIM_UI_get_channel_height()
 {
   return floor(ANIM_UI_get_channel_scale_factor() * UI_UNIT_Y);

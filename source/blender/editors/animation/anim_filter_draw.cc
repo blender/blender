@@ -253,15 +253,10 @@ void draw_channel_tree(const bContext &C, SummaryChannel &root, View2D & /* v2d 
   ui::block_draw(&C, block);
 }
 
-static float get_key_height()
-{
-  return UI_UNIT_Y * 0.5;
-}
-
 struct DrawSettings {
   /* Sizes. */
   /* See `channel_ui_data_init` for reference. */
-  int motion_line_height = get_key_height();
+  int motion_line_height = ANIM_UI_get_key_size();
   int interpolation_line_height = 0.1f * UI_UNIT_Y;
   /* Colors. */
   float4 sel;
@@ -301,7 +296,7 @@ static void draw_channel_keys(AnimationChannel &channel, const float y, const Vi
   if (datapoints.is_empty()) {
     return;
   }
-  const float key_size = get_key_height();
+  const float key_size = ANIM_UI_get_key_size();
   /* Using binary search to find the bounds to draw. */
   const KeyPoint *start = std::lower_bound(
       datapoints.begin(), datapoints.end(), v2d.cur.xmin - key_size, point_less_than);

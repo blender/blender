@@ -766,6 +766,7 @@ struct bAnimChannelType {
 float ANIM_UI_get_keyframe_scale_factor();
 /* Returns the y-scale factor for animation channels. */
 float ANIM_UI_get_channel_scale_factor();
+float ANIM_UI_get_key_size();
 float ANIM_UI_get_channel_height();
 float ANIM_UI_get_channel_skip();
 float ANIM_UI_get_first_channel_top(View2D *v2d);

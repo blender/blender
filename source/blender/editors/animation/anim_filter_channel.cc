@@ -354,6 +354,35 @@ void SummaryChannel::change_selection(const SelectionMode mode, const Bounds<flo
   }
 }
 
+static bool point_less_than(const KeyPoint &p, const float frame)
+{
+  return p.frame < frame;
+}
+
+const KeyPoint *AnimationChannel::closest_datapoint(const float frame, Bounds<float> range)
+{
+  Span<KeyPoint> datapoints = this->datapoints();
+  const KeyPoint *closest = std::lower_bound(
+      datapoints.begin(), datapoints.end(), frame, point_less_than);
+  if (closest == datapoints.end()) {
+    return nullptr;
+  }
+  if (closest + 1 != datapoints.end()) {
+    if (abs((closest + 1)->frame - frame) < abs(closest->frame - frame)) {
+      closest = closest + 1;
+    }
+  }
+  if (closest != datapoints.begin()) {
+    if (abs((closest - 1)->frame - frame) < abs(closest->frame - frame)) {
+      closest = closest - 1;
+    }
+  }
+  if (closest->frame < range.min || closest->frame > range.max) {
+    return nullptr;
+  }
+  return closest;
+}
+
 void SummaryChannel::ui_state_map_set(ChannelUIStateMap *ui_state_map)
 {
   this->ui_state_map_ = ui_state_map;

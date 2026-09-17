@@ -2019,7 +2019,7 @@ static void actkeys_mselect_channel_only(bAnimContext *ac,
 
 static wmOperatorStatus mouse_action_keys(bAnimContext *ac,
                                           const int mval[2],
-                                          eEditKeyframes_Select select_mode,
+                                          const bool extend,
                                           const bool deselect_all,
                                           const bool column,
                                           const bool same_channel,
@@ -2042,19 +2042,18 @@ static wmOperatorStatus mouse_action_keys(bAnimContext *ac,
   actkeys_find_key_at_position(
       ac, filter, mval[0], mval[1], &ale, &selx, &frame, &found, &is_selected);
 
-  if (select_mode != SELECT_REPLACE) {
+  if (extend) {
     wait_to_deselect_others = false;
   }
 
   /* For replacing selection, if we have something to select, we have to clear existing selection.
    * The same goes if we found nothing to select, and deselect_all is true
    * (deselect on nothing behavior). */
-  if ((select_mode == SELECT_REPLACE && found) || (!found && deselect_all)) {
-    /* reset selection mode for next steps */
-    select_mode = SELECT_ADD;
+  if ((!extend && found) || (!found && deselect_all)) {
 
-    /* Rather than deselecting others, users may want to drag to box-select (drag from empty space)
-     * or tweak-translate an already selected item. If these cases may apply, delay deselection. */
+    /* Rather than deselecting others, users may want to drag to box-select (drag from empty
+     * space) or tweak-translate an already selected item. If these cases may apply, delay
+     * deselection. */
     if (wait_to_deselect_others && (!found || is_selected)) {
       ret_value = OPERATOR_RUNNING_MODAL;
     }
@@ -2138,6 +2137,7 @@ static wmOperatorStatus mouse_action_keys(bAnimContext *ac,
   /* only select keyframes if we clicked on a valid channel and hit something */
   if (ale != nullptr) {
     if (found) {
+      const eEditKeyframes_Select select_mode = extend ? SELECT_INVERT : SELECT_ADD;
       /* apply selection to keyframes */
       if (column) {
         /* select all keyframes in the same frame as the one we hit on the active channel
@@ -2169,37 +2169,158 @@ static wmOperatorStatus mouse_action_keys(bAnimContext *ac,
   return ret_value;
 }
 
+static ed::animfilter::AnimationChannel *find_channel_under_cursor(
+    ed::animfilter::SummaryChannel &root, View2D &v2d, const int channel_y)
+{
+  using namespace ed::animfilter;
+  const float channel_step = ANIM_UI_get_channel_step();
+  const float first_channel = ANIM_UI_get_first_channel_top(&v2d);
+  AnimationChannel *channel_under_cursor = nullptr;
+  foreach_expanded(root, [&](AnimationChannel &channel, const int row_index) {
+    const float row_top = first_channel - row_index * channel_step;
+    /* TODO abort feature for foreach function. */
+    if (channel_y <= row_top && channel_y > row_top - channel_step) {
+      channel_under_cursor = &channel;
+    }
+  });
+  return channel_under_cursor;
+}
+
+enum class ClickSelectRange : int8_t {
+  SINGLE,
+  COLUMN,
+  ROW,
+};
+
+static wmOperatorStatus handle_no_key_under_cursor(ed::animfilter::ChannelArena &channels,
+                                                   const bool deselect_all,
+                                                   const bool wait_to_deselect_others)
+{
+  if (!deselect_all) {
+    return OPERATOR_FINISHED;
+  }
+  if (wait_to_deselect_others) {
+    return OPERATOR_RUNNING_MODAL;
+  }
+  change_selection_on_all(channels, SEL_DESELECT);
+  return OPERATOR_FINISHED;
+}
+
+static wmOperatorStatus handle_channel_click(ed::animfilter::ChannelArena &channels,
+                                             View2D &v2d,
+                                             const int2 mval,
+                                             const ClickSelectRange range_mode,
+                                             const bool extend,
+                                             const bool deselect_all,
+                                             bool wait_to_deselect_others)
+{
+  using namespace ed::animfilter;
+  SummaryChannel *root = channels.root();
+  if (!root) {
+    return OPERATOR_CANCELLED;
+  }
+
+  if (extend) {
+    /* Weird logic copied from legacy system for parity. */
+    wait_to_deselect_others = false;
+  }
+
+  AnimationChannel *channel_under_cursor = find_channel_under_cursor(
+      *root, v2d, ui::view2d_region_to_view_y(&v2d, mval.y));
+  if (!channel_under_cursor) {
+    /* If there is no channel, there can be no key. Jump straight into deselection logic if
+     * applicable. */
+    return handle_no_key_under_cursor(channels, deselect_all, wait_to_deselect_others);
+  }
+
+  const float key_size = ANIM_UI_get_key_size();
+  /* The range in which to look for keyframes. Calculated from the v2d so it depends on the zoom
+   * level. */
+  const Bounds<float> select_range = {
+      ui::view2d_region_to_view_x(&v2d, mval.x - int(key_size / 2.0)),
+      ui::view2d_region_to_view_x(&v2d, mval.x + int(key_size / 2.0)),
+  };
+  const KeyPoint *closest_datapoint = channel_under_cursor->closest_datapoint(
+      ui::view2d_region_to_view_x(&v2d, mval.x), select_range);
+
+  if (!closest_datapoint) {
+    return handle_no_key_under_cursor(channels, deselect_all, wait_to_deselect_others);
+  }
+
+  wmOperatorStatus ret_value = OPERATOR_FINISHED;
+  if (!extend) {
+    if (wait_to_deselect_others && closest_datapoint->is_selected) {
+      ret_value = OPERATOR_RUNNING_MODAL;
+    }
+    else {
+      change_selection_on_all(channels, SEL_DESELECT);
+    }
+  }
+
+  const SelectionMode selection_mode = extend ? SelectionMode::INVERT : SelectionMode::ADD;
+
+  switch (range_mode) {
+    case ClickSelectRange::SINGLE:
+      channel_under_cursor->change_selection(selection_mode,
+                                             {closest_datapoint->frame, closest_datapoint->frame});
+      break;
+    case ClickSelectRange::ROW:
+      channel_under_cursor->change_selection(selection_mode);
+      break;
+    case ClickSelectRange::COLUMN:
+      for (DataChannel *channel : channels.data_channels) {
+        channel->change_selection(selection_mode,
+                                  {closest_datapoint->frame, closest_datapoint->frame});
+      }
+      break;
+  }
+  return ret_value;
+}
+
 /* handle clicking */
 static wmOperatorStatus actkeys_clickselect_exec(bContext *C, wmOperator *op)
 {
   bAnimContext ac;
-  wmOperatorStatus ret_value;
 
   /* get editor data */
   if (ANIM_animdata_get_context(C, &ac) == 0) {
     return OPERATOR_CANCELLED;
   }
 
-  /* get useful pointers from animation context data */
-  // region = ac.region; /* UNUSED. */
-
   /* select mode is either replace (deselect all, then add) or add/extend */
-  const eEditKeyframes_Select selectmode = RNA_boolean_get(op->ptr, "extend") ? SELECT_INVERT :
-                                                                                SELECT_REPLACE;
+  const bool extend = RNA_boolean_get(op->ptr, "extend");
   const bool deselect_all = RNA_boolean_get(op->ptr, "deselect_all");
   const bool wait_to_deselect_others = RNA_boolean_get(op->ptr, "wait_to_deselect_others");
-  int mval[2];
 
   /* column selection */
   const bool column = RNA_boolean_get(op->ptr, "column");
   const bool channel = RNA_boolean_get(op->ptr, "channel");
 
+  int mval[2];
   mval[0] = RNA_int_get(op->ptr, "mouse_x");
   mval[1] = RNA_int_get(op->ptr, "mouse_y");
 
-  /* Select keyframe(s) based upon mouse position. */
-  ret_value = mouse_action_keys(
-      &ac, mval, selectmode, deselect_all, column, channel, wait_to_deselect_others);
+  wmOperatorStatus ret_value;
+  if (USER_EXPERIMENTAL_TEST(&U, use_new_animfilter)) {
+    /* TODO this could query the cached summary tree from the last draw call. */
+    using namespace ed::animfilter;
+    ChannelArena channels = ed::action::get_summary_tree(*C);
+    /* Using an enum to represent the mutually exclusive booleans in a single state. */
+    ClickSelectRange range_mode = ClickSelectRange::SINGLE;
+    if (column) {
+      range_mode = ClickSelectRange::COLUMN;
+    }
+    else if (channel) {
+      range_mode = ClickSelectRange::ROW;
+    }
+    ret_value = handle_channel_click(
+        channels, ac.region->v2d, mval, range_mode, extend, deselect_all, wait_to_deselect_others);
+  }
+  else {
+    /* Select keyframe(s) based upon mouse position. */
+    ret_value = mouse_action_keys(
+        &ac, mval, extend, deselect_all, column, channel, wait_to_deselect_others);
+  }
 
   /* set notifier that keyframe selection (and channels too) have changed */
   WM_event_add_notifier(C, NC_ANIMATION | ND_KEYFRAME | NA_SELECTED, nullptr);

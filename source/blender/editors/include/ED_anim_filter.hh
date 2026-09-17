@@ -286,6 +286,8 @@ enum class SelectionMode {
   ADD = 0,
   SUBTRACT = 1,
   INVERT = 2,
+  /* There is no REPLACE mode since that is a 2 step procedure of SUBTRACT on all and then ADD the
+     relevant keys. This is also not particularly useful to do on a per channel basis. */
 };
 
 class AnimationChannel {
@@ -378,6 +380,12 @@ class AnimationChannel {
    */
   virtual void change_selection(SelectionMode mode,
                                 Bounds<float> range = {-INFINITY, INFINITY}) = 0;
+
+  /**
+   * Return the frame of the closest datapoint or std::nullopt if no datapoint is in the given
+   * range.
+   */
+  const KeyPoint *closest_datapoint(float frame, Bounds<float> range = {-INFINITY, INFINITY});
 
  protected:
   virtual void gather_channeldata() = 0;
