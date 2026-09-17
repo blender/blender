@@ -18,7 +18,7 @@
 namespace blender {
 
 struct Mesh;
-template<typename CoordT> struct KDTree;
+template<typename CoordT> class KDTreeNew;
 
 namespace geometry {
 
@@ -48,7 +48,7 @@ struct AddCurvesOnMeshInputs {
    * KD-Tree that contains the root points of existing curves. This is only necessary when
    * interpolation is used.
    */
-  KDTree<float3> *old_roots_kdtree = nullptr;
+  const KDTreeNew<float3> *old_roots_kdtree = nullptr;
 
   bool r_uv_error = false;
 };
