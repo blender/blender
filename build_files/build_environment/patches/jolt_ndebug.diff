@@ -1,7 +1,9 @@
 Don't define "NDEBUG" for all targets that uses jolt, instead use the jolt specific
 "JPH_NO_DEBUG" flag.
 
-Without this, we would get segfaults in Blender as some parts of Blender would then potentially be compiled with "NDEBUG" and other would not leading to type defs not being consistent.
+Without this, we would get segfaults in Blender as some parts of Blender would then
+potentially be compiled with "NDEBUG" and other would not leading to type defs not
+being consistent.
 
 diff --git a/Jolt/Jolt.cmake b/Jolt/Jolt.cmake
 index c7ea8cfd..8a268777 100644
