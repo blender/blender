@@ -175,7 +175,7 @@ def _setup(dirpath_temp, *, use_autoexec, autoexec_override=None):
     e = _events_after_load()
 
     t.assertEqual(bpy.data.filepath, "")
-    t.assertEqual(bpy.app.autoexec_override, autoexec_override is not None)
+    t.assertEqual(bpy.app.autoexec_override, autoexec_override)
     if autoexec_override is None:
         t.assertEqual(bpy.app.autoexec, use_autoexec, "Auto-execution follows the preference")
     else:

@@ -3749,7 +3749,7 @@ class WM_OT_drop_blend_file(Operator):
         # Excluded paths can't be trusted, unless the command line overrides the preference.
         is_untrusted = (
             context.preferences.filepaths.use_scripts_auto_execute and
-            not bpy.app.autoexec_override and
+            bpy.app.autoexec_override is None and
             not self._is_autoexec(filepath, skip_overrides=True)
         )
 

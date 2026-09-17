@@ -1777,8 +1777,8 @@ class USERPREF_PT_saveload_autorun(FilePathsPanel, Panel):
 
         text = iface_("Auto Run Python Scripts")
 
-        if bpy.app.autoexec_override:
-            if bpy.app.autoexec:
+        if (autoexec_override := bpy.app.autoexec_override) is not None:
+            if autoexec_override:
                 text_warn = iface_("enabled on startup, overriding the preference")
             else:
                 text_warn = iface_("disabled on startup, overriding the preference")

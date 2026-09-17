@@ -327,8 +327,13 @@ class TestAutoExecCLI(unittest.TestCase):
         self.assert_blend_file_state(states[0], filename, is_trusted=is_trusted, message=message)
         # Opening the same file interactively must default to the same trust.
         self.assertEqual(states[0]["trust_source"], is_trusted, message)
-        is_override = any(arg in {"--enable-autoexec", "--disable-autoexec"} for arg in args)
-        self.assertEqual(states[0]["autoexec_override"], is_override, message)
+        if "--enable-autoexec" in args:
+            autoexec_override = True
+        elif "--disable-autoexec" in args:
+            autoexec_override = False
+        else:
+            autoexec_override = None
+        self.assertEqual(states[0]["autoexec_override"], autoexec_override, message)
 
     # -------------------------------------------------------------------------
     # Tests with Auto-Execution Preference "Enabled"
