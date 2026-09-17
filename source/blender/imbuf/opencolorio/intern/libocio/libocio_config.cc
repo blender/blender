@@ -195,7 +195,7 @@ float3 LibOCIOConfig::get_default_luma_coefs() const
   }
 
   /* Fallback to the older Blender assumed primaries of ITU-BT.709 / sRGB, matching the
-   * coefficients used in the fallback implementation. */
+   * coefficients used in the fallback configuration. */
   return float3(0.2126f, 0.7152f, 0.0722f);
 }
 

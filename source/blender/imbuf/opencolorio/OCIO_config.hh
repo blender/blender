@@ -61,13 +61,11 @@ class Config {
   static std::unique_ptr<Config> create_from_environment();
 
   /**
-   * Create fallback implementation which is always guaranteed to work.
+   * Create the built-in fallback configuration, which is embedded in the code and so is
+   * guaranteed to load.
    *
    * It is used in cases actual OpenColorIO configuration has failed to be created so that Blender
    * interface can be displayed.
-   *
-   * The fallback implementation is also used implicitly when BLender is compiled without
-   * OpenColorIO support.
    */
   static std::unique_ptr<Config> create_fallback();
 
