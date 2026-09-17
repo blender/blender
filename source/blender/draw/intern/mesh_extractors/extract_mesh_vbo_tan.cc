@@ -48,6 +48,7 @@ static Array<Array<float4>> extract_tan_init_common(const MeshRenderData &mr,
     Array<float4> tangents;
     if (mr.extract_type == MeshExtractType::BMesh) {
       Array<float3> positions = BM_mesh_vert_coords_alloc(mr.bm);
+      BKE_mesh_orco_verts_transform(const_cast<Mesh *>(mr.mesh), positions, false);
       tangents = BKE_editmesh_orco_tangents_calc(
           mr.bm, mr.edit_bmesh->looptris, mr.bm_face_normals, mr.bm_loop_normals, positions);
     }
