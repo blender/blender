@@ -362,9 +362,15 @@ static bool point_less_than(const KeyPoint &p, const float frame)
 const KeyPoint *AnimationChannel::closest_datapoint(const float frame, Bounds<float> range)
 {
   Span<KeyPoint> datapoints = this->datapoints();
+  if (datapoints.is_empty()) {
+    return nullptr;
+  }
   const KeyPoint *closest = std::lower_bound(
       datapoints.begin(), datapoints.end(), frame, point_less_than);
   if (closest == datapoints.end()) {
+    if (closest != datapoints.begin() && (closest - 1)->frame >= range.min) {
+      return closest - 1;
+    }
     return nullptr;
   }
   if (closest + 1 != datapoints.end()) {
