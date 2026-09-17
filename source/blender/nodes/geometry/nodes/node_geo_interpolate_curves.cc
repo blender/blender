@@ -6,7 +6,7 @@
 
 #include "BLI_math_vector.hh"
 
-#include "BLI_kdtree.hh"
+#include "BLI_kdtree_new.hh"
 #include "BLI_length_parameterize.hh"
 #include "BLI_math_quaternion.hh"
 #include "BLI_math_rotation_c.hh"
@@ -59,40 +59,26 @@ static void node_declare(NodeDeclarationBuilder &b)
 }
 
 /**
- * Guides are split into groups. Every point will only interpolate between guides within the group
- * with the same id.
- */
-static MultiValueMap<int, int> separate_guides_by_group(const VArray<int> &guide_group_ids)
-{
-  MultiValueMap<int, int> guides_by_group;
-  for (const int curve_i : guide_group_ids.index_range()) {
-    const int group = guide_group_ids[curve_i];
-    guides_by_group.add(group, curve_i);
-  }
-  return guides_by_group;
-}
-
-/**
  * Checks if all curves within a group have the same number of points. If yes, a better
  * interpolation algorithm can be used, that does not require resampling curves.
  */
-static Map<int, int> compute_points_per_curve_by_group(
-    const MultiValueMap<int, int> &guides_by_group, const bke::CurvesGeometry &guide_curves)
+static Array<int> compute_points_per_curve_by_group(const GroupedSpan<int> guides_by_group,
+                                                    const bke::CurvesGeometry &guide_curves)
 {
   const OffsetIndices points_by_curve = guide_curves.points_by_curve();
-  Map<int, int> points_per_curve_by_group;
-  for (const auto &[group, guide_curve_indices] : guides_by_group.items()) {
+  /* Indexed by group; -1 means the curves in that group don't all have the same point count. */
+  Array<int> points_per_curve_by_group(guides_by_group.size());
+  for (const int group : guides_by_group.index_range()) {
+    const Span<int> guide_curve_indices = guides_by_group[group];
     int group_control_points = points_by_curve[guide_curve_indices[0]].size();
-    for (const int guide_curve_i : guide_curve_indices.as_span().drop_front(1)) {
+    for (const int guide_curve_i : guide_curve_indices.drop_front(1)) {
       const int control_points = points_by_curve[guide_curve_i].size();
       if (group_control_points != control_points) {
         group_control_points = -1;
         break;
       }
     }
-    if (group_control_points != -1) {
-      points_per_curve_by_group.add(group, group_control_points);
-    }
+    points_per_curve_by_group[group] = group_control_points;
   }
   return points_per_curve_by_group;
 }
@@ -100,30 +86,22 @@ static Map<int, int> compute_points_per_curve_by_group(
 /**
  * Build a kdtree for every guide group.
  */
-static Map<int, KDTree<float3> *> build_kdtrees_for_root_positions(
-    const MultiValueMap<int, int> &guides_by_group, const bke::CurvesGeometry &guide_curves)
+static Array<std::unique_ptr<KDTreeNew<float3>>> build_kdtrees_for_root_positions(
+    const GroupedSpan<int> guides_by_group, const Span<float3> root_positions)
 {
-  Map<int, KDTree<float3> *> kdtrees;
-  const Span<float3> positions = guide_curves.positions();
-  const Span<int> offsets = guide_curves.offsets();
+  Array<std::unique_ptr<KDTreeNew<float3>>> kdtrees(guides_by_group.size());
+  threading::parallel_for(
+      guides_by_group.index_range(),
+      1024,
+      [&](const IndexRange range) {
+        for (const int group : range) {
+          kdtrees[group] = std::make_unique<KDTreeNew<float3>>(root_positions,
+                                                               guides_by_group[group]);
+        }
+      },
+      threading::accumulated_task_sizes(
+          [&](const IndexRange range) { return guides_by_group.offsets[range].size(); }));
 
-  for (const auto item : guides_by_group.items()) {
-    const int group = item.key;
-    const Span<int> guide_indices = item.value;
-
-    KDTree<float3> *kdtree = kdtree_new<float3>(guide_indices.size());
-    kdtrees.add_new(group, kdtree);
-
-    for (const int curve_i : guide_indices) {
-      const int first_point_i = offsets[curve_i];
-      const float3 &root_pos = positions[first_point_i];
-      kdtree_insert<float3>(kdtree, curve_i, root_pos);
-    }
-  }
-  Vector<KDTree<float3> *> kdtrees_vec;
-  kdtrees_vec.extend(kdtrees.values().begin(), kdtrees.values().end());
-  threading::parallel_for_each(kdtrees_vec,
-                               [](KDTree<float3> *kdtree) { kdtree_balance<float3>(kdtree); });
   return kdtrees;
 }
 
@@ -132,9 +110,9 @@ static Map<int, KDTree<float3> *> build_kdtrees_for_root_positions(
  * group and compute a weight for each of them.
  */
 static void find_neighbor_guides(const Span<float3> positions,
-                                 const VArray<int> point_group_ids,
-                                 const Map<int, KDTree<float3> *> kdtrees,
-                                 const MultiValueMap<int, int> &guides_by_group,
+                                 const Span<int> point_group_indices,
+                                 const Span<std::unique_ptr<KDTreeNew<float3>>> kdtrees,
+                                 const GroupedSpan<int> guides_by_group,
                                  const int max_neighbor_count,
                                  MutableSpan<int> r_all_neighbor_indices,
                                  MutableSpan<float> r_all_neighbor_weights,
@@ -143,23 +121,22 @@ static void find_neighbor_guides(const Span<float3> positions,
   threading::parallel_for(positions.index_range(), 128, [&](const IndexRange range) {
     for (const int child_curve_i : range) {
       const float3 &position = positions[child_curve_i];
-      const int group = point_group_ids[child_curve_i];
-      const KDTree<float3> *kdtree = kdtrees.lookup_default(group, nullptr);
-      if (kdtree == nullptr) {
+      const int group = point_group_indices[child_curve_i];
+      if (group == -1) {
         r_all_neighbor_counts[child_curve_i] = 0;
         continue;
       }
+      const KDTreeNew<float3> &kdtree = *kdtrees[group];
 
-      const int num_guides_in_group = guides_by_group.lookup(group).size();
+      const int num_guides_in_group = guides_by_group[group].size();
       /* Finding an additional neighbor that currently has weight zero is necessary to ensure that
        * curves close by but with different guides still look similar. Otherwise there can be
        * visible artifacts. */
       const bool use_extra_neighbor = num_guides_in_group > max_neighbor_count;
       const int neighbors_to_find = max_neighbor_count + use_extra_neighbor;
 
-      Vector<KDTreeNearest<float3>, 16> nearest_n(neighbors_to_find);
-      const int num_neighbors = kdtree_find_nearest_n<float3>(
-          kdtree, position, nearest_n.data(), neighbors_to_find);
+      Vector<KDTreeNew<float3>::Nearest, 16> nearest_n(neighbors_to_find);
+      const int num_neighbors = kdtree.find_nearest_n(position, nearest_n);
       if (num_neighbors == 0) {
         r_all_neighbor_counts[child_curve_i] = 0;
         continue;
@@ -174,13 +151,14 @@ static void find_neighbor_guides(const Span<float3> positions,
       if (use_extra_neighbor) {
         /* Find the distance to the guide with the largest distance. At this distance, the weight
          * should become zero. */
-        const float max_distance = std::max_element(nearest_n.begin(),
-                                                    nearest_n.begin() + num_neighbors,
-                                                    [](const KDTreeNearest<float3> &a,
-                                                       const KDTreeNearest<float3> &b) {
-                                                      return a.dist < b.dist;
-                                                    })
-                                       ->dist;
+        const float max_distance = math::sqrt(
+            std::max_element(
+                nearest_n.begin(),
+                nearest_n.begin() + num_neighbors,
+                [](const KDTreeNew<float3>::Nearest &a, const KDTreeNew<float3>::Nearest &b) {
+                  return a.distance_sq < b.distance_sq;
+                })
+                ->distance_sq);
         if (max_distance == 0.0f) {
           r_all_neighbor_counts[child_curve_i] = 1;
           neighbor_indices[0] = nearest_n[0].index;
@@ -190,11 +168,12 @@ static void find_neighbor_guides(const Span<float3> positions,
 
         int neighbor_counter = 0;
         for (const int neighbor_i : IndexRange(num_neighbors)) {
-          const KDTreeNearest<float3> &nearest = nearest_n[neighbor_i];
+          const KDTreeNew<float3>::Nearest &nearest = nearest_n[neighbor_i];
+          const float dist = math::sqrt(nearest.distance_sq);
           /* Goal for this weight calculation:
            * - As distance gets closer to zero, it should become very large.
            * - At `max_distance` the weight should be zero. */
-          const float weight = (max_distance - nearest.dist) / std::max(nearest.dist, 0.000001f);
+          const float weight = (max_distance - dist) / std::max(dist, 0.000001f);
           if (weight > 0.0f) {
             tot_weight += weight;
             neighbor_indices[neighbor_counter] = nearest.index;
@@ -207,11 +186,12 @@ static void find_neighbor_guides(const Span<float3> positions,
       else {
         int neighbor_counter = 0;
         for (const int neighbor_i : IndexRange(num_neighbors)) {
-          const KDTreeNearest<float3> &nearest = nearest_n[neighbor_i];
+          const KDTreeNew<float3>::Nearest &nearest = nearest_n[neighbor_i];
+          const float dist = math::sqrt(nearest.distance_sq);
           /* Goal for this weight calculation:
            * - As the distance gets closer to zero, it should become very large.
            * - As the distance gets larger, the weight should become zero. */
-          const float weight = 1.0f / std::max(nearest.dist, 0.000001f);
+          const float weight = 1.0f / std::max(dist, 0.000001f);
           if (weight > 0.0f) {
             tot_weight += weight;
             neighbor_indices[neighbor_counter] = nearest.index;
@@ -237,8 +217,8 @@ static void find_neighbor_guides(const Span<float3> positions,
  * neighboring points.
  */
 static void compute_point_counts_per_child(const bke::CurvesGeometry &guide_curves,
-                                           const VArray<int> &point_group_ids,
-                                           const Map<int, int> &points_per_curve_by_group,
+                                           const Span<int> point_group_indices,
+                                           const Span<int> points_per_curve_by_group,
                                            const Span<int> all_neighbor_indices,
                                            const Span<float> all_neighbor_weights,
                                            const Span<int> all_neighbor_counts,
@@ -255,8 +235,8 @@ static void compute_point_counts_per_child(const bke::CurvesGeometry &guide_curv
         r_use_direct_interpolation[child_curve_i] = false;
         continue;
       }
-      const int group = point_group_ids[child_curve_i];
-      const int points_per_curve_in_group = points_per_curve_by_group.lookup_default(group, -1);
+      const int group = point_group_indices[child_curve_i];
+      const int points_per_curve_in_group = points_per_curve_by_group[group];
       if (points_per_curve_in_group != -1) {
         r_points_per_child[child_curve_i] = points_per_curve_in_group;
         r_use_direct_interpolation[child_curve_i] = true;
@@ -688,7 +668,7 @@ static GeometrySet generate_interpolated_curves(
     const AttributeAccessor &point_attributes,
     const VArray<float3> &guides_up,
     const VArray<float3> &points_up,
-    const VArray<int> &guide_group_ids,
+    const Span<int> guide_group_ids,
     const VArray<int> &point_group_ids,
     const int max_neighbors,
     const AttributeFilter &attribute_filter,
@@ -697,20 +677,45 @@ static GeometrySet generate_interpolated_curves(
 {
   const bke::CurvesGeometry &guide_curves = guide_curves_id.geometry.wrap();
 
-  const MultiValueMap<int, int> guides_by_group = separate_guides_by_group(guide_group_ids);
-  const Map<int, int> points_per_curve_by_group = compute_points_per_curve_by_group(
-      guides_by_group, guide_curves);
+  /* Guides are split into groups. Every point will only interpolate between guides within the
+   * group with the same id. Groups are identified by an arbitrary id, which is first translated
+   * into a compact index that can be used for array lookups. */
+  const VectorSet<int> guide_group_indexing(guide_group_ids);
 
-  Map<int, KDTree<float3> *> kdtrees = build_kdtrees_for_root_positions(guides_by_group,
-                                                                        guide_curves);
-  BLI_SCOPED_DEFER([&]() {
-    for (KDTree<float3> *kdtree : kdtrees.values()) {
-      kdtree_free<float3>(kdtree);
+  Array<int> guide_group_indices(guide_group_ids.size());
+  threading::parallel_for(guide_group_ids.index_range(), 4096, [&](const IndexRange range) {
+    for (const int i : range) {
+      guide_group_indices[i] = guide_group_indexing.index_of(guide_group_ids[i]);
     }
   });
 
+  Array<int> group_offset_data;
+  Array<int> group_index_data;
+  const GroupedSpan<int> guides_by_group = offset_indices::build_groups_from_indices(
+      guide_group_indices, guide_group_indexing.size(), group_offset_data, group_index_data);
+
+  const Array<int> points_per_curve_by_group = compute_points_per_curve_by_group(guides_by_group,
+                                                                                 guide_curves);
+
+  Array<float3> root_positions(guide_curves.curves_num());
+  array_utils::gather(guide_curves.positions(),
+                      guide_curves.offsets().take_front(guide_curves.curves_num()),
+                      root_positions.as_mutable_span());
+
+  Array<std::unique_ptr<KDTreeNew<float3>>> kdtrees = build_kdtrees_for_root_positions(
+      guides_by_group, root_positions);
+
   const VArraySpan point_positions = *point_attributes.lookup<float3>("position");
   const int num_child_curves = point_attributes.domain_size(AttrDomain::Point);
+
+  /* Points may reference a group id that no guide belongs to, in which case there are no
+   * neighbors to interpolate from. */
+  Array<int> point_group_indices(num_child_curves);
+  threading::parallel_for(IndexRange(num_child_curves), 4096, [&](const IndexRange range) {
+    for (const int i : range) {
+      point_group_indices[i] = int(guide_group_indexing.index_of_try(point_group_ids[i]));
+    }
+  });
 
   /* The set of guides per child are stored in a flattened array to allow fast access, reduce
    * memory consumption and reduce number of allocations. */
@@ -719,7 +724,7 @@ static GeometrySet generate_interpolated_curves(
   Array<int> all_neighbor_counts(num_child_curves);
 
   find_neighbor_guides(point_positions,
-                       point_group_ids,
+                       point_group_indices,
                        kdtrees,
                        guides_by_group,
                        max_neighbors,
@@ -733,7 +738,7 @@ static GeometrySet generate_interpolated_curves(
 
   Array<bool> use_direct_interpolation_per_child(num_child_curves);
   compute_point_counts_per_child(guide_curves,
-                                 point_group_ids,
+                                 point_group_indices,
                                  points_per_curve_by_group,
                                  all_neighbor_indices,
                                  all_neighbor_weights,
@@ -835,7 +840,7 @@ static void node_geo_exec(GeoNodeExecParams params)
   curves_evaluator.add(guide_group_field);
   curves_evaluator.evaluate();
   const VArray<float3> guides_up = curves_evaluator.get_evaluated<float3>(0);
-  const VArray<int> guide_group_ids = curves_evaluator.get_evaluated<int>(1);
+  const VArraySpan<int> guide_group_ids = curves_evaluator.get_evaluated<int>(1);
 
   const bke::GeometryFieldContext points_context(*points_component, AttrDomain::Point);
   fn::FieldEvaluator points_evaluator{points_context,
