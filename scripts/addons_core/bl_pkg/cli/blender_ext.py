@@ -1328,6 +1328,14 @@ def url_retrieve_to_data_iter(
     from urllib.error import ContentTooShortError
     from urllib.request import urlopen
 
+    context = None
+    if sys.platform == 'android':
+        import certifi
+        import ssl
+        # OpenSSL ignores SSL_CERT_FILE in Android app processes with AT_SECURE set.
+        # Load the bundled CA certificates explicitly.
+        context = ssl.create_default_context(cafile=certifi.where())
+
     request = urllib.request.Request(
         url,
         data=data,
@@ -1335,8 +1343,8 @@ def url_retrieve_to_data_iter(
     )
 
     with (
-            urlopen(request, timeout=timeout_in_seconds) if (timeout_in_seconds > 0.0) else
-            urlopen(request)
+            urlopen(request, timeout=timeout_in_seconds, context=context) if (timeout_in_seconds > 0.0) else
+            urlopen(request, context=context)
     ) as fp:
         response_headers = fp.info()
 
@@ -5625,6 +5633,11 @@ def msg_print_json_0(ty: str, data: PrimTypeOrSeq) -> bool:
 
 
 def msglog_from_args(args: argparse.Namespace) -> MessageLogger:
+    # Android runs commands in a thread and passes a logger that reports through a queue.
+    if (msglog := getattr(args, "msglog", None)) is not None:
+        assert isinstance(msglog, MessageLogger)
+        return msglog
+
     # Will be None when running form Blender.
     output_type = getattr(args, "output_type", 'TEXT')
 

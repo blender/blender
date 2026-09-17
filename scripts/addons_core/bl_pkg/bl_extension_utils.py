@@ -233,12 +233,63 @@ def blender_ext_cmd(python_args: Sequence[str]) -> Sequence[str]:
 # Call JSON.
 #
 
+def command_output_from_thread(
+        args: Sequence[str],
+        use_idle: bool,
+) -> Generator[InfoItemSeq, bool, None]:
+    import queue
+    import threading
+    from .cli import blender_ext
+
+    messages: queue.SimpleQueue[InfoItem] = queue.SimpleQueue()
+    request_exit = threading.Event()
+
+    def msg_fn(ty: str, data: blender_ext.PrimTypeOrSeq) -> bool:
+        # Report completion only after the worker has finished cleaning up.
+        if ty != 'DONE':
+            messages.put((ty, data))
+        return request_exit.is_set()
+
+    def run() -> None:
+        try:
+            parsed_args = blender_ext.argparse_create().parse_args(args)
+            parsed_args.msglog = blender_ext.MessageLogger(msg_fn)
+            # Disable subprocess exit handling when running inside Blender.
+            parsed_args.force_exit_ok = False
+            parsed_args.func(parsed_args)
+        except (Exception, SystemExit) as ex:
+            messages.put(('FATAL_ERROR', str(ex)))
+
+    worker = threading.Thread(target=run, daemon=True)
+    worker.start()
+    try:
+        while worker.is_alive() or not messages.empty():
+            batch: list[InfoItem] = []
+            while True:
+                try:
+                    batch.append(messages.get_nowait())
+                except queue.Empty:
+                    break
+
+            if not batch and use_idle:
+                time.sleep(IDLE_WAIT_ON_READ)
+            if (yield batch):
+                request_exit.set()
+    finally:
+        request_exit.set()
+
+
 def command_output_from_json_0(
         args: Sequence[str],
         use_idle: bool,
         *,
         python_args: Sequence[str],
 ) -> Generator[InfoItemSeq, bool, None]:
+    # Android cannot spawn the bundled Python executable. Run extension commands in a thread instead.
+    if sys.platform == 'android':
+        yield from command_output_from_thread(args, use_idle)
+        return
+
     cmd = [*blender_ext_cmd(python_args), *args, "--output-type=JSON_0"]
     # Note that the context-manager isn't used to wait until the process is finished as
     # the function only finishes when `poll()` is not none, it's just used to ensure file-handles
