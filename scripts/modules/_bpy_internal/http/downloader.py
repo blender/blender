@@ -658,7 +658,7 @@ class BackgroundDownloader:
 
         # Android lacks multiprocessing support and cannot spawn the bundled Python executable. Run the download worker
         # in a thread instead, keeping reports and callbacks on the main thread through the existing pipe.
-        worker_type = threading.Thread if hasattr(sys, "getandroidapilevel") else _mp_context.Process
+        worker_type = threading.Thread if sys.platform == 'android' else _mp_context.Process
         self._downloader_process = worker_type(
             name="BackgroundDownloader",
             target=_download_queued_items,
