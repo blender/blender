@@ -18,6 +18,7 @@ set(SRC_KERNEL_DEVICE_OPTIX
 
 if(WITH_CYCLES_OSL)
   math(EXPR OSL_LIBRARY_VERSION_CODE "${OSL_VERSION_MAJOR} * 10000 + ${OSL_VERSION_MINOR} * 100 + ${OSL_VERSION_PATCH}")
+  math(EXPR OIIO_VERSION "${OpenImageIO_VERSION_MAJOR} * 10000 + ${OpenImageIO_VERSION_MINOR} * 100 + ${OpenImageIO_VERSION_PATCH}")
 
   set(SRC_KERNEL_DEVICE_OPTIX
     ${SRC_KERNEL_DEVICE_OPTIX}
@@ -26,6 +27,8 @@ if(WITH_CYCLES_OSL)
     kernel_osl_camera.cu
     kernel_osl_mnee.cu
     kernel_osl_shader_raytrace.cu
+    kernel_osl_shadow.cu
+    kernel_osl_shadow_curve.cu
     kernel_osl_volume.cu
   )
 endif()
@@ -57,7 +60,8 @@ if(WITH_CYCLES_CUDA_BINARIES AND WITH_CYCLES_DEVICE_OPTIX)
 
     if(WITH_CYCLES_OSL)
       set(cuda_flags ${cuda_flags}
-        -D OSL_LIBRARY_VERSION_CODE=${OSL_LIBRARY_VERSION_CODE})
+        -D OSL_LIBRARY_VERSION_CODE=${OSL_LIBRARY_VERSION_CODE}
+        -D OIIO_VERSION=${OIIO_VERSION})
     endif()
 
     set(arch compute_50)
@@ -129,6 +133,14 @@ if(WITH_CYCLES_CUDA_BINARIES AND WITH_CYCLES_DEVICE_OPTIX)
     cycles_optix_kernel_add(
       kernel_optix_osl_mnee
       "kernel_osl_mnee.cu"
+      "--relocatable-device-code=true")
+    cycles_optix_kernel_add(
+      kernel_optix_osl_shadow
+      "kernel_osl_shadow.cu"
+      "--relocatable-device-code=true")
+    cycles_optix_kernel_add(
+      kernel_optix_osl_shadow_curve
+      "kernel_osl_shadow_curve.cu"
       "--relocatable-device-code=true")
     cycles_optix_kernel_add(
       kernel_optix_osl_volume

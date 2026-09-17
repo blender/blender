@@ -3,8 +3,8 @@
 # SPDX-License-Identifier: GPL-2.0-or-later
 
 set(INC
-  ../include
   ../asset
+  ../include
   ../../makesrna
 
   # RNA_prototypes.hh

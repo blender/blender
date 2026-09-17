@@ -17,6 +17,7 @@
 #include "gpu_py_offscreen.hh"      // IWYU pragma: export
 #include "gpu_py_platform.hh"       // IWYU pragma: export
 #include "gpu_py_shader.hh"         // IWYU pragma: export
+#include "gpu_py_storagebuffer.hh"  // IWYU pragma: export
 #include "gpu_py_texture.hh"        // IWYU pragma: export
 #include "gpu_py_uniformbuffer.hh"  // IWYU pragma: export
 #include "gpu_py_vertex_buffer.hh"  // IWYU pragma: export

@@ -161,7 +161,8 @@ void userpref_asset_libraries_panel_draw(const bContext *C, Panel *panel)
   ui::Layout &sub = col.row(true);
   const bool active_idx_in_range = U.active_asset_library >= 0 &&
                                    U.active_asset_library < libraries.size();
-  const bool is_custom_library = libraries[U.active_asset_library].type == ASSET_LIBRARY_CUSTOM;
+  const bool is_custom_library = active_idx_in_range &&
+                                 libraries[U.active_asset_library].type == ASSET_LIBRARY_CUSTOM;
   const bool is_project_library = is_custom_library &&
                                   (libraries[U.active_asset_library].user_library->flag &
                                    ASSET_LIBRARY_PROJECT_DEFINED);

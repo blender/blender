@@ -27,12 +27,12 @@
 
 #include "MEM_guardedalloc.h"
 
+#include "BKE_annotations.h"
 #include "BKE_asset.hh"
 #include "BKE_compositor.hh"
 #include "BKE_compute_context_cache.hh"
 #include "BKE_compute_contexts.hh"
 #include "BKE_context.hh"
-#include "BKE_gpencil_legacy.h"
 #include "BKE_idprop.hh"
 #include "BKE_lib_id.hh"
 #include "BKE_lib_query.hh"
@@ -1117,7 +1117,7 @@ static bool node_import_file_drop_poll(bContext *C, wmDrag *drag, const wmEvent 
     }
     if (is_geometry_tree &&
         (path.endswith(".csv") || path.endswith(".obj") || path.endswith(".ply") ||
-         path.endswith(".stl") || path.endswith(".vdb")))
+         path.endswith(".stl") || path.endswith(".vdb") || path.endswith(".spz")))
     {
       return true;
     }
@@ -1424,7 +1424,7 @@ static int /*eContextResult*/ node_context(const bContext *C,
   if (CTX_data_equals(member, "selected_nodes")) {
     if (snode->edittree) {
       for (bNode *node : snode->edittree->all_nodes()) {
-        if (node->flag & NODE_SELECT) {
+        if (node->is_selected()) {
           PointerRNA ptr = RNA_pointer_create_id_subdata(snode->edittree->id, RNA_Node, node);
           CTX_data_list_add_ptr(result, &ptr);
         }
@@ -1740,7 +1740,7 @@ static void node_space_blend_read_data(BlendDataReader *reader, SpaceLink *sl)
 
   if (snode->gpd) {
     BLO_read_struct(reader, bGPdata, &snode->gpd);
-    BKE_gpencil_blend_read_data(reader, snode->gpd);
+    BKE_annotations_blend_read_data(reader, snode->gpd);
   }
 
   BLO_read_struct_list(reader, bNodeTreePath, &snode->treepath);
@@ -1751,7 +1751,9 @@ static void node_space_blend_read_data(BlendDataReader *reader, SpaceLink *sl)
 static void node_space_blend_write(BlendWriter *writer, SpaceLink *sl)
 {
   SpaceNode *snode = reinterpret_cast<SpaceNode *>(sl);
-  writer->write_struct_cast<SpaceNode>(snode);
+  writer->write_struct_cast<SpaceNode>(snode, [](BlendStructWriter<SpaceNode> &struct_writer) {
+    struct_writer.shallow_data.runtime = nullptr;
+  });
 
   for (bNodeTreePath &path : snode->treepath) {
     writer->write_struct(&path);

@@ -218,12 +218,13 @@ static void calc_faces(const Depsgraph &depsgraph,
                        const Span<float3> vert_normals,
                        const bke::pbvh::MeshNode &node,
                        Object &object,
-                       LocalData &tls,
                        const PositionDeformData &position_data)
 {
   SculptSession &ss = *object.runtime->sculpt_session;
   const Span<int> verts = node.verts();
 
+  Array<float, bke::pbvh::MESH_LEAF_LIMIT> factors(verts.size());
+  Array<float, bke::pbvh::MESH_LEAF_LIMIT> distances(verts.size());
   calc_factors_common_mesh_indexed(depsgraph,
                                    brush,
                                    object,
@@ -231,29 +232,26 @@ static void calc_faces(const Depsgraph &depsgraph,
                                    position_data.eval,
                                    vert_normals,
                                    node,
-                                   tls.factors,
-                                   tls.distances);
+                                   factors,
+                                   distances);
 
-  tls.positions.resize(verts.size());
-  const MutableSpan<float3> positions = tls.positions;
-  gather_data_mesh(position_data.eval, verts, positions);
+  Array<float3, bke::pbvh::MESH_LEAF_LIMIT> positions(verts.size());
+  gather_data_mesh<float3>(position_data.eval, verts, positions);
 
-  tls.ray_origins.resize(verts.size());
-  tls.hit_distances.resize(verts.size());
-  const MutableSpan<float> hit_distances = tls.hit_distances;
+  Array<float3, bke::pbvh::MESH_LEAF_LIMIT> ray_origins(verts.size());
+  Array<float, bke::pbvh::MESH_LEAF_LIMIT> hit_distances(verts.size());
 
   scene_raycast(ss.cache->project_targets,
                 bidirectional,
                 brush.minimum_distance,
                 normal,
                 positions,
-                tls.factors,
-                tls.ray_origins,
+                factors,
+                ray_origins,
                 hit_distances);
 
-  tls.translations.resize(verts.size());
-  const MutableSpan<float3> translations = tls.translations;
-  calc_translations(normal, tls.factors, hit_distances, translations);
+  Array<float3, bke::pbvh::MESH_LEAF_LIMIT> translations(verts.size());
+  calc_translations(normal, factors, hit_distances, translations);
   scale_translations(translations, ss.cache->bstrength);
 
   clip_and_lock_translations(sd, ss, position_data.eval, verts, translations);
@@ -361,7 +359,6 @@ void do_scene_project_brush(const Depsgraph &depsgraph,
 
       node_mask.foreach_index(
           [&](const int i) {
-            LocalData &tls = all_tls.local();
             calc_faces(depsgraph,
                        sd,
                        brush,
@@ -371,7 +368,6 @@ void do_scene_project_brush(const Depsgraph &depsgraph,
                        vert_normals,
                        nodes[i],
                        object,
-                       tls,
                        position_data);
             bke::pbvh::update_node_bounds_mesh(position_data.eval, nodes[i]);
           },

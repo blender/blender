@@ -1,9 +1,9 @@
 
 msgid ""
 msgstr ""
-"Project-Id-Version: Blender 5.3.0 Alpha (b'f5df8c32f99b')\n"
+"Project-Id-Version: Blender 5.3.0 Alpha (b'2cef5b8c951a')\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-09-07 07:47+0000\n"
+"POT-Creation-Date: 2026-09-14 07:47+0000\n"
 "PO-Revision-Date: 2026-03-19 12:41+0000\n"
 "Last-Translator: Banditer1483 <pleum.wongvarit@gmail.com>\n"
 "Language-Team: Thai <https://translate.blender.org/projects/blender-ui/ui/th/>\n"
@@ -4893,28 +4893,44 @@ msgid "Mix Color"
 msgstr "ผสมสี"
 
 
+msgid "Pivot Point"
+msgstr "จุดหมุน"
+
+
+msgid "Snap"
+msgstr "ยึดติด"
+
+
+msgid "Proportional Editing Falloff"
+msgstr "แก้ไข"
+
+
+msgid "Mask Edit"
+msgstr "การแก้ไขหน้ากาก"
+
+
 msgid "Import"
 msgstr "นำเข้า"
-
-
-msgid "Viewpoint"
-msgstr "จุดของมุมมอง"
 
 
 msgid "Math"
 msgstr "คณิตศาสตร์"
 
 
-msgid "Align View to Active"
-msgstr "จัดมุมมองไปยังที่วัตถุใช้งาน"
-
-
 msgid "UV"
 msgstr "UV"
 
 
-msgid "View Regions"
-msgstr "ขอบเขตมุมมอง"
+msgid "Mirror"
+msgstr "กระจกสะท้อน"
+
+
+msgid "Local View"
+msgstr "มุมมองท้องถิ่น"
+
+
+msgid "Viewpoint"
+msgstr "จุดของมุมมอง"
 
 
 msgid "Navigation"
@@ -4925,72 +4941,56 @@ msgid "Align View"
 msgstr "จัดมุมมอง"
 
 
-msgid "Local View"
-msgstr "มุมมองท้องถิ่น"
+msgid "Align View to Active"
+msgstr "จัดมุมมองไปยังที่วัตถุใช้งาน"
 
 
-msgid "Snap"
-msgstr "ยึดติด"
-
-
-msgid "Mirror"
-msgstr "กระจกสะท้อน"
-
-
-msgid "Mask Edit"
-msgstr "การแก้ไขหน้ากาก"
-
-
-msgid "Proportional Editing Falloff"
-msgstr "แก้ไข"
-
-
-msgid "Pivot Point"
-msgstr "จุดหมุน"
-
-
-msgid "Names"
-msgstr "ชื่อ"
-
-
-msgid "Layout"
-msgstr "เค้าโครง"
+msgid "View Regions"
+msgstr "ขอบเขตมุมมอง"
 
 
 msgid "Metaball"
 msgstr "เมตาบอล"
 
 
-msgid "Merge"
-msgstr "ผสาน"
+msgid "Light"
+msgstr "แสง"
 
 
-msgid "Keying"
-msgstr "คีย์"
-
-
-msgid "Face Data"
-msgstr "ข้อมูลด้าน"
-
-
-msgid "Apply"
-msgstr "นำไปใช้"
-
-
-msgid "Hooks"
-msgstr "ตะขอ"
-
-
-msgid "Track"
-msgstr "แทร็ค"
+msgid "Layout"
+msgstr "เค้าโครง"
 
 
 msgid "Add Image"
 msgstr "เพิ่มภาพ"
 
 
-msgid "Light"
-msgstr "แสง"
+msgid "Apply"
+msgstr "นำไปใช้"
+
+
+msgid "Track"
+msgstr "แทร็ค"
+
+
+msgid "Keying"
+msgstr "คีย์"
+
+
+msgid "Hooks"
+msgstr "ตะขอ"
+
+
+msgid "Names"
+msgstr "ชื่อ"
+
+
+msgid "Face Data"
+msgstr "ข้อมูลด้าน"
+
+
+msgid "Merge"
+msgstr "ผสาน"
 
 
 msgid "Zoom"
@@ -6255,12 +6255,12 @@ msgid "Single Image"
 msgstr "ภาพเดี่ยว"
 
 
-msgid "Overlays"
-msgstr "วางซ้อน"
-
-
 msgid "View Lock"
 msgstr "ล็อกมุมมอง"
+
+
+msgid "Overlays"
+msgstr "วางซ้อน"
 
 
 msgid "Mask Display"

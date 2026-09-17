@@ -22,14 +22,16 @@
 #include "eevee_sampling_lib.bsl.hh"
 #include "eevee_surf_common.bsl.hh"
 
-float4 closure_to_rgba_hybrid(Closure /*cl*/)
+float4 closure_to_rgba_hybrid([[resource_table]] KernelGlobals &kg,
+                              ShadingData &sd,
+                              Closure /*cl*/)
 {
   /* Workaround for gl_FragCoord. */
   FRAGMENT_SHADER_CREATE_INFO(eevee_nodetree);
 
-  [[resource_table]] const draw::View &views = resource_table_get(draw::View);
-  [[resource_table]] const eevee::Sampling &sampling = resource_table_get(eevee::Sampling);
-  [[resource_table]] const UtilityTexture &util_tx = resource_table_get(UtilityTexture);
+  [[resource_table]] const draw::View &views = kg.view;
+  [[resource_table]] const eevee::Sampling &sampling = kg.sampling;
+  [[resource_table]] const UtilityTexture &util_tx = kg.util_tx;
   auto &interp_flat = interface_get(eevee_geom_iface_info, interp_flat);
   draw::ID id{interp_flat.resource_id_raw};
   const uint resource_id = id.resource_id<1>();
@@ -37,24 +39,22 @@ float4 closure_to_rgba_hybrid(Closure /*cl*/)
 
   float3 radiance, transmittance;
   eevee::forward_lighting_eval(
-      views.get(0), resource_id, g_thickness, frag_co, radiance, transmittance);
+      kg, sd, views.get(0), resource_id, sd.thickness, frag_co, radiance, transmittance);
 
   /* Reset for the next closure tree. */
   float noise = util_tx.fetch(frag_co, UTIL_BLUE_NOISE_LAYER).r;
   float closure_rand = fract(noise + sampling.rng_1D_get(SAMPLING_CLOSURE));
-  closure_weights_reset(closure_rand);
+  closure_weights_reset(kg, sd, closure_rand);
 
 #if defined(MAT_TRANSPARENT) && defined(MAT_SHADER_TO_RGBA)
   { /* Limit resource guard to this scope. */
-    /* clang-format off */ /* Multi-line macro breaks error line counting. */
-    [[resource_table]] eevee::LightprobeRenderData &lightprobes = resource_table_get(eevee::LightprobeRenderData);
-    /* clang-format on */
+    [[resource_table]] eevee::LightprobeRenderData &lightprobes = kg.lightprobes;
     [[resource_table]] eevee::LightprobeSphereRenderData &lp_spheres = lightprobes.spheres;
 
-    float3 V = -views.get(0).world_incident_vector(g_data.P);
-    eevee::LightProbeSample samp = lightprobes.load(frag_co.xy, g_data.P, g_data.N, V);
+    float3 V = -views.get(0).world_incident_vector(sd.P);
+    eevee::LightProbeSample samp = lightprobes.load(frag_co.xy, sd.P, sd.N, V);
     float3 radiance_behind = lp_spheres.spherical_sample_normalized_with_parallax(
-        samp, g_data.P, V, 0.0);
+        samp, sd.P, V, 0.0);
 
 #  ifndef MAT_FIRST_LAYER
     { /* Limit resource guard to this scope. */
@@ -125,7 +125,8 @@ struct HybridFragOut {
 
 /* NOTE: This removes the possibility of using gl_FragDepth. */
 [[fragment]] [[early_fragment_tests]]
-void surf_hybrid([[resource_table]] PipelineConstants &pipe,
+void surf_hybrid([[resource_table]] KernelGlobals &kg,
+                 [[resource_table]] PipelineConstants &pipe,
                  [[resource_table]] SurfaceHybrid &srt,
                  [[resource_table]] gbuffer::PackParameters &gbuf_params,
                  [[resource_table]] LightEvalIterator & /*lights*/,
@@ -148,38 +149,39 @@ void surf_hybrid([[resource_table]] PipelineConstants &pipe,
 
   const ViewMatrices view = views.get(0);
 
-  init_globals(uni, view, front_face);
+  ShadingData sd = init_globals(uni, view, front_face, frag_co);
 
   float noise = util_tx.fetch(frag_co.xy, UTIL_BLUE_NOISE_LAYER).r;
   float closure_rand = fract(noise + sampling.rng_1D_get(SAMPLING_CLOSURE));
 
-  g_thickness = Thickness::from(nodetree_thickness(), thickness_mode);
+  sd.thickness = Thickness::from(nodetree_thickness(kg, sd), thickness_mode);
 
-  fragment_displacement();
+  fragment_displacement(kg, sd);
 
-  nodetree_surface(closure_rand);
+  nodetree_surface(kg, sd, closure_rand);
 
-  g_holdout = saturate(g_holdout);
+  sd.holdout = saturate(sd.holdout);
 
   /** Transparency weight is already applied through dithering, remove it from other closures. */
-  float alpha = 1.0f - average(g_transmittance);
+  float alpha = 1.0f - average(sd.transmittance);
   float alpha_rcp = safe_rcp(alpha);
 
+  ObjectInfos object_infos = kg.object_infos_get(sd);
+
   /* Object holdout. */
-  eObjectInfoFlag ob_flag = object_infos_get().flag;
+  eObjectInfoFlag ob_flag = object_infos.flag;
   if (flag_test(ob_flag, OBJECT_HOLDOUT)) {
     /* alpha is set from rejected pixels / dithering. */
-    g_holdout = 1.0f;
+    sd.holdout = 1.0f;
 
     /* Set alpha to 0.0 so that lighting is not computed. */
     alpha_rcp = 0.0f;
   }
 
-  g_emission *= alpha_rcp;
+  sd.emission *= alpha_rcp;
 
   int2 out_texel = int2(frag_co.xy);
 
-  ObjectInfos object_infos = object_infos_get();
   bool use_light_linking = receiver_light_set_get(object_infos) != 0;
   bool use_terminator_offset = object_infos.shadow_terminator_normal_offset > 0.0;
 
@@ -190,44 +192,48 @@ void surf_hybrid([[resource_table]] PipelineConstants &pipe,
     const auto &nt = buffer_get(eevee_nodetree, node_tree);
     cryptomatte.store(out_texel, nt.crypto_hash, resource_id);
     render_passes.store_color(
-        out_texel, uni.uniform_buf.render_pass.emission_id, float4(g_emission, 1.0f));
+        out_texel, uni.uniform_buf.render_pass.emission_id, float4(sd.emission, 1.0f));
   }
 
   if (pipe.use_lighting_nodes) [[static_branch]] {
-    float light_sample_rcp = safe_rcp(float(g_light_accumulation_count));
-    g_diffuse_color *= light_sample_rcp;
-    g_diffuse_light *= alpha_rcp;
-    g_glossy_color *= light_sample_rcp;
-    g_glossy_light *= alpha_rcp;
-    g_transmission_color *= light_sample_rcp;
-    g_transmission_light *= alpha_rcp;
+    float light_sample_rcp = safe_rcp(float(sd.light_accum.light_accumulation_count));
+    sd.light_accum.diffuse_color *= light_sample_rcp;
+    sd.light_accum.diffuse_light *= alpha_rcp;
+    sd.light_accum.glossy_color *= light_sample_rcp;
+    sd.light_accum.glossy_light *= alpha_rcp;
+    sd.light_accum.transmission_color *= light_sample_rcp;
+    sd.light_accum.transmission_light *= alpha_rcp;
 
     if (uni.uniform_buf.render_pass.diffuse_light_id >= 0 &&
         uni.uniform_buf.render_pass.diffuse_color_id >= 0)
     {
-      render_passes.store_color(
-          out_texel, uni.uniform_buf.render_pass.diffuse_light_id, float4(g_diffuse_light, 1.0f));
-      render_passes.store_color(
-          out_texel, uni.uniform_buf.render_pass.diffuse_color_id, float4(g_diffuse_color, 1.0f));
+      render_passes.store_color(out_texel,
+                                uni.uniform_buf.render_pass.diffuse_light_id,
+                                float4(sd.light_accum.diffuse_light, 1.0f));
+      render_passes.store_color(out_texel,
+                                uni.uniform_buf.render_pass.diffuse_color_id,
+                                float4(sd.light_accum.diffuse_color, 1.0f));
     }
     else {
-      g_emission += g_diffuse_light;
+      sd.emission += sd.light_accum.diffuse_light;
     }
 
     if (uni.uniform_buf.render_pass.specular_light_id >= 0 &&
         uni.uniform_buf.render_pass.specular_color_id >= 0)
     {
-      render_passes.store_color(out_texel,
-                                uni.uniform_buf.render_pass.specular_light_id,
-                                float4(g_glossy_light + g_transmission_light, 1.0f));
+      render_passes.store_color(
+          out_texel,
+          uni.uniform_buf.render_pass.specular_light_id,
+          float4(sd.light_accum.glossy_light + sd.light_accum.transmission_light, 1.0f));
       /* TODO(fclem): Adding color passes together is wrong. Split the passes. */
-      render_passes.store_color(out_texel,
-                                uni.uniform_buf.render_pass.specular_color_id,
-                                float4(g_glossy_color + g_transmission_color, 1.0f));
+      render_passes.store_color(
+          out_texel,
+          uni.uniform_buf.render_pass.specular_color_id,
+          float4(sd.light_accum.glossy_color + sd.light_accum.transmission_color, 1.0f));
     }
     else {
-      g_emission += g_glossy_light;
-      g_emission += g_transmission_light;
+      sd.emission += sd.light_accum.glossy_light;
+      sd.emission += sd.light_accum.transmission_light;
     }
 
 #if 0 /* TODO Transmission pass */
@@ -236,13 +242,13 @@ void surf_hybrid([[resource_table]] PipelineConstants &pipe,
     {
       render_passes.store_color(out_texel,
                                 uni.uniform_buf.render_pass.transmission_light_id,
-                                float4(g_transmission_light, 1.0f));
+                                float4(sd.light_accum.transmission_light, 1.0f));
       render_passes.store_color(out_texel,
                                 uni.uniform_buf.render_pass.transmission_color_id,
-                                float4(g_transmission_color, 1.0f));
+                                float4(sd.light_accum.transmission_color, 1.0f));
     }
     else {
-      g_emission += g_transmission_light;
+      sd.emission += sd.light_accum.transmission_light;
     }
 #endif
   }
@@ -256,14 +262,14 @@ void surf_hybrid([[resource_table]] PipelineConstants &pipe,
   }
   for (int i = 0; i < 3; i++) [[unroll]] {
     if (pipe.closure_bin_count > i) [[static_branch]] {
-      gbuf_data.closure[i] = g_closure_get_resolved(i, alpha_rcp);
+      gbuf_data.closure[i] = sd.closure_get_resolved(i, alpha_rcp);
     }
   }
   const bool use_object_id = pipe.use_sss || use_light_linking || use_terminator_offset;
 
   float3 gbuffer_dither = sampling.rng_3D_get(SAMPLING_GBUFFER_U);
   gbuffer::Packed gbuf = gbuffer::pack(
-      gbuf_params, gbuf_data, g_data.Ng, g_data.N, g_thickness, use_object_id);
+      gbuf_params, gbuf_data, sd.Ng, sd.N, sd.thickness, use_object_id);
 
   /* Output header and first closure using frame-buffer attachment. */
   frag_out.gbuf_header = gbuf.header;
@@ -326,8 +332,8 @@ void surf_hybrid([[resource_table]] PipelineConstants &pipe,
   /* ----- Radiance output ----- */
 
   /* Only output emission during the gbuffer pass. */
-  frag_out.radiance = float4(g_emission, 0.0f);
-  frag_out.radiance.rgb *= 1.0f - g_holdout;
-  frag_out.radiance.a = g_holdout;
+  frag_out.radiance = float4(sd.emission, 0.0f);
+  frag_out.radiance.rgb *= 1.0f - sd.holdout;
+  frag_out.radiance.a = sd.holdout;
 }
 }  // namespace eevee

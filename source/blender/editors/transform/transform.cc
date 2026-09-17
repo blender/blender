@@ -109,6 +109,8 @@ void setTransformViewMatrices(TransInfo *t)
     unit_m4(t->persinv);
     t->persp = RV3D_ORTHO;
   }
+
+  SET_FLAG_FROM_TEST(t->flag, is_negative_m4(t->viewmat), T_VIEW_NEGATIVE);
 }
 
 void setTransformViewAspect(TransInfo *t, float r_aspect[3])
@@ -2134,9 +2136,6 @@ bool initTransform(bContext *C, TransInfo *t, wmOperator *op, const wmEvent *eve
   }
 
   if (event) {
-    /* Keymap for shortcut header prints. */
-    t->keymap = WM_keymap_active(CTX_wm_manager(C), op->type->modalkeymap);
-
     /* Stupid code to have Ctrl-Click on gizmo work ok.
      *
      * Do this only for translation/rotation/resize because only these
@@ -2239,7 +2238,7 @@ bool initTransform(bContext *C, TransInfo *t, wmOperator *op, const wmEvent *eve
     if ((t->flag & T_EDIT) && t->obedit_type == OB_MESH) {
 
       FOREACH_TRANS_DATA_CONTAINER (t, tc) {
-        BMEditMesh *em = nullptr; /* BKE_editmesh_from_object(t->obedit); */
+        BMesh *bm = BKE_editmesh_bmesh_get_for_write(tc->obedit);
         bool do_skip = false;
 
         /* Currently only used for two of three most frequent transform ops,
@@ -2247,7 +2246,7 @@ bool initTransform(bContext *C, TransInfo *t, wmOperator *op, const wmEvent *eve
          * Note that scaling cannot be included here,
          * non-uniform scaling will affect normals. */
         if (ELEM(t->mode, TFM_TRANSLATION, TFM_ROTATION)) {
-          if (em->bm->totvertsel == em->bm->totvert) {
+          if (bm->totvertsel == bm->totvert) {
             /* No need to invalidate if whole mesh is selected. */
             do_skip = true;
           }
@@ -2259,10 +2258,10 @@ bool initTransform(bContext *C, TransInfo *t, wmOperator *op, const wmEvent *eve
         else if (!do_skip) {
           const bool preserve_clnor = RNA_property_boolean_get(op->ptr, prop);
           if (preserve_clnor) {
-            BKE_editmesh_lnorspace_update(em);
+            BKE_editmesh_lnorspace_update(bm);
             t->flag |= T_CLNOR_REBUILD;
           }
-          BM_lnorspace_invalidate(em->bm, true);
+          BM_lnorspace_invalidate(bm, true);
         }
       }
     }
@@ -2320,8 +2319,8 @@ wmOperatorStatus transformEnd(bContext *C, TransInfo *t)
     else {
       if (t->flag & T_CLNOR_REBUILD) {
         FOREACH_TRANS_DATA_CONTAINER (t, tc) {
-          BMEditMesh *em = BKE_editmesh_from_object(tc->obedit);
-          BM_lnorspace_rebuild(em->bm, true);
+          BMesh *bm = BKE_editmesh_bmesh_get_for_write(tc->obedit);
+          BM_lnorspace_rebuild(bm, true);
         }
       }
       exit_code = OPERATOR_FINISHED;

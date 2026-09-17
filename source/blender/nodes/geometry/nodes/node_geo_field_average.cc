@@ -5,6 +5,7 @@
 #include "BKE_attribute_math.hh"
 
 #include "BLI_array.hh"
+#include "BLI_array_utils.hh"
 #include "BLI_generic_virtual_array.hh"
 #include "BLI_math_vector_c.hh"
 #include "BLI_vector.hh"
@@ -19,8 +20,6 @@
 
 #include "UI_interface_layout.hh"
 #include "UI_resources.hh"
-
-#include <numeric>
 
 namespace blender::nodes::node_geo_field_average_cc {
 
@@ -194,7 +193,7 @@ class FieldAverageInput final : public bke::GeometryFieldInput {
 
       if (operation_ == Operation::Mean) {
         if (group_indices.is_single()) {
-          const T mean = std::reduce(values.begin(), values.end(), T()) / domain_size;
+          const T mean = array_utils::compute_sum<T>(values) / domain_size;
           g_outputs = VArray<T>::from_single(mean, domain_size);
         }
         else {

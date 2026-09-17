@@ -10,7 +10,9 @@
 #include "infos/eevee_geom_infos.hh"
 #include "infos/eevee_nodetree_infos.hh"
 
-#include "draw_curves_lib.glsl" /* IWYU pragma: export. For nodetree functions. */
+#include "draw_curves_lib.glsl"   /* IWYU pragma: export. For nodetree functions. */
+#include "draw_gsplat_lib.bsl.hh" /* IWYU pragma: export. For nodetree functions. */
+
 #include "eevee_nodetree_frag_lib.glsl"
 #include "eevee_sampling_lib.bsl.hh"
 #include "eevee_surf_common.bsl.hh"
@@ -18,14 +20,14 @@
 #include "eevee_utility_tx.bsl.hh"
 #include "eevee_velocity.bsl.hh"
 
-float4 closure_to_rgba_depth(Closure /*cl*/)
+float4 closure_to_rgba_depth([[resource_table]] KernelGlobals &kg, ShadingData &sd, Closure /*cl*/)
 {
   float4 out_color;
-  out_color.rgb = g_emission;
-  out_color.a = saturate(1.0f - average(g_transmittance));
+  out_color.rgb = sd.emission;
+  out_color.a = saturate(1.0f - average(sd.transmittance));
 
   /* Reset for the next closure tree. */
-  closure_weights_reset(0.0f);
+  closure_weights_reset(kg, sd, 0.0f);
 
   return out_color;
 }
@@ -54,13 +56,14 @@ template<> struct SurfaceDepthFragOut<true> {
 
 template<bool with_velocity>
 [[fragment]]
-void surf_depth([[resource_table]] PipelineConstants &pipe,
+void surf_depth([[resource_table]] KernelGlobals &kg,
+                [[resource_table]] PipelineConstants &pipe,
                 [[resource_table]] SurfaceDepth & /*srt*/,
                 [[resource_table]] const Uniform &uni,
                 [[resource_table]] const Sampling &sampling,
                 [[resource_table]] const UtilityTexture & /*util_tx*/,
                 [[resource_table]] const draw::View &views,
-                [[frag_coord]] const float4 /*frag_co*/,
+                [[frag_coord]] const float4 frag_co,
                 [[out]] SurfaceDepthFragOut<with_velocity> &frag_out,
                 [[front_facing]] const bool front_face)
 {
@@ -71,15 +74,16 @@ void surf_depth([[resource_table]] PipelineConstants &pipe,
   if (pipe.use_transparency) [[static_branch]] {
     const ViewMatrices view = views.get(0);
 
-    init_globals(uni, view, front_face);
+    ShadingData sd = init_globals(uni, view, front_face, frag_co);
 
-    nodetree_surface(0.0f);
+    nodetree_surface(kg, sd, 0.0f);
+    sd.transmittance = gsplat_transmittance(sd.transmittance);
 
     float noise_offset = sampling.rng_1D_get(SAMPLING_TRANSPARENCY);
     float threshold = hashed_transparency::alpha_threshold(
-        uni.pipeline_buf.alpha_hash_scale, noise_offset, g_data.P);
+        uni.pipeline_buf.alpha_hash_scale, noise_offset, sd.P);
 
-    float transparency = average(g_transmittance);
+    float transparency = average(sd.transmittance);
     if (transparency > threshold) {
       gpu_discard_fragment();
       return;
@@ -115,7 +119,8 @@ void surf_depth([[resource_table]] PipelineConstants &pipe,
   frag_out.object_id = interp_flat.resource_id_raw & uint(0xFFFF);
 }
 
-template void surf_depth<true>(PipelineConstants &,
+template void surf_depth<true>(KernelGlobals &,
+                               PipelineConstants &,
                                SurfaceDepth &,
                                const Uniform &,
                                const Sampling &,
@@ -124,7 +129,8 @@ template void surf_depth<true>(PipelineConstants &,
                                const float4,
                                SurfaceDepthFragOut<true> &,
                                const bool);
-template void surf_depth<false>(PipelineConstants &,
+template void surf_depth<false>(KernelGlobals &,
+                                PipelineConstants &,
                                 SurfaceDepth &,
                                 const Uniform &,
                                 const Sampling &,

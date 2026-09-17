@@ -393,4 +393,14 @@ bool BKE_blender_project_init(blender::StringRef name, blender::StringRef root_p
  */
 void BKE_blender_project_clear();
 
+/**
+ * If a file path is inside the project directory, make it relative using {project_root}.
+ *
+ * \param path_is_template: True if #path is already in template form, or false if a
+ * regular file path that still needs escaping.
+ */
+std::string BKE_blender_project_path_make_relative(StringRef path,
+                                                   bool path_is_template,
+                                                   const bke::BlenderProject &project);
+
 }  // namespace blender

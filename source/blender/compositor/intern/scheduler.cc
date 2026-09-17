@@ -17,6 +17,7 @@
 #include "BKE_compute_contexts.hh"
 #include "BKE_node.hh"
 #include "BKE_node_runtime.hh"
+#include "BKE_node_tree_zones.hh"
 #include "BKE_type_conversions.hh"
 
 #include "NOD_geo_index_switch.hh"
@@ -232,13 +233,16 @@ static bool is_input_needed(const Context &context,
 
 /* Get a stack of the output nodes whose result should be computed. This typically includes the
  * main output node like the Group Output node, as well as side-effect nodes if requested by the
- * context like the File Output, Viewer nodes, or group nodes that have those side effect nodes. */
+ * context like the File Output, Viewer nodes, or group nodes that have those side effect nodes. If
+ * zone is not nullptr, only output nodes in that zone will be included. */
 static Stack<const bNode *> get_output_nodes(const Context &context,
                                              const bNodeTree &node_group,
                                              const ComputeContext &compute_context,
+                                             const bke::bNodeTreeZone *zone,
                                              SocketResultFn socket_result_fn)
 {
   node_group.ensure_topology_cache();
+  const bke::bNodeTreeZones &zones = *node_group.zones();
   const SideEffectOutputTypes needed_side_effect_output_types =
       context.needed_side_effect_output_types();
 
@@ -247,6 +251,11 @@ static Stack<const bNode *> get_output_nodes(const Context &context,
   /* Add group nodes that contain File Output and Viewer nodes. */
   for (const bNode *group_node : node_group.group_nodes()) {
     if (group_node->is_muted() || !group_node->id) {
+      continue;
+    }
+
+    /* Only consider nodes in the same zone being scheduled. */
+    if (zones.get_zone_by_node(group_node->identifier) != zone) {
       continue;
     }
 
@@ -270,17 +279,31 @@ static Stack<const bNode *> get_output_nodes(const Context &context,
 
   /* Add Warning nodes. */
   for (const bNode *node : node_group.nodes_by_type("GeometryNodeWarning"_ustr)) {
-    if (!node->is_muted()) {
-      node_stack.push(node);
+    if (node->is_muted()) {
+      continue;
     }
+
+    /* Only consider nodes in the same zone being scheduled. */
+    if (zones.get_zone_by_node(node->identifier) != zone) {
+      continue;
+    }
+
+    node_stack.push(node);
   }
 
   /* Add File Output nodes. */
   if (flag_is_set(needed_side_effect_output_types, SideEffectOutputTypes::FileOutputNode)) {
     for (const bNode *node : node_group.nodes_by_type("CompositorNodeOutputFile"_ustr)) {
-      if (!node->is_muted()) {
-        node_stack.push(node);
+      if (node->is_muted()) {
+        continue;
       }
+
+      /* Only consider nodes in the same zone being scheduled. */
+      if (zones.get_zone_by_node(node->identifier) != zone) {
+        continue;
+      }
+
+      node_stack.push(node);
     }
   }
 
@@ -291,16 +314,23 @@ static Stack<const bNode *> get_output_nodes(const Context &context,
       is_active_context)
   {
     for (const bNode *node : node_group.nodes_by_type("CompositorNodeViewer"_ustr)) {
-      if (node->flag & NODE_DO_OUTPUT && !node->is_muted()) {
-        node_stack.push(node);
-        break;
+      if (!(node->flag & NODE_DO_OUTPUT) || node->is_muted()) {
+        continue;
       }
+
+      /* Only consider nodes in the same zone being scheduled. */
+      if (zones.get_zone_by_node(node->identifier) != zone) {
+        continue;
+      }
+
+      node_stack.push(node);
+      break;
     }
   }
 
-  /* Add Group Output node if any of its inputs are needed. */
+  /* Add Group Output node if any of its inputs are needed and we are not scheduling a zone. */
   const bNode *output_node = node_group.group_output_node();
-  if (output_node && !output_node->is_muted()) {
+  if (!zone && output_node && !output_node->is_muted()) {
     for (const bNodeSocket *input : output_node->input_sockets()) {
       if (!is_socket_available(input)) {
         continue;
@@ -311,6 +341,11 @@ static Stack<const bNode *> get_output_nodes(const Context &context,
         break;
       }
     }
+  }
+
+  /* Add the Zone Output node if we are scheduling a zone. */
+  if (zone) {
+    node_stack.push(zone->output_node());
   }
 
   return node_stack;
@@ -499,13 +534,17 @@ static NeededBuffers compute_number_of_needed_buffers(const Context &context,
   return needed_buffers;
 }
 
-/* Find the nodes that the given node depends on. Nodes already scheduled are not included.
- * Unneeded inputs are marked in the schedule. */
-static Vector<const bNode *> find_dependency_nodes(const Context &context,
-                                                   Schedule &schedule,
-                                                   const bNode &node,
-                                                   SocketResultFn socket_result_fn)
+/* Find the nodes that the given node depends on. Nodes already scheduled are not included. Only
+ * nodes in the given zone are included, except for zone output nodes of child zones, which acts as
+ * representatives for the zone in the schedule. Unneeded inputs are marked in the schedule. */
+static Vector<const bNode *> find_node_dependency_nodes(const Context &context,
+                                                        Schedule &schedule,
+                                                        const bNode &node,
+                                                        const bke::bNodeTreeZone *zone,
+                                                        SocketResultFn socket_result_fn)
 {
+  const bke::bNodeTreeZones &zones = *node.owner_tree().zones();
+
   VectorSet<const bNode *> dependency_nodes;
   for (const bNodeSocket *input : node.input_sockets()) {
     if (!is_socket_available(input)) {
@@ -527,10 +566,71 @@ static Vector<const bNode *> find_dependency_nodes(const Context &context,
       continue;
     }
 
+    /* Dependency node is not in the same zone, so skip it. */
+    const bke::bNodeTreeZone *dependency_node_zone = zones.get_zone_by_socket(*output);
+    if (dependency_node_zone != zone) {
+      continue;
+    }
+
     dependency_nodes.add(&output->owner_node());
   }
 
   return dependency_nodes.extract_vector();
+}
+
+/* Find the nodes that the given zone depends on, this includes both source nodes of zone border
+ * links as well as the dependencies of the inputs of the zone input node. Nodes already scheduled
+ * are not included. Only dependencies in the parent zone are included. */
+static Vector<const bNode *> find_zone_dependency_nodes(const Context &context,
+                                                        Schedule &schedule,
+                                                        const bke::bNodeTreeZone &zone,
+                                                        SocketResultFn socket_result_fn)
+{
+  VectorSet<const bNode *> dependency_nodes;
+  for (const bNodeLink *link : zone.border_links) {
+    if (!link->is_available()) {
+      continue;
+    }
+
+    /* The dependency node was already scheduled, so skip it. */
+    const bNodeSocket &output = *get_output_linked_to_input(*link->tosock);
+    if (schedule.nodes.contains(&output.owner_node())) {
+      continue;
+    }
+
+    /* Only consider nodes in the same zone being scheduled. */
+    if (zone.owner->get_zone_by_socket(output) != zone.parent_zone) {
+      continue;
+    }
+
+    dependency_nodes.add(link->fromnode);
+  }
+
+  Vector<const bNode *> zone_input_dependency_nodes = find_node_dependency_nodes(
+      context, schedule, *zone.input_node(), zone.parent_zone, socket_result_fn);
+  dependency_nodes.add_multiple(zone_input_dependency_nodes);
+  return dependency_nodes.extract_vector();
+}
+
+/* Find the nodes that the given node depends on. Nodes already scheduled are not included. Only
+ * nodes in the given zone are included, except for zone output nodes of child zones, which acts as
+ * representatives for the zone in the schedule. Unneeded inputs are marked in the schedule. */
+static Vector<const bNode *> find_dependency_nodes(const Context &context,
+                                                   Schedule &schedule,
+                                                   const bNode &node,
+                                                   const bke::bNodeTreeZone *zone,
+                                                   SocketResultFn socket_result_fn)
+{
+
+  /* If the node is a zone output of a child zone, we find the dependencies of the zone not its
+   * inner nodes. */
+  const bke::bNodeTreeZones &zones = *node.owner_tree().zones();
+  const bke::bNodeTreeZone *node_zone = zones.get_zone_by_node(node.identifier);
+  if (node_zone && node_zone->output_node() == &node && node_zone->parent_zone == zone) {
+    return find_zone_dependency_nodes(context, schedule, *node_zone, socket_result_fn);
+  }
+
+  return find_node_dependency_nodes(context, schedule, node, zone, socket_result_fn);
 }
 
 /* There are multiple different possible orders of evaluating a node graph, each of which needs
@@ -551,7 +651,8 @@ static Vector<const bNode *> find_dependency_nodes(const Context &context,
 Schedule compute_schedule(const Context &context,
                           const bNodeTree &node_group,
                           const ComputeContext &compute_context,
-                          const SocketResultFn socket_result_fn)
+                          const SocketResultFn socket_result_fn,
+                          const bke::bNodeTreeZone *zone)
 {
   Schedule schedule;
 
@@ -563,7 +664,7 @@ Schedule compute_schedule(const Context &context,
 
   /* Get a stack of the initial output nodes used to traverse the node group. */
   Stack<const bNode *> node_stack = get_output_nodes(
-      context, node_group, compute_context, socket_result_fn);
+      context, node_group, compute_context, zone, socket_result_fn);
 
   /* No output nodes, the node group has no effect, return an empty schedule. */
   if (node_stack.is_empty()) {
@@ -585,7 +686,7 @@ Schedule compute_schedule(const Context &context,
     const bNode &node = *node_stack.peek();
 
     Vector<const bNode *> dependency_nodes = find_dependency_nodes(
-        context, schedule, node, socket_result_fn);
+        context, schedule, node, zone, socket_result_fn);
 
     /* Push the dependency nodes to the node stack such that the node with the highest number of
      * needed buffers is scheduled first, so we push the nodes in ascending order. */

@@ -9,7 +9,8 @@
 #include "gpu_shader_utildefines.bsl.hh"
 
 [[node]]
-void node_bsdf_sheen(float4 color, float roughness, float3 N, float weight, Closure &result)
+void node_bsdf_sheen(
+    float4 color, float roughness, float3 N, float weight, ShadingData &sd, Closure &result)
 {
   color = max(color, float4(0.0f));
   roughness = saturate(roughness);
@@ -20,5 +21,5 @@ void node_bsdf_sheen(float4 color, float roughness, float3 N, float weight, Clos
   diffuse_data.color = color.rgb * weight;
   diffuse_data.N = N;
 
-  result = closure_eval(diffuse_data);
+  result = closure_eval(sd, diffuse_data);
 }

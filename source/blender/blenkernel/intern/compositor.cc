@@ -247,7 +247,7 @@ void rename_effect(Scene &scene,
   new_name.copy_utf8_truncated(effect.name);
   BLI_uniquename(&scene.compositor_effects,
                  &effect,
-                 CTX_DATA_(BLT_I18NCONTEXT_ID_SCENE, "Compositor Effect"),
+                 CTX_DATA_(BLT_I18NCONTEXT_ID_SCENE, "Scene Effect"),
                  '.',
                  offsetof(SceneCompositorEffect, name),
                  sizeof(effect.name));

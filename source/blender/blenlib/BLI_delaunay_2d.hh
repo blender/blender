@@ -129,7 +129,9 @@ namespace meshintersect {
  * implied by the faces will be inferred.
  *
  * The edges are given by pairs of vertex indices.
- * The faces are given as groups of vertex indices, in counterclockwise order.
+ * The faces are given as groups of vertex indices, in counterclockwise order
+ * when original face ids are required (#CDT_ORIG_FACES) or for #CDT_CONSTRAINTS_VALID_BMESH.
+ * `*_NONZERO` outputs use the orientation as the winding, even-odd filling ignores it.
  *
  * The edges implied by the faces are automatically added
  * and need not be put in the edges array, which is intended

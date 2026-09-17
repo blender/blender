@@ -100,15 +100,15 @@ static void bmesh_vert_edge_face_layer_selected_values_set(BMesh &bm,
  * For face select mode, set face corner values of any selected face. For edge and vertex
  * select mode, set face corner values of loops connected to selected vertices.
  */
-static void bmesh_loop_layer_selected_values_set(BMEditMesh &em,
+static void bmesh_loop_layer_selected_values_set(BMesh &bm,
+                                                 const short selectmode,
                                                  const GPointer value,
                                                  const int offset)
 {
   /* In the separate select modes we may set the same loop values more than once.
    * This is okay because we're always setting the same value. */
-  BMesh &bm = *em.bm;
   const CPPType &type = *value.type();
-  if (em.selectmode & SCE_SELECT_FACE) {
+  if (selectmode & SCE_SELECT_FACE) {
     BMIter face_iter;
     BMFace *face;
     BM_ITER_MESH (face, &face_iter, &bm, BM_FACES_OF_MESH) {
@@ -121,7 +121,7 @@ static void bmesh_loop_layer_selected_values_set(BMEditMesh &em,
       }
     }
   }
-  if (em.selectmode & (SCE_SELECT_VERTEX | SCE_SELECT_EDGE)) {
+  if (selectmode & (SCE_SELECT_VERTEX | SCE_SELECT_EDGE)) {
     BMIter vert_iter;
     BMVert *vert;
     BM_ITER_MESH (vert, &vert_iter, &bm, BM_VERTS_OF_MESH) {
@@ -146,10 +146,10 @@ static wmOperatorStatus mesh_set_attribute_exec(bContext *C, wmOperator *op)
       *bmain, scene, view_layer, CTX_wm_view3d(C));
 
   Mesh *active_mesh = ED_mesh_context(C);
+  BMesh *active_bm = BKE_editmesh_bmesh_get_for_write(active_mesh);
   AttributeOwner active_owner = AttributeOwner::from_id(&active_mesh->id);
   const StringRef name = *BKE_attributes_active_name_get(active_owner);
-  const BMDataLayerLookup active_attr = BM_data_layer_lookup(*active_mesh->runtime->edit_mesh->bm,
-                                                             name);
+  const BMDataLayerLookup active_attr = BM_data_layer_lookup(*active_bm, name);
   const bke::AttrType active_type = active_attr.type;
   const CPPType &type = bke::attribute_type_to_cpp_type(active_type);
 
@@ -164,7 +164,7 @@ static wmOperatorStatus mesh_set_attribute_exec(bContext *C, wmOperator *op)
   for (Object *object : objects) {
     Mesh *mesh = id_cast<Mesh *>(object->data);
     BMEditMesh *em = BKE_editmesh_from_object(object);
-    BMesh *bm = em->bm;
+    BMesh *bm = BKE_editmesh_bmesh_get_for_write(mesh);
     BMDataLayerLookup attr = BM_data_layer_lookup(*bm, name);
     if (!attr) {
       continue;
@@ -193,7 +193,7 @@ static wmOperatorStatus mesh_set_attribute_exec(bContext *C, wmOperator *op)
             *bm, BM_FACES_OF_MESH, dst_value, attr.offset);
         break;
       case bke::AttrDomain::Corner:
-        bmesh_loop_layer_selected_values_set(*em, dst_value, attr.offset);
+        bmesh_loop_layer_selected_values_set(*bm, em->selectmode, dst_value, attr.offset);
         break;
       default:
         BLI_assert_unreachable();
@@ -216,11 +216,11 @@ static wmOperatorStatus mesh_set_attribute_invoke(bContext *C,
                                                   const wmEvent *event)
 {
   Mesh *mesh = ED_mesh_context(C);
-  BMesh *bm = mesh->runtime->edit_mesh->bm;
+  BMesh *bm = BKE_editmesh_bmesh_get_for_write(mesh);
   AttributeOwner owner = AttributeOwner::from_id(&mesh->id);
 
   const StringRef name = *BKE_attributes_active_name_get(owner);
-  const BMDataLayerLookup attr = BM_data_layer_lookup(*mesh->runtime->edit_mesh->bm, name);
+  const BMDataLayerLookup attr = BM_data_layer_lookup(*bm, name);
   const bke::AttrType data_type = attr.type;
   const bke::AttrDomain domain = attr.domain;
   const BMElem *active_elem = BM_mesh_active_elem_get(bm);
@@ -252,9 +252,10 @@ static void mesh_set_attribute_ui(bContext *C, wmOperator *op)
   layout.use_property_decorate_set(false);
 
   Mesh *mesh = ED_mesh_context(C);
+  BMesh *bm = BKE_editmesh_bmesh_get_for_write(mesh);
   AttributeOwner owner = AttributeOwner::from_id(&mesh->id);
   const StringRef name = *BKE_attributes_active_name_get(owner);
-  const BMDataLayerLookup attr = BM_data_layer_lookup(*mesh->runtime->edit_mesh->bm, name);
+  const BMDataLayerLookup attr = BM_data_layer_lookup(*bm, name);
   const StringRefNull prop_name = geometry::rna_property_name_for_type(attr.type);
   layout.prop(op->ptr, prop_name, UI_ITEM_NONE, name, ICON_NONE);
 }

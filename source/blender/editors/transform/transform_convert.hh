@@ -326,6 +326,7 @@ struct TransMeshDataCrazySpace {
 };
 
 void transform_convert_mesh_islands_calc(BMEditMesh *em,
+                                         BMesh *bm,
                                          bool calc_single_islands,
                                          bool calc_island_center,
                                          bool calc_island_axismtx,
@@ -341,6 +342,7 @@ void transform_convert_mesh_connectivity_distance(BMesh *bm,
                                                   float *dists,
                                                   int *index);
 void transform_convert_mesh_mirrordata_calc(BMEditMesh *em,
+                                            BMesh *bm,
                                             bool use_select,
                                             bool use_topology,
                                             const bool mirror_axis[3],
@@ -352,7 +354,6 @@ void transform_convert_mesh_mirrordata_free(TransMirrorData *mirror_data);
  */
 void transform_convert_mesh_crazyspace_detect(TransInfo *t,
                                               TransDataContainer *tc,
-                                              BMEditMesh *em,
                                               TransMeshDataCrazySpace *r_crazyspace_data);
 void transform_convert_mesh_crazyspace_transdata_set(const float mtx[3][3],
                                                      const float smtx[3][3],

@@ -954,7 +954,9 @@ static void action_space_blend_read_data(BlendDataReader * /*reader*/, SpaceLink
 
 static void action_space_blend_write(BlendWriter *writer, SpaceLink *sl)
 {
-  writer->write_struct_cast<SpaceAction>(sl);
+  writer->write_struct_cast<SpaceAction>(sl, [](BlendStructWriter<SpaceAction> &struct_writer) {
+    struct_writer.shallow_data.runtime = {};
+  });
 }
 
 void ED_spacetype_action()

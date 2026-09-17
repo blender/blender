@@ -1109,34 +1109,45 @@ void WorkspaceStatus::opmodal(std::string text,
                               const int propvalue,
                               const bool inverted)
 {
-  wmKeyMap *keymap = WM_keymap_active(wm_, ot->modalkeymap);
-  if (keymap) {
-    const wmKeyMapItem *kmi = WM_modalkeymap_find_propvalue(keymap, propvalue);
-    if (kmi) {
-#ifdef WITH_HEADLESS
-      int icon = 0;
-#else
-      int icon = ui::icon_from_event_type(kmi->type, kmi->val);
-#endif
-      if (kmi->shift == KM_MOD_HELD) {
-        ed_workspace_status_item(workspace_, {}, ICON_EVENT_SHIFT, 0.0f, inverted);
-      }
-      if (kmi->ctrl == KM_MOD_HELD) {
-        ed_workspace_status_item(workspace_, {}, ICON_EVENT_CTRL, 0.0f, inverted);
-      }
-      if (kmi->alt == KM_MOD_HELD) {
-        ed_workspace_status_item(workspace_, {}, ICON_EVENT_ALT, 0.0f, inverted);
-      }
-      if (kmi->oskey == KM_MOD_HELD) {
-        ed_workspace_status_item(workspace_, {}, ICON_EVENT_OS, 0.0f, inverted);
-      }
-      if (!ELEM(kmi->hyper, KM_NOTHING, KM_ANY)) {
-        ed_workspace_status_item(workspace_, {}, ICON_EVENT_HYPER, 0.0f, inverted);
-      }
-      ed_workspace_status_icon_item(workspace_, icon, inverted);
-      ed_workspace_status_text_item(workspace_, std::move(text));
-    }
+  const wmKeyMap *keymap = WM_keymap_active(wm_, ot->modalkeymap);
+  if (keymap == nullptr) {
+    return;
   }
+  this->modal_keymap(std::move(text), *keymap, propvalue, inverted);
+}
+
+void WorkspaceStatus::modal_keymap(std::string text,
+                                   const wmKeyMap &keymap,
+                                   const int propvalue,
+                                   const bool inverted)
+{
+  const wmKeyMapItem *kmi = WM_modalkeymap_find_propvalue(&keymap, propvalue);
+  if (kmi == nullptr) {
+    return;
+  }
+
+#ifdef WITH_HEADLESS
+  int icon = 0;
+#else
+  int icon = ui::icon_from_event_type(kmi->type, kmi->val);
+#endif
+  if (kmi->shift == KM_MOD_HELD) {
+    ed_workspace_status_item(workspace_, {}, ICON_EVENT_SHIFT, 0.0f, inverted);
+  }
+  if (kmi->ctrl == KM_MOD_HELD) {
+    ed_workspace_status_item(workspace_, {}, ICON_EVENT_CTRL, 0.0f, inverted);
+  }
+  if (kmi->alt == KM_MOD_HELD) {
+    ed_workspace_status_item(workspace_, {}, ICON_EVENT_ALT, 0.0f, inverted);
+  }
+  if (kmi->oskey == KM_MOD_HELD) {
+    ed_workspace_status_item(workspace_, {}, ICON_EVENT_OS, 0.0f, inverted);
+  }
+  if (!ELEM(kmi->hyper, KM_NOTHING, KM_ANY)) {
+    ed_workspace_status_item(workspace_, {}, ICON_EVENT_HYPER, 0.0f, inverted);
+  }
+  ed_workspace_status_icon_item(workspace_, icon, inverted);
+  ed_workspace_status_text_item(workspace_, std::move(text));
 }
 
 void ED_workspace_status_text(bContext *C, const char *str)
@@ -3043,6 +3054,13 @@ void ED_area_newspace(bContext *C, ScrArea *area, int type, const bool skip_regi
       area->butspacetype_subtype = st->space_subtype_get(area);
     }
     st->space_subtype_set(area, area->butspacetype_subtype);
+
+    /* The sub-type sets the mode which selects the tool. */
+    if ((1 << area->spacetype) & WM_TOOLSYSTEM_SPACE_MASK_MODE_FROM_SPACE) {
+      area->runtime.tool = nullptr;
+      area->runtime.is_tool_set = false;
+      area->flag |= AREA_FLAG_ACTIVE_TOOL_UPDATE;
+    }
   }
 
   /* Whether setting a subtype or not we need to clear this value. Not just unneeded

@@ -486,39 +486,6 @@ void BlenderSync::sync_integrator(blender::ViewLayer &b_view_layer,
     integrator->set_adaptive_min_samples(get_int(cscene, "adaptive_min_samples"));
   }
 
-  float scrambling_distance = get_float(cscene, "scrambling_distance");
-  const bool auto_scrambling_distance = get_boolean(cscene, "auto_scrambling_distance");
-  if (auto_scrambling_distance) {
-    if (samples == 0) {
-      /* If samples is 0, then viewport rendering is set to render infinitely. In that case we
-       * override the samples value with 4096 so the Automatic Scrambling Distance algorithm
-       * picks a Scrambling Distance value with a good balance of performance and correlation
-       * artifacts when rendering to high sample counts. */
-      samples = 4096;
-    }
-
-    if (use_adaptive_sampling) {
-      /* If Adaptive Sampling is enabled, use "min_samples" in the Automatic Scrambling Distance
-       * algorithm to avoid artifacts common with Adaptive Sampling + Scrambling Distance. */
-      const AdaptiveSampling adaptive_sampling = integrator->get_adaptive_sampling();
-      samples = min(samples, adaptive_sampling.min_samples);
-    }
-    scrambling_distance *= 4.0f / sqrtf(samples);
-  }
-
-  /* Only use scrambling distance in the viewport if user wants to. */
-  const bool preview_scrambling_distance = get_boolean(cscene, "preview_scrambling_distance");
-  if ((preview && !preview_scrambling_distance) ||
-      sampling_pattern != SAMPLING_PATTERN_TABULATED_SOBOL)
-  {
-    scrambling_distance = 1.0f;
-  }
-
-  if (scrambling_distance != 1.0f) {
-    LOG_INFO << "Using scrambling distance: " << scrambling_distance;
-  }
-  integrator->set_scrambling_distance(scrambling_distance);
-
   if (get_boolean(cscene, "use_fast_gi")) {
     if (preview) {
       integrator->set_ao_bounces(get_int(cscene, "ao_bounces"));
@@ -583,6 +550,44 @@ void BlenderSync::sync_integrator(blender::ViewLayer &b_view_layer,
     integrator->set_denoiser_quality(denoise_params.quality);
     integrator->set_denoiser_upscale_factor(denoise_params.upscale_factor);
   }
+
+  float scrambling_distance = get_float(cscene, "scrambling_distance");
+  const bool auto_scrambling_distance = get_boolean(cscene, "auto_scrambling_distance");
+  if (auto_scrambling_distance) {
+    if (samples == 0) {
+      /* If samples is 0, then viewport rendering is set to render infinitely. In that case we
+       * override the samples value with 4096 so the Automatic Scrambling Distance algorithm
+       * picks a Scrambling Distance value with a good balance of performance and correlation
+       * artifacts when rendering to high sample counts. */
+      samples = 4096;
+    }
+
+    if (use_adaptive_sampling) {
+      /* If Adaptive Sampling is enabled, use "min_samples" in the Automatic Scrambling Distance
+       * algorithm to avoid artifacts common with Adaptive Sampling + Scrambling Distance. */
+      const AdaptiveSampling adaptive_sampling = integrator->get_adaptive_sampling();
+      samples = min(samples, adaptive_sampling.min_samples);
+    }
+    scrambling_distance *= 4.0f / sqrtf(samples);
+  }
+
+  /* Only use scrambling distance in the viewport if user wants to and they're not using DLSS.
+   * DLSS typically accumulates multiple 1spp renders over time.
+   * In an ideal world this would converge to a correct result, but in most situations with
+   * scrambling, DLSS disregards previous samples since they're so different, ultimately leading to
+   * flickering and artifacts. */
+  const bool preview_scrambling_distance = get_boolean(cscene, "preview_scrambling_distance");
+  if ((preview && !preview_scrambling_distance) ||
+      sampling_pattern != SAMPLING_PATTERN_TABULATED_SOBOL ||
+      (denoise_params.use && denoise_params.type == DENOISER_DLSS))
+  {
+    scrambling_distance = 1.0f;
+  }
+
+  if (scrambling_distance != 1.0f) {
+    LOG_INFO << "Using scrambling distance: " << scrambling_distance;
+  }
+  integrator->set_scrambling_distance(scrambling_distance);
 
   /* UPDATE_NONE as we don't want to tag the integrator as modified (this was done by the
    * set calls above), but we need to make sure that the dependent things are tagged. */
@@ -1148,6 +1153,16 @@ DenoiseParams BlenderSync::get_denoise_params(blender::Scene &b_scene,
     DENOISER_INPUT_NUM,
   };
 
+  enum DenoiserUpscaleQuality {
+    DENOISER_UPSCALE_NONE = 0,
+    DENOISER_UPSCALE_QUALITY = 1,
+    DENOISER_UPSCALE_BALANCED = 2,
+    DENOISER_UPSCALE_PERFORMANCE = 3,
+    DENOISER_UPSCALE_ULTRA_PERFORMANCE = 4,
+
+    DENOISER_UPSCALE_NUM,
+  };
+
   DenoiseParams denoising;
   blender::PointerRNA scene_rna_ptr = RNA_id_pointer_create(&b_scene.id);
   blender::PointerRNA cscene = RNA_pointer_get(&scene_rna_ptr, "cycles");
@@ -1197,6 +1212,48 @@ DenoiseParams BlenderSync::get_denoise_params(blender::Scene &b_scene,
       if (denoising.type == DENOISER_NONE) {
         denoising.use = false;
       }
+    }
+
+    if (denoising.type == DENOISER_DLSS) {
+      /* Disable denoising when DLSS is not supported. */
+      if (!Denoiser::is_device_supported(denoising.type, denoise_device_info)) {
+        denoising.use = false;
+      }
+
+      denoising.start_sample = 0;
+
+      switch ((DenoiserUpscaleQuality)get_enum(cscene,
+                                               "preview_denoising_upscale_quality",
+                                               DENOISER_UPSCALE_NUM,
+                                               DENOISER_UPSCALE_BALANCED))
+      {
+        case DENOISER_UPSCALE_NONE:
+          denoising.quality = DENOISER_QUALITY_HIGH;
+          denoising.upscale_factor = 1.0f;
+          break;
+        case DENOISER_UPSCALE_QUALITY:
+          denoising.quality = DENOISER_QUALITY_HIGH;
+          denoising.upscale_factor = 1.0f / 0.66666667f;
+          break;
+        default:
+        case DENOISER_UPSCALE_BALANCED:
+          denoising.quality = DENOISER_QUALITY_BALANCED;
+          denoising.upscale_factor = 1.0f / 0.58f;
+          break;
+        case DENOISER_UPSCALE_PERFORMANCE:
+          denoising.quality = DENOISER_QUALITY_FAST;
+          denoising.upscale_factor = 2.0f;
+          break;
+        case DENOISER_UPSCALE_ULTRA_PERFORMANCE:
+          denoising.quality = DENOISER_QUALITY_FAST;
+          denoising.upscale_factor = 3.0f;
+          break;
+      }
+
+      denoising.passes = DENOISER_PASS_ALBEDO | DENOISER_PASS_SPECULAR_ALBEDO |
+                         DENOISER_PASS_NORMAL | DENOISER_PASS_ROUGHNESS | DENOISER_PASS_DEPTH |
+                         DENOISER_PASS_MOTION | DENOISER_PASS_SPECULAR_MOTION;
+      return denoising;
     }
   }
 

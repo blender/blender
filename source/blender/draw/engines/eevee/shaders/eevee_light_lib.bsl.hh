@@ -6,8 +6,7 @@
 
 #include "draw_math_geom_lib.glsl"
 #include "eevee_light_shared.hh"
-#include "eevee_ltc_lib.bsl.hh"
-#include "eevee_ltc_lut_lib.bsl.hh"
+#include "gpu_shader_math_base.bsl.hh"
 
 /* Attenuation cutoff needs to be the same in the shadow loop and the light eval loop. */
 #define LIGHT_ATTENUATION_THRESHOLD 1e-6f
@@ -17,55 +16,48 @@
  * \{ */
 
 struct LightVector {
-  /* World space light vector. From the shading point to the light center. Normalized. */
+  /* Unit world space light vector, from the shading point to the light center. */
   float3 L;
   /* Distance from the shading point to the light center. */
   float dist;
-};
 
-LightVector light_vector_get(LightData light, const bool is_directional, float3 P)
-{
-  LightVector lv;
-  if (is_directional) {
-    lv.L = light.sun().direction;
-    lv.dist = 1.0f;
-  }
-  else {
-    lv.L = light.position() - P;
-    float inv_distance = inversesqrt(length_squared(lv.L));
-    lv.L *= inv_distance;
-    lv.dist = 1.0f / inv_distance;
-  }
-  return lv;
-}
-
-/* Light vector to the closest point in the light shape. */
-LightVector light_shape_vector_get(LightData light, const bool is_directional, float3 P)
-{
-  if (!is_directional && is_area_light(light.type)) {
-    LightAreaData area = light.area();
-
-    float3 lP = transform_point_inversed(light.object_to_world, P);
-    float2 ls_closest_point = lP.xy;
-    if (light.type == LIGHT_ELLIPSE) {
-      ls_closest_point /= max(1.0f, length(ls_closest_point / area.size));
+  /* Construct a vector to the light center. */
+  static LightVector get(LightData light, const bool is_directional, float3 P)
+  {
+    if (is_directional) {
+      return LightVector{.L = light.sun().direction, .dist = 1.0f};
     }
-    else {
-      ls_closest_point = clamp(ls_closest_point, -area.size, area.size);
-    }
-    float3 ws_closest_point = transform_point(light.object_to_world,
-                                              float3(ls_closest_point, 0.0f));
-
-    float3 L = ws_closest_point - P;
-    float inv_distance = inversesqrt(length_squared(L));
     LightVector lv;
-    lv.L = L * inv_distance;
-    lv.dist = 1.0f / inv_distance;
+    lv.L = normalize_and_get_length(light.position() - P, lv.dist);
     return lv;
   }
-  /* TODO(@fclem): other light shape? */
-  return light_vector_get(light, is_directional, P);
-}
+
+  /* Construct a vector to the closest point in the light shape. */
+  static LightVector get_shape_closest(LightData light, const bool is_directional, float3 P)
+  {
+    if (!is_directional && is_area_light(light.type)) {
+      LightAreaData area = light.area();
+
+      float3 lP = transform_point_inversed(light.object_to_world, P);
+      float2 ls_closest_point = lP.xy;
+      if (light.type == LIGHT_ELLIPSE) {
+        ls_closest_point /= max(1.0f, length(ls_closest_point / area.size));
+      }
+      else {
+        ls_closest_point = clamp(ls_closest_point, -area.size, area.size);
+      }
+      float3 ws_closest_point = transform_point(light.object_to_world,
+                                                float3(ls_closest_point, 0.0f));
+
+      LightVector lv;
+      lv.L = normalize_and_get_length(ws_closest_point - P, lv.dist);
+      return lv;
+    }
+
+    /* TODO(@fclem): other light shape? */
+    return LightVector::get(light, is_directional, P);
+  }
+};
 
 float3 light_world_to_local_direction(LightData light, float3 L)
 {
@@ -122,10 +114,8 @@ float light_shape_radius(LightData light)
 
 /**
  * Fade light influence when surface is not facing the light.
- * This is needed because LTC leaks light at roughness not 0 or 1
- * when the light is below the horizon.
- * L is normalized vector to light shape center.
- * Ng is ideally the geometric normal.
+ * This is used in thickness from shadow.
+ * Note: Ng is ideally the geometric normal.
  */
 float light_attenuation_facing(
     LightData light, float3 L, float distance_to_light, float3 Ng, const bool is_transmission)
@@ -196,81 +186,81 @@ float light_sphere_disk_radius(float sphere_radius, float distance_to_sphere)
          inversesqrt(max(1e-8f, 1.0f - square(sphere_radius / distance_to_sphere)));
 }
 
-struct LightVertices {
+/**
+ * Stores a world-space polygon/ellipse and some information about the plane this
+ * shape embeds on, used in the LTC evaluation.
+ */
+struct LightShape {
+  /* Corner vertices. */
   float3 v[4];
-};
+  /* Normal defining light plane. */
+  float3 N;
+  /* Radius of disk encapsulating shape on light plane,
+   * if the disk is projected on the unit sphere. */
+  float disk_radius_projected;
 
-LightVertices light_shape_corners(LightData light, LightVector lv)
-{
-  float3 Px = light.x_axis();
-  float3 Py = light.y_axis();
+  static LightShape get(LightData light, LightVector lv)
+  {
+    LightShape shape;
 
-  LightVertices vertices;
+    float3 Px = light.x_axis();
+    float3 Py = light.y_axis();
 
-  if (light.type == LIGHT_RECT) {
-    LightAreaData area = light.area();
+    if (light.type == LIGHT_RECT) {
+      LightAreaData area = light.area();
 
-    vertices.v[0] = Px * area.size.x + Py * -area.size.y;
-    vertices.v[1] = Px * area.size.x + Py * area.size.y;
-    vertices.v[2] = -vertices.v[0];
-    vertices.v[3] = -vertices.v[1];
+      shape.v[0] = Px * area.size.x + Py * -area.size.y;
+      shape.v[1] = Px * area.size.x + Py * area.size.y;
+      shape.v[2] = -shape.v[0];
+      shape.v[3] = -shape.v[1];
 
-    float3 L = lv.L * lv.dist;
-    vertices.v[0] += L;
-    vertices.v[1] += L;
-    vertices.v[2] += L;
-    vertices.v[3] += L;
-  }
-  else {
-    if (!is_area_light(light.type)) {
-      make_orthonormal_basis(lv.L, Px, Py);
-    }
+      float3 L = lv.L * lv.dist;
+      shape.v[0] += L;
+      shape.v[1] += L;
+      shape.v[2] += L;
+      shape.v[3] += L;
 
-    float2 size;
-    if (is_sphere_light(light.type)) {
-      /* Spherical omni or spot light. */
-      size = float2(light_sphere_disk_radius(light.local().local.shape_radius, lv.dist));
-    }
-    else if (is_oriented_disk_light(light.type)) {
-      /* View direction-aligned disk. */
-      size = float2(light.local().local.shape_radius);
-    }
-    else if (is_sun_light(light.type)) {
-      size = float2(light.sun().shape_radius);
+      shape.N = cross(Px, Py); /* Why N != light.z_axis()? */
+      shape.disk_radius_projected = 0.5f * distance(shape.v[0], shape.v[2]) / lv.dist;
     }
     else {
-      /* Area light. */
-      size = float2(light.area().size);
+      if (!is_area_light(light.type)) {
+        make_orthonormal_basis(lv.L, Px, Py);
+      }
+
+      float2 size;
+      if (is_sphere_light(light.type)) {
+        /* Spherical omni or spot light. */
+        size = float2(light_sphere_disk_radius(light.local().local.shape_radius, lv.dist));
+      }
+      else if (is_oriented_disk_light(light.type)) {
+        /* View direction-aligned disk. */
+        size = float2(light.local().local.shape_radius);
+      }
+      else if (is_sun_light(light.type)) {
+        size = float2(light.sun().shape_radius);
+      }
+      else {
+        /* Area light. */
+        size = float2(light.area().size);
+      }
+
+      shape.v[0] = Px * -size.x + Py * -size.y;
+      shape.v[1] = Px * size.x + Py * -size.y;
+      shape.v[2] = -shape.v[0];
+
+      float3 L = lv.L * lv.dist;
+      shape.v[0] += L;
+      shape.v[1] += L;
+      shape.v[2] += L;
+
+      shape.N = cross(Px, Py); /* Why N != light.z_axis()? */
+      shape.disk_radius_projected = max(size.x, size.y) / lv.dist;
     }
 
-    vertices.v[0] = Px * -size.x + Py * -size.y;
-    vertices.v[1] = Px * size.x + Py * -size.y;
-    vertices.v[2] = -vertices.v[0];
-
-    float3 L = lv.L * lv.dist;
-    vertices.v[0] += L;
-    vertices.v[1] += L;
-    vertices.v[2] += L;
+    return shape;
   }
-  return vertices;
-}
-
-float light_ltc(sampler2DArray utility_tx,
-                LightData light,
-                eevee::LTCData ltc_data,
-                LightVector lv,
-                LightVertices vertices)
-{
-  if (is_sphere_light(light.type) && lv.dist < light.local().local.shape_radius) {
-    /* Inside the sphere light, integrate over the hemisphere. */
-    return 1.0f;
-  }
-
-  if (light.type == LIGHT_RECT) {
-    return eevee::ltc::evaluate_quad(utility_tx, ltc_data, vertices.v);
-  }
-  return eevee::ltc::evaluate_disk(utility_tx, ltc_data, vertices.v);
-}
+};
 
 namespace eevee {
 namespace light {

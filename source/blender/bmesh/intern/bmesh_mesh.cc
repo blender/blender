@@ -1314,12 +1314,12 @@ void BM_mesh_toolflags_set(BMesh *bm, bool use_toolflags)
 /** \name BMesh Coordinate Access
  * \{ */
 
-void BM_mesh_vert_coords_get(BMesh *bm, MutableSpan<float3> positions)
+void BM_mesh_vert_coords_get(const BMesh *bm, MutableSpan<float3> positions)
 {
   BMIter iter;
   BMVert *v;
   int i;
-  BM_ITER_MESH_INDEX (v, &iter, bm, BM_VERTS_OF_MESH, i) {
+  BM_ITER_MESH_INDEX (v, &iter, const_cast<BMesh *>(bm), BM_VERTS_OF_MESH, i) {
     positions[i] = v->co;
   }
 }
@@ -1334,7 +1334,7 @@ void BM_mesh_vert_normals_get(BMesh *bm, MutableSpan<float3> normals)
   }
 }
 
-Array<float3> BM_mesh_vert_coords_alloc(BMesh *bm)
+Array<float3> BM_mesh_vert_coords_alloc(const BMesh *bm)
 {
   Array<float3> positions(bm->totvert);
   BM_mesh_vert_coords_get(bm, positions);

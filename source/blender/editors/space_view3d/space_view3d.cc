@@ -29,11 +29,11 @@
 #include "BLI_string_utf8.hh"
 #include "BLI_utildefines.hh"
 
+#include "BKE_annotations.h"
 #include "BKE_asset.hh"
 #include "BKE_compositor.hh"
 #include "BKE_context.hh"
 #include "BKE_global.hh"
-#include "BKE_gpencil_legacy.h"
 #include "BKE_idprop.hh"
 #include "BKE_layer.hh"
 #include "BKE_lib_id.hh"
@@ -1238,7 +1238,7 @@ std::array<const char *, 4> ED_view3d_buttons_contexts(const bContext *C)
       ARRAY_SET_ITEMS(contexts, ".grease_pencil_paint");
       break;
     case CTX_MODE_SCULPT_GREASE_PENCIL:
-      ARRAY_SET_ITEMS(contexts, ".paint_common", ".grease_pencil_sculpt");
+      ARRAY_SET_ITEMS(contexts, ".grease_pencil_sculpt");
       break;
     case CTX_MODE_WEIGHT_GREASE_PENCIL:
       ARRAY_SET_ITEMS(contexts, ".greasepencil_weight");
@@ -1631,7 +1631,7 @@ static void view3d_space_blend_read_data(BlendDataReader *reader, SpaceLink *sl)
   v3d->runtime = View3D_Runtime{};
 
   if (BLO_read_struct_nonnull(reader, bGPdata, &v3d->gpd)) {
-    BKE_gpencil_blend_read_data(reader, v3d->gpd);
+    BKE_annotations_blend_read_data(reader, v3d->gpd);
   }
   BLO_read_struct(reader, RegionView3D, &v3d->localvd);
 
@@ -1651,10 +1651,15 @@ static void view3d_space_blend_read_data(BlendDataReader *reader, SpaceLink *sl)
 static void view3d_space_blend_write(BlendWriter *writer, SpaceLink *sl)
 {
   View3D *v3d = reinterpret_cast<View3D *>(sl);
-  writer->write_struct(v3d);
+  writer->write_struct(v3d, [](BlendStructWriter<View3D> &struct_writer) {
+    struct_writer.shallow_data.runtime = {};
+  });
 
   if (v3d->localvd) {
-    writer->write_struct(v3d->localvd);
+    writer->write_struct(v3d->localvd, [](BlendStructWriter<View3D> &struct_writer) {
+      View3D &shallow_v3d = struct_writer.shallow_data;
+      memset((void *)&shallow_v3d.runtime, 0, sizeof(shallow_v3d.runtime));
+    });
   }
 
   BKE_screen_view3d_shading_blend_write(writer, &v3d->shading);

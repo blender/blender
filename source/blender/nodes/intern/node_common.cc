@@ -586,7 +586,6 @@ void register_node_type_frame()
   ntype->default_width = bke::NodeWidth::_160;
   ntype->minwidth = 100;
   ntype->maxwidth = FLT_MAX;
-  ntype->flag |= NODE_BACKGROUND;
 
   bke::node_register_type(*ntype);
 }

@@ -278,19 +278,19 @@ static bool increase_contrast_mask_mesh(const Depsgraph &depsgraph,
                                         const Object &object,
                                         const Span<bool> hide_vert,
                                         bke::pbvh::MeshNode &node,
-                                        FilterLocalData &tls,
                                         MutableSpan<float> mask)
 {
-  const Span<int> verts = hide::node_visible_verts(node, hide_vert, tls.visible_verts);
+  Vector<int, bke::pbvh::MESH_LEAF_LIMIT> index_data;
+  const Span<int> verts = hide::node_visible_verts(node, hide_vert, index_data);
 
-  const Span<float> node_mask = gather_data_mesh(mask.as_span(), verts, tls.node_mask);
+  Array<float, bke::pbvh::MESH_LEAF_LIMIT> node_mask(verts.size());
+  gather_data_mesh(mask.as_span(), verts, node_mask.as_mutable_span());
 
-  tls.new_mask.resize(verts.size());
-  const MutableSpan<float> new_mask = tls.new_mask;
+  Array<float, bke::pbvh::MESH_LEAF_LIMIT> new_mask(verts.size());
   mask_increase_contrast(node_mask, new_mask);
   copy_old_hidden_mask_mesh(verts, hide_vert, mask, new_mask);
 
-  if (node_mask == new_mask.as_span()) {
+  if (node_mask.as_span() == new_mask.as_span()) {
     return false;
   }
 
@@ -304,19 +304,19 @@ static bool decrease_contrast_mask_mesh(const Depsgraph &depsgraph,
                                         const Object &object,
                                         const Span<bool> hide_vert,
                                         bke::pbvh::MeshNode &node,
-                                        FilterLocalData &tls,
                                         MutableSpan<float> mask)
 {
-  const Span<int> verts = hide::node_visible_verts(node, hide_vert, tls.visible_verts);
+  Vector<int, bke::pbvh::MESH_LEAF_LIMIT> index_data;
+  const Span<int> verts = hide::node_visible_verts(node, hide_vert, index_data);
 
-  const Span<float> node_mask = gather_data_mesh(mask.as_span(), verts, tls.node_mask);
+  Array<float, bke::pbvh::MESH_LEAF_LIMIT> node_mask(verts.size());
+  gather_data_mesh(mask.as_span(), verts, node_mask.as_mutable_span());
 
-  tls.new_mask.resize(verts.size());
-  const MutableSpan<float> new_mask = tls.new_mask;
+  Array<float, bke::pbvh::MESH_LEAF_LIMIT> new_mask(verts.size());
   mask_decrease_contrast(node_mask, new_mask);
   copy_old_hidden_mask_mesh(verts, hide_vert, mask, new_mask);
 
-  if (node_mask == new_mask.as_span()) {
+  if (node_mask.as_span() == new_mask.as_span()) {
     return false;
   }
 
@@ -868,9 +868,8 @@ static wmOperatorStatus sculpt_mask_filter_exec(bContext *C, wmOperator *op)
             Array<bool> node_changed(node_mask.min_array_size(), false);
             node_mask.foreach_index(
                 [&](const int i) {
-                  FilterLocalData &tls = all_tls.local();
                   node_changed[i] = increase_contrast_mask_mesh(
-                      *depsgraph, ob, hide_vert, nodes[i], tls, mask.span);
+                      *depsgraph, ob, hide_vert, nodes[i], mask.span);
                 },
                 exec_mode::grain_size(1));
             IndexMaskMemory memory;
@@ -881,9 +880,8 @@ static wmOperatorStatus sculpt_mask_filter_exec(bContext *C, wmOperator *op)
             Array<bool> node_changed(node_mask.min_array_size(), false);
             node_mask.foreach_index(
                 [&](const int i) {
-                  FilterLocalData &tls = all_tls.local();
                   node_changed[i] = decrease_contrast_mask_mesh(
-                      *depsgraph, ob, hide_vert, nodes[i], tls, mask.span);
+                      *depsgraph, ob, hide_vert, nodes[i], mask.span);
                 },
                 exec_mode::grain_size(1));
             IndexMaskMemory memory;

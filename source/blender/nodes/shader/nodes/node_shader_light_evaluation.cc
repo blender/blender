@@ -81,18 +81,30 @@ static int node_shader_gpu_light_evaluation(GPUMaterial *mat,
   }
 
   if (!in[1].link) {
-    GPU_link(mat, "world_position_get", &in[1].link);
+    GPU_link(mat, "world_position_get", GPU_shading_data(), &in[1].link);
   }
   if (!in[2].link) {
-    GPU_link(mat, "world_normals_get", &in[2].link);
+    GPU_link(mat, "world_normals_get", GPU_shading_data(), &in[2].link);
   }
 
   if (out[0].hasoutput) {
     if (mode == SHD_LIGHT_EVAL_GLOSSY) {
-      GPU_stack_link(mat, node, "node_light_evaluation_glossy", in, out);
+      GPU_stack_link(mat,
+                     node,
+                     "node_light_evaluation_glossy",
+                     in,
+                     out,
+                     GPU_kernel_globals(),
+                     GPU_shading_data());
     }
     else {
-      GPU_stack_link(mat, node, "node_light_evaluation_diffuse", in, out);
+      GPU_stack_link(mat,
+                     node,
+                     "node_light_evaluation_diffuse",
+                     in,
+                     out,
+                     GPU_kernel_globals(),
+                     GPU_shading_data());
     }
   }
   else {
@@ -101,6 +113,7 @@ static int node_shader_gpu_light_evaluation(GPUMaterial *mat,
              "node_light_evaluation_common",
              in[0].link,
              in[1].link,
+             GPU_kernel_globals(),
              &out[1].link,
              &out[2].link,
              &out[3].link);

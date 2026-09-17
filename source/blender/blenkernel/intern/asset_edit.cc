@@ -9,6 +9,7 @@
 #include "BLI_assert.hh"
 #include "BLI_fileops.hh"
 #include "BLI_ghash.hh"
+#include "BLI_listbase.hh"
 #include "BLI_memory_utils.hh"
 #include "BLI_path_utils.hh"
 #include "BLI_string.hh"
@@ -21,6 +22,7 @@
 #include "AS_asset_library.hh"
 #include "AS_essentials_library.hh"
 
+#include "BKE_asset.hh"
 #include "BKE_asset_edit.hh"
 #include "BKE_blendfile.hh"
 #include "BKE_blendfile_link_append.hh"
@@ -43,6 +45,27 @@
 #include "DEG_depsgraph_build.hh"
 
 namespace blender::bke {
+
+static const char *asset_name_in_library(const ID &id)
+{
+  /* Get the original name from the weak reference, in case the datablock was renamed. */
+  if (ID_IS_LINKED(&id) && id.library_weak_reference) {
+    return id.library_weak_reference->library_id_name + 2;
+  }
+
+  return BKE_id_name(id);
+}
+
+static void asset_name_in_library_set(ID &id, const char *name)
+{
+  BLI_assert(ID_IS_LINKED(&id));
+
+  char id_name[MAX_ID_NAME];
+  STRNCPY(id_name, id.name);
+  BLI_strncpy(id_name + 2, name, sizeof(id_name) - 2);
+
+  BKE_main_library_weak_reference_add(&id, id.lib->filepath, id_name);
+}
 
 static ID *asset_link_id(Main &global_main,
                          const ID_Type id_type,
@@ -86,6 +109,9 @@ static ID *asset_link_id(Main &global_main,
     {
       local_asset->lib->runtime->tag |= LIBRARY_ASSET_FILE_WRITABLE;
     }
+
+    /* Keep original name in weak reference, in case this datablock gets renamed. */
+    asset_name_in_library_set(*local_asset, asset_name);
   }
 
   return local_asset;
@@ -203,7 +229,7 @@ static ID *asset_reload(Main &global_main, ID &id, ReportList *reports)
 {
   BLI_assert(ID_IS_LINKED(&id));
 
-  const std::string name = BKE_id_name(id);
+  const std::string name = asset_name_in_library(id);
   const std::string filepath = id.lib->runtime->filepath_abs;
   const ID_Type id_type = GS(id.name);
 
@@ -315,7 +341,7 @@ std::optional<std::string> asset_edit_id_save_as(Main &global_main,
   return final_full_asset_filepath;
 }
 
-bool asset_edit_id_save(Main &global_main, const ID &id, ReportList &reports)
+bool asset_edit_id_save(Main &global_main, ID &id, ReportList &reports)
 {
   if (!asset_edit_id_is_writable(id)) {
     return false;
@@ -332,6 +358,21 @@ bool asset_edit_id_save(Main &global_main, const ID &id, ReportList &reports)
   if (!success) {
     BKE_report(&reports, RPT_ERROR, "Failed to write to asset library");
     return false;
+  }
+
+  const std::optional<AssetWeakReference> old_weak_ref = asset_edit_weak_reference_from_id(id);
+
+  asset_name_in_library_set(id, BKE_id_name(id));
+
+  const std::optional<AssetWeakReference> new_weak_ref = asset_edit_weak_reference_from_id(id);
+
+  /* Update any weak references to the renamed asset. */
+  if (old_weak_ref && new_weak_ref && *old_weak_ref != *new_weak_ref) {
+    BKE_asset_weak_reference_foreach_main(global_main, [&](AssetWeakReference &weak_ref) {
+      if (weak_ref == *old_weak_ref) {
+        weak_ref = *new_weak_ref;
+      }
+    });
   }
 
   return true;
@@ -383,18 +424,21 @@ ID *asset_edit_id_from_weak_reference(Main &global_main,
 
   BLI_assert(asset_name != nullptr);
 
-  /* Test if asset has been loaded already. */
-  ID *local_asset = BKE_libblock_find_name_and_library_filepath(
-      &global_main, id_type, asset_name, asset_lib_path);
-  if (local_asset) {
-    return local_asset;
+  /* Is the asset already in the file we have loaded? */
+  if (asset_lib_path == nullptr) {
+    return BKE_libblock_find_name(&global_main, id_type, asset_name, nullptr);
+  }
+
+  /* Find already loaded asset in a library. */
+  if (Library *lib = library::search_filepath_abs(&global_main.libraries, asset_lib_path)) {
+    for (ID &local_asset : *which_libbase(&global_main, id_type)) {
+      if (local_asset.lib == lib && STREQ(asset_name_in_library(local_asset), asset_name)) {
+        return &local_asset;
+      }
+    }
   }
 
   /* Try linking in the required file. */
-  if (asset_lib_path == nullptr) {
-    return nullptr;
-  }
-
   return asset_link_id(global_main, id_type, asset_lib_path, asset_name);
 }
 
@@ -419,10 +463,11 @@ std::optional<AssetWeakReference> asset_edit_weak_reference_from_id(const ID &id
       &U, id.lib->runtime->filepath_abs);
 
   const short idcode = GS(id.name);
+  const char *idname = asset_name_in_library(id);
 
   if (user_library && user_library->dirpath[0]) {
     return asset_weak_reference_for_user_library(
-        *user_library, idcode, id.name + 2, id.lib->runtime->filepath_abs);
+        *user_library, idcode, idname, id.lib->runtime->filepath_abs);
   }
 
   const bool is_online_essential = BLI_path_contains(
@@ -430,10 +475,10 @@ std::optional<AssetWeakReference> asset_edit_weak_reference_from_id(const ID &id
       id.lib->runtime->filepath_abs);
   if (is_online_essential) {
     return asset_weak_reference_for_online_essentials(
-        idcode, id.name + 2, id.lib->runtime->filepath_abs);
+        idcode, idname, id.lib->runtime->filepath_abs);
   }
 
-  return asset_weak_reference_for_essentials(idcode, id.name + 2, id.lib->runtime->filepath_abs);
+  return asset_weak_reference_for_essentials(idcode, idname, id.lib->runtime->filepath_abs);
 }
 
 bool asset_edit_id_is_editable(const ID &id)

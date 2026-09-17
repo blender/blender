@@ -351,7 +351,6 @@ extern "C" __global__ void __intersection__curve_ribbon()
     optix_intersection_curve(prim, type);
   }
 }
-
 #endif
 
 #ifdef __POINTCLOUD__
@@ -381,7 +380,8 @@ extern "C" __global__ void __intersection__point()
   Intersection isect;
   isect.t = optixGetRayTmax();
 
-  if (point_intersect(nullptr, &isect, ray_P, ray_D, ray_tmin, isect.t, object, prim, time, type))
+  if (point_or_gsplat_intersect(
+          nullptr, &isect, ray_P, ray_D, ray_tmin, isect.t, object, prim, time, type))
   {
     optixReportIntersection(isect.t, CUSTOM_PRIMITIVE_HIT_KIND_POINT);
   }

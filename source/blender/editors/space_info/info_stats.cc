@@ -232,18 +232,18 @@ static void stats_object(Object *ob,
 static void stats_object_edit(Object *obedit, SceneStats *stats)
 {
   if (obedit->type == OB_MESH) {
-    BMEditMesh *em = BKE_editmesh_from_object(obedit);
+    const BMesh *bm = BKE_editmesh_bmesh_get(obedit);
 
-    stats->totvert += em->bm->totvert;
-    stats->totvertsel += em->bm->totvertsel;
+    stats->totvert += bm->totvert;
+    stats->totvertsel += bm->totvertsel;
 
-    stats->totedge += em->bm->totedge;
-    stats->totedgesel += em->bm->totedgesel;
+    stats->totedge += bm->totedge;
+    stats->totedgesel += bm->totedgesel;
 
-    stats->totface += em->bm->totface;
-    stats->totfacesel += em->bm->totfacesel;
+    stats->totface += bm->totface;
+    stats->totfacesel += bm->totfacesel;
 
-    stats->tottri += em->looptris.size();
+    stats->tottri += poly_to_tri_count(bm->totface, bm->totloop);
   }
   else if (obedit->type == OB_ARMATURE) {
     /* Armature Edit */

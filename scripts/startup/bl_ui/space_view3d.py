@@ -1264,7 +1264,9 @@ class VIEW3D_MT_editor_menus(Menu):
                 layout.template_node_operator_asset_root_items()
 
         elif obj:
-            if mode_string not in {'PAINT_TEXTURE', 'SCULPT_CURVES', 'SCULPT_GREASE_PENCIL', 'VERTEX_GREASE_PENCIL'}:
+            if mode_string not in {
+                'PAINT_TEXTURE', 'SCULPT_CURVES', 'PAINT_GREASE_PENCIL', 'SCULPT_GREASE_PENCIL', 'VERTEX_GREASE_PENCIL'
+            }:
                 layout.menu("VIEW3D_MT_" + mode_string.lower())
             if mode_string == 'SCULPT':
                 layout.menu("VIEW3D_MT_mask")
@@ -1273,6 +1275,10 @@ class VIEW3D_MT_editor_menus(Menu):
             elif mode_string == 'SCULPT_CURVES':
                 layout.menu("VIEW3D_MT_select_sculpt_curves")
                 layout.menu("VIEW3D_MT_sculpt_curves")
+                layout.template_node_operator_asset_root_items()
+            elif mode_string == 'PAINT_GREASE_PENCIL':
+                layout.menu("VIEW3D_MT_paint_grease_pencil")
+                layout.menu("VIEW3D_MT_paint_grease_pencil_stroke")
                 layout.template_node_operator_asset_root_items()
             elif mode_string == 'VERTEX_GREASE_PENCIL':
                 layout.menu("VIEW3D_MT_select_edit_grease_pencil")
@@ -1650,6 +1656,7 @@ class VIEW3D_MT_view_navigation(Menu):
         layout.operator("view3d.view_roll", text="Roll Left").type = 'LEFT'
         layout.operator("view3d.view_roll", text="Roll Right").type = 'RIGHT'
         layout.operator("view3d.view_roll_set", text="Reset Roll")
+        layout.operator("view3d.view_flip")
 
         layout.separator()
 
@@ -2340,6 +2347,43 @@ class VIEW3D_MT_paint_grease_pencil(Menu):
         layout.operator("paint.sample_color").merged = False
 
 
+class VIEW3D_MT_paint_grease_pencil_stroke(Menu):
+    bl_label = "Stroke"
+
+    def draw(self, context):
+        layout = self.layout
+
+        tool_settings = context.tool_settings
+        settings = tool_settings.gpencil_sculpt
+
+        layout.menu("VIEW3D_MT_transform")
+        layout.menu("VIEW3D_MT_mirror")
+        layout.menu("GREASE_PENCIL_MT_snap")
+
+        layout.separator()
+
+        layout.operator("grease_pencil.duplicate_move", text="Duplicate", icon='DUPLICATE')
+
+        layout.separator()
+
+        layout.operator("grease_pencil.stroke_split", text="Split")
+        layout.operator("grease_pencil.copy", text="Copy", icon='COPYDOWN')
+        layout.operator("grease_pencil.paste", text="Paste", icon='PASTEDOWN').type = 'ACTIVE'
+        layout.operator("grease_pencil.paste", text="Paste by Layer").type = 'LAYER'
+
+        layout.separator()
+
+        layout.operator("grease_pencil.set_uniform_thickness")
+        layout.operator("grease_pencil.set_uniform_opacity")
+        layout.prop(settings, "use_scale_thickness", text="Scale Thickness")
+
+        layout.separator()
+
+        layout.menu("VIEW3D_MT_edit_greasepencil_delete")
+
+        layout.template_node_operator_asset_menu_items(catalog_path=self.bl_label)
+
+
 class VIEW3D_MT_paint_vertex_grease_pencil(Menu):
     bl_label = "Paint"
 
@@ -2988,7 +3032,7 @@ class VIEW3D_MT_object_animation(Menu):
 
         layout.operator("nla.bake", text="Bake Action...")
         layout.operator("grease_pencil.bake_grease_pencil_animation", text="Bake Object Transform to Grease Pencil...")
-        layout.operator("anim.replace_action")
+        layout.operator("anim.replace_action", text="Replace Action...")
         layout.operator("anim.replace_action_new")
         layout.operator("anim.replace_action_duplicate")
 
@@ -9421,6 +9465,7 @@ classes = (
     VIEW3D_MT_edit_mesh_showhide,
     VIEW3D_MT_greasepencil_material_active,
     VIEW3D_MT_paint_grease_pencil,
+    VIEW3D_MT_paint_grease_pencil_stroke,
     VIEW3D_MT_paint_vertex_grease_pencil,
     VIEW3D_MT_edit_greasepencil_showhide,
     VIEW3D_MT_edit_greasepencil_cleanup,

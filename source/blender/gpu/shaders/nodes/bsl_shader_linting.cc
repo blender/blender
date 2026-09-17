@@ -60,12 +60,15 @@
 #include "gpu_shader_material_blackbody.bsl.hh"                /* IWYU pragma: export */
 #include "gpu_shader_material_boolean_math.bsl.hh"             /* IWYU pragma: export */
 #include "gpu_shader_material_bright_contrast.bsl.hh"          /* IWYU pragma: export */
+#include "gpu_shader_material_bump.bsl.hh"                     /* IWYU pragma: export */
+#include "gpu_shader_material_camera.bsl.hh"                   /* IWYU pragma: export */
 #include "gpu_shader_material_clamp.bsl.hh"                    /* IWYU pragma: export */
 #include "gpu_shader_material_combine_color.bsl.hh"            /* IWYU pragma: export */
 #include "gpu_shader_material_combine_transform.bsl.hh"        /* IWYU pragma: export */
 #include "gpu_shader_material_combine_xyz.bsl.hh"              /* IWYU pragma: export */
 #include "gpu_shader_material_compare.bsl.hh"                  /* IWYU pragma: export */
 #include "gpu_shader_material_diffuse.bsl.hh"                  /* IWYU pragma: export */
+#include "gpu_shader_material_displacement.bsl.hh"             /* IWYU pragma: export */
 #include "gpu_shader_material_emission.bsl.hh"                 /* IWYU pragma: export */
 #include "gpu_shader_material_euler_to_rotation.bsl.hh"        /* IWYU pragma: export */
 #include "gpu_shader_material_float_to_int.bsl.hh"             /* IWYU pragma: export */
@@ -73,6 +76,7 @@
 #include "gpu_shader_material_fractal_voronoi.bsl.hh"          /* IWYU pragma: export */
 #include "gpu_shader_material_fresnel.bsl.hh"                  /* IWYU pragma: export */
 #include "gpu_shader_material_gamma.bsl.hh"                    /* IWYU pragma: export */
+#include "gpu_shader_material_geometry.bsl.hh"                 /* IWYU pragma: export */
 #include "gpu_shader_material_get_vector_component.bsl.hh"     /* IWYU pragma: export */
 #include "gpu_shader_material_glass.bsl.hh"                    /* IWYU pragma: export */
 #include "gpu_shader_material_hair.bsl.hh"                     /* IWYU pragma: export */
@@ -90,6 +94,7 @@
 #include "gpu_shader_material_light_falloff.bsl.hh"            /* IWYU pragma: export */
 #include "gpu_shader_material_light_info.bsl.hh"               /* IWYU pragma: export */
 #include "gpu_shader_material_light_iter_internal.bsl.hh"      /* IWYU pragma: export */
+#include "gpu_shader_material_light_path.bsl.hh"               /* IWYU pragma: export */
 #include "gpu_shader_material_map_range.bsl.hh"                /* IWYU pragma: export */
 #include "gpu_shader_material_mapping.bsl.hh"                  /* IWYU pragma: export */
 #include "gpu_shader_material_matrix_svd.bsl.hh"               /* IWYU pragma: export */
@@ -98,7 +103,11 @@
 #include "gpu_shader_material_mix_shader.bsl.hh"               /* IWYU pragma: export */
 #include "gpu_shader_material_noise.bsl.hh"                    /* IWYU pragma: export */
 #include "gpu_shader_material_normal.bsl.hh"                   /* IWYU pragma: export */
+#include "gpu_shader_material_normal_map.bsl.hh"               /* IWYU pragma: export */
+#include "gpu_shader_material_object_info.bsl.hh"              /* IWYU pragma: export */
 #include "gpu_shader_material_open_pbr_util.bsl.hh"            /* IWYU pragma: export */
+#include "gpu_shader_material_output_aov.bsl.hh"               /* IWYU pragma: export */
+#include "gpu_shader_material_output_material.bsl.hh"          /* IWYU pragma: export */
 #include "gpu_shader_material_particle_info.bsl.hh"            /* IWYU pragma: export */
 #include "gpu_shader_material_point_info.bsl.hh"               /* IWYU pragma: export */
 #include "gpu_shader_material_principled.bsl.hh"               /* IWYU pragma: export */
@@ -124,6 +133,7 @@
 #include "gpu_shader_material_sheen.bsl.hh"                    /* IWYU pragma: export */
 #include "gpu_shader_material_squeeze.bsl.hh"                  /* IWYU pragma: export */
 #include "gpu_shader_material_subsurface_scattering.bsl.hh"    /* IWYU pragma: export */
+#include "gpu_shader_material_tangent.bsl.hh"                  /* IWYU pragma: export */
 #include "gpu_shader_material_tex_brick.bsl.hh"                /* IWYU pragma: export */
 #include "gpu_shader_material_tex_checker.bsl.hh"              /* IWYU pragma: export */
 #include "gpu_shader_material_tex_environment.bsl.hh"          /* IWYU pragma: export */
@@ -136,10 +146,13 @@
 #include "gpu_shader_material_tex_voronoi.bsl.hh"              /* IWYU pragma: export */
 #include "gpu_shader_material_tex_wave.bsl.hh"                 /* IWYU pragma: export */
 #include "gpu_shader_material_tex_white_noise.bsl.hh"          /* IWYU pragma: export */
+#include "gpu_shader_material_texture_coordinates.bsl.hh"      /* IWYU pragma: export */
 #include "gpu_shader_material_toon.bsl.hh"                     /* IWYU pragma: export */
+#include "gpu_shader_material_transform_utils.bsl.hh"          /* IWYU pragma: export */
 #include "gpu_shader_material_translucent.bsl.hh"              /* IWYU pragma: export */
 #include "gpu_shader_material_transparent.bsl.hh"              /* IWYU pragma: export */
 #include "gpu_shader_material_uv_map.bsl.hh"                   /* IWYU pragma: export */
+#include "gpu_shader_material_vector_displacement.bsl.hh"      /* IWYU pragma: export */
 #include "gpu_shader_material_vector_math.bsl.hh"              /* IWYU pragma: export */
 #include "gpu_shader_material_vector_rotate.bsl.hh"            /* IWYU pragma: export */
 #include "gpu_shader_material_vertex_color.bsl.hh"             /* IWYU pragma: export */

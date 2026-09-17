@@ -164,15 +164,13 @@ static void attribute_legacy_convert_customdata_to_storage(
     array_data.data = attribute.array_data;
     array_data.size = attribute.array_size;
     array_data.sharing_info = ImplicitSharingPtr<>(attribute.sharing_info);
-    if (Attribute *attr = storage.lookup(attribute.name)) {
-      attr->assign_data(std::move(array_data));
+    if (storage.lookup(attribute.name)) {
+      storage.remove(attribute.name);
     }
-    else {
-      storage.add(storage.unique_name_calc(attribute.name),
-                  attribute.domain,
-                  attribute.type,
-                  std::move(array_data));
-    }
+    storage.add(storage.unique_name_calc(attribute.name),
+                attribute.domain,
+                attribute.type,
+                std::move(array_data));
   }
 
   for (const auto &[domain, custom_data] : domains.items()) {

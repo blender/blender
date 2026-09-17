@@ -197,7 +197,7 @@ struct Brush {
   /** Blend mode. */
   short blend = 0;
   /** #eObjectMode: to see if the brush is compatible, use for display only. */
-  short ob_mode = OB_MODE_ALL_PAINT;
+  short ob_mode = OB_MODE_ALL_PAINT_MESH;
   /** Brush weight. */
   float weight = 1.0f; /* weight of brush 0 - 1.0 */
   /** Brush diameter. */

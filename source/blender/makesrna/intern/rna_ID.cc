@@ -2549,12 +2549,13 @@ static void rna_def_ID(BlenderRNA *brna)
   RNA_def_property_override_flag(prop, PROPOVERRIDE_NO_COMPARISON);
   RNA_def_property_ui_text(prop, "Library", "Library file the data-block is linked from");
 
-  prop = RNA_def_pointer(srna,
-                         "library_weak_reference",
-                         "LibraryWeakReference",
-                         "Library Weak Reference",
-                         "Weak reference to a data-block in another library .blend file (used to "
-                         "re-use already appended data instead of appending new copies)");
+  prop = RNA_def_pointer(
+      srna,
+      "library_weak_reference",
+      "LibraryWeakReference",
+      "Library Weak Reference",
+      "Weak reference to the data-block in a library .blend file this "
+      "originated from. For re-use of already appended data and linked editable assets");
   RNA_def_property_clear_flag(prop, PROP_EDITABLE);
   RNA_def_property_override_flag(prop, PROPOVERRIDE_NO_COMPARISON);
 
@@ -2756,7 +2757,7 @@ static void rna_def_ID(BlenderRNA *brna)
   RNA_def_function_flag(func, FUNC_USE_MAIN | FUNC_USE_REPORTS);
   RNA_def_function_ui_description(func,
                                   "Tag the ID to update its display data, "
-                                  "e.g. when calling :class:`bpy.types.Scene.update`");
+                                  "e.g. when calling :class:`bpy.types.ViewLayer.update`");
   RNA_def_enum_flag(func, "refresh", update_flag_items, 0, "", "Type of updates to perform");
 
   func = RNA_def_function(srna, "preview_ensure", "BKE_previewimg_id_ensure");

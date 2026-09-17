@@ -409,6 +409,7 @@ static void drawviewborder(Scene *scene, Depsgraph *depsgraph, ARegion *region, 
   y2 = viewborder.ymax;
 
   const float roll = rv3d->camroll;
+  const bool is_flipped_x = (rv3d->rflag & RV3D_FLIP_X) != 0;
   GPU_line_width(1.0f);
 
   /* apply offsets so the real 3D camera shows through */
@@ -431,12 +432,17 @@ static void drawviewborder(Scene *scene, Depsgraph *depsgraph, ARegion *region, 
     immBindBuiltinProgram(GPU_SHADER_3D_UNIFORM_COLOR);
 
     /* Apply roll. */
-    if (roll != 0.0f) {
+    if (roll != 0.0f || is_flipped_x) {
       GPU_matrix_push();
       const int center_x = region->winx / 2;
       const int center_y = region->winy / 2;
       GPU_matrix_translate_2f(center_x, center_y);
-      GPU_matrix_rotate_2d(RAD2DEG(rv3d->camroll));
+      if (is_flipped_x) {
+        GPU_matrix_scale_2f(-1.0f, 1.0f);
+      }
+      if (roll != 0.0f) {
+        GPU_matrix_rotate_2d(RAD2DEG(roll));
+      }
       GPU_matrix_translate_2f(-center_x, -center_y);
     }
 
@@ -497,7 +503,7 @@ static void drawviewborder(Scene *scene, Depsgraph *depsgraph, ARegion *region, 
 
   /* When overlays are disabled, only show camera outline & passepartout. */
   if (v3d->flag2 & V3D_HIDE_OVERLAYS || !(v3d->flag2 & V3D_SHOW_CAMERA_GUIDES)) {
-    if (roll != 0.0f) {
+    if (roll != 0.0f || is_flipped_x) {
       GPU_matrix_pop();
     }
     return;
@@ -628,7 +634,7 @@ static void drawviewborder(Scene *scene, Depsgraph *depsgraph, ARegion *region, 
                      sizeof(v3d->camera->id.name) - 2);
   }
 
-  if (roll != 0.0f) {
+  if (roll != 0.0f || is_flipped_x) {
     GPU_matrix_pop();
   }
 }
@@ -1139,13 +1145,9 @@ static const char *view3d_get_name(View3D *v3d, RegionView3D *rv3d)
 static void draw_viewport_name(ARegion *region, View3D *v3d, int xoffset, int *yoffset)
 {
   RegionView3D *rv3d = static_cast<RegionView3D *>(region->regiondata);
-  const char *name = view3d_get_name(v3d, rv3d);
-  const char *name_array[3] = {name, nullptr, nullptr};
-  int name_array_len = 1;
-
-  /* 6 is the maximum size of the axis roll text. */
-  /* increase size for unicode languages (Chinese in UTF8...). */
-  char tmpstr[96 + 6];
+  /* Append text directly, the inline buffer avoids allocating in practice. */
+  fmt::memory_buffer name;
+  name.append(StringRef(view3d_get_name(v3d, rv3d)));
 
   if (RV3D_VIEW_IS_AXIS(rv3d->view) && (rv3d->view_axis_roll != RV3D_VIEW_AXIS_ROLL_0)) {
     const char *axis_roll;
@@ -1160,24 +1162,51 @@ static void draw_viewport_name(ARegion *region, View3D *v3d, int xoffset, int *y
         axis_roll = " -90\xC2\xB0";
         break;
     }
-    name_array[name_array_len++] = axis_roll;
+    name.append(StringRef(axis_roll));
   }
 
   if (v3d->localvd) {
-    name_array[name_array_len++] = IFACE_(" (Local)");
+    name.append(StringRef(IFACE_(" (Local)")));
   }
 
   /* Indicate that clipping region is enabled. */
   if (RV3D_CLIPPING_ENABLED(v3d, rv3d)) {
-    name_array[name_array_len++] = IFACE_(" (Clipped)");
+    name.append(StringRef(IFACE_(" (Clipped)")));
   }
 
-  if (name_array_len > 1) {
-    BLI_string_join_array(tmpstr, sizeof(tmpstr), name_array, name_array_len);
-    name = tmpstr;
+  /* Indicate that the view is flipped. */
+  if (rv3d->persp == RV3D_CAMOB) {
+    const eRegionView3D_ViewFlipRoll flip_roll = ED_view3d_effective_flip_axis(rv3d);
+
+    switch (flip_roll) {
+      case eRegionView3D_ViewFlipRoll::FlipOther:
+        name.append(StringRef(IFACE_(" (Flipped) (Rolled)")));
+        break;
+      case eRegionView3D_ViewFlipRoll::FlipX:
+        name.append(StringRef(IFACE_(" (Flipped X)")));
+        break;
+      case eRegionView3D_ViewFlipRoll::FlipY:
+        name.append(StringRef(IFACE_(" (Flipped Y)")));
+        break;
+      case eRegionView3D_ViewFlipRoll::Roll0:
+        break;
+      case eRegionView3D_ViewFlipRoll::Roll90:
+        name.append(StringRef(IFACE_(" (90\xC2\xB0)")));
+        break;
+      case eRegionView3D_ViewFlipRoll::Roll180:
+        name.append(StringRef(IFACE_(" (180\xC2\xB0)")));
+        break;
+      case eRegionView3D_ViewFlipRoll::Roll270:
+        name.append(StringRef(IFACE_(" (-90\xC2\xB0)")));
+        break;
+      case eRegionView3D_ViewFlipRoll::RollOther:
+        name.append(StringRef(IFACE_(" (Rolled)")));
+        break;
+    }
   }
+
   *yoffset -= VIEW3D_OVERLAY_LINEHEIGHT;
-  BLF_draw_default(xoffset, *yoffset, 0.0f, name, sizeof(tmpstr));
+  BLF_draw_default(xoffset, *yoffset, 0.0f, name.data(), name.size());
 }
 
 static bool is_grease_pencil_with_layer_keyframe(const Object &ob)

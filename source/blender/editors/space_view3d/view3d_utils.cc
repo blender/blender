@@ -596,6 +596,10 @@ bool ED_view3d_camera_view_pan(ARegion *region, const float event_ofs[2])
       event_ofs[1] / (region->winy * zoomfac),
   };
 
+  if ((rv3d->rflag & RV3D_FLIP_X) != 0) {
+    xy.x = -xy.x;
+  }
+
   /* Calculate pan direction after roll. */
   if (rv3d->camroll != 0.0f) {
     const float aspect = float(region->winx) / float(region->winy);
@@ -1620,6 +1624,47 @@ eRegionView3D_View ED_view3d_axis_view_opposite(const eRegionView3D_View view)
 bool ED_view3d_lock(RegionView3D *rv3d)
 {
   return ED_view3d_quat_from_axis_view(rv3d->view, rv3d->view_axis_roll, rv3d->viewquat);
+}
+
+eRegionView3D_ViewFlipRoll ED_view3d_effective_flip_axis(const RegionView3D *rv3d)
+{
+  constexpr float angle_threshold = 0.02f;
+
+  if ((rv3d->rflag & RV3D_FLIP_X) != 0) {
+    if (math::abs(rv3d->camroll) < angle_threshold) {
+      return eRegionView3D_ViewFlipRoll::FlipX;
+    }
+
+    if (math::abs(rv3d->camroll - M_PI) < angle_threshold ||
+        math::abs(rv3d->camroll + M_PI) < angle_threshold)
+    {
+      return eRegionView3D_ViewFlipRoll::FlipY;
+    }
+
+    return eRegionView3D_ViewFlipRoll::FlipOther;
+  }
+
+  if (math::abs(rv3d->camroll) < angle_threshold) {
+    return eRegionView3D_ViewFlipRoll::Roll0;
+  }
+
+  if (math::abs(rv3d->camroll - M_PI / 2.0f) < angle_threshold) {
+    return eRegionView3D_ViewFlipRoll::Roll90;
+  }
+
+  if (math::abs(rv3d->camroll - M_PI) < angle_threshold ||
+      math::abs(rv3d->camroll + M_PI) < angle_threshold)
+  {
+    return eRegionView3D_ViewFlipRoll::Roll180;
+  }
+
+  if (math::abs(rv3d->camroll - M_PI * 3.0f / 2.0f) < angle_threshold ||
+      math::abs(rv3d->camroll + M_PI / 2.0f) < angle_threshold)
+  {
+    return eRegionView3D_ViewFlipRoll::Roll270;
+  }
+
+  return eRegionView3D_ViewFlipRoll::RollOther;
 }
 
 /** \} */

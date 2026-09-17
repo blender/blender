@@ -148,11 +148,14 @@ struct SGLSLEditMeshToTangent {
 #endif
 };
 
-static void calc_face_as_quad_map(
-    BMEditMesh *&em, BMesh *&bm, int &totface, int &num_face_as_quad_map, int *&face_as_quad_map)
+static void calc_face_as_quad_map(const Span<std::array<BMLoop *, 3>> looptris,
+                                  BMesh &bm,
+                                  int &totface,
+                                  int &num_face_as_quad_map,
+                                  int *&face_as_quad_map)
 {
 #ifdef USE_LOOPTRI_DETECT_QUADS
-  if (em->looptris.size() != bm->totface) {
+  if (looptris.size() != bm.totface) {
     /* Over allocate, since we don't know how many ngon or quads we have. */
 
     /* map fake face index to looptri */
@@ -161,7 +164,7 @@ static void calc_face_as_quad_map(
     for (i = 0, j = 0; j < totface; i++, j++) {
       face_as_quad_map[i] = j;
       /* step over all quads */
-      if (em->looptris[j][0]->f->len == 4) {
+      if (looptris[j][0]->f->len == 4) {
         j++; /* Skips the next looptri. */
       }
     }
@@ -176,21 +179,20 @@ static void calc_face_as_quad_map(
 #endif
 }
 
-Array<Array<float4>> BKE_editmesh_uv_tangents_calc(BMEditMesh *em,
+Array<Array<float4>> BKE_editmesh_uv_tangents_calc(BMesh *bm,
+                                                   const Span<std::array<BMLoop *, 3>> looptris,
                                                    const Span<float3> face_normals,
                                                    const Span<float3> corner_normals,
                                                    const Span<StringRef> uv_names)
 {
-  if (em->looptris.is_empty()) {
+  if (looptris.is_empty()) {
     return {};
   }
 
-  BMesh *bm = em->bm;
-
-  int totface = em->looptris.size();
+  int totface = looptris.size();
   int num_face_as_quad_map;
   int *face_as_quad_map = nullptr;
-  calc_face_as_quad_map(em, bm, totface, num_face_as_quad_map, face_as_quad_map);
+  calc_face_as_quad_map(looptris, *bm, totface, num_face_as_quad_map, face_as_quad_map);
 
   Array<Array<float4>> result(uv_names.size());
 
@@ -205,7 +207,7 @@ Array<Array<float4>> BKE_editmesh_uv_tangents_calc(BMEditMesh *em,
   threading::parallel_for(uv_names.index_range(), 1, [&](const IndexRange range) {
     for (const int n : range) {
       SGLSLEditMeshToTangent mesh2tangent{};
-      mesh2tangent.numTessFaces = em->looptris.size();
+      mesh2tangent.numTessFaces = looptris.size();
       mesh2tangent.face_as_quad_map = face_as_quad_map;
       mesh2tangent.num_face_as_quad_map = num_face_as_quad_map;
       mesh2tangent.face_normals = face_normals;
@@ -216,7 +218,7 @@ Array<Array<float4>> BKE_editmesh_uv_tangents_calc(BMEditMesh *em,
           &bm->ldata, CD_PROP_FLOAT2, uv_names[n]);
       BLI_assert(mesh2tangent.cd_loop_uv_offset != -1);
 
-      mesh2tangent.looptris = em->looptris;
+      mesh2tangent.looptris = looptris;
       result[n].reinitialize(bm->totloop);
       mesh2tangent.tangent = reinterpret_cast<float (*)[4]>(result[n].data());
 
@@ -230,21 +232,20 @@ Array<Array<float4>> BKE_editmesh_uv_tangents_calc(BMEditMesh *em,
   return result;
 }
 
-Array<float4> BKE_editmesh_orco_tangents_calc(BMEditMesh *em,
+Array<float4> BKE_editmesh_orco_tangents_calc(BMesh *bm,
+                                              const Span<std::array<BMLoop *, 3>> looptris,
                                               const Span<float3> face_normals,
                                               const Span<float3> corner_normals,
                                               const Span<float3> vert_orco)
 {
-  if (em->looptris.is_empty()) {
+  if (looptris.is_empty()) {
     return {};
   }
 
-  BMesh *bm = em->bm;
-
-  int totface = em->looptris.size();
+  int totface = looptris.size();
   int num_face_as_quad_map;
   int *face_as_quad_map = nullptr;
-  calc_face_as_quad_map(em, bm, totface, num_face_as_quad_map, face_as_quad_map);
+  calc_face_as_quad_map(looptris, *bm, totface, num_face_as_quad_map, face_as_quad_map);
 
   Array<float4> result(bm->totloop);
 
@@ -259,7 +260,7 @@ Array<float4> BKE_editmesh_orco_tangents_calc(BMEditMesh *em,
   BM_mesh_elem_index_ensure(bm, htype_index);
 
   SGLSLEditMeshToTangent mesh2tangent{};
-  mesh2tangent.numTessFaces = em->looptris.size();
+  mesh2tangent.numTessFaces = looptris.size();
   mesh2tangent.face_as_quad_map = face_as_quad_map;
   mesh2tangent.num_face_as_quad_map = num_face_as_quad_map;
   mesh2tangent.face_normals = face_normals;
@@ -269,7 +270,7 @@ Array<float4> BKE_editmesh_orco_tangents_calc(BMEditMesh *em,
   mesh2tangent.cd_loop_uv_offset = -1;
   mesh2tangent.orco = vert_orco;
 
-  mesh2tangent.looptris = em->looptris;
+  mesh2tangent.looptris = looptris;
   mesh2tangent.tangent = reinterpret_cast<float (*)[4]>(result.data());
   mikk::Mikktspace<SGLSLEditMeshToTangent> mikk(mesh2tangent);
   mikk.genTangSpace();

@@ -330,7 +330,7 @@ SymbolClass *SymbolTable::to_class(builtin::ClassId id) const
   }
 }
 
-SymbolClass *SymbolTable::make_type(SymbolClass *base, int size)
+SymbolClass *SymbolTable::make_type(SymbolClass *base, int size) const
 {
   /* Size 1 corresponds to the scalar base type itself. */
   if (size == 1) {

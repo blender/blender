@@ -161,7 +161,7 @@ static int gpu_shader_vect_transform(GPUMaterial *mat,
       GPU_link(mat, "invert_z", inputlink, &inputlink);
     }
 
-    GPU_link(mat, func_name, inputlink, &out[0].link);
+    GPU_link(mat, func_name, inputlink, GPU_kernel_globals(), GPU_shading_data(), &out[0].link);
 
     if (nodeprop->convert_to == SHD_VECT_TRANSFORM_SPACE_CAMERA &&
         nodeprop->convert_from != SHD_VECT_TRANSFORM_SPACE_CAMERA)

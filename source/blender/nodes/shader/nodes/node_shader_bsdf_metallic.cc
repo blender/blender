@@ -108,7 +108,7 @@ static int node_shader_gpu_bsdf_metallic(GPUMaterial *mat,
   float use_complex_ior = (node->custom2 == SHD_PHYSICAL_CONDUCTOR) ? 1.0f : 0.0f;
 
   if (!in[7].link) {
-    GPU_link(mat, "world_normals_get", &in[7].link);
+    GPU_link(mat, "world_normals_get", GPU_shading_data(), &in[7].link);
   }
 
   GPU_material_flag_set(mat, GPU_MATFLAG_GLOSSY);
@@ -129,7 +129,9 @@ static int node_shader_gpu_bsdf_metallic(GPUMaterial *mat,
                         in,
                         out,
                         GPU_constant(&use_multi_scatter),
-                        GPU_constant(&use_complex_ior));
+                        GPU_constant(&use_complex_ior),
+                        GPU_kernel_globals(),
+                        GPU_shading_data());
 }
 
 static void node_shader_update_metallic(bNodeTree *ntree, bNode *node)

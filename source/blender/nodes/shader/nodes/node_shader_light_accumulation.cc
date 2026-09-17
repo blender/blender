@@ -51,7 +51,8 @@ static int node_shader_gpu_light_accumulation(GPUMaterial *mat,
 {
   GPU_material_flag_set(mat, GPU_MATFLAG_LIGHTING);
 
-  return GPU_stack_link(mat, node, "node_light_accumulation", in, out);
+  return GPU_stack_link(
+      mat, node, "node_light_accumulation", in, out, GPU_kernel_globals(), GPU_shading_data());
 }
 
 }  // namespace nodes::node_shader_light_accumulation_cc

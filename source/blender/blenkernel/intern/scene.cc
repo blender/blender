@@ -1059,6 +1059,15 @@ static void scene_foreach_working_space_color(ID *id, const IDTypeForeachColorFu
   });
 }
 
+static void scene_foreach_asset_weak_reference(ID *id, FunctionRef<void(AssetWeakReference &)> fn)
+{
+  Scene *scene = id_cast<Scene *>(id);
+
+  BKE_paint_settings_foreach_mode(scene->toolsettings, [&fn](Paint &paint) {
+    BKE_paint_foreach_asset_weak_reference(paint, fn);
+  });
+}
+
 static void scene_foreach_cache(ID *id,
                                 IDTypeForeachCacheFunctionCallback function_callback,
                                 void *user_data)
@@ -1133,7 +1142,7 @@ static void scene_blend_write_compositor_forward_compat(Scene &scene,
 
   BLO_Write_IDBuffer temp_embedded_id_buffer{temp_nodetree_copy->id, writer};
   bNodeTree *temp_nodetree = reinterpret_cast<bNodeTree *>(temp_embedded_id_buffer.get());
-  writer->write_struct_at_address(scene.nodetree, temp_nodetree);
+  writer->write_embedded_id_struct(scene.nodetree, temp_nodetree);
 
   /* Todo(#140111): Forward compatibility support will be removed in 6.0. Do not write an embedded
    * nodetree at `scene->nodetree` anymore. */
@@ -1330,7 +1339,7 @@ static void scene_blend_write(BlendWriter *writer, ID *id, const void *id_addres
     BLO_Write_IDBuffer temp_embedded_id_buffer{sce->master_collection->id, writer};
     Collection *temp_collection = reinterpret_cast<Collection *>(temp_embedded_id_buffer.get());
     BKE_collection_blend_write_prepare_nolib(writer, temp_collection);
-    writer->write_struct_at_address(sce->master_collection, temp_collection);
+    writer->write_embedded_id_struct(sce->master_collection, temp_collection);
     BKE_collection_blend_write_nolib(writer, temp_collection);
   }
 
@@ -1673,6 +1682,7 @@ IDTypeInfo IDType_ID_SCE = {
     .foreach_cache = scene_foreach_cache,
     .foreach_path = scene_foreach_path,
     .foreach_working_space_color = scene_foreach_working_space_color,
+    .foreach_asset_weak_reference = scene_foreach_asset_weak_reference,
     .owner_pointer_get = nullptr,
 
     .blend_write = scene_blend_write,
@@ -2735,7 +2745,7 @@ static void prepare_mesh_for_viewport_render(Main *bmain,
     {
       if (check_rendered_viewport_visible(bmain)) {
         Mesh *mesh = id_cast<Mesh *>(obedit->data);
-        BMesh *bm = mesh->runtime->edit_mesh->bm;
+        BMesh *bm = BKE_editmesh_bmesh_get_for_write(mesh);
         BMeshToMeshParams params{};
         params.calc_object_remap = true;
         params.update_shapekey_indices = true;

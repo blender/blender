@@ -41,7 +41,7 @@ echo - doc_py ^(Generate sphinx python api docs^)
 
 echo.
 echo Experimental options
-echo - with_gpu_tests ^(enable both the render and draw gpu test suites including EEVEE, Workbench, Grease Pencil, draw manager and GPU backends^)
+echo - with_gpu_tests ^(enable EEVEE, Workbench, Grease Pencil, Compositor, GPU module and UI tests^)
 echo - asan ^(enable asan^)
 echo - ninja ^(enable building with ninja instead of msbuild^)
 echo.

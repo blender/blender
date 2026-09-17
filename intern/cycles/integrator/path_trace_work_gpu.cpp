@@ -260,6 +260,10 @@ void PathTraceWorkGPU::alloc_integrator_sorting()
     }
     integrator_state_gpu_.sort_partition_key_offsets =
         (int *)integrator_shader_sort_partition_key_offsets_.device_pointer;
+
+    integrator_state_gpu_.sort_key_counter[DEVICE_KERNEL_INTEGRATOR_SHADE_SURFACE] = nullptr;
+    integrator_state_gpu_.sort_key_counter[DEVICE_KERNEL_INTEGRATOR_SHADE_SURFACE_RAYTRACE] =
+        nullptr;
   }
   else {
     /* Allocate arrays for shader sorting. */
@@ -267,21 +271,21 @@ void PathTraceWorkGPU::alloc_integrator_sorting()
     if (integrator_shader_sort_counter_.size() < sort_buckets) {
       integrator_shader_sort_counter_.alloc(sort_buckets);
       integrator_shader_sort_counter_.zero_to_device();
-      integrator_state_gpu_.sort_key_counter[DEVICE_KERNEL_INTEGRATOR_SHADE_SURFACE] =
-          (int *)integrator_shader_sort_counter_.device_pointer;
 
       integrator_shader_sort_prefix_sum_.alloc(sort_buckets);
       integrator_shader_sort_prefix_sum_.zero_to_device();
     }
 
-    if (device_scene_->data.kernel_features & KERNEL_FEATURE_NODE_RAYTRACE) {
-      if (integrator_shader_raytrace_sort_counter_.size() < sort_buckets) {
-        integrator_shader_raytrace_sort_counter_.alloc(sort_buckets);
-        integrator_shader_raytrace_sort_counter_.zero_to_device();
-        integrator_state_gpu_.sort_key_counter[DEVICE_KERNEL_INTEGRATOR_SHADE_SURFACE_RAYTRACE] =
-            (int *)integrator_shader_raytrace_sort_counter_.device_pointer;
-      }
+    const bool use_raytrace = device_scene_->data.kernel_features & KERNEL_FEATURE_NODE_RAYTRACE;
+    if (use_raytrace && integrator_shader_raytrace_sort_counter_.size() < sort_buckets) {
+      integrator_shader_raytrace_sort_counter_.alloc(sort_buckets);
+      integrator_shader_raytrace_sort_counter_.zero_to_device();
     }
+
+    integrator_state_gpu_.sort_key_counter[DEVICE_KERNEL_INTEGRATOR_SHADE_SURFACE] =
+        (int *)integrator_shader_sort_counter_.device_pointer;
+    integrator_state_gpu_.sort_key_counter[DEVICE_KERNEL_INTEGRATOR_SHADE_SURFACE_RAYTRACE] =
+        (use_raytrace) ? (int *)integrator_shader_raytrace_sort_counter_.device_pointer : nullptr;
   }
 }
 

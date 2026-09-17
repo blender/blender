@@ -482,10 +482,9 @@ static void linestyle_blend_write(BlendWriter *writer, ID *id, const void *id_ad
   }
   if (linestyle->nodetree) {
     BLO_Write_IDBuffer temp_embedded_id_buffer{linestyle->nodetree->id, writer};
-    writer->write_struct_at_address_cast<bNodeTree>(linestyle->nodetree,
-                                                    temp_embedded_id_buffer.get());
-    bke::node_tree_blend_write(writer,
-                               reinterpret_cast<bNodeTree *>(temp_embedded_id_buffer.get()));
+    bNodeTree *temp_ntree = reinterpret_cast<bNodeTree *>(temp_embedded_id_buffer.get());
+    writer->write_embedded_id_struct(linestyle->nodetree, temp_ntree);
+    bke::node_tree_blend_write(writer, temp_ntree);
   }
 }
 
@@ -717,6 +716,7 @@ IDTypeInfo IDType_ID_LS = {
     .foreach_cache = nullptr,
     .foreach_path = nullptr,
     .foreach_working_space_color = linestyle_foreach_working_space_color,
+    .foreach_asset_weak_reference = nullptr,
     .owner_pointer_get = nullptr,
 
     .blend_write = linestyle_blend_write,

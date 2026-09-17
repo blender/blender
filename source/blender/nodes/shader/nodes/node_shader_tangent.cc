@@ -87,7 +87,8 @@ static int node_shader_gpu_tangent(GPUMaterial *mat,
     GPU_link(mat, "tangent_orco_z", orco, &orco);
   }
 
-  return GPU_stack_link(mat, node, "node_tangent", in, out, orco);
+  return GPU_stack_link(
+      mat, node, "node_tangent", in, out, orco, GPU_kernel_globals(), GPU_shading_data());
 }
 
 NODE_SHADER_MATERIALX_BEGIN

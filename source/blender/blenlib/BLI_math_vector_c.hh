@@ -165,6 +165,7 @@ MINLINE void madd_v3fl_v3fl_v3fl_v3i(float r[3],
                                      const float b[3],
                                      const int c[3]);
 
+MINLINE void negate_v2(float r[2]);
 MINLINE void negate_v2_v2(float r[2], const float a[2]);
 MINLINE void negate_v3(float r[3]);
 MINLINE void negate_v3_v3(float r[3], const float a[3]);

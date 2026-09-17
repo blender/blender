@@ -95,7 +95,6 @@ float4 texelFetchExtend(sampler2DDepth samp, int2 texel, int lvl)
   return texelFetch(samp, texel, lvl);
 }
 
-#define bitfieldExtract(value, offset, bits) extract_bits(value, offset, bits)
 #define bitfieldInsertAssign(base, value, offset, bits) \
   base = insert_bits(base, value, offset, bits)
 

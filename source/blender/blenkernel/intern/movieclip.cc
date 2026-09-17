@@ -209,7 +209,9 @@ static void movieclip_blend_write(BlendWriter *writer, ID *id, const void *id_ad
 
   MovieTracking *tracking = &clip->tracking;
 
-  writer->write_id_struct(id_address, clip);
+  writer->write_id_struct(id_address, clip, [](BlendStructWriter<MovieClip> &struct_writer) {
+    struct_writer.shallow_data.runtime = {};
+  });
   BKE_id_blend_write(writer, &clip->id);
 
   for (MovieTrackingObject &object : tracking->objects) {
@@ -309,6 +311,7 @@ IDTypeInfo IDType_ID_MC = {
     .foreach_cache = movie_clip_foreach_cache,
     .foreach_path = movie_clip_foreach_path,
     .foreach_working_space_color = nullptr,
+    .foreach_asset_weak_reference = nullptr,
     .owner_pointer_get = nullptr,
 
     .blend_write = movieclip_blend_write,

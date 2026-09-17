@@ -101,13 +101,13 @@ void Operation::evaluate_input_processors()
    * value of all inputs, so previous input processors for all inputs needs to be added and
    * evaluated first. */
 
-  for (const StringRef &identifier : results_mapped_to_inputs_.keys()) {
+  for (const std::string &identifier : results_mapped_to_inputs_.keys()) {
     SimpleOperation *conversion = ConversionOperation::construct_if_needed(
         this->context(), this->get_input(identifier), this->get_input_descriptor(identifier));
     this->add_and_evaluate_input_processor(identifier, conversion);
   }
 
-  for (const StringRef &identifier : results_mapped_to_inputs_.keys()) {
+  for (const std::string &identifier : results_mapped_to_inputs_.keys()) {
     SimpleOperation *realize_on_domain = RealizeOnDomainOperation::construct_if_needed(
         this->context(),
         this->get_input(identifier),

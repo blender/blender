@@ -68,10 +68,10 @@ class Operation {
    * another operation or one that was internally computed in the operation by the last input
    * processor for that input. It is the responsibility of the evaluator to map the inputs to their
    * linked results before evaluating the operation by calling the map_input_to_result method. */
-  Map<StringRef, Result *> results_mapped_to_inputs_;
+  Map<std::string, Result *> results_mapped_to_inputs_;
   /* A mapping between each input of the operation identified by its identifier and an ordered list
    * of simple operations to process that input. */
-  Map<StringRef, ProcessorsVector> input_processors_;
+  Map<std::string, ProcessorsVector> input_processors_;
 
  public:
   Operation(Context &context);

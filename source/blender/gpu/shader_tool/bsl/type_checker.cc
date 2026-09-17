@@ -78,7 +78,7 @@ struct ExpressionTypeParser
             return scope->lookup_class(*table, var.identifier()).unwrap(err);
           }
           error(call.parameters(), Diag::ExpectedOneTypename);
-          return {table->err_cls, 1, false};
+          return {table->err_cls, ConstexprError(), false};
         }
         if (call.identifier().str() == "interface_get" ||
             call.identifier().str() == "sampler_get" || call.identifier().str() == "buffer_get")
@@ -95,7 +95,7 @@ struct ExpressionTypeParser
             return v;
           }
           error(call.parameters(), Diag::ExpectedOneTypename);
-          return {table->err_cls, 1, false};
+          return {table->err_cls, ConstexprError(), false};
         }
 
         if (is_reference) {
@@ -103,64 +103,245 @@ struct ExpressionTypeParser
         }
         auto sym = scope->lookup_function(*table, call.identifier(), call.parameters(), *scope);
         SymbolFunction *fn = sym.unwrap(err);
-        if (fn->is_builtin) {
+        if (fn->is_constexpr && !fn->is_error) {
           /* Implement builtin type casts. */
-          ast::Expr param = call.parameters().splat_1().arg1;
-          if (!param.is_valid()) {
+          auto [param1, param2, param3, param4] = call.parameters().splat_4();
+          int param_count = call.parameters().child_count();
+          if (param_count <= 0 || param_count > 4) {
             /* Not a constexpr. */
           }
-          else {
-            ExpressionResult res = sub_expression(t, param, 0);
+          else if (param_count == 4) {
+            ExpressionResult res1 = sub_expression(t, param1, 0);
+            ExpressionResult res2 = sub_expression(t, param2, 0);
+            ExpressionResult res3 = sub_expression(t, param3, 0);
+            ExpressionResult res4 = sub_expression(t, param4, 0);
+
+            if (!res1.is_constexpr() || res1.array_dim != 0 || !res2.is_constexpr() ||
+                res2.array_dim != 0 || !res3.is_constexpr() || res3.array_dim != 0 ||
+                !res4.is_constexpr() || res4.array_dim != 0)
+            {
+              /* Not a constexpr. */
+            }
+            else if (fn->identifier == "float4") {
+              return {table->float4_cls,
+                      ConstexprValue(
+                          ConstexprValue::FLOAT4, res1.value, res2.value, res3.value, res4.value)};
+            }
+            else if (fn->identifier == "int4") {
+              return {table->int4_cls,
+                      ConstexprValue(
+                          ConstexprValue::INT4, res1.value, res2.value, res3.value, res4.value)};
+            }
+            else if (fn->identifier == "uint4") {
+              return {table->uint4_cls,
+                      ConstexprValue(
+                          ConstexprValue::UINT4, res1.value, res2.value, res3.value, res4.value)};
+            }
+            else if (fn->identifier == "bool4") {
+              return {table->bool4_cls,
+                      ConstexprValue(
+                          ConstexprValue::BOOL4, res1.value, res2.value, res3.value, res4.value)};
+            }
+          }
+          else if (param_count == 3) {
+            ExpressionResult res1 = sub_expression(t, param1, 0);
+            ExpressionResult res2 = sub_expression(t, param2, 0);
+            ExpressionResult res3 = sub_expression(t, param3, 0);
+
+            if (!res1.is_constexpr() || res1.array_dim != 0 || !res2.is_constexpr() ||
+                res2.array_dim != 0 || !res3.is_constexpr() || res3.array_dim != 0)
+            {
+              /* Not a constexpr. */
+            }
+            else if (fn->identifier == "float3") {
+              return {table->float3_cls,
+                      ConstexprValue(ConstexprValue::FLOAT3, res1.value, res2.value, res3.value)};
+            }
+            else if (fn->identifier == "int3") {
+              return {table->int3_cls,
+                      ConstexprValue(ConstexprValue::INT3, res1.value, res2.value, res3.value)};
+            }
+            else if (fn->identifier == "uint3") {
+              return {table->uint3_cls,
+                      ConstexprValue(ConstexprValue::UINT3, res1.value, res2.value, res3.value)};
+            }
+            else if (fn->identifier == "bool3") {
+              return {table->bool3_cls,
+                      ConstexprValue(ConstexprValue::BOOL3, res1.value, res2.value, res3.value)};
+            }
+          }
+          else if (param_count == 2) {
+            ExpressionResult res1 = sub_expression(t, param1, 0);
+            ExpressionResult res2 = sub_expression(t, param2, 0);
+
+            if (!res1.is_constexpr() || res1.array_dim != 0 || !res2.is_constexpr() ||
+                res2.array_dim != 0)
+            {
+              /* Not a constexpr. */
+            }
+            else if (fn->identifier == "float2") {
+              return {table->float2_cls,
+                      ConstexprValue(ConstexprValue::FLOAT2, res1.value, res2.value)};
+            }
+            else if (fn->identifier == "int2") {
+              return {table->int2_cls,
+                      ConstexprValue(ConstexprValue::INT2, res1.value, res2.value)};
+            }
+            else if (fn->identifier == "uint2") {
+              return {table->uint2_cls,
+                      ConstexprValue(ConstexprValue::UINT2, res1.value, res2.value)};
+            }
+            else if (fn->identifier == "bool2") {
+              return {table->bool2_cls,
+                      ConstexprValue(ConstexprValue::BOOL2, res1.value, res2.value)};
+            }
+            else if (res1.type->comp_len > 1 && res1.type->comp_len == res2.type->comp_len) {
+              if (fn->identifier == "lessThan") {
+                return {table->make_type(table->bool_cls, res1.type->comp_len),
+                        res1.value < res2.value};
+              }
+              if (fn->identifier == "lessThanEqual") {
+                return {table->make_type(table->bool_cls, res1.type->comp_len),
+                        res1.value <= res2.value};
+              }
+              if (fn->identifier == "greaterThan") {
+                return {table->make_type(table->bool_cls, res1.type->comp_len),
+                        res1.value > res2.value};
+              }
+              if (fn->identifier == "greaterThanEqual") {
+                return {table->make_type(table->bool_cls, res1.type->comp_len),
+                        res1.value >= res2.value};
+              }
+              if (fn->identifier == "equal") {
+                return {table->make_type(table->bool_cls, res1.type->comp_len),
+                        res1.value == res2.value};
+              }
+              if (fn->identifier == "notEqual") {
+                return {table->make_type(table->bool_cls, res1.type->comp_len),
+                        res1.value != res2.value};
+              }
+            }
+          }
+          else if (param_count == 1) {
+            ExpressionResult res = sub_expression(t, param1, 0);
             if (!res.is_constexpr() || res.array_dim != 0) {
               /* Not a constexpr. */
             }
-            else if (fn->identifier == "float") {
-              return std::visit(
-                  [&](auto val) -> ExpressionResult { return {table->float_cls, float(val)}; },
-                  res.value);
+            else if (res.type == table->float4_cls || res.type == table->int4_cls ||
+                     res.type == table->bool4_cls || res.type == table->uint4_cls)
+            {
+              if (fn->identifier == "float4") {
+                return {table->float4_cls, ConstexprValue(ConstexprValue::FLOAT4, res.value)};
+              }
+              if (fn->identifier == "int4") {
+                return {table->int4_cls, ConstexprValue(ConstexprValue::INT4, res.value)};
+              }
+              if (fn->identifier == "uint4") {
+                return {table->uint4_cls, ConstexprValue(ConstexprValue::UINT4, res.value)};
+              }
+              if (fn->identifier == "bool4") {
+                return {table->bool4_cls, ConstexprValue(ConstexprValue::BOOL4, res.value)};
+              }
             }
-            else if (fn->identifier == "int") {
-              return std::visit(
-                  [&](auto val) -> ExpressionResult { return {table->int_cls, int(val)}; },
-                  res.value);
+            else if (res.type == table->float3_cls || res.type == table->int3_cls ||
+                     res.type == table->bool3_cls || res.type == table->uint3_cls)
+            {
+              if (fn->identifier == "float3") {
+                return {table->float3_cls, ConstexprValue(ConstexprValue::FLOAT3, res.value)};
+              }
+              if (fn->identifier == "int3") {
+                return {table->int3_cls, ConstexprValue(ConstexprValue::INT3, res.value)};
+              }
+              if (fn->identifier == "uint3") {
+                return {table->uint3_cls, ConstexprValue(ConstexprValue::UINT3, res.value)};
+              }
+              if (fn->identifier == "bool3") {
+                return {table->bool3_cls, ConstexprValue(ConstexprValue::BOOL3, res.value)};
+              }
             }
-            else if (fn->identifier == "uint") {
-              return std::visit(
-                  [&](auto val) -> ExpressionResult { return {table->uint_cls, uint32_t(val)}; },
-                  res.value);
+            else if (res.type == table->float2_cls || res.type == table->int2_cls ||
+                     res.type == table->bool2_cls || res.type == table->uint2_cls)
+            {
+              if (fn->identifier == "float2") {
+                return {table->float2_cls, ConstexprValue(ConstexprValue::FLOAT2, res.value)};
+              }
+              if (fn->identifier == "int2") {
+                return {table->int2_cls, ConstexprValue(ConstexprValue::INT2, res.value)};
+              }
+              if (fn->identifier == "uint2") {
+                return {table->uint2_cls, ConstexprValue(ConstexprValue::UINT2, res.value)};
+              }
+              if (fn->identifier == "bool2") {
+                return {table->bool2_cls, ConstexprValue(ConstexprValue::BOOL2, res.value)};
+              }
             }
-            else if (fn->identifier == "bool") {
-              return std::visit(
-                  [&](auto val) -> ExpressionResult { return {table->bool_cls, bool(val)}; },
-                  res.value);
-            }
-            else if (fn->identifier == "floatBitsToUint") {
-              return std::visit(
-                  [&](auto val) -> ExpressionResult {
-                    return {table->uint_cls, std::bit_cast<uint32_t>(float(val))};
-                  },
-                  res.value);
-            }
-            else if (fn->identifier == "floatBitsToInt") {
-              return std::visit(
-                  [&](auto val) -> ExpressionResult {
-                    return {table->int_cls, std::bit_cast<int>(float(val))};
-                  },
-                  res.value);
-            }
-            else if (fn->identifier == "uintBitsToFloat") {
-              return std::visit(
-                  [&](auto val) -> ExpressionResult {
-                    return {table->uint_cls, std::bit_cast<float>(uint32_t(val))};
-                  },
-                  res.value);
-            }
-            else if (fn->identifier == "intBitsToFloat") {
-              return std::visit(
-                  [&](auto val) -> ExpressionResult {
-                    return {table->int_cls, std::bit_cast<float>(int(val))};
-                  },
-                  res.value);
+            else if (res.type == table->float_cls || res.type == table->int_cls ||
+                     res.type == table->bool_cls || res.type == table->uint_cls)
+            {
+              if (fn->identifier == "float4") {
+                return {table->float4_cls, ConstexprValue(ConstexprValue::FLOAT4, res.value)};
+              }
+              if (fn->identifier == "int4") {
+                return {table->int4_cls, ConstexprValue(ConstexprValue::INT4, res.value)};
+              }
+              if (fn->identifier == "uint4") {
+                return {table->uint4_cls, ConstexprValue(ConstexprValue::UINT4, res.value)};
+              }
+              if (fn->identifier == "bool4") {
+                return {table->bool4_cls, ConstexprValue(ConstexprValue::BOOL4, res.value)};
+              }
+              if (fn->identifier == "float3") {
+                return {table->float3_cls, ConstexprValue(ConstexprValue::FLOAT3, res.value)};
+              }
+              if (fn->identifier == "int3") {
+                return {table->int3_cls, ConstexprValue(ConstexprValue::INT3, res.value)};
+              }
+              if (fn->identifier == "uint3") {
+                return {table->uint3_cls, ConstexprValue(ConstexprValue::UINT3, res.value)};
+              }
+              if (fn->identifier == "bool3") {
+                return {table->bool3_cls, ConstexprValue(ConstexprValue::BOOL3, res.value)};
+              }
+              if (fn->identifier == "float2") {
+                return {table->float2_cls, ConstexprValue(ConstexprValue::FLOAT2, res.value)};
+              }
+              if (fn->identifier == "int2") {
+                return {table->int2_cls, ConstexprValue(ConstexprValue::INT2, res.value)};
+              }
+              if (fn->identifier == "uint2") {
+                return {table->uint2_cls, ConstexprValue(ConstexprValue::UINT2, res.value)};
+              }
+              if (fn->identifier == "bool2") {
+                return {table->bool2_cls, ConstexprValue(ConstexprValue::BOOL2, res.value)};
+              }
+              if (fn->identifier == "float") {
+                return {table->float_cls, ConstexprValue(ConstexprValue::FLOAT1, res.value)};
+              }
+              if (fn->identifier == "int") {
+                return {table->int_cls, ConstexprValue(ConstexprValue::INT1, res.value)};
+              }
+              if (fn->identifier == "uint") {
+                return {table->uint_cls, ConstexprValue(ConstexprValue::UINT1, res.value)};
+              }
+              if (fn->identifier == "bool") {
+                return {table->bool_cls, ConstexprValue(ConstexprValue::BOOL1, res.value)};
+              }
+              if (fn->identifier == "floatBitsToUint") {
+                return {table->uint_cls,
+                        ConstexprValue(std::bit_cast<uint32_t>(res.value.comp_cast<float>(0)))};
+              }
+              if (fn->identifier == "floatBitsToInt") {
+                return {table->int_cls,
+                        ConstexprValue(std::bit_cast<int32_t>(res.value.comp_cast<float>(0)))};
+              }
+              if (fn->identifier == "uintBitsToFloat") {
+                return {table->uint_cls,
+                        ConstexprValue(std::bit_cast<float>(res.value.comp_cast<uint32_t>(0)))};
+              }
+              if (fn->identifier == "intBitsToFloat") {
+                return {table->float_cls,
+                        ConstexprValue(std::bit_cast<float>(res.value.comp_cast<int32_t>(0)))};
+              }
             }
           }
         }
@@ -190,16 +371,16 @@ struct ExpressionTypeParser
       std::string str_val(t.str());
 
       if (type == table->float_cls) {
-        value = std::stof(str_val);
+        value = ConstexprValue(std::stof(str_val));
       }
       else if (type == table->int_cls) {
-        value = std::stoi(str_val, nullptr, 0);
+        value = ConstexprValue(std::stoi(str_val, nullptr, 0));
       }
       else if (type == table->uint_cls) {
-        value = uint32_t(std::stoull(str_val, nullptr, 0));
+        value = ConstexprValue(uint32_t(std::stoull(str_val, nullptr, 0)));
       }
       else if (type == table->bool_cls) {
-        value = str_val == "true";
+        value = ConstexprValue(str_val == "true");
       }
       else {
         throw std::runtime_error("Invalid Type");
@@ -336,20 +517,18 @@ struct ExpressionTypeParser
       switch (op_type) {
         /* Note that side effects are not propagated. */
         case Increment:
-          return {type, apply_unary_arithmetic(right, [](auto r) { return ++r; })};
+          return {type, ++right.value};
         case Decrement:
-          return {type, apply_unary_arithmetic(right, [](auto r) { return --r; })};
+          return {type, --right.value};
         case Plus:
-          return {type, apply_arithmetic(right, [](auto r) { return +r; })};
+          return {type, +right.value};
         case Minus:
-          return {type, apply_arithmetic(right, [](auto r) { return -r; })};
+          return {type, -right.value};
         case Not:
           /* Note that '!' token is of MultiTok class and can contain many unary '!'. */
-          return {type,
-                  (t.str().size() & 1) ? apply_arithmetic(right, [](auto r) { return !r; }) :
-                                         apply_arithmetic(right, [](auto r) { return !!r; })};
+          return {type, (t.str().size() & 1) ? !right.value : !!right.value};
         case BitwiseNot:
-          return {type, apply_integral(right, [](auto r) { return ~r; })};
+          return {type, ~right.value};
         default:
           assert(0); /* Unreachable. */
           return table->err_cls;
@@ -396,9 +575,9 @@ struct ExpressionTypeParser
       switch (op_type) {
         /* Note that side effects are not propagated. */
         case Increment:
-          return {type, apply_unary_arithmetic(left, [](auto r) { return r++; })};
+          return {type, left.value++};
         case Decrement:
-          return {type, apply_unary_arithmetic(left, [](auto r) { return r--; })};
+          return {type, left.value--};
         default:
           assert(0); /* Unreachable. */
           return table->err_cls;
@@ -456,73 +635,73 @@ struct ExpressionTypeParser
     if (flags & ExprFlag::IsConstexpr) {
       switch (op_type) {
         case Multiply:
-          return {type, apply_arithmetic(lhs, rhs, [](auto l, auto r) { return l * r; })};
+          return {type, lhs.value * rhs.value};
         case Divide:
-          return {type, apply_arithmetic(lhs, rhs, [&](auto l, auto r) {
-                    if (r == 0) {
+          return {type, [&]() {
+                    if (contains_zero(rhs.value)) {
                       error(t, Diag::ConstexprDivisionByZero);
-                      return l * r;
+                      return lhs.value * rhs.value;
                     }
-                    return l / r;
-                  })};
+                    return lhs.value / rhs.value;
+                  }()};
         case Modulo:
-          return {type, apply_integral(lhs, rhs, [&](auto l, auto r) {
-                    if (r == 0) {
-                      error(t, Diag::ConstexprDivisionByZero, to_string(r));
-                      return decltype(l % r)(0);
+          return {type, [&]() {
+                    if (contains_zero(rhs.value)) {
+                      error(t, Diag::ConstexprDivisionByZero, constexpr_to_string(rhs.value));
+                      return decltype(lhs.value % rhs.value)(0);
                     }
-                    return l % r;
-                  })};
+                    return lhs.value % rhs.value;
+                  }()};
         case LShift:
-          return {type, apply_integral(lhs, rhs, [&](auto l, auto r) {
-                    if (int(r) < 0) {
-                      error(t, Diag::ConstexprShiftNegative, to_string(r));
-                      return decltype(l << r)(0);
+          return {type, [&]() {
+                    if (anyLessThan(rhs.value, 0)) {
+                      error(t, Diag::ConstexprShiftNegative, constexpr_to_string(rhs.value));
+                      return decltype(lhs.value << rhs.value)(0);
                     }
-                    if (int(r) >= 32) {
-                      error(t, Diag::ConstexprShiftTooLarge, to_string(r));
-                      return decltype(l << r)(0);
+                    if (anyGreaterThanEqual(rhs.value, 32)) {
+                      error(t, Diag::ConstexprShiftTooLarge, constexpr_to_string(rhs.value));
+                      return decltype(lhs.value << rhs.value)(0);
                     }
-                    return l << r;
-                  })};
+                    return lhs.value << rhs.value;
+                  }()};
         case RShift:
-          return {type, apply_integral(lhs, rhs, [&](auto l, auto r) {
-                    if (int(r) < 0) {
-                      error(t, Diag::ConstexprShiftNegative, to_string(r));
-                      return decltype(l >> r)(0);
+          return {type, [&]() {
+                    if (anyLessThan(rhs.value, 0)) {
+                      error(t, Diag::ConstexprShiftNegative, constexpr_to_string(rhs.value));
+                      return decltype(lhs.value >> rhs.value)(0);
                     }
-                    if (int(r) >= 32) {
-                      error(t, Diag::ConstexprShiftTooLarge, to_string(r));
-                      return decltype(l >> r)(0);
+                    if (anyGreaterThanEqual(rhs.value, 32)) {
+                      error(t, Diag::ConstexprShiftTooLarge, constexpr_to_string(rhs.value));
+                      return decltype(lhs.value >> rhs.value)(0);
                     }
-                    return l >> r;
-                  })};
+                    return lhs.value >> rhs.value;
+                  }()};
         case Plus:
-          return {type, apply_arithmetic(lhs, rhs, [](auto l, auto r) { return l + r; })};
+          return {type, lhs.value + rhs.value};
         case Minus:
-          return {type, apply_arithmetic(lhs, rhs, [](auto l, auto r) { return l - r; })};
+          return {type, lhs.value - rhs.value};
         case LThan:
-          return {type, apply_arithmetic(lhs, rhs, [](auto l, auto r) { return l < r; })};
+          return {type, lhs.value < rhs.value};
         case LEqual:
-          return {type, apply_arithmetic(lhs, rhs, [](auto l, auto r) { return l <= r; })};
+          return {type, lhs.value <= rhs.value};
         case GThan:
-          return {type, apply_arithmetic(lhs, rhs, [](auto l, auto r) { return l > r; })};
+          return {type, lhs.value > rhs.value};
         case GEqual:
-          return {type, apply_arithmetic(lhs, rhs, [](auto l, auto r) { return l >= r; })};
+          return {type, lhs.value >= rhs.value};
         case Equal:
-          return {type, apply_arithmetic(lhs, rhs, [](auto l, auto r) { return l == r; })};
+          return {type, lhs.value == rhs.value};
         case NotEqual:
-          return {type, apply_arithmetic(lhs, rhs, [](auto l, auto r) { return l != r; })};
+          return {type, lhs.value != rhs.value};
         case And:
-          return {type, apply_integral(lhs, rhs, [](auto l, auto r) { return l & r; })};
+          return {type, lhs.value & rhs.value};
         case Xor:
-          return {type, apply_integral(lhs, rhs, [](auto l, auto r) { return l ^ r; })};
+          return {type, lhs.value ^ rhs.value};
         case Or:
-          return {type, apply_integral(lhs, rhs, [](auto l, auto r) { return l | r; })};
+          return {type, lhs.value | rhs.value};
         case LogicalAnd:
-          return {type, apply_arithmetic(lhs, rhs, [](auto l, auto r) { return l && r; })};
+          return {type, lhs.value && rhs.value};
         case LogicalOr:
-          return {type, apply_arithmetic(lhs, rhs, [](auto l, auto r) { return l || r; })};
+          return {type, lhs.value || rhs.value};
         default:
           assert(0); /* Unreachable. */
           return table->err_cls;
@@ -557,10 +736,10 @@ struct ExpressionTypeParser
     }
 
     if (left.flags & ExprFlag::IsConstexpr) {
-      return {tval.type, std::get<bool>(left.value) ? tval.value : fval.value};
+      return {tval.type, left.value.comp_as<int>(0) ? tval.value : fval.value};
     }
     /* Operand types match. We can return either. */
-    return {tval.type, tval.flags & fval.flags};
+    return {tval.type, ExprFlag(tval.flags & fval.flags)};
   }
 
   ExpressionResult error(ErrorType err, lexit::TokenType type)
@@ -615,86 +794,6 @@ struct ExpressionTypeParser
     /* Exit sub-expression. */
     this->node = node.next();
     return v;
-  }
-
-  /*
-   * Helper to evaluate operations valid for all types (Arithmetic).
-   * C++ decltype(a op b) natively dictates the correct promoted return type
-   * which perfectly forwards into std::variant.
-   */
-  template<typename Func>
-  ConstexprValue apply_arithmetic(const ExpressionResult &lhs,
-                                  const ExpressionResult &rhs,
-                                  Func func) const
-  {
-    return std::visit(
-        [func](auto &&a, auto &&b) -> ConstexprValue { return func(a, b); }, lhs.value, rhs.value);
-  }
-  template<typename Func>
-  ConstexprValue apply_arithmetic(const ExpressionResult &rhs, Func func) const
-  {
-    return std::visit([func](auto &&b) -> ConstexprValue { return func(b); }, rhs.value);
-  }
-
-  /* Helper to evaluate bitwise and modulo operations (requires integral types). */
-  template<typename Func>
-  ConstexprValue apply_integral(const ExpressionResult &lhs,
-                                const ExpressionResult &rhs,
-                                Func func) const
-  {
-    return std::visit(
-        [func](auto &&a, auto &&b) -> ConstexprValue {
-          using T = std::decay_t<decltype(a)>;
-          using U = std::decay_t<decltype(b)>;
-
-          if constexpr (std::is_integral_v<T> && std::is_integral_v<U>) {
-            return func(a, b);
-          }
-          else {
-            /* Invalid operands: operation require integral types. */
-            assert(0);
-            return 0;
-          }
-        },
-        lhs.value,
-        rhs.value);
-  }
-  template<typename Func>
-  ConstexprValue apply_integral(const ExpressionResult &rhs, Func func) const
-  {
-    return std::visit(
-        [func](auto &&b) -> ConstexprValue {
-          using T = std::decay_t<decltype(b)>;
-
-          if constexpr (std::is_integral_v<T> && !std::is_same_v<T, bool>) {
-            return func(b);
-          }
-          else {
-            /* Invalid operands: operation require integral types. */
-            assert(0);
-            return 0;
-          }
-        },
-        rhs.value);
-  }
-
-  template<typename Func>
-  ConstexprValue apply_unary_arithmetic(const ExpressionResult &rhs, Func func) const
-  {
-    return std::visit(
-        [func](auto &&b) -> ConstexprValue {
-          using T = std::decay_t<decltype(b)>;
-
-          if constexpr (!std::is_same_v<T, bool>) {
-            return func(b);
-          }
-          else {
-            /* Invalid operands: operation require float of integral types. */
-            assert(0);
-            return 0;
-          }
-        },
-        rhs.value);
   }
 
   void error(ast::Node node,

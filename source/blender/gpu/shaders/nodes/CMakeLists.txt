@@ -7,15 +7,14 @@ set(INC_GLSL
   ..
   ../..
   ../../..
-  ../../../intern
 
   # For variadic macros
   ../../../blenlib
 
-  ../material
   ../common
-  ../infos
   ../compat
+  ../infos
+  ../material
 )
 
 set(SRC_BSL

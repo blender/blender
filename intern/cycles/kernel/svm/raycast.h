@@ -95,7 +95,8 @@ ccl_device_inline void svm_raycast_attr_eval_and_store(
   NodeAttributeOutputType type = NODE_ATTR_OUTPUT_FLOAT;
   const AttributeDescriptor desc = svm_node_attr_init(kg, &hit_sd, attribute_node, &type);
 
-  const float3 data = svm_node_attr_surface_eval<float3>(kg, &hit_sd, attribute_node, type, desc);
+  const float3 data = svm_node_attr_surface_eval<float3>(
+      kg, &hit_sd, stack, attribute_node, type, desc);
   svm_node_attr_store(type, stack, attribute_node.out_offset, data);
 }
 

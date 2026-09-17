@@ -12,6 +12,11 @@ class PointCloud : public Geometry {
  public:
   NODE_DECLARE
 
+  enum RenderAs {
+    RENDER_AS_POINTS,
+    RENDER_AS_GSPLATS,
+  };
+
   /* PointCloud Point */
   struct Point {
     int index;
@@ -78,6 +83,11 @@ class PointCloud : public Geometry {
 
   /* BVH */
   void pack(Scene *scene, uint *packed_shader);
+
+  /* Recalculate point radius to bound Gaussian splats. */
+  void update_gsplat_radii();
+
+  NODE_SOCKET_API(RenderAs, render_as)
 
  private:
   void add_builtin_attributes();

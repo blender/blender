@@ -706,11 +706,10 @@ class XpbdSolverStep {
     /* Ensure the order is deterministic. */
     std::ranges::sort(paths);
     for (const StringRef path : paths) {
-      GeometrySetData geo_set_data;
-      geo_set_data.path = path;
-      geo_set_data.geometry = std::move(*world_.lookup_path_for_write_ptr<GeometrySet>(path));
-      if (geo_set_data.geometry.has_bundle()) {
-        const Bundle &bundle_in_geo = *geo_set_data.geometry.bundle();
+      GeometrySet &geometry = *world_.lookup_path_for_write_ptr<GeometrySet>(path);
+      Set<std::string> tags;
+      if (geometry.has_bundle()) {
+        const Bundle &bundle_in_geo = *geometry.bundle();
         if (const std::optional<GListPtr> tags_list_ptr = bundle_in_geo.lookup_path<GListPtr>(
                 "tags"))
         {
@@ -718,14 +717,19 @@ class XpbdSolverStep {
             const GList &tags_list = **tags_list_ptr;
             if (tags_list.cpp_type().is<std::string>()) {
               tags_list.typed<std::string>().foreach(
-                  [&](const std::string &tag) { geo_set_data.tags.add(tag); });
+                  [&](const std::string &tag) { tags.add(tag); });
             }
           }
         }
       }
-      if (!tag_filter_matches(geometry_tag_filter_, geo_set_data.tags)) {
+      if (!tag_filter_matches(geometry_tag_filter_, tags)) {
         continue;
       }
+
+      GeometrySetData geo_set_data;
+      geo_set_data.path = path;
+      geo_set_data.geometry = std::move(geometry);
+      geo_set_data.tags = std::move(tags);
       geometries_.geometry_sets.append(std::move(geo_set_data));
     }
 
@@ -3004,7 +3008,8 @@ class XpbdSolverStep {
   PointCloud *write_back__plane_contacts(const IndexRange mesh_colliders_range,
                                          const OffsetIndices<int> points_by_chunk)
   {
-    PointCloud *pointcloud = BKE_pointcloud_new_nomain(points_by_chunk.total_size());
+    PointCloud *pointcloud = BKE_pointcloud_new_nomain(PointCloudType::Points,
+                                                       points_by_chunk.total_size());
     MutableAttributeAccessor attributes = pointcloud->attributes_for_write();
     bke::SpanAttributeWriter<int> geometries_writer =
         attributes.lookup_or_add_for_write_only_span<int>("geometry", AttrDomain::Point);
@@ -3084,7 +3089,8 @@ class XpbdSolverStep {
   PointCloud *write_back__edge_contacts(const IndexRange mesh_colliders_range,
                                         const OffsetIndices<int> points_by_chunk)
   {
-    PointCloud *pointcloud = BKE_pointcloud_new_nomain(points_by_chunk.total_size());
+    PointCloud *pointcloud = BKE_pointcloud_new_nomain(PointCloudType::Points,
+                                                       points_by_chunk.total_size());
     MutableAttributeAccessor attributes = pointcloud->attributes_for_write();
     bke::SpanAttributeWriter<int> geometries_writer =
         attributes.lookup_or_add_for_write_only_span<int>("geometry", AttrDomain::Point);

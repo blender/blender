@@ -112,7 +112,7 @@ extern void IK_GetTranslationChange(IK_Segment *seg, float *translation_change);
 /**
  * An IK_Solver must be created to be able to execute the solver.
  *
- * An arbitray number of goals can be created, stating that a given
+ * An arbitrary number of goals can be created, stating that a given
  * end effector must have a given position or rotation. If multiple
  * goals are specified, they can be weighted (range 0..1) to get
  * some control over their importance.

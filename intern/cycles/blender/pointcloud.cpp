@@ -7,6 +7,7 @@
 #include "scene/scene.h"
 
 #include "util/hash.h"
+#include "util/tbb.h"
 
 #include "blender/attribute_convert.h"
 #include "blender/sync.h"
@@ -115,6 +116,142 @@ static void copy_attributes(PointCloud *pointcloud,
   });
 }
 
+static void export_pointcloud_gsplat_attributes(
+    PointCloud *pointcloud, const blender::bke::AttributeAccessor &b_attributes)
+{
+  const size_t num_points = pointcloud->num_points();
+
+  /* Base radiance and opacity. */
+  sync_attribute_from_blender(
+      pointcloud->attributes,
+      ATTR_STD_GSPLAT_RADIANCE_BASE,
+      b_attributes.lookup<blender::float4>("radiance:base", blender::bke::AttrDomain::Point),
+      num_points);
+
+  /* Scale. */
+  sync_attribute_from_blender(
+      pointcloud->attributes,
+      ATTR_STD_GSPLAT_SCALE,
+      b_attributes.lookup<blender::float3>("scale", blender::bke::AttrDomain::Point),
+      num_points);
+
+  /* Rotation. */
+  sync_attribute_from_blender(
+      pointcloud->attributes,
+      ATTR_STD_GSPLAT_ROTATION,
+      b_attributes.lookup<blender::math::Quaternion>("rotation", blender::bke::AttrDomain::Point),
+      num_points);
+
+  /* Spherical harmonics. */
+  vector<blender::bke::AttributeReader<blender::float3>> sh_attribute_readers;
+  vector<blender::VArraySpan<blender::float3>> sh_attribute_spans;
+  for (int i = 0; i < PackedSphericalHarmonicsRest::MAX_COEFFICIENTS; ++i) {
+    const string sh_attr_name = "radiance:sh_" + std::to_string(i);
+    blender::bke::AttributeReader<blender::float3> reader = b_attributes.lookup<blender::float3>(
+        sh_attr_name, blender::bke::AttrDomain::Point);
+    if (!reader) {
+      break;
+    }
+    sh_attribute_readers.push_back(std::move(reader));
+    sh_attribute_spans.push_back(
+        blender::VArraySpan<blender::float3>(*sh_attribute_readers.back()));
+  }
+  if (!sh_attribute_readers.empty()) {
+    Attribute *attr = pointcloud->attributes.add(
+        ATTR_STD_GSPLAT_RADIANCE_SPHERICAL_HARMONICS_REST);
+    PackedSphericalHarmonicsRest *sh_data = attr->data_for_write<PackedSphericalHarmonicsRest>();
+    parallel_for(blocked_range<size_t>(0, num_points, 32), [&](const blocked_range<size_t> &r) {
+      for (size_t point_index = r.begin(); point_index != r.end(); point_index++) {
+        spherical_harmonics_rest_fill_zero(sh_data[point_index]);
+        for (int sh_index = 0; sh_index < int(sh_attribute_readers.size()); ++sh_index) {
+          spherical_harmonics_rest_set_coefficient(
+              sh_data[point_index],
+              sh_index,
+              make_float3(sh_attribute_spans[sh_index][point_index].x,
+                          sh_attribute_spans[sh_index][point_index].y,
+                          sh_attribute_spans[sh_index][point_index].z));
+        }
+      }
+    });
+  }
+}
+
+static void export_pointcloud_motion_gsplat_attributes(
+    PointCloud *pointcloud,
+    Attribute *attr_radiance_base,
+    Attribute *attr_scale,
+    Attribute *attr_rotation,
+    const blender::PointCloud &b_pointcloud,
+    const blender::bke::AttributeAccessor &b_attributes,
+    const int attr_step)
+{
+  const blender::Span<blender::float3> b_positions = b_pointcloud.positions();
+  const int num_points = pointcloud->num_points();
+  const bool size_matches = (b_positions.size() == num_points);
+
+  if (size_matches) {
+    if (!sync_attribute_motion_step_from_blender(
+            *attr_radiance_base,
+            attr_step,
+            b_attributes.lookup<blender::float4>("radiance:base",
+                                                 blender::bke::AttrDomain::Point)))
+    {
+      float4 *motion_radiance_base = attr_radiance_base->data_for_write<float4>(attr_step);
+      std::fill_n(motion_radiance_base, num_points, zero_float4());
+    }
+
+    if (!sync_attribute_motion_step_from_blender(
+            *attr_scale,
+            attr_step,
+            b_attributes.lookup<blender::float3>("scale", blender::bke::AttrDomain::Point)))
+    {
+      packed_float3 *motion_scale = attr_scale->data_for_write<packed_float3>(attr_step);
+      std::fill_n(motion_scale, num_points, zero_float3());
+    }
+
+    if (!sync_attribute_motion_step_from_blender(*attr_rotation,
+                                                 attr_step,
+                                                 b_attributes.lookup<blender::math::Quaternion>(
+                                                     "rotation", blender::bke::AttrDomain::Point)))
+    {
+      Quaternion *motion_rotation = attr_rotation->data_for_write<Quaternion>(attr_step);
+      std::fill_n(motion_rotation, num_points, identity_quaternion());
+    }
+    return;
+  }
+
+  /* Slow path: point count differs, copy what overlaps. */
+  const blender::VArraySpan b_radiance_base = *b_attributes.lookup<blender::float4>(
+      "radiance:base", blender::bke::AttrDomain::Point);
+  const blender::VArraySpan b_scale = *b_attributes.lookup<blender::float3>(
+      "scale", blender::bke::AttrDomain::Point);
+  const blender::VArraySpan b_rotation = *b_attributes.lookup<blender::math::Quaternion>(
+      "rotation", blender::bke::AttrDomain::Point);
+  float4 *motion_radiance_base = attr_radiance_base->data_for_write<float4>(attr_step);
+  packed_float3 *motion_scale = attr_scale->data_for_write<packed_float3>(attr_step);
+  Quaternion *motion_rotation = attr_rotation->data_for_write<Quaternion>(attr_step);
+
+  parallel_for(blocked_range<size_t>(0, std::min<int>(num_points, b_positions.size()), 32),
+               [&](const blocked_range<size_t> &r) {
+                 for (size_t i = r.begin(); i != r.end(); i++) {
+                   motion_radiance_base[i] = b_radiance_base.is_empty() ?
+                                                 zero_float4() :
+                                                 make_float4(b_radiance_base[i][0],
+                                                             b_radiance_base[i][1],
+                                                             b_radiance_base[i][2],
+                                                             b_radiance_base[i][3]);
+                   motion_scale[i] = b_scale.is_empty() ?
+                                         zero_float3() :
+                                         make_float3(b_scale[i][0], b_scale[i][1], b_scale[i][2]);
+                   motion_rotation[i] = b_rotation.is_empty() ? identity_quaternion() :
+                                                                make_quaternion(b_rotation[i][0],
+                                                                                b_rotation[i][1],
+                                                                                b_rotation[i][2],
+                                                                                b_rotation[i][3]);
+                 }
+               });
+}
+
 static void export_pointcloud(Scene *scene,
                               PointCloud *pointcloud,
                               const blender::PointCloud &b_pointcloud,
@@ -159,6 +296,11 @@ static void export_pointcloud(Scene *scene,
     }
   }
 
+  if (b_pointcloud.type == blender::PointCloudType::GSplat) {
+    export_pointcloud_gsplat_attributes(pointcloud, b_attributes);
+    pointcloud->set_render_as(PointCloud::RENDER_AS_GSPLATS);
+  }
+
   copy_attributes(pointcloud, b_pointcloud, need_motion, motion_scale);
 }
 
@@ -166,14 +308,28 @@ static void export_pointcloud_motion(PointCloud *pointcloud,
                                      const blender::PointCloud &b_pointcloud,
                                      const int motion_step)
 {
+  const bool is_gsplat = (b_pointcloud.type == blender::PointCloudType::GSplat);
+
   /* Set motion steps on position and radius attributes. */
   Attribute *attr_P = pointcloud->attributes.find(ATTR_STD_POSITION);
   Attribute *attr_R = pointcloud->attributes.find(ATTR_STD_RADIUS);
+  Attribute *attr_radiance_base = is_gsplat ?
+                                      pointcloud->attributes.find(ATTR_STD_GSPLAT_RADIANCE_BASE) :
+                                      nullptr;
+  Attribute *attr_scale = is_gsplat ? pointcloud->attributes.find(ATTR_STD_GSPLAT_SCALE) : nullptr;
+  Attribute *attr_rotation = is_gsplat ? pointcloud->attributes.find(ATTR_STD_GSPLAT_ROTATION) :
+                                         nullptr;
+  const bool has_gsplat_attributes = (attr_radiance_base && attr_scale && attr_rotation);
   bool new_attribute = false;
 
   if (!attr_P->has_motion()) {
     attr_P->add_motion(pointcloud);
     attr_R->add_motion(pointcloud);
+    if (is_gsplat && has_gsplat_attributes) {
+      attr_radiance_base->add_motion(pointcloud);
+      attr_scale->add_motion(pointcloud);
+      attr_rotation->add_motion(pointcloud);
+    }
     new_attribute = true;
   }
 
@@ -220,11 +376,27 @@ static void export_pointcloud_motion(PointCloud *pointcloud,
     }
   }
 
+  if (is_gsplat && has_gsplat_attributes) {
+    export_pointcloud_motion_gsplat_attributes(pointcloud,
+                                               attr_radiance_base,
+                                               attr_scale,
+                                               attr_rotation,
+                                               b_pointcloud,
+                                               b_attributes,
+                                               attr_step);
+    /* TODO(sergey): Remove constant radiance base, scale, and rotation attributes. */
+  }
+
   /* In case of new attribute, verify if there really was any motion. */
   if (new_attribute) {
     if (!size_matches || !have_motion) {
       attr_P->remove_motion();
       attr_R->remove_motion();
+      if (is_gsplat && has_gsplat_attributes) {
+        attr_radiance_base->remove_motion();
+        attr_scale->remove_motion();
+        attr_rotation->remove_motion();
+      }
     }
     else if (motion_step > 0) {
       /* Motion, fill up previous steps that we might have skipped because

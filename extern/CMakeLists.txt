@@ -49,6 +49,7 @@ add_subdirectory(rangetree)
 add_subdirectory(nanosvg)
 add_subdirectory(wcwidth)
 add_subdirectory(xxhash)
+add_subdirectory(md4c)
 
 if(WITH_BULLET)
   if(NOT WITH_SYSTEM_BULLET)

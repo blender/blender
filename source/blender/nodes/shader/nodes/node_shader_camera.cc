@@ -25,7 +25,7 @@ static int gpu_shader_camera(GPUMaterial *mat,
                              GPUNodeStack *in,
                              GPUNodeStack *out)
 {
-  return GPU_stack_link(mat, node, "camera", in, out);
+  return GPU_stack_link(mat, node, "camera", in, out, GPU_kernel_globals(), GPU_shading_data());
 }
 
 NODE_SHADER_MATERIALX_BEGIN

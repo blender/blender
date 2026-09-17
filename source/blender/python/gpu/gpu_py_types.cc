@@ -65,6 +65,9 @@ PyObject *bpygpu_types_init()
   if (PyType_Ready(&BPyGPUUniformBuf_Type) < 0) {
     return nullptr;
   }
+  if (PyType_Ready(&BPyGPUStorageBuf_Type) < 0) {
+    return nullptr;
+  }
   if (PyType_Ready(&BPyGPUShaderCreateInfo_Type) < 0) {
     return nullptr;
   }
@@ -93,6 +96,7 @@ PyObject *bpygpu_types_init()
   PyModule_AddType(submodule, &BPyGPUTexture_Type);
   PyModule_AddType(submodule, &BPyGPUFrameBuffer_Type);
   PyModule_AddType(submodule, &BPyGPUUniformBuf_Type);
+  PyModule_AddType(submodule, &BPyGPUStorageBuf_Type);
   PyModule_AddType(submodule, &BPyGPUShaderCreateInfo_Type);
   PyModule_AddType(submodule, &BPyGPUStageInterfaceInfo_Type);
   PyModule_AddType(submodule, &PyGPUMatrixStackContext_Type);

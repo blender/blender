@@ -156,7 +156,7 @@ void initTransInfo(bContext *C, TransInfo *t, wmOperator *op, const wmEvent *eve
   t->flag = eTFlag(0);
 
   if (obact && !(t->options & (CTX_CURSOR | CTX_TEXTURE_SPACE)) &&
-      ELEM(object_mode, OB_MODE_EDIT, OB_MODE_EDIT_GPENCIL_LEGACY))
+      ELEM(object_mode, OB_MODE_EDIT, OB_MODE_PAINT_GREASE_PENCIL, OB_MODE_EDIT_GPENCIL_LEGACY))
   {
     t->obedit_type = obact->type;
   }
@@ -212,6 +212,9 @@ void initTransInfo(bContext *C, TransInfo *t, wmOperator *op, const wmEvent *eve
   /* If there's an event, we're modal. */
   if (event) {
     t->flag |= T_MODAL;
+
+    /* Keymap for shortcut header prints. */
+    t->keymap = WM_keymap_active(CTX_wm_manager(C), op->type->modalkeymap);
   }
 
   /* Crease needs edge flag. */
@@ -230,7 +233,8 @@ void initTransInfo(bContext *C, TransInfo *t, wmOperator *op, const wmEvent *eve
   }
 
   /* Grease Pencil editing context. */
-  if (t->obedit_type == OB_GREASE_PENCIL && object_mode == OB_MODE_EDIT &&
+  if (t->obedit_type == OB_GREASE_PENCIL &&
+      (object_mode == OB_MODE_EDIT || object_mode == OB_MODE_PAINT_GREASE_PENCIL) &&
       ((area == nullptr) || (area->spacetype == SPACE_VIEW3D)))
   {
     t->options |= CTX_GPENCIL_STROKES;
@@ -274,9 +278,7 @@ void initTransInfo(bContext *C, TransInfo *t, wmOperator *op, const wmEvent *eve
       t->flag |= T_V3D_ALIGN;
     }
 
-    if ((object_mode & OB_MODE_ALL_PAINT) ||
-        (object_mode & (OB_MODE_SCULPT_CURVES | OB_MODE_SCULPT_GREASE_PENCIL)))
-    {
+    if (object_mode & (OB_MODE_ALL_PAINT_MESH | OB_MODE_SCULPT_CURVES)) {
       Paint *paint = BKE_paint_get_active_from_context(C);
       Brush *brush = (paint) ? BKE_paint_brush(paint) : nullptr;
       if (brush && (brush->stroke_method == BRUSH_STROKE_CURVE)) {
@@ -686,7 +688,7 @@ void initTransInfo(bContext *C, TransInfo *t, wmOperator *op, const wmEvent *eve
     t->flag |= T_NO_CURSOR_WRAP;
   }
 
-  if (op && (t->flag & T_MODAL) &&
+  if ((t->flag & T_MODAL) && (t->keymap != nullptr) &&
       ELEM(t->mode,
            TFM_TRANSLATION,
            TFM_RESIZE,
@@ -695,10 +697,8 @@ void initTransInfo(bContext *C, TransInfo *t, wmOperator *op, const wmEvent *eve
            TFM_EDGE_SLIDE,
            TFM_VERT_SLIDE))
   {
-    wmWindowManager *wm = CTX_wm_manager(C);
-    wmKeyMap *keymap = WM_keymap_active(wm, op->type->modalkeymap);
     const wmKeyMapItem *kmi_passthrough = nullptr;
-    for (const wmKeyMapItem &kmi : keymap->items) {
+    for (const wmKeyMapItem &kmi : t->keymap->items) {
       if (kmi.flag & KMI_INACTIVE) {
         continue;
       }

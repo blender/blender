@@ -165,15 +165,9 @@ __device__
                                          simd_group_index, \
                                          num_simd_groups, \
                                          (threadgroup int *)threadgroup_array)
-#elif defined(__KERNEL_ONEAPI__)
-
-#  define gpu_parallel_active_index_array(num_states, indices, num_indices, is_active_op) \
-    gpu_parallel_active_index_array_impl(num_states, indices, num_indices, is_active_op)
-
 #else
 
-#  define gpu_parallel_active_index_array(num_states, indices, num_indices, is_active_op) \
-    gpu_parallel_active_index_array_impl(num_states, indices, num_indices, is_active_op)
+#  define gpu_parallel_active_index_array gpu_parallel_active_index_array_impl
 
 #endif
 

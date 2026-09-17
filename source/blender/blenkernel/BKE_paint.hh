@@ -214,6 +214,8 @@ bool BKE_paint_brush_set_essentials(Main *bmain, Paint *paint, const char *name)
 void BKE_paint_previous_asset_reference_set(Paint *paint,
                                             AssetWeakReference &&asset_weak_reference);
 void BKE_paint_previous_asset_reference_clear(Paint *paint);
+void BKE_paint_foreach_asset_weak_reference(Paint &paint,
+                                            FunctionRef<void(AssetWeakReference &weak_ref)> fn);
 
 std::optional<AssetWeakReference> BKE_paint_brush_type_default_reference(
     bke::paint::AssetCategory asset_category, std::optional<int> brush_type);

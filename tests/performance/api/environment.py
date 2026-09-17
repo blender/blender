@@ -48,6 +48,7 @@ class TestEnvironment:
         self.cmake_executable = 'cmake'
         self.cmake_options = ['-DWITH_INTERNATIONAL=OFF', '-DWITH_BUILDINFO=OFF']
         self.log_file = None
+        self.echo_output = False
         self.machine = None
         self._title_cache = {}
         self._init_default_blender_executable()
@@ -267,6 +268,8 @@ class TestEnvironment:
                 if line:
                     line_str = line.decode('utf-8', 'ignore')
                     lines.append(line_str)
+                    if self.echo_output and not silent:
+                        print(line_str, end='', flush=True)
                     if f:
                         f.write(line_str)
         except KeyboardInterrupt as e:

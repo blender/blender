@@ -765,6 +765,56 @@ static PyObject *pygpu_shader_info_uniform_buf(BPyGPUShaderCreateInfo *self, PyO
   Py_RETURN_NONE;
 }
 
+PyDoc_STRVAR(
+    /* Wrap. */
+    pygpu_shader_info_storage_buf_doc,
+    ".. method:: storage_buf(slot, qualifiers, type_name, name)\n"
+    "\n"
+    "   Specify a storage buffer variable whose type can be one of those declared in "
+    ":meth:`gpu.types.GPUShaderCreateInfo.typedef_source`.\n"
+    "\n"
+    "   :param slot: The storage buffer variable index.\n"
+    "   :type slot: int\n"
+    "   :param qualifiers: Set containing values that describe how the storage buffer is to be "
+    "read or written.\n"
+    "   :type qualifiers: set[" PYDOC_QUALIFIERS_LITERAL
+    "]\n"
+    "   :param type_name: Name of the data type. "
+    "It can be a struct type defined in the source passed through the "
+    ":meth:`gpu.types.GPUShaderCreateInfo.typedef_source`.\n"
+    "   :type type_name: str\n"
+    "   :param name: The storage buffer variable name.\n"
+    "   :type name: str\n");
+static PyObject *pygpu_shader_info_storage_buf(BPyGPUShaderCreateInfo *self, PyObject *args)
+{
+  int slot;
+  PyObject *py_qualifiers;
+  const char *type_name;
+  const char *name;
+  Qualifier qualifier = Qualifier::no_restrict;
+
+  if (!PyArg_ParseTuple(args, "iOss:storage_buf", &slot, &py_qualifiers, &type_name, &name)) {
+    return nullptr;
+  }
+
+  if (PyC_FlagSet_ToBitfield(
+          pygpu_qualifiers, py_qualifiers, reinterpret_cast<int *>(&qualifier), "storage_buf") ==
+      -1)
+  {
+    return nullptr;
+  }
+
+#ifdef USE_GPU_PY_REFERENCES
+  PyList_Append(self->references, PyTuple_GET_ITEM(args, 2)); /* type_name */
+  PyList_Append(self->references, PyTuple_GET_ITEM(args, 3)); /* name */
+#endif
+
+  ShaderCreateInfo *info = reinterpret_cast<ShaderCreateInfo *>(self->info);
+  info->storage_buf(slot, qualifier, type_name, name);
+
+  Py_RETURN_NONE;
+}
+
 #ifdef USE_PYGPU_SHADER_INFO_IMAGE_METHOD
 PyDoc_STRVAR(
     /* Wrap. */
@@ -1332,6 +1382,10 @@ static PyMethodDef pygpu_shader_info__tp_methods[] = {
      (PyCFunction)(void *)(pygpu_shader_info_uniform_buf),
      METH_VARARGS,
      pygpu_shader_info_uniform_buf_doc},
+    {"storage_buf",
+     (PyCFunction)(void *)(pygpu_shader_info_storage_buf),
+     METH_VARARGS,
+     pygpu_shader_info_storage_buf_doc},
 #ifdef USE_PYGPU_SHADER_INFO_IMAGE_METHOD
     {"image",
      (PyCFunction)(void *)(pygpu_shader_info_image),

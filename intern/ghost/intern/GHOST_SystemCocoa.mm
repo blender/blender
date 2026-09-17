@@ -865,7 +865,7 @@ uint32_t GHOST_SystemCocoa::getCursorPreferredLogicalSize() const
    *
    * Take care, for hardware cursors this is already applied on-top of the cursor bitmap,
    * there doesn't seem to be a way to express that the cursor data is pre-scaled.
-   * Therefor, a larger cursor will work but look blurry.
+   * Therefore, a larger cursor will work but look blurry.
    * Only use this for software cursors. */
   const CGFloat default_size = 21.0;
 

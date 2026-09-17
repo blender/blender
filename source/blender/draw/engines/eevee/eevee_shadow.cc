@@ -10,6 +10,7 @@
 
 #include "BLI_math_matrix.hh"
 #include "GPU_batch_utils.hh"
+#include "GPU_capabilities.hh"
 #include "GPU_compute.hh"
 
 #include "GPU_context.hh"
@@ -1074,6 +1075,7 @@ void ShadowModule::end_sync()
         sub.bind_ssbo("render_view_buf", &render_view_buf_);
         sub.bind_ssbo("tilemaps_clip_buf", &tilemap_pool.tilemaps_clip);
         sub.bind_image("tilemaps_img", &tilemap_pool.tilemap_tx);
+        sub.push_constant("use_multi_viewport", GPU_multi_viewport_support());
         sub.dispatch(int3(1, 1, tilemap_pool.tilemaps_data.size()));
         sub.barrier(GPU_BARRIER_SHADER_STORAGE | GPU_BARRIER_UNIFORM | GPU_BARRIER_TEXTURE_FETCH |
                     GPU_BARRIER_SHADER_IMAGE_ACCESS);
@@ -1325,6 +1327,7 @@ void ShadowModule::render(View &view, int2 extent)
     GPU_debug_group_begin("Shadow");
     {
       GPU_uniformbuf_clear_to_zero(shadow_multi_view_.matrices_ubo_get());
+      GPU_storagebuf_clear(render_map_buf_, 0xFFFFFFFFu);
 
       run_tagging_ = (loop_count == 0);
 
@@ -1354,8 +1357,21 @@ void ShadowModule::render(View &view, int2 extent)
       }
 
       GPU_framebuffer_bind(render_fb_);
-      GPU_framebuffer_multi_viewports_set(render_fb_,
-                                          reinterpret_cast<int (*)[4]>(multi_viewports_.data()));
+      const int4 &largest_viewport = multi_viewports_[SHADOW_TILEMAP_LOD];
+      if (GPU_multi_viewport_support()) {
+        GPU_framebuffer_multi_viewports_set(render_fb_,
+                                            reinterpret_cast<int (*)[4]>(multi_viewports_.data()));
+      }
+      else {
+        /* Fallback for GPU's that do not support multiViewport. Always render to the largest
+         * viewport. This spawns a lot more fragment shaders, but at least we can draw the
+         * correct shadows on these systems. See #163697. */
+        GPU_framebuffer_viewport_set(render_fb_,
+                                     largest_viewport.x,
+                                     largest_viewport.y,
+                                     largest_viewport.z,
+                                     largest_viewport.w);
+      }
 
       inst_.pipelines.shadow.render(shadow_multi_view_);
 

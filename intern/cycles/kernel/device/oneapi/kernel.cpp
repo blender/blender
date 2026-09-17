@@ -43,6 +43,9 @@ static RTCFeatureFlags oneapi_embree_features_from_kernel_features(const uint64_
   if (kernel_features & KERNEL_FEATURE_OBJECT_MOTION) {
     feature_flags |= RTC_FEATURE_FLAG_MOTION_BLUR;
   }
+  if (kernel_features & KERNEL_FEATURE_GSPLATS) {
+    feature_flags |= RTC_FEATURE_FLAG_USER_GEOMETRY_CALLBACK_IN_ARGUMENTS;
+  }
 
   return (RTCFeatureFlags)feature_flags;
 }
@@ -735,6 +738,9 @@ bool oneapi_enqueue_kernel(KernelContext *kernel_context,
         case DEVICE_KERNEL_NUM:
         case DEVICE_KERNEL_INTEGRATOR_MEGAKERNEL:
         case DEVICE_KERNEL_INTEGRATOR_SHADOW_PATH_MNEE_PENDING:
+        case DEVICE_KERNEL_FILTER_GUIDING_PREPROCESS_TO_SURFACE:
+        case DEVICE_KERNEL_FILTER_COLOR_PREPROCESS_TO_SURFACE:
+        case DEVICE_KERNEL_FILTER_COLOR_POSTPROCESS_FROM_SURFACE:
           kernel_assert(0);
           break;
       }

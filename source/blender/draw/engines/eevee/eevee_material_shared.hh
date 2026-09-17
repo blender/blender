@@ -57,10 +57,15 @@ enum eMaterialPipeline {
  * This affects attribute fetching and attribute interpolation.
  */
 enum eMaterialGeometry {
-  /* These maps directly to object types. */
+  /* These map directly to object types. */
   MAT_GEOM_MESH = 0,
   MAT_GEOM_POINTCLOUD,
   MAT_GEOM_CURVES,
+
+  /* GSplats are a type of pointclouds . */
+  MAT_GEOM_GSPLAT,
+
+  /* In this position to account for `geometry_type_has_surface`. */
   MAT_GEOM_VOLUME,
 
   /* Special case: The world background / HDRI environment shader. */

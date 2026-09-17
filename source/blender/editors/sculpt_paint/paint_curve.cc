@@ -51,9 +51,7 @@ bool paint_curve_poll(bContext *C)
   RegionView3D *rv3d = CTX_wm_region_view3d(C);
   SpaceImage *sima;
 
-  if (rv3d && !(ob && ((ob->mode & (OB_MODE_ALL_PAINT | OB_MODE_SCULPT_CURVES |
-                                    OB_MODE_SCULPT_GREASE_PENCIL)) != 0)))
-  {
+  if (rv3d && !(ob && ((ob->mode & (OB_MODE_ALL_PAINT_MESH | OB_MODE_SCULPT_CURVES)) != 0))) {
     return false;
   }
 
@@ -706,12 +704,6 @@ static wmOperatorStatus paintcurve_draw_exec(bContext *C, wmOperator * /*op*/)
       break;
     case PaintMode::SculptCurves:
       name = "SCULPT_CURVES_OT_brush_stroke";
-      break;
-    case PaintMode::GPencil:
-      name = "GREASE_PENCIL_OT_brush_stroke";
-      break;
-    case PaintMode::SculptGPencil:
-      name = "GREASE_PENCIL_OT_sculpt_paint";
       break;
     default:
       return OPERATOR_PASS_THROUGH;

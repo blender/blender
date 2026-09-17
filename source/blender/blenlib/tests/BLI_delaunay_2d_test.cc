@@ -1004,43 +1004,149 @@ template<typename T> void even_odd_coincident_polygons_needed_ids_stable_test()
 }
 
 /**
- * Single face whose vertex list traces an outer ring and an inner ring, then repeats the
- * whole sequence. Each unique boundary edge is walked twice within one face.
- * Without per-face de-duplicate of polygon-boundary counts, the face is dropped entirely.
+ * A CCW square with a CW square inside it, where #CDT_CW_ORIG_FACES decides whether the
+ * CW face propagates its id. The flag has no effect on the `*_VALID_BMESH*` outputs,
+ * which propagate CW ids either way.
  */
-template<typename T> void even_odd_self_doubled_polygon_with_hole_test()
+template<typename T> void cw_orig_face_ids_test()
 {
-  const char *spec = R"(16 0 1
+  const char *spec = R"(8 0 2
   0.0 0.0
-  0.0 4.0
-  4.0 4.0
   4.0 0.0
+  4.0 4.0
+  0.0 4.0
   1.0 1.0
   1.0 3.0
   3.0 3.0
   3.0 1.0
-  0.0 0.0
-  0.0 4.0
-  4.0 4.0
-  4.0 0.0
-  1.0 1.0
-  1.0 3.0
-  3.0 3.0
-  3.0 1.0
-  0 1 2 3 4 5 6 7 8 9 10 11 12 13 14 15
+  0 1 2 3
+  4 5 6 7
   )";
 
+  InputStorage<T> store_ccw_ids;
+  CDT_input<T> in_ccw_ids = fill_input_from_string<T>(spec, store_ccw_ids);
+  in_ccw_ids.needed_ids = CDT_ORIG_FACES;
+  CDT_result<T> out_ccw_ids = delaunay_2d_calc(in_ccw_ids, CDT_INSIDE_WITH_HOLES);
+
+  InputStorage<T> store_cw_ids;
+  CDT_input<T> in_cw_ids = fill_input_from_string<T>(spec, store_cw_ids);
+  in_cw_ids.needed_ids = CDT_ORIG_FACES | CDT_CW_ORIG_FACES;
+  CDT_result<T> out_cw_ids = delaunay_2d_calc(in_cw_ids, CDT_INSIDE_WITH_HOLES);
+
+  EXPECT_EQ(out_ccw_ids.face.size(), 8);
+  EXPECT_EQ(out_cw_ids.face.size(), out_ccw_ids.face.size());
+
+  for (const int f : out_ccw_ids.face.index_range()) {
+    EXPECT_TRUE(output_face_has_input_id(out_ccw_ids, f, 0));
+    EXPECT_FALSE(output_face_has_input_id(out_ccw_ids, f, 1));
+  }
+  for (const int f : out_cw_ids.face.index_range()) {
+    EXPECT_TRUE(output_face_has_input_id(out_cw_ids, f, 0));
+    EXPECT_TRUE(output_face_has_input_id(out_cw_ids, f, 1));
+  }
+}
+
+/**
+ * A hexagon whose face walks its own vertices twice. Even-odd counts every traversal of a
+ * boundary edge, so the second lap cancels the first and nothing is filled.
+ */
+template<typename T> void looping_back_2x_test()
+{
+  const char *spec = R"(6 0 1
+  1.0 0.0
+  0.5 1.0
+  -0.5 1.0
+  -1.0 0.0
+  -0.5 -1.0
+  0.5 -1.0
+  0 1 2 3 4 5 0 1 2 3 4 5
+  )";
   InputStorage<T> store;
   CDT_input<T> in = fill_input_from_string<T>(spec, store);
-  in.needed_ids = CDT_ORIG_FACES | CDT_CW_ORIG_FACES;
-
+  in.needed_ids = CDT_NO_ORIG_IDS;
   CDT_result<T> out = delaunay_2d_calc(in, CDT_CONSTRAINTS_VALID_BMESH_WITH_HOLES);
-  if (DO_DRAW) {
-    graph_draw<T>("EvenOddSelfDoubledPolygonWithHole", out.vert, out.edge, out.face);
-  }
+  EXPECT_EQ(out.vert.size(), 6);
+  EXPECT_EQ(out.edge.size(), 6);
+  EXPECT_EQ(out.face.size(), 0);
+}
 
-  EXPECT_EQ(out.vert.size(), 9);
-  EXPECT_EQ(out.edge.size(), 11);
+/**
+ * As #looping_back_2x_test with a third lap, back to odd parity so the hexagon fills.
+ */
+template<typename T> void looping_back_3x_test()
+{
+  const char *spec = R"(6 0 1
+  1.0 0.0
+  0.5 1.0
+  -0.5 1.0
+  -1.0 0.0
+  -0.5 -1.0
+  0.5 -1.0
+  0 1 2 3 4 5 0 1 2 3 4 5 0 1 2 3 4 5
+  )";
+  InputStorage<T> store;
+  CDT_input<T> in = fill_input_from_string<T>(spec, store);
+  in.needed_ids = CDT_NO_ORIG_IDS;
+  CDT_result<T> out = delaunay_2d_calc(in, CDT_CONSTRAINTS_VALID_BMESH_WITH_HOLES);
+  EXPECT_EQ(out.vert.size(), 6);
+  EXPECT_EQ(out.edge.size(), 6);
+  EXPECT_EQ(out.face.size(), 1);
+}
+
+/**
+ * A quad around a hexagon that walks its own vertices twice. The hexagon's edges cancel,
+ * so it isn't a hole and the quad fills across it.
+ */
+template<typename T> void looping_back_hole_2x_test()
+{
+  const char *spec = R"(10 0 2
+  -2.0 -2.0
+  2.0 -2.0
+  2.0 2.0
+  -2.0 2.0
+  1.0 0.0
+  0.5 1.0
+  -0.5 1.0
+  -1.0 0.0
+  -0.5 -1.0
+  0.5 -1.0
+  0 1 2 3
+  4 5 6 7 8 9 4 5 6 7 8 9
+  )";
+  InputStorage<T> store;
+  CDT_input<T> in = fill_input_from_string<T>(spec, store);
+  in.needed_ids = CDT_NO_ORIG_IDS;
+  CDT_result<T> out = delaunay_2d_calc(in, CDT_CONSTRAINTS_VALID_BMESH_WITH_HOLES);
+  EXPECT_EQ(out.vert.size(), 10);
+  EXPECT_EQ(out.edge.size(), 12);
+  EXPECT_EQ(out.face.size(), 3);
+}
+
+/**
+ * As #looping_back_hole_2x_test with a third lap, so the hexagon is a hole in the quad.
+ */
+template<typename T> void looping_back_hole_3x_test()
+{
+  const char *spec = R"(10 0 2
+  -2.0 -2.0
+  2.0 -2.0
+  2.0 2.0
+  -2.0 2.0
+  1.0 0.0
+  0.5 1.0
+  -0.5 1.0
+  -1.0 0.0
+  -0.5 -1.0
+  0.5 -1.0
+  0 1 2 3
+  4 5 6 7 8 9 4 5 6 7 8 9 4 5 6 7 8 9
+  )";
+  InputStorage<T> store;
+  CDT_input<T> in = fill_input_from_string<T>(spec, store);
+  in.needed_ids = CDT_NO_ORIG_IDS;
+  CDT_result<T> out = delaunay_2d_calc(in, CDT_CONSTRAINTS_VALID_BMESH_WITH_HOLES);
+  EXPECT_EQ(out.vert.size(), 10);
+  EXPECT_EQ(out.edge.size(), 12);
   EXPECT_EQ(out.face.size(), 2);
 }
 
@@ -3364,8 +3470,65 @@ template<typename T> void square_o_test()
 }
 
 /**
- * A square boundary filled with a grid of degenerate (two vertex) interior faces,
- * every one of which must be dissolved. Stress test for the crash in #160787.
+ * A letter "B": an outer boundary with two holes, wound as font glyphs are
+ * (CW outline, CCW counters), filled as the "Fill Curve" node fills text
+ * in "N-gons" mode using the even-odd rule.
+ *
+ * This test ensures even-odd filling does not depend on the polygon winding,
+ * see: #163256.
+ */
+template<typename T> void fill_curve_letter_b_test()
+{
+  const char *spec = R"(15 0 3
+  0.0 1.0
+  0.4 1.0
+  0.55 0.75
+  0.45 0.5
+  0.6 0.25
+  0.4 0.0
+  0.0 0.0
+  0.15 0.6
+  0.4 0.6
+  0.4 0.9
+  0.15 0.9
+  0.15 0.1
+  0.45 0.1
+  0.45 0.4
+  0.15 0.4
+  0 1 2 3 4 5 6
+  7 8 9 10
+  11 12 13 14
+  )";
+  InputStorage<T> store;
+  CDT_input<T> in = fill_input_from_string<T>(spec, store);
+  in.needed_ids = CDT_NO_ORIG_IDS;
+  CDT_result<T> out = delaunay_2d_calc(in, CDT_CONSTRAINTS_VALID_BMESH_WITH_HOLES);
+  EXPECT_EQ(out.vert.size(), 15);
+  EXPECT_EQ(out.edge.size(), 18);
+  EXPECT_EQ(out.face.size(), 2);
+  if (DO_DRAW) {
+    graph_draw<T>("FillCurveLetterB", out.vert, out.edge, out.face);
+  }
+
+  /* Fill again with every contour reversed (CCW outline, CW counters). */
+  for (const int i : in.face_offsets.index_range()) {
+    store.face_vert_indices.as_mutable_span().slice(in.face_offsets[i]).reverse();
+  }
+  CDT_result<T> out_reversed = delaunay_2d_calc(in, CDT_CONSTRAINTS_VALID_BMESH_WITH_HOLES);
+  EXPECT_EQ(out_reversed.vert.size(), 15);
+  EXPECT_EQ(out_reversed.edge.size(), 18);
+  EXPECT_EQ(out_reversed.face.size(), 2);
+  if (DO_DRAW) {
+    graph_draw<T>(
+        "FillCurveLetterB - reversed", out_reversed.vert, out_reversed.edge, out_reversed.face);
+  }
+}
+
+/**
+ * A square boundary filled with a grid of degenerate (two vertex) interior faces.
+ * Stress test for the crash in #160787.
+ *
+ * The counts below only record current behavior, what matters is that it doesn't crash.
  */
 template<typename T> void fill_curve_degenerate_interior_faces_test()
 {
@@ -3437,18 +3600,19 @@ template<typename T> void fill_curve_degenerate_interior_faces_test()
 
   CDT_result<T> out = delaunay_2d_calc(in, CDT_CONSTRAINTS_VALID_BMESH_WITH_HOLES);
   EXPECT_EQ(out.vert.size(), 117);
-  EXPECT_EQ(out.edge.size(), 36);
-  EXPECT_EQ(out.face.size(), 0);
+  EXPECT_EQ(out.edge.size(), 126);
+  EXPECT_EQ(out.face.size(), 10);
 }
 
 /**
  * A single hexagon face plus two points that aren't part of any face, with `needed_ids = 0`
  * and #CDT_CONSTRAINTS_VALID_BMESH_WITH_HOLES (as used by the "Fill Curve" node).
- * The stray points force triangulation edges that never represent an input face,
- * so #remove_non_constraint_edges_leave_valid_bmesh dissolves them without its usual
- * "keep this face valid" check. Dissolving could reduce a face to a single dangling edge,
- * or delete a pendant edge leaving `CDTFace::symedge` pointing at a just-deleted #SymEdge,
- * crashing #get_cdt_output when walking the boundary.
+ * The stray points force triangulation edges that never represent an input face.
+ * Dissolving those in #remove_non_constraint_edges_leave_valid_bmesh could reduce a face to
+ * a single dangling edge, or delete a pendant edge leaving `CDTFace::symedge` pointing at a
+ * just-deleted #SymEdge, crashing #get_cdt_output when walking the boundary.
+ *
+ * The counts below only record current behavior, what matters is that it doesn't crash.
  *
  * Reduced from a self-intersecting curve that crashed the "Fill Curve" node
  * in "N-gons" mode, see: #160787.
@@ -3471,8 +3635,8 @@ template<typename T> void dissolve_pendant_edge_face_test()
   in.needed_ids = CDT_NO_ORIG_IDS;
   CDT_result<T> out = delaunay_2d_calc(in, CDT_CONSTRAINTS_VALID_BMESH_WITH_HOLES);
   EXPECT_EQ(out.vert.size(), 8);
-  EXPECT_EQ(out.edge.size(), 6);
-  EXPECT_EQ(out.face.size(), 1);
+  EXPECT_EQ(out.edge.size(), 10);
+  EXPECT_EQ(out.face.size(), 3);
   if (DO_DRAW) {
     graph_draw<T>("DissolvePendantEdgeFace", out.vert, out.edge, out.face);
   }
@@ -3687,9 +3851,9 @@ TEST(delaunay_d, EvenOddCoincidentPolygonsNeedIdsStable)
   even_odd_coincident_polygons_needed_ids_stable_test<double>();
 }
 
-TEST(delaunay_d, EvenOddSelfDoubledPolygonWithHole)
+TEST(delaunay_d, CwOrigFaceIds)
 {
-  even_odd_self_doubled_polygon_with_hole_test<double>();
+  cw_orig_face_ids_test<double>();
 }
 
 TEST(delaunay_d, NonZeroWinding)
@@ -3852,6 +4016,26 @@ TEST(delaunay_d, DiamondInSquareWire)
   diamondinsquarewire_test<double>();
 }
 
+TEST(delaunay_d, LoopingBack2x)
+{
+  looping_back_2x_test<double>();
+}
+
+TEST(delaunay_d, LoopingBack3x)
+{
+  looping_back_3x_test<double>();
+}
+
+TEST(delaunay_d, LoopingBackHole2x)
+{
+  looping_back_hole_2x_test<double>();
+}
+
+TEST(delaunay_d, LoopingBackHole3x)
+{
+  looping_back_hole_3x_test<double>();
+}
+
 TEST(delaunay_d, DisjointPolysInLargeHull)
 {
   disjoint_polys_in_large_hull_test<double>();
@@ -3875,6 +4059,11 @@ TEST(delaunay_d, SharedSplitBoundary)
 TEST(delaunay_d, SquareO)
 {
   square_o_test<double>();
+}
+
+TEST(delaunay_d, FillCurveLetterB)
+{
+  fill_curve_letter_b_test<double>();
 }
 
 TEST(delaunay_d, FillCurveDegenerateInteriorFaces)
@@ -3997,9 +4186,9 @@ TEST(delaunay_m, EvenOddCoincidentPolygonsNeedIdsStable)
   even_odd_coincident_polygons_needed_ids_stable_test<mpq_class>();
 }
 
-TEST(delaunay_m, EvenOddSelfDoubledPolygonWithHole)
+TEST(delaunay_m, CwOrigFaceIds)
 {
-  even_odd_self_doubled_polygon_with_hole_test<mpq_class>();
+  cw_orig_face_ids_test<mpq_class>();
 }
 
 TEST(delaunay_m, NonZeroWinding)
@@ -4162,6 +4351,26 @@ TEST(delaunay_m, DiamondInSquareWire)
   diamondinsquarewire_test<mpq_class>();
 }
 
+TEST(delaunay_m, LoopingBack2x)
+{
+  looping_back_2x_test<mpq_class>();
+}
+
+TEST(delaunay_m, LoopingBack3x)
+{
+  looping_back_3x_test<mpq_class>();
+}
+
+TEST(delaunay_m, LoopingBackHole2x)
+{
+  looping_back_hole_2x_test<mpq_class>();
+}
+
+TEST(delaunay_m, LoopingBackHole3x)
+{
+  looping_back_hole_3x_test<mpq_class>();
+}
+
 TEST(delaunay_m, RepeatEdge)
 {
   repeatedge_test<mpq_class>();
@@ -4185,6 +4394,11 @@ TEST(delaunay_m, IntersectionSimpleEdgeIds)
 TEST(delaunay_m, IntersectionSquaresEdgeIds)
 {
   intersection_squares_edge_ids_test<mpq_class>();
+}
+
+TEST(delaunay_m, FillCurveLetterB)
+{
+  fill_curve_letter_b_test<mpq_class>();
 }
 #  endif
 #endif

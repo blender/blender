@@ -53,7 +53,16 @@ static int node_shader_gpu_tex_coord(GPUMaterial *mat,
   GPUNodeLink *orco = out[0].hasoutput ? GPU_attribute(mat, CD_ORCO, "") : GPU_constant(zero);
   GPUNodeLink *mtface = GPU_attribute(mat, CD_AUTO_FROM_NAME, "");
 
-  GPU_stack_link(mat, node, "node_tex_coord", in, out, inv_obmat, orco, mtface);
+  GPU_stack_link(mat,
+                 node,
+                 "node_tex_coord",
+                 in,
+                 out,
+                 inv_obmat,
+                 orco,
+                 mtface,
+                 GPU_kernel_globals(),
+                 GPU_shading_data());
 
   for (const auto [i, sock] : node->outputs.enumerate()) {
     node_shader_gpu_bump_tex_coord(mat, node, &out[i].link);

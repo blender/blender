@@ -13,6 +13,7 @@
 #include "scene/light.h"
 #include "scene/mesh.h"
 #include "scene/object.h"
+#include "scene/pointcloud.h"
 #include "scene/scene.h"
 #include "scene/shader.h"
 #include "scene/shader_nodes.h"
@@ -613,6 +614,20 @@ void GeometryManager::device_update_attributes(Device *device,
           break;
         default:
           break;
+      }
+      if (geom->is_pointcloud() &&
+          static_cast<PointCloud *>(geom)->get_render_as() == PointCloud::RENDER_AS_GSPLATS)
+      {
+        switch (attr.std) {
+          case ATTR_STD_GSPLAT_RADIANCE_BASE:
+          case ATTR_STD_GSPLAT_RADIANCE_SPHERICAL_HARMONICS_REST:
+          case ATTR_STD_GSPLAT_SCALE:
+          case ATTR_STD_GSPLAT_ROTATION:
+            geom_attributes[i].add(attr.std);
+            break;
+          default:
+            break;
+        }
       }
     }
   }

@@ -217,7 +217,7 @@ void GHOST_XrGraphicsBindingVulkan::initFromGhostContext(GHOST_Context &ghost_ct
                                            VK_MAKE_VERSION(1, 0, 0),
                                            "BlenderXR",
                                            VK_MAKE_VERSION(1, 0, 0),
-                                           VK_MAKE_VERSION(1, 2, 0)};
+                                           VK_MAKE_VERSION(1, 1, 0)};
   VkInstanceCreateInfo vk_instance_create_info = {VK_STRUCTURE_TYPE_INSTANCE_CREATE_INFO,
                                                   nullptr,
                                                   0,
@@ -319,7 +319,7 @@ void GHOST_XrGraphicsBindingVulkan::initFromGhostContext(GHOST_Context &ghost_ct
     /* VMA */
     VmaAllocatorCreateInfo allocator_create_info = {};
     allocator_create_info.flags = VMA_ALLOCATOR_CREATE_EXT_MEMORY_BUDGET_BIT;
-    allocator_create_info.vulkanApiVersion = VK_API_VERSION_1_2;
+    allocator_create_info.vulkanApiVersion = VK_API_VERSION_1_1;
     allocator_create_info.physicalDevice = vk_physical_device_;
     allocator_create_info.device = vk_device_;
     allocator_create_info.instance = vk_instance_;

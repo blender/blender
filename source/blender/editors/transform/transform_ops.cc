@@ -495,6 +495,7 @@ static wmOperatorStatus transform_modal(bContext *C, wmOperator *op, const wmEve
       BLI_assert(ot_new != nullptr);
       if (ot_new) {
         WM_operator_type_set(op, ot_new);
+        t->keymap = WM_keymap_active(CTX_wm_manager(C), op->type->modalkeymap);
       }
       /* End suspicious code. */
     }

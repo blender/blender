@@ -27,6 +27,7 @@
 #include "overlay_force_field.hh"
 #include "overlay_grease_pencil.hh"
 #include "overlay_grid.hh"
+#include "overlay_gsplat.hh"
 #include "overlay_lattice.hh"
 #include "overlay_light.hh"
 #include "overlay_lightprobe.hh"
@@ -99,6 +100,7 @@ class Instance : public DrawEngine {
     Names names;
     Paints paints;
     Particles particles;
+    GSplats gsplats;
     PointClouds pointclouds;
     Prepass prepass;
     Relations relations = {selection_type_};

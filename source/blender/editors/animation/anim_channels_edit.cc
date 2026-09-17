@@ -32,10 +32,10 @@
 
 #include "BKE_action.hh"
 #include "BKE_anim_data.hh"
+#include "BKE_annotations.h"
 #include "BKE_context.hh"
 #include "BKE_fcurve.hh"
 #include "BKE_global.hh"
-#include "BKE_gpencil_legacy.h"
 #include "BKE_grease_pencil.hh"
 #include "BKE_layer.hh"
 #include "BKE_lib_id.hh"
@@ -2815,12 +2815,12 @@ static wmOperatorStatus animchannels_delete_exec(bContext *C, wmOperator * /*op*
         bGPDlayer *gpl = static_cast<bGPDlayer *>(ale.data);
 
         /* try to delete the layer's data and the layer itself */
-        BKE_gpencil_layer_delete(gpd, gpl);
+        BKE_annotations_layer_delete(gpd, gpl);
         ale.update = ANIM_UPDATE_DEPS;
 
         /* Free Grease Pencil data block when last annotation layer is removed, see: #112683. */
         if (gpd->flag & GP_DATA_ANNOTATIONS && gpd->layers.first_ == nullptr) {
-          BKE_gpencil_free_data(gpd, true);
+          BKE_annotations_free_data(gpd, true);
 
           Scene *scene = CTX_data_scene(C);
           scene->gpd = nullptr;
@@ -4381,7 +4381,7 @@ static int click_select_channel_gplayer(bContext *C,
                             gpl,
                             ANIMTYPE_GPLAYER);
     /* update other layer status */
-    BKE_gpencil_layer_active_set(gpd, gpl);
+    BKE_annotations_layer_active_set(gpd, gpl);
     DEG_id_tag_update(&gpd->id, ID_RECALC_GEOMETRY);
   }
 

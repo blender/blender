@@ -8,9 +8,9 @@
 /* Compute the indices of the channels used to compute the limit value. We always assume the limit
  * algorithm is Average, if it is a single limit channel, store it in both limit channels, because
  * the average of two identical values is the same value. */
-int2 compute_limit_channels(const int limit_method,
-                            const int spill_channel,
-                            const int limit_channel)
+int2 compute_spill_limit_channels(const int limit_method,
+                                  const int spill_channel,
+                                  const int limit_channel)
 {
   /* If the algorithm is Average, store the indices of the other two channels other than the spill
    * channel. */
@@ -48,7 +48,8 @@ void node_composite_color_spill(float4 color,
                                 float4 spill_strength,
                                 float4 &result)
 {
-  const int2 limit_channels = compute_limit_channels(limit_method, spill_channel, limit_channel);
+  const int2 limit_channels = compute_spill_limit_channels(
+      limit_method, spill_channel, limit_channel);
   const float average_limit = (color[limit_channels.x] + color[limit_channels.y]) / 2.0f;
   const float map = factor * color[spill_channel] - limit_strength * average_limit;
   const float3 spill_scale = compute_spill_scale(

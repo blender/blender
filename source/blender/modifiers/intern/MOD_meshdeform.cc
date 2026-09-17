@@ -532,74 +532,78 @@ static void panel_register(ARegionType *region_type)
 
 static void blend_write(BlendWriter *writer, const ID *id_owner, const ModifierData *md)
 {
-  MeshDeformModifierData mmd = *reinterpret_cast<const MeshDeformModifierData *>(md);
+  const MeshDeformModifierData *mmd = reinterpret_cast<const MeshDeformModifierData *>(md);
   const bool is_undo = writer->is_undo();
-
-  if (ID_IS_OVERRIDE_LIBRARY(id_owner) && !is_undo) {
+  const bool without_bind_data = ID_IS_OVERRIDE_LIBRARY(id_owner) && !is_undo &&
+                                 (md->flag & eModifierFlag_OverrideLibrary_Local) == 0;
+  if (without_bind_data) {
+    /* Modifier coming from linked data cannot be bound from an override, so we can remove all
+     * binding data, can save a significant amount of memory. */
     BLI_assert(!ID_IS_LINKED(id_owner));
-    const bool is_local = (md->flag & eModifierFlag_OverrideLibrary_Local) != 0;
-    if (!is_local) {
-      /* Modifier coming from linked data cannot be bound from an override, so we can remove all
-       * binding data, can save a significant amount of memory. */
-      mmd.influences_num = 0;
-      mmd.bindinfluences = nullptr;
-      mmd.bindinfluences_sharing_info = nullptr;
-      mmd.verts_num = 0;
-      mmd.bindoffsets = nullptr;
-      mmd.bindoffsets_sharing_info = nullptr;
-      mmd.cage_verts_num = 0;
-      mmd.bindcagecos = nullptr;
-      mmd.bindcagecos_sharing_info = nullptr;
-      mmd.dyngridsize = 0;
-      mmd.dyngrid = nullptr;
-      mmd.dyngrid_sharing_info = nullptr;
-      mmd.influences_num = 0;
-      mmd.dyninfluences = nullptr;
-      mmd.dyninfluences_sharing_info = nullptr;
-      mmd.dynverts = nullptr;
-      mmd.dynverts_sharing_info = nullptr;
-    }
+    writer->write_struct(mmd, [](BlendStructWriter<MeshDeformModifierData> &struct_writer) {
+      auto &shallow_mmd = struct_writer.shallow_data;
+      shallow_mmd.influences_num = 0;
+      shallow_mmd.bindinfluences = nullptr;
+      shallow_mmd.bindinfluences_sharing_info = nullptr;
+      shallow_mmd.verts_num = 0;
+      shallow_mmd.bindoffsets = nullptr;
+      shallow_mmd.bindoffsets_sharing_info = nullptr;
+      shallow_mmd.cage_verts_num = 0;
+      shallow_mmd.bindcagecos = nullptr;
+      shallow_mmd.bindcagecos_sharing_info = nullptr;
+      shallow_mmd.dyngridsize = 0;
+      shallow_mmd.dyngrid = nullptr;
+      shallow_mmd.dyngrid_sharing_info = nullptr;
+      shallow_mmd.influences_num = 0;
+      shallow_mmd.dyninfluences = nullptr;
+      shallow_mmd.dyninfluences_sharing_info = nullptr;
+      shallow_mmd.dynverts = nullptr;
+      shallow_mmd.dynverts_sharing_info = nullptr;
+    });
+    return;
   }
 
-  const int size = mmd.dyngridsize;
+  const int size = mmd->dyngridsize;
 
   writer->write_shared(
-      mmd.bindinfluences,
-      sizeof(MDefInfluence) * mmd.influences_num,
-      mmd.bindinfluences_sharing_info,
-      [&]() { writer->write_struct_array(mmd.influences_num, mmd.bindinfluences); });
+      mmd->bindinfluences,
+      sizeof(MDefInfluence) * mmd->influences_num,
+      mmd->bindinfluences_sharing_info,
+      [&]() { writer->write_struct_array(mmd->influences_num, mmd->bindinfluences); });
 
   /* NOTE: `bindoffset` is abusing `verts_num + 1` as its size, this becomes an incorrect value in
    * case `verts_num == 0`, since `bindoffset` is then nullptr, not a size 1 allocated array. */
-  if (mmd.verts_num > 0) {
-    writer->write_shared(mmd.bindoffsets,
-                         sizeof(int) * (mmd.verts_num + 1),
-                         mmd.bindoffsets_sharing_info,
-                         [&]() { writer->write_int32_array(mmd.verts_num + 1, mmd.bindoffsets); });
+  if (mmd->verts_num > 0) {
+    writer->write_shared(
+        mmd->bindoffsets,
+        sizeof(int) * (mmd->verts_num + 1),
+        mmd->bindoffsets_sharing_info,
+        [&]() { writer->write_int32_array(mmd->verts_num + 1, mmd->bindoffsets); });
   }
   else {
-    BLI_assert(mmd.bindoffsets == nullptr);
+    BLI_assert(mmd->bindoffsets == nullptr);
   }
 
-  writer->write_shared(mmd.bindcagecos,
-                       sizeof(float[3]) * mmd.cage_verts_num,
-                       mmd.bindcagecos_sharing_info,
-                       [&]() { writer->write_float3_array(mmd.cage_verts_num, mmd.bindcagecos); });
-  writer->write_shared(mmd.dyngrid,
-                       sizeof(MDefCell) * size * size * size,
-                       mmd.dyngrid_sharing_info,
-                       [&]() { writer->write_struct_array(size * size * size, mmd.dyngrid); });
   writer->write_shared(
-      mmd.dyninfluences,
-      sizeof(MDefInfluence) * mmd.influences_num,
-      mmd.dyninfluences_sharing_info,
-      [&]() { writer->write_struct_array(mmd.influences_num, mmd.dyninfluences); });
-  writer->write_shared(mmd.dynverts,
-                       sizeof(MDefInfluence) * mmd.verts_num,
-                       mmd.dynverts_sharing_info,
-                       [&]() { writer->write_int32_array(mmd.verts_num, mmd.dynverts); });
+      mmd->bindcagecos,
+      sizeof(float[3]) * mmd->cage_verts_num,
+      mmd->bindcagecos_sharing_info,
+      [&]() { writer->write_float3_array(mmd->cage_verts_num, mmd->bindcagecos); });
+  writer->write_shared(mmd->dyngrid,
+                       sizeof(MDefCell) * size * size * size,
+                       mmd->dyngrid_sharing_info,
+                       [&]() { writer->write_struct_array(size * size * size, mmd->dyngrid); });
+  writer->write_shared(
+      mmd->dyninfluences,
+      sizeof(MDefInfluence) * mmd->influences_num,
+      mmd->dyninfluences_sharing_info,
+      [&]() { writer->write_struct_array(mmd->influences_num, mmd->dyninfluences); });
+  writer->write_shared(mmd->dynverts,
+                       sizeof(MDefInfluence) * mmd->verts_num,
+                       mmd->dynverts_sharing_info,
+                       [&]() { writer->write_int32_array(mmd->verts_num, mmd->dynverts); });
 
-  writer->write_struct_at_address(md, &mmd);
+  writer->write_struct(mmd);
 }
 
 static void blend_read(BlendDataReader *reader, ModifierData *md)

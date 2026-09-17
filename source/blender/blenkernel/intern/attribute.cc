@@ -247,7 +247,7 @@ bool BKE_attribute_rename(AttributeOwner &owner,
 
   if (owner.type() == AttributeOwnerType::Mesh) {
     Mesh *mesh = owner.get_mesh();
-    if (BMEditMesh *em = mesh->runtime->edit_mesh.get()) {
+    if (BMesh *bm = BKE_editmesh_bmesh_get_for_write(mesh)) {
       /* NOTE: Checking if the new name matches the old name only makes sense when the name
        * is clamped to its maximum length, otherwise assigning an over-long name multiple times
        * will add `.001` suffix unnecessarily. */
@@ -261,7 +261,7 @@ bool BKE_attribute_rename(AttributeOwner &owner,
         }
       }
 
-      BMDataLayerLookup attr = BM_data_layer_lookup(*em->bm, old_name);
+      BMDataLayerLookup attr = BM_data_layer_lookup(*bm, old_name);
       if (!attr) {
         BKE_report(reports, RPT_ERROR, "Attribute is not part of this geometry");
         return false;
@@ -278,7 +278,7 @@ bool BKE_attribute_rename(AttributeOwner &owner,
         char buffer_src[MAX_CUSTOMDATA_LAYER_NAME];
         char buffer_dst[MAX_CUSTOMDATA_LAYER_NAME];
         bke_attribute_rename_if_exists(owner,
-                                       *em->bm,
+                                       *bm,
                                        BKE_uv_map_pin_name_get(old_name, buffer_src),
                                        BKE_uv_map_pin_name_get(result_name, buffer_dst),
                                        reports);
@@ -360,7 +360,7 @@ std::string BKE_attribute_calc_unique_name(const AttributeOwner &owner, const St
     const auto is_used_vertex_group = [&](const StringRef check_name) {
       return BKE_defgroup_name_index(&mesh.vertex_group_names, check_name) != -1;
     };
-    if (mesh.runtime->edit_mesh) {
+    if (const BMesh *bm = BKE_editmesh_bmesh_get(&mesh)) {
       Set<StringRef, 8> names;
       const auto add_names = [&](const CustomData &data) {
         for (const CustomDataLayer &layer : Span(data.layers, data.totlayer)) {
@@ -369,11 +369,10 @@ std::string BKE_attribute_calc_unique_name(const AttributeOwner &owner, const St
           }
         }
       };
-      const BMesh &bm = *mesh.runtime->edit_mesh->bm;
-      add_names(bm.vdata);
-      add_names(bm.edata);
-      add_names(bm.pdata);
-      add_names(bm.ldata);
+      add_names(bm->vdata);
+      add_names(bm->edata);
+      add_names(bm->pdata);
+      add_names(bm->ldata);
       return BLI_uniquename_cb(
           [&](const StringRef new_name) {
             return names.contains(new_name) || BM_attribute_stored_in_bmesh_builtin(new_name) ||
@@ -473,8 +472,8 @@ bool BKE_attribute_remove(AttributeOwner &owner, const StringRef name, ReportLis
 
   if (owner.type() == AttributeOwnerType::Mesh) {
     Mesh *mesh = owner.get_mesh();
-    if (BMEditMesh *em = mesh->runtime->edit_mesh.get()) {
-      const std::array<DomainInfo, ATTR_DOMAIN_NUM> info = get_domains(em->bm);
+    if (BMesh *bm = BKE_editmesh_bmesh_get_for_write(mesh)) {
+      const std::array<DomainInfo, ATTR_DOMAIN_NUM> info = get_domains(bm);
       for (const int domain : IndexRange(ATTR_DOMAIN_NUM)) {
         if (CustomData *data = info[domain].customdata) {
           const std::string name_copy = name;
@@ -496,7 +495,7 @@ bool BKE_attribute_remove(AttributeOwner &owner, const StringRef name, ReportLis
           const int active_uv_index = uv_name_to_index(owner, mesh->active_uv_map_name());
           const int default_uv_index = uv_name_to_index(owner, mesh->default_uv_map_name());
 
-          if (!BM_data_layer_free_named(em->bm, data, name_copy.c_str())) {
+          if (!BM_data_layer_free_named(bm, data, name_copy.c_str())) {
             BLI_assert_unreachable();
           }
 
@@ -521,7 +520,7 @@ bool BKE_attribute_remove(AttributeOwner &owner, const StringRef name, ReportLis
 
           if (type == CD_PROP_FLOAT2 && domain == int(AttrDomain::Corner)) {
             char buffer[MAX_CUSTOMDATA_LAYER_NAME];
-            BM_data_layer_free_named(em->bm, data, BKE_uv_map_pin_name_get(name_copy, buffer));
+            BM_data_layer_free_named(bm, data, BKE_uv_map_pin_name_get(name_copy, buffer));
           }
           return true;
         }
@@ -589,8 +588,8 @@ int BKE_attributes_length(const AttributeOwner &owner,
 {
   if (owner.type() == AttributeOwnerType::Mesh) {
     const Mesh &mesh = *owner.get_mesh();
-    if (BMEditMesh *em = mesh.runtime->edit_mesh.get()) {
-      const std::array<DomainInfo, ATTR_DOMAIN_NUM> info = get_domains(em->bm);
+    if (const BMesh *bm = BKE_editmesh_bmesh_get(&mesh)) {
+      const std::array<DomainInfo, ATTR_DOMAIN_NUM> info = get_domains(const_cast<BMesh *>(bm));
       int length = 0;
       for (const int domain : IndexRange(ATTR_DOMAIN_NUM)) {
         const CustomData *customdata = info[domain].customdata;
@@ -655,9 +654,8 @@ int BKE_attribute_domain_size(const AttributeOwner &owner, const int domain)
 {
   if (owner.type() == AttributeOwnerType::Mesh) {
     const Mesh &mesh = *owner.get_mesh();
-    if (BMEditMesh *em = mesh.runtime->edit_mesh.get()) {
-      const BMesh &bm = *em->bm;
-      const std::array<DomainInfo, ATTR_DOMAIN_NUM> info = get_domains(&const_cast<BMesh &>(bm));
+    if (const BMesh *bm = BKE_editmesh_bmesh_get(&mesh)) {
+      const std::array<DomainInfo, ATTR_DOMAIN_NUM> info = get_domains(const_cast<BMesh *>(bm));
       return info[domain].length;
     }
   }
@@ -691,11 +689,11 @@ std::optional<StringRefNull> BKE_attributes_active_name_get(AttributeOwner &owne
   }
   if (owner.type() == AttributeOwnerType::Mesh) {
     const Mesh *mesh = owner.get_mesh();
-    if (BMEditMesh *em = mesh->runtime->edit_mesh.get()) {
+    if (const BMesh *bm = BKE_editmesh_bmesh_get(mesh)) {
       if (active_index > BKE_attributes_length(owner, ATTR_DOMAIN_MASK_ALL, CD_MASK_PROP_ALL)) {
         active_index = 0;
       }
-      const std::array<DomainInfo, ATTR_DOMAIN_NUM> info = get_domains(em->bm);
+      const std::array<DomainInfo, ATTR_DOMAIN_NUM> info = get_domains(const_cast<BMesh *>(bm));
       int index = 0;
       for (const int domain : IndexRange(ATTR_DOMAIN_NUM)) {
         CustomData *customdata = info[domain].customdata;
@@ -828,9 +826,8 @@ std::optional<StringRef> BKE_attribute_from_index(AttributeOwner &owner,
 {
   if (owner.type() == AttributeOwnerType::Mesh) {
     const Mesh &mesh = *owner.get_mesh();
-    if (BMEditMesh *em = mesh.runtime->edit_mesh.get()) {
-      const BMesh &bm = *em->bm;
-      const std::array<DomainInfo, ATTR_DOMAIN_NUM> info = get_domains(&const_cast<BMesh &>(bm));
+    if (const BMesh *bm = BKE_editmesh_bmesh_get(&mesh)) {
+      const std::array<DomainInfo, ATTR_DOMAIN_NUM> info = get_domains(const_cast<BMesh *>(bm));
 
       int index = 0;
       for (const int domain : IndexRange(ATTR_DOMAIN_NUM)) {
@@ -886,8 +883,8 @@ int BKE_attribute_to_index(const AttributeOwner &owner,
 {
   if (owner.type() == AttributeOwnerType::Mesh) {
     const Mesh &mesh = *owner.get_mesh();
-    if (BMEditMesh *em = mesh.runtime->edit_mesh.get()) {
-      const std::array<DomainInfo, ATTR_DOMAIN_NUM> info = get_domains(em->bm);
+    if (const BMesh *bm = BKE_editmesh_bmesh_get(&mesh)) {
+      const std::array<DomainInfo, ATTR_DOMAIN_NUM> info = get_domains(const_cast<BMesh *>(bm));
       int index = 0;
       for (const int domain : IndexRange(ATTR_DOMAIN_NUM)) {
         const CustomData *customdata = info[domain].customdata;

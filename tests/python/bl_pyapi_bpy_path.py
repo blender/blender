@@ -41,25 +41,39 @@ class TestBpyPath(unittest.TestCase):
 
         prefs = bpy.context.preferences
 
-        use_scripts_auto_execute = prefs.filepaths.use_scripts_auto_execute
-        self.addCleanup(setattr, prefs.filepaths, "use_scripts_auto_execute", use_scripts_auto_execute)
-
         path_cmp = prefs.autoexec_paths.new()
         self.addCleanup(prefs.autoexec_paths.remove, path_cmp)
         path_cmp.path = "/untrusted/"
 
-        self.assertFalse(is_autoexec("/untrusted/"))
-        self.assertFalse(is_autoexec(b"/untrusted/"))
-        self.assertTrue(is_autoexec("/trusted/"))
+        self.assertFalse(is_autoexec("/untrusted/", skip_overrides=True))
+        self.assertFalse(is_autoexec(b"/untrusted/", skip_overrides=True))
+        self.assertTrue(is_autoexec("/trusted/", skip_overrides=True))
+
+        self.assertFalse(is_autoexec("/untrusted/demo.blend", strip_filename=True, skip_overrides=True))
+        self.assertTrue(is_autoexec("/trusted/demo.blend", strip_filename=True, skip_overrides=True))
 
         path_cmp.use_glob = True
         path_cmp.path = "*/download*"
-        self.assertFalse(is_autoexec("/home/user/downloads/"))
-        self.assertTrue(is_autoexec("/home/user/projects/"))
+        self.assertFalse(is_autoexec("/home/user/downloads/", skip_overrides=True))
+        self.assertTrue(is_autoexec("/home/user/projects/", skip_overrides=True))
 
-        # The preference to enable auto-execution isn't taken into account.
-        prefs.filepaths.use_scripts_auto_execute = False
-        self.assertFalse(is_autoexec("/home/user/downloads/"))
+        # The default for "Trusted Source" also checks the preference.
+        path_cmp.use_glob = False
+        path_cmp.path = "/untrusted/"
+        prefs_filepaths = prefs.filepaths
+        self.addCleanup(
+            setattr, prefs_filepaths, "use_scripts_auto_execute", prefs_filepaths.use_scripts_auto_execute)
+
+        prefs_filepaths.use_scripts_auto_execute = True
+        self.assertTrue(is_autoexec("/trusted/", skip_overrides=False))
+        self.assertFalse(is_autoexec("/untrusted/", skip_overrides=False))
+
+        # Nothing is trusted by default, only the excluded paths are still checked.
+        prefs_filepaths.use_scripts_auto_execute = False
+        self.assertFalse(is_autoexec("/trusted/", skip_overrides=False))
+        self.assertFalse(is_autoexec("/untrusted/", skip_overrides=False))
+        self.assertTrue(is_autoexec("/trusted/", skip_overrides=True))
+        self.assertFalse(is_autoexec("/untrusted/", skip_overrides=True))
 
 
 if __name__ == '__main__':

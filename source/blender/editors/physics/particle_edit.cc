@@ -3550,8 +3550,8 @@ static void PE_mirror_x(Depsgraph *depsgraph, Scene *scene, Object *ob, int tagg
 
   /* NOTE: In case psys uses Mesh tessface indices, we mirror final Mesh itself, not orig mesh.
    * Avoids an (impossible) mesh -> orig -> mesh tessface indices conversion. */
-  mirrorfaces = mesh_get_x_mirror_faces(
-      ob, nullptr, use_dm_final_indices ? psmd_eval->mesh_final : nullptr);
+  mirrorfaces = mesh_get_x_mirror_faces(ob,
+                                        use_dm_final_indices ? psmd_eval->mesh_final : nullptr);
 
   if (!edit->mirror_cache) {
     PE_update_mirror_cache(ob, psys);

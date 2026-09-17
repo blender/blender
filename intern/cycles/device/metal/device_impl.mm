@@ -344,10 +344,6 @@ string MetalDevice::preprocess_source(MetalPipelineType pso_type,
     global_defines += "#define __KERNEL_FEATURES__ " + to_string(kernel_features) + "\n";
   }
 
-  if (use_local_atomic_sort()) {
-    global_defines += "#define __KERNEL_LOCAL_ATOMIC_SORT__\n";
-  }
-
   if (use_metalrt) {
     global_defines += "#define __KERNEL_METALRT__\n";
     if (motion_blur) {

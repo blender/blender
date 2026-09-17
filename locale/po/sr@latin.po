@@ -1,9 +1,9 @@
 
 msgid ""
 msgstr ""
-"Project-Id-Version: Blender 5.3.0 Alpha (b'f5df8c32f99b')\n"
+"Project-Id-Version: Blender 5.3.0 Alpha (b'2cef5b8c951a')\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-09-07 07:47+0000\n"
+"POT-Creation-Date: 2026-09-14 07:47+0000\n"
 "PO-Revision-Date: 2025-07-23 14:56+0000\n"
 "Last-Translator: Anonymous <noreply@weblate.org>\n"
 "Language-Team: Serbian (Latin script) <https://translate.blender.org/projects/blender-ui/ui/sr_Latn/>\n"
@@ -8498,12 +8498,16 @@ msgid "Material slot name"
 msgstr "Naziv slota materijala"
 
 
+msgid "Show/Hide"
+msgstr "Prikaži/sakrij"
+
+
+msgid "Snap"
+msgstr "Lepljenje"
+
+
 msgid "Import"
 msgstr "Uvoz"
-
-
-msgid "Select Linked"
-msgstr "Izaberi povezano"
 
 
 msgid "Math"
@@ -8514,12 +8518,8 @@ msgid "UV"
 msgstr "UV"
 
 
-msgid "Navigation"
-msgstr "Navigacija"
-
-
-msgid "Align View"
-msgstr "Poravnaj pogled"
+msgid "Mirror"
+msgstr "Ogledalo"
 
 
 msgid "UV Mapping"
@@ -8530,40 +8530,48 @@ msgid "Local View"
 msgstr "Lokalni pogled"
 
 
-msgid "Snap"
-msgstr "Lepljenje"
+msgid "Navigation"
+msgstr "Navigacija"
 
 
-msgid "Bone Roll"
-msgstr "Rolna kostiju"
+msgid "Align View"
+msgstr "Poravnaj pogled"
 
 
-msgid "Mirror"
-msgstr "Ogledalo"
-
-
-msgid "Show/Hide"
-msgstr "Prikaži/sakrij"
-
-
-msgid "Names"
-msgstr "Imena"
-
-
-msgid "Linked"
-msgstr "Povezano"
+msgid "Select Linked"
+msgstr "Izaberi povezano"
 
 
 msgid "Metaball"
 msgstr "Meta lopta"
 
 
-msgid "Special Characters"
-msgstr "Specijalni znaci"
+msgid "Light"
+msgstr "Svetlost"
 
 
-msgid "Merge"
-msgstr "Sjedini"
+msgid "Linked"
+msgstr "Povezano"
+
+
+msgid "Relations"
+msgstr "Odnosi"
+
+
+msgid "Rigid Body"
+msgstr "Kruto telo"
+
+
+msgid "Apply"
+msgstr "Primeni"
+
+
+msgid "Track"
+msgstr "Staza"
+
+
+msgid "Quick Effects"
+msgstr "Brzi efekti"
 
 
 msgid "Keying"
@@ -8574,60 +8582,52 @@ msgid "Tracking"
 msgstr "Praćenje"
 
 
-msgid "Mesh Select Mode"
-msgstr "Mod izbora mreže"
-
-
-msgid "Disable Bone Options"
-msgstr "Onemogući opcije kostiju"
-
-
-msgid "Enable Bone Options"
-msgstr "Omogući opcije kostiju"
-
-
-msgid "Toggle Bone Options"
-msgstr "Manje/više informacija"
-
-
-msgid "Apply"
-msgstr "Primeni"
-
-
-msgid "Propagate"
-msgstr "Prenesi"
-
-
-msgid "In-Betweens"
-msgstr "U međuvremenu"
+msgid "Hooks"
+msgstr "Udice"
 
 
 msgid "Clear Transform"
 msgstr "Očisti transformacije"
 
 
-msgid "Hooks"
-msgstr "Udice"
+msgid "In-Betweens"
+msgstr "U međuvremenu"
 
 
-msgid "Quick Effects"
-msgstr "Brzi efekti"
+msgid "Propagate"
+msgstr "Prenesi"
 
 
-msgid "Track"
-msgstr "Staza"
+msgid "Names"
+msgstr "Imena"
 
 
-msgid "Rigid Body"
-msgstr "Kruto telo"
+msgid "Toggle Bone Options"
+msgstr "Manje/više informacija"
 
 
-msgid "Relations"
-msgstr "Odnosi"
+msgid "Enable Bone Options"
+msgstr "Omogući opcije kostiju"
 
 
-msgid "Light"
-msgstr "Svetlost"
+msgid "Disable Bone Options"
+msgstr "Onemogući opcije kostiju"
+
+
+msgid "Mesh Select Mode"
+msgstr "Mod izbora mreže"
+
+
+msgid "Merge"
+msgstr "Sjedini"
+
+
+msgid "Special Characters"
+msgstr "Specijalni znaci"
+
+
+msgid "Bone Roll"
+msgstr "Rolna kostiju"
 
 
 msgid "Basic"
@@ -18712,6 +18712,14 @@ msgid "Debug Menu"
 msgstr "Meni za pronalaženje grešaka"
 
 
+msgid "Trusted Source"
+msgstr "Izvor od povrenja"
+
+
+msgid "Allow .blend file to execute scripts automatically, default available from system preferences"
+msgstr "Omogući .blend datotekama automatsko pokretanje skripti, trenutno dostupno kroz podešavanja sistema"
+
+
 msgctxt "Operator"
 msgid "Memory Statistics"
 msgstr "Statistika memorije"
@@ -18723,14 +18731,6 @@ msgstr "Ispiši statistiku memorije u konzoli"
 
 msgid "Load UI"
 msgstr "Učitaj korisnički interfejs"
-
-
-msgid "Trusted Source"
-msgstr "Izvor od povrenja"
-
-
-msgid "Allow .blend file to execute scripts automatically, default available from system preferences"
-msgstr "Omogući .blend datotekama automatsko pokretanje skripti, trenutno dostupno kroz podešavanja sistema"
 
 
 msgid "Set the active operator to its default values"
@@ -19044,12 +19044,12 @@ msgid "Restrict"
 msgstr "Ograniči"
 
 
-msgid "Transform Orientations"
-msgstr "Transformacija orijentacija"
-
-
 msgid "Motion Tracking"
 msgstr "Praćenje pokreta"
+
+
+msgid "Transform Orientations"
+msgstr "Transformacija orijentacija"
 
 
 msgid "Bone Constraints"

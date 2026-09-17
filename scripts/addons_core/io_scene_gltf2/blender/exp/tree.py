@@ -175,15 +175,27 @@ class VExportTree:
                     blender_children,
                     is_collection=True)
             else:
-                # Scene / classic export
-                self.recursive_node_traverse(
-                    blender_scene.collection,
-                    None,
-                    None,
-                    Matrix.Identity(4),
-                    False,
-                    blender_children,
-                    is_collection=True)
+                # If user limits export to active collection
+                if self.export_settings['gltf_active_collection']:
+                    active_collection = bpy.context.view_layer.active_layer_collection.collection
+                    self.recursive_node_traverse(
+                        active_collection,
+                        None,
+                        None,
+                        Matrix.Identity(4),
+                        False,
+                        blender_children,
+                        is_collection=True)
+                else:
+                    # Scene / classic export
+                    self.recursive_node_traverse(
+                        blender_scene.collection,
+                        None,
+                        None,
+                        Matrix.Identity(4),
+                        False,
+                        blender_children,
+                        is_collection=True)
 
     def recursive_node_traverse(
             self,
@@ -211,9 +223,10 @@ class VExportTree:
         if parent_uuid is not None:
             self.add_children(parent_uuid, node.uuid)
 
-            # 2 cases where we will need to store the fact that children are in collection or a real children
+            # 3 cases where we will need to store the fact that children are in collection or a real children
             #       1. GN instance
             #       2. Old Dupli vertices feature
+            #       3. Instance collection
             # For any other case, children are real children
             if (self.nodes[parent_uuid].blender_type == VExportNode.INST_COLLECTION or original_object is not None) or (self.nodes[parent_uuid].blender_type !=
                                                                                                                         VExportNode.COLLECTION and self.nodes[parent_uuid].blender_object is not None and self.nodes[parent_uuid].blender_object.is_instancer is True):
@@ -409,19 +422,28 @@ class VExportTree:
                         is_collection=True)
             else:
                 # Manage children objects
-                self.recursive_node_traverse(
-                    blender_object.instance_collection,
-                    None,
-                    node.uuid,
-                    node.matrix_world,
-                    new_delta or delta,
-                    blender_children,
-                    is_collection=True,
-                    is_children_in_collection=True)
+                # Do not loop on children of the instance collection,
+                # But on the children of the collection itself
+
+                ref_collection = blender_object.instance_collection
+                collection_objects = set(ref_collection.objects)
+                for child in _sort_by_name(collection_objects):
+                    # On Collection, .objects returns all objects & instance collection
+                    # Not only the direct children
+
+                    # Keep only object if it has no parent, or parent is not in the collection
+                    if child.parent is not None and len(child.parent.users_collection) > 0 \
+                            and len(child.users_collection) > 0 \
+                            and child.users_collection[0].name == child.parent.users_collection[0].name:
+                        continue
+
+                    self.recursive_node_traverse(child, None, node.uuid, node.matrix_world,
+                                                 new_delta or delta, blender_children, is_children_in_collection=True)
+
                 # Some objects are parented to instance collection
                 for child in _sort_by_name(blender_children[blender_object]):
                     self.recursive_node_traverse(child, None, node.uuid, parent_coll_matrix_world,
-                                                 new_delta or delta, blender_children, is_children_in_collection=True)
+                                                 new_delta or delta, blender_children)
                 # Manage children collections
                 for child in _sort_by_name(blender_object.instance_collection.children):
                     self.recursive_node_traverse(

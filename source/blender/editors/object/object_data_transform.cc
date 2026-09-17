@@ -320,7 +320,7 @@ static std::unique_ptr<XFormObjectData> data_xform_create_ex(ID *id, bool is_edi
       const int key_index = -1;
 
       if (is_edit_mode) {
-        BMesh *bm = mesh->runtime->edit_mesh->bm;
+        const BMesh *bm = BKE_editmesh_bmesh_get(mesh);
         /* Always operate on all keys for the moment. */
         // key_index = bm->shapenr - 1;
         auto xod = std::make_unique<XFormObjectData_Mesh>();
@@ -525,7 +525,7 @@ void data_xform_by_mat4(XFormObjectData &xod_base, const float4x4 &transform)
 
       const auto &xod = reinterpret_cast<XFormObjectData_Mesh &>(xod_base);
       if (xod.is_edit_mode) {
-        BMesh *bm = mesh->runtime->edit_mesh->bm;
+        BMesh *bm = BKE_editmesh_bmesh_get_for_write(mesh);
         BM_mesh_vert_coords_apply_with_mat4(bm, xod.positions, transform);
         /* Always operate on all keys for the moment. */
         // key_index = bm->shapenr - 1;
@@ -657,7 +657,7 @@ void data_xform_restore(XFormObjectData &xod_base)
 
       const auto &xod = reinterpret_cast<XFormObjectData_Mesh &>(xod_base);
       if (xod.is_edit_mode) {
-        BMesh *bm = mesh->runtime->edit_mesh->bm;
+        BMesh *bm = BKE_editmesh_bmesh_get_for_write(mesh);
         BM_mesh_vert_coords_apply(bm, xod.positions);
         /* Always operate on all keys for the moment. */
         // key_index = bm->shapenr - 1;

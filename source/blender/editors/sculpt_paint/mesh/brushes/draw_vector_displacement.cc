@@ -40,7 +40,8 @@ struct LocalData {
   Vector<float3> translations;
 };
 
-static void calc_brush_texture_colors(SculptSession &ss,
+static void calc_brush_texture_colors(const PaintMode paint_mode,
+                                      SculptSession &ss,
                                       const Brush &brush,
                                       const Span<float3> vert_positions,
                                       const Span<int> verts,
@@ -55,14 +56,15 @@ static void calc_brush_texture_colors(SculptSession &ss,
     float texture_value;
     float4 texture_rgba;
     /* NOTE: This is not a thread-safe call. */
-    sculpt_apply_texture(
-        ss, brush, vert_positions[verts[i]], thread_id, &texture_value, texture_rgba);
+    apply_brush_texture(
+        paint_mode, ss, brush, vert_positions[verts[i]], thread_id, &texture_value, texture_rgba);
 
     r_colors[i] = float3(texture_rgba);
   }
 }
 
-static void calc_brush_texture_colors(SculptSession &ss,
+static void calc_brush_texture_colors(const PaintMode paint_mode,
+                                      SculptSession &ss,
                                       const Brush &brush,
                                       const Span<float3> positions,
                                       const MutableSpan<float3> r_colors)
@@ -76,7 +78,8 @@ static void calc_brush_texture_colors(SculptSession &ss,
     float texture_value;
     float4 texture_rgba;
     /* NOTE: This is not a thread-safe call. */
-    sculpt_apply_texture(ss, brush, positions[i], thread_id, &texture_value, texture_rgba);
+    apply_brush_texture(
+        paint_mode, ss, brush, positions[i], thread_id, &texture_value, texture_rgba);
     r_colors[i] = float3(texture_rgba);
   }
 }
@@ -88,7 +91,6 @@ static void calc_faces(const Depsgraph &depsgraph,
                        const MeshAttributeData &attribute_data,
                        const bke::pbvh::MeshNode &node,
                        Object &object,
-                       LocalData &tls,
                        const PositionDeformData &position_data)
 {
   SculptSession &ss = *object.runtime->sculpt_session;
@@ -96,16 +98,14 @@ static void calc_faces(const Depsgraph &depsgraph,
 
   const Span<int> verts = node.verts();
 
-  tls.factors.resize(verts.size());
-  const MutableSpan<float> factors = tls.factors;
+  Array<float, bke::pbvh::MESH_LEAF_LIMIT> factors(verts.size());
   fill_factor_from_hide_and_mask(attribute_data.hide_vert, attribute_data.mask, verts, factors);
   filter_region_clip_factors(ss, position_data.eval, verts, factors);
   if (brush.flag & BRUSH_FRONTFACE) {
     calc_front_face(cache.view_normal_symm, vert_normals, verts, factors);
   }
 
-  tls.distances.resize(verts.size());
-  const MutableSpan<float> distances = tls.distances;
+  Array<float, bke::pbvh::MESH_LEAF_LIMIT> distances(verts.size());
   calc_brush_distances(
       ss, position_data.eval, verts, eBrushFalloffShape(brush.falloff_shape), distances);
   filter_distances_with_radius(cache.radius, distances, factors);
@@ -114,9 +114,8 @@ static void calc_faces(const Depsgraph &depsgraph,
 
   auto_mask::calc_vert_factors(depsgraph, object, cache.automasking.get(), node, verts, factors);
 
-  tls.translations.resize(verts.size());
-  const MutableSpan<float3> translations = tls.translations;
-  calc_brush_texture_colors(ss, brush, position_data.eval, verts, translations);
+  Array<float3, bke::pbvh::MESH_LEAF_LIMIT> translations(verts.size());
+  calc_brush_texture_colors(PaintMode::Sculpt, ss, brush, position_data.eval, verts, translations);
   scale_translations(translations, factors);
   for (const int i : verts.index_range()) {
     calc_vertex_displacement(ss, brush, translations[i]);
@@ -159,7 +158,7 @@ static void calc_grids(const Depsgraph &depsgraph,
 
   tls.translations.resize(positions.size());
   const MutableSpan<float3> translations = tls.translations;
-  calc_brush_texture_colors(ss, brush, positions, translations);
+  calc_brush_texture_colors(PaintMode::Sculpt, ss, brush, positions, translations);
   scale_translations(translations, factors);
   for (const int i : positions.index_range()) {
     calc_vertex_displacement(ss, brush, translations[i]);
@@ -201,7 +200,7 @@ static void calc_bmesh(const Depsgraph &depsgraph,
 
   tls.translations.resize(positions.size());
   const MutableSpan<float3> translations = tls.translations;
-  calc_brush_texture_colors(ss, brush, positions, translations);
+  calc_brush_texture_colors(PaintMode::Sculpt, ss, brush, positions, translations);
   scale_translations(translations, factors);
   for (const int i : positions.index_range()) {
     calc_vertex_displacement(ss, brush, translations[i]);
@@ -232,7 +231,6 @@ void do_draw_vector_displacement_brush(const Depsgraph &depsgraph,
       const MeshAttributeData attribute_data(mesh);
       node_mask.foreach_index(
           [&](const int i) {
-            LocalData &tls = all_tls.local();
             calc_faces(depsgraph,
                        sd,
                        brush,
@@ -240,7 +238,6 @@ void do_draw_vector_displacement_brush(const Depsgraph &depsgraph,
                        attribute_data,
                        nodes[i],
                        object,
-                       tls,
                        position_data);
             bke::pbvh::update_node_bounds_mesh(position_data.eval, nodes[i]);
           },

@@ -29,6 +29,7 @@
 #include "DNA_sequence_types.h"
 #include "DNA_sound_types.h"
 
+#include "BKE_animsys.hh"
 #include "BKE_context.hh"
 #include "BKE_global.hh"
 #include "BKE_idtype.hh"
@@ -2503,7 +2504,7 @@ static wmOperatorStatus sequencer_add_duplicate_exec(bContext *C, wmOperator *op
     strip->runtime->flag |= seq::StripRuntimeFlag::IgnoreChannelLock;
 
     seq::animation_duplicate_backup_to_scene(scene, strip, &animation_backup);
-    seq::ensure_unique_name(*bmain, strip, scene);
+    seq::ensure_unique_name(strip, scene, {});
   }
 
   /* Special case for duplicating strips in preview: handle overlap, because strips won't be
@@ -3624,7 +3625,7 @@ static wmOperatorStatus sequencer_change_effect_type_exec(bContext *C, wmOperato
   BLI_string_split_name_number(strip->name + 2, '.', name_base, &name_num);
   if (STREQ(name_base, seq::get_default_stripname_by_type(old_type))) {
     seq::edit_strip_name_set(scene, strip, seq::strip_give_name(strip));
-    seq::ensure_unique_name(*CTX_data_main(C), strip, scene);
+    seq::ensure_unique_name(strip, scene, BKE_animdata_build_driver_target_map(*CTX_data_main(C)));
   }
 
   /* Init new effect. */

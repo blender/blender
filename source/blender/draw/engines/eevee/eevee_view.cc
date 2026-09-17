@@ -17,6 +17,8 @@
 
 #include "DRW_render.hh"
 
+#include "draw_common.hh"
+
 #include "GPU_debug.hh"
 
 #include "eevee_instance.hh"
@@ -87,6 +89,9 @@ void ShadingView::render()
 
   /* Needs to be before anything else because it query its own gbuffer. */
   inst_.planar_probes.set_view(render_view_, extent_);
+
+  /* Hand off gsplat compute workload for the current view before draws. */
+  DRW_gsplat_ensure_radiance(*inst_.manager, render_view_);
 
   RenderBuffers &rbufs = inst_.render_buffers;
   rbufs.acquire(extent_);
@@ -295,6 +300,8 @@ void CaptureView::render_world()
   GPU_debug_group_begin("World.Capture");
 
   if (update_info->do_render) {
+    inst_.sphere_probes.ensure_cubemap_render_target(update_info->cube_target_extent);
+
     auto render_cubemap = [&](RayPipelineType ray_type) {
       if (assign_if_different(inst_.pipelines.data.ray_type, ray_type)) {
         inst_.uniform_data.pipeline.push_update();
@@ -337,6 +344,8 @@ void CaptureView::render_world()
     inst_.volume_probes.update_world_irradiance();
   }
 
+  inst_.sphere_probes.release_render_target();
+
   if (assign_if_different(inst_.pipelines.data.ray_type, RAY_TYPE_CAMERA)) {
     inst_.uniform_data.pipeline.push_update();
   }
@@ -356,6 +365,8 @@ void CaptureView::render_probes()
 
   while (const auto update_info = inst_.sphere_probes.probe_update_info_pop()) {
     GPU_debug_group_begin("Probe.Capture");
+
+    inst_.sphere_probes.ensure_cubemap_render_target(update_info->cube_target_extent);
 
     if (assign_if_different(inst_.pipelines.data.ray_type, RAY_TYPE_GLOSSY)) {
       inst_.uniform_data.pipeline.push_update();
@@ -395,6 +406,9 @@ void CaptureView::render_probes()
                                                       update_info->clipping_distances.y);
       view.sync(view_m4, win_m4);
 
+      /* Hand off gsplat compute workload for the capture before draws. */
+      DRW_gsplat_ensure_radiance(*inst_.manager, view);
+
       inst_.shadows.set_view(view, extent);
       inst_.volume.set_view(view, extent);
       inst_.uniform_data.data.push_update();
@@ -421,6 +435,8 @@ void CaptureView::render_probes()
     GPU_debug_group_end();
     inst_.sphere_probes.remap_to_octahedral_projection(update_info->atlas_coord, true, false);
   }
+
+  inst_.sphere_probes.release_render_target();
 
   if (assign_if_different(inst_.pipelines.data.ray_type, RAY_TYPE_CAMERA)) {
     inst_.uniform_data.pipeline.push_update();

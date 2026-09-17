@@ -97,6 +97,11 @@ enum eRegionView3D_Flag : short {
    */
   RV3D_ZOFFSET_DISABLED = 1 << 6,
   RV3D_WAS_CAMOB = 1 << 7,
+  /**
+   * Flip the view horizontally (along the local X axis).
+   * Only applies when in a camera view.
+   */
+  RV3D_FLIP_X = 1 << 8,
 };
 ENUM_OPERATORS(eRegionView3D_Flag)
 
@@ -604,7 +609,7 @@ struct View3DShading {
   eV3DShadingColorType wire_color_type = V3D_SHADING_SINGLE_COLOR;
 
   /** When to preview the compositor output in the viewport. */
-  View3DShadingUseCompositor use_compositor = V3D_SHADING_USE_COMPOSITOR_ALWAYS;
+  View3DShadingUseCompositor use_compositor = V3D_SHADING_USE_COMPOSITOR_DISABLED;
 
   char _pad = {};
 

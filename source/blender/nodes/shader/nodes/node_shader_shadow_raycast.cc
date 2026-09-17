@@ -35,13 +35,14 @@ static int node_shader_gpu_shadow_raycast(GPUMaterial *mat,
                                           GPUNodeStack *out)
 {
   if (!in[1].link) {
-    GPU_link(mat, "world_position_get", &in[1].link);
+    GPU_link(mat, "world_position_get", GPU_shading_data(), &in[1].link);
   }
   else {
     GPU_material_flag_set(mat, GPU_MATFLAG_SHADOW_OFFSET);
   }
 
-  return GPU_stack_link(mat, node, "node_shadow_raycast", in, out);
+  return GPU_stack_link(
+      mat, node, "node_shadow_raycast", in, out, GPU_kernel_globals(), GPU_shading_data());
 }
 
 }  // namespace nodes::node_shader_shadow_raycast_cc

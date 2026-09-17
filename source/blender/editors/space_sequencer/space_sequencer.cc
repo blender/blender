@@ -205,7 +205,7 @@ static void sequencer_free(SpaceLink *sl)
 
 #if 0
   if (sseq->gpd) {
-    BKE_gpencil_free_data(sseq->gpd);
+    BKE_annotations_free_data(sseq->gpd);
   }
 #endif
 }
@@ -1185,14 +1185,16 @@ static void sequencer_space_blend_read_data(BlendDataReader * /*reader*/, SpaceL
 #if 0
   if (sseq->gpd) {
     sseq->gpd = newdataadr(fd, sseq->gpd);
-    BKE_gpencil_blend_read_data(fd, sseq->gpd);
+    BKE_annotations_blend_read_data(fd, sseq->gpd);
   }
 #endif
 }
 
 static void sequencer_space_blend_write(BlendWriter *writer, SpaceLink *sl)
 {
-  writer->write_struct_cast<SpaceSeq>(sl);
+  writer->write_struct_cast<SpaceSeq>(sl, [](BlendStructWriter<SpaceSeq> &struct_writer) {
+    struct_writer.shallow_data.runtime = nullptr;
+  });
 }
 
 static bool sequencer_scrubbing_region_poll(const RegionPollParams *params)

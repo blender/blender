@@ -5,6 +5,7 @@
 #include "testing/testing.h"
 
 #include "GPU_batch.hh"
+#include "GPU_capabilities.hh"
 #include "GPU_context.hh"
 #include "GPU_framebuffer.hh"
 #include "GPU_shader.hh"
@@ -250,6 +251,10 @@ static void test_framebuffer_multi_viewport()
   {
     GTEST_SKIP() << "NVIDIA fails to compile workaround due to reserved names. Gladly it doesn't "
                     "need the workaround.";
+  }
+
+  if (!GPU_multi_viewport_support()) {
+    GTEST_SKIP() << "Device does not support multi viewport, but the test requires it.";
   }
 
   GPU_render_begin();

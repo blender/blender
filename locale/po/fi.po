@@ -1,9 +1,9 @@
 
 msgid ""
 msgstr ""
-"Project-Id-Version: Blender 5.3.0 Alpha (b'f5df8c32f99b')\n"
+"Project-Id-Version: Blender 5.3.0 Alpha (b'2cef5b8c951a')\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-09-07 07:47+0000\n"
+"POT-Creation-Date: 2026-09-14 07:47+0000\n"
 "PO-Revision-Date: 2026-04-06 09:16+0000\n"
 "Last-Translator: Leevi Oksanen <laavi.oksanen@gmail.com>\n"
 "Language-Team: Finnish <https://translate.blender.org/projects/blender-ui/ui/fi/>\n"
@@ -7120,40 +7120,28 @@ msgid "ID Type"
 msgstr "ID-tyyppi"
 
 
-msgid "Select More/Less"
-msgstr "Valitse enemmän/vähemmän"
-
-
-msgid "Instances"
-msgstr "Instanssit"
-
-
 msgid "Read"
 msgstr "Lue"
+
+
+msgid "Show/Hide"
+msgstr "Näytä/Piilota"
 
 
 msgid "Write"
 msgstr "Kirjoita"
 
 
+msgid "Instances"
+msgstr "Instanssit"
+
+
 msgid "Import"
 msgstr "Tuo"
 
 
-msgid "Select Loops"
-msgstr "Valitse silmukat"
-
-
-msgid "Select All by Trait"
-msgstr "Valitse kaikki piirteen mukaan"
-
-
 msgid "Utilities"
 msgstr "Työkalut"
-
-
-msgid "Select Similar"
-msgstr "Valitse samankaltainen"
 
 
 msgid "Math"
@@ -7168,48 +7156,60 @@ msgid "UV Mapping"
 msgstr "UV-kartoittaminen"
 
 
-msgid "Show/Hide"
-msgstr "Näytä/Piilota"
+msgid "Select More/Less"
+msgstr "Valitse enemmän/vähemmän"
 
 
-msgid "Names"
-msgstr "Nimet"
+msgid "Select Similar"
+msgstr "Valitse samankaltainen"
 
 
-msgid "Linked"
-msgstr "Linkitetyt"
+msgid "Select All by Trait"
+msgstr "Valitse kaikki piirteen mukaan"
+
+
+msgid "Select Loops"
+msgstr "Valitse silmukat"
 
 
 msgid "Metaball"
 msgstr "Metapallo"
 
 
-msgid "Mesh Select Mode"
-msgstr "Muodon valintatila"
-
-
-msgid "Random Mask"
-msgstr "Satunnainen maski"
-
-
-msgid "Hooks"
-msgstr "Koukut"
-
-
-msgid "Track"
-msgstr "Raide"
-
-
-msgid "Add Image"
-msgstr "Lisää kuva"
+msgid "Light"
+msgstr "Valo"
 
 
 msgid "Light Probe"
 msgstr "Valoluotain"
 
 
-msgid "Light"
-msgstr "Valo"
+msgid "Linked"
+msgstr "Linkitetyt"
+
+
+msgid "Add Image"
+msgstr "Lisää kuva"
+
+
+msgid "Track"
+msgstr "Raide"
+
+
+msgid "Hooks"
+msgstr "Koukut"
+
+
+msgid "Random Mask"
+msgstr "Satunnainen maski"
+
+
+msgid "Names"
+msgstr "Nimet"
+
+
+msgid "Mesh Select Mode"
+msgstr "Muodon valintatila"
 
 
 msgid "Basic"
@@ -12305,6 +12305,10 @@ msgid "Donate"
 msgstr "Lahjoita"
 
 
+msgid "Trusted Source [Untrusted Path]"
+msgstr "Luotettava lähde [epäluotettava polku]"
+
+
 msgctxt "Operator"
 msgid "Link..."
 msgstr "Linkitä..."
@@ -16444,10 +16448,6 @@ msgstr "ikkunamanagerit"
 
 msgid "Load"
 msgstr "Lataa"
-
-
-msgid "Trusted Source [Untrusted Path]"
-msgstr "Luotettava lähde [epäluotettava polku]"
 
 
 msgid "Any unsaved changes will be lost."

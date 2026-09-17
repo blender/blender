@@ -72,6 +72,14 @@ GPU_SHADER_NAMED_INTERFACE_INFO(eevee_surf_pointcloud_flat_iface, pointcloud_int
 FLAT(int, id)
 GPU_SHADER_NAMED_INTERFACE_END(pointcloud_interp_flat)
 
+GPU_SHADER_NAMED_INTERFACE_INFO(eevee_surf_gsplat_iface, gsplat_interp)
+SMOOTH(float2, billboard_co)
+GPU_SHADER_NAMED_INTERFACE_END(gsplat_interp)
+
+GPU_SHADER_NAMED_INTERFACE_INFO(eevee_surf_gsplat_flat_iface, gsplat_interp_flat)
+FLAT(float, opacity)
+GPU_SHADER_NAMED_INTERFACE_END(gsplat_interp_flat)
+
 /* WORKAROUND: Until we get condition support for interfaces. */
 GPU_SHADER_CREATE_INFO(eevee_shadow_iface_info)
 VERTEX_OUT(eevee_surf_shadow_iface)
@@ -88,6 +96,12 @@ GPU_SHADER_CREATE_END()
 GPU_SHADER_CREATE_INFO(eevee_geom_pointcloud_iface_info)
 VERTEX_OUT(eevee_surf_pointcloud_iface)
 VERTEX_OUT(eevee_surf_pointcloud_flat_iface)
+GPU_SHADER_CREATE_END()
+
+/* WORKAROUND: Until we get condition support for interfaces. */
+GPU_SHADER_CREATE_INFO(eevee_geom_gsplat_iface_info)
+VERTEX_OUT(eevee_surf_gsplat_iface)
+VERTEX_OUT(eevee_surf_gsplat_flat_iface)
 GPU_SHADER_CREATE_END()
 
 /* WORKAROUND: Until we remove global accesses to the interface. */

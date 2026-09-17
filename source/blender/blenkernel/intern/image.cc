@@ -414,7 +414,9 @@ static void image_blend_write(BlendWriter *writer, ID *id, const void *id_addres
   }
   writer->write_struct(ima->stereo3d_format);
 
-  writer->write_struct_list(&ima->tiles);
+  writer->write_struct_list(&ima->tiles, [](BlendStructWriter<ImageTile> &struct_writer) {
+    struct_writer.shallow_data.runtime = {};
+  });
 
   ima->packedfile = nullptr;
 
@@ -468,15 +470,17 @@ static void image_blend_read_data(BlendDataReader *reader, ID *id)
   ima->runtime = MEM_new<bke::ImageRuntime>(__func__);
 }
 
-static void image_blend_read_after_liblink(BlendLibReader * /*reader*/, ID *id)
+static void image_blend_read_after_liblink(BlendLibReader *reader, ID *id)
 {
   Image *ima = reinterpret_cast<Image *>(id);
 
-  BKE_image_populate_cache_from_autosave(ima);
-  BLI_assert_msg(!(ima->flag & IMA_AUTOSAVE_TEMPPACK),
-                 "An image should never be marked as temporary packed after loading");
-  BLI_assert_msg(BLI_listbase_count(&ima->autosave_packedfiles) == 0,
-                 "An image should never have autosave data after loading");
+  if (!BLO_read_lib_is_undo(reader)) {
+    BKE_image_populate_cache_from_autosave(ima);
+    BLI_assert_msg(!(ima->flag & IMA_AUTOSAVE_TEMPPACK),
+                   "An image should never be marked as temporary packed after loading");
+    BLI_assert_msg(BLI_listbase_count(&ima->autosave_packedfiles) == 0,
+                   "An image should never have autosave data after loading");
+  }
 
   /* Images have some kind of 'main' cache, when null we should also clear all others. */
   /* Needs to be done *after* cache pointers are restored (call to
@@ -507,6 +511,7 @@ IDTypeInfo IDType_ID_IM = {
     .foreach_cache = image_foreach_cache,
     .foreach_path = image_foreach_path,
     .foreach_working_space_color = nullptr,
+    .foreach_asset_weak_reference = nullptr,
     .owner_pointer_get = nullptr,
 
     .blend_write = image_blend_write,
@@ -1160,14 +1165,15 @@ static void image_abs_path(Main *bmain,
   }
 }
 
-Image *BKE_image_load(Main *bmain, const char *filepath)
+Image *BKE_image_load(Main *bmain, const char *filepath, bool check_open)
 {
-  return BKE_image_load_in_lib(bmain, std::nullopt, filepath);
+  return BKE_image_load_in_lib(bmain, std::nullopt, filepath, check_open);
 }
 
 Image *BKE_image_load_in_lib(Main *bmain,
                              std::optional<Library *> owner_library,
-                             const char *filepath)
+                             const char *filepath,
+                             bool check_open)
 {
   Image *ima;
   int file;
@@ -1178,15 +1184,17 @@ Image *BKE_image_load_in_lib(Main *bmain,
 
   image_abs_path(bmain, owner_lib, filepath, filepath_abs);
 
-  /* exists? */
-  file = BLI_open(filepath_abs, O_BINARY | O_RDONLY, 0);
-  if (file == -1) {
-    if (!BKE_image_tile_filepath_exists(filepath_abs)) {
-      return nullptr;
+  /* Does it exist on the file-system? */
+  if (check_open) {
+    file = BLI_open(filepath_abs, O_BINARY | O_RDONLY, 0);
+    if (file == -1) {
+      if (!BKE_image_tile_filepath_exists(filepath_abs)) {
+        return nullptr;
+      }
     }
-  }
-  else {
-    close(file);
+    else {
+      close(file);
+    }
   }
 
   ima = image_alloc(
@@ -1202,14 +1210,15 @@ Image *BKE_image_load_in_lib(Main *bmain,
   return ima;
 }
 
-Image *BKE_image_load_exists(Main *bmain, const char *filepath, bool *r_exists)
+Image *BKE_image_load_exists(Main *bmain, const char *filepath, bool check_open, bool *r_exists)
 {
-  return BKE_image_load_exists_in_lib(bmain, std::nullopt, filepath, r_exists);
+  return BKE_image_load_exists_in_lib(bmain, std::nullopt, filepath, check_open, r_exists);
 }
 
 Image *BKE_image_load_exists_in_lib(Main *bmain,
                                     std::optional<Library *> owner_library,
                                     const char *filepath,
+                                    bool check_open,
                                     bool *r_exists)
 {
   Image *ima;
@@ -1249,7 +1258,7 @@ Image *BKE_image_load_exists_in_lib(Main *bmain,
   if (r_exists) {
     *r_exists = false;
   }
-  return BKE_image_load_in_lib(bmain, owner_library, filepath);
+  return BKE_image_load_in_lib(bmain, owner_library, filepath, check_open);
 }
 
 struct ImageFillData {

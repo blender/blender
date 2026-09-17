@@ -328,10 +328,11 @@ template<typename TexT, typename OutT = float4> struct ImageInterpolator {
 ccl_device float4 kernel_image_interp(KernelGlobals kg,
                                       ShaderData *sd,
                                       const int image_texture_id,
-                                      dual2 uv)
+                                      dual2 uv,
+                                      const float4 missing_rgba)
 {
   if (image_texture_id == KERNEL_IMAGE_NONE) {
-    return IMAGE_MISSING_RGBA;
+    return missing_rgba;
   }
   const ccl_global KernelImageTexture &tex = kernel_data_fetch(image_textures, image_texture_id);
   const ccl_global KernelImageInfo *info;
@@ -349,7 +350,7 @@ ccl_device float4 kernel_image_interp(KernelGlobals kg,
         kg, sd, tex, image_texture_id, uv, xy);
 
     if (!kernel_tile_descriptor_loaded(tile_descriptor)) {
-      return (tile_descriptor == KERNEL_TILE_LOAD_FAILED) ? IMAGE_MISSING_RGBA : tex.average_color;
+      return (tile_descriptor == KERNEL_TILE_LOAD_FAILED) ? missing_rgba : tex.average_color;
     }
 
     info = &kernel_data_fetch(image_info, kernel_tile_descriptor_image_info_id(tile_descriptor));
@@ -357,7 +358,7 @@ ccl_device float4 kernel_image_interp(KernelGlobals kg,
   else {
     /* Full image sampling. */
     if (tex.image_info_id == KERNEL_IMAGE_NONE) {
-      return IMAGE_MISSING_RGBA;
+      return missing_rgba;
     }
 
     /* Convert to pixel space. */
@@ -395,22 +396,20 @@ ccl_device float4 kernel_image_interp(KernelGlobals kg,
     case IMAGE_DATA_TYPE_FLOAT4:
       return ImageInterpolator<float4>::interp(*info, xy.x, xy.y);
     default:
-      assert(0);
-      return IMAGE_MISSING_RGBA;
+      kernel_assert(0);
+      return missing_rgba;
   }
 }
 
-ccl_device_forceinline float4 kernel_image_interp_with_udim(KernelGlobals kg,
-                                                            ShaderData *sd,
-                                                            const int udim_id,
-                                                            dual2 uv)
+ccl_device_forceinline float4 kernel_image_interp_with_udim(
+    KernelGlobals kg, ShaderData *sd, const int udim_id, dual2 uv, const float4 missing_rgba)
 {
   const int image_texture_id = kernel_image_udim_map(kg, udim_id, uv.val);
   if (image_texture_id == KERNEL_IMAGE_NONE) {
-    return IMAGE_MISSING_RGBA;
+    return missing_rgba;
   }
 
-  return kernel_image_interp(kg, sd, image_texture_id, uv);
+  return kernel_image_interp(kg, sd, image_texture_id, uv, missing_rgba);
 }
 
 } /* Namespace. */

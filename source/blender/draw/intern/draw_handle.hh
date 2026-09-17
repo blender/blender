@@ -419,7 +419,7 @@ class ObjectRef {
       return true;
     }
 
-    if (ob_mode & (OB_MODE_ALL_PAINT | OB_MODE_ALL_PAINT_GPENCIL)) {
+    if (ob_mode & (OB_MODE_ALL_PAINT_MESH | OB_MODE_ALL_PAINT_GPENCIL)) {
       return true;
     }
 

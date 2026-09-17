@@ -99,8 +99,8 @@ void BKE_mesh_wrapper_ensure_mdata(Mesh *mesh)
       BLI_assert(mesh->runtime->edit_mesh != nullptr);
       BLI_assert(mesh->runtime->edit_data != nullptr);
 
-      BMEditMesh *em = mesh->runtime->edit_mesh.get();
-      BM_mesh_bm_to_me_for_eval(*em->bm, *mesh, &mesh->runtime->cd_mask_extra);
+      BMesh *bm = BKE_editmesh_bmesh_get_for_write(mesh);
+      BM_mesh_bm_to_me_for_eval(*bm, *mesh, &mesh->runtime->cd_mask_extra);
 
       /* Adding original index layers here assumes that all BMesh Mesh wrappers are created from
        * original edit mode meshes (the only case where adding original indices makes sense).
@@ -151,7 +151,7 @@ Span<float3> BKE_mesh_wrapper_face_normals(Mesh *mesh)
 {
   switch (mesh->runtime->wrapper_type) {
     case ME_WRAPPER_TYPE_BMESH:
-      return BKE_editmesh_cache_ensure_face_normals(*mesh->runtime->edit_mesh,
+      return BKE_editmesh_cache_ensure_face_normals(*BKE_editmesh_bmesh_get_for_write(mesh),
                                                     *mesh->runtime->edit_data);
     case ME_WRAPPER_TYPE_MDATA:
     case ME_WRAPPER_TYPE_SUBD:
@@ -182,7 +182,7 @@ void BKE_mesh_wrapper_vert_coords_copy(const Mesh *mesh, MutableSpan<float3> pos
 {
   switch (mesh->runtime->wrapper_type) {
     case ME_WRAPPER_TYPE_BMESH: {
-      BMesh *bm = mesh->runtime->edit_mesh->bm;
+      BMesh *bm = const_cast<BMesh *>(BKE_editmesh_bmesh_get(mesh));
       const bke::EditMeshData &edit_data = *mesh->runtime->edit_data;
       if (!edit_data.vert_positions.is_empty()) {
         positions.copy_from(edit_data.vert_positions);
@@ -213,7 +213,7 @@ void BKE_mesh_wrapper_vert_coords_copy_with_mat4(const Mesh *mesh,
 {
   switch (mesh->runtime->wrapper_type) {
     case ME_WRAPPER_TYPE_BMESH: {
-      BMesh *bm = mesh->runtime->edit_mesh->bm;
+      BMesh *bm = const_cast<BMesh *>(BKE_editmesh_bmesh_get(mesh));
       BLI_assert(vert_coords_len == bm->totvert);
       const bke::EditMeshData &edit_data = *mesh->runtime->edit_data;
       if (!edit_data.vert_positions.is_empty()) {
@@ -254,7 +254,7 @@ int BKE_mesh_wrapper_vert_len(const Mesh *mesh)
 {
   switch (mesh->runtime->wrapper_type) {
     case ME_WRAPPER_TYPE_BMESH:
-      return mesh->runtime->edit_mesh->bm->totvert;
+      return BKE_editmesh_bmesh_get(mesh)->totvert;
     case ME_WRAPPER_TYPE_MDATA:
     case ME_WRAPPER_TYPE_SUBD:
       return mesh->verts_num;
@@ -267,7 +267,7 @@ int BKE_mesh_wrapper_edge_len(const Mesh *mesh)
 {
   switch (mesh->runtime->wrapper_type) {
     case ME_WRAPPER_TYPE_BMESH:
-      return mesh->runtime->edit_mesh->bm->totedge;
+      return BKE_editmesh_bmesh_get(mesh)->totedge;
     case ME_WRAPPER_TYPE_MDATA:
     case ME_WRAPPER_TYPE_SUBD:
       return mesh->edges_num;
@@ -280,7 +280,7 @@ int BKE_mesh_wrapper_loop_len(const Mesh *mesh)
 {
   switch (mesh->runtime->wrapper_type) {
     case ME_WRAPPER_TYPE_BMESH:
-      return mesh->runtime->edit_mesh->bm->totloop;
+      return BKE_editmesh_bmesh_get(mesh)->totloop;
     case ME_WRAPPER_TYPE_MDATA:
     case ME_WRAPPER_TYPE_SUBD:
       return mesh->corners_num;
@@ -293,7 +293,7 @@ int BKE_mesh_wrapper_face_len(const Mesh *mesh)
 {
   switch (mesh->runtime->wrapper_type) {
     case ME_WRAPPER_TYPE_BMESH:
-      return mesh->runtime->edit_mesh->bm->totface;
+      return BKE_editmesh_bmesh_get(mesh)->totface;
     case ME_WRAPPER_TYPE_MDATA:
     case ME_WRAPPER_TYPE_SUBD:
       return mesh->faces_num;

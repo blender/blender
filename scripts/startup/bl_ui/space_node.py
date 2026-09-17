@@ -849,7 +849,7 @@ class NODE_PT_active_node_generic(Panel):
         col.prop(node, "show_options")
         col.prop(node, "mute")
 
-        if tree.type in ('GEOMETRY', 'COMPOSITING'):
+        if tree.type in ('GEOMETRY', 'COMPOSITING', 'SHADER'):
             layout.prop(node, "warning_propagation", text="Propagate")
 
 
@@ -1028,6 +1028,10 @@ class NODE_PT_overlay(Panel):
 
             subcol = col.column(align=True)
             subcol.active = overlay.show_render_size and snode.show_backdrop
+
+            subcol = col.column()
+            subcol.prop(overlay, "show_text_info")
+            subcol.active = snode.show_backdrop
 
             row = subcol.row(align=True)
             row.prop(overlay, "show_render_size", text="Render Region")

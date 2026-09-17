@@ -285,13 +285,12 @@ static wmOperatorStatus uv_copy_exec(bContext *C, wmOperator * /*op*/)
       *bmain, scene, view_layer, nullptr);
 
   for (Object *ob : objects) {
-    BMEditMesh *em = BKE_editmesh_from_object(ob);
+    BMesh *bm = BKE_editmesh_bmesh_get_for_write(ob);
 
     const bool use_seams = false;
-    UvElementMap *element_map = BM_uv_element_map_create(
-        em->bm, scene, true, false, use_seams, true);
+    UvElementMap *element_map = BM_uv_element_map_create(bm, scene, true, false, use_seams, true);
     if (element_map) {
-      const int cd_loop_uv_offset = CustomData_get_offset(&em->bm->ldata, CD_PROP_FLOAT2);
+      const int cd_loop_uv_offset = CustomData_get_offset(&bm->ldata, CD_PROP_FLOAT2);
       uv_clipboard->append(element_map, cd_loop_uv_offset);
     }
     BM_uv_element_map_free(element_map);
@@ -319,13 +318,12 @@ static wmOperatorStatus uv_paste_exec(bContext *C, wmOperator *op)
   int complicated_search = 0;
   int total_search = 0;
   for (Object *ob : objects) {
-    BMEditMesh *em = BKE_editmesh_from_object(ob);
-
+    BMesh *bm = BKE_editmesh_bmesh_get_for_write(ob);
     const bool use_seams = false;
-    const int cd_loop_uv_offset = CustomData_get_offset(&em->bm->ldata, CD_PROP_FLOAT2);
+    const int cd_loop_uv_offset = CustomData_get_offset(&bm->ldata, CD_PROP_FLOAT2);
 
     UvElementMap *dest_element_map = BM_uv_element_map_create(
-        em->bm, scene, true, false, use_seams, true);
+        bm, scene, true, false, use_seams, true);
 
     if (!dest_element_map) {
       continue;

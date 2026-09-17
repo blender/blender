@@ -221,6 +221,11 @@ template<typename T> inline T exp(const T &x)
   return std::exp(x);
 }
 
+template<typename T> inline T log(const T &x)
+{
+  return std::log(x);
+}
+
 template<typename T> inline T safe_acos(const T &a)
 {
   if (a <= T(-1)) [[unlikely]] {

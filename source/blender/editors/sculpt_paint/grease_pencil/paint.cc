@@ -473,16 +473,21 @@ struct PaintOperationExecutor {
       end_caps.finish();
     }
 
-    if (use_fill &&
-        (start_opacity < 1.0f || attributes.contains("fill_opacity") || hide_fill_while_drawing))
+    if (attributes.contains("fill_opacity") ||
+        (use_fill && (start_opacity < 1.0f || hide_fill_while_drawing)))
     {
       bke::SpanAttributeWriter<float> fill_opacities =
           attributes.convert_or_add_for_write_span<float>(
               "fill_opacity", bke::AttrDomain::Curve, bke::AttributeInitValue(1.0f));
-      /* Use 10% opacity when using the option to hide the fill while drawing
-       * (#GP_BRUSH_DISSABLE_LASSO). */
-      self.start_opacity_ = start_opacity;
-      fill_opacities.span[active_curve] = !hide_fill_while_drawing ? start_opacity : 0.1f;
+      if (use_fill) {
+        /* Use 10% opacity when using the option to hide the fill while drawing
+         * (#GP_BRUSH_DISSABLE_LASSO). */
+        self.start_opacity_ = start_opacity;
+        fill_opacities.span[active_curve] = !hide_fill_while_drawing ? start_opacity : 0.1f;
+      }
+      else {
+        fill_opacities.span[active_curve] = 1.0f;
+      }
       curve_attributes_to_skip.add("fill_opacity");
       fill_opacities.finish();
     }

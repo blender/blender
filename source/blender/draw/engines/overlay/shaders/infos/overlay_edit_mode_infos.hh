@@ -746,7 +746,7 @@ CREATE_INFO_VARIANT(overlay_edit_particle_point_clipped, overlay_edit_particle_p
 /** \} */
 
 /* -------------------------------------------------------------------- */
-/** \name Edit PointCloud
+/** \name Edit PointCloud/GSplat
  * \{ */
 
 GPU_SHADER_CREATE_INFO(overlay_edit_pointcloud)

@@ -180,7 +180,7 @@ void shape_key_mirror(
     float *fp1, *fp2;
     float tvec[3];
 
-    ED_mesh_mirror_spatial_table_begin(ob, nullptr, nullptr);
+    ED_mesh_mirror_spatial_table_begin(ob, nullptr);
 
     for (i1 = 0; i1 < mesh->verts_num; i1++) {
       i2 = mesh_get_x_mirror_vert(ob, nullptr, i1, use_topology);

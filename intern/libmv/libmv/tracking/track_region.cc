@@ -21,7 +21,7 @@
 // Author: mierle@gmail.com (Keir Mierle)
 //
 // TODO(keir): While this tracking code works rather well, it has some
-// outragous inefficiencies. There is probably a 5-10x speedup to be had if a
+// outrageous inefficiencies. There is probably a 5-10x speedup to be had if a
 // smart coder went through the TODO's and made the suggested performance
 // enhancements.
 
@@ -782,7 +782,7 @@ struct TranslationRotationWarp {
     parameters[0] = t[0];
     parameters[1] = t[1];
 
-    // Obtain the rotation via orthorgonal procrustes.
+    // Obtain the rotation via orthogonal procrustes.
     Mat2 correlation_matrix = Mat2::Zero();
     for (int i = 0; i < 4; ++i) {
       correlation_matrix += q1.CornerRelativeToCentroid(i) *
@@ -852,7 +852,7 @@ struct TranslationRotationScaleWarp {
     // The difference in scales is the estimate for the scale.
     parameters[2] = 1.0 - q2.Scale() / q1.Scale();
 
-    // Obtain the rotation via orthorgonal procrustes.
+    // Obtain the rotation via orthogonal procrustes.
     Mat2 correlation_matrix = Mat2::Zero();
     for (int i = 0; i < 4; ++i) {
       correlation_matrix += q1.CornerRelativeToCentroid(i) *

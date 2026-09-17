@@ -81,9 +81,6 @@ struct CDStreamConfig {
   /* ORCO coordinates, aka Generated Coordinates. */
   Alembic::AbcGeom::OV3fGeomParam abc_orco;
 
-  /* Mapping from vertex color layer name to its Alembic color data. */
-  std::map<std::string, Alembic::AbcGeom::OC4fGeomParam> abc_vertex_colors;
-
   AbcUvScope uv_scope;
   V2fArraySamplePtr uvs;
   UInt32ArraySamplePtr uvs_indices;
@@ -107,10 +104,7 @@ void read_generated_coordinates(const ICompoundProperty &prop,
                                 const CDStreamConfig &config,
                                 const Alembic::Abc::ISampleSelector &iss);
 
-void write_custom_data(const OCompoundProperty &prop,
-                       CDStreamConfig &config,
-                       const Mesh &mesh,
-                       int data_type);
+void write_uv_maps(const OCompoundProperty &prop, CDStreamConfig &config, const Mesh &mesh);
 
 void read_custom_data(const std::string &iobject_full_name,
                       const ICompoundProperty &prop,

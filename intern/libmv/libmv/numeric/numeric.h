@@ -153,7 +153,7 @@ inline void SVD(TMat* /*A*/, Vec* /*s*/, Mat* /*U*/, Mat* /*VT*/) {
 }
 
 // Solve the linear system Ax = 0 via SVD. Store the solution in x, such that
-// ||x|| = 1.0. Return the singluar value corresponding to the solution.
+// ||x|| = 1.0. Return the singular value corresponding to the solution.
 // Destroys A and resizes x if necessary.
 // TODO(maclean): Take the SVD of the transpose instead of this zero padding.
 template <typename TMat, typename TVec>
@@ -170,7 +170,7 @@ double Nullspace(TMat* A, TVec* nullspace) {
 // Solve the linear system Ax = 0 via SVD. Finds two solutions, x1 and x2, such
 // that x1 is the best solution and x2 is the next best solution (in the L2
 // norm sense). Store the solution in x1 and x2, such that ||x|| = 1.0. Return
-// the singluar value corresponding to the solution x1.  Destroys A and resizes
+// the singular value corresponding to the solution x1.  Destroys A and resizes
 // x if necessary.
 template <typename TMat, typename TVec1, typename TVec2>
 double Nullspace2(TMat* A, TVec1* x1, TVec2* x2) {
@@ -482,7 +482,7 @@ inline Mat23 SkewMatMinimal(const Vec2& x) {
   return skew;
 }
 
-/// Returns the rotaiton matrix built from given vector of euler angles
+/// Returns the rotation matrix built from given vector of euler angles
 inline Mat3 RotationFromEulerVector(Vec3 euler_vector) {
   double theta = euler_vector.norm();
   if (theta == 0.0) {

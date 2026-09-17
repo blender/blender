@@ -24,7 +24,7 @@ if NOT "%1" == "" (
 	) else if "%1" == "with_tests" (
 		set TESTS_CMAKE_ARGS=%TESTS_CMAKE_ARGS% -DWITH_GTESTS=ON
 	) else if "%1" == "with_gpu_tests" (
-		set TESTS_CMAKE_ARGS=%TESTS_CMAKE_ARGS% -DWITH_GPU_BACKEND_TESTS=ON -DWITH_GPU_DRAW_TESTS=ON -DWITH_GPU_RENDER_TESTS=ON
+		set TESTS_CMAKE_ARGS=%TESTS_CMAKE_ARGS% -C"%BLENDER_DIR%\build_files\cmake\config\blender_test_gpu_draw.cmake"
 	) else if "%1" == "full" (
 		set TARGET=Full
 		set BUILD_CMAKE_ARGS=%BUILD_CMAKE_ARGS% ^

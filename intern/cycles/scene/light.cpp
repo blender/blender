@@ -973,7 +973,7 @@ static std::pair<int, LightTreeMeasure> light_tree_specialize_nodes_flatten(
     for (int i = 0; i < node->get_leaf().num_emitters; i++) {
       const LightTreeEmitter &emitter = flatten.emitters[node->get_leaf().first_emitter_index + i];
       if (emitter.light_set_membership & light_link_mask) {
-        /* Assumes emitters are consecutive due to LighTree::sort_leaf. */
+        /* Assumes emitters are consecutive due to LightTree::sort_leaf. */
         if (first_emitter == -1) {
           first_emitter = node->get_leaf().first_emitter_index + i;
         }

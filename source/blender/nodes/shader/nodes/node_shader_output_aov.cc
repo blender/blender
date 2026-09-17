@@ -89,7 +89,15 @@ static int node_shader_gpu_output_aov(GPUMaterial *mat,
   GPUNodeLink *hash_link = GPU_constant(reinterpret_cast<float *>(&hash));
 
   GPU_material_flag_set(mat, GPU_MATFLAG_AOV | GPU_MATFLAG_OBJECT_INFO);
-  GPU_stack_link(mat, node, "node_output_aov", in, out, hash_link, &outlink);
+  GPU_stack_link(mat,
+                 node,
+                 "node_output_aov",
+                 in,
+                 out,
+                 hash_link,
+                 GPU_kernel_globals(),
+                 GPU_shading_data(),
+                 &outlink);
   GPU_material_add_output_link_aov(mat, outlink, hash);
   return true;
 }

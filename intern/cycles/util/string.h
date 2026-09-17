@@ -58,10 +58,10 @@ string string_remove_gpu_from_cpu_name(const string &s);
  * Please note that strings are expected to be in UTF8 code-page, and
  * if ANSI is needed then explicit conversion required.
  */
-#ifdef _WIN32
 using std::wstring;
 wstring string_to_wstring(const string &path);
 string string_from_wstring(const wstring &path);
+#ifdef _WIN32
 string string_to_ansi(const string &str);
 #endif
 

@@ -110,7 +110,7 @@ GHOST_Context *GHOST_WindowSDL::newDrawingContext(GHOST_TDrawingContextType type
 #ifdef WITH_VULKAN_BACKEND
     case GHOST_kDrawingContextTypeVulkan: {
       GHOST_Context *context = new GHOST_ContextVK(
-          want_context_params_, sdl_win_, 1, 2, preferred_device_, &hdr_info_);
+          want_context_params_, sdl_win_, 1, 1, preferred_device_, &hdr_info_);
       if (context->initializeDrawingContext()) {
         return context;
       }

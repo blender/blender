@@ -12,7 +12,7 @@ namespace blender::workbench {
 
 ShaderCache::ShaderCache()
 {
-  const std::string geometries[] = {"_mesh", "_curves", "_ptcloud"};
+  const std::string geometries[] = {"_mesh", "_curves", "_ptcloud", "_gsplat"};
   const std::string pipelines[] = {"_opaque", "_transparent"};
   const std::string lightings[] = {"_flat", "_studio", "_matcap"};
   const std::string shaders[] = {"_material", "_texture"};

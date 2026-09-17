@@ -11,7 +11,7 @@
 #include "BKE_constraint.h"
 #include "DEG_depsgraph_query.hh"
 #include "DNA_constraint_types.h"
-#include "DNA_gpencil_modifier_types.h"
+#include "DNA_grease_pencil_modifier_types.h"
 #include "DNA_modifier_types.h"
 #include "DNA_rigidbody_types.h"
 

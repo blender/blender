@@ -98,6 +98,11 @@ static bool id_type_is_valid(const IDTypeInfo &id_type)
   {
     return false;
   }
+  if (id_type.foreach_asset_weak_reference ==
+      id_type.InvalidPointer<IDTypeForeachAssetWeakReferenceFunction>())
+  {
+    return false;
+  }
   if (id_type.owner_pointer_get == id_type.InvalidPointer<IDTypeEmbeddedOwnerPointerGetFunction>())
   {
     return false;

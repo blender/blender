@@ -978,11 +978,11 @@ int getTransformOrientation_ex(const Main &bmain,
     ob = obedit;
 
     if (ob->type == OB_MESH) {
-      BMEditMesh *em = BKE_editmesh_from_object(ob);
+      BMesh *bm = BKE_editmesh_bmesh_get_for_write(ob);
       BMEditSelection ese;
 
       /* Use last selected with active. */
-      if (activeOnly && BM_select_history_active_get(em->bm, &ese)) {
+      if (activeOnly && BM_select_history_active_get(bm, &ese)) {
         BM_editselection_normal(&ese, r_normal);
         BM_editselection_plane(&ese, r_plane);
 
@@ -999,7 +999,7 @@ int getTransformOrientation_ex(const Main &bmain,
         }
       }
       else {
-        if (em->bm->totfacesel >= 1) {
+        if (bm->totfacesel >= 1) {
           BMFace *efa;
           BMIter iter;
 
@@ -1007,7 +1007,7 @@ int getTransformOrientation_ex(const Main &bmain,
           float plane_pair[2][3] = {{0.0f}};
           int face_count = 0;
 
-          BM_ITER_MESH (efa, &iter, em->bm, BM_FACES_OF_MESH) {
+          BM_ITER_MESH (efa, &iter, bm, BM_FACES_OF_MESH) {
             if (BM_elem_flag_test(efa, BM_ELEM_SELECT)) {
               float tangent_pair[2][3];
               BM_face_calc_tangent_pair_auto(efa, tangent_pair[0], tangent_pair[1]);
@@ -1048,10 +1048,10 @@ int getTransformOrientation_ex(const Main &bmain,
 
           result = ORIENTATION_FACE;
         }
-        else if (em->bm->totvertsel == 3) {
+        else if (bm->totvertsel == 3) {
           BMVert *v_tri[3];
 
-          if (bm_mesh_verts_select_get_n(em->bm, v_tri, 3) == 3) {
+          if (bm_mesh_verts_select_get_n(bm, v_tri, 3) == 3) {
             BMEdge *e = nullptr;
             float no_test[3];
 
@@ -1065,7 +1065,7 @@ int getTransformOrientation_ex(const Main &bmain,
               negate_v3(r_normal);
             }
 
-            if (em->bm->totedgesel >= 1) {
+            if (bm->totedgesel >= 1) {
               /* Find an edge that's a part of v_tri (no need to search all edges). */
               float e_length;
               int j;
@@ -1103,19 +1103,19 @@ int getTransformOrientation_ex(const Main &bmain,
 
           result = ORIENTATION_FACE;
         }
-        else if (em->bm->totedgesel == 1 || em->bm->totvertsel == 2) {
+        else if (bm->totedgesel == 1 || bm->totvertsel == 2) {
           BMVert *v_pair[2] = {nullptr, nullptr};
           BMEdge *eed = nullptr;
 
-          if (em->bm->totedgesel == 1) {
-            if (bm_mesh_edges_select_get_n(em->bm, &eed, 1) == 1) {
+          if (bm->totedgesel == 1) {
+            if (bm_mesh_edges_select_get_n(bm, &eed, 1) == 1) {
               v_pair[0] = eed->v1;
               v_pair[1] = eed->v2;
             }
           }
           else {
-            BLI_assert(em->bm->totvertsel == 2);
-            bm_mesh_verts_select_get_n(em->bm, v_pair, 2);
+            BLI_assert(bm->totvertsel == 2);
+            bm_mesh_verts_select_get_n(bm, v_pair, 2);
           }
 
           /* Should never fail. */
@@ -1133,7 +1133,7 @@ int getTransformOrientation_ex(const Main &bmain,
              */
 
             /* Be deterministic where possible and ensure `v_pair[0]` is active. */
-            if (BM_mesh_active_vert_get(em->bm) == v_pair[1]) {
+            if (BM_mesh_active_vert_get(bm) == v_pair[1]) {
               v_pair_swap = true;
             }
             else if (eed && BM_edge_is_boundary(eed)) {
@@ -1164,10 +1164,10 @@ int getTransformOrientation_ex(const Main &bmain,
 
           result = ORIENTATION_EDGE;
         }
-        else if (em->bm->totvertsel == 1) {
+        else if (bm->totvertsel == 1) {
           BMVert *v = nullptr;
 
-          if (bm_mesh_verts_select_get_n(em->bm, &v, 1) == 1) {
+          if (bm_mesh_verts_select_get_n(bm, &v, 1) == 1) {
             copy_v3_v3(r_normal, v->no);
             BMEdge *e_pair[2];
 
@@ -1207,13 +1207,13 @@ int getTransformOrientation_ex(const Main &bmain,
 
           result = is_zero_v3(r_plane) ? ORIENTATION_VERT : ORIENTATION_EDGE;
         }
-        else if (em->bm->totvertsel > 3) {
+        else if (bm->totvertsel > 3) {
           BMIter iter;
           BMVert *v;
 
           zero_v3(r_normal);
 
-          BM_ITER_MESH (v, &iter, em->bm, BM_VERTS_OF_MESH) {
+          BM_ITER_MESH (v, &iter, bm, BM_VERTS_OF_MESH) {
             if (BM_elem_flag_test(v, BM_ELEM_SELECT)) {
               add_v3_v3(r_normal, v->no);
             }
@@ -1496,7 +1496,7 @@ int getTransformOrientation_ex(const Main &bmain,
     /* We need the one selected object, if its not active. */
     if (ob != nullptr) {
       bool ok = false;
-      if (activeOnly || (ob->mode & (OB_MODE_ALL_PAINT | OB_MODE_PARTICLE_EDIT))) {
+      if (activeOnly || (ob->mode & (OB_MODE_ALL_PAINT_MESH | OB_MODE_PARTICLE_EDIT))) {
         /* Ignore selection state. */
         ok = true;
       }

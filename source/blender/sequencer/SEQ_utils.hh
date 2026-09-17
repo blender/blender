@@ -11,6 +11,8 @@
 #include "DNA_listBase.h"
 #include "DNA_scene_types.h"
 
+#include "BKE_animsys.hh"
+
 namespace blender {
 
 struct bSound;
@@ -61,8 +63,11 @@ void set_scale_to_fit(const Strip *strip,
  *
  * \param strip: Strip which name will be ensured to be unique
  * \param scene: Scene in which name must be unique
+ * \param driver_map: Used to update driver paths to the new name. Pass an empty map when the strip
+ * is a copy and the original still carries the old name.
+ * See `BKE_animdata_build_driver_target_map`.
  */
-void ensure_unique_name(Main &bmain, Strip *strip, Scene *scene);
+void ensure_unique_name(Strip *strip, Scene *scene, const DriverMap &driver_map);
 
 void fontmap_clear();
 
