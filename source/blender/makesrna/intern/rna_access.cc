@@ -54,6 +54,7 @@
 #include "RNA_define.hh"
 #include "RNA_enum_types.hh"
 #include "RNA_path.hh"
+#include "RNA_prototypes.hh"
 #include "RNA_types.hh"
 
 #include "UI_resources.hh"
@@ -2587,7 +2588,19 @@ static void rna_property_update(
     /* End message bus. */
   }
 
-  const bool is_idprop = prop->flag & PROP_IDPROPERTY;
+  /* NOTE(@ideasman42): Regarding the #RNA_OperatorProperties check.
+   * Operator properties use ID-property storage but aren't custom properties,
+   * exclude them so assigning them from UI layout code doesn't redraw every region.
+   *
+   * Without the operator exception, an operator property with an `update` callback can
+   * enter into an eternal draw-loop, see: #163991.
+   *
+   * Currently operator properties are excluded, others types could be excluded too,
+   * take care though as it's possible scripts rely on the redraw.
+   * Operators are a clear case where we need to set the values in draw functions,
+   * so triggering redraw and entering a loop isn't acceptable. */
+  const bool is_idprop = (prop->flag & PROP_IDPROPERTY) &&
+                         !RNA_struct_is_a(ptr->type, RNA_OperatorProperties);
   const bool use_deg_update = !(prop->flag & PROP_NO_DEG_UPDATE);
   if (!is_rna || (is_idprop && use_deg_update)) {
 
