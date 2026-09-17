@@ -1538,7 +1538,8 @@ static GPUPass *pass_replacement_cb(void *void_thunk, GPUMaterial *mat)
 
   bool has_vertex_displacement = GPU_material_has_displacement_output(mat) &&
                                  displacement_type != eMaterialDisplacement::MAT_DISPLACEMENT_BUMP;
-  bool has_transparency = GPU_material_flag_get(mat, GPU_MATFLAG_TRANSPARENT);
+  bool has_transparency = GPU_material_flag_get(mat, GPU_MATFLAG_TRANSPARENT) ||
+                          geometry_type == MAT_GEOM_GSPLAT;
   bool has_shadow_transparency = has_transparency && transparent_shadows;
   bool has_raytraced_transmission = blender_mat && (blender_mat->blend_flag & MA_BL_SS_REFRACTION);
   bool has_raycast = GPU_material_flag_get(mat, GPU_MATFLAG_RAYCAST);
@@ -1592,7 +1593,9 @@ GPUMaterial *ShaderModule::material_shader_get(blender::Material *blender_mat,
   uint64_t shader_uuid = shader_uuid_from_material_type(
       pipeline_type, geometry_type, displacement_type, thickness_type, blender_mat->blend_flag);
 
-  bool is_default_material = default_mat == nullptr;
+  /* GSplats require transparency independent of the material type; default material must
+   * be replaced for e.g. transmittance to be present. */
+  bool is_default_material = default_mat == nullptr && geometry_type != MAT_GEOM_GSPLAT;
   BLI_assert(blender_mat != default_mat);
 
   CallbackThunk thunk = {this, default_mat};

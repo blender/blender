@@ -963,17 +963,17 @@ float4 attr_load_color_post(float4 attr)
 /** \name GSplat Attributes
  *
  * GSplats override the radiance attribute, unpacking packed data from a float2. Additionally,
- * it applies its own alpha on top of existing transparency.
+ * it applies its own alpha transparency on top of existing transmittance.
  *
  * \{ */
 
-float3 gsplat_transmittance(float3 transmittance)
+float3 gsplat_amend_transmittance(float3 transmittance)
 {
 #ifdef MAT_GEOM_GSPLAT
   float alpha = draw::gsplat::evaluate_gaussian(gsplat_interp.billboard_co,
                                                 gsplat_interp_flat.opacity);
   alpha = saturate(alpha * (256.0f / 255.0f));
-  return float3(1.0f) - alpha * (float3(1.0f) - transmittance);
+  return float3(1.0f) - alpha * saturate(float3(1.0f) - transmittance);
 #else
   return transmittance;
 #endif

@@ -187,7 +187,8 @@ MaterialPass MaterialModule::material_pass_get(Object *ob,
 
   inst_.manager->register_layer_attributes(matpass.gpumat);
 
-  const bool is_transparent = GPU_material_flag_get(matpass.gpumat, GPU_MATFLAG_TRANSPARENT);
+  const bool is_transparent = GPU_material_flag_get(matpass.gpumat, GPU_MATFLAG_TRANSPARENT) ||
+                              geometry_type == MAT_GEOM_GSPLAT;
 
   bool pass_updated = GPU_material_compilation_timestamp(matpass.gpumat) > gpu_pass_last_update_;
 

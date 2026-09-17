@@ -198,13 +198,15 @@ bool get_shape_winding_ccw(uint vert_id)
 /** Get a local vertex offset of the current gsplat, given the vertex index. */
 float2 get_shape_offset(uint vert_id)
 {
+  /* Flip vertices 1,2 for ccw winding order by flipping their sign. */
+  const float winding_order_mult = get_shape_winding_ccw(vert_id) ? -1.0f : 1.0f;
   switch (vert_id % DRW_GSPLAT_STRIP_TILE_SIZE) {
     case 0:
       return float2(-1.0, -1.0);
     case 1:
-      return float2(1.0, -1.0);
+      return float2(1.0, -1.0) * winding_order_mult;
     case 2:
-      return float2(-1.0, 1.0);
+      return float2(-1.0, 1.0) * winding_order_mult;
     case 3:
       return float2(1.0, 1.0);
     default:
@@ -517,6 +519,7 @@ struct ShapeResource {
 
     SplatShape shape;
     shape.id = detail::get_shape_id(vert_id);
+    shape.wN = wN;
     shape.mean = lP;
     shape.shape_offset = 2.0f * shape_offset;
 
@@ -529,9 +532,6 @@ struct ShapeResource {
     shape.hP = view.point_world_to_homogenous(wP);
     shape.hP.xy += ss_delta * shape.hP.w;
     shape.wP = view.point_homogeneous_to_world(shape.hP);
-
-    /* Store centroid normal, accounting for winding order. */
-    shape.wN = detail::get_shape_winding_ccw(vert_id) ? -wN : wN;
 
     return shape;
   }
