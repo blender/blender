@@ -946,6 +946,7 @@ PopupBlockHandle *popup_block_create(bContext *C,
   /* store context for operator */
   handle->ctx_area = CTX_wm_area(C);
   handle->ctx_region = CTX_wm_region(C);
+  handle->ctx_region_popup = CTX_wm_region_popup(C);
   handle->can_refresh = can_refresh;
 
   /* store vars to refresh popup (RGN_REFRESH_UI) */
