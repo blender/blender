@@ -96,6 +96,7 @@ set(SRC
   intern/usd_reader_material.cc
   intern/usd_reader_mesh.cc
   intern/usd_reader_nurbs.cc
+  intern/usd_reader_particlefield.cc
   intern/usd_reader_pointinstancer.cc
   intern/usd_reader_points.cc
   intern/usd_reader_prim.cc
@@ -151,6 +152,7 @@ set(SRC
   intern/usd_reader_material.hh
   intern/usd_reader_mesh.hh
   intern/usd_reader_nurbs.hh
+  intern/usd_reader_particlefield.hh
   intern/usd_reader_pointinstancer.hh
   intern/usd_reader_points.hh
   intern/usd_reader_prim.hh
