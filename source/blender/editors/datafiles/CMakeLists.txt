@@ -417,6 +417,7 @@ if(WITH_BLENDER)
       gizmo
       gp_caps_flat
       gp_caps_round
+      gp_cyclic_stroke
       gp_draw_stroke
       gp_draw_fill
       gp_draw_both

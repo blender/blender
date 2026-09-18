@@ -59,6 +59,8 @@ enum eGPDbrush_Flag : int {
   GP_BRUSH_FILL_AUTO_REMOVE_FILL_GUIDES = (1 << 21),
   /* Fill Tool create internal gaps. */
   GP_BRUSH_FILL_INTERNAL_GAPS = (1 << 22),
+  /* Create a cylic stroke. */
+  GP_BRUSH_USE_CYCLIC_STROKE = (1 << 23),
 };
 ENUM_OPERATORS(eGPDbrush_Flag)
 
