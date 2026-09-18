@@ -2,7 +2,7 @@
 #
 # SPDX-License-Identifier: GPL-2.0-or-later */
 """
-blender -b --factory-startup --python tests/python/sculpt_paint/grease_pencil_paint_tests.py -- --testdir tests/files/sculpt_paint/
+blender -b --factory-startup --python tests/python/sculpt_paint/grease_pencil_paint_tests.py -- --testdir tests/files/grease_pencil/
 """
 
 __all__ = (
@@ -40,12 +40,10 @@ class GreasePencilPaintTests(unittest.TestCase):
     def setUp(self):
         bpy.ops.wm.open_mainfile(
             filepath=str(
-                args.testdir /
-                "../grease_pencil/grease_pencil_paint_tests.blend"),
+                args.testdir / "grease_pencil_paint_tests.blend"),
             load_ui=False)
         bpy.ops.ed.undo_push()
 
-    def prepare(self):
         data = bpy.data.grease_pencils.new("test")
         obj = bpy.data.objects.new("test", data)
         bpy.context.collection.objects.link(obj)
@@ -55,12 +53,11 @@ class GreasePencilPaintTests(unittest.TestCase):
         bpy.context.view_layer.objects.active = obj
         bpy.ops.object.mode_set(mode='PAINT_GREASE_PENCIL')
 
-    def cleanup(self):
+    def tearDown(self):
         bpy.ops.object.mode_set(mode='OBJECT')
         bpy.ops.object.delete()
 
     def test_stroke_generates_correct_drawing(self):
-        self.prepare()
         context_override = bpy.context.copy()
         set_view3d_context_override(context_override)
         with bpy.context.temp_override(**context_override):
@@ -81,7 +78,6 @@ class GreasePencilPaintTests(unittest.TestCase):
             grease_pencil=bpy.data.grease_pencils['test'], threshold=0.001)
 
         self.assertTrue(comparison == 'Same', comparison)
-        self.cleanup()
 
 
 def main():
