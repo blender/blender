@@ -88,6 +88,7 @@ void ED_interpolatetool_modal_keymap(wmKeyConfig *keyconf);
 void ED_grease_pencil_pentool_modal_keymap(wmKeyConfig *keyconf);
 
 void GREASE_PENCIL_OT_stroke_trim(wmOperatorType *ot);
+void GREASE_PENCIL_OT_stroke_carver(wmOperatorType *ot);
 
 void ED_undosys_type_grease_pencil(UndoType *ut);
 
@@ -978,6 +979,44 @@ bke::CurvesGeometry trim_curve_segment_ends(const bke::CurvesGeometry &src,
                                             const IndexMask &visible_curves,
                                             bool keep_caps);
 };  // namespace trim
+
+namespace boolean {
+
+enum class Operation : int8_t {
+  /* Intersection of the Subject and the Clipping. */
+  Intersect,
+  /* Union of Subject and Clipping. */
+  Union,
+  /* Differences of Subject with Clipping. */
+  Difference,
+};
+
+struct CurveBooleanOpParameters {
+  Operation boolean_mode;
+  bool keep_caps;
+  bool skip_clipping_attributes;
+  bool separate_islands;
+};
+
+/* Project the point from local space to the clipping 2d space. */
+using ProjectionFunc = FunctionRef<float2(const float3)>;
+
+bke::CurvesGeometry curve_boolean(const CurveBooleanOpParameters op_params,
+                                  const bke::CurvesGeometry &curves,
+                                  ProjectionFunc project_fn,
+                                  GroupedSpan<int> shapes,
+                                  const IndexMask &clipping_shapes);
+
+bke::CurvesGeometry curve_boolean_with_planes(const CurveBooleanOpParameters op_params,
+                                              const bke::CurvesGeometry &curves,
+                                              ProjectionFunc project_fn,
+                                              GroupedSpan<int> shapes,
+                                              Span<float4> curve_planes,
+                                              const IndexMask &clipping_shapes,
+                                              const float4x4 &layer_to_world,
+                                              const ARegion &region);
+
+}  // namespace boolean
 
 void merge_layers(const GreasePencil &src_grease_pencil,
                   const Span<Vector<int>> src_layer_indices_by_dst_layer,
