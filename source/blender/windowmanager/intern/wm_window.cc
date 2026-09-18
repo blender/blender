@@ -565,11 +565,13 @@ void wm_window_close(bContext *C, wmWindowManager *wm, wmWindow *win)
  *
  * \param window_filepath_fn: When non `nullopt` the title text does not need to contain
  * the file-path (typically based on #WM_CAPABILITY_WINDOW_PATH).
+ * \param win_title: The title text is appended, the inline buffer avoids allocating in practice.
+ * The text is *not* null terminated, callers that need a C string must terminate it.
  */
-static std::string wm_window_title_text(
-    wmWindowManager *wm,
-    wmWindow *win,
-    std::optional<FunctionRef<void(const char *)>> window_filepath_fn)
+static void wm_window_title_text(wmWindowManager *wm,
+                                 wmWindow *win,
+                                 std::optional<FunctionRef<void(const char *)>> window_filepath_fn,
+                                 fmt::memory_buffer &win_title)
 {
   if (win->parent || WM_window_is_temp_screen(win)) {
     /* Not a main window. */
@@ -577,9 +579,12 @@ static std::string wm_window_title_text(
     const bool is_single = screen && BLI_listbase_is_single(&screen->areabase);
     ScrArea *area = (screen) ? screen->areabase.first() : nullptr;
     if (is_single && area && area->spacetype != SPACE_EMPTY) {
-      return IFACE_(ED_area_name(area).c_str());
+      win_title.append(StringRef(IFACE_(ED_area_name(area).c_str())));
     }
-    return "Blender";
+    else {
+      win_title.append(StringRef("Blender"));
+    }
+    return;
   }
 
   /* This path may contain invalid UTF8 byte sequences on UNIX systems,
@@ -608,27 +613,29 @@ static std::string wm_window_title_text(
   const bool include_filepath = has_filepath && (filepath != filename) && !native_filepath_display;
 
   /* File saved state. */
-  std::string win_title = wm->file_saved ? "" : "* ";
+  if (!wm->file_saved) {
+    win_title.append(StringRef("* "));
+  }
 
   /* File name. Show the file extension if the full file path is not included in the title. */
   if (include_filepath) {
-    const size_t filename_no_ext_len = BLI_path_extension_or_end(filename) - filename;
-    win_title.append(filename, filename_no_ext_len);
+    const char *filename_no_ext_end = BLI_path_extension_or_end(filename);
+    win_title.append(filename, filename_no_ext_end);
   }
   else if (has_filepath) {
-    win_title.append(filename);
+    win_title.append(StringRef(filename));
   }
   /* New / Unsaved file default title. Shows "Untitled" on macOS following the Apple HIGs. */
   else {
 #ifdef __APPLE__
-    win_title.append(IFACE_("Untitled"));
+    win_title.append(StringRef(IFACE_("Untitled")));
 #else
-    win_title.append(IFACE_("(Unsaved)"));
+    win_title.append(StringRef(IFACE_("(Unsaved)")));
 #endif
   }
 
   if (G_MAIN->recovered) {
-    win_title.append(IFACE_(" (Recovered)"));
+    win_title.append(StringRef(IFACE_(" (Recovered)")));
   }
 
   if (include_filepath) {
@@ -651,26 +658,29 @@ static std::string wm_window_title_text(
         }
         if ((home_dir_len > 0) && BLI_path_ncmp(home_dir, filepath_as_bytes, home_dir_len) == 0) {
           if (filepath_as_bytes[home_dir_len] == SEP) {
-            win_title.append(fmt::format(" [~{}]", filepath + home_dir_len));
+            win_title.append(StringRef(" [~"));
+            win_title.append(StringRef(filepath + home_dir_len));
+            win_title.push_back(']');
             add_filepath = false;
           }
         }
       }
     }
     if (add_filepath) {
-      win_title.append(fmt::format(" [{}]", filepath));
+      win_title.append(StringRef(" ["));
+      win_title.append(StringRef(filepath));
+      win_title.push_back(']');
     }
   }
 
   /* If a project is active, display its name. */
-  bke::BlenderProject *project = BKE_blender_project_get(G_MAIN);
-  if (project) {
-    win_title.append(fmt::format(" - {}", project->get_name()));
+  if (const bke::BlenderProject *project = BKE_blender_project_get(G_MAIN)) {
+    win_title.append(StringRef(" - "));
+    win_title.append(project->get_name());
   }
 
-  win_title.append(fmt::format(" — Blender {}", BKE_blender_version_string()));
-
-  return win_title;
+  win_title.append(StringRef(" — Blender "));
+  win_title.append(StringRef(BKE_blender_version_string()));
 }
 
 static void wm_window_title_state_refresh(wmWindowManager *wm, wmWindow *win)
@@ -705,8 +715,10 @@ void WM_window_title_refresh(wmWindowManager *wm, wmWindow *win)
                                   ghost_window->setPath(filepath);
                                 }) :
                                 std::nullopt;
-  std::string win_title = wm_window_title_text(wm, win, window_filepath_fn);
-  ghost_window->setTitle(win_title.c_str());
+  fmt::memory_buffer win_title;
+  wm_window_title_text(wm, win, window_filepath_fn, win_title);
+  win_title.push_back('\0');
+  ghost_window->setTitle(win_title.data());
   wm_window_title_state_refresh(wm, win);
 }
 
@@ -1136,8 +1148,10 @@ static void wm_window_ghostwindow_ensure(wmWindowManager *wm, wmWindow *win, boo
                                     STRNCPY(win_filepath, filepath);
                                   }) :
                                   std::nullopt;
-    std::string win_title = wm_window_title_text(wm, win, window_filepath_fn);
-    wm_window_ghostwindow_add(wm, win_title.c_str(), win, is_dialog);
+    fmt::memory_buffer win_title;
+    wm_window_title_text(wm, win, window_filepath_fn, win_title);
+    win_title.push_back('\0');
+    wm_window_ghostwindow_add(wm, win_title.data(), win, is_dialog);
   }
 
   if (win->runtime->ghostwin != nullptr) {
