@@ -409,7 +409,7 @@ static void partialvis_update_bmesh_verts(const Set<BMVert *, 0> &verts,
 static void partialvis_update_bmesh_faces(const Set<BMFace *, 0> &faces)
 {
   for (BMFace *f : faces) {
-    if (paint_is_bmesh_face_hidden(f)) {
+    if (BKE_paint_is_bmesh_face_hidden(f)) {
       BM_elem_flag_enable(f, BM_ELEM_HIDDEN);
     }
     else {

@@ -455,7 +455,7 @@ static void multires_grid_paint_mask_downsample(GridPaintMask *gpm, const int le
 
     for (int y = 0; y < gridsize; y++) {
       for (int x = 0; x < gridsize; x++) {
-        data[y * gridsize + x] = paint_grid_paint_mask(gpm, level, x, y);
+        data[y * gridsize + x] = BKE_paint_grid_paint_mask(gpm, level, x, y);
       }
     }
 
