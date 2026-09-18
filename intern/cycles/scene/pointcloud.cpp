@@ -367,6 +367,31 @@ void PointCloud::update_gsplat_radii()
   }
 }
 
+void PointCloud::create_missing_gsplat_attributes()
+{
+  const size_t numpoints = num_points();
+
+  if (Attribute *attr_radiance_base = attributes.find(ATTR_STD_GSPLAT_RADIANCE_BASE);
+      !attr_radiance_base)
+  {
+    attr_radiance_base = attributes.add(ATTR_STD_GSPLAT_RADIANCE_BASE);
+    float4 *radiance_base = attr_radiance_base->data_for_write<float4>();
+    std::fill_n(radiance_base, numpoints, DEFAULT_GSPLAT_RADIANCE_BASE);
+  }
+
+  if (Attribute *attr_scale = attributes.find(ATTR_STD_GSPLAT_SCALE); !attr_scale) {
+    attr_scale = attributes.add(ATTR_STD_GSPLAT_SCALE);
+    packed_float3 *scale = attr_scale->data_for_write<packed_float3>();
+    std::fill_n(scale, numpoints, DEFAULT_GSPLAT_SCALE);
+  }
+
+  if (Attribute *attr_rotation = attributes.find(ATTR_STD_GSPLAT_ROTATION); !attr_rotation) {
+    attr_rotation = attributes.add(ATTR_STD_GSPLAT_ROTATION);
+    Quaternion *quaternion = attr_rotation->data_for_write<Quaternion>();
+    std::fill_n(quaternion, numpoints, identity_quaternion());
+  }
+}
+
 PrimitiveType PointCloud::primitive_type() const
 {
   if (render_as == RENDER_AS_GSPLATS) {

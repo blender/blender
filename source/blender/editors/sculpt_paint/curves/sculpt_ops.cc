@@ -4,7 +4,7 @@
 
 #include <algorithm>
 
-#include "BLI_kdtree.hh"
+#include "BLI_kdtree_new.hh"
 #include "BLI_listbase.hh"
 #include "BLI_math_vector.hh"
 #include "BLI_rand.hh"
@@ -671,50 +671,24 @@ static void select_grow_invoke_per_curve(const Curves &curves_id,
   threading::parallel_invoke(
       1024 < curve_op_data.selected_points.size() + curve_op_data.unselected_points.size(),
       [&]() {
-        /* Build KD-tree for the selected points. */
-        KDTree<float3> *kdtree = kdtree_new<float3>(curve_op_data.selected_points.size());
-        BLI_SCOPED_DEFER([&]() { kdtree_free<float3>(kdtree); });
-        curve_op_data.selected_points.foreach_index([&](const int point_i) {
-          const float3 &position = positions[point_i];
-          kdtree_insert<float3>(kdtree, point_i, position);
-        });
-        kdtree_balance<float3>(kdtree);
-
         /* For each unselected point, compute the distance to the closest selected point. */
+        KDTreeNew<float3> kdtree(positions, curve_op_data.selected_points);
         curve_op_data.distances_to_selected.reinitialize(curve_op_data.unselected_points.size());
-        threading::parallel_for(
-            curve_op_data.unselected_points.index_range(), 256, [&](const IndexRange range) {
-              for (const int i : range) {
-                const int point_i = curve_op_data.unselected_points[i];
-                const float3 &position = positions[point_i];
-                KDTreeNearest<float3> nearest;
-                kdtree_find_nearest<float3>(kdtree, position, &nearest);
-                curve_op_data.distances_to_selected[i] = nearest.dist;
-              }
-            });
+        curve_op_data.unselected_points.foreach_index(
+            [&](const int point, const int pos) {
+              kdtree.find_nearest(positions[point], &curve_op_data.distances_to_selected[pos]);
+            },
+            exec_mode::grain_size(256));
       },
       [&]() {
-        /* Build KD-tree for the unselected points. */
-        KDTree<float3> *kdtree = kdtree_new<float3>(curve_op_data.unselected_points.size());
-        BLI_SCOPED_DEFER([&]() { kdtree_free<float3>(kdtree); });
-        curve_op_data.unselected_points.foreach_index([&](const int point_i) {
-          const float3 &position = positions[point_i];
-          kdtree_insert<float3>(kdtree, point_i, position);
-        });
-        kdtree_balance<float3>(kdtree);
-
         /* For each selected point, compute the distance to the closest unselected point. */
+        KDTreeNew<float3> kdtree(positions, curve_op_data.unselected_points);
         curve_op_data.distances_to_unselected.reinitialize(curve_op_data.selected_points.size());
-        threading::parallel_for(
-            curve_op_data.selected_points.index_range(), 256, [&](const IndexRange range) {
-              for (const int i : range) {
-                const int point_i = curve_op_data.selected_points[i];
-                const float3 &position = positions[point_i];
-                KDTreeNearest<float3> nearest;
-                kdtree_find_nearest<float3>(kdtree, position, &nearest);
-                curve_op_data.distances_to_unselected[i] = nearest.dist;
-              }
-            });
+        curve_op_data.selected_points.foreach_index(
+            [&](const int point, const int pos) {
+              kdtree.find_nearest(positions[point], &curve_op_data.distances_to_unselected[pos]);
+            },
+            exec_mode::grain_size(256));
       });
 
   const float4x4 &curves_to_world_mat = curves_ob.object_to_world();

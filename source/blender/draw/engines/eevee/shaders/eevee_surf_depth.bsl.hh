@@ -77,7 +77,7 @@ void surf_depth([[resource_table]] KernelGlobals &kg,
     ShadingData sd = init_globals(uni, view, front_face, frag_co);
 
     nodetree_surface(kg, sd, 0.0f);
-    sd.transmittance = gsplat_transmittance(sd.transmittance);
+    sd.transmittance = gsplat_amend_transmittance(sd.transmittance);
 
     float noise_offset = sampling.rng_1D_get(SAMPLING_TRANSPARENCY);
     float threshold = hashed_transparency::alpha_threshold(

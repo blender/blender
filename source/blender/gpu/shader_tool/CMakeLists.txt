@@ -57,6 +57,7 @@ set(SRC
   bsl/symbol_variable.cc
   bsl/type_checker.cc
 
+  bsl/constexpr.hh
   bsl/diagnostic.hh
   bsl/resource.hh
   bsl/source_location.hh

@@ -602,7 +602,7 @@ static void stroke_cache_update(ViewContext & /*vc*/,
 
   cache.hardness = brush.hardness;
   /* TODO: Extend the brush "capabilities" checks to handle multi-mode */
-  if (brush.paint_flags & BRUSH_PAINT_HARDNESS_PRESSURE) {
+  if (brush.flag & BRUSH_HARDNESS_PRESSURE) {
     cache.hardness *= BKE_curvemapping_evaluateF(brush.curve_hardness, 0, cache.pressure);
   }
 

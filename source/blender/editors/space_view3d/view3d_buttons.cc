@@ -937,6 +937,8 @@ static void v3d_editvertex_buts(
     calc_median_bmesh(*bm, median, tot, totedgedata);
 
     has_meshdata = (tot || totedgedata);
+    has_skinradius = CustomData_has_layer_named(
+        &bm->vdata, CD_PROP_FLOAT2, "skin_modifier_radius");
   }
   else if (ELEM(ob->type, OB_CURVES_LEGACY, OB_SURF)) {
     TransformMedian_Curve *median = &median_basis.curve;

@@ -33,8 +33,6 @@
  */
 #define saturate(a) clamp(a, 0.0f, 1.0f)
 
-#define isfinite(a) (!isinf(a) && !isnan(a))
-
 /* clang-format off */
 #define in_range_inclusive(val, min_v, max_v) (all(greaterThanEqual(val, min_v)) && all(lessThanEqual(val, max_v)))
 #define in_range_exclusive(val, min_v, max_v) (all(greaterThan(val, min_v)) && all(lessThan(val, max_v)))

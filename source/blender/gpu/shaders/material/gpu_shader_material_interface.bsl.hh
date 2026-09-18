@@ -255,6 +255,16 @@ float2 bsdf_lut([[resource_table]] const KernelGlobals & /*kg*/,
   return float2(0);
 }
 
+float3 brdf_lut([[resource_table]] KernelGlobals & /*kg*/,
+                float3 /*F0*/,
+                float3 /*F90*/,
+                float /*cos_theta*/,
+                float /*roughness*/,
+                bool /*do_multiscatter*/)
+{
+  return float3(0.0f);
+}
+
 float f0_from_ior(float /*eta*/)
 {
   return 0.0f;
@@ -434,7 +444,7 @@ float derivative_scale_get([[resource_table]] KernelGlobals & /*kg*/)
 
 /* AOV Output. */
 
-void output_aov([[resource_table]] KernelGlobals &kg,
+void output_aov([[resource_table]] KernelGlobals & /* kg */,
                 int2 /*texel*/,
                 float4 /*color*/,
                 float /*value*/,

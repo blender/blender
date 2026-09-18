@@ -29,3 +29,9 @@ set(SRC
 )
 
 blender_add_test_performance_executable(BLI_group_indices "${SRC}" "${INC}" "${INC_SYS}" "${LIB}")
+
+set(SRC
+  BLI_kdtree_performance_test.cc
+)
+
+blender_add_test_performance_executable(BLI_kdtree_performance "${SRC}" "${INC}" "${INC_SYS}" "${LIB}")

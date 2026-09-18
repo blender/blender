@@ -17,6 +17,11 @@ class PointCloud : public Geometry {
     RENDER_AS_GSPLATS,
   };
 
+  /* Default values for Gaussian splat attributes, matching defaults in Blender EEVEE.
+   * Default rotation is an identity quaternion. */
+  static inline const float4 DEFAULT_GSPLAT_RADIANCE_BASE = make_float4(0.0f, 0.0f, 0.0f, 0.5f);
+  static inline const float3 DEFAULT_GSPLAT_SCALE = make_float3(1e-3f, 1e-3f, 1e-3f);
+
   /* PointCloud Point */
   struct Point {
     int index;
@@ -86,6 +91,15 @@ class PointCloud : public Geometry {
 
   /* Recalculate point radius to bound Gaussian splats. */
   void update_gsplat_radii();
+
+  /* Create attributes that are required but missing for rendering the point cloud as a 3D
+   * gaussian splat. This includes radiance base, scale, and rotation. The attributes are filled
+   * with default values:
+   * - Radiance base is a half-opaque, neutral grey color.
+   * - Scale is a small value, mainly obtained empirically with the goal to provide a way to get
+   *   an idea of the shape of the 3D Gaussian splat without requiring too much render time.
+   * - Rotation is defaulted to identity quaternion. */
+  void create_missing_gsplat_attributes();
 
   NODE_SOCKET_API(RenderAs, render_as)
 

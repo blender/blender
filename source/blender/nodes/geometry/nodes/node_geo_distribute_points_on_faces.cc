@@ -2,7 +2,7 @@
  *
  * SPDX-License-Identifier: GPL-2.0-or-later */
 
-#include "BLI_kdtree.hh"
+#include "BLI_kdtree_new.hh"
 #include "BLI_math_geom_c.hh"
 #include "BLI_math_quaternion.hh"
 #include "BLI_math_rotation_c.hh"
@@ -204,20 +204,6 @@ static void sample_bary_coords(const Mesh &mesh,
           [&](const IndexRange range) { return points_by_tri[range].size(); }));
 }
 
-BLI_NOINLINE static KDTree<float3> *build_kdtree(Span<float3> positions)
-{
-  KDTree<float3> *kdtree = kdtree_new<float3>(positions.size());
-
-  int i_point = 0;
-  for (const float3 position : positions) {
-    kdtree_insert<float3>(kdtree, i_point, position);
-    i_point++;
-  }
-
-  kdtree_balance<float3>(kdtree);
-  return kdtree;
-}
-
 BLI_NOINLINE static void update_elimination_mask_for_close_points(
     Span<float3> positions, const float minimum_distance, MutableSpan<bool> elimination_mask)
 {
@@ -225,23 +211,19 @@ BLI_NOINLINE static void update_elimination_mask_for_close_points(
     return;
   }
 
-  KDTree<float3> *kdtree = build_kdtree(positions);
-  BLI_SCOPED_DEFER([&]() { kdtree_free<float3>(kdtree); });
+  const KDTreeNew<float3> tree(positions);
 
   for (const int i : positions.index_range()) {
     if (elimination_mask[i]) {
       continue;
     }
 
-    kdtree_range_search_cb<float3>(kdtree,
-                                   positions[i],
-                                   minimum_distance,
-                                   [&](int index, const float3 & /*co*/, float /*dist_sq*/) {
-                                     if (index != i) {
-                                       elimination_mask[index] = true;
-                                     }
-                                     return true;
-                                   });
+    tree.foreach_in_radius(
+        positions[i], minimum_distance, [&](const int index, const float /*distance_sq*/) {
+          if (index != i) {
+            elimination_mask[index] = true;
+          }
+        });
   }
 }
 

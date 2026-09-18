@@ -296,10 +296,10 @@ struct Resources {
         switch (kernel_size.y) {
           case 3:
             v2 = load_sample(src_coord + int2(2, 2), load_from_shared);
-            ATTR_FALLTHROUGH;
+            [[fallthrough]];
           case 2:
             v1 = load_sample(src_coord + int2(2, 1), load_from_shared);
-            ATTR_FALLTHROUGH;
+            [[fallthrough]];
           case 1:
             v0 = load_sample(src_coord + int2(2, 0), load_from_shared);
             break;
@@ -315,15 +315,15 @@ struct Resources {
             h2 = v0;
             break;
         }
-        ATTR_FALLTHROUGH;
+        [[fallthrough]];
       case 2:
         switch (kernel_size.y) {
           case 3:
             v2 = load_sample(src_coord + int2(1, 2), load_from_shared);
-            ATTR_FALLTHROUGH;
+            [[fallthrough]];
           case 2:
             v1 = load_sample(src_coord + int2(1, 1), load_from_shared);
-            ATTR_FALLTHROUGH;
+            [[fallthrough]];
           case 1:
             v0 = load_sample(src_coord + int2(1, 0), load_from_shared);
             break;
@@ -339,15 +339,15 @@ struct Resources {
             h1 = v0;
             break;
         }
-        ATTR_FALLTHROUGH;
+        [[fallthrough]];
       case 1:
         switch (kernel_size.y) {
           case 3:
             v2 = load_sample(src_coord + int2(0, 2), load_from_shared);
-            ATTR_FALLTHROUGH;
+            [[fallthrough]];
           case 2:
             v1 = load_sample(src_coord + int2(0, 1), load_from_shared);
-            ATTR_FALLTHROUGH;
+            [[fallthrough]];
           case 1:
             v0 = load_sample(src_coord + int2(0, 0), load_from_shared);
             break;

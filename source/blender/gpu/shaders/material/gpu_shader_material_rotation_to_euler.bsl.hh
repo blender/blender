@@ -10,6 +10,6 @@
 [[node]]
 void rotation_to_euler(float4 rotation, float3 &euler)
 {
-  Quaternion quat = Quaternion{UNPACK4(rotation)};
+  Quaternion quat = Quaternion::from_float4(rotation);
   euler = to_euler(from_rotation(quat)).as_float3();
 }

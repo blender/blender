@@ -321,6 +321,7 @@ set(SRC
   include/NOD_geo_capture_attribute.hh
   include/NOD_geo_closure.hh
   include/NOD_geo_closure_to_list.hh
+  include/NOD_geo_combine_list.hh
   include/NOD_geo_field_to_grid.hh
   include/NOD_geo_field_to_list.hh
   include/NOD_geo_foreach_geometry_element.hh

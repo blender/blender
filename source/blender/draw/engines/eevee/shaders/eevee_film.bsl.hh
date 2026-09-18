@@ -445,8 +445,7 @@ struct Film {
     [[resource_table]] const Uniform &uni = this->uniforms;
 
     /* x = hash, y = accumulated weight. Only keep track of 4 highest weighted samples. */
-    float2 crypto_samples[4] = float2_array(
-        float2(0.0f), float2(0.0f), float2(0.0f), float2(0.0f));
+    float2 crypto_samples[4] = {float2(0.0f), float2(0.0f), float2(0.0f), float2(0.0f)};
     for (int i = 0; i < samples_len; i++) {
       FilmSample src = sample_get(i, texel_film, panoramic_sample);
       sample_cryptomatte_accum(src, layer_component, cryptomatte_tx, crypto_samples);
@@ -564,7 +563,7 @@ struct Film {
      * Dilate velocity by using the nearest pixel in a cross pattern.
      * "High Quality Temporal Supersampling" by Brian Karis at SIGGRAPH 2014 (Slide 27)
      */
-    constexpr int2 corners[4] = int2_array(int2(-2, -2), int2(2, -2), int2(-2, 2), int2(2, 2));
+    constexpr int2 corners[4] = {int2(-2, -2), int2(2, -2), int2(-2, 2), int2(2, 2)};
     float min_depth = reverse_z::read(texelFetch(depth_tx, texel_sample, 0).x);
     int2 nearest_texel = texel_sample;
     for (int i = 0; i < 4; i++) {
@@ -662,11 +661,11 @@ struct Film {
   void combined_neighbor_boundbox(int2 texel, float4 &min_c, float4 &max_c)
   {
     /* Plus (+) shape offsets. */
-    constexpr int2 plus_offsets[5] = int2_array(int2(0, 0), /* Center */
-                                                int2(-1, 0),
-                                                int2(0, -1),
-                                                int2(1, 0),
-                                                int2(0, 1));
+    constexpr int2 plus_offsets[5] = {int2(0, 0), /* Center */
+                                      int2(-1, 0),
+                                      int2(0, -1),
+                                      int2(1, 0),
+                                      int2(0, 1)};
 #if 0
     /**
      * Compute Variance of neighborhood as described in:
@@ -709,7 +708,7 @@ struct Film {
      * Round bbox shape by averaging 2 different min/max from 2 different neighborhood. */
     float4 min_c_3x3 = min_c;
     float4 max_c_3x3 = max_c;
-    constexpr int2 corners[4] = int2_array(int2(-1, -1), int2(1, -1), int2(-1, 1), int2(1, 1));
+    constexpr int2 corners[4] = {int2(-1, -1), int2(1, -1), int2(-1, 1), int2(1, 1)};
     for (int i = 0; i < 4; i++) {
       float4 color = texelfetch_as_YCoCg_opacity(combined_tx, texel + corners[i]);
       min_c_3x3 = min(min_c_3x3, color);

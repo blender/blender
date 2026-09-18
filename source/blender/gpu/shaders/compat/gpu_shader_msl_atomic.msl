@@ -37,5 +37,6 @@ ATOMIC_OP(Xor, fetch_xor)
 ATOMIC_OP(Exchange, exchange)
 
 #undef ATOMIC_OP
+#undef ATOMIC_OP_EX
 
 #pragma blender dead_code_elimination on

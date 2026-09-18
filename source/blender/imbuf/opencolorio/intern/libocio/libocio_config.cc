@@ -195,7 +195,7 @@ float3 LibOCIOConfig::get_default_luma_coefs() const
   }
 
   /* Fallback to the older Blender assumed primaries of ITU-BT.709 / sRGB, matching the
-   * coefficients used in the fallback implementation. */
+   * coefficients used in the fallback configuration. */
   return float3(0.2126f, 0.7152f, 0.0722f);
 }
 
@@ -383,6 +383,23 @@ void LibOCIOConfig::initialize_hdr_color_spaces()
 
     /* Create colorspace that uses 203 nits diffuse white instead of 100 nits. */
     const auto hdr_100_colorspace = ocio_config_->getColorSpace(colorspace->name().c_str());
+    OCIO_NAMESPACE::TransformRcPtr to_display_100_nits;
+    if (const auto transform = hdr_100_colorspace->getTransform(
+            OCIO_NAMESPACE::COLORSPACE_DIR_FROM_REFERENCE))
+    {
+      to_display_100_nits = transform->createEditableCopy();
+    }
+    else if (const auto transform = hdr_100_colorspace->getTransform(
+                 OCIO_NAMESPACE::COLORSPACE_DIR_TO_REFERENCE))
+    {
+      to_display_100_nits = transform->createEditableCopy();
+      to_display_100_nits->setDirection(
+          OCIO_NAMESPACE::GetInverseTransformDirection(to_display_100_nits->getDirection()));
+    }
+    else {
+      continue;
+    }
+
     const auto hdr_colorspace = OCIO_NAMESPACE::ColorSpace::Create(
         OCIO_NAMESPACE::REFERENCE_SPACE_DISPLAY);
     const auto group = OCIO_NAMESPACE::GroupTransform::Create();
@@ -393,10 +410,7 @@ void LibOCIOConfig::initialize_hdr_color_spaces()
     to_203_nits->setMatrix(double4x4(double3x3::diagonal(203.0 / 100.0)).base_ptr());
     group->appendTransform(to_203_nits);
 
-    const auto to_display = hdr_100_colorspace
-                                ->getTransform(OCIO_NAMESPACE::COLORSPACE_DIR_FROM_REFERENCE)
-                                ->createEditableCopy();
-    group->appendTransform(to_display);
+    group->appendTransform(to_display_100_nits);
 
     hdr_colorspace->setTransform(group, OCIO_NAMESPACE::COLORSPACE_DIR_FROM_REFERENCE);
 

@@ -38,6 +38,7 @@ struct PackParameters {
 
 /* WORKAROUND: Arrays cannot be sized using compilation_constant. */
 #ifdef SRT_CONSTANT_gbuffer_layer_max
+#  undef GBUFFER_LAYER_MAX
 #  define GBUFFER_LAYER_MAX SRT_CONSTANT_gbuffer_layer_max
 #endif
 

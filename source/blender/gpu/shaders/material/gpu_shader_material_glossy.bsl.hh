@@ -2,16 +2,19 @@
  *
  * SPDX-License-Identifier: GPL-2.0-or-later */
 
+#pragma once
+
+#include "gpu_shader_material_interface.bsl.hh"
 #include "gpu_shader_math_vector_safe.bsl.hh"
 #include "gpu_shader_utildefines.bsl.hh"
 
 [[node]]
 void node_bsdf_glossy(float4 color,
                       float roughness,
-                      float anisotropy,
-                      float rotation,
+                      float /*anisotropy*/, /* Unsupported. */
+                      float /*rotation*/,   /* Unsupported. */
                       float3 N,
-                      float3 T,
+                      float3 /*T*/, /* Unsupported. */
                       float weight,
                       const float do_multiscatter,
                       [[resource_table]] KernelGlobals &kg,
@@ -26,14 +29,10 @@ void node_bsdf_glossy(float4 color,
   float3 V = coordinate_impl(kg, sd, sd.P, sd.N).incoming;
   float NV = dot(N, V);
 
-  /* TODO(fclem): EEVEE implementation leaking. */
-  [[resource_table]] UtilityTexture &util_tx = resource_table_get(UtilityTexture);
-  eevee::lut::GGXBrdfData lut = eevee::lut::GGXBrdfData::sample_utility_tx(util_tx, NV, roughness);
+  float3 brdf = brdf_lut(kg, color.rgb, color.rgb, NV, roughness, do_multiscatter != 0.0f);
 
   ClosureReflection reflection_data;
-  reflection_data.color = weight * ((do_multiscatter != 0.0f) ?
-                                        F_brdf_multi_scatter(color.rgb, color.rgb, lut) :
-                                        F_brdf_single_scatter(color.rgb, color.rgb, lut));
+  reflection_data.color = weight * brdf;
   reflection_data.N = N;
   reflection_data.roughness = roughness;
 

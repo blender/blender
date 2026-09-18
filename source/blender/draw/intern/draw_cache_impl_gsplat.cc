@@ -219,7 +219,7 @@ void GSplatEvalCache::ensure_builtin_buffers(PointCloud &pointcloud)
   const VArray<float3> exp_scale = *attributes.lookup_or_default<float3>(
       "scale", bke::AttrDomain::Point, float3(value_scale_default));
   const VArray<math::Quaternion> quaternion = *attributes.lookup_or_default<math::Quaternion>(
-      "rotation", bke::AttrDomain::Point, math::Quaternion(0.0f, 0.0f, 0.0f, 1.0f));
+      "rotation", bke::AttrDomain::Point, math::Quaternion::identity());
   const VArray<float4> radiance_base = *attributes.lookup_or_default<float4>(
       "radiance:base", bke::AttrDomain::Point, float4(0.0f, 0.0f, 0.0f, value_opacity_default));
   const Vector<VArraySpan<float3>> radiance_sh = detail::read_radiance_sh_attributes(attributes);

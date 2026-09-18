@@ -70,7 +70,7 @@ struct [[host_shared]] Widget {
   {
     VertOut v_out;
     /* Offset to avoid losing pixels (mimics conservative rasterization). */
-    constexpr float2 ofs = float2(0.5f, -0.5f);
+    const float2 ofs = float2(0.5f, -0.5f);
     v_out.line_width = abs(rect.x - recti.x);
     float2 emboss_ofs = float2(0.0f, -v_out.line_width);
 

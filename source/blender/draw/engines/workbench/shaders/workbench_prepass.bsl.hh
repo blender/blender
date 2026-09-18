@@ -363,7 +363,6 @@ struct OpaqueOut {
 [[fragment]] void frag_opaque([[resource_table]] Resources &srt,
                               [[in]] const VertOut &v_out,
                               [[front_facing]] const bool facing,
-                              [[frag_coord]] const float4 frag_co,
                               [[out]] OpaqueOut &frag_out)
 {
   frag_out.object_id = uint(v_out.object_id);

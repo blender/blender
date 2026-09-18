@@ -75,6 +75,98 @@ std::optional<FillCache> fill_cache_from_fill_ids(const VArray<int> &fill_ids)
   return fill_cache;
 }
 
+ShapeData shapes_from_fill_ids(const VArray<int> &fill_ids, const int num_curves)
+{
+  if (!fill_ids || fill_ids.is_empty()) {
+    Vector<int> shape_map(num_curves);
+    Vector<int> shape_offset(num_curves + 1);
+
+    array_utils::fill_index_range(shape_map.as_mutable_span());
+    array_utils::fill_index_range(shape_offset.as_mutable_span());
+
+    ShapeData shape_data;
+    shape_data.shape_map = std::move(shape_map);
+    shape_data.shape_offsets = std::move(shape_offset);
+
+    return shape_data;
+  }
+
+  BLI_assert(fill_ids.size() == num_curves);
+
+  /* The size of each shape. This includes zero fill id shapes (which always have a size of 1). */
+  Vector<int> shape_sizes;
+  /* Maps the non-zero fill id to the index of the shape. */
+  Map<int, int> fill_id_to_shape;
+  /* The fill id of each fill. The fill id zero can appear more than once, others may appear
+   * at most once. */
+  Vector<int> all_fill_ids;
+  /* The index of the curve if the shape is a zero fill. Otherwise -1. */
+  Vector<int> all_zero_fill_curve_indices;
+
+  /* Contains the curve indices for each non-zero fill. */
+  Vector<Vector<int>> curve_indices_by_non_zero_fill;
+  /* Maps the fill id to the index in the #curve_indices_by_non_zero_fill vector. */
+  Map<int, int> non_zero_fill_indexing;
+
+  for (const int curve : IndexRange(num_curves)) {
+    const int fill_id = fill_ids[curve];
+    if (fill_id == 0) {
+      shape_sizes.append(1);
+      all_fill_ids.append(0);
+      all_zero_fill_curve_indices.append(curve);
+    }
+    /* Try adding non zero fill id to the map. */
+    else if (fill_id_to_shape.add(fill_id, shape_sizes.size())) {
+      shape_sizes.append(1);
+      all_fill_ids.append(fill_id);
+      /* Not a zero fill. */
+      all_zero_fill_curve_indices.append(-1);
+    }
+    else {
+      shape_sizes[fill_id_to_shape.lookup(fill_id)]++;
+    }
+
+    /* Keep track of curve indices for non-zero fills. */
+    if (fill_id != 0) {
+      if (non_zero_fill_indexing.add(fill_id, curve_indices_by_non_zero_fill.size())) {
+        curve_indices_by_non_zero_fill.append(Vector<int>({curve}));
+      }
+      else {
+        curve_indices_by_non_zero_fill[non_zero_fill_indexing.lookup(fill_id)].append(curve);
+      }
+    }
+  }
+
+  shape_sizes.append(0);
+  OffsetIndices<int> shape_offsets = offset_indices::accumulate_counts_to_offsets(shape_sizes);
+
+  Vector<int> shape_map(num_curves);
+  MutableSpan<int> shape_map_span = shape_map.as_mutable_span();
+  threading::parallel_for(shape_offsets.index_range(), 4096, [&](const IndexRange range) {
+    for (const int shape_i : range) {
+      const IndexRange shape_range = shape_offsets[shape_i];
+      const bool is_zero_fill = all_fill_ids[shape_i] == 0;
+      if (is_zero_fill) {
+        const int curve_i = all_zero_fill_curve_indices[shape_i];
+        BLI_assert(shape_range.size() == 1);
+        shape_map_span[shape_range.first()] = curve_i;
+      }
+      else {
+        const int fill_id = all_fill_ids[shape_i];
+        const Span<int> curve_indices =
+            curve_indices_by_non_zero_fill[non_zero_fill_indexing.lookup(fill_id)].as_span();
+        shape_map_span.slice(shape_range).copy_from(curve_indices);
+      }
+    }
+  });
+
+  ShapeData shape_data;
+  shape_data.shape_map = std::move(shape_map);
+  shape_data.shape_offsets = std::move(shape_sizes);
+
+  return shape_data;
+}
+
 static int get_next_available_fill_id_from_max(const int max_fill_id)
 {
   /* Make sure the fill ID is greater than zero. This avoids the issue of hitting an invalid fill
