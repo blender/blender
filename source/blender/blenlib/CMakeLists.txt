@@ -206,6 +206,7 @@ set(SRC
   BLI_compression.hh
   BLI_compute_context.hh
   BLI_concurrent_map.hh
+  BLI_concurrent_set.hh
   BLI_console.hh
   BLI_convexhull_2d.hh
   BLI_cpp_type.hh
