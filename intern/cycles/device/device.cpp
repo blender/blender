@@ -281,7 +281,7 @@ vector<DeviceInfo> Device::available_devices(const uint mask)
       {
         device_optix_info(cuda_devices(), optix_devices());
         for (DeviceInfo &info : optix_devices()) {
-          info.meets_driver_requirement = meets_nvidia_driver_requirement;
+          info.meets_driver_requirement &= meets_nvidia_driver_requirement;
         }
       }
       else {
