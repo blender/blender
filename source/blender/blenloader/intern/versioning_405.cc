@@ -3947,22 +3947,22 @@ static void do_init_default_jitter_curves_in_unified_paint_settings(ToolSettings
 static void do_convert_gp_jitter_flags(Brush *brush)
 {
   BrushGpencilSettings *settings = brush->gpencil_settings;
-  if (settings->flag2 & GP_BRUSH_USE_HUE_AT_STROKE) {
+  if (settings->flag2 & GP_BRUSH_UNUSED_2) {
     brush->color_jitter_flag |= BRUSH_COLOR_JITTER_USE_HUE_AT_STROKE;
   }
-  if (settings->flag2 & GP_BRUSH_USE_SAT_AT_STROKE) {
+  if (settings->flag2 & GP_BRUSH_UNUSED_3) {
     brush->color_jitter_flag |= BRUSH_COLOR_JITTER_USE_SAT_AT_STROKE;
   }
-  if (settings->flag2 & GP_BRUSH_USE_VAL_AT_STROKE) {
+  if (settings->flag2 & GP_BRUSH_UNUSED_4) {
     brush->color_jitter_flag |= BRUSH_COLOR_JITTER_USE_VAL_AT_STROKE;
   }
-  if (settings->flag2 & GP_BRUSH_USE_HUE_RAND_PRESS) {
+  if (settings->flag2 & GP_BRUSH_UNUSED_5) {
     brush->color_jitter_flag |= BRUSH_COLOR_JITTER_USE_HUE_RAND_PRESS;
   }
-  if (settings->flag2 & GP_BRUSH_USE_SAT_RAND_PRESS) {
+  if (settings->flag2 & GP_BRUSH_UNUSED_6) {
     brush->color_jitter_flag |= BRUSH_COLOR_JITTER_USE_SAT_RAND_PRESS;
   }
-  if (settings->flag2 & GP_BRUSH_USE_VAL_RAND_PRESS) {
+  if (settings->flag2 & GP_BRUSH_UNUSED_7) {
     brush->color_jitter_flag |= BRUSH_COLOR_JITTER_USE_VAL_RAND_PRESS;
   }
 }
