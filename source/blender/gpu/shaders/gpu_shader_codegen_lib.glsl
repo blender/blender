@@ -251,37 +251,18 @@ ClosureThinRefraction to_closure_thin_refraction(ClosureUndetermined cl)
   return closure;
 }
 
-#ifndef GPU_FRAGMENT_SHADER
-/* Stubs. */
-
-#  define dF_impl(a) (float3(0.0f))
-#  define dF_branch(a, b, c) (c = float2(0.0f))
-#  define dF_branch_incomplete(a, b, c) (c = float2(0.0f))
-
-#elif defined(GPU_FAST_DERIVATIVE) /* TODO(@fclem): User Option? */
-/* Fast derivatives */
-float3 dF_impl(float3 v)
-{
-  return float3(0.0f);
-}
-
-void dF_branch(float fn, float2 &result)
-{
-  /* NOTE: this function is currently unused, once it is used we need to check if
-   * `g_derivative_filter_width` needs to be applied. */
-  result.x = gpu_dfdx(fn) * derivative_scale_get(kg);
-  result.y = gpu_dfdy(fn) * derivative_scale_get(kg);
-}
-
-#else
-
 /* Offset of coordinates for evaluating bump node. Unit in pixel. */
 float g_derivative_filter_width = 0.0f;
 /* Precise derivatives */
 int g_derivative_flag = 0;
 
-float3 dF_impl(float3 v)
+float3 dF_impl([[maybe_unused]] float3 v)
 {
+#ifndef GPU_FRAGMENT_SHADER
+  return float3(0.0f);
+#elif defined(GPU_FAST_DERIVATIVE) /* TODO(@fclem): User Option? */
+  return float3(0.0f);
+#else
   if (g_derivative_flag > 0) {
     return gpu_dfdx(v) * g_derivative_filter_width;
   }
@@ -289,8 +270,34 @@ float3 dF_impl(float3 v)
     return gpu_dfdy(v) * g_derivative_filter_width;
   }
   return float3(0.0f);
+#endif
 }
 
+void dF_branch([[maybe_unused]] float fn, [[maybe_unused]] float filter_width, float2 &result)
+{
+#ifndef GPU_FRAGMENT_SHADER
+  result = float2(0.0f);
+#elif defined(GPU_FAST_DERIVATIVE) /* TODO(@fclem): User Option? */
+  result.x = gpu_dfdx(fn) * filter_width * derivative_scale_get(kg);
+  result.y = gpu_dfdy(fn) * filter_width * derivative_scale_get(kg);
+#else
+#endif
+}
+
+void dF_branch_incomplete([[maybe_unused]] float fn,
+                          [[maybe_unused]] float filter_width,
+                          float2 &result)
+{
+#ifndef GPU_FRAGMENT_SHADER
+  result = float2(0.0f);
+#elif defined(GPU_FAST_DERIVATIVE) /* TODO(@fclem): User Option? */
+  result.x = gpu_dfdx(fn) * filter_width * derivative_scale_get(kg);
+  result.y = gpu_dfdy(fn) * filter_width * derivative_scale_get(kg);
+  result += float2(fn);
+#endif
+}
+
+#if defined(GPU_FRAGMENT_SHADER) && !defined(GPU_FAST_DERIVATIVE)
 #  define dF_branch(fn, filter_width, result) \
     if (true) { \
       g_derivative_filter_width = filter_width * derivative_scale_get(kg); \

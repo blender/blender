@@ -59,7 +59,7 @@ Result<SymbolFunction *> SymbolScope::lookup_function(const SymbolTable &table,
     {
       return {table.root->lookup_function(cls->identifier), {}};
     }
-    return {func, err ? err : AstNodeException{id, Diag::UnknownFunction}};
+    return {func, err ? err : AstNodeException{id, Diag::UnknownFunction, string(id.str())}};
   }
 
   if (func->template_data) {

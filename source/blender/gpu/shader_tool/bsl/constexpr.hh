@@ -125,7 +125,7 @@ struct ConstexprValue {
     return 0;
   }
 
-  std::vector<uint32_t> values;
+  std::vector<uint32_t> values = {0};
 
   ConstexprValue() = default;
 
