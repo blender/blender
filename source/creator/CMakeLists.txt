@@ -625,6 +625,22 @@ if(WIN32)
         ${LIBDIR}/jolt/bin/jolt_d.dll
       DEBUG
     )
+  endif()
+  if(EXISTS ${LIBDIR}/opentimelineio/lib/opentime.dll) # 5.3+  
+    windows_install_shared_manifest(
+      FILES
+        ${LIBDIR}/opentimelineio/lib/opentime.dll
+        ${LIBDIR}/opentimelineio/lib/opentimelineio.dll
+      RELEASE
+    )
+  endif()
+  if(EXISTS ${LIBDIR}/opentimelineio/lib/opentime_d.dll) # 5.3+  
+    windows_install_shared_manifest(
+      FILES
+        ${LIBDIR}/opentimelineio/lib/opentime_d.dll
+        ${LIBDIR}/opentimelineio/lib/opentimelineio_d.dll
+      DEBUG
+    )
   endif()  
   if(EXISTS ${LIBDIR}/ceres/bin/ceres.dll) # 5.1+
     windows_install_shared_manifest(
@@ -1406,29 +1422,59 @@ elseif(WIN32)
           PATTERN "*.pyo" EXCLUDE                 # * any cache *
         )
       endif()
-
-      # This will not exist for 3.4 and earlier `./lib` directory
-      # to ease the transition, support both 3.4 and 3.5 `./lib` directories.
-      if(EXISTS ${USD_LIBRARY_DIR}/python/)
-        install(
-          DIRECTORY ${USD_LIBRARY_DIR}/python/
-          DESTINATION ${TARGETDIR_SITE_PACKAGES}
-          CONFIGURATIONS Release;RelWithDebInfo;MinSizeRel
-          PATTERN "__pycache__" EXCLUDE           # * any cache *
-          PATTERN "*.pyc" EXCLUDE                 # * any cache *
-          PATTERN "*.pyo" EXCLUDE                 # * any cache *
-        )
+      if(CMAKE_SYSTEM_PROCESSOR STREQUAL "ARM64")
+        set(_openexr_arch arm64)
+      else()
+        set(_openexr_arch amd64)
       endif()
-      if(EXISTS ${USD_LIBRARY_DIR}/debug/python/)
-        install(
-          DIRECTORY ${USD_LIBRARY_DIR}/debug/python/
-          DESTINATION ${TARGETDIR_SITE_PACKAGES}
-          CONFIGURATIONS Debug
-          PATTERN "__pycache__" EXCLUDE           # * any cache *
-          PATTERN "*.pyc" EXCLUDE                 # * any cache *
-          PATTERN "*.pyo" EXCLUDE                 # * any cache *
-        )
-      endif()
+      install(
+        FILES
+          ${LIBDIR}/openexr/python/openEXR/OpenEXR.cp${_PYTHON_VERSION_NO_DOTS}-win_${_openexr_arch}.pyd
+          ${LIBDIR}/openexr/python/openEXR/Imath.py
+        DESTINATION ${TARGETDIR_SITE_PACKAGES}
+        CONFIGURATIONS Release;RelWithDebInfo;MinSizeRel
+      )
+      install(
+        FILES
+          ${LIBDIR}/openexr/python/openEXR/OpenEXR_d.cp${_PYTHON_VERSION_NO_DOTS}-win_${_openexr_arch}.pyd
+          ${LIBDIR}/openexr/python/openEXR/Imath.py
+        DESTINATION ${TARGETDIR_SITE_PACKAGES}
+        CONFIGURATIONS Debug
+      )
+      install(
+        DIRECTORY ${LIBDIR}/opentimelineio/python/opentimelineio/
+        DESTINATION ${TARGETDIR_SITE_PACKAGES}/opentimelineio/
+        CONFIGURATIONS Release;RelWithDebInfo;MinSizeRel
+        PATTERN "__pycache__" EXCLUDE           # * any cache *
+        PATTERN "*.pyc" EXCLUDE                 # * any cache *
+        PATTERN "*.pyo" EXCLUDE                 # * any cache *
+        PATTERN "*_d.cp*" EXCLUDE                # * do not install debug libs * 
+      )      
+      install(
+        DIRECTORY ${LIBDIR}/opentimelineio/python/opentimelineio/
+        DESTINATION ${TARGETDIR_SITE_PACKAGES}/opentimelineio/
+        CONFIGURATIONS Debug
+        PATTERN "__pycache__" EXCLUDE           # * any cache *
+        PATTERN "*.pyc" EXCLUDE                 # * any cache *
+        PATTERN "*.pyo" EXCLUDE                 # * any cache *
+      )
+      install(
+        DIRECTORY ${USD_LIBRARY_DIR}/site-packages/
+        DESTINATION ${TARGETDIR_SITE_PACKAGES}/
+        CONFIGURATIONS Release;RelWithDebInfo;MinSizeRel
+        PATTERN "__pycache__" EXCLUDE           # * any cache *
+        PATTERN "*.pyc" EXCLUDE                 # * any cache *
+        PATTERN "*.pyo" EXCLUDE                 # * any cache *
+      )
+      
+      install(
+        DIRECTORY ${USD_LIBRARY_DIR}/debug/site-packages/
+        DESTINATION ${TARGETDIR_SITE_PACKAGES}/
+        CONFIGURATIONS Debug
+        PATTERN "__pycache__" EXCLUDE           # * any cache *
+        PATTERN "*.pyc" EXCLUDE                 # * any cache *
+        PATTERN "*.pyo" EXCLUDE                 # * any cache *
+      )
 
       # This will not exist for 3.4 and earlier `./lib` directories
       # to ease the transition, support both 3.4 and 3.5 `./lib` directories.
