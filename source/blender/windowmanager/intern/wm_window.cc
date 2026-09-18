@@ -1996,7 +1996,7 @@ static bool ghost_event_proc(const GHOST_IEvent *ghost_event, GHOST_TUserDataPtr
     case GHOST_kEventOpenMainFile: {
       const char *path = static_cast<const char *>(data);
 
-      if (path) {
+      if (path && path[0] != '\0') {
         wmOperatorType *ot = WM_operatortype_find("WM_OT_open_mainfile", false);
         /* Operator needs a valid window in context, ensures it is correctly set. */
         CTX_wm_window_set(C, win);
