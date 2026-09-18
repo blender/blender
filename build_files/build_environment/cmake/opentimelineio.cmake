@@ -17,11 +17,12 @@ set(OPENTIMELINEIO_EXTRA_ARGS
   -DOTIO_FIND_MINIZIP_NG=ON
 
   -DImath_ROOT=${LIBDIR}/imath
-  -DZLIB_ROOT=${LIBDIR}/zlib
   -DRapidJSON_ROOT=${LIBDIR}/rapidjson
   -Dminizip-ng_ROOT=${LIBDIR}/minizipng
   -Dpybind11_ROOT=${LIBDIR}/pybind11
   -DPython_EXECUTABLE=${PYTHON_BINARY}
+  -DZLIB_LIBRARY=${LIBDIR}/zlib/lib/${ZLIB_LIBRARY}
+  -DZLIB_INCLUDE_DIR=${LIBDIR}/zlib/include/
 
   # Latest main currently fails to build with C++20, try to remove on next upgrade.
   -DCMAKE_CXX_STANDARD=17
