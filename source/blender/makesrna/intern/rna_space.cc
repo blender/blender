@@ -2730,8 +2730,13 @@ static void rna_SpaceConsole_rect_update(Main * /*bmain*/, Scene * /*scene*/, Po
   WM_main_add_notifier(NC_SPACE | ND_SPACE_CONSOLE | NA_EDITED, sc);
 }
 
-static void rna_SequenceEditor_update_cache(Main * /*bmain*/, Scene *scene, PointerRNA * /*ptr*/)
+static void rna_SequenceEditor_update_cache(bContext *C, PointerRNA * /*ptr*/)
 {
+  Scene *scene = CTX_data_sequencer_scene(C);
+  if (scene == nullptr) {
+    return;
+  }
+
   seq::cache_cleanup(scene, seq::CacheCleanup::FinalAndIntra);
 }
 
@@ -7074,12 +7079,14 @@ static void rna_def_space_sequencer(BlenderRNA *brna)
       "Preview all channels less than or equal to this value. 0 shows every channel, and negative "
       "values climb that many meta-strip levels if applicable, showing every channel there.");
   RNA_def_property_range(prop, -5, seq::MAX_CHANNELS);
+  RNA_def_property_flag(prop, PROP_CONTEXT_UPDATE);
   RNA_def_property_update(prop, NC_SPACE | ND_SPACE_SEQUENCER, "rna_SequenceEditor_update_cache");
 
   prop = RNA_def_property(srna, "preview_channels", PROP_ENUM, PROP_NONE);
   RNA_def_property_enum_bitflag_sdna(prop, nullptr, "flag");
   RNA_def_property_enum_items(prop, preview_channels_items);
   RNA_def_property_ui_text(prop, "Display Channels", "Channels of the preview to display");
+  RNA_def_property_flag(prop, PROP_CONTEXT_UPDATE);
   RNA_def_property_update(prop, NC_SPACE | ND_SPACE_SEQUENCER, "rna_SequenceEditor_update_cache");
 
   prop = RNA_def_property(srna, "use_zoom_to_fit", PROP_BOOLEAN, PROP_NONE);
@@ -7108,6 +7115,7 @@ static void rna_def_space_sequencer(BlenderRNA *brna)
   RNA_def_property_boolean_sdna(prop, nullptr, "flag", SEQ_USE_PROXIES);
   RNA_def_property_ui_text(
       prop, "Use Proxies", "Use optimized files for faster scrubbing when available");
+  RNA_def_property_flag(prop, PROP_CONTEXT_UPDATE);
   RNA_def_property_update(prop, NC_SPACE | ND_SPACE_SEQUENCER, "rna_SequenceEditor_update_cache");
 
   prop = RNA_def_property(srna, "use_clamp_view", PROP_BOOLEAN, PROP_NONE);

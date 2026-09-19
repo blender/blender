@@ -1807,7 +1807,7 @@ class SEQUENCER_PT_view(SequencerButtonsPanel_Output, Panel):
         layout.use_property_decorate = False
 
         st = context.space_data
-        ed = context.scene.sequence_editor
+        ed = context.sequencer_scene.sequence_editor
 
         col = layout.column()
         col.prop(st, "proxy_render_size")

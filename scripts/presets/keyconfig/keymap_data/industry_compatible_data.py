@@ -1926,7 +1926,7 @@ def km_sequencer(params):
         ),
         ("sequencer.slip", {"type": 'R', "value": 'PRESS'}, None),
         ("wm.context_set_int", {"type": 'O', "value": 'PRESS'},
-         {"properties": [("data_path", "scene.sequence_editor.overlay_frame"), ("value", 0)]}),
+         {"properties": [("data_path", "sequencer_scene.sequence_editor.overlay_frame"), ("value", 0)]}),
         ("transform.seq_slide", {"type": 'W', "value": 'PRESS'},
          {"properties": [("view2d_edge_pan", True)]}),
         ("transform.seq_slide", {"type": 'LEFTMOUSE', "value": 'CLICK_DRAG'},
