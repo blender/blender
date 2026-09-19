@@ -240,8 +240,8 @@ BLI_INLINE float4 paint_blend_pixel(const float4 &brush_color,
                                     const float4 color)
 {
   const float4 paint_color = brush_color * (factor * brush_alpha);
-
-  float4 result;
+  /* Many blend modes don't write alpha to the result, so copy it. */
+  float4 result = color;
   /* TODO: try making IMB_blend_color_float inline instead. */
   if (is_mix) {
     blend_color_mix_float(result, color, paint_color);
