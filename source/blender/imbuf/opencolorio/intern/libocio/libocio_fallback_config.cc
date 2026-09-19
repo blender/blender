@@ -14,7 +14,7 @@ namespace blender::ocio {
 /* Minimal configuration with linear Rec.709, sRGB and non-color data. It uses only built-in
  * transforms, so that loading it depends on no file. */
 static const char *fallback_config_source = R"(
-ocio_profile_version: 2.5
+ocio_profile_version: 2.3
 
 name: Blender Fallback
 description: Built-in configuration, used when no other configuration could be loaded
@@ -50,13 +50,11 @@ display_colorspaces:
     aliases: [lin_ciexyzd65_scene]
     isdata: false
     encoding: display-linear
-    interop_id: lin_ciexyzd65_scene
 
   - !<ColorSpace>
     name: sRGB
     aliases: [srgb_rec709_display]
     isdata: false
-    interop_id: srgb_rec709_display
     from_display_reference: !<GroupTransform>
       children:
         - !<MatrixTransform> {matrix: [3.2409699, -1.5373832, -0.4986108, 0, -0.9692436, 1.8759675, 0.0415551, 0, 0.0556301, -0.2039770, 1.0569715, 0, 0, 0, 0, 1]}
@@ -74,13 +72,11 @@ colorspaces:
     name: Linear Rec.709
     aliases: [lin_rec709_scene, Linear]
     isdata: false
-    interop_id: lin_rec709_scene
 
   - !<ColorSpace>
     name: ACES2065-1
     aliases: [lin_ap0_scene]
     isdata: false
-    interop_id: lin_ap0_scene
     to_scene_reference: !<GroupTransform>
       children:
         - !<BuiltinTransform> {style: UTILITY - ACES-AP0_to_CIE-XYZ-D65_BFD}
@@ -89,7 +85,6 @@ colorspaces:
   - !<ColorSpace>
     name: Non-Color
     isdata: true
-    interop_id: data
 )";
 
 std::unique_ptr<Config> LibOCIOConfig::create_fallback()
