@@ -6068,8 +6068,10 @@ static void *blo_verify_data_address(FileData *fd,
 {
   if (new_address != nullptr) {
     /* Not testing equality, since size might have been aligned up,
-     * or might be passed the size of a base struct with inheritance. */
-    if (alloc_len < int64_t(expected_size)) {
+     * or might be passed the size of a base struct with inheritance.
+     *
+     * Note we cast to size_t so integer overflow will fail the check. */
+    if (size_t(alloc_len) < expected_size) {
       blo_readfile_invalidate(fd,
                               (*fd->bmain->split_mains)[fd->bmain->split_mains->size() - 1],
                               "Corrupt .blend file, unexpected data size.");
