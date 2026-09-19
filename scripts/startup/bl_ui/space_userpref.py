@@ -1744,6 +1744,14 @@ class USERPREF_PT_saveload_autorun(FilePathsPanel, Panel):
 
         layout.active = paths.use_scripts_auto_execute
 
+        if paths.use_scripts_auto_execute:
+            col = layout.column(align=True)
+            col.label(
+                text="Opening blend files from the internet and other untrusted sources",
+                icon='STATUS_WARNING',
+            )
+            col.label(text="is unsafe with Auto-Run. Use with caution.", icon='BLANK1')
+
         box = layout.box()
         row = box.row()
         row.label(text="Excluded Paths")
