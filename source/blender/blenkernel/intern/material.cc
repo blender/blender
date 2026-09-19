@@ -1522,7 +1522,7 @@ bool BKE_object_material_slot_remove(Main *bmain, Object *ob)
         obt->matbits[a - 1] = obt->matbits[a];
       }
       obt->totcol--;
-      BKE_object_material_active_index_sanitize(ob);
+      BKE_object_material_active_index_sanitize(obt);
 
       if (obt->totcol == 0) {
         MEM_delete(obt->mat);
