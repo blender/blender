@@ -239,15 +239,15 @@ BLI_INLINE float4 paint_blend_pixel(const float4 &brush_color,
                                     const float factor,
                                     const float4 color)
 {
+  const float4 paint_color = brush_color * (factor * brush_alpha);
+
   float4 result;
-  blend_color_mix_float(result, color, brush_color * factor);
-  result *= brush_alpha;
   /* TODO: try making IMB_blend_color_float inline instead. */
   if (is_mix) {
-    blend_color_mix_float(result, color, result);
+    blend_color_mix_float(result, color, paint_color);
   }
   else {
-    IMB_blend_color_float(result, color, result, blend_mode);
+    IMB_blend_color_float(result, color, paint_color, blend_mode);
   }
   return result;
 }
