@@ -213,7 +213,9 @@ ccl_device_forceinline void film_write_denoising_features_surface(KernelGlobals 
     if (!follow_reflections) {
       deferred_albedo = transparent_albedo;
     }
-    INTEGRATOR_STATE_WRITE(state, path, denoising_feature_throughput) *= deferred_albedo;
+    const Spectrum throughput = INTEGRATOR_STATE(state, path, denoising_feature_throughput);
+    INTEGRATOR_STATE_WRITE(state, path, denoising_feature_throughput) = throughput *
+                                                                        deferred_albedo;
   }
   else {
     INTEGRATOR_STATE_WRITE(state, path, flag) &= ~PATH_RAY_DENOISING_FEATURES;
