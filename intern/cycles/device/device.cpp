@@ -508,7 +508,7 @@ DeviceInfo Device::get_multi_device(const vector<DeviceInfo> &subdevices,
 
     /* Accumulate device info. */
     info.has_nanovdb &= device.has_nanovdb;
-    info.has_mnee_ &= device.has_mnee();
+    info.has_mnee_ &= device.has_mnee_;
     info.has_osl &= device.has_osl;
     info.has_guiding &= device.has_guiding;
     info.has_profiling &= device.has_profiling;
