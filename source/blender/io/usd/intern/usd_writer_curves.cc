@@ -702,13 +702,14 @@ void USDCurvesWriter::do_write(HierarchyContext &context)
 void USDCurvesWriter::assign_materials(const HierarchyContext &context,
                                        const pxr::UsdGeomCurves &usd_curves)
 {
-  if (context.object->totcol == 0) {
+  const int totcol = BKE_object_material_count_eval(context.object);
+  if (totcol == 0) {
     return;
   }
 
   bool curve_material_bound = false;
-  for (int mat_num = 0; mat_num < context.object->totcol; mat_num++) {
-    Material *material = BKE_object_material_get(context.object, mat_num + 1);
+  for (int mat_num = 0; mat_num < totcol; mat_num++) {
+    Material *material = BKE_object_material_get_eval(context.object, mat_num + 1);
     if (material == nullptr) {
       continue;
     }
