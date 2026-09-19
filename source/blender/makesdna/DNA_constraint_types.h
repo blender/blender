@@ -1070,7 +1070,7 @@ struct bPivotConstraint {
    * This option provides easier one-stop setups for foot-rolls.
    */
   /** Rotation axes to consider for this. */
-  ePivotConstraint_Axis rotAxis = PIVOTCON_AXIS_NONE;
+  ePivotConstraint_Axis rotAxis = PIVOTCON_AXIS_X_NEG;
 
   /* General flags */
   ePivotConstraint_Flag flag = {};
