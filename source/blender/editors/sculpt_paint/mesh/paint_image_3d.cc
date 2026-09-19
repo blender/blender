@@ -697,7 +697,7 @@ static void do_paint_pixels(const Paint &paint,
                                  span.x + span.size - 1,
                                  span.y);
         const int2 start(span.x, span.y);
-        const int2 end = start + int2(span.size + 1, 0);
+        const int2 end = start + int2(span.size, 1);
         dirty_bounds = bounds::merge(dirty_bounds, Bounds<int2>(start, end));
       }
     }
