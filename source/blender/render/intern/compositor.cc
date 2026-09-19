@@ -199,6 +199,9 @@ class Context : public compositor::Context {
         }
       }
 
+      /* Compositor output is scene linear, previous pixels were replaced. */
+      image_buffer->float_buffer.colorspace = nullptr;
+
       /* Free outdated GPU texture. */
       IMB_free_gpu_textures(image_buffer);
       IMB_partial_update_mark_full(image_buffer);
