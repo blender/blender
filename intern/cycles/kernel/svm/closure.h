@@ -79,6 +79,7 @@ ccl_device_inline int svm_node_closure_bsdf_skip(int offset, const uint type)
       break;
     case CLOSURE_BSSRDF_BURLEY_ID:
     case CLOSURE_BSSRDF_RANDOM_WALK_ID:
+    case CLOSURE_BSSRDF_RANDOM_WALK_LEGACY_ID:
     case CLOSURE_BSSRDF_RANDOM_WALK_SKIN_ID:
       offset += sizeof(SVMNodeBssrdfData) / sizeof(uint);
       break;
