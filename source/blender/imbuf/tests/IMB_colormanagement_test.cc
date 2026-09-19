@@ -7,6 +7,7 @@
 #include "testing/testing.h"
 
 #include "BLI_fileops.hh"
+#include "BLI_index_range.hh"
 #include "BLI_path_utils.hh"
 #include "BLI_vector.hh"
 
@@ -17,6 +18,7 @@
 #include "IMB_imbuf.hh"
 
 #include "OCIO_colorspace.hh"
+#include "OCIO_config.hh"
 
 namespace blender::imbuf::tests {
 
@@ -190,6 +192,20 @@ TEST_F(ColorManagementConfigSwitchTest, removed_colorspace_is_retained)
   EXPECT_V3_NEAR(pixel, expected_pixel, 1e-6f);
 
   IMB_freeImBuf(ibuf);
+}
+
+TEST_F(ColorManagementConfigSwitchTest, active_inactive_color_spaces_by_index)
+{
+  /* Check inactive color spaces have an index after active color spaces. */
+  const ColorManagedConfig &config = IMB_colormanagement_get_config();
+  ASSERT_GT(config.get_num_all_color_spaces(), config.get_num_active_color_spaces());
+
+  for (const int i : IndexRange(config.get_num_all_color_spaces())) {
+    const ColorSpace *colorspace = config.get_color_space_by_index(i);
+    ASSERT_NE(colorspace, nullptr);
+    EXPECT_EQ(colorspace->index, i);
+  }
+  EXPECT_EQ(config.get_color_space_by_index(config.get_num_all_color_spaces()), nullptr);
 }
 
 }  // namespace blender::imbuf::tests

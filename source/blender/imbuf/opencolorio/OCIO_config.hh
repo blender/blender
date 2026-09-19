@@ -124,9 +124,15 @@ class Config {
   virtual const ColorSpace *get_color_space(StringRefNull name) const = 0;
 
   /**
-   * Get the number of color spaces in this configuration.
+   * Get the number of active color spaces in this configuration.
    */
-  virtual int get_num_color_spaces() const = 0;
+  virtual int get_num_active_color_spaces() const = 0;
+
+  /**
+   * Get the number of all color spaces, including the inactive color spaces
+   * after the active ones.
+   */
+  virtual int get_num_all_color_spaces() const = 0;
 
   /**
    * Get color space with the given index within the configuration.

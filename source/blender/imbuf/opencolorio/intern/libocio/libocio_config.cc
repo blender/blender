@@ -263,8 +263,8 @@ void LibOCIOConfig::initialize_inactive_color_spaces()
     OCIO_NAMESPACE::ConstColorSpaceRcPtr ocio_color_space;
     try {
       ocio_color_space = ocio_config_->getColorSpace(colorspace_name);
-      inactive_color_spaces_.append(
-          std::make_unique<LibOCIOColorSpace>(i, ocio_config_, ocio_color_space));
+      inactive_color_spaces_.append(std::make_unique<LibOCIOColorSpace>(
+          get_num_all_color_spaces(), ocio_config_, ocio_color_space));
     }
     catch (OCIO_NAMESPACE::Exception &exception) {
       report_exception(exception);
@@ -444,17 +444,30 @@ const ColorSpace *LibOCIOConfig::get_color_space(const StringRefNull name) const
   return nullptr;
 }
 
-int LibOCIOConfig::get_num_color_spaces() const
+int LibOCIOConfig::get_num_active_color_spaces() const
 {
   return color_spaces_.size();
 }
 
+int LibOCIOConfig::get_num_all_color_spaces() const
+{
+  return color_spaces_.size() + inactive_color_spaces_.size();
+}
+
 const ColorSpace *LibOCIOConfig::get_color_space_by_index(int const index) const
 {
-  if (index < 0 || index >= color_spaces_.size()) {
+  if (index < 0) {
     return nullptr;
   }
-  return color_spaces_[index].get();
+  if (index < color_spaces_.size()) {
+    return color_spaces_[index].get();
+  }
+
+  const int inactive_index = index - color_spaces_.size();
+  if (inactive_index < inactive_color_spaces_.size()) {
+    return inactive_color_spaces_[inactive_index].get();
+  }
+  return nullptr;
 }
 
 const ColorSpace *LibOCIOConfig::get_sorted_color_space_by_index(const int index) const
@@ -554,7 +567,7 @@ void LibOCIOConfig::initialize_hdr_color_spaces()
     mutable_ocio_config->addColorSpace(hdr_colorspace);
 
     inactive_color_spaces_.append(std::make_unique<LibOCIOColorSpace>(
-        inactive_color_spaces_.size(), ocio_config_, hdr_colorspace));
+        get_num_all_color_spaces(), ocio_config_, hdr_colorspace));
   }
 }
 
