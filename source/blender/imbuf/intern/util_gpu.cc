@@ -841,6 +841,7 @@ void IMB_free_gpu_textures(ImBuf *ibuf)
     ibuf->gpu.texture = nullptr;
   }
   ibuf->gpu.flag &= ~IMB_GPU_LOAD_FAILED;
+  ibuf->gpu.partial_update_changeset = -1;
 }
 
 void IMB_assign_gpu_texture(ImBuf *ibuf, gpu::Texture *texture)
@@ -855,7 +856,7 @@ void IMB_assign_gpu_texture(ImBuf *ibuf, gpu::Texture *texture)
     ibuf->gpu.texture = nullptr;
   }
   ibuf->gpu.flag &= ~IMB_GPU_LOAD_FAILED;
-  ibuf->gpu.partial_update_changeset = IMB_partial_update_changeset_id_current();
+  ibuf->gpu.partial_update_changeset = texture ? IMB_partial_update_changeset_id_next() : -1;
   ibuf->gpu.texture = texture;
 }
 
