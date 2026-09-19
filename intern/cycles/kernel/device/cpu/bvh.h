@@ -734,7 +734,7 @@ ccl_device_intersect bool kernel_embree_intersect_local(KernelGlobals kg,
   }
   ctx.local_object_id = local_object;
   RTCRay rtc_ray;
-  kernel_embree_setup_ray(*ray, rtc_ray, PATH_RAY_VISIBILITY_ALL);
+  kernel_embree_setup_ray(*ray, rtc_ray, PATH_RAY_VISIBILITY_OBJECT_ALL);
 
   RTCOccludedArguments args;
   rtcInitOccludedArguments(&args);
