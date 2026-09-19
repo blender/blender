@@ -1180,7 +1180,7 @@ static void object_material_assign(
      * intentionally ignore userpref (default to obdata). */
     bit = ob->matbits[act - 1];
   }
-  else if (assign_type == BKE_MAT_ASSIGN_USERPREF && ob->totcol && ob->actcol) {
+  else if (assign_type == BKE_MAT_ASSIGN_USERPREF && ob->actcol >= 1 && ob->actcol <= ob->totcol) {
     /* copy from previous material */
     bit = ob->matbits[ob->actcol - 1];
   }
