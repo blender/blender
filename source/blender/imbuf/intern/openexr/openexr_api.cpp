@@ -1545,11 +1545,12 @@ static bool imb_exr_multi_read_single_pass(ExrReadHandle *handle, ImBuf *ibuf)
   }
   ExrPassInfo *chosen = combined ? combined : rgb ? rgb : &passes.first();
 
-  /* Read pixels. */
-  if (!IMB_alloc_float_pixels(ibuf, chosen->channels)) {
+  /* Read pixels, as 1, 3 or 4 channels. */
+  const int channels = ELEM(chosen->channels, 1, 3, 4) ? chosen->channels : 3;
+  if (!IMB_alloc_float_pixels(ibuf, channels)) {
     return false;
   }
-  ibuf->color_mode = IMB_color_mode_from_channels(chosen->channels);
+  ibuf->color_mode = IMB_color_mode_from_channels(channels);
   chosen->ibuf = ibuf;
 
   MutableSpan<ExrPassInfo> single(chosen, 1);
