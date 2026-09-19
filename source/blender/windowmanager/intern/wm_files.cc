@@ -4066,11 +4066,6 @@ static void wm_block_autorun_warning_reload_with_scripts(bContext *C, uiBlock *b
 
   UI_popup_block_close(C, win, block);
 
-  /* Save user preferences for permanent execution. */
-  if ((U.flag & USER_SCRIPT_AUTOEXEC_DISABLE) == 0) {
-    WM_operator_name_call(C, "WM_OT_save_userpref", WM_OP_EXEC_DEFAULT, nullptr, nullptr);
-  }
-
   /* Load file again with scripts enabled.
    * The reload is necessary to allow scripts to run when the files loads. */
   wm_test_autorun_revert_action_exec(C);
@@ -4082,11 +4077,6 @@ static void wm_block_autorun_warning_enable_scripts(bContext *C, uiBlock *block)
   Main *bmain = CTX_data_main(C);
 
   UI_popup_block_close(C, win, block);
-
-  /* Save user preferences for permanent execution. */
-  if ((U.flag & USER_SCRIPT_AUTOEXEC_DISABLE) == 0) {
-    WM_operator_name_call(C, "WM_OT_save_userpref", WM_OP_EXEC_DEFAULT, nullptr, nullptr);
-  }
 
   /* Force a full refresh, but without reloading the file. */
   LISTBASE_FOREACH (Scene *, scene, &bmain->scenes) {
@@ -4110,8 +4100,7 @@ static uiBlock *block_create_autorun_warning(bContext *C, ARegion *region, void 
   const char *title = RPT_(
       "For security reasons, automatic execution of Python scripts "
       "in this file was disabled:");
-  const char *message = RPT_("This may lead to unexpected behavior");
-  const char *checkbox_text = RPT_("Permanently allow execution of scripts");
+  const char *message = RPT_("This may lead to unexpected behavior. Allow at your own risk.");
 
   /* Measure strings to find the longest. */
   const uiStyle *style = UI_style_get_dpi();
@@ -4119,12 +4108,8 @@ static uiBlock *block_create_autorun_warning(bContext *C, ARegion *region, void 
   int text_width = int(BLF_width(style->widget.uifont_id, title, BLF_DRAW_STR_DUMMY_MAX));
   text_width = std::max(text_width,
                         int(BLF_width(style->widget.uifont_id, message, BLF_DRAW_STR_DUMMY_MAX)));
-  text_width = std::max(
-      text_width,
-      int(BLF_width(style->widget.uifont_id, checkbox_text, BLF_DRAW_STR_DUMMY_MAX) +
-          (UI_SCALE_FAC * 25.0f)));
 
-  const int dialog_width = std::max(int(400.0f * UI_SCALE_FAC),
+  const int dialog_width = std::max(int(500.0f * UI_SCALE_FAC),
                                     text_width + int(style->columnspace * 2.5));
   const short icon_size = 40 * UI_SCALE_FAC;
   uiLayout *layout = uiItemsAlertBox(
@@ -4135,11 +4120,6 @@ static uiBlock *block_create_autorun_warning(bContext *C, ARegion *region, void 
   uiItemL_ex(col, title, ICON_NONE, true, false);
   uiItemL_ex(col, G.autoexec_fail, ICON_NONE, false, true);
   col->label(message, ICON_NONE);
-
-  layout->separator();
-
-  PointerRNA pref_ptr = RNA_pointer_create_discrete(nullptr, &RNA_PreferencesFilePaths, &U);
-  layout->prop(&pref_ptr, "use_scripts_auto_execute", UI_ITEM_NONE, checkbox_text, ICON_NONE);
 
   layout->separator(2.0f);
 
@@ -4186,7 +4166,7 @@ static uiBlock *block_create_autorun_warning(bContext *C, ARegion *region, void 
                            nullptr,
                            0,
                            0,
-                           TIP_("Enable scripts"));
+                           TIP_("Run potentially unsafe scripts in this blend file"));
     UI_but_func_set(but,
                     [block](bContext &C) { wm_block_autorun_warning_enable_scripts(&C, block); });
   }
@@ -4197,7 +4177,7 @@ static uiBlock *block_create_autorun_warning(bContext *C, ARegion *region, void 
                          UI_BTYPE_BUT,
                          0,
                          ICON_NONE,
-                         IFACE_("Ignore"),
+                         IFACE_("Continue Safely"),
                          0,
                          0,
                          50,
