@@ -1005,7 +1005,7 @@ void driver_variable_name_validate(DriverVar *dvar)
 
 void driver_variable_unique_name(DriverVar *dvar)
 {
-  ListBaseT<DriverVar> variables = {dvar, dvar};
+  ListBaseT<DriverVar> variables = BLI_listbase_from_link(dvar);
   BLI_uniquename(&variables, dvar, dvar->name, '_', offsetof(DriverVar, name), sizeof(dvar->name));
 }
 
