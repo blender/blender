@@ -525,10 +525,12 @@ static bool openexr_metadata_skip_read(const char *name, const bool is_multi)
 static bool openexr_metadata_skip_write(const char *name, const bool is_multi)
 {
   /* Do not blindly pass along compression or colorInteropID, as they might have changed
-   * and will already be written when appropriate.
+   * and will already be written when appropriate. Same for metadata about the software
+   * that wrote the file and the type (scanline, tiled, deep).
    *
    * Multi-layer name and view are skipped, see #openexr_metadata_skip_read. */
-  return STR_ELEM(name, "compression", "colorInteropID") ||
+  return STR_ELEM(
+             name, "compression", "colorInteropID", "Software", "BlenderMultiChannel", "type") ||
          (is_multi && STR_ELEM(name, "name", "view"));
 }
 
