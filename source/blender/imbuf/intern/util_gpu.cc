@@ -305,7 +305,7 @@ static void get_gpu_texture_data(ImBuf *source_buffer,
     }
 
     /* Avoid excessive overhead with small updates. */
-    const bool threaded = size.x >= 1024;
+    const bool threaded = int64_t(size.x) * size.y >= 512 * 512;
 
     if (is_float) {
       IMB_scale_box(static_cast<const float *>(r_upload.data),
