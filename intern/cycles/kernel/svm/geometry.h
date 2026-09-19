@@ -184,8 +184,6 @@ ccl_device_noinline void svm_node_particle_info(KernelGlobals kg,
   }
 }
 
-#ifdef __HAIR__
-
 /* Hair Info */
 
 ccl_device_noinline void svm_node_hair_info(KernelGlobals kg,
@@ -209,20 +207,27 @@ ccl_device_noinline void svm_node_hair_info(KernelGlobals kg,
     case NODE_INFO_CURVE_RANDOM:
       break; /* handled as attribute */
     case NODE_INFO_CURVE_THICKNESS: {
+#ifdef __HAIR__
       data = curve_thickness(kg, sd);
+#else
+      data = 0.0f;
+#endif
       stack_store_float(stack, node.out_offset, data);
       break;
     }
     case NODE_INFO_CURVE_TANGENT_NORMAL: {
+#ifdef __HAIR__
       data3 = curve_tangent_normal(sd);
+#else
+      data3 = zero_float3();
+#endif
       stack_store_float3(stack, node.out_offset, data3);
       break;
     }
   }
-}
-#endif
 
-#ifdef __POINTCLOUD__
+  (void)kg;
+}
 
 /* Point Info */
 
@@ -233,16 +238,25 @@ ccl_device_noinline void svm_node_point_info(KernelGlobals kg,
 {
   switch (node.info_type) {
     case NODE_INFO_POINT_POSITION:
+#ifdef __POINTCLOUD__
       stack_store_float3(stack, node.out_offset, point_position(kg, sd));
+#else
+      stack_store_float3(stack, node.out_offset, zero_float3());
+#endif
       break;
     case NODE_INFO_POINT_RADIUS:
+#ifdef __POINTCLOUD__
       stack_store_float(stack, node.out_offset, point_radius(kg, sd));
+#else
+      stack_store_float(stack, node.out_offset, 0.0f);
+#endif
       break;
     case NODE_INFO_POINT_RANDOM:
       break; /* handled as attribute */
   }
-}
 
-#endif
+  (void)kg;
+  (void)sd;
+}
 
 CCL_NAMESPACE_END
