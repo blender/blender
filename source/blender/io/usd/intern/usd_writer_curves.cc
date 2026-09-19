@@ -702,6 +702,10 @@ void USDCurvesWriter::do_write(HierarchyContext &context)
 void USDCurvesWriter::assign_materials(const HierarchyContext &context,
                                        const pxr::UsdGeomCurves &usd_curves)
 {
+  if (!usd_export_context_.export_params.export_materials) {
+    return;
+  }
+
   const int totcol = BKE_object_material_count_eval(context.object);
   if (totcol == 0) {
     return;
