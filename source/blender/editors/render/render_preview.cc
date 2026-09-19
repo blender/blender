@@ -61,6 +61,7 @@
 #include "BKE_main.hh"
 #include "BKE_material.hh"
 #include "BKE_node.hh"
+#include "BKE_node_tree_update.hh"
 #include "BKE_object.hh"
 #include "BKE_pose_backup.h"
 #include "BKE_preview_image.hh"
@@ -388,6 +389,9 @@ World *ED_preview_prepare_world_simple(Main *bmain)
   node_set_active(*ntree, *output);
 
   world->nodetree = ntree;
+
+  BKE_ntree_update_after_single_tree_change(*bmain, *ntree);
+
   return world;
 }
 
