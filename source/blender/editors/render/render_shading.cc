@@ -322,7 +322,9 @@ static wmOperatorStatus material_slot_assign_exec(bContext *C, wmOperator * /*op
     if (ob->totcol == 0) {
       continue;
     }
-    if (obact && (mat_active == BKE_object_material_get(ob, obact->actcol))) {
+    if (obact && (obact->actcol >= 1 && obact->actcol <= ob->totcol) &&
+        (mat_active == BKE_object_material_get(ob, obact->actcol)))
+    {
       /* Avoid searching since there may be multiple slots with the same material.
        * For the active object or duplicates: match the material slot index first. */
       mat_nr_active = obact->actcol - 1;
