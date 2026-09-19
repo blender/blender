@@ -28,6 +28,7 @@
 #include "BLI_listbase.hh"
 #include "BLI_path_utils.hh"
 #include "BLI_rect.hh"
+#include "BLI_set.hh"
 #include "BLI_string.hh"
 #include "BLI_string_utils.hh"
 
@@ -698,6 +699,23 @@ void BKE_image_free_buffers(Image *ima)
   BKE_image_free_buffers_ex(ima, false);
 }
 
+/* Gather image buffers used by a multilayer image. */
+static Set<const ImBuf *> image_multilayer_ibufs(const Image &ima)
+{
+  Set<const ImBuf *> buffers;
+  if (ima.type != IMA_TYPE_MULTILAYER || ima.rr == nullptr) {
+    return buffers;
+  }
+  for (const RenderLayer &rl : ima.rr->layers) {
+    for (const RenderPass &rpass : rl.passes) {
+      if (rpass.ibuf) {
+        buffers.add(rpass.ibuf);
+      }
+    }
+  }
+  return buffers;
+}
+
 void BKE_image_free_old_buffers(Main *bmain)
 {
   static int64_t lasttime = 0;
@@ -727,6 +745,8 @@ void BKE_image_free_old_buffers(Main *bmain)
     {
       std::scoped_lock lock(ima.runtime->cache_mutex);
 
+      const Set<const ImBuf *> multilayer_ibufs = image_multilayer_ibufs(ima);
+
       /* Gather entries to remove. */
       Vector<ImageCacheKey> to_remove;
       ImBufCacheIter *iter = IMB_cacheIter_new(ima.runtime->cache);
@@ -735,9 +755,11 @@ void BKE_image_free_old_buffers(Main *bmain)
         if (ibuf != nullptr) {
           /* GPU buffers: free when past timeout and image buffer is not used elsewhere. */
           bool freed_gpu = false;
+          /* Multilayer images have another reference we need to account for. */
+          const int owner_refs = multilayer_ibufs.contains(ibuf) ? 1 : 0;
           if (ctime - ibuf->gpu.lastused > U.textimeout) {
             if ((ibuf->gpu.texture || ibuf->gpu.flag & IMB_GPU_LOAD_FAILED) &&
-                ibuf->refcounter == 0)
+                ibuf->refcounter == owner_refs)
             {
               IMB_free_gpu_textures(ibuf);
               freed_gpu = true;
@@ -763,6 +785,12 @@ void BKE_image_free_old_buffers(Main *bmain)
       /* Remove entries. */
       for (const ImageCacheKey &key : to_remove) {
         imagecache_remove(&ima, key);
+      }
+
+      /* Also free multilayer render result when all buffers are unused. */
+      if (!any_buffer_left && !multilayer_ibufs.is_empty()) {
+        RE_FreeRenderResult(ima.rr);
+        ima.rr = nullptr;
       }
     }
 
