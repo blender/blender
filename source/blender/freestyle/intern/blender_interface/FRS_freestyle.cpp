@@ -42,6 +42,7 @@
 #include "DEG_depsgraph_query.hh"
 
 #include "IMB_imbuf.hh"
+#include "IMB_partial_update.hh"
 
 #include "pipeline.hh"
 
@@ -471,10 +472,6 @@ static void prepare(Render *re, ViewLayer *view_layer, Depsgraph *depsgraph)
 
 void FRS_composite_result(Render *re, ViewLayer *view_layer, Render *freestyle_render)
 {
-  RenderLayer *rl;
-  float *src, *dest, *pixSrc, *pixDest;
-  int x, y, rectx, recty;
-
   if (freestyle_render == nullptr || freestyle_render->result == nullptr) {
     if (view_layer->freestyle_config.flags & FREESTYLE_AS_RENDER_PASS) {
       // Create a blank render pass output.
@@ -484,7 +481,7 @@ void FRS_composite_result(Render *re, ViewLayer *view_layer, Render *freestyle_r
     return;
   }
 
-  rl = render_get_single_layer(freestyle_render, freestyle_render->result);
+  RenderLayer *rl = render_get_single_layer(freestyle_render, freestyle_render->result);
   if (!rl) {
     if (G.debug & G_DEBUG_FREESTYLE) {
       cout << "No source render layer to composite" << endl;
@@ -492,7 +489,7 @@ void FRS_composite_result(Render *re, ViewLayer *view_layer, Render *freestyle_r
     return;
   }
 
-  src = RE_RenderLayerGetPass(rl, RE_PASSNAME_COMBINED, freestyle_render->viewname);
+  const float *src = RE_RenderLayerGetPass(rl, RE_PASSNAME_COMBINED, freestyle_render->viewname);
   if (!src) {
     if (G.debug & G_DEBUG_FREESTYLE) {
       cout << "No source result image to composite" << endl;
@@ -513,14 +510,18 @@ void FRS_composite_result(Render *re, ViewLayer *view_layer, Render *freestyle_r
     return;
   }
 
+  const char *dest_pass;
   if (view_layer->freestyle_config.flags & FREESTYLE_AS_RENDER_PASS) {
     RE_create_render_pass(
         re->result, RE_PASSNAME_FREESTYLE, 4, "RGBA", view_layer->name, re->viewname, true);
-    dest = RE_RenderLayerGetPass(rl, RE_PASSNAME_FREESTYLE, re->viewname);
+    dest_pass = RE_PASSNAME_FREESTYLE;
   }
   else {
-    dest = RE_RenderLayerGetPass(rl, RE_PASSNAME_COMBINED, re->viewname);
+    dest_pass = RE_PASSNAME_COMBINED;
   }
+
+  ImBuf *dest_ibuf = RE_RenderLayerGetPassImBuf(rl, dest_pass, re->viewname);
+  float *dest = (dest_ibuf) ? dest_ibuf->float_data_for_write() : nullptr;
   if (!dest) {
     if (G.debug & G_DEBUG_FREESTYLE) {
       cout << "No destination result image to composite to" << endl;
@@ -533,17 +534,19 @@ void FRS_composite_result(Render *re, ViewLayer *view_layer, Render *freestyle_r
   }
 #endif
 
-  rectx = re->rectx;
-  recty = re->recty;
-  for (y = 0; y < recty; y++) {
-    for (x = 0; x < rectx; x++) {
-      pixSrc = src + 4 * (rectx * y + x);
+  const int rectx = re->rectx;
+  const int recty = re->recty;
+  for (int y = 0; y < recty; y++) {
+    for (int x = 0; x < rectx; x++) {
+      const float *pixSrc = src + 4 * (rectx * y + x);
       if (pixSrc[3] > 0.0) {
-        pixDest = dest + 4 * (rectx * y + x);
+        float *pixDest = dest + 4 * (rectx * y + x);
         blend_color_mix_float(pixDest, pixDest, pixSrc);
       }
     }
   }
+
+  IMB_partial_update_mark_full(dest_ibuf);
 }
 
 static int displayed_layer_count(ViewLayer *view_layer)
