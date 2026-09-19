@@ -1269,15 +1269,16 @@ static void paint_2d_do_making_brush(ImagePaintState *s,
       int origx = region->destx - tx * ED_IMAGE_UNDO_TILE_SIZE;
       int origy = region->desty - ty * ED_IMAGE_UNDO_TILE_SIZE;
 
-      if (const ImBuf *data = ED_image_paint_tile_find(
-              undo_tiles, s->image, tile->canvas, &tile->iuser, tx, ty, &mask, false))
-      {
-        if (tile->canvas->float_data()) {
-          tmpbuf.float_buffer = data->float_buffer;
-        }
-        else {
-          tmpbuf.byte_buffer = data->byte_buffer;
-        }
+      const ImBuf *data = ED_image_paint_tile_find(
+          undo_tiles, s->image, tile->canvas, &tile->iuser, tx, ty, &mask, false);
+      if (data == nullptr) {
+        continue;
+      }
+      if (tile->canvas->float_data()) {
+        tmpbuf.float_buffer = data->float_buffer;
+      }
+      else {
+        tmpbuf.byte_buffer = data->byte_buffer;
       }
 
       IMB_rectblend(tile->canvas,
