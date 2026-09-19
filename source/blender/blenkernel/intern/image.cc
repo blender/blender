@@ -533,7 +533,8 @@ static ImBuf *image_acquire_ibuf(Image *ima,
                                  ImageUser *iuser,
                                  void **r_lock,
                                  const bool ensure_host_buffer,
-                                 bool *r_load_failed = nullptr);
+                                 bool *r_load_failed = nullptr,
+                                 const bool cached_only = false);
 static void image_update_views_format(Image *ima, ImageUser *iuser);
 static void image_add_view(Image *ima, const char *viewname, const char *filepath);
 
@@ -4847,7 +4848,8 @@ static ImBuf *image_acquire_ibuf(Image *ima,
                                  ImageUser *iuser,
                                  void **r_lock,
                                  const bool ensure_host_buffer,
-                                 bool *r_load_failed)
+                                 bool *r_load_failed,
+                                 const bool cached_only)
 {
   ImBuf *ibuf = nullptr;
   int entry = 0, index = 0;
@@ -4870,6 +4872,11 @@ static ImBuf *image_acquire_ibuf(Image *ima,
     if (r_load_failed) {
       *r_load_failed = true;
     }
+    return nullptr;
+  }
+
+  if (ibuf == nullptr && cached_only) {
+    /* Don't load from file. */
     return nullptr;
   }
 
@@ -4992,14 +4999,15 @@ ImBuf *BKE_image_acquire_ibuf(Image *ima, ImageUser *iuser, void **r_lock)
 
 /* Identical to BKE_image_acquire_ibuf but passing false to the ensure_host_buffer argument for the
  * image_acquire_ibuf function. */
-ImBuf *BKE_image_acquire_ibuf_gpu(Image *ima, ImageUser *iuser, void **r_lock, bool *r_load_failed)
+ImBuf *BKE_image_acquire_ibuf_gpu(
+    Image *ima, ImageUser *iuser, void **r_lock, bool *r_load_failed, const bool cached_only)
 {
   if (ima == nullptr) {
     return nullptr;
   }
 
   std::scoped_lock lock(ima->runtime->cache_mutex);
-  return image_acquire_ibuf(ima, iuser, r_lock, false, r_load_failed);
+  return image_acquire_ibuf(ima, iuser, r_lock, false, r_load_failed, cached_only);
 }
 
 static int get_multilayer_view_index(const Image &image,
