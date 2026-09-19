@@ -522,7 +522,7 @@ void ABCGenericMeshWriter::get_geo_groups(Object *object,
   for (const int i : material_indices.index_range()) {
     short mnr = material_indices[i];
 
-    Material *mat = BKE_object_material_get(object, mnr + 1);
+    Material *mat = BKE_object_material_get_eval(object, mnr + 1);
 
     if (!mat) {
       continue;
@@ -539,7 +539,7 @@ void ABCGenericMeshWriter::get_geo_groups(Object *object,
   }
 
   if (geo_groups.empty()) {
-    Material *mat = BKE_object_material_get(object, 1);
+    Material *mat = BKE_object_material_get_eval(object, 1);
 
     std::string name = (mat) ? args_.hierarchy_iterator->get_id_name(&mat->id) : "default";
 
