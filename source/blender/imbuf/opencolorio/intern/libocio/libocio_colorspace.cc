@@ -21,7 +21,8 @@ namespace ocio {
 
 LibOCIOColorSpace::LibOCIOColorSpace(const int index,
                                      const OCIO_NAMESPACE::ConstConfigRcPtr &ocio_config,
-                                     const OCIO_NAMESPACE::ConstColorSpaceRcPtr &ocio_color_space)
+                                     const OCIO_NAMESPACE::ConstColorSpaceRcPtr &ocio_color_space,
+                                     Set<StringRef> &primary_interop_ids)
     : ocio_config_(ocio_config),
       ocio_color_space_(ocio_color_space),
       clean_description_(cleanup_description(ocio_color_space->getDescription())),
@@ -34,6 +35,7 @@ LibOCIOColorSpace::LibOCIOColorSpace(const int index,
 #if OCIO_VERSION_HEX >= 0x02050000
   interop_id_ = ocio_color_space->getInteropID();
 #endif
+  bool is_legacy_interop_id = false;
 
   if (interop_id_.is_empty()) {
     /* For older configs and older OpenColorIO versions, check the aliases as fallback.
@@ -85,19 +87,17 @@ LibOCIOColorSpace::LibOCIOColorSpace(const int index,
         interop_id_ = alias;
       }
     }
-    is_primary_interop_id_ = !interop_id_.is_empty();
+    is_legacy_interop_id = !interop_id_.is_empty();
   }
-  else {
-    is_primary_interop_id_ = (interop_id_ == name());
-    if (!is_primary_interop_id_) {
-      const int num_aliases = ocio_color_space->getNumAliases();
-      for (int i = 0; i < num_aliases; i++) {
-        if (interop_id_ == ocio_color_space_->getAlias(i)) {
-          is_primary_interop_id_ = true;
-          break;
-        }
-      }
-    }
+
+  if (!interop_id_.is_empty()) {
+    /* Detect if this is the primary interop ID, either because the colorspace
+     * name or an alias is the same, or because it's a legacy interop ID and
+     * there is no other color space that has it as a name or alias. */
+    const OCIO_NAMESPACE::ConstColorSpaceRcPtr owner = ocio_config->getColorSpace(
+        interop_id_.c_str());
+    const bool is_owner = owner && name() == owner->getName();
+    is_primary_interop_id_ = is_owner || (is_legacy_interop_id && !owner);
   }
 
   /* Special case that we can not handle as an alias, because it's a role too. */
@@ -107,6 +107,11 @@ LibOCIOColorSpace::LibOCIOColorSpace(const int index,
       interop_id_ = "data";
       is_primary_interop_id_ = true;
     }
+  }
+
+  /* If multiple legacy aliases are found for the same interop ID, the first one wins. */
+  if (is_primary_interop_id_ && !primary_interop_ids.add(interop_id_)) {
+    is_primary_interop_id_ = false;
   }
 
   CLOG_TRACE(&LOG,

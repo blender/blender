@@ -8,6 +8,8 @@
 
 #include "MEM_guardedalloc.h"
 
+#include "BLI_set.hh"
+
 #include "OCIO_colorspace.hh"
 
 #include "../cpu_processor_cache.hh"
@@ -35,7 +37,8 @@ class LibOCIOColorSpace : public ColorSpace {
  public:
   LibOCIOColorSpace(int index,
                     const OCIO_NAMESPACE::ConstConfigRcPtr &ocio_config,
-                    const OCIO_NAMESPACE::ConstColorSpaceRcPtr &ocio_color_space);
+                    const OCIO_NAMESPACE::ConstColorSpaceRcPtr &ocio_color_space,
+                    Set<StringRef> &primary_interop_ids);
 
   StringRefNull name() const override
   {

@@ -8,6 +8,7 @@
 
 #include "MEM_guardedalloc.h"
 
+#include "BLI_set.hh"
 #include "BLI_vector.hh"
 
 #include "OCIO_config.hh"
@@ -118,10 +119,10 @@ class LibOCIOConfig : public Config {
 
   /* Initialize BLender-side representation of color spaces, displays, etc. from the current
    * OpenColorIO configuration. */
-  void initialize_active_color_spaces();
+  void initialize_active_color_spaces(Set<StringRef> &primary_interop_ids);
   void initialize_sorted_color_space_index();
-  void initialize_inactive_color_spaces();
-  void initialize_hdr_color_spaces();
+  void initialize_inactive_color_spaces(Set<StringRef> &primary_interop_ids);
+  void initialize_hdr_color_spaces(Set<StringRef> &primary_interop_ids);
   void initialize_looks();
   void initialize_displays();
 
