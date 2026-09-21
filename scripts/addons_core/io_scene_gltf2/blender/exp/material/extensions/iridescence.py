@@ -20,9 +20,9 @@ def export_iridescence(bmat, export_settings):
 
     # Mapping:
     # Iridescence Thickness (Blender) -> Iridescence Thickness Maximum (glTF)
-    # Iridesence Thickness Mininum (Blender, glTF Output Material Node) -> Iridescence Thickness Minimum (glTF)
+    # Iridescence Thickness Minimum (Blender, glTF Output Material Node) -> Iridescence Thickness Minimum (glTF)
     # Iridescence Thickness Texture Red (Blender) -> Iridescence Thickness Texture (glTF)
-    # Tickness IOR (Blender) -> Iridescence IOR (glTF) . Warning, Blender default 1.333, glTF default 1.3
+    # Thickness IOR (Blender) -> Iridescence IOR (glTF) . Warning, Blender default 1.333, glTF default 1.3
     # IridescenceFactor (Blender, glTF Output Material Node) -> Iridescence Factor (glTF)
     # IridescenceTexture Red (Blender, glTF Output Material Node texture on
     # IridescenceFactor) -> Iridescence Texture (glTF)

@@ -58,7 +58,7 @@ class BlenderAnimation():
                     BlenderPointerAnim.anim(gltf, anim_idx, mat.occlusion_texture,
                                             mat_idx, 'MATERIAL_PBR', name=mat.name)
                 if mat.pbr_metallic_roughness is not None and len(mat.pbr_metallic_roughness.animations) != 0:
-                    # This can be a regulat PBR or unlit material
+                    # This can be a regular PBR or unlit material
                     is_unlit = mat.extensions is not None and "KHR_materials_unlit" in mat.extensions
                     BlenderPointerAnim.anim(gltf, anim_idx, mat.pbr_metallic_roughness, mat_idx,
                                             'MATERIAL_PBR', name=mat.name, is_unlit=is_unlit)
@@ -73,7 +73,7 @@ class BlenderAnimation():
 
                 for tex in [t for t in texs if t is not None]:
                     if tex.extensions is not None and "KHR_texture_transform" in tex.extensions:
-                        # This can be a regulat PBR or unlit material
+                        # This can be a regular PBR or unlit material
                         is_unlit = mat.extensions is not None and "KHR_materials_unlit" in mat.extensions
                         BlenderPointerAnim.anim(
                             gltf,

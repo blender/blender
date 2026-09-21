@@ -34,7 +34,7 @@ class Buffer:
 
         # If there is an additional buffer => We are exporting with meshopt
         # It means that compressed data will go in the additional buffer
-        # And uncomppressed data will also go in the additional buffer,
+        # And uncompressed data will also go in the additional buffer,
         # as only fallback data must go in the main buffer (bufferView definition, but without any real data.
 
         # if hasattr(binary_data, 'extensions') => Compressed data,

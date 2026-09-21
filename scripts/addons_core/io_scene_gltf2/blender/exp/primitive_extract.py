@@ -780,7 +780,7 @@ class PrimitiveCreator:
                     if indices.shape[0] == 0:
                         continue
 
-                    # Reset UVMap to 0-1 : reset to Blener UVMAP => slide to 0-1 => go to glTF UVMap
+                    # Reset UVMap to 0-1 : reset to Blender UVMAP => slide to 0-1 => go to glTF UVMap
                     self.dots[uvmap_name + '1'][indices] -= 1
                     self.dots[uvmap_name + '1'][indices] *= -1
                     self.dots[uvmap_name + '0'][indices] -= u

@@ -419,7 +419,7 @@ class NodeNav:
                     break
 
             elif self.in_socket.type == 'SHADER':
-                # Historicaly, we manage RGB node plugged into a shader socket (output node)
+                # Historically, we manage RGB node plugged into a shader socket (output node)
                 if nav.node.type == 'RGB':
                     color = list(nav.out_socket.default_value)
                     color = color[:3]

@@ -49,7 +49,7 @@ def gather_data_sampled_keyframes(
             export_settings['gltf_animation_mode'] not in ["ACTIONS", "ACTIVE_ACTIONS"]:
         action_name = used_blender_id
 
-    # Use object_uuid always, here (so keep range_blender_id, that comes from blender_id not overriden)
+    # Use object_uuid always, here (so keep range_blender_id, that comes from blender_id not overridden)
     start_frame = export_settings['ranges'][range_blender_id][action_name_for_range]['start']
     end_frame = export_settings['ranges'][range_blender_id][action_name_for_range]['end']
 

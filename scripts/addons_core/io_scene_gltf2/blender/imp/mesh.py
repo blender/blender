@@ -608,11 +608,11 @@ def manage_materials(gltf, pymesh, data, num_elements, on='FACE'):
                 vertex_color = 'COLOR_0' if ('COLOR_0' in prim.attributes) else None
                 if vertex_color is not None:
                     if we_can_merge_slots is True and not has_variant:
-                        # Check if we already have a slot for default material + this vertec color
+                        # Check if we already have a slot for default material + this vertex color
                         if vertex_color in default_materials.keys():
                             material_index = default_materials[vertex_color]
                         else:
-                            # Create a new slot for default material + this vertec color
+                            # Create a new slot for default material + this vertex color
                             name = BlenderMaterial.create(gltf, None, vertex_color)
                             data.materials.append(bpy.data.materials[name])
                             material_index = len(data.materials) - 1

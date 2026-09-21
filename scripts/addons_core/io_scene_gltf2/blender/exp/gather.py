@@ -105,7 +105,7 @@ def __gather_scene(blender_scene, export_settings):
         vtree.break_bone_hierarchy()
 
     vtree.bake_armature_bone_list()  # Used in case we remove the armature. Doing it after filter, as filter can remove some bones
-    # And ater breaking bone hierarchy, as this changed the root list
+    # And later breaking bone hierarchy, as this changed the root list
 
     if export_settings['gltf_flatten_obj_hierarchy'] is True:
         vtree.break_obj_hierarchy()
