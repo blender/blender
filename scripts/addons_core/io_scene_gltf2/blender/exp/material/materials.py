@@ -922,7 +922,7 @@ def __get_final_material_with_indices(blender_material, base_material, caching_i
                 material.extensions["KHR_materials_sheen"].extension['sheenRoughnessTexture'].tex_coord = ind
         elif tex == "thicknessTexture":
             if material.extensions["KHR_materials_volume"].extension['thicknessTexture']:
-                material.extensions["KHR_materials_volume"].extension['thicknessTexture'].tex_ccord = ind
+                material.extensions["KHR_materials_volume"].extension['thicknessTexture'].tex_coord = ind
         elif tex == "anisotropyTexture":
             if material.extensions["KHR_materials_anisotropy"].extension['anisotropyTexture']:
                 material.extensions["KHR_materials_anisotropy"].extension['anisotropyTexture'].tex_coord = ind

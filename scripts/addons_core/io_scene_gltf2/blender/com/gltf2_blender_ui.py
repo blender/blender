@@ -146,7 +146,7 @@ class SCENE_OT_gltf2_variant_add(bpy.types.Operator):
     def execute(self, context):
         var = bpy.data.scenes[0].gltf2_KHR_materials_variants_variants.add()
         var.variant_idx = len(bpy.data.scenes[0].gltf2_KHR_materials_variants_variants) - 1
-        var.name = "VariantName"
+        var.name = "Variant Name"
         bpy.data.scenes[0].gltf2_active_variant = len(bpy.data.scenes[0].gltf2_KHR_materials_variants_variants) - 1
         return {'FINISHED'}
 
