@@ -4303,6 +4303,21 @@ static void rna_NodeConvertColorSpace_from_color_space_set(PointerRNA *ptr, int 
         node_storage->from_color_space, node_storage->from_interop_id, name);
   }
 }
+
+static int rna_NodeConvertColorSpace_from_interop_id_get(PointerRNA *ptr)
+{
+  bNode *node = ptr->data_as<bNode>();
+  NodeConvertColorSpace *node_storage = static_cast<NodeConvertColorSpace *>(node->storage);
+  return IMB_colormanagement_colorspace_get_interop_id_index(node_storage->from_color_space);
+}
+
+static void rna_NodeConvertColorSpace_from_interop_id_set(PointerRNA *ptr, int value)
+{
+  if (value != -1) {
+    rna_NodeConvertColorSpace_from_color_space_set(ptr, value);
+  }
+}
+
 static int rna_NodeConvertColorSpace_to_color_space_get(PointerRNA *ptr)
 {
   bNode *node = ptr->data_as<bNode>();
@@ -4319,6 +4334,20 @@ static void rna_NodeConvertColorSpace_to_color_space_set(PointerRNA *ptr, int va
   if (name && name[0]) {
     IMB_colormanagement_colorspace_name_set(
         node_storage->to_color_space, node_storage->to_interop_id, name);
+  }
+}
+
+static int rna_NodeConvertColorSpace_to_interop_id_get(PointerRNA *ptr)
+{
+  bNode *node = ptr->data_as<bNode>();
+  NodeConvertColorSpace *node_storage = static_cast<NodeConvertColorSpace *>(node->storage);
+  return IMB_colormanagement_colorspace_get_interop_id_index(node_storage->to_color_space);
+}
+
+static void rna_NodeConvertColorSpace_to_interop_id_set(PointerRNA *ptr, int value)
+{
+  if (value != -1) {
+    rna_NodeConvertColorSpace_to_color_space_set(ptr, value);
   }
 }
 
@@ -4368,6 +4397,23 @@ static void rna_implicit_conversion_node_socket_type_set(PointerRNA *ptr, const 
   }
   NodeImplicitConversion *storage = static_cast<NodeImplicitConversion *>(node.storage);
   STRNCPY(storage->type_idname, value);
+}
+
+static const EnumPropertyItem *rna_NodeConvertColorSpace_interop_id_itemf(bContext * /*C*/,
+                                                                          PointerRNA * /*ptr*/,
+                                                                          PropertyRNA * /*prop*/,
+                                                                          bool *r_free)
+{
+  EnumPropertyItem *items = nullptr;
+  int totitem = 0;
+
+  RNA_enum_items_add(&items, &totitem, rna_enum_color_space_interop_id_default_items);
+  IMB_colormanagement_interop_id_items_add(&items, &totitem);
+  RNA_enum_item_end(&items, &totitem);
+
+  *r_free = true;
+
+  return items;
 }
 
 static const EnumPropertyItem *rna_NodeConvertColorSpace_color_space_itemf(bContext * /*C*/,
@@ -7087,6 +7133,16 @@ static void def_cmp_convert_color_space(BlenderRNA * /*brna*/, StructRNA *srna)
   RNA_def_property_translation_context(prop, BLT_I18NCONTEXT_COLOR_MANAGEMENT);
   RNA_def_property_update(prop, NC_NODE | NA_EDITED, "rna_Node_update");
 
+  prop = RNA_def_property(srna, "from_interop_id", PROP_ENUM, PROP_NONE);
+  RNA_def_property_flag(prop, PROP_ENUM_NO_CONTEXT);
+  RNA_def_property_enum_items(prop, rna_enum_color_space_interop_id_default_items);
+  RNA_def_property_enum_funcs(prop,
+                              "rna_NodeConvertColorSpace_from_interop_id_get",
+                              "rna_NodeConvertColorSpace_from_interop_id_set",
+                              "rna_NodeConvertColorSpace_interop_id_itemf");
+  RNA_def_property_ui_text(prop, "From Interop ID", "Interop ID of the input color space");
+  RNA_def_property_update(prop, NC_NODE | NA_EDITED, "rna_Node_update");
+
   prop = RNA_def_property(srna, "to_color_space", PROP_ENUM, PROP_NONE);
   RNA_def_property_flag(prop, PROP_ENUM_NO_CONTEXT);
   RNA_def_property_enum_items(prop, rna_enum_color_space_convert_default_items);
@@ -7096,6 +7152,16 @@ static void def_cmp_convert_color_space(BlenderRNA * /*brna*/, StructRNA *srna)
                               "rna_NodeConvertColorSpace_color_space_itemf");
   RNA_def_property_ui_text(prop, "To", "Color space of the output image");
   RNA_def_property_translation_context(prop, BLT_I18NCONTEXT_COLOR_MANAGEMENT);
+  RNA_def_property_update(prop, NC_NODE | NA_EDITED, "rna_Node_update");
+
+  prop = RNA_def_property(srna, "to_interop_id", PROP_ENUM, PROP_NONE);
+  RNA_def_property_flag(prop, PROP_ENUM_NO_CONTEXT);
+  RNA_def_property_enum_items(prop, rna_enum_color_space_interop_id_default_items);
+  RNA_def_property_enum_funcs(prop,
+                              "rna_NodeConvertColorSpace_to_interop_id_get",
+                              "rna_NodeConvertColorSpace_to_interop_id_set",
+                              "rna_NodeConvertColorSpace_interop_id_itemf");
+  RNA_def_property_ui_text(prop, "To Interop ID", "Interop ID of the output color space");
   RNA_def_property_update(prop, NC_NODE | NA_EDITED, "rna_Node_update");
 }
 

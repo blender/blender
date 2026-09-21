@@ -1440,6 +1440,15 @@ const ColorSpace *IMB_colormanagement_space_from_interop_id(StringRefNull intero
   return g_config()->get_color_space_by_interop_id(interop_id);
 }
 
+int IMB_colormanagement_colorspace_get_interop_id_index(const char *name)
+{
+  const ColorSpace *colorspace = name[0] ? g_config()->get_color_space(name) : nullptr;
+  if (!colorspace || !colorspace->is_primary_interop_id()) {
+    return -1;
+  }
+  return colorspace->index;
+}
+
 float3x3 IMB_colormanagement_get_xyz_to_scene_linear()
 {
   return float3x3(colorspace::xyz_to_scene_linear);
@@ -3462,6 +3471,32 @@ void IMB_colormanagement_look_items_add(EnumPropertyItem **items,
     item.icon = 0;
     item.description = look->description().c_str();
 
+    RNA_enum_item_add(items, totitem, &item);
+  }
+}
+
+void IMB_colormanagement_interop_id_items_add(EnumPropertyItem **items, int *totitem)
+{
+  /* Same color spaces as #IMB_colormanagement_colorspace_items_add, with Primary
+   * interop IDs only to avoid duplicates. */
+  Vector<const ColorSpace *> colorspaces;
+  for (const int colorspace_index : IndexRange(g_config()->get_num_active_color_spaces())) {
+    const ColorSpace *colorspace = g_config()->get_sorted_color_space_by_index(colorspace_index);
+    if (colorspace->is_primary_interop_id()) {
+      colorspaces.append(colorspace);
+    }
+  }
+  std::ranges::sort(colorspaces, [](const ColorSpace *a, const ColorSpace *b) {
+    return a->interop_id() < b->interop_id();
+  });
+
+  for (const ColorSpace *colorspace : colorspaces) {
+    EnumPropertyItem item;
+    item.value = colorspace->index;
+    item.name = colorspace->interop_id().c_str();
+    item.identifier = colorspace->interop_id().c_str();
+    item.icon = 0;
+    item.description = colorspace->name().c_str();
     RNA_enum_item_add(items, totitem, &item);
   }
 }

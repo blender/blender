@@ -271,6 +271,15 @@ TEST_F(ColorManagementInteropIDTest, stored_color_spaces_resolve_by_interop_id)
     EXPECT_EQ(resolve(name, interop_id.c_str()), name);
   }
 
+  /* Interop ID index of named color spaces. */
+  EXPECT_EQ(IMB_colormanagement_colorspace_get_interop_id_index("Linear Rec.709"),
+            IMB_colormanagement_colorspace_get_named_index("Linear Rec.709"));
+  EXPECT_EQ(IMB_colormanagement_colorspace_get_interop_id_index("scene_linear"),
+            IMB_colormanagement_colorspace_get_named_index("Linear Rec.709"));
+  EXPECT_EQ(IMB_colormanagement_colorspace_get_interop_id_index("Filmic sRGB"), -1);
+  EXPECT_EQ(IMB_colormanagement_colorspace_get_interop_id_index("Unknown"), -1);
+  EXPECT_EQ(IMB_colormanagement_colorspace_get_interop_id_index(""), -1);
+
   /* Test the other way around. */
   ASSERT_TRUE(IMB_colormanagement_switch_config("ocio://default"));
   EXPECT_EQ(resolve("Linear Rec.2020", "lin_rec2020_scene"), "Linear Rec.2020");

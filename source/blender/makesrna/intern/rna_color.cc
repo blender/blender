@@ -32,7 +32,12 @@ const EnumPropertyItem rna_enum_color_space_convert_default_items[] = {
     {0, nullptr, 0, nullptr, nullptr},
 };
 
-}
+const EnumPropertyItem rna_enum_color_space_interop_id_default_items[] = {
+    {-1, "NONE", 0, "None", "The color space has no interop ID"},
+    {0, nullptr, 0, nullptr, nullptr},
+};
+
+}  // namespace blender
 
 #ifdef RNA_RUNTIME
 
@@ -742,6 +747,35 @@ static void rna_ColorManagedColorspaceSettings_colorspace_set(PointerRNA *ptr, i
   if (name && name[0]) {
     IMB_colormanagement_colorspace_settings_set(colorspace, name);
   }
+}
+
+static int rna_ColorManagedColorspaceSettings_interop_id_get(PointerRNA *ptr)
+{
+  ColorManagedColorspaceSettings *colorspace = static_cast<ColorManagedColorspaceSettings *>(
+      ptr->data);
+  return IMB_colormanagement_colorspace_get_interop_id_index(colorspace->name);
+}
+
+static void rna_ColorManagedColorspaceSettings_interop_id_set(PointerRNA *ptr, int value)
+{
+  if (value != -1) {
+    rna_ColorManagedColorspaceSettings_colorspace_set(ptr, value);
+  }
+}
+
+static const EnumPropertyItem *rna_ColorManagedColorspaceSettings_interop_id_itemf(
+    bContext * /*C*/, PointerRNA * /*ptr*/, PropertyRNA * /*prop*/, bool *r_free)
+{
+  EnumPropertyItem *items = nullptr;
+  int totitem = 0;
+
+  RNA_enum_items_add(&items, &totitem, rna_enum_color_space_interop_id_default_items);
+  IMB_colormanagement_interop_id_items_add(&items, &totitem);
+  RNA_enum_item_end(&items, &totitem);
+
+  *r_free = true;
+
+  return items;
 }
 
 static const EnumPropertyItem *rna_ColorManagedColorspaceSettings_colorspace_itemf(
@@ -1561,6 +1595,20 @@ static void rna_def_colormanage(BlenderRNA *brna)
   RNA_def_property_translation_context(prop, BLT_I18NCONTEXT_COLOR_MANAGEMENT);
   RNA_def_property_update(prop, NC_WINDOW, "rna_ColorManagedColorspaceSettings_reload_update");
 
+  prop = RNA_def_property(srna, "interop_id", PROP_ENUM, PROP_NONE);
+  RNA_def_property_flag(prop, PROP_ENUM_NO_CONTEXT);
+  RNA_def_property_clear_flag(prop, PROP_ANIMATABLE);
+  RNA_def_property_enum_items(prop, rna_enum_color_space_interop_id_default_items);
+  RNA_def_property_enum_funcs(prop,
+                              "rna_ColorManagedColorspaceSettings_interop_id_get",
+                              "rna_ColorManagedColorspaceSettings_interop_id_set",
+                              "rna_ColorManagedColorspaceSettings_interop_id_itemf");
+  RNA_def_property_ui_text(prop,
+                           "Interop ID",
+                           "Identifier of the color space that works across OpenColorIO "
+                           "configurations, as defined by the ASWF Color Interop Forum");
+  RNA_def_property_update(prop, NC_WINDOW, "rna_ColorManagedColorspaceSettings_reload_update");
+
   prop = RNA_def_property(srna, "is_data", PROP_BOOLEAN, PROP_NONE);
   RNA_def_property_clear_flag(prop, PROP_ANIMATABLE);
   RNA_def_property_boolean_funcs(prop,
@@ -1587,6 +1635,20 @@ static void rna_def_colormanage(BlenderRNA *brna)
                               "rna_ColorManagedColorspaceSettings_colorspace_itemf");
   RNA_def_property_ui_text(prop, "Color Space", "Color space that the sequencer operates in");
   RNA_def_property_translation_context(prop, BLT_I18NCONTEXT_COLOR_MANAGEMENT);
+  RNA_def_property_update(prop, NC_WINDOW, "rna_ColorManagedColorspaceSettings_reload_update");
+
+  prop = RNA_def_property(srna, "interop_id", PROP_ENUM, PROP_NONE);
+  RNA_def_property_flag(prop, PROP_ENUM_NO_CONTEXT);
+  RNA_def_property_clear_flag(prop, PROP_ANIMATABLE);
+  RNA_def_property_enum_items(prop, rna_enum_color_space_interop_id_default_items);
+  RNA_def_property_enum_funcs(prop,
+                              "rna_ColorManagedColorspaceSettings_interop_id_get",
+                              "rna_ColorManagedColorspaceSettings_interop_id_set",
+                              "rna_ColorManagedColorspaceSettings_interop_id_itemf");
+  RNA_def_property_ui_text(prop,
+                           "Interop ID",
+                           "Identifier of the color space that works across OpenColorIO "
+                           "configurations, as defined by the ASWF Color Interop Forum");
   RNA_def_property_update(prop, NC_WINDOW, "rna_ColorManagedColorspaceSettings_reload_update");
 }
 
