@@ -824,30 +824,61 @@ static bool colormanage_check_view_settings(ColorManagedDisplaySettings *display
   return ok;
 }
 
-static bool colormanage_check_colorspace_name(char *name, const char *what)
+static void colormanage_name_to_interop_id(const char *name, char *interop_id)
 {
-  bool ok = true;
-  if (name[0] == '\0') {
-    /* pass */
-  }
-  else {
-    const ColorSpace *colorspace = g_config()->get_color_space(name);
+  /* Roles are left without an interop ID, as their color space depends on the configuration. */
+  const ColorSpace *colorspace = (g_config() && name[0] && !g_config()->is_role(name)) ?
+                                     g_config()->get_color_space(name) :
+                                     nullptr;
+  const bool is_primary = colorspace && colorspace->is_primary_interop_id();
+  BLI_strncpy(interop_id, is_primary ? colorspace->interop_id().c_str() : "", MAX_COLORSPACE_NAME);
+}
 
-    if (!colorspace) {
-      CLOG_WARN(&LOG, "%s colorspace \"%s\" not found, will use default instead.", what, name);
-      name[0] = '\0';
-      ok = false;
+static bool colormanage_check_colorspace_name(char *name, char *interop_id, const char *what)
+{
+  if (name[0] == '\0') {
+    return true;
+  }
+
+  /* The interop ID takes precedence, as a name may refer to a different color space
+   * in different configuration. */
+  const ColorSpace *colorspace_by_name = g_config()->get_color_space(name);
+  const ColorSpace *colorspace = colorspace_by_name;
+  if (interop_id[0] != '\0') {
+    if (const ColorSpace *colorspace_by_interop_id = g_config()->get_color_space_by_interop_id(
+            interop_id))
+    {
+      colorspace = colorspace_by_interop_id;
     }
   }
 
-  (void)what;
-  return ok;
+  if (!colorspace) {
+    CLOG_WARN(&LOG, "%s colorspace \"%s\" not found, will use default instead.", what, name);
+    name[0] = '\0';
+    interop_id[0] = '\0';
+    return false;
+  }
+
+  /* Sync the name to the one used by the active configuration.
+   * Roles are kept unchanged as they don't depend on the config. */
+  if (colorspace->name() != name &&
+      !(colorspace == colorspace_by_name && g_config()->is_role(name)))
+  {
+    BLI_strncpy(name, colorspace->name().c_str(), MAX_COLORSPACE_NAME);
+  }
+
+  /* Set interop ID for older blend files that did not have it. */
+  if (interop_id[0] == '\0') {
+    colormanage_name_to_interop_id(name, interop_id);
+  }
+
+  return true;
 }
 
 static bool colormanage_check_colorspace_settings(ColorManagedColorspaceSettings *settings,
                                                   const char *what)
 {
-  return colormanage_check_colorspace_name(settings->name, what);
+  return colormanage_check_colorspace_name(settings->name, settings->interop_id, what);
 }
 
 ColorManagedConfig &IMB_colormanagement_get_config()
@@ -889,7 +920,8 @@ void IMB_colormanagement_check_file_config(Main *bmain)
     ok &= colormanage_check_colorspace_settings(sequencer_colorspace_settings, "sequencer");
 
     if (sequencer_colorspace_settings->name[0] == '\0') {
-      STRNCPY_UTF8(sequencer_colorspace_settings->name, global_role_default_sequencer);
+      IMB_colormanagement_colorspace_settings_set(sequencer_colorspace_settings,
+                                                  global_role_default_sequencer);
     }
 
     /* Check sequencer strip input colorspace. */
@@ -931,8 +963,9 @@ void IMB_colormanagement_check_file_config(Main *bmain)
         }
         else if (node.type_legacy == CMP_NODE_CONVERT_COLOR_SPACE) {
           NodeConvertColorSpace *ncs = static_cast<NodeConvertColorSpace *>(node.storage);
-          ok &= colormanage_check_colorspace_name(ncs->from_color_space, "node");
-          ok &= colormanage_check_colorspace_name(ncs->to_color_space, "node");
+          ok &= colormanage_check_colorspace_name(
+              ncs->from_color_space, ncs->from_interop_id, "node");
+          ok &= colormanage_check_colorspace_name(ncs->to_color_space, ncs->to_interop_id, "node");
         }
         else if (node.type_legacy == CMP_NODE_OUTPUT_FILE) {
           NodeCompositorFileOutput *nfo = static_cast<NodeCompositorFileOutput *>(node.storage);
@@ -2838,6 +2871,18 @@ const char *IMB_colormanagement_colorspace_get_name(const ColorSpace *colorspace
   return colorspace->name().c_str();
 }
 
+void IMB_colormanagement_colorspace_name_set(char *name, char *interop_id, const char *new_name)
+{
+  BLI_strncpy_utf8(name, new_name, MAX_COLORSPACE_NAME);
+  colormanage_name_to_interop_id(name, interop_id);
+}
+
+void IMB_colormanagement_colorspace_settings_set(ColorManagedColorspaceSettings *settings,
+                                                 const char *name)
+{
+  IMB_colormanagement_colorspace_name_set(settings->name, settings->interop_id, name);
+}
+
 const char *IMB_colormanagement_colorspace_get_family(const ColorSpace *colorspace)
 {
   return colorspace->family().c_str();
@@ -2864,7 +2909,7 @@ void IMB_colormanagement_colorspace_from_ibuf_ftype(
     if (type->save != nullptr) {
       const char *role_colorspace = IMB_colormanagement_role_colorspace_name_get(
           type->default_save_role);
-      STRNCPY_UTF8(colorspace_settings->name, role_colorspace);
+      IMB_colormanagement_colorspace_settings_set(colorspace_settings, role_colorspace);
     }
   }
 }

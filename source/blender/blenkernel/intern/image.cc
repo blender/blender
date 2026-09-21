@@ -1341,7 +1341,7 @@ static ImBuf *add_ibuf_for_tile(Image *ima, ImageTile *tile)
       const char *colorspace = IMB_colormanagement_role_colorspace_name_get(
           COLOR_ROLE_SCENE_LINEAR);
 
-      STRNCPY_UTF8(ima->colorspace_settings.name, colorspace);
+      IMB_colormanagement_colorspace_settings_set(&ima->colorspace_settings, colorspace);
     }
 
     if (ibuf != nullptr) {
@@ -1366,7 +1366,7 @@ static ImBuf *add_ibuf_for_tile(Image *ima, ImageTile *tile)
       const char *colorspace = IMB_colormanagement_role_colorspace_name_get(
           COLOR_ROLE_DEFAULT_BYTE);
 
-      STRNCPY_UTF8(ima->colorspace_settings.name, colorspace);
+      IMB_colormanagement_colorspace_settings_set(&ima->colorspace_settings, colorspace);
     }
 
     if (ibuf != nullptr) {
@@ -1445,8 +1445,8 @@ Image *BKE_image_add_generated(Main *bmain,
   copy_v4_v4(tile->gen_color, color);
 
   if (is_data) {
-    STRNCPY_UTF8(ima->colorspace_settings.name,
-                 IMB_colormanagement_role_colorspace_name_get(COLOR_ROLE_DATA));
+    IMB_colormanagement_colorspace_settings_set(
+        &ima->colorspace_settings, IMB_colormanagement_role_colorspace_name_get(COLOR_ROLE_DATA));
   }
 
   for (view_id = 0; view_id < 2; view_id++) {
@@ -1481,7 +1481,7 @@ static void image_colorspace_from_imbuf(Image *image, const ImBuf *ibuf)
   }
 
   if (colorspace_name) {
-    STRNCPY_UTF8(image->colorspace_settings.name, colorspace_name);
+    IMB_colormanagement_colorspace_settings_set(&image->colorspace_settings, colorspace_name);
   }
 }
 

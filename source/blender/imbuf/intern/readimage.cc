@@ -75,10 +75,11 @@ static void imb_handle_colorspace_and_alpha(ImBuf *ibuf,
   }
 
   if (colorspace_settings) {
-    STRNCPY_UTF8(colorspace_settings->name, new_colorspace);
-  }
+    /* Only set when empty, to keep the interop ID of an existing color space. */
+    if (colorspace_settings->name[0] == '\0') {
+      IMB_colormanagement_colorspace_settings_set(colorspace_settings, new_colorspace);
+    }
 
-  if (colorspace_settings) {
     if (ibuf->byte_data() != nullptr && ibuf->float_data() == nullptr) {
       /* byte buffer is never internally converted to some standard space,
        * store pointer to its color space descriptor instead

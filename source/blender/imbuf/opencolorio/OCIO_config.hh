@@ -160,6 +160,9 @@ class Config {
    */
   virtual const ColorSpace *get_color_space_for_hdr_image(StringRefNull name) const = 0;
 
+  /** Returns true if the name is a role rather than a color space. */
+  virtual bool is_role(StringRefNull name) const = 0;
+
   /** \} */
 
   /* -------------------------------------------------------------------- */

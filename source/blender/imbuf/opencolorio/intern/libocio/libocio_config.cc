@@ -500,6 +500,11 @@ const ColorSpace *LibOCIOConfig::get_color_space_by_interop_id(StringRefNull int
   return get_color_space(interop_id);
 }
 
+bool LibOCIOConfig::is_role(const StringRefNull name) const
+{
+  return ocio_config_->hasRole(name.c_str());
+}
+
 /** \} */
 
 /* -------------------------------------------------------------------- */

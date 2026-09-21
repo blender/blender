@@ -721,7 +721,7 @@ static void rna_ColorManagedColorspaceSettings_is_data_set(PointerRNA *ptr, bool
       ptr->data);
   if (value) {
     const char *data_name = IMB_colormanagement_role_colorspace_name_get(COLOR_ROLE_DATA);
-    STRNCPY_UTF8(colorspace->name, data_name);
+    IMB_colormanagement_colorspace_settings_set(colorspace, data_name);
   }
 }
 
@@ -740,7 +740,7 @@ static void rna_ColorManagedColorspaceSettings_colorspace_set(PointerRNA *ptr, i
   const char *name = IMB_colormanagement_colorspace_get_indexed_name(value);
 
   if (name && name[0]) {
-    STRNCPY_UTF8(colorspace->name, name);
+    IMB_colormanagement_colorspace_settings_set(colorspace, name);
   }
 }
 

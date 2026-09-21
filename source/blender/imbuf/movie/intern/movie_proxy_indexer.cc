@@ -25,6 +25,8 @@
 
 #include "CLG_log.h"
 
+#include "IMB_colormanagement.hh"
+
 #include "MOV_read.hh"
 
 #include "ffmpeg_swscale.hh"
@@ -937,7 +939,7 @@ MovieReader *movie_open_proxy(MovieReader *anim, IMB_Proxy_Size preview_size)
    * Also skip any colorspace conversion to the color pipeline design as it helps performance and
    * the image buffers from the proxy builder are not used anywhere else in Blender. */
   ColorManagedColorspaceSettings colorspace_settings;
-  STRNCPY(colorspace_settings.name, anim->colorspace);
+  IMB_colormanagement_colorspace_settings_set(&colorspace_settings, anim->colorspace);
   anim->proxy_anim[i] = MOV_open_file(filepath, ImBufFlags::Zero, 0, true, &colorspace_settings);
 
   anim->proxies_tried |= preview_size;

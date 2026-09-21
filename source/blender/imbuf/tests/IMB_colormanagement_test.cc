@@ -9,10 +9,16 @@
 #include "BLI_fileops.hh"
 #include "BLI_index_range.hh"
 #include "BLI_path_utils.hh"
+#include "BLI_string.hh"
 #include "BLI_vector.hh"
+
+#include "DNA_color_types.h"
+#include "DNA_image_types.h"
 
 #include "BKE_appdir.hh"
 #include "BKE_gtest_base.hh"
+#include "BKE_lib_id.hh"
+#include "BKE_main.hh"
 
 #include "IMB_colormanagement.hh"
 #include "IMB_imbuf.hh"
@@ -206,6 +212,70 @@ TEST_F(ColorManagementConfigSwitchTest, active_inactive_color_spaces_by_index)
     EXPECT_EQ(colorspace->index, i);
   }
   EXPECT_EQ(config.get_color_space_by_index(config.get_num_all_color_spaces()), nullptr);
+}
+
+class ColorManagementInteropIDTest : public ColorManagementConfigSwitchTest {
+ protected:
+  Main *bmain_ = nullptr;
+
+  void SetUp() override
+  {
+    bmain_ = BKE_main_new();
+  }
+
+  void TearDown() override
+  {
+    BKE_main_free(bmain_);
+    ColorManagementConfigSwitchTest::TearDown();
+  }
+};
+
+TEST_F(ColorManagementInteropIDTest, stored_color_spaces_resolve_by_interop_id)
+{
+  Image *image = BKE_id_new<Image>(bmain_, "image");
+  ColorManagedColorspaceSettings &settings = image->colorspace_settings;
+
+  /* Resolve as if reading a file storing name and interop_id. */
+  auto resolve = [&](const char *name, const char *interop_id) -> std::string {
+    STRNCPY(settings.name, name);
+    STRNCPY(settings.interop_id, interop_id);
+    IMB_colormanagement_check_file_config(bmain_);
+    return settings.name;
+  };
+
+  /* Set along with the name, except for roles. */
+  IMB_colormanagement_colorspace_settings_set(&settings, "Non-Color");
+  EXPECT_STREQ(settings.interop_id, "data");
+  IMB_colormanagement_colorspace_settings_set(&settings, "scene_linear");
+  EXPECT_STREQ(settings.interop_id, "");
+  /* Color spaces with non-primary interop IDs don't store it. */
+  IMB_colormanagement_colorspace_settings_set(&settings, "Filmic sRGB");
+  EXPECT_STREQ(settings.interop_id, "");
+
+  /* The interop ID takes precedence name. */
+  EXPECT_EQ(resolve("sRGB", "lin_rec709_scene"), "Linear Rec.709");
+  /* Unknown interop IDs fall back to the name. */
+  EXPECT_EQ(resolve("sRGB", "unknown_scene"), "sRGB");
+  EXPECT_EQ(resolve("Unknown", "unknown_scene"), "");
+
+  /* Names of another config found by interop ID. */
+  EXPECT_EQ(resolve("Raw", "data"), "Non-Color");
+  EXPECT_STREQ(settings.interop_id, "data");
+  EXPECT_EQ(resolve("Linear Rec.709 (sRGB)", "lin_rec709_scene"), "Linear Rec.709");
+
+  /* Names set in the same config resolve to themselves. */
+  for (const char *name : {"Filmic sRGB", "AgX Base sRGB", "sRGB", "Non-Color"}) {
+    IMB_colormanagement_colorspace_settings_set(&settings, "Linear Rec.709");
+    IMB_colormanagement_colorspace_settings_set(&settings, name);
+    const std::string interop_id = settings.interop_id;
+    EXPECT_EQ(resolve(name, interop_id.c_str()), name);
+  }
+
+  /* Test the other way around. */
+  ASSERT_TRUE(IMB_colormanagement_switch_config("ocio://default"));
+  EXPECT_EQ(resolve("Linear Rec.2020", "lin_rec2020_scene"), "Linear Rec.2020");
+  EXPECT_EQ(resolve("ACEScg", "lin_ap1_scene"), "ACEScg");
+  EXPECT_EQ(resolve("Some ACEScct", "acescct_ap1"), "ACEScct");
 }
 
 }  // namespace blender::imbuf::tests

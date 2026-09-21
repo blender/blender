@@ -169,7 +169,7 @@ MovieReader *MOV_open_file(const char *filepath,
       STRNCPY_UTF8(anim->colorspace, file_colorspace);
       if (colorspace_settings) {
         /* Copy the used colorspace into output argument. */
-        STRNCPY_UTF8(colorspace_settings->name, file_colorspace);
+        IMB_colormanagement_colorspace_settings_set(colorspace_settings, file_colorspace);
       }
     }
   }

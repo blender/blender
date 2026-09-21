@@ -420,6 +420,13 @@ const char *IMB_colormanagement_look_validate_for_view(const char *view_name,
 int IMB_colormanagement_colorspace_get_named_index(const char *name);
 const char *IMB_colormanagement_colorspace_get_indexed_name(int index);
 const char *IMB_colormanagement_colorspace_get_name(const ColorSpace *colorspace);
+
+/** Set the color space name. Always use this when setting color space name to write
+ * both the name and interop ID, for compatibility with multiple configs. */
+void IMB_colormanagement_colorspace_name_set(char *name, char *interop_id, const char *new_name);
+void IMB_colormanagement_colorspace_settings_set(ColorManagedColorspaceSettings *settings,
+                                                 const char *name);
+
 const char *IMB_colormanagement_colorspace_get_family(const ColorSpace *colorspace);
 const char *IMB_colormanagement_colorspace_get_description(const ColorSpace *colorspace);
 const char *IMB_colormanagement_view_get_default_name(const char *display_name);
