@@ -4262,6 +4262,11 @@ static ImBuf *image_load_sequence_multilayer(Image *ima, ImageUser *iuser, int e
     // else printf("pass not found\n");
   }
 
+  /* Cache null to indicate failed load. */
+  if (ibuf == nullptr && ima->rr == nullptr) {
+    image_assign_ibuf(ima, nullptr, iuser ? iuser->multi_index : 0, entry);
+  }
+
   return ibuf;
 }
 
@@ -4626,6 +4631,11 @@ static ImBuf *image_get_ibuf_multilayer(Image *ima, ImageUser *iuser)
 
       image_assign_ibuf(ima, ibuf, iuser ? iuser->multi_index : IMA_NO_INDEX, 0);
     }
+  }
+
+  /* Cache null to indicate failed load. */
+  if (ibuf == nullptr && ima->rr == nullptr) {
+    image_assign_ibuf(ima, nullptr, iuser ? iuser->multi_index : IMA_NO_INDEX, 0);
   }
 
   return ibuf;
