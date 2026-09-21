@@ -235,7 +235,7 @@ ccl_device_inline bool subsurface_random_walk(KernelGlobals kg,
   bool van_de_hulst;
   if (anisotropy >= 1.0f) {
     /* Legacy random walk was mapped from (-1, 1) to (1, 3) when stored in integrator state.
-     * Remapp to the original value. */
+     * Remap to the original value. */
     anisotropy -= 2.0f;
     /* Legacy mapping doesn't support negative range, use Van de Hulst instead. */
     van_de_hulst = anisotropy < 0.0f;
