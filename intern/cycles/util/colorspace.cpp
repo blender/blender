@@ -127,26 +127,26 @@ ColorSpaceProcessor *ColorSpaceManager::get_processor(ustring colorspace)
   if (!cache_processors.contains(colorspace)) {
     try {
       if (colorspace == u_colorspace_srgb) {
-        /* Linear Rec.709 to sRGB is handled separately in to_scene_linear, here
-         * we only need the matrix transform from scene_linear to Linear Rec.709. */
+        /* The sRGB transfer function is handled separately in to_scene_linear, here
+         * we only need the matrix transform from Linear Rec.709 to scene_linear. */
         if (strcmp(scene_linear_interop_id, "lin_rec709_scene") == 0) {
           cache_processors[colorspace] = nullptr;
         }
         else {
-          const Transform rgb_to_rec709 = transform_inverse(get_xyz_to_scene_linear_rgb()) *
-                                          get_xyz_to_rec709();
-          const double data[16] = {rgb_to_rec709.x.x,
-                                   rgb_to_rec709.x.y,
-                                   rgb_to_rec709.x.z,
-                                   rgb_to_rec709.x.w,
-                                   rgb_to_rec709.y.x,
-                                   rgb_to_rec709.y.y,
-                                   rgb_to_rec709.y.z,
-                                   rgb_to_rec709.y.w,
-                                   rgb_to_rec709.z.x,
-                                   rgb_to_rec709.z.y,
-                                   rgb_to_rec709.z.z,
-                                   rgb_to_rec709.z.w,
+          const Transform rec709_to_rgb = get_xyz_to_scene_linear_rgb() *
+                                          transform_inverse(get_xyz_to_rec709());
+          const double data[16] = {rec709_to_rgb.x.x,
+                                   rec709_to_rgb.x.y,
+                                   rec709_to_rgb.x.z,
+                                   rec709_to_rgb.x.w,
+                                   rec709_to_rgb.y.x,
+                                   rec709_to_rgb.y.y,
+                                   rec709_to_rgb.y.z,
+                                   rec709_to_rgb.y.w,
+                                   rec709_to_rgb.z.x,
+                                   rec709_to_rgb.z.y,
+                                   rec709_to_rgb.z.z,
+                                   rec709_to_rgb.z.w,
                                    0.0f,
                                    0.0f,
                                    0.0f,
@@ -355,10 +355,20 @@ ustring ColorSpaceManager::detect_known_colorspace(ustring colorspace,
 
   /* Fall back to simple guess if we don't have OpenColorIO. */
   if (colorspace == u_colorspace_auto) {
-    colorspace = (is_float && !(strcmp(file_colorspace, "srgb_rec709_scene") == 0 ||
-                                strcmp(file_colorspace, "srgb_rec709_display") == 0)) ?
-                     u_colorspace_scene_linear :
-                     u_colorspace_srgb;
+    const bool is_srgb = !is_float || strcmp(file_colorspace, "srgb_rec709_scene") == 0 ||
+                         strcmp(file_colorspace, "srgb_rec709_display") == 0;
+
+    if (!is_srgb) {
+      colorspace = u_colorspace_scene_linear;
+    }
+    else if (strcmp(get_scene_linear_interop_id(), "lin_rec709_scene") == 0) {
+      /* If working space is Rec.709, scene_linear_srgb is more efficient since
+       * the matrix transform can be skipped. */
+      colorspace = u_colorspace_scene_linear_srgb;
+    }
+    else {
+      colorspace = u_colorspace_srgb;
+    }
   }
 
   /* Builtin colorspaces. */
@@ -510,7 +520,7 @@ template<typename T> inline void cast_from_float4(T *data, const float4 value)
 }
 
 /* Slower versions for other all data types, which needs to convert to float and back. */
-template<typename T, bool compress_as_srgb = false>
+template<typename T, bool compress_as_srgb, bool expand_from_srgb>
 inline void processor_apply_pixels_rgba(const OCIO::Processor *processor,
                                         T *pixels,
                                         const int64_t width,
@@ -546,6 +556,10 @@ inline void processor_apply_pixels_rgba(const OCIO::Processor *processor,
           value.z *= inv_alpha;
         }
 
+        if (expand_from_srgb) {
+          value = color_srgb_to_linear_v4(value);
+        }
+
         *float_pixel = value;
       }
     }
@@ -577,7 +591,7 @@ inline void processor_apply_pixels_rgba(const OCIO::Processor *processor,
   }
 }
 
-template<typename T, bool compress_as_srgb = false>
+template<typename T, bool compress_as_srgb, bool expand_from_srgb>
 inline void processor_apply_pixels_grayscale(const OCIO::Processor *processor,
                                              T *pixels,
                                              const int64_t width,
@@ -601,7 +615,10 @@ inline void processor_apply_pixels_grayscale(const OCIO::Processor *processor,
       T *pixel = pixels + (row + j) * y_stride;
       float *float_pixel = float_pixels.data() + j * width * 3;
       for (int64_t i = 0; i < width; i++, pixel++, float_pixel += 3) {
-        const float f = util_image_cast_to_float<T>(*pixel);
+        float f = util_image_cast_to_float<T>(*pixel);
+        if (expand_from_srgb) {
+          f = color_srgb_to_linear(f);
+        }
         float_pixel[0] = f;
         float_pixel[1] = f;
         float_pixel[2] = f;
@@ -627,6 +644,25 @@ inline void processor_apply_pixels_grayscale(const OCIO::Processor *processor,
   }
 }
 
+template<typename T, bool compress_as_srgb, bool expand_from_srgb>
+inline void processor_apply_pixels(const OCIO::Processor *processor,
+                                   T *pixels,
+                                   const int64_t width,
+                                   const int64_t height,
+                                   const int64_t y_stride,
+                                   const bool is_rgba,
+                                   const bool ignore_alpha)
+{
+  if (is_rgba) {
+    processor_apply_pixels_rgba<T, compress_as_srgb, expand_from_srgb>(
+        processor, pixels, width, height, y_stride, ignore_alpha);
+  }
+  else {
+    processor_apply_pixels_grayscale<T, compress_as_srgb, expand_from_srgb>(
+        processor, pixels, width, height, y_stride);
+  }
+}
+
 #endif
 
 template<typename T>
@@ -642,33 +678,29 @@ void ColorSpaceManager::to_scene_linear(ustring colorspace,
 #ifdef WITH_OCIO
   const OCIO::Processor *processor = (const OCIO::Processor *)get_processor(colorspace);
 
-  /* The processor for sRGB does not include the Linear Rec.709 to sRGB transform, that
-   * is handled by compress_as_srgb for better performance when scene_linear is Rec.709 */
-  if (colorspace == u_colorspace_srgb) {
-    assert(!compress_as_srgb);
-    compress_as_srgb = true;
-  }
+  /* The processor for sRGB is only a matrix on the primaries, so the sRGB transfer
+   * function has to be undone before it. */
+  const bool expand_from_srgb = (colorspace == u_colorspace_srgb);
 
-  if (is_rgba) {
+  if (expand_from_srgb) {
     if (compress_as_srgb) {
-      /* Compress output as sRGB. */
-      processor_apply_pixels_rgba<T, true>(
-          processor, pixels, width, height, y_stride, ignore_alpha);
+      processor_apply_pixels<T, true, true>(
+          processor, pixels, width, height, y_stride, is_rgba, ignore_alpha);
     }
     else {
-      /* Write output as scene linear directly. */
-      processor_apply_pixels_rgba<T>(processor, pixels, width, height, y_stride, ignore_alpha);
+      processor_apply_pixels<T, false, true>(
+          processor, pixels, width, height, y_stride, is_rgba, ignore_alpha);
     }
+  }
+  else if (compress_as_srgb) {
+    /* Compress output as sRGB. */
+    processor_apply_pixels<T, true, false>(
+        processor, pixels, width, height, y_stride, is_rgba, ignore_alpha);
   }
   else {
-    if (compress_as_srgb) {
-      /* Compress output as sRGB. */
-      processor_apply_pixels_grayscale<T, true>(processor, pixels, width, height, y_stride);
-    }
-    else {
-      /* Write output as scene linear directly. */
-      processor_apply_pixels_grayscale<T>(processor, pixels, width, height, y_stride);
-    }
+    /* Write output as scene linear directly. */
+    processor_apply_pixels<T, false, false>(
+        processor, pixels, width, height, y_stride, is_rgba, ignore_alpha);
   }
 #else
   (void)colorspace;
