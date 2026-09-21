@@ -700,6 +700,12 @@ void AbstractTreeViewItem::collapse_chevron_click_fn(bContext *C,
   AbstractViewItem *hovered_abstract_item = region_views_find_item_at(
       *region, win->runtime->eventstate->xy);
 
+  if (!hovered_abstract_item) {
+    // TODO: DO NOT LAND THIS IN MAIN! It's hiding a genuine bug and is just here to prevent a
+    // crash that happens when drag-collapsing so many groups that the tree view has to scroll.
+    return;
+  }
+
   auto *hovered_item = reinterpret_cast<AbstractTreeViewItem *>(hovered_abstract_item);
   BLI_assert(hovered_item != nullptr);
 
