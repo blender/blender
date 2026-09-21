@@ -4657,18 +4657,6 @@ void do_versions_after_linking_405(FileData * /*fd*/, Main *bmain)
     FOREACH_NODETREE_END;
   }
 
-  if (!MAIN_VERSION_FILE_ATLEAST(bmain, 405, 84)) {
-    for (Scene &scene : bmain->scenes) {
-      do_init_default_jitter_curves_in_unified_paint_settings(scene.toolsettings);
-    }
-
-    for (Brush &brush : bmain->brushes) {
-      if (brush.gpencil_settings) {
-        do_convert_gp_jitter_flags(&brush);
-      }
-    }
-  }
-
   /**
    * Always bump subversion in BKE_blender_version.h when adding versioning
    * code here, and wrap it inside a MAIN_VERSION_FILE_ATLEAST check.
@@ -5858,6 +5846,18 @@ void blo_do_versions_405(FileData * /*fd*/, Library * /*lib*/, Main *bmain)
     for (Object &ob : bmain->objects) {
       if (ob.soft) {
         ob.soft->fuzzyness = std::max<int>(1, ob.soft->fuzzyness);
+      }
+    }
+  }
+
+  if (!MAIN_VERSION_FILE_ATLEAST(bmain, 405, 84)) {
+    for (Scene &scene : bmain->scenes) {
+      do_init_default_jitter_curves_in_unified_paint_settings(scene.toolsettings);
+    }
+
+    for (Brush &brush : bmain->brushes) {
+      if (brush.gpencil_settings) {
+        do_convert_gp_jitter_flags(&brush);
       }
     }
   }
