@@ -189,7 +189,7 @@ void SceneCompositorEffectsOperation::execute()
      * viewer output, we use the group output as a viewer. */
     if (needs_viewer_output && has_viewer_node(node_group,
                                                effect_compute_context,
-                                               this->context().get_active_compute_context_hash()))
+                                               this->context().get_viewer_compute_context_hash()))
     {
       has_viewer_output_ = true;
     }

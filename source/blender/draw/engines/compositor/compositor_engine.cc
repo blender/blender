@@ -55,7 +55,7 @@ class Context : public compositor::Context {
       : compositor::Context(cache_manager),
         main_(main),
         scene_(scene),
-        active_compute_context_hash_(bke::compositor::compute_active_compute_context_hash(*scene))
+        active_compute_context_hash_(bke::compositor::compute_viewer_compute_context_hash(*scene))
   {
   }
 
@@ -84,7 +84,7 @@ class Context : public compositor::Context {
     return compositor::SideEffectOutputTypes::ViewerNode;
   }
 
-  const ComputeContextHash &get_active_compute_context_hash() const override
+  const ComputeContextHash &get_viewer_compute_context_hash() const override
   {
     return active_compute_context_hash_;
   }

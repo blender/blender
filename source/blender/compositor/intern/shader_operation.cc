@@ -561,10 +561,8 @@ void ShaderOperation::populate_results_for_node(const bNode &node)
   const bool node_needs_preview = is_node_preview_needed(node);
   const bool needs_node_previews = flag_is_set(this->context().needed_side_effect_output_types(),
                                                SideEffectOutputTypes::NodePreviews);
-  const bool is_active_context = compute_context_.hash() ==
-                                 this->context().get_active_compute_context_hash();
   const bNodeSocket *preview_output = nullptr;
-  if (node_needs_preview && needs_node_previews && is_active_context) {
+  if (node_needs_preview && needs_node_previews) {
     preview_output = find_preview_output_socket(node);
   }
 

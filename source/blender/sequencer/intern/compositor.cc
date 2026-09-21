@@ -390,7 +390,7 @@ void CompositorContext::set_output_refcount(const bNodeTree &node_group,
   const bke::DataBlockComputeContext base_compute_context(nullptr, this->get_scene().id);
   const bool has_viewer =
       has_viewer_node(node_group, base_compute_context, base_compute_context.hash()) ||
-      has_viewer_node(node_group, base_compute_context, this->get_active_compute_context_hash());
+      has_viewer_node(node_group, base_compute_context, this->get_viewer_compute_context_hash());
   const bool needs_viewer_output = flag_is_set(this->needed_side_effect_output_types(),
                                                SideEffectOutputTypes::ViewerNode);
   const bool use_group_output_as_viewer = (!has_viewer && needs_viewer_output);

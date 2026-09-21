@@ -195,16 +195,13 @@ void NodeTreeEvaluator::evaluate_pixel_compile_unit()
   /* Only compute previews if they are needed and the node group is currently active. */
   const bool needs_node_previews = flag_is_set(this->context().needed_side_effect_output_types(),
                                                SideEffectOutputTypes::NodePreviews);
-  const bool is_active_context = compute_context_.hash() ==
-                                 this->context().get_active_compute_context_hash();
-  const bool are_node_previews_needed = needs_node_previews && is_active_context;
 
   /* Pixel operations might have limitations on the number of outputs or inputs they can have, so
    * we might have to split the compile unit into smaller units to workaround this limitation. In
    * practice, splitting will almost always never happen due to the scheduling strategy we use, so
    * the base case remains fast. */
   if (compile_unit.size() > 1 &&
-      (this->pixel_compile_unit_has_too_many_outputs(are_node_previews_needed) ||
+      (this->pixel_compile_unit_has_too_many_outputs(needs_node_previews) ||
        this->pixel_compile_unit_has_too_many_inputs()))
   {
     const int split_index = compile_unit.size() / 2;
