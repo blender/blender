@@ -672,7 +672,12 @@ struct Intersection {
 #  define KERNEL_STRUCT_BEGIN(name) struct dummy_##name {
 #  define KERNEL_STRUCT_BEGIN_PACKED(parent_struct, feature) struct packed_##parent_struct {
 #  define KERNEL_STRUCT_MEMBER(parent_struct, type, name, feature)
-#  define KERNEL_STRUCT_MEMBER_PACKED(parent_struct, type, name, feature) type name;
+#  ifdef __KERNEL_GPU__
+#    define KERNEL_STRUCT_MEMBER_PACKED(parent_struct, type, name, feature) type name;
+#  else
+#    define KERNEL_STRUCT_MEMBER_PACKED(parent_struct, type, name, feature) \
+      gpu_state_storage<type>::gpu_type name;
+#  endif
 #  define KERNEL_STRUCT_ARRAY_MEMBER(parent_struct, type, name, feature) type name;
 #  define KERNEL_STRUCT_END(name) \
     } \
