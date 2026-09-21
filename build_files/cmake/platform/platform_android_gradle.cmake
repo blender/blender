@@ -28,8 +28,7 @@
 # -----------------------------------------------------------------------------
 # APK version and paths
 
-set(_apk_version_name "${BLENDER_VERSION}.${BLENDER_VERSION_PATCH}")
-string(APPEND _apk_version_name "-${BLENDER_VERSION_CYCLE}")
+set(_apk_version_name "${BLENDER_VERSION}.${BLENDER_VERSION_PATCH}-${BLENDER_VERSION_CYCLE}")
 
 # Version code integer required by Android, used in the form: 5.1.2 -> 5010200, keeping the last
 # two digits for an eventual build increment field.
