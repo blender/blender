@@ -7393,6 +7393,30 @@ static void bevel_extend_edge_data(BevelState &state)
   }
 }
 
+static bool try_propagate_single_value(const bke::AttributeIter &iter,
+                                       const GVArray &src,
+                                       const IndexMask &edges_new_no_src,
+                                       bke::MutableAttributeAccessor &dst_attrs)
+{
+  const CommonVArrayInfo src_info = src.common_info();
+  if (src_info.type != CommonVArrayInfo::Type::Single) {
+    return false;
+  }
+
+  if (iter.domain == bke::AttrDomain::Edge && !edges_new_no_src.is_empty()) {
+    /* A non-default single edge value cannot be kept when source-less new edges must get the
+     * type default value. */
+    const CPPType &type = src.type();
+    if (!type.is_equal_or_false(src_info.data, type.default_value())) {
+      return false;
+    }
+  }
+
+  const GPointer value(src.type(), src_info.data);
+  dst_attrs.add(iter.name, iter.domain, iter.data_type, bke::AttributeInitValue(value));
+  return true;
+}
+
 static std::optional<Mesh *> build_output_mesh(const BevelState &state,
                                                const NewCornerInterpWeights &interp_weights,
                                                const bke::AttributeFilter &attribute_filter)
@@ -7545,10 +7569,7 @@ static std::optional<Mesh *> build_output_mesh(const BevelState &state,
     }
     const GVArray src = *iter.get();
     const CPPType &type = src.type();
-    const CommonVArrayInfo src_info = src.common_info();
-    if (src_info.type == CommonVArrayInfo::Type::Single) {
-      const GPointer value(src.type(), src_info.data);
-      dst_attrs.add(iter.name, iter.domain, iter.data_type, bke::AttributeInitValue(value));
+    if (try_propagate_single_value(iter, src, edges_new_no_src, dst_attrs)) {
       return;
     }
     bke::GSpanAttributeWriter dst = dst_attrs.lookup_or_add_for_write_only_span(
