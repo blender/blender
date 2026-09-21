@@ -36,7 +36,7 @@ class GraphISO {
 
 /**
  * Find the maximum common subgraph between two graphs.
- * (Can be used to find graph ismorphism.)
+ * (Can be used to find graph isomorphism.)
  * \return True when found.
  */
 bool ED_uvedit_clipboard_maximum_common_subgraph(

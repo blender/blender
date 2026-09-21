@@ -561,7 +561,7 @@ void cut_caps(bke::CurvesGeometry &dst,
       const Side direction_last = reversed_last ? Side::Start : Side::End;
       const int inter_index_last = segment_last.intersection_index[direction_last];
 
-      /* Check if there is a intersection and therefor the curve should be cut. */
+      /* Check if there is a intersection and therefore the curve should be cut. */
       if (inter_index_first != -1) {
         dst_start_caps.span[curve_i] = GP_STROKE_CAP_TYPE_FLAT;
       }

@@ -1354,7 +1354,7 @@ static void apply_but_TEX(bContext *C, Button *but, HandleButtonData *data)
 
   ButtonText *text_button = but->type == ButtonType::Text ? static_cast<ButtonText *>(but) :
                                                             nullptr;
-  /* only if there are afterfuncs, otherwise 'renam_orig' isn't freed */
+  /* only if there are afterfuncs, otherwise 'rename_orig' isn't freed */
   if (text_button && afterfunc_check(but->block, but)) {
     /* give butfunc a copy of the original text too.
      * feature used for bone renaming, channels, etc.
