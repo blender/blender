@@ -23,11 +23,6 @@
 
 #include "creator_intern.h"
 
-namespace blender {
-/* Blender's regular `main(..)`, renamed in `creator.cc`. */
-int main_android_enter(int argc, const char **argv);
-}  // namespace blender
-
 #define BLENDER_LOG_TAG "blender"
 
 /* -------------------------------------------------------------------- */
