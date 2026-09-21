@@ -816,6 +816,46 @@ class AlembicEmptyGeometrySamplesTests(AbstractAlembicTest):
                 self.assertEqual(len(points.points), 0)
 
 
+class AlembicAnimatedMaterialsImportTests(AbstractAlembicTest):
+    def setUp(self):
+        self._tempdir = tempfile.TemporaryDirectory()
+        self.tempdir = pathlib.Path(self._tempdir.name)
+
+    def do_import_test(self, file_name):
+        blend_file_name = file_name + '.blend'
+        abc_file_name = file_name + '.abc'
+
+        bpy.ops.wm.open_mainfile(filepath=str(args.testdir / blend_file_name))
+
+        abc_path = self.tempdir / abc_file_name
+        self.assertIn('FINISHED', bpy.ops.wm.alembic_export(
+            filepath=str(abc_path),
+            face_sets=True,
+        ))
+
+        # Re-import what we just exported into an empty file.
+        bpy.ops.wm.open_mainfile(filepath=str(args.testdir / "empty.blend"))
+        res = bpy.ops.wm.alembic_import(
+            filepath=str(abc_path),
+            as_background_job=False)
+        self.assertEqual({'FINISHED'}, res)
+
+        # Verify that all materials are present
+        ob = bpy.context.active_object
+        mesh = ob.data
+
+        material_names = ['White', 'Red', 'Green', 'Blue', 'default']
+
+        for material_name in material_names:
+            self.assertIn(material_name, mesh.materials)
+
+    def test_materials_static_mesh(self):
+        self.do_import_test("animated-materials-static-mesh")
+
+    def test_materials_dynamic_mesh(self):
+        self.do_import_test("animated-materials-dynamic-mesh")
+
+
 class AlembicImportComparisonTests(unittest.TestCase):
     @classmethod
     def setUpClass(cls):
