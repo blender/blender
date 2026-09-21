@@ -29,6 +29,7 @@ struct SymbolFunction : SymbolScope {
 
   ast::FuncDecl decl = {};
 
+  vector<bool> arg_const;
   vector<SymbolClass *> arg_types;
   vector<ast::Expr> arg_defaults;
 
@@ -45,6 +46,8 @@ struct SymbolFunction : SymbolScope {
   bool is_specialization = false;
   /* True for force-inlined functions. */
   bool is_inline = false;
+  /* False if this function was only forward declared. */
+  bool is_defined = true;
 
   /* Identifier of the temporary return variable.
    * The real identifier is then specialized per instantiation. */
@@ -53,9 +56,10 @@ struct SymbolFunction : SymbolScope {
   enum Type { STATIC, MEMBER, GLOBAL } fn_type;
   enum class EntryPointType { FRAG, VERT, COMP, NONE } entry_point_type;
 
+  template<typename AstNodeT>
   SymbolFunction(SymbolScope *parent,
                  SymbolClass *return_type,
-                 ast::FuncDecl decl,
+                 AstNodeT decl,
                  const string &suffix = "")
       : SymbolScope(
             parent, decl.front(), string(decl.identifier().name().str()) + suffix, FUNCTION),
@@ -68,7 +72,7 @@ struct SymbolFunction : SymbolScope {
     if (decl.is_method()) {
       loc = decl.parent(ast::NodeType::ClassDecl).front();
     }
-    for (ast::Attr attr : decl.attributes().children_of_type<ast::Attr>()) {
+    for (ast::Attr attr : decl.attributes().template children_of_type<ast::Attr>()) {
       string_view id = attr.identifier().str();
       if (id == "vertex") {
         entry_point_type = EntryPointType::VERT;
@@ -108,7 +112,7 @@ struct SymbolFunction : SymbolScope {
                                            const vector<SymbolClass *> &arg_types);
 
   void add_overload(SymbolFunction *fn);
-  void add_argument(SymbolClass *type, ast::Expr default_value = {});
+  void add_argument(bool is_const, SymbolClass *type, ast::Expr default_value = {});
 
   void reserve_arguments(int n);
 

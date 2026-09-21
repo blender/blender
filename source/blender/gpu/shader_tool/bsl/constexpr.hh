@@ -127,8 +127,6 @@ struct ConstexprValue {
 
   std::vector<uint32_t> values = {0};
 
-  ConstexprValue() = default;
-
   explicit ConstexprValue(int32_t s) : type_(INT1), values({uint32_t(s)}) {}
   explicit ConstexprValue(uint32_t s) : type_(UINT1), values({s}) {}
   explicit ConstexprValue(bool s) : type_(BOOL1), values({s}) {}
@@ -238,8 +236,8 @@ struct ConstexprValue {
   COMPOUND_ASSIGN(&=, cast_to_int_if_not_uint(l) & cast_to_int_if_not_uint(r))
   COMPOUND_ASSIGN(|=, cast_to_int_if_not_uint(l) | cast_to_int_if_not_uint(r))
   COMPOUND_ASSIGN(^=, cast_to_int_if_not_uint(l) ^ cast_to_int_if_not_uint(r))
-  COMPOUND_ASSIGN(<<, cast_to_int_if_not_uint(l) << cast_to_int_if_not_uint(r))
-  COMPOUND_ASSIGN(>>, cast_to_int_if_not_uint(l) >> cast_to_int_if_not_uint(r))
+  COMPOUND_ASSIGN(<<=, cast_to_int_if_not_uint(l) << cast_to_int_if_not_uint(r))
+  COMPOUND_ASSIGN(>>=, cast_to_int_if_not_uint(l) >> cast_to_int_if_not_uint(r))
 
 #undef COMPOUND_ASSIGN
 
@@ -281,11 +279,13 @@ struct ConstexprValue {
   static ConstexprValue constexpr_op(const Func &fn,
                                      const ConstexprValue &lhs,
                                      const ConstexprValue &rhs,
-                                     const bool is_bool_result = false)
+                                     const bool is_bool_result = false,
+                                     const bool use_left_type = false)
   {
     const int dst_len = std::max(lhs.comp_len(), rhs.comp_len());
-    const int dst_comp = is_bool_result ? BOOL : std::max(lhs.comp_type(), rhs.comp_type());
-    ConstexprValue r;
+    const int promoted_comp = std::max(lhs.comp_type(), rhs.comp_type());
+    const int dst_comp = is_bool_result ? BOOL : (use_left_type ? lhs.comp_type() : promoted_comp);
+    ConstexprValue r{0};
     /* Type promotion. */
     r.type_ = ConstexprValue::Type(dst_comp | dst_len);
     r.values.resize(r.comp_len());
@@ -307,10 +307,10 @@ struct ConstexprValue {
               LOOP(r.set_as(i, fn(lhs.comp_as<int32_t>(i), rhs.comp_as<int32_t>(i))));
               break;
             case UINT:
-              LOOP(r.set_as(i, fn(lhs.comp_as<int32_t>(i), rhs.comp_as<int32_t>(i))));
+              LOOP(r.set_as(i, fn(lhs.comp_as<int32_t>(i), rhs.comp_as<uint32_t>(i))));
               break;
             case INT:
-              LOOP(r.set_as(i, fn(lhs.comp_as<int32_t>(i), rhs.comp_as<uint32_t>(i))));
+              LOOP(r.set_as(i, fn(lhs.comp_as<int32_t>(i), rhs.comp_as<int32_t>(i))));
               break;
             case FLOAT:
               LOOP(r.set_as(i, fn(lhs.comp_as<int32_t>(i), rhs.comp_as<float>(i))));
@@ -320,32 +320,32 @@ struct ConstexprValue {
         case UINT:
           switch (rhs.comp_type()) {
             case BOOL:
-              LOOP(r.set_as(i, fn(lhs.comp_as<int32_t>(i), rhs.comp_as<int32_t>(i))));
+              LOOP(r.set_as(i, fn(lhs.comp_as<uint32_t>(i), rhs.comp_as<int32_t>(i))));
               break;
             case UINT:
-              LOOP(r.set_as(i, fn(lhs.comp_as<int32_t>(i), rhs.comp_as<int32_t>(i))));
+              LOOP(r.set_as(i, fn(lhs.comp_as<uint32_t>(i), rhs.comp_as<uint32_t>(i))));
               break;
             case INT:
-              LOOP(r.set_as(i, fn(lhs.comp_as<int32_t>(i), rhs.comp_as<uint32_t>(i))));
+              LOOP(r.set_as(i, fn(lhs.comp_as<uint32_t>(i), rhs.comp_as<int32_t>(i))));
               break;
             case FLOAT:
-              LOOP(r.set_as(i, fn(lhs.comp_as<int32_t>(i), rhs.comp_as<float>(i))));
+              LOOP(r.set_as(i, fn(lhs.comp_as<uint32_t>(i), rhs.comp_as<float>(i))));
               break;
           }
           break;
         case INT:
           switch (rhs.comp_type()) {
             case BOOL:
-              LOOP(r.set_as(i, fn(lhs.comp_as<uint32_t>(i), rhs.comp_as<int32_t>(i))));
+              LOOP(r.set_as(i, fn(lhs.comp_as<int32_t>(i), rhs.comp_as<int32_t>(i))));
               break;
             case UINT:
-              LOOP(r.set_as(i, fn(lhs.comp_as<uint32_t>(i), rhs.comp_as<int32_t>(i))));
+              LOOP(r.set_as(i, fn(lhs.comp_as<int32_t>(i), rhs.comp_as<uint32_t>(i))));
               break;
             case INT:
-              LOOP(r.set_as(i, fn(lhs.comp_as<uint32_t>(i), rhs.comp_as<uint32_t>(i))));
+              LOOP(r.set_as(i, fn(lhs.comp_as<int32_t>(i), rhs.comp_as<int32_t>(i))));
               break;
             case FLOAT:
-              LOOP(r.set_as(i, fn(lhs.comp_as<uint32_t>(i), rhs.comp_as<float>(i))));
+              LOOP(r.set_as(i, fn(lhs.comp_as<int32_t>(i), rhs.comp_as<float>(i))));
               break;
           }
           break;
@@ -355,10 +355,10 @@ struct ConstexprValue {
               LOOP(r.set_as(i, fn(lhs.comp_as<float>(i), rhs.comp_as<int32_t>(i))));
               break;
             case UINT:
-              LOOP(r.set_as(i, fn(lhs.comp_as<float>(i), rhs.comp_as<int32_t>(i))));
+              LOOP(r.set_as(i, fn(lhs.comp_as<float>(i), rhs.comp_as<uint32_t>(i))));
               break;
             case INT:
-              LOOP(r.set_as(i, fn(lhs.comp_as<float>(i), rhs.comp_as<uint32_t>(i))));
+              LOOP(r.set_as(i, fn(lhs.comp_as<float>(i), rhs.comp_as<int32_t>(i))));
               break;
             case FLOAT:
               LOOP(r.set_as(i, fn(lhs.comp_as<float>(i), rhs.comp_as<float>(i))));
@@ -518,7 +518,9 @@ inline ConstexprValue operator<<(const ConstexprValue &lhs, const ConstexprValue
         return apply_integral([](auto &&l, auto &&r) { return l << r; }, l, r);
       },
       lhs,
-      rhs);
+      rhs,
+      false,
+      true);
 }
 
 inline ConstexprValue operator>>(const ConstexprValue &lhs, const ConstexprValue &rhs)
@@ -528,7 +530,9 @@ inline ConstexprValue operator>>(const ConstexprValue &lhs, const ConstexprValue
         return apply_integral([](auto &&l, auto &&r) { return l >> r; }, l, r);
       },
       lhs,
-      rhs);
+      rhs,
+      false,
+      true);
 }
 
 inline bool contains_zero(const ConstexprValue &v)

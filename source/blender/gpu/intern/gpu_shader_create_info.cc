@@ -129,6 +129,9 @@ std::string ShaderCreateInfo::resource_guard_defines(Span<CompilationConstant> c
 {
   std::string defines;
   defines += "#define CREATE_INFO_" + name_ + "\n";
+  for (const StageInterfaceInfo *interface : this->vertex_out_interfaces_) {
+    defines += "#define IFACE_INFO_" + interface->name + "\n";
+  }
   for (const auto &additional_info : additional_infos_) {
     const ShaderCreateInfo &info = *reinterpret_cast<const ShaderCreateInfo *>(
         gpu_shader_create_info_get(additional_info.name.c_str()));
@@ -381,6 +384,7 @@ std::string ShaderCreateInfo::check_error() const
     return error;
   }
 
+#if 0 /* TODO(fclem): See if this is still needed without any named interface. */
   if (flag_is_set(this->builtins_combined(),
                   BuiltinBits::BARYCENTRIC_COORD | BuiltinBits::VIEWPORT_INDEX |
                       BuiltinBits::LAYER))
@@ -393,6 +397,7 @@ std::string ShaderCreateInfo::check_error() const
       }
     }
   }
+#endif
 
   for (const StageInterfaceInfo *interface : this->vertex_out_interfaces_) {
     for (const StageInterfaceInfo::InOut &inout : interface->inouts) {
