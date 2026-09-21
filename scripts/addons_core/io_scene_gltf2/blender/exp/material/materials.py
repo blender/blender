@@ -33,7 +33,7 @@ from .search_node_tree import \
     previous_socket, next_node
 
 
-class BlenderMaterialIndentifier:
+class BlenderMaterialIdentifier:
     def __init__(self, blender_material, export_settings):
         self.id = id(blender_material)
         self.used = None
@@ -304,7 +304,7 @@ def gather_material(bmat, export_settings):
     :return: a glTF material
     """
 
-    bmat = BlenderMaterialIndentifier(bmat, export_settings)
+    bmat = BlenderMaterialIdentifier(bmat, export_settings)
 
     if not __filter_material(bmat, export_settings):
         return None, {"uv_info": {}, "vc_info": {'color': None, 'alpha': None,

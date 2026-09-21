@@ -210,7 +210,7 @@ def get_anisotropy_rotation_blender_to_gltf(rotation):
     return rotation * (2 * np.pi)
 
 
-def yvof_blender_to_gltf(angle, width, height, sensor_fit):
+def yfov_blender_to_gltf(angle, width, height, sensor_fit):
 
     aspect_ratio = width / height
 

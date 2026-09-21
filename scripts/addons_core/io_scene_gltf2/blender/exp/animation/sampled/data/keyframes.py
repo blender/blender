@@ -162,7 +162,7 @@ def gather_data_sampled_keyframes(
 
             # innerConeAngle is handled in cache retrieval, as it requires spot_size and spot_blend
 
-        # Camera yvof is calculated in cache retrieval, as it requires sensor_fit, angle, aspect ratio
+        # Camera yfov is calculated in cache retrieval, as it requires sensor_fit, angle, aspect ratio
 
         key.value_total = value
         keyframes.append(key)

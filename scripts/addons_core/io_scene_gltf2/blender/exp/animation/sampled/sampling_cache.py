@@ -6,7 +6,7 @@ import mathutils
 import bpy
 import typing
 from .....blender.com.data_path import get_sk_exported
-from .....blender.com.conversion import inverted_trs_mapping_node, texture_transform_blender_to_gltf, yvof_blender_to_gltf
+from .....blender.com.conversion import inverted_trs_mapping_node, texture_transform_blender_to_gltf, yfov_blender_to_gltf
 from ...cache import datacache
 from ...tree import VExportNode
 from ..drivers import get_sk_drivers
@@ -714,9 +714,9 @@ def camera_caching(data, action_name, slot_identifier, frame, export_settings):
             width = _render.pixel_aspect_x * _render.resolution_x
             height = _render.pixel_aspect_y * _render.resolution_y
             del _render
-            # Manage special case for yvof because it requires sensor_fit, aspect ratio, angle
+            # Manage special case for yfov because it requires sensor_fit, aspect ratio, angle
             if export_settings['KHR_animation_pointer'][None]['cameras'][cam]['paths'][path]['path'] == "/cameras/XXX/perspective/yfov":
-                val = yvof_blender_to_gltf(blender_camera.angle, width, height, blender_camera.sensor_fit)
+                val = yfov_blender_to_gltf(blender_camera.angle, width, height, blender_camera.sensor_fit)
                 data[key1][key2][key3][key4][path][frame] = val
             # Manage special case for xmag because it requires ortho_scale & scene data
             elif export_settings['KHR_animation_pointer'][None]['cameras'][cam]['paths'][path]['path'] == "/cameras/XXX/orthographic/xmag":

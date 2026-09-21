@@ -128,7 +128,7 @@ class VExportTree:
 
         self.export_settings = export_settings
 
-        self.tree_troncated = False
+        self.tree_truncated = False
 
         self.axis_basis_change = Matrix.Identity(4)
         if self.export_settings['gltf_yup']:
@@ -522,7 +522,7 @@ class VExportTree:
             depsgraph = bpy.context.evaluated_depsgraph_get()
             children_found = False
             for (
-                dupl,
+                dupli,
                 mat) in [
                 (dup.object.original,
                  dup.matrix_world.copy()) for dup in depsgraph.object_instances if
@@ -534,7 +534,7 @@ class VExportTree:
             ]:
                 children_found = True
                 self.recursive_node_traverse(
-                    dupl,
+                    dupli,
                     None,
                     node.uuid,
                     parent_coll_matrix_world,
@@ -728,12 +728,12 @@ class VExportTree:
 
             # If parent_uuid is not parent_kept_uuid, we need to modify children list of parent_kept_uuid
             if parent_kept_uuid != self.nodes[uuid].parent_uuid and parent_kept_uuid is not None:
-                self.tree_troncated = True
+                self.tree_truncated = True
                 self.nodes[parent_kept_uuid].children.append(uuid)
 
             # If parent_kept_uuid is None, and parent_uuid was not, add to root list
             if self.nodes[uuid].parent_uuid is not None and parent_kept_uuid is None:
-                self.tree_troncated = True
+                self.tree_truncated = True
                 self.roots.append(uuid)
 
             # Modify parent uuid

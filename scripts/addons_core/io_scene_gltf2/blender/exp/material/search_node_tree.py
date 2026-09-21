@@ -951,7 +951,7 @@ def get_attribute_name(socket, export_settings):
     return False, None, None
 
 
-def detect_iridescence_thickness_texure(socket, minimum_thickness_socket, export_settings):
+def detect_iridescence_thickness_texture(socket, minimum_thickness_socket, export_settings):
     # Check that we have a specific tree branch with all data required for the iridescence thickness texture
 
     if socket.socket is None:
