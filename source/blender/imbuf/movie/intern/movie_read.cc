@@ -143,7 +143,7 @@ MovieReader *MOV_open_file(const char *filepath,
                            const ImBufFlags ib_flags,
                            const int streamindex,
                            const bool keep_original_colorspace,
-                           char colorspace[IM_MAX_SPACE])
+                           ColorManagedColorspaceSettings *colorspace_settings)
 {
   MovieReader *anim;
 
@@ -157,9 +157,9 @@ MovieReader *MOV_open_file(const char *filepath,
     anim->streamindex = streamindex;
     anim->keep_original_colorspace = keep_original_colorspace;
 
-    if (colorspace && colorspace[0] != '\0') {
+    if (colorspace_settings && colorspace_settings->name[0] != '\0') {
       /* Use colorspace from argument, if provided. */
-      STRNCPY_UTF8(anim->colorspace, colorspace);
+      STRNCPY_UTF8(anim->colorspace, colorspace_settings->name);
     }
     else {
       /* Try to initialize colorspace from the FFmpeg stream by interpreting color information from
@@ -167,9 +167,9 @@ MovieReader *MOV_open_file(const char *filepath,
       char file_colorspace[IM_MAX_SPACE];
       probe_video_colorspace(anim, file_colorspace);
       STRNCPY_UTF8(anim->colorspace, file_colorspace);
-      if (colorspace) {
+      if (colorspace_settings) {
         /* Copy the used colorspace into output argument. */
-        BLI_strncpy_utf8(colorspace, file_colorspace, IM_MAX_SPACE);
+        STRNCPY_UTF8(colorspace_settings->name, file_colorspace);
       }
     }
   }

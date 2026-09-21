@@ -886,7 +886,7 @@ static ImBuf *seq_render_image_strip_view(
   }
 
   if (prefix[0] == '\0') {
-    ibuf = IMB_load_image_from_filepath(filepath, flag, strip->data->colorspace_settings.name);
+    ibuf = IMB_load_image_from_filepath(filepath, flag, &strip->data->colorspace_settings);
   }
   else {
     char filepath_view[FILE_MAX];
@@ -895,8 +895,7 @@ static ImBuf *seq_render_image_strip_view(
     {
       return nullptr;
     }
-    ibuf = IMB_load_image_from_filepath(
-        filepath_view, flag, strip->data->colorspace_settings.name);
+    ibuf = IMB_load_image_from_filepath(filepath_view, flag, &strip->data->colorspace_settings);
   }
 
   if (ibuf == nullptr) {
@@ -1039,7 +1038,7 @@ static ImBuf *seq_render_movie_strip_custom_file_proxy(const RenderData *context
       /* Sequencer takes care of colorspace conversion of the result. The input is the best to be
        * kept unchanged for the performance reasons. */
       proxy->anim = openanim(
-          filepath, ImBufFlags::Zero, 0, true, strip->data->colorspace_settings.name);
+          filepath, ImBufFlags::Zero, 0, true, &strip->data->colorspace_settings);
     }
     if (proxy->anim == nullptr) {
       return nullptr;

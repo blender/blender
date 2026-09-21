@@ -282,11 +282,12 @@ void MovieReaderCache::reader_open(MovieReaderCacheEntry &entry)
   }
 
   const MovieReaderKey &key = entry.key;
-  char colorspace[IM_MAX_SPACE];
-  STRNCPY(colorspace, key.colorspace.c_str());
+  ColorManagedColorspaceSettings colorspace_settings;
+  STRNCPY(colorspace_settings.name, key.colorspace.c_str());
   const std::string &filepath = key.multiview_filepath.empty() ? key.source_filepath :
                                                                  key.multiview_filepath;
-  entry.reader = MOV_open_file(filepath.c_str(), key.flags, key.stream_index, true, colorspace);
+  entry.reader = MOV_open_file(
+      filepath.c_str(), key.flags, key.stream_index, true, &colorspace_settings);
   if (entry.reader == nullptr) {
     return;
   }
