@@ -108,7 +108,13 @@ ccl_device void svm_eval_nodes(KernelGlobals kg,
                                const PathRayVisibility path_visibility,
                                const uint32_t path_flag)
 {
+#ifdef __KERNEL_ONEAPI__
+  /* On Intel GPUs, for large structs in private memory, an alignment of 64 gives the best
+   * performance. */
+  ccl_align(64) float stack[SVM_STACK_SIZE];
+#else
   float stack[SVM_STACK_SIZE];
+#endif
   /* Initialize to silence (false positive?) warning about uninitialized use on Windows. */
   Spectrum closure_weight = zero_spectrum();
   int offset = (sd->shader & SHADER_MASK) * (1 + sizeof(SVMNodeShaderJump) / sizeof(uint));
