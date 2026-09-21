@@ -22,7 +22,8 @@ EdgeDice::EdgeDice(const SubdParams &params_,
 {
   Mesh *mesh = params.mesh;
 
-  mesh->num_subd_added_verts = num_verts - mesh->num_verts();
+  /* Keep the coarse vertex count when tessellating an already diced mesh. */
+  mesh->num_subd_added_verts = num_verts - mesh->get_num_subd_base_verts();
   mesh->resize_mesh(num_verts, num_triangles);
 
   mesh->attributes.add(ATTR_STD_VERTEX_NORMAL);

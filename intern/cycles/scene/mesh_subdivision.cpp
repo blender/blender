@@ -17,9 +17,6 @@ CCL_NAMESPACE_BEGIN
 
 void Mesh::tessellate(SubdParams &params)
 {
-  /* reset the number of subdivision vertices, in case the Mesh was not cleared
-   * between calls or data updates */
-  num_subd_added_verts = 0;
   const int num_faces = get_num_subd_faces();
 
   /* If there are no faces there is nothing to subdivide, and the required
