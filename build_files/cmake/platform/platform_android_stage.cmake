@@ -69,7 +69,7 @@ message(STATUS "Gradle staging: Base Gradle project staged")
 
 
 # -----------------------------------------------------------------------------
-# Shared native libraries
+# Copy/Strip built Blender native shared libraries and STL
 
 file(GLOB bundled_libs "${INSTALL_TARGET_DIR}/../lib/*.so")
 set(libs ${bundled_libs} "${INSTALL_TARGET_DIR}/../libblender.so" "${libcxx_shared}")
