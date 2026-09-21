@@ -463,10 +463,11 @@ static void options_parse(const int argc, const char **argv)
     printf("Devices:\n");
 
     for (const DeviceInfo &info : devices) {
-      printf("    %-10s%s%s\n",
+      printf("    %-10s%s%s%s\n",
              Device::string_from_type(info.type).c_str(),
              info.description.c_str(),
-             (info.display_device) ? " (display)" : "");
+             (info.display_device) ? " (display)" : "",
+             (info.meets_driver_requirement) ? "" : " (driver outdated)");
     }
 
     exit(EXIT_SUCCESS);
@@ -499,17 +500,26 @@ static void options_parse(const int argc, const char **argv)
 
   /* find matching device */
   const DeviceType device_type = Device::type_from_string(devicename.c_str());
-  vector<DeviceInfo> devices = Device::available_devices(DEVICE_MASK(device_type));
 
   bool device_available = false;
-  if (!devices.empty()) {
-    options.session_params.device = devices.front();
-    device_available = true;
+  bool device_driver_outdated = false;
+  for (const DeviceInfo &info : Device::available_devices(DEVICE_MASK(device_type))) {
+    if (info.meets_driver_requirement) {
+      options.session_params.device = info;
+      device_available = true;
+      break;
+    }
+    device_driver_outdated = true;
   }
 
   /* handle invalid configurations */
   if (options.session_params.device.type == DEVICE_NONE || !device_available) {
-    fprintf(stderr, "Unknown device: %s\n", devicename.c_str());
+    if (device_driver_outdated) {
+      fprintf(stderr, "Device driver outdated: %s\n", devicename.c_str());
+    }
+    else {
+      fprintf(stderr, "Unknown device: %s\n", devicename.c_str());
+    }
     exit(EXIT_FAILURE);
   }
 #ifdef WITH_OSL

@@ -223,7 +223,7 @@ class SourceProcessor {
   /* --- Lowering --- */
 
   /* Remove `maybe_unused` attribute. */
-  void lower_maybe_unused(Parser &parser);
+  void lower_noop_attributes(Parser &parser);
   /* Lower parameters that have no name (invalid in GLSL). */
   void lower_namesless_parameters(Parser &parser);
   void lower_namesless_parameters_ast(Parser &parser);

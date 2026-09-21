@@ -1657,33 +1657,6 @@ static void ANIM_OT_replace_action_new(wmOperatorType *ot)
 /** \name Convert
  * \{ */
 
-static Vector<ed::AnimTransformable> selected_transformables_from_context(bContext *C)
-{
-  Vector<ed::AnimTransformable> transformables;
-  Vector<PointerRNA> pointers;
-  switch (CTX_data_mode_enum(C)) {
-    case CTX_MODE_OBJECT: {
-      CTX_data_selected_objects(C, &pointers);
-      for (PointerRNA &ptr : pointers) {
-        transformables.append(ed::AnimTransformable(*id_cast<Object *>(ptr.owner_id)));
-      }
-      break;
-    }
-    case CTX_MODE_POSE: {
-      CTX_data_selected_pose_bones(C, &pointers);
-      for (PointerRNA &ptr : pointers) {
-        transformables.append(
-            {*id_cast<Object *>(ptr.owner_id), *static_cast<bPoseChannel *>(ptr.data)});
-      }
-      break;
-    }
-
-    default:
-      break;
-  }
-  return transformables;
-}
-
 /* Uniquely identifies an AnimTransformable for a Slot. The StringRefNull is the `rna_path()` of
  * the AnimTransformable.  */
 using SlotTransformableID = std::pair<const animrig::Slot *, StringRefNull>;
@@ -1739,7 +1712,8 @@ static wmOperatorStatus rotation_mode_convert_exec(bContext *C, wmOperator *op)
 
   Main *bmain = CTX_data_main(C);
 
-  Vector<ed::AnimTransformable> selected_transformables = selected_transformables_from_context(C);
+  Vector<ed::AnimTransformable> selected_transformables = ed::selected_transformables_from_context(
+      *C);
   for (ed::AnimTransformable &transformable : selected_transformables) {
     /* We cannot skip transformables based on their current rotation mode since that may be
      * animated. So `transformable.get_rotation_mode() == mode -> continue` won't work.*/
@@ -1917,6 +1891,9 @@ void ED_operatortypes_anim()
   WM_operatortype_append(ed::animrig::POSELIB_OT_create_pose_asset);
   WM_operatortype_append(ed::animrig::POSELIB_OT_asset_modify);
   WM_operatortype_append(ed::animrig::POSELIB_OT_asset_delete);
+
+  WM_operatortype_append(ed::animrig::ANIM_OT_world_space_copy);
+  WM_operatortype_append(ed::animrig::ANIM_OT_world_space_paste);
 }
 
 void ED_keymap_anim(wmKeyConfig *keyconf)

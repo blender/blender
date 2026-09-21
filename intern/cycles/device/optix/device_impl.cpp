@@ -450,7 +450,6 @@ bool OptiXDevice::load_kernels(const uint64_t kernel_features)
     auto load_optional_module = [this, &kernel_features](const string &name,
                                                          string &ptx_data) -> bool {
       string filename = path_get("lib/" + name + ".ptx.zst");
-      LOG_INFO << "OptiX: Loading optional module from " << filename;
       if (use_adaptive_compilation() || path_file_size(filename) == -1) {
         /* Map kernel_optix_foo.ptx to kernel_foo.cu. */
         const char *suffix = "_optix";
@@ -464,6 +463,7 @@ bool OptiXDevice::load_kernels(const uint64_t kernel_features)
         const string cflags = compile_kernel_get_common_cflags(kernel_features);
         filename = compile_kernel(cflags, source_name.c_str(), true);
       }
+      LOG_INFO << "OptiX: Loading optional module from " << filename;
       if (filename.empty() || !path_read_compressed_text(filename, ptx_data)) {
         set_error(string_printf("Failed to load OptiX kernel from '%s'", filename.c_str()));
         return false;

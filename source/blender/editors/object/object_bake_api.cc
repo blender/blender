@@ -123,7 +123,7 @@ struct BakeAPIRender {
   float *progress;
   bool *do_update;
 
-  /* To check for job cancelation. */
+  /* To check for job cancellation. */
   bool *stop;
 
   /* Operator state. */

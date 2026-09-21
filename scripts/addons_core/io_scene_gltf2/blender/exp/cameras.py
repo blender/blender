@@ -4,7 +4,7 @@
 
 import bpy
 from ...io.com import gltf2_io
-from ...blender.com.conversion import yvof_blender_to_gltf
+from ...blender.com.conversion import yfov_blender_to_gltf
 from ...io.exp.user_extensions import export_user_extensions
 from ..com.extras import generate_extras
 from .cache import cached
@@ -119,7 +119,7 @@ def __gather_perspective(blender_camera, export_settings):
         perspective.aspect_ratio = width / height
         del _render
 
-        perspective.yfov = yvof_blender_to_gltf(blender_camera.angle, width, height, blender_camera.sensor_fit)
+        perspective.yfov = yfov_blender_to_gltf(blender_camera.angle, width, height, blender_camera.sensor_fit)
 
         perspective.znear = blender_camera.clip_start
         perspective.zfar = blender_camera.clip_end

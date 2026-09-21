@@ -290,6 +290,11 @@ void BKE_object_apply_parent_inverse(Object *ob);
 
 void BKE_object_matrix_local_get(Object *ob, float r_mat[4][4]);
 
+/**
+ * Creates a 4x4 matrix out of the object delta transform values.
+ */
+float4x4 BKE_object_delta_matrix_get(const Object &obj);
+
 bool BKE_object_pose_context_check(const Object *ob);
 
 Object *BKE_object_pose_armature_get(Object *ob);

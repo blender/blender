@@ -70,6 +70,17 @@ void init_globals_curves(ShadingData &sd, const ViewMatrices view)
 #endif
 }
 
+void init_globals_pointcloud(ShadingData &sd)
+{
+  auto &ptcloud_interp = interface_get(eevee_geom_pointcloud_iface_info, pointcloud_interp);
+  auto &ptcloud_interp_flat = interface_get(eevee_geom_pointcloud_iface_info,
+                                            pointcloud_interp_flat);
+
+  sd.point_position = ptcloud_interp.position;
+  sd.point_radius = ptcloud_interp.radius;
+  sd.point_id = ptcloud_interp_flat.id;
+}
+
 [[nodiscard]] ShadingData init_globals([[resource_table]] const eevee::Uniform &uni,
                                        const ViewMatrices view,
                                        bool front_face,
@@ -79,6 +90,7 @@ void init_globals_curves(ShadingData &sd, const ViewMatrices view)
   ShadingData sd;
   /* Default values. */
   sd.frag_co = fragment_co;
+  sd.front_facing = front_face;
   sd.P = interp.P;
   sd.Ni = interp.N;
   sd.N = safe_normalize(interp.N);
@@ -86,6 +98,9 @@ void init_globals_curves(ShadingData &sd, const ViewMatrices view)
   sd.is_strand = false;
   sd.hair_diameter = 0.0f;
   sd.hair_strand_id = 0;
+  sd.point_position = float3(0.0f);
+  sd.point_radius = 0.0f;
+  sd.point_id = 0;
 #if defined(MAT_SHADOW)
   sd.ray_type = RAY_TYPE_SHADOW;
 #elif defined(MAT_CAPTURE)
@@ -110,6 +125,8 @@ void init_globals_curves(ShadingData &sd, const ViewMatrices view)
 
 #if defined(MAT_GEOM_MESH)
   init_globals_mesh(sd);
+#elif defined(MAT_GEOM_POINTCLOUD)
+  init_globals_pointcloud(sd);
 #elif defined(MAT_GEOM_CURVES)
   init_globals_curves(sd, view);
 #endif

@@ -1180,7 +1180,7 @@ static void paint_cursor_update_rake_rotation(PaintCursorContext &pcontext)
   float2 mouse = {pcontext.translation.x - region->winrct.xmin,
                   pcontext.translation.y - region->winrct.ymin};
   if (!paint_runtime->stroke_active) {
-    paint_calculate_rake_rotation(
+    BKE_paint_calculate_rake_rotation(
         *pcontext.paint, *pcontext.brush, mouse, pcontext.mode, false, false);
   }
 }

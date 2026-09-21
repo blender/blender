@@ -347,7 +347,7 @@ void SubdAttributeInterpolation::setup_attribute_vertex_smooth(const Attribute &
       osd_data.patch_table->EvaluateBasis(handle, uv.x, uv.y, p_weights, du_weights, dv_weights);
       Far::ConstIndexArray cv = osd_data.patch_table->GetPatchVertices(handle);
 
-      /* Compution position. */
+      /* Compute position. */
       typename T::AccumType value = subd_data[cv[0]] * p_weights[0];
       for (int k = 1; k < cv.size(); k++) {
         value += subd_data[cv[k]] * p_weights[k];
@@ -527,7 +527,7 @@ void SubdAttributeInterpolation::setup_attribute_corner_smooth(Attribute &mesh_a
                                                        channel);
         Far::ConstIndexArray cv = osd_data.patch_table->GetPatchFVarValues(handle, channel);
 
-        /* Compution position. */
+        /* Compute position. */
         typename T::AccumType value = subd_data[cv[0]] * p_weights[0];
         for (int k = 1; k < cv.size(); k++) {
           value += subd_data[cv[k]] * p_weights[k];

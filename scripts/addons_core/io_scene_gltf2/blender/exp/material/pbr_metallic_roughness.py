@@ -200,7 +200,7 @@ def __gather_metallic_roughness_texture(bmat, orm_texture, export_settings):
     hasRough = roughness_socket.socket is not None and has_image_node_from_socket(roughness_socket, export_settings)
 
     # Warning: for default socket, do not use NodeSocket object, because it will break cache
-    # Using directlty the Blender socket object
+    # Using directly the Blender socket object
     if not hasMetal and not hasRough:
         metallic_roughness = bmat.get_socket_from_gltf_material_node("MetallicRoughness")
         if metallic_roughness.socket is None or not has_image_node_from_socket(metallic_roughness, export_settings):

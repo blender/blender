@@ -1757,7 +1757,7 @@ def export_panel_animation_bake_and_merge(layout, operator):
 
         row = body.row()
         row.active = operator.export_force_sampling and operator.export_animation_mode in [
-            'ACTIONS', 'ACTIVE_ACTIONS', 'BROACAST']
+            'ACTIONS', 'ACTIVE_ACTIONS', 'BROADCAST']
         row.prop(operator, 'export_bake_animation')
 
         if operator.export_animation_mode == "SCENE":

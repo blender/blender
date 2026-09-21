@@ -365,8 +365,11 @@ static bool rna_find_sdna_member(const StringRef structname,
     }
 
     /* Recursive into nested members. */
+    const void *nested_default_data = nullptr;
     if (remainder.startswith(".")) {
+      /* Nested struct, offset into parent default. */
       remainder = remainder.drop_known_prefix(".");
+      nested_default_data = rna_default_data(struct_idx, member_idx, base_default_data);
     }
     else if (remainder.startswith("->")) {
       remainder = remainder.drop_known_prefix("->");
@@ -377,10 +380,7 @@ static bool rna_find_sdna_member(const StringRef structname,
 
     /* The return value for nested structs is ignored, to allow recursing into
      * runtime structs not covered by DNA. */
-    rna_find_sdna_member(pm.type_name,
-                         remainder,
-                         r_dp,
-                         rna_default_data(struct_idx, member_idx, base_default_data));
+    rna_find_sdna_member(pm.type_name, remainder, r_dp, nested_default_data);
     return true;
   }
 

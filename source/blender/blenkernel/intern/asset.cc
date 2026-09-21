@@ -63,7 +63,6 @@ AssetMetaData::AssetMetaData(const AssetMetaData &other)
   description = BLI_strdup_null(other.description);
   copyright = BLI_strdup_null(other.copyright);
   license = BLI_strdup_null(other.license);
-  webpage = BLI_strdup_null(other.webpage);
 
   BLI_duplicatelist(&tags, &other.tags);
 }
@@ -76,7 +75,6 @@ AssetMetaData::AssetMetaData(AssetMetaData &&other)
       description(std::exchange(other.description, nullptr)),
       copyright(std::exchange(other.copyright, nullptr)),
       license(std::exchange(other.license, nullptr)),
-      webpage(std::exchange(other.webpage, nullptr)),
       active_tag(other.active_tag),
       tot_tags(other.tot_tags),
       flag(other.flag),
@@ -97,7 +95,6 @@ AssetMetaData::~AssetMetaData()
   MEM_SAFE_DELETE(description);
   MEM_SAFE_DELETE(copyright);
   MEM_SAFE_DELETE(license);
-  MEM_SAFE_DELETE(webpage);
   tags.free_no_destruct();
 }
 
@@ -213,7 +210,6 @@ void BKE_asset_metadata_write(BlendWriter *writer, AssetMetaData *asset_data)
   writer->write_string(asset_data->description);
   writer->write_string(asset_data->copyright);
   writer->write_string(asset_data->license);
-  writer->write_string(asset_data->webpage);
 
   for (AssetTag &tag : asset_data->tags) {
     writer->write_struct(&tag);
@@ -234,7 +230,6 @@ void BKE_asset_metadata_read(BlendDataReader *reader, AssetMetaData *asset_data)
   BLO_read_string(reader, &asset_data->description);
   BLO_read_string(reader, &asset_data->copyright);
   BLO_read_string(reader, &asset_data->license);
-  BLO_read_string(reader, &asset_data->webpage);
 
   BLO_read_struct_list(reader, AssetTag, &asset_data->tags);
   BLI_assert(asset_data->tags.count() == asset_data->tot_tags);

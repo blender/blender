@@ -9,7 +9,7 @@ from .....io.com.constants import GLTF_IRIDESCENCE_IOR
 from ...material import texture_info as gltf2_blender_gather_texture_info
 from ..search_node_tree import \
     has_image_node_from_socket, \
-    detect_iridescence_thickness_texure, \
+    detect_iridescence_thickness_texture, \
     get_factor_from_socket
 
 
@@ -20,9 +20,9 @@ def export_iridescence(bmat, export_settings):
 
     # Mapping:
     # Iridescence Thickness (Blender) -> Iridescence Thickness Maximum (glTF)
-    # Iridesence Thickness Mininum (Blender, glTF Output Material Node) -> Iridescence Thickness Minimum (glTF)
+    # Iridescence Thickness Minimum (Blender, glTF Output Material Node) -> Iridescence Thickness Minimum (glTF)
     # Iridescence Thickness Texture Red (Blender) -> Iridescence Thickness Texture (glTF)
-    # Tickness IOR (Blender) -> Iridescence IOR (glTF) . Warning, Blender default 1.333, glTF default 1.3
+    # Thickness IOR (Blender) -> Iridescence IOR (glTF) . Warning, Blender default 1.333, glTF default 1.3
     # IridescenceFactor (Blender, glTF Output Material Node) -> Iridescence Factor (glTF)
     # IridescenceTexture Red (Blender, glTF Output Material Node texture on
     # IridescenceFactor) -> Iridescence Texture (glTF)
@@ -130,7 +130,7 @@ def export_iridescence(bmat, export_settings):
                                          ".default_value"] = path_
 
     else:
-        is_texture_iridescence, iridescence_data = detect_iridescence_thickness_texure(
+        is_texture_iridescence, iridescence_data = detect_iridescence_thickness_texture(
             iridescence_thickness_socket, iridescence_thickness_minimum_socket, export_settings)
         if is_texture_iridescence:
             # Texture found, so export from data retrieved

@@ -261,7 +261,12 @@ static bool but_isect_pie_seg(const Block *block, const Button *but)
 
 bool button_contains_pt(const Button *but, float mx, float my)
 {
-  return BLI_rctf_isect_pt(&but->rect, mx, my);
+  rctf rect = but->rect;
+  /* Add a magin to allow selecting points at the border of curves maps. */
+  if (ELEM(but->type, ButtonType::Curve, ButtonType::CurveProfile)) {
+    BLI_rctf_pad(&rect, 4, 4);
+  }
+  return BLI_rctf_isect_pt(&rect, mx, my);
 }
 
 bool button_contains_rect(const Button *but, const rctf *rect)

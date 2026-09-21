@@ -2175,6 +2175,14 @@ static void widget_draw_text_ime_underline(const uiFontStyle *fstyle,
 }
 #endif /* WITH_INPUT_IME */
 
+/* Text selection uses a lower opacity than the item color.
+ * See #163741 for details. */
+static void widget_text_selection_color(const uiWidgetColors *wcol, uchar color[4])
+{
+  copy_v4_v4_uchar(color, wcol->item);
+  color[3] = 51;
+}
+
 static void widget_draw_textbox(const uiFontStyle *fstyle,
                                 const uiWidgetColors *wcol,
                                 Button *but,
@@ -2326,7 +2334,9 @@ static void widget_draw_textbox(const uiFontStyle *fstyle,
       const uint pos = GPU_vertformat_attr_add(
           immVertexFormat(), "pos", gpu::VertAttrType::SFLOAT_32_32);
       immBindBuiltinProgram(GPU_SHADER_3D_UNIFORM_COLOR);
-      immUniformColor4ubv(wcol->item);
+      uchar selection_color[4];
+      widget_text_selection_color(wcol, selection_color);
+      immUniformColor4ubv(selection_color);
       const StringRef line = lines[selection.line];
       const Vector<Bounds<int>> boxes = BLF_str_selection_boxes(
           fstyle->uifont_id,
@@ -2545,6 +2555,7 @@ static void widget_draw_text(const uiFontStyle *fstyle,
 
 #ifdef WITH_INPUT_IME
   const wmIMEData *ime_data;
+  std::string ime_drawstr;
 #endif
 
   fontstyle_set(fstyle);
@@ -2577,7 +2588,6 @@ static void widget_draw_text(const uiFontStyle *fstyle,
       drawstr_left_len = INT_MAX;
 
 #ifdef WITH_INPUT_IME
-      /* FIXME: IME is modifying `const char *drawstr`! */
       ime_data = button_ime_data_get(but);
 
       if (ime_data && !ime_data->composite.empty()) {
@@ -2591,8 +2601,8 @@ static void widget_draw_text(const uiFontStyle *fstyle,
                      but->editstr,
                      ime_data->composite.c_str(),
                      but->editstr + but->pos);
-        but->drawstr = tmp_drawstr;
-        drawstr = but->drawstr.c_str();
+        ime_drawstr = tmp_drawstr;
+        drawstr = ime_drawstr.c_str();
       }
       else
 #endif
@@ -2639,7 +2649,9 @@ static void widget_draw_text(const uiFontStyle *fstyle,
       uint pos = GPU_vertformat_attr_add(
           immVertexFormat(), "pos", gpu::VertAttrType::SFLOAT_32_32);
       immBindBuiltinProgram(GPU_SHADER_3D_UNIFORM_COLOR);
-      immUniformColor4ubv(wcol->item);
+      uchar selection_color[4];
+      widget_text_selection_color(wcol, selection_color);
+      immUniformColor4ubv(selection_color);
       const auto boxes = BLF_str_selection_boxes(
           fstyle->uifont_id,
           drawstr + but->ofs,

@@ -33,7 +33,7 @@ class OSLCameraParamQuery {
 /* Camera
  *
  * The camera parameters are quite standard, tested to be both compatible with
- * Renderman, and Blender after remapping.
+ * RenderMan, and Blender after remapping.
  */
 
 class Camera : public Node {

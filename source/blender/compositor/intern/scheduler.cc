@@ -264,7 +264,7 @@ static Stack<const bNode *> get_output_nodes(const Context &context,
         &compute_context, group_node->identifier, &group_node->owner_tree());
     if (flag_is_set(needed_side_effect_output_types, SideEffectOutputTypes::ViewerNode) &&
         has_viewer_node(
-            child_tree, node_compute_context, context.get_active_compute_context_hash()))
+            child_tree, node_compute_context, context.get_viewer_compute_context_hash()))
     {
       node_stack.push(group_node);
       continue;
@@ -309,7 +309,7 @@ static Stack<const bNode *> get_output_nodes(const Context &context,
 
   /* Add Viewer node if this is the active context. */
   const bool is_active_context = compute_context.hash() ==
-                                 context.get_active_compute_context_hash();
+                                 context.get_viewer_compute_context_hash();
   if (flag_is_set(needed_side_effect_output_types, SideEffectOutputTypes::ViewerNode) &&
       is_active_context)
   {

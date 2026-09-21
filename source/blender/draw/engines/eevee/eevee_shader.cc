@@ -715,6 +715,10 @@ static SlotAllocator add_pipeline_create_info(gpu::shader::ShaderCreateInfo &inf
   info.compilation_constant(
       gpu::shader::Type::bool_t, "use_clip_plane", pipeline_type == MAT_PIPE_PREPASS_PLANAR);
   info.compilation_constant(gpu::shader::Type::bool_t, "use_ambient_occlusion", use_ao_node);
+  info.compilation_constant(gpu::shader::Type::bool_t,
+                            "use_forward_lighting",
+                            (pipeline_type == MAT_PIPE_FORWARD) ||
+                                ((pipeline_type == MAT_PIPE_DEFERRED) && use_shader_to_rgba));
 
   StringRefNull pipeline_info_name;
   StringRefNull additional_info_name;
@@ -1043,6 +1047,11 @@ void ShaderModule::material_create_info_amend(GPUMaterial *gpumat, GPUCodegenOut
     /* While only needed for the AO node, we always bind the hiz globally for these pipelines.
      * To ensure no user textures will reuse the slot binding, we add the info unconditionally. */
     info.additional_info("eevee_HiZ");
+  }
+
+  const ListBaseT<GPULayerAttr> *attr_list = GPU_material_layer_attributes(gpumat);
+  if (attr_list && !attr_list->is_empty()) {
+    info.additional_info("draw_layer_attributes");
   }
 
   /* Copy vertex inputs. They can be transferred into other type of resources.
@@ -1538,7 +1547,8 @@ static GPUPass *pass_replacement_cb(void *void_thunk, GPUMaterial *mat)
 
   bool has_vertex_displacement = GPU_material_has_displacement_output(mat) &&
                                  displacement_type != eMaterialDisplacement::MAT_DISPLACEMENT_BUMP;
-  bool has_transparency = GPU_material_flag_get(mat, GPU_MATFLAG_TRANSPARENT);
+  bool has_transparency = GPU_material_flag_get(mat, GPU_MATFLAG_TRANSPARENT) ||
+                          geometry_type == MAT_GEOM_GSPLAT;
   bool has_shadow_transparency = has_transparency && transparent_shadows;
   bool has_raytraced_transmission = blender_mat && (blender_mat->blend_flag & MA_BL_SS_REFRACTION);
   bool has_raycast = GPU_material_flag_get(mat, GPU_MATFLAG_RAYCAST);
@@ -1592,7 +1602,9 @@ GPUMaterial *ShaderModule::material_shader_get(blender::Material *blender_mat,
   uint64_t shader_uuid = shader_uuid_from_material_type(
       pipeline_type, geometry_type, displacement_type, thickness_type, blender_mat->blend_flag);
 
-  bool is_default_material = default_mat == nullptr;
+  /* GSplats require transparency independent of the material type; default material must
+   * be replaced for e.g. transmittance to be present. */
+  bool is_default_material = default_mat == nullptr && geometry_type != MAT_GEOM_GSPLAT;
   BLI_assert(blender_mat != default_mat);
 
   CallbackThunk thunk = {this, default_mat};

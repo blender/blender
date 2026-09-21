@@ -87,7 +87,7 @@ void cull_main([[resource_table]] Cull &srt,
           return;
         }
       }
-      ATTR_FALLTHROUGH;
+      [[fallthrough]];
     }
     case LIGHT_RECT:
     case LIGHT_ELLIPSE:
@@ -431,7 +431,7 @@ void tile_main([[resource_table]] const draw::View &views,
           break;
         }
         /* Fall-through to the hemispheric case. */
-        ATTR_FALLTHROUGH;
+        [[fallthrough]];
       }
       case LIGHT_RECT:
       case LIGHT_ELLIPSE: {

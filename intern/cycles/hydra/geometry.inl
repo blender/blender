@@ -163,7 +163,7 @@ void HdCyclesGeometry<Base, CyclesBase>::Sync(HdSceneDelegate *sceneDelegate,
 
   if (HdChangeTracker::IsVisibilityDirty(*dirtyBits, id)) {
     for (Object *instance : _instances) {
-      instance->set_visibility(Base::IsVisible() ? PATH_RAY_VISIBILITY_ALL : 0);
+      instance->set_visibility(Base::IsVisible() ? PATH_RAY_VISIBILITY_OBJECT_ALL : 0);
     }
   }
 

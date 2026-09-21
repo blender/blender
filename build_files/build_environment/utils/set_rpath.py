@@ -16,7 +16,7 @@ import subprocess
 import sys
 
 
-# Strip version numbers from dependencies macOS notarizatiom fails
+# Strip version numbers from dependencies macOS notarization fails
 # with version symlinks.
 def strip_lib_version(name):
     name = re.sub(r'(\.[0-9]+)+.dylib', '.dylib', name)

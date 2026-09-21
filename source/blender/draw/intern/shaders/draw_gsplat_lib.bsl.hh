@@ -198,13 +198,15 @@ bool get_shape_winding_ccw(uint vert_id)
 /** Get a local vertex offset of the current gsplat, given the vertex index. */
 float2 get_shape_offset(uint vert_id)
 {
+  /* Flip vertices 1,2 for ccw winding order by flipping their sign. */
+  const float winding_order_mult = get_shape_winding_ccw(vert_id) ? -1.0f : 1.0f;
   switch (vert_id % DRW_GSPLAT_STRIP_TILE_SIZE) {
     case 0:
       return float2(-1.0, -1.0);
     case 1:
-      return float2(1.0, -1.0);
+      return float2(1.0, -1.0) * winding_order_mult;
     case 2:
-      return float2(-1.0, 1.0);
+      return float2(-1.0, 1.0) * winding_order_mult;
     case 3:
       return float2(1.0, 1.0);
     default:
@@ -258,8 +260,8 @@ struct AxisTuple {
   {
     /* NOTE(not_mark): do not reduce packing size further; already causes jittering on zoom. */
     float axis_0_dir = /* 10 bits */ float(data & 0x3FFu) / 1023.0f;
-    float axis_0_len = /* 11 bits */ float((data >> 10u) & 0x7FF) / 2047.0f;
-    float axis_1_len = /* 11 bits */ float((data >> 21u) & 0x7FF) / 2047.0f;
+    float axis_0_len = /* 11 bits */ float((data >> 10u) & 0x7FFu) / 2047.0f;
+    float axis_1_len = /* 11 bits */ float((data >> 21u) & 0x7FFu) / 2047.0f;
 
     constexpr float max_axis_size = 1024.0f;
     const float2 axis = normalize(float2(axis_0_dir, cos_from_sin(axis_0_dir)));
@@ -341,8 +343,9 @@ float3 project_covmat(float3 lP,
 
   /* Applied in [3dgs2023], either as a low-pass regularization, or to enforce some minimum pixel
    * size. Reason unclear, but I guess we should match the reference here. */
-  covmat_2d[0][0] += 0.3f;
-  covmat_2d[1][1] += 0.3f;
+  /* NOTE(not_mark): disabled for now, better matches Cycles implementation. */
+  // covmat_2d[0][0] += 0.3f;
+  // covmat_2d[1][1] += 0.3f;
 
   return float3(covmat_2d[0][0], covmat_2d[0][1], covmat_2d[1][1]);
 }
@@ -517,6 +520,7 @@ struct ShapeResource {
 
     SplatShape shape;
     shape.id = detail::get_shape_id(vert_id);
+    shape.wN = wN;
     shape.mean = lP;
     shape.shape_offset = 2.0f * shape_offset;
 
@@ -529,9 +533,6 @@ struct ShapeResource {
     shape.hP = view.point_world_to_homogenous(wP);
     shape.hP.xy += ss_delta * shape.hP.w;
     shape.wP = view.point_homogeneous_to_world(shape.hP);
-
-    /* Store centroid normal, accounting for winding order. */
-    shape.wN = detail::get_shape_winding_ccw(vert_id) ? -wN : wN;
 
     return shape;
   }

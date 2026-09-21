@@ -157,6 +157,7 @@ struct SymbolParser : NodeErrorHandler {
         SymbolClass *resolved = inst_scope.lookup_class(table, type_id).unwrap(this);
         /* IMPORTANT: Instantiate at argument declaration. Allow correct lookup. */
         scope.classes.emplace(id, resolved, arg.identifier().front());
+        scope.scopes.emplace(id, resolved);
       }
       else {
         IdQualified type = arg.type();
@@ -590,7 +591,7 @@ struct SymbolParser : NodeErrorHandler {
       SymbolFunction *ctor = table.fun_arena.alloc(
           &scope, decl.front(), cls, cls->original, SymbolFunction::Type::GLOBAL);
       ctor->add_argument(cls);
-      ctor->is_builtin = true;
+      ctor->allow_vector_promotion = true;
       scope.function_emplace(ctor, true);
       ctor->identifier = prefix + ctor->identifier;
     }
@@ -1123,6 +1124,10 @@ struct SymbolParser : NodeErrorHandler {
       }
 
       if (sym->is_constexpr) {
+        if (sym->array_dimensions > 0) {
+          error(decl.array(), Diag::ConstexprVarMustNotBeArray);
+        }
+
         ExpressionResult result = initialize_constexpr(scope, sym->type, decl);
         /* For now demote constexpr if we couldn't deduce its value. */
         if (result.is_constexpr()) {

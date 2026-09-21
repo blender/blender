@@ -751,7 +751,7 @@ struct TransDataContainer {
    * unselected items are then sorted by their "distance" for proportional editing.
    *
    * At the moment of writing, this map is only used in cases where `tc->data` has a mixture of
-   * selected and unselected items (as far as I, Sybren, know, just for proportial editing).
+   * selected and unselected items (as far as I, Sybren, know, just for proportional editing).
    * Without `tc->sorted_index_map`, all items in `tc->data` are expected to be selected.
    *
    * NOTE: this is set to `nullptr` by default; use one of the sorting functions below to

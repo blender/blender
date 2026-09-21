@@ -50,156 +50,164 @@ void forward_lighting_eval([[resource_table]] KernelGlobals &kg,
                            float3 &radiance,
                            float3 &transmittance)
 {
-  [[resource_table]] LightEvalIterator &lights = kg.light_eval;
-  [[resource_table]] const Uniform &uni = kg.uniforms;
-  [[resource_table]] LightprobeRenderData &lightprobes = kg.lightprobes;
-  [[resource_table]] LightprobePlaneRenderData &lightprobe_planes = kg.lightprobe_planes;
-  [[resource_table]] LightEvalData &srt = lights.inner;
-  [[resource_table]] draw::Infos &infos = kg.infos;
+  [[resource_table]] const eevee::PipelineConstants &pipe = kg.pipe;
+  if (pipe.use_forward_lighting) [[static_branch]] {
+    [[resource_table]] LightEvalIterator &lights = kg.light_eval;
+    [[resource_table]] const Uniform &uni = kg.uniforms;
+    [[resource_table]] LightprobeRenderData &lightprobes = kg.lightprobes;
+    [[resource_table]] LightprobePlaneRenderData &lightprobe_planes = kg.lightprobe_planes;
+    [[resource_table]] LightEvalData &srt = lights.inner;
+    [[resource_table]] draw::Infos &infos = kg.infos;
 
-  float vPz = dot(view.forward(), sd.P) - dot(view.forward(), view.position());
-  float3 V = view.world_incident_vector(sd.P);
+    float vPz = dot(view.forward(), sd.P) - dot(view.forward(), view.position());
+    float3 V = view.world_incident_vector(sd.P);
 
-  light::EvalCtx<false> ctx;
-  for (uint i = 0u; i < 3; i++) [[unroll]] {
-    if (srt.light_closure_eval_count_reflect > i) [[static_branch]] {
-      ClosureUndetermined cl = sd.closure_get(uchar(i)).data;
-      ctx.stack.cl[i] = closure_light_new(kg.util_tx, cl, V);
-    }
-  }
-
-  ctx.P = sd.P;
-  ctx.Ng = sd.Ng;
-  ctx.V = V;
-  ctx.texel = frag_co;
-  ctx.thickness = thickness;
-
-  /* TODO(fclem): If transmission (no SSS) is present, we could reduce LIGHT_CLOSURE_EVAL_COUNT
-   * by 1 for this evaluation and skip evaluating the transmission closure twice. */
-  ObjectInfos object_infos = infos.get(resource_id);
-  ctx.receiver_light_set = receiver_light_set_get(object_infos);
-  ctx.terminator_normal_offset = object_infos.shadow_terminator_normal_offset;
-  ctx.terminator_geometry_offset = object_infos.shadow_terminator_geometry_offset;
-
-  lights.eval_reflection(ctx, vPz);
-
-  if (srt.light_closure_eval_count_transmit > 0) [[static_branch]] {
-    ClosureUndetermined cl_transmit = sd.closure_get(0).data;
-    if (closure_has_transmission(cl_transmit.type) || cl_transmit.type == CLOSURE_BSSRDF_BURLEY_ID)
-    {
-      light::EvalCtx<true> ctx_tr = light::init_from_reflect_ctx(ctx);
-      ctx_tr.stack.cl[0] = closure_light_new(kg.util_tx, cl_transmit, V, thickness);
-
-      /* NOTE: Only evaluates `stack.cl[0]`. */
-      lights.eval_transmission(ctx_tr, vPz);
-
-      if (cl_transmit.type == CLOSURE_BSSRDF_BURLEY_ID) {
-#if defined(GLSL_CPP_STUBS) || defined(MAT_SUBSURFACE)
-        /* Apply transmission profile onto transmitted light and sum with reflected light. */
-        float3 sss_profile = subsurface_transmission(
-            kg.util_tx, to_closure_subsurface(cl_transmit).sss_radius, thickness.value());
-        ctx.stack.cl[0].light_shadowed += ctx_tr.stack.cl[0].light_shadowed * sss_profile;
-        ctx.stack.cl[0].light_unshadowed += ctx_tr.stack.cl[0].light_unshadowed * sss_profile;
-#endif
-      }
-      else {
-        ctx.stack.cl[0].light_shadowed = ctx_tr.stack.cl[0].light_shadowed;
-        ctx.stack.cl[0].light_unshadowed = ctx_tr.stack.cl[0].light_unshadowed;
-      }
-    }
-  }
-
-  LightProbeSample samp = lightprobes.load(frag_co, sd.P, sd.N, V);
-
-  float clamp_indirect_sh = uni.uniform_buf.clamp.surface_indirect;
-  samp.volume_irradiance = spherical_harmonics::clamp_energy(samp.volume_irradiance,
-                                                             clamp_indirect_sh);
-
-#ifdef MAT_REFLECTION /* Disable if only rough surfaces. */
-  /* Planar reflection. */
-  float3 planar_probe_radiance = float3(0.0f);
-  float3 average_N = sd.Ng * 0.001f;
-  {
-    /* Get average normal.  */
+    light::EvalCtx<false> ctx;
     for (uint i = 0u; i < 3; i++) [[unroll]] {
       if (srt.light_closure_eval_count_reflect > i) [[static_branch]] {
         ClosureUndetermined cl = sd.closure_get(uchar(i)).data;
-        average_N += cl.N * cl.weight();
+        ctx.stack.cl[i] = closure_light_new(kg.util_tx, cl, V);
       }
     }
-    average_N = safe_normalize(average_N);
 
-    const int planar_id = lightprobe_planes.select_probe(sd.P, average_N);
+    ctx.P = sd.P;
+    ctx.Ng = sd.Ng;
+    ctx.V = V;
+    ctx.texel = frag_co;
+    ctx.thickness = thickness;
 
-    if (planar_id == -1) {
-      average_N = float3(0.0f);
-    }
-    else {
-      float3 P_reflected = lightprobe::plane::parallax(
-          lightprobe_planes.probe_planar_buf[planar_id], sd.P, average_N, V);
+    /* TODO(fclem): If transmission (no SSS) is present, we could reduce LIGHT_CLOSURE_EVAL_COUNT
+     * by 1 for this evaluation and skip evaluating the transmission closure twice. */
+    ObjectInfos object_infos = infos.get(resource_id);
+    ctx.receiver_light_set = receiver_light_set_get(object_infos);
+    ctx.terminator_normal_offset = object_infos.shadow_terminator_normal_offset;
+    ctx.terminator_geometry_offset = object_infos.shadow_terminator_geometry_offset;
 
-      float2 ndc_P_reflected = view.point_world_to_ndc(P_reflected).xy;
-      /* Planar probes are rendered upside down. */
-      ndc_P_reflected.y = -ndc_P_reflected.y;
-      float2 texel = view.ndc_to_screen(ndc_P_reflected);
+    lights.eval_reflection(ctx, vPz);
 
-      planar_probe_radiance =
-          textureLod(lightprobe_planes.planar_radiance_tx, float3(texel, planar_id), 0.0).rgb;
-      /* Discard background hits. */
-      if (textureLod(lightprobe_planes.planar_depth_tx, float3(texel, planar_id), 0.0).r ==
-          reverse_z::read(1.0f))
+    if (srt.light_closure_eval_count_transmit > 0) [[static_branch]] {
+      ClosureUndetermined cl_transmit = sd.closure_get(0).data;
+      if (closure_has_transmission(cl_transmit.type) ||
+          cl_transmit.type == CLOSURE_BSSRDF_BURLEY_ID)
       {
+        light::EvalCtx<true> ctx_tr = light::init_from_reflect_ctx(ctx);
+        ctx_tr.stack.cl[0] = closure_light_new(kg.util_tx, cl_transmit, V, thickness);
+
+        /* NOTE: Only evaluates `stack.cl[0]`. */
+        lights.eval_transmission(ctx_tr, vPz);
+
+        if (cl_transmit.type == CLOSURE_BSSRDF_BURLEY_ID) {
+#if defined(GLSL_CPP_STUBS) || defined(MAT_SUBSURFACE)
+          /* Apply transmission profile onto transmitted light and sum with reflected light. */
+          float3 sss_profile = subsurface_transmission(
+              kg.util_tx, to_closure_subsurface(cl_transmit).sss_radius, thickness.value());
+          ctx.stack.cl[0].light_shadowed += ctx_tr.stack.cl[0].light_shadowed * sss_profile;
+          ctx.stack.cl[0].light_unshadowed += ctx_tr.stack.cl[0].light_unshadowed * sss_profile;
+#endif
+        }
+        else {
+          ctx.stack.cl[0].light_shadowed = ctx_tr.stack.cl[0].light_shadowed;
+          ctx.stack.cl[0].light_unshadowed = ctx_tr.stack.cl[0].light_unshadowed;
+        }
+      }
+    }
+
+    LightProbeSample samp = lightprobes.load(frag_co, sd.P, sd.N, V);
+
+    float clamp_indirect_sh = uni.uniform_buf.clamp.surface_indirect;
+    samp.volume_irradiance = spherical_harmonics::clamp_energy(samp.volume_irradiance,
+                                                               clamp_indirect_sh);
+
+#ifdef MAT_REFLECTION /* Disable if only rough surfaces. */
+    /* Planar reflection. */
+    float3 planar_probe_radiance = float3(0.0f);
+    float3 average_N = sd.Ng * 0.001f;
+    {
+      /* Get average normal.  */
+      for (uint i = 0u; i < 3; i++) [[unroll]] {
+        if (srt.light_closure_eval_count_reflect > i) [[static_branch]] {
+          ClosureUndetermined cl = sd.closure_get(uchar(i)).data;
+          average_N += cl.N * cl.weight();
+        }
+      }
+      average_N = safe_normalize(average_N);
+
+      const int planar_id = lightprobe_planes.select_probe(sd.P, average_N);
+
+      if (planar_id == -1) {
         average_N = float3(0.0f);
       }
-    }
-  }
-#endif
+      else {
+        float3 P_reflected = lightprobe::plane::parallax(
+            lightprobe_planes.probe_planar_buf[planar_id], sd.P, average_N, V);
 
-  /* Combine all radiance. */
-  float3 radiance_direct = float3(0.0f);
-  float3 radiance_indirect = float3(0.0f);
+        float2 ndc_P_reflected = view.point_world_to_ndc(P_reflected).xy;
+        /* Planar probes are rendered upside down. */
+        ndc_P_reflected.y = -ndc_P_reflected.y;
+        float2 texel = view.ndc_to_screen(ndc_P_reflected);
 
-  for (uint i = 0u; i < 3; i++) [[unroll]] {
-    if (srt.light_closure_eval_count_reflect > i) [[static_branch]] {
-      ClosureUndetermined cl = sd.closure_get_resolved(uchar(i), 1.0f);
-      if (cl.weight() > CLOSURE_WEIGHT_CUTOFF) {
-        float3 direct_light = ctx.stack.cl[i].light_shadowed;
-        float3 indirect_light = lightprobes.eval(samp, cl, sd.P, V, thickness);
-
-#ifdef MAT_REFLECTION
-        if (cl.type == CLOSURE_BSDF_MICROFACET_GGX_REFLECTION_ID) {
-          const float blend = saturate(to_closure_reflection(cl).roughness * -10.0f + 1.0f) *
-                              saturate(dot(average_N, cl.N) * 100.0f - 99.0f);
-          indirect_light = mix(indirect_light, planar_probe_radiance, blend);
-        }
-#endif
-
-        if ((cl.type == CLOSURE_BSDF_TRANSLUCENT_ID ||
-             cl.type == CLOSURE_BSDF_MICROFACET_GGX_REFRACTION_ID) &&
-            (thickness.value() != 0.0f))
+        planar_probe_radiance =
+            textureLod(lightprobe_planes.planar_radiance_tx, float3(texel, planar_id), 0.0).rgb;
+        /* Discard background hits. */
+        if (textureLod(lightprobe_planes.planar_depth_tx, float3(texel, planar_id), 0.0).r ==
+            reverse_z::read(1.0f))
         {
-          /* We model two transmission event, so the surface color need to be applied twice. */
-          cl.color *= cl.color;
+          average_N = float3(0.0f);
         }
-
-        radiance_direct += direct_light * cl.color;
-        radiance_indirect += indirect_light * cl.color;
       }
     }
+#endif
+
+    /* Combine all radiance. */
+    float3 radiance_direct = float3(0.0f);
+    float3 radiance_indirect = float3(0.0f);
+
+    for (uint i = 0u; i < 3; i++) [[unroll]] {
+      if (srt.light_closure_eval_count_reflect > i) [[static_branch]] {
+        ClosureUndetermined cl = sd.closure_get_resolved(uchar(i), 1.0f);
+        if (cl.weight() > CLOSURE_WEIGHT_CUTOFF) {
+          float3 direct_light = ctx.stack.cl[i].light_shadowed;
+          float3 indirect_light = lightprobes.eval(samp, cl, sd.P, V, thickness);
+
+#ifdef MAT_REFLECTION
+          if (cl.type == CLOSURE_BSDF_MICROFACET_GGX_REFLECTION_ID) {
+            const float blend = saturate(to_closure_reflection(cl).roughness * -10.0f + 1.0f) *
+                                saturate(dot(average_N, cl.N) * 100.0f - 99.0f);
+            indirect_light = mix(indirect_light, planar_probe_radiance, blend);
+          }
+#endif
+
+          if ((cl.type == CLOSURE_BSDF_TRANSLUCENT_ID ||
+               cl.type == CLOSURE_BSDF_MICROFACET_GGX_REFRACTION_ID) &&
+              (thickness.value() != 0.0f))
+          {
+            /* We model two transmission event, so the surface color need to be applied twice. */
+            cl.color *= cl.color;
+          }
+
+          radiance_direct += direct_light * cl.color;
+          radiance_indirect += indirect_light * cl.color;
+        }
+      }
+    }
+    /* Light clamping. */
+    float clamp_direct = uni.uniform_buf.clamp.surface_direct;
+    float clamp_indirect = uni.uniform_buf.clamp.surface_indirect;
+
+    radiance_direct = colorspace::brightness_clamp_max(radiance_direct, clamp_direct);
+    radiance_indirect = colorspace::brightness_clamp_max(radiance_indirect, clamp_indirect);
+
+    radiance_direct *= uni.uniform_buf.clamp.direct_scale;
+    radiance_indirect *= uni.uniform_buf.clamp.indirect_scale;
+
+    radiance = radiance_direct + radiance_indirect + sd.emission;
+
+    transmittance = sd.transmittance;
   }
-  /* Light clamping. */
-  float clamp_direct = uni.uniform_buf.clamp.surface_direct;
-  float clamp_indirect = uni.uniform_buf.clamp.surface_indirect;
-
-  radiance_direct = colorspace::brightness_clamp_max(radiance_direct, clamp_direct);
-  radiance_indirect = colorspace::brightness_clamp_max(radiance_indirect, clamp_indirect);
-
-  radiance_direct *= uni.uniform_buf.clamp.direct_scale;
-  radiance_indirect *= uni.uniform_buf.clamp.indirect_scale;
-
-  radiance = radiance_direct + radiance_indirect + sd.emission;
-
-  transmittance = sd.transmittance;
+  else {
+    radiance = float3(0.0f);
+    transmittance = float3(0.0f);
+  }
 }
 
 }  // namespace eevee

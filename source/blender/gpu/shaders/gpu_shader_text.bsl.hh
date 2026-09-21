@@ -196,12 +196,12 @@ struct FragOut {
       /* 3x3 blur */
 
       /* clang-format off */
-      constexpr float weights3x3[16] = float_array(
+      const float weights3x3[16] =  {
         1.0f, 2.0f, 1.0f, 0.0f,
         2.0f, 4.0f, 2.0f, 0.0f,
         1.0f, 2.0f, 1.0f, 0.0f,
         0.0f, 0.0f, 0.0f, 0.0f
-      );
+      };
       /* clang-format on */
 
       float sum = 0.0f;
@@ -232,14 +232,14 @@ struct FragOut {
       /* 5x5 blur */
 
       /* clang-format off */
-      constexpr float weights5x5[36] = float_array(
+      const float weights5x5[36] = {
         1.0f, 2.0f, 2.0f, 2.0f, 1.0f, 0.0f,
         2.0f, 5.0f, 6.0f, 5.0f, 2.0f, 0.0f,
         2.0f, 6.0f, 8.0f, 6.0f, 2.0f, 0.0f,
         2.0f, 5.0f, 6.0f, 5.0f, 2.0f, 0.0f,
         1.0f, 2.0f, 2.0f, 2.0f, 1.0f, 0.0f,
         0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f
-      );
+      };
       /* clang-format on */
 
       float sum = 0.0f;

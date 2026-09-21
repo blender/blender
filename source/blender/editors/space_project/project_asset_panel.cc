@@ -181,7 +181,7 @@ void project_asset_panel_register(ARegionType &region_type)
   panel_type->space_type = SPACE_PROJECT;
   panel_type->region_type = RGN_TYPE_WINDOW;
   panel_type->draw = project_asset_panel_draw;
-  panel_type->order = 10; /* Make sure the category are put after the other base categoies. */
+  panel_type->order = 10; /* Make sure the category are put after the other base categories. */
   BLI_addtail(&region_type.paneltypes, panel_type);
 }
 

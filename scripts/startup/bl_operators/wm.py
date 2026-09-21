@@ -2911,7 +2911,7 @@ class WM_OT_batch_rename(Operator):
                 data = (
                     context.selected_strips
                     if only_selected else
-                    scene.sequence_editor.strips_all,
+                    context.sequencer_scene.sequence_editor.strips_all,
                     "name",
                     iface_("Strip(s)"),
                 )

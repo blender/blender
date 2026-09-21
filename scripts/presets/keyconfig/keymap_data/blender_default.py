@@ -2399,6 +2399,10 @@ def km_node_editor(params):
         ("node.group_make", {"type": 'G', "value": 'PRESS', "ctrl": True}, None),
         ("node.group_ungroup", {"type": 'G', "value": 'PRESS', "ctrl": True, "alt": True}, None),
         ("node.group_separate", {"type": 'P', "value": 'PRESS'}, None),
+        ("node.comment_edit", {"type": 'LEFTMOUSE', "value": 'DOUBLE_CLICK'}, None),
+        ("node.comment_edit", {"type": 'RET', "value": 'PRESS'}, None),
+        ("node.comment_edit", {"type": 'F2', "value": 'PRESS'},
+         {"properties": [("use_active", True)]}),
         ("node.group_enter_exit", {"type": 'LEFTMOUSE', "value": 'DOUBLE_CLICK'}, None),
         ("node.group_edit", {"type": 'TAB', "value": 'PRESS'},
          {"properties": [("exit", False)]}),
@@ -3127,7 +3131,7 @@ def km_sequencer_generic(params):
             sidebar_key={"type": 'N', "value": 'PRESS'},
         ),
         ("wm.context_toggle", {"type": 'O', "value": 'PRESS', "shift": True},
-         {"properties": [("data_path", "scene.sequence_editor.show_overlay_frame")]}),
+         {"properties": [("data_path", "sequencer_scene.sequence_editor.show_overlay_frame")]}),
         ("wm.context_toggle_enum", {"type": 'TAB', "value": 'PRESS', "ctrl": True},
          {"properties": [("data_path", "space_data.view_type"), ("value_1", 'SEQUENCER'), ("value_2", 'PREVIEW')]}),
         ("wm.context_toggle", {"type": 'TAB', "value": 'PRESS', "shift": True},
@@ -3264,7 +3268,7 @@ def km_sequencer(params):
         op_menu_pie("SEQUENCER_MT_view_pie", {"type": 'ACCENT_GRAVE', "value": 'PRESS'}),
         ("sequencer.slip", {"type": 'S', "value": 'PRESS'}, {"properties": [("use_cursor_position", False)]}),
         ("wm.context_set_int", {"type": 'O', "value": 'PRESS'},
-         {"properties": [("data_path", "scene.sequence_editor.overlay_frame"), ("value", 0)]}),
+         {"properties": [("data_path", "sequencer_scene.sequence_editor.overlay_frame"), ("value", 0)]}),
         ("transform.seq_slide", {"type": 'G', "value": 'PRESS'},
          {"properties": [("view2d_edge_pan", True)]}),
         ("transform.seq_slide", {"type": params.select_mouse, "value": 'CLICK_DRAG'},
@@ -8656,6 +8660,16 @@ def km_3d_view_tool_paint_grease_pencil_primitive_curve(_params):
     )
 
 
+def km_3d_view_tool_paint_grease_pencil_carver(params):
+    return (
+        "3D View Tool: Paint Grease Pencil, Carver",
+        {"space_type": 'VIEW_3D', "region_type": 'WINDOW'},
+        {"items": [
+            ("grease_pencil.stroke_carver", {"type": params.tool_mouse, "value": 'PRESS'}, None),
+        ]},
+    )
+
+
 def km_3d_view_tool_paint_grease_pencil_eyedropper(params):
     return (
         "3D View Tool: Paint Grease Pencil, Eyedropper",
@@ -9309,6 +9323,7 @@ def generate_keymaps(params=None):
         km_3d_view_tool_edit_grease_pencil_texture_gradient(params),
         km_3d_view_tool_edit_grease_pencil_pen(params),
         km_3d_view_tool_edit_grease_pencil_interpolate(params),
+        km_3d_view_tool_paint_grease_pencil_carver(params),
         *(km_sequencer_tool_generic_select_box(params, fallback=fallback)
           for fallback in (False, True)),
         *(km_sequencer_preview_tool_generic_select(params, fallback=fallback)

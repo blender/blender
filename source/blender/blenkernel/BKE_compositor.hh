@@ -201,11 +201,11 @@ void add_depsgraph_relations(Scene &scene,
  * Compute Contexts.
  */
 
-/* Computes the hash of the compositor active compute context. The active compute context is the
- * context that the user last interacted with, see root_node_group.active_viewer_key for more
- * information. */
-ComputeContextHash compute_active_compute_context_hash(const Scene &scene);
-ComputeContextHash compute_active_compute_context_hash(const Scene &scene,
+/* Computes the hash of the compute context of the active viewer. The active viewer is the viewer
+ * in the context that the user last interacted with, see root_node_group.active_viewer_key for
+ * more information. */
+ComputeContextHash compute_viewer_compute_context_hash(const Scene &scene);
+ComputeContextHash compute_viewer_compute_context_hash(const Scene &scene,
                                                        const bNodeTree &root_node_group);
 
 }  // namespace bke::compositor

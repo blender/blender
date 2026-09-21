@@ -201,6 +201,17 @@ static void do_versioning_camera_view_zoom(Main *bmain)
   }
 }
 
+static void clear_deprecated_brush_flags(Brush &brush)
+{
+  if (brush.gpencil_settings) {
+    brush.gpencil_settings->flag &= ~GP_BRUSH_UNUSED_1;
+    brush.gpencil_settings->flag2 &= ~(GP_BRUSH_UNUSED_2 | GP_BRUSH_UNUSED_3 | GP_BRUSH_UNUSED_4 |
+                                       GP_BRUSH_UNUSED_5 | GP_BRUSH_UNUSED_6 | GP_BRUSH_UNUSED_7);
+  }
+  brush.paint_flags &= ~BRUSH_PAINT_UNUSED_2;
+  brush.flag &= ~(BRUSH_UNUSED_7 | BRUSH_UNUSED_8);
+}
+
 void do_versions_after_linking_503(FileData * /*fd*/, Main *bmain)
 {
   if (!MAIN_VERSION_FILE_ATLEAST(bmain, 503, 8)) {
@@ -360,7 +371,7 @@ void blo_do_versions_503(FileData * /*fd*/, Library * /*lib*/, Main *bmain)
   if (!MAIN_VERSION_FILE_ATLEAST(bmain, 503, 9)) {
     for (Brush &brush : bmain->brushes) {
       if (brush.curve_hardness == nullptr) {
-        brush.curve_hardness = brush.paint_flags & BRUSH_PAINT_HARDNESS_PRESSURE_INVERT ?
+        brush.curve_hardness = brush.paint_flags & BRUSH_PAINT_UNUSED_2 ?
                                    BKE_paint_default_curve_inverted() :
                                    BKE_paint_default_curve();
       }
@@ -410,8 +421,7 @@ void blo_do_versions_503(FileData * /*fd*/, Library * /*lib*/, Main *bmain)
   if (!MAIN_VERSION_FILE_ATLEAST(bmain, 503, 12)) {
     for (Brush &brush : bmain->brushes) {
       if (brush.ob_mode & OB_MODE_WEIGHT_PAINT || brush.ob_mode & OB_MODE_VERTEX_PAINT) {
-        if (brush.flag & BRUSH_FRONTFACE_FALLOFF_DEPRECATED && brush.falloff_angle_legacy != 0.0f)
-        {
+        if (brush.flag & BRUSH_UNUSED_7 && brush.falloff_angle_legacy != 0.0f) {
           switch (brush.falloff_shape) {
             case PAINT_FALLOFF_SHAPE_SPHERE:
               brush.mesh_automasking_settings->flags |= BRUSH_AUTOMASKING_BRUSH_NORMAL;
@@ -544,6 +554,20 @@ void blo_do_versions_503(FileData * /*fd*/, Library * /*lib*/, Main *bmain)
     }
   }
 
+  if (!MAIN_VERSION_FILE_ATLEAST(bmain, 503, 22)) {
+    for (Brush &brush : bmain->brushes) {
+      if (brush.paint_flags & BRUSH_PAINT_UNUSED_1) {
+        brush.paint_flags &= ~BRUSH_PAINT_UNUSED_1;
+        brush.flag |= BRUSH_HARDNESS_PRESSURE;
+      }
+    }
+  }
+
+  if (!MAIN_VERSION_FILE_ATLEAST(bmain, 503, 23)) {
+    for (Brush &brush : bmain->brushes) {
+      clear_deprecated_brush_flags(brush);
+    }
+  }
   /**
    * Always bump subversion in BKE_blender_version.h when adding versioning
    * code here, and wrap it inside a MAIN_VERSION_FILE_ATLEAST check.

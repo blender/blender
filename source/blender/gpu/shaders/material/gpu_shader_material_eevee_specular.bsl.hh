@@ -2,6 +2,9 @@
  *
  * SPDX-License-Identifier: GPL-2.0-or-later */
 
+#pragma once
+
+#include "gpu_shader_material_interface.bsl.hh"
 #include "gpu_shader_math_vector_safe.bsl.hh"
 #include "gpu_shader_utildefines.bsl.hh"
 
@@ -41,9 +44,6 @@ void node_eevee_specular(float4 diffuse,
 
   float alpha = (1.0f - transp) * weight;
 
-  /* TODO(fclem): EEVEE implementation leaking. */
-  [[resource_table]] UtilityTexture &util_tx = resource_table_get(UtilityTexture);
-
   ClosureDiffuse diffuse_data;
   diffuse_data.color = diffuse.rgb * alpha;
   diffuse_data.N = N;
@@ -51,11 +51,7 @@ void node_eevee_specular(float4 diffuse,
   ClosureReflection reflection_data;
   {
     float weight = alpha;
-
-    float NV = dot(N, V);
-    eevee::lut::GGXBrdfData lut = eevee::lut::GGXBrdfData::sample_utility_tx(
-        util_tx, NV, roughness);
-    float3 brdf = F_brdf_single_scatter(specular.rgb, float3(1.0f), lut);
+    float3 brdf = brdf_lut(kg, specular.rgb, float3(1.0f), dot(N, V), roughness, false);
 
     reflection_data.color = brdf * weight;
     reflection_data.N = N;
@@ -65,11 +61,8 @@ void node_eevee_specular(float4 diffuse,
   ClosureReflection clearcoat_data;
   {
     float weight = alpha * clearcoat * 0.25f;
-
-    float NV = dot(CN, V);
-    eevee::lut::GGXBrdfData lut = eevee::lut::GGXBrdfData::sample_utility_tx(
-        util_tx, NV, clearcoat_roughness);
-    float3 brdf = F_brdf_single_scatter(float3(0.04f), float3(1.0f), lut);
+    float3 brdf = brdf_lut(
+        kg, float3(0.04f), float3(1.0f), dot(CN, V), clearcoat_roughness, false);
 
     clearcoat_data.color = brdf * weight;
     clearcoat_data.N = CN;

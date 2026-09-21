@@ -369,7 +369,7 @@ def __gather_mesh(vnode, blender_object, export_settings):
             if not export_settings['gltf_skins']:
                 modifiers = None
             else:
-                # Check if there is an armature modidier
+                # Check if there is an armature modifier
                 if len([mod for mod in blender_object.modifiers if mod.type == "ARMATURE"]) == 0:
                     modifiers = None
 

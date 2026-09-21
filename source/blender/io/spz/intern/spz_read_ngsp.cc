@@ -22,10 +22,10 @@
 #include "BKE_report.hh"
 
 #include "IO_gsplat.hh"
-#include "IO_validate.hh"
 
 #include "CLG_log.h"
 
+#include "spz_header.hh"
 #include "spz_read_common.hh"
 
 namespace blender::io::spz {
@@ -33,19 +33,6 @@ namespace blender::io::spz {
 static CLG_LogRef LOG = {"io.spz"};
 
 namespace {
-
-struct NgspFileHeader {
-  uint32_t magic;   /* 0x5053474e ("NGSP") */
-  uint32_t version; /* 4 */
-  uint32_t num_points;
-  uint8_t sh_degree;
-  uint8_t fractional_bits;
-  uint8_t flags;
-  uint8_t num_streams;      /* The number of ZSTD-compressed attribute streams (typically 6). */
-  uint32_t toc_byte_offset; /* Byte offset from file start to the TOC */
-  uint8_t reserved[12];     /* zero, reserved for future use. */
-};
-static_assert(sizeof(NgspFileHeader) == 32);
 
 struct StreamInfo {
   /* Offset of the stream from the beginning of the file. */
@@ -315,12 +302,8 @@ PointCloud *read_spz_ngsp_file(FILE *file, ReportList *reports)
   CLOG_DEBUG(&LOG, "SPZ header magic: 0x%X", header.magic);
   CLOG_DEBUG(&LOG, "SPZ header version: %u", header.version);
 
-  if (header.magic != SPZ_HEADER_MAGIC) {
-    BKE_reportf(reports, RPT_ERROR, "SPZ Read: Unexpected SPZ header magic 0x%X", header.magic);
-    return nullptr;
-  }
-  if (header.version != 4) {
-    BKE_reportf(reports, RPT_ERROR, "SPZ Read: Unsupported SPZ version %u", header.version);
+  if (const std::optional<std::string> error = check_header_for_errors(header)) {
+    BKE_reportf(reports, RPT_ERROR, "SPZ Read: %s", error->c_str());
     return nullptr;
   }
 
@@ -340,25 +323,8 @@ PointCloud *read_spz_ngsp_file(FILE *file, ReportList *reports)
     CLOG_WARN(&LOG, "SPZ file contains extensions that are not yet supported");
   }
 
-  if (header.toc_byte_offset < sizeof(NgspFileHeader)) {
-    BKE_report(
-        reports, RPT_ERROR, "SPZ Read: TOC byte offset is less than the size of the header");
-    return nullptr;
-  }
-
   Array<StreamInfo> stream_infos;
   if (!read_toc(file, header, stream_infos)) {
-    return nullptr;
-  }
-
-  /* There is expected to be 6 streams: positions, alphas, colors, scales, rotations, sh. */
-  if (stream_infos.size() < 6) {
-    BKE_report(reports, RPT_ERROR, "SPZ Read: Unexpected number of Zstd streams");
-    return nullptr;
-  }
-
-  if (!validate::size_fits_in_int(header.num_points)) {
-    BKE_report(reports, RPT_ERROR, "SPZ Read: Too many points");
     return nullptr;
   }
 

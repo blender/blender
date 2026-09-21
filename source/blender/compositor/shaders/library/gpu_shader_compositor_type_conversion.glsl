@@ -438,13 +438,13 @@ float4 float4x4_to_quaternion(float4x4 mat)
 
 float2 quaternion_to_float2(float4 value)
 {
-  Quaternion quat = Quaternion{UNPACK4(value)};
+  Quaternion quat = Quaternion::from_float4(value);
   return to_euler(from_rotation(quat)).as_float3().xy();
 }
 
 float3 quaternion_to_float3(float4 value)
 {
-  Quaternion quat = Quaternion{UNPACK4(value)};
+  Quaternion quat = Quaternion::from_float4(value);
   return to_euler(from_rotation(quat)).as_float3();
 }
 
@@ -455,7 +455,7 @@ float4 quaternion_to_float4(float4 value)
 
 float4x4 quaternion_to_float4x4(float4 value)
 {
-  Quaternion quat = Quaternion{UNPACK4(value)};
+  Quaternion quat = Quaternion::from_float4(value);
   float3x3 mat_3x3 = from_rotation(quat);
   return float4x4(float4(mat_3x3[0], 0.0f),
                   float4(mat_3x3[1], 0.0f),

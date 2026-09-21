@@ -83,8 +83,8 @@ class CompositorModifierContext : public CompositorContext {
   ImBuf *mask_buffer_ = nullptr;
   int timeline_frame_;
 
-  /* The hash of the active compute context. */
-  const ComputeContextHash active_compute_context_hash_;
+  /* The hash of the compute context of the active viewer. */
+  const ComputeContextHash viewer_compute_context_hash_;
 
   bool owns_mask_ = false;
   PointerRNA properties_ptr_;
@@ -99,7 +99,7 @@ class CompositorModifierContext : public CompositorContext {
         image_buffer_(mod_context.result.image),
         mask_(*this, compositor::ResultType::Color, compositor::ResultPrecision::Full),
         timeline_frame_(mod_context.timeline_frame),
-        active_compute_context_hash_(bke::compositor::compute_active_compute_context_hash(
+        viewer_compute_context_hash_(bke::compositor::compute_viewer_compute_context_hash(
             *render_data_.scene, *modifier_data_->node_group))
   {
     PointerRNA ptr = RNA_pointer_create_discrete(
@@ -118,9 +118,9 @@ class CompositorModifierContext : public CompositorContext {
     }
   }
 
-  const ComputeContextHash &get_active_compute_context_hash() const override
+  const ComputeContextHash &get_viewer_compute_context_hash() const override
   {
-    return active_compute_context_hash_;
+    return viewer_compute_context_hash_;
   }
 
   compositor::Domain get_compositing_domain() const override

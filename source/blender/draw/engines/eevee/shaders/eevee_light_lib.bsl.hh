@@ -6,7 +6,9 @@
 
 #include "draw_math_geom_lib.glsl"
 #include "eevee_light_shared.hh"
+#include "eevee_uniform_shared.hh"
 #include "gpu_shader_math_base.bsl.hh"
+#include "gpu_shader_utildefines.bsl.hh"
 
 /* Attenuation cutoff needs to be the same in the shadow loop and the light eval loop. */
 #define LIGHT_ATTENUATION_THRESHOLD 1e-6f
@@ -262,8 +264,7 @@ struct LightShape {
   }
 };
 
-namespace eevee {
-namespace light {
+namespace eevee::light {
 
 float power_get(LightData light, LightingType type)
 {
@@ -277,7 +278,6 @@ bool light_linking_affects_receiver(uint2 light_set_membership, uchar receiver_l
   return bitmask64_test(light_set_membership, receiver_light_set);
 }
 
-}  // namespace light
-}  // namespace eevee
+}  // namespace eevee::light
 
 /** \} */

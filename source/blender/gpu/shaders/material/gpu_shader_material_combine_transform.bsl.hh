@@ -10,5 +10,5 @@
 [[node]]
 void combine_transform(float3 translation, float4 rotation, float3 scale, float4x4 &transform)
 {
-  transform = from_loc_rot_scale(translation, Quaternion{UNPACK4(rotation)}, scale);
+  transform = from_loc_rot_scale(translation, Quaternion::from_float4(rotation), scale);
 }

@@ -10,47 +10,45 @@
 
 /* Source: http://burtleburtle.net/bob/c/lookup3.c */
 
-#define rot(x, k) (((x) << (k)) | ((x) >> (32 - (k))))
+[[force_inline]] void hash_mix(uint &a, uint &b, uint &c)
+{
+  a -= c;
+  a ^= (((c) << (4)) | ((c) >> (32 - (4))));
+  c += b;
+  b -= a;
+  b ^= (((a) << (6)) | ((a) >> (32 - (6))));
+  a += c;
+  c -= b;
+  c ^= (((b) << (8)) | ((b) >> (32 - (8))));
+  b += a;
+  a -= c;
+  a ^= (((c) << (16)) | ((c) >> (32 - (16))));
+  c += b;
+  b -= a;
+  b ^= (((a) << (19)) | ((a) >> (32 - (19))));
+  a += c;
+  c -= b;
+  c ^= (((b) << (4)) | ((b) >> (32 - (4))));
+  b += a;
+}
 
-#define mix(a, b, c) \
-  { \
-    a -= c; \
-    a ^= rot(c, 4); \
-    c += b; \
-    b -= a; \
-    b ^= rot(a, 6); \
-    a += c; \
-    c -= b; \
-    c ^= rot(b, 8); \
-    b += a; \
-    a -= c; \
-    a ^= rot(c, 16); \
-    c += b; \
-    b -= a; \
-    b ^= rot(a, 19); \
-    a += c; \
-    c -= b; \
-    c ^= rot(b, 4); \
-    b += a; \
-  }
-
-#define final(a, b, c) \
-  { \
-    c ^= b; \
-    c -= rot(b, 14); \
-    a ^= c; \
-    a -= rot(c, 11); \
-    b ^= a; \
-    b -= rot(a, 25); \
-    c ^= b; \
-    c -= rot(b, 16); \
-    a ^= c; \
-    a -= rot(c, 4); \
-    b ^= a; \
-    b -= rot(a, 14); \
-    c ^= b; \
-    c -= rot(b, 24); \
-  }
+[[force_inline]] void hash_final(uint &a, uint &b, uint &c)
+{
+  c ^= b;
+  c -= (((b) << (14)) | ((b) >> (32 - (14))));
+  a ^= c;
+  a -= (((c) << (11)) | ((c) >> (32 - (11))));
+  b ^= a;
+  b -= (((a) << (25)) | ((a) >> (32 - (25))));
+  c ^= b;
+  c -= (((b) << (16)) | ((b) >> (32 - (16))));
+  a ^= c;
+  a -= (((c) << (4)) | ((c) >> (32 - (4))));
+  b ^= a;
+  b -= (((a) << (14)) | ((a) >> (32 - (14))));
+  c ^= b;
+  c -= (((b) << (24)) | ((b) >> (32 - (24))));
+}
 
 uint hash_uint(uint kx)
 {
@@ -58,7 +56,7 @@ uint hash_uint(uint kx)
   a = b = c = 0xdeadbeefu + (1u << 2u) + 13u;
 
   a += kx;
-  final(a, b, c);
+  hash_final(a, b, c);
 
   return c;
 }
@@ -70,7 +68,7 @@ uint hash_uint2(uint kx, uint ky)
 
   b += ky;
   a += kx;
-  final(a, b, c);
+  hash_final(a, b, c);
 
   return c;
 }
@@ -83,7 +81,7 @@ uint hash_uint3(uint kx, uint ky, uint kz)
   c += kz;
   b += ky;
   a += kx;
-  final(a, b, c);
+  hash_final(a, b, c);
 
   return c;
 }
@@ -96,17 +94,13 @@ uint hash_uint4(uint kx, uint ky, uint kz, uint kw)
   a += kx;
   b += ky;
   c += kz;
-  mix(a, b, c);
+  hash_mix(a, b, c);
 
   a += kw;
-  final(a, b, c);
+  hash_final(a, b, c);
 
   return c;
 }
-
-#undef rot
-#undef final
-#undef mix
 
 uint hash_int(int kx)
 {

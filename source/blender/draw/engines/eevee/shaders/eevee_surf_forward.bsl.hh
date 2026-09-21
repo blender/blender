@@ -25,57 +25,60 @@ float4 closure_to_rgba_forward([[resource_table]] KernelGlobals &kg,
                                ShadingData &sd,
                                Closure /*cl_unused*/)
 {
-  /* Workaround for gl_FragCoord. */
-  FRAGMENT_SHADER_CREATE_INFO(eevee_nodetree);
+  [[resource_table]] const eevee::PipelineConstants &pipe = kg.pipe;
+  if (!pipe.is_occupancy_pipe) [[static_branch]] {
+    [[resource_table]] const draw::View &views = kg.view;
+    [[resource_table]] const eevee::Sampling &sampling = kg.sampling;
+    [[resource_table]] const UtilityTexture &util_tx = kg.util_tx;
+    auto &interp_flat = interface_get(eevee_geom_iface_info, interp_flat);
+    draw::ID id{interp_flat.resource_id_raw};
+    const uint resource_id = id.resource_id<1>();
 
-  [[resource_table]] const draw::View &views = kg.view;
-  [[resource_table]] const eevee::Sampling &sampling = kg.sampling;
-  [[resource_table]] const UtilityTexture &util_tx = kg.util_tx;
-  auto &interp_flat = interface_get(eevee_geom_iface_info, interp_flat);
-  draw::ID id{interp_flat.resource_id_raw};
-  const uint resource_id = id.resource_id<1>();
+    const float2 frag_co = sd.frag_co.xy;
 
-  const float2 frag_co = gl_FragCoord.xy;
+    float3 radiance, transmittance;
+    eevee::forward_lighting_eval(
+        kg, sd, views.get(0), resource_id, sd.thickness, frag_co, radiance, transmittance);
 
-  float3 radiance, transmittance;
-  eevee::forward_lighting_eval(
-      kg, sd, views.get(0), resource_id, sd.thickness, frag_co, radiance, transmittance);
-
-  /* Reset for the next closure tree. */
-  float noise = util_tx.fetch(frag_co, UTIL_BLUE_NOISE_LAYER).r;
-  float closure_rand = fract(noise + sampling.rng_1D_get(SAMPLING_CLOSURE));
-  closure_weights_reset(kg, sd, closure_rand);
+    /* Reset for the next closure tree. */
+    float noise = util_tx.fetch(frag_co, UTIL_BLUE_NOISE_LAYER).r;
+    float closure_rand = fract(noise + sampling.rng_1D_get(SAMPLING_CLOSURE));
+    closure_weights_reset(kg, sd, closure_rand);
 
 #if defined(MAT_TRANSPARENT) && defined(MAT_SHADER_TO_RGBA)
-  { /* Limit resource guard to this scope. */
-    [[resource_table]] eevee::LightprobeRenderData &lightprobes = kg.lightprobes;
-    [[resource_table]] eevee::LightprobeSphereRenderData &lp_spheres = lightprobes.spheres;
+    { /* Limit resource guard to this scope. */
+      [[resource_table]] eevee::LightprobeRenderData &lightprobes = kg.lightprobes;
+      [[resource_table]] eevee::LightprobeSphereRenderData &lp_spheres = lightprobes.spheres;
 
-    float3 V = -views.get(0).world_incident_vector(sd.P);
-    eevee::LightProbeSample samp = lightprobes.load(frag_co, sd.P, sd.N, V);
-    float3 radiance_behind = lp_spheres.spherical_sample_normalized_with_parallax(
-        samp, sd.P, V, 0.0);
+      float3 V = -views.get(0).world_incident_vector(sd.P);
+      eevee::LightProbeSample samp = lightprobes.load(frag_co, sd.P, sd.N, V);
+      float3 radiance_behind = lp_spheres.spherical_sample_normalized_with_parallax(
+          samp, sd.P, V, 0.0);
 
 #  ifndef MAT_FIRST_LAYER
-    { /* Limit resource guard to this scope. */
-      /* Multi-line macro breaks error line counting. */
-      /* clang-format off */
+      { /* Limit resource guard to this scope. */
+        /* Multi-line macro breaks error line counting. */
+        /* clang-format off */
       [[resource_table]] const eevee::PreviousLayerHiZ &prev_hiz = resource_table_get(eevee::PreviousLayerHiZ);
       [[resource_table]] const eevee::PreviousLayerRadiance &prev_radiance = resource_table_get(eevee::PreviousLayerRadiance);
-      /* clang-format on */
+        /* clang-format on */
 
-      int2 texel = int2(frag_co);
-      if (texelFetchExtend(prev_hiz.hiz_prev_tx, texel, 0).x != 1.0f) {
-        radiance_behind = texelFetch(prev_radiance.previous_layer_radiance_tx, texel, 0).xyz;
+        int2 texel = int2(frag_co);
+        if (texelFetchExtend(prev_hiz.hiz_prev_tx, texel, 0).x != 1.0f) {
+          radiance_behind = texelFetch(prev_radiance.previous_layer_radiance_tx, texel, 0).xyz;
+        }
       }
-    }
 #  endif
 
-    radiance += radiance_behind * saturate(transmittance);
-  }
+      radiance += radiance_behind * saturate(transmittance);
+    }
 #endif
 
-  return float4(radiance, saturate(1.0f - average(transmittance)));
+    return float4(radiance, saturate(1.0f - average(transmittance)));
+  }
+  else {
+    return float4(0);
+  }
 }
 
 namespace eevee {
@@ -129,7 +132,7 @@ void surf_forward([[resource_table]] KernelGlobals &kg,
 
   ShadingData sd = init_globals(uni, view, front_face, frag_co);
 
-  float noise = util_tx.fetch(gl_FragCoord.xy, UTIL_BLUE_NOISE_LAYER).r;
+  float noise = util_tx.fetch(frag_co.xy, UTIL_BLUE_NOISE_LAYER).r;
   float closure_rand = fract(noise + sampling.rng_1D_get(SAMPLING_CLOSURE));
 
   fragment_displacement(kg, sd);
@@ -140,7 +143,7 @@ void surf_forward([[resource_table]] KernelGlobals &kg,
 
   float3 radiance, transmittance;
   eevee::forward_lighting_eval(
-      kg, sd, view, resource_id, sd.thickness, gl_FragCoord.xy, radiance, transmittance);
+      kg, sd, view, resource_id, sd.thickness, frag_co.xy, radiance, transmittance);
 
   if (pipe.use_lighting_nodes) [[static_branch]] {
     radiance += sd.light_accum.diffuse_light;
@@ -149,7 +152,7 @@ void surf_forward([[resource_table]] KernelGlobals &kg,
   }
 
   /* Volumetric resolve and compositing. */
-  float2 uvs = gl_FragCoord.xy * uni.uniform_buf.volumes.main_view_extent_inv;
+  float2 uvs = frag_co.xy * uni.uniform_buf.volumes.main_view_extent_inv;
   VolumeResolveSample vol = volumes.resolve(float3(uvs, reverse_z::read(frag_co.z)));
   /* Removes the part of the volume scattering that has
    * already been added to the destination pixels by the opaque resolve.

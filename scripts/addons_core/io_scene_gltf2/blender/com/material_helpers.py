@@ -24,7 +24,7 @@ def get_gltf_node_name():
 def create_settings_group(name):
     gltf_node_group = bpy.data.node_groups.new(name, 'ShaderNodeTree')
 
-    # Oclusion (glTF Core)
+    # Occlusion (glTF Core)
     gltf_node_group.interface.new_socket("Occlusion", socket_type="NodeSocketFloat")
 
     # Thickness (glTF KHR_materials_volume)

@@ -55,7 +55,7 @@ Result<SymbolClass *> SymbolTable::resolve_auto_type(SymbolScope &scope, Declara
     }
   }
 
-  return {scope.root_scope()->lookup_class(SymbolTable::err_symbol), err};
+  return {root->lookup_class(SymbolTable::err_symbol), err};
 }
 
 Result<StringPair> SymbolTable::mangle_identifier(TemplateArgList args,
@@ -503,8 +503,9 @@ void SymbolTable::register_builtins(LocalScope node)
         SymbolFunction *sym = fun_arena.alloc(
             root, tok, fn.return_type, fn.id, SymbolFunction::GLOBAL);
         sym->is_error = fn.id == err_symbol;
-        sym->is_builtin = allow_vector_promotion;
+        sym->allow_vector_promotion = allow_vector_promotion;
         sym->is_constexpr = is_constexpr;
+        sym->is_builtin = true;
         sym->reserve_arguments(fn.arg_types.size());
         for (SymbolClass *arg : fn.arg_types) {
           sym->add_argument(arg);
@@ -942,7 +943,7 @@ vector<SymbolTable::BuiltinFunc> SymbolTable::generate_all_builtin_functions()
   functions.push_back({float4_cls, "unpackSnorm4x8", {uint_cls}});
   functions.push_back({float2_cls, "unpackHalf2x16", {uint_cls}});
 
-  for (size_t i = 0; i < f_types.size(); ++i) {
+  for (size_t i = 1; i < f_types.size(); ++i) {
     functions.push_back({float_cls, "length", {f_types[i]}});
     functions.push_back({float_cls, "distance", {f_types[i], f_types[i]}});
     functions.push_back({float_cls, "dot", {f_types[i], f_types[i]}});
@@ -1066,6 +1067,7 @@ vector<SymbolTable::BuiltinFunc> SymbolTable::generate_all_builtin_functions()
       SymbolClass *deriv_type = f_types[deriv_dim - 1];
 
       functions.push_back({type, "texture", {sampler, coord_type}});
+      functions.push_back({type, "texture", {sampler, coord_type, float_cls}}); /* Lod bias. */
       functions.push_back({type, "textureLod", {sampler, coord_type, float_cls}});
       functions.push_back({type, "textureGather", {sampler, coord_type}});
       functions.push_back({type, "textureGather", {sampler, coord_type, int_cls}});

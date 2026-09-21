@@ -1703,40 +1703,40 @@ static StrokeVisibilityStatus get_visibility_status_for_draw_operator(Object *ob
   return StrokeVisibilityStatus::Visible;
 }
 
-wmOperatorStatus grease_pencil_draw_operator_invoke(bContext *C,
-                                                    wmOperator *op,
-                                                    const bool use_duplicate_previous_key)
+bool grease_pencil_draw_operator_begin(bContext *C,
+                                       wmOperator *op,
+                                       const bool use_duplicate_previous_key)
 {
   const Scene *scene = CTX_data_scene(C);
   Object *object = CTX_data_active_object(C);
   if (!object || object->type != OB_GREASE_PENCIL) {
-    return OPERATOR_CANCELLED;
+    return false;
   }
 
   GreasePencil &grease_pencil = *id_cast<GreasePencil *>(object->data);
   if (!grease_pencil.has_active_layer()) {
     BKE_report(op->reports, RPT_ERROR, "No active Grease Pencil layer");
-    return OPERATOR_CANCELLED;
+    return false;
   }
 
   const Paint *paint = BKE_paint_get_active_from_context(C);
   const Brush *brush = BKE_paint_brush_for_read(paint);
   if (brush == nullptr) {
-    return OPERATOR_CANCELLED;
+    return false;
   }
 
   bke::greasepencil::Layer &active_layer = *grease_pencil.get_active_layer();
 
   if (!active_layer.is_editable()) {
     BKE_report(op->reports, RPT_ERROR, "Active layer is locked or hidden");
-    return OPERATOR_CANCELLED;
+    return false;
   }
 
   if (ed::greasepencil::check_brush_needs_new_material(object, brush) &&
       (!ID_IS_EDITABLE(&object->id) || ID_IS_OVERRIDE_LIBRARY(&object->id)))
   {
     BKE_report(op->reports, RPT_ERROR, "Cannot create new material on linked object");
-    return OPERATOR_CANCELLED;
+    return false;
   }
 
   /* Ensure a drawing at the current keyframe. */
@@ -1745,7 +1745,7 @@ wmOperatorStatus grease_pencil_draw_operator_invoke(bContext *C,
           *scene, grease_pencil, active_layer, use_duplicate_previous_key, inserted_keyframe))
   {
     BKE_report(op->reports, RPT_ERROR, "No Grease Pencil frame to draw on");
-    return OPERATOR_CANCELLED;
+    return false;
   }
 
   if (inserted_keyframe) {
@@ -1775,7 +1775,7 @@ wmOperatorStatus grease_pencil_draw_operator_invoke(bContext *C,
         break;
     }
   }
-  return OPERATOR_RUNNING_MODAL;
+  return true;
 }
 
 float4x2 calculate_texture_space(const Scene *scene,

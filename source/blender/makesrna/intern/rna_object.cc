@@ -2971,7 +2971,7 @@ static void rna_def_object_visibility(StructRNA *srna)
   RNA_def_property_ui_text(
       prop,
       "Raycast Visibility",
-      "Object visibility to raycast rays. Implicitly false for Blended materials.");
+      "Object visibility to raycast rays. Implicitly false for Blended materials in EEVEE.");
   RNA_def_property_update(prop, NC_OBJECT | ND_DRAW, "rna_Object_internal_update_draw");
 }
 

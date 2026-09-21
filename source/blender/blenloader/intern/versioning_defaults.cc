@@ -10,7 +10,7 @@
  * Unlike regular versioning this makes changes that ensure the startup file
  * has brushes and other presets setup to take advantage of newer features.
  *
- * To update preference defaults see `userdef_default.c`.
+ * To update preference defaults see `versioning_userdef.cc`.
  */
 
 #define DNA_DEPRECATED_ALLOW

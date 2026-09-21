@@ -72,6 +72,15 @@ ColorManagedConfig &IMB_colormanagement_get_config();
 
 void IMB_colormanagement_check_file_config(Main *bmain);
 
+/**
+ * Switch the active OpenColorIO config to #filepath.
+ *
+ * This keeps existing #ColorSpace pointers valid, so that it is safe to switch
+ * while thumbnails, assets, and other data may still have image buffers pointing
+ * to color spaces that no longer exist in the new config.
+ */
+bool IMB_colormanagement_switch_config(const char *filepath);
+
 void IMB_colormanagement_validate_settings(const ColorManagedDisplaySettings *display_settings,
                                            ColorManagedViewSettings *view_settings);
 

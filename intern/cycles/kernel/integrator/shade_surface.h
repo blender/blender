@@ -661,8 +661,8 @@ ccl_device_forceinline bool integrate_surface_terminate(IntegratorState state,
 {
   const float continuation_probability = (path_flag & PATH_RAY_TERMINATE_ON_NEXT_SURFACE) ?
                                              0.0f :
-                                             INTEGRATOR_STATE(
-                                                 state, path, continuation_probability);
+                                             float(INTEGRATOR_STATE(
+                                                 state, path, continuation_probability));
   if (continuation_probability == 0.0f) {
     return true;
   }

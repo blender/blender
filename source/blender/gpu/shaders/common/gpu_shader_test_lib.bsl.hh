@@ -91,64 +91,90 @@ uint to_type(float4x3 /*v*/) { return TEST_TYPE_MAT4X3; }
 uint to_type(float4x4 /*v*/) { return TEST_TYPE_MAT4X4; }
 /* clang-format on */
 
-#define WRITE_MATRIX(v) \
-  TestOutputRawData raw; \
-  for (int c = 0; c < mat_col_len(v); c++) { \
-    for (int r = 0; r < mat_row_len(v); r++) { \
-      raw.data[c * mat_row_len(v) + r] = floatBitsToUint(v[c][r]); \
-    } \
-  } \
+template<typename T> TestOutputRawData write_matrix(T v)
+{
+  TestOutputRawData raw;
+  for (int c = 0; c < mat_col_len(v); c++) {
+    for (int r = 0; r < mat_row_len(v); r++) {
+      raw.data[c * mat_row_len(v) + r] = floatBitsToUint(v[c][r]);
+    }
+  }
   return raw;
+}
 
-#define WRITE_FLOAT_VECTOR(v) \
-  TestOutputRawData raw; \
-  for (int c = 0; c < mat_col_len(v); c++) { \
-    raw.data[c] = floatBitsToUint(v[c]); \
-  } \
+template<typename T> TestOutputRawData write_float_vector(T v)
+{
+  TestOutputRawData raw;
+  for (int c = 0; c < mat_col_len(v); c++) {
+    raw.data[c] = floatBitsToUint(v[c]);
+  }
   return raw;
+}
 
-#define WRITE_INT_VECTOR(v) \
-  TestOutputRawData raw; \
-  for (int c = 0; c < mat_col_len(v); c++) { \
-    raw.data[c] = uint(v[c]); \
-  } \
+template<typename T> TestOutputRawData write_int_vector(T v)
+{
+  TestOutputRawData raw;
+  for (int c = 0; c < mat_col_len(v); c++) {
+    raw.data[c] = uint(v[c]);
+  }
   return raw;
+}
 
-#define WRITE_FLOAT_SCALAR(v) \
-  TestOutputRawData raw; \
-  raw.data[0] = floatBitsToUint(v); \
+TestOutputRawData write_float_scalar(float v)
+{
+  TestOutputRawData raw;
+  raw.data[0] = floatBitsToUint(v);
   return raw;
+}
 
-#define WRITE_INT_SCALAR(v) \
-  TestOutputRawData raw; \
-  raw.data[0] = uint(v); \
+TestOutputRawData write_int_scalar(uint v)
+{
+  TestOutputRawData raw;
+  raw.data[0] = v;
   return raw;
+}
+
+template TestOutputRawData write_matrix<float2x2>(float2x2 v);
+template TestOutputRawData write_matrix<float2x3>(float2x3 v);
+template TestOutputRawData write_matrix<float2x4>(float2x4 v);
+template TestOutputRawData write_matrix<float3x2>(float3x2 v);
+template TestOutputRawData write_matrix<float3x3>(float3x3 v);
+template TestOutputRawData write_matrix<float3x4>(float3x4 v);
+template TestOutputRawData write_matrix<float4x2>(float4x2 v);
+template TestOutputRawData write_matrix<float4x3>(float4x3 v);
+template TestOutputRawData write_matrix<float4x4>(float4x4 v);
+template TestOutputRawData write_float_vector<float2>(float2 v);
+template TestOutputRawData write_float_vector<float3>(float3 v);
+template TestOutputRawData write_float_vector<float4>(float4 v);
+template TestOutputRawData write_int_vector<uint2>(uint2 v);
+template TestOutputRawData write_int_vector<uint3>(uint3 v);
+template TestOutputRawData write_int_vector<uint4>(uint4 v);
 
 /* clang-format off */
 #ifndef GPU_METAL
-TestOutputRawData as_raw_data(bool v) { WRITE_INT_SCALAR(v); }
+TestOutputRawData as_raw_data(bool v) { return write_int_scalar(uint(v)); }
 #endif
-TestOutputRawData as_raw_data(uint v) { WRITE_INT_SCALAR(v); }
-TestOutputRawData as_raw_data(int v) { WRITE_INT_SCALAR(v); }
-TestOutputRawData as_raw_data(float v) { WRITE_FLOAT_SCALAR(v); }
-TestOutputRawData as_raw_data(int2 v) { WRITE_INT_VECTOR(v); }
-TestOutputRawData as_raw_data(int3 v) { WRITE_INT_VECTOR(v); }
-TestOutputRawData as_raw_data(int4 v) { WRITE_INT_VECTOR(v); }
-TestOutputRawData as_raw_data(uint2 v) { WRITE_INT_VECTOR(v); }
-TestOutputRawData as_raw_data(uint3 v) { WRITE_INT_VECTOR(v); }
-TestOutputRawData as_raw_data(uint4 v) { WRITE_INT_VECTOR(v); }
-TestOutputRawData as_raw_data(float2 v) { WRITE_FLOAT_VECTOR(v); }
-TestOutputRawData as_raw_data(float3 v) { WRITE_FLOAT_VECTOR(v); }
-TestOutputRawData as_raw_data(float4 v) { WRITE_FLOAT_VECTOR(v); }
-TestOutputRawData as_raw_data(float2x2 v) { WRITE_MATRIX(v); }
-TestOutputRawData as_raw_data(float2x3 v) { WRITE_MATRIX(v); }
-TestOutputRawData as_raw_data(float2x4 v) { WRITE_MATRIX(v); }
-TestOutputRawData as_raw_data(float3x2 v) { WRITE_MATRIX(v); }
-TestOutputRawData as_raw_data(float3x3 v) { WRITE_MATRIX(v); }
-TestOutputRawData as_raw_data(float3x4 v) { WRITE_MATRIX(v); }
-TestOutputRawData as_raw_data(float4x2 v) { WRITE_MATRIX(v); }
-TestOutputRawData as_raw_data(float4x3 v) { WRITE_MATRIX(v); }
-TestOutputRawData as_raw_data(float4x4 v) { WRITE_MATRIX(v); }
+TestOutputRawData as_raw_data(uint v) { return write_int_scalar(v); }
+TestOutputRawData as_raw_data(int v) { return write_int_scalar(uint(v)); }
+TestOutputRawData as_raw_data(float v) { return write_float_scalar(v); }
+TestOutputRawData as_raw_data(int2 v) { return write_int_vector(uint2(v)); }
+TestOutputRawData as_raw_data(int3 v) { return write_int_vector(uint3(v)); }
+TestOutputRawData as_raw_data(int4 v) { return write_int_vector(uint4(v)); }
+TestOutputRawData as_raw_data(uint2 v) { return write_int_vector(v); }
+TestOutputRawData as_raw_data(uint3 v) { return write_int_vector(v); }
+TestOutputRawData as_raw_data(uint4 v) { return write_int_vector(v); }
+TestOutputRawData as_raw_data(float2 v) { return write_float_vector(v); }
+TestOutputRawData as_raw_data(float3 v) { return write_float_vector(v); }
+TestOutputRawData as_raw_data(float4 v) { return write_float_vector(v); }
+TestOutputRawData as_raw_data(float2x2 v) { return write_matrix(v); }
+TestOutputRawData as_raw_data(float2x3 v) { return write_matrix(v); }
+TestOutputRawData as_raw_data(float2x4 v) { return write_matrix(v); }
+TestOutputRawData as_raw_data(float3x2 v) { return write_matrix(v); }
+TestOutputRawData as_raw_data(float3x3 v) { return write_matrix(v); }
+TestOutputRawData as_raw_data(float3x4 v) { return write_matrix(v); }
+TestOutputRawData as_raw_data(float4x2 v) { return write_matrix(v); }
+TestOutputRawData as_raw_data(float4x3 v) { return write_matrix(v); }
+TestOutputRawData as_raw_data(float4x4 v) { return write_matrix(v); }
 /* clang-format on */
 
 #ifdef GPU_METAL

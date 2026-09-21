@@ -594,8 +594,6 @@ class XpbdSolverStep {
   ConstraintsInfo constraints_;
   Array<ChunkData> chunks_data_;
 
-  Mutex field_evaluators_mutex_;
-
   Result result_;
   Mutex warnings_mutex_;
   VectorSet<std::pair<NodeWarningType, std::string>> warnings_;

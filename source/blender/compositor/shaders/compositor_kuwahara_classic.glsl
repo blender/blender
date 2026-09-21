@@ -20,10 +20,9 @@ void main()
   int radius = max(0, size);
 #endif
 
-  float4 mean_of_squared_color_of_quadrants[4] = float4_array(
-      float4(0.0f), float4(0.0f), float4(0.0f), float4(0.0f));
-  float4 mean_of_color_of_quadrants[4] = float4_array(
-      float4(0.0f), float4(0.0f), float4(0.0f), float4(0.0f));
+  float4 mean_of_squared_color_of_quadrants[4] = {
+      float4(0.0f), float4(0.0f), float4(0.0f), float4(0.0f)};
+  float4 mean_of_color_of_quadrants[4] = {float4(0.0f), float4(0.0f), float4(0.0f), float4(0.0f)};
 
   /* Compute the above statistics for each of the quadrants around the current pixel. */
   for (int q = 0; q < 4; q++) {

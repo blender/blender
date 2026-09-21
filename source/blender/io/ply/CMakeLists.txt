@@ -66,6 +66,7 @@ blender_add_lib(bf_io_ply "${SRC}" "${INC}" "${INC_SYS}" "${LIB}")
 if(WITH_GTESTS)
   set(TEST_SRC
     tests/io_ply_exporter_test.cc
+    tests/io_ply_import_gsplat_test.cc
     tests/io_ply_importer_test.cc
   )
   set(TEST_INC

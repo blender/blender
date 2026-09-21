@@ -543,7 +543,7 @@ void *imb_alloc_pixels(unsigned int x,
 bool IMB_alloc_byte_pixels(ImBuf *ibuf, bool initialize_pixels = true);
 
 /**
- * Deallocate image byte storage.
+ * Deallocate image byte storage. The colorspace is kept.
  */
 void IMB_free_byte_pixels(ImBuf *ibuf);
 
@@ -553,7 +553,7 @@ void IMB_free_byte_pixels(ImBuf *ibuf);
  */
 bool IMB_alloc_float_pixels(ImBuf *ibuf, unsigned int channels, bool initialize_pixels = true);
 /**
- * Deallocate image float storage.
+ * Deallocate image float storage. The colorspace is kept.
  */
 void IMB_free_float_pixels(ImBuf *ibuf);
 

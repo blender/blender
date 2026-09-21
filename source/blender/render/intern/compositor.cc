@@ -68,8 +68,8 @@ class Context : public compositor::Context {
  private:
   /* Input data. */
   CompositorInputData input_data_;
-  /* The hash of the active compute context. */
-  const ComputeContextHash active_compute_context_hash_;
+  /* The hash of the compute context of the active viewer. */
+  const ComputeContextHash viewer_compute_context_hash_;
 
   /* Cached GPU and CPU passes that the compositor took ownership of. Those had their reference
    * count incremented when accessed and need to be freed/have their reference count decremented
@@ -84,8 +84,8 @@ class Context : public compositor::Context {
   Context(compositor::StaticCacheManager &cache_manager, const CompositorInputData &input_data)
       : compositor::Context(cache_manager),
         input_data_(input_data),
-        active_compute_context_hash_(
-            bke::compositor::compute_active_compute_context_hash(input_data_.scene))
+        viewer_compute_context_hash_(
+            bke::compositor::compute_viewer_compute_context_hash(input_data_.scene))
   {
   }
 
@@ -125,9 +125,9 @@ class Context : public compositor::Context {
     return input_data_.needed_side_effects_outputs;
   }
 
-  const ComputeContextHash &get_active_compute_context_hash() const override
+  const ComputeContextHash &get_viewer_compute_context_hash() const override
   {
-    return active_compute_context_hash_;
+    return viewer_compute_context_hash_;
   }
 
   const RenderData &get_render_data() const override
@@ -198,6 +198,9 @@ class Context : public compositor::Context {
                       render_result->rectx * render_result->recty * 4 * sizeof(float));
         }
       }
+
+      /* Compositor output is scene linear, previous pixels were replaced. */
+      image_buffer->float_buffer.colorspace = nullptr;
 
       /* Free outdated GPU texture. */
       IMB_free_gpu_textures(image_buffer);

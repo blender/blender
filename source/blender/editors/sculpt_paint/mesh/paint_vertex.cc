@@ -261,7 +261,7 @@ void update_cache_invariants(VPaint &vp, SculptSession &ss, wmOperator *op, cons
   cache->accum = true;
 
   if (BKE_brush_color_jitter_get_settings(&vp.paint, stroke->brush)) {
-    cache->initial_hsv_jitter = seed_hsv_jitter();
+    cache->initial_hsv_jitter = BKE_paint_seed_hsv_jitter();
   }
 }
 
@@ -1891,7 +1891,7 @@ static void fill_bm_face_or_corner_attribute(BMesh &bm,
   BMFace *f;
   BMIter iter;
   BM_ITER_MESH (f, &iter, &bm, BM_FACES_OF_MESH) {
-    if (only_visible && paint_is_bmesh_face_hidden(f)) {
+    if (only_visible && BKE_paint_is_bmesh_face_hidden(f)) {
       continue;
     }
     BMLoop *l = f->l_first;
