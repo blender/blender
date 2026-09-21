@@ -6,6 +6,7 @@
 
 #include <memory>
 
+#include "BLI_function_ref.hh"
 #include "BLI_math_matrix_types.hh"
 #include "BLI_math_vector_types.hh"
 #include "BLI_string_ref.hh"
@@ -68,6 +69,23 @@ class Config {
    * interface can be displayed.
    */
   static std::unique_ptr<Config> create_fallback();
+
+  /**
+   * Switch this configuration in-place to the configuration from the environment variable,
+   * for runtime configuration switching.
+   *
+   * Returns false if the configuration could not be created or #validate returned false.
+   * This configuration is then left unchanged.
+   */
+  virtual bool switch_to_from_environment(FunctionRef<bool(const Config &)> validate) = 0;
+
+  /**
+   * Switch this configuration in-place to #new_config, and take over its color spaces
+   * and other data.
+   *
+   * Returns false if #validate returned false. This configuration is then left unchanged.
+   */
+  virtual bool switch_to(Config &new_config, FunctionRef<bool(const Config &)> validate) = 0;
 
   /** \} */
 

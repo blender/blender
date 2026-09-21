@@ -24,7 +24,8 @@ LibOCIOColorSpace::LibOCIOColorSpace(const int index,
                                      const OCIO_NAMESPACE::ConstColorSpaceRcPtr &ocio_color_space)
     : ocio_config_(ocio_config),
       ocio_color_space_(ocio_color_space),
-      clean_description_(cleanup_description(ocio_color_space->getDescription()))
+      clean_description_(cleanup_description(ocio_color_space->getDescription())),
+      scene_linear_config_(ocio_config)
 {
   const char *family = ocio_color_space->getFamily();
   this->family_ = (family) ? family : "";
@@ -155,8 +156,17 @@ bool LibOCIOColorSpace::is_srgb() const
 const CPUProcessor *LibOCIOColorSpace::get_to_scene_linear_cpu_processor() const
 {
   return to_scene_linear_cpu_processor_.get([&]() -> std::unique_ptr<CPUProcessor> {
-    OCIO_NAMESPACE::ConstProcessorRcPtr ocio_processor = create_ocio_processor(
-        ocio_config_, ocio_color_space_->getName(), OCIO_NAMESPACE::ROLE_SCENE_LINEAR);
+    OCIO_NAMESPACE::ConstProcessorRcPtr ocio_processor;
+    if (scene_linear_config_ != ocio_config_) {
+      ocio_processor = create_ocio_processor_between_configs(ocio_config_,
+                                                             ocio_color_space_->getName(),
+                                                             scene_linear_config_,
+                                                             OCIO_NAMESPACE::ROLE_SCENE_LINEAR);
+    }
+    if (!ocio_processor) {
+      ocio_processor = create_ocio_processor(
+          ocio_config_, ocio_color_space_->getName(), OCIO_NAMESPACE::ROLE_SCENE_LINEAR);
+    }
     if (!ocio_processor) {
       return nullptr;
     }
@@ -167,13 +177,32 @@ const CPUProcessor *LibOCIOColorSpace::get_to_scene_linear_cpu_processor() const
 const CPUProcessor *LibOCIOColorSpace::get_from_scene_linear_cpu_processor() const
 {
   return from_scene_linear_cpu_processor_.get([&]() -> std::unique_ptr<CPUProcessor> {
-    OCIO_NAMESPACE::ConstProcessorRcPtr ocio_processor = create_ocio_processor(
-        ocio_config_, OCIO_NAMESPACE::ROLE_SCENE_LINEAR, ocio_color_space_->getName());
+    OCIO_NAMESPACE::ConstProcessorRcPtr ocio_processor;
+    if (scene_linear_config_ != ocio_config_) {
+      ocio_processor = create_ocio_processor_between_configs(scene_linear_config_,
+                                                             OCIO_NAMESPACE::ROLE_SCENE_LINEAR,
+                                                             ocio_config_,
+                                                             ocio_color_space_->getName());
+    }
+    if (!ocio_processor) {
+      ocio_processor = create_ocio_processor(
+          ocio_config_, OCIO_NAMESPACE::ROLE_SCENE_LINEAR, ocio_color_space_->getName());
+    }
     if (!ocio_processor) {
       return nullptr;
     }
     return std::make_unique<LibOCIOCPUProcessor>(ocio_processor->getDefaultCPUProcessor());
   });
+}
+
+void LibOCIOColorSpace::switch_scene_linear_config(
+    const OCIO_NAMESPACE::ConstConfigRcPtr &ocio_config)
+{
+  if (scene_linear_config_ == ocio_config) {
+    return;
+  }
+  scene_linear_config_ = ocio_config;
+  clear_caches();
 }
 
 void LibOCIOColorSpace::clear_caches()
