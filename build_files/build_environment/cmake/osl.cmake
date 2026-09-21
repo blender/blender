@@ -121,6 +121,8 @@ set(LLVM_LIBRARIES "${_osl_llvm_libs}" CACHE STRING "" FORCE)
       ${PATCH_DIR}/osl_crosscompile_host_oslc.diff
   )
 
+  # NOTE: Purposefully use ${HOST_DEPS_BUILD_DIR} here to access the host deps *build* directory instead of its
+  #       pre-harvest install directory.
   set(OSL_GENLUTS_PATH ${HOST_DEPS_BUILD_DIR}/build/osl/src/external_osl-build/bin/genluts)
   set(OSL_OSLC_PATH ${HOST_LIBDIR}/osl/bin/oslc)
   if(NOT EXISTS ${OSL_GENLUTS_PATH})
