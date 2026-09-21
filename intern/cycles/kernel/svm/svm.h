@@ -465,16 +465,12 @@ ccl_device void svm_eval_nodes(KernelGlobals kg,
       SVM_CASE(NODE_PARTICLE_INFO)
       svm_node_particle_info(kg, sd, stack, svm_node_get<SVMNodeParticleInfo>(kg, &offset));
       break;
-#if defined(__HAIR__)
       SVM_CASE(NODE_HAIR_INFO)
       svm_node_hair_info(kg, sd, stack, svm_node_get<SVMNodeHairInfo>(kg, &offset));
       break;
-#endif
-#if defined(__POINTCLOUD__)
       SVM_CASE(NODE_POINT_INFO)
       svm_node_point_info(kg, sd, stack, svm_node_get<SVMNodePointInfo>(kg, &offset));
       break;
-#endif
       SVM_CASE(NODE_TEXTURE_MAPPING)
       svm_node_texture_mapping<float3>(stack, svm_node_get<SVMNodeTextureMapping>(kg, &offset));
       break;

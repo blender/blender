@@ -1743,6 +1743,7 @@ TEST(path_utils, Contains)
       << "Just sharing a suffix is not enough, path semantics should be followed";
   EXPECT_FALSE(BLI_path_contains("/some/path", "./contents"))
       << "Relative paths are not supported";
+  EXPECT_FALSE(BLI_path_contains("", "/some/path")) << "Empty container path contains nothing";
 }
 
 #ifdef WIN32
@@ -1750,6 +1751,14 @@ TEST(path_utils, Contains_Windows_case_insensitive)
 {
   EXPECT_TRUE(BLI_path_contains("C:\\some\\path", "c:\\SOME\\path\\inside"))
       << "On Windows path comparison should ignore case";
+  EXPECT_TRUE(BLI_path_contains("\\\\Server\\Share", "\\\\server/SHARE\\inside"))
+      << "On Windows UNC server and share should ignore case and slash direction";
+  EXPECT_TRUE(BLI_path_contains("\\\\server\\share", "\\\\server\\share"))
+      << "A UNC share contains itself";
+  EXPECT_FALSE(BLI_path_contains("\\\\server\\share", "\\\\server\\other\\inside"))
+      << "Different UNC shares";
+  EXPECT_FALSE(BLI_path_relative_to("\\\\server", "\\\\server\\share\\", true, nullptr, 0))
+      << "A UNC server is not a parent of its shares";
 }
 #endif /* WIN32 */
 

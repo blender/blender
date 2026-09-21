@@ -157,6 +157,7 @@ struct SymbolParser : NodeErrorHandler {
         SymbolClass *resolved = inst_scope.lookup_class(table, type_id).unwrap(this);
         /* IMPORTANT: Instantiate at argument declaration. Allow correct lookup. */
         scope.classes.emplace(id, resolved, arg.identifier().front());
+        scope.scopes.emplace(id, resolved);
       }
       else {
         IdQualified type = arg.type();

@@ -712,17 +712,26 @@ static bool path_relative_to_impl(char *path,
       return false;
     }
 
-    /* Ensure both UNC paths are on the same share. */
+    /* Ensure both UNC paths are on the same share. Windows server and share names
+     * are case-insensitive, and either slash may be used. */
     if (is_unc) {
-      int offset;
       int num_slashes = 0;
-      for (offset = 0; base_path[offset] && num_slashes < 4; offset++) {
-        if (base_path[offset] != path[offset]) {
-          return false;
-        }
+      for (int offset = 0; base_path[offset] && num_slashes < 4; offset++) {
+        const char base_ch = base_path[offset];
+        const char path_ch = path[offset];
 
-        if (base_path[offset] == '\\') {
+        if (ELEM(base_ch, '\\', '/')) {
           num_slashes++;
+          /* The path is the share itself. */
+          if (path_ch == '\0' && num_slashes == 4) {
+            break;
+          }
+          if (!ELEM(path_ch, '\\', '/')) {
+            return false;
+          }
+        }
+        else if (tolower(base_ch) != tolower(path_ch)) {
+          return false;
         }
       }
     }
@@ -1921,6 +1930,10 @@ bool BLI_path_name_at_index(const char *__restrict path,
 
 bool BLI_path_contains(const char *container_path, const char *containee_path)
 {
+  if (container_path[0] == '\0') {
+    return false;
+  }
+
   const bool walk_up = false;
   return BLI_path_relative_to(containee_path, container_path, walk_up, nullptr, 0);
 }

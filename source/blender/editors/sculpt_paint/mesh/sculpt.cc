@@ -5515,7 +5515,7 @@ static void stroke_cache_init(
   }
 
   if (BKE_brush_color_jitter_get_settings(&sd.paint, &brush)) {
-    cache->initial_hsv_jitter = seed_hsv_jitter();
+    cache->initial_hsv_jitter = BKE_paint_seed_hsv_jitter();
   }
   cache->plane_brush.first_time = true;
 

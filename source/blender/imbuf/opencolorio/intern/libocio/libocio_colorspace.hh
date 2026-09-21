@@ -27,6 +27,11 @@ class LibOCIOColorSpace : public ColorSpace {
   CPUProcessorCache to_scene_linear_cpu_processor_;
   CPUProcessorCache from_scene_linear_cpu_processor_;
 
+  /* Configuration whose scene linear role is the target of the to/from scene linear processors.
+   * Usually this is #ocio_config_, but can also be something else if the color space is not
+   * part of a new config but still preserved. */
+  OCIO_NAMESPACE::ConstConfigRcPtr scene_linear_config_;
+
  public:
   LibOCIOColorSpace(int index,
                     const OCIO_NAMESPACE::ConstConfigRcPtr &ocio_config,
@@ -69,6 +74,13 @@ class LibOCIOColorSpace : public ColorSpace {
 
   const CPUProcessor *get_to_scene_linear_cpu_processor() const override;
   const CPUProcessor *get_from_scene_linear_cpu_processor() const override;
+
+  void switch_scene_linear_config(const OCIO_NAMESPACE::ConstConfigRcPtr &ocio_config);
+
+  const OCIO_NAMESPACE::ConstColorSpaceRcPtr &ocio_color_space() const
+  {
+    return ocio_color_space_;
+  }
 
   void clear_caches();
 

@@ -267,15 +267,15 @@ bool BKE_paint_always_hide_test(const Object *ob);
 /**
  * Returns whether any of the corners of the grid face whose inner corner is at (x, y) are hidden.
  */
-bool paint_is_grid_face_hidden(BoundedBitSpan grid_hidden, int gridsize, int x, int y);
+bool BKE_paint_is_grid_face_hidden(BoundedBitSpan grid_hidden, int gridsize, int x, int y);
 /**
  * Return true if all vertices in the face are visible, false otherwise.
  */
-bool paint_is_bmesh_face_hidden(const BMFace *f);
+bool BKE_paint_is_bmesh_face_hidden(const BMFace *f);
 
 /* Paint masks. */
 
-float paint_grid_paint_mask(const GridPaintMask *gpm, uint level, uint x, uint y);
+float BKE_paint_grid_paint_mask(const GridPaintMask *gpm, uint level, uint x, uint y);
 
 void BKE_paint_face_set_overlay_color_get(int face_set, int seed, uchar r_color[4]);
 
@@ -288,15 +288,15 @@ bool supports_symmetry_tiling(PaintMode paint_mode, const Brush &brush);
 
 /* Random values are generated on each new stroke so each stroke
  * gets a different starting point in the perlin noise. */
-float3 seed_hsv_jitter();
+float3 BKE_paint_seed_hsv_jitter();
 
-bool paint_calculate_rake_rotation(Paint &paint,
-                                   const Brush &brush,
-                                   const float mouse_pos[2],
-                                   PaintMode paint_mode,
-                                   bool in_stroke,
-                                   bool is_first_dab);
-void paint_update_brush_rake_rotation(Paint &paint, const Brush &brush, float rotation);
+bool BKE_paint_calculate_rake_rotation(Paint &paint,
+                                       const Brush &brush,
+                                       const float mouse_pos[2],
+                                       PaintMode paint_mode,
+                                       bool in_stroke,
+                                       bool is_first_dab);
+void BKE_paint_update_brush_rake_rotation(Paint &paint, const Brush &brush, float rotation);
 
 namespace bke::paint {
 float3 stroke_get_average(const Paint *paint, const Object *ob);

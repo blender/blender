@@ -1431,6 +1431,7 @@ static void renderresult_stampinfo(Render *re)
                           ob_camera_eval,
                           (re->scene->r.stamp & R_STAMP_STRIPMETA) ? rres.stamp_data : nullptr,
                           rres.ibuf);
+      IMB_partial_update_mark_full(rres.ibuf);
     }
 
     RE_ReleaseResultImage(re);

@@ -1809,21 +1809,24 @@ static void rna_def_gpencil_options(BlenderRNA *brna)
   RNA_def_property_update(prop, NC_GPENCIL | ND_DATA, "rna_BrushGpencilSettings_update");
 
   prop = RNA_def_property(srna, "use_stroke_random_hue", PROP_BOOLEAN, PROP_NONE);
-  RNA_def_property_boolean_sdna(prop, nullptr, "flag2", GP_BRUSH_USE_HUE_AT_STROKE);
+  RNA_def_property_deprecated(prop, "Deprecated, use brush.use_stroke_random_hue", 503, 600);
+  RNA_def_property_boolean_sdna(prop, nullptr, "flag2", GP_BRUSH_UNUSED_2);
   RNA_def_property_ui_icon(prop, ICON_GP_SELECT_STROKES, 0);
   RNA_def_property_ui_text(prop, "Stroke Random", "Use randomness at stroke level");
   RNA_def_property_clear_flag(prop, PROP_ANIMATABLE);
   RNA_def_property_update(prop, NC_GPENCIL | ND_DATA, "rna_BrushGpencilSettings_update");
 
   prop = RNA_def_property(srna, "use_stroke_random_sat", PROP_BOOLEAN, PROP_NONE);
-  RNA_def_property_boolean_sdna(prop, nullptr, "flag2", GP_BRUSH_USE_SAT_AT_STROKE);
+  RNA_def_property_deprecated(prop, "Deprecated, use brush.use_stroke_random_sat", 503, 600);
+  RNA_def_property_boolean_sdna(prop, nullptr, "flag2", GP_BRUSH_UNUSED_3);
   RNA_def_property_ui_icon(prop, ICON_GP_SELECT_STROKES, 0);
   RNA_def_property_ui_text(prop, "Stroke Random", "Use randomness at stroke level");
   RNA_def_property_clear_flag(prop, PROP_ANIMATABLE);
   RNA_def_property_update(prop, NC_GPENCIL | ND_DATA, "rna_BrushGpencilSettings_update");
 
   prop = RNA_def_property(srna, "use_stroke_random_val", PROP_BOOLEAN, PROP_NONE);
-  RNA_def_property_boolean_sdna(prop, nullptr, "flag2", GP_BRUSH_USE_VAL_AT_STROKE);
+  RNA_def_property_deprecated(prop, "Deprecated, use brush.use_stroke_random_val", 503, 600);
+  RNA_def_property_boolean_sdna(prop, nullptr, "flag2", GP_BRUSH_UNUSED_4);
   RNA_def_property_ui_icon(prop, ICON_GP_SELECT_STROKES, 0);
   RNA_def_property_ui_text(prop, "Stroke Random", "Use randomness at stroke level");
   RNA_def_property_clear_flag(prop, PROP_ANIMATABLE);
@@ -1851,21 +1854,24 @@ static void rna_def_gpencil_options(BlenderRNA *brna)
   RNA_def_property_update(prop, NC_GPENCIL | ND_DATA, "rna_BrushGpencilSettings_update");
 
   prop = RNA_def_property(srna, "use_random_press_hue", PROP_BOOLEAN, PROP_NONE);
-  RNA_def_property_boolean_sdna(prop, nullptr, "flag2", GP_BRUSH_USE_HUE_RAND_PRESS);
+  RNA_def_property_deprecated(prop, "Deprecated, use brush.use_random_press_hue", 503, 600);
+  RNA_def_property_boolean_sdna(prop, nullptr, "flag2", GP_BRUSH_UNUSED_5);
   RNA_def_property_ui_icon(prop, ICON_STYLUS_PRESSURE, 0);
   RNA_def_property_ui_text(prop, "Use Pressure", "Use pressure to modulate randomness");
   RNA_def_property_clear_flag(prop, PROP_ANIMATABLE);
   RNA_def_property_update(prop, NC_GPENCIL | ND_DATA, "rna_BrushGpencilSettings_update");
 
   prop = RNA_def_property(srna, "use_random_press_sat", PROP_BOOLEAN, PROP_NONE);
-  RNA_def_property_boolean_sdna(prop, nullptr, "flag2", GP_BRUSH_USE_SAT_RAND_PRESS);
+  RNA_def_property_deprecated(prop, "Deprecated, use brush.use_random_press_sat", 503, 600);
+  RNA_def_property_boolean_sdna(prop, nullptr, "flag2", GP_BRUSH_UNUSED_6);
   RNA_def_property_ui_icon(prop, ICON_STYLUS_PRESSURE, 0);
   RNA_def_property_ui_text(prop, "Use Pressure", "Use pressure to modulate randomness");
   RNA_def_property_clear_flag(prop, PROP_ANIMATABLE);
   RNA_def_property_update(prop, NC_GPENCIL | ND_DATA, "rna_BrushGpencilSettings_update");
 
   prop = RNA_def_property(srna, "use_random_press_val", PROP_BOOLEAN, PROP_NONE);
-  RNA_def_property_boolean_sdna(prop, nullptr, "flag2", GP_BRUSH_USE_VAL_RAND_PRESS);
+  RNA_def_property_boolean_sdna(prop, nullptr, "flag2", GP_BRUSH_UNUSED_7);
+  RNA_def_property_deprecated(prop, "Deprecated, use brush.use_random_press_val", 503, 600);
   RNA_def_property_ui_icon(prop, ICON_STYLUS_PRESSURE, 0);
   RNA_def_property_ui_text(prop, "Use Pressure", "Use pressure to modulate randomness");
   RNA_def_property_clear_flag(prop, PROP_ANIMATABLE);
@@ -1907,6 +1913,14 @@ static void rna_def_gpencil_options(BlenderRNA *brna)
                            "Use Stabilizer",
                            "Draw lines with a delay to allow smooth strokes (press Shift key to "
                            "override while drawing)");
+  RNA_def_property_clear_flag(prop, PROP_ANIMATABLE);
+  RNA_def_property_update(prop, 0, "rna_BrushGpencilSettings_update");
+
+  prop = RNA_def_property(srna, "use_cyclic_stroke", PROP_BOOLEAN, PROP_NONE);
+  RNA_def_property_boolean_sdna(prop, nullptr, "flag", GP_BRUSH_USE_CYCLIC_STROKE);
+  RNA_def_property_boolean_default(prop, false);
+  RNA_def_property_ui_icon(prop, ICON_GP_CYCLIC_STROKE, 0);
+  RNA_def_property_ui_text(prop, "Cyclic", "Create a cyclic stroke");
   RNA_def_property_clear_flag(prop, PROP_ANIMATABLE);
   RNA_def_property_update(prop, 0, "rna_BrushGpencilSettings_update");
 
@@ -3154,8 +3168,7 @@ static void rna_def_brush(BlenderRNA *brna)
   RNA_def_property_update(prop, 0, "rna_Brush_update");
 
   prop = RNA_def_property(srna, "invert_hardness_pressure", PROP_BOOLEAN, PROP_NONE);
-  RNA_def_property_boolean_sdna(
-      prop, nullptr, "paint_flags", BRUSH_PAINT_HARDNESS_PRESSURE_INVERT);
+  RNA_def_property_boolean_sdna(prop, nullptr, "paint_flags", BRUSH_PAINT_UNUSED_2);
   RNA_def_property_ui_icon(prop, ICON_ARROW_LEFTRIGHT, 0);
   RNA_def_property_ui_text(
       prop, "Invert Pressure for Hardness", "Invert the modulation of pressure in hardness");
@@ -3782,7 +3795,7 @@ static void rna_def_brush(BlenderRNA *brna)
 
   prop = RNA_def_property(srna, "use_frontface_falloff", PROP_BOOLEAN, PROP_NONE);
   RNA_def_property_deprecated(prop, "Automasking 'View Normal' should be used instead", 503, 600);
-  RNA_def_property_boolean_sdna(prop, nullptr, "flag", BRUSH_FRONTFACE_FALLOFF_DEPRECATED);
+  RNA_def_property_boolean_sdna(prop, nullptr, "flag", BRUSH_UNUSED_7);
   RNA_def_property_ui_text(
       prop, "Use Front-Face Falloff", "Blend brush influence by how much they face the front");
   RNA_def_property_update(prop, 0, "rna_Brush_update");

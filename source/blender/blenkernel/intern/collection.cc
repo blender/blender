@@ -559,8 +559,7 @@ void BKE_collection_exporter_name_set(const ListBaseT<CollectionExport> *exporte
 {
   /* Only use the new name if it's not empty. */
   if (newname && newname[0] != '\0') {
-    ListBaseT<CollectionExport> list = exporters ? *exporters :
-                                                   ListBaseT<CollectionExport>{data, data};
+    ListBaseT<CollectionExport> list = exporters ? *exporters : BLI_listbase_from_link(data);
 
     STRNCPY(data->name, newname);
     BLI_uniquename(

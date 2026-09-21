@@ -2555,6 +2555,7 @@ static void widget_draw_text(const uiFontStyle *fstyle,
 
 #ifdef WITH_INPUT_IME
   const wmIMEData *ime_data;
+  std::string ime_drawstr;
 #endif
 
   fontstyle_set(fstyle);
@@ -2587,7 +2588,6 @@ static void widget_draw_text(const uiFontStyle *fstyle,
       drawstr_left_len = INT_MAX;
 
 #ifdef WITH_INPUT_IME
-      /* FIXME: IME is modifying `const char *drawstr`! */
       ime_data = button_ime_data_get(but);
 
       if (ime_data && !ime_data->composite.empty()) {
@@ -2601,8 +2601,8 @@ static void widget_draw_text(const uiFontStyle *fstyle,
                      but->editstr,
                      ime_data->composite.c_str(),
                      but->editstr + but->pos);
-        but->drawstr = tmp_drawstr;
-        drawstr = but->drawstr.c_str();
+        ime_drawstr = tmp_drawstr;
+        drawstr = ime_drawstr.c_str();
       }
       else
 #endif

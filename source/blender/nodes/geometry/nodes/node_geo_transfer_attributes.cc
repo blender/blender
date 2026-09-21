@@ -77,12 +77,30 @@ static void node_declare(NodeDeclarationBuilder &b)
 }
 
 static bool should_transfer(const Span<StringPattern> patterns,
+                            const bke::AttrDomain domain,
                             const StringRef name,
                             const bool exclude_names,
                             MutableSpan<bool> r_found_attribute_using_pattern)
 {
-  if (ELEM(name, ".corner_vert", ".corner_edge", ".edge_verts")) {
-    return false;
+  switch (domain) {
+    case bke::AttrDomain::Edge:
+      if (ELEM(name, ".edge_verts")) {
+        return false;
+      }
+      break;
+    case bke::AttrDomain::Corner:
+      if (ELEM(name, ".corner_vert", ".corner_edge")) {
+        return false;
+      }
+      break;
+    case bke::AttrDomain::Instance:
+      if (ELEM(name, ".reference_index")) {
+        return false;
+      }
+      break;
+
+    default:
+      break;
   }
   bool match_found = false;
   for (const int pattern_i : patterns.index_range()) {
@@ -126,7 +144,9 @@ static void transfer_attributes(
   Map<bke::AttrDomain, IDs> ids_by_domain;
   Vector<AttrItem> items;
   src_attributes.foreach_attribute([&](const bke::AttributeIter &iter) {
-    if (should_transfer(patterns, iter.name, exclude_names, r_found_attribute_using_pattern)) {
+    if (should_transfer(
+            patterns, iter.domain, iter.name, exclude_names, r_found_attribute_using_pattern))
+    {
       items.append({iter.name, iter.domain, iter.data_type});
       ids_by_domain.lookup_or_add_default(iter.domain);
     }

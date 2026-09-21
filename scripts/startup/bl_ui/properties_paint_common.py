@@ -1957,6 +1957,12 @@ def brush_basic_grease_pencil_paint_settings(layout, context, brush, props, *, c
 
         row = layout.row(align=True)
         if compact:
+            row.prop(gp_settings, "use_cyclic_stroke", text="")
+        else:
+            row.prop(gp_settings, "use_cyclic_stroke", text="Cyclic")
+
+        row = layout.row(align=True)
+        if compact:
             row.prop(gp_settings, "caps_type", text="", expand=True)
         else:
             row.prop(gp_settings, "caps_type", text="Caps Type")

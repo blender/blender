@@ -26,6 +26,7 @@
 #include "pbvh_uv_islands.hh"
 
 #include <atomic>
+#include <cmath>
 #include <iostream>
 #include <optional>
 #include <queue>
@@ -1006,10 +1007,18 @@ void UVIsland::extend_border(const MeshData &mesh_data,
   };
   std::priority_queue<HeapEntry> queue;
 
+  auto queue_edge = [&](const float angle, UVBorderEdge &border_edge) {
+    /* Guard against NaN causing infinite loop, leave such borders without extension. */
+    if (std::isfinite(angle)) {
+      queue.push({angle, &border_edge});
+    }
+  };
+
   /* Queue initial border edges. */
   for (UVBorder &border : borders) {
     for (UVBorderEdge &border_edge : border.edges) {
-      queue.push({border.outside_angle(*this, border_edge), &border_edge});
+      const float angle = border.outside_angle(*this, border_edge);
+      queue_edge(angle, border_edge);
     }
   }
 
@@ -1030,7 +1039,7 @@ void UVIsland::extend_border(const MeshData &mesh_data,
     /* If the angle changed, re-queue with new angle. */
     const float angle = border.outside_angle(*this, *border_edge);
     if (angle != entry.angle) {
-      queue.push({angle, border_edge});
+      queue_edge(angle, *border_edge);
       continue;
     }
 
@@ -1051,7 +1060,8 @@ void UVIsland::extend_border(const MeshData &mesh_data,
       for (UVBorderEdge *modified_edge : modified_edges) {
         if (modified_edge->is_extendable(*this)) {
           UVBorder &modified_border = borders[modified_edge->border_index];
-          queue.push({modified_border.outside_angle(*this, *modified_edge), modified_edge});
+          const float angle = modified_border.outside_angle(*this, *modified_edge);
+          queue_edge(angle, *modified_edge);
         }
       }
     }

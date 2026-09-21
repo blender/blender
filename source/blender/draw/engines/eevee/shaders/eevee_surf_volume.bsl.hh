@@ -28,12 +28,16 @@
 {
   ShadingData sd;
   sd.frag_co = float4(0);
+  sd.front_facing = true;
   sd.P = wP;
   sd.N = float3(0.0f);
   sd.Ng = float3(0.0f);
   sd.is_strand = false;
   sd.hair_diameter = 0.0f;
   sd.hair_strand_id = 0;
+  sd.point_position = float3(0.0f);
+  sd.point_radius = 0.0f;
+  sd.point_id = 0;
   sd.barycentric_coords = float2(0.0f);
   sd.barycentric_dists = float3(0.0f);
   sd.ray_type = RAY_TYPE_CAMERA;

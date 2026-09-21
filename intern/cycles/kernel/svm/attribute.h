@@ -77,7 +77,9 @@ svm_node_attr_surface_eval(KernelGlobals kg,
   using FloatType = dual_scalar_t<Float3Type>;
 
 #if defined(__GSPLATS__)
-  if (sd->type & PRIMITIVE_GSPLAT && node.attr == ATTR_STD_GSPLAT_RADIANCE) {
+  if (sd->type & PRIMITIVE_GSPLAT && node.attr == ATTR_STD_GSPLAT_RADIANCE &&
+      !is_attribute_found(desc))
+  {
     if (type == NODE_ATTR_OUTPUT_FLOAT_ALPHA) {
       return make_float3(FloatType(1.0f));
     }

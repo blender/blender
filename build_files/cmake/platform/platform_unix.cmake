@@ -498,7 +498,7 @@ if(DEFINED OpenImageIO_DIR)
 endif()
 add_bundled_libraries(openimageio/lib)
 
-find_package_wrapper(OpenColorIO 2.0.0 REQUIRED)
+find_package_wrapper(OpenColorIO 2.3.0 REQUIRED)
 if(DEFINED OpenColorIO_DIR)
   mark_as_advanced(OpenColorIO_DIR)
 endif()

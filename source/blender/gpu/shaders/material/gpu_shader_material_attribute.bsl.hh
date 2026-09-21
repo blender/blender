@@ -102,29 +102,9 @@ void node_attribute_light(const float light_index,
   out_attr = node_attribute_light_impl(kg, int(light_index), floatBitsToUint(attr_hash));
 }
 
-float4 attr_load_layer([[maybe_unused]] const uint attr_hash)
+float4 attr_load_layer([[resource_table]] KernelGlobals &kg, const uint attr_hash)
 {
-#ifdef VLATTR_LIB
-  /* The first record of the buffer stores the length. */
-  uint left = 0, right = drw_layer_attrs[0].buffer_length;
-
-  while (left < right) {
-    uint mid = (left + right) / 2;
-    uint hash = drw_layer_attrs[mid].hash_code;
-
-    if (hash < attr_hash) {
-      left = mid + 1;
-    }
-    else if (hash > attr_hash) {
-      right = mid;
-    }
-    else {
-      return drw_layer_attrs[mid].data;
-    }
-  }
-#endif
-
-  return float4(0.0f);
+  return node_attribute_layer_impl(kg, attr_hash);
 }
 
 [[node]]

@@ -158,7 +158,7 @@ static BrushPainter *brush_painter_2d_new(Scene *scene,
   painter->scene = scene;
   painter->paint = paint;
   if (BKE_brush_color_jitter_get_settings(paint, brush)) {
-    painter->initial_hsv_jitter = seed_hsv_jitter();
+    painter->initial_hsv_jitter = BKE_paint_seed_hsv_jitter();
   }
   painter->firsttouch = true;
   painter->cache_invert = invert;
@@ -1269,15 +1269,16 @@ static void paint_2d_do_making_brush(ImagePaintState *s,
       int origx = region->destx - tx * ED_IMAGE_UNDO_TILE_SIZE;
       int origy = region->desty - ty * ED_IMAGE_UNDO_TILE_SIZE;
 
-      if (const ImBuf *data = ED_image_paint_tile_find(
-              undo_tiles, s->image, tile->canvas, &tile->iuser, tx, ty, &mask, false))
-      {
-        if (tile->canvas->float_data()) {
-          tmpbuf.float_buffer = data->float_buffer;
-        }
-        else {
-          tmpbuf.byte_buffer = data->byte_buffer;
-        }
+      const ImBuf *data = ED_image_paint_tile_find(
+          undo_tiles, s->image, tile->canvas, &tile->iuser, tx, ty, &mask, false);
+      if (data == nullptr) {
+        continue;
+      }
+      if (tile->canvas->float_data()) {
+        tmpbuf.float_buffer = data->float_buffer;
+      }
+      else {
+        tmpbuf.byte_buffer = data->byte_buffer;
       }
 
       IMB_rectblend(tile->canvas,

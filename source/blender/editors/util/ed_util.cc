@@ -287,7 +287,7 @@ bool ED_editors_flush_edits_for_object_ex(Main *bmain, Object *ob, bool check_ne
       /* flush multires changes */
       multires_flush_sculpt_updates(ob);
 
-      /* flush dynotopo changes */
+      /* flush dyntopo changes */
       BKE_sculptsession_bm_to_me(ob);
 
       DEG_id_tag_update(&ob->id, ID_RECALC_GEOMETRY);

@@ -1180,7 +1180,7 @@ static void object_material_assign(
      * intentionally ignore userpref (default to obdata). */
     bit = ob->matbits[act - 1];
   }
-  else if (assign_type == BKE_MAT_ASSIGN_USERPREF && ob->totcol && ob->actcol) {
+  else if (assign_type == BKE_MAT_ASSIGN_USERPREF && ob->actcol >= 1 && ob->actcol <= ob->totcol) {
     /* copy from previous material */
     bit = ob->matbits[ob->actcol - 1];
   }
@@ -1522,7 +1522,7 @@ bool BKE_object_material_slot_remove(Main *bmain, Object *ob)
         obt->matbits[a - 1] = obt->matbits[a];
       }
       obt->totcol--;
-      BKE_object_material_active_index_sanitize(ob);
+      BKE_object_material_active_index_sanitize(obt);
 
       if (obt->totcol == 0) {
         MEM_delete(obt->mat);

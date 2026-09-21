@@ -5246,6 +5246,7 @@ ShaderNodeType VertexColorNode::shader_node_type() const
 void VertexColorNode::compile(SVMCompiler &compiler)
 {
   const NodeBumpOffset bump_offset = shader_bump_to_node_bump_offset(bump);
+  const bool use_derivative = need_derivatives() || (bump != SHADER_BUMP_NONE);
   int layer_id = 0;
 
   if (!layer_name.empty()) {
@@ -5263,7 +5264,8 @@ void VertexColorNode::compile(SVMCompiler &compiler)
                         .alpha_offset = compiler.output("Alpha"),
                         .bump_offset = bump_offset,
                         .bump_filter_width = bump_filter_width,
-                    });
+                    },
+                    use_derivative);
 }
 
 void VertexColorNode::compile(OSLCompiler &compiler)

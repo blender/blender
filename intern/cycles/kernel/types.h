@@ -166,12 +166,16 @@ enum PathRayVisibilityFlag : uint32_t {
   PATH_RAY_VISIBILITY_SHADOW = (PATH_RAY_VISIBILITY_SHADOW_OPAQUE |
                                 PATH_RAY_VISIBILITY_SHADOW_TRANSPARENT),
 
+  /* Set of flags used for path ray visibility. */
+  PATH_RAY_VISIBILITY_ALL = ((1U << 7U) - 1U),
+
+  /* Raycast shader node rays, not part of the path. */
   PATH_RAY_VISIBILITY_RAYCAST = (1U << 7U),
 
-  /* Set of flags used for ray visibility for intersection.
+  /* Set of all flags an object can be visible to.
    *
    * NOTE: SHADOW_CATCHER and OSL macros below assume there are no more than 16 visibility bits. */
-  PATH_RAY_VISIBILITY_ALL = ((1U << 8U) - 1U),
+  PATH_RAY_VISIBILITY_OBJECT_ALL = (PATH_RAY_VISIBILITY_ALL | PATH_RAY_VISIBILITY_RAYCAST),
 
   /* Special flag to tag unaligned BVH nodes.
    * Only set and used in BVH nodes to distinguish how to interpret bounding box information stored
@@ -308,7 +312,7 @@ enum PathRayMNEE {
  * On shadow catcher paths we want to ignore any intersections with non-catchers,
  * whereas on regular paths we want to intersect all objects. */
 
-static_assert(PATH_RAY_VISIBILITY_ALL <= 0xffff);
+static_assert(PATH_RAY_VISIBILITY_OBJECT_ALL <= 0xffff);
 
 #define SHADOW_CATCHER_VISIBILITY_SHIFT(visibility) (uint32_t(visibility) << 16)
 
@@ -327,7 +331,7 @@ static_assert(PATH_RAY_VISIBILITY_ALL <= 0xffff);
  * Note that while the entire PathRayVisibilityFlag flags are stored in the rayrtype, only part of
  * the PathRayFlag is stored. */
 
-static_assert(PATH_RAY_VISIBILITY_ALL <= 0xffff);
+static_assert(PATH_RAY_VISIBILITY_OBJECT_ALL <= 0xffff);
 
 #define OSL_RAYTYPE_PACK(visibility, path_flag) \
   (int((uint32_t((path_flag) & 0xffff) << 16) | uint32_t((visibility) & 0xffff)))

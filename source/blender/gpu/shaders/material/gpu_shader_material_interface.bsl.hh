@@ -81,12 +81,18 @@ struct ShadingData {
   float hair_diameter;
   /** Index of the strand for per strand effects. */
   int hair_strand_id;
+  /** Pointcloud infos. */
+  packed_float3 point_position;
+  float point_radius;
+  int point_id;
   /** Ray properties (approximation). */
   float ray_depth;
   float ray_length;
   uchar ray_type;
   /** Is hair. */
   bool is_strand;
+  /** Fragment front_facing value or true for other stages. */
+  bool front_facing;
 
   /* TODO(fclem): Supposed to be an implementation detail. */
   float holdout;
@@ -94,6 +100,8 @@ struct ShadingData {
 
 /* Should eventually carry the needed resource tables. */
 struct KernelGlobals {
+  /* Add dummy push constant to tag struct as resource table.. */
+  [[push_constant]] int dummy_;
 
   ViewMatrices view_matrices_get(const ShadingData & /*sd*/)
   {
@@ -295,23 +303,40 @@ Coordinates coordinate_impl([[resource_table]] KernelGlobals & /*kg*/,
 /* Ambient occlusion node. */
 
 float ambient_occlusion_eval([[resource_table]] const KernelGlobals & /*kg*/,
-                             const ShadingData &sd,
-                             float3 normal,
-                             float max_distance,
-                             float inverted,
-                             float sample_count);
+                             const ShadingData & /*sd*/,
+                             float3 /*normal*/,
+                             float /*max_distance*/,
+                             float /*inverted*/,
+                             float /*sample_count*/)
+{
+  return 0.0f;
+}
 
 /* Attribute node occlusion node. */
 
-float4 attr_load_color_post(float4 attr);
-float attr_load_temperature_post(float attr);
-float4 attr_load_radiance_post(float4 attr);
+float4 attr_load_color_post(float4 attr)
+{
+  return attr;
+}
+float attr_load_temperature_post(float attr)
+{
+  return attr;
+}
+float4 attr_load_radiance_post(float4 attr)
+{
+  return attr;
+}
 
 /* TODO remove attr as parameter. */
 float4 attr_load_uniform([[resource_table]] KernelGlobals & /*kg*/,
                          const ShadingData & /*sd*/,
                          float4 /*attr*/,
                          uint /*attr_hash*/)
+{
+  return float4(0);
+}
+float4 node_attribute_layer_impl([[resource_table]] KernelGlobals & /*kg*/,
+                                 const uint /*attr_hash*/)
 {
   return float4(0);
 }
@@ -413,6 +438,11 @@ void node_light_evaluation_impl([[resource_table]] KernelGlobals & /*kg*/,
                                 float & /*factor*/)
 {
 }
+
+template void node_light_evaluation_impl<true>(
+    KernelGlobals &, const ShadingData &, int, float3, float3, float, float &);
+template void node_light_evaluation_impl<false>(
+    KernelGlobals &, const ShadingData &, int, float3, float3, float, float &);
 
 /* Raycast Node. */
 

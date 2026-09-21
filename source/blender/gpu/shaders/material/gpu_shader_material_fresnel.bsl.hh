@@ -42,5 +42,5 @@ void node_fresnel(
   float3 V = coordinate_impl(kg, sd, sd.P, sd.N).incoming;
 
   float eta = max(ior, 0.00001f);
-  result = fresnel_dielectric(V, N, (FrontFacing) ? eta : 1.0f / eta);
+  result = fresnel_dielectric(V, N, sd.front_facing ? eta : 1.0f / eta);
 }

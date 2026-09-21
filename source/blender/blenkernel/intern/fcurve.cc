@@ -207,7 +207,7 @@ void BKE_fmodifier_name_set(FModifier *fcm, const char *name)
   /* Set default modifier name when name parameter is an empty string.
    * Ensure the name is unique. */
   const FModifierTypeInfo *fmi = get_fmodifier_typeinfo(fcm->type);
-  ListBaseT<FModifier> list = {fcm, fcm};
+  ListBaseT<FModifier> list = BLI_listbase_from_link(fcm);
   BLI_uniquename(&list,
                  fcm,
                  CTX_DATA_(BLT_I18NCONTEXT_ID_ACTION, fmi->name),

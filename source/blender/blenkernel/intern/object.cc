@@ -180,8 +180,6 @@ static void object_init_data(ID *id)
 
   ob->type = OB_EMPTY;
 
-  ob->trackflag = OB_POSY;
-  ob->upflag = OB_POSZ;
   ob->runtime = MEM_new<bke::ObjectRuntime>(__func__);
 
   /* Animation Visualization defaults */

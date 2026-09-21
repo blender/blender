@@ -1049,6 +1049,11 @@ void ShaderModule::material_create_info_amend(GPUMaterial *gpumat, GPUCodegenOut
     info.additional_info("eevee_HiZ");
   }
 
+  const ListBaseT<GPULayerAttr> *attr_list = GPU_material_layer_attributes(gpumat);
+  if (attr_list && !attr_list->is_empty()) {
+    info.additional_info("draw_layer_attributes");
+  }
+
   /* Copy vertex inputs. They can be transferred into other type of resources.
    * We add them back after we get the SlotAllocator. */
   auto vertex_inputs = info.vertex_inputs_;

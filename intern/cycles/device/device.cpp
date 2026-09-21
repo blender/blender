@@ -281,7 +281,7 @@ vector<DeviceInfo> Device::available_devices(const uint mask)
       {
         device_optix_info(cuda_devices(), optix_devices());
         for (DeviceInfo &info : optix_devices()) {
-          info.meets_driver_requirement = meets_nvidia_driver_requirement;
+          info.meets_driver_requirement &= meets_nvidia_driver_requirement;
         }
       }
       else {
@@ -508,7 +508,7 @@ DeviceInfo Device::get_multi_device(const vector<DeviceInfo> &subdevices,
 
     /* Accumulate device info. */
     info.has_nanovdb &= device.has_nanovdb;
-    info.has_mnee_ &= device.has_mnee();
+    info.has_mnee_ &= device.has_mnee_;
     info.has_osl &= device.has_osl;
     info.has_guiding &= device.has_guiding;
     info.has_profiling &= device.has_profiling;

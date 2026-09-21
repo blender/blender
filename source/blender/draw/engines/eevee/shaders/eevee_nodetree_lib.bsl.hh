@@ -63,12 +63,18 @@ struct ShadingData {
   float hair_diameter;
   /** Index of the strand for per strand effects. */
   int hair_strand_id;
+  /** Pointcloud infos. */
+  packed_float3 point_position;
+  float point_radius;
+  int point_id;
   /** Ray properties (approximation). */
   float ray_depth;
   float ray_length;
   uchar ray_type;
   /** Is hair. */
   bool is_strand;
+  /** Fragment front_facing value or true for other stages. */
+  bool front_facing;
 
   LightAccumulation light_accum;
 
@@ -1024,6 +1030,30 @@ float4 attr_load_uniform([[resource_table]] KernelGlobals &kg,
     }
   }
   return float4(0.0f);
+}
+
+float4 node_attribute_layer_impl([[resource_table]] KernelGlobals &kg, const uint attr_hash)
+{
+  const auto &attrs_buf = buffer_get(draw_layer_attributes, drw_layer_attrs);
+
+  /* The first record of the buffer stores the length. */
+  uint left = 0, right = attrs_buf[0].buffer_length;
+
+  while (left < right) {
+    uint mid = (left + right) / 2;
+    uint hash = attrs_buf[mid].hash_code;
+
+    if (hash < attr_hash) {
+      left = mid + 1;
+    }
+    else if (hash > attr_hash) {
+      right = mid;
+    }
+    else {
+      return attrs_buf[mid].data;
+    }
+  }
+  return float4(0);
 }
 
 void scene_time_uniforms([[resource_table]] KernelGlobals &kg, float &seconds, float &frame)

@@ -1,0 +1,227 @@
+==== Point Clouds: 12
+- PointCloud 'correct_gsplat_float' points:3
+  - attr 'position' FLOAT_VECTOR POINT
+    - (1.630, -1.300, 0.220)
+    - (-1.020, 0.770, 0.070)
+    - (1.620, -1.400, 0.250)
+  - attr 'radiance:base' FLOAT4 POINT
+    - (-0.200, -0.640, -0.950, 0.990)
+    - (-0.130, -0.500, -1.010, 0.550)
+    - (1.870, 2.320, 1.180, 0.044)
+  - attr 'radiance:sh_0' FLOAT_VECTOR POINT
+    - (-0.050, -0.020, 0.010)
+    - (0.010, 0.010, 0.000)
+    - (-0.160, -0.080, -0.050)
+  - attr 'radiance:sh_1' FLOAT_VECTOR POINT
+    - (-0.030, -0.010, 0.030)
+    - (-0.010, -0.010, -0.010)
+    - (-0.090, -0.060, 0.060)
+  - attr 'radiance:sh_10' FLOAT_VECTOR POINT
+    - (0.170, 0.080, 0.060)
+    - (0.020, 0.010, 0.010)
+    - (-0.090, -0.110, 0.020)
+  - attr 'radiance:sh_11' FLOAT_VECTOR POINT
+    - (0.070, 0.030, -0.010)
+    - (0.000, 0.010, 0.010)
+    - (0.070, 0.030, -0.070)
+  - attr 'radiance:sh_12' FLOAT_VECTOR POINT
+    - (0.010, -0.020, -0.040)
+    - (-0.020, 0.000, 0.000)
+    - (-0.030, -0.050, 0.040)
+  - attr 'radiance:sh_13' FLOAT_VECTOR POINT
+    - (-0.040, -0.010, 0.020)
+    - (-0.020, -0.020, -0.010)
+    - (-0.040, -0.040, 0.070)
+  - attr 'radiance:sh_14' FLOAT_VECTOR POINT
+    - (0.000, 0.030, 0.030)
+    - (0.020, 0.020, 0.010)
+    - (-0.100, -0.020, -0.060)
+  - attr 'radiance:sh_2' FLOAT_VECTOR POINT
+    - (0.010, 0.040, 0.050)
+    - (0.000, -0.010, -0.010)
+    - (-0.070, -0.090, -0.050)
+  - attr 'radiance:sh_3' FLOAT_VECTOR POINT
+    - (0.060, 0.030, -0.010)
+    - (0.000, 0.000, 0.000)
+    - (0.130, 0.070, 0.050)
+  - attr 'radiance:sh_4' FLOAT_VECTOR POINT
+    - (0.030, 0.040, 0.030)
+    - (-0.010, 0.000, 0.000)
+    - (-0.010, 0.050, -0.050)
+  - attr 'radiance:sh_5' FLOAT_VECTOR POINT
+    - (0.010, 0.040, 0.050)
+    - (-0.010, -0.010, -0.010)
+    - (-0.010, -0.010, -0.060)
+  - attr 'radiance:sh_6' FLOAT_VECTOR POINT
+    - (0.030, 0.010, -0.030)
+    - (0.000, 0.000, 0.000)
+    - (0.070, 0.050, -0.060)
+  - attr 'radiance:sh_7' FLOAT_VECTOR POINT
+    - (-0.010, -0.030, -0.040)
+    - (0.010, 0.000, 0.000)
+    - (0.090, 0.050, 0.050)
+  - attr 'radiance:sh_8' FLOAT_VECTOR POINT
+    - (-0.050, -0.010, 0.020)
+    - (0.010, 0.000, -0.010)
+    - (-0.160, -0.110, -0.090)
+  - attr 'radiance:sh_9' FLOAT_VECTOR POINT
+    - (-0.040, -0.050, -0.040)
+    - (0.000, 0.000, 0.000)
+    - (0.030, -0.020, 0.070)
+  - attr 'rotation' QUATERNION POINT
+    - (0.501, 0.622, 0.361, 0.481)
+    - (0.381, 0.291, 0.552, 0.682)
+    - (0.160, 0.740, 0.420, 0.500)
+  - attr 'scale' FLOAT_VECTOR POINT
+    - (0.100, 0.200, 0.100)
+    - (0.200, 0.100, 0.200)
+    - (0.300, 0.400, 0.500)
+
+- PointCloud 'correct_gsplat_half' points:3
+  - attr 'position' FLOAT_VECTOR POINT
+    - (1.630, -1.300, 0.220)
+    - (-1.020, 0.770, 0.070)
+    - (1.620, -1.400, 0.250)
+  - attr 'radiance:base' FLOAT4 POINT
+    - (-0.200, -0.640, -0.950, 0.990)
+    - (-0.130, -0.500, -1.010, 0.550)
+    - (1.870, 2.320, 1.180, 0.044)
+  - attr 'radiance:sh_0' FLOAT_VECTOR POINT
+    - (-0.050, -0.020, 0.010)
+    - (0.010, 0.010, 0.000)
+    - (-0.160, -0.080, -0.050)
+  - attr 'radiance:sh_1' FLOAT_VECTOR POINT
+    - (-0.030, -0.010, 0.030)
+    - (-0.010, -0.010, -0.010)
+    - (-0.090, -0.060, 0.060)
+  - attr 'radiance:sh_10' FLOAT_VECTOR POINT
+    - (0.170, 0.080, 0.060)
+    - (0.020, 0.010, 0.010)
+    - (-0.090, -0.110, 0.020)
+  - attr 'radiance:sh_11' FLOAT_VECTOR POINT
+    - (0.070, 0.030, -0.010)
+    - (0.000, 0.010, 0.010)
+    - (0.070, 0.030, -0.070)
+  - attr 'radiance:sh_12' FLOAT_VECTOR POINT
+    - (0.010, -0.020, -0.040)
+    - (-0.020, 0.000, 0.000)
+    - (-0.030, -0.050, 0.040)
+  - attr 'radiance:sh_13' FLOAT_VECTOR POINT
+    - (-0.040, -0.010, 0.020)
+    - (-0.020, -0.020, -0.010)
+    - (-0.040, -0.040, 0.070)
+  - attr 'radiance:sh_14' FLOAT_VECTOR POINT
+    - (0.000, 0.030, 0.030)
+    - (0.020, 0.020, 0.010)
+    - (-0.100, -0.020, -0.060)
+  - attr 'radiance:sh_2' FLOAT_VECTOR POINT
+    - (0.010, 0.040, 0.050)
+    - (0.000, -0.010, -0.010)
+    - (-0.070, -0.090, -0.050)
+  - attr 'radiance:sh_3' FLOAT_VECTOR POINT
+    - (0.060, 0.030, -0.010)
+    - (0.000, 0.000, 0.000)
+    - (0.130, 0.070, 0.050)
+  - attr 'radiance:sh_4' FLOAT_VECTOR POINT
+    - (0.030, 0.040, 0.030)
+    - (-0.010, 0.000, 0.000)
+    - (-0.010, 0.050, -0.050)
+  - attr 'radiance:sh_5' FLOAT_VECTOR POINT
+    - (0.010, 0.040, 0.050)
+    - (-0.010, -0.010, -0.010)
+    - (-0.010, -0.010, -0.060)
+  - attr 'radiance:sh_6' FLOAT_VECTOR POINT
+    - (0.030, 0.010, -0.030)
+    - (0.000, 0.000, 0.000)
+    - (0.070, 0.050, -0.060)
+  - attr 'radiance:sh_7' FLOAT_VECTOR POINT
+    - (-0.010, -0.030, -0.040)
+    - (0.010, 0.000, 0.000)
+    - (0.090, 0.050, 0.050)
+  - attr 'radiance:sh_8' FLOAT_VECTOR POINT
+    - (-0.050, -0.010, 0.020)
+    - (0.010, 0.000, -0.010)
+    - (-0.160, -0.110, -0.090)
+  - attr 'radiance:sh_9' FLOAT_VECTOR POINT
+    - (-0.040, -0.050, -0.040)
+    - (0.000, 0.000, 0.000)
+    - (0.030, -0.020, 0.070)
+  - attr 'rotation' QUATERNION POINT
+    - (0.501, 0.622, 0.361, 0.481)
+    - (0.381, 0.291, 0.552, 0.682)
+    - (0.160, 0.740, 0.420, 0.500)
+  - attr 'scale' FLOAT_VECTOR POINT
+    - (0.100, 0.200, 0.100)
+    - (0.200, 0.100, 0.200)
+    - (0.300, 0.400, 0.500)
+
+- PointCloud 'incorrect_coeffs1' points:0
+
+- PointCloud 'incorrect_coeffs2' points:0
+
+- PointCloud 'incorrect_degree_gt4' points:0
+
+- PointCloud 'incorrect_degree_lt0' points:0
+
+- PointCloud 'incorrect_opacities1' points:0
+
+- PointCloud 'incorrect_opacities2' points:0
+
+- PointCloud 'incorrect_orientation_count1' points:0
+
+- PointCloud 'incorrect_orientation_count2' points:0
+
+- PointCloud 'incorrect_scale_count1' points:0
+
+- PointCloud 'incorrect_scale_count2' points:0
+
+==== Objects: 12
+- Obj 'correct_gsplat_float' POINTCLOUD data:'correct_gsplat_float'
+  - pos 0.000, 0.000, 0.000
+  - rot 1.571, 0.000, 0.000 (XYZ)
+  - scl 1.000, 1.000, 1.000
+- Obj 'correct_gsplat_half' POINTCLOUD data:'correct_gsplat_half'
+  - pos 0.000, 0.000, 0.000
+  - rot 1.571, 0.000, 0.000 (XYZ)
+  - scl 1.000, 1.000, 1.000
+- Obj 'incorrect_coeffs1' POINTCLOUD data:'incorrect_coeffs1'
+  - pos 0.000, 0.000, 0.000
+  - rot 1.571, 0.000, 0.000 (XYZ)
+  - scl 1.000, 1.000, 1.000
+- Obj 'incorrect_coeffs2' POINTCLOUD data:'incorrect_coeffs2'
+  - pos 0.000, 0.000, 0.000
+  - rot 1.571, 0.000, 0.000 (XYZ)
+  - scl 1.000, 1.000, 1.000
+- Obj 'incorrect_degree_gt4' POINTCLOUD data:'incorrect_degree_gt4'
+  - pos 0.000, 0.000, 0.000
+  - rot 1.571, 0.000, 0.000 (XYZ)
+  - scl 1.000, 1.000, 1.000
+- Obj 'incorrect_degree_lt0' POINTCLOUD data:'incorrect_degree_lt0'
+  - pos 0.000, 0.000, 0.000
+  - rot 1.571, 0.000, 0.000 (XYZ)
+  - scl 1.000, 1.000, 1.000
+- Obj 'incorrect_opacities1' POINTCLOUD data:'incorrect_opacities1'
+  - pos 0.000, 0.000, 0.000
+  - rot 1.571, 0.000, 0.000 (XYZ)
+  - scl 1.000, 1.000, 1.000
+- Obj 'incorrect_opacities2' POINTCLOUD data:'incorrect_opacities2'
+  - pos 0.000, 0.000, 0.000
+  - rot 1.571, 0.000, 0.000 (XYZ)
+  - scl 1.000, 1.000, 1.000
+- Obj 'incorrect_orientation_count1' POINTCLOUD data:'incorrect_orientation_count1'
+  - pos 0.000, 0.000, 0.000
+  - rot 1.571, 0.000, 0.000 (XYZ)
+  - scl 1.000, 1.000, 1.000
+- Obj 'incorrect_orientation_count2' POINTCLOUD data:'incorrect_orientation_count2'
+  - pos 0.000, 0.000, 0.000
+  - rot 1.571, 0.000, 0.000 (XYZ)
+  - scl 1.000, 1.000, 1.000
+- Obj 'incorrect_scale_count1' POINTCLOUD data:'incorrect_scale_count1'
+  - pos 0.000, 0.000, 0.000
+  - rot 1.571, 0.000, 0.000 (XYZ)
+  - scl 1.000, 1.000, 1.000
+- Obj 'incorrect_scale_count2' POINTCLOUD data:'incorrect_scale_count2'
+  - pos 0.000, 0.000, 0.000
+  - rot 1.571, 0.000, 0.000 (XYZ)
+  - scl 1.000, 1.000, 1.000
+

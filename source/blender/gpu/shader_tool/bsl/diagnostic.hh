@@ -533,7 +533,7 @@ static inline std::string_view diagnostic_message_get(Diag diag)
     case Diag::UnknownClassInstantiation:
       return "Compiler error: Can't find class symbol";
     case Diag::UnknownFunction:
-      return "Unknown function name";
+      return "Unknown function name '{}'";
     case Diag::UnknownIdentifier:
       return "Use of undeclared identifier '{}'";
     case Diag::UnknownMember:

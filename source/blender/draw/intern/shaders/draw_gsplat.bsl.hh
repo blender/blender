@@ -233,7 +233,7 @@ float3 eval_radiance(Gaussian gs,
 
   /* Resolve radiance as sh + 0.5, matching the implementation of [3dgs2023]. Note that our
    * conversion to linear rgb is erroneous; splat data is fitted for sRGB data. */
-  float3 resolved_radiance = detail::scene_linear_from_bt709(max(radiance + 0.5f, 0.0f));
+  float3 resolved_radiance = detail::scene_linear_from_bt709(radiance + 0.5f);
   return resolved_radiance;
 }
 template float3 eval_radiance<1>(Gaussian,

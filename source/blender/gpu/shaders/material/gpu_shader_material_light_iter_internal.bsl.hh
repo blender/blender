@@ -4,6 +4,8 @@
 
 #pragma once
 
+#include "gpu_shader_material_interface.bsl.hh" /* IWYU pragma: export */
+
 #ifdef GPU_SHADER
 
 #else

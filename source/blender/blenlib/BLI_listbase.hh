@@ -38,6 +38,15 @@ int BLI_findstringindex(const ListBase *listbase,
  */
 ListBase BLI_listbase_from_link(Link *some_link);
 
+/**
+ * Return a typed ListBase representing the entire list the given link is in.
+ */
+template<typename T> ListBaseT<T> BLI_listbase_from_link(T *some_link)
+{
+  const ListBase list = BLI_listbase_from_link(reinterpret_cast<Link *>(some_link));
+  return ListBaseT<T>{static_cast<T *>(list.first_), static_cast<T *>(list.last_)};
+}
+
 /* Find forwards. */
 
 /**

@@ -346,7 +346,7 @@ struct CodegenContext : NodeErrorHandler {
           id, call.parameters(), symbol_scope, scope, loc);
 
       if (sym->is_error) {
-        ctx.error(call, Diag::UnknownFunction);
+        ctx.error(call, Diag::UnknownFunction, string(id.str()));
         return {"", sym->return_type};
       }
 
@@ -1036,6 +1036,7 @@ struct CodegenContext : NodeErrorHandler {
 
     if (auto [fn, call] = get_inlined_function(stmt.expr(), scope); fn) {
       inline_function(fn, call, scope);
+      jump_to(stmt.back().next());
       return;
     }
 
@@ -1065,7 +1066,7 @@ struct CodegenContext : NodeErrorHandler {
 
     if (enum_cls) {
       /* TODO(fclem): Remove. Compatibility with previous BSL version. */
-      builder.ss << "#define " << enum_cls->identifier << " " << type.str() << "\n";
+      builder.ss << "\n#define " << enum_cls->identifier << " " << type.str() << "\n";
     }
 
     jump_to(decl.front());
@@ -1558,7 +1559,7 @@ struct CodegenContext : NodeErrorHandler {
     if (fn->is_entry_point()) {
       str += " && defined(ENTRY_POINT_" + fn->identifier + ")";
     }
-    if (string scope_str = condition(static_cast<SymbolScope *>(fn)); !scope_str.empty()) {
+    else if (string scope_str = condition(static_cast<SymbolScope *>(fn)); !scope_str.empty()) {
       str += " && " + scope_str;
     }
     return str.empty() ? str : str.substr(4);
@@ -1859,7 +1860,7 @@ struct CodegenContext : NodeErrorHandler {
           error(attr.identifier(), Diag::MultipleConditionAttributes);
           break;
         }
-        for (LocalVar var : attributes.children_of_type<LocalVar>()) {
+        for (LocalVar var : attributes.descendants_of_type<LocalVar>()) {
           string id = string(var.identifier().str());
           cond += "int " + id + " = ShaderCreateInfo::find_constant(constants, \"" + id + "\"); ";
         }
@@ -2666,6 +2667,7 @@ struct CodegenContext : NodeErrorHandler {
         .var_type = type,
         .var_name = name,
         .slot = string(attr.param1.str()),
+        .res_condition = attr.parse_condition(),
     };
   }
 

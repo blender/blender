@@ -343,8 +343,9 @@ float3 project_covmat(float3 lP,
 
   /* Applied in [3dgs2023], either as a low-pass regularization, or to enforce some minimum pixel
    * size. Reason unclear, but I guess we should match the reference here. */
-  covmat_2d[0][0] += 0.3f;
-  covmat_2d[1][1] += 0.3f;
+  /* NOTE(not_mark): disabled for now, better matches Cycles implementation. */
+  // covmat_2d[0][0] += 0.3f;
+  // covmat_2d[1][1] += 0.3f;
 
   return float3(covmat_2d[0][0], covmat_2d[0][1], covmat_2d[1][1]);
 }

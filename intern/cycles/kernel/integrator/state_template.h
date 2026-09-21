@@ -57,17 +57,29 @@ KERNEL_STRUCT_MEMBER(path, packed_float3, mis_origin_n, KERNEL_FEATURE_PATH_TRAC
 /* Filter glossy. */
 KERNEL_STRUCT_MEMBER(path, float, min_ray_pdf, KERNEL_FEATURE_PATH_TRACING)
 /* Continuation probability for path termination. */
-KERNEL_STRUCT_MEMBER(path, float, continuation_probability, KERNEL_FEATURE_PATH_TRACING)
+KERNEL_STRUCT_MEMBER(path,
+                     FloatCompressedOnGPU,
+                     continuation_probability,
+                     KERNEL_FEATURE_PATH_TRACING)
 /* Throughput. */
 KERNEL_STRUCT_MEMBER(path, PackedSpectrum, throughput, KERNEL_FEATURE_PATH_TRACING)
 /* Factor to multiple with throughput to get remove any guiding PDFS.
  * Such throughput without guiding PDFS is used for Russian roulette termination. */
 KERNEL_STRUCT_MEMBER(path, float, unguided_throughput, KERNEL_FEATURE_PATH_GUIDING)
 /* Ratio of throughput to distinguish diffuse / glossy / transmission render passes. */
-KERNEL_STRUCT_MEMBER(path, PackedSpectrum, pass_diffuse_weight, KERNEL_FEATURE_LIGHT_PASSES)
-KERNEL_STRUCT_MEMBER(path, PackedSpectrum, pass_glossy_weight, KERNEL_FEATURE_LIGHT_PASSES)
+KERNEL_STRUCT_MEMBER(path,
+                     SpectrumCompressedOnGPU,
+                     pass_diffuse_weight,
+                     KERNEL_FEATURE_LIGHT_PASSES)
+KERNEL_STRUCT_MEMBER(path,
+                     SpectrumCompressedOnGPU,
+                     pass_glossy_weight,
+                     KERNEL_FEATURE_LIGHT_PASSES)
 /* Denoising. */
-KERNEL_STRUCT_MEMBER(path, PackedSpectrum, denoising_feature_throughput, KERNEL_FEATURE_DENOISING)
+KERNEL_STRUCT_MEMBER(path,
+                     SpectrumCompressedOnGPU,
+                     denoising_feature_throughput,
+                     KERNEL_FEATURE_DENOISING)
 /* Shader sorting. */
 /* TODO: compress as uint16? or leave out entirely and recompute key in sorting code? */
 KERNEL_STRUCT_MEMBER(path, uint32_t, shader_sort_key, KERNEL_FEATURE_PATH_TRACING)
@@ -77,12 +89,12 @@ KERNEL_STRUCT_END(path)
 
 KERNEL_STRUCT_BEGIN_PACKED(ray, KERNEL_FEATURE_PATH_TRACING)
 KERNEL_STRUCT_MEMBER_PACKED(ray, packed_float3, P, KERNEL_FEATURE_PATH_TRACING)
-KERNEL_STRUCT_MEMBER_PACKED(ray, float, dP, KERNEL_FEATURE_PATH_TRACING)
 KERNEL_STRUCT_MEMBER_PACKED(ray, packed_float3, D, KERNEL_FEATURE_PATH_TRACING)
-KERNEL_STRUCT_MEMBER_PACKED(ray, float, dD, KERNEL_FEATURE_PATH_TRACING)
 KERNEL_STRUCT_MEMBER_PACKED(ray, float, tmin, KERNEL_FEATURE_PATH_TRACING)
 KERNEL_STRUCT_MEMBER_PACKED(ray, float, tmax, KERNEL_FEATURE_PATH_TRACING)
-KERNEL_STRUCT_MEMBER_PACKED(ray, float, time, KERNEL_FEATURE_PATH_TRACING)
+KERNEL_STRUCT_MEMBER_PACKED(ray, float, dP, KERNEL_FEATURE_PATH_TRACING)
+KERNEL_STRUCT_MEMBER_PACKED(ray, FloatCompressedOnGPU, dD, KERNEL_FEATURE_PATH_TRACING)
+KERNEL_STRUCT_MEMBER_PACKED(ray, FloatCompressedOnGPU, time, KERNEL_FEATURE_PATH_TRACING)
 KERNEL_STRUCT_MEMBER(ray, float, previous_dt, KERNEL_FEATURE_LIGHT_TREE)
 KERNEL_STRUCT_END(ray)
 
@@ -101,10 +113,13 @@ KERNEL_STRUCT_END(isect)
 /*************** Subsurface closure state for subsurface kernel ***************/
 
 KERNEL_STRUCT_BEGIN_PACKED(subsurface, KERNEL_FEATURE_SUBSURFACE)
-KERNEL_STRUCT_MEMBER_PACKED(subsurface, PackedSpectrum, albedo, KERNEL_FEATURE_SUBSURFACE)
 KERNEL_STRUCT_MEMBER_PACKED(subsurface, PackedSpectrum, radius, KERNEL_FEATURE_SUBSURFACE)
-KERNEL_STRUCT_MEMBER_PACKED(subsurface, float, anisotropy, KERNEL_FEATURE_SUBSURFACE)
 KERNEL_STRUCT_MEMBER_PACKED(subsurface, packed_float3, N, KERNEL_FEATURE_SUBSURFACE)
+KERNEL_STRUCT_MEMBER_PACKED(subsurface, SpectrumCompressedOnGPU, albedo, KERNEL_FEATURE_SUBSURFACE)
+KERNEL_STRUCT_MEMBER_PACKED(subsurface,
+                            FloatCompressedOnGPU,
+                            anisotropy,
+                            KERNEL_FEATURE_SUBSURFACE)
 KERNEL_STRUCT_END(subsurface)
 
 /********************************** Volume Stack ******************************/
@@ -132,24 +147,40 @@ KERNEL_STRUCT_MEMBER(guiding, uint64_t, path_segment, KERNEL_FEATURE_PATH_GUIDIN
 KERNEL_STRUCT_MEMBER(guiding, bool, use_surface_guiding, KERNEL_FEATURE_PATH_GUIDING)
 /* Random number used for additional guiding decisions (e.g., cache query, selection to use guiding
  * or BSDF sampling) */
-KERNEL_STRUCT_MEMBER(guiding, float, sample_surface_guiding_rand, KERNEL_FEATURE_PATH_GUIDING)
+KERNEL_STRUCT_MEMBER(guiding,
+                     FloatCompressedOnGPU,
+                     sample_surface_guiding_rand,
+                     KERNEL_FEATURE_PATH_GUIDING)
 /* The probability to use surface guiding (i.e., diffuse sampling prob * guiding prob). */
-KERNEL_STRUCT_MEMBER(guiding, float, surface_guiding_sampling_prob, KERNEL_FEATURE_PATH_GUIDING)
+KERNEL_STRUCT_MEMBER(guiding,
+                     FloatCompressedOnGPU,
+                     surface_guiding_sampling_prob,
+                     KERNEL_FEATURE_PATH_GUIDING)
 /* Probability of sampling a BSSRDF closure instead of a BSDF closure. */
-KERNEL_STRUCT_MEMBER(guiding, float, bssrdf_sampling_prob, KERNEL_FEATURE_PATH_GUIDING)
+KERNEL_STRUCT_MEMBER(guiding,
+                     FloatCompressedOnGPU,
+                     bssrdf_sampling_prob,
+                     KERNEL_FEATURE_PATH_GUIDING)
 /* If volume guiding is enabled */
 KERNEL_STRUCT_MEMBER(guiding, bool, use_volume_guiding, KERNEL_FEATURE_PATH_GUIDING)
 /* Random number used for additional guiding decisions (e.g., cache query, selection to use guiding
  * or BSDF sampling) */
-KERNEL_STRUCT_MEMBER(guiding, float, sample_volume_guiding_rand, KERNEL_FEATURE_PATH_GUIDING)
+KERNEL_STRUCT_MEMBER(guiding,
+                     FloatCompressedOnGPU,
+                     sample_volume_guiding_rand,
+                     KERNEL_FEATURE_PATH_GUIDING)
 /* The probability to use surface guiding (i.e., diffuse sampling prob * guiding prob). */
-KERNEL_STRUCT_MEMBER(guiding, float, volume_guiding_sampling_prob, KERNEL_FEATURE_PATH_GUIDING)
+KERNEL_STRUCT_MEMBER(guiding,
+                     FloatCompressedOnGPU,
+                     volume_guiding_sampling_prob,
+                     KERNEL_FEATURE_PATH_GUIDING)
 KERNEL_STRUCT_END(guiding)
 
 /******************************* Shadow linking *******************************/
 
 KERNEL_STRUCT_BEGIN(shadow_link)
-KERNEL_STRUCT_MEMBER(shadow_link, float, dedicated_light_weight, KERNEL_FEATURE_SHADOW_LINKING)
+/* Number of dedicated light hits along the shadow ray. */
+KERNEL_STRUCT_MEMBER(shadow_link, uint16_t, dedicated_light_weight, KERNEL_FEATURE_SHADOW_LINKING)
 /* Copy of primitive and object from the last main path intersection. */
 KERNEL_STRUCT_MEMBER(shadow_link, int, last_isect_prim, KERNEL_FEATURE_SHADOW_LINKING)
 KERNEL_STRUCT_MEMBER(shadow_link, int, last_isect_object, KERNEL_FEATURE_SHADOW_LINKING)

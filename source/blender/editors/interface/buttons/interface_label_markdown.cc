@@ -1205,7 +1205,7 @@ class MarkdownLayouter {
           continue;
         }
         else if (last_fit_char_i == 0) {
-          /* Nothing fits on an empty line; advance one character to avoid an infinit loop. */
+          /* Nothing fits on an empty line; advance one character to avoid an infinite loop. */
           draw_bytes = BLI_str_utf8_size_safe(text.data());
           drop_bytes = draw_bytes;
           needed_width = BLF_width(fontid, text.data(), draw_bytes);
