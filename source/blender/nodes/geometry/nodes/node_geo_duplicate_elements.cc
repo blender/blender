@@ -666,6 +666,69 @@ static void copy_edge_attributes_without_id(const Span<int> point_mapping,
 }
 
 /**
+ * Copy attributes from domains that are not represented by the output topology to the domain of
+ * the duplicated elements. The source attributes are adapted before gathering, so their values
+ * are interpolated in the same way as for field evaluation.
+ */
+static void copy_attributes_from_other_domains(const bke::AttributeAccessor src_attributes,
+                                               const AttrDomain domain,
+                                               const Span<AttrDomain> copied_domains,
+                                               const OffsetIndices<int> offsets,
+                                               const IndexMask &selection,
+                                               const AttributeFilter &attribute_filter,
+                                               bke::MutableAttributeAccessor dst_attributes)
+{
+  src_attributes.foreach_attribute([&](const bke::AttributeIter &iter) {
+    if (copied_domains.contains(iter.domain)) {
+      return;
+    }
+    if (dst_attributes.contains(iter.name)) {
+      return;
+    }
+    if (iter.is_builtin || bke::mesh::is_uv_map({iter.domain, iter.data_type}) ||
+        iter.name == "id" || iter.data_type == bke::AttrType::String ||
+        attribute_filter.allow_skip(iter.name))
+    {
+      return;
+    }
+    if (ELEM(iter.name,
+             ".corner_vert",
+             ".corner_edge",
+             ".edge_verts",
+             ".select_edge",
+             ".select_poly",
+             ".hide_edge",
+             ".hide_poly",
+             ".sculpt_face_set",
+             "custom_normal"))
+    {
+      return;
+    }
+
+    const bke::GAttributeReader src = iter.get(domain);
+    if (!src) {
+      return;
+    }
+    const CommonVArrayInfo info = src.varray.common_info();
+    if (info.type == CommonVArrayInfo::Type::Single) {
+      const CPPType &type = src.varray.type();
+      const bke::AttributeInitValue init(GPointer(type, info.data));
+      dst_attributes.add(iter.name, domain, iter.data_type, init);
+      return;
+    }
+
+    GSpanAttributeWriter dst = dst_attributes.lookup_or_add_for_write_only_span(
+        iter.name, domain, iter.data_type);
+    if (!dst) {
+      return;
+    }
+    const GVArraySpan src_span = src.varray;
+    bke::attribute_math::gather_to_groups(offsets, selection, src_span, dst.span);
+    dst.finish();
+  });
+}
+
+/**
  * Copy the stable ids to the first duplicate and create new ids based on a hash of the original id
  * and the duplicate number. This function is used for points when duplicating the edge domain.
  */
@@ -777,6 +840,14 @@ static void duplicate_edges(GeometrySet &geometry_set,
                                   attribute_filter,
                                   mesh.attributes(),
                                   new_mesh->attributes_for_write());
+
+  copy_attributes_from_other_domains(mesh.attributes(),
+                                     AttrDomain::Edge,
+                                     {AttrDomain::Point, AttrDomain::Edge},
+                                     duplicates,
+                                     selection,
+                                     attribute_filter,
+                                     new_mesh->attributes_for_write());
 
   if (CustomData_has_layer(&mesh.vert_data, CD_ORIGINDEX)) {
     const Span src(static_cast<const int *>(CustomData_get_layer(&mesh.vert_data, CD_ORIGINDEX)),
@@ -981,6 +1052,14 @@ static void duplicate_points_mesh(GeometrySet &geometry_set,
                                    duplicates,
                                    selection,
                                    new_mesh->attributes_for_write());
+
+  copy_attributes_from_other_domains(mesh.attributes(),
+                                     AttrDomain::Point,
+                                     {AttrDomain::Point},
+                                     duplicates,
+                                     selection,
+                                     attribute_filter,
+                                     new_mesh->attributes_for_write());
 
   copy_stable_id_point(duplicates, mesh.attributes(), new_mesh->attributes_for_write());
 
