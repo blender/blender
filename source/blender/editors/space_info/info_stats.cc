@@ -66,14 +66,19 @@
 
 namespace blender {
 
+/**
+ * Due to their implementation, certain modes (i.e. mesh painting & sculpting) typically only work
+ * on a single object at a time, switching between them as necessary, the `active` elements here
+ * are intended there to distinguish between other modes, and selection where necessary.
+ */
 struct SceneStats {
-  uint64_t totvert, totvertsel, totvertsculpt;
+  uint64_t totvert, totvertsel, totvertactive;
   uint64_t totedge, totedgesel;
-  uint64_t totface, totfacesel, totfacesculpt;
+  uint64_t totface, totfacesel, totfaceactive;
   uint64_t totbone, totbonesel;
   uint64_t totobj, totobjsel;
   uint64_t totlamp, totlampsel;
-  uint64_t tottri, tottrisel;
+  uint64_t tottri, tottrisel, tottriactive;
   uint64_t totgplayer, totgpframe, totgpstroke;
   uint64_t totpoints, totpointsel;
   uint64_t totcurves, totcurvesel;
@@ -82,14 +87,15 @@ struct SceneStats {
 struct SceneStatsFmt {
   /* Totals */
   char totvert[BLI_STR_FORMAT_UINT64_GROUPED_SIZE], totvertsel[BLI_STR_FORMAT_UINT64_GROUPED_SIZE],
-      totvertsculpt[BLI_STR_FORMAT_UINT64_GROUPED_SIZE];
+      totvertactive[BLI_STR_FORMAT_UINT64_GROUPED_SIZE];
   char totface[BLI_STR_FORMAT_UINT64_GROUPED_SIZE], totfacesel[BLI_STR_FORMAT_UINT64_GROUPED_SIZE];
   char totedge[BLI_STR_FORMAT_UINT64_GROUPED_SIZE], totedgesel[BLI_STR_FORMAT_UINT64_GROUPED_SIZE],
-      totfacesculpt[BLI_STR_FORMAT_UINT64_GROUPED_SIZE];
+      totfaceactive[BLI_STR_FORMAT_UINT64_GROUPED_SIZE];
   char totbone[BLI_STR_FORMAT_UINT64_GROUPED_SIZE], totbonesel[BLI_STR_FORMAT_UINT64_GROUPED_SIZE];
   char totobj[BLI_STR_FORMAT_UINT64_GROUPED_SIZE], totobjsel[BLI_STR_FORMAT_UINT64_GROUPED_SIZE];
   char totlamp[BLI_STR_FORMAT_UINT64_GROUPED_SIZE], totlampsel[BLI_STR_FORMAT_UINT64_GROUPED_SIZE];
-  char tottri[BLI_STR_FORMAT_UINT64_GROUPED_SIZE], tottrisel[BLI_STR_FORMAT_UINT64_GROUPED_SIZE];
+  char tottri[BLI_STR_FORMAT_UINT64_GROUPED_SIZE], tottrisel[BLI_STR_FORMAT_UINT64_GROUPED_SIZE],
+      tottriactive[BLI_STR_FORMAT_UINT64_GROUPED_SIZE];
   char totgplayer[BLI_STR_FORMAT_UINT64_GROUPED_SIZE],
       totgpframe[BLI_STR_FORMAT_UINT64_GROUPED_SIZE];
   char totgpstroke[BLI_STR_FORMAT_UINT64_GROUPED_SIZE];
@@ -420,45 +426,32 @@ static void stats_object_pose(const Object *ob, SceneStats *stats)
 
 static bool stats_is_object_dynamic_topology_sculpt(const Object *ob)
 {
-  BLI_assert(ob->mode & OB_MODE_SCULPT);
-  return (ob->runtime->sculpt_session && ob->runtime->sculpt_session->bm);
+  return (ob->mode == OB_MODE_SCULPT && ob->runtime->sculpt_session &&
+          ob->runtime->sculpt_session->bm);
 }
 
-static void stats_object_sculpt(const Object *ob, SceneStats *stats)
+static void stats_object_mesh_paint(const Object *ob, SceneStats *stats)
 {
-  switch (ob->type) {
-    case OB_MESH: {
-      const SculptSession *ss = ob->runtime->sculpt_session;
-      const bke::pbvh::Tree *pbvh = bke::object::pbvh_get(*ob);
-      if (ss == nullptr || pbvh == nullptr) {
-        return;
-      }
+  const SculptSession *ss = ob->runtime->sculpt_session;
+  const bke::pbvh::Tree *pbvh = bke::object::pbvh_get(*ob);
+  if (ss == nullptr || pbvh == nullptr) {
+    return;
+  }
 
-      switch (pbvh->type()) {
-        case bke::pbvh::Type::Mesh: {
-          const Mesh &mesh = *id_cast<const Mesh *>(ob->data);
-          stats->totvertsculpt = mesh.verts_num;
-          stats->totfacesculpt = mesh.faces_num;
-          break;
-        }
-        case bke::pbvh::Type::BMesh:
-          stats->totvertsculpt = ob->runtime->sculpt_session->bm->totvert;
-          stats->tottri = ob->runtime->sculpt_session->bm->totface;
-          break;
-        case bke::pbvh::Type::Grids:
-          stats->totvertsculpt = BKE_sculpt_get_grid_num_verts(*ob);
-          stats->totfacesculpt = BKE_sculpt_get_grid_num_faces(*ob);
-          break;
-      }
+  switch (pbvh->type()) {
+    case bke::pbvh::Type::Mesh: {
+      const Mesh &mesh = *id_cast<const Mesh *>(ob->data);
+      stats->totvertactive = mesh.verts_num;
+      stats->totfaceactive = mesh.faces_num;
       break;
     }
-    case OB_CURVES: {
-      const Curves &curves_id = *id_cast<Curves *>(ob->data);
-      const bke::CurvesGeometry &curves = curves_id.geometry.wrap();
-      stats->totvertsculpt += curves.points_num();
+    case bke::pbvh::Type::BMesh:
+      stats->totvertactive = ob->runtime->sculpt_session->bm->totvert;
+      stats->tottriactive = ob->runtime->sculpt_session->bm->totface;
       break;
-    }
-    default:
+    case bke::pbvh::Type::Grids:
+      stats->totvertactive = BKE_sculpt_get_grid_num_verts(*ob);
+      stats->totfaceactive = BKE_sculpt_get_grid_num_faces(*ob);
       break;
   }
 }
@@ -516,9 +509,13 @@ static void stats_update(const Main *bmain,
     }
     FOREACH_OBJECT_END;
   }
-  else if (ob && ELEM(ob->mode, OB_MODE_SCULPT, OB_MODE_SCULPT_CURVES)) {
-    /* Sculpt Mode. */
-    stats_object_sculpt(ob, stats);
+  else if (ob && BKE_object_use_sculptsession(ob->mode)) {
+    stats_object_mesh_paint(ob, stats);
+  }
+  else if (ob && ob->mode == OB_MODE_SCULPT_CURVES) {
+    const Curves &curves_id = *id_cast<Curves *>(ob->data);
+    const bke::CurvesGeometry &curves = curves_id.geometry.wrap();
+    stats->totvertactive += curves.points_num();
   }
   else {
     /* Objects. */
@@ -582,14 +579,14 @@ static bool format_stats(
 
   SCENE_STATS_FMT_INT(totvert);
   SCENE_STATS_FMT_INT(totvertsel);
-  SCENE_STATS_FMT_INT(totvertsculpt);
+  SCENE_STATS_FMT_INT(totvertactive);
 
   SCENE_STATS_FMT_INT(totedge);
   SCENE_STATS_FMT_INT(totedgesel);
 
   SCENE_STATS_FMT_INT(totface);
   SCENE_STATS_FMT_INT(totfacesel);
-  SCENE_STATS_FMT_INT(totfacesculpt);
+  SCENE_STATS_FMT_INT(totfaceactive);
 
   SCENE_STATS_FMT_INT(totbone);
   SCENE_STATS_FMT_INT(totbonesel);
@@ -602,6 +599,7 @@ static bool format_stats(
 
   SCENE_STATS_FMT_INT(tottri);
   SCENE_STATS_FMT_INT(tottrisel);
+  SCENE_STATS_FMT_INT(tottriactive);
 
   SCENE_STATS_FMT_INT(totgplayer);
   SCENE_STATS_FMT_INT(totgpframe);
@@ -707,26 +705,26 @@ static void get_stats_string(char *info,
         info + *ofs, len - *ofs, IFACE_("Bones:%s/%s"), stats_fmt->totbonesel, stats_fmt->totbone);
   }
   else if (ob && (ob->type == OB_CURVES)) {
-    const char *count = (object_mode == OB_MODE_SCULPT_CURVES) ? stats_fmt->totvertsculpt :
+    const char *count = (object_mode == OB_MODE_SCULPT_CURVES) ? stats_fmt->totvertactive :
                                                                  stats_fmt->totpoints;
     *ofs += BLI_snprintf_utf8_rlen(info + *ofs, len - *ofs, IFACE_("Points:%s"), count);
   }
-  else if (ob && (object_mode & OB_MODE_SCULPT)) {
+  else if (ob && BKE_object_use_sculptsession(ob->mode)) {
     if (stats_is_object_dynamic_topology_sculpt(ob)) {
       *ofs += BLI_snprintf_utf8_rlen(info + *ofs,
                                      len - *ofs,
 
                                      IFACE_("Verts:%s | Tris:%s"),
-                                     stats_fmt->totvertsculpt,
-                                     stats_fmt->tottri);
+                                     stats_fmt->totvertactive,
+                                     stats_fmt->tottriactive);
     }
     else {
       *ofs += BLI_snprintf_utf8_rlen(info + *ofs,
                                      len - *ofs,
 
                                      IFACE_("Verts:%s | Faces:%s"),
-                                     stats_fmt->totvertsculpt,
-                                     stats_fmt->totfacesculpt);
+                                     stats_fmt->totvertactive,
+                                     stats_fmt->totfaceactive);
     }
   }
   else {
@@ -940,7 +938,7 @@ void ED_info_draw_stats(
     stats_row(col1, labels[TRIS], col2, stats_fmt.tottri, nullptr, y, height);
     return;
   }
-  else if (!ELEM(object_mode, OB_MODE_SCULPT, OB_MODE_SCULPT_CURVES)) {
+  else if (object_mode != OB_MODE_SCULPT_CURVES && !BKE_object_use_sculptsession(object_mode)) {
     /* No objects in scene. */
     stats_row(col1, labels[OBJ], col2, stats_fmt.totobj, nullptr, y, height);
     return;
@@ -974,18 +972,18 @@ void ED_info_draw_stats(
       stats_row(col1, labels[VERTS], col2, stats_fmt.totvertsel, stats_fmt.totvert, y, height);
     }
   }
-  else if (ob && (object_mode & OB_MODE_SCULPT)) {
+  else if (ob && BKE_object_use_sculptsession(object_mode)) {
     if (stats_is_object_dynamic_topology_sculpt(ob)) {
-      stats_row(col1, labels[VERTS], col2, stats_fmt.totvertsculpt, nullptr, y, height);
-      stats_row(col1, labels[TRIS], col2, stats_fmt.tottri, nullptr, y, height);
+      stats_row(col1, labels[VERTS], col2, stats_fmt.totvertactive, nullptr, y, height);
+      stats_row(col1, labels[TRIS], col2, stats_fmt.tottriactive, nullptr, y, height);
     }
     else {
-      stats_row(col1, labels[VERTS], col2, stats_fmt.totvertsculpt, nullptr, y, height);
-      stats_row(col1, labels[FACES], col2, stats_fmt.totfacesculpt, nullptr, y, height);
+      stats_row(col1, labels[VERTS], col2, stats_fmt.totvertactive, nullptr, y, height);
+      stats_row(col1, labels[FACES], col2, stats_fmt.totfaceactive, nullptr, y, height);
     }
   }
   else if (ob && (object_mode & OB_MODE_SCULPT_CURVES)) {
-    stats_row(col1, labels[VERTS], col2, stats_fmt.totvertsculpt, nullptr, y, height);
+    stats_row(col1, labels[VERTS], col2, stats_fmt.totvertactive, nullptr, y, height);
   }
   else if (ob && (object_mode & OB_MODE_POSE)) {
     stats_row(col1, labels[BONES], col2, stats_fmt.totbonesel, stats_fmt.totbone, y, height);
